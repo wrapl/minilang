@@ -3352,6 +3352,14 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 				} while (ml_parse(Scanner, MLT_COMMA));
 				ml_accept(Scanner, MLT_RIGHT_PAREN);
 			}
+			if (ml_parse(Scanner, MLT_DO)) {
+				mlc_fun_expr_t *FunExpr = new(mlc_fun_expr_t);
+				FunExpr->compile = ml_fun_expr_compile;
+				FunExpr->Source = Scanner->Source;
+				FunExpr->Body = ml_accept_block(Scanner);
+				ml_accept(Scanner, MLT_END);
+				ArgsSlot[0] = (mlc_expr_t *)FunExpr;
+			}
 			Expr = (mlc_expr_t *)CallExpr;
 		} else if (ml_parse(Scanner, MLT_LEFT_SQUARE)) {
 			mlc_const_call_expr_t *IndexExpr = new(mlc_const_call_expr_t);
