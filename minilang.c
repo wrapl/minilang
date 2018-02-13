@@ -1878,7 +1878,13 @@ ml_inst_t *mli_enter_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 ml_inst_t *mli_var_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	ml_reference_t *Local = (ml_reference_t *)Frame->Stack[Inst->Params[1].Index];
 	ml_value_t *Value = Frame->Top[-1];
-	Local->Value[0] = Value->Type->deref(Value);
+	Value = Value->Type->deref(Value);
+	if (Value->Type == ErrorT) {
+		ml_error_trace_add(Value, Inst->Source);
+		(Frame->Top++)[0] = Value;
+		return Frame->OnError;
+	}
+	Local->Value[0] = Value;
 	return Inst->Params[0].Inst;
 }
 
@@ -1899,13 +1905,25 @@ ml_inst_t *mli_call_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	int Count = Inst->Params[1].Count;
 	ml_value_t *Function = Frame->Top[~Count];
 	Function = Function->Type->deref(Function);
+	if (Function->Type == ErrorT) {
+		ml_error_trace_add(Function, Inst->Source);
+		(Frame->Top++)[0] = Function;
+		return Frame->OnError;
+	}
 	ml_value_t **Args = Frame->Top - Count;
-	for (int I = 0; I < Count; ++I) Args[I] = Args[I]->Type->deref(Args[I]);
+	for (int I = 0; I < Count; ++I) {
+		Args[I] = Args[I]->Type->deref(Args[I]);
+		if (Args[I]->Type == ErrorT) {
+			ml_error_trace_add(Args[I], Inst->Source);
+			(Frame->Top++)[0] = Args[I];
+			return Frame->OnError;
+		}
+	}
 	ml_value_t *Result = ml_call(Function, Count, Args);
 	for (int I = Count; --I >= 0;) (--Frame->Top)[0] = 0;
 	Frame->Top[-1] = Result;
 	if (Result->Type == ErrorT) {
-		ml_error_trace_add(Frame->Top[-1], Inst->Source);
+		ml_error_trace_add(Result, Inst->Source);
 		return Frame->OnError;
 	} else {
 		return Inst->Params[0].Inst;
@@ -1916,7 +1934,14 @@ ml_inst_t *mli_const_call_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	int Count = Inst->Params[1].Count;
 	ml_value_t *Function = Inst->Params[2].Value;
 	ml_value_t **Args = Frame->Top - Count;
-	for (int I = 0; I < Count; ++I) Args[I] = Args[I]->Type->deref(Args[I]);
+	for (int I = 0; I < Count; ++I) {
+		Args[I] = Args[I]->Type->deref(Args[I]);
+		if (Args[I]->Type == ErrorT) {
+			ml_error_trace_add(Args[I], Inst->Source);
+			(Frame->Top++)[0] = Args[I];
+			return Frame->OnError;
+		}
+	}
 	ml_value_t *Result = ml_call(Function, Count, Args);
 	if (Count == 0) {
 		++Frame->Top;
@@ -1925,7 +1950,7 @@ ml_inst_t *mli_const_call_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	}
 	Frame->Top[-1] = Result;
 	if (Result->Type == ErrorT) {
-		ml_error_trace_add(Frame->Top[-1], Inst->Source);
+		ml_error_trace_add(Result, Inst->Source);
 		return Frame->OnError;
 	} else {
 		return Inst->Params[0].Inst;
@@ -1936,10 +1961,15 @@ ml_inst_t *mli_assign_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	ml_value_t *Value = Frame->Top[-1];
 	(--Frame->Top)[0] = 0;
 	Value = Value->Type->deref(Value);
+	if (Value->Type == ErrorT) {
+		ml_error_trace_add(Value, Inst->Source);
+		(Frame->Top++)[0] = Value;
+		return Frame->OnError;
+	}
 	ml_value_t *Ref = Frame->Top[-1];
 	ml_value_t *Result = Frame->Top[-1] = Ref->Type->assign(Ref, Value);
 	if (Result->Type == ErrorT) {
-		ml_error_trace_add(Frame->Top[-1], Inst->Source);
+		ml_error_trace_add(Result, Inst->Source);
 		return Frame->OnError;
 	} else {
 		return Inst->Params[0].Inst;
@@ -1953,6 +1983,11 @@ ml_inst_t *mli_jump_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 ml_inst_t *mli_if_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	ml_value_t *Value = Frame->Top[-1];
 	Value = Value->Type->deref(Value);
+	if (Value->Type == ErrorT) {
+		ml_error_trace_add(Value, Inst->Source);
+		Frame->Top[-1] = Value;
+		return Frame->OnError;
+	}
 	(--Frame->Top)[0] = 0;
 	if (Value == Nil) {
 		return Inst->Params[0].Inst;
@@ -1982,7 +2017,11 @@ ml_inst_t *mli_while_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 ml_inst_t *mli_and_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	ml_value_t *Value = Frame->Top[-1];
 	Value = Value->Type->deref(Value);
-	if (Value == Nil) {
+	if (Value->Type == ErrorT) {
+		ml_error_trace_add(Value, Inst->Source);
+		Frame->Top[-1] = Value;
+		return Frame->OnError;
+	} else if (Value == Nil) {
 		return Inst->Params[0].Inst;
 	} else {
 		(--Frame->Top)[0] = 0;
@@ -1993,7 +2032,11 @@ ml_inst_t *mli_and_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 ml_inst_t *mli_or_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	ml_value_t *Value = Frame->Top[-1];
 	Value = Value->Type->deref(Value);
-	if (Value != Nil) {
+	if (Value->Type == ErrorT) {
+		ml_error_trace_add(Value, Inst->Source);
+		Frame->Top[-1] = Value;
+		return Frame->OnError;
+	} else if (Value != Nil) {
 		return Inst->Params[0].Inst;
 	} else {
 		(--Frame->Top)[0] = 0;
@@ -2005,7 +2048,7 @@ ml_inst_t *mli_next_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	ml_value_t *Iter = Frame->Top[-1];
 	Frame->Top[-1] = Iter = Iter->Type->next(Iter);
 	if (Iter->Type == ErrorT) {
-		ml_error_trace_add(Frame->Top[-1], Inst->Source);
+		ml_error_trace_add(Iter, Inst->Source);
 		return Frame->OnError;
 	} else if (Iter == Nil) {
 		return Inst->Params[0].Inst;
@@ -2018,7 +2061,7 @@ ml_inst_t *mli_key_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	ml_value_t *Iter = Frame->Top[-1];
 	ml_value_t *Key = (++Frame->Top)[-1] = Iter->Type->key(Iter);
 	if (Key->Type == ErrorT) {
-		ml_error_trace_add(Frame->Top[-1], Inst->Source);
+		ml_error_trace_add(Key, Inst->Source);
 		return Frame->OnError;
 	} else {
 		return Inst->Params[0].Inst;
