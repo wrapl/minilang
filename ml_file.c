@@ -84,8 +84,18 @@ static ml_value_t *ml_file_eof(void *Data, int Count, ml_value_t **Args) {
 
 static ml_value_t *ml_file_close(void *Data, int Count, ml_value_t **Args) {
 	ml_file_t *File = (ml_file_t *)Args[0];
-	fclose(File->Handle);
+	if (File->Handle) {
+		fclose(File->Handle);
+		File->Handle = 0;
+	}
 	return Nil;
+}
+
+static void ml_file_finalize(ml_file_t *File, void *Data) {
+	if (File->Handle) {
+		fclose(File->Handle);
+		File->Handle = 0;
+	}
 }
 
 ml_value_t *ml_file_open(void *Data, int Count, ml_value_t **Args) {
@@ -96,6 +106,7 @@ ml_value_t *ml_file_open(void *Data, int Count, ml_value_t **Args) {
 	ml_file_t *File = new(ml_file_t);
 	File->Type = FileT;
 	File->Handle = Handle;
+	GC_register_finalizer(File, ml_file_finalize, 0, 0, 0);
 	return (ml_value_t *)File;
 }
 

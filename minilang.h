@@ -27,6 +27,7 @@ void ml_method_by_name(const char *Method, void *Data, ml_callback_t Function, .
 void ml_method_by_value(ml_value_t *Method, void *Data, ml_callback_t Function, ...);
 
 ml_value_t *ml_string(const char *Value, int Length);
+ml_value_t *ml_regexp(const char *Value, int Length);
 ml_value_t *ml_integer(long Value);
 ml_value_t *ml_real(double Value);
 ml_value_t *ml_list();

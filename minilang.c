@@ -18,6 +18,7 @@ typedef struct ml_reference_t ml_reference_t;
 typedef struct ml_integer_t ml_integer_t;
 typedef struct ml_real_t ml_real_t;
 typedef struct ml_string_t ml_string_t;
+typedef struct ml_regexp_t ml_regexp_t;
 typedef struct ml_list_t ml_list_t;
 typedef struct ml_tree_t ml_tree_t;
 typedef struct ml_object_t ml_object_t;
@@ -174,6 +175,12 @@ struct ml_string_t {
 	const ml_type_t *Type;
 	const char *Value;
 	int Length;
+};
+
+struct ml_regexp_t {
+	const ml_type_t *Type;
+	regex_t Value[1];
+	long Hash;
 };
 
 static long ml_integer_hash(ml_value_t *Value) {
@@ -391,6 +398,36 @@ static ml_value_t *ml_string_new(void *Data, int Count, ml_value_t **Args) {
 }
 
 static ml_function_t StringNew[1] = {{FunctionT, ml_string_new, 0}};
+
+static long ml_regexp_hash(ml_value_t *Value) {
+	ml_regexp_t *Regexp = (ml_regexp_t *)Value;
+	return Regexp->Hash;
+}
+
+ml_type_t RegexpT[1] = {{
+	AnyT, "regexp",
+	ml_regexp_hash,
+	ml_default_call,
+	ml_default_deref,
+	ml_default_assign,
+	ml_default_next,
+	ml_default_key
+}};
+
+ml_value_t *ml_regexp(const char *Value, int Length) {
+	ml_regexp_t *Regexp = fnew(ml_regexp_t);
+	Regexp->Type = RegexpT;
+	regcomp(Regexp->Value, Value, 0);
+	long Hash = 648391;
+	for (const char *P = Value; *P; ++P) Hash = ((Hash << 5) + Hash) + *P;
+	Regexp->Hash = Hash;
+	GC_end_stubborn_change(Regexp);
+	return (ml_value_t *)Regexp;
+}
+
+int ml_is_regexp(ml_value_t *Value) {
+	return Value->Type == RegexpT;
+}
 
 typedef struct ml_method_node_t ml_method_node_t;
 
