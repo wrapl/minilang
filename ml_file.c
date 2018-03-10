@@ -17,7 +17,7 @@ struct ml_file_t {
 };
 
 ml_type_t FileT[1] = {{
-	AnyT, "file",
+	MLAnyT, "file",
 	ml_default_hash,
 	ml_default_call,
 	ml_default_deref,
@@ -30,17 +30,17 @@ static ml_value_t *ml_file_read_line(void *Data, int Count, ml_value_t **Args) {
 	ml_file_t *File = (ml_file_t *)Args[0];
 	char *Line = 0;
 	size_t Length;
-	if (getline(&Line, &Length, File->Handle) < 0) return feof(File->Handle) ? Nil : ml_error("FileError", "error reading from file");
+	if (getline(&Line, &Length, File->Handle) < 0) return feof(File->Handle) ? MLNil : ml_error("FileError", "error reading from file");
 	return ml_string(Line, Length);
 }
 
 static ml_value_t *ml_file_read_count(void *Data, int Count, ml_value_t **Args) {
 	ml_file_t *File = (ml_file_t *)Args[0];
-	if (feof(File->Handle)) return Nil;
+	if (feof(File->Handle)) return MLNil;
 	ssize_t Requested = ml_integer_value(Args[1]);
 	char *Chars = snew(Requested + 1);
 	ssize_t Actual = fread(Chars, 1, Requested, File->Handle);
-	if (Actual == 0) return Nil;
+	if (Actual == 0) return MLNil;
 	if (Actual < 0) return ml_error("FileError", "error reading from file");
 	Chars[Actual] = 0;
 	return ml_string(Chars, Actual);
@@ -79,7 +79,7 @@ static ml_value_t *ml_file_write_buffer(void *Data, int Count, ml_value_t **Args
 static ml_value_t *ml_file_eof(void *Data, int Count, ml_value_t **Args) {
 	ml_file_t *File = (ml_file_t *)Args[0];
 	if (feof(File->Handle)) return Args[0];
-	return Nil;
+	return MLNil;
 }
 
 static ml_value_t *ml_file_close(void *Data, int Count, ml_value_t **Args) {
@@ -88,7 +88,7 @@ static ml_value_t *ml_file_close(void *Data, int Count, ml_value_t **Args) {
 		fclose(File->Handle);
 		File->Handle = 0;
 	}
-	return Nil;
+	return MLNil;
 }
 
 static void ml_file_finalize(ml_file_t *File, void *Data) {
@@ -99,6 +99,9 @@ static void ml_file_finalize(ml_file_t *File, void *Data) {
 }
 
 ml_value_t *ml_file_open(void *Data, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ML_CHECK_ARG_TYPE(1, MLStringT);
 	const char *Path = ml_string_value(Args[0]);
 	const char *Mode = ml_string_value(Args[1]);
 	FILE *Handle = fopen(Path, Mode);
@@ -106,15 +109,15 @@ ml_value_t *ml_file_open(void *Data, int Count, ml_value_t **Args) {
 	ml_file_t *File = new(ml_file_t);
 	File->Type = FileT;
 	File->Handle = Handle;
-	GC_register_finalizer(File, ml_file_finalize, 0, 0, 0);
+	GC_register_finalizer(File, (void *)ml_file_finalize, 0, 0, 0);
 	return (ml_value_t *)File;
 }
 
 void ml_file_init() {
 	ml_method_by_name("read", 0, ml_file_read_line, FileT, 0);
-	ml_method_by_name("read", 0, ml_file_read_count, FileT, IntegerT, 0);
-	ml_method_by_name("write", 0, ml_file_write_string, FileT, StringT, 0);
-	ml_method_by_name("write", 0, ml_file_write_buffer, FileT, StringBufferT, 0);
+	ml_method_by_name("read", 0, ml_file_read_count, FileT, MLIntegerT, 0);
+	ml_method_by_name("write", 0, ml_file_write_string, FileT, MLStringT, 0);
+	ml_method_by_name("write", 0, ml_file_write_buffer, FileT, MLStringBufferT, 0);
 	ml_method_by_name("eof", 0, ml_file_eof, FileT, 0);
 	ml_method_by_name("close", 0, ml_file_close, FileT, 0);
 }
