@@ -288,6 +288,18 @@ int ml_string_length(ml_value_t *Value) {
 	return ((ml_string_t *)Value)->Length;
 }
 
+static ml_value_t *ml_string_trim(void *Data, int Count, ml_value_t **Args) {
+	const char *Start = ml_string_value(Args[0]);
+	const char *End = Start + ml_string_length(Args[0]);
+	while (Start < End && Start[0] <= ' ') ++Start;
+	while (Start < End && End[-1] <= ' ') --End;
+	int Length = End - Start;
+	char *Chars = snew(Length + 1);
+	memcpy(Chars, Start, Length);
+	Chars[Length] = 0;
+	return ml_string(Chars, Length);
+}
+
 static ml_value_t *ml_string_length_value(void *Data, int Count, ml_value_t **Args) {
 	return ml_integer(((ml_string_t *)Args[0])->Length);
 }
@@ -1802,6 +1814,11 @@ static ml_value_t *ml_tree_add(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)Tree;
 }
 
+static ml_value_t *ml_hash_any(void *Data, int Count, ml_value_t **Args) {
+	ml_value_t *Value = Args[0];
+	return ml_integer(Value->Type->hash(Value));
+}
+
 static ml_value_t *ml_return_nil(void *Data, int Count, ml_value_t **Args) {
 	return MLNil;
 }
@@ -1809,6 +1826,7 @@ static ml_value_t *ml_return_nil(void *Data, int Count, ml_value_t **Args) {
 void ml_init() {
 	Methods = anew(ml_method_t *, MaxMethods);
 	CompareMethod = ml_method("?");
+	ml_method_by_name("#", 0, ml_hash_any, MLAnyT, 0);
 	ml_method_by_name("?", 0, ml_return_nil, MLNilT, MLAnyT, 0);
 	ml_method_by_name("?", 0, ml_return_nil, MLAnyT, MLNilT, 0);
 	ml_method_by_name("=", 0, ml_return_nil, MLNilT, MLAnyT, 0);
@@ -1837,6 +1855,7 @@ void ml_init() {
 	ml_methods_add_number_number(leq, <=);
 	ml_methods_add_number_number(geq, >=);
 	ml_method_by_name("length", 0, ml_string_length_value, MLStringT, 0);
+	ml_method_by_name("trim", 0, ml_string_trim, MLStringT, 0);
 	ml_method_by_name("[]", 0, ml_string_index, MLStringT, MLIntegerT, 0);
 	ml_method_by_name("[]", 0, ml_string_slice, MLStringT, MLIntegerT, MLIntegerT, 0);
 	ml_method_by_name("%", 0, ml_mod_integer_integer, MLIntegerT, MLIntegerT, 0);
