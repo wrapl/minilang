@@ -16,7 +16,7 @@ struct ml_file_t {
 	FILE *Handle;
 };
 
-ml_type_t FileT[1] = {{
+ml_type_t MLFileT[1] = {{
 	MLAnyT, "file",
 	ml_default_hash,
 	ml_default_call,
@@ -98,6 +98,14 @@ static void ml_file_finalize(ml_file_t *File, void *Data) {
 	}
 }
 
+ml_value_t *ml_file_new(FILE *Handle) {
+	ml_file_t *File = new(ml_file_t);
+	File->Type = MLFileT;
+	File->Handle = Handle;
+	GC_register_finalizer(File, (void *)ml_file_finalize, 0, 0, 0);
+	return (ml_value_t *)File;
+}
+
 ml_value_t *ml_file_open(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
@@ -107,17 +115,17 @@ ml_value_t *ml_file_open(void *Data, int Count, ml_value_t **Args) {
 	FILE *Handle = fopen(Path, Mode);
 	if (!Handle) return ml_error("FileError", "failed to open %s in mode %s", Path, Mode);
 	ml_file_t *File = new(ml_file_t);
-	File->Type = FileT;
+	File->Type = MLFileT;
 	File->Handle = Handle;
 	GC_register_finalizer(File, (void *)ml_file_finalize, 0, 0, 0);
 	return (ml_value_t *)File;
 }
 
 void ml_file_init() {
-	ml_method_by_name("read", 0, ml_file_read_line, FileT, 0);
-	ml_method_by_name("read", 0, ml_file_read_count, FileT, MLIntegerT, 0);
-	ml_method_by_name("write", 0, ml_file_write_string, FileT, MLStringT, 0);
-	ml_method_by_name("write", 0, ml_file_write_buffer, FileT, MLStringBufferT, 0);
-	ml_method_by_name("eof", 0, ml_file_eof, FileT, 0);
-	ml_method_by_name("close", 0, ml_file_close, FileT, 0);
+	ml_method_by_name("read", 0, ml_file_read_line, MLFileT, 0);
+	ml_method_by_name("read", 0, ml_file_read_count, MLFileT, MLIntegerT, 0);
+	ml_method_by_name("write", 0, ml_file_write_string, MLFileT, MLStringT, 0);
+	ml_method_by_name("write", 0, ml_file_write_buffer, MLFileT, MLStringBufferT, 0);
+	ml_method_by_name("eof", 0, ml_file_eof, MLFileT, 0);
+	ml_method_by_name("close", 0, ml_file_close, MLFileT, 0);
 }
