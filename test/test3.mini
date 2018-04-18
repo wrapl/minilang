@@ -1,0 +1,41 @@
+var L := [1, 2, "hello", 4, 5]
+
+do
+	for X in L do
+		print('X + 1 = {X + 1}\n')
+		if X = 4 then
+			exit 1 + "a"
+		end
+	on Error do
+		print('An error has occurred 1: {Error:type}, {Error:message}\n')
+	end
+on Error do
+	print('An error has occurred 2: {Error:type}, {Error:message}\n')
+end
+
+print('Starting X loop\n')
+for X := 1 .. 5 do
+	print('Starting Y loop\n')
+	for Y := 11 .. 15 do
+		print('X = {X}, Y = {Y}\n')
+		if X = 3 and Y = 13 then
+			exit next
+		end
+	end
+end
+
+for Z := 1 .. 10 do
+	print('Z = {Z}\n')
+	if Z = 5 then
+		print('5!\n')
+		'a' + 1
+	on Error do
+		print('An error has occurred 3: {Error:type}, {Error:message}\n')
+		next
+	elseif Z = 9 then
+		1 + 'a'
+	end
+	print('... and on\n')
+on Error do
+	print('An error has occurred 4: {Error:type}, {Error:message}\n')
+end
