@@ -375,6 +375,57 @@ ml_value_t *ml_string_match(void *Data, int Count, ml_value_t **Args) {
 	}
 }
 
+ml_value_t *ml_string_replace(void *Data, int Count, ml_value_t **Args) {
+	const char *Subject = ml_string_value(Args[0]);
+	int SubjectLength = ml_string_length(Args[0]);
+	const char *Pattern = ml_string_value(Args[1]);
+	const char *Replace = ml_string_value(Args[2]);
+	int ReplaceLength = ml_string_length(Args[2]);
+	regex_t Regex[1];
+	int Error = regcomp(Regex, Pattern, REG_EXTENDED);
+	if (Error) {
+		size_t ErrorSize = regerror(Error, Regex, 0, 0);
+		char *ErrorMessage = snew(ErrorSize + 1);
+		regerror(Error, Regex, ErrorMessage, ErrorSize);
+		return ml_error("RegexError", ErrorMessage);
+	}
+	regmatch_t Matches[1];
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	while (SubjectLength > 0) {
+		switch (regexec(Regex, Subject, 1, Matches, 0)) {
+		case REG_NOMATCH:
+			regfree(Regex);
+			return MLNil;
+		case REG_ESPACE: {
+			regfree(Regex);
+			size_t ErrorSize = regerror(REG_ESPACE, Regex, 0, 0);
+			char *ErrorMessage = snew(ErrorSize + 1);
+			regerror(Error, Regex, ErrorMessage, ErrorSize);
+			return ml_error("RegexError", ErrorMessage);
+		}
+		default: {
+			regoff_t Start = Matches[0].rm_so;
+			if (Start >= 0) {
+				if (Start > 0) ml_stringbuffer_add(Buffer, Subject, Start);
+				ml_stringbuffer_add(Buffer, Replace, ReplaceLength);
+				Subject += Matches[0].rm_eo;
+				SubjectLength -= Matches[0].rm_eo;
+			} else {
+				if (SubjectLength) ml_stringbuffer_add(Buffer, Subject, SubjectLength);
+				SubjectLength = 0;
+			}
+		}
+		}
+	}
+	regfree(Regex);
+	ml_string_t *String = fnew(ml_string_t);
+	String->Type = MLStringT;
+	String->Length = Buffer->Length;
+	String->Value = ml_stringbuffer_get(Buffer);
+	GC_end_stubborn_change(String);
+	return (ml_value_t *)String;
+}
+
 ml_type_t MLStringT[1] = {{
 	MLAnyT, "string",
 	ml_string_hash,
@@ -1889,6 +1940,7 @@ void ml_init() {
 	ml_method_by_name("string", 0, ml_identity, MLStringT, 0);
 	ml_method_by_name("/", 0, ml_string_split, MLStringT, MLStringT, 0);
 	ml_method_by_name("%", 0, ml_string_match, MLStringT, MLStringT, 0);
+	ml_method_by_name("replace", 0, ml_string_replace, MLStringT, MLStringT, MLStringT, 0);
 
 	AppendMethod = ml_method("append");
 	ml_method_by_value(AppendMethod, 0, stringify_nil, MLStringBufferT, MLNilT, 0);
