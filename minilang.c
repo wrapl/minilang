@@ -391,11 +391,16 @@ ml_value_t *ml_string_replace(void *Data, int Count, ml_value_t **Args) {
 	}
 	regmatch_t Matches[1];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	while (SubjectLength > 0) {
+	for (;;) {
 		switch (regexec(Regex, Subject, 1, Matches, 0)) {
 		case REG_NOMATCH:
-			regfree(Regex);
-			return MLNil;
+			if (SubjectLength) ml_stringbuffer_add(Buffer, Subject, SubjectLength);
+			ml_string_t *String = fnew(ml_string_t);
+			String->Type = MLStringT;
+			String->Length = Buffer->Length;
+			String->Value = ml_stringbuffer_get(Buffer);
+			GC_end_stubborn_change(String);
+			return (ml_value_t *)String;
 		case REG_ESPACE: {
 			regfree(Regex);
 			size_t ErrorSize = regerror(REG_ESPACE, Regex, 0, 0);
@@ -405,25 +410,13 @@ ml_value_t *ml_string_replace(void *Data, int Count, ml_value_t **Args) {
 		}
 		default: {
 			regoff_t Start = Matches[0].rm_so;
-			if (Start >= 0) {
-				if (Start > 0) ml_stringbuffer_add(Buffer, Subject, Start);
-				ml_stringbuffer_add(Buffer, Replace, ReplaceLength);
-				Subject += Matches[0].rm_eo;
-				SubjectLength -= Matches[0].rm_eo;
-			} else {
-				if (SubjectLength) ml_stringbuffer_add(Buffer, Subject, SubjectLength);
-				SubjectLength = 0;
-			}
+			if (Start > 0) ml_stringbuffer_add(Buffer, Subject, Start);
+			ml_stringbuffer_add(Buffer, Replace, ReplaceLength);
+			Subject += Matches[0].rm_eo;
+			SubjectLength -= Matches[0].rm_eo;
 		}
 		}
 	}
-	regfree(Regex);
-	ml_string_t *String = fnew(ml_string_t);
-	String->Type = MLStringT;
-	String->Length = Buffer->Length;
-	String->Value = ml_stringbuffer_get(Buffer);
-	GC_end_stubborn_change(String);
-	return (ml_value_t *)String;
 }
 
 ml_type_t MLStringT[1] = {{
