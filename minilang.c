@@ -2563,6 +2563,14 @@ static mlc_compiled_t ml_while_expr_compile(mlc_function_t *Function, mlc_parent
 	ML_COMPILE_HASH
 	ml_inst_t *ExitInst = ml_inst_new(2, Expr->Source, mli_exit_run);
 	ExitInst->Params[1].Count = Function->Top - Function->Loop->ExitTop;
+	mlc_loop_t *Loop = Function->Loop;
+	if (Function->Try != Loop->Try) {
+		ML_COMPILE_HASH
+		ml_inst_t *TryInst = ml_inst_new(2, Expr->Source, mli_try_run);
+		TryInst->Params[1].Inst = Loop->Try ? Loop->Try->CatchInst : 0;
+		TryInst->Params[0].Inst = ExitInst;
+		ExitInst = TryInst;
+	}
 	ML_COMPILE_HASH
 	ml_inst_t *WhileInst = ml_inst_new(2, Expr->Source, mli_while_run);
 	mlc_connect(Compiled.Exits, WhileInst);
@@ -2578,6 +2586,14 @@ static mlc_compiled_t ml_until_expr_compile(mlc_function_t *Function, mlc_parent
 	ML_COMPILE_HASH
 	ml_inst_t *ExitInst = ml_inst_new(2, Expr->Source, mli_exit_run);
 	ExitInst->Params[1].Count = Function->Top - Function->Loop->ExitTop;
+	mlc_loop_t *Loop = Function->Loop;
+	if (Function->Try != Loop->Try) {
+		ML_COMPILE_HASH
+		ml_inst_t *TryInst = ml_inst_new(2, Expr->Source, mli_try_run);
+		TryInst->Params[1].Inst = Loop->Try ? Loop->Try->CatchInst : 0;
+		TryInst->Params[0].Inst = ExitInst;
+		ExitInst = TryInst;
+	}
 	ML_COMPILE_HASH
 	ml_inst_t *UntilInst = ml_inst_new(2, Expr->Source, mli_until_run);
 	mlc_connect(Compiled.Exits, UntilInst);
