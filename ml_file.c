@@ -29,9 +29,10 @@ ml_type_t MLFileT[1] = {{
 static ml_value_t *ml_file_read_line(void *Data, int Count, ml_value_t **Args) {
 	ml_file_t *File = (ml_file_t *)Args[0];
 	char *Line = 0;
-	size_t Length;
-	if (getline(&Line, &Length, File->Handle) < 0) return feof(File->Handle) ? MLNil : ml_error("FileError", "error reading from file");
-	return ml_string(Line, Length);
+	size_t Length = 0;
+	ssize_t Read = getline(&Line, &Length, File->Handle);
+	if (Read < 0) return feof(File->Handle) ? MLNil : ml_error("FileError", "error reading from file");
+	return ml_string(Line, Read);
 }
 
 static ml_value_t *ml_file_read_count(void *Data, int Count, ml_value_t **Args) {
