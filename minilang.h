@@ -3,6 +3,7 @@
 
 #include "sha256.h"
 #include <stdlib.h>
+#include <unistd.h>
 
 typedef struct ml_type_t ml_type_t;
 typedef struct ml_value_t ml_value_t;

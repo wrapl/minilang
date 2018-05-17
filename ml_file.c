@@ -123,10 +123,10 @@ ml_value_t *ml_file_open(void *Data, int Count, ml_value_t **Args) {
 }
 
 void ml_file_init() {
-	ml_method_by_name("read", 0, ml_file_read_line, MLFileT, 0);
-	ml_method_by_name("read", 0, ml_file_read_count, MLFileT, MLIntegerT, 0);
-	ml_method_by_name("write", 0, ml_file_write_string, MLFileT, MLStringT, 0);
-	ml_method_by_name("write", 0, ml_file_write_buffer, MLFileT, MLStringBufferT, 0);
-	ml_method_by_name("eof", 0, ml_file_eof, MLFileT, 0);
-	ml_method_by_name("close", 0, ml_file_close, MLFileT, 0);
+	ml_method_by_name("read", 0, ml_file_read_line, MLFileT, NULL);
+	ml_method_by_name("read", 0, ml_file_read_count, MLFileT, MLIntegerT, NULL);
+	ml_method_by_name("write", 0, ml_file_write_string, MLFileT, MLStringT, NULL);
+	ml_method_by_name("write", 0, ml_file_write_buffer, MLFileT, MLStringBufferT, NULL);
+	ml_method_by_name("eof", 0, ml_file_eof, MLFileT, NULL);
+	ml_method_by_name("close", 0, ml_file_close, MLFileT, NULL);
 }
