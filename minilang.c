@@ -24,7 +24,6 @@ typedef struct ml_tree_t ml_tree_t;
 typedef struct ml_object_t ml_object_t;
 typedef struct ml_property_t ml_property_t;
 typedef struct ml_closure_t ml_closure_t;
-typedef struct ml_function_t ml_function_t;
 typedef struct ml_method_t ml_method_t;
 typedef struct ml_error_t ml_error_t;
 
@@ -2345,8 +2344,6 @@ typedef struct mlc_value_expr_t mlc_value_expr_t;
 typedef struct mlc_ident_expr_t mlc_ident_expr_t;
 typedef struct mlc_const_call_expr_t mlc_const_call_expr_t;
 typedef struct mlc_block_expr_t mlc_block_expr_t;
-
-typedef struct mlc_decl_t mlc_decl_t;
 
 struct mlc_if_case_t {
 	mlc_if_case_t *Next;
