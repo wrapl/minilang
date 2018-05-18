@@ -38,7 +38,7 @@ int main(int Argc, const char *Argv[]) {
 			for (int I = 0; ml_error_trace(Closure, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 			return 1;
 		}
-		ml_value_t *Result = ml_call(Closure, 0, 0);
+		ml_value_t *Result = ml_call(Closure, 0, NULL);
 		if (Result->Type == MLErrorT) {
 			printf("Error: %s\n", ml_error_message(Result));
 			const char *Source;

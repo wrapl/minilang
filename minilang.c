@@ -24,7 +24,6 @@ typedef struct ml_tree_t ml_tree_t;
 typedef struct ml_object_t ml_object_t;
 typedef struct ml_property_t ml_property_t;
 typedef struct ml_closure_t ml_closure_t;
-typedef struct ml_function_t ml_function_t;
 typedef struct ml_method_t ml_method_t;
 typedef struct ml_error_t ml_error_t;
 
@@ -78,7 +77,7 @@ ml_value_t *CompareMethod;
 ml_value_t *AppendMethod;
 
 ml_type_t MLAnyT[1] = {{
-	0, "any",
+	NULL, "any",
 	ml_default_hash,
 	ml_default_call,
 	ml_default_deref,
@@ -338,7 +337,7 @@ ml_value_t *ml_string_match(void *Data, int Count, ml_value_t **Args) {
 	regex_t Regex[1];
 	int Error = regcomp(Regex, Pattern, REG_EXTENDED);
 	if (Error) {
-		size_t ErrorSize = regerror(Error, Regex, 0, 0);
+		size_t ErrorSize = regerror(Error, Regex, NULL, 0);
 		char *ErrorMessage = snew(ErrorSize + 1);
 		regerror(Error, Regex, ErrorMessage, ErrorSize);
 		return ml_error("RegexError", ErrorMessage);
@@ -350,7 +349,7 @@ ml_value_t *ml_string_match(void *Data, int Count, ml_value_t **Args) {
 		return MLNil;
 	case REG_ESPACE: {
 		regfree(Regex);
-		size_t ErrorSize = regerror(REG_ESPACE, Regex, 0, 0);
+		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 		char *ErrorMessage = snew(ErrorSize + 1);
 		regerror(Error, Regex, ErrorMessage, ErrorSize);
 		return ml_error("RegexError", ErrorMessage);
@@ -384,7 +383,7 @@ ml_value_t *ml_string_replace(void *Data, int Count, ml_value_t **Args) {
 	regex_t Regex[1];
 	int Error = regcomp(Regex, Pattern, REG_EXTENDED);
 	if (Error) {
-		size_t ErrorSize = regerror(Error, Regex, 0, 0);
+		size_t ErrorSize = regerror(Error, Regex, NULL, 0);
 		char *ErrorMessage = snew(ErrorSize + 1);
 		regerror(Error, Regex, ErrorMessage, ErrorSize);
 		return ml_error("RegexError", ErrorMessage);
@@ -403,7 +402,7 @@ ml_value_t *ml_string_replace(void *Data, int Count, ml_value_t **Args) {
 			return (ml_value_t *)String;
 		case REG_ESPACE: {
 			regfree(Regex);
-			size_t ErrorSize = regerror(REG_ESPACE, Regex, 0, 0);
+			size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 			char *ErrorMessage = snew(ErrorSize + 1);
 			regerror(Error, Regex, ErrorMessage, ErrorSize);
 			return ml_error("RegexError", ErrorMessage);
@@ -453,7 +452,7 @@ static ml_value_t *ml_string_new(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)String;
 }
 
-static ml_function_t StringNew[1] = {{MLFunctionT, ml_string_new, 0}};
+static ml_function_t StringNew[1] = {{MLFunctionT, ml_string_new, NULL}};
 
 static long ml_regexp_hash(ml_value_t *Value) {
 	ml_regexp_t *Regexp = (ml_regexp_t *)Value;
@@ -748,7 +747,7 @@ static ml_value_t *ml_list_new(void *Data, int Count, ml_value_t **Args) {
 	ml_list_t *List = new(ml_list_t);
 	List->Type = MLListT;
 	ml_list_node_t **Slot = &List->Head;
-	ml_list_node_t *Prev = 0;
+	ml_list_node_t *Prev = NULL;
 	for (int I = 0; I < Count; ++I) {
 		ml_list_node_t *Node = Slot[0] = new(ml_list_node_t);
 		Node->Value = Args[I];
@@ -761,7 +760,7 @@ static ml_value_t *ml_list_new(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)List;
 }
 
-static ml_function_t ListNew[1] = {{MLFunctionT, ml_list_new, 0}};
+static ml_function_t ListNew[1] = {{MLFunctionT, ml_list_new, NULL}};
 
 struct ml_tree_t {
 	const ml_type_t *Type;
@@ -857,7 +856,7 @@ static ml_value_t *ml_tree_insert_internal(ml_tree_t *Tree, ml_tree_node_t **Slo
 		Node->Hash = Hash;
 		Node->Key = Key;
 		Node->Value = Value;
-		return 0;
+		return NULL;
 	}
 	int Compare;
 	if (Hash < Slot[0]->Hash) {
@@ -971,7 +970,7 @@ static ml_value_t *ml_tree_index(void *Data, int Count, ml_value_t **Args) {
 	ml_tree_t *Tree = (ml_tree_t *)Args[0];
 	if (Count < 1) return MLNil;
 	ml_value_t *Key = Args[1];
-	return ml_property(Tree, (const char *)Key, ml_tree_index_get, ml_tree_index_set, 0, 0);
+	return ml_property(Tree, (const char *)Key, ml_tree_index_get, ml_tree_index_set, NULL, NULL);
 }
 
 static ml_value_t *ml_tree_delete(void *Data, int Count, ml_value_t **Args) {
@@ -1020,7 +1019,7 @@ static ml_value_t *ml_tree_new(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)Tree;
 }
 
-static ml_function_t TreeNew[1] = {{MLFunctionT, ml_tree_new, 0}};
+static ml_function_t TreeNew[1] = {{MLFunctionT, ml_tree_new, NULL}};
 
 struct ml_property_t {
 	const ml_type_t *Type;
@@ -1173,7 +1172,7 @@ static ml_value_t *ml_closure_call(ml_value_t *Value, int Count, ml_value_t **Ar
 		Frame->Stack[NumParams] = (ml_value_t *)Local;
 	}
 	Frame->Top = Frame->Stack + NumParams + VarArgs;
-	Frame->OnError = 0;
+	Frame->OnError = NULL;
 	Frame->UpValues = Closure->UpValues;
 	ml_inst_t *Inst = Closure->Info->Entry;
 	while (Inst) Inst = Inst->run(Inst, Frame);
@@ -1276,7 +1275,7 @@ struct ml_stringbuffer_node_t {
 	char Chars[ML_STRINGBUFFER_NODE_SIZE];
 };
 
-static ml_stringbuffer_node_t *Cache = 0;
+static ml_stringbuffer_node_t *Cache = NULL;
 static GC_descr StringBufferDesc = 0;
 static pthread_mutex_t CacheMutex[1] = {PTHREAD_MUTEX_DEFAULT};
 
@@ -1297,7 +1296,7 @@ ssize_t ml_stringbuffer_add(ml_stringbuffer_t *Buffer, const char *String, size_
 		if (Cache) {
 			Next = Cache;
 			Cache = Cache->Next;
-			Next->Next = 0;
+			Next->Next = NULL;
 		} else {
 			Next = (ml_stringbuffer_node_t *)GC_malloc_explicitly_typed(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
 			//printf("Allocating stringbuffer: %d in total\n", ++NumStringBuffers);
@@ -1342,7 +1341,7 @@ char *ml_stringbuffer_get(ml_stringbuffer_t *Buffer) {
 		while (Slot[0]) Slot = &Slot[0]->Next;
 		Slot[0] = Buffer->Nodes;
 		pthread_mutex_unlock(CacheMutex);
-		Buffer->Nodes = 0;
+		Buffer->Nodes = NULL;
 		Buffer->Length = Buffer->Space = 0;
 	}
 	return String;
@@ -1610,10 +1609,10 @@ static ml_value_t *ml_range_integer_integer(void *Data, int Count, ml_value_t **
 }
 
 #define ml_methods_add_number_number(NAME, SYMBOL) \
-	ml_method_by_name(#SYMBOL, 0, ml_ ## NAME ## _integer_integer, MLIntegerT, MLIntegerT, 0); \
-	ml_method_by_name(#SYMBOL, 0, ml_ ## NAME ## _real_real, MLRealT, MLRealT, 0); \
-	ml_method_by_name(#SYMBOL, 0, ml_ ## NAME ## _real_integer, MLRealT, MLIntegerT, 0); \
-	ml_method_by_name(#SYMBOL, 0, ml_ ## NAME ## _integer_real, MLIntegerT, MLRealT, 0)
+	ml_method_by_name(#SYMBOL, NULL, ml_ ## NAME ## _integer_integer, MLIntegerT, MLIntegerT, NULL); \
+	ml_method_by_name(#SYMBOL, NULL, ml_ ## NAME ## _real_real, MLRealT, MLRealT, NULL); \
+	ml_method_by_name(#SYMBOL, NULL, ml_ ## NAME ## _real_integer, MLRealT, MLIntegerT, NULL); \
+	ml_method_by_name(#SYMBOL, NULL, ml_ ## NAME ## _integer_real, MLIntegerT, MLRealT, NULL)
 
 static ml_value_t *ml_integer_to_string(void *Data, int Count, ml_value_t **Args) {
 	ml_integer_t *Integer = (ml_integer_t *)Args[0];
@@ -1752,7 +1751,7 @@ static ml_value_t *ml_list_pop(void *Data, int Count, ml_value_t **Args) {
 	ml_list_t *List = (ml_list_t *)Args[0];
 	ml_list_node_t *Node = List->Head;
 	if (Node) {
-		if (!(List->Head = Node->Next)) List->Tail = 0;
+		if (!(List->Head = Node->Next)) List->Tail = NULL;
 		--List->Length;
 		return Node->Value;
 	} else {
@@ -1764,7 +1763,7 @@ static ml_value_t *ml_list_pull(void *Data, int Count, ml_value_t **Args) {
 	ml_list_t *List = (ml_list_t *)Args[0];
 	ml_list_node_t *Node = List->Tail;
 	if (Node) {
-		if (!(List->Tail = Node->Next)) List->Head = 0;
+		if (!(List->Tail = Node->Next)) List->Head = NULL;
 		--List->Length;
 		return Node->Value;
 	} else {
@@ -1778,7 +1777,7 @@ static ml_value_t *ml_list_add(void *Data, int Count, ml_value_t **Args) {
 	ml_list_t *List = new(ml_list_t);
 	List->Type = MLListT;
 	ml_list_node_t **Slot = &List->Head;
-	ml_list_node_t *Prev = 0;
+	ml_list_node_t *Prev = NULL;
 	for (ml_list_node_t *Node1 = List1->Head; Node1; Node1 = Node1->Next) {
 		ml_list_node_t *Node = Slot[0] = new(ml_list_node_t);
 		Node->Value = Node1->Value;
@@ -1888,23 +1887,23 @@ static ml_value_t *ml_return_nil(void *Data, int Count, ml_value_t **Args) {
 void ml_init() {
 	Methods = anew(ml_method_t *, MaxMethods);
 	CompareMethod = ml_method("?");
-	ml_method_by_name("#", 0, ml_hash_any, MLAnyT, 0);
-	ml_method_by_name("?", 0, ml_return_nil, MLNilT, MLAnyT, 0);
-	ml_method_by_name("?", 0, ml_return_nil, MLAnyT, MLNilT, 0);
-	ml_method_by_name("=", 0, ml_return_nil, MLNilT, MLAnyT, 0);
-	ml_method_by_name("=", 0, ml_return_nil, MLAnyT, MLNilT, 0);
-	ml_method_by_name("!=", 0, ml_return_nil, MLNilT, MLAnyT, 0);
-	ml_method_by_name("!=", 0, ml_return_nil, MLAnyT, MLNilT, 0);
-	ml_method_by_name("<", 0, ml_return_nil, MLNilT, MLAnyT, 0);
-	ml_method_by_name("<", 0, ml_return_nil, MLAnyT, MLNilT, 0);
-	ml_method_by_name(">", 0, ml_return_nil, MLNilT, MLAnyT, 0);
-	ml_method_by_name(">", 0, ml_return_nil, MLAnyT, MLNilT, 0);
-	ml_method_by_name("<=", 0, ml_return_nil, MLNilT, MLAnyT, 0);
-	ml_method_by_name("<=", 0, ml_return_nil, MLAnyT, MLNilT, 0);
-	ml_method_by_name(">=", 0, ml_return_nil, MLNilT, MLAnyT, 0);
-	ml_method_by_name(">=", 0, ml_return_nil, MLAnyT, MLNilT, 0);
-	ml_method_by_name("-", 0, ml_neg_integer, MLIntegerT, 0);
-	ml_method_by_name("-", 0, ml_neg_real, MLRealT, 0);
+	ml_method_by_name("#", NULL, ml_hash_any, MLAnyT, NULL);
+	ml_method_by_name("?", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
+	ml_method_by_name("?", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
+	ml_method_by_name("=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
+	ml_method_by_name("=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
+	ml_method_by_name("!=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
+	ml_method_by_name("!=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
+	ml_method_by_name("<", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
+	ml_method_by_name("<", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
+	ml_method_by_name(">", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
+	ml_method_by_name(">", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
+	ml_method_by_name("<=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
+	ml_method_by_name("<=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
+	ml_method_by_name(">=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
+	ml_method_by_name(">=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
+	ml_method_by_name("-", NULL, ml_neg_integer, MLIntegerT, NULL);
+	ml_method_by_name("-", NULL, ml_neg_real, MLRealT, NULL);
 	ml_methods_add_number_number(compare, ?);
 	ml_methods_add_number_number(add, +);
 	ml_methods_add_number_number(sub, -);
@@ -1916,53 +1915,53 @@ void ml_init() {
 	ml_methods_add_number_number(gre, >);
 	ml_methods_add_number_number(leq, <=);
 	ml_methods_add_number_number(geq, >=);
-	ml_method_by_name("length", 0, ml_string_length_value, MLStringT, 0);
-	ml_method_by_name("trim", 0, ml_string_trim, MLStringT, 0);
-	ml_method_by_name("[]", 0, ml_string_index, MLStringT, MLIntegerT, 0);
-	ml_method_by_name("[]", 0, ml_string_slice, MLStringT, MLIntegerT, MLIntegerT, 0);
-	ml_method_by_name("%", 0, ml_mod_integer_integer, MLIntegerT, MLIntegerT, 0);
-	ml_method_by_name("..", 0, ml_range_integer_integer, MLIntegerT, MLIntegerT, 0);
-	ml_method_by_name("?", 0, ml_compare_string_string, MLStringT, MLStringT, 0);
-	ml_method_by_name("=", 0, ml_eq_string_string, MLStringT, MLStringT, 0);
-	ml_method_by_name("!=", 0, ml_neq_string_string, MLStringT, MLStringT, 0);
-	ml_method_by_name("<", 0, ml_les_string_string, MLStringT, MLStringT, 0);
-	ml_method_by_name(">", 0, ml_gre_string_string, MLStringT, MLStringT, 0);
-	ml_method_by_name("<=", 0, ml_leq_string_string, MLStringT, MLStringT, 0);
-	ml_method_by_name(">=", 0, ml_geq_string_string, MLStringT, MLStringT, 0);
-	ml_method_by_name("?", 0, ml_compare_any_any, MLAnyT, MLAnyT, 0);
-	ml_method_by_name("length", 0, ml_list_length, MLListT, 0);
-	ml_method_by_name("[]", 0, ml_list_index, MLListT, MLIntegerT, 0);
-	//ml_method_by_name("[]", 0, ml_list_slice, ListT, IntegerT, 0);
-	ml_method_by_name("values", 0, ml_list_values, MLListT, 0);
-	ml_method_by_name("push", 0, ml_list_push, MLListT, 0);
-	ml_method_by_name("put", 0, ml_list_put, MLListT, 0);
-	ml_method_by_name("pop", 0, ml_list_pop, MLListT, 0);
-	ml_method_by_name("pull", 0, ml_list_pull, MLListT, 0);
-	ml_method_by_name("+", 0, ml_list_add, MLListT, MLListT, 0);
-	ml_method_by_name("size", 0, ml_tree_size, MLTreeT, 0);
-	ml_method_by_name("[]", 0, ml_tree_index, MLTreeT, MLAnyT, 0);
-	ml_method_by_name("values", 0, ml_tree_values, MLTreeT, 0);
-	ml_method_by_name("delete", 0, ml_tree_delete, MLTreeT, 0);
-	ml_method_by_name("+", 0, ml_tree_add, MLTreeT, MLTreeT, 0);
-	ml_method_by_name("string", 0, ml_nil_to_string, MLNilT, 0);
-	ml_method_by_name("string", 0, ml_some_to_string, MLSomeT, 0);
-	ml_method_by_name("string", 0, ml_integer_to_string, MLIntegerT, 0);
-	ml_method_by_name("string", 0, ml_real_to_string, MLRealT, 0);
-	ml_method_by_name("string", 0, ml_identity, MLStringT, 0);
-	ml_method_by_name("/", 0, ml_string_split, MLStringT, MLStringT, 0);
-	ml_method_by_name("%", 0, ml_string_match, MLStringT, MLStringT, 0);
-	ml_method_by_name("replace", 0, ml_string_replace, MLStringT, MLStringT, MLStringT, 0);
-	ml_method_by_name("type", 0, ml_error_type_value, MLErrorT, 0);
-	ml_method_by_name("message", 0, ml_error_message_value, MLErrorT, 0);
+	ml_method_by_name("length", NULL, ml_string_length_value, MLStringT, NULL);
+	ml_method_by_name("trim", NULL, ml_string_trim, MLStringT, NULL);
+	ml_method_by_name("[]", NULL, ml_string_index, MLStringT, MLIntegerT, NULL);
+	ml_method_by_name("[]", NULL, ml_string_slice, MLStringT, MLIntegerT, MLIntegerT, NULL);
+	ml_method_by_name("%", NULL, ml_mod_integer_integer, MLIntegerT, MLIntegerT, NULL);
+	ml_method_by_name("..", NULL, ml_range_integer_integer, MLIntegerT, MLIntegerT, NULL);
+	ml_method_by_name("?", NULL, ml_compare_string_string, MLStringT, MLStringT, NULL);
+	ml_method_by_name("=", NULL, ml_eq_string_string, MLStringT, MLStringT, NULL);
+	ml_method_by_name("!=", NULL, ml_neq_string_string, MLStringT, MLStringT, NULL);
+	ml_method_by_name("<", NULL, ml_les_string_string, MLStringT, MLStringT, NULL);
+	ml_method_by_name(">", NULL, ml_gre_string_string, MLStringT, MLStringT, NULL);
+	ml_method_by_name("<=", NULL, ml_leq_string_string, MLStringT, MLStringT, NULL);
+	ml_method_by_name(">=", NULL, ml_geq_string_string, MLStringT, MLStringT, NULL);
+	ml_method_by_name("?", NULL, ml_compare_any_any, MLAnyT, MLAnyT, NULL);
+	ml_method_by_name("length", NULL, ml_list_length, MLListT, NULL);
+	ml_method_by_name("[]", NULL, ml_list_index, MLListT, MLIntegerT, NULL);
+	//ml_method_by_name("[]", NULL, ml_list_slice, ListT, IntegerT, NULL);
+	ml_method_by_name("values", NULL, ml_list_values, MLListT, NULL);
+	ml_method_by_name("push", NULL, ml_list_push, MLListT, NULL);
+	ml_method_by_name("put", NULL, ml_list_put, MLListT, NULL);
+	ml_method_by_name("pop", NULL, ml_list_pop, MLListT, NULL);
+	ml_method_by_name("pull", NULL, ml_list_pull, MLListT, NULL);
+	ml_method_by_name("+", NULL, ml_list_add, MLListT, MLListT, NULL);
+	ml_method_by_name("size", NULL, ml_tree_size, MLTreeT, NULL);
+	ml_method_by_name("[]", NULL, ml_tree_index, MLTreeT, MLAnyT, NULL);
+	ml_method_by_name("values", NULL, ml_tree_values, MLTreeT, NULL);
+	ml_method_by_name("delete", NULL, ml_tree_delete, MLTreeT, NULL);
+	ml_method_by_name("+", NULL, ml_tree_add, MLTreeT, MLTreeT, NULL);
+	ml_method_by_name("string", NULL, ml_nil_to_string, MLNilT, NULL);
+	ml_method_by_name("string", NULL, ml_some_to_string, MLSomeT, NULL);
+	ml_method_by_name("string", NULL, ml_integer_to_string, MLIntegerT, NULL);
+	ml_method_by_name("string", NULL, ml_real_to_string, MLRealT, NULL);
+	ml_method_by_name("string", NULL, ml_identity, MLStringT, NULL);
+	ml_method_by_name("/", NULL, ml_string_split, MLStringT, MLStringT, NULL);
+	ml_method_by_name("%", NULL, ml_string_match, MLStringT, MLStringT, NULL);
+	ml_method_by_name("replace", NULL, ml_string_replace, MLStringT, MLStringT, MLStringT, NULL);
+	ml_method_by_name("type", NULL, ml_error_type_value, MLErrorT, NULL);
+	ml_method_by_name("message", NULL, ml_error_message_value, MLErrorT, NULL);
 
 	AppendMethod = ml_method("append");
-	ml_method_by_value(AppendMethod, 0, stringify_nil, MLStringBufferT, MLNilT, 0);
-	ml_method_by_value(AppendMethod, 0, stringify_integer, MLStringBufferT, MLIntegerT, 0);
-	ml_method_by_value(AppendMethod, 0, stringify_real, MLStringBufferT, MLRealT, 0);
-	ml_method_by_value(AppendMethod, 0, stringify_string, MLStringBufferT, MLStringT, 0);
-	ml_method_by_value(AppendMethod, 0, stringify_method, MLStringBufferT, MLMethodT, 0);
-	ml_method_by_value(AppendMethod, 0, stringify_list, MLStringBufferT, MLListT, 0);
-	ml_method_by_value(AppendMethod, 0, stringify_tree, MLStringBufferT, MLTreeT, 0);
+	ml_method_by_value(AppendMethod, NULL, stringify_nil, MLStringBufferT, MLNilT, NULL);
+	ml_method_by_value(AppendMethod, NULL, stringify_integer, MLStringBufferT, MLIntegerT, NULL);
+	ml_method_by_value(AppendMethod, NULL, stringify_real, MLStringBufferT, MLRealT, NULL);
+	ml_method_by_value(AppendMethod, NULL, stringify_string, MLStringBufferT, MLStringT, NULL);
+	ml_method_by_value(AppendMethod, NULL, stringify_method, MLStringBufferT, MLMethodT, NULL);
+	ml_method_by_value(AppendMethod, NULL, stringify_list, MLStringBufferT, MLListT, NULL);
+	ml_method_by_value(AppendMethod, NULL, stringify_tree, MLStringBufferT, MLTreeT, NULL);
 
 	GC_word StringBufferLayout[] = {1};
 	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
@@ -2305,7 +2304,7 @@ static inline ml_inst_t *ml_inst_new(int N, ml_source_t Source, ml_inst_t *(*run
 #define ML_COMPILE_HASH sha256_update(HashContext, (BYTE *)__FILE__ TOSTRING(__LINE__), strlen(__FILE__ TOSTRING(__LINE__)));
 
 static inline mlc_compiled_t ml_compile(mlc_function_t *Function, mlc_expr_t *Expr, SHA256_CTX *HashContext) {
-	//static int Indent = 0;
+	//static int Indent = NULL;
 	if (Expr) {
 		//for (int I = Indent; --I >= 0;) printf("\t");
 		//printf("before compiling %s:%d Function->Top = %d\n", Expr->Source.Name, Expr->Source.Line, Function->Top);
@@ -2345,8 +2344,6 @@ typedef struct mlc_value_expr_t mlc_value_expr_t;
 typedef struct mlc_ident_expr_t mlc_ident_expr_t;
 typedef struct mlc_const_call_expr_t mlc_const_call_expr_t;
 typedef struct mlc_block_expr_t mlc_block_expr_t;
-
-typedef struct mlc_decl_t mlc_decl_t;
 
 struct mlc_if_case_t {
 	mlc_if_case_t *Next;
@@ -2472,7 +2469,7 @@ static mlc_compiled_t ml_loop_expr_compile(mlc_function_t *Function, mlc_parent_
 	ml_inst_t *LoopInst = ml_inst_new(1, Expr->Source, mli_pop_run);
 	mlc_loop_t Loop = {
 		Function->Loop, Function->Try,
-		LoopInst, 0,
+		LoopInst, NULL,
 		Function->Top + 1, Function->Top + 1
 	};
 	Function->Loop = &Loop;
@@ -2493,7 +2490,7 @@ static mlc_compiled_t ml_next_expr_compile(mlc_function_t *Function, mlc_expr_t 
 	if (Function->Try != Function->Loop->Try) {
 		ML_COMPILE_HASH
 		ml_inst_t *TryInst = ml_inst_new(2, Expr->Source, mli_try_run);
-		TryInst->Params[1].Inst = Function->Try ? Function->Try->CatchInst : 0;
+		TryInst->Params[1].Inst = Function->Try ? Function->Try->CatchInst : NULL;
 		TryInst->Params[0].Inst = Function->Loop->Next;
 		NextInst = TryInst;
 	}
@@ -2509,7 +2506,7 @@ static mlc_compiled_t ml_next_expr_compile(mlc_function_t *Function, mlc_expr_t 
 		NilInst->Params[0].Inst = NextInst;
 	}
 	Function->Top--;
-	return (mlc_compiled_t){NilInst, 0};
+	return (mlc_compiled_t){NilInst, NULL};
 }
 
 static mlc_compiled_t ml_exit_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
@@ -2521,7 +2518,7 @@ static mlc_compiled_t ml_exit_expr_compile(mlc_function_t *Function, mlc_parent_
 	if (Function->Try != Try) {
 		ML_COMPILE_HASH
 		ml_inst_t *TryInst = ml_inst_new(2, Expr->Source, mli_try_run);
-		TryInst->Params[1].Inst = Function->Try ? Function->Try->CatchInst : 0;
+		TryInst->Params[1].Inst = Function->Try ? Function->Try->CatchInst : NULL;
 		TryInst->Params[0].Inst = Compiled.Start;
 		Compiled.Start = TryInst;
 	}
@@ -2539,7 +2536,7 @@ static mlc_compiled_t ml_exit_expr_compile(mlc_function_t *Function, mlc_parent_
 		while (Slot[0]) Slot = &Slot[0]->Params[0].Inst;
 		Slot[0] = Compiled.Exits;
 	}
-	return (mlc_compiled_t){Compiled.Start, 0};
+	return (mlc_compiled_t){Compiled.Start, NULL};
 }
 
 static mlc_compiled_t ml_not_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
@@ -2567,7 +2564,7 @@ static mlc_compiled_t ml_while_expr_compile(mlc_function_t *Function, mlc_parent
 	if (Function->Try != Loop->Try) {
 		ML_COMPILE_HASH
 		ml_inst_t *TryInst = ml_inst_new(2, Expr->Source, mli_try_run);
-		TryInst->Params[1].Inst = Loop->Try ? Loop->Try->CatchInst : 0;
+		TryInst->Params[1].Inst = Loop->Try ? Loop->Try->CatchInst : NULL;
 		TryInst->Params[0].Inst = ExitInst;
 		ExitInst = TryInst;
 	}
@@ -2590,7 +2587,7 @@ static mlc_compiled_t ml_until_expr_compile(mlc_function_t *Function, mlc_parent
 	if (Function->Try != Loop->Try) {
 		ML_COMPILE_HASH
 		ml_inst_t *TryInst = ml_inst_new(2, Expr->Source, mli_try_run);
-		TryInst->Params[1].Inst = Loop->Try ? Loop->Try->CatchInst : 0;
+		TryInst->Params[1].Inst = Loop->Try ? Loop->Try->CatchInst : NULL;
 		TryInst->Params[0].Inst = ExitInst;
 		ExitInst = TryInst;
 	}
@@ -2606,8 +2603,8 @@ static mlc_compiled_t ml_until_expr_compile(mlc_function_t *Function, mlc_parent
 
 static mlc_compiled_t ml_return_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
 	mlc_compiled_t Compiled = ml_compile(Function, Expr->Child, HashContext);
-	mlc_connect(Compiled.Exits, 0);
-	Compiled.Exits = 0;
+	mlc_connect(Compiled.Exits, NULL);
+	Compiled.Exits = NULL;
 	return Compiled;
 }
 
@@ -2699,7 +2696,7 @@ static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_exp
 	PopInst->Params[0].Inst = NextInst;
 	mlc_loop_t Loop = {
 		Function->Loop, Function->Try,
-		PopInst, 0,
+		PopInst, NULL,
 		Function->Top + 1, OldTop + 1
 	};
 	Function->Loop = &Loop;
@@ -2761,7 +2758,7 @@ static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_
 		ml_inst_t *TryInst = ml_inst_new(2, Expr->Source, mli_try_run);
 		ml_inst_t *CatchInst = ml_inst_new(2, Expr->Source, mli_catch_run);
 		TryInst->Params[0].Inst = CatchInst;
-		TryInst->Params[1].Inst = Function->Try ? Function->Try->CatchInst : 0;
+		TryInst->Params[1].Inst = Function->Try ? Function->Try->CatchInst : NULL;
 		CatchInst->Params[0].Inst = TryCompiled.Start;
 		CatchInst->Params[1].Index = OldTop;
 		Function->Decls = OldScope;
@@ -2815,7 +2812,7 @@ static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_
 		Compiled.Start = TryInst;
 		Function->Try = Try.Up;
 		TryInst = ml_inst_new(2, Expr->Source, mli_try_run);
-		TryInst->Params[1].Inst = Function->Try ? Function->Try->CatchInst : 0;
+		TryInst->Params[1].Inst = Function->Try ? Function->Try->CatchInst : NULL;
 		TryInst->Params[0].Inst = CatchExitInst;
 		mlc_connect(Compiled.Exits, TryInst);
 		Compiled.Exits = TryInst;
@@ -2910,7 +2907,7 @@ struct mlc_fun_expr_t {
 
 static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, SHA256_CTX *HashContext) {
 	// closure <entry> <frame_size> <num_params> <num_upvalues> <upvalue_1> ...
-	mlc_function_t SubFunction[1] = {{Function->GlobalGet, Function->Globals, 0,}};
+	mlc_function_t SubFunction[1] = {{Function->GlobalGet, Function->Globals, NULL,}};
 	SubFunction->Up = Function;
 	int NumParams = 0;
 	mlc_decl_t **ParamSlot = &SubFunction->Decls;
@@ -2927,7 +2924,7 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	SHA256_CTX SubHashContext[1];
 	sha256_init(SubHashContext);
 	mlc_compiled_t Compiled = ml_compile(SubFunction, Expr->Body, SubHashContext);
-	mlc_connect(Compiled.Exits, 0);
+	mlc_connect(Compiled.Exits, NULL);
 	int NumUpValues = 0;
 	for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) ++NumUpValues;
 	ML_COMPILE_HASH
@@ -3130,7 +3127,7 @@ static mlc_expr_t *ml_accept_string(mlc_scanner_t *Scanner) {
 	char Char = Scanner->Next[0];
 	if (Char == '\'') {
 		++Scanner->Next;
-		return 0;
+		return NULL;
 	}
 	int Length = 0;
 	const char *End = Scanner->Next;
@@ -3145,7 +3142,7 @@ static mlc_expr_t *ml_accept_string(mlc_scanner_t *Scanner) {
 		++Length;
 		++End;
 	}
-	mlc_expr_t *Expr = 0;
+	mlc_expr_t *Expr = NULL;
 	if (Length > 0) {
 		char *String = snew(Length + 1), *D = String;
 		for (const char *S = Scanner->Next; S < End; ++S) {
@@ -3614,7 +3611,7 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 		ValueExpr->Value = (ml_value_t *)ml_method(Scanner->Ident);
 		return (mlc_expr_t *)ValueExpr;
 	}
-	return 0;
+	return NULL;
 }
 
 static mlc_expr_t *ml_accept_term(mlc_scanner_t *Scanner) {
@@ -3628,7 +3625,7 @@ static mlc_expr_t *ml_accept_term(mlc_scanner_t *Scanner) {
 
 static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 	mlc_expr_t *Expr = ml_parse_term(Scanner);
-	if (!Expr) return 0;
+	if (!Expr) return NULL;
 	for (;;) {
 		if (ml_parse(Scanner, MLT_LEFT_PAREN)) {
 			mlc_parent_expr_t *CallExpr = new(mlc_parent_expr_t);
@@ -3689,7 +3686,7 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 			return Expr;
 		}
 	}
-	return 0; // Unreachable
+	return NULL; // Unreachable
 }
 
 static mlc_expr_t *ml_accept_factor(mlc_scanner_t *Scanner) {
@@ -3703,7 +3700,7 @@ static mlc_expr_t *ml_accept_factor(mlc_scanner_t *Scanner) {
 
 static mlc_expr_t *ml_parse_expression(mlc_scanner_t *Scanner, ml_expr_level_t Level) {
 	mlc_expr_t *Expr = ml_parse_factor(Scanner);
-	if (!Expr) return 0;
+	if (!Expr) return NULL;
 	for (;;) if (ml_parse(Scanner, MLT_OPERATOR)) {
 		mlc_const_call_expr_t *CallExpr = new(mlc_const_call_expr_t);
 		CallExpr->compile = ml_const_call_expr_compile;
@@ -3812,7 +3809,7 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 		}
 		ml_parse(Scanner, MLT_SEMICOLON);
 	}
-	return 0; // Unreachable
+	return NULL; // Unreachable
 }
 
 static mlc_expr_t *ml_accept_command(mlc_scanner_t *Scanner, stringmap_t *Vars) {
@@ -3827,7 +3824,7 @@ static mlc_expr_t *ml_accept_command(mlc_scanner_t *Scanner, stringmap_t *Vars) 
 		do {
 			ml_accept(Scanner, MLT_IDENT);
 			const char *Ident = Scanner->Ident;
-			ml_value_t *Ref = ml_reference(0);
+			ml_value_t *Ref = ml_reference(NULL);
 			stringmap_insert(Vars, Ident, Ref);
 			if (ml_parse(Scanner, MLT_ASSIGN)) {
 				mlc_value_expr_t *RefExpr = new(mlc_value_expr_t);
@@ -3866,9 +3863,9 @@ ml_type_t *ml_class(ml_type_t *Parent, const char *Name) {
 
 static const char *ml_file_read(void *Data) {
 	FILE *File = (FILE *)Data;
-	char *Line = 0;
+	char *Line = NULL;
 	size_t Length = 0;
-	if (getline(&Line, &Length, File) < 0) return 0;
+	if (getline(&Line, &Length, File) < 0) return NULL;
 	return Line;
 }
 
@@ -3880,11 +3877,11 @@ ml_value_t *ml_load(ml_getter_t GlobalGet, void *Globals, const char *FileName) 
 	mlc_expr_t *Expr = ml_accept_block(Scanner);
 	ml_accept(Scanner, MLT_EOI);
 	fclose(File);
-	mlc_function_t Function[1] = {{GlobalGet, Globals, 0,}};
+	mlc_function_t Function[1] = {{GlobalGet, Globals, NULL,}};
 	SHA256_CTX HashContext[1];
 	sha256_init(HashContext);
 	mlc_compiled_t Compiled = ml_compile(Function, Expr, HashContext);
-	mlc_connect(Compiled.Exits, 0);
+	mlc_connect(Compiled.Exits, NULL);
 	ml_closure_t *Closure = new(ml_closure_t);
 	ml_closure_info_t *Info = Closure->Info = new(ml_closure_info_t);
 	Closure->Type = MLClosureT;
@@ -3907,7 +3904,7 @@ static ml_value_t *ml_console_global_get(ml_console_t *Console, const char *Name
 
 static const char *ml_line_read(ml_console_t *Console) {
 	const char *Line = linenoise(Console->Prompt);
-	if (!Line) return 0;
+	if (!Line) return NULL;
 	int Length = strlen(Line);
 	char *Buffer = snew(Length + 2);
 	memcpy(Buffer, Line, Length);
@@ -3922,7 +3919,7 @@ void ml_console(ml_getter_t GlobalGet, void *Globals) {
 		{STRINGMAP_INIT}
 	}};
 	mlc_scanner_t *Scanner = ml_scanner("console", Console, (void *)ml_line_read);
-	mlc_function_t Function[1] = {{(void *)ml_console_global_get, Console, 0,}};
+	mlc_function_t Function[1] = {{(void *)ml_console_global_get, Console, NULL,}};
 	SHA256_CTX HashContext[1];
 	sha256_init(HashContext);
 	ml_value_t *StringMethod = ml_method("string");
@@ -3938,13 +3935,13 @@ void ml_console(ml_getter_t GlobalGet, void *Globals) {
 		mlc_expr_t *Expr = ml_accept_command(Scanner, Console->Globals);
 		if (Expr == (mlc_expr_t *)-1) return;
 		mlc_compiled_t Compiled = ml_compile(Function, Expr, HashContext);
-		mlc_connect(Compiled.Exits, 0);
+		mlc_connect(Compiled.Exits, NULL);
 		ml_closure_t *Closure = new(ml_closure_t);
 		ml_closure_info_t *Info = Closure->Info = new(ml_closure_info_t);
 		Closure->Type = MLClosureT;
 		Info->Entry = Compiled.Start;
 		Info->FrameSize = Function->Size;
-		ml_value_t *Result = ml_closure_call((ml_value_t *)Closure, 0, 0);
+		ml_value_t *Result = ml_closure_call((ml_value_t *)Closure, 0, NULL);
 		if (Result->Type == MLErrorT) {
 			printf("Error: %s\n", ml_error_message(Result));
 			const char *Source;
