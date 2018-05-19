@@ -3902,7 +3902,7 @@ static ml_value_t *ml_console_global_get(ml_console_t *Console, const char *Name
 	return stringmap_search(Console->Globals, Name) ?: (Console->ParentGetter)(Console->ParentGlobals, Name);
 }
 
-static const char *ml_line_read(ml_console_t *Console) {
+static const char *ml_console_line_read(ml_console_t *Console) {
 	const char *Line = linenoise(Console->Prompt);
 	if (!Line) return NULL;
 	int Length = strlen(Line);
@@ -3918,7 +3918,7 @@ void ml_console(ml_getter_t GlobalGet, void *Globals) {
 		GlobalGet, Globals, "--> ",
 		{STRINGMAP_INIT}
 	}};
-	mlc_scanner_t *Scanner = ml_scanner("console", Console, (void *)ml_line_read);
+	mlc_scanner_t *Scanner = ml_scanner("console", Console, (void *)ml_console_line_read);
 	mlc_function_t Function[1] = {{(void *)ml_console_global_get, Console, NULL,}};
 	SHA256_CTX HashContext[1];
 	sha256_init(HashContext);
