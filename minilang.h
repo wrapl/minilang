@@ -93,6 +93,8 @@ struct ml_value_t {
 extern ml_value_t MLNil[];
 extern ml_value_t MLSome[];
 
+int ml_is(ml_value_t *Value, ml_type_t *Type);
+
 struct ml_function_t {
 	const ml_type_t *Type;
 	ml_callback_t Callback;

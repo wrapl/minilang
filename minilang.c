@@ -3957,3 +3957,12 @@ void ml_console(ml_getter_t GlobalGet, void *Globals) {
 		}
 	}
 }
+
+int ml_is(ml_value_t *Value, ml_type_t *Expected) {
+	const ml_type_t *Type = Value->Type;
+	while (Type) {
+		if (Type == Expected) return 1;
+		Type = Type->Parent;
+	}
+	return 0;
+}

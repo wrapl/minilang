@@ -5,7 +5,6 @@ typedef struct ml_preprocessor_input_t ml_preprocessor_input_t;
 typedef struct ml_preprocessor_output_t ml_preprocessor_output_t;
 
 typedef struct ml_preprocessor_t {
-	const char *Buffer;
 	ml_preprocessor_input_t *Input;
 	ml_preprocessor_output_t *Output;
 	stringmap_t Globals[1];
@@ -14,7 +13,7 @@ typedef struct ml_preprocessor_t {
 struct ml_preprocessor_input_t {
 	ml_preprocessor_input_t *Prev;
 	ml_value_t *Reader;
-	const char *Buffer;
+	const char *Line;
 };
 
 struct ml_preprocessor_output_t {
@@ -27,24 +26,17 @@ static ml_value_t *ml_preprocessor_global_get(ml_preprocessor_t *Preprocessor, c
 }
 
 static const char *ml_preprocessor_line_read(ml_preprocessor_t *Preprocessor) {
-	if (Preprocessor->Buffer) {
-		const char *Buffer = Preprocessor->Buffer;
-		Preprocessor->Buffer = 0;
-		return Buffer;
-	} else {
-		ml_preprocessor_input_t *Input = Preprocessor->Input;
-		ml_value_t *LineValue = ml_call(Input->Reader, 0, 0);
-		while (LineValue == MLNil) {
-			Preprocessor->Input = Input = Input->Prev;
-			if (!Input) return 0;
-			if (Input->Buffer) {
-				const char *Buffer = Input->Buffer;
-				Input->Buffer = 0;
-				return Buffer;
-			}
-			LineValue = ml_call(Input->Reader, 0, 0);
+	ml_preprocessor_input_t *Input = Preprocessor->Input;
+	for (;;) {
+		if (Input->Line) {
+			const char *Line = Input->Line;
+			Input->Line = 0;
+			return Line;
 		}
-		if (LineValue->Type == MLStringT) {
+		ml_value_t *LineValue = ml_call(Input->Reader, 0, 0);
+		if (LineValue == MLNil) {
+			Preprocessor->Input = Input = Input->Prev;
+		} else if (LineValue->Type == MLStringT) {
 			return ml_string_value(LineValue);
 		} else if (LineValue->Type == MLErrorT) {
 			printf("Error: %s\n", ml_error_message(LineValue));
@@ -53,7 +45,8 @@ static const char *ml_preprocessor_line_read(ml_preprocessor_t *Preprocessor) {
 			for (int I = 0; ml_error_trace(LineValue, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 			exit(0);
 		} else {
-			return 0;
+			printf("Error: line read function did not return string\n");
+			exit(0);
 		}
 	}
 }
@@ -80,7 +73,7 @@ static ml_value_t *ml_preprocessor_input(ml_preprocessor_t *Preprocessor, int Co
 	ml_preprocessor_input_t *Input = new(ml_preprocessor_input_t);
 	Input->Prev = Preprocessor->Input;
 	Input->Reader = Args[0];
-	Input->Buffer = Preprocessor->Buffer;
+	Input->Line = 0;
 	Preprocessor->Input = Input;
 	return MLNil;
 }
@@ -116,16 +109,16 @@ static ml_value_t *ml_preprocessor_include(ml_preprocessor_t *Preprocessor, int 
 	ml_preprocessor_input_t *Input = new(ml_preprocessor_input_t);
 	Input->Prev = Preprocessor->Input;
 	Input->Reader = ml_function(File, (void *)ml_preprocessor_read);
-	Input->Buffer = Preprocessor->Buffer;
+	Input->Line = 0;
 	Preprocessor->Input = Input;
 	return MLNil;
 }
 
-void ml_preprocess(ml_value_t *Reader, ml_value_t *Writer) {
-	ml_preprocessor_input_t Input[1] = {{0, Reader}};
-	ml_preprocessor_output_t Output[1] = {{0, Writer}};
+void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer) {
+	ml_preprocessor_input_t Input0[1] = {{0, Reader}};
+	ml_preprocessor_output_t Output0[1] = {{0, Writer}};
 	ml_preprocessor_t Preprocessor[1] = {{
-		0, Input, Output,
+		Input0, Output0,
 		{STRINGMAP_INIT}
 	}};
 	stringmap_insert(Preprocessor->Globals, "write", ml_function(Preprocessor, (void *)ml_preprocessor_output));
@@ -134,7 +127,7 @@ void ml_preprocess(ml_value_t *Reader, ml_value_t *Writer) {
 	stringmap_insert(Preprocessor->Globals, "input", ml_function(Preprocessor, (void *)ml_preprocessor_input));
 	stringmap_insert(Preprocessor->Globals, "include", ml_function(Preprocessor, (void *)ml_preprocessor_include));
 	stringmap_insert(Preprocessor->Globals, "open", ml_function(0, ml_file_open));
-	mlc_scanner_t *Scanner = ml_scanner("preprocessor", Preprocessor, (void *)ml_preprocessor_line_read);
+	mlc_scanner_t *Scanner = ml_scanner(InputName, Preprocessor, (void *)ml_preprocessor_line_read);
 	mlc_function_t Function[1] = {{(void *)ml_preprocessor_global_get, Preprocessor, NULL,}};
 	SHA256_CTX HashContext[1];
 	sha256_init(HashContext);
@@ -144,33 +137,43 @@ void ml_preprocess(ml_value_t *Reader, ml_value_t *Writer) {
 		const char *Source;
 		int Line;
 		for (int I = 0; ml_error_trace(Scanner->Error, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
-		Scanner->Token = MLT_NONE;
-		Scanner->Next = "";
+		exit(0);
 	}
 	ml_value_t *Semicolon = ml_string(";", strlen(";"));
 	for (;;) {
-		ml_value_t *LineValue = ml_call(Preprocessor->Input->Reader, 0, 0);
-		while (LineValue == MLNil) {
-			Preprocessor->Input = Preprocessor->Input->Prev;
-			if (!Preprocessor->Input) return;
-			LineValue = ml_call(Preprocessor->Input->Reader, 0, 0);
+		ml_preprocessor_input_t *Input = Preprocessor->Input;
+		const char *Line = 0;
+		while (!Line) {
+			if (Input->Line) {
+				Line = Input->Line;
+				Input->Line = 0;
+			} else {
+				ml_value_t *LineValue = ml_call(Preprocessor->Input->Reader, 0, 0);
+				if (LineValue == MLNil) {
+					Input = Preprocessor->Input = Preprocessor->Input->Prev;
+					if (!Input) return;
+				} else if (LineValue->Type == MLErrorT) {
+					printf("Error: %s\n", ml_error_message(LineValue));
+					const char *Source;
+					int Line;
+					for (int I = 0; ml_error_trace(LineValue, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+					exit(0);
+				} else if (LineValue->Type == MLStringT) {
+					Line = ml_string_value(LineValue);
+				} else {
+					printf("Error: line read function did not return string\n");
+					exit(0);
+				}
+			}
 		}
-		if (LineValue->Type == MLErrorT) {
-			printf("Error: %s\n", ml_error_message(LineValue));
-			const char *Source;
-			int Line;
-			for (int I = 0; ml_error_trace(LineValue, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
-			exit(0);
-		}
-		const char *Line = ml_string_value(LineValue);
 		const char *Escape = strchr(Line, '\\');
-		while (Escape) {
+		if (Escape) {
 			if (Line < Escape) ml_inline(Preprocessor->Output->Writer, 1, ml_string(Line, Escape - Line));
 			if (Escape[1] == ';') {
+				Input->Line = Escape + 2;
 				ml_inline(Preprocessor->Output->Writer, 1, Semicolon);
-				Line = Escape + 2;
 			} else {
-				Preprocessor->Buffer = Escape + 1;
+				Input->Line = Escape + 1;
 				mlc_expr_t *Expr = ml_accept_command(Scanner, Preprocessor->Globals);
 				mlc_compiled_t Compiled = ml_compile(Function, Expr, HashContext);
 				mlc_connect(Compiled.Exits, NULL);
@@ -187,18 +190,19 @@ void ml_preprocess(ml_value_t *Reader, ml_value_t *Writer) {
 					for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 					exit(0);
 				}
-				Line = Scanner->Next;
+				Input->Line = Scanner->Next;
 				Scanner->Next = "";
 			}
-			Escape = strchr(Line, '\\');
+		} else {
+			if (Line[0] && Line[0] != '\n') ml_inline(Preprocessor->Output->Writer, 1, ml_string(Line, strlen(Line)));
 		}
-		if (Line[0] && Line[0] != '\n') ml_inline(Preprocessor->Output->Writer, 1, ml_string(Line, strlen(Line)));
 	}
 }
 
 int main(int Argc, const char **Argv) {
 	ml_init();
 	ml_file_init();
+	const char *InputName = "stdin";
 	FILE *Input = stdin;
 	FILE *Output = stdout;
 	for (int I = 1; I < Argc; ++I) {
@@ -224,8 +228,8 @@ int main(int Argc, const char **Argv) {
 			}
 			}
 		} else {
-			Input = fopen(Argv[I], "r");
+			Input = fopen(InputName = Argv[I], "r");
 		}
 	}
-	ml_preprocess(ml_function(Input, (void *)ml_preprocessor_read), ml_function(Output, (void *)ml_preprocessor_write));
+	ml_preprocess(InputName, ml_function(Input, (void *)ml_preprocessor_read), ml_function(Output, (void *)ml_preprocessor_write));
 }
