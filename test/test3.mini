@@ -13,15 +13,16 @@ on Error do
 	print('An error has occurred 2: {Error:type}, {Error:message}\n')
 end
 
-print('Starting X loop\n')
+print('Before X loop\n')
 for X := 1 .. 5 do
-	print('Starting Y loop\n')
+	print('Before Y loop\n')
 	for Y := 11 .. 15 do
 		print('X = {X}, Y = {Y}\n')
 		if X = 3 and Y = 13 then
 			exit next
 		end
 	end
+	print('After Y loop\n')
 end
 
 for Z := 1 .. 10 do

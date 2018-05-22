@@ -1,0 +1,11 @@
+var L := [1, 2, "hello", 4, 5]
+
+for Key, Value in L do
+	print('Key = {Key}, Value = {Value}\n')
+end
+
+var M := {"a" is 100, 10 is "b"}
+
+for Key, Value in M do
+	print('Key = {Key}, Value = {Value}\n')
+end
