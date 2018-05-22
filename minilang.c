@@ -2682,7 +2682,7 @@ static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_exp
 	Decl->Index = Function->Top - 1;
 	mlc_decl_t *KeyDecl = Decl->Next;
 	if (KeyDecl) {
-		KeyDecl->Index = Function->Top;
+		KeyDecl->Index = (Decl->Index = Function->Top) - 1;
 		if (++Function->Top >= Function->Size) Function->Size = Function->Top + 1;
 		KeyDecl->Next = Function->Decls;
 	} else {
