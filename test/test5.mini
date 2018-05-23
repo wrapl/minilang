@@ -1,0 +1,25 @@
+var L := ["a", "b", "c", "d", "e"]
+
+var F := []
+
+for X in L do
+	F:put(fun() print('X = {X}\n'))
+	X := 'x{X}'
+end
+
+for F1 in F do F1() end
+
+print('L = {L}\n')
+
+var M := ["a", "b", "c", "d", "e"]
+
+var G := []
+
+for var Y in M do
+	G:put(fun() print('Y = {Y}\n'))
+	Y := 'y{Y}'
+end
+
+for G1 in G do G1() end
+
+print('M = {M}\n')
