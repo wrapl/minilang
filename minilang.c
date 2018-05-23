@@ -3152,6 +3152,7 @@ static mlc_expr_t *ml_accept_string(mlc_scanner_t *Scanner) {
 				case 'r': *D++ = '\r'; break;
 				case 'n': *D++ = '\n'; break;
 				case 't': *D++ = '\t'; break;
+				case 'e': *D++ = '\e'; break;
 				case '\'': *D++ = '\''; break;
 				case '\"': *D++ = '\"'; break;
 				case '\\': *D++ = '\\'; break;
@@ -3319,6 +3320,7 @@ static int ml_parse(mlc_scanner_t *Scanner, ml_token_t Token) {
 					case 'r': *D++ = '\r'; break;
 					case 'n': *D++ = '\n'; break;
 					case 't': *D++ = '\t'; break;
+					case 'e': *D++ = '\e'; break;
 					case '\'': *D++ = '\''; break;
 					case '\"': *D++ = '\"'; break;
 					case '\\': *D++ = '\\'; break;
