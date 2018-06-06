@@ -383,27 +383,13 @@ ml_value_t *ml_string_replace(void *Data, int Count, ml_value_t **Args) {
 	regex_t Regex[1];
 	int Error = regcomp(Regex, Pattern, REG_EXTENDED);
 	if (Error) {
-<<<<<<< HEAD
-		size_t ErrorSize = regerror(Error, Regex, 0, 0);
-=======
 		size_t ErrorSize = regerror(Error, Regex, NULL, 0);
->>>>>>> 74e85611104c417a11a748a8c232eab427577238
 		char *ErrorMessage = snew(ErrorSize + 1);
 		regerror(Error, Regex, ErrorMessage, ErrorSize);
 		return ml_error("RegexError", ErrorMessage);
 	}
 	regmatch_t Matches[1];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-<<<<<<< HEAD
-	while (SubjectLength > 0) {
-		switch (regexec(Regex, Subject, 1, Matches, 0)) {
-		case REG_NOMATCH:
-			regfree(Regex);
-			return MLNil;
-		case REG_ESPACE: {
-			regfree(Regex);
-			size_t ErrorSize = regerror(REG_ESPACE, Regex, 0, 0);
-=======
 	for (;;) {
 		switch (regexec(Regex, Subject, 1, Matches, 0)) {
 		case REG_NOMATCH:
@@ -417,34 +403,12 @@ ml_value_t *ml_string_replace(void *Data, int Count, ml_value_t **Args) {
 		case REG_ESPACE: {
 			regfree(Regex);
 			size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
->>>>>>> 74e85611104c417a11a748a8c232eab427577238
 			char *ErrorMessage = snew(ErrorSize + 1);
 			regerror(Error, Regex, ErrorMessage, ErrorSize);
 			return ml_error("RegexError", ErrorMessage);
 		}
 		default: {
 			regoff_t Start = Matches[0].rm_so;
-<<<<<<< HEAD
-			if (Start >= 0) {
-				if (Start > 0) ml_stringbuffer_add(Buffer, Subject, Start);
-				ml_stringbuffer_add(Buffer, Replace, ReplaceLength);
-				Subject += Matches[0].rm_eo;
-				SubjectLength -= Matches[0].rm_eo;
-			} else {
-				if (SubjectLength) ml_stringbuffer_add(Buffer, Subject, SubjectLength);
-				SubjectLength = 0;
-			}
-		}
-		}
-	}
-	regfree(Regex);
-	ml_string_t *String = fnew(ml_string_t);
-	String->Type = MLStringT;
-	String->Length = Buffer->Length;
-	String->Value = ml_stringbuffer_get(Buffer);
-	GC_end_stubborn_change(String);
-	return (ml_value_t *)String;
-=======
 			if (Start > 0) ml_stringbuffer_add(Buffer, Subject, Start);
 			ml_stringbuffer_add(Buffer, Replace, ReplaceLength);
 			Subject += Matches[0].rm_eo;
@@ -452,7 +416,6 @@ ml_value_t *ml_string_replace(void *Data, int Count, ml_value_t **Args) {
 		}
 		}
 	}
->>>>>>> 74e85611104c417a11a748a8c232eab427577238
 }
 
 ml_type_t MLStringT[1] = {{
@@ -1952,44 +1915,6 @@ void ml_init() {
 	ml_methods_add_number_number(gre, >);
 	ml_methods_add_number_number(leq, <=);
 	ml_methods_add_number_number(geq, >=);
-<<<<<<< HEAD
-	ml_method_by_name("length", 0, ml_string_length_value, MLStringT, 0);
-	ml_method_by_name("trim", 0, ml_string_trim, MLStringT, 0);
-	ml_method_by_name("[]", 0, ml_string_index, MLStringT, MLIntegerT, 0);
-	ml_method_by_name("[]", 0, ml_string_slice, MLStringT, MLIntegerT, MLIntegerT, 0);
-	ml_method_by_name("%", 0, ml_mod_integer_integer, MLIntegerT, MLIntegerT, 0);
-	ml_method_by_name("..", 0, ml_range_integer_integer, MLIntegerT, MLIntegerT, 0);
-	ml_method_by_name("?", 0, ml_compare_string_string, MLStringT, MLStringT, 0);
-	ml_method_by_name("=", 0, ml_eq_string_string, MLStringT, MLStringT, 0);
-	ml_method_by_name("!=", 0, ml_neq_string_string, MLStringT, MLStringT, 0);
-	ml_method_by_name("<", 0, ml_les_string_string, MLStringT, MLStringT, 0);
-	ml_method_by_name(">", 0, ml_gre_string_string, MLStringT, MLStringT, 0);
-	ml_method_by_name("<=", 0, ml_leq_string_string, MLStringT, MLStringT, 0);
-	ml_method_by_name(">=", 0, ml_geq_string_string, MLStringT, MLStringT, 0);
-	ml_method_by_name("?", 0, ml_compare_any_any, MLAnyT, MLAnyT, 0);
-	ml_method_by_name("length", 0, ml_list_length, MLListT, 0);
-	ml_method_by_name("[]", 0, ml_list_index, MLListT, MLIntegerT, 0);
-	//ml_method_by_name("[]", 0, ml_list_slice, ListT, IntegerT, 0);
-	ml_method_by_name("values", 0, ml_list_values, MLListT, 0);
-	ml_method_by_name("push", 0, ml_list_push, MLListT, 0);
-	ml_method_by_name("put", 0, ml_list_put, MLListT, 0);
-	ml_method_by_name("pop", 0, ml_list_pop, MLListT, 0);
-	ml_method_by_name("pull", 0, ml_list_pull, MLListT, 0);
-	ml_method_by_name("+", 0, ml_list_add, MLListT, MLListT, 0);
-	ml_method_by_name("size", 0, ml_tree_size, MLTreeT, 0);
-	ml_method_by_name("[]", 0, ml_tree_index, MLTreeT, MLAnyT, 0);
-	ml_method_by_name("values", 0, ml_tree_values, MLTreeT, 0);
-	ml_method_by_name("delete", 0, ml_tree_delete, MLTreeT, 0);
-	ml_method_by_name("+", 0, ml_tree_add, MLTreeT, MLTreeT, 0);
-	ml_method_by_name("string", 0, ml_nil_to_string, MLNilT, 0);
-	ml_method_by_name("string", 0, ml_some_to_string, MLSomeT, 0);
-	ml_method_by_name("string", 0, ml_integer_to_string, MLIntegerT, 0);
-	ml_method_by_name("string", 0, ml_real_to_string, MLRealT, 0);
-	ml_method_by_name("string", 0, ml_identity, MLStringT, 0);
-	ml_method_by_name("/", 0, ml_string_split, MLStringT, MLStringT, 0);
-	ml_method_by_name("%", 0, ml_string_match, MLStringT, MLStringT, 0);
-	ml_method_by_name("replace", 0, ml_string_replace, MLStringT, MLStringT, MLStringT, 0);
-=======
 	ml_method_by_name("length", NULL, ml_string_length_value, MLStringT, NULL);
 	ml_method_by_name("trim", NULL, ml_string_trim, MLStringT, NULL);
 	ml_method_by_name("[]", NULL, ml_string_index, MLStringT, MLIntegerT, NULL);
@@ -2028,7 +1953,6 @@ void ml_init() {
 	ml_method_by_name("replace", NULL, ml_string_replace, MLStringT, MLStringT, MLStringT, NULL);
 	ml_method_by_name("type", NULL, ml_error_type_value, MLErrorT, NULL);
 	ml_method_by_name("message", NULL, ml_error_message_value, MLErrorT, NULL);
->>>>>>> 74e85611104c417a11a748a8c232eab427577238
 
 	AppendMethod = ml_method("append");
 	ml_method_by_value(AppendMethod, NULL, stringify_nil, MLStringBufferT, MLNilT, NULL);
