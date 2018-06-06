@@ -9,7 +9,7 @@ struct stringmap_t {
 	int Size;
 };
 
-#define STRINGMAP_INIT (stringmap_t){0,}
+#define STRINGMAP_INIT {0,}
 
 void *stringmap_search(stringmap_t *Tree, const char *Key);
 void *stringmap_insert(stringmap_t *Tree, const char *Key, void *Value);

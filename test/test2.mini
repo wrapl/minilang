@@ -1,0 +1,7 @@
+var X := 100
+
+print('X = {X}\n')
+
+X := old + 10
+
+print('X = {X}\n')

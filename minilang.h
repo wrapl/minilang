@@ -3,6 +3,7 @@
 
 #include "sha256.h"
 #include <stdlib.h>
+#include <unistd.h>
 
 typedef struct ml_type_t ml_type_t;
 typedef struct ml_value_t ml_value_t;
@@ -91,6 +92,8 @@ struct ml_value_t {
 
 extern ml_value_t MLNil[];
 extern ml_value_t MLSome[];
+
+int ml_is(ml_value_t *Value, ml_type_t *Type);
 
 struct ml_function_t {
 	const ml_type_t *Type;

@@ -29,9 +29,10 @@ ml_type_t MLFileT[1] = {{
 static ml_value_t *ml_file_read_line(void *Data, int Count, ml_value_t **Args) {
 	ml_file_t *File = (ml_file_t *)Args[0];
 	char *Line = 0;
-	size_t Length;
-	if (getline(&Line, &Length, File->Handle) < 0) return feof(File->Handle) ? MLNil : ml_error("FileError", "error reading from file");
-	return ml_string(Line, Length);
+	size_t Length = 0;
+	ssize_t Read = getline(&Line, &Length, File->Handle);
+	if (Read < 0) return feof(File->Handle) ? MLNil : ml_error("FileError", "error reading from file");
+	return ml_string(Line, Read);
 }
 
 static ml_value_t *ml_file_read_count(void *Data, int Count, ml_value_t **Args) {
@@ -122,10 +123,10 @@ ml_value_t *ml_file_open(void *Data, int Count, ml_value_t **Args) {
 }
 
 void ml_file_init() {
-	ml_method_by_name("read", 0, ml_file_read_line, MLFileT, 0);
-	ml_method_by_name("read", 0, ml_file_read_count, MLFileT, MLIntegerT, 0);
-	ml_method_by_name("write", 0, ml_file_write_string, MLFileT, MLStringT, 0);
-	ml_method_by_name("write", 0, ml_file_write_buffer, MLFileT, MLStringBufferT, 0);
-	ml_method_by_name("eof", 0, ml_file_eof, MLFileT, 0);
-	ml_method_by_name("close", 0, ml_file_close, MLFileT, 0);
+	ml_method_by_name("read", 0, ml_file_read_line, MLFileT, NULL);
+	ml_method_by_name("read", 0, ml_file_read_count, MLFileT, MLIntegerT, NULL);
+	ml_method_by_name("write", 0, ml_file_write_string, MLFileT, MLStringT, NULL);
+	ml_method_by_name("write", 0, ml_file_write_buffer, MLFileT, MLStringBufferT, NULL);
+	ml_method_by_name("eof", 0, ml_file_eof, MLFileT, NULL);
+	ml_method_by_name("close", 0, ml_file_close, MLFileT, NULL);
 }

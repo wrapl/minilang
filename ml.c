@@ -19,7 +19,7 @@ static ml_value_t *print(void *Data, int Count, ml_value_t **Args) {
 			if (Result->Type == MLErrorT) return Result;
 			if (Result->Type != MLStringT) return ml_error("ResultError", "string method did not return string");
 		}
-		fputs(ml_string_value(Result), stdout);
+		fwrite(ml_string_value(Result), 1, ml_string_length(Result), stdout);
 	}
 	fflush(stdout);
 	return MLNil;
@@ -38,7 +38,7 @@ int main(int Argc, const char *Argv[]) {
 			for (int I = 0; ml_error_trace(Closure, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 			return 1;
 		}
-		ml_value_t *Result = ml_call(Closure, 0, 0);
+		ml_value_t *Result = ml_call(Closure, 0, NULL);
 		if (Result->Type == MLErrorT) {
 			printf("Error: %s\n", ml_error_message(Result));
 			const char *Source;
