@@ -12,7 +12,7 @@ struct stringmap_node_t {
 	int Depth;
 };
 
-static long stringmap_hash(const char *Key) {
+long stringmap_hash(const char *Key) {
 	long Hash = 5381;
 	for (const char *P = Key; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
 	return Hash;
@@ -105,6 +105,10 @@ static void *stringmap_insert_internal(stringmap_t *Tree, stringmap_node_t **Slo
 
 void *stringmap_insert(stringmap_t *Tree, const char *Key, void *Value) {
 	return stringmap_insert_internal(Tree, &Tree->Root, stringmap_hash(Key), Key, Value);
+}
+
+void *stringmap_hash_insert(stringmap_t *Tree, long Hash, const char *Key, void *Value) {
+	return stringmap_insert_internal(Tree, &Tree->Root, Hash, Key, Value);
 }
 
 static void stringmap_remove_depth_helper(stringmap_node_t *Node) {
