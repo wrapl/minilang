@@ -16,6 +16,8 @@ typedef ml_value_t *(*ml_setter_t)(void *Data, const char *Name, ml_value_t *Val
 
 void ml_init();
 
+long ml_hash(ml_value_t *Value);
+
 ml_type_t *ml_class(ml_type_t *Parent, const char *Name);
 
 ml_value_t *ml_load(ml_getter_t GlobalGet, void *Globals, const char *FileName);
@@ -28,7 +30,6 @@ void ml_method_by_name(const char *Method, void *Data, ml_callback_t Function, .
 void ml_method_by_value(ml_value_t *Method, void *Data, ml_callback_t Function, ...);
 
 ml_value_t *ml_string(const char *Value, int Length);
-ml_value_t *ml_regexp(const char *Value, int Length);
 ml_value_t *ml_integer(long Value);
 ml_value_t *ml_real(double Value);
 ml_value_t *ml_list();
@@ -51,6 +52,8 @@ int ml_error_trace(ml_value_t *Value, int Level, const char **Source, int *Line)
 void ml_closure_hash(ml_value_t *Closure, unsigned char Hash[SHA256_BLOCK_SIZE]);
 
 void ml_list_append(ml_value_t *List, ml_value_t *Value);
+int ml_list_length(ml_value_t *List);
+void ml_list_to_array(ml_value_t *List, ml_value_t **Array);
 int ml_list_foreach(ml_value_t *List, void *Data, int (*callback)(ml_value_t *, void *));
 int ml_tree_foreach(ml_value_t *Tree, void *Data, int (*callback)(ml_value_t *, ml_value_t *, void *));
 
@@ -75,6 +78,7 @@ ml_value_t *ml_default_key(ml_value_t *Iter);
 extern ml_type_t MLAnyT[];
 extern ml_type_t MLNilT[];
 extern ml_type_t MLFunctionT[];
+extern ml_type_t MLNumberT[];
 extern ml_type_t MLIntegerT[];
 extern ml_type_t MLRealT[];
 extern ml_type_t MLStringT[];
