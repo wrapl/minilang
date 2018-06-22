@@ -12,8 +12,8 @@ struct stringmap_node_t {
 	int Depth;
 };
 
-long stringmap_hash(const char *Key) {
-	long Hash = 5381;
+unsigned long stringmap_hash(const char *Key) {
+	unsigned long Hash = 5381;
 	for (const char *P = Key; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
 	return Hash;
 }
