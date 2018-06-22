@@ -323,12 +323,22 @@ ml_value_t *ml_string_split(void *Data, int Count, ml_value_t **Args) {
 			ml_list_append(Results, ml_string(Match, MatchLength));
 			Subject = Next + Length;
 		} else {
-			const char *Rest = Subject;
 			ml_list_append(Results, ml_string(Subject, strlen(Subject)));
 			break;
 		}
 	}
 	return Results;
+}
+
+static ml_value_t *ml_string_find(void *Data, int Count, ml_value_t **Args) {
+	const char *Haystack = ml_string_value(Args[0]);
+	const char *Needle = ml_string_value(Args[1]);
+	const char *Match = strstr(Haystack, Needle);
+	if (Match) {
+		return ml_integer(1 + Match - Haystack);
+	} else {
+		return MLNil;
+	}
 }
 
 ml_value_t *ml_string_match(void *Data, int Count, ml_value_t **Args) {
