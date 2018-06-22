@@ -30,7 +30,6 @@ void ml_method_by_name(const char *Method, void *Data, ml_callback_t Function, .
 void ml_method_by_value(ml_value_t *Method, void *Data, ml_callback_t Function, ...);
 
 ml_value_t *ml_string(const char *Value, int Length);
-ml_value_t *ml_regexp(const char *Value, int Length);
 ml_value_t *ml_integer(long Value);
 ml_value_t *ml_real(double Value);
 ml_value_t *ml_list();
@@ -79,6 +78,7 @@ ml_value_t *ml_default_key(ml_value_t *Iter);
 extern ml_type_t MLAnyT[];
 extern ml_type_t MLNilT[];
 extern ml_type_t MLFunctionT[];
+extern ml_type_t MLNumberT[];
 extern ml_type_t MLIntegerT[];
 extern ml_type_t MLRealT[];
 extern ml_type_t MLStringT[];
