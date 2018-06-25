@@ -2319,6 +2319,23 @@ ml_inst_t *mli_local_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	return Inst->Params[0].Inst;
 }
 
+ml_inst_t *mli_list_run(ml_inst_t *Inst, ml_frame_t *Frame) {
+	(++Frame->Top)[-1] = ml_list();
+	return Inst->Params[0].Inst;
+}
+
+ml_inst_t *mli_append_run(ml_inst_t *Inst, ml_frame_t *Frame) {
+	ml_value_t *Value = Frame->Top[-1];
+	Value = Value->Type->deref(Value);
+	if (Value->Type == MLErrorT) {
+		Frame->Top[-1] = Value;
+		return Frame->OnError;
+	}
+	ml_value_t *List = Frame->Top[-2];
+	ml_list_append(List, Value);
+	return Inst->Params[0].Inst;
+}
+
 ml_inst_t *mli_closure_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	// closure <entry> <frame_size> <num_params> <num_upvalues> <upvalue_1> ...
 	ml_closure_info_t *Info = Inst->Params[1].ClosureInfo;
@@ -2838,6 +2855,25 @@ static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_exp
 	return Compiled;
 }
 
+static mlc_compiled_t ml_all_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
+	ML_COMPILE_HASH
+	ml_inst_t *ListInst = ml_inst_new(1, Expr->Source, mli_list_run);
+	++Function->Top;
+	mlc_compiled_t Compiled = ml_compile(Function, Expr->Child, HashContext);
+	ListInst->Params[0].Inst = Compiled.Start;
+	ml_inst_t *UntilInst = ml_inst_new(2, Expr->Source, mli_until_run);
+	mlc_connect(Compiled.Exits, UntilInst);
+	ml_inst_t *AppendInst = ml_inst_new(1, Expr->Source, mli_append_run);
+	UntilInst->Params[1].Inst = AppendInst;
+	ml_inst_t *NextInst = ml_inst_new(2, Expr->Source, mli_next_run);
+	ml_inst_t *PopInst = ml_inst_new(1, Expr->Source, mli_pop_run);
+	AppendInst->Params[0].Inst = NextInst;
+	UntilInst->Params[0].Inst = PopInst;
+	NextInst->Params[0].Inst = PopInst;
+	NextInst->Params[1].Inst = AppendInst;
+	return (mlc_compiled_t){ListInst, PopInst};
+}
+
 struct mlc_block_expr_t {
 	MLC_EXPR_FIELDS(block);
 	mlc_decl_t *Decl;
@@ -3118,6 +3154,7 @@ typedef enum ml_token_t {
 	MLT_EXIT,
 	MLT_NEXT,
 	MLT_FOR,
+	MLT_ALL,
 	MLT_IN,
 	MLT_IS,
 	MLT_FUN,
@@ -3165,6 +3202,7 @@ const char *MLTokens[] = {
 	"exit", // MLT_EXIT,
 	"next", // MLT_NEXT,
 	"for", // MLT_FOR,
+	"all", // MLT_ALL,
 	"in", // MLT_IN,
 	"is", // MLT_IS,
 	"fun", // MLT_FUN,
@@ -3625,6 +3663,12 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 		}
 		ml_accept(Scanner, MLT_END);
 		return (mlc_expr_t *)ForExpr;
+	} else if (ml_parse(Scanner, MLT_ALL)) {
+		mlc_parent_expr_t *AllExpr = new(mlc_parent_expr_t);
+		AllExpr->compile = ml_all_expr_compile;
+		AllExpr->Source = Scanner->Source;
+		AllExpr->Child = ml_accept_expression(Scanner, EXPR_DEFAULT);
+		return (mlc_expr_t *)AllExpr;
 	} else if (ml_parse(Scanner, MLT_NOT)) {
 		mlc_parent_expr_t *NotExpr = new(mlc_parent_expr_t);
 		NotExpr->compile = ml_not_expr_compile;
