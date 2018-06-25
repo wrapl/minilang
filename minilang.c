@@ -2856,6 +2856,7 @@ static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_exp
 }
 
 static mlc_compiled_t ml_all_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
+	ML_COMPILE_HASH
 	ml_inst_t *ListInst = ml_inst_new(1, Expr->Source, mli_list_run);
 	++Function->Top;
 	mlc_compiled_t Compiled = ml_compile(Function, Expr->Child, HashContext);
