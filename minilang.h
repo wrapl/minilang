@@ -26,8 +26,8 @@ ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args);
 
 ml_value_t *ml_inline(ml_value_t *Value, int Count, ...);
 
-void ml_method_by_name(const char *Method, void *Data, ml_callback_t Function, ...);
-void ml_method_by_value(ml_value_t *Method, void *Data, ml_callback_t Function, ...);
+void ml_method_by_name(const char *Method, void *Data, ml_callback_t Function, ...) __attribute__ ((sentinel));
+void ml_method_by_value(ml_value_t *Method, void *Data, ml_callback_t Function, ...) __attribute__ ((sentinel));
 
 ml_value_t *ml_string(const char *Value, int Length);
 ml_value_t *ml_integer(long Value);
@@ -36,7 +36,7 @@ ml_value_t *ml_list();
 ml_value_t *ml_tree();
 ml_value_t *ml_function(void *Data, ml_callback_t Function);
 ml_value_t *ml_property(void *Data, const char *Name, ml_getter_t Get, ml_setter_t Set, ml_getter_t Next, ml_getter_t Key);
-ml_value_t *ml_error(const char *Error, const char *Format, ...);
+ml_value_t *ml_error(const char *Error, const char *Format, ...) __attribute__ ((format(printf, 2, 3)));
 ml_value_t *ml_reference(ml_value_t **Address);
 ml_value_t *ml_method(const char *Name);
 
@@ -121,7 +121,7 @@ extern ml_type_t MLStringBufferT[1];
 #define ML_STRINGBUFFER_INIT (ml_stringbuffer_t){MLStringBufferT, 0,}
 
 ssize_t ml_stringbuffer_add(ml_stringbuffer_t *Buffer, const char *String, size_t Length);
-ssize_t ml_stringbuffer_addf(ml_stringbuffer_t *Buffer, const char *Format, ...);
+ssize_t ml_stringbuffer_addf(ml_stringbuffer_t *Buffer, const char *Format, ...) __attribute__ ((format(printf, 2, 3)));
 char *ml_stringbuffer_get(ml_stringbuffer_t *Buffer);
 int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(const char *, size_t, void *));
 
