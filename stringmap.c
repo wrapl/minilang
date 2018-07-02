@@ -107,6 +107,29 @@ void *stringmap_insert(stringmap_t *Tree, const char *Key, void *Value) {
 	return stringmap_insert_internal(Tree, &Tree->Root, stringmap_hash(Key), Key, Value);
 }
 
+void **stringmap_slot_internal(stringmap_t *Tree, stringmap_node_t **Slot, long Hash, const char *Key) {
+	if (!Slot[0]) {
+		stringmap_node_t *Node = Slot[0] = new(stringmap_node_t);
+		Node->Depth = 1;
+		Node->Hash = Hash;
+		Node->Key = Key;
+		return &Node->Value;
+	}
+	int Compare = compare(Hash, Key, Slot[0]);
+	if (!Compare) {
+		return &Slot[0]->Value;
+	} else {
+		void **Result = stringmap_slot_internal(Tree, Compare < 0 ? &Slot[0]->Left : &Slot[0]->Right, Hash, Key);
+		stringmap_rebalance(Slot);
+		stringmap_update_depth(Slot[0]);
+		return Result;
+	}
+}
+
+void **stringmap_slot(stringmap_t *Tree, const char *Key) {
+	return stringmap_slot_internal(Tree, &Tree->Root, stringmap_hash(Key), Key);
+}
+
 void *stringmap_hash_insert(stringmap_t *Tree, long Hash, const char *Key, void *Value) {
 	return stringmap_insert_internal(Tree, &Tree->Root, Hash, Key, Value);
 }

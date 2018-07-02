@@ -3075,6 +3075,7 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	Info->NumUpValues = NumUpValues;
 	sha256_final(SubHashContext, Info->Hash);
 	Params[1].ClosureInfo = Info;
+	sha256_update(HashContext, Info->Hash, SHA256_BLOCK_SIZE);
 	int Index = 2;
 	for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) Params[Index++].Index = UpValue->Index;
 	if (++Function->Top >= Function->Size) Function->Size = Function->Top + 1;
