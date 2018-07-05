@@ -1465,7 +1465,6 @@ static int stringify_tree_value(ml_value_t *Key, ml_value_t *Value, ml_stringify
 
 ml_value_t *stringify_tree(void *Data, int Count, ml_value_t **Args) {
 	ml_stringify_context_t Ctx[1] = {(ml_stringbuffer_t *)Args[0], 0};
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_tree_foreach(Args[1], Ctx, (void *)stringify_tree_value);
 	return ((ml_tree_t *)Args[1])->Size ? MLSome : MLNil;
 }
@@ -3308,7 +3307,6 @@ static mlc_expr_t *ml_accept_string(mlc_scanner_t *Scanner) {
 		*D = 0;
 		mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
 		ValueExpr->compile = ml_value_expr_compile;
-		ValueExpr->Source = Scanner->Source;
 		ValueExpr->Source = Scanner->Source;
 		ValueExpr->Value = ml_string(String, Length);
 		Expr = (mlc_expr_t *)ValueExpr;
