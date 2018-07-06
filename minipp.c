@@ -212,7 +212,6 @@ int main(int Argc, const char **Argv) {
 				printf("Usage: %s { options } input", Argv[0]);
 				puts("    -h              display this message");
 				exit(0);
-				break;
 			}
 			case 'o': {
 				if (Argv[I][2]) {
