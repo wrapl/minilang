@@ -8,6 +8,7 @@
 #include <gc/gc_typed.h>
 #include <setjmp.h>
 #include <ctype.h>
+#include <pthread.h>
 #include <regex.h>
 #include "linenoise.h"
 #include "stringmap.h"
