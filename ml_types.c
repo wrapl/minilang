@@ -7,6 +7,7 @@
 #include <gc.h>
 #include <gc/gc_typed.h>
 #include <regex.h>
+#include <pthread.h>
 #include "stringmap.h"
 
 long ml_default_hash(ml_value_t *Value) {
