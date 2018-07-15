@@ -405,7 +405,7 @@ ml_value_t *ml_string_string_replace(void *Data, int Count, ml_value_t **Args) {
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	const char *Find = strstr(Subject, Pattern);
 	while (Find) {
-		if (Find > Subject) ml_stringbuffer_add(Buffer, Subject, Subject - Find);
+		if (Find > Subject) ml_stringbuffer_add(Buffer, Subject, Find - Subject);
 		ml_stringbuffer_add(Buffer, Replace, ReplaceLength);
 		Subject += PatternLength;
 		Find = strstr(Subject, Pattern);
