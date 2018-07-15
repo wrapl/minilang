@@ -407,7 +407,7 @@ ml_value_t *ml_string_string_replace(void *Data, int Count, ml_value_t **Args) {
 	while (Find) {
 		if (Find > Subject) ml_stringbuffer_add(Buffer, Subject, Find - Subject);
 		ml_stringbuffer_add(Buffer, Replace, ReplaceLength);
-		Subject += PatternLength;
+		Subject = Find + PatternLength;
 		Find = strstr(Subject, Pattern);
 	}
 	if (SubjectEnd > Subject) {
