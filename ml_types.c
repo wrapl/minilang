@@ -421,7 +421,7 @@ ml_value_t *ml_string_string_replace(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)String;
 }
 
-ml_value_t *ml_string_regex_replace(void *Data, int Count, ml_value_t **Args) {
+ml_value_t *ml_string_regex_string_replace(void *Data, int Count, ml_value_t **Args) {
 	const char *Subject = ml_string_value(Args[0]);
 	int SubjectLength = ml_string_length(Args[0]);
 	ml_regex_t *Pattern = (ml_regex_t *)Args[1];
@@ -449,6 +449,49 @@ ml_value_t *ml_string_regex_replace(void *Data, int Count, ml_value_t **Args) {
 			regoff_t Start = Matches[0].rm_so;
 			if (Start > 0) ml_stringbuffer_add(Buffer, Subject, Start);
 			ml_stringbuffer_add(Buffer, Replace, ReplaceLength);
+			Subject += Matches[0].rm_eo;
+			SubjectLength -= Matches[0].rm_eo;
+		}
+		}
+	}
+	return 0;
+}
+
+ml_value_t *ml_string_regex_function_replace(void *Data, int Count, ml_value_t **Args) {
+	const char *Subject = ml_string_value(Args[0]);
+	int SubjectLength = ml_string_length(Args[0]);
+	ml_regex_t *Pattern = (ml_regex_t *)Args[1];
+	ml_value_t *Replacer = Args[2];
+	int NumSub = Pattern->Value->re_nsub + 1;
+	regmatch_t Matches[NumSub];
+	ml_value_t *SubArgs[NumSub];
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	for (;;) {
+		switch (regexec(Pattern->Value, Subject, NumSub, Matches, 0)) {
+		case REG_NOMATCH:
+			if (SubjectLength) ml_stringbuffer_add(Buffer, Subject, SubjectLength);
+			ml_string_t *String = fnew(ml_string_t);
+			String->Type = MLStringT;
+			String->Length = Buffer->Length;
+			String->Value = ml_stringbuffer_get(Buffer);
+			GC_end_stubborn_change(String);
+			return (ml_value_t *)String;
+		case REG_ESPACE: {
+			size_t ErrorSize = regerror(REG_ESPACE, Pattern->Value, NULL, 0);
+			char *ErrorMessage = snew(ErrorSize + 1);
+			regerror(REG_ESPACE, Pattern->Value, ErrorMessage, ErrorSize);
+			return ml_error("RegexError", ErrorMessage);
+		}
+		default: {
+			regoff_t Start = Matches[0].rm_so;
+			if (Start > 0) ml_stringbuffer_add(Buffer, Subject, Start);
+			for (int I = 0; I < NumSub; ++I) {
+				SubArgs[I] = ml_string(Subject + Matches[I].rm_so, Matches[I].rm_eo - Matches[I].rm_so);
+			}
+			ml_value_t *Replace = ml_call(Replacer, NumSub, SubArgs);
+			if (Replace->Type == MLErrorT) return Replace;
+			if (Replace->Type != MLStringT) return ml_error("TypeError", "expected string, not %s", Replace->Type->Name);
+			ml_stringbuffer_add(Buffer, ml_string_value(Replace), ml_string_length(Replace));
 			Subject += Matches[0].rm_eo;
 			SubjectLength -= Matches[0].rm_eo;
 		}
@@ -1956,7 +1999,8 @@ void ml_init() {
 	ml_method_by_name("%", NULL, ml_string_match, MLStringT, MLStringT, NULL);
 	ml_method_by_name("find", 0, ml_string_find, MLStringT, MLStringT, 0);
 	ml_method_by_name("replace", NULL, ml_string_string_replace, MLStringT, MLStringT, MLStringT, NULL);
-	ml_method_by_name("replace", NULL, ml_string_regex_replace, MLStringT, MLRegexT, MLStringT, NULL);
+	ml_method_by_name("replace", NULL, ml_string_regex_string_replace, MLStringT, MLRegexT, MLStringT, NULL);
+	ml_method_by_name("replace", NULL, ml_string_regex_function_replace, MLStringT, MLRegexT, MLFunctionT, NULL);
 	ml_method_by_name("type", NULL, ml_error_type_value, MLErrorT, NULL);
 	ml_method_by_name("message", NULL, ml_error_message_value, MLErrorT, NULL);
 

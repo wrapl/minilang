@@ -1463,18 +1463,36 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 			CallExpr->Source = Scanner->Source;
 			CallExpr->Child = Expr;
 			mlc_expr_t **ArgsSlot = &Expr->Next;
+			mlc_decl_t *Params = 0;
+			int FunctionArg = 0;
 			if (!ml_parse(Scanner, MLT_RIGHT_PAREN)) {
 				do {
 					mlc_expr_t *Arg = ArgsSlot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
 					ArgsSlot = &Arg->Next;
 				} while (ml_parse(Scanner, MLT_COMMA));
+				if (ml_parse(Scanner, MLT_SEMICOLON)) {
+					mlc_decl_t **ParamSlot = &Params;
+					FunctionArg = 1;
+					do {
+						ml_accept(Scanner, MLT_IDENT);
+						mlc_decl_t *Param = ParamSlot[0] = new(mlc_decl_t);
+						ParamSlot = &Param->Next;
+						Param->Ident = Scanner->Ident;
+						if (ml_parse(Scanner, MLT_LEFT_SQUARE)) {
+							ml_accept(Scanner, MLT_RIGHT_SQUARE);
+							Param->Index = 1;
+							break;
+						}
+					} while (ml_parse(Scanner, MLT_COMMA));
+				}
 				ml_accept(Scanner, MLT_RIGHT_PAREN);
 			}
-			if (ml_parse(Scanner, MLT_DO)) {
+			if (FunctionArg) {
 				mlc_fun_expr_t *FunExpr = new(mlc_fun_expr_t);
 				FunExpr->compile = ml_fun_expr_compile;
 				FunExpr->Source = Scanner->Source;
-				FunExpr->Body = ml_accept_block(Scanner);
+				FunExpr->Params = Params;
+				FunExpr->Body = ml_accept_expression(Scanner, EXPR_DEFAULT);
 				ml_accept(Scanner, MLT_END);
 				ArgsSlot[0] = (mlc_expr_t *)FunExpr;
 			}
@@ -1500,14 +1518,40 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 			CallExpr->Source = Scanner->Source;
 			CallExpr->Value = (ml_value_t *)ml_method(Scanner->Ident);
 			CallExpr->Child = Expr;
-			if (ml_parse(Scanner, MLT_LEFT_PAREN) && !ml_parse(Scanner, MLT_RIGHT_PAREN)) {
+			if (ml_parse(Scanner, MLT_LEFT_PAREN)) {
 				mlc_expr_t **ArgsSlot = &Expr->Next;
+				mlc_decl_t *Params = 0;
+				int FunctionArg = 0;
 				if (!ml_parse(Scanner, MLT_RIGHT_PAREN)) {
 					do {
 						mlc_expr_t *Arg = ArgsSlot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
 						ArgsSlot = &Arg->Next;
 					} while (ml_parse(Scanner, MLT_COMMA));
+					if (ml_parse(Scanner, MLT_SEMICOLON)) {
+						FunctionArg = 1;
+						mlc_decl_t **ParamSlot = &Params;
+						do {
+							ml_accept(Scanner, MLT_IDENT);
+							mlc_decl_t *Param = ParamSlot[0] = new(mlc_decl_t);
+							ParamSlot = &Param->Next;
+							Param->Ident = Scanner->Ident;
+							if (ml_parse(Scanner, MLT_LEFT_SQUARE)) {
+								ml_accept(Scanner, MLT_RIGHT_SQUARE);
+								Param->Index = 1;
+								break;
+							}
+						} while (ml_parse(Scanner, MLT_COMMA));
+					}
 					ml_accept(Scanner, MLT_RIGHT_PAREN);
+				}
+				if (FunctionArg) {
+					mlc_fun_expr_t *FunExpr = new(mlc_fun_expr_t);
+					FunExpr->compile = ml_fun_expr_compile;
+					FunExpr->Source = Scanner->Source;
+					FunExpr->Params = Params;
+					FunExpr->Body = ml_accept_expression(Scanner, EXPR_DEFAULT);
+					ml_accept(Scanner, MLT_END);
+					ArgsSlot[0] = (mlc_expr_t *)FunExpr;
 				}
 			}
 			Expr = (mlc_expr_t *)CallExpr;
