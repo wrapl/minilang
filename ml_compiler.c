@@ -1154,7 +1154,11 @@ static int ml_parse(mlc_scanner_t *Scanner, ml_token_t Token) {
 void ml_accept(mlc_scanner_t *Scanner, ml_token_t Token) {
 	while (ml_parse(Scanner, MLT_EOL));
 	if (ml_parse(Scanner, Token)) return;
-	Scanner->Error = ml_error("ParseError", "expected %s not %s", MLTokens[Token], MLTokens[Scanner->Token]);
+	if (Scanner->Token == MLT_IDENT) {
+		Scanner->Error = ml_error("ParseError", "expected %s not %s (%s)", MLTokens[Token], MLTokens[Scanner->Token], Scanner->Ident);
+	} else {
+		Scanner->Error = ml_error("ParseError", "expected %s not %s", MLTokens[Token], MLTokens[Scanner->Token]);
+	}
 	ml_error_trace_add(Scanner->Error, Scanner->Source);
 	longjmp(Scanner->OnError, 1);
 }
@@ -1460,11 +1464,11 @@ static void ml_accept_arguments(mlc_scanner_t *Scanner, mlc_expr_t **ArgsSlot) {
 			mlc_expr_t *Arg = ArgsSlot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
 			ArgsSlot = &Arg->Next;
 		} while (ml_parse(Scanner, MLT_COMMA));
-		if (ml_parse(Scanner, MLT_SEMICOLON)) {
-			has_params: {
-				mlc_decl_t *Params = 0;
-				mlc_decl_t **ParamSlot = &Params;
-				if (!ml_parse(Scanner, MLT_RIGHT_PAREN)) do {
+		if (ml_parse(Scanner, MLT_SEMICOLON)) has_params: {
+			mlc_decl_t *Params = 0;
+			mlc_decl_t **ParamSlot = &Params;
+			if (!ml_parse(Scanner, MLT_RIGHT_PAREN)) {
+				do {
 					ml_accept(Scanner, MLT_IDENT);
 					mlc_decl_t *Param = ParamSlot[0] = new(mlc_decl_t);
 					ParamSlot = &Param->Next;
@@ -1475,14 +1479,14 @@ static void ml_accept_arguments(mlc_scanner_t *Scanner, mlc_expr_t **ArgsSlot) {
 						break;
 					}
 				} while (ml_parse(Scanner, MLT_COMMA));
-				mlc_fun_expr_t *FunExpr = new(mlc_fun_expr_t);
-				FunExpr->compile = ml_fun_expr_compile;
-				FunExpr->Source = Scanner->Source;
-				FunExpr->Params = Params;
-				FunExpr->Body = ml_accept_expression(Scanner, EXPR_DEFAULT);
-				ml_accept(Scanner, MLT_END);
-				ArgsSlot[0] = (mlc_expr_t *)FunExpr;
+				ml_accept(Scanner, MLT_RIGHT_PAREN);
 			}
+			mlc_fun_expr_t *FunExpr = new(mlc_fun_expr_t);
+			FunExpr->compile = ml_fun_expr_compile;
+			FunExpr->Source = Scanner->Source;
+			FunExpr->Params = Params;
+			FunExpr->Body = ml_accept_expression(Scanner, EXPR_DEFAULT);
+			ArgsSlot[0] = (mlc_expr_t *)FunExpr;
 		} else {
 			ml_accept(Scanner, MLT_RIGHT_PAREN);
 		}
