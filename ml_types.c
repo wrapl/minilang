@@ -1342,6 +1342,32 @@ char *ml_stringbuffer_get(ml_stringbuffer_t *Buffer) {
 	return String;
 }
 
+char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer) {
+	char *String = GC_malloc_atomic_uncollectable(Buffer->Length + 1);
+	if (Buffer->Length == 0) {
+		String[0] = 0;
+	} else {
+		char *P = String;
+		ml_stringbuffer_node_t *Node = Buffer->Nodes;
+		while (Node->Next) {
+			memcpy(P, Node->Chars, ML_STRINGBUFFER_NODE_SIZE);
+			P += ML_STRINGBUFFER_NODE_SIZE;
+			Node = Node->Next;
+		}
+		memcpy(P, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
+		P += ML_STRINGBUFFER_NODE_SIZE - Buffer->Space;
+		*P++ = 0;
+		pthread_mutex_lock(CacheMutex);
+		ml_stringbuffer_node_t **Slot = &Cache;
+		while (Slot[0]) Slot = &Slot[0]->Next;
+		Slot[0] = Buffer->Nodes;
+		pthread_mutex_unlock(CacheMutex);
+		Buffer->Nodes = NULL;
+		Buffer->Length = Buffer->Space = 0;
+	}
+	return String;
+}
+
 ml_type_t MLStringBufferT[1] = {{
 	MLAnyT, "stringbuffer",
 	ml_default_hash,

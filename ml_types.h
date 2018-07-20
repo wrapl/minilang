@@ -146,6 +146,7 @@ extern ml_type_t MLStringBufferT[1];
 ssize_t ml_stringbuffer_add(ml_stringbuffer_t *Buffer, const char *String, size_t Length);
 ssize_t ml_stringbuffer_addf(ml_stringbuffer_t *Buffer, const char *Format, ...) __attribute__ ((format(printf, 2, 3)));
 char *ml_stringbuffer_get(ml_stringbuffer_t *Buffer);
+char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer);
 int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(const char *, size_t, void *));
 
 struct ml_list_t {
