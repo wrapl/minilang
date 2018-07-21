@@ -628,42 +628,22 @@ ml_type_t MLMethodT[1] = {{
 	ml_default_key
 }};
 
-static int NumMethods = 0;
-static int MaxMethods = 2;
-static ml_method_t **Methods;
+static stringmap_t Methods[1] = {STRINGMAP_INIT};
 
 ml_value_t *ml_method(const char *Name) {
 	if (!Name) {
 		ml_method_t *Method = new(ml_method_t);
 		Method->Type = MLMethodT;
-		Method->Name = Name;
 		return (ml_value_t *)Method;
 	}
-	int Lo = 0, Hi = NumMethods - 1;
-	while (Lo <= Hi) {
-		int Mid = (Lo + Hi) / 2;
-		int Cmp = strcmp(Name, Methods[Mid]->Name);
-		if (Cmp < 0) {
-			Hi = Mid - 1;
-		} else if (Cmp > 0) {
-			Lo = Mid + 1;
-		} else {
-			return (ml_value_t *)Methods[Mid];
-		}
+	ml_method_t **Slot = (ml_method_t **)stringmap_slot(Methods, Name);
+	if (!Slot[0]) {
+		ml_method_t *Method = new(ml_method_t);
+		Method->Type = MLMethodT;
+		Method->Name = Name;
+		Slot[0] = Method;
 	}
-	ml_method_t *Method = new(ml_method_t);
-	Method->Type = MLMethodT;
-	Method->Name = Name;
-	ml_method_t **SourceMethods = Methods;
-	ml_method_t **TargetMethods = Methods;
-	if (++NumMethods > MaxMethods) {
-		MaxMethods += 32;
-		Methods = TargetMethods = anew(ml_method_t *, MaxMethods);
-		for (int I = Lo; --I >= 0;) TargetMethods[I] = SourceMethods[I];
-	}
-	for (int I = NumMethods; I > Lo; --I) TargetMethods[I] = SourceMethods[I - 1];
-	TargetMethods[Lo] = Method;
-	return (ml_value_t *)Method;
+	return (ml_value_t *)Slot[0];
 }
 
 void ml_method_by_name(const char *Name, void *Data, ml_callback_t Callback, ...) {
@@ -1955,7 +1935,6 @@ static ml_value_t *ml_return_nil(void *Data, int Count, ml_value_t **Args) {
 }
 
 void ml_init() {
-	Methods = anew(ml_method_t *, MaxMethods);
 	CompareMethod = ml_method("?");
 	ml_method_by_name("#", NULL, ml_hash_any, MLAnyT, NULL);
 	ml_method_by_name("?", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);

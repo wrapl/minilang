@@ -1105,7 +1105,7 @@ static int ml_parse(mlc_scanner_t *Scanner, ml_token_t Token) {
 			} else if (Scanner->Next[1] == ':') {
 				const char *End = Scanner->Next + 2;
 				for (Char = End[0]; OperatorChars[(int)Char]; Char = *++End);
-				int Length = End - Scanner->Next - 1;
+				int Length = End - Scanner->Next - 2;
 				char *Operator = snew(Length + 1);
 				strncpy(Operator, Scanner->Next + 2, Length);
 				Operator[Length] = 0;
