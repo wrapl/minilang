@@ -1,5 +1,7 @@
-#include "minilang.c"
+#include "minilang.h"
 #include "ml_file.h"
+#include <string.h>
+#include <gc/gc.h>
 
 typedef struct ml_preprocessor_input_t ml_preprocessor_input_t;
 typedef struct ml_preprocessor_output_t ml_preprocessor_output_t;
@@ -212,7 +214,6 @@ int main(int Argc, const char **Argv) {
 				printf("Usage: %s { options } input", Argv[0]);
 				puts("    -h              display this message");
 				exit(0);
-				break;
 			}
 			case 'o': {
 				if (Argv[I][2]) {

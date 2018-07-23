@@ -1,8 +1,9 @@
 #include "minilang.h"
+#include "ml_console.h"
+#include "ml_file.h"
 #include "stringmap.h"
 #include <stdio.h>
 #include <gc.h>
-#include "ml_file.h"
 
 static stringmap_t Globals[1] = {STRINGMAP_INIT};
 
