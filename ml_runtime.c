@@ -185,6 +185,28 @@ ml_inst_t *mli_if_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	}
 }
 
+ml_inst_t *mli_for_run(ml_inst_t *Inst, ml_frame_t *Frame) {
+	ml_value_t *Value = Frame->Top[-1];
+	Value = Value->Type->deref(Value);
+	if (Value->Type == MLErrorT) {
+		ml_error_trace_add(Value, Inst->Source);
+		Frame->Top[-1] = Value;
+		return Frame->OnError;
+	}
+	Value = Value->Type->iterate(Value);
+	if (Value->Type == MLErrorT) {
+		ml_error_trace_add(Value, Inst->Source);
+		Frame->Top[-1] = Value;
+		return Frame->OnError;
+	} else if (Value == MLNil) {
+		Frame->Top[-1] = Value;
+		return Inst->Params[0].Inst;
+	} else {
+		Frame->Top[-1] = Value;
+		return Inst->Params[1].Inst;
+	}
+}
+
 ml_inst_t *mli_until_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	ml_value_t *Value = Frame->Top[-1];
 	if (Value == MLNil) {

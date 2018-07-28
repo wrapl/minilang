@@ -14,9 +14,9 @@ on Error do
 end
 
 print('Before X loop\n')
-for X := 1 .. 5 do
+for X in 1 .. 5 do
 	print('Before Y loop\n')
-	for Y := 11 .. 15 do
+	for Y in 11 .. 15 do
 		print('X = {X}, Y = {Y}\n')
 		if X = 3 and Y = 13 then
 			exit next
@@ -25,7 +25,7 @@ for X := 1 .. 5 do
 	print('After Y loop\n')
 end
 
-for Z := 1 .. 10 do
+for Z in 1 .. 10 do
 	print('Z = {Z}\n')
 	if Z = 5 then
 		print('5!\n')

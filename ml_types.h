@@ -85,6 +85,7 @@ struct ml_type_t {
 	ml_value_t *(*call)(ml_value_t *, int, ml_value_t **);
 	ml_value_t *(*deref)(ml_value_t *);
 	ml_value_t *(*assign)(ml_value_t *, ml_value_t *);
+	ml_value_t *(*iterate)(ml_value_t *);
 	ml_value_t *(*next)(ml_value_t *);
 	ml_value_t *(*key)(ml_value_t *);
 };
