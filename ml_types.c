@@ -1209,9 +1209,13 @@ ml_value_t *ml_property(void *Data, const char *Name, ml_getter_t Get, ml_setter
 	return (ml_value_t *)Property;
 }
 
-void ml_closure_hash(ml_value_t *Value, unsigned char Hash[SHA256_BLOCK_SIZE]) {
+void ml_closure_sha256(ml_value_t *Value, unsigned char Hash[SHA256_BLOCK_SIZE]) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
 	memcpy(Hash, Closure->Info->Hash, SHA256_BLOCK_SIZE);
+	for (int I = 0; I < Closure->Info->NumUpValues; ++I) {
+		long ValueHash = ml_hash(Closure->UpValues[I]);
+		*(long *)(Hash + (I % 16)) ^= ValueHash;
+	}
 }
 
 ml_type_t MLErrorT[1] = {{

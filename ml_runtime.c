@@ -318,6 +318,7 @@ ml_inst_t *mli_append_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 
 ml_inst_t *mli_closure_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	// closure <entry> <frame_size> <num_params> <num_upvalues> <upvalue_1> ...
+	// TODO: incorporate UpValues into Closure instance hash
 	ml_closure_info_t *Info = Inst->Params[1].ClosureInfo;
 	ml_closure_t *Closure = xnew(ml_closure_t, Info->NumUpValues, ml_value_t *);
 	Closure->Type = MLClosureT;
@@ -332,6 +333,15 @@ ml_inst_t *mli_closure_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	}
 	(++Frame->Top)[-1] = (ml_value_t *)Closure;
 	return Inst->Params[0].Inst;
+}
+
+static long ml_closure_hash(ml_value_t *Value) {
+	ml_closure_t *Closure = (ml_closure_t *)Value;
+	long Hash = *(long *)Closure->Info->Hash;
+	for (int I = 0; I < Closure->Info->NumUpValues; ++I) {
+		Hash ^= ml_hash(Closure->UpValues[I]) << I;
+	}
+	return Hash;
 }
 
 ml_value_t *ml_closure_call(ml_value_t *Value, int Count, ml_value_t **Args) {
@@ -391,7 +401,7 @@ ml_value_t *ml_closure_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 
 ml_type_t MLClosureT[1] = {{
 	MLFunctionT, "closure",
-	ml_default_hash,
+	ml_closure_hash,
 	ml_closure_call,
 	ml_default_deref,
 	ml_default_assign,
