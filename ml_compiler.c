@@ -424,8 +424,10 @@ static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_exp
 	mlc_decl_t *OldScope = Function->Decls;
 	mlc_expr_t *Child = Expr->Child;
 	mlc_compiled_t Compiled = ml_compile(Function, Child, HashContext);
-	ml_inst_t *StartInst = ml_inst_new(2, Expr->Source, mli_until_run);
-	mlc_connect(Compiled.Exits, StartInst);
+	//ml_inst_t *ForInst = ml_inst_new(1, Expr->Source, mli_for_run);
+	ml_inst_t *ForInst = ml_inst_new(2, Expr->Source, mli_for_run);
+	//ForInst->Params[0].Inst = UntilInst;
+	mlc_connect(Compiled.Exits, ForInst);
 	mlc_decl_t *Decl = Expr->Decl;
 	Decl->Index = Function->Top - 1;
 	mlc_decl_t *KeyDecl = Decl->Next;
@@ -455,11 +457,11 @@ static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_exp
 		ml_inst_t *KeyInst = ml_inst_new(1, Expr->Source, mli_key_run);
 		KeyInst->Params[0].Inst = BodyCompiled.Start;
 		NextInst->Params[1].Inst = KeyInst;
-		StartInst->Params[1].Inst = KeyInst;
+		ForInst->Params[1].Inst = KeyInst;
 		PopInst->run = mli_pop2_run;
 	} else {
 		NextInst->Params[1].Inst = BodyCompiled.Start;
-		StartInst->Params[1].Inst = BodyCompiled.Start;
+		ForInst->Params[1].Inst = BodyCompiled.Start;
 	}
 	Compiled.Exits = Loop.Exits;
 	Function->Loop = Loop.Up;
@@ -469,7 +471,7 @@ static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_exp
 		ML_COMPILE_HASH
 		ml_inst_t *PopInst = ml_inst_new(1, Expr->Source, mli_pop_run);
 		PopInst->Params[0].Inst = ElseCompiled.Start;
-		StartInst->Params[0].Inst = PopInst;
+		ForInst->Params[0].Inst = PopInst;
 		NextInst->Params[0].Inst = PopInst;
 		ml_inst_t **Slot = &Compiled.Exits;
 		while (Slot[0]) Slot = &Slot[0]->Params[0].Inst;
@@ -477,8 +479,8 @@ static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_exp
 	} else {
 		++Function->Top;
 		NextInst->Params[0].Inst = Compiled.Exits;
-		StartInst->Params[0].Inst = NextInst;
-		Compiled.Exits = StartInst;
+		ForInst->Params[0].Inst = NextInst;
+		Compiled.Exits = ForInst;
 	}
 	Function->Decls = OldScope;
 	return Compiled;
@@ -1208,17 +1210,8 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 			HasKey = 1;
 		}
 		ForExpr->Decl = Decl;
-		if (ml_parse(Scanner, MLT_ASSIGN)) {
-			ForExpr->Child = ml_accept_expression(Scanner, EXPR_DEFAULT);
-		} else {
-			ml_accept(Scanner, MLT_IN);
-			mlc_const_call_expr_t *CallExpr = new(mlc_const_call_expr_t);
-			CallExpr->compile = ml_const_call_expr_compile;
-			CallExpr->Source = Scanner->Source;
-			CallExpr->Value = ml_method("values");
-			CallExpr->Child = ml_accept_expression(Scanner, EXPR_DEFAULT);
-			ForExpr->Child = (mlc_expr_t *)CallExpr;
-		}
+		ml_accept(Scanner, MLT_IN);
+		ForExpr->Child = ml_accept_expression(Scanner, EXPR_DEFAULT);
 		ml_accept(Scanner, MLT_DO);
 		ForExpr->Child->Next = ml_accept_block(Scanner);
 		if (Deref) {

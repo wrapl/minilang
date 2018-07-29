@@ -59,6 +59,7 @@ ml_inst_t *mli_const_call_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_assign_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_jump_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_if_run(ml_inst_t *Inst, ml_frame_t *Frame);
+ml_inst_t *mli_for_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_until_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_while_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_and_run(ml_inst_t *Inst, ml_frame_t *Frame);

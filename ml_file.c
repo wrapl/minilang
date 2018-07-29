@@ -16,15 +16,7 @@ struct ml_file_t {
 	FILE *Handle;
 };
 
-ml_type_t MLFileT[1] = {{
-	MLAnyT, "file",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	ml_default_next,
-	ml_default_key
-}};
+static ml_type_t *MLFileT;
 
 static ml_value_t *ml_file_read_line(void *Data, int Count, ml_value_t **Args) {
 	ml_file_t *File = (ml_file_t *)Args[0];
@@ -123,6 +115,7 @@ ml_value_t *ml_file_open(void *Data, int Count, ml_value_t **Args) {
 }
 
 void ml_file_init() {
+	MLFileT = ml_class(MLAnyT, "file");
 	ml_method_by_name("read", 0, ml_file_read_line, MLFileT, NULL);
 	ml_method_by_name("read", 0, ml_file_read_count, MLFileT, MLIntegerT, NULL);
 	ml_method_by_name("write", 0, ml_file_write_string, MLFileT, MLStringT, NULL);

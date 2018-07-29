@@ -185,6 +185,28 @@ ml_inst_t *mli_if_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	}
 }
 
+ml_inst_t *mli_for_run(ml_inst_t *Inst, ml_frame_t *Frame) {
+	ml_value_t *Value = Frame->Top[-1];
+	Value = Value->Type->deref(Value);
+	if (Value->Type == MLErrorT) {
+		ml_error_trace_add(Value, Inst->Source);
+		Frame->Top[-1] = Value;
+		return Frame->OnError;
+	}
+	Value = Value->Type->iterate(Value);
+	if (Value->Type == MLErrorT) {
+		ml_error_trace_add(Value, Inst->Source);
+		Frame->Top[-1] = Value;
+		return Frame->OnError;
+	} else if (Value == MLNil) {
+		Frame->Top[-1] = Value;
+		return Inst->Params[0].Inst;
+	} else {
+		Frame->Top[-1] = Value;
+		return Inst->Params[1].Inst;
+	}
+}
+
 ml_inst_t *mli_until_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	ml_value_t *Value = Frame->Top[-1];
 	if (Value == MLNil) {
@@ -296,6 +318,7 @@ ml_inst_t *mli_append_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 
 ml_inst_t *mli_closure_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	// closure <entry> <frame_size> <num_params> <num_upvalues> <upvalue_1> ...
+	// TODO: incorporate UpValues into Closure instance hash
 	ml_closure_info_t *Info = Inst->Params[1].ClosureInfo;
 	ml_closure_t *Closure = xnew(ml_closure_t, Info->NumUpValues, ml_value_t *);
 	Closure->Type = MLClosureT;
@@ -310,6 +333,15 @@ ml_inst_t *mli_closure_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	}
 	(++Frame->Top)[-1] = (ml_value_t *)Closure;
 	return Inst->Params[0].Inst;
+}
+
+static long ml_closure_hash(ml_value_t *Value) {
+	ml_closure_t *Closure = (ml_closure_t *)Value;
+	long Hash = *(long *)Closure->Info->Hash;
+	for (int I = 0; I < Closure->Info->NumUpValues; ++I) {
+		Hash ^= ml_hash(Closure->UpValues[I]) << I;
+	}
+	return Hash;
 }
 
 ml_value_t *ml_closure_call(ml_value_t *Value, int Count, ml_value_t **Args) {
@@ -369,7 +401,7 @@ ml_value_t *ml_closure_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 
 ml_type_t MLClosureT[1] = {{
 	MLFunctionT, "closure",
-	ml_default_hash,
+	ml_closure_hash,
 	ml_closure_call,
 	ml_default_deref,
 	ml_default_assign,

@@ -28,6 +28,10 @@ ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value) {
 	return ml_error("TypeError", "value is not assignable");
 }
 
+ml_value_t *ml_default_iterate(ml_value_t *Value) {
+	return ml_error("TypeError", "value is not iterable");
+}
+
 ml_value_t *ml_default_next(ml_value_t *Iter) {
 	return ml_error("TypeError", "%s is not iterable", Iter->Type->Name);
 }
@@ -45,6 +49,7 @@ ml_type_t MLAnyT[1] = {{
 	ml_default_call,
 	ml_default_deref,
 	ml_default_assign,
+	ml_default_iterate,
 	ml_default_next,
 	ml_default_key
 }};
@@ -59,6 +64,7 @@ ml_type_t MLNilT[1] = {{
 	ml_default_call,
 	ml_default_deref,
 	ml_default_assign,
+	ml_default_iterate,
 	ml_default_next,
 	ml_default_key
 }};
@@ -75,6 +81,7 @@ ml_type_t MLSomeT[1] = {{
 	ml_default_call,
 	ml_default_deref,
 	ml_default_assign,
+	ml_default_iterate,
 	ml_default_next,
 	ml_default_key
 }};
@@ -119,6 +126,7 @@ ml_type_t MLFunctionT[1] = {{
 	ml_function_call,
 	ml_default_deref,
 	ml_default_assign,
+	ml_default_iterate,
 	ml_default_next,
 	ml_default_key
 }};
@@ -138,6 +146,7 @@ ml_type_t MLNumberT[1] = {{
 	ml_default_call,
 	ml_default_deref,
 	ml_default_assign,
+	ml_default_iterate,
 	ml_default_next,
 	ml_default_key
 }};
@@ -175,6 +184,7 @@ ml_type_t MLIntegerT[1] = {{
 	ml_default_call,
 	ml_default_deref,
 	ml_default_assign,
+	ml_default_iterate,
 	ml_default_next,
 	ml_default_key
 }};
@@ -206,6 +216,7 @@ ml_type_t MLRealT[1] = {{
 	ml_default_call,
 	ml_default_deref,
 	ml_default_assign,
+	ml_default_iterate,
 	ml_default_next,
 	ml_default_key
 }};
@@ -506,6 +517,7 @@ ml_type_t MLStringT[1] = {{
 	ml_default_call,
 	ml_default_deref,
 	ml_default_assign,
+	ml_default_iterate,
 	ml_default_next,
 	ml_default_key
 }};
@@ -548,6 +560,7 @@ ml_type_t MLRegexT[1] = {{
 	ml_default_call,
 	ml_default_deref,
 	ml_default_assign,
+	ml_default_iterate,
 	ml_default_next,
 	ml_default_key
 }};
@@ -624,6 +637,7 @@ ml_type_t MLMethodT[1] = {{
 	ml_method_call,
 	ml_default_deref,
 	ml_default_assign,
+	ml_default_iterate,
 	ml_default_next,
 	ml_default_key
 }};
@@ -706,6 +720,7 @@ ml_type_t MLReferenceT[1] = {{
 	ml_default_call,
 	ml_reference_deref,
 	ml_reference_assign,
+	ml_default_iterate,
 	ml_default_next,
 	ml_default_key
 }};
@@ -797,12 +812,15 @@ static ml_value_t *ml_list_slice(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)Slice;
 }
 
+static ml_value_t *ml_list_iterate(ml_value_t *Value);
+
 ml_type_t MLListT[1] = {{
 	MLAnyT, "list",
 	ml_default_hash,
 	ml_default_call,
 	ml_default_deref,
 	ml_default_assign,
+	ml_list_iterate,
 	ml_default_next,
 	ml_default_key
 }};
@@ -1074,12 +1092,15 @@ static ml_value_t *ml_tree_delete(void *Data, int Count, ml_value_t **Args) {
 	return ml_tree_remove(Tree, Key);
 }
 
+static ml_value_t *ml_tree_iterate(ml_value_t *Value);
+
 ml_type_t MLTreeT[1] = {{
 	MLAnyT, "tree",
 	ml_default_hash,
 	ml_default_call,
 	ml_default_deref,
 	ml_default_assign,
+	ml_tree_iterate,
 	ml_default_next,
 	ml_default_key
 }};
@@ -1119,6 +1140,7 @@ struct ml_property_t {
 	const char *Name;
 	ml_getter_t Get;
 	ml_setter_t Set;
+	ml_getter_t Iterate;
 	ml_getter_t Next;
 	ml_getter_t Key;
 };
@@ -1134,6 +1156,15 @@ static ml_value_t *ml_property_assign(ml_value_t *Ref, ml_value_t *Value) {
 		return (Property->Set)(Property->Data, Property->Name, Value);
 	} else {
 		return ml_error("TypeError", "value is not assignable");
+	}
+}
+
+static ml_value_t *ml_property_iterate(ml_value_t *Value) {
+	ml_property_t *Property = (ml_property_t *)Value;
+	if (Property->Iterate) {
+		return (Property->Iterate)(Property->Data, "next");
+	} else {
+		return ml_error("TypeError", "value is not iterable");
 	}
 }
 
@@ -1161,6 +1192,7 @@ ml_type_t MLPropertyT[1] = {{
 	ml_default_call,
 	ml_property_deref,
 	ml_property_assign,
+	ml_property_iterate,
 	ml_property_next,
 	ml_property_key
 }};
@@ -1177,9 +1209,13 @@ ml_value_t *ml_property(void *Data, const char *Name, ml_getter_t Get, ml_setter
 	return (ml_value_t *)Property;
 }
 
-void ml_closure_hash(ml_value_t *Value, unsigned char Hash[SHA256_BLOCK_SIZE]) {
+void ml_closure_sha256(ml_value_t *Value, unsigned char Hash[SHA256_BLOCK_SIZE]) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
 	memcpy(Hash, Closure->Info->Hash, SHA256_BLOCK_SIZE);
+	for (int I = 0; I < Closure->Info->NumUpValues; ++I) {
+		long ValueHash = ml_hash(Closure->UpValues[I]);
+		*(long *)(Hash + (I % 16)) ^= ValueHash;
+	}
 }
 
 ml_type_t MLErrorT[1] = {{
@@ -1188,6 +1224,7 @@ ml_type_t MLErrorT[1] = {{
 	ml_default_call,
 	ml_default_deref,
 	ml_default_assign,
+	ml_default_iterate,
 	ml_default_next,
 	ml_default_key
 }};
@@ -1198,6 +1235,7 @@ ml_type_t MLErrorValueT[1] = {{
 	ml_default_call,
 	ml_default_deref,
 	ml_default_assign,
+	ml_default_iterate,
 	ml_default_next,
 	ml_default_key
 }};
@@ -1354,6 +1392,7 @@ ml_type_t MLStringBufferT[1] = {{
 	ml_default_call,
 	ml_default_deref,
 	ml_default_assign,
+	ml_default_iterate,
 	ml_default_next,
 	ml_default_key
 }};
@@ -1566,34 +1605,61 @@ static ml_value_t *ml_compare_real_real(void *Data, int Count, ml_value_t **Args
 	return (ml_value_t *)Zero;
 }
 
-typedef struct ml_integer_range_t {
+typedef struct ml_integer_iter_t {
 	const ml_type_t *Type;
 	ml_integer_t *Current;
 	long Step, Limit;
-} ml_integer_range_t;
+} ml_integer_iter_t;
 
-static ml_value_t *ml_integer_range_deref(ml_value_t *Ref) {
-	ml_integer_range_t *Range = (ml_integer_range_t *)Ref;
-	return (ml_value_t *)Range->Current;
+static ml_value_t *ml_integer_iter_deref(ml_value_t *Ref) {
+	ml_integer_iter_t *Iter = (ml_integer_iter_t *)Ref;
+	return (ml_value_t *)Iter->Current;
 }
 
-static ml_value_t *ml_integer_range_next(ml_value_t *Ref) {
-	ml_integer_range_t *Range = (ml_integer_range_t *)Ref;
-	if (Range->Current->Value >= Range->Limit) {
+static ml_value_t *ml_integer_iter_next(ml_value_t *Ref) {
+	ml_integer_iter_t *Iter = (ml_integer_iter_t *)Ref;
+	if (Iter->Current->Value >= Iter->Limit) {
 		return MLNil;
 	} else {
-		Range->Current = (ml_integer_t *)ml_integer(Range->Current->Value + Range->Step);
+		Iter->Current = (ml_integer_t *)ml_integer(Iter->Current->Value + Iter->Step);
 		return Ref;
 	}
 }
 
-ml_type_t MLIntegerRange[1] = {{
+ml_type_t MLIntegerIterT[1] = {{
+	MLAnyT, "integer-iter",
+	ml_default_hash,
+	ml_default_call,
+	ml_integer_iter_deref,
+	ml_default_assign,
+	ml_default_iterate,
+	ml_integer_iter_next,
+	ml_default_key
+}};
+
+typedef struct ml_integer_range_t {
+	const ml_type_t *Type;
+	long Start, Limit, Step;
+} ml_integer_range_t;
+
+static ml_value_t *ml_integer_range_iterate(ml_value_t *Value) {
+	ml_integer_range_t *Range = (ml_integer_range_t *)Value;
+	ml_integer_iter_t *Iter = new(ml_integer_iter_t);
+	Iter->Type = MLIntegerIterT;
+	Iter->Current = (ml_integer_t *)ml_integer(Range->Start);
+	Iter->Limit = Range->Limit;
+	Iter->Step = Range->Step;
+	return (ml_value_t *)Iter;
+}
+
+ml_type_t MLIntegerRangeT[1] = {{
 	MLAnyT, "integer-range",
 	ml_default_hash,
 	ml_default_call,
-	ml_integer_range_deref,
+	ml_default_deref,
 	ml_default_assign,
-	ml_integer_range_next,
+	ml_integer_range_iterate,
+	ml_default_next,
 	ml_default_key
 }};
 
@@ -1601,8 +1667,8 @@ static ml_value_t *ml_range_integer_integer(void *Data, int Count, ml_value_t **
 	ml_integer_t *IntegerA = (ml_integer_t *)Args[0];
 	ml_integer_t *IntegerB = (ml_integer_t *)Args[1];
 	ml_integer_range_t *Range = new(ml_integer_range_t);
-	Range->Type = MLIntegerRange;
-	Range->Current = IntegerA;
+	Range->Type = MLIntegerRangeT;
+	Range->Start = IntegerA->Value;
 	Range->Limit = IntegerB->Value;
 	Range->Step = 1;
 	return (ml_value_t *)Range;
@@ -1695,21 +1761,22 @@ static ml_value_t *ml_list_iter_key(ml_value_t *Ref) {
 	return ml_integer(Iter->Index);
 }
 
-ml_type_t MLListIter[1] = {{
+ml_type_t MLListIterT[1] = {{
 	MLAnyT, "list-iterator",
 	ml_default_hash,
 	ml_default_call,
 	ml_list_iter_deref,
 	ml_list_iter_assign,
+	ml_default_iterate,
 	ml_list_iter_next,
 	ml_list_iter_key
 }};
 
-static ml_value_t *ml_list_values(void *Data, int Count, ml_value_t **Args) {
-	ml_list_t *List = (ml_list_t *)Args[0];
+static ml_value_t *ml_list_iterate(ml_value_t *Value) {
+	ml_list_t *List = (ml_list_t *)Value;
 	if (List->Head) {
 		ml_list_iter_t *Iter = new(ml_list_iter_t);
-		Iter->Type = MLListIter;
+		Iter->Type = MLListIterT;
 		Iter->Node = List->Head;
 		Iter->Index = 1;
 		return (ml_value_t *)Iter;
@@ -1859,21 +1926,22 @@ static ml_value_t *ml_tree_iter_key(ml_value_t *Ref) {
 	return Iter->Node->Key;
 }
 
-ml_type_t MLTreeIter[1] = {{
+ml_type_t MLTreeIterT[1] = {{
 	MLAnyT, "tree-iterator",
 	ml_default_hash,
 	ml_default_call,
 	ml_tree_iter_deref,
 	ml_tree_iter_assign,
+	ml_default_iterate,
 	ml_tree_iter_next,
 	ml_tree_iter_key
 }};
 
-static ml_value_t *ml_tree_values(void *Data, int Count, ml_value_t **Args) {
-	ml_tree_t *Tree = (ml_tree_t *)Args[0];
+static ml_value_t *ml_tree_iterate(ml_value_t *Value) {
+	ml_tree_t *Tree = (ml_tree_t *)Value;
 	if (Tree->Root) {
 		ml_tree_iter_t *Iter = new(ml_tree_iter_t);
-		Iter->Type = MLTreeIter;
+		Iter->Type = MLTreeIterT;
 		Iter->Node = Tree->Root;
 		Iter->Top = 0;
 		return (ml_value_t *)Iter;
@@ -1981,7 +2049,6 @@ void ml_init() {
 	ml_method_by_name("length", NULL, ml_list_length_value, MLListT, NULL);
 	ml_method_by_name("[]", NULL, ml_list_index, MLListT, MLIntegerT, NULL);
 	ml_method_by_name("[]", NULL, ml_list_slice, MLListT, MLIntegerT, MLIntegerT, NULL);
-	ml_method_by_name("values", NULL, ml_list_values, MLListT, NULL);
 	ml_method_by_name("push", NULL, ml_list_push, MLListT, NULL);
 	ml_method_by_name("put", NULL, ml_list_put, MLListT, NULL);
 	ml_method_by_name("pop", NULL, ml_list_pop, MLListT, NULL);
@@ -1989,7 +2056,6 @@ void ml_init() {
 	ml_method_by_name("+", NULL, ml_list_add, MLListT, MLListT, NULL);
 	ml_method_by_name("size", NULL, ml_tree_size, MLTreeT, NULL);
 	ml_method_by_name("[]", NULL, ml_tree_index, MLTreeT, MLAnyT, NULL);
-	ml_method_by_name("values", NULL, ml_tree_values, MLTreeT, NULL);
 	ml_method_by_name("delete", NULL, ml_tree_delete, MLTreeT, NULL);
 	ml_method_by_name("+", NULL, ml_tree_add, MLTreeT, MLTreeT, NULL);
 	ml_method_by_name("string", NULL, ml_nil_to_string, MLNilT, NULL);
@@ -2030,6 +2096,7 @@ ml_type_t *ml_class(ml_type_t *Parent, const char *Name) {
 	Type->call = Parent->call;
 	Type->deref = Parent->deref;
 	Type->assign = Parent->assign;
+	Type->iterate = Parent->iterate;
 	Type->next = Parent->next;
 	Type->key = Parent->key;
 	return Type;
