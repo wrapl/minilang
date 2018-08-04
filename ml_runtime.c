@@ -1,4 +1,5 @@
 #include "minilang.h"
+#include "ml_runtime.h"
 #include <gc.h>
 #include <string.h>
 

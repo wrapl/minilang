@@ -1,4 +1,5 @@
 #include "minilang.h"
+#include "ml_compiler.h"
 #include "stringmap.h"
 #include <gc.h>
 #include <ctype.h>
@@ -424,9 +425,7 @@ static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_exp
 	mlc_decl_t *OldScope = Function->Decls;
 	mlc_expr_t *Child = Expr->Child;
 	mlc_compiled_t Compiled = ml_compile(Function, Child, HashContext);
-	//ml_inst_t *ForInst = ml_inst_new(1, Expr->Source, mli_for_run);
 	ml_inst_t *ForInst = ml_inst_new(2, Expr->Source, mli_for_run);
-	//ForInst->Params[0].Inst = UntilInst;
 	mlc_connect(Compiled.Exits, ForInst);
 	mlc_decl_t *Decl = Expr->Decl;
 	Decl->Index = Function->Top - 1;
@@ -492,14 +491,14 @@ static mlc_compiled_t ml_all_expr_compile(mlc_function_t *Function, mlc_parent_e
 	++Function->Top;
 	mlc_compiled_t Compiled = ml_compile(Function, Expr->Child, HashContext);
 	ListInst->Params[0].Inst = Compiled.Start;
-	ml_inst_t *UntilInst = ml_inst_new(2, Expr->Source, mli_until_run);
-	mlc_connect(Compiled.Exits, UntilInst);
+	ml_inst_t *ForInst = ml_inst_new(2, Expr->Source, mli_for_run);
+	mlc_connect(Compiled.Exits, ForInst);
 	ml_inst_t *AppendInst = ml_inst_new(1, Expr->Source, mli_append_run);
-	UntilInst->Params[1].Inst = AppendInst;
+	ForInst->Params[1].Inst = AppendInst;
 	ml_inst_t *NextInst = ml_inst_new(2, Expr->Source, mli_next_run);
 	ml_inst_t *PopInst = ml_inst_new(1, Expr->Source, mli_pop_run);
 	AppendInst->Params[0].Inst = NextInst;
-	UntilInst->Params[0].Inst = PopInst;
+	ForInst->Params[0].Inst = PopInst;
 	NextInst->Params[0].Inst = PopInst;
 	NextInst->Params[1].Inst = AppendInst;
 	return (mlc_compiled_t){ListInst, PopInst};

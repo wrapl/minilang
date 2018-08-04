@@ -1,4 +1,5 @@
 #include "minilang.h"
+#include "ml_compiler.h"
 #include "stringmap.h"
 #include "linenoise.h"
 #include <gc.h>

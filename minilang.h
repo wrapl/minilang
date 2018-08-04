@@ -6,8 +6,6 @@
 #include <unistd.h>
 
 #include "ml_types.h"
-#include "ml_compiler.h"
-#include "ml_runtime.h"
 #include "ml_macros.h"
 
 void ml_init();
