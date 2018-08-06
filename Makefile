@@ -7,10 +7,6 @@ all: minilang minipp libminilang.a
 CFLAGS += -std=gnu99 -fstrict-aliasing -Wstrict-aliasing -I. -pthread -DGC_THREADS -D_GNU_SOURCE
 LDFLAGS += -lm -ldl -lgc
 
-PREFIX = .
-install_include = $(PREFIX)/include/minilang
-install_lib = $(PREFIX)/lib
-
 ifdef DEBUG
 	CFLAGS += -g -DGC_DEBUG
 	LDFLAGS += -g
@@ -45,10 +41,14 @@ libminilang.a: $(common_objects)
 	ar rcs $@ $(common_objects)
 
 clean:
-	rm minilang
-	rm minipp
-	rm *.o
-	rm libminilang.a
+	rm -f minilang
+	rm -f minipp
+	rm -f *.o
+	rm -f libminilang.a
+
+PREFIX = /usr
+install_include = $(PREFIX)/include/minilang
+install_lib = $(PREFIX)/lib
 
 install_h = \
 	$(install_include)/linenoise.h \
