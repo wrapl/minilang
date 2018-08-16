@@ -1,17 +1,10 @@
-.PHONY: clean all
+.PHONY: clean all install
 
-all: minilang minipp
+all: minilang minipp libminilang.a
 
-sources = \
-	sha256.c \
-	minilang.c \
-	ml_compiler.c \
-	ml_runtime.c \
-	ml_types.c \
-	ml_file.c \
-	stringmap.c
+*.o: *.h
 
-CFLAGS += -std=gnu99 -I. -Igc/include -g -pthread -DGC_THREADS -D_GNU_SOURCE
+CFLAGS += -std=gnu99 -fstrict-aliasing -Wstrict-aliasing -I. -pthread -DGC_THREADS -D_GNU_SOURCE
 LDFLAGS += -lm -ldl -lgc
 
 ifdef DEBUG
@@ -21,12 +14,60 @@ else
 	CFLAGS += -O2
 endif
 
-minilang: Makefile $(sources) *.h
-	gcc $(CFLAGS) $(sources) ml.c ml_console.c linenoise.c $(LDFLAGS) -o$@
+common_objects = \
+	linenoise.o \
+	minilang.o \
+	ml_compiler.o \
+	ml_console.o \
+	ml_runtime.o \
+	ml_types.o \
+	ml_file.o \
+	sha256.o \
+	stringmap.o
 
-minipp: Makefile $(sources) minipp.c *.h
-	gcc $(CFLAGS) $(sources) minipp.c $(LDFLAGS) -o$@
+minilang_objects = $(common_objects) \
+	ml.o
+
+minilang: Makefile $(minilang_objects) *.h
+	gcc $(minilang_objects) $(LDFLAGS) -o$@
+
+minipp_objects = $(common_objects) \
+	minipp.o
+
+minipp: Makefile $(minipp_objects) *.h
+	gcc $(minipp_objects) $(LDFLAGS) -o$@
+
+libminilang.a: $(common_objects)
+	ar rcs $@ $(common_objects)
 
 clean:
-	rm minilang
-	rm minipp
+	rm -f minilang
+	rm -f minipp
+	rm -f *.o
+	rm -f libminilang.a
+
+PREFIX = /usr
+install_include = $(PREFIX)/include/minilang
+install_lib = $(PREFIX)/lib
+
+install_h = \
+	$(install_include)/linenoise.h \
+	$(install_include)/minilang.h \
+	$(install_include)/ml_console.h \
+	$(install_include)/ml_file.h \
+	$(install_include)/ml_macros.h \
+	$(install_include)/ml_types.h \
+	$(install_include)/sha256.h \
+	$(install_include)/stringmap.h
+
+install_a = $(install_lib)/libminilang.a
+
+$(install_h): $(install_include)/%: %
+	mkdir -p $(install_include)
+	cp $< $@
+
+$(install_a): $(install_lib)/%: %
+	mkdir -p $(install_lib)
+	cp $< $@
+
+install: $(install_h) $(install_a)

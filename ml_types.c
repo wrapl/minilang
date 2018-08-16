@@ -1,4 +1,5 @@
 #include "minilang.h"
+#include "ml_runtime.h"
 #include "sha256.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -340,7 +341,7 @@ ml_value_t *ml_string_regex_split(void *Data, int Count, ml_value_t **Args) {
 			size_t ErrorSize = regerror(REG_ESPACE, Pattern->Value, NULL, 0);
 			char *ErrorMessage = snew(ErrorSize + 1);
 			regerror(REG_ESPACE, Pattern->Value, ErrorMessage, ErrorSize);
-			return ml_error("RegexError", ErrorMessage);
+			return ml_error("RegexError", "regex error: %s", ErrorMessage);
 		}
 		default: {
 			regoff_t Start = Matches[Index].rm_so;
@@ -372,7 +373,7 @@ ml_value_t *ml_string_match(void *Data, int Count, ml_value_t **Args) {
 		size_t ErrorSize = regerror(Error, Regex, NULL, 0);
 		char *ErrorMessage = snew(ErrorSize + 1);
 		regerror(Error, Regex, ErrorMessage, ErrorSize);
-		return ml_error("RegexError", ErrorMessage);
+		return ml_error("RegexError", "regex error: %s", ErrorMessage);
 	}
 	regmatch_t Matches[Regex->re_nsub];
 	switch (regexec(Regex, Subject, Regex->re_nsub, Matches, 0)) {
@@ -384,7 +385,7 @@ ml_value_t *ml_string_match(void *Data, int Count, ml_value_t **Args) {
 		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 		char *ErrorMessage = snew(ErrorSize + 1);
 		regerror(Error, Regex, ErrorMessage, ErrorSize);
-		return ml_error("RegexError", ErrorMessage);
+		return ml_error("RegexError", "regex error: %s", ErrorMessage);
 	}
 	default: {
 		ml_value_t *Results = ml_list();
@@ -454,7 +455,7 @@ ml_value_t *ml_string_regex_string_replace(void *Data, int Count, ml_value_t **A
 			size_t ErrorSize = regerror(REG_ESPACE, Pattern->Value, NULL, 0);
 			char *ErrorMessage = snew(ErrorSize + 1);
 			regerror(REG_ESPACE, Pattern->Value, ErrorMessage, ErrorSize);
-			return ml_error("RegexError", ErrorMessage);
+			return ml_error("RegexError", "regex error: %s", ErrorMessage);
 		}
 		default: {
 			regoff_t Start = Matches[0].rm_so;
@@ -491,7 +492,7 @@ ml_value_t *ml_string_regex_function_replace(void *Data, int Count, ml_value_t *
 			size_t ErrorSize = regerror(REG_ESPACE, Pattern->Value, NULL, 0);
 			char *ErrorMessage = snew(ErrorSize + 1);
 			regerror(REG_ESPACE, Pattern->Value, ErrorMessage, ErrorSize);
-			return ml_error("RegexError", ErrorMessage);
+			return ml_error("RegexError", "regex error: %s", ErrorMessage);
 		}
 		default: {
 			regoff_t Start = Matches[0].rm_so;
@@ -574,7 +575,7 @@ ml_value_t *ml_regex(const char *Pattern) {
 		size_t ErrorSize = regerror(Error, Regex->Value, NULL, 0);
 		char *ErrorMessage = snew(ErrorSize + 1);
 		regerror(Error, Regex->Value, ErrorMessage, ErrorSize);
-		return ml_error("RegexError", ErrorMessage);
+		return ml_error("RegexError", "regex error: %s", ErrorMessage);
 	}
 	return (ml_value_t *)Regex;
 }
@@ -1413,7 +1414,7 @@ ml_value_t *stringify_nil(void *Data, int Count, ml_value_t **Args) {
 
 ml_value_t *stringify_integer(void *Data, int Count, ml_value_t **Args) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_addf(Buffer, "%d", ml_integer_value(Args[1]));
+	ml_stringbuffer_addf(Buffer, "%ld", ml_integer_value(Args[1]));
 	return MLSome;
 }
 
@@ -2063,12 +2064,12 @@ void ml_init() {
 	ml_method_by_name("string", NULL, ml_integer_to_string, MLIntegerT, NULL);
 	ml_method_by_name("string", NULL, ml_real_to_string, MLRealT, NULL);
 	ml_method_by_name("string", NULL, ml_identity, MLStringT, NULL);
-	ml_method_by_name("string", 0, ml_list_to_string, MLListT, 0);
-	ml_method_by_name("string", 0, ml_tree_to_string, MLTreeT, 0);
+	ml_method_by_name("string", 0, ml_list_to_string, MLListT, NULL);
+	ml_method_by_name("string", 0, ml_tree_to_string, MLTreeT, NULL);
 	ml_method_by_name("/", NULL, ml_string_string_split, MLStringT, MLStringT, NULL);
 	ml_method_by_name("/", NULL, ml_string_regex_split, MLStringT, MLRegexT, NULL);
 	ml_method_by_name("%", NULL, ml_string_match, MLStringT, MLStringT, NULL);
-	ml_method_by_name("find", 0, ml_string_find, MLStringT, MLStringT, 0);
+	ml_method_by_name("find", 0, ml_string_find, MLStringT, MLStringT, NULL);
 	ml_method_by_name("replace", NULL, ml_string_string_replace, MLStringT, MLStringT, MLStringT, NULL);
 	ml_method_by_name("replace", NULL, ml_string_regex_string_replace, MLStringT, MLRegexT, MLStringT, NULL);
 	ml_method_by_name("replace", NULL, ml_string_regex_function_replace, MLStringT, MLRegexT, MLFunctionT, NULL);
