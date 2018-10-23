@@ -71,6 +71,7 @@ ml_inst_t *mli_local_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_list_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_append_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_closure_run(ml_inst_t *Inst, ml_frame_t *Frame);
+ml_inst_t *mli_error_run(ml_inst_t *Inst, ml_frame_t *Frame);
 
 ml_value_t *ml_closure_call(ml_value_t *Value, int Count, ml_value_t **Args);
 
