@@ -73,7 +73,7 @@ ml_type_t MLNilT[1] = {{
 ml_value_t MLNil[1] = {{MLNilT}};
 
 static ml_value_t *ml_some_to_string(void *Data, int Count, ml_value_t **Args) {
-	return ml_string("some", 3);
+	return ml_string("some", 4);
 }
 
 ml_type_t MLSomeT[1] = {{
@@ -626,7 +626,16 @@ ml_value_t *ml_method_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 		for (int I = 0; I < Count; ++I) Length += strlen(Args[I]->Type->Name) + 2;
 		char *Types = snew(Length);
 		char *P = Types;
+#ifdef __MINGW32__
+		for (int I = 0; I < Count; ++I) {
+			strcpy(P, Args[I]->Type->Name);
+			P += strlen(Args[I]->Type->Name);
+			strcpy(P, ", ");
+			P += 2;
+		}
+#else
 		for (int I = 0; I < Count; ++I) P = stpcpy(stpcpy(P, Args[I]->Type->Name), ", ");
+#endif
 		P[-2] = 0;
 		return ml_error("MethodError", "no matching method found for %s(%s)", Method->Name, Types);
 	}
