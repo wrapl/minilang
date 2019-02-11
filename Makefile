@@ -32,6 +32,10 @@ ifeq ($(PLATFORM), Linux)
 	platform_objects += linenoise.o 
 endif
 
+ifeq ($(PLATFORM), Darwin)
+	platform_objects += linenoise.o 
+endif
+
 minilang_objects = $(common_objects) $(platform_objects) \
 	ml.o
 
