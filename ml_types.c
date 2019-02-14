@@ -73,7 +73,7 @@ ml_type_t MLNilT[1] = {{
 ml_value_t MLNil[1] = {{MLNilT}};
 
 static ml_value_t *ml_some_to_string(void *Data, int Count, ml_value_t **Args) {
-	return ml_string("some", 3);
+	return ml_string("some", 4);
 }
 
 ml_type_t MLSomeT[1] = {{
@@ -375,7 +375,7 @@ ml_value_t *ml_string_match(void *Data, int Count, ml_value_t **Args) {
 		regerror(Error, Regex, ErrorMessage, ErrorSize);
 		return ml_error("RegexError", "regex error: %s", ErrorMessage);
 	}
-	regmatch_t Matches[Regex->re_nsub];
+	regmatch_t Matches[Regex->re_nsub + 1];
 	switch (regexec(Regex, Subject, Regex->re_nsub, Matches, 0)) {
 	case REG_NOMATCH:
 		regfree(Regex);
@@ -626,7 +626,16 @@ ml_value_t *ml_method_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 		for (int I = 0; I < Count; ++I) Length += strlen(Args[I]->Type->Name) + 2;
 		char *Types = snew(Length);
 		char *P = Types;
+#ifdef __MINGW32__
+		for (int I = 0; I < Count; ++I) {
+			strcpy(P, Args[I]->Type->Name);
+			P += strlen(Args[I]->Type->Name);
+			strcpy(P, ", ");
+			P += 2;
+		}
+#else
 		for (int I = 0; I < Count; ++I) P = stpcpy(stpcpy(P, Args[I]->Type->Name), ", ");
+#endif
 		P[-2] = 0;
 		return ml_error("MethodError", "no matching method found for %s(%s)", Method->Name, Types);
 	}
@@ -2003,6 +2012,18 @@ static ml_value_t *ml_return_nil(void *Data, int Count, ml_value_t **Args) {
 	return MLNil;
 }
 
+static ml_value_t *ml_integer_string(void *Data, int Count, ml_value_t **Args) {
+	return ml_integer(strtol(ml_string_value(Args[0]), 0, 10));
+}
+
+static ml_value_t *ml_integer_string_base(void *Data, int Count, ml_value_t **Args) {
+	return ml_integer(strtol(ml_string_value(Args[0]), 0, ml_integer_value(Args[1])));
+}
+
+static ml_value_t *ml_real_string(void *Data, int Count, ml_value_t **Args) {
+	return ml_integer(strtod(ml_string_value(Args[0]), 0));
+}
+
 void ml_init() {
 	CompareMethod = ml_method("?");
 	ml_method_by_name("#", NULL, ml_hash_any, MLAnyT, NULL);
@@ -2075,6 +2096,9 @@ void ml_init() {
 	ml_method_by_name("replace", NULL, ml_string_regex_function_replace, MLStringT, MLRegexT, MLFunctionT, NULL);
 	ml_method_by_name("type", NULL, ml_error_type_value, MLErrorT, NULL);
 	ml_method_by_name("message", NULL, ml_error_message_value, MLErrorT, NULL);
+	ml_method_by_name("integer", NULL, ml_integer_string, MLStringT, NULL);
+	ml_method_by_name("integer", NULL, ml_integer_string_base, MLStringT, MLIntegerT, NULL);
+	ml_method_by_name("real", NULL, ml_real_string, MLStringT, NULL);
 
 	AppendMethod = ml_method("append");
 	ml_method_by_value(AppendMethod, NULL, stringify_nil, MLStringBufferT, MLNilT, NULL);

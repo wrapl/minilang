@@ -18,11 +18,32 @@ struct ml_file_t {
 
 static ml_type_t *MLFileT;
 
+#ifdef __MINGW32__
+static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
+	char Buffer[129];
+	if (fgets(Buffer, 129, File) == NULL) return -1;
+	int Length = strlen(Buffer);
+	if (Length == 128) {
+		ssize_t Total = ml_read_line(File, Offset + 128, Result);
+		memcpy(*Result + Offset, Buffer, 128);
+		return Total;
+	} else {
+		*Result = GC_malloc_atomic(Offset + Length + 1);
+		strcpy(*Result + Offset, Buffer);
+		return Offset + Length;
+	}
+}
+#endif
+
 static ml_value_t *ml_file_read_line(void *Data, int Count, ml_value_t **Args) {
 	ml_file_t *File = (ml_file_t *)Args[0];
 	char *Line = 0;
 	size_t Length = 0;
+#ifdef __MINGW32__
+	ssize_t Read = ml_read_line(File->Handle, 0, &Line);
+#else
 	ssize_t Read = getline(&Line, &Length, File->Handle);
+#endif
 	if (Read < 0) return feof(File->Handle) ? MLNil : ml_error("FileError", "error reading from file");
 	return ml_string(Line, Read);
 }

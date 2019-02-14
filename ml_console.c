@@ -1,7 +1,9 @@
 #include "minilang.h"
 #include "ml_compiler.h"
 #include "stringmap.h"
+#ifndef __MINGW32__
 #include "linenoise.h"
+#endif
 #include <gc.h>
 #include <stdio.h>
 #include <string.h>
@@ -17,10 +19,33 @@ static ml_value_t *ml_console_global_get(ml_console_t *Console, const char *Name
 	return stringmap_search(Console->Globals, Name) ?: (Console->ParentGetter)(Console->ParentGlobals, Name);
 }
 
+#ifdef __MINGW32__
+static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
+	char Buffer[129];
+	if (fgets(Buffer, 129, File) == NULL) return -1;
+	int Length = strlen(Buffer);
+	if (Length == 128) {
+		ssize_t Total = ml_read_line(File, Offset + 128, Result);
+		memcpy(*Result + Offset, Buffer, 128);
+		return Total;
+	} else {
+		*Result = GC_malloc_atomic(Offset + Length + 1);
+		strcpy(*Result + Offset, Buffer);
+		return Offset + Length;
+	}
+}
+#endif
+
 static const char *ml_console_line_read(ml_console_t *Console) {
+#ifdef __MINGW32__
+	fputs(Console->Prompt, stdout);
+	char *Line;
+	if (!ml_read_line(stdin, 0, &Line)) return NULL;
+#else
 	const char *Line = linenoise(Console->Prompt);
 	if (!Line) return NULL;
 	linenoiseHistoryAdd(Line);
+#endif
 	int Length = strlen(Line);
 	char *Buffer = snew(Length + 2);
 	memcpy(Buffer, Line, Length);

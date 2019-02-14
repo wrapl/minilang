@@ -339,9 +339,9 @@ ml_inst_t *mli_closure_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 static long ml_closure_hash(ml_value_t *Value) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
 	long Hash = *(long *)Closure->Info->Hash;
-	for (int I = 0; I < Closure->Info->NumUpValues; ++I) {
+	/*for (int I = 0; I < Closure->Info->NumUpValues; ++I) {
 		Hash ^= ml_hash(Closure->UpValues[I]) << I;
-	}
+	}*/
 	return Hash;
 }
 

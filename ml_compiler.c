@@ -50,7 +50,7 @@ static inline ml_inst_t *ml_inst_new(int N, ml_source_t Source, ml_inst_t *(*run
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
-#define ML_COMPILE_HASH sha256_update(HashContext, (BYTE *)__FILE__ TOSTRING(__LINE__), strlen(__FILE__ TOSTRING(__LINE__)));
+#define ML_COMPILE_HASH sha256_update(HashContext, (unsigned char *)__FILE__ TOSTRING(__LINE__), strlen(__FILE__ TOSTRING(__LINE__)));
 
 inline mlc_compiled_t ml_compile(mlc_function_t *Function, mlc_expr_t *Expr, SHA256_CTX *HashContext) {
 	//static int Indent = NULL;
@@ -261,6 +261,12 @@ static mlc_compiled_t ml_next_expr_compile(mlc_function_t *Function, mlc_expr_t 
 static mlc_compiled_t ml_exit_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
 	mlc_loop_t *Loop = Function->Loop;
 	mlc_try_t *Try = Function->Try;
+	if (!Loop) {
+		ml_inst_t *ErrorInst = ml_inst_new(2, Expr->Source, mli_push_run);
+		ErrorInst->Params[0].Inst = 0;
+		ErrorInst->Params[1].Value = ml_error("RuntimeError", "exit not in loop");
+		return (mlc_compiled_t){ErrorInst, NULL};
+	}
 	Function->Loop = Loop->Up;
 	Function->Try = Loop->Try;
 	mlc_compiled_t Compiled = ml_compile(Function, Expr->Child, HashContext);
@@ -747,7 +753,7 @@ static mlc_compiled_t ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_
 			}
 		}
 	}
-	sha256_update(HashContext, (BYTE *)Expr->Ident, strlen(Expr->Ident));
+	sha256_update(HashContext, (unsigned char *)Expr->Ident, strlen(Expr->Ident));
 	ML_COMPILE_HASH
 	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, mli_push_run);
 	ValueInst->Params[1].Value = (Function->GlobalGet)(Function->Globals, Expr->Ident);
