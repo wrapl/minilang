@@ -596,6 +596,10 @@ struct ml_method_t {
 	ml_method_node_t Root[1];
 };
 
+const char *ml_method_name(ml_value_t *Value) {
+	return ((ml_method_t *)Value)->Name;
+}
+
 static ml_method_node_t *ml_method_find(ml_method_node_t *Node, int Count, ml_value_t **Args) {
 	if (Count == 0) return Node;
 	for (const ml_type_t *Type = Args[0]->Type; Type; Type = Type->Parent) {
