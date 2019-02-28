@@ -6,7 +6,7 @@ all: minilang minipp libminilang.a
 
 *.o: *.h
 
-CFLAGS += -std=gnu99 -fstrict-aliasing -Wstrict-aliasing -I. -pthread -DGC_THREADS -D_GNU_SOURCE
+CFLAGS += -std=gnu99 -fstrict-aliasing -Wstrict-aliasing -I. -pthread -DGC_THREADS -D_GNU_SOURCE -D$(PLATFORM)
 LDFLAGS += -lm -lgc
 
 ifdef DEBUG
