@@ -10,7 +10,7 @@ CFLAGS += -std=gnu99 -fstrict-aliasing -Wstrict-aliasing -I. -pthread -DGC_THREA
 LDFLAGS += -lm -lgc
 
 ifdef DEBUG
-	CFLAGS += -g -DGC_DEBUG
+	CFLAGS += -g -DGC_DEBUG -DDEBUG
 	LDFLAGS += -g
 else
 	CFLAGS += -O2

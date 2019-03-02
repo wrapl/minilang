@@ -59,10 +59,14 @@ ml_inst_t *mli_const_call_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_assign_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_jump_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_if_run(ml_inst_t *Inst, ml_frame_t *Frame);
+ml_inst_t *mli_if_var_run(ml_inst_t *Inst, ml_frame_t *Frame);
+ml_inst_t *mli_if_def_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_for_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_until_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_while_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_and_run(ml_inst_t *Inst, ml_frame_t *Frame);
+ml_inst_t *mli_and_var_run(ml_inst_t *Inst, ml_frame_t *Frame);
+ml_inst_t *mli_and_def_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_or_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_exists_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_next_run(ml_inst_t *Inst, ml_frame_t *Frame);
@@ -71,8 +75,9 @@ ml_inst_t *mli_local_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_list_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_append_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_closure_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_error_run(ml_inst_t *Inst, ml_frame_t *Frame);
 
 ml_value_t *ml_closure_call(ml_value_t *Value, int Count, ml_value_t **Args);
+
+void ml_closure_debug(ml_closure_info_t *Info);
 
 #endif

@@ -1,0 +1,31 @@
+var X := 1
+var Y := nil
+
+if X then
+	print('Correct\n')
+else
+	print('Wrong\n')
+end
+
+if Y then
+	print('Wrong\n')
+else
+	print('Correct\n')
+end
+
+var S := "Hello world!"
+
+if var Z := S:find("llo") then
+	print('Z = {Z}\n')
+else
+	print('Wrong\n')
+end
+
+if var Z := S:find("elo") then
+	print('Wrong\n')
+elseif var W := S:find("wor") then
+	print('W = {W}\n')
+else
+	print('Wrong\n')
+end
+
