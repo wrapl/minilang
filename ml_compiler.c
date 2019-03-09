@@ -988,14 +988,14 @@ static int ml_parse(mlc_scanner_t *Scanner, ml_token_t Token) {
 		['.'] = 1
 	};
 	if (Scanner->Token == MLT_NONE) for (;;) {
-		char Char = Scanner->Next[0];
-		if (!Char) {
+		if (!Scanner->Next || !Scanner->Next[0]) {
 			Scanner->Next = (Scanner->read)(Scanner->Data);
 			++Scanner->Source.Line;
 			if (Scanner->Next) continue;
 			Scanner->Token = MLT_EOI;
 			goto done;
 		}
+		char Char = Scanner->Next[0];
 		if (Char == '\n') {
 			++Scanner->Next;
 			Scanner->Token = MLT_EOL;
