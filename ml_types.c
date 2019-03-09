@@ -596,6 +596,10 @@ struct ml_method_t {
 	ml_method_node_t Root[1];
 };
 
+const char *ml_method_name(ml_value_t *Value) {
+	return ((ml_method_t *)Value)->Name;
+}
+
 static ml_method_node_t *ml_method_find(ml_method_node_t *Node, int Count, ml_value_t **Args) {
 	if (Count == 0) return Node;
 	for (const ml_type_t *Type = Args[0]->Type; Type; Type = Type->Parent) {
@@ -1891,7 +1895,27 @@ static ml_value_t *ml_list_to_string(void *Data, int Count, ml_value_t **Args) {
 		SeperatorLength = 2;
 	}
 	ml_stringbuffer_add(Buffer, "]", 1);
-	return ml_string(ml_stringbuffer_get(Buffer), -1);
+	size_t Length = Buffer->Length;
+	return ml_string(ml_stringbuffer_get(Buffer), Length);
+}
+
+static ml_value_t *ml_list_join(void *Data, int Count, ml_value_t **Args) {
+	ml_list_t *List = (ml_list_t *)Args[0];
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	const char *Seperator = ml_string_value(Args[1]);
+	size_t SeperatorLength = ml_string_length(Args[1]);
+	ml_list_node_t *Node = List->Head;
+	if (Node) {
+		ml_value_t *Result = ml_inline(AppendMethod, 2, Buffer, Node->Value);
+		if (Result->Type == MLErrorT) return Result;
+		while ((Node = Node->Next)) {
+			ml_stringbuffer_add(Buffer, Seperator, SeperatorLength);
+			ml_value_t *Result = ml_inline(AppendMethod, 2, Buffer, Node->Value);
+			if (Result->Type == MLErrorT) return Result;
+		}
+	}
+	size_t Length = Buffer->Length;
+	return ml_string(ml_stringbuffer_get(Buffer), Length);
 }
 
 #define ML_TREE_MAX_DEPTH 32
@@ -1974,33 +1998,51 @@ static ml_value_t *ml_tree_add(void *Data, int Count, ml_value_t **Args) {
 }
 
 typedef struct ml_tree_stringer_t {
-	const char *Seperator;
+	const char *Seperator, *Equals;
 	ml_stringbuffer_t Buffer[1];
-	int SeperatorLength;
+	int SeperatorLength, EqualsLength, First;
 	ml_value_t *Error;
 } ml_tree_stringer_t;
 
 static int ml_tree_stringer(ml_value_t *Key, ml_value_t *Value, ml_tree_stringer_t *Stringer) {
-	ml_stringbuffer_add(Stringer->Buffer, Stringer->Seperator, Stringer->SeperatorLength);
+	if (!Stringer->First) {
+		ml_stringbuffer_add(Stringer->Buffer, Stringer->Seperator, Stringer->SeperatorLength);
+	} else {
+		Stringer->First = 0;
+	}
 	Stringer->Error = ml_inline(AppendMethod, 2, Stringer->Buffer, Key);
 	if (Stringer->Error->Type == MLErrorT) return 1;
-	ml_stringbuffer_add(Stringer->Buffer, " is ", 4);
+	ml_stringbuffer_add(Stringer->Buffer, Stringer->Equals, Stringer->EqualsLength);
 	Stringer->Error = ml_inline(AppendMethod, 2, Stringer->Buffer, Value);
 	if (Stringer->Error->Type == MLErrorT) return 1;
-	Stringer->Seperator = ", ";
-	Stringer->SeperatorLength = 2;
 	return 0;
 }
 
 static ml_value_t *ml_tree_to_string(void *Data, int Count, ml_value_t **Args) {
 	ml_tree_t *Tree = (ml_tree_t *)Args[0];
-	if (!Tree->Size) return ml_string("{}", 2);
 	ml_tree_stringer_t Stringer[1] = {{
-		"{", {ML_STRINGBUFFER_INIT}, 1
+		", ", " is ",
+		{ML_STRINGBUFFER_INIT},
+		2, 4,
+		1
 	}};
+	ml_stringbuffer_add(Stringer->Buffer, "{", 1);
 	if (ml_tree_foreach(Args[0], Stringer, (void *)ml_tree_stringer)) return Stringer->Error;
 	ml_stringbuffer_add(Stringer->Buffer, "}", 1);
 	return ml_string(ml_stringbuffer_get(Stringer->Buffer), -1);
+}
+
+static ml_value_t *ml_tree_join(void *Data, int Count, ml_value_t **Args) {
+	ml_tree_t *Tree = (ml_tree_t *)Args[0];
+	ml_tree_stringer_t Stringer[1] = {{
+		ml_string_value(Args[1]), ml_string_value(Args[2]),
+		{ML_STRINGBUFFER_INIT},
+		ml_string_length(Args[1]), ml_string_length(Args[2]),
+		1
+	}};
+	if (ml_tree_foreach(Args[0], Stringer, (void *)ml_tree_stringer)) return Stringer->Error;
+	size_t Length = Stringer->Buffer->Length;
+	return ml_string(ml_stringbuffer_get(Stringer->Buffer), Length);
 }
 
 static ml_value_t *ml_hash_any(void *Data, int Count, ml_value_t **Args) {
@@ -2086,7 +2128,9 @@ void ml_init() {
 	ml_method_by_name("string", NULL, ml_real_to_string, MLRealT, NULL);
 	ml_method_by_name("string", NULL, ml_identity, MLStringT, NULL);
 	ml_method_by_name("string", 0, ml_list_to_string, MLListT, NULL);
+	ml_method_by_name("join", 0, ml_list_join, MLListT, MLStringT, NULL);
 	ml_method_by_name("string", 0, ml_tree_to_string, MLTreeT, NULL);
+	ml_method_by_name("join", 0, ml_tree_join, MLTreeT, MLStringT, MLStringT, NULL);
 	ml_method_by_name("/", NULL, ml_string_string_split, MLStringT, MLStringT, NULL);
 	ml_method_by_name("/", NULL, ml_string_regex_split, MLStringT, MLRegexT, NULL);
 	ml_method_by_name("%", NULL, ml_string_match, MLStringT, MLStringT, NULL);

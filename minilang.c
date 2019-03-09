@@ -52,5 +52,6 @@ ml_value_t *ml_load(ml_getter_t GlobalGet, void *Globals, const char *FileName) 
 	Info->Entry = Compiled.Start;
 	Info->FrameSize = Function->Size;
 	sha256_final(HashContext, Info->Hash);
+	if (MLDebugClosures) ml_closure_debug(Info);
 	return (ml_value_t *)Closure;
 }

@@ -99,6 +99,7 @@ struct mlc_if_case_t {
 	ml_source_t Source;
 	mlc_expr_t *Condition;
 	mlc_expr_t *Body;
+	mlc_decl_t *Decl;
 };
 
 struct mlc_if_expr_t {
@@ -109,12 +110,28 @@ struct mlc_if_expr_t {
 
 static mlc_compiled_t ml_if_expr_compile(mlc_function_t *Function, mlc_if_expr_t *Expr, SHA256_CTX *HashContext) {
 	int OldTop = Function->Top;
+	mlc_decl_t *OldDecls = Function->Decls;
 	mlc_if_case_t *Case = Expr->Cases;
 	mlc_compiled_t Compiled = ml_compile(Function, Case->Condition, HashContext);
-	--Function->Top;
+	ml_inst_t *IfInst = ml_inst_new(2, Expr->Source, mli_and_run);
+	if (Case->Decl) {
+		IfInst->run = Case->Decl->Index ? mli_and_var_run : mli_and_def_run;
+		Case->Decl->Index = Function->Top - 1;
+		Case->Decl->Next = Function->Decls;
+		Function->Decls = Case->Decl;
+	} else {
+		--Function->Top;
+	}
 	mlc_compiled_t BodyCompiled = ml_compile(Function, Case->Body, HashContext);
 	ML_COMPILE_HASH
-	ml_inst_t *IfInst = ml_inst_new(2, Expr->Source, mli_and_run);
+	if (Case->Decl) {
+		ml_inst_t *ExitInst = ml_inst_new(2, Expr->Source, mli_exit_run);
+		ExitInst->Params[1].Count = 1;
+		mlc_connect(BodyCompiled.Exits, ExitInst);
+		BodyCompiled.Exits = ExitInst;
+		Function->Decls = OldDecls;
+		ML_COMPILE_HASH
+	}
 	IfInst->Params[0].Inst = BodyCompiled.Exits;
 	IfInst->Params[1].Inst = BodyCompiled.Start;
 	mlc_connect(Compiled.Exits, IfInst);
@@ -123,15 +140,34 @@ static mlc_compiled_t ml_if_expr_compile(mlc_function_t *Function, mlc_if_expr_t
 		Function->Top = OldTop;
 		Compiled.Exits = IfInst->Params[0].Inst;
 		mlc_compiled_t ConditionCompiled = ml_compile(Function, Case->Condition, HashContext);
-		IfInst->run = mli_if_run;
+		if (IfInst->run == mli_and_run) {
+			IfInst->run = mli_if_run;
+		} else if (IfInst->run == mli_and_var_run) {
+			IfInst->run = mli_if_var_run;
+		} else if (IfInst->run == mli_and_def_run) {
+			IfInst->run = mli_if_def_run;
+		}
 		IfInst->Params[0].Inst = ConditionCompiled.Start;
-		--Function->Top;
+		IfInst = ml_inst_new(2, Case->Source, mli_and_run);
+		if (Case->Decl) {
+			IfInst->run = Case->Decl->Index ? mli_and_var_run : mli_and_def_run;
+			Case->Decl->Index = Function->Top - 1;
+			Function->Decls = Case->Decl;
+		} else {
+			--Function->Top;
+		}
 		BodyCompiled = ml_compile(Function, Case->Body, HashContext);
+		if (Case->Decl) {
+			ml_inst_t *ExitInst = ml_inst_new(2, Expr->Source, mli_exit_run);
+			ExitInst->Params[1].Count = 1;
+			mlc_connect(BodyCompiled.Exits, ExitInst);
+			BodyCompiled.Exits = ExitInst;
+			Function->Decls = OldDecls;
+			ML_COMPILE_HASH
+		}
 		ml_inst_t **Slot = &Compiled.Exits;
 		while (Slot[0]) Slot = &Slot[0]->Params[0].Inst;
 		Slot[0] = BodyCompiled.Exits;
-		ML_COMPILE_HASH
-		IfInst = ml_inst_new(2, Case->Source, mli_and_run);
 		IfInst->Params[0].Inst = Compiled.Exits;
 		IfInst->Params[1].Inst = BodyCompiled.Start;
 		mlc_connect(ConditionCompiled.Exits, IfInst);
@@ -141,7 +177,13 @@ static mlc_compiled_t ml_if_expr_compile(mlc_function_t *Function, mlc_if_expr_t
 	if (Expr->Else) {
 		Compiled.Exits = IfInst->Params[0].Inst;
 		mlc_compiled_t BodyCompiled = ml_compile(Function, Expr->Else, HashContext);
-		IfInst->run = mli_if_run;
+		if (IfInst->run == mli_and_run) {
+			IfInst->run = mli_if_run;
+		} else if (IfInst->run == mli_and_var_run) {
+			IfInst->run = mli_if_var_run;
+		} else if (IfInst->run == mli_and_def_run) {
+			IfInst->run = mli_if_def_run;
+		}
 		IfInst->Params[0].Inst = BodyCompiled.Start;
 		ml_inst_t **Slot = &Compiled.Exits;
 		while (Slot[0]) Slot = &Slot[0]->Params[0].Inst;
@@ -679,6 +721,8 @@ struct mlc_fun_expr_t {
 	mlc_expr_t *Body;
 };
 
+int MLDebugClosures = 0;
+
 static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, SHA256_CTX *HashContext) {
 	// closure <entry> <frame_size> <num_params> <num_upvalues> <upvalue_1> ...
 	mlc_function_t SubFunction[1] = {{Function->GlobalGet, Function->Globals, NULL,}};
@@ -715,6 +759,7 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	int Index = 2;
 	for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) Params[Index++].Index = UpValue->Index;
 	if (++Function->Top >= Function->Size) Function->Size = Function->Top + 1;
+	if (MLDebugClosures) ml_closure_debug(Info);
 	return (mlc_compiled_t){ClosureInst, ClosureInst};
 }
 
@@ -1184,6 +1229,21 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 			mlc_if_case_t *Case = CaseSlot[0] = new(mlc_if_case_t);
 			CaseSlot = &Case->Next;
 			Case->Source = Scanner->Source;
+			if (ml_parse(Scanner, MLT_VAR)) {
+				mlc_decl_t *Decl = new(mlc_decl_t);
+				ml_accept(Scanner, MLT_IDENT);
+				Decl->Ident = Scanner->Ident;
+				Decl->Index = 1;
+				ml_accept(Scanner, MLT_ASSIGN);
+				Case->Decl = Decl;
+			} else if (ml_parse(Scanner, MLT_DEF)) {
+				mlc_decl_t *Decl = new(mlc_decl_t);
+				ml_accept(Scanner, MLT_IDENT);
+				Decl->Ident = Scanner->Ident;
+				Decl->Index = 0;
+				ml_accept(Scanner, MLT_ASSIGN);
+				Case->Decl = Decl;
+			}
 			Case->Condition = ml_accept_expression(Scanner, EXPR_DEFAULT);
 			ml_accept(Scanner, MLT_THEN);
 			Case->Body = ml_accept_block(Scanner);

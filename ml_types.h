@@ -66,6 +66,8 @@ double ml_real_value(ml_value_t *Value);
 const char *ml_string_value(ml_value_t *Value);
 int ml_string_length(ml_value_t *Value);
 
+const char *ml_method_name(ml_value_t *Value);
+
 const char *ml_error_type(ml_value_t *Value);
 const char *ml_error_message(ml_value_t *Value);
 int ml_error_trace(ml_value_t *Value, int Level, const char **Source, int *Line);
@@ -160,5 +162,7 @@ struct ml_list_node_t {
 	ml_list_node_t *Next, *Prev;
 	ml_value_t *Value;
 };
+
+#define ml_list_head(List) ((ml_list_t *)List)->Head
 
 #endif

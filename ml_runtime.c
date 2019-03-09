@@ -1,7 +1,9 @@
 #include "minilang.h"
 #include "ml_runtime.h"
+#include "stringmap.h"
 #include <gc.h>
 #include <string.h>
+#include <stdio.h>
 
 struct ml_frame_t {
 	ml_inst_t *OnError;
@@ -186,6 +188,41 @@ ml_inst_t *mli_if_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	}
 }
 
+ml_inst_t *mli_if_var_run(ml_inst_t *Inst, ml_frame_t *Frame) {
+	ml_value_t *Value = Frame->Top[-1];
+	Value = Value->Type->deref(Value);
+	if (Value->Type == MLErrorT) {
+		ml_error_trace_add(Value, Inst->Source);
+		Frame->Top[-1] = Value;
+		return Frame->OnError;
+	} else if (Value == MLNil) {
+		(--Frame->Top)[0] = 0;
+		return Inst->Params[0].Inst;
+	} else {
+		ml_reference_t *Local = xnew(ml_reference_t, 1, ml_value_t *);
+		Local->Type = MLReferenceT;
+		Local->Address = Local->Value;
+		Local->Value[0] = Value;
+		Frame->Top[-1] = (ml_value_t *)Local;
+		return Inst->Params[1].Inst;
+	}
+}
+
+ml_inst_t *mli_if_def_run(ml_inst_t *Inst, ml_frame_t *Frame) {
+	ml_value_t *Value = Frame->Top[-1];
+	Value = Value->Type->deref(Value);
+	if (Value->Type == MLErrorT) {
+		ml_error_trace_add(Value, Inst->Source);
+		Frame->Top[-1] = Value;
+		return Frame->OnError;
+	} else if (Value == MLNil) {
+		(--Frame->Top)[0] = 0;
+		return Inst->Params[0].Inst;
+	} else {
+		return Inst->Params[1].Inst;
+	}
+}
+
 ml_inst_t *mli_for_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	ml_value_t *Value = Frame->Top[-1];
 	Value = Value->Type->deref(Value);
@@ -237,6 +274,39 @@ ml_inst_t *mli_and_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 		return Inst->Params[0].Inst;
 	} else {
 		(--Frame->Top)[0] = 0;
+		return Inst->Params[1].Inst;
+	}
+}
+
+ml_inst_t *mli_and_var_run(ml_inst_t *Inst, ml_frame_t *Frame) {
+	ml_value_t *Value = Frame->Top[-1];
+	Value = Value->Type->deref(Value);
+	if (Value->Type == MLErrorT) {
+		ml_error_trace_add(Value, Inst->Source);
+		Frame->Top[-1] = Value;
+		return Frame->OnError;
+	} else if (Value == MLNil) {
+		return Inst->Params[0].Inst;
+	} else {
+		ml_reference_t *Local = xnew(ml_reference_t, 1, ml_value_t *);
+		Local->Type = MLReferenceT;
+		Local->Address = Local->Value;
+		Local->Value[0] = Value;
+		Frame->Top[-1] = (ml_value_t *)Local;
+		return Inst->Params[1].Inst;
+	}
+}
+
+ml_inst_t *mli_and_def_run(ml_inst_t *Inst, ml_frame_t *Frame) {
+	ml_value_t *Value = Frame->Top[-1];
+	Value = Value->Type->deref(Value);
+	if (Value->Type == MLErrorT) {
+		ml_error_trace_add(Value, Inst->Source);
+		Frame->Top[-1] = Value;
+		return Frame->OnError;
+	} else if (Value == MLNil) {
+		return Inst->Params[0].Inst;
+	} else {
 		return Inst->Params[1].Inst;
 	}
 }
@@ -409,3 +479,209 @@ ml_type_t MLClosureT[1] = {{
 	ml_default_next,
 	ml_default_key
 }};
+
+static void ml_inst_escape_string(FILE *Graph, const char *String, size_t Length) {
+	for (int I = 0; I < Length; ++I) switch (String[I]) {
+		case 0: fputs("\\\\0", Graph); break;
+		case '\t': fputs("\\\\t", Graph); break;
+		case '\r': fputs("\\\\r", Graph); break;
+		case '\n': fputs("\\\\n", Graph); break;
+		case '\'': fputs("\\\'", Graph); break;
+		case '\"': fputs("\\\"", Graph); break;
+		case '\\': fputs("\\\\", Graph); break;
+		default: fputc(String[I], Graph); break;
+	}
+}
+
+static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done) {
+	char InstName[16];
+	sprintf(InstName, "I%x", Inst);
+	if (stringmap_search(Done, InstName)) return;
+	stringmap_insert(Done, strdup(InstName), Inst);
+	if (Inst == 0) {
+		fprintf(Graph, "\tI0 [label=\"return()\"];\n");
+	} else if (Inst->run == mli_push_run) {
+		ml_value_t *StringMethod = ml_method("string");
+		ml_value_t *Value = Inst->Params[1].Value;
+		if (Value->Type == MLStringT) {
+			fprintf(Graph, "\tI%x [label=\"push(\'", Inst);
+			ml_inst_escape_string(Graph, ml_string_value(Value), ml_string_length(Value));
+			fprintf(Graph, "\')\"];\n");
+		} else {
+			Value = ml_inline(StringMethod, 1, Value);
+			if (Value->Type == MLStringT) {
+				fprintf(Graph, "\tI%x [label=\"push(%s)\"];\n", Inst, ml_string_value(Value));
+			} else {
+				fprintf(Graph, "\tI%x [label=\"push(%s)\"];\n", Inst, Inst->Params[1].Value->Type->Name);
+			}
+		}
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+	} else if (Inst->run == mli_pop_run) {
+		fprintf(Graph, "\tI%x [label=\"pop()\"];\n", Inst);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+	} else if (Inst->run == mli_pop2_run) {
+		fprintf(Graph, "\tI%x [label=\"pop2()\"];\n", Inst);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+	} else if (Inst->run == mli_enter_run) {
+		fprintf(Graph, "\tI%x [label=\"enter(%d)\"];\n", Inst, Inst->Params[1].Count);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+	} else if (Inst->run == mli_var_run) {
+		fprintf(Graph, "\tI%x [label=\"var(%d)\"];\n", Inst, Inst->Params[1].Index);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+	} else if (Inst->run == mli_def_run) {
+		fprintf(Graph, "\tI%x [label=\"def()\"];\n", Inst);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+	} else if (Inst->run == mli_exit_run) {
+		fprintf(Graph, "\tI%x [label=\"exit(%d)\"];\n", Inst, Inst->Params[1].Count);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+	} else if (Inst->run == mli_try_run) {
+		fprintf(Graph, "\tI%x [label=\"try()\"];\n", Inst);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		fprintf(Graph, "\tI%x -> I%x [label=\"error\"];\n", Inst, Inst->Params[1]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+		ml_inst_graph(Graph, Inst->Params[1].Inst, Done);
+	} else if (Inst->run == mli_catch_run) {
+		fprintf(Graph, "\tI%x [label=\"error(%d)\"];\n", Inst, Inst->Params[1].Index);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+	} else if (Inst->run == mli_call_run) {
+		fprintf(Graph, "\tI%x [label=\"call(%d)\"];\n", Inst, Inst->Params[1].Count);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+	} else if (Inst->run == mli_const_call_run) {
+		ml_value_t *StringMethod = ml_method("string");
+		ml_value_t *Value = Inst->Params[2].Value;
+		if (Value->Type == MLMethodT) {
+			fprintf(Graph, "\tI%x [label=\"const_call(%d, :%s)\"];\n", Inst, Inst->Params[1].Count, ml_method_name(Value));
+		} else {
+			Value = ml_inline(StringMethod, 1, Value);
+			if (Value->Type == MLStringT) {
+				fprintf(Graph, "\tI%x [label=\"const_call(%d, %s)\"];\n", Inst, Inst->Params[1].Count, ml_string_value(Value));
+			} else {
+				fprintf(Graph, "\tI%x [label=\"const_call(%d, %s)\"];\n", Inst, Inst->Params[1].Count, Inst->Params[2].Value->Type->Name);
+			}
+		}
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+	} else if (Inst->run == mli_assign_run) {
+		fprintf(Graph, "\tI%x [label=\"assign()\"];\n", Inst);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+	} else if (Inst->run == mli_jump_run) {
+		fprintf(Graph, "\tI%x [label=\"jump()\"];\n", Inst);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+	} else if (Inst->run == mli_if_run) {
+		fprintf(Graph, "\tI%x [label=\"if()\"];\n", Inst);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		fprintf(Graph, "\tI%x -> I%x [label=\"not nil\"];\n", Inst, Inst->Params[1]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+		ml_inst_graph(Graph, Inst->Params[1].Inst, Done);
+	} else if (Inst->run == mli_if_var_run) {
+		fprintf(Graph, "\tI%x [label=\"if_var()\"];\n", Inst);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		fprintf(Graph, "\tI%x -> I%x [label=\"not nil\"];\n", Inst, Inst->Params[1]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+		ml_inst_graph(Graph, Inst->Params[1].Inst, Done);
+	} else if (Inst->run == mli_if_def_run) {
+		fprintf(Graph, "\tI%x [label=\"if_def()\"];\n", Inst);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		fprintf(Graph, "\tI%x -> I%x [label=\"not nil\"];\n", Inst, Inst->Params[1]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+		ml_inst_graph(Graph, Inst->Params[1].Inst, Done);
+	} else if (Inst->run == mli_for_run) {
+		fprintf(Graph, "\tI%x [label=\"for()\"];\n", Inst);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		fprintf(Graph, "\tI%x -> I%x [label=\"not nil\"];\n", Inst, Inst->Params[1]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+		ml_inst_graph(Graph, Inst->Params[1].Inst, Done);
+	} else if (Inst->run == mli_until_run) {
+		fprintf(Graph, "\tI%x [label=\"until()\"];\n", Inst);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		fprintf(Graph, "\tI%x -> I%x [label=\"not nil\"];\n", Inst, Inst->Params[1]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+		ml_inst_graph(Graph, Inst->Params[1].Inst, Done);
+	} else if (Inst->run == mli_while_run) {
+		fprintf(Graph, "\tI%x [label=\"while()\"];\n", Inst);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		fprintf(Graph, "\tI%x -> I%x [label=\"nil\"];\n", Inst, Inst->Params[1]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+		ml_inst_graph(Graph, Inst->Params[1].Inst, Done);
+	} else if (Inst->run == mli_and_run) {
+		fprintf(Graph, "\tI%x [label=\"and()\"];\n", Inst);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		fprintf(Graph, "\tI%x -> I%x [label=\"not nil\"];\n", Inst, Inst->Params[1]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+		ml_inst_graph(Graph, Inst->Params[1].Inst, Done);
+	} else if (Inst->run == mli_and_var_run) {
+		fprintf(Graph, "\tI%x [label=\"and_var()\"];\n", Inst);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		fprintf(Graph, "\tI%x -> I%x [label=\"not nil\"];\n", Inst, Inst->Params[1]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+		ml_inst_graph(Graph, Inst->Params[1].Inst, Done);
+	} else if (Inst->run == mli_and_def_run) {
+		fprintf(Graph, "\tI%x [label=\"and_def()\"];\n", Inst);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		fprintf(Graph, "\tI%x -> I%x [label=\"not nil\"];\n", Inst, Inst->Params[1]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+		ml_inst_graph(Graph, Inst->Params[1].Inst, Done);
+	} else if (Inst->run == mli_or_run) {
+		fprintf(Graph, "\tI%x [label=\"or()\"];\n", Inst);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		fprintf(Graph, "\tI%x -> I%x [label=\"nil\"];\n", Inst, Inst->Params[1]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+		ml_inst_graph(Graph, Inst->Params[1].Inst, Done);
+	} else if (Inst->run == mli_exists_run) {
+		fprintf(Graph, "\tI%x [label=\"exists()\"];\n", Inst);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		fprintf(Graph, "\tI%x -> I%x [label=\"not nil\"];\n", Inst, Inst->Params[1]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+		ml_inst_graph(Graph, Inst->Params[1].Inst, Done);
+	} else if (Inst->run == mli_next_run) {
+		fprintf(Graph, "\tI%x [label=\"next()\"];\n", Inst);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		fprintf(Graph, "\tI%x -> I%x [label=\"not nil\"];\n", Inst, Inst->Params[1]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+		ml_inst_graph(Graph, Inst->Params[1].Inst, Done);
+	} else if (Inst->run == mli_key_run) {
+		fprintf(Graph, "\tI%x [label=\"key()\"];\n", Inst);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+	} else if (Inst->run == mli_local_run) {
+		fprintf(Graph, "\tI%x [label=\"local(%d)\"];\n", Inst, Inst->Params[1].Index);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+	} else if (Inst->run == mli_list_run) {
+		fprintf(Graph, "\tI%x [label=\"list()\"];\n", Inst);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+	} else if (Inst->run == mli_append_run) {
+		fprintf(Graph, "\tI%x [label=\"append()\"];\n", Inst);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+	} else if (Inst->run == mli_closure_run) {
+		fprintf(Graph, "\tI%x [label=\"closure(C%x)\"];\n", Inst, Inst->Params[1].ClosureInfo);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
+	}
+}
+
+void ml_closure_debug(ml_closure_info_t *Info) {
+	stringmap_t Done[1] = {STRINGMAP_INIT};
+	char ClosureName[20];
+	sprintf(ClosureName, "C%x.dot", Info);
+	FILE *Graph = fopen(ClosureName, "w");
+	fprintf(Graph, "digraph C%x {\n", Info);
+	fprintf(Graph, "\tnode [shape=box];\n");
+	ml_inst_graph(Graph, Info->Entry, Done);
+	fprintf(Graph, "}\n");
+	fclose(Graph);
+	printf("Wrote closure to %s\n", ClosureName);
+}

@@ -110,6 +110,7 @@ static ml_value_t *ml_preprocessor_write(FILE *File, int Count, ml_value_t **Arg
 static ml_value_t *ml_preprocessor_include(ml_preprocessor_t *Preprocessor, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	FILE *File = fopen(ml_string_value(Args[0]), "r");
+	if (!File) return ml_error("FileError", "error opening %s", ml_string_value(Args[0]));
 	ml_preprocessor_input_t *Input = new(ml_preprocessor_input_t);
 	Input->Prev = Preprocessor->Input;
 	Input->Reader = ml_function(File, (void *)ml_preprocessor_read);
