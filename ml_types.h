@@ -96,6 +96,7 @@ long ml_default_hash(ml_value_t *Value);
 ml_value_t *ml_default_call(ml_value_t *Value, int Count, ml_value_t **Args);
 ml_value_t *ml_default_deref(ml_value_t *Ref);
 ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value);
+ml_value_t *ml_default_iterate(ml_value_t *Value);
 ml_value_t *ml_default_next(ml_value_t *Iter);
 ml_value_t *ml_default_key(ml_value_t *Iter);
 
