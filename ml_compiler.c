@@ -731,8 +731,11 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	mlc_decl_t **ParamSlot = &SubFunction->Decls;
 	for (mlc_decl_t *Param = Expr->Params; Param;) {
 		mlc_decl_t *NextParam = Param->Next;
-		++NumParams;
-		if (Param->Index) NumParams = ~NumParams;
+		if (Param->Index) {
+			NumParams = ~NumParams;
+		} else {
+			++NumParams;
+		}
 		Param->Index = SubFunction->Top++;
 		ParamSlot[0] = Param;
 		ParamSlot = &Param->Next;

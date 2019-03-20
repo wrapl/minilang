@@ -425,8 +425,8 @@ ml_value_t *ml_closure_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 		VarArgs = 1;
 		NumParams = ~NumParams;
 	}
-	if (Count > NumParams) Count = NumParams;
-	for (int I = 0; I < Count; ++I) {
+	int Min = (Count < NumParams) ? Count : NumParams;
+	for (int I = 0; I < Min; ++I) {
 		ml_reference_t *Local = xnew(ml_reference_t, 1, ml_value_t *);
 		Local->Type = MLReferenceT;
 		Local->Address = Local->Value;
@@ -434,7 +434,7 @@ ml_value_t *ml_closure_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 		Local->Value[0] = Value->Type->deref(Value);
 		Frame->Stack[I] = (ml_value_t *)Local;
 	}
-	for (int I = Count; I < NumParams; ++I) {
+	for (int I = Min; I < NumParams; ++I) {
 		ml_reference_t *Local = xnew(ml_reference_t, 1, ml_value_t *);
 		Local->Type = MLReferenceT;
 		Local->Address = Local->Value;
@@ -446,11 +446,13 @@ ml_value_t *ml_closure_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 		Local->Type = MLReferenceT;
 		Local->Address = Local->Value;
 		ml_list_t *Rest = new(ml_list_t);
+		Rest->Type = MLListT;
 		int Length = 0;
 		ml_list_node_t **Next = &Rest->Head;
-		ml_list_node_t *Prev = Next[0] = 0;
+		ml_list_node_t *Prev = 0;
 		for (int I = NumParams; I < Count; ++I) {
 			ml_list_node_t *Node = new(ml_list_node_t);
+			Node->Value = Args[I];
 			Node->Prev = Prev;
 			Next[0] = Prev = Node;
 			Next = &Node->Next;
