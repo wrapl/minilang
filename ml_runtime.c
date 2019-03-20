@@ -425,6 +425,15 @@ ml_value_t *ml_closure_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 		VarArgs = 1;
 		NumParams = ~NumParams;
 	}
+	if (Closure->Partial) {
+		int CombinedCount = Count + Closure->Partial->Length;
+		ml_value_t **CombinedArgs = anew(ml_value_t *, CombinedCount);
+		ml_value_t **Arg = CombinedArgs;
+		for (ml_list_node_t *Node = Closure->Partial->Head; Node; Node = Node->Next) *(Arg++) = Node->Value;
+		memcpy(Arg, Args, Count * sizeof(ml_value_t *));
+		Count = CombinedCount;
+		Args = CombinedArgs;
+	}
 	int Min = (Count < NumParams) ? Count : NumParams;
 	for (int I = 0; I < Min; ++I) {
 		ml_reference_t *Local = xnew(ml_reference_t, 1, ml_value_t *);
