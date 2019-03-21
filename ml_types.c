@@ -152,16 +152,16 @@ static ml_value_t *ml_function_apply(void *Data, int Count, ml_value_t **Args) {
 typedef struct ml_partial_function_t {
 	const ml_type_t *Type;
 	ml_value_t *Function;
-	ml_list_t *Args;
+	int Count;
+	ml_value_t *Args[];
 } ml_partial_function_t;
 
 static ml_value_t *ml_partial_function_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_partial_function_t *Partial = (ml_partial_function_t *)Value;
-	int CombinedCount = Count + Partial->Args->Length;
+	int CombinedCount = Count + Partial->Count;
 	ml_value_t **CombinedArgs = anew(ml_value_t *, CombinedCount);
-	ml_value_t **Arg = CombinedArgs;
-	for (ml_list_node_t *Node = Partial->Args->Head; Node; Node = Node->Next) *(Arg++) = Node->Value;
-	memcpy(Arg, Args, Count * sizeof(ml_value_t *));
+	memcpy(CombinedArgs, Partial->Args, Partial->Count * sizeof(ml_value_t *));
+	memcpy(CombinedArgs + Partial->Count, Args, Count * sizeof(ml_value_t *));
 	return ml_call(Partial->Function, CombinedCount, CombinedArgs);
 }
 
@@ -177,10 +177,13 @@ ml_type_t MLPartialFunctionT[1] = {{
 }};
 
 static ml_value_t *ml_function_partial_apply(void *Data, int Count, ml_value_t **Args) {
-	ml_partial_function_t *Partial = new(ml_partial_function_t);
+	ml_list_t *ArgsList = (ml_list_t *)Args[1];
+	ml_partial_function_t *Partial = xnew(ml_partial_function_t, ArgsList->Length, ml_value_t *);
 	Partial->Type = MLPartialFunctionT;
 	Partial->Function = Args[0];
-	Partial->Args = (ml_list_t *)Args[1];
+	Partial->Count = ArgsList->Length;
+	ml_value_t **Arg = Partial->Args;
+	for (ml_list_node_t *Node = ArgsList->Head; Node; Node = Node->Next) *Arg++ = Node->Value;
 	return (ml_value_t *)Partial;
 }
 
@@ -2111,9 +2114,13 @@ static ml_value_t *ml_real_string(void *Data, int Count, ml_value_t **Args) {
 
 static ml_value_t *ml_closure_partial_apply(void *Data, int Count, ml_value_t **Args) {
 	ml_closure_t *Closure = (ml_closure_t *)Args[0];
-	ml_closure_t *Partial = xnew(ml_closure_t, Closure->Info->NumUpValues, ml_value_t *);
-	memcpy(Partial, Closure, sizeof(ml_closure_t) + Closure->Info->NumUpValues * sizeof(ml_value_t *));
-	Partial->Partial = (ml_list_t *)Args[1];
+	ml_list_t *ArgsList = (ml_list_t *)Args[1];
+	int NumUpValues = Closure->Info->NumUpValues + Closure->PartialCount;
+	ml_closure_t *Partial = xnew(ml_closure_t, NumUpValues + ArgsList->Length, ml_value_t *);
+	memcpy(Partial, Closure, sizeof(ml_closure_t) + NumUpValues * sizeof(ml_value_t *));
+	Partial->PartialCount += ArgsList->Length;
+	ml_value_t **Arg = Partial->UpValues + NumUpValues;
+	for (ml_list_node_t *Node = ArgsList->Head; Node; Node = Node->Next) *Arg++ = Node->Value;
 	return (ml_value_t *)Partial;
 }
 

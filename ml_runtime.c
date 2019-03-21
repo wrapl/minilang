@@ -425,12 +425,11 @@ ml_value_t *ml_closure_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 		VarArgs = 1;
 		NumParams = ~NumParams;
 	}
-	if (Closure->Partial) {
-		int CombinedCount = Count + Closure->Partial->Length;
+	if (Closure->PartialCount) {
+		int CombinedCount = Count + Closure->PartialCount;
 		ml_value_t **CombinedArgs = anew(ml_value_t *, CombinedCount);
-		ml_value_t **Arg = CombinedArgs;
-		for (ml_list_node_t *Node = Closure->Partial->Head; Node; Node = Node->Next) *(Arg++) = Node->Value;
-		memcpy(Arg, Args, Count * sizeof(ml_value_t *));
+		memcpy(CombinedArgs, Closure->UpValues + Info->NumUpValues, Closure->PartialCount * sizeof(ml_value_t *));
+		memcpy(CombinedArgs + Closure->PartialCount, Args, Count * sizeof(ml_value_t *));
 		Count = CombinedCount;
 		Args = CombinedArgs;
 	}
