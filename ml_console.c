@@ -75,6 +75,7 @@ void ml_console(ml_getter_t GlobalGet, void *Globals) {
 	for (;;) {
 		mlc_expr_t *Expr = ml_accept_command(Scanner, Console->Globals);
 		if (Expr == (mlc_expr_t *)-1) return;
+		Function->Top = Function->Size = 0;
 		mlc_compiled_t Compiled = ml_compile(Function, Expr, HashContext);
 		mlc_connect(Compiled.Exits, NULL);
 		ml_closure_t *Closure = new(ml_closure_t);

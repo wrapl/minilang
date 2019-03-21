@@ -40,6 +40,7 @@ struct ml_reference_t {
 struct ml_closure_t {
 	const ml_type_t *Type;
 	ml_closure_info_t *Info;
+	int PartialCount;
 	ml_value_t *UpValues[];
 };
 

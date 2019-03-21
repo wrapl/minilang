@@ -1,0 +1,17 @@
+var F1 := fun(A, B, C) do
+	print('A = {A}, B = {B}, C = {C}\n')
+end
+
+F1(1, 2, 3)
+
+var F2 := F1 !! [10]
+
+F2(1, 2, 3)
+
+var F3 := F2 !! [20]
+
+F3(1, 2, 3)
+
+var G1 := print !! [10]
+
+G1(1, 2, 3)

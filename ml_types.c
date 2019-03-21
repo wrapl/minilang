@@ -141,6 +141,52 @@ ml_value_t *ml_function(void *Data, ml_callback_t Callback) {
 	return (ml_value_t *)Function;
 }
 
+static ml_value_t *ml_function_apply(void *Data, int Count, ml_value_t **Args) {
+	ml_list_t *List = (ml_list_t *)Args[1];
+	ml_value_t **ListArgs = anew(ml_value_t *, List->Length);
+	ml_value_t **Arg = ListArgs;
+	for (ml_list_node_t *Node = List->Head; Node; Node = Node->Next) *(Arg++) = Node->Value;
+	return ml_call(Args[0], List->Length, ListArgs);
+}
+
+typedef struct ml_partial_function_t {
+	const ml_type_t *Type;
+	ml_value_t *Function;
+	int Count;
+	ml_value_t *Args[];
+} ml_partial_function_t;
+
+static ml_value_t *ml_partial_function_call(ml_value_t *Value, int Count, ml_value_t **Args) {
+	ml_partial_function_t *Partial = (ml_partial_function_t *)Value;
+	int CombinedCount = Count + Partial->Count;
+	ml_value_t **CombinedArgs = anew(ml_value_t *, CombinedCount);
+	memcpy(CombinedArgs, Partial->Args, Partial->Count * sizeof(ml_value_t *));
+	memcpy(CombinedArgs + Partial->Count, Args, Count * sizeof(ml_value_t *));
+	return ml_call(Partial->Function, CombinedCount, CombinedArgs);
+}
+
+ml_type_t MLPartialFunctionT[1] = {{
+	MLFunctionT, "partial-function",
+	ml_default_hash,
+	ml_partial_function_call,
+	ml_default_deref,
+	ml_default_assign,
+	ml_default_iterate,
+	ml_default_next,
+	ml_default_key
+}};
+
+static ml_value_t *ml_function_partial_apply(void *Data, int Count, ml_value_t **Args) {
+	ml_list_t *ArgsList = (ml_list_t *)Args[1];
+	ml_partial_function_t *Partial = xnew(ml_partial_function_t, ArgsList->Length, ml_value_t *);
+	Partial->Type = MLPartialFunctionT;
+	Partial->Function = Args[0];
+	Partial->Count = ArgsList->Length;
+	ml_value_t **Arg = Partial->Args;
+	for (ml_list_node_t *Node = ArgsList->Head; Node; Node = Node->Next) *Arg++ = Node->Value;
+	return (ml_value_t *)Partial;
+}
+
 ml_type_t MLNumberT[1] = {{
 	MLAnyT, "number",
 	ml_default_hash,
@@ -2066,6 +2112,18 @@ static ml_value_t *ml_real_string(void *Data, int Count, ml_value_t **Args) {
 	return ml_integer(strtod(ml_string_value(Args[0]), 0));
 }
 
+static ml_value_t *ml_closure_partial_apply(void *Data, int Count, ml_value_t **Args) {
+	ml_closure_t *Closure = (ml_closure_t *)Args[0];
+	ml_list_t *ArgsList = (ml_list_t *)Args[1];
+	int NumUpValues = Closure->Info->NumUpValues + Closure->PartialCount;
+	ml_closure_t *Partial = xnew(ml_closure_t, NumUpValues + ArgsList->Length, ml_value_t *);
+	memcpy(Partial, Closure, sizeof(ml_closure_t) + NumUpValues * sizeof(ml_value_t *));
+	Partial->PartialCount += ArgsList->Length;
+	ml_value_t **Arg = Partial->UpValues + NumUpValues;
+	for (ml_list_node_t *Node = ArgsList->Head; Node; Node = Node->Next) *Arg++ = Node->Value;
+	return (ml_value_t *)Partial;
+}
+
 void ml_init() {
 	CompareMethod = ml_method("?");
 	ml_method_by_name("#", NULL, ml_hash_any, MLAnyT, NULL);
@@ -2143,6 +2201,9 @@ void ml_init() {
 	ml_method_by_name("integer", NULL, ml_integer_string, MLStringT, NULL);
 	ml_method_by_name("integer", NULL, ml_integer_string_base, MLStringT, MLIntegerT, NULL);
 	ml_method_by_name("real", NULL, ml_real_string, MLStringT, NULL);
+	ml_method_by_name("!", NULL, ml_function_apply, MLFunctionT, MLListT, NULL);
+	ml_method_by_name("!!", NULL, ml_function_partial_apply, MLFunctionT, MLListT, NULL);
+	ml_method_by_name("!!", NULL, ml_closure_partial_apply, MLClosureT, MLListT, NULL);
 
 	AppendMethod = ml_method("append");
 	ml_method_by_value(AppendMethod, NULL, stringify_nil, MLStringBufferT, MLNilT, NULL);
