@@ -1,6 +1,10 @@
 #ifndef STRINGMAP_H
 #define STRINGMAP_H
 
+#ifdef	__cplusplus
+extern "C" {
+#endif
+
 typedef struct stringmap_t stringmap_t;
 typedef struct stringmap_node_t stringmap_node_t;
 
@@ -21,5 +25,9 @@ unsigned long stringmap_hash(const char *Key);
 void *stringmap_hash_insert(stringmap_t *Tree, long Hash, const char *Key, void *Value);
 void *stringmap_hash_search(stringmap_t *Tree, long Hash, const char *Key);
 void *stringmap_hash_remove(stringmap_t *Tree, long Hash, const char *Key);
+
+#ifdef	__cplusplus
+}
+#endif
 
 #endif

@@ -1,6 +1,10 @@
 #ifndef ML_TYPES_H
 #define ML_TYPES_H
 
+#ifdef	__cplusplus
+extern "C" {
+#endif
+
 typedef struct ml_type_t ml_type_t;
 typedef struct ml_value_t ml_value_t;
 typedef struct ml_function_t ml_function_t;
@@ -166,5 +170,9 @@ struct ml_list_node_t {
 };
 
 #define ml_list_head(List) ((ml_list_t *)List)->Head
+
+#ifdef	__cplusplus
+}
+#endif
 
 #endif

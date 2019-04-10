@@ -1,5 +1,6 @@
 #include "minilang.h"
 #include "ml_console.h"
+#include "ml_macros.h"
 #include "ml_file.h"
 #include "stringmap.h"
 #include <stdio.h>

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <gc.h>
 #include <ml_file.h>
+#include "ml_macros.h"
 
 #define new(T) ((T *)GC_MALLOC(sizeof(T)))
 #define anew(T, N) ((T *)GC_MALLOC((N) * sizeof(T)))

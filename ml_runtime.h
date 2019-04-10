@@ -3,6 +3,10 @@
 
 #include "sha256.h"
 
+#ifdef	__cplusplus
+extern "C" {
+#endif
+
 typedef struct ml_source_t ml_source_t;
 typedef struct ml_frame_t ml_frame_t;
 typedef struct ml_inst_t ml_inst_t;
@@ -79,5 +83,9 @@ ml_inst_t *mli_closure_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_value_t *ml_closure_call(ml_value_t *Value, int Count, ml_value_t **Args);
 
 void ml_closure_debug(ml_closure_info_t *Info);
+
+#ifdef	__cplusplus
+}
+#endif
 
 #endif

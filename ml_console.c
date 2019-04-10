@@ -1,4 +1,5 @@
 #include "minilang.h"
+#include "ml_macros.h"
 #include "ml_compiler.h"
 #include "stringmap.h"
 #ifndef __MINGW32__
