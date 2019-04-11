@@ -2219,7 +2219,7 @@ void ml_init() {
 	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
 }
 
-ml_type_t *ml_class(ml_type_t *Parent, const char *Name) {
+ml_type_t *ml_type(ml_type_t *Parent, const char *Name) {
 	ml_type_t *Type = new(ml_type_t);
 	Type->Parent = Parent;
 	Type->Name = Name;

@@ -49,7 +49,7 @@ struct ml_closure_t {
 };
 
 long ml_hash(ml_value_t *Value);
-ml_type_t *ml_class(ml_type_t *Parent, const char *Name);
+ml_type_t *ml_type(ml_type_t *Parent, const char *Name);
 
 void ml_method_by_name(const char *Method, void *Data, ml_callback_t Function, ...) __attribute__ ((sentinel));
 void ml_method_by_value(ml_value_t *Method, void *Data, ml_callback_t Function, ...) __attribute__ ((sentinel));

@@ -137,7 +137,7 @@ ml_value_t *ml_file_open(void *Data, int Count, ml_value_t **Args) {
 }
 
 void ml_file_init() {
-	MLFileT = ml_class(MLAnyT, "file");
+	MLFileT = ml_type(MLAnyT, "file");
 	ml_method_by_name("read", 0, ml_file_read_line, MLFileT, NULL);
 	ml_method_by_name("read", 0, ml_file_read_count, MLFileT, MLIntegerT, NULL);
 	ml_method_by_name("write", 0, ml_file_write_string, MLFileT, MLStringT, NULL);
