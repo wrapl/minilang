@@ -37,12 +37,13 @@ static const char *ml_file_read(void *Data) {
 ml_value_t *ml_load(ml_getter_t GlobalGet, void *Globals, const char *FileName) {
 	FILE *File = fopen(FileName, "r");
 	if (!File) return ml_error("LoadError", "error opening %s", FileName);
-	mlc_scanner_t *Scanner = ml_scanner(FileName, File, ml_file_read);
-	if (setjmp(Scanner->OnError)) return Scanner->Error;
+	mlc_error_t Error[1];
+	mlc_scanner_t *Scanner = ml_scanner(FileName, File, ml_file_read, Error);
+	if (setjmp(Error->Handler)) return Error->Message;
 	mlc_expr_t *Expr = ml_accept_block(Scanner);
 	ml_accept(Scanner, MLT_EOI);
 	fclose(File);
-	mlc_function_t Function[1] = {{GlobalGet, Globals, NULL,}};
+	mlc_function_t Function[1] = {{Error, GlobalGet, Globals, NULL,}};
 	SHA256_CTX HashContext[1];
 	sha256_init(HashContext);
 	mlc_compiled_t Compiled = ml_compile(Function, Expr, HashContext);

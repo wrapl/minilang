@@ -133,19 +133,20 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 	stringmap_insert(Preprocessor->Globals, "input", ml_function(Preprocessor, (void *)ml_preprocessor_input));
 	stringmap_insert(Preprocessor->Globals, "include", ml_function(Preprocessor, (void *)ml_preprocessor_include));
 	stringmap_insert(Preprocessor->Globals, "open", ml_function(0, ml_file_open));
-	mlc_scanner_t *Scanner = ml_scanner(InputName, Preprocessor, (void *)ml_preprocessor_line_read);
-	mlc_function_t Function[1] = {{(void *)ml_preprocessor_global_get, Preprocessor, NULL,}};
+	mlc_error_t Error[1];
+	mlc_scanner_t *Scanner = ml_scanner(InputName, Preprocessor, (void *)ml_preprocessor_line_read, Error);
+	mlc_function_t Function[1] = {{Error, (void *)ml_preprocessor_global_get, Preprocessor, NULL,}};
 	SHA256_CTX HashContext[1];
 	sha256_init(HashContext);
 	ml_value_t *StringMethod = ml_method("string");
-	if (setjmp(Scanner->OnError)) {
-		printf("Error: %s\n", ml_error_message(Scanner->Error));
+	if (setjmp(Error->Handler)) {
+		printf("Error: %s\n", ml_error_message(Error->Message));
 		const char *Source;
 		int Line;
-		for (int I = 0; ml_error_trace(Scanner->Error, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+		for (int I = 0; ml_error_trace(Error->Message, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 		exit(0);
 	}
-	ml_value_t *Semicolon = ml_string(";", strlen(";"));
+	ml_value_t *Semicolon = ml_string(";", 1);
 	for (;;) {
 		ml_preprocessor_input_t *Input = Preprocessor->Input;
 		const char *Line = 0;

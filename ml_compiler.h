@@ -65,7 +65,13 @@ typedef struct mlc_upvalue_t mlc_upvalue_t;
 
 typedef struct { ml_inst_t *Start, *Exits; } mlc_compiled_t;
 
+typedef struct mlc_error_t {
+	ml_value_t *Message;
+	jmp_buf Handler;
+} mlc_error_t;
+
 struct mlc_function_t {
+	mlc_error_t *Error;
 	ml_getter_t GlobalGet;
 	void *Globals;
 	mlc_function_t *Up;
@@ -77,6 +83,7 @@ struct mlc_function_t {
 };
 
 struct mlc_scanner_t {
+	mlc_error_t *Error;
 	const char *Next;
 	ml_source_t Source;
 	ml_token_t Token;
@@ -85,11 +92,9 @@ struct mlc_scanner_t {
 	const char *Ident;
 	void *Data;
 	const char *(*read)(void *);
-	jmp_buf OnError;
-	ml_value_t *Error;
 };
 
-mlc_scanner_t *ml_scanner(const char *SourceName, void *Data, const char *(*read)(void *));
+mlc_scanner_t *ml_scanner(const char *SourceName, void *Data, const char *(*read)(void *), mlc_error_t *Error);
 
 void ml_accept(mlc_scanner_t *Scanner, ml_token_t Token);
 mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner);

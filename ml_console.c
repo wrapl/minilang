@@ -60,16 +60,17 @@ void ml_console(ml_getter_t GlobalGet, void *Globals) {
 		GlobalGet, Globals, "--> ",
 		{STRINGMAP_INIT}
 	}};
-	mlc_scanner_t *Scanner = ml_scanner("console", Console, (void *)ml_console_line_read);
-	mlc_function_t Function[1] = {{(void *)ml_console_global_get, Console, NULL,}};
+	mlc_error_t Error[1];
+	mlc_scanner_t *Scanner = ml_scanner("console", Console, (void *)ml_console_line_read, Error);
+	mlc_function_t Function[1] = {{Error, (void *)ml_console_global_get, Console, NULL,}};
 	SHA256_CTX HashContext[1];
 	sha256_init(HashContext);
 	ml_value_t *StringMethod = ml_method("string");
-	if (setjmp(Scanner->OnError)) {
-		printf("Error: %s\n", ml_error_message(Scanner->Error));
+	if (setjmp(Error->Handler)) {
+		printf("Error: %s\n", ml_error_message(Error->Message));
 		const char *Source;
 		int Line;
-		for (int I = 0; ml_error_trace(Scanner->Error, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+		for (int I = 0; ml_error_trace(Error->Message, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 		Scanner->Token = MLT_NONE;
 		Scanner->Next = "";
 	}
