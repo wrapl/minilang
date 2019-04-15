@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#include <regex.h>
+
 typedef struct ml_type_t ml_type_t;
 typedef struct ml_value_t ml_value_t;
 typedef struct ml_function_t ml_function_t;
@@ -70,6 +72,7 @@ long ml_integer_value(ml_value_t *Value);
 double ml_real_value(ml_value_t *Value);
 const char *ml_string_value(ml_value_t *Value);
 int ml_string_length(ml_value_t *Value);
+regex_t *ml_regex_value(ml_value_t *Value);
 
 const char *ml_method_name(ml_value_t *Value);
 

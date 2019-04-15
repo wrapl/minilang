@@ -627,6 +627,11 @@ ml_value_t *ml_regex(const char *Pattern) {
 	return (ml_value_t *)Regex;
 }
 
+regex_t *ml_regex_value(ml_value_t *Value) {
+	ml_regex_t *Regex = (ml_regex_t *)Value;
+	return Regex->Value;
+}
+
 typedef struct ml_method_node_t ml_method_node_t;
 
 struct ml_method_node_t {
