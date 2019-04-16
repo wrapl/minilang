@@ -1719,7 +1719,7 @@ static ml_value_t *ml_integer_range_iterate(ml_value_t *Value) {
 }
 
 ml_type_t MLIntegerRangeT[1] = {{
-	MLAnyT, "integer-range",
+	MLIteratableT, "integer-range",
 	ml_default_hash,
 	ml_default_call,
 	ml_default_deref,
@@ -2130,6 +2130,130 @@ static ml_value_t *ml_closure_partial_apply(void *Data, int Count, ml_value_t **
 	return (ml_value_t *)Partial;
 }
 
+ml_type_t MLIteratableT[1] = {{
+	MLAnyT, "iterator",
+	ml_default_hash,
+	ml_default_call,
+	ml_default_deref,
+	ml_default_assign,
+	ml_default_iterate,
+	ml_default_next,
+	ml_default_key
+}};
+
+typedef struct ml_composed_iter_t {
+	const ml_type_t *Type;
+	ml_value_t *Base, *Value;
+	ml_value_t **Functions;
+	int Index, Count;
+} ml_composed_iter_t;
+
+static ml_value_t *ml_composed_iter_deref(ml_composed_iter_t *Iter) {
+	return Iter->Value->Type->deref(Iter->Value);
+}
+
+static ml_value_t *ml_composed_iter_assign(ml_composed_iter_t *Iter, ml_value_t *Value) {
+	return Iter->Value->Type->assign(Iter->Value, Value);
+}
+
+static ml_value_t *ml_composed_iter_next(ml_composed_iter_t *Iter) {
+	next: {
+		ml_value_t *Base = Iter->Base->Type->next(Iter->Base);
+		if (Base == MLNil) return MLNil;
+		ml_value_t *Value = Base;
+		for (int I = 0; I < Iter->Count; ++I) {
+			Value = ml_call(Iter->Functions[I], 1, &Value);
+			if (Value == MLNil) goto next;
+		}
+		Iter->Base = Base;
+		Iter->Value = Value;
+		++Iter->Index;
+		return (ml_value_t *)Iter;
+	}
+}
+
+static ml_value_t *ml_composed_iter_key(ml_composed_iter_t *Iter) {
+	return ml_integer(Iter->Index);
+}
+
+ml_type_t MLComposedIterT[1] = {{
+	MLAnyT, "composed-iter",
+	ml_default_hash,
+	ml_default_call,
+	(void *)ml_composed_iter_deref,
+	(void *)ml_composed_iter_assign,
+	ml_default_iterate,
+	(void *)ml_composed_iter_next,
+	(void *)ml_composed_iter_key
+}};
+
+typedef struct ml_composed_t {
+	const ml_type_t *Type;
+	ml_value_t *Base;
+	ml_value_t **Functions;
+	int Count;
+} ml_composed_t;
+
+static ml_value_t *ml_composed_iterate(ml_composed_t *Composed) {
+	ml_value_t *Base = Composed->Base->Type->iterate(Composed->Base);
+	if (Base == MLNil) return MLNil;
+	next: {
+		ml_value_t *Value = Base;
+		for (int I = 0; I < Composed->Count; ++I) {
+			Value = ml_call(Composed->Functions[I], 1, &Value);
+			if (Value == MLNil) {
+				Base = Base->Type->next(Base);
+				if (Base == MLNil) return MLNil;
+				goto next;
+			}
+		}
+		ml_composed_iter_t *Iter = new(ml_composed_iter_t);
+		Iter->Type = MLComposedIterT;
+		Iter->Base = Base;
+		Iter->Value = Value;
+		Iter->Index = 1;
+		Iter->Count = Composed->Count;
+		Iter->Functions = Composed->Functions;
+		return (ml_value_t *)Iter;
+	}
+}
+
+ml_type_t MLComposedT[1] = {{
+	MLIteratableT, "composed",
+	ml_default_hash,
+	ml_default_call,
+	ml_default_deref,
+	ml_default_assign,
+	(void *)ml_composed_iterate,
+	ml_default_next,
+	ml_default_key
+}};
+
+static ml_value_t *ml_iteratable_compose(void *Data, int Count, ml_value_t **Args) {
+	ml_composed_t *Composed = new(ml_composed_t);
+	Composed->Type = MLComposedT;
+	Composed->Count = 1;
+	Composed->Base = Args[0];
+	Composed->Count = 1;
+	Composed->Functions = anew(ml_value_t *, 1);
+	Composed->Functions[0] = Args[1];
+	return (ml_value_t *)Composed;
+}
+
+static ml_value_t *ml_composed_compose(void *Data, int Count, ml_value_t **Args) {
+	ml_composed_t *Original = (ml_composed_t *)Args[0];
+	ml_composed_t *Composed = new(ml_composed_t);
+	Composed->Type = MLComposedT;
+	Composed->Count = 1;
+	Composed->Base = Original->Base;
+	Composed->Count = Original->Count + 1;
+	Composed->Functions = anew(ml_value_t *, Composed->Count);
+	memcpy(Composed->Functions, Original->Functions, Original->Count * sizeof(ml_value_t *));
+	Composed->Functions[Original->Count] = Args[1];
+	return (ml_value_t *)Composed;
+}
+
+
 void ml_init() {
 	CompareMethod = ml_method("?");
 	ml_method_by_name("#", NULL, ml_hash_any, MLAnyT, NULL);
@@ -2210,6 +2334,8 @@ void ml_init() {
 	ml_method_by_name("!", NULL, ml_function_apply, MLFunctionT, MLListT, NULL);
 	ml_method_by_name("!!", NULL, ml_function_partial_apply, MLFunctionT, MLListT, NULL);
 	ml_method_by_name("!!", NULL, ml_closure_partial_apply, MLClosureT, MLListT, NULL);
+	ml_method_by_name("do", NULL, ml_iteratable_compose, MLIteratableT, MLFunctionT, NULL);
+	ml_method_by_name("do", NULL, ml_composed_compose, MLComposedT, MLFunctionT, NULL);
 
 	AppendMethod = ml_method("append");
 	ml_method_by_value(AppendMethod, NULL, stringify_nil, MLStringBufferT, MLNilT, NULL);

@@ -124,6 +124,7 @@ extern ml_type_t MLPropertyT[];
 extern ml_type_t MLClosureT[];
 extern ml_type_t MLErrorT[];
 extern ml_type_t MLErrorValueT[];
+extern ml_type_t MLIteratableT[];
 
 struct ml_value_t {
 	const ml_type_t *Type;
