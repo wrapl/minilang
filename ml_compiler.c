@@ -314,6 +314,11 @@ static mlc_compiled_t ml_loop_expr_compile(mlc_function_t *Function, mlc_parent_
 }
 
 static mlc_compiled_t ml_next_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, SHA256_CTX *HashContext) {
+	if (!Function->Loop) {
+		Function->Error->Message = ml_error("CompilerError", "next not in loop");
+		ml_error_trace_add(Function->Error->Message, Expr->Source);
+		longjmp(Function->Error->Handler, 1);
+	}
 	ml_inst_t *NilInst = ml_inst_new(2, (ml_source_t){"<internal>", 0}, mli_push_run);
 	NilInst->Params[1].Value = MLNil;
 	ml_inst_t *NextInst = Function->Loop->Next;
@@ -341,13 +346,13 @@ static mlc_compiled_t ml_next_expr_compile(mlc_function_t *Function, mlc_expr_t 
 }
 
 static mlc_compiled_t ml_exit_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
-	mlc_loop_t *Loop = Function->Loop;
-	mlc_try_t *Try = Function->Try;
-	if (!Loop) {
+	if (!Function->Loop) {
 		Function->Error->Message = ml_error("CompilerError", "exit not in loop");
 		ml_error_trace_add(Function->Error->Message, Expr->Source);
 		longjmp(Function->Error->Handler, 1);
 	}
+	mlc_loop_t *Loop = Function->Loop;
+	mlc_try_t *Try = Function->Try;
 	Function->Loop = Loop->Up;
 	Function->Try = Loop->Try;
 	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
@@ -392,6 +397,11 @@ static mlc_compiled_t ml_not_expr_compile(mlc_function_t *Function, mlc_parent_e
 }
 
 static mlc_compiled_t ml_while_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
+	if (!Function->Loop) {
+		Function->Error->Message = ml_error("CompilerError", "while not in loop");
+		ml_error_trace_add(Function->Error->Message, Expr->Source);
+		longjmp(Function->Error->Handler, 1);
+	}
 	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
 	ML_COMPILE_HASH
 	ml_inst_t *ExitInst = ml_inst_new(2, Expr->Source, mli_exit_run);
@@ -415,6 +425,11 @@ static mlc_compiled_t ml_while_expr_compile(mlc_function_t *Function, mlc_parent
 }
 
 static mlc_compiled_t ml_until_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
+	if (!Function->Loop) {
+		Function->Error->Message = ml_error("CompilerError", "until not in loop");
+		ml_error_trace_add(Function->Error->Message, Expr->Source);
+		longjmp(Function->Error->Handler, 1);
+	}
 	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
 	ML_COMPILE_HASH
 	ml_inst_t *ExitInst = ml_inst_new(2, Expr->Source, mli_exit_run);
@@ -441,6 +456,14 @@ static mlc_compiled_t ml_return_expr_compile(mlc_function_t *Function, mlc_paren
 	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
 	mlc_connect(Compiled.Exits, NULL);
 	Compiled.Exits = NULL;
+	return Compiled;
+}
+
+static mlc_compiled_t ml_suspend_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
+	ml_inst_t *SuspendInst = ml_inst_new(1, Expr->Source, mli_suspend_run);
+	mlc_connect(Compiled.Exits, SuspendInst);
+	Compiled.Exits = SuspendInst;
 	return Compiled;
 }
 
@@ -889,6 +912,7 @@ const char *MLTokens[] = {
 	"is", // MLT_IS,
 	"fun", // MLT_FUN,
 	"return", // MLT_RETURN,
+	"suspend", // MLT_SUSPEND
 	"with", // MLT_WITH,
 	"do", // MLT_DO,
 	"on", // MLT_ON,
@@ -937,6 +961,7 @@ typedef enum ml_token_t {
 	MLT_IS,
 	MLT_FUN,
 	MLT_RETURN,
+	MLT_SUSPEND,
 	MLT_WITH,
 	MLT_DO,
 	MLT_ON,
@@ -1526,6 +1551,12 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 		ReturnExpr->Source = Scanner->Source;
 		ReturnExpr->Child = ml_parse_expression(Scanner, EXPR_DEFAULT);
 		return (mlc_expr_t *)ReturnExpr;
+	} else if (ml_parse(Scanner, MLT_SUSPEND)) {
+		mlc_parent_expr_t *SuspendExpr = new(mlc_parent_expr_t);
+		SuspendExpr->compile = ml_suspend_expr_compile;
+		SuspendExpr->Source = Scanner->Source;
+		SuspendExpr->Child = ml_parse_expression(Scanner, EXPR_DEFAULT);
+		return (mlc_expr_t *)SuspendExpr;
 	} else if (ml_parse(Scanner, MLT_WITH)) {
 		mlc_decl_expr_t *WithExpr = new(mlc_decl_expr_t);
 		WithExpr->compile = ml_with_expr_compile;

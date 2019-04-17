@@ -1,0 +1,12 @@
+var test := fun(Start, Stop, Step) do
+	var Value := Start
+	loop while Value <= Stop
+		suspend Value
+		Value := old + Step
+	end
+	return nil
+end
+
+for X in test[1, 10, 3] do
+	print('X = {X}\n')
+end

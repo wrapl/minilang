@@ -57,6 +57,7 @@ ml_inst_t *mli_key_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_local_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_list_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_append_run(ml_inst_t *Inst, ml_frame_t *Frame);
+ml_inst_t *mli_suspend_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_closure_run(ml_inst_t *Inst, ml_frame_t *Frame);
 
 #endif

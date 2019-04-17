@@ -106,7 +106,8 @@ int ml_is(ml_value_t *Value, ml_type_t *Expected) {
 }
 
 ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args) {
-	return Value->Type->call(Value, Count, Args);
+	ml_value_t *Result = Value->Type->call(Value, Count, Args);
+	return Result->Type->deref(Result);
 }
 
 ml_value_t *ml_inline(ml_value_t *Value, int Count, ...) {
@@ -115,7 +116,8 @@ ml_value_t *ml_inline(ml_value_t *Value, int Count, ...) {
 	va_start(List, Count);
 	for (int I = 0; I < Count; ++I) Args[I] = va_arg(List, ml_value_t *);
 	va_end(List);
-	return Value->Type->call(Value, Count, Args);
+	ml_value_t *Result = Value->Type->call(Value, Count, Args);
+	return Result->Type->deref(Result);
 }
 
 static ml_value_t *ml_function_call(ml_value_t *Value, int Count, ml_value_t **Args) {
@@ -141,6 +143,37 @@ ml_value_t *ml_function(void *Data, ml_callback_t Callback) {
 	Function->Callback = Callback;
 	GC_end_stubborn_change(Function);
 	return (ml_value_t *)Function;
+}
+
+typedef struct ml_function_iterator_t {
+	const ml_type_t *Type;
+	ml_value_t *Function;
+	int Count;
+	ml_value_t *Args[];
+} ml_function_iterator_t;
+
+ml_value_t *ml_function_iterator_iterate(ml_function_iterator_t *Iterator) {
+	return Iterator->Function->Type->call(Iterator->Function, Iterator->Count, Iterator->Args);
+}
+
+ml_type_t MLFunctionIteratorT[1] = {{
+	MLIteratableT, "function-iterator",
+	ml_default_hash,
+	ml_default_call,
+	ml_default_deref,
+	ml_default_assign,
+	(void *)ml_function_iterator_iterate,
+	ml_default_next,
+	ml_default_key
+}};
+
+static ml_value_t *ml_function_iterate(void *Data, int Count, ml_value_t **Args) {
+	ml_function_iterator_t *Iterator = xnew(ml_function_iterator_t, Count - 1, sizeof(ml_value_t *));
+	Iterator->Type = MLFunctionIteratorT;
+	Iterator->Function = Args[0];
+	Iterator->Count = Count - 1;
+	memcpy(Iterator->Args, Args + 1, (Count - 1) * sizeof(ml_value_t *));
+	return (ml_value_t *)Iterator;
 }
 
 static ml_value_t *ml_function_apply(void *Data, int Count, ml_value_t **Args) {
@@ -2332,6 +2365,7 @@ void ml_init() {
 	ml_method_by_name("integer", NULL, ml_integer_string, MLStringT, NULL);
 	ml_method_by_name("integer", NULL, ml_integer_string_base, MLStringT, MLIntegerT, NULL);
 	ml_method_by_name("real", NULL, ml_real_string, MLStringT, NULL);
+	ml_method_by_name("[]", NULL, ml_function_iterate, MLFunctionT, NULL);
 	ml_method_by_name("!", NULL, ml_function_apply, MLFunctionT, MLListT, NULL);
 	ml_method_by_name("!!", NULL, ml_function_partial_apply, MLFunctionT, MLListT, NULL);
 	ml_method_by_name("!!", NULL, ml_closure_partial_apply, MLClosureT, MLListT, NULL);
