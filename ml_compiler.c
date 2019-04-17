@@ -912,7 +912,9 @@ const char *MLTokens[] = {
 	"is", // MLT_IS,
 	"fun", // MLT_FUN,
 	"return", // MLT_RETURN,
-	"suspend", // MLT_SUSPEND
+	"suspend", // MLT_SUSPEND,
+	"ret", // MLT_RET,
+	"susp", // MLT_SUSP,
 	"with", // MLT_WITH,
 	"do", // MLT_DO,
 	"on", // MLT_ON,
@@ -962,6 +964,8 @@ typedef enum ml_token_t {
 	MLT_FUN,
 	MLT_RETURN,
 	MLT_SUSPEND,
+	MLT_RET,
+	MLT_SUSP,
 	MLT_WITH,
 	MLT_DO,
 	MLT_ON,
@@ -1545,13 +1549,13 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 			FunExpr->Body = ml_accept_expression(Scanner, EXPR_DEFAULT);
 		//}
 		return (mlc_expr_t *)FunExpr;
-	} else if (ml_parse(Scanner, MLT_RETURN)) {
+	} else if (ml_parse(Scanner, MLT_RETURN) || ml_parse(Scanner, MLT_RET)) {
 		mlc_parent_expr_t *ReturnExpr = new(mlc_parent_expr_t);
 		ReturnExpr->compile = ml_return_expr_compile;
 		ReturnExpr->Source = Scanner->Source;
 		ReturnExpr->Child = ml_parse_expression(Scanner, EXPR_DEFAULT);
 		return (mlc_expr_t *)ReturnExpr;
-	} else if (ml_parse(Scanner, MLT_SUSPEND)) {
+	} else if (ml_parse(Scanner, MLT_SUSPEND) || ml_parse(Scanner, MLT_SUSP)) {
 		mlc_parent_expr_t *SuspendExpr = new(mlc_parent_expr_t);
 		SuspendExpr->compile = ml_suspend_expr_compile;
 		SuspendExpr->Source = Scanner->Source;
