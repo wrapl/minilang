@@ -1,10 +1,17 @@
 #include "minilang.h"
 #include "ml_macros.h"
 #include "ml_compiler.h"
+#include "ml_internal.h"
 #include "stringmap.h"
 #include <gc.h>
 #include <ctype.h>
 #include <string.h>
+
+typedef struct mlc_function_t mlc_function_t;
+typedef struct mlc_decl_t mlc_decl_t;
+typedef struct mlc_loop_t mlc_loop_t;
+typedef struct mlc_try_t mlc_try_t;
+typedef struct mlc_upvalue_t mlc_upvalue_t;
 
 struct mlc_decl_t {
 	mlc_decl_t *Next;
@@ -31,6 +38,11 @@ struct mlc_upvalue_t {
 	int Index;
 };
 
+typedef struct { ml_inst_t *Start, *Exits; } mlc_compiled_t;
+
+mlc_compiled_t mlc_compile(mlc_function_t *Function, mlc_expr_t *Expr, SHA256_CTX *HashContext);
+void mlc_connect(ml_inst_t *Exits, ml_inst_t *Start);
+
 #define MLC_EXPR_FIELDS(TYPE) \
 	mlc_compiled_t (*compile)(mlc_function_t *, mlc_ ## TYPE ## _expr_t *, SHA256_CTX *HashContext); \
 	mlc_expr_t *Next; \
@@ -53,7 +65,34 @@ static inline ml_inst_t *ml_inst_new(int N, ml_source_t Source, ml_inst_t *(*run
 #define TOSTRING(x) STRINGIFY(x)
 #define ML_COMPILE_HASH sha256_update(HashContext, (unsigned char *)__FILE__ TOSTRING(__LINE__), strlen(__FILE__ TOSTRING(__LINE__)));
 
-inline mlc_compiled_t ml_compile(mlc_function_t *Function, mlc_expr_t *Expr, SHA256_CTX *HashContext) {
+struct mlc_function_t {
+	mlc_error_t *Error;
+	ml_getter_t GlobalGet;
+	void *Globals;
+	mlc_function_t *Up;
+	mlc_decl_t *Decls;
+	mlc_loop_t *Loop;
+	mlc_try_t *Try;
+	mlc_upvalue_t *UpValues;
+	int Top, Size, Self;
+};
+
+ml_closure_t *ml_compile(mlc_expr_t *Expr, ml_getter_t GlobalGet, void *Globals, mlc_error_t *Error) {
+	mlc_function_t Function[1] = {{Error, GlobalGet, Globals, NULL, 0,}};
+	SHA256_CTX HashContext[1];
+	sha256_init(HashContext);
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr, HashContext);
+	mlc_connect(Compiled.Exits, NULL);
+	ml_closure_t *Closure = new(ml_closure_t);
+	ml_closure_info_t *Info = Closure->Info = new(ml_closure_info_t);
+	Closure->Type = MLClosureT;
+	Info->Entry = Compiled.Start;
+	Info->FrameSize = Function->Size;
+	sha256_final(HashContext, Info->Hash);
+	return Closure;
+}
+
+inline mlc_compiled_t mlc_compile(mlc_function_t *Function, mlc_expr_t *Expr, SHA256_CTX *HashContext) {
 	//static int Indent = NULL;
 	if (Expr) {
 		//for (int I = Indent; --I >= 0;) printf("\t");
@@ -113,7 +152,7 @@ static mlc_compiled_t ml_if_expr_compile(mlc_function_t *Function, mlc_if_expr_t
 	int OldTop = Function->Top;
 	mlc_decl_t *OldDecls = Function->Decls;
 	mlc_if_case_t *Case = Expr->Cases;
-	mlc_compiled_t Compiled = ml_compile(Function, Case->Condition, HashContext);
+	mlc_compiled_t Compiled = mlc_compile(Function, Case->Condition, HashContext);
 	ml_inst_t *IfInst = ml_inst_new(2, Expr->Source, mli_and_run);
 	if (Case->Decl) {
 		IfInst->run = Case->Decl->Index ? mli_and_var_run : mli_and_def_run;
@@ -123,7 +162,7 @@ static mlc_compiled_t ml_if_expr_compile(mlc_function_t *Function, mlc_if_expr_t
 	} else {
 		--Function->Top;
 	}
-	mlc_compiled_t BodyCompiled = ml_compile(Function, Case->Body, HashContext);
+	mlc_compiled_t BodyCompiled = mlc_compile(Function, Case->Body, HashContext);
 	ML_COMPILE_HASH
 	if (Case->Decl) {
 		ml_inst_t *ExitInst = ml_inst_new(2, Expr->Source, mli_exit_run);
@@ -140,7 +179,7 @@ static mlc_compiled_t ml_if_expr_compile(mlc_function_t *Function, mlc_if_expr_t
 	while ((Case = Case->Next)) {
 		Function->Top = OldTop;
 		Compiled.Exits = IfInst->Params[0].Inst;
-		mlc_compiled_t ConditionCompiled = ml_compile(Function, Case->Condition, HashContext);
+		mlc_compiled_t ConditionCompiled = mlc_compile(Function, Case->Condition, HashContext);
 		if (IfInst->run == mli_and_run) {
 			IfInst->run = mli_if_run;
 		} else if (IfInst->run == mli_and_var_run) {
@@ -157,7 +196,7 @@ static mlc_compiled_t ml_if_expr_compile(mlc_function_t *Function, mlc_if_expr_t
 		} else {
 			--Function->Top;
 		}
-		BodyCompiled = ml_compile(Function, Case->Body, HashContext);
+		BodyCompiled = mlc_compile(Function, Case->Body, HashContext);
 		if (Case->Decl) {
 			ml_inst_t *ExitInst = ml_inst_new(2, Expr->Source, mli_exit_run);
 			ExitInst->Params[1].Count = 1;
@@ -177,7 +216,7 @@ static mlc_compiled_t ml_if_expr_compile(mlc_function_t *Function, mlc_if_expr_t
 	Function->Top = OldTop;
 	if (Expr->Else) {
 		Compiled.Exits = IfInst->Params[0].Inst;
-		mlc_compiled_t BodyCompiled = ml_compile(Function, Expr->Else, HashContext);
+		mlc_compiled_t BodyCompiled = mlc_compile(Function, Expr->Else, HashContext);
 		if (IfInst->run == mli_and_run) {
 			IfInst->run = mli_if_run;
 		} else if (IfInst->run == mli_and_var_run) {
@@ -203,14 +242,14 @@ struct mlc_parent_expr_t {
 static mlc_compiled_t ml_or_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
 	int OldTop = Function->Top;
 	mlc_expr_t *Child = Expr->Child;
-	mlc_compiled_t Compiled = ml_compile(Function, Child, HashContext);
+	mlc_compiled_t Compiled = mlc_compile(Function, Child, HashContext);
 	ML_COMPILE_HASH
 	ml_inst_t *OrInst = ml_inst_new(2, Expr->Source, mli_or_run);
 	mlc_connect(Compiled.Exits, OrInst);
 	Compiled.Exits = OrInst;
 	for (Child = Child->Next; Child->Next; Child = Child->Next) {
 		Function->Top = OldTop;
-		mlc_compiled_t ChildCompiled = ml_compile(Function, Child, HashContext);
+		mlc_compiled_t ChildCompiled = mlc_compile(Function, Child, HashContext);
 		OrInst->Params[1].Inst = ChildCompiled.Start;
 		ML_COMPILE_HASH
 		OrInst = ml_inst_new(2, Expr->Source, mli_or_run);
@@ -219,7 +258,7 @@ static mlc_compiled_t ml_or_expr_compile(mlc_function_t *Function, mlc_parent_ex
 		Compiled.Exits = OrInst;
 	}
 	Function->Top = OldTop;
-	mlc_compiled_t ChildCompiled = ml_compile(Function, Child, HashContext);
+	mlc_compiled_t ChildCompiled = mlc_compile(Function, Child, HashContext);
 	OrInst->Params[1].Inst = ChildCompiled.Start;
 	ml_inst_t **Slot = &Compiled.Exits;
 	while (Slot[0]) Slot = &Slot[0]->Params[0].Inst;
@@ -231,14 +270,14 @@ static mlc_compiled_t ml_and_expr_compile(mlc_function_t *Function, mlc_parent_e
 	int OldTop = Function->Top;
 	ML_COMPILE_HASH
 	mlc_expr_t *Child = Expr->Child;
-	mlc_compiled_t Compiled = ml_compile(Function, Child, HashContext);
+	mlc_compiled_t Compiled = mlc_compile(Function, Child, HashContext);
 	ML_COMPILE_HASH
 	ml_inst_t *IfInst = ml_inst_new(2, Expr->Source, mli_and_run);
 	mlc_connect(Compiled.Exits, IfInst);
 	Compiled.Exits = IfInst;
 	for (Child = Child->Next; Child->Next; Child = Child->Next) {
 		Function->Top = OldTop;
-		mlc_compiled_t ChildCompiled = ml_compile(Function, Child, HashContext);
+		mlc_compiled_t ChildCompiled = mlc_compile(Function, Child, HashContext);
 		IfInst->Params[1].Inst = ChildCompiled.Start;
 		ML_COMPILE_HASH
 		IfInst = ml_inst_new(2, Expr->Source, mli_and_run);
@@ -247,7 +286,7 @@ static mlc_compiled_t ml_and_expr_compile(mlc_function_t *Function, mlc_parent_e
 		Compiled.Exits = IfInst;
 	}
 	Function->Top = OldTop;
-	mlc_compiled_t ChildCompiled = ml_compile(Function, Child, HashContext);
+	mlc_compiled_t ChildCompiled = mlc_compile(Function, Child, HashContext);
 	IfInst->Params[1].Inst = ChildCompiled.Start;
 	ml_inst_t **Slot = &Compiled.Exits;
 	while (Slot[0]) Slot = &Slot[0]->Params[0].Inst;
@@ -265,7 +304,7 @@ static mlc_compiled_t ml_loop_expr_compile(mlc_function_t *Function, mlc_parent_
 		Function->Top + 1, Function->Top + 1
 	};
 	Function->Loop = &Loop;
-	mlc_compiled_t Compiled = ml_compile(Function, Expr->Child, HashContext);
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
 	LoopInst->Params[0].Inst = Compiled.Start;
 	mlc_connect(Compiled.Exits, LoopInst);
 	Function->Loop = Loop.Up;
@@ -311,7 +350,7 @@ static mlc_compiled_t ml_exit_expr_compile(mlc_function_t *Function, mlc_parent_
 	}
 	Function->Loop = Loop->Up;
 	Function->Try = Loop->Try;
-	mlc_compiled_t Compiled = ml_compile(Function, Expr->Child, HashContext);
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
 	if (Function->Try != Try) {
 		ML_COMPILE_HASH
 		ml_inst_t *TryInst = ml_inst_new(2, Expr->Source, mli_try_run);
@@ -337,7 +376,7 @@ static mlc_compiled_t ml_exit_expr_compile(mlc_function_t *Function, mlc_parent_
 }
 
 static mlc_compiled_t ml_not_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
-	mlc_compiled_t Compiled = ml_compile(Function, Expr->Child, HashContext);
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
 	ML_COMPILE_HASH
 	ml_inst_t *NotInst = ml_inst_new(2, Expr->Source, mli_if_run);
 	mlc_connect(Compiled.Exits, NotInst);
@@ -353,7 +392,7 @@ static mlc_compiled_t ml_not_expr_compile(mlc_function_t *Function, mlc_parent_e
 }
 
 static mlc_compiled_t ml_while_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
-	mlc_compiled_t Compiled = ml_compile(Function, Expr->Child, HashContext);
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
 	ML_COMPILE_HASH
 	ml_inst_t *ExitInst = ml_inst_new(2, Expr->Source, mli_exit_run);
 	ExitInst->Params[1].Count = Function->Top - Function->Loop->ExitTop;
@@ -376,7 +415,7 @@ static mlc_compiled_t ml_while_expr_compile(mlc_function_t *Function, mlc_parent
 }
 
 static mlc_compiled_t ml_until_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
-	mlc_compiled_t Compiled = ml_compile(Function, Expr->Child, HashContext);
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
 	ML_COMPILE_HASH
 	ml_inst_t *ExitInst = ml_inst_new(2, Expr->Source, mli_exit_run);
 	ExitInst->Params[1].Count = Function->Top - Function->Loop->ExitTop;
@@ -399,7 +438,7 @@ static mlc_compiled_t ml_until_expr_compile(mlc_function_t *Function, mlc_parent
 }
 
 static mlc_compiled_t ml_return_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
-	mlc_compiled_t Compiled = ml_compile(Function, Expr->Child, HashContext);
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
 	mlc_connect(Compiled.Exits, NULL);
 	Compiled.Exits = NULL;
 	return Compiled;
@@ -412,7 +451,7 @@ struct mlc_decl_expr_t {
 };
 
 static mlc_compiled_t ml_var_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr, SHA256_CTX *HashContext) {
-	mlc_compiled_t Compiled = ml_compile(Function, Expr->Child, HashContext);
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
 	ML_COMPILE_HASH
 	ml_inst_t *VarInst = ml_inst_new(2, Expr->Source, mli_var_run);
 	VarInst->Params[1].Index = Expr->Decl->Index;
@@ -422,7 +461,7 @@ static mlc_compiled_t ml_var_expr_compile(mlc_function_t *Function, mlc_decl_exp
 }
 
 static mlc_compiled_t ml_def_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr, SHA256_CTX *HashContext) {
-	mlc_compiled_t Compiled = ml_compile(Function, Expr->Child, HashContext);
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
 	ML_COMPILE_HASH
 	ml_inst_t *DefInst = ml_inst_new(1, Expr->Source, mli_def_run);
 	mlc_decl_t *Decl = Expr->Decl;
@@ -438,7 +477,7 @@ static mlc_compiled_t ml_with_expr_compile(mlc_function_t *Function, mlc_decl_ex
 	int OldTop = Function->Top + 1;
 	mlc_decl_t *OldScope = Function->Decls;
 	mlc_expr_t *Child = Expr->Child;
-	mlc_compiled_t Compiled = ml_compile(Function, Child, HashContext);
+	mlc_compiled_t Compiled = mlc_compile(Function, Child, HashContext);
 	mlc_decl_t *Decl = Expr->Decl;
 	Decl->Index = Function->Top - 1;
 	Child = Child->Next;
@@ -448,7 +487,7 @@ static mlc_compiled_t ml_with_expr_compile(mlc_function_t *Function, mlc_decl_ex
 	while (NextDecl) {
 		Decl = NextDecl;
 		NextDecl = Decl->Next;
-		mlc_compiled_t ChildCompiled = ml_compile(Function, Child, HashContext);
+		mlc_compiled_t ChildCompiled = mlc_compile(Function, Child, HashContext);
 		mlc_connect(Compiled.Exits, ChildCompiled.Start);
 		Compiled.Exits = ChildCompiled.Exits;
 		Decl->Index = Function->Top - 1;
@@ -456,7 +495,7 @@ static mlc_compiled_t ml_with_expr_compile(mlc_function_t *Function, mlc_decl_ex
 		Function->Decls = Decl;
 		Child = Child->Next;
 	}
-	mlc_compiled_t ChildCompiled = ml_compile(Function, Child, HashContext);
+	mlc_compiled_t ChildCompiled = mlc_compile(Function, Child, HashContext);
 	mlc_connect(Compiled.Exits, ChildCompiled.Start);
 	ML_COMPILE_HASH
 	ml_inst_t *ExitInst = ml_inst_new(2, Expr->Source, mli_exit_run);
@@ -472,7 +511,7 @@ static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_exp
 	int OldTop = Function->Top;
 	mlc_decl_t *OldScope = Function->Decls;
 	mlc_expr_t *Child = Expr->Child;
-	mlc_compiled_t Compiled = ml_compile(Function, Child, HashContext);
+	mlc_compiled_t Compiled = mlc_compile(Function, Child, HashContext);
 	ml_inst_t *ForInst = ml_inst_new(2, Expr->Source, mli_for_run);
 	mlc_connect(Compiled.Exits, ForInst);
 	mlc_decl_t *Decl = Expr->Decl;
@@ -497,7 +536,7 @@ static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_exp
 		Function->Top + 1, OldTop + 1
 	};
 	Function->Loop = &Loop;
-	mlc_compiled_t BodyCompiled = ml_compile(Function, Child->Next, HashContext);
+	mlc_compiled_t BodyCompiled = mlc_compile(Function, Child->Next, HashContext);
 	mlc_connect(BodyCompiled.Exits, PopInst);
 	if (KeyDecl) {
 		ML_COMPILE_HASH
@@ -514,7 +553,7 @@ static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_exp
 	Function->Loop = Loop.Up;
 	Function->Top = OldTop;
 	if (Child->Next->Next) {
-		mlc_compiled_t ElseCompiled = ml_compile(Function, Child->Next->Next, HashContext);
+		mlc_compiled_t ElseCompiled = mlc_compile(Function, Child->Next->Next, HashContext);
 		ML_COMPILE_HASH
 		ml_inst_t *PopInst = ml_inst_new(1, Expr->Source, mli_pop_run);
 		PopInst->Params[0].Inst = ElseCompiled.Start;
@@ -537,7 +576,7 @@ static mlc_compiled_t ml_all_expr_compile(mlc_function_t *Function, mlc_parent_e
 	ML_COMPILE_HASH
 	ml_inst_t *ListInst = ml_inst_new(1, Expr->Source, mli_list_run);
 	++Function->Top;
-	mlc_compiled_t Compiled = ml_compile(Function, Expr->Child, HashContext);
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
 	ListInst->Params[0].Inst = Compiled.Start;
 	ml_inst_t *ForInst = ml_inst_new(2, Expr->Source, mli_for_run);
 	mlc_connect(Compiled.Exits, ForInst);
@@ -570,7 +609,7 @@ static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_
 		Expr->CatchDecl->Index = Function->Top++;
 		Expr->CatchDecl->Next = Function->Decls;
 		Function->Decls = Expr->CatchDecl;
-		mlc_compiled_t TryCompiled = ml_compile(Function, Expr->Catch, HashContext);
+		mlc_compiled_t TryCompiled = mlc_compile(Function, Expr->Catch, HashContext);
 		ml_inst_t *TryInst = ml_inst_new(2, Expr->Source, mli_try_run);
 		ml_inst_t *CatchInst = ml_inst_new(2, Expr->Source, mli_catch_run);
 		TryInst->Params[0].Inst = CatchInst;
@@ -597,13 +636,13 @@ static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_
 	}
 	if (Function->Top >= Function->Size) Function->Size = Function->Top + 1;
 	mlc_expr_t *Child = Expr->Child;
-	mlc_compiled_t Compiled = ml_compile(Function, Child, HashContext);
+	mlc_compiled_t Compiled = mlc_compile(Function, Child, HashContext);
 	if (Child) while ((Child = Child->Next)) {
 		ML_COMPILE_HASH
 		ml_inst_t *PopInst = ml_inst_new(1, Expr->Source, mli_pop_run);
 		mlc_connect(Compiled.Exits, PopInst);
 		--Function->Top;
-		mlc_compiled_t ChildCompiled = ml_compile(Function, Child, HashContext);
+		mlc_compiled_t ChildCompiled = mlc_compile(Function, Child, HashContext);
 		PopInst->Params[0].Inst = ChildCompiled.Start;
 		Compiled.Exits = ChildCompiled.Exits;
 	}
@@ -640,11 +679,11 @@ static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_
 
 static mlc_compiled_t ml_call_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
 	int OldTop = Function->Top + 1;
-	mlc_compiled_t Compiled = ml_compile(Function, Expr->Child, HashContext);
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
 	int NumArgs = 0;
 	for (mlc_expr_t *Child = Expr->Child->Next; Child; Child = Child->Next) {
 		++NumArgs;
-		mlc_compiled_t ChildCompiled = ml_compile(Function, Child, HashContext);
+		mlc_compiled_t ChildCompiled = mlc_compile(Function, Child, HashContext);
 		mlc_connect(Compiled.Exits, ChildCompiled.Start);
 		Compiled.Exits = ChildCompiled.Exits;
 	}
@@ -659,9 +698,9 @@ static mlc_compiled_t ml_call_expr_compile(mlc_function_t *Function, mlc_parent_
 
 static mlc_compiled_t ml_assign_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
 	int OldSelf = Function->Self;
-	mlc_compiled_t Compiled = ml_compile(Function, Expr->Child, HashContext);
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
 	Function->Self = Function->Top - 1;
-	mlc_compiled_t ValueCompiled = ml_compile(Function, Expr->Child->Next, HashContext);
+	mlc_compiled_t ValueCompiled = mlc_compile(Function, Expr->Child->Next, HashContext);
 	mlc_connect(Compiled.Exits, ValueCompiled.Start);
 	ML_COMPILE_HASH
 	ml_inst_t *AssignInst = ml_inst_new(1, Expr->Source, mli_assign_run);
@@ -696,10 +735,10 @@ static mlc_compiled_t ml_const_call_expr_compile(mlc_function_t *Function, mlc_c
 	CallInst->Params[2].Value = Expr->Value;
 	if (Expr->Child) {
 		int NumArgs = 1;
-		mlc_compiled_t Compiled = ml_compile(Function, Expr->Child, HashContext);
+		mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
 		for (mlc_expr_t *Child = Expr->Child->Next; Child; Child = Child->Next) {
 			++NumArgs;
-			mlc_compiled_t ChildCompiled = ml_compile(Function, Child, HashContext);
+			mlc_compiled_t ChildCompiled = mlc_compile(Function, Child, HashContext);
 			mlc_connect(Compiled.Exits, ChildCompiled.Start);
 			Compiled.Exits = ChildCompiled.Exits;
 		}
@@ -744,7 +783,7 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	SubFunction->Size = SubFunction->Top + 1;
 	SHA256_CTX SubHashContext[1];
 	sha256_init(SubHashContext);
-	mlc_compiled_t Compiled = ml_compile(SubFunction, Expr->Body, SubHashContext);
+	mlc_compiled_t Compiled = mlc_compile(SubFunction, Expr->Body, SubHashContext);
 	mlc_connect(Compiled.Exits, NULL);
 	int NumUpValues = 0;
 	for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) ++NumUpValues;
@@ -878,6 +917,66 @@ const char *MLTokens[] = {
 	"<method>" // MLT_METHOD
 };
 
+typedef enum ml_token_t {
+	MLT_NONE,
+	MLT_EOL,
+	MLT_EOI,
+	MLT_IF,
+	MLT_THEN,
+	MLT_ELSEIF,
+	MLT_ELSE,
+	MLT_END,
+	MLT_LOOP,
+	MLT_WHILE,
+	MLT_UNTIL,
+	MLT_EXIT,
+	MLT_NEXT,
+	MLT_FOR,
+	MLT_ALL,
+	MLT_IN,
+	MLT_IS,
+	MLT_FUN,
+	MLT_RETURN,
+	MLT_WITH,
+	MLT_DO,
+	MLT_ON,
+	MLT_NIL,
+	MLT_AND,
+	MLT_OR,
+	MLT_NOT,
+	MLT_OLD,
+	MLT_DEF,
+	MLT_VAR,
+	MLT_IDENT,
+	MLT_LEFT_PAREN,
+	MLT_RIGHT_PAREN,
+	MLT_LEFT_SQUARE,
+	MLT_RIGHT_SQUARE,
+	MLT_LEFT_BRACE,
+	MLT_RIGHT_BRACE,
+	MLT_SEMICOLON,
+	MLT_COLON,
+	MLT_COMMA,
+	MLT_ASSIGN,
+	MLT_SYMBOL,
+	MLT_VALUE,
+	MLT_EXPR,
+	MLT_OPERATOR,
+	MLT_METHOD
+} ml_token_t;
+
+struct mlc_scanner_t {
+	mlc_error_t *Error;
+	const char *Next;
+	ml_source_t Source;
+	ml_token_t Token;
+	ml_value_t *Value;
+	mlc_expr_t *Expr;
+	const char *Ident;
+	void *Data;
+	const char *(*read)(void *);
+};
+
 mlc_scanner_t *ml_scanner(const char *SourceName, void *Data, const char *(*read)(void *), mlc_error_t *Error) {
 	mlc_scanner_t *Scanner = new(mlc_scanner_t);
 	Scanner->Error = Error;
@@ -890,8 +989,19 @@ mlc_scanner_t *ml_scanner(const char *SourceName, void *Data, const char *(*read
 	return Scanner;
 }
 
+void ml_scanner_reset(mlc_scanner_t *Scanner) {
+	Scanner->Token = MLT_NONE;
+	Scanner->Next = "";
+}
+
+const char *ml_scanner_clear(mlc_scanner_t *Scanner) {
+	const char *Next = Scanner->Next;
+	Scanner->Next = "";
+}
+
 typedef enum {EXPR_SIMPLE, EXPR_AND, EXPR_OR, EXPR_DEFAULT} ml_expr_level_t;
 
+static void ml_accept(mlc_scanner_t *Scanner, ml_token_t Token);
 static mlc_expr_t *ml_accept_term(mlc_scanner_t *Scanner);
 static mlc_expr_t *ml_parse_expression(mlc_scanner_t *Scanner, ml_expr_level_t Level);
 static mlc_expr_t *ml_accept_expression(mlc_scanner_t *Scanner, ml_expr_level_t Level);
@@ -1213,7 +1323,7 @@ static int ml_parse(mlc_scanner_t *Scanner, ml_token_t Token) {
 	}
 }
 
-void ml_accept(mlc_scanner_t *Scanner, ml_token_t Token) {
+static void ml_accept(mlc_scanner_t *Scanner, ml_token_t Token) {
 	while (ml_parse(Scanner, MLT_EOL));
 	if (ml_parse(Scanner, Token)) return;
 	if (Scanner->Token == MLT_IDENT) {
@@ -1223,6 +1333,10 @@ void ml_accept(mlc_scanner_t *Scanner, ml_token_t Token) {
 	}
 	ml_error_trace_add(Scanner->Error->Message, Scanner->Source);
 	longjmp(Scanner->Error->Handler, 1);
+}
+
+void ml_accept_eoi(mlc_scanner_t *Scanner) {
+	ml_accept(Scanner, MLT_EOI);
 }
 
 static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {

@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include <regex.h>
+#include "sha256.h"
 
 typedef struct ml_type_t ml_type_t;
 typedef struct ml_value_t ml_value_t;
@@ -174,6 +175,7 @@ struct ml_list_node_t {
 };
 
 #define ml_list_head(List) ((ml_list_t *)List)->Head
+#define ml_list_tail(List) ((ml_list_t *)List)->Tail
 
 #ifdef	__cplusplus
 }
