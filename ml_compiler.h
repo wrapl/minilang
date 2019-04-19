@@ -26,7 +26,7 @@ typedef enum ml_token_t {
 	MLT_IN,
 	MLT_IS,
 	MLT_FUN,
-	MLT_RETURN,
+	MLT_RET,
 	MLT_WITH,
 	MLT_DO,
 	MLT_ON,
@@ -100,7 +100,7 @@ void ml_accept(mlc_scanner_t *Scanner, ml_token_t Token);
 mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner);
 mlc_expr_t *ml_accept_command(mlc_scanner_t *Scanner, stringmap_t *Vars);
 
-mlc_compiled_t ml_compile(mlc_function_t *Function, mlc_expr_t *Expr, SHA256_CTX *HashContext);
+mlc_compiled_t mlc_compile(mlc_function_t *Function, mlc_expr_t *Expr, SHA256_CTX *HashContext);
 void mlc_connect(ml_inst_t *Exits, ml_inst_t *Start);
 
 extern int MLDebugClosures;

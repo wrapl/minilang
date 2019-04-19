@@ -46,7 +46,7 @@ ml_value_t *ml_load(ml_getter_t GlobalGet, void *Globals, const char *FileName) 
 	mlc_function_t Function[1] = {{Error, GlobalGet, Globals, NULL,}};
 	SHA256_CTX HashContext[1];
 	sha256_init(HashContext);
-	mlc_compiled_t Compiled = ml_compile(Function, Expr, HashContext);
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr, HashContext);
 	mlc_connect(Compiled.Exits, NULL);
 	ml_closure_t *Closure = new(ml_closure_t);
 	ml_closure_info_t *Info = Closure->Info = new(ml_closure_info_t);

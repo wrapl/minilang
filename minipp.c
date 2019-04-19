@@ -182,7 +182,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 			} else {
 				Input->Line = Escape + 1;
 				mlc_expr_t *Expr = ml_accept_command(Scanner, Preprocessor->Globals);
-				mlc_compiled_t Compiled = ml_compile(Function, Expr, HashContext);
+				mlc_compiled_t Compiled = mlc_compile(Function, Expr, HashContext);
 				mlc_connect(Compiled.Exits, NULL);
 				ml_closure_t *Closure = new(ml_closure_t);
 				ml_closure_info_t *Info = Closure->Info = new(ml_closure_info_t);
