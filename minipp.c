@@ -2,6 +2,7 @@
 #include "stringmap.h"
 #include "ml_compiler.h"
 #include "ml_file.h"
+#include "ml_macros.h"
 #include <string.h>
 #include <gc/gc.h>
 
@@ -132,19 +133,17 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 	stringmap_insert(Preprocessor->Globals, "input", ml_function(Preprocessor, (void *)ml_preprocessor_input));
 	stringmap_insert(Preprocessor->Globals, "include", ml_function(Preprocessor, (void *)ml_preprocessor_include));
 	stringmap_insert(Preprocessor->Globals, "open", ml_function(0, ml_file_open));
-	mlc_scanner_t *Scanner = ml_scanner(InputName, Preprocessor, (void *)ml_preprocessor_line_read);
-	mlc_function_t Function[1] = {{(void *)ml_preprocessor_global_get, Preprocessor, NULL,}};
-	SHA256_CTX HashContext[1];
-	sha256_init(HashContext);
+	mlc_error_t Error[1];
+	mlc_scanner_t *Scanner = ml_scanner(InputName, Preprocessor, (void *)ml_preprocessor_line_read, Error);
 	ml_value_t *StringMethod = ml_method("string");
-	if (setjmp(Scanner->OnError)) {
-		printf("Error: %s\n", ml_error_message(Scanner->Error));
+	if (setjmp(Error->Handler)) {
+		printf("Error: %s\n", ml_error_message(Error->Message));
 		const char *Source;
 		int Line;
-		for (int I = 0; ml_error_trace(Scanner->Error, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+		for (int I = 0; ml_error_trace(Error->Message, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 		exit(0);
 	}
-	ml_value_t *Semicolon = ml_string(";", strlen(";"));
+	ml_value_t *Semicolon = ml_string(";", 1);
 	for (;;) {
 		ml_preprocessor_input_t *Input = Preprocessor->Input;
 		const char *Line = 0;
@@ -180,13 +179,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 			} else {
 				Input->Line = Escape + 1;
 				mlc_expr_t *Expr = ml_accept_command(Scanner, Preprocessor->Globals);
-				mlc_compiled_t Compiled = ml_compile(Function, Expr, HashContext);
-				mlc_connect(Compiled.Exits, NULL);
-				ml_closure_t *Closure = new(ml_closure_t);
-				ml_closure_info_t *Info = Closure->Info = new(ml_closure_info_t);
-				Closure->Type = MLClosureT;
-				Info->Entry = Compiled.Start;
-				Info->FrameSize = Function->Size;
+				ml_closure_t *Closure = ml_compile(Expr, (void *)ml_preprocessor_global_get, Preprocessor, Error);
 				ml_value_t *Result = ml_closure_call((ml_value_t *)Closure, 0, NULL);
 				if (Result->Type == MLErrorT) {
 					printf("Error: %s\n", ml_error_message(Result));
@@ -195,8 +188,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 					for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 					exit(0);
 				}
-				Input->Line = Scanner->Next;
-				Scanner->Next = "";
+				Input->Line = ml_scanner_clear(Scanner);
 			}
 		} else {
 			if (Line[0] && Line[0] != '\n') ml_inline(Preprocessor->Output->Writer, 1, ml_string(Line, strlen(Line)));

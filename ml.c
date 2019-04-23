@@ -1,5 +1,7 @@
 #include "minilang.h"
 #include "ml_console.h"
+#include "ml_compiler.h"
+#include "ml_macros.h"
 #include "ml_file.h"
 #include "stringmap.h"
 #include <stdio.h>
@@ -26,9 +28,19 @@ static ml_value_t *print(void *Data, int Count, ml_value_t **Args) {
 	return MLNil;
 }
 
+static ml_value_t *debug(void *Data, int Count, ml_value_t **Args) {
+	if (Count > 0 && Args[0] == MLNil) {
+		MLDebugClosures = 0;
+	} else {
+		MLDebugClosures = 1;
+	}
+	return MLNil;
+}
+
 int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "print", ml_function(0, print));
 	stringmap_insert(Globals, "open", ml_function(0, ml_file_open));
+	stringmap_insert(Globals, "debug", ml_function(0, debug));
 	ml_init(global_get);
 	if (Argc > 1) {
 		ml_value_t *Closure = ml_load(global_get, 0, Argv[1]);

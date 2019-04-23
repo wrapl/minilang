@@ -1,4 +1,5 @@
 #include "minilang.h"
+#include "ml_macros.h"
 #include "ml_compiler.h"
 #include "stringmap.h"
 #ifndef __MINGW32__
@@ -59,31 +60,23 @@ void ml_console(ml_getter_t GlobalGet, void *Globals) {
 		GlobalGet, Globals, "--> ",
 		{STRINGMAP_INIT}
 	}};
-	mlc_scanner_t *Scanner = ml_scanner("console", Console, (void *)ml_console_line_read);
-	mlc_function_t Function[1] = {{(void *)ml_console_global_get, Console, NULL,}};
-	SHA256_CTX HashContext[1];
-	sha256_init(HashContext);
+	mlc_error_t Error[1];
+	mlc_scanner_t *Scanner = ml_scanner("console", Console, (void *)ml_console_line_read, Error);
 	ml_value_t *StringMethod = ml_method("string");
-	if (setjmp(Scanner->OnError)) {
-		printf("Error: %s\n", ml_error_message(Scanner->Error));
+	if (setjmp(Error->Handler)) {
+		printf("Error: %s\n", ml_error_message(Error->Message));
 		const char *Source;
 		int Line;
-		for (int I = 0; ml_error_trace(Scanner->Error, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
-		Scanner->Token = MLT_NONE;
-		Scanner->Next = "";
+		for (int I = 0; ml_error_trace(Error->Message, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+		ml_scanner_reset(Scanner);
 	}
 	for (;;) {
 		mlc_expr_t *Expr = ml_accept_command(Scanner, Console->Globals);
 		if (Expr == (mlc_expr_t *)-1) return;
-		Function->Top = Function->Size = 0;
-		mlc_compiled_t Compiled = ml_compile(Function, Expr, HashContext);
-		mlc_connect(Compiled.Exits, NULL);
-		ml_closure_t *Closure = new(ml_closure_t);
-		ml_closure_info_t *Info = Closure->Info = new(ml_closure_info_t);
-		Closure->Type = MLClosureT;
-		Info->Entry = Compiled.Start;
-		Info->FrameSize = Function->Size;
+		ml_closure_t *Closure = ml_compile(Expr, (void *)ml_console_global_get, Console, Error);
+		if (MLDebugClosures) ml_closure_debug(Closure->Info);
 		ml_value_t *Result = ml_closure_call((ml_value_t *)Closure, 0, NULL);
+		Result = Result->Type->deref(Result);
 		if (Result->Type == MLErrorT) {
 			printf("Error: %s\n", ml_error_message(Result));
 			const char *Source;

@@ -1,6 +1,13 @@
 #ifndef ML_TYPES_H
 #define ML_TYPES_H
 
+#ifdef	__cplusplus
+extern "C" {
+#endif
+
+#include <regex.h>
+#include "sha256.h"
+
 typedef struct ml_type_t ml_type_t;
 typedef struct ml_value_t ml_value_t;
 typedef struct ml_function_t ml_function_t;
@@ -45,7 +52,7 @@ struct ml_closure_t {
 };
 
 long ml_hash(ml_value_t *Value);
-ml_type_t *ml_class(ml_type_t *Parent, const char *Name);
+ml_type_t *ml_type(ml_type_t *Parent, const char *Name);
 
 void ml_method_by_name(const char *Method, void *Data, ml_callback_t Function, ...) __attribute__ ((sentinel));
 void ml_method_by_value(ml_value_t *Method, void *Data, ml_callback_t Function, ...) __attribute__ ((sentinel));
@@ -66,6 +73,7 @@ long ml_integer_value(ml_value_t *Value);
 double ml_real_value(ml_value_t *Value);
 const char *ml_string_value(ml_value_t *Value);
 int ml_string_length(ml_value_t *Value);
+regex_t *ml_regex_value(ml_value_t *Value);
 
 const char *ml_method_name(ml_value_t *Value);
 
@@ -117,6 +125,7 @@ extern ml_type_t MLPropertyT[];
 extern ml_type_t MLClosureT[];
 extern ml_type_t MLErrorT[];
 extern ml_type_t MLErrorValueT[];
+extern ml_type_t MLIteratableT[];
 
 struct ml_value_t {
 	const ml_type_t *Type;
@@ -166,5 +175,10 @@ struct ml_list_node_t {
 };
 
 #define ml_list_head(List) ((ml_list_t *)List)->Head
+#define ml_list_tail(List) ((ml_list_t *)List)->Tail
+
+#ifdef	__cplusplus
+}
+#endif
 
 #endif

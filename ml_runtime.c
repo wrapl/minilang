@@ -1,5 +1,7 @@
 #include "minilang.h"
 #include "ml_runtime.h"
+#include "ml_internal.h"
+#include "ml_macros.h"
 #include "stringmap.h"
 #include <gc.h>
 #include <string.h>
@@ -111,7 +113,7 @@ ml_inst_t *mli_call_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 			return Frame->OnError;
 		}
 	}
-	ml_value_t *Result = ml_call(Function, Count, Args);
+	ml_value_t *Result = Function->Type->call(Function, Count, Args);
 	for (int I = Count; --I >= 0;) (--Frame->Top)[0] = 0;
 	Frame->Top[-1] = Result;
 	if (Result->Type == MLErrorT) {
@@ -134,7 +136,7 @@ ml_inst_t *mli_const_call_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 			return Frame->OnError;
 		}
 	}
-	ml_value_t *Result = ml_call(Function, Count, Args);
+	ml_value_t *Result = Function->Type->call(Function, Count, Args);
 	if (Count == 0) {
 		++Frame->Top;
 	} else {
@@ -387,6 +389,50 @@ ml_inst_t *mli_append_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	return Inst->Params[0].Inst;
 }
 
+typedef struct ml_suspend_t {
+	const ml_type_t *Type;
+	ml_value_t *Value;
+	ml_frame_t *Frame;
+	ml_inst_t *Inst;
+} ml_suspend_t;
+
+static ml_value_t *ml_suspend_deref(ml_suspend_t *Suspend) {
+	return Suspend->Value->Type->deref(Suspend->Value);
+}
+
+static ml_value_t *ml_suspend_assign(ml_suspend_t *Suspend, ml_value_t *Value) {
+	return Suspend->Value->Type->assign(Suspend->Value, Value);
+}
+
+static ml_value_t *ml_suspend_next(ml_suspend_t *Suspend) {
+	ml_frame_t *Frame = Suspend->Frame;
+	ml_inst_t *Inst = Suspend->Inst;
+	Frame->Top[-1] = Suspend->Value;
+	while (Inst) Inst = Inst->run(Inst, Frame);
+	return Frame->Top[-1];
+}
+
+ml_type_t MLSuspendT[1] = {{
+	MLAnyT, "suspend",
+	ml_default_hash,
+	ml_default_call,
+	(void *)ml_suspend_deref,
+	(void *)ml_suspend_assign,
+	ml_default_iterate,
+	(void *)ml_suspend_next,
+	ml_default_key
+}};
+
+ml_inst_t *mli_suspend_run(ml_inst_t *Inst, ml_frame_t *Frame) {
+	ml_suspend_t *Suspend = new(ml_suspend_t);
+	Suspend->Type = MLSuspendT;
+	Suspend->Value = Frame->Top[-1];
+	Suspend->Frame = Frame;
+	Suspend->Inst = Inst->Params[0].Inst;
+	Frame->Top[-1] = (ml_value_t *)Suspend;
+	return 0;
+}
+
 ml_inst_t *mli_closure_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	// closure <entry> <frame_size> <num_params> <num_upvalues> <upvalue_1> ...
 	// TODO: incorporate UpValues into Closure instance hash
@@ -438,8 +484,7 @@ ml_value_t *ml_closure_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 		ml_reference_t *Local = xnew(ml_reference_t, 1, ml_value_t *);
 		Local->Type = MLReferenceT;
 		Local->Address = Local->Value;
-		ml_value_t *Value = Args[I];
-		Local->Value[0] = Value->Type->deref(Value);
+		Local->Value[0] = Args[I];
 		Frame->Stack[I] = (ml_value_t *)Local;
 	}
 	for (int I = Min; I < NumParams; ++I) {
@@ -477,7 +522,8 @@ ml_value_t *ml_closure_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_inst_t *Inst = Closure->Info->Entry;
 	while (Inst) Inst = Inst->run(Inst, Frame);
 	ml_value_t *Result = Frame->Top[-1];
-	return Result->Type->deref(Result);
+	//return Result->Type->deref(Result);
+	return Result;
 }
 
 ml_type_t MLClosureT[1] = {{
