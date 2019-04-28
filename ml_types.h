@@ -97,6 +97,7 @@ struct ml_type_t {
 	ml_value_t *(*deref)(ml_value_t *);
 	ml_value_t *(*assign)(ml_value_t *, ml_value_t *);
 	ml_value_t *(*iterate)(ml_value_t *);
+	ml_value_t *(*current)(ml_value_t *);
 	ml_value_t *(*next)(ml_value_t *);
 	ml_value_t *(*key)(ml_value_t *);
 };
@@ -106,6 +107,7 @@ ml_value_t *ml_default_call(ml_value_t *Value, int Count, ml_value_t **Args);
 ml_value_t *ml_default_deref(ml_value_t *Ref);
 ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value);
 ml_value_t *ml_default_iterate(ml_value_t *Value);
+ml_value_t *ml_default_current(ml_value_t *Iter);
 ml_value_t *ml_default_next(ml_value_t *Iter);
 ml_value_t *ml_default_key(ml_value_t *Iter);
 
@@ -161,6 +163,7 @@ ssize_t ml_stringbuffer_add(ml_stringbuffer_t *Buffer, const char *String, size_
 ssize_t ml_stringbuffer_addf(ml_stringbuffer_t *Buffer, const char *Format, ...) __attribute__ ((format(printf, 2, 3)));
 char *ml_stringbuffer_get(ml_stringbuffer_t *Buffer);
 char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer);
+ml_value_t *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer);
 int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(const char *, size_t, void *));
 
 struct ml_list_t {

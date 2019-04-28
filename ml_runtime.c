@@ -38,6 +38,13 @@ ml_inst_t *mli_pop2_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	return Inst->Params[0].Inst;
 }
 
+ml_inst_t *mli_pop3_run(ml_inst_t *Inst, ml_frame_t *Frame) {
+	(--Frame->Top)[0] = 0;
+	(--Frame->Top)[0] = 0;
+	(--Frame->Top)[0] = 0;
+	return Inst->Params[0].Inst;
+}
+
 ml_inst_t *mli_enter_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	for (int I = Inst->Params[1].Count; --I >= 0;) {
 		ml_reference_t *Local = xnew(ml_reference_t, 1, ml_value_t *);
@@ -351,11 +358,27 @@ ml_inst_t *mli_next_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	}
 }
 
-ml_inst_t *mli_key_run(ml_inst_t *Inst, ml_frame_t *Frame) {
+ml_inst_t *mli_current_run(ml_inst_t *Inst, ml_frame_t *Frame) {
+	ml_value_t *Iter = Frame->Top[-1];
+	ml_value_t *Current = (++Frame->Top)[-1] = Iter->Type->current(Iter);
+	if (Current->Type == MLErrorT) {
+		ml_error_trace_add(Current, Inst->Source);
+		return Frame->OnError;
+	} else {
+		return Inst->Params[0].Inst;
+	}
+}
+
+ml_inst_t *mli_current2_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	ml_value_t *Iter = Frame->Top[-1];
 	ml_value_t *Key = (++Frame->Top)[-1] = Iter->Type->key(Iter);
 	if (Key->Type == MLErrorT) {
 		ml_error_trace_add(Key, Inst->Source);
+		return Frame->OnError;
+	}
+	ml_value_t *Current = (++Frame->Top)[-1] = Iter->Type->current(Iter);
+	if (Current->Type == MLErrorT) {
+		ml_error_trace_add(Current, Inst->Source);
 		return Frame->OnError;
 	} else {
 		return Inst->Params[0].Inst;
@@ -379,6 +402,7 @@ ml_inst_t *mli_list_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 
 ml_inst_t *mli_append_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	ml_value_t *Value = Frame->Top[-1];
+	Value = Value->Type->current(Value);
 	Value = Value->Type->deref(Value);
 	if (Value->Type == MLErrorT) {
 		Frame->Top[-1] = Value;
@@ -396,12 +420,8 @@ typedef struct ml_suspend_t {
 	ml_inst_t *Inst;
 } ml_suspend_t;
 
-static ml_value_t *ml_suspend_deref(ml_suspend_t *Suspend) {
-	return Suspend->Value->Type->deref(Suspend->Value);
-}
-
-static ml_value_t *ml_suspend_assign(ml_suspend_t *Suspend, ml_value_t *Value) {
-	return Suspend->Value->Type->assign(Suspend->Value, Value);
+static ml_value_t *ml_suspend_current(ml_suspend_t *Suspend) {
+	return Suspend->Value;
 }
 
 static ml_value_t *ml_suspend_next(ml_suspend_t *Suspend) {
@@ -416,9 +436,10 @@ ml_type_t MLSuspendT[1] = {{
 	MLAnyT, "suspend",
 	ml_default_hash,
 	ml_default_call,
-	(void *)ml_suspend_deref,
-	(void *)ml_suspend_assign,
+	ml_default_deref,
+	ml_default_assign,
 	ml_default_iterate,
+	(void *)ml_suspend_current,
 	(void *)ml_suspend_next,
 	ml_default_key
 }};
@@ -526,12 +547,18 @@ ml_value_t *ml_closure_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 	return Result;
 }
 
+static ml_value_t *ml_closure_iterate(ml_value_t *Closure) {
+	return ml_closure_call(Closure, 0, NULL);
+}
+
 ml_type_t MLClosureT[1] = {{
 	MLFunctionT, "closure",
 	ml_closure_hash,
 	ml_closure_call,
 	ml_default_deref,
 	ml_default_assign,
+	ml_closure_iterate,
+	ml_default_current,
 	ml_default_next,
 	ml_default_key
 }};
@@ -706,7 +733,7 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done) {
 		fprintf(Graph, "\tI%x -> I%x [label=\"not nil\"];\n", Inst, Inst->Params[1]);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
 		ml_inst_graph(Graph, Inst->Params[1].Inst, Done);
-	} else if (Inst->run == mli_key_run) {
+	} else if (Inst->run == mli_current2_run) {
 		fprintf(Graph, "\tI%x [label=\"key()\"];\n", Inst);
 		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);

@@ -31,6 +31,7 @@ struct ml_inst_t {
 ml_inst_t *mli_push_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_pop_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_pop2_run(ml_inst_t *Inst, ml_frame_t *Frame);
+ml_inst_t *mli_pop3_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_enter_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_var_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_def_run(ml_inst_t *Inst, ml_frame_t *Frame);
@@ -53,7 +54,8 @@ ml_inst_t *mli_and_def_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_or_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_exists_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_next_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_key_run(ml_inst_t *Inst, ml_frame_t *Frame);
+ml_inst_t *mli_current_run(ml_inst_t *Inst, ml_frame_t *Frame);
+ml_inst_t *mli_current2_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_local_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_list_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_append_run(ml_inst_t *Inst, ml_frame_t *Frame);
