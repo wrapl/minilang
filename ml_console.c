@@ -75,7 +75,7 @@ void ml_console(ml_getter_t GlobalGet, void *Globals) {
 		if (Expr == (mlc_expr_t *)-1) return;
 		ml_value_t *Closure = ml_compile(Expr, (void *)ml_console_global_get, Console, Error);
 		if (MLDebugClosures) ml_closure_debug(Closure);
-		ml_value_t *Result = ml_closure_call(Closure, 0, NULL);
+		ml_value_t *Result = ml_call(Closure, 0, NULL);
 		Result = Result->Type->deref(Result);
 		if (Result->Type == MLErrorT) {
 			printf("Error: %s\n", ml_error_message(Result));

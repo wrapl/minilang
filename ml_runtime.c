@@ -524,7 +524,7 @@ static long ml_closure_hash(ml_value_t *Value) {
 	return Hash;
 }
 
-ml_value_t *ml_closure_call(ml_value_t *Value, int Count, ml_value_t **Args) {
+static ml_value_t *ml_closure_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
 	ml_closure_info_t *Info = Closure->Info;
 	ml_frame_t *Frame = xnew(ml_frame_t, Info->FrameSize, ml_value_t *);

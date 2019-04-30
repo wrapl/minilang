@@ -56,10 +56,6 @@ typedef struct ml_closure_info_t ml_closure_info_t;
 typedef struct ml_list_node_t ml_list_node_t;
 typedef struct ml_tree_node_t ml_tree_node_t;
 
-ml_value_t *ml_string_new(void *Data, int Count, ml_value_t **Args);
-ml_value_t *ml_list_new(void *Data, int Count, ml_value_t **Args);
-ml_value_t *ml_tree_new(void *Data, int Count, ml_value_t **Args);
-
 long ml_hash(ml_value_t *Value);
 ml_type_t *ml_type(ml_type_t *Parent, const char *Name);
 
@@ -96,6 +92,7 @@ void ml_list_append(ml_value_t *List, ml_value_t *Value);
 int ml_list_length(ml_value_t *List);
 void ml_list_to_array(ml_value_t *List, ml_value_t **Array);
 int ml_list_foreach(ml_value_t *List, void *Data, int (*callback)(ml_value_t *, void *));
+
 int ml_tree_foreach(ml_value_t *Tree, void *Data, int (*callback)(ml_value_t *, ml_value_t *, void *));
 
 long ml_default_hash(ml_value_t *Value);
