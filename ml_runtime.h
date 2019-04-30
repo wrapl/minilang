@@ -26,7 +26,7 @@ void ml_error_trace_add(ml_value_t *Value, ml_source_t Source);
 
 ml_value_t *ml_closure_call(ml_value_t *Value, int Count, ml_value_t **Args);
 
-void ml_closure_debug(ml_closure_info_t *Info);
+void ml_closure_debug(ml_value_t *Value);
 
 #ifdef	__cplusplus
 }

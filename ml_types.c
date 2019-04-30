@@ -783,42 +783,6 @@ void ml_method_by_value(ml_value_t *Value, void *Data, ml_callback_t Callback, .
 	Node->Callback = Callback;
 }
 
-static ml_value_t *ml_reference_deref(ml_value_t *Ref) {
-	ml_reference_t *Reference = (ml_reference_t *)Ref;
-	return Reference->Address[0];
-}
-
-static ml_value_t *ml_reference_assign(ml_value_t *Ref, ml_value_t *Value) {
-	ml_reference_t *Reference = (ml_reference_t *)Ref;
-	return Reference->Address[0] = Value;
-}
-
-ml_type_t MLReferenceT[1] = {{
-	MLAnyT, "reference",
-	ml_default_hash,
-	ml_default_call,
-	ml_reference_deref,
-	ml_reference_assign,
-	ml_default_iterate,
-	ml_default_current,
-	ml_default_next,
-	ml_default_key
-}};
-
-ml_value_t *ml_reference(ml_value_t **Address) {
-	ml_reference_t *Reference;
-	if (Address == 0) {
-		Reference = xnew(ml_reference_t, 1, ml_value_t *);
-		Reference->Address = Reference->Value;
-		Reference->Value[0] = MLNil;
-	} else {
-		Reference = new(ml_reference_t);
-		Reference->Address = Address;
-	}
-	Reference->Type = MLReferenceT;
-	return (ml_value_t *)Reference;
-}
-
 int ml_list_length(ml_value_t *Value) {
 	return ((ml_list_t *)Value)->Length;
 }

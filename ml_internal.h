@@ -13,6 +13,13 @@ struct ml_closure_info_t {
 	unsigned char Hash[SHA256_BLOCK_SIZE];
 };
 
+struct ml_closure_t {
+	const ml_type_t *Type;
+	ml_closure_info_t *Info;
+	int PartialCount;
+	ml_value_t *UpValues[];
+};
+
 typedef union {
 	ml_inst_t *Inst;
 	int Index;
@@ -61,5 +68,7 @@ ml_inst_t *mli_list_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_append_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_suspend_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_closure_run(ml_inst_t *Inst, ml_frame_t *Frame);
+
+void ml_closure_info_debug(ml_closure_info_t *Info);
 
 #endif

@@ -77,7 +77,7 @@ struct mlc_function_t {
 	int Top, Size, Self;
 };
 
-ml_closure_t *ml_compile(mlc_expr_t *Expr, ml_getter_t GlobalGet, void *Globals, mlc_error_t *Error) {
+ml_value_t *ml_compile(mlc_expr_t *Expr, ml_getter_t GlobalGet, void *Globals, mlc_error_t *Error) {
 	mlc_function_t Function[1] = {{Error, GlobalGet, Globals, NULL, 0,}};
 	SHA256_CTX HashContext[1];
 	sha256_init(HashContext);
@@ -89,7 +89,7 @@ ml_closure_t *ml_compile(mlc_expr_t *Expr, ml_getter_t GlobalGet, void *Globals,
 	Info->Entry = Compiled.Start;
 	Info->FrameSize = Function->Size;
 	sha256_final(HashContext, Info->Hash);
-	return Closure;
+	return (ml_value_t *)Closure;
 }
 
 inline mlc_compiled_t mlc_compile(mlc_function_t *Function, mlc_expr_t *Expr, SHA256_CTX *HashContext) {
@@ -825,7 +825,7 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	int Index = 2;
 	for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) Params[Index++].Index = UpValue->Index;
 	if (++Function->Top >= Function->Size) Function->Size = Function->Top + 1;
-	if (MLDebugClosures) ml_closure_debug(Info);
+	if (MLDebugClosures) ml_closure_info_debug(Info);
 	return (mlc_compiled_t){ClosureInst, ClosureInst};
 }
 

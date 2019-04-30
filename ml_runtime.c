@@ -14,6 +14,48 @@ struct ml_frame_t {
 	ml_value_t *Stack[];
 };
 
+struct ml_reference_t {
+	const ml_type_t *Type;
+	ml_value_t **Address;
+	ml_value_t *Value[];
+};
+
+static ml_value_t *ml_reference_deref(ml_value_t *Ref) {
+	ml_reference_t *Reference = (ml_reference_t *)Ref;
+	return Reference->Address[0];
+}
+
+static ml_value_t *ml_reference_assign(ml_value_t *Ref, ml_value_t *Value) {
+	ml_reference_t *Reference = (ml_reference_t *)Ref;
+	return Reference->Address[0] = Value;
+}
+
+ml_type_t MLReferenceT[1] = {{
+	MLAnyT, "reference",
+	ml_default_hash,
+	ml_default_call,
+	ml_reference_deref,
+	ml_reference_assign,
+	ml_default_iterate,
+	ml_default_current,
+	ml_default_next,
+	ml_default_key
+}};
+
+ml_value_t *ml_reference(ml_value_t **Address) {
+	ml_reference_t *Reference;
+	if (Address == 0) {
+		Reference = xnew(ml_reference_t, 1, ml_value_t *);
+		Reference->Address = Reference->Value;
+		Reference->Value[0] = MLNil;
+	} else {
+		Reference = new(ml_reference_t);
+		Reference->Address = Address;
+	}
+	Reference->Type = MLReferenceT;
+	return (ml_value_t *)Reference;
+}
+
 void ml_error_trace_add(ml_value_t *Value, ml_source_t Source) {
 	ml_error_t *Error = (ml_error_t *)Value;
 	for (int I = 0; I < MAX_TRACE; ++I) if (!Error->Trace[I].Name) {
@@ -756,7 +798,7 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done) {
 	}
 }
 
-void ml_closure_debug(ml_closure_info_t *Info) {
+void ml_closure_info_debug(ml_closure_info_t *Info) {
 	stringmap_t Done[1] = {STRINGMAP_INIT};
 	char ClosureName[20];
 	sprintf(ClosureName, "C%x.dot", Info);
@@ -767,4 +809,9 @@ void ml_closure_debug(ml_closure_info_t *Info) {
 	fprintf(Graph, "}\n");
 	fclose(Graph);
 	printf("Wrote closure to %s\n", ClosureName);
+}
+
+void ml_closure_debug(ml_value_t *Value) {
+	ml_closure_t *Closure = (ml_closure_t *)Value;
+	ml_closure_info_debug(Closure->Info);
 }

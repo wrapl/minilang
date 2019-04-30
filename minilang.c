@@ -43,7 +43,7 @@ ml_value_t *ml_load(ml_getter_t GlobalGet, void *Globals, const char *FileName) 
 	mlc_expr_t *Expr = ml_accept_block(Scanner);
 	ml_accept_eoi(Scanner);
 	fclose(File);
-	ml_closure_t *Closure = ml_compile(Expr, GlobalGet, Globals, Error);
-	if (MLDebugClosures) ml_closure_debug(Closure->Info);
-	return (ml_value_t *)Closure;
+	ml_value_t *Closure = ml_compile(Expr, GlobalGet, Globals, Error);
+	if (MLDebugClosures) ml_closure_debug(Closure);
+	return Closure;
 }

@@ -10,8 +10,12 @@ extern "C" {
 
 typedef struct ml_type_t ml_type_t;
 typedef struct ml_value_t ml_value_t;
-typedef struct ml_function_t ml_function_t;
 
+typedef ml_value_t *(*ml_callback_t)(void *Data, int Count, ml_value_t **Args);
+typedef ml_value_t *(*ml_getter_t)(void *Data, const char *Name);
+typedef ml_value_t *(*ml_setter_t)(void *Data, const char *Name, ml_value_t *Value);
+
+typedef struct ml_function_t ml_function_t;
 typedef struct ml_reference_t ml_reference_t;
 typedef struct ml_integer_t ml_integer_t;
 typedef struct ml_real_t ml_real_t;
@@ -19,37 +23,42 @@ typedef struct ml_string_t ml_string_t;
 typedef struct ml_regex_t ml_regex_t;
 typedef struct ml_list_t ml_list_t;
 typedef struct ml_tree_t ml_tree_t;
-typedef struct ml_object_t ml_object_t;
 typedef struct ml_property_t ml_property_t;
 typedef struct ml_closure_t ml_closure_t;
 typedef struct ml_method_t ml_method_t;
 typedef struct ml_error_t ml_error_t;
+
+struct ml_type_t {
+	const ml_type_t *Parent;
+	const char *Name;
+	long (*hash)(ml_value_t *);
+	ml_value_t *(*call)(ml_value_t *, int, ml_value_t **);
+	ml_value_t *(*deref)(ml_value_t *);
+	ml_value_t *(*assign)(ml_value_t *, ml_value_t *);
+	ml_value_t *(*iterate)(ml_value_t *);
+	ml_value_t *(*current)(ml_value_t *);
+	ml_value_t *(*next)(ml_value_t *);
+	ml_value_t *(*key)(ml_value_t *);
+};
+
+struct ml_value_t {
+	const ml_type_t *Type;
+};
+
+struct ml_function_t {
+	const ml_type_t *Type;
+	ml_callback_t Callback;
+	void *Data;
+};
 
 typedef struct ml_closure_info_t ml_closure_info_t;
 
 typedef struct ml_list_node_t ml_list_node_t;
 typedef struct ml_tree_node_t ml_tree_node_t;
 
-typedef ml_value_t *(*ml_callback_t)(void *Data, int Count, ml_value_t **Args);
-typedef ml_value_t *(*ml_getter_t)(void *Data, const char *Name);
-typedef ml_value_t *(*ml_setter_t)(void *Data, const char *Name, ml_value_t *Value);
-
 ml_value_t *ml_string_new(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_list_new(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_tree_new(void *Data, int Count, ml_value_t **Args);
-
-struct ml_reference_t {
-	const ml_type_t *Type;
-	ml_value_t **Address;
-	ml_value_t *Value[];
-};
-
-struct ml_closure_t {
-	const ml_type_t *Type;
-	ml_closure_info_t *Info;
-	int PartialCount;
-	ml_value_t *UpValues[];
-};
 
 long ml_hash(ml_value_t *Value);
 ml_type_t *ml_type(ml_type_t *Parent, const char *Name);
@@ -89,19 +98,6 @@ void ml_list_to_array(ml_value_t *List, ml_value_t **Array);
 int ml_list_foreach(ml_value_t *List, void *Data, int (*callback)(ml_value_t *, void *));
 int ml_tree_foreach(ml_value_t *Tree, void *Data, int (*callback)(ml_value_t *, ml_value_t *, void *));
 
-struct ml_type_t {
-	const ml_type_t *Parent;
-	const char *Name;
-	long (*hash)(ml_value_t *);
-	ml_value_t *(*call)(ml_value_t *, int, ml_value_t **);
-	ml_value_t *(*deref)(ml_value_t *);
-	ml_value_t *(*assign)(ml_value_t *, ml_value_t *);
-	ml_value_t *(*iterate)(ml_value_t *);
-	ml_value_t *(*current)(ml_value_t *);
-	ml_value_t *(*next)(ml_value_t *);
-	ml_value_t *(*key)(ml_value_t *);
-};
-
 long ml_default_hash(ml_value_t *Value);
 ml_value_t *ml_default_call(ml_value_t *Value, int Count, ml_value_t **Args);
 ml_value_t *ml_default_deref(ml_value_t *Ref);
@@ -129,20 +125,10 @@ extern ml_type_t MLErrorT[];
 extern ml_type_t MLErrorValueT[];
 extern ml_type_t MLIteratableT[];
 
-struct ml_value_t {
-	const ml_type_t *Type;
-};
-
 extern ml_value_t MLNil[];
 extern ml_value_t MLSome[];
 
 int ml_is(ml_value_t *Value, ml_type_t *Type);
-
-struct ml_function_t {
-	const ml_type_t *Type;
-	ml_callback_t Callback;
-	void *Data;
-};
 
 #define ML_STRINGBUFFER_NODE_SIZE 248
 
