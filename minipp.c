@@ -179,8 +179,8 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 			} else {
 				Input->Line = Escape + 1;
 				mlc_expr_t *Expr = ml_accept_command(Scanner, Preprocessor->Globals);
-				ml_closure_t *Closure = ml_compile(Expr, (void *)ml_preprocessor_global_get, Preprocessor, Error);
-				ml_value_t *Result = ml_closure_call((ml_value_t *)Closure, 0, NULL);
+				ml_value_t *Closure = ml_compile(Expr, (void *)ml_preprocessor_global_get, Preprocessor, Error);
+				ml_value_t *Result = ml_call(Closure, 0, NULL);
 				if (Result->Type == MLErrorT) {
 					printf("Error: %s\n", ml_error_message(Result));
 					const char *Source;

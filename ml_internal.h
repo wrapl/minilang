@@ -13,6 +13,13 @@ struct ml_closure_info_t {
 	unsigned char Hash[SHA256_BLOCK_SIZE];
 };
 
+struct ml_closure_t {
+	const ml_type_t *Type;
+	ml_closure_info_t *Info;
+	int PartialCount;
+	ml_value_t *UpValues[];
+};
+
 typedef union {
 	ml_inst_t *Inst;
 	int Index;
@@ -31,6 +38,7 @@ struct ml_inst_t {
 ml_inst_t *mli_push_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_pop_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_pop2_run(ml_inst_t *Inst, ml_frame_t *Frame);
+ml_inst_t *mli_pop3_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_enter_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_var_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_def_run(ml_inst_t *Inst, ml_frame_t *Frame);
@@ -53,11 +61,18 @@ ml_inst_t *mli_and_def_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_or_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_exists_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_next_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_key_run(ml_inst_t *Inst, ml_frame_t *Frame);
+ml_inst_t *mli_current_run(ml_inst_t *Inst, ml_frame_t *Frame);
+ml_inst_t *mli_current2_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_local_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_list_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_append_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_suspend_run(ml_inst_t *Inst, ml_frame_t *Frame);
 ml_inst_t *mli_closure_run(ml_inst_t *Inst, ml_frame_t *Frame);
+
+void ml_closure_info_debug(ml_closure_info_t *Info);
+
+ml_value_t *ml_string_new(void *Data, int Count, ml_value_t **Args);
+ml_value_t *ml_list_new(void *Data, int Count, ml_value_t **Args);
+ml_value_t *ml_tree_new(void *Data, int Count, ml_value_t **Args);
 
 #endif

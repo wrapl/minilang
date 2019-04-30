@@ -35,6 +35,10 @@ ml_value_t *ml_default_iterate(ml_value_t *Value) {
 	return ml_error("TypeError", "value is not iterable");
 }
 
+ml_value_t *ml_default_current(ml_value_t *Iter) {
+	return ml_error("TypeError", "%s is not iterable", Iter->Type->Name);
+}
+
 ml_value_t *ml_default_next(ml_value_t *Iter) {
 	return ml_error("TypeError", "%s is not iterable", Iter->Type->Name);
 }
@@ -53,6 +57,7 @@ ml_type_t MLAnyT[1] = {{
 	ml_default_deref,
 	ml_default_assign,
 	ml_default_iterate,
+	ml_default_current,
 	ml_default_next,
 	ml_default_key
 }};
@@ -68,6 +73,7 @@ ml_type_t MLNilT[1] = {{
 	ml_default_deref,
 	ml_default_assign,
 	ml_default_iterate,
+	ml_default_current,
 	ml_default_next,
 	ml_default_key
 }};
@@ -85,6 +91,7 @@ ml_type_t MLSomeT[1] = {{
 	ml_default_deref,
 	ml_default_assign,
 	ml_default_iterate,
+	ml_default_current,
 	ml_default_next,
 	ml_default_key
 }};
@@ -120,18 +127,22 @@ ml_value_t *ml_inline(ml_value_t *Value, int Count, ...) {
 	return Result->Type->deref(Result);
 }
 
-static ml_value_t *ml_function_call(ml_value_t *Value, int Count, ml_value_t **Args) {
-	ml_function_t *Function = (ml_function_t *)Value;
+static ml_value_t *ml_function_call(ml_function_t *Function, int Count, ml_value_t **Args) {
 	return (Function->Callback)(Function->Data, Count, Args);
 }
 
+static ml_value_t *ml_function_iterate(ml_function_t *Function) {
+	return (Function->Callback)(Function->Data, 0, NULL);
+}
+
 ml_type_t MLFunctionT[1] = {{
-	MLAnyT, "function",
+	MLIteratableT, "function",
 	ml_default_hash,
-	ml_function_call,
+	(void *)ml_function_call,
 	ml_default_deref,
 	ml_default_assign,
-	ml_default_iterate,
+	(void *)ml_function_iterate,
+	ml_default_current,
 	ml_default_next,
 	ml_default_key
 }};
@@ -143,37 +154,6 @@ ml_value_t *ml_function(void *Data, ml_callback_t Callback) {
 	Function->Callback = Callback;
 	GC_end_stubborn_change(Function);
 	return (ml_value_t *)Function;
-}
-
-typedef struct ml_function_iterator_t {
-	const ml_type_t *Type;
-	ml_value_t *Function;
-	int Count;
-	ml_value_t *Args[];
-} ml_function_iterator_t;
-
-ml_value_t *ml_function_iterator_iterate(ml_function_iterator_t *Iterator) {
-	return Iterator->Function->Type->call(Iterator->Function, Iterator->Count, Iterator->Args);
-}
-
-ml_type_t MLFunctionIteratorT[1] = {{
-	MLIteratableT, "function-iterator",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	(void *)ml_function_iterator_iterate,
-	ml_default_next,
-	ml_default_key
-}};
-
-static ml_value_t *ml_function_iterate(void *Data, int Count, ml_value_t **Args) {
-	ml_function_iterator_t *Iterator = xnew(ml_function_iterator_t, Count - 1, sizeof(ml_value_t *));
-	Iterator->Type = MLFunctionIteratorT;
-	Iterator->Function = Args[0];
-	Iterator->Count = Count - 1;
-	memcpy(Iterator->Args, Args + 1, (Count - 1) * sizeof(ml_value_t *));
-	return (ml_value_t *)Iterator;
 }
 
 static ml_value_t *ml_function_apply(void *Data, int Count, ml_value_t **Args) {
@@ -191,8 +171,7 @@ typedef struct ml_partial_function_t {
 	ml_value_t *Args[];
 } ml_partial_function_t;
 
-static ml_value_t *ml_partial_function_call(ml_value_t *Value, int Count, ml_value_t **Args) {
-	ml_partial_function_t *Partial = (ml_partial_function_t *)Value;
+static ml_value_t *ml_partial_function_call(ml_partial_function_t *Partial, int Count, ml_value_t **Args) {
 	int CombinedCount = Count + Partial->Count;
 	ml_value_t **CombinedArgs = anew(ml_value_t *, CombinedCount);
 	memcpy(CombinedArgs, Partial->Args, Partial->Count * sizeof(ml_value_t *));
@@ -200,13 +179,18 @@ static ml_value_t *ml_partial_function_call(ml_value_t *Value, int Count, ml_val
 	return ml_call(Partial->Function, CombinedCount, CombinedArgs);
 }
 
+static ml_value_t *ml_partial_function_iterate(ml_partial_function_t *Partial) {
+	return ml_call(Partial->Function, Partial->Count, Partial->Args);
+}
+
 ml_type_t MLPartialFunctionT[1] = {{
 	MLFunctionT, "partial-function",
 	ml_default_hash,
-	ml_partial_function_call,
+	(void *)ml_partial_function_call,
 	ml_default_deref,
 	ml_default_assign,
-	ml_default_iterate,
+	(void *)ml_partial_function_iterate,
+	ml_default_current,
 	ml_default_next,
 	ml_default_key
 }};
@@ -229,6 +213,7 @@ ml_type_t MLNumberT[1] = {{
 	ml_default_deref,
 	ml_default_assign,
 	ml_default_iterate,
+	ml_default_current,
 	ml_default_next,
 	ml_default_key
 }};
@@ -260,13 +245,22 @@ static long ml_integer_hash(ml_value_t *Value) {
 	return Integer->Value;
 }
 
+static ml_value_t *ml_integer_call(ml_integer_t *Value, int Count, ml_value_t **Args) {
+	long Index = Value->Value;
+	if (Index <= 0) Index += Count;
+	if (Index < 0) return MLNil;
+	if (Index >= Count) return MLNil;
+	return Args[Index];
+}
+
 ml_type_t MLIntegerT[1] = {{
 	MLNumberT, "integer",
 	ml_integer_hash,
-	ml_default_call,
+	(void *)ml_integer_call,
 	ml_default_deref,
 	ml_default_assign,
 	ml_default_iterate,
+	ml_default_current,
 	ml_default_next,
 	ml_default_key
 }};
@@ -299,6 +293,7 @@ ml_type_t MLRealT[1] = {{
 	ml_default_deref,
 	ml_default_assign,
 	ml_default_iterate,
+	ml_default_current,
 	ml_default_next,
 	ml_default_key
 }};
@@ -506,12 +501,7 @@ ml_value_t *ml_string_string_replace(void *Data, int Count, ml_value_t **Args) {
 	if (SubjectEnd > Subject) {
 		ml_stringbuffer_add(Buffer, Subject, SubjectEnd - Subject);
 	}
-	ml_string_t *String = fnew(ml_string_t);
-	String->Type = MLStringT;
-	String->Length = Buffer->Length;
-	String->Value = ml_stringbuffer_get(Buffer);
-	GC_end_stubborn_change(String);
-	return (ml_value_t *)String;
+	return ml_stringbuffer_get_string(Buffer);
 }
 
 ml_value_t *ml_string_regex_string_replace(void *Data, int Count, ml_value_t **Args) {
@@ -526,12 +516,7 @@ ml_value_t *ml_string_regex_string_replace(void *Data, int Count, ml_value_t **A
 		switch (regexec(Pattern->Value, Subject, 1, Matches, 0)) {
 		case REG_NOMATCH:
 			if (SubjectLength) ml_stringbuffer_add(Buffer, Subject, SubjectLength);
-			ml_string_t *String = fnew(ml_string_t);
-			String->Type = MLStringT;
-			String->Length = Buffer->Length;
-			String->Value = ml_stringbuffer_get(Buffer);
-			GC_end_stubborn_change(String);
-			return (ml_value_t *)String;
+			return ml_stringbuffer_get_string(Buffer);
 		case REG_ESPACE: {
 			size_t ErrorSize = regerror(REG_ESPACE, Pattern->Value, NULL, 0);
 			char *ErrorMessage = snew(ErrorSize + 1);
@@ -564,11 +549,7 @@ ml_value_t *ml_string_regex_function_replace(void *Data, int Count, ml_value_t *
 		case REG_NOMATCH:
 			if (SubjectLength) ml_stringbuffer_add(Buffer, Subject, SubjectLength);
 			ml_string_t *String = fnew(ml_string_t);
-			String->Type = MLStringT;
-			String->Length = Buffer->Length;
-			String->Value = ml_stringbuffer_get(Buffer);
-			GC_end_stubborn_change(String);
-			return (ml_value_t *)String;
+			return ml_stringbuffer_get_string(Buffer);
 		case REG_ESPACE: {
 			size_t ErrorSize = regerror(REG_ESPACE, Pattern->Value, NULL, 0);
 			char *ErrorMessage = snew(ErrorSize + 1);
@@ -600,6 +581,7 @@ ml_type_t MLStringT[1] = {{
 	ml_default_deref,
 	ml_default_assign,
 	ml_default_iterate,
+	ml_default_current,
 	ml_default_next,
 	ml_default_key
 }};
@@ -620,12 +602,7 @@ int ml_is_string(ml_value_t *Value) {
 ml_value_t *ml_string_new(void *Data, int Count, ml_value_t **Args) {
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (int I = 0; I < Count; ++I) ml_inline(AppendMethod, 2, (ml_value_t *)Buffer, Args[I]);
-	ml_string_t *String = fnew(ml_string_t);
-	String->Type = MLStringT;
-	String->Length = Buffer->Length;
-	String->Value = ml_stringbuffer_get(Buffer);
-	GC_end_stubborn_change(String);
-	return (ml_value_t *)String;
+	return ml_stringbuffer_get_string(Buffer);
 }
 
 static long ml_regex_hash(ml_value_t *Value) {
@@ -643,6 +620,7 @@ ml_type_t MLRegexT[1] = {{
 	ml_default_deref,
 	ml_default_assign,
 	ml_default_iterate,
+	ml_default_current,
 	ml_default_next,
 	ml_default_key
 }};
@@ -738,6 +716,7 @@ ml_type_t MLMethodT[1] = {{
 	ml_default_deref,
 	ml_default_assign,
 	ml_default_iterate,
+	ml_default_current,
 	ml_default_next,
 	ml_default_key
 }};
@@ -802,41 +781,6 @@ void ml_method_by_value(ml_value_t *Value, void *Data, ml_callback_t Callback, .
 	va_end(Args);
 	Node->Data = Data;
 	Node->Callback = Callback;
-}
-
-static ml_value_t *ml_reference_deref(ml_value_t *Ref) {
-	ml_reference_t *Reference = (ml_reference_t *)Ref;
-	return Reference->Address[0];
-}
-
-static ml_value_t *ml_reference_assign(ml_value_t *Ref, ml_value_t *Value) {
-	ml_reference_t *Reference = (ml_reference_t *)Ref;
-	return Reference->Address[0] = Value;
-}
-
-ml_type_t MLReferenceT[1] = {{
-	MLAnyT, "reference",
-	ml_default_hash,
-	ml_default_call,
-	ml_reference_deref,
-	ml_reference_assign,
-	ml_default_iterate,
-	ml_default_next,
-	ml_default_key
-}};
-
-ml_value_t *ml_reference(ml_value_t **Address) {
-	ml_reference_t *Reference;
-	if (Address == 0) {
-		Reference = xnew(ml_reference_t, 1, ml_value_t *);
-		Reference->Address = Reference->Value;
-		Reference->Value[0] = MLNil;
-	} else {
-		Reference = new(ml_reference_t);
-		Reference->Address = Address;
-	}
-	Reference->Type = MLReferenceT;
-	return (ml_value_t *)Reference;
 }
 
 int ml_list_length(ml_value_t *Value) {
@@ -921,6 +865,7 @@ ml_type_t MLListT[1] = {{
 	ml_default_deref,
 	ml_default_assign,
 	ml_list_iterate,
+	ml_default_current,
 	ml_default_next,
 	ml_default_key
 }};
@@ -1201,6 +1146,7 @@ ml_type_t MLTreeT[1] = {{
 	ml_default_deref,
 	ml_default_assign,
 	ml_tree_iterate,
+	ml_default_current,
 	ml_default_next,
 	ml_default_key
 }};
@@ -1268,24 +1214,6 @@ static ml_value_t *ml_property_iterate(ml_value_t *Value) {
 	}
 }
 
-static ml_value_t *ml_property_next(ml_value_t *Iter) {
-	ml_property_t *Property = (ml_property_t *)Iter;
-	if (Property->Next) {
-		return (Property->Next)(Property->Data, "next");
-	} else {
-		return ml_error("TypeError", "value is not iterable");
-	}
-}
-
-static ml_value_t *ml_property_key(ml_value_t *Iter) {
-	ml_property_t *Property = (ml_property_t *)Iter;
-	if (Property->Key) {
-		return (Property->Key)(Property->Data, "next");
-	} else {
-		return ml_error("TypeError", "value is not iterable");
-	}
-}
-
 ml_type_t MLPropertyT[1] = {{
 	MLAnyT, "property",
 	ml_default_hash,
@@ -1293,8 +1221,9 @@ ml_type_t MLPropertyT[1] = {{
 	ml_property_deref,
 	ml_property_assign,
 	ml_property_iterate,
-	ml_property_next,
-	ml_property_key
+	ml_default_current,
+	ml_default_next,
+	ml_default_key
 }};
 
 ml_value_t *ml_property(void *Data, const char *Name, ml_getter_t Get, ml_setter_t Set, ml_getter_t Next, ml_getter_t Key) {
@@ -1325,6 +1254,7 @@ ml_type_t MLErrorT[1] = {{
 	ml_default_deref,
 	ml_default_assign,
 	ml_default_iterate,
+	ml_default_current,
 	ml_default_next,
 	ml_default_key
 }};
@@ -1336,6 +1266,7 @@ ml_type_t MLErrorValueT[1] = {{
 	ml_default_deref,
 	ml_default_assign,
 	ml_default_iterate,
+	ml_default_current,
 	ml_default_next,
 	ml_default_key
 }};
@@ -1486,6 +1417,33 @@ char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer) {
 	return String;
 }
 
+ml_value_t *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) {
+	size_t Length = Buffer->Length;
+	if (Length == 0) {
+		return ml_string("", 0);
+	} else {
+		char *Chars = snew(Length + 1);
+		char *P = Chars;
+		ml_stringbuffer_node_t *Node = Buffer->Nodes;
+		while (Node->Next) {
+			memcpy(P, Node->Chars, ML_STRINGBUFFER_NODE_SIZE);
+			P += ML_STRINGBUFFER_NODE_SIZE;
+			Node = Node->Next;
+		}
+		memcpy(P, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
+		P += ML_STRINGBUFFER_NODE_SIZE - Buffer->Space;
+		*P++ = 0;
+		pthread_mutex_lock(CacheMutex);
+		ml_stringbuffer_node_t **Slot = &Cache;
+		while (Slot[0]) Slot = &Slot[0]->Next;
+		Slot[0] = Buffer->Nodes;
+		pthread_mutex_unlock(CacheMutex);
+		Buffer->Nodes = NULL;
+		Buffer->Length = Buffer->Space = 0;
+		return ml_string(Chars, Length);
+	}
+}
+
 ml_type_t MLStringBufferT[1] = {{
 	MLAnyT, "stringbuffer",
 	ml_default_hash,
@@ -1493,6 +1451,7 @@ ml_type_t MLStringBufferT[1] = {{
 	ml_default_deref,
 	ml_default_assign,
 	ml_default_iterate,
+	ml_default_current,
 	ml_default_next,
 	ml_default_key
 }};
@@ -1707,22 +1666,19 @@ static ml_value_t *ml_compare_real_real(void *Data, int Count, ml_value_t **Args
 
 typedef struct ml_integer_iter_t {
 	const ml_type_t *Type;
-	ml_integer_t *Current;
-	long Step, Limit;
+	long Current, Step, Limit;
 } ml_integer_iter_t;
 
-static ml_value_t *ml_integer_iter_deref(ml_value_t *Ref) {
-	ml_integer_iter_t *Iter = (ml_integer_iter_t *)Ref;
-	return (ml_value_t *)Iter->Current;
+static ml_value_t *ml_integer_iter_current(ml_integer_iter_t *Iter) {
+	return ml_integer(Iter->Current);
 }
 
-static ml_value_t *ml_integer_iter_next(ml_value_t *Ref) {
-	ml_integer_iter_t *Iter = (ml_integer_iter_t *)Ref;
-	if (Iter->Current->Value >= Iter->Limit) {
+static ml_value_t *ml_integer_iter_next(ml_integer_iter_t *Iter) {
+	if (Iter->Current >= Iter->Limit) {
 		return MLNil;
 	} else {
-		Iter->Current = (ml_integer_t *)ml_integer(Iter->Current->Value + Iter->Step);
-		return Ref;
+		Iter->Current += Iter->Step;
+		return (ml_value_t *)Iter;
 	}
 }
 
@@ -1730,10 +1686,11 @@ ml_type_t MLIntegerIterT[1] = {{
 	MLAnyT, "integer-iter",
 	ml_default_hash,
 	ml_default_call,
-	ml_integer_iter_deref,
+	ml_default_deref,
 	ml_default_assign,
 	ml_default_iterate,
-	ml_integer_iter_next,
+	(void *)ml_integer_iter_current,
+	(void *)ml_integer_iter_next,
 	ml_default_key
 }};
 
@@ -1746,7 +1703,7 @@ static ml_value_t *ml_integer_range_iterate(ml_value_t *Value) {
 	ml_integer_range_t *Range = (ml_integer_range_t *)Value;
 	ml_integer_iter_t *Iter = new(ml_integer_iter_t);
 	Iter->Type = MLIntegerIterT;
-	Iter->Current = (ml_integer_t *)ml_integer(Range->Start);
+	Iter->Current = Range->Start;
 	Iter->Limit = Range->Limit;
 	Iter->Step = Range->Step;
 	return (ml_value_t *)Iter;
@@ -1759,6 +1716,7 @@ ml_type_t MLIntegerRangeT[1] = {{
 	ml_default_deref,
 	ml_default_assign,
 	ml_integer_range_iterate,
+	ml_default_current,
 	ml_default_next,
 	ml_default_key
 }};
@@ -1835,29 +1793,21 @@ typedef struct ml_list_iter_t {
 	long Index;
 } ml_list_iter_t;
 
-static ml_value_t *ml_list_iter_deref(ml_value_t *Ref) {
-	ml_list_iter_t *Iter = (ml_list_iter_t *)Ref;
-	return Iter->Node->Value;
+static ml_value_t *ml_list_iter_current(ml_list_iter_t *Iter) {
+	return ml_reference(&Iter->Node->Value);
 }
 
-static ml_value_t *ml_list_iter_assign(ml_value_t *Ref, ml_value_t *Value) {
-	ml_list_iter_t *Iter = (ml_list_iter_t *)Ref;
-	return Iter->Node->Value = Value;
-}
-
-static ml_value_t *ml_list_iter_next(ml_value_t *Ref) {
-	ml_list_iter_t *Iter = (ml_list_iter_t *)Ref;
+static ml_value_t *ml_list_iter_next(ml_list_iter_t *Iter) {
 	if (Iter->Node->Next) {
 		++Iter->Index;
 		Iter->Node = Iter->Node->Next;
-		return Ref;
+		return (ml_value_t *)Iter;
 	} else {
 		return MLNil;
 	}
 }
 
-static ml_value_t *ml_list_iter_key(ml_value_t *Ref) {
-	ml_list_iter_t *Iter = (ml_list_iter_t *)Ref;
+static ml_value_t *ml_list_iter_key(ml_list_iter_t *Iter) {
 	return ml_integer(Iter->Index);
 }
 
@@ -1865,11 +1815,12 @@ ml_type_t MLListIterT[1] = {{
 	MLAnyT, "list-iterator",
 	ml_default_hash,
 	ml_default_call,
-	ml_list_iter_deref,
-	ml_list_iter_assign,
+	ml_default_deref,
+	ml_default_assign,
 	ml_default_iterate,
-	ml_list_iter_next,
-	ml_list_iter_key
+	(void *)ml_list_iter_current,
+	(void *)ml_list_iter_next,
+	(void *)ml_list_iter_key
 }};
 
 static ml_value_t *ml_list_iterate(ml_value_t *Value) {
@@ -1981,8 +1932,7 @@ static ml_value_t *ml_list_to_string(void *Data, int Count, ml_value_t **Args) {
 		SeperatorLength = 2;
 	}
 	ml_stringbuffer_add(Buffer, "]", 1);
-	size_t Length = Buffer->Length;
-	return ml_string(ml_stringbuffer_get(Buffer), Length);
+	return ml_stringbuffer_get_string(Buffer);
 }
 
 static ml_value_t *ml_list_join(void *Data, int Count, ml_value_t **Args) {
@@ -2000,8 +1950,7 @@ static ml_value_t *ml_list_join(void *Data, int Count, ml_value_t **Args) {
 			if (Result->Type == MLErrorT) return Result;
 		}
 	}
-	size_t Length = Buffer->Length;
-	return ml_string(ml_stringbuffer_get(Buffer), Length);
+	return ml_stringbuffer_get_string(Buffer);
 }
 
 #define ML_TREE_MAX_DEPTH 32
@@ -2013,36 +1962,28 @@ typedef struct ml_tree_iter_t {
 	int Top;
 } ml_tree_iter_t;
 
-static ml_value_t *ml_tree_iter_deref(ml_value_t *Ref) {
-	ml_tree_iter_t *Iter = (ml_tree_iter_t *)Ref;
-	return Iter->Node->Value;
+static ml_value_t *ml_tree_iter_current(ml_tree_iter_t *Iter) {
+	return ml_reference(&Iter->Node->Value);
 }
 
-static ml_value_t *ml_tree_iter_assign(ml_value_t *Ref, ml_value_t *Value) {
-	ml_tree_iter_t *Iter = (ml_tree_iter_t *)Ref;
-	return Iter->Node->Value = Value;
-}
-
-static ml_value_t *ml_tree_iter_next(ml_value_t *Ref) {
-	ml_tree_iter_t *Iter = (ml_tree_iter_t *)Ref;
+static ml_value_t *ml_tree_iter_next(ml_tree_iter_t *Iter) {
 	ml_tree_node_t *Node = Iter->Node;
 	if (Node->Left) {
 		if (Node->Right) Iter->Stack[Iter->Top++] = Node->Right;
 		Iter->Node = Node->Left;
-		return Ref;
+		return (ml_value_t *)Iter;
 	} else if (Node->Right) {
 		Iter->Node = Node->Right;
-		return Ref;
+		return (ml_value_t *)Iter;
 	} else if (Iter->Top > 0) {
 		Iter->Node = Iter->Stack[--Iter->Top];
-		return Ref;
+		return (ml_value_t *)Iter;
 	} else {
 		return MLNil;
 	}
 }
 
-static ml_value_t *ml_tree_iter_key(ml_value_t *Ref) {
-	ml_tree_iter_t *Iter = (ml_tree_iter_t *)Ref;
+static ml_value_t *ml_tree_iter_key(ml_tree_iter_t *Iter) {
 	return Iter->Node->Key;
 }
 
@@ -2050,11 +1991,12 @@ ml_type_t MLTreeIterT[1] = {{
 	MLAnyT, "tree-iterator",
 	ml_default_hash,
 	ml_default_call,
-	ml_tree_iter_deref,
-	ml_tree_iter_assign,
+	ml_default_deref,
+	ml_default_assign,
 	ml_default_iterate,
-	ml_tree_iter_next,
-	ml_tree_iter_key
+	(void *)ml_tree_iter_current,
+	(void *)ml_tree_iter_next,
+	(void *)ml_tree_iter_key
 }};
 
 static ml_value_t *ml_tree_iterate(ml_value_t *Value) {
@@ -2127,8 +2069,7 @@ static ml_value_t *ml_tree_join(void *Data, int Count, ml_value_t **Args) {
 		1
 	}};
 	if (ml_tree_foreach(Args[0], Stringer, (void *)ml_tree_stringer)) return Stringer->Error;
-	size_t Length = Stringer->Buffer->Length;
-	return ml_string(ml_stringbuffer_get(Stringer->Buffer), Length);
+	return ml_stringbuffer_get_string(Stringer->Buffer);
 }
 
 static ml_value_t *ml_hash_any(void *Data, int Count, ml_value_t **Args) {
@@ -2171,6 +2112,7 @@ ml_type_t MLIteratableT[1] = {{
 	ml_default_deref,
 	ml_default_assign,
 	ml_default_iterate,
+	ml_default_current,
 	ml_default_next,
 	ml_default_key
 }};
@@ -2217,6 +2159,7 @@ ml_type_t MLComposedIterT[1] = {{
 	(void *)ml_composed_iter_deref,
 	(void *)ml_composed_iter_assign,
 	ml_default_iterate,
+	ml_default_current,
 	(void *)ml_composed_iter_next,
 	(void *)ml_composed_iter_key
 }};
@@ -2259,6 +2202,7 @@ ml_type_t MLComposedT[1] = {{
 	ml_default_deref,
 	ml_default_assign,
 	(void *)ml_composed_iterate,
+	ml_default_current,
 	ml_default_next,
 	ml_default_key
 }};
@@ -2365,7 +2309,6 @@ void ml_init() {
 	ml_method_by_name("integer", NULL, ml_integer_string, MLStringT, NULL);
 	ml_method_by_name("integer", NULL, ml_integer_string_base, MLStringT, MLIntegerT, NULL);
 	ml_method_by_name("real", NULL, ml_real_string, MLStringT, NULL);
-	ml_method_by_name("[]", NULL, ml_function_iterate, MLFunctionT, NULL);
 	ml_method_by_name("!", NULL, ml_function_apply, MLFunctionT, MLListT, NULL);
 	ml_method_by_name("!!", NULL, ml_function_partial_apply, MLFunctionT, MLListT, NULL);
 	ml_method_by_name("!!", NULL, ml_closure_partial_apply, MLClosureT, MLListT, NULL);
@@ -2394,6 +2337,7 @@ ml_type_t *ml_type(ml_type_t *Parent, const char *Name) {
 	Type->deref = Parent->deref;
 	Type->assign = Parent->assign;
 	Type->iterate = Parent->iterate;
+	Type->current = Parent->current;
 	Type->next = Parent->next;
 	Type->key = Parent->key;
 	return Type;

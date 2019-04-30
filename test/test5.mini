@@ -1,5 +1,9 @@
 var L := ["a", "b", "c", "d", "e"]
 
+for N, X in L do
+	print('N = {N}, X = {X}\n')
+end
+
 var F := []
 
 for X in L do
@@ -15,8 +19,8 @@ var M := ["a", "b", "c", "d", "e"]
 
 var G := []
 
-for var Y in M do
-	G:put(fun() print('Y = {Y}\n'))
+for N, Y in M do
+	G:put(fun() print('Y[{N}] = {Y}\n'))
 	Y := 'y{Y}'
 end
 
