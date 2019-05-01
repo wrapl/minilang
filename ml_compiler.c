@@ -486,11 +486,8 @@ static mlc_compiled_t ml_var_expr_compile(mlc_function_t *Function, mlc_decl_exp
 static mlc_compiled_t ml_def_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr, SHA256_CTX *HashContext) {
 	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
 	ML_COMPILE_HASH
-	ml_inst_t *DefInst = ml_inst_new(1, Expr->Source, mli_def_run);
-	mlc_decl_t *Decl = Expr->Decl;
-	Decl->Index = Function->Top - 1;
-	Decl->Next = Function->Decls;
-	Function->Decls = Decl;
+	ml_inst_t *DefInst = ml_inst_new(2, Expr->Source, mli_def_run);
+	DefInst->Params[1].Index = Expr->Decl->Index;
 	mlc_connect(Compiled.Exits, DefInst);
 	Compiled.Exits = DefInst;
 	return Compiled;
@@ -1431,69 +1428,17 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 		mlc_decl_t *Decl = new(mlc_decl_t);
 		ml_accept(Scanner, MLT_IDENT);
 		Decl->Ident = Scanner->Ident;
-		int HasKey = 0;
 		if (ml_parse(Scanner, MLT_COMMA)) {
 			ml_accept(Scanner, MLT_IDENT);
-			mlc_decl_t *KeyDecl = new(mlc_decl_t);
-			KeyDecl->Ident = Scanner->Ident;
-			Decl->Next = KeyDecl;
-			HasKey = 1;
+			mlc_decl_t *Decl2 = new(mlc_decl_t);
+			Decl2->Ident = Scanner->Ident;
+			Decl->Next = Decl2;
 		}
 		ForExpr->Decl = Decl;
 		ml_accept(Scanner, MLT_IN);
 		ForExpr->Child = ml_accept_expression(Scanner, EXPR_DEFAULT);
 		ml_accept(Scanner, MLT_DO);
 		ForExpr->Child->Next = ml_accept_block(Scanner);
-		/*if (Deref) {
-			mlc_block_expr_t *Block = (mlc_block_expr_t *)ForExpr->Child->Next;
-			char *ValueIdent = snew(strlen(Decl->Ident) + 2);
-			ValueIdent[0] = '#';
-			strcpy(ValueIdent + 1, Decl->Ident);
-			mlc_decl_t *ValueDecl = new(mlc_decl_t);
-			mlc_ident_expr_t *ValueIdentExpr = new(mlc_ident_expr_t);
-			ValueIdentExpr->compile = ml_ident_expr_compile;
-			ValueIdentExpr->Source = Scanner->Source;
-			ValueIdentExpr->Ident = ValueDecl->Ident = Decl->Ident;
-			mlc_ident_expr_t *OldValueIdentExpr = new(mlc_ident_expr_t);
-			OldValueIdentExpr->compile = ml_ident_expr_compile;
-			OldValueIdentExpr->Source = Scanner->Source;
-			OldValueIdentExpr->Ident = ValueIdent;
-			mlc_parent_expr_t *ValueAssignExpr = new(mlc_parent_expr_t);
-			ValueAssignExpr->compile = ml_assign_expr_compile;
-			ValueAssignExpr->Source = Scanner->Source;
-			ValueAssignExpr->Child = (mlc_expr_t *)ValueIdentExpr;
-			ValueIdentExpr->Next = (mlc_expr_t *)OldValueIdentExpr;
-			Decl->Ident = ValueIdent;
-			if (HasKey) {
-				char *KeyIdent = snew(strlen(Decl->Next->Ident) + 2);
-				KeyIdent[0] = '#';
-				strcpy(KeyIdent + 1, Decl->Next->Ident);
-				mlc_decl_t *KeyDecl = new(mlc_decl_t);
-				mlc_ident_expr_t *KeyIdentExpr = new(mlc_ident_expr_t);
-				KeyIdentExpr->compile = ml_ident_expr_compile;
-				KeyIdentExpr->Source = Scanner->Source;
-				KeyIdentExpr->Ident = KeyDecl->Ident = Decl->Next->Ident;
-				mlc_ident_expr_t *OldKeyIdentExpr = new(mlc_ident_expr_t);
-				OldKeyIdentExpr->compile = ml_ident_expr_compile;
-				OldKeyIdentExpr->Source = Scanner->Source;
-				OldKeyIdentExpr->Ident = KeyIdent;
-				mlc_parent_expr_t *KeyAssignExpr = new(mlc_parent_expr_t);
-				KeyAssignExpr->compile = ml_assign_expr_compile;
-				KeyAssignExpr->Source = Scanner->Source;
-				KeyAssignExpr->Child = (mlc_expr_t *)KeyIdentExpr;
-				KeyIdentExpr->Next = (mlc_expr_t *)OldKeyIdentExpr;
-				Decl->Next->Ident = KeyIdent;
-				ValueDecl->Next = KeyDecl;
-				KeyDecl->Next = Block->Decl;
-				ValueAssignExpr->Next = (mlc_expr_t *)KeyAssignExpr;
-				KeyAssignExpr->Next = Block->Child;
-			} else {
-				ValueDecl->Next = Block->Decl;
-				ValueAssignExpr->Next = Block->Child;
-			}
-			Block->Decl = ValueDecl;
-			Block->Child = (mlc_expr_t *)ValueAssignExpr;
-		}*/
 		if (ml_parse(Scanner, MLT_ELSE)) {
 			ForExpr->Child->Next->Next = ml_accept_block(Scanner);
 		}
@@ -1892,8 +1837,9 @@ mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 			} while (ml_parse(Scanner, MLT_COMMA));
 		} else if (ml_parse(Scanner, MLT_DEF)) {
 			ml_accept(Scanner, MLT_IDENT);
-			mlc_decl_t *Decl = new(mlc_decl_t);
+			mlc_decl_t *Decl = DeclSlot[0] = new(mlc_decl_t);
 			Decl->Ident = Scanner->Ident;
+			DeclSlot = &Decl->Next;
 			ml_accept(Scanner, MLT_ASSIGN);
 			mlc_decl_expr_t *DeclExpr = new(mlc_decl_expr_t);
 			DeclExpr->compile = ml_def_expr_compile;
