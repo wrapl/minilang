@@ -1,0 +1,14 @@
+def test := fun(A, B) do
+	var C := 1
+	def D := 2
+	print('C = {C}\n')
+	print('D = {D}\n')
+	print('C + D = {C + D}\n')
+	test2()
+end
+
+var test2 := fun() do
+	print("In test2!\n")
+end
+
+test(10, 20) 

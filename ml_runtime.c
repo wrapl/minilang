@@ -113,7 +113,13 @@ ml_inst_t *mli_var_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 
 ml_inst_t *mli_def_run(ml_inst_t *Inst, ml_frame_t *Frame) {
 	ml_value_t *Value = Frame->Top[-1];
-	Frame->Top[-1] = Value->Type->deref(Value);
+	Value = Value->Type->deref(Value);
+	if (Value->Type == MLErrorT) {
+		ml_error_trace_add(Value, Inst->Source);
+		(Frame->Top++)[0] = Value;
+		return Frame->OnError;
+	}
+	Frame->Stack[Inst->Params[1].Index] = Value;
 	return Inst->Params[0].Inst;
 }
 
@@ -659,7 +665,7 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done) {
 		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
 	} else if (Inst->run == mli_def_run) {
-		fprintf(Graph, "\tI%x [label=\"def()\"];\n", Inst);
+		fprintf(Graph, "\tI%x [label=\"def(%d)\"];\n", Inst, Inst->Params[1].Index);
 		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done);
 	} else if (Inst->run == mli_exit_run) {
