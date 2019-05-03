@@ -644,37 +644,29 @@ regex_t *ml_regex_value(ml_value_t *Value) {
 	return Regex->Value;
 }
 
+typedef struct ml_method_table_t ml_method_table_t;
 typedef struct ml_method_node_t ml_method_node_t;
 
 struct ml_method_node_t {
-	ml_method_node_t *Child;
-	ml_method_node_t *Next;
 	const ml_type_t *Type;
+	ml_method_table_t *Child;
+};
+
+struct ml_method_table_t {
 	void *Data;
 	ml_callback_t Callback;
+	ml_method_node_t *Nodes;
+	int Size, Space;
 };
 
 struct ml_method_t {
 	const ml_type_t *Type;
 	const char *Name;
-	ml_method_node_t Root[1];
+	ml_method_table_t Table[1];
 };
 
 const char *ml_method_name(ml_value_t *Value) {
 	return ((ml_method_t *)Value)->Name;
-}
-
-static ml_method_node_t *ml_method_find(ml_method_node_t *Node, int Count, ml_value_t **Args) {
-	if (Count == 0) return Node;
-	for (const ml_type_t *Type = Args[0]->Type; Type; Type = Type->Parent) {
-		for (ml_method_node_t *Test = Node->Child; Test; Test = Test->Next) {
-			if (Test->Type == Type) {
-				ml_method_node_t *Result = ml_method_find(Test, Count - 1, Args + 1);
-				if (Result && Result->Callback) return Result;
-			}
-		}
-	}
-	return Node;
 }
 
 static long ml_method_hash(ml_value_t *Value) {
@@ -684,11 +676,34 @@ static long ml_method_hash(ml_value_t *Value) {
 	return Hash;
 }
 
+static const ml_method_table_t *ml_method_find(const ml_method_table_t *Table, int Count, ml_value_t **Args) {
+	if (Count == 0) return Table;
+	int Mask = Table->Size - 1;
+	if (Mask < 0) return Table;
+	ml_method_node_t *Nodes = Table->Nodes;
+	for (const ml_type_t *Type = Args[0]->Type; Type; Type = Type->Parent) {
+		int Index = ((intptr_t)Type >> 7) & Mask;
+		int Incr = ((intptr_t)Type >> 11) | 1;
+		for (;;) {
+			if (Nodes[Index].Type == Type) {
+				const ml_method_table_t *Result = ml_method_find(Nodes[Index].Child, Count - 1, Args + 1);
+				if (Result->Callback) return Result;
+				break;
+			} else if (Nodes[Index].Type < Type) {
+				break;
+			} else {
+				Index = (Index + Incr) & Mask;
+			}
+		}
+	}
+	return Table;
+}
+
 ml_value_t *ml_method_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_method_t *Method = (ml_method_t *)Value;
-	ml_method_node_t *Node = ml_method_find(Method->Root, Count, Args);
-	if (Node->Callback) {
-		return (Node->Callback)(Node->Data, Count, Args);
+	const ml_method_table_t *Table = ml_method_find(Method->Table, Count, Args);
+	if (Table->Callback) {
+		return (Table->Callback)(Table->Data, Count, Args);
 	} else {
 		int Length = 4;
 		for (int I = 0; I < Count; ++I) Length += strlen(Args[I]->Type->Name) + 2;
@@ -739,48 +754,105 @@ ml_value_t *ml_method(const char *Name) {
 	return (ml_value_t *)Slot[0];
 }
 
+static void ml_method_nodes_sort(ml_method_node_t *A, ml_method_node_t *B) {
+	ml_method_node_t *A1 = A, *B1 = B;
+	ml_method_node_t Temp = *A;
+	ml_method_node_t Pivot = *B;
+	while (A1 < B1) {
+		if (Temp.Type > Pivot.Type) {
+			*A1 = Temp;
+			Temp = *++A1;
+		} else {
+			*B1 = Temp;
+			Temp = *--B1;
+		}
+	}
+	*A1 = Pivot;
+	if (A1 - A > 1) ml_method_nodes_sort(A, A1 - 1);
+	if (B - B1 > 1) ml_method_nodes_sort(B1 + 1, B);
+}
+
+static ml_method_table_t *ml_method_insert(ml_method_table_t *Table, const ml_type_t *Type) {
+	int Mask = Table->Size - 1;
+	if (Mask < 0) {
+		ml_method_node_t *Nodes = Table->Nodes = anew(ml_method_node_t, 4);
+		int Index = ((intptr_t)Type >> 7) & 3;
+		Nodes[Index].Type = Type;
+		ml_method_table_t *Child = new(ml_method_table_t);
+		Nodes[Index].Child = Child;
+		Table->Size = 4;
+		Table->Space = 3;
+		return Child;
+	}
+	ml_method_node_t *Nodes = Table->Nodes;
+	int Index = ((intptr_t)Type >> 7) & Mask;
+	int Incr = ((intptr_t)Type >> 11) | 1;
+	for (;;) {
+		if (Nodes[Index].Type == Type) {
+			return Nodes[Index].Child;
+		} else if (Nodes[Index].Type < Type) {
+			break;
+		} else {
+			Index = (Index + Incr) & Mask;
+		}
+	}
+	ml_method_table_t *Child = new(ml_method_table_t);
+	if (--Table->Space > 1) {
+		const ml_type_t *Type2 = Nodes[Index].Type;
+		ml_method_table_t *Child2 = Nodes[Index].Child;
+		Nodes[Index].Type = Type;
+		Nodes[Index].Child = Child;
+		while ((Type = Type2)) {
+			Incr = ((intptr_t)Type >> 11) | 1;
+			while (Nodes[Index].Type > Type) Index = (Index + Incr) & Mask;
+			Type2 = Nodes[Index].Type;
+			Child2 = Nodes[Index].Child;
+			Nodes[Index].Type = Type;
+			Nodes[Index].Child = Child;
+		}
+	} else {
+		while (Nodes[Index].Type) Index = (Index + 1) & Mask;
+		Nodes[Index].Type = Type;
+		Nodes[Index].Child = Child;
+		ml_method_nodes_sort(Nodes, Nodes + Table->Size - 1);
+		int Size2 = 2 * Table->Size;
+		Mask = Size2 - 1;
+		ml_method_node_t *Nodes2 = anew(ml_method_node_t, Size2);
+		for (ml_method_node_t *Node = Nodes; Node->Type; ++Node) {
+			int Index2 = ((intptr_t)Node->Type >> 7) & Mask;
+			int Incr2 = ((intptr_t)Type >> 11) | 1;
+			while (Nodes2[Index2].Type) Index2 = (Index2 + Incr2) & Mask;
+			Nodes2[Index2] = *Node;
+		}
+		Nodes = Table->Nodes = Nodes2;
+		Table->Space += Table->Size;
+		Table->Size = Size2;
+	}
+	return Child;
+}
+
 void ml_method_by_name(const char *Name, void *Data, ml_callback_t Callback, ...) {
 	ml_method_t *Method = (ml_method_t *)ml_method(Name);
-	ml_method_node_t *Node = Method->Root;
+	ml_method_table_t *Table = Method->Table;
 	va_list Args;
 	va_start(Args, Callback);
 	ml_type_t *Type;
-	while ((Type = va_arg(Args, ml_type_t *))) {
-		ml_method_node_t **Slot = &Node->Child;
-		while (Slot[0] && Slot[0]->Type != Type) Slot = &Slot[0]->Next;
-		if (Slot[0]) {
-			Node = Slot[0];
-		} else {
-			Node = Slot[0] = new(ml_method_node_t);
-			Node->Type = Type;
-		}
-
-	}
+	while ((Type = va_arg(Args, ml_type_t *))) Table = ml_method_insert(Table, Type);
 	va_end(Args);
-	Node->Data = Data;
-	Node->Callback = Callback;
+	Table->Data = Data;
+	Table->Callback = Callback;
 }
 
 void ml_method_by_value(ml_value_t *Value, void *Data, ml_callback_t Callback, ...) {
 	ml_method_t *Method = (ml_method_t *)Value;
-	ml_method_node_t *Node = Method->Root;
+	ml_method_table_t *Table = Method->Table;
 	va_list Args;
 	va_start(Args, Callback);
 	ml_type_t *Type;
-	while ((Type = va_arg(Args, ml_type_t *))) {
-		ml_method_node_t **Slot = &Node->Child;
-		while (Slot[0] && Slot[0]->Type != Type) Slot = &Slot[0]->Next;
-		if (Slot[0]) {
-			Node = Slot[0];
-		} else {
-			Node = Slot[0] = new(ml_method_node_t);
-			Node->Type = Type;
-		}
-
-	}
+	while ((Type = va_arg(Args, ml_type_t *))) Table = ml_method_insert(Table, Type);
 	va_end(Args);
-	Node->Data = Data;
-	Node->Callback = Callback;
+	Table->Data = Data;
+	Table->Callback = Callback;
 }
 
 int ml_list_length(ml_value_t *Value) {
