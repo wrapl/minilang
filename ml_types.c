@@ -820,7 +820,7 @@ static ml_method_table_t *ml_method_insert(ml_method_table_t *Table, const ml_ty
 		ml_method_node_t *Nodes2 = anew(ml_method_node_t, Size2);
 		for (ml_method_node_t *Node = Nodes; Node->Type; ++Node) {
 			int Index2 = ((intptr_t)Node->Type >> 7) & Mask;
-			int Incr2 = ((intptr_t)Type >> 11) | 1;
+			int Incr2 = ((intptr_t)Node->Type >> 11) | 1;
 			while (Nodes2[Index2].Type) Index2 = (Index2 + Incr2) & Mask;
 			Nodes2[Index2] = *Node;
 		}
