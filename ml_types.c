@@ -798,17 +798,15 @@ static ml_method_table_t *ml_method_insert(ml_method_table_t *Table, const ml_ty
 	}
 	ml_method_table_t *Child = new(ml_method_table_t);
 	if (--Table->Space > 1) {
-		const ml_type_t *Type2 = Nodes[Index].Type;
-		ml_method_table_t *Child2 = Nodes[Index].Child;
+		ml_method_node_t Node = Nodes[Index];
 		Nodes[Index].Type = Type;
 		Nodes[Index].Child = Child;
-		while ((Type = Type2)) {
-			Incr = ((intptr_t)Type >> 11) | 1;
-			while (Nodes[Index].Type > Type) Index = (Index + Incr) & Mask;
-			Type2 = Nodes[Index].Type;
-			Child2 = Nodes[Index].Child;
-			Nodes[Index].Type = Type;
-			Nodes[Index].Child = Child;
+		while (Node.Type) {
+			Incr = ((intptr_t)Node.Type >> 11) | 1;
+			while (Nodes[Index].Type > Node.Type) Index = (Index + Incr) & Mask;
+			ml_method_node_t Node2 = Nodes[Index];
+			Nodes[Index] = Node;
+			Node = Node2;
 		}
 	} else {
 		while (Nodes[Index].Type) Index = (Index + 1) & Mask;
