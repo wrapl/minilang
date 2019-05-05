@@ -29,45 +29,48 @@ typedef union {
 	ml_closure_info_t *ClosureInfo;
 } ml_param_t;
 
+typedef enum {
+	MLI_RETURN,
+	MLI_SUSPEND,
+	MLI_PUSH,
+	MLI_POP,
+	MLI_POP2,
+	MLI_POP3,
+	MLI_ENTER,
+	MLI_VAR,
+	MLI_DEF,
+	MLI_EXIT,
+	MLI_TRY,
+	MLI_CATCH,
+	MLI_CALL,
+	MLI_CONST_CALL,
+	MLI_ASSIGN,
+	MLI_JUMP,
+	MLI_IF,
+	MLI_IF_VAR,
+	MLI_IF_DEF,
+	MLI_FOR,
+	MLI_UNTIL,
+	MLI_WHILE,
+	MLI_AND,
+	MLI_AND_VAR,
+	MLI_AND_DEF,
+	MLI_OR,
+	MLI_EXISTS,
+	MLI_NEXT,
+	MLI_CURRENT,
+	MLI_KEY,
+	MLI_LOCAL,
+	MLI_LIST,
+	MLI_APPEND,
+	MLI_CLOSURE
+} ml_opcode_t;
+
 struct ml_inst_t {
-	ml_inst_t *(*run)(ml_inst_t *Inst, ml_frame_t *Frame);
+	ml_opcode_t Opcode;
 	ml_source_t Source;
 	ml_param_t Params[];
 };
-
-ml_inst_t *mli_push_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_pop_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_pop2_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_pop3_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_enter_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_var_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_def_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_exit_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_try_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_catch_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_call_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_const_call_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_assign_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_jump_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_if_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_if_var_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_if_def_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_for_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_until_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_while_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_and_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_and_var_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_and_def_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_or_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_exists_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_next_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_current_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_current2_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_local_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_list_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_append_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_suspend_run(ml_inst_t *Inst, ml_frame_t *Frame);
-ml_inst_t *mli_closure_run(ml_inst_t *Inst, ml_frame_t *Frame);
 
 void ml_closure_info_debug(ml_closure_info_t *Info);
 
