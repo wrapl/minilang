@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 #include "sha256.h"
-#include "ml_types.h"
+#include "ml_compiler.h"
 
 #ifdef	__cplusplus
 extern "C" {
