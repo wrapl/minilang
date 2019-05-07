@@ -329,7 +329,7 @@ static mlc_compiled_t ml_next_expr_compile(mlc_function_t *Function, mlc_expr_t 
 	if (Function->Try != Function->Loop->Try) {
 		ML_COMPILE_HASH
 		ml_inst_t *TryInst = ml_inst_new(2, Expr->Source, MLI_TRY);
-		TryInst->Params[1].Inst = Function->Try ? Function->Try->CatchInst : ml_inst_new(0, Expr->Source, MLI_RETURN);
+		TryInst->Params[1].Inst = Function->Try ? Function->Try->CatchInst : Function->ReturnInst;
 		TryInst->Params[0].Inst = Function->Loop->Next;
 		NextInst = TryInst;
 	}
@@ -362,7 +362,7 @@ static mlc_compiled_t ml_exit_expr_compile(mlc_function_t *Function, mlc_parent_
 	if (Function->Try != Try) {
 		ML_COMPILE_HASH
 		ml_inst_t *TryInst = ml_inst_new(2, Expr->Source, MLI_TRY);
-		TryInst->Params[1].Inst = Function->Try ? Function->Try->CatchInst : ml_inst_new(0, Expr->Source, MLI_RETURN);;
+		TryInst->Params[1].Inst = Function->Try ? Function->Try->CatchInst : Function->ReturnInst;
 		TryInst->Params[0].Inst = Compiled.Start;
 		Compiled.Start = TryInst;
 	}
@@ -413,7 +413,7 @@ static mlc_compiled_t ml_while_expr_compile(mlc_function_t *Function, mlc_parent
 	if (Function->Try != Loop->Try) {
 		ML_COMPILE_HASH
 		ml_inst_t *TryInst = ml_inst_new(2, Expr->Source, MLI_TRY);
-		TryInst->Params[1].Inst = Loop->Try ? Loop->Try->CatchInst : ml_inst_new(0, Expr->Source, MLI_RETURN);
+		TryInst->Params[1].Inst = Loop->Try ? Loop->Try->CatchInst : Function->ReturnInst;
 		TryInst->Params[0].Inst = ExitInst;
 		ExitInst = TryInst;
 	}
@@ -441,7 +441,7 @@ static mlc_compiled_t ml_until_expr_compile(mlc_function_t *Function, mlc_parent
 	if (Function->Try != Loop->Try) {
 		ML_COMPILE_HASH
 		ml_inst_t *TryInst = ml_inst_new(2, Expr->Source, MLI_TRY);
-		TryInst->Params[1].Inst = Loop->Try ? Loop->Try->CatchInst : ml_inst_new(0, Expr->Source, MLI_RETURN);
+		TryInst->Params[1].Inst = Loop->Try ? Loop->Try->CatchInst : Function->ReturnInst;
 		TryInst->Params[0].Inst = ExitInst;
 		ExitInst = TryInst;
 	}
@@ -637,7 +637,7 @@ static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_
 		ml_inst_t *TryInst = ml_inst_new(2, Expr->Source, MLI_TRY);
 		ml_inst_t *CatchInst = ml_inst_new(2, Expr->Source, MLI_CATCH);
 		TryInst->Params[0].Inst = CatchInst;
-		TryInst->Params[1].Inst = Function->Try ? Function->Try->CatchInst : ml_inst_new(0, Expr->Source, MLI_RETURN);
+		TryInst->Params[1].Inst = Function->Try ? Function->Try->CatchInst : Function->ReturnInst;
 		CatchInst->Params[0].Inst = TryCompiled.Start;
 		CatchInst->Params[1].Index = OldTop;
 		Function->Decls = OldScope;
@@ -688,7 +688,7 @@ static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_
 		Compiled.Start = TryInst;
 		Function->Try = Try.Up;
 		TryInst = ml_inst_new(2, Expr->Source, MLI_TRY);
-		TryInst->Params[1].Inst = Function->Try ? Function->Try->CatchInst : ml_inst_new(0, Expr->Source, MLI_RETURN);
+		TryInst->Params[1].Inst = Function->Try ? Function->Try->CatchInst : Function->ReturnInst;
 		TryInst->Params[0].Inst = CatchExitInst;
 		mlc_connect(Compiled.Exits, TryInst);
 		Compiled.Exits = TryInst;
