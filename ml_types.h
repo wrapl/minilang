@@ -1,11 +1,12 @@
 #ifndef ML_TYPES_H
 #define ML_TYPES_H
 
+#include <regex.h>
+
 #ifdef	__cplusplus
 extern "C" {
 #endif
 
-#include <regex.h>
 #include "sha256.h"
 
 typedef struct ml_type_t ml_type_t;
@@ -162,6 +163,12 @@ struct ml_list_node_t {
 
 #define ml_list_head(List) ((ml_list_t *)List)->Head
 #define ml_list_tail(List) ((ml_list_t *)List)->Tail
+
+#define ML_CHECK_ARG_TYPE(N, TYPE) \
+	if (Args[N]->Type != TYPE) return ml_error("TypeError", "%s required", TYPE->Name);
+
+#define ML_CHECK_ARG_COUNT(N) \
+	if (Count < N) return ml_error("CallError", "%d arguments required", N);
 
 #ifdef	__cplusplus
 }

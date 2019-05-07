@@ -3,9 +3,12 @@
 
 #include <setjmp.h>
 
-#include "ml_types.h"
 #include "ml_runtime.h"
 #include "stringmap.h"
+
+#ifdef	__cplusplus
+extern "C" {
+#endif
 
 typedef struct mlc_expr_t mlc_expr_t;
 typedef struct mlc_scanner_t mlc_scanner_t;
@@ -18,6 +21,7 @@ typedef struct mlc_error_t {
 ml_value_t *ml_compile(mlc_expr_t *Expr, ml_getter_t GlobalGet, void *Globals, mlc_error_t *Error);
 
 mlc_scanner_t *ml_scanner(const char *SourceName, void *Data, const char *(*read)(void *), mlc_error_t *Error);
+ml_source_t ml_scanner_source(mlc_scanner_t *Scanner, ml_source_t Source);
 void ml_scanner_reset(mlc_scanner_t *Scanner);
 const char *ml_scanner_clear(mlc_scanner_t *Scanner);
 
@@ -26,5 +30,9 @@ mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner);
 mlc_expr_t *ml_accept_command(mlc_scanner_t *Scanner, stringmap_t *Vars);
 
 extern int MLDebugClosures;
+
+#ifdef	__cplusplus
+}
+#endif
 
 #endif
