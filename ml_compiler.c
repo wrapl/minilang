@@ -67,6 +67,7 @@ static inline ml_inst_t *ml_inst_new(int N, ml_source_t Source, ml_opcode_t Opco
 
 struct mlc_function_t {
 	mlc_error_t *Error;
+	ml_inst_t *ReturnInst;
 	ml_getter_t GlobalGet;
 	void *Globals;
 	mlc_function_t *Up;
@@ -78,16 +79,16 @@ struct mlc_function_t {
 };
 
 ml_value_t *ml_compile(mlc_expr_t *Expr, ml_getter_t GlobalGet, void *Globals, mlc_error_t *Error) {
-	mlc_function_t Function[1] = {{Error, GlobalGet, Globals, NULL, 0,}};
+	mlc_function_t Function[1] = {{Error, ml_inst_new(0, Expr->Source, MLI_RETURN), GlobalGet, Globals, NULL, 0,}};
 	SHA256_CTX HashContext[1];
 	sha256_init(HashContext);
 	mlc_compiled_t Compiled = mlc_compile(Function, Expr, HashContext);
-	ml_inst_t *ReturnInst = ml_inst_new(0, Expr->Source, MLI_RETURN);
-	mlc_connect(Compiled.Exits, ReturnInst);
+	mlc_connect(Compiled.Exits, Function->ReturnInst);
 	ml_closure_t *Closure = new(ml_closure_t);
 	ml_closure_info_t *Info = Closure->Info = new(ml_closure_info_t);
 	Closure->Type = MLClosureT;
 	Info->Entry = Compiled.Start;
+	Info->Return = Function->ReturnInst;
 	Info->FrameSize = Function->Size;
 	sha256_final(HashContext, Info->Hash);
 	return (ml_value_t *)Closure;
@@ -456,9 +457,8 @@ static mlc_compiled_t ml_until_expr_compile(mlc_function_t *Function, mlc_parent
 
 static mlc_compiled_t ml_return_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
 	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
-	ml_inst_t *ReturnInst = ml_inst_new(0, Expr->Source, MLI_RETURN);
-	mlc_connect(Compiled.Exits, ReturnInst);
-	Compiled.Exits = ReturnInst;
+	mlc_connect(Compiled.Exits, Function->ReturnInst);
+	Compiled.Exits = NULL;
 	return Compiled;
 }
 
@@ -805,8 +805,7 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	SHA256_CTX SubHashContext[1];
 	sha256_init(SubHashContext);
 	mlc_compiled_t Compiled = mlc_compile(SubFunction, Expr->Body, SubHashContext);
-	ml_inst_t *ReturnInst = ml_inst_new(0, Expr->Source, MLI_RETURN);
-	mlc_connect(Compiled.Exits, ReturnInst);
+	mlc_connect(Compiled.Exits, Function->ReturnInst);
 	int NumUpValues = 0;
 	for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) ++NumUpValues;
 	ML_COMPILE_HASH
@@ -814,6 +813,7 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	ml_param_t *Params = ClosureInst->Params;
 	ml_closure_info_t *Info = new(ml_closure_info_t);
 	Info->Entry = Compiled.Start;
+	Info->Return = Function->ReturnInst;
 	Info->FrameSize = SubFunction->Size;
 	Info->NumParams = NumParams;
 	Info->NumUpValues = NumUpValues;

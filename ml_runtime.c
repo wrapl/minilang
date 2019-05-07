@@ -162,7 +162,7 @@ static ml_value_t *ml_closure_call(ml_value_t *Value, int Count, ml_value_t **Ar
 		Frame->Stack[NumParams] = (ml_value_t *)Local;
 	}
 	Frame->Top = Frame->Stack + NumParams + VarArgs;
-	Frame->OnError = NULL;
+	Frame->OnError = Info->Return;
 	Frame->UpValues = Closure->UpValues;
 	return ml_frame_run(Frame, Closure->Info->Entry);
 }
