@@ -624,7 +624,7 @@ struct mlc_block_expr_t {
 };
 
 static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_expr_t *Expr, SHA256_CTX *HashContext) {
-	int OldTop = Function->Top + 1, NumVars = 0, NumDefs = 0;
+	int OldTop = Function->Top + 1, NumVars = 0;
 	mlc_decl_t *OldScope = Function->Decls;
 	mlc_try_t Try;
 	ml_inst_t *CatchExitInst;
@@ -676,11 +676,8 @@ static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_
 		EnterInst->Params[0].Inst = Compiled.Start;
 		EnterInst->Params[1].Count = NumVars;
 		Compiled.Start = EnterInst;
-	}
-	if (NumVars + NumDefs > 0) {
-		ML_COMPILE_HASH
 		ml_inst_t *ExitInst = ml_inst_new(2, Expr->Source, MLI_EXIT);
-		ExitInst->Params[1].Count = NumVars + NumDefs;
+		ExitInst->Params[1].Count = NumVars;
 		mlc_connect(Compiled.Exits, ExitInst);
 		Compiled.Exits = ExitInst;
 	}
@@ -1018,6 +1015,12 @@ mlc_scanner_t *ml_scanner(const char *SourceName, void *Data, const char *(*read
 	Scanner->Data = Data;
 	Scanner->read = read;
 	return Scanner;
+}
+
+ml_source_t ml_scanner_source(mlc_scanner_t *Scanner, ml_source_t Source) {
+	ml_source_t OldSource = Scanner->Source;
+	Scanner->Source = Source;
+	return OldSource;
 }
 
 void ml_scanner_reset(mlc_scanner_t *Scanner) {
