@@ -7,7 +7,7 @@ typedef struct ml_frame_t ml_frame_t;
 typedef struct ml_inst_t ml_inst_t;
 
 struct ml_closure_info_t {
-	ml_inst_t *Entry;
+	ml_inst_t *Entry, *Return;
 	int FrameSize;
 	int NumParams, NumUpValues;
 	unsigned char Hash[SHA256_BLOCK_SIZE];
