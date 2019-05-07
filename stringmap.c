@@ -89,6 +89,7 @@ static void *stringmap_insert_internal(stringmap_t *Tree, stringmap_node_t **Slo
 		Node->Hash = Hash;
 		Node->Key = Key;
 		Node->Value = Value;
+		++Tree->Size;
 		return 0;
 	}
 	int Compare = compare(Hash, Key, Slot[0]);
