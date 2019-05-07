@@ -785,7 +785,7 @@ int MLDebugClosures = 0;
 
 static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, SHA256_CTX *HashContext) {
 	// closure <entry> <frame_size> <num_params> <num_upvalues> <upvalue_1> ...
-	mlc_function_t SubFunction[1] = {{Function->Error, Function->GlobalGet, Function->Globals, NULL,}};
+	mlc_function_t SubFunction[1] = {{Function->Error, ml_inst_new(0, Expr->Source, MLI_RETURN), Function->GlobalGet, Function->Globals, NULL,}};
 	SubFunction->Up = Function;
 	int NumParams = 0;
 	mlc_decl_t **ParamSlot = &SubFunction->Decls;
@@ -805,7 +805,7 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	SHA256_CTX SubHashContext[1];
 	sha256_init(SubHashContext);
 	mlc_compiled_t Compiled = mlc_compile(SubFunction, Expr->Body, SubHashContext);
-	mlc_connect(Compiled.Exits, Function->ReturnInst);
+	mlc_connect(Compiled.Exits, SubFunction->ReturnInst);
 	int NumUpValues = 0;
 	for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) ++NumUpValues;
 	ML_COMPILE_HASH
