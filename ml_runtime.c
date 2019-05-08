@@ -34,6 +34,7 @@ static ml_value_t *ml_reference_assign(ml_value_t *Ref, ml_value_t *Value) {
 }
 
 ml_type_t MLReferenceT[1] = {{
+	MLTypeT,
 	MLAnyT, "reference",
 	ml_default_hash,
 	ml_default_call,
@@ -78,6 +79,7 @@ static ml_value_t *ml_suspend_next(ml_suspend_t *Suspend) {
 }
 
 ml_type_t MLSuspendT[1] = {{
+	MLTypeT,
 	MLAnyT, "suspend",
 	ml_default_hash,
 	ml_default_call,
@@ -164,6 +166,7 @@ static ml_value_t *ml_closure_iterate(ml_value_t *Closure) {
 }
 
 ml_type_t MLClosureT[1] = {{
+	MLTypeT,
 	MLFunctionT, "closure",
 	ml_closure_hash,
 	ml_closure_call,

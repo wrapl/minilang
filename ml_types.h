@@ -29,7 +29,12 @@ typedef struct ml_closure_t ml_closure_t;
 typedef struct ml_method_t ml_method_t;
 typedef struct ml_error_t ml_error_t;
 
+struct ml_value_t {
+	const ml_type_t *Type;
+};
+
 struct ml_type_t {
+	const ml_type_t *Type;
 	const ml_type_t *Parent;
 	const char *Name;
 	long (*hash)(ml_value_t *);
@@ -40,10 +45,6 @@ struct ml_type_t {
 	ml_value_t *(*current)(ml_value_t *);
 	ml_value_t *(*next)(ml_value_t *);
 	ml_value_t *(*key)(ml_value_t *);
-};
-
-struct ml_value_t {
-	const ml_type_t *Type;
 };
 
 struct ml_function_t {
@@ -113,6 +114,7 @@ ml_value_t *ml_default_next(ml_value_t *Iter);
 ml_value_t *ml_default_key(ml_value_t *Iter);
 
 extern ml_type_t MLAnyT[];
+extern ml_type_t MLTypeT[];
 extern ml_type_t MLNilT[];
 extern ml_type_t MLFunctionT[];
 extern ml_type_t MLNumberT[];

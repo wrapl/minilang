@@ -51,7 +51,21 @@ ml_value_t *CompareMethod;
 ml_value_t *AppendMethod;
 
 ml_type_t MLAnyT[1] = {{
+	MLTypeT,
 	NULL, "any",
+	ml_default_hash,
+	ml_default_call,
+	ml_default_deref,
+	ml_default_assign,
+	ml_default_iterate,
+	ml_default_current,
+	ml_default_next,
+	ml_default_key
+}};
+
+ml_type_t MLTypeT[1] = {{
+	MLTypeT,
+	NULL, "type",
 	ml_default_hash,
 	ml_default_call,
 	ml_default_deref,
@@ -67,6 +81,7 @@ static ml_value_t *ml_nil_to_string(void *Data, int Count, ml_value_t **Args) {
 }
 
 ml_type_t MLNilT[1] = {{
+	MLTypeT,
 	MLAnyT, "nil",
 	ml_default_hash,
 	ml_default_call,
@@ -85,6 +100,7 @@ static ml_value_t *ml_some_to_string(void *Data, int Count, ml_value_t **Args) {
 }
 
 ml_type_t MLSomeT[1] = {{
+	MLTypeT,
 	MLAnyT, "nil",
 	ml_default_hash,
 	ml_default_call,
@@ -136,6 +152,7 @@ static ml_value_t *ml_function_iterate(ml_function_t *Function) {
 }
 
 ml_type_t MLFunctionT[1] = {{
+	MLTypeT,
 	MLIteratableT, "function",
 	ml_default_hash,
 	(void *)ml_function_call,
@@ -184,6 +201,7 @@ static ml_value_t *ml_partial_function_iterate(ml_partial_function_t *Partial) {
 }
 
 ml_type_t MLPartialFunctionT[1] = {{
+	MLTypeT,
 	MLFunctionT, "partial-function",
 	ml_default_hash,
 	(void *)ml_partial_function_call,
@@ -207,6 +225,7 @@ static ml_value_t *ml_function_partial_apply(void *Data, int Count, ml_value_t *
 }
 
 ml_type_t MLNumberT[1] = {{
+	MLTypeT,
 	MLAnyT, "number",
 	ml_default_hash,
 	ml_default_call,
@@ -254,6 +273,7 @@ static ml_value_t *ml_integer_call(ml_integer_t *Value, int Count, ml_value_t **
 }
 
 ml_type_t MLIntegerT[1] = {{
+	MLTypeT,
 	MLNumberT, "integer",
 	ml_integer_hash,
 	(void *)ml_integer_call,
@@ -287,6 +307,7 @@ static long ml_real_hash(ml_value_t *Value) {
 }
 
 ml_type_t MLRealT[1] = {{
+	MLTypeT,
 	MLNumberT, "real",
 	ml_real_hash,
 	ml_default_call,
@@ -575,6 +596,7 @@ ml_value_t *ml_string_regex_function_replace(void *Data, int Count, ml_value_t *
 }
 
 ml_type_t MLStringT[1] = {{
+	MLTypeT,
 	MLAnyT, "string",
 	ml_string_hash,
 	ml_default_call,
@@ -614,6 +636,7 @@ static long ml_regex_hash(ml_value_t *Value) {
 }
 
 ml_type_t MLRegexT[1] = {{
+	MLTypeT,
 	MLAnyT, "regex",
 	ml_regex_hash,
 	ml_default_call,
@@ -725,6 +748,7 @@ ml_value_t *ml_method_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 }
 
 ml_type_t MLMethodT[1] = {{
+	MLTypeT,
 	MLFunctionT, "method",
 	ml_method_hash,
 	ml_method_call,
@@ -929,6 +953,7 @@ static ml_value_t *ml_list_slice(void *Data, int Count, ml_value_t **Args) {
 static ml_value_t *ml_list_iterate(ml_value_t *Value);
 
 ml_type_t MLListT[1] = {{
+	MLTypeT,
 	MLAnyT, "list",
 	ml_default_hash,
 	ml_default_call,
@@ -1210,6 +1235,7 @@ static ml_value_t *ml_tree_delete(void *Data, int Count, ml_value_t **Args) {
 static ml_value_t *ml_tree_iterate(ml_value_t *Value);
 
 ml_type_t MLTreeT[1] = {{
+	MLTypeT,
 	MLAnyT, "tree",
 	ml_default_hash,
 	ml_default_call,
@@ -1285,6 +1311,7 @@ static ml_value_t *ml_property_iterate(ml_value_t *Value) {
 }
 
 ml_type_t MLPropertyT[1] = {{
+	MLTypeT,
 	MLAnyT, "property",
 	ml_default_hash,
 	ml_default_call,
@@ -1327,6 +1354,7 @@ struct ml_error_t {
 };
 
 ml_type_t MLErrorT[1] = {{
+	MLTypeT,
 	MLAnyT, "error",
 	ml_default_hash,
 	ml_default_call,
@@ -1339,6 +1367,7 @@ ml_type_t MLErrorT[1] = {{
 }};
 
 ml_type_t MLErrorValueT[1] = {{
+	MLTypeT,
 	MLErrorT, "error_value",
 	ml_default_hash,
 	ml_default_call,
@@ -1540,6 +1569,7 @@ ml_value_t *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) {
 }
 
 ml_type_t MLStringBufferT[1] = {{
+	MLTypeT,
 	MLAnyT, "stringbuffer",
 	ml_default_hash,
 	ml_default_call,
@@ -1778,6 +1808,7 @@ static ml_value_t *ml_integer_iter_next(ml_integer_iter_t *Iter) {
 }
 
 ml_type_t MLIntegerIterT[1] = {{
+	MLTypeT,
 	MLAnyT, "integer-iter",
 	ml_default_hash,
 	ml_default_call,
@@ -1805,6 +1836,7 @@ static ml_value_t *ml_integer_range_iterate(ml_value_t *Value) {
 }
 
 ml_type_t MLIntegerRangeT[1] = {{
+	MLTypeT,
 	MLIteratableT, "integer-range",
 	ml_default_hash,
 	ml_default_call,
@@ -1907,6 +1939,7 @@ static ml_value_t *ml_list_iter_key(ml_list_iter_t *Iter) {
 }
 
 ml_type_t MLListIterT[1] = {{
+	MLTypeT,
 	MLAnyT, "list-iterator",
 	ml_default_hash,
 	ml_default_call,
@@ -2083,6 +2116,7 @@ static ml_value_t *ml_tree_iter_key(ml_tree_iter_t *Iter) {
 }
 
 ml_type_t MLTreeIterT[1] = {{
+	MLTypeT,
 	MLAnyT, "tree-iterator",
 	ml_default_hash,
 	ml_default_call,
@@ -2201,6 +2235,7 @@ static ml_value_t *ml_closure_partial_apply(void *Data, int Count, ml_value_t **
 }
 
 ml_type_t MLIteratableT[1] = {{
+	MLTypeT,
 	MLAnyT, "iterator",
 	ml_default_hash,
 	ml_default_call,
@@ -2248,6 +2283,7 @@ static ml_value_t *ml_composed_iter_key(ml_composed_iter_t *Iter) {
 }
 
 ml_type_t MLComposedIterT[1] = {{
+	MLTypeT,
 	MLAnyT, "composed-iter",
 	ml_default_hash,
 	ml_default_call,
@@ -2291,6 +2327,7 @@ static ml_value_t *ml_composed_iterate(ml_composed_t *Composed) {
 }
 
 ml_type_t MLComposedT[1] = {{
+	MLTypeT,
 	MLIteratableT, "composed",
 	ml_default_hash,
 	ml_default_call,
@@ -2425,6 +2462,7 @@ void ml_init() {
 
 ml_type_t *ml_type(ml_type_t *Parent, const char *Name) {
 	ml_type_t *Type = new(ml_type_t);
+	Type->Type = MLTypeT;
 	Type->Parent = Parent;
 	Type->Name = Name;
 	Type->hash = Parent->hash;

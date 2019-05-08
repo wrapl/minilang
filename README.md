@@ -34,6 +34,7 @@ parallel build system. As result, it was designed with the following requirement
 > example1.c
 
 ```c
+#include <stdio.h>
 #include <minilang.h>
 
 static ml_value_t *print(void *Data, int Count, ml_value_t **Args) {
@@ -55,13 +56,13 @@ int main(int Argc, char **Argv) {
 	ml_init();
 	stringmap_t *Globals = stringmap_new();
 	stringmap_insert(Globals, "print", ml_function(NULL, print));
-	ml_value_t *Value = ml_load(stringmap_search, Globals, "example1.mini");
-	if (ml_is_error(Value)) {
+	ml_value_t *Value = ml_load(ml_getter_t)stringmap_search, Globals, "example1.mini");
+	if (Value->Type == MLErrorT) {
 		ml_error_print(Value);
 		exit(1);
 	}
 	Value = ml_call(Value, 0, NULL);
-	if (ml_is_error(Value)) {
+	if (Value->Type == MLErrorT) {
 		ml_error_print(Value);
 		exit(1);
 	}
@@ -72,15 +73,16 @@ int main(int Argc, char **Argv) {
 
 ```lua
 for X in 1 .. 10 do
-	print('X ')
+	print('{X} ')
 end
 print('done.\n')
 ```
 
 > output
 ```sh
-$ gcc -o example1 example1.c
+$ gcc -o example1 example1.c -lminilang -lgc
 $ ./example1
 1 2 3 4 5 6 7 8 9 10 done.
 $
 ```
+
