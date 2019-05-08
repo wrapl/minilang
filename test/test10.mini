@@ -16,3 +16,9 @@ method(::+, PointT, PointT; A, B) PointT(A:X + B:X, A:Y + B:Y)
 var B := PointT(23, 9.1)
 
 print('{A} + {B} = {A + B}\n')
+
+method(::*, PointT, NumberT; A, N) PointT(A:X * N, A:Y * N)
+method(::*, NumberT, PointT; N, A) PointT(N * A:X, N * A:Y)
+
+print('{A} * 5 = {A * 5}\n')
+print('7.1 * {B} = {7.1 * B}\n')
