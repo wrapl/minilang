@@ -78,7 +78,7 @@ static ml_value_t *ml_object_string(void *Data, int Count, ml_value_t **Args) {
 		ml_stringbuffer_add(Buffer, ": ", 2);
 		ml_inline(AppendMethod, 2, Buffer, Object->Fields[0]);
 		for (int I = 1; I < Class->NumFields; ++I) {
-			ml_stringbuffer_add(Buffer, ",", 1);
+			ml_stringbuffer_add(Buffer, ", ", 2);
 			const char *Name = ml_method_name(Class->Fields[I]);
 			ml_stringbuffer_add(Buffer, Name, strlen(Name));
 			ml_stringbuffer_add(Buffer, ": ", 2);
