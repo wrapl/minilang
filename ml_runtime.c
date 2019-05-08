@@ -59,14 +59,6 @@ ml_value_t *ml_reference(ml_value_t **Address) {
 	return (ml_value_t *)Reference;
 }
 
-void ml_error_trace_add(ml_value_t *Value, ml_source_t Source) {
-	ml_error_t *Error = (ml_error_t *)Value;
-	for (int I = 0; I < MAX_TRACE; ++I) if (!Error->Trace[I].Name) {
-		Error->Trace[I] = Source;
-		return;
-	}
-}
-
 typedef struct ml_suspend_t {
 	const ml_type_t *Type;
 	ml_value_t *Value;
@@ -271,12 +263,10 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_inst_t *Inst) {
 		if (Error->Type != MLErrorT) {
 			return ml_error("InternalError", "expected error value, not %s", Error->Type->Name);
 		}
-		ml_value_t *Value = (ml_value_t *)new(ml_error_t);
-		memcpy(Value, Error, sizeof(ml_error_t));
-		Value->Type = MLErrorValueT;
+		Error->Type = MLErrorValueT;
 		ml_value_t **Top = Frame->Stack + Inst->Params[1].Index;
 		while (Frame->Top > Top) (--Frame->Top)[0] = 0;
-		Frame->Top[-1] = Value;
+		Frame->Top[-1] = Error;
 		Inst = Inst->Params[0].Inst;
 		break;
 	}

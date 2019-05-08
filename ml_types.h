@@ -83,9 +83,16 @@ regex_t *ml_regex_value(ml_value_t *Value);
 
 const char *ml_method_name(ml_value_t *Value);
 
+typedef struct ml_source_t {
+	const char *Name;
+	int Line;
+} ml_source_t;
+
 const char *ml_error_type(ml_value_t *Value);
 const char *ml_error_message(ml_value_t *Value);
 int ml_error_trace(ml_value_t *Value, int Level, const char **Source, int *Line);
+void ml_error_trace_add(ml_value_t *Error, ml_source_t Source);
+void ml_error_print(ml_value_t *Error);
 
 void ml_closure_sha256(ml_value_t *Closure, unsigned char Hash[SHA256_BLOCK_SIZE]);
 

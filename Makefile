@@ -37,7 +37,7 @@ ifeq ($(PLATFORM), Darwin)
 endif
 
 minilang_objects = $(common_objects) $(platform_objects) \
-	ml.o
+	ml_main.o
 
 minilang: Makefile $(minilang_objects) *.h
 	gcc $(minilang_objects) $(LDFLAGS) -o$@

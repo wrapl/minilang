@@ -1317,6 +1317,15 @@ void ml_closure_sha256(ml_value_t *Value, unsigned char Hash[SHA256_BLOCK_SIZE])
 	}
 }
 
+#define MAX_TRACE 16
+
+struct ml_error_t {
+	const ml_type_t *Type;
+	const char *Error;
+	const char *Message;
+	ml_source_t Trace[MAX_TRACE];
+};
+
 ml_type_t MLErrorT[1] = {{
 	MLAnyT, "error",
 	ml_default_hash,
@@ -1382,6 +1391,22 @@ int ml_error_trace(ml_value_t *Value, int Level, const char **Source, int *Line)
 	Source[0] = Error->Trace[Level].Name;
 	Line[0] = Error->Trace[Level].Line;
 	return 1;
+}
+
+void ml_error_trace_add(ml_value_t *Value, ml_source_t Source) {
+	ml_error_t *Error = (ml_error_t *)Value;
+	for (int I = 0; I < MAX_TRACE; ++I) if (!Error->Trace[I].Name) {
+		Error->Trace[I] = Source;
+		return;
+	}
+}
+
+void ml_error_print(ml_value_t *Value) {
+	ml_error_t *Error = (ml_error_t *)Value;
+	printf("Error: %s\n", Error->Message);
+	for (int I = 0; (I < MAX_TRACE) && Error->Trace[I].Name; ++I) {
+		printf("\t%s:%d\n", Error->Trace[I].Name, Error->Trace[I].Line);
+	}
 }
 
 struct ml_stringbuffer_node_t {
