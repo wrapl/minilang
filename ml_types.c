@@ -76,6 +76,11 @@ ml_type_t MLTypeT[1] = {{
 	ml_default_key
 }};
 
+static ml_value_t *ml_type_to_string(void *Data, int Count, ml_value_t **Args) {
+	ml_type_t *Type = (ml_type_t *)Args[0];
+	return ml_string_format("<%s>", Type->Name);
+}
+
 static ml_value_t *ml_nil_to_string(void *Data, int Count, ml_value_t **Args) {
 	return ml_string("nil", 3);
 }
@@ -119,7 +124,7 @@ long ml_hash(ml_value_t *Value) {
 	return Value->Type->hash(Value);
 }
 
-int ml_is(ml_value_t *Value, ml_type_t *Expected) {
+int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
 	const ml_type_t *Type = Value->Type;
 	while (Type) {
 		if (Type == Expected) return 1;
@@ -617,6 +622,17 @@ ml_value_t *ml_string(const char *Value, int Length) {
 	return (ml_value_t *)String;
 }
 
+ml_value_t *ml_string_format(const char *Format, ...) {
+	ml_string_t *String = fnew(ml_string_t);
+	String->Type = MLStringT;
+	va_list Args;
+	va_start(Args, Format);
+	String->Length = vasprintf((char **)&String->Value, Format, Args);
+	va_end(Args);
+	GC_end_stubborn_change(String);
+	return (ml_value_t *)String;
+}
+
 int ml_is_string(ml_value_t *Value) {
 	return Value->Type == MLStringT;
 }
@@ -695,7 +711,7 @@ const char *ml_method_name(ml_value_t *Value) {
 static long ml_method_hash(ml_value_t *Value) {
 	ml_method_t *Method = (ml_method_t *)Value;
 	long Hash = 5381;
-	for (const char *P = Method->Name;P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
+	for (const char *P = Method->Name; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
 	return Hash;
 }
 
@@ -875,6 +891,14 @@ void ml_method_by_value(ml_value_t *Value, void *Data, ml_callback_t Callback, .
 	va_end(Args);
 	Table->Data = Data;
 	Table->Callback = Callback;
+}
+
+void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_type_t **Types) {
+	ml_method_t *Method = (ml_method_t *)Value;
+	ml_method_table_t *Table = Method->Table;
+	for (int I = 0; I < Count; ++I) Table = ml_method_insert(Table, Types[I]);
+	Table->Data = Function;
+	Table->Callback = (ml_callback_t)ml_call;
 }
 
 int ml_list_length(ml_value_t *Value) {
@@ -2420,6 +2444,7 @@ void ml_init() {
 	ml_method_by_name("[]", NULL, ml_tree_index, MLTreeT, MLAnyT, NULL);
 	ml_method_by_name("delete", NULL, ml_tree_delete, MLTreeT, NULL);
 	ml_method_by_name("+", NULL, ml_tree_add, MLTreeT, MLTreeT, NULL);
+	ml_method_by_name("string", NULL, ml_type_to_string, MLNilT, NULL);
 	ml_method_by_name("string", NULL, ml_nil_to_string, MLNilT, NULL);
 	ml_method_by_name("string", NULL, ml_some_to_string, MLSomeT, NULL);
 	ml_method_by_name("string", NULL, ml_integer_to_string, MLIntegerT, NULL);

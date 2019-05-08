@@ -3,6 +3,7 @@
 #include "ml_compiler.h"
 #include "ml_macros.h"
 #include "ml_file.h"
+#include "ml_object.h"
 #include "stringmap.h"
 #include <stdio.h>
 #include <gc.h>
@@ -42,6 +43,7 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "open", ml_function(0, ml_file_open));
 	stringmap_insert(Globals, "debug", ml_function(0, debug));
 	ml_init(global_get);
+	ml_object_init(Globals);
 	const char *FileName = 0;
 	for (int I = 1; I < Argc; ++I) {
 	if (Argv[I][0] == '-') {

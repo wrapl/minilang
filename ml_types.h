@@ -63,8 +63,10 @@ ml_type_t *ml_type(ml_type_t *Parent, const char *Name);
 
 void ml_method_by_name(const char *Method, void *Data, ml_callback_t Function, ...) __attribute__ ((sentinel));
 void ml_method_by_value(ml_value_t *Method, void *Data, ml_callback_t Function, ...) __attribute__ ((sentinel));
+void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_type_t **Types);
 
 ml_value_t *ml_string(const char *Value, int Length);
+ml_value_t *ml_string_format(const char *Format, ...);
 ml_value_t *ml_regex(const char *Value);
 ml_value_t *ml_integer(long Value);
 ml_value_t *ml_real(double Value);
@@ -135,7 +137,7 @@ extern ml_type_t MLIteratableT[];
 extern ml_value_t MLNil[];
 extern ml_value_t MLSome[];
 
-int ml_is(ml_value_t *Value, ml_type_t *Type);
+int ml_is(const ml_value_t *Value, const ml_type_t *Type);
 
 #define ML_STRINGBUFFER_NODE_SIZE 248
 
@@ -174,7 +176,7 @@ struct ml_list_node_t {
 #define ml_list_tail(List) ((ml_list_t *)List)->Tail
 
 #define ML_CHECK_ARG_TYPE(N, TYPE) \
-	if (Args[N]->Type != TYPE) return ml_error("TypeError", "%s required", TYPE->Name);
+	if (!ml_is(Args[N], TYPE)) return ml_error("TypeError", "%s required", TYPE->Name);
 
 #define ML_CHECK_ARG_COUNT(N) \
 	if (Count < N) return ml_error("CallError", "%d arguments required", N);

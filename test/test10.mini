@@ -1,0 +1,18 @@
+var PointT := object(:X, :Y)
+
+var A := PointT(10, 20)
+
+print('A:X = {A:X}\n')
+print('A = {A}\n')
+
+A:Y := 200
+
+method(:string, PointT; P) 'point({P:X}, {P:Y})'
+
+print('A = {A}\n')
+
+method(::+, PointT, PointT; A, B) PointT(A:X + B:X, A:Y + B:Y)
+
+var B := PointT(23, 9.1)
+
+print('{A} + {B} = {A + B}\n')

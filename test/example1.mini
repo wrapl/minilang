@@ -1,0 +1,4 @@
+for X in 1 .. 10 do
+	print('{X} ')
+end
+print('done.\n')
