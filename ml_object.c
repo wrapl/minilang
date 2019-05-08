@@ -79,10 +79,10 @@ static ml_value_t *ml_object_string(void *Data, int Count, ml_value_t **Args) {
 		ml_inline(AppendMethod, 2, Buffer, Object->Fields[0]);
 		for (int I = 1; I < Class->NumFields; ++I) {
 			ml_stringbuffer_add(Buffer, ",", 1);
-			const char *Name = ml_method_name(Class->Fields[0]);
+			const char *Name = ml_method_name(Class->Fields[I]);
 			ml_stringbuffer_add(Buffer, Name, strlen(Name));
 			ml_stringbuffer_add(Buffer, ": ", 2);
-			ml_inline(AppendMethod, 2, Buffer, Object->Fields[0]);
+			ml_inline(AppendMethod, 2, Buffer, Object->Fields[I]);
 		}
 		ml_stringbuffer_add(Buffer, ")", 1);
 		return ml_stringbuffer_get_string(Buffer);
