@@ -1,8 +1,6 @@
 #ifndef ML_INTERNAL_H
 #define ML_INTERNAL_H
 
-#include "ml_runtime.h"
-
 typedef struct ml_frame_t ml_frame_t;
 typedef struct ml_inst_t ml_inst_t;
 

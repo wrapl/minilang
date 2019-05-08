@@ -3,8 +3,8 @@
 
 #include <setjmp.h>
 
-#include "ml_runtime.h"
 #include "stringmap.h"
+#include "ml_types.h"
 
 #ifdef	__cplusplus
 extern "C" {
