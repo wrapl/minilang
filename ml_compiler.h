@@ -3,8 +3,8 @@
 
 #include <setjmp.h>
 
-#include "ml_runtime.h"
 #include "stringmap.h"
+#include "ml_types.h"
 
 #ifdef	__cplusplus
 extern "C" {
@@ -30,6 +30,8 @@ mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner);
 mlc_expr_t *ml_accept_command(mlc_scanner_t *Scanner, stringmap_t *Vars);
 
 extern int MLDebugClosures;
+
+void ml_closure_debug(ml_value_t *Value);
 
 #ifdef	__cplusplus
 }

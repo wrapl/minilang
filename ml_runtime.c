@@ -1,5 +1,4 @@
 #include "minilang.h"
-#include "ml_runtime.h"
 #include "ml_internal.h"
 #include "ml_macros.h"
 #include "stringmap.h"
@@ -34,6 +33,7 @@ static ml_value_t *ml_reference_assign(ml_value_t *Ref, ml_value_t *Value) {
 }
 
 ml_type_t MLReferenceT[1] = {{
+	MLTypeT,
 	MLAnyT, "reference",
 	ml_default_hash,
 	ml_default_call,
@@ -59,14 +59,6 @@ ml_value_t *ml_reference(ml_value_t **Address) {
 	return (ml_value_t *)Reference;
 }
 
-void ml_error_trace_add(ml_value_t *Value, ml_source_t Source) {
-	ml_error_t *Error = (ml_error_t *)Value;
-	for (int I = 0; I < MAX_TRACE; ++I) if (!Error->Trace[I].Name) {
-		Error->Trace[I] = Source;
-		return;
-	}
-}
-
 typedef struct ml_suspend_t {
 	const ml_type_t *Type;
 	ml_value_t *Value;
@@ -86,6 +78,7 @@ static ml_value_t *ml_suspend_next(ml_suspend_t *Suspend) {
 }
 
 ml_type_t MLSuspendT[1] = {{
+	MLTypeT,
 	MLAnyT, "suspend",
 	ml_default_hash,
 	ml_default_call,
@@ -172,6 +165,7 @@ static ml_value_t *ml_closure_iterate(ml_value_t *Closure) {
 }
 
 ml_type_t MLClosureT[1] = {{
+	MLTypeT,
 	MLFunctionT, "closure",
 	ml_closure_hash,
 	ml_closure_call,
@@ -271,12 +265,10 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_inst_t *Inst) {
 		if (Error->Type != MLErrorT) {
 			return ml_error("InternalError", "expected error value, not %s", Error->Type->Name);
 		}
-		ml_value_t *Value = (ml_value_t *)new(ml_error_t);
-		memcpy(Value, Error, sizeof(ml_error_t));
-		Value->Type = MLErrorValueT;
+		Error->Type = MLErrorValueT;
 		ml_value_t **Top = Frame->Stack + Inst->Params[1].Index;
 		while (Frame->Top > Top) (--Frame->Top)[0] = 0;
-		Frame->Top[-1] = Value;
+		Frame->Top[-1] = Error;
 		Inst = Inst->Params[0].Inst;
 		break;
 	}

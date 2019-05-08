@@ -1,5 +1,4 @@
 #include "minilang.h"
-#include "ml_runtime.h"
 #include "ml_internal.h"
 #include "ml_macros.h"
 #include "sha256.h"
@@ -51,6 +50,7 @@ ml_value_t *CompareMethod;
 ml_value_t *AppendMethod;
 
 ml_type_t MLAnyT[1] = {{
+	MLTypeT,
 	NULL, "any",
 	ml_default_hash,
 	ml_default_call,
@@ -62,11 +62,30 @@ ml_type_t MLAnyT[1] = {{
 	ml_default_key
 }};
 
+ml_type_t MLTypeT[1] = {{
+	MLTypeT,
+	NULL, "type",
+	ml_default_hash,
+	ml_default_call,
+	ml_default_deref,
+	ml_default_assign,
+	ml_default_iterate,
+	ml_default_current,
+	ml_default_next,
+	ml_default_key
+}};
+
+static ml_value_t *ml_type_to_string(void *Data, int Count, ml_value_t **Args) {
+	ml_type_t *Type = (ml_type_t *)Args[0];
+	return ml_string_format("<%s>", Type->Name);
+}
+
 static ml_value_t *ml_nil_to_string(void *Data, int Count, ml_value_t **Args) {
 	return ml_string("nil", 3);
 }
 
 ml_type_t MLNilT[1] = {{
+	MLTypeT,
 	MLAnyT, "nil",
 	ml_default_hash,
 	ml_default_call,
@@ -85,6 +104,7 @@ static ml_value_t *ml_some_to_string(void *Data, int Count, ml_value_t **Args) {
 }
 
 ml_type_t MLSomeT[1] = {{
+	MLTypeT,
 	MLAnyT, "nil",
 	ml_default_hash,
 	ml_default_call,
@@ -103,7 +123,7 @@ long ml_hash(ml_value_t *Value) {
 	return Value->Type->hash(Value);
 }
 
-int ml_is(ml_value_t *Value, ml_type_t *Expected) {
+int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
 	const ml_type_t *Type = Value->Type;
 	while (Type) {
 		if (Type == Expected) return 1;
@@ -136,6 +156,7 @@ static ml_value_t *ml_function_iterate(ml_function_t *Function) {
 }
 
 ml_type_t MLFunctionT[1] = {{
+	MLTypeT,
 	MLIteratableT, "function",
 	ml_default_hash,
 	(void *)ml_function_call,
@@ -184,6 +205,7 @@ static ml_value_t *ml_partial_function_iterate(ml_partial_function_t *Partial) {
 }
 
 ml_type_t MLPartialFunctionT[1] = {{
+	MLTypeT,
 	MLFunctionT, "partial-function",
 	ml_default_hash,
 	(void *)ml_partial_function_call,
@@ -207,6 +229,7 @@ static ml_value_t *ml_function_partial_apply(void *Data, int Count, ml_value_t *
 }
 
 ml_type_t MLNumberT[1] = {{
+	MLTypeT,
 	MLAnyT, "number",
 	ml_default_hash,
 	ml_default_call,
@@ -254,6 +277,7 @@ static ml_value_t *ml_integer_call(ml_integer_t *Value, int Count, ml_value_t **
 }
 
 ml_type_t MLIntegerT[1] = {{
+	MLTypeT,
 	MLNumberT, "integer",
 	ml_integer_hash,
 	(void *)ml_integer_call,
@@ -287,6 +311,7 @@ static long ml_real_hash(ml_value_t *Value) {
 }
 
 ml_type_t MLRealT[1] = {{
+	MLTypeT,
 	MLNumberT, "real",
 	ml_real_hash,
 	ml_default_call,
@@ -575,6 +600,7 @@ ml_value_t *ml_string_regex_function_replace(void *Data, int Count, ml_value_t *
 }
 
 ml_type_t MLStringT[1] = {{
+	MLTypeT,
 	MLAnyT, "string",
 	ml_string_hash,
 	ml_default_call,
@@ -591,6 +617,17 @@ ml_value_t *ml_string(const char *Value, int Length) {
 	String->Type = MLStringT;
 	String->Value = Value;
 	String->Length = Length >= 0 ? Length : strlen(Value);
+	GC_end_stubborn_change(String);
+	return (ml_value_t *)String;
+}
+
+ml_value_t *ml_string_format(const char *Format, ...) {
+	ml_string_t *String = fnew(ml_string_t);
+	String->Type = MLStringT;
+	va_list Args;
+	va_start(Args, Format);
+	String->Length = vasprintf((char **)&String->Value, Format, Args);
+	va_end(Args);
 	GC_end_stubborn_change(String);
 	return (ml_value_t *)String;
 }
@@ -614,6 +651,7 @@ static long ml_regex_hash(ml_value_t *Value) {
 }
 
 ml_type_t MLRegexT[1] = {{
+	MLTypeT,
 	MLAnyT, "regex",
 	ml_regex_hash,
 	ml_default_call,
@@ -672,7 +710,7 @@ const char *ml_method_name(ml_value_t *Value) {
 static long ml_method_hash(ml_value_t *Value) {
 	ml_method_t *Method = (ml_method_t *)Value;
 	long Hash = 5381;
-	for (const char *P = Method->Name;P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
+	for (const char *P = Method->Name; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
 	return Hash;
 }
 
@@ -725,6 +763,7 @@ ml_value_t *ml_method_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 }
 
 ml_type_t MLMethodT[1] = {{
+	MLTypeT,
 	MLFunctionT, "method",
 	ml_method_hash,
 	ml_method_call,
@@ -853,6 +892,14 @@ void ml_method_by_value(ml_value_t *Value, void *Data, ml_callback_t Callback, .
 	Table->Callback = Callback;
 }
 
+void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_type_t **Types) {
+	ml_method_t *Method = (ml_method_t *)Value;
+	ml_method_table_t *Table = Method->Table;
+	for (int I = 0; I < Count; ++I) Table = ml_method_insert(Table, Types[I]);
+	Table->Data = Function;
+	Table->Callback = (ml_callback_t)ml_call;
+}
+
 int ml_list_length(ml_value_t *Value) {
 	return ((ml_list_t *)Value)->Length;
 }
@@ -929,6 +976,7 @@ static ml_value_t *ml_list_slice(void *Data, int Count, ml_value_t **Args) {
 static ml_value_t *ml_list_iterate(ml_value_t *Value);
 
 ml_type_t MLListT[1] = {{
+	MLTypeT,
 	MLAnyT, "list",
 	ml_default_hash,
 	ml_default_call,
@@ -1210,6 +1258,7 @@ static ml_value_t *ml_tree_delete(void *Data, int Count, ml_value_t **Args) {
 static ml_value_t *ml_tree_iterate(ml_value_t *Value);
 
 ml_type_t MLTreeT[1] = {{
+	MLTypeT,
 	MLAnyT, "tree",
 	ml_default_hash,
 	ml_default_call,
@@ -1285,6 +1334,7 @@ static ml_value_t *ml_property_iterate(ml_value_t *Value) {
 }
 
 ml_type_t MLPropertyT[1] = {{
+	MLTypeT,
 	MLAnyT, "property",
 	ml_default_hash,
 	ml_default_call,
@@ -1317,7 +1367,17 @@ void ml_closure_sha256(ml_value_t *Value, unsigned char Hash[SHA256_BLOCK_SIZE])
 	}
 }
 
+#define MAX_TRACE 16
+
+struct ml_error_t {
+	const ml_type_t *Type;
+	const char *Error;
+	const char *Message;
+	ml_source_t Trace[MAX_TRACE];
+};
+
 ml_type_t MLErrorT[1] = {{
+	MLTypeT,
 	MLAnyT, "error",
 	ml_default_hash,
 	ml_default_call,
@@ -1330,6 +1390,7 @@ ml_type_t MLErrorT[1] = {{
 }};
 
 ml_type_t MLErrorValueT[1] = {{
+	MLTypeT,
 	MLErrorT, "error_value",
 	ml_default_hash,
 	ml_default_call,
@@ -1382,6 +1443,22 @@ int ml_error_trace(ml_value_t *Value, int Level, const char **Source, int *Line)
 	Source[0] = Error->Trace[Level].Name;
 	Line[0] = Error->Trace[Level].Line;
 	return 1;
+}
+
+void ml_error_trace_add(ml_value_t *Value, ml_source_t Source) {
+	ml_error_t *Error = (ml_error_t *)Value;
+	for (int I = 0; I < MAX_TRACE; ++I) if (!Error->Trace[I].Name) {
+		Error->Trace[I] = Source;
+		return;
+	}
+}
+
+void ml_error_print(ml_value_t *Value) {
+	ml_error_t *Error = (ml_error_t *)Value;
+	printf("Error: %s\n", Error->Message);
+	for (int I = 0; (I < MAX_TRACE) && Error->Trace[I].Name; ++I) {
+		printf("\t%s:%d\n", Error->Trace[I].Name, Error->Trace[I].Line);
+	}
 }
 
 struct ml_stringbuffer_node_t {
@@ -1515,6 +1592,7 @@ ml_value_t *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) {
 }
 
 ml_type_t MLStringBufferT[1] = {{
+	MLTypeT,
 	MLAnyT, "stringbuffer",
 	ml_default_hash,
 	ml_default_call,
@@ -1753,6 +1831,7 @@ static ml_value_t *ml_integer_iter_next(ml_integer_iter_t *Iter) {
 }
 
 ml_type_t MLIntegerIterT[1] = {{
+	MLTypeT,
 	MLAnyT, "integer-iter",
 	ml_default_hash,
 	ml_default_call,
@@ -1780,6 +1859,7 @@ static ml_value_t *ml_integer_range_iterate(ml_value_t *Value) {
 }
 
 ml_type_t MLIntegerRangeT[1] = {{
+	MLTypeT,
 	MLIteratableT, "integer-range",
 	ml_default_hash,
 	ml_default_call,
@@ -1882,6 +1962,7 @@ static ml_value_t *ml_list_iter_key(ml_list_iter_t *Iter) {
 }
 
 ml_type_t MLListIterT[1] = {{
+	MLTypeT,
 	MLAnyT, "list-iterator",
 	ml_default_hash,
 	ml_default_call,
@@ -2058,6 +2139,7 @@ static ml_value_t *ml_tree_iter_key(ml_tree_iter_t *Iter) {
 }
 
 ml_type_t MLTreeIterT[1] = {{
+	MLTypeT,
 	MLAnyT, "tree-iterator",
 	ml_default_hash,
 	ml_default_call,
@@ -2176,6 +2258,7 @@ static ml_value_t *ml_closure_partial_apply(void *Data, int Count, ml_value_t **
 }
 
 ml_type_t MLIteratableT[1] = {{
+	MLTypeT,
 	MLAnyT, "iterator",
 	ml_default_hash,
 	ml_default_call,
@@ -2223,6 +2306,7 @@ static ml_value_t *ml_composed_iter_key(ml_composed_iter_t *Iter) {
 }
 
 ml_type_t MLComposedIterT[1] = {{
+	MLTypeT,
 	MLAnyT, "composed-iter",
 	ml_default_hash,
 	ml_default_call,
@@ -2266,6 +2350,7 @@ static ml_value_t *ml_composed_iterate(ml_composed_t *Composed) {
 }
 
 ml_type_t MLComposedT[1] = {{
+	MLTypeT,
 	MLIteratableT, "composed",
 	ml_default_hash,
 	ml_default_call,
@@ -2358,6 +2443,7 @@ void ml_init() {
 	ml_method_by_name("[]", NULL, ml_tree_index, MLTreeT, MLAnyT, NULL);
 	ml_method_by_name("delete", NULL, ml_tree_delete, MLTreeT, NULL);
 	ml_method_by_name("+", NULL, ml_tree_add, MLTreeT, MLTreeT, NULL);
+	ml_method_by_name("string", NULL, ml_type_to_string, MLNilT, NULL);
 	ml_method_by_name("string", NULL, ml_nil_to_string, MLNilT, NULL);
 	ml_method_by_name("string", NULL, ml_some_to_string, MLSomeT, NULL);
 	ml_method_by_name("string", NULL, ml_integer_to_string, MLIntegerT, NULL);
@@ -2400,6 +2486,7 @@ void ml_init() {
 
 ml_type_t *ml_type(ml_type_t *Parent, const char *Name) {
 	ml_type_t *Type = new(ml_type_t);
+	Type->Type = MLTypeT;
 	Type->Parent = Parent;
 	Type->Name = Name;
 	Type->hash = Parent->hash;

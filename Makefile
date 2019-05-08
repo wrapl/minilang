@@ -24,7 +24,8 @@ common_objects = \
 	ml_file.o \
 	sha256.o \
 	stringmap.o \
-	ml_console.o
+	ml_console.o \
+	ml_object.o
 
 platform_objects =
 
@@ -37,7 +38,7 @@ ifeq ($(PLATFORM), Darwin)
 endif
 
 minilang_objects = $(common_objects) $(platform_objects) \
-	ml.o
+	ml_main.o
 
 minilang: Makefile $(minilang_objects) *.h
 	gcc $(minilang_objects) $(LDFLAGS) -o$@
@@ -68,7 +69,7 @@ install_h = \
 	$(install_include)/ml_file.h \
 	$(install_include)/ml_macros.h \
 	$(install_include)/ml_types.h \
-	$(install_include)/ml_runtime.h \
+	$(install_include)/ml_object.h \
 	$(install_include)/ml_compiler.h \
 	$(install_include)/sha256.h \
 	$(install_include)/stringmap.h

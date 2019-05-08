@@ -29,7 +29,12 @@ typedef struct ml_closure_t ml_closure_t;
 typedef struct ml_method_t ml_method_t;
 typedef struct ml_error_t ml_error_t;
 
+struct ml_value_t {
+	const ml_type_t *Type;
+};
+
 struct ml_type_t {
+	const ml_type_t *Type;
 	const ml_type_t *Parent;
 	const char *Name;
 	long (*hash)(ml_value_t *);
@@ -40,10 +45,6 @@ struct ml_type_t {
 	ml_value_t *(*current)(ml_value_t *);
 	ml_value_t *(*next)(ml_value_t *);
 	ml_value_t *(*key)(ml_value_t *);
-};
-
-struct ml_value_t {
-	const ml_type_t *Type;
 };
 
 struct ml_function_t {
@@ -62,8 +63,10 @@ ml_type_t *ml_type(ml_type_t *Parent, const char *Name);
 
 void ml_method_by_name(const char *Method, void *Data, ml_callback_t Function, ...) __attribute__ ((sentinel));
 void ml_method_by_value(ml_value_t *Method, void *Data, ml_callback_t Function, ...) __attribute__ ((sentinel));
+void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_type_t **Types);
 
 ml_value_t *ml_string(const char *Value, int Length);
+ml_value_t *ml_string_format(const char *Format, ...);
 ml_value_t *ml_regex(const char *Value);
 ml_value_t *ml_integer(long Value);
 ml_value_t *ml_real(double Value);
@@ -83,9 +86,16 @@ regex_t *ml_regex_value(ml_value_t *Value);
 
 const char *ml_method_name(ml_value_t *Value);
 
+typedef struct ml_source_t {
+	const char *Name;
+	int Line;
+} ml_source_t;
+
 const char *ml_error_type(ml_value_t *Value);
 const char *ml_error_message(ml_value_t *Value);
 int ml_error_trace(ml_value_t *Value, int Level, const char **Source, int *Line);
+void ml_error_trace_add(ml_value_t *Error, ml_source_t Source);
+void ml_error_print(ml_value_t *Error);
 
 void ml_closure_sha256(ml_value_t *Closure, unsigned char Hash[SHA256_BLOCK_SIZE]);
 
@@ -106,6 +116,7 @@ ml_value_t *ml_default_next(ml_value_t *Iter);
 ml_value_t *ml_default_key(ml_value_t *Iter);
 
 extern ml_type_t MLAnyT[];
+extern ml_type_t MLTypeT[];
 extern ml_type_t MLNilT[];
 extern ml_type_t MLFunctionT[];
 extern ml_type_t MLNumberT[];
@@ -126,7 +137,7 @@ extern ml_type_t MLIteratableT[];
 extern ml_value_t MLNil[];
 extern ml_value_t MLSome[];
 
-int ml_is(ml_value_t *Value, ml_type_t *Type);
+int ml_is(const ml_value_t *Value, const ml_type_t *Type);
 
 #define ML_STRINGBUFFER_NODE_SIZE 248
 
@@ -165,7 +176,7 @@ struct ml_list_node_t {
 #define ml_list_tail(List) ((ml_list_t *)List)->Tail
 
 #define ML_CHECK_ARG_TYPE(N, TYPE) \
-	if (Args[N]->Type != TYPE) return ml_error("TypeError", "%s required", TYPE->Name);
+	if (!ml_is(Args[N], TYPE)) return ml_error("TypeError", "%s required", TYPE->Name);
 
 #define ML_CHECK_ARG_COUNT(N) \
 	if (Count < N) return ml_error("CallError", "%d arguments required", N);

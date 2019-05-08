@@ -15,6 +15,8 @@ struct stringmap_t {
 
 #define STRINGMAP_INIT {0,}
 
+stringmap_t *stringmap_new();
+
 void *stringmap_search(stringmap_t *Tree, const char *Key);
 void *stringmap_insert(stringmap_t *Tree, const char *Key, void *Value);
 void *stringmap_remove(stringmap_t *Tree, const char *Key);
