@@ -123,9 +123,26 @@ static ml_value_t *ml_method_fn(void *Data, int Count, ml_value_t **Args) {
 	return Args[Count - 1];
 }
 
+static ml_value_t *ml_class_subclass(void *Data, int Count, ml_value_t **Args) {
+	ml_class_t *Parent = (ml_class_t *)Args[0];
+	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLMethodT);
+	ml_class_t *Class = xnew(ml_class_t, Parent->NumFields + Count - 1, ml_method_t *);
+	Class->Base = MLTypeT[0];
+	Class->Base.Type = MLClassT;
+	Class->Base.Parent = (ml_type_t *)Parent;
+	Class->Base.Name = "object";
+	Class->NumFields = Parent->NumFields + Count - 1;
+	memcpy(Class->Fields, Parent->Fields, Parent->NumFields * sizeof(ml_value_t *));
+	for (int I = 1; I < Count; ++I) Class->Fields[Parent->NumFields + I - 1] = Args[I];
+	for (int I = 0; I < Class->NumFields; ++I) {
+		ml_method_by_value(Class->Fields[I], ((ml_object_t *)0)->Fields + I, ml_field_fn, Class, NULL);
+	}
+	return (ml_value_t *)Class;
+}
+
 void ml_object_init(stringmap_t *Globals) {
 	if (Globals) {
-		stringmap_insert(Globals, "object", ml_function(NULL, ml_class_fn));
+		stringmap_insert(Globals, "class", ml_function(NULL, ml_class_fn));
 		stringmap_insert(Globals, "method", ml_function(NULL, ml_method_fn));
 		stringmap_insert(Globals, "AnyT", MLAnyT);
 		stringmap_insert(Globals, "TypeT", MLTypeT);
@@ -143,4 +160,5 @@ void ml_object_init(stringmap_t *Globals) {
 	StringMethod = ml_method("string");
 	ml_method_by_value(AppendMethod, NULL, ml_object_append, MLStringBufferT, MLObjectT, NULL);
 	ml_method_by_value(StringMethod, NULL, ml_object_string, MLObjectT, NULL);
+	ml_method_by_name("subclass", NULL, ml_class_subclass, MLClassT, NULL);
 }

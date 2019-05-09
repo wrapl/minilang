@@ -1,4 +1,4 @@
-var PointT := object(:X, :Y)
+var PointT := class(:X, :Y)
 
 var A := PointT(10, 20)
 
@@ -22,3 +22,13 @@ method(::*, NumberT, PointT; N, A) PointT(N * A:X, N * A:Y)
 
 print('{A} * 5 = {A * 5}\n')
 print('7.1 * {B} = {7.1 * B}\n')
+
+var VectorT := PointT:subclass(:Z)
+
+var C := VectorT(1, 2, 3)
+
+print('C = {C}\n')
+
+method(:string, VectorT; V) 'vector({V:X}, {V:Y}, {V:Z})'
+
+print('C = {C}\n')
