@@ -24,6 +24,7 @@ common_objects = \
 	ml_file.o \
 	sha256.o \
 	stringmap.o \
+	pointerset.o \
 	ml_console.o \
 	ml_object.o
 

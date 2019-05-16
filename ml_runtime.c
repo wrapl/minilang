@@ -90,12 +90,27 @@ ml_type_t MLSuspendT[1] = {{
 	ml_default_key
 }};
 
-static long ml_closure_hash(ml_value_t *Value) {
+void ml_closure_sha256(ml_value_t *Value, unsigned char Hash[SHA256_BLOCK_SIZE]) {
+	ml_closure_t *Closure = (ml_closure_t *)Value;
+	memcpy(Hash, Closure->Info->Hash, SHA256_BLOCK_SIZE);
+	for (int I = 0; I < Closure->Info->NumUpValues; ++I) {
+		long ValueHash = ml_hash(Closure->UpValues[I]);
+		*(long *)(Hash + (I % 16)) ^= ValueHash;
+	}
+}
+
+static long ml_closure_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
+	for (ml_hash_chain_t *Link = Chain; Link; Link = Link->Previous) {
+		if (Link->Value == Value) return Link->Index;
+	}
+	ml_hash_chain_t NewChain[1] = {{Chain, Value, Chain ? Chain->Index + 1 : 1}};
 	ml_closure_t *Closure = (ml_closure_t *)Value;
 	long Hash = *(long *)Closure->Info->Hash;
-	/*for (int I = 0; I < Closure->Info->NumUpValues; ++I) {
-		Hash ^= ml_hash(Closure->UpValues[I]) << I;
-	}*/
+	for (int I = 0; I < Closure->Info->NumUpValues; ++I) {
+		ml_value_t *UpValue = Closure->UpValues[I];
+		UpValue = UpValue->Type->deref(UpValue);
+		Hash ^= UpValue->Type->hash(UpValue, NewChain) << I;
+	}
 	return Hash;
 }
 

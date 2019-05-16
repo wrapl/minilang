@@ -8,6 +8,7 @@ extern "C" {
 #endif
 
 #include "sha256.h"
+#include "pointerset.h"
 
 typedef struct ml_type_t ml_type_t;
 typedef struct ml_value_t ml_value_t;
@@ -33,11 +34,19 @@ struct ml_value_t {
 	const ml_type_t *Type;
 };
 
+typedef struct ml_hash_link_t ml_hash_chain_t;
+
+struct ml_hash_link_t {
+	ml_hash_chain_t *Previous;
+	ml_value_t *Value;
+	long Index;
+};
+
 struct ml_type_t {
 	const ml_type_t *Type;
 	const ml_type_t *Parent;
 	const char *Name;
-	long (*hash)(ml_value_t *);
+	long (*hash)(ml_value_t *, ml_hash_chain_t *);
 	ml_value_t *(*call)(ml_value_t *, int, ml_value_t **);
 	ml_value_t *(*deref)(ml_value_t *);
 	ml_value_t *(*assign)(ml_value_t *, ml_value_t *);
@@ -106,7 +115,7 @@ int ml_list_foreach(ml_value_t *List, void *Data, int (*callback)(ml_value_t *, 
 
 int ml_tree_foreach(ml_value_t *Tree, void *Data, int (*callback)(ml_value_t *, ml_value_t *, void *));
 
-long ml_default_hash(ml_value_t *Value);
+long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain);
 ml_value_t *ml_default_call(ml_value_t *Value, int Count, ml_value_t **Args);
 ml_value_t *ml_default_deref(ml_value_t *Ref);
 ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value);
