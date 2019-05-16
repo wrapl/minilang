@@ -123,6 +123,11 @@ static ml_value_t *ml_method_fn(void *Data, int Count, ml_value_t **Args) {
 	return Args[Count - 1];
 }
 
+static ml_value_t *ml_type_fn(void *Data, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	return (ml_value_t *)Args[0]->Type;
+}
+
 static ml_value_t *ml_class_subclass(void *Data, int Count, ml_value_t **Args) {
 	ml_class_t *Parent = (ml_class_t *)Args[0];
 	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLMethodT);
@@ -144,6 +149,7 @@ void ml_object_init(stringmap_t *Globals) {
 	if (Globals) {
 		stringmap_insert(Globals, "class", ml_function(NULL, ml_class_fn));
 		stringmap_insert(Globals, "method", ml_function(NULL, ml_method_fn));
+		stringmap_insert(Globals, "type", ml_function(NULL, ml_type_fn));
 		stringmap_insert(Globals, "AnyT", MLAnyT);
 		stringmap_insert(Globals, "TypeT", MLTypeT);
 		stringmap_insert(Globals, "NilT", MLNilT);
