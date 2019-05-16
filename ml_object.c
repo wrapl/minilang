@@ -145,11 +145,15 @@ static ml_value_t *ml_class_subclass(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)Class;
 }
 
+static ml_value_t *ml_type_member(void *Data, int Count, ml_value_t **Args) {
+	if (ml_is(Args[1], (ml_type_t *)Args[0])) return Args[1];
+	return MLNil;
+}
+
 void ml_object_init(stringmap_t *Globals) {
 	if (Globals) {
 		stringmap_insert(Globals, "class", ml_function(NULL, ml_class_fn));
 		stringmap_insert(Globals, "method", ml_function(NULL, ml_method_fn));
-		stringmap_insert(Globals, "type", ml_function(NULL, ml_type_fn));
 		stringmap_insert(Globals, "AnyT", MLAnyT);
 		stringmap_insert(Globals, "TypeT", MLTypeT);
 		stringmap_insert(Globals, "NilT", MLNilT);
@@ -167,4 +171,5 @@ void ml_object_init(stringmap_t *Globals) {
 	ml_method_by_value(AppendMethod, NULL, ml_object_append, MLStringBufferT, MLObjectT, NULL);
 	ml_method_by_value(StringMethod, NULL, ml_object_string, MLObjectT, NULL);
 	ml_method_by_name("subclass", NULL, ml_class_subclass, MLClassT, NULL);
+	ml_method_by_name(">-", NULL, ml_type_member, MLTypeT, MLAnyT, NULL);
 }
