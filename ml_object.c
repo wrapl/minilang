@@ -123,6 +123,11 @@ static ml_value_t *ml_method_fn(void *Data, int Count, ml_value_t **Args) {
 	return Args[Count - 1];
 }
 
+static ml_value_t *ml_type_fn(void *Data, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	return (ml_value_t *)Args[0]->Type;
+}
+
 static ml_value_t *ml_class_subclass(void *Data, int Count, ml_value_t **Args) {
 	ml_class_t *Parent = (ml_class_t *)Args[0];
 	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLMethodT);
@@ -138,6 +143,11 @@ static ml_value_t *ml_class_subclass(void *Data, int Count, ml_value_t **Args) {
 		ml_method_by_value(Class->Fields[I], ((ml_object_t *)0)->Fields + I, ml_field_fn, Class, NULL);
 	}
 	return (ml_value_t *)Class;
+}
+
+static ml_value_t *ml_type_member(void *Data, int Count, ml_value_t **Args) {
+	if (ml_is(Args[1], (ml_type_t *)Args[0])) return Args[1];
+	return MLNil;
 }
 
 void ml_object_init(stringmap_t *Globals) {
@@ -161,4 +171,5 @@ void ml_object_init(stringmap_t *Globals) {
 	ml_method_by_value(AppendMethod, NULL, ml_object_append, MLStringBufferT, MLObjectT, NULL);
 	ml_method_by_value(StringMethod, NULL, ml_object_string, MLObjectT, NULL);
 	ml_method_by_name("subclass", NULL, ml_class_subclass, MLClassT, NULL);
+	ml_method_by_name(">-", NULL, ml_type_member, MLTypeT, MLAnyT, NULL);
 }

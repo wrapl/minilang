@@ -12,7 +12,7 @@
 #include <pthread.h>
 #include "stringmap.h"
 
-long ml_default_hash(ml_value_t *Value) {
+long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	long Hash = 5381;
 	for (const char *P = Value->Type->Name; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
 	return Hash;
@@ -120,7 +120,8 @@ ml_value_t MLSome[1] = {{MLSomeT}};
 
 long ml_hash(ml_value_t *Value) {
 	Value = Value->Type->deref(Value);
-	return Value->Type->hash(Value);
+	ml_hash_chain_t Chain[1] = {{NULL, Value, 1}};
+	return Value->Type->hash(Value, Chain);
 }
 
 int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
@@ -263,7 +264,7 @@ struct ml_regex_t {
 	regex_t Value[1];
 };
 
-static long ml_integer_hash(ml_value_t *Value) {
+static long ml_integer_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	ml_integer_t *Integer = (ml_integer_t *)Value;
 	return Integer->Value;
 }
@@ -305,7 +306,7 @@ long ml_integer_value(ml_value_t *Value) {
 	return ((ml_integer_t *)Value)->Value;
 }
 
-static long ml_real_hash(ml_value_t *Value) {
+static long ml_real_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	ml_real_t *Real = (ml_real_t *)Value;
 	return (long)Real->Value;
 }
@@ -339,7 +340,7 @@ double ml_real_value(ml_value_t *Value) {
 	return ((ml_real_t *)Value)->Value;
 }
 
-static long ml_string_hash(ml_value_t *Value) {
+static long ml_string_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	ml_string_t *String = (ml_string_t *)Value;
 	long Hash = 5381;
 	for (int I = 0; I < String->Length; ++I) Hash = ((Hash << 5) + Hash) + String->Value[I];
@@ -642,7 +643,7 @@ ml_value_t *ml_string_new(void *Data, int Count, ml_value_t **Args) {
 	return ml_stringbuffer_get_string(Buffer);
 }
 
-static long ml_regex_hash(ml_value_t *Value) {
+static long ml_regex_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	ml_regex_t *Regex = (ml_regex_t *)Value;
 	long Hash = 5381;
 	const char *Pattern = Regex->Pattern;
@@ -707,7 +708,7 @@ const char *ml_method_name(ml_value_t *Value) {
 	return ((ml_method_t *)Value)->Name;
 }
 
-static long ml_method_hash(ml_value_t *Value) {
+static long ml_method_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	ml_method_t *Method = (ml_method_t *)Value;
 	long Hash = 5381;
 	for (const char *P = Method->Name; P[0]; ++P) Hash = ((Hash << 5) + Hash) + P[0];
@@ -1053,7 +1054,7 @@ struct ml_tree_node_t {
 
 ml_value_t *ml_tree_search(ml_tree_t *Tree, ml_value_t *Key) {
 	ml_tree_node_t *Node = Tree->Root;
-	long Hash = ml_hash(Key);
+	long Hash = Key->Type->hash(Key, NULL);
 	while (Node) {
 		int Compare;
 		if (Hash < Node->Hash) {
@@ -1162,7 +1163,7 @@ static ml_value_t *ml_tree_insert_internal(ml_tree_t *Tree, ml_tree_node_t **Slo
 }
 
 ml_value_t *ml_tree_insert(ml_tree_t *Tree, ml_value_t *Key, ml_value_t *Value) {
-	return ml_tree_insert_internal(Tree, &Tree->Root, ml_hash(Key), Key, Value);
+	return ml_tree_insert_internal(Tree, &Tree->Root, Key->Type->hash(Key, NULL), Key, Value);
 }
 
 static void ml_tree_remove_depth_helper(ml_tree_node_t *Node) {
@@ -1220,7 +1221,7 @@ static ml_value_t *ml_tree_remove_internal(ml_tree_t *Tree, ml_tree_node_t **Slo
 }
 
 ml_value_t *ml_tree_remove(ml_tree_t *Tree, ml_value_t *Key) {
-	return ml_tree_remove_internal(Tree, &Tree->Root, ml_hash(Key), Key);
+	return ml_tree_remove_internal(Tree, &Tree->Root, Key->Type->hash(Key, NULL), Key);
 }
 
 static ml_value_t *ml_tree_index_get(void *Data, const char *Name) {
@@ -1356,15 +1357,6 @@ ml_value_t *ml_property(void *Data, const char *Name, ml_getter_t Get, ml_setter
 	Property->Next = Next;
 	Property->Key = Key;
 	return (ml_value_t *)Property;
-}
-
-void ml_closure_sha256(ml_value_t *Value, unsigned char Hash[SHA256_BLOCK_SIZE]) {
-	ml_closure_t *Closure = (ml_closure_t *)Value;
-	memcpy(Hash, Closure->Info->Hash, SHA256_BLOCK_SIZE);
-	for (int I = 0; I < Closure->Info->NumUpValues; ++I) {
-		long ValueHash = ml_hash(Closure->UpValues[I]);
-		*(long *)(Hash + (I % 16)) ^= ValueHash;
-	}
 }
 
 #define MAX_TRACE 16
@@ -2226,7 +2218,7 @@ static ml_value_t *ml_tree_join(void *Data, int Count, ml_value_t **Args) {
 
 static ml_value_t *ml_hash_any(void *Data, int Count, ml_value_t **Args) {
 	ml_value_t *Value = Args[0];
-	return ml_integer(Value->Type->hash(Value));
+	return ml_integer(Value->Type->hash(Value, NULL));
 }
 
 static ml_value_t *ml_return_nil(void *Data, int Count, ml_value_t **Args) {
