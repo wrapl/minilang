@@ -68,8 +68,8 @@ clean:
 	rm -f libminilang.a
 
 PREFIX = /usr
-install_include = $(PREFIX)/include/minilang
-install_lib = $(PREFIX)/lib
+install_include = $(DESTDIR)$(PREFIX)/include/minilang
+install_lib = $(DESTDIR)$(PREFIX)/lib
 
 install_h = \
 	$(install_include)/linenoise.h \
