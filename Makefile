@@ -7,7 +7,7 @@ all: minilang minipp libminilang.a
 *.o: *.h
 
 CFLAGS += -std=gnu99 -fstrict-aliasing -Wstrict-aliasing -I. -pthread -DGC_THREADS -D_GNU_SOURCE -D$(PLATFORM)
-LDFLAGS += -lm -lgc
+LDFLAGS += -lm
 
 ifdef DEBUG
 	CFLAGS += -g -DGC_DEBUG -DDEBUG
@@ -31,24 +31,32 @@ common_objects = \
 platform_objects =
 
 ifeq ($(PLATFORM), Linux)
-	platform_objects += linenoise.o 
+	platform_objects += linenoise.o
+	LDFLAGS += -lgc
+endif
+
+ifeq ($(PLATFORM), FreeBSD)
+	platform_objects += linenoise.o
+	CFLAGS += -I/usr/local/include
+	LDFLAGS += -L/usr/local/lib -lgc-threaded
 endif
 
 ifeq ($(PLATFORM), Darwin)
-	platform_objects += linenoise.o 
+	platform_objects += linenoise.o
+	LDFLAGS += -lgc
 endif
 
 minilang_objects = $(common_objects) $(platform_objects) \
 	ml_main.o
 
 minilang: Makefile $(minilang_objects) *.h
-	gcc $(minilang_objects) $(LDFLAGS) -o$@
+	$(CC) $(minilang_objects) $(LDFLAGS) -o$@
 
 minipp_objects = $(common_objects) $(platform_objects) \
 	minipp.o
 
 minipp: Makefile $(minipp_objects) *.h
-	gcc $(minipp_objects) $(LDFLAGS) -o$@
+	$(CC) $(minipp_objects) $(LDFLAGS) -o$@
 
 libminilang.a: $(common_objects) $(platform_objects)
 	ar rcs $@ $(common_objects) $(platform_objects)
