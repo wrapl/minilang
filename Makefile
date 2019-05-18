@@ -34,6 +34,10 @@ ifeq ($(PLATFORM), Linux)
 	platform_objects += linenoise.o 
 endif
 
+ifeq ($(PLATFORM), FreeBSD)
+	platform_objects += linenoise.o 
+endif
+
 ifeq ($(PLATFORM), Darwin)
 	platform_objects += linenoise.o 
 endif
