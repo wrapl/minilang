@@ -37,6 +37,7 @@ endif
 
 ifeq ($(PLATFORM), FreeBSD)
 	platform_objects += linenoise.o
+	CFLAGS += -I/usr/local/include
 	LDFLAGS += -L/usr/local/lib -lgc-threaded
 endif
 
