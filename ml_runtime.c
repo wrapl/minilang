@@ -100,16 +100,10 @@ void ml_closure_sha256(ml_value_t *Value, unsigned char Hash[SHA256_BLOCK_SIZE])
 }
 
 static long ml_closure_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
-	for (ml_hash_chain_t *Link = Chain; Link; Link = Link->Previous) {
-		if (Link->Value == Value) return Link->Index;
-	}
-	ml_hash_chain_t NewChain[1] = {{Chain, Value, Chain ? Chain->Index + 1 : 1}};
 	ml_closure_t *Closure = (ml_closure_t *)Value;
 	long Hash = *(long *)Closure->Info->Hash;
 	for (int I = 0; I < Closure->Info->NumUpValues; ++I) {
-		ml_value_t *UpValue = Closure->UpValues[I];
-		UpValue = UpValue->Type->deref(UpValue);
-		Hash ^= UpValue->Type->hash(UpValue, NewChain) << I;
+		Hash ^= ml_hash_chain(Closure->UpValues[I], Chain) << I;
 	}
 	return Hash;
 }

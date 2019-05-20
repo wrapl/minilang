@@ -66,6 +66,7 @@ typedef struct ml_closure_info_t ml_closure_info_t;
 typedef struct ml_list_node_t ml_list_node_t;
 typedef struct ml_tree_node_t ml_tree_node_t;
 
+long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain);
 long ml_hash(ml_value_t *Value);
 ml_type_t *ml_type(ml_type_t *Parent, const char *Name);
 

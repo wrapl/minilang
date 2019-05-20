@@ -118,10 +118,17 @@ ml_type_t MLSomeT[1] = {{
 
 ml_value_t MLSome[1] = {{MLSomeT}};
 
-long ml_hash(ml_value_t *Value) {
+long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	Value = Value->Type->deref(Value);
-	ml_hash_chain_t Chain[1] = {{NULL, Value, 1}};
-	return Value->Type->hash(Value, Chain);
+	for (ml_hash_chain_t *Link = Chain; Link; Link = Link->Previous) {
+		if (Link->Value == Value) return Link->Index;
+	}
+	ml_hash_chain_t NewChain[1] = {{Chain, Value, Chain ? Chain->Index + 1 : 1}};
+	return Value->Type->hash(Value, NewChain);
+}
+
+long ml_hash(ml_value_t *Value) {
+	return ml_hash_chain(Value, NULL);
 }
 
 int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
