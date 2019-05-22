@@ -608,6 +608,12 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done, const
 		fprintf(Graph, "\tI%x [fillcolor=\"%s\" label=\"%d: return()\"];\n", Inst, Colour, Inst->Source.Line);
 		break;
 	}
+	case MLI_SUSPEND: {
+		fprintf(Graph, "\tI%x [fillcolor=\"%s\" label=\"%d: suspend()\"];\n", Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+		break;
+	}
 	case MLI_PUSH: {
 		ml_value_t *StringMethod = ml_method("string");
 		ml_value_t *Value = Inst->Params[1].Value;
@@ -847,12 +853,6 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done, const
 	}
 	case MLI_APPEND: {
 		fprintf(Graph, "\tI%x [fillcolor=\"%s\" label=\"%d: append()\"];\n", Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_SUSPEND: {
-		fprintf(Graph, "\tI%x [fillcolor=\"%s\" label=\"%d: suspend()\"];\n", Inst, Colour, Inst->Source.Line);
 		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
