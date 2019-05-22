@@ -23,7 +23,6 @@ typedef union {
 	int Index;
 	int Count;
 	ml_value_t *Value;
-	const char *Name;
 	ml_closure_info_t *ClosureInfo;
 } ml_param_t;
 
