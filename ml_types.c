@@ -1169,8 +1169,8 @@ static ml_value_t *ml_map_insert_internal(ml_map_t *Map, ml_map_node_t **Slot, l
 	}
 }
 
-ml_value_t *ml_map_insert(ml_value_t *Value, ml_value_t *Key, ml_value_t *Value) {
-	ml_map_t *Map = (ml_map_t *)Value;
+ml_value_t *ml_map_insert(ml_value_t *Map0, ml_value_t *Key, ml_value_t *Value) {
+	ml_map_t *Map = (ml_map_t *)Map0;
 	return ml_map_insert_internal(Map, &Map->Root, Key->Type->hash(Key, NULL), Key, Value);
 }
 
@@ -1228,8 +1228,8 @@ static ml_value_t *ml_map_remove_internal(ml_map_t *Map, ml_map_node_t **Slot, l
 	return Removed;
 }
 
-ml_value_t *ml_map_remove(ml_map_t *Value, ml_value_t *Key) {
-	ml_map_t *Map = (ml_map_t *)Value;
+ml_value_t *ml_map_remove(ml_value_t *Map0, ml_value_t *Key) {
+	ml_map_t *Map = (ml_map_t *)Map0;
 	return ml_map_remove_internal(Map, &Map->Root, Key->Type->hash(Key, NULL), Key);
 }
 
@@ -1240,14 +1240,14 @@ static ml_value_t *ml_map_index_get(void *Data, const char *Name) {
 }
 
 static ml_value_t *ml_map_index_set(void *Data, const char *Name, ml_value_t *Value) {
-	ml_map_t *Map = (ml_map_t *)Data;
+	ml_value_t *Map = (ml_value_t *)Data;
 	ml_value_t *Key = (ml_value_t *)Name;
 	ml_map_insert(Map, Key, Value);
 	return Value;
 }
 
-int ml_map_size(ml_value_t *Value) {
-	ml_map_t *Map = (ml_map_t *)Value;
+int ml_map_size(ml_value_t *Map0) {
+	ml_map_t *Map = (ml_map_t *)Map0;
 	return Map->Size;
 }
 
@@ -1265,7 +1265,7 @@ static ml_value_t *ml_map_index(void *Data, int Count, ml_value_t **Args) {
 
 static ml_value_t *ml_map_delete(void *Data, int Count, ml_value_t **Args) {
 	if (Count < 2) return MLNil;
-	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_value_t *Map = (ml_value_t *)Args[0];
 	ml_value_t *Key = Args[1];
 	return ml_map_remove(Map, Key);
 }
@@ -1310,7 +1310,7 @@ int ml_map_foreach(ml_value_t *Value, void *Data, int (*callback)(ml_value_t *, 
 ml_value_t *ml_map_new(void *Data, int Count, ml_value_t **Args) {
 	ml_map_t *Map = new(ml_map_t);
 	Map->Type = MLMapT;
-	for (int I = 0; I < Count; I += 2) ml_map_insert(Map, Args[I], Args[I + 1]);
+	for (int I = 0; I < Count; I += 2) ml_map_insert((ml_value_t *)Map, Args[I], Args[I + 1]);
 	return (ml_value_t *)Map;
 }
 
@@ -2170,7 +2170,7 @@ static ml_value_t *ml_map_iterate(ml_value_t *Value) {
 	}
 }
 
-static int ml_map_add_insert(ml_value_t *Key, ml_value_t *Value, ml_map_t *Map) {
+static int ml_map_add_insert(ml_value_t *Key, ml_value_t *Value, ml_value_t *Map) {
 	ml_map_insert(Map, Key, Value);
 	return 0;
 }
