@@ -1117,7 +1117,7 @@ static mlc_expr_t *ml_accept_string(mlc_scanner_t *Scanner) {
 
 static ml_function_t StringNew[1] = {{MLFunctionT, ml_string_new, NULL}};
 static ml_function_t ListNew[1] = {{MLFunctionT, ml_list_new, NULL}};
-static ml_function_t TreeNew[1] = {{MLFunctionT, ml_tree_new, NULL}};
+static ml_function_t MapNew[1] = {{MLFunctionT, ml_map_new, NULL}};
 
 static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 	static int OperatorChars[] = {
@@ -1616,7 +1616,7 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 		mlc_const_call_expr_t *CallExpr = new(mlc_const_call_expr_t);
 		CallExpr->compile = ml_const_call_expr_compile;
 		CallExpr->Source = Scanner->Source;
-		CallExpr->Value = (ml_value_t *)TreeNew;
+		CallExpr->Value = (ml_value_t *)MapNew;
 		mlc_expr_t **ArgsSlot = &CallExpr->Child;
 		if (!ml_parse(Scanner, MLT_RIGHT_BRACE)) {
 			do {

@@ -165,11 +165,11 @@ void ml_object_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "RegexT", MLRegexT);
 		stringmap_insert(Globals, "MethodT", MLMethodT);
 		stringmap_insert(Globals, "ListT", MLListT);
-		stringmap_insert(Globals, "TreeT", MLTreeT);
+		stringmap_insert(Globals, "MapT", MLMapT);
 	}
 	StringMethod = ml_method("string");
 	ml_method_by_value(AppendMethod, NULL, ml_object_append, MLStringBufferT, MLObjectT, NULL);
 	ml_method_by_value(StringMethod, NULL, ml_object_string, MLObjectT, NULL);
 	ml_method_by_name("subclass", NULL, ml_class_subclass, MLClassT, NULL);
-	ml_method_by_name(">-", NULL, ml_type_member, MLTypeT, MLAnyT, NULL);
+	ml_method_by_name("?", NULL, ml_type_member, MLTypeT, MLAnyT, NULL);
 }
