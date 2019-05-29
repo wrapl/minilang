@@ -23,7 +23,7 @@ typedef struct ml_real_t ml_real_t;
 typedef struct ml_string_t ml_string_t;
 typedef struct ml_regex_t ml_regex_t;
 typedef struct ml_list_t ml_list_t;
-typedef struct ml_tree_t ml_tree_t;
+typedef struct ml_map_t ml_map_t;
 typedef struct ml_property_t ml_property_t;
 typedef struct ml_closure_t ml_closure_t;
 typedef struct ml_method_t ml_method_t;
@@ -64,7 +64,7 @@ struct ml_function_t {
 typedef struct ml_closure_info_t ml_closure_info_t;
 
 typedef struct ml_list_node_t ml_list_node_t;
-typedef struct ml_tree_node_t ml_tree_node_t;
+typedef struct ml_map_node_t ml_map_node_t;
 
 long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain);
 long ml_hash(ml_value_t *Value);
@@ -80,7 +80,7 @@ ml_value_t *ml_regex(const char *Value);
 ml_value_t *ml_integer(long Value);
 ml_value_t *ml_real(double Value);
 ml_value_t *ml_list();
-ml_value_t *ml_tree();
+ml_value_t *ml_map();
 ml_value_t *ml_function(void *Data, ml_callback_t Function);
 ml_value_t *ml_property(void *Data, const char *Name, ml_getter_t Get, ml_setter_t Set, ml_getter_t Next, ml_getter_t Key);
 ml_value_t *ml_error(const char *Error, const char *Format, ...) __attribute__ ((format(printf, 2, 3)));
@@ -113,7 +113,10 @@ int ml_list_length(ml_value_t *List);
 void ml_list_to_array(ml_value_t *List, ml_value_t **Array);
 int ml_list_foreach(ml_value_t *List, void *Data, int (*callback)(ml_value_t *, void *));
 
-int ml_tree_foreach(ml_value_t *Tree, void *Data, int (*callback)(ml_value_t *, ml_value_t *, void *));
+ml_value_t *ml_map_insert(ml_value_t *Map, ml_value_t *Key, ml_value_t *Value);
+ml_value_t *ml_map_remove(ml_value_t *Map, ml_value_t *Key);
+int ml_map_size(ml_value_t *Map);
+int ml_map_foreach(ml_value_t *Map, void *Data, int (*callback)(ml_value_t *, ml_value_t *, void *));
 
 long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain);
 ml_value_t *ml_default_call(ml_value_t *Value, int Count, ml_value_t **Args);
@@ -136,7 +139,7 @@ extern ml_type_t MLRegexT[];
 extern ml_type_t MLMethodT[];
 extern ml_type_t MLReferenceT[];
 extern ml_type_t MLListT[];
-extern ml_type_t MLTreeT[];
+extern ml_type_t MLMapT[];
 extern ml_type_t MLPropertyT[];
 extern ml_type_t MLClosureT[];
 extern ml_type_t MLErrorT[];

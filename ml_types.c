@@ -1045,22 +1045,22 @@ ml_value_t *ml_list_new(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)List;
 }
 
-struct ml_tree_t {
+struct ml_map_t {
 	const ml_type_t *Type;
-	ml_tree_node_t *Root;
+	ml_map_node_t *Root;
 	int Size;
 };
 
-struct ml_tree_node_t {
-	ml_tree_node_t *Left, *Right;
+struct ml_map_node_t {
+	ml_map_node_t *Left, *Right;
 	ml_value_t *Key;
 	ml_value_t *Value;
 	long Hash;
 	int Depth;
 };
 
-ml_value_t *ml_tree_search(ml_tree_t *Tree, ml_value_t *Key) {
-	ml_tree_node_t *Node = Tree->Root;
+ml_value_t *ml_map_search(ml_map_t *Map, ml_value_t *Key) {
+	ml_map_node_t *Node = Map->Root;
 	long Hash = Key->Type->hash(Key, NULL);
 	while (Node) {
 		int Compare;
@@ -1088,53 +1088,53 @@ ml_value_t *ml_tree_search(ml_tree_t *Tree, ml_value_t *Key) {
 	return MLNil;
 }
 
-static int ml_tree_balance(ml_tree_node_t *Node) {
+static int ml_map_balance(ml_map_node_t *Node) {
 	int Delta = 0;
 	if (Node->Left) Delta = Node->Left->Depth;
 	if (Node->Right) Delta -= Node->Right->Depth;
 	return Delta;
 }
 
-static void ml_tree_update_depth(ml_tree_node_t *Node) {
+static void ml_map_update_depth(ml_map_node_t *Node) {
 	int Depth = 0;
 	if (Node->Left) Depth = Node->Left->Depth;
 	if (Node->Right && Depth < Node->Right->Depth) Depth = Node->Right->Depth;
 	Node->Depth = Depth + 1;
 }
 
-static void ml_tree_rotate_left(ml_tree_node_t **Slot) {
-	ml_tree_node_t *Ch = Slot[0]->Right;
+static void ml_map_rotate_left(ml_map_node_t **Slot) {
+	ml_map_node_t *Ch = Slot[0]->Right;
 	Slot[0]->Right = Slot[0]->Right->Left;
 	Ch->Left = Slot[0];
-	ml_tree_update_depth(Slot[0]);
+	ml_map_update_depth(Slot[0]);
 	Slot[0] = Ch;
-	ml_tree_update_depth(Slot[0]);
+	ml_map_update_depth(Slot[0]);
 }
 
-static void ml_tree_rotate_right(ml_tree_node_t **Slot) {
-	ml_tree_node_t *Ch = Slot[0]->Left;
+static void ml_map_rotate_right(ml_map_node_t **Slot) {
+	ml_map_node_t *Ch = Slot[0]->Left;
 	Slot[0]->Left = Slot[0]->Left->Right;
 	Ch->Right = Slot[0];
-	ml_tree_update_depth(Slot[0]);
+	ml_map_update_depth(Slot[0]);
 	Slot[0] = Ch;
-	ml_tree_update_depth(Slot[0]);
+	ml_map_update_depth(Slot[0]);
 }
 
-static void ml_tree_rebalance(ml_tree_node_t **Slot) {
-	int Delta = ml_tree_balance(Slot[0]);
+static void ml_map_rebalance(ml_map_node_t **Slot) {
+	int Delta = ml_map_balance(Slot[0]);
 	if (Delta == 2) {
-		if (ml_tree_balance(Slot[0]->Left) < 0) ml_tree_rotate_left(&Slot[0]->Left);
-		ml_tree_rotate_right(Slot);
+		if (ml_map_balance(Slot[0]->Left) < 0) ml_map_rotate_left(&Slot[0]->Left);
+		ml_map_rotate_right(Slot);
 	} else if (Delta == -2) {
-		if (ml_tree_balance(Slot[0]->Right) > 0) ml_tree_rotate_right(&Slot[0]->Right);
-		ml_tree_rotate_left(Slot);
+		if (ml_map_balance(Slot[0]->Right) > 0) ml_map_rotate_right(&Slot[0]->Right);
+		ml_map_rotate_left(Slot);
 	}
 }
 
-static ml_value_t *ml_tree_insert_internal(ml_tree_t *Tree, ml_tree_node_t **Slot, long Hash, ml_value_t *Key, ml_value_t *Value) {
+static ml_value_t *ml_map_insert_internal(ml_map_t *Map, ml_map_node_t **Slot, long Hash, ml_value_t *Key, ml_value_t *Value) {
 	if (!Slot[0]) {
-		++Tree->Size;
-		ml_tree_node_t *Node = Slot[0] = new(ml_tree_node_t);
+		++Map->Size;
+		ml_map_node_t *Node = Slot[0] = new(ml_map_node_t);
 		Node->Depth = 1;
 		Node->Hash = Hash;
 		Node->Key = Key;
@@ -1162,25 +1162,26 @@ static ml_value_t *ml_tree_insert_internal(ml_tree_t *Tree, ml_tree_node_t **Slo
 		Slot[0]->Value = Value;
 		return Old;
 	} else {
-		ml_value_t *Old = ml_tree_insert_internal(Tree, Compare < 0 ? &Slot[0]->Left : &Slot[0]->Right, Hash, Key, Value);
-		ml_tree_rebalance(Slot);
-		ml_tree_update_depth(Slot[0]);
+		ml_value_t *Old = ml_map_insert_internal(Map, Compare < 0 ? &Slot[0]->Left : &Slot[0]->Right, Hash, Key, Value);
+		ml_map_rebalance(Slot);
+		ml_map_update_depth(Slot[0]);
 		return Old;
 	}
 }
 
-ml_value_t *ml_tree_insert(ml_tree_t *Tree, ml_value_t *Key, ml_value_t *Value) {
-	return ml_tree_insert_internal(Tree, &Tree->Root, Key->Type->hash(Key, NULL), Key, Value);
+ml_value_t *ml_map_insert(ml_value_t *Map0, ml_value_t *Key, ml_value_t *Value) {
+	ml_map_t *Map = (ml_map_t *)Map0;
+	return ml_map_insert_internal(Map, &Map->Root, Key->Type->hash(Key, NULL), Key, Value);
 }
 
-static void ml_tree_remove_depth_helper(ml_tree_node_t *Node) {
+static void ml_map_remove_depth_helper(ml_map_node_t *Node) {
 	if (Node) {
-		ml_tree_remove_depth_helper(Node->Right);
-		ml_tree_update_depth(Node);
+		ml_map_remove_depth_helper(Node->Right);
+		ml_map_update_depth(Node);
 	}
 }
 
-static ml_value_t *ml_tree_remove_internal(ml_tree_t *Tree, ml_tree_node_t **Slot, long Hash, ml_value_t *Key) {
+static ml_value_t *ml_map_remove_internal(ml_map_t *Map, ml_map_node_t **Slot, long Hash, ml_value_t *Key) {
 	if (!Slot[0]) return MLNil;
 	int Compare;
 	if (Hash < Slot[0]->Hash) {
@@ -1200,16 +1201,16 @@ static ml_value_t *ml_tree_remove_internal(ml_tree_t *Tree, ml_tree_node_t **Slo
 	}
 	ml_value_t *Removed = MLNil;
 	if (!Compare) {
-		--Tree->Size;
+		--Map->Size;
 		Removed = Slot[0]->Value;
 		if (Slot[0]->Left && Slot[0]->Right) {
-			ml_tree_node_t **Y = &Slot[0]->Left;
+			ml_map_node_t **Y = &Slot[0]->Left;
 			while (Y[0]->Right) Y = &Y[0]->Right;
 			Slot[0]->Key = Y[0]->Key;
 			Slot[0]->Hash = Y[0]->Hash;
 			Slot[0]->Value = Y[0]->Value;
 			Y[0] = Y[0]->Left;
-			ml_tree_remove_depth_helper(Slot[0]->Left);
+			ml_map_remove_depth_helper(Slot[0]->Left);
 		} else if (Slot[0]->Left) {
 			Slot[0] = Slot[0]->Left;
 		} else if (Slot[0]->Right) {
@@ -1218,93 +1219,99 @@ static ml_value_t *ml_tree_remove_internal(ml_tree_t *Tree, ml_tree_node_t **Slo
 			Slot[0] = 0;
 		}
 	} else {
-		Removed = ml_tree_remove_internal(Tree, Compare < 0 ? &Slot[0]->Left : &Slot[0]->Right, Hash, Key);
+		Removed = ml_map_remove_internal(Map, Compare < 0 ? &Slot[0]->Left : &Slot[0]->Right, Hash, Key);
 	}
 	if (Slot[0]) {
-		ml_tree_update_depth(Slot[0]);
-		ml_tree_rebalance(Slot);
+		ml_map_update_depth(Slot[0]);
+		ml_map_rebalance(Slot);
 	}
 	return Removed;
 }
 
-ml_value_t *ml_tree_remove(ml_tree_t *Tree, ml_value_t *Key) {
-	return ml_tree_remove_internal(Tree, &Tree->Root, Key->Type->hash(Key, NULL), Key);
+ml_value_t *ml_map_remove(ml_value_t *Map0, ml_value_t *Key) {
+	ml_map_t *Map = (ml_map_t *)Map0;
+	return ml_map_remove_internal(Map, &Map->Root, Key->Type->hash(Key, NULL), Key);
 }
 
-static ml_value_t *ml_tree_index_get(void *Data, const char *Name) {
-	ml_tree_t *Tree = (ml_tree_t *)Data;
+static ml_value_t *ml_map_index_get(void *Data, const char *Name) {
+	ml_map_t *Map = (ml_map_t *)Data;
 	ml_value_t *Key = (ml_value_t *)Name;
-	return ml_tree_search(Tree, Key);
+	return ml_map_search(Map, Key);
 }
 
-static ml_value_t *ml_tree_index_set(void *Data, const char *Name, ml_value_t *Value) {
-	ml_tree_t *Tree = (ml_tree_t *)Data;
+static ml_value_t *ml_map_index_set(void *Data, const char *Name, ml_value_t *Value) {
+	ml_value_t *Map = (ml_value_t *)Data;
 	ml_value_t *Key = (ml_value_t *)Name;
-	ml_tree_insert(Tree, Key, Value);
+	ml_map_insert(Map, Key, Value);
 	return Value;
 }
 
-static ml_value_t *ml_tree_size(void *Data, int Count, ml_value_t **Args) {
-	ml_tree_t *Tree = (ml_tree_t *)Args[0];
-	return ml_integer(Tree->Size);
+int ml_map_size(ml_value_t *Map0) {
+	ml_map_t *Map = (ml_map_t *)Map0;
+	return Map->Size;
 }
 
-static ml_value_t *ml_tree_index(void *Data, int Count, ml_value_t **Args) {
-	ml_tree_t *Tree = (ml_tree_t *)Args[0];
+static ml_value_t *ml_map_size_value(void *Data, int Count, ml_value_t **Args) {
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	return ml_integer(Map->Size);
+}
+
+static ml_value_t *ml_map_index(void *Data, int Count, ml_value_t **Args) {
+	ml_map_t *Map = (ml_map_t *)Args[0];
 	if (Count < 1) return MLNil;
 	ml_value_t *Key = Args[1];
-	return ml_property(Tree, (const char *)Key, ml_tree_index_get, ml_tree_index_set, NULL, NULL);
+	return ml_property(Map, (const char *)Key, ml_map_index_get, ml_map_index_set, NULL, NULL);
 }
 
-static ml_value_t *ml_tree_delete(void *Data, int Count, ml_value_t **Args) {
+static ml_value_t *ml_map_delete(void *Data, int Count, ml_value_t **Args) {
 	if (Count < 2) return MLNil;
-	ml_tree_t *Tree = (ml_tree_t *)Args[0];
+	ml_value_t *Map = (ml_value_t *)Args[0];
 	ml_value_t *Key = Args[1];
-	return ml_tree_remove(Tree, Key);
+	return ml_map_remove(Map, Key);
 }
 
-static ml_value_t *ml_tree_iterate(ml_value_t *Value);
+static ml_value_t *ml_map_iterate(ml_value_t *Value);
 
-ml_type_t MLTreeT[1] = {{
+ml_type_t MLMapT[1] = {{
 	MLTypeT,
-	MLAnyT, "tree",
+	MLAnyT, "map",
 	ml_default_hash,
 	ml_default_call,
 	ml_default_deref,
 	ml_default_assign,
-	ml_tree_iterate,
+	ml_map_iterate,
 	ml_default_current,
 	ml_default_next,
 	ml_default_key
 }};
 
-ml_value_t *ml_tree() {
-	ml_tree_t *Tree = new(ml_tree_t);
-	Tree->Type = MLTreeT;
-	return (ml_value_t *)Tree;
+ml_value_t *ml_map() {
+	ml_map_t *Map = new(ml_map_t);
+	Map->Type = MLMapT;
+	return (ml_value_t *)Map;
 }
 
-int ml_is_tree(ml_value_t *Value) {
-	return Value->Type == MLTreeT;
+int ml_is_map(ml_value_t *Value) {
+	return Value->Type == MLMapT;
 }
 
-static int ml_tree_node_foreach(ml_tree_node_t *Node, void *Data, int (*callback)(ml_value_t *, ml_value_t *, void *)) {
+static int ml_map_node_foreach(ml_map_node_t *Node, void *Data, int (*callback)(ml_value_t *, ml_value_t *, void *)) {
 	if (callback(Node->Key, Node->Value, Data)) return 1;
-	if (Node->Left && ml_tree_node_foreach(Node->Left, Data, callback)) return 1;
-	if (Node->Right && ml_tree_node_foreach(Node->Right, Data, callback)) return 1;
+	if (Node->Left && ml_map_node_foreach(Node->Left, Data, callback)) return 1;
+	if (Node->Right && ml_map_node_foreach(Node->Right, Data, callback)) return 1;
 	return 0;
 }
 
-int ml_tree_foreach(ml_value_t *Value, void *Data, int (*callback)(ml_value_t *, ml_value_t *, void *)) {
-	ml_tree_t *Tree = (ml_tree_t *)Value;
-	return Tree->Root ? ml_tree_node_foreach(Tree->Root, Data, callback) : 0;
+int ml_map_foreach(ml_value_t *Value, void *Data, int (*callback)(ml_value_t *, ml_value_t *, void *)) {
+	ml_map_t *Map = (ml_map_t *)Value;
+	return Map->Root ? ml_map_node_foreach(Map->Root, Data, callback) : 0;
 }
 
-ml_value_t *ml_tree_new(void *Data, int Count, ml_value_t **Args) {
-	ml_tree_t *Tree = new(ml_tree_t);
-	Tree->Type = MLTreeT;
-	for (int I = 0; I < Count; I += 2) ml_tree_insert(Tree, Args[I], Args[I + 1]);
-	return (ml_value_t *)Tree;
+ml_value_t *ml_map_new(void *Data, int Count, ml_value_t **Args) {
+	ml_map_t *Map = new(ml_map_t);
+	Map->Type = MLMapT;
+	for (int I = 0; I < Count; I += 2) ml_map_insert((ml_value_t *)Map, Args[I], Args[I + 1]);
+	return (ml_value_t *)Map;
 }
 
 struct ml_property_t {
@@ -1659,7 +1666,7 @@ ml_value_t *stringify_list(void *Data, int Count, ml_value_t **Args) {
 
 typedef struct {ml_stringbuffer_t *Buffer; int Space;} ml_stringify_context_t;
 
-static int stringify_tree_value(ml_value_t *Key, ml_value_t *Value, ml_stringify_context_t *Ctx) {
+static int stringify_map_value(ml_value_t *Key, ml_value_t *Value, ml_stringify_context_t *Ctx) {
 	if (Ctx->Space) ml_stringbuffer_add(Ctx->Buffer, " ", 1);
 	ml_inline(AppendMethod, 2, Ctx->Buffer, Key);
 	if (Value != MLNil) {
@@ -1670,10 +1677,10 @@ static int stringify_tree_value(ml_value_t *Key, ml_value_t *Value, ml_stringify
 	return 0;
 }
 
-ml_value_t *stringify_tree(void *Data, int Count, ml_value_t **Args) {
+ml_value_t *stringify_map(void *Data, int Count, ml_value_t **Args) {
 	ml_stringify_context_t Ctx[1] = {(ml_stringbuffer_t *)Args[0], 0};
-	ml_tree_foreach(Args[1], Ctx, (void *)stringify_tree_value);
-	return ((ml_tree_t *)Args[1])->Size ? MLSome : MLNil;
+	ml_map_foreach(Args[1], Ctx, (void *)stringify_map_value);
+	return ((ml_map_t *)Args[1])->Size ? MLSome : MLNil;
 }
 
 #define ml_arith_method_integer(NAME, SYMBOL) \
@@ -2105,19 +2112,19 @@ static ml_value_t *ml_list_join(void *Data, int Count, ml_value_t **Args) {
 
 #define ML_TREE_MAX_DEPTH 32
 
-typedef struct ml_tree_iter_t {
+typedef struct ml_map_iter_t {
 	const ml_type_t *Type;
-	ml_tree_node_t *Node;
-	ml_tree_node_t *Stack[ML_TREE_MAX_DEPTH];
+	ml_map_node_t *Node;
+	ml_map_node_t *Stack[ML_TREE_MAX_DEPTH];
 	int Top;
-} ml_tree_iter_t;
+} ml_map_iter_t;
 
-static ml_value_t *ml_tree_iter_current(ml_tree_iter_t *Iter) {
+static ml_value_t *ml_map_iter_current(ml_map_iter_t *Iter) {
 	return ml_reference(&Iter->Node->Value);
 }
 
-static ml_value_t *ml_tree_iter_next(ml_tree_iter_t *Iter) {
-	ml_tree_node_t *Node = Iter->Node;
+static ml_value_t *ml_map_iter_next(ml_map_iter_t *Iter) {
+	ml_map_node_t *Node = Iter->Node;
 	if (Node->Left) {
 		if (Node->Right) Iter->Stack[Iter->Top++] = Node->Right;
 		Iter->Node = Node->Left;
@@ -2133,29 +2140,29 @@ static ml_value_t *ml_tree_iter_next(ml_tree_iter_t *Iter) {
 	}
 }
 
-static ml_value_t *ml_tree_iter_key(ml_tree_iter_t *Iter) {
+static ml_value_t *ml_map_iter_key(ml_map_iter_t *Iter) {
 	return Iter->Node->Key;
 }
 
-ml_type_t MLTreeIterT[1] = {{
+ml_type_t MLMapIterT[1] = {{
 	MLTypeT,
-	MLAnyT, "tree-iterator",
+	MLAnyT, "map-iterator",
 	ml_default_hash,
 	ml_default_call,
 	ml_default_deref,
 	ml_default_assign,
 	ml_default_iterate,
-	(void *)ml_tree_iter_current,
-	(void *)ml_tree_iter_next,
-	(void *)ml_tree_iter_key
+	(void *)ml_map_iter_current,
+	(void *)ml_map_iter_next,
+	(void *)ml_map_iter_key
 }};
 
-static ml_value_t *ml_tree_iterate(ml_value_t *Value) {
-	ml_tree_t *Tree = (ml_tree_t *)Value;
-	if (Tree->Root) {
-		ml_tree_iter_t *Iter = new(ml_tree_iter_t);
-		Iter->Type = MLTreeIterT;
-		Iter->Node = Tree->Root;
+static ml_value_t *ml_map_iterate(ml_value_t *Value) {
+	ml_map_t *Map = (ml_map_t *)Value;
+	if (Map->Root) {
+		ml_map_iter_t *Iter = new(ml_map_iter_t);
+		Iter->Type = MLMapIterT;
+		Iter->Node = Map->Root;
 		Iter->Top = 0;
 		return (ml_value_t *)Iter;
 	} else {
@@ -2163,27 +2170,27 @@ static ml_value_t *ml_tree_iterate(ml_value_t *Value) {
 	}
 }
 
-static int ml_tree_add_insert(ml_value_t *Key, ml_value_t *Value, ml_tree_t *Tree) {
-	ml_tree_insert(Tree, Key, Value);
+static int ml_map_add_insert(ml_value_t *Key, ml_value_t *Value, ml_value_t *Map) {
+	ml_map_insert(Map, Key, Value);
 	return 0;
 }
 
-static ml_value_t *ml_tree_add(void *Data, int Count, ml_value_t **Args) {
-	ml_tree_t *Tree = new(ml_tree_t);
-	Tree->Type = MLTreeT;
-	ml_tree_foreach(Args[0], Tree, (void *)ml_tree_add_insert);
-	ml_tree_foreach(Args[1], Tree, (void *)ml_tree_add_insert);
-	return (ml_value_t *)Tree;
+static ml_value_t *ml_map_add(void *Data, int Count, ml_value_t **Args) {
+	ml_map_t *Map = new(ml_map_t);
+	Map->Type = MLMapT;
+	ml_map_foreach(Args[0], Map, (void *)ml_map_add_insert);
+	ml_map_foreach(Args[1], Map, (void *)ml_map_add_insert);
+	return (ml_value_t *)Map;
 }
 
-typedef struct ml_tree_stringer_t {
+typedef struct ml_map_stringer_t {
 	const char *Seperator, *Equals;
 	ml_stringbuffer_t Buffer[1];
 	int SeperatorLength, EqualsLength, First;
 	ml_value_t *Error;
-} ml_tree_stringer_t;
+} ml_map_stringer_t;
 
-static int ml_tree_stringer(ml_value_t *Key, ml_value_t *Value, ml_tree_stringer_t *Stringer) {
+static int ml_map_stringer(ml_value_t *Key, ml_value_t *Value, ml_map_stringer_t *Stringer) {
 	if (!Stringer->First) {
 		ml_stringbuffer_add(Stringer->Buffer, Stringer->Seperator, Stringer->SeperatorLength);
 	} else {
@@ -2197,29 +2204,29 @@ static int ml_tree_stringer(ml_value_t *Key, ml_value_t *Value, ml_tree_stringer
 	return 0;
 }
 
-static ml_value_t *ml_tree_to_string(void *Data, int Count, ml_value_t **Args) {
-	ml_tree_t *Tree = (ml_tree_t *)Args[0];
-	ml_tree_stringer_t Stringer[1] = {{
+static ml_value_t *ml_map_to_string(void *Data, int Count, ml_value_t **Args) {
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_stringer_t Stringer[1] = {{
 		", ", " is ",
 		{ML_STRINGBUFFER_INIT},
 		2, 4,
 		1
 	}};
 	ml_stringbuffer_add(Stringer->Buffer, "{", 1);
-	if (ml_tree_foreach(Args[0], Stringer, (void *)ml_tree_stringer)) return Stringer->Error;
+	if (ml_map_foreach(Args[0], Stringer, (void *)ml_map_stringer)) return Stringer->Error;
 	ml_stringbuffer_add(Stringer->Buffer, "}", 1);
 	return ml_string(ml_stringbuffer_get(Stringer->Buffer), -1);
 }
 
-static ml_value_t *ml_tree_join(void *Data, int Count, ml_value_t **Args) {
-	ml_tree_t *Tree = (ml_tree_t *)Args[0];
-	ml_tree_stringer_t Stringer[1] = {{
+static ml_value_t *ml_map_join(void *Data, int Count, ml_value_t **Args) {
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_stringer_t Stringer[1] = {{
 		ml_string_value(Args[1]), ml_string_value(Args[2]),
 		{ML_STRINGBUFFER_INIT},
 		ml_string_length(Args[1]), ml_string_length(Args[2]),
 		1
 	}};
-	if (ml_tree_foreach(Args[0], Stringer, (void *)ml_tree_stringer)) return Stringer->Error;
+	if (ml_map_foreach(Args[0], Stringer, (void *)ml_map_stringer)) return Stringer->Error;
 	return ml_stringbuffer_get_string(Stringer->Buffer);
 }
 
@@ -2387,10 +2394,10 @@ static ml_value_t *ml_composed_compose(void *Data, int Count, ml_value_t **Args)
 
 
 void ml_init() {
-	CompareMethod = ml_method("?");
+	CompareMethod = ml_method("<>");
 	ml_method_by_name("#", NULL, ml_hash_any, MLAnyT, NULL);
-	ml_method_by_name("?", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
-	ml_method_by_name("?", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
+	ml_method_by_name("<>", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
+	ml_method_by_name("<>", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
 	ml_method_by_name("=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
 	ml_method_by_name("=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
 	ml_method_by_name("!=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
@@ -2405,7 +2412,7 @@ void ml_init() {
 	ml_method_by_name(">=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
 	ml_method_by_name("-", NULL, ml_neg_integer, MLIntegerT, NULL);
 	ml_method_by_name("-", NULL, ml_neg_real, MLRealT, NULL);
-	ml_methods_add_number_number(compare, ?);
+	ml_methods_add_number_number(compare, <>);
 	ml_methods_add_number_number(add, +);
 	ml_methods_add_number_number(sub, -);
 	ml_methods_add_number_number(mul, *);
@@ -2422,14 +2429,14 @@ void ml_init() {
 	ml_method_by_name("[]", NULL, ml_string_slice, MLStringT, MLIntegerT, MLIntegerT, NULL);
 	ml_method_by_name("%", NULL, ml_mod_integer_integer, MLIntegerT, MLIntegerT, NULL);
 	ml_method_by_name("..", NULL, ml_range_integer_integer, MLIntegerT, MLIntegerT, NULL);
-	ml_method_by_name("?", NULL, ml_compare_string_string, MLStringT, MLStringT, NULL);
+	ml_method_by_name("<>", NULL, ml_compare_string_string, MLStringT, MLStringT, NULL);
 	ml_method_by_name("=", NULL, ml_eq_string_string, MLStringT, MLStringT, NULL);
 	ml_method_by_name("!=", NULL, ml_neq_string_string, MLStringT, MLStringT, NULL);
 	ml_method_by_name("<", NULL, ml_les_string_string, MLStringT, MLStringT, NULL);
 	ml_method_by_name(">", NULL, ml_gre_string_string, MLStringT, MLStringT, NULL);
 	ml_method_by_name("<=", NULL, ml_leq_string_string, MLStringT, MLStringT, NULL);
 	ml_method_by_name(">=", NULL, ml_geq_string_string, MLStringT, MLStringT, NULL);
-	ml_method_by_name("?", NULL, ml_compare_any_any, MLAnyT, MLAnyT, NULL);
+	ml_method_by_name("<>", NULL, ml_compare_any_any, MLAnyT, MLAnyT, NULL);
 	ml_method_by_name("length", NULL, ml_list_length_value, MLListT, NULL);
 	ml_method_by_name("[]", NULL, ml_list_index, MLListT, MLIntegerT, NULL);
 	ml_method_by_name("[]", NULL, ml_list_slice, MLListT, MLIntegerT, MLIntegerT, NULL);
@@ -2438,10 +2445,10 @@ void ml_init() {
 	ml_method_by_name("pop", NULL, ml_list_pop, MLListT, NULL);
 	ml_method_by_name("pull", NULL, ml_list_pull, MLListT, NULL);
 	ml_method_by_name("+", NULL, ml_list_add, MLListT, MLListT, NULL);
-	ml_method_by_name("size", NULL, ml_tree_size, MLTreeT, NULL);
-	ml_method_by_name("[]", NULL, ml_tree_index, MLTreeT, MLAnyT, NULL);
-	ml_method_by_name("delete", NULL, ml_tree_delete, MLTreeT, NULL);
-	ml_method_by_name("+", NULL, ml_tree_add, MLTreeT, MLTreeT, NULL);
+	ml_method_by_name("size", NULL, ml_map_size_value, MLMapT, NULL);
+	ml_method_by_name("[]", NULL, ml_map_index, MLMapT, MLAnyT, NULL);
+	ml_method_by_name("delete", NULL, ml_map_delete, MLMapT, NULL);
+	ml_method_by_name("+", NULL, ml_map_add, MLMapT, MLMapT, NULL);
 	ml_method_by_name("string", NULL, ml_type_to_string, MLNilT, NULL);
 	ml_method_by_name("string", NULL, ml_nil_to_string, MLNilT, NULL);
 	ml_method_by_name("string", NULL, ml_some_to_string, MLSomeT, NULL);
@@ -2450,8 +2457,8 @@ void ml_init() {
 	ml_method_by_name("string", NULL, ml_identity, MLStringT, NULL);
 	ml_method_by_name("string", 0, ml_list_to_string, MLListT, NULL);
 	ml_method_by_name("join", 0, ml_list_join, MLListT, MLStringT, NULL);
-	ml_method_by_name("string", 0, ml_tree_to_string, MLTreeT, NULL);
-	ml_method_by_name("join", 0, ml_tree_join, MLTreeT, MLStringT, MLStringT, NULL);
+	ml_method_by_name("string", 0, ml_map_to_string, MLMapT, NULL);
+	ml_method_by_name("join", 0, ml_map_join, MLMapT, MLStringT, MLStringT, NULL);
 	ml_method_by_name("/", NULL, ml_string_string_split, MLStringT, MLStringT, NULL);
 	ml_method_by_name("/", NULL, ml_string_regex_split, MLStringT, MLRegexT, NULL);
 	ml_method_by_name("%", NULL, ml_string_match, MLStringT, MLStringT, NULL);
@@ -2477,7 +2484,7 @@ void ml_init() {
 	ml_method_by_value(AppendMethod, NULL, stringify_string, MLStringBufferT, MLStringT, NULL);
 	ml_method_by_value(AppendMethod, NULL, stringify_method, MLStringBufferT, MLMethodT, NULL);
 	ml_method_by_value(AppendMethod, NULL, stringify_list, MLStringBufferT, MLListT, NULL);
-	ml_method_by_value(AppendMethod, NULL, stringify_tree, MLStringBufferT, MLTreeT, NULL);
+	ml_method_by_value(AppendMethod, NULL, stringify_map, MLStringBufferT, MLMapT, NULL);
 
 	GC_word StringBufferLayout[] = {1};
 	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);

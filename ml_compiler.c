@@ -1037,7 +1037,7 @@ const char *ml_scanner_clear(mlc_scanner_t *Scanner) {
 typedef enum {EXPR_SIMPLE, EXPR_AND, EXPR_OR, EXPR_FOR, EXPR_DEFAULT} ml_expr_level_t;
 
 static void ml_accept(mlc_scanner_t *Scanner, ml_token_t Token);
-static mlc_expr_t *ml_accept_term(mlc_scanner_t *Scanner);
+static mlc_expr_t *ml_accept_factor(mlc_scanner_t *Scanner);
 static mlc_expr_t *ml_parse_expression(mlc_scanner_t *Scanner, ml_expr_level_t Level);
 static mlc_expr_t *ml_accept_expression(mlc_scanner_t *Scanner, ml_expr_level_t Level);
 
@@ -1117,7 +1117,7 @@ static mlc_expr_t *ml_accept_string(mlc_scanner_t *Scanner) {
 
 static ml_function_t StringNew[1] = {{MLFunctionT, ml_string_new, NULL}};
 static ml_function_t ListNew[1] = {{MLFunctionT, ml_list_new, NULL}};
-static ml_function_t TreeNew[1] = {{MLFunctionT, ml_tree_new, NULL}};
+static ml_function_t MapNew[1] = {{MLFunctionT, ml_map_new, NULL}};
 
 static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 	static int OperatorChars[] = {
@@ -1377,7 +1377,7 @@ void ml_accept_eoi(mlc_scanner_t *Scanner) {
 	ml_accept(Scanner, MLT_EOI);
 }
 
-static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
+static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 	switch (ml_next(Scanner)) {
 	case MLT_DO: {
 		Scanner->Token = MLT_NONE;
@@ -1616,7 +1616,7 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 		mlc_const_call_expr_t *CallExpr = new(mlc_const_call_expr_t);
 		CallExpr->compile = ml_const_call_expr_compile;
 		CallExpr->Source = Scanner->Source;
-		CallExpr->Value = (ml_value_t *)TreeNew;
+		CallExpr->Value = (ml_value_t *)MapNew;
 		mlc_expr_t **ArgsSlot = &CallExpr->Child;
 		if (!ml_parse(Scanner, MLT_RIGHT_BRACE)) {
 			do {
@@ -1651,7 +1651,7 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 		CallExpr->compile = ml_const_call_expr_compile;
 		CallExpr->Source = Scanner->Source;
 		CallExpr->Value = (ml_value_t *)ml_method(Scanner->Ident);
-		CallExpr->Child = ml_accept_term(Scanner);
+		CallExpr->Child = ml_accept_factor(Scanner);
 		return (mlc_expr_t *)CallExpr;
 	}
 	case MLT_METHOD: {
@@ -1666,9 +1666,9 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 	}
 }
 
-static mlc_expr_t *ml_accept_term(mlc_scanner_t *Scanner) {
+static mlc_expr_t *ml_accept_factor(mlc_scanner_t *Scanner) {
 	while (ml_parse(Scanner, MLT_EOL));
-	mlc_expr_t *Expr = ml_parse_term(Scanner);
+	mlc_expr_t *Expr = ml_parse_factor(Scanner);
 	if (Expr) return Expr;
 	Scanner->Error->Message = ml_error("ParseError", "expected <term> not %s", MLTokens[Scanner->Token]);
 	ml_error_trace_add(Scanner->Error->Message, Scanner->Source);
@@ -1711,8 +1711,8 @@ static void ml_accept_arguments(mlc_scanner_t *Scanner, mlc_expr_t **ArgsSlot) {
 	}
 }
 
-static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
-	mlc_expr_t *Expr = ml_parse_term(Scanner);
+static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
+	mlc_expr_t *Expr = ml_parse_factor(Scanner);
 	if (!Expr) return NULL;
 	for (;;) {
 		switch (ml_next(Scanner)) {
@@ -1761,9 +1761,9 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 	return NULL; // Unreachable
 }
 
-static mlc_expr_t *ml_accept_factor(mlc_scanner_t *Scanner) {
+static mlc_expr_t *ml_accept_term(mlc_scanner_t *Scanner) {
 	while (ml_parse(Scanner, MLT_EOL));
-	mlc_expr_t *Expr = ml_parse_factor(Scanner);
+	mlc_expr_t *Expr = ml_parse_term(Scanner);
 	if (Expr) return Expr;
 	Scanner->Error->Message = ml_error("ParseError", "expected <factor> not %s", MLTokens[Scanner->Token]);
 	ml_error_trace_add(Scanner->Error->Message, Scanner->Source);
@@ -1771,7 +1771,7 @@ static mlc_expr_t *ml_accept_factor(mlc_scanner_t *Scanner) {
 }
 
 static mlc_expr_t *ml_parse_expression(mlc_scanner_t *Scanner, ml_expr_level_t Level) {
-	mlc_expr_t *Expr = ml_parse_factor(Scanner);
+	mlc_expr_t *Expr = ml_parse_term(Scanner);
 	if (!Expr) return NULL;
 	for (;;) if (ml_parse(Scanner, MLT_OPERATOR)) {
 		mlc_const_call_expr_t *CallExpr = new(mlc_const_call_expr_t);
@@ -1779,7 +1779,7 @@ static mlc_expr_t *ml_parse_expression(mlc_scanner_t *Scanner, ml_expr_level_t L
 		CallExpr->Source = Scanner->Source;
 		CallExpr->Value = (ml_value_t *)ml_method(Scanner->Ident);
 		CallExpr->Child = Expr;
-		Expr->Next = ml_accept_factor(Scanner);
+		Expr->Next = ml_accept_term(Scanner);
 		Expr = (mlc_expr_t *)CallExpr;
 	} else if (ml_parse(Scanner, MLT_ASSIGN)) {
 		mlc_parent_expr_t *AssignExpr = new(mlc_parent_expr_t);

@@ -17,16 +17,16 @@ struct stringmap_t {
 
 stringmap_t *stringmap_new();
 
-void *stringmap_search(stringmap_t *Tree, const char *Key);
-void *stringmap_insert(stringmap_t *Tree, const char *Key, void *Value);
-void *stringmap_remove(stringmap_t *Tree, const char *Key);
-void **stringmap_slot(stringmap_t *Tree, const char *Key);
-int stringmap_foreach(stringmap_t *Tree, void *Data, int (*callback)(const char *, void *, void *));
+void *stringmap_search(stringmap_t *Map, const char *Key);
+void *stringmap_insert(stringmap_t *Map, const char *Key, void *Value);
+void *stringmap_remove(stringmap_t *Map, const char *Key);
+void **stringmap_slot(stringmap_t *Map, const char *Key);
+int stringmap_foreach(stringmap_t *Map, void *Data, int (*callback)(const char *, void *, void *));
 
 unsigned long stringmap_hash(const char *Key);
-void *stringmap_hash_insert(stringmap_t *Tree, long Hash, const char *Key, void *Value);
-void *stringmap_hash_search(stringmap_t *Tree, long Hash, const char *Key);
-void *stringmap_hash_remove(stringmap_t *Tree, long Hash, const char *Key);
+void *stringmap_hash_insert(stringmap_t *Map, long Hash, const char *Key, void *Value);
+void *stringmap_hash_search(stringmap_t *Map, long Hash, const char *Key);
+void *stringmap_hash_remove(stringmap_t *Map, long Hash, const char *Key);
 
 #ifdef	__cplusplus
 }

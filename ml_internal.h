@@ -73,6 +73,6 @@ void ml_closure_info_debug(ml_closure_info_t *Info);
 
 ml_value_t *ml_string_new(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_list_new(void *Data, int Count, ml_value_t **Args);
-ml_value_t *ml_tree_new(void *Data, int Count, ml_value_t **Args);
+ml_value_t *ml_map_new(void *Data, int Count, ml_value_t **Args);
 
 #endif
