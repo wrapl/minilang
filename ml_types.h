@@ -113,9 +113,10 @@ int ml_list_length(ml_value_t *List);
 void ml_list_to_array(ml_value_t *List, ml_value_t **Array);
 int ml_list_foreach(ml_value_t *List, void *Data, int (*callback)(ml_value_t *, void *));
 
-int ml_map_foreach(ml_value_t *Map, void *Data, int (*callback)(ml_value_t *, ml_value_t *, void *));
 ml_value_t *ml_map_insert(ml_value_t *Map, ml_value_t *Key, ml_value_t *Value);
 ml_value_t *ml_map_remove(ml_value_t *Map, ml_value_t *Key);
+int ml_map_size(ml_value_t *Map);
+int ml_map_foreach(ml_value_t *Map, void *Data, int (*callback)(ml_value_t *, ml_value_t *, void *));
 
 long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain);
 ml_value_t *ml_default_call(ml_value_t *Value, int Count, ml_value_t **Args);

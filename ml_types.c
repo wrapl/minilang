@@ -1246,7 +1246,12 @@ static ml_value_t *ml_map_index_set(void *Data, const char *Name, ml_value_t *Va
 	return Value;
 }
 
-static ml_value_t *ml_map_size(void *Data, int Count, ml_value_t **Args) {
+int ml_map_size(ml_value_t *Value) {
+	ml_map_t *Map = (ml_map_t *)Value;
+	return Map->Size;
+}
+
+static ml_value_t *ml_map_size_value(void *Data, int Count, ml_value_t **Args) {
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	return ml_integer(Map->Size);
 }
@@ -2440,7 +2445,7 @@ void ml_init() {
 	ml_method_by_name("pop", NULL, ml_list_pop, MLListT, NULL);
 	ml_method_by_name("pull", NULL, ml_list_pull, MLListT, NULL);
 	ml_method_by_name("+", NULL, ml_list_add, MLListT, MLListT, NULL);
-	ml_method_by_name("size", NULL, ml_map_size, MLMapT, NULL);
+	ml_method_by_name("size", NULL, ml_map_size_value, MLMapT, NULL);
 	ml_method_by_name("[]", NULL, ml_map_index, MLMapT, MLAnyT, NULL);
 	ml_method_by_name("delete", NULL, ml_map_delete, MLMapT, NULL);
 	ml_method_by_name("+", NULL, ml_map_add, MLMapT, MLMapT, NULL);
