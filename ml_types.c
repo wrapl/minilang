@@ -1169,7 +1169,8 @@ static ml_value_t *ml_map_insert_internal(ml_map_t *Map, ml_map_node_t **Slot, l
 	}
 }
 
-ml_value_t *ml_map_insert(ml_map_t *Map, ml_value_t *Key, ml_value_t *Value) {
+ml_value_t *ml_map_insert(ml_value_t *Value, ml_value_t *Key, ml_value_t *Value) {
+	ml_map_t *Map = (ml_map_t *)Value;
 	return ml_map_insert_internal(Map, &Map->Root, Key->Type->hash(Key, NULL), Key, Value);
 }
 
@@ -1227,7 +1228,8 @@ static ml_value_t *ml_map_remove_internal(ml_map_t *Map, ml_map_node_t **Slot, l
 	return Removed;
 }
 
-ml_value_t *ml_map_remove(ml_map_t *Map, ml_value_t *Key) {
+ml_value_t *ml_map_remove(ml_map_t *Value, ml_value_t *Key) {
+	ml_map_t *Map = (ml_map_t *)Value;
 	return ml_map_remove_internal(Map, &Map->Root, Key->Type->hash(Key, NULL), Key);
 }
 
