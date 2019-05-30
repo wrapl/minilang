@@ -66,7 +66,7 @@ c_library := fun(Library, Objects) do
 	DEFAULT[Library]
 end
 
-PREFIX := file('{getenv("DESTDIR") or ""}{defined("PREFIX") or "/usr/local"}')
+PREFIX := old or file('{getenv("DESTDIR") or ""}{defined("PREFIX") or "/usr/local"}')
 INSTALL := meta("install")
 
 install := fun(Source, Target, Mode) do
