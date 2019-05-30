@@ -43,19 +43,17 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "open", ml_function(0, ml_file_open));
 	stringmap_insert(Globals, "debug", ml_function(0, debug));
 	ml_init(global_get);
-	ml_object_init(Globals);
+	ml_object_init(Globals, (ml_setter_t)stringmap_insert);
 	const char *FileName = 0;
 	for (int I = 1; I < Argc; ++I) {
-	if (Argv[I][0] == '-') {
-		switch (Argv[I][1]) {
-		case 'D': MLDebugClosures = 1; break;
+		if (Argv[I][0] == '-') {
+			switch (Argv[I][1]) {
+			case 'D': MLDebugClosures = 1; break;
+			}
+		} else {
+			FileName = Argv[I];
 		}
-	} else {
-		FileName = Argv[I];
 	}
-	}
-
-
 	if (FileName) {
 		ml_value_t *Closure = ml_load(global_get, 0, FileName);
 		if (Closure->Type == MLErrorT) {

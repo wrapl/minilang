@@ -7,11 +7,10 @@
 extern "C" {
 #endif
 
-void ml_object_init(stringmap_t *Globals);
+void ml_object_init(void *Globals, ml_setter_t GlobalSet);
 
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif

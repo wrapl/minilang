@@ -2449,7 +2449,7 @@ void ml_init() {
 	ml_method_by_name("[]", NULL, ml_map_index, MLMapT, MLAnyT, NULL);
 	ml_method_by_name("delete", NULL, ml_map_delete, MLMapT, NULL);
 	ml_method_by_name("+", NULL, ml_map_add, MLMapT, MLMapT, NULL);
-	ml_method_by_name("string", NULL, ml_type_to_string, MLNilT, NULL);
+	ml_method_by_name("string", NULL, ml_type_to_string, MLTypeT, NULL);
 	ml_method_by_name("string", NULL, ml_nil_to_string, MLNilT, NULL);
 	ml_method_by_name("string", NULL, ml_some_to_string, MLSomeT, NULL);
 	ml_method_by_name("string", NULL, ml_integer_to_string, MLIntegerT, NULL);
