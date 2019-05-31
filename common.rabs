@@ -1,0 +1,80 @@
+PLATFORM := defined("PLATFORM") or shell("uname"):trim
+DEBUG := defined("DEBUG")
+
+CFLAGS := []
+LDFLAGS := []
+PREBUILDS := []
+
+c_compile := fun(Source, Object) do
+	execute('cc -c {CFLAGS} -o{Object} {Source}')
+end
+
+c_includes := fun(Target) do
+	var Files := []
+	var Lines := shell('cc -c {CFLAGS} -M -MG {Target:source}')
+	var Files := Lines:trim:replace(r"\\\n ", "") / r"[^\\]( +)"
+	Files:pop
+	for File in Files do
+		File := file(File:replace(r"\\ ", " "))
+	end
+	return Files
+end
+
+var SourceTypes := {
+	"c" is [c_includes, c_compile]
+}
+
+c_program := fun(Executable, Objects, Libraries) do
+	Objects := Objects or []
+	Libraries := Libraries or []
+	var Sources := []
+	for Object in Objects do
+		for Extension, Functions in SourceTypes do
+			var Source := Object % Extension
+			if Source:exists then
+				Sources:put(Source)
+				var Scan := Source:scan("INCLUDES")[PREBUILDS] => Functions[1]
+				Object[Source, Scan] => (Functions[2] !! [Source])
+				exit
+			end
+		end
+	end
+	Executable[Objects, Libraries] => fun(Executable) do
+		execute('cc', '-o', Executable, Objects, Libraries, LDFLAGS)
+		DEBUG or execute('strip', Executable)
+	end
+	DEFAULT[Executable]
+end
+
+c_library := fun(Library, Objects) do
+	Objects := Objects or []
+	var Sources := []
+	for Object in Objects do
+		for Extension, Functions in SourceTypes do
+			var Source := Object % Extension
+			if Source:exists then
+				Sources:put(Source)
+				var Scan := Source:scan("INCLUDES")[PREBUILDS] => Functions[1]
+				Object[Source, Scan] => (Functions[2] !! [Source])
+				exit
+			end
+		end
+	end
+	Library[Objects, Libraries] => fun(Executable) do
+		execute('ar', 'rcs', Library, Objects)
+	end
+	DEFAULT[Library]
+end
+
+PREFIX := old or file('{getenv("DESTDIR") or ""}{defined("PREFIX") or "/usr/local"}')
+INSTALL := meta("install")
+
+install := fun(Source, Target, Mode) do
+	Target[Source] => fun(Target) do
+		print(Source, " -> ", Target, "\n")
+		Target:dir:mkdir
+		Source:copy(Target)
+		Mode and execute("chmod", Mode, Target)
+	end
+	INSTALL[Target]
+end

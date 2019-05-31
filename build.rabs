@@ -1,0 +1,58 @@
+-- ROOT --
+
+%include common.rabs
+
+CFLAGS := old + ["-std=gnu99", "-fstrict-aliasing", "-Wstrict-aliasing", "-I.", "-pthread", "-DGC_THREADS", "-D_GNU_SOURCE", '-D{PLATFORM}']
+LDFLAGS := old + ["-lm"]
+
+if DEBUG then
+	CFLAGS := old + ["-g", "-DGC_DEBUG", "-DDEBUG"]
+	LDFLAGS := old + ["-g"]
+else
+	CFLAGS := old + ["-O3"]
+end
+
+var Objects := [
+	file("minilang.o"),
+	file("ml_compiler.o"),
+	file("ml_runtime.o"),
+	file("ml_types.o"),
+	file("ml_file.o"),
+	file("sha256.o"),
+	file("stringmap.o"),
+	file("pointerset.o"),
+	file("ml_console.o"),
+	file("ml_object.o")
+]
+
+if PLATFORM = "Linux" then
+	Objects := old + [file("linenoise.o")]
+	LDFLAGS := old + ["-lgc"]
+elseif PLATFORM = "FreeBSD" then
+	Objects := old + [file("linenoise.o")]
+	CFLAGS := old + ["-I/usr/local/include"]
+	LDFLAGS := old + ["-L/usr/local/lib", "-lgc-threaded"]
+elseif PLATFORM = "Darwin" then
+	Objects := old + [file("linenoise.o")]
+	LDFLAGS := old + ["-lgc"]
+elseif PLATFORM = "Mingw" then
+end
+
+c_library(file("libminilang.a"), Objects)
+c_program(file("minilang"), [file("ml_main.o")] + Objects)
+c_program(file("minipp"), [file("minipp.o")] + Objects)
+
+var InstallInclude := PREFIX / "include/minilang"
+var InstallLib := PREFIX / "lib"
+
+install(file("linenoise.h"), InstallInclude / "linenoise.h")
+install(file("minilang.h"), InstallInclude / "minilang.h")
+install(file("ml_console.h"), InstallInclude / "ml_console.h")
+install(file("ml_file.h"), InstallInclude / "ml_file.h")
+install(file("ml_macros.h"), InstallInclude / "ml_macros.h")
+install(file("ml_types.h"), InstallInclude / "ml_types.h")
+install(file("ml_object.h"), InstallInclude / "ml_object.h")
+install(file("ml_compiler.h"), InstallInclude / "ml_compiler.h")
+install(file("sha256.h"), InstallInclude / "sha256.h")
+install(file("stringmap.h"), InstallInclude / "stringmap.h")
+install(file("libminilang.a"), InstallLib / "libminilang.a")
