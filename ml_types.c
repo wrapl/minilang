@@ -690,6 +690,12 @@ regex_t *ml_regex_value(ml_value_t *Value) {
 	return Regex->Value;
 }
 
+static ml_value_t *ml_regex_to_string(void *Data, int Count, ml_value_t **Args) {
+	ml_regex_t *Regex = (ml_regex_t *)Args[0];
+	return ml_string(Regex->Pattern, -1);
+}
+
+
 typedef struct ml_method_table_t ml_method_table_t;
 typedef struct ml_method_node_t ml_method_node_t;
 
@@ -2455,6 +2461,7 @@ void ml_init() {
 	ml_method_by_name("string", NULL, ml_integer_to_string, MLIntegerT, NULL);
 	ml_method_by_name("string", NULL, ml_real_to_string, MLRealT, NULL);
 	ml_method_by_name("string", NULL, ml_identity, MLStringT, NULL);
+	ml_method_by_name("string", NULL, ml_regex_to_string, MLRegexT, NULL);
 	ml_method_by_name("string", 0, ml_list_to_string, MLListT, NULL);
 	ml_method_by_name("join", 0, ml_list_join, MLListT, MLStringT, NULL);
 	ml_method_by_name("string", 0, ml_map_to_string, MLMapT, NULL);
