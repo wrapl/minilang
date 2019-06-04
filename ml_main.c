@@ -39,6 +39,7 @@ static ml_value_t *debug(void *Data, int Count, ml_value_t **Args) {
 }
 
 int main(int Argc, const char *Argv[]) {
+	ml_file_init();
 	stringmap_insert(Globals, "print", ml_function(0, print));
 	stringmap_insert(Globals, "open", ml_function(0, ml_file_open));
 	stringmap_insert(Globals, "debug", ml_function(0, debug));
