@@ -44,6 +44,7 @@ c_program := fun(Executable, Objects, Libraries) do
 		DEBUG or execute('strip', Executable)
 	end
 	DEFAULT[Executable]
+	ret Executable
 end
 
 c_library := fun(Library, Objects) do
@@ -64,6 +65,7 @@ c_library := fun(Library, Objects) do
 		execute('ar', 'rcs', Library, Objects)
 	end
 	DEFAULT[Library]
+	ret Library
 end
 
 PREFIX := old or file('{getenv("DESTDIR") or ""}{defined("PREFIX") or "/usr/local"}')
@@ -77,4 +79,8 @@ install := fun(Source, Target, Mode) do
 		Mode and execute("chmod", Mode, Target)
 	end
 	INSTALL[Target]
+	ret Target
 end
+
+TEST := meta("test")
+
