@@ -29,6 +29,13 @@ static ml_value_t *print(void *Data, int Count, ml_value_t **Args) {
 	return MLNil;
 }
 
+static ml_value_t *error(void *Data, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ML_CHECK_ARG_TYPE(1, MLStringT);
+	return ml_error(ml_string_value(Args[0]), "%s", ml_string_value(Args[1]));
+}
+
 static ml_value_t *debug(void *Data, int Count, ml_value_t **Args) {
 	if (Count > 0 && Args[0] == MLNil) {
 		MLDebugClosures = 0;
@@ -39,7 +46,9 @@ static ml_value_t *debug(void *Data, int Count, ml_value_t **Args) {
 }
 
 int main(int Argc, const char *Argv[]) {
+	ml_file_init();
 	stringmap_insert(Globals, "print", ml_function(0, print));
+	stringmap_insert(Globals, "error", ml_function(0, error));
 	stringmap_insert(Globals, "open", ml_function(0, ml_file_open));
 	stringmap_insert(Globals, "debug", ml_function(0, debug));
 	ml_init(global_get);

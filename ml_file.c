@@ -53,12 +53,23 @@ static ml_value_t *ml_file_read_count(void *Data, int Count, ml_value_t **Args) 
 	ml_file_t *File = (ml_file_t *)Args[0];
 	if (feof(File->Handle)) return MLNil;
 	ssize_t Requested = ml_integer_value(Args[1]);
-	char *Chars = snew(Requested + 1);
-	ssize_t Actual = fread(Chars, 1, Requested, File->Handle);
-	if (Actual == 0) return MLNil;
-	if (Actual < 0) return ml_error("FileError", "error reading from file");
-	Chars[Actual] = 0;
-	return ml_string(Chars, Actual);
+	ml_stringbuffer_t Final[1] = {ML_STRINGBUFFER_INIT};
+	char Buffer[ML_STRINGBUFFER_NODE_SIZE];
+	while (Requested > ML_STRINGBUFFER_NODE_SIZE) {
+		ssize_t Actual = fread(Buffer, 1, ML_STRINGBUFFER_NODE_SIZE, File->Handle);
+		if (Actual < 0) return ml_error("FileError", "error reading from file");
+		if (Actual == 0) break;
+		ml_stringbuffer_add(Final, Buffer, Actual);
+		Requested -= Actual;
+	}
+	while (Requested > 0) {
+		ssize_t Actual = fread(Buffer, 1, Requested, File->Handle);
+		if (Actual < 0) return ml_error("FileError", "error reading from file");
+		if (Actual == 0) break;
+		ml_stringbuffer_add(Final, Buffer, Actual);
+		Requested -= Actual;
+	}
+	return ml_stringbuffer_get_string(Final);
 }
 
 static ml_value_t *ml_file_write_string(void *Data, int Count, ml_value_t **Args) {
