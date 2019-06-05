@@ -1051,7 +1051,10 @@ static mlc_expr_t *ml_accept_string(mlc_scanner_t *Scanner) {
 	const char *End = Scanner->Next;
 	while (End[0] && End[0] != '\'' && End[0] != '{') {
 		if (End[0] == '\\') {
-			if (!*++End) {
+			++End;
+			if (End[0] == '\n') {
+				--Length;
+			} else if (!End[0]) {
 				Scanner->Error->Message = ml_error("ParseError", "end of line while parsing string");
 				ml_error_trace_add(Scanner->Error->Message, Scanner->Source);
 				longjmp(Scanner->Error->Handler, 1);
@@ -1075,11 +1078,13 @@ static mlc_expr_t *ml_accept_string(mlc_scanner_t *Scanner) {
 				case '\"': *D++ = '\"'; break;
 				case '\\': *D++ = '\\'; break;
 				case '{': *D++ = '{'; break;
+				case '\n': goto eol;
 				}
 			} else {
 				*D++ = *S;
 			}
 		}
+	eol:
 		*D = 0;
 		mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
 		ValueExpr->compile = ml_value_expr_compile;

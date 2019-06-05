@@ -39,8 +39,8 @@ elseif PLATFORM = "Mingw" then
 end
 
 c_library(file("libminilang.a"), Objects)
-c_program(file("minilang"), [file("ml_main.o")] + Objects)
-c_program(file("minipp"), [file("minipp.o")] + Objects)
+var Minilang := c_program(file("minilang"), [file("ml_main.o")] + Objects)
+var Minipp := c_program(file("minipp"), [file("minipp.o")] + Objects)
 
 var InstallInclude := PREFIX / "include/minilang"
 var InstallLib := PREFIX / "lib"
@@ -56,3 +56,34 @@ install(file("ml_compiler.h"), InstallInclude / "ml_compiler.h")
 install(file("sha256.h"), InstallInclude / "sha256.h")
 install(file("stringmap.h"), InstallInclude / "stringmap.h")
 install(file("libminilang.a"), InstallLib / "libminilang.a")
+
+var test_minilang := fun(Source, Expected) do
+	var Target := meta('test-{Source:basename}')[Minilang, Source] => fun() do
+		var Actual := shell(Minilang, Source)
+		if Actual = Expected then
+			print('\e[32mTest {Source:basename} passed!\e[0m\n')
+		else
+			print('\e[31mTest {Source:basename} failed!\e[0m\n')
+			print('Expected {Expected:length} bytes:\n{Expected}\n---\n')
+			print('Actual {Actual:length} bytes:\n{Actual}\n---\n')
+			error("TestError", "Test failed")
+		end
+	end
+end
+
+TEST[Minilang:scan("test") => fun() [
+	test_minilang(file("test/test1.mini"), 'Hello world!'),
+	test_minilang(file("test/test2.mini"), '\
+X = 100
+X = 110
+'),
+	test_minilang(file("test/test4.mini"), '\
+Key = 1, Value = 1
+Key = 2, Value = 2
+Key = 3, Value = hello
+Key = 4, Value = 4
+Key = 5, Value = 5
+Key = a, Value = 100
+Key = 10, Value = b
+')
+]]
