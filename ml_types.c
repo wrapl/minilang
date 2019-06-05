@@ -462,7 +462,7 @@ ml_value_t *ml_string_regex_split(void *Data, int Count, ml_value_t **Args) {
 	return Results;
 }
 
-static ml_value_t *ml_string_find(void *Data, int Count, ml_value_t **Args) {
+static ml_value_t *ml_string_find_string(void *Data, int Count, ml_value_t **Args) {
 	const char *Haystack = ml_string_value(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
 	const char *Match = strstr(Haystack, Needle);
@@ -473,7 +473,7 @@ static ml_value_t *ml_string_find(void *Data, int Count, ml_value_t **Args) {
 	}
 }
 
-ml_value_t *ml_string_match(void *Data, int Count, ml_value_t **Args) {
+ml_value_t *ml_string_match_string(void *Data, int Count, ml_value_t **Args) {
 	const char *Subject = ml_string_value(Args[0]);
 	const char *Pattern = ml_string_value(Args[1]);
 	regex_t Regex[1];
@@ -493,7 +493,42 @@ ml_value_t *ml_string_match(void *Data, int Count, ml_value_t **Args) {
 		regfree(Regex);
 		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 		char *ErrorMessage = snew(ErrorSize + 1);
-		regerror(Error, Regex, ErrorMessage, ErrorSize);
+		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
+		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+	}
+	default: {
+		ml_value_t *Results = ml_list();
+		for (int I = 0; I < Regex->re_nsub; ++I) {
+			regoff_t Start = Matches[I].rm_so;
+			if (Start >= 0) {
+				size_t Length = Matches[I].rm_eo - Start;
+				char *Chars = snew(Length + 1);
+				memcpy(Chars, Subject + Start, Length);
+				Chars[Length] = 0;
+				ml_list_append(Results, ml_string(Chars, Length));
+			} else {
+				ml_list_append(Results, MLNil);
+			}
+		}
+		regfree(Regex);
+		return Results;
+	}
+	}
+}
+
+ml_value_t *ml_string_match_regex(void *Data, int Count, ml_value_t **Args) {
+	const char *Subject = ml_string_value(Args[0]);
+	regex_t *Regex = ml_regex_value(Args[1]);
+	regmatch_t Matches[Regex->re_nsub + 1];
+	switch (regexec(Regex, Subject, Regex->re_nsub, Matches, 0)) {
+	case REG_NOMATCH:
+		regfree(Regex);
+		return MLNil;
+	case REG_ESPACE: {
+		regfree(Regex);
+		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
+		char *ErrorMessage = snew(ErrorSize + 1);
+		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
 		return ml_error("RegexError", "regex error: %s", ErrorMessage);
 	}
 	default: {
@@ -1743,9 +1778,23 @@ ml_arith_method_number(neg, -)
 ml_arith_method_number_number(add, +)
 ml_arith_method_number_number(sub, -)
 ml_arith_method_number_number(mul, *)
-ml_arith_method_number_number(div, /)
+
+ml_arith_method_real_real(div, /)
+ml_arith_method_real_integer(div, /)
+ml_arith_method_integer_real(div, /)
+
+static ml_value_t *ml_div_integer_integer(void *Data, int Count, ml_value_t **Args) {
+	ml_integer_t *IntegerA = (ml_integer_t *)Args[0];
+	ml_integer_t *IntegerB = (ml_integer_t *)Args[1];
+	if (IntegerA->Value % IntegerB->Value == 0) {
+		return ml_integer(IntegerA->Value / IntegerB->Value);
+	} else {
+		return ml_real((double)IntegerA->Value / (double)IntegerB->Value);
+	}
+}
 
 ml_arith_method_integer_integer(mod, %)
+ml_arith_method_integer_integer(idiv, /)
 
 #define ml_comp_method_integer_integer(NAME, SYMBOL) \
 	static ml_value_t *ml_ ## NAME ## _integer_integer(void *Data, int Count, ml_value_t **Args) { \
@@ -2434,6 +2483,7 @@ void ml_init() {
 	ml_method_by_name("[]", NULL, ml_string_index, MLStringT, MLIntegerT, NULL);
 	ml_method_by_name("[]", NULL, ml_string_slice, MLStringT, MLIntegerT, MLIntegerT, NULL);
 	ml_method_by_name("%", NULL, ml_mod_integer_integer, MLIntegerT, MLIntegerT, NULL);
+	ml_method_by_name("//", NULL, ml_idiv_integer_integer, MLIntegerT, MLIntegerT, NULL);
 	ml_method_by_name("..", NULL, ml_range_integer_integer, MLIntegerT, MLIntegerT, NULL);
 	ml_method_by_name("<>", NULL, ml_compare_string_string, MLStringT, MLStringT, NULL);
 	ml_method_by_name("=", NULL, ml_eq_string_string, MLStringT, MLStringT, NULL);
@@ -2468,8 +2518,8 @@ void ml_init() {
 	ml_method_by_name("join", 0, ml_map_join, MLMapT, MLStringT, MLStringT, NULL);
 	ml_method_by_name("/", NULL, ml_string_string_split, MLStringT, MLStringT, NULL);
 	ml_method_by_name("/", NULL, ml_string_regex_split, MLStringT, MLRegexT, NULL);
-	ml_method_by_name("%", NULL, ml_string_match, MLStringT, MLStringT, NULL);
-	ml_method_by_name("find", 0, ml_string_find, MLStringT, MLStringT, NULL);
+	ml_method_by_name("%", NULL, ml_string_match_string, MLStringT, MLStringT, NULL);
+	ml_method_by_name("find", 0, ml_string_find_string, MLStringT, MLStringT, NULL);
 	ml_method_by_name("replace", NULL, ml_string_string_replace, MLStringT, MLStringT, MLStringT, NULL);
 	ml_method_by_name("replace", NULL, ml_string_regex_string_replace, MLStringT, MLRegexT, MLStringT, NULL);
 	ml_method_by_name("replace", NULL, ml_string_regex_function_replace, MLStringT, MLRegexT, MLFunctionT, NULL);
