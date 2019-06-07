@@ -91,10 +91,10 @@ static ml_value_t *ml_object_string(void *Data, int Count, ml_value_t **Args) {
 	}
 }
 
-static ml_value_t *ml_field_fn(void *Data, int Count, ml_value_t **Args) {
-	int Index = (ml_value_t **)Data - ((ml_object_t *)0)->Fields;
+ml_value_t *ml_field_fn(void *Data, int Count, ml_value_t **Args) {
+	int Index = (char *)Data - (char *)0;
 	ml_object_t *Object = (ml_object_t *)Args[0];
-	return ml_reference(Object->Fields + Index);
+	return ml_reference((ml_value_t **)((char *)Object + Index));
 }
 
 static ml_value_t *ml_class_fn(void *Data, int Count, ml_value_t **Args) {

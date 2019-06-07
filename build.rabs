@@ -61,9 +61,9 @@ var test_minilang := fun(Source, Expected) do
 	var Target := meta('test-{Source:basename}')[Minilang, Source] => fun() do
 		var Actual := shell(Minilang, Source)
 		if Actual = Expected then
-			print('\e[32m[🗸] Test {Source:basename} passed!\e[0m\n')
+			print('\e[32mTest {Source:basename} passed!\e[0m\n')
 		else
-			print('\e[31m[🗴] Test {Source:basename} failed!\e[0m\n')
+			print('\e[31mTest {Source:basename} failed.\e[0m\n')
 			print('Expected {Expected:length} bytes:\n{Expected}\n---\n')
 			print('Actual {Actual:length} bytes:\n{Actual}\n---\n')
 			error("TestError", "Test failed")
@@ -104,5 +104,15 @@ Y[3] = yc
 Y[4] = yd
 Y[5] = ye
 M = ya yb yc yd ye
+'),
+	test_minilang(file("test/test10.mini"), '\
+A:X = 10
+A = object(X: 10, Y: 20)
+A = point(10, 200)
+point(10, 200) + point(23, 9.100000) = point(33, 209.100000)
+point(10, 200) * 5 = point(50, 1000)
+7.1 * point(23, 9.100000) = point(163.300000, 64.610000)
+C = point(1, 2)
+C = vector(1, 2, 3)
 ')
 ]]

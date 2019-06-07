@@ -238,7 +238,7 @@ static ml_value_t *ml_function_partial_apply(void *Data, int Count, ml_value_t *
 
 ml_type_t MLNumberT[1] = {{
 	MLTypeT,
-	MLAnyT, "number",
+	MLFunctionT, "number",
 	ml_default_hash,
 	ml_default_call,
 	ml_default_deref,
@@ -402,7 +402,7 @@ static ml_value_t *ml_string_trim(void *Data, int Count, ml_value_t **Args) {
 	return ml_string(Chars, Length);
 }
 
-static ml_value_t *ml_string_length_value(void *Data, int Count, ml_value_t **Args) {
+static ml_value_t *ml_string_length_fn(void *Data, int Count, ml_value_t **Args) {
 	return ml_integer(((ml_string_t *)Args[0])->Length);
 }
 
@@ -468,6 +468,19 @@ static ml_value_t *ml_string_find_string(void *Data, int Count, ml_value_t **Arg
 	const char *Match = strstr(Haystack, Needle);
 	if (Match) {
 		return ml_integer(1 + Match - Haystack);
+	} else {
+		return MLNil;
+	}
+}
+
+static ml_value_t *ml_string_find_regex(void *Data, int Count, ml_value_t **Args) {
+	regex_t *Regex = ml_regex_value(Args[1]);
+	regoff_t Offset = re_search(Regex,
+		ml_string_value(Args[0]), ml_string_length(Args[0]),
+		0, ml_string_length(Args[0]), NULL
+	);
+	if (Offset >= 0) {
+		return ml_integer(Offset);
 	} else {
 		return MLNil;
 	}
@@ -958,9 +971,33 @@ void ml_list_to_array(ml_value_t *Value, ml_value_t **Array) {
 	for (ml_list_node_t *Node = List->Head; Node; Node = Node->Next) *Array++ = Node->Value;
 }
 
-static ml_value_t *ml_list_length_value(void *Data, int Count, ml_value_t **Args) {
+static ml_value_t *ml_list_length_fn(void *Data, int Count, ml_value_t **Args) {
 	ml_list_t *List = (ml_list_t *)Args[0];
 	return ml_integer(List->Length);
+}
+
+static ml_value_t *ml_list_filter_fn(void *Data, int Count, ml_value_t **Args) {
+	ml_list_t *List = (ml_list_t *)Args[0];
+	ml_value_t *Filter = Args[1];
+	ml_value_t *New = ml_list();
+	for (ml_list_node_t *Node = List->Head; Node; Node = Node->Next) {
+		ml_value_t *Result = ml_inline(Filter, 1, Node->Value);
+		if (Result->Type == MLErrorT) return Result;
+		if (Result != MLNil) ml_list_append(New, Node->Value);
+	}
+	return New;
+}
+
+static ml_value_t *ml_list_map_fn(void *Data, int Count, ml_value_t **Args) {
+	ml_list_t *List = (ml_list_t *)Args[0];
+	ml_value_t *Map = Args[1];
+	ml_value_t *New = ml_list();
+	for (ml_list_node_t *Node = List->Head; Node; Node = Node->Next) {
+		ml_value_t *Result = ml_inline(Map, 1, Node->Value);
+		if (Result->Type == MLErrorT) return Result;
+		ml_list_append(New, Result);
+	}
+	return New;
 }
 
 static ml_value_t *ml_list_index(void *Data, int Count, ml_value_t **Args) {
@@ -1022,13 +1059,31 @@ static ml_value_t *ml_list_slice(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)Slice;
 }
 
+static ml_value_t *ml_list_call(ml_list_t *List, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLIntegerT);
+	long Index = ((ml_integer_t *)Args[0])->Value;
+	if (Index > 0) {
+		for (ml_list_node_t *Node = List->Head; Node; Node = Node->Next) {
+			if (--Index == 0) return Node->Value;
+		}
+		return MLNil;
+	} else {
+		Index = -Index;
+		for (ml_list_node_t *Node = List->Tail; Node; Node = Node->Prev) {
+			if (--Index == 0) return Node->Value;
+		}
+		return MLNil;
+	}
+}
+
 static ml_value_t *ml_list_iterate(ml_value_t *Value);
 
 ml_type_t MLListT[1] = {{
 	MLTypeT,
-	MLAnyT, "list",
+	MLFunctionT, "list",
 	ml_default_hash,
-	ml_default_call,
+	(void *)ml_list_call,
 	ml_default_deref,
 	ml_default_assign,
 	ml_list_iterate,
@@ -1269,7 +1324,7 @@ static ml_value_t *ml_map_remove_internal(ml_map_t *Map, ml_map_node_t **Slot, l
 	return Removed;
 }
 
-ml_value_t *ml_map_remove(ml_value_t *Map0, ml_value_t *Key) {
+ml_value_t *ml_map_delete(ml_value_t *Map0, ml_value_t *Key) {
 	ml_map_t *Map = (ml_map_t *)Map0;
 	return ml_map_remove_internal(Map, &Map->Root, Key->Type->hash(Key, NULL), Key);
 }
@@ -1304,20 +1359,32 @@ static ml_value_t *ml_map_index(void *Data, int Count, ml_value_t **Args) {
 	return ml_property(Map, (const char *)Key, ml_map_index_get, ml_map_index_set, NULL, NULL);
 }
 
-static ml_value_t *ml_map_delete(void *Data, int Count, ml_value_t **Args) {
-	if (Count < 2) return MLNil;
+static ml_value_t *ml_map_insert_fn(void *Data, int Count, ml_value_t **Args) {
 	ml_value_t *Map = (ml_value_t *)Args[0];
 	ml_value_t *Key = Args[1];
-	return ml_map_remove(Map, Key);
+	ml_value_t *Value = Args[2];
+	return ml_map_insert(Map, Key, Value);
+}
+
+
+static ml_value_t *ml_map_delete_fn(void *Data, int Count, ml_value_t **Args) {
+	ml_value_t *Map = (ml_value_t *)Args[0];
+	ml_value_t *Key = Args[1];
+	return ml_map_delete(Map, Key);
+}
+
+static ml_value_t *ml_map_call(ml_map_t *Map, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	return ml_map_search(Map, Args[0]);
 }
 
 static ml_value_t *ml_map_iterate(ml_value_t *Value);
 
 ml_type_t MLMapT[1] = {{
 	MLTypeT,
-	MLAnyT, "map",
+	MLFunctionT, "map",
 	ml_default_hash,
-	ml_default_call,
+	(void *)ml_map_call,
 	ml_default_deref,
 	ml_default_assign,
 	ml_map_iterate,
@@ -2478,7 +2545,7 @@ void ml_init() {
 	ml_methods_add_number_number(gre, >);
 	ml_methods_add_number_number(leq, <=);
 	ml_methods_add_number_number(geq, >=);
-	ml_method_by_name("length", NULL, ml_string_length_value, MLStringT, NULL);
+	ml_method_by_name("length", NULL, ml_string_length_fn, MLStringT, NULL);
 	ml_method_by_name("trim", NULL, ml_string_trim, MLStringT, NULL);
 	ml_method_by_name("[]", NULL, ml_string_index, MLStringT, MLIntegerT, NULL);
 	ml_method_by_name("[]", NULL, ml_string_slice, MLStringT, MLIntegerT, MLIntegerT, NULL);
@@ -2493,7 +2560,9 @@ void ml_init() {
 	ml_method_by_name("<=", NULL, ml_leq_string_string, MLStringT, MLStringT, NULL);
 	ml_method_by_name(">=", NULL, ml_geq_string_string, MLStringT, MLStringT, NULL);
 	ml_method_by_name("<>", NULL, ml_compare_any_any, MLAnyT, MLAnyT, NULL);
-	ml_method_by_name("length", NULL, ml_list_length_value, MLListT, NULL);
+	ml_method_by_name("length", NULL, ml_list_length_fn, MLListT, NULL);
+	ml_method_by_name("filter", NULL, ml_list_filter_fn, MLListT, MLFunctionT, NULL);
+	ml_method_by_name("map", NULL, ml_list_map_fn, MLListT, MLFunctionT, NULL);
 	ml_method_by_name("[]", NULL, ml_list_index, MLListT, MLIntegerT, NULL);
 	ml_method_by_name("[]", NULL, ml_list_slice, MLListT, MLIntegerT, MLIntegerT, NULL);
 	ml_method_by_name("push", NULL, ml_list_push, MLListT, NULL);
@@ -2503,7 +2572,8 @@ void ml_init() {
 	ml_method_by_name("+", NULL, ml_list_add, MLListT, MLListT, NULL);
 	ml_method_by_name("size", NULL, ml_map_size_value, MLMapT, NULL);
 	ml_method_by_name("[]", NULL, ml_map_index, MLMapT, MLAnyT, NULL);
-	ml_method_by_name("delete", NULL, ml_map_delete, MLMapT, NULL);
+	ml_method_by_name("insert", NULL, ml_map_insert_fn, MLMapT, MLAnyT, MLAnyT, NULL);
+	ml_method_by_name("delete", NULL, ml_map_delete_fn, MLMapT, MLAnyT, NULL);
 	ml_method_by_name("+", NULL, ml_map_add, MLMapT, MLMapT, NULL);
 	ml_method_by_name("string", NULL, ml_type_to_string, MLTypeT, NULL);
 	ml_method_by_name("string", NULL, ml_nil_to_string, MLNilT, NULL);
@@ -2520,6 +2590,7 @@ void ml_init() {
 	ml_method_by_name("/", NULL, ml_string_regex_split, MLStringT, MLRegexT, NULL);
 	ml_method_by_name("%", NULL, ml_string_match_string, MLStringT, MLStringT, NULL);
 	ml_method_by_name("find", 0, ml_string_find_string, MLStringT, MLStringT, NULL);
+	ml_method_by_name("find", 0, ml_string_find_regex, MLStringT, MLRegexT, NULL);
 	ml_method_by_name("replace", NULL, ml_string_string_replace, MLStringT, MLStringT, MLStringT, NULL);
 	ml_method_by_name("replace", NULL, ml_string_regex_string_replace, MLStringT, MLRegexT, MLStringT, NULL);
 	ml_method_by_name("replace", NULL, ml_string_regex_function_replace, MLStringT, MLRegexT, MLFunctionT, NULL);
