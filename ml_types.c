@@ -475,6 +475,7 @@ static ml_value_t *ml_string_find_string(void *Data, int Count, ml_value_t **Arg
 
 static ml_value_t *ml_string_find_regex(void *Data, int Count, ml_value_t **Args) {
 	regex_t *Regex = ml_regex_value(Args[1]);
+#ifdef __USE_GNU
 	regoff_t Offset = re_search(Regex,
 		ml_string_value(Args[0]), ml_string_length(Args[0]),
 		0, ml_string_length(Args[0]), NULL
@@ -484,6 +485,20 @@ static ml_value_t *ml_string_find_regex(void *Data, int Count, ml_value_t **Args
 	} else {
 		return MLNil;
 	}
+#else
+	regmatch_t Matches[1];
+	switch (regexec(Regex, ml_string_value(Args[0]), 1, Matches, 0)) {
+	case REG_NOMATCH:
+		return MLNil;
+	case REG_ESPACE: {
+		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
+		char *ErrorMessage = snew(ErrorSize + 1);
+		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
+		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+	}
+	}
+	return ml_integer(Matches->rm_so);
+#endif
 }
 
 ml_value_t *ml_string_match_string(void *Data, int Count, ml_value_t **Args) {
