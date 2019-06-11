@@ -1224,7 +1224,7 @@ static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 			Scanner->Next = End;
 			return Scanner->Token;
 		}
-		if (isdigit(Char) || (Char == '-' && isdigit(Scanner->Next[1]))) {
+		if (isdigit(Char) || (Char == '-' && isdigit(Scanner->Next[1])) || (Char == '.' && isdigit(Scanner->Next[1]))) {
 			char *End;
 			double Double = strtod(Scanner->Next, &End);
 			for (const char *P = Scanner->Next; P < End; ++P) {
