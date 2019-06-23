@@ -1,6 +1,7 @@
 .PHONY: clean all install
 
 PLATFORM = $(shell uname)
+MACHINE = $(shell uname -m)
 
 all: minilang minipp libminilang.a
 
@@ -13,7 +14,7 @@ ifdef DEBUG
 	CFLAGS += -g -DGC_DEBUG -DDEBUG
 	LDFLAGS += -g
 else
-	CFLAGS += -O3
+	CFLAGS += -O3 -g
 endif
 
 common_objects = \
