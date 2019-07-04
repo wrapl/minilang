@@ -9,7 +9,8 @@ if DEBUG then
 	CFLAGS := old + ["-g", "-DGC_DEBUG", "-DDEBUG"]
 	LDFLAGS := old + ["-g"]
 else
-	CFLAGS := old + ["-O3"]
+	CFLAGS := old + ["-O3", "-g"]
+	LDFLAGS := old + ["-g"]
 end
 
 var Objects := [

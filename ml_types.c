@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stdint.h>
 #include <gc.h>
 #include <gc/gc_typed.h>
 #include <regex.h>
@@ -762,16 +763,12 @@ static ml_value_t *ml_regex_to_string(void *Data, int Count, ml_value_t **Args) 
 typedef struct ml_method_table_t ml_method_table_t;
 typedef struct ml_method_node_t ml_method_node_t;
 
-struct ml_method_node_t {
-	const ml_type_t *Type;
-	ml_method_table_t *Child;
-};
-
 struct ml_method_table_t {
 	void *Data;
 	ml_callback_t Callback;
-	ml_method_node_t *Nodes;
-	int Size, Space;
+	const ml_type_t **Types;
+	ml_method_table_t **Children;
+	size_t Size, Space;
 };
 
 struct ml_method_t {
@@ -792,19 +789,20 @@ static long ml_method_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 }
 
 static const ml_method_table_t *ml_method_find(const ml_method_table_t *Table, int Count, ml_value_t **Args) {
-	if (Count == 0) return Table;
-	int Mask = Table->Size - 1;
-	if (Mask < 0) return Table;
-	ml_method_node_t *Nodes = Table->Nodes;
+	if (Table->Size == 0) return Table;
+	unsigned int Mask = Table->Size - 1;
+	const ml_type_t **Types = Table->Types;
 	for (const ml_type_t *Type = Args[0]->Type; Type; Type = Type->Parent) {
-		int Index = ((intptr_t)Type >> 7) & Mask;
-		int Incr = ((intptr_t)Type >> 11) | 1;
+		unsigned int Index = ((uintptr_t)Type >> 5) & Mask;
+		unsigned int Incr = ((uintptr_t)Type >> 9) | 1;
 		for (;;) {
-			if (Nodes[Index].Type == Type) {
-				const ml_method_table_t *Result = ml_method_find(Nodes[Index].Child, Count - 1, Args + 1);
+			if (Types[Index] == Type) {
+				const ml_method_table_t *Result = (Count - 1)
+						? ml_method_find(Table->Children[Index], Count - 1, Args + 1)
+						: Table->Children[Index];
 				if (Result->Callback) return Result;
 				break;
-			} else if (Nodes[Index].Type < Type) {
+			} else if (Types[Index] < Type) {
 				break;
 			} else {
 				Index = (Index + Incr) & Mask;
@@ -816,7 +814,7 @@ static const ml_method_table_t *ml_method_find(const ml_method_table_t *Table, i
 
 ml_value_t *ml_method_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_method_t *Method = (ml_method_t *)Value;
-	const ml_method_table_t *Table = ml_method_find(Method->Table, Count, Args);
+	const ml_method_table_t *Table = Count ? ml_method_find(Method->Table, Count, Args) : Method->Table;
 	if (Table->Callback) {
 		return (Table->Callback)(Table->Data, Count, Args);
 	} else {
@@ -870,43 +868,56 @@ ml_value_t *ml_method(const char *Name) {
 	return (ml_value_t *)Slot[0];
 }
 
-static void ml_method_nodes_sort(ml_method_node_t *A, ml_method_node_t *B) {
-	ml_method_node_t *A1 = A, *B1 = B;
-	ml_method_node_t Temp = *A;
-	ml_method_node_t Pivot = *B;
+static void ml_method_nodes_sort(int A, int B, const ml_type_t **Types, ml_method_table_t **Children) {
+	int A1 = A, B1 = B;
+	const ml_type_t *TempType = Types[A];
+	ml_method_table_t *TempChild = Children[A];
+	const ml_type_t *PivotType = Types[B];
+	ml_method_table_t *PivotChild = Children[B];
 	while (A1 < B1) {
-		if (Temp.Type > Pivot.Type) {
-			*A1 = Temp;
-			Temp = *++A1;
+		if (TempType > PivotType) {
+			Types[A1] = TempType;
+			Children[A1] = TempChild;
+			++A1;
+			TempType = Types[A1];
+			TempChild = Children[A1];
 		} else {
-			*B1 = Temp;
-			Temp = *--B1;
+			Types[B1] = TempType;
+			Children[B1] = TempChild;
+			--B1;
+			TempType = Types[B1];
+			TempChild = Children[B1];
 		}
 	}
-	*A1 = Pivot;
-	if (A1 - A > 1) ml_method_nodes_sort(A, A1 - 1);
-	if (B - B1 > 1) ml_method_nodes_sort(B1 + 1, B);
+	Types[A1] = PivotType;
+	Children[A1] = PivotChild;
+	if (A1 - A > 1) ml_method_nodes_sort(A, A1 - 1, Types, Children);
+	if (B - B1 > 1) ml_method_nodes_sort(B1 + 1, B, Types, Children);
 }
 
 static ml_method_table_t *ml_method_insert(ml_method_table_t *Table, const ml_type_t *Type) {
-	int Mask = Table->Size - 1;
-	if (Mask < 0) {
-		ml_method_node_t *Nodes = Table->Nodes = anew(ml_method_node_t, 4);
-		int Index = ((intptr_t)Type >> 7) & 3;
-		Nodes[Index].Type = Type;
+	if (Table->Size == 0) {
+		const ml_type_t **Types = anew(const ml_type_t *, 4);
+		ml_method_table_t **Children = anew(ml_method_table_t *, 4);
+		unsigned int Index = ((uintptr_t)Type >> 5) & 3;
+		Types[Index] = Type;
 		ml_method_table_t *Child = new(ml_method_table_t);
-		Nodes[Index].Child = Child;
+		Children[Index] = Child;
+		Table->Types = Types;
+		Table->Children = Children;
 		Table->Size = 4;
 		Table->Space = 3;
 		return Child;
 	}
-	ml_method_node_t *Nodes = Table->Nodes;
-	int Index = ((intptr_t)Type >> 7) & Mask;
-	int Incr = ((intptr_t)Type >> 11) | 1;
+	unsigned int Mask = Table->Size - 1;
+	const ml_type_t **Types = Table->Types;
+	ml_method_table_t **Children = Table->Children;
+	unsigned int Index = ((uintptr_t)Type >> 5) & Mask;
+	unsigned int Incr = ((uintptr_t)Type >> 9) | 1;
 	for (;;) {
-		if (Nodes[Index].Type == Type) {
-			return Nodes[Index].Child;
-		} else if (Nodes[Index].Type < Type) {
+		if (Types[Index] == Type) {
+			return Children[Index];
+		} else if (Types[Index] < Type) {
 			break;
 		} else {
 			Index = (Index + Incr) & Mask;
@@ -914,31 +925,40 @@ static ml_method_table_t *ml_method_insert(ml_method_table_t *Table, const ml_ty
 	}
 	ml_method_table_t *Child = new(ml_method_table_t);
 	if (--Table->Space > 1) {
-		ml_method_node_t Node = Nodes[Index];
-		Nodes[Index].Type = Type;
-		Nodes[Index].Child = Child;
-		while (Node.Type) {
-			Incr = ((intptr_t)Node.Type >> 11) | 1;
-			while (Nodes[Index].Type > Node.Type) Index = (Index + Incr) & Mask;
-			ml_method_node_t Node2 = Nodes[Index];
-			Nodes[Index] = Node;
-			Node = Node2;
+		const ml_type_t *Type1 = Types[Index];
+		ml_method_table_t *Child1 = Children[Index];
+		Types[Index] = Type;
+		Children[Index] = Child;
+		while (Type1) {
+			Incr = ((uintptr_t)Type1 >> 9) | 1;
+			while (Types[Index] > Type1) Index = (Index + Incr) & Mask;
+			const ml_type_t *Type2 = Types[Index];
+			ml_method_table_t *Child2 = Children[Index];
+			Types[Index] = Type1;
+			Children[Index] = Child1;
+			Type1 = Type2;
+			Child1 = Child2;
 		}
 	} else {
-		while (Nodes[Index].Type) Index = (Index + 1) & Mask;
-		Nodes[Index].Type = Type;
-		Nodes[Index].Child = Child;
-		ml_method_nodes_sort(Nodes, Nodes + Table->Size - 1);
-		int Size2 = 2 * Table->Size;
+		while (Types[Index]) Index = (Index + 1) & Mask;
+		Types[Index] = Type;
+		Children[Index] = Child;
+		ml_method_nodes_sort(0, Table->Size - 1, Types, Children);
+		size_t Size2 = 2 * Table->Size;
 		Mask = Size2 - 1;
-		ml_method_node_t *Nodes2 = anew(ml_method_node_t, Size2);
-		for (ml_method_node_t *Node = Nodes; Node->Type; ++Node) {
-			int Index2 = ((intptr_t)Node->Type >> 7) & Mask;
-			int Incr2 = ((intptr_t)Node->Type >> 11) | 1;
-			while (Nodes2[Index2].Type) Index2 = (Index2 + Incr2) & Mask;
-			Nodes2[Index2] = *Node;
+		const ml_type_t **Types2 = anew(const ml_type_t *, Size2);
+		ml_method_table_t **Children2 = anew(ml_method_table_t *, Size2);
+		for (int I = 0; I < Table->Size; ++I) {
+			const ml_type_t *Type2 = Types[I];
+			ml_method_table_t *Child2 = Children[I];
+			unsigned int Index2 = ((uintptr_t)Type2 >> 5) & Mask;
+			unsigned int Incr2 = ((uintptr_t)Type2 >> 9) | 1;
+			while (Types2[Index2]) Index2 = (Index2 + Incr2) & Mask;
+			Types2[Index2] = Type2;
+			Children2[Index2] = Child2;
 		}
-		Nodes = Table->Nodes = Nodes2;
+		Table->Types = Types2;
+		Table->Children = Children2;
 		Table->Space += Table->Size;
 		Table->Size = Size2;
 	}
