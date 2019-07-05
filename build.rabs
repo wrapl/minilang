@@ -52,7 +52,7 @@ var InstallHeaders := [
 	"minilang.h",
 	"ml_console.h",
 	"ml_file.h",
-	"ml_file.h",
+	"ml_iterfns.h",
 	"ml_macros.h",
 	"ml_types.h",
 	"ml_object.h",
