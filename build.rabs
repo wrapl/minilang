@@ -19,6 +19,7 @@ var Objects := [
 	file("ml_runtime.o"),
 	file("ml_types.o"),
 	file("ml_file.o"),
+	file("ml_iterfns.o"),
 	file("sha256.o"),
 	file("stringmap.o"),
 	file("pointerset.o"),
@@ -46,16 +47,24 @@ var Minipp := c_program(file("minipp"), [file("minipp.o")] + Objects)
 var InstallInclude := PREFIX / "include/minilang"
 var InstallLib := PREFIX / "lib"
 
-install(file("linenoise.h"), InstallInclude / "linenoise.h")
-install(file("minilang.h"), InstallInclude / "minilang.h")
-install(file("ml_console.h"), InstallInclude / "ml_console.h")
-install(file("ml_file.h"), InstallInclude / "ml_file.h")
-install(file("ml_macros.h"), InstallInclude / "ml_macros.h")
-install(file("ml_types.h"), InstallInclude / "ml_types.h")
-install(file("ml_object.h"), InstallInclude / "ml_object.h")
-install(file("ml_compiler.h"), InstallInclude / "ml_compiler.h")
-install(file("sha256.h"), InstallInclude / "sha256.h")
-install(file("stringmap.h"), InstallInclude / "stringmap.h")
+var InstallHeaders := [
+	"linenoise.h",
+	"minilang.h",
+	"ml_console.h",
+	"ml_file.h",
+	"ml_file.h",
+	"ml_macros.h",
+	"ml_types.h",
+	"ml_object.h",
+	"ml_compiler.h",
+	"sha256.h",
+	"stringmap.h"
+]
+
+for Header in InstallHeaders do
+	install(file(Header), InstallInclude / Header)
+end
+
 install(file("libminilang.a"), InstallLib / "libminilang.a")
 
 var test_minilang := fun(Source, Expected) do

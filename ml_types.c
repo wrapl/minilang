@@ -106,7 +106,7 @@ static ml_value_t *ml_some_to_string(void *Data, int Count, ml_value_t **Args) {
 
 ml_type_t MLSomeT[1] = {{
 	MLTypeT,
-	MLAnyT, "nil",
+	MLAnyT, "some",
 	ml_default_hash,
 	ml_default_call,
 	ml_default_deref,
@@ -379,6 +379,17 @@ static ml_value_t *ml_string_slice(void *Data, int Count, ml_value_t **Args) {
 	int Length = Hi - Lo;
 	char *Chars = snew(Length + 1);
 	memcpy(Chars, String->Value + Lo - 1, Length);
+	Chars[Length] = 0;
+	return ml_string(Chars, Length);
+}
+
+static ml_value_t *ml_add_string_string(void *Data, int Count, ml_value_t **Args) {
+	int Length1 = ml_string_length(Args[0]);
+	int Length2 = ml_string_length(Args[1]);
+	int Length =  Length1 + Length2;
+	char *Chars = GC_malloc_atomic(Length + 1);
+	memcpy(Chars, ml_string_value(Args[0]), Length1);
+	memcpy(Chars + Length1, ml_string_value(Args[1]), Length2);
 	Chars[Length] = 0;
 	return ml_string(Chars, Length);
 }
@@ -1767,6 +1778,10 @@ ml_value_t *stringify_nil(void *Data, int Count, ml_value_t **Args) {
 	return MLNil;
 }
 
+ml_value_t *stringify_some(void *Data, int Count, ml_value_t **Args) {
+	return MLNil;
+}
+
 ml_value_t *stringify_integer(void *Data, int Count, ml_value_t **Args) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_addf(Buffer, "%ld", ml_integer_value(Args[1]));
@@ -1978,6 +1993,7 @@ static ml_value_t *ml_compare_real_real(void *Data, int Count, ml_value_t **Args
 typedef struct ml_integer_iter_t {
 	const ml_type_t *Type;
 	long Current, Step, Limit;
+	long Index;
 } ml_integer_iter_t;
 
 static ml_value_t *ml_integer_iter_current(ml_integer_iter_t *Iter) {
@@ -1988,9 +2004,14 @@ static ml_value_t *ml_integer_iter_next(ml_integer_iter_t *Iter) {
 	if (Iter->Current >= Iter->Limit) {
 		return MLNil;
 	} else {
+		++Iter->Index;
 		Iter->Current += Iter->Step;
 		return (ml_value_t *)Iter;
 	}
+}
+
+static ml_value_t *ml_integer_iter_key(ml_integer_iter_t *Iter) {
+	return ml_integer(Iter->Index);
 }
 
 ml_type_t MLIntegerIterT[1] = {{
@@ -2003,7 +2024,7 @@ ml_type_t MLIntegerIterT[1] = {{
 	ml_default_iterate,
 	(void *)ml_integer_iter_current,
 	(void *)ml_integer_iter_next,
-	ml_default_key
+	(void *)ml_integer_iter_key,
 }};
 
 typedef struct ml_integer_range_t {
@@ -2015,6 +2036,7 @@ static ml_value_t *ml_integer_range_iterate(ml_value_t *Value) {
 	ml_integer_range_t *Range = (ml_integer_range_t *)Value;
 	ml_integer_iter_t *Iter = new(ml_integer_iter_t);
 	Iter->Type = MLIntegerIterT;
+	Iter->Index = 1;
 	Iter->Current = Range->Start;
 	Iter->Limit = Range->Limit;
 	Iter->Step = Range->Step;
@@ -2043,6 +2065,119 @@ static ml_value_t *ml_range_integer_integer(void *Data, int Count, ml_value_t **
 	Range->Limit = IntegerB->Value;
 	Range->Step = 1;
 	return (ml_value_t *)Range;
+}
+
+static ml_value_t *ml_skip_integer_range_integer(void *Data, int Count, ml_value_t **Args) {
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
+	Range->Step = Range->Limit - Range->Start;
+	Range->Limit = ((ml_integer_t *)Args[1])->Value;
+	return (ml_value_t *)Range;
+}
+
+typedef struct ml_real_iter_t {
+	const ml_type_t *Type;
+	double Current, Step, Limit;
+	long Index;
+} ml_real_iter_t;
+
+static ml_value_t *ml_real_iter_current(ml_real_iter_t *Iter) {
+	return ml_real(Iter->Current);
+}
+
+static ml_value_t *ml_real_iter_next(ml_real_iter_t *Iter) {
+	if (Iter->Current >= Iter->Limit) {
+		return MLNil;
+	} else {
+		++Iter->Index;
+		Iter->Current += Iter->Step;
+		return (ml_value_t *)Iter;
+	}
+}
+
+static ml_value_t *ml_real_iter_key(ml_real_iter_t *Iter) {
+	return ml_integer(Iter->Index);
+}
+
+ml_type_t MLRealIterT[1] = {{
+	MLTypeT,
+	MLAnyT, "real-iter",
+	ml_default_hash,
+	ml_default_call,
+	ml_default_deref,
+	ml_default_assign,
+	ml_default_iterate,
+	(void *)ml_real_iter_current,
+	(void *)ml_real_iter_next,
+	(void *)ml_real_iter_key,
+}};
+
+typedef struct ml_real_range_t {
+	const ml_type_t *Type;
+	double Start, Limit, Step;
+} ml_real_range_t;
+
+static ml_value_t *ml_real_range_iterate(ml_value_t *Value) {
+	ml_real_range_t *Range = (ml_real_range_t *)Value;
+	ml_real_iter_t *Iter = new(ml_real_iter_t);
+	Iter->Type = MLRealIterT;
+	Iter->Index = 1;
+	Iter->Current = Range->Start;
+	Iter->Limit = Range->Limit;
+	Iter->Step = Range->Step;
+	return (ml_value_t *)Iter;
+}
+
+ml_type_t MLRealRangeT[1] = {{
+	MLTypeT,
+	MLIteratableT, "real-range",
+	ml_default_hash,
+	ml_default_call,
+	ml_default_deref,
+	ml_default_assign,
+	ml_real_range_iterate,
+	ml_default_current,
+	ml_default_next,
+	ml_default_key
+}};
+
+static ml_value_t *ml_range_number_number(void *Data, int Count, ml_value_t **Args) {
+	ml_integer_t *IntegerA = (ml_integer_t *)Args[0];
+	ml_integer_t *IntegerB = (ml_integer_t *)Args[1];
+	ml_real_range_t *Range = new(ml_real_range_t);
+	Range->Type = MLRealRangeT;
+	if (Args[0]->Type == MLIntegerT) {
+		Range->Start = ((ml_integer_t *)Args[0])->Value;
+	} else if (Args[0]->Type == MLRealT) {
+		Range->Start = ((ml_real_t *)Args[0])->Value;
+	}
+	if (Args[1]->Type == MLIntegerT) {
+		Range->Limit = ((ml_integer_t *)Args[1])->Value;
+	} else if (Args[1]->Type == MLRealT) {
+		Range->Limit = ((ml_real_t *)Args[1])->Value;
+	}
+	Range->Step = 1.0;
+	return (ml_value_t *)Range;
+}
+
+static ml_value_t *ml_skip_real_range_number(void *Data, int Count, ml_value_t **Args) {
+	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
+	Range->Step = Range->Limit - Range->Start;
+	if (Args[1]->Type == MLIntegerT) {
+		Range->Limit = ((ml_integer_t *)Args[1])->Value;
+	} else if (Args[1]->Type == MLRealT) {
+		Range->Limit = ((ml_real_t *)Args[1])->Value;
+	}
+	return (ml_value_t *)Range;
+}
+
+static ml_value_t *ml_skip_integer_range_real(void *Data, int Count, ml_value_t **Args) {
+	ml_integer_range_t *IntegerRange = (ml_integer_range_t *)Args[0];
+	ml_real_range_t *RealRange = new(ml_real_range_t);
+	RealRange->Type = MLRealRangeT;
+	RealRange->Start = IntegerRange->Start;
+	RealRange->Step = IntegerRange->Limit - IntegerRange->Start;
+	RealRange->Limit = ((ml_real_t *)Args[1])->Value;
+	return (ml_value_t *)RealRange;
 }
 
 #define ml_methods_add_number_number(NAME, SYMBOL) \
@@ -2370,7 +2505,9 @@ static ml_value_t *ml_map_to_string(void *Data, int Count, ml_value_t **Args) {
 		1
 	}};
 	ml_stringbuffer_add(Stringer->Buffer, "{", 1);
-	if (ml_map_foreach(Args[0], Stringer, (void *)ml_map_stringer)) return Stringer->Error;
+	if (ml_map_foreach(Args[0], Stringer, (void *)ml_map_stringer)) {
+		return Stringer->Error;
+	}
 	ml_stringbuffer_add(Stringer->Buffer, "}", 1);
 	return ml_string(ml_stringbuffer_get(Stringer->Buffer), -1);
 }
@@ -2584,9 +2721,14 @@ void ml_init() {
 	ml_method_by_name("trim", NULL, ml_string_trim, MLStringT, NULL);
 	ml_method_by_name("[]", NULL, ml_string_index, MLStringT, MLIntegerT, NULL);
 	ml_method_by_name("[]", NULL, ml_string_slice, MLStringT, MLIntegerT, MLIntegerT, NULL);
+	ml_method_by_name("+", NULL, ml_add_string_string, MLStringT, MLStringT, NULL);
 	ml_method_by_name("%", NULL, ml_mod_integer_integer, MLIntegerT, MLIntegerT, NULL);
 	ml_method_by_name("//", NULL, ml_idiv_integer_integer, MLIntegerT, MLIntegerT, NULL);
 	ml_method_by_name("..", NULL, ml_range_integer_integer, MLIntegerT, MLIntegerT, NULL);
+	ml_method_by_name("..", NULL, ml_skip_integer_range_integer, MLIntegerRangeT, MLIntegerT, NULL);
+	ml_method_by_name("..", NULL, ml_skip_integer_range_real, MLIntegerRangeT, MLRealT, NULL);
+	ml_method_by_name("..", NULL, ml_range_number_number, MLNumberT, MLNumberT, NULL);
+	ml_method_by_name("..", NULL, ml_skip_real_range_number, MLRealRangeT, MLNumberT, NULL);
 	ml_method_by_name("<>", NULL, ml_compare_string_string, MLStringT, MLStringT, NULL);
 	ml_method_by_name("=", NULL, ml_eq_string_string, MLStringT, MLStringT, NULL);
 	ml_method_by_name("!=", NULL, ml_neq_string_string, MLStringT, MLStringT, NULL);
@@ -2642,6 +2784,7 @@ void ml_init() {
 
 	AppendMethod = ml_method("append");
 	ml_method_by_value(AppendMethod, NULL, stringify_nil, MLStringBufferT, MLNilT, NULL);
+	ml_method_by_value(AppendMethod, NULL, stringify_some, MLStringBufferT, MLSomeT, NULL);
 	ml_method_by_value(AppendMethod, NULL, stringify_integer, MLStringBufferT, MLIntegerT, NULL);
 	ml_method_by_value(AppendMethod, NULL, stringify_real, MLStringBufferT, MLRealT, NULL);
 	ml_method_by_value(AppendMethod, NULL, stringify_string, MLStringBufferT, MLStringT, NULL);

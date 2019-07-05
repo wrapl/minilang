@@ -24,6 +24,7 @@ common_objects = \
 	ml_runtime.o \
 	ml_types.o \
 	ml_file.o \
+	ml_iterfns.o \
 	sha256.o \
 	stringmap.o \
 	pointerset.o \
@@ -78,6 +79,7 @@ install_h = \
 	$(install_include)/minilang.h \
 	$(install_include)/ml_console.h \
 	$(install_include)/ml_file.h \
+	$(install_include)/ml_iterfns.h \
 	$(install_include)/ml_macros.h \
 	$(install_include)/ml_types.h \
 	$(install_include)/ml_object.h \

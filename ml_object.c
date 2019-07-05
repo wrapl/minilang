@@ -2,7 +2,6 @@
 #include <string.h>
 #include "minilang.h"
 #include "ml_macros.h"
-#include "ml_types.h"
 #include "ml_object.h"
 
 typedef struct ml_class_t {
@@ -150,23 +149,23 @@ static ml_value_t *ml_type_member(void *Data, int Count, ml_value_t **Args) {
 	return MLNil;
 }
 
-void ml_object_init(void *Globals, ml_setter_t GlobalSet) {
-	GlobalSet(Globals, "class", ml_function(NULL, ml_class_fn));
-	GlobalSet(Globals, "method", ml_function(NULL, ml_method_fn));
-	GlobalSet(Globals, "type", ml_function(NULL, ml_type_fn));
-	GlobalSet(Globals, "AnyT", (ml_value_t *)MLAnyT);
-	GlobalSet(Globals, "TypeT", (ml_value_t *)MLTypeT);
-	GlobalSet(Globals, "NilT", (ml_value_t *)MLNilT);
-	GlobalSet(Globals, "FunctionT", (ml_value_t *)MLFunctionT);
-	GlobalSet(Globals, "NumberT", (ml_value_t *)MLNumberT);
-	GlobalSet(Globals, "IntegerT", (ml_value_t *)MLIntegerT);
-	GlobalSet(Globals, "RealT", (ml_value_t *)MLRealT);
-	GlobalSet(Globals, "StringT", (ml_value_t *)MLStringT);
-	GlobalSet(Globals, "StringBufferT", (ml_value_t *)MLStringBufferT);
-	GlobalSet(Globals, "RegexT", (ml_value_t *)MLRegexT);
-	GlobalSet(Globals, "MethodT", (ml_value_t *)MLMethodT);
-	GlobalSet(Globals, "ListT", (ml_value_t *)MLListT);
-	GlobalSet(Globals, "MapT", (ml_value_t *)MLMapT);
+void ml_object_init(stringmap_t *Globals) {
+	stringmap_insert(Globals, "class", ml_function(NULL, ml_class_fn));
+	stringmap_insert(Globals, "method", ml_function(NULL, ml_method_fn));
+	stringmap_insert(Globals, "type", ml_function(NULL, ml_type_fn));
+	stringmap_insert(Globals, "AnyT", (ml_value_t *)MLAnyT);
+	stringmap_insert(Globals, "TypeT", (ml_value_t *)MLTypeT);
+	stringmap_insert(Globals, "NilT", (ml_value_t *)MLNilT);
+	stringmap_insert(Globals, "FunctionT", (ml_value_t *)MLFunctionT);
+	stringmap_insert(Globals, "NumberT", (ml_value_t *)MLNumberT);
+	stringmap_insert(Globals, "IntegerT", (ml_value_t *)MLIntegerT);
+	stringmap_insert(Globals, "RealT", (ml_value_t *)MLRealT);
+	stringmap_insert(Globals, "StringT", (ml_value_t *)MLStringT);
+	stringmap_insert(Globals, "StringBufferT", (ml_value_t *)MLStringBufferT);
+	stringmap_insert(Globals, "RegexT", (ml_value_t *)MLRegexT);
+	stringmap_insert(Globals, "MethodT", (ml_value_t *)MLMethodT);
+	stringmap_insert(Globals, "ListT", (ml_value_t *)MLListT);
+	stringmap_insert(Globals, "MapT", (ml_value_t *)MLMapT);
 	StringMethod = ml_method("string");
 	ml_method_by_value(AppendMethod, NULL, ml_object_append, MLStringBufferT, MLObjectT, NULL);
 	ml_method_by_value(StringMethod, NULL, ml_object_string, MLObjectT, NULL);

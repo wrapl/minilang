@@ -627,7 +627,7 @@ static mlc_compiled_t ml_all_expr_compile(mlc_function_t *Function, mlc_parent_e
 	return (mlc_compiled_t){ListInst, PopInst};
 }
 
-static mlc_compiled_t ml_uniq_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
+static mlc_compiled_t ml_map_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
 	ML_COMPILE_HASH
 	ml_inst_t *MapInst = ml_inst_new(1, Expr->Source, MLI_MAP);
 	++Function->Top;
@@ -636,6 +636,25 @@ static mlc_compiled_t ml_uniq_expr_compile(mlc_function_t *Function, mlc_parent_
 	ml_inst_t *ForInst = ml_inst_new(2, Expr->Source, MLI_FOR);
 	mlc_connect(Compiled.Exits, ForInst);
 	ml_inst_t *InsertInst = ml_inst_new(1, Expr->Source, MLI_INSERT);
+	ForInst->Params[1].Inst = InsertInst;
+	ml_inst_t *NextInst = ml_inst_new(2, Expr->Source, MLI_NEXT);
+	ml_inst_t *PopInst = ml_inst_new(1, Expr->Source, MLI_POP);
+	InsertInst->Params[0].Inst = NextInst;
+	ForInst->Params[0].Inst = PopInst;
+	NextInst->Params[0].Inst = PopInst;
+	NextInst->Params[1].Inst = InsertInst;
+	return (mlc_compiled_t){MapInst, PopInst};
+}
+
+static mlc_compiled_t ml_uniq_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
+	ML_COMPILE_HASH
+	ml_inst_t *MapInst = ml_inst_new(1, Expr->Source, MLI_MAP);
+	++Function->Top;
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
+	MapInst->Params[0].Inst = Compiled.Start;
+	ml_inst_t *ForInst = ml_inst_new(2, Expr->Source, MLI_FOR);
+	mlc_connect(Compiled.Exits, ForInst);
+	ml_inst_t *InsertInst = ml_inst_new(1, Expr->Source, MLI_UNIQUE);
 	ForInst->Params[1].Inst = InsertInst;
 	ml_inst_t *NextInst = ml_inst_new(2, Expr->Source, MLI_NEXT);
 	ml_inst_t *PopInst = ml_inst_new(1, Expr->Source, MLI_POP);
@@ -938,8 +957,7 @@ const char *MLTokens[] = {
 	"exit", // MLT_EXIT,
 	"next", // MLT_NEXT,
 	"for", // MLT_FOR,
-	"all", // MLT_ALL,
-	"uniq", // MLT_UNIQ,
+	"to", // MLT_TO,
 	"in", // MLT_IN,
 	"is", // MLT_IS,
 	"fun", // MLT_FUN,
@@ -990,8 +1008,7 @@ typedef enum ml_token_t {
 	MLT_EXIT,
 	MLT_NEXT,
 	MLT_FOR,
-	MLT_ALL,
-	MLT_UNIQ,
+	MLT_TO,
 	MLT_IN,
 	MLT_IS,
 	MLT_FUN,
@@ -1418,7 +1435,7 @@ void ml_accept_eoi(mlc_scanner_t *Scanner) {
 
 static mlc_expr_t *ml_accept_comprehension(mlc_scanner_t *Scanner, int Map) {
 	mlc_expr_t *Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
-	if (Map && ml_parse(Scanner, MLT_COMMA)) {
+	if (Map && ml_parse(Scanner, MLT_TO)) {
 		Expr->Next = ml_accept_expression(Scanner, EXPR_OR);
 	}
 	if (ml_parse(Scanner, MLT_FOR)) {
@@ -1543,22 +1560,6 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 		}
 		ml_accept(Scanner, MLT_END);
 		return (mlc_expr_t *)ForExpr;
-	}
-	case MLT_ALL: {
-		Scanner->Token = MLT_NONE;
-		mlc_parent_expr_t *AllExpr = new(mlc_parent_expr_t);
-		AllExpr->compile = ml_all_expr_compile;
-		AllExpr->Source = Scanner->Source;
-		AllExpr->Child = ml_accept_comprehension(Scanner, 0);
-		return (mlc_expr_t *)AllExpr;
-	}
-	case MLT_UNIQ: {
-		Scanner->Token = MLT_NONE;
-		mlc_parent_expr_t *UniqExpr = new(mlc_parent_expr_t);
-		UniqExpr->compile = ml_uniq_expr_compile;
-		UniqExpr->Source = Scanner->Source;
-		UniqExpr->Child = ml_accept_comprehension(Scanner, 1);
-		return (mlc_expr_t *)UniqExpr;
 	}
 	case MLT_NOT: {
 		Scanner->Token = MLT_NONE;
@@ -1731,7 +1732,7 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 					mlc_value_expr_t *ArgExpr = new(mlc_value_expr_t);
 					ArgExpr->compile = ml_value_expr_compile;
 					ArgExpr->Source = Scanner->Source;
-					ArgExpr->Value = MLNil;
+					ArgExpr->Value = MLSome;
 					ArgsSlot[0] = (mlc_expr_t *)ArgExpr;
 					ArgsSlot = &ArgExpr->Next;
 				}
@@ -1912,6 +1913,56 @@ static mlc_expr_t *ml_parse_expression(mlc_scanner_t *Scanner, ml_expr_level_t L
 			LastChild = LastChild->Next = ml_accept_expression(Scanner, EXPR_AND);
 		} while (ml_parse(Scanner, MLT_OR));
 		Expr = (mlc_expr_t *)OrExpr;
+	}
+	if (Level >= EXPR_FOR) {
+		int IsComprehension = 0;
+		if (ml_parse(Scanner, MLT_TO)) {
+			Expr->Next = ml_accept_expression(Scanner, EXPR_OR);
+			ml_accept(Scanner, MLT_FOR);
+			IsComprehension = 1;
+		} else {
+			IsComprehension = ml_parse(Scanner, MLT_FOR);
+		}
+		if (IsComprehension) {
+			mlc_fun_expr_t *FunExpr = new(mlc_fun_expr_t);
+			FunExpr->compile = ml_fun_expr_compile;
+			FunExpr->Source = Scanner->Source;
+			mlc_parent_expr_t *SuspendExpr = new(mlc_parent_expr_t);
+			SuspendExpr->compile = ml_suspend_expr_compile;
+			SuspendExpr->Source = Scanner->Source;
+			SuspendExpr->Child = Expr;
+			mlc_expr_t *Body = (mlc_expr_t *)SuspendExpr;
+			do {
+				mlc_decl_expr_t *ForExpr = new(mlc_decl_expr_t);
+				ForExpr->compile = ml_for_expr_compile;
+				ForExpr->Source = Scanner->Source;
+				mlc_decl_t *Decl = new(mlc_decl_t);
+				ml_accept(Scanner, MLT_IDENT);
+				Decl->Ident = Scanner->Ident;
+				if (ml_parse(Scanner, MLT_COMMA)) {
+					ml_accept(Scanner, MLT_IDENT);
+					mlc_decl_t *Decl2 = new(mlc_decl_t);
+					Decl2->Ident = Scanner->Ident;
+					Decl->Next = Decl2;
+				}
+				ForExpr->Decl = Decl;
+				ml_accept(Scanner, MLT_IN);
+				ForExpr->Child = ml_accept_expression(Scanner, EXPR_OR);
+				while (ml_parse(Scanner, MLT_IF)) {
+					mlc_if_expr_t *IfExpr = new(mlc_if_expr_t);
+					IfExpr->compile = ml_if_expr_compile;
+					IfExpr->Source = Scanner->Source;
+					mlc_if_case_t *IfCase = IfExpr->Cases = new(mlc_if_case_t);
+					IfCase->Condition = ml_accept_expression(Scanner, EXPR_OR);
+					IfCase->Body = Body;
+					Body = (mlc_expr_t *)IfExpr;
+				}
+				ForExpr->Child->Next = Body;
+				Body = (mlc_expr_t *)ForExpr;
+			} while (ml_parse(Scanner, MLT_FOR));
+			FunExpr->Body = Body;
+			Expr = (mlc_expr_t *)FunExpr;
+		}
 	}
 	return Expr;
 }

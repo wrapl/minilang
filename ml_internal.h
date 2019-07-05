@@ -63,6 +63,7 @@ typedef enum {
 	MLI_APPEND,
 	MLI_MAP,
 	MLI_INSERT,
+	MLI_UNIQUE,
 	MLI_CLOSURE
 } ml_opcode_t;
 

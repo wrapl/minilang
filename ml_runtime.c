@@ -73,7 +73,7 @@ static ml_value_t *ml_suspend_current(ml_suspend_t *Suspend) {
 }
 
 static ml_value_t *ml_suspend_key(ml_suspend_t *Suspend) {
-	return Suspend->Key ?: MLNil;
+	return Suspend->Key ?: MLSome;
 }
 
 static ml_value_t *ml_suspend_next(ml_suspend_t *Suspend) {
@@ -249,6 +249,7 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_inst_t *Inst) {
 		[MLI_APPEND] = &&DO_APPEND,
 		[MLI_MAP] = &&DO_MAP,
 		[MLI_INSERT] = &&DO_INSERT,
+		[MLI_UNIQUE] = &&DO_UNIQUE,
 		[MLI_CLOSURE] = &&DO_CLOSURE
 	};
 	ml_value_t **Stack = Frame->Stack;
@@ -620,6 +621,15 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_inst_t *Inst) {
 		ml_map_insert(Map, Key, Value);
 		ADVANCE(0);
 	}
+	DO_UNIQUE: {
+		ml_value_t *Iter = Top[-1];
+		ml_value_t *Value = Iter->Type->current(Iter);
+		Value = Value->Type->deref(Value);
+		ERROR_CHECK(Value);
+		ml_value_t *Map = Top[-2];
+		ml_map_insert(Map, Value, MLNil);
+		ADVANCE(0);
+	}
 	DO_CLOSURE: {
 		// closure <entry> <frame_size> <num_params> <num_upvalues> <upvalue_1> ...
 		ml_closure_info_t *Info = Inst->Params[1].ClosureInfo;
@@ -913,6 +923,24 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done, const
 	}
 	case MLI_APPEND: {
 		fprintf(Graph, "\tI%x [fillcolor=\"%s\" label=\"%d: append()\"];\n", Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+		break;
+	}
+	case MLI_MAP: {
+		fprintf(Graph, "\tI%x [fillcolor=\"%s\" label=\"%d: map()\"];\n", Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+		break;
+	}
+	case MLI_INSERT: {
+		fprintf(Graph, "\tI%x [fillcolor=\"%s\" label=\"%d: inesrt()\"];\n", Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+		break;
+	}
+	case MLI_UNIQUE: {
+		fprintf(Graph, "\tI%x [fillcolor=\"%s\" label=\"%d: UNIQUE()\"];\n", Inst, Colour, Inst->Source.Line);
 		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
