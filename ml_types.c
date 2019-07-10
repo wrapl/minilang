@@ -2034,6 +2034,8 @@ typedef struct ml_integer_range_t {
 
 static ml_value_t *ml_integer_range_iterate(ml_value_t *Value) {
 	ml_integer_range_t *Range = (ml_integer_range_t *)Value;
+	if (Range->Step > 0 && Range->Start > Range->Limit) return MLNil;
+	if (Range->Step < 0 && Range->Start < Range->Limit) return MLNil;
 	ml_integer_iter_t *Iter = new(ml_integer_iter_t);
 	Iter->Type = MLIntegerIterT;
 	Iter->Index = 1;
@@ -2118,6 +2120,8 @@ typedef struct ml_real_range_t {
 
 static ml_value_t *ml_real_range_iterate(ml_value_t *Value) {
 	ml_real_range_t *Range = (ml_real_range_t *)Value;
+	if (Range->Step > 0 && Range->Start > Range->Limit) return MLNil;
+	if (Range->Step < 0 && Range->Start < Range->Limit) return MLNil;
 	ml_real_iter_t *Iter = new(ml_real_iter_t);
 	Iter->Type = MLRealIterT;
 	Iter->Index = 1;
