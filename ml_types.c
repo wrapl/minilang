@@ -2001,7 +2001,9 @@ static ml_value_t *ml_integer_iter_current(ml_integer_iter_t *Iter) {
 }
 
 static ml_value_t *ml_integer_iter_next(ml_integer_iter_t *Iter) {
-	if (Iter->Current >= Iter->Limit) {
+	if (Iter->Step > 0 && Iter->Current >= Iter->Limit) {
+		return MLNil;
+	} else if (Iter->Step < 0 && Iter->Current <= Iter->Limit) {
 		return MLNil;
 	} else {
 		++Iter->Index;
@@ -2087,7 +2089,9 @@ static ml_value_t *ml_real_iter_current(ml_real_iter_t *Iter) {
 }
 
 static ml_value_t *ml_real_iter_next(ml_real_iter_t *Iter) {
-	if (Iter->Current >= Iter->Limit) {
+	if (Iter->Step > 0 && Iter->Current >= Iter->Limit) {
+		return MLNil;
+	} else if (Iter->Step < 0 && Iter->Current <= Iter->Limit) {
 		return MLNil;
 	} else {
 		++Iter->Index;
