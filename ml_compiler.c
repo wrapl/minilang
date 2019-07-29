@@ -1948,14 +1948,35 @@ static mlc_expr_t *ml_parse_expression(mlc_scanner_t *Scanner, ml_expr_level_t L
 				ForExpr->Decl = Decl;
 				ml_accept(Scanner, MLT_IN);
 				ForExpr->Child = ml_accept_expression(Scanner, EXPR_OR);
-				while (ml_parse(Scanner, MLT_IF)) {
-					mlc_if_expr_t *IfExpr = new(mlc_if_expr_t);
-					IfExpr->compile = ml_if_expr_compile;
-					IfExpr->Source = Scanner->Source;
-					mlc_if_case_t *IfCase = IfExpr->Cases = new(mlc_if_case_t);
-					IfCase->Condition = ml_accept_expression(Scanner, EXPR_OR);
-					IfCase->Body = Body;
-					Body = (mlc_expr_t *)IfExpr;
+				for (;;) {
+					if (ml_parse(Scanner, MLT_IF)) {
+						mlc_if_expr_t *IfExpr = new(mlc_if_expr_t);
+						IfExpr->compile = ml_if_expr_compile;
+						IfExpr->Source = Scanner->Source;
+						mlc_if_case_t *IfCase = IfExpr->Cases = new(mlc_if_case_t);
+						IfCase->Condition = ml_accept_expression(Scanner, EXPR_OR);
+						IfCase->Body = Body;
+						Body = (mlc_expr_t *)IfExpr;
+					} else if (ml_parse(Scanner, MLT_WITH)) {
+						mlc_decl_expr_t *WithExpr = new(mlc_decl_expr_t);
+						WithExpr->compile = ml_with_expr_compile;
+						WithExpr->Source = Scanner->Source;
+						mlc_decl_t **DeclSlot = &WithExpr->Decl;
+						mlc_expr_t **ExprSlot = &WithExpr->Child;
+						do {
+							ml_accept(Scanner, MLT_IDENT);
+							mlc_decl_t *Decl = DeclSlot[0] = new(mlc_decl_t);
+							DeclSlot = &Decl->Next;
+							Decl->Ident = Scanner->Ident;
+							ml_accept(Scanner, MLT_ASSIGN);
+							mlc_expr_t *Expr = ExprSlot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
+							ExprSlot = &Expr->Next;
+						} while (ml_parse(Scanner, MLT_COMMA));
+						ExprSlot[0] = Body;
+						Body = (mlc_expr_t *)WithExpr;
+					} else {
+						break;
+					}
 				}
 				ForExpr->Child->Next = Body;
 				Body = (mlc_expr_t *)ForExpr;
