@@ -6,7 +6,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
+#ifdef __USE_GNU
 #include <alloca.h>
+#endif
 
 struct ml_frame_t {
 	ml_inst_t *OnError;
