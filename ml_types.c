@@ -668,7 +668,6 @@ ml_value_t *ml_string_regex_function_replace(void *Data, int Count, ml_value_t *
 		switch (regexec(Pattern->Value, Subject, NumSub, Matches, 0)) {
 		case REG_NOMATCH:
 			if (SubjectLength) ml_stringbuffer_add(Buffer, Subject, SubjectLength);
-			ml_string_t *String = fnew(ml_string_t);
 			return ml_stringbuffer_get_string(Buffer);
 		case REG_ESPACE: {
 			size_t ErrorSize = regerror(REG_ESPACE, Pattern->Value, NULL, 0);
@@ -1848,7 +1847,7 @@ static int stringify_map_value(ml_value_t *Key, ml_value_t *Value, ml_stringify_
 }
 
 ml_value_t *stringify_map(void *Data, int Count, ml_value_t **Args) {
-	ml_stringify_context_t Ctx[1] = {(ml_stringbuffer_t *)Args[0], 0};
+	ml_stringify_context_t Ctx[1] = {{(ml_stringbuffer_t *)Args[0], 0}};
 	ml_map_foreach(Args[1], Ctx, (void *)stringify_map_value);
 	return ((ml_map_t *)Args[1])->Size ? MLSome : MLNil;
 }
@@ -2161,8 +2160,6 @@ ml_type_t MLRealRangeT[1] = {{
 }};
 
 static ml_value_t *ml_range_number_number(void *Data, int Count, ml_value_t **Args) {
-	ml_integer_t *IntegerA = (ml_integer_t *)Args[0];
-	ml_integer_t *IntegerB = (ml_integer_t *)Args[1];
 	ml_real_range_t *Range = new(ml_real_range_t);
 	Range->Type = MLRealRangeT;
 	if (Args[0]->Type == MLIntegerT) {
@@ -2517,7 +2514,6 @@ static int ml_map_stringer(ml_value_t *Key, ml_value_t *Value, ml_map_stringer_t
 }
 
 static ml_value_t *ml_map_to_string(void *Data, int Count, ml_value_t **Args) {
-	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_map_stringer_t Stringer[1] = {{
 		", ", " is ",
 		{ML_STRINGBUFFER_INIT},
@@ -2533,7 +2529,6 @@ static ml_value_t *ml_map_to_string(void *Data, int Count, ml_value_t **Args) {
 }
 
 static ml_value_t *ml_map_join(void *Data, int Count, ml_value_t **Args) {
-	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_map_stringer_t Stringer[1] = {{
 		ml_string_value(Args[1]), ml_string_value(Args[2]),
 		{ML_STRINGBUFFER_INIT},

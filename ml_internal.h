@@ -59,11 +59,6 @@ typedef enum {
 	MLI_CURRENT,
 	MLI_KEY,
 	MLI_LOCAL,
-	MLI_LIST,
-	MLI_APPEND,
-	MLI_MAP,
-	MLI_INSERT,
-	MLI_UNIQUE,
 	MLI_CLOSURE
 } ml_opcode_t;
 
