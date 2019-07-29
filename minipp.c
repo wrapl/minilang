@@ -198,7 +198,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 
 int main(int Argc, const char **Argv) {
 	ml_init();
-	ml_file_init();
+	ml_file_init(0);
 	const char *InputName = "stdin";
 	FILE *Input = stdin;
 	FILE *Output = stdout;

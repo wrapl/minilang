@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <alloca.h>
 
 struct ml_frame_t {
 	ml_inst_t *OnError;
@@ -61,6 +62,7 @@ ml_value_t *ml_reference(ml_value_t **Address) {
 
 typedef struct ml_suspend_t {
 	const ml_type_t *Type;
+	ml_value_t *Key;
 	ml_value_t *Value;
 	ml_frame_t *Frame;
 	ml_inst_t *Inst;
@@ -68,6 +70,10 @@ typedef struct ml_suspend_t {
 
 static ml_value_t *ml_suspend_current(ml_suspend_t *Suspend) {
 	return Suspend->Value;
+}
+
+static ml_value_t *ml_suspend_key(ml_suspend_t *Suspend) {
+	return Suspend->Key ?: MLSome;
 }
 
 static ml_value_t *ml_suspend_next(ml_suspend_t *Suspend) {
@@ -87,7 +93,7 @@ ml_type_t MLSuspendT[1] = {{
 	ml_default_iterate,
 	(void *)ml_suspend_current,
 	(void *)ml_suspend_next,
-	ml_default_key
+	(void *)ml_suspend_key
 }};
 
 void ml_closure_sha256(ml_value_t *Value, unsigned char Hash[SHA256_BLOCK_SIZE]) {
@@ -111,7 +117,9 @@ static long ml_closure_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 static ml_value_t *ml_closure_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
 	ml_closure_info_t *Info = Closure->Info;
-	ml_frame_t *Frame = xnew(ml_frame_t, Info->FrameSize, ml_value_t *);
+	ml_frame_t *Frame = Info->CanSuspend
+		? xnew(ml_frame_t, Info->FrameSize, ml_value_t *)
+		: (ml_frame_t *)alloca(sizeof(ml_frame_t) + Info->FrameSize * sizeof(ml_value_t *));
 	int NumParams = Info->NumParams;
 	int VarArgs = 0;
 	if (NumParams < 0) {
@@ -188,7 +196,7 @@ ml_type_t MLClosureT[1] = {{
 
 #define ERROR_CHECK(VALUE) if (VALUE->Type == MLErrorT) { \
 	ml_error_trace_add(VALUE, Inst->Source); \
-	(Frame->Top++)[0] = VALUE; \
+	(Top++)[0] = VALUE; \
 	Inst = Frame->OnError; \
 	goto *Labels[Inst->Opcode]; \
 }
@@ -207,6 +215,7 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_inst_t *Inst) {
 	static void *Labels[] = {
 		[MLI_RETURN] = &&DO_RETURN,
 		[MLI_SUSPEND] = &&DO_SUSPEND,
+		[MLI_SUSPEND2] = &&DO_SUSPEND2,
 		[MLI_PUSH] = &&DO_PUSH,
 		[MLI_POP] = &&DO_POP,
 		[MLI_POP2] = &&DO_POP2,
@@ -238,37 +247,56 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_inst_t *Inst) {
 		[MLI_LOCAL] = &&DO_LOCAL,
 		[MLI_LIST] = &&DO_LIST,
 		[MLI_APPEND] = &&DO_APPEND,
+		[MLI_MAP] = &&DO_MAP,
+		[MLI_INSERT] = &&DO_INSERT,
+		[MLI_UNIQUE] = &&DO_UNIQUE,
 		[MLI_CLOSURE] = &&DO_CLOSURE
 	};
+	ml_value_t **Stack = Frame->Stack;
+	ml_value_t **Top = Frame->Top;
 	goto *Labels[Inst->Opcode];
 
-	DO_RETURN: return Frame->Top[-1];
+	DO_RETURN: return Top[-1];
 	DO_SUSPEND: {
+		Frame->Top = Top;
 		ml_suspend_t *Suspend = new(ml_suspend_t);
 		Suspend->Type = MLSuspendT;
-		Suspend->Value = Frame->Top[-1];
+		Suspend->Value = Top[-1];
+		Suspend->Key = 0;
 		Suspend->Frame = Frame;
 		Suspend->Inst = Inst->Params[0].Inst;
-		Frame->Top[-1] = (ml_value_t *)Suspend;
+		Top[-1] = (ml_value_t *)Suspend;
+		return (ml_value_t *)Suspend;
+	}
+	DO_SUSPEND2: {
+		Frame->Top = Top - 1;
+		ml_suspend_t *Suspend = new(ml_suspend_t);
+		Suspend->Type = MLSuspendT;
+		Suspend->Value = Top[-1];
+		Suspend->Key = Top[-2];
+		Suspend->Frame = Frame;
+		Suspend->Inst = Inst->Params[0].Inst;
+		Top[-1] = 0;
+		Top[-2] = (ml_value_t *)Suspend;
 		return (ml_value_t *)Suspend;
 	}
 	DO_PUSH: {
-		(++Frame->Top)[-1] = Inst->Params[1].Value;
+		*Top++ = Inst->Params[1].Value;
 		ADVANCE(0);
 	}
 	DO_POP: {
-		(--Frame->Top)[0] = 0;
+		*--Top = 0;
 		ADVANCE(0);
 	}
 	DO_POP2: {
-		(--Frame->Top)[0] = 0;
-		(--Frame->Top)[0] = 0;
+		*--Top = 0;
+		*--Top = 0;
 		ADVANCE(0);
 	}
 	DO_POP3: {
-		(--Frame->Top)[0] = 0;
-		(--Frame->Top)[0] = 0;
-		(--Frame->Top)[0] = 0;
+		*--Top = 0;
+		*--Top = 0;
+		*--Top = 0;
 		ADVANCE(0);
 	}
 	DO_ENTER: {
@@ -277,29 +305,29 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_inst_t *Inst) {
 			Local->Type = MLReferenceT;
 			Local->Address = Local->Value;
 			Local->Value[0] = MLNil;
-			(++Frame->Top)[-1] = (ml_value_t *)Local;
+			*Top++ = (ml_value_t *)Local;
 		}
 		ADVANCE(0);
 	}
 	DO_VAR: {
-		ml_reference_t *Local = (ml_reference_t *)Frame->Stack[Inst->Params[1].Index];
-		ml_value_t *Value = Frame->Top[-1];
+		ml_reference_t *Local = (ml_reference_t *)Stack[Inst->Params[1].Index];
+		ml_value_t *Value = Top[-1];
 		Value = Value->Type->deref(Value);
 		ERROR_CHECK(Value);
 		Local->Value[0] = Value;
 		ADVANCE(0);
 	}
 	DO_DEF: {
-		ml_value_t *Value = Frame->Top[-1];
+		ml_value_t *Value = Top[-1];
 		Value = Value->Type->deref(Value);
 		ERROR_CHECK(Value);
-		Frame->Stack[Inst->Params[1].Index] = Value;
+		Stack[Inst->Params[1].Index] = Value;
 		ADVANCE(0);
 	}
 	DO_EXIT: {
-		ml_value_t *Value = Frame->Top[-1];
-		for (int I = Inst->Params[1].Count; --I >= 0;) (--Frame->Top)[0] = 0;
-		Frame->Top[-1] = Value;
+		ml_value_t *Value = Top[-1];
+		for (int I = Inst->Params[1].Count; --I >= 0;) *--Top = 0;
+		Top[-1] = Value;
 		ADVANCE(0);
 	}
 	DO_TRY: {
@@ -307,29 +335,29 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_inst_t *Inst) {
 		ADVANCE(0);
 	}
 	DO_CATCH: {
-		ml_value_t *Error= Frame->Top[-1];
+		ml_value_t *Error= Top[-1];
 		if (Error->Type != MLErrorT) {
 			return ml_error("InternalError", "expected error value, not %s", Error->Type->Name);
 		}
 		Error->Type = MLErrorValueT;
-		ml_value_t **Top = Frame->Stack + Inst->Params[1].Index;
-		while (Frame->Top > Top) (--Frame->Top)[0] = 0;
-		Frame->Top[-1] = Error;
+		ml_value_t **Old = Stack + Inst->Params[1].Index;
+		while (Top > Old) *--Top = 0;
+		Top[-1] = Error;
 		ADVANCE(0);
 	}
 	DO_CALL: {
 		int Count = Inst->Params[1].Count;
-		ml_value_t *Function = Frame->Top[~Count];
+		ml_value_t *Function = Top[~Count];
 		Function = Function->Type->deref(Function);
 		ERROR_CHECK(Function);
-		ml_value_t **Args = Frame->Top - Count;
+		ml_value_t **Args = Top - Count;
 		for (int I = 0; I < Count; ++I) {
 			Args[I] = Args[I]->Type->deref(Args[I]);
 			ERROR_CHECK(Args[I]);
 		}
 		ml_value_t *Result = Function->Type->call(Function, Count, Args);
-		for (int I = Count; --I >= 0;) (--Frame->Top)[0] = 0;
-		Frame->Top[-1] = Result;
+		for (int I = Count; --I >= 0;) *--Top = 0;
+		Top[-1] = Result;
 		if (Result->Type == MLErrorT) {
 			ml_error_trace_add(Result, Inst->Source);
 			ERROR();
@@ -340,18 +368,18 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_inst_t *Inst) {
 	DO_CONST_CALL: {
 		int Count = Inst->Params[1].Count;
 		ml_value_t *Function = Inst->Params[2].Value;
-		ml_value_t **Args = Frame->Top - Count;
+		ml_value_t **Args = Top - Count;
 		for (int I = 0; I < Count; ++I) {
 			Args[I] = Args[I]->Type->deref(Args[I]);
 			ERROR_CHECK(Args[I]);
 		}
 		ml_value_t *Result = Function->Type->call(Function, Count, Args);
 		if (Count == 0) {
-			++Frame->Top;
+			++Top;
 		} else {
-			for (int I = Count - 1; --I >= 0;) (--Frame->Top)[0] = 0;
+			for (int I = Count - 1; --I >= 0;) *--Top = 0;
 		}
-		Frame->Top[-1] = Result;
+		Top[-1] = Result;
 		if (Result->Type == MLErrorT) {
 			ml_error_trace_add(Result, Inst->Source);
 			ERROR();
@@ -360,12 +388,12 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_inst_t *Inst) {
 		}
 	}
 	DO_ASSIGN: {
-		ml_value_t *Value = Frame->Top[-1];
-		(--Frame->Top)[0] = 0;
+		ml_value_t *Value = Top[-1];
+		*--Top = 0;
 		Value = Value->Type->deref(Value);
 		ERROR_CHECK(Value);
-		ml_value_t *Ref = Frame->Top[-1];
-		ml_value_t *Result = Frame->Top[-1] = Ref->Type->assign(Ref, Value);
+		ml_value_t *Ref = Top[-1];
+		ml_value_t *Result = Top[-1] = Ref->Type->assign(Ref, Value);
 		if (Result->Type == MLErrorT) {
 			ml_error_trace_add(Result, Inst->Source);
 			ERROR();
@@ -377,10 +405,10 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_inst_t *Inst) {
 		ADVANCE(0);
 	}
 	DO_IF: {
-		ml_value_t *Value = Frame->Top[-1];
+		ml_value_t *Value = Top[-1];
 		Value = Value->Type->deref(Value);
 		ERROR_CHECK(Value);
-		(--Frame->Top)[0] = 0;
+		*--Top = 0;
 		if (Value == MLNil) {
 			ADVANCE(0);
 		} else {
@@ -388,57 +416,57 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_inst_t *Inst) {
 		}
 	}
 	DO_IF_VAR: {
-		ml_value_t *Value = Frame->Top[-1];
+		ml_value_t *Value = Top[-1];
 		Value = Value->Type->deref(Value);
 		if (Value->Type == MLErrorT) {
 			ml_error_trace_add(Value, Inst->Source);
-			Frame->Top[-1] = Value;
+			Top[-1] = Value;
 			ERROR();
 		} else if (Value == MLNil) {
-			(--Frame->Top)[0] = 0;
+			*--Top = 0;
 			ADVANCE(0);
 		} else {
 			ml_reference_t *Local = xnew(ml_reference_t, 1, ml_value_t *);
 			Local->Type = MLReferenceT;
 			Local->Address = Local->Value;
 			Local->Value[0] = Value;
-			Frame->Top[-1] = (ml_value_t *)Local;
+			Top[-1] = (ml_value_t *)Local;
 			ADVANCE(1);
 		}
 	}
 	DO_IF_DEF: {
-		ml_value_t *Value = Frame->Top[-1];
+		ml_value_t *Value = Top[-1];
 		Value = Value->Type->deref(Value);
 		if (Value->Type == MLErrorT) {
 			ml_error_trace_add(Value, Inst->Source);
-			Frame->Top[-1] = Value;
+			Top[-1] = Value;
 			ERROR();
 		} else if (Value == MLNil) {
-			(--Frame->Top)[0] = 0;
+			*--Top = 0;
 			ADVANCE(0);
 		} else {
 			ADVANCE(1);
 		}
 	}
 	DO_FOR: {
-		ml_value_t *Value = Frame->Top[-1];
+		ml_value_t *Value = Top[-1];
 		Value = Value->Type->deref(Value);
 		ERROR_CHECK(Value);
 		Value = Value->Type->iterate(Value);
 		if (Value->Type == MLErrorT) {
 			ml_error_trace_add(Value, Inst->Source);
-			Frame->Top[-1] = Value;
+			Top[-1] = Value;
 			ERROR();
 		} else if (Value == MLNil) {
-			Frame->Top[-1] = Value;
+			Top[-1] = Value;
 			ADVANCE(0);
 		} else {
-			Frame->Top[-1] = Value;
+			Top[-1] = Value;
 			ADVANCE(1);
 		}
 	}
 	DO_UNTIL: {
-		ml_value_t *Value = Frame->Top[-1];
+		ml_value_t *Value = Top[-1];
 		if (Value == MLNil) {
 			ADVANCE(0);
 		} else {
@@ -446,7 +474,7 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_inst_t *Inst) {
 		}
 	}
 	DO_WHILE: {
-		ml_value_t *Value = Frame->Top[-1];
+		ml_value_t *Value = Top[-1];
 		if (Value != MLNil) {
 			ADVANCE(0);
 		} else {
@@ -454,25 +482,25 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_inst_t *Inst) {
 		}
 	}
 	DO_AND: {
-		ml_value_t *Value = Frame->Top[-1];
+		ml_value_t *Value = Top[-1];
 		Value = Value->Type->deref(Value);
 		if (Value->Type == MLErrorT) {
 			ml_error_trace_add(Value, Inst->Source);
-			Frame->Top[-1] = Value;
+			Top[-1] = Value;
 			ERROR();
 		} else if (Value == MLNil) {
 			ADVANCE(0);
 		} else {
-			(--Frame->Top)[0] = 0;
+			*--Top = 0;
 			ADVANCE(1);
 		}
 	}
 	DO_AND_VAR: {
-		ml_value_t *Value = Frame->Top[-1];
+		ml_value_t *Value = Top[-1];
 		Value = Value->Type->deref(Value);
 		if (Value->Type == MLErrorT) {
 			ml_error_trace_add(Value, Inst->Source);
-			Frame->Top[-1] = Value;
+			Top[-1] = Value;
 			ERROR();
 		} else if (Value == MLNil) {
 			ADVANCE(0);
@@ -481,16 +509,16 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_inst_t *Inst) {
 			Local->Type = MLReferenceT;
 			Local->Address = Local->Value;
 			Local->Value[0] = Value;
-			Frame->Top[-1] = (ml_value_t *)Local;
+			Top[-1] = (ml_value_t *)Local;
 			ADVANCE(1);
 		}
 	}
 	DO_AND_DEF: {
-		ml_value_t *Value = Frame->Top[-1];
+		ml_value_t *Value = Top[-1];
 		Value = Value->Type->deref(Value);
 		if (Value->Type == MLErrorT) {
 			ml_error_trace_add(Value, Inst->Source);
-			Frame->Top[-1] = Value;
+			Top[-1] = Value;
 			ERROR();
 		} else if (Value == MLNil) {
 			ADVANCE(0);
@@ -499,31 +527,31 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_inst_t *Inst) {
 		}
 	}
 	DO_OR: {
-		ml_value_t *Value = Frame->Top[-1];
+		ml_value_t *Value = Top[-1];
 		Value = Value->Type->deref(Value);
 		if (Value->Type == MLErrorT) {
 			ml_error_trace_add(Value, Inst->Source);
-			Frame->Top[-1] = Value;
+			Top[-1] = Value;
 			ERROR();
 		} else if (Value != MLNil) {
 			ADVANCE(0);
 		} else {
-			(--Frame->Top)[0] = 0;
+			*--Top = 0;
 			ADVANCE(1);
 		}
 	}
 	DO_EXISTS: {
-		ml_value_t *Value = Frame->Top[-1];
+		ml_value_t *Value = Top[-1];
 		if (Value == MLNil) {
-			(--Frame->Top)[0] = 0;
+			*--Top = 0;
 			ADVANCE(0);
 		} else {
 			ADVANCE(1);
 		}
 	}
 	DO_NEXT: {
-		ml_value_t *Iter = Frame->Top[-1];
-		Frame->Top[-1] = Iter = Iter->Type->next(Iter);
+		ml_value_t *Iter = Top[-1];
+		Top[-1] = Iter = Iter->Type->next(Iter);
 		if (Iter->Type == MLErrorT) {
 			ml_error_trace_add(Iter, Inst->Source);
 			ERROR();
@@ -534,8 +562,8 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_inst_t *Inst) {
 		}
 	}
 	DO_CURRENT: {
-		ml_value_t *Iter = Frame->Top[-1];
-		ml_value_t *Current = (++Frame->Top)[-1] = Iter->Type->current(Iter);
+		ml_value_t *Iter = Top[-1];
+		ml_value_t *Current = *Top++ = Iter->Type->current(Iter);
 		if (Current->Type == MLErrorT) {
 			ml_error_trace_add(Current, Inst->Source);
 			ERROR();
@@ -544,10 +572,10 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_inst_t *Inst) {
 		}
 	}
 	DO_KEY: {
-		ml_value_t *Iter = Frame->Top[-1];
-		ml_value_t *Key = (++Frame->Top)[-1] = Iter->Type->key(Iter);
+		ml_value_t *Iter = Top[-1];
+		ml_value_t *Key = *Top++ = Iter->Type->key(Iter);
 		ERROR_CHECK(Key);
-		ml_value_t *Current = (++Frame->Top)[-1] = Iter->Type->current(Iter);
+		ml_value_t *Current = *Top++ = Iter->Type->current(Iter);
 		if (Current->Type == MLErrorT) {
 			ml_error_trace_add(Current, Inst->Source);
 			ERROR();
@@ -558,23 +586,48 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_inst_t *Inst) {
 	DO_LOCAL: {
 		int Index = Inst->Params[1].Index;
 		if (Index < 0) {
-			(++Frame->Top)[-1] = Frame->UpValues[~Index];
+			*Top++ = Frame->UpValues[~Index];
 		} else {
-			(++Frame->Top)[-1] = Frame->Stack[Index];
+			*Top++ = Stack[Index];
 		}
 		ADVANCE(0);
 	}
 	DO_LIST: {
-		(++Frame->Top)[-1] = ml_list();
+		*Top++ = ml_list();
 		ADVANCE(0);
 	}
 	DO_APPEND: {
-		ml_value_t *Value = Frame->Top[-1];
-		Value = Value->Type->current(Value);
+		ml_value_t *Iter = Top[-1];
+		ml_value_t *Value = Iter->Type->current(Iter);
 		Value = Value->Type->deref(Value);
 		ERROR_CHECK(Value);
-		ml_value_t *List = Frame->Top[-2];
+		ml_value_t *List = Top[-2];
 		ml_list_append(List, Value);
+		ADVANCE(0);
+	}
+	DO_MAP: {
+		*Top++ = ml_map();
+		ADVANCE(0);
+	}
+	DO_INSERT: {
+		ml_value_t *Iter= Top[-1];
+		ml_value_t *Key = Iter->Type->key(Iter);
+		Key = Key->Type->deref(Key);
+		ERROR_CHECK(Key);
+		ml_value_t *Value = Iter->Type->current(Iter);
+		Value = Value->Type->deref(Value);
+		ERROR_CHECK(Value);
+		ml_value_t *Map = Top[-2];
+		ml_map_insert(Map, Key, Value);
+		ADVANCE(0);
+	}
+	DO_UNIQUE: {
+		ml_value_t *Iter = Top[-1];
+		ml_value_t *Value = Iter->Type->current(Iter);
+		Value = Value->Type->deref(Value);
+		ERROR_CHECK(Value);
+		ml_value_t *Map = Top[-2];
+		ml_map_insert(Map, Value, MLNil);
 		ADVANCE(0);
 	}
 	DO_CLOSURE: {
@@ -588,10 +641,10 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_inst_t *Inst) {
 			if (Index < 0) {
 				Closure->UpValues[I] = Frame->UpValues[~Index];
 			} else {
-				Closure->UpValues[I] = Frame->Stack[Index];
+				Closure->UpValues[I] = Stack[Index];
 			}
 		}
-		(++Frame->Top)[-1] = (ml_value_t *)Closure;
+		*Top++ = (ml_value_t *)Closure;
 		ADVANCE(0);
 	}
 }
@@ -621,6 +674,12 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done, const
 	}
 	case MLI_SUSPEND: {
 		fprintf(Graph, "\tI%x [fillcolor=\"%s\" label=\"%d: suspend()\"];\n", Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+		break;
+	}
+	case MLI_SUSPEND2: {
+		fprintf(Graph, "\tI%x [fillcolor=\"%s\" label=\"%d: suspend2()\"];\n", Inst, Colour, Inst->Source.Line);
 		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
@@ -864,6 +923,24 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done, const
 	}
 	case MLI_APPEND: {
 		fprintf(Graph, "\tI%x [fillcolor=\"%s\" label=\"%d: append()\"];\n", Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+		break;
+	}
+	case MLI_MAP: {
+		fprintf(Graph, "\tI%x [fillcolor=\"%s\" label=\"%d: map()\"];\n", Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+		break;
+	}
+	case MLI_INSERT: {
+		fprintf(Graph, "\tI%x [fillcolor=\"%s\" label=\"%d: inesrt()\"];\n", Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+		break;
+	}
+	case MLI_UNIQUE: {
+		fprintf(Graph, "\tI%x [fillcolor=\"%s\" label=\"%d: UNIQUE()\"];\n", Inst, Colour, Inst->Source.Line);
 		fprintf(Graph, "\tI%x -> I%x;\n", Inst, Inst->Params[0]);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;

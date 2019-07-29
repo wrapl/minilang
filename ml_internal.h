@@ -7,7 +7,7 @@ typedef struct ml_inst_t ml_inst_t;
 struct ml_closure_info_t {
 	ml_inst_t *Entry, *Return;
 	int FrameSize;
-	int NumParams, NumUpValues;
+	int NumParams, NumUpValues, CanSuspend;
 	unsigned char Hash[SHA256_BLOCK_SIZE];
 };
 
@@ -29,6 +29,7 @@ typedef union {
 typedef enum {
 	MLI_RETURN,
 	MLI_SUSPEND,
+	MLI_SUSPEND2,
 	MLI_PUSH,
 	MLI_POP,
 	MLI_POP2,
@@ -60,6 +61,9 @@ typedef enum {
 	MLI_LOCAL,
 	MLI_LIST,
 	MLI_APPEND,
+	MLI_MAP,
+	MLI_INSERT,
+	MLI_UNIQUE,
 	MLI_CLOSURE
 } ml_opcode_t;
 

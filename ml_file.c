@@ -147,7 +147,7 @@ ml_value_t *ml_file_open(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)File;
 }
 
-void ml_file_init() {
+void ml_file_init(stringmap_t *Globals) {
 	MLFileT = ml_type(MLAnyT, "file");
 	ml_method_by_name("read", 0, ml_file_read_line, MLFileT, NULL);
 	ml_method_by_name("read", 0, ml_file_read_count, MLFileT, MLIntegerT, NULL);
@@ -155,4 +155,7 @@ void ml_file_init() {
 	ml_method_by_name("write", 0, ml_file_write_buffer, MLFileT, MLStringBufferT, NULL);
 	ml_method_by_name("eof", 0, ml_file_eof, MLFileT, NULL);
 	ml_method_by_name("close", 0, ml_file_close, MLFileT, NULL);
+	if (Globals) {
+		stringmap_insert(Globals, "open", ml_function(0, ml_file_open));
+	}
 }

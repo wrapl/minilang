@@ -1,13 +1,14 @@
 #ifndef ML_OBJECT_H
 #define ML_OBJECT_H
 
+#include "ml_types.h"
 #include "stringmap.h"
 
 #ifdef	__cplusplus
 extern "C" {
 #endif
 
-void ml_object_init(void *Globals, ml_setter_t GlobalSet);
+void ml_object_init(stringmap_t *Globals);
 
 ml_value_t *ml_field_fn(void *Data, int Count, ml_value_t **Args);
 
