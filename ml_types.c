@@ -311,7 +311,13 @@ int ml_is_integer(ml_value_t *Value) {
 }
 
 long ml_integer_value(ml_value_t *Value) {
-	return ((ml_integer_t *)Value)->Value;
+	if (Value->Type == MLIntegerT) {
+		return ((ml_integer_t *)Value)->Value;
+	} else if (Value->Type == MLRealT) {
+		return ((ml_real_t *)Value)->Value;
+	} else {
+		return 0;
+	}
 }
 
 static long ml_real_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
@@ -345,7 +351,13 @@ int ml_is_real(ml_value_t *Value) {
 }
 
 double ml_real_value(ml_value_t *Value) {
-	return ((ml_real_t *)Value)->Value;
+	if (Value->Type == MLIntegerT) {
+		return ((ml_integer_t *)Value)->Value;
+	} else if (Value->Type == MLRealT) {
+		return ((ml_real_t *)Value)->Value;
+	} else {
+		return 0;
+	}
 }
 
 static long ml_string_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
