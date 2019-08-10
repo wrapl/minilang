@@ -1212,7 +1212,8 @@ struct ml_map_node_t {
 	int Depth;
 };
 
-ml_value_t *ml_map_search(ml_map_t *Map, ml_value_t *Key) {
+ml_value_t *ml_map_search(ml_value_t *Map0, ml_value_t *Key) {
+	ml_map_t *Map = (ml_map_t *)Map0;
 	ml_map_node_t *Node = Map->Root;
 	long Hash = Key->Type->hash(Key, NULL);
 	while (Node) {
@@ -1387,7 +1388,7 @@ ml_value_t *ml_map_delete(ml_value_t *Map0, ml_value_t *Key) {
 }
 
 static ml_value_t *ml_map_index_get(void *Data, const char *Name) {
-	ml_map_t *Map = (ml_map_t *)Data;
+	ml_value_t *Map = (ml_value_t *)Data;
 	ml_value_t *Key = (ml_value_t *)Name;
 	return ml_map_search(Map, Key);
 }
@@ -1430,7 +1431,7 @@ static ml_value_t *ml_map_delete_fn(void *Data, int Count, ml_value_t **Args) {
 	return ml_map_delete(Map, Key);
 }
 
-static ml_value_t *ml_map_call(ml_map_t *Map, int Count, ml_value_t **Args) {
+static ml_value_t *ml_map_call(ml_value_t *Map, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
 	return ml_map_search(Map, Args[0]);
 }
