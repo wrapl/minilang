@@ -23,7 +23,7 @@ method(::*, NumberT, PointT; N, A) PointT(N * A:X, N * A:Y)
 print('{A} * 5 = {A * 5}\n')
 print('7.1 * {B} = {7.1 * B}\n')
 
-var VectorT := PointT:subclass(:Z)
+var VectorT := class(PointT, :Z)
 
 var C := VectorT(1, 2, 3)
 
