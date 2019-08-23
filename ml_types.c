@@ -2782,6 +2782,7 @@ void ml_init() {
 	ml_method_by_name("/", NULL, ml_string_string_split, MLStringT, MLStringT, NULL);
 	ml_method_by_name("/", NULL, ml_string_regex_split, MLStringT, MLRegexT, NULL);
 	ml_method_by_name("%", NULL, ml_string_match_string, MLStringT, MLStringT, NULL);
+	ml_method_by_name("%", NULL, ml_string_match_regex, MLStringT, MLRegexT, NULL);
 	ml_method_by_name("find", 0, ml_string_find_string, MLStringT, MLStringT, NULL);
 	ml_method_by_name("find", 0, ml_string_find_regex, MLStringT, MLRegexT, NULL);
 	ml_method_by_name("replace", NULL, ml_string_string_replace, MLStringT, MLStringT, MLStringT, NULL);

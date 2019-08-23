@@ -1319,6 +1319,8 @@ static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 				Scanner->Token = MLT_METHOD;
 				Scanner->Next = End;
 				return Scanner->Token;
+			} else if (Scanner->Next[1] == '(') {
+				// TODO: evaluate compile time value
 			}
 		}
 		if (Char == '-' && Scanner->Next[1] == '-') {
