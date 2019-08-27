@@ -135,7 +135,6 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 	stringmap_insert(Preprocessor->Globals, "open", ml_function(0, ml_file_open));
 	mlc_error_t Error[1];
 	mlc_scanner_t *Scanner = ml_scanner(InputName, Preprocessor, (void *)ml_preprocessor_line_read, Error);
-	ml_value_t *StringMethod = ml_method("string");
 	if (setjmp(Error->Handler)) {
 		printf("Error: %s\n", ml_error_message(Error->Message));
 		const char *Source;
