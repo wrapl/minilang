@@ -22,7 +22,6 @@ var Objects := [
 	file("ml_iterfns.o"),
 	file("sha256.o"),
 	file("stringmap.o"),
-	file("pointerset.o"),
 	file("ml_console.o"),
 	file("ml_object.o")
 ]
