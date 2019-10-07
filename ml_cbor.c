@@ -2,6 +2,7 @@
 #include "ml_macros.h"
 #include "ml_cbor.h"
 #include <gc/gc.h>
+#include <string.h>
 
 cbor_item_t *ml_to_cbor_item(ml_value_t *Value) {
 	typeof(ml_to_cbor_item) *function = ml_typed_fn_get(Value->Type, ml_to_cbor_item);
@@ -367,6 +368,101 @@ ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_value_t *TagFn) {
 	return Decoder.Value;
 }
 
-void ml_cbor_init(stringmap_t *Globals) {
+static ml_value_t *ml_to_cbor_fn(void *Data, int Count, ml_value_t **Args) {
+	ml_cbor_t Cbor = ml_to_cbor(Args[0]);
+	if (Cbor.Data) return ml_string(Cbor.Data, Cbor.Length);
+	return ml_error("CborError", "Error encoding to cbor");
+}
 
+static ml_value_t *ml_from_cbor_fn(void *Data, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ml_cbor_t Cbor = {ml_string_value(Args[0]), ml_string_length(Args[0])};
+	return ml_from_cbor(Cbor, Count > 1 ? Args[1] : MLNil);
+}
+
+cbor_item_t *ml_integer_to_cbor_item(ml_value_t *Arg) {
+	//printf("%s()\n", __func__);
+	int64_t Value = ml_integer_value(Arg);
+	cbor_item_t *Item;
+	if (Value < 0) {
+		Value = ~Value;
+		if (Value < 256) {
+			Item = cbor_build_uint8(Value);
+		} else if (Value < 65536) {
+			Item = cbor_build_uint16(Value);
+		} else if (Value < 0xFFFFFFFF){
+			Item = cbor_build_uint32(Value);
+		} else {
+			Item = cbor_build_uint64(Value);
+		}
+		cbor_mark_negint(Item);
+	} else {
+		if (Value < 256) {
+			Item = cbor_build_uint8(Value);
+		} else if (Value < 65536) {
+			Item = cbor_build_uint16(Value);
+		} else if (Value < 0xFFFFFFFF){
+			Item = cbor_build_uint32(Value);
+		} else {
+			Item = cbor_build_uint32(Value);
+		}
+	}
+	return Item;
+}
+
+cbor_item_t *ml_string_to_cbor_item(ml_value_t *Arg) {
+	//printf("%s()\n", __func__);
+	return cbor_build_stringn(ml_string_value(Arg), ml_string_length(Arg));
+}
+
+cbor_item_t *ml_list_to_cbor_item(ml_value_t *Arg) {
+	cbor_item_t *Item = cbor_new_definite_array(ml_list_length(Arg));
+	for (ml_list_node_t *Node = ml_list_head(Arg); Node; Node = Node->Next) {
+		cbor_item_t *Child = ml_to_cbor_item(Node->Value);
+		cbor_array_push(Item, Child);
+	}
+	return Item;
+}
+
+static int build_map_pair(ml_value_t *Key, ml_value_t *Value, cbor_item_t *Item) {
+	struct cbor_pair Pair = {ml_to_cbor_item(Key), ml_to_cbor_item(Value)};
+	cbor_map_add(Item, Pair);
+	return 0;
+}
+
+cbor_item_t *ml_map_to_cbor_item(ml_value_t *Arg) {
+	cbor_item_t *Item = cbor_new_definite_map(ml_map_size(Arg));
+	ml_map_foreach(Arg, Item, (void *)build_map_pair);
+	return Item;
+}
+
+cbor_item_t *ml_real_to_cbor_item(ml_value_t *Arg) {
+	return cbor_build_float8(ml_real_value(Arg));
+}
+
+cbor_item_t *ml_nil_to_cbor_item(ml_value_t *Arg) {
+	return cbor_build_ctrl(CBOR_CTRL_NULL);
+}
+
+cbor_item_t *ml_symbol_to_cbor_item(ml_value_t *Arg) {
+	if (!strcmp(ml_method_name(Arg), "true")) {
+		return cbor_build_ctrl(CBOR_CTRL_TRUE);
+	} else {
+		return cbor_build_ctrl(CBOR_CTRL_FALSE);
+	}
+}
+
+void ml_cbor_init(stringmap_t *Globals) {
+	ml_typed_fn_set(MLIntegerT, ml_to_cbor_item, ml_integer_to_cbor_item);
+	ml_typed_fn_set(MLStringT, ml_to_cbor_item, ml_string_to_cbor_item);
+	ml_typed_fn_set(MLListT, ml_to_cbor_item, ml_list_to_cbor_item);
+	ml_typed_fn_set(MLMapT, ml_to_cbor_item, ml_map_to_cbor_item);
+	ml_typed_fn_set(MLRealT, ml_to_cbor_item, ml_real_to_cbor_item);
+	ml_typed_fn_set(MLNilT, ml_to_cbor_item, ml_nil_to_cbor_item);
+	ml_typed_fn_set(MLMethodT, ml_to_cbor_item, ml_symbol_to_cbor_item);
+	if (Globals) {
+		stringmap_insert(Globals, "cbor_encode", ml_function(NULL, ml_to_cbor_fn));
+		stringmap_insert(Globals, "cbor_decode", ml_function(NULL, ml_from_cbor_fn));
+	}
 }

@@ -18,6 +18,10 @@
 #include "ml_gir.h"
 #endif
 
+#ifdef USE_ML_CBOR
+#include "ml_cbor.h"
+#endif
+
 static stringmap_t Globals[1] = {STRINGMAP_INIT};
 
 static ml_value_t *global_get(void *Data, const char *Name) {
@@ -93,6 +97,9 @@ int main(int Argc, const char *Argv[]) {
 #ifdef USE_ML_GIR
 	ml_gir_init(Globals);
 	int GtkConsole = 0;
+#endif
+#ifdef USE_ML_CBOR
+	ml_cbor_init(Globals);
 #endif
 	ml_value_t *Args = ml_list();
 	const char *FileName = 0;
