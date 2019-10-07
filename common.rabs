@@ -5,6 +5,10 @@ CFLAGS := []
 LDFLAGS := []
 PREBUILDS := []
 
+pkgconfig := fun(Args) do
+	expr('pkg-config {Args}') => fun() shell('pkg-config', Args):trim
+end
+
 c_compile := fun(Source, Object) do
 	execute('cc -c {CFLAGS} -o{Object} {Source}')
 end

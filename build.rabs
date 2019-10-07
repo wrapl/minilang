@@ -2,6 +2,11 @@
 
 %include common.rabs
 
+if PLATFORM = "Darwin" then
+	setenv("LDFLAGS", '-L/usr/local/opt/libffi/lib')
+	setenv("PKG_CONFIG_PATH", '/usr/local/opt/libffi/lib/pkgconfig')
+end
+
 CFLAGS := old + ["-std=gnu99", "-fstrict-aliasing", "-Wstrict-aliasing", "-I.", "-pthread", "-DGC_THREADS", "-D_GNU_SOURCE", '-D{PLATFORM}']
 LDFLAGS := old + ["-lm"]
 
@@ -26,6 +31,18 @@ var Objects := [
 	file("ml_object.o")
 ]
 
+if defined("LIBUV") then
+	Objects:put(file("ml_libuv.o"))
+	CFLAGS := old + ["-DUSE_ML_UV"]
+	LDFLAGS := old + ["-luv"]
+end
+
+if defined("USEGTK") then
+	Objects:put(file("ml_gir.o"), file("gtk_console.o"))
+	CFLAGS := old + ["-DUSE_ML_GIR", pkgconfig("--cflags gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0")]
+	LDFLAGS := old + [pkgconfig("--libs gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0")]
+end
+
 if PLATFORM = "Linux" then
 	Objects := old + [file("linenoise.o")]
 	LDFLAGS := old + ["-lgc"]
@@ -40,8 +57,8 @@ elseif PLATFORM = "Mingw" then
 end
 
 c_library(file("libminilang.a"), Objects)
-var Minilang := c_program(file("minilang"), [file("ml_main.o")] + Objects)
-var Minipp := c_program(file("minipp"), [file("minipp.o")] + Objects)
+MINILANG := c_program(file("minilang"), [file("ml_main.o")] + Objects)
+MINIPP := c_program(file("minipp"), [file("minipp.o")] + Objects)
 
 var InstallInclude := PREFIX / "include/minilang"
 var InstallLib := PREFIX / "lib"
@@ -66,62 +83,4 @@ end
 
 install(file("libminilang.a"), InstallLib / "libminilang.a")
 
-var test_minilang := fun(Source, Expected) do
-	var Target := meta('test-{Source:basename}')[Minilang, Source] => fun() do
-		var Actual := shell(Minilang, Source)
-		if Actual = Expected then
-			print('\e[32mTest {Source:basename} passed!\e[0m\n')
-		else
-			print('\e[31mTest {Source:basename} failed.\e[0m\n')
-			print('Expected {Expected:length} bytes:\n{Expected}\n---\n')
-			print('Actual {Actual:length} bytes:\n{Actual}\n---\n')
-			error("TestError", "Test failed")
-		end
-	end
-end
-
-TEST[Minilang:scan("test") => fun() [
-	test_minilang(file("test/test1.mini"), 'Hello world!'),
-	test_minilang(file("test/test2.mini"), '\
-X = 100
-X = 110
-'),
-	test_minilang(file("test/test4.mini"), '\
-Key = 1, Value = 1
-Key = 2, Value = 2
-Key = 3, Value = hello
-Key = 4, Value = 4
-Key = 5, Value = 5
-Key = a, Value = 100
-Key = 10, Value = b
-'),
-	test_minilang(file("test/test5.mini"), '\
-N = 1, X = a
-N = 2, X = b
-N = 3, X = c
-N = 4, X = d
-N = 5, X = e
-X = xa
-X = xb
-X = xc
-X = xd
-X = xe
-L = xa xb xc xd xe
-Y[1] = ya
-Y[2] = yb
-Y[3] = yc
-Y[4] = yd
-Y[5] = ye
-M = ya yb yc yd ye
-'),
-	test_minilang(file("test/test10.mini"), '\
-A:X = 10
-A = object(X: 10, Y: 20)
-A = point(10, 200)
-point(10, 200) + point(23, 9.100000) = point(33, 209.100000)
-point(10, 200) * 5 = point(50, 1000)
-7.1 * point(23, 9.100000) = point(163.300000, 64.610000)
-C = point(1, 2)
-C = vector(1, 2, 3)
-')
-]]
+subdir("test")

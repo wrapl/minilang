@@ -1,7 +1,8 @@
 #ifndef ML_INTERNAL_H
 #define ML_INTERNAL_H
 
-typedef struct ml_frame_t ml_frame_t;
+#include "ml_types.h"
+
 typedef struct ml_inst_t ml_inst_t;
 
 struct ml_closure_info_t {
@@ -24,42 +25,40 @@ typedef union {
 	int Count;
 	ml_value_t *Value;
 	ml_closure_info_t *ClosureInfo;
+	ml_spawn_t (*Callback)(ml_state_t *, ml_value_t *);
 } ml_param_t;
 
 typedef enum {
 	MLI_RETURN,
 	MLI_SUSPEND,
-	MLI_SUSPEND2,
-	MLI_PUSH,
-	MLI_POP,
-	MLI_POP2,
-	MLI_POP3,
-	MLI_ENTER,
-	MLI_VAR,
-	MLI_DEF,
-	MLI_EXIT,
-	MLI_TRY,
-	MLI_CATCH,
-	MLI_CALL,
-	MLI_CONST_CALL,
-	MLI_ASSIGN,
-	MLI_JUMP,
+	MLI_RESUME,
+	MLI_NIL,
+	MLI_SOME,
 	MLI_IF,
 	MLI_IF_VAR,
-	MLI_IF_DEF,
+	MLI_IF_LET,
+	MLI_ELSE,
+	MLI_PUSH,
+	MLI_ENTER,
+	MLI_EXIT,
+	MLI_LOOP,
+	MLI_TRY,
+	MLI_CATCH,
+	MLI_LOAD,
+	MLI_VAR,
+	MLI_LET,
 	MLI_FOR,
-	MLI_UNTIL,
-	MLI_WHILE,
-	MLI_AND,
-	MLI_AND_VAR,
-	MLI_AND_DEF,
-	MLI_OR,
-	MLI_EXISTS,
 	MLI_NEXT,
-	MLI_CURRENT,
+	MLI_VALUE,
 	MLI_KEY,
+	MLI_PUSH_RESULT,
+	MLI_CALL,
+	MLI_CONST_CALL,
+	MLI_RESULT,
+	MLI_ASSIGN,
 	MLI_LOCAL,
-	MLI_CLOSURE
+	MLI_CLOSURE,
+	MLI_CALLBACK
 } ml_opcode_t;
 
 struct ml_inst_t {
@@ -68,10 +67,22 @@ struct ml_inst_t {
 	ml_param_t Params[];
 };
 
+struct ml_state_t {
+	const ml_type_t *Type;
+	ml_state_t *Caller;
+	ml_inst_t *Inst;
+	ml_value_t **Top;
+	ml_inst_t *OnError;
+	ml_value_t **UpValues;
+	ml_value_t *Stack[];
+};
+
 void ml_closure_info_debug(ml_closure_info_t *Info);
 
 ml_value_t *ml_string_new(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_list_new(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_map_new(void *Data, int Count, ml_value_t **Args);
+
+void ml_runtime_init();
 
 #endif

@@ -1,0 +1,17 @@
+N = 1, X = a
+N = 2, X = b
+N = 3, X = c
+N = 4, X = d
+N = 5, X = e
+X = xa
+X = xb
+X = xc
+X = xd
+X = xe
+L = xa xb xc xd xe
+Y[1] = ya
+Y[2] = yb
+Y[3] = yc
+Y[4] = yd
+Y[5] = ye
+M = ya yb yc yd ye

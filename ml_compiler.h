@@ -18,7 +18,7 @@ typedef struct mlc_error_t {
 	jmp_buf Handler;
 } mlc_error_t;
 
-ml_value_t *ml_compile(mlc_expr_t *Expr, ml_getter_t GlobalGet, void *Globals, mlc_error_t *Error);
+ml_value_t *ml_compile(mlc_expr_t *Expr, ml_getter_t GlobalGet, void *Globals, const char **Parameters, mlc_error_t *Error);
 
 mlc_scanner_t *ml_scanner(const char *SourceName, void *Data, const char *(*read)(void *), mlc_error_t *Error);
 ml_source_t ml_scanner_source(mlc_scanner_t *Scanner, ml_source_t Source);

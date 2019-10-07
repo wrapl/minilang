@@ -1,8 +1,7 @@
 #ifndef ML_ITERFNS_H
 #define ML_ITERFNS_H
 
-#include "ml_types.h"
-#include "stringmap.h"
+#include <stringmap.h>
 
 #ifdef	__cplusplus
 extern "C" {

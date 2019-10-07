@@ -29,6 +29,8 @@ typedef struct ml_closure_t ml_closure_t;
 typedef struct ml_method_t ml_method_t;
 typedef struct ml_error_t ml_error_t;
 
+typedef struct ml_state_t ml_state_t;
+
 struct ml_value_t {
 	const ml_type_t *Type;
 };
@@ -41,19 +43,27 @@ struct ml_hash_link_t {
 	long Index;
 };
 
+typedef struct ml_typed_fn_node_t ml_typed_fn_node_t;
+
+typedef struct {ml_state_t *Frame; ml_value_t *Result;} ml_spawn_t;
+#define ML_CONTINUE(S, V) return (ml_spawn_t){(ml_state_t *)(S), (ml_value_t *)(V)}
+
+typedef ml_spawn_t (*ml_callbackx_t)(ml_state_t *Frame, void *Data, int Count, ml_value_t **Args);
+
 struct ml_type_t {
 	const ml_type_t *Type;
 	const ml_type_t *Parent;
 	const char *Name;
 	long (*hash)(ml_value_t *, ml_hash_chain_t *);
-	ml_value_t *(*call)(ml_value_t *, int, ml_value_t **);
+	ml_spawn_t (*spawn)(ml_state_t *, ml_value_t *, int, ml_value_t **);
 	ml_value_t *(*deref)(ml_value_t *);
 	ml_value_t *(*assign)(ml_value_t *, ml_value_t *);
-	ml_value_t *(*iterate)(ml_value_t *);
-	ml_value_t *(*current)(ml_value_t *);
-	ml_value_t *(*next)(ml_value_t *);
-	ml_value_t *(*key)(ml_value_t *);
+	ml_typed_fn_node_t *TypedFns;
+	size_t TypedFnsSize, TypedFnSpace;
 };
+
+void *ml_typed_fn_get(const ml_type_t *Type, void *TypedFn);
+void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function);
 
 struct ml_function_t {
 	const ml_type_t *Type;
@@ -72,6 +82,10 @@ ml_type_t *ml_type(ml_type_t *Parent, const char *Name);
 
 void ml_method_by_name(const char *Method, void *Data, ml_callback_t Function, ...) __attribute__ ((sentinel));
 void ml_method_by_value(ml_value_t *Method, void *Data, ml_callback_t Function, ...) __attribute__ ((sentinel));
+
+void ml_methodx_by_name(const char *Method, void *Data, ml_callbackx_t Function, ...) __attribute__ ((sentinel));
+void ml_methodx_by_value(ml_value_t *Method, void *Data, ml_callbackx_t Function, ...) __attribute__ ((sentinel));
+
 void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_type_t **Types);
 
 ml_value_t *ml_string(const char *Value, int Length);
@@ -82,6 +96,7 @@ ml_value_t *ml_real(double Value);
 ml_value_t *ml_list();
 ml_value_t *ml_map();
 ml_value_t *ml_function(void *Data, ml_callback_t Function);
+ml_value_t *ml_functionx(void *Data, ml_callbackx_t Function);
 ml_value_t *ml_property(void *Data, const char *Name, ml_getter_t Get, ml_setter_t Set, ml_getter_t Next, ml_getter_t Key);
 ml_value_t *ml_error(const char *Error, const char *Format, ...) __attribute__ ((format(printf, 2, 3)));
 ml_value_t *ml_reference(ml_value_t **Address);
@@ -94,6 +109,11 @@ int ml_string_length(ml_value_t *Value);
 regex_t *ml_regex_value(ml_value_t *Value);
 
 const char *ml_method_name(ml_value_t *Value);
+
+ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args);
+ml_value_t *ml_inline(ml_value_t *Value, int Count, ...);
+
+ml_value_t *ml_run(ml_state_t *Frame, ml_value_t *Result);
 
 typedef struct ml_source_t {
 	const char *Name;
@@ -120,13 +140,14 @@ int ml_map_size(ml_value_t *Map);
 int ml_map_foreach(ml_value_t *Map, void *Data, int (*callback)(ml_value_t *, ml_value_t *, void *));
 
 long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain);
-ml_value_t *ml_default_call(ml_value_t *Value, int Count, ml_value_t **Args);
+ml_spawn_t ml_default_spawn(ml_state_t *Frame, ml_value_t *Value, int Count, ml_value_t **Args);
 ml_value_t *ml_default_deref(ml_value_t *Ref);
 ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value);
-ml_value_t *ml_default_iterate(ml_value_t *Value);
-ml_value_t *ml_default_current(ml_value_t *Iter);
-ml_value_t *ml_default_next(ml_value_t *Iter);
-ml_value_t *ml_default_key(ml_value_t *Iter);
+
+ml_spawn_t ml_iterate(ml_state_t *Frame, ml_value_t *Value);
+ml_spawn_t ml_iter_value(ml_state_t *Frame, ml_value_t *Iter);
+ml_spawn_t ml_iter_key(ml_state_t *Frame, ml_value_t *Iter);
+ml_spawn_t ml_iter_next(ml_state_t *Frame, ml_value_t *Iter);
 
 extern ml_type_t MLAnyT[];
 extern ml_type_t MLTypeT[];
@@ -173,6 +194,7 @@ char *ml_stringbuffer_get(ml_stringbuffer_t *Buffer);
 char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer);
 ml_value_t *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer);
 int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(const char *, size_t, void *));
+ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value);
 
 struct ml_list_t {
 	const ml_type_t *Type;
@@ -189,10 +211,24 @@ struct ml_list_node_t {
 #define ml_list_tail(List) ((ml_list_t *)List)->Tail
 
 #define ML_CHECK_ARG_TYPE(N, TYPE) \
-	if (!ml_is(Args[N], TYPE)) return ml_error("TypeError", "%s required", TYPE->Name);
+	if (!ml_is(Args[N], TYPE)) { \
+		return ml_error("TypeError", "%s required", TYPE->Name); \
+	}
 
 #define ML_CHECK_ARG_COUNT(N) \
-	if (Count < N) return ml_error("CallError", "%d arguments required", N);
+	if (Count < N) { \
+		return ml_error("CallError", "%d arguments required", N); \
+	}
+
+#define ML_CHECKX_ARG_TYPE(N, TYPE) \
+	if (!ml_is(Args[N], TYPE)) { \
+		ML_CONTINUE(Caller, ml_error("TypeError", "%s required", TYPE->Name)); \
+	}
+
+#define ML_CHECKX_ARG_COUNT(N) \
+	if (Count < N) { \
+		ML_CONTINUE(Caller, ml_error("CallError", "%d arguments required", N)); \
+	}
 
 #ifdef	__cplusplus
 }

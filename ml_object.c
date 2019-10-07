@@ -19,35 +19,29 @@ ml_type_t MLObjectT[1] = {{
 	MLTypeT,
 	MLAnyT, "object",
 	ml_default_hash,
-	ml_default_call,
+	ml_default_spawn,
 	ml_default_deref,
 	ml_default_assign,
-	ml_default_iterate,
-	ml_default_current,
-	ml_default_next,
-	ml_default_key
+	NULL, 0, 0
 }};
 
-static ml_value_t *ml_class_call(ml_class_t *Class, int Count, ml_value_t **Args) {
+static ml_spawn_t ml_class_spawn(ml_state_t *Frame, ml_class_t *Class, int Count, ml_value_t **Args) {
 	ml_object_t *Object = xnew(ml_object_t, Class->NumFields, ml_value_t *);
 	Object->Type = (ml_type_t *)Class;
 	if (Count > Class->NumFields) Count = Class->NumFields;
 	for (int I = 0; I < Count; ++I) Object->Fields[I] = Args[I];
 	for (int I = Count; I < Class->NumFields; ++I) Object->Fields[I] = MLNil;
-	return (ml_value_t *)Object;
+	ML_CONTINUE(Frame, Object);
 }
 
 ml_type_t MLClassT[1] = {{
 	MLTypeT,
 	MLTypeT, "class",
 	ml_default_hash,
-	(void *)ml_class_call,
+	(void *)ml_class_spawn,
 	ml_default_deref,
 	ml_default_assign,
-	ml_default_iterate,
-	ml_default_current,
-	ml_default_next,
-	ml_default_key
+	NULL, 0, 0
 }};
 
 extern ml_value_t *AppendMethod;
@@ -135,12 +129,7 @@ static ml_value_t *ml_method_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_TYPE(0, MLMethodT);
 	for (int I = 1; I < Count - 1; ++I) ML_CHECK_ARG_TYPE(I, MLTypeT);
 	ML_CHECK_ARG_TYPE(Count - 1, MLFunctionT);
-	ml_type_t *Types[Count - 2];
-	for (int I = 1; I < Count - 1; ++I) {
-		ML_CHECK_ARG_TYPE(I, MLTypeT);
-		Types[I - 1] = (ml_type_t *)Args[I];
-	}
-	ml_method_by_array(Args[0], Args[Count - 1], Count - 2, Types);
+	ml_method_by_array(Args[0], Args[Count - 1], Count - 2, (ml_type_t **)(Args + 1));
 	return Args[Count - 1];
 }
 
