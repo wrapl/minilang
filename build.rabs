@@ -43,6 +43,12 @@ if defined("USEGTK") then
 	LDFLAGS := old + [pkgconfig("--libs gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0")]
 end
 
+if defined("USECBOR") then
+	Objects:put(file("ml_cbor.o"))
+	CFLAGS := old + ["-DUSE_ML_CBOR", pkgconfig("--cflags libcbor")]
+	LDFLAGS := old + [pkgconfig("--libs libcbor")]
+end
+
 if PLATFORM = "Linux" then
 	Objects := old + [file("linenoise.o")]
 	LDFLAGS := old + ["-lgc"]
