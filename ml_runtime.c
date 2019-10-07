@@ -10,6 +10,8 @@
 #include <alloca.h>
 #endif
 
+#include <inttypes.h>
+
 struct ml_frame_t {
 	ml_inst_t *OnError;
 	ml_value_t **UpValues;
@@ -623,23 +625,23 @@ static void ml_inst_escape_string(FILE *Graph, const char *String, size_t Length
 
 static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done, const char *Colour) {
 	char InstName[16];
-	sprintf(InstName, "I%lx", (uintptr_t)Inst);
+	sprintf(InstName, "I%" PRIxPTR "", (uintptr_t)Inst);
 	if (stringmap_search(Done, InstName)) return;
 	stringmap_insert(Done, strdup(InstName), Inst);
 	switch (Inst->Opcode) {
 	case MLI_RETURN: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: return()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: return()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
 		break;
 	}
 	case MLI_SUSPEND: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: suspend()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: suspend()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_SUSPEND2: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: suspend2()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: suspend2()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
@@ -647,60 +649,60 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done, const
 		ml_value_t *StringMethod = ml_method("string");
 		ml_value_t *Value = Inst->Params[1].Value;
 		if (Value->Type == MLStringT) {
-			fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: push(\'", (uintptr_t)Inst, Colour, Inst->Source.Line);
+			fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: push(\'", (uintptr_t)Inst, Colour, Inst->Source.Line);
 			ml_inst_escape_string(Graph, ml_string_value(Value), ml_string_length(Value));
 			fprintf(Graph, "\')\"];\n");
 		} else {
 			Value = ml_inline(StringMethod, 1, Value);
 			if (Value->Type == MLStringT) {
-				fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: push(%s)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, ml_string_value(Value));
+				fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: push(%s)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, ml_string_value(Value));
 			} else {
-				fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: push(%s)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Value->Type->Name);
+				fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: push(%s)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Value->Type->Name);
 			}
 		}
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_POP: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: pop()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: pop()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_POP2: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: pop2()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: pop2()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_POP3: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: pop3()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: pop3()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_ENTER: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: enter(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: enter(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_VAR: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: var(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Index);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: var(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Index);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_DEF: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: def(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Index);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: def(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Index);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_EXIT: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: exit(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: exit(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
@@ -712,22 +714,22 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done, const
 		double Hue = Hash / 255.0;
 		char *TryColour;
 		asprintf(&TryColour, "%f 0.3 0.9", Hue);
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: try()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		fprintf(Graph, "\tI%lx -> I%lx [label=\"error\" style=dashed color=red];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: try()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"error\" style=dashed color=red];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, TryColour);
 		ml_inst_graph(Graph, Inst->Params[1].Inst, Done, Colour);
 		break;
 	}
 	case MLI_CATCH: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: catch(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Index);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: catch(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Index);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_CALL: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: call(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: call(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
@@ -735,153 +737,153 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done, const
 		ml_value_t *StringMethod = ml_method("string");
 		ml_value_t *Value = Inst->Params[2].Value;
 		if (Value->Type == MLMethodT) {
-			fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: const_call(%d, :%s)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count, ml_method_name(Value));
+			fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: const_call(%d, :%s)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count, ml_method_name(Value));
 		} else {
 			Value = ml_inline(StringMethod, 1, Value);
 			if (Value->Type == MLStringT) {
-				fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: const_call(%d, %s)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count, ml_string_value(Value));
+				fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: const_call(%d, %s)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count, ml_string_value(Value));
 			} else {
-				fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: const_call(%d, %s)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count, Inst->Params[2].Value->Type->Name);
+				fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: const_call(%d, %s)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count, Inst->Params[2].Value->Type->Name);
 			}
 		}
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_ASSIGN: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: assign()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: assign()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_JUMP: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: jump()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: jump()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_IF: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: if()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		fprintf(Graph, "\tI%lx -> I%lx [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: if()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		ml_inst_graph(Graph, Inst->Params[1].Inst, Done, Colour);
 		break;
 	}
 	case MLI_IF_VAR: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: if_var()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		fprintf(Graph, "\tI%lx -> I%lx [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: if_var()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		ml_inst_graph(Graph, Inst->Params[1].Inst, Done, Colour);
 		break;
 	}
 	case MLI_IF_DEF: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: if_def()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		fprintf(Graph, "\tI%lx -> I%lx [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: if_def()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		ml_inst_graph(Graph, Inst->Params[1].Inst, Done, Colour);
 		break;
 	}
 	case MLI_FOR: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: for()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		fprintf(Graph, "\tI%lx -> I%lx [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: for()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		ml_inst_graph(Graph, Inst->Params[1].Inst, Done, Colour);
 		break;
 	}
 	case MLI_UNTIL: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: until()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		fprintf(Graph, "\tI%lx -> I%lx [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: until()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		ml_inst_graph(Graph, Inst->Params[1].Inst, Done, Colour);
 		break;
 	}
 	case MLI_WHILE: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: while()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		fprintf(Graph, "\tI%lx -> I%lx [label=\"nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: while()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		ml_inst_graph(Graph, Inst->Params[1].Inst, Done, Colour);
 		break;
 	}
 	case MLI_AND: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: and()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		fprintf(Graph, "\tI%lx -> I%lx [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: and()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		ml_inst_graph(Graph, Inst->Params[1].Inst, Done, Colour);
 		break;
 	}
 	case MLI_AND_VAR: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: and_var()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		fprintf(Graph, "\tI%lx -> I%lx [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: and_var()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		ml_inst_graph(Graph, Inst->Params[1].Inst, Done, Colour);
 		break;
 	}
 	case MLI_AND_DEF: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: and_def()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		fprintf(Graph, "\tI%lx -> I%lx [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: and_def()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		ml_inst_graph(Graph, Inst->Params[1].Inst, Done, Colour);
 		break;
 	}
 	case MLI_OR: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: or()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		fprintf(Graph, "\tI%lx -> I%lx [label=\"nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: or()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		ml_inst_graph(Graph, Inst->Params[1].Inst, Done, Colour);
 		break;
 	}
 	case MLI_EXISTS: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: exists()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		fprintf(Graph, "\tI%lx -> I%lx [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: exists()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		ml_inst_graph(Graph, Inst->Params[1].Inst, Done, Colour);
 		break;
 	}
 	case MLI_NEXT: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: next()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		fprintf(Graph, "\tI%lx -> I%lx [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: next()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		ml_inst_graph(Graph, Inst->Params[1].Inst, Done, Colour);
 		break;
 	}
 	case MLI_CURRENT: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: current()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: current()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_KEY: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: key()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: key()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_LOCAL: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: local(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Index);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: local(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Index);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_CLOSURE: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: closure(C%lx)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, (uintptr_t)Inst->Params[1].ClosureInfo);
-		fprintf(Graph, "\tI%lx -> I%lx;\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: closure(C%" PRIxPTR ")\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, (uintptr_t)Inst->Params[1].ClosureInfo);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	default: {
-		fprintf(Graph, "\tI%lx [fillcolor=\"%s\" label=\"%d: unknown(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Opcode);
+		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: unknown(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Opcode);
 		break;
 	}
 	}
@@ -890,9 +892,9 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done, const
 void ml_closure_info_debug(ml_closure_info_t *Info) {
 	stringmap_t Done[1] = {STRINGMAP_INIT};
 	char ClosureName[20];
-	sprintf(ClosureName, "C%lx.dot", (uintptr_t)Info);
+	sprintf(ClosureName, "C%" PRIxPTR ".dot", (uintptr_t)Info);
 	FILE *Graph = fopen(ClosureName, "w");
-	fprintf(Graph, "digraph C%lx {\n", (uintptr_t)Info);
+	fprintf(Graph, "digraph C%" PRIxPTR " {\n", (uintptr_t)Info);
 	fprintf(Graph, "\tgraph [compound=true];\n");
 	fprintf(Graph, "\tnode [shape=box style=filled];\n");
 	ml_inst_graph(Graph, Info->Entry, Done, "lightgray");
