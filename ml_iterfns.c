@@ -317,6 +317,33 @@ static ml_value_t *ml_skipped_fn(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)Skipped;
 }
 
+typedef struct {
+	ml_state_t Base;
+	size_t Waiting;
+} ml_parallel_state_t;
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Iter;
+	ml_value_t *Function;
+} ml_parallel_iter_t;
+
+static ml_spawn_t ml_parallel_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(2);
+	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
+	ML_CHECKX_ARG_TYPE(1, MLFunctionT);
+
+	ml_parallel_state_t *S0 = new(ml_parallel_state_t);
+	S0->Base.Caller = Caller;
+	S0->Waiting = 1;
+
+	ml_parallel_iter_t *S1 = new(ml_parallel_iter_t);
+	S1->Base.Caller = S0;
+	S1->Function = Args[1];
+
+	return ml_iterate(S1, Args[0]);
+}
+
 void ml_iterfns_init(stringmap_t *Globals) {
 	LessMethod = ml_method("<");
 	GreaterMethod = ml_method(">");
