@@ -127,6 +127,20 @@ static ml_spawn_t ml_uv_fs_write(ml_state_t *Frame, void *Data, int Count, ml_va
 	ML_CONTINUE(NULL, MLNil);
 }
 
+static void ml_uv_sleep_cb(uv_timer_t *Timer) {
+	ml_run((ml_state_t *)Timer->data, MLNil);
+}
+
+static ml_spawn_t ml_uv_sleep(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLIntegerT);
+	uv_timer_t *Timer = new(uv_timer_t);
+	uv_timer_init(Loop, Timer);
+	Timer->data = Caller;
+	uv_timer_start(Timer, ml_uv_sleep_cb, ml_integer_value(Args[0]), 0);
+	ML_CONTINUE(NULL, MLNil);
+}
+
 void *ml_calloc(size_t Count, size_t Size) {
 	return GC_malloc(Count * Size);
 }
@@ -143,4 +157,5 @@ void ml_uv_init(stringmap_t *Globals) {
 	ml_methodx_by_name("write", NULL, ml_uv_fs_write, MLUVFileT, MLStringT, NULL);
 	stringmap_insert(Globals, "uv_fs_open", ml_functionx(NULL, ml_uv_fs_open));
 	stringmap_insert(Globals, "uv_run", ml_function(NULL, ml_uv_run));
+	stringmap_insert(Globals, "uv_sleep", ml_functionx(NULL, ml_uv_sleep));
 }

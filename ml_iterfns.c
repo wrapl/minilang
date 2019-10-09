@@ -320,7 +320,7 @@ static ml_value_t *ml_skipped_fn(void *Data, int Count, ml_value_t **Args) {
 typedef struct {
 	ml_state_t Base;
 	size_t Waiting;
-} ml_parallel_state_t;
+} ml_parallel_t;
 
 typedef struct {
 	ml_state_t Base;
@@ -328,20 +328,54 @@ typedef struct {
 	ml_value_t *Function;
 } ml_parallel_iter_t;
 
+static ml_spawn_t ml_parallel_iterate(ml_parallel_iter_t *State, ml_value_t *Iter);
+
+static ml_spawn_t ml_parallel_iter_value(ml_parallel_iter_t *State, ml_value_t *Value) {
+	CALLBACK_INST(ParallelIterate, ml_parallel_iterate);
+	ml_parallel_t *Parallel = (ml_parallel_t *)State->Base.Caller;
+	Parallel->Waiting += 1;
+	ml_spawn_t Spawn = State->Function->Type->spawn(State->Base.Caller, State->Function, 1, &Value);
+	ml_run(Spawn.Frame, Spawn.Result);
+	State->Base.Inst = &ParallelIterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static ml_spawn_t ml_parallel_iterate(ml_parallel_iter_t *State, ml_value_t *Iter) {
+	CALLBACK_INST(ParallelIterValue, ml_parallel_iter_value);
+	if (Iter == MLNil) ML_CONTINUE(State->Base.Caller, MLNil);
+	if (Iter->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Iter);
+	State->Base.Inst = &ParallelIterValue;
+	State->Iter = Iter;
+	return ml_iter_value((ml_state_t *)State, Iter);
+}
+
+static ml_spawn_t ml_parallel_continue(ml_parallel_t *State, ml_value_t *Value) {
+	if (Value->Type == MLErrorT) {
+		State->Waiting = 0xFFFFFFFF;
+		ML_CONTINUE(State->Base.Caller, Value);
+	}
+	if (--State->Waiting == 0) ML_CONTINUE(State->Base.Caller, MLNil);
+	ML_CONTINUE(NULL, MLNil);
+}
+
 static ml_spawn_t ml_parallel_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	CALLBACK_INST(ParallelIterate, ml_parallel_iterate);
+	CALLBACK_INST(ParallelContinue, ml_parallel_continue);
 	ML_CHECKX_ARG_COUNT(2);
 	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
 	ML_CHECKX_ARG_TYPE(1, MLFunctionT);
 
-	ml_parallel_state_t *S0 = new(ml_parallel_state_t);
+	ml_parallel_t *S0 = new(ml_parallel_t);
 	S0->Base.Caller = Caller;
+	S0->Base.Inst = &ParallelContinue;
 	S0->Waiting = 1;
 
 	ml_parallel_iter_t *S1 = new(ml_parallel_iter_t);
-	S1->Base.Caller = S0;
+	S1->Base.Caller = (ml_state_t *)S0;
+	S1->Base.Inst = &ParallelIterate;
 	S1->Function = Args[1];
 
-	return ml_iterate(S1, Args[0]);
+	return ml_iterate((ml_state_t *)S1, Args[0]);
 }
 
 void ml_iterfns_init(stringmap_t *Globals) {
@@ -357,6 +391,7 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "max", ml_function(0, ml_max_fn));
 	stringmap_insert(Globals, "sum", ml_function(0, ml_sum_fn));
 	stringmap_insert(Globals, "prod", ml_function(0, ml_prod_fn));
+	stringmap_insert(Globals, "parallel", ml_functionx(0, ml_parallel_fnx));
 
 	MLLimitedT = ml_type(MLIteratableT, "limited");
 	MLLimitedStateT = ml_type(MLAnyT, "limited-state");
