@@ -26,25 +26,25 @@ typedef struct typelib_iter_t {
 
 static ml_value_t *baseinfo_to_value(GIBaseInfo *Info);
 
-static ml_spawn_t typelib_iter_current(ml_state_t *Frame, typelib_iter_t *Iter) {
-	ML_CONTINUE(Frame, baseinfo_to_value(Iter->Current));
+static ml_value_t *typelib_iter_current(ml_state_t *Caller, typelib_iter_t *Iter) {
+	ML_CONTINUE(Caller, baseinfo_to_value(Iter->Current));
 }
 
-static ml_spawn_t typelib_iter_next(ml_state_t *Frame, typelib_iter_t *Iter) {
-	if (++Iter->Index >= Iter->Total) ML_CONTINUE(Frame, MLNil);
+static ml_value_t *typelib_iter_next(ml_state_t *Caller, typelib_iter_t *Iter) {
+	if (++Iter->Index >= Iter->Total) ML_CONTINUE(Caller, MLNil);
 	Iter->Current = g_irepository_get_info(NULL, Iter->Namespace, Iter->Index);
-	ML_CONTINUE(Frame, Iter);
+	ML_CONTINUE(Caller, Iter);
 }
 
-static ml_spawn_t typelib_iter_key(ml_state_t *Frame, typelib_iter_t *Iter) {
-	ML_CONTINUE(Frame, ml_string(g_base_info_get_name(Iter->Current), -1));
+static ml_value_t *typelib_iter_key(ml_state_t *Caller, typelib_iter_t *Iter) {
+	ML_CONTINUE(Caller, ml_string(g_base_info_get_name(Iter->Current), -1));
 }
 
 ml_type_t TypelibIterT[1] = {{
 	MLTypeT,
 	MLIteratableT, "typelib-iter",
 	ml_default_hash,
-	ml_default_spawn,
+	ml_default_call,
 	ml_default_deref,
 	ml_default_assign,
 	NULL, 0, 0
@@ -212,7 +212,7 @@ static ml_type_t FieldRef ## UNAME ## T[1] = {{ \
 	MLTypeT, \
 	MLAnyT, "field-ref-" #LNAME, \
 	ml_default_hash, \
-	ml_default_spawn, \
+	ml_default_call, \
 	(void *)field_ref_ ## LNAME ## _deref, \
 	(void *)field_ref_ ## LNAME ## _assign, \
 	NULL, 0, 0 \
@@ -1036,7 +1036,7 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 	return Slot[0];
 }
 
-static ml_spawn_t enum_info_spawn(ml_state_t *Frame, enum_t *Enum, int Count, ml_value_t **Args) {
+static ml_value_t *enum_info_call(ml_state_t *Caller, enum_t *Enum, int Count, ml_value_t **Args) {
 	//ML_CHECK_ARG_COUNT(1);
 	//ML_CHECK_ARG_TYPE(0, MLStringT);
 	enum_value_t *Value = (enum_value_t *)stringmap_search(Enum->ByName, ml_string_value(Args[0]));
@@ -1046,7 +1046,7 @@ static ml_spawn_t enum_info_spawn(ml_state_t *Frame, enum_t *Enum, int Count, ml
 	} else {
 		Result = (ml_value_t *)Value;
 	}
-	ML_CONTINUE(Frame, Result);
+	ML_CONTINUE(Caller, Result);
 }
 
 static ml_type_t *enum_info_lookup(GIEnumInfo *Info) {
@@ -1139,7 +1139,7 @@ static ml_value_t *baseinfo_to_value(GIBaseInfo *Info) {
 	return MLNil;
 }
 
-static ml_spawn_t typelib_spawn(ml_state_t *Frame, typelib_t *Typelib, int Count, ml_value_t **Args) {
+static ml_value_t *typelib_call(ml_state_t *Caller, typelib_t *Typelib, int Count, ml_value_t **Args) {
 	//ML_CHECK_ARG_COUNT(1);
 	//ML_CHECK_ARG_TYPE(0, MLStringT);
 	const char *Name = ml_string_value(Args[0]);
@@ -1150,10 +1150,10 @@ static ml_spawn_t typelib_spawn(ml_state_t *Frame, typelib_t *Typelib, int Count
 	} else {
 		Result = baseinfo_to_value(Info);
 	}
-	ML_CONTINUE(Frame, Result);
+	ML_CONTINUE(Caller, Result);
 }
 
-static ml_spawn_t typelib_iterate(ml_state_t *Frame, typelib_t *Typelib) {
+static ml_value_t *typelib_iterate(ml_state_t *Caller, typelib_t *Typelib) {
 	typelib_iter_t *Iter = new(typelib_iter_t);
 	Iter->Type = TypelibIterT;
 	Iter->Namespace = Typelib->Namespace;
@@ -1161,7 +1161,7 @@ static ml_spawn_t typelib_iterate(ml_state_t *Frame, typelib_t *Typelib) {
 	Iter->Index = 0;
 	Iter->Total = g_irepository_get_n_infos(NULL, Iter->Namespace);
 	Iter->Current = g_irepository_get_info(NULL, Iter->Namespace, 0);
-	ML_CONTINUE(Frame, Iter);
+	ML_CONTINUE(Caller, Iter);
 }
 
 static ml_value_t *_value_to_ml(const GValue *Value) {
@@ -1251,7 +1251,7 @@ static ml_value_t *ml_gir_connect(void *Data, int Count, ml_value_t **Args) {
 void ml_gir_init(stringmap_t *Globals) {
 	gtk_init(0, 0);
 	TypelibT = ml_type(MLAnyT, "gir-typelib");
-	TypelibT->spawn = (void *)typelib_spawn;
+	TypelibT->call = (void *)typelib_call;
 	ml_typed_fn_set(TypelibT, ml_iterate, typelib_iterate);
 	ml_typed_fn_set(TypelibIterT, ml_iter_next, typelib_iter_next);
 	ml_typed_fn_set(TypelibIterT, ml_iter_value, typelib_iter_current);
@@ -1264,7 +1264,7 @@ void ml_gir_init(stringmap_t *Globals) {
 	StructT = ml_type(MLTypeT, "gir-struct");
 	StructInstanceT = ml_type(MLAnyT, "gir-struct-instance");
 	EnumT = ml_type(MLTypeT, "gir-enum");
-	EnumT->spawn = (void *)enum_info_spawn;
+	EnumT->call = (void *)enum_info_call;
 	EnumValueT = ml_type(MLAnyT, "gir-value");
 	MLTrue = ml_method("true");
 	MLFalse = ml_method("false");

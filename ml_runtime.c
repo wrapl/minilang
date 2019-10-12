@@ -32,7 +32,7 @@ ml_type_t MLReferenceT[1] = {{
 	MLTypeT,
 	MLAnyT, "reference",
 	ml_default_hash,
-	ml_default_spawn,
+	ml_default_call,
 	ml_reference_deref,
 	ml_reference_assign,
 	NULL, 0, 0
@@ -52,22 +52,22 @@ inline ml_value_t *ml_reference(ml_value_t **Address) {
 	return (ml_value_t *)Reference;
 }
 
-static ml_spawn_t ml_continuation_spawn(ml_state_t *Caller, ml_state_t *Frame, int Count, ml_value_t **Args) {
+static ml_value_t *ml_continuation_call(ml_state_t *Caller, ml_state_t *Frame, int Count, ml_value_t **Args) {
 	ML_CONTINUE(Frame, Count ? Args[0] : MLNil);
 }
 
-static ml_spawn_t ml_continuation_value(ml_state_t *Frame, ml_state_t *Continuation) {
-	ML_CONTINUE(Frame, Continuation->Top[-1]);
+static ml_value_t *ml_continuation_value(ml_state_t *Caller, ml_frame_t *Continuation) {
+	ML_CONTINUE(Caller, Continuation->Top[-1]);
 }
 
-static ml_spawn_t ml_continuation_key(ml_state_t *Frame, ml_state_t *Continuation) {
-	ML_CONTINUE(Frame, Continuation->Top[-2]);
+static ml_value_t *ml_continuation_key(ml_state_t *Caller, ml_frame_t *Continuation) {
+	ML_CONTINUE(Caller, Continuation->Top[-2]);
 }
 
-static ml_spawn_t ml_continuation_next(ml_state_t *Frame, ml_state_t *Continuation) {
+static ml_value_t *ml_continuation_next(ml_state_t *Caller, ml_frame_t *Continuation) {
 	Continuation->Top[-2] = Continuation->Top[-1];
 	--Continuation->Top;
-	Continuation->Caller = Frame;
+	Continuation->Base.Caller = Caller;
 	ML_CONTINUE(Continuation, MLNil);
 }
 
@@ -75,7 +75,7 @@ ml_type_t MLContinuationT[1] = {{
 	MLTypeT,
 	MLFunctionT, "continuation",
 	ml_default_hash,
-	(void *)ml_continuation_spawn,
+	(void *)ml_continuation_call,
 	ml_default_deref,
 	ml_default_assign,
 	NULL, 0, 0
@@ -87,8 +87,8 @@ typedef struct ml_functionx_t {
 	void *Data;
 } ml_functionx_t;
 
-static ml_spawn_t ml_functionx_spawn(ml_state_t *Frame, ml_functionx_t *Function, int Count, ml_value_t **Args) {
-	return (Function->Callback)(Frame, Function->Data, Count, Args);
+static ml_value_t *ml_functionx_spawn(ml_state_t *Caller, ml_functionx_t *Function, int Count, ml_value_t **Args) {
+	return (Function->Callback)(Caller, Function->Data, Count, Args);
 }
 
 ml_type_t MLFunctionXT[1] = {{
@@ -110,12 +110,10 @@ ml_value_t *ml_functionx(void *Data, ml_callbackx_t Callback) {
 	return (ml_value_t *)Function;
 }
 
-static ml_spawn_t ml_callcc(ml_state_t *Frame, void *Data, int Count, ml_value_t **Args) {
+static ml_value_t *ml_callcc(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
 	ml_value_t *Function = Args[Count - 1];
-	Args[Count - 1] = (ml_value_t *)Frame;
-	ml_spawn_t Spawn = Function->Type->spawn(NULL, Function, Count, Args);
-	Args[Count - 1] = Function;
-	return Spawn;
+	Args[Count - 1] = (ml_value_t *)Caller;
+	return Function->Type->call(NULL, Function, Count, Args);
 }
 
 ml_functionx_t MLCallCC[1] = {{MLFunctionXT, ml_callcc, NULL}};
@@ -125,118 +123,6 @@ static inline ml_inst_t *ml_inst_new(int N, ml_source_t Source, ml_opcode_t Opco
 	Inst->Source = Source;
 	Inst->Opcode = Opcode;
 	return Inst;
-}
-
-static ml_value_t *ml_spawn(void *Data, int Count, ml_value_t **Args) {
-	ml_spawn_t Spawn = Args[0]->Type->spawn(NULL, Args[0], Count - 1, Args + 1);
-	if (Spawn.Frame) {
-		return (ml_value_t *)Spawn.Frame;
-	} else {
-		ml_state_t *Frame = xnew(ml_state_t, 1, ml_value_t *);
-		Frame->Type = MLContinuationT;
-		Frame->Top = Frame->Stack + 1;
-		ml_inst_t *LoadInst = Frame->Inst = ml_inst_new(1, (ml_source_t){"<internal>", 0}, MLI_LOAD);
-		LoadInst->Params[1].Value = Spawn.Result;
-		LoadInst->Params[0].Inst = ml_inst_new(0, (ml_source_t){"<internal>", 0}, MLI_RETURN);
-		Frame->Stack[0] = Spawn.Result;
-		return (ml_value_t *)Frame;
-	}
-}
-
-ml_function_t MLSpawn[1] = {{MLFunctionT, ml_spawn, NULL}};
-
-void ml_closure_sha256(ml_value_t *Value, unsigned char Hash[SHA256_BLOCK_SIZE]) {
-	ml_closure_t *Closure = (ml_closure_t *)Value;
-	memcpy(Hash, Closure->Info->Hash, SHA256_BLOCK_SIZE);
-	for (int I = 0; I < Closure->Info->NumUpValues; ++I) {
-		long ValueHash = ml_hash(Closure->UpValues[I]);
-		*(long *)(Hash + (I % 16)) ^= ValueHash;
-	}
-}
-
-static long ml_closure_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
-	ml_closure_t *Closure = (ml_closure_t *)Value;
-	long Hash = *(long *)Closure->Info->Hash;
-	for (int I = 0; I < Closure->Info->NumUpValues; ++I) {
-		Hash ^= ml_hash_chain(Closure->UpValues[I], Chain) << I;
-	}
-	return Hash;
-}
-
-static ml_spawn_t ml_closure_spawn(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
-	ml_closure_t *Closure = (ml_closure_t *)Value;
-	ml_closure_info_t *Info = Closure->Info;
-	ml_state_t *Frame = xnew(ml_state_t, Info->FrameSize, ml_value_t *);
-	Frame->Caller = Caller;
-	int NumParams = Info->NumParams;
-	int VarArgs = 0;
-	if (NumParams < 0) {
-		VarArgs = 1;
-		NumParams = ~NumParams;
-	}
-	if (Closure->PartialCount) {
-		int CombinedCount = Count + Closure->PartialCount;
-		ml_value_t **CombinedArgs = anew(ml_value_t *, CombinedCount);
-		memcpy(CombinedArgs, Closure->UpValues + Info->NumUpValues, Closure->PartialCount * sizeof(ml_value_t *));
-		memcpy(CombinedArgs + Closure->PartialCount, Args, Count * sizeof(ml_value_t *));
-		Count = CombinedCount;
-		Args = CombinedArgs;
-	}
-	int Min = (Count < NumParams) ? Count : NumParams;
-	for (int I = 0; I < Min; ++I) {
-		ml_reference_t *Local = (ml_reference_t *)ml_reference(NULL);
-		Local->Value[0] = Args[I];
-		Frame->Stack[I] = (ml_value_t *)Local;
-	}
-	for (int I = Min; I < NumParams; ++I) {
-		ml_reference_t *Local = (ml_reference_t *)ml_reference(NULL);
-		Local->Value[0] = MLNil;
-		Frame->Stack[I] = (ml_value_t *)Local;
-	}
-	if (VarArgs) {
-		ml_reference_t *Local = (ml_reference_t *)ml_reference(NULL);
-		ml_list_t *Rest = new(ml_list_t);
-		Rest->Type = MLListT;
-		int Length = 0;
-		ml_list_node_t **Next = &Rest->Head;
-		ml_list_node_t *Prev = 0;
-		for (int I = NumParams; I < Count; ++I) {
-			ml_list_node_t *Node = new(ml_list_node_t);
-			Node->Value = Args[I];
-			Node->Prev = Prev;
-			Next[0] = Prev = Node;
-			Next = &Node->Next;
-			++Length;
-		}
-		Rest->Tail = Prev;
-		Rest->Length = Length;
-		Local->Value[0] = (ml_value_t *)Rest;
-		Frame->Stack[NumParams] = (ml_value_t *)Local;
-	}
-	Frame->Type = MLContinuationT;
-	Frame->Top = Frame->Stack + NumParams + VarArgs;
-	Frame->OnError = Info->Return;
-	Frame->UpValues = Closure->UpValues;
-	Frame->Inst = Info->Entry;
-	ML_CONTINUE(Frame, MLNil);
-}
-
-static ml_spawn_t ml_closure_iterate(ml_state_t *Frame, ml_value_t *Closure) {
-	return ml_closure_spawn(Frame, Closure, 0, NULL);
-}
-
-ml_type_t MLClosureT[1] = {{
-	MLTypeT,
-	MLFunctionT, "closure",
-	ml_closure_hash,
-	ml_closure_spawn,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
-
-ml_spawn_t ml_default_spawn(ml_state_t *Frame, ml_value_t *Value, int Count, ml_value_t **Args) {
-	ML_CONTINUE(Frame, ml_error("TypeError", "value is not callable"));
 }
 
 #define ERROR_CHECK(VALUE) if (VALUE->Type == MLErrorT) { \
@@ -256,7 +142,7 @@ ml_spawn_t ml_default_spawn(ml_state_t *Frame, ml_value_t *Value, int Count, ml_
 	goto *Labels[Inst->Opcode]; \
 }
 
-ml_value_t *ml_run(ml_state_t *Frame, ml_value_t *Result) {
+static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 	static void *Labels[] = {
 		[MLI_RETURN] = &&DO_RETURN,
 		[MLI_SUSPEND] = &&DO_SUSPEND,
@@ -286,29 +172,19 @@ ml_value_t *ml_run(ml_state_t *Frame, ml_value_t *Result) {
 		[MLI_RESULT] = &&DO_RESULT,
 		[MLI_ASSIGN] = &&DO_ASSIGN,
 		[MLI_LOCAL] = &&DO_LOCAL,
-		[MLI_CLOSURE] = &&DO_CLOSURE,
-		[MLI_CALLBACK] = &&DO_CALLBACK
+		[MLI_CLOSURE] = &&DO_CLOSURE
 	};
 	ml_inst_t *Inst = Frame->Inst;
 	ml_value_t **Top = Frame->Top;
 	goto *Labels[Inst->Opcode];
 
 	DO_RETURN: {
-		Frame = Frame->Caller;
-		if (!Frame) return Result;
-		Inst = Frame->Inst;
-		Top = Frame->Top;
-		goto *Labels[Inst->Opcode];
+		ML_CONTINUE(Frame->Base.Caller, Result);
 	}
 	DO_SUSPEND: {
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
-		Result = (ml_value_t *)Frame;
-		Frame = Frame->Caller;
-		if (!Frame) return Result;
-		Inst = Frame->Inst;
-		Top = Frame->Top;
-		goto *Labels[Inst->Opcode];
+		ML_CONTINUE(Frame->Base.Caller, (ml_value_t *)Frame);
 	}
 	DO_RESUME: {
 		*--Top = 0;
@@ -431,13 +307,7 @@ ml_value_t *ml_run(ml_state_t *Frame, ml_value_t *Result) {
 		ERROR_CHECK(Result);
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
-		ml_spawn_t Spawn = ml_iterate(Frame, Result);
-		Frame = Spawn.Frame;
-		if (!Frame) return Spawn.Result;
-		Result = Spawn.Result;
-		Inst = Frame->Inst;
-		Top = Frame->Top;
-		goto *Labels[Inst->Opcode];
+		return ml_iterate((ml_state_t *)Frame, Result);
 	}
 	DO_NEXT: {
 		for (int I = Inst->Params[1].Count; --I >= 0;) *--Top = 0;
@@ -445,37 +315,19 @@ ml_value_t *ml_run(ml_state_t *Frame, ml_value_t *Result) {
 		*--Top = 0;
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
-		ml_spawn_t Spawn = ml_iter_next(Frame, Result);
-		Frame = Spawn.Frame;
-		if (!Frame) return Spawn.Result;
-		Result = Spawn.Result;
-		Inst = Frame->Inst;
-		Top = Frame->Top;
-		goto *Labels[Inst->Opcode];
+		return ml_iter_next((ml_state_t *)Frame, Result);
 	}
 	DO_VALUE: {
 		Result = Top[-1];
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
-		ml_spawn_t Spawn = ml_iter_value(Frame, Result);
-		Frame = Spawn.Frame;
-		if (!Frame) return Spawn.Result;
-		Result = Spawn.Result;
-		Inst = Frame->Inst;
-		Top = Frame->Top;
-		goto *Labels[Inst->Opcode];
+		return ml_iter_value((ml_state_t *)Frame, Result);
 	}
 	DO_KEY: {
 		Result = Top[-2];
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
-		ml_spawn_t Spawn = ml_iter_key(Frame, Result);
-		Frame = Spawn.Frame;
-		if (!Frame) return Spawn.Result;
-		Result = Spawn.Result;
-		Inst = Frame->Inst;
-		Top = Frame->Top;
-		goto *Labels[Inst->Opcode];
+		return ml_iter_key((ml_state_t *)Frame, Result);
 	}
 	DO_PUSH_RESULT: {
 		if (Result->Type == MLErrorT) {
@@ -498,14 +350,7 @@ ml_value_t *ml_run(ml_state_t *Frame, ml_value_t *Result) {
 		}
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top - (Count + 1);
-		ml_spawn_t Spawn = Function->Type->spawn(Frame, Function, Count, Args);
-		Frame = Spawn.Frame;
-		if (!Frame) return Spawn.Result;
-		Result = Spawn.Result;
-		for (int I = Count + 1; --I >= 0;) *--Top = 0;
-		Inst = Frame->Inst;
-		Top = Frame->Top;
-		goto *Labels[Inst->Opcode];
+		return Function->Type->call((ml_state_t *)Frame, Function, Count, Args);
 	}
 	DO_CONST_CALL: {
 		int Count = Inst->Params[1].Count;
@@ -517,14 +362,7 @@ ml_value_t *ml_run(ml_state_t *Frame, ml_value_t *Result) {
 		}
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top - Count;
-		ml_spawn_t Spawn = Function->Type->spawn(Frame, Function, Count, Args);
-		Frame = Spawn.Frame;
-		if (!Frame) return Spawn.Result;
-		Result = Spawn.Result;
-		for (int I = Count; --I >= 0;) *--Top = 0;
-		Inst = Frame->Inst;
-		Top = Frame->Top;
-		goto *Labels[Inst->Opcode];
+		return Function->Type->call((ml_state_t *)Frame, Function, Count, Args);
 	}
 	DO_RESULT: {
 		if (Result->Type == MLErrorT) {
@@ -573,22 +411,106 @@ ml_value_t *ml_run(ml_state_t *Frame, ml_value_t *Result) {
 		Result = (ml_value_t *)Closure;
 		ADVANCE(0);
 	}
-	DO_CALLBACK: {
-		ml_spawn_t Spawn = Inst->Params[0].Callback(Frame, Result);
-		Frame = Spawn.Frame;
-		if (!Frame) return Spawn.Result;
-		Result = Spawn.Result;
-		Inst = Frame->Inst;
-		Top = Frame->Top;
-		goto *Labels[Inst->Opcode];
-	}
 	return MLNil;
 }
 
+static ml_value_t *ml_closure_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
+	ml_closure_t *Closure = (ml_closure_t *)Value;
+	ml_closure_info_t *Info = Closure->Info;
+	ml_frame_t *Frame = xnew(ml_frame_t, Info->FrameSize, ml_value_t *);
+	Frame->Base.Type = MLContinuationT;
+	Frame->Base.Caller = Caller;
+	Frame->Base.run = (void *)ml_frame_run;
+	int NumParams = Info->NumParams;
+	int VarArgs = 0;
+	if (NumParams < 0) {
+		VarArgs = 1;
+		NumParams = ~NumParams;
+	}
+	if (Closure->PartialCount) {
+		int CombinedCount = Count + Closure->PartialCount;
+		ml_value_t **CombinedArgs = anew(ml_value_t *, CombinedCount);
+		memcpy(CombinedArgs, Closure->UpValues + Info->NumUpValues, Closure->PartialCount * sizeof(ml_value_t *));
+		memcpy(CombinedArgs + Closure->PartialCount, Args, Count * sizeof(ml_value_t *));
+		Count = CombinedCount;
+		Args = CombinedArgs;
+	}
+	int Min = (Count < NumParams) ? Count : NumParams;
+	for (int I = 0; I < Min; ++I) {
+		ml_reference_t *Local = (ml_reference_t *)ml_reference(NULL);
+		Local->Value[0] = Args[I];
+		Frame->Stack[I] = (ml_value_t *)Local;
+	}
+	for (int I = Min; I < NumParams; ++I) {
+		ml_reference_t *Local = (ml_reference_t *)ml_reference(NULL);
+		Local->Value[0] = MLNil;
+		Frame->Stack[I] = (ml_value_t *)Local;
+	}
+	if (VarArgs) {
+		ml_reference_t *Local = (ml_reference_t *)ml_reference(NULL);
+		ml_list_t *Rest = new(ml_list_t);
+		Rest->Type = MLListT;
+		int Length = 0;
+		ml_list_node_t **Next = &Rest->Head;
+		ml_list_node_t *Prev = 0;
+		for (int I = NumParams; I < Count; ++I) {
+			ml_list_node_t *Node = new(ml_list_node_t);
+			Node->Value = Args[I];
+			Node->Prev = Prev;
+			Next[0] = Prev = Node;
+			Next = &Node->Next;
+			++Length;
+		}
+		Rest->Tail = Prev;
+		Rest->Length = Length;
+		Local->Value[0] = (ml_value_t *)Rest;
+		Frame->Stack[NumParams] = (ml_value_t *)Local;
+	}
+	Frame->Top = Frame->Stack + NumParams + VarArgs;
+	Frame->OnError = Info->Return;
+	Frame->UpValues = Closure->UpValues;
+	Frame->Inst = Info->Entry;
+	return ml_frame_run(Frame, MLNil);
+}
+
+void ml_closure_sha256(ml_value_t *Value, unsigned char Hash[SHA256_BLOCK_SIZE]) {
+	ml_closure_t *Closure = (ml_closure_t *)Value;
+	memcpy(Hash, Closure->Info->Hash, SHA256_BLOCK_SIZE);
+	for (int I = 0; I < Closure->Info->NumUpValues; ++I) {
+		long ValueHash = ml_hash(Closure->UpValues[I]);
+		*(long *)(Hash + (I % 16)) ^= ValueHash;
+	}
+}
+
+static long ml_closure_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
+	ml_closure_t *Closure = (ml_closure_t *)Value;
+	long Hash = *(long *)Closure->Info->Hash;
+	for (int I = 0; I < Closure->Info->NumUpValues; ++I) {
+		Hash ^= ml_hash_chain(Closure->UpValues[I], Chain) << I;
+	}
+	return Hash;
+}
+
+static ml_value_t *ml_closure_iterate(ml_state_t *Frame, ml_value_t *Closure) {
+	return ml_closure_call(Frame, Closure, 0, NULL);
+}
+
+ml_type_t MLClosureT[1] = {{
+	MLTypeT,
+	MLFunctionT, "closure",
+	ml_closure_hash,
+	ml_closure_call,
+	ml_default_deref,
+	ml_default_assign,
+	NULL, 0, 0
+}};
+
+ml_value_t *ml_default_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
+	ML_CONTINUE(Caller, ml_error("TypeError", "value is not callable"));
+}
+
 inline ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args) {
-	ml_spawn_t Spawn = Value->Type->spawn(NULL, Value, Count, Args);
-	ml_value_t *Result = Spawn.Frame ? ml_run(Spawn.Frame, Spawn.Result) : Spawn.Result;
-	return Result->Type->deref(Result);
+	return Value->Type->call(NULL, Value, Count, Args);
 }
 
 ml_value_t *ml_inline(ml_value_t *Value, int Count, ...) {

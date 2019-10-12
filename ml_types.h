@@ -31,13 +31,25 @@ typedef struct ml_error_t ml_error_t;
 
 typedef struct ml_state_t ml_state_t;
 
+struct ml_state_t {
+	const ml_type_t *Type;
+	ml_state_t *Caller;
+	ml_value_t *(*run)(ml_state_t *State, ml_value_t *Value);
+};
+
+#define ML_CONTINUE(STATE, VALUE) { \
+	ml_state_t *__State = (ml_state_t *)(STATE); \
+	ml_value_t *__Value = (ml_value_t *)(VALUE); \
+	return __State ? __State->run(__State, __Value) : __Value; \
+}
+
 struct ml_value_t {
 	const ml_type_t *Type;
 };
 
-typedef struct ml_hash_link_t ml_hash_chain_t;
+typedef struct ml_hash_chain_t ml_hash_chain_t;
 
-struct ml_hash_link_t {
+struct ml_hash_chain_t {
 	ml_hash_chain_t *Previous;
 	ml_value_t *Value;
 	long Index;
@@ -45,17 +57,14 @@ struct ml_hash_link_t {
 
 typedef struct ml_typed_fn_node_t ml_typed_fn_node_t;
 
-typedef struct {ml_state_t *Frame; ml_value_t *Result;} ml_spawn_t;
-#define ML_CONTINUE(S, V) return (ml_spawn_t){(ml_state_t *)(S), (ml_value_t *)(V)}
-
-typedef ml_spawn_t (*ml_callbackx_t)(ml_state_t *Frame, void *Data, int Count, ml_value_t **Args);
+typedef ml_value_t *(*ml_callbackx_t)(ml_state_t *Frame, void *Data, int Count, ml_value_t **Args);
 
 struct ml_type_t {
 	const ml_type_t *Type;
 	const ml_type_t *Parent;
 	const char *Name;
 	long (*hash)(ml_value_t *, ml_hash_chain_t *);
-	ml_spawn_t (*spawn)(ml_state_t *, ml_value_t *, int, ml_value_t **);
+	ml_value_t *(*call)(ml_state_t *, ml_value_t *, int, ml_value_t **);
 	ml_value_t *(*deref)(ml_value_t *);
 	ml_value_t *(*assign)(ml_value_t *, ml_value_t *);
 	ml_typed_fn_node_t *TypedFns;
@@ -113,8 +122,6 @@ const char *ml_method_name(ml_value_t *Value);
 ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args);
 ml_value_t *ml_inline(ml_value_t *Value, int Count, ...);
 
-ml_value_t *ml_run(ml_state_t *Frame, ml_value_t *Result);
-
 typedef struct ml_source_t {
 	const char *Name;
 	int Line;
@@ -140,14 +147,14 @@ int ml_map_size(ml_value_t *Map);
 int ml_map_foreach(ml_value_t *Map, void *Data, int (*callback)(ml_value_t *, ml_value_t *, void *));
 
 long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain);
-ml_spawn_t ml_default_spawn(ml_state_t *Frame, ml_value_t *Value, int Count, ml_value_t **Args);
+ml_value_t *ml_default_call(ml_state_t *Frame, ml_value_t *Value, int Count, ml_value_t **Args);
 ml_value_t *ml_default_deref(ml_value_t *Ref);
 ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value);
 
-ml_spawn_t ml_iterate(ml_state_t *Frame, ml_value_t *Value);
-ml_spawn_t ml_iter_value(ml_state_t *Frame, ml_value_t *Iter);
-ml_spawn_t ml_iter_key(ml_state_t *Frame, ml_value_t *Iter);
-ml_spawn_t ml_iter_next(ml_state_t *Frame, ml_value_t *Iter);
+ml_value_t *ml_iterate(ml_state_t *Frame, ml_value_t *Value);
+ml_value_t *ml_iter_value(ml_state_t *Frame, ml_value_t *Iter);
+ml_value_t *ml_iter_key(ml_state_t *Frame, ml_value_t *Iter);
+ml_value_t *ml_iter_next(ml_state_t *Frame, ml_value_t *Iter);
 
 extern ml_type_t MLAnyT[];
 extern ml_type_t MLTypeT[];

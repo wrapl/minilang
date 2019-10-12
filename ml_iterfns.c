@@ -3,13 +3,6 @@
 #include "minilang.h"
 #include "ml_macros.h"
 #include "ml_iterfns.h"
-#include "ml_internal.h"
-
-static inline ml_value_t *ml_run_spawn(ml_spawn_t Spawn) {
-	return Spawn.Frame ? ml_run(Spawn.Frame, Spawn.Result) : Spawn.Result;
-}
-
-#define CALLBACK_INST(NAME, FUNCTION) static ml_inst_t NAME = {MLI_CALLBACK, {__FILE__, __LINE__}, {{.Callback = (void *)FUNCTION}}}
 
 typedef struct ml_frame_iter_t {
 	ml_state_t Base;
@@ -17,86 +10,79 @@ typedef struct ml_frame_iter_t {
 	ml_value_t *Values[];
 } ml_frame_iter_t;
 
-static ml_spawn_t ml_all_fnx_get_value(ml_frame_iter_t *Frame, ml_value_t *Result);
+static ml_value_t *ml_all_fnx_get_value(ml_frame_iter_t *Frame, ml_value_t *Result);
 
-static ml_spawn_t ml_all_fnx_append_value(ml_frame_iter_t *Frame, ml_value_t *Result) {
-	CALLBACK_INST(IterateNext, ml_all_fnx_get_value);
+static ml_value_t *ml_all_fnx_append_value(ml_frame_iter_t *Frame, ml_value_t *Result) {
 	Result = Result->Type->deref(Result);
 	if (Result->Type == MLErrorT) ML_CONTINUE(Frame->Base.Caller, Result);
 	ml_list_append(Frame->Values[0], Result);
-	Frame->Base.Inst = &IterateNext;
+	Frame->Base.run = (void *)ml_all_fnx_get_value;
 	return ml_iter_next((ml_state_t *)Frame, Frame->Iter);
 }
 
-static ml_spawn_t ml_all_fnx_get_value(ml_frame_iter_t *Frame, ml_value_t *Result) {
-	CALLBACK_INST(AppendValue, ml_all_fnx_append_value);
+static ml_value_t *ml_all_fnx_get_value(ml_frame_iter_t *Frame, ml_value_t *Result) {
 	if (Result->Type == MLErrorT) ML_CONTINUE(Frame->Base.Caller, Result);
-	Frame->Base.Inst = &AppendValue;
+	Frame->Base.run = (void *)ml_all_fnx_append_value;
 	if (Result == MLNil) ML_CONTINUE(Frame->Base.Caller, Frame->Values[0]);
 	return ml_iter_value((ml_state_t *)Frame, Frame->Iter = Result);
 }
 
-static ml_spawn_t ml_all_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
-	CALLBACK_INST(IterateNext, ml_all_fnx_get_value);
+static ml_value_t *ml_all_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
 	ml_frame_iter_t *Frame = xnew(ml_frame_iter_t, 1, ml_value_t *);
 	Frame->Base.Caller = Caller;
-	Frame->Base.Inst = &IterateNext;
+	Frame->Base.run = (void *)ml_all_fnx_get_value;
 	Frame->Values[0] = ml_list();
 	return ml_iterate((ml_state_t *)Frame, Args[0]);
 }
 
-static ml_spawn_t ml_map_fnx_get_key(ml_frame_iter_t *Frame, ml_value_t *Result);
+static ml_value_t *ml_map_fnx_get_key(ml_frame_iter_t *Frame, ml_value_t *Result);
 
-static ml_spawn_t ml_map_fnx_get_value(ml_frame_iter_t *Frame, ml_value_t *Result);
+static ml_value_t *ml_map_fnx_get_value(ml_frame_iter_t *Frame, ml_value_t *Result);
 
-static ml_spawn_t ml_map_fnx_insert_key_value(ml_frame_iter_t *Frame, ml_value_t *Result);
+static ml_value_t *ml_map_fnx_insert_key_value(ml_frame_iter_t *Frame, ml_value_t *Result);
 
-static ml_spawn_t ml_map_fnx_get_key(ml_frame_iter_t *Frame, ml_value_t *Result) {
-	CALLBACK_INST(GetValue, ml_map_fnx_get_value);
+static ml_value_t *ml_map_fnx_get_key(ml_frame_iter_t *Frame, ml_value_t *Result) {
 	if (Result->Type == MLErrorT) ML_CONTINUE(Frame->Base.Caller, Result);
-	Frame->Base.Inst = &GetValue;
+	Frame->Base.run = (void *)ml_map_fnx_get_value;
 	if (Result == MLNil) ML_CONTINUE(Frame->Base.Caller, Frame->Values[0]);
 	return ml_iter_key((ml_state_t *)Frame, Frame->Iter = Result);
 }
 
-static ml_spawn_t ml_map_fnx_get_value(ml_frame_iter_t *Frame, ml_value_t *Result) {
-	CALLBACK_INST(InsertKeyValue, ml_map_fnx_insert_key_value);
+static ml_value_t *ml_map_fnx_get_value(ml_frame_iter_t *Frame, ml_value_t *Result) {
 	if (Result->Type == MLErrorT) ML_CONTINUE(Frame->Base.Caller, Result);
-	Frame->Base.Inst = &InsertKeyValue;
+	Frame->Base.run = (void *)ml_map_fnx_insert_key_value;
 	if (Result == MLNil) ML_CONTINUE(Frame->Base.Caller, Frame->Values[0]);
 	Frame->Values[1] = Result;
 	return ml_iter_value((ml_state_t *)Frame, Frame->Iter);
 }
 
-static ml_spawn_t ml_map_fnx_insert_key_value(ml_frame_iter_t *Frame, ml_value_t *Result) {
-	CALLBACK_INST(IterateNext, ml_map_fnx_get_key);
+static ml_value_t *ml_map_fnx_insert_key_value(ml_frame_iter_t *Frame, ml_value_t *Result) {
 	Result = Result->Type->deref(Result);
 	if (Result->Type == MLErrorT) ML_CONTINUE(Frame->Base.Caller, Result);
 	ml_map_insert(Frame->Values[0], Frame->Values[1], Result);
-	Frame->Base.Inst = &IterateNext;
+	Frame->Base.run = (void *)ml_map_fnx_get_key;
 	return ml_iter_next((ml_state_t *)Frame, Frame->Iter);
 }
 
-static ml_spawn_t ml_map_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
-	CALLBACK_INST(IterateNext, ml_map_fnx_get_key);
+static ml_value_t *ml_map_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
 	ml_frame_iter_t *Frame = xnew(ml_frame_iter_t, 1, ml_value_t *);
 	Frame->Base.Caller = Caller;
-	Frame->Base.Inst = &IterateNext;
+	Frame->Base.run = (void *)ml_map_fnx_get_key;
 	Frame->Values[0] = ml_map();
 	return ml_iterate((ml_state_t *)Frame, Args[0]);
 }
 
 static ml_value_t *ml_uniq_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
-	ml_value_t *Iterator = ml_run_spawn(ml_iterate(NULL, Args[0]));
+	ml_value_t *Iterator = ml_iterate(NULL, Args[0]);
 	if (Iterator->Type == MLErrorT) return Iterator;
 	ml_value_t *Map = ml_map();
 	while (Iterator != MLNil) {
-		ml_value_t *Value = ml_run_spawn(ml_iter_value(NULL, Iterator));
+		ml_value_t *Value = ml_iter_value(NULL, Iterator);
 		Value = Value->Type->deref(Value);
 		if (Value->Type == MLErrorT) return Value;
 		ml_map_insert(Map, Value, MLSome);
-		Iterator = ml_run_spawn(ml_iter_next(NULL, Iterator));
+		Iterator = ml_iter_next(NULL, Iterator);
 		if (Iterator->Type == MLErrorT) return Iterator;
 	}
 	return Map;
@@ -104,12 +90,12 @@ static ml_value_t *ml_uniq_fn(void *Data, int Count, ml_value_t **Args) {
 
 static ml_value_t *ml_count_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
-	ml_value_t *Iterator = ml_run_spawn(ml_iterate(NULL, Args[0]));
+	ml_value_t *Iterator = ml_iterate(NULL, Args[0]);
 	if (Iterator->Type == MLErrorT) return Iterator;
 	int Total = 0;
 	while (Iterator != MLNil) {
 		++Total;
-		Iterator = ml_run_spawn(ml_iter_next(NULL, Iterator));
+		Iterator = ml_iter_next(NULL, Iterator);
 		if (Iterator->Type == MLErrorT) return Iterator;
 	}
 	return ml_integer(Total);
@@ -119,22 +105,22 @@ static ml_value_t *LessMethod, *GreaterMethod, *AddMethod, *MulMethod;
 
 static ml_value_t *ml_min_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
-	ml_value_t *Iterator = ml_run_spawn(ml_iterate(NULL, Args[0]));
+	ml_value_t *Iterator = ml_iterate(NULL, Args[0]);
 	if (Iterator->Type == MLErrorT) return Iterator;
 	if (Iterator == MLNil) return MLNil;
-	ml_value_t *FoldArgs[2] = {ml_run_spawn(ml_iter_value(NULL, Iterator)), 0};
+	ml_value_t *FoldArgs[2] = {ml_iter_value(NULL, Iterator), 0};
 	FoldArgs[0] = FoldArgs[0]->Type->deref(FoldArgs[0]);
 	if (FoldArgs[0]->Type == MLErrorT) return FoldArgs[0];
-	Iterator = ml_run_spawn(ml_iter_next(NULL, Iterator));
+	Iterator = ml_iter_next(NULL, Iterator);
 	if (Iterator->Type == MLErrorT) return Iterator;
 	while (Iterator != MLNil) {
-		FoldArgs[1] = ml_run_spawn(ml_iter_value(NULL, Iterator));
+		FoldArgs[1] = ml_iter_value(NULL, Iterator);
 		FoldArgs[1] = FoldArgs[1]->Type->deref(FoldArgs[1]);
 		if (FoldArgs[1]->Type == MLErrorT) return FoldArgs[1];
 		ml_value_t *Compare = ml_call(GreaterMethod, 2, FoldArgs);
 		if (Compare->Type == MLErrorT) return Compare;
 		if (Compare != MLNil) FoldArgs[0] = FoldArgs[1];
-		Iterator = ml_run_spawn(ml_iter_next(NULL, Iterator));
+		Iterator = ml_iter_next(NULL, Iterator);
 		if (Iterator->Type == MLErrorT) return Iterator;
 	}
 	return FoldArgs[0];
@@ -142,22 +128,22 @@ static ml_value_t *ml_min_fn(void *Data, int Count, ml_value_t **Args) {
 
 static ml_value_t *ml_max_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
-	ml_value_t *Iterator = ml_run_spawn(ml_iterate(NULL, Args[0]));
+	ml_value_t *Iterator = ml_iterate(NULL, Args[0]);
 	if (Iterator->Type == MLErrorT) return Iterator;
 	if (Iterator == MLNil) return MLNil;
-	ml_value_t *FoldArgs[2] = {ml_run_spawn(ml_iter_value(NULL, Iterator)), 0};
+	ml_value_t *FoldArgs[2] = {ml_iter_value(NULL, Iterator), 0};
 	FoldArgs[0] = FoldArgs[0]->Type->deref(FoldArgs[0]);
 	if (FoldArgs[0]->Type == MLErrorT) return FoldArgs[0];
-	Iterator = ml_run_spawn(ml_iter_next(NULL, Iterator));
+	Iterator = ml_iter_next(NULL, Iterator);
 	if (Iterator->Type == MLErrorT) return Iterator;
 	while (Iterator != MLNil) {
-		FoldArgs[1] = ml_run_spawn(ml_iter_value(NULL, Iterator));
+		FoldArgs[1] = ml_iter_value(NULL, Iterator);
 		FoldArgs[1] = FoldArgs[1]->Type->deref(FoldArgs[1]);
 		if (FoldArgs[1]->Type == MLErrorT) return FoldArgs[1];
 		ml_value_t *Compare = ml_call(LessMethod, 2, FoldArgs);
 		if (Compare->Type == MLErrorT) return Compare;
 		if (Compare != MLNil) FoldArgs[0] = FoldArgs[1];
-		Iterator = ml_run_spawn(ml_iter_next(NULL, Iterator));
+		Iterator = ml_iter_next(NULL, Iterator);
 		if (Iterator->Type == MLErrorT) return Iterator;
 	}
 	return FoldArgs[0];
@@ -165,21 +151,21 @@ static ml_value_t *ml_max_fn(void *Data, int Count, ml_value_t **Args) {
 
 static ml_value_t *ml_sum_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
-	ml_value_t *Iterator = ml_run_spawn(ml_iterate(NULL, Args[0]));
+	ml_value_t *Iterator = ml_iterate(NULL, Args[0]);
 	if (Iterator->Type == MLErrorT) return Iterator;
 	if (Iterator == MLNil) return MLNil;
-	ml_value_t *FoldArgs[2] = {ml_run_spawn(ml_iter_value(NULL, Iterator)), 0};
+	ml_value_t *FoldArgs[2] = {ml_iter_value(NULL, Iterator), 0};
 	FoldArgs[0] = FoldArgs[0]->Type->deref(FoldArgs[0]);
 	if (FoldArgs[0]->Type == MLErrorT) return FoldArgs[0];
-	Iterator = ml_run_spawn(ml_iter_next(NULL, Iterator));
+	Iterator = ml_iter_next(NULL, Iterator);
 	if (Iterator->Type == MLErrorT) return Iterator;
 	while (Iterator != MLNil) {
-		FoldArgs[1] = ml_run_spawn(ml_iter_value(NULL, Iterator));
+		FoldArgs[1] = ml_iter_value(NULL, Iterator);
 		FoldArgs[1] = FoldArgs[1]->Type->deref(FoldArgs[1]);
 		if (FoldArgs[1]->Type == MLErrorT) return FoldArgs[1];
 		FoldArgs[0] = ml_call(AddMethod, 2, FoldArgs);
 		if (FoldArgs[0]->Type == MLErrorT) return FoldArgs[0];
-		Iterator = ml_run_spawn(ml_iter_next(NULL, Iterator));
+		Iterator = ml_iter_next(NULL, Iterator);
 		if (Iterator->Type == MLErrorT) return Iterator;
 	}
 	return FoldArgs[0];
@@ -187,21 +173,21 @@ static ml_value_t *ml_sum_fn(void *Data, int Count, ml_value_t **Args) {
 
 static ml_value_t *ml_prod_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
-	ml_value_t *Iterator = ml_run_spawn(ml_iterate(NULL, Args[0]));
+	ml_value_t *Iterator = ml_iterate(NULL, Args[0]);
 	if (Iterator->Type == MLErrorT) return Iterator;
 	if (Iterator == MLNil) return MLNil;
-	ml_value_t *FoldArgs[2] = {ml_run_spawn(ml_iter_value(NULL, Iterator)), 0};
+	ml_value_t *FoldArgs[2] = {ml_iter_value(NULL, Iterator), 0};
 	FoldArgs[0] = FoldArgs[0]->Type->deref(FoldArgs[0]);
 	if (FoldArgs[0]->Type == MLErrorT) return FoldArgs[0];
-	Iterator = ml_run_spawn(ml_iter_next(NULL, Iterator));
+	Iterator = ml_iter_next(NULL, Iterator);
 	if (Iterator->Type == MLErrorT) return Iterator;
 	while (Iterator != MLNil) {
-		FoldArgs[1] = ml_run_spawn(ml_iter_value(NULL, Iterator));
+		FoldArgs[1] = ml_iter_value(NULL, Iterator);
 		FoldArgs[1] = FoldArgs[1]->Type->deref(FoldArgs[1]);
 		if (FoldArgs[1]->Type == MLErrorT) return FoldArgs[1];
 		FoldArgs[0] = ml_call(MulMethod, 2, FoldArgs);
 		if (FoldArgs[0]->Type == MLErrorT) return FoldArgs[0];
-		Iterator = ml_run_spawn(ml_iter_next(NULL, Iterator));
+		Iterator = ml_iter_next(NULL, Iterator);
 		if (Iterator->Type == MLErrorT) return Iterator;
 	}
 	return FoldArgs[0];
@@ -223,7 +209,7 @@ typedef struct ml_limited_state_t {
 
 static ml_type_t *MLLimitedStateT;
 
-static ml_spawn_t ml_limited_fnx_iterate(ml_limited_state_t *State, ml_value_t *Result) {
+static ml_value_t *ml_limited_fnx_iterate(ml_limited_state_t *State, ml_value_t *Result) {
 	if (Result->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Result);
 	if (Result == MLNil) ML_CONTINUE(State->Base.Caller, Result);
 	State->Iter = Result;
@@ -231,13 +217,12 @@ static ml_spawn_t ml_limited_fnx_iterate(ml_limited_state_t *State, ml_value_t *
 	ML_CONTINUE(State->Base.Caller, State);
 }
 
-static ml_spawn_t ml_limited_iterate(ml_state_t *Caller, ml_limited_t *Limited) {
-	CALLBACK_INST(LimitedIterate, ml_limited_fnx_iterate);
+static ml_value_t *ml_limited_iterate(ml_state_t *Caller, ml_limited_t *Limited) {
 	if (Limited->Remaining) {
 		ml_limited_state_t *State = new(ml_limited_state_t);
 		State->Base.Type = MLLimitedStateT;
 		State->Base.Caller = Caller;
-		State->Base.Inst = &LimitedIterate;
+		State->Base.run = (void *)ml_limited_fnx_iterate;
 		State->Remaining = Limited->Remaining;
 		return ml_iterate((ml_state_t *)State, Limited->Value);
 	} else {
@@ -245,19 +230,18 @@ static ml_spawn_t ml_limited_iterate(ml_state_t *Caller, ml_limited_t *Limited) 
 	}
 }
 
-static ml_spawn_t ml_limited_state_key(ml_state_t *Caller, ml_limited_state_t *State) {
+static ml_value_t *ml_limited_state_key(ml_state_t *Caller, ml_limited_state_t *State) {
 	return ml_iter_key(Caller, State->Iter);
 }
 
-static ml_spawn_t ml_limited_state_value(ml_state_t *Caller, ml_limited_state_t *State) {
+static ml_value_t *ml_limited_state_value(ml_state_t *Caller, ml_limited_state_t *State) {
 	return ml_iter_value(Caller, State->Iter);
 }
 
-static ml_spawn_t ml_limited_state_next(ml_state_t *Caller, ml_limited_state_t *State) {
-	CALLBACK_INST(LimitedStateNext, ml_limited_fnx_iterate);
+static ml_value_t *ml_limited_state_next(ml_state_t *Caller, ml_limited_state_t *State) {
 	if (State->Remaining) {
 		State->Base.Caller = Caller;
-		State->Base.Inst = &LimitedStateNext;
+		State->Base.run = (void *)ml_limited_fnx_iterate;
 		return ml_iter_next((ml_state_t *)State, State->Iter);
 	} else {
 		ML_CONTINUE(Caller, MLNil);
@@ -285,7 +269,7 @@ typedef struct ml_skipped_state_t {
 	int Remaining;
 } ml_skipped_state_t;
 
-static ml_spawn_t ml_skipped_fnx_iterate(ml_skipped_state_t *State, ml_value_t *Result) {
+static ml_value_t *ml_skipped_fnx_iterate(ml_skipped_state_t *State, ml_value_t *Result) {
 	if (Result->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Result);
 	if (Result == MLNil) ML_CONTINUE(State->Base.Caller, Result);
 	if (State->Remaining) {
@@ -296,12 +280,11 @@ static ml_spawn_t ml_skipped_fnx_iterate(ml_skipped_state_t *State, ml_value_t *
 	}
 }
 
-static ml_spawn_t ml_skipped_iterate(ml_state_t *Caller, ml_skipped_t *Skipped) {
-	CALLBACK_INST(SkippedIterate, ml_skipped_fnx_iterate);
+static ml_value_t *ml_skipped_iterate(ml_state_t *Caller, ml_skipped_t *Skipped) {
 	if (Skipped->Remaining) {
 		ml_skipped_state_t *State = new(ml_skipped_state_t);
 		State->Base.Caller = Caller;
-		State->Base.Inst = &SkippedIterate;
+		State->Base.run = (void *)ml_skipped_fnx_iterate;
 		State->Remaining = Skipped->Remaining;
 		return ml_iterate((ml_state_t *)State, Skipped->Value);
 	} else {
@@ -328,28 +311,25 @@ typedef struct {
 	ml_value_t *Function;
 } ml_parallel_iter_t;
 
-static ml_spawn_t ml_parallel_iterate(ml_parallel_iter_t *State, ml_value_t *Iter);
+static ml_value_t *ml_parallel_iterate(ml_parallel_iter_t *State, ml_value_t *Iter);
 
-static ml_spawn_t ml_parallel_iter_value(ml_parallel_iter_t *State, ml_value_t *Value) {
-	CALLBACK_INST(ParallelIterate, ml_parallel_iterate);
+static ml_value_t *ml_parallel_iter_value(ml_parallel_iter_t *State, ml_value_t *Value) {
 	ml_parallel_t *Parallel = (ml_parallel_t *)State->Base.Caller;
 	Parallel->Waiting += 1;
-	ml_spawn_t Spawn = State->Function->Type->spawn(State->Base.Caller, State->Function, 1, &Value);
-	ml_run(Spawn.Frame, Spawn.Result);
-	State->Base.Inst = &ParallelIterate;
+	State->Function->Type->call(State->Base.Caller, State->Function, 1, &Value);
+	State->Base.run = (void *)ml_parallel_iterate;
 	return ml_iter_next((ml_state_t *)State, State->Iter);
 }
 
-static ml_spawn_t ml_parallel_iterate(ml_parallel_iter_t *State, ml_value_t *Iter) {
-	CALLBACK_INST(ParallelIterValue, ml_parallel_iter_value);
+static ml_value_t *ml_parallel_iterate(ml_parallel_iter_t *State, ml_value_t *Iter) {
 	if (Iter == MLNil) ML_CONTINUE(State->Base.Caller, MLNil);
 	if (Iter->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Iter);
-	State->Base.Inst = &ParallelIterValue;
+	State->Base.run = (void *)ml_parallel_iter_value;
 	State->Iter = Iter;
 	return ml_iter_value((ml_state_t *)State, Iter);
 }
 
-static ml_spawn_t ml_parallel_continue(ml_parallel_t *State, ml_value_t *Value) {
+static ml_value_t *ml_parallel_continue(ml_parallel_t *State, ml_value_t *Value) {
 	if (Value->Type == MLErrorT) {
 		State->Waiting = 0xFFFFFFFF;
 		ML_CONTINUE(State->Base.Caller, Value);
@@ -358,21 +338,19 @@ static ml_spawn_t ml_parallel_continue(ml_parallel_t *State, ml_value_t *Value) 
 	ML_CONTINUE(NULL, MLNil);
 }
 
-static ml_spawn_t ml_parallel_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
-	CALLBACK_INST(ParallelIterate, ml_parallel_iterate);
-	CALLBACK_INST(ParallelContinue, ml_parallel_continue);
+static ml_value_t *ml_parallel_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(2);
 	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
 	ML_CHECKX_ARG_TYPE(1, MLFunctionT);
 
 	ml_parallel_t *S0 = new(ml_parallel_t);
 	S0->Base.Caller = Caller;
-	S0->Base.Inst = &ParallelContinue;
+	S0->Base.run = (void *)ml_parallel_iterate;
 	S0->Waiting = 1;
 
 	ml_parallel_iter_t *S1 = new(ml_parallel_iter_t);
 	S1->Base.Caller = (ml_state_t *)S0;
-	S1->Base.Inst = &ParallelIterate;
+	S1->Base.run = (void *)ml_parallel_continue;
 	S1->Function = Args[1];
 
 	return ml_iterate((ml_state_t *)S1, Args[0]);

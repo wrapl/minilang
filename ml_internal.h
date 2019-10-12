@@ -4,6 +4,7 @@
 #include "ml_types.h"
 
 typedef struct ml_inst_t ml_inst_t;
+typedef struct ml_frame_t ml_frame_t;
 
 struct ml_closure_info_t {
 	ml_inst_t *Entry, *Return;
@@ -25,7 +26,6 @@ typedef union {
 	int Count;
 	ml_value_t *Value;
 	ml_closure_info_t *ClosureInfo;
-	ml_spawn_t (*Callback)(ml_state_t *, ml_value_t *);
 } ml_param_t;
 
 typedef enum {
@@ -67,9 +67,8 @@ struct ml_inst_t {
 	ml_param_t Params[];
 };
 
-struct ml_state_t {
-	const ml_type_t *Type;
-	ml_state_t *Caller;
+struct ml_frame_t {
+	ml_state_t Base;
 	ml_inst_t *Inst;
 	ml_value_t **Top;
 	ml_inst_t *OnError;

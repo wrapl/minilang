@@ -19,26 +19,26 @@ ml_type_t MLObjectT[1] = {{
 	MLTypeT,
 	MLAnyT, "object",
 	ml_default_hash,
-	ml_default_spawn,
+	ml_default_call,
 	ml_default_deref,
 	ml_default_assign,
 	NULL, 0, 0
 }};
 
-static ml_spawn_t ml_class_spawn(ml_state_t *Frame, ml_class_t *Class, int Count, ml_value_t **Args) {
+static ml_value_t *ml_class_call(ml_state_t *Caller, ml_class_t *Class, int Count, ml_value_t **Args) {
 	ml_object_t *Object = xnew(ml_object_t, Class->NumFields, ml_value_t *);
 	Object->Type = (ml_type_t *)Class;
 	if (Count > Class->NumFields) Count = Class->NumFields;
 	for (int I = 0; I < Count; ++I) Object->Fields[I] = Args[I];
 	for (int I = Count; I < Class->NumFields; ++I) Object->Fields[I] = MLNil;
-	ML_CONTINUE(Frame, Object);
+	ML_CONTINUE(Caller, Object);
 }
 
 ml_type_t MLClassT[1] = {{
 	MLTypeT,
 	MLTypeT, "class",
 	ml_default_hash,
-	(void *)ml_class_spawn,
+	(void *)ml_class_call,
 	ml_default_deref,
 	ml_default_assign,
 	NULL, 0, 0
