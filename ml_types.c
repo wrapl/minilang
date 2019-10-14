@@ -305,7 +305,7 @@ static ml_value_t *ml_partial_function_call(ml_state_t *Caller, ml_partial_funct
 }
 
 static ml_value_t *ml_partial_function_iterate(ml_state_t *Caller, ml_partial_function_t *Partial) {
-	return ml_partial_function_call(Caller, Partial->Function, Partial->Count, Partial->Args);
+	return Partial->Function->Type->call(Caller, Partial->Function, Partial->Count, Partial->Args);
 }
 
 ml_type_t MLPartialFunctionT[1] = {{
