@@ -8,7 +8,7 @@ all: minilang minipp libminilang.a
 *.o: *.h
 
 CFLAGS += -std=gnu99 -fstrict-aliasing -Wstrict-aliasing -Wall \
-	-I. -pthread -DGC_THREADS -D_GNU_SOURCE -D$(PLATFORM)
+	-I. -pthread -DGC_THREADS -D_GNU_SOURCE
 LDFLAGS += -lm
 
 ifdef DEBUG
@@ -32,6 +32,10 @@ common_objects = \
 	ml_object.o
 
 platform_objects =
+
+ifeq ($(MACHINE), i686)
+	CFLAGS += "-fno-pic"
+endif
 
 ifeq ($(PLATFORM), Linux)
 	platform_objects += linenoise.o
