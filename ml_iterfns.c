@@ -361,12 +361,12 @@ static ml_value_t *ml_parallel_fnx(ml_state_t *Caller, void *Data, int Count, ml
 
 	ml_parallel_t *S0 = new(ml_parallel_t);
 	S0->Base.Caller = Caller;
-	S0->Base.run = (void *)ml_parallel_iterate;
+	S0->Base.run = (void *)ml_parallel_continue;
 	S0->Waiting = 1;
 
 	ml_parallel_iter_t *S1 = new(ml_parallel_iter_t);
 	S1->Base.Caller = (ml_state_t *)S0;
-	S1->Base.run = (void *)ml_parallel_continue;
+	S1->Base.run = (void *)ml_parallel_iterate;
 	S1->Function = Args[1];
 
 	return ml_iterate((ml_state_t *)S1, Args[0]);
