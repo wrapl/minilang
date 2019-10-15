@@ -34,7 +34,7 @@ common_objects = \
 platform_objects =
 
 ifeq ($(MACHINE), i686)
-	#CFLAGS += "-fno-pic"
+	CFLAGS += -fno-pic
 endif
 
 ifeq ($(PLATFORM), Linux)
