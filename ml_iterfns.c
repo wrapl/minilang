@@ -72,33 +72,49 @@ static ml_value_t *ml_map_fnx(ml_state_t *Caller, void *Data, int Count, ml_valu
 	return ml_iterate((ml_state_t *)Frame, Args[0]);
 }
 
-static ml_value_t *ml_uniq_fn(void *Data, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_COUNT(1);
-	ml_value_t *Iterator = ml_iterate(NULL, Args[0]);
-	if (Iterator->Type == MLErrorT) return Iterator;
-	ml_value_t *Map = ml_map();
-	while (Iterator != MLNil) {
-		ml_value_t *Value = ml_iter_value(NULL, Iterator);
-		Value = Value->Type->deref(Value);
-		if (Value->Type == MLErrorT) return Value;
-		ml_map_insert(Map, Value, MLSome);
-		Iterator = ml_iter_next(NULL, Iterator);
-		if (Iterator->Type == MLErrorT) return Iterator;
-	}
-	return Map;
+static ml_value_t *ml_uniq_fnx_get_value(ml_frame_iter_t *Frame, ml_value_t *Result);
+
+static ml_value_t *ml_uniq_fnx_insert_value(ml_frame_iter_t *Frame, ml_value_t *Result) {
+	Result = Result->Type->deref(Result);
+	if (Result->Type == MLErrorT) ML_CONTINUE(Frame->Base.Caller, Result);
+	ml_map_insert(Frame->Values[0], Result, MLNil);
+	Frame->Base.run = (void *)ml_uniq_fnx_get_value;
+	return ml_iter_next((ml_state_t *)Frame, Frame->Iter);
 }
 
-static ml_value_t *ml_count_fn(void *Data, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_COUNT(1);
-	ml_value_t *Iterator = ml_iterate(NULL, Args[0]);
-	if (Iterator->Type == MLErrorT) return Iterator;
-	int Total = 0;
-	while (Iterator != MLNil) {
-		++Total;
-		Iterator = ml_iter_next(NULL, Iterator);
-		if (Iterator->Type == MLErrorT) return Iterator;
-	}
-	return ml_integer(Total);
+static ml_value_t *ml_uniq_fnx_get_value(ml_frame_iter_t *Frame, ml_value_t *Result) {
+	if (Result->Type == MLErrorT) ML_CONTINUE(Frame->Base.Caller, Result);
+	Frame->Base.run = (void *)ml_uniq_fnx_insert_value;
+	if (Result == MLNil) ML_CONTINUE(Frame->Base.Caller, Frame->Values[0]);
+	return ml_iter_value((ml_state_t *)Frame, Frame->Iter = Result);
+}
+
+static ml_value_t *ml_uniq_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ml_frame_iter_t *Frame = xnew(ml_frame_iter_t, 1, ml_value_t *);
+	Frame->Base.Caller = Caller;
+	Frame->Base.run = (void *)ml_uniq_fnx_get_value;
+	Frame->Values[0] = ml_map();
+	return ml_iterate((ml_state_t *)Frame, Args[0]);
+}
+
+typedef struct ml_count_state_t {
+	ml_state_t Base;
+	ml_value_t *Iter;
+	long Count;
+} ml_count_state_t;
+
+static ml_value_t *ml_count_fnx_increment(ml_count_state_t *Frame, ml_value_t *Result) {
+	if (Result->Type == MLErrorT) ML_CONTINUE(Frame->Base.Caller, Result);
+	if (Result == MLNil) ML_CONTINUE(Frame->Base.Caller, ml_integer(Frame->Count));
+	return ml_iter_next((ml_state_t *)Frame, Frame->Iter = Result);
+}
+
+static ml_value_t *ml_count_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ml_count_state_t *Frame = xnew(ml_count_state_t, 1, ml_value_t *);
+	Frame->Base.Caller = Caller;
+	Frame->Base.run = (void *)ml_count_fnx_get_value;
+	Frame->Count = 0;
+	return ml_iterate((ml_state_t *)Frame, Args[0]);
 }
 
 static ml_value_t *LessMethod, *GreaterMethod, *AddMethod, *MulMethod;
@@ -259,14 +275,14 @@ static ml_value_t *ml_limited_fn(void *Data, int Count, ml_value_t **Args) {
 typedef struct ml_skipped_t {
 	const ml_type_t *Type;
 	ml_value_t *Value;
-	int Remaining;
+	long Remaining;
 } ml_skipped_t;
 
 static ml_type_t *MLSkippedT;
 
 typedef struct ml_skipped_state_t {
 	ml_state_t Base;
-	int Remaining;
+	long Remaining;
 } ml_skipped_state_t;
 
 static ml_value_t *ml_skipped_fnx_iterate(ml_skipped_state_t *State, ml_value_t *Result) {
@@ -363,8 +379,8 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	MulMethod = ml_method("*");
 	stringmap_insert(Globals, "all", ml_functionx(0, ml_all_fnx));
 	stringmap_insert(Globals, "map", ml_functionx(0, ml_map_fnx));
-	stringmap_insert(Globals, "uniq", ml_function(0, ml_uniq_fn));
-	stringmap_insert(Globals, "count", ml_function(0, ml_count_fn));
+	stringmap_insert(Globals, "uniq", ml_functionx(0, ml_uniq_fnx));
+	stringmap_insert(Globals, "count", ml_functionx(0, ml_count_fnx));
 	stringmap_insert(Globals, "min", ml_function(0, ml_min_fn));
 	stringmap_insert(Globals, "max", ml_function(0, ml_max_fn));
 	stringmap_insert(Globals, "sum", ml_function(0, ml_sum_fn));
