@@ -106,107 +106,92 @@ typedef struct ml_count_state_t {
 static ml_value_t *ml_count_fnx_increment(ml_count_state_t *Frame, ml_value_t *Result) {
 	if (Result->Type == MLErrorT) ML_CONTINUE(Frame->Base.Caller, Result);
 	if (Result == MLNil) ML_CONTINUE(Frame->Base.Caller, ml_integer(Frame->Count));
+	++Frame->Count;
 	return ml_iter_next((ml_state_t *)Frame, Frame->Iter = Result);
 }
 
 static ml_value_t *ml_count_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
 	ml_count_state_t *Frame = xnew(ml_count_state_t, 1, ml_value_t *);
 	Frame->Base.Caller = Caller;
-	Frame->Base.run = (void *)ml_count_fnx_get_value;
+	Frame->Base.run = (void *)ml_count_fnx_increment;
 	Frame->Count = 0;
 	return ml_iterate((ml_state_t *)Frame, Args[0]);
 }
 
 static ml_value_t *LessMethod, *GreaterMethod, *AddMethod, *MulMethod;
 
-static ml_value_t *ml_min_fn(void *Data, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_COUNT(1);
-	ml_value_t *Iterator = ml_iterate(NULL, Args[0]);
-	if (Iterator->Type == MLErrorT) return Iterator;
-	if (Iterator == MLNil) return MLNil;
-	ml_value_t *FoldArgs[2] = {ml_iter_value(NULL, Iterator), 0};
-	FoldArgs[0] = FoldArgs[0]->Type->deref(FoldArgs[0]);
-	if (FoldArgs[0]->Type == MLErrorT) return FoldArgs[0];
-	Iterator = ml_iter_next(NULL, Iterator);
-	if (Iterator->Type == MLErrorT) return Iterator;
-	while (Iterator != MLNil) {
-		FoldArgs[1] = ml_iter_value(NULL, Iterator);
-		FoldArgs[1] = FoldArgs[1]->Type->deref(FoldArgs[1]);
-		if (FoldArgs[1]->Type == MLErrorT) return FoldArgs[1];
-		ml_value_t *Compare = ml_call(GreaterMethod, 2, FoldArgs);
-		if (Compare->Type == MLErrorT) return Compare;
-		if (Compare != MLNil) FoldArgs[0] = FoldArgs[1];
-		Iterator = ml_iter_next(NULL, Iterator);
-		if (Iterator->Type == MLErrorT) return Iterator;
-	}
-	return FoldArgs[0];
+static ml_value_t *ml_fold_fnx_get_next(ml_frame_iter_t *Frame, ml_value_t *Result);
+
+static ml_value_t *ml_fold_fnx_result(ml_frame_iter_t *Frame, ml_value_t *Result) {
+	Result = Result->Type->deref(Result);
+	if (Result->Type == MLErrorT) ML_CONTINUE(Frame->Base.Caller, Result);
+	if (Result != MLNil) Frame->Values[1] = Result;
+	Frame->Base.run = (void *)ml_fold_fnx_get_next;
+	return ml_iter_next((ml_state_t *)Frame, Frame->Iter);
 }
 
-static ml_value_t *ml_max_fn(void *Data, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_COUNT(1);
-	ml_value_t *Iterator = ml_iterate(NULL, Args[0]);
-	if (Iterator->Type == MLErrorT) return Iterator;
-	if (Iterator == MLNil) return MLNil;
-	ml_value_t *FoldArgs[2] = {ml_iter_value(NULL, Iterator), 0};
-	FoldArgs[0] = FoldArgs[0]->Type->deref(FoldArgs[0]);
-	if (FoldArgs[0]->Type == MLErrorT) return FoldArgs[0];
-	Iterator = ml_iter_next(NULL, Iterator);
-	if (Iterator->Type == MLErrorT) return Iterator;
-	while (Iterator != MLNil) {
-		FoldArgs[1] = ml_iter_value(NULL, Iterator);
-		FoldArgs[1] = FoldArgs[1]->Type->deref(FoldArgs[1]);
-		if (FoldArgs[1]->Type == MLErrorT) return FoldArgs[1];
-		ml_value_t *Compare = ml_call(LessMethod, 2, FoldArgs);
-		if (Compare->Type == MLErrorT) return Compare;
-		if (Compare != MLNil) FoldArgs[0] = FoldArgs[1];
-		Iterator = ml_iter_next(NULL, Iterator);
-		if (Iterator->Type == MLErrorT) return Iterator;
-	}
-	return FoldArgs[0];
+static ml_value_t *ml_fold_fnx_fold(ml_frame_iter_t *Frame, ml_value_t *Result) {
+	Result = Result->Type->deref(Result);
+	if (Result->Type == MLErrorT) ML_CONTINUE(Frame->Base.Caller, Result);
+	ml_value_t *Compare = Frame->Values[0];
+	Frame->Values[2] = Result;
+	Frame->Base.run = (void *)ml_fold_fnx_result;
+	return Compare->Type->call((ml_state_t *)Frame, Compare, 2, Frame->Values + 1);
 }
 
-static ml_value_t *ml_sum_fn(void *Data, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_COUNT(1);
-	ml_value_t *Iterator = ml_iterate(NULL, Args[0]);
-	if (Iterator->Type == MLErrorT) return Iterator;
-	if (Iterator == MLNil) return MLNil;
-	ml_value_t *FoldArgs[2] = {ml_iter_value(NULL, Iterator), 0};
-	FoldArgs[0] = FoldArgs[0]->Type->deref(FoldArgs[0]);
-	if (FoldArgs[0]->Type == MLErrorT) return FoldArgs[0];
-	Iterator = ml_iter_next(NULL, Iterator);
-	if (Iterator->Type == MLErrorT) return Iterator;
-	while (Iterator != MLNil) {
-		FoldArgs[1] = ml_iter_value(NULL, Iterator);
-		FoldArgs[1] = FoldArgs[1]->Type->deref(FoldArgs[1]);
-		if (FoldArgs[1]->Type == MLErrorT) return FoldArgs[1];
-		FoldArgs[0] = ml_call(AddMethod, 2, FoldArgs);
-		if (FoldArgs[0]->Type == MLErrorT) return FoldArgs[0];
-		Iterator = ml_iter_next(NULL, Iterator);
-		if (Iterator->Type == MLErrorT) return Iterator;
-	}
-	return FoldArgs[0];
+static ml_value_t *ml_fold_fnx_get_next(ml_frame_iter_t *Frame, ml_value_t *Result) {
+	if (Result->Type == MLErrorT) ML_CONTINUE(Frame->Base.Caller, Result);
+	Frame->Base.run = (void *)ml_fold_fnx_fold;
+	if (Result == MLNil) ML_CONTINUE(Frame->Base.Caller, Frame->Values[1] ?: MLNil);
+	return ml_iter_value((ml_state_t *)Frame, Frame->Iter = Result);
 }
 
-static ml_value_t *ml_prod_fn(void *Data, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_COUNT(1);
-	ml_value_t *Iterator = ml_iterate(NULL, Args[0]);
-	if (Iterator->Type == MLErrorT) return Iterator;
-	if (Iterator == MLNil) return MLNil;
-	ml_value_t *FoldArgs[2] = {ml_iter_value(NULL, Iterator), 0};
-	FoldArgs[0] = FoldArgs[0]->Type->deref(FoldArgs[0]);
-	if (FoldArgs[0]->Type == MLErrorT) return FoldArgs[0];
-	Iterator = ml_iter_next(NULL, Iterator);
-	if (Iterator->Type == MLErrorT) return Iterator;
-	while (Iterator != MLNil) {
-		FoldArgs[1] = ml_iter_value(NULL, Iterator);
-		FoldArgs[1] = FoldArgs[1]->Type->deref(FoldArgs[1]);
-		if (FoldArgs[1]->Type == MLErrorT) return FoldArgs[1];
-		FoldArgs[0] = ml_call(MulMethod, 2, FoldArgs);
-		if (FoldArgs[0]->Type == MLErrorT) return FoldArgs[0];
-		Iterator = ml_iter_next(NULL, Iterator);
-		if (Iterator->Type == MLErrorT) return Iterator;
-	}
-	return FoldArgs[0];
+static ml_value_t *ml_fold_fnx_first(ml_frame_iter_t *Frame, ml_value_t *Result) {
+	Result = Result->Type->deref(Result);
+	if (Result->Type == MLErrorT) ML_CONTINUE(Frame->Base.Caller, Result);
+	ml_value_t *Compare = Frame->Values[0];
+	Frame->Values[1] = Result;
+	Frame->Base.run = (void *)ml_fold_fnx_get_next;
+	return ml_iter_next((ml_state_t *)Frame, Frame->Iter);
+}
+
+static ml_value_t *ml_fold_fnx_get_first(ml_frame_iter_t *Frame, ml_value_t *Result) {
+	if (Result->Type == MLErrorT) ML_CONTINUE(Frame->Base.Caller, Result);
+	Frame->Base.run = (void *)ml_fold_fnx_first;
+	if (Result == MLNil) ML_CONTINUE(Frame->Base.Caller, Frame->Values[1] ?: MLNil);
+	return ml_iter_value((ml_state_t *)Frame, Frame->Iter = Result);
+}
+
+static ml_value_t *ml_min_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ml_frame_iter_t *Frame = xnew(ml_frame_iter_t, 3, ml_value_t *);
+	Frame->Base.Caller = Caller;
+	Frame->Base.run = (void *)ml_fold_fnx_get_first;
+	Frame->Values[0] = GreaterMethod;
+	return ml_iterate((ml_state_t *)Frame, Args[0]);
+}
+
+static ml_value_t *ml_max_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ml_frame_iter_t *Frame = xnew(ml_frame_iter_t, 3, ml_value_t *);
+	Frame->Base.Caller = Caller;
+	Frame->Base.run = (void *)ml_fold_fnx_get_first;
+	Frame->Values[0] = LessMethod;
+	return ml_iterate((ml_state_t *)Frame, Args[0]);
+}
+
+static ml_value_t *ml_sum_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ml_frame_iter_t *Frame = xnew(ml_frame_iter_t, 3, ml_value_t *);
+	Frame->Base.Caller = Caller;
+	Frame->Base.run = (void *)ml_fold_fnx_get_first;
+	Frame->Values[0] = AddMethod;
+	return ml_iterate((ml_state_t *)Frame, Args[0]);
+}
+
+static ml_value_t *ml_prod_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ml_frame_iter_t *Frame = xnew(ml_frame_iter_t, 3, ml_value_t *);
+	Frame->Base.Caller = Caller;
+	Frame->Base.run = (void *)ml_fold_fnx_get_first;
+	Frame->Values[0] = MulMethod;
+	return ml_iterate((ml_state_t *)Frame, Args[0]);
 }
 
 typedef struct ml_limited_t {
@@ -381,10 +366,10 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "map", ml_functionx(0, ml_map_fnx));
 	stringmap_insert(Globals, "uniq", ml_functionx(0, ml_uniq_fnx));
 	stringmap_insert(Globals, "count", ml_functionx(0, ml_count_fnx));
-	stringmap_insert(Globals, "min", ml_function(0, ml_min_fn));
-	stringmap_insert(Globals, "max", ml_function(0, ml_max_fn));
-	stringmap_insert(Globals, "sum", ml_function(0, ml_sum_fn));
-	stringmap_insert(Globals, "prod", ml_function(0, ml_prod_fn));
+	stringmap_insert(Globals, "min", ml_functionx(0, ml_min_fnx));
+	stringmap_insert(Globals, "max", ml_functionx(0, ml_max_fnx));
+	stringmap_insert(Globals, "sum", ml_functionx(0, ml_sum_fnx));
+	stringmap_insert(Globals, "prod", ml_functionx(0, ml_prod_fnx));
 	stringmap_insert(Globals, "parallel", ml_functionx(0, ml_parallel_fnx));
 
 	MLLimitedT = ml_type(MLIteratableT, "limited");
