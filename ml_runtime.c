@@ -510,7 +510,8 @@ ml_value_t *ml_default_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml
 }
 
 inline ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args) {
-	return Value->Type->call(NULL, Value, Count, Args);
+	ml_value_t *Result = Value->Type->call(NULL, Value, Count, Args);
+	return Result->Type->deref(Result);
 }
 
 ml_value_t *ml_inline(ml_value_t *Value, int Count, ...) {
