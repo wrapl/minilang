@@ -28,6 +28,8 @@ static ml_value_t *ml_all_fnx_get_value(ml_frame_iter_t *Frame, ml_value_t *Resu
 }
 
 static ml_value_t *ml_all_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
 	ml_frame_iter_t *Frame = xnew(ml_frame_iter_t, 1, ml_value_t *);
 	Frame->Base.Caller = Caller;
 	Frame->Base.run = (void *)ml_all_fnx_get_value;
@@ -65,6 +67,8 @@ static ml_value_t *ml_map_fnx_insert_key_value(ml_frame_iter_t *Frame, ml_value_
 }
 
 static ml_value_t *ml_map_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
 	ml_frame_iter_t *Frame = xnew(ml_frame_iter_t, 1, ml_value_t *);
 	Frame->Base.Caller = Caller;
 	Frame->Base.run = (void *)ml_map_fnx_get_key;
@@ -90,6 +94,8 @@ static ml_value_t *ml_uniq_fnx_get_value(ml_frame_iter_t *Frame, ml_value_t *Res
 }
 
 static ml_value_t *ml_uniq_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
 	ml_frame_iter_t *Frame = xnew(ml_frame_iter_t, 1, ml_value_t *);
 	Frame->Base.Caller = Caller;
 	Frame->Base.run = (void *)ml_uniq_fnx_get_value;
@@ -163,6 +169,8 @@ static ml_value_t *ml_fold_fnx_get_first(ml_frame_iter_t *Frame, ml_value_t *Res
 }
 
 static ml_value_t *ml_min_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
 	ml_frame_iter_t *Frame = xnew(ml_frame_iter_t, 3, ml_value_t *);
 	Frame->Base.Caller = Caller;
 	Frame->Base.run = (void *)ml_fold_fnx_get_first;
@@ -171,6 +179,8 @@ static ml_value_t *ml_min_fnx(ml_state_t *Caller, void *Data, int Count, ml_valu
 }
 
 static ml_value_t *ml_max_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
 	ml_frame_iter_t *Frame = xnew(ml_frame_iter_t, 3, ml_value_t *);
 	Frame->Base.Caller = Caller;
 	Frame->Base.run = (void *)ml_fold_fnx_get_first;
@@ -179,6 +189,8 @@ static ml_value_t *ml_max_fnx(ml_state_t *Caller, void *Data, int Count, ml_valu
 }
 
 static ml_value_t *ml_sum_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
 	ml_frame_iter_t *Frame = xnew(ml_frame_iter_t, 3, ml_value_t *);
 	Frame->Base.Caller = Caller;
 	Frame->Base.run = (void *)ml_fold_fnx_get_first;
@@ -187,10 +199,23 @@ static ml_value_t *ml_sum_fnx(ml_state_t *Caller, void *Data, int Count, ml_valu
 }
 
 static ml_value_t *ml_prod_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
 	ml_frame_iter_t *Frame = xnew(ml_frame_iter_t, 3, ml_value_t *);
 	Frame->Base.Caller = Caller;
 	Frame->Base.run = (void *)ml_fold_fnx_get_first;
 	Frame->Values[0] = MulMethod;
+	return ml_iterate((ml_state_t *)Frame, Args[0]);
+}
+
+static ml_value_t *ml_fold_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(2);
+	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
+	ML_CHECKX_ARG_TYPE(1, MLFunctionT);
+	ml_frame_iter_t *Frame = xnew(ml_frame_iter_t, 3, ml_value_t *);
+	Frame->Base.Caller = Caller;
+	Frame->Base.run = (void *)ml_fold_fnx_get_first;
+	Frame->Values[0] = Args[1];
 	return ml_iterate((ml_state_t *)Frame, Args[0]);
 }
 
@@ -370,6 +395,7 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "max", ml_functionx(0, ml_max_fnx));
 	stringmap_insert(Globals, "sum", ml_functionx(0, ml_sum_fnx));
 	stringmap_insert(Globals, "prod", ml_functionx(0, ml_prod_fnx));
+	stringmap_insert(Globals, "fold", ml_functionx(0, ml_fold_fnx));
 	stringmap_insert(Globals, "parallel", ml_functionx(0, ml_parallel_fnx));
 
 	MLLimitedT = ml_type(MLIteratableT, "limited");
