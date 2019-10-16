@@ -724,6 +724,35 @@ static mlc_compiled_t ml_old_expr_compile(mlc_function_t *Function, mlc_expr_t *
 	return (mlc_compiled_t){OldInst, OldInst};
 }
 
+static mlc_compiled_t ml_tuple_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
+	ML_COMPILE_HASH
+	int OldTop = Function->Top;
+	ml_inst_t *CallInst = ml_inst_new(2, Expr->Source, MLI_TUPLE);
+	ml_inst_t *ResultInst = ml_inst_new(1, Expr->Source, MLI_RESULT);
+	CallInst->Params[0].Inst = ResultInst;
+	ML_COMPILE_HASH
+	int NumArgs = 1;
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
+	ml_inst_t *PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
+	mlc_connect(Compiled.Exits, PushInst);
+	++Function->Top;
+	for (mlc_expr_t *Child = Expr->Child->Next; Child; Child = Child->Next) {
+		ML_COMPILE_HASH
+		++NumArgs;
+		mlc_compiled_t ChildCompiled = mlc_compile(Function, Child, HashContext);
+		PushInst->Params[0].Inst = ChildCompiled.Start;
+		PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
+		mlc_connect(ChildCompiled.Exits, PushInst);
+		++Function->Top;
+	}
+	if (Function->Top >= Function->Size) Function->Size = Function->Top + 1;
+	CallInst->Params[1].Count = NumArgs;
+	PushInst->Params[0].Inst = CallInst;
+	Compiled.Exits = ResultInst;
+	Function->Top = OldTop;
+	return Compiled;
+}
+
 static mlc_compiled_t ml_call_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
 	ML_COMPILE_HASH
 	int OldTop = Function->Top;
@@ -1635,6 +1664,18 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 	case MLT_LEFT_PAREN: {
 		Scanner->Token = MLT_NONE;
 		mlc_expr_t *Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
+		if (ml_parse(Scanner, MLT_COMMA)) {
+			mlc_parent_expr_t *TupleExpr = new(mlc_parent_expr_t);
+			TupleExpr->compile = ml_tuple_expr_compile;
+			TupleExpr->Source = Expr->Source;
+			TupleExpr->Child = Expr;
+			mlc_expr_t **Slot = &Expr->Next;
+			do {
+				mlc_expr_t *Next = Slot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
+				Slot = &Next->Next;
+			} while (ml_parse(Scanner, MLT_COMMA));
+			Expr = (mlc_expr_t *)TupleExpr;
+		}
 		ml_accept(Scanner, MLT_RIGHT_PAREN);
 		return Expr;
 	}

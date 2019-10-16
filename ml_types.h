@@ -24,6 +24,7 @@ typedef struct ml_string_t ml_string_t;
 typedef struct ml_regex_t ml_regex_t;
 typedef struct ml_list_t ml_list_t;
 typedef struct ml_map_t ml_map_t;
+typedef struct ml_tuple_t ml_tuple_t;
 typedef struct ml_property_t ml_property_t;
 typedef struct ml_closure_t ml_closure_t;
 typedef struct ml_method_t ml_method_t;
@@ -135,6 +136,10 @@ void ml_error_print(ml_value_t *Error);
 
 void ml_closure_sha256(ml_value_t *Closure, unsigned char Hash[SHA256_BLOCK_SIZE]);
 
+ml_value_t *ml_tuple(size_t Size);
+ml_value_t *ml_tuple_get(ml_value_t *Tuple, size_t Index);
+ml_value_t *ml_tuple_set(ml_value_t *Tuple, size_t Index, ml_value_t *Value);
+
 void ml_list_append(ml_value_t *List, ml_value_t *Value);
 int ml_list_length(ml_value_t *List);
 void ml_list_to_array(ml_value_t *List, ml_value_t **Array);
@@ -165,6 +170,7 @@ extern ml_type_t MLIntegerT[];
 extern ml_type_t MLRealT[];
 extern ml_type_t MLStringT[];
 extern ml_type_t MLRegexT[];
+extern ml_type_t MLTupleT[];
 extern ml_type_t MLMethodT[];
 extern ml_type_t MLReferenceT[];
 extern ml_type_t MLListT[];
