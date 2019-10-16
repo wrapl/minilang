@@ -6,6 +6,12 @@
 typedef struct ml_inst_t ml_inst_t;
 typedef struct ml_frame_t ml_frame_t;
 
+struct ml_tuple_t {
+	const ml_type_t *Type;
+	size_t Size;
+	ml_value_t *Values[];
+};
+
 struct ml_closure_info_t {
 	ml_inst_t *Entry, *Return;
 	int FrameSize;
@@ -57,8 +63,8 @@ typedef enum {
 	MLI_RESULT,
 	MLI_ASSIGN,
 	MLI_LOCAL,
-	MLI_CLOSURE,
-	MLI_CALLBACK
+	MLI_TUPLE,
+	MLI_CLOSURE
 } ml_opcode_t;
 
 struct ml_inst_t {

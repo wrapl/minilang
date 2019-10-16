@@ -1591,6 +1591,53 @@ ml_value_t *ml_map_new(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)Map;
 }
 
+static long ml_tuple_hash(ml_tuple_t *Tuple, ml_hash_chain_t *Chain) {
+	return 0;
+}
+
+static ml_value_t *ml_tuple_deref(ml_tuple_t *Ref) {
+	ml_tuple_t *Deref = xnew(ml_tuple_t, Ref->Size, ml_value_t *);
+	Deref->Type = MLTupleT;
+	Deref->Size = Ref->Size;
+	for (int I = 0; I < Ref->Size; ++I) Deref->Values[I] = Ref->Values[I]->Type->deref(Ref->Values[I]);
+	return (ml_value_t *)Deref;
+}
+
+static ml_value_t *ml_tuple_assign(ml_tuple_t *Ref, ml_value_t *Value) {
+	if (Value->Type != MLTupleT) return ml_error("TypeError", "Can only assign a tuple to a tuple");
+	ml_tuple_t *TupleValue = (ml_tuple_t *)Value;
+	size_t Count = Ref->Size;
+	if (TupleValue->Size < Count) Count = TupleValue->Size;
+	for (int I = 0; I < Count; ++I) {
+		ml_value_t *Result = Ref->Values[I]->Type->assign(Ref->Values[I], TupleValue->Values[I]);
+		if (Result->Type == MLErrorT) return Result;
+	}
+	return Value;
+}
+
+ml_type_t MLTupleT[1] = {{
+	MLTypeT,
+	MLAnyT, "tuple",
+	(void *)ml_tuple_hash,
+	ml_default_call,
+	(void *)ml_tuple_deref,
+	(void *)ml_tuple_assign,
+	NULL, 0, 0
+}};
+
+static ml_value_t *ml_tuple_size_fn(void *Data, int Count, ml_value_t **Args) {
+	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
+	return ml_integer(Tuple->Size);
+}
+
+static ml_value_t *ml_tuple_index_fn(void *Data, int Count, ml_value_t **Args) {
+	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
+	long Index = ((ml_integer_t *)Args[1])->Value;
+	if (--Index < 0) Index += Tuple->Size + 1;
+	if (Index < 0 || Index >= Tuple->Size) return ml_error("RangeError", "Tuple index out of bounds");
+	return ml_reference(Tuple->Values + Index);
+}
+
 struct ml_property_t {
 	const ml_type_t *Type;
 	void *Data;
@@ -2879,6 +2926,8 @@ void ml_init() {
 	ml_method_by_name("<=", NULL, ml_leq_string_string, MLStringT, MLStringT, NULL);
 	ml_method_by_name(">=", NULL, ml_geq_string_string, MLStringT, MLStringT, NULL);
 	ml_method_by_name("<>", NULL, ml_compare_any_any, MLAnyT, MLAnyT, NULL);
+	ml_method_by_name("size", NULL, ml_tuple_size_fn, MLTupleT, NULL);
+	ml_method_by_name("[]", NULL, ml_tuple_index_fn, MLTupleT, MLIntegerT, NULL);
 	ml_method_by_name("length", NULL, ml_list_length_fn, MLListT, NULL);
 	ml_method_by_name("filter", NULL, ml_list_filter_fn, MLListT, MLFunctionT, NULL);
 	ml_method_by_name("map", NULL, ml_list_map_fn, MLListT, MLFunctionT, NULL);

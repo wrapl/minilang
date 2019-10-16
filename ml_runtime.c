@@ -172,6 +172,7 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 		[MLI_RESULT] = &&DO_RESULT,
 		[MLI_ASSIGN] = &&DO_ASSIGN,
 		[MLI_LOCAL] = &&DO_LOCAL,
+		[MLI_TUPLE] = &&DO_TUPLE,
 		[MLI_CLOSURE] = &&DO_CLOSURE
 	};
 	ml_inst_t *Inst = Frame->Inst;
@@ -392,6 +393,16 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 		} else {
 			Result = Frame->Stack[Index];
 		}
+		ADVANCE(0);
+	}
+	DO_TUPLE: {
+		int Size = Inst->Params[1].Count;
+		ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
+		Tuple->Type = MLTupleT;
+		Tuple->Size = Size;
+		for (int I = 0; I < Size; ++I) Tuple->Values[I] = Top[I - Size];
+		Top -= Size;
+		Result = (ml_value_t *)Tuple;
 		ADVANCE(0);
 	}
 	DO_CLOSURE: {
