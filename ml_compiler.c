@@ -80,8 +80,13 @@ struct mlc_function_t {
 	int Top, Size, Self, CanSuspend;
 };
 
-ml_value_t *ml_compile(mlc_expr_t *Expr, ml_getter_t GlobalGet, void *Globals, const char **Parameters, mlc_error_t *Error) {
-	mlc_function_t Function[1] = {{Error, ml_inst_new(0, Expr->Source, MLI_RETURN), GlobalGet, Globals, NULL, 0,}};
+ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, mlc_context_t *Context) {
+	mlc_function_t Function[1];
+	memset(Function, 0, sizeof(mlc_function_t));
+	Function->Error = Context->Error;
+	Function->ReturnInst = ml_inst_new(0, Expr->Source, MLI_RETURN);
+	Function->GlobalGet = Context->GlobalGet;
+	Function->Globals = Context->Globals;
 	SHA256_CTX HashContext[1];
 	sha256_init(HashContext);
 	int NumParams = 0;
@@ -109,6 +114,39 @@ ml_value_t *ml_compile(mlc_expr_t *Expr, ml_getter_t GlobalGet, void *Globals, c
 	Info->NumParams = NumParams;
 	sha256_final(HashContext, Info->Hash);
 	return (ml_value_t *)Closure;
+}
+
+ml_value_t *ml_expr_evaluate(mlc_expr_t *Expr, mlc_decl_t *Decls, mlc_context_t *Context) {
+	mlc_function_t Function[1];
+	memset(Function, 0, sizeof(Function));
+	Function->Error = Context->Error;
+	Function->ReturnInst = ml_inst_new(0, Expr->Source, MLI_RETURN);
+	Function->GlobalGet = Context->GlobalGet;
+	Function->Globals = Context->Globals;
+	Function->Decls = Decls;
+
+	SHA256_CTX HashContext[1];
+	sha256_init(HashContext);
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr, HashContext);
+	mlc_connect(Compiled.Exits, Function->ReturnInst);
+	ml_closure_t *Closure = new(ml_closure_t);
+	ml_closure_info_t *Info = Closure->Info = new(ml_closure_info_t);
+	Closure->Type = MLClosureT;
+	Info->Entry = Compiled.Start;
+	Info->Return = Function->ReturnInst;
+	Info->FrameSize = Function->Size;
+	Info->CanSuspend = Function->CanSuspend;
+	Info->NumParams = 0;
+
+	if (MLDebugClosures) ml_closure_debug(Closure);
+	ml_value_t *Result = ml_call(Closure, 0, NULL);
+	Result = Result->Type->deref(Result);
+	if (Result->Type == MLErrorT) {
+		ml_error_trace_add(Result, Expr->Source);
+		Context->Error->Message = Result;
+		longjmp(Context->Error->Handler, 1);
+	}
+	return Result;
 }
 
 inline mlc_compiled_t mlc_compile(mlc_function_t *Function, mlc_expr_t *Expr, SHA256_CTX *HashContext) {
@@ -864,7 +902,7 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	ml_param_t *Params = ClosureInst->Params;
 	ml_closure_info_t *Info = new(ml_closure_info_t);
 	Info->Entry = Compiled.Start;
-	Info->Return = Function->ReturnInst;
+	Info->Return = SubFunction->ReturnInst;
 	Info->FrameSize = SubFunction->Size;
 	Info->NumParams = NumParams;
 	Info->NumUpValues = NumUpValues;
@@ -994,6 +1032,7 @@ const char *MLTokens[] = {
 	"::", // MLT_SYMBOL,
 	"<value>", // MLT_VALUE,
 	"<expr>", // MLT_EXPR,
+	"<inline>", // MLT_INLINE,
 	"<operator>", // MLT_OPERATOR
 	"<method>" // MLT_METHOD
 };
@@ -1047,25 +1086,29 @@ typedef enum ml_token_t {
 	MLT_SYMBOL,
 	MLT_VALUE,
 	MLT_EXPR,
+	MLT_INLINE,
 	MLT_OPERATOR,
 	MLT_METHOD
 } ml_token_t;
 
 struct mlc_scanner_t {
+	mlc_context_t *Context;
 	mlc_error_t *Error;
 	const char *Next;
 	ml_source_t Source;
 	ml_token_t Token;
 	ml_value_t *Value;
 	mlc_expr_t *Expr;
+	mlc_decl_t *Defs;
 	const char *Ident;
 	void *Data;
 	const char *(*read)(void *);
 };
 
-mlc_scanner_t *ml_scanner(const char *SourceName, void *Data, const char *(*read)(void *), mlc_error_t *Error) {
+mlc_scanner_t *ml_scanner(const char *SourceName, void *Data, const char *(*read)(void *), mlc_context_t *Context) {
 	mlc_scanner_t *Scanner = new(mlc_scanner_t);
-	Scanner->Error = Error;
+	Scanner->Context = Context;
+	Scanner->Error = Context->Error;
 	Scanner->Token = MLT_NONE;
 	Scanner->Next = "";
 	Scanner->Source.Name = SourceName;
@@ -1395,9 +1438,9 @@ static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 				Scanner->Next = End;
 				return Scanner->Token;
 			} else if (Scanner->Next[1] == '(') {
-				Scanner->Error->Message = ml_error("ParseError", "compiled time evaluation not implemented yet");
-				ml_error_trace_add(Scanner->Error->Message, Scanner->Source);
-		longjmp(Scanner->Error->Handler, 1);
+				Scanner->Token = MLT_INLINE;
+				Scanner->Next += 2;
+				return Scanner->Token;
 			}
 		}
 		if (Char == '-' && Scanner->Next[1] == '-') {
@@ -1652,6 +1695,17 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 	case MLT_EXPR: {
 		Scanner->Token = MLT_NONE;
 		return Scanner->Expr;
+	}
+	case MLT_INLINE: {
+		Scanner->Token = MLT_NONE;
+		mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
+		ValueExpr->compile = ml_value_expr_compile;
+		ValueExpr->Source = Scanner->Source;
+		mlc_expr_t *Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
+		ml_accept(Scanner, MLT_RIGHT_PAREN);
+		ml_value_t *Value = ml_expr_evaluate(Expr, Scanner->Defs, Scanner->Context);
+		ValueExpr->Value = Value;
+		return (mlc_expr_t *)ValueExpr;
 	}
 	case MLT_NIL: {
 		Scanner->Token = MLT_NONE;
@@ -1984,6 +2038,7 @@ mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 	BlockExpr->Source = Scanner->Source;
 	mlc_expr_t **ExprSlot = &BlockExpr->Child;
 	mlc_decl_t **DeclSlot = &BlockExpr->Decl;
+	mlc_decl_t *OldDefs = Scanner->Defs;
 	for (;;) {
 		while (ml_parse(Scanner, MLT_EOL));
 		if (ml_parse(Scanner, MLT_VAR)) {
@@ -2017,14 +2072,13 @@ mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 			ExprSlot = &DeclExpr->Next;
 		} else if (ml_parse(Scanner, MLT_DEF)) {
 			ml_accept(Scanner, MLT_IDENT);
-			mlc_decl_t *Decl = DeclSlot[0] = new(mlc_decl_t);
-			Decl->Ident = Scanner->Ident;
-			DeclSlot = &Decl->Next;
+			mlc_decl_t *Def = new(mlc_decl_t);
+			Def->Ident = Scanner->Ident;
 			ml_accept(Scanner, MLT_ASSIGN);
 			mlc_expr_t *Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
-			Scanner->Error->Message = ml_error("ParseError", "def is not implemented yet");
-			ml_error_trace_add(Scanner->Error->Message, Scanner->Source);
-			longjmp(Scanner->Error->Handler, 1);
+			Def->Value = ml_expr_evaluate(Expr, Scanner->Defs, Scanner->Context);
+			Def->Next = Scanner->Defs;
+			Scanner->Defs = Def;
 		} else if (ml_parse(Scanner, MLT_FUN)) {
 			ml_accept(Scanner, MLT_IDENT);
 			mlc_decl_t *Decl = DeclSlot[0] = new(mlc_decl_t);
@@ -2069,17 +2123,25 @@ mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 			BlockExpr->CatchDecl = Decl;
 			ml_accept(Scanner, MLT_DO);
 			BlockExpr->Catch = ml_accept_block(Scanner);
-			//ml_accept(Scanner, MLT_END);
-			return (mlc_expr_t *)BlockExpr;
+			break;
 		} else {
 			mlc_expr_t *Expr = ml_parse_expression(Scanner, EXPR_DEFAULT);
-			if (!Expr) return (mlc_expr_t *)BlockExpr;
+			if (!Expr) break;
 			ExprSlot[0] = Expr;
 			ExprSlot = &Expr->Next;
 		}
 		ml_parse(Scanner, MLT_SEMICOLON);
 	}
-	return NULL; // Unreachable
+	mlc_decl_t *Defs = 0;
+	for (mlc_decl_t *Def = Scanner->Defs; Def != OldDefs;) {
+		mlc_decl_t *Next = Def->Next;
+		Def->Next = Defs;
+		Defs = Def;
+		Def = Next;
+	}
+	DeclSlot[0] = Defs;
+	Scanner->Defs = OldDefs;
+	return (mlc_expr_t *)BlockExpr;
 }
 
 mlc_expr_t *ml_accept_command(mlc_scanner_t *Scanner, stringmap_t *Vars) {

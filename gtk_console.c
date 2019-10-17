@@ -30,7 +30,7 @@ struct console_t {
 	char *History[MAX_HISTORY];
 	int HistoryIndex, HistoryEnd;
 	stringmap_t Globals[1];
-	mlc_error_t Error[1];
+	mlc_context_t Context[1];
 };
 
 #ifdef MINGW
@@ -112,20 +112,20 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 	gtk_text_buffer_set_text(InputBuffer, "", 0);
 
 	mlc_scanner_t *Scanner = Console->Scanner;
-	if (setjmp(Console->Error->Handler)) {
+	if (setjmp(Console->Context->Error->Handler)) {
 		char *Buffer;
-		int Length = asprintf(&Buffer, "Error: %s\n", ml_error_message(Console->Error->Message));
+		int Length = asprintf(&Buffer, "Error: %s\n", ml_error_message(Console->Context->Error->Message));
 		gtk_text_buffer_get_end_iter(LogBuffer, End);
 		gtk_text_buffer_insert(LogBuffer, End, Buffer, Length);
 		const char *Source;
 		int Line;
-		for (int I = 0; ml_error_trace(Console->Error->Message, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+		for (int I = 0; ml_error_trace(Console->Context->Error->Message, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 		ml_scanner_reset(Scanner);
 	} else {
 		for (;;) {
 			mlc_expr_t *Expr = ml_accept_command(Scanner, Console->Globals);
 			if (Expr == (mlc_expr_t *)-1) break;
-			ml_value_t *Closure = ml_compile(Expr, (void *)console_global_get, Console, NULL, Console->Error);
+			ml_value_t *Closure = ml_compile(Expr, NULL, Console->Context);
 			ml_value_t *Result = ml_call(Closure, 0, NULL);
 			Result = Result->Type->deref(Result);
 			console_log(Console, Result);
@@ -267,7 +267,9 @@ console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 	Console->Input = 0;
 	Console->HistoryIndex = 0;
 	Console->HistoryEnd = 0;
-	Console->Scanner = ml_scanner("Console", Console, (void *)console_read, Console->Error);
+	Console->Context->GlobalGet = (ml_getter_t)console_global_get;
+	Console->Context->Globals = Console;
+	Console->Scanner = ml_scanner("Console", Console, (void *)console_read, Console->Context);
 	GtkWidget *Container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
 	Console->InputView = gtk_source_view_new();
 

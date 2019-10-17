@@ -23,7 +23,7 @@ ml_cbor_t ml_to_cbor(ml_value_t *Value) {
 
 typedef struct block_t {
 	struct block_t *Prev;
-	void *Data;
+	const void *Data;
 	size_t Length;
 } block_t;
 
