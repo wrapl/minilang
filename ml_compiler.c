@@ -2172,7 +2172,7 @@ mlc_expr_t *ml_accept_command(mlc_scanner_t *Scanner, stringmap_t *Vars) {
 				ExprSlot = &AssignExpr->Next;
 			}
 		} while (ml_parse(Scanner, MLT_COMMA));
-	} else if (ml_parse(Scanner, MLT_LET)) {
+	} else if (ml_parse(Scanner, MLT_LET) || ml_parse(Scanner, MLT_DEF)) {
 		do {
 			ml_accept(Scanner, MLT_IDENT);
 			const char *Ident = Scanner->Ident;
