@@ -69,6 +69,7 @@ static ml_value_t *ml_file_read_count(void *Data, int Count, ml_value_t **Args) 
 		ml_stringbuffer_add(Final, Buffer, Actual);
 		Requested -= Actual;
 	}
+	return ml_stringbuffer_get_string(Final);
 }
 
 static ml_value_t *ml_file_write_string(void *Data, int Count, ml_value_t **Args) {
