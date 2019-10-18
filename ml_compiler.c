@@ -68,10 +68,8 @@ static inline ml_inst_t *ml_inst_new(int N, ml_source_t Source, ml_opcode_t Opco
 #define ML_COMPILE_HASH sha256_update(HashContext, (unsigned char *)__FILE__ TOSTRING(__LINE__), strlen(__FILE__ TOSTRING(__LINE__)));
 
 struct mlc_function_t {
-	mlc_error_t *Error;
+	mlc_context_t *Context;
 	ml_inst_t *ReturnInst;
-	ml_getter_t GlobalGet;
-	void *Globals;
 	mlc_function_t *Up;
 	mlc_decl_t *Decls;
 	mlc_loop_t *Loop;
@@ -83,10 +81,8 @@ struct mlc_function_t {
 ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, mlc_context_t *Context) {
 	mlc_function_t Function[1];
 	memset(Function, 0, sizeof(mlc_function_t));
-	Function->Error = Context->Error;
+	Function->Context = Context;
 	Function->ReturnInst = ml_inst_new(0, Expr->Source, MLI_RETURN);
-	Function->GlobalGet = Context->GlobalGet;
-	Function->Globals = Context->Globals;
 	SHA256_CTX HashContext[1];
 	sha256_init(HashContext);
 	int NumParams = 0;
@@ -119,10 +115,8 @@ ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, mlc_context_t 
 ml_value_t *ml_expr_evaluate(mlc_expr_t *Expr, mlc_decl_t *Decls, mlc_context_t *Context) {
 	mlc_function_t Function[1];
 	memset(Function, 0, sizeof(Function));
-	Function->Error = Context->Error;
+	Function->Context = Context;
 	Function->ReturnInst = ml_inst_new(0, Expr->Source, MLI_RETURN);
-	Function->GlobalGet = Context->GlobalGet;
-	Function->Globals = Context->Globals;
 	Function->Decls = Decls;
 
 	SHA256_CTX HashContext[1];
@@ -143,8 +137,8 @@ ml_value_t *ml_expr_evaluate(mlc_expr_t *Expr, mlc_decl_t *Decls, mlc_context_t 
 	Result = Result->Type->deref(Result);
 	if (Result->Type == MLErrorT) {
 		ml_error_trace_add(Result, Expr->Source);
-		Context->Error->Message = Result;
-		longjmp(Context->Error->Handler, 1);
+		Context->Error = Result;
+		longjmp(Context->OnError, 1);
 	}
 	return Result;
 }
@@ -327,9 +321,9 @@ static mlc_compiled_t ml_loop_expr_compile(mlc_function_t *Function, mlc_parent_
 static mlc_compiled_t ml_next_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, SHA256_CTX *HashContext) {
 	ML_COMPILE_HASH
 	if (!Function->Loop) {
-		Function->Error->Message = ml_error("CompilerError", "next not in loop");
-		ml_error_trace_add(Function->Error->Message, Expr->Source);
-		longjmp(Function->Error->Handler, 1);
+		Function->Context->Error = ml_error("CompilerError", "next not in loop");
+		ml_error_trace_add(Function->Context->Error, Expr->Source);
+		longjmp(Function->Context->OnError, 1);
 	}
 	ml_inst_t *NextInst = Function->Loop->Next;
 	if (Function->Try != Function->Loop->Try) {
@@ -354,9 +348,9 @@ static mlc_compiled_t ml_next_expr_compile(mlc_function_t *Function, mlc_expr_t 
 static mlc_compiled_t ml_exit_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
 	ML_COMPILE_HASH
 	if (!Function->Loop) {
-		Function->Error->Message = ml_error("CompilerError", "exit not in loop");
-		ml_error_trace_add(Function->Error->Message, Expr->Source);
-		longjmp(Function->Error->Handler, 1);
+		Function->Context->Error = ml_error("CompilerError", "exit not in loop");
+		ml_error_trace_add(Function->Context->Error, Expr->Source);
+		longjmp(Function->Context->OnError, 1);
 	}
 	mlc_loop_t *Loop = Function->Loop;
 	mlc_try_t *Try = Function->Try;
@@ -410,9 +404,9 @@ static mlc_compiled_t ml_not_expr_compile(mlc_function_t *Function, mlc_parent_e
 static mlc_compiled_t ml_while_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
 	ML_COMPILE_HASH
 	if (!Function->Loop) {
-		Function->Error->Message = ml_error("CompilerError", "while not in loop");
-		ml_error_trace_add(Function->Error->Message, Expr->Source);
-		longjmp(Function->Error->Handler, 1);
+		Function->Context->Error = ml_error("CompilerError", "while not in loop");
+		ml_error_trace_add(Function->Context->Error, Expr->Source);
+		longjmp(Function->Context->OnError, 1);
 	}
 	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
 	ml_inst_t *ExitInst = ml_inst_new(2, Expr->Source, MLI_EXIT);
@@ -437,9 +431,9 @@ static mlc_compiled_t ml_while_expr_compile(mlc_function_t *Function, mlc_parent
 static mlc_compiled_t ml_until_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
 	ML_COMPILE_HASH
 	if (!Function->Loop) {
-		Function->Error->Message = ml_error("CompilerError", "until not in loop");
-		ml_error_trace_add(Function->Error->Message, Expr->Source);
-		longjmp(Function->Error->Handler, 1);
+		Function->Context->Error = ml_error("CompilerError", "until not in loop");
+		ml_error_trace_add(Function->Context->Error, Expr->Source);
+		longjmp(Function->Context->OnError, 1);
 	}
 	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
 	ml_inst_t *ExitInst = ml_inst_new(2, Expr->Source, MLI_EXIT);
@@ -875,7 +869,10 @@ int MLDebugClosures = 0;
 static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, SHA256_CTX *HashContext) {
 	ML_COMPILE_HASH
 	// closure <entry> <frame_size> <num_params> <num_upvalues> <upvalue_1> ...
-	mlc_function_t SubFunction[1] = {{Function->Error, ml_inst_new(0, Expr->Source, MLI_RETURN), Function->GlobalGet, Function->Globals, NULL,}};
+	mlc_function_t SubFunction[1];
+	memset(SubFunction, 0, sizeof(SubFunction));
+	SubFunction->Context = Function->Context;
+	SubFunction->ReturnInst = ml_inst_new(0, Expr->Source, MLI_RETURN);
 	SubFunction->Up = Function;
 	int NumParams = 0;
 	mlc_decl_t **ParamSlot = &SubFunction->Decls;
@@ -959,11 +956,11 @@ static mlc_compiled_t ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_
 	}
 	sha256_update(HashContext, (unsigned char *)Expr->Ident, strlen(Expr->Ident));
 	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
-	ml_value_t *Value = (Function->GlobalGet)(Function->Globals, Expr->Ident);
+	ml_value_t *Value = (Function->Context->GlobalGet)(Function->Context->Globals, Expr->Ident);
 	if (!Value) {
-		Function->Error->Message = ml_error("CompilerError", "identifier %s not declared", Expr->Ident);
-		ml_error_trace_add(Function->Error->Message, Expr->Source);
-		longjmp(Function->Error->Handler, 1);
+		Function->Context->Error = ml_error("CompilerError", "identifier %s not declared", Expr->Ident);
+		ml_error_trace_add(Function->Context->Error, Expr->Source);
+		longjmp(Function->Context->OnError, 1);
 	}
 	ValueInst->Params[1].Value = Value;
 	return (mlc_compiled_t){ValueInst, ValueInst};
@@ -1093,7 +1090,6 @@ typedef enum ml_token_t {
 
 struct mlc_scanner_t {
 	mlc_context_t *Context;
-	mlc_error_t *Error;
 	const char *Next;
 	ml_source_t Source;
 	ml_token_t Token;
@@ -1108,7 +1104,6 @@ struct mlc_scanner_t {
 mlc_scanner_t *ml_scanner(const char *SourceName, void *Data, const char *(*read)(void *), mlc_context_t *Context) {
 	mlc_scanner_t *Scanner = new(mlc_scanner_t);
 	Scanner->Context = Context;
-	Scanner->Error = Context->Error;
 	Scanner->Token = MLT_NONE;
 	Scanner->Next = "";
 	Scanner->Source.Name = SourceName;
@@ -1156,9 +1151,9 @@ static mlc_expr_t *ml_accept_string(mlc_scanner_t *Scanner) {
 			if (End[0] == '\n') {
 				--Length;
 			} else if (!End[0]) {
-				Scanner->Error->Message = ml_error("ParseError", "end of line while parsing string");
-				ml_error_trace_add(Scanner->Error->Message, Scanner->Source);
-				longjmp(Scanner->Error->Handler, 1);
+				Scanner->Context->Error = ml_error("ParseError", "end of line while parsing string");
+				ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
+				longjmp(Scanner->Context->OnError, 1);
 			}
 		}
 		++Length;
@@ -1198,9 +1193,9 @@ static mlc_expr_t *ml_accept_string(mlc_scanner_t *Scanner) {
 		Scanner->Next = (Scanner->read)(Scanner->Data);
 		++Scanner->Source.Line;
 		if (!Scanner->Next) {
-			Scanner->Error->Message = ml_error("ParseError", "end of input while parsing string");
-			ml_error_trace_add(Scanner->Error->Message, Scanner->Source);
-			longjmp(Scanner->Error->Handler, 1);
+			Scanner->Context->Error = ml_error("ParseError", "end of input while parsing string");
+			ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
+			longjmp(Scanner->Context->OnError, 1);
 		}
 		mlc_expr_t *Next = ml_accept_string(Scanner);
 		if (Expr) {
@@ -1282,9 +1277,9 @@ static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 			const char *End = Scanner->Next;
 			while (End[0] != '\"') {
 				if (!End[0]) {
-					Scanner->Error->Message = ml_error("ParseError", "end of input while parsing string");
-					ml_error_trace_add(Scanner->Error->Message, Scanner->Source);
-					longjmp(Scanner->Error->Handler, 1);
+					Scanner->Context->Error = ml_error("ParseError", "end of input while parsing string");
+					ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
+					longjmp(Scanner->Context->OnError, 1);
 				}
 				if (End[0] == '\\') {
 					++Length;
@@ -1379,9 +1374,9 @@ static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 			const char *End = Scanner->Next;
 			while (End[0] != '\"') {
 				if (!End[0]) {
-					Scanner->Error->Message = ml_error("ParseError", "end of input while parsing string");
-					ml_error_trace_add(Scanner->Error->Message, Scanner->Source);
-					longjmp(Scanner->Error->Handler, 1);
+					Scanner->Context->Error = ml_error("ParseError", "end of input while parsing string");
+					ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
+					longjmp(Scanner->Context->OnError, 1);
 				}
 				if (End[0] == '\\') ++End;
 				++Length;
@@ -1466,9 +1461,9 @@ static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 			Scanner->Next = End;
 			return Scanner->Token;
 		}
-		Scanner->Error->Message = ml_error("ParseError", "unexpected character <%c>", Char);
-		ml_error_trace_add(Scanner->Error->Message, Scanner->Source);
-		longjmp(Scanner->Error->Handler, 1);
+		Scanner->Context->Error = ml_error("ParseError", "unexpected character <%c>", Char);
+		ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
+		longjmp(Scanner->Context->OnError, 1);
 	}
 	return Scanner->Token;
 }
@@ -1486,12 +1481,12 @@ static void ml_accept(mlc_scanner_t *Scanner, ml_token_t Token) {
 	while (ml_parse(Scanner, MLT_EOL));
 	if (ml_parse(Scanner, Token)) return;
 	if (Scanner->Token == MLT_IDENT) {
-		Scanner->Error->Message = ml_error("ParseError", "expected %s not %s (%s)", MLTokens[Token], MLTokens[Scanner->Token], Scanner->Ident);
+		Scanner->Context->Error = ml_error("ParseError", "expected %s not %s (%s)", MLTokens[Token], MLTokens[Scanner->Token], Scanner->Ident);
 	} else {
-		Scanner->Error->Message = ml_error("ParseError", "expected %s not %s", MLTokens[Token], MLTokens[Scanner->Token]);
+		Scanner->Context->Error = ml_error("ParseError", "expected %s not %s", MLTokens[Token], MLTokens[Scanner->Token]);
 	}
-	ml_error_trace_add(Scanner->Error->Message, Scanner->Source);
-	longjmp(Scanner->Error->Handler, 1);
+	ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
+	longjmp(Scanner->Context->OnError, 1);
 }
 
 void ml_accept_eoi(mlc_scanner_t *Scanner) {
@@ -1808,9 +1803,9 @@ static mlc_expr_t *ml_accept_factor(mlc_scanner_t *Scanner) {
 	while (ml_parse(Scanner, MLT_EOL));
 	mlc_expr_t *Expr = ml_parse_factor(Scanner);
 	if (Expr) return Expr;
-	Scanner->Error->Message = ml_error("ParseError", "expected <term> not %s", MLTokens[Scanner->Token]);
-	ml_error_trace_add(Scanner->Error->Message, Scanner->Source);
-	longjmp(Scanner->Error->Handler, 1);
+	Scanner->Context->Error = ml_error("ParseError", "expected <term> not %s", MLTokens[Scanner->Token]);
+	ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
+	longjmp(Scanner->Context->OnError, 1);
 }
 
 static void ml_accept_arguments(mlc_scanner_t *Scanner, mlc_expr_t **ArgsSlot) {
@@ -1903,9 +1898,9 @@ static mlc_expr_t *ml_accept_term(mlc_scanner_t *Scanner) {
 	while (ml_parse(Scanner, MLT_EOL));
 	mlc_expr_t *Expr = ml_parse_term(Scanner);
 	if (Expr) return Expr;
-	Scanner->Error->Message = ml_error("ParseError", "expected <factor> not %s", MLTokens[Scanner->Token]);
-	ml_error_trace_add(Scanner->Error->Message, Scanner->Source);
-	longjmp(Scanner->Error->Handler, 1);
+	Scanner->Context->Error = ml_error("ParseError", "expected <factor> not %s", MLTokens[Scanner->Token]);
+	ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
+	longjmp(Scanner->Context->OnError, 1);
 }
 
 static mlc_expr_t *ml_parse_expression(mlc_scanner_t *Scanner, ml_expr_level_t Level) {
@@ -2027,9 +2022,9 @@ static mlc_expr_t *ml_accept_expression(mlc_scanner_t *Scanner, ml_expr_level_t 
 	while (ml_parse(Scanner, MLT_EOL));
 	mlc_expr_t *Expr = ml_parse_expression(Scanner, Level);
 	if (Expr) return Expr;
-	Scanner->Error->Message = ml_error("ParseError", "expected <expression> not %s", MLTokens[Scanner->Token]);
-	ml_error_trace_add(Scanner->Error->Message, Scanner->Source);
-	longjmp(Scanner->Error->Handler, 1);
+	Scanner->Context->Error = ml_error("ParseError", "expected <expression> not %s", MLTokens[Scanner->Token]);
+	ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
+	longjmp(Scanner->Context->OnError, 1);
 }
 
 mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
@@ -2113,9 +2108,9 @@ mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 			ExprSlot = &DeclExpr->Next;
 		} else if (ml_parse(Scanner, MLT_ON)) {
 			if (BlockExpr->CatchDecl) {
-				Scanner->Error->Message = ml_error("ParseError", "no more than one error handler allowed in a block");
-				ml_error_trace_add(Scanner->Error->Message, Scanner->Source);
-				longjmp(Scanner->Error->Handler, 1);
+				Scanner->Context->Error = ml_error("ParseError", "no more than one error handler allowed in a block");
+				ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
+				longjmp(Scanner->Context->OnError, 1);
 			}
 			ml_accept(Scanner, MLT_IDENT);
 			mlc_decl_t *Decl = new(mlc_decl_t);

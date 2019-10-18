@@ -14,15 +14,17 @@ typedef struct mlc_expr_t mlc_expr_t;
 typedef struct mlc_scanner_t mlc_scanner_t;
 
 typedef struct mlc_error_t {
-	ml_value_t *Message;
-	jmp_buf Handler;
+
 } mlc_error_t;
 
 typedef struct mlc_context_t {
 	ml_getter_t GlobalGet;
 	void *Globals;
-	mlc_error_t Error[1];
+	ml_value_t *Error;
+	jmp_buf OnError;
 } mlc_context_t;
+
+#define mlc_on_error(CONTEXT) if (setjmp(CONTEXT->OnError))
 
 mlc_scanner_t *ml_scanner(const char *SourceName, void *Data, const char *(*read)(void *), mlc_context_t *Context);
 ml_source_t ml_scanner_source(mlc_scanner_t *Scanner, ml_source_t Source);

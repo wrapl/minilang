@@ -137,11 +137,11 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 	Context->GlobalGet = (ml_getter_t)ml_preprocessor_global_get;
 	Context->Globals = Preprocessor;
 	mlc_scanner_t *Scanner = ml_scanner(InputName, Preprocessor, (void *)ml_preprocessor_line_read, Context);
-	if (setjmp(Context->Error->Handler)) {
-		printf("Error: %s\n", ml_error_message(Context->Error->Message));
+	mlc_on_error(Context) {
+		printf("Error: %s\n", ml_error_message(Context->Error));
 		const char *Source;
 		int Line;
-		for (int I = 0; ml_error_trace(Context->Error->Message, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+		for (int I = 0; ml_error_trace(Context->Error, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 		exit(0);
 	}
 	ml_value_t *Semicolon = ml_string(";", 1);
