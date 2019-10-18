@@ -155,7 +155,6 @@ static ml_value_t *ml_fold_fnx_get_next(ml_frame_iter_t *Frame, ml_value_t *Resu
 static ml_value_t *ml_fold_fnx_first(ml_frame_iter_t *Frame, ml_value_t *Result) {
 	Result = Result->Type->deref(Result);
 	if (Result->Type == MLErrorT) ML_CONTINUE(Frame->Base.Caller, Result);
-	ml_value_t *Compare = Frame->Values[0];
 	Frame->Values[1] = Result;
 	Frame->Base.run = (void *)ml_fold_fnx_get_next;
 	return ml_iter_next((ml_state_t *)Frame, Frame->Iter);

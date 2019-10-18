@@ -138,8 +138,8 @@ ml_value_t *ml_expr_evaluate(mlc_expr_t *Expr, mlc_decl_t *Decls, mlc_context_t 
 	Info->CanSuspend = Function->CanSuspend;
 	Info->NumParams = 0;
 
-	if (MLDebugClosures) ml_closure_debug(Closure);
-	ml_value_t *Result = ml_call(Closure, 0, NULL);
+	if (MLDebugClosures) ml_closure_debug((ml_value_t *)Closure);
+	ml_value_t *Result = ml_call((ml_value_t *)Closure, 0, NULL);
 	Result = Result->Type->deref(Result);
 	if (Result->Type == MLErrorT) {
 		ml_error_trace_add(Result, Expr->Source);
