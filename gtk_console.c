@@ -112,14 +112,14 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 	gtk_text_buffer_set_text(InputBuffer, "", 0);
 
 	mlc_scanner_t *Scanner = Console->Scanner;
-	if (setjmp(Console->Context->Error->Handler)) {
+	mlc_on_error(Console->Context) {
 		char *Buffer;
-		int Length = asprintf(&Buffer, "Error: %s\n", ml_error_message(Console->Context->Error->Message));
+		int Length = asprintf(&Buffer, "Error: %s\n", ml_error_message(Console->Context->Error));
 		gtk_text_buffer_get_end_iter(LogBuffer, End);
 		gtk_text_buffer_insert(LogBuffer, End, Buffer, Length);
 		const char *Source;
 		int Line;
-		for (int I = 0; ml_error_trace(Console->Context->Error->Message, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+		for (int I = 0; ml_error_trace(Console->Context->Error, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 		ml_scanner_reset(Scanner);
 	} else {
 		for (;;) {
