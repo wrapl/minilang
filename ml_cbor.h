@@ -11,7 +11,9 @@ cbor_item_t *ml_to_cbor_item(ml_value_t *Value);
 
 typedef struct {const void *Data; size_t Length;} ml_cbor_t;
 
+typedef ml_value_t *(*ml_tag_fn_t)(uint64_t Tag);
+
 ml_cbor_t ml_to_cbor(ml_value_t *Value);
-ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_value_t *TagFn);
+ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_tag_fn_t TagFn);
 
 #endif
