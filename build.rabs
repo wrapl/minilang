@@ -84,6 +84,10 @@ var InstallHeaders := [
 	"stringmap.h"
 ]
 
+if defined("USECBOR") then
+	InstallHeaders:put("ml_cbor.h")
+end
+
 for Header in InstallHeaders do
 	install(file(Header), InstallInclude / Header)
 end
