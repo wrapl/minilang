@@ -13,10 +13,6 @@ extern "C" {
 typedef struct mlc_expr_t mlc_expr_t;
 typedef struct mlc_scanner_t mlc_scanner_t;
 
-typedef struct mlc_error_t {
-
-} mlc_error_t;
-
 typedef struct mlc_context_t {
 	ml_getter_t GlobalGet;
 	void *Globals;
