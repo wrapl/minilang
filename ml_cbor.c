@@ -38,7 +38,7 @@ typedef struct collection_t {
 
 typedef struct tag_t {
 	struct tag_t *Prev;
-	ml_value_t (*Handler)(ml_value_t *Value, void *Data);
+	ml_tag_t Handler;
 	void *Data;
 } tag_t;
 
@@ -46,7 +46,7 @@ typedef struct decoder_t {
 	collection_t *Collection;
 	tag_t *Tags;
 	ml_value_t *Value;
-	ml_tag_t *(*TagFn)(void *TagFnData, void **TagData);
+	ml_tag_t (*TagFn)(uint64_t Tag, void *TagFnData, void **TagData);
 	void *TagFnData;
 } decoder_t;
 
@@ -352,7 +352,7 @@ static struct cbor_callbacks Callbacks = {
 	.indef_break = (void *)ml_indef_break_cb
 };
 
-ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_tag_t *(*TagFn)(void *Data, void **TagData), void *TagFnData) {
+ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_tag_t (*TagFn)(uint64_t, void *, void **), void *TagFnData) {
 	decoder_t Decoder;
 	Decoder.Collection = 0;
 	Decoder.TagFn = TagFn;
