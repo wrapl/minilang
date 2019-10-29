@@ -1,4 +1,4 @@
-var Gtk := gir("Gtk")
+def Gtk := gir("Gtk")
 
 var W := Gtk("Window"):new(Gtk("WindowType")("toplevel"))
 

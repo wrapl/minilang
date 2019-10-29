@@ -1011,7 +1011,6 @@ const char *MLTokens[] = {
 	"or", // MLT_OR,
 	"not", // MLT_NOT,
 	"old", // MLT_OLD,
-	"imp", // MLT_IMP,
 	"def", // MLT_DEF,
 	"let", // MLT_LET,
 	"var", // MLT_VAR,
@@ -1065,7 +1064,6 @@ typedef enum ml_token_t {
 	MLT_OR,
 	MLT_NOT,
 	MLT_OLD,
-	MLT_IMP,
 	MLT_DEF,
 	MLT_LET,
 	MLT_VAR,
@@ -2066,14 +2064,16 @@ mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 			ExprSlot[0] = (mlc_expr_t *)DeclExpr;
 			ExprSlot = &DeclExpr->Next;
 		} else if (ml_parse(Scanner, MLT_DEF)) {
-			ml_accept(Scanner, MLT_IDENT);
-			mlc_decl_t *Def = new(mlc_decl_t);
-			Def->Ident = Scanner->Ident;
-			ml_accept(Scanner, MLT_ASSIGN);
-			mlc_expr_t *Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
-			Def->Value = ml_expr_evaluate(Expr, Scanner->Defs, Scanner->Context);
-			Def->Next = Scanner->Defs;
-			Scanner->Defs = Def;
+			do {
+				ml_accept(Scanner, MLT_IDENT);
+				mlc_decl_t *Def = new(mlc_decl_t);
+				Def->Ident = Scanner->Ident;
+				ml_accept(Scanner, MLT_ASSIGN);
+				mlc_expr_t *Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
+				Def->Value = ml_expr_evaluate(Expr, Scanner->Defs, Scanner->Context);
+				Def->Next = Scanner->Defs;
+				Scanner->Defs = Def;
+			} while (ml_parse(Scanner, MLT_COMMA));
 		} else if (ml_parse(Scanner, MLT_FUN)) {
 			ml_accept(Scanner, MLT_IDENT);
 			mlc_decl_t *Decl = DeclSlot[0] = new(mlc_decl_t);
