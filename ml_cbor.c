@@ -17,6 +17,7 @@ ml_cbor_t ml_to_cbor(ml_value_t *Value) {
 		cbor_mutable_data Buffer = GC_malloc_atomic(Size);
 		size_t Length = cbor_serialize(Item, Buffer, Size);
 		if (Length) return (ml_cbor_t){Buffer, Length};
+		Size *= 2;
 	}
 	return (ml_cbor_t){NULL, 0};
 }
