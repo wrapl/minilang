@@ -39,15 +39,16 @@ typedef struct collection_t {
 
 typedef struct tag_t {
 	struct tag_t *Prev;
-	ml_value_t *Handler;
+	ml_tag_t Handler;
+	void *Data;
 } tag_t;
 
 typedef struct decoder_t {
 	collection_t *Collection;
 	tag_t *Tags;
 	ml_value_t *Value;
-	ml_tag_fn_t TagFn;
-	void *TagData;
+	ml_tag_t (*TagFn)(uint64_t Tag, void *TagFnData, void **TagData);
+	void *TagFnData;
 } decoder_t;
 
 static ml_value_t IsByteString[1];
@@ -58,7 +59,7 @@ static void value_handler(decoder_t *Decoder, ml_value_t *Value) {
 	//printf("%s:%d\n", __func__, __LINE__);
 	for (tag_t *Tag = Decoder->Tags; Tag; Tag = Tag->Prev) {
 		//printf("%s:%d\n", __func__, __LINE__);
-		if (Value->Type != MLErrorT) Value = ml_inline(Tag->Handler, 1, Value);
+		if (Value->Type != MLErrorT) Value = Tag->Handler(Value, Tag->Data);
 	}
 	Decoder->Tags = 0;
 	collection_t *Collection = Decoder->Collection;
@@ -266,11 +267,13 @@ static void ml_map_start_cb(decoder_t *Decoder, size_t Length) {
 
 static void ml_tag_cb(decoder_t *Decoder, uint64_t Tag) {
 	//printf("%s:%d\n", __func__, __LINE__);
-	ml_value_t *Handler = Decoder->TagFn(Tag, Decoder->TagData);
-	if (Handler->Type != MLErrorT) {
+	void *Data;
+	ml_tag_t Handler = Decoder->TagFn(Tag, Decoder->TagFnData, &Data);
+	if (Handler) {
 		tag_t *Tag = new(tag_t);
 		Tag->Prev = Decoder->Tags;
 		Tag->Handler = Handler;
+		Tag->Data = Data;
 		Decoder->Tags = Tag;
 	}
 }
@@ -350,11 +353,11 @@ static struct cbor_callbacks Callbacks = {
 	.indef_break = (void *)ml_indef_break_cb
 };
 
-ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_tag_fn_t TagFn, void *TagData) {
+ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_tag_t (*TagFn)(uint64_t, void *, void **), void *TagFnData) {
 	decoder_t Decoder;
 	Decoder.Collection = 0;
 	Decoder.TagFn = TagFn;
-	Decoder.TagData = TagData;
+	Decoder.TagFnData = TagFnData;
 	Decoder.Tags = 0;
 	Decoder.Value = MLNil;
 	while (Cbor.Length) {
@@ -376,15 +379,20 @@ static ml_value_t *ml_to_cbor_fn(void *Data, int Count, ml_value_t **Args) {
 	return ml_error("CborError", "Error encoding to cbor");
 }
 
-static ml_value_t *ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback) {
-	return ml_inline(Callback, 1, ml_integer(Tag));
+static ml_value_t *ml_value_fn(ml_value_t *Value, ml_value_t *Callback) {
+	return ml_inline(Callback, 1, Value);
+}
+
+static ml_tag_t ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void **Data) {
+	Data[0] = ml_inline(Callback, 1, ml_integer(Tag));
+	return ml_value_fn;
 }
 
 static ml_value_t *ml_from_cbor_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ml_cbor_t Cbor = {ml_string_value(Args[0]), ml_string_length(Args[0])};
-	return ml_from_cbor(Cbor, (ml_tag_fn_t)ml_value_tag_fn, Count > 1 ? Args[1] : MLNil);
+	return ml_from_cbor(Cbor, ml_value_tag_fn, Count > 1 ? Args[1] : MLNil);
 }
 
 cbor_item_t *ml_integer_to_cbor_item(ml_value_t *Arg) {
