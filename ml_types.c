@@ -1128,6 +1128,11 @@ void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_t
 	Table->Callback = Function;
 }
 
+static ml_value_t *ml_method_to_string(void *Data, int Count, ml_value_t **Args) {
+	ml_method_t *Method = (ml_method_t *)Args[0];
+	return ml_string_format(":%s", Method->Name);
+}
+
 int ml_list_length(ml_value_t *Value) {
 	return ((ml_list_t *)Value)->Length;
 }
@@ -2726,6 +2731,14 @@ static ml_value_t *ml_return_nil(void *Data, int Count, ml_value_t **Args) {
 	return MLNil;
 }
 
+static ml_value_t *ml_eq_any_any(void *Data, int Count, ml_value_t **Args) {
+	return (Args[0] == Args[1]) ? Args[1] : MLNil;
+}
+
+static ml_value_t *ml_neq_any_any(void *Data, int Count, ml_value_t **Args) {
+	return (Args[0] != Args[1]) ? Args[1] : MLNil;
+}
+
 static ml_value_t *ml_integer_string(void *Data, int Count, ml_value_t **Args) {
 	return ml_integer(strtol(ml_string_value(Args[0]), 0, 10));
 }
@@ -2876,6 +2889,16 @@ static ml_value_t *ml_composed_compose(void *Data, int Count, ml_value_t **Args)
 	return (ml_value_t *)Composed;
 }
 
+ml_type_t MLNamesT[1] = {{
+	MLTypeT,
+	MLListT, "names",
+	ml_default_hash,
+	(void *)ml_list_call,
+	ml_default_deref,
+	ml_default_assign,
+	NULL, 0, 0
+}};
+
 void ml_init() {
 	CompareMethod = ml_method("<>");
 	ml_method_by_name("#", NULL, ml_hash_any, MLAnyT, NULL);
@@ -2893,6 +2916,8 @@ void ml_init() {
 	ml_method_by_name("<=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
 	ml_method_by_name(">=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
 	ml_method_by_name(">=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
+	ml_method_by_name("=", NULL, ml_eq_any_any, MLAnyT, MLAnyT, NULL);
+	ml_method_by_name("!=", NULL, ml_neq_any_any, MLAnyT, MLAnyT, NULL);
 	ml_method_by_name("-", NULL, ml_neg_integer, MLIntegerT, NULL);
 	ml_method_by_name("-", NULL, ml_neg_real, MLRealT, NULL);
 	ml_methods_add_number_number(compare, <>);
@@ -2950,6 +2975,7 @@ void ml_init() {
 	ml_method_by_name("string", NULL, ml_real_to_string, MLRealT, NULL);
 	ml_method_by_name("string", NULL, ml_identity, MLStringT, NULL);
 	ml_method_by_name("string", NULL, ml_regex_to_string, MLRegexT, NULL);
+	ml_method_by_name("string", NULL, ml_method_to_string, MLMethodT, NULL);
 	ml_method_by_name("string", 0, ml_list_to_string, MLListT, NULL);
 	ml_method_by_name("join", 0, ml_list_join, MLListT, MLStringT, NULL);
 	ml_method_by_name("string", 0, ml_map_to_string, MLMapT, NULL);

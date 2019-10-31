@@ -184,6 +184,8 @@ extern ml_type_t MLIteratableT[];
 extern ml_value_t MLNil[];
 extern ml_value_t MLSome[];
 
+extern ml_type_t MLNamesT[];
+
 int ml_is(const ml_value_t *Value, const ml_type_t *Type);
 
 #define ML_STRINGBUFFER_NODE_SIZE 248

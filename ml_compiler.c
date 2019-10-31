@@ -1808,10 +1808,33 @@ static mlc_expr_t *ml_accept_factor(mlc_scanner_t *Scanner) {
 
 static void ml_accept_arguments(mlc_scanner_t *Scanner, mlc_expr_t **ArgsSlot) {
 	if (!ml_parse(Scanner, MLT_RIGHT_PAREN)) {
+		ml_value_t *Names = NULL;
 		if (ml_parse(Scanner, MLT_SEMICOLON)) goto has_params;
 		do {
-			mlc_expr_t *Arg = ArgsSlot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
-			ArgsSlot = &Arg->Next;
+			if (Names) {
+				ml_accept(Scanner, MLT_IDENT);
+				ml_list_append(Names, ml_method(Scanner->Ident));
+				ml_accept(Scanner, MLT_IS);
+				mlc_expr_t *Arg = ArgsSlot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
+				ArgsSlot = &Arg->Next;
+			} else {
+				mlc_expr_t *Arg = ml_accept_expression(Scanner, EXPR_DEFAULT);
+				if ((Arg->compile == (void *)ml_ident_expr_compile) && ml_parse(Scanner, MLT_IS)) {
+					Names = ml_list();
+					Names->Type = MLNamesT;
+					ml_list_append(Names, ml_method(((mlc_ident_expr_t *)Arg)->Ident));
+					mlc_value_expr_t *NamesArg = new(mlc_value_expr_t);
+					NamesArg->compile = ml_value_expr_compile;
+					NamesArg->Source = Scanner->Source;
+					NamesArg->Value = Names;
+					ArgsSlot[0] = (mlc_expr_t *)NamesArg;
+					Arg = NamesArg->Next = ml_accept_expression(Scanner, EXPR_DEFAULT);
+					ArgsSlot = &Arg->Next;
+				} else {
+					ArgsSlot[0] = Arg;
+					ArgsSlot = &Arg->Next;
+				}
+			}
 		} while (ml_parse(Scanner, MLT_COMMA));
 		if (ml_parse(Scanner, MLT_SEMICOLON)) has_params: {
 			mlc_decl_t *Params = 0;
