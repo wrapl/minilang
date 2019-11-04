@@ -854,6 +854,7 @@ ml_value_t *ml_regex(const char *Pattern) {
 		regerror(Error, Regex->Value, ErrorMessage, ErrorSize);
 		return ml_error("RegexError", "regex error: %s", ErrorMessage);
 	}
+	GC_end_stubborn_change(Regex);
 	return (ml_value_t *)Regex;
 }
 
