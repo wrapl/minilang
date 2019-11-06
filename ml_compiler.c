@@ -2211,14 +2211,16 @@ mlc_expr_t *ml_accept_command(mlc_scanner_t *Scanner, stringmap_t *Vars) {
 			ExprSlot = &AssignExpr->Next;
 		} while (ml_parse(Scanner, MLT_COMMA));
 	} else if (ml_parse(Scanner, MLT_FUN)) {
-		ml_accept(Scanner, MLT_IDENT);
-		const char *Ident = Scanner->Ident;
-		ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Ident);
-		Slot[0] = MLNil;
-		ml_value_t *Ref = ml_reference(Slot);
 		mlc_fun_expr_t *FunExpr = new(mlc_fun_expr_t);
 		FunExpr->compile = ml_fun_expr_compile;
 		FunExpr->Source = Scanner->Source;
+		ml_value_t *Ref = NULL;
+		if (ml_parse(Scanner, MLT_IDENT)) {
+			const char *Ident = Scanner->Ident;
+			ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Ident);
+			Slot[0] = MLNil;
+			Ref = ml_reference(Slot);
+		}
 		ml_accept(Scanner, MLT_LEFT_PAREN);
 		if (!ml_parse(Scanner, MLT_RIGHT_PAREN)) {
 			mlc_decl_t **ParamSlot = &FunExpr->Params;
@@ -2236,18 +2238,22 @@ mlc_expr_t *ml_accept_command(mlc_scanner_t *Scanner, stringmap_t *Vars) {
 			ml_accept(Scanner, MLT_RIGHT_PAREN);
 		}
 		FunExpr->Body = ml_accept_expression(Scanner, EXPR_DEFAULT);
-
-		mlc_value_expr_t *RefExpr = new(mlc_value_expr_t);
-		RefExpr->compile = ml_value_expr_compile;
-		RefExpr->Source = Scanner->Source;
-		RefExpr->Value = Ref;
-		mlc_parent_expr_t *AssignExpr = new(mlc_parent_expr_t);
-		AssignExpr->compile = ml_assign_expr_compile;
-		AssignExpr->Source = Scanner->Source;
-		AssignExpr->Child = (mlc_expr_t *)RefExpr;
-		RefExpr->Next = (mlc_expr_t *)FunExpr;
-		ExprSlot[0] = (mlc_expr_t *)AssignExpr;
-		ExprSlot = &AssignExpr->Next;
+		if (Ref) {
+			mlc_value_expr_t *RefExpr = new(mlc_value_expr_t);
+			RefExpr->compile = ml_value_expr_compile;
+			RefExpr->Source = Scanner->Source;
+			RefExpr->Value = Ref;
+			mlc_parent_expr_t *AssignExpr = new(mlc_parent_expr_t);
+			AssignExpr->compile = ml_assign_expr_compile;
+			AssignExpr->Source = Scanner->Source;
+			AssignExpr->Child = (mlc_expr_t *)RefExpr;
+			RefExpr->Next = (mlc_expr_t *)FunExpr;
+			ExprSlot[0] = (mlc_expr_t *)AssignExpr;
+			ExprSlot = &AssignExpr->Next;
+		} else {
+			ExprSlot[0] = (mlc_expr_t *)FunExpr;
+			ExprSlot = &FunExpr->Next;
+		}
 	} else {
 		mlc_expr_t *Expr = ExprSlot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
 		ExprSlot = &Expr->Next;

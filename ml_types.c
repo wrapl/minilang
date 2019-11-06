@@ -623,7 +623,7 @@ ml_value_t *ml_string_match_string(void *Data, int Count, ml_value_t **Args) {
 		return ml_error("RegexError", "regex error: %s", ErrorMessage);
 	}
 	regmatch_t Matches[Regex->re_nsub + 1];
-	switch (regexec(Regex, Subject, Regex->re_nsub, Matches, 0)) {
+	switch (regexec(Regex, Subject, Regex->re_nsub + 1, Matches, 0)) {
 	case REG_NOMATCH:
 		regfree(Regex);
 		return MLNil;
@@ -636,7 +636,7 @@ ml_value_t *ml_string_match_string(void *Data, int Count, ml_value_t **Args) {
 	}
 	default: {
 		ml_value_t *Results = ml_list();
-		for (int I = 0; I < Regex->re_nsub; ++I) {
+		for (int I = 0; I < Regex->re_nsub + 1; ++I) {
 			regoff_t Start = Matches[I].rm_so;
 			if (Start >= 0) {
 				size_t Length = Matches[I].rm_eo - Start;
@@ -658,7 +658,7 @@ ml_value_t *ml_string_match_regex(void *Data, int Count, ml_value_t **Args) {
 	const char *Subject = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
-	switch (regexec(Regex, Subject, Regex->re_nsub, Matches, 0)) {
+	switch (regexec(Regex, Subject, Regex->re_nsub + 1, Matches, 0)) {
 	case REG_NOMATCH:
 		regfree(Regex);
 		return MLNil;
@@ -671,7 +671,7 @@ ml_value_t *ml_string_match_regex(void *Data, int Count, ml_value_t **Args) {
 	}
 	default: {
 		ml_value_t *Results = ml_list();
-		for (int I = 0; I < Regex->re_nsub; ++I) {
+		for (int I = 0; I < Regex->re_nsub + 1; ++I) {
 			regoff_t Start = Matches[I].rm_so;
 			if (Start >= 0) {
 				size_t Length = Matches[I].rm_eo - Start;
@@ -854,6 +854,7 @@ ml_value_t *ml_regex(const char *Pattern) {
 		regerror(Error, Regex->Value, ErrorMessage, ErrorSize);
 		return ml_error("RegexError", "regex error: %s", ErrorMessage);
 	}
+	GC_end_stubborn_change(Regex);
 	return (ml_value_t *)Regex;
 }
 
