@@ -401,25 +401,25 @@ cbor_item_t *ml_integer_to_cbor_item(ml_value_t *Arg) {
 	cbor_item_t *Item;
 	if (Value < 0) {
 		Value = ~Value;
-		if (Value < 256) {
+		if (Value <= 0xFF) {
 			Item = cbor_build_uint8(Value);
-		} else if (Value < 65536) {
+		} else if (Value <= 0xFFFF) {
 			Item = cbor_build_uint16(Value);
-		} else if (Value < 0xFFFFFFFF){
+		} else if (Value <= 0xFFFFFFFF){
 			Item = cbor_build_uint32(Value);
 		} else {
 			Item = cbor_build_uint64(Value);
 		}
 		cbor_mark_negint(Item);
 	} else {
-		if (Value < 256) {
+		if (Value <= 0xFF) {
 			Item = cbor_build_uint8(Value);
-		} else if (Value < 65536) {
+		} else if (Value <= 0xFFFF) {
 			Item = cbor_build_uint16(Value);
-		} else if (Value < 0xFFFFFFFF){
+		} else if (Value <= 0xFFFFFFFF){
 			Item = cbor_build_uint32(Value);
 		} else {
-			Item = cbor_build_uint32(Value);
+			Item = cbor_build_uint64(Value);
 		}
 	}
 	return Item;
