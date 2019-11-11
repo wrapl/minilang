@@ -1,7 +1,7 @@
 #ifndef ML_ITERFNS_H
 #define ML_ITERFNS_H
 
-#include <stringmap.h>
+#include "stringmap.h"
 
 #ifdef	__cplusplus
 extern "C" {

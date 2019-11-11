@@ -1,8 +1,8 @@
 #ifndef ML_CBOR_H
 #define ML_CBOR_H
 
-#include <minilang.h>
-#include <stringmap.h>
+#include "minilang.h"
+#include "stringmap.h"
 #include <cbor.h>
 
 void ml_cbor_init(stringmap_t *Globals);
