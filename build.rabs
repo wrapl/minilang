@@ -44,9 +44,16 @@ if defined("USEGTK") then
 end
 
 if defined("USECBOR") then
+	var Dir := file("minicbor")
+	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git")
+	var Lib := Dir/"libminicbor.a" => fun() do
+		Dir:chdir
+		execute("make -j4 READ_FN_PREFIX=ml_cbor_read_ READDATA_TYPE=\"struct ml_cbor_reader_t *\"")
+	end
+	PREBUILDS := old + [Lib]
 	Objects:put(file("ml_cbor.o"))
-	CFLAGS := old + ["-DUSE_ML_CBOR", pkgconfig("--cflags libcbor")]
-	LDFLAGS := old + [pkgconfig("--libs libcbor")]
+	CFLAGS := old + ["-DUSE_ML_CBOR"]
+	LDFLAGS := old + [Lib]
 end
 
 if PLATFORM = "Linux" then

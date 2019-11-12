@@ -4,28 +4,41 @@
 #include <gc/gc.h>
 #include <string.h>
 
-cbor_item_t *ml_to_cbor_item(ml_value_t *Value) {
-	typeof(ml_to_cbor_item) *function = ml_typed_fn_get(Value->Type, ml_to_cbor_item);
-	if (!function) return cbor_new_undef();
-	return function(Value);
+#define READ_FN_PREFIX ml_cbor_read_
+#define READDATA_TYPE struct ml_cbor_reader_t *
+
+#include "minicbor/minicbor.h"
+
+void ml_cbor_write(ml_value_t *Value, void *Data, int (*WriteFn)(void *Data, const unsigned char *Bytes, unsigned Size)) {
+	typeof(ml_cbor_write) *function = ml_typed_fn_get(Value->Type, ml_cbor_write);
+	if (function) {
+		function(Value, Data, WriteFn);
+	} else {
+		minicbor_write_simple(Data, WriteFn, CBOR_SIMPLE_UNDEF);
+	}
+}
+
+static void ml_cbor_size_fn(size_t *Total, unsigned char *Bytes, int Size) {
+	*Total += Size;
+}
+
+static void ml_cbor_write_fn(unsigned char **End, unsigned char *Bytes, int Size) {
+	memcpy(*End, Bytes, Size);
+	*End += Size;
 }
 
 ml_cbor_t ml_to_cbor(ml_value_t *Value) {
-	cbor_item_t *Item = ml_to_cbor_item(Value);
-	size_t Size = 16;
-	for (int I = 0; I < 31; ++I) {
-		cbor_mutable_data Buffer = GC_malloc_atomic(Size);
-		size_t Length = cbor_serialize(Item, Buffer, Size);
-		if (Length) return (ml_cbor_t){Buffer, Length};
-		Size *= 2;
-	}
-	return (ml_cbor_t){NULL, 0};
+	size_t Size = 0;
+	ml_cbor_write(Value, &Size, (void *)ml_cbor_size_fn);
+	unsigned char *Bytes = GC_malloc_atomic(Size), *End = Bytes;
+	ml_cbor_write(Value, &End, (void *)ml_cbor_write_fn);
+	return (ml_cbor_t){Bytes, Size};
 }
 
 typedef struct block_t {
 	struct block_t *Prev;
 	const void *Data;
-	size_t Length;
+	int Size;
 } block_t;
 
 typedef struct collection_t {
@@ -34,7 +47,7 @@ typedef struct collection_t {
 	ml_value_t *Key;
 	ml_value_t *Collection;
 	block_t *Blocks;
-	size_t Remaining;
+	int Remaining;
 } collection_t;
 
 typedef struct tag_t {
@@ -43,44 +56,63 @@ typedef struct tag_t {
 	void *Data;
 } tag_t;
 
-typedef struct decoder_t {
+typedef struct ml_cbor_reader_t {
 	collection_t *Collection;
 	tag_t *Tags;
 	ml_value_t *Value;
-	ml_tag_t (*TagFn)(uint64_t Tag, void *TagFnData, void **TagData);
+	ml_tag_t (*TagFn)(void *Data, uint64_t Tag, void **TagData);
 	void *TagFnData;
-} decoder_t;
+	minicbor_reader_t Reader[1];
+} ml_cbor_reader_t;
+
+ml_cbor_reader_t *ml_cbor_reader_new(void *TagFnData, ml_tag_t (*TagFn)(void *, uint64_t, void **)) {
+	ml_cbor_reader_t *Reader = new(ml_cbor_reader_t);
+	Reader->TagFnData = TagFnData;
+	Reader->TagFn = TagFn;
+	minicbor_reader_init(Reader->Reader);
+	Reader->Reader->UserData = Reader;
+	return Reader;
+}
+
+void ml_cbor_reader_read(ml_cbor_reader_t *Reader, unsigned char *Bytes, int Size) {
+	minicbor_read(Reader->Reader, Bytes, Size);
+}
+
+ml_value_t *ml_cbor_reader_get(ml_cbor_reader_t *Reader) {
+	if (!Reader->Value) return ml_error("CBORError", "CBOR not completely read");
+	return Reader->Value;
+}
 
 static ml_value_t IsByteString[1];
 static ml_value_t IsString[1];
 static ml_value_t IsList[1];
 
-static void value_handler(decoder_t *Decoder, ml_value_t *Value) {
+static void value_handler(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	//printf("%s:%d\n", __func__, __LINE__);
-	for (tag_t *Tag = Decoder->Tags; Tag; Tag = Tag->Prev) {
+	for (tag_t *Tag = Reader->Tags; Tag; Tag = Tag->Prev) {
 		//printf("%s:%d\n", __func__, __LINE__);
 		if (Value->Type != MLErrorT) Value = Tag->Handler(Value, Tag->Data);
 	}
-	Decoder->Tags = 0;
-	collection_t *Collection = Decoder->Collection;
+	Reader->Tags = 0;
+	collection_t *Collection = Reader->Collection;
 	if (!Collection) {
 		//printf("%s:%d\n", __func__, __LINE__);
-		Decoder->Value = Value;
+		Reader->Value = Value;
 	} else if (Collection->Key == IsList) {
 		//printf("%s:%d\n", __func__, __LINE__);
 		ml_list_append(Collection->Collection, Value);
 		if (Collection->Remaining && --Collection->Remaining == 0) {
-			Decoder->Collection = Collection->Prev;
-			Decoder->Tags = Collection->Tags;
-			value_handler(Decoder, Collection->Collection);
+			Reader->Collection = Collection->Prev;
+			Reader->Tags = Collection->Tags;
+			value_handler(Reader, Collection->Collection);
 		}
 	} else if (Collection->Key) {
 		//printf("%s:%d\n", __func__, __LINE__);
 		ml_map_insert(Collection->Collection, Collection->Key, Value);
 		if (Collection->Remaining && --Collection->Remaining == 0) {
-			Decoder->Collection = Collection->Prev;
-			Decoder->Tags = Collection->Tags;
-			value_handler(Decoder, Collection->Collection);
+			Reader->Collection = Collection->Prev;
+			Reader->Tags = Collection->Tags;
+			value_handler(Reader, Collection->Collection);
 		} else {
 			Collection->Key = 0;
 		}
@@ -90,287 +122,200 @@ static void value_handler(decoder_t *Decoder, ml_value_t *Value) {
 	}
 }
 
-static void ml_uint8_cb(decoder_t *Decoder, uint8_t Value) {
+void ml_cbor_read_positive_fn(ml_cbor_reader_t *Reader, uint64_t Value) {
 	//printf("%s:%d\n", __func__, __LINE__);
-	value_handler(Decoder, ml_integer(Value));
+	value_handler(Reader, ml_integer(Value));
 }
 
-static void ml_uint16_cb(decoder_t *Decoder, uint16_t Value) {
-	//printf("%s:%d\n", __func__, __LINE__);
-	value_handler(Decoder, ml_integer(Value));
-}
-
-static void ml_uint32_cb(decoder_t *Decoder, uint32_t Value) {
-	//printf("%s:%d\n", __func__, __LINE__);
-	if (Value <= 0x7FFFFFFF) {
-		value_handler(Decoder, ml_integer(Value));
-	} else {
-		value_handler(Decoder, ml_integer(Value));
-		// TODO: Implement large numbers somehow
-		// mpz_t Temp;
-		// mpz_init_set_ui(Temp, Value);
-		// value_handler(Decoder, Std$Integer$new_big(Value));
-	}
-}
-
-static void ml_uint64_cb(decoder_t *Decoder, uint64_t Value) {
+void ml_cbor_read_negative_fn(ml_cbor_reader_t *Reader, uint64_t Value) {
 	//printf("%s:%d\n", __func__, __LINE__);
 	if (Value <= 0x7FFFFFFFL) {
-		value_handler(Decoder, ml_integer((uint32_t)Value));
+		value_handler(Reader, ml_integer(~(uint32_t)Value));
 	} else {
-		// TODO: Implement large numbers somehow
-		value_handler(Decoder, ml_integer(Value));
-	}
-}
-
-static void ml_int8_cb(decoder_t *Decoder, uint8_t Value) {
-	//printf("%s:%d\n", __func__, __LINE__);
-	int32_t Value0 = (int32_t)Value;
-	value_handler(Decoder, ml_integer(~Value0));
-}
-
-static void ml_int16_cb(decoder_t *Decoder, uint16_t Value) {
-	//printf("%s:%d\n", __func__, __LINE__);
-	int32_t Value0 = (int32_t)Value;
-	value_handler(Decoder, ml_integer(~Value0));
-}
-
-static void ml_int32_cb(decoder_t *Decoder, uint32_t Value) {
-	//printf("%s:%d\n", __func__, __LINE__);
-	int32_t Value0 = (int32_t)Value;
-	value_handler(Decoder, ml_integer(~Value));
-}
-
-static void ml_int64_cb(decoder_t *Decoder, uint64_t Value) {
-	//printf("%s:%d\n", __func__, __LINE__);
-	if (Value <= 0x7FFFFFFFL) {
-		value_handler(Decoder, ml_integer(~(uint32_t)Value));
-	} else {
-		value_handler(Decoder, ml_integer(Value));
+		value_handler(Reader, ml_integer(Value));
 		// TODO: Implement large numbers somehow
 		// mpz_t Temp;
 		// mpz_init_set_ui(Temp, (uint32_t)(Value >> 32));
 		// mpz_mul_2exp(Temp, Temp, 32);
 		// mpz_add_ui(Temp, Temp, (uint32_t)Value);
 		// mpz_com(Temp, Temp);
-		// value_handler(Decoder, Std$Integer$new_big(Temp));
+		// value_handler(Reader, Std$Integer$new_big(Temp));
 	}
 }
 
-static void ml_byte_string_start_cb(decoder_t *Decoder) {
+void ml_cbor_read_bytes_fn(ml_cbor_reader_t *Reader, int Size) {
 	//printf("%s:%d\n", __func__, __LINE__);
-	collection_t *Collection = new(collection_t);
-	Collection->Prev = Decoder->Collection;
-	Collection->Tags = Decoder->Tags;
-	Decoder->Tags = 0;
-	Collection->Key = IsByteString;
-	Collection->Remaining = 0;
-	Collection->Blocks = 0;
-	Decoder->Collection = Collection;
-}
-
-static void ml_byte_string_cb(decoder_t *Decoder, cbor_data Data, size_t Length) {
-	//printf("%s:%d\n", __func__, __LINE__);
-	if (Decoder->Collection && Decoder->Collection->Key == IsByteString) {
-		block_t *Block = new(block_t);
-		Block->Prev = Decoder->Collection->Blocks;
-		Block->Data = Data;
-		Block->Length = Length;
-		Decoder->Collection->Blocks = Block;
-		Decoder->Collection->Remaining += Length;
-	} else {
-		value_handler(Decoder, ml_string(Data, Length));
-	}
-}
-
-static void ml_string_start_cb(decoder_t *Decoder) {
-	//printf("%s:%d\n", __func__, __LINE__);
-	collection_t *Collection = new(collection_t);
-	Collection->Prev = Decoder->Collection;
-	Collection->Tags = Decoder->Tags;
-	Decoder->Tags = 0;
-	Collection->Key = IsString;
-	Collection->Remaining = 0;
-	Collection->Blocks = 0;
-	Decoder->Collection = Collection;
-}
-
-static void ml_string_cb(decoder_t *Decoder, cbor_data Data, size_t Length) {
-	//printf("%s:%d\n", __func__, __LINE__);
-	if (Decoder->Collection && Decoder->Collection->Key == IsString) {
-		block_t *Block = new(block_t);
-		Block->Prev = Decoder->Collection->Blocks;
-		Block->Data = Data;
-		Block->Length = Length;
-		Decoder->Collection->Blocks = Block;
-		Decoder->Collection->Remaining += Length;
-	} else {
-		value_handler(Decoder, ml_string(Data, Length));
-	}
-}
-
-static void ml_indef_array_start_cb(decoder_t *Decoder) {
-	//printf("%s:%d\n", __func__, __LINE__);
-	collection_t *Collection = new(collection_t);
-	Collection->Prev = Decoder->Collection;
-	Collection->Tags = Decoder->Tags;
-	Decoder->Tags = 0;
-	Collection->Remaining = 0;
-	Collection->Key = IsList;
-	Collection->Collection = ml_list();
-	Decoder->Collection = Collection;
-}
-
-static void ml_array_start_cb(decoder_t *Decoder, size_t Length) {
-	//printf("%s:%d\n", __func__, __LINE__);
-	if (Length > 0) {
+	if (Size) {
 		collection_t *Collection = new(collection_t);
-		Collection->Prev = Decoder->Collection;
-		Collection->Tags = Decoder->Tags;
-		Decoder->Tags = 0;
-		Collection->Remaining = Length;
+		Collection->Prev = Reader->Collection;
+		Collection->Tags = Reader->Tags;
+		Reader->Tags = 0;
+		Collection->Key = IsByteString;
+		Collection->Remaining = 0;
+		Collection->Blocks = 0;
+		Reader->Collection = Collection;
+	} else {
+		value_handler(Reader, ml_string(NULL, 0));
+	}
+}
+
+void ml_cbor_read_bytes_piece_fn(ml_cbor_reader_t *Reader, unsigned char *Bytes, int Size, int Final) {
+	//printf("%s:%d\n", __func__, __LINE__);
+	collection_t *Collection = Reader->Collection;
+	if (Final) {
+		Reader->Collection = Collection->Prev;
+		Reader->Tags = Collection->Tags;
+		int Total = Collection->Remaining + Size;
+		char *Buffer = GC_malloc_atomic(Total);
+		Buffer += Collection->Remaining;
+		memcpy(Buffer, Bytes, Size);
+		for (block_t *B = Collection->Blocks; B; B = B->Prev) {
+			Buffer -= B->Size;
+			memcpy(Buffer, B->Data, B->Size);
+		}
+		value_handler(Reader, ml_string(Buffer, Total));
+	} else {
+		block_t *Block = new(block_t);
+		Block->Prev = Collection->Blocks;
+		Block->Data = Bytes;
+		Block->Size = Size;
+		Collection->Blocks = Block;
+		Collection->Remaining += Size;
+	}
+}
+
+void ml_cbor_read_string_fn(ml_cbor_reader_t *Reader, int Size) {
+	//printf("%s:%d\n", __func__, __LINE__);
+	if (Size) {
+		collection_t *Collection = new(collection_t);
+		Collection->Prev = Reader->Collection;
+		Collection->Tags = Reader->Tags;
+		Reader->Tags = 0;
+		Collection->Key = IsString;
+		Collection->Remaining = 0;
+		Collection->Blocks = 0;
+		Reader->Collection = Collection;
+	} else {
+		value_handler(Reader, ml_string(NULL, 0));
+	}
+}
+
+void ml_cbor_read_string_piece_fn(ml_cbor_reader_t *Reader, unsigned char *Bytes, int Size, int Final) {
+	//printf("%s:%d\n", __func__, __LINE__);
+	collection_t *Collection = Reader->Collection;
+	if (Final) {
+		Reader->Collection = Collection->Prev;
+		Reader->Tags = Collection->Tags;
+		int Total = Collection->Remaining + Size;
+		char *Buffer = GC_malloc_atomic(Total);
+		Buffer += Collection->Remaining;
+		memcpy(Buffer, Bytes, Size);
+		for (block_t *B = Collection->Blocks; B; B = B->Prev) {
+			Buffer -= B->Size;
+			memcpy(Buffer, B->Data, B->Size);
+		}
+		value_handler(Reader, ml_string(Buffer, Total));
+	} else {
+		block_t *Block = new(block_t);
+		Block->Prev = Collection->Blocks;
+		Block->Data = Bytes;
+		Block->Size = Size;
+		Collection->Blocks = Block;
+		Collection->Remaining += Size;
+	}
+}
+
+void ml_cbor_read_array_fn(ml_cbor_reader_t *Reader, int Size) {
+	//printf("%s:%d\n", __func__, __LINE__);
+	if (Size) {
+		collection_t *Collection = new(collection_t);
+		Collection->Prev = Reader->Collection;
+		Collection->Tags = Reader->Tags;
+		Reader->Tags = 0;
+		Collection->Remaining = Size;
 		Collection->Key = IsList;
 		Collection->Collection = ml_list();
-		Decoder->Collection = Collection;
+		Reader->Collection = Collection;
 	} else {
-		value_handler(Decoder, ml_list());
+		value_handler(Reader, ml_list());
 	}
 }
 
-static void ml_indef_map_start_cb(decoder_t *Decoder) {
+void ml_cbor_read_map_fn(ml_cbor_reader_t *Reader, int Size) {
 	//printf("%s:%d\n", __func__, __LINE__);
-	collection_t *Collection = new(collection_t);
-	Collection->Prev = Decoder->Collection;
-	Collection->Tags = Decoder->Tags;
-	Decoder->Tags = 0;
-	Collection->Remaining = 0;
-	Collection->Key = 0;
-	Collection->Collection = ml_map();
-	Decoder->Collection = Collection;
-}
-
-static void ml_map_start_cb(decoder_t *Decoder, size_t Length) {
-	//printf("%s:%d\n", __func__, __LINE__);
-	if (Length > 0) {
+	if (Size > 0) {
 		collection_t *Collection = new(collection_t);
-		Collection->Prev = Decoder->Collection;
-		Collection->Tags = Decoder->Tags;
-		Decoder->Tags = 0;
-		Collection->Remaining = Length;
+		Collection->Prev = Reader->Collection;
+		Collection->Tags = Reader->Tags;
+		Reader->Tags = 0;
+		Collection->Remaining = Size;
 		Collection->Key = 0;
 		Collection->Collection = ml_map();
-		Decoder->Collection = Collection;
+		Reader->Collection = Collection;
 	} else {
-		value_handler(Decoder, ml_map());
+		value_handler(Reader, ml_map());
 	}
 }
 
-static void ml_tag_cb(decoder_t *Decoder, uint64_t Tag) {
+void ml_cbor_read_tag_fn(ml_cbor_reader_t *Reader, uint64_t Tag) {
 	//printf("%s:%d\n", __func__, __LINE__);
 	void *Data;
-	ml_tag_t Handler = Decoder->TagFn(Tag, Decoder->TagFnData, &Data);
+	ml_tag_t Handler = Reader->TagFn(Reader->TagFnData, Tag, &Data);
 	if (Handler) {
 		tag_t *Tag = new(tag_t);
-		Tag->Prev = Decoder->Tags;
+		Tag->Prev = Reader->Tags;
 		Tag->Handler = Handler;
 		Tag->Data = Data;
-		Decoder->Tags = Tag;
+		Reader->Tags = Tag;
 	}
 }
 
-static void ml_float_cb(decoder_t *Decoder, float Value) {
+void ml_cbor_read_float_fn(ml_cbor_reader_t *Reader, double Value) {
 	//printf("%s:%d\n", __func__, __LINE__);
-	value_handler(Decoder, ml_real(Value));
+	value_handler(Reader, ml_real(Value));
 }
 
-static void ml_double_cb(decoder_t *Decoder, double Value) {
+void ml_cbor_read_simple_fn(ml_cbor_reader_t *Reader, int Value) {
 	//printf("%s:%d\n", __func__, __LINE__);
-	value_handler(Decoder, ml_real(Value));
-}
-
-static void ml_null_cb(decoder_t *Decoder) {
-	//printf("%s:%d\n", __func__, __LINE__);
-	value_handler(Decoder, MLNil);
-}
-
-static void ml_boolean_cb(decoder_t *Decoder, bool Value) {
-	//printf("%s:%d\n", __func__, __LINE__);
-	value_handler(Decoder, ml_method(Value ? "true" : "false"));
-}
-
-static void ml_indef_break_cb(decoder_t *Decoder) {
-	//printf("%s:%d\n", __func__, __LINE__);
-	collection_t *Collection = Decoder->Collection;
-	Decoder->Collection = Collection->Prev;
-	Decoder->Tags = Collection->Tags;
-	if (Collection->Key == IsByteString) {
-		char *Buffer = GC_malloc_atomic(Collection->Remaining);
-		Buffer += Collection->Remaining;
-		for (block_t *B = Collection->Blocks; B; B = B->Prev) {
-			Buffer -= B->Length;
-			memcpy(Buffer, B->Data, B->Length);
-		}
-		value_handler(Decoder, ml_string(Buffer, Collection->Remaining));
-	} else if (Collection->Key == IsString) {
-		char *Buffer = GC_malloc_atomic(Collection->Remaining);
-		Buffer += Collection->Remaining;
-		for (block_t *B = Collection->Blocks; B; B = B->Prev) {
-			Buffer -= B->Length;
-			memcpy(Buffer, B->Data, B->Length);
-		}
-		value_handler(Decoder, ml_string(Buffer, Collection->Remaining));
-	} else if (Collection->Key == IsList) {
-		value_handler(Decoder, Collection->Collection);
-	} else {
-		value_handler(Decoder, Collection->Collection);
+	switch (Value) {
+	case CBOR_SIMPLE_FALSE:
+		value_handler(Reader, ml_method("false"));
+		break;
+	case CBOR_SIMPLE_TRUE:
+		value_handler(Reader, ml_method("true"));
+		break;
+	case CBOR_SIMPLE_NULL:
+		value_handler(Reader, MLNil);
+		break;
+	default:
+		value_handler(Reader, MLNil);
+		break;
 	}
 }
 
-static struct cbor_callbacks Callbacks = {
-	.uint8 = (void *)ml_uint8_cb,
-	.uint16 = (void *)ml_uint16_cb,
-	.uint32 = (void *)ml_uint32_cb,
-	.uint64 = (void *)ml_uint64_cb,
-	.negint64 = (void *)ml_int64_cb,
-	.negint32 = (void *)ml_int32_cb,
-	.negint16 = (void *)ml_int16_cb,
-	.negint8 = (void *)ml_int8_cb,
-	.byte_string_start = (void *)ml_byte_string_start_cb,
-	.byte_string = (void *)ml_byte_string_cb,
-	.string = (void *)ml_string_cb,
-	.string_start = (void *)ml_string_start_cb,
-	.indef_array_start = (void *)ml_indef_array_start_cb,
-	.array_start = (void *)ml_array_start_cb,
-	.indef_map_start = (void *)ml_indef_map_start_cb,
-	.map_start = (void *)ml_map_start_cb,
-	.tag = (void *)ml_tag_cb,
-	.float2 = (void *)ml_float_cb,
-	.float4 = (void *)ml_float_cb,
-	.float8 = (void *)ml_double_cb,
-	.undefined = (void *)ml_null_cb,
-	.null = (void *)ml_null_cb,
-	.boolean = (void *)ml_boolean_cb,
-	.indef_break = (void *)ml_indef_break_cb
-};
+void ml_cbor_read_break_fn(ml_cbor_reader_t *Reader) {
+	//printf("%s:%d\n", __func__, __LINE__);
+	collection_t *Collection = Reader->Collection;
+	Reader->Collection = Collection->Prev;
+	Reader->Tags = Collection->Tags;
+	value_handler(Reader, Collection->Collection);
+}
 
-ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_tag_t (*TagFn)(uint64_t, void *, void **), void *TagFnData) {
-	decoder_t Decoder;
-	Decoder.Collection = 0;
-	Decoder.TagFn = TagFn;
-	Decoder.TagFnData = TagFnData;
-	Decoder.Tags = 0;
-	Decoder.Value = MLNil;
-	while (Cbor.Length) {
-		struct cbor_decoder_result DecoderResult = cbor_stream_decode(
-			Cbor.Data, Cbor.Length, &Callbacks, &Decoder
-		);
-		if (DecoderResult.status != CBOR_DECODER_FINISHED) {
-			return ml_error("CborError", "Error decoding cbor");
-		}
-		Cbor.Length -= DecoderResult.read;
-		Cbor.Data += DecoderResult.read;
-	}
-	return Decoder.Value;
+void ml_cbor_read_error_fn(ml_cbor_reader_t *Reader, int Position, const char *Message) {
+	value_handler(Reader, ml_error("CBORError", "Read error: %s at %d", Message, Position));
+}
+
+ml_value_t *ml_from_cbor(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*TagFn)(void *, uint64_t, void **)) {
+	ml_cbor_reader_t Reader[1];
+	Reader->TagFnData = TagFnData;
+	Reader->TagFn = TagFn;
+	minicbor_reader_init(Reader->Reader);
+	Reader->Reader->UserData = Reader;
+	Reader->Collection = 0;
+	Reader->Tags = 0;
+	Reader->Value = 0;
+	minicbor_read(Reader->Reader, Cbor.Data, Cbor.Length);
+	return ml_cbor_reader_get(Reader);
 }
 
 static ml_value_t *ml_to_cbor_fn(void *Data, int Count, ml_value_t **Args) {
@@ -379,11 +324,11 @@ static ml_value_t *ml_to_cbor_fn(void *Data, int Count, ml_value_t **Args) {
 	return ml_error("CborError", "Error encoding to cbor");
 }
 
-static ml_value_t *ml_value_fn(ml_value_t *Value, ml_value_t *Callback) {
+static ml_value_t *ml_value_fn(ml_value_t *Callback, ml_value_t *Value) {
 	return ml_inline(Callback, 1, Value);
 }
 
-static ml_tag_t ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void **Data) {
+static ml_tag_t ml_value_tag_fn(ml_value_t *Callback, uint64_t Tag, void **Data) {
 	Data[0] = ml_inline(Callback, 1, ml_integer(Tag));
 	return ml_value_fn;
 }
@@ -392,89 +337,75 @@ static ml_value_t *ml_from_cbor_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ml_cbor_t Cbor = {ml_string_value(Args[0]), ml_string_length(Args[0])};
-	return ml_from_cbor(Cbor, ml_value_tag_fn, Count > 1 ? Args[1] : MLNil);
+	return ml_from_cbor(Cbor, Count > 1 ? Args[1] : MLNil, ml_value_tag_fn);
 }
 
-cbor_item_t *ml_integer_to_cbor_item(ml_value_t *Arg) {
+void ml_cbor_write_integer(ml_value_t *Arg, void *Data, int (*WriteFn)(void *Data, const unsigned char *Bytes, unsigned Size)) {
 	//printf("%s()\n", __func__);
 	int64_t Value = ml_integer_value(Arg);
-	cbor_item_t *Item;
 	if (Value < 0) {
-		Value = ~Value;
-		if (Value <= 0xFF) {
-			Item = cbor_build_uint8(Value);
-		} else if (Value <= 0xFFFF) {
-			Item = cbor_build_uint16(Value);
-		} else if (Value <= 0xFFFFFFFF){
-			Item = cbor_build_uint32(Value);
-		} else {
-			Item = cbor_build_uint64(Value);
-		}
-		cbor_mark_negint(Item);
+		minicbor_write_negative(Data, WriteFn, ~Value);
 	} else {
-		if (Value <= 0xFF) {
-			Item = cbor_build_uint8(Value);
-		} else if (Value <= 0xFFFF) {
-			Item = cbor_build_uint16(Value);
-		} else if (Value <= 0xFFFFFFFF){
-			Item = cbor_build_uint32(Value);
-		} else {
-			Item = cbor_build_uint64(Value);
-		}
+		minicbor_write_positive(Data, WriteFn, Value);
 	}
-	return Item;
 }
 
-cbor_item_t *ml_string_to_cbor_item(ml_value_t *Arg) {
+void ml_cbor_write_string(ml_value_t *Arg, void *Data, int (*WriteFn)(void *Data, const unsigned char *Bytes, unsigned Size)) {
 	//printf("%s()\n", __func__);
-	return cbor_build_stringn(ml_string_value(Arg), ml_string_length(Arg));
+	minicbor_write_string(Data, WriteFn, ml_string_length(Arg));
+	WriteFn(Data, ml_string_value(Arg), ml_string_length(Arg));
 }
 
-cbor_item_t *ml_list_to_cbor_item(ml_value_t *Arg) {
-	cbor_item_t *Item = cbor_new_definite_array(ml_list_length(Arg));
+void ml_cbor_write_list(ml_value_t *Arg, void *Data, int (*WriteFn)(void *Data, const unsigned char *Bytes, unsigned Size)) {
+	minicbor_write_array(Data, WriteFn, ml_list_length(Arg));
 	for (ml_list_node_t *Node = ml_list_head(Arg); Node; Node = Node->Next) {
-		cbor_item_t *Child = ml_to_cbor_item(Node->Value);
-		cbor_array_push(Item, Child);
+		ml_cbor_write(Node->Value, Data, WriteFn);
 	}
-	return Item;
 }
 
-static int build_map_pair(ml_value_t *Key, ml_value_t *Value, cbor_item_t *Item) {
-	struct cbor_pair Pair = {ml_to_cbor_item(Key), ml_to_cbor_item(Value)};
-	cbor_map_add(Item, Pair);
+typedef struct ml_cbor_writer_t {
+	void *Data;
+	int (*WriteFn)(void *Data, const unsigned char *Bytes, unsigned Size);
+} ml_cbor_writer_t;
+
+static int ml_cbor_write_map_pair(ml_value_t *Key, ml_value_t *Value, ml_cbor_writer_t *Writer) {
+	ml_cbor_write(Key, Writer->Data, Writer->WriteFn);
+	ml_cbor_write(Value, Writer->Data, Writer->WriteFn);
 	return 0;
 }
 
-cbor_item_t *ml_map_to_cbor_item(ml_value_t *Arg) {
-	cbor_item_t *Item = cbor_new_definite_map(ml_map_size(Arg));
-	ml_map_foreach(Arg, Item, (void *)build_map_pair);
-	return Item;
+void ml_cbor_write_map(ml_value_t *Arg, void *Data, int (*WriteFn)(void *Data, const unsigned char *Bytes, unsigned Size)) {
+	minicbor_write_map(Data, WriteFn, ml_map_size(Arg));
+	ml_cbor_writer_t Writer[1] = {{Data, WriteFn}};
+	ml_map_foreach(Arg, Writer, (void *)ml_cbor_write_map_pair);
 }
 
-cbor_item_t *ml_real_to_cbor_item(ml_value_t *Arg) {
-	return cbor_build_float8(ml_real_value(Arg));
+void ml_cbor_write_real(ml_value_t *Arg, void *Data, int (*WriteFn)(void *Data, const unsigned char *Bytes, unsigned Size)) {
+	minicbor_write_float8(Data, WriteFn, ml_real_value(Arg));
 }
 
-cbor_item_t *ml_nil_to_cbor_item(ml_value_t *Arg) {
-	return cbor_build_ctrl(CBOR_CTRL_NULL);
+void ml_cbor_write_nil(ml_value_t *Arg, void *Data, int (*WriteFn)(void *Data, const unsigned char *Bytes, unsigned Size)) {
+	minicbor_write_simple(Data, WriteFn, CBOR_SIMPLE_NULL);
 }
 
-cbor_item_t *ml_symbol_to_cbor_item(ml_value_t *Arg) {
+void ml_cbor_write_symbol(ml_value_t *Arg, void *Data, int (*WriteFn)(void *Data, const unsigned char *Bytes, unsigned Size)) {
 	if (!strcmp(ml_method_name(Arg), "true")) {
-		return cbor_build_ctrl(CBOR_CTRL_TRUE);
+		minicbor_write_simple(Data, WriteFn, CBOR_SIMPLE_TRUE);
+	} else if (!strcmp(ml_method_name(Arg), "false")) {
+		minicbor_write_simple(Data, WriteFn, CBOR_SIMPLE_FALSE);
 	} else {
-		return cbor_build_ctrl(CBOR_CTRL_FALSE);
+		minicbor_write_simple(Data, WriteFn, CBOR_SIMPLE_UNDEF);
 	}
 }
 
 void ml_cbor_init(stringmap_t *Globals) {
-	ml_typed_fn_set(MLIntegerT, ml_to_cbor_item, ml_integer_to_cbor_item);
-	ml_typed_fn_set(MLStringT, ml_to_cbor_item, ml_string_to_cbor_item);
-	ml_typed_fn_set(MLListT, ml_to_cbor_item, ml_list_to_cbor_item);
-	ml_typed_fn_set(MLMapT, ml_to_cbor_item, ml_map_to_cbor_item);
-	ml_typed_fn_set(MLRealT, ml_to_cbor_item, ml_real_to_cbor_item);
-	ml_typed_fn_set(MLNilT, ml_to_cbor_item, ml_nil_to_cbor_item);
-	ml_typed_fn_set(MLMethodT, ml_to_cbor_item, ml_symbol_to_cbor_item);
+	ml_typed_fn_set(MLIntegerT, ml_cbor_write, ml_cbor_write_integer);
+	ml_typed_fn_set(MLStringT, ml_cbor_write, ml_cbor_write_string);
+	ml_typed_fn_set(MLListT, ml_cbor_write, ml_cbor_write_list);
+	ml_typed_fn_set(MLMapT, ml_cbor_write, ml_cbor_write_map);
+	ml_typed_fn_set(MLRealT, ml_cbor_write, ml_cbor_write_real);
+	ml_typed_fn_set(MLNilT, ml_cbor_write, ml_cbor_write_nil);
+	ml_typed_fn_set(MLMethodT, ml_cbor_write, ml_cbor_write_symbol);
 	if (Globals) {
 		stringmap_insert(Globals, "cbor_encode", ml_function(NULL, ml_to_cbor_fn));
 		stringmap_insert(Globals, "cbor_decode", ml_function(NULL, ml_from_cbor_fn));

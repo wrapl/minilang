@@ -21,7 +21,7 @@ static ml_value_t *StringMethod;
 
 struct console_t {
 	GtkWidget *Window, *LogScrolled, *LogView, *InputView;
-	GtkTextTag *OutputTag, *ResultTag, *ErrorTag;
+	GtkTextTag *OutputTag, *ResultTag, *ErrorTag, *BinaryTag;
 	GtkTextMark *EndMark;
 	ml_getter_t ParentGetter;
 	void *ParentGlobals;
@@ -81,14 +81,30 @@ void console_log(console_t *Console, ml_value_t *Value) {
 		}
 	} else {
 		ml_value_t *String = ml_call(StringMethod, 1, &Value);
-		char *Buffer;
-		int Length;
 		if (String->Type == MLStringT) {
-			Length = asprintf(&Buffer, "%s\n", ml_string_value(String));
+			const char *Buffer = ml_string_value(String);
+			int Length = ml_string_length(String);
+			if (g_utf8_validate(Buffer, Length, NULL)) {
+				gtk_text_buffer_insert_with_tags(LogBuffer, End, Buffer, Length, Console->ResultTag, NULL);
+			} else {
+				gtk_text_buffer_insert_with_tags(LogBuffer, End, "<", 1, Console->BinaryTag, NULL);
+				for (int I = 0; I < Length; ++I) {
+					static char HexChars[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+					char Bytes[4] = " ??";
+					unsigned char Byte = Buffer[I];
+					Bytes[1] = HexChars[Byte >> 4];
+					Bytes[2] = HexChars[Byte & 15];
+					printf("Bytes = %02ux\n", Byte);
+					gtk_text_buffer_insert_with_tags(LogBuffer, End, Bytes, 3, Console->BinaryTag, NULL);
+				}
+				gtk_text_buffer_insert_with_tags(LogBuffer, End, " >", 2, Console->BinaryTag, NULL);
+			}
+			gtk_text_buffer_insert_with_tags(LogBuffer, End, "\n", 1, Console->ResultTag, NULL);
 		} else {
-			Length = asprintf(&Buffer, "<%s>\n", Value->Type->Name);
+			char *Buffer;
+			int Length = asprintf(&Buffer, "<%s>\n", Value->Type->Name);
+			gtk_text_buffer_insert_with_tags(LogBuffer, End, Buffer, Length, Console->ResultTag, NULL);
 		}
-		gtk_text_buffer_insert_with_tags(LogBuffer, End, Buffer, Length, Console->ResultTag, NULL);
 	}
 	gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(Console->LogView), Console->EndMark);
 }
@@ -204,7 +220,22 @@ void console_append(console_t *Console, const char *Buffer, int Length) {
 	GtkTextIter End[1];
 	GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
 	gtk_text_buffer_get_end_iter(LogBuffer, End);
-	gtk_text_buffer_insert(LogBuffer, End, Buffer, Length);
+
+	if (g_utf8_validate(Buffer, Length, NULL)) {
+		gtk_text_buffer_insert_with_tags(LogBuffer, End, Buffer, Length, Console->OutputTag, NULL);
+	} else {
+		gtk_text_buffer_insert_with_tags(LogBuffer, End, "<", 1, Console->BinaryTag, NULL);
+		for (int I = 0; I < Length; ++I) {
+			static char HexChars[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+			char Bytes[4] = " ??";
+			unsigned char Byte = Buffer[I];
+			Bytes[1] = HexChars[Byte >> 4];
+			Bytes[2] = HexChars[Byte & 15];
+			printf("Bytes = %s\n", Bytes);
+			gtk_text_buffer_insert_with_tags(LogBuffer, End, Bytes, 3, Console->BinaryTag, NULL);
+		}
+		gtk_text_buffer_insert_with_tags(LogBuffer, End, " >", 2, Console->BinaryTag, NULL);
+	}
 	while (gtk_events_pending()) gtk_main_iteration();
 }
 
@@ -220,7 +251,23 @@ ml_value_t *console_print(console_t *Console, int Count, ml_value_t **Args) {
 			if (Result->Type == MLErrorT) return Result;
 			if (Result->Type != MLStringT) return ml_error("ResultError", "string method did not return string");
 		}
-		gtk_text_buffer_insert_with_tags(LogBuffer, End, ml_string_value(Result), ml_string_length(Result), Console->OutputTag, NULL);
+		const char *String = ml_string_value(Result);
+		int Length = ml_string_length(Result);
+		if (g_utf8_validate(String, Length, NULL)) {
+			gtk_text_buffer_insert_with_tags(LogBuffer, End, String, Length, Console->OutputTag, NULL);
+		} else {
+			gtk_text_buffer_insert_with_tags(LogBuffer, End, "<", 1, Console->BinaryTag, NULL);
+			for (int I = 0; I < Length; ++I) {
+				static char HexChars[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+				char Bytes[4] = " ??";
+				unsigned char Byte = String[I];
+				Bytes[1] = HexChars[Byte >> 4];
+				Bytes[2] = HexChars[Byte & 15];
+				printf("Bytes = %s\n", Bytes);
+				gtk_text_buffer_insert_with_tags(LogBuffer, End, Bytes, 3, Console->BinaryTag, NULL);
+			}
+			gtk_text_buffer_insert_with_tags(LogBuffer, End, " >", 2, Console->BinaryTag, NULL);
+		}
 	}
 	while (gtk_events_pending()) gtk_main_iteration();
 	return MLNil;
@@ -288,6 +335,7 @@ console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 	Console->OutputTag = gtk_text_tag_new("log-output");
 	Console->ResultTag = gtk_text_tag_new("log-result");
 	Console->ErrorTag = gtk_text_tag_new("log-error");
+	Console->BinaryTag = gtk_text_tag_new("log-binary");
 	g_object_set(Console->OutputTag,
 		"background", "#FFFFF0",
 	NULL);
@@ -302,9 +350,14 @@ console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 		"foreground", "#FF0000",
 		"indent", 10,
 	NULL);
+	g_object_set(Console->BinaryTag,
+		"background", "#F0F0FF",
+		"foreground", "#FF8000",
+	NULL);
 	gtk_text_tag_table_add(TagTable, Console->OutputTag);
 	gtk_text_tag_table_add(TagTable, Console->ResultTag);
 	gtk_text_tag_table_add(TagTable, Console->ErrorTag);
+	gtk_text_tag_table_add(TagTable, Console->BinaryTag);
 	GtkSourceBuffer *LogBuffer = gtk_source_buffer_new(TagTable);
 	Console->LogView = gtk_source_view_new_with_buffer(LogBuffer);
 	gtk_widget_override_font(Console->LogView, FontDescription);
