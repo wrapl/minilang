@@ -73,8 +73,11 @@ c_library(file("libminilang.a"), Objects)
 MINILANG := c_program(file("minilang"), [file("ml_main.o")] + Objects)
 MINIPP := c_program(file("minipp"), [file("minipp.o")] + Objects)
 
+var InstallBin := PREFIX / "bin"
 var InstallInclude := PREFIX / "include/minilang"
 var InstallLib := PREFIX / "lib"
+
+install(file("minilang"), InstallBin / "minilang", "+x")
 
 var InstallHeaders := [
 	"linenoise.h",

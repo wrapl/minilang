@@ -14,6 +14,7 @@
 #include <ml_compiler.h>
 #include <sys/stat.h>
 
+#include "ml_gir.h"
 
 #define MAX_HISTORY 128
 
@@ -94,7 +95,6 @@ void console_log(console_t *Console, ml_value_t *Value) {
 					unsigned char Byte = Buffer[I];
 					Bytes[1] = HexChars[Byte >> 4];
 					Bytes[2] = HexChars[Byte & 15];
-					printf("Bytes = %02ux\n", Byte);
 					gtk_text_buffer_insert_with_tags(LogBuffer, End, Bytes, 3, Console->BinaryTag, NULL);
 				}
 				gtk_text_buffer_insert_with_tags(LogBuffer, End, " >", 2, Console->BinaryTag, NULL);
@@ -231,7 +231,6 @@ void console_append(console_t *Console, const char *Buffer, int Length) {
 			unsigned char Byte = Buffer[I];
 			Bytes[1] = HexChars[Byte >> 4];
 			Bytes[2] = HexChars[Byte & 15];
-			printf("Bytes = %s\n", Bytes);
 			gtk_text_buffer_insert_with_tags(LogBuffer, End, Bytes, 3, Console->BinaryTag, NULL);
 		}
 		gtk_text_buffer_insert_with_tags(LogBuffer, End, " >", 2, Console->BinaryTag, NULL);
@@ -263,7 +262,6 @@ ml_value_t *console_print(console_t *Console, int Count, ml_value_t **Args) {
 				unsigned char Byte = String[I];
 				Bytes[1] = HexChars[Byte >> 4];
 				Bytes[2] = HexChars[Byte & 15];
-				printf("Bytes = %s\n", Bytes);
 				gtk_text_buffer_insert_with_tags(LogBuffer, End, Bytes, 3, Console->BinaryTag, NULL);
 			}
 			gtk_text_buffer_insert_with_tags(LogBuffer, End, " >", 2, Console->BinaryTag, NULL);
@@ -430,6 +428,13 @@ console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 
 	stringmap_insert(Globals, "set_font", ml_function(Console, (ml_callback_t)console_set_font));
 	stringmap_insert(Globals, "set_style", ml_function(Console, (ml_callback_t)console_set_style));
+
+	GError *Error = 0;
+	g_irepository_require(NULL, "Gtk", NULL, 0, &Error);
+	g_irepository_require(NULL, "GtkSource", NULL, 0, &Error);
+	stringmap_insert(Globals, "Console", ml_gir_instance_get(Console->Window));
+	stringmap_insert(Globals, "InputView", ml_gir_instance_get(Console->InputView));
+	stringmap_insert(Globals, "LogView", ml_gir_instance_get(Console->LogView));
 
 	return Console;
 }

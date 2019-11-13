@@ -86,7 +86,7 @@ static void instance_finalize(object_instance_t *Instance, void *Data) {
 
 static GQuark MLQuark;
 
-static ml_value_t *object_instance_get(void *Handle) {
+ml_value_t *ml_gir_instance_get(void *Handle) {
 	if (Handle == 0) return (ml_value_t *)ObjectInstanceNil;
 	ml_value_t *Instance = (ml_value_t *)g_object_get_qdata(Handle, MLQuark);
 	if (Instance) return Instance;
@@ -890,7 +890,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 			break;
 		}
 		case GI_INFO_TYPE_OBJECT: {
-			return object_instance_get(ReturnValue->v_pointer);
+			return ml_gir_instance_get(ReturnValue->v_pointer);
 		}
 		case GI_INFO_TYPE_INTERFACE: {
 			break;
@@ -1187,7 +1187,7 @@ static ml_value_t *_value_to_ml(const GValue *Value) {
 	case G_TYPE_POINTER: return MLNil; //Std$Address$new(g_value_get_pointer(Value));
 	default: {
 		if (G_VALUE_HOLDS(Value, G_TYPE_OBJECT)) {
-			return object_instance_get(g_value_get_object(Value));
+			return ml_gir_instance_get(g_value_get_object(Value));
 		} else {
 			printf("Warning: Unknown parameter type: %s\n", G_VALUE_TYPE_NAME(Value));
 			return MLNil;
