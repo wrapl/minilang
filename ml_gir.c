@@ -3,6 +3,7 @@
 #include "ml_macros.h"
 #include <gc.h>
 #include <girepository.h>
+#include <girffi.h>
 #include <gtk/gtk.h>
 #include <stdio.h>
 
@@ -336,6 +337,22 @@ static size_t array_element_size(GITypeInfo *Info) {
 	return 0;
 }
 
+typedef struct ml_gir_callback_t {
+	ml_value_t *Function;
+	GICallbackInfo *Info;
+	ffi_cif Cif[1];
+} ml_gir_callback_t;
+
+static void callback_invoke(ffi_cif *Cif, void *Return, void **Params, ml_gir_callback_t *Callback) {
+	GICallbackInfo *Info = Callback->Info;
+	int NumArgs = g_callable_info_get_n_args(Info);
+	ml_value_t **Args[NumArgs];
+	for (int I = 0; I < NumArgs; ++I) {
+
+	}
+	printf("At least we got here!\n");
+}
+
 static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_value_t **Args) {
 	int NArgs = g_callable_info_get_n_args((GICallableInfo *)Info);
 	int NArgsIn = 0, NArgsOut = 0;
@@ -443,7 +460,16 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_CALLBACK: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ml_gir_callback_t *Callback = new(ml_gir_callback_t);
+					Callback->Info = InterfaceInfo;
+					Callback->Function = Arg;
+					ArgsIn[IndexIn].v_pointer = g_callable_info_prepare_closure(
+						InterfaceInfo,
+						Callback->Cif,
+						callback_invoke,
+						Callback
+					);
+					break;
 				}
 				case GI_INFO_TYPE_STRUCT: {
 					if (ml_is(Arg, StructInstanceT)) {
