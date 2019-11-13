@@ -1,0 +1,8 @@
+def X := 100 + 200
+
+def Y := X + 20
+
+print('X = {X}\n')
+print('Y = {Y}\n')
+
+print('Test = {:([1, 2, 3, 4])}\n')

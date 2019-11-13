@@ -60,20 +60,20 @@ void ml_console(ml_getter_t GlobalGet, void *Globals) {
 		GlobalGet, Globals, "--> ",
 		{STRINGMAP_INIT}
 	}};
-	mlc_error_t Error[1];
-	mlc_scanner_t *Scanner = ml_scanner("console", Console, (void *)ml_console_line_read, Error);
+	mlc_context_t Context[1] = {{(ml_getter_t)ml_console_global_get, Console}};
+	mlc_scanner_t *Scanner = ml_scanner("console", Console, (void *)ml_console_line_read, Context);
 	ml_value_t *StringMethod = ml_method("string");
-	if (setjmp(Error->Handler)) {
-		printf("Error: %s\n", ml_error_message(Error->Message));
+	mlc_on_error(Context) {
+		printf("Error: %s\n", ml_error_message(Context->Error));
 		const char *Source;
 		int Line;
-		for (int I = 0; ml_error_trace(Error->Message, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+		for (int I = 0; ml_error_trace(Context->Error, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 		ml_scanner_reset(Scanner);
 	}
 	for (;;) {
 		mlc_expr_t *Expr = ml_accept_command(Scanner, Console->Globals);
 		if (Expr == (mlc_expr_t *)-1) return;
-		ml_value_t *Closure = ml_compile(Expr, (void *)ml_console_global_get, Console, Error);
+		ml_value_t *Closure = ml_compile(Expr, NULL, Context);
 		if (MLDebugClosures) ml_closure_debug(Closure);
 		ml_value_t *Result = ml_call(Closure, 0, NULL);
 		Result = Result->Type->deref(Result);

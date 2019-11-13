@@ -113,7 +113,7 @@ void *stringmap_insert(stringmap_t *Map, const char *Key, void *Value) {
 	return stringmap_insert_internal(Map, &Map->Root, stringmap_hash(Key), Key, Value);
 }
 
-void **stringmap_slot_internal(stringmap_t *Map, stringmap_node_t **Slot, long Hash, const char *Key) {
+static void **stringmap_slot_internal(stringmap_t *Map, stringmap_node_t **Slot, long Hash, const char *Key) {
 	if (!Slot[0]) {
 		stringmap_node_t *Node = Slot[0] = new(stringmap_node_t);
 		Node->Depth = 1;
@@ -147,7 +147,7 @@ static void stringmap_remove_depth_helper(stringmap_node_t *Node) {
 	}
 }
 
-void *stringmap_remove_internal(stringmap_t *Map, stringmap_node_t **Slot, long Hash, const char *Key) {
+static void *stringmap_remove_internal(stringmap_t *Map, stringmap_node_t **Slot, long Hash, const char *Key) {
 	if (!Slot[0]) return 0;
 	int Compare = compare(Hash, Key, Slot[0]);
 	void *Removed = 0;

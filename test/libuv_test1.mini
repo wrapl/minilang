@@ -1,0 +1,6 @@
+uv_run(;) do
+	print("Hello world!\n")
+	var File := uv_fs_open("test.txt", "r", 0)
+	var Text := File:read(100)
+	print('Text[{Text:length}] = {Text}\n')
+end

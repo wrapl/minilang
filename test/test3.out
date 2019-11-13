@@ -1,0 +1,59 @@
+1 + 1 = 2
+2 + 1 = 3
+Correct! An error has occurred 1: MethodError, no matching method found for +(string, integer)
+4 + 1 = 5
+Correct! An error has occurred 2: MethodError, no matching method found for +(integer, string)
+Before X loop
+Before Y loop
+X = 1, Y = 11
+X = 1, Y = 12
+X = 1, Y = 13
+X = 1, Y = 14
+X = 1, Y = 15
+After Y loop
+Before Y loop
+X = 2, Y = 11
+X = 2, Y = 12
+X = 2, Y = 13
+X = 2, Y = 14
+X = 2, Y = 15
+After Y loop
+Before Y loop
+X = 3, Y = 11
+X = 3, Y = 12
+X = 3, Y = 13
+Before Y loop
+X = 4, Y = 11
+X = 4, Y = 12
+X = 4, Y = 13
+X = 4, Y = 14
+X = 4, Y = 15
+After Y loop
+Before Y loop
+X = 5, Y = 11
+X = 5, Y = 12
+X = 5, Y = 13
+X = 5, Y = 14
+X = 5, Y = 15
+After Y loop
+Z = 1
+... and on
+Z = 2
+... and on
+Z = 3
+... and on
+Z = 4
+... and on
+Z = 5
+5!
+Correct! An error has occurred 3: MethodError, no matching method found for +(string, integer)
+Z = 6
+... and on
+Z = 7
+... and on
+Z = 8
+... and on
+Z = 9
+Correct! An error has occurred 4: MethodError, no matching method found for +(integer, string)
+Z = 10
+... and on

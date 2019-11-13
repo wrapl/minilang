@@ -1,0 +1,15 @@
+def Gtk := gir("Gtk")
+
+var W := Gtk("Window"):new(Gtk("WindowType")("toplevel"))
+
+var B := Gtk("Button"):new_with_label("Click me!")
+
+W:add(B)
+
+B:connect("clicked";) print("Button clicked!\n")
+
+W:show_all
+
+W:connect("destroy";) Gtk("main_quit")()
+
+Gtk("main")()

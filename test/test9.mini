@@ -1,6 +1,6 @@
-def test := fun(A, B) do
+let test := fun(A, B) do
 	var C := 1
-	def D := 2
+	let D := 2
 	print('C = {C}\n')
 	print('D = {D}\n')
 	print('C + D = {C + D}\n')

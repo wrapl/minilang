@@ -1,0 +1,21 @@
+var test_minilang := fun(Source) do
+	var Target := meta('test-{Source:basename}')[MINILANG, Source] => fun() do
+		var Actual := shell(MINILANG, Source)
+		var File := (Source % "out"):open("r")
+		var Expected := File:read(1024)
+		File:close
+		if Actual = Expected then
+			print('\e[32mTest {Source:basename} passed!\e[0m\n')
+		else
+			print('\e[31mTest {Source:basename} failed.\e[0m\n')
+			print('Expected {Expected:length} bytes:\n{Expected}\n---\n')
+			print('Actual {Actual:length} bytes:\n{Actual}\n---\n')
+			error("TestError", "Test failed")
+		end
+	end
+	TEST[Target]
+end
+
+for I in 1 .. 14 do
+	test_minilang(file('test{I}.mini'))
+end

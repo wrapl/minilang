@@ -1,0 +1,11 @@
+fun test(N) do
+	for I in 1 .. N do
+		susp I, I * I
+	end
+end
+
+var T := {}
+
+for K, V in test !! [10] do
+	print('{K} -> {V}\n')
+end

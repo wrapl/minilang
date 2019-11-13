@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ Author: Raja Mukherji
+
+ This library is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+-->
+<language id="minilang" _name="Minilang" version="2.0" _section="Sources">
+  <metadata>
+    <property name="mimetypes">text/x-minilang</property>
+    <property name="globs">*.mini</property>
+    <property name="line-comment-start">--</property>
+  </metadata>
+  <styles>
+    <style id="comment" _name="Comment" map-to="def:comment"/>
+    <style id="error" _name="Error" map-to="def:error"/>
+    <style id="symbol" _name="Symbol" map-to="def:builtin"/>
+    <style id="escape" _name="Escaped Character" map-to="def:special-char"/>
+    <style id="string" _name="String" map-to="def:string"/>
+    <style id="keyword" _name="Keyword" map-to="def:keyword"/>
+    <style id="operator" _name="Operator" map-to="def:operator"/>
+    <style id="function" _name="Function" map-to="def:function"/>
+    <style id="floating-point" _name="Floating point number" map-to="def:floating-point"/>
+    <style id="decimal" _name="Decimal number" map-to="def:decimal"/>
+  </styles>
+  <definitions>
+<!--
+    <context id="bash-line-comment" style-ref="comment" end-at-line-end="true" extend-parent="false">
+      <start>#</start>
+      <include>
+        <context ref="def:in-line-comment"/>
+      </include>
+    </context>
+-->
+    <context id="comment">
+      <include>
+        <context end-at-line-end="true" style-ref="comment">
+          <start>--</start>
+        </context>
+        <context style-ref="comment">
+          <start>-=</start>
+          <end>=-</end>
+        </context>
+      </include>
+    </context>
+    <context id="escape" style-ref="escape">
+      <match>\\((\\|"|'|n|t|\$|r|\{)|[0-7]{1,3}|x[0-9a-fA-F]{1,2})</match>
+    </context>
+    <context id="symbol">
+      <include>
+        <context style-ref="symbol">
+          <match>\:[a-zA-Z_][a-zA-Z0-9_]*</match>
+        </context>
+        <context style-ref="symbol">
+          <start>:"</start>
+          <end>"</end>
+          <include>
+            <context ref="escape"/>
+          </include>
+        </context>
+      </include>
+    </context>
+    <context id="complex-string" style-ref="string">
+      <start>'</start>
+      <end>'</end>
+      <include>
+        <context ref="escape"/>
+        <context id="string-expr" style-ref="def:type">
+          <start>{</start>
+          <end>}</end>
+          <include>
+            <context sub-pattern="0" where="start" style-ref="operator"/>
+            <context sub-pattern="0" where="end" style-ref="operator"/>
+            <context ref="minilang"/>
+          </include>
+        </context>
+      </include>
+    </context>
+    <context id="simple-string" style-ref="string" end-at-line-end="true">
+      <start>"</start>
+      <end>"</end>
+      <include>
+        <context ref="escape"/>
+      </include>
+    </context>
+    <context id="keywords" style-ref="keyword">
+      <keyword>if</keyword>
+      <keyword>then</keyword>
+      <keyword>elseif</keyword>
+      <keyword>else</keyword>
+      <keyword>end</keyword>
+      <keyword>loop</keyword>
+      <keyword>not</keyword>
+      <keyword>while</keyword>
+      <keyword>until</keyword>
+      <keyword>exit</keyword>
+      <keyword>next</keyword>
+      <keyword>for</keyword>
+      <keyword>to</keyword>
+      <keyword>in</keyword>
+      <keyword>is</keyword>
+      <keyword>fun</keyword>
+      <keyword>ret</keyword>
+      <keyword>susp</keyword>
+      <keyword>with</keyword>
+      <keyword>do</keyword>
+      <keyword>nil</keyword>
+      <keyword>and</keyword>
+      <keyword>or</keyword>
+      <keyword>not</keyword>
+      <keyword>old</keyword>
+      <keyword>imp</keyword>
+      <keyword>def</keyword>
+      <keyword>let</keyword>
+      <keyword>var</keyword>
+    </context>
+    <context id="functions" style-ref="function">
+      <keyword>print</keyword>
+      <keyword>error</keyword>
+      <keyword>halt</keyword>
+      <keyword>callcc</keyword>
+      <keyword>spawn</keyword>
+      <keyword>open</keyword>
+      <keyword>class</keyword>
+      <keyword>method</keyword>
+      <keyword>AnyT</keyword>
+      <keyword>TypeT</keyword>
+      <keyword>NilT</keyword>
+      <keyword>FunctionT</keyword>
+      <keyword>NumberT</keyword>
+      <keyword>IntegerT</keyword>
+      <keyword>RealT</keyword>
+      <keyword>StringT</keyword>
+      <keyword>StringBufferT</keyword>
+      <keyword>RegexT</keyword>
+      <keyword>MethodT</keyword>
+      <keyword>ListT</keyword>
+      <keyword>MapT</keyword>
+      <keyword>all</keyword>
+      <keyword>map</keyword>
+      <keyword>uniq</keyword>
+      <keyword>count</keyword>
+      <keyword>min</keyword>
+      <keyword>max</keyword>
+      <keyword>sum</keyword>
+      <keyword>prod</keyword>
+    </context>
+    <context id="operators" style-ref="operator" extend-parent="false">
+      <match>[-.#~^@;/$%|\=\+\*\!\?&amp;&lt;&gt;\[\]\\{}\()]</match>
+    </context>
+    <context id="assignment" style-ref="operator" extend-parent="false">
+      <match>:=</match>
+    </context>
+    <context id="float" style-ref="floating-point">
+      <match extended="true">
+        (?&lt;![\w\.])
+        ([0-9]+[Ee][+-]?[0-9]+ |
+         ([0-9]*\.[0-9]+ | [0-9]+\.[0-9]*)([Ee][+-]?[0-9]+)?)
+        (?![\w\.])
+      </match>
+    </context>
+    <context id="decimal-number" style-ref="decimal">
+      <match extended="true">
+        (?&lt;![\w\.])
+        [+-]?([1-9][0-9]*|0)
+        (?![\w\.])
+      </match>
+    </context>
+    <context id="minilang">
+      <include>
+<!--        
+	<context ref="bash-line-comment"/>
+-->
+        <context ref="comment"/>
+        <context ref="simple-string"/>
+        <context ref="complex-string"/>
+        <context ref="assignment"/>
+        <context ref="symbol"/>
+        <context ref="keywords"/>
+        <context ref="functions"/>
+        <context ref="operators"/>
+        <context ref="float"/>
+        <context ref="decimal-number"/>
+      </include>
+    </context>
+  </definitions>
+</language>

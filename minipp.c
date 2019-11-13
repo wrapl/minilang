@@ -133,14 +133,15 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 	stringmap_insert(Preprocessor->Globals, "input", ml_function(Preprocessor, (void *)ml_preprocessor_input));
 	stringmap_insert(Preprocessor->Globals, "include", ml_function(Preprocessor, (void *)ml_preprocessor_include));
 	stringmap_insert(Preprocessor->Globals, "open", ml_function(0, ml_file_open));
-	mlc_error_t Error[1];
-	mlc_scanner_t *Scanner = ml_scanner(InputName, Preprocessor, (void *)ml_preprocessor_line_read, Error);
-	ml_value_t *StringMethod = ml_method("string");
-	if (setjmp(Error->Handler)) {
-		printf("Error: %s\n", ml_error_message(Error->Message));
+	mlc_context_t Context[1];
+	Context->GlobalGet = (ml_getter_t)ml_preprocessor_global_get;
+	Context->Globals = Preprocessor;
+	mlc_scanner_t *Scanner = ml_scanner(InputName, Preprocessor, (void *)ml_preprocessor_line_read, Context);
+	mlc_on_error(Context) {
+		printf("Error: %s\n", ml_error_message(Context->Error));
 		const char *Source;
 		int Line;
-		for (int I = 0; ml_error_trace(Error->Message, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+		for (int I = 0; ml_error_trace(Context->Error, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 		exit(0);
 	}
 	ml_value_t *Semicolon = ml_string(";", 1);
@@ -179,7 +180,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 			} else {
 				Input->Line = Escape + 1;
 				mlc_expr_t *Expr = ml_accept_command(Scanner, Preprocessor->Globals);
-				ml_value_t *Closure = ml_compile(Expr, (void *)ml_preprocessor_global_get, Preprocessor, Error);
+				ml_value_t *Closure = ml_compile(Expr, NULL, Context);
 				ml_value_t *Result = ml_call(Closure, 0, NULL);
 				if (Result->Type == MLErrorT) {
 					printf("Error: %s\n", ml_error_message(Result));

@@ -1,0 +1,16 @@
+print('X
+100
+200\n')
+
+print('X\
+100
+200\n')
+
+print('\
+100
+':length)
+
+print('\
+X = 100
+X = 110
+':length)

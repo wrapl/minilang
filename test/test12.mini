@@ -1,0 +1,24 @@
+fun fibonacci(N) do
+	if N <= 0 then
+		error("RangeError", "N must be postive")
+	elseif N <= 2 then
+		ret 1
+	end
+	var A := 1, B := 1
+	for I in 1 .. (N - 2) do
+		var C := A + B
+		A := B
+		B := C
+	end
+	ret B
+end
+   
+for I in 1 .. 10 do
+	print('fibonacci({I}) = {fibonacci(I)}\n')
+end
+
+do
+	print('fibonacci({0}) = {fibonacci(0)}\n')
+on Error do
+	print('{Error:type}: {Error:message}\n')
+end
