@@ -19,6 +19,12 @@ else
 	LDFLAGS += -g
 endif
 
+%_init.c: %.c
+	echo "" > $@
+	cc -E -Xpreprocessor -ftrack-macro-expansion=0 -DGENERATE_INIT $< | grep -o 'ml_method_by_name([^{]*_fn_[^{]*);' > $@
+
+ml_types.o: ml_types_init.c
+
 common_objects = \
 	minilang.o \
 	ml_compiler.o \
@@ -72,6 +78,7 @@ clean:
 	rm -f minilang
 	rm -f minipp
 	rm -f *.o
+	rm -rf *_init.c
 	rm -f libminilang.a
 
 PREFIX = /usr

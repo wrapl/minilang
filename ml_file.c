@@ -10,14 +10,16 @@
 #define snew(N) ((char *)GC_MALLOC_ATOMIC(N))
 #define xnew(T, N, U) ((T *)GC_MALLOC(sizeof(T) + (N) * sizeof(U)))
 
-typedef struct ml_file_t ml_file_t;
-
-struct ml_file_t {
+typedef struct ml_file_t {
 	const ml_type_t *Type;
 	FILE *Handle;
-};
+} ml_file_t;
 
-static ml_type_t *MLFileT;
+ml_type_t *MLFileT;
+
+FILE *ml_file_handle(ml_value_t *Value) {
+	return ((ml_file_t *)Value)->Handle;
+}
 
 #ifdef __MINGW32__
 static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {

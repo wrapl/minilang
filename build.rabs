@@ -18,6 +18,27 @@ else
 	LDFLAGS := old + ["-g"]
 end
 
+for Source in PATH:ls(".*\\.c") do
+	Source:basename:find("_init") and next
+	var Target := file(Source:basename:replace(".c", "_init.c"))[Source] => fun() do
+		Target:open("w"):close
+		var Init := shell("cc", "-E -Xpreprocessor -ftrack-macro-expansion=0 -DGENERATE_INIT", Source)
+		var Out := Target:open("w")
+		for Line in Init / "\n" do
+			loop
+				var I := while Line:find("ml_method_by_name(")
+				var J := while Line:find(");")
+				if I < Line:find("_fn_") < J then
+					Out:write(Line[I, J + 2])
+					Out:write("\n")
+				end
+				Line := Line[J + 2, 0]
+			end
+		end
+		Out:close
+	end
+end
+
 var Objects := [
 	file("minilang.o"),
 	file("ml_compiler.o"),
@@ -54,6 +75,16 @@ if defined("USECBOR") then
 	Objects:put(file("ml_cbor.o"))
 	CFLAGS := old + ["-DUSE_ML_CBOR"]
 	LDFLAGS := old + [Lib]
+end
+
+if defined("USEMPC") then
+	var Dir := file("mpc")
+	Dir:exists or do
+		execute("git clone https://github.com/orangeduck/mpc.git")
+		execute("cat mpc_extra.c >> ", Dir/"mpc.c")
+	end
+	Objects:put(file("ml_mpc.o"), Dir/"mpc.o")
+	CFLAGS := old + ["-DUSE_ML_MPC"]
 end
 
 if PLATFORM = "Linux" then
