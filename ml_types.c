@@ -2051,40 +2051,40 @@ ml_value_t *ml_stringbuffer_append_map(ml_stringbuffer_t *Buffer, ml_map_t *Valu
 }
 
 #define ml_arith_method_integer(NAME, SYMBOL) \
-	ML_METHOD(#SYMBOL, MLIntegerT) { \
+	ML_METHOD(NAME, MLIntegerT) { \
 		ml_integer_t *IntegerA = (ml_integer_t *)Args[0]; \
 		return ml_integer(SYMBOL(IntegerA->Value)); \
 	}
 
 #define ml_arith_method_integer_integer(NAME, SYMBOL) \
-	ML_METHOD(#SYMBOL, MLIntegerT, MLIntegerT) { \
+	ML_METHOD(NAME, MLIntegerT, MLIntegerT) { \
 		ml_integer_t *IntegerA = (ml_integer_t *)Args[0]; \
 		ml_integer_t *IntegerB = (ml_integer_t *)Args[1]; \
 		return ml_integer(IntegerA->Value SYMBOL IntegerB->Value); \
 	}
 
 #define ml_arith_method_real(NAME, SYMBOL) \
-	ML_METHOD(#SYMBOL, MLRealT) { \
+	ML_METHOD(NAME, MLRealT) { \
 		ml_real_t *RealA = (ml_real_t *)Args[0]; \
 		return ml_real(SYMBOL(RealA->Value)); \
 	}
 
 #define ml_arith_method_real_real(NAME, SYMBOL) \
-	ML_METHOD(#SYMBOL, MLRealT, MLRealT) { \
+	ML_METHOD(NAME, MLRealT, MLRealT) { \
 		ml_real_t *RealA = (ml_real_t *)Args[0]; \
 		ml_real_t *RealB = (ml_real_t *)Args[1]; \
 		return ml_real(RealA->Value SYMBOL RealB->Value); \
 	}
 
 #define ml_arith_method_real_integer(NAME, SYMBOL) \
-	ML_METHOD(#SYMBOL, MLRealT, MLIntegerT) { \
+	ML_METHOD(NAME, MLRealT, MLIntegerT) { \
 		ml_real_t *RealA = (ml_real_t *)Args[0]; \
 		ml_integer_t *IntegerB = (ml_integer_t *)Args[1]; \
 		return ml_real(RealA->Value SYMBOL IntegerB->Value); \
 	}
 
 #define ml_arith_method_integer_real(NAME, SYMBOL) \
-	ML_METHOD(#SYMBOL, MLIntegerT, MLRealT) { \
+	ML_METHOD(NAME, MLIntegerT, MLRealT) { \
 		ml_integer_t *IntegerA = (ml_integer_t *)Args[0]; \
 		ml_real_t *RealB = (ml_real_t *)Args[1]; \
 		return ml_real(IntegerA->Value SYMBOL RealB->Value); \
@@ -2100,14 +2100,14 @@ ml_value_t *ml_stringbuffer_append_map(ml_stringbuffer_t *Buffer, ml_map_t *Valu
 	ml_arith_method_real_integer(NAME, SYMBOL) \
 	ml_arith_method_integer_real(NAME, SYMBOL)
 
-ml_arith_method_number(neg, -)
-ml_arith_method_number_number(add, +)
-ml_arith_method_number_number(sub, -)
-ml_arith_method_number_number(mul, *)
+ml_arith_method_number("-", -)
+ml_arith_method_number_number("+", +)
+ml_arith_method_number_number("-", -)
+ml_arith_method_number_number("*", *)
 
-ml_arith_method_real_real(div, /)
-ml_arith_method_real_integer(div, /)
-ml_arith_method_integer_real(div, /)
+ml_arith_method_real_real("/", /)
+ml_arith_method_real_integer("/", /)
+ml_arith_method_integer_real("/", /)
 
 ML_METHOD("/", MLIntegerT, MLIntegerT) {
 	ml_integer_t *IntegerA = (ml_integer_t *)Args[0];
@@ -2119,32 +2119,32 @@ ML_METHOD("/", MLIntegerT, MLIntegerT) {
 	}
 }
 
-ml_arith_method_integer_integer(mod, %)
-ml_arith_method_integer_integer(idiv, /)
+ml_arith_method_integer_integer("%", %)
+ml_arith_method_integer_integer("/", /)
 
 #define ml_comp_method_integer_integer(NAME, SYMBOL) \
-	ML_METHOD(#SYMBOL, MLIntegerT, MLIntegerT) { \
+	ML_METHOD(NAME, MLIntegerT, MLIntegerT) { \
 		ml_integer_t *IntegerA = (ml_integer_t *)Args[0]; \
 		ml_integer_t *IntegerB = (ml_integer_t *)Args[1]; \
 		return IntegerA->Value SYMBOL IntegerB->Value ? Args[1] : MLNil; \
 	}
 
 #define ml_comp_method_real_real(NAME, SYMBOL) \
-	ML_METHOD(#SYMBOL, MLRealT, MLRealT) { \
+	ML_METHOD(NAME, MLRealT, MLRealT) { \
 		ml_real_t *RealA = (ml_real_t *)Args[0]; \
 		ml_real_t *RealB = (ml_real_t *)Args[1]; \
 		return RealA->Value SYMBOL RealB->Value ? Args[1] : MLNil; \
 	}
 
 #define ml_comp_method_real_integer(NAME, SYMBOL) \
-	ML_METHOD(#SYMBOL, MLRealT, MLIntegerT) { \
+	ML_METHOD(NAME, MLRealT, MLIntegerT) { \
 		ml_real_t *RealA = (ml_real_t *)Args[0]; \
 		ml_integer_t *IntegerB = (ml_integer_t *)Args[1]; \
 		return RealA->Value SYMBOL IntegerB->Value ? Args[1] : MLNil; \
 	}
 
 #define ml_comp_method_integer_real(NAME, SYMBOL) \
-	ML_METHOD(#SYMBOL, MLIntegerT, MLRealT) { \
+	ML_METHOD(NAME, MLIntegerT, MLRealT) { \
 		ml_integer_t *IntegerA = (ml_integer_t *)Args[0]; \
 		ml_real_t *RealB = (ml_real_t *)Args[1]; \
 		return IntegerA->Value SYMBOL RealB->Value ? Args[1] : MLNil; \
@@ -2156,12 +2156,12 @@ ml_arith_method_integer_integer(idiv, /)
 	ml_comp_method_real_integer(NAME, SYMBOL) \
 	ml_comp_method_integer_real(NAME, SYMBOL)
 
-ml_comp_method_number_number(eq, ==)
-ml_comp_method_number_number(neq, !=)
-ml_comp_method_number_number(les, <)
-ml_comp_method_number_number(gre, >)
-ml_comp_method_number_number(leq, <=)
-ml_comp_method_number_number(geq, >=)
+ml_comp_method_number_number("=", ==)
+ml_comp_method_number_number("!=", !=)
+ml_comp_method_number_number("<", <)
+ml_comp_method_number_number(">", >)
+ml_comp_method_number_number("<=", <=)
+ml_comp_method_number_number(">=", >=)
 
 static ml_integer_t One[1] = {{MLIntegerT, 1}};
 static ml_integer_t NegOne[1] = {{MLIntegerT, -1}};
@@ -2413,18 +2413,18 @@ ML_METHOD("<>", MLStringT, MLStringT) {
 }
 
 #define ml_comp_method_string_string(NAME, SYMBOL) \
-	ML_METHOD(#SYMBOL, MLStringT, MLStringT) { \
+	ML_METHOD(NAME, MLStringT, MLStringT) { \
 		ml_string_t *StringA = (ml_string_t *)Args[0]; \
 		ml_string_t *StringB = (ml_string_t *)Args[1]; \
 		return strcmp(StringA->Value, StringB->Value) SYMBOL 0 ? Args[1] : MLNil; \
 	}
 
-ml_comp_method_string_string(eq, ==)
-ml_comp_method_string_string(neq, !=)
-ml_comp_method_string_string(les, <)
-ml_comp_method_string_string(gre, >)
-ml_comp_method_string_string(leq, <=)
-ml_comp_method_string_string(geq, >=)
+ml_comp_method_string_string("=", ==)
+ml_comp_method_string_string("!=", !=)
+ml_comp_method_string_string("<", <)
+ml_comp_method_string_string(">", >)
+ml_comp_method_string_string("<=", <=)
+ml_comp_method_string_string(">=", >=)
 
 ML_METHOD("<>", MLAnyT, MLAnyT) {
 	if (Args[0] < Args[1]) return ml_integer(-1);
