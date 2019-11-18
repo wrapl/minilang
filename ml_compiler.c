@@ -1728,6 +1728,7 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 	}
 	case MLT_LEFT_SQUARE: {
 		Scanner->Token = MLT_NONE;
+		while (ml_parse(Scanner, MLT_EOL));
 		mlc_const_call_expr_t *CallExpr = new(mlc_const_call_expr_t);
 		CallExpr->compile = ml_const_call_expr_compile;
 		CallExpr->Source = Scanner->Source;
@@ -1744,6 +1745,7 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 	}
 	case MLT_LEFT_BRACE: {
 		Scanner->Token = MLT_NONE;
+		while (ml_parse(Scanner, MLT_EOL));
 		mlc_const_call_expr_t *CallExpr = new(mlc_const_call_expr_t);
 		CallExpr->compile = ml_const_call_expr_compile;
 		CallExpr->Source = Scanner->Source;
@@ -1807,6 +1809,7 @@ static mlc_expr_t *ml_accept_factor(mlc_scanner_t *Scanner) {
 }
 
 static void ml_accept_arguments(mlc_scanner_t *Scanner, mlc_expr_t **ArgsSlot) {
+	while (ml_parse(Scanner, MLT_EOL));
 	if (!ml_parse(Scanner, MLT_RIGHT_PAREN)) {
 		ml_value_t *Names = NULL;
 		if (ml_parse(Scanner, MLT_SEMICOLON)) goto has_params;
@@ -1882,6 +1885,7 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 		}
 		case MLT_LEFT_SQUARE: {
 			Scanner->Token = MLT_NONE;
+			while (ml_parse(Scanner, MLT_EOL));
 			mlc_const_call_expr_t *IndexExpr = new(mlc_const_call_expr_t);
 			IndexExpr->compile = ml_const_call_expr_compile;
 			IndexExpr->Value = ml_method("[]");
