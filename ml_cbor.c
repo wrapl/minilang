@@ -4,9 +4,6 @@
 #include <gc/gc.h>
 #include <string.h>
 
-#define READ_FN_PREFIX ml_cbor_read_
-#define READDATA_TYPE struct ml_cbor_reader_t *
-
 #include "minicbor/minicbor.h"
 
 void ml_cbor_write(ml_value_t *Value, void *Data, int (*WriteFn)(void *Data, const unsigned char *Bytes, unsigned Size)) {
@@ -159,7 +156,7 @@ void ml_cbor_read_bytes_fn(ml_cbor_reader_t *Reader, int Size) {
 	}
 }
 
-void ml_cbor_read_bytes_piece_fn(ml_cbor_reader_t *Reader, unsigned char *Bytes, int Size, int Final) {
+void ml_cbor_read_bytes_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, int Size, int Final) {
 	//printf("%s:%d\n", __func__, __LINE__);
 	collection_t *Collection = Reader->Collection;
 	if (Final) {
@@ -200,7 +197,7 @@ void ml_cbor_read_string_fn(ml_cbor_reader_t *Reader, int Size) {
 	}
 }
 
-void ml_cbor_read_string_piece_fn(ml_cbor_reader_t *Reader, unsigned char *Bytes, int Size, int Final) {
+void ml_cbor_read_string_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, int Size, int Final) {
 	//printf("%s:%d\n", __func__, __LINE__);
 	collection_t *Collection = Reader->Collection;
 	if (Final) {

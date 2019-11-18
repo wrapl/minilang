@@ -79,8 +79,11 @@ if defined("USECBOR") then
 		'-DMINICBOR_READDATA_TYPE=\"struct ml_cbor_reader_t *\"',
 		 "-DUSE_ML_CBOR"
 	]
-	Objects:put(file("minicbor/minicbor_reader.o"))
-	Objects:put(file("minicbor/minicbor_writer.o"))
+	Objects:put(
+		file("ml_cbor.o"),
+		file("minicbor/minicbor_reader.o"),
+		file("minicbor/minicbor_writer.o")
+	)
 end
 
 if defined("USEMPC") then
