@@ -56,6 +56,8 @@ var Objects := [
 	file("ml_object.o")
 ]
 
+var Libraries := []
+
 if defined("LIBUV") then
 	Objects:put(file("ml_libuv.o"))
 	CFLAGS := old + ["-DUSE_ML_UV"]
@@ -77,6 +79,7 @@ if defined("USECBOR") then
 	end
 	PREBUILDS := old + [Lib]
 	Objects:put(file("ml_cbor.o"))
+	Libraries:put(Lib)
 	CFLAGS := old + ["-DUSE_ML_CBOR"]
 	LDFLAGS := old + [Lib]
 end
@@ -104,7 +107,7 @@ elseif PLATFORM = "Darwin" then
 elseif PLATFORM = "Mingw" then
 end
 
-c_library(file("libminilang.a"), Objects)
+c_library(file("libminilang.a"), Objects, Libraries)
 MINILANG := c_program(file("minilang"), [file("ml_main.o")] + Objects)
 MINIPP := c_program(file("minipp"), [file("minipp.o")] + Objects)
 

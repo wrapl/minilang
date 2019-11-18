@@ -51,7 +51,7 @@ c_program := fun(Executable, Objects, Libraries) do
 	ret Executable
 end
 
-c_library := fun(Library, Objects) do
+c_library := fun(Library, Objects, Libraries) do
 	Objects := Objects or []
 	var Sources := []
 	for Object in Objects do
@@ -66,7 +66,7 @@ c_library := fun(Library, Objects) do
 		end
 	end
 	Library[Objects, Libraries] => fun(Executable) do
-		execute('ar', 'rcs', Library, Objects)
+		execute('ar', 'rcs', Library, Objects, Libraries)
 	end
 	DEFAULT[Library]
 	ret Library
