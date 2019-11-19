@@ -75,6 +75,7 @@ if defined("USECBOR") then
 	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git")
 	
 	CFLAGS := old + [
+		'-DMINICBOR_PREFIX=ml_cbor_',
 		'-DMINICBOR_READ_FN_PREFIX=ml_cbor_read_',
 		'-DMINICBOR_READDATA_TYPE=\"struct ml_cbor_reader_t *\"',
 		 "-DUSE_ML_CBOR"
@@ -125,7 +126,6 @@ var InstallHeaders := [
 	"ml_console.h",
 	"ml_file.h",
 	"ml_iterfns.h",
-	"ml_internal.h",
 	"ml_macros.h",
 	"ml_types.h",
 	"ml_object.h",
