@@ -88,7 +88,7 @@ static void value_handler(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	//printf("%s:%d\n", __func__, __LINE__);
 	for (tag_t *Tag = Reader->Tags; Tag; Tag = Tag->Prev) {
 		//printf("%s:%d\n", __func__, __LINE__);
-		if (Value->Type != MLErrorT) Value = Tag->Handler(Value, Tag->Data);
+		if (Value->Type != MLErrorT) Value = Tag->Handler(Tag->Data, Value);
 	}
 	Reader->Tags = 0;
 	collection_t *Collection = Reader->Collection;
