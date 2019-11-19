@@ -56,6 +56,8 @@ var Objects := [
 	file("ml_object.o")
 ]
 
+var Libraries := []
+
 if defined("LIBUV") then
 	Objects:put(file("ml_libuv.o"))
 	CFLAGS := old + ["-DUSE_ML_UV"]
@@ -71,14 +73,17 @@ end
 if defined("USECBOR") then
 	var Dir := file("minicbor")
 	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git")
-	var Lib := Dir/"libminicbor.a" => fun() do
-		Dir:chdir
-		execute("make -j4 READ_FN_PREFIX=ml_cbor_read_ READDATA_TYPE=\"struct ml_cbor_reader_t *\"")
-	end
-	PREBUILDS := old + [Lib]
-	Objects:put(file("ml_cbor.o"))
-	CFLAGS := old + ["-DUSE_ML_CBOR"]
-	LDFLAGS := old + [Lib]
+	
+	CFLAGS := old + [
+		'-DMINICBOR_READ_FN_PREFIX=ml_cbor_read_',
+		'-DMINICBOR_READDATA_TYPE=\"struct ml_cbor_reader_t *\"',
+		 "-DUSE_ML_CBOR"
+	]
+	Objects:put(
+		file("ml_cbor.o"),
+		file("minicbor/minicbor_reader.o"),
+		file("minicbor/minicbor_writer.o")
+	)
 end
 
 if defined("USEMPC") then
@@ -104,7 +109,7 @@ elseif PLATFORM = "Darwin" then
 elseif PLATFORM = "Mingw" then
 end
 
-c_library(file("libminilang.a"), Objects)
+c_library(file("libminilang.a"), Objects, Libraries)
 MINILANG := c_program(file("minilang"), [file("ml_main.o")] + Objects)
 MINIPP := c_program(file("minipp"), [file("minipp.o")] + Objects)
 
