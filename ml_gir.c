@@ -162,7 +162,7 @@ ml_value_t *ml_gir_instance_get(void *Handle) {
 	return MLNil;
 }
 
-static ml_value_t *ml_object_instance_to_string(void *Data, int Count, ml_value_t **Args) {
+ML_METHOD("string", ObjectInstanceT) {
 	object_instance_t *Instance = (object_instance_t *)Args[0];
 	return ml_string_format("<%s>", g_base_info_get_name((GIBaseInfo *)Instance->Type->Info));
 }
@@ -187,7 +187,7 @@ static ml_value_t *struct_instance_new(struct_t *Struct, int Count, ml_value_t *
 	return (ml_value_t *)Instance;
 }
 
-static ml_value_t *ml_struct_instance_to_string(void *Data, int Count, ml_value_t **Args) {
+ML_METHOD("string", StructInstanceT) {
 	struct_instance_t *Instance = (struct_instance_t *)Args[0];
 	return ml_string_format("<%s>", g_base_info_get_name((GIBaseInfo *)Instance->Type->Info));
 }
@@ -304,7 +304,7 @@ typedef struct enum_value_t {
 static ml_type_t *EnumT = 0;
 static ml_type_t *EnumValueT = 0;
 
-static ml_value_t *ml_enum_value_to_string(void *Data, int Count, ml_value_t **Args) {
+ML_METHOD("string", EnumValueT) {
 	enum_value_t *Value = (enum_value_t *)Args[0];
 	return Value->Name;
 }
@@ -1484,7 +1484,7 @@ static ml_value_t *_value_to_ml(const GValue *Value) {
 	}
 }
 
-static void _ml_to_value(ml_value_t * Source, GValue *Dest) {
+static void _ml_to_value(ml_value_t *Source, GValue *Dest) {
 	if (Source == MLNil) {
 		g_value_init(Dest, G_TYPE_NONE);
 	} else if (Source == MLTrue) {
@@ -1527,13 +1527,43 @@ static void __marshal(GClosure *Closure, GValue *Result, guint NumArgs, const GV
 	if (Result) _ml_to_value(MLResult, Result);
 }
 
-static ml_value_t *ml_gir_connect(void *Data, int Count, ml_value_t **Args) {
+ML_METHOD("connect", ObjectInstanceT, MLStringT, MLFunctionT) {
 	object_instance_t *Instance = (object_instance_t *)Args[0];
 	const char *Signal = ml_string_value(Args[1]);
 	GClosure *Closure = g_closure_new_simple(sizeof(GClosure), NULL);
 	g_closure_set_meta_marshal(Closure, Args[2], (GClosureMarshal)__marshal);
 	g_signal_connect_closure(Instance->Handle, Signal, Closure, Count > 3 && Args[3] != MLNil);
 	return Args[0];
+}
+
+typedef struct object_property_t {
+	const ml_type_t *Type;
+	GObject *Object;
+	const char *Name;
+} object_property_t;
+
+static ml_type_t *ObjectPropertyT;
+
+static ml_value_t *object_property_deref(object_property_t *Property) {
+	GValue Value[1] = {G_VALUE_INIT};
+	g_object_get_property(Property->Object, Property->Name, Value);
+	return _value_to_ml(Value);
+}
+
+static ml_value_t *object_property_assign(object_property_t *Property, ml_value_t *Value0) {
+	GValue Value[1];
+	_ml_to_value(Value0, Value);
+	g_object_set_property(Property->Object, Property->Name, Value);
+	return Value0;
+}
+
+ML_METHOD("[]", ObjectInstanceT, MLStringT) {
+	object_instance_t *Instance = (object_instance_t *)Args[0];
+	object_property_t *Property = new(object_property_t);
+	Property->Type = ObjectPropertyT;
+	Property->Object = Instance->Handle;
+	Property->Name = ml_string_value(Args[1]);
+	return (ml_value_t *)Property;
 }
 
 void ml_gir_init(stringmap_t *Globals) {
@@ -1546,6 +1576,9 @@ void ml_gir_init(stringmap_t *Globals) {
 	ml_typed_fn_set(TypelibIterT, ml_iter_key, typelib_iter_key);
 	ObjectT = ml_type(MLTypeT, "gir-object");
 	ObjectInstanceT = ml_type(MLAnyT, "gir-object-instance");
+	ObjectPropertyT = ml_type(MLAnyT, "gir-object-property");
+	ObjectPropertyT->deref = (void *)object_property_deref;
+	ObjectPropertyT->assign = (void *)object_property_assign;
 	MLQuark = g_quark_from_static_string("<<minilang>>");
 	ObjectInstanceNil = new(object_instance_t);
 	ObjectInstanceNil->Type = (object_t *)ObjectInstanceT;
@@ -1557,8 +1590,5 @@ void ml_gir_init(stringmap_t *Globals) {
 	MLTrue = ml_method("true");
 	MLFalse = ml_method("false");
 	stringmap_insert(Globals, "gir", ml_function(NULL, ml_gir_require));
-	ml_method_by_name("connect", NULL, ml_gir_connect, ObjectInstanceT, MLStringT, MLFunctionT, NULL);
-	ml_method_by_name("string", NULL, ml_object_instance_to_string, ObjectInstanceT, NULL);
-	ml_method_by_name("string", NULL, ml_enum_value_to_string, EnumValueT, NULL);
-	ml_method_by_name("string", NULL, ml_struct_instance_to_string, StructInstanceT, NULL);
+#include "ml_gir_init.c"
 }

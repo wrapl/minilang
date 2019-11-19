@@ -796,7 +796,7 @@ ml_value_t *ml_string(const char *Value, int Length) {
 		Value = Copy;
 	}
 	String->Value = Value;
-	String->Length = Length >= 0 ? Length : strlen(Value);
+	String->Length = Length >= 0 ? Length : (Value ? strlen(Value) : 0);
 	GC_end_stubborn_change(String);
 	return (ml_value_t *)String;
 }
