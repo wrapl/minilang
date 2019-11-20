@@ -262,6 +262,16 @@ static ml_value_t *ml_function_iterate(ml_state_t *Caller, ml_function_t *Functi
 	ML_CONTINUE(Caller, (Function->Callback)(Function->Data, 0, NULL));
 }
 
+ml_type_t MLIteratableT[1] = {{
+	MLTypeT,
+	MLAnyT, "iterator",
+	ml_default_hash,
+	ml_default_call,
+	ml_default_deref,
+	ml_default_assign,
+	NULL, 0, 0
+}};
+
 ml_type_t MLFunctionT[1] = {{
 	MLTypeT,
 	MLIteratableT, "function",
@@ -2754,132 +2764,6 @@ ML_METHOD("!!", MLClosureT, MLListT) {
 	return (ml_value_t *)Partial;
 }
 
-ml_type_t MLIteratableT[1] = {{
-	MLTypeT,
-	MLAnyT, "iterator",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
-
-typedef struct ml_composed_iter_t {
-	const ml_type_t *Type;
-	ml_value_t *Base, *Value;
-	ml_value_t **Functions;
-	int Index, Count;
-} ml_composed_iter_t;
-
-static ml_value_t *ml_composed_iter_deref(ml_composed_iter_t *Iter) {
-	return Iter->Value->Type->deref(Iter->Value);
-}
-
-static ml_value_t *ml_composed_iter_assign(ml_composed_iter_t *Iter, ml_value_t *Value) {
-	return Iter->Value->Type->assign(Iter->Value, Value);
-}
-
-static ml_value_t *ml_composed_iter_next(ml_state_t *Caller, ml_composed_iter_t *Iter) {
-	/*next: {
-		ml_value_t *Base = ml_iter_next(Iter->Base);
-		if (Base == MLNil) return MLNil;
-		ml_value_t *Value = Base;
-		for (int I = 0; I < Iter->Count; ++I) {
-			Value = ml_call(Iter->Functions[I], 1, &Value);
-			if (Value == MLNil) goto next;
-		}
-		Iter->Base = Base;
-		Iter->Value = Value;
-		++Iter->Index;
-		return (ml_value_t *)Iter;
-	}*/
-	// TODO: Fix this!
-	ML_CONTINUE(Caller, ml_error("TodoError", "not implemented yet!"));
-}
-
-static ml_value_t *ml_composed_iter_key(ml_state_t *Caller, ml_composed_iter_t *Iter) {
-	//return ml_integer(Iter->Index);
-	// TODO: Fix this!
-	ML_CONTINUE(Caller, ml_error("TodoError", "not implemented yet!"));
-}
-
-ml_type_t MLComposedIterT[1] = {{
-	MLTypeT,
-	MLAnyT, "composed-iter",
-	ml_default_hash,
-	ml_default_call,
-	(void *)ml_composed_iter_deref,
-	(void *)ml_composed_iter_assign,
-	NULL, 0, 0
-}};
-
-typedef struct ml_composed_t {
-	const ml_type_t *Type;
-	ml_value_t *Base;
-	ml_value_t **Functions;
-	int Count;
-} ml_composed_t;
-
-static ml_value_t *ml_composed_iterate(ml_state_t *Caller, ml_composed_t *Composed) {
-	/*ml_value_t *Base = ml_iterate(Composed->Base);
-	if (Base == MLNil) ML_CONTINUE(Caller, MLNil);
-	next: {
-		ml_value_t *Value = Base;
-		for (int I = 0; I < Composed->Count; ++I) {
-			Value = ml_call(Composed->Functions[I], 1, &Value);
-			if (Value == MLNil) {
-				Base = ml_iter_next(Base);
-				if (Base == MLNil) ML_CONTINUE(Caller, MLNil);
-				goto next;
-			}
-		}
-		ml_composed_iter_t *Iter = new(ml_composed_iter_t);
-		Iter->Type = MLComposedIterT;
-		Iter->Base = Base;
-		Iter->Value = Value;
-		Iter->Index = 1;
-		Iter->Count = Composed->Count;
-		Iter->Functions = Composed->Functions;
-		ML_CONTINUE(Caller, Iter);
-	}*/
-	// TODO: Fix this!
-	ML_CONTINUE(Caller, ml_error("TodoError", "not implemented yet!"));
-}
-
-ml_type_t MLComposedT[1] = {{
-	MLTypeT,
-	MLIteratableT, "composed",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
-
-ML_METHOD("|>", MLIteratableT, MLFunctionT) {
-	ml_composed_t *Composed = new(ml_composed_t);
-	Composed->Type = MLComposedT;
-	Composed->Count = 1;
-	Composed->Base = Args[0];
-	Composed->Count = 1;
-	Composed->Functions = anew(ml_value_t *, 1);
-	Composed->Functions[0] = Args[1];
-	return (ml_value_t *)Composed;
-}
-
-ML_METHOD("|>", MLComposedT, MLFunctionT) {
-	ml_composed_t *Original = (ml_composed_t *)Args[0];
-	ml_composed_t *Composed = new(ml_composed_t);
-	Composed->Type = MLComposedT;
-	Composed->Count = 1;
-	Composed->Base = Original->Base;
-	Composed->Count = Original->Count + 1;
-	Composed->Functions = anew(ml_value_t *, Composed->Count);
-	memcpy(Composed->Functions, Original->Functions, Original->Count * sizeof(ml_value_t *));
-	Composed->Functions[Original->Count] = Args[1];
-	return (ml_value_t *)Composed;
-}
-
 ml_type_t MLNamesT[1] = {{
 	MLTypeT,
 	MLListT, "names",
@@ -2942,9 +2826,6 @@ void ml_init() {
 	ml_typed_fn_set(MLRealIterT, ml_iter_value, ml_real_iter_current);
 	ml_typed_fn_set(MLRealIterT, ml_iter_key, ml_real_iter_key);
 	ml_typed_fn_set(MLRealIterT, ml_iter_next, ml_real_iter_next);
-	ml_typed_fn_set(MLComposedT, ml_iterate, ml_composed_iterate);
-	ml_typed_fn_set(MLComposedIterT, ml_iter_key, ml_composed_iter_key);
-	ml_typed_fn_set(MLComposedIterT, ml_iter_next, ml_composed_iter_next);
 	ml_runtime_init();
 
 	GC_word StringBufferLayout[] = {1};
