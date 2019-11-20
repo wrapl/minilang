@@ -8,10 +8,10 @@
 #include <gtksourceview/gtksource.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <gc/gc.h>
-#include <minilang.h>
-#include <ml_macros.h>
+#include "minilang.h"
+#include "ml_macros.h"
 #include <stringmap.h>
-#include <ml_compiler.h>
+#include "ml_compiler.h"
 #include <sys/stat.h>
 
 #include "ml_gir.h"

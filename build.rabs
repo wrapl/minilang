@@ -110,7 +110,7 @@ elseif PLATFORM = "Darwin" then
 elseif PLATFORM = "Mingw" then
 end
 
-c_library(file("libminilang.a"), Objects, Libraries)
+LIBMINILANG := c_library(file("libminilang.a"), Objects, Libraries)
 MINILANG := c_program(file("minilang"), [file("ml_main.o")] + Objects)
 MINIPP := c_program(file("minipp"), [file("minipp.o")] + Objects)
 
@@ -121,7 +121,6 @@ var InstallLib := PREFIX / "lib"
 install(file("minilang"), InstallBin / "minilang", "+x")
 
 var InstallHeaders := [
-	"linenoise.h",
 	"minilang.h",
 	"ml_console.h",
 	"ml_file.h",
