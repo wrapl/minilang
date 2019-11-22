@@ -1,0 +1,24 @@
+uv_run(;) do
+
+var Sum := 0
+var Tasks := tasks()
+for I in 1 .. 5 do
+	Tasks(;) do
+		var Wait := I * 11 % 7
+		print('{I}: waiting {Wait} seconds.\n')
+		uv_sleep(1000 * Wait)
+		print('{I}: done.\n')
+		Sum := old + 1
+		for J in 1 .. 3 do
+			Tasks(;) do
+				uv_sleep(1000 * J)
+				print('{I}[{J}]: done\n')
+				Sum := old + 1
+			end
+		end
+	end
+end
+Tasks:wait
+print('Done: Sum = {Sum}\n')
+
+end

@@ -30,7 +30,7 @@ for Source in PATH:ls(".*\\.c") do
 		var Out := Target:open("w")
 		for Line in Init / "\n" do
 			loop
-				var I := while Line:find("ml_method_by_name(")
+				var I := while (Line:find("ml_method_by_name(") or Line:find("ml_methodx_by_name("))
 				var J := while Line:find(");")
 				if I < Line:find("_fn_") < J then
 					Out:write(Line[I, J + 2])

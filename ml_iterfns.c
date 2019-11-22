@@ -273,7 +273,7 @@ static ml_value_t *ml_limited_state_next(ml_state_t *Caller, ml_limited_state_t 
 	}
 }
 
-static ml_value_t *ml_limited_fn(void *Data, int Count, ml_value_t **Args) {
+ML_METHOD("of", MLIntegerT, MLIteratableT) {
 	ml_limited_t *Limited = new(ml_limited_t);
 	Limited->Type = MLLimitedT;
 	Limited->Remaining = ml_integer_value(Args[0]);
@@ -317,12 +317,51 @@ static ml_value_t *ml_skipped_iterate(ml_state_t *Caller, ml_skipped_t *Skipped)
 	}
 }
 
-static ml_value_t *ml_skipped_fn(void *Data, int Count, ml_value_t **Args) {
+ML_METHOD("skip", MLIntegerT, MLIteratableT) {
 	ml_skipped_t *Skipped = new(ml_skipped_t);
 	Skipped->Type = MLSkippedT;
 	Skipped->Remaining = ml_integer_value(Args[0]);
 	Skipped->Value = Args[1];
 	return (ml_value_t *)Skipped;
+}
+
+typedef struct {
+	ml_state_t Base;
+	size_t Waiting;
+} ml_tasks_t;
+
+static ml_type_t *MLTasksT;
+
+static ml_value_t *ml_tasks_continue(ml_tasks_t *Tasks, ml_value_t *Value) {
+	if (Value->Type == MLErrorT) {
+		Tasks->Waiting = 0xFFFFFFFF;
+		ML_CONTINUE(Tasks->Base.Caller, Value);
+	}
+	if (--Tasks->Waiting == 0) ML_CONTINUE(Tasks->Base.Caller, MLNil);
+	return MLNil;
+}
+
+static ml_value_t *ml_tasks_fn(void *Data, int Count, ml_value_t **Args) {
+	ml_tasks_t *Tasks = new(ml_tasks_t);
+	Tasks->Base.Type = MLTasksT;
+	Tasks->Base.run = (void *)ml_tasks_continue;
+	Tasks->Waiting = 1;
+	return (ml_value_t *)Tasks;
+}
+
+static ml_value_t *ml_tasks_call(ml_state_t *Caller, ml_tasks_t *Tasks, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_TYPE(Count - 1, MLFunctionT);
+	ml_value_t *Function = Args[Count - 1];
+	++Tasks->Waiting;
+	Function->Type->call((ml_state_t *)Tasks, Function, Count - 1, Args);
+	ML_CONTINUE(Caller, Tasks);
+}
+
+ML_METHODX("wait", MLTasksT) {
+	ml_tasks_t *Tasks = (ml_tasks_t *)Args[0];
+	Tasks->Base.Caller = Caller;
+	if (--Tasks->Waiting == 0) ML_CONTINUE(Tasks->Base.Caller, MLNil);
+	return MLNil;
 }
 
 typedef struct {
@@ -360,7 +399,7 @@ static ml_value_t *ml_parallel_continue(ml_parallel_t *State, ml_value_t *Value)
 		ML_CONTINUE(State->Base.Caller, Value);
 	}
 	if (--State->Waiting == 0) ML_CONTINUE(State->Base.Caller, MLNil);
-	ML_CONTINUE(NULL, MLNil);
+	return MLNil;
 }
 
 static ml_value_t *ml_parallel_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
@@ -396,6 +435,7 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "prod", ml_functionx(0, ml_prod_fnx));
 	stringmap_insert(Globals, "fold", ml_functionx(0, ml_fold_fnx));
 	stringmap_insert(Globals, "parallel", ml_functionx(0, ml_parallel_fnx));
+	stringmap_insert(Globals, "tasks", ml_function(0, ml_tasks_fn));
 
 	MLLimitedT = ml_type(MLIteratableT, "limited");
 	MLLimitedStateT = ml_type(MLAnyT, "limited-state");
@@ -403,9 +443,11 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	ml_typed_fn_set(MLLimitedStateT, ml_iter_next, ml_limited_state_next);
 	ml_typed_fn_set(MLLimitedStateT, ml_iter_key, ml_limited_state_key);
 	ml_typed_fn_set(MLLimitedStateT, ml_iter_value, ml_limited_state_value);
-	ml_method_by_name("of", NULL, ml_limited_fn, MLIntegerT, MLIteratableT, NULL);
 
 	MLSkippedT = ml_type(MLIteratableT, "skipped");
 	ml_typed_fn_set(MLSkippedT, ml_iterate, ml_skipped_iterate);
-	ml_method_by_name("skip", NULL, ml_skipped_fn, MLIntegerT, MLIteratableT, NULL);
+
+	MLTasksT = ml_type(MLFunctionT, "tasks");
+	MLTasksT->call = (void *)ml_tasks_call;
+#include "ml_iterfns_init.c"
 }

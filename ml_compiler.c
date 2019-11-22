@@ -1408,6 +1408,10 @@ static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 				Scanner->Token = MLT_ASSIGN;
 				Scanner->Next += 2;
 				return Scanner->Token;
+			} else if (Scanner->Next[1] == ':') {
+				Scanner->Token = MLT_SYMBOL;
+				Scanner->Next += 2;
+				return Scanner->Token;
 			} else if (isidchar(Scanner->Next[1])) {
 				const char *End = Scanner->Next + 1;
 				for (Char = End[0]; isidchar(Char); Char = *++End);
@@ -1416,17 +1420,6 @@ static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 				memcpy(Ident, Scanner->Next + 1, Length);
 				Ident[Length] = 0;
 				Scanner->Ident = Ident;
-				Scanner->Token = MLT_METHOD;
-				Scanner->Next = End;
-				return Scanner->Token;
-			} else if (Scanner->Next[1] == ':') {
-				const char *End = Scanner->Next + 2;
-				for (Char = End[0]; isoperator(Char); Char = *++End);
-				int Length = End - Scanner->Next - 2;
-				char *Operator = snew(Length + 1);
-				memcpy(Operator, Scanner->Next + 2, Length);
-				Operator[Length] = 0;
-				Scanner->Ident = Operator;
 				Scanner->Token = MLT_METHOD;
 				Scanner->Next = End;
 				return Scanner->Token;
@@ -1780,12 +1773,22 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 	}
 	case MLT_OPERATOR: {
 		Scanner->Token = MLT_NONE;
-		mlc_const_call_expr_t *CallExpr = new(mlc_const_call_expr_t);
-		CallExpr->compile = ml_const_call_expr_compile;
-		CallExpr->Source = Scanner->Source;
-		CallExpr->Value = (ml_value_t *)ml_method(Scanner->Ident);
-		CallExpr->Child = ml_accept_factor(Scanner);
-		return (mlc_expr_t *)CallExpr;
+		ml_value_t *Operator = ml_method(Scanner->Ident);
+		mlc_expr_t *Child = ml_parse_factor(Scanner);
+		if (Child) {
+			mlc_const_call_expr_t *CallExpr = new(mlc_const_call_expr_t);
+			CallExpr->compile = ml_const_call_expr_compile;
+			CallExpr->Source = Scanner->Source;
+			CallExpr->Value = Operator;
+			CallExpr->Child = Child;
+			return (mlc_expr_t *)CallExpr;
+		} else {
+			mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
+			ValueExpr->compile = ml_value_expr_compile;
+			ValueExpr->Source = Scanner->Source;
+			ValueExpr->Value = Operator;
+			return (mlc_expr_t *)ValueExpr;
+		}
 	}
 	case MLT_METHOD: {
 		Scanner->Token = MLT_NONE;
