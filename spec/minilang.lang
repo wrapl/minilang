@@ -164,6 +164,9 @@
     <context id="assignment" style-ref="operator" extend-parent="false">
       <match>:=</match>
     </context>
+    <context id="resolution" style-ref="operator" extend-parent="false">
+      <match>::</match>
+    </context>
     <context id="float" style-ref="floating-point">
       <match extended="true">
         (?&lt;![\w\.])
@@ -188,6 +191,7 @@
         <context ref="simple-string"/>
         <context ref="complex-string"/>
         <context ref="assignment"/>
+        <context ref="resolution"/>
         <context ref="symbol"/>
         <context ref="keywords"/>
         <context ref="functions"/>
