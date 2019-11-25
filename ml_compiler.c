@@ -858,6 +858,25 @@ static mlc_compiled_t ml_const_call_expr_compile(mlc_function_t *Function, mlc_c
 	}
 }
 
+extern ml_value_t *ImportMethod;
+
+static mlc_compiled_t ml_import_expr_compile(mlc_function_t *Function, mlc_const_call_expr_t *Expr, SHA256_CTX *HashContext) {
+	ML_COMPILE_HASH
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
+	if (Compiled.Start != Compiled.Exits) {
+		Function->Context->Error = ml_error("CompilerError", "non-constant expression used in import");
+		ml_error_trace_add(Function->Context->Error, Expr->Source);
+		longjmp(Function->Context->OnError, 1);
+	}
+	if (Compiled.Start->Opcode != MLI_VALUE) {
+		Function->Context->Error = ml_error("CompilerError", "non-constant expression used in import");
+		ml_error_trace_add(Function->Context->Error, Expr->Source);
+		longjmp(Function->Context->OnError, 1);
+	}
+	Compiled.Start->Params[1].Value = ml_inline(ImportMethod, 2, Compiled.Start->Params[1].Value, Expr->Value);
+	return Compiled;
+}
+
 struct mlc_fun_expr_t {
 	MLC_EXPR_FIELDS(fun);
 	mlc_decl_t *Params;
@@ -1914,6 +1933,22 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 			CallExpr->Child = Expr;
 			if (ml_parse(Scanner, MLT_LEFT_PAREN)) ml_accept_arguments(Scanner, &Expr->Next);
 			Expr = (mlc_expr_t *)CallExpr;
+			break;
+		}
+		case MLT_SYMBOL: {
+			Scanner->Token = MLT_NONE;
+			ml_accept(Scanner, MLT_IDENT);
+			if (Expr->compile != (void *)ml_value_expr_compile) {
+				Scanner->Context->Error = ml_error("ParseError", "non-constant expression used in import");
+				ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
+				longjmp(Scanner->Context->OnError, 1);
+			}
+			mlc_const_call_expr_t *ImportExpr = new(mlc_const_call_expr_t);
+			ImportExpr->compile = ml_import_expr_compile;
+			ImportExpr->Source = Scanner->Source;
+			ImportExpr->Value = ml_string(Scanner->Ident, -1);
+			ImportExpr->Child = Expr;
+			Expr = (mlc_expr_t *)ImportExpr;
 			break;
 		}
 		default: return Expr;
