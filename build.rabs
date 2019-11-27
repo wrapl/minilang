@@ -18,7 +18,7 @@ else
 	LDFLAGS := old + ["-g"]
 end
 
-for Source in PATH:ls(".*\\.c") do
+for Source in file(""):ls(".*\\.c") do
 	Source:basename:find("_init") and next
 	var Target := file(Source:basename:replace(".c", "_init.c"))[Source] => fun() do
 		Target:open("w"):close
