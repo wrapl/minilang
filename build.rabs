@@ -22,11 +22,7 @@ for Source in file(""):ls(".*\\.c") do
 	Source:basename:find("_init") and next
 	var Target := file(Source:basename:replace(".c", "_init.c"))[Source] => fun() do
 		Target:open("w"):close
-		var Init := if PLATFORM = "Darwin" then
-			shell("cc", CFLAGS, "-E -DGENERATE_INIT", Source)
-		else
-			shell("cc", CFLAGS, "-E -Xpreprocessor -ftrack-macro-expansion=0 -DGENERATE_INIT", Source)
-		end
+		var Init := shell("cc", CFLAGS, "-E -P -DGENERATE_INIT", Source)
 		var Out := Target:open("w")
 		for Line in Init / "\n" do
 			loop
