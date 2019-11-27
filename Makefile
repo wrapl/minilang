@@ -21,7 +21,7 @@ endif
 
 %_init.c: %.c
 	echo "" > $@
-	cc -E -P -DGENERATE_INIT $< | grep -o 'ml_[a-z]*_by_name([^{]*_fn_[^{]*);' > $@
+	cc -E -P -DGENERATE_INIT $(CFLAGS) $< | grep -o 'ml_[a-z]*_by_name([^{]*_fn_[^{]*);' > $@
 
 ml_types.o: ml_types_init.c
 ml_iterfns.o: ml_iterfns_init.c
