@@ -10,7 +10,7 @@
 #include <gc/gc.h>
 #include "minilang.h"
 #include "ml_macros.h"
-#include <stringmap.h>
+#include "stringmap.h"
 #include "ml_compiler.h"
 #include <sys/stat.h>
 
