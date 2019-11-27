@@ -112,6 +112,8 @@ void console_log(console_t *Console, ml_value_t *Value) {
 static void console_submit(GtkWidget *Button, console_t *Console) {
 	GtkTextBuffer *InputBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView));
 	GtkTextIter InputStart[1], InputEnd[1];
+
+	gtk_source_buffer_set_highlight_matching_brackets(GTK_SOURCE_BUFFER(InputBuffer), FALSE);
 	gtk_text_buffer_get_bounds(InputBuffer, InputStart, InputEnd);
 	Console->Input = gtk_text_buffer_get_text(InputBuffer, InputStart, InputEnd, FALSE);
 
@@ -126,6 +128,8 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 	gtk_text_buffer_insert_range(LogBuffer, End, InputStart, InputEnd);
 	gtk_text_buffer_insert(LogBuffer, End, "\n", -1);
 	gtk_text_buffer_set_text(InputBuffer, "", 0);
+
+	gtk_source_buffer_set_highlight_matching_brackets(GTK_SOURCE_BUFFER(InputBuffer), TRUE);
 
 	mlc_scanner_t *Scanner = Console->Scanner;
 	mlc_on_error(Console->Context) {

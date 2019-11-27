@@ -2778,7 +2778,7 @@ ml_type_t MLNamesT[1] = {{
 void ml_init() {
 	CompareMethod = ml_method("<>");
 	AppendMethod = ml_method("append");
-	ImportMethod = ml_method("import");
+	ImportMethod = ml_method("[]");
 #include "ml_types_init.c"
 	//ml_method_by_name("#", NULL, ml_hash_any, MLAnyT, NULL);
 	ml_method_by_name("<>", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);

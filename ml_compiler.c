@@ -868,7 +868,7 @@ static mlc_compiled_t ml_import_expr_compile(mlc_function_t *Function, mlc_const
 		ml_error_trace_add(Function->Context->Error, Expr->Source);
 		longjmp(Function->Context->OnError, 1);
 	}
-	if (Compiled.Start->Opcode != MLI_VALUE) {
+	if (Compiled.Start->Opcode != MLI_LOAD) {
 		Function->Context->Error = ml_error("CompilerError", "non-constant expression used in import");
 		ml_error_trace_add(Function->Context->Error, Expr->Source);
 		longjmp(Function->Context->OnError, 1);
@@ -1938,11 +1938,6 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 		case MLT_SYMBOL: {
 			Scanner->Token = MLT_NONE;
 			ml_accept(Scanner, MLT_IDENT);
-			if (Expr->compile != (void *)ml_value_expr_compile) {
-				Scanner->Context->Error = ml_error("ParseError", "non-constant expression used in import");
-				ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
-				longjmp(Scanner->Context->OnError, 1);
-			}
 			mlc_const_call_expr_t *ImportExpr = new(mlc_const_call_expr_t);
 			ImportExpr->compile = ml_import_expr_compile;
 			ImportExpr->Source = Scanner->Source;
