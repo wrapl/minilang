@@ -58,19 +58,19 @@ var Objects := [
 
 var Libraries := []
 
-if defined("LIBUV") then
+if MINILANG_LIBUV or defined("LIBUV") then
 	Objects:put(file("ml_libuv.o"))
 	CFLAGS := old + ["-DUSE_ML_UV"]
 	LDFLAGS := old + ["-luv"]
 end
 
-if defined("USEGTK") then
+if MINILANG_USEGTK or defined("USEGTK") then
 	Objects:put(file("ml_gir.o"), file("gtk_console.o"))
 	CFLAGS := old + ["-DUSE_ML_GIR", pkgconfig("--cflags gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0")]
 	LDFLAGS := old + [pkgconfig("--libs gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0")]
 end
 
-if defined("USECBOR") then
+if MINILANG_USECBOR or defined("USECBOR") then
 	var Dir := file("minicbor")
 	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git")
 	
@@ -87,7 +87,7 @@ if defined("USECBOR") then
 	)
 end
 
-if defined("USEMPC") then
+if MINILANG_USEMPC or defined("USEMPC") then
 	var Dir := file("mpc")
 	Dir:exists or do
 		execute("git clone https://github.com/orangeduck/mpc.git")
