@@ -1449,7 +1449,7 @@ static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 			}
 		}
 		if (Char == '-' && Scanner->Next[1] == '-') {
-			Scanner->Next = "";
+			Scanner->Next = "\n";
 			continue;
 		}
 		for (ml_token_t T = MLT_LEFT_PAREN; T <= MLT_COMMA; ++T) {
