@@ -1,5 +1,5 @@
 A:X = 10
-A = object(X: 10, Y: 20)
+A = point(X: 10, Y: 20)
 A = point(10, 200)
 point(10, 200) + point(23, 9.100000) = point(33, 209.100000)
 point(10, 200) * 5 = point(50, 1000)

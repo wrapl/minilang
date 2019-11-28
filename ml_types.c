@@ -198,7 +198,7 @@ ml_type_t MLTypeT[1] = {{
 
 ML_METHOD("string", MLTypeT) {
 	ml_type_t *Type = (ml_type_t *)Args[0];
-	return ml_string_format("<%s>", Type->Name);
+	return ml_string_format("<<%s>>", Type->Name);
 }
 
 ML_METHOD("string", MLNilT) {

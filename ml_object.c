@@ -28,9 +28,29 @@ ml_type_t MLObjectT[1] = {{
 static ml_value_t *ml_class_call(ml_state_t *Caller, ml_class_t *Class, int Count, ml_value_t **Args) {
 	ml_object_t *Object = xnew(ml_object_t, Class->NumFields, ml_value_t *);
 	Object->Type = (ml_type_t *)Class;
-	if (Count > Class->NumFields) Count = Class->NumFields;
-	for (int I = 0; I < Count; ++I) Object->Fields[I] = Args[I];
-	for (int I = Count; I < Class->NumFields; ++I) Object->Fields[I] = MLNil;
+	ml_value_t **Slot = Object->Fields;
+	for (int I = Class->NumFields; --I >= 0; ++Slot) *Slot = MLNil;
+	for (int I = 0; I < Count; ++I) {
+		if (Args[I]->Type == MLNamesT) {
+			for (ml_list_node_t *Node = ml_list_head(Args[I]); Node; Node = Node->Next) {
+				++I;
+				ml_value_t *Field = Node->Value;
+				for (int J = 0; J < Class->NumFields; ++J) {
+					if (Class->Fields[J] == Field) {
+						Object->Fields[J] = Args[I];
+						goto found;
+					}
+				}
+				ML_CONTINUE(Caller, ml_error("ValueError", "Class %s does not have field %s", Class->Base.Name, ml_method_name(Field)));
+				found: 0;
+			}
+			break;
+		} else if (I > Class->NumFields) {
+			break;
+		} else {
+			Object->Fields[I] = Args[I];
+		}
+	}
 	ML_CONTINUE(Caller, Object);
 }
 
@@ -65,7 +85,7 @@ static ml_value_t *ml_object_string(void *Data, int Count, ml_value_t **Args) {
 	ml_class_t *Class = (ml_class_t *)Object->Type;
 	if (Class->NumFields > 0) {
 		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-		ml_stringbuffer_add(Buffer, "object(", strlen("object("));
+		ml_stringbuffer_addf(Buffer, "%s(", Class->Base.Name);
 		const char *Name = ml_method_name(Class->Fields[0]);
 		ml_stringbuffer_add(Buffer, Name, strlen(Name));
 		ml_stringbuffer_add(Buffer, ": ", 2);
@@ -80,7 +100,7 @@ static ml_value_t *ml_object_string(void *Data, int Count, ml_value_t **Args) {
 		ml_stringbuffer_add(Buffer, ")", 1);
 		return ml_stringbuffer_get_string(Buffer);
 	} else {
-		return ml_string("object()", strlen("object()"));
+		return ml_string_format("%s()", Class->Base.Name);
 	}
 }
 
@@ -91,34 +111,40 @@ ml_value_t *ml_field_fn(void *Data, int Count, ml_value_t **Args) {
 }
 
 static ml_value_t *ml_class_fn(void *Data, int Count, ml_value_t **Args) {
-	if (Count > 0 && ml_is(Args[0], MLTypeT)) {
-		ml_class_t *Parent = (ml_class_t *)Args[0];
-		for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLMethodT);
-		ml_class_t *Class = xnew(ml_class_t, Parent->NumFields + Count - 1, ml_method_t *);
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	const char *Name = ml_string_value(Args[0]);
+	if (Count > 1 && !ml_is(Args[1], MLMethodT)) {
+		ML_CHECK_ARG_TYPE(1, MLClassT);
+		ml_class_t *Parent = (ml_class_t *)Args[1];
+		for (int I = 2; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLMethodT);
+		ml_class_t *Class = xnew(ml_class_t, Parent->NumFields + Count - 2, ml_method_t *);
 		Class->Base = MLTypeT[0];
 		Class->Base.Type = MLClassT;
 		Class->Base.Parent = (ml_type_t *)Parent;
-		Class->Base.Name = "object";
-		Class->NumFields = Parent->NumFields + Count - 1;
+		Class->Base.Name = Name;
+		Class->NumFields = Parent->NumFields + Count - 2;
 		memcpy(Class->Fields, Parent->Fields, Parent->NumFields * sizeof(ml_value_t *));
-		for (int I = 1; I < Count; ++I) {
-			Class->Fields[Parent->NumFields + I - 1] = Args[I];
+		for (int I = 2; I < Count; ++I) {
+			Class->Fields[Parent->NumFields + I - 2] = Args[I];
 		}
 		for (int I = 0; I < Class->NumFields; ++I) {
 			ml_method_by_value(Class->Fields[I], ((ml_object_t *)0)->Fields + I, ml_field_fn, Class, NULL);
 		}
 		return (ml_value_t *)Class;
 	} else {
-		for (int I = 0; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLMethodT);
+		for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLMethodT);
 		ml_class_t *Class = xnew(ml_class_t, Count, ml_method_t *);
 		Class->Base = MLTypeT[0];
 		Class->Base.Type = MLClassT;
 		Class->Base.Parent = MLObjectT;
-		Class->Base.Name = "object";
-		Class->NumFields = Count;
-		for (int I = 0; I < Count; ++I) {
-			Class->Fields[I] = Args[I];
-			ml_method_by_value(Args[I], ((ml_object_t *)0)->Fields + I, ml_field_fn, Class, NULL);
+		Class->Base.Name = Name;
+		Class->NumFields = Count - 1;
+		for (int I = 1; I < Count; ++I) {
+			Class->Fields[I - 1] = Args[I];
+		}
+		for (int I = 0; I < Class->NumFields; ++I) {
+			ml_method_by_value(Class->Fields[I], ((ml_object_t *)0)->Fields + I, ml_field_fn, Class, NULL);
 		}
 		return (ml_value_t *)Class;
 	}
