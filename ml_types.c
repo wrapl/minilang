@@ -1638,17 +1638,32 @@ ml_type_t MLTupleT[1] = {{
 	NULL, 0, 0
 }};
 
-static ml_value_t *ml_tuple_size_fn(void *Data, int Count, ml_value_t **Args) {
+ML_METHOD("size", MLTupleT) {
 	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
 	return ml_integer(Tuple->Size);
 }
 
-static ml_value_t *ml_tuple_index_fn(void *Data, int Count, ml_value_t **Args) {
+ML_METHOD("[]", MLTupleT, MLIntegerT) {
 	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
 	long Index = ((ml_integer_t *)Args[1])->Value;
 	if (--Index < 0) Index += Tuple->Size + 1;
 	if (Index < 0 || Index >= Tuple->Size) return ml_error("RangeError", "Tuple index out of bounds");
 	return ml_reference(Tuple->Values + Index);
+}
+
+ml_value_t *ml_tuple(size_t Size) {
+	ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
+	Tuple->Type = MLTupleT;
+	Tuple->Size = Size;
+	return (ml_value_t *)Tuple;
+}
+
+ml_value_t *ml_tuple_get(ml_value_t *Tuple, size_t Index) {
+	return ((ml_tuple_t *)Tuple)->Values[Index];
+}
+
+ml_value_t *ml_tuple_set(ml_value_t *Tuple, size_t Index, ml_value_t *Value) {
+	return ((ml_tuple_t *)Tuple)->Values[Index] = Value;
 }
 
 struct ml_property_t {
@@ -2796,8 +2811,6 @@ void ml_init() {
 	ml_method_by_name(">=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
 	ml_method_by_name(">=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
 
-	ml_method_by_name("size", NULL, ml_tuple_size_fn, MLTupleT, NULL);
-	ml_method_by_name("[]", NULL, ml_tuple_index_fn, MLTupleT, MLIntegerT, NULL);
 	ml_method_by_name("string", NULL, ml_identity, MLStringT, NULL);
 
 	ml_typed_fn_set(MLNilT, ml_stringbuffer_append, ml_stringbuffer_append_nil);
