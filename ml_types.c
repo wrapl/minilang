@@ -1666,6 +1666,19 @@ ml_value_t *ml_tuple_set(ml_value_t *Tuple, size_t Index, ml_value_t *Value) {
 	return ((ml_tuple_t *)Tuple)->Values[Index] = Value;
 }
 
+ml_value_t *ml_stringbuffer_append_tuple(ml_stringbuffer_t *Buffer, ml_tuple_t *Value) {
+	ml_stringbuffer_add(Buffer, "(", 1);
+	if (Value->Size) {
+		ml_stringbuffer_append(Buffer, Value->Values[0]);
+		for (int I = 1; I < Value->Size; ++I) {
+			ml_stringbuffer_add(Buffer, ", ", 2);
+			ml_stringbuffer_append(Buffer, Value->Values[I]);
+		}
+	}
+	ml_stringbuffer_add(Buffer, ")", 1);
+	return MLSome;
+}
+
 struct ml_property_t {
 	const ml_type_t *Type;
 	void *Data;
@@ -2018,6 +2031,21 @@ ML_METHOD("append", MLStringBufferT, MLMethodT) {
 
 ml_value_t *ml_stringbuffer_append_method(ml_stringbuffer_t *Buffer, ml_method_t *Value) {
 	ml_stringbuffer_add(Buffer, Value->Name, strlen(Value->Name));
+	return MLSome;
+}
+
+ML_METHOD("append", MLStringBufferT, MLTupleT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_tuple_t *Value = (ml_tuple_t *)Args[1];
+	ml_stringbuffer_add(Buffer, "(", 1);
+	if (Value->Size) {
+		ml_stringbuffer_append(Buffer, Value->Values[0]);
+		for (int I = 1; I < Value->Size; ++I) {
+			ml_stringbuffer_add(Buffer, ", ", 2);
+			ml_stringbuffer_append(Buffer, Value->Values[I]);
+		}
+	}
+	ml_stringbuffer_add(Buffer, ")", 1);
 	return MLSome;
 }
 
@@ -2458,6 +2486,21 @@ ML_METHOD("<>", MLAnyT, MLAnyT) {
 	return ml_integer(0);
 }
 
+ML_METHOD("string", MLTupleT) {
+	ml_tuple_t *Value = (ml_tuple_t *)Args[0];
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_stringbuffer_add(Buffer, "(", 1);
+	if (Value->Size) {
+		ml_stringbuffer_append(Buffer, Value->Values[0]);
+		for (int I = 1; I < Value->Size; ++I) {
+			ml_stringbuffer_add(Buffer, ", ", 2);
+			ml_stringbuffer_append(Buffer, Value->Values[I]);
+		}
+	}
+	ml_stringbuffer_add(Buffer, ")", 1);
+	return ml_stringbuffer_get_string(Buffer);
+}
+
 typedef struct ml_list_iter_t {
 	const ml_type_t *Type;
 	ml_list_node_t *Node;
@@ -2819,6 +2862,7 @@ void ml_init() {
 	ml_typed_fn_set(MLRealT, ml_stringbuffer_append, ml_stringbuffer_append_real);
 	ml_typed_fn_set(MLStringT, ml_stringbuffer_append, ml_stringbuffer_append_string);
 	ml_typed_fn_set(MLMethodT, ml_stringbuffer_append, ml_stringbuffer_append_method);
+	ml_typed_fn_set(MLTupleT, ml_stringbuffer_append, ml_stringbuffer_append_tuple);
 	ml_typed_fn_set(MLListT, ml_stringbuffer_append, ml_stringbuffer_append_list);
 	ml_typed_fn_set(MLMapT, ml_stringbuffer_append, ml_stringbuffer_append_map);
 
