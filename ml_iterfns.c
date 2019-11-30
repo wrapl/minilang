@@ -593,6 +593,60 @@ static ml_value_t *ml_group_fn(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)Grouped;
 }
 
+typedef struct ml_repeated_t {
+	const ml_type_t *Type;
+	ml_value_t *Value, *Function;
+} ml_repeated_t;
+
+static ml_type_t *MLRepeatedT;
+
+typedef struct ml_repeated_state_t {
+	ml_state_t Base;
+	ml_value_t *Value, *Function;
+	int Iteration;
+} ml_repeated_state_t;
+
+static ml_type_t *MLRepeatedStateT;
+
+static ml_value_t *ml_repeated_fnx_value(ml_repeated_state_t *State, ml_value_t *Result) {
+	if (Result->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Result);
+	State->Value = Result;
+	++State->Iteration;
+	ML_CONTINUE(State->Base.Caller, State);
+}
+
+static ml_value_t *ml_repeated_next(ml_state_t *Caller, ml_repeated_state_t *State) {
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)ml_repeated_fnx_value;
+	return State->Function->Type->call((ml_state_t *)State, State->Function, 1, &State->Value);
+}
+
+static ml_value_t *ml_repeated_key(ml_state_t *Caller, ml_repeated_state_t *State) {
+	ML_CONTINUE(Caller, ml_integer(State->Iteration));
+}
+
+static ml_value_t *ml_repeated_value(ml_state_t *Caller, ml_repeated_state_t *State) {
+	ML_CONTINUE(Caller, State->Value);
+}
+
+static ml_value_t *ml_repeated_iterate(ml_state_t *Caller, ml_repeated_t *Repeated) {
+	ml_repeated_state_t *State = new(ml_repeated_state_t);
+	State->Base.Type = MLRepeatedStateT;
+	State->Value = Repeated->Value;
+	State->Function = Repeated->Function;
+	State->Iteration = 1;
+	ML_CONTINUE(Caller, State);
+}
+
+static ml_value_t *ml_repeat_fn(void *Data, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	ml_repeated_t *Repeated = new(ml_repeated_t);
+	Repeated->Type = MLRepeatedT;
+	Repeated->Value = Args[0];
+	Repeated->Function = Count > 1 ? Args[1] : ml_integer(1);
+	return (ml_value_t *)Repeated;
+}
+
 void ml_iterfns_init(stringmap_t *Globals) {
 	LessMethod = ml_method("<");
 	GreaterMethod = ml_method(">");
@@ -611,6 +665,7 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "parallel", ml_functionx(0, ml_parallel_fnx));
 	stringmap_insert(Globals, "tasks", ml_function(0, ml_tasks_fn));
 	stringmap_insert(Globals, "group", ml_function(0, ml_group_fn));
+	stringmap_insert(Globals, "repeat", ml_function(0, ml_repeat_fn));
 
 	stringmap_insert(Globals, "tuple", ml_function(0, ml_tuple_new));
 	stringmap_insert(Globals, "list", ml_function(0, ml_list_new));
@@ -643,6 +698,12 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	ml_typed_fn_set(MLGroupedStateT, ml_iter_key, ml_grouped_key);
 	ml_typed_fn_set(MLGroupedStateT, ml_iter_value, ml_grouped_value);
 
+	MLRepeatedT = ml_type(MLIteratableT, "repeated");
+	MLRepeatedStateT = ml_type(MLAnyT, "repeated-state");
+	ml_typed_fn_set(MLRepeatedT, ml_iterate, ml_repeated_iterate);
+	ml_typed_fn_set(MLRepeatedStateT, ml_iter_next, ml_repeated_next);
+	ml_typed_fn_set(MLRepeatedStateT, ml_iter_key, ml_repeated_key);
+	ml_typed_fn_set(MLRepeatedStateT, ml_iter_value, ml_repeated_value);
 
 #include "ml_iterfns_init.c"
 }
