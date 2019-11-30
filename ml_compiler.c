@@ -639,6 +639,26 @@ static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_exp
 	return Compiled;
 }
 
+static mlc_compiled_t ml_each_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
+	ML_COMPILE_HASH
+	mlc_expr_t *Child = Expr->Child;
+	mlc_compiled_t Compiled = mlc_compile(Function, Child, HashContext);
+	ml_inst_t *EachInst = ml_inst_new(1, Expr->Source, MLI_FOR);
+	ml_inst_t *IfInst = ml_inst_new(2, Expr->Source, MLI_IF);
+	EachInst->Params[0].Inst = IfInst;
+	mlc_connect(Compiled.Exits, EachInst);
+	ml_inst_t *PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
+	IfInst->Params[1].Inst = PushInst;
+	ml_inst_t *ValueInst = ml_inst_new(1, Expr->Source, MLI_VALUE);
+	PushInst->Params[0].Inst = ValueInst;
+	ml_inst_t *NextInst = ml_inst_new(2, Expr->Source, MLI_NEXT);
+	ValueInst->Params[0].Inst = NextInst;
+	NextInst->Params[0].Inst = IfInst;
+	NextInst->Params[1].Count = 0;
+	Compiled.Exits = IfInst;
+	return Compiled;
+}
+
 struct mlc_block_expr_t {
 	MLC_EXPR_FIELDS(block);
 	mlc_decl_t *Decl;
@@ -1014,6 +1034,7 @@ const char *MLTokens[] = {
 	"exit", // MLT_EXIT,
 	"next", // MLT_NEXT,
 	"for", // MLT_FOR,
+	"each", // MLT_EACH,
 	"to", // MLT_TO,
 	"in", // MLT_IN,
 	"is", // MLT_IS,
@@ -1067,6 +1088,7 @@ typedef enum ml_token_t {
 	MLT_EXIT,
 	MLT_NEXT,
 	MLT_FOR,
+	MLT_EACH,
 	MLT_TO,
 	MLT_IN,
 	MLT_IS,
@@ -1577,6 +1599,14 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 		}
 		ml_accept(Scanner, MLT_END);
 		return (mlc_expr_t *)ForExpr;
+	}
+	case MLT_EACH: {
+		Scanner->Token = MLT_NONE;
+		mlc_parent_expr_t *EachExpr = new(mlc_parent_expr_t);
+		EachExpr->compile = ml_each_expr_compile;
+		EachExpr->Source = Scanner->Source;
+		EachExpr->Child = ml_accept_expression(Scanner, EXPR_DEFAULT);
+		return (mlc_expr_t *)EachExpr;
 	}
 	case MLT_NOT: {
 		Scanner->Token = MLT_NONE;

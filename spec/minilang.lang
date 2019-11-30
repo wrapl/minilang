@@ -109,6 +109,7 @@
       <keyword>exit</keyword>
       <keyword>next</keyword>
       <keyword>for</keyword>
+      <keyword>each</keyword>
       <keyword>to</keyword>
       <keyword>in</keyword>
       <keyword>is</keyword>
@@ -151,12 +152,16 @@
       <keyword>MapT</keyword>
       <keyword>all</keyword>
       <keyword>map</keyword>
-      <keyword>uniq</keyword>
+      <keyword>unique</keyword>
       <keyword>count</keyword>
       <keyword>min</keyword>
       <keyword>max</keyword>
       <keyword>sum</keyword>
       <keyword>prod</keyword>
+      <keyword>group</keyword>
+      <keyword>list</keyword>
+      <keyword>map</keyword>
+      <keyword>tuple</keyword>
     </context>
     <context id="operators" style-ref="operator" extend-parent="false">
       <match>[-.#~^@;/$%|\=\+\*\!\?&amp;&lt;&gt;\[\]\\{}\()]</match>
