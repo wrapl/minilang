@@ -5,49 +5,6 @@
 #include "ml_iterfns.h"
 #include "ml_internal.h"
 
-/*
-typedef struct ml_each_iter_t {
-	ml_state_t Base;
-	ml_value_t *Iter;
-	ml_value_t **Functions;
-	int Index, Count;
-} ml_each_iter_t;
-
-static ml_value_t *ml_each_fnx_value(ml_each_iter_t *Frame, ml_value_t *Result);
-
-static ml_value_t *ml_each_fnx_next(ml_each_iter_t *Frame, ml_value_t *Result) {
-	Result = Result->Type->deref(Result);
-	if (Result->Type == MLErrorT) ML_CONTINUE(Frame->Base.Caller, Result);
-	if (Frame->Index < Frame->Count) {
-		ml_value_t *Function = Frame->Functions[Frame->Index++];
-		return Function->Type->call((ml_state_t *)Frame, Function, 1, &Result);
-	} else {
-		Frame->Base.run = (void *)ml_each_fnx_value;
-		return ml_iter_next((ml_state_t *)Frame, Frame->Iter);
-	}
-}
-
-static ml_value_t *ml_each_fnx_value(ml_each_iter_t *Frame, ml_value_t *Result) {
-	Result = Result->Type->deref(Result);
-	if (Result->Type == MLErrorT) ML_CONTINUE(Frame->Base.Caller, Result);
-	if (Result == MLNil) ML_CONTINUE(Frame->Base.Caller, Result);
-	Frame->Base.run = (void *)ml_each_fnx_next;
-	Frame->Index = 0;
-	return ml_iter_value((ml_state_t *)Frame, Frame->Iter = Result);
-}
-
-static ml_value_t *ml_each_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
-	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
-	ml_each_iter_t *Frame = new(ml_each_iter_t);
-	Frame->Base.Caller = Caller;
-	Frame->Base.run = (void *)ml_each_fnx_value;
-	Frame->Count = Count - 1;
-	Frame->Functions = Args + 1;
-	return ml_iterate((ml_state_t *)Frame, Args[0]);
-}
-*/
-
 typedef struct ml_frame_iter_t {
 	ml_state_t Base;
 	ml_value_t *Iter;
@@ -647,6 +604,70 @@ static ml_value_t *ml_repeat_fn(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)Repeated;
 }
 
+typedef struct ml_sequenced_t {
+	const ml_type_t *Type;
+	ml_value_t *First, *Second;
+} ml_sequenced_t;
+
+static ml_type_t *MLSequencedT;
+
+typedef struct ml_sequenced_state_t {
+	ml_state_t Base;
+	ml_value_t *Iter, *Next;
+} ml_sequenced_state_t;
+
+static ml_type_t *MLSequencedStateT;
+
+static ml_value_t *ml_sequenced_fnx_iterate(ml_sequenced_state_t *State, ml_value_t *Result);
+
+static ml_value_t *ml_sequenced_next(ml_state_t *Caller, ml_sequenced_state_t *State) {
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)ml_sequenced_fnx_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static ml_value_t *ml_sequenced_key(ml_state_t *Caller, ml_sequenced_state_t *State) {
+	return ml_iter_key(Caller, State->Iter);
+}
+
+static ml_value_t *ml_sequenced_value(ml_state_t *Caller, ml_sequenced_state_t *State) {
+	return ml_iter_value(Caller, State->Iter);
+}
+
+static ml_value_t *ml_sequenced_fnx_iterate(ml_sequenced_state_t *State, ml_value_t *Result) {
+	if (Result->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Result);
+	if (Result == MLNil) {
+		return ml_iterate(State->Base.Caller, State->Next);
+	}
+	State->Iter = Result;
+	ML_CONTINUE(State->Base.Caller, State);
+}
+
+static ml_value_t *ml_sequenced_iterate(ml_state_t *Caller, ml_sequenced_t *Sequenced) {
+	ml_sequenced_state_t *State = new(ml_sequenced_state_t);
+	State->Base.Type = MLSequencedStateT;
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)ml_sequenced_fnx_iterate;
+	State->Next = Sequenced->Second;
+	return ml_iterate((ml_state_t *)State, Sequenced->First);
+}
+
+ML_METHOD("||", MLIteratableT, MLIteratableT) {
+	ml_sequenced_t *Sequenced = xnew(ml_sequenced_t, 3, ml_value_t *);
+	Sequenced->Type = MLSequencedT;
+	Sequenced->First = Args[0];
+	Sequenced->Second = Args[1];
+	return (ml_value_t *)Sequenced;
+}
+
+ML_METHOD("||", MLIteratableT) {
+	ml_sequenced_t *Sequenced = xnew(ml_sequenced_t, 3, ml_value_t *);
+	Sequenced->Type = MLSequencedT;
+	Sequenced->First = Args[0];
+	Sequenced->Second = (ml_value_t *)Sequenced;
+	return (ml_value_t *)Sequenced;
+}
+
 void ml_iterfns_init(stringmap_t *Globals) {
 	LessMethod = ml_method("<");
 	GreaterMethod = ml_method(">");
@@ -703,6 +724,13 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	ml_typed_fn_set(MLRepeatedStateT, ml_iter_next, ml_repeated_next);
 	ml_typed_fn_set(MLRepeatedStateT, ml_iter_key, ml_repeated_key);
 	ml_typed_fn_set(MLRepeatedStateT, ml_iter_value, ml_repeated_value);
+
+	MLSequencedT = ml_type(MLIteratableT, "sequenced");
+	MLSequencedStateT = ml_type(MLAnyT, "sequenced-state");
+	ml_typed_fn_set(MLSequencedT, ml_iterate, ml_sequenced_iterate);
+	ml_typed_fn_set(MLSequencedStateT, ml_iter_next, ml_sequenced_next);
+	ml_typed_fn_set(MLSequencedStateT, ml_iter_key, ml_sequenced_key);
+	ml_typed_fn_set(MLSequencedStateT, ml_iter_value, ml_sequenced_value);
 
 #include "ml_iterfns_init.c"
 }
