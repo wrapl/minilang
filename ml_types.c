@@ -908,11 +908,13 @@ ml_type_t MLStringT[1] = {{
 ml_value_t *ml_string(const char *Value, int Length) {
 	ml_string_t *String = fnew(ml_string_t);
 	String->Type = MLStringT;
-	if (Length >= 0 && Value[Length]) {
-		char *Copy = snew(Length + 1);
-		memcpy(Copy, Value, Length);
-		Copy[Length] = 0;
-		Value = Copy;
+	if (Length >= 0) {
+		if (Value[Length]) {
+			char *Copy = snew(Length + 1);
+			memcpy(Copy, Value, Length);
+			Copy[Length] = 0;
+			Value = Copy;
+		}
 	} else {
 		Length = Value ? strlen(Value) : 0;
 	}
