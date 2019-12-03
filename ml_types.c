@@ -779,10 +779,8 @@ ML_METHOD("%", MLStringT, MLRegexT) {
 	regmatch_t Matches[Regex->re_nsub + 1];
 	switch (regexec(Regex, Subject, Regex->re_nsub + 1, Matches, 0)) {
 	case REG_NOMATCH:
-		regfree(Regex);
 		return MLNil;
 	case REG_ESPACE: {
-		regfree(Regex);
 		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 		char *ErrorMessage = snew(ErrorSize + 1);
 		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
@@ -802,7 +800,6 @@ ML_METHOD("%", MLStringT, MLRegexT) {
 				ml_list_append(Results, MLNil);
 			}
 		}
-		regfree(Regex);
 		return Results;
 	}
 	}

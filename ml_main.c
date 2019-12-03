@@ -80,6 +80,11 @@ static ml_value_t *ml_halt(void *Data, int Count, ml_value_t **Args) {
 	}
 }
 
+static ml_value_t *ml_collect(void *Data, int Count, ml_value_t **Args) {
+	GC_gcollect();
+	return MLNil;
+}
+
 extern ml_value_t MLCallCC[];
 extern ml_value_t MLSpawn[];
 
@@ -93,6 +98,7 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "debug", ml_function(0, ml_debug));
 	stringmap_insert(Globals, "break", ml_function(0, ml_break));
 	stringmap_insert(Globals, "halt", ml_function(0, ml_halt));
+	stringmap_insert(Globals, "collect", ml_function(0,ml_collect));
 	stringmap_insert(Globals, "callcc", MLCallCC);
 #ifdef USE_ML_UV
 	ml_uv_init(Globals);
