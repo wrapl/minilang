@@ -913,9 +913,11 @@ ml_value_t *ml_string(const char *Value, int Length) {
 		memcpy(Copy, Value, Length);
 		Copy[Length] = 0;
 		Value = Copy;
+	} else {
+		Length = Value ? strlen(Value) : 0;
 	}
 	String->Value = Value;
-	String->Length = Length >= 0 ? Length : (Value ? strlen(Value) : 0);
+	String->Length = Length;
 	GC_end_stubborn_change(String);
 	return (ml_value_t *)String;
 }
