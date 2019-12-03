@@ -1324,17 +1324,15 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 	return Slot[0];
 }
 
-static ml_value_t *enum_info_call(ml_state_t *Caller, enum_t *Enum, int Count, ml_value_t **Args) {
-	//ML_CHECK_ARG_COUNT(1);
-	//ML_CHECK_ARG_TYPE(0, MLStringT);
-	enum_value_t *Value = (enum_value_t *)stringmap_search(Enum->ByName, ml_string_value(Args[0]));
+ML_METHOD("[]", EnumT, MLStringT) {
+	enum_t *Enum = (enum_t *)Args[0];
+	enum_value_t *Value = (enum_value_t *)stringmap_search(Enum->ByName, ml_string_value(Args[1]));
 	ml_value_t *Result;
 	if (!Value) {
-		Result = ml_error("NameError", "Invalid enum name %s", ml_string_value(Args[0]));
+		return ml_error("NameError", "Invalid enum name %s", ml_string_value(Args[1]));
 	} else {
-		Result = (ml_value_t *)Value;
+		return (ml_value_t *)Value;
 	}
-	ML_CONTINUE(Caller, Result);
 }
 
 static ml_type_t *enum_info_lookup(GIEnumInfo *Info) {
@@ -1427,18 +1425,16 @@ static ml_value_t *baseinfo_to_value(GIBaseInfo *Info) {
 	return MLNil;
 }
 
-static ml_value_t *typelib_call(ml_state_t *Caller, typelib_t *Typelib, int Count, ml_value_t **Args) {
-	//ML_CHECK_ARG_COUNT(1);
-	//ML_CHECK_ARG_TYPE(0, MLStringT);
-	const char *Name = ml_string_value(Args[0]);
+ML_METHOD("[]", TypelibT, MLStringT) {
+	typelib_t *Typelib = (typelib_t *)Args[0];
+	const char *Name = ml_string_value(Args[1]);
 	GIBaseInfo *Info = g_irepository_find_by_name(NULL, Typelib->Namespace, Name);
 	ml_value_t *Result;
 	if (!Info) {
-		Result = ml_error("NameError", "Symbol %s not found in %s", Name, Typelib->Namespace);
+		return ml_error("NameError", "Symbol %s not found in %s", Name, Typelib->Namespace);
 	} else {
-		Result = baseinfo_to_value(Info);
+		return baseinfo_to_value(Info);
 	}
-	ML_CONTINUE(Caller, Result);
 }
 
 static ml_value_t *typelib_iterate(ml_state_t *Caller, typelib_t *Typelib) {
@@ -1569,7 +1565,6 @@ ML_METHOD("[]", ObjectInstanceT, MLStringT) {
 void ml_gir_init(stringmap_t *Globals) {
 	gtk_init(0, 0);
 	TypelibT = ml_type(MLAnyT, "gir-typelib");
-	TypelibT->call = (void *)typelib_call;
 	ml_typed_fn_set(TypelibT, ml_iterate, typelib_iterate);
 	ml_typed_fn_set(TypelibIterT, ml_iter_next, typelib_iter_next);
 	ml_typed_fn_set(TypelibIterT, ml_iter_value, typelib_iter_current);
@@ -1585,7 +1580,6 @@ void ml_gir_init(stringmap_t *Globals) {
 	StructT = ml_type(MLTypeT, "gir-struct");
 	StructInstanceT = ml_type(MLAnyT, "gir-struct-instance");
 	EnumT = ml_type(MLTypeT, "gir-enum");
-	EnumT->call = (void *)enum_info_call;
 	EnumValueT = ml_type(MLAnyT, "gir-value");
 	MLTrue = ml_method("true");
 	MLFalse = ml_method("false");

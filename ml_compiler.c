@@ -1525,6 +1525,8 @@ void ml_accept_eoi(mlc_scanner_t *Scanner) {
 	ml_accept(Scanner, MLT_EOI);
 }
 
+static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner);
+
 static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 	switch (ml_next(Scanner)) {
 	case MLT_DO: {
@@ -1823,7 +1825,7 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 	case MLT_OPERATOR: {
 		Scanner->Token = MLT_NONE;
 		ml_value_t *Operator = ml_method(Scanner->Ident);
-		mlc_expr_t *Child = ml_parse_factor(Scanner);
+		mlc_expr_t *Child = ml_parse_term(Scanner);
 		if (Child) {
 			mlc_const_call_expr_t *CallExpr = new(mlc_const_call_expr_t);
 			CallExpr->compile = ml_const_call_expr_compile;

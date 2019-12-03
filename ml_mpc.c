@@ -232,7 +232,7 @@ ML_METHOD("|", MLValueParserT, MLValueParserT) {
 extern mpc_parser_t *mpc_orv(int n, mpc_parser_t **parsers);
 extern mpc_parser_t *mpc_andv(int n, mpc_fold_t f, mpc_parser_t **parsers);
 
-static ml_value_t *ml_mpc_and(void *Data, int Count, ml_value_t **Args) {
+static ml_value_t *ml_mpc_seq(void *Data, int Count, ml_value_t **Args) {
 	mpc_parser_t *Parsers[Count];
 	for (int I = 0; I < Count; ++I) {
 		ml_parser_t *Arg = (ml_parser_t *)Args[I];
@@ -426,46 +426,49 @@ void ml_mpc_init(stringmap_t *Globals) {
 	MLValueParserT->call = (void *)ml_parser_call;
 #include "ml_mpc_init.c"
 	if (Globals) {
-		stringmap_insert(Globals, "mpc_and", ml_function(NULL, ml_mpc_and));
-		stringmap_insert(Globals, "mpc_new", ml_function(NULL, ml_mpc_new));
-		stringmap_insert(Globals, "mpc_re", ml_function(NULL, ml_mpc_re));
-		stringmap_insert(Globals, "mpc_any", ml_function(NULL, ml_mpc_any));
-		stringmap_insert(Globals, "mpc_char", ml_function(NULL, ml_mpc_char));
-		stringmap_insert(Globals, "mpc_range", ml_function(NULL, ml_mpc_range));
-		stringmap_insert(Globals, "mpc_oneof", ml_function(NULL, ml_mpc_oneof));
-		stringmap_insert(Globals, "mpc_noneof", ml_function(NULL, ml_mpc_noneof));
-		stringmap_insert(Globals, "mpc_string", ml_function(NULL, ml_mpc_string));
+		ml_value_t *Module = ml_map();
+		stringmap_insert(Globals, "mpc", Module);
 
-		stringmap_insert(Globals, "MPCEOI", ml_mpc_string_parser(mpc_eoi()));
-		stringmap_insert(Globals, "MPCSOI", ml_mpc_string_parser(mpc_soi()));
-		stringmap_insert(Globals, "MPCBoundary", ml_mpc_string_parser(mpc_boundary()));
-		stringmap_insert(Globals, "MPCBoundaryNewLine", ml_mpc_string_parser(mpc_boundary_newline()));
-		stringmap_insert(Globals, "MPCWhiteSpace", ml_mpc_string_parser(mpc_whitespace()));
-		stringmap_insert(Globals, "MPCWhiteSpaces", ml_mpc_string_parser(mpc_whitespaces()));
-		stringmap_insert(Globals, "MPCBlank", ml_mpc_string_parser(mpc_blank()));
-		stringmap_insert(Globals, "MPCNewLine", ml_mpc_string_parser(mpc_newline()));
-		stringmap_insert(Globals, "MPCTab", ml_mpc_string_parser(mpc_tab()));
-		stringmap_insert(Globals, "MPCEscape", ml_mpc_string_parser(mpc_escape()));
-		stringmap_insert(Globals, "MPCDigit", ml_mpc_string_parser(mpc_digit()));
-		stringmap_insert(Globals, "MPCHexDigit", ml_mpc_string_parser(mpc_hexdigit()));
-		stringmap_insert(Globals, "MPCOctDigit", ml_mpc_string_parser(mpc_octdigit()));
-		stringmap_insert(Globals, "MPCDigits", ml_mpc_string_parser(mpc_digits()));
-		stringmap_insert(Globals, "MPCHexDigits", ml_mpc_string_parser(mpc_hexdigits()));
-		stringmap_insert(Globals, "MPCOctDigits", ml_mpc_string_parser(mpc_octdigits()));
-		stringmap_insert(Globals, "MPCLower", ml_mpc_string_parser(mpc_lower()));
-		stringmap_insert(Globals, "MPCUpper", ml_mpc_string_parser(mpc_upper()));
-		stringmap_insert(Globals, "MPCAlpha", ml_mpc_string_parser(mpc_alpha()));
-		stringmap_insert(Globals, "MPCUnderscore", ml_mpc_string_parser(mpc_underscore()));
-		stringmap_insert(Globals, "MPCAlphaNum", ml_mpc_string_parser(mpc_alphanum()));
-		stringmap_insert(Globals, "MPCInt", ml_mpc_string_parser(mpc_int()));
-		stringmap_insert(Globals, "MPCHex", ml_mpc_string_parser(mpc_hex()));
-		stringmap_insert(Globals, "MPCOct", ml_mpc_string_parser(mpc_oct()));
-		stringmap_insert(Globals, "MPCNumber", ml_mpc_string_parser(mpc_number()));
-		stringmap_insert(Globals, "MPCReal", ml_mpc_string_parser(mpc_real()));
-		stringmap_insert(Globals, "MPCFloat", ml_mpc_string_parser(mpc_float()));
-		stringmap_insert(Globals, "MPCCharLit", ml_mpc_string_parser(mpc_char_lit()));
-		stringmap_insert(Globals, "MPCString_Lit", ml_mpc_string_parser(mpc_string_lit()));
-		stringmap_insert(Globals, "MPCRegexLit", ml_mpc_string_parser(mpc_regex_lit()));
-		stringmap_insert(Globals, "MPCIdent", ml_mpc_string_parser(mpc_ident()));
+		ml_map_insert(Module, ml_string("seq", -1), ml_function(NULL, ml_mpc_seq));
+		ml_map_insert(Module, ml_string("new", -1), ml_function(NULL, ml_mpc_new));
+		ml_map_insert(Module, ml_string("re", -1), ml_function(NULL, ml_mpc_re));
+		ml_map_insert(Module, ml_string("any", -1), ml_function(NULL, ml_mpc_any));
+		ml_map_insert(Module, ml_string("char", -1), ml_function(NULL, ml_mpc_char));
+		ml_map_insert(Module, ml_string("range", -1), ml_function(NULL, ml_mpc_range));
+		ml_map_insert(Module, ml_string("oneof", -1), ml_function(NULL, ml_mpc_oneof));
+		ml_map_insert(Module, ml_string("noneof", -1), ml_function(NULL, ml_mpc_noneof));
+		ml_map_insert(Module, ml_string("string", -1), ml_function(NULL, ml_mpc_string));
+
+		ml_map_insert(Module, ml_string("EOI", -1), ml_mpc_string_parser(mpc_eoi()));
+		ml_map_insert(Module, ml_string("SOI", -1), ml_mpc_string_parser(mpc_soi()));
+		ml_map_insert(Module, ml_string("Boundary", -1), ml_mpc_string_parser(mpc_boundary()));
+		ml_map_insert(Module, ml_string("BoundaryNewLine", -1), ml_mpc_string_parser(mpc_boundary_newline()));
+		ml_map_insert(Module, ml_string("WhiteSpace", -1), ml_mpc_string_parser(mpc_whitespace()));
+		ml_map_insert(Module, ml_string("WhiteSpaces", -1), ml_mpc_string_parser(mpc_whitespaces()));
+		ml_map_insert(Module, ml_string("Blank", -1), ml_mpc_string_parser(mpc_blank()));
+		ml_map_insert(Module, ml_string("NewLine", -1), ml_mpc_string_parser(mpc_newline()));
+		ml_map_insert(Module, ml_string("Tab", -1), ml_mpc_string_parser(mpc_tab()));
+		ml_map_insert(Module, ml_string("Escape", -1), ml_mpc_string_parser(mpc_escape()));
+		ml_map_insert(Module, ml_string("Digit", -1), ml_mpc_string_parser(mpc_digit()));
+		ml_map_insert(Module, ml_string("HexDigit", -1), ml_mpc_string_parser(mpc_hexdigit()));
+		ml_map_insert(Module, ml_string("OctDigit", -1), ml_mpc_string_parser(mpc_octdigit()));
+		ml_map_insert(Module, ml_string("Digits", -1), ml_mpc_string_parser(mpc_digits()));
+		ml_map_insert(Module, ml_string("HexDigits", -1), ml_mpc_string_parser(mpc_hexdigits()));
+		ml_map_insert(Module, ml_string("OctDigits", -1), ml_mpc_string_parser(mpc_octdigits()));
+		ml_map_insert(Module, ml_string("Lower", -1), ml_mpc_string_parser(mpc_lower()));
+		ml_map_insert(Module, ml_string("Upper", -1), ml_mpc_string_parser(mpc_upper()));
+		ml_map_insert(Module, ml_string("Alpha", -1), ml_mpc_string_parser(mpc_alpha()));
+		ml_map_insert(Module, ml_string("Underscore", -1), ml_mpc_string_parser(mpc_underscore()));
+		ml_map_insert(Module, ml_string("AlphaNum", -1), ml_mpc_string_parser(mpc_alphanum()));
+		ml_map_insert(Module, ml_string("Int", -1), ml_mpc_string_parser(mpc_int()));
+		ml_map_insert(Module, ml_string("Hex", -1), ml_mpc_string_parser(mpc_hex()));
+		ml_map_insert(Module, ml_string("Oct", -1), ml_mpc_string_parser(mpc_oct()));
+		ml_map_insert(Module, ml_string("Number", -1), ml_mpc_string_parser(mpc_number()));
+		ml_map_insert(Module, ml_string("Real", -1), ml_mpc_string_parser(mpc_real()));
+		ml_map_insert(Module, ml_string("Float", -1), ml_mpc_string_parser(mpc_float()));
+		ml_map_insert(Module, ml_string("CharLit", -1), ml_mpc_string_parser(mpc_char_lit()));
+		ml_map_insert(Module, ml_string("StringLit", -1), ml_mpc_string_parser(mpc_string_lit()));
+		ml_map_insert(Module, ml_string("RegexLit", -1), ml_mpc_string_parser(mpc_regex_lit()));
+		ml_map_insert(Module, ml_string("Ident", -1), ml_mpc_string_parser(mpc_ident()));
 	}
 }
