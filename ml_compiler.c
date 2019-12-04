@@ -878,22 +878,37 @@ static mlc_compiled_t ml_const_call_expr_compile(mlc_function_t *Function, mlc_c
 	}
 }
 
-extern ml_value_t *ImportMethod;
+extern ml_value_t *IndexMethod;
 
 static mlc_compiled_t ml_import_expr_compile(mlc_function_t *Function, mlc_const_call_expr_t *Expr, SHA256_CTX *HashContext) {
 	ML_COMPILE_HASH
 	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
-	if (Compiled.Start != Compiled.Exits) {
-		Function->Context->Error = ml_error("CompilerError", "non-constant expression used in import");
-		ml_error_trace_add(Function->Context->Error, Expr->Source);
-		longjmp(Function->Context->OnError, 1);
+	if ((Compiled.Start == Compiled.Exits) && (Compiled.Start->Opcode == MLI_LOAD)) {
+		ml_value_t *Value = ml_inline(IndexMethod, 2, Compiled.Start->Params[1].Value, Expr->Value);
+		if (Value->Type != MLErrorT) {
+			Compiled.Start->Params[1].Value = Value;
+			return Compiled;
+		}
 	}
-	if (Compiled.Start->Opcode != MLI_LOAD) {
-		Function->Context->Error = ml_error("CompilerError", "non-constant expression used in import");
-		ml_error_trace_add(Function->Context->Error, Expr->Source);
-		longjmp(Function->Context->OnError, 1);
-	}
-	Compiled.Start->Params[1].Value = ml_inline(ImportMethod, 2, Compiled.Start->Params[1].Value, Expr->Value);
+	ML_COMPILE_HASH
+	int OldTop = Function->Top;
+	ml_inst_t *PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
+	mlc_connect(Compiled.Exits, PushInst);
+	ml_inst_t *LoadInst = ml_inst_new(1, Expr->Source, MLI_LOAD);
+	LoadInst->Params[1].Value = Expr->Value;
+	PushInst->Params[0].Inst = LoadInst;
+	PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
+	LoadInst->Params[0].Inst = PushInst;
+	Function->Top += 2;
+	ml_inst_t *CallInst = ml_inst_new(3, Expr->Source, MLI_CONST_CALL);
+	PushInst->Params[0].Inst = CallInst;
+	CallInst->Params[1].Count = 2;
+	CallInst->Params[2].Value = IndexMethod;
+	ml_inst_t *ResultInst = ml_inst_new(1, Expr->Source, MLI_RESULT);
+	CallInst->Params[0].Inst = ResultInst;
+	Compiled.Exits = ResultInst;
+	if (Function->Top >= Function->Size) Function->Size = Function->Top + 1;
+	Function->Top -= 2;
 	return Compiled;
 }
 
@@ -1942,7 +1957,7 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 			while (ml_parse(Scanner, MLT_EOL));
 			mlc_const_call_expr_t *IndexExpr = new(mlc_const_call_expr_t);
 			IndexExpr->compile = ml_const_call_expr_compile;
-			IndexExpr->Value = ml_method("[]");
+			IndexExpr->Value = IndexMethod;
 			IndexExpr->Source = Scanner->Source;
 			IndexExpr->Child = Expr;
 			mlc_expr_t **ArgsSlot = &Expr->Next;
@@ -1969,7 +1984,7 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 		}
 		case MLT_SYMBOL: {
 			Scanner->Token = MLT_NONE;
-			ml_accept(Scanner, MLT_IDENT);
+			if (!ml_parse(Scanner, MLT_OPERATOR)) ml_accept(Scanner, MLT_IDENT);
 			mlc_const_call_expr_t *ImportExpr = new(mlc_const_call_expr_t);
 			ImportExpr->compile = ml_import_expr_compile;
 			ImportExpr->Source = Scanner->Source;

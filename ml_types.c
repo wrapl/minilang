@@ -130,7 +130,7 @@ void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function) {
 
 ml_value_t *CompareMethod;
 ml_value_t *AppendMethod;
-ml_value_t *ImportMethod;
+ml_value_t *IndexMethod;
 
 ml_value_t *ml_to_string(ml_value_t *Value) {
 	typeof(ml_to_string) *function = ml_typed_fn_get(Value->Type, ml_to_string);
@@ -2956,7 +2956,7 @@ ml_type_t MLNamesT[1] = {{
 void ml_init() {
 	CompareMethod = ml_method("<>");
 	AppendMethod = ml_method("append");
-	ImportMethod = ml_method("[]");
+	IndexMethod = ml_method("[]");
 #include "ml_types_init.c"
 	//ml_method_by_name("#", NULL, ml_hash_any, MLAnyT, NULL);
 	ml_method_by_name("<>", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
