@@ -2455,6 +2455,22 @@ ML_METHOD("..", MLIntegerRangeT, MLIntegerT) {
 	return (ml_value_t *)Range;
 }
 
+ML_METHOD("in", MLIntegerT, MLIntegerRangeT) {
+	long Value = ((ml_integer_t *)Args[0])->Value;
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
+	if (Value < Range->Start) return MLNil;
+	if (Value > Range->Limit) return MLNil;
+	return Args[0];
+}
+
+ML_METHOD("in", MLRealT, MLIntegerRangeT) {
+	double Value = ((ml_real_t *)Args[0])->Value;
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
+	if (Value < Range->Start) return MLNil;
+	if (Value > Range->Limit) return MLNil;
+	return Args[0];
+}
+
 typedef struct ml_real_iter_t {
 	const ml_type_t *Type;
 	double Current, Step, Limit;
@@ -2555,6 +2571,22 @@ ML_METHOD("..", MLIntegerRangeT, MLRealT) {
 	RealRange->Step = IntegerRange->Limit - IntegerRange->Start;
 	RealRange->Limit = ((ml_real_t *)Args[1])->Value;
 	return (ml_value_t *)RealRange;
+}
+
+ML_METHOD("in", MLIntegerT, MLRealRangeT) {
+	long Value = ((ml_integer_t *)Args[0])->Value;
+	ml_real_range_t *Range = (ml_real_range_t *)Args[1];
+	if (Value < Range->Start) return MLNil;
+	if (Value > Range->Limit) return MLNil;
+	return Args[0];
+}
+
+ML_METHOD("in", MLRealT, MLRealRangeT) {
+	double Value = ((ml_real_t *)Args[0])->Value;
+	ml_real_range_t *Range = (ml_real_range_t *)Args[1];
+	if (Value < Range->Start) return MLNil;
+	if (Value > Range->Limit) return MLNil;
+	return Args[0];
 }
 
 ML_METHOD("string", MLIntegerT) {
