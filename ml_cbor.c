@@ -404,7 +404,9 @@ void ml_cbor_init(stringmap_t *Globals) {
 	ml_typed_fn_set(MLNilT, ml_cbor_write, ml_cbor_write_nil_fn);
 	ml_typed_fn_set(MLMethodT, ml_cbor_write, ml_cbor_write_symbol_fn);
 	if (Globals) {
-		stringmap_insert(Globals, "cbor_encode", ml_function(NULL, ml_to_cbor_fn));
-		stringmap_insert(Globals, "cbor_decode", ml_function(NULL, ml_from_cbor_fn));
+		ml_value_t *Cbor = ml_map();
+		ml_map_insert(Cbor, ml_string("encode", -1), ml_function(NULL, ml_to_cbor_fn));
+		ml_map_insert(Cbor, ml_string("decode", -1), ml_function(NULL, ml_from_cbor_fn));
+		stringmap_insert(Globals, "cbor", Cbor);
 	}
 }

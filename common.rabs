@@ -53,6 +53,7 @@ end
 
 c_library := fun(Library, Objects, Libraries) do
 	Objects := Objects or []
+	Libraries := Libraries or []
 	var Sources := []
 	for Object in Objects do
 		for Extension, Functions in SourceTypes do

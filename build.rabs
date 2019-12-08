@@ -66,6 +66,19 @@ if MINILANG_USEGTK or defined("USEGTK") then
 	LDFLAGS := old + [pkgconfig("--libs gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0")]
 end
 
+if MINILANG_USERADB or defined("USERADB") then
+	MINILANG_USECBOR := :true
+	var Dir := file("radb")
+	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/radb.git")
+	var Lib := file("radb/libradb.a") => fun() do
+		Dir:chdir
+		execute("make libradb.a")
+	end
+	Libraries:put(Lib)
+	CFLAGS := old + ["-DUSE_ML_RADB"]
+	Objects:put(file("ml_radb.o"))
+end
+
 if MINILANG_USECBOR or defined("USECBOR") then
 	var Dir := file("minicbor")
 	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git")
@@ -107,7 +120,7 @@ elseif PLATFORM = "Mingw" then
 end
 
 LIBMINILANG := c_library(file("libminilang.a"), Objects, Libraries)
-MINILANG := c_program(file("minilang"), [file("ml_main.o")] + Objects)
+MINILANG := c_program(file("minilang"), [file("ml_main.o")] + Objects, Libraries)
 MINIPP := c_program(file("minipp"), [file("minipp.o")] + Objects)
 
 var InstallBin := PREFIX / "bin"
