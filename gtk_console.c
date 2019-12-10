@@ -139,7 +139,10 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 		gtk_text_buffer_insert(LogBuffer, End, Buffer, Length);
 		const char *Source;
 		int Line;
-		for (int I = 0; ml_error_trace(Console->Context->Error, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+		for (int I = 0; ml_error_trace(Console->Context->Error, I, &Source, &Line); ++I) {
+			Length = asprintf(&Buffer, "\t%s:%d\n", Source, Line);
+			gtk_text_buffer_insert(LogBuffer, End, Buffer, Length);
+		}
 		ml_scanner_reset(Scanner);
 	} else {
 		for (;;) {
