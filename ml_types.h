@@ -137,6 +137,7 @@ void ml_error_print(ml_value_t *Error);
 void ml_closure_sha256(ml_value_t *Closure, unsigned char Hash[SHA256_BLOCK_SIZE]);
 
 ml_value_t *ml_tuple(size_t Size);
+size_t ml_tuple_size(ml_value_t *Tuple);
 ml_value_t *ml_tuple_get(ml_value_t *Tuple, size_t Index);
 ml_value_t *ml_tuple_set(ml_value_t *Tuple, size_t Index, ml_value_t *Value);
 

@@ -168,6 +168,22 @@ static ml_value_t *ml_type_member(void *Data, int Count, ml_value_t **Args) {
 	return MLNil;
 }
 
+size_t ml_class_size(ml_value_t *Value) {
+	return ((ml_class_t *)Value)->NumFields;
+}
+
+ml_value_t *ml_class_field(ml_value_t *Value, size_t Field) {
+	return ((ml_class_t *)Value)->Fields[Field];
+}
+
+size_t ml_object_size(ml_value_t *Value) {
+	return ((ml_class_t *)Value->Type)->NumFields;
+}
+
+ml_value_t *ml_object_field(ml_value_t *Value, size_t Field) {
+	return ((ml_object_t *)Value)->Fields[Field];
+}
+
 void ml_object_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "class", ml_function(NULL, ml_class_fn));
 	stringmap_insert(Globals, "method", ml_function(NULL, ml_method_fn));
@@ -186,6 +202,8 @@ void ml_object_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "ListT", MLListT);
 	stringmap_insert(Globals, "MapT", MLMapT);
 	stringmap_insert(Globals, "NamesT", MLNamesT);
+	stringmap_insert(Globals, "ObjectT", MLObjectT);
+	stringmap_insert(Globals, "ClassT", MLClassT);
 	StringMethod = ml_method("string");
 	ml_method_by_value(AppendMethod, NULL, ml_object_append, MLStringBufferT, MLObjectT, NULL);
 	ml_method_by_value(StringMethod, NULL, ml_object_string, MLObjectT, NULL);

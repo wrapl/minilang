@@ -1770,6 +1770,10 @@ ml_value_t *ml_tuple(size_t Size) {
 	return (ml_value_t *)Tuple;
 }
 
+size_t ml_tuple_size(ml_value_t *Tuple) {
+	return ((ml_tuple_t *)Tuple)->Size;
+}
+
 ml_value_t *ml_tuple_get(ml_value_t *Tuple, size_t Index) {
 	return ((ml_tuple_t *)Tuple)->Values[Index];
 }
