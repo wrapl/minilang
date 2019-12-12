@@ -1717,15 +1717,28 @@ ml_value_t *ml_map_new(void *Data, int Count, ml_value_t **Args) {
 }
 
 static long ml_tuple_hash(ml_tuple_t *Tuple, ml_hash_chain_t *Chain) {
-	return 0;
+	long Hash = 739;
+	for (int I = 0; I < Tuple->Size; ++I) Hash = ((Hash << 3) + Hash) + ml_hash(Tuple->Values[I]);
+	return Hash;
 }
 
 static ml_value_t *ml_tuple_deref(ml_tuple_t *Ref) {
-	ml_tuple_t *Deref = xnew(ml_tuple_t, Ref->Size, ml_value_t *);
-	Deref->Type = MLTupleT;
-	Deref->Size = Ref->Size;
-	for (int I = 0; I < Ref->Size; ++I) Deref->Values[I] = Ref->Values[I]->Type->deref(Ref->Values[I]);
-	return (ml_value_t *)Deref;
+	for (int I = 0; I < Ref->Size; ++I) {
+		ml_value_t *Old = Ref->Values[I];
+		ml_value_t *New = Old->Type->deref(Old);
+		if (Old != New) {
+			ml_tuple_t *Deref = xnew(ml_tuple_t, Ref->Size, ml_value_t *);
+			Deref->Type = MLTupleT;
+			Deref->Size = Ref->Size;
+			for (int J = 0; J < I; ++J) Deref->Values[J] = Ref->Values[J];
+			Deref->Values[I] = New;
+			for (int J = I + 1; J < Ref->Size; ++J) {
+				Deref->Values[J] = Ref->Values[J]->Type->deref(Ref->Values[J]);
+			}
+			return (ml_value_t *)Deref;
+		}
+	}
+	return (ml_value_t *)Ref;
 }
 
 static ml_value_t *ml_tuple_assign(ml_tuple_t *Ref, ml_value_t *Value) {
@@ -2641,9 +2654,9 @@ ml_comp_method_string_string("<=", <=)
 ml_comp_method_string_string(">=", >=)
 
 ML_METHOD("<>", MLAnyT, MLAnyT) {
-	if (Args[0] < Args[1]) return ml_integer(-1);
-	if (Args[0] > Args[1]) return ml_integer(1);
-	return ml_integer(0);
+	if (Args[0] < Args[1]) return (ml_value_t *)NegOne;
+	if (Args[0] > Args[1]) return (ml_value_t *)One;
+	return (ml_value_t *)Zero;
 }
 
 ML_METHOD("string", MLTupleT) {
@@ -2660,6 +2673,51 @@ ML_METHOD("string", MLTupleT) {
 	ml_stringbuffer_add(Buffer, ")", 1);
 	return ml_stringbuffer_get_string(Buffer);
 }
+
+static ml_value_t *ml_tuple_compare(ml_tuple_t *A, ml_tuple_t *B) {
+	ml_value_t *Args[2];
+	ml_value_t *Result;
+	int N;
+	if (A->Size > B->Size) {
+		N = B->Size;
+		Result = (ml_value_t *)One;
+	} else if (A->Size < B->Size) {
+		N = A->Size;
+		Result = (ml_value_t *)NegOne;
+	} else {
+		N = A->Size;
+		Result = (ml_value_t *)Zero;
+	}
+	for (int I = 0; I < N; ++I) {
+		Args[0] = A->Values[I];
+		Args[1] = B->Values[I];
+		ml_value_t *C = ml_call(CompareMethod, 2, Args);
+		if (C->Type == MLErrorT) return C;
+		if (C->Type != MLIntegerT) return ml_error("TypeError", "Comparison returned non integer value");
+		if (((ml_integer_t *)C)->Value) return C;
+	}
+	return Result;
+}
+
+ML_METHOD("<>", MLTupleT, MLTupleT) {
+	return ml_tuple_compare((ml_tuple_t *)Args[0], (ml_tuple_t *)Args[1]);
+}
+
+#define ml_comp_tuple_tuple(NAME, NEG, ZERO, POS) \
+ML_METHOD(NAME, MLTupleT, MLTupleT) { \
+	ml_value_t *Result = ml_tuple_compare((ml_tuple_t *)Args[0], (ml_tuple_t *)Args[1]); \
+	if (Result == (ml_value_t *)NegOne) return NEG; \
+	if (Result == (ml_value_t *)Zero) return ZERO; \
+	if (Result == (ml_value_t *)One) return POS; \
+	return Result; \
+}
+
+ml_comp_tuple_tuple("=", MLNil, Args[1], MLNil);
+ml_comp_tuple_tuple("!=", Args[1], MLNil, Args[1]);
+ml_comp_tuple_tuple("<", Args[1], MLNil, MLNil);
+ml_comp_tuple_tuple("<=", Args[1], Args[1], MLNil);
+ml_comp_tuple_tuple(">", MLNil, MLNil, Args[1]);
+ml_comp_tuple_tuple(">=", MLNil, Args[1], Args[1]);
 
 typedef struct ml_list_iter_t {
 	const ml_type_t *Type;
