@@ -54,6 +54,7 @@ ml_type_t TypelibIterT[1] = {{
 static ml_value_t *ml_gir_require(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
+	gtk_init(0, 0);
 	typelib_t *Typelib = new(typelib_t);
 	Typelib->Type = TypelibT;
 	GError *Error = 0;
@@ -1563,7 +1564,6 @@ ML_METHOD("[]", ObjectInstanceT, MLStringT) {
 }
 
 void ml_gir_init(stringmap_t *Globals) {
-	gtk_init(0, 0);
 	TypelibT = ml_type(MLAnyT, "gir-typelib");
 	ml_typed_fn_set(TypelibT, ml_iterate, typelib_iterate);
 	ml_typed_fn_set(TypelibIterT, ml_iter_next, typelib_iter_next);

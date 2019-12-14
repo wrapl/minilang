@@ -311,6 +311,7 @@ static ml_value_t *console_set_style(console_t *Console, int Count, ml_value_t *
 }
 
 console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
+	gtk_init(0, 0);
 	StringMethod = ml_method("string");
 
 	console_t *Console = new(console_t);

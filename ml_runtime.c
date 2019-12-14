@@ -142,6 +142,32 @@ static inline ml_inst_t *ml_inst_new(int N, ml_source_t Source, ml_opcode_t Opco
 	goto *Labels[Inst->Opcode]; \
 }
 
+static ml_value_t *ml_uninitialized_deref(ml_value_t *Ref) {
+	return ml_error("ValueError", "Uninitialized let value");
+}
+
+typedef struct ml_slot_t ml_slot_t;
+
+struct ml_slot_t {
+	ml_slot_t *Next;
+	ml_value_t **Value;
+};
+
+typedef struct {
+	const ml_type_t *Type;
+	ml_slot_t *Slots;
+} ml_uninitialized_t;
+
+static ml_type_t MLUninitializedT[] = {{
+	MLTypeT,
+	MLAnyT, "uninitialized",
+	ml_default_hash,
+	ml_default_call,
+	ml_uninitialized_deref,
+	ml_default_assign,
+	NULL, 0, 0
+}};
+
 static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 	static void *Labels[] = {
 		[MLI_RETURN] = &&DO_RETURN,
@@ -261,6 +287,11 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 			Local->Value[0] = MLNil;
 			*Top++ = (ml_value_t *)Local;
 		}
+		for (int I = Inst->Params[2].Count; --I >= 0;) {
+			ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
+			Uninitialized->Type = MLUninitializedT;
+			*Top++ = (ml_value_t *)Uninitialized;
+		}
 		ADVANCE(0);
 	}
 	DO_EXIT: {
@@ -300,6 +331,8 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 	DO_LET: {
 		Result = Result->Type->deref(Result);
 		ERROR_CHECK(Result);
+		ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Top[Inst->Params[1].Index];
+		for (ml_slot_t *Slot = Uninitialized->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Result;
 		Top[Inst->Params[1].Index] = Result;
 		ADVANCE(0);
 	}
@@ -349,9 +382,14 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 			Args[I] = Args[I]->Type->deref(Args[I]);
 			ERROR_CHECK(Args[I]);
 		}
-		Frame->Inst = Inst->Params[0].Inst;
-		Frame->Top = Top - (Count + 1);
-		return Function->Type->call((ml_state_t *)Frame, Function, Count, Args);
+		ml_inst_t *Next = Inst->Params[0].Inst;
+		if (Next->Opcode == MLI_RESULT && Next->Params[0].Inst->Opcode == MLI_RETURN) {
+			return Function->Type->call(Frame->Base.Caller, Function, Count, Args);
+		} else {
+			Frame->Inst = Next;
+			Frame->Top = Top - (Count + 1);
+			return Function->Type->call((ml_state_t *)Frame, Function, Count, Args);
+		}
 	}
 	DO_CONST_CALL: {
 		int Count = Inst->Params[1].Count;
@@ -361,9 +399,14 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 			Args[I] = Args[I]->Type->deref(Args[I]);
 			ERROR_CHECK(Args[I]);
 		}
-		Frame->Inst = Inst->Params[0].Inst;
-		Frame->Top = Top - Count;
-		return Function->Type->call((ml_state_t *)Frame, Function, Count, Args);
+		ml_inst_t *Next = Inst->Params[0].Inst;
+		if (Next->Opcode == MLI_RESULT && Next->Params[0].Inst->Opcode == MLI_RETURN) {
+			return Function->Type->call(Frame->Base.Caller, Function, Count, Args);
+		} else {
+			Frame->Inst = Inst->Params[0].Inst;
+			Frame->Top = Top - Count;
+			return Function->Type->call((ml_state_t *)Frame, Function, Count, Args);
+		}
 	}
 	DO_RESULT: {
 		if (Result->Type == MLErrorT) {
@@ -413,11 +456,15 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 		Closure->Info = Info;
 		for (int I = 0; I < Info->NumUpValues; ++I) {
 			int Index = Inst->Params[2 + I].Index;
-			if (Index < 0) {
-				Closure->UpValues[I] = Frame->UpValues[~Index];
-			} else {
-				Closure->UpValues[I] = Frame->Stack[Index];
+			ml_value_t *Value = (Index < 0) ? Frame->UpValues[~Index] : Frame->Stack[Index];
+			if (Value->Type == MLUninitializedT) {
+				ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Value;
+				ml_slot_t *Slot = new(ml_slot_t);
+				Slot->Value = &Closure->UpValues[I];
+				Slot->Next = Uninitialized->Slots;
+				Uninitialized->Slots = Slot;
 			}
+			Closure->UpValues[I] = Value;
 		}
 		Result = (ml_value_t *)Closure;
 		ADVANCE(0);

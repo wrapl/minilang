@@ -1,0 +1,23 @@
+fun f1(X) do
+	print('f1({X})\n')
+	if X = 1 then
+		1
+	elseif X % 2 = 0 then
+		f1(X / 2)
+	else
+		f2(X)
+	end
+end
+
+fun f2(X) do
+	print('f2({X})\n')
+	if X = 1 then
+		1
+	elseif X % 2 = 0 then
+		f1(X)
+	else
+		f2(3 * X + 1)
+	end
+end
+
+print('f1(123) = {f1(1234)}\n')
