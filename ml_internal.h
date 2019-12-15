@@ -26,6 +26,20 @@ struct ml_closure_t {
 	ml_value_t *UpValues[];
 };
 
+typedef struct ml_slot_t ml_slot_t;
+
+struct ml_slot_t {
+	ml_slot_t *Next;
+	ml_value_t **Value;
+};
+
+typedef struct {
+	const ml_type_t *Type;
+	ml_slot_t *Slots;
+} ml_uninitialized_t;
+
+extern ml_type_t MLUninitializedT[];
+
 typedef union {
 	ml_inst_t *Inst;
 	int Index;

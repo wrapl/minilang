@@ -146,19 +146,7 @@ static ml_value_t *ml_uninitialized_deref(ml_value_t *Ref) {
 	return ml_error("ValueError", "Uninitialized let value");
 }
 
-typedef struct ml_slot_t ml_slot_t;
-
-struct ml_slot_t {
-	ml_slot_t *Next;
-	ml_value_t **Value;
-};
-
-typedef struct {
-	const ml_type_t *Type;
-	ml_slot_t *Slots;
-} ml_uninitialized_t;
-
-static ml_type_t MLUninitializedT[] = {{
+ml_type_t MLUninitializedT[] = {{
 	MLTypeT,
 	MLAnyT, "uninitialized",
 	ml_default_hash,
