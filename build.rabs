@@ -18,7 +18,7 @@ else
 	LDFLAGS := old + ["-g"]
 end
 
-for Source in file(""):ls(".*\\.c") do
+for Source in PATH:ls(".*\\.c") do
 	Source:basename:find("_init") and next
 	var Target := file(Source:basename:replace(".c", "_init.c"))[Source] => fun() do
 		Target:open("w"):close
@@ -68,9 +68,9 @@ end
 
 if MINILANG_USERADB or defined("USERADB") then
 	MINILANG_USECBOR := :true
-	var Dir := file("radb")
-	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/radb.git")
-	var Lib := file("radb/libradb.a") => fun() do
+	var Dir := PATH / "radb"
+	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/radb.git", Dir)
+	var Lib := Dir / "libradb.a" => fun() do
 		Dir:chdir
 		execute("make libradb.a")
 	end
@@ -80,8 +80,8 @@ if MINILANG_USERADB or defined("USERADB") then
 end
 
 if MINILANG_USECBOR or defined("USECBOR") then
-	var Dir := file("minicbor")
-	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git")
+	var Dir := PATH / "minicbor"
+	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git", Dir)
 	
 	CFLAGS := old + [
 		'-DMINICBOR_PREFIX=ml_cbor_',
@@ -97,10 +97,10 @@ if MINILANG_USECBOR or defined("USECBOR") then
 end
 
 if MINILANG_USEMPC or defined("USEMPC") then
-	var Dir := file("mpc")
+	var Dir := PATH / "mpc"
 	Dir:exists or do
-		execute("git clone https://github.com/orangeduck/mpc.git")
-		execute("cat mpc_extra.c >> ", Dir/"mpc.c")
+		execute("git clone https://github.com/orangeduck/mpc.git", Dir)
+		execute("cat", PATH / "mpc_extra.c", " >> ", Dir/"mpc.c")
 	end
 	Objects:put(file("ml_mpc.o"), Dir/"mpc.o")
 	CFLAGS := old + ["-DUSE_ML_MPC"]
@@ -121,7 +121,7 @@ end
 
 LIBMINILANG := c_library(file("libminilang.a"), Objects, Libraries)
 MINILANG := c_program(file("minilang"), [file("ml_main.o")] + Objects, Libraries)
-MINIPP := c_program(file("minipp"), [file("minipp.o")] + Objects)
+MINIPP := c_program(file("minipp"), [file("minipp.o")] + Objects, Libraries)
 
 var InstallBin := PREFIX / "bin"
 var InstallInclude := PREFIX / "include/minilang"
