@@ -31,13 +31,17 @@ static ml_value_t *ml_class_call(ml_state_t *Caller, ml_class_t *Class, int Coun
 	ml_value_t **Slot = Object->Fields;
 	for (int I = Class->NumFields; --I >= 0; ++Slot) *Slot = MLNil;
 	for (int I = 0; I < Count; ++I) {
-		if (Args[I]->Type == MLNamesT) {
-			for (ml_list_node_t *Node = ml_list_head(Args[I]); Node; Node = Node->Next) {
+		ml_value_t *Arg = Args[I]->Type->deref(Args[I]);
+		if (Arg->Type == MLErrorT) ML_CONTINUE(Caller, Arg);
+		if (Arg->Type == MLNamesT) {
+			ML_NAMES_FOREACH(Args[I], Node) {
 				++I;
 				ml_value_t *Field = Node->Value;
 				for (int J = 0; J < Class->NumFields; ++J) {
 					if (Class->Fields[J] == Field) {
-						Object->Fields[J] = Args[I];
+						ml_value_t *Arg = Args[I]->Type->deref(Args[I]);
+						if (Arg->Type == MLErrorT) ML_CONTINUE(Caller, Arg);
+						Object->Fields[J] = Arg;
 						goto found;
 					}
 				}
@@ -48,7 +52,7 @@ static ml_value_t *ml_class_call(ml_state_t *Caller, ml_class_t *Class, int Coun
 		} else if (I > Class->NumFields) {
 			break;
 		} else {
-			Object->Fields[I] = Args[I];
+			Object->Fields[I] = Arg;
 		}
 	}
 	ML_CONTINUE(Caller, Object);

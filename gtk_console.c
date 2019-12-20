@@ -26,6 +26,8 @@ struct console_t {
 	GtkTextMark *EndMark;
 	ml_getter_t ParentGetter;
 	void *ParentGlobals;
+	const char *ConfigPath;
+	GKeyFile *Config;
 	mlc_scanner_t *Scanner;
 	char *Input;
 	char *History[MAX_HISTORY];
@@ -172,6 +174,9 @@ static void console_style_changed(GtkComboBoxText *Widget, console_t *Console) {
 	GtkSourceStyleScheme *StyleScheme = gtk_source_style_scheme_manager_get_scheme(StyleManager, StyleId);
 	gtk_source_buffer_set_style_scheme(GTK_SOURCE_BUFFER(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView))), StyleScheme);
 	gtk_source_buffer_set_style_scheme(GTK_SOURCE_BUFFER(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView))), StyleScheme);
+
+	g_key_file_set_string(Console->Config, "gtk-console", "style", StyleId);
+	g_key_file_save_to_file(Console->Config, Console->ConfigPath, NULL);
 }
 
 static void console_font_changed(GtkFontChooser *Widget, console_t *Console) {
@@ -179,6 +184,9 @@ static void console_font_changed(GtkFontChooser *Widget, console_t *Console) {
 	PangoFontDescription *FontDescription = pango_font_description_from_string(FontName);
 	gtk_widget_override_font(Console->InputView, FontDescription);
 	gtk_widget_override_font(Console->LogView, FontDescription);
+
+	g_key_file_set_string(Console->Config, "gtk-console", "font", FontName);
+	g_key_file_save_to_file(Console->Config, Console->ConfigPath, NULL);
 }
 
 static gboolean console_keypress(GtkWidget *Widget, GdkEventKey *Event, console_t *Console) {
@@ -326,17 +334,13 @@ console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 	GtkWidget *Container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
 	Console->InputView = gtk_source_view_new();
 
-	PangoFontDescription *FontDescription = pango_font_description_new();
-	pango_font_description_set_family(FontDescription, "Cascadia Code,monospace");
-
-	gtk_widget_override_font(Console->InputView, FontDescription);
+	asprintf(&Console->ConfigPath, "%s/%s", g_get_user_config_dir(), "minilang.conf");
+	Console->Config = g_key_file_new();
+	g_key_file_load_from_file(Console->Config, Console->ConfigPath, G_KEY_FILE_NONE, NULL);
 
 	GtkSourceLanguageManager *LanguageManager = gtk_source_language_manager_get_default();
 	GtkSourceLanguage *Language = gtk_source_language_manager_get_language(LanguageManager, "minilang");
 	gtk_source_buffer_set_language(GTK_SOURCE_BUFFER(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView))), Language);
-	GtkSourceStyleSchemeManager *StyleManager = gtk_source_style_scheme_manager_get_default();
-	GtkSourceStyleScheme *StyleScheme = gtk_source_style_scheme_manager_get_scheme(StyleManager, "tango");
-	gtk_source_buffer_set_style_scheme(GTK_SOURCE_BUFFER(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView))), StyleScheme);
 	GtkTextTagTable *TagTable = gtk_text_buffer_get_tag_table(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView)));
 	Console->OutputTag = gtk_text_tag_new("log-output");
 	Console->ResultTag = gtk_text_tag_new("log-result");
@@ -366,9 +370,8 @@ console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 	gtk_text_tag_table_add(TagTable, Console->BinaryTag);
 	GtkSourceBuffer *LogBuffer = gtk_source_buffer_new(TagTable);
 	Console->LogView = gtk_source_view_new_with_buffer(LogBuffer);
-	gtk_widget_override_font(Console->LogView, FontDescription);
 	gtk_text_view_set_editable(GTK_TEXT_VIEW(Console->LogView), FALSE);
-	gtk_source_buffer_set_style_scheme(LogBuffer, StyleScheme);
+	GtkSourceStyleSchemeManager *StyleManager = gtk_source_style_scheme_manager_get_default();
 
 	gtk_text_view_set_top_margin(GTK_TEXT_VIEW(Console->LogView), 4);
 	gtk_text_view_set_bottom_margin(GTK_TEXT_VIEW(Console->LogView), 4);
@@ -411,8 +414,9 @@ console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 	GtkActionBar *ActionBar = GTK_ACTION_BAR(gtk_action_bar_new());
 	GtkWidget *StyleCombo = gtk_combo_box_text_new();
 	for (const gchar * const * StyleId = gtk_source_style_scheme_manager_get_scheme_ids(StyleManager); StyleId[0]; ++StyleId) {
-		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(StyleCombo), StyleId[0]);
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(StyleCombo), StyleId[0], StyleId[0]);
 	}
+
 	g_signal_connect(G_OBJECT(StyleCombo), "changed", G_CALLBACK(console_style_changed), Console);
 	gtk_action_bar_pack_start(ActionBar, StyleCombo);
 
@@ -436,6 +440,23 @@ console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 
 	stringmap_insert(Globals, "set_font", ml_function(Console, (ml_callback_t)console_set_font));
 	stringmap_insert(Globals, "set_style", ml_function(Console, (ml_callback_t)console_set_style));
+
+	if (g_key_file_has_key(Console->Config, "gtk-console", "font", NULL)) {
+		const char *FontName = g_key_file_get_string(Console->Config, "gtk-console", "font", NULL);
+		PangoFontDescription *FontDescription = pango_font_description_from_string(FontName);
+		gtk_widget_override_font(Console->InputView, FontDescription);
+		gtk_widget_override_font(Console->LogView, FontDescription);
+		gtk_font_button_set_font_name(GTK_FONT_BUTTON(FontButton), FontName);
+	}
+
+	if (g_key_file_has_key(Console->Config, "gtk-console", "style", NULL)) {
+		const char *StyleId = g_key_file_get_string(Console->Config, "gtk-console", "style", NULL);
+		GtkSourceStyleScheme *StyleScheme = gtk_source_style_scheme_manager_get_scheme(StyleManager, StyleId);
+		GtkSourceBuffer *InputBuffer = GTK_SOURCE_BUFFER(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView)));
+		gtk_source_buffer_set_style_scheme(InputBuffer, StyleScheme);
+		gtk_source_buffer_set_style_scheme(LogBuffer, StyleScheme);
+		gtk_combo_box_set_active_id(GTK_COMBO_BOX(StyleCombo), StyleId);
+	}
 
 	GError *Error = 0;
 	g_irepository_require(NULL, "Gtk", NULL, 0, &Error);

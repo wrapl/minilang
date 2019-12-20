@@ -205,6 +205,8 @@ static ml_value_t *field_ref_ ## LNAME ## _deref(field_ref_t *Ref) { \
 } \
 \
 static ml_value_t *field_ref_ ## LNAME ## _assign(field_ref_t *Ref, ml_value_t *Value) { \
+	Value = Value->Type->deref(Value); \
+	if (Value->Type == MLErrorT) return Value; \
 	GTYPE *Address = (GTYPE *)Ref->Address; \
 	*Address = SETTER; \
 	return Value; \
@@ -1548,6 +1550,8 @@ static ml_value_t *object_property_deref(object_property_t *Property) {
 }
 
 static ml_value_t *object_property_assign(object_property_t *Property, ml_value_t *Value0) {
+	Value0 = Value0->Type->deref(Value0);
+	if (Value0->Type == MLErrorT) return Value0;
 	GValue Value[1];
 	_ml_to_value(Value0, Value);
 	g_object_set_property(Property->Object, Property->Name, Value);

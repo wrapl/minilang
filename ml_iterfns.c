@@ -247,11 +247,11 @@ static ml_value_t *ml_limited_state_next(ml_state_t *Caller, ml_limited_state_t 
 	}
 }
 
-ML_METHOD("of", MLIntegerT, MLIteratableT) {
+ML_METHOD("limit", MLIteratableT, MLIntegerT) {
 	ml_limited_t *Limited = new(ml_limited_t);
 	Limited->Type = MLLimitedT;
-	Limited->Remaining = ml_integer_value(Args[0]);
-	Limited->Value = Args[1];
+	Limited->Value = Args[0];
+	Limited->Remaining = ml_integer_value(Args[1]);
 	return (ml_value_t *)Limited;
 }
 
@@ -291,11 +291,11 @@ static ml_value_t *ml_skipped_iterate(ml_state_t *Caller, ml_skipped_t *Skipped)
 	}
 }
 
-ML_METHOD("skip", MLIntegerT, MLIteratableT) {
+ML_METHOD("skip", MLIteratableT, MLIntegerT) {
 	ml_skipped_t *Skipped = new(ml_skipped_t);
 	Skipped->Type = MLSkippedT;
-	Skipped->Remaining = ml_integer_value(Args[0]);
-	Skipped->Value = Args[1];
+	Skipped->Value = Args[0];
+	Skipped->Remaining = ml_integer_value(Args[1]);
 	return (ml_value_t *)Skipped;
 }
 

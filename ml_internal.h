@@ -6,16 +6,16 @@
 typedef struct ml_inst_t ml_inst_t;
 typedef struct ml_frame_t ml_frame_t;
 
-struct ml_tuple_t {
-	const ml_type_t *Type;
-	size_t Size;
-	ml_value_t *Values[];
-};
+#define ML_MODE_DEFAULT	0
+#define ML_PARAM_EXTRA	1
+#define ML_PARAM_NAMED	2
 
 struct ml_closure_info_t {
 	ml_inst_t *Entry, *Return;
+	stringmap_t Params[1];
 	int FrameSize;
-	int NumParams, NumUpValues, CanSuspend;
+	int NumParams, NumUpValues;
+	int ExtraArgs, NamedArgs;
 	unsigned char Hash[SHA256_BLOCK_SIZE];
 };
 
@@ -71,10 +71,8 @@ typedef enum {
 	MLI_NEXT,
 	MLI_VALUE,
 	MLI_KEY,
-	MLI_PUSH_RESULT,
 	MLI_CALL,
 	MLI_CONST_CALL,
-	MLI_RESULT,
 	MLI_ASSIGN,
 	MLI_LOCAL,
 	MLI_TUPLE,
