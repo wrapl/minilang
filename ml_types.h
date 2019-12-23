@@ -141,7 +141,13 @@ size_t ml_tuple_size(ml_value_t *Tuple);
 ml_value_t *ml_tuple_get(ml_value_t *Tuple, size_t Index);
 ml_value_t *ml_tuple_set(ml_value_t *Tuple, size_t Index, ml_value_t *Value);
 
-void ml_list_append(ml_value_t *List, ml_value_t *Value);
+void ml_list_push(ml_value_t *List, ml_value_t *Value);
+void ml_list_put(ml_value_t *List, ml_value_t *Value);
+ml_value_t *ml_list_pop(ml_value_t *List);
+ml_value_t *ml_list_pull(ml_value_t *List);
+
+#define ml_list_append ml_list_put
+
 int ml_list_length(ml_value_t *List);
 void ml_list_to_array(ml_value_t *List, ml_value_t **Array);
 int ml_list_foreach(ml_value_t *List, void *Data, int (*callback)(ml_value_t *, void *));

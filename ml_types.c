@@ -1454,7 +1454,21 @@ int ml_is_list(ml_value_t *Value) {
 	return Value->Type == MLListT;
 }
 
-void ml_list_append(ml_value_t *List0, ml_value_t *Value) {
+void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
+	ml_list_t *List = (ml_list_t *)List0;
+	ml_list_node_t *Node = new(ml_list_node_t);
+	Node->Value = Value;
+	Node->Next = List->Head;
+	if (List->Head) {
+		List->Head->Prev = Node;
+	} else {
+		List->Tail = Node;
+	}
+	List->Head = Node;
+	List->Length += 1;
+}
+
+void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 	ml_list_t *List = (ml_list_t *)List0;
 	ml_list_node_t *Node = new(ml_list_node_t);
 	Node->Value = Value;
@@ -1466,6 +1480,40 @@ void ml_list_append(ml_value_t *List0, ml_value_t *Value) {
 	}
 	List->Tail = Node;
 	List->Length += 1;
+}
+
+ml_value_t *ml_list_pop(ml_value_t *List0) {
+	ml_list_t *List = (ml_list_t *)List0;
+	ml_list_node_t *Node = List->Head;
+	if (Node) {
+		List->Head = Node->Next;
+		if (List->Head) {
+			List->Head->Prev = 0;
+		} else {
+			List->Tail = 0;
+		}
+		--List->Length;
+		return Node->Value;
+	} else {
+		return 0;
+	}
+}
+
+ml_value_t *ml_list_pull(ml_value_t *List0) {
+	ml_list_t *List = (ml_list_t *)List0;
+	ml_list_node_t *Node = List->Tail;
+	if (Node) {
+		List->Tail = Node->Prev;
+		if (List->Tail) {
+			List->Tail->Next = 0;
+		} else {
+			List->Head = 0;
+		}
+		--List->Length;
+		return Node->Value;
+	} else {
+		return 0;
+	}
 }
 
 int ml_list_foreach(ml_value_t *Value, void *Data, int (*callback)(ml_value_t *, void *)) {
