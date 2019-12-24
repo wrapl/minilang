@@ -1798,20 +1798,12 @@ int ml_is_map(ml_value_t *Value) {
 	return Value->Type == MLMapT;
 }
 
-static int ml_map_node_foreach(ml_map_node_t *Node, void *Data, int (*callback)(ml_value_t *, ml_value_t *, void *)) {
-	if (callback(Node->Key, Node->Value, Data)) return 1;
-	if (Node->Left && ml_map_node_foreach(Node->Left, Data, callback)) return 1;
-	if (Node->Right && ml_map_node_foreach(Node->Right, Data, callback)) return 1;
-	return 0;
-}
-
 int ml_map_foreach(ml_value_t *Value, void *Data, int (*callback)(ml_value_t *, ml_value_t *, void *)) {
 	ml_map_t *Map = (ml_map_t *)Value;
 	for (ml_map_node_t *Node = Map->Head; Node; Node = Node->Next) {
 		if (callback(Node->Key, Node->Value, Data)) return 1;
 	}
 	return 0;
-	//return Map->Root ? ml_map_node_foreach(Map->Root, Data, callback) : 0;
 }
 
 ml_value_t *ml_map_new(void *Data, int Count, ml_value_t **Args) {
@@ -2718,6 +2710,8 @@ ML_METHOD("by", MLRealRangeT, MLNumberT) {
 		Step = Range->Step = ((ml_integer_t *)Args[1])->Value;
 	} else if (Args[1]->Type == MLRealT) {
 		Step = Range->Step = ((ml_real_t *)Args[1])->Value;
+	} else {
+		Step = 1.0;
 	}
 	double C = (Limit - Start) / Step;
 	if (C > LONG_MAX) C = LONG_MAX;
@@ -3053,7 +3047,7 @@ static ml_value_t *ml_map_iter_current(ml_state_t *Caller, ml_map_iter_t *Iter) 
 
 static ml_value_t *ml_map_iter_next(ml_state_t *Caller, ml_map_iter_t *Iter) {
 	ml_map_node_t *Node = Iter->Node;
-	if (Iter->Node = Node->Next) ML_CONTINUE(Caller, Iter);
+	if ((Iter->Node = Node->Next)) ML_CONTINUE(Caller, Iter);
 	ML_CONTINUE(Caller, MLNil);
 }
 
