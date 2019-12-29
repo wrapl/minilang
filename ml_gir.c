@@ -1327,7 +1327,7 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 	return Slot[0];
 }
 
-ML_METHOD("[]", EnumT, MLStringT) {
+ML_METHOD("::", EnumT, MLStringT) {
 	enum_t *Enum = (enum_t *)Args[0];
 	enum_value_t *Value = (enum_value_t *)stringmap_search(Enum->ByName, ml_string_value(Args[1]));
 	ml_value_t *Result;
@@ -1428,7 +1428,7 @@ static ml_value_t *baseinfo_to_value(GIBaseInfo *Info) {
 	return MLNil;
 }
 
-ML_METHOD("[]", TypelibT, MLStringT) {
+ML_METHOD("::", TypelibT, MLStringT) {
 	typelib_t *Typelib = (typelib_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
 	GIBaseInfo *Info = g_irepository_find_by_name(NULL, Typelib->Namespace, Name);
@@ -1558,7 +1558,7 @@ static ml_value_t *object_property_assign(object_property_t *Property, ml_value_
 	return Value0;
 }
 
-ML_METHOD("[]", ObjectInstanceT, MLStringT) {
+ML_METHOD("::", ObjectInstanceT, MLStringT) {
 	object_instance_t *Instance = (object_instance_t *)Args[0];
 	object_property_t *Property = new(object_property_t);
 	Property->Type = ObjectPropertyT;

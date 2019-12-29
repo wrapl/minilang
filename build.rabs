@@ -49,7 +49,8 @@ var Objects := [
 	file("sha256.o"),
 	file("stringmap.o"),
 	file("ml_console.o"),
-	file("ml_object.o")
+	file("ml_object.o"),
+	file("ml_module.o")
 ]
 
 var Libraries := []
@@ -58,6 +59,12 @@ if MINILANG_LIBUV or defined("LIBUV") then
 	Objects:put(file("ml_libuv.o"))
 	CFLAGS := old + ["-DUSE_ML_UV"]
 	LDFLAGS := old + ["-luv"]
+end
+
+if MINILANG_LIBEVENT or defined("LIBEVENT") then
+	Objects:put(file("ml_libevent.o"))
+	CFLAGS := old + ["-DUSE_ML_EVENT"]
+	LDFLAGS := old + ["-levent"]
 end
 
 if MINILANG_USEGTK or defined("USEGTK") then

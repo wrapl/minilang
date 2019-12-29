@@ -5,6 +5,7 @@
 #include "ml_file.h"
 #include "ml_object.h"
 #include "ml_iterfns.h"
+#include "ml_module.h"
 #include "stringmap.h"
 #include <stdio.h>
 #include <gc.h>
@@ -28,6 +29,10 @@
 
 #ifdef USE_ML_RADB
 #include "ml_radb.h"
+#endif
+
+#ifdef USE_ML_EVENT
+#include "ml_libevent.h"
 #endif
 
 static stringmap_t Globals[1] = {STRINGMAP_INIT};
@@ -97,6 +102,7 @@ int main(int Argc, const char *Argv[]) {
 	ml_file_init(Globals);
 	ml_object_init(Globals);
 	ml_iterfns_init(Globals);
+	ml_module_init(Globals);
 	stringmap_insert(Globals, "print", ml_function(0, ml_print));
 	stringmap_insert(Globals, "error", ml_function(0, ml_throw));
 	stringmap_insert(Globals, "debug", ml_function(0, ml_debug));
@@ -119,6 +125,9 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef USE_ML_RADB
 	ml_radb_init(Globals);
+#endif
+#ifdef USE_ML_EVENT
+	ml_event_init(Globals);
 #endif
 	ml_value_t *Args = ml_list();
 	const char *FileName = 0;

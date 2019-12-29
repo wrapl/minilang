@@ -174,6 +174,7 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 		[MLI_IF_LET] = &&DO_IF_LET,
 		[MLI_ELSE] = &&DO_ELSE,
 		[MLI_PUSH] = &&DO_PUSH,
+		[MLI_POP] = &&DO_POP,
 		[MLI_ENTER] = &&DO_ENTER,
 		[MLI_EXIT] = &&DO_EXIT,
 		[MLI_LOOP] = &&DO_LOOP,
@@ -190,7 +191,12 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 		[MLI_CONST_CALL] = &&DO_CONST_CALL,
 		[MLI_ASSIGN] = &&DO_ASSIGN,
 		[MLI_LOCAL] = &&DO_LOCAL,
-		[MLI_TUPLE] = &&DO_TUPLE,
+		[MLI_TUPLE_NEW] = &&DO_TUPLE_NEW,
+		[MLI_TUPLE_SET] = &&DO_TUPLE_SET,
+		[MLI_LIST_NEW] = &&DO_LIST_NEW,
+		[MLI_LIST_APPEND] = &&DO_LIST_APPEND,
+		[MLI_MAP_NEW] = &&DO_MAP_NEW,
+		[MLI_MAP_INSERT] = &&DO_MAP_INSERT,
 		[MLI_CLOSURE] = &&DO_CLOSURE
 	};
 	ml_inst_t *Inst = Frame->Inst;
@@ -273,6 +279,11 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 	}
 	DO_PUSH: {
 		*Top++ = Result;
+		ADVANCE(0);
+	}
+	DO_POP: {
+		Result = *--Top;
+		*Top = 0;
 		ADVANCE(0);
 	}
 	DO_ENTER: {
@@ -407,14 +418,35 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 		}
 		ADVANCE(0);
 	}
-	DO_TUPLE: {
+	DO_TUPLE_NEW: {
 		int Size = Inst->Params[1].Count;
 		ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
 		Tuple->Type = MLTupleT;
 		Tuple->Size = Size;
-		for (int I = 0; I < Size; ++I) Tuple->Values[I] = Top[I - Size];
-		Top -= Size;
-		Result = (ml_value_t *)Tuple;
+		*Top++ = (ml_value_t *)Tuple;
+		ADVANCE(0);
+	}
+	DO_TUPLE_SET: {
+		int Index = Inst->Params[1].Index;
+		ml_tuple_t *Tuple = (ml_tuple_t *)Top[-1];
+		Tuple->Values[Index] = Result;
+		ADVANCE(0);
+	}
+	DO_LIST_NEW: {
+		*Top++ = ml_list();
+		ADVANCE(0);
+	}
+	DO_LIST_APPEND: {
+		ml_list_append(Top[-1], Result);
+		ADVANCE(0);
+	}
+	DO_MAP_NEW: {
+		*Top++ = ml_map();
+		ADVANCE(0);
+	}
+	DO_MAP_INSERT: {
+		ml_map_insert(Top[-2], Top[-1], Result);
+		*--Top = 0;
 		ADVANCE(0);
 	}
 	DO_CLOSURE: {
@@ -460,7 +492,7 @@ static ml_value_t *ml_closure_call(ml_state_t *Caller, ml_value_t *Value, int Co
 	if (Info->ExtraArgs) --NumParams;
 	if (Info->NamedArgs) --NumParams;
 	int Min = (Count < NumParams) ? Count : NumParams;
-	int I = 0, Named = 0;
+	int I = 0;
 	for (; I < Min; ++I) {
 		ml_reference_t *Local = (ml_reference_t *)ml_reference(NULL);
 		ml_value_t *Arg = Args[I]->Type->deref(Args[I]);

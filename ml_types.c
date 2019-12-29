@@ -1758,6 +1758,13 @@ ML_METHOD("[]", MLMapT, MLAnyT) {
 	return ml_property(Map, (const char *)Key, ml_map_index_get, ml_map_index_set, NULL, NULL);
 }
 
+ML_METHOD("::", MLMapT, MLStringT) {
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	if (Count < 1) return MLNil;
+	ml_value_t *Key = Args[1];
+	return ml_property(Map, (const char *)Key, ml_map_index_get, ml_map_index_set, NULL, NULL);
+}
+
 ML_METHOD("insert", MLMapT, MLAnyT, MLAnyT) {
 	ml_value_t *Map = (ml_value_t *)Args[0];
 	ml_value_t *Key = Args[1];
@@ -3192,7 +3199,7 @@ ml_type_t MLNamesT[1] = {{
 void ml_init() {
 	CompareMethod = ml_method("<>");
 	AppendMethod = ml_method("append");
-	IndexMethod = ml_method("[]");
+	IndexMethod = ml_method("::");
 #include "ml_types_init.c"
 	//ml_method_by_name("#", NULL, ml_hash_any, MLAnyT, NULL);
 	ml_method_by_name("<>", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);

@@ -34,6 +34,10 @@ struct console_t {
 	int HistoryIndex, HistoryEnd;
 	stringmap_t Globals[1];
 	mlc_context_t Context[1];
+	stringmap_t Cycles[1];
+	stringmap_t Combos[1];
+	char Chars[32];
+	int NumChars;
 };
 
 #ifdef MINGW
@@ -191,14 +195,15 @@ static void console_font_changed(GtkFontChooser *Widget, console_t *Console) {
 
 static gboolean console_keypress(GtkWidget *Widget, GdkEventKey *Event, console_t *Console) {
 	switch (Event->keyval) {
-	case GDK_KEY_Return: {
+	case GDK_KEY_Return:
+		Console->NumChars = 0;
 		if (Event->state & GDK_SHIFT_MASK) {
 			console_submit(NULL, Console);
 			return TRUE;
 		}
 		break;
-	}
-	case GDK_KEY_Up: {
+	case GDK_KEY_Up:
+		Console->NumChars = 0;
 		if (Event->state & GDK_SHIFT_MASK) {
 			int HistoryIndex = (Console->HistoryIndex + MAX_HISTORY - 1) % MAX_HISTORY;
 			if (Console->History[HistoryIndex]) {
@@ -208,8 +213,8 @@ static gboolean console_keypress(GtkWidget *Widget, GdkEventKey *Event, console_
 			return TRUE;
 		}
 		break;
-	}
-	case GDK_KEY_Down: {
+	case GDK_KEY_Down:
+		Console->NumChars = 0;
 		if (Event->state & GDK_SHIFT_MASK) {
 			int HistoryIndex = (Console->HistoryIndex + 1) % MAX_HISTORY;
 			if (Console->History[HistoryIndex]) {
@@ -219,6 +224,58 @@ static gboolean console_keypress(GtkWidget *Widget, GdkEventKey *Event, console_
 			return TRUE;
 		}
 		break;
+	case GDK_KEY_Escape:
+	case GDK_KEY_Left:
+	case GDK_KEY_Right:
+		Console->NumChars = 0;
+		break;
+	case GDK_KEY_Tab: {
+		Console->Chars[Console->NumChars] = 0;
+		for (int I = 0; I < Console->NumChars; ++I) {
+			const char *Cycle = stringmap_search(Console->Cycles, Console->Chars + I);
+			if (Cycle) {
+				GtkTextIter Start[1], End[1];
+				GtkTextBuffer *InputBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView));
+				GtkTextMark *Cursor = gtk_text_buffer_get_insert(InputBuffer);
+				gtk_text_buffer_get_iter_at_mark(InputBuffer, Start, Cursor);
+				gtk_text_buffer_get_iter_at_mark(InputBuffer, End, Cursor);
+				gtk_text_iter_backward_chars(Start, g_utf8_strlen(Console->Chars + I, Console->NumChars - I));
+				Console->NumChars = stpcpy(Console->Chars + I, Cycle) - Console->Chars;
+				gtk_text_buffer_delete(InputBuffer, Start, End);
+				gtk_text_buffer_insert(InputBuffer, Start, Console->Chars + I, Console->NumChars - I);
+				return TRUE;
+			}
+		}
+		break;
+	}
+	default: {
+		guint32 Unichar = gdk_keyval_to_unicode(Event->keyval);
+		if (!Unichar) return FALSE;
+		if (Unichar <= 32) {
+			Console->NumChars = 0;
+			return FALSE;
+		}
+		Console->NumChars += g_unichar_to_utf8(Unichar, Console->Chars + Console->NumChars);
+		if (Console->NumChars > 16) {
+			memmove(Console->Chars, Console->Chars + Console->NumChars - 16, 16);
+			Console->NumChars = 16;
+		}
+		Console->Chars[Console->NumChars] = 0;
+		for (int I = 0; I < Console->NumChars; ++I) {
+			const char *Combo = stringmap_search(Console->Combos, Console->Chars + I);
+			if (Combo) {
+				GtkTextIter Start[1], End[1];
+				GtkTextBuffer *InputBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView));
+				GtkTextMark *Cursor = gtk_text_buffer_get_insert(InputBuffer);
+				gtk_text_buffer_get_iter_at_mark(InputBuffer, Start, Cursor);
+				gtk_text_buffer_get_iter_at_mark(InputBuffer, End, Cursor);
+				gtk_text_iter_backward_chars(Start, g_utf8_strlen(Console->Chars + I, Console->NumChars - I) - 1);
+				Console->NumChars = stpcpy(Console->Chars + I, Combo) - Console->Chars;
+				gtk_text_buffer_delete(InputBuffer, Start, End);
+				gtk_text_buffer_insert(InputBuffer, Start, Console->Chars + I, Console->NumChars - I);
+				return TRUE;
+			}
+		}
 	}
 	}
 	return FALSE;
@@ -316,6 +373,34 @@ static ml_value_t *console_set_style(console_t *Console, int Count, ml_value_t *
 	gtk_source_buffer_set_style_scheme(GTK_SOURCE_BUFFER(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView))), StyleScheme);
 	gtk_source_buffer_set_style_scheme(GTK_SOURCE_BUFFER(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView))), StyleScheme);
 	return MLNil;
+}
+
+static ml_value_t *console_add_cycle(console_t *Console, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	for (int I = 1; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLStringT);
+		stringmap_insert(Console->Cycles, ml_string_value(Args[I - 1]), ml_string_value(Args[I]));
+	}
+	stringmap_insert(Console->Cycles, ml_string_value(Args[Count - 1]), ml_string_value(Args[0]));
+	return MLNil;
+}
+
+static ml_value_t *console_add_combo(console_t *Console, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ML_CHECK_ARG_TYPE(1, MLStringT);
+	stringmap_insert(Console->Combos, ml_string_value(Args[0]), ml_string_value(Args[1]));
+	stringmap_insert(Console->Cycles, ml_string_value(Args[1]), ml_string_value(Args[0]));
+	return MLNil;
+}
+
+static ml_value_t *console_include(console_t *Console, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ml_value_t *Closure = ml_load((ml_getter_t)console_global_get, Console, ml_string_value(Args[0]));
+	if (Closure->Type == MLErrorT) return Closure;
+	return ml_call(Closure, 0, NULL);
 }
 
 console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
@@ -440,6 +525,9 @@ console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 
 	stringmap_insert(Globals, "set_font", ml_function(Console, (ml_callback_t)console_set_font));
 	stringmap_insert(Globals, "set_style", ml_function(Console, (ml_callback_t)console_set_style));
+	stringmap_insert(Globals, "add_cycle", ml_function(Console, (ml_callback_t)console_add_cycle));
+	stringmap_insert(Globals, "add_combo", ml_function(Console, (ml_callback_t)console_add_combo));
+	stringmap_insert(Globals, "include", ml_function(Console, (ml_callback_t)console_include));
 
 	if (g_key_file_has_key(Console->Config, "gtk-console", "font", NULL)) {
 		const char *FontName = g_key_file_get_string(Console->Config, "gtk-console", "font", NULL);
