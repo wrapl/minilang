@@ -947,6 +947,7 @@ static mlc_compiled_t ml_const_call_expr_compile(mlc_function_t *Function, mlc_c
 }
 
 extern ml_value_t *IndexMethod;
+extern ml_value_t *SymbolMethod;
 
 static mlc_compiled_t ml_import_expr_compile(mlc_function_t *Function, mlc_const_call_expr_t *Expr, SHA256_CTX *HashContext) {
 	ML_COMPILE_HASH
@@ -954,7 +955,7 @@ static mlc_compiled_t ml_import_expr_compile(mlc_function_t *Function, mlc_const
 	if ((Compiled.Start == Compiled.Exits) && (Compiled.Start->Opcode == MLI_LOAD)) {
 		ml_inst_t *ValueInst = Compiled.Start;
 		ml_value_t *Args[2] = {ValueInst->Params[1].Value, Expr->Value};
-		ml_value_t *Value = IndexMethod->Type->call(NULL, IndexMethod, 2, Args);
+		ml_value_t *Value = SymbolMethod->Type->call(NULL, SymbolMethod, 2, Args);
 		if (Value->Type != MLErrorT) {
 			if (Value->Type == MLUninitializedT) {
 				ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Value;
@@ -979,7 +980,7 @@ static mlc_compiled_t ml_import_expr_compile(mlc_function_t *Function, mlc_const
 	ml_inst_t *CallInst = ml_inst_new(3, Expr->Source, MLI_CONST_CALL);
 	PushInst->Params[0].Inst = CallInst;
 	CallInst->Params[1].Count = 2;
-	CallInst->Params[2].Value = IndexMethod;
+	CallInst->Params[2].Value = SymbolMethod;
 	Compiled.Exits = CallInst;
 	if (Function->Top >= Function->Size) Function->Size = Function->Top + 1;
 	Function->Top -= 2;

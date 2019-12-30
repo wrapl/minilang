@@ -155,6 +155,7 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 			mlc_expr_t *Expr = ml_accept_command(Scanner, Console->Globals);
 			if (Expr == (mlc_expr_t *)-1) break;
 			ml_value_t *Closure = ml_compile(Expr, NULL, Console->Context);
+			if (MLDebugClosures) ml_closure_debug(Closure);
 			ml_value_t *Result = ml_call(Closure, 0, NULL);
 			Result = Result->Type->deref(Result);
 			console_log(Console, Result);
@@ -228,6 +229,9 @@ static gboolean console_keypress(GtkWidget *Widget, GdkEventKey *Event, console_
 	case GDK_KEY_Left:
 	case GDK_KEY_Right:
 		Console->NumChars = 0;
+		break;
+	case GDK_KEY_BackSpace:
+		if (Console->NumChars > 0) --Console->NumChars;
 		break;
 	case GDK_KEY_Tab: {
 		Console->Chars[Console->NumChars] = 0;

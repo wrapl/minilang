@@ -85,18 +85,14 @@ static ml_value_t IsString[1];
 static ml_value_t IsList[1];
 
 static void value_handler(ml_cbor_reader_t *Reader, ml_value_t *Value) {
-	//printf("%s:%d\n", __func__, __LINE__);
 	for (tag_t *Tag = Reader->Tags; Tag; Tag = Tag->Prev) {
-		//printf("%s:%d\n", __func__, __LINE__);
 		if (Value->Type != MLErrorT) Value = Tag->Handler(Tag->Data, Value);
 	}
 	Reader->Tags = 0;
 	collection_t *Collection = Reader->Collection;
 	if (!Collection) {
-		//printf("%s:%d\n", __func__, __LINE__);
 		Reader->Value = Value;
 	} else if (Collection->Key == IsList) {
-		//printf("%s:%d\n", __func__, __LINE__);
 		ml_list_append(Collection->Collection, Value);
 		if (Collection->Remaining && --Collection->Remaining == 0) {
 			Reader->Collection = Collection->Prev;
@@ -104,7 +100,6 @@ static void value_handler(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 			value_handler(Reader, Collection->Collection);
 		}
 	} else if (Collection->Key) {
-		//printf("%s:%d\n", __func__, __LINE__);
 		ml_map_insert(Collection->Collection, Collection->Key, Value);
 		if (Collection->Remaining && --Collection->Remaining == 0) {
 			Reader->Collection = Collection->Prev;
@@ -114,18 +109,15 @@ static void value_handler(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 			Collection->Key = 0;
 		}
 	} else {
-		//printf("%s:%d\n", __func__, __LINE__);
 		Collection->Key = Value;
 	}
 }
 
 void ml_cbor_read_positive_fn(ml_cbor_reader_t *Reader, uint64_t Value) {
-	//printf("%s:%d\n", __func__, __LINE__);
 	value_handler(Reader, ml_integer(Value));
 }
 
 void ml_cbor_read_negative_fn(ml_cbor_reader_t *Reader, uint64_t Value) {
-	//printf("%s:%d\n", __func__, __LINE__);
 	if (Value <= 0x7FFFFFFFL) {
 		value_handler(Reader, ml_integer(~(uint32_t)Value));
 	} else {
@@ -141,7 +133,6 @@ void ml_cbor_read_negative_fn(ml_cbor_reader_t *Reader, uint64_t Value) {
 }
 
 void ml_cbor_read_bytes_fn(ml_cbor_reader_t *Reader, int Size) {
-	//printf("%s:%d\n", __func__, __LINE__);
 	if (Size) {
 		collection_t *Collection = new(collection_t);
 		Collection->Prev = Reader->Collection;
@@ -157,7 +148,6 @@ void ml_cbor_read_bytes_fn(ml_cbor_reader_t *Reader, int Size) {
 }
 
 void ml_cbor_read_bytes_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, int Size, int Final) {
-	//printf("%s:%d\n", __func__, __LINE__);
 	collection_t *Collection = Reader->Collection;
 	if (Final) {
 		Reader->Collection = Collection->Prev;
@@ -182,7 +172,6 @@ void ml_cbor_read_bytes_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, in
 }
 
 void ml_cbor_read_string_fn(ml_cbor_reader_t *Reader, int Size) {
-	//printf("%s:%d\n", __func__, __LINE__);
 	if (Size) {
 		collection_t *Collection = new(collection_t);
 		Collection->Prev = Reader->Collection;
@@ -198,7 +187,6 @@ void ml_cbor_read_string_fn(ml_cbor_reader_t *Reader, int Size) {
 }
 
 void ml_cbor_read_string_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, int Size, int Final) {
-	//printf("%s:%d\n", __func__, __LINE__);
 	collection_t *Collection = Reader->Collection;
 	if (Final) {
 		Reader->Collection = Collection->Prev;
@@ -223,7 +211,6 @@ void ml_cbor_read_string_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, i
 }
 
 void ml_cbor_read_array_fn(ml_cbor_reader_t *Reader, int Size) {
-	//printf("%s:%d\n", __func__, __LINE__);
 	if (Size) {
 		collection_t *Collection = new(collection_t);
 		Collection->Prev = Reader->Collection;
@@ -239,7 +226,6 @@ void ml_cbor_read_array_fn(ml_cbor_reader_t *Reader, int Size) {
 }
 
 void ml_cbor_read_map_fn(ml_cbor_reader_t *Reader, int Size) {
-	//printf("%s:%d\n", __func__, __LINE__);
 	if (Size > 0) {
 		collection_t *Collection = new(collection_t);
 		Collection->Prev = Reader->Collection;
@@ -255,7 +241,6 @@ void ml_cbor_read_map_fn(ml_cbor_reader_t *Reader, int Size) {
 }
 
 void ml_cbor_read_tag_fn(ml_cbor_reader_t *Reader, uint64_t Tag) {
-	//printf("%s:%d\n", __func__, __LINE__);
 	void *Data;
 	ml_tag_t Handler = Reader->TagFn(Tag, Reader->TagFnData, &Data);
 	if (Handler) {
@@ -268,12 +253,10 @@ void ml_cbor_read_tag_fn(ml_cbor_reader_t *Reader, uint64_t Tag) {
 }
 
 void ml_cbor_read_float_fn(ml_cbor_reader_t *Reader, double Value) {
-	//printf("%s:%d\n", __func__, __LINE__);
 	value_handler(Reader, ml_real(Value));
 }
 
 void ml_cbor_read_simple_fn(ml_cbor_reader_t *Reader, int Value) {
-	//printf("%s:%d\n", __func__, __LINE__);
 	switch (Value) {
 	case CBOR_SIMPLE_FALSE:
 		value_handler(Reader, ml_method("false"));
@@ -291,7 +274,6 @@ void ml_cbor_read_simple_fn(ml_cbor_reader_t *Reader, int Value) {
 }
 
 void ml_cbor_read_break_fn(ml_cbor_reader_t *Reader) {
-	//printf("%s:%d\n", __func__, __LINE__);
 	collection_t *Collection = Reader->Collection;
 	Reader->Collection = Collection->Prev;
 	Reader->Tags = Collection->Tags;
@@ -327,14 +309,14 @@ static ml_value_t *ml_value_fn(ml_value_t *Callback, ml_value_t *Value) {
 
 static ml_tag_t ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void **Data) {
 	Data[0] = ml_inline(Callback, 1, ml_integer(Tag));
-	return ml_value_fn;
+	return (ml_tag_t)ml_value_fn;
 }
 
 static ml_value_t *ml_from_cbor_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ml_cbor_t Cbor = {ml_string_value(Args[0]), ml_string_length(Args[0])};
-	return ml_from_cbor(Cbor, Count > 1 ? Args[1] : MLNil, ml_value_tag_fn);
+	return ml_from_cbor(Cbor, Count > 1 ? Args[1] : MLNil, (void *)ml_value_tag_fn);
 }
 
 void ml_cbor_write_integer_fn(ml_value_t *Arg, void *Data, int (*WriteFn)(void *Data, const unsigned char *Bytes, unsigned Size)) {
@@ -350,7 +332,7 @@ void ml_cbor_write_integer_fn(ml_value_t *Arg, void *Data, int (*WriteFn)(void *
 void ml_cbor_write_string_fn(ml_value_t *Arg, void *Data, int (*WriteFn)(void *Data, const unsigned char *Bytes, unsigned Size)) {
 	//printf("%s()\n", __func__);
 	ml_cbor_write_string(Data, WriteFn, ml_string_length(Arg));
-	WriteFn(Data, ml_string_value(Arg), ml_string_length(Arg));
+	WriteFn(Data, (const unsigned char *)ml_string_value(Arg), ml_string_length(Arg));
 }
 
 void ml_cbor_write_list_fn(ml_value_t *Arg, void *Data, int (*WriteFn)(void *Data, const unsigned char *Bytes, unsigned Size)) {
