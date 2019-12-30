@@ -38,7 +38,7 @@
 static stringmap_t Globals[1] = {STRINGMAP_INIT};
 
 static ml_value_t *global_get(void *Data, const char *Name) {
-	return stringmap_search(Globals, Name) ?: MLNil;
+	return stringmap_search(Globals, Name);
 }
 
 static ml_value_t *ml_print(void *Data, int Count, ml_value_t **Args) {
@@ -165,13 +165,13 @@ int main(int Argc, const char *Argv[]) {
 		}
 #ifdef USE_ML_GIR
 	} else if (GtkConsole) {
-		console_t *Console = console_new(global_get, Globals);
+		console_t *Console = console_new(stringmap_search, Globals);
 		stringmap_insert(Globals, "print", ml_function(Console, (void *)console_print));
 		console_show(Console, NULL);
 		gtk_main();
 #endif
 	} else {
-		ml_console(global_get, Globals);
+		ml_console(stringmap_search, Globals);
 	}
 	return 0;
 }

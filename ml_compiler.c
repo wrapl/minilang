@@ -1070,22 +1070,26 @@ static int ml_upvalue_find(mlc_function_t *Function, mlc_decl_t *Decl, mlc_funct
 	return ~Index;
 }
 
+static mlc_compiled_t ml_ident_expr_finish(mlc_ident_expr_t *Expr, ml_value_t *Value) {
+	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
+	if (Value->Type == MLUninitializedT) {
+		ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Value;
+		ml_slot_t *Slot = new(ml_slot_t);
+		Slot->Value = &ValueInst->Params[1].Value;
+		Slot->Next = Uninitialized->Slots;
+		Uninitialized->Slots = Slot;
+	}
+	ValueInst->Params[1].Value = Value;
+	return (mlc_compiled_t){ValueInst, ValueInst};
+}
+
 static mlc_compiled_t ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Expr, SHA256_CTX *HashContext) {
 	ML_COMPILE_HASH
 	for (mlc_function_t *UpFunction = Function; UpFunction; UpFunction = UpFunction->Up) {
 		for (mlc_decl_t *Decl = UpFunction->Decls; Decl; Decl = Decl->Next) {
 			if (!strcmp(Decl->Ident, Expr->Ident)) {
 				if (Decl->Value) {
-					ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
-					if (Decl->Value->Type == MLUninitializedT) {
-						ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Decl->Value;
-						ml_slot_t *Slot = new(ml_slot_t);
-						Slot->Value = &ValueInst->Params[1].Value;
-						Slot->Next = Uninitialized->Slots;
-						Uninitialized->Slots = Slot;
-					}
-					ValueInst->Params[1].Value = Decl->Value;
-					return (mlc_compiled_t){ValueInst, ValueInst};
+					return ml_ident_expr_finish(Expr, Decl->Value);
 				} else {
 					int Index = ml_upvalue_find(Function, Decl, UpFunction);
 					sha256_update(HashContext, (void *)&Index, sizeof(Index));
@@ -1098,15 +1102,13 @@ static mlc_compiled_t ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_
 		}
 	}
 	sha256_update(HashContext, (unsigned char *)Expr->Ident, strlen(Expr->Ident));
-	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
 	ml_value_t *Value = (Function->Context->GlobalGet)(Function->Context->Globals, Expr->Ident);
 	if (!Value) {
 		Function->Context->Error = ml_error("CompilerError", "identifier %s not declared", Expr->Ident);
 		ml_error_trace_add(Function->Context->Error, Expr->Source);
 		longjmp(Function->Context->OnError, 1);
 	}
-	ValueInst->Params[1].Value = Value;
-	return (mlc_compiled_t){ValueInst, ValueInst};
+	return ml_ident_expr_finish(Expr, Value);
 }
 
 struct mlc_value_expr_t {
@@ -2345,6 +2347,15 @@ mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 	return (mlc_expr_t *)BlockExpr;
 }
 
+static void ml_vars_update(stringmap_t *Vars, const char *Name, ml_value_t *Value) {
+	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Name);
+	ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Slot[0];
+	if (Uninitialized && Uninitialized->Type == MLUninitializedT) {
+		for (ml_slot_t *Slot = Uninitialized->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Value;
+	}
+	Slot[0] = Value;
+}
+
 mlc_expr_t *ml_accept_command(mlc_scanner_t *Scanner, stringmap_t *Vars) {
 	while (ml_parse(Scanner, MLT_EOL));
 	mlc_block_expr_t *BlockExpr = new(mlc_block_expr_t);
@@ -2358,7 +2369,7 @@ mlc_expr_t *ml_accept_command(mlc_scanner_t *Scanner, stringmap_t *Vars) {
 			ml_accept(Scanner, MLT_IDENT);
 			const char *Ident = Scanner->Ident;
 			ml_value_t *Ref = ml_reference(NULL);
-			stringmap_insert(Vars, Ident, Ref);
+			ml_vars_update(Vars, Ident, Ref);
 			if (ml_parse(Scanner, MLT_ASSIGN)) {
 				mlc_value_expr_t *RefExpr = new(mlc_value_expr_t);
 				RefExpr->compile = ml_value_expr_compile;
@@ -2377,13 +2388,20 @@ mlc_expr_t *ml_accept_command(mlc_scanner_t *Scanner, stringmap_t *Vars) {
 		do {
 			ml_accept(Scanner, MLT_IDENT);
 			const char *Ident = Scanner->Ident;
-			ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Ident);
-			Slot[0] = MLNil;
-			ml_value_t *Ref = ml_reference(Slot);
+			ml_value_t **Value = (ml_value_t **)stringmap_slot(Vars, Ident);
+			ml_uninitialized_t *Ref = (ml_uninitialized_t *)Value[0];
+			if (!Ref || Ref->Type != MLUninitializedT) {
+				Ref = new(ml_uninitialized_t);
+				Ref->Type = MLUninitializedT;
+				ml_slot_t *Slot = new(ml_slot_t);
+				Slot->Value = Value;
+				Ref->Slots = Slot;
+				Value[0] = (ml_value_t *)Ref;
+			}
 			mlc_value_expr_t *RefExpr = new(mlc_value_expr_t);
 			RefExpr->compile = ml_value_expr_compile;
 			RefExpr->Source = Scanner->Source;
-			RefExpr->Value = Ref;
+			RefExpr->Value = (ml_value_t *)Ref;
 			mlc_parent_expr_t *AssignExpr = new(mlc_parent_expr_t);
 			AssignExpr->compile = ml_assign_expr_compile;
 			AssignExpr->Source = Scanner->Source;
@@ -2398,12 +2416,19 @@ mlc_expr_t *ml_accept_command(mlc_scanner_t *Scanner, stringmap_t *Vars) {
 			ExprSlot = &AssignExpr->Next;
 		} while (ml_parse(Scanner, MLT_COMMA));
 	} else if (ml_parse(Scanner, MLT_FUN)) {
-		ml_value_t *Ref = NULL;
+		ml_uninitialized_t *Ref = NULL;
 		if (ml_parse(Scanner, MLT_IDENT)) {
 			const char *Ident = Scanner->Ident;
-			ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Ident);
-			Slot[0] = MLNil;
-			Ref = ml_reference(Slot);
+			ml_value_t **Value = (ml_value_t **)stringmap_slot(Vars, Ident);
+			Ref = (ml_uninitialized_t *)Value[0];
+			if (!Ref || Ref->Type != MLUninitializedT) {
+				Ref = new(ml_uninitialized_t);
+				Ref->Type = MLUninitializedT;
+				ml_slot_t *Slot = new(ml_slot_t);
+				Slot->Value = Value;
+				Ref->Slots = Slot;
+				Value[0] = (ml_value_t *)Ref;
+			}
 		}
 		ml_accept(Scanner, MLT_LEFT_PAREN);
 		mlc_expr_t *FunExpr = ml_accept_fun_decl(Scanner);
@@ -2411,7 +2436,7 @@ mlc_expr_t *ml_accept_command(mlc_scanner_t *Scanner, stringmap_t *Vars) {
 			mlc_value_expr_t *RefExpr = new(mlc_value_expr_t);
 			RefExpr->compile = ml_value_expr_compile;
 			RefExpr->Source = Scanner->Source;
-			RefExpr->Value = Ref;
+			RefExpr->Value = (ml_value_t *)Ref;
 			mlc_parent_expr_t *AssignExpr = new(mlc_parent_expr_t);
 			AssignExpr->compile = ml_assign_expr_compile;
 			AssignExpr->Source = Scanner->Source;

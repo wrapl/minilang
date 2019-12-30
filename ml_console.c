@@ -1,6 +1,7 @@
 #include "minilang.h"
 #include "ml_macros.h"
 #include "ml_compiler.h"
+#include "ml_internal.h"
 #include "stringmap.h"
 #ifndef __MINGW32__
 #include "linenoise.h"
@@ -17,7 +18,17 @@ typedef struct ml_console_t {
 } ml_console_t;
 
 static ml_value_t *ml_console_global_get(ml_console_t *Console, const char *Name) {
-	return stringmap_search(Console->Globals, Name) ?: (Console->ParentGetter)(Console->ParentGlobals, Name);
+	ml_value_t *Value = stringmap_search(Console->Globals, Name);
+	if (Value) return Value;
+	Value = (Console->ParentGetter)(Console->ParentGlobals, Name);
+	if (Value) return Value;
+	ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
+	Uninitialized->Type = MLUninitializedT;
+	ml_slot_t *Slot = new(ml_slot_t);
+	Slot->Value = stringmap_slot(Console->Globals, Name);
+	Uninitialized->Slots = Slot;
+	stringmap_insert(Console->Globals, Name, Uninitialized);
+	return (ml_value_t *)Uninitialized;
 }
 
 #ifdef __MINGW32__

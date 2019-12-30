@@ -7,12 +7,16 @@
 #include <time.h>
 #include <gtksourceview/gtksource.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
+#include <girepository.h>
 #include <gc/gc.h>
 #include "minilang.h"
 #include "ml_macros.h"
 #include "stringmap.h"
 #include "ml_compiler.h"
+#include "ml_internal.h"
 #include <sys/stat.h>
+#include <graphviz/cgraph.h>
+#include <graphviz/gvc.h>
 
 #include "ml_gir.h"
 
@@ -49,8 +53,59 @@ static char *stpcpy(char *Dest, const char *Source) {
 #define lstat stat
 #endif
 
+static void console_display_closure(console_t *Console, ml_closure_t *Closure) {
+	static GVC_t *Context = 0;
+	if (!Context) {
+		Context = gvContext();
+	}
+	const char *GraphFileName = ml_closure_info_debug(Closure->Info);
+	FILE *GraphFile = fopen(GraphFileName, "r");
+	graph_t *Graph = agread(GraphFile, NULL);
+	fclose(GraphFile);
+	agattr(Graph, AGNODE, "fontsize", "10.0");
+	agattr(Graph, AGNODE, "fontname", "Cascadia Code");
+	agattr(Graph, AGNODE, "margin", "0,0");
+	agattr(Graph, AGNODE, "dpi", "64");
+	agattr(Graph, AGNODE, "shape", "plain");
+	gvLayout(Context, Graph, "dot");
+	char *ImageFileName;
+	asprintf(&ImageFileName, "%s.svg", GraphFileName);
+	FILE *ImageFile = fopen(ImageFileName, "w");
+	gvRender(Context, Graph, "svg", ImageFile);
+	fclose(ImageFile);
+	GtkWidget *Image = gtk_image_new_from_file(ImageFileName);
+	GtkWidget *Window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_transient_for(Window, GTK_WINDOW(Console->Window));
+	gtk_window_set_default_size(GTK_WINDOW(Window), 400, 800);
+	GtkWidget *Scrolled = gtk_scrolled_window_new(NULL, NULL);
+	gtk_container_add(GTK_CONTAINER(Scrolled), Image);
+	gtk_container_add(GTK_CONTAINER(Window), Scrolled);
+	gtk_widget_show_all(Window);
+}
+
+static void console_display_value(console_t *Console, ml_value_t *Value) {
+	typeof(console_display_value) *function = ml_typed_fn_get(Value->Type, console_display_value);
+	if (function) function(Console, Value);
+}
+
+static ml_value_t *console_display(console_t *Console, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	console_display_value(Console, Args[0]);
+	return MLNil;
+}
+
 static ml_value_t *console_global_get(console_t *Console, const char *Name) {
-	return stringmap_search(Console->Globals, Name) ?: (Console->ParentGetter)(Console->ParentGlobals, Name);
+	ml_value_t *Value = stringmap_search(Console->Globals, Name);
+	if (Value) return Value;
+	Value = (Console->ParentGetter)(Console->ParentGlobals, Name);
+	if (Value) return Value;
+	ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
+	Uninitialized->Type = MLUninitializedT;
+	ml_slot_t *Slot = new(ml_slot_t);
+	Slot->Value = stringmap_slot(Console->Globals, Name);
+	Uninitialized->Slots = Slot;
+	stringmap_insert(Console->Globals, Name, Uninitialized);
+	return (ml_value_t *)Uninitialized;
 }
 
 static char *console_read(console_t *Console) {
@@ -155,7 +210,9 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 			mlc_expr_t *Expr = ml_accept_command(Scanner, Console->Globals);
 			if (Expr == (mlc_expr_t *)-1) break;
 			ml_value_t *Closure = ml_compile(Expr, NULL, Console->Context);
-			if (MLDebugClosures) ml_closure_debug(Closure);
+			if (MLDebugClosures) {
+				console_display_value(Console, Closure);
+			}
 			ml_value_t *Result = ml_call(Closure, 0, NULL);
 			Result = Result->Type->deref(Result);
 			console_log(Console, Result);
@@ -284,7 +341,6 @@ static gboolean console_keypress(GtkWidget *Widget, GdkEventKey *Event, console_
 	}
 	return FALSE;
 }
-
 
 void console_show(console_t *Console, GtkWindow *Parent) {
 	gtk_window_set_transient_for(GTK_WINDOW(Console->Window), Parent);
@@ -532,6 +588,9 @@ console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 	stringmap_insert(Globals, "add_cycle", ml_function(Console, (ml_callback_t)console_add_cycle));
 	stringmap_insert(Globals, "add_combo", ml_function(Console, (ml_callback_t)console_add_combo));
 	stringmap_insert(Globals, "include", ml_function(Console, (ml_callback_t)console_include));
+	stringmap_insert(Globals, "display", ml_function(Console, (ml_callback_t)console_display));
+
+	ml_typed_fn_set(MLClosureT, console_display_value, console_display_closure);
 
 	if (g_key_file_has_key(Console->Config, "gtk-console", "font", NULL)) {
 		const char *FontName = g_key_file_get_string(Console->Config, "gtk-console", "font", NULL);
