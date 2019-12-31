@@ -427,6 +427,8 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 		ADVANCE(0);
 	}
 	DO_LIST_APPEND: {
+		Result = Result->Type->deref(Result);
+		ERROR_CHECK(Result);
 		ml_list_append(Top[-1], Result);
 		ADVANCE(0);
 	}
@@ -435,7 +437,11 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 		ADVANCE(0);
 	}
 	DO_MAP_INSERT: {
-		ml_map_insert(Top[-2], Top[-1], Result);
+		ml_value_t *Key = Top[-1]->Type->deref(Top[-1]);
+		ERROR_CHECK(Key);
+		Result = Result->Type->deref(Result);
+		ERROR_CHECK(Result);
+		ml_map_insert(Top[-2], Key, Result);
 		*--Top = 0;
 		ADVANCE(0);
 	}

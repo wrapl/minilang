@@ -78,6 +78,7 @@ void ml_console(ml_getter_t GlobalGet, void *Globals) {
 		int Line;
 		for (int I = 0; ml_error_trace(Context->Error, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 		ml_scanner_reset(Scanner);
+		Console->Prompt = "--> ";
 	}
 	for (;;) {
 		ml_value_t *Result = ml_command_evaluate(Scanner, Console->Globals, Context);
