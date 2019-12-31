@@ -62,11 +62,11 @@ static void console_display_closure(console_t *Console, ml_closure_t *Closure) {
 	FILE *GraphFile = fopen(GraphFileName, "r");
 	graph_t *Graph = agread(GraphFile, NULL);
 	fclose(GraphFile);
+	unlink(GraphFileName);
 	agattr(Graph, AGNODE, "fontsize", "10.0");
 	agattr(Graph, AGNODE, "fontname", "Cascadia Code");
-	agattr(Graph, AGNODE, "margin", "0,0");
-	agattr(Graph, AGNODE, "dpi", "64");
-	agattr(Graph, AGNODE, "shape", "plain");
+	agattr(Graph, AGEDGE, "fontsize", "10.0");
+	agattr(Graph, AGEDGE, "fontname", "Cascadia Code");
 	gvLayout(Context, Graph, "dot");
 	char *ImageFileName;
 	asprintf(&ImageFileName, "%s.svg", GraphFileName);
@@ -74,13 +74,23 @@ static void console_display_closure(console_t *Console, ml_closure_t *Closure) {
 	gvRender(Context, Graph, "svg", ImageFile);
 	fclose(ImageFile);
 	GtkWidget *Image = gtk_image_new_from_file(ImageFileName);
-	GtkWidget *Window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_transient_for(Window, GTK_WINDOW(Console->Window));
-	gtk_window_set_default_size(GTK_WINDOW(Window), 400, 800);
-	GtkWidget *Scrolled = gtk_scrolled_window_new(NULL, NULL);
-	gtk_container_add(GTK_CONTAINER(Scrolled), Image);
-	gtk_container_add(GTK_CONTAINER(Window), Scrolled);
-	gtk_widget_show_all(Window);
+	unlink(ImageFileName);
+
+	//GtkWidget *Window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	//gtk_window_set_transient_for(Window, GTK_WINDOW(Console->Window));
+	//gtk_window_set_default_size(GTK_WINDOW(Window), 400, 800);
+	//GtkWidget *Scrolled = gtk_scrolled_window_new(NULL, NULL);
+	//gtk_container_add(GTK_CONTAINER(Scrolled), Image);
+	//gtk_container_add(GTK_CONTAINER(Window), Scrolled);
+	//gtk_widget_show_all(Window);
+
+	GtkTextIter End[1];
+	GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
+	gtk_text_buffer_get_end_iter(LogBuffer, End);
+	GtkTextChildAnchor *Anchor = gtk_text_buffer_create_child_anchor(LogBuffer, End);
+	gtk_text_view_add_child_at_anchor(GTK_TEXT_VIEW(Console->LogView), Image, Anchor);
+	gtk_widget_show_all(Image);
+	gtk_text_buffer_insert(LogBuffer, End, "\n", 1);
 }
 
 static void console_display_value(console_t *Console, ml_value_t *Value) {
@@ -101,9 +111,6 @@ static ml_value_t *console_global_get(console_t *Console, const char *Name) {
 	if (Value) return Value;
 	ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
 	Uninitialized->Type = MLUninitializedT;
-	ml_slot_t *Slot = new(ml_slot_t);
-	Slot->Value = stringmap_slot(Console->Globals, Name);
-	Uninitialized->Slots = Slot;
 	stringmap_insert(Console->Globals, Name, Uninitialized);
 	return (ml_value_t *)Uninitialized;
 }
@@ -207,13 +214,8 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 		ml_scanner_reset(Scanner);
 	} else {
 		for (;;) {
-			mlc_expr_t *Expr = ml_accept_command(Scanner, Console->Globals);
-			if (Expr == (mlc_expr_t *)-1) break;
-			ml_value_t *Closure = ml_compile(Expr, NULL, Console->Context);
-			if (MLDebugClosures) {
-				console_display_value(Console, Closure);
-			}
-			ml_value_t *Result = ml_call(Closure, 0, NULL);
+			ml_value_t *Result = ml_command_evaluate(Scanner, Console->Globals, Console->Context);
+			if (!Result) break;
 			Result = Result->Type->deref(Result);
 			console_log(Console, Result);
 		}

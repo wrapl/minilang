@@ -6,6 +6,12 @@
 typedef struct ml_inst_t ml_inst_t;
 typedef struct ml_frame_t ml_frame_t;
 
+struct ml_reference_t {
+	const ml_type_t *Type;
+	ml_value_t **Address;
+	ml_value_t *Value[];
+};
+
 #define ML_MODE_DEFAULT	0
 #define ML_PARAM_EXTRA	1
 #define ML_PARAM_NAMED	2

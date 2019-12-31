@@ -33,6 +33,8 @@ mlc_expr_t *ml_accept_command(mlc_scanner_t *Scanner, stringmap_t *Vars);
 
 ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, mlc_context_t *Context);
 
+ml_value_t *ml_command_evaluate(mlc_scanner_t *Scanner, stringmap_t *Vars, mlc_context_t *Context);
+
 extern int MLDebugClosures;
 
 void ml_closure_debug(ml_value_t *Value);

@@ -25,6 +25,7 @@ endif
 
 ml_types.o: ml_types_init.c
 ml_iterfns.o: ml_iterfns_init.c
+ml_module.o: ml_module_init.c
 
 common_objects = \
 	minilang.o \
@@ -36,7 +37,8 @@ common_objects = \
 	sha256.o \
 	stringmap.o \
 	ml_console.o \
-	ml_object.o
+	ml_object.o \
+	ml_module.o
 
 platform_objects =
 

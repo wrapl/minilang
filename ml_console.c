@@ -24,9 +24,6 @@ static ml_value_t *ml_console_global_get(ml_console_t *Console, const char *Name
 	if (Value) return Value;
 	ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
 	Uninitialized->Type = MLUninitializedT;
-	ml_slot_t *Slot = new(ml_slot_t);
-	Slot->Value = stringmap_slot(Console->Globals, Name);
-	Uninitialized->Slots = Slot;
 	stringmap_insert(Console->Globals, Name, Uninitialized);
 	return (ml_value_t *)Uninitialized;
 }
@@ -63,6 +60,7 @@ static const char *ml_console_line_read(ml_console_t *Console) {
 	memcpy(Buffer, Line, Length);
 	Buffer[Length] = '\n';
 	Buffer[Length + 1] = 0;
+	Console->Prompt = "... ";
 	return Buffer;
 }
 
@@ -82,11 +80,9 @@ void ml_console(ml_getter_t GlobalGet, void *Globals) {
 		ml_scanner_reset(Scanner);
 	}
 	for (;;) {
-		mlc_expr_t *Expr = ml_accept_command(Scanner, Console->Globals);
-		if (Expr == (mlc_expr_t *)-1) return;
-		ml_value_t *Closure = ml_compile(Expr, NULL, Context);
-		if (MLDebugClosures) ml_closure_debug(Closure);
-		ml_value_t *Result = ml_call(Closure, 0, NULL);
+		ml_value_t *Result = ml_command_evaluate(Scanner, Console->Globals, Context);
+		if (!Result) break;
+		Console->Prompt = "--> ";
 		Result = Result->Type->deref(Result);
 		if (Result->Type == MLErrorT) {
 			printf("Error: %s\n", ml_error_message(Result));

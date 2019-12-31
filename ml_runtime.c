@@ -12,12 +12,6 @@
 #include <alloca.h>
 #endif
 
-struct ml_reference_t {
-	const ml_type_t *Type;
-	ml_value_t **Address;
-	ml_value_t *Value[];
-};
-
 static ml_value_t *ml_reference_deref(ml_value_t *Ref) {
 	ml_reference_t *Reference = (ml_reference_t *)Ref;
 	return Reference->Address[0];
@@ -148,22 +142,13 @@ static inline ml_inst_t *ml_inst_new(int N, ml_source_t Source, ml_opcode_t Opco
 	goto *Labels[Inst->Opcode]; \
 }
 
-static ml_value_t *ml_uninitialized_deref(ml_value_t *Ref) {
-	return ml_error("ValueError", "Uninitialized let value");
-}
-
-static ml_value_t *ml_uninitialized_assign(ml_uninitialized_t *Ref, ml_value_t *Value) {
-	for (ml_slot_t *Slot = Ref->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Value;
-	return Value;
-}
-
 ml_type_t MLUninitializedT[] = {{
 	MLTypeT,
 	MLAnyT, "uninitialized",
 	ml_default_hash,
 	ml_default_call,
 	ml_default_deref,
-	(void *)ml_uninitialized_assign,
+	ml_default_assign,
 	NULL, 0, 0
 }};
 
@@ -904,7 +889,7 @@ const char *ml_closure_info_debug(ml_closure_info_t *Info) {
 	FILE *File = fopen(FileName, "w");
 	fprintf(File, "digraph C%" PRIxPTR " {\n", (uintptr_t)Info);
 	fprintf(File, "\tgraph [compound=true,ranksep=0.3];\n");
-	fprintf(File, "\tnode [shape=plain];\n");
+	fprintf(File, "\tnode [shape=plaintext,margin=0.1,height=0];\n");
 	ml_inst_graph(File, Info->Entry, Done, "black");
 	fprintf(File, "}\n");
 	fclose(File);
