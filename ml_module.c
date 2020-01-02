@@ -8,24 +8,18 @@
 typedef struct ml_module_t {
 	const ml_type_t *Type;
 	const char *FileName;
-	ml_state_t *State;
-	ml_value_t *Export;
 	stringmap_t Exports[1];
 } ml_module_t;
 
 typedef struct ml_module_state_t {
 	ml_state_t Base;
 	ml_module_t *Module;
+	ml_value_t *Args[1];
 } ml_module_state_t;
 
 static ml_type_t *MLModuleT, *MLModuleStateT;
 static stringmap_t Modules[1] = {STRINGMAP_INIT};
 static stringmap_t *Globals = 0;
-
-static ml_value_t *ml_global_fn(ml_module_t *Module, const char *Name) {
-	if (!strcmp(Name, "export")) return Module->Export;
-	return stringmap_search(Globals, Name) ?: MLNil;
-}
 
 typedef struct ml_export_function_t {
 	const ml_type_t *Type;
@@ -38,7 +32,6 @@ static ml_value_t *ml_export_function_call(ml_state_t *Caller, ml_export_functio
 	if (NameValue->Type != MLStringT) ML_CHECKX_ARG_TYPE(0, MLStringT);
 	const char *Name = ml_string_value(NameValue);
 	ml_module_t *Module = ExportFunction->Module;
-	printf("Exporting %s:%s\n", Module->FileName, Name);
 	ml_value_t *Value = Args[1];
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Module->Exports, Name);
 	if (Slot[0]) {
@@ -62,43 +55,37 @@ ml_type_t MLExportFunctionT[1] = {{
 }};
 
 static ml_value_t *ml_module_state_run(ml_module_state_t *State, ml_value_t *Value) {
-	State->Module->State = NULL;
+	if (Value->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Value);
 	ML_CONTINUE(State->Base.Caller, State->Module);
 }
 
 static ml_value_t *ml_import_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	static const char *Parameters[] = {"export", NULL};
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLStringT);
 	const char *FileName = ml_string_value(Args[0]);
 	ml_module_t **Slot = (ml_module_t **)stringmap_slot(Modules, FileName);
 	ml_module_t *Module = Slot[0];
-	if (!Module) {
-		Module = Slot[0] = new(ml_module_t);
-		Module->Type = MLModuleT;
-		Module->FileName = FileName;
-		ml_export_function_t *ExportFunction = new(ml_export_function_t);
-		ExportFunction->Type = MLExportFunctionT;
-		ExportFunction->Module = Module;
-		Module->Export = (ml_value_t *)ExportFunction;
-		ml_value_t *Init = ml_load((ml_getter_t)ml_global_fn, Module, FileName);
-		ml_module_state_t *State = new(ml_module_state_t);
-		State->Base.Type = MLModuleStateT;
-		State->Base.run = (void *)ml_module_state_run;
-		State->Base.Caller = Caller;
-		State->Module = Module;
-		Module->State = (ml_state_t *)State;
-		return Init->Type->call((ml_state_t *)State, Init, 0, NULL);
-	}
-	if (Module->State) {
-
-	}
-	ML_CONTINUE(Caller, Slot[0]);
+	if (Module) ML_CONTINUE(Caller, Module);
+	Module = Slot[0] = new(ml_module_t);
+	Module->Type = MLModuleT;
+	Module->FileName = FileName;
+	ml_export_function_t *ExportFunction = new(ml_export_function_t);
+	ExportFunction->Type = MLExportFunctionT;
+	ExportFunction->Module = Module;
+	ml_value_t *Init = ml_load((ml_getter_t)stringmap_search, Globals, FileName, Parameters);
+	ml_module_state_t *State = new(ml_module_state_t);
+	State->Base.Type = MLModuleStateT;
+	State->Base.run = (void *)ml_module_state_run;
+	State->Base.Caller = Caller;
+	State->Module = Module;
+	State->Args[0] = (ml_value_t *)ExportFunction;
+	return Init->Type->call((ml_state_t *)State, Init, 1, State->Args);
 }
 
 ML_METHODX("::", MLModuleT, MLStringT) {
 	ml_module_t *Module = (ml_module_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
-	printf("Importing %s:%s\n", Module->FileName, Name);
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Module->Exports, Name);
 	ml_value_t *Value = Slot[0];
 	if (!Value) {

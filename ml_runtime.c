@@ -604,7 +604,7 @@ ml_type_t MLClosureT[1] = {{
 }};
 
 ml_value_t *ml_default_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
-	ML_CONTINUE(Caller, ml_error("TypeError", "value is not callable"));
+	ML_CONTINUE(Caller, ml_error("TypeError", "<%s> is not callable", Value->Type->Name));
 }
 
 inline ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args) {

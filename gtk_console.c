@@ -460,7 +460,7 @@ static ml_value_t *console_add_combo(console_t *Console, int Count, ml_value_t *
 static ml_value_t *console_include(console_t *Console, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
-	ml_value_t *Closure = ml_load((ml_getter_t)console_global_get, Console, ml_string_value(Args[0]));
+	ml_value_t *Closure = ml_load((ml_getter_t)console_global_get, Console, ml_string_value(Args[0]), NULL);
 	if (Closure->Type == MLErrorT) return Closure;
 	return ml_call(Closure, 0, NULL);
 }

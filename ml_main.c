@@ -98,6 +98,7 @@ extern ml_value_t MLCallCC[];
 extern ml_value_t MLSpawn[];
 
 int main(int Argc, const char *Argv[]) {
+	static const char *Parameters[] = {"Args", NULL};
 	ml_init();
 	ml_file_init(Globals);
 	ml_object_init(Globals);
@@ -147,7 +148,7 @@ int main(int Argc, const char *Argv[]) {
 		}
 	}
 	if (FileName) {
-		ml_value_t *Closure = ml_load(global_get, 0, FileName);
+		ml_value_t *Closure = ml_load(global_get, 0, FileName, Parameters);
 		if (Closure->Type == MLErrorT) {
 			printf("Error: %s\n", ml_error_message(Closure));
 			const char *Source;

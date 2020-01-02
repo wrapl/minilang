@@ -13,7 +13,7 @@ extern "C" {
 
 void ml_init();
 
-ml_value_t *ml_load(ml_getter_t GlobalGet, void *Globals, const char *FileName);
+ml_value_t *ml_load(ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]);
 //ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args);
 //ml_value_t *ml_inline(ml_value_t *Value, int Count, ...);
 

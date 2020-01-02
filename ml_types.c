@@ -134,6 +134,7 @@ ml_value_t *CompareMethod;
 ml_value_t *AppendMethod;
 ml_value_t *IndexMethod;
 ml_value_t *SymbolMethod;
+ml_value_t *IterateMethod, *NextMethod, *KeyMethod, *ValueMethod;
 
 ml_value_t *ml_to_string(ml_value_t *Value) {
 	typeof(ml_to_string) *function = ml_typed_fn_get(Value->Type, ml_to_string);
@@ -149,33 +150,25 @@ ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value)
 
 ml_value_t *ml_iterate(ml_state_t *Caller, ml_value_t *Value) {
 	typeof(ml_iterate) *function = ml_typed_fn_get(Value->Type, ml_iterate);
-	if (!function) ML_CONTINUE(
-		Caller, ml_error("TypeError", "No implementation for %s(%s)", __FUNCTION__, Value->Type->Name)
-	);
+	if (!function) return IterateMethod->Type->call(Caller, IterateMethod, 1, &Value);
 	return function(Caller, Value);
 }
 
 ml_value_t *ml_iter_value(ml_state_t *Caller, ml_value_t *Iter) {
 	typeof(ml_iter_value) *function = ml_typed_fn_get(Iter->Type, ml_iter_value);
-	if (!function) ML_CONTINUE(
-		Caller, ml_error("TypeError", "No implementation for %s(%s)", __FUNCTION__, Iter->Type->Name)
-	);
+	if (!function) return ValueMethod->Type->call(Caller, ValueMethod, 1, &Iter);
 	return function(Caller, Iter);
 }
 
 ml_value_t *ml_iter_key(ml_state_t *Caller, ml_value_t *Iter) {
 	typeof(ml_iter_key) *function = ml_typed_fn_get(Iter->Type, ml_iter_key);
-	if (!function) ML_CONTINUE(
-		Caller, ml_error("TypeError", "No implementation for %s(%s)", __FUNCTION__, Iter->Type->Name)
-	);
+	if (!function) return KeyMethod->Type->call(Caller, KeyMethod, 1, &Iter);
 	return function(Caller, Iter);
 }
 
 ml_value_t *ml_iter_next(ml_state_t *Caller, ml_value_t *Iter) {
 	typeof(ml_iter_next) *function = ml_typed_fn_get(Iter->Type, ml_iter_next);
-	if (!function) ML_CONTINUE(
-		Caller, ml_error("TypeError", "No implementation for %s(%s)", __FUNCTION__, Iter->Type->Name)
-	);
+	if (!function) return NextMethod->Type->call(Caller, NextMethod, 1, &Iter);
 	return function(Caller, Iter);
 }
 
@@ -3202,6 +3195,10 @@ void ml_init() {
 	AppendMethod = ml_method("append");
 	IndexMethod = ml_method("[]");
 	SymbolMethod = ml_method("::");
+	IterateMethod = ml_method("iterate");
+	NextMethod = ml_method("next");
+	KeyMethod = ml_method("key");
+	ValueMethod = ml_method("value");
 #include "ml_types_init.c"
 	//ml_method_by_name("#", NULL, ml_hash_any, MLAnyT, NULL);
 	ml_method_by_name("<>", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);

@@ -17,7 +17,7 @@ typedef struct ml_object_t {
 
 ml_type_t MLObjectT[1] = {{
 	MLTypeT,
-	MLAnyT, "object",
+	MLIteratableT, "object",
 	ml_default_hash,
 	ml_default_call,
 	ml_default_deref,
@@ -163,6 +163,38 @@ static ml_value_t *ml_method_fn(void *Data, int Count, ml_value_t **Args) {
 	return Args[Count - 1];
 }
 
+typedef struct ml_assignable_t {
+	const ml_type_t *Type;
+	ml_value_t *Get, *Set;
+} ml_assignable_t;
+
+static ml_value_t *ml_assignable_deref(ml_assignable_t *Assignable) {
+	return ml_call(Assignable->Get, 0, NULL);
+}
+
+static ml_value_t *ml_assignable_assign(ml_assignable_t *Assignable, ml_value_t *Value) {
+	return ml_call(Assignable->Set, 1, &Value);
+}
+
+static ml_type_t MLAssignableT[1] = {{
+	MLTypeT,
+	MLAnyT, "assignable",
+	ml_default_hash,
+	ml_default_call,
+	(void *)ml_assignable_deref,
+	(void *)ml_assignable_assign,
+	NULL, 0, 0
+}};
+
+static ml_value_t *ml_property_fn(void *Data, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(2);
+	ml_assignable_t *Assignable = new(ml_assignable_t);
+	Assignable->Type = MLAssignableT;
+	Assignable->Get = Args[0];
+	Assignable->Set = Args[1];
+	return (ml_value_t *)Assignable;
+}
+
 static ml_value_t *ml_type_fn(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)Args[0]->Type;
 }
@@ -192,10 +224,12 @@ void ml_object_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "class", ml_function(NULL, ml_class_fn));
 	stringmap_insert(Globals, "method", ml_function(NULL, ml_method_fn));
 	//stringmap_insert(Globals, "type", ml_function(NULL, ml_type_fn));
+	stringmap_insert(Globals, "property", ml_function(NULL, ml_property_fn));
 	stringmap_insert(Globals, "AnyT", MLAnyT);
 	stringmap_insert(Globals, "TypeT", MLTypeT);
 	stringmap_insert(Globals, "NilT", MLNilT);
 	stringmap_insert(Globals, "FunctionT", MLFunctionT);
+	stringmap_insert(Globals, "IteratableT", MLIteratableT);
 	stringmap_insert(Globals, "NumberT", MLNumberT);
 	stringmap_insert(Globals, "IntegerT", MLIntegerT);
 	stringmap_insert(Globals, "RealT", MLRealT);
