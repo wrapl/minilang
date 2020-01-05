@@ -48,9 +48,19 @@ inline ml_value_t *ml_reference(ml_value_t **Address) {
 	return (ml_value_t *)Reference;
 }
 
-static ml_value_t *ml_continuation_call(ml_state_t *Caller, ml_state_t *Frame, int Count, ml_value_t **Args) {
-	ML_CONTINUE(Frame, Count ? Args[0] : MLNil);
+static ml_value_t *ml_state_call(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
+	return State->run(State, Count ? Args[0] : MLNil);
 }
+
+ml_type_t MLStateT[1] = {{
+	MLTypeT,
+	MLFunctionT, "state",
+	ml_default_hash,
+	(void *)ml_state_call,
+	ml_default_deref,
+	ml_default_assign,
+	NULL, 0, 0
+}};
 
 static ml_value_t *ml_continuation_value(ml_state_t *Caller, ml_frame_t *Continuation) {
 	ML_CONTINUE(Caller, Continuation->Top[-1]);
@@ -69,9 +79,9 @@ static ml_value_t *ml_continuation_next(ml_state_t *Caller, ml_frame_t *Continua
 
 ml_type_t MLContinuationT[1] = {{
 	MLTypeT,
-	MLFunctionT, "continuation",
+	MLStateT, "continuation",
 	ml_default_hash,
-	(void *)ml_continuation_call,
+	(void *)ml_state_call,
 	ml_default_deref,
 	ml_default_assign,
 	NULL, 0, 0
@@ -110,13 +120,80 @@ ml_value_t *ml_functionx(void *Data, ml_callbackx_t Callback) {
 	return (ml_value_t *)Function;
 }
 
+static ml_value_t *ml_nil_state_fn(ml_state_t *State, ml_value_t *Value) {
+	return Value;
+}
+
+static ml_state_t MLNilState[1] = {{MLStateT, NULL, ml_nil_state_fn}};
+
+typedef struct ml_resumable_state_t {
+	ml_state_t Base;
+	ml_state_t *Last;
+} ml_resumable_state_t;
+
+static ml_value_t *ml_resumable_state_call(ml_state_t *Caller, ml_resumable_state_t *State, int Count, ml_value_t **Args) {
+	State->Last->Caller = Caller;
+	ML_CONTINUE(State->Base.Caller, Count ? Args[0] : MLNil);
+}
+
+ml_type_t MLResumableStateT[1] = {{
+	MLTypeT,
+	MLStateT, "resumable-state",
+	ml_default_hash,
+	(void *)ml_resumable_state_call,
+	ml_default_deref,
+	ml_default_assign,
+	NULL, 0, 0
+}};
+
+static ml_value_t *ml_resumable_state_run(ml_resumable_state_t *State, ml_value_t *Value) {
+	ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Invalid use of resumable state"));
+}
+
 static ml_value_t *ml_callcc(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
-	ml_value_t *Function = Args[Count - 1];
-	Args[Count - 1] = (ml_value_t *)Caller;
-	return Function->Type->call(NULL, Function, Count, Args);
+	if (Count > 1) {
+		ML_CHECKX_ARG_TYPE(0, MLStateT);
+		ml_state_t *State = (ml_state_t *)Args[0];
+		ml_state_t *Last = Caller;
+		while (Last && Last->Caller != State) Last = Last->Caller;
+		if (!Last) ML_CONTINUE(Caller, ml_error("StateError", "State not in current call chain"));
+		Last->Caller = NULL;
+		ml_resumable_state_t *Resumable = new(ml_resumable_state_t);
+		Resumable->Base.Type = MLResumableStateT;
+		Resumable->Base.Caller = Caller;
+		Resumable->Base.run = (void *)ml_resumable_state_run;
+		Resumable->Last = Last;
+		ml_value_t *Function = Args[1];
+		ml_value_t **Args2 = anew(ml_value_t *, 1);
+		Args2[0] = (ml_value_t *)Resumable;
+		return Function->Type->call(State, Function, 1, Args2);
+	} else {
+		ML_CHECKX_ARG_COUNT(1);
+		ml_value_t *Function = Args[0];
+		ml_value_t **Args2 = anew(ml_value_t *, 1);
+		Args2[0] = (ml_value_t *)Caller;
+		return Function->Type->call(NULL, Function, 1, Args2);
+	}
+}
+
+static ml_value_t *ml_spawn_state_fn(ml_state_t *State, ml_value_t *Value) {
+	ML_CONTINUE(State->Caller, Value);
+}
+
+static ml_value_t *ml_spawn(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_state_t *State = new(ml_state_t);
+	State->Type = MLStateT;
+	State->Caller = Caller;
+	State->run = ml_spawn_state_fn;
+	ml_value_t *Func = Args[0];
+	ml_value_t **Args2 = anew(ml_value_t *, 1);
+	Args2[0] = (ml_value_t *)State;
+	return Func->Type->call(State, Func, 1, Args2);
 }
 
 ml_functionx_t MLCallCC[1] = {{MLFunctionXT, ml_callcc, NULL}};
+ml_functionx_t MLSpawn[1] = {{MLFunctionXT, ml_spawn, NULL}};
 
 static inline ml_inst_t *ml_inst_new(int N, ml_source_t Source, ml_opcode_t Opcode) {
 	ml_inst_t *Inst = xnew(ml_inst_t, N, ml_param_t);

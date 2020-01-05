@@ -558,21 +558,21 @@ console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 	gtk_box_pack_start(GTK_BOX(InputPanel), SubmitButton, FALSE, FALSE, 2);
 	gtk_box_pack_start(GTK_BOX(InputPanel), ClearButton, FALSE, FALSE, 2);
 
-	GtkActionBar *ActionBar = GTK_ACTION_BAR(gtk_action_bar_new());
+	//GtkActionBar *ActionBar = GTK_ACTION_BAR(gtk_action_bar_new());
 	GtkWidget *StyleCombo = gtk_combo_box_text_new();
 	for (const gchar * const * StyleId = gtk_source_style_scheme_manager_get_scheme_ids(StyleManager); StyleId[0]; ++StyleId) {
 		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(StyleCombo), StyleId[0], StyleId[0]);
 	}
 
 	g_signal_connect(G_OBJECT(StyleCombo), "changed", G_CALLBACK(console_style_changed), Console);
-	gtk_action_bar_pack_start(ActionBar, StyleCombo);
+	//gtk_action_bar_pack_start(ActionBar, StyleCombo);
 
 	GtkWidget *FontButton = gtk_font_button_new();
 	g_signal_connect(G_OBJECT(FontButton), "font-set", G_CALLBACK(console_font_changed), Console);
-	gtk_action_bar_pack_start(ActionBar, FontButton);
+	//gtk_action_bar_pack_start(ActionBar, FontButton);
 
 
-	gtk_box_pack_start(GTK_BOX(Container), GTK_WIDGET(ActionBar), FALSE, FALSE, 0);
+	//gtk_box_pack_start(GTK_BOX(Container), GTK_WIDGET(ActionBar), FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(Container), Console->LogScrolled, TRUE, TRUE, 2);
 	GtkWidget *InputFrame = gtk_frame_new(NULL);
 	gtk_container_add(GTK_CONTAINER(InputFrame), InputPanel);
@@ -581,6 +581,24 @@ console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 	g_signal_connect(G_OBJECT(SubmitButton), "clicked", G_CALLBACK(console_submit), Console);
 	g_signal_connect(G_OBJECT(ClearButton), "clicked", G_CALLBACK(console_clear), Console);
 	Console->Window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_icon_name(GTK_WINDOW(Console->Window), "face-smile");
+
+	GtkWidget *MenuButton = gtk_menu_button_new();
+	GtkWidget *ActionsBox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
+	gtk_box_pack_start(GTK_BOX(ActionsBox), StyleCombo, FALSE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(ActionsBox), FontButton, FALSE, TRUE, 0);
+	GtkWidget *ActionsPopover = gtk_popover_new(MenuButton);
+	gtk_container_add(GTK_CONTAINER(ActionsPopover), ActionsBox);
+	gtk_menu_button_set_popover(GTK_MENU_BUTTON(MenuButton), ActionsPopover);
+	gtk_widget_show_all(ActionsBox);
+
+
+	GtkWidget *HeaderBar = gtk_header_bar_new();
+	gtk_header_bar_set_title(GTK_HEADER_BAR(HeaderBar), "Minilang");
+	gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(HeaderBar), FALSE);
+	gtk_header_bar_pack_start(GTK_HEADER_BAR(HeaderBar), MenuButton);
+	gtk_window_set_titlebar(GTK_WINDOW(Console->Window), HeaderBar);
+
 	gtk_container_add(GTK_CONTAINER(Console->Window), Container);
 	gtk_window_set_default_size(GTK_WINDOW(Console->Window), 640, 480);
 	g_signal_connect(G_OBJECT(Console->Window), "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), Console);

@@ -111,6 +111,7 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "halt", ml_function(0, ml_halt));
 	stringmap_insert(Globals, "collect", ml_function(0,ml_collect));
 	stringmap_insert(Globals, "callcc", MLCallCC);
+	stringmap_insert(Globals, "spawn", MLSpawn);
 #ifdef USE_ML_UV
 	ml_uv_init(Globals);
 #endif
