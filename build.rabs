@@ -154,8 +154,13 @@ var InstallHeaders := [
 	"stringmap.h"
 ]
 
-if defined("USECBOR") then
+if MINILANG_USECBOR or defined("USECBOR") then
 	InstallHeaders:put("ml_cbor.h")
+end
+
+if MINILANG_USEGTK or defined("USEGTK") then
+	InstallHeaders:put("ml_gir.h")
+	InstallHeaders:put("gtk_console.h")
 end
 
 for Header in InstallHeaders do
