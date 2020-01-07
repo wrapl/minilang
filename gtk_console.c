@@ -514,33 +514,6 @@ console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 	gtk_text_view_set_editable(GTK_TEXT_VIEW(Console->LogView), FALSE);
 	GtkSourceStyleSchemeManager *StyleManager = gtk_source_style_scheme_manager_get_default();
 
-	gtk_text_view_set_top_margin(GTK_TEXT_VIEW(Console->LogView), 4);
-	gtk_text_view_set_bottom_margin(GTK_TEXT_VIEW(Console->LogView), 4);
-	gtk_text_view_set_left_margin(GTK_TEXT_VIEW(Console->LogView), 4);
-	gtk_text_view_set_right_margin(GTK_TEXT_VIEW(Console->LogView), 4);
-	gtk_text_view_set_monospace(GTK_TEXT_VIEW(Console->LogView), TRUE);
-	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(Console->LogView), TRUE);
-	gtk_source_view_set_tab_width(GTK_SOURCE_VIEW(Console->LogView), 4);
-	GtkTextIter End[1];
-	gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(LogBuffer), End);
-	Console->EndMark = gtk_text_buffer_create_mark(GTK_TEXT_BUFFER(LogBuffer), "end", End, FALSE);
-
-	GtkSourceMarkAttributes *MarkAttributes = gtk_source_mark_attributes_new();
-	GdkPixbuf *MarkPixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, 32, 32);
-	gdk_pixbuf_fill(MarkPixbuf, 0xFF8000FF);
-	gtk_source_mark_attributes_set_pixbuf(MarkAttributes, MarkPixbuf);
-	gtk_source_view_set_mark_attributes(GTK_SOURCE_VIEW(Console->LogView), "result", MarkAttributes, 10);
-	gtk_source_view_set_show_line_marks(GTK_SOURCE_VIEW(Console->LogView), TRUE);
-
-	gtk_text_view_set_top_margin(GTK_TEXT_VIEW(Console->InputView), 4);
-	gtk_text_view_set_bottom_margin(GTK_TEXT_VIEW(Console->InputView), 4);
-	gtk_text_view_set_left_margin(GTK_TEXT_VIEW(Console->InputView), 4);
-	gtk_text_view_set_right_margin(GTK_TEXT_VIEW(Console->InputView), 4);
-	gtk_text_view_set_monospace(GTK_TEXT_VIEW(Console->InputView), TRUE);
-	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(Console->InputView), TRUE);
-	gtk_source_view_set_tab_width(GTK_SOURCE_VIEW(Console->InputView), 4);
-	gtk_source_view_set_show_line_numbers(GTK_SOURCE_VIEW(Console->InputView), TRUE);
-
 	GtkWidget *InputPanel = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2);
 	GtkWidget *SubmitButton = gtk_button_new();
 	gtk_button_set_image(GTK_BUTTON(SubmitButton), gtk_image_new_from_icon_name("go-jump-symbolic", GTK_ICON_SIZE_BUTTON));
@@ -619,6 +592,34 @@ console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 		gtk_source_buffer_set_style_scheme(LogBuffer, StyleScheme);
 		gtk_combo_box_set_active_id(GTK_COMBO_BOX(StyleCombo), StyleId);
 	}
+
+	gtk_text_view_set_top_margin(GTK_TEXT_VIEW(Console->LogView), 4);
+	gtk_text_view_set_bottom_margin(GTK_TEXT_VIEW(Console->LogView), 4);
+	gtk_text_view_set_left_margin(GTK_TEXT_VIEW(Console->LogView), 4);
+	gtk_text_view_set_right_margin(GTK_TEXT_VIEW(Console->LogView), 4);
+	gtk_text_view_set_monospace(GTK_TEXT_VIEW(Console->LogView), TRUE);
+	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(Console->LogView), TRUE);
+	gtk_source_view_set_tab_width(GTK_SOURCE_VIEW(Console->LogView), 4);
+	GtkTextIter End[1];
+	gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(LogBuffer), End);
+	Console->EndMark = gtk_text_buffer_create_mark(GTK_TEXT_BUFFER(LogBuffer), "end", End, FALSE);
+
+	GtkSourceMarkAttributes *MarkAttributes = gtk_source_mark_attributes_new();
+	GdkPixbuf *MarkPixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, 32, 32);
+	gdk_pixbuf_fill(MarkPixbuf, 0xFF8000FF);
+	gtk_source_mark_attributes_set_pixbuf(MarkAttributes, MarkPixbuf);
+	gtk_source_view_set_mark_attributes(GTK_SOURCE_VIEW(Console->LogView), "result", MarkAttributes, 10);
+	gtk_source_view_set_show_line_marks(GTK_SOURCE_VIEW(Console->LogView), TRUE);
+
+	gtk_text_view_set_top_margin(GTK_TEXT_VIEW(Console->InputView), 4);
+	gtk_text_view_set_bottom_margin(GTK_TEXT_VIEW(Console->InputView), 4);
+	gtk_text_view_set_left_margin(GTK_TEXT_VIEW(Console->InputView), 4);
+	gtk_text_view_set_right_margin(GTK_TEXT_VIEW(Console->InputView), 4);
+	gtk_text_view_set_monospace(GTK_TEXT_VIEW(Console->InputView), TRUE);
+	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(Console->InputView), TRUE);
+	gtk_source_view_set_tab_width(GTK_SOURCE_VIEW(Console->InputView), 4);
+	gtk_source_view_set_show_line_numbers(GTK_SOURCE_VIEW(Console->InputView), TRUE);
+
 
 	GError *Error = 0;
 	g_irepository_require(NULL, "Gtk", NULL, 0, &Error);
