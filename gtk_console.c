@@ -31,6 +31,7 @@ struct console_t {
 	ml_getter_t ParentGetter;
 	void *ParentGlobals;
 	const char *ConfigPath;
+	const char *FontName;
 	GKeyFile *Config;
 	mlc_scanner_t *Scanner;
 	char *Input;
@@ -63,10 +64,12 @@ static void console_display_closure(console_t *Console, ml_closure_t *Closure) {
 	graph_t *Graph = agread(GraphFile, NULL);
 	fclose(GraphFile);
 	unlink(GraphFileName);
-	agattr(Graph, AGNODE, "fontsize", "10.0");
-	agattr(Graph, AGNODE, "fontname", "Cascadia Code");
-	agattr(Graph, AGEDGE, "fontsize", "10.0");
-	agattr(Graph, AGEDGE, "fontname", "Cascadia Code");
+	const char *FontSize = "10";
+	for (const char *P = Console->FontName; *P; ++P) if (*P == ' ') FontSize = P + 1;
+	agattr(Graph, AGNODE, "fontsize", FontSize);
+	agattr(Graph, AGNODE, "fontname", Console->FontName);
+	agattr(Graph, AGEDGE, "fontsize", FontSize);
+	agattr(Graph, AGEDGE, "fontname", Console->FontName);
 	gvLayout(Context, Graph, "dot");
 	char *ImageFileName;
 	asprintf(&ImageFileName, "%s.svg", GraphFileName);
@@ -75,15 +78,6 @@ static void console_display_closure(console_t *Console, ml_closure_t *Closure) {
 	fclose(ImageFile);
 	GtkWidget *Image = gtk_image_new_from_file(ImageFileName);
 	unlink(ImageFileName);
-
-	//GtkWidget *Window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	//gtk_window_set_transient_for(Window, GTK_WINDOW(Console->Window));
-	//gtk_window_set_default_size(GTK_WINDOW(Window), 400, 800);
-	//GtkWidget *Scrolled = gtk_scrolled_window_new(NULL, NULL);
-	//gtk_container_add(GTK_CONTAINER(Scrolled), Image);
-	//gtk_container_add(GTK_CONTAINER(Window), Scrolled);
-	//gtk_widget_show_all(Window);
-
 	GtkTextIter End[1];
 	GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
 	gtk_text_buffer_get_end_iter(LogBuffer, End);
@@ -244,7 +238,7 @@ static void console_style_changed(GtkComboBoxText *Widget, console_t *Console) {
 }
 
 static void console_font_changed(GtkFontChooser *Widget, console_t *Console) {
-	gchar *FontName = gtk_font_chooser_get_font(Widget);
+	gchar *FontName = Console->FontName = gtk_font_chooser_get_font(Widget);
 	PangoFontDescription *FontDescription = pango_font_description_from_string(FontName);
 	gtk_widget_override_font(Console->InputView, FontDescription);
 	gtk_widget_override_font(Console->LogView, FontDescription);
@@ -558,21 +552,16 @@ console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 	gtk_box_pack_start(GTK_BOX(InputPanel), SubmitButton, FALSE, FALSE, 2);
 	gtk_box_pack_start(GTK_BOX(InputPanel), ClearButton, FALSE, FALSE, 2);
 
-	//GtkActionBar *ActionBar = GTK_ACTION_BAR(gtk_action_bar_new());
 	GtkWidget *StyleCombo = gtk_combo_box_text_new();
 	for (const gchar * const * StyleId = gtk_source_style_scheme_manager_get_scheme_ids(StyleManager); StyleId[0]; ++StyleId) {
 		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(StyleCombo), StyleId[0], StyleId[0]);
 	}
 
 	g_signal_connect(G_OBJECT(StyleCombo), "changed", G_CALLBACK(console_style_changed), Console);
-	//gtk_action_bar_pack_start(ActionBar, StyleCombo);
 
 	GtkWidget *FontButton = gtk_font_button_new();
 	g_signal_connect(G_OBJECT(FontButton), "font-set", G_CALLBACK(console_font_changed), Console);
-	//gtk_action_bar_pack_start(ActionBar, FontButton);
 
-
-	//gtk_box_pack_start(GTK_BOX(Container), GTK_WIDGET(ActionBar), FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(Container), Console->LogScrolled, TRUE, TRUE, 2);
 	GtkWidget *InputFrame = gtk_frame_new(NULL);
 	gtk_container_add(GTK_CONTAINER(InputFrame), InputPanel);
@@ -613,12 +602,14 @@ console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 	ml_typed_fn_set(MLClosureT, console_display_value, console_display_closure);
 
 	if (g_key_file_has_key(Console->Config, "gtk-console", "font", NULL)) {
-		const char *FontName = g_key_file_get_string(Console->Config, "gtk-console", "font", NULL);
-		PangoFontDescription *FontDescription = pango_font_description_from_string(FontName);
-		gtk_widget_override_font(Console->InputView, FontDescription);
-		gtk_widget_override_font(Console->LogView, FontDescription);
-		gtk_font_button_set_font_name(GTK_FONT_BUTTON(FontButton), FontName);
+		Console->FontName = g_key_file_get_string(Console->Config, "gtk-console", "font", NULL);
+	} else {
+		Console->FontName = "Monospace 10";
 	}
+	PangoFontDescription *FontDescription = pango_font_description_from_string(Console->FontName);
+	gtk_widget_override_font(Console->InputView, FontDescription);
+	gtk_widget_override_font(Console->LogView, FontDescription);
+	gtk_font_button_set_font_name(GTK_FONT_BUTTON(FontButton), Console->FontName);
 
 	if (g_key_file_has_key(Console->Config, "gtk-console", "style", NULL)) {
 		const char *StyleId = g_key_file_get_string(Console->Config, "gtk-console", "style", NULL);

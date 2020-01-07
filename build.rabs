@@ -55,6 +55,11 @@ var Objects := [
 
 var Libraries := []
 
+if MINILANG_LIBIO or defined("USEIO") then
+	Objects:put(file("ml_io.o"))
+	CFLAGS := old + ["-DUSE_ML_IO"]
+end
+
 if MINILANG_LIBUV or defined("LIBUV") then
 	Objects:put(file("ml_libuv.o"))
 	CFLAGS := old + ["-DUSE_ML_UV"]
