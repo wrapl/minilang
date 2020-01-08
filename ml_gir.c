@@ -1323,6 +1323,25 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 			const char *FieldName = g_base_info_get_name((GIBaseInfo *)FieldInfo);
 			ml_method_by_name(FieldName, FieldInfo, (ml_callback_t)struct_field_ref, Struct, NULL);
 		}
+		int NumMethods = g_struct_info_get_n_methods(Info);
+		for (int I = 0; I < NumMethods; ++I) {
+			GIFunctionInfo *MethodInfo = g_struct_info_get_method(Info, I);
+			const char *MethodName = g_base_info_get_name((GIBaseInfo *)MethodInfo);
+			switch (g_function_info_get_flags(MethodInfo)) {
+			case GI_FUNCTION_IS_METHOD: {
+				ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Struct, NULL);
+				break;
+			}
+			case GI_FUNCTION_IS_CONSTRUCTOR: {
+				ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)constructor_invoke, ParentType, NULL);
+				break;
+			}
+			default: {
+				ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)constructor_invoke, ParentType, NULL);
+				break;
+			}
+			}
+		}
 	}
 	return Slot[0];
 }

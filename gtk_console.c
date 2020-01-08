@@ -608,7 +608,6 @@ console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 	gtk_window_set_titlebar(GTK_WINDOW(Console->Window), HeaderBar);
 
 	GtkWidget *MemoryBar = gtk_label_new("");
-	gtk_progress_bar_set_show_text(GTK_PROGRESS_BAR(MemoryBar), TRUE);
 	gtk_header_bar_pack_end(GTK_HEADER_BAR(HeaderBar), MemoryBar);
 
 	Console->MemoryBar = GTK_LABEL(MemoryBar);
