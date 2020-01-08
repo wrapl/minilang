@@ -26,6 +26,7 @@ static ml_value_t *StringMethod;
 
 struct console_t {
 	GtkWidget *Window, *LogScrolled, *LogView, *InputView;
+	GtkLabel *MemoryBar;
 	GtkTextTag *OutputTag, *ResultTag, *ErrorTag, *BinaryTag;
 	GtkTextMark *EndMark;
 	ml_getter_t ParentGetter;
@@ -459,6 +460,51 @@ static ml_value_t *console_include(console_t *Console, int Count, ml_value_t **A
 	return ml_call(Closure, 0, NULL);
 }
 
+static gboolean console_update_status(console_t *Console) {
+	GC_word HeapSize, FreeBytes, UnmappedBytes, BytesSinceGC, TotalBytes;
+	GC_get_heap_usage_safe(&HeapSize, &FreeBytes, &UnmappedBytes, &BytesSinceGC, &TotalBytes);
+	GC_word UsedSize = HeapSize - FreeBytes;
+	int UsedBase, HeapBase;
+	char UsedUnits, HeapUnits;
+	if (UsedSize < (1 << 10)) {
+		UsedBase = UsedSize;
+		UsedUnits = 'b';
+	} else if (UsedSize < (1 << 20)) {
+		UsedBase = UsedSize >> 10;
+		UsedUnits = 'k';
+	} else if (UsedSize < (1 << 30)) {
+		UsedBase = UsedSize >> 20;
+		UsedUnits = 'M';
+	} else {
+		UsedBase = UsedSize >> 30;
+		UsedUnits = 'G';
+	}
+	if (HeapSize < (1 << 10)) {
+		HeapBase = HeapSize;
+		HeapUnits = 'b';
+	} else if (HeapSize < (1 << 20)) {
+		HeapBase = HeapSize >> 10;
+		HeapUnits = 'k';
+	} else if (HeapSize < (1 << 30)) {
+		HeapBase = HeapSize >> 20;
+		HeapUnits = 'M';
+	} else {
+		HeapBase = HeapSize >> 30;
+		HeapUnits = 'G';
+	}
+
+	char Text[48];
+	sprintf(Text, "Memory: %d%c / %d%c", UsedBase, UsedUnits, HeapBase, HeapUnits);
+	gtk_label_set_text(Console->MemoryBar, Text);
+	/*printf("Memory Status:\n");
+	printf("\tHeapSize = %ld\n", HeapSize);
+	printf("\tFreeBytes = %ld\n", FreeBytes);
+	printf("\tUnmappedBytes = %ld\n", UnmappedBytes);
+	printf("\tBytesSinceGC = %ld\n", BytesSinceGC);
+	printf("\tTotalBytes = %ld\n", TotalBytes);*/
+	return G_SOURCE_CONTINUE;
+}
+
 console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 	gtk_init(0, 0);
 	StringMethod = ml_method("string");
@@ -561,6 +607,12 @@ console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 	gtk_header_bar_pack_start(GTK_HEADER_BAR(HeaderBar), MenuButton);
 	gtk_window_set_titlebar(GTK_WINDOW(Console->Window), HeaderBar);
 
+	GtkWidget *MemoryBar = gtk_label_new("");
+	gtk_progress_bar_set_show_text(GTK_PROGRESS_BAR(MemoryBar), TRUE);
+	gtk_header_bar_pack_end(GTK_HEADER_BAR(HeaderBar), MemoryBar);
+
+	Console->MemoryBar = GTK_LABEL(MemoryBar);
+
 	gtk_container_add(GTK_CONTAINER(Console->Window), Container);
 	gtk_window_set_default_size(GTK_WINDOW(Console->Window), 640, 480);
 	g_signal_connect(G_OBJECT(Console->Window), "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), Console);
@@ -620,6 +672,8 @@ console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 	gtk_source_view_set_tab_width(GTK_SOURCE_VIEW(Console->InputView), 4);
 	gtk_source_view_set_show_line_numbers(GTK_SOURCE_VIEW(Console->InputView), TRUE);
 
+
+	g_timeout_add(1000, console_update_status, Console);
 
 	GError *Error = 0;
 	g_irepository_require(NULL, "Gtk", NULL, 0, &Error);

@@ -113,7 +113,7 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "debug", ml_function(0, ml_debug));
 	stringmap_insert(Globals, "break", ml_function(0, ml_break));
 	stringmap_insert(Globals, "halt", ml_function(0, ml_halt));
-	stringmap_insert(Globals, "collect", ml_function(0,ml_collect));
+	stringmap_insert(Globals, "collect", ml_function(0, ml_collect));
 	stringmap_insert(Globals, "callcc", MLCallCC);
 	stringmap_insert(Globals, "spawn", MLSpawn);
 #ifdef USE_ML_IO

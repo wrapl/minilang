@@ -150,25 +150,41 @@ ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value)
 
 ml_value_t *ml_iterate(ml_state_t *Caller, ml_value_t *Value) {
 	typeof(ml_iterate) *function = ml_typed_fn_get(Value->Type, ml_iterate);
-	if (!function) return IterateMethod->Type->call(Caller, IterateMethod, 1, &Value);
+	if (!function)  {
+		ml_value_t **Args = anew(ml_value_t *, 1);
+		Args[0] = Value;
+		return IterateMethod->Type->call(Caller, IterateMethod, 1, Args);
+	}
 	return function(Caller, Value);
 }
 
 ml_value_t *ml_iter_value(ml_state_t *Caller, ml_value_t *Iter) {
 	typeof(ml_iter_value) *function = ml_typed_fn_get(Iter->Type, ml_iter_value);
-	if (!function) return ValueMethod->Type->call(Caller, ValueMethod, 1, &Iter);
+	if (!function) {
+		ml_value_t **Args = anew(ml_value_t *, 1);
+		Args[0] = Iter;
+		return ValueMethod->Type->call(Caller, ValueMethod, 1, Args);
+	}
 	return function(Caller, Iter);
 }
 
 ml_value_t *ml_iter_key(ml_state_t *Caller, ml_value_t *Iter) {
 	typeof(ml_iter_key) *function = ml_typed_fn_get(Iter->Type, ml_iter_key);
-	if (!function) return KeyMethod->Type->call(Caller, KeyMethod, 1, &Iter);
+	if (!function)  {
+		ml_value_t **Args = anew(ml_value_t *, 1);
+		Args[0] = Iter;
+		return KeyMethod->Type->call(Caller, KeyMethod, 1, Args);
+	}
 	return function(Caller, Iter);
 }
 
 ml_value_t *ml_iter_next(ml_state_t *Caller, ml_value_t *Iter) {
 	typeof(ml_iter_next) *function = ml_typed_fn_get(Iter->Type, ml_iter_next);
-	if (!function) return NextMethod->Type->call(Caller, NextMethod, 1, &Iter);
+	if (!function) {
+		ml_value_t **Args = anew(ml_value_t *, 1);
+		Args[0] = Iter;
+		return NextMethod->Type->call(Caller, NextMethod, 1, Args);
+	}
 	return function(Caller, Iter);
 }
 
