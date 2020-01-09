@@ -7,7 +7,7 @@
 #include <gtk/gtk.h>
 #include <stdio.h>
 
-static ml_value_t *MLTrue = 0, *MLFalse = 0;
+static ml_value_t *MLTrue, *MLFalse;
 
 typedef struct typelib_t {
 	const ml_type_t *Type;
@@ -15,7 +15,7 @@ typedef struct typelib_t {
 	const char *Namespace;
 } typelib_t;
 
-static ml_type_t *TypelibT = 0;
+static ml_type_t *TypelibT;
 
 typedef struct typelib_iter_t {
 	const ml_type_t *Type;
@@ -27,8 +27,9 @@ typedef struct typelib_iter_t {
 
 static ml_value_t *baseinfo_to_value(GIBaseInfo *Info);
 
-static ml_value_t *typelib_iter_current(ml_state_t *Caller, typelib_iter_t *Iter) {
-	ML_CONTINUE(Caller, baseinfo_to_value(Iter->Current));
+static ml_value_t *typelib_iter_value(ml_state_t *Caller, typelib_iter_t *Iter) {
+	const char *Type = g_info_type_to_string(g_base_info_get_type(Iter->Current));
+	ML_CONTINUE(Caller, ml_string(Type, -1));
 }
 
 static ml_value_t *typelib_iter_next(ml_state_t *Caller, typelib_iter_t *Iter) {
@@ -43,7 +44,7 @@ static ml_value_t *typelib_iter_key(ml_state_t *Caller, typelib_iter_t *Iter) {
 
 ml_type_t TypelibIterT[1] = {{
 	MLTypeT,
-	MLIteratableT, "typelib-iter",
+	MLAnyT, "typelib-iter",
 	ml_default_hash,
 	ml_default_call,
 	ml_default_deref,
@@ -74,8 +75,7 @@ typedef struct object_instance_t {
 	void *Handle;
 } object_instance_t;
 
-static ml_type_t *ObjectT = 0;
-static ml_type_t *ObjectInstanceT = 0;
+static ml_type_t *ObjectT, *ObjectInstanceT;
 static object_instance_t *ObjectInstanceNil;
 
 static ml_type_t *object_info_lookup(GIObjectInfo *Info);
@@ -178,8 +178,7 @@ typedef struct struct_instance_t {
 	void *Value;
 } struct_instance_t;
 
-static ml_type_t *StructT = 0;
-static ml_type_t *StructInstanceT = 0;
+static ml_type_t *StructT, *StructInstanceT;
 
 static ml_value_t *struct_instance_new(struct_t *Struct, int Count, ml_value_t **Args) {
 	struct_instance_t *Instance = new(struct_instance_t);
@@ -294,7 +293,7 @@ static ml_value_t *struct_field_ref(GIFieldInfo *Info, int Count, ml_value_t **A
 typedef struct enum_t {
 	ml_type_t Base;
 	GIEnumInfo *Info;
-	stringmap_t ByName[1];
+	ml_value_t *ByName;
 	ml_value_t *ByIndex[];
 } enum_t;
 
@@ -304,12 +303,35 @@ typedef struct enum_value_t {
 	gint64 Value;
 } enum_value_t;
 
-static ml_type_t *EnumT = 0;
-static ml_type_t *EnumValueT = 0;
+static ml_type_t *EnumT, *EnumValueT;
 
 ML_METHOD("string", EnumValueT) {
 	enum_value_t *Value = (enum_value_t *)Args[0];
 	return Value->Name;
+}
+
+ML_METHOD("integer", EnumValueT) {
+	enum_value_t *Value = (enum_value_t *)Args[0];
+	return ml_integer(Value->Value);
+}
+
+ML_METHOD("|", EnumValueT, EnumValueT) {
+	enum_value_t *A = (enum_value_t *)Args[0];
+	enum_value_t *B = (enum_value_t *)Args[1];
+	if (A->Type != B->Type) return ml_error("TypeError", "Flags are of different types");
+	enum_value_t *C = new(enum_value_t);
+	C->Type = A->Type;
+	size_t LengthA = ml_string_length(A->Name);
+	size_t LengthB = ml_string_length(B->Name);
+	size_t Length = LengthA + LengthB + 1;
+	char *Name = GC_malloc_atomic(Length + 1);
+	memcpy(Name, ml_string_value(A->Name), LengthA);
+	Name[LengthA] = '|';
+	memcpy(Name + LengthA + 1, ml_string_value(B->Name), LengthB);
+	Name[Length] = 0;
+	C->Name = ml_string(Name, Length);
+	C->Value = A->Value | B->Value;
+	return (ml_value_t *)C;
 }
 
 static size_t array_element_size(GITypeInfo *Info) {
@@ -616,6 +638,134 @@ static void callback_invoke(ffi_cif *Cif, void *Return, void **Params, ml_gir_ca
 	}
 	}
 	printf("At least we got here!\n");
+}
+
+static ml_value_t *argument_to_value(GIArgument *Argument, GITypeInfo *Info) {
+	switch (g_type_info_get_tag(Info)) {
+	case GI_TYPE_TAG_VOID: {
+		return MLNil;
+	}
+	case GI_TYPE_TAG_BOOLEAN: {
+		return Argument->v_boolean ? MLTrue : MLFalse;
+	}
+	case GI_TYPE_TAG_INT8: {
+		return ml_integer(Argument->v_int8);
+	}
+	case GI_TYPE_TAG_UINT8: {
+		return ml_integer(Argument->v_uint8);
+	}
+	case GI_TYPE_TAG_INT16: {
+		return ml_integer(Argument->v_int16);
+	}
+	case GI_TYPE_TAG_UINT16: {
+		return ml_integer(Argument->v_uint16);
+	}
+	case GI_TYPE_TAG_INT32: {
+		return ml_integer(Argument->v_int32);
+	}
+	case GI_TYPE_TAG_UINT32: {
+		return ml_integer(Argument->v_uint32);
+	}
+	case GI_TYPE_TAG_INT64: {
+		return ml_integer(Argument->v_int64);
+	}
+	case GI_TYPE_TAG_UINT64: {
+		return ml_integer(Argument->v_uint64);
+	}
+	case GI_TYPE_TAG_FLOAT: {
+		return ml_real(Argument->v_float);
+	}
+	case GI_TYPE_TAG_DOUBLE: {
+		return ml_real(Argument->v_double);
+	}
+	case GI_TYPE_TAG_GTYPE: {
+		break;
+	}
+	case GI_TYPE_TAG_UTF8: {
+		return ml_string(Argument->v_string, -1);
+	}
+	case GI_TYPE_TAG_FILENAME: {
+		return ml_string(Argument->v_string, -1);
+	}
+	case GI_TYPE_TAG_ARRAY: {
+		break;
+	}
+	case GI_TYPE_TAG_INTERFACE: {
+		GIBaseInfo *InterfaceInfo = g_type_info_get_interface(Info);
+		switch (g_base_info_get_type(InterfaceInfo)) {
+		case GI_INFO_TYPE_STRUCT: {
+			struct_instance_t *Instance = new(struct_instance_t);
+			Instance->Type = (struct_t *)struct_info_lookup((GIStructInfo *)InterfaceInfo);
+			Instance->Value = Argument->v_pointer;
+			return (ml_value_t *)Instance;
+		}
+		case GI_INFO_TYPE_BOXED: {
+			break;
+		}
+		case GI_INFO_TYPE_ENUM: {
+			enum_t *Enum = (enum_t *)enum_info_lookup((GIEnumInfo *)InterfaceInfo);
+			return Enum->ByIndex[Argument->v_int];
+		}
+		case GI_INFO_TYPE_FLAGS: {
+			break;
+		}
+		case GI_INFO_TYPE_OBJECT: {
+			return ml_gir_instance_get(Argument->v_pointer);
+		}
+		case GI_INFO_TYPE_INTERFACE: {
+			break;
+		}
+		case GI_INFO_TYPE_CONSTANT: {
+			break;
+		}
+		case GI_INFO_TYPE_UNION: {
+			break;
+		}
+		case GI_INFO_TYPE_VALUE: {
+			break;
+		}
+		case GI_INFO_TYPE_SIGNAL: {
+			break;
+		}
+		case GI_INFO_TYPE_VFUNC: {
+			break;
+		}
+		case GI_INFO_TYPE_PROPERTY: {
+			break;
+		}
+		case GI_INFO_TYPE_FIELD: {
+			break;
+		}
+		case GI_INFO_TYPE_ARG: {
+			break;
+		}
+		case GI_INFO_TYPE_TYPE: {
+			break;
+		}
+		case GI_INFO_TYPE_UNRESOLVED: {
+			break;
+		}
+		}
+		break;
+	}
+	case GI_TYPE_TAG_GLIST: {
+		return ml_list();
+	}
+	case GI_TYPE_TAG_GSLIST: {
+		return ml_list();
+	}
+	case GI_TYPE_TAG_GHASH: {
+		return ml_map();
+	}
+	case GI_TYPE_TAG_ERROR: {
+		GError *Error = Argument->v_pointer;
+		return ml_error("GError", "%s", Error->message);
+	}
+	case GI_TYPE_TAG_UNICHAR: {
+		return ml_integer(Argument->v_uint32);
+	}
+	}
+	return ml_error("ValueError", "Unsupported situtation");
 }
 
 static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_value_t **Args) {
@@ -1112,131 +1262,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 	gboolean Invoked = g_function_info_invoke(Info, ArgsIn, IndexIn, ArgsOut, IndexOut, ReturnValue, &Error);
 	if (!Invoked) return ml_error("InvokeError", "Error: %s", Error->message);
 	GITypeInfo *ReturnInfo = g_callable_info_get_return_type((GICallableInfo *)Info);
-	switch (g_type_info_get_tag(ReturnInfo)) {
-	case GI_TYPE_TAG_VOID: {
-		return MLNil;
-	}
-	case GI_TYPE_TAG_BOOLEAN: {
-		return ReturnValue->v_boolean ? MLTrue : MLFalse;
-	}
-	case GI_TYPE_TAG_INT8: {
-		return ml_integer(ReturnValue->v_int8);
-	}
-	case GI_TYPE_TAG_UINT8: {
-		return ml_integer(ReturnValue->v_uint8);
-	}
-	case GI_TYPE_TAG_INT16: {
-		return ml_integer(ReturnValue->v_int16);
-	}
-	case GI_TYPE_TAG_UINT16: {
-		return ml_integer(ReturnValue->v_uint16);
-	}
-	case GI_TYPE_TAG_INT32: {
-		return ml_integer(ReturnValue->v_int32);
-	}
-	case GI_TYPE_TAG_UINT32: {
-		return ml_integer(ReturnValue->v_uint32);
-	}
-	case GI_TYPE_TAG_INT64: {
-		return ml_integer(ReturnValue->v_int64);
-	}
-	case GI_TYPE_TAG_UINT64: {
-		return ml_integer(ReturnValue->v_uint64);
-	}
-	case GI_TYPE_TAG_FLOAT: {
-		return ml_real(ReturnValue->v_float);
-	}
-	case GI_TYPE_TAG_DOUBLE: {
-		return ml_real(ReturnValue->v_double);
-	}
-	case GI_TYPE_TAG_GTYPE: {
-		break;
-	}
-	case GI_TYPE_TAG_UTF8: {
-		return ml_string(ReturnValue->v_string, -1);
-	}
-	case GI_TYPE_TAG_FILENAME: {
-		return ml_string(ReturnValue->v_string, -1);
-	}
-	case GI_TYPE_TAG_ARRAY: {
-		break;
-	}
-	case GI_TYPE_TAG_INTERFACE: {
-		GIBaseInfo *InterfaceInfo = g_type_info_get_interface(ReturnInfo);
-		switch (g_base_info_get_type(InterfaceInfo)) {
-		case GI_INFO_TYPE_STRUCT: {
-			struct_instance_t *Instance = new(struct_instance_t);
-			Instance->Type = (struct_t *)struct_info_lookup((GIStructInfo *)InterfaceInfo);
-			Instance->Value = ReturnValue->v_pointer;
-			return (ml_value_t *)Instance;
-		}
-		case GI_INFO_TYPE_BOXED: {
-			break;
-		}
-		case GI_INFO_TYPE_ENUM: {
-			enum_t *Enum = (enum_t *)enum_info_lookup((GIEnumInfo *)InterfaceInfo);
-			return Enum->ByIndex[ReturnValue->v_int];
-		}
-		case GI_INFO_TYPE_FLAGS: {
-			break;
-		}
-		case GI_INFO_TYPE_OBJECT: {
-			return ml_gir_instance_get(ReturnValue->v_pointer);
-		}
-		case GI_INFO_TYPE_INTERFACE: {
-			break;
-		}
-		case GI_INFO_TYPE_CONSTANT: {
-			break;
-		}
-		case GI_INFO_TYPE_UNION: {
-			break;
-		}
-		case GI_INFO_TYPE_VALUE: {
-			break;
-		}
-		case GI_INFO_TYPE_SIGNAL: {
-			break;
-		}
-		case GI_INFO_TYPE_VFUNC: {
-			break;
-		}
-		case GI_INFO_TYPE_PROPERTY: {
-			break;
-		}
-		case GI_INFO_TYPE_FIELD: {
-			break;
-		}
-		case GI_INFO_TYPE_ARG: {
-			break;
-		}
-		case GI_INFO_TYPE_TYPE: {
-			break;
-		}
-		case GI_INFO_TYPE_UNRESOLVED: {
-			break;
-		}
-		}
-		break;
-	}
-	case GI_TYPE_TAG_GLIST: {
-		return ml_list();
-	}
-	case GI_TYPE_TAG_GSLIST: {
-		return ml_list();
-	}
-	case GI_TYPE_TAG_GHASH: {
-		return ml_map();
-	}
-	case GI_TYPE_TAG_ERROR: {
-		GError *Error = ReturnValue->v_pointer;
-		return ml_error("GError", "%s", Error->message);
-	}
-	case GI_TYPE_TAG_UNICHAR: {
-		return ml_integer(ReturnValue->v_uint32);
-	}
-	}
-	return ml_error("InvokeError", "Unsupported situtation");
+	return argument_to_value(ReturnValue, ReturnInfo);
 }
 
 static ml_value_t *constructor_invoke(GIFunctionInfo *Info, int Count, ml_value_t **Args) {
@@ -1348,17 +1374,17 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 
 ML_METHOD("::", EnumT, MLStringT) {
 	enum_t *Enum = (enum_t *)Args[0];
-	enum_value_t *Value = (enum_value_t *)stringmap_search(Enum->ByName, ml_string_value(Args[1]));
-	ml_value_t *Result;
-	if (!Value) {
-		return ml_error("NameError", "Invalid enum name %s", ml_string_value(Args[1]));
-	} else {
-		return (ml_value_t *)Value;
-	}
+	enum_value_t *Value = (enum_value_t *)ml_map_search(Enum->ByName, Args[1]);
+	if (Value == MLNil) return ml_error("NameError", "Invalid enum name %s", ml_string_value(Args[1]));
+	return (ml_value_t *)Value;
+}
+
+static ml_value_t *enum_iterate(ml_state_t *Caller, enum_t *Enum) {
+	return ml_iterate(Caller, Enum->ByName);
 }
 
 static ml_type_t *enum_info_lookup(GIEnumInfo *Info) {
-	const char *TypeName = g_registered_type_info_get_type_name((GIBaseInfo *)Info);
+	const char *TypeName = g_base_info_get_name((GIBaseInfo *)Info);
 	ml_type_t **Slot = (ml_type_t **)stringmap_slot(TypeMap, TypeName);
 	if (!Slot[0]) {
 		int NumValues = g_enum_info_get_n_values(Info);
@@ -1367,6 +1393,7 @@ static ml_type_t *enum_info_lookup(GIEnumInfo *Info) {
 		Enum->Base.Type = EnumT;
 		Enum->Base.Name = TypeName;
 		Enum->Base.Parent = EnumValueT;
+		Enum->ByName = ml_map();
 		for (int I = 0; I < NumValues; ++I) {
 			GIValueInfo *ValueInfo = g_enum_info_get_value(Info, I);
 			const char *ValueName = GC_strdup(g_base_info_get_name((GIBaseInfo *)ValueInfo));
@@ -1375,11 +1402,23 @@ static ml_type_t *enum_info_lookup(GIEnumInfo *Info) {
 			Value->Type = Enum;
 			Value->Name = ml_string(ValueName, -1);
 			Value->Value = g_value_info_get_value(ValueInfo);
-			stringmap_insert(Enum->ByName, ValueName, Value);
+			ml_map_insert(Enum->ByName, Value->Name, Value);
 			Enum->ByIndex[I] = (ml_value_t *)Value;
 		}
 		Enum->Info = Info;
 		Slot[0] = (ml_type_t *)Enum;
+	}
+	return Slot[0];
+}
+
+static ml_value_t *constant_info_lookup(GIConstantInfo *Info) {
+	const char *TypeName = g_base_info_get_name((GIBaseInfo *)Info);
+	ml_value_t **Slot = (ml_value_t **)stringmap_slot(TypeMap, TypeName);
+	if (!Slot[0]) {
+		GIArgument Argument[1];
+		g_constant_info_get_value(Info, Argument);
+		ml_value_t *Value = argument_to_value(Argument, g_constant_info_get_type(Info));
+		Slot[0] = Value;
 	}
 	return Slot[0];
 }
@@ -1405,7 +1444,7 @@ static ml_value_t *baseinfo_to_value(GIBaseInfo *Info) {
 		return (ml_value_t *)enum_info_lookup((GIEnumInfo *)Info);
 	}
 	case GI_INFO_TYPE_FLAGS: {
-		break;
+		return (ml_value_t *)enum_info_lookup((GIEnumInfo *)Info);
 	}
 	case GI_INFO_TYPE_OBJECT: {
 		return (ml_value_t *)object_info_lookup((GIObjectInfo *)Info);
@@ -1414,7 +1453,7 @@ static ml_value_t *baseinfo_to_value(GIBaseInfo *Info) {
 		break;
 	}
 	case GI_INFO_TYPE_CONSTANT: {
-		break;
+		return constant_info_lookup((GIConstantInfo *)Info);
 	}
 	case GI_INFO_TYPE_UNION: {
 		break;
@@ -1444,6 +1483,7 @@ static ml_value_t *baseinfo_to_value(GIBaseInfo *Info) {
 		break;
 	}
 	}
+	printf("Unsupported info type: %s\n", g_info_type_to_string(g_base_info_get_type(Info)));
 	return MLNil;
 }
 
@@ -1587,10 +1627,10 @@ ML_METHOD("::", ObjectInstanceT, MLStringT) {
 }
 
 void ml_gir_init(stringmap_t *Globals) {
-	TypelibT = ml_type(MLAnyT, "gir-typelib");
+	TypelibT = ml_type(MLIteratableT, "gir-typelib");
 	ml_typed_fn_set(TypelibT, ml_iterate, typelib_iterate);
 	ml_typed_fn_set(TypelibIterT, ml_iter_next, typelib_iter_next);
-	ml_typed_fn_set(TypelibIterT, ml_iter_value, typelib_iter_current);
+	ml_typed_fn_set(TypelibIterT, ml_iter_value, typelib_iter_value);
 	ml_typed_fn_set(TypelibIterT, ml_iter_key, typelib_iter_key);
 	ObjectT = ml_type(MLTypeT, "gir-object");
 	ObjectInstanceT = ml_type(MLAnyT, "gir-object-instance");
@@ -1604,6 +1644,7 @@ void ml_gir_init(stringmap_t *Globals) {
 	StructInstanceT = ml_type(MLAnyT, "gir-struct-instance");
 	EnumT = ml_type(MLTypeT, "gir-enum");
 	EnumValueT = ml_type(MLAnyT, "gir-value");
+	ml_typed_fn_set(EnumT, ml_iterate, enum_iterate);
 	MLTrue = ml_method("true");
 	MLFalse = ml_method("false");
 	stringmap_insert(Globals, "gir", ml_function(NULL, ml_gir_require));

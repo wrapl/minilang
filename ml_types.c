@@ -200,7 +200,7 @@ ml_type_t MLAnyT[1] = {{
 
 ml_type_t MLTypeT[1] = {{
 	MLTypeT,
-	MLAnyT, "type",
+	MLIteratableT, "type",
 	ml_default_hash,
 	ml_default_call,
 	ml_default_deref,
