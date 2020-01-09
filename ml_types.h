@@ -284,21 +284,21 @@ struct ml_map_node_t {
 		ML_CONTINUE(Caller, ml_error("CallError", "%d arguments required", N)); \
 	}
 
-#define CONCAT2(X, Y, Z) X ## Y ## _ ## Z
-#define CONCAT(X, Y, Z) CONCAT2(X, Y, Z)
+#define _CONCAT3(X, Y, Z) X ## Y ## _ ## Z
+#define CONCAT3(X, Y, Z) _CONCAT3(X, Y, Z)
 
 #ifndef GENERATE_INIT
 
-#define ML_METHOD(METHOD, TYPES ...) static ml_value_t *CONCAT(ml_method_fn_, __LINE__, __COUNTER__)(void *Data, int Count, ml_value_t **Args)
+#define ML_METHOD(METHOD, TYPES ...) static ml_value_t *CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)(void *Data, int Count, ml_value_t **Args)
 
-#define ML_METHODX(METHOD, TYPES ...) static ml_value_t *CONCAT(ml_method_fn_, __LINE__, __COUNTER__)(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args)
+#define ML_METHODX(METHOD, TYPES ...) static ml_value_t *CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args)
 
 
 #else
 
-#define ML_METHOD(METHOD, TYPES ...) ml_method_by_name(METHOD, NULL, CONCAT(ml_method_fn_, __LINE__, __COUNTER__), TYPES, NULL);
+#define ML_METHOD(METHOD, TYPES ...) ml_method_by_name(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), TYPES, NULL);
 
-#define ML_METHODX(METHOD, TYPES ...) ml_methodx_by_name(METHOD, NULL, CONCAT(ml_method_fn_, __LINE__, __COUNTER__), TYPES, NULL);
+#define ML_METHODX(METHOD, TYPES ...) ml_methodx_by_name(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), TYPES, NULL);
 
 #endif
 
