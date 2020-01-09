@@ -2288,19 +2288,6 @@ mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 				ExprSlot[0] = (mlc_expr_t *)DeclExpr;
 				ExprSlot = &DeclExpr->Next;
 			} while (ml_parse(Scanner, MLT_COMMA));
-		} else if (ml_parse(Scanner, MLT_FUN)) {
-			ml_accept(Scanner, MLT_IDENT);
-			mlc_decl_t *Decl = LetsSlot[0] = new(mlc_decl_t);
-			Decl->Ident = Scanner->Ident;
-			LetsSlot = &Decl->Next;
-			ml_accept(Scanner, MLT_LEFT_PAREN);
-			mlc_decl_expr_t *DeclExpr = new(mlc_decl_expr_t);
-			DeclExpr->compile = ml_let_expr_compile;
-			DeclExpr->Source = Scanner->Source;
-			DeclExpr->Decl = Decl;
-			DeclExpr->Child = ml_accept_fun_decl(Scanner);
-			ExprSlot[0] = (mlc_expr_t *)DeclExpr;
-			ExprSlot = &DeclExpr->Next;
 		} else if (ml_parse(Scanner, MLT_DEF)) {
 			do {
 				ml_accept(Scanner, MLT_IDENT);
@@ -2323,6 +2310,25 @@ mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 				ExprSlot[0] = (mlc_expr_t *)DeclExpr;
 				ExprSlot = &DeclExpr->Next;
 			} while (ml_parse(Scanner, MLT_COMMA));
+		} else if (ml_parse(Scanner, MLT_FUN)) {
+			if (ml_parse(Scanner, MLT_IDENT)) {
+				mlc_decl_t *Decl = LetsSlot[0] = new(mlc_decl_t);
+				Decl->Ident = Scanner->Ident;
+				LetsSlot = &Decl->Next;
+				ml_accept(Scanner, MLT_LEFT_PAREN);
+				mlc_decl_expr_t *DeclExpr = new(mlc_decl_expr_t);
+				DeclExpr->compile = ml_let_expr_compile;
+				DeclExpr->Source = Scanner->Source;
+				DeclExpr->Decl = Decl;
+				DeclExpr->Child = ml_accept_fun_decl(Scanner);
+				ExprSlot[0] = (mlc_expr_t *)DeclExpr;
+				ExprSlot = &DeclExpr->Next;
+			} else {
+				ml_accept(Scanner, MLT_LEFT_PAREN);
+				mlc_expr_t *Expr = ml_accept_fun_decl(Scanner);
+				ExprSlot[0] = Expr;
+				ExprSlot = &Expr->Next;
+			}
 		} else if (ml_parse(Scanner, MLT_ON)) {
 			if (BlockExpr->CatchDecl) {
 				Scanner->Context->Error = ml_error("ParseError", "no more than one error handler allowed in a block");
