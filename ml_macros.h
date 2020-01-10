@@ -1,6 +1,8 @@
 #ifndef ML_MACROS_H
 #define ML_MACROS_H
 
+#include <gc/gc.h>
+
 #define new(T) ((T *)GC_MALLOC(sizeof(T)))
 #define anew(T, N) ((T *)GC_MALLOC((N) * sizeof(T)))
 #define snew(N) ((char *)GC_MALLOC_ATOMIC(N))
