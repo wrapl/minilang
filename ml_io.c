@@ -97,7 +97,7 @@ ml_value_t *ml_fd_write(ml_state_t *Caller, ml_fd_t *Stream, void *Address, int 
 	ssize_t Actual = write(Stream->Fd, Address, Count);
 	ml_value_t *Result;
 	if (Actual < 0) {
-		Result = ml_error("ReadError", strerror(errno));
+		Result = ml_error("WriteError", strerror(errno));
 	} else {
 		Result = ml_integer(Actual);
 	}

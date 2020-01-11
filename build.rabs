@@ -7,7 +7,16 @@ if PLATFORM = "Darwin" then
 	setenv("PKG_CONFIG_PATH", '/usr/local/opt/libffi/lib/pkgconfig')
 end
 
-CFLAGS := old + ["-std=gnu99", "-fstrict-aliasing", "-Wall", "-Wstrict-aliasing", "-I.", "-pthread", "-DGC_THREADS", "-D_GNU_SOURCE", '-D{PLATFORM}']
+CFLAGS := old + [
+	"-std=gnu11",
+	"-fplan9-extensions",
+	"-fstrict-aliasing",
+	"-Wall", "-Wstrict-aliasing",
+	"-I.", "-pthread",
+	"-DGC_THREADS",
+	"-D_GNU_SOURCE",
+	'-D{PLATFORM}'
+]
 LDFLAGS := old + ["-lm"]
 
 if DEBUG then
