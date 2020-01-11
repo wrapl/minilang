@@ -9,9 +9,10 @@ end
 
 CFLAGS := old + [
 	"-std=gnu11",
-	"-fplan9-extensions",
+	"-fms-extensions",
 	"-fstrict-aliasing",
 	"-Wall", "-Wstrict-aliasing",
+	"-Wno-deprecated-declarations",
 	"-I.", "-pthread",
 	"-DGC_THREADS",
 	"-D_GNU_SOURCE",
