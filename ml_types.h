@@ -11,7 +11,6 @@ extern "C" {
 
 typedef struct ml_type_t ml_type_t;
 typedef struct ml_value_t ml_value_t;
-typedef struct ml_state_t ml_state_t;
 
 typedef ml_value_t *(*ml_callback_t)(void *Data, int Count, ml_value_t **Args);
 typedef ml_value_t *(*ml_getter_t)(void *Data, const char *Name);
@@ -31,12 +30,10 @@ typedef struct ml_closure_t ml_closure_t;
 typedef struct ml_method_t ml_method_t;
 typedef struct ml_error_t ml_error_t;
 
-struct ml_value_t {
-	const ml_type_t *Type;
-};
+typedef struct ml_state_t ml_state_t;
 
 struct ml_state_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	ml_state_t *Caller;
 	ml_value_t *(*run)(ml_state_t *State, ml_value_t *Value);
 };
@@ -46,6 +43,10 @@ struct ml_state_t {
 	ml_value_t *__Value = (ml_value_t *)(VALUE); \
 	return __State ? __State->run(__State, __Value) : __Value; \
 }
+
+struct ml_value_t {
+	const ml_type_t *Type;
+};
 
 typedef struct ml_hash_chain_t ml_hash_chain_t;
 
@@ -60,7 +61,7 @@ typedef struct ml_typed_fn_node_t ml_typed_fn_node_t;
 typedef ml_value_t *(*ml_callbackx_t)(ml_state_t *Frame, void *Data, int Count, ml_value_t **Args);
 
 struct ml_type_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	const ml_type_t *Parent;
 	const char *Name;
 	long (*hash)(ml_value_t *, ml_hash_chain_t *);
@@ -75,7 +76,7 @@ void *ml_typed_fn_get(const ml_type_t *Type, void *TypedFn);
 void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function);
 
 struct ml_function_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	ml_callback_t Callback;
 	void *Data;
 };
@@ -200,7 +201,7 @@ typedef struct ml_stringbuffer_t ml_stringbuffer_t;
 typedef struct ml_stringbuffer_node_t ml_stringbuffer_node_t;
 
 struct ml_stringbuffer_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	ml_stringbuffer_node_t *Nodes;
 	size_t Space, Length;
 };
@@ -218,13 +219,13 @@ int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callbac
 ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value);
 
 struct ml_tuple_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	size_t Size;
 	ml_value_t *Values[];
 };
 
 struct ml_list_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	ml_list_node_t *Head, *Tail;
 	int Length;
 };
@@ -243,7 +244,7 @@ struct ml_list_node_t {
 #define ML_NAMES_FOREACH(LIST, NODE) ML_LIST_FOREACH(LIST, NODE)
 
 struct ml_map_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	ml_map_node_t *Head, *Tail, *Root;
 	int Size;
 };
