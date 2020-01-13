@@ -347,6 +347,7 @@ typedef struct {
 	ml_state_t Base;
 	ml_value_t *Iter;
 	ml_value_t *Function;
+	ml_value_t *Args[2];
 } ml_parallel_iter_t;
 
 static ml_value_t *ml_parallel_iterate(ml_parallel_iter_t *State, ml_value_t *Iter);
@@ -354,17 +355,23 @@ static ml_value_t *ml_parallel_iterate(ml_parallel_iter_t *State, ml_value_t *It
 static ml_value_t *ml_parallel_iter_value(ml_parallel_iter_t *State, ml_value_t *Value) {
 	ml_parallel_t *Parallel = (ml_parallel_t *)State->Base.Caller;
 	Parallel->Waiting += 1;
-	State->Function->Type->call(State->Base.Caller, State->Function, 1, &Value);
+	State->Args[1] = Value;
+	State->Function->Type->call(State->Base.Caller, State->Function, 2, State->Args);
 	State->Base.run = (void *)ml_parallel_iterate;
 	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static ml_value_t *ml_parallel_iter_key(ml_parallel_iter_t *State, ml_value_t *Value) {
+	State->Args[0] = Value;
+	State->Base.run = (void *)ml_parallel_iter_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter);
 }
 
 static ml_value_t *ml_parallel_iterate(ml_parallel_iter_t *State, ml_value_t *Iter) {
 	if (Iter == MLNil) ML_CONTINUE(State->Base.Caller, MLNil);
 	if (Iter->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Iter);
-	State->Base.run = (void *)ml_parallel_iter_value;
-	State->Iter = Iter;
-	return ml_iter_value((ml_state_t *)State, Iter);
+	State->Base.run = (void *)ml_parallel_iter_key;
+	return ml_iter_key((ml_state_t *)State, State->Iter = Iter);
 }
 
 static ml_value_t *ml_parallel_continue(ml_parallel_t *State, ml_value_t *Value) {

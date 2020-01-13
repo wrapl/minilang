@@ -162,6 +162,8 @@
       <keyword>list</keyword>
       <keyword>map</keyword>
       <keyword>tuple</keyword>
+      <keyword>tasks</keyword>
+      <keyword>parallel</keyword>
     </context>
     <context id="operators" style-ref="operator" extend-parent="false">
       <match>[-.#~^@;/$%|\=\+\*\!\?&amp;&lt;&gt;\[\]\\{}\()]</match>

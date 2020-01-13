@@ -403,6 +403,25 @@ ML_METHOD("!!", MLFunctionT, MLListT) {
 	return (ml_value_t *)Partial;
 }
 
+ML_METHOD("$", MLFunctionT, MLAnyT) {
+	ml_partial_function_t *Partial = xnew(ml_partial_function_t, 1, ml_value_t *);
+	Partial->Type = MLPartialFunctionT;
+	Partial->Function = Args[0];
+	Partial->Count = 1;
+	Partial->Args[0] = Args[1];
+	return (ml_value_t *)Partial;
+}
+
+ML_METHOD("$", MLPartialFunctionT, MLAnyT) {
+	ml_partial_function_t *Old = (ml_partial_function_t *)Args[0];
+	ml_partial_function_t *Partial = xnew(ml_partial_function_t, Old->Count + 1, ml_value_t *);
+	Partial->Type = MLPartialFunctionT;
+	Partial->Function = Old->Function;
+	Partial->Count = Old->Count + 1;
+	*(ml_value_t **)mempcpy(Partial->Args, Old->Args, Old->Count * sizeof(ml_value_t *)) = Args[1];
+	return (ml_value_t *)Partial;
+}
+
 typedef struct ml_chained_function_t {
 	const ml_type_t *Type;
 	ml_value_t *Functions[];
