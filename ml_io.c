@@ -4,15 +4,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
-#include <inttypes.h>
 
-typedef struct ml_buffer_t {
-	const ml_type_t *Type;
-	void *Address;
-	long Size;
-} ml_buffer_t;
-
-ml_type_t *MLBufferT, *MLStreamT;
+ml_type_t *MLStreamT;
 static ml_value_t *ReadMethod, *WriteMethod;
 
 ml_value_t *ml_io_read(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count) {
@@ -41,38 +34,8 @@ ml_value_t *ml_io_write(ml_state_t *Caller, ml_value_t *Value, void *Address, in
 	return WriteMethod->Type->call(Caller, WriteMethod, 2, Args);
 }
 
-static ml_value_t *ml_buffer(void *Data, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLIntegerT);
-	long Size = ml_integer_value(Args[0]);
-	if (Size < 0) return ml_error("ValueError", "Buffer size must be non-negative");
-	ml_buffer_t *Buffer = new(ml_buffer_t);
-	Buffer->Type = MLBufferT;
-	Buffer->Size = Size;
-	Buffer->Address = GC_malloc_atomic(Size);
-	return (ml_value_t *)Buffer;
-}
-
-ML_METHOD("+", MLBufferT, MLIntegerT) {
-	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
-	long Offset = ml_integer_value(Args[1]);
-	if (Offset >= Buffer->Size) return ml_error("ValueError", "Offset larger than buffer");
-	ml_buffer_t *Buffer2 = new(ml_buffer_t);
-	Buffer2->Type = MLBufferT;
-	Buffer2->Address = Buffer->Address + Offset;
-	Buffer2->Size = Buffer->Size - Offset;
-	return (ml_value_t *)Buffer2;
-}
-
-ML_METHOD("-", MLBufferT, MLBufferT) {
-	ml_buffer_t *Buffer1 = (ml_buffer_t *)Args[0];
-	ml_buffer_t *Buffer2 = (ml_buffer_t *)Args[1];
-	return ml_integer(Buffer1->Address - Buffer2->Address);
-}
-
-ML_METHOD("string", MLBufferT) {
-	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
-	return ml_string_format("#%" PRIxPTR ":%ld", Buffer->Address, Buffer->Size);
+ML_METHODX("write", MLStreamT, MLStringT) {
+	return ml_io_write(Caller, Args[0], ml_string_value(Args[1]), ml_string_length(Args[1]));
 }
 
 typedef struct ml_fd_t {
@@ -81,6 +44,13 @@ typedef struct ml_fd_t {
 } ml_fd_t;
 
 ml_type_t *MLFdT;
+
+ml_value_t *ml_fd_new(int Fd) {
+	ml_fd_t *Stream = new(ml_fd_t);
+	Stream->Type = MLFdT;
+	Stream->Fd = Fd;
+	return (ml_value_t *)Stream;
+}
 
 ml_value_t *ml_fd_read(ml_state_t *Caller, ml_fd_t *Stream, void *Address, int Count) {
 	ssize_t Actual = read(Stream->Fd, Address, Count);
@@ -105,7 +75,6 @@ ml_value_t *ml_fd_write(ml_state_t *Caller, ml_fd_t *Stream, void *Address, int 
 }
 
 void ml_io_init(stringmap_t *Globals) {
-	MLBufferT = ml_type(MLAnyT, "buffer");
 	MLStreamT = ml_type(MLAnyT, "stream");
 	MLFdT = ml_type(MLStreamT, "fd");
 	ReadMethod = ml_method("read");
@@ -115,6 +84,9 @@ void ml_io_init(stringmap_t *Globals) {
 	if (Globals) {
 		ml_value_t *IO = ml_map();
 		ml_map_insert(IO, ml_string("buffer", -1), ml_function(NULL, ml_buffer));
+		ml_map_insert(IO, ml_string("stdin", -1), ml_fd_new(STDIN_FILENO));
+		ml_map_insert(IO, ml_string("stdout", -1), ml_fd_new(STDOUT_FILENO));
+		ml_map_insert(IO, ml_string("stderr", -1), ml_fd_new(STDERR_FILENO));
 		stringmap_insert(Globals, "io", IO);
 	}
 #include "ml_io_init.c"

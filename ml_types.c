@@ -13,6 +13,7 @@
 #include <pthread.h>
 #include <limits.h>
 #include <math.h>
+#include <inttypes.h>
 #include "stringmap.h"
 
 long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
@@ -3224,6 +3225,50 @@ ml_type_t MLNamesT[1] = {{
 	ml_default_assign,
 	NULL, 0, 0
 }};
+
+ml_type_t MLBufferT[1] = {{
+	MLTypeT,
+	MLAnyT, "buffer",
+	ml_default_hash,
+	ml_default_call,
+	ml_default_deref,
+	ml_default_assign,
+	NULL, 0, 0
+}};
+
+ml_value_t *ml_buffer(void *Data, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLIntegerT);
+	long Size = ml_integer_value(Args[0]);
+	if (Size < 0) return ml_error("ValueError", "Buffer size must be non-negative");
+	ml_buffer_t *Buffer = new(ml_buffer_t);
+	Buffer->Type = MLBufferT;
+	Buffer->Size = Size;
+	Buffer->Address = GC_malloc_atomic(Size);
+	return (ml_value_t *)Buffer;
+}
+
+ML_METHOD("+", MLBufferT, MLIntegerT) {
+	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
+	long Offset = ml_integer_value(Args[1]);
+	if (Offset >= Buffer->Size) return ml_error("ValueError", "Offset larger than buffer");
+	ml_buffer_t *Buffer2 = new(ml_buffer_t);
+	Buffer2->Type = MLBufferT;
+	Buffer2->Address = Buffer->Address + Offset;
+	Buffer2->Size = Buffer->Size - Offset;
+	return (ml_value_t *)Buffer2;
+}
+
+ML_METHOD("-", MLBufferT, MLBufferT) {
+	ml_buffer_t *Buffer1 = (ml_buffer_t *)Args[0];
+	ml_buffer_t *Buffer2 = (ml_buffer_t *)Args[1];
+	return ml_integer(Buffer1->Address - Buffer2->Address);
+}
+
+ML_METHOD("string", MLBufferT) {
+	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
+	return ml_string_format("#%" PRIxPTR ":%ld", Buffer->Address, Buffer->Size);
+}
 
 void ml_init() {
 	CompareMethod = ml_method("<>");

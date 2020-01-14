@@ -188,6 +188,16 @@ extern ml_type_t MLErrorT[];
 extern ml_type_t MLErrorValueT[];
 extern ml_type_t MLIteratableT[];
 
+typedef struct ml_buffer_t {
+	const ml_type_t *Type;
+	void *Address;
+	long Size;
+} ml_buffer_t;
+
+extern ml_type_t MLBufferT[1];
+
+extern ml_value_t *ml_buffer(void *Data, int Count, ml_value_t **Args);
+
 extern ml_value_t MLNil[];
 extern ml_value_t MLSome[];
 

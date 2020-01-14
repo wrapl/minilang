@@ -12,6 +12,7 @@ CFLAGS := old + [
 	"-fstrict-aliasing",
 	"-Wall", "-Wstrict-aliasing",
 	"-Wno-deprecated-declarations",
+	"-Wno-unused-function",
 	"-I.", "-pthread",
 	"-DGC_THREADS",
 	"-D_GNU_SOURCE",
@@ -63,6 +64,11 @@ var Objects := [
 ]
 
 var Libraries := []
+
+if MINILANG_USEMATH or defined("USEMATH") then
+	Objects:put(file("ml_math.o"), file("ml_array.o"))
+	CFLAGS := old + ["-DUSE_ML_MATH"]
+end
 
 if MINILANG_LIBIO or defined("USEIO") then
 	Objects:put(file("ml_io.o"))

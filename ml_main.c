@@ -10,6 +10,11 @@
 #include <stdio.h>
 #include <gc.h>
 
+#ifdef USE_ML_MATH
+#include "ml_math.h"
+#include "ml_array.h"
+#endif
+
 #ifdef USE_ML_IO
 #include "ml_io.h"
 #endif
@@ -116,6 +121,10 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "collect", ml_function(0, ml_collect));
 	stringmap_insert(Globals, "callcc", MLCallCC);
 	stringmap_insert(Globals, "spawn", MLSpawn);
+#ifdef USE_ML_MATH
+	ml_math_init(Globals);
+	ml_array_init(Globals);
+#endif
 #ifdef USE_ML_IO
 	ml_io_init(Globals);
 #endif

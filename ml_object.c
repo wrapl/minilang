@@ -195,11 +195,11 @@ static ml_value_t *ml_property_fn(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)Assignable;
 }
 
-static ml_value_t *ml_type_fn(void *Data, int Count, ml_value_t **Args) {
+ML_METHOD("?", MLAnyT) {
 	return (ml_value_t *)Args[0]->Type;
 }
 
-static ml_value_t *ml_type_member(void *Data, int Count, ml_value_t **Args) {
+ML_METHOD("?", MLTypeT, MLAnyT) {
 	if (ml_is(Args[1], (ml_type_t *)Args[0])) return Args[1];
 	return MLNil;
 }
@@ -245,6 +245,5 @@ void ml_object_init(stringmap_t *Globals) {
 	StringMethod = ml_method("string");
 	ml_method_by_value(AppendMethod, NULL, ml_object_append, MLStringBufferT, MLObjectT, NULL);
 	ml_method_by_value(StringMethod, NULL, ml_object_string, MLObjectT, NULL);
-	ml_method_by_name("?", NULL, ml_type_fn, MLAnyT, NULL);
-	ml_method_by_name("?", NULL, ml_type_member, MLTypeT, MLAnyT, NULL);
+#include "ml_object_init.c"
 }
