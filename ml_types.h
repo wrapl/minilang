@@ -115,7 +115,7 @@ ml_value_t *ml_method(const char *Name);
 long ml_integer_value(ml_value_t *Value);
 double ml_real_value(ml_value_t *Value);
 const char *ml_string_value(ml_value_t *Value);
-int ml_string_length(ml_value_t *Value);
+size_t ml_string_length(ml_value_t *Value);
 regex_t *ml_regex_value(ml_value_t *Value);
 
 const char *ml_method_name(ml_value_t *Value);
@@ -191,7 +191,7 @@ extern ml_type_t MLIteratableT[];
 typedef struct ml_buffer_t {
 	const ml_type_t *Type;
 	void *Address;
-	long Size;
+	size_t Size;
 } ml_buffer_t;
 
 extern ml_type_t MLBufferT[1];

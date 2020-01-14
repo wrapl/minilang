@@ -557,7 +557,7 @@ struct ml_real_t {
 struct ml_string_t {
 	const ml_type_t *Type;
 	const char *Value;
-	int Length;
+	size_t Length;
 };
 
 struct ml_regex_t {
@@ -698,7 +698,7 @@ const char *ml_string_value(ml_value_t *Value) {
 	return ((ml_string_t *)Value)->Value;
 }
 
-int ml_string_length(ml_value_t *Value) {
+size_t ml_string_length(ml_value_t *Value) {
 	return ((ml_string_t *)Value)->Length;
 }
 
