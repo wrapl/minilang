@@ -1,6 +1,7 @@
 #include "ml_array.h"
 #include "ml_macros.h"
 #include <stdint.h>
+#include <string.h>
 
 typedef struct ml_array_dimension_t {
 	int Size, Stride;
@@ -215,7 +216,7 @@ ML_METHOD("transpose", MLArrayT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("permute", MLArrayT, TYP, MLListT) {
+ML_METHOD("permute", MLArrayT, MLListT) {
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Degree = Source->Degree;
 	if (ml_list_length(Args[1]) != Degree) return ml_error("Error", "List length must match degree");
@@ -401,7 +402,7 @@ static void NAME ## _array_prefix_ ## CTYPE1 ## _ ## CTYPE2(int PrefixDegree, ml
 	} \
 } \
 \
-ML_METHOD(#NAME, TYP, ATYPE1, TYP, ATYPE2) { \
+ML_METHOD(#NAME, ATYPE1, ATYPE2) { \
 	ml_array_t *Target = (ml_array_t *)Args[0]; \
 	ml_array_t *Source = (ml_array_t *)Args[1]; \
 	if (Source->Degree > Target->Degree) return ml_error("Error", "Incompatible assignment"); \
@@ -454,7 +455,7 @@ static void NAME ## _value_array_ ## CTYPE(int Degree, ml_array_dimension_t *Dim
 	} \
 } \
 \
-ML_METHOD(#NAME, TYP, ATYPE, TYP, Std$Number$T) { \
+ML_METHOD(#NAME, ATYPE, MLNumberT) { \
 	ml_array_t *Array = (ml_array_t *)Args[0]; \
 	CTYPE Value = RFUNC(Args[1]); \
 	if (Array->Degree == 0) { \
@@ -569,7 +570,7 @@ static int set_function_array_ ## CTYPE(int Degree, ml_array_dimension_t *Dimens
 	return 0; \
 } \
 \
-ML_METHOD("setf", TYP, ATYPE, ANY) { \
+ML_METHOD("setf", ATYPE, MLAnyT) { \
 	ml_array_t *Array = (ml_array_t *)Args[0]; \
 	if (Array->Degree == 0) { \
 		ml_value_t *Result = ml_inline(Args[1], 1, RNEW(*(CTYPE *)Array->Base.Address)); \
@@ -597,7 +598,7 @@ UPDATE_ARRAY_METHODS(ATYPE, CTYPE, MLArrayUInt64T, uint64_t); \
 UPDATE_ARRAY_METHODS(ATYPE, CTYPE, MLArrayFloat32T, float); \
 UPDATE_ARRAY_METHODS(ATYPE, CTYPE, MLArrayFloat64T, double); \
 \
-ML_METHOD("copy", TYP, ATYPE) { \
+ML_METHOD("copy", ATYPE) { \
 	ml_array_t *Source = (ml_array_t *)Args[0]; \
 	int Degree = Source->Degree; \
 	ml_array_t *Target = ml_array_new(Source->Format, Degree); \
@@ -612,7 +613,7 @@ ML_METHOD("copy", TYP, ATYPE) { \
 	return (ml_value_t *)Target; \
 } \
 \
-ML_METHOD("get", TYP, ATYPE) { \
+ML_METHOD("get", ATYPE) { \
 	ml_array_t *Array = (ml_array_t *)Args[0]; \
 	return RNEW(*(CTYPE *)Array->Base.Address); \
 } \
@@ -649,7 +650,7 @@ void partial_sums_ ## CTYPE(int Target, int Degree, ml_array_dimension_t *Dimens
 	} \
 } \
 \
-ML_METHOD("partial_sums", TYP, ATYPE, TYP, MLIntegerT) { \
+ML_METHOD("partial_sums", ATYPE, MLIntegerT) { \
 	ml_array_t *Array = (ml_array_t *)Args[0]; \
 	int Target = ml_integer_value(Args[1]); \
 	if (Target <= 0) Target += Array->Degree + 1; \
@@ -702,4 +703,5 @@ void ml_array_init(stringmap_t *Globals) {
 		ml_map_insert(Array, ml_string("wrap", -1), ml_function(NULL, ml_array_wrap_fn));
 		stringmap_insert(Globals, "array", Array);
 	}
+#include "ml_array_init.c"
 }
