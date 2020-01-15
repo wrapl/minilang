@@ -6,7 +6,7 @@
 
 #include "minicbor/minicbor.h"
 
-void ml_cbor_write(ml_value_t *Value, void *Data, int (*WriteFn)(void *Data, const unsigned char *Bytes, unsigned Size)) {
+void ml_cbor_write(ml_value_t *Value, void *Data, ml_cbor_write_fn WriteFn) {
 	typeof(ml_cbor_write) *function = ml_typed_fn_get(Value->Type, ml_cbor_write);
 	if (function) {
 		function(Value, Data, WriteFn);
@@ -319,7 +319,7 @@ static ml_value_t *ml_from_cbor_fn(void *Data, int Count, ml_value_t **Args) {
 	return ml_from_cbor(Cbor, Count > 1 ? Args[1] : MLNil, (void *)ml_value_tag_fn);
 }
 
-void ml_cbor_write_integer_fn(ml_value_t *Arg, void *Data, int (*WriteFn)(void *Data, const unsigned char *Bytes, unsigned Size)) {
+void ml_cbor_write_integer_fn(ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	//printf("%s()\n", __func__);
 	int64_t Value = ml_integer_value(Arg);
 	if (Value < 0) {
@@ -329,13 +329,13 @@ void ml_cbor_write_integer_fn(ml_value_t *Arg, void *Data, int (*WriteFn)(void *
 	}
 }
 
-void ml_cbor_write_string_fn(ml_value_t *Arg, void *Data, int (*WriteFn)(void *Data, const unsigned char *Bytes, unsigned Size)) {
+void ml_cbor_write_string_fn(ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	//printf("%s()\n", __func__);
 	ml_cbor_write_string(Data, WriteFn, ml_string_length(Arg));
 	WriteFn(Data, (const unsigned char *)ml_string_value(Arg), ml_string_length(Arg));
 }
 
-void ml_cbor_write_list_fn(ml_value_t *Arg, void *Data, int (*WriteFn)(void *Data, const unsigned char *Bytes, unsigned Size)) {
+void ml_cbor_write_list_fn(ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	ml_cbor_write_array(Data, WriteFn, ml_list_length(Arg));
 	for (ml_list_node_t *Node = ml_list_head(Arg); Node; Node = Node->Next) {
 		ml_cbor_write(Node->Value, Data, WriteFn);
@@ -344,7 +344,7 @@ void ml_cbor_write_list_fn(ml_value_t *Arg, void *Data, int (*WriteFn)(void *Dat
 
 typedef struct ml_cbor_writer_t {
 	void *Data;
-	int (*WriteFn)(void *Data, const unsigned char *Bytes, unsigned Size);
+	ml_cbor_write_fn WriteFn;
 } ml_cbor_writer_t;
 
 static int ml_cbor_write_map_pair(ml_value_t *Key, ml_value_t *Value, ml_cbor_writer_t *Writer) {
@@ -353,21 +353,21 @@ static int ml_cbor_write_map_pair(ml_value_t *Key, ml_value_t *Value, ml_cbor_wr
 	return 0;
 }
 
-void ml_cbor_write_map_fn(ml_value_t *Arg, void *Data, int (*WriteFn)(void *Data, const unsigned char *Bytes, unsigned Size)) {
+void ml_cbor_write_map_fn(ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	ml_cbor_write_map(Data, WriteFn, ml_map_size(Arg));
 	ml_cbor_writer_t Writer[1] = {{Data, WriteFn}};
 	ml_map_foreach(Arg, Writer, (void *)ml_cbor_write_map_pair);
 }
 
-void ml_cbor_write_real_fn(ml_value_t *Arg, void *Data, int (*WriteFn)(void *Data, const unsigned char *Bytes, unsigned Size)) {
+void ml_cbor_write_real_fn(ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	ml_cbor_write_float8(Data, WriteFn, ml_real_value(Arg));
 }
 
-void ml_cbor_write_nil_fn(ml_value_t *Arg, void *Data, int (*WriteFn)(void *Data, const unsigned char *Bytes, unsigned Size)) {
+void ml_cbor_write_nil_fn(ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	ml_cbor_write_simple(Data, WriteFn, CBOR_SIMPLE_NULL);
 }
 
-void ml_cbor_write_symbol_fn(ml_value_t *Arg, void *Data, int (*WriteFn)(void *Data, const unsigned char *Bytes, unsigned Size)) {
+void ml_cbor_write_symbol_fn(ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	if (!strcmp(ml_method_name(Arg), "true")) {
 		ml_cbor_write_simple(Data, WriteFn, CBOR_SIMPLE_TRUE);
 	} else if (!strcmp(ml_method_name(Arg), "false")) {

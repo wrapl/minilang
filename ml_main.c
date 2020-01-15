@@ -121,6 +121,9 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "collect", ml_function(0, ml_collect));
 	stringmap_insert(Globals, "callcc", MLCallCC);
 	stringmap_insert(Globals, "spawn", MLSpawn);
+#ifdef USE_ML_CBOR
+	ml_cbor_init(Globals);
+#endif
 #ifdef USE_ML_MATH
 	ml_math_init(Globals);
 	ml_array_init(Globals);
@@ -134,9 +137,6 @@ int main(int Argc, const char *Argv[]) {
 #ifdef USE_ML_GIR
 	ml_gir_init(Globals);
 	int GtkConsole = 0;
-#endif
-#ifdef USE_ML_CBOR
-	ml_cbor_init(Globals);
 #endif
 #ifdef USE_ML_MPC
 	ml_mpc_init(Globals);

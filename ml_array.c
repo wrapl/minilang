@@ -805,6 +805,75 @@ METHODS(MLArrayFloat64T, double, "%f", ml_real_value, ml_real);
 	ml_map_insert(Array, ml_string(#ATYPE "T", -1), (ml_value_t *)MLArray ##ATYPE ## T); \
 }
 
+#ifdef USE_ML_CBOR
+
+#include "ml_cbor.h"
+
+static void ml_cbor_write_array_dim(int Degree, ml_array_dimension_t *Dimension, void *Address, void *Data, ml_cbor_write_fn WriteFn) {
+	if (Degree < 0) {
+		WriteFn(Data, Address, Dimension->Size * Dimension->Stride);
+	} else {
+		int Stride = Dimension->Stride;
+		if (Dimension->Indices) {
+			int *Indices = Dimension->Indices;
+			for (int I = 0; I < Dimension->Size; ++I) {
+				ml_cbor_write_array_dim(Degree - 1, Dimension + 1, Address + (Indices[I]) * Dimension->Stride, Data, WriteFn);
+			}
+		} else {
+			for (int I = Dimension->Size; --I >= 0;) {
+				ml_cbor_write_array_dim(Degree - 1, Dimension + 1, Address, Data, WriteFn);
+				Address += Stride;
+			}
+		}
+	}
+}
+
+static void ml_cbor_write_array_fn(ml_array_t *Array, void *Data, ml_cbor_write_fn WriteFn) {
+	static uint64_t Tags[] = {
+		[ML_ARRAY_FORMAT_ANY] = 41,
+		[ML_ARRAY_FORMAT_I8] = 72,
+		[ML_ARRAY_FORMAT_U8] = 64,
+		[ML_ARRAY_FORMAT_I16] = 77,
+		[ML_ARRAY_FORMAT_U16] = 69,
+		[ML_ARRAY_FORMAT_I32] = 78,
+		[ML_ARRAY_FORMAT_U32] = 70,
+		[ML_ARRAY_FORMAT_I64] = 79,
+		[ML_ARRAY_FORMAT_U64] = 71,
+		[ML_ARRAY_FORMAT_F32] = 85,
+		[ML_ARRAY_FORMAT_F64] = 86
+	};
+	static size_t Sizes[] = {
+		[ML_ARRAY_FORMAT_ANY] = 0,
+		[ML_ARRAY_FORMAT_I8] = sizeof(int8_t),
+		[ML_ARRAY_FORMAT_U8] = sizeof(uint8_t),
+		[ML_ARRAY_FORMAT_I16] = sizeof(int16_t),
+		[ML_ARRAY_FORMAT_U16] = sizeof(uint16_t),
+		[ML_ARRAY_FORMAT_I32] = sizeof(int32_t),
+		[ML_ARRAY_FORMAT_U32] = sizeof(uint32_t),
+		[ML_ARRAY_FORMAT_I64] = sizeof(int64_t),
+		[ML_ARRAY_FORMAT_U64] = sizeof(uint64_t),
+		[ML_ARRAY_FORMAT_F32] = sizeof(float),
+		[ML_ARRAY_FORMAT_F64] = sizeof(double)
+	};
+	ml_cbor_write_tag(Data, WriteFn, 40);
+	ml_cbor_write_array(Data, WriteFn, 2);
+	ml_cbor_write_array(Data, WriteFn, Array->Degree);
+	for (int I = 0; I < Array->Degree; ++I) ml_cbor_write_integer(Data, WriteFn, Array->Dimensions[I].Size);
+	size_t Size = Sizes[Array->Format];
+	int FlatDegree = -1;
+	for (int I = Array->Degree; --I >= 0;) {
+		if (FlatDegree < 0) {
+			if (Array->Dimensions[I].Indices) FlatDegree = I;
+			if (Array->Dimensions[I].Stride != Size) FlatDegree = I;
+		}
+		Size *= Array->Dimensions[I].Size;
+	}
+	ml_cbor_write_tag(Data, WriteFn, Tags[Array->Format]);
+	ml_cbor_write_bytes(Data, WriteFn, Size);
+	ml_cbor_write_array_dim(FlatDegree, Array->Dimensions, Array->Base.Address, Data, WriteFn);
+}
+#endif
+
 void ml_array_init(stringmap_t *Globals) {
 	CopyMethod = ml_method("copy");
 	AddMethod = ml_method("add");
@@ -831,5 +900,8 @@ void ml_array_init(stringmap_t *Globals) {
 		ml_map_insert(Array, ml_string("wrap", -1), ml_function(NULL, ml_array_wrap_fn));
 		stringmap_insert(Globals, "array", Array);
 	}
+#ifdef USE_ML_CBOR
+	ml_typed_fn_set(MLArrayT, ml_cbor_write, ml_cbor_write_array_fn);
+#endif
 #include "ml_array_init.c"
 }
