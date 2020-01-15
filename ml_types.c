@@ -37,14 +37,15 @@ struct ml_typed_fn_node_t {
 inline void *ml_typed_fn_get(const ml_type_t *Type, void *TypedFn) {
 	do {
 		ml_typed_fn_node_t *Nodes = Type->TypedFns;
-		if (!Nodes) return NULL;
-		size_t Mask = Type->TypedFnsSize - 1;
-		size_t Index = ((uintptr_t)TypedFn >> 5) & Mask;
-		size_t Incr = ((uintptr_t)TypedFn >> 9) | 1;
-		for (;;) {
-			if (Nodes[Index].TypedFn == TypedFn) return Nodes[Index].Function;
-			if (Nodes[Index].TypedFn < TypedFn) break;
-			Index = (Index + Incr) & Mask;
+		if (Nodes) {
+			size_t Mask = Type->TypedFnsSize - 1;
+			size_t Index = ((uintptr_t)TypedFn >> 5) & Mask;
+			size_t Incr = ((uintptr_t)TypedFn >> 9) | 1;
+			for (;;) {
+				if (Nodes[Index].TypedFn == TypedFn) return Nodes[Index].Function;
+				if (Nodes[Index].TypedFn < TypedFn) break;
+				Index = (Index + Incr) & Mask;
+			}
 		}
 		Type = Type->Parent;
 	} while (Type);
