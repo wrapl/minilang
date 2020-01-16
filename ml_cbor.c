@@ -80,6 +80,10 @@ ml_value_t *ml_cbor_reader_get(ml_cbor_reader_t *Reader) {
 	return Reader->Value;
 }
 
+int ml_cbor_reader_extra(ml_cbor_reader_t *Reader) {
+	return ml_cbor_reader_remaining(Reader->Reader);
+}
+
 static ml_value_t IsByteString[1];
 static ml_value_t IsString[1];
 static ml_value_t IsList[1];
@@ -92,6 +96,7 @@ static void value_handler(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	collection_t *Collection = Reader->Collection;
 	if (!Collection) {
 		Reader->Value = Value;
+		ml_cbor_reader_finish(Reader->Reader);
 	} else if (Collection->Key == IsList) {
 		ml_list_append(Collection->Collection, Value);
 		if (Collection->Remaining && --Collection->Remaining == 0) {
@@ -295,6 +300,19 @@ ml_value_t *ml_from_cbor(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*TagFn)(uint
 	Reader->Value = 0;
 	ml_cbor_read(Reader->Reader, Cbor.Data, Cbor.Length);
 	return ml_cbor_reader_get(Reader);
+}
+
+ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*TagFn)(uint64_t, void *, void **)) {
+	ml_cbor_reader_t Reader[1];
+	Reader->TagFnData = TagFnData;
+	Reader->TagFn = TagFn;
+	ml_cbor_reader_init(Reader->Reader);
+	Reader->Reader->UserData = Reader;
+	Reader->Collection = 0;
+	Reader->Tags = 0;
+	Reader->Value = 0;
+	ml_cbor_read(Reader->Reader, Cbor.Data, Cbor.Length);
+	return (ml_cbor_result_t){ml_cbor_reader_get(Reader), ml_cbor_reader_extra(Reader)};
 }
 
 static ml_value_t *ml_to_cbor_fn(void *Data, int Count, ml_value_t **Args) {

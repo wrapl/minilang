@@ -15,11 +15,14 @@ typedef ml_value_t *(*ml_tag_t)(void *Data, ml_value_t *Value);
 ml_cbor_reader_t *ml_cbor_reader_new(void *TagFnData, ml_tag_t (*TagFn)(uint64_t, void *, void **));
 void ml_cbor_reader_read(ml_cbor_reader_t *Reader, unsigned char *Bytes, int Size);
 ml_value_t *ml_cbor_reader_get(ml_cbor_reader_t *Reader);
+int ml_cbor_reader_extra(ml_cbor_reader_t *Reader);
 
 typedef struct {const void *Data; size_t Length;} ml_cbor_t;
+typedef struct {ml_value_t *Value; int Extra;} ml_cbor_result_t;
 
 ml_cbor_t ml_to_cbor(ml_value_t *Value);
 ml_value_t *ml_from_cbor(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*TagFn)(uint64_t, void *, void **));
+ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*TagFn)(uint64_t, void *, void **));
 
 typedef int (*ml_cbor_write_fn)(void *Data, const unsigned char *Bytes, unsigned Size);
 
