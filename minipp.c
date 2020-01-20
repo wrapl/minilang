@@ -142,7 +142,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 	Context->GlobalGet = (ml_getter_t)ml_preprocessor_global_get;
 	Context->Globals = Preprocessor;
 	mlc_scanner_t *Scanner = ml_scanner(InputName, Preprocessor, (void *)ml_preprocessor_line_read, Context);
-	mlc_on_error(Context) {
+	MLC_ON_ERROR(Context) {
 		printf("Error: %s\n", ml_error_message(Context->Error));
 		const char *Source;
 		int Line;

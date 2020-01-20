@@ -183,7 +183,7 @@ static ml_type_t *StructT, *StructInstanceT;
 static ml_value_t *struct_instance_new(struct_t *Struct, int Count, ml_value_t **Args) {
 	struct_instance_t *Instance = new(struct_instance_t);
 	Instance->Type = Struct;
-	Instance->Value = GC_malloc(g_struct_info_get_size(Struct->Info));
+	Instance->Value = GC_MALLOC(g_struct_info_get_size(Struct->Info));
 	return (ml_value_t *)Instance;
 }
 
@@ -324,7 +324,7 @@ ML_METHOD("|", EnumValueT, EnumValueT) {
 	size_t LengthA = ml_string_length(A->Name);
 	size_t LengthB = ml_string_length(B->Name);
 	size_t Length = LengthA + LengthB + 1;
-	char *Name = GC_malloc_atomic(Length + 1);
+	char *Name = GC_MALLOC_ATOMIC(Length + 1);
 	memcpy(Name, ml_string_value(A->Name), LengthA);
 	Name[LengthA] = '|';
 	memcpy(Name + LengthA + 1, ml_string_value(B->Name), LengthB);
@@ -552,7 +552,7 @@ static void callback_invoke(ffi_cif *Cif, void *Return, void **Params, ml_gir_ca
 		}
 		GITypeInfo *ElementInfo = g_type_info_get_param_type(ReturnInfo, 0);
 		size_t ElementSize = array_element_size(ElementInfo);
-		char *Array = GC_malloc((ml_list_length(Result) + 1) * ElementSize);
+		char *Array = GC_MALLOC_ATOMIC((ml_list_length(Result) + 1) * ElementSize);
 		// TODO: fill array
 		*(void **)Result = Array;
 		break;
@@ -860,7 +860,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 				}
 				GITypeInfo *ElementInfo = g_type_info_get_param_type(TypeInfo, 0);
 				size_t ElementSize = array_element_size(ElementInfo);
-				char *Array = GC_malloc((ml_list_length(Arg) + 1) * ElementSize);
+				char *Array = GC_MALLOC_ATOMIC((ml_list_length(Arg) + 1) * ElementSize);
 				// TODO: fill array
 				ArgsIn[IndexIn].v_pointer = Array;
 				break;

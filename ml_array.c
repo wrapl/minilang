@@ -120,7 +120,7 @@ ml_value_t *ml_array_new_fn(void *Address, int Count, ml_value_t **Args) {
 		Array->Dimensions[I].Stride = DataSize;
 		DataSize *= Array->Dimensions[I].Size;
 	}
-	Array->Base.Address = GC_malloc_atomic(DataSize);
+	Array->Base.Address = GC_MALLOC_ATOMIC(DataSize);
 	Array->Base.Size = DataSize;
 	return (ml_value_t *)Array;
 }
@@ -260,7 +260,7 @@ ML_METHOD("[]", MLArrayT) {
 			Address += SourceDimension->Stride * IndexValue;
 		} else if (Index->Type == MLListT) {
 			int Size = TargetDimension->Size = ml_list_length(Index);
-			int *Indices = TargetDimension->Indices = (int *)GC_malloc_atomic(Size * sizeof(int));
+			int *Indices = TargetDimension->Indices = (int *)GC_MALLOC_ATOMIC(Size * sizeof(int));
 			int *IndexPtr = Indices;
 			for (ml_list_node_t *Node = ml_list_head(Index); Node; Node = Node->Next) {
 				if (Node->Value->Type != MLIntegerT) return ml_error("Error", "Invalid index");
@@ -494,7 +494,7 @@ ML_METHOD(#OP, ATYPE, MLIntegerT) { \
 		int Size = Target->Dimensions[I].Size = Source->Dimensions[I].Size; \
 		DataSize *= Size; \
 	} \
-	CTYPE *Values = Target->Base.Address = GC_malloc_atomic(DataSize * sizeof(CTYPE)); \
+	CTYPE *Values = Target->Base.Address = GC_MALLOC_ATOMIC(DataSize * sizeof(CTYPE)); \
 	set_array_ ## CTYPE ## _ ## CTYPE(Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address); \
 	int Value = ml_integer_value(Args[1]); \
 	for (int I = DataSize / sizeof(CTYPE); --I >= 0; ++Values) *Values = *Values OP Value; \
@@ -511,7 +511,7 @@ ML_METHOD(#OP, MLIntegerT, ATYPE) { \
 		int Size = Target->Dimensions[I].Size = Source->Dimensions[I].Size; \
 		DataSize *= Size; \
 	} \
-	CTYPE *Values = Target->Base.Address = GC_malloc_atomic(DataSize * sizeof(CTYPE)); \
+	CTYPE *Values = Target->Base.Address = GC_MALLOC_ATOMIC(DataSize * sizeof(CTYPE)); \
 	set_array_ ## CTYPE ## _ ## CTYPE(Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address); \
 	int Value = ml_integer_value(Args[0]); \
 	for (int I = DataSize / sizeof(CTYPE); --I >= 0; ++Values) *Values = Value OP *Values; \
@@ -528,7 +528,7 @@ ML_METHOD(#OP, ATYPE, MLRealT) { \
 		int Size = Target->Dimensions[I].Size = Source->Dimensions[I].Size; \
 		DataSize *= Size; \
 	} \
-	CTYPE *Values = Target->Base.Address = GC_malloc_atomic(DataSize * sizeof(CTYPE)); \
+	CTYPE *Values = Target->Base.Address = GC_MALLOC_ATOMIC(DataSize * sizeof(CTYPE)); \
 	set_array_ ## CTYPE ## _ ## CTYPE(Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address); \
 	double Value = ml_real_value(Args[1]); \
 	for (int I = DataSize / sizeof(CTYPE); --I >= 0; ++Values) *Values = *Values OP Value; \
@@ -545,7 +545,7 @@ ML_METHOD(#OP, MLRealT, ATYPE) { \
 		int Size = Target->Dimensions[I].Size = Source->Dimensions[I].Size; \
 		DataSize *= Size; \
 	} \
-	CTYPE *Values = Target->Base.Address = GC_malloc_atomic(DataSize); \
+	CTYPE *Values = Target->Base.Address = GC_MALLOC_ATOMIC(DataSize); \
 	set_array_ ## CTYPE ## _ ## CTYPE(Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address); \
 	double Value = ml_real_value(Args[0]); \
 	for (int I = DataSize / sizeof(CTYPE); --I >= 0; ++Values) *Values = Value OP *Values; \
@@ -732,7 +732,7 @@ ML_METHOD("copy", ATYPE) { \
 		int Size = Target->Dimensions[I].Size = Source->Dimensions[I].Size; \
 		DataSize *= Size; \
 	} \
-	Target->Base.Address = GC_malloc_atomic(DataSize); \
+	Target->Base.Address = GC_MALLOC_ATOMIC(DataSize); \
 	set_array_ ## CTYPE ## _ ## CTYPE(Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address); \
 	return (ml_value_t *)Target; \
 } \

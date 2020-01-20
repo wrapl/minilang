@@ -14,7 +14,7 @@ static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
 		memcpy(*Result + Offset, Buffer, 128);
 		return Total;
 	} else {
-		*Result = GC_malloc_atomic(Offset + Length + 1);
+		*Result = GC_MALLOC_ATOMIC(Offset + Length + 1);
 		strcpy(*Result + Offset, Buffer);
 		return Offset + Length;
 	}
@@ -38,7 +38,7 @@ ml_value_t *ml_load(ml_getter_t GlobalGet, void *Globals, const char *FileName, 
 	FILE *File = fopen(FileName, "r");
 	if (!File) return ml_error("LoadError", "error opening %s", FileName);
 	mlc_context_t Context[1] = {{GlobalGet, Globals}};
-	mlc_on_error(Context) return Context->Error;
+	MLC_ON_ERROR(Context) return Context->Error;
 	mlc_scanner_t *Scanner = ml_scanner(FileName, File, ml_file_read, Context);
 	mlc_expr_t *Expr = ml_accept_block(Scanner);
 	ml_accept_eoi(Scanner);

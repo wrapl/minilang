@@ -688,7 +688,7 @@ ML_METHOD("+", MLStringT, MLStringT) {
 	int Length1 = ml_string_length(Args[0]);
 	int Length2 = ml_string_length(Args[1]);
 	int Length =  Length1 + Length2;
-	char *Chars = GC_malloc_atomic(Length + 1);
+	char *Chars = GC_MALLOC_ATOMIC(Length + 1);
 	memcpy(Chars, ml_string_value(Args[0]), Length1);
 	memcpy(Chars + Length1, ml_string_value(Args[1]), Length2);
 	Chars[Length] = 0;
@@ -2127,7 +2127,7 @@ ssize_t ml_stringbuffer_add(ml_stringbuffer_t *Buffer, const char *String, size_
 			Cache = Cache->Next;
 			Next->Next = NULL;
 		} else {
-			Next = (ml_stringbuffer_node_t *)GC_malloc_explicitly_typed(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+			Next = (ml_stringbuffer_node_t *)GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
 			//printf("Allocating stringbuffer: %d in total\n", ++NumStringBuffers);
 		}
 		pthread_mutex_unlock(CacheMutex);
@@ -2177,7 +2177,7 @@ char *ml_stringbuffer_get(ml_stringbuffer_t *Buffer) {
 }
 
 char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer) {
-	char *String = GC_malloc_atomic_uncollectable(Buffer->Length + 1);
+	char *String = GC_MALLOC_ATOMIC_UNCOLLECTABLE(Buffer->Length + 1);
 	if (Buffer->Length == 0) {
 		String[0] = 0;
 	} else {
@@ -3245,7 +3245,7 @@ ml_value_t *ml_buffer(void *Data, int Count, ml_value_t **Args) {
 	ml_buffer_t *Buffer = new(ml_buffer_t);
 	Buffer->Type = MLBufferT;
 	Buffer->Size = Size;
-	Buffer->Address = GC_malloc_atomic(Size);
+	Buffer->Address = GC_MALLOC_ATOMIC(Size);
 	return (ml_value_t *)Buffer;
 }
 

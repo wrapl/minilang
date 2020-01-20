@@ -91,7 +91,7 @@ ML_METHOD("read", StringStoreT, MLIntegerT) {
 ML_METHOD("read", StringStoreReaderT, MLIntegerT) {
 	ml_string_store_reader_t *Reader = (ml_string_store_reader_t *)Args[0];
 	size_t Size = ml_integer_value(Args[1]);
-	char *Buffer = GC_malloc_atomic(Size);
+	char *Buffer = GC_MALLOC_ATOMIC(Size);
 	size_t Length = string_store_reader_read(Reader->Handle, Buffer, Size);
 	return ml_string(Buffer, Length);
 }

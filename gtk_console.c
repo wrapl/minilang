@@ -195,7 +195,7 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 	gtk_source_buffer_set_highlight_matching_brackets(GTK_SOURCE_BUFFER(InputBuffer), TRUE);
 
 	mlc_scanner_t *Scanner = Console->Scanner;
-	mlc_on_error(Console->Context) {
+	MLC_ON_ERROR(Console->Context) {
 		char *Buffer;
 		int Length = asprintf(&Buffer, "Error: %s\n", ml_error_message(Console->Context->Error));
 		gtk_text_buffer_get_end_iter(LogBuffer, End);

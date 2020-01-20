@@ -20,7 +20,7 @@ typedef struct mlc_context_t {
 	jmp_buf OnError;
 } mlc_context_t;
 
-#define mlc_on_error(CONTEXT) if (setjmp(CONTEXT->OnError))
+#define MLC_ON_ERROR(CONTEXT) if (setjmp(CONTEXT->OnError))
 
 mlc_scanner_t *ml_scanner(const char *SourceName, void *Data, const char *(*read)(void *), mlc_context_t *Context);
 ml_source_t ml_scanner_source(mlc_scanner_t *Scanner, ml_source_t Source);

@@ -99,7 +99,7 @@ static ml_value_t *ml_uv_fs_read(ml_state_t *Caller, void *Data, int Count, ml_v
 	size_t Length = ml_integer_value(Args[1]);
 	ml_uv_fs_buf_t *Request = xnew(ml_uv_fs_buf_t, 1, uv_buf_t);
 	Request->Base.data = Caller;
-	Request->IOV[0].base = GC_malloc_atomic(Length);
+	Request->IOV[0].base = GC_MALLOC_ATOMIC(Length);
 	Request->IOV[0].len = Length;
 	uv_fs_read(Loop, (uv_fs_t *)Request, File->Handle, Request->IOV, 1, -1, (uv_fs_cb)ml_uv_fs_read_cb);
 	return MLNil;
