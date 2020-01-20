@@ -119,6 +119,7 @@ static void **stringmap_slot_internal(stringmap_t *Map, stringmap_node_t **Slot,
 		Node->Depth = 1;
 		Node->Hash = Hash;
 		Node->Key = Key;
+		++Map->Size;
 		return &Node->Value;
 	}
 	int Compare = compare(Hash, Key, Slot[0]);

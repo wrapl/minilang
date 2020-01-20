@@ -12,18 +12,14 @@
 #include <alloca.h>
 #endif
 
-struct ml_reference_t {
-	const ml_type_t *Type;
-	ml_value_t **Address;
-	ml_value_t *Value[];
-};
-
 static ml_value_t *ml_reference_deref(ml_value_t *Ref) {
 	ml_reference_t *Reference = (ml_reference_t *)Ref;
 	return Reference->Address[0];
 }
 
 static ml_value_t *ml_reference_assign(ml_value_t *Ref, ml_value_t *Value) {
+	Value = Value->Type->deref(Value);
+	if (Value->Type == MLErrorT) return Value;
 	ml_reference_t *Reference = (ml_reference_t *)Ref;
 	return Reference->Address[0] = Value;
 }
@@ -52,9 +48,19 @@ inline ml_value_t *ml_reference(ml_value_t **Address) {
 	return (ml_value_t *)Reference;
 }
 
-static ml_value_t *ml_continuation_call(ml_state_t *Caller, ml_state_t *Frame, int Count, ml_value_t **Args) {
-	ML_CONTINUE(Frame, Count ? Args[0] : MLNil);
+static ml_value_t *ml_state_call(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
+	return State->run(State, Count ? Args[0] : MLNil);
 }
+
+ml_type_t MLStateT[1] = {{
+	MLTypeT,
+	MLFunctionT, "state",
+	ml_default_hash,
+	(void *)ml_state_call,
+	ml_default_deref,
+	ml_default_assign,
+	NULL, 0, 0
+}};
 
 static ml_value_t *ml_continuation_value(ml_state_t *Caller, ml_frame_t *Continuation) {
 	ML_CONTINUE(Caller, Continuation->Top[-1]);
@@ -73,9 +79,9 @@ static ml_value_t *ml_continuation_next(ml_state_t *Caller, ml_frame_t *Continua
 
 ml_type_t MLContinuationT[1] = {{
 	MLTypeT,
-	MLFunctionT, "continuation",
+	MLStateT, "continuation",
 	ml_default_hash,
-	(void *)ml_continuation_call,
+	(void *)ml_state_call,
 	ml_default_deref,
 	ml_default_assign,
 	NULL, 0, 0
@@ -87,7 +93,11 @@ typedef struct ml_functionx_t {
 	void *Data;
 } ml_functionx_t;
 
-static ml_value_t *ml_functionx_spawn(ml_state_t *Caller, ml_functionx_t *Function, int Count, ml_value_t **Args) {
+static ml_value_t *ml_functionx_call(ml_state_t *Caller, ml_functionx_t *Function, int Count, ml_value_t **Args) {
+	for (int I = 0; I < Count; ++I) {
+		ml_value_t *Arg = Args[I] = Args[I]->Type->deref(Args[I]);
+		if (Arg->Type == MLErrorT) ML_CONTINUE(Caller, Arg);
+	}
 	return (Function->Callback)(Caller, Function->Data, Count, Args);
 }
 
@@ -95,7 +105,7 @@ ml_type_t MLFunctionXT[1] = {{
 	MLTypeT,
 	MLFunctionT, "functionx",
 	ml_default_hash,
-	(void *)ml_functionx_spawn,
+	(void *)ml_functionx_call,
 	ml_default_deref,
 	ml_default_assign,
 	NULL, 0, 0
@@ -110,13 +120,80 @@ ml_value_t *ml_functionx(void *Data, ml_callbackx_t Callback) {
 	return (ml_value_t *)Function;
 }
 
+static ml_value_t *ml_nil_state_fn(ml_state_t *State, ml_value_t *Value) {
+	return Value;
+}
+
+static ml_state_t MLNilState[1] = {{MLStateT, NULL, ml_nil_state_fn}};
+
+typedef struct ml_resumable_state_t {
+	ml_state_t Base;
+	ml_state_t *Last;
+} ml_resumable_state_t;
+
+static ml_value_t *ml_resumable_state_call(ml_state_t *Caller, ml_resumable_state_t *State, int Count, ml_value_t **Args) {
+	State->Last->Caller = Caller;
+	ML_CONTINUE(State->Base.Caller, Count ? Args[0] : MLNil);
+}
+
+ml_type_t MLResumableStateT[1] = {{
+	MLTypeT,
+	MLStateT, "resumable-state",
+	ml_default_hash,
+	(void *)ml_resumable_state_call,
+	ml_default_deref,
+	ml_default_assign,
+	NULL, 0, 0
+}};
+
+static ml_value_t *ml_resumable_state_run(ml_resumable_state_t *State, ml_value_t *Value) {
+	ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Invalid use of resumable state"));
+}
+
 static ml_value_t *ml_callcc(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
-	ml_value_t *Function = Args[Count - 1];
-	Args[Count - 1] = (ml_value_t *)Caller;
-	return Function->Type->call(NULL, Function, Count, Args);
+	if (Count > 1) {
+		ML_CHECKX_ARG_TYPE(0, MLStateT);
+		ml_state_t *State = (ml_state_t *)Args[0];
+		ml_state_t *Last = Caller;
+		while (Last && Last->Caller != State) Last = Last->Caller;
+		if (!Last) ML_CONTINUE(Caller, ml_error("StateError", "State not in current call chain"));
+		Last->Caller = NULL;
+		ml_resumable_state_t *Resumable = new(ml_resumable_state_t);
+		Resumable->Base.Type = MLResumableStateT;
+		Resumable->Base.Caller = Caller;
+		Resumable->Base.run = (void *)ml_resumable_state_run;
+		Resumable->Last = Last;
+		ml_value_t *Function = Args[1];
+		ml_value_t **Args2 = anew(ml_value_t *, 1);
+		Args2[0] = (ml_value_t *)Resumable;
+		return Function->Type->call(State, Function, 1, Args2);
+	} else {
+		ML_CHECKX_ARG_COUNT(1);
+		ml_value_t *Function = Args[0];
+		ml_value_t **Args2 = anew(ml_value_t *, 1);
+		Args2[0] = (ml_value_t *)Caller;
+		return Function->Type->call(NULL, Function, 1, Args2);
+	}
+}
+
+static ml_value_t *ml_spawn_state_fn(ml_state_t *State, ml_value_t *Value) {
+	ML_CONTINUE(State->Caller, Value);
+}
+
+static ml_value_t *ml_spawn(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_state_t *State = new(ml_state_t);
+	State->Type = MLStateT;
+	State->Caller = Caller;
+	State->run = ml_spawn_state_fn;
+	ml_value_t *Func = Args[0];
+	ml_value_t **Args2 = anew(ml_value_t *, 1);
+	Args2[0] = (ml_value_t *)State;
+	return Func->Type->call(State, Func, 1, Args2);
 }
 
 ml_functionx_t MLCallCC[1] = {{MLFunctionXT, ml_callcc, NULL}};
+ml_functionx_t MLSpawn[1] = {{MLFunctionXT, ml_spawn, NULL}};
 
 static inline ml_inst_t *ml_inst_new(int N, ml_source_t Source, ml_opcode_t Opcode) {
 	ml_inst_t *Inst = xnew(ml_inst_t, N, ml_param_t);
@@ -142,6 +219,16 @@ static inline ml_inst_t *ml_inst_new(int N, ml_source_t Source, ml_opcode_t Opco
 	goto *Labels[Inst->Opcode]; \
 }
 
+ml_type_t MLUninitializedT[] = {{
+	MLTypeT,
+	MLAnyT, "uninitialized",
+	ml_default_hash,
+	ml_default_call,
+	ml_default_deref,
+	ml_default_assign,
+	NULL, 0, 0
+}};
+
 static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 	static void *Labels[] = {
 		[MLI_RETURN] = &&DO_RETURN,
@@ -154,6 +241,7 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 		[MLI_IF_LET] = &&DO_IF_LET,
 		[MLI_ELSE] = &&DO_ELSE,
 		[MLI_PUSH] = &&DO_PUSH,
+		[MLI_POP] = &&DO_POP,
 		[MLI_ENTER] = &&DO_ENTER,
 		[MLI_EXIT] = &&DO_EXIT,
 		[MLI_LOOP] = &&DO_LOOP,
@@ -166,17 +254,24 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 		[MLI_NEXT] = &&DO_NEXT,
 		[MLI_VALUE] = &&DO_VALUE,
 		[MLI_KEY] = &&DO_KEY,
-		[MLI_PUSH_RESULT] = &&DO_PUSH_RESULT,
 		[MLI_CALL] = &&DO_CALL,
 		[MLI_CONST_CALL] = &&DO_CONST_CALL,
-		[MLI_RESULT] = &&DO_RESULT,
 		[MLI_ASSIGN] = &&DO_ASSIGN,
 		[MLI_LOCAL] = &&DO_LOCAL,
-		[MLI_TUPLE] = &&DO_TUPLE,
+		[MLI_TUPLE_NEW] = &&DO_TUPLE_NEW,
+		[MLI_TUPLE_SET] = &&DO_TUPLE_SET,
+		[MLI_LIST_NEW] = &&DO_LIST_NEW,
+		[MLI_LIST_APPEND] = &&DO_LIST_APPEND,
+		[MLI_MAP_NEW] = &&DO_MAP_NEW,
+		[MLI_MAP_INSERT] = &&DO_MAP_INSERT,
 		[MLI_CLOSURE] = &&DO_CLOSURE
 	};
 	ml_inst_t *Inst = Frame->Inst;
 	ml_value_t **Top = Frame->Top;
+	if (Result->Type == MLErrorT) {
+			ml_error_trace_add(Result, Inst->Source);
+			ERROR();
+	}
 	goto *Labels[Inst->Opcode];
 
 	DO_RETURN: {
@@ -253,6 +348,11 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 		*Top++ = Result;
 		ADVANCE(0);
 	}
+	DO_POP: {
+		Result = *--Top;
+		*Top = 0;
+		ADVANCE(0);
+	}
 	DO_ENTER: {
 		for (int I = Inst->Params[1].Count; --I >= 0;) {
 			ml_reference_t *Local = xnew(ml_reference_t, 1, ml_value_t *);
@@ -260,6 +360,11 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 			Local->Address = Local->Value;
 			Local->Value[0] = MLNil;
 			*Top++ = (ml_value_t *)Local;
+		}
+		for (int I = Inst->Params[2].Count; --I >= 0;) {
+			ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
+			Uninitialized->Type = MLUninitializedT;
+			*Top++ = (ml_value_t *)Uninitialized;
 		}
 		ADVANCE(0);
 	}
@@ -300,6 +405,8 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 	DO_LET: {
 		Result = Result->Type->deref(Result);
 		ERROR_CHECK(Result);
+		ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Top[Inst->Params[1].Index];
+		for (ml_slot_t *Slot = Uninitialized->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Result;
 		Top[Inst->Params[1].Index] = Result;
 		ADVANCE(0);
 	}
@@ -330,52 +437,35 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 		Frame->Top = Top;
 		return ml_iter_key((ml_state_t *)Frame, Result);
 	}
-	DO_PUSH_RESULT: {
-		if (Result->Type == MLErrorT) {
-			ml_error_trace_add(Result, Inst->Source);
-			ERROR();
-		} else {
-			*Top++ = Result;
-			ADVANCE(0);
-		}
-	}
 	DO_CALL: {
 		int Count = Inst->Params[1].Count;
 		ml_value_t *Function = Top[~Count];
 		Function = Function->Type->deref(Function);
 		ERROR_CHECK(Function);
 		ml_value_t **Args = Top - Count;
-		for (int I = 0; I < Count; ++I) {
-			Args[I] = Args[I]->Type->deref(Args[I]);
-			ERROR_CHECK(Args[I]);
+		ml_inst_t *Next = Inst->Params[0].Inst;
+		if (Next->Opcode == MLI_RETURN) {
+			return Function->Type->call(Frame->Base.Caller, Function, Count, Args);
+		} else {
+			Frame->Inst = Next;
+			Frame->Top = Top - (Count + 1);
+			return Function->Type->call((ml_state_t *)Frame, Function, Count, Args);
 		}
-		Frame->Inst = Inst->Params[0].Inst;
-		Frame->Top = Top - (Count + 1);
-		return Function->Type->call((ml_state_t *)Frame, Function, Count, Args);
 	}
 	DO_CONST_CALL: {
 		int Count = Inst->Params[1].Count;
 		ml_value_t *Function = Inst->Params[2].Value;
 		ml_value_t **Args = Top - Count;
-		for (int I = 0; I < Count; ++I) {
-			Args[I] = Args[I]->Type->deref(Args[I]);
-			ERROR_CHECK(Args[I]);
-		}
-		Frame->Inst = Inst->Params[0].Inst;
-		Frame->Top = Top - Count;
-		return Function->Type->call((ml_state_t *)Frame, Function, Count, Args);
-	}
-	DO_RESULT: {
-		if (Result->Type == MLErrorT) {
-			ml_error_trace_add(Result, Inst->Source);
-			ERROR();
+		ml_inst_t *Next = Inst->Params[0].Inst;
+		if (Next->Opcode == MLI_RETURN) {
+			return Function->Type->call(Frame->Base.Caller, Function, Count, Args);
 		} else {
-			ADVANCE(0);
+			Frame->Inst = Inst->Params[0].Inst;
+			Frame->Top = Top - Count;
+			return Function->Type->call((ml_state_t *)Frame, Function, Count, Args);
 		}
 	}
 	DO_ASSIGN: {
-		Result = Result->Type->deref(Result);
-		ERROR_CHECK(Result);
 		ml_value_t *Ref = Top[-1];
 		*--Top = 0;
 		Result = Ref->Type->assign(Ref, Result);
@@ -395,14 +485,41 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 		}
 		ADVANCE(0);
 	}
-	DO_TUPLE: {
+	DO_TUPLE_NEW: {
 		int Size = Inst->Params[1].Count;
 		ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
 		Tuple->Type = MLTupleT;
 		Tuple->Size = Size;
-		for (int I = 0; I < Size; ++I) Tuple->Values[I] = Top[I - Size];
-		Top -= Size;
-		Result = (ml_value_t *)Tuple;
+		*Top++ = (ml_value_t *)Tuple;
+		ADVANCE(0);
+	}
+	DO_TUPLE_SET: {
+		int Index = Inst->Params[1].Index;
+		ml_tuple_t *Tuple = (ml_tuple_t *)Top[-1];
+		Tuple->Values[Index] = Result;
+		ADVANCE(0);
+	}
+	DO_LIST_NEW: {
+		*Top++ = ml_list();
+		ADVANCE(0);
+	}
+	DO_LIST_APPEND: {
+		Result = Result->Type->deref(Result);
+		ERROR_CHECK(Result);
+		ml_list_append(Top[-1], Result);
+		ADVANCE(0);
+	}
+	DO_MAP_NEW: {
+		*Top++ = ml_map();
+		ADVANCE(0);
+	}
+	DO_MAP_INSERT: {
+		ml_value_t *Key = Top[-1]->Type->deref(Top[-1]);
+		ERROR_CHECK(Key);
+		Result = Result->Type->deref(Result);
+		ERROR_CHECK(Result);
+		ml_map_insert(Top[-2], Key, Result);
+		*--Top = 0;
 		ADVANCE(0);
 	}
 	DO_CLOSURE: {
@@ -413,11 +530,15 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 		Closure->Info = Info;
 		for (int I = 0; I < Info->NumUpValues; ++I) {
 			int Index = Inst->Params[2 + I].Index;
-			if (Index < 0) {
-				Closure->UpValues[I] = Frame->UpValues[~Index];
-			} else {
-				Closure->UpValues[I] = Frame->Stack[Index];
+			ml_value_t *Value = (Index < 0) ? Frame->UpValues[~Index] : Frame->Stack[Index];
+			if (Value->Type == MLUninitializedT) {
+				ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Value;
+				ml_slot_t *Slot = new(ml_slot_t);
+				Slot->Value = &Closure->UpValues[I];
+				Slot->Next = Uninitialized->Slots;
+				Uninitialized->Slots = Slot;
 			}
+			Closure->UpValues[I] = Value;
 		}
 		Result = (ml_value_t *)Closure;
 		ADVANCE(0);
@@ -433,11 +554,6 @@ static ml_value_t *ml_closure_call(ml_state_t *Caller, ml_value_t *Value, int Co
 	Frame->Base.Caller = Caller;
 	Frame->Base.run = (void *)ml_frame_run;
 	int NumParams = Info->NumParams;
-	int VarArgs = 0;
-	if (NumParams < 0) {
-		VarArgs = 1;
-		NumParams = ~NumParams;
-	}
 	if (Closure->PartialCount) {
 		int CombinedCount = Count + Closure->PartialCount;
 		ml_value_t **CombinedArgs = anew(ml_value_t *, CombinedCount);
@@ -446,27 +562,36 @@ static ml_value_t *ml_closure_call(ml_state_t *Caller, ml_value_t *Value, int Co
 		Count = CombinedCount;
 		Args = CombinedArgs;
 	}
+	if (Info->ExtraArgs) --NumParams;
+	if (Info->NamedArgs) --NumParams;
 	int Min = (Count < NumParams) ? Count : NumParams;
-	for (int I = 0; I < Min; ++I) {
+	int I = 0;
+	for (; I < Min; ++I) {
 		ml_reference_t *Local = (ml_reference_t *)ml_reference(NULL);
-		Local->Value[0] = Args[I];
+		ml_value_t *Arg = Args[I]->Type->deref(Args[I]);
+		if (Arg->Type == MLErrorT) ML_CONTINUE(Caller, Arg);
+		if (Arg->Type == MLNamesT) break;
+		Local->Value[0] = Arg;
 		Frame->Stack[I] = (ml_value_t *)Local;
 	}
-	for (int I = Min; I < NumParams; ++I) {
+	for (int J = I; J < NumParams; ++J) {
 		ml_reference_t *Local = (ml_reference_t *)ml_reference(NULL);
 		Local->Value[0] = MLNil;
-		Frame->Stack[I] = (ml_value_t *)Local;
+		Frame->Stack[J] = (ml_value_t *)Local;
 	}
-	if (VarArgs) {
+	if (Info->ExtraArgs) {
 		ml_reference_t *Local = (ml_reference_t *)ml_reference(NULL);
 		ml_list_t *Rest = new(ml_list_t);
 		Rest->Type = MLListT;
 		int Length = 0;
 		ml_list_node_t **Next = &Rest->Head;
 		ml_list_node_t *Prev = 0;
-		for (int I = NumParams; I < Count; ++I) {
+		for (; I < Count; ++I) {
+			ml_value_t *Arg = Args[I]->Type->deref(Args[I]);
+			if (Arg->Type == MLErrorT) ML_CONTINUE(Caller, Arg);
+			if (Arg->Type == MLNamesT) break;
 			ml_list_node_t *Node = new(ml_list_node_t);
-			Node->Value = Args[I];
+			Node->Value = Arg;
 			Node->Prev = Prev;
 			Next[0] = Prev = Node;
 			Next = &Node->Next;
@@ -476,8 +601,47 @@ static ml_value_t *ml_closure_call(ml_state_t *Caller, ml_value_t *Value, int Co
 		Rest->Length = Length;
 		Local->Value[0] = (ml_value_t *)Rest;
 		Frame->Stack[NumParams] = (ml_value_t *)Local;
+		++NumParams;
 	}
-	Frame->Top = Frame->Stack + NumParams + VarArgs;
+	if (Info->NamedArgs) {
+		ml_reference_t *Local = (ml_reference_t *)ml_reference(NULL);
+		ml_value_t *Options = ml_map();
+		for (; I < Count; ++I) {
+			if (Args[I]->Type == MLNamesT) {
+				ML_NAMES_FOREACH(Args[I], Node) {
+					const char *Name = ml_method_name(Node->Value);
+					int Index = (intptr_t)stringmap_search(Info->Params, Name);
+					if (Index) {
+						ml_reference_t *Local = (ml_reference_t *)Frame->Stack[Index - 1];
+						Local->Value[0] = Args[++I];
+					} else {
+						ml_map_insert(Options, Node->Value, Args[++I]);
+					}
+				}
+				break;
+			}
+		}
+		Local->Value[0] = Options;
+		Frame->Stack[NumParams] = (ml_value_t *)Local;
+		++NumParams;
+	} else {
+		for (; I < Count; ++I) {
+			if (Args[I]->Type == MLNamesT) {
+				ML_NAMES_FOREACH(Args[I], Node) {
+					const char *Name = ml_method_name(Node->Value);
+					int Index = (intptr_t)stringmap_search(Info->Params, Name);
+					if (Index) {
+						ml_reference_t *Local = (ml_reference_t *)Frame->Stack[Index - 1];
+						Local->Value[0] = Args[++I];
+					} else {
+						ML_CONTINUE(Caller, ml_error("NameError", "Unknown named parameters %s", Name));
+					}
+				}
+				break;
+			}
+		}
+	}
+	Frame->Top = Frame->Stack + NumParams;
 	Frame->OnError = Info->Return;
 	Frame->UpValues = Closure->UpValues;
 	Frame->Inst = Info->Entry;
@@ -517,7 +681,7 @@ ml_type_t MLClosureT[1] = {{
 }};
 
 ml_value_t *ml_default_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
-	ML_CONTINUE(Caller, ml_error("TypeError", "value is not callable"));
+	ML_CONTINUE(Caller, ml_error("TypeError", "<%s> is not callable", Value->Type->Name));
 }
 
 inline ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args) {
@@ -554,35 +718,35 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done, const
 	stringmap_insert(Done, strdup(InstName), Inst);
 	switch (Inst->Opcode) {
 	case MLI_RETURN: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: return()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: return()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
 		break;
 	}
 	case MLI_SUSPEND: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: suspend()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: suspend()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_RESUME: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: resume()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: resume()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_NIL: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: nil()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: nil()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_SOME: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: some()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: some()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_IF: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: if()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: if()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
@@ -590,7 +754,7 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done, const
 		break;
 	}
 	case MLI_IF_VAR: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: if_var()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: if_var()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
@@ -598,7 +762,7 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done, const
 		break;
 	}
 	case MLI_IF_LET: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: if_def()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: if_def()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
@@ -606,7 +770,7 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done, const
 		break;
 	}
 	case MLI_ELSE: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: else()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: else()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
@@ -614,44 +778,48 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done, const
 		break;
 	}
 	case MLI_PUSH: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: push()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: push()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+		break;
+	}
+	case MLI_POP: {
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: pop()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_LOAD: {
-		ml_value_t *StringMethod = ml_method("string");
 		ml_value_t *Value = Inst->Params[1].Value;
 		if (Value->Type == MLStringT) {
-			fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: load(\'", (uintptr_t)Inst, Colour, Inst->Source.Line);
+			fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: load(\'", (uintptr_t)Inst, Colour, Inst->Source.Line);
 			ml_inst_escape_string(Graph, ml_string_value(Value), ml_string_length(Value));
 			fprintf(Graph, "\')\"];\n");
+		} else if (Value->Type == MLIntegerT) {
+			fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: load(%ld)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, ml_integer_value(Value));
+		} else if (Value->Type == MLRealT) {
+			fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: load(%f)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, ml_real_value(Value));
 		} else {
-			Value = ml_inline(StringMethod, 1, Value);
-			if (Value->Type == MLStringT) {
-				fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: load(%s)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, ml_string_value(Value));
-			} else {
-				fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: load(%s)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Value->Type->Name);
-			}
+			fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: load(%s)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Value->Type->Name);
 		}
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_ENTER: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: enter(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: enter(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_EXIT: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: exit(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: exit(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_LOOP: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: loop()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: loop()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
@@ -663,64 +831,58 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done, const
 		for (int I = 0; I < sizeof(intptr_t); ++I) Hash ^= X[I];
 		double Hue = Hash / 255.0;
 		char *TryColour;
-		asprintf(&TryColour, "%f 0.3 0.9", Hue);
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: try()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"error\" style=dashed color=red];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
+		asprintf(&TryColour, "%f 0.9 0.5", Hue);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: try()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"error\" style=dashed color=red];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, TryColour);
 		ml_inst_graph(Graph, Inst->Params[1].Inst, Done, Colour);
 		break;
 	}
 	case MLI_CATCH: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: catch(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Index);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: catch(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Index);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_VAR: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: var(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Index);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: var(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Index);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_LET: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: def(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Index);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: def(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Index);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_FOR: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: for()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_PUSH_RESULT: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: push_result()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: for()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_NEXT: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: next()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: next()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_VALUE: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: value()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: value()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_KEY: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: key()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: key()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_CALL: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: call(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: call(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
@@ -729,62 +891,93 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done, const
 		ml_value_t *StringMethod = ml_method("string");
 		ml_value_t *Value = Inst->Params[2].Value;
 		if (Value->Type == MLMethodT) {
-			fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: const_call(%d, :%s)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count, ml_method_name(Value));
+			fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: const_call(%d, :%s)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count, ml_method_name(Value));
 		} else {
 			Value = ml_inline(StringMethod, 1, Value);
 			if (Value->Type == MLStringT) {
-				fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: const_call(%d, %s)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count, ml_string_value(Value));
+				fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: const_call(%d, %s)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count, ml_string_value(Value));
 			} else {
-				fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: const_call(%d, %s)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count, Inst->Params[2].Value->Type->Name);
+				fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: const_call(%d, %s)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count, Inst->Params[2].Value->Type->Name);
 			}
 		}
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
-	case MLI_RESULT: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: result()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
 	case MLI_ASSIGN: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: assign()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: assign()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_LOCAL: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: local(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Index);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: local(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Index);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+		break;
+	}
+	case MLI_TUPLE_NEW: {
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: tuple_new(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+		break;
+	}
+	case MLI_TUPLE_SET: {
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: tuple_set(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Index);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+		break;
+	}
+	case MLI_LIST_NEW: {
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: list_new()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+		break;
+	}
+	case MLI_LIST_APPEND: {
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: list_append()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+		break;
+	}
+	case MLI_MAP_NEW: {
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: map_new()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+		break;
+	}
+	case MLI_MAP_INSERT: {
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: map_insert()\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_CLOSURE: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: closure(C%" PRIxPTR ")\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, (uintptr_t)Inst->Params[1].ClosureInfo);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: closure(C%" PRIxPTR ")\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, (uintptr_t)Inst->Params[1].ClosureInfo);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	default: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fillcolor=\"%s\" label=\"%d: unknown(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Opcode);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: unknown(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Opcode);
 		break;
 	}
 	}
 }
 
-void ml_closure_info_debug(ml_closure_info_t *Info) {
+const char *ml_closure_info_debug(ml_closure_info_t *Info) {
 	stringmap_t Done[1] = {STRINGMAP_INIT};
-	char ClosureName[20];
-	sprintf(ClosureName, "C%" PRIxPTR ".dot", (uintptr_t)Info);
-	FILE *Graph = fopen(ClosureName, "w");
-	fprintf(Graph, "digraph C%" PRIxPTR " {\n", (uintptr_t)Info);
-	fprintf(Graph, "\tgraph [compound=true];\n");
-	fprintf(Graph, "\tnode [shape=box style=filled];\n");
-	ml_inst_graph(Graph, Info->Entry, Done, "lightgray");
-	fprintf(Graph, "}\n");
-	fclose(Graph);
-	printf("Wrote closure to %s\n", ClosureName);
+	char *FileName;
+	asprintf(&FileName, "C%" PRIxPTR ".dot", (uintptr_t)Info);
+	FILE *File = fopen(FileName, "w");
+	fprintf(File, "digraph C%" PRIxPTR " {\n", (uintptr_t)Info);
+	fprintf(File, "\tgraph [compound=true,ranksep=0.3];\n");
+	fprintf(File, "\tnode [shape=plaintext,margin=0.1,height=0];\n");
+	ml_inst_graph(File, Info->Entry, Done, "black");
+	fprintf(File, "}\n");
+	fclose(File);
+	printf("Wrote closure to %s\n", FileName);
+	return FileName;
 }
 
 void ml_closure_debug(ml_value_t *Value) {

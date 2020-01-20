@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <gc.h>
-#include <ml_file.h>
+#include "ml_file.h"
 #include "ml_macros.h"
 
 #define new(T) ((T *)GC_MALLOC(sizeof(T)))
@@ -10,14 +10,16 @@
 #define snew(N) ((char *)GC_MALLOC_ATOMIC(N))
 #define xnew(T, N, U) ((T *)GC_MALLOC(sizeof(T) + (N) * sizeof(U)))
 
-typedef struct ml_file_t ml_file_t;
-
-struct ml_file_t {
+typedef struct ml_file_t {
 	const ml_type_t *Type;
 	FILE *Handle;
-};
+} ml_file_t;
 
-static ml_type_t *MLFileT;
+ml_type_t *MLFileT;
+
+FILE *ml_file_handle(ml_value_t *Value) {
+	return ((ml_file_t *)Value)->Handle;
+}
 
 #ifdef __MINGW32__
 static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
@@ -29,14 +31,14 @@ static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
 		memcpy(*Result + Offset, Buffer, 128);
 		return Total;
 	} else {
-		*Result = GC_malloc_atomic(Offset + Length + 1);
+		*Result = GC_MALLOC_ATOMIC(Offset + Length + 1);
 		strcpy(*Result + Offset, Buffer);
 		return Offset + Length;
 	}
 }
 #endif
 
-static ml_value_t *ml_file_read_line(void *Data, int Count, ml_value_t **Args) {
+ML_METHOD("read", MLFileT) {
 	ml_file_t *File = (ml_file_t *)Args[0];
 	char *Line = 0;
 	size_t Length = 0;
@@ -49,7 +51,7 @@ static ml_value_t *ml_file_read_line(void *Data, int Count, ml_value_t **Args) {
 	return ml_string(Line, Read);
 }
 
-static ml_value_t *ml_file_read_count(void *Data, int Count, ml_value_t **Args) {
+ML_METHOD("read", MLFileT, MLIntegerT) {
 	ml_file_t *File = (ml_file_t *)Args[0];
 	if (feof(File->Handle)) return MLNil;
 	ssize_t Requested = ml_integer_value(Args[1]);
@@ -72,7 +74,7 @@ static ml_value_t *ml_file_read_count(void *Data, int Count, ml_value_t **Args) 
 	return ml_stringbuffer_get_string(Final);
 }
 
-static ml_value_t *ml_file_write_string(void *Data, int Count, ml_value_t **Args) {
+ML_METHOD("write", MLFileT, MLStringT) {
 	ml_file_t *File = (ml_file_t *)Args[0];
 	const char *Chars = ml_string_value(Args[1]);
 	ssize_t Remaining = ml_string_length(Args[1]);
@@ -95,20 +97,20 @@ static int ml_file_write_buffer_chars(const char *Chars, size_t Remaining, ml_fi
 	return 0;
 }
 
-static ml_value_t *ml_file_write_buffer(void *Data, int Count, ml_value_t **Args) {
+ML_METHOD("write", MLFileT, MLStringBufferT) {
 	ml_file_t *File = (ml_file_t *)Args[0];
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[1];
 	if (ml_stringbuffer_foreach(Buffer, File, (void *)ml_file_write_buffer_chars)) return ml_error("FileError", "error writing to file");
 	return Args[0];
 }
 
-static ml_value_t *ml_file_eof(void *Data, int Count, ml_value_t **Args) {
+ML_METHOD("eof", MLFileT) {
 	ml_file_t *File = (ml_file_t *)Args[0];
 	if (feof(File->Handle)) return Args[0];
 	return MLNil;
 }
 
-static ml_value_t *ml_file_close(void *Data, int Count, ml_value_t **Args) {
+ML_METHOD("close", MLFileT) {
 	ml_file_t *File = (ml_file_t *)Args[0];
 	if (File->Handle) {
 		fclose(File->Handle);
@@ -149,13 +151,8 @@ ml_value_t *ml_file_open(void *Data, int Count, ml_value_t **Args) {
 
 void ml_file_init(stringmap_t *Globals) {
 	MLFileT = ml_type(MLAnyT, "file");
-	ml_method_by_name("read", 0, ml_file_read_line, MLFileT, NULL);
-	ml_method_by_name("read", 0, ml_file_read_count, MLFileT, MLIntegerT, NULL);
-	ml_method_by_name("write", 0, ml_file_write_string, MLFileT, MLStringT, NULL);
-	ml_method_by_name("write", 0, ml_file_write_buffer, MLFileT, MLStringBufferT, NULL);
-	ml_method_by_name("eof", 0, ml_file_eof, MLFileT, NULL);
-	ml_method_by_name("close", 0, ml_file_close, MLFileT, NULL);
 	if (Globals) {
 		stringmap_insert(Globals, "open", ml_function(0, ml_file_open));
 	}
+#include "ml_file_init.c"
 }

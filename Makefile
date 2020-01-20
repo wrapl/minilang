@@ -19,6 +19,17 @@ else
 	LDFLAGS += -g
 endif
 
+%_init.c: %.c
+	echo "" > $@
+	cc -E -P -DGENERATE_INIT $(CFLAGS) $< | grep -o 'ml_[a-z]*_by_name([^{]*_fn_[^{]*);' > $@
+
+ml_types.o: ml_types_init.c
+ml_object.o: ml_object_init.c
+ml_math.o: ml_math_init.c
+ml_file.o: ml_file_init.c
+ml_iterfns.o: ml_iterfns_init.c
+ml_module.o: ml_module_init.c
+
 common_objects = \
 	minilang.o \
 	ml_compiler.o \
@@ -29,7 +40,8 @@ common_objects = \
 	sha256.o \
 	stringmap.o \
 	ml_console.o \
-	ml_object.o
+	ml_object.o \
+	ml_module.o
 
 platform_objects =
 
@@ -72,6 +84,7 @@ clean:
 	rm -f minilang
 	rm -f minipp
 	rm -f *.o
+	rm -rf *_init.c
 	rm -f libminilang.a
 
 PREFIX = /usr

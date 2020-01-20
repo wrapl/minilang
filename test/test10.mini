@@ -1,4 +1,4 @@
-var PointT := class(:X, :Y)
+var PointT := class("point", :X, :Y)
 
 var A := PointT(10, 20)
 
@@ -11,19 +11,19 @@ method(:string, PointT; P) 'point({P:X}, {P:Y})'
 
 print('A = {A}\n')
 
-method(::+, PointT, PointT; A, B) PointT(A:X + B:X, A:Y + B:Y)
+method(+, PointT, PointT; A, B) PointT(A:X + B:X, A:Y + B:Y)
 
 var B := PointT(23, 9.1)
 
 print('{A} + {B} = {A + B}\n')
 
-method(::*, PointT, NumberT; A, N) PointT(A:X * N, A:Y * N)
-method(::*, NumberT, PointT; N, A) PointT(N * A:X, N * A:Y)
+method(*, PointT, NumberT; A, N) PointT(A:X * N, A:Y * N)
+method(*, NumberT, PointT; N, A) PointT(N * A:X, N * A:Y)
 
 print('{A} * 5 = {A * 5}\n')
 print('7.1 * {B} = {7.1 * B}\n')
 
-var VectorT := class(PointT, :Z)
+var VectorT := class("vector", PointT, :Z)
 
 var C := VectorT(1, 2, 3)
 

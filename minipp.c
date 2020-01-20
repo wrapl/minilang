@@ -5,6 +5,11 @@
 #include "ml_macros.h"
 #include <string.h>
 #include <gc/gc.h>
+#include "ml_object.h"
+#include "ml_module.h"
+#include "ml_iterfns.h"
+
+static stringmap_t Globals[1] = {STRINGMAP_INIT};
 
 typedef struct ml_preprocessor_input_t ml_preprocessor_input_t;
 typedef struct ml_preprocessor_output_t ml_preprocessor_output_t;
@@ -12,7 +17,6 @@ typedef struct ml_preprocessor_output_t ml_preprocessor_output_t;
 typedef struct ml_preprocessor_t {
 	ml_preprocessor_input_t *Input;
 	ml_preprocessor_output_t *Output;
-	stringmap_t Globals[1];
 } ml_preprocessor_t;
 
 struct ml_preprocessor_input_t {
@@ -27,7 +31,7 @@ struct ml_preprocessor_output_t {
 };
 
 static ml_value_t *ml_preprocessor_global_get(ml_preprocessor_t *Preprocessor, const char *Name) {
-	return stringmap_search(Preprocessor->Globals, Name) ?: ml_error("ParseError", "Undefined symbol %s", Name);
+	return stringmap_search(Globals, Name) ?: ml_error("ParseError", "Undefined symbol %s", Name);
 }
 
 static const char *ml_preprocessor_line_read(ml_preprocessor_t *Preprocessor) {
@@ -123,21 +127,22 @@ static ml_value_t *ml_preprocessor_include(ml_preprocessor_t *Preprocessor, int 
 void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer) {
 	ml_preprocessor_input_t Input0[1] = {{0, Reader}};
 	ml_preprocessor_output_t Output0[1] = {{0, Writer}};
-	ml_preprocessor_t Preprocessor[1] = {{
-		Input0, Output0,
-		{STRINGMAP_INIT}
-	}};
-	stringmap_insert(Preprocessor->Globals, "write", ml_function(Preprocessor, (void *)ml_preprocessor_output));
-	stringmap_insert(Preprocessor->Globals, "push", ml_function(Preprocessor, (void *)ml_preprocessor_push));
-	stringmap_insert(Preprocessor->Globals, "pop", ml_function(Preprocessor, (void *)ml_preprocessor_pop));
-	stringmap_insert(Preprocessor->Globals, "input", ml_function(Preprocessor, (void *)ml_preprocessor_input));
-	stringmap_insert(Preprocessor->Globals, "include", ml_function(Preprocessor, (void *)ml_preprocessor_include));
-	stringmap_insert(Preprocessor->Globals, "open", ml_function(0, ml_file_open));
+	ml_preprocessor_t Preprocessor[1] = {{Input0, Output0}};
+	ml_file_init(Globals);
+	ml_object_init(Globals);
+	ml_iterfns_init(Globals);
+	ml_module_init(Globals);
+	stringmap_insert(Globals, "write", ml_function(Preprocessor, (void *)ml_preprocessor_output));
+	stringmap_insert(Globals, "push", ml_function(Preprocessor, (void *)ml_preprocessor_push));
+	stringmap_insert(Globals, "pop", ml_function(Preprocessor, (void *)ml_preprocessor_pop));
+	stringmap_insert(Globals, "input", ml_function(Preprocessor, (void *)ml_preprocessor_input));
+	stringmap_insert(Globals, "include", ml_function(Preprocessor, (void *)ml_preprocessor_include));
+	stringmap_insert(Globals, "open", ml_function(0, ml_file_open));
 	mlc_context_t Context[1];
 	Context->GlobalGet = (ml_getter_t)ml_preprocessor_global_get;
 	Context->Globals = Preprocessor;
 	mlc_scanner_t *Scanner = ml_scanner(InputName, Preprocessor, (void *)ml_preprocessor_line_read, Context);
-	mlc_on_error(Context) {
+	MLC_ON_ERROR(Context) {
 		printf("Error: %s\n", ml_error_message(Context->Error));
 		const char *Source;
 		int Line;
@@ -179,9 +184,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 				ml_inline(Preprocessor->Output->Writer, 1, Semicolon);
 			} else {
 				Input->Line = Escape + 1;
-				mlc_expr_t *Expr = ml_accept_command(Scanner, Preprocessor->Globals);
-				ml_value_t *Closure = ml_compile(Expr, NULL, Context);
-				ml_value_t *Result = ml_call(Closure, 0, NULL);
+				ml_value_t *Result = ml_command_evaluate(Scanner, Globals, Context);
 				if (Result->Type == MLErrorT) {
 					printf("Error: %s\n", ml_error_message(Result));
 					const char *Source;
@@ -199,7 +202,6 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 
 int main(int Argc, const char **Argv) {
 	ml_init();
-	ml_file_init(0);
 	const char *InputName = "stdin";
 	FILE *Input = stdin;
 	FILE *Output = stdout;

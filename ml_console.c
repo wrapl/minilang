@@ -1,6 +1,7 @@
 #include "minilang.h"
 #include "ml_macros.h"
 #include "ml_compiler.h"
+#include "ml_internal.h"
 #include "stringmap.h"
 #ifndef __MINGW32__
 #include "linenoise.h"
@@ -17,7 +18,14 @@ typedef struct ml_console_t {
 } ml_console_t;
 
 static ml_value_t *ml_console_global_get(ml_console_t *Console, const char *Name) {
-	return stringmap_search(Console->Globals, Name) ?: (Console->ParentGetter)(Console->ParentGlobals, Name);
+	ml_value_t *Value = stringmap_search(Console->Globals, Name);
+	if (Value) return Value;
+	Value = (Console->ParentGetter)(Console->ParentGlobals, Name);
+	if (Value) return Value;
+	ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
+	Uninitialized->Type = MLUninitializedT;
+	stringmap_insert(Console->Globals, Name, Uninitialized);
+	return (ml_value_t *)Uninitialized;
 }
 
 #ifdef __MINGW32__
@@ -30,7 +38,7 @@ static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
 		memcpy(*Result + Offset, Buffer, 128);
 		return Total;
 	} else {
-		*Result = GC_malloc_atomic(Offset + Length + 1);
+		*Result = GC_MALLOC_ATOMIC(Offset + Length + 1);
 		strcpy(*Result + Offset, Buffer);
 		return Offset + Length;
 	}
@@ -52,6 +60,7 @@ static const char *ml_console_line_read(ml_console_t *Console) {
 	memcpy(Buffer, Line, Length);
 	Buffer[Length] = '\n';
 	Buffer[Length + 1] = 0;
+	Console->Prompt = "... ";
 	return Buffer;
 }
 
@@ -63,19 +72,18 @@ void ml_console(ml_getter_t GlobalGet, void *Globals) {
 	mlc_context_t Context[1] = {{(ml_getter_t)ml_console_global_get, Console}};
 	mlc_scanner_t *Scanner = ml_scanner("console", Console, (void *)ml_console_line_read, Context);
 	ml_value_t *StringMethod = ml_method("string");
-	mlc_on_error(Context) {
+	MLC_ON_ERROR(Context) {
 		printf("Error: %s\n", ml_error_message(Context->Error));
 		const char *Source;
 		int Line;
 		for (int I = 0; ml_error_trace(Context->Error, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 		ml_scanner_reset(Scanner);
+		Console->Prompt = "--> ";
 	}
 	for (;;) {
-		mlc_expr_t *Expr = ml_accept_command(Scanner, Console->Globals);
-		if (Expr == (mlc_expr_t *)-1) return;
-		ml_value_t *Closure = ml_compile(Expr, NULL, Context);
-		if (MLDebugClosures) ml_closure_debug(Closure);
-		ml_value_t *Result = ml_call(Closure, 0, NULL);
+		ml_value_t *Result = ml_command_evaluate(Scanner, Console->Globals, Context);
+		if (!Result) break;
+		Console->Prompt = "--> ";
 		Result = Result->Type->deref(Result);
 		if (Result->Type == MLErrorT) {
 			printf("Error: %s\n", ml_error_message(Result));

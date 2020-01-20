@@ -42,9 +42,6 @@ struct mlc_upvalue_t {
 
 typedef struct { ml_inst_t *Start, *Exits; } mlc_compiled_t;
 
-mlc_compiled_t mlc_compile(mlc_function_t *Function, mlc_expr_t *Expr, SHA256_CTX *HashContext);
-void mlc_connect(ml_inst_t *Exits, ml_inst_t *Start);
-
 #define MLC_EXPR_FIELDS(TYPE) \
 	mlc_compiled_t (*compile)(mlc_function_t *, mlc_ ## TYPE ## _expr_t *, SHA256_CTX *HashContext); \
 	mlc_expr_t *Next; \
@@ -75,8 +72,25 @@ struct mlc_function_t {
 	mlc_loop_t *Loop;
 	mlc_try_t *Try;
 	mlc_upvalue_t *UpValues;
-	int Top, Size, Self, CanSuspend;
+	int Top, Size, Self;
 };
+
+static inline void mlc_inc_top(mlc_function_t *Function) {
+	if (++Function->Top >= Function->Size) Function->Size = Function->Top + 1;
+}
+
+static inline mlc_compiled_t mlc_compile(mlc_function_t *Function, mlc_expr_t *Expr, SHA256_CTX *HashContext) {
+	return Expr->compile(Function, Expr, HashContext);
+}
+
+static inline void mlc_connect(ml_inst_t *Exits, ml_inst_t *Start) {
+	for (ml_inst_t *Exit = Exits; Exit;) {
+		if (Exit->Opcode == MLI_RETURN) return;
+		ml_inst_t *NextExit = Exit->Params[0].Inst;
+		Exit->Params[0].Inst = Start;
+		Exit = NextExit;
+	}
+}
 
 ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, mlc_context_t *Context) {
 	mlc_function_t Function[1];
@@ -106,65 +120,56 @@ ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, mlc_context_t 
 	Info->Entry = Compiled.Start;
 	Info->Return = Function->ReturnInst;
 	Info->FrameSize = Function->Size;
-	Info->CanSuspend = Function->CanSuspend;
 	Info->NumParams = NumParams;
 	sha256_final(HashContext, Info->Hash);
 	return (ml_value_t *)Closure;
 }
 
-ml_value_t *ml_expr_evaluate(mlc_expr_t *Expr, mlc_decl_t *Decls, mlc_context_t *Context) {
-	mlc_function_t Function[1];
-	memset(Function, 0, sizeof(Function));
-	Function->Context = Context;
-	Function->ReturnInst = ml_inst_new(0, Expr->Source, MLI_RETURN);
-	Function->Decls = Decls;
-
-	SHA256_CTX HashContext[1];
-	sha256_init(HashContext);
-	mlc_compiled_t Compiled = mlc_compile(Function, Expr, HashContext);
-	mlc_connect(Compiled.Exits, Function->ReturnInst);
+ml_value_t *ml_expr_evaluate(mlc_expr_t *Expr, mlc_function_t *Function) {
+	mlc_function_t SubFunction[1];
+	memset(SubFunction, 0, sizeof(SubFunction));
+	SubFunction->Context = Function->Context;
+	SubFunction->ReturnInst = ml_inst_new(0, Expr->Source, MLI_RETURN);
+	SubFunction->Up = Function;
+	SubFunction->Size = 1;
+	SHA256_CTX SubHashContext[1];
+	sha256_init(SubHashContext);
+	mlc_compiled_t Compiled = mlc_compile(SubFunction, Expr, SubHashContext);
+	mlc_connect(Compiled.Exits, SubFunction->ReturnInst);
+	if (SubFunction->UpValues) {
+		ml_value_t *Error = ml_error("EvalError", "Use of non-constant value in constant expression");
+		ml_error_trace_add(Error, Expr->Source);
+		Function->Context->Error = Error;
+		longjmp(Function->Context->OnError, 1);
+	}
 	ml_closure_t *Closure = new(ml_closure_t);
 	ml_closure_info_t *Info = Closure->Info = new(ml_closure_info_t);
 	Closure->Type = MLClosureT;
 	Info->Entry = Compiled.Start;
-	Info->Return = Function->ReturnInst;
-	Info->FrameSize = Function->Size;
-	Info->CanSuspend = Function->CanSuspend;
+	Info->Return = SubFunction->ReturnInst;
+	Info->FrameSize = SubFunction->Size;
 	Info->NumParams = 0;
-
 	if (MLDebugClosures) ml_closure_debug((ml_value_t *)Closure);
 	ml_value_t *Result = ml_call((ml_value_t *)Closure, 0, NULL);
 	Result = Result->Type->deref(Result);
 	if (Result->Type == MLErrorT) {
 		ml_error_trace_add(Result, Expr->Source);
-		Context->Error = Result;
-		longjmp(Context->OnError, 1);
+		Function->Context->Error = Result;
+		longjmp(Function->Context->OnError, 1);
 	}
 	return Result;
 }
 
-inline mlc_compiled_t mlc_compile(mlc_function_t *Function, mlc_expr_t *Expr, SHA256_CTX *HashContext) {
-	return Expr->compile(Function, Expr, HashContext);
-}
-
-inline void mlc_connect(ml_inst_t *Exits, ml_inst_t *Start) {
-	for (ml_inst_t *Exit = Exits; Exit;) {
-		if (Exit->Opcode == MLI_RETURN) return;
-		ml_inst_t *NextExit = Exit->Params[0].Inst;
-		Exit->Params[0].Inst = Start;
-		Exit = NextExit;
-	}
-}
-
 typedef struct mlc_if_expr_t mlc_if_expr_t;
 typedef struct mlc_if_case_t mlc_if_case_t;
+typedef struct mlc_when_expr_t mlc_when_expr_t;
 typedef struct mlc_parent_expr_t mlc_parent_expr_t;
 typedef struct mlc_fun_expr_t mlc_fun_expr_t;
 typedef struct mlc_decl_expr_t mlc_decl_expr_t;
 typedef struct mlc_dot_expr_t mlc_dot_expr_t;
 typedef struct mlc_value_expr_t mlc_value_expr_t;
 typedef struct mlc_ident_expr_t mlc_ident_expr_t;
-typedef struct mlc_const_call_expr_t mlc_const_call_expr_t;
+typedef struct mlc_parent_value_expr_t mlc_parent_value_expr_t;
 typedef struct mlc_block_expr_t mlc_block_expr_t;
 
 struct mlc_if_case_t {
@@ -190,7 +195,7 @@ static mlc_compiled_t ml_if_expr_compile(mlc_function_t *Function, mlc_if_expr_t
 	if (Case->Decl) {
 		ML_COMPILE_HASH
 		IfInst->Opcode = Case->Decl->Index ? MLI_IF_VAR : MLI_IF_LET;
-		if (++Function->Top >= Function->Size) Function->Size = Function->Top + 1;
+		mlc_inc_top(Function);
 		Case->Decl->Index = Function->Top - 1;
 		Case->Decl->Next = Function->Decls;
 		Function->Decls = Case->Decl;
@@ -215,7 +220,7 @@ static mlc_compiled_t ml_if_expr_compile(mlc_function_t *Function, mlc_if_expr_t
 		if (Case->Decl) {
 			ML_COMPILE_HASH
 			IfInst->Opcode = Case->Decl->Index ? MLI_IF_VAR : MLI_IF_LET;
-			if (++Function->Top >= Function->Size) Function->Size = Function->Top + 1;
+			mlc_inc_top(Function);
 			Case->Decl->Index = Function->Top - 1;
 			Function->Decls = Case->Decl;
 		}
@@ -485,7 +490,7 @@ static mlc_compiled_t ml_suspend_expr_compile(mlc_function_t *Function, mlc_pare
 	}
 	ml_inst_t *KeyPushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
 	mlc_connect(Compiled.Exits, KeyPushInst);
-	++Function->Top;
+	mlc_inc_top(Function);
 	mlc_compiled_t ValueCompiled = mlc_compile(Function, ValueExpr, HashContext);
 	KeyPushInst->Params[0].Inst = ValueCompiled.Start;
 	ml_inst_t *ValuePushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
@@ -518,11 +523,24 @@ static mlc_compiled_t ml_var_expr_compile(mlc_function_t *Function, mlc_decl_exp
 static mlc_compiled_t ml_let_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr, SHA256_CTX *HashContext) {
 	ML_COMPILE_HASH
 	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
-	ml_inst_t *DefInst = ml_inst_new(2, Expr->Source, MLI_LET);
-	DefInst->Params[1].Index = Expr->Decl->Index - Function->Top;
-	mlc_connect(Compiled.Exits, DefInst);
-	Compiled.Exits = DefInst;
+	ml_inst_t *LetInst = ml_inst_new(2, Expr->Source, MLI_LET);
+	LetInst->Params[1].Index = Expr->Decl->Index - Function->Top;
+	mlc_connect(Compiled.Exits, LetInst);
+	Compiled.Exits = LetInst;
 	return Compiled;
+}
+
+static mlc_compiled_t ml_def_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr, SHA256_CTX *HashContext) {
+	ML_COMPILE_HASH
+	ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Expr->Decl->Value;
+	ml_value_t *Result = ml_expr_evaluate(Expr->Child, Function);
+	Expr->Decl->Value = Result;
+	for (ml_slot_t *Slot = Uninitialized->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Result;
+	long ValueHash = ml_hash(Result);
+	sha256_update(HashContext, (void *)&ValueHash, sizeof(ValueHash));
+	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
+	ValueInst->Params[1].Value = Result;
+	return (mlc_compiled_t){ValueInst, ValueInst};
 }
 
 static mlc_compiled_t ml_with_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr, SHA256_CTX *HashContext) {
@@ -532,7 +550,7 @@ static mlc_compiled_t ml_with_expr_compile(mlc_function_t *Function, mlc_decl_ex
 	mlc_expr_t *Child = Expr->Child;
 	mlc_compiled_t Compiled = mlc_compile(Function, Child, HashContext);
 	ml_inst_t *PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
-	++Function->Top;
+	mlc_inc_top(Function);
 	mlc_connect(Compiled.Exits, PushInst);
 	mlc_decl_t *Decl = Expr->Decl;
 	Decl->Index = Function->Top - 1;
@@ -547,7 +565,7 @@ static mlc_compiled_t ml_with_expr_compile(mlc_function_t *Function, mlc_decl_ex
 		mlc_compiled_t ChildCompiled = mlc_compile(Function, Child, HashContext);
 		PushInst->Params[0].Inst = ChildCompiled.Start;
 		PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
-		++Function->Top;
+		mlc_inc_top(Function);
 		mlc_connect(ChildCompiled.Exits, PushInst);
 		Decl->Index = Function->Top - 1;
 		Decl->Next = Function->Decls;
@@ -577,7 +595,7 @@ static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_exp
 	mlc_connect(Compiled.Exits, ForInst);
 	ml_inst_t *PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
 	IfInst->Params[1].Inst = PushInst;
-	++Function->Top;
+	mlc_inc_top(Function);
 	ml_inst_t *NextInst = ml_inst_new(2, Expr->Source, MLI_NEXT);
 	NextInst->Params[0].Inst = IfInst;
 	NextInst->Params[1].Count = 1;
@@ -600,19 +618,19 @@ static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_exp
 		Decl->Next = Function->Decls;
 	}
 	Function->Decls = Decl;
-	if (Function->Top >= Function->Size) Function->Size = Function->Top;
+	if (Function->Top >= Function->Size) Function->Size = Function->Top + 1;
 	Function->Loop = &Loop;
 	mlc_compiled_t BodyCompiled = mlc_compile(Function, Child->Next, HashContext);
 	mlc_connect(BodyCompiled.Exits, NextInst);
 	ml_inst_t *ValueInst = ml_inst_new(1, Expr->Source, MLI_VALUE);
-	ml_inst_t *ValueResultInst = ml_inst_new(1, Expr->Source, MLI_PUSH_RESULT);
+	ml_inst_t *ValueResultInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
 	ValueInst->Params[0].Inst = ValueResultInst;
 	PushInst->Params[0].Inst = ValueInst;
 	if (HasKey) {
 		ML_COMPILE_HASH
 		NextInst->Params[1].Count = 2;
 		ml_inst_t *KeyInst = ml_inst_new(1, Expr->Source, MLI_KEY);
-		ml_inst_t *KeyResultInst = ml_inst_new(1, Expr->Source, MLI_PUSH_RESULT);
+		ml_inst_t *KeyResultInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
 		KeyInst->Params[0].Inst = KeyResultInst;
 		KeyResultInst->Params[0].Inst = BodyCompiled.Start;
 		ValueResultInst->Params[0].Inst = KeyInst;
@@ -639,9 +657,29 @@ static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_exp
 	return Compiled;
 }
 
+static mlc_compiled_t ml_each_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
+	ML_COMPILE_HASH
+	mlc_expr_t *Child = Expr->Child;
+	mlc_compiled_t Compiled = mlc_compile(Function, Child, HashContext);
+	ml_inst_t *EachInst = ml_inst_new(1, Expr->Source, MLI_FOR);
+	ml_inst_t *IfInst = ml_inst_new(2, Expr->Source, MLI_IF);
+	EachInst->Params[0].Inst = IfInst;
+	mlc_connect(Compiled.Exits, EachInst);
+	ml_inst_t *PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
+	IfInst->Params[1].Inst = PushInst;
+	ml_inst_t *ValueInst = ml_inst_new(1, Expr->Source, MLI_VALUE);
+	PushInst->Params[0].Inst = ValueInst;
+	ml_inst_t *NextInst = ml_inst_new(2, Expr->Source, MLI_NEXT);
+	ValueInst->Params[0].Inst = NextInst;
+	NextInst->Params[0].Inst = IfInst;
+	NextInst->Params[1].Count = 0;
+	Compiled.Exits = IfInst;
+	return Compiled;
+}
+
 struct mlc_block_expr_t {
 	MLC_EXPR_FIELDS(block);
-	mlc_decl_t *Decl;
+	mlc_decl_t *Vars, *Lets, *Defs;
 	mlc_expr_t *Child;
 	mlc_decl_t *CatchDecl;
 	mlc_expr_t *Catch;
@@ -649,7 +687,7 @@ struct mlc_block_expr_t {
 
 static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_expr_t *Expr, SHA256_CTX *HashContext) {
 	ML_COMPILE_HASH
-	int OldTop = Function->Top, NumVars = 0;
+	int OldTop = Function->Top;
 	mlc_decl_t *OldScope = Function->Decls;
 	mlc_try_t Try;
 	ml_inst_t *CatchExitInst = 0;
@@ -675,13 +713,28 @@ static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_
 		mlc_connect(TryCompiled.Exits, CatchExitInst);
 		Function->Try = &Try;
 	}
-	for (mlc_decl_t *Decl = Expr->Decl; Decl;) {
+	int NumVars = 0, NumLets = 0;
+	for (mlc_decl_t *Decl = Expr->Vars; Decl;) {
 		Decl->Index = Function->Top++;
 		mlc_decl_t *NextDecl = Decl->Next;
 		Decl->Next = Function->Decls;
 		Function->Decls = Decl;
 		Decl = NextDecl;
 		++NumVars;
+	}
+	for (mlc_decl_t *Decl = Expr->Lets; Decl;) {
+		Decl->Index = Function->Top++;
+		mlc_decl_t *NextDecl = Decl->Next;
+		Decl->Next = Function->Decls;
+		Function->Decls = Decl;
+		Decl = NextDecl;
+		++NumLets;
+	}
+	for (mlc_decl_t *Decl = Expr->Defs; Decl;) {
+		mlc_decl_t *NextDecl = Decl->Next;
+		Decl->Next = Function->Decls;
+		Function->Decls = Decl;
+		Decl = NextDecl;
 	}
 	if (Function->Top >= Function->Size) Function->Size = Function->Top + 1;
 	mlc_expr_t *Child = Expr->Child;
@@ -698,14 +751,15 @@ static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_
 		ml_inst_t *NilInst = ml_inst_new(1, Expr->Source, MLI_NIL);
 		Compiled.Start = Compiled.Exits = NilInst;
 	}
-	if (NumVars > 0) {
+	if (NumVars + NumLets > 0) {
 		ML_COMPILE_HASH
-		ml_inst_t *EnterInst = ml_inst_new(2, Expr->Source, MLI_ENTER);
+		ml_inst_t *EnterInst = ml_inst_new(3, Expr->Source, MLI_ENTER);
 		EnterInst->Params[0].Inst = Compiled.Start;
 		EnterInst->Params[1].Count = NumVars;
+		EnterInst->Params[2].Count = NumLets;
 		Compiled.Start = EnterInst;
 		ml_inst_t *ExitInst = ml_inst_new(2, Expr->Source, MLI_EXIT);
-		ExitInst->Params[1].Count = NumVars;
+		ExitInst->Params[1].Count = NumVars + NumLets;
 		mlc_connect(Compiled.Exits, ExitInst);
 		Compiled.Exits = ExitInst;
 	}
@@ -758,30 +812,68 @@ static mlc_compiled_t ml_old_expr_compile(mlc_function_t *Function, mlc_expr_t *
 
 static mlc_compiled_t ml_tuple_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
 	ML_COMPILE_HASH
-	int OldTop = Function->Top;
-	ml_inst_t *CallInst = ml_inst_new(2, Expr->Source, MLI_TUPLE);
-	ml_inst_t *ResultInst = ml_inst_new(1, Expr->Source, MLI_RESULT);
-	CallInst->Params[0].Inst = ResultInst;
-	ML_COMPILE_HASH
-	int NumArgs = 1;
-	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
-	ml_inst_t *PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
-	mlc_connect(Compiled.Exits, PushInst);
-	++Function->Top;
-	for (mlc_expr_t *Child = Expr->Child->Next; Child; Child = Child->Next) {
-		ML_COMPILE_HASH
-		++NumArgs;
+	ml_inst_t *TupleInst = ml_inst_new(2, Expr->Source, MLI_TUPLE_NEW);
+	if (++Function->Top >= Function->Size) Function->Size = Function->Top + 1;
+	mlc_compiled_t Compiled = {TupleInst, TupleInst};
+	int Count = 0;
+	for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next) {
 		mlc_compiled_t ChildCompiled = mlc_compile(Function, Child, HashContext);
-		PushInst->Params[0].Inst = ChildCompiled.Start;
-		PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
-		mlc_connect(ChildCompiled.Exits, PushInst);
-		++Function->Top;
+		Compiled.Exits->Params[0].Inst = ChildCompiled.Start;
+		ml_inst_t *SetInst = ml_inst_new(2, Expr->Source, MLI_TUPLE_SET);
+		SetInst->Params[1].Index = Count++;
+		mlc_connect(ChildCompiled.Exits, SetInst);
+		Compiled.Exits = SetInst;
 	}
-	if (Function->Top >= Function->Size) Function->Size = Function->Top + 1;
-	CallInst->Params[1].Count = NumArgs;
-	PushInst->Params[0].Inst = CallInst;
-	Compiled.Exits = ResultInst;
-	Function->Top = OldTop;
+	TupleInst->Params[1].Count = Count;
+	ml_inst_t *PopInst = ml_inst_new(1, Expr->Source, MLI_POP);
+	Compiled.Exits->Params[0].Inst = PopInst;
+	Compiled.Exits = PopInst;
+	--Function->Top;
+	return Compiled;
+}
+
+static mlc_compiled_t ml_list_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
+	ML_COMPILE_HASH
+	ml_inst_t *ListInst = ml_inst_new(1, Expr->Source, MLI_LIST_NEW);
+	if (++Function->Top >= Function->Size) Function->Size = Function->Top + 1;
+	mlc_compiled_t Compiled = {ListInst, ListInst};
+	for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next) {
+		mlc_compiled_t ChildCompiled = mlc_compile(Function, Child, HashContext);
+		Compiled.Exits->Params[0].Inst = ChildCompiled.Start;
+		ml_inst_t *AppendInst = ml_inst_new(1, Expr->Source, MLI_LIST_APPEND);
+		mlc_connect(ChildCompiled.Exits, AppendInst);
+		Compiled.Exits = AppendInst;
+	}
+	ml_inst_t *PopInst = ml_inst_new(1, Expr->Source, MLI_POP);
+	Compiled.Exits->Params[0].Inst = PopInst;
+	Compiled.Exits = PopInst;
+	--Function->Top;
+	return Compiled;
+}
+
+static mlc_compiled_t ml_map_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
+	ML_COMPILE_HASH
+	ml_inst_t *TupleInst = ml_inst_new(1, Expr->Source, MLI_MAP_NEW);
+	if (Function->Top + 2 >= Function->Size) Function->Size = Function->Top + 3;
+	++Function->Top;
+	mlc_compiled_t Compiled = {TupleInst, TupleInst};
+	for (mlc_expr_t *Key = Expr->Child; Key; Key = Key->Next->Next) {
+		mlc_compiled_t KeyCompiled = mlc_compile(Function, Key, HashContext);
+		Compiled.Exits->Params[0].Inst = KeyCompiled.Start;
+		ml_inst_t *PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
+		mlc_connect(KeyCompiled.Exits, PushInst);
+		++Function->Top;
+		mlc_compiled_t ValueCompiled = mlc_compile(Function, Key->Next, HashContext);
+		PushInst->Params[0].Inst = ValueCompiled.Start;
+		ml_inst_t *InsertInst = ml_inst_new(1, Expr->Source, MLI_MAP_INSERT);
+		mlc_connect(ValueCompiled.Exits, InsertInst);
+		Compiled.Exits = InsertInst;
+		--Function->Top;
+	}
+	ml_inst_t *PopInst = ml_inst_new(1, Expr->Source, MLI_POP);
+	Compiled.Exits->Params[0].Inst = PopInst;
+	Compiled.Exits = PopInst;
+	--Function->Top;
 	return Compiled;
 }
 
@@ -806,28 +898,24 @@ static mlc_compiled_t ml_call_expr_compile(mlc_function_t *Function, mlc_parent_
 	ml_inst_t *CallInst = ml_inst_new(2, Expr->Source, MLI_CALL);
 	CallInst->Params[1].Count = NumArgs;
 	PushInst->Params[0].Inst = CallInst;
-	ml_inst_t *ResultInst = ml_inst_new(1, Expr->Source, MLI_RESULT);
-	CallInst->Params[0].Inst = ResultInst;
-	Compiled.Exits = ResultInst;
+	Compiled.Exits = CallInst;
 	Function->Top = OldTop;
 	return Compiled;
 }
 
-struct mlc_const_call_expr_t {
-	MLC_EXPR_FIELDS(const_call);
+struct mlc_parent_value_expr_t {
+	MLC_EXPR_FIELDS(parent_value);
 	mlc_expr_t *Child;
 	ml_value_t *Value;
 };
 
-static mlc_compiled_t ml_const_call_expr_compile(mlc_function_t *Function, mlc_const_call_expr_t *Expr, SHA256_CTX *HashContext) {
+static mlc_compiled_t ml_const_call_expr_compile(mlc_function_t *Function, mlc_parent_value_expr_t *Expr, SHA256_CTX *HashContext) {
 	ML_COMPILE_HASH
 	int OldTop = Function->Top;
 	long ValueHash = ml_hash(Expr->Value);
 	sha256_update(HashContext, (void *)&ValueHash, sizeof(ValueHash));
 	ml_inst_t *CallInst = ml_inst_new(3, Expr->Source, MLI_CONST_CALL);
 	CallInst->Params[2].Value = Expr->Value;
-	ml_inst_t *ResultInst = ml_inst_new(1, Expr->Source, MLI_RESULT);
-	CallInst->Params[0].Inst = ResultInst;
 	if (Expr->Child) {
 		ML_COMPILE_HASH
 		int NumArgs = 1;
@@ -847,15 +935,56 @@ static mlc_compiled_t ml_const_call_expr_compile(mlc_function_t *Function, mlc_c
 		if (Function->Top >= Function->Size) Function->Size = Function->Top + 1;
 		CallInst->Params[1].Count = NumArgs;
 		PushInst->Params[0].Inst = CallInst;
-		Compiled.Exits = ResultInst;
+		Compiled.Exits = CallInst;
 		Function->Top = OldTop;
 		return Compiled;
 	} else {
 		ML_COMPILE_HASH
 		CallInst->Params[1].Count = 0;
 		Function->Top = OldTop;
-		return (mlc_compiled_t){CallInst, ResultInst};
+		return (mlc_compiled_t){CallInst, CallInst};
 	}
+}
+
+extern ml_value_t *IndexMethod;
+extern ml_value_t *SymbolMethod;
+
+static mlc_compiled_t ml_import_expr_compile(mlc_function_t *Function, mlc_parent_value_expr_t *Expr, SHA256_CTX *HashContext) {
+	ML_COMPILE_HASH
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
+	if ((Compiled.Start == Compiled.Exits) && (Compiled.Start->Opcode == MLI_LOAD)) {
+		ml_inst_t *ValueInst = Compiled.Start;
+		ml_value_t *Args[2] = {ValueInst->Params[1].Value, Expr->Value};
+		ml_value_t *Value = SymbolMethod->Type->call(NULL, SymbolMethod, 2, Args);
+		if (Value->Type != MLErrorT) {
+			if (Value->Type == MLUninitializedT) {
+				ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Value;
+				ml_slot_t *Slot = new(ml_slot_t);
+				Slot->Value = &ValueInst->Params[1].Value;
+				Slot->Next = Uninitialized->Slots;
+				Uninitialized->Slots = Slot;
+			}
+			ValueInst->Params[1].Value = Value;
+			return Compiled;
+		}
+	}
+	ML_COMPILE_HASH
+	ml_inst_t *PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
+	mlc_connect(Compiled.Exits, PushInst);
+	ml_inst_t *LoadInst = ml_inst_new(1, Expr->Source, MLI_LOAD);
+	LoadInst->Params[1].Value = Expr->Value;
+	PushInst->Params[0].Inst = LoadInst;
+	PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
+	LoadInst->Params[0].Inst = PushInst;
+	Function->Top += 2;
+	ml_inst_t *CallInst = ml_inst_new(3, Expr->Source, MLI_CONST_CALL);
+	PushInst->Params[0].Inst = CallInst;
+	CallInst->Params[1].Count = 2;
+	CallInst->Params[2].Value = SymbolMethod;
+	Compiled.Exits = CallInst;
+	if (Function->Top >= Function->Size) Function->Size = Function->Top + 1;
+	Function->Top -= 2;
+	return Compiled;
 }
 
 struct mlc_fun_expr_t {
@@ -874,21 +1003,30 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	SubFunction->Context = Function->Context;
 	SubFunction->ReturnInst = ml_inst_new(0, Expr->Source, MLI_RETURN);
 	SubFunction->Up = Function;
+	ml_closure_info_t *Info = new(ml_closure_info_t);
 	int NumParams = 0;
 	mlc_decl_t **ParamSlot = &SubFunction->Decls;
 	for (mlc_decl_t *Param = Expr->Params; Param;) {
 		mlc_decl_t *NextParam = Param->Next;
-		if (Param->Index) {
-			NumParams = ~NumParams;
-		} else {
-			++NumParams;
+		switch (Param->Index) {
+		case ML_PARAM_EXTRA:
+			Param->Index = NumParams++;
+			Info->ExtraArgs = 1;
+			break;
+		case ML_PARAM_NAMED:
+			Param->Index = NumParams++;
+			Info->NamedArgs = 1;
+			break;
+		default:
+			Param->Index = NumParams++;
+			stringmap_insert(Info->Params, Param->Ident, (void *)(intptr_t)NumParams);
+			break;
 		}
-		Param->Index = SubFunction->Top++;
 		ParamSlot[0] = Param;
 		ParamSlot = &Param->Next;
 		Param = NextParam;
 	}
-	SubFunction->Size = SubFunction->Top + 1;
+	SubFunction->Top = SubFunction->Size = NumParams;
 	SHA256_CTX SubHashContext[1];
 	sha256_init(SubHashContext);
 	mlc_compiled_t Compiled = mlc_compile(SubFunction, Expr->Body, SubHashContext);
@@ -897,13 +1035,11 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) ++NumUpValues;
 	ml_inst_t *ClosureInst = ml_inst_new(2 + NumUpValues, Expr->Source, MLI_CLOSURE);
 	ml_param_t *Params = ClosureInst->Params;
-	ml_closure_info_t *Info = new(ml_closure_info_t);
 	Info->Entry = Compiled.Start;
 	Info->Return = SubFunction->ReturnInst;
 	Info->FrameSize = SubFunction->Size;
 	Info->NumParams = NumParams;
 	Info->NumUpValues = NumUpValues;
-	Info->CanSuspend = SubFunction->CanSuspend;
 	sha256_final(SubHashContext, Info->Hash);
 	Params[1].ClosureInfo = Info;
 	sha256_update(HashContext, Info->Hash, SHA256_BLOCK_SIZE);
@@ -934,15 +1070,26 @@ static int ml_upvalue_find(mlc_function_t *Function, mlc_decl_t *Decl, mlc_funct
 	return ~Index;
 }
 
+static mlc_compiled_t ml_ident_expr_finish(mlc_ident_expr_t *Expr, ml_value_t *Value) {
+	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
+	if (Value->Type == MLUninitializedT) {
+		ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Value;
+		ml_slot_t *Slot = new(ml_slot_t);
+		Slot->Value = &ValueInst->Params[1].Value;
+		Slot->Next = Uninitialized->Slots;
+		Uninitialized->Slots = Slot;
+	}
+	ValueInst->Params[1].Value = Value;
+	return (mlc_compiled_t){ValueInst, ValueInst};
+}
+
 static mlc_compiled_t ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Expr, SHA256_CTX *HashContext) {
 	ML_COMPILE_HASH
 	for (mlc_function_t *UpFunction = Function; UpFunction; UpFunction = UpFunction->Up) {
 		for (mlc_decl_t *Decl = UpFunction->Decls; Decl; Decl = Decl->Next) {
 			if (!strcmp(Decl->Ident, Expr->Ident)) {
 				if (Decl->Value) {
-					ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
-					ValueInst->Params[1].Value = Decl->Value;
-					return (mlc_compiled_t){ValueInst, ValueInst};
+					return ml_ident_expr_finish(Expr, Decl->Value);
 				} else {
 					int Index = ml_upvalue_find(Function, Decl, UpFunction);
 					sha256_update(HashContext, (void *)&Index, sizeof(Index));
@@ -955,15 +1102,13 @@ static mlc_compiled_t ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_
 		}
 	}
 	sha256_update(HashContext, (unsigned char *)Expr->Ident, strlen(Expr->Ident));
-	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
 	ml_value_t *Value = (Function->Context->GlobalGet)(Function->Context->Globals, Expr->Ident);
 	if (!Value) {
 		Function->Context->Error = ml_error("CompilerError", "identifier %s not declared", Expr->Ident);
 		ml_error_trace_add(Function->Context->Error, Expr->Source);
 		longjmp(Function->Context->OnError, 1);
 	}
-	ValueInst->Params[1].Value = Value;
-	return (mlc_compiled_t){ValueInst, ValueInst};
+	return ml_ident_expr_finish(Expr, Value);
 }
 
 struct mlc_value_expr_t {
@@ -977,6 +1122,16 @@ static mlc_compiled_t ml_value_expr_compile(mlc_function_t *Function, mlc_value_
 	sha256_update(HashContext, (void *)&ValueHash, sizeof(ValueHash));
 	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
 	ValueInst->Params[1].Value = Expr->Value;
+	return (mlc_compiled_t){ValueInst, ValueInst};
+}
+
+static mlc_compiled_t ml_inline_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
+	ML_COMPILE_HASH
+	ml_value_t *Value = ml_expr_evaluate(Expr->Child, Function);
+	long ValueHash = ml_hash(Value);
+	sha256_update(HashContext, (void *)&ValueHash, sizeof(ValueHash));
+	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
+	ValueInst->Params[1].Value = Value;
 	return (mlc_compiled_t){ValueInst, ValueInst};
 }
 
@@ -995,6 +1150,7 @@ const char *MLTokens[] = {
 	"exit", // MLT_EXIT,
 	"next", // MLT_NEXT,
 	"for", // MLT_FOR,
+	"each", // MLT_EACH,
 	"to", // MLT_TO,
 	"in", // MLT_IN,
 	"is", // MLT_IS,
@@ -1048,6 +1204,7 @@ typedef enum ml_token_t {
 	MLT_EXIT,
 	MLT_NEXT,
 	MLT_FOR,
+	MLT_EACH,
 	MLT_TO,
 	MLT_IN,
 	MLT_IS,
@@ -1131,7 +1288,6 @@ const char *ml_scanner_clear(mlc_scanner_t *Scanner) {
 typedef enum {EXPR_SIMPLE, EXPR_AND, EXPR_OR, EXPR_FOR, EXPR_DEFAULT} ml_expr_level_t;
 
 static void ml_accept(mlc_scanner_t *Scanner, ml_token_t Token);
-static mlc_expr_t *ml_accept_factor(mlc_scanner_t *Scanner);
 static mlc_expr_t *ml_parse_expression(mlc_scanner_t *Scanner, ml_expr_level_t Level);
 static mlc_expr_t *ml_accept_expression(mlc_scanner_t *Scanner, ml_expr_level_t Level);
 
@@ -1215,8 +1371,10 @@ static mlc_expr_t *ml_accept_string(mlc_scanner_t *Scanner) {
 }
 
 static ml_function_t StringNew[1] = {{MLFunctionT, ml_string_new, NULL}};
-static ml_function_t ListNew[1] = {{MLFunctionT, ml_list_new, NULL}};
-static ml_function_t MapNew[1] = {{MLFunctionT, ml_map_new, NULL}};
+
+static inline int isidstart(char C) {
+	return isalpha(C) || (C == '_') || (C < 0);
+}
 
 static inline int isidchar(char C) {
 	return isalnum(C) || (C == '_') || (C < 0);
@@ -1265,7 +1423,7 @@ static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 			Scanner->Token = MLT_EOL;
 			return Scanner->Token;
 		}
-		if (Char <= ' ') {
+		if (0 <= Char && Char <= ' ') {
 			++Scanner->Next;
 			continue;
 		}
@@ -1307,24 +1465,7 @@ static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 			Scanner->Next = End + 1;
 			return Scanner->Token;
 		}
-		if (isdigit(Char) || (Char == '-' && isdigit(Scanner->Next[1])) || (Char == '.' && isdigit(Scanner->Next[1]))) {
-			char *End;
-			double Double = strtod(Scanner->Next, (char **)&End);
-			for (const char *P = Scanner->Next; P < End; ++P) {
-				if (P[0] == '.' || P[0] == 'e' || P[0] == 'E') {
-					Scanner->Value = ml_real(Double);
-					Scanner->Token = MLT_VALUE;
-					Scanner->Next = End;
-					return Scanner->Token;
-				}
-			}
-			long Integer = strtol(Scanner->Next, (char **)&End, 10);
-			Scanner->Value = ml_integer(Integer);
-			Scanner->Token = MLT_VALUE;
-			Scanner->Next = End;
-			return Scanner->Token;
-		}
-		if (isidchar(Char)) {
+		if (isidstart(Char)) {
 			const char *End = Scanner->Next + 1;
 			for (Char = End[0]; isidchar(Char); Char = *++End);
 			int Length = End - Scanner->Next;
@@ -1346,6 +1487,23 @@ static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 			Scanner->Next = End;
 			return Scanner->Token;
 		}
+		if (isdigit(Char) || (Char == '-' && isdigit(Scanner->Next[1])) || (Char == '.' && isdigit(Scanner->Next[1]))) {
+			char *End;
+			double Double = strtod(Scanner->Next, (char **)&End);
+			for (const char *P = Scanner->Next; P < End; ++P) {
+				if (P[0] == '.' || P[0] == 'e' || P[0] == 'E') {
+					Scanner->Value = ml_real(Double);
+					Scanner->Token = MLT_VALUE;
+					Scanner->Next = End;
+					return Scanner->Token;
+				}
+			}
+			long Integer = strtol(Scanner->Next, (char **)&End, 10);
+			Scanner->Value = ml_integer(Integer);
+			Scanner->Token = MLT_VALUE;
+			Scanner->Next = End;
+			return Scanner->Token;
+		}
 		if (Char == '\'') {
 			++Scanner->Next;
 			mlc_expr_t *Child = ml_accept_string(Scanner);
@@ -1356,7 +1514,7 @@ static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 				Scanner->Token = MLT_VALUE;
 				Scanner->Value = ((mlc_value_expr_t *)Child)->Value;
 			} else {
-				mlc_const_call_expr_t *CallExpr = new(mlc_const_call_expr_t);
+				mlc_parent_value_expr_t *CallExpr = new(mlc_parent_value_expr_t);
 				CallExpr->compile = ml_const_call_expr_compile;
 				CallExpr->Source = Scanner->Source;
 				CallExpr->Value = (ml_value_t *)StringNew;
@@ -1408,6 +1566,10 @@ static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 				Scanner->Token = MLT_ASSIGN;
 				Scanner->Next += 2;
 				return Scanner->Token;
+			} else if (Scanner->Next[1] == ':') {
+				Scanner->Token = MLT_SYMBOL;
+				Scanner->Next += 2;
+				return Scanner->Token;
 			} else if (isidchar(Scanner->Next[1])) {
 				const char *End = Scanner->Next + 1;
 				for (Char = End[0]; isidchar(Char); Char = *++End);
@@ -1419,17 +1581,6 @@ static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 				Scanner->Token = MLT_METHOD;
 				Scanner->Next = End;
 				return Scanner->Token;
-			} else if (Scanner->Next[1] == ':') {
-				const char *End = Scanner->Next + 2;
-				for (Char = End[0]; isoperator(Char); Char = *++End);
-				int Length = End - Scanner->Next - 2;
-				char *Operator = snew(Length + 1);
-				memcpy(Operator, Scanner->Next + 2, Length);
-				Operator[Length] = 0;
-				Scanner->Ident = Operator;
-				Scanner->Token = MLT_METHOD;
-				Scanner->Next = End;
-				return Scanner->Token;
 			} else if (Scanner->Next[1] == '(') {
 				Scanner->Token = MLT_INLINE;
 				Scanner->Next += 2;
@@ -1437,7 +1588,7 @@ static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 			}
 		}
 		if (Char == '-' && Scanner->Next[1] == '-') {
-			Scanner->Next = "";
+			Scanner->Next = "\n";
 			continue;
 		}
 		for (ml_token_t T = MLT_LEFT_PAREN; T <= MLT_COMMA; ++T) {
@@ -1466,7 +1617,7 @@ static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 	return Scanner->Token;
 }
 
-static int ml_parse(mlc_scanner_t *Scanner, ml_token_t Token) {
+static inline int ml_parse(mlc_scanner_t *Scanner, ml_token_t Token) {
 	if (ml_next(Scanner) == Token) {
 		Scanner->Token = MLT_NONE;
 		return 1;
@@ -1489,6 +1640,48 @@ static void ml_accept(mlc_scanner_t *Scanner, ml_token_t Token) {
 
 void ml_accept_eoi(mlc_scanner_t *Scanner) {
 	ml_accept(Scanner, MLT_EOI);
+}
+
+static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner);
+
+mlc_expr_t *ml_accept_fun_decl(mlc_scanner_t *Scanner) {
+	mlc_fun_expr_t *FunExpr = new(mlc_fun_expr_t);
+	FunExpr->compile = ml_fun_expr_compile;
+	FunExpr->Source = Scanner->Source;
+	if (!ml_parse(Scanner, MLT_RIGHT_PAREN)) {
+		mlc_decl_t **ParamSlot = &FunExpr->Params;
+		do {
+			mlc_decl_t *Param = ParamSlot[0] = new(mlc_decl_t);
+			ParamSlot = &Param->Next;
+			if (ml_parse(Scanner, MLT_LEFT_SQUARE)) {
+				ml_accept(Scanner, MLT_IDENT);
+				Param->Ident = Scanner->Ident;
+				Param->Index = ML_PARAM_EXTRA;
+				ml_accept(Scanner, MLT_RIGHT_SQUARE);
+				if (ml_parse(Scanner, MLT_COMMA)) {
+					ml_accept(Scanner, MLT_LEFT_BRACE);
+					mlc_decl_t *Param = ParamSlot[0] = new(mlc_decl_t);
+					ml_accept(Scanner, MLT_IDENT);
+					Param->Ident = Scanner->Ident;
+					Param->Index = ML_PARAM_NAMED;
+					ml_accept(Scanner, MLT_RIGHT_BRACE);
+				}
+				break;
+			} else if (ml_parse(Scanner, MLT_LEFT_BRACE)) {
+				ml_accept(Scanner, MLT_IDENT);
+				Param->Ident = Scanner->Ident;
+				Param->Index = ML_PARAM_NAMED;
+				ml_accept(Scanner, MLT_RIGHT_BRACE);
+				break;
+			} else {
+				ml_accept(Scanner, MLT_IDENT);
+				Param->Ident = Scanner->Ident;
+			}
+		} while (ml_parse(Scanner, MLT_COMMA));
+		ml_accept(Scanner, MLT_RIGHT_PAREN);
+	}
+	FunExpr->Body = ml_accept_expression(Scanner, EXPR_DEFAULT);
+	return (mlc_expr_t *)FunExpr;
 }
 
 static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
@@ -1566,6 +1759,14 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 		ml_accept(Scanner, MLT_END);
 		return (mlc_expr_t *)ForExpr;
 	}
+	case MLT_EACH: {
+		Scanner->Token = MLT_NONE;
+		mlc_parent_expr_t *EachExpr = new(mlc_parent_expr_t);
+		EachExpr->compile = ml_each_expr_compile;
+		EachExpr->Source = Scanner->Source;
+		EachExpr->Child = ml_accept_expression(Scanner, EXPR_DEFAULT);
+		return (mlc_expr_t *)EachExpr;
+	}
 	case MLT_NOT: {
 		Scanner->Token = MLT_NONE;
 		mlc_parent_expr_t *NotExpr = new(mlc_parent_expr_t);
@@ -1607,27 +1808,8 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 	}
 	case MLT_FUN: {
 		Scanner->Token = MLT_NONE;
-		mlc_fun_expr_t *FunExpr = new(mlc_fun_expr_t);
-		FunExpr->compile = ml_fun_expr_compile;
-		FunExpr->Source = Scanner->Source;
 		ml_accept(Scanner, MLT_LEFT_PAREN);
-		if (!ml_parse(Scanner, MLT_RIGHT_PAREN)) {
-			mlc_decl_t **ParamSlot = &FunExpr->Params;
-			do {
-				ml_accept(Scanner, MLT_IDENT);
-				mlc_decl_t *Param = ParamSlot[0] = new(mlc_decl_t);
-				ParamSlot = &Param->Next;
-				Param->Ident = Scanner->Ident;
-				if (ml_parse(Scanner, MLT_LEFT_SQUARE)) {
-					ml_accept(Scanner, MLT_RIGHT_SQUARE);
-					Param->Index = 1;
-					break;
-				}
-			} while (ml_parse(Scanner, MLT_COMMA));
-			ml_accept(Scanner, MLT_RIGHT_PAREN);
-		}
-		FunExpr->Body = ml_accept_expression(Scanner, EXPR_DEFAULT);
-		return (mlc_expr_t *)FunExpr;
+		return ml_accept_fun_decl(Scanner);
 	}
 	case MLT_RETURN: case MLT_RET: {
 		Scanner->Token = MLT_NONE;
@@ -1691,14 +1873,12 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 	}
 	case MLT_INLINE: {
 		Scanner->Token = MLT_NONE;
-		mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
-		ValueExpr->compile = ml_value_expr_compile;
-		ValueExpr->Source = Scanner->Source;
-		mlc_expr_t *Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
+		mlc_parent_expr_t *InlineExpr = new(mlc_parent_expr_t);
+		InlineExpr->compile = ml_inline_expr_compile;
+		InlineExpr->Source = Scanner->Source;
+		InlineExpr->Child = ml_accept_expression(Scanner, EXPR_DEFAULT);
 		ml_accept(Scanner, MLT_RIGHT_PAREN);
-		ml_value_t *Value = ml_expr_evaluate(Expr, Scanner->Defs, Scanner->Context);
-		ValueExpr->Value = Value;
-		return (mlc_expr_t *)ValueExpr;
+		return (mlc_expr_t *)InlineExpr;
 	}
 	case MLT_NIL: {
 		Scanner->Token = MLT_NONE;
@@ -1728,11 +1908,11 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 	}
 	case MLT_LEFT_SQUARE: {
 		Scanner->Token = MLT_NONE;
-		mlc_const_call_expr_t *CallExpr = new(mlc_const_call_expr_t);
-		CallExpr->compile = ml_const_call_expr_compile;
-		CallExpr->Source = Scanner->Source;
-		CallExpr->Value = (ml_value_t *)ListNew;
-		mlc_expr_t **ArgsSlot = &CallExpr->Child;
+		while (ml_parse(Scanner, MLT_EOL));
+		mlc_parent_expr_t *ListExpr = new(mlc_parent_expr_t);
+		ListExpr->compile = ml_list_expr_compile;
+		ListExpr->Source = Scanner->Source;
+		mlc_expr_t **ArgsSlot = &ListExpr->Child;
 		if (!ml_parse(Scanner, MLT_RIGHT_SQUARE)) {
 			do {
 				mlc_expr_t *Arg = ArgsSlot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
@@ -1740,15 +1920,15 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 			} while (ml_parse(Scanner, MLT_COMMA));
 			ml_accept(Scanner, MLT_RIGHT_SQUARE);
 		}
-		return (mlc_expr_t *)CallExpr;
+		return (mlc_expr_t *)ListExpr;
 	}
 	case MLT_LEFT_BRACE: {
 		Scanner->Token = MLT_NONE;
-		mlc_const_call_expr_t *CallExpr = new(mlc_const_call_expr_t);
-		CallExpr->compile = ml_const_call_expr_compile;
-		CallExpr->Source = Scanner->Source;
-		CallExpr->Value = (ml_value_t *)MapNew;
-		mlc_expr_t **ArgsSlot = &CallExpr->Child;
+		while (ml_parse(Scanner, MLT_EOL));
+		mlc_parent_expr_t *MapExpr = new(mlc_parent_expr_t);
+		MapExpr->compile = ml_map_expr_compile;
+		MapExpr->Source = Scanner->Source;
+		mlc_expr_t **ArgsSlot = &MapExpr->Child;
 		if (!ml_parse(Scanner, MLT_RIGHT_BRACE)) {
 			do {
 				mlc_expr_t *Arg = ArgsSlot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
@@ -1767,7 +1947,7 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 			} while (ml_parse(Scanner, MLT_COMMA));
 			ml_accept(Scanner, MLT_RIGHT_BRACE);
 		}
-		return (mlc_expr_t *)CallExpr;
+		return (mlc_expr_t *)MapExpr;
 	}
 	case MLT_OLD: {
 		Scanner->Token = MLT_NONE;
@@ -1778,35 +1958,41 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 	}
 	case MLT_OPERATOR: {
 		Scanner->Token = MLT_NONE;
-		mlc_const_call_expr_t *CallExpr = new(mlc_const_call_expr_t);
-		CallExpr->compile = ml_const_call_expr_compile;
-		CallExpr->Source = Scanner->Source;
-		CallExpr->Value = (ml_value_t *)ml_method(Scanner->Ident);
-		CallExpr->Child = ml_accept_factor(Scanner);
-		return (mlc_expr_t *)CallExpr;
+		ml_value_t *Operator = ml_method(Scanner->Ident);
+		mlc_expr_t *Child = ml_parse_term(Scanner);
+		if (Child) {
+			mlc_parent_value_expr_t *CallExpr = new(mlc_parent_value_expr_t);
+			CallExpr->compile = ml_const_call_expr_compile;
+			CallExpr->Source = Scanner->Source;
+			CallExpr->Value = Operator;
+			if (Child->compile == (void *)ml_tuple_expr_compile) {
+				CallExpr->Child = ((mlc_parent_expr_t *)Child)->Child;
+			} else {
+				CallExpr->Child = Child;
+			}
+			return (mlc_expr_t *)CallExpr;
+		} else {
+			mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
+			ValueExpr->compile = ml_value_expr_compile;
+			ValueExpr->Source = Scanner->Source;
+			ValueExpr->Value = Operator;
+			return (mlc_expr_t *)ValueExpr;
+		}
 	}
 	case MLT_METHOD: {
 		Scanner->Token = MLT_NONE;
 		mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
 		ValueExpr->compile = ml_value_expr_compile;
 		ValueExpr->Source = Scanner->Source;
-		ValueExpr->Value = (ml_value_t *)ml_method(Scanner->Ident);
+		ValueExpr->Value = ml_method(Scanner->Ident);
 		return (mlc_expr_t *)ValueExpr;
 	}
 	default: return NULL;
 	}
 }
 
-static mlc_expr_t *ml_accept_factor(mlc_scanner_t *Scanner) {
-	while (ml_parse(Scanner, MLT_EOL));
-	mlc_expr_t *Expr = ml_parse_factor(Scanner);
-	if (Expr) return Expr;
-	Scanner->Context->Error = ml_error("ParseError", "expected <term> not %s", MLTokens[Scanner->Token]);
-	ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
-	longjmp(Scanner->Context->OnError, 1);
-}
-
 static void ml_accept_arguments(mlc_scanner_t *Scanner, mlc_expr_t **ArgsSlot) {
+	while (ml_parse(Scanner, MLT_EOL));
 	if (!ml_parse(Scanner, MLT_RIGHT_PAREN)) {
 		ml_value_t *Names = NULL;
 		if (ml_parse(Scanner, MLT_SEMICOLON)) goto has_params;
@@ -1837,28 +2023,7 @@ static void ml_accept_arguments(mlc_scanner_t *Scanner, mlc_expr_t **ArgsSlot) {
 			}
 		} while (ml_parse(Scanner, MLT_COMMA));
 		if (ml_parse(Scanner, MLT_SEMICOLON)) has_params: {
-			mlc_decl_t *Params = 0;
-			mlc_decl_t **ParamSlot = &Params;
-			if (!ml_parse(Scanner, MLT_RIGHT_PAREN)) {
-				do {
-					ml_accept(Scanner, MLT_IDENT);
-					mlc_decl_t *Param = ParamSlot[0] = new(mlc_decl_t);
-					ParamSlot = &Param->Next;
-					Param->Ident = Scanner->Ident;
-					if (ml_parse(Scanner, MLT_LEFT_SQUARE)) {
-						ml_accept(Scanner, MLT_RIGHT_SQUARE);
-						Param->Index = 1;
-						break;
-					}
-				} while (ml_parse(Scanner, MLT_COMMA));
-				ml_accept(Scanner, MLT_RIGHT_PAREN);
-			}
-			mlc_fun_expr_t *FunExpr = new(mlc_fun_expr_t);
-			FunExpr->compile = ml_fun_expr_compile;
-			FunExpr->Source = Scanner->Source;
-			FunExpr->Params = Params;
-			FunExpr->Body = ml_accept_expression(Scanner, EXPR_DEFAULT);
-			ArgsSlot[0] = (mlc_expr_t *)FunExpr;
+			ArgsSlot[0] = ml_accept_fun_decl(Scanner);
 		} else {
 			ml_accept(Scanner, MLT_RIGHT_PAREN);
 		}
@@ -1882,9 +2047,10 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 		}
 		case MLT_LEFT_SQUARE: {
 			Scanner->Token = MLT_NONE;
-			mlc_const_call_expr_t *IndexExpr = new(mlc_const_call_expr_t);
+			while (ml_parse(Scanner, MLT_EOL));
+			mlc_parent_value_expr_t *IndexExpr = new(mlc_parent_value_expr_t);
 			IndexExpr->compile = ml_const_call_expr_compile;
-			IndexExpr->Value = ml_method("[]");
+			IndexExpr->Value = IndexMethod;
 			IndexExpr->Source = Scanner->Source;
 			IndexExpr->Child = Expr;
 			mlc_expr_t **ArgsSlot = &Expr->Next;
@@ -1900,13 +2066,24 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 		}
 		case MLT_METHOD: {
 			Scanner->Token = MLT_NONE;
-			mlc_const_call_expr_t *CallExpr = new(mlc_const_call_expr_t);
+			mlc_parent_value_expr_t *CallExpr = new(mlc_parent_value_expr_t);
 			CallExpr->compile = ml_const_call_expr_compile;
 			CallExpr->Source = Scanner->Source;
-			CallExpr->Value = (ml_value_t *)ml_method(Scanner->Ident);
+			CallExpr->Value = ml_method(Scanner->Ident);
 			CallExpr->Child = Expr;
 			if (ml_parse(Scanner, MLT_LEFT_PAREN)) ml_accept_arguments(Scanner, &Expr->Next);
 			Expr = (mlc_expr_t *)CallExpr;
+			break;
+		}
+		case MLT_SYMBOL: {
+			Scanner->Token = MLT_NONE;
+			if (!ml_parse(Scanner, MLT_OPERATOR)) ml_accept(Scanner, MLT_IDENT);
+			mlc_parent_value_expr_t *ImportExpr = new(mlc_parent_value_expr_t);
+			ImportExpr->compile = ml_import_expr_compile;
+			ImportExpr->Source = Scanner->Source;
+			ImportExpr->Value = ml_string(Scanner->Ident, -1);
+			ImportExpr->Child = Expr;
+			Expr = (mlc_expr_t *)ImportExpr;
 			break;
 		}
 		default: return Expr;
@@ -1928,12 +2105,14 @@ static mlc_expr_t *ml_parse_expression(mlc_scanner_t *Scanner, ml_expr_level_t L
 	mlc_expr_t *Expr = ml_parse_term(Scanner);
 	if (!Expr) return NULL;
 	for (;;) if (ml_parse(Scanner, MLT_OPERATOR) || ml_parse(Scanner, MLT_IDENT)) {
-		mlc_const_call_expr_t *CallExpr = new(mlc_const_call_expr_t);
+		mlc_parent_value_expr_t *CallExpr = new(mlc_parent_value_expr_t);
 		CallExpr->compile = ml_const_call_expr_compile;
 		CallExpr->Source = Scanner->Source;
-		CallExpr->Value = (ml_value_t *)ml_method(Scanner->Ident);
+		CallExpr->Value = ml_method(Scanner->Ident);
 		CallExpr->Child = Expr;
-		Expr->Next = ml_accept_term(Scanner);
+		mlc_expr_t *Next = ml_accept_term(Scanner);
+		if (Next->compile == (void *)ml_tuple_expr_compile) Next = ((mlc_parent_expr_t *)Next)->Child;
+		Expr->Next = Next;
 		Expr = (mlc_expr_t *)CallExpr;
 	} else if (ml_parse(Scanner, MLT_ASSIGN)) {
 		mlc_parent_expr_t *AssignExpr = new(mlc_parent_expr_t);
@@ -1942,6 +2121,14 @@ static mlc_expr_t *ml_parse_expression(mlc_scanner_t *Scanner, ml_expr_level_t L
 		AssignExpr->Child = Expr;
 		Expr->Next = ml_accept_expression(Scanner, EXPR_DEFAULT);
 		Expr = (mlc_expr_t *)AssignExpr;
+	} else if (ml_parse(Scanner, MLT_IN)) {
+		mlc_parent_value_expr_t *CallExpr = new(mlc_parent_value_expr_t);
+		CallExpr->compile = ml_const_call_expr_compile;
+		CallExpr->Source = Scanner->Source;
+		CallExpr->Value = ml_method("in");
+		CallExpr->Child = Expr;
+		Expr->Next = ml_accept_expression(Scanner, EXPR_SIMPLE);
+		Expr = (mlc_expr_t *)CallExpr;
 	} else {
 		break;
 	}
@@ -2053,16 +2240,17 @@ mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 	BlockExpr->compile = ml_block_expr_compile;
 	BlockExpr->Source = Scanner->Source;
 	mlc_expr_t **ExprSlot = &BlockExpr->Child;
-	mlc_decl_t **DeclSlot = &BlockExpr->Decl;
-	mlc_decl_t *OldDefs = Scanner->Defs;
+	mlc_decl_t **VarsSlot = &BlockExpr->Vars;
+	mlc_decl_t **LetsSlot = &BlockExpr->Lets;
+	mlc_decl_t **DefsSlot = &BlockExpr->Defs;
 	for (;;) {
 		while (ml_parse(Scanner, MLT_EOL));
 		if (ml_parse(Scanner, MLT_VAR)) {
 			do {
 				ml_accept(Scanner, MLT_IDENT);
-				mlc_decl_t *Decl = DeclSlot[0] = new(mlc_decl_t);
+				mlc_decl_t *Decl = VarsSlot[0] = new(mlc_decl_t);
 				Decl->Ident = Scanner->Ident;
-				DeclSlot = &Decl->Next;
+				VarsSlot = &Decl->Next;
 				if (ml_parse(Scanner, MLT_ASSIGN)) {
 					mlc_decl_expr_t *DeclExpr = new(mlc_decl_expr_t);
 					DeclExpr->compile = ml_var_expr_compile;
@@ -2071,64 +2259,76 @@ mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 					DeclExpr->Child = ml_accept_expression(Scanner, EXPR_DEFAULT);
 					ExprSlot[0] = (mlc_expr_t *)DeclExpr;
 					ExprSlot = &DeclExpr->Next;
+				} else if (ml_parse(Scanner, MLT_LEFT_PAREN)) {
+					mlc_decl_expr_t *DeclExpr = new(mlc_decl_expr_t);
+					DeclExpr->compile = ml_var_expr_compile;
+					DeclExpr->Source = Scanner->Source;
+					DeclExpr->Decl = Decl;
+					DeclExpr->Child = ml_accept_fun_decl(Scanner);
+					ExprSlot[0] = (mlc_expr_t *)DeclExpr;
+					ExprSlot = &DeclExpr->Next;
 				}
 			} while (ml_parse(Scanner, MLT_COMMA));
 		} else if (ml_parse(Scanner, MLT_LET)) {
-			ml_accept(Scanner, MLT_IDENT);
-			mlc_decl_t *Decl = DeclSlot[0] = new(mlc_decl_t);
-			Decl->Ident = Scanner->Ident;
-			DeclSlot = &Decl->Next;
-			ml_accept(Scanner, MLT_ASSIGN);
-			mlc_decl_expr_t *DeclExpr = new(mlc_decl_expr_t);
-			DeclExpr->compile = ml_let_expr_compile;
-			DeclExpr->Source = Scanner->Source;
-			DeclExpr->Decl = Decl;
-			DeclExpr->Child = ml_accept_expression(Scanner, EXPR_DEFAULT);
-			ExprSlot[0] = (mlc_expr_t *)DeclExpr;
-			ExprSlot = &DeclExpr->Next;
+			do {
+				ml_accept(Scanner, MLT_IDENT);
+				mlc_decl_t *Decl = LetsSlot[0] = new(mlc_decl_t);
+				Decl->Ident = Scanner->Ident;
+				LetsSlot = &Decl->Next;
+				mlc_decl_expr_t *DeclExpr = new(mlc_decl_expr_t);
+				DeclExpr->compile = ml_let_expr_compile;
+				DeclExpr->Source = Scanner->Source;
+				DeclExpr->Decl = Decl;
+				if (ml_parse(Scanner, MLT_LEFT_PAREN)) {
+					DeclExpr->Child = ml_accept_fun_decl(Scanner);
+				} else {
+					ml_accept(Scanner, MLT_ASSIGN);
+					DeclExpr->Child = ml_accept_expression(Scanner, EXPR_DEFAULT);
+				}
+				ExprSlot[0] = (mlc_expr_t *)DeclExpr;
+				ExprSlot = &DeclExpr->Next;
+			} while (ml_parse(Scanner, MLT_COMMA));
 		} else if (ml_parse(Scanner, MLT_DEF)) {
 			do {
 				ml_accept(Scanner, MLT_IDENT);
-				mlc_decl_t *Def = new(mlc_decl_t);
-				Def->Ident = Scanner->Ident;
-				ml_accept(Scanner, MLT_ASSIGN);
-				mlc_expr_t *Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
-				Def->Value = ml_expr_evaluate(Expr, Scanner->Defs, Scanner->Context);
-				Def->Next = Scanner->Defs;
-				Scanner->Defs = Def;
+				mlc_decl_t *Decl = DefsSlot[0] = new(mlc_decl_t);
+				Decl->Ident = Scanner->Ident;
+				ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
+				Uninitialized->Type = MLUninitializedT;
+				Decl->Value = (ml_value_t *)Uninitialized;
+				DefsSlot = &Decl->Next;
+				mlc_decl_expr_t *DeclExpr = new(mlc_decl_expr_t);
+				DeclExpr->compile = ml_def_expr_compile;
+				DeclExpr->Source = Scanner->Source;
+				DeclExpr->Decl = Decl;
+				if (ml_parse(Scanner, MLT_LEFT_PAREN)) {
+					DeclExpr->Child = ml_accept_fun_decl(Scanner);
+				} else {
+					ml_accept(Scanner, MLT_ASSIGN);
+					DeclExpr->Child = ml_accept_expression(Scanner, EXPR_DEFAULT);
+				}
+				ExprSlot[0] = (mlc_expr_t *)DeclExpr;
+				ExprSlot = &DeclExpr->Next;
 			} while (ml_parse(Scanner, MLT_COMMA));
 		} else if (ml_parse(Scanner, MLT_FUN)) {
-			ml_accept(Scanner, MLT_IDENT);
-			mlc_decl_t *Decl = DeclSlot[0] = new(mlc_decl_t);
-			Decl->Ident = Scanner->Ident;
-			DeclSlot = &Decl->Next;
-			mlc_fun_expr_t *FunExpr = new(mlc_fun_expr_t);
-			FunExpr->compile = ml_fun_expr_compile;
-			FunExpr->Source = Scanner->Source;
-			ml_accept(Scanner, MLT_LEFT_PAREN);
-			if (!ml_parse(Scanner, MLT_RIGHT_PAREN)) {
-				mlc_decl_t **ParamSlot = &FunExpr->Params;
-				do {
-					ml_accept(Scanner, MLT_IDENT);
-					mlc_decl_t *Param = ParamSlot[0] = new(mlc_decl_t);
-					ParamSlot = &Param->Next;
-					Param->Ident = Scanner->Ident;
-					if (ml_parse(Scanner, MLT_LEFT_SQUARE)) {
-						ml_accept(Scanner, MLT_RIGHT_SQUARE);
-						Param->Index = 1;
-						break;
-					}
-				} while (ml_parse(Scanner, MLT_COMMA));
-				ml_accept(Scanner, MLT_RIGHT_PAREN);
+			if (ml_parse(Scanner, MLT_IDENT)) {
+				mlc_decl_t *Decl = LetsSlot[0] = new(mlc_decl_t);
+				Decl->Ident = Scanner->Ident;
+				LetsSlot = &Decl->Next;
+				ml_accept(Scanner, MLT_LEFT_PAREN);
+				mlc_decl_expr_t *DeclExpr = new(mlc_decl_expr_t);
+				DeclExpr->compile = ml_let_expr_compile;
+				DeclExpr->Source = Scanner->Source;
+				DeclExpr->Decl = Decl;
+				DeclExpr->Child = ml_accept_fun_decl(Scanner);
+				ExprSlot[0] = (mlc_expr_t *)DeclExpr;
+				ExprSlot = &DeclExpr->Next;
+			} else {
+				ml_accept(Scanner, MLT_LEFT_PAREN);
+				mlc_expr_t *Expr = ml_accept_fun_decl(Scanner);
+				ExprSlot[0] = Expr;
+				ExprSlot = &Expr->Next;
 			}
-			FunExpr->Body = ml_accept_expression(Scanner, EXPR_DEFAULT);
-			mlc_decl_expr_t *DeclExpr = new(mlc_decl_expr_t);
-			DeclExpr->compile = ml_let_expr_compile;
-			DeclExpr->Source = Scanner->Source;
-			DeclExpr->Decl = Decl;
-			DeclExpr->Child = (mlc_expr_t *)FunExpr;
-			ExprSlot[0] = (mlc_expr_t *)DeclExpr;
-			ExprSlot = &DeclExpr->Next;
 		} else if (ml_parse(Scanner, MLT_ON)) {
 			if (BlockExpr->CatchDecl) {
 				Scanner->Context->Error = ml_error("ParseError", "no more than one error handler allowed in a block");
@@ -2150,44 +2350,34 @@ mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 		}
 		ml_parse(Scanner, MLT_SEMICOLON);
 	}
-	mlc_decl_t *Defs = 0;
-	for (mlc_decl_t *Def = Scanner->Defs; Def != OldDefs;) {
-		mlc_decl_t *Next = Def->Next;
-		Def->Next = Defs;
-		Defs = Def;
-		Def = Next;
-	}
-	DeclSlot[0] = Defs;
-	Scanner->Defs = OldDefs;
 	return (mlc_expr_t *)BlockExpr;
 }
 
-mlc_expr_t *ml_accept_command(mlc_scanner_t *Scanner, stringmap_t *Vars) {
+ml_value_t *ml_command_evaluate(mlc_scanner_t *Scanner, stringmap_t *Vars, mlc_context_t *Context) {
 	while (ml_parse(Scanner, MLT_EOL));
-	mlc_block_expr_t *BlockExpr = new(mlc_block_expr_t);
-	BlockExpr->compile = ml_block_expr_compile;
-	BlockExpr->Source = Scanner->Source;
-	mlc_expr_t **ExprSlot = &BlockExpr->Child;
-	if (ml_parse(Scanner, MLT_EOI)) {
-		return (mlc_expr_t *)-1;
-	} else if (ml_parse(Scanner, MLT_VAR)) {
+	if (ml_parse(Scanner, MLT_EOI)) return NULL;
+	ml_value_t *Result = NULL;
+	if (ml_parse(Scanner, MLT_VAR)) {
+
 		do {
 			ml_accept(Scanner, MLT_IDENT);
 			const char *Ident = Scanner->Ident;
-			ml_value_t *Ref = ml_reference(NULL);
-			stringmap_insert(Vars, Ident, Ref);
+			ml_reference_t *Ref = (ml_reference_t *)ml_reference(NULL);
+			ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Ident);
+			ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Slot[0];
+			if (Uninitialized && Uninitialized->Type == MLUninitializedT) {
+				for (ml_slot_t *Slot = Uninitialized->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = (ml_value_t *)Ref;
+			}
+			Slot[0] = (ml_value_t *)Ref;
 			if (ml_parse(Scanner, MLT_ASSIGN)) {
-				mlc_value_expr_t *RefExpr = new(mlc_value_expr_t);
-				RefExpr->compile = ml_value_expr_compile;
-				RefExpr->Source = Scanner->Source;
-				RefExpr->Value = Ref;
-				mlc_parent_expr_t *AssignExpr = new(mlc_parent_expr_t);
-				AssignExpr->compile = ml_assign_expr_compile;
-				AssignExpr->Source = Scanner->Source;
-				AssignExpr->Child = (mlc_expr_t *)RefExpr;
-				RefExpr->Next = ml_accept_expression(Scanner, EXPR_DEFAULT);
-				ExprSlot[0] = (mlc_expr_t *)AssignExpr;
-				ExprSlot = &AssignExpr->Next;
+				mlc_expr_t *Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
+				Result = ml_compile(Expr, NULL, Context);
+				if (Result->Type == MLErrorT) return Result;
+				Result = ml_call(Result, 0, NULL);
+				if (Result->Type == MLErrorT) return Result;
+				Ref->Address[0] = Result;
+			} else {
+				Result = MLNil;
 			}
 		} while (ml_parse(Scanner, MLT_COMMA));
 	} else if (ml_parse(Scanner, MLT_LET) || ml_parse(Scanner, MLT_DEF)) {
@@ -2195,69 +2385,59 @@ mlc_expr_t *ml_accept_command(mlc_scanner_t *Scanner, stringmap_t *Vars) {
 			ml_accept(Scanner, MLT_IDENT);
 			const char *Ident = Scanner->Ident;
 			ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Ident);
-			Slot[0] = MLNil;
-			ml_value_t *Ref = ml_reference(Slot);
-			ml_accept(Scanner, MLT_ASSIGN);
-			mlc_value_expr_t *RefExpr = new(mlc_value_expr_t);
-			RefExpr->compile = ml_value_expr_compile;
-			RefExpr->Source = Scanner->Source;
-			RefExpr->Value = Ref;
-			mlc_parent_expr_t *AssignExpr = new(mlc_parent_expr_t);
-			AssignExpr->compile = ml_assign_expr_compile;
-			AssignExpr->Source = Scanner->Source;
-			AssignExpr->Child = (mlc_expr_t *)RefExpr;
-			RefExpr->Next = ml_accept_expression(Scanner, EXPR_DEFAULT);
-			ExprSlot[0] = (mlc_expr_t *)AssignExpr;
-			ExprSlot = &AssignExpr->Next;
+			ml_uninitialized_t *Ref = (ml_uninitialized_t *)Slot[0];
+			if (!Ref || Ref->Type != MLUninitializedT) {
+				Ref = new(ml_uninitialized_t);
+				Ref->Type = MLUninitializedT;
+				Slot[0] = (ml_value_t *)Ref;
+			}
+			mlc_expr_t *Expr;
+			if (ml_parse(Scanner, MLT_LEFT_PAREN)) {
+				Expr = ml_accept_fun_decl(Scanner);
+			} else {
+				ml_accept(Scanner, MLT_ASSIGN);
+				Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
+			}
+			Result = ml_compile(Expr, NULL, Context);
+			if (Result->Type == MLErrorT) return Result;
+			Result = ml_call(Result, 0, NULL);
+			if (Result->Type == MLErrorT) return Result;
+			for (ml_slot_t *Slot = Ref->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Result;
+			Slot[0] = Result;
 		} while (ml_parse(Scanner, MLT_COMMA));
 	} else if (ml_parse(Scanner, MLT_FUN)) {
-		mlc_fun_expr_t *FunExpr = new(mlc_fun_expr_t);
-		FunExpr->compile = ml_fun_expr_compile;
-		FunExpr->Source = Scanner->Source;
-		ml_value_t *Ref = NULL;
 		if (ml_parse(Scanner, MLT_IDENT)) {
 			const char *Ident = Scanner->Ident;
 			ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Ident);
-			Slot[0] = MLNil;
-			Ref = ml_reference(Slot);
-		}
-		ml_accept(Scanner, MLT_LEFT_PAREN);
-		if (!ml_parse(Scanner, MLT_RIGHT_PAREN)) {
-			mlc_decl_t **ParamSlot = &FunExpr->Params;
-			do {
-				ml_accept(Scanner, MLT_IDENT);
-				mlc_decl_t *Param = ParamSlot[0] = new(mlc_decl_t);
-				ParamSlot = &Param->Next;
-				Param->Ident = Scanner->Ident;
-				if (ml_parse(Scanner, MLT_LEFT_SQUARE)) {
-					ml_accept(Scanner, MLT_RIGHT_SQUARE);
-					Param->Index = 1;
-					break;
-				}
-			} while (ml_parse(Scanner, MLT_COMMA));
-			ml_accept(Scanner, MLT_RIGHT_PAREN);
-		}
-		FunExpr->Body = ml_accept_expression(Scanner, EXPR_DEFAULT);
-		if (Ref) {
-			mlc_value_expr_t *RefExpr = new(mlc_value_expr_t);
-			RefExpr->compile = ml_value_expr_compile;
-			RefExpr->Source = Scanner->Source;
-			RefExpr->Value = Ref;
-			mlc_parent_expr_t *AssignExpr = new(mlc_parent_expr_t);
-			AssignExpr->compile = ml_assign_expr_compile;
-			AssignExpr->Source = Scanner->Source;
-			AssignExpr->Child = (mlc_expr_t *)RefExpr;
-			RefExpr->Next = (mlc_expr_t *)FunExpr;
-			ExprSlot[0] = (mlc_expr_t *)AssignExpr;
-			ExprSlot = &AssignExpr->Next;
+			ml_uninitialized_t *Ref = (ml_uninitialized_t *)Slot[0];
+			if (!Ref || Ref->Type != MLUninitializedT) {
+				Ref = new(ml_uninitialized_t);
+				Ref->Type = MLUninitializedT;
+				Slot[0] = (ml_value_t *)Ref;
+			}
+			ml_accept(Scanner, MLT_LEFT_PAREN);
+			mlc_expr_t *Expr = ml_accept_fun_decl(Scanner);
+			Result = ml_compile(Expr, NULL, Context);
+			if (Result->Type == MLErrorT) return Result;
+			Result = ml_call(Result, 0, NULL);
+			if (Result->Type == MLErrorT) return Result;
+			for (ml_slot_t *Slot = Ref->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Result;
+			Slot[0] = Result;
 		} else {
-			ExprSlot[0] = (mlc_expr_t *)FunExpr;
-			ExprSlot = &FunExpr->Next;
+			ml_accept(Scanner, MLT_LEFT_PAREN);
+			mlc_expr_t *Expr = ml_accept_fun_decl(Scanner);
+			Result = ml_compile(Expr, NULL, Context);
+			if (Result->Type == MLErrorT) return Result;
+			Result = ml_call(Result, 0, NULL);
+			if (Result->Type == MLErrorT) return Result;
 		}
 	} else {
-		mlc_expr_t *Expr = ExprSlot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
-		ExprSlot = &Expr->Next;
+		mlc_expr_t *Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
+		Result = ml_compile(Expr, NULL, Context);
+		if (Result->Type == MLErrorT) return Result;
+		Result = ml_call(Result, 0, NULL);
+		if (Result->Type == MLErrorT) return Result;
 	}
 	ml_parse(Scanner, MLT_SEMICOLON);
-	return (mlc_expr_t *)BlockExpr;
+	return Result;
 }
