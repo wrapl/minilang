@@ -420,7 +420,8 @@ ML_METHOD("$", MLPartialFunctionT, MLAnyT) {
 	Partial->Type = MLPartialFunctionT;
 	Partial->Function = Old->Function;
 	Partial->Count = Old->Count + 1;
-	*(ml_value_t **)mempcpy(Partial->Args, Old->Args, Old->Count * sizeof(ml_value_t *)) = Args[1];
+	memcpy(Partial->Args, Old->Args, Old->Count * sizeof(ml_value_t *));
+	Partial->Args[Old->Count] = Args[1];
 	return (ml_value_t *)Partial;
 }
 
