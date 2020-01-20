@@ -2151,55 +2151,37 @@ ssize_t ml_stringbuffer_addf(ml_stringbuffer_t *Buffer, const char *Format, ...)
 	return ml_stringbuffer_add(Buffer, String, Length);
 }
 
-char *ml_stringbuffer_get(ml_stringbuffer_t *Buffer) {
-	char *String = snew(Buffer->Length + 1);
-	if (Buffer->Length == 0) {
-		String[0] = 0;
-	} else {
-		char *P = String;
-		ml_stringbuffer_node_t *Node = Buffer->Nodes;
-		while (Node->Next) {
-			memcpy(P, Node->Chars, ML_STRINGBUFFER_NODE_SIZE);
-			P += ML_STRINGBUFFER_NODE_SIZE;
-			Node = Node->Next;
-		}
-		memcpy(P, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
-		P += ML_STRINGBUFFER_NODE_SIZE - Buffer->Space;
-		*P++ = 0;
-		pthread_mutex_lock(CacheMutex);
-		ml_stringbuffer_node_t **Slot = &Cache;
-		while (Slot[0]) Slot = &Slot[0]->Next;
-		Slot[0] = Buffer->Nodes;
-		pthread_mutex_unlock(CacheMutex);
-		Buffer->Nodes = NULL;
-		Buffer->Length = Buffer->Space = 0;
+static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
+	char *P = String;
+	ml_stringbuffer_node_t *Node = Buffer->Nodes;
+	while (Node->Next) {
+		memcpy(P, Node->Chars, ML_STRINGBUFFER_NODE_SIZE);
+		P += ML_STRINGBUFFER_NODE_SIZE;
+		Node = Node->Next;
 	}
+	memcpy(P, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
+	P += ML_STRINGBUFFER_NODE_SIZE - Buffer->Space;
+	*P++ = 0;
+	pthread_mutex_lock(CacheMutex);
+	ml_stringbuffer_node_t **Slot = &Cache;
+	while (Slot[0]) Slot = &Slot[0]->Next;
+	Slot[0] = Buffer->Nodes;
+	pthread_mutex_unlock(CacheMutex);
+	Buffer->Nodes = NULL;
+	Buffer->Length = Buffer->Space = 0;
+}
+
+char *ml_stringbuffer_get(ml_stringbuffer_t *Buffer) {
+	if (Buffer->Length == 0) return "";
+	char *String = snew(Buffer->Length + 1);
+	ml_stringbuffer_finish(Buffer, String);
 	return String;
 }
 
 char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer) {
+	if (Buffer->Length == 0) return "";
 	char *String = GC_MALLOC_ATOMIC_UNCOLLECTABLE(Buffer->Length + 1);
-	if (Buffer->Length == 0) {
-		String[0] = 0;
-	} else {
-		char *P = String;
-		ml_stringbuffer_node_t *Node = Buffer->Nodes;
-		while (Node->Next) {
-			memcpy(P, Node->Chars, ML_STRINGBUFFER_NODE_SIZE);
-			P += ML_STRINGBUFFER_NODE_SIZE;
-			Node = Node->Next;
-		}
-		memcpy(P, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
-		P += ML_STRINGBUFFER_NODE_SIZE - Buffer->Space;
-		*P++ = 0;
-		pthread_mutex_lock(CacheMutex);
-		ml_stringbuffer_node_t **Slot = &Cache;
-		while (Slot[0]) Slot = &Slot[0]->Next;
-		Slot[0] = Buffer->Nodes;
-		pthread_mutex_unlock(CacheMutex);
-		Buffer->Nodes = NULL;
-		Buffer->Length = Buffer->Space = 0;
-	}
+	ml_stringbuffer_finish(Buffer, String);
 	return String;
 }
 
@@ -2209,23 +2191,7 @@ ml_value_t *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) {
 		return ml_string("", 0);
 	} else {
 		char *Chars = snew(Length + 1);
-		char *P = Chars;
-		ml_stringbuffer_node_t *Node = Buffer->Nodes;
-		while (Node->Next) {
-			memcpy(P, Node->Chars, ML_STRINGBUFFER_NODE_SIZE);
-			P += ML_STRINGBUFFER_NODE_SIZE;
-			Node = Node->Next;
-		}
-		memcpy(P, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
-		P += ML_STRINGBUFFER_NODE_SIZE - Buffer->Space;
-		*P++ = 0;
-		pthread_mutex_lock(CacheMutex);
-		ml_stringbuffer_node_t **Slot = &Cache;
-		while (Slot[0]) Slot = &Slot[0]->Next;
-		Slot[0] = Buffer->Nodes;
-		pthread_mutex_unlock(CacheMutex);
-		Buffer->Nodes = NULL;
-		Buffer->Length = Buffer->Space = 0;
+		ml_stringbuffer_finish(Buffer, Chars);
 		return ml_string(Chars, Length);
 	}
 }
