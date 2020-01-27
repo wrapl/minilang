@@ -169,6 +169,10 @@ var InstallHeaders := [
 	"stringmap.h"
 ]
 
+if MINILANG_USEMATH or defined("USEMATH") then
+	InstallHeaders:put("ml_array.h")
+end
+
 if MINILANG_USECBOR or defined("USECBOR") then
 	InstallHeaders:put("ml_cbor.h")
 end
