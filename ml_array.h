@@ -33,7 +33,7 @@ int ml_array_degree(ml_value_t *Array);
 int ml_array_size(ml_value_t *Array, int Dim);
 
 #define ML_ARRAY_GETTER_DECL(CTYPE) \
-CTYPE ml_array_get_ ## CTYPE (ml_value_t *Array, int Indices[])
+CTYPE ml_array_get_ ## CTYPE (ml_array_t *Array, int Indices[])
 
 ML_ARRAY_GETTER_DECL(int8_t);
 ML_ARRAY_GETTER_DECL(uint8_t);
