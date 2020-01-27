@@ -894,7 +894,20 @@ CTYPE ml_array_get_ ## CTYPE (ml_array_t *Array, int Indices[]) { \
 		} \
 		++Dimension; \
 	} \
-	return *(CTYPE *)Address; \
+	switch (Array->Format) { \
+	case ML_ARRAY_FORMAT_ANY: return RFUNC(*(ml_value_t **)Address); \
+	case ML_ARRAY_FORMAT_I8: return (CTYPE)*(int8_t *)Address; \
+	case ML_ARRAY_FORMAT_U8: return (CTYPE)*(uint8_t *)Address; \
+	case ML_ARRAY_FORMAT_I16: return (CTYPE)*(int16_t *)Address; \
+	case ML_ARRAY_FORMAT_U16: return (CTYPE)*(uint16_t *)Address; \
+	case ML_ARRAY_FORMAT_I32: return (CTYPE)*(int32_t *)Address; \
+	case ML_ARRAY_FORMAT_U32: return (CTYPE)*(uint32_t *)Address; \
+	case ML_ARRAY_FORMAT_I64: return (CTYPE)*(int64_t *)Address; \
+	case ML_ARRAY_FORMAT_U64: return (CTYPE)*(uint64_t *)Address; \
+	case ML_ARRAY_FORMAT_F32: return (CTYPE)*(float *)Address; \
+	case ML_ARRAY_FORMAT_F64: return (CTYPE)*(double *)Address; \
+	} \
+	return (CTYPE)0; \
 }
 
 static ml_value_t *CopyMethod;
