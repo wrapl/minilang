@@ -881,8 +881,7 @@ static ml_value_t *ml_array_ ## CTYPE ## _value(ml_array_t *Array, void *Address
 	return RNEW(*(CTYPE *)Array->Base.Address); \
 } \
 \
-CTYPE ml_array_get_ ## CTYPE (ml_value_t *Value, int Indices[]) { \
-	ml_array_t *Array = (ml_array_t *)Value; \
+CTYPE ml_array_get_ ## CTYPE (ml_array_t *Array, int Indices[]) { \
 	ml_array_dimension_t *Dimension = Array->Dimensions; \
 	char *Address = Array->Base.Address; \
 	for (int I = 0; I < Array->Degree; ++I) { \
