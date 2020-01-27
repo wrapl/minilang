@@ -322,17 +322,14 @@ static ml_value_t *ml_array_value(ml_array_t *Array, void *Address) {
 	return function(Array, Address);
 }
 
-ML_METHOD("[]", MLArrayT) {
-	ml_array_t *Source = (ml_array_t *)Args[0];
-	if (Count - 1 > Source->Degree) return ml_error("Error", "Too many indices");
+static ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **Indices) {
 	ml_array_dimension_t TargetDimensions[Source->Degree];
 	ml_array_dimension_t *TargetDimension = TargetDimensions;
 	ml_array_dimension_t *SourceDimension = Source->Dimensions;
 	void *Address = Source->Base.Address;
 	int Min, Max, Step, I;
-	for (I = 1; I < Count; ++I) {
-		ml_value_t *Index = Args[I];
-	mapped_index:
+	for (I = 0; I < Count; ++I) {
+		ml_value_t *Index = Indices[I];
 		if (Index->Type == MLIntegerT) {
 			int IndexValue = ml_integer_value(Index);
 			if (IndexValue <= 0) IndexValue += SourceDimension->Size + 1;
@@ -345,7 +342,6 @@ ML_METHOD("[]", MLArrayT) {
 			int *Indices = TargetDimension->Indices = (int *)GC_MALLOC_ATOMIC(Size * sizeof(int));
 			int *IndexPtr = Indices;
 			for (ml_list_node_t *Node = ml_list_head(Index); Node; Node = Node->Next) {
-				if (Node->Value->Type != MLIntegerT) return ml_error("Error", "Invalid index");
 				int IndexValue = ml_integer_value(Node->Value);
 				if (IndexValue <= 0) IndexValue += SourceDimension->Size + 1;
 				if (--IndexValue < 0) return MLNil;
@@ -375,27 +371,12 @@ ML_METHOD("[]", MLArrayT) {
 		} else if (Index == MLNil) {
 			*TargetDimension = *SourceDimension;
 			++TargetDimension;
-		} else if (Index->Type == MLMapT) {
-			if (ml_map_size(Index) != 1) return ml_error("Error", "Mapped index can contain only 1 entry");
-			ml_value_t *Key = ml_map_head(Index)->Key;
-			if (Key->Type != MLIntegerT) return ml_error("Error", "Invalid mapped index");
-			int J = ml_integer_value(Key);
-			if (J < 0) J += Source->Degree + 1;
-			if (J < I || J > Source->Degree) return ml_error("Error", "Invalid mapped index");
-			while (I < J) {
-				*TargetDimension = *SourceDimension;
-				++TargetDimension;
-				++SourceDimension;
-				++I;
-			}
-			Index = ml_map_head(Index)->Value;
-			goto mapped_index;
 		} else {
-			return ml_error("Error", "Unknown index type");
+			return ml_error("TypeError", "Unknown index type");
 		}
 		++SourceDimension;
 	}
-	for (; I <= Source->Degree; ++I) {
+	for (; I < Source->Degree; ++I) {
 		*TargetDimension = *SourceDimension;
 		++TargetDimension;
 		++SourceDimension;
@@ -405,6 +386,26 @@ ML_METHOD("[]", MLArrayT) {
 	for (int I = 0; I < Degree; ++I) Target->Dimensions[I] = TargetDimensions[I];
 	Target->Base.Address = Address;
 	return (ml_value_t *)Target;
+}
+
+ML_METHOD("[]", MLArrayT) {
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	if (Count - 1 > Source->Degree) return ml_error("RangeError", "Too many indices");
+	return ml_array_index(Source, Count - 1, Args + 1);
+}
+
+ML_METHOD("[]", MLArrayT, MLMapT) {
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	int Degree = Source->Degree;
+	ml_value_t *Indices[Degree];
+	for (int I = 0; I < Degree; ++I) Indices[I] = MLNil;
+	ML_MAP_FOREACH(Args[1], Node) {
+		int Index = ml_integer_value(Node->Key) - 1;
+		if (Index < 0) Index += Degree + 1;
+		if (Index < 0 || Index >= Degree) return ml_error("RangeError", "Index out of range");
+		Indices[Index] = Node->Value;
+	}
+	return ml_array_index(Source, Degree, Indices);
 }
 
 #define UPDATE_ARRAY_METHOD(ATYPE1, CTYPE1, ATYPE2, CTYPE2, NAME, OP) \

@@ -2077,7 +2077,15 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 		}
 		case MLT_SYMBOL: {
 			Scanner->Token = MLT_NONE;
-			if (!ml_parse(Scanner, MLT_OPERATOR)) ml_accept(Scanner, MLT_IDENT);
+			if (!ml_parse(Scanner, MLT_OPERATOR) && !ml_parse(Scanner, MLT_IDENT)) {
+				ml_accept(Scanner, MLT_VALUE);
+				if (Scanner->Value->Type != MLStringT) {
+					Scanner->Context->Error = ml_error("ParseError", "expected import not %s", MLTokens[Scanner->Token]);
+					ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
+					longjmp(Scanner->Context->OnError, 1);
+				}
+				Scanner->Ident = ml_string_value(Scanner->Value);
+			}
 			mlc_parent_value_expr_t *ImportExpr = new(mlc_parent_value_expr_t);
 			ImportExpr->compile = ml_import_expr_compile;
 			ImportExpr->Source = Scanner->Source;
