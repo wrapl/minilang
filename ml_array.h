@@ -32,4 +32,18 @@ ml_array_t *ml_array_new(ml_array_format_t Format, int Degree);
 int ml_array_degree(ml_value_t *Array);
 int ml_array_size(ml_value_t *Array, int Dim);
 
+#define ML_ARRAY_GETTER_DECL(CTYPE) \
+CTYPE ml_array_get_ ## CTYPE (ml_value_t *Array, int Indices[])
+
+ML_ARRAY_GETTER_DECL(int8_t);
+ML_ARRAY_GETTER_DECL(uint8_t);
+ML_ARRAY_GETTER_DECL(int16_t);
+ML_ARRAY_GETTER_DECL(uint16_t);
+ML_ARRAY_GETTER_DECL(int32_t);
+ML_ARRAY_GETTER_DECL(uint32_t);
+ML_ARRAY_GETTER_DECL(int64_t);
+ML_ARRAY_GETTER_DECL(uint64_t);
+ML_ARRAY_GETTER_DECL(float);
+ML_ARRAY_GETTER_DECL(double);
+
 #endif
