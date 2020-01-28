@@ -53,14 +53,17 @@ ml_array_t *ml_array_new(ml_array_format_t Format, int Degree) {
 	return Array;
 }
 
-ml_array_t *ml_array(ml_array_format_t Format, int Degree, int Sizes[]) {
+ml_array_t *ml_array(ml_array_format_t Format, int Degree, ...) {
 	ml_array_t *Array = ml_array_new(Format, Degree);
 	int DataSize = MLArraySizes[Format];
+	va_list Sizes;
+	va_start(Sizes, Degree);
 	for (int I = Array->Degree; --I >= 0;) {
 		Array->Dimensions[I].Stride = DataSize;
-		int Size = Array->Dimensions[I].Size = Sizes[I];
+		int Size = Array->Dimensions[I].Size = va_arg(Sizes, int);
 		DataSize *= Size;
 	}
+	va_end(Sizes);
 	Array->Base.Address = GC_MALLOC_ATOMIC(DataSize);
 	Array->Base.Size = DataSize;
 	return Array;
