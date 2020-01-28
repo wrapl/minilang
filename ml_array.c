@@ -2,6 +2,7 @@
 #include "ml_macros.h"
 #include <stdint.h>
 #include <string.h>
+#include <stdarg.h>
 
 ml_type_t *MLArrayT;
 ml_type_t *MLArrayAnyT;
@@ -886,11 +887,13 @@ static ml_value_t *ml_array_ ## CTYPE ## _value(ml_array_t *Array, void *Address
 	return RNEW(*(CTYPE *)Array->Base.Address); \
 } \
 \
-CTYPE ml_array_get_ ## CTYPE(ml_array_t *Array, int Indices[]) { \
+CTYPE ml_array_get_ ## CTYPE(ml_array_t *Array, ...) { \
 	ml_array_dimension_t *Dimension = Array->Dimensions; \
 	char *Address = Array->Base.Address; \
+	va_list Indices; \
+	va_start(Indices, Array); \
 	for (int I = 0; I < Array->Degree; ++I) { \
-		int Index = Indices[I]; \
+		int Index = va_arg(Indices, int); \
 		if (Index < 0 || Index >= Dimension->Size) return 0; \
 		if (Dimension->Indices) { \
 			Address += Dimension->Stride * Dimension->Indices[Index]; \
@@ -899,6 +902,7 @@ CTYPE ml_array_get_ ## CTYPE(ml_array_t *Array, int Indices[]) { \
 		} \
 		++Dimension; \
 	} \
+	va_end(Indices); \
 	switch (Array->Format) { \
 	case ML_ARRAY_FORMAT_ANY: return RFUNC(*(ml_value_t **)Address); \
 	case ML_ARRAY_FORMAT_I8: return *(int8_t *)Address; \
@@ -915,11 +919,13 @@ CTYPE ml_array_get_ ## CTYPE(ml_array_t *Array, int Indices[]) { \
 	return (CTYPE)0; \
 } \
 \
-void ml_array_set_ ## CTYPE(ml_array_t *Array, CTYPE Value, int Indices[]) { \
+void ml_array_set_ ## CTYPE(CTYPE Value, ml_array_t *Array, ...) { \
 	ml_array_dimension_t *Dimension = Array->Dimensions; \
 	char *Address = Array->Base.Address; \
+	va_list Indices; \
+	va_start(Indices, Array); \
 	for (int I = 0; I < Array->Degree; ++I) { \
-		int Index = Indices[I]; \
+		int Index = va_arg(Indices, int); \
 		if (Index < 0 || Index >= Dimension->Size) return; \
 		if (Dimension->Indices) { \
 			Address += Dimension->Stride * Dimension->Indices[Index]; \
@@ -928,6 +934,7 @@ void ml_array_set_ ## CTYPE(ml_array_t *Array, CTYPE Value, int Indices[]) { \
 		} \
 		++Dimension; \
 	} \
+	va_end(Indices); \
 	switch (Array->Format) { \
 	case ML_ARRAY_FORMAT_ANY: *(ml_value_t **)Address = RNEW(Value); break; \
 	case ML_ARRAY_FORMAT_I8: *(int8_t *)Address = Value; break; \

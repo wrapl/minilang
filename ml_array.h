@@ -40,8 +40,8 @@ int ml_array_degree(ml_value_t *Array);
 int ml_array_size(ml_value_t *Array, int Dim);
 
 #define ML_ARRAY_ACCESSORS(CTYPE) \
-CTYPE ml_array_get_ ## CTYPE (ml_array_t *Array, int Indices[]); \
-void ml_array_set_ ## CTYPE (ml_array_t *Array, CTYPE Value, int Indices[]);
+CTYPE ml_array_get_ ## CTYPE (ml_array_t *Array, ...); \
+void ml_array_set_ ## CTYPE (CTYPE Value, ml_array_t *Array, ...);
 
 ML_ARRAY_ACCESSORS(int8_t)
 ML_ARRAY_ACCESSORS(uint8_t)
