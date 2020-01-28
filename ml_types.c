@@ -1463,6 +1463,7 @@ static ml_value_t *ml_list_call(ml_state_t *Caller, ml_list_t *List, int Count, 
 			}
 		}
 	}
+	if (Count > 1) return Value->Type->call(Caller, Value, Count - 1, Args + 1);
 	ML_CONTINUE(Caller, Value);
 }
 
@@ -1814,7 +1815,9 @@ static ml_value_t *ml_map_call(ml_state_t *Caller, ml_value_t *Map, int Count, m
 	ML_CHECKX_ARG_COUNT(1);
 	ml_value_t *Arg = Args[0]->Type->deref(Args[0]);
 	if (Arg->Type == MLErrorT) ML_CONTINUE(Caller, Arg);
-	ML_CONTINUE(Caller, ml_map_search(Map, Args[0]));
+	ml_value_t *Value = ml_map_search(Map, Args[0]);
+	if (Count > 1) return Value->Type->call(Caller, Value, Count - 1, Args + 1);
+	ML_CONTINUE(Caller, Value);
 }
 
 ml_type_t MLMapT[1] = {{
