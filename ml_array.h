@@ -22,6 +22,8 @@ typedef enum {
 	ML_ARRAY_FORMAT_F32, ML_ARRAY_FORMAT_F64
 } ml_array_format_t;
 
+extern size_t MLArraySizes[];
+
 typedef struct ml_array_t {
 	ml_buffer_t Base;
 	int Degree, Format;
@@ -33,22 +35,24 @@ extern ml_type_t *MLArrayT;
 void ml_array_init(stringmap_t *Globals);
 
 ml_array_t *ml_array_new(ml_array_format_t Format, int Degree);
+ml_array_t *ml_array(ml_array_format_t Format, int Degree, int Sizes[]);
 int ml_array_degree(ml_value_t *Array);
 int ml_array_size(ml_value_t *Array, int Dim);
 
-#define ML_ARRAY_GETTER_DECL(CTYPE) \
-CTYPE ml_array_get_ ## CTYPE (ml_array_t *Array, int Indices[])
+#define ML_ARRAY_ACCESSORS(CTYPE) \
+CTYPE ml_array_get_ ## CTYPE (ml_array_t *Array, int Indices[]); \
+void ml_array_set_ ## CTYPE (ml_array_t *Array, CTYPE Value, int Indices[]);
 
-ML_ARRAY_GETTER_DECL(int8_t);
-ML_ARRAY_GETTER_DECL(uint8_t);
-ML_ARRAY_GETTER_DECL(int16_t);
-ML_ARRAY_GETTER_DECL(uint16_t);
-ML_ARRAY_GETTER_DECL(int32_t);
-ML_ARRAY_GETTER_DECL(uint32_t);
-ML_ARRAY_GETTER_DECL(int64_t);
-ML_ARRAY_GETTER_DECL(uint64_t);
-ML_ARRAY_GETTER_DECL(float);
-ML_ARRAY_GETTER_DECL(double);
+ML_ARRAY_ACCESSORS(int8_t)
+ML_ARRAY_ACCESSORS(uint8_t)
+ML_ARRAY_ACCESSORS(int16_t)
+ML_ARRAY_ACCESSORS(uint16_t)
+ML_ARRAY_ACCESSORS(int32_t)
+ML_ARRAY_ACCESSORS(uint32_t)
+ML_ARRAY_ACCESSORS(int64_t)
+ML_ARRAY_ACCESSORS(uint64_t)
+ML_ARRAY_ACCESSORS(float)
+ML_ARRAY_ACCESSORS(double)
 
 #ifdef	__cplusplus
 }
