@@ -4,6 +4,10 @@
 #include "minilang.h"
 #include "ml_cbor.h"
 
+#ifdef	__cplusplus
+extern "C" {
+#endif
+
 typedef struct ml_array_dimension_t {
 	int Size, Stride;
 	int *Indices;
@@ -45,5 +49,9 @@ ML_ARRAY_GETTER_DECL(int64_t);
 ML_ARRAY_GETTER_DECL(uint64_t);
 ML_ARRAY_GETTER_DECL(float);
 ML_ARRAY_GETTER_DECL(double);
+
+#ifdef	__cplusplus
+}
+#endif
 
 #endif
