@@ -315,6 +315,7 @@ typedef struct ml_integer_range_t {
 } ml_integer_range_t;
 
 extern ml_type_t MLIntegerRangeT[1];
+static ml_value_t *RangeMethod;
 
 static ml_value_t *ml_array_value(ml_array_t *Array, void *Address) {
 	typeof(ml_array_value) *function = ml_typed_fn_get(Array->Base.Type, ml_array_value);
@@ -325,10 +326,22 @@ static ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **In
 	ml_array_dimension_t TargetDimensions[Source->Degree];
 	ml_array_dimension_t *TargetDimension = TargetDimensions;
 	ml_array_dimension_t *SourceDimension = Source->Dimensions;
+	ml_array_dimension_t *Limit = SourceDimension + Source->Degree;
 	void *Address = Source->Base.Address;
 	int Min, Max, Step, I;
 	for (I = 0; I < Count; ++I) {
 		ml_value_t *Index = Indices[I];
+		if (Index == RangeMethod) {
+			ml_array_dimension_t *Skip = Limit - (Count - (I + 1));
+			if (Skip > Limit) return ml_error("RangeError", "Too many indices");
+			while (SourceDimension < Skip) {
+				*TargetDimension = *SourceDimension;
+				++TargetDimension;
+				++SourceDimension;
+			}
+			continue;
+		}
+		if (SourceDimension >= Limit) return ml_error("RangeError", "Too many indices");
 		if (Index->Type == MLIntegerT) {
 			int IndexValue = ml_integer_value(Index);
 			if (IndexValue <= 0) IndexValue += SourceDimension->Size + 1;
@@ -375,7 +388,7 @@ static ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **In
 		}
 		++SourceDimension;
 	}
-	for (; I < Source->Degree; ++I) {
+	while (SourceDimension < Limit) {
 		*TargetDimension = *SourceDimension;
 		++TargetDimension;
 		++SourceDimension;
@@ -389,7 +402,6 @@ static ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **In
 
 ML_METHOD("[]", MLArrayT) {
 	ml_array_t *Source = (ml_array_t *)Args[0];
-	if (Count - 1 > Source->Degree) return ml_error("RangeError", "Too many indices");
 	return ml_array_index(Source, Count - 1, Args + 1);
 }
 
@@ -1047,6 +1059,7 @@ void ml_array_init(stringmap_t *Globals) {
 	SubMethod = ml_method("sub");
 	MulMethod = ml_method("mul");
 	DivMethod = ml_method("div");
+	RangeMethod = ml_method("..");
 	ml_value_t *Array = ml_map();
 	MLArrayT = ml_type(MLBufferT, "array");
 	ml_map_insert(Array, ml_string("T", -1), (ml_value_t *)MLArrayT);
