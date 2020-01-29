@@ -1862,6 +1862,7 @@ static long ml_tuple_hash(ml_tuple_t *Tuple, ml_hash_chain_t *Chain) {
 }
 
 static ml_value_t *ml_tuple_deref(ml_tuple_t *Ref) {
+	if (Ref->NoRefs) return (ml_value_t *)Ref;
 	for (int I = 0; I < Ref->Size; ++I) {
 		ml_value_t *Old = Ref->Values[I];
 		ml_value_t *New = Old->Type->deref(Old);
@@ -1869,6 +1870,7 @@ static ml_value_t *ml_tuple_deref(ml_tuple_t *Ref) {
 			ml_tuple_t *Deref = xnew(ml_tuple_t, Ref->Size, ml_value_t *);
 			Deref->Type = MLTupleT;
 			Deref->Size = Ref->Size;
+			Deref->NoRefs = 1;
 			for (int J = 0; J < I; ++J) Deref->Values[J] = Ref->Values[J];
 			Deref->Values[I] = New;
 			for (int J = I + 1; J < Ref->Size; ++J) {
@@ -1877,6 +1879,7 @@ static ml_value_t *ml_tuple_deref(ml_tuple_t *Ref) {
 			return (ml_value_t *)Deref;
 		}
 	}
+	Ref->NoRefs = 1;
 	return (ml_value_t *)Ref;
 }
 

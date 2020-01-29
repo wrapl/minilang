@@ -230,7 +230,7 @@ ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value)
 
 struct ml_tuple_t {
 	const ml_type_t *Type;
-	size_t Size;
+	size_t Size, NoRefs;
 	ml_value_t *Values[];
 };
 
