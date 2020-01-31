@@ -413,17 +413,10 @@ static ml_value_t *ml_mpc_string_parser(mpc_parser_t *Handle) {
 	return (ml_value_t *)Parser;
 }
 
-static ml_value_t *ml_parser_call(ml_state_t *State, ml_parser_t *Parser, int Count, ml_value_t **Args) {
-
-}
-
 void ml_mpc_init(stringmap_t *Globals) {
 	MLParserT = ml_type(MLAnyT, "parser");
-	MLParserT->call = (void *)ml_parser_call;
 	MLStringParserT = ml_type(MLParserT, "string-parser");
-	MLStringParserT->call = (void *)ml_parser_call;
 	MLValueParserT = ml_type(MLParserT, "value-parser");
-	MLValueParserT->call = (void *)ml_parser_call;
 #include "ml_mpc_init.c"
 	if (Globals) {
 		ml_value_t *Module = ml_map();
