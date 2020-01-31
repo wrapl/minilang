@@ -238,7 +238,7 @@ static ml_value_t *ml_mpc_seq(void *Data, int Count, ml_value_t **Args) {
 		ml_parser_t *Arg = (ml_parser_t *)Args[I];
 		if (Arg->Type == MLValueParserT) {
 			Parsers[I] = Arg->Handle;
-		} else if (Arg->Type = MLStringParserT) {
+		} else if (Arg->Type == MLStringParserT) {
 			Parsers[I] = mpc_apply(Arg->Handle, ml_mpc_apply_value);
 		} else {
 			ML_CHECK_ARG_TYPE(I, MLParserT);
