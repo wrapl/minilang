@@ -190,7 +190,7 @@ extern ml_type_t MLIteratableT[];
 
 typedef struct ml_buffer_t {
 	const ml_type_t *Type;
-	void *Address;
+	char *Address;
 	size_t Size;
 } ml_buffer_t;
 
