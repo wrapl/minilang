@@ -1408,6 +1408,8 @@ static inline int isoperator(char C) {
 	}
 }
 
+#include "keywords.c"
+
 static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 	if (Scanner->Token == MLT_NONE) for (;;) {
 		if (!Scanner->Next || !Scanner->Next[0]) {
@@ -1469,15 +1471,11 @@ static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 			const char *End = Scanner->Next + 1;
 			for (Char = End[0]; isidchar(Char); Char = *++End);
 			int Length = End - Scanner->Next;
-			for (ml_token_t T = MLT_IF; T <= MLT_VAR; ++T) {
-				const char *P = Scanner->Next;
-				const char *C = MLTokens[T];
-				while (*C && *C == *P) {++C; ++P;}
-				if (!*C && P == End) {
-					Scanner->Token = T;
-					Scanner->Next = End;
-					return Scanner->Token;
-				}
+			const struct keyword_t *Keyword = lookup(Scanner->Next, Length);
+			if (Keyword) {
+				Scanner->Token = Keyword->Token;
+				Scanner->Next = End;
+				return Scanner->Token;
 			}
 			char *Ident = snew(Length + 1);
 			memcpy(Ident, Scanner->Next, Length);

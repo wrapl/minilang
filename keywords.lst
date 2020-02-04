@@ -1,0 +1,33 @@
+struct keyword_t {const char *Name; int Token;};
+%%
+if, MLT_IF
+then, MLT_THEN
+elseif, MLT_ELSEIF
+else, MLT_ELSE
+end, MLT_END
+loop, MLT_LOOP
+while, MLT_WHILE
+until, MLT_UNTIL
+exit, MLT_EXIT
+next, MLT_NEXT
+for, MLT_FOR
+each, MLT_EACH
+to, MLT_TO
+in, MLT_IN
+is, MLT_IS
+fun, MLT_FUN
+return, MLT_RETURN
+suspend, MLT_SUSPEND
+ret, MLT_RET
+susp, MLT_SUSP
+with, MLT_WITH
+do, MLT_DO
+on, MLT_ON
+nil, MLT_NIL
+and, MLT_AND
+or, MLT_OR
+not, MLT_NOT
+old, MLT_OLD
+def, MLT_DEF
+let, MLT_LET
+var, MLT_VAR
