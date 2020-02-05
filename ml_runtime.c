@@ -62,26 +62,42 @@ ml_type_t MLStateT[1] = {{
 	NULL, 0, 0
 }};
 
-static ml_value_t *ml_continuation_value(ml_state_t *Caller, ml_frame_t *Continuation) {
-	ML_CONTINUE(Caller, Continuation->Top[-1]);
-}
-
-static ml_value_t *ml_continuation_key(ml_state_t *Caller, ml_frame_t *Continuation) {
-	ML_CONTINUE(Caller, Continuation->Top[-2]);
-}
-
-static ml_value_t *ml_continuation_next(ml_state_t *Caller, ml_frame_t *Continuation) {
-	Continuation->Top[-2] = Continuation->Top[-1];
-	--Continuation->Top;
-	Continuation->Base.Caller = Caller;
-	ML_CONTINUE(Continuation, MLNil);
-}
-
 ml_type_t MLContinuationT[1] = {{
 	MLTypeT,
 	MLStateT, "continuation",
 	ml_default_hash,
 	(void *)ml_state_call,
+	ml_default_deref,
+	ml_default_assign,
+	NULL, 0, 0
+}};
+
+static ml_value_t *ml_suspension_value(ml_state_t *Caller, ml_frame_t *Suspension) {
+	ML_CONTINUE(Caller, Suspension->Top[-1]);
+}
+
+static ml_value_t *ml_suspension_key(ml_state_t *Caller, ml_frame_t *Suspension) {
+	ML_CONTINUE(Caller, Suspension->Top[-2]);
+}
+
+static ml_value_t *ml_suspension_next(ml_state_t *Caller, ml_frame_t *Suspension) {
+	Suspension->Base.Type = MLContinuationT;
+	Suspension->Top[-2] = Suspension->Top[-1];
+	--Suspension->Top;
+	Suspension->Base.Caller = Caller;
+	ML_CONTINUE(Suspension, MLNil);
+}
+
+static ml_value_t *ml_suspension_call(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
+	State->Caller = Caller;
+	return State->run(State, Count ? Args[0] : MLNil);
+}
+
+ml_type_t MLSuspensionT[1] = {{
+	MLTypeT,
+	MLFunctionT, "suspension",
+	ml_default_hash,
+	(void *)ml_suspension_call,
 	ml_default_deref,
 	ml_default_assign,
 	NULL, 0, 0
@@ -119,12 +135,6 @@ ml_value_t *ml_functionx(void *Data, ml_callbackx_t Callback) {
 	GC_end_stubborn_change(Function);
 	return (ml_value_t *)Function;
 }
-
-static ml_value_t *ml_nil_state_fn(ml_state_t *State, ml_value_t *Value) {
-	return Value;
-}
-
-static ml_state_t MLNilState[1] = {{MLStateT, NULL, ml_nil_state_fn}};
 
 typedef struct ml_resumable_state_t {
 	ml_state_t Base;
@@ -278,6 +288,7 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 		ML_CONTINUE(Frame->Base.Caller, Result);
 	}
 	DO_SUSPEND: {
+		Frame->Base.Type = MLSuspensionT;
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
 		ML_CONTINUE(Frame->Base.Caller, (ml_value_t *)Frame);
@@ -987,7 +998,7 @@ void ml_closure_debug(ml_value_t *Value) {
 
 void ml_runtime_init() {
 	ml_typed_fn_set(MLClosureT, ml_iterate, ml_closure_iterate);
-	ml_typed_fn_set(MLContinuationT, ml_iter_value, ml_continuation_value);
-	ml_typed_fn_set(MLContinuationT, ml_iter_key, ml_continuation_key);
-	ml_typed_fn_set(MLContinuationT, ml_iter_next, ml_continuation_next);
+	ml_typed_fn_set(MLSuspensionT, ml_iter_value, ml_suspension_value);
+	ml_typed_fn_set(MLSuspensionT, ml_iter_key, ml_suspension_key);
+	ml_typed_fn_set(MLSuspensionT, ml_iter_next, ml_suspension_next);
 }
