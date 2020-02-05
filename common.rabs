@@ -16,8 +16,9 @@ end
 c_includes := fun(Target) do
 	var Files := []
 	var Lines := shell('cc -c {CFLAGS} -M -MG {Target:source}')
-	var Files := Lines:trim:replace(r"\\\n ", "") / r"[^\\]( +)"
-	Files:pop
+	Lines := Lines:replace(r"\\\n ", "")
+	Lines := Lines[Lines:find(": ") + 2, 0]:trim
+	var Files := Lines / r"[^\\]( +)"
 	for File in Files do
 		File := file(File:replace(r"\\ ", " "))
 	end
