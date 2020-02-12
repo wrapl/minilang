@@ -1,7 +1,7 @@
 PLATFORM := defined("PLATFORM") or shell("uname"):trim
 DEBUG := defined("DEBUG")
 
-CFLAGS := []
+CFLAGS := ["-pipe"]
 LDFLAGS := []
 PREBUILDS := []
 
