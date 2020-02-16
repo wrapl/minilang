@@ -48,8 +48,6 @@ c_program := fun(Executable, Objects, Libraries) do
 		execute('cc', '-o', Executable, Objects, Libraries, LDFLAGS)
 		--DEBUG or execute('strip', Executable)
 	end
-	DEFAULT[Executable]
-	ret Executable
 end
 
 c_library := fun(Library, Objects, Libraries) do
@@ -70,8 +68,6 @@ c_library := fun(Library, Objects, Libraries) do
 	Library[Objects, Libraries] => fun(Executable) do
 		execute('ar', 'rcs', Library, Objects, Libraries)
 	end
-	DEFAULT[Library]
-	ret Library
 end
 
 PREFIX := old or file('{getenv("DESTDIR") or ""}{defined("PREFIX") or "/usr/local"}')

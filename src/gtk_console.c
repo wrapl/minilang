@@ -13,12 +13,12 @@
 #include "ml_macros.h"
 #include "stringmap.h"
 #include "ml_compiler.h"
-#include "ml_internal.h"
 #include <sys/stat.h>
 #include <graphviz/cgraph.h>
 #include <graphviz/gvc.h>
 
 #include "ml_gir.h"
+#include "ml_runtime.h"
 
 #define MAX_HISTORY 128
 
@@ -60,7 +60,7 @@ static void console_display_closure(console_t *Console, ml_closure_t *Closure) {
 	if (!Context) {
 		Context = gvContext();
 	}
-	const char *GraphFileName = ml_closure_info_debug(Closure->Info);
+	const char *GraphFileName = ml_closure_debug(Closure);
 	FILE *GraphFile = fopen(GraphFileName, "r");
 	graph_t *Graph = agread(GraphFile, NULL);
 	fclose(GraphFile);

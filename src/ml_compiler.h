@@ -37,7 +37,7 @@ ml_value_t *ml_command_evaluate(mlc_scanner_t *Scanner, stringmap_t *Vars, mlc_c
 
 extern int MLDebugClosures;
 
-void ml_closure_debug(ml_value_t *Value);
+const char *ml_closure_debug(ml_value_t *Value);
 
 #ifdef	__cplusplus
 }

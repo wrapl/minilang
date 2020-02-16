@@ -180,6 +180,7 @@ extern ml_type_t MLRegexT[];
 extern ml_type_t MLTupleT[];
 extern ml_type_t MLMethodT[];
 extern ml_type_t MLReferenceT[];
+extern ml_type_t MLUninitializedT[];
 extern ml_type_t MLListT[];
 extern ml_type_t MLMapT[];
 extern ml_type_t MLPropertyT[];
@@ -187,6 +188,7 @@ extern ml_type_t MLClosureT[];
 extern ml_type_t MLErrorT[];
 extern ml_type_t MLErrorValueT[];
 extern ml_type_t MLIteratableT[];
+extern ml_type_t MLStateT[];
 
 typedef struct ml_buffer_t {
 	const ml_type_t *Type;

@@ -1,10 +1,11 @@
 #include "minilang.h"
 #include "ml_macros.h"
 #include "ml_compiler.h"
-#include "ml_internal.h"
 #include "stringmap.h"
 #include <gc.h>
 #include <ctype.h>
+#include "ml_bytecode.h"
+#include "ml_runtime.h"
 #include <string.h>
 #include <stdio.h>
 

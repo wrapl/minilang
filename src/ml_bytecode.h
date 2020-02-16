@@ -1,20 +1,31 @@
-#ifndef ML_INTERNAL_H
-#define ML_INTERNAL_H
+#ifndef ML_BYTECODE_H
+#define ML_BYTECODE_H
 
 #include "ml_types.h"
+
+#ifdef ML_DEBUGGER
+#include "ml_debugger.h"
+#endif
 
 typedef struct ml_inst_t ml_inst_t;
 typedef struct ml_frame_t ml_frame_t;
 
-struct ml_reference_t {
-	const ml_type_t *Type;
-	ml_value_t **Address;
-	ml_value_t *Value[];
-};
+#define ML_PARAM_DEFAULT 0
+#define ML_PARAM_EXTRA 1
+#define ML_PARAM_NAMED 2
 
-#define ML_MODE_DEFAULT	0
-#define ML_PARAM_EXTRA	1
-#define ML_PARAM_NAMED	2
+struct ml_frame_t {
+	ml_state_t Base;
+	ml_inst_t *Inst;
+	ml_value_t **Top;
+	ml_inst_t *OnError;
+	ml_value_t **UpValues;
+#ifdef ML_DEBUGGER
+	debug_function_t *Debug;
+	ml_frame_t *UpState;
+#endif
+	ml_value_t *Stack[];
+};
 
 struct ml_closure_info_t {
 	ml_inst_t *Entry, *Return;
@@ -31,20 +42,6 @@ struct ml_closure_t {
 	int PartialCount;
 	ml_value_t *UpValues[];
 };
-
-typedef struct ml_slot_t ml_slot_t;
-
-struct ml_slot_t {
-	ml_slot_t *Next;
-	ml_value_t **Value;
-};
-
-typedef struct {
-	const ml_type_t *Type;
-	ml_slot_t *Slots;
-} ml_uninitialized_t;
-
-extern ml_type_t MLUninitializedT[];
 
 typedef union {
 	ml_inst_t *Inst;
@@ -97,22 +94,8 @@ struct ml_inst_t {
 	ml_param_t Params[];
 };
 
-struct ml_frame_t {
-	ml_state_t Base;
-	ml_inst_t *Inst;
-	ml_value_t **Top;
-	ml_inst_t *OnError;
-	ml_value_t **UpValues;
-	ml_value_t *Stack[];
-};
-
 const char *ml_closure_info_debug(ml_closure_info_t *Info);
 
-ml_value_t *ml_string_new(void *Data, int Count, ml_value_t **Args);
-ml_value_t *ml_list_new(void *Data, int Count, ml_value_t **Args);
-ml_value_t *ml_tuple_new(void *Data, int Count, ml_value_t **Args);
-ml_value_t *ml_map_new(void *Data, int Count, ml_value_t **Args);
-
-void ml_runtime_init();
+void ml_bytecode_init();
 
 #endif

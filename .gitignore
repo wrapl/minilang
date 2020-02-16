@@ -17,3 +17,5 @@
 /.settings/
 /.cproject
 /.project
+/obj/
+/bin/

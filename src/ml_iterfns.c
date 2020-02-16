@@ -1,9 +1,9 @@
 #include <gc.h>
+#include "ml_runtime.h"
 #include <string.h>
 #include "minilang.h"
 #include "ml_macros.h"
 #include "ml_iterfns.h"
-#include "ml_internal.h"
 
 typedef struct ml_frame_iter_t {
 	ml_state_t Base;
