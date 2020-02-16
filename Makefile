@@ -13,7 +13,7 @@ $(SUBDIRS):
 *.o: *.h
 
 CFLAGS += -std=gnu99 -fstrict-aliasing -Wstrict-aliasing -Wall \
-	-I. -I../src -pthread -DGC_THREADS -D_GNU_SOURCE
+	-I. -I../src -Iobj -pthread -DGC_THREADS -D_GNU_SOURCE
 LDFLAGS += -lm
 
 ifdef DEBUG

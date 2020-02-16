@@ -110,7 +110,7 @@ static inline ml_inst_t *ml_inst_new(int N, ml_source_t Source, ml_opcode_t Opco
 }
 #endif
 
-static ml_value_t *DEBUG_FUNC(frame)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
+static ml_value_t *DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
 	static void *Labels[] = {
 		[MLI_RETURN] = &&DO_RETURN,
 		[MLI_SUSPEND] = &&DO_SUSPEND,
@@ -435,7 +435,7 @@ static ml_value_t *ml_closure_call(ml_state_t *Caller, ml_value_t *Value, int Co
 	DEBUG_STRUCT(frame) *Frame = xnew(DEBUG_STRUCT(frame), Info->FrameSize, ml_value_t *);
 	Frame->Base.Type = DEBUG_TYPE(Continuation);
 	Frame->Base.Caller = Caller;
-	Frame->Base.run = (void *)DEBUG_FUNC(frame);
+	Frame->Base.run = (void *)DEBUG_FUNC(frame_run);
 	int NumParams = Info->NumParams;
 	if (Closure->PartialCount) {
 		int CombinedCount = Count + Closure->PartialCount;
