@@ -132,6 +132,11 @@ if MINILANG_USEMPC or defined("USEMPC") then
 	CFLAGS := old + ["-DUSE_ML_MPC"]
 end
 
+if MINILANG_DEBUGGER or defined("DEBUGGER") then
+	Objects:put(file("ml_debugger.o"))
+	LDFLAGS := old + ["-ljansson"]
+end
+
 if PLATFORM = "Linux" then
 	Objects := old + [file("linenoise.o")]
 	LDFLAGS := old + ["-lgc"]

@@ -1,3 +1,4 @@
+#ifndef DEBUG_VERSION
 #include "ml_macros.h"
 #include "stringmap.h"
 #include <gc.h>
@@ -8,52 +9,82 @@
 #include <inttypes.h>
 #include "ml_bytecode.h"
 #include "ml_runtime.h"
+#endif
 
-static ml_value_t *ml_continuation_call(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
+#ifdef DEBUG_VERSION
+#undef DEBUG_STRUCT
+#undef DEBUG_FUNC
+#undef DEBUG_TYPE
+#define DEBUG_STRUCT(X) ml_ ## X ## _debug_t
+#define DEBUG_FUNC(X) ml_ ## X ## _debug
+#define DEBUG_TYPE(X) ML ## X ## DebugT
+#else
+#define DEBUG_STRUCT(X) ml_ ## X ## _t
+#define DEBUG_FUNC(X) ml_ ## X
+#define DEBUG_TYPE(X) ML ## X ## T
+#endif
+
+typedef struct DEBUG_STRUCT(frame) DEBUG_STRUCT(frame);
+
+struct DEBUG_STRUCT(frame) {
+	ml_state_t Base;
+	ml_inst_t *Inst;
+	ml_value_t **Top;
+	ml_inst_t *OnError;
+	ml_value_t **UpValues;
+#ifdef DEBUG_VERSION
+	debug_function_t *Debug;
+	DEBUG_STRUCT(frame) *UpState;
+#endif
+	ml_value_t *Stack[];
+};
+
+static ml_value_t *DEBUG_FUNC(continuation_call)(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
 	return State->run(State, Count ? Args[0] : MLNil);
 }
 
-ml_type_t MLContinuationT[1] = {{
+ml_type_t DEBUG_TYPE(Continuation)[1] = {{
 	MLTypeT,
 	MLStateT, "continuation",
 	ml_default_hash,
-	(void *)ml_continuation_call,
+	(void *)DEBUG_FUNC(continuation_call),
 	ml_default_deref,
 	ml_default_assign,
 	NULL, 0, 0
 }};
 
-static ml_value_t *ml_suspension_value(ml_state_t *Caller, ml_frame_t *Suspension) {
+static ml_value_t *DEBUG_FUNC(suspension_value)(ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
 	ML_CONTINUE(Caller, Suspension->Top[-1]);
 }
 
-static ml_value_t *ml_suspension_key(ml_state_t *Caller, ml_frame_t *Suspension) {
+static ml_value_t *DEBUG_FUNC(suspension_key)(ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
 	ML_CONTINUE(Caller, Suspension->Top[-2]);
 }
 
-static ml_value_t *ml_suspension_next(ml_state_t *Caller, ml_frame_t *Suspension) {
-	Suspension->Base.Type = MLContinuationT;
+static ml_value_t *DEBUG_FUNC(suspension_next)(ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+	Suspension->Base.Type = DEBUG_TYPE(Continuation);
 	Suspension->Top[-2] = Suspension->Top[-1];
 	--Suspension->Top;
 	Suspension->Base.Caller = Caller;
 	ML_CONTINUE(Suspension, MLNil);
 }
 
-static ml_value_t *ml_suspension_call(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
+static ml_value_t *DEBUG_FUNC(suspension_call)(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
 	State->Caller = Caller;
 	return State->run(State, Count ? Args[0] : MLNil);
 }
 
-ml_type_t MLSuspensionT[1] = {{
+ml_type_t DEBUG_TYPE(Suspension)[1] = {{
 	MLTypeT,
 	MLFunctionT, "suspension",
 	ml_default_hash,
-	(void *)ml_suspension_call,
+	(void *)DEBUG_FUNC(suspension_call),
 	ml_default_deref,
 	ml_default_assign,
 	NULL, 0, 0
 }};
 
+#ifndef DEBUG_VERSION
 static inline ml_inst_t *ml_inst_new(int N, ml_source_t Source, ml_opcode_t Opcode) {
 	ml_inst_t *Inst = xnew(ml_inst_t, N, ml_param_t);
 	Inst->Source = Source;
@@ -77,8 +108,9 @@ static inline ml_inst_t *ml_inst_new(int N, ml_source_t Source, ml_opcode_t Opco
 	Inst = Frame->OnError; \
 	goto *Labels[Inst->Opcode]; \
 }
+#endif
 
-static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
+static ml_value_t *DEBUG_FUNC(frame)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
 	static void *Labels[] = {
 		[MLI_RETURN] = &&DO_RETURN,
 		[MLI_SUSPEND] = &&DO_SUSPEND,
@@ -127,7 +159,7 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 		ML_CONTINUE(Frame->Base.Caller, Result);
 	}
 	DO_SUSPEND: {
-		Frame->Base.Type = MLSuspensionT;
+		Frame->Base.Type = DEBUG_TYPE(Suspension);
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
 		ML_CONTINUE(Frame->Base.Caller, (ml_value_t *)Frame);
@@ -396,13 +428,14 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 	return MLNil;
 }
 
+#ifndef DEBUG_VERSION
 static ml_value_t *ml_closure_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
 	ml_closure_info_t *Info = Closure->Info;
-	ml_frame_t *Frame = xnew(ml_frame_t, Info->FrameSize, ml_value_t *);
-	Frame->Base.Type = MLContinuationT;
+	DEBUG_STRUCT(frame) *Frame = xnew(DEBUG_STRUCT(frame), Info->FrameSize, ml_value_t *);
+	Frame->Base.Type = DEBUG_TYPE(Continuation);
 	Frame->Base.Caller = Caller;
-	Frame->Base.run = (void *)ml_frame_run;
+	Frame->Base.run = (void *)DEBUG_FUNC(frame);
 	int NumParams = Info->NumParams;
 	if (Closure->PartialCount) {
 		int CombinedCount = Count + Closure->PartialCount;
@@ -816,6 +849,7 @@ const char *ml_closure_debug(ml_value_t *Value) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
 	return ml_closure_info_debug(Closure->Info);
 }
+#endif
 
 ML_METHOD("!!", MLClosureT, MLListT) {
 	ml_closure_t *Closure = (ml_closure_t *)Args[0];
@@ -829,10 +863,19 @@ ML_METHOD("!!", MLClosureT, MLListT) {
 	return (ml_value_t *)Partial;
 }
 
+#ifndef DEBUG_VERSION
+#define DEBUG_VERSION
+#include "ml_bytecode.c"
+#undef DEBUG_VERSION
+
 void ml_bytecode_init() {
 	ml_typed_fn_set(MLClosureT, ml_iterate, ml_closure_iterate);
 	ml_typed_fn_set(MLSuspensionT, ml_iter_value, ml_suspension_value);
 	ml_typed_fn_set(MLSuspensionT, ml_iter_key, ml_suspension_key);
 	ml_typed_fn_set(MLSuspensionT, ml_iter_next, ml_suspension_next);
+	ml_typed_fn_set(MLSuspensionDebugT, ml_iter_value, ml_suspension_value_debug);
+	ml_typed_fn_set(MLSuspensionDebugT, ml_iter_key, ml_suspension_key_debug);
+	ml_typed_fn_set(MLSuspensionDebugT, ml_iter_next, ml_suspension_next_debug);
 #include "ml_bytecode_init.c"
 }
+#endif

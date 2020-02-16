@@ -9,11 +9,24 @@
 #include <stdio.h>
 #include <jansson.h>
 #include "stringmap.h"
+#include "ml_bytecode.h"
 
 const int BREAKPOINT_BUFFER_SIZE = 128;
 
 typedef struct debug_local_t debug_local_t;
 typedef struct debug_global_t debug_global_t;
+typedef struct ml_frame_debug_t ml_frame_debug_t;
+
+struct ml_frame_debug_t {
+	ml_state_t Base;
+	ml_inst_t *Inst;
+	ml_value_t **Top;
+	ml_inst_t *OnError;
+	ml_value_t **UpValues;
+	debug_function_t *Debug;
+	ml_frame_debug_t *UpState;
+	ml_value_t *Stack[];
+};
 
 struct debugger_t {
 	const ml_type_t *Type;
@@ -24,7 +37,7 @@ struct debugger_t {
 	int NextModuleId;
 	const char *SocketPath;
 	const char *EvaluateBuffer;
-	ml_frame_t *EvaluateState;
+	ml_frame_debug_t *EvaluateState;
 	int BreakOnSend, BreakOnMessage;
 };
 
@@ -45,21 +58,21 @@ struct debug_module_t {
 
 struct debug_local_t {
 	debug_local_t *Next;
-	uint32_t Index;
+	int Index;
 	ml_value_t *Value;
 	const char *Name;
 };
 
 struct debug_function_t {
 	debug_module_t *Module;
-	uint32_t LineNo, LocalsOffset, NoOfLocals;
+	int LineNo, LocalsOffset, NoOfLocals;
 	debug_local_t *Locals;
 };
 
 typedef json_t *debugger_command_func(json_t *);
 
 static debug_module_t *debugger_get_module(json_t *Args) {
-	uint32_t Id;
+	int Id;
 	if (json_unpack(Args, "{si}", "module", &Id)) return 0;
 	for (debug_module_t *Module = Debugger->Modules; Module; Module = Module->Next) {
 		if (Module->Id == Id) return Module;
@@ -69,11 +82,11 @@ static debug_module_t *debugger_get_module(json_t *Args) {
 
 static int StepIn = 0;
 static int RunTo = 0;
-static ml_frame_t *StepOverInstance = NULL;
-static ml_frame_t *StepOutInstance = NULL;
+static ml_frame_debug_t *StepOverInstance = NULL;
+static ml_frame_debug_t *StepOutInstance = NULL;
 static int Paused = 0;
 static pthread_cond_t *Resume;
-static ml_frame_t *State;
+static ml_frame_debug_t *State;
 static int Enters = 0;
 static int Exits = 0;
 
@@ -164,24 +177,24 @@ static void debugger_describe_variable(json_t *Result, ml_value_t *Value) {
 		json_object_set(Result, "value", json_null());
 	} else if (Type == MLIntegerT) {
 		json_object_set(Result, "type", json_string("integer"));
-		json_object_set(Result, "value", json_integer(Std$Integer$get_small(Value)));
+		json_object_set(Result, "value", json_integer(ml_integer_value(Value)));
 	} else if (Type == MLRealT) {
 		json_object_set(Result, "type", json_string("real"));
-		json_object_set(Result, "value", json_real(Std$Real$get_value(Value)));
+		json_object_set(Result, "value", json_real(ml_real_value(Value)));
 	} else if (Type == MLStringT) {
 		json_object_set(Result, "type", json_string("string"));
-		json_object_set(Result, "value", json_string(Std$String$flatten(Value)));
+		json_object_set(Result, "value", json_string(ml_string_value(Value)));
 	} else if (Type == MLMethodT) {
 		json_object_set(Result, "type", json_string("symbol"));
-		json_object_set(Result, "value", json_string(Std$String$flatten((ml_value_t *)Std$Symbol$get_name(Value))));
+		json_object_set(Result, "value", json_string(ml_method_name(Value)));
 	} else if (Type == MLMapT) {
 		json_object_set(Result, "type", json_string("table"));
 		json_object_set(Result, "ref", json_real((double)(size_t)Value));
-		json_object_set(Result, "size", json_integer(2 * Agg$Table$size(Value)));
+		json_object_set(Result, "size", json_integer(2 * ml_map_size(Value)));
 	} else if (Type == MLListT) {
 		json_object_set(Result, "type", json_string("list"));
 		json_object_set(Result, "ref", json_real((double)(size_t)Value));
-		json_object_set(Result, "size", json_integer(Agg$List$length(Value)));
+		json_object_set(Result, "size", json_integer(ml_list_length(Value)));
 	} else {
 		/*json_object_set(Result, "type", json_string("object"));
 		char *Description;
@@ -213,7 +226,7 @@ static void debugger_append_variable(json_t *Variables, const char *Name, ml_val
 static json_t *debugger_command_get_variable(json_t *Args) {
 	json_t *Variables = json_array();
 	if (json_object_get(Args, "state")) {
-		ml_frame_t *State = (ml_frame_t *)(size_t)json_number_value(json_object_get(Args, "state"));
+		ml_frame_debug_t *State = (ml_frame_debug_t *)(size_t)json_number_value(json_object_get(Args, "state"));
 		debug_function_t *Function = State->Debug;
 		ml_value_t ***Locals = (void *)State + Function->LocalsOffset;
 		for (debug_local_t *Local = State->Debug->Locals; Local; Local = Local->Next) {
@@ -267,22 +280,22 @@ static json_t *debugger_command_get_variable(json_t *Args) {
 	} else {
 		/*const Std$Array$t *Fields = Value->Type->Fields;
 		for (int I = 0; I < Fields->Length.Value; ++I) {
-			debugger_append_variable(Variables, Std$String$flatten((ml_value_t *)Std$Symbol$get_name(Fields->Values[I])), *((ml_value_t **)Value + I + 1));
+			debugger_append_variable(Variables, ml_string_value((ml_value_t *)Std$Symbol$get_name(Fields->Values[I])), *((ml_value_t **)Value + I + 1));
 		}*/
 	}
 	return Variables;
 }
 
-static uint8_t *debug_module_breakpoints(debug_module_t *Module, uint32_t LineNo) {
+static unsigned char *debug_module_breakpoints(debug_module_t *Module, int LineNo) {
 	int Index = LineNo / BREAKPOINT_BUFFER_SIZE;
 	if (Index >= Module->NumBreakpointBuffers) {
-		uint8_t **BreakpointBuffers = (void **)Riva$Memory$alloc((Index + 1) * sizeof(void *));
+		unsigned char **BreakpointBuffers = (void **)snew((Index + 1) * sizeof(void *));
 		for (int I = 0; I < Module->NumBreakpointBuffers; ++I) BreakpointBuffers[I] = Module->BreakpointBuffers[I];
 		Module->BreakpointBuffers = BreakpointBuffers;
 		Module->NumBreakpointBuffers = Index + 1;
 	}
 	if (Module->BreakpointBuffers[Index]) return Module->BreakpointBuffers[Index] + (LineNo % BREAKPOINT_BUFFER_SIZE) / 8;
-	uint8_t *BreakpointBuffer = (uint8_t *)Riva$Memory$alloc_atomic(BREAKPOINT_BUFFER_SIZE / 8);
+	unsigned char *BreakpointBuffer = (unsigned char *)snew(BREAKPOINT_BUFFER_SIZE / 8);
 	memset(BreakpointBuffer, 0, BREAKPOINT_BUFFER_SIZE / 8);
 	Module->BreakpointBuffers[Index] = BreakpointBuffer;
 	return BreakpointBuffer + (LineNo % BREAKPOINT_BUFFER_SIZE) / 8;
@@ -295,22 +308,22 @@ static json_t *debugger_command_set_breakpoints(json_t *Args) {
 	json_t *Disable = json_object_get(Args, "disable");
 	if (!Enable || !Disable) return json_pack("{ss}", "error", "invalid arguments");
 	for (int I = 0; I < json_array_size(Enable); ++I) {
-		uint32_t LineNo = json_integer_value(json_array_get(Enable, I));
+		int LineNo = json_integer_value(json_array_get(Enable, I));
 		debug_module_breakpoints(Module, LineNo)[0] |= 1 << (LineNo % 8);
 	}
 	for (int I = 0; I < json_array_size(Disable); ++I) {
-		uint32_t LineNo = json_integer_value(json_array_get(Disable, I));
+		int LineNo = json_integer_value(json_array_get(Disable, I));
 		debug_module_breakpoints(Module, LineNo)[0] &= ~(1 << (LineNo % 8));
 	}
 	return json_true();
 }
 
-uint8_t *debug_break_on_send() {
-	return (uint8_t *)&Debugger->BreakOnSend;
+unsigned char *debug_break_on_send() {
+	return (unsigned char *)&Debugger->BreakOnSend;
 }
 
-uint8_t *debug_break_on_message() {
-	return (uint8_t *)&Debugger->BreakOnMessage;
+unsigned char *debug_break_on_message() {
+	return (unsigned char *)&Debugger->BreakOnMessage;
 }
 
 static json_t *debugger_command_set_message_breakpoints(json_t *Args) {
@@ -327,7 +340,7 @@ static json_t *debugger_command_set_message_breakpoints(json_t *Args) {
 }
 
 /*LOCAL_FUNCTION(DebuggerIDFunc) {
-	const char *Name = Std$String$flatten(Args[0].Val);
+	const char *Name = ml_string_value(Args[0].Val);
 	printf("Looking up variable %s\n", Name);
 	if (!Debugger->EvaluateState) return FAILURE;
 	debug_function_t *Function = Debugger->EvaluateState->Function;
@@ -365,7 +378,7 @@ static json_t *debugger_evaluate(json_t *Args) {
 	if (!Paused) return json_pack("{ss}", "error", "invalid thread");
 	if (json_unpack(Args, "{ss}", "expression", &Debugger->EvaluateBuffer)) return json_pack("{ss}", "error", "missing expression");
 	if (json_object_get(Args, "state")) {
-		Debugger->EvaluateState = (ml_frame_t *)(size_t)json_number_value(json_object_get(Args, "state"));
+		Debugger->EvaluateState = (ml_frame_debug_t *)(size_t)json_number_value(json_object_get(Args, "state"));
 	} else {
 		Debugger->EvaluateState = State;
 	}
@@ -415,7 +428,7 @@ static void *debugger_thread_func(debugger_t *Debugger) {
 	json_t *CommandJson = json_pack("[is]", 0, "ready");
 	json_error_t JsonError;
 	debugger_update(CommandJson);
-	while (CommandJson = json_loadfd(Debugger->Socket, JSON_DISABLE_EOF_CHECK, &JsonError)) {
+	while ((CommandJson = json_loadfd(Debugger->Socket, JSON_DISABLE_EOF_CHECK, &JsonError))) {
 		int Index;
 		const char *Command;
 		json_t *Args;
@@ -423,7 +436,7 @@ static void *debugger_thread_func(debugger_t *Debugger) {
 		pthread_mutex_lock(Debugger->Lock);
 			//printf("Received: %s\n", json_dumps(CommandJson, JSON_INDENT(4)));
 			if (!json_unpack(CommandJson, "[iso]", &Index, &Command, &Args)) {
-				debugger_command_func *CommandFunc = (debugger_command_func *)stringtable_get(Debugger->Commands, Command);
+				debugger_command_func *CommandFunc = (debugger_command_func *)stringmap_search(Debugger->Commands, Command);
 				if (CommandFunc) {
 					ResultJson = json_pack("[io?]", Index, CommandFunc(Args));
 				} else {
@@ -455,7 +468,7 @@ debug_module_t *debug_module(const char *Name) {
 	return Module;
 }
 
-uint8_t *debug_breakpoints(debug_function_t *Function, uint32_t LineNo) {
+unsigned char *debug_breakpoints(debug_function_t *Function, int LineNo) {
 	return debug_module_breakpoints(Function->Module, LineNo);
 }
 
@@ -489,7 +502,7 @@ void debug_add_global_constant(debug_module_t *Module, const char *Name, ml_valu
 	pthread_mutex_unlock(Debugger->Lock);
 }
 
-debug_function_t *debug_function(debug_module_t *Module, uint32_t LineNo) {
+debug_function_t *debug_function(debug_module_t *Module, int LineNo) {
 	debug_function_t *Function = new(debug_function_t);
 	Function->Module = Module;
 	Function->LineNo = LineNo;
@@ -500,7 +513,7 @@ int debug_module_id(debug_function_t *Function) {
 	return Function->Module->Id;
 }
 
-void debug_add_local_variable(debug_function_t *Function, const char *Name, uint32_t Index) {
+void debug_add_local_var(debug_function_t *Function, const char *Name, int Index) {
 	debug_local_t *Local = new(debug_local_t);
 	Local->Name = Name;
 	Local->Index = Index;
@@ -509,7 +522,7 @@ void debug_add_local_variable(debug_function_t *Function, const char *Name, uint
 	*Slot = Local;
 }
 
-void debug_add_local_constant(debug_function_t *Function, const char *Name, ml_value_t *Value) {
+void debug_add_local_def(debug_function_t *Function, const char *Name, ml_value_t *Value) {
 	debug_local_t *Local = new(debug_local_t);
 	Local->Name = Name;
 	Local->Value = Value;
@@ -518,27 +531,18 @@ void debug_add_local_constant(debug_function_t *Function, const char *Name, ml_v
 	*Slot = Local;
 }
 
-void debug_add_local_constant(debug_function_t *Function, const char *Name, uint32_t Index) {
-	debug_local_t *Local = new(debug_local_t);
-	Local->Name = Name;
-	Local->Index = Index;
-	debug_local_t **Slot = &Function->Locals;
-	while (*Slot) Slot = &Slot[0]->Next;
-	*Slot = Local;
-}
-
-void debug_set_locals(debug_function_t *Function, uint32_t LocalsOffset, uint32_t NoOfLocals) {
+void debug_set_locals(debug_function_t *Function, int LocalsOffset, int NoOfLocals) {
 	Function->LocalsOffset = LocalsOffset;
 	Function->NoOfLocals = NoOfLocals;
 }
 
 debugger_t *Debugger = 0;
 
-void debug_break_impl(ml_frame_t *State, uint32_t LineNo) {
+void debug_break_impl(ml_frame_debug_t *State, int LineNo) {
 	pthread_mutex_lock(Debugger->Lock);
 		Paused = 1;
 		json_t *States = json_array();
-		ml_frame_t *EnterState = State;
+		ml_frame_debug_t *EnterState = State;
 		for (int I = 0; I < Enters; ++I) {
 			debug_function_t *Function = EnterState->Debug;
 			json_array_insert_new(States, 0, json_pack("{sisisfsi}",
@@ -560,11 +564,11 @@ void debug_break_impl(ml_frame_t *State, uint32_t LineNo) {
 	pthread_mutex_unlock(Debugger->Lock);
 }
 
-void debug_message_impl(ml_frame_t *State, uint32_t LineNo, ml_value_t *Message) {
+void debug_message_impl(ml_frame_debug_t *State, int LineNo, ml_value_t *Message) {
 	pthread_mutex_lock(Debugger->Lock);
 		Paused = 1;
 		json_t *Enters = json_array();
-		ml_frame_t *EnterState = State;
+		ml_frame_debug_t *EnterState = State;
 		for (int I = 0; I < Enters; ++I) {
 			debug_function_t *Function = EnterState->Debug;
 			json_array_insert_new(Enters, 0, json_pack("{sisisfsi}",
@@ -589,14 +593,14 @@ void debug_message_impl(ml_frame_t *State, uint32_t LineNo, ml_value_t *Message)
 	pthread_mutex_unlock(Debugger->Lock);
 }
 
-void debug_enter_impl(ml_frame_t *NewState) {
+void debug_enter_impl(ml_frame_debug_t *NewState) {
 	++Enters;
 	NewState->UpState = State;
 	State = NewState;
 }
 
-void debug_exit_impl(ml_frame_t *State) {
-	ml_frame_t *UpState = State->UpState;
+void debug_exit_impl(ml_frame_debug_t *State) {
+	ml_frame_debug_t *UpState = State->UpState;
 	State = UpState;
 	if (Enters > 0) {
 		--Enters;

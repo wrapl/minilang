@@ -2,33 +2,17 @@
 #define ML_BYTECODE_H
 
 #include "ml_types.h"
-
-#ifdef ML_DEBUGGER
 #include "ml_debugger.h"
-#endif
 
 typedef struct ml_inst_t ml_inst_t;
-typedef struct ml_frame_t ml_frame_t;
 
 #define ML_PARAM_DEFAULT 0
 #define ML_PARAM_EXTRA 1
 #define ML_PARAM_NAMED 2
 
-struct ml_frame_t {
-	ml_state_t Base;
-	ml_inst_t *Inst;
-	ml_value_t **Top;
-	ml_inst_t *OnError;
-	ml_value_t **UpValues;
-#ifdef ML_DEBUGGER
-	debug_function_t *Debug;
-	ml_frame_t *UpState;
-#endif
-	ml_value_t *Stack[];
-};
-
 struct ml_closure_info_t {
 	ml_inst_t *Entry, *Return;
+	debug_function_t *Debug;
 	stringmap_t Params[1];
 	int FrameSize;
 	int NumParams, NumUpValues;
