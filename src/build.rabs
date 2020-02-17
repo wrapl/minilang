@@ -160,7 +160,7 @@ var InstallBin := PREFIX / "bin"
 var InstallInclude := PREFIX / "include/minilang"
 var InstallLib := PREFIX / "lib"
 
-install(file("minilang"), InstallBin / "minilang", "+x")
+install(MINILANG, InstallBin / "minilang", "+x")
 
 var InstallHeaders := [
 	"minilang.h",
