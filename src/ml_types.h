@@ -2,6 +2,7 @@
 #define ML_TYPES_H
 
 #include <regex.h>
+#include <unistd.h>
 
 #ifdef	__cplusplus
 extern "C" {
