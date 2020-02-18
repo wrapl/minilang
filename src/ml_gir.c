@@ -850,12 +850,12 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 				break;
 			}
 			case GI_TYPE_TAG_UTF8: {
-				ML_CHECK_ARG_TYPE(N, MLStringT);
+				ML_CHECK_ARG_TYPE(N - 1, MLStringT);
 				ArgsIn[IndexIn].v_string = (char *)ml_string_value(Arg);
 				break;
 			}
 			case GI_TYPE_TAG_FILENAME: {
-				ML_CHECK_ARG_TYPE(N, MLStringT);
+				ML_CHECK_ARG_TYPE(N - 1, MLStringT);
 				ArgsIn[IndexIn].v_string = (char *)ml_string_value(Arg);
 				break;
 			}
