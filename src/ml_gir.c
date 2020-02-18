@@ -68,6 +68,7 @@ static ml_value_t *ml_gir_require(void *Data, int Count, ml_value_t **Args) {
 typedef struct object_t {
 	ml_type_t Base;
 	GIObjectInfo *Info;
+	ml_map_t *Methods;
 } object_t;
 
 typedef struct object_instance_t {
@@ -171,6 +172,7 @@ ML_METHOD("string", ObjectInstanceT) {
 typedef struct struct_t {
 	ml_type_t Base;
 	GIStructInfo *Info;
+	ml_map_t *Methods;
 } struct_t;
 
 typedef struct struct_instance_t {
@@ -779,10 +781,11 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 		case GI_DIRECTION_INOUT: ++NArgsIn; ++NArgsOut; break;
 		}
 	}
+	GIFunctionInfoFlags Flags = g_function_info_get_flags(Info);
 	GIArgument ArgsIn[NArgsIn];
 	GIArgument ArgsOut[NArgsOut];
 	int IndexIn = 0, IndexOut = 0, N = 0;
-	if (g_function_info_get_flags(Info) == GI_FUNCTION_IS_METHOD) {
+	if (g_function_info_get_flags(Info) & GI_FUNCTION_IS_METHOD) {
 		ArgsIn[0].v_pointer = ((object_instance_t *)Args[0])->Handle;
 		N = 1;
 		IndexIn = 1;
@@ -847,22 +850,42 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 				break;
 			}
 			case GI_TYPE_TAG_UTF8: {
+				ML_CHECK_ARG_TYPE(N, MLStringT);
 				ArgsIn[IndexIn].v_string = (char *)ml_string_value(Arg);
 				break;
 			}
 			case GI_TYPE_TAG_FILENAME: {
+				ML_CHECK_ARG_TYPE(N, MLStringT);
 				ArgsIn[IndexIn].v_string = (char *)ml_string_value(Arg);
 				break;
 			}
 			case GI_TYPE_TAG_ARRAY: {
-				if (!ml_is(Arg, MLListT)) {
-					return ml_error("TypeError", "Expected list for parameter %d", I);
-				}
 				GITypeInfo *ElementInfo = g_type_info_get_param_type(TypeInfo, 0);
-				size_t ElementSize = array_element_size(ElementInfo);
-				char *Array = GC_MALLOC_ATOMIC((ml_list_length(Arg) + 1) * ElementSize);
-				// TODO: fill array
-				ArgsIn[IndexIn].v_pointer = Array;
+				switch (g_type_info_get_tag(ElementInfo)) {
+				case GI_TYPE_TAG_INT8:
+				case GI_TYPE_TAG_UINT8: {
+					if (Arg->Type == MLStringT) {
+						ArgsIn[IndexIn].v_pointer = (void *)ml_string_value(Arg);
+					} else if (Arg->Type == MLListT) {
+						char *Array = GC_MALLOC_ATOMIC((ml_list_length(Arg) + 1));
+						// TODO: fill array
+						ArgsIn[IndexIn].v_pointer = Array;
+					} else {
+
+					}
+					break;
+				}
+				default: {
+					if (!ml_is(Arg, MLListT)) {
+						return ml_error("TypeError", "Expected list for parameter %d", I);
+					}
+					size_t ElementSize = array_element_size(ElementInfo);
+					char *Array = GC_MALLOC_ATOMIC((ml_list_length(Arg) + 1) * ElementSize);
+					// TODO: fill array
+					ArgsIn[IndexIn].v_pointer = Array;
+					break;
+				}
+				}
 				break;
 			}
 			case GI_TYPE_TAG_INTERFACE: {
@@ -1260,13 +1283,13 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 	GError *Error = 0;
 	GIArgument ReturnValue[1];
 	gboolean Invoked = g_function_info_invoke(Info, ArgsIn, IndexIn, ArgsOut, IndexOut, ReturnValue, &Error);
-	if (!Invoked) return ml_error("InvokeError", "Error: %s", Error->message);
+	if (!Invoked || Error) return ml_error("InvokeError", "Error: %s", Error->message);
 	GITypeInfo *ReturnInfo = g_callable_info_get_return_type((GICallableInfo *)Info);
 	return argument_to_value(ReturnValue, ReturnInfo);
 }
 
 static ml_value_t *constructor_invoke(GIFunctionInfo *Info, int Count, ml_value_t **Args) {
-	return function_info_invoke(Info, Count - 1, Args + 1);
+	return function_info_invoke(Info, Count, Args);
 }
 
 static ml_value_t *method_invoke(GIFunctionInfo *Info, int Count, ml_value_t **Args) {
@@ -1287,27 +1310,23 @@ static void interface_add_methods(object_t *Object, GIInterfaceInfo *Info) {
 	}
 }
 
-static void object_add_methods(object_t *Object, ml_type_t *Type, GIObjectInfo *Info) {
+static void object_add_methods(object_t *Object, GIObjectInfo *Info) {
+	GIObjectInfo *Parent = g_object_info_get_parent(Info);
+	if (Parent) object_add_methods(Object, Parent);
+	int NumInterfaces = g_object_info_get_n_interfaces(Info);
+	for (int I = 0; I < NumInterfaces; ++I) {
+		interface_add_methods(Object, g_object_info_get_interface(Info, I));
+	}
 	int NumMethods = g_object_info_get_n_methods(Info);
 	for (int I = 0; I < NumMethods; ++I) {
 		GIFunctionInfo *MethodInfo = g_object_info_get_method(Info, I);
 		const char *MethodName = g_base_info_get_name((GIBaseInfo *)MethodInfo);
-		switch (g_function_info_get_flags(MethodInfo)) {
-		case GI_FUNCTION_IS_METHOD: {
+		GIFunctionInfoFlags Flags = g_function_info_get_flags(MethodInfo);
+		if (Flags & GI_FUNCTION_IS_METHOD) {
 			ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Object, NULL);
-			break;
+		} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
+			ml_map_insert(Object->Methods, ml_string(MethodName, -1), ml_function(MethodInfo, constructor_invoke));
 		}
-		case GI_FUNCTION_IS_CONSTRUCTOR: {
-			ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)constructor_invoke, Type, NULL);
-			break;
-		}
-		}
-	}
-	GIObjectInfo *Parent = g_object_info_get_parent(Info);
-	if (Parent) object_add_methods(Object, Type, Parent);
-	int NumInterfaces = g_object_info_get_n_interfaces(Info);
-	for (int I = 0; I < NumInterfaces; ++I) {
-		interface_add_methods(Object, g_object_info_get_interface(Info, I));
 	}
 }
 
@@ -1317,31 +1336,38 @@ static ml_type_t *object_info_lookup(GIObjectInfo *Info) {
 	const char *TypeName = g_base_info_get_name((GIBaseInfo *)Info);
 	ml_type_t **Slot = (ml_type_t **)stringmap_slot(TypeMap, TypeName);
 	if (!Slot[0]) {
-		ml_type_t *ParentType = ml_type(ObjectT, "gir-parent");
 		object_t *Object = new(object_t);
 		Object->Base = ObjectT[0];
-		Object->Base.Type = ParentType;
+		Object->Base.Type = ObjectT;
 		Object->Base.Name = TypeName;
 		Object->Base.Parent = ObjectInstanceT;
 		Object->Info = Info;
-		object_add_methods(Object, ParentType, Info);
+		Object->Methods = ml_map();
+		object_add_methods(Object, Info);
 		Slot[0] = (ml_type_t *)Object;
 	}
 	return Slot[0];
+}
+
+ML_METHOD("::", ObjectT, MLStringT) {
+	object_t *Object = (object_t *)Args[0];
+	ml_value_t *Method = ml_map_search(Object->Methods, Args[1]);
+	if (Method == MLNil) return ml_error("NameError", "Unknown method %s", ml_string_value(Args[1]));
+	return Method;
 }
 
 static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 	const char *TypeName = g_base_info_get_name((GIBaseInfo *)Info);
 	ml_type_t **Slot = (ml_type_t **)stringmap_slot(TypeMap, TypeName);
 	if (!Slot[0]) {
-		ml_type_t *ParentType = ml_type(StructT, "gir-struct");
 		struct_t *Struct = new(struct_t);
 		Struct->Base = StructT[0];
-		Struct->Base.Type = ParentType;
+		Struct->Base.Type = StructT;
 		Struct->Base.Name = TypeName;
 		Struct->Base.Parent = StructInstanceT;
 		Struct->Info = Info;
-		ml_method_by_name("new", Struct, (void *)struct_instance_new, ParentType, NULL);
+		Struct->Methods = ml_map();
+		ml_map_insert(Struct->Methods, ml_string("new", -1), ml_function(Struct, struct_instance_new));
 		Slot[0] = (ml_type_t *)Struct;
 		int NumFields = g_struct_info_get_n_fields(Info);
 		for (int I = 0; I < NumFields; ++I) {
@@ -1353,23 +1379,22 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 		for (int I = 0; I < NumMethods; ++I) {
 			GIFunctionInfo *MethodInfo = g_struct_info_get_method(Info, I);
 			const char *MethodName = g_base_info_get_name((GIBaseInfo *)MethodInfo);
-			switch (g_function_info_get_flags(MethodInfo)) {
-			case GI_FUNCTION_IS_METHOD: {
+			GIFunctionInfoFlags Flags = g_function_info_get_flags(MethodInfo);
+			if (Flags & GI_FUNCTION_IS_METHOD) {
 				ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Struct, NULL);
-				break;
-			}
-			case GI_FUNCTION_IS_CONSTRUCTOR: {
-				ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)constructor_invoke, ParentType, NULL);
-				break;
-			}
-			default: {
-				ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)constructor_invoke, ParentType, NULL);
-				break;
-			}
+			} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
+				ml_map_insert(Struct->Methods, ml_string(MethodName, -1), ml_function(MethodInfo, constructor_invoke));
 			}
 		}
 	}
 	return Slot[0];
+}
+
+ML_METHOD("::", StructT, MLStringT) {
+	struct_t *Struct = (struct_t *)Args[0];
+	ml_value_t *Method = ml_map_search(Struct->Methods, Args[1]);
+	if (Method == MLNil) return ml_error("NameError", "Unknown method %s", ml_string_value(Args[1]));
+	return Method;
 }
 
 ML_METHOD("::", EnumT, MLStringT) {
@@ -1491,7 +1516,6 @@ ML_METHOD("::", TypelibT, MLStringT) {
 	typelib_t *Typelib = (typelib_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
 	GIBaseInfo *Info = g_irepository_find_by_name(NULL, Typelib->Namespace, Name);
-	ml_value_t *Result;
 	if (!Info) {
 		return ml_error("NameError", "Symbol %s not found in %s", Name, Typelib->Namespace);
 	} else {
@@ -1612,6 +1636,7 @@ static ml_value_t *object_property_assign(object_property_t *Property, ml_value_
 	Value0 = Value0->Type->deref(Value0);
 	if (Value0->Type == MLErrorT) return Value0;
 	GValue Value[1];
+	memset(Value, 0, sizeof(GValue));
 	_ml_to_value(Value0, Value);
 	g_object_set_property(Property->Object, Property->Name, Value);
 	return Value0;
