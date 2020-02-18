@@ -1,5 +1,4 @@
-#include "minilang.h"
-#include "ml_internal.h"
+#ifndef DEBUG_VERSION
 #include "ml_macros.h"
 #include "stringmap.h"
 #include <gc.h>
@@ -8,193 +7,84 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <inttypes.h>
-#ifdef __USE_GNU
-#include <alloca.h>
+#include "ml_bytecode.h"
+#include "ml_runtime.h"
 #endif
 
-static ml_value_t *ml_reference_deref(ml_value_t *Ref) {
-	ml_reference_t *Reference = (ml_reference_t *)Ref;
-	return Reference->Address[0];
-}
+#ifdef DEBUG_VERSION
+#undef DEBUG_STRUCT
+#undef DEBUG_FUNC
+#undef DEBUG_TYPE
+#define DEBUG_STRUCT(X) ml_ ## X ## _debug_t
+#define DEBUG_FUNC(X) ml_ ## X ## _debug
+#define DEBUG_TYPE(X) ML ## X ## DebugT
+#else
+#define DEBUG_STRUCT(X) ml_ ## X ## _t
+#define DEBUG_FUNC(X) ml_ ## X
+#define DEBUG_TYPE(X) ML ## X ## T
+#endif
 
-static ml_value_t *ml_reference_assign(ml_value_t *Ref, ml_value_t *Value) {
-	Value = Value->Type->deref(Value);
-	if (Value->Type == MLErrorT) return Value;
-	ml_reference_t *Reference = (ml_reference_t *)Ref;
-	return Reference->Address[0] = Value;
-}
+typedef struct DEBUG_STRUCT(frame) DEBUG_STRUCT(frame);
 
-ml_type_t MLReferenceT[1] = {{
-	MLTypeT,
-	MLAnyT, "reference",
-	ml_default_hash,
-	ml_default_call,
-	ml_reference_deref,
-	ml_reference_assign,
-	NULL, 0, 0
-}};
+struct DEBUG_STRUCT(frame) {
+	ml_state_t Base;
+	ml_inst_t *Inst;
+	ml_value_t **Top;
+	ml_inst_t *OnError;
+	ml_value_t **UpValues;
+#ifdef DEBUG_VERSION
+	debug_function_t *Debug;
+	DEBUG_STRUCT(frame) *UpState;
+#endif
+	ml_value_t *Stack[];
+};
 
-inline ml_value_t *ml_reference(ml_value_t **Address) {
-	ml_reference_t *Reference;
-	if (Address == 0) {
-		Reference = xnew(ml_reference_t, 1, ml_value_t *);
-		Reference->Address = Reference->Value;
-		Reference->Value[0] = MLNil;
-	} else {
-		Reference = new(ml_reference_t);
-		Reference->Address = Address;
-	}
-	Reference->Type = MLReferenceT;
-	return (ml_value_t *)Reference;
-}
-
-static ml_value_t *ml_state_call(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
+static ml_value_t *DEBUG_FUNC(continuation_call)(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
 	return State->run(State, Count ? Args[0] : MLNil);
 }
 
-ml_type_t MLStateT[1] = {{
-	MLTypeT,
-	MLFunctionT, "state",
-	ml_default_hash,
-	(void *)ml_state_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
-
-static ml_value_t *ml_continuation_value(ml_state_t *Caller, ml_frame_t *Continuation) {
-	ML_CONTINUE(Caller, Continuation->Top[-1]);
-}
-
-static ml_value_t *ml_continuation_key(ml_state_t *Caller, ml_frame_t *Continuation) {
-	ML_CONTINUE(Caller, Continuation->Top[-2]);
-}
-
-static ml_value_t *ml_continuation_next(ml_state_t *Caller, ml_frame_t *Continuation) {
-	Continuation->Top[-2] = Continuation->Top[-1];
-	--Continuation->Top;
-	Continuation->Base.Caller = Caller;
-	ML_CONTINUE(Continuation, MLNil);
-}
-
-ml_type_t MLContinuationT[1] = {{
+ml_type_t DEBUG_TYPE(Continuation)[1] = {{
 	MLTypeT,
 	MLStateT, "continuation",
 	ml_default_hash,
-	(void *)ml_state_call,
+	(void *)DEBUG_FUNC(continuation_call),
 	ml_default_deref,
 	ml_default_assign,
 	NULL, 0, 0
 }};
 
-typedef struct ml_functionx_t {
-	const ml_type_t *Type;
-	ml_callbackx_t Callback;
-	void *Data;
-} ml_functionx_t;
-
-static ml_value_t *ml_functionx_call(ml_state_t *Caller, ml_functionx_t *Function, int Count, ml_value_t **Args) {
-	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Arg = Args[I] = Args[I]->Type->deref(Args[I]);
-		if (Arg->Type == MLErrorT) ML_CONTINUE(Caller, Arg);
-	}
-	return (Function->Callback)(Caller, Function->Data, Count, Args);
+static ml_value_t *DEBUG_FUNC(suspension_value)(ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+	ML_CONTINUE(Caller, Suspension->Top[-1]);
 }
 
-ml_type_t MLFunctionXT[1] = {{
-	MLTypeT,
-	MLFunctionT, "functionx",
-	ml_default_hash,
-	(void *)ml_functionx_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
-
-ml_value_t *ml_functionx(void *Data, ml_callbackx_t Callback) {
-	ml_functionx_t *Function = fnew(ml_functionx_t);
-	Function->Type = MLFunctionXT;
-	Function->Data = Data;
-	Function->Callback = Callback;
-	GC_end_stubborn_change(Function);
-	return (ml_value_t *)Function;
+static ml_value_t *DEBUG_FUNC(suspension_key)(ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+	ML_CONTINUE(Caller, Suspension->Top[-2]);
 }
 
-static ml_value_t *ml_nil_state_fn(ml_state_t *State, ml_value_t *Value) {
-	return Value;
+static ml_value_t *DEBUG_FUNC(suspension_next)(ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+	Suspension->Base.Type = DEBUG_TYPE(Continuation);
+	Suspension->Top[-2] = Suspension->Top[-1];
+	--Suspension->Top;
+	Suspension->Base.Caller = Caller;
+	ML_CONTINUE(Suspension, MLNil);
 }
 
-static ml_state_t MLNilState[1] = {{MLStateT, NULL, ml_nil_state_fn}};
-
-typedef struct ml_resumable_state_t {
-	ml_state_t Base;
-	ml_state_t *Last;
-} ml_resumable_state_t;
-
-static ml_value_t *ml_resumable_state_call(ml_state_t *Caller, ml_resumable_state_t *State, int Count, ml_value_t **Args) {
-	State->Last->Caller = Caller;
-	ML_CONTINUE(State->Base.Caller, Count ? Args[0] : MLNil);
-}
-
-ml_type_t MLResumableStateT[1] = {{
-	MLTypeT,
-	MLStateT, "resumable-state",
-	ml_default_hash,
-	(void *)ml_resumable_state_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
-
-static ml_value_t *ml_resumable_state_run(ml_resumable_state_t *State, ml_value_t *Value) {
-	ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Invalid use of resumable state"));
-}
-
-static ml_value_t *ml_callcc(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
-	if (Count > 1) {
-		ML_CHECKX_ARG_TYPE(0, MLStateT);
-		ml_state_t *State = (ml_state_t *)Args[0];
-		ml_state_t *Last = Caller;
-		while (Last && Last->Caller != State) Last = Last->Caller;
-		if (!Last) ML_CONTINUE(Caller, ml_error("StateError", "State not in current call chain"));
-		Last->Caller = NULL;
-		ml_resumable_state_t *Resumable = new(ml_resumable_state_t);
-		Resumable->Base.Type = MLResumableStateT;
-		Resumable->Base.Caller = Caller;
-		Resumable->Base.run = (void *)ml_resumable_state_run;
-		Resumable->Last = Last;
-		ml_value_t *Function = Args[1];
-		ml_value_t **Args2 = anew(ml_value_t *, 1);
-		Args2[0] = (ml_value_t *)Resumable;
-		return Function->Type->call(State, Function, 1, Args2);
-	} else {
-		ML_CHECKX_ARG_COUNT(1);
-		ml_value_t *Function = Args[0];
-		ml_value_t **Args2 = anew(ml_value_t *, 1);
-		Args2[0] = (ml_value_t *)Caller;
-		return Function->Type->call(NULL, Function, 1, Args2);
-	}
-}
-
-static ml_value_t *ml_spawn_state_fn(ml_state_t *State, ml_value_t *Value) {
-	ML_CONTINUE(State->Caller, Value);
-}
-
-static ml_value_t *ml_spawn(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
-	ML_CHECKX_ARG_COUNT(1);
-	ml_state_t *State = new(ml_state_t);
-	State->Type = MLStateT;
+static ml_value_t *DEBUG_FUNC(suspension_call)(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
 	State->Caller = Caller;
-	State->run = ml_spawn_state_fn;
-	ml_value_t *Func = Args[0];
-	ml_value_t **Args2 = anew(ml_value_t *, 1);
-	Args2[0] = (ml_value_t *)State;
-	return Func->Type->call(State, Func, 1, Args2);
+	return State->run(State, Count ? Args[0] : MLNil);
 }
 
-ml_functionx_t MLCallCC[1] = {{MLFunctionXT, ml_callcc, NULL}};
-ml_functionx_t MLSpawn[1] = {{MLFunctionXT, ml_spawn, NULL}};
+ml_type_t DEBUG_TYPE(Suspension)[1] = {{
+	MLTypeT,
+	MLFunctionT, "suspension",
+	ml_default_hash,
+	(void *)DEBUG_FUNC(suspension_call),
+	ml_default_deref,
+	ml_default_assign,
+	NULL, 0, 0
+}};
 
+#ifndef DEBUG_VERSION
 static inline ml_inst_t *ml_inst_new(int N, ml_source_t Source, ml_opcode_t Opcode) {
 	ml_inst_t *Inst = xnew(ml_inst_t, N, ml_param_t);
 	Inst->Source = Source;
@@ -218,18 +108,9 @@ static inline ml_inst_t *ml_inst_new(int N, ml_source_t Source, ml_opcode_t Opco
 	Inst = Frame->OnError; \
 	goto *Labels[Inst->Opcode]; \
 }
+#endif
 
-ml_type_t MLUninitializedT[] = {{
-	MLTypeT,
-	MLAnyT, "uninitialized",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
-
-static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
+static ml_value_t *DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
 	static void *Labels[] = {
 		[MLI_RETURN] = &&DO_RETURN,
 		[MLI_SUSPEND] = &&DO_SUSPEND,
@@ -278,6 +159,7 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 		ML_CONTINUE(Frame->Base.Caller, Result);
 	}
 	DO_SUSPEND: {
+		Frame->Base.Type = DEBUG_TYPE(Suspension);
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
 		ML_CONTINUE(Frame->Base.Caller, (ml_value_t *)Frame);
@@ -546,13 +428,14 @@ static ml_value_t *ml_frame_run(ml_frame_t *Frame, ml_value_t *Result) {
 	return MLNil;
 }
 
+#ifndef DEBUG_VERSION
 static ml_value_t *ml_closure_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
 	ml_closure_info_t *Info = Closure->Info;
-	ml_frame_t *Frame = xnew(ml_frame_t, Info->FrameSize, ml_value_t *);
-	Frame->Base.Type = MLContinuationT;
+	DEBUG_STRUCT(frame) *Frame = xnew(DEBUG_STRUCT(frame), Info->FrameSize, ml_value_t *);
+	Frame->Base.Type = DEBUG_TYPE(Continuation);
 	Frame->Base.Caller = Caller;
-	Frame->Base.run = (void *)ml_frame_run;
+	Frame->Base.run = (void *)DEBUG_FUNC(frame_run);
 	int NumParams = Info->NumParams;
 	if (Closure->PartialCount) {
 		int CombinedCount = Count + Closure->PartialCount;
@@ -679,24 +562,6 @@ ml_type_t MLClosureT[1] = {{
 	ml_default_assign,
 	NULL, 0, 0
 }};
-
-ml_value_t *ml_default_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
-	ML_CONTINUE(Caller, ml_error("TypeError", "<%s> is not callable", Value->Type->Name));
-}
-
-inline ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args) {
-	ml_value_t *Result = Value->Type->call(NULL, Value, Count, Args);
-	return Result->Type->deref(Result);
-}
-
-ml_value_t *ml_inline(ml_value_t *Value, int Count, ...) {
-	ml_value_t *Args[Count];
-	va_list List;
-	va_start(List, Count);
-	for (int I = 0; I < Count; ++I) Args[I] = va_arg(List, ml_value_t *);
-	va_end(List);
-	return ml_call(Value, Count, Args);
-}
 
 static void ml_inst_escape_string(FILE *Graph, const char *String, size_t Length) {
 	for (int I = 0; I < Length; ++I) switch (String[I]) {
@@ -980,14 +845,37 @@ const char *ml_closure_info_debug(ml_closure_info_t *Info) {
 	return FileName;
 }
 
-void ml_closure_debug(ml_value_t *Value) {
+const char *ml_closure_debug(ml_value_t *Value) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
-	ml_closure_info_debug(Closure->Info);
+	return ml_closure_info_debug(Closure->Info);
+}
+#endif
+
+ML_METHOD("!!", MLClosureT, MLListT) {
+	ml_closure_t *Closure = (ml_closure_t *)Args[0];
+	ml_list_t *ArgsList = (ml_list_t *)Args[1];
+	int NumUpValues = Closure->Info->NumUpValues + Closure->PartialCount;
+	ml_closure_t *Partial = xnew(ml_closure_t, NumUpValues + ArgsList->Length, ml_value_t *);
+	memcpy(Partial, Closure, sizeof(ml_closure_t) + NumUpValues * sizeof(ml_value_t *));
+	Partial->PartialCount += ArgsList->Length;
+	ml_value_t **Arg = Partial->UpValues + NumUpValues;
+	for (ml_list_node_t *Node = ArgsList->Head; Node; Node = Node->Next) *Arg++ = Node->Value;
+	return (ml_value_t *)Partial;
 }
 
-void ml_runtime_init() {
+#ifndef DEBUG_VERSION
+#define DEBUG_VERSION
+#include "ml_bytecode.c"
+#undef DEBUG_VERSION
+
+void ml_bytecode_init() {
 	ml_typed_fn_set(MLClosureT, ml_iterate, ml_closure_iterate);
-	ml_typed_fn_set(MLContinuationT, ml_iter_value, ml_continuation_value);
-	ml_typed_fn_set(MLContinuationT, ml_iter_key, ml_continuation_key);
-	ml_typed_fn_set(MLContinuationT, ml_iter_next, ml_continuation_next);
+	ml_typed_fn_set(MLSuspensionT, ml_iter_value, ml_suspension_value);
+	ml_typed_fn_set(MLSuspensionT, ml_iter_key, ml_suspension_key);
+	ml_typed_fn_set(MLSuspensionT, ml_iter_next, ml_suspension_next);
+	ml_typed_fn_set(MLSuspensionDebugT, ml_iter_value, ml_suspension_value_debug);
+	ml_typed_fn_set(MLSuspensionDebugT, ml_iter_key, ml_suspension_key_debug);
+	ml_typed_fn_set(MLSuspensionDebugT, ml_iter_next, ml_suspension_next_debug);
+#include "ml_bytecode_init.c"
 }
+#endif

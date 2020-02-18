@@ -3,12 +3,17 @@
 PLATFORM = $(shell uname)
 MACHINE = $(shell uname -m)
 
-all: minilang minipp libminilang.a
+all: bin/minilang bin/minipp lib/libminilang.a
+
+SUBDIRS = obj bin lib
+
+$(SUBDIRS):
+	mkdir -p $@
 
 *.o: *.h
 
 CFLAGS += -std=gnu99 -fstrict-aliasing -Wstrict-aliasing -Wall \
-	-I. -pthread -DGC_THREADS -D_GNU_SOURCE
+	-Iobj -Isrc -pthread -DGC_THREADS -D_GNU_SOURCE
 LDFLAGS += -lm
 
 ifdef DEBUG
@@ -19,29 +24,34 @@ else
 	LDFLAGS += -g
 endif
 
-%_init.c: %.c
+obj/%.o: src/%.c | obj
+	$(CC) $(CFLAGS) -c -o $@ $< 
+
+obj/%_init.c: src/%.c | obj
 	echo "" > $@
 	cc -E -P -DGENERATE_INIT $(CFLAGS) $< | grep -o 'ml_[a-z]*_by_name([^{]*_fn_[^{]*);' > $@
 
-ml_types.o: ml_types_init.c
-ml_object.o: ml_object_init.c
-ml_math.o: ml_math_init.c
-ml_file.o: ml_file_init.c
-ml_iterfns.o: ml_iterfns_init.c
-ml_module.o: ml_module_init.c
+obj/ml_types.o: obj/ml_types_init.c
+obj/ml_object.o: obj/ml_object_init.c
+obj/ml_math.o: obj/ml_math_init.c
+obj/ml_file.o: obj/ml_file_init.c
+obj/ml_iterfns.o: obj/ml_iterfns_init.c
+obj/ml_module.o: obj/ml_module_init.c
+obj/ml_bytecode.o: obj/ml_bytecode_init.c
 
 common_objects = \
-	minilang.o \
-	ml_compiler.o \
-	ml_runtime.o \
-	ml_types.o \
-	ml_file.o \
-	ml_iterfns.o \
-	sha256.o \
-	stringmap.o \
-	ml_console.o \
-	ml_object.o \
-	ml_module.o
+	obj/minilang.o \
+	obj/ml_compiler.o \
+	obj/ml_runtime.o \
+	obj/ml_bytecode.o \
+	obj/ml_types.o \
+	obj/ml_file.o \
+	obj/ml_iterfns.o \
+	obj/sha256.o \
+	obj/stringmap.o \
+	obj/ml_console.o \
+	obj/ml_object.o \
+	obj/ml_module.o
 
 platform_objects =
 
@@ -50,42 +60,38 @@ ifeq ($(MACHINE), i686)
 endif
 
 ifeq ($(PLATFORM), Linux)
-	platform_objects += linenoise.o
+	platform_objects += obj/linenoise.o
 	LDFLAGS += -lgc
 endif
 
 ifeq ($(PLATFORM), FreeBSD)
-	platform_objects += linenoise.o
+	platform_objects += obj/linenoise.o
 	CFLAGS += -I/usr/local/include
 	LDFLAGS += -L/usr/local/lib -lgc-threaded
 endif
 
 ifeq ($(PLATFORM), Darwin)
-	platform_objects += linenoise.o
+	platform_objects += obj/linenoise.o
 	LDFLAGS += -lgc
 endif
 
 minilang_objects = $(common_objects) $(platform_objects) \
-	ml_main.o
+	obj/ml_main.o
 
-minilang: Makefile $(minilang_objects) *.h
+bin/minilang: bin Makefile $(minilang_objects) src/*.h
 	$(CC) $(minilang_objects) $(LDFLAGS) -o$@
 
 minipp_objects = $(common_objects) $(platform_objects) \
-	minipp.o
+	obj/minipp.o
 
-minipp: Makefile $(minipp_objects) *.h
+bin/minipp: bin Makefile $(minipp_objects) src/*.h
 	$(CC) $(minipp_objects) $(LDFLAGS) -o$@
 
-libminilang.a: $(common_objects) $(platform_objects)
+lib/libminilang.a: lib $(common_objects) $(platform_objects)
 	ar rcs $@ $(common_objects) $(platform_objects)
 
 clean:
-	rm -f minilang
-	rm -f minipp
-	rm -f *.o
-	rm -rf *_init.c
-	rm -f libminilang.a
+	rm -rf bin lib obj
 
 PREFIX = /usr
 install_include = $(DESTDIR)$(PREFIX)/include/minilang
@@ -106,12 +112,14 @@ install_h = \
 
 install_a = $(install_lib)/libminilang.a
 
-$(install_h): $(install_include)/%: %
+$(install_h): $(install_include)/%: src/%
 	mkdir -p $(install_include)
 	cp $< $@
 
-$(install_a): $(install_lib)/%: %
+$(install_a): $(install_lib)/%: lib/%
 	mkdir -p $(install_lib)
 	cp $< $@
 
 install: $(install_h) $(install_a)
+
+	

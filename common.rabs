@@ -1,7 +1,7 @@
 PLATFORM := defined("PLATFORM") or shell("uname"):trim
 DEBUG := defined("DEBUG")
 
-CFLAGS := []
+CFLAGS := ["-pipe"]
 LDFLAGS := []
 PREBUILDS := []
 
@@ -16,8 +16,9 @@ end
 c_includes := fun(Target) do
 	var Files := []
 	var Lines := shell('cc -c {CFLAGS} -M -MG {Target:source}')
-	var Files := Lines:trim:replace(r"\\\n ", "") / r"[^\\]( +)"
-	Files:pop
+	Lines := Lines:replace(r"\\\n ", "")
+	Lines := Lines[Lines:find(": ") + 2, 0]:trim
+	var Files := Lines / r"[^\\]( +)"
 	for File in Files do
 		File := file(File:replace(r"\\ ", " "))
 	end
@@ -47,8 +48,6 @@ c_program := fun(Executable, Objects, Libraries) do
 		execute('cc', '-o', Executable, Objects, Libraries, LDFLAGS)
 		--DEBUG or execute('strip', Executable)
 	end
-	DEFAULT[Executable]
-	ret Executable
 end
 
 c_library := fun(Library, Objects, Libraries) do
@@ -69,8 +68,6 @@ c_library := fun(Library, Objects, Libraries) do
 	Library[Objects, Libraries] => fun(Executable) do
 		execute('ar', 'rcs', Library, Objects, Libraries)
 	end
-	DEFAULT[Library]
-	ret Library
 end
 
 PREFIX := old or file('{getenv("DESTDIR") or ""}{defined("PREFIX") or "/usr/local"}')

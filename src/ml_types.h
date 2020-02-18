@@ -2,6 +2,7 @@
 #define ML_TYPES_H
 
 #include <regex.h>
+#include <unistd.h>
 
 #ifdef	__cplusplus
 extern "C" {
@@ -180,6 +181,7 @@ extern ml_type_t MLRegexT[];
 extern ml_type_t MLTupleT[];
 extern ml_type_t MLMethodT[];
 extern ml_type_t MLReferenceT[];
+extern ml_type_t MLUninitializedT[];
 extern ml_type_t MLListT[];
 extern ml_type_t MLMapT[];
 extern ml_type_t MLPropertyT[];
@@ -187,10 +189,11 @@ extern ml_type_t MLClosureT[];
 extern ml_type_t MLErrorT[];
 extern ml_type_t MLErrorValueT[];
 extern ml_type_t MLIteratableT[];
+extern ml_type_t MLStateT[];
 
 typedef struct ml_buffer_t {
 	const ml_type_t *Type;
-	void *Address;
+	char *Address;
 	size_t Size;
 } ml_buffer_t;
 
@@ -230,7 +233,7 @@ ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value)
 
 struct ml_tuple_t {
 	const ml_type_t *Type;
-	size_t Size;
+	size_t Size, NoRefs;
 	ml_value_t *Values[];
 };
 

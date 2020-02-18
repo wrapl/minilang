@@ -155,11 +155,21 @@ static ml_value_t *ml_class_fn(void *Data, int Count, ml_value_t **Args) {
 }
 
 static ml_value_t *ml_method_fn(void *Data, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_COUNT(2);
-	ML_CHECK_ARG_TYPE(0, MLMethodT);
+	ML_CHECK_ARG_COUNT(1);
+	if (Count == 1) {
+		if (Args[0]->Type == MLMethodT) return Args[0];
+		ML_CHECK_ARG_TYPE(0, MLStringT);
+		return ml_method(ml_string_value(Args[0]));
+	}
+	ml_value_t *Method = Args[0];
+	if (Method->Type == MLStringT) {
+		Method = ml_method(ml_string_value(Args[0]));
+	} else {
+		ML_CHECK_ARG_TYPE(0, MLMethodT);
+	}
 	for (int I = 1; I < Count - 1; ++I) ML_CHECK_ARG_TYPE(I, MLTypeT);
 	ML_CHECK_ARG_TYPE(Count - 1, MLFunctionT);
-	ml_method_by_array(Args[0], Args[Count - 1], Count - 2, (ml_type_t **)(Args + 1));
+	ml_method_by_array(Method, Args[Count - 1], Count - 2, (ml_type_t **)(Args + 1));
 	return Args[Count - 1];
 }
 

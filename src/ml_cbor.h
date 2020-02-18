@@ -6,6 +6,10 @@
 #include "minilang.h"
 #include "stringmap.h"
 
+#ifdef	__cplusplus
+extern "C" {
+#endif
+
 void ml_cbor_init(stringmap_t *Globals);
 
 typedef struct ml_cbor_reader_t ml_cbor_reader_t;
@@ -45,5 +49,9 @@ void ml_cbor_write_float8(void *Data, ml_cbor_write_fn WriteFn, double Number);
 void ml_cbor_write_simple(void *Data, ml_cbor_write_fn WriteFn, unsigned char Simple);
 void ml_cbor_write_break(void *Data, ml_cbor_write_fn WriteFn);
 void ml_cbor_write_tag(void *Data, ml_cbor_write_fn WriteFn, uint64_t Tag);
+
+#ifdef	__cplusplus
+}
+#endif
 
 #endif

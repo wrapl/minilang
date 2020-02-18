@@ -1,7 +1,7 @@
+#include "ml_runtime.h"
 #include "minilang.h"
 #include "ml_macros.h"
 #include "ml_compiler.h"
-#include "ml_internal.h"
 #include "stringmap.h"
 #ifndef __MINGW32__
 #include "linenoise.h"

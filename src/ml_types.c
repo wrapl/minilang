@@ -1,5 +1,4 @@
 #include "minilang.h"
-#include "ml_internal.h"
 #include "ml_macros.h"
 #include "sha256.h"
 #include <stdio.h>
@@ -14,6 +13,8 @@
 #include <limits.h>
 #include <math.h>
 #include <inttypes.h>
+#include "ml_runtime.h"
+#include "ml_bytecode.h"
 #include "stringmap.h"
 
 long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
@@ -1463,6 +1464,7 @@ static ml_value_t *ml_list_call(ml_state_t *Caller, ml_list_t *List, int Count, 
 			}
 		}
 	}
+	if (Count > 1) return Value->Type->call(Caller, Value, Count - 1, Args + 1);
 	ML_CONTINUE(Caller, Value);
 }
 
@@ -1814,7 +1816,9 @@ static ml_value_t *ml_map_call(ml_state_t *Caller, ml_value_t *Map, int Count, m
 	ML_CHECKX_ARG_COUNT(1);
 	ml_value_t *Arg = Args[0]->Type->deref(Args[0]);
 	if (Arg->Type == MLErrorT) ML_CONTINUE(Caller, Arg);
-	ML_CONTINUE(Caller, ml_map_search(Map, Args[0]));
+	ml_value_t *Value = ml_map_search(Map, Args[0]);
+	if (Count > 1) return Value->Type->call(Caller, Value, Count - 1, Args + 1);
+	ML_CONTINUE(Caller, Value);
 }
 
 ml_type_t MLMapT[1] = {{
@@ -1859,6 +1863,7 @@ static long ml_tuple_hash(ml_tuple_t *Tuple, ml_hash_chain_t *Chain) {
 }
 
 static ml_value_t *ml_tuple_deref(ml_tuple_t *Ref) {
+	if (Ref->NoRefs) return (ml_value_t *)Ref;
 	for (int I = 0; I < Ref->Size; ++I) {
 		ml_value_t *Old = Ref->Values[I];
 		ml_value_t *New = Old->Type->deref(Old);
@@ -1866,6 +1871,7 @@ static ml_value_t *ml_tuple_deref(ml_tuple_t *Ref) {
 			ml_tuple_t *Deref = xnew(ml_tuple_t, Ref->Size, ml_value_t *);
 			Deref->Type = MLTupleT;
 			Deref->Size = Ref->Size;
+			Deref->NoRefs = 1;
 			for (int J = 0; J < I; ++J) Deref->Values[J] = Ref->Values[J];
 			Deref->Values[I] = New;
 			for (int J = I + 1; J < Ref->Size; ++J) {
@@ -1874,6 +1880,7 @@ static ml_value_t *ml_tuple_deref(ml_tuple_t *Ref) {
 			return (ml_value_t *)Deref;
 		}
 	}
+	Ref->NoRefs = 1;
 	return (ml_value_t *)Ref;
 }
 
@@ -3156,18 +3163,6 @@ ML_METHOD("real", MLStringT) {
 	return ml_real(strtod(ml_string_value(Args[0]), 0));
 }
 
-ML_METHOD("!!", MLClosureT, MLListT) {
-	ml_closure_t *Closure = (ml_closure_t *)Args[0];
-	ml_list_t *ArgsList = (ml_list_t *)Args[1];
-	int NumUpValues = Closure->Info->NumUpValues + Closure->PartialCount;
-	ml_closure_t *Partial = xnew(ml_closure_t, NumUpValues + ArgsList->Length, ml_value_t *);
-	memcpy(Partial, Closure, sizeof(ml_closure_t) + NumUpValues * sizeof(ml_value_t *));
-	Partial->PartialCount += ArgsList->Length;
-	ml_value_t **Arg = Partial->UpValues + NumUpValues;
-	for (ml_list_node_t *Node = ArgsList->Head; Node; Node = Node->Next) *Arg++ = Node->Value;
-	return (ml_value_t *)Partial;
-}
-
 ml_type_t MLNamesT[1] = {{
 	MLTypeT,
 	MLListT, "names",
@@ -3285,7 +3280,7 @@ void ml_init() {
 	ml_typed_fn_set(MLRealIterT, ml_iter_value, ml_real_iter_current);
 	ml_typed_fn_set(MLRealIterT, ml_iter_key, ml_real_iter_key);
 	ml_typed_fn_set(MLRealIterT, ml_iter_next, ml_real_iter_next);
-	ml_runtime_init();
+	ml_bytecode_init();
 
 	GC_word StringBufferLayout[] = {1};
 	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);

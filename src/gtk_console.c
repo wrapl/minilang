@@ -13,12 +13,12 @@
 #include "ml_macros.h"
 #include "stringmap.h"
 #include "ml_compiler.h"
-#include "ml_internal.h"
 #include <sys/stat.h>
 #include <graphviz/cgraph.h>
 #include <graphviz/gvc.h>
 
 #include "ml_gir.h"
+#include "ml_runtime.h"
 
 #define MAX_HISTORY 128
 
@@ -60,7 +60,7 @@ static void console_display_closure(console_t *Console, ml_closure_t *Closure) {
 	if (!Context) {
 		Context = gvContext();
 	}
-	const char *GraphFileName = ml_closure_info_debug(Closure->Info);
+	const char *GraphFileName = ml_closure_debug(Closure);
 	FILE *GraphFile = fopen(GraphFileName, "r");
 	graph_t *Graph = agread(GraphFile, NULL);
 	fclose(GraphFile);
@@ -196,16 +196,7 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 
 	mlc_scanner_t *Scanner = Console->Scanner;
 	MLC_ON_ERROR(Console->Context) {
-		char *Buffer;
-		int Length = asprintf(&Buffer, "Error: %s\n", ml_error_message(Console->Context->Error));
-		gtk_text_buffer_get_end_iter(LogBuffer, End);
-		gtk_text_buffer_insert(LogBuffer, End, Buffer, Length);
-		const char *Source;
-		int Line;
-		for (int I = 0; ml_error_trace(Console->Context->Error, I, &Source, &Line); ++I) {
-			Length = asprintf(&Buffer, "\t%s:%d\n", Source, Line);
-			gtk_text_buffer_insert(LogBuffer, End, Buffer, Length);
-		}
+		console_log(Console, Console->Context->Error);
 		ml_scanner_reset(Scanner);
 	} else {
 		for (;;) {
@@ -214,7 +205,6 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 			Result = Result->Type->deref(Result);
 			console_log(Console, Result);
 		}
-		gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(Console->LogView), Console->EndMark);
 	}
 	gtk_widget_grab_focus(Console->InputView);
 }
@@ -379,22 +369,7 @@ ml_value_t *console_print(console_t *Console, int Count, ml_value_t **Args) {
 			if (Result->Type == MLErrorT) return Result;
 			if (Result->Type != MLStringT) return ml_error("ResultError", "string method did not return string");
 		}
-		const char *String = ml_string_value(Result);
-		int Length = ml_string_length(Result);
-		if (g_utf8_validate(String, Length, NULL)) {
-			gtk_text_buffer_insert_with_tags(LogBuffer, End, String, Length, Console->OutputTag, NULL);
-		} else {
-			gtk_text_buffer_insert_with_tags(LogBuffer, End, "<", 1, Console->BinaryTag, NULL);
-			for (int I = 0; I < Length; ++I) {
-				static char HexChars[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-				char Bytes[4] = " ??";
-				unsigned char Byte = String[I];
-				Bytes[1] = HexChars[Byte >> 4];
-				Bytes[2] = HexChars[Byte & 15];
-				gtk_text_buffer_insert_with_tags(LogBuffer, End, Bytes, 3, Console->BinaryTag, NULL);
-			}
-			gtk_text_buffer_insert_with_tags(LogBuffer, End, " >", 2, Console->BinaryTag, NULL);
-		}
+		console_append(Console, ml_string_value(Result), ml_string_length(Result));
 	}
 	while (gtk_events_pending()) gtk_main_iteration();
 	return MLNil;
