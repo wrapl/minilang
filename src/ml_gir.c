@@ -910,7 +910,9 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 					break;
 				}
 				case GI_INFO_TYPE_STRUCT: {
-					if (ml_is(Arg, StructInstanceT)) {
+					if (Arg == MLNil) {
+						ArgsIn[IndexIn].v_pointer = NULL;
+					} else if (ml_is(Arg, StructInstanceT)) {
 						ArgsIn[IndexIn].v_pointer = ((struct_instance_t *)Arg)->Value;
 					} else {
 						return ml_error("TypeError", "Expected gir struct not %s for parameter %d", Args[I]->Type->Name, I);
@@ -932,7 +934,9 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_OBJECT: {
-					if (ml_is(Arg, ObjectInstanceT)) {
+					if (Arg == MLNil) {
+						ArgsIn[IndexIn].v_pointer = NULL;
+					} else if (ml_is(Arg, ObjectInstanceT)) {
 						ArgsIn[IndexIn].v_pointer = ((object_instance_t *)Arg)->Handle;
 					} else {
 						return ml_error("TypeError", "Expected gir object not %s for parameter %d", Args[I]->Type->Name, I);
@@ -940,7 +944,9 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 					break;
 				}
 				case GI_INFO_TYPE_INTERFACE: {
-					if (ml_is(Arg, ObjectInstanceT)) {
+					if (Arg == MLNil) {
+						ArgsIn[IndexIn].v_pointer = NULL;
+					} else if (ml_is(Arg, ObjectInstanceT)) {
 						ArgsIn[IndexIn].v_pointer = ((object_instance_t *)Arg)->Handle;
 					} else {
 						return ml_error("TypeError", "Expected gir object not %s for parameter %d", Args[I]->Type->Name, I);
