@@ -490,7 +490,7 @@ static ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **In
 			*TargetDimension = *SourceDimension;
 			++TargetDimension;
 		} else {
-			return ml_error("TypeError", "Unknown index type");
+			return ml_error("TypeError", "Unknown index type: %s", Index->Type->Name);
 		}
 		++SourceDimension;
 	}
