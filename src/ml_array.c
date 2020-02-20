@@ -686,6 +686,11 @@ UPDATE_ARRAY_METHODS(ATYPE, CTYPE, MLArrayUInt64T, uint64_t); \
 UPDATE_ARRAY_METHODS(ATYPE, CTYPE, MLArrayFloat32T, float); \
 UPDATE_ARRAY_METHODS(ATYPE, CTYPE, MLArrayFloat64T, double); \
 \
+static ml_value_t *ml_array_ ## CTYPE ## _deref(ml_array_t *Target, ml_value_t *Value) { \
+	if (Target->Degree == 0)  return RNEW(*(CTYPE *)Target->Base.Address); \
+	return (ml_value_t *)Target; \
+} \
+\
 static ml_value_t *ml_array_ ## CTYPE ## _assign(ml_array_t *Target, ml_value_t *Value) { \
 	Value = Value->Type->deref(Value); \
 	for (;;) if (Value->Type == MLErrorT) { \
@@ -1225,6 +1230,7 @@ ML_METHOD("copy", MLArrayT) {
 
 #define TYPES(ATYPE, CTYPE) { \
 	MLArray ## ATYPE ## T = ml_type(MLArrayT, #CTYPE "-array"); \
+	MLArray ## ATYPE ## T->deref = (void *)ml_array_ ## CTYPE ## _deref; \
 	MLArray ## ATYPE ## T->assign = (void *)ml_array_ ## CTYPE ## _assign; \
 	ml_map_insert(Array, ml_string(#ATYPE "T", -1), (ml_value_t *)MLArray ##ATYPE ## T); \
 	ml_typed_fn_set(MLArray ## ATYPE ## T, ml_array_value, ml_array_ ## CTYPE ## _value); \
