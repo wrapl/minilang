@@ -2825,7 +2825,6 @@ ML_METHOD("~", MLStringT, MLStringT) {
 	for (int I = 0; I < LenA; ++I) {
 		Row2[0] = (I + 1) * Delete;
 		for (int J = 0; J < LenB; ++J) {
-			printf("I = %d, J = %d\n", I, J);
 			int Min = Row1[J] + Replace * (CharsA[I] != CharsB[J]);
 			if (I > 0 && J > 0 && PrevA == CharsB[J] && CharsA[I] == PrevB && Min > Row0[J - 1] + Swap) {
 				Min = Row0[J - 1] + Swap;
