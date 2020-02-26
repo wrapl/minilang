@@ -130,7 +130,9 @@ static ml_value_t *DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t 
 		[MLI_CATCH] = &&DO_CATCH,
 		[MLI_LOAD] = &&DO_LOAD,
 		[MLI_VAR] = &&DO_VAR,
+		[MLI_VARX] = &&DO_VARX,
 		[MLI_LET] = &&DO_LET,
+		[MLI_LETX] = &&DO_LETX,
 		[MLI_FOR] = &&DO_FOR,
 		[MLI_NEXT] = &&DO_NEXT,
 		[MLI_VALUE] = &&DO_VALUE,
@@ -150,8 +152,8 @@ static ml_value_t *DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t 
 	ml_inst_t *Inst = Frame->Inst;
 	ml_value_t **Top = Frame->Top;
 	if (Result->Type == MLErrorT) {
-			ml_error_trace_add(Result, Inst->Source);
-			ERROR();
+		ml_error_trace_add(Result, Inst->Source);
+		ERROR();
 	}
 	goto *Labels[Inst->Opcode];
 
@@ -284,12 +286,59 @@ static ml_value_t *DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t 
 		Local->Value[0] = Result;
 		ADVANCE(0);
 	}
+	DO_VARX: {
+		Result = Result->Type->deref(Result);
+		ERROR_CHECK(Result);
+		if (Result->Type != MLTupleT) {
+			Result = ml_error("TypeError", "Can only unpack tuples");
+			ml_error_trace_add(Result, Inst->Source);
+			ERROR();
+		}
+		ml_tuple_t *Tuple = (ml_tuple_t *)Result;
+		if (Tuple->Size < Inst->Params[2].Count) {
+			Result = ml_error("ValueError", "Tuple has too few values (%d < %d)", Tuple->Size, Inst->Params[2].Count);
+			ml_error_trace_add(Result, Inst->Source);
+			ERROR();
+		}
+		ml_value_t **Base = Top + Inst->Params[1].Index;
+		for (int I = 0; I < Inst->Params[2].Count; ++I) {
+			Result = Tuple->Values[I]->Type->deref(Tuple->Values[I]);
+			ERROR_CHECK(Result);
+			ml_reference_t *Local = (ml_reference_t *)Base[I];
+			Local->Value[0] = Result;
+		}
+		ADVANCE(0);
+	}
 	DO_LET: {
 		Result = Result->Type->deref(Result);
 		ERROR_CHECK(Result);
 		ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Top[Inst->Params[1].Index];
 		for (ml_slot_t *Slot = Uninitialized->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Result;
 		Top[Inst->Params[1].Index] = Result;
+		ADVANCE(0);
+	}
+	DO_LETX: {
+		Result = Result->Type->deref(Result);
+		ERROR_CHECK(Result);
+		if (Result->Type != MLTupleT) {
+			Result = ml_error("TypeError", "Can only unpack tuples");
+			ml_error_trace_add(Result, Inst->Source);
+			ERROR();
+		}
+		ml_tuple_t *Tuple = (ml_tuple_t *)Result;
+		if (Tuple->Size < Inst->Params[2].Count) {
+			Result = ml_error("ValueError", "Tuple has too few values (%d < %d)", Tuple->Size, Inst->Params[2].Count);
+			ml_error_trace_add(Result, Inst->Source);
+			ERROR();
+		}
+		ml_value_t **Base = Top + Inst->Params[1].Index;
+		for (int I = 0; I < Inst->Params[2].Count; ++I) {
+			Result = Tuple->Values[I]->Type->deref(Tuple->Values[I]);
+			ERROR_CHECK(Result);
+			ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Base[I];
+			for (ml_slot_t *Slot = Uninitialized->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Result;
+			Base[I] = Result;
+		}
 		ADVANCE(0);
 	}
 	DO_FOR: {
@@ -716,8 +765,20 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done, const
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
+	case MLI_VARX: {
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: varx(%d, %d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Index, Inst->Params[2].Count);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+		break;
+	}
 	case MLI_LET: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: def(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Index);
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: let(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Index);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+		break;
+	}
+	case MLI_LETX: {
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: ltex(%d, %d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Index, Inst->Params[2].Count);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
