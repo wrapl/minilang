@@ -2408,7 +2408,28 @@ ML_METHOD("/", MLIntegerT, MLIntegerT) {
 }
 
 ml_arith_method_integer_integer("%", %)
-ml_arith_method_integer_integer("/", /)
+
+ML_METHOD("div", MLIntegerT, MLIntegerT) {
+	ml_integer_t *IntegerA = (ml_integer_t *)Args[0];
+	ml_integer_t *IntegerB = (ml_integer_t *)Args[1];
+	long A = IntegerA->Value;
+	long B = IntegerB->Value;
+	long Q = A / B;
+	if (A < 0 && B * Q != A) {
+		if (B < 0) ++Q; else --Q;
+	}
+	return ml_integer(Q);
+}
+
+ML_METHOD("mod", MLIntegerT, MLIntegerT) {
+	ml_integer_t *IntegerA = (ml_integer_t *)Args[0];
+	ml_integer_t *IntegerB = (ml_integer_t *)Args[1];
+	long A = IntegerA->Value;
+	long B = IntegerB->Value;
+	long R = A % B;
+	if (R < 0) R += labs(B);
+	return ml_integer(R);
+}
 
 #define ml_comp_method_integer_integer(NAME, SYMBOL) \
 	ML_METHOD(NAME, MLIntegerT, MLIntegerT) { \
