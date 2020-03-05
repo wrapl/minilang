@@ -1534,7 +1534,7 @@ static long ml_string_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 
 ml_type_t MLStringT[1] = {{
 	MLTypeT,
-	MLAnyT, "string",
+	MLBufferT, "string",
 	ml_string_hash,
 	ml_default_call,
 	ml_default_deref,

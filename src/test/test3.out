@@ -1,6 +1,6 @@
 1 + 1 = 2
 2 + 1 = 3
-Correct! An error has occurred 1: MethodError, no matching method found for +(string, integer)
+hello + 1 = 
 4 + 1 = 5
 Correct! An error has occurred 2: MethodError, no matching method found for +(integer, string)
 Before X loop
@@ -46,7 +46,7 @@ Z = 4
 ... and on
 Z = 5
 5!
-Correct! An error has occurred 3: MethodError, no matching method found for +(string, integer)
+Correct! An error has occurred 3: ValueError, Offset larger than buffer
 Z = 6
 ... and on
 Z = 7

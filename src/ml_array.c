@@ -1,5 +1,6 @@
 #include "ml_array.h"
 #include "ml_macros.h"
+#include "ml_module.h"
 #include <stdint.h>
 #include <string.h>
 #include <stdarg.h>
@@ -1245,7 +1246,6 @@ ML_METHOD("copy", MLArrayT) {
 	MLArray ## ATYPE ## T = ml_type(MLArrayT, #CTYPE "-array"); \
 	MLArray ## ATYPE ## T->deref = (void *)ml_array_ ## CTYPE ## _deref; \
 	MLArray ## ATYPE ## T->assign = (void *)ml_array_ ## CTYPE ## _assign; \
-	ml_map_insert(Array, ml_string(#ATYPE "T", -1), (ml_value_t *)MLArray ##ATYPE ## T); \
 	ml_typed_fn_set(MLArray ## ATYPE ## T, ml_array_value, ml_array_ ## CTYPE ## _value); \
 }
 
@@ -1272,7 +1272,7 @@ static void ml_cbor_write_array_dim(int Degree, ml_array_dimension_t *Dimension,
 	}
 }
 
-static void ml_cbor_write_array_fn(ml_array_t *Array, char *Data, ml_cbor_write_fn WriteFn) {
+static void ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char *Data, ml_cbor_write_fn WriteFn) {
 	static uint64_t Tags[] = {
 		[ML_ARRAY_FORMAT_ANY] = 41,
 		[ML_ARRAY_FORMAT_I8] = 72,
@@ -1326,14 +1326,24 @@ void ml_array_init(stringmap_t *Globals) {
 	TYPES(UInt64, uint64_t);
 	TYPES(Float32, float);
 	TYPES(Float64, double);
-	if (Globals) {
-		ml_map_insert(Array, ml_string("new", -1), ml_functionx(NULL, ml_array_new_fnx));
-		ml_map_insert(Array, ml_string("wrap", -1), ml_function(NULL, ml_array_wrap_fn));
-		ml_map_insert(Array, ml_string("of", -1), ml_function(NULL, ml_array_of_fn));
-		stringmap_insert(Globals, "array", Array);
-	}
-#ifdef USE_ML_CBOR
-	ml_typed_fn_set(MLArrayT, ml_cbor_write, ml_cbor_write_array_fn);
-#endif
 #include "ml_array_init.c"
+	if (Globals) {
+		stringmap_insert(Globals, "array", ml_module("array",
+			"new", ml_functionx(NULL, ml_array_new_fnx),
+			"wrap", ml_function(NULL, ml_array_wrap_fn),
+			"of", ml_function(NULL, ml_array_of_fn),
+			"T", MLArrayT,
+			"AnyT", MLArrayAnyT,
+			"Int8T", MLArrayInt8T,
+			"UInt8T", MLArrayUInt8T,
+			"Int16T", MLArrayInt16T,
+			"UInt16T", MLArrayUInt16T,
+			"Int32T", MLArrayInt32T,
+			"UInt32T", MLArrayUInt32T,
+			"Int64T", MLArrayInt64T,
+			"UInt64T", MLArrayUInt64T,
+			"Float32T", MLArrayFloat32T,
+			"Float64T", MLArrayFloat64T,
+		NULL));
+	}
 }
