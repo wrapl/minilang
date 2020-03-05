@@ -338,17 +338,20 @@ ML_METHODX("wait", MLTasksT) {
 	return MLNil;
 }
 
-typedef struct {
-	ml_state_t Base;
-	size_t Waiting;
-} ml_parallel_t;
+typedef struct ml_parallel_iter_t ml_parallel_iter_t;
 
 typedef struct {
+	ml_state_t Base;
+	ml_parallel_iter_t *Iter;
+	size_t Waiting, Limit, Burst;
+} ml_parallel_t;
+
+struct ml_parallel_iter_t {
 	ml_state_t Base;
 	ml_value_t *Iter;
 	ml_value_t *Function;
 	ml_value_t *Args[2];
-} ml_parallel_iter_t;
+};
 
 static ml_value_t *ml_parallel_iterate(ml_parallel_iter_t *State, ml_value_t *Iter);
 
@@ -356,8 +359,9 @@ static ml_value_t *ml_parallel_iter_value(ml_parallel_iter_t *State, ml_value_t 
 	ml_parallel_t *Parallel = (ml_parallel_t *)State->Base.Caller;
 	Parallel->Waiting += 1;
 	State->Args[1] = Value;
-	State->Function->Type->call(State->Base.Caller, State->Function, 2, State->Args);
+	State->Function->Type->call((ml_state_t *)Parallel, State->Function, 2, State->Args);
 	State->Base.run = (void *)ml_parallel_iterate;
+	if (Parallel->Waiting > Parallel->Limit) return MLNil;
 	return ml_iter_next((ml_state_t *)State, State->Iter);
 }
 
@@ -368,25 +372,33 @@ static ml_value_t *ml_parallel_iter_key(ml_parallel_iter_t *State, ml_value_t *V
 }
 
 static ml_value_t *ml_parallel_iterate(ml_parallel_iter_t *State, ml_value_t *Iter) {
-	if (Iter == MLNil) ML_CONTINUE(State->Base.Caller, MLNil);
+	if (Iter == MLNil) {
+		ml_parallel_t *Parallel = (ml_parallel_t *)State->Base.Caller;
+		Parallel->Iter = NULL;
+		ML_CONTINUE(Parallel, MLNil);
+	}
 	if (Iter->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Iter);
 	State->Base.run = (void *)ml_parallel_iter_key;
 	return ml_iter_key((ml_state_t *)State, State->Iter = Iter);
 }
 
-static ml_value_t *ml_parallel_continue(ml_parallel_t *State, ml_value_t *Value) {
+static ml_value_t *ml_parallel_continue(ml_parallel_t *Parallel, ml_value_t *Value) {
 	if (Value->Type == MLErrorT) {
-		State->Waiting = 0xFFFFFFFF;
-		ML_CONTINUE(State->Base.Caller, Value);
+		Parallel->Waiting = 0xFFFFFFFF;
+		ML_CONTINUE(Parallel->Base.Caller, Value);
 	}
-	if (--State->Waiting == 0) ML_CONTINUE(State->Base.Caller, MLNil);
+	--Parallel->Waiting;
+	if (Parallel->Iter) {
+		if (Parallel->Waiting > Parallel->Burst) return MLNil;
+		return ml_iter_next(Parallel->Iter, Parallel->Iter->Iter);
+	}
+	if (Parallel->Waiting == 0) ML_CONTINUE(Parallel->Base.Caller, MLNil);
 	return MLNil;
 }
 
 static ml_value_t *ml_parallel_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(2);
 	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
-	ML_CHECKX_ARG_TYPE(1, MLFunctionT);
 
 	ml_parallel_t *S0 = new(ml_parallel_t);
 	S0->Base.Caller = Caller;
@@ -396,7 +408,27 @@ static ml_value_t *ml_parallel_fnx(ml_state_t *Caller, void *Data, int Count, ml
 	ml_parallel_iter_t *S1 = new(ml_parallel_iter_t);
 	S1->Base.Caller = (ml_state_t *)S0;
 	S1->Base.run = (void *)ml_parallel_iterate;
-	S1->Function = Args[1];
+	S0->Iter = S1;
+
+	if (Count > 3) {
+		ML_CHECKX_ARG_TYPE(1, MLIntegerT);
+		ML_CHECKX_ARG_TYPE(2, MLIntegerT);
+		ML_CHECKX_ARG_TYPE(3, MLFunctionT);
+		S0->Limit = ml_integer_value(Args[2]);
+		S0->Burst = ml_integer_value(Args[1]) + 1;
+		S1->Function = Args[3];
+	} else if (Count > 2) {
+		ML_CHECKX_ARG_TYPE(1, MLIntegerT);
+		ML_CHECKX_ARG_TYPE(2, MLFunctionT);
+		S0->Limit = ml_integer_value(Args[1]);
+		S0->Burst = 0xFFFFFFFF;
+		S1->Function = Args[2];
+	} else {
+		ML_CHECKX_ARG_TYPE(1, MLFunctionT);
+		S0->Limit = 0xFFFFFFFF;
+		S0->Burst = 0xFFFFFFFF;
+		S1->Function = Args[1];
+	}
 
 	return ml_iterate((ml_state_t *)S1, Args[0]);
 }

@@ -92,7 +92,6 @@ ML_METHODX("::", MLModuleT, MLStringT) {
 		ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
 		Uninitialized->Type = MLUninitializedT;
 		Value = Slot[0] = (ml_value_t *)Uninitialized;
-	} else if (Value->Type == MLUninitializedT) {
 	}
 	ML_CONTINUE(Caller, Value);
 }
