@@ -3,6 +3,10 @@
 
 #include "ml_types.h"
 
+#ifdef	__cplusplus
+extern "C" {
+#endif
+
 extern ml_type_t MLReferenceT[];
 extern ml_type_t MLUninitializedT[];
 
@@ -57,5 +61,8 @@ ml_value_t *ml_map_fn(void *Data, int Count, ml_value_t **Args);
 
 void ml_runtime_init();
 
+#ifdef	__cplusplus
+}
+#endif
 
 #endif

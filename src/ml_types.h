@@ -322,26 +322,6 @@ void ml_method_by_value(ml_value_t *Method, void *Data, ml_callback_t Function, 
 void ml_methodx_by_name(const char *Method, void *Data, ml_callbackx_t Function, ...) __attribute__ ((sentinel));
 void ml_methodx_by_value(ml_value_t *Method, void *Data, ml_callbackx_t Function, ...) __attribute__ ((sentinel));
 
-#ifdef __cplusplus
-
-template <typename... args> void ml_method_by_auto(const char *Method, args... Args) {
-	ml_method_by_name(Method, Args...);
-}
-
-template <typename... args> void ml_method_by_auto(ml_value_t *Method, args... Args) {
-	ml_method_by_value(Method, Args...);
-}
-
-template <typename... args> void ml_methodx_by_auto(const char *Method, args... Args) {
-	ml_methodx_by_name(Method, Args...);
-}
-
-template <typename... args> void ml_methodx_by_auto(ml_value_t *Method, args... Args) {
-	ml_methodx_by_value(Method, Args...);
-}
-
-#endif
-
 void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_type_t **Types);
 
 #ifndef GENERATE_INIT
@@ -378,6 +358,23 @@ void ml_types_init(stringmap_t *Globals);
 
 #ifdef	__cplusplus
 }
+
+template <typename... args> void ml_method_by_auto(const char *Method, void *Data, ml_callback_t Function, args... Args) {
+	ml_method_by_name(Method, Data, Function, Args...);
+}
+
+template <typename... args> void ml_method_by_auto(ml_value_t *Method, void *Data, ml_callback_t Function, args... Args) {
+	ml_method_by_value(Method, Data, Function, Args...);
+}
+
+template <typename... args> void ml_methodx_by_auto(const char *Method, void *Data, ml_callbackx_t Function, args... Args) {
+	ml_methodx_by_name(Method, Data, Function, Args...);
+}
+
+template <typename... args> void ml_methodx_by_auto(ml_value_t *Method, void *Data, ml_callbackx_t Function, args... Args) {
+	ml_methodx_by_value(Method, Data, Function, Args...);
+}
+
 #endif
 
 #endif
