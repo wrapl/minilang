@@ -970,6 +970,24 @@ long ml_integer_value(ml_value_t *Value) {
 	}
 }
 
+ml_value_t *ml_integer_of(ml_value_t *Value) {
+	typeof(ml_integer_of) *function = ml_typed_fn_get(Value->Type, ml_string_of);
+	if (!function) return ml_inline(IntegerOfMethod, 1, Value);
+	return function(Value);
+}
+
+static ml_value_t *ML_TYPED_FN(ml_integer_of, MLIntegerT, ml_value_t *Value) {
+	return Value;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_integer_of, MLRealT, ml_real_t *Real) {
+	return ml_integer(Real->Value);
+}
+
+ML_METHOD(IntegerOfMethod, MLRealT) {
+	return ml_integer(((ml_real_t *)Args[0])->Value);
+}
+
 static long ml_real_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	ml_real_t *Real = (ml_real_t *)Value;
 	return (long)Real->Value;
@@ -1001,6 +1019,24 @@ double ml_real_value(ml_value_t *Value) {
 	} else {
 		return 0;
 	}
+}
+
+ml_value_t *ml_real_of(ml_value_t *Value) {
+	typeof(ml_integer_of) *function = ml_typed_fn_get(Value->Type, ml_string_of);
+	if (!function) return ml_inline(RealOfMethod, 1, Value);
+	return function(Value);
+}
+
+static ml_value_t *ML_TYPED_FN(ml_real_of, MLIntegerT, ml_integer_t *Integer) {
+	return ml_real(Integer->Value);
+}
+
+ML_METHOD(RealOfMethod, MLIntegerT) {
+	return ml_real(((ml_integer_t *)Args[0])->Value);
+}
+
+static ml_value_t *ML_TYPED_FN(ml_real_of, MLRealT, ml_value_t *Value) {
+	return Value;
 }
 
 #define ml_arith_method_integer(NAME, SYMBOL) \
@@ -1478,7 +1514,7 @@ ML_METHOD("-", MLBufferT, MLBufferT) {
 	return ml_integer(Buffer1->Address - Buffer2->Address);
 }
 
-ML_METHOD("string", MLBufferT) {
+ML_METHOD(StringOfMethod, MLBufferT) {
 	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
 	return ml_string_format("#%" PRIxPTR ":%ld", Buffer->Address, Buffer->Size);
 }
@@ -1554,6 +1590,10 @@ ml_value_t *ml_string_of(ml_value_t *Value) {
 	typeof(ml_string_of) *function = ml_typed_fn_get(Value->Type, ml_string_of);
 	if (!function) return ml_inline(StringOfMethod, 1, Value);
 	return function(Value);
+}
+
+static ml_value_t *ML_TYPED_FN(ml_string_of, MLStringT, ml_value_t *Value) {
+	return Value;
 }
 
 static ml_value_t *ML_TYPED_FN(ml_string_of, MLNilT, ml_value_t *Value) {
@@ -3186,6 +3226,7 @@ ml_value_t *ml_method(const char *Name) {
 	if (!Name) {
 		ml_method_t *Method = new(ml_method_t);
 		Method->Type = MLMethodT;
+		Method->Name = "<anon>";
 		return (ml_value_t *)Method;
 	}
 	ml_method_t **Slot = (ml_method_t **)stringmap_slot(Methods, Name);
@@ -3350,6 +3391,11 @@ static ml_value_t *ML_TYPED_FN(ml_string_of, MLMethodT, ml_method_t *Method) {
 	return ml_string_format(":%s", Method->Name);
 }
 
+ML_METHOD(StringOfMethod, MLMethodT) {
+	ml_method_t *Method = (ml_method_t *)Args[0];
+	return ml_string_format(":%s", Method->Name);
+}
+
 static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLMethodT, ml_stringbuffer_t *Buffer, ml_method_t *Value) {
 	ml_stringbuffer_add(Buffer, Value->Name, strlen(Value->Name));
 	return MLSome;
@@ -3382,7 +3428,9 @@ void ml_types_init(stringmap_t *Globals) {
 	ml_method_by_name("<=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
 	ml_method_by_name(">=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
 	ml_method_by_name(">=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
-	ml_method_by_name("string", NULL, ml_identity, MLStringT, NULL);
+	ml_method_by_value(IntegerOfMethod, NULL, ml_identity, MLIntegerT, NULL);
+	ml_method_by_value(RealOfMethod, NULL, ml_identity, MLRealT, NULL);
+	ml_method_by_value(StringOfMethod, NULL, ml_identity, MLStringT, NULL);
 	ml_bytecode_init();
 	ml_runtime_init(Globals);
 	stringmap_insert(Globals, "type", ml_module("type",

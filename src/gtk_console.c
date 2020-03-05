@@ -23,8 +23,6 @@
 
 #define MAX_HISTORY 128
 
-static ml_value_t *StringMethod;
-
 struct console_t {
 	GtkWidget *Window, *LogScrolled, *LogView, *InputView;
 	GtkLabel *MemoryBar;
@@ -145,7 +143,7 @@ void console_log(console_t *Console, ml_value_t *Value) {
 			gtk_text_buffer_insert_with_tags(LogBuffer, End, Buffer, Length, Console->ErrorTag, NULL);
 		}
 	} else {
-		ml_value_t *String = ml_call(StringMethod, 1, &Value);
+		ml_value_t *String = ml_string_of(Value);
 		if (String->Type == MLStringT) {
 			const char *Buffer = ml_string_value(String);
 			int Length = ml_string_length(String);
@@ -359,14 +357,13 @@ void console_append(console_t *Console, const char *Buffer, int Length) {
 }
 
 ml_value_t *console_print(console_t *Console, int Count, ml_value_t **Args) {
-	ml_value_t *StringMethod = ml_method("string");
 	GtkTextIter End[1];
 	GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
 	gtk_text_buffer_get_end_iter(LogBuffer, End);
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Result = Args[I];
 		if (Result->Type != MLStringT) {
-			Result = ml_call(StringMethod, 1, &Result);
+			Result = ml_string_of(Result);
 			if (Result->Type == MLErrorT) return Result;
 			if (Result->Type != MLStringT) return ml_error("ResultError", "string method did not return string");
 		}
@@ -483,7 +480,6 @@ static gboolean console_update_status(console_t *Console) {
 
 console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 	gtk_init(0, 0);
-	StringMethod = ml_method("string");
 
 	console_t *Console = new(console_t);
 	Console->ParentGetter = GlobalGet;
