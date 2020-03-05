@@ -1434,7 +1434,7 @@ static mlc_expr_t *ml_accept_string(mlc_scanner_t *Scanner) {
 	return Expr;
 }
 
-static ml_function_t StringNew[1] = {{MLFunctionT, ml_string_new, NULL}};
+static ml_function_t StringNew[1] = {{MLFunctionT, ml_string_fn, NULL}};
 
 static inline int isidstart(char C) {
 	return isalpha(C) || (C == '_') || (C < 0);

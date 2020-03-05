@@ -51,12 +51,10 @@ static ml_value_t *global_get(void *Data, const char *Name) {
 }
 
 static ml_value_t *ml_print(void *Data, int Count, ml_value_t **Args) {
-	static ml_value_t *StringMethod = 0;
-	if (!StringMethod) StringMethod = ml_method("string");
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Result = Args[I];
 		if (Result->Type != MLStringT) {
-			Result = ml_call(StringMethod, 1, &Result);
+			Result = ml_call(StringOfMethod, 1, &Result);
 			if (Result->Type == MLErrorT) return Result;
 			if (Result->Type != MLStringT) return ml_error("ResultError", "string method did not return string");
 		}
@@ -109,10 +107,11 @@ extern ml_value_t MLSpawn[];
 int main(int Argc, const char *Argv[]) {
 	static const char *Parameters[] = {"Args", NULL};
 	ml_init();
+	ml_module_init(Globals);
+	ml_types_init(Globals);
 	ml_file_init(Globals);
 	ml_object_init(Globals);
 	ml_iterfns_init(Globals);
-	ml_module_init(Globals);
 	stringmap_insert(Globals, "print", ml_function(0, ml_print));
 	stringmap_insert(Globals, "error", ml_function(0, ml_throw));
 	stringmap_insert(Globals, "debug", ml_function(0, ml_debug));

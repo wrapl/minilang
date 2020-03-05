@@ -3,13 +3,14 @@
 #include <gc/gc.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include "ml_runtime.h"
 
-typedef struct ml_module_t {
+struct ml_module_t {
 	const ml_type_t *Type;
-	const char *FileName;
+	ml_value_t *Name;
 	stringmap_t Exports[1];
-} ml_module_t;
+};
 
 typedef struct ml_module_state_t {
 	ml_state_t Base;
@@ -69,7 +70,7 @@ static ml_value_t *ml_import_fnx(ml_state_t *Caller, void *Data, int Count, ml_v
 	if (Module) ML_CONTINUE(Caller, Module);
 	Module = Slot[0] = new(ml_module_t);
 	Module->Type = MLModuleT;
-	Module->FileName = FileName;
+	Module->Name = ml_string(FileName, -1);
 	ml_export_function_t *ExportFunction = new(ml_export_function_t);
 	ExportFunction->Type = MLExportFunctionT;
 	ExportFunction->Module = Module;
@@ -96,12 +97,46 @@ ML_METHODX("::", MLModuleT, MLStringT) {
 	ML_CONTINUE(Caller, Value);
 }
 
+ml_module_t *ml_module(const char *Name, ...) {
+	ml_module_t *Module = new(ml_module_t);
+	Module->Type = MLModuleT;
+	Module->Name = ml_string(Name, -1);
+	va_list Args;
+	va_start(Args, Name);
+	const char *Export;
+	while ((Export = va_arg(Args, const char *))) {
+		stringmap_insert(Module->Exports, Export, va_arg(Args, ml_value_t *));
+	}
+	va_end(Args);
+	return Module;
+}
+
+void ml_module_export(ml_module_t *Module, const char *Name, ml_value_t *Value) {
+	stringmap_insert(Module->Exports, Name, Value);
+}
+
+static ml_value_t *ml_module_fn(void *Data, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ml_module_t *Module = new(ml_module_t);
+	Module->Type = MLModuleT;
+	Module->Name = Args[0];
+	return (ml_value_t *)Module;
+}
+
+ML_METHOD("export", MLModuleT, MLStringT, MLAnyT) {
+	ml_module_t *Module = (ml_module_t *)Args[0];
+	stringmap_insert(Module->Exports, ml_string_value(Args[1]), Args[2]);
+	return Args[2];
+}
+
 void ml_module_init(stringmap_t *_Globals) {
 	MLModuleT = ml_type(MLAnyT, "module");
 	MLModuleStateT = ml_type(MLAnyT, "module-state");
 	Globals = _Globals;
 	if (Globals) {
 		stringmap_insert(Globals, "import", ml_functionx(NULL, ml_import_fnx));
+		stringmap_insert(Globals, "module", ml_function(NULL, ml_module_fn));
 	}
 #include "ml_module_init.c"
 }

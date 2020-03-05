@@ -727,8 +727,8 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "group", ml_function(0, ml_group_fn));
 	stringmap_insert(Globals, "repeat", ml_function(0, ml_repeat_fn));
 
-	stringmap_insert(Globals, "tuple", ml_function(0, ml_tuple_new));
-	stringmap_insert(Globals, "list", ml_function(0, ml_list_new));
+	//stringmap_insert(Globals, "tuple", ml_function(0, ml_tuple_new));
+	//stringmap_insert(Globals, "list", ml_function(0, ml_list_new));
 
 	MLLimitedT = ml_type(MLIteratableT, "limited");
 	MLLimitedStateT = ml_type(MLAnyT, "limited-state");

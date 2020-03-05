@@ -19,6 +19,7 @@
 
 #include "ml_gir.h"
 #include "ml_runtime.h"
+#include "ml_bytecode.h"
 
 #define MAX_HISTORY 128
 

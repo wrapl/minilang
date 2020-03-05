@@ -28,18 +28,17 @@ end
 
 for Source in PATH:ls(".*\\.c") do
 	Source:basename:find("_init") and next
-	var Target := file(Source:basename:replace(".c", "_init.c"))[Source] => fun() do
+	var Target := file(Source:basename:replace(".c", "_init.c"))[Source, file("ml_types.h")] => fun() do
 		Target:open("w"):close
 		var Init := shell("cc", CFLAGS, "-E -P -DGENERATE_INIT", Source)
 		var Out := Target:open("w")
 		for Line in Init / "\n" do
 			loop
-				var I := while (Line:find("ml_method_by_name(") or Line:find("ml_methodx_by_name("))
+				var I := while Line:find("INIT_CODE ")
+				Line := Line[I + 10, 0]
 				var J := while Line:find(");")
-				if I < Line:find("_fn_") < J then
-					Out:write(Line[I, J + 2])
-					Out:write("\n")
-				end
+				Out:write(Line[1, J + 2])
+				Out:write("\n")
 				Line := Line[J + 2, 0]
 			end
 		end

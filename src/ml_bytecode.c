@@ -8,7 +8,6 @@
 #include <stdarg.h>
 #include <inttypes.h>
 #include "ml_bytecode.h"
-#include "ml_runtime.h"
 #endif
 
 #ifdef DEBUG_VERSION

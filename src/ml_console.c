@@ -71,7 +71,6 @@ void ml_console(ml_getter_t GlobalGet, void *Globals) {
 	}};
 	mlc_context_t Context[1] = {{(ml_getter_t)ml_console_global_get, Console}};
 	mlc_scanner_t *Scanner = ml_scanner("console", Console, (void *)ml_console_line_read, Context);
-	ml_value_t *StringMethod = ml_method("string");
 	MLC_ON_ERROR(Context) {
 		printf("Error: %s\n", ml_error_message(Context->Error));
 		const char *Source;
@@ -91,7 +90,7 @@ void ml_console(ml_getter_t GlobalGet, void *Globals) {
 			int Line;
 			for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 		} else {
-			ml_value_t *String = ml_call(StringMethod, 1, &Result);
+			ml_value_t *String = ml_call(StringOfMethod, 1, &Result);
 			if (String->Type == MLStringT) {
 				printf("%s\n", ml_string_value(String));
 			} else {

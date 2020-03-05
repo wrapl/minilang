@@ -3,12 +3,15 @@
 
 #include <setjmp.h>
 
-#include "stringmap.h"
 #include "ml_types.h"
+#include "ml_runtime.h"
+#include "stringmap.h"
 
 #ifdef	__cplusplus
 extern "C" {
 #endif
+
+#include "sha256.h"
 
 typedef struct mlc_expr_t mlc_expr_t;
 typedef struct mlc_scanner_t mlc_scanner_t;
@@ -38,6 +41,8 @@ ml_value_t *ml_command_evaluate(mlc_scanner_t *Scanner, stringmap_t *Vars, mlc_c
 extern int MLDebugClosures;
 
 const char *ml_closure_debug(ml_value_t *Value);
+
+void ml_closure_sha256(ml_value_t *Closure, unsigned char Hash[SHA256_BLOCK_SIZE]);
 
 #ifdef	__cplusplus
 }

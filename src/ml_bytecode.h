@@ -1,10 +1,16 @@
 #ifndef ML_BYTECODE_H
 #define ML_BYTECODE_H
 
-#include "ml_types.h"
 #include "ml_debugger.h"
+#include "ml_types.h"
+#include "ml_runtime.h"
+#include "sha256.h"
 
+typedef struct ml_closure_t ml_closure_t;
+typedef struct ml_closure_info_t ml_closure_info_t;
 typedef struct ml_inst_t ml_inst_t;
+
+extern ml_type_t MLClosureT[];
 
 #define ML_PARAM_DEFAULT 0
 #define ML_PARAM_EXTRA 1

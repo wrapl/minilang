@@ -6,6 +6,7 @@
 
 #include "sha256.h"
 #include "ml_compiler.h"
+#include "ml_runtime.h"
 
 #ifdef	__cplusplus
 extern "C" {
