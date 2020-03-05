@@ -322,6 +322,26 @@ void ml_method_by_value(ml_value_t *Method, void *Data, ml_callback_t Function, 
 void ml_methodx_by_name(const char *Method, void *Data, ml_callbackx_t Function, ...) __attribute__ ((sentinel));
 void ml_methodx_by_value(ml_value_t *Method, void *Data, ml_callbackx_t Function, ...) __attribute__ ((sentinel));
 
+#ifdef __cplusplus
+
+template <typename... args> void ml_method_by_auto(const char *Method, args... Args) {
+	ml_method_by_name(Method, Args...);
+}
+
+template <typename... args> void ml_method_by_auto(ml_value_t *Method, args... Args) {
+	ml_method_by_value(Method, Args...);
+}
+
+template <typename... args> void ml_methodx_by_auto(const char *Method, args... Args) {
+	ml_methodx_by_name(Method, Args...);
+}
+
+template <typename... args> void ml_methodx_by_auto(ml_value_t *Method, args... Args) {
+	ml_methodx_by_value(Method, Args...);
+}
+
+#endif
+
 void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_type_t **Types);
 
 #ifndef GENERATE_INIT
@@ -334,9 +354,19 @@ void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_t
 
 #else
 
+#ifndef __cplusplus
+
 #define ML_METHOD(METHOD, TYPES ...) INIT_CODE _Generic(METHOD, char *: ml_method_by_name, ml_value_t *: ml_method_by_value)(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), TYPES, NULL);
 
 #define ML_METHODX(METHOD, TYPES ...) INIT_CODE _Generic(METHOD, char *: ml_methodx_by_name, ml_value_t *: ml_methodx_by_value)(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), TYPES, NULL);
+
+#else
+
+#define ML_METHOD(METHOD, TYPES ...) INIT_CODE ml_method_by_auto(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), TYPES, NULL);
+
+#define ML_METHODX(METHOD, TYPES ...) INIT_CODE ml_methodx_by_auto(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), TYPES, NULL);
+
+#endif
 
 #define ML_METHOD_DECL(NAME, METHOD) INIT_CODE NAME ## Method = ml_method(METHOD);
 
