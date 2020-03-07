@@ -1351,9 +1351,13 @@ const char *ml_scanner_clear(mlc_scanner_t *Scanner) {
 
 typedef enum {EXPR_SIMPLE, EXPR_AND, EXPR_OR, EXPR_FOR, EXPR_DEFAULT} ml_expr_level_t;
 
+static int ml_parse(mlc_scanner_t *Scanner, ml_token_t Token);
 static void ml_accept(mlc_scanner_t *Scanner, ml_token_t Token);
 static mlc_expr_t *ml_parse_expression(mlc_scanner_t *Scanner, ml_expr_level_t Level);
 static mlc_expr_t *ml_accept_expression(mlc_scanner_t *Scanner, ml_expr_level_t Level);
+
+static ml_function_t StringNew[1] = {{MLFunctionT, ml_string_fn, NULL}};
+static ml_function_t StringifierNew[1] = {{MLFunctionT, ml_stringifier_fn, NULL}};
 
 static mlc_expr_t *ml_accept_string(mlc_scanner_t *Scanner) {
 	char Char = Scanner->Next[0];
@@ -1423,6 +1427,18 @@ static mlc_expr_t *ml_accept_string(mlc_scanner_t *Scanner) {
 		}
 	} else if (End[0] == '{') {
 		mlc_expr_t *Embedded = ml_accept_expression(Scanner, EXPR_DEFAULT);
+		if (ml_parse(Scanner, MLT_COMMA)) {
+			mlc_expr_t *Tail = Embedded;
+			do {
+				Tail = Tail->Next = ml_accept_expression(Scanner, EXPR_DEFAULT);
+			} while (ml_parse(Scanner, MLT_COMMA));
+			mlc_parent_value_expr_t *CallExpr = new(mlc_parent_value_expr_t);
+			CallExpr->compile = ml_const_call_expr_compile;
+			CallExpr->Source = Scanner->Source;
+			CallExpr->Value = (ml_value_t *)StringifierNew;
+			CallExpr->Child = Embedded;
+			Embedded = (mlc_expr_t *)CallExpr;
+		}
 		ml_accept(Scanner, MLT_RIGHT_BRACE);
 		Embedded->Next = ml_accept_string(Scanner);
 		if (Expr) {
@@ -1433,8 +1449,6 @@ static mlc_expr_t *ml_accept_string(mlc_scanner_t *Scanner) {
 	}
 	return Expr;
 }
-
-static ml_function_t StringNew[1] = {{MLFunctionT, ml_string_fn, NULL}};
 
 static inline int isidstart(char C) {
 	return isalpha(C) || (C == '_') || (C < 0);

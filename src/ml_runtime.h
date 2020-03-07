@@ -58,6 +58,7 @@ ml_value_t *ml_string_fn(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_list_fn(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_tuple_fn(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_map_fn(void *Data, int Count, ml_value_t **Args);
+ml_value_t *ml_stringifier_fn(void *Data, int Count, ml_value_t **Args);
 
 void ml_runtime_init();
 

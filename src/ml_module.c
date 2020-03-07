@@ -124,11 +124,13 @@ static ml_value_t *ml_module_fn(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)Module;
 }
 
+/*
 ML_METHOD("export", MLModuleT, MLStringT, MLAnyT) {
 	ml_module_t *Module = (ml_module_t *)Args[0];
 	stringmap_insert(Module->Exports, ml_string_value(Args[1]), Args[2]);
 	return Args[2];
 }
+*/
 
 void ml_module_init(stringmap_t *_Globals) {
 	MLModuleT = ml_type(MLAnyT, "module");

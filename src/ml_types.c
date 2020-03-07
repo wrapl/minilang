@@ -1627,6 +1627,26 @@ ML_METHOD(StringOfMethod, MLIntegerT) {
 	return (ml_value_t *)String;
 }
 
+ML_METHOD(StringOfMethod, MLIntegerT, MLIntegerT) {
+	ml_integer_t *Integer = (ml_integer_t *)Args[0];
+	long Base = ((ml_integer_t *)Args[1])->Value;
+	if (Base < 2 || Base > 36) return ml_error("RangeError", "Invalid base");
+	ml_string_t *String = new(ml_string_t);
+	String->Type = MLStringT;
+	char *P = GC_malloc_atomic(66) + 65;
+	*P = '\0';
+	long Value = Integer->Value;
+	long Neg = Value < 0 ? Value : -Value;
+	do {
+		*--P = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"[-(Neg % Base)];
+		Neg /= Base;
+	} while (Neg);
+	if (Value < 0) *--P = '-';
+	String->Value = P;
+	String->Length = strlen(P);
+	return (ml_value_t *)String;
+}
+
 static ml_value_t *ML_TYPED_FN(ml_string_of, MLRealT, ml_real_t *Real) {
 	ml_string_t *String = new(ml_string_t);
 	String->Type = MLStringT;
@@ -2245,6 +2265,57 @@ static ml_value_t *ML_TYPED_FN(ml_string_of, MLRegexT, ml_regex_t *Regex) {
 ML_METHOD(StringOfMethod, MLRegexT) {
 	ml_regex_t *Regex = (ml_regex_t *)Args[0];
 	return ml_string(Regex->Pattern, -1);
+}
+
+typedef struct ml_stringifier_t {
+	const ml_type_t *Type;
+	int Count;
+	ml_value_t *Args[];
+} ml_stringifier_t;
+
+ml_type_t MLStringifierT[1] = {{
+	MLTypeT,
+	MLAnyT, "stringifier",
+	ml_default_hash,
+	ml_default_call,
+	ml_default_deref,
+	ml_default_assign,
+	NULL, 0, 0
+}};
+
+static ml_value_t *ML_TYPED_FN(ml_string_of, MLStringifierT, ml_stringifier_t *Stringifier) {
+	return StringOfMethod->Type->call(NULL, StringOfMethod, Stringifier->Count, Stringifier->Args);
+}
+
+ML_METHODX(StringOfMethod, MLStringifierT) {
+	ml_stringifier_t *Stringifier = (ml_stringifier_t *)Args[0];
+	return StringOfMethod->Type->call(Caller, StringOfMethod, Stringifier->Count, Stringifier->Args);
+}
+
+static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLStringifierT, ml_stringbuffer_t *Buffer, ml_stringifier_t *Stringifier) {
+	ml_value_t *Result = StringOfMethod->Type->call(NULL, StringOfMethod, Stringifier->Count, Stringifier->Args);
+	if (Result->Type == MLErrorT) return Result;
+	if (Result->Type != MLStringT) return ml_error("ResultError", "string method did not return string");
+	ml_stringbuffer_add(Buffer, ml_string_value(Result), ml_string_length(Result));
+	return (ml_value_t *)Buffer;
+}
+
+ML_METHOD(StringBufferAppendMethod, MLStringBufferT, MLStringifierT) {
+	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
+	ml_stringifier_t *Stringifier = (ml_stringifier_t *)Args[1];
+	ml_value_t *Result = StringOfMethod->Type->call(NULL, StringOfMethod, Stringifier->Count, Stringifier->Args);
+	if (Result->Type == MLErrorT) return Result;
+	if (Result->Type != MLStringT) return ml_error("ResultError", "string method did not return string");
+	ml_stringbuffer_add(Buffer, ml_string_value(Result), ml_string_length(Result));
+	return (ml_value_t *)Buffer;
+}
+
+ml_value_t *ml_stringifier_fn(void *Data, int Count, ml_value_t **Args) {
+	ml_stringifier_t *Stringifier = xnew(ml_stringifier_t, Count, ml_value_t *);
+	Stringifier->Type = MLStringifierT;
+	Stringifier->Count = Count;
+	for (int I = 0; I < Count; ++I) Stringifier->Args[I] = Args[I];
+	return (ml_value_t *)Stringifier;
 }
 
 /****************************** Lists ******************************/
