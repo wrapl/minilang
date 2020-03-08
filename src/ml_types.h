@@ -172,8 +172,8 @@ double ml_real_value(ml_value_t *Value);
 ml_value_t *ml_integer_of(ml_value_t *Value);
 ml_value_t *ml_real_of(ml_value_t *Value);
 
-extern ml_value_t *IntegerOfMethod;
-extern ml_value_t *RealOfMethod;
+extern ml_value_t *MLIntegerOfMethod;
+extern ml_value_t *MLRealOfMethod;
 
 /****************************** Strings ******************************/
 

@@ -658,7 +658,7 @@ static ml_value_t *ML_TYPED_FN(ml_string_of, ATYPE, ml_array_t *Array) { \
 	} \
 } \
 \
-ML_METHOD(StringOfMethod, ATYPE) { \
+ML_METHOD(MLStringOfMethod, ATYPE) { \
 	ml_array_t *Array = (ml_array_t *)Args[0]; \
 	if (Array->Degree == 0) { \
 		return ml_string_format(FORMAT, *(CTYPE *)Array->Base.Address); \
@@ -677,7 +677,7 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, ATYPE, ml_stringbuffer_t 
 	return (ml_value_t *)Buffer; \
 } \
 \
-ML_METHOD(StringBufferAppendMethod, MLStringBufferT, ATYPE) { \
+ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, ATYPE) { \
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0]; \
 	ml_array_t *Array = (ml_array_t *)Args[1]; \
 	if (Array->Degree == 0) { \

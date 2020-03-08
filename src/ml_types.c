@@ -25,10 +25,10 @@ ML_METHOD_DECL(Compare, "<>");
 ML_METHOD_DECL(Index, "[]");
 ML_METHOD_DECL(Symbol, "::");
 
-ML_METHOD_DECL(StringOf, NULL);
-ML_METHOD_DECL(StringBufferAppend, NULL);
-ML_METHOD_DECL(IntegerOf, NULL);
-ML_METHOD_DECL(RealOf, NULL);
+ML_METHOD_DECL(MLStringOf, NULL);
+ML_METHOD_DECL(MLStringBufferAppend, NULL);
+ML_METHOD_DECL(MLIntegerOf, NULL);
+ML_METHOD_DECL(MLRealOf, NULL);
 
 /****************************** Types ******************************/
 
@@ -867,7 +867,7 @@ long ml_integer_value(ml_value_t *Value) {
 
 ml_value_t *ml_integer_of(ml_value_t *Value) {
 	typeof(ml_integer_of) *function = ml_typed_fn_get(Value->Type, ml_string_of);
-	if (!function) return ml_inline(IntegerOfMethod, 1, Value);
+	if (!function) return ml_inline(MLIntegerOfMethod, 1, Value);
 	return function(Value);
 }
 
@@ -879,7 +879,7 @@ static ml_value_t *ML_TYPED_FN(ml_integer_of, MLRealT, ml_real_t *Real) {
 	return ml_integer(Real->Value);
 }
 
-ML_METHOD(IntegerOfMethod, MLRealT) {
+ML_METHOD(MLIntegerOfMethod, MLRealT) {
 	return ml_integer(((ml_real_t *)Args[0])->Value);
 }
 
@@ -918,7 +918,7 @@ double ml_real_value(ml_value_t *Value) {
 
 ml_value_t *ml_real_of(ml_value_t *Value) {
 	typeof(ml_integer_of) *function = ml_typed_fn_get(Value->Type, ml_string_of);
-	if (!function) return ml_inline(RealOfMethod, 1, Value);
+	if (!function) return ml_inline(MLRealOfMethod, 1, Value);
 	return function(Value);
 }
 
@@ -926,7 +926,7 @@ static ml_value_t *ML_TYPED_FN(ml_real_of, MLIntegerT, ml_integer_t *Integer) {
 	return ml_real(Integer->Value);
 }
 
-ML_METHOD(RealOfMethod, MLIntegerT) {
+ML_METHOD(MLRealOfMethod, MLIntegerT) {
 	return ml_real(((ml_integer_t *)Args[0])->Value);
 }
 
@@ -1557,15 +1557,15 @@ ML_METHOD(MLStringOfMethod, MLRealT) {
 	return (ml_value_t *)String;
 }
 
-ML_METHOD(IntegerOfMethod, MLStringT) {
+ML_METHOD(MLIntegerOfMethod, MLStringT) {
 	return ml_integer(strtol(ml_string_value(Args[0]), 0, 10));
 }
 
-ML_METHOD(IntegerOfMethod, MLStringT, MLIntegerT) {
+ML_METHOD(MLIntegerOfMethod, MLStringT, MLIntegerT) {
 	return ml_integer(strtol(ml_string_value(Args[0]), 0, ml_integer_value(Args[1])));
 }
 
-ML_METHOD(RealOfMethod, MLStringT) {
+ML_METHOD(MLRealOfMethod, MLStringT) {
 	return ml_real(strtod(ml_string_value(Args[0]), 0));
 }
 
@@ -3394,8 +3394,8 @@ void ml_types_init(stringmap_t *Globals) {
 	ml_method_by_name("<=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
 	ml_method_by_name(">=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
 	ml_method_by_name(">=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
-	ml_method_by_value(IntegerOfMethod, NULL, ml_identity, MLIntegerT, NULL);
-	ml_method_by_value(RealOfMethod, NULL, ml_identity, MLRealT, NULL);
+	ml_method_by_value(MLIntegerOfMethod, NULL, ml_identity, MLIntegerT, NULL);
+	ml_method_by_value(MLRealOfMethod, NULL, ml_identity, MLRealT, NULL);
 	ml_method_by_value(MLStringOfMethod, NULL, ml_identity, MLStringT, NULL);
 	ml_bytecode_init();
 	ml_runtime_init(Globals);
@@ -3412,11 +3412,11 @@ void ml_types_init(stringmap_t *Globals) {
 	NULL));
 	stringmap_insert(Globals, "integer", ml_module("integer",
 		"T", MLIntegerT,
-		"of", IntegerOfMethod,
+		"of", MLIntegerOfMethod,
 	NULL));
 	stringmap_insert(Globals, "real", ml_module("real",
 		"T", MLRealT,
-		"of", RealOfMethod,
+		"of", MLRealOfMethod,
 	NULL));
 	stringmap_insert(Globals, "string", ml_module("string",
 		"T", MLStringT,
