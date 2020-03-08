@@ -108,6 +108,8 @@ install_h = \
 	$(install_include)/ml_types.h \
 	$(install_include)/ml_object.h \
 	$(install_include)/ml_compiler.h \
+	$(install_include)/ml_runtime.h \
+	$(install_include)/ml_bytecode.h \
 	$(install_include)/sha256.h \
 	$(install_include)/stringmap.h
 
