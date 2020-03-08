@@ -7,6 +7,27 @@
 extern "C" {
 #endif
 
+/****************************** Runtime ******************************/
+
+struct ml_context_t {
+	ml_context_t *Parent;
+};
+
+struct ml_state_t {
+	const ml_type_t *Type;
+	ml_state_t *Caller;
+	ml_value_t *(*run)(ml_state_t *State, ml_value_t *Value);
+	ml_context_t *Context;
+};
+
+extern ml_type_t MLStateT[];
+
+ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args);
+
+#define ml_inline(VALUE, COUNT, ARGS ...) ml_call(VALUE, COUNT, (ml_value_t *[]){ARGS})
+
+/****************************** References ******************************/
+
 extern ml_type_t MLReferenceT[];
 extern ml_type_t MLUninitializedT[];
 

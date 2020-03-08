@@ -136,11 +136,6 @@ if MINILANG_DEBUGGER or defined("DEBUGGER") then
 	LDFLAGS := old + ["-ljansson"]
 end
 
-if MINILANG_ANSI or defined("USEANSI") then
-	Objects:put(file("ml_ansi.o"))
-	CFLAGS := old + ["-DUSE_ML_ANSI"]
-end
-
 if PLATFORM = "Linux" then
 	Objects := old + [file("linenoise.o")]
 	LDFLAGS := old + ["-lgc"]

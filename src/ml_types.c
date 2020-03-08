@@ -264,36 +264,6 @@ ML_METHOD("!=", MLAnyT, MLAnyT) {
 	return (Args[0] != Args[1]) ? Args[1] : MLNil;
 }
 
-/****************************** Runtime ******************************/
-
-static ml_value_t *ml_state_call(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
-	return State->run(State, Count ? Args[0] : MLNil);
-}
-
-ml_type_t MLStateT[1] = {{
-	MLTypeT,
-	MLFunctionT, "state",
-	ml_default_hash,
-	(void *)ml_state_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
-
-inline ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args) {
-	ml_value_t *Result = Value->Type->call(NULL, Value, Count, Args);
-	return Result->Type->deref(Result);
-}
-
-ml_value_t *ml_inline(ml_value_t *Value, int Count, ...) {
-	ml_value_t *Args[Count];
-	va_list List;
-	va_start(List, Count);
-	for (int I = 0; I < Count; ++I) Args[I] = va_arg(List, ml_value_t *);
-	va_end(List);
-	return ml_call(Value, Count, Args);
-}
-
 /****************************** Functions ******************************/
 
 static ml_value_t *ml_function_call(ml_state_t *Caller, ml_function_t *Function, int Count, ml_value_t **Args) {
@@ -322,12 +292,6 @@ ml_value_t *ml_function(void *Data, ml_callback_t Callback) {
 	GC_end_stubborn_change(Function);
 	return (ml_value_t *)Function;
 }
-
-typedef struct ml_functionx_t {
-	const ml_type_t *Type;
-	ml_callbackx_t Callback;
-	void *Data;
-} ml_functionx_t;
 
 static ml_value_t *ml_functionx_call(ml_state_t *Caller, ml_functionx_t *Function, int Count, ml_value_t **Args) {
 	for (int I = 0; I < Count; ++I) {
@@ -418,75 +382,6 @@ static ml_value_t *ml_return_nil(void *Data, int Count, ml_value_t **Args) {
 static ml_value_t *ml_identity(void *Data, int Count, ml_value_t **Args) {
 	return Args[0];
 }
-
-typedef struct ml_resumable_state_t {
-	ml_state_t Base;
-	ml_state_t *Last;
-} ml_resumable_state_t;
-
-static ml_value_t *ml_resumable_state_call(ml_state_t *Caller, ml_resumable_state_t *State, int Count, ml_value_t **Args) {
-	State->Last->Caller = Caller;
-	ML_CONTINUE(State->Base.Caller, Count ? Args[0] : MLNil);
-}
-
-ml_type_t MLResumableStateT[1] = {{
-	MLTypeT,
-	MLStateT, "resumable-state",
-	ml_default_hash,
-	(void *)ml_resumable_state_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
-
-static ml_value_t *ml_resumable_state_run(ml_resumable_state_t *State, ml_value_t *Value) {
-	ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Invalid use of resumable state"));
-}
-
-static ml_value_t *ml_callcc(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
-	if (Count > 1) {
-		ML_CHECKX_ARG_TYPE(0, MLStateT);
-		ml_state_t *State = (ml_state_t *)Args[0];
-		ml_state_t *Last = Caller;
-		while (Last && Last->Caller != State) Last = Last->Caller;
-		if (!Last) ML_CONTINUE(Caller, ml_error("StateError", "State not in current call chain"));
-		Last->Caller = NULL;
-		ml_resumable_state_t *Resumable = new(ml_resumable_state_t);
-		Resumable->Base.Type = MLResumableStateT;
-		Resumable->Base.Caller = Caller;
-		Resumable->Base.run = (void *)ml_resumable_state_run;
-		Resumable->Last = Last;
-		ml_value_t *Function = Args[1];
-		ml_value_t **Args2 = anew(ml_value_t *, 1);
-		Args2[0] = (ml_value_t *)Resumable;
-		return Function->Type->call(State, Function, 1, Args2);
-	} else {
-		ML_CHECKX_ARG_COUNT(1);
-		ml_value_t *Function = Args[0];
-		ml_value_t **Args2 = anew(ml_value_t *, 1);
-		Args2[0] = (ml_value_t *)Caller;
-		return Function->Type->call(NULL, Function, 1, Args2);
-	}
-}
-
-static ml_value_t *ml_spawn_state_fn(ml_state_t *State, ml_value_t *Value) {
-	ML_CONTINUE(State->Caller, Value);
-}
-
-static ml_value_t *ml_spawn(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
-	ML_CHECKX_ARG_COUNT(1);
-	ml_state_t *State = new(ml_state_t);
-	State->Type = MLStateT;
-	State->Caller = Caller;
-	State->run = ml_spawn_state_fn;
-	ml_value_t *Func = Args[0];
-	ml_value_t **Args2 = anew(ml_value_t *, 1);
-	Args2[0] = (ml_value_t *)State;
-	return Func->Type->call(State, Func, 1, Args2);
-}
-
-ml_functionx_t MLCallCC[1] = {{MLFunctionXT, ml_callcc, NULL}};
-ml_functionx_t MLSpawn[1] = {{MLFunctionXT, ml_spawn, NULL}};
 
 typedef struct ml_partial_function_t {
 	const ml_type_t *Type;

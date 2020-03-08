@@ -81,30 +81,13 @@ int ml_is(const ml_value_t *Value, const ml_type_t *Type);
 long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain);
 long ml_hash(ml_value_t *Value);
 
-/****************************** Runtime ******************************/
-
-struct ml_context_t {
-	ml_context_t *Parent;
-};
-
-struct ml_state_t {
-	const ml_type_t *Type;
-	ml_state_t *Caller;
-	ml_value_t *(*run)(ml_state_t *State, ml_value_t *Value);
-	ml_context_t *Context;
-};
-
-extern ml_type_t MLStateT[];
-
-ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args);
-ml_value_t *ml_inline(ml_value_t *Value, int Count, ...);
-
 /****************************** Functions ******************************/
 
 typedef ml_value_t *(*ml_callback_t)(void *Data, int Count, ml_value_t **Args);
 typedef ml_value_t *(*ml_callbackx_t)(ml_state_t *Frame, void *Data, int Count, ml_value_t **Args);
 
 typedef struct ml_function_t ml_function_t;
+typedef struct ml_functionx_t ml_functionx_t;
 
 struct ml_function_t {
 	const ml_type_t *Type;
@@ -112,7 +95,14 @@ struct ml_function_t {
 	void *Data;
 };
 
+struct ml_functionx_t {
+	const ml_type_t *Type;
+	ml_callbackx_t Callback;
+	void *Data;
+};
+
 extern ml_type_t MLFunctionT[];
+extern ml_type_t MLFunctionXT[];
 
 ml_value_t *ml_function(void *Data, ml_callback_t Function);
 ml_value_t *ml_functionx(void *Data, ml_callbackx_t Function);
