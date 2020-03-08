@@ -70,7 +70,7 @@ ml_type_t MLClassT[1] = {{
 
 static ml_value_t *ml_object_append(void *Data, int Count, ml_value_t **Args) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_value_t *String = ml_inline(StringOfMethod, 1, Args[1]);
+	ml_value_t *String = ml_inline(MLStringOfMethod, 1, Args[1]);
 	if (String->Type == MLStringT) {
 		ml_stringbuffer_add(Buffer, ml_string_value(String), ml_string_length(String));
 		return MLSome;
@@ -90,13 +90,13 @@ static ml_value_t *ml_object_string(void *Data, int Count, ml_value_t **Args) {
 		const char *Name = ml_method_name(Class->Fields[0]);
 		ml_stringbuffer_add(Buffer, Name, strlen(Name));
 		ml_stringbuffer_add(Buffer, ": ", 2);
-		ml_inline(StringBufferAppendMethod, 2, Buffer, Object->Fields[0]);
+		ml_inline(MLStringBufferAppendMethod, 2, Buffer, Object->Fields[0]);
 		for (int I = 1; I < Class->NumFields; ++I) {
 			ml_stringbuffer_add(Buffer, ", ", 2);
 			const char *Name = ml_method_name(Class->Fields[I]);
 			ml_stringbuffer_add(Buffer, Name, strlen(Name));
 			ml_stringbuffer_add(Buffer, ": ", 2);
-			ml_inline(StringBufferAppendMethod, 2, Buffer, Object->Fields[I]);
+			ml_inline(MLStringBufferAppendMethod, 2, Buffer, Object->Fields[I]);
 		}
 		ml_stringbuffer_add(Buffer, ")", 1);
 		return ml_stringbuffer_get_string(Buffer);
@@ -234,7 +234,7 @@ void ml_object_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "property", ml_function(NULL, ml_property_fn));
 	stringmap_insert(Globals, "ObjectT", MLObjectT);
 	stringmap_insert(Globals, "ClassT", MLClassT);
-	ml_method_by_value(StringBufferAppendMethod, NULL, ml_object_append, MLStringBufferT, MLObjectT, NULL);
-	ml_method_by_value(StringOfMethod, NULL, ml_object_string, MLObjectT, NULL);
+	ml_method_by_value(MLStringBufferAppendMethod, NULL, ml_object_append, MLStringBufferT, MLObjectT, NULL);
+	ml_method_by_value(MLStringOfMethod, NULL, ml_object_string, MLObjectT, NULL);
 #include "ml_object_init.c"
 }

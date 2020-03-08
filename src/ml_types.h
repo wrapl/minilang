@@ -198,7 +198,7 @@ const char *ml_string_value(ml_value_t *Value);
 size_t ml_string_length(ml_value_t *Value);
 ml_value_t *ml_string_of(ml_value_t *Value);
 
-extern ml_value_t *StringOfMethod;
+extern ml_value_t *MLStringOfMethod;
 
 ml_value_t *ml_regex(const char *Value);
 regex_t *ml_regex_value(ml_value_t *Value);
@@ -223,7 +223,7 @@ ml_value_t *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer);
 int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(const char *, size_t, void *));
 ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value);
 
-extern ml_value_t *StringBufferAppendMethod;
+extern ml_value_t *MLStringBufferAppendMethod;
 
 /****************************** Lists ******************************/
 

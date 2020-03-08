@@ -719,7 +719,7 @@ ml_value_t *ML_TYPED_FN(ml_string_of, MLTupleT, ml_tuple_t *Tuple) {
 	return ml_stringbuffer_get_string(Buffer);
 }
 
-ML_METHOD(StringOfMethod, MLTupleT) {
+ML_METHOD(MLStringOfMethod, MLTupleT) {
 	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_stringbuffer_add(Buffer, "(", 1);
@@ -747,7 +747,7 @@ ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLTupleT, ml_stringbuffer_t *Buf
 	return MLSome;
 }
 
-ML_METHOD(StringBufferAppendMethod, MLStringBufferT, MLTupleT) {
+ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLTupleT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_tuple_t *Value = (ml_tuple_t *)Args[1];
 	ml_stringbuffer_add(Buffer, "(", 1);
@@ -1409,7 +1409,7 @@ ML_METHOD("-", MLBufferT, MLBufferT) {
 	return ml_integer(Buffer1->Address - Buffer2->Address);
 }
 
-ML_METHOD(StringOfMethod, MLBufferT) {
+ML_METHOD(MLStringOfMethod, MLBufferT) {
 	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
 	return ml_string_format("#%" PRIxPTR ":%ld", Buffer->Address, Buffer->Size);
 }
@@ -1483,7 +1483,7 @@ size_t ml_string_length(ml_value_t *Value) {
 
 ml_value_t *ml_string_of(ml_value_t *Value) {
 	typeof(ml_string_of) *function = ml_typed_fn_get(Value->Type, ml_string_of);
-	if (!function) return ml_inline(StringOfMethod, 1, Value);
+	if (!function) return ml_inline(MLStringOfMethod, 1, Value);
 	return function(Value);
 }
 
@@ -1495,7 +1495,7 @@ static ml_value_t *ML_TYPED_FN(ml_string_of, MLNilT, ml_value_t *Value) {
 	return ml_string("nil", 3);
 }
 
-ML_METHOD(StringOfMethod, MLNilT) {
+ML_METHOD(MLStringOfMethod, MLNilT) {
 	return ml_string("nil", 3);
 }
 
@@ -1503,7 +1503,7 @@ static ml_value_t *ML_TYPED_FN(ml_string_of, MLSomeT, ml_value_t *Value) {
 	return ml_string("some", 4);
 }
 
-ML_METHOD(StringOfMethod, MLSomeT) {
+ML_METHOD(MLStringOfMethod, MLSomeT) {
 	return ml_string("some", 4);
 }
 
@@ -1514,7 +1514,7 @@ static ml_value_t *ML_TYPED_FN(ml_string_of, MLIntegerT, ml_integer_t *Integer) 
 	return (ml_value_t *)String;
 }
 
-ML_METHOD(StringOfMethod, MLIntegerT) {
+ML_METHOD(MLStringOfMethod, MLIntegerT) {
 	ml_integer_t *Integer = (ml_integer_t *)Args[0];
 	ml_string_t *String = new(ml_string_t);
 	String->Type = MLStringT;
@@ -1522,7 +1522,7 @@ ML_METHOD(StringOfMethod, MLIntegerT) {
 	return (ml_value_t *)String;
 }
 
-ML_METHOD(StringOfMethod, MLIntegerT, MLIntegerT) {
+ML_METHOD(MLStringOfMethod, MLIntegerT, MLIntegerT) {
 	ml_integer_t *Integer = (ml_integer_t *)Args[0];
 	long Base = ((ml_integer_t *)Args[1])->Value;
 	if (Base < 2 || Base > 36) return ml_error("RangeError", "Invalid base");
@@ -1549,7 +1549,7 @@ static ml_value_t *ML_TYPED_FN(ml_string_of, MLRealT, ml_real_t *Real) {
 	return (ml_value_t *)String;
 }
 
-ML_METHOD(StringOfMethod, MLRealT) {
+ML_METHOD(MLStringOfMethod, MLRealT) {
 	ml_real_t *Real = (ml_real_t *)Args[0];
 	ml_string_t *String = new(ml_string_t);
 	String->Type = MLStringT;
@@ -1717,7 +1717,7 @@ int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callbac
 
 ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
 	typeof(ml_stringbuffer_append) *function = ml_typed_fn_get(Value->Type, ml_stringbuffer_append);
-	if (!function) return ml_inline(StringBufferAppendMethod, 2, Buffer, Value);
+	if (!function) return ml_inline(MLStringBufferAppendMethod, 2, Buffer, Value);
 	return function(Buffer, Value);
 }
 
@@ -1725,7 +1725,7 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLNilT, ml_stringbuffer_t
 	return MLNil;
 }
 
-ML_METHOD(StringBufferAppendMethod, MLStringBufferT, MLNilT) {
+ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLNilT) {
 	return MLNil;
 }
 
@@ -1733,7 +1733,7 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLSomeT, ml_stringbuffer_
 	return MLNil;
 }
 
-ML_METHOD(StringBufferAppendMethod, MLStringBufferT, MLSomeT) {
+ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLSomeT) {
 	return MLNil;
 }
 
@@ -1742,7 +1742,7 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLIntegerT, ml_stringbuff
 	return MLSome;
 }
 
-ML_METHOD(StringBufferAppendMethod, MLStringBufferT, MLIntegerT) {
+ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLIntegerT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_addf(Buffer, "%ld", ml_integer_value(Args[1]));
 	return MLSome;
@@ -1753,7 +1753,7 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLRealT, ml_stringbuffer_
 	return MLSome;
 }
 
-ML_METHOD(StringBufferAppendMethod, MLStringBufferT, MLRealT) {
+ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLRealT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_addf(Buffer, "%f", ml_real_value(Args[1]));
 	return MLSome;
@@ -1764,7 +1764,7 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLStringT, ml_stringbuffe
 	return Value->Length ? MLSome : MLNil;
 }
 
-ML_METHOD(StringBufferAppendMethod, MLStringBufferT, MLStringT) {
+ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLStringT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_add(Buffer, ml_string_value(Args[1]), ml_string_length(Args[1]));
 	return ml_string_length(Args[1]) ? MLSome : MLNil;
@@ -2157,7 +2157,7 @@ static ml_value_t *ML_TYPED_FN(ml_string_of, MLRegexT, ml_regex_t *Regex) {
 	return ml_string(Regex->Pattern, -1);
 }
 
-ML_METHOD(StringOfMethod, MLRegexT) {
+ML_METHOD(MLStringOfMethod, MLRegexT) {
 	ml_regex_t *Regex = (ml_regex_t *)Args[0];
 	return ml_string(Regex->Pattern, -1);
 }
@@ -2179,26 +2179,26 @@ ml_type_t MLStringifierT[1] = {{
 }};
 
 static ml_value_t *ML_TYPED_FN(ml_string_of, MLStringifierT, ml_stringifier_t *Stringifier) {
-	return StringOfMethod->Type->call(NULL, StringOfMethod, Stringifier->Count, Stringifier->Args);
+	return MLStringOfMethod->Type->call(NULL, MLStringOfMethod, Stringifier->Count, Stringifier->Args);
 }
 
-ML_METHODX(StringOfMethod, MLStringifierT) {
+ML_METHODX(MLStringOfMethod, MLStringifierT) {
 	ml_stringifier_t *Stringifier = (ml_stringifier_t *)Args[0];
-	return StringOfMethod->Type->call(Caller, StringOfMethod, Stringifier->Count, Stringifier->Args);
+	return MLStringOfMethod->Type->call(Caller, MLStringOfMethod, Stringifier->Count, Stringifier->Args);
 }
 
 static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLStringifierT, ml_stringbuffer_t *Buffer, ml_stringifier_t *Stringifier) {
-	ml_value_t *Result = StringOfMethod->Type->call(NULL, StringOfMethod, Stringifier->Count, Stringifier->Args);
+	ml_value_t *Result = MLStringOfMethod->Type->call(NULL, MLStringOfMethod, Stringifier->Count, Stringifier->Args);
 	if (Result->Type == MLErrorT) return Result;
 	if (Result->Type != MLStringT) return ml_error("ResultError", "string method did not return string");
 	ml_stringbuffer_add(Buffer, ml_string_value(Result), ml_string_length(Result));
 	return (ml_value_t *)Buffer;
 }
 
-ML_METHOD(StringBufferAppendMethod, MLStringBufferT, MLStringifierT) {
+ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLStringifierT) {
 	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
 	ml_stringifier_t *Stringifier = (ml_stringifier_t *)Args[1];
-	ml_value_t *Result = StringOfMethod->Type->call(NULL, StringOfMethod, Stringifier->Count, Stringifier->Args);
+	ml_value_t *Result = MLStringOfMethod->Type->call(NULL, MLStringOfMethod, Stringifier->Count, Stringifier->Args);
 	if (Result->Type == MLErrorT) return Result;
 	if (Result->Type != MLStringT) return ml_error("ResultError", "string method did not return string");
 	ml_stringbuffer_add(Buffer, ml_string_value(Result), ml_string_length(Result));
@@ -2456,15 +2456,15 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLListT, ml_stringbuffer_
 	}
 }
 
-ML_METHOD(StringBufferAppendMethod, MLStringBufferT, MLListT) {
+ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLListT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_list_node_t *Node = ((ml_list_t *)Args[1])->Head;
 	if (Node) {
 		ml_stringbuffer_append(Buffer, Node->Value);
-		ml_inline(StringBufferAppendMethod, 2, Buffer, Node->Value);
+		ml_inline(MLStringBufferAppendMethod, 2, Buffer, Node->Value);
 		while ((Node = Node->Next)) {
 			ml_stringbuffer_add(Buffer, " ", 1);
-			ml_inline(StringBufferAppendMethod, 2, Buffer, Node->Value);
+			ml_inline(MLStringBufferAppendMethod, 2, Buffer, Node->Value);
 		}
 		return MLSome;
 	} else {
@@ -2600,7 +2600,7 @@ ML_METHOD("+", MLListT, MLListT) {
 	return (ml_value_t *)List;
 }
 
-ML_METHOD(StringOfMethod, MLListT) {
+ML_METHOD(MLStringOfMethod, MLListT) {
 	ml_list_t *List = (ml_list_t *)Args[0];
 	if (!List->Length) return ml_string("[]", 2);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
@@ -2960,7 +2960,7 @@ ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLMapT, ml_stringbuffer_t *Buffe
 	}
 }
 
-ML_METHOD(StringBufferAppendMethod, MLStringBufferT, MLMapT) {
+ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLMapT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_map_t *Map = (ml_map_t *)Args[1];
 	ml_map_node_t *Node = Map->Head;
@@ -3059,7 +3059,7 @@ static int ml_map_stringer(ml_value_t *Key, ml_value_t *Value, ml_map_stringer_t
 	return 0;
 }
 
-ML_METHOD(StringOfMethod, MLMapT) {
+ML_METHOD(MLStringOfMethod, MLMapT) {
 	ml_map_stringer_t Stringer[1] = {{
 		", ", " is ",
 		{ML_STRINGBUFFER_INIT},
@@ -3357,7 +3357,7 @@ static ml_value_t *ML_TYPED_FN(ml_string_of, MLMethodT, ml_method_t *Method) {
 	return ml_string_format(":%s", Method->Name);
 }
 
-ML_METHOD(StringOfMethod, MLMethodT) {
+ML_METHOD(MLStringOfMethod, MLMethodT) {
 	ml_method_t *Method = (ml_method_t *)Args[0];
 	return ml_string_format(":%s", Method->Name);
 }
@@ -3367,7 +3367,7 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLMethodT, ml_stringbuffe
 	return MLSome;
 }
 
-ML_METHOD(StringBufferAppendMethod, MLStringBufferT, MLMethodT) {
+ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLMethodT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_method_t *Method = (ml_method_t *)Args[1];
 	ml_stringbuffer_add(Buffer, Method->Name, strlen(Method->Name));
@@ -3396,7 +3396,7 @@ void ml_types_init(stringmap_t *Globals) {
 	ml_method_by_name(">=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
 	ml_method_by_value(IntegerOfMethod, NULL, ml_identity, MLIntegerT, NULL);
 	ml_method_by_value(RealOfMethod, NULL, ml_identity, MLRealT, NULL);
-	ml_method_by_value(StringOfMethod, NULL, ml_identity, MLStringT, NULL);
+	ml_method_by_value(MLStringOfMethod, NULL, ml_identity, MLStringT, NULL);
 	ml_bytecode_init();
 	ml_runtime_init(Globals);
 	stringmap_insert(Globals, "type", ml_module("type",
@@ -3420,7 +3420,7 @@ void ml_types_init(stringmap_t *Globals) {
 	NULL));
 	stringmap_insert(Globals, "string", ml_module("string",
 		"T", MLStringT,
-		"of", StringOfMethod,
+		"of", MLStringOfMethod,
 	NULL));
 	stringmap_insert(Globals, "stringbuffer", ml_module("stringbuffer",
 		"T", MLStringBufferT,
