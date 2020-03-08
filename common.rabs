@@ -14,7 +14,6 @@ c_compile := fun(Source, Object) do
 end
 
 c_includes := fun(Target) do
-	var Files := []
 	var Lines := shell('cc -c {CFLAGS} -M -MG {Target:source}')
 	Lines := Lines:replace(r"\\\n ", "")
 	Lines := Lines[Lines:find(": ") + 2, 0]:trim
