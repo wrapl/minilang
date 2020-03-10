@@ -91,8 +91,6 @@ struct ml_inst_t {
 	ml_param_t Params[];
 };
 
-extern int MLDebugClosures;
-
 const char *ml_closure_debug(ml_value_t *Value);
 void ml_closure_sha256(ml_value_t *Closure, unsigned char Hash[SHA256_BLOCK_SIZE]);
 

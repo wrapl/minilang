@@ -135,6 +135,8 @@ static inline ml_expr_error(mlc_expr_t *Expr, mlc_function_t *Function, ml_value
 	longjmp(Function->Context->OnError, 1);
 }
 
+extern int MLDebugClosures;
+
 ml_value_t *ml_expr_evaluate(mlc_expr_t *Expr, mlc_function_t *Function) {
 	mlc_function_t SubFunction[1];
 	memset(SubFunction, 0, sizeof(SubFunction));

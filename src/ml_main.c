@@ -71,6 +71,8 @@ static ml_value_t *ml_throw(void *Data, int Count, ml_value_t **Args) {
 	return ml_error(ml_string_value(Args[0]), "%s", ml_string_value(Args[1]));
 }
 
+extern int MLDebugClosures;
+
 static ml_value_t *ml_debug(void *Data, int Count, ml_value_t **Args) {
 	if (Count > 0 && Args[0] == MLNil) {
 		MLDebugClosures = 0;

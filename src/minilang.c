@@ -34,6 +34,8 @@ static const char *ml_file_read(void *Data) {
 	return Line;
 }
 
+extern int MLDebugClosures;
+
 ml_value_t *ml_load(ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]) {
 	FILE *File = fopen(FileName, "r");
 	if (!File) return ml_error("LoadError", "error opening %s", FileName);
