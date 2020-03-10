@@ -11,8 +11,6 @@
 extern "C" {
 #endif
 
-#include "sha256.h"
-
 typedef struct mlc_expr_t mlc_expr_t;
 typedef struct mlc_scanner_t mlc_scanner_t;
 
