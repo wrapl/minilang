@@ -299,6 +299,8 @@ ml_value_t *ml_from_cbor(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*TagFn)(uint
 	Reader->Tags = 0;
 	Reader->Value = 0;
 	ml_cbor_read(Reader->Reader, Cbor.Data, Cbor.Length);
+	int Extra = ml_cbor_reader_extra(Reader);
+	if (Extra) return ml_error("CBORError", "Extra bytes after decoding: %d", Extra);
 	return ml_cbor_reader_get(Reader);
 }
 
