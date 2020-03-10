@@ -4,6 +4,11 @@
 #include "ml_debugger.h"
 #include "ml_types.h"
 #include "ml_runtime.h"
+
+#ifdef	__cplusplus
+extern "C" {
+#endif
+
 #include "sha256.h"
 
 typedef struct ml_closure_t ml_closure_t;
@@ -86,8 +91,17 @@ struct ml_inst_t {
 	ml_param_t Params[];
 };
 
+extern int MLDebugClosures;
+
+const char *ml_closure_debug(ml_value_t *Value);
+void ml_closure_sha256(ml_value_t *Closure, unsigned char Hash[SHA256_BLOCK_SIZE]);
+
 const char *ml_closure_info_debug(ml_closure_info_t *Info);
 
 void ml_bytecode_init();
+
+#ifdef	__cplusplus
+}
+#endif
 
 #endif

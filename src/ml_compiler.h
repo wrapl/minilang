@@ -38,12 +38,6 @@ ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, mlc_context_t 
 
 ml_value_t *ml_command_evaluate(mlc_scanner_t *Scanner, stringmap_t *Vars, mlc_context_t *Context);
 
-extern int MLDebugClosures;
-
-const char *ml_closure_debug(ml_value_t *Value);
-
-void ml_closure_sha256(ml_value_t *Closure, unsigned char Hash[SHA256_BLOCK_SIZE]);
-
 #ifdef	__cplusplus
 }
 #endif
