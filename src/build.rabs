@@ -171,6 +171,7 @@ var InstallHeaders := [
 	"ml_object.h",
 	"ml_compiler.h",
 	"ml_runtime.h",
+	"ml_module.h",
 	"ml_bytecode.h",
 	"sha256.h",
 	"stringmap.h"
