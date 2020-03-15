@@ -9,15 +9,16 @@ extern "C" {
 
 /****************************** Runtime ******************************/
 
-struct ml_context_t {
-	ml_context_t *Parent;
-};
-
 struct ml_state_t {
 	const ml_type_t *Type;
 	ml_state_t *Caller;
 	ml_value_t *(*run)(ml_state_t *State, ml_value_t *Value);
 	ml_context_t *Context;
+};
+
+struct ml_context_t {
+	ml_context_t *Parent;
+	ml_state_t State[1];
 };
 
 extern ml_type_t MLStateT[];

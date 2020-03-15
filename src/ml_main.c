@@ -5,7 +5,6 @@
 #include "ml_file.h"
 #include "ml_object.h"
 #include "ml_iterfns.h"
-#include "ml_module.h"
 #include "stringmap.h"
 #include <stdio.h>
 #include <gc.h>
@@ -17,10 +16,6 @@
 
 #ifdef USE_ML_IO
 #include "ml_io.h"
-#endif
-
-#ifdef USE_ML_UV
-#include "ml_libuv.h"
 #endif
 
 #ifdef USE_ML_GIR
@@ -40,8 +35,9 @@
 #include "ml_radb.h"
 #endif
 
-#ifdef USE_ML_EVENT
-#include "ml_libevent.h"
+#ifdef USE_ML_MODULES
+#include "ml_module.h"
+#include "ml_library.h"
 #endif
 
 static stringmap_t Globals[1] = {STRINGMAP_INIT};
@@ -106,10 +102,33 @@ static ml_value_t *ml_collect(void *Data, int Count, ml_value_t **Args) {
 extern ml_value_t MLCallCC[];
 extern ml_value_t MLSpawn[];
 
+#ifdef USE_ML_MODULES
+static stringmap_t Modules[1] = {STRINGMAP_INIT};
+
+static ml_value_t *ml_import_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLStringT);
+	const char *FileName = realpath(ml_string_value(Args[0]), NULL);
+	ml_value_t **Slot = stringmap_slot(Modules, FileName);
+	if (!Slot[0]) {
+		printf("Loading %s\n", FileName);
+		const char *Extension = strrchr(FileName, '.');
+		if (!Extension) ML_CONTINUE(Caller, ml_error("ModuleError", "Unknown module type: %s", FileName));
+		if (!strcmp(Extension, ".so")) {
+			return ml_library_load_file(Caller, FileName, stringmap_search, Globals, Slot);
+		} else if (!strcmp(Extension, ".mini")) {
+			return ml_module_load_file(Caller, FileName, stringmap_search, Globals, Slot);
+		} else {
+			ML_CONTINUE(Caller, ml_error("ModuleError", "Unknown module type: %s", FileName));
+		}
+	}
+	ML_CONTINUE(Caller, Slot[0]);
+}
+#endif
+
 int main(int Argc, const char *Argv[]) {
 	static const char *Parameters[] = {"Args", NULL};
 	ml_init();
-	ml_module_init(Globals);
 	ml_types_init(Globals);
 	ml_file_init(Globals);
 	ml_object_init(Globals);
@@ -132,9 +151,6 @@ int main(int Argc, const char *Argv[]) {
 #ifdef USE_ML_IO
 	ml_io_init(Globals);
 #endif
-#ifdef USE_ML_UV
-	ml_uv_init(Globals);
-#endif
 #ifdef USE_ML_GIR
 	ml_gir_init(Globals);
 	int GtkConsole = 0;
@@ -145,14 +161,26 @@ int main(int Argc, const char *Argv[]) {
 #ifdef USE_ML_RADB
 	ml_radb_init(Globals);
 #endif
-#ifdef USE_ML_EVENT
-	ml_event_init(Globals);
+#ifdef USE_ML_MODULES
+	ml_module_init(Globals);
+	ml_library_init(Globals);
+	stringmap_insert(Globals, "import", ml_functionx(0, ml_import_fnx));
 #endif
 	ml_value_t *Args = ml_list();
 	const char *FileName = 0;
+	const char *ModuleName = 0;
 	for (int I = 1; I < Argc; ++I) {
 		if (Argv[I][0] == '-') {
 			switch (Argv[I][1]) {
+#ifdef USE_ML_MODULES
+			case 'm':
+				if (++I >= Argc) {
+					printf("Error: module name required\n");
+					exit(-1);
+				}
+				ModuleName = Argv[I];
+			break;
+#endif
 			case 'D': MLDebugClosures = 1; break;
 			case 'z': GC_disable(); break;
 #ifdef USE_ML_GIR
@@ -175,6 +203,16 @@ int main(int Argc, const char *Argv[]) {
 			return 1;
 		}
 		ml_value_t *Result = ml_inline(Closure, 1, Args);
+		if (Result->Type == MLErrorT) {
+			printf("Error: %s\n", ml_error_message(Result));
+			const char *Source;
+			int Line;
+			for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+			return 1;
+		}
+	} else if (ModuleName) {
+		ml_value_t *Args[] = {ml_string(ModuleName, -1)};
+		ml_value_t *Result = ml_import_fnx(NULL, NULL, 1, Args);
 		if (Result->Type == MLErrorT) {
 			printf("Error: %s\n", ml_error_message(Result));
 			const char *Source;

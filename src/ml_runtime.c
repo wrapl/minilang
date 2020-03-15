@@ -101,6 +101,12 @@ ml_functionx_t MLSpawn[1] = {{MLFunctionXT, ml_spawn_fnx, NULL}};
 
 /****************************** References ******************************/
 
+static long ml_reference_hash(ml_value_t *Ref, ml_hash_chain_t *Chain) {
+	ml_reference_t *Reference = (ml_reference_t *)Ref;
+	ml_value_t *Value = Reference->Address[0];
+	return Value->Type->hash(Value, Chain);
+}
+
 static ml_value_t *ml_reference_deref(ml_value_t *Ref) {
 	ml_reference_t *Reference = (ml_reference_t *)Ref;
 	return Reference->Address[0];
@@ -116,7 +122,7 @@ static ml_value_t *ml_reference_assign(ml_value_t *Ref, ml_value_t *Value) {
 ml_type_t MLReferenceT[1] = {{
 	MLTypeT,
 	MLAnyT, "reference",
-	ml_default_hash,
+	ml_reference_hash,
 	ml_default_call,
 	ml_reference_deref,
 	ml_reference_assign,
@@ -158,11 +164,16 @@ struct ml_error_t {
 	ml_source_t Trace[MAX_TRACE];
 };
 
+static ml_value_t *ml_error_call(ml_state_t *Caller, ml_error_t *Error, int Count, ml_value_t **Args) {
+	ml_error_trace_add(Error, (ml_source_t){__FILE__, __LINE__});
+	ML_CONTINUE(Caller, Error);
+}
+
 ml_type_t MLErrorT[1] = {{
 	MLTypeT,
 	MLAnyT, "error",
 	ml_default_hash,
-	ml_default_call,
+	ml_error_call,
 	ml_default_deref,
 	ml_default_assign,
 	NULL, 0, 0

@@ -37,7 +37,6 @@ obj/ml_object.o: obj/ml_object_init.c
 obj/ml_math.o: obj/ml_math_init.c
 obj/ml_file.o: obj/ml_file_init.c
 obj/ml_iterfns.o: obj/ml_iterfns_init.c
-obj/ml_module.o: obj/ml_module_init.c
 obj/ml_bytecode.o: obj/ml_bytecode_init.c
 obj/ml_runtime.o: obj/ml_runtime_init.c
 
@@ -52,8 +51,7 @@ common_objects = \
 	obj/sha256.o \
 	obj/stringmap.o \
 	obj/ml_console.o \
-	obj/ml_object.o \
-	obj/ml_module.o
+	obj/ml_object.o
 
 platform_objects =
 

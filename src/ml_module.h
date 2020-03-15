@@ -3,11 +3,8 @@
 
 #include "minilang.h"
 
-typedef struct ml_module_t ml_module_t;
-
 void ml_module_init(stringmap_t *Globals);
 
-ml_module_t *ml_module(const char *Name, ...) __attribute__ ((sentinel));
-void ml_module_export(ml_module_t *Module, const char *Name, ml_value_t *Value);
+ml_value_t *ml_module_load_file(ml_state_t *Caller, const char *FileName, ml_getter_t GlobalGet, void *Globals, ml_value_t **Slot);
 
 #endif

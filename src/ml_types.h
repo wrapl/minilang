@@ -262,6 +262,9 @@ int ml_list_foreach(ml_value_t *List, void *Data, int (*callback)(ml_value_t *, 
 #define ML_LIST_FOREACH(LIST, NODE) \
 	for (ml_list_node_t *NODE = ml_list_head(LIST); NODE; NODE = NODE->Next)
 
+#define ML_LIST_REVERSE(LIST, NODE) \
+	for (ml_list_node_t *NODE = ml_list_tail(LIST); NODE; NODE = NODE->Prev)
+
 #define ML_NAMES_FOREACH(LIST, NODE) ML_LIST_FOREACH(LIST, NODE)
 
 /****************************** Maps ******************************/
@@ -341,6 +344,14 @@ void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_t
 #define ML_METHOD_DECL(NAME, METHOD) INIT_CODE NAME ## Method = ml_method(METHOD);
 
 #endif
+
+/****************************** Modules ******************************/
+
+extern ml_type_t MLModuleT[];
+
+ml_value_t *ml_module(const char *Path, ...) __attribute__ ((sentinel));
+const char *ml_module_path(ml_value_t *Module);
+ml_value_t *ml_module_export(ml_value_t *Module, const char *Name, ml_value_t *Value);
 
 /****************************** Init ******************************/
 

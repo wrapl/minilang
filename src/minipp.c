@@ -6,7 +6,6 @@
 #include <string.h>
 #include <gc/gc.h>
 #include "ml_object.h"
-#include "ml_module.h"
 #include "ml_iterfns.h"
 
 static stringmap_t Globals[1] = {STRINGMAP_INIT};
@@ -131,7 +130,6 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 	ml_file_init(Globals);
 	ml_object_init(Globals);
 	ml_iterfns_init(Globals);
-	ml_module_init(Globals);
 	stringmap_insert(Globals, "write", ml_function(Preprocessor, (void *)ml_preprocessor_output));
 	stringmap_insert(Globals, "push", ml_function(Preprocessor, (void *)ml_preprocessor_push));
 	stringmap_insert(Globals, "pop", ml_function(Preprocessor, (void *)ml_preprocessor_pop));

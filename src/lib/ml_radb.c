@@ -1,8 +1,10 @@
-#include "ml_radb.h"
-#include "ml_macros.h"
-#include <gc/gc.h>
-#include "ml_cbor.h"
+#include "../minilang.h"
+#include "../ml_macros.h"
+#include "../ml_library.h"
+#include "../ml_cbor.h"
 #include "radb/radb.h"
+#include <libgen.h>
+#include <stdio.h>
 
 typedef struct ml_string_store_t {
 	const ml_type_t *Type;
@@ -201,24 +203,24 @@ ML_METHOD("search", StringIndexT, MLStringT) {
 	return ml_integer(Index);
 }
 
-void ml_radb_init(stringmap_t *Globals) {
-	ml_value_t *Radb = ml_map();
+void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
+	const char *Dir = dirname(GC_strdup(ml_module_path(Module)));
+	ml_value_t *Import = GlobalGet(Globals, "import");
+	ml_inline(Import, 1, ml_string_format("%s/ml_cbor.so", Dir));
 
 	StringStoreT = ml_type(MLAnyT, "string-store");
 	StringStoreWriterT = ml_type(MLAnyT, "string-store-writer");
 	StringStoreReaderT = ml_type(MLAnyT, "string-store-reader");
-	ml_map_insert(Radb, ml_string("string_store_open", -1), ml_function(0, ml_string_store_open));
-	ml_map_insert(Radb, ml_string("string_store_create", -1), ml_function(0, ml_string_store_create));
+	ml_module_export(Module, "string_store_open", ml_function(0, ml_string_store_open));
+	ml_module_export(Module, "string_store_create", ml_function(0, ml_string_store_create));
 
 	CborStoreT = ml_type(MLAnyT, "cbor-store");
-	ml_map_insert(Radb, ml_string("cbor_store_open", -1), ml_function(0, ml_cbor_store_open));
-	ml_map_insert(Radb, ml_string("cbor_store_create", -1), ml_function(0, ml_cbor_store_create));
+	ml_module_export(Module, "cbor_store_open", ml_function(0, ml_cbor_store_open));
+	ml_module_export(Module, "cbor_store_create", ml_function(0, ml_cbor_store_create));
 
 	StringIndexT = ml_type(MLAnyT, "string-index");
-	ml_map_insert(Radb, ml_string("string_index_open", -1), ml_function(0, ml_string_index_open));
-	ml_map_insert(Radb, ml_string("string_index_create", -1), ml_function(0, ml_string_index_create));
+	ml_module_export(Module, "string_index_open", ml_function(0, ml_string_index_open));
+	ml_module_export(Module, "string_index_create", ml_function(0, ml_string_index_create));
 
 #include "ml_radb_init.c"
-
-	if (Globals) stringmap_insert(Globals, "radb", Radb);
 }

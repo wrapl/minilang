@@ -15,7 +15,6 @@
 #include <inttypes.h>
 #include "ml_runtime.h"
 #include "ml_bytecode.h"
-#include "ml_module.h"
 
 ML_METHOD_DECL(Iterate, "iterate");
 ML_METHOD_DECL(Value, "value");
@@ -3031,11 +3030,10 @@ static ml_value_t *ML_TYPED_FN(ml_iterate, MLMapT, ml_state_t *Caller, ml_value_
 }
 
 ML_METHOD("+", MLMapT, MLMapT) {
-	ml_map_t *Map = new(ml_map_t);
-	Map->Type = MLMapT;
+	ml_value_t *Map = ml_map();
 	ML_MAP_FOREACH(Args[0], Node) ml_map_insert(Map, Node->Key, Node->Value);
 	ML_MAP_FOREACH(Args[1], Node) ml_map_insert(Map, Node->Key, Node->Value);
-	return (ml_value_t *)Map;
+	return Map;
 }
 
 typedef struct ml_map_stringer_t {
@@ -3165,8 +3163,8 @@ static ml_value_t *ml_method_call(ml_state_t *Caller, ml_value_t *Value, int Cou
 		char *P = Types;
 #ifdef __MINGW32__
 		for (int I = 0; I < Count; ++I) {
-			strcpy(P, Args[I]->Type->Name);
-			P += strlen(Args[I]->Type->Name);
+			strcpy(P, Args[I]->Type->Path);
+			P += strlen(Args[I]->Type->Path);
 			strcpy(P, ", ");
 			P += 2;
 		}
@@ -3372,6 +3370,57 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLMethodT) {
 	ml_method_t *Method = (ml_method_t *)Args[1];
 	ml_stringbuffer_add(Buffer, Method->Name, strlen(Method->Name));
 	return MLSome;
+}
+
+/****************************** Modules ******************************/
+
+typedef struct ml_module_t ml_module_t;
+
+struct ml_module_t {
+	const ml_type_t *Type;
+	const char *Path;
+	stringmap_t Exports[1];
+};
+
+ml_type_t MLModuleT[1] = {{
+	MLTypeT,
+	MLAnyT, "module",
+	ml_default_hash,
+	ml_default_call,
+	ml_default_deref,
+	ml_default_assign,
+	NULL, 0, 0
+}};
+
+ML_METHODX("::", MLModuleT, MLStringT) {
+	ml_module_t *Module = (ml_module_t *)Args[0];
+	const char *Name = ml_string_value(Args[1]);
+	ml_value_t *Value = stringmap_search(Module->Exports, Name) ?: ml_error("ModuleError", "Symbol %s not exported from module %s", Name, Module->Path);
+	ML_CONTINUE(Caller, Value);
+}
+
+ml_value_t *ml_module(const char *Path, ...) {
+	ml_module_t *Module = new(ml_module_t);
+	Module->Type = MLModuleT;
+	Module->Path = Path;
+	va_list Args;
+	va_start(Args, Path);
+	const char *Export;
+	while ((Export = va_arg(Args, const char *))) {
+		stringmap_insert(Module->Exports, Export, va_arg(Args, ml_value_t *));
+	}
+	va_end(Args);
+	return (ml_value_t *)Module;
+}
+
+const char *ml_module_path(ml_value_t *Module) {
+	return ((ml_module_t *)Module)->Path;
+}
+
+ml_value_t *ml_module_export(ml_value_t *Module0, const char *Name, ml_value_t *Value) {
+	ml_module_t *Module = (ml_module_t *)Module0;
+	stringmap_insert(Module->Exports, Name, Value);
+	return Value;
 }
 
 /****************************** Init ******************************/

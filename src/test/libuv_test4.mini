@@ -1,10 +1,12 @@
-uv_run(;) do
+def uv := import("lib/ml_libuv.so")
+
+uv::run(;) do
 
 var Sum := 0
 parallel(1 .. 100, 5, 10; I) do
 	var Wait := I * 111 % 31
 	print('{I}: waiting {Wait / 100.0} seconds.\n')
-	uv_sleep(10 * Wait)
+	uv::sleep(10 * Wait)
 	print('{I}: done.\n')
 	Sum := old + Wait
 end

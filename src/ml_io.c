@@ -1,6 +1,5 @@
 #include "ml_io.h"
 #include "ml_macros.h"
-#include "ml_module.h"
 #include <gc/gc.h>
 #include <unistd.h>
 #include <errno.h>
