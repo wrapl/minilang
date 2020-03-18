@@ -1,5 +1,5 @@
-#ifndef ML_INTERNAL_H
-#define ML_INTERNAL_H
+#ifndef ML_RUNTIME_H
+#define ML_RUNTIME_H
 
 #include "ml_types.h"
 
@@ -29,6 +29,59 @@ ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args);
 	ml_value_t *Args ## __LINE__[] = {ARGS}; \
 	ml_call(VALUE, COUNT, Args ## __LINE__); \
 })
+
+/****************************** Functions ******************************/
+
+struct ml_function_t {
+	const ml_type_t *Type;
+	ml_callback_t Callback;
+	void *Data;
+};
+
+struct ml_functionx_t {
+	const ml_type_t *Type;
+	ml_callbackx_t Callback;
+	void *Data;
+};
+
+extern ml_type_t MLFunctionT[];
+extern ml_type_t MLFunctionXT[];
+extern ml_type_t MLPartialFunctionT[];
+
+ml_value_t *ml_function(void *Data, ml_callback_t Function);
+ml_value_t *ml_functionx(void *Data, ml_callbackx_t Function);
+
+ml_value_t *ml_return_nil(void *Data, int Count, ml_value_t **Args);
+ml_value_t *ml_identity(void *Data, int Count, ml_value_t **Args);
+
+ml_value_t *ml_partial_function_new(ml_value_t *Function, int Count);
+ml_value_t *ml_partial_function_set(ml_value_t *Partial, size_t Index, ml_value_t *Value);
+
+#define ML_CHECK_ARG_TYPE(N, TYPE) \
+	if (!ml_is(Args[N], TYPE)) { \
+		return ml_error("TypeError", "%s required", TYPE->Name); \
+	}
+
+#define ML_CHECK_ARG_COUNT(N) \
+	if (Count < N) { \
+		return ml_error("CallError", "%d arguments required", N); \
+	}
+
+#define ML_CHECKX_ARG_TYPE(N, TYPE) \
+	if (!ml_is(Args[N], TYPE)) { \
+		ML_CONTINUE(Caller, ml_error("TypeError", "%s required", TYPE->Name)); \
+	}
+
+#define ML_CHECKX_ARG_COUNT(N) \
+	if (Count < N) { \
+		ML_CONTINUE(Caller, ml_error("CallError", "%d arguments required", N)); \
+	}
+
+#define ML_CONTINUE(STATE, VALUE) { \
+	ml_state_t *__State = (ml_state_t *)(STATE); \
+	ml_value_t *__Value = (ml_value_t *)(VALUE); \
+	return __State ? __State->run(__State, __Value) : __Value; \
+}
 
 /****************************** References ******************************/
 

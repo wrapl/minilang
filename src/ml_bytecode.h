@@ -82,7 +82,9 @@ typedef enum {
 	MLI_LIST_APPEND,
 	MLI_MAP_NEW,
 	MLI_MAP_INSERT,
-	MLI_CLOSURE
+	MLI_CLOSURE,
+	MLI_PARTIAL_NEW,
+	MLI_PARTIAL_SET
 } ml_opcode_t;
 
 struct ml_inst_t {

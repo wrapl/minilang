@@ -21,6 +21,12 @@ typedef struct ml_type_t ml_type_t;
 typedef struct ml_context_t ml_context_t;
 typedef struct ml_state_t ml_state_t;
 
+typedef ml_value_t *(*ml_callback_t)(void *Data, int Count, ml_value_t **Args);
+typedef ml_value_t *(*ml_callbackx_t)(ml_state_t *Frame, void *Data, int Count, ml_value_t **Args);
+
+typedef struct ml_function_t ml_function_t;
+typedef struct ml_functionx_t ml_functionx_t;
+
 typedef struct ml_hash_chain_t ml_hash_chain_t;
 
 struct ml_hash_chain_t {
@@ -80,58 +86,6 @@ int ml_is(const ml_value_t *Value, const ml_type_t *Type);
 
 long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain);
 long ml_hash(ml_value_t *Value);
-
-/****************************** Functions ******************************/
-
-typedef ml_value_t *(*ml_callback_t)(void *Data, int Count, ml_value_t **Args);
-typedef ml_value_t *(*ml_callbackx_t)(ml_state_t *Frame, void *Data, int Count, ml_value_t **Args);
-
-typedef struct ml_function_t ml_function_t;
-typedef struct ml_functionx_t ml_functionx_t;
-
-struct ml_function_t {
-	const ml_type_t *Type;
-	ml_callback_t Callback;
-	void *Data;
-};
-
-struct ml_functionx_t {
-	const ml_type_t *Type;
-	ml_callbackx_t Callback;
-	void *Data;
-};
-
-extern ml_type_t MLFunctionT[];
-extern ml_type_t MLFunctionXT[];
-
-ml_value_t *ml_function(void *Data, ml_callback_t Function);
-ml_value_t *ml_functionx(void *Data, ml_callbackx_t Function);
-
-#define ML_CHECK_ARG_TYPE(N, TYPE) \
-	if (!ml_is(Args[N], TYPE)) { \
-		return ml_error("TypeError", "%s required", TYPE->Name); \
-	}
-
-#define ML_CHECK_ARG_COUNT(N) \
-	if (Count < N) { \
-		return ml_error("CallError", "%d arguments required", N); \
-	}
-
-#define ML_CHECKX_ARG_TYPE(N, TYPE) \
-	if (!ml_is(Args[N], TYPE)) { \
-		ML_CONTINUE(Caller, ml_error("TypeError", "%s required", TYPE->Name)); \
-	}
-
-#define ML_CHECKX_ARG_COUNT(N) \
-	if (Count < N) { \
-		ML_CONTINUE(Caller, ml_error("CallError", "%d arguments required", N)); \
-	}
-
-#define ML_CONTINUE(STATE, VALUE) { \
-	ml_state_t *__State = (ml_state_t *)(STATE); \
-	ml_value_t *__Value = (ml_value_t *)(VALUE); \
-	return __State ? __State->run(__State, __Value) : __Value; \
-}
 
 /****************************** Iterators ******************************/
 

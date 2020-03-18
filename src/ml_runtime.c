@@ -99,6 +99,209 @@ static ml_value_t *ml_spawn_fnx(ml_state_t *Caller, void *Data, int Count, ml_va
 ml_functionx_t MLCallCC[1] = {{MLFunctionXT, ml_callcc_fnx, NULL}};
 ml_functionx_t MLSpawn[1] = {{MLFunctionXT, ml_spawn_fnx, NULL}};
 
+/****************************** Functions ******************************/
+
+static ml_value_t *ml_function_call(ml_state_t *Caller, ml_function_t *Function, int Count, ml_value_t **Args) {
+	for (int I = 0; I < Count; ++I) {
+		ml_value_t *Arg = Args[I] = Args[I]->Type->deref(Args[I]);
+		if (Arg->Type == MLErrorT) ML_CONTINUE(Caller, Arg);
+	}
+	ML_CONTINUE(Caller, (Function->Callback)(Function->Data, Count, Args));
+}
+
+ml_type_t MLFunctionT[1] = {{
+	MLTypeT,
+	MLIteratableT, "function",
+	ml_default_hash,
+	(void *)ml_function_call,
+	ml_default_deref,
+	ml_default_assign,
+	NULL, 0, 0
+}};
+
+ml_value_t *ml_function(void *Data, ml_callback_t Callback) {
+	ml_function_t *Function = fnew(ml_function_t);
+	Function->Type = MLFunctionT;
+	Function->Data = Data;
+	Function->Callback = Callback;
+	GC_end_stubborn_change(Function);
+	return (ml_value_t *)Function;
+}
+
+static ml_value_t *ml_functionx_call(ml_state_t *Caller, ml_functionx_t *Function, int Count, ml_value_t **Args) {
+	for (int I = 0; I < Count; ++I) {
+		ml_value_t *Arg = Args[I] = Args[I]->Type->deref(Args[I]);
+		if (Arg->Type == MLErrorT) ML_CONTINUE(Caller, Arg);
+	}
+	return (Function->Callback)(Caller, Function->Data, Count, Args);
+}
+
+ml_type_t MLFunctionXT[1] = {{
+	MLTypeT,
+	MLFunctionT, "functionx",
+	ml_default_hash,
+	(void *)ml_functionx_call,
+	ml_default_deref,
+	ml_default_assign,
+	NULL, 0, 0
+}};
+
+ml_value_t *ml_functionx(void *Data, ml_callbackx_t Callback) {
+	ml_functionx_t *Function = fnew(ml_functionx_t);
+	Function->Type = MLFunctionXT;
+	Function->Data = Data;
+	Function->Callback = Callback;
+	GC_end_stubborn_change(Function);
+	return (ml_value_t *)Function;
+}
+
+ML_METHODX("!", MLFunctionT, MLListT) {
+	ml_list_t *List = (ml_list_t *)Args[1];
+	ml_value_t **ListArgs = anew(ml_value_t *, List->Length);
+	ml_value_t **Arg = ListArgs;
+	ML_LIST_FOREACH(List, Node) *(Arg++) = Node->Value;
+	ml_value_t *Function = Args[0];
+	return Function->Type->call(Caller, Function, Arg - ListArgs, ListArgs);
+}
+
+ML_METHODX("!", MLFunctionT, MLMapT) {
+	ml_map_t *Map = (ml_map_t *)Args[1];
+	ml_value_t **ListArgs = anew(ml_value_t *, Map->Size + 1);
+	ml_value_t *Names = ml_map();
+	Names->Type = MLNamesT;
+	ml_value_t **Arg = ListArgs;
+	*(Arg++) = Names;
+	ML_MAP_FOREACH(Map, Node) {
+		ml_value_t *Name = Node->Key;
+		if (Name->Type == MLMethodT) {
+			ml_map_insert(Names, Name, ml_integer(Arg - ListArgs));
+		} else if (Name->Type == MLStringT) {
+			ml_map_insert(Names, ml_method(ml_string_value(Name)), ml_integer(Arg - ListArgs));
+		} else {
+			return ml_error("TypeError", "Parameter names must be strings or methods");
+		}
+		*(Arg++) = Node->Value;
+	}
+	ml_value_t *Function = Args[0];
+	return Function->Type->call(Caller, Function, Arg - ListArgs, ListArgs);
+}
+
+ML_METHODX("!", MLFunctionT, MLListT, MLMapT) {
+	ml_list_t *List = (ml_list_t *)Args[1];
+	ml_map_t *Map = (ml_map_t *)Args[2];
+	ml_value_t **ListArgs = anew(ml_value_t *, List->Length + Map->Size + 1);
+	ml_value_t **Arg = ListArgs;
+	ML_LIST_FOREACH(List, Node) *(Arg++) = Node->Value;
+	ml_value_t *Names = ml_map();
+	Names->Type = MLNamesT;
+	*(Arg++) = Names;
+	ML_MAP_FOREACH(Map, Node) {
+		ml_value_t *Name = Node->Key;
+		if (Name->Type == MLMethodT) {
+			ml_map_insert(Names, Name, ml_integer(Arg - ListArgs));
+		} else if (Name->Type == MLStringT) {
+			ml_map_insert(Names, ml_method(ml_string_value(Name)), ml_integer(Arg - ListArgs));
+		} else {
+			return ml_error("TypeError", "Parameter names must be strings or methods");
+		}
+		*(Arg++) = Node->Value;
+	}
+	ml_value_t *Function = Args[0];
+	return Function->Type->call(Caller, Function, Arg - ListArgs, ListArgs);
+}
+
+ml_value_t *ml_return_nil(void *Data, int Count, ml_value_t **Args) {
+	return MLNil;
+}
+
+ml_value_t *ml_identity(void *Data, int Count, ml_value_t **Args) {
+	return Args[0];
+}
+
+typedef struct ml_partial_function_t {
+	const ml_type_t *Type;
+	ml_value_t *Function;
+	int Count, Set;
+	ml_value_t *Args[];
+} ml_partial_function_t;
+
+static ml_value_t *ml_partial_function_call(ml_state_t *Caller, ml_partial_function_t *Partial, int Count, ml_value_t **Args) {
+	int CombinedCount = Count + Partial->Set;
+	ml_value_t **CombinedArgs = anew(ml_value_t *, CombinedCount);
+	int J = 0;
+	for (int I = 0; I < Partial->Count; ++I) {
+		ml_value_t *Arg = Partial->Args[I];
+		if (Arg) {
+			CombinedArgs[I] = Arg;
+		} else if (J < Count) {
+			CombinedArgs[I] = Args[J++];
+		} else {
+			CombinedArgs[I] = MLNil;
+		}
+	}
+	memcpy(CombinedArgs + Partial->Count, Args + J, (Count - J) * sizeof(ml_value_t *));
+	return Partial->Function->Type->call(Caller, Partial->Function, CombinedCount, CombinedArgs);
+}
+
+ml_type_t MLPartialFunctionT[1] = {{
+	MLTypeT,
+	MLFunctionT, "partial-function",
+	ml_default_hash,
+	(void *)ml_partial_function_call,
+	ml_default_deref,
+	ml_default_assign,
+	NULL, 0, 0
+}};
+
+ml_value_t *ml_partial_function_new(ml_value_t *Function, int Count) {
+	ml_partial_function_t *Partial = xnew(ml_partial_function_t, Count, ml_value_t *);
+	Partial->Type = MLPartialFunctionT;
+	Partial->Function = Function;
+	Partial->Count = Count;
+	Partial->Set = 0;
+	return (ml_value_t *)Partial;
+}
+
+ml_value_t *ml_partial_function_set(ml_value_t *Partial, size_t Index, ml_value_t *Value) {
+	++((ml_partial_function_t *)Partial)->Set;
+	return ((ml_partial_function_t *)Partial)->Args[Index] = Value;
+}
+
+ML_METHOD("!!", MLFunctionT, MLListT) {
+	ml_list_t *ArgsList = (ml_list_t *)Args[1];
+	ml_partial_function_t *Partial = xnew(ml_partial_function_t, ArgsList->Length, ml_value_t *);
+	Partial->Type = MLPartialFunctionT;
+	Partial->Function = Args[0];
+	Partial->Count = Partial->Set = ArgsList->Length;
+	ml_value_t **Arg = Partial->Args;
+	ML_LIST_FOREACH(ArgsList, Node) *Arg++ = Node->Value;
+	return (ml_value_t *)Partial;
+}
+
+ML_METHOD("$", MLFunctionT, MLAnyT) {
+	ml_partial_function_t *Partial = xnew(ml_partial_function_t, 1, ml_value_t *);
+	Partial->Type = MLPartialFunctionT;
+	Partial->Function = Args[0];
+	Partial->Count = 1;
+	Partial->Args[0] = Args[1];
+	return (ml_value_t *)Partial;
+}
+
+ML_METHOD("$", MLPartialFunctionT, MLAnyT) {
+	ml_partial_function_t *Old = (ml_partial_function_t *)Args[0];
+	ml_partial_function_t *Partial = xnew(ml_partial_function_t, Old->Count + 1, ml_value_t *);
+	Partial->Type = MLPartialFunctionT;
+	Partial->Function = Old->Function;
+	Partial->Count = Partial->Set = Old->Count + 1;
+	memcpy(Partial->Args, Old->Args, Old->Count * sizeof(ml_value_t *));
+	Partial->Args[Old->Count] = Args[1];
+	return (ml_value_t *)Partial;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_iterate, MLPartialFunctionT, ml_state_t *Caller, ml_partial_function_t *Partial) {
+	return Partial->Function->Type->call(Caller, Partial->Function, Partial->Count, Partial->Args);
+}
+
 /****************************** References ******************************/
 
 static long ml_reference_hash(ml_value_t *Ref, ml_hash_chain_t *Chain) {

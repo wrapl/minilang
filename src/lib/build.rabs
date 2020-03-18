@@ -92,3 +92,8 @@ scope("libuv";) do
 	LDFLAGS := old + ["-luv"]
 	DEFAULT[minilang_lib(LIB_DIR / "ml_libuv.so", [file("ml_libuv.o")])]
 end
+
+scope("onion";) do
+	LDFLAGS := old + ["-lonion"]
+	DEFAULT[minilang_lib(LIB_DIR / "ml_onion.so", [file("ml_onion.o")])]
+end

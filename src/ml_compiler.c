@@ -177,6 +177,36 @@ typedef struct mlc_ident_expr_t mlc_ident_expr_t;
 typedef struct mlc_parent_value_expr_t mlc_parent_value_expr_t;
 typedef struct mlc_block_expr_t mlc_block_expr_t;
 
+static ml_type_t MLBlankT[1] = {{
+	MLTypeT,
+	MLAnyT, "blank",
+	ml_default_hash,
+	ml_default_call,
+	ml_default_deref,
+	ml_default_assign,
+	NULL, 0, 0
+}};
+
+static ml_value_t MLBlank[1] = {{MLBlankT}};
+
+static mlc_compiled_t ml_blank_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, SHA256_CTX *HashContext) {
+	ML_COMPILE_HASH
+	long ValueHash = ml_hash(MLBlank);
+	sha256_update(HashContext, (void *)&ValueHash, sizeof(ValueHash));
+	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
+	ValueInst->Params[1].Value = MLBlank;
+	return (mlc_compiled_t){ValueInst, ValueInst};
+}
+
+static mlc_compiled_t ml_nil_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, SHA256_CTX *HashContext) {
+	ML_COMPILE_HASH
+	long ValueHash = ml_hash(MLNil);
+	sha256_update(HashContext, (void *)&ValueHash, sizeof(ValueHash));
+	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
+	ValueInst->Params[1].Value = MLNil;
+	return (mlc_compiled_t){ValueInst, ValueInst};
+}
+
 struct mlc_if_case_t {
 	mlc_if_case_t *Next;
 	ml_source_t Source;
@@ -942,6 +972,32 @@ static mlc_compiled_t ml_map_expr_compile(mlc_function_t *Function, mlc_parent_e
 
 static mlc_compiled_t ml_call_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, SHA256_CTX *HashContext) {
 	ML_COMPILE_HASH
+	for (mlc_expr_t *Child = Expr->Child->Next; Child; Child = Child->Next) {
+		if (Child->compile == ml_blank_expr_compile) {
+			mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
+			ml_inst_t *PartialInst = ml_inst_new(2, Expr->Source, MLI_PARTIAL_NEW);
+			mlc_connect(Compiled.Exits, PartialInst);
+			int NumArgs = 0;
+			ml_inst_t *LastInst = PartialInst;
+			++Function->Top;
+			for (mlc_expr_t *Child = Expr->Child->Next; Child; Child = Child->Next, ++NumArgs) {
+				if (Child->compile != ml_blank_expr_compile) {
+					mlc_compiled_t ChildCompiled = mlc_compile(Function, Child, HashContext);
+					ml_inst_t *SetInst = ml_inst_new(2, Expr->Source, MLI_PARTIAL_SET);
+					SetInst->Params[1].Inst = NumArgs;
+					LastInst->Params[0].Inst = ChildCompiled.Start;
+					mlc_connect(ChildCompiled.Exits, SetInst);
+					LastInst = SetInst;
+				}
+			}
+			PartialInst->Params[1].Count = NumArgs;
+			ml_inst_t *PopInst = ml_inst_new(2, Expr->Source, MLI_POP);
+			LastInst->Params[0].Inst = PopInst;
+			--Function->Top;
+			Compiled.Exits = PopInst;
+			return Compiled;
+		}
+	}
 	int OldTop = Function->Top;
 	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child, HashContext);
 	ml_inst_t *PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
@@ -974,6 +1030,34 @@ struct mlc_parent_value_expr_t {
 
 static mlc_compiled_t ml_const_call_expr_compile(mlc_function_t *Function, mlc_parent_value_expr_t *Expr, SHA256_CTX *HashContext) {
 	ML_COMPILE_HASH
+	for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next) {
+		if (Child->compile == ml_blank_expr_compile) {
+			ml_inst_t *LoadInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
+			LoadInst->Params[1].Value = Expr->Value;
+			mlc_compiled_t Compiled = {LoadInst, NULL};
+			ml_inst_t *PartialInst = ml_inst_new(2, Expr->Source, MLI_PARTIAL_NEW);
+			LoadInst->Params[0].Inst = PartialInst;
+			int NumArgs = 0;
+			ml_inst_t *LastInst = PartialInst;
+			++Function->Top;
+			for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next, ++NumArgs) {
+				if (Child->compile != ml_blank_expr_compile) {
+					mlc_compiled_t ChildCompiled = mlc_compile(Function, Child, HashContext);
+					ml_inst_t *SetInst = ml_inst_new(2, Expr->Source, MLI_PARTIAL_SET);
+					SetInst->Params[1].Inst = NumArgs;
+					LastInst->Params[0].Inst = ChildCompiled.Start;
+					mlc_connect(ChildCompiled.Exits, SetInst);
+					LastInst = SetInst;
+				}
+			}
+			PartialInst->Params[1].Count = NumArgs;
+			ml_inst_t *PopInst = ml_inst_new(2, Expr->Source, MLI_POP);
+			LastInst->Params[0].Inst = PopInst;
+			--Function->Top;
+			Compiled.Exits = PopInst;
+			return Compiled;
+		}
+	}
 	int OldTop = Function->Top;
 	long ValueHash = ml_hash(Expr->Value);
 	sha256_update(HashContext, (void *)&ValueHash, sizeof(ValueHash));
@@ -1201,60 +1285,6 @@ static mlc_compiled_t ml_inline_expr_compile(mlc_function_t *Function, mlc_paren
 	return (mlc_compiled_t){ValueInst, ValueInst};
 }
 
-const char *MLTokens[] = {
-	"", // MLT_NONE,
-	"<end of line>", // MLT_EOL,
-	"<end of input>", // MLT_EOI,
-	"if", // MLT_IF,
-	"then", // MLT_THEN,
-	"elseif", // MLT_ELSEIF,
-	"else", // MLT_ELSE,
-	"end", // MLT_END,
-	"loop", // MLT_LOOP,
-	"while", // MLT_WHILE,
-	"until", // MLT_UNTIL,
-	"exit", // MLT_EXIT,
-	"next", // MLT_NEXT,
-	"for", // MLT_FOR,
-	"each", // MLT_EACH,
-	"to", // MLT_TO,
-	"in", // MLT_IN,
-	"is", // MLT_IS,
-	"fun", // MLT_FUN,
-	"return", // MLT_RETURN,
-	"suspend", // MLT_SUSPEND,
-	"ret", // MLT_RET,
-	"susp", // MLT_SUSP,
-	"with", // MLT_WITH,
-	"do", // MLT_DO,
-	"on", // MLT_ON,
-	"nil", // MLT_NIL,
-	"and", // MLT_AND,
-	"or", // MLT_OR,
-	"not", // MLT_NOT,
-	"old", // MLT_OLD,
-	"def", // MLT_DEF,
-	"let", // MLT_LET,
-	"var", // MLT_VAR,
-	"<identifier>", // MLT_IDENT,
-	"(", // MLT_LEFT_PAREN,
-	")", // MLT_RIGHT_PAREN,
-	"[", // MLT_LEFT_SQUARE,
-	"]", // MLT_RIGHT_SQUARE,
-	"{", // MLT_LEFT_BRACE,
-	"}", // MLT_RIGHT_BRACE,
-	";", // MLT_SEMICOLON,
-	":", // MLT_COLON,
-	",", // MLT_COMMA,
-	":=", // MLT_ASSIGN,
-	"::", // MLT_SYMBOL,
-	"<value>", // MLT_VALUE,
-	"<expr>", // MLT_EXPR,
-	"<inline>", // MLT_INLINE,
-	"<operator>", // MLT_OPERATOR
-	"<method>" // MLT_METHOD
-};
-
 typedef enum ml_token_t {
 	MLT_NONE,
 	MLT_EOL,
@@ -1291,6 +1321,7 @@ typedef enum ml_token_t {
 	MLT_LET,
 	MLT_VAR,
 	MLT_IDENT,
+	MLT_BLANK,
 	MLT_LEFT_PAREN,
 	MLT_RIGHT_PAREN,
 	MLT_LEFT_SQUARE,
@@ -1308,6 +1339,61 @@ typedef enum ml_token_t {
 	MLT_OPERATOR,
 	MLT_METHOD
 } ml_token_t;
+
+const char *MLTokens[] = {
+	"", // MLT_NONE,
+	"<end of line>", // MLT_EOL,
+	"<end of input>", // MLT_EOI,
+	"if", // MLT_IF,
+	"then", // MLT_THEN,
+	"elseif", // MLT_ELSEIF,
+	"else", // MLT_ELSE,
+	"end", // MLT_END,
+	"loop", // MLT_LOOP,
+	"while", // MLT_WHILE,
+	"until", // MLT_UNTIL,
+	"exit", // MLT_EXIT,
+	"next", // MLT_NEXT,
+	"for", // MLT_FOR,
+	"each", // MLT_EACH,
+	"to", // MLT_TO,
+	"in", // MLT_IN,
+	"is", // MLT_IS,
+	"fun", // MLT_FUN,
+	"return", // MLT_RETURN,
+	"suspend", // MLT_SUSPEND,
+	"ret", // MLT_RET,
+	"susp", // MLT_SUSP,
+	"with", // MLT_WITH,
+	"do", // MLT_DO,
+	"on", // MLT_ON,
+	"nil", // MLT_NIL,
+	"and", // MLT_AND,
+	"or", // MLT_OR,
+	"not", // MLT_NOT,
+	"old", // MLT_OLD,
+	"def", // MLT_DEF,
+	"let", // MLT_LET,
+	"var", // MLT_VAR,
+	"_", // MLT_BLANK,
+	"<identifier>", // MLT_IDENT,
+	"(", // MLT_LEFT_PAREN,
+	")", // MLT_RIGHT_PAREN,
+	"[", // MLT_LEFT_SQUARE,
+	"]", // MLT_RIGHT_SQUARE,
+	"{", // MLT_LEFT_BRACE,
+	"}", // MLT_RIGHT_BRACE,
+	";", // MLT_SEMICOLON,
+	":", // MLT_COLON,
+	",", // MLT_COMMA,
+	":=", // MLT_ASSIGN,
+	"::", // MLT_SYMBOL,
+	"<value>", // MLT_VALUE,
+	"<expr>", // MLT_EXPR,
+	"<inline>", // MLT_INLINE,
+	"<operator>", // MLT_OPERATOR
+	"<method>" // MLT_METHOD
+};
 
 struct mlc_scanner_t {
 	mlc_context_t *Context;
@@ -1960,11 +2046,17 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 	}
 	case MLT_NIL: {
 		Scanner->Token = MLT_NONE;
-		mlc_value_expr_t *ValueExpr = new(mlc_value_expr_t);
-		ValueExpr->compile = ml_value_expr_compile;
-		ValueExpr->Source = Scanner->Source;
-		ValueExpr->Value = MLNil;
-		return (mlc_expr_t *)ValueExpr;
+		mlc_expr_t *Expr = new(mlc_expr_t);
+		Expr->compile = ml_nil_expr_compile;
+		Expr->Source = Scanner->Source;
+		return Expr;
+	}
+	case MLT_BLANK: {
+		Scanner->Token = MLT_NONE;
+		mlc_expr_t *Expr = new(mlc_expr_t);
+		Expr->compile = ml_blank_expr_compile;
+		Expr->Source = Scanner->Source;
+		return Expr;
 	}
 	case MLT_LEFT_PAREN: {
 		Scanner->Token = MLT_NONE;

@@ -146,7 +146,9 @@ static ml_value_t *DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t 
 		[MLI_LIST_APPEND] = &&DO_LIST_APPEND,
 		[MLI_MAP_NEW] = &&DO_MAP_NEW,
 		[MLI_MAP_INSERT] = &&DO_MAP_INSERT,
-		[MLI_CLOSURE] = &&DO_CLOSURE
+		[MLI_CLOSURE] = &&DO_CLOSURE,
+		[MLI_PARTIAL_NEW] = &&DO_PARTIAL_NEW,
+		[MLI_PARTIAL_SET] = &&DO_PARTIAL_SET
 	};
 	ml_inst_t *Inst = Frame->Inst;
 	ml_value_t **Top = Frame->Top;
@@ -481,6 +483,18 @@ static ml_value_t *DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t 
 			Closure->UpValues[I] = Value;
 		}
 		Result = (ml_value_t *)Closure;
+		ADVANCE(0);
+	}
+	DO_PARTIAL_NEW: {
+		Result = Result->Type->deref(Result);
+		ERROR_CHECK(Result);
+		*Top++ = ml_partial_function_new(Result, Inst->Params[1].Count);
+		ADVANCE(0);
+	}
+	DO_PARTIAL_SET: {
+		Result = Result->Type->deref(Result);
+		ERROR_CHECK(Result);
+		ml_partial_function_set(Top[-1], Inst->Params[1].Index, Result);
 		ADVANCE(0);
 	}
 	return MLNil;
@@ -889,6 +903,18 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done, const
 	}
 	case MLI_CLOSURE: {
 		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: closure(C%" PRIxPTR ")\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, (uintptr_t)Inst->Params[1].ClosureInfo);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+		break;
+	}
+	case MLI_PARTIAL_NEW: {
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: partial_new(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Count);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+		break;
+	}
+	case MLI_PARTIAL_SET: {
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: partial_set(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->Source.Line, Inst->Params[1].Index);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;

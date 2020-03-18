@@ -359,8 +359,8 @@ static ml_value_t *ml_parallel_iter_value(ml_parallel_iter_t *State, ml_value_t 
 	ml_parallel_t *Parallel = (ml_parallel_t *)State->Base.Caller;
 	Parallel->Waiting += 1;
 	State->Args[1] = Value;
-	State->Function->Type->call((ml_state_t *)Parallel, State->Function, 2, State->Args);
 	State->Base.run = (void *)ml_parallel_iterate;
+	State->Function->Type->call((ml_state_t *)Parallel, State->Function, 2, State->Args);
 	if (Parallel->Waiting > Parallel->Limit) return MLNil;
 	return ml_iter_next((ml_state_t *)State, State->Iter);
 }
