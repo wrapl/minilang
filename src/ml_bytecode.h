@@ -23,6 +23,7 @@ extern ml_type_t MLClosureT[];
 
 struct ml_closure_info_t {
 	ml_inst_t *Entry, *Return;
+	const char *Source;
 	debug_function_t *Debug;
 	stringmap_t Params[1];
 	int FrameSize;
@@ -88,14 +89,16 @@ typedef enum {
 } ml_opcode_t;
 
 struct ml_inst_t {
-	ml_opcode_t Opcode;
-	ml_source_t Source;
+	ml_opcode_t Opcode:8;
+	int Flags:24;
+	int LineNo:32;
 	ml_param_t Params[];
 };
 
 const char *ml_closure_debug(ml_value_t *Value);
 void ml_closure_sha256(ml_value_t *Closure, unsigned char Hash[SHA256_BLOCK_SIZE]);
 
+void ml_closure_info_sha256(ml_closure_info_t *Info);
 const char *ml_closure_info_debug(ml_closure_info_t *Info);
 
 void ml_bytecode_init();

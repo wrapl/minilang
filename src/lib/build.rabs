@@ -97,3 +97,16 @@ scope("onion";) do
 	LDFLAGS := old + ["-lonion"]
 	DEFAULT[minilang_lib(LIB_DIR / "ml_onion.so", [file("ml_onion.o")])]
 end
+
+nil and scope("facil";) do
+	var Lib := file("lib/libfacil.a") => fun() do
+		var Dir := file("facil.io"):rmdir
+		execute("git clone https://github.com/boazsegev/facil.io.git")
+		Dir:chdir
+		execute('cmake . -DCMAKE_INSTALL_PREFIX={PATH} -DCMAKE_BUILD_TYPE=Release')
+		execute("make -j4")
+		execute("make install")
+	end
+	PREBUILDS := old + [Lib]
+	DEFAULT[minilang_lib(LIB_DIR / "ml_facil.so", [file("ml_facil.o")], [Lib])]
+end
