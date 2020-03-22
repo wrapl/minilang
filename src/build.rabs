@@ -28,7 +28,7 @@ end
 
 for Source in PATH:ls(".*\\.c") do
 	Source:basename:find("_init") and next
-	var Target := file(Source:basename:replace(".c", "_init.c"))[Source, file("ml_types.h")] => fun() do
+	var Target := file(Source:basename:replace(".c", "_init.c"))[Source] => fun() do
 		Target:open("w"):close
 		var Init := shell("cc", CFLAGS, "-E -P -DGENERATE_INIT", Source)
 		var Out := Target:open("w")
