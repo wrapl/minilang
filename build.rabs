@@ -2,8 +2,8 @@
 
 %include common.rabs
 
-BIN_DIR := file("bin"):mkdir
-LIB_DIR := file("lib"):mkdir
+BIN_DIR := old or file("bin"):mkdir
+LIB_DIR := old or file("lib"):mkdir
 
 vmount("obj", "src")
 subdir("obj")
