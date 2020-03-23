@@ -210,6 +210,7 @@ int main(int Argc, const char *Argv[]) {
 			for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 			return 1;
 		}
+#ifdef USE_ML_MODULES
 	} else if (ModuleName) {
 		ml_value_t *Args[] = {ml_string(ModuleName, -1)};
 		ml_value_t *Result = ml_import_fnx(NULL, NULL, 1, Args);
@@ -220,6 +221,7 @@ int main(int Argc, const char *Argv[]) {
 			for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 			return 1;
 		}
+#endif
 #ifdef USE_ML_GIR
 	} else if (GtkConsole) {
 		console_t *Console = console_new(stringmap_search, Globals);
