@@ -173,9 +173,25 @@ void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function) {
 	}
 }
 
-ML_METHOD("string", MLTypeT) {
+ML_METHOD(MLStringOfMethod, MLTypeT) {
 	ml_type_t *Type = (ml_type_t *)Args[0];
 	return ml_string_format("<<%s>>", Type->Name);
+}
+
+static const char *ML_TYPED_FN(ml_string_of, MLTypeT, ml_type_t *Type) {
+	return ml_string_format("<<%s>>", Type->Name);
+}
+
+ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLTypeT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_type_t *Type = (ml_type_t *)Args[1];
+	ml_stringbuffer_add(Buffer, Type->Name, strlen(Type->Name));
+	return Args[0];
+}
+
+static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLTypeT, ml_stringbuffer_t *Buffer, ml_type_t *Type) {
+	ml_stringbuffer_add(Buffer, Type->Name, strlen(Type->Name));
+	return MLSome;
 }
 
 /****************************** Values ******************************/

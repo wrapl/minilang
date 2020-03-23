@@ -90,7 +90,7 @@ void ml_console(ml_getter_t GlobalGet, void *Globals) {
 			int Line;
 			for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 		} else {
-			ml_value_t *String = ml_call(MLStringOfMethod, 1, &Result);
+			ml_value_t *String = ml_string_of(Result);
 			if (String->Type == MLStringT) {
 				printf("%s\n", ml_string_value(String));
 			} else {

@@ -68,7 +68,7 @@ ml_type_t MLClassT[1] = {{
 	NULL, 0, 0
 }};
 
-static ml_value_t *ml_object_append(void *Data, int Count, ml_value_t **Args) {
+ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLObjectT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_value_t *String = ml_inline(MLStringOfMethod, 1, Args[1]);
 	if (String->Type == MLStringT) {
@@ -81,7 +81,7 @@ static ml_value_t *ml_object_append(void *Data, int Count, ml_value_t **Args) {
 	}
 }
 
-static ml_value_t *ml_object_string(void *Data, int Count, ml_value_t **Args) {
+ML_METHOD(MLStringOfMethod, MLObjectT) {
 	ml_object_t *Object = (ml_object_t *)Args[0];
 	ml_class_t *Class = (ml_class_t *)Object->Type;
 	if (Class->NumFields > 0) {
@@ -120,10 +120,13 @@ static ml_value_t *ml_class_fn(void *Data, int Count, ml_value_t **Args) {
 		ml_class_t *Parent = (ml_class_t *)Args[1];
 		for (int I = 2; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLMethodT);
 		ml_class_t *Class = xnew(ml_class_t, Parent->NumFields + Count - 2, ml_value_t *);
-		Class->Base = MLTypeT[0];
 		Class->Base.Type = MLClassT;
 		Class->Base.Parent = (ml_type_t *)Parent;
 		Class->Base.Name = Name;
+		Class->Base.hash = ml_default_hash;
+		Class->Base.call = ml_default_call;
+		Class->Base.deref = ml_default_deref;
+		Class->Base.assign = ml_default_assign;
 		Class->NumFields = Parent->NumFields + Count - 2;
 		memcpy(Class->Fields, Parent->Fields, Parent->NumFields * sizeof(ml_value_t *));
 		for (int I = 2; I < Count; ++I) {
@@ -136,10 +139,13 @@ static ml_value_t *ml_class_fn(void *Data, int Count, ml_value_t **Args) {
 	} else {
 		for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLMethodT);
 		ml_class_t *Class = xnew(ml_class_t, Count, ml_value_t *);
-		Class->Base = MLTypeT[0];
 		Class->Base.Type = MLClassT;
 		Class->Base.Parent = MLObjectT;
 		Class->Base.Name = Name;
+		Class->Base.hash = ml_default_hash;
+		Class->Base.call = ml_default_call;
+		Class->Base.deref = ml_default_deref;
+		Class->Base.assign = ml_default_assign;
 		Class->NumFields = Count - 1;
 		for (int I = 1; I < Count; ++I) {
 			Class->Fields[I - 1] = Args[I];
@@ -234,7 +240,5 @@ void ml_object_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "property", ml_function(NULL, ml_property_fn));
 	stringmap_insert(Globals, "ObjectT", MLObjectT);
 	stringmap_insert(Globals, "ClassT", MLClassT);
-	ml_method_by_value(MLStringBufferAppendMethod, NULL, ml_object_append, MLStringBufferT, MLObjectT, NULL);
-	ml_method_by_value(MLStringOfMethod, NULL, ml_object_string, MLObjectT, NULL);
 #include "ml_object_init.c"
 }
