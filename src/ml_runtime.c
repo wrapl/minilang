@@ -447,6 +447,6 @@ ML_METHOD("message", MLErrorT) {
 	return ml_string(((ml_error_t *)Args[0])->Message, -1);
 }
 
-void ml_runtime_init(stringmap_t *Globals) {
+void ml_runtime_init() {
 #include "ml_runtime_init.c"
 }

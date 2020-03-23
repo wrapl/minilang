@@ -3246,7 +3246,7 @@ ml_value_t *ml_module_export(ml_value_t *Module0, const char *Name, ml_value_t *
 
 /****************************** Init ******************************/
 
-void ml_types_init(stringmap_t *Globals) {
+void ml_init() {
 	GC_word StringBufferLayout[] = {1};
 	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
 #include "ml_types_init.c"
@@ -3268,7 +3268,10 @@ void ml_types_init(stringmap_t *Globals) {
 	ml_method_by_value(MLRealOfMethod, NULL, ml_identity, MLRealT, NULL);
 	ml_method_by_value(MLStringOfMethod, NULL, ml_identity, MLStringT, NULL);
 	ml_bytecode_init();
-	ml_runtime_init(Globals);
+	ml_runtime_init();
+}
+
+void ml_types_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "type", ml_module("type",
 		"T", MLTypeT,
 		"AnyT", MLAnyT,

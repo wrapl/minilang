@@ -49,7 +49,3 @@ ml_value_t *ml_load(ml_getter_t GlobalGet, void *Globals, const char *FileName, 
 	if (MLDebugClosures) ml_closure_debug(Closure);
 	return Closure;
 }
-
-void ml_init() {
-
-}
