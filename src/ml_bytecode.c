@@ -398,12 +398,8 @@ static ml_value_t *DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t 
 		ml_value_t *Ref = Top[-1];
 		*--Top = 0;
 		Result = Ref->Type->assign(Ref, Result);
-		if (Result->Type == MLErrorT) {
-			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
-			ERROR();
-		} else {
-			ADVANCE(0);
-		}
+		ERROR_CHECK(Result);
+		ADVANCE(0);
 	}
 	DO_LOCAL: {
 		int Index = Inst->Params[1].Index;
