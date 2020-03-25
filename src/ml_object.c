@@ -157,7 +157,7 @@ static ml_value_t *ml_class_fn(void *Data, int Count, ml_value_t **Args) {
 	}
 }
 
-static ml_value_t *ml_method_fn(void *Data, int Count, ml_value_t **Args) {
+static ml_value_t *ml_method_set_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
 	if (Count == 1) {
 		if (Args[0]->Type == MLMethodT) return Args[0];
@@ -235,8 +235,10 @@ ml_value_t *ml_object_field(ml_value_t *Value, size_t Field) {
 
 void ml_object_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "class", ml_function(NULL, ml_class_fn));
-	stringmap_insert(Globals, "method", ml_function(NULL, ml_method_fn));
-	//stringmap_insert(Globals, "type", ml_function(NULL, ml_type_fn));
+	ml_value_t *Method = (ml_value_t *)stringmap_search(Globals, "method");
+	if (Method) {
+		ml_module_export(Method, "set", ml_function(NULL, ml_method_set_fn));
+	}
 	stringmap_insert(Globals, "property", ml_function(NULL, ml_property_fn));
 	stringmap_insert(Globals, "ObjectT", MLObjectT);
 	stringmap_insert(Globals, "ClassT", MLClassT);

@@ -1672,6 +1672,42 @@ static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 				Scanner->Token = MLT_INLINE;
 				Scanner->Next += 2;
 				return Scanner->Token;
+			} else if (Scanner->Next[1] == '\"') {
+				Scanner->Next += 2;
+				int Length = 0;
+				const char *End = Scanner->Next;
+				while (End[0] != '\"') {
+					if (!End[0]) {
+						Scanner->Context->Error = ml_error("ParseError", "end of input while parsing string");
+						ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
+						longjmp(Scanner->Context->OnError, 1);
+					}
+					if (End[0] == '\\') ++End;
+					++Length;
+					++End;
+				}
+				char *Ident = snew(Length + 1), *D = Ident;
+				for (const char *S = Scanner->Next; S < End; ++S) {
+					if (*S == '\\') {
+						++S;
+						switch (*S) {
+						case 'r': *D++ = '\r'; break;
+						case 'n': *D++ = '\n'; break;
+						case 't': *D++ = '\t'; break;
+						case 'e': *D++ = '\e'; break;
+						case '\'': *D++ = '\''; break;
+						case '\"': *D++ = '\"'; break;
+						case '\\': *D++ = '\\'; break;
+						}
+					} else {
+						*D++ = *S;
+					}
+				}
+				*D = 0;
+				Scanner->Ident = Ident;
+				Scanner->Token = MLT_METHOD;
+				Scanner->Next = End + 1;
+				return Scanner->Token;
 			}
 		}
 		if (Char == '-' && Scanner->Next[1] == '-') {

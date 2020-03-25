@@ -7,18 +7,18 @@ print('A = {A}\n')
 
 A:Y := 200
 
-method(string::of, PointT; P) 'point({P:X}, {P:Y})'
+method::set(string::of, PointT; P) 'point({P:X}, {P:Y})'
 
 print('A = {A}\n')
 
-method(+, PointT, PointT; A, B) PointT(A:X + B:X, A:Y + B:Y)
+method::set(+, PointT, PointT; A, B) PointT(A:X + B:X, A:Y + B:Y)
 
 var B := PointT(23, 9.1)
 
 print('{A} + {B} = {A + B}\n')
 
-method(*, PointT, number::T; A, N) PointT(A:X * N, A:Y * N)
-method(*, number::T, PointT; N, A) PointT(N * A:X, N * A:Y)
+method::set(*, PointT, number::T; A, N) PointT(A:X * N, A:Y * N)
+method::set(*, number::T, PointT; N, A) PointT(N * A:X, N * A:Y)
 
 print('{A} * 5 = {A * 5}\n')
 print('7.1 * {B} = {7.1 * B}\n')
@@ -29,6 +29,6 @@ var C := VectorT(1, 2, 3)
 
 print('C = {C}\n')
 
-method(string::of, VectorT; V) 'vector({V:X}, {V:Y}, {V:Z})'
+method::set(string::of, VectorT; V) 'vector({V:X}, {V:Y}, {V:Z})'
 
 print('C = {C}\n')
