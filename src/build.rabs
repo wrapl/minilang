@@ -126,7 +126,7 @@ if MINILANG_MODULES or defined("MODULES") then
 	Objects:put(file("ml_module.o"))
 	if PLATFORM = "Linux" then
 		Objects:put(file("ml_library.o"))
-		LDFLAGS := old + ["-ldl"]
+		LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={file("exports.lst")}']
 	end
 	CFLAGS := old + ["-DUSE_ML_MODULES"]
 	subdir("lib")
@@ -144,8 +144,6 @@ elseif PLATFORM = "Darwin" then
 	LDFLAGS := old + ["-lgc"]
 elseif PLATFORM = "Mingw" then
 end
-
-LDFLAGS := old + ['-Wl,--dynamic-list={file("exports.lst")}']
 
 LIBMINILANG := c_library(LIB_DIR / "libminilang.a", Objects, Libraries)
 MINILANG := c_program(BIN_DIR /"minilang", [file("ml_main.o")] + Objects, Libraries)
