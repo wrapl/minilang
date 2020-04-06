@@ -8,8 +8,52 @@
 typedef struct ml_frame_iter_t {
 	ml_state_t Base;
 	ml_value_t *Iter;
+	int State;
 	ml_value_t *Values[];
 } ml_frame_iter_t;
+
+static ml_value_t *ml_first_run(ml_state_t *State, ml_value_t *Result) {
+	if (Result->Type == MLErrorT) ML_CONTINUE(State->Caller, Result);
+	if (Result == MLNil) ML_CONTINUE(State->Caller, Result);
+	return ml_iter_value(State->Caller, Result);
+}
+
+static ml_value_t *ml_first_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_state_t *State = new(ml_state_t);
+	State->Caller = Caller;
+	State->run = ml_first_run;
+	return ml_iterate(State, Args[0]);
+}
+
+typedef enum {ML_FIRST_ITER, ML_FIRST_KEY, ML_FIRST_VALUE} ml_first_state_t;
+
+static ml_value_t *ml_first2_run(ml_frame_iter_t *State, ml_value_t *Result) {
+	if (Result->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Result);
+	switch ((ml_first_state_t)State->State) {
+	case ML_FIRST_ITER:
+		if (Result == MLNil) ML_CONTINUE(State->Base.Caller, Result);
+		State->State = ML_FIRST_KEY;
+		return ml_iter_key(State, State->Iter = Result);
+	case ML_FIRST_KEY:
+		ml_tuple_set(State->Values[0], 0, Result);
+		State->State = ML_FIRST_VALUE;
+		return ml_iter_value(State, State->Iter);
+	case ML_FIRST_VALUE:
+		ml_tuple_set(State->Values[0], 1, Result);
+		ML_CONTINUE(State->Base.Caller, State->Values[0]);
+	}
+	return NULL;
+}
+
+static ml_value_t *ml_first2_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_frame_iter_t *State = xnew(ml_frame_iter_t, 1, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.run = ml_first2_run;
+	State->Values[0] = ml_tuple(2);
+	return ml_iterate(State, Args[0]);
+}
 
 static ml_value_t *ml_all_fnx_get_value(ml_frame_iter_t *Frame, ml_value_t *Result);
 
@@ -820,6 +864,8 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	AddMethod = ml_method("+");
 	MulMethod = ml_method("*");
 	//stringmap_insert(Globals, "each", ml_functionx(0, ml_each_fnx));
+	stringmap_insert(Globals, "first", ml_functionx(0, ml_first_fnx));
+	stringmap_insert(Globals, "first2", ml_functionx(0, ml_first2_fnx));
 	stringmap_insert(Globals, "all", ml_functionx(0, ml_all_fnx));
 	stringmap_insert(Globals, "map", ml_functionx(0, ml_map_fnx));
 	stringmap_insert(Globals, "unique", ml_function(0, ml_unique_fn));

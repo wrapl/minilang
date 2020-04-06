@@ -58,6 +58,7 @@ typedef enum {
 	MLI_IF_LET,
 	MLI_ELSE,
 	MLI_PUSH,
+	MLI_PUSHX,
 	MLI_POP,
 	MLI_ENTER,
 	MLI_EXIT,

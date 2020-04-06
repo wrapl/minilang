@@ -26,7 +26,7 @@ extern ml_type_t MLStateT[];
 ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args);
 
 #define ml_inline(VALUE, COUNT, ARGS ...) ({ \
-	ml_value_t *Args ## __LINE__[] = {ARGS}; \
+	ml_value_t *Args ## __LINE__[COUNT] = {ARGS}; \
 	ml_call(VALUE, COUNT, Args ## __LINE__); \
 })
 

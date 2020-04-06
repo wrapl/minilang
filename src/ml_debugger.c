@@ -17,17 +17,6 @@ typedef struct debug_local_t debug_local_t;
 typedef struct debug_global_t debug_global_t;
 typedef struct ml_frame_debug_t ml_frame_debug_t;
 
-struct ml_frame_debug_t {
-	ml_state_t Base;
-	ml_inst_t *Inst;
-	ml_value_t **Top;
-	ml_inst_t *OnError;
-	ml_value_t **UpValues;
-	debug_function_t *Debug;
-	ml_frame_debug_t *UpState;
-	ml_value_t *Stack[];
-};
-
 struct debugger_t {
 	const ml_type_t *Type;
 	pthread_mutex_t Lock[1];
@@ -90,7 +79,7 @@ static ml_frame_debug_t *State;
 static int Enters = 0;
 static int Exits = 0;
 
-static json_t *debugger_command_pause(json_t *Args) {
+static json_t *debugger_command_pause(debugger_t *Debugger, json_t *Args) {
 	StepIn = 1;
 	RunTo = 0;
 	StepOverInstance = NULL;
@@ -102,7 +91,7 @@ static json_t *debugger_command_pause(json_t *Args) {
 	return json_true();
 }
 
-static json_t *debugger_command_continue(json_t *Args) {
+static json_t *debugger_command_continue(debugger_t *Debugger, json_t *Args) {
 	StepIn = 0;
 	RunTo = 0;
 	StepOverInstance = NULL;
@@ -114,7 +103,7 @@ static json_t *debugger_command_continue(json_t *Args) {
 	return json_true();
 }
 
-static json_t *debugger_command_step_in(json_t *Args) {
+static json_t *debugger_command_step_in(debugger_t *Debugger, json_t *Args) {
 	StepIn = 1;
 	RunTo = 0;
 	StepOverInstance = NULL;
@@ -126,7 +115,7 @@ static json_t *debugger_command_step_in(json_t *Args) {
 	return json_true();
 }
 
-static json_t *debugger_command_step_out(json_t *Args) {
+static json_t *debugger_command_step_out(debugger_t *Debugger, json_t *Args) {
 	if (Paused) {
 		StepIn = 0;
 		RunTo = 0;
@@ -138,7 +127,7 @@ static json_t *debugger_command_step_out(json_t *Args) {
 	return json_true();
 }
 
-static json_t *debugger_command_step_over(json_t *Args) {
+static json_t *debugger_command_step_over(debugger_t *Debugger, json_t *Args) {
 	if (Paused) {
 		StepIn = 0;
 		RunTo = 0;
@@ -150,7 +139,7 @@ static json_t *debugger_command_step_over(json_t *Args) {
 	return json_true();
 }
 
-static json_t *debugger_command_run_to(json_t *Args) {
+static json_t *debugger_command_run_to(debugger_t *Debugger, json_t *Args) {
 	debug_module_t *Module = debugger_get_module(Args);
 	if (!Module) return json_pack("{ss}", "error", "invalid module");
 	int Line;
@@ -166,7 +155,7 @@ static json_t *debugger_command_run_to(json_t *Args) {
 	return json_true();
 }
 
-static json_t *debugger_command_list_modules(json_t *Command) {
+static json_t *debugger_command_list_modules(debugger_t *Debugger, json_t *Command) {
 	return json_true();
 }
 
@@ -223,7 +212,7 @@ static void debugger_append_variable(json_t *Variables, const char *Name, ml_val
 	json_array_append(Variables, Description);
 }
 
-static json_t *debugger_command_get_variable(json_t *Args) {
+static json_t *debugger_command_get_variable(debugger_t *Debugger, json_t *Args) {
 	json_t *Variables = json_array();
 	if (json_object_get(Args, "state")) {
 		ml_frame_debug_t *State = (ml_frame_debug_t *)(size_t)json_number_value(json_object_get(Args, "state"));
@@ -301,7 +290,7 @@ static unsigned char *debug_module_breakpoints(debug_module_t *Module, int LineN
 	return BreakpointBuffer + (LineNo % BREAKPOINT_BUFFER_SIZE) / 8;
 }
 
-static json_t *debugger_command_set_breakpoints(json_t *Args) {
+static json_t *debugger_command_set_breakpoints(debugger_t *Debugger, json_t *Args) {
 	debug_module_t *Module = debugger_get_module(Args);
 	if (!Module) return json_pack("{ss}", "error", "invalid module");
 	json_t *Enable = json_object_get(Args, "enable");
@@ -326,7 +315,7 @@ unsigned char *debug_break_on_message() {
 	return (unsigned char *)&Debugger->BreakOnMessage;
 }
 
-static json_t *debugger_command_set_message_breakpoints(json_t *Args) {
+static json_t *debugger_command_set_message_breakpoints(debugger_t *Debugger, json_t *Args) {
 	int BreakOnSend = 0;
 	int BreakOnMessage = 0;
 	for (int I = 0; I < json_array_size(Args); ++I) {
@@ -374,7 +363,7 @@ static json_t *debugger_command_set_message_breakpoints(json_t *Args) {
 	return FAILURE;
 }*/
 
-static json_t *debugger_evaluate(json_t *Args) {
+static json_t *debugger_command_evaluate(debugger_t *Debugger, json_t *Args) {
 	if (!Paused) return json_pack("{ss}", "error", "invalid thread");
 	if (json_unpack(Args, "{ss}", "expression", &Debugger->EvaluateBuffer)) return json_pack("{ss}", "error", "missing expression");
 	if (json_object_get(Args, "state")) {
@@ -634,7 +623,7 @@ void debug_enable(const char *SocketPath, int ClientMode) {
 	stringmap_insert(Debugger->Commands, "get_variable", debugger_command_get_variable);
 	stringmap_insert(Debugger->Commands, "set_breakpoints", debugger_command_set_breakpoints);
 	stringmap_insert(Debugger->Commands, "set_message_breakpoints", debugger_command_set_message_breakpoints);
-	stringmap_insert(Debugger->Commands, "evaluate", debugger_evaluate);
+	stringmap_insert(Debugger->Commands, "evaluate", debugger_command_evaluate);
 	struct sockaddr_un Name;
 	Name.sun_family = AF_LOCAL;
 	strcpy(Name.sun_path, SocketPath);

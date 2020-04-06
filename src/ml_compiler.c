@@ -589,38 +589,46 @@ static mlc_compiled_t ml_with_expr_compile(mlc_function_t *Function, mlc_decl_ex
 	int OldTop = Function->Top;
 	mlc_decl_t *OldScope = Function->Decls;
 	mlc_expr_t *Child = Expr->Child;
-	mlc_compiled_t Compiled = mlc_compile(Function, Child);
-	ml_inst_t *PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
-	mlc_inc_top(Function);
-	mlc_connect(Compiled.Exits, PushInst);
-	mlc_decl_t *Decl = Expr->Decl;
-	Decl->Index = Function->Top - 1;
-	Child = Child->Next;
-	mlc_decl_t *NextDecl = Decl->Next;
-	Decl->Next = Function->Decls;
-	Function->Decls = Decl;
-	while (NextDecl) {
-		Decl = NextDecl;
-		NextDecl = Decl->Next;
-		mlc_compiled_t ChildCompiled = mlc_compile(Function, Child);
-		PushInst->Params[0].Inst = ChildCompiled.Start;
-		PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
+	ml_inst_t *Start = NULL, *PushInst = NULL;
+	for (mlc_decl_t *Decl = Expr->Decl; Decl;) {
+		mlc_decl_t *NextDecl = Decl->Next;
+		int Count = Decl->Index;
 		mlc_inc_top(Function);
-		mlc_connect(ChildCompiled.Exits, PushInst);
 		Decl->Index = Function->Top - 1;
 		Decl->Next = Function->Decls;
 		Function->Decls = Decl;
+		for (int I = 1; I < Count; ++I) {
+			Decl = NextDecl;
+			NextDecl = Decl->Next;
+			mlc_inc_top(Function);
+			Decl->Index = Function->Top - 1;
+			Decl->Next = Function->Decls;
+			Function->Decls = Decl;
+		}
+		mlc_compiled_t Compiled = mlc_compile(Function, Child);
+		if (PushInst) {
+			PushInst->Params[0].Inst = Compiled.Start;
+		} else {
+			Start = Compiled.Start;
+		}
+		if (Count == 1) {
+			PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
+		} else {
+			PushInst = ml_inst_new(2, Expr->Source, MLI_PUSHX);
+			PushInst->Params[1].Count = Count;
+		}
+		mlc_connect(Compiled.Exits, PushInst);
 		Child = Child->Next;
+		Decl = NextDecl;
 	}
 	mlc_compiled_t ChildCompiled = mlc_compile(Function, Child);
 	PushInst->Params[0].Inst = ChildCompiled.Start;
 	ml_inst_t *ExitInst = ml_inst_new(2, Expr->Source, MLI_EXIT);
 	ExitInst->Params[1].Count = Function->Top - OldTop;
 	mlc_connect(ChildCompiled.Exits, ExitInst);
-	Compiled.Exits = ExitInst;
 	Function->Decls = OldScope;
 	Function->Top = OldTop;
-	return Compiled;
+	return (mlc_compiled_t){Start, ExitInst};
 }
 
 static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
@@ -1298,8 +1306,8 @@ const char *MLTokens[] = {
 	"def", // MLT_DEF,
 	"let", // MLT_LET,
 	"var", // MLT_VAR,
-	"_", // MLT_BLANK,
 	"<identifier>", // MLT_IDENT,
+	"_", // MLT_BLANK,
 	"(", // MLT_LEFT_PAREN,
 	")", // MLT_RIGHT_PAREN,
 	"[", // MLT_LEFT_SQUARE,
@@ -1558,7 +1566,7 @@ static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 		}
 		if (isidstart(Char)) {
 			const char *End = Scanner->Next + 1;
-			for (Char = End[0]; isidchar(Char); Char = *++End);
+			for (Char = End[0]; isidchar(Char) || isoperator(Char); Char = *++End);
 			int Length = End - Scanner->Next;
 			const struct keyword_t *Keyword = lookup(Scanner->Next, Length);
 			if (Keyword) {
@@ -1961,10 +1969,25 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 		mlc_decl_t **DeclSlot = &WithExpr->Decl;
 		mlc_expr_t **ExprSlot = &WithExpr->Child;
 		do {
-			ml_accept(Scanner, MLT_IDENT);
-			mlc_decl_t *Decl = DeclSlot[0] = new(mlc_decl_t);
-			DeclSlot = &Decl->Next;
-			Decl->Ident = Scanner->Ident;
+			if (ml_parse(Scanner, MLT_LEFT_PAREN)) {
+					int Count = 0;
+					mlc_decl_t **First = DeclSlot;
+					do {
+						ml_accept(Scanner, MLT_IDENT);
+						++Count;
+						mlc_decl_t *Decl = DeclSlot[0] = new(mlc_decl_t);
+						Decl->Ident = Scanner->Ident;
+						DeclSlot = &Decl->Next;
+					} while (ml_parse(Scanner, MLT_COMMA));
+					ml_accept(Scanner, MLT_RIGHT_PAREN);
+					First[0]->Index = Count;
+			} else {
+				ml_accept(Scanner, MLT_IDENT);
+				mlc_decl_t *Decl = DeclSlot[0] = new(mlc_decl_t);
+				DeclSlot = &Decl->Next;
+				Decl->Ident = Scanner->Ident;
+				Decl->Index = 1;
+			}
 			ml_accept(Scanner, MLT_ASSIGN);
 			mlc_expr_t *Expr = ExprSlot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
 			ExprSlot = &Expr->Next;
@@ -2639,4 +2662,48 @@ ml_value_t *ml_command_evaluate(mlc_scanner_t *Scanner, stringmap_t *Vars, mlc_c
 	}
 	ml_parse(Scanner, MLT_SEMICOLON);
 	return Result;
+}
+
+#ifdef __MINGW32__
+static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
+	char Buffer[129];
+	if (fgets(Buffer, 129, File) == NULL) return -1;
+	int Length = strlen(Buffer);
+	if (Length == 128) {
+		ssize_t Total = ml_read_line(File, Offset + 128, Result);
+		memcpy(*Result + Offset, Buffer, 128);
+		return Total;
+	} else {
+		*Result = GC_MALLOC_ATOMIC(Offset + Length + 1);
+		strcpy(*Result + Offset, Buffer);
+		return Offset + Length;
+	}
+}
+#endif
+
+static const char *ml_file_read(void *Data) {
+	FILE *File = (FILE *)Data;
+	char *Line = NULL;
+	size_t Length = 0;
+#ifdef __MINGW32__
+	Length = ml_read_line(File, 0, &Line);
+	if (Length < 0) return NULL;
+#else
+	if (getline(&Line, &Length, File) < 0) return NULL;
+#endif
+	return Line;
+}
+
+ml_value_t *ml_load(ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]) {
+	FILE *File = fopen(FileName, "r");
+	if (!File) return ml_error("LoadError", "error opening %s", FileName);
+	mlc_context_t Context[1] = {{GlobalGet, Globals}};
+	MLC_ON_ERROR(Context) return Context->Error;
+	mlc_scanner_t *Scanner = ml_scanner(FileName, File, ml_file_read, Context);
+	mlc_expr_t *Expr = ml_accept_block(Scanner);
+	ml_accept_eoi(Scanner);
+	fclose(File);
+	ml_value_t *Closure = ml_compile(Expr, Parameters, Context);
+	if (MLDebugClosures) ml_closure_debug(Closure);
+	return Closure;
 }

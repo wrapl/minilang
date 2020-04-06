@@ -53,15 +53,15 @@ ml_type_t DEBUG_TYPE(Continuation)[1] = {{
 	NULL, 0, 0
 }};
 
-static ml_value_t *DEBUG_FUNC(suspension_value)(ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+static ml_value_t *ML_TYPED_FN(ml_iter_value, DEBUG_TYPE(Suspension), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
 	ML_CONTINUE(Caller, Suspension->Top[-1]);
 }
 
-static ml_value_t *DEBUG_FUNC(suspension_key)(ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+static ml_value_t *ML_TYPED_FN(ml_iter_key, DEBUG_TYPE(Suspension), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
 	ML_CONTINUE(Caller, Suspension->Top[-2]);
 }
 
-static ml_value_t *DEBUG_FUNC(suspension_next)(ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+static ml_value_t *ML_TYPED_FN(ml_iter_next, DEBUG_TYPE(Suspension), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
 	Suspension->Base.Type = DEBUG_TYPE(Continuation);
 	Suspension->Top[-2] = Suspension->Top[-1];
 	--Suspension->Top;
@@ -86,22 +86,20 @@ ml_type_t DEBUG_TYPE(Suspension)[1] = {{
 
 #ifndef DEBUG_VERSION
 
+#define ERROR() \
+	Inst = Frame->OnError; \
+	goto *Labels[Inst->Opcode]
+
 #define ERROR_CHECK(VALUE) if (VALUE->Type == MLErrorT) { \
 	ml_error_trace_add(VALUE, (ml_source_t){Frame->Source, Inst->LineNo}); \
 	Result = VALUE; \
-	Inst = Frame->OnError; \
-	goto *Labels[Inst->Opcode]; \
+	ERROR(); \
 }
 
-#define ADVANCE(N) { \
+#define ADVANCE(N) \
 	Inst = Inst->Params[N].Inst; \
-	goto *Labels[Inst->Opcode]; \
-}
+	goto *Labels[Inst->Opcode]
 
-#define ERROR() { \
-	Inst = Frame->OnError; \
-	goto *Labels[Inst->Opcode]; \
-}
 #endif
 
 static ml_value_t *DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
@@ -116,6 +114,7 @@ static ml_value_t *DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t 
 		[MLI_IF_LET] = &&DO_IF_LET,
 		[MLI_ELSE] = &&DO_ELSE,
 		[MLI_PUSH] = &&DO_PUSH,
+		[MLI_PUSHX] = &&DO_PUSHX,
 		[MLI_POP] = &&DO_POP,
 		[MLI_ENTER] = &&DO_ENTER,
 		[MLI_EXIT] = &&DO_EXIT,
@@ -226,6 +225,23 @@ static ml_value_t *DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t 
 	}
 	DO_PUSH: {
 		*Top++ = Result;
+		ADVANCE(0);
+	}
+	DO_PUSHX: {
+		if (Result->Type != MLTupleT) {
+			Result = ml_error("TypeError", "Can only unpack tuples");
+			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
+			ERROR();
+		}
+		ml_tuple_t *Tuple = (ml_tuple_t *)Result;
+		if (Tuple->Size < Inst->Params[2].Count) {
+			Result = ml_error("ValueError", "Tuple has too few values (%d < %d)", Tuple->Size, Inst->Params[2].Count);
+			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
+			ERROR();
+		}
+		for (int I = 0; I < Inst->Params[1].Count; ++I) {
+			*Top++ = Tuple->Values[I];
+		}
 		ADVANCE(0);
 	}
 	DO_POP: {
@@ -702,7 +718,7 @@ static long ml_closure_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
-static ml_value_t *ml_closure_iterate(ml_state_t *Frame, ml_value_t *Closure) {
+static ml_value_t *ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Closure), ml_state_t *Frame, ml_value_t *Closure) {
 	return ml_closure_call(Frame, Closure, 0, NULL);
 }
 
@@ -797,6 +813,12 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done, const
 	}
 	case MLI_PUSH: {
 		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: push()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+		break;
+	}
+	case MLI_PUSHX: {
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: pushx(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, Inst->Params[1].Count);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
@@ -1026,7 +1048,6 @@ const char *ml_closure_debug(ml_value_t *Value) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
 	return ml_closure_info_debug(Closure->Info);
 }
-#endif
 
 ML_METHOD("!!", MLClosureT, MLListT) {
 	ml_closure_t *Closure = (ml_closure_t *)Args[0];
@@ -1040,19 +1061,11 @@ ML_METHOD("!!", MLClosureT, MLListT) {
 	return (ml_value_t *)Partial;
 }
 
-#ifndef DEBUG_VERSION
 #define DEBUG_VERSION
 #include "ml_bytecode.c"
 #undef DEBUG_VERSION
 
 void ml_bytecode_init() {
-	ml_typed_fn_set(MLClosureT, ml_iterate, ml_closure_iterate);
-	ml_typed_fn_set(MLSuspensionT, ml_iter_value, ml_suspension_value);
-	ml_typed_fn_set(MLSuspensionT, ml_iter_key, ml_suspension_key);
-	ml_typed_fn_set(MLSuspensionT, ml_iter_next, ml_suspension_next);
-	ml_typed_fn_set(MLSuspensionDebugT, ml_iter_value, ml_suspension_value_debug);
-	ml_typed_fn_set(MLSuspensionDebugT, ml_iter_key, ml_suspension_key_debug);
-	ml_typed_fn_set(MLSuspensionDebugT, ml_iter_next, ml_suspension_next_debug);
 #include "ml_bytecode_init.c"
 }
 #endif

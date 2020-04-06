@@ -151,8 +151,11 @@ ml_value_t *ml_file_open(void *Data, int Count, ml_value_t **Args) {
 
 void ml_file_init(stringmap_t *Globals) {
 	MLFileT = ml_type(MLAnyT, "file");
-	if (Globals) {
-		stringmap_insert(Globals, "open", ml_function(0, ml_file_open));
-	}
 #include "ml_file_init.c"
+	if (Globals) {
+		stringmap_insert(Globals, "file", ml_module("file",
+			"T", MLFileT,
+			"open", ml_function(0, ml_file_open),
+		NULL));
+	}
 }

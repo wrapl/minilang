@@ -57,7 +57,7 @@ ml_value_t *ml_default_deref(ml_value_t *Ref) {
 }
 
 ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value) {
-	return ml_error("TypeError", "value is not assignable");
+	return ml_error("TypeError", "<%s> is not assignable", Value->Type->Name);
 }
 
 ml_type_t *ml_type(ml_type_t *Parent, const char *Name) {
@@ -419,7 +419,7 @@ ML_METHOD("[]", MLTupleT, MLIntegerT) {
 	long Index = ((ml_integer_t *)Args[1])->Value;
 	if (--Index < 0) Index += Tuple->Size + 1;
 	if (Index < 0 || Index >= Tuple->Size) return ml_error("RangeError", "Tuple index out of bounds");
-	return ml_reference(Tuple->Values + Index);
+	return Tuple->Values[Index];
 }
 
 ml_value_t *ml_tuple_fn(void *Data, int Count, ml_value_t **Args) {
