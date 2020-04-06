@@ -132,8 +132,6 @@ if MINILANG_MODULES or defined("MODULES") then
 	subdir("lib")
 end
 
-LDFLAGS := old + [file("minilang.txt")]
-
 if PLATFORM = "Linux" then
 	Objects := old + [file("linenoise.o")]
 	LDFLAGS := old + ["-lgc"]
