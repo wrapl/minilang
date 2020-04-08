@@ -28,10 +28,6 @@ ml_source_t ml_scanner_source(mlc_scanner_t *Scanner, ml_source_t Source);
 void ml_scanner_reset(mlc_scanner_t *Scanner);
 const char *ml_scanner_clear(mlc_scanner_t *Scanner);
 
-void ml_accept_eoi(mlc_scanner_t *Scanner);
-mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner);
-mlc_expr_t *ml_accept_command(mlc_scanner_t *Scanner, stringmap_t *Vars);
-
 ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, mlc_context_t *Context);
 
 ml_value_t *ml_command_evaluate(mlc_scanner_t *Scanner, stringmap_t *Vars, mlc_context_t *Context);

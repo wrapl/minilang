@@ -1769,13 +1769,14 @@ static void ml_accept(mlc_scanner_t *Scanner, ml_token_t Token) {
 	longjmp(Scanner->Context->OnError, 1);
 }
 
-void ml_accept_eoi(mlc_scanner_t *Scanner) {
+static void ml_accept_eoi(mlc_scanner_t *Scanner) {
 	ml_accept(Scanner, MLT_EOI);
 }
 
 static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner);
+static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner);
 
-mlc_expr_t *ml_accept_fun_decl(mlc_scanner_t *Scanner) {
+static mlc_expr_t *ml_accept_fun_decl(mlc_scanner_t *Scanner) {
 	mlc_fun_expr_t *FunExpr = new(mlc_fun_expr_t);
 	FunExpr->compile = ml_fun_expr_compile;
 	FunExpr->Source = Scanner->Source;
@@ -2395,7 +2396,7 @@ static mlc_expr_t *ml_accept_expression(mlc_scanner_t *Scanner, ml_expr_level_t 
 	longjmp(Scanner->Context->OnError, 1);
 }
 
-mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
+static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 	mlc_block_expr_t *BlockExpr = new(mlc_block_expr_t);
 	BlockExpr->compile = ml_block_expr_compile;
 	BlockExpr->Source = Scanner->Source;
