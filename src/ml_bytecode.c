@@ -504,7 +504,6 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_partial_function_set(Top[-1], Inst->Params[1].Index, Result);
 		ADVANCE(0);
 	}
-	return MLNil;
 }
 
 #ifndef DEBUG_VERSION
