@@ -41,7 +41,6 @@ obj/ml_bytecode.o: obj/ml_bytecode_init.c
 obj/ml_runtime.o: obj/ml_runtime_init.c
 
 common_objects = \
-	obj/minilang.o \
 	obj/ml_compiler.o \
 	obj/ml_runtime.o \
 	obj/ml_bytecode.o \
@@ -76,7 +75,7 @@ ifeq ($(PLATFORM), Darwin)
 endif
 
 minilang_objects = $(common_objects) $(platform_objects) \
-	obj/ml_main.o
+	obj/minilang.o
 
 bin/minilang: bin Makefile $(minilang_objects) src/*.h
 	$(CC) $(minilang_objects) $(LDFLAGS) -o$@
