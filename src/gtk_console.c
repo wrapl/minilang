@@ -210,6 +210,7 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 	ml_console_repl_state_t *State = new(ml_console_repl_state_t);
 	State->Base.run = ml_console_repl_run;
 	State->Console = Console;
+	ml_scanner_reset(Scanner);
 	ml_command_evaluate(State, Scanner, Console->Globals);
 	gtk_widget_grab_focus(Console->InputView);
 }

@@ -2582,7 +2582,7 @@ void ml_function_compile(ml_state_t *Caller, mlc_scanner_t *Scanner, const char 
 	mlc_expr_t *Block = ml_accept_block(Scanner);
 	ml_accept_eoi(Scanner);
 	ml_value_t *Function = ml_compile(Block, Parameters, Scanner->Context);
-	Caller->run(Caller, Function);
+	ML_RETURN(Function);
 }
 
 void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t *Vars) {
