@@ -29,6 +29,31 @@ ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args);
 	ml_call(VALUE, COUNT, Args ## __LINE__); \
 })
 
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Value;
+} ml_value_state_t;
+
+void ml_eval_state_run(ml_value_state_t *State, ml_value_t *Value);
+
+#define ML_EVAL_STATE_INIT {{MLStateT, NULL, ml_eval_state_run}, MLNil}
+
+#define ML_WRAP_EVAL(FUNCTION, ARGS...) ({ \
+	ml_value_state_t State[1] = ML_EVAL_STATE_INIT; \
+	FUNCTION((ml_state_t *)State, ARGS); \
+	State->Value; \
+})
+
+void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value);
+
+#define ML_CALL_STATE_INIT {{MLStateT, NULL, ml_call_state_run}, MLNil}
+
+#define ML_WRAP_CALL(FUNCTION, ARGS...) ({ \
+	ml_value_state_t State[1] = ML_CALL_STATE_INIT; \
+	FUNCTION((ml_state_t *)State, ARGS); \
+	State->Value; \
+})
+
 /****************************** Functions ******************************/
 
 struct ml_function_t {

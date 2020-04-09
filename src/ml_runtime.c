@@ -30,21 +30,23 @@ static void ml_end_state_run(ml_state_t *State, ml_value_t *Value) {
 
 static ml_state_t MLEndState[1] = {{MLStateT, NULL, ml_end_state_run}};
 
-typedef struct {
-	ml_state_t Base;
-	ml_value_t *Result;
-} ml_call_state_t;
-
-static void ml_call_state_run(ml_call_state_t *State, ml_value_t *Value) {
-	State->Result = Value;
+inline ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args) {
+	ml_value_state_t State[1] = ML_CALL_STATE_INIT;
+	Value->Type->call(State, Value, Count, Args);
+	return State->Value->Type->deref(State->Value);
 }
 
-inline ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args) {
-	ml_call_state_t State[1];
-	State->Base.run = ml_call_state_run;
-	State->Result = MLNil;
-	Value->Type->call(State, Value, Count, Args);
-	return State->Result->Type->deref(State->Result);
+void ml_eval_state_run(ml_value_state_t *State, ml_value_t *Value) {
+	State->Value = Value;
+}
+
+void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value) {
+	if (Value->Type == MLErrorT) {
+		State->Value = Value;
+	} else {
+		State->Base.run = ml_eval_state_run;
+		Value->Type->call(State, Value, 0, NULL);
+	}
 }
 
 typedef struct ml_resumable_state_t {
