@@ -78,7 +78,7 @@ typedef struct ml_array_init_state_t {
 	ml_value_t *Args[];
 } ml_array_init_state_t;
 
-static ml_value_t *ml_array_init_run(ml_array_init_state_t *State, ml_value_t *Value) {
+static void ml_array_init_run(ml_array_init_state_t *State, ml_value_t *Value) {
 	Value = Value->Type->deref(Value);
 	if (Value->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Value);
 	ml_array_t *Array = State->Array;
@@ -140,7 +140,7 @@ static ml_value_t *ml_array_init_run(ml_array_init_state_t *State, ml_value_t *V
 	ML_CONTINUE(State->Base.Caller, Array);
 }
 
-static ml_value_t *ml_array_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+static void ml_array_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(2);
 	ml_array_format_t Format;
 	if (Args[0] == (ml_value_t *)MLArrayAnyT) {
@@ -166,7 +166,7 @@ static ml_value_t *ml_array_new_fnx(ml_state_t *Caller, void *Data, int Count, m
 	} else if (Args[0] == (ml_value_t *)MLArrayFloat64T) {
 		Format = ML_ARRAY_FORMAT_F64;
 	} else {
-		return ml_error("TypeError", "Unknown type for array");
+		ML_RETURN(ml_error("TypeError", "Unknown type for array"));
 	}
 	ml_array_t *Array;
 	if (Args[1]->Type == MLListT) {
@@ -174,14 +174,14 @@ static ml_value_t *ml_array_new_fnx(ml_state_t *Caller, void *Data, int Count, m
 		Array = ml_array_new(Format, Degree);
 		ml_list_node_t *Node = ml_list_head(Args[1]);
 		for (int I = 0; I < Degree; ++I, Node = Node->Next) {
-			if (Node->Value->Type != MLIntegerT) return ml_error("TypeError", "Dimension is not an integer");
+			if (Node->Value->Type != MLIntegerT) ML_RETURN(ml_error("TypeError", "Dimension is not an integer"));
 			Array->Dimensions[I].Size = ml_integer_value(Node->Value);
 		}
 	} else {
 		int Degree = Count - 1;
 		Array = ml_array_new(Format, Degree);
 		for (int I = 1; I < Count; ++I) {
-			ML_CHECK_ARG_TYPE(I, MLIntegerT);
+			ML_CHECKX_ARG_TYPE(I, MLIntegerT);
 			Array->Dimensions[I - 1].Size = ml_integer_value(Args[I]);
 		}
 	}

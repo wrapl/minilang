@@ -123,6 +123,19 @@ static ml_value_t *ml_preprocessor_include(ml_preprocessor_t *Preprocessor, int 
 	return MLNil;
 }
 
+static void ml_result_run(ml_state_t *State, ml_value_t *Result) {
+	if (Result->Type == MLErrorT) {
+		printf("Error: %s\n", ml_error_message(Result));
+		const char *Source;
+		int Line;
+		for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+	}
+}
+
+static ml_state_t MLResultState[1] = {{
+	MLStateT, NULL, ml_result_run
+}};
+
 void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer) {
 	ml_preprocessor_input_t Input0[1] = {{0, Reader}};
 	ml_preprocessor_output_t Output0[1] = {{0, Writer}};
@@ -140,13 +153,6 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 	Context->GlobalGet = (ml_getter_t)ml_preprocessor_global_get;
 	Context->Globals = Preprocessor;
 	mlc_scanner_t *Scanner = ml_scanner(InputName, Preprocessor, (void *)ml_preprocessor_line_read, Context);
-	MLC_ON_ERROR(Context) {
-		printf("Error: %s\n", ml_error_message(Context->Error));
-		const char *Source;
-		int Line;
-		for (int I = 0; ml_error_trace(Context->Error, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
-		exit(0);
-	}
 	ml_value_t *Semicolon = ml_string(";", 1);
 	for (;;) {
 		ml_preprocessor_input_t *Input = Preprocessor->Input;
@@ -182,14 +188,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 				ml_inline(Preprocessor->Output->Writer, 1, Semicolon);
 			} else {
 				Input->Line = Escape + 1;
-				ml_value_t *Result = ml_command_evaluate(Scanner, Globals, Context);
-				if (Result->Type == MLErrorT) {
-					printf("Error: %s\n", ml_error_message(Result));
-					const char *Source;
-					int Line;
-					for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
-					exit(0);
-				}
+				ml_command_evaluate(MLResultState, Scanner, Globals);
 				Input->Line = ml_scanner_clear(Scanner);
 			}
 		} else {

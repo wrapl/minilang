@@ -97,14 +97,6 @@ void ml_console(ml_getter_t GlobalGet, void *Globals) {
 	}};
 	mlc_context_t Context[1] = {{(ml_getter_t)ml_console_global_get, Console}};
 	mlc_scanner_t *Scanner = ml_scanner("console", Console, (void *)ml_console_line_read, Context);
-	MLC_ON_ERROR(Context) {
-		printf("Error: %s\n", ml_error_message(Context->Error));
-		const char *Source;
-		int Line;
-		for (int I = 0; ml_error_trace(Context->Error, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
-		ml_scanner_reset(Scanner);
-		Console->Prompt = "--> ";
-	}
 	ml_console_repl_state_t *State = new(ml_console_repl_state_t);
 	State->Base.run = ml_console_repl_run;
 	State->Console = Console;

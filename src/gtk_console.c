@@ -179,7 +179,9 @@ typedef struct {
 static void ml_console_repl_run(ml_console_repl_state_t *State, ml_value_t *Result) {
 	if (!Result) return;
 	console_log(State->Console, Result);
-	return ml_command_evaluate(State, State->Console->Scanner, State->Console->Globals);
+	if (Result->Type != MLErrorT) {
+		return ml_command_evaluate(State, State->Console->Scanner, State->Console->Globals);
+	}
 }
 
 static void console_submit(GtkWidget *Button, console_t *Console) {
@@ -205,15 +207,10 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 	gtk_source_buffer_set_highlight_matching_brackets(GTK_SOURCE_BUFFER(InputBuffer), TRUE);
 
 	mlc_scanner_t *Scanner = Console->Scanner;
-	MLC_ON_ERROR(Console->Context) {
-		console_log(Console, Console->Context->Error);
-		ml_scanner_reset(Scanner);
-	} else {
-		ml_console_repl_state_t *State = new(ml_console_repl_state_t);
-		State->Base.run = ml_console_repl_run;
-		State->Console = Console;
-		ml_command_evaluate(State, Scanner, Console->Globals);
-	}
+	ml_console_repl_state_t *State = new(ml_console_repl_state_t);
+	State->Base.run = ml_console_repl_run;
+	State->Console = Console;
+	ml_command_evaluate(State, Scanner, Console->Globals);
 	gtk_widget_grab_focus(Console->InputView);
 }
 

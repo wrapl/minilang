@@ -2584,6 +2584,10 @@ void ml_function_compile(ml_state_t *Caller, mlc_scanner_t *Scanner, const char 
 }
 
 void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t *Vars) {
+	MLC_ON_ERROR(Scanner->Context) {
+		ml_scanner_reset(Scanner);
+		ML_RETURN(Scanner->Context->Error);
+	}
 	while (ml_parse(Scanner, MLT_EOL));
 	if (ml_parse(Scanner, MLT_EOI)) ML_RETURN(NULL);
 	ml_value_t *Result = NULL;

@@ -74,7 +74,6 @@ ML_METHODX("close", MLUVFileT) {
 	uv_fs_t *Request = new(uv_fs_t);
 	Request->data = Caller;
 	uv_fs_close(Loop, Request, File->Handle, ml_uv_fs_close_cb);
-	return MLNil;
 }
 
 typedef struct ml_uv_fs_buf_t {
@@ -102,7 +101,6 @@ ML_METHODX("read", MLUVFileT, MLIntegerT) {
 	Request->IOV[0].base = GC_MALLOC_ATOMIC(Length);
 	Request->IOV[0].len = Length;
 	uv_fs_read(Loop, (uv_fs_t *)Request, File->Handle, Request->IOV, 1, -1, (uv_fs_cb)ml_uv_fs_read_cb);
-	return MLNil;
 }
 
 static void ml_uv_fs_write_cb(ml_uv_fs_buf_t *Request) {
@@ -124,7 +122,6 @@ ML_METHODX("write", MLUVFileT, MLStringT) {
 	Request->IOV[0].base = ml_string_value(Args[1]);
 	Request->IOV[0].len = ml_string_length(Args[1]);
 	uv_fs_write(Loop, (uv_fs_t *)Request, File->Handle, Request->IOV, 1, -1, (uv_fs_cb)ml_uv_fs_write_cb);
-	return MLNil;
 }
 
 static void ml_uv_sleep_cb(uv_timer_t *Timer) {
@@ -132,14 +129,13 @@ static void ml_uv_sleep_cb(uv_timer_t *Timer) {
 	Caller->run(Caller, MLNil);
 }
 
-static ml_value_t *ml_uv_sleep(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+static void ml_uv_sleep(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLIntegerT);
 	uv_timer_t *Timer = new(uv_timer_t);
 	uv_timer_init(Loop, Timer);
 	Timer->data = Caller;
 	uv_timer_start(Timer, ml_uv_sleep_cb, ml_integer_value(Args[0]), 0);
-	return MLNil;
 }
 
 void *ml_calloc(size_t Count, size_t Size) {
