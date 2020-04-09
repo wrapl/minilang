@@ -82,7 +82,7 @@ ml_value_t *ml_partial_function_set(ml_value_t *Partial, size_t Index, ml_value_
 	return __State->run(__State, __Value); \
 }
 
-#define ML_RETURN(VALUE) return Caller->run(Caller, (ml_value_t *)(VALUE));
+#define ML_RETURN(VALUE) return Caller->run(Caller, (ml_value_t *)(VALUE))
 
 /****************************** References ******************************/
 

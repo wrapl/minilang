@@ -2578,7 +2578,9 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 }
 
 void ml_function_compile(ml_state_t *Caller, mlc_scanner_t *Scanner, const char **Parameters) {
+	MLC_ON_ERROR(Scanner->Context) ML_RETURN(Scanner->Context->Error);
 	mlc_expr_t *Block = ml_accept_block(Scanner);
+	ml_accept_eoi(Scanner);
 	ml_value_t *Function = ml_compile(Block, Parameters, Scanner->Context);
 	Caller->run(Caller, Function);
 }
