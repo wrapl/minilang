@@ -173,7 +173,7 @@ static void ml_array_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value
 		Array = ml_array_new(Format, Degree);
 		ml_list_node_t *Node = ml_list_head(Args[1]);
 		for (int I = 0; I < Degree; ++I, Node = Node->Next) {
-			if (Node->Value->Type != MLIntegerT) return ml_error("TypeError", "Dimension is not an integer");
+			if (Node->Value->Type != MLIntegerT) ML_RETURN(ml_error("TypeError", "Dimension is not an integer"));
 			Array->Dimensions[I].Size = ml_integer_value(Node->Value);
 		}
 	} else {
