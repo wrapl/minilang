@@ -128,6 +128,30 @@ static void ml_import_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t 
 static ml_functionx_t Import[1] = {{MLFunctionXT, ml_import_fnx, NULL}};
 #endif
 
+static ml_value_t *MainArgs[1];
+
+static void ml_loaded_run(ml_state_t *State, ml_value_t *Result) {
+	if (Result->Type == MLErrorT) {
+		printf("Error: %s\n", ml_error_message(Result));
+		const char *Source;
+		int Line;
+		for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+		exit(1);
+	}
+	Result = ml_call(Result, 1, MainArgs);
+	if (Result->Type == MLErrorT) {
+		printf("Error: %s\n", ml_error_message(Result));
+		const char *Source;
+		int Line;
+		for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+		exit(1);
+	}
+}
+
+static ml_state_t MLLoadedState[1] = {{
+	MLStateT, NULL, ml_loaded_run
+}};
+
 int main(int Argc, const char *Argv[]) {
 	static const char *Parameters[] = {"Args", NULL};
 	ml_init();
@@ -195,23 +219,9 @@ int main(int Argc, const char *Argv[]) {
 			ml_list_append(Args, ml_string(Argv[I], -1));
 		}
 	}
+	MainArgs[0] = Args;
 	if (FileName) {
-		ml_value_t *Closure = ml_load(global_get, 0, FileName, Parameters);
-		if (Closure->Type == MLErrorT) {
-			printf("Error: %s\n", ml_error_message(Closure));
-			const char *Source;
-			int Line;
-			for (int I = 0; ml_error_trace(Closure, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
-			return 1;
-		}
-		ml_value_t *Result = ml_inline(Closure, 1, Args);
-		if (Result->Type == MLErrorT) {
-			printf("Error: %s\n", ml_error_message(Result));
-			const char *Source;
-			int Line;
-			for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
-			return 1;
-		}
+		ml_load(MLLoadedState, global_get, 0, FileName, Parameters);
 #ifdef USE_ML_MODULES
 	} else if (ModuleName) {
 		ml_value_t *Args[] = {ml_string(ModuleName, -1)};

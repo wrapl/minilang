@@ -2701,16 +2701,16 @@ static const char *ml_file_read(void *Data) {
 	return Line;
 }
 
-ml_value_t *ml_load(ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]) {
+void ml_load(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]) {
 	FILE *File = fopen(FileName, "r");
-	if (!File) return ml_error("LoadError", "error opening %s", FileName);
+	if (!File) ML_RETURN(ml_error("LoadError", "error opening %s", FileName));
 	mlc_context_t Context[1] = {{GlobalGet, Globals}};
-	MLC_ON_ERROR(Context) return Context->Error;
+	MLC_ON_ERROR(Context) ML_RETURN(Context->Error);
 	mlc_scanner_t *Scanner = ml_scanner(FileName, File, ml_file_read, Context);
 	mlc_expr_t *Expr = ml_accept_block(Scanner);
 	ml_accept_eoi(Scanner);
 	fclose(File);
 	ml_value_t *Closure = ml_compile(Expr, Parameters, Context);
 	if (MLDebugClosures) ml_closure_debug(Closure);
-	return Closure;
+	ML_RETURN(Closure);
 }

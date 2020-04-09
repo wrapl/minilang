@@ -434,12 +434,19 @@ static ml_value_t *console_add_combo(console_t *Console, int Count, ml_value_t *
 	return MLNil;
 }
 
-static ml_value_t *console_include(console_t *Console, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
-	ml_value_t *Closure = ml_load((ml_getter_t)console_global_get, Console, ml_string_value(Args[0]), NULL);
-	if (Closure->Type == MLErrorT) return Closure;
-	return ml_call(Closure, 0, NULL);
+static void console_included_run(ml_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Caller;
+	if (Value->Type == MLErrorT) ML_RETURN(Value);
+	return Value->Type->call(Caller, Value, 0, NULL);
+}
+
+static void console_include_fnx(ml_state_t *Caller, console_t *Console, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLStringT);
+	ml_state_t *State = new(ml_state_t);
+	State->Caller = Caller;
+	State->run = console_included_run;
+	return ml_load(State, (ml_getter_t)console_global_get, Console, ml_string_value(Args[0]), NULL);
 }
 
 static gboolean console_update_status(console_t *Console) {
@@ -601,7 +608,7 @@ console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 	stringmap_insert(Globals, "set_style", ml_function(Console, (ml_callback_t)console_set_style));
 	stringmap_insert(Globals, "add_cycle", ml_function(Console, (ml_callback_t)console_add_cycle));
 	stringmap_insert(Globals, "add_combo", ml_function(Console, (ml_callback_t)console_add_combo));
-	stringmap_insert(Globals, "include", ml_function(Console, (ml_callback_t)console_include));
+	stringmap_insert(Globals, "include", ml_functionx(Console, (ml_callback_t)console_include_fnx));
 	stringmap_insert(Globals, "display", ml_function(Console, (ml_callback_t)console_display));
 
 	ml_typed_fn_set(MLClosureT, console_display_value, console_display_closure);

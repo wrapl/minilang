@@ -6,14 +6,6 @@
 #include <stdarg.h>
 #include "ml_runtime.h"
 
-typedef struct ml_module_state_t {
-	ml_state_t Base;
-	ml_value_t *Module;
-	ml_value_t *Args[1];
-} ml_module_state_t;
-
-static ml_type_t *MLModuleStateT;
-
 typedef struct ml_mini_module_t {
 	const ml_type_t *Type;
 	const char *FileName;
@@ -76,9 +68,22 @@ ml_type_t MLExportFunctionT[1] = {{
 	NULL, 0, 0
 }};
 
-static void ml_module_state_run(ml_module_state_t *State, ml_value_t *Value) {
-	if (Value->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Value);
+typedef struct ml_module_state_t {
+	ml_state_t Base;
+	ml_value_t *Module;
+	ml_value_t *Args[1];
+} ml_module_state_t;
+
+static ml_type_t *MLModuleStateT;
+
+static void ml_module_done_run(ml_module_state_t *State, ml_value_t *Value) {
 	ML_CONTINUE(State->Base.Caller, State->Module);
+}
+
+static void ml_module_init_run(ml_module_state_t *State, ml_value_t *Value) {
+	if (Value->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = ml_module_done_run;
+	return Value->Type->call((ml_state_t *)State, Value, 1, State->Args);
 }
 
 void ml_module_load_file(ml_state_t *Caller, const char *FileName, ml_getter_t GlobalGet, void *Globals, ml_value_t **Slot) {
@@ -90,14 +95,13 @@ void ml_module_load_file(ml_state_t *Caller, const char *FileName, ml_getter_t G
 	ml_export_function_t *ExportFunction = new(ml_export_function_t);
 	ExportFunction->Type = MLExportFunctionT;
 	ExportFunction->Module = Module;
-	ml_value_t *Init = ml_load(GlobalGet, Globals, FileName, Parameters);
 	ml_module_state_t *State = new(ml_module_state_t);
 	State->Base.Type = MLModuleStateT;
-	State->Base.run = (void *)ml_module_state_run;
+	State->Base.run = (void *)ml_module_init_run;
 	State->Base.Caller = Caller;
 	State->Module = Module;
 	State->Args[0] = (ml_value_t *)ExportFunction;
-	return Init->Type->call((ml_state_t *)State, Init, 1, State->Args);
+	return ml_load(State, GlobalGet, Globals, FileName, Parameters);
 }
 
 void ml_module_init(stringmap_t *_Globals) {
