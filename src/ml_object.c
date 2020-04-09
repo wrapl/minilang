@@ -25,14 +25,14 @@ ml_type_t MLObjectT[1] = {{
 	NULL, 0, 0
 }};
 
-static ml_value_t *ml_class_call(ml_state_t *Caller, ml_class_t *Class, int Count, ml_value_t **Args) {
+static void ml_class_call(ml_state_t *Caller, ml_class_t *Class, int Count, ml_value_t **Args) {
 	ml_object_t *Object = xnew(ml_object_t, Class->NumFields, ml_value_t *);
 	Object->Type = (ml_type_t *)Class;
 	ml_value_t **Slot = Object->Fields;
 	for (int I = Class->NumFields; --I >= 0; ++Slot) *Slot = MLNil;
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Arg = Args[I]->Type->deref(Args[I]);
-		if (Arg->Type == MLErrorT) ML_CONTINUE(Caller, Arg);
+		if (Arg->Type == MLErrorT) ML_RETURN(Arg);
 		if (Arg->Type == MLNamesT) {
 			ML_NAMES_FOREACH(Args[I], Node) {
 				++I;
@@ -40,12 +40,12 @@ static ml_value_t *ml_class_call(ml_state_t *Caller, ml_class_t *Class, int Coun
 				for (int J = 0; J < Class->NumFields; ++J) {
 					if (Class->Fields[J] == Field) {
 						ml_value_t *Arg = Args[I]->Type->deref(Args[I]);
-						if (Arg->Type == MLErrorT) ML_CONTINUE(Caller, Arg);
+						if (Arg->Type == MLErrorT) ML_RETURN(Arg);
 						Object->Fields[J] = Arg;
 						goto found;
 					}
 				}
-				ML_CONTINUE(Caller, ml_error("ValueError", "Class %s does not have field %s", Class->Base.Name, ml_method_name(Field)));
+				ML_RETURN(ml_error("ValueError", "Class %s does not have field %s", Class->Base.Name, ml_method_name(Field)));
 				found: 0;
 			}
 			break;
@@ -55,7 +55,7 @@ static ml_value_t *ml_class_call(ml_state_t *Caller, ml_class_t *Class, int Coun
 			Object->Fields[I] = Arg;
 		}
 	}
-	ML_CONTINUE(Caller, Object);
+	ML_RETURN(Object);
 }
 
 ml_type_t MLClassT[1] = {{

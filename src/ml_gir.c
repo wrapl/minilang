@@ -1,7 +1,7 @@
 #include "ml_gir.h"
 #include "minilang.h"
 #include "ml_macros.h"
-#include <gc.h>
+#include <gc/gc.h>
 #include <girepository.h>
 #include <girffi.h>
 #include <gtk/gtk.h>
@@ -27,18 +27,18 @@ typedef struct typelib_iter_t {
 
 static ml_value_t *baseinfo_to_value(GIBaseInfo *Info);
 
-static ml_value_t *typelib_iter_value(ml_state_t *Caller, typelib_iter_t *Iter) {
+static void typelib_iter_value(ml_state_t *Caller, typelib_iter_t *Iter) {
 	const char *Type = g_info_type_to_string(g_base_info_get_type(Iter->Current));
 	ML_CONTINUE(Caller, ml_string(Type, -1));
 }
 
-static ml_value_t *typelib_iter_next(ml_state_t *Caller, typelib_iter_t *Iter) {
+static void typelib_iter_next(ml_state_t *Caller, typelib_iter_t *Iter) {
 	if (++Iter->Index >= Iter->Total) ML_CONTINUE(Caller, MLNil);
 	Iter->Current = g_irepository_get_info(NULL, Iter->Namespace, Iter->Index);
 	ML_CONTINUE(Caller, Iter);
 }
 
-static ml_value_t *typelib_iter_key(ml_state_t *Caller, typelib_iter_t *Iter) {
+static void typelib_iter_key(ml_state_t *Caller, typelib_iter_t *Iter) {
 	ML_CONTINUE(Caller, ml_string(g_base_info_get_name(Iter->Current), -1));
 }
 
@@ -1410,7 +1410,7 @@ ML_METHOD("::", EnumT, MLStringT) {
 	return (ml_value_t *)Value;
 }
 
-static ml_value_t *enum_iterate(ml_state_t *Caller, enum_t *Enum) {
+static void enum_iterate(ml_state_t *Caller, enum_t *Enum) {
 	return ml_iterate(Caller, Enum->ByName);
 }
 
@@ -1529,7 +1529,7 @@ ML_METHOD("::", TypelibT, MLStringT) {
 	}
 }
 
-static ml_value_t *typelib_iterate(ml_state_t *Caller, typelib_t *Typelib) {
+static void typelib_iterate(ml_state_t *Caller, typelib_t *Typelib) {
 	typelib_iter_t *Iter = new(typelib_iter_t);
 	Iter->Type = TypelibIterT;
 	Iter->Namespace = Typelib->Namespace;

@@ -11,7 +11,7 @@
 
 /****************************** Runtime ******************************/
 
-static ml_value_t *ml_state_call(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
+static void ml_state_call(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
 	return State->run(State, Count ? Args[0] : MLNil);
 }
 
@@ -25,9 +25,26 @@ ml_type_t MLStateT[1] = {{
 	NULL, 0, 0
 }};
 
+static void ml_end_state_run(ml_state_t *State, ml_value_t *Value) {
+}
+
+static ml_state_t MLEndState[1] = {{MLStateT, NULL, ml_end_state_run}};
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Result;
+} ml_call_state_t;
+
+static void ml_call_state_run(ml_call_state_t *State, ml_value_t *Value) {
+	State->Result = Value;
+}
+
 inline ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args) {
-	ml_value_t *Result = Value->Type->call(NULL, Value, Count, Args);
-	return Result->Type->deref(Result);
+	ml_call_state_t State[1];
+	State->Base.run = ml_call_state_run;
+	State->Result = MLNil;
+	Value->Type->call(State, Value, Count, Args);
+	return State->Result->Type->deref(State->Result);
 }
 
 typedef struct ml_resumable_state_t {
@@ -35,7 +52,7 @@ typedef struct ml_resumable_state_t {
 	ml_state_t *Last;
 } ml_resumable_state_t;
 
-static ml_value_t *ml_resumable_state_call(ml_state_t *Caller, ml_resumable_state_t *State, int Count, ml_value_t **Args) {
+static void ml_resumable_state_call(ml_state_t *Caller, ml_resumable_state_t *State, int Count, ml_value_t **Args) {
 	State->Last->Caller = Caller;
 	ML_CONTINUE(State->Base.Caller, Count ? Args[0] : MLNil);
 }
@@ -50,17 +67,17 @@ ml_type_t MLResumableStateT[1] = {{
 	NULL, 0, 0
 }};
 
-static ml_value_t *ml_resumable_state_run(ml_resumable_state_t *State, ml_value_t *Value) {
+static void ml_resumable_state_run(ml_resumable_state_t *State, ml_value_t *Value) {
 	ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Invalid use of resumable state"));
 }
 
-static ml_value_t *ml_callcc_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+static void ml_callcc_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
 	if (Count > 1) {
 		ML_CHECKX_ARG_TYPE(0, MLStateT);
 		ml_state_t *State = (ml_state_t *)Args[0];
 		ml_state_t *Last = Caller;
 		while (Last && Last->Caller != State) Last = Last->Caller;
-		if (!Last) ML_CONTINUE(Caller, ml_error("StateError", "State not in current call chain"));
+		if (!Last) ML_RETURN(ml_error("StateError", "State not in current call chain"));
 		Last->Caller = NULL;
 		ml_resumable_state_t *Resumable = new(ml_resumable_state_t);
 		Resumable->Base.Type = MLResumableStateT;
@@ -76,15 +93,15 @@ static ml_value_t *ml_callcc_fnx(ml_state_t *Caller, void *Data, int Count, ml_v
 		ml_value_t *Function = Args[0];
 		ml_value_t **Args2 = anew(ml_value_t *, 1);
 		Args2[0] = (ml_value_t *)Caller;
-		return Function->Type->call(NULL, Function, 1, Args2);
+		return Function->Type->call(MLEndState, Function, 1, Args2);
 	}
 }
 
-static ml_value_t *ml_spawn_state_fn(ml_state_t *State, ml_value_t *Value) {
+static void ml_spawn_state_fn(ml_state_t *State, ml_value_t *Value) {
 	ML_CONTINUE(State->Caller, Value);
 }
 
-static ml_value_t *ml_spawn_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+static void ml_spawn_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
 	ml_state_t *State = new(ml_state_t);
 	State->Type = MLStateT;
@@ -101,12 +118,12 @@ ml_functionx_t MLSpawn[1] = {{MLFunctionXT, ml_spawn_fnx, NULL}};
 
 /****************************** Functions ******************************/
 
-static ml_value_t *ml_function_call(ml_state_t *Caller, ml_function_t *Function, int Count, ml_value_t **Args) {
+static void ml_function_call(ml_state_t *Caller, ml_function_t *Function, int Count, ml_value_t **Args) {
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Arg = Args[I] = Args[I]->Type->deref(Args[I]);
-		if (Arg->Type == MLErrorT) ML_CONTINUE(Caller, Arg);
+		if (Arg->Type == MLErrorT) ML_RETURN(Arg);
 	}
-	ML_CONTINUE(Caller, (Function->Callback)(Function->Data, Count, Args));
+	ML_RETURN((Function->Callback)(Function->Data, Count, Args));
 }
 
 ml_type_t MLFunctionT[1] = {{
@@ -128,10 +145,10 @@ ml_value_t *ml_function(void *Data, ml_callback_t Callback) {
 	return (ml_value_t *)Function;
 }
 
-static ml_value_t *ml_functionx_call(ml_state_t *Caller, ml_functionx_t *Function, int Count, ml_value_t **Args) {
+static void ml_functionx_call(ml_state_t *Caller, ml_functionx_t *Function, int Count, ml_value_t **Args) {
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Arg = Args[I] = Args[I]->Type->deref(Args[I]);
-		if (Arg->Type == MLErrorT) ML_CONTINUE(Caller, Arg);
+		if (Arg->Type == MLErrorT) ML_RETURN(Arg);
 	}
 	return (Function->Callback)(Caller, Function->Data, Count, Args);
 }
@@ -178,7 +195,7 @@ ML_METHODX("!", MLFunctionT, MLMapT) {
 		} else if (Name->Type == MLStringT) {
 			ml_map_insert(Names, ml_method(ml_string_value(Name)), ml_integer(Arg - ListArgs));
 		} else {
-			return ml_error("TypeError", "Parameter names must be strings or methods");
+			ML_RETURN(ml_error("TypeError", "Parameter names must be strings or methods"));
 		}
 		*(Arg++) = Node->Value;
 	}
@@ -202,7 +219,7 @@ ML_METHODX("!", MLFunctionT, MLListT, MLMapT) {
 		} else if (Name->Type == MLStringT) {
 			ml_map_insert(Names, ml_method(ml_string_value(Name)), ml_integer(Arg - ListArgs));
 		} else {
-			return ml_error("TypeError", "Parameter names must be strings or methods");
+			ML_RETURN(ml_error("TypeError", "Parameter names must be strings or methods"));
 		}
 		*(Arg++) = Node->Value;
 	}
@@ -225,7 +242,7 @@ typedef struct ml_partial_function_t {
 	ml_value_t *Args[];
 } ml_partial_function_t;
 
-static ml_value_t *ml_partial_function_call(ml_state_t *Caller, ml_partial_function_t *Partial, int Count, ml_value_t **Args) {
+static void ml_partial_function_call(ml_state_t *Caller, ml_partial_function_t *Partial, int Count, ml_value_t **Args) {
 	int CombinedCount = Count + Partial->Set;
 	ml_value_t **CombinedArgs = anew(ml_value_t *, CombinedCount);
 	int J = 0;
@@ -298,7 +315,7 @@ ML_METHOD("$", MLPartialFunctionT, MLAnyT) {
 	return (ml_value_t *)Partial;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_iterate, MLPartialFunctionT, ml_state_t *Caller, ml_partial_function_t *Partial) {
+static void ML_TYPED_FN(ml_iterate, MLPartialFunctionT, ml_state_t *Caller, ml_partial_function_t *Partial) {
 	return Partial->Function->Type->call(Caller, Partial->Function, Partial->Count, Partial->Args);
 }
 
@@ -367,9 +384,9 @@ struct ml_error_t {
 	ml_source_t Trace[MAX_TRACE];
 };
 
-static ml_value_t *ml_error_call(ml_state_t *Caller, ml_error_t *Error, int Count, ml_value_t **Args) {
+static void ml_error_call(ml_state_t *Caller, ml_error_t *Error, int Count, ml_value_t **Args) {
 	ml_error_trace_add(Error, (ml_source_t){__FILE__, __LINE__});
-	ML_CONTINUE(Caller, Error);
+	ML_RETURN(Error);
 }
 
 ml_type_t MLErrorT[1] = {{

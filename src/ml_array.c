@@ -77,7 +77,7 @@ typedef struct ml_array_init_state_t {
 	ml_value_t *Args[];
 } ml_array_init_state_t;
 
-static ml_value_t *ml_array_init_run(ml_array_init_state_t *State, ml_value_t *Value) {
+static void ml_array_init_run(ml_array_init_state_t *State, ml_value_t *Value) {
 	Value = Value->Type->deref(Value);
 	if (Value->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Value);
 	ml_array_t *Array = State->Array;
@@ -139,7 +139,7 @@ static ml_value_t *ml_array_init_run(ml_array_init_state_t *State, ml_value_t *V
 	ML_CONTINUE(State->Base.Caller, Array);
 }
 
-static ml_value_t *ml_array_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+static void ml_array_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(2);
 	ml_array_format_t Format;
 	if (Args[0] == (ml_value_t *)MLArrayAnyT) {
@@ -191,7 +191,7 @@ static ml_value_t *ml_array_new_fnx(ml_state_t *Caller, void *Data, int Count, m
 	}
 	Array->Base.Address = GC_MALLOC_ATOMIC(DataSize);
 	Array->Base.Size = DataSize;
-	if (Count == 2) ML_CONTINUE(Caller, Array);
+	if (Count == 2) ML_RETURN(Array);
 	ml_array_init_state_t *InitState = xnew(ml_array_init_state_t, Array->Degree, ml_value_t *);
 	InitState->Base.Caller = Caller;
 	InitState->Base.run = (void *)ml_array_init_run;

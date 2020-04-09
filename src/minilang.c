@@ -105,7 +105,7 @@ extern ml_value_t MLSpawn[];
 #ifdef USE_ML_MODULES
 static stringmap_t Modules[1] = {STRINGMAP_INIT};
 
-static ml_value_t *ml_import_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+static void ml_import_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLStringT);
 	const char *FileName = realpath(ml_string_value(Args[0]), NULL);
@@ -124,6 +124,8 @@ static ml_value_t *ml_import_fnx(ml_state_t *Caller, void *Data, int Count, ml_v
 	}
 	ML_CONTINUE(Caller, Slot[0]);
 }
+
+static ml_functionx_t Import[1] = {{MLFunctionXT, ml_import_fnx, NULL}};
 #endif
 
 int main(int Argc, const char *Argv[]) {
@@ -213,7 +215,7 @@ int main(int Argc, const char *Argv[]) {
 #ifdef USE_ML_MODULES
 	} else if (ModuleName) {
 		ml_value_t *Args[] = {ml_string(ModuleName, -1)};
-		ml_value_t *Result = ml_import_fnx(NULL, NULL, 1, Args);
+		ml_value_t *Result = ml_call(Import, 1, Args);
 		if (Result->Type == MLErrorT) {
 			printf("Error: %s\n", ml_error_message(Result));
 			const char *Source;

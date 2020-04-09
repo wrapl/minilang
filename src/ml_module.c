@@ -40,7 +40,7 @@ ML_METHODX("::", MLMiniModuleT, MLStringT) {
 		Uninitialized->Type = MLUninitializedT;
 		Value = Slot[0] = (ml_value_t *)Uninitialized;
 	}
-	ML_CONTINUE(Caller, Value);
+	ML_RETURN(Value);
 }
 
 typedef struct ml_export_function_t {
@@ -48,7 +48,7 @@ typedef struct ml_export_function_t {
 	ml_mini_module_t *Module;
 } ml_export_function_t;
 
-static ml_value_t *ml_export_function_call(ml_state_t *Caller, ml_export_function_t *ExportFunction, int Count, ml_value_t **Args) {
+static void ml_export_function_call(ml_state_t *Caller, ml_export_function_t *ExportFunction, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(2);
 	ml_value_t *NameValue = Args[0]->Type->deref(Args[0]);
 	if (NameValue->Type != MLStringT) ML_CHECKX_ARG_TYPE(0, MLStringT);
@@ -59,11 +59,11 @@ static ml_value_t *ml_export_function_call(ml_state_t *Caller, ml_export_functio
 	if (Slot[0]) {
 		ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Slot[0];
 		if (Uninitialized->Type != MLUninitializedT) {
-			ML_CONTINUE(Caller, ml_error("ExportError", "Duplicate export %s", Name));
+			ML_RETURN(ml_error("ExportError", "Duplicate export %s", Name));
 		}
 		for (ml_slot_t *Slot = Uninitialized->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Value;
 	}
-	ML_CONTINUE(Caller, Slot[0] = Value);
+	ML_RETURN(Slot[0] = Value);
 }
 
 ml_type_t MLExportFunctionT[1] = {{
@@ -76,12 +76,12 @@ ml_type_t MLExportFunctionT[1] = {{
 	NULL, 0, 0
 }};
 
-static ml_value_t *ml_module_state_run(ml_module_state_t *State, ml_value_t *Value) {
+static void ml_module_state_run(ml_module_state_t *State, ml_value_t *Value) {
 	if (Value->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Value);
 	ML_CONTINUE(State->Base.Caller, State->Module);
 }
 
-ml_value_t *ml_module_load_file(ml_state_t *Caller, const char *FileName, ml_getter_t GlobalGet, void *Globals, ml_value_t **Slot) {
+void ml_module_load_file(ml_state_t *Caller, const char *FileName, ml_getter_t GlobalGet, void *Globals, ml_value_t **Slot) {
 	static const char *Parameters[] = {"export", NULL};
 	ml_mini_module_t *Module = new(ml_mini_module_t);
 	Module->Type = MLMiniModuleT;

@@ -171,6 +171,17 @@ void console_log(console_t *Console, ml_value_t *Value) {
 	gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(Console->LogView), Console->EndMark);
 }
 
+typedef struct {
+	ml_state_t Base;
+	console_t *Console;
+} ml_console_repl_state_t;
+
+static void ml_console_repl_run(ml_console_repl_state_t *State, ml_value_t *Result) {
+	if (!Result) return;
+	console_log(State->Console, Result);
+	return ml_command_evaluate(State, State->Console->Scanner, State->Console->Globals);
+}
+
 static void console_submit(GtkWidget *Button, console_t *Console) {
 	GtkTextBuffer *InputBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView));
 	GtkTextIter InputStart[1], InputEnd[1];
@@ -198,12 +209,10 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 		console_log(Console, Console->Context->Error);
 		ml_scanner_reset(Scanner);
 	} else {
-		for (;;) {
-			ml_value_t *Result = ml_command_evaluate(Scanner, Console->Globals, Console->Context);
-			if (!Result) break;
-			Result = Result->Type->deref(Result);
-			console_log(Console, Result);
-		}
+		ml_console_repl_state_t *State = new(ml_console_repl_state_t);
+		State->Base.run = ml_console_repl_run;
+		State->Console = Console;
+		ml_command_evaluate(State, Scanner, Console->Globals);
 	}
 	gtk_widget_grab_focus(Console->InputView);
 }

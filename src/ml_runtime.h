@@ -12,8 +12,7 @@ extern "C" {
 struct ml_state_t {
 	const ml_type_t *Type;
 	ml_state_t *Caller;
-	ml_value_t *(*run)(ml_state_t *State, ml_value_t *Value);
-	ml_context_t *Context;
+	void (*run)(ml_state_t *State, ml_value_t *Value);
 };
 
 struct ml_context_t {
@@ -80,8 +79,10 @@ ml_value_t *ml_partial_function_set(ml_value_t *Partial, size_t Index, ml_value_
 #define ML_CONTINUE(STATE, VALUE) { \
 	ml_state_t *__State = (ml_state_t *)(STATE); \
 	ml_value_t *__Value = (ml_value_t *)(VALUE); \
-	return __State ? __State->run(__State, __Value) : __Value; \
+	return __State->run(__State, __Value); \
 }
+
+#define ML_RETURN(VALUE) return Caller->run(Caller, (ml_value_t *)(VALUE));
 
 /****************************** References ******************************/
 

@@ -2,7 +2,7 @@
 #include "ml_macros.h"
 #include "ml_compiler.h"
 #include "stringmap.h"
-#include <gc.h>
+#include <gc/gc.h>
 #include <ctype.h>
 #include "ml_bytecode.h"
 #include "ml_runtime.h"
@@ -137,7 +137,7 @@ static inline ml_expr_error(mlc_expr_t *Expr, mlc_function_t *Function, ml_value
 
 extern int MLDebugClosures;
 
-ml_value_t *ml_expr_evaluate(mlc_expr_t *Expr, mlc_function_t *Function) {
+static ml_value_t *ml_expr_evaluate(mlc_expr_t *Expr, mlc_function_t *Function) {
 	mlc_function_t SubFunction[1];
 	memset(SubFunction, 0, sizeof(SubFunction));
 	SubFunction->Context = Function->Context;
@@ -1045,7 +1045,7 @@ static mlc_compiled_t ml_import_expr_compile(mlc_function_t *Function, mlc_paren
 	if ((Compiled.Start == Compiled.Exits) && (Compiled.Start->Opcode == MLI_LOAD)) {
 		ml_inst_t *ValueInst = Compiled.Start;
 		ml_value_t *Args[2] = {ValueInst->Params[1].Value, Expr->Value};
-		ml_value_t *Value = SymbolMethod->Type->call(NULL, SymbolMethod, 2, Args);
+		ml_value_t *Value = ml_call(SymbolMethod, 2, Args);
 		if (Value->Type != MLErrorT) {
 			if (Value->Type == MLUninitializedT) {
 				ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Value;
@@ -2577,9 +2577,15 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 	return (mlc_expr_t *)BlockExpr;
 }
 
-ml_value_t *ml_command_evaluate(mlc_scanner_t *Scanner, stringmap_t *Vars, mlc_context_t *Context) {
+void ml_function_compile(ml_state_t *Caller, mlc_scanner_t *Scanner, const char **Parameters) {
+	mlc_expr_t *Block = ml_accept_block(Scanner);
+	ml_value_t *Function = ml_compile(Block, Parameters, Scanner->Context);
+	Caller->run(Caller, Function);
+}
+
+void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t *Vars) {
 	while (ml_parse(Scanner, MLT_EOL));
-	if (ml_parse(Scanner, MLT_EOI)) return NULL;
+	if (ml_parse(Scanner, MLT_EOI)) ML_RETURN(NULL);
 	ml_value_t *Result = NULL;
 	if (ml_parse(Scanner, MLT_VAR)) {
 		do {
@@ -2594,10 +2600,10 @@ ml_value_t *ml_command_evaluate(mlc_scanner_t *Scanner, stringmap_t *Vars, mlc_c
 			Slot[0] = (ml_value_t *)Ref;
 			if (ml_parse(Scanner, MLT_ASSIGN)) {
 				mlc_expr_t *Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
-				Result = ml_compile(Expr, NULL, Context);
-				if (Result->Type == MLErrorT) return Result;
+				Result = ml_compile(Expr, NULL, Scanner->Context);
+				if (Result->Type == MLErrorT) ML_RETURN(Result);
 				Result = ml_call(Result, 0, NULL);
-				if (Result->Type == MLErrorT) return Result;
+				if (Result->Type == MLErrorT) ML_RETURN(Result);
 				Ref->Address[0] = Result;
 			} else {
 				Result = MLNil;
@@ -2621,10 +2627,10 @@ ml_value_t *ml_command_evaluate(mlc_scanner_t *Scanner, stringmap_t *Vars, mlc_c
 				ml_accept(Scanner, MLT_ASSIGN);
 				Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
 			}
-			Result = ml_compile(Expr, NULL, Context);
-			if (Result->Type == MLErrorT) return Result;
+			Result = ml_compile(Expr, NULL, Scanner->Context);
+			if (Result->Type == MLErrorT) ML_RETURN(Result);
 			Result = ml_call(Result, 0, NULL);
-			if (Result->Type == MLErrorT) return Result;
+			if (Result->Type == MLErrorT) ML_RETURN(Result);
 			for (ml_slot_t *Slot = Ref->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Result;
 			Slot[0] = Result;
 		} while (ml_parse(Scanner, MLT_COMMA));
@@ -2640,29 +2646,29 @@ ml_value_t *ml_command_evaluate(mlc_scanner_t *Scanner, stringmap_t *Vars, mlc_c
 			}
 			ml_accept(Scanner, MLT_LEFT_PAREN);
 			mlc_expr_t *Expr = ml_accept_fun_decl(Scanner);
-			Result = ml_compile(Expr, NULL, Context);
-			if (Result->Type == MLErrorT) return Result;
+			Result = ml_compile(Expr, NULL, Scanner->Context);
+			if (Result->Type == MLErrorT) ML_RETURN(Result);
 			Result = ml_call(Result, 0, NULL);
-			if (Result->Type == MLErrorT) return Result;
+			if (Result->Type == MLErrorT) ML_RETURN(Result);
 			for (ml_slot_t *Slot = Ref->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Result;
 			Slot[0] = Result;
 		} else {
 			ml_accept(Scanner, MLT_LEFT_PAREN);
 			mlc_expr_t *Expr = ml_accept_fun_decl(Scanner);
-			Result = ml_compile(Expr, NULL, Context);
-			if (Result->Type == MLErrorT) return Result;
+			Result = ml_compile(Expr, NULL, Scanner->Context);
+			if (Result->Type == MLErrorT) ML_RETURN(Result);
 			Result = ml_call(Result, 0, NULL);
-			if (Result->Type == MLErrorT) return Result;
+			if (Result->Type == MLErrorT) ML_RETURN(Result);
 		}
 	} else {
 		mlc_expr_t *Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
-		Result = ml_compile(Expr, NULL, Context);
-		if (Result->Type == MLErrorT) return Result;
+		Result = ml_compile(Expr, NULL, Scanner->Context);
+		if (Result->Type == MLErrorT) ML_RETURN(Result);
 		Result = ml_call(Result, 0, NULL);
-		if (Result->Type == MLErrorT) return Result;
+		if (Result->Type == MLErrorT) ML_RETURN(Result);
 	}
 	ml_parse(Scanner, MLT_SEMICOLON);
-	return Result;
+	ML_RETURN(Result);
 }
 
 #ifdef __MINGW32__

@@ -30,7 +30,8 @@ const char *ml_scanner_clear(mlc_scanner_t *Scanner);
 
 ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, mlc_context_t *Context);
 
-ml_value_t *ml_command_evaluate(mlc_scanner_t *Scanner, stringmap_t *Vars, mlc_context_t *Context);
+void ml_function_compile(ml_state_t *Caller, mlc_scanner_t *Scanner, const char **Parameters);
+void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t *Vars);
 
 #ifdef	__cplusplus
 }

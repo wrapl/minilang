@@ -22,7 +22,7 @@ typedef struct ml_context_t ml_context_t;
 typedef struct ml_state_t ml_state_t;
 
 typedef ml_value_t *(*ml_callback_t)(void *Data, int Count, ml_value_t **Args);
-typedef ml_value_t *(*ml_callbackx_t)(ml_state_t *Frame, void *Data, int Count, ml_value_t **Args);
+typedef void (*ml_callbackx_t)(ml_state_t *Frame, void *Data, int Count, ml_value_t **Args);
 
 typedef struct ml_function_t ml_function_t;
 typedef struct ml_functionx_t ml_functionx_t;
@@ -42,7 +42,7 @@ struct ml_type_t {
 	const ml_type_t *Parent;
 	const char *Name;
 	long (*hash)(ml_value_t *, ml_hash_chain_t *);
-	ml_value_t *(*call)(ml_state_t *, ml_value_t *, int, ml_value_t **);
+	void (*call)(ml_state_t *, ml_value_t *, int, ml_value_t **);
 	ml_value_t *(*deref)(ml_value_t *);
 	ml_value_t *(*assign)(ml_value_t *, ml_value_t *);
 	ml_typed_fn_node_t *TypedFns;
@@ -52,7 +52,7 @@ struct ml_type_t {
 extern ml_type_t MLTypeT[];
 
 long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain);
-ml_value_t *ml_default_call(ml_state_t *Frame, ml_value_t *Value, int Count, ml_value_t **Args);
+void ml_default_call(ml_state_t *Frame, ml_value_t *Value, int Count, ml_value_t **Args);
 ml_value_t *ml_default_deref(ml_value_t *Ref);
 ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value);
 
@@ -91,10 +91,10 @@ long ml_hash(ml_value_t *Value);
 
 extern ml_type_t MLIteratableT[];
 
-ml_value_t *ml_iterate(ml_state_t *Caller, ml_value_t *Value);
-ml_value_t *ml_iter_value(ml_state_t *Caller, ml_value_t *Iter);
-ml_value_t *ml_iter_key(ml_state_t *Caller, ml_value_t *Iter);
-ml_value_t *ml_iter_next(ml_state_t *Caller, ml_value_t *Iter);
+void ml_iterate(ml_state_t *Caller, ml_value_t *Value);
+void ml_iter_value(ml_state_t *Caller, ml_value_t *Iter);
+void ml_iter_key(ml_state_t *Caller, ml_value_t *Iter);
+void ml_iter_next(ml_state_t *Caller, ml_value_t *Iter);
 
 /****************************** Tuples ******************************/
 
@@ -275,7 +275,7 @@ void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_t
 
 #define ML_METHOD(METHOD, TYPES ...) static ml_value_t *CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)(void *Data, int Count, ml_value_t **Args)
 
-#define ML_METHODX(METHOD, TYPES ...) static ml_value_t *CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args)
+#define ML_METHODX(METHOD, TYPES ...) static void CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args)
 
 #define ML_METHOD_DECL(NAME, METHOD) ml_value_t *NAME ## Method
 

@@ -39,7 +39,7 @@ struct DEBUG_STRUCT(frame) {
 	ml_value_t *Stack[];
 };
 
-static ml_value_t *DEBUG_FUNC(continuation_call)(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
+static void DEBUG_FUNC(continuation_call)(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
 	return State->run(State, Count ? Args[0] : MLNil);
 }
 
@@ -53,15 +53,15 @@ ml_type_t DEBUG_TYPE(Continuation)[1] = {{
 	NULL, 0, 0
 }};
 
-static ml_value_t *ML_TYPED_FN(ml_iter_value, DEBUG_TYPE(Suspension), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
-	ML_CONTINUE(Caller, Suspension->Top[-1]);
+static void ML_TYPED_FN(ml_iter_value, DEBUG_TYPE(Suspension), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+	ML_RETURN(Suspension->Top[-1]);
 }
 
-static ml_value_t *ML_TYPED_FN(ml_iter_key, DEBUG_TYPE(Suspension), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
-	ML_CONTINUE(Caller, Suspension->Top[-2]);
+static void ML_TYPED_FN(ml_iter_key, DEBUG_TYPE(Suspension), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+	ML_RETURN(Suspension->Top[-2]);
 }
 
-static ml_value_t *ML_TYPED_FN(ml_iter_next, DEBUG_TYPE(Suspension), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+static void ML_TYPED_FN(ml_iter_next, DEBUG_TYPE(Suspension), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
 	Suspension->Base.Type = DEBUG_TYPE(Continuation);
 	Suspension->Top[-2] = Suspension->Top[-1];
 	--Suspension->Top;
@@ -69,7 +69,7 @@ static ml_value_t *ML_TYPED_FN(ml_iter_next, DEBUG_TYPE(Suspension), ml_state_t 
 	ML_CONTINUE(Suspension, MLNil);
 }
 
-static ml_value_t *DEBUG_FUNC(suspension_call)(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
+static void DEBUG_FUNC(suspension_call)(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
 	State->Caller = Caller;
 	return State->run(State, Count ? Args[0] : MLNil);
 }
@@ -102,7 +102,7 @@ ml_type_t DEBUG_TYPE(Suspension)[1] = {{
 
 #endif
 
-static ml_value_t *DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
+static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
 	static void *Labels[] = {
 		[MLI_RETURN] = &&DO_RETURN,
 		[MLI_SUSPEND] = &&DO_SUSPEND,
@@ -508,7 +508,7 @@ static ml_value_t *DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t 
 }
 
 #ifndef DEBUG_VERSION
-static ml_value_t *ml_closure_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
+static void ml_closure_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
 	ml_closure_info_t *Info = Closure->Info;
 	DEBUG_STRUCT(frame) *Frame = xnew(DEBUG_STRUCT(frame), Info->FrameSize, ml_value_t *);
@@ -532,7 +532,7 @@ static ml_value_t *ml_closure_call(ml_state_t *Caller, ml_value_t *Value, int Co
 	for (; I < Min; ++I) {
 		ml_reference_t *Local = (ml_reference_t *)ml_reference(NULL);
 		ml_value_t *Arg = Args[I]->Type->deref(Args[I]);
-		if (Arg->Type == MLErrorT) ML_CONTINUE(Caller, Arg);
+		if (Arg->Type == MLErrorT) ML_RETURN(Arg);
 		if (Arg->Type == MLNamesT) break;
 		Local->Value[0] = Arg;
 		Frame->Stack[I] = (ml_value_t *)Local;
@@ -551,7 +551,7 @@ static ml_value_t *ml_closure_call(ml_state_t *Caller, ml_value_t *Value, int Co
 		ml_list_node_t *Prev = 0;
 		for (; I < Count; ++I) {
 			ml_value_t *Arg = Args[I]->Type->deref(Args[I]);
-			if (Arg->Type == MLErrorT) ML_CONTINUE(Caller, Arg);
+			if (Arg->Type == MLErrorT) ML_RETURN(Arg);
 			if (Arg->Type == MLNamesT) break;
 			ml_list_node_t *Node = new(ml_list_node_t);
 			Node->Value = Arg;
@@ -597,7 +597,7 @@ static ml_value_t *ml_closure_call(ml_state_t *Caller, ml_value_t *Value, int Co
 						ml_reference_t *Local = (ml_reference_t *)Frame->Stack[Index - 1];
 						Local->Value[0] = Args[++I];
 					} else {
-						ML_CONTINUE(Caller, ml_error("NameError", "Unknown named parameters %s", Name));
+						ML_RETURN(ml_error("NameError", "Unknown named parameters %s", Name));
 					}
 				}
 				break;
@@ -718,7 +718,7 @@ static long ml_closure_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Closure), ml_state_t *Frame, ml_value_t *Closure) {
+static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Closure), ml_state_t *Frame, ml_value_t *Closure) {
 	return ml_closure_call(Frame, Closure, 0, NULL);
 }
 
