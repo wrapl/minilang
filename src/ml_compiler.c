@@ -1566,7 +1566,7 @@ static ml_token_t ml_next(mlc_scanner_t *Scanner) {
 		}
 		if (isidstart(Char)) {
 			const char *End = Scanner->Next + 1;
-			for (Char = End[0]; isidchar(Char) || isoperator(Char); Char = *++End);
+			for (Char = End[0]; isidchar(Char); Char = *++End);
 			int Length = End - Scanner->Next;
 			const struct keyword_t *Keyword = lookup(Scanner->Next, Length);
 			if (Keyword) {
