@@ -98,6 +98,7 @@ void ml_module_load_file(ml_state_t *Caller, const char *FileName, ml_getter_t G
 	ml_module_state_t *State = new(ml_module_state_t);
 	State->Base.Type = MLModuleStateT;
 	State->Base.run = (void *)ml_module_init_run;
+	State->Base.Context = Caller->Context;
 	State->Base.Caller = Caller;
 	State->Module = Module;
 	State->Args[0] = (ml_value_t *)ExportFunction;

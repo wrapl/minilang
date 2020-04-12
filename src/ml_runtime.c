@@ -11,6 +11,29 @@
 
 /****************************** Runtime ******************************/
 
+static int MLContextSize = 2;
+// Reserved context slots:
+//  0: Method Table
+//  1: Debugger
+
+ml_context_t MLRootContext = {&MLRootContext, 2, {NULL, NULL}};
+
+ml_context_t *ml_context_new(ml_context_t *Parent) {
+	ml_context_t *Context = xnew(ml_context_t, MLContextSize, void *);
+	Context->Parent = Parent;
+	for (int I = 0; I < Parent->Size; ++I) Context->Values[I] = Parent->Values[I];
+	return Context;
+}
+
+int ml_context_index_new() {
+	return MLContextSize++;
+}
+
+void ml_context_set(ml_context_t *Context, int Index, void *Value) {
+	if (Context->Size <= Index) return;
+	Context->Values[Index] = Value;
+}
+
 static void ml_state_call(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
 	return State->run(State, Count ? Args[0] : MLNil);
 }
@@ -28,10 +51,8 @@ ml_type_t MLStateT[1] = {{
 static void ml_end_state_run(ml_state_t *State, ml_value_t *Value) {
 }
 
-static ml_state_t MLEndState[1] = {{MLStateT, NULL, ml_end_state_run}};
-
 inline ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args) {
-	ml_value_state_t State[1] = ML_EVAL_STATE_INIT;
+	ml_value_state_t State[1] = {ML_EVAL_STATE_INIT};
 	Value->Type->call(State, Value, Count, Args);
 	return State->Value->Type->deref(State->Value);
 }
@@ -85,6 +106,7 @@ static void ml_callcc_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t 
 		Resumable->Base.Type = MLResumableStateT;
 		Resumable->Base.Caller = Caller;
 		Resumable->Base.run = (void *)ml_resumable_state_run;
+		Resumable->Base.Context = Caller->Context;
 		Resumable->Last = Last;
 		ml_value_t *Function = Args[1];
 		ml_value_t **Args2 = anew(ml_value_t *, 1);
@@ -95,7 +117,10 @@ static void ml_callcc_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t 
 		ml_value_t *Function = Args[0];
 		ml_value_t **Args2 = anew(ml_value_t *, 1);
 		Args2[0] = (ml_value_t *)Caller;
-		return Function->Type->call(MLEndState, Function, 1, Args2);
+		ml_state_t *State = new(ml_state_t);
+		State->run = ml_end_state_run;
+		State->Context = Caller->Context;
+		return Function->Type->call(State, Function, 1, Args2);
 	}
 }
 
@@ -109,6 +134,7 @@ static void ml_spawn_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t *
 	State->Type = MLStateT;
 	State->Caller = Caller;
 	State->run = ml_spawn_state_fn;
+	State->Context = Caller->Context;
 	ml_value_t *Func = Args[0];
 	ml_value_t **Args2 = anew(ml_value_t *, 1);
 	Args2[0] = (ml_value_t *)State;

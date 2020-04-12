@@ -9,7 +9,7 @@ ml_type_t *MLStreamT;
 ML_METHOD_DECL(Read, NULL);
 ML_METHOD_DECL(Write, NULL);
 
-ml_value_t *ml_io_read(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count) {
+void ml_io_read(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count) {
 	typeof(ml_io_read) *function = ml_typed_fn_get(Value->Type, ml_io_read);
 	if (function) return function(Caller, Value, Address, Count);
 	ml_buffer_t *Buffer = new(ml_buffer_t);
@@ -22,7 +22,7 @@ ml_value_t *ml_io_read(ml_state_t *Caller, ml_value_t *Value, void *Address, int
 	return ReadMethod->Type->call(Caller, ReadMethod, 2, Args);
 }
 
-ml_value_t *ml_io_write(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count) {
+void ml_io_write(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count) {
 	typeof(ml_io_write) *function = ml_typed_fn_get(Value->Type, ml_io_write);
 	if (function) return function(Caller, Value, Address, Count);
 	ml_buffer_t *Buffer = new(ml_buffer_t);
@@ -53,7 +53,7 @@ ml_value_t *ml_fd_new(int Fd) {
 	return (ml_value_t *)Stream;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_io_read, MLFdT, ml_state_t *Caller, ml_fd_t *Stream, void *Address, int Count) {
+static void ML_TYPED_FN(ml_io_read, MLFdT, ml_state_t *Caller, ml_fd_t *Stream, void *Address, int Count) {
 	ssize_t Actual = read(Stream->Fd, Address, Count);
 	ml_value_t *Result;
 	if (Actual < 0) {
@@ -75,7 +75,7 @@ ML_METHOD(ReadMethod, MLFdT, MLBufferT) {
 	}
 }
 
-static ml_value_t *ML_TYPED_FN(ml_io_write, MLFdT, ml_state_t *Caller, ml_fd_t *Stream, void *Address, int Count) {
+static void ML_TYPED_FN(ml_io_write, MLFdT, ml_state_t *Caller, ml_fd_t *Stream, void *Address, int Count) {
 	ssize_t Actual = write(Stream->Fd, Address, Count);
 	ml_value_t *Result;
 	if (Actual < 0) {
@@ -83,7 +83,7 @@ static ml_value_t *ML_TYPED_FN(ml_io_write, MLFdT, ml_state_t *Caller, ml_fd_t *
 	} else {
 		Result = ml_integer(Actual);
 	}
-	ML_CONTINUE(Caller, Result);
+	ML_RETURN(Result);
 }
 
 ML_METHOD(WriteMethod, MLFdT, MLBufferT) {

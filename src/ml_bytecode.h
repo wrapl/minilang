@@ -24,7 +24,7 @@ extern ml_type_t MLClosureT[];
 struct ml_closure_info_t {
 	ml_inst_t *Entry, *Return;
 	const char *Source;
-	debug_function_t *Debug;
+	ml_debug_function_t *Debug;
 	stringmap_t Params[1];
 	int FrameSize;
 	int NumParams, NumUpValues;

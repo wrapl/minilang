@@ -23,6 +23,7 @@ static void ml_first_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t *
 	ml_state_t *State = new(ml_state_t);
 	State->Caller = Caller;
 	State->run = ml_first_run;
+	State->Context = Caller->Context;
 	return ml_iterate(State, Args[0]);
 }
 
@@ -50,6 +51,7 @@ static void ml_first2_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t 
 	ml_frame_iter_t *State = xnew(ml_frame_iter_t, 1, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = ml_first2_run;
+	State->Base.Context = Caller->Context;
 	State->Values[0] = ml_tuple(2);
 	return ml_iterate(State, Args[0]);
 }
@@ -77,6 +79,7 @@ static void ml_all_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **A
 	ml_frame_iter_t *Frame = xnew(ml_frame_iter_t, 1, ml_value_t *);
 	Frame->Base.Caller = Caller;
 	Frame->Base.run = (void *)ml_all_fnx_get_value;
+	Frame->Base.Context = Caller->Context;
 	Frame->Values[0] = ml_list();
 	return ml_iterate((ml_state_t *)Frame, Args[0]);
 }
@@ -116,6 +119,7 @@ static void ml_map_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **A
 	ml_frame_iter_t *Frame = xnew(ml_frame_iter_t, 1, ml_value_t *);
 	Frame->Base.Caller = Caller;
 	Frame->Base.run = (void *)ml_map_fnx_get_key;
+	Frame->Base.Context = Caller->Context;
 	Frame->Values[0] = ml_map();
 	return ml_iterate((ml_state_t *)Frame, Args[0]);
 }
@@ -137,6 +141,7 @@ static void ml_count_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t *
 	ml_count_state_t *Frame = xnew(ml_count_state_t, 1, ml_value_t *);
 	Frame->Base.Caller = Caller;
 	Frame->Base.run = (void *)ml_count_fnx_increment;
+	Frame->Base.Context = Caller->Context;
 	Frame->Count = 0;
 	return ml_iterate((ml_state_t *)Frame, Args[0]);
 }
@@ -190,6 +195,7 @@ static void ml_min_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **A
 	ml_frame_iter_t *Frame = xnew(ml_frame_iter_t, 3, ml_value_t *);
 	Frame->Base.Caller = Caller;
 	Frame->Base.run = (void *)ml_fold_fnx_get_first;
+	Frame->Base.Context = Caller->Context;
 	Frame->Values[0] = GreaterMethod;
 	return ml_iterate((ml_state_t *)Frame, Args[0]);
 }
@@ -200,6 +206,7 @@ static void ml_max_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **A
 	ml_frame_iter_t *Frame = xnew(ml_frame_iter_t, 3, ml_value_t *);
 	Frame->Base.Caller = Caller;
 	Frame->Base.run = (void *)ml_fold_fnx_get_first;
+	Frame->Base.Context = Caller->Context;
 	Frame->Values[0] = LessMethod;
 	return ml_iterate((ml_state_t *)Frame, Args[0]);
 }
@@ -210,6 +217,7 @@ static void ml_sum_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **A
 	ml_frame_iter_t *Frame = xnew(ml_frame_iter_t, 3, ml_value_t *);
 	Frame->Base.Caller = Caller;
 	Frame->Base.run = (void *)ml_fold_fnx_get_first;
+	Frame->Base.Context = Caller->Context;
 	Frame->Values[0] = AddMethod;
 	return ml_iterate((ml_state_t *)Frame, Args[0]);
 }
@@ -220,6 +228,7 @@ static void ml_prod_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **
 	ml_frame_iter_t *Frame = xnew(ml_frame_iter_t, 3, ml_value_t *);
 	Frame->Base.Caller = Caller;
 	Frame->Base.run = (void *)ml_fold_fnx_get_first;
+	Frame->Base.Context = Caller->Context;
 	Frame->Values[0] = MulMethod;
 	return ml_iterate((ml_state_t *)Frame, Args[0]);
 }
@@ -231,6 +240,7 @@ static void ml_fold_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **
 	ml_frame_iter_t *Frame = xnew(ml_frame_iter_t, 3, ml_value_t *);
 	Frame->Base.Caller = Caller;
 	Frame->Base.run = (void *)ml_fold_fnx_get_first;
+	Frame->Base.Context = Caller->Context;
 	Frame->Values[0] = Args[1];
 	return ml_iterate((ml_state_t *)Frame, Args[0]);
 }
@@ -265,6 +275,7 @@ static void ml_limited_iterate(ml_state_t *Caller, ml_limited_t *Limited) {
 		State->Base.Type = MLLimitedStateT;
 		State->Base.Caller = Caller;
 		State->Base.run = (void *)ml_limited_fnx_iterate;
+		State->Base.Context = Caller->Context;
 		State->Remaining = Limited->Remaining;
 		return ml_iterate((ml_state_t *)State, Limited->Value);
 	} else {
@@ -327,6 +338,7 @@ static void ml_skipped_iterate(ml_state_t *Caller, ml_skipped_t *Skipped) {
 		ml_skipped_state_t *State = new(ml_skipped_state_t);
 		State->Base.Caller = Caller;
 		State->Base.run = (void *)ml_skipped_fnx_iterate;
+		State->Base.Context = Caller->Context;
 		State->Remaining = Skipped->Remaining;
 		return ml_iterate((ml_state_t *)State, Skipped->Value);
 	} else {
@@ -357,10 +369,11 @@ static void ml_tasks_continue(ml_tasks_t *Tasks, ml_value_t *Value) {
 	if (--Tasks->Waiting == 0) ML_CONTINUE(Tasks->Base.Caller, MLNil);
 }
 
-static ml_value_t *ml_tasks_fn(void *Data, int Count, ml_value_t **Args) {
+static ml_value_t *ml_tasks_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
 	ml_tasks_t *Tasks = new(ml_tasks_t);
 	Tasks->Base.Type = MLTasksT;
 	Tasks->Base.run = (void *)ml_tasks_continue;
+	Tasks->Base.Context = Caller->Context;
 	Tasks->Waiting = 1;
 	return (ml_value_t *)Tasks;
 }
@@ -439,10 +452,14 @@ static void ml_parallel_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_
 	ml_parallel_t *Parallel = new(ml_parallel_t);
 	Parallel->Base.Caller = Caller;
 	Parallel->Base.run = (void *)ml_parallel_continue;
+	Parallel->Base.Context = Caller->Context;
 	Parallel->Waiting = 1;
 	Parallel->NextState->run = ml_parallel_iter_next;
+	Parallel->NextState->Context = Caller->Context;
 	Parallel->KeyState->run = ml_parallel_iter_key;
+	Parallel->KeyState->Context = Caller->Context;
 	Parallel->ValueState->run = ml_parallel_iter_value;
+	Parallel->ValueState->Context = Caller->Context;
 
 	if (Count > 3) {
 		ML_CHECKX_ARG_TYPE(1, MLIntegerT);
@@ -509,6 +526,7 @@ static void ml_unique_iterate(ml_state_t *Caller, ml_unique_t *Unique) {
 	State->Base.Type = MLUniqueStateT;
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)ml_unique_fnx_iterate;
+	State->Base.Context = Caller->Context;
 	State->History = ml_map();
 	State->Iteration = 0;
 	return ml_iterate((ml_state_t *)State, Unique->Iter);
@@ -568,6 +586,7 @@ static void ml_grouped_iterate(ml_state_t *Caller, ml_grouped_t *Grouped) {
 	State->Base.Type = MLGroupedStateT;
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)ml_grouped_fnx_iterate;
+	State->Base.Context = Caller->Context;
 	State->Function = Grouped->Function;
 	State->Iters = anew(ml_value_t *, Grouped->Count);
 	State->Args = anew(ml_value_t *, Grouped->Count);
@@ -871,7 +890,7 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "prod", ml_functionx(0, ml_prod_fnx));
 	stringmap_insert(Globals, "fold", ml_functionx(0, ml_fold_fnx));
 	stringmap_insert(Globals, "parallel", ml_functionx(0, ml_parallel_fnx));
-	stringmap_insert(Globals, "tasks", ml_function(0, ml_tasks_fn));
+	stringmap_insert(Globals, "tasks", ml_functionx(0, ml_tasks_fnx));
 	stringmap_insert(Globals, "group", ml_function(0, ml_group_fn));
 	stringmap_insert(Globals, "repeat", ml_function(0, ml_repeat_fn));
 

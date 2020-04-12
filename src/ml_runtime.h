@@ -9,15 +9,27 @@ extern "C" {
 
 /****************************** Runtime ******************************/
 
+struct ml_context_t {
+	ml_context_t *Parent;
+	int Size;
+	void *Values[];
+};
+
+extern ml_context_t MLRootContext;
+
+ml_context_t *ml_context_new(ml_context_t *Parent);
+
+int ml_context_index_new();
+
+#define ml_context_get(CONTEXT, INDEX) ((CONTEXT)->Size <= (INDEX) ? NULL : (CONTEXT)->Values[(INDEX)])
+
+void ml_context_set(ml_context_t *Context, int Index, void *Value);
+
 struct ml_state_t {
 	const ml_type_t *Type;
 	ml_state_t *Caller;
 	void (*run)(ml_state_t *State, ml_value_t *Value);
-};
-
-struct ml_context_t {
-	ml_context_t *Parent;
-	ml_state_t State[1];
+	ml_context_t *Context;
 };
 
 extern ml_type_t MLStateT[];
@@ -36,7 +48,7 @@ typedef struct {
 
 void ml_eval_state_run(ml_value_state_t *State, ml_value_t *Value);
 
-#define ML_EVAL_STATE_INIT {{MLStateT, NULL, ml_eval_state_run}, MLNil}
+#define ML_EVAL_STATE_INIT {{MLStateT, NULL, ml_eval_state_run, &MLRootContext}, MLNil}
 
 #define ML_WRAP_EVAL(FUNCTION, ARGS...) ({ \
 	ml_value_state_t State[1] = ML_EVAL_STATE_INIT; \
@@ -46,7 +58,7 @@ void ml_eval_state_run(ml_value_state_t *State, ml_value_t *Value);
 
 void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value);
 
-#define ML_CALL_STATE_INIT {{MLStateT, NULL, ml_call_state_run}, MLNil}
+#define ML_CALL_STATE_INIT {{MLStateT, NULL, ml_call_state_run, &MLRootContext}, MLNil}
 
 #define ML_WRAP_CALL(FUNCTION, ARGS...) ({ \
 	ml_value_state_t State[1] = ML_CALL_STATE_INIT; \

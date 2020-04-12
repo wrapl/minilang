@@ -2810,6 +2810,8 @@ ML_METHOD("join", MLMapT, MLStringT, MLStringT) {
 
 /****************************** Methods ******************************/
 
+#define METHODS_INDEX 0
+
 typedef struct methods_t methods_t;
 
 struct methods_t {

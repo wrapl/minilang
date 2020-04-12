@@ -209,6 +209,7 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 	mlc_scanner_t *Scanner = Console->Scanner;
 	ml_console_repl_state_t *State = new(ml_console_repl_state_t);
 	State->Base.run = ml_console_repl_run;
+	State->Base.Context = &MLRootContext;
 	State->Console = Console;
 	ml_scanner_reset(Scanner);
 	ml_command_evaluate(State, Scanner, Console->Globals);

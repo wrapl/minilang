@@ -223,6 +223,8 @@ static onion_connection_status ml_onion_handler(ml_value_t *Callback, onion_requ
 	ml_onion_state_t *State = new(ml_onion_state_t);
 	State->Base.Type = OnionStateT;
 	State->Base.run = (void *)ml_onion_state_run;
+	State->Base.Context = &MLRootContext;
+	// TODO: Replace this with the proper context
 	State->Args[0] = (ml_value_t *)Request;
 	State->Args[1] = (ml_value_t *)Response;
 	State->Status = OCS_NOT_PROCESSED;

@@ -195,6 +195,7 @@ static void ml_array_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value
 	ml_array_init_state_t *InitState = xnew(ml_array_init_state_t, Array->Degree, ml_value_t *);
 	InitState->Base.Caller = Caller;
 	InitState->Base.run = (void *)ml_array_init_run;
+	InitState->Base.Context = Caller->Context;
 	InitState->Address = Array->Base.Address;
 	InitState->Array = Array;
 	ml_value_t *Function = InitState->Function = Args[2];

@@ -13,14 +13,14 @@
 
 const int BREAKPOINT_BUFFER_SIZE = 128;
 
-typedef struct debug_local_t debug_local_t;
-typedef struct debug_global_t debug_global_t;
+typedef struct ml_debug_local_t ml_debug_local_t;
+typedef struct ml_debug_global_t ml_debug_global_t;
 typedef struct ml_frame_debug_t ml_frame_debug_t;
 
-struct debugger_t {
+struct ml_debugger_t {
 	const ml_type_t *Type;
 	pthread_mutex_t Lock[1];
-	debug_module_t *Modules;
+	ml_debug_module_t *Modules;
 	stringmap_t Commands[1];
 	int Socket;
 	int NextModuleId;
@@ -30,40 +30,42 @@ struct debugger_t {
 	int BreakOnSend, BreakOnMessage;
 };
 
-struct debug_global_t {
-	debug_global_t *Next;
+struct ml_debug_global_t {
+	ml_debug_global_t *Next;
 	ml_value_t **Address;
 	ml_value_t *Value;
 	const char *Name;
 };
 
-struct debug_module_t {
-	debug_module_t *Next;
+struct ml_debug_module_t {
+	ml_debug_module_t *Next;
 	int Id, NumBreakpointBuffers;
 	unsigned char **BreakpointBuffers;
 	const char *Name;
-	debug_global_t *Globals;
+	ml_debug_global_t *Globals;
 };
 
-struct debug_local_t {
-	debug_local_t *Next;
+struct ml_debug_local_t {
+	ml_debug_local_t *Next;
 	int Index;
 	ml_value_t *Value;
 	const char *Name;
 };
 
-struct debug_function_t {
-	debug_module_t *Module;
+struct ml_debug_function_t {
+	ml_debug_module_t *Module;
 	int LineNo, LocalsOffset, NoOfLocals;
-	debug_local_t *Locals;
+	ml_debug_local_t *Locals;
 };
+
+ml_debugger_t *Debugger = 0;
 
 typedef json_t *debugger_command_func(json_t *);
 
-static debug_module_t *debugger_get_module(json_t *Args) {
+static ml_debug_module_t *debugger_get_module(json_t *Args) {
 	int Id;
 	if (json_unpack(Args, "{si}", "module", &Id)) return 0;
-	for (debug_module_t *Module = Debugger->Modules; Module; Module = Module->Next) {
+	for (ml_debug_module_t *Module = Debugger->Modules; Module; Module = Module->Next) {
 		if (Module->Id == Id) return Module;
 	}
 	return 0;
@@ -79,7 +81,7 @@ static ml_frame_debug_t *State;
 static int Enters = 0;
 static int Exits = 0;
 
-static json_t *debugger_command_pause(debugger_t *Debugger, json_t *Args) {
+static json_t *debugger_command_pause(ml_debugger_t *Debugger, json_t *Args) {
 	StepIn = 1;
 	RunTo = 0;
 	StepOverInstance = NULL;
@@ -91,7 +93,7 @@ static json_t *debugger_command_pause(debugger_t *Debugger, json_t *Args) {
 	return json_true();
 }
 
-static json_t *debugger_command_continue(debugger_t *Debugger, json_t *Args) {
+static json_t *debugger_command_continue(ml_debugger_t *Debugger, json_t *Args) {
 	StepIn = 0;
 	RunTo = 0;
 	StepOverInstance = NULL;
@@ -103,7 +105,7 @@ static json_t *debugger_command_continue(debugger_t *Debugger, json_t *Args) {
 	return json_true();
 }
 
-static json_t *debugger_command_step_in(debugger_t *Debugger, json_t *Args) {
+static json_t *debugger_command_step_in(ml_debugger_t *Debugger, json_t *Args) {
 	StepIn = 1;
 	RunTo = 0;
 	StepOverInstance = NULL;
@@ -115,7 +117,7 @@ static json_t *debugger_command_step_in(debugger_t *Debugger, json_t *Args) {
 	return json_true();
 }
 
-static json_t *debugger_command_step_out(debugger_t *Debugger, json_t *Args) {
+static json_t *debugger_command_step_out(ml_debugger_t *Debugger, json_t *Args) {
 	if (Paused) {
 		StepIn = 0;
 		RunTo = 0;
@@ -127,7 +129,7 @@ static json_t *debugger_command_step_out(debugger_t *Debugger, json_t *Args) {
 	return json_true();
 }
 
-static json_t *debugger_command_step_over(debugger_t *Debugger, json_t *Args) {
+static json_t *debugger_command_step_over(ml_debugger_t *Debugger, json_t *Args) {
 	if (Paused) {
 		StepIn = 0;
 		RunTo = 0;
@@ -139,8 +141,8 @@ static json_t *debugger_command_step_over(debugger_t *Debugger, json_t *Args) {
 	return json_true();
 }
 
-static json_t *debugger_command_run_to(debugger_t *Debugger, json_t *Args) {
-	debug_module_t *Module = debugger_get_module(Args);
+static json_t *debugger_command_run_to(ml_debugger_t *Debugger, json_t *Args) {
+	ml_debug_module_t *Module = debugger_get_module(Args);
 	if (!Module) return json_pack("{ss}", "error", "invalid module");
 	int Line;
 	if (json_unpack(Args, "{si}", "line", &Line)) return json_pack("{ss}", "error", "invalid arguments");
@@ -155,7 +157,7 @@ static json_t *debugger_command_run_to(debugger_t *Debugger, json_t *Args) {
 	return json_true();
 }
 
-static json_t *debugger_command_list_modules(debugger_t *Debugger, json_t *Command) {
+static json_t *debugger_command_list_modules(ml_debugger_t *Debugger, json_t *Command) {
 	return json_true();
 }
 
@@ -212,13 +214,13 @@ static void debugger_append_variable(json_t *Variables, const char *Name, ml_val
 	json_array_append(Variables, Description);
 }
 
-static json_t *debugger_command_get_variable(debugger_t *Debugger, json_t *Args) {
+static json_t *debugger_command_get_variable(ml_debugger_t *Debugger, json_t *Args) {
 	json_t *Variables = json_array();
 	if (json_object_get(Args, "state")) {
 		ml_frame_debug_t *State = (ml_frame_debug_t *)(size_t)json_number_value(json_object_get(Args, "state"));
-		debug_function_t *Function = State->Debug;
+		ml_debug_function_t *Function = State->Debug;
 		ml_value_t ***Locals = (void *)State + Function->LocalsOffset;
-		for (debug_local_t *Local = State->Debug->Locals; Local; Local = Local->Next) {
+		for (ml_debug_local_t *Local = State->Debug->Locals; Local; Local = Local->Next) {
 			if (Local->Value) {
 				debugger_append_variable(Variables, Local->Name, Local->Value);
 			} else {
@@ -233,9 +235,9 @@ static json_t *debugger_command_get_variable(debugger_t *Debugger, json_t *Args)
 		return Variables;
 	}
 	if (json_object_get(Args, "module")) {
-		debug_module_t *Module = debugger_get_module(Args);
+		ml_debug_module_t *Module = debugger_get_module(Args);
 		if (!Module) return json_pack("{ss}", "error", "invalid module");
-		for (debug_global_t *Global = Module->Globals; Global; Global = Global->Next) {
+		for (ml_debug_global_t *Global = Module->Globals; Global; Global = Global->Next) {
 			if (Global->Value) {
 				debugger_append_variable(Variables, Global->Name, Global->Value);
 			} else {
@@ -275,7 +277,7 @@ static json_t *debugger_command_get_variable(debugger_t *Debugger, json_t *Args)
 	return Variables;
 }
 
-static unsigned char *debug_module_breakpoints(debug_module_t *Module, int LineNo) {
+static unsigned char *debug_module_breakpoints(ml_debug_module_t *Module, int LineNo) {
 	int Index = LineNo / BREAKPOINT_BUFFER_SIZE;
 	if (Index >= Module->NumBreakpointBuffers) {
 		unsigned char **BreakpointBuffers = (void **)snew((Index + 1) * sizeof(void *));
@@ -290,8 +292,8 @@ static unsigned char *debug_module_breakpoints(debug_module_t *Module, int LineN
 	return BreakpointBuffer + (LineNo % BREAKPOINT_BUFFER_SIZE) / 8;
 }
 
-static json_t *debugger_command_set_breakpoints(debugger_t *Debugger, json_t *Args) {
-	debug_module_t *Module = debugger_get_module(Args);
+static json_t *debugger_command_set_breakpoints(ml_debugger_t *Debugger, json_t *Args) {
+	ml_debug_module_t *Module = debugger_get_module(Args);
 	if (!Module) return json_pack("{ss}", "error", "invalid module");
 	json_t *Enable = json_object_get(Args, "enable");
 	json_t *Disable = json_object_get(Args, "disable");
@@ -315,7 +317,7 @@ unsigned char *debug_break_on_message() {
 	return (unsigned char *)&Debugger->BreakOnMessage;
 }
 
-static json_t *debugger_command_set_message_breakpoints(debugger_t *Debugger, json_t *Args) {
+static json_t *debugger_command_set_message_breakpoints(ml_debugger_t *Debugger, json_t *Args) {
 	int BreakOnSend = 0;
 	int BreakOnMessage = 0;
 	for (int I = 0; I < json_array_size(Args); ++I) {
@@ -363,7 +365,7 @@ static json_t *debugger_command_set_message_breakpoints(debugger_t *Debugger, js
 	return FAILURE;
 }*/
 
-static json_t *debugger_command_evaluate(debugger_t *Debugger, json_t *Args) {
+static json_t *debugger_command_evaluate(ml_debugger_t *Debugger, json_t *Args) {
 	if (!Paused) return json_pack("{ss}", "error", "invalid thread");
 	if (json_unpack(Args, "{ss}", "expression", &Debugger->EvaluateBuffer)) return json_pack("{ss}", "error", "missing expression");
 	if (json_object_get(Args, "state")) {
@@ -413,7 +415,7 @@ static void debugger_update(json_t *UpdateJson) {
 	//printf("Update: %s\n", json_dumps(UpdateJson, JSON_INDENT(4)));
 }
 
-static void *debugger_thread_func(debugger_t *Debugger) {
+static void *debugger_thread_func(ml_debugger_t *Debugger) {
 	json_t *CommandJson = json_pack("[is]", 0, "ready");
 	json_error_t JsonError;
 	debugger_update(CommandJson);
@@ -443,8 +445,8 @@ static void *debugger_thread_func(debugger_t *Debugger) {
 	exit(1);
 }
 
-debug_module_t *debug_module(const char *Name) {
-	debug_module_t *Module = new(debug_module_t);
+ml_debug_module_t *debug_module(const char *Name) {
+	ml_debug_module_t *Module = new(ml_debug_module_t);
 	Module->Name = Name;
 	pthread_mutex_lock(Debugger->Lock);
 		Module->Id = ++Debugger->NextModuleId;
@@ -457,21 +459,21 @@ debug_module_t *debug_module(const char *Name) {
 	return Module;
 }
 
-unsigned char *debug_breakpoints(debug_function_t *Function, int LineNo) {
+unsigned char *debug_breakpoints(ml_debug_function_t *Function, int LineNo) {
 	return debug_module_breakpoints(Function->Module, LineNo);
 }
 
-void debug_add_line(debug_module_t *Module, const char *Line) {
+void debug_add_line(ml_debug_module_t *Module, const char *Line) {
 	pthread_mutex_lock(Debugger->Lock);
 		debugger_update(json_pack("[is{siss}]", 0, "line_add", "module", Module->Id, "line", Line));
 	pthread_mutex_unlock(Debugger->Lock);
 }
 
-void debug_add_global_variable(debug_module_t *Module, const char *Name, ml_value_t **Address) {
-	debug_global_t *Global = new(debug_global_t);
+void debug_add_global_variable(ml_debug_module_t *Module, const char *Name, ml_value_t **Address) {
+	ml_debug_global_t *Global = new(ml_debug_global_t);
 	Global->Name = Name;
 	Global->Address = Address;
-	debug_global_t **Slot = &Module->Globals;
+	ml_debug_global_t **Slot = &Module->Globals;
 	while (*Slot) Slot = &Slot[0]->Next;
 	*Slot = Global;
 	pthread_mutex_lock(Debugger->Lock);
@@ -479,11 +481,11 @@ void debug_add_global_variable(debug_module_t *Module, const char *Name, ml_valu
 	pthread_mutex_unlock(Debugger->Lock);
 }
 
-void debug_add_global_constant(debug_module_t *Module, const char *Name, ml_value_t *Value) {
-	debug_global_t *Global = new(debug_global_t);
+void debug_add_global_constant(ml_debug_module_t *Module, const char *Name, ml_value_t *Value) {
+	ml_debug_global_t *Global = new(ml_debug_global_t);
 	Global->Name = Name;
 	Global->Value = Value;
-	debug_global_t **Slot = &Module->Globals;
+	ml_debug_global_t **Slot = &Module->Globals;
 	while (*Slot) Slot = &Slot[0]->Next;
 	*Slot = Global;
 	pthread_mutex_lock(Debugger->Lock);
@@ -491,41 +493,39 @@ void debug_add_global_constant(debug_module_t *Module, const char *Name, ml_valu
 	pthread_mutex_unlock(Debugger->Lock);
 }
 
-debug_function_t *debug_function(debug_module_t *Module, int LineNo) {
-	debug_function_t *Function = new(debug_function_t);
+ml_debug_function_t *debug_function(ml_debug_module_t *Module, int LineNo) {
+	ml_debug_function_t *Function = new(ml_debug_function_t);
 	Function->Module = Module;
 	Function->LineNo = LineNo;
 	return Function;
 }
 
-int debug_module_id(debug_function_t *Function) {
+int debug_module_id(ml_debug_function_t *Function) {
 	return Function->Module->Id;
 }
 
-void debug_add_local_var(debug_function_t *Function, const char *Name, int Index) {
-	debug_local_t *Local = new(debug_local_t);
+void debug_add_local_var(ml_debug_function_t *Function, const char *Name, int Index) {
+	ml_debug_local_t *Local = new(ml_debug_local_t);
 	Local->Name = Name;
 	Local->Index = Index;
-	debug_local_t **Slot = &Function->Locals;
+	ml_debug_local_t **Slot = &Function->Locals;
 	while (*Slot) Slot = &Slot[0]->Next;
 	*Slot = Local;
 }
 
-void debug_add_local_def(debug_function_t *Function, const char *Name, ml_value_t *Value) {
-	debug_local_t *Local = new(debug_local_t);
+void debug_add_local_def(ml_debug_function_t *Function, const char *Name, ml_value_t *Value) {
+	ml_debug_local_t *Local = new(ml_debug_local_t);
 	Local->Name = Name;
 	Local->Value = Value;
-	debug_local_t **Slot = &Function->Locals;
+	ml_debug_local_t **Slot = &Function->Locals;
 	while (*Slot) Slot = &Slot[0]->Next;
 	*Slot = Local;
 }
 
-void debug_set_locals(debug_function_t *Function, int LocalsOffset, int NoOfLocals) {
+void debug_set_locals(ml_debug_function_t *Function, int LocalsOffset, int NoOfLocals) {
 	Function->LocalsOffset = LocalsOffset;
 	Function->NoOfLocals = NoOfLocals;
 }
-
-debugger_t *Debugger = 0;
 
 void debug_break_impl(ml_frame_debug_t *State, int LineNo) {
 	pthread_mutex_lock(Debugger->Lock);
@@ -533,7 +533,7 @@ void debug_break_impl(ml_frame_debug_t *State, int LineNo) {
 		json_t *States = json_array();
 		ml_frame_debug_t *EnterState = State;
 		for (int I = 0; I < Enters; ++I) {
-			debug_function_t *Function = EnterState->Debug;
+			ml_debug_function_t *Function = EnterState->Debug;
 			json_array_insert_new(States, 0, json_pack("{sisisfsi}",
 				"module", Function->Module->Id,
 				"line", Function->LineNo,
@@ -559,7 +559,7 @@ void debug_message_impl(ml_frame_debug_t *State, int LineNo, ml_value_t *Message
 		json_t *Enters = json_array();
 		ml_frame_debug_t *EnterState = State;
 		for (int I = 0; I < Enters; ++I) {
-			debug_function_t *Function = EnterState->Debug;
+			ml_debug_function_t *Function = EnterState->Debug;
 			json_array_insert_new(Enters, 0, json_pack("{sisisfsi}",
 				"module", Function->Module->Id,
 				"line", Function->LineNo,
@@ -608,7 +608,7 @@ static void debug_shutdown() {
 
 void debug_enable(const char *SocketPath, int ClientMode) {
 	int Socket = socket(PF_UNIX, SOCK_STREAM, 0);
-	Debugger = new(debugger_t);
+	Debugger = new(ml_debugger_t);
 	//Debugger->Type = T;
 	//Debugger->Scanner = new scanner_t((IO$Stream$t *)Debugger);
 	//Debugger->Compiler = new compiler_t("debugger");

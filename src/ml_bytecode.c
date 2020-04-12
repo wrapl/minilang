@@ -33,7 +33,7 @@ struct DEBUG_STRUCT(frame) {
 	ml_inst_t *OnError;
 	ml_value_t **UpValues;
 #ifdef DEBUG_VERSION
-	debug_function_t *Debug;
+	ml_debug_function_t *Debug;
 	DEBUG_STRUCT(frame) *UpState;
 #endif
 	ml_value_t *Stack[];
@@ -506,14 +506,22 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 }
 
-#ifndef DEBUG_VERSION
-static void ml_closure_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
+#define DEBUGGER_INDEX 1
+
+static void ml_closure_call_debug(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args);
+
+static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
 	ml_closure_info_t *Info = Closure->Info;
+	ml_debugger_t *Debugger = (ml_debugger_t *)ml_context_get(Caller->Context, DEBUGGER_INDEX);
+#ifndef DEBUG_VERSION
+	if (Debugger) return ml_closure_call_debug(Caller, Value, Count, Args);
+#endif
 	DEBUG_STRUCT(frame) *Frame = xnew(DEBUG_STRUCT(frame), Info->FrameSize, ml_value_t *);
 	Frame->Base.Type = DEBUG_TYPE(Continuation);
 	Frame->Base.Caller = Caller;
 	Frame->Base.run = (void *)DEBUG_FUNC(frame_run);
+	Frame->Base.Context = Caller->Context;
 	Frame->Source = Info->Source;
 	int NumParams = Info->NumParams;
 	if (Closure->PartialCount) {
@@ -610,6 +618,7 @@ static void ml_closure_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml
 	ML_CONTINUE(Frame, MLNil);
 }
 
+#ifndef DEBUG_VERSION
 static void ml_inst_sha256_pass1(ml_inst_t *Inst, unsigned char Hash[SHA256_BLOCK_SIZE], int I, int J) {
 	if (Inst->Flags) return;
 	Inst->Flags = 1;
