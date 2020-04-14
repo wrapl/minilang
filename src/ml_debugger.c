@@ -19,7 +19,6 @@ typedef struct ml_frame_debug_t ml_frame_debug_t;
 
 struct ml_debugger_t {
 	const ml_type_t *Type;
-	pthread_mutex_t Lock[1];
 	ml_debug_module_t *Modules;
 	stringmap_t Commands[1];
 	int Socket;
@@ -76,7 +75,6 @@ static int RunTo = 0;
 static ml_frame_debug_t *StepOverInstance = NULL;
 static ml_frame_debug_t *StepOutInstance = NULL;
 static int Paused = 0;
-static pthread_cond_t *Resume;
 static ml_frame_debug_t *State;
 static int Enters = 0;
 static int Exits = 0;
@@ -424,7 +422,7 @@ static void *debugger_thread_func(ml_debugger_t *Debugger) {
 		const char *Command;
 		json_t *Args;
 		json_t *ResultJson;
-		pthread_mutex_lock(Debugger->Lock);
+		
 			//printf("Received: %s\n", json_dumps(CommandJson, JSON_INDENT(4)));
 			if (!json_unpack(CommandJson, "[iso]", &Index, &Command, &Args)) {
 				debugger_command_func *CommandFunc = (debugger_command_func *)stringmap_search(Debugger->Commands, Command);
@@ -439,7 +437,7 @@ static void *debugger_thread_func(ml_debugger_t *Debugger) {
 			json_dumpfd(ResultJson, Debugger->Socket, JSON_COMPACT);
 			write(Debugger->Socket, "\n", strlen("\n"));
 			//printf("Reply: %s\n", json_dumps(ResultJson, JSON_INDENT(4)));
-		pthread_mutex_unlock(Debugger->Lock);
+		
 	}
 	// For now, just kill the program once the debugger disconnects
 	exit(1);
@@ -448,14 +446,13 @@ static void *debugger_thread_func(ml_debugger_t *Debugger) {
 ml_debug_module_t *debug_module(const char *Name) {
 	ml_debug_module_t *Module = new(ml_debug_module_t);
 	Module->Name = Name;
-	pthread_mutex_lock(Debugger->Lock);
+	
 		Module->Id = ++Debugger->NextModuleId;
 		Module->Next = Debugger->Modules;
 		Debugger->Modules = Module;
 		debugger_update(json_pack("[is{siss}]", 0, "module_add", "module", Module->Id, "name", Name));
 		Paused = 1;
-		do pthread_cond_wait(Resume, Debugger->Lock); while (Paused);
-	pthread_mutex_unlock(Debugger->Lock);
+			
 	return Module;
 }
 
@@ -464,9 +461,9 @@ unsigned char *debug_breakpoints(ml_debug_function_t *Function, int LineNo) {
 }
 
 void debug_add_line(ml_debug_module_t *Module, const char *Line) {
-	pthread_mutex_lock(Debugger->Lock);
+	
 		debugger_update(json_pack("[is{siss}]", 0, "line_add", "module", Module->Id, "line", Line));
-	pthread_mutex_unlock(Debugger->Lock);
+	
 }
 
 void debug_add_global_variable(ml_debug_module_t *Module, const char *Name, ml_value_t **Address) {
@@ -476,9 +473,9 @@ void debug_add_global_variable(ml_debug_module_t *Module, const char *Name, ml_v
 	ml_debug_global_t **Slot = &Module->Globals;
 	while (*Slot) Slot = &Slot[0]->Next;
 	*Slot = Global;
-	pthread_mutex_lock(Debugger->Lock);
+	
 		debugger_update(json_pack("[is{siss}]", 0, "global_add", "module", Module->Id, "name", Name));
-	pthread_mutex_unlock(Debugger->Lock);
+	
 }
 
 void debug_add_global_constant(ml_debug_module_t *Module, const char *Name, ml_value_t *Value) {
@@ -488,9 +485,9 @@ void debug_add_global_constant(ml_debug_module_t *Module, const char *Name, ml_v
 	ml_debug_global_t **Slot = &Module->Globals;
 	while (*Slot) Slot = &Slot[0]->Next;
 	*Slot = Global;
-	pthread_mutex_lock(Debugger->Lock);
+	
 		debugger_update(json_pack("[is{siss}]", 0, "global_add", "module", Module->Id, "name", Name));
-	pthread_mutex_unlock(Debugger->Lock);
+	
 }
 
 ml_debug_function_t *debug_function(ml_debug_module_t *Module, int LineNo) {
@@ -528,7 +525,7 @@ void debug_set_locals(ml_debug_function_t *Function, int LocalsOffset, int NoOfL
 }
 
 void debug_break_impl(ml_frame_debug_t *State, int LineNo) {
-	pthread_mutex_lock(Debugger->Lock);
+	
 		Paused = 1;
 		json_t *States = json_array();
 		ml_frame_debug_t *EnterState = State;
@@ -550,11 +547,11 @@ void debug_break_impl(ml_frame_debug_t *State, int LineNo) {
 		Exits = 0;
 		Enters = 0;
 		do pthread_cond_wait(Resume, Debugger->Lock); while (Paused);
-	pthread_mutex_unlock(Debugger->Lock);
+	
 }
 
 void debug_message_impl(ml_frame_debug_t *State, int LineNo, ml_value_t *Message) {
-	pthread_mutex_lock(Debugger->Lock);
+	
 		Paused = 1;
 		json_t *Enters = json_array();
 		ml_frame_debug_t *EnterState = State;
@@ -579,7 +576,7 @@ void debug_message_impl(ml_frame_debug_t *State, int LineNo, ml_value_t *Message
 		Exits = 0;
 		Enters = 0;
 		do pthread_cond_wait(Resume, Debugger->Lock); while (Paused);
-	pthread_mutex_unlock(Debugger->Lock);
+	
 }
 
 void debug_enter_impl(ml_frame_debug_t *NewState) {

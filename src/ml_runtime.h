@@ -26,7 +26,7 @@ int ml_context_index_new();
 void ml_context_set(ml_context_t *Context, int Index, void *Value);
 
 struct ml_state_t {
-	const ml_type_t *Type;
+	ml_value_t;
 	ml_state_t *Caller;
 	void (*run)(ml_state_t *State, ml_value_t *Value);
 	ml_context_t *Context;
@@ -42,13 +42,13 @@ ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args);
 })
 
 typedef struct {
-	ml_state_t Base;
+	ml_state_t;
 	ml_value_t *Value;
 } ml_value_state_t;
 
 void ml_eval_state_run(ml_value_state_t *State, ml_value_t *Value);
 
-#define ML_EVAL_STATE_INIT {{MLStateT, NULL, ml_eval_state_run, &MLRootContext}, MLNil}
+#define ML_EVAL_STATE_INIT {{{MLStateT}, NULL, ml_eval_state_run, &MLRootContext}, MLNil}
 
 #define ML_WRAP_EVAL(FUNCTION, ARGS...) ({ \
 	ml_value_state_t State[1] = ML_EVAL_STATE_INIT; \
@@ -58,7 +58,7 @@ void ml_eval_state_run(ml_value_state_t *State, ml_value_t *Value);
 
 void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value);
 
-#define ML_CALL_STATE_INIT {{MLStateT, NULL, ml_call_state_run, &MLRootContext}, MLNil}
+#define ML_CALL_STATE_INIT {{{MLStateT}, NULL, ml_call_state_run, &MLRootContext}, MLNil}
 
 #define ML_WRAP_CALL(FUNCTION, ARGS...) ({ \
 	ml_value_state_t State[1] = ML_CALL_STATE_INIT; \
@@ -69,13 +69,13 @@ void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value);
 /****************************** Functions ******************************/
 
 struct ml_function_t {
-	const ml_type_t *Type;
+	ml_value_t;
 	ml_callback_t Callback;
 	void *Data;
 };
 
 struct ml_functionx_t {
-	const ml_type_t *Type;
+	ml_value_t;
 	ml_callbackx_t Callback;
 	void *Data;
 };
@@ -114,12 +114,12 @@ ml_value_t *ml_partial_function_set(ml_value_t *Partial, size_t Index, ml_value_
 	}
 
 #define ML_CONTINUE(STATE, VALUE) { \
-	ml_state_t *__State = (ml_state_t *)(STATE); \
-	ml_value_t *__Value = (ml_value_t *)(VALUE); \
+	ml_state_t *__State = (STATE); \
+	ml_value_t *__Value = (VALUE); \
 	return __State->run(__State, __Value); \
 }
 
-#define ML_RETURN(VALUE) return Caller->run(Caller, (ml_value_t *)(VALUE))
+#define ML_RETURN(VALUE) return Caller->run(Caller, (VALUE))
 
 /****************************** References ******************************/
 
@@ -132,7 +132,7 @@ typedef ml_value_t *(*ml_setter_t)(void *Data, const char *Name, ml_value_t *Val
 typedef struct ml_reference_t ml_reference_t;
 
 struct ml_reference_t {
-	const ml_type_t *Type;
+	ml_value_t;
 	ml_value_t **Address;
 	ml_value_t *Value[];
 };
@@ -145,7 +145,7 @@ struct ml_slot_t {
 };
 
 typedef struct {
-	const ml_type_t *Type;
+	ml_value_t;
 	ml_slot_t *Slots;
 } ml_uninitialized_t;
 

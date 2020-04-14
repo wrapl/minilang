@@ -14,7 +14,12 @@ CFLAGS := old + [
 	"-I.", "-pthread",
 	"-DGC_THREADS",
 	"-D_GNU_SOURCE",
-	'-D{PLATFORM}'
+	'-D{PLATFORM}',
+	if PLATFORM = "Linux" then
+		"-fplan9-extensions"
+	else
+		"-fms-extensions"
+	end
 ]
 LDFLAGS := old + ["-lm"]
 

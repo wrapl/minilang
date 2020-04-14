@@ -40,7 +40,7 @@ ML_METHODX("write", MLStreamT, MLStringT) {
 }
 
 typedef struct ml_fd_t {
-	const ml_type_t *Type;
+	ml_value_t;
 	int Fd;
 } ml_fd_t;
 
@@ -50,7 +50,7 @@ ml_value_t *ml_fd_new(int Fd) {
 	ml_fd_t *Stream = new(ml_fd_t);
 	Stream->Type = MLFdT;
 	Stream->Fd = Fd;
-	return (ml_value_t *)Stream;
+	return Stream;
 }
 
 static void ML_TYPED_FN(ml_io_read, MLFdT, ml_state_t *Caller, ml_fd_t *Stream, void *Address, int Count) {

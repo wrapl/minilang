@@ -7,6 +7,7 @@
 #include "ml_bytecode.h"
 #include "ml_runtime.h"
 #include <string.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <limits.h>
 
@@ -45,11 +46,6 @@ struct mlc_upvalue_t {
 };
 
 typedef struct { ml_inst_t *Start, *Exits; } mlc_compiled_t;
-
-#define MLC_EXPR_FIELDS(TYPE) \
-	mlc_compiled_t (*compile)(mlc_function_t *, mlc_ ## TYPE ## _expr_t *); \
-	mlc_expr_t *Next; \
-	ml_source_t Source
 
 struct mlc_expr_t {
 	mlc_compiled_t (*compile)(mlc_function_t *, mlc_expr_t *);
@@ -126,10 +122,10 @@ ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, mlc_context_t 
 	Info->FrameSize = Function->Size;
 	Info->NumParams = NumParams;
 	ml_closure_info_sha256(Info);
-	return (ml_value_t *)Closure;
+	return Closure;
 }
 
-static inline ml_expr_error(mlc_expr_t *Expr, mlc_function_t *Function, ml_value_t *Error) {
+static inline void ml_expr_error(mlc_expr_t *Expr, mlc_function_t *Function, ml_value_t *Error) {
 	ml_error_trace_add(Error, Expr->Source);
 	Function->Context->Error = Error;
 	longjmp(Function->Context->OnError, 1);
@@ -177,7 +173,7 @@ typedef struct mlc_parent_value_expr_t mlc_parent_value_expr_t;
 typedef struct mlc_block_expr_t mlc_block_expr_t;
 
 static ml_type_t MLBlankT[1] = {{
-	MLTypeT,
+	{MLTypeT},
 	MLAnyT, "blank",
 	ml_default_hash,
 	ml_default_call,
@@ -189,14 +185,12 @@ static ml_type_t MLBlankT[1] = {{
 static ml_value_t MLBlank[1] = {{MLBlankT}};
 
 static mlc_compiled_t ml_blank_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr) {
-	long ValueHash = ml_hash(MLBlank);
 	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
 	ValueInst->Params[1].Value = MLBlank;
 	return (mlc_compiled_t){ValueInst, ValueInst};
 }
 
 static mlc_compiled_t ml_nil_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr) {
-	long ValueHash = ml_hash(MLNil);
 	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
 	ValueInst->Params[1].Value = MLNil;
 	return (mlc_compiled_t){ValueInst, ValueInst};
@@ -211,7 +205,7 @@ struct mlc_if_case_t {
 };
 
 struct mlc_if_expr_t {
-	MLC_EXPR_FIELDS(if);
+	mlc_expr_t;
 	mlc_if_case_t *Cases;
 	mlc_expr_t *Else;
 };
@@ -279,7 +273,7 @@ static mlc_compiled_t ml_if_expr_compile(mlc_function_t *Function, mlc_if_expr_t
 }
 
 struct mlc_parent_expr_t {
-	MLC_EXPR_FIELDS(parent);
+	mlc_expr_t;
 	mlc_expr_t *Child;
 };
 
@@ -500,7 +494,7 @@ static mlc_compiled_t ml_suspend_expr_compile(mlc_function_t *Function, mlc_pare
 }
 
 struct mlc_decl_expr_t {
-	MLC_EXPR_FIELDS(decl);
+	mlc_expr_t;
 	mlc_decl_t *Decl;
 	mlc_expr_t *Child;
 	int Count;
@@ -552,7 +546,6 @@ static mlc_compiled_t ml_def_expr_compile(mlc_function_t *Function, mlc_decl_exp
 		for (ml_slot_t *Slot = Uninitialized->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Result;
 	}
 	Expr->Decl->Value = Result;
-	long ValueHash = ml_hash(Result);
 	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
 	ValueInst->Params[1].Value = Result;
 	return (mlc_compiled_t){ValueInst, ValueInst};
@@ -579,7 +572,6 @@ static mlc_compiled_t ml_defx_expr_compile(mlc_function_t *Function, mlc_decl_ex
 		Decl->Value = Value;
 		Decl = Decl->Next;
 	}
-	long ValueHash = ml_hash(Result);
 	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
 	ValueInst->Params[1].Value = Result;
 	return (mlc_compiled_t){ValueInst, ValueInst};
@@ -720,7 +712,7 @@ static mlc_compiled_t ml_each_expr_compile(mlc_function_t *Function, mlc_parent_
 }
 
 struct mlc_block_expr_t {
-	MLC_EXPR_FIELDS(block);
+	mlc_expr_t;
 	mlc_decl_t *Vars, *Lets, *Defs;
 	mlc_expr_t *Child;
 	mlc_decl_t *CatchDecl;
@@ -934,7 +926,7 @@ static mlc_compiled_t ml_call_expr_compile(mlc_function_t *Function, mlc_parent_
 				if (Child->compile != ml_blank_expr_compile) {
 					mlc_compiled_t ChildCompiled = mlc_compile(Function, Child);
 					ml_inst_t *SetInst = ml_inst_new(2, Expr->Source, MLI_PARTIAL_SET);
-					SetInst->Params[1].Inst = NumArgs;
+					SetInst->Params[1].Count = NumArgs;
 					LastInst->Params[0].Inst = ChildCompiled.Start;
 					mlc_connect(ChildCompiled.Exits, SetInst);
 					LastInst = SetInst;
@@ -972,7 +964,7 @@ static mlc_compiled_t ml_call_expr_compile(mlc_function_t *Function, mlc_parent_
 }
 
 struct mlc_parent_value_expr_t {
-	MLC_EXPR_FIELDS(parent_value);
+	mlc_expr_t;
 	mlc_expr_t *Child;
 	ml_value_t *Value;
 };
@@ -992,7 +984,7 @@ static mlc_compiled_t ml_const_call_expr_compile(mlc_function_t *Function, mlc_p
 				if (Child->compile != ml_blank_expr_compile) {
 					mlc_compiled_t ChildCompiled = mlc_compile(Function, Child);
 					ml_inst_t *SetInst = ml_inst_new(2, Expr->Source, MLI_PARTIAL_SET);
-					SetInst->Params[1].Inst = NumArgs;
+					SetInst->Params[1].Count = NumArgs;
 					LastInst->Params[0].Inst = ChildCompiled.Start;
 					mlc_connect(ChildCompiled.Exits, SetInst);
 					LastInst = SetInst;
@@ -1007,7 +999,6 @@ static mlc_compiled_t ml_const_call_expr_compile(mlc_function_t *Function, mlc_p
 		}
 	}
 	int OldTop = Function->Top;
-	long ValueHash = ml_hash(Expr->Value);
 	ml_inst_t *CallInst = ml_inst_new(3, Expr->Source, MLI_CONST_CALL);
 	CallInst->Params[2].Value = Expr->Value;
 	if (Expr->Child) {
@@ -1077,7 +1068,7 @@ static mlc_compiled_t ml_import_expr_compile(mlc_function_t *Function, mlc_paren
 }
 
 struct mlc_fun_expr_t {
-	MLC_EXPR_FIELDS(fun);
+	mlc_expr_t;
 	mlc_decl_t *Params;
 	mlc_expr_t *Body;
 };
@@ -1136,7 +1127,7 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 }
 
 struct mlc_ident_expr_t {
-	MLC_EXPR_FIELDS(ident);
+	mlc_expr_t;
 	const char *Ident;
 };
 
@@ -1197,12 +1188,11 @@ static mlc_compiled_t ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_
 }
 
 struct mlc_value_expr_t {
-	MLC_EXPR_FIELDS(value);
+	mlc_expr_t;
 	ml_value_t *Value;
 };
 
 static mlc_compiled_t ml_value_expr_compile(mlc_function_t *Function, mlc_value_expr_t *Expr) {
-	long ValueHash = ml_hash(Expr->Value);
 	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
 	ValueInst->Params[1].Value = Expr->Value;
 	return (mlc_compiled_t){ValueInst, ValueInst};
@@ -1210,7 +1200,6 @@ static mlc_compiled_t ml_value_expr_compile(mlc_function_t *Function, mlc_value_
 
 static mlc_compiled_t ml_inline_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
 	ml_value_t *Value = ml_expr_evaluate(Expr->Child, Function);
-	long ValueHash = ml_hash(Value);
 	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
 	ValueInst->Params[1].Value = Value;
 	return (mlc_compiled_t){ValueInst, ValueInst};
@@ -1375,8 +1364,8 @@ static void ml_accept(mlc_scanner_t *Scanner, ml_token_t Token);
 static mlc_expr_t *ml_parse_expression(mlc_scanner_t *Scanner, ml_expr_level_t Level);
 static mlc_expr_t *ml_accept_expression(mlc_scanner_t *Scanner, ml_expr_level_t Level);
 
-static ml_function_t StringNew[1] = {{MLFunctionT, ml_string_fn, NULL}};
-static ml_function_t StringifierNew[1] = {{MLFunctionT, ml_stringifier_fn, NULL}};
+static ml_function_t StringNew[1] = {{{MLFunctionT}, ml_string_fn, NULL}};
+static ml_function_t StringifierNew[1] = {{{MLFunctionT}, ml_stringifier_fn, NULL}};
 
 static mlc_expr_t *ml_accept_string(mlc_scanner_t *Scanner) {
 	char Char = Scanner->Next[0];

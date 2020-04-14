@@ -26,7 +26,7 @@
 typedef struct DEBUG_STRUCT(frame) DEBUG_STRUCT(frame);
 
 struct DEBUG_STRUCT(frame) {
-	ml_state_t Base;
+	ml_state_t;
 	const char *Source;
 	ml_inst_t *Inst;
 	ml_value_t **Top;
@@ -44,7 +44,7 @@ static void DEBUG_FUNC(continuation_call)(ml_state_t *Caller, ml_state_t *State,
 }
 
 ml_type_t DEBUG_TYPE(Continuation)[1] = {{
-	MLTypeT,
+	{MLTypeT},
 	MLStateT, "continuation",
 	ml_default_hash,
 	(void *)DEBUG_FUNC(continuation_call),
@@ -62,10 +62,11 @@ static void ML_TYPED_FN(ml_iter_key, DEBUG_TYPE(Suspension), ml_state_t *Caller,
 }
 
 static void ML_TYPED_FN(ml_iter_next, DEBUG_TYPE(Suspension), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
-	Suspension->Base.Type = DEBUG_TYPE(Continuation);
+	Suspension->Type = DEBUG_TYPE(Continuation);
 	Suspension->Top[-2] = Suspension->Top[-1];
 	--Suspension->Top;
-	Suspension->Base.Caller = Caller;
+	Suspension->Caller = Caller;
+	Suspension->Context = Caller->Context;
 	ML_CONTINUE(Suspension, MLNil);
 }
 
@@ -75,7 +76,7 @@ static void DEBUG_FUNC(suspension_call)(ml_state_t *Caller, ml_state_t *State, i
 }
 
 ml_type_t DEBUG_TYPE(Suspension)[1] = {{
-	MLTypeT,
+	{MLTypeT},
 	MLFunctionT, "suspension",
 	ml_default_hash,
 	(void *)DEBUG_FUNC(suspension_call),
@@ -153,13 +154,13 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	goto *Labels[Inst->Opcode];
 
 	DO_RETURN: {
-		ML_CONTINUE(Frame->Base.Caller, Result);
+		ML_CONTINUE(Frame->Caller, Result);
 	}
 	DO_SUSPEND: {
-		Frame->Base.Type = DEBUG_TYPE(Suspension);
+		Frame->Type = DEBUG_TYPE(Suspension);
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
-		ML_CONTINUE(Frame->Base.Caller, (ml_value_t *)Frame);
+		ML_CONTINUE(Frame->Caller, (ml_value_t *)Frame);
 	}
 	DO_RESUME: {
 		*--Top = 0;
@@ -390,7 +391,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_value_t **Args = Top - Count;
 		ml_inst_t *Next = Inst->Params[0].Inst;
 		if (Next->Opcode == MLI_RETURN) {
-			return Function->Type->call(Frame->Base.Caller, Function, Count, Args);
+			return Function->Type->call(Frame->Caller, Function, Count, Args);
 		} else {
 			Frame->Inst = Next;
 			Frame->Top = Top - (Count + 1);
@@ -403,7 +404,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_value_t **Args = Top - Count;
 		ml_inst_t *Next = Inst->Params[0].Inst;
 		if (Next->Opcode == MLI_RETURN) {
-			return Function->Type->call(Frame->Base.Caller, Function, Count, Args);
+			return Function->Type->call(Frame->Caller, Function, Count, Args);
 		} else {
 			Frame->Inst = Inst->Params[0].Inst;
 			Frame->Top = Top - Count;
@@ -518,10 +519,10 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	if (Debugger) return ml_closure_call_debug(Caller, Value, Count, Args);
 #endif
 	DEBUG_STRUCT(frame) *Frame = xnew(DEBUG_STRUCT(frame), Info->FrameSize, ml_value_t *);
-	Frame->Base.Type = DEBUG_TYPE(Continuation);
-	Frame->Base.Caller = Caller;
-	Frame->Base.run = (void *)DEBUG_FUNC(frame_run);
-	Frame->Base.Context = Caller->Context;
+	Frame->Type = DEBUG_TYPE(Continuation);
+	Frame->Caller = Caller;
+	Frame->run = (void *)DEBUG_FUNC(frame_run);
+	Frame->Context = Caller->Context;
 	Frame->Source = Info->Source;
 	int NumParams = Info->NumParams;
 	if (Closure->PartialCount) {
@@ -731,7 +732,7 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Closure), ml_state_t *Frame, ml_v
 }
 
 ml_type_t MLClosureT[1] = {{
-	MLTypeT,
+	{MLTypeT},
 	MLFunctionT, "closure",
 	ml_closure_hash,
 	ml_closure_call,

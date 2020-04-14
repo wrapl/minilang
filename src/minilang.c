@@ -125,7 +125,7 @@ static void ml_import_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t 
 	ML_CONTINUE(Caller, Slot[0]);
 }
 
-static ml_functionx_t Import[1] = {{MLFunctionXT, ml_import_fnx, NULL}};
+static ml_functionx_t Import[1] = {{{MLFunctionXT}, ml_import_fnx, NULL}};
 #endif
 
 static ml_value_t *MainArgs[1];
@@ -149,7 +149,7 @@ static void ml_loaded_run(ml_state_t *State, ml_value_t *Result) {
 }
 
 static ml_state_t MLLoadedState[1] = {{
-	MLStateT, NULL, ml_loaded_run
+	{MLStateT}, NULL, ml_loaded_run
 }};
 
 int main(int Argc, const char *Argv[]) {

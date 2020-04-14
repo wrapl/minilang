@@ -7,17 +7,17 @@
 #include <stdio.h>
 
 typedef struct ml_string_store_t {
-	const ml_type_t *Type;
+	ml_value_t;
 	string_store_t *Handle;
 } ml_string_store_t;
 
 typedef struct ml_string_store_writer_t {
-	const ml_type_t *Type;
+	ml_value_t;
 	string_store_writer_t Handle[1];
 } ml_string_store_writer_t;
 
 typedef struct ml_string_store_reader_t {
-	const ml_type_t *Type;
+	ml_value_t;
 	string_store_reader_t Handle[1];
 } ml_string_store_reader_t;
 
@@ -32,7 +32,7 @@ static ml_value_t *ml_string_store_open(void *Data, int Count, ml_value_t **Args
 	Store->Type = StringStoreT;
 	Store->Handle = string_store_open(ml_string_value(Args[0]));
 	if (!Store->Handle) return ml_error("StoreError", "Error opening string store");
-	return (ml_value_t *)Store;
+	return Store;
 }
 
 static ml_value_t *ml_string_store_create(void *Data, int Count, ml_value_t **Args) {
@@ -47,7 +47,7 @@ static ml_value_t *ml_string_store_create(void *Data, int Count, ml_value_t **Ar
 	ml_string_store_t *Store = new(ml_string_store_t);
 	Store->Type = StringStoreT;
 	Store->Handle = string_store_create(ml_string_value(Args[0]), ml_integer_value(Args[1]), ChunkSize);
-	return (ml_value_t *)Store;
+	return Store;
 }
 
 ML_METHOD("get", StringStoreT, MLIntegerT) {
@@ -73,7 +73,7 @@ ML_METHOD("write", StringStoreT, MLIntegerT) {
 	ml_string_store_writer_t *Writer = new(ml_string_store_writer_t);
 	Writer->Type = StringStoreWriterT;
 	string_store_writer_open(Writer->Handle, Store->Handle, ml_integer_value(Args[1]));
-	return (ml_value_t *)Writer;
+	return Writer;
 }
 
 ML_METHOD("write", StringStoreWriterT, MLStringT) {
@@ -87,7 +87,7 @@ ML_METHOD("read", StringStoreT, MLIntegerT) {
 	ml_string_store_reader_t *Reader = new(ml_string_store_reader_t);
 	Reader->Type = StringStoreReaderT;
 	string_store_reader_open(Reader->Handle, Store->Handle, ml_integer_value(Args[1]));
-	return (ml_value_t *)Reader;
+	return Reader;
 }
 
 ML_METHOD("read", StringStoreReaderT, MLIntegerT) {
@@ -107,7 +107,7 @@ static ml_value_t *ml_cbor_store_open(void *Data, int Count, ml_value_t **Args) 
 	Store->Type = CborStoreT;
 	Store->Handle = string_store_open(ml_string_value(Args[0]));
 	if (!Store->Handle) return ml_error("StoreError", "Error opening string store");
-	return (ml_value_t *)Store;
+	return Store;
 }
 
 static ml_value_t *ml_cbor_store_create(void *Data, int Count, ml_value_t **Args) {
@@ -122,7 +122,7 @@ static ml_value_t *ml_cbor_store_create(void *Data, int Count, ml_value_t **Args
 	ml_string_store_t *Store = new(ml_string_store_t);
 	Store->Type = CborStoreT;
 	Store->Handle = string_store_create(ml_string_value(Args[0]), ml_integer_value(Args[1]), ChunkSize);
-	return (ml_value_t *)Store;
+	return Store;
 }
 
 static ml_value_t *ml_value_fn(ml_value_t *Callback, ml_value_t *Value) {
@@ -174,7 +174,7 @@ static ml_value_t *ml_string_index_open(void *Data, int Count, ml_value_t **Args
 	Store->Type = StringIndexT;
 	Store->Handle = string_index_open(ml_string_value(Args[0]));
 	if (!Store->Handle) return ml_error("StoreError", "Error opening string store");
-	return (ml_value_t *)Store;
+	return Store;
 }
 
 static ml_value_t *ml_string_index_create(void *Data, int Count, ml_value_t **Args) {
@@ -188,7 +188,7 @@ static ml_value_t *ml_string_index_create(void *Data, int Count, ml_value_t **Ar
 	ml_string_index_t *Store = new(ml_string_index_t);
 	Store->Type = StringIndexT;
 	Store->Handle = string_index_create(ml_string_value(Args[0]), ChunkSize);
-	return (ml_value_t *)Store;
+	return Store;
 }
 
 ML_METHOD("insert", StringIndexT, MLStringT) {

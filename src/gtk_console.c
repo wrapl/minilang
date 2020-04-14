@@ -106,7 +106,7 @@ static ml_value_t *console_global_get(console_t *Console, const char *Name) {
 	ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
 	Uninitialized->Type = MLUninitializedT;
 	stringmap_insert(Console->Globals, Name, Uninitialized);
-	return (ml_value_t *)Uninitialized;
+	return Uninitialized;
 }
 
 static char *console_read(console_t *Console) {
@@ -172,7 +172,7 @@ void console_log(console_t *Console, ml_value_t *Value) {
 }
 
 typedef struct {
-	ml_state_t Base;
+	ml_state_t;
 	console_t *Console;
 } ml_console_repl_state_t;
 
@@ -208,8 +208,8 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 
 	mlc_scanner_t *Scanner = Console->Scanner;
 	ml_console_repl_state_t *State = new(ml_console_repl_state_t);
-	State->Base.run = ml_console_repl_run;
-	State->Base.Context = &MLRootContext;
+	State->run = ml_console_repl_run;
+	State->Context = &MLRootContext;
 	State->Console = Console;
 	ml_scanner_reset(Scanner);
 	ml_command_evaluate(State, Scanner, Console->Globals);
@@ -493,7 +493,7 @@ static gboolean console_update_status(console_t *Console) {
 	return G_SOURCE_CONTINUE;
 }
 
-console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
+console_t *console_new(ml_getter_t GlobalGet, stringmap_t *Globals) {
 	gtk_init(0, 0);
 
 	console_t *Console = new(console_t);
@@ -607,7 +607,7 @@ console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 	stringmap_insert(Globals, "set_style", ml_function(Console, (ml_callback_t)console_set_style));
 	stringmap_insert(Globals, "add_cycle", ml_function(Console, (ml_callback_t)console_add_cycle));
 	stringmap_insert(Globals, "add_combo", ml_function(Console, (ml_callback_t)console_add_combo));
-	stringmap_insert(Globals, "include", ml_functionx(Console, (ml_callback_t)console_include_fnx));
+	stringmap_insert(Globals, "include", ml_functionx(Console, (ml_callbackx_t)console_include_fnx));
 	stringmap_insert(Globals, "display", ml_function(Console, (ml_callback_t)console_display));
 
 	ml_typed_fn_set(MLClosureT, console_display_value, console_display_closure);
