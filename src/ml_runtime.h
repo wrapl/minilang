@@ -48,7 +48,7 @@ typedef struct {
 
 void ml_eval_state_run(ml_value_state_t *State, ml_value_t *Value);
 
-#define ML_EVAL_STATE_INIT {{{MLStateT}, NULL, ml_eval_state_run, &MLRootContext}, MLNil}
+#define ML_EVAL_STATE_INIT {{MLStateT, NULL, ml_eval_state_run, &MLRootContext}, MLNil}
 
 #define ML_WRAP_EVAL(FUNCTION, ARGS...) ({ \
 	ml_value_state_t State[1] = ML_EVAL_STATE_INIT; \
@@ -58,7 +58,7 @@ void ml_eval_state_run(ml_value_state_t *State, ml_value_t *Value);
 
 void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value);
 
-#define ML_CALL_STATE_INIT {{{MLStateT}, NULL, ml_call_state_run, &MLRootContext}, MLNil}
+#define ML_CALL_STATE_INIT {{MLStateT, NULL, ml_call_state_run, &MLRootContext}, MLNil}
 
 #define ML_WRAP_CALL(FUNCTION, ARGS...) ({ \
 	ml_value_state_t State[1] = ML_CALL_STATE_INIT; \
