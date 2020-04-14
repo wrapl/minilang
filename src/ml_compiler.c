@@ -53,6 +53,11 @@ struct mlc_expr_t {
 	ml_source_t Source;
 };
 
+#define MLC_EXPR_FIELDS(name) \
+	mlc_compiled_t (*compile)(mlc_function_t *, mlc_## name ## _expr_t *); \
+	mlc_expr_t *Next; \
+	ml_source_t Source
+
 static inline ml_inst_t *ml_inst_new(int N, ml_source_t Source, ml_opcode_t Opcode) {
 	ml_inst_t *Inst = xnew(ml_inst_t, N, ml_param_t);
 	Inst->LineNo = Source.Line;
@@ -173,7 +178,7 @@ typedef struct mlc_parent_value_expr_t mlc_parent_value_expr_t;
 typedef struct mlc_block_expr_t mlc_block_expr_t;
 
 static ml_type_t MLBlankT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLAnyT, "blank",
 	ml_default_hash,
 	ml_default_call,
@@ -205,7 +210,7 @@ struct mlc_if_case_t {
 };
 
 struct mlc_if_expr_t {
-	mlc_expr_t;
+	MLC_EXPR_FIELDS(if);
 	mlc_if_case_t *Cases;
 	mlc_expr_t *Else;
 };
@@ -273,7 +278,7 @@ static mlc_compiled_t ml_if_expr_compile(mlc_function_t *Function, mlc_if_expr_t
 }
 
 struct mlc_parent_expr_t {
-	mlc_expr_t;
+	MLC_EXPR_FIELDS(parent);
 	mlc_expr_t *Child;
 };
 
@@ -494,7 +499,7 @@ static mlc_compiled_t ml_suspend_expr_compile(mlc_function_t *Function, mlc_pare
 }
 
 struct mlc_decl_expr_t {
-	mlc_expr_t;
+	MLC_EXPR_FIELDS(decl);
 	mlc_decl_t *Decl;
 	mlc_expr_t *Child;
 	int Count;
@@ -712,7 +717,7 @@ static mlc_compiled_t ml_each_expr_compile(mlc_function_t *Function, mlc_parent_
 }
 
 struct mlc_block_expr_t {
-	mlc_expr_t;
+	MLC_EXPR_FIELDS(block);
 	mlc_decl_t *Vars, *Lets, *Defs;
 	mlc_expr_t *Child;
 	mlc_decl_t *CatchDecl;
@@ -964,7 +969,7 @@ static mlc_compiled_t ml_call_expr_compile(mlc_function_t *Function, mlc_parent_
 }
 
 struct mlc_parent_value_expr_t {
-	mlc_expr_t;
+	MLC_EXPR_FIELDS(parent);
 	mlc_expr_t *Child;
 	ml_value_t *Value;
 };
@@ -1068,7 +1073,7 @@ static mlc_compiled_t ml_import_expr_compile(mlc_function_t *Function, mlc_paren
 }
 
 struct mlc_fun_expr_t {
-	mlc_expr_t;
+	MLC_EXPR_FIELDS(fun);
 	mlc_decl_t *Params;
 	mlc_expr_t *Body;
 };
@@ -1127,7 +1132,7 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 }
 
 struct mlc_ident_expr_t {
-	mlc_expr_t;
+	MLC_EXPR_FIELDS(ident);
 	const char *Ident;
 };
 
@@ -1188,7 +1193,7 @@ static mlc_compiled_t ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_
 }
 
 struct mlc_value_expr_t {
-	mlc_expr_t;
+	MLC_EXPR_FIELDS(value);
 	ml_value_t *Value;
 };
 

@@ -65,7 +65,7 @@ static const char *ml_console_line_read(ml_console_t *Console) {
 }
 
 typedef struct {
-	ml_state_t;
+	ml_state_t Base;
 	ml_console_t *Console;
 	mlc_scanner_t *Scanner;
 } ml_console_repl_state_t;
@@ -98,8 +98,8 @@ void ml_console(ml_getter_t GlobalGet, void *Globals) {
 	mlc_context_t Context[1] = {{(ml_getter_t)ml_console_global_get, Console}};
 	mlc_scanner_t *Scanner = ml_scanner("console", Console, (void *)ml_console_line_read, Context);
 	ml_console_repl_state_t *State = new(ml_console_repl_state_t);
-	State->run = ml_console_repl_run;
-	State->Context = &MLRootContext;
+	State->Base.run = ml_console_repl_run;
+	State->Base.Context = &MLRootContext;
 	State->Console = Console;
 	State->Scanner = Scanner;
 	ml_command_evaluate(State, Scanner, Console->Globals);

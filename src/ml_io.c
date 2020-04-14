@@ -40,7 +40,7 @@ ML_METHODX("write", MLStreamT, MLStringT) {
 }
 
 typedef struct ml_fd_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	int Fd;
 } ml_fd_t;
 

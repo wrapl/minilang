@@ -39,7 +39,7 @@ static void ml_state_call(ml_state_t *Caller, ml_state_t *State, int Count, ml_v
 }
 
 ml_type_t MLStateT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLFunctionT, "state",
 	ml_default_hash,
 	(void *)ml_state_call,
@@ -65,23 +65,23 @@ void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value) {
 	if (Value->Type == MLErrorT) {
 		State->Value = Value;
 	} else {
-		State->run = ml_eval_state_run;
+		State->Base.run = ml_eval_state_run;
 		Value->Type->call(State, Value, 0, NULL);
 	}
 }
 
 typedef struct ml_resumable_state_t {
-	ml_state_t;
+	ml_state_t Base;
 	ml_state_t *Last;
 } ml_resumable_state_t;
 
 static void ml_resumable_state_call(ml_state_t *Caller, ml_resumable_state_t *State, int Count, ml_value_t **Args) {
 	State->Last->Caller = Caller;
-	ML_CONTINUE(State->Caller, Count ? Args[0] : MLNil);
+	ML_CONTINUE(State->Base.Caller, Count ? Args[0] : MLNil);
 }
 
 ml_type_t MLResumableStateT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLStateT, "resumable-state",
 	ml_default_hash,
 	(void *)ml_resumable_state_call,
@@ -91,7 +91,7 @@ ml_type_t MLResumableStateT[1] = {{
 }};
 
 static void ml_resumable_state_run(ml_resumable_state_t *State, ml_value_t *Value) {
-	ML_CONTINUE(State->Caller, ml_error("StateError", "Invalid use of resumable state"));
+	ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Invalid use of resumable state"));
 }
 
 static void ml_callcc_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
@@ -103,10 +103,10 @@ static void ml_callcc_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t 
 		if (!Last) ML_RETURN(ml_error("StateError", "State not in current call chain"));
 		Last->Caller = NULL;
 		ml_resumable_state_t *Resumable = new(ml_resumable_state_t);
-		Resumable->Type = MLResumableStateT;
-		Resumable->Caller = Caller;
-		Resumable->run = (void *)ml_resumable_state_run;
-		Resumable->Context = Caller->Context;
+		Resumable->Base.Type = MLResumableStateT;
+		Resumable->Base.Caller = Caller;
+		Resumable->Base.run = (void *)ml_resumable_state_run;
+		Resumable->Base.Context = Caller->Context;
 		Resumable->Last = Last;
 		ml_value_t *Function = Args[1];
 		ml_value_t **Args2 = anew(ml_value_t *, 1);
@@ -155,7 +155,7 @@ static void ml_function_call(ml_state_t *Caller, ml_function_t *Function, int Co
 }
 
 ml_type_t MLFunctionT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLIteratableT, "function",
 	ml_default_hash,
 	(void *)ml_function_call,
@@ -182,7 +182,7 @@ static void ml_functionx_call(ml_state_t *Caller, ml_functionx_t *Function, int 
 }
 
 ml_type_t MLFunctionXT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLFunctionT, "functionx",
 	ml_default_hash,
 	(void *)ml_functionx_call,
@@ -264,7 +264,7 @@ ml_value_t *ml_identity(void *Data, int Count, ml_value_t **Args) {
 }
 
 typedef struct ml_partial_function_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	ml_value_t *Function;
 	int Count, Set;
 	ml_value_t *Args[];
@@ -289,7 +289,7 @@ static void ml_partial_function_call(ml_state_t *Caller, ml_partial_function_t *
 }
 
 ml_type_t MLPartialFunctionT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLFunctionT, "partial-function",
 	ml_default_hash,
 	(void *)ml_partial_function_call,
@@ -368,7 +368,7 @@ static ml_value_t *ml_reference_assign(ml_value_t *Ref, ml_value_t *Value) {
 }
 
 ml_type_t MLReferenceT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLAnyT, "reference",
 	ml_reference_hash,
 	ml_default_call,
@@ -392,7 +392,7 @@ inline ml_value_t *ml_reference(ml_value_t **Address) {
 }
 
 ml_type_t MLUninitializedT[] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLAnyT, "uninitialized",
 	ml_default_hash,
 	ml_default_call,
@@ -406,7 +406,7 @@ ml_type_t MLUninitializedT[] = {{
 #define MAX_TRACE 16
 
 struct ml_error_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	const char *Error;
 	const char *Message;
 	ml_source_t Trace[MAX_TRACE];
@@ -418,7 +418,7 @@ static void ml_error_call(ml_state_t *Caller, ml_error_t *Error, int Count, ml_v
 }
 
 ml_type_t MLErrorT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLAnyT, "error",
 	ml_default_hash,
 	ml_error_call,
@@ -428,7 +428,7 @@ ml_type_t MLErrorT[1] = {{
 }};
 
 ml_type_t MLErrorValueT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLErrorT, "error_value",
 	ml_default_hash,
 	ml_default_call,

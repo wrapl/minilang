@@ -33,7 +33,7 @@ ML_METHOD_DECL(MLMethodOf, NULL);
 /****************************** Types ******************************/
 
 ml_type_t MLTypeT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLIteratableT, "type",
 	ml_default_hash,
 	ml_default_call,
@@ -198,7 +198,7 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLTypeT, ml_stringbuffer_
 /****************************** Values ******************************/
 
 ml_type_t MLAnyT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	NULL, "any",
 	ml_default_hash,
 	ml_default_call,
@@ -208,7 +208,7 @@ ml_type_t MLAnyT[1] = {{
 }};
 
 ml_type_t MLNilT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLAnyT, "nil",
 	ml_default_hash,
 	ml_default_call,
@@ -218,7 +218,7 @@ ml_type_t MLNilT[1] = {{
 }};
 
 ml_type_t MLSomeT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLAnyT, "some",
 	ml_default_hash,
 	ml_default_call,
@@ -253,7 +253,7 @@ long ml_hash(ml_value_t *Value) {
 }
 
 typedef struct ml_integer_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	long Value;
 } ml_integer_t;
 
@@ -283,7 +283,7 @@ ML_METHOD("!=", MLAnyT, MLAnyT) {
 /****************************** Iterators ******************************/
 
 ml_type_t MLIteratableT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLAnyT, "iterator",
 	ml_default_hash,
 	ml_default_call,
@@ -381,7 +381,7 @@ static ml_value_t *ml_tuple_assign(ml_tuple_t *Ref, ml_value_t *Value) {
 }
 
 ml_type_t MLTupleT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLAnyT, "tuple",
 	(void *)ml_tuple_hash,
 	ml_default_call,
@@ -535,7 +535,7 @@ ml_comp_tuple_tuple(">=", MLNil, Args[1], Args[1]);
 /****************************** Numbers ******************************/
 
 ml_type_t MLNumberT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLFunctionT, "number",
 	ml_default_hash,
 	ml_default_call,
@@ -545,7 +545,7 @@ ml_type_t MLNumberT[1] = {{
 }};
 
 typedef struct ml_real_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	double Value;
 } ml_real_t;
 
@@ -563,7 +563,7 @@ static void ml_integer_call(ml_state_t *Caller, ml_integer_t *Value, int Count, 
 }
 
 ml_type_t MLIntegerT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLNumberT, "integer",
 	ml_integer_hash,
 	(void *)ml_integer_call,
@@ -614,7 +614,7 @@ static long ml_real_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 }
 
 ml_type_t MLRealT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLNumberT, "real",
 	ml_real_hash,
 	ml_default_call,
@@ -826,7 +826,7 @@ ML_METHOD("<>", MLRealT, MLRealT) {
 }
 
 typedef struct ml_integer_iter_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	long Current, Step, Limit;
 	long Index;
 } ml_integer_iter_t;
@@ -851,7 +851,7 @@ static void ML_TYPED_FN(ml_iter_key, MLIntegerIterT, ml_state_t *Caller, ml_inte
 }
 
 ml_type_t MLIntegerIterT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLAnyT, "integer-iter",
 	ml_default_hash,
 	ml_default_call,
@@ -861,7 +861,7 @@ ml_type_t MLIntegerIterT[1] = {{
 }};
 
 typedef struct ml_integer_range_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	long Start, Limit, Step;
 } ml_integer_range_t;
 
@@ -879,7 +879,7 @@ static void ML_TYPED_FN(ml_iterate, MLIntegerRangeT, ml_state_t *Caller, ml_valu
 }
 
 ml_type_t MLIntegerRangeT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLIteratableT, "integer-range",
 	ml_default_hash,
 	ml_default_call,
@@ -937,7 +937,7 @@ ML_METHOD("in", MLRealT, MLIntegerRangeT) {
 }
 
 typedef struct ml_real_iter_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	double Current, Step, Limit;
 	long Index, Remaining;
 } ml_real_iter_t;
@@ -958,7 +958,7 @@ static void ML_TYPED_FN(ml_iter_key, MLRealIterT, ml_state_t *Caller, ml_real_it
 }
 
 ml_type_t MLRealIterT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLAnyT, "real-iter",
 	ml_default_hash,
 	ml_default_call,
@@ -968,7 +968,7 @@ ml_type_t MLRealIterT[1] = {{
 }};
 
 typedef struct ml_real_range_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	double Start, Limit, Step;
 	long Count;
 } ml_real_range_t;
@@ -988,7 +988,7 @@ static void ML_TYPED_FN(ml_iterate, MLRealRangeT, ml_state_t *Caller, ml_value_t
 }
 
 ml_type_t MLRealRangeT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLIteratableT, "real-range",
 	ml_default_hash,
 	ml_default_call,
@@ -1096,7 +1096,7 @@ ML_METHOD("in", MLRealT, MLRealRangeT) {
 /****************************** Strings ******************************/
 
 ml_type_t MLBufferT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLAnyT, "buffer",
 	ml_default_hash,
 	ml_default_call,
@@ -1140,7 +1140,7 @@ ML_METHOD(MLStringOfMethod, MLBufferT) {
 }
 
 typedef struct ml_string_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	const char *Value;
 	size_t Length;
 } ml_string_t;
@@ -1153,7 +1153,7 @@ static long ml_string_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 }
 
 ml_type_t MLStringT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLBufferT, "string",
 	ml_string_hash,
 	ml_default_call,
@@ -1297,7 +1297,7 @@ ML_METHOD(MLRealOfMethod, MLStringT) {
 typedef struct ml_regex_t ml_regex_t;
 
 typedef struct ml_regex_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	const char *Pattern;
 	regex_t Value[1];
 } ml_regex_t;
@@ -1311,7 +1311,7 @@ static long ml_regex_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 }
 
 ml_type_t MLRegexT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLAnyT, "regex",
 	ml_regex_hash,
 	ml_default_call,
@@ -1341,7 +1341,7 @@ regex_t *ml_regex_value(ml_value_t *Value) {
 }
 
 ml_type_t MLStringBufferT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLAnyT, "stringbuffer",
 	ml_default_hash,
 	ml_default_call,
@@ -1888,13 +1888,13 @@ ML_METHOD(MLStringOfMethod, MLRegexT) {
 }
 
 typedef struct ml_stringifier_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	int Count;
 	ml_value_t *Args[];
 } ml_stringifier_t;
 
 ml_type_t MLStringifierT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLAnyT, "stringifier",
 	ml_default_hash,
 	ml_default_call,
@@ -1967,7 +1967,7 @@ static void ml_list_call(ml_state_t *Caller, ml_list_t *List, int Count, ml_valu
 }
 
 ml_type_t MLListT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLFunctionT, "list",
 	ml_default_hash,
 	(void *)ml_list_call,
@@ -2197,7 +2197,7 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLListT) {
 }
 
 typedef struct ml_list_iter_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	ml_list_node_t *Node;
 	long Index;
 } ml_list_iter_t;
@@ -2221,7 +2221,7 @@ static void ML_TYPED_FN(ml_iter_key, MLListIterT, ml_state_t *Caller, ml_list_it
 }
 
 ml_type_t MLListIterT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLAnyT, "list-iterator",
 	ml_default_hash,
 	ml_default_call,
@@ -2360,7 +2360,7 @@ ML_METHOD("join", MLListT, MLStringT) {
 }
 
 ml_type_t MLNamesT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLListT, "names",
 	ml_default_hash,
 	(void *)ml_list_call,
@@ -2381,7 +2381,7 @@ static void ml_map_call(ml_state_t *Caller, ml_value_t *Map, int Count, ml_value
 }
 
 ml_type_t MLMapT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLFunctionT, "map",
 	ml_default_hash,
 	(void *)ml_map_call,
@@ -2602,7 +2602,7 @@ ML_METHOD("size", MLMapT) {
 }
 
 typedef struct ml_map_index_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	ml_map_t *Map;
 	ml_value_t *Key;
 } ml_map_index_t;
@@ -2617,7 +2617,7 @@ static ml_value_t *ml_map_index_assign(ml_map_index_t *Index, ml_value_t *Value)
 }
 
 ml_type_t MLMapIndexT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLAnyT, "map-index",
 	ml_default_hash,
 	ml_default_call,
@@ -2711,7 +2711,7 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLMapT) {
 #define ML_TREE_MAX_DEPTH 32
 
 typedef struct ml_map_iter_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	ml_map_node_t *Node;
 	ml_map_node_t *Stack[ML_TREE_MAX_DEPTH];
 	int Top;
@@ -2732,7 +2732,7 @@ static void ML_TYPED_FN(ml_iter_key, MLMapIterT, ml_state_t *Caller, ml_map_iter
 }
 
 ml_type_t MLMapIterT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLAnyT, "map-iterator",
 	ml_default_hash,
 	ml_default_call,
@@ -2833,7 +2833,7 @@ struct ml_method_table_t {
 };
 
 struct ml_method_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	const char *Name;
 	ml_method_table_t Table[1];
 };
@@ -2904,7 +2904,7 @@ static void ml_method_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_
 }
 
 ml_type_t MLMethodT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLFunctionT, "method",
 	ml_method_hash,
 	ml_method_call,
@@ -3108,13 +3108,13 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLMethodT) {
 typedef struct ml_module_t ml_module_t;
 
 struct ml_module_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	const char *Path;
 	stringmap_t Exports[1];
 };
 
 ml_type_t MLModuleT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLAnyT, "module",
 	ml_default_hash,
 	ml_default_call,

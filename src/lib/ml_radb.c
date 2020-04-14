@@ -7,17 +7,17 @@
 #include <stdio.h>
 
 typedef struct ml_string_store_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	string_store_t *Handle;
 } ml_string_store_t;
 
 typedef struct ml_string_store_writer_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	string_store_writer_t Handle[1];
 } ml_string_store_writer_t;
 
 typedef struct ml_string_store_reader_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	string_store_reader_t Handle[1];
 } ml_string_store_reader_t;
 

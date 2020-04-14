@@ -26,7 +26,7 @@ int ml_context_index_new();
 void ml_context_set(ml_context_t *Context, int Index, void *Value);
 
 struct ml_state_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	ml_state_t *Caller;
 	void (*run)(ml_state_t *State, ml_value_t *Value);
 	ml_context_t *Context;
@@ -42,7 +42,7 @@ ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args);
 })
 
 typedef struct {
-	ml_state_t;
+	ml_state_t Base;
 	ml_value_t *Value;
 } ml_value_state_t;
 
@@ -69,13 +69,13 @@ void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value);
 /****************************** Functions ******************************/
 
 struct ml_function_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	ml_callback_t Callback;
 	void *Data;
 };
 
 struct ml_functionx_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	ml_callbackx_t Callback;
 	void *Data;
 };
@@ -132,7 +132,7 @@ typedef ml_value_t *(*ml_setter_t)(void *Data, const char *Name, ml_value_t *Val
 typedef struct ml_reference_t ml_reference_t;
 
 struct ml_reference_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	ml_value_t **Address;
 	ml_value_t *Value[];
 };
@@ -145,7 +145,7 @@ struct ml_slot_t {
 };
 
 typedef struct {
-	ml_value_t;
+	const ml_type_t *Type;
 	ml_slot_t *Slots;
 } ml_uninitialized_t;
 

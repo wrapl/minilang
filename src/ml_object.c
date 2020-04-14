@@ -5,18 +5,18 @@
 #include "ml_object.h"
 
 typedef struct ml_class_t {
-	ml_type_t;
+	ml_type_t Base;
 	int NumFields;
 	ml_value_t *Fields[];
 } ml_class_t;
 
 typedef struct ml_object_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	ml_value_t *Fields[];
 } ml_object_t;
 
 ml_type_t MLObjectT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLIteratableT, "object",
 	ml_default_hash,
 	ml_default_call,
@@ -45,7 +45,7 @@ static void ml_class_call(ml_state_t *Caller, ml_class_t *Class, int Count, ml_v
 						goto found;
 					}
 				}
-				ML_RETURN(ml_error("ValueError", "Class %s does not have field %s", Class->Name, ml_method_name(Field)));
+				ML_RETURN(ml_error("ValueError", "Class %s does not have field %s", Class->Base.Name, ml_method_name(Field)));
 				found: 0;
 			}
 			break;
@@ -59,7 +59,7 @@ static void ml_class_call(ml_state_t *Caller, ml_class_t *Class, int Count, ml_v
 }
 
 ml_type_t MLClassT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLTypeT, "class",
 	ml_default_hash,
 	(void *)ml_class_call,
@@ -86,7 +86,7 @@ ML_METHOD(MLStringOfMethod, MLObjectT) {
 	ml_class_t *Class = (ml_class_t *)Object->Type;
 	if (Class->NumFields > 0) {
 		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-		ml_stringbuffer_addf(Buffer, "%s(", Class->Name);
+		ml_stringbuffer_addf(Buffer, "%s(", Class->Base.Name);
 		const char *Name = ml_method_name(Class->Fields[0]);
 		ml_stringbuffer_add(Buffer, Name, strlen(Name));
 		ml_stringbuffer_add(Buffer, ": ", 2);
@@ -101,7 +101,7 @@ ML_METHOD(MLStringOfMethod, MLObjectT) {
 		ml_stringbuffer_add(Buffer, ")", 1);
 		return ml_stringbuffer_get_string(Buffer);
 	} else {
-		return ml_string_format("%s()", Class->Name);
+		return ml_string_format("%s()", Class->Base.Name);
 	}
 }
 
@@ -120,13 +120,13 @@ static ml_value_t *ml_class_fn(void *Data, int Count, ml_value_t **Args) {
 		ml_class_t *Parent = (ml_class_t *)Args[1];
 		for (int I = 2; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLMethodT);
 		ml_class_t *Class = xnew(ml_class_t, Parent->NumFields + Count - 2, ml_value_t *);
-		Class->Type = MLClassT;
-		Class->Parent = (ml_type_t *)Parent;
-		Class->Name = Name;
-		Class->hash = ml_default_hash;
-		Class->call = ml_default_call;
-		Class->deref = ml_default_deref;
-		Class->assign = ml_default_assign;
+		Class->Base.Type = MLClassT;
+		Class->Base.Parent = (ml_type_t *)Parent;
+		Class->Base.Name = Name;
+		Class->Base.hash = ml_default_hash;
+		Class->Base.call = ml_default_call;
+		Class->Base.deref = ml_default_deref;
+		Class->Base.assign = ml_default_assign;
 		Class->NumFields = Parent->NumFields + Count - 2;
 		memcpy(Class->Fields, Parent->Fields, Parent->NumFields * sizeof(ml_value_t *));
 		for (int I = 2; I < Count; ++I) {
@@ -139,13 +139,13 @@ static ml_value_t *ml_class_fn(void *Data, int Count, ml_value_t **Args) {
 	} else {
 		for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLMethodT);
 		ml_class_t *Class = xnew(ml_class_t, Count, ml_value_t *);
-		Class->Type = MLClassT;
-		Class->Parent = MLObjectT;
-		Class->Name = Name;
-		Class->hash = ml_default_hash;
-		Class->call = ml_default_call;
-		Class->deref = ml_default_deref;
-		Class->assign = ml_default_assign;
+		Class->Base.Type = MLClassT;
+		Class->Base.Parent = MLObjectT;
+		Class->Base.Name = Name;
+		Class->Base.hash = ml_default_hash;
+		Class->Base.call = ml_default_call;
+		Class->Base.deref = ml_default_deref;
+		Class->Base.assign = ml_default_assign;
 		Class->NumFields = Count - 1;
 		for (int I = 1; I < Count; ++I) {
 			Class->Fields[I - 1] = Args[I];
@@ -190,7 +190,7 @@ static ml_value_t *ml_assignable_assign(ml_assignable_t *Assignable, ml_value_t 
 }
 
 static ml_type_t MLAssignableT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLAnyT, "assignable",
 	ml_default_hash,
 	ml_default_call,

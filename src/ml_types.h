@@ -36,7 +36,7 @@ struct ml_hash_chain_t {
 typedef struct ml_typed_fn_node_t ml_typed_fn_node_t;
 
 struct ml_type_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	const ml_type_t *Parent;
 	const char *Name;
 	long (*hash)(ml_value_t *, ml_hash_chain_t *);
@@ -101,7 +101,7 @@ typedef struct ml_tuple_t ml_tuple_t;
 extern ml_type_t MLTupleT[];
 
 struct ml_tuple_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	int Size, NoRefs;
 	ml_value_t *Values[];
 };
@@ -132,7 +132,7 @@ extern ml_value_t *MLRealOfMethod;
 typedef struct ml_buffer_t ml_buffer_t;
 
 struct ml_buffer_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	char *Address;
 	size_t Size;
 };
@@ -159,7 +159,7 @@ typedef struct ml_stringbuffer_t ml_stringbuffer_t;
 typedef struct ml_stringbuffer_node_t ml_stringbuffer_node_t;
 
 struct ml_stringbuffer_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	ml_stringbuffer_node_t *Nodes;
 	size_t Space, Length;
 };
@@ -186,7 +186,7 @@ extern ml_type_t MLListT[];
 extern ml_type_t MLNamesT[];
 
 struct ml_list_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	ml_list_node_t *Head, *Tail;
 	int Length;
 };
@@ -227,7 +227,7 @@ typedef struct ml_map_node_t ml_map_node_t;
 extern ml_type_t MLMapT[];
 
 struct ml_map_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	ml_map_node_t *Head, *Tail, *Root;
 	int Size;
 };

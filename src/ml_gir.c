@@ -10,7 +10,7 @@
 static ml_value_t *MLTrue, *MLFalse;
 
 typedef struct typelib_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	GITypelib *Handle;
 	const char *Namespace;
 } typelib_t;
@@ -18,7 +18,7 @@ typedef struct typelib_t {
 static ml_type_t *TypelibT;
 
 typedef struct typelib_iter_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	GITypelib *Handle;
 	const char *Namespace;
 	GIBaseInfo *Current;
@@ -43,7 +43,7 @@ static void typelib_iter_key(ml_state_t *Caller, typelib_iter_t *Iter) {
 }
 
 ml_type_t TypelibIterT[1] = {{
-	{MLTypeT},
+	MLTypeT,
 	MLAnyT, "typelib-iter",
 	ml_default_hash,
 	ml_default_call,
@@ -66,7 +66,7 @@ static ml_value_t *ml_gir_require(void *Data, int Count, ml_value_t **Args) {
 }
 
 typedef struct object_t {
-	ml_type_t;
+	ml_type_t Base;
 	GIObjectInfo *Info;
 	ml_map_t *Methods;
 } object_t;
@@ -170,7 +170,7 @@ ML_METHOD("string", ObjectInstanceT) {
 }
 
 typedef struct struct_t {
-	ml_type_t;
+	ml_type_t Base;
 	GIStructInfo *Info;
 	ml_map_t *Methods;
 } struct_t;
@@ -195,7 +195,7 @@ ML_METHOD("string", StructInstanceT) {
 }
 
 typedef struct field_ref_t {
-	ml_value_t;
+	const ml_type_t *Type;
 	void *Address;
 } field_ref_t;
 
@@ -214,7 +214,7 @@ static ml_value_t *field_ref_ ## LNAME ## _assign(field_ref_t *Ref, ml_value_t *
 } \
 \
 static ml_type_t FieldRef ## UNAME ## T[1] = {{ \
-	{MLTypeT}, \
+	MLTypeT, \
 	MLAnyT, "field-ref-" #LNAME, \
 	ml_default_hash, \
 	ml_default_call, \
@@ -293,7 +293,7 @@ static ml_value_t *struct_field_ref(GIFieldInfo *Info, int Count, ml_value_t **A
 }
 
 typedef struct enum_t {
-	ml_type_t;
+	ml_type_t Base;
 	GIEnumInfo *Info;
 	ml_value_t *ByName;
 	ml_value_t *ByIndex[];
@@ -1348,10 +1348,10 @@ static ml_type_t *object_info_lookup(GIObjectInfo *Info) {
 	ml_type_t **Slot = (ml_type_t **)stringmap_slot(TypeMap, TypeName);
 	if (!Slot[0]) {
 		object_t *Object = new(object_t);
-		Object->ml_type_t = ObjectT[0];
-		Object->Type = ObjectT;
-		Object->Name = TypeName;
-		Object->Parent = ObjectInstanceT;
+		Object->Base = ObjectT[0];
+		Object->Base.Type = ObjectT;
+		Object->Base.Name = TypeName;
+		Object->Base.Parent = ObjectInstanceT;
 		Object->Info = Info;
 		Object->Methods = ml_map();
 		object_add_methods(Object, Info);
@@ -1372,10 +1372,10 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 	ml_type_t **Slot = (ml_type_t **)stringmap_slot(TypeMap, TypeName);
 	if (!Slot[0]) {
 		struct_t *Struct = new(struct_t);
-		Struct->ml_type_t = StructT[0];
-		Struct->Type = StructT;
-		Struct->Name = TypeName;
-		Struct->Parent = StructInstanceT;
+		Struct->Base = StructT[0];
+		Struct->Base.Type = StructT;
+		Struct->Base.Name = TypeName;
+		Struct->Base.Parent = StructInstanceT;
 		Struct->Info = Info;
 		Struct->Methods = ml_map();
 		ml_map_insert(Struct->Methods, ml_string("new", -1), ml_function(Struct, struct_instance_new));
@@ -1425,10 +1425,10 @@ static ml_type_t *enum_info_lookup(GIEnumInfo *Info) {
 	if (!Slot[0]) {
 		int NumValues = g_enum_info_get_n_values(Info);
 		enum_t *Enum = xnew(enum_t, NumValues, ml_value_t *);
-		Enum->ml_type_t = EnumT[0];
-		Enum->Type = EnumT;
-		Enum->Name = TypeName;
-		Enum->Parent = EnumValueT;
+		Enum->Base = EnumT[0];
+		Enum->Base.Type = EnumT;
+		Enum->Base.Name = TypeName;
+		Enum->Base.Parent = EnumValueT;
 		Enum->ByName = ml_map();
 		for (int I = 0; I < NumValues; ++I) {
 			GIValueInfo *ValueInfo = g_enum_info_get_value(Info, I);
