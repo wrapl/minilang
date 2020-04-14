@@ -1,5 +1,5 @@
-#include "minilang.h"
-#include "ml_macros.h"
+#include "../minilang.h"
+#include "../ml_macros.h"
 #include "ml_cbor.h"
 #include <gc/gc.h>
 #include <string.h>
@@ -332,14 +332,22 @@ static ml_tag_t ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void **Data)
 	return (ml_tag_t)ml_value_fn;
 }
 
+static ml_value_t *MLDefaultTags;
+
+static ml_value_t *ml_default_tag_fn(void *Data, int Count, ml_value_t **Args) {
+	return ml_map_search(MLDefaultTags, Args[0]);
+}
+
+static ml_function_t MLDefaultTagFn[1] = {{MLFunctionT, ml_default_tag_fn, NULL}};
+
 static ml_value_t *ml_from_cbor_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ml_cbor_t Cbor = {ml_string_value(Args[0]), ml_string_length(Args[0])};
-	return ml_from_cbor(Cbor, Count > 1 ? Args[1] : MLNil, (void *)ml_value_tag_fn);
+	return ml_from_cbor(Cbor, Count > 1 ? Args[1] : MLDefaultTagFn, (void *)ml_value_tag_fn);
 }
 
-void ml_cbor_write_integer_fn(ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+static void ML_TYPED_FN(ml_cbor_write, MLIntegerT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	//printf("%s()\n", __func__);
 	int64_t Value = ml_integer_value(Arg);
 	if (Value < 0) {
@@ -349,45 +357,36 @@ void ml_cbor_write_integer_fn(ml_value_t *Arg, void *Data, ml_cbor_write_fn Writ
 	}
 }
 
-void ml_cbor_write_string_fn(ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+static void ML_TYPED_FN(ml_cbor_write, MLStringT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	//printf("%s()\n", __func__);
 	ml_cbor_write_string(Data, WriteFn, ml_string_length(Arg));
 	WriteFn(Data, (const unsigned char *)ml_string_value(Arg), ml_string_length(Arg));
 }
 
-void ml_cbor_write_list_fn(ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+static void ML_TYPED_FN(ml_cbor_write, MLListT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	ml_cbor_write_array(Data, WriteFn, ml_list_length(Arg));
 	for (ml_list_node_t *Node = ml_list_head(Arg); Node; Node = Node->Next) {
 		ml_cbor_write(Node->Value, Data, WriteFn);
 	}
 }
 
-typedef struct ml_cbor_writer_t {
-	void *Data;
-	ml_cbor_write_fn WriteFn;
-} ml_cbor_writer_t;
-
-static int ml_cbor_write_map_pair(ml_value_t *Key, ml_value_t *Value, ml_cbor_writer_t *Writer) {
-	ml_cbor_write(Key, Writer->Data, Writer->WriteFn);
-	ml_cbor_write(Value, Writer->Data, Writer->WriteFn);
-	return 0;
-}
-
-void ml_cbor_write_map_fn(ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+static void ML_TYPED_FN(ml_cbor_write, MLMapT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	ml_cbor_write_map(Data, WriteFn, ml_map_size(Arg));
-	ml_cbor_writer_t Writer[1] = {{Data, WriteFn}};
-	ml_map_foreach(Arg, Writer, (void *)ml_cbor_write_map_pair);
+	ML_MAP_FOREACH(Arg, Node) {
+		ml_cbor_write(Node->Key, Data, WriteFn);
+		ml_cbor_write(Node->Value, Data, WriteFn);
+	}
 }
 
-void ml_cbor_write_real_fn(ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+static void ML_TYPED_FN(ml_cbor_write, MLRealT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	ml_cbor_write_float8(Data, WriteFn, ml_real_value(Arg));
 }
 
-void ml_cbor_write_nil_fn(ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+static void ML_TYPED_FN(ml_cbor_write, MLNilT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	ml_cbor_write_simple(Data, WriteFn, CBOR_SIMPLE_NULL);
 }
 
-void ml_cbor_write_symbol_fn(ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+static void ML_TYPED_FN(ml_cbor_write, MLMethodT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	if (!strcmp(ml_method_name(Arg), "true")) {
 		ml_cbor_write_simple(Data, WriteFn, CBOR_SIMPLE_TRUE);
 	} else if (!strcmp(ml_method_name(Arg), "false")) {
@@ -397,18 +396,10 @@ void ml_cbor_write_symbol_fn(ml_value_t *Arg, void *Data, ml_cbor_write_fn Write
 	}
 }
 
-void ml_cbor_init(stringmap_t *Globals) {
-	ml_typed_fn_set(MLIntegerT, ml_cbor_write, ml_cbor_write_integer_fn);
-	ml_typed_fn_set(MLStringT, ml_cbor_write, ml_cbor_write_string_fn);
-	ml_typed_fn_set(MLListT, ml_cbor_write, ml_cbor_write_list_fn);
-	ml_typed_fn_set(MLMapT, ml_cbor_write, ml_cbor_write_map_fn);
-	ml_typed_fn_set(MLRealT, ml_cbor_write, ml_cbor_write_real_fn);
-	ml_typed_fn_set(MLNilT, ml_cbor_write, ml_cbor_write_nil_fn);
-	ml_typed_fn_set(MLMethodT, ml_cbor_write, ml_cbor_write_symbol_fn);
-	if (Globals) {
-		ml_value_t *Cbor = ml_map();
-		ml_map_insert(Cbor, ml_string("encode", -1), ml_function(NULL, ml_to_cbor_fn));
-		ml_map_insert(Cbor, ml_string("decode", -1), ml_function(NULL, ml_from_cbor_fn));
-		stringmap_insert(Globals, "cbor", Cbor);
-	}
+void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
+	MLDefaultTags = ml_map();
+#include "ml_cbor_init.c"
+	ml_module_export(Module, "encode", ml_function(NULL, ml_to_cbor_fn));
+	ml_module_export(Module, "decode", ml_function(NULL, ml_from_cbor_fn));
+	ml_module_export(Module, "Default", MLDefaultTags);
 }

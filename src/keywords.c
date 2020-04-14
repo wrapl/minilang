@@ -32,12 +32,12 @@
 #line 1 "keywords.lst"
 struct keyword_t {const char *Name; int Token;};
 
-#define TOTAL_KEYWORDS 31
-#define MIN_WORD_LENGTH 2
+#define TOTAL_KEYWORDS 32
+#define MIN_WORD_LENGTH 1
 #define MAX_WORD_LENGTH 7
-#define MIN_HASH_VALUE 2
+#define MIN_HASH_VALUE 1
 #define MAX_HASH_VALUE 35
-/* maximum key range = 34, duplicates = 0 */
+/* maximum key range = 35, duplicates = 0 */
 
 #ifdef __GNUC__
 __inline
@@ -60,7 +60,7 @@ hash (register const char *str, register size_t len)
       36, 36, 36, 36, 36, 36, 36, 36, 36, 36,
       36, 36, 36, 36, 36, 36, 36, 36, 36, 36,
       36, 36, 36, 36, 36, 36, 36, 36, 36, 36,
-      36, 36, 36, 36, 36, 36, 36, 29, 36, 36,
+      36, 36, 36, 36, 36,  0, 36, 29, 36, 36,
       21,  2, 16, 36, 19, 11, 36, 36,  4, 36,
        0,  0, 36, 36, 16,  2,  2, 11,  1,  7,
        5, 36, 36, 36, 36, 36, 36, 36, 36, 36,
@@ -78,7 +78,18 @@ hash (register const char *str, register size_t len)
       36, 36, 36, 36, 36, 36, 36, 36, 36, 36,
       36, 36, 36, 36, 36, 36
     };
-  return len + asso_values[(unsigned char)str[1]] + asso_values[(unsigned char)str[0]];
+  register unsigned int hval = len;
+
+  switch (hval)
+    {
+      default:
+        hval += asso_values[(unsigned char)str[1]];
+      /*FALLTHROUGH*/
+      case 1:
+        hval += asso_values[(unsigned char)str[0]];
+        break;
+    }
+  return hval;
 }
 
 const struct keyword_t *
@@ -86,7 +97,9 @@ lookup (register const char *str, register size_t len)
 {
   static const struct keyword_t wordlist[] =
     {
-      {""}, {""},
+      {""},
+#line 34 "keywords.lst"
+      {"_", MLT_BLANK},
 #line 25 "keywords.lst"
       {"on", MLT_ON},
 #line 29 "keywords.lst"

@@ -1,8 +1,10 @@
-#include "ml_radb.h"
-#include "ml_macros.h"
-#include <gc/gc.h>
-#include "ml_cbor.h"
+#include "../minilang.h"
+#include "../ml_macros.h"
+#include "../ml_library.h"
+#include "../ml_cbor.h"
 #include "radb/radb.h"
+#include <libgen.h>
+#include <stdio.h>
 
 typedef struct ml_string_store_t {
 	const ml_type_t *Type;
@@ -30,7 +32,7 @@ static ml_value_t *ml_string_store_open(void *Data, int Count, ml_value_t **Args
 	Store->Type = StringStoreT;
 	Store->Handle = string_store_open(ml_string_value(Args[0]));
 	if (!Store->Handle) return ml_error("StoreError", "Error opening string store");
-	return (ml_value_t *)Store;
+	return Store;
 }
 
 static ml_value_t *ml_string_store_create(void *Data, int Count, ml_value_t **Args) {
@@ -45,7 +47,7 @@ static ml_value_t *ml_string_store_create(void *Data, int Count, ml_value_t **Ar
 	ml_string_store_t *Store = new(ml_string_store_t);
 	Store->Type = StringStoreT;
 	Store->Handle = string_store_create(ml_string_value(Args[0]), ml_integer_value(Args[1]), ChunkSize);
-	return (ml_value_t *)Store;
+	return Store;
 }
 
 ML_METHOD("get", StringStoreT, MLIntegerT) {
@@ -71,7 +73,7 @@ ML_METHOD("write", StringStoreT, MLIntegerT) {
 	ml_string_store_writer_t *Writer = new(ml_string_store_writer_t);
 	Writer->Type = StringStoreWriterT;
 	string_store_writer_open(Writer->Handle, Store->Handle, ml_integer_value(Args[1]));
-	return (ml_value_t *)Writer;
+	return Writer;
 }
 
 ML_METHOD("write", StringStoreWriterT, MLStringT) {
@@ -85,7 +87,7 @@ ML_METHOD("read", StringStoreT, MLIntegerT) {
 	ml_string_store_reader_t *Reader = new(ml_string_store_reader_t);
 	Reader->Type = StringStoreReaderT;
 	string_store_reader_open(Reader->Handle, Store->Handle, ml_integer_value(Args[1]));
-	return (ml_value_t *)Reader;
+	return Reader;
 }
 
 ML_METHOD("read", StringStoreReaderT, MLIntegerT) {
@@ -105,7 +107,7 @@ static ml_value_t *ml_cbor_store_open(void *Data, int Count, ml_value_t **Args) 
 	Store->Type = CborStoreT;
 	Store->Handle = string_store_open(ml_string_value(Args[0]));
 	if (!Store->Handle) return ml_error("StoreError", "Error opening string store");
-	return (ml_value_t *)Store;
+	return Store;
 }
 
 static ml_value_t *ml_cbor_store_create(void *Data, int Count, ml_value_t **Args) {
@@ -120,7 +122,7 @@ static ml_value_t *ml_cbor_store_create(void *Data, int Count, ml_value_t **Args
 	ml_string_store_t *Store = new(ml_string_store_t);
 	Store->Type = CborStoreT;
 	Store->Handle = string_store_create(ml_string_value(Args[0]), ml_integer_value(Args[1]), ChunkSize);
-	return (ml_value_t *)Store;
+	return Store;
 }
 
 static ml_value_t *ml_value_fn(ml_value_t *Callback, ml_value_t *Value) {
@@ -172,7 +174,7 @@ static ml_value_t *ml_string_index_open(void *Data, int Count, ml_value_t **Args
 	Store->Type = StringIndexT;
 	Store->Handle = string_index_open(ml_string_value(Args[0]));
 	if (!Store->Handle) return ml_error("StoreError", "Error opening string store");
-	return (ml_value_t *)Store;
+	return Store;
 }
 
 static ml_value_t *ml_string_index_create(void *Data, int Count, ml_value_t **Args) {
@@ -186,7 +188,7 @@ static ml_value_t *ml_string_index_create(void *Data, int Count, ml_value_t **Ar
 	ml_string_index_t *Store = new(ml_string_index_t);
 	Store->Type = StringIndexT;
 	Store->Handle = string_index_create(ml_string_value(Args[0]), ChunkSize);
-	return (ml_value_t *)Store;
+	return Store;
 }
 
 ML_METHOD("insert", StringIndexT, MLStringT) {
@@ -201,24 +203,24 @@ ML_METHOD("search", StringIndexT, MLStringT) {
 	return ml_integer(Index);
 }
 
-void ml_radb_init(stringmap_t *Globals) {
-	ml_value_t *Radb = ml_map();
+void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
+	const char *Dir = dirname(GC_strdup(ml_module_path(Module)));
+	ml_value_t *Import = GlobalGet(Globals, "import");
+	ml_inline(Import, 1, ml_string_format("%s/ml_cbor.so", Dir));
 
 	StringStoreT = ml_type(MLAnyT, "string-store");
 	StringStoreWriterT = ml_type(MLAnyT, "string-store-writer");
 	StringStoreReaderT = ml_type(MLAnyT, "string-store-reader");
-	ml_map_insert(Radb, ml_string("string_store_open", -1), ml_function(0, ml_string_store_open));
-	ml_map_insert(Radb, ml_string("string_store_create", -1), ml_function(0, ml_string_store_create));
+	ml_module_export(Module, "string_store_open", ml_function(0, ml_string_store_open));
+	ml_module_export(Module, "string_store_create", ml_function(0, ml_string_store_create));
 
 	CborStoreT = ml_type(MLAnyT, "cbor-store");
-	ml_map_insert(Radb, ml_string("cbor_store_open", -1), ml_function(0, ml_cbor_store_open));
-	ml_map_insert(Radb, ml_string("cbor_store_create", -1), ml_function(0, ml_cbor_store_create));
+	ml_module_export(Module, "cbor_store_open", ml_function(0, ml_cbor_store_open));
+	ml_module_export(Module, "cbor_store_create", ml_function(0, ml_cbor_store_create));
 
 	StringIndexT = ml_type(MLAnyT, "string-index");
-	ml_map_insert(Radb, ml_string("string_index_open", -1), ml_function(0, ml_string_index_open));
-	ml_map_insert(Radb, ml_string("string_index_create", -1), ml_function(0, ml_string_index_create));
+	ml_module_export(Module, "string_index_open", ml_function(0, ml_string_index_open));
+	ml_module_export(Module, "string_index_create", ml_function(0, ml_string_index_create));
 
 #include "ml_radb_init.c"
-
-	if (Globals) stringmap_insert(Globals, "radb", Radb);
 }

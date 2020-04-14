@@ -6,7 +6,7 @@
 
 typedef struct console_t console_t;
 
-console_t *console_new(ml_getter_t GlobalGet, void *Globals);
+console_t *console_new(ml_getter_t GlobalGet, stringmap_t *Globals);
 void console_show(console_t *Console, GtkWindow *Parent);
 void console_log(console_t *Console, ml_value_t *Value);
 void console_append(console_t *Console, const char *Buffer, int Length);

@@ -64,6 +64,32 @@ static const char *ml_console_line_read(ml_console_t *Console) {
 	return Buffer;
 }
 
+typedef struct {
+	ml_state_t Base;
+	ml_console_t *Console;
+	mlc_scanner_t *Scanner;
+} ml_console_repl_state_t;
+
+static void ml_console_repl_run(ml_console_repl_state_t *State, ml_value_t *Result) {
+	if (!Result) return;
+	State->Console->Prompt = "--> ";
+	Result = Result->Type->deref(Result);
+	if (Result->Type == MLErrorT) {
+		printf("Error: %s\n", ml_error_message(Result));
+		const char *Source;
+		int Line;
+		for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+	} else {
+		ml_value_t *String = ml_string_of(Result);
+		if (String->Type == MLStringT) {
+			printf("%s\n", ml_string_value(String));
+		} else {
+			printf("<%s>\n", Result->Type->Name);
+		}
+	}
+	return ml_command_evaluate(State, State->Scanner, State->Console->Globals);
+}
+
 void ml_console(ml_getter_t GlobalGet, void *Globals) {
 	ml_console_t Console[1] = {{
 		GlobalGet, Globals, "--> ",
@@ -71,32 +97,10 @@ void ml_console(ml_getter_t GlobalGet, void *Globals) {
 	}};
 	mlc_context_t Context[1] = {{(ml_getter_t)ml_console_global_get, Console}};
 	mlc_scanner_t *Scanner = ml_scanner("console", Console, (void *)ml_console_line_read, Context);
-	ml_value_t *StringMethod = ml_method("string");
-	MLC_ON_ERROR(Context) {
-		printf("Error: %s\n", ml_error_message(Context->Error));
-		const char *Source;
-		int Line;
-		for (int I = 0; ml_error_trace(Context->Error, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
-		ml_scanner_reset(Scanner);
-		Console->Prompt = "--> ";
-	}
-	for (;;) {
-		ml_value_t *Result = ml_command_evaluate(Scanner, Console->Globals, Context);
-		if (!Result) break;
-		Console->Prompt = "--> ";
-		Result = Result->Type->deref(Result);
-		if (Result->Type == MLErrorT) {
-			printf("Error: %s\n", ml_error_message(Result));
-			const char *Source;
-			int Line;
-			for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
-		} else {
-			ml_value_t *String = ml_call(StringMethod, 1, &Result);
-			if (String->Type == MLStringT) {
-				printf("%s\n", ml_string_value(String));
-			} else {
-				printf("<%s>\n", Result->Type->Name);
-			}
-		}
-	}
+	ml_console_repl_state_t *State = new(ml_console_repl_state_t);
+	State->Base.run = ml_console_repl_run;
+	State->Base.Context = &MLRootContext;
+	State->Console = Console;
+	State->Scanner = Scanner;
+	ml_command_evaluate(State, Scanner, Console->Globals);
 }

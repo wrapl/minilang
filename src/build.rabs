@@ -6,7 +6,7 @@ if PLATFORM = "Darwin" then
 end
 
 CFLAGS := old + [
-	"-std=gnu11",
+	"-std=gnu11", --'--save-temps',
 	"-fstrict-aliasing",
 	"-Wall", "-Wstrict-aliasing",
 	"-Wno-deprecated-declarations",
@@ -34,12 +34,11 @@ for Source in PATH:ls(".*\\.c") do
 		var Out := Target:open("w")
 		for Line in Init / "\n" do
 			loop
-				var I := while (Line:find("ml_method_by_name(") or Line:find("ml_methodx_by_name("))
+				var I := while Line:find("INIT_CODE ")
+				Line := Line[I + 10, 0]
 				var J := while Line:find(");")
-				if I < Line:find("_fn_") < J then
-					Out:write(Line[I, J + 2])
-					Out:write("\n")
-				end
+				Out:write(Line[1, J + 2])
+				Out:write("\n")
 				Line := Line[J + 2, 0]
 			end
 		end
@@ -48,9 +47,9 @@ for Source in PATH:ls(".*\\.c") do
 end
 
 var Objects := [
-	file("minilang.o"),
 	file("ml_compiler.o"),
 	file("ml_bytecode.o"),
+	--file("ml_bytecode_threaded.o"),
 	file("ml_runtime.o"),
 	file("ml_types.o"),
 	file("ml_file.o"),
@@ -58,8 +57,7 @@ var Objects := [
 	file("sha256.o"),
 	file("stringmap.o"),
 	file("ml_console.o"),
-	file("ml_object.o"),
-	file("ml_module.o")
+	file("ml_object.o")
 ]
 
 var Libraries := []
@@ -90,19 +88,6 @@ if MINILANG_USEGTK or defined("USEGTK") then
 	Objects:put(file("ml_gir.o"), file("gtk_console.o"))
 	CFLAGS := old + ["-DUSE_ML_GIR", pkgconfig("--cflags gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0 libgvc")]
 	LDFLAGS := old + [pkgconfig("--libs gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0 libgvc")]
-end
-
-if MINILANG_USERADB or defined("USERADB") then
-	MINILANG_USECBOR := :true
-	var Dir := PATH / "radb"
-	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/radb.git", Dir)
-	var Lib := Dir / "libradb.a" => fun() do
-		Dir:chdir
-		execute("make libradb.a")
-	end
-	Libraries:put(Lib)
-	CFLAGS := old + ["-DUSE_ML_RADB"]
-	Objects:put(file("ml_radb.o"))
 end
 
 if MINILANG_USECBOR or defined("USECBOR") then
@@ -137,6 +122,16 @@ if MINILANG_DEBUGGER or defined("DEBUGGER") then
 	LDFLAGS := old + ["-ljansson"]
 end
 
+if MINILANG_MODULES or defined("MODULES") then
+	Objects:put(file("ml_module.o"))
+	if PLATFORM = "Linux" then
+		Objects:put(file("ml_library.o"))
+		LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={file("exports.lst")}']
+	end
+	CFLAGS := old + ["-DUSE_ML_MODULES"]
+	subdir("lib")
+end
+
 if PLATFORM = "Linux" then
 	Objects := old + [file("linenoise.o")]
 	LDFLAGS := old + ["-lgc"]
@@ -151,7 +146,7 @@ elseif PLATFORM = "Mingw" then
 end
 
 LIBMINILANG := c_library(LIB_DIR / "libminilang.a", Objects, Libraries)
-MINILANG := c_program(BIN_DIR /"minilang", [file("ml_main.o")] + Objects, Libraries)
+MINILANG := c_program(BIN_DIR /"minilang", [file("minilang.o")], Libraries + [LIBMINILANG])
 MINIPP := c_program(BIN_DIR / "minipp", [file("minipp.o")] + Objects, Libraries)
 
 DEFAULT[LIBMINILANG, MINILANG, MINIPP]
@@ -171,6 +166,8 @@ var InstallHeaders := [
 	"ml_types.h",
 	"ml_object.h",
 	"ml_compiler.h",
+	"ml_runtime.h",
+	"ml_bytecode.h",
 	"sha256.h",
 	"stringmap.h"
 ]

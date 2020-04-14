@@ -1,0 +1,112 @@
+print("Building in ", PATH, "\n")
+
+var SourceTypes := {
+	"c" is [c_includes, c_compile]
+}
+
+fun minilang_lib(Library, Objects, Libraries) do
+	Objects := Objects or []
+	Libraries := Libraries or []
+	var Sources := []
+	for Object in Objects do
+		for Extension, Functions in SourceTypes do
+			var Source := Object % Extension
+			if Source:exists then
+				Sources:put(Source)
+				var Scan := Source:scan("INCLUDES")[PREBUILDS] => Functions[1]
+				Object[Source, Scan] => (Functions[2] !! [Source])
+				exit
+			end
+		end
+	end
+	print("Library = ", Library, "\n")
+	Library[Objects, Libraries] => fun(Library) do
+		execute('cc', '-o', Library, '-shared', '-export-dynamic', Objects, Libraries, LDFLAGS)
+		DEBUG or execute("strip", Library)
+	end
+end
+
+CFLAGS := old + ["-fpic"]
+
+for Source in PATH:ls(".*\\.c") do
+	Source:basename:find("_init") and next
+	var Target := file(Source:basename:replace(".c", "_init.c"))[Source] => fun() do
+		Target:open("w"):close
+		var Init := shell("cc", CFLAGS, "-E -P -DGENERATE_INIT", Source)
+		var Out := Target:open("w")
+		for Line in Init / "\n" do
+			loop
+				var I := while Line:find("INIT_CODE ")
+				Line := Line[I + 10, 0]
+				var J := while Line:find(");")
+				Out:write(Line[1, J + 2])
+				Out:write("\n")
+				Line := Line[J + 2, 0]
+			end
+		end
+		Out:close
+	end
+end
+
+scope("csv";) do
+	DEFAULT[minilang_lib(LIB_DIR / "ml_csv.so", [file("ml_csv.o"), file("libcsv.o")])]
+end
+
+var CborModule := scope("cbor";) do
+	var Dir := PATH / "minicbor"
+	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git", Dir)
+	CFLAGS := old + [
+		'-DMINICBOR_PREFIX=ml_cbor_',
+		'-DMINICBOR_READ_FN_PREFIX=ml_cbor_read_',
+		'-DMINICBOR_READDATA_TYPE=\"struct ml_cbor_reader_t *\"'
+	]
+	var Module := minilang_lib(LIB_DIR / "ml_cbor.so", [
+		file("ml_cbor.o"),
+		file("minicbor/minicbor_reader.o"),
+		file("minicbor/minicbor_writer.o")
+	])
+	DEFAULT[Module]
+	Module
+end
+
+scope("array";) do
+	DEFAULT[minilang_lib(LIB_DIR / "ml_array.so", [file("ml_array.o")], [CborModule])]
+end
+
+scope("radb";) do
+	var Dir := PATH / "radb"
+	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/radb.git", Dir)
+	var Lib := Dir / "libradb.a" => fun() do
+		Dir:chdir
+		execute("make libradb.a")
+	end
+	DEFAULT[minilang_lib(LIB_DIR / "ml_radb.so", [file("ml_radb.o")], [Lib])]
+end
+
+scope("libevent";) do
+	LDFLAGS := old + ["-levent"]
+	DEFAULT[minilang_lib(LIB_DIR / "ml_libevent.so", [file("ml_libevent.o")])]
+end
+
+scope("libuv";) do
+	LDFLAGS := old + ["-luv"]
+	DEFAULT[minilang_lib(LIB_DIR / "ml_libuv.so", [file("ml_libuv.o")])]
+end
+
+scope("onion";) do
+	LDFLAGS := old + ["-lonion"]
+	DEFAULT[minilang_lib(LIB_DIR / "ml_onion.so", [file("ml_onion.o")])]
+end
+
+nil and scope("facil";) do
+	var Lib := file("lib/libfacil.a") => fun() do
+		var Dir := file("facil.io"):rmdir
+		execute("git clone https://github.com/boazsegev/facil.io.git")
+		Dir:chdir
+		execute('cmake . -DCMAKE_INSTALL_PREFIX={PATH} -DCMAKE_BUILD_TYPE=Release')
+		execute("make -j4")
+		execute("make install")
+	end
+	PREBUILDS := old + [Lib]
+	DEFAULT[minilang_lib(LIB_DIR / "ml_facil.so", [file("ml_facil.o")], [Lib])]
+end

@@ -1,6 +1,6 @@
-#include "ml_libevent.h"
-#include "ml_file.h"
-#include "ml_macros.h"
+#include "../ml_file.h"
+#include "../ml_library.h"
+#include "../ml_macros.h"
 #include <gc/gc.h>
 #include <event2/event.h>
 #include <event2/http.h>
@@ -32,6 +32,15 @@ ML_METHOD("new", EventBaseT, MLFileT) {
 	return MLNil;
 }
 
+ML_METHOD("dispatch", EventBaseT) {
+	ml_event_base_t *EventBase = (ml_event_base_t *)Args[0];
+	switch (event_base_dispatch(EventBase->Handle)) {
+	case 1: return MLNil;
+	case -1: return ml_error("EventError", "Event error occurerd");
+	default: return Args[0];
+	}
+}
+
 typedef struct ml_evhttp_t {
 	const ml_type_t *Type;
 	struct evhttp *Handle;
@@ -47,14 +56,10 @@ ML_METHOD("http", EventBaseT) {
 	return (ml_value_t *)Http;
 }
 
-void ml_event_init(stringmap_t *Globals) {
+void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
 	EventBaseT = ml_type(MLAnyT, "event-base");
 	EventT = ml_type(MLAnyT, "event");
 	EventHttpT = ml_type(MLAnyT, "event-http");
-	if (Globals) {
-		ml_value_t *Event = ml_map();
-		ml_map_insert(Event, ml_string("new", -1), ml_function(NULL, ml_event_base_new));
-		stringmap_insert(Globals, "event", Event);
-	}
 #include "ml_libevent_init.c"
+	ml_module_export(Module, "new", ml_function(NULL, ml_event_base_new));
 }

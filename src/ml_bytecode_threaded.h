@@ -1,5 +1,5 @@
-#ifndef ML_BYTECODE_H
-#define ML_BYTECODE_H
+#ifndef ML_BYTECODE_THREADED_H
+#define ML_BYTECODE_THREADED_H
 
 #include "ml_debugger.h"
 #include "ml_types.h"
@@ -24,7 +24,7 @@ extern ml_type_t MLClosureT[];
 struct ml_closure_info_t {
 	ml_inst_t *Entry, *Return;
 	const char *Source;
-	ml_debug_function_t *Debug;
+	debug_function_t *Debug;
 	stringmap_t Params[1];
 	int FrameSize;
 	int NumParams, NumUpValues;
@@ -47,51 +47,11 @@ typedef union {
 	ml_closure_info_t *ClosureInfo;
 } ml_param_t;
 
-typedef enum {
-	MLI_RETURN,
-	MLI_SUSPEND,
-	MLI_RESUME,
-	MLI_NIL,
-	MLI_SOME,
-	MLI_IF,
-	MLI_IF_VAR,
-	MLI_IF_LET,
-	MLI_ELSE,
-	MLI_PUSH,
-	MLI_PUSHX,
-	MLI_POP,
-	MLI_ENTER,
-	MLI_EXIT,
-	MLI_LOOP,
-	MLI_TRY,
-	MLI_CATCH,
-	MLI_LOAD,
-	MLI_VAR,
-	MLI_VARX,
-	MLI_LET,
-	MLI_LETX,
-	MLI_FOR,
-	MLI_NEXT,
-	MLI_VALUE,
-	MLI_KEY,
-	MLI_CALL,
-	MLI_CONST_CALL,
-	MLI_ASSIGN,
-	MLI_LOCAL,
-	MLI_TUPLE_NEW,
-	MLI_TUPLE_SET,
-	MLI_LIST_NEW,
-	MLI_LIST_APPEND,
-	MLI_MAP_NEW,
-	MLI_MAP_INSERT,
-	MLI_CLOSURE,
-	MLI_PARTIAL_NEW,
-	MLI_PARTIAL_SET
-} ml_opcode_t;
+typedef struct ml_frame_t ml_frame_t;
 
 struct ml_inst_t {
-	ml_opcode_t Opcode:8;
-	int Flags:24;
+	ml_value_t *(*run)(ml_inst_t *Inst, ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top);
+	int Flags:32;
 	int LineNo:32;
 	ml_param_t Params[];
 };

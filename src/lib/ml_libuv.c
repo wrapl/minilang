@@ -1,5 +1,5 @@
-#include "ml_libuv.h"
-#include "ml_macros.h"
+#include "../ml_library.h"
+#include "../ml_macros.h"
 #include <gc/gc.h>
 #include <uv.h>
 #include <unistd.h>
@@ -69,12 +69,11 @@ static void ml_uv_fs_close_cb(uv_fs_t *Request) {
 	uv_fs_req_cleanup(Request);
 }
 
-static ml_value_t *ml_uv_fs_close(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+ML_METHODX("close", MLUVFileT) {
 	ml_uv_file_t *File = (ml_uv_file_t *)Args[0];
 	uv_fs_t *Request = new(uv_fs_t);
 	Request->data = Caller;
 	uv_fs_close(Loop, Request, File->Handle, ml_uv_fs_close_cb);
-	return MLNil;
 }
 
 typedef struct ml_uv_fs_buf_t {
@@ -94,7 +93,7 @@ static void ml_uv_fs_read_cb(ml_uv_fs_buf_t *Request) {
 	uv_fs_req_cleanup((uv_fs_t *)Request);
 }
 
-static ml_value_t *ml_uv_fs_read(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+ML_METHODX("read", MLUVFileT, MLIntegerT) {
 	ml_uv_file_t *File = (ml_uv_file_t *)Args[0];
 	size_t Length = ml_integer_value(Args[1]);
 	ml_uv_fs_buf_t *Request = xnew(ml_uv_fs_buf_t, 1, uv_buf_t);
@@ -102,7 +101,6 @@ static ml_value_t *ml_uv_fs_read(ml_state_t *Caller, void *Data, int Count, ml_v
 	Request->IOV[0].base = GC_MALLOC_ATOMIC(Length);
 	Request->IOV[0].len = Length;
 	uv_fs_read(Loop, (uv_fs_t *)Request, File->Handle, Request->IOV, 1, -1, (uv_fs_cb)ml_uv_fs_read_cb);
-	return MLNil;
 }
 
 static void ml_uv_fs_write_cb(ml_uv_fs_buf_t *Request) {
@@ -117,14 +115,13 @@ static void ml_uv_fs_write_cb(ml_uv_fs_buf_t *Request) {
 	uv_fs_req_cleanup((uv_fs_t *)Request);
 }
 
-static ml_value_t *ml_uv_fs_write(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+ML_METHODX("write", MLUVFileT, MLStringT) {
 	ml_uv_file_t *File = (ml_uv_file_t *)Args[0];
 	ml_uv_fs_buf_t *Request = xnew(ml_uv_fs_buf_t, 1, uv_buf_t);
 	Request->Base.data = Caller;
 	Request->IOV[0].base = ml_string_value(Args[1]);
 	Request->IOV[0].len = ml_string_length(Args[1]);
 	uv_fs_write(Loop, (uv_fs_t *)Request, File->Handle, Request->IOV, 1, -1, (uv_fs_cb)ml_uv_fs_write_cb);
-	return MLNil;
 }
 
 static void ml_uv_sleep_cb(uv_timer_t *Timer) {
@@ -132,14 +129,13 @@ static void ml_uv_sleep_cb(uv_timer_t *Timer) {
 	Caller->run(Caller, MLNil);
 }
 
-static ml_value_t *ml_uv_sleep(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+static void ml_uv_sleep(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLIntegerT);
 	uv_timer_t *Timer = new(uv_timer_t);
 	uv_timer_init(Loop, Timer);
 	Timer->data = Caller;
 	uv_timer_start(Timer, ml_uv_sleep_cb, ml_integer_value(Args[0]), 0);
-	return MLNil;
 }
 
 void *ml_calloc(size_t Count, size_t Size) {
@@ -149,14 +145,12 @@ void *ml_calloc(size_t Count, size_t Size) {
 void ml_free(void *Ptr) {
 }
 
-void ml_uv_init(stringmap_t *Globals) {
+void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
 	uv_replace_allocator(GC_malloc, GC_realloc, ml_calloc, ml_free);
 	Loop = uv_default_loop();
 	MLUVFileT = ml_type(MLAnyT, "uv-file");
-	ml_methodx_by_name("close", NULL, ml_uv_fs_close, MLUVFileT, NULL);
-	ml_methodx_by_name("read", NULL, ml_uv_fs_read, MLUVFileT, MLIntegerT, NULL);
-	ml_methodx_by_name("write", NULL, ml_uv_fs_write, MLUVFileT, MLStringT, NULL);
-	stringmap_insert(Globals, "uv_fs_open", ml_functionx(NULL, ml_uv_fs_open));
-	stringmap_insert(Globals, "uv_run", ml_function(NULL, ml_uv_run));
-	stringmap_insert(Globals, "uv_sleep", ml_functionx(NULL, ml_uv_sleep));
+#include "ml_libuv_init.c"
+	ml_module_export(Module, "fs_open", ml_functionx(NULL, ml_uv_fs_open));
+	ml_module_export(Module, "run", ml_function(NULL, ml_uv_run));
+	ml_module_export(Module, "sleep", ml_functionx(NULL, ml_uv_sleep));
 }

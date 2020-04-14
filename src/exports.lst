@@ -1,0 +1,7 @@
+{
+	extern "C" {
+		ml_*;
+		ML*;
+		stringmap_*;
+	};
+};

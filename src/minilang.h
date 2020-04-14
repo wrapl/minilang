@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "sha256.h"
 #include "ml_compiler.h"
 
 #ifdef	__cplusplus
@@ -13,7 +12,7 @@ extern "C" {
 
 void ml_init();
 
-ml_value_t *ml_load(ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]);
+void ml_load(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]);
 
 #ifdef __cplusplus
 }

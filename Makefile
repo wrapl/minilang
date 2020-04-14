@@ -29,18 +29,18 @@ obj/%.o: src/%.c | obj
 
 obj/%_init.c: src/%.c | obj
 	echo "" > $@
-	cc -E -P -DGENERATE_INIT $(CFLAGS) $< | grep -o 'ml_[a-z]*_by_name([^{]*_fn_[^{]*);' > $@
+	cc -E -P -DGENERATE_INIT $(CFLAGS) $< | sed 's/);/);\
+	/g' | grep -o 'INIT_CODE .*);' | sed 's/INIT_CODE //g' > $@
 
 obj/ml_types.o: obj/ml_types_init.c
 obj/ml_object.o: obj/ml_object_init.c
 obj/ml_math.o: obj/ml_math_init.c
 obj/ml_file.o: obj/ml_file_init.c
 obj/ml_iterfns.o: obj/ml_iterfns_init.c
-obj/ml_module.o: obj/ml_module_init.c
 obj/ml_bytecode.o: obj/ml_bytecode_init.c
+obj/ml_runtime.o: obj/ml_runtime_init.c
 
 common_objects = \
-	obj/minilang.o \
 	obj/ml_compiler.o \
 	obj/ml_runtime.o \
 	obj/ml_bytecode.o \
@@ -50,8 +50,7 @@ common_objects = \
 	obj/sha256.o \
 	obj/stringmap.o \
 	obj/ml_console.o \
-	obj/ml_object.o \
-	obj/ml_module.o
+	obj/ml_object.o
 
 platform_objects =
 
@@ -76,7 +75,7 @@ ifeq ($(PLATFORM), Darwin)
 endif
 
 minilang_objects = $(common_objects) $(platform_objects) \
-	obj/ml_main.o
+	obj/minilang.o
 
 bin/minilang: bin Makefile $(minilang_objects) src/*.h
 	$(CC) $(minilang_objects) $(LDFLAGS) -o$@
@@ -107,6 +106,8 @@ install_h = \
 	$(install_include)/ml_types.h \
 	$(install_include)/ml_object.h \
 	$(install_include)/ml_compiler.h \
+	$(install_include)/ml_runtime.h \
+	$(install_include)/ml_bytecode.h \
 	$(install_include)/sha256.h \
 	$(install_include)/stringmap.h
 

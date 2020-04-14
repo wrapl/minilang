@@ -31,3 +31,4 @@ old, MLT_OLD
 def, MLT_DEF
 let, MLT_LET
 var, MLT_VAR
+_, MLT_BLANK

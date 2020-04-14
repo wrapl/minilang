@@ -19,10 +19,9 @@
 
 #include "ml_gir.h"
 #include "ml_runtime.h"
+#include "ml_bytecode.h"
 
 #define MAX_HISTORY 128
-
-static ml_value_t *StringMethod;
 
 struct console_t {
 	GtkWidget *Window, *LogScrolled, *LogView, *InputView;
@@ -107,7 +106,7 @@ static ml_value_t *console_global_get(console_t *Console, const char *Name) {
 	ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
 	Uninitialized->Type = MLUninitializedT;
 	stringmap_insert(Console->Globals, Name, Uninitialized);
-	return (ml_value_t *)Uninitialized;
+	return Uninitialized;
 }
 
 static char *console_read(console_t *Console) {
@@ -144,7 +143,7 @@ void console_log(console_t *Console, ml_value_t *Value) {
 			gtk_text_buffer_insert_with_tags(LogBuffer, End, Buffer, Length, Console->ErrorTag, NULL);
 		}
 	} else {
-		ml_value_t *String = ml_call(StringMethod, 1, &Value);
+		ml_value_t *String = ml_string_of(Value);
 		if (String->Type == MLStringT) {
 			const char *Buffer = ml_string_value(String);
 			int Length = ml_string_length(String);
@@ -172,6 +171,19 @@ void console_log(console_t *Console, ml_value_t *Value) {
 	gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(Console->LogView), Console->EndMark);
 }
 
+typedef struct {
+	ml_state_t Base;
+	console_t *Console;
+} ml_console_repl_state_t;
+
+static void ml_console_repl_run(ml_console_repl_state_t *State, ml_value_t *Result) {
+	if (!Result) return;
+	console_log(State->Console, Result);
+	if (Result->Type != MLErrorT) {
+		return ml_command_evaluate(State, State->Console->Scanner, State->Console->Globals);
+	}
+}
+
 static void console_submit(GtkWidget *Button, console_t *Console) {
 	GtkTextBuffer *InputBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView));
 	GtkTextIter InputStart[1], InputEnd[1];
@@ -195,17 +207,12 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 	gtk_source_buffer_set_highlight_matching_brackets(GTK_SOURCE_BUFFER(InputBuffer), TRUE);
 
 	mlc_scanner_t *Scanner = Console->Scanner;
-	MLC_ON_ERROR(Console->Context) {
-		console_log(Console, Console->Context->Error);
-		ml_scanner_reset(Scanner);
-	} else {
-		for (;;) {
-			ml_value_t *Result = ml_command_evaluate(Scanner, Console->Globals, Console->Context);
-			if (!Result) break;
-			Result = Result->Type->deref(Result);
-			console_log(Console, Result);
-		}
-	}
+	ml_console_repl_state_t *State = new(ml_console_repl_state_t);
+	State->Base.run = ml_console_repl_run;
+	State->Base.Context = &MLRootContext;
+	State->Console = Console;
+	ml_scanner_reset(Scanner);
+	ml_command_evaluate(State, Scanner, Console->Globals);
 	gtk_widget_grab_focus(Console->InputView);
 }
 
@@ -358,14 +365,13 @@ void console_append(console_t *Console, const char *Buffer, int Length) {
 }
 
 ml_value_t *console_print(console_t *Console, int Count, ml_value_t **Args) {
-	ml_value_t *StringMethod = ml_method("string");
 	GtkTextIter End[1];
 	GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
 	gtk_text_buffer_get_end_iter(LogBuffer, End);
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Result = Args[I];
 		if (Result->Type != MLStringT) {
-			Result = ml_call(StringMethod, 1, &Result);
+			Result = ml_string_of(Result);
 			if (Result->Type == MLErrorT) return Result;
 			if (Result->Type != MLStringT) return ml_error("ResultError", "string method did not return string");
 		}
@@ -427,12 +433,19 @@ static ml_value_t *console_add_combo(console_t *Console, int Count, ml_value_t *
 	return MLNil;
 }
 
-static ml_value_t *console_include(console_t *Console, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
-	ml_value_t *Closure = ml_load((ml_getter_t)console_global_get, Console, ml_string_value(Args[0]), NULL);
-	if (Closure->Type == MLErrorT) return Closure;
-	return ml_call(Closure, 0, NULL);
+static void console_included_run(ml_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Caller;
+	if (Value->Type == MLErrorT) ML_RETURN(Value);
+	return Value->Type->call(Caller, Value, 0, NULL);
+}
+
+static void console_include_fnx(ml_state_t *Caller, console_t *Console, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLStringT);
+	ml_state_t *State = new(ml_state_t);
+	State->Caller = Caller;
+	State->run = console_included_run;
+	return ml_load(State, (ml_getter_t)console_global_get, Console, ml_string_value(Args[0]), NULL);
 }
 
 static gboolean console_update_status(console_t *Console) {
@@ -480,9 +493,8 @@ static gboolean console_update_status(console_t *Console) {
 	return G_SOURCE_CONTINUE;
 }
 
-console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
+console_t *console_new(ml_getter_t GlobalGet, stringmap_t *Globals) {
 	gtk_init(0, 0);
-	StringMethod = ml_method("string");
 
 	console_t *Console = new(console_t);
 	Console->ParentGetter = GlobalGet;
@@ -595,7 +607,7 @@ console_t *console_new(ml_getter_t GlobalGet, void *Globals) {
 	stringmap_insert(Globals, "set_style", ml_function(Console, (ml_callback_t)console_set_style));
 	stringmap_insert(Globals, "add_cycle", ml_function(Console, (ml_callback_t)console_add_cycle));
 	stringmap_insert(Globals, "add_combo", ml_function(Console, (ml_callback_t)console_add_combo));
-	stringmap_insert(Globals, "include", ml_function(Console, (ml_callback_t)console_include));
+	stringmap_insert(Globals, "include", ml_functionx(Console, (ml_callbackx_t)console_include_fnx));
 	stringmap_insert(Globals, "display", ml_function(Console, (ml_callback_t)console_display));
 
 	ml_typed_fn_set(MLClosureT, console_display_value, console_display_closure);
