@@ -11,7 +11,7 @@
 
 static uv_loop_t *Loop = 0;
 
-static ml_value_t *ml_uv_run(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(Run) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLFunctionT);
 	ml_call(Args[0], 0, NULL);
@@ -45,7 +45,7 @@ static void ml_uv_fs_open_cb(uv_fs_t *Request) {
 	uv_fs_req_cleanup(Request);
 }
 
-static ml_value_t *ml_uv_fs_open(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTIONX(FSOpen) {
 	const char *Path = ml_string_value(Args[0]);
 	int Flags = 0;
 	for (const char *P = ml_string_value(Args[1]); *P; ++P) {
@@ -60,7 +60,6 @@ static ml_value_t *ml_uv_fs_open(ml_state_t *Caller, void *Data, int Count, ml_v
 	uv_fs_t *Request = new(uv_fs_t);
 	Request->data = Caller;
 	uv_fs_open(Loop, Request, Path, Flags, Mode, ml_uv_fs_open_cb);
-	return MLNil;
 }
 
 static void ml_uv_fs_close_cb(uv_fs_t *Request) {
@@ -129,7 +128,7 @@ static void ml_uv_sleep_cb(uv_timer_t *Timer) {
 	Caller->run(Caller, MLNil);
 }
 
-static void ml_uv_sleep(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTIONX(Sleep) {
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLIntegerT);
 	uv_timer_t *Timer = new(uv_timer_t);
@@ -150,7 +149,7 @@ void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) 
 	Loop = uv_default_loop();
 	MLUVFileT = ml_type(MLAnyT, "uv-file");
 #include "ml_libuv_init.c"
-	ml_module_export(Module, "fs_open", ml_functionx(NULL, ml_uv_fs_open));
-	ml_module_export(Module, "run", ml_function(NULL, ml_uv_run));
-	ml_module_export(Module, "sleep", ml_functionx(NULL, ml_uv_sleep));
+	ml_module_export(Module, "fs_open", FSOpen);
+	ml_module_export(Module, "run", Run);
+	ml_module_export(Module, "sleep", Sleep);
 }
