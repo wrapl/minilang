@@ -2600,6 +2600,8 @@ static ml_value_t *ml_map_index_deref(ml_map_index_t *Index) {
 }
 
 static ml_value_t *ml_map_index_assign(ml_map_index_t *Index, ml_value_t *Value) {
+	Value = Value->Type->deref(Value);
+	if (Value->Type == MLErrorT) return Value;
 	ml_map_insert(Index->Map, Index->Key, Value);
 	return Value;
 }
