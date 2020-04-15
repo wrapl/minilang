@@ -109,7 +109,7 @@ static void map_iterate(ml_iter_state_t *State, ml_value_t *Result) {
 	return ml_iter_key((ml_state_t *)State, State->Iter = Result);
 }
 
-ML_FUNCTIONX(Map) {
+ML_FUNCTIONX(All2) {
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
@@ -992,7 +992,7 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "first", First);
 	stringmap_insert(Globals, "first2", First2);
 	stringmap_insert(Globals, "all", All);
-	stringmap_insert(Globals, "map", Map);
+	stringmap_insert(Globals, "all2", All2);
 	stringmap_insert(Globals, "count", Count);
 	stringmap_insert(Globals, "fold", Fold);
 	stringmap_insert(Globals, "min", Min);

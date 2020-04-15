@@ -711,10 +711,7 @@ static ml_value_t *ml_array_ ## CTYPE ## _deref(ml_array_t *Target, ml_value_t *
 } \
 \
 static ml_value_t *ml_array_ ## CTYPE ## _assign(ml_array_t *Target, ml_value_t *Value) { \
-	Value = Value->Type->deref(Value); \
-	for (;;) if (Value->Type == MLErrorT) { \
-		return Value; \
-	} else if (ml_is(Value, MLNumberT)) { \
+	if (ml_is(Value, MLNumberT)) { \
 		CTYPE CValue = RFUNC(Value); \
 		set_value_array_ ## CTYPE(Target->Degree, Target->Dimensions, Target->Base.Address, CValue); \
 		return Value; \

@@ -305,6 +305,8 @@ ml_value_t *ml_inst_CONST_CALL(ml_inst_t *Inst, ml_frame_t *Frame, ml_value_t *R
 }
 
 ml_value_t *ml_inst_ASSIGN(ml_inst_t *Inst, ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top) {
+	Result = Result->Type->deref(Result);
+	ERROR_CHECK(Result);
 	ml_value_t *Ref = Top[-1];
 	*--Top = 0;
 	Result = Ref->Type->assign(Ref, Result);
