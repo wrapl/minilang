@@ -52,7 +52,7 @@ static void ml_end_state_run(ml_state_t *State, ml_value_t *Value) {
 }
 
 inline ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args) {
-	ml_value_state_t State[1] = {ML_EVAL_STATE_INIT};
+	static ml_value_state_t State[1] = {ML_EVAL_STATE_INIT};
 	Value->Type->call(State, Value, Count, Args);
 	return State->Value->Type->deref(State->Value);
 }

@@ -29,8 +29,7 @@ obj/%.o: src/%.c | obj
 
 obj/%_init.c: src/%.c | obj
 	echo "" > $@
-	cc -E -P -DGENERATE_INIT $(CFLAGS) $< | sed 's/);/);\
-	/g' | grep -o 'INIT_CODE .*);' | sed 's/INIT_CODE //g' > $@
+	cc -E -P -DGENERATE_INIT $(CFLAGS) $< | sed -f sed.txt | grep -o 'INIT_CODE .*);' | sed 's/INIT_CODE //g' > $@
 
 obj/ml_types.o: obj/ml_types_init.c
 obj/ml_object.o: obj/ml_object_init.c

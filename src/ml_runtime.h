@@ -68,6 +68,9 @@ void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value);
 
 /****************************** Functions ******************************/
 
+typedef struct ml_function_t ml_function_t;
+typedef struct ml_functionx_t ml_functionx_t;
+
 struct ml_function_t {
 	const ml_type_t *Type;
 	ml_callback_t Callback;
@@ -92,6 +95,22 @@ ml_value_t *ml_identity(void *Data, int Count, ml_value_t **Args);
 
 ml_value_t *ml_partial_function_new(ml_value_t *Function, int Count);
 ml_value_t *ml_partial_function_set(ml_value_t *Partial, size_t Index, ml_value_t *Value);
+
+#define ML_FUNCTION2(NAME, FUNCTION) static ml_value_t *FUNCTION(void *Data, int Count, ml_value_t **Args); \
+\
+ml_function_t NAME[1] = {{MLFunctionT, FUNCTION, NULL}}; \
+\
+static ml_value_t *FUNCTION(void *Data, int Count, ml_value_t **Args)
+
+#define ML_FUNCTION(NAME) ML_FUNCTION2(NAME, CONCAT3(ml_function_, __LINE__, __COUNTER__))
+
+#define ML_FUNCTIONX2(NAME, FUNCTION) static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args); \
+\
+ml_functionx_t NAME[1] = {{MLFunctionXT, FUNCTION, NULL}}; \
+\
+static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args)
+
+#define ML_FUNCTIONX(NAME, TYPES ...) ML_FUNCTIONX2(NAME, CONCAT3(ml_functionx_, __LINE__, __COUNTER__))
 
 #define ML_CHECK_ARG_TYPE(N, TYPE) \
 	if (!ml_is(Args[N], TYPE)) { \

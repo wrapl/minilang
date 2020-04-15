@@ -82,9 +82,6 @@ long ml_hash(ml_value_t *Value);
 typedef ml_value_t *(*ml_callback_t)(void *Data, int Count, ml_value_t **Args);
 typedef void (*ml_callbackx_t)(ml_state_t *Frame, void *Data, int Count, ml_value_t **Args);
 
-typedef struct ml_function_t ml_function_t;
-typedef struct ml_functionx_t ml_functionx_t;
-
 /****************************** Iterators ******************************/
 
 extern ml_type_t MLIteratableT[];
@@ -107,9 +104,9 @@ struct ml_tuple_t {
 };
 
 ml_value_t *ml_tuple(size_t Size);
-int ml_tuple_size(ml_value_t *Tuple);
-ml_value_t *ml_tuple_get(ml_value_t *Tuple, int Index);
-ml_value_t *ml_tuple_set(ml_value_t *Tuple, int Index, ml_value_t *Value);
+#define  ml_tuple_size(TUPLE) (((ml_tuple_t *)(TUPLE))->Size)
+#define ml_tuple_get(TUPLE, INDEX) (((ml_tuple_t *)(TUPLE))->Values[INDEX])
+#define ml_tuple_set(TUPLE, INDEX, VALUE) (((ml_tuple_t *)(TUPLE))->Values[INDEX] = (VALUE))
 
 /****************************** Numbers ******************************/
 

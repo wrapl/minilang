@@ -397,18 +397,6 @@ ml_value_t *ml_tuple(size_t Size) {
 	return Tuple;
 }
 
-int ml_tuple_size(ml_value_t *Tuple) {
-	return ((ml_tuple_t *)Tuple)->Size;
-}
-
-ml_value_t *ml_tuple_get(ml_value_t *Tuple, int Index) {
-	return ((ml_tuple_t *)Tuple)->Values[Index];
-}
-
-ml_value_t *ml_tuple_set(ml_value_t *Tuple, int Index, ml_value_t *Value) {
-	return ((ml_tuple_t *)Tuple)->Values[Index] = Value;
-}
-
 ML_METHOD("size", MLTupleT) {
 	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
 	return ml_integer(Tuple->Size);
@@ -1181,7 +1169,7 @@ ml_value_t *ml_string(const char *Value, int Length) {
 	return String;
 }
 
-ml_value_t *ml_string_fn(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(StringNew) {
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (int I = 0; I < Count; ++I) ml_stringbuffer_append(Buffer, Args[I]);
 	return ml_stringbuffer_get_string(Buffer);
@@ -1929,7 +1917,7 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLStringifierT) {
 	return Buffer;
 }
 
-ml_value_t *ml_stringifier_fn(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(StringifierNew) {
 	ml_stringifier_t *Stringifier = xnew(ml_stringifier_t, Count, ml_value_t *);
 	Stringifier->Type = MLStringifierT;
 	Stringifier->Count = Count;
@@ -2612,6 +2600,8 @@ static ml_value_t *ml_map_index_deref(ml_map_index_t *Index) {
 }
 
 static ml_value_t *ml_map_index_assign(ml_map_index_t *Index, ml_value_t *Value) {
+	Value = Value->Type->deref(Value);
+	if (Value->Type == MLErrorT) return Value;
 	ml_map_insert(Index->Map, Index->Key, Value);
 	return Value;
 }
@@ -3201,6 +3191,10 @@ void ml_types_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "real", ml_module("real",
 		"T", MLRealT,
 		"of", MLRealOfMethod,
+	NULL));
+	stringmap_insert(Globals, "buffer", ml_module("buffer",
+		"T", MLBufferT,
+		"new", ml_function(NULL, ml_buffer),
 	NULL));
 	stringmap_insert(Globals, "string", ml_module("string",
 		"T", MLStringT,
