@@ -54,7 +54,7 @@ static char *stpcpy(char *Dest, const char *Source) {
 #define lstat stat
 #endif
 
-static void console_display_closure(console_t *Console, ml_closure_t *Closure) {
+static void console_display_closure(console_t *Console, ml_value_t *Closure) {
 	static GVC_t *Context = 0;
 	if (!Context) {
 		Context = gvContext();
@@ -66,10 +66,10 @@ static void console_display_closure(console_t *Console, ml_closure_t *Closure) {
 	unlink(GraphFileName);
 	const char *FontSize = "10";
 	for (const char *P = Console->FontName; *P; ++P) if (*P == ' ') FontSize = P + 1;
-	agattr(Graph, AGNODE, "fontsize", FontSize);
-	agattr(Graph, AGNODE, "fontname", Console->FontName);
-	agattr(Graph, AGEDGE, "fontsize", FontSize);
-	agattr(Graph, AGEDGE, "fontname", Console->FontName);
+	agattr(Graph, AGNODE, "fontsize", (char *)FontSize);
+	agattr(Graph, AGNODE, "fontname", (char *)Console->FontName);
+	agattr(Graph, AGEDGE, "fontsize", (char *)FontSize);
+	agattr(Graph, AGEDGE, "fontname", (char *)Console->FontName);
 	gvLayout(Context, Graph, "dot");
 	char *ImageFileName;
 	asprintf(&ImageFileName, "%s.svg", GraphFileName);
@@ -106,7 +106,7 @@ static ml_value_t *console_global_get(console_t *Console, const char *Name) {
 	ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
 	Uninitialized->Type = MLUninitializedT;
 	stringmap_insert(Console->Globals, Name, Uninitialized);
-	return Uninitialized;
+	return (ml_value_t *)Uninitialized;
 }
 
 static char *console_read(console_t *Console) {
@@ -177,10 +177,13 @@ typedef struct {
 } ml_console_repl_state_t;
 
 static void ml_console_repl_run(ml_console_repl_state_t *State, ml_value_t *Result) {
-	if (!Result) return;
+	if (!Result) {
+		gtk_widget_grab_focus(State->Console->InputView);
+		return;
+	}
 	console_log(State->Console, Result);
 	if (Result->Type != MLErrorT) {
-		return ml_command_evaluate(State, State->Console->Scanner, State->Console->Globals);
+		return ml_command_evaluate((ml_state_t *)State, State->Console->Scanner, State->Console->Globals);
 	}
 }
 
@@ -208,12 +211,11 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 
 	mlc_scanner_t *Scanner = Console->Scanner;
 	ml_console_repl_state_t *State = new(ml_console_repl_state_t);
-	State->Base.run = ml_console_repl_run;
+	State->Base.run = (ml_state_fn)ml_console_repl_run;
 	State->Base.Context = &MLRootContext;
 	State->Console = Console;
 	ml_scanner_reset(Scanner);
-	ml_command_evaluate(State, Scanner, Console->Globals);
-	gtk_widget_grab_focus(Console->InputView);
+	ml_command_evaluate((ml_state_t *)State, Scanner, Console->Globals);
 }
 
 static void console_clear(GtkWidget *Button, console_t *Console) {
@@ -236,7 +238,8 @@ static void console_style_changed(GtkComboBoxText *Widget, console_t *Console) {
 }
 
 static void console_font_changed(GtkFontChooser *Widget, console_t *Console) {
-	gchar *FontName = Console->FontName = gtk_font_chooser_get_font(Widget);
+	gchar *FontName = gtk_font_chooser_get_font(Widget);
+	Console->FontName = FontName;
 	PangoFontDescription *FontDescription = pango_font_description_from_string(FontName);
 	gtk_widget_override_font(Console->InputView, FontDescription);
 	gtk_widget_override_font(Console->LogView, FontDescription);
@@ -418,9 +421,9 @@ static ml_value_t *console_add_cycle(console_t *Console, int Count, ml_value_t *
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	for (int I = 1; I < Count; ++I) {
 		ML_CHECK_ARG_TYPE(I, MLStringT);
-		stringmap_insert(Console->Cycles, ml_string_value(Args[I - 1]), ml_string_value(Args[I]));
+		stringmap_insert(Console->Cycles, ml_string_value(Args[I - 1]), (void *)ml_string_value(Args[I]));
 	}
-	stringmap_insert(Console->Cycles, ml_string_value(Args[Count - 1]), ml_string_value(Args[0]));
+	stringmap_insert(Console->Cycles, ml_string_value(Args[Count - 1]), (void *)ml_string_value(Args[0]));
 	return MLNil;
 }
 
@@ -428,8 +431,8 @@ static ml_value_t *console_add_combo(console_t *Console, int Count, ml_value_t *
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLStringT);
-	stringmap_insert(Console->Combos, ml_string_value(Args[0]), ml_string_value(Args[1]));
-	stringmap_insert(Console->Cycles, ml_string_value(Args[1]), ml_string_value(Args[0]));
+	stringmap_insert(Console->Combos, ml_string_value(Args[0]), (void *)ml_string_value(Args[1]));
+	stringmap_insert(Console->Cycles, ml_string_value(Args[1]), (void *)ml_string_value(Args[0]));
 	return MLNil;
 }
 
@@ -493,12 +496,12 @@ static gboolean console_update_status(console_t *Console) {
 	return G_SOURCE_CONTINUE;
 }
 
-console_t *console_new(ml_getter_t GlobalGet, stringmap_t *Globals) {
+console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	gtk_init(0, 0);
 
 	console_t *Console = new(console_t);
-	Console->ParentGetter = GlobalGet;
-	Console->ParentGlobals = Globals;
+	Console->ParentGetter = ParentGetter;
+	Console->ParentGlobals = ParentGlobals;
 	Console->Input = 0;
 	Console->HistoryIndex = 0;
 	Console->HistoryEnd = 0;
@@ -508,7 +511,7 @@ console_t *console_new(ml_getter_t GlobalGet, stringmap_t *Globals) {
 	GtkWidget *Container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
 	Console->InputView = gtk_source_view_new();
 
-	asprintf(&Console->ConfigPath, "%s/%s", g_get_user_config_dir(), "minilang.conf");
+	asprintf((char **)&Console->ConfigPath, "%s/%s", g_get_user_config_dir(), "minilang.conf");
 	Console->Config = g_key_file_new();
 	g_key_file_load_from_file(Console->Config, Console->ConfigPath, G_KEY_FILE_NONE, NULL);
 
@@ -603,12 +606,12 @@ console_t *console_new(ml_getter_t GlobalGet, stringmap_t *Globals) {
 	gtk_window_set_default_size(GTK_WINDOW(Console->Window), 640, 480);
 	g_signal_connect(G_OBJECT(Console->Window), "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), Console);
 
-	stringmap_insert(Globals, "set_font", ml_function(Console, (ml_callback_t)console_set_font));
-	stringmap_insert(Globals, "set_style", ml_function(Console, (ml_callback_t)console_set_style));
-	stringmap_insert(Globals, "add_cycle", ml_function(Console, (ml_callback_t)console_add_cycle));
-	stringmap_insert(Globals, "add_combo", ml_function(Console, (ml_callback_t)console_add_combo));
-	stringmap_insert(Globals, "include", ml_functionx(Console, (ml_callbackx_t)console_include_fnx));
-	stringmap_insert(Globals, "display", ml_function(Console, (ml_callback_t)console_display));
+	stringmap_insert(Console->Globals, "set_font", ml_function(Console, (ml_callback_t)console_set_font));
+	stringmap_insert(Console->Globals, "set_style", ml_function(Console, (ml_callback_t)console_set_style));
+	stringmap_insert(Console->Globals, "add_cycle", ml_function(Console, (ml_callback_t)console_add_cycle));
+	stringmap_insert(Console->Globals, "add_combo", ml_function(Console, (ml_callback_t)console_add_combo));
+	stringmap_insert(Console->Globals, "include", ml_functionx(Console, (ml_callbackx_t)console_include_fnx));
+	stringmap_insert(Console->Globals, "display", ml_function(Console, (ml_callback_t)console_display));
 
 	ml_typed_fn_set(MLClosureT, console_display_value, console_display_closure);
 
@@ -658,15 +661,14 @@ console_t *console_new(ml_getter_t GlobalGet, stringmap_t *Globals) {
 	gtk_source_view_set_tab_width(GTK_SOURCE_VIEW(Console->InputView), 4);
 	gtk_source_view_set_show_line_numbers(GTK_SOURCE_VIEW(Console->InputView), TRUE);
 
-
-	g_timeout_add(1000, console_update_status, Console);
+	g_timeout_add(1000, (GSourceFunc)console_update_status, Console);
 
 	GError *Error = 0;
 	g_irepository_require(NULL, "Gtk", NULL, 0, &Error);
 	g_irepository_require(NULL, "GtkSource", NULL, 0, &Error);
-	stringmap_insert(Globals, "Console", ml_gir_instance_get(Console->Window));
-	stringmap_insert(Globals, "InputView", ml_gir_instance_get(Console->InputView));
-	stringmap_insert(Globals, "LogView", ml_gir_instance_get(Console->LogView));
+	stringmap_insert(Console->Globals, "Console", ml_gir_instance_get(Console->Window));
+	stringmap_insert(Console->Globals, "InputView", ml_gir_instance_get(Console->InputView));
+	stringmap_insert(Console->Globals, "LogView", ml_gir_instance_get(Console->LogView));
 
 	return Console;
 }

@@ -733,15 +733,10 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Closure), ml_state_t *Frame, ml_v
 	return ml_closure_call(Frame, Closure, 0, NULL);
 }
 
-ml_type_t MLClosureT[1] = {{
-	MLTypeT,
-	MLFunctionT, "closure",
-	ml_closure_hash,
-	ml_closure_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLClosureT, MLFunctionT, "closure",
+	.hash = ml_closure_hash,
+	.call = ml_closure_call
+);
 
 static void ml_inst_escape_string(FILE *Graph, const char *String, size_t Length) {
 	for (int I = 0; I < Length; ++I) switch (String[I]) {

@@ -12,15 +12,7 @@ typedef struct ml_mini_module_t {
 	stringmap_t Exports[1];
 } ml_mini_module_t;
 
-ml_type_t MLMiniModuleT[1] = {{
-	MLTypeT,
-	MLModuleT, "mini-module",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLMiniModuleT, MLModuleT, "mini-module");
 
 ML_METHODX("::", MLMiniModuleT, MLStringT) {
 	ml_mini_module_t *Module = (ml_mini_module_t *)Args[0];
@@ -30,7 +22,7 @@ ML_METHODX("::", MLMiniModuleT, MLStringT) {
 	if (!Value) {
 		ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
 		Uninitialized->Type = MLUninitializedT;
-		Value = Slot[0] = Uninitialized;
+		Value = Slot[0] = (ml_value_t *)Uninitialized;
 	}
 	ML_RETURN(Value);
 }
@@ -58,15 +50,9 @@ static void ml_export_function_call(ml_state_t *Caller, ml_export_function_t *Ex
 	ML_RETURN(Slot[0] = Value);
 }
 
-ml_type_t MLExportFunctionT[1] = {{
-	MLTypeT,
-	MLFunctionT, "export-function",
-	ml_default_hash,
-	(void *)ml_export_function_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLExportFunctionT, MLFunctionT, "export-function",
+	.call = (void *)ml_export_function_call
+);
 
 typedef struct ml_module_state_t {
 	ml_state_t Base;
@@ -82,7 +68,7 @@ static void ml_module_done_run(ml_module_state_t *State, ml_value_t *Value) {
 
 static void ml_module_init_run(ml_module_state_t *State, ml_value_t *Value) {
 	if (Value->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Value);
-	State->Base.run = ml_module_done_run;
+	State->Base.run = (ml_state_fn)ml_module_done_run;
 	return Value->Type->call((ml_state_t *)State, Value, 1, State->Args);
 }
 
@@ -91,7 +77,7 @@ void ml_module_load_file(ml_state_t *Caller, const char *FileName, ml_getter_t G
 	ml_mini_module_t *Module = new(ml_mini_module_t);
 	Module->Type = MLMiniModuleT;
 	Module->FileName = FileName;
-	Slot[0] = Module;
+	Slot[0] = (ml_value_t *)Module;
 	ml_export_function_t *ExportFunction = new(ml_export_function_t);
 	ExportFunction->Type = MLExportFunctionT;
 	ExportFunction->Module = Module;
@@ -100,9 +86,9 @@ void ml_module_load_file(ml_state_t *Caller, const char *FileName, ml_getter_t G
 	State->Base.run = (void *)ml_module_init_run;
 	State->Base.Context = Caller->Context;
 	State->Base.Caller = Caller;
-	State->Module = Module;
-	State->Args[0] = ExportFunction;
-	return ml_load(State, GlobalGet, Globals, FileName, Parameters);
+	State->Module = (ml_value_t *)Module;
+	State->Args[0] = (ml_value_t *)ExportFunction;
+	return ml_load((ml_state_t *)State, GlobalGet, Globals, FileName, Parameters);
 }
 
 void ml_module_init(stringmap_t *_Globals) {

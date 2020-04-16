@@ -25,10 +25,12 @@ int ml_context_index_new();
 
 void ml_context_set(ml_context_t *Context, int Index, void *Value);
 
+typedef void (*ml_state_fn)(ml_state_t *, ml_value_t *);
+
 struct ml_state_t {
 	const ml_type_t *Type;
 	ml_state_t *Caller;
-	void (*run)(ml_state_t *State, ml_value_t *Value);
+	ml_state_fn run;
 	ml_context_t *Context;
 };
 
@@ -37,8 +39,8 @@ extern ml_type_t MLStateT[];
 ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args);
 
 #define ml_inline(VALUE, COUNT, ARGS ...) ({ \
-	ml_value_t *Args ## __LINE__[COUNT] = {ARGS}; \
-	ml_call(VALUE, COUNT, Args ## __LINE__); \
+	void *Args ## __LINE__[COUNT] = {ARGS}; \
+	ml_call(VALUE, COUNT, (ml_value_t **)(Args ## __LINE__)); \
 })
 
 typedef struct {
@@ -48,7 +50,7 @@ typedef struct {
 
 void ml_eval_state_run(ml_value_state_t *State, ml_value_t *Value);
 
-#define ML_EVAL_STATE_INIT {{MLStateT, NULL, ml_eval_state_run, &MLRootContext}, MLNil}
+#define ML_EVAL_STATE_INIT {{MLStateT, NULL, (ml_state_fn)ml_eval_state_run, &MLRootContext}, MLNil}
 
 #define ML_WRAP_EVAL(FUNCTION, ARGS...) ({ \
 	ml_value_state_t State[1] = ML_EVAL_STATE_INIT; \
@@ -58,7 +60,7 @@ void ml_eval_state_run(ml_value_state_t *State, ml_value_t *Value);
 
 void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value);
 
-#define ML_CALL_STATE_INIT {{MLStateT, NULL, ml_call_state_run, &MLRootContext}, MLNil}
+#define ML_CALL_STATE_INIT {{MLStateT, NULL, (ml_state_fn)ml_call_state_run, &MLRootContext}, MLNil}
 
 #define ML_WRAP_CALL(FUNCTION, ARGS...) ({ \
 	ml_value_state_t State[1] = ML_CALL_STATE_INIT; \
@@ -133,12 +135,12 @@ static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Arg
 	}
 
 #define ML_CONTINUE(STATE, VALUE) { \
-	ml_state_t *__State = (STATE); \
-	ml_value_t *__Value = (VALUE); \
+	ml_state_t *__State = (ml_state_t *)(STATE); \
+	ml_value_t *__Value = (ml_value_t *)(VALUE); \
 	return __State->run(__State, __Value); \
 }
 
-#define ML_RETURN(VALUE) return Caller->run(Caller, (VALUE))
+#define ML_RETURN(VALUE) return Caller->run(Caller, (ml_value_t *)(VALUE))
 
 /****************************** References ******************************/
 

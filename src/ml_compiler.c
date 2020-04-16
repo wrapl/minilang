@@ -177,15 +177,7 @@ typedef struct mlc_ident_expr_t mlc_ident_expr_t;
 typedef struct mlc_parent_value_expr_t mlc_parent_value_expr_t;
 typedef struct mlc_block_expr_t mlc_block_expr_t;
 
-static ml_type_t MLBlankT[1] = {{
-	MLTypeT,
-	MLAnyT, "blank",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLBlankT, MLAnyT, "blank");
 
 static ml_value_t MLBlank[1] = {{MLBlankT}};
 

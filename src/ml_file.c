@@ -131,7 +131,7 @@ ml_value_t *ml_file_new(FILE *Handle) {
 	File->Type = MLFileT;
 	File->Handle = Handle;
 	GC_register_finalizer(File, (void *)ml_file_finalize, 0, 0, 0);
-	return File;
+	return (ml_value_t *)File;
 }
 
 ml_value_t *ml_file_open(void *Data, int Count, ml_value_t **Args) {
@@ -146,7 +146,7 @@ ml_value_t *ml_file_open(void *Data, int Count, ml_value_t **Args) {
 	File->Type = MLFileT;
 	File->Handle = Handle;
 	GC_register_finalizer(File, (void *)ml_file_finalize, 0, 0, 0);
-	return File;
+	return (ml_value_t *)File;
 }
 
 void ml_file_init(stringmap_t *Globals) {

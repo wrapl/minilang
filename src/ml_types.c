@@ -32,15 +32,7 @@ ML_METHOD_DECL(MLMethodOf, NULL);
 
 /****************************** Types ******************************/
 
-ml_type_t MLTypeT[1] = {{
-	MLTypeT,
-	MLIteratableT, "type",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLTypeT, MLIteratableT, "type");
 
 void ml_default_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
 	ML_RETURN(ml_error("TypeError", "<%s> is not callable", Value->Type->Name));
@@ -197,35 +189,9 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLTypeT, ml_stringbuffer_
 
 /****************************** Values ******************************/
 
-ml_type_t MLAnyT[1] = {{
-	MLTypeT,
-	NULL, "any",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
-
-ml_type_t MLNilT[1] = {{
-	MLTypeT,
-	MLAnyT, "nil",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
-
-ml_type_t MLSomeT[1] = {{
-	MLTypeT,
-	MLAnyT, "some",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLAnyT, NULL, "any");
+ML_TYPE(MLNilT, MLAnyT, "nil");
+ML_TYPE(MLSomeT, MLAnyT, "some");
 
 ml_value_t MLNil[1] = {{MLNilT}};
 ml_value_t MLSome[1] = {{MLSomeT}};
@@ -257,14 +223,14 @@ typedef struct ml_integer_t {
 	long Value;
 } ml_integer_t;
 
-static ml_integer_t One[1] = {{{MLIntegerT}, 1}};
-static ml_integer_t NegOne[1] = {{{MLIntegerT}, -1}};
-static ml_integer_t Zero[1] = {{{MLIntegerT}, 0}};
+static ml_integer_t One[1] = {{MLIntegerT, 1}};
+static ml_integer_t NegOne[1] = {{MLIntegerT, -1}};
+static ml_integer_t Zero[1] = {{MLIntegerT, 0}};
 
 ML_METHOD("<>", MLAnyT, MLAnyT) {
-	if (Args[0] < Args[1]) return NegOne;
-	if (Args[0] > Args[1]) return One;
-	return Zero;
+	if (Args[0] < Args[1]) return (ml_value_t *)NegOne;
+	if (Args[0] > Args[1]) return (ml_value_t *)One;
+	return (ml_value_t *)Zero;
 }
 
 ML_METHOD("#", MLAnyT) {
@@ -280,17 +246,19 @@ ML_METHOD("!=", MLAnyT, MLAnyT) {
 	return (Args[0] != Args[1]) ? Args[1] : MLNil;
 }
 
+ML_METHOD(MLStringOfMethod, MLAnyT) {
+	return ml_string_format("<%s>", Args[0]->Type->Name);
+}
+
+ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLAnyT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_stringbuffer_addf(Buffer, "<%s>", Args[1]->Type->Name);
+	return MLSome;
+}
+
 /****************************** Iterators ******************************/
 
-ml_type_t MLIteratableT[1] = {{
-	MLTypeT,
-	MLAnyT, "iterator",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLIteratableT, MLAnyT, "iterator");
 
 void ml_iterate(ml_state_t *Caller, ml_value_t *Value) {
 	typeof(ml_iterate) *function = ml_typed_fn_get(Value->Type, ml_iterate);
@@ -345,7 +313,7 @@ static long ml_tuple_hash(ml_tuple_t *Tuple, ml_hash_chain_t *Chain) {
 }
 
 static ml_value_t *ml_tuple_deref(ml_tuple_t *Ref) {
-	if (Ref->NoRefs) return Ref;
+	if (Ref->NoRefs) return (ml_value_t *)Ref;
 	for (int I = 0; I < Ref->Size; ++I) {
 		ml_value_t *Old = Ref->Values[I];
 		ml_value_t *New = Old->Type->deref(Old);
@@ -359,11 +327,11 @@ static ml_value_t *ml_tuple_deref(ml_tuple_t *Ref) {
 			for (int J = I + 1; J < Ref->Size; ++J) {
 				Deref->Values[J] = Ref->Values[J]->Type->deref(Ref->Values[J]);
 			}
-			return Deref;
+			return (ml_value_t *)Deref;
 		}
 	}
 	Ref->NoRefs = 1;
-	return Ref;
+	return (ml_value_t *)Ref;
 }
 
 static ml_value_t *ml_tuple_assign(ml_tuple_t *Ref, ml_value_t *Value) {
@@ -379,21 +347,17 @@ static ml_value_t *ml_tuple_assign(ml_tuple_t *Ref, ml_value_t *Value) {
 	return Value;
 }
 
-ml_type_t MLTupleT[1] = {{
-	MLTypeT,
-	MLAnyT, "tuple",
-	(void *)ml_tuple_hash,
-	ml_default_call,
-	(void *)ml_tuple_deref,
-	(void *)ml_tuple_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLTupleT, MLAnyT, "tuple",
+	.hash = (void *)ml_tuple_hash,
+	.deref = (void *)ml_tuple_deref,
+	.assign = (void *)ml_tuple_assign
+);
 
 ml_value_t *ml_tuple(size_t Size) {
 	ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
 	Tuple->Type = MLTupleT;
 	Tuple->Size = Size;
-	return Tuple;
+	return (ml_value_t *)Tuple;
 }
 
 ML_METHOD("size", MLTupleT) {
@@ -414,7 +378,7 @@ ml_value_t *ml_tuple_fn(void *Data, int Count, ml_value_t **Args) {
 	Tuple->Type = MLTupleT;
 	Tuple->Size = Count;
 	memcpy(Tuple->Values, Args, Count * sizeof(ml_value_t *));
-	return Tuple;
+	return (ml_value_t *)Tuple;
 }
 
 static ml_value_t *ML_TYPED_FN(ml_string_of, MLTupleT, ml_tuple_t *Tuple) {
@@ -521,50 +485,36 @@ ml_comp_tuple_tuple(">=", MLNil, Args[1], Args[1]);
 
 /****************************** Numbers ******************************/
 
-ml_type_t MLNumberT[1] = {{
-	MLTypeT,
-	MLFunctionT, "number",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLNumberT, MLFunctionT, "number");
 
 typedef struct ml_real_t {
 	const ml_type_t *Type;
 	double Value;
 } ml_real_t;
 
-static long ml_integer_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
-	ml_integer_t *Integer = (ml_integer_t *)Value;
+static long ml_integer_hash(ml_integer_t *Integer, ml_hash_chain_t *Chain) {
 	return Integer->Value;
 }
 
-static void ml_integer_call(ml_state_t *Caller, ml_integer_t *Value, int Count, ml_value_t **Args) {
-	long Index = Value->Value;
+static void ml_integer_call(ml_state_t *Caller, ml_integer_t *Integer, int Count, ml_value_t **Args) {
+	long Index = Integer->Value;
 	if (Index <= 0) Index += Count + 1;
 	if (Index <= 0) ML_RETURN(MLNil);
 	if (Index > Count) ML_RETURN(MLNil);
 	ML_RETURN(Args[Index - 1]);
 }
 
-ml_type_t MLIntegerT[1] = {{
-	MLTypeT,
-	MLNumberT, "integer",
-	ml_integer_hash,
-	(void *)ml_integer_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLIntegerT, MLNumberT, "integer",
+	.hash = (void *)ml_integer_hash,
+	.call = (void *)ml_integer_call
+);
 
 ml_value_t *ml_integer(long Value) {
 	ml_integer_t *Integer = fnew(ml_integer_t);
 	Integer->Type = MLIntegerT;
 	Integer->Value = Value;
 	GC_end_stubborn_change(Integer);
-	return Integer;
+	return (ml_value_t *)Integer;
 }
 
 long ml_integer_value(ml_value_t *Value) {
@@ -595,27 +545,20 @@ ML_METHOD(MLIntegerOfMethod, MLRealT) {
 	return ml_integer(((ml_real_t *)Args[0])->Value);
 }
 
-static long ml_real_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
-	ml_real_t *Real = (ml_real_t *)Value;
+static long ml_real_hash(ml_real_t *Real, ml_hash_chain_t *Chain) {
 	return (long)Real->Value;
 }
 
-ml_type_t MLRealT[1] = {{
-	MLTypeT,
-	MLNumberT, "real",
-	ml_real_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLRealT, MLNumberT, "real",
+	.hash = (void *)ml_real_hash
+);
 
 ml_value_t *ml_real(double Value) {
 	ml_real_t *Real = fnew(ml_real_t);
 	Real->Type = MLRealT;
 	Real->Value = Value;
 	GC_end_stubborn_change(Real);
-	return Real;
+	return (ml_value_t *)Real;
 }
 
 double ml_real_value(ml_value_t *Value) {
@@ -783,33 +726,33 @@ ml_comp_method_number_number(">=", >=)
 ML_METHOD("<>", MLIntegerT, MLIntegerT) {
 	ml_integer_t *IntegerA = (ml_integer_t *)Args[0];
 	ml_integer_t *IntegerB = (ml_integer_t *)Args[1];
-	if (IntegerA->Value < IntegerB->Value) return NegOne;
-	if (IntegerA->Value > IntegerB->Value) return One;
-	return Zero;
+	if (IntegerA->Value < IntegerB->Value) return (ml_value_t *)NegOne;
+	if (IntegerA->Value > IntegerB->Value) return (ml_value_t *)One;
+	return (ml_value_t *)Zero;
 }
 
 ML_METHOD("<>", MLRealT, MLIntegerT) {
 	ml_real_t *RealA = (ml_real_t *)Args[0];
 	ml_integer_t *IntegerB = (ml_integer_t *)Args[1];
-	if (RealA->Value < IntegerB->Value) return NegOne;
-	if (RealA->Value > IntegerB->Value) return One;
-	return Zero;
+	if (RealA->Value < IntegerB->Value) return (ml_value_t *)NegOne;
+	if (RealA->Value > IntegerB->Value) return (ml_value_t *)One;
+	return (ml_value_t *)Zero;
 }
 
 ML_METHOD("<>", MLIntegerT, MLRealT) {
 	ml_integer_t *IntegerA = (ml_integer_t *)Args[0];
 	ml_real_t *RealB = (ml_real_t *)Args[1];
-	if (IntegerA->Value < RealB->Value) return NegOne;
-	if (IntegerA->Value > RealB->Value) return One;
-	return Zero;
+	if (IntegerA->Value < RealB->Value) return (ml_value_t *)NegOne;
+	if (IntegerA->Value > RealB->Value) return (ml_value_t *)One;
+	return (ml_value_t *)Zero;
 }
 
 ML_METHOD("<>", MLRealT, MLRealT) {
 	ml_real_t *RealA = (ml_real_t *)Args[0];
 	ml_real_t *RealB = (ml_real_t *)Args[1];
-	if (RealA->Value < RealB->Value) return NegOne;
-	if (RealA->Value > RealB->Value) return One;
-	return Zero;
+	if (RealA->Value < RealB->Value) return (ml_value_t *)NegOne;
+	if (RealA->Value > RealB->Value) return (ml_value_t *)One;
+	return (ml_value_t *)Zero;
 }
 
 typedef struct ml_integer_iter_t {
@@ -837,15 +780,7 @@ static void ML_TYPED_FN(ml_iter_key, MLIntegerIterT, ml_state_t *Caller, ml_inte
 	ML_RETURN(ml_integer(Iter->Index));
 }
 
-ml_type_t MLIntegerIterT[1] = {{
-	MLTypeT,
-	MLAnyT, "integer-iter",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLIntegerIterT, MLAnyT, "integer-iter");
 
 typedef struct ml_integer_range_t {
 	const ml_type_t *Type;
@@ -865,15 +800,7 @@ static void ML_TYPED_FN(ml_iterate, MLIntegerRangeT, ml_state_t *Caller, ml_valu
 	ML_RETURN(Iter);
 }
 
-ml_type_t MLIntegerRangeT[1] = {{
-	MLTypeT,
-	MLIteratableT, "integer-range",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLIntegerRangeT, MLIteratableT, "integer-range");
 
 ML_METHOD("..", MLIntegerT, MLIntegerT) {
 	ml_integer_t *IntegerA = (ml_integer_t *)Args[0];
@@ -883,7 +810,7 @@ ML_METHOD("..", MLIntegerT, MLIntegerT) {
 	Range->Start = IntegerA->Value;
 	Range->Limit = IntegerB->Value;
 	Range->Step = 1;
-	return Range;
+	return (ml_value_t *)Range;
 }
 
 ML_METHOD("by", MLIntegerT, MLIntegerT) {
@@ -894,7 +821,7 @@ ML_METHOD("by", MLIntegerT, MLIntegerT) {
 	Range->Start = IntegerA->Value;
 	Range->Step = IntegerB->Value;
 	Range->Limit = Range->Step > 0 ? LONG_MAX : LONG_MIN;
-	return Range;
+	return (ml_value_t *)Range;
 }
 
 ML_METHOD("by", MLIntegerRangeT, MLIntegerT) {
@@ -904,7 +831,7 @@ ML_METHOD("by", MLIntegerRangeT, MLIntegerT) {
 	Range->Start = Range0->Start;
 	Range->Limit = Range0->Limit;
 	Range->Step = ml_integer_value(Args[1]);
-	return Range;
+	return (ml_value_t *)Range;
 }
 
 ML_METHOD("in", MLIntegerT, MLIntegerRangeT) {
@@ -944,15 +871,7 @@ static void ML_TYPED_FN(ml_iter_key, MLRealIterT, ml_state_t *Caller, ml_real_it
 	ML_RETURN(ml_integer(Iter->Index));
 }
 
-ml_type_t MLRealIterT[1] = {{
-	MLTypeT,
-	MLAnyT, "real-iter",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLRealIterT, MLAnyT, "real-iter");
 
 typedef struct ml_real_range_t {
 	const ml_type_t *Type;
@@ -974,15 +893,7 @@ static void ML_TYPED_FN(ml_iterate, MLRealRangeT, ml_state_t *Caller, ml_value_t
 	ML_RETURN(Iter);
 }
 
-ml_type_t MLRealRangeT[1] = {{
-	MLTypeT,
-	MLIteratableT, "real-range",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLRealRangeT, MLIteratableT, "real-range");
 
 ML_METHOD("..", MLNumberT, MLNumberT) {
 	ml_real_range_t *Range = new(ml_real_range_t);
@@ -999,7 +910,7 @@ ML_METHOD("..", MLNumberT, MLNumberT) {
 	}
 	Range->Step = 1.0;
 	Range->Count = floor(Range->Limit - Range->Start);
-	return Range;
+	return (ml_value_t *)Range;
 }
 
 ML_METHOD("by", MLNumberT, MLNumberT) {
@@ -1017,7 +928,7 @@ ML_METHOD("by", MLNumberT, MLNumberT) {
 	}
 	Range->Limit = Range->Step > 0.0 ? INFINITY : -INFINITY;
 	Range->Count = LONG_MAX;
-	return Range;
+	return (ml_value_t *)Range;
 }
 
 ML_METHOD("by", MLRealRangeT, MLNumberT) {
@@ -1037,7 +948,7 @@ ML_METHOD("by", MLRealRangeT, MLNumberT) {
 	double C = (Limit - Start) / Step;
 	if (C > LONG_MAX) C = LONG_MAX;
 	Range->Count = C;
-	return Range;
+	return (ml_value_t *)Range;
 }
 
 ML_METHOD("in", MLRealRangeT, MLIntegerT) {
@@ -1048,7 +959,7 @@ ML_METHOD("in", MLRealRangeT, MLIntegerT) {
 	Range->Limit = Range0->Limit;
 	long C = Range->Count = ((ml_integer_t *)Args[1])->Value - 1;
 	Range->Step = (Range->Limit - Range->Start) / C;
-	return Range;
+	return (ml_value_t *)Range;
 }
 
 ML_METHOD("by", MLIntegerRangeT, MLRealT) {
@@ -1061,7 +972,7 @@ ML_METHOD("by", MLIntegerRangeT, MLRealT) {
 	double C = (Limit - Start) / Step;
 	if (C > LONG_MAX) C = LONG_MAX;
 	Range->Count = LONG_MAX;
-	return Range;
+	return (ml_value_t *)Range;
 }
 
 ML_METHOD("in", MLIntegerT, MLRealRangeT) {
@@ -1082,15 +993,7 @@ ML_METHOD("in", MLRealT, MLRealRangeT) {
 
 /****************************** Strings ******************************/
 
-ml_type_t MLBufferT[1] = {{
-	MLTypeT,
-	MLAnyT, "buffer",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLBufferT, MLAnyT, "buffer");
 
 ml_value_t *ml_buffer(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
@@ -1101,7 +1004,7 @@ ml_value_t *ml_buffer(void *Data, int Count, ml_value_t **Args) {
 	Buffer->Type = MLBufferT;
 	Buffer->Size = Size;
 	Buffer->Address = GC_MALLOC_ATOMIC(Size);
-	return Buffer;
+	return (ml_value_t *)Buffer;
 }
 
 ML_METHOD("+", MLBufferT, MLIntegerT) {
@@ -1112,7 +1015,7 @@ ML_METHOD("+", MLBufferT, MLIntegerT) {
 	Buffer2->Type = MLBufferT;
 	Buffer2->Address = Buffer->Address + Offset;
 	Buffer2->Size = Buffer->Size - Offset;
-	return Buffer2;
+	return (ml_value_t *)Buffer2;
 }
 
 ML_METHOD("-", MLBufferT, MLBufferT) {
@@ -1132,22 +1035,15 @@ typedef struct ml_string_t {
 	size_t Length;
 } ml_string_t;
 
-static long ml_string_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
-	ml_string_t *String = (ml_string_t *)Value;
+static long ml_string_hash(ml_string_t *String, ml_hash_chain_t *Chain) {
 	long Hash = 5381;
 	for (int I = 0; I < String->Length; ++I) Hash = ((Hash << 5) + Hash) + String->Value[I];
 	return Hash;
 }
 
-ml_type_t MLStringT[1] = {{
-	MLTypeT,
-	MLBufferT, "string",
-	ml_string_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLStringT, MLBufferT, "string",
+	.hash = (void *)ml_string_hash
+);
 
 ml_value_t *ml_string(const char *Value, int Length) {
 	ml_string_t *String = fnew(ml_string_t);
@@ -1165,7 +1061,7 @@ ml_value_t *ml_string(const char *Value, int Length) {
 	String->Value = Value;
 	String->Length = Length;
 	GC_end_stubborn_change(String);
-	return String;
+	return (ml_value_t *)String;
 }
 
 ML_FUNCTION(StringNew) {
@@ -1182,7 +1078,7 @@ ml_value_t *ml_string_format(const char *Format, ...) {
 	String->Length = vasprintf((char **)&String->Value, Format, Args);
 	va_end(Args);
 	GC_end_stubborn_change(String);
-	return String;
+	return (ml_value_t *)String;
 }
 
 const char *ml_string_value(ml_value_t *Value) {
@@ -1223,7 +1119,7 @@ static ml_value_t *ML_TYPED_FN(ml_string_of, MLIntegerT, ml_integer_t *Integer) 
 	ml_string_t *String = new(ml_string_t);
 	String->Type = MLStringT;
 	String->Length = asprintf((char **)&String->Value, "%ld", Integer->Value);
-	return String;
+	return (ml_value_t *)String;
 }
 
 ML_METHOD(MLStringOfMethod, MLIntegerT) {
@@ -1231,7 +1127,7 @@ ML_METHOD(MLStringOfMethod, MLIntegerT) {
 	ml_string_t *String = new(ml_string_t);
 	String->Type = MLStringT;
 	String->Length = asprintf((char **)&String->Value, "%ld", Integer->Value);
-	return String;
+	return (ml_value_t *)String;
 }
 
 ML_METHOD(MLStringOfMethod, MLIntegerT, MLIntegerT) {
@@ -1251,14 +1147,14 @@ ML_METHOD(MLStringOfMethod, MLIntegerT, MLIntegerT) {
 	if (Value < 0) *--P = '-';
 	String->Value = P;
 	String->Length = strlen(P);
-	return String;
+	return (ml_value_t *)String;
 }
 
 static ml_value_t *ML_TYPED_FN(ml_string_of, MLRealT, ml_real_t *Real) {
 	ml_string_t *String = new(ml_string_t);
 	String->Type = MLStringT;
 	String->Length = asprintf((char **)&String->Value, "%f", Real->Value);
-	return String;
+	return (ml_value_t *)String;
 }
 
 ML_METHOD(MLStringOfMethod, MLRealT) {
@@ -1266,7 +1162,7 @@ ML_METHOD(MLStringOfMethod, MLRealT) {
 	ml_string_t *String = new(ml_string_t);
 	String->Type = MLStringT;
 	String->Length = asprintf((char **)&String->Value, "%f", Real->Value);
-	return String;
+	return (ml_value_t *)String;
 }
 
 ML_METHOD(MLIntegerOfMethod, MLStringT) {
@@ -1289,23 +1185,16 @@ typedef struct ml_regex_t {
 	regex_t Value[1];
 } ml_regex_t;
 
-static long ml_regex_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
-	ml_regex_t *Regex = (ml_regex_t *)Value;
+static long ml_regex_hash(ml_regex_t *Regex, ml_hash_chain_t *Chain) {
 	long Hash = 5381;
 	const char *Pattern = Regex->Pattern;
 	while (*Pattern) Hash = ((Hash << 5) + Hash) + *(Pattern++);
 	return Hash;
 }
 
-ml_type_t MLRegexT[1] = {{
-	MLTypeT,
-	MLAnyT, "regex",
-	ml_regex_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLRegexT, MLAnyT, "regex",
+	.hash = (void *)ml_regex_hash
+);
 
 ml_value_t *ml_regex(const char *Pattern) {
 	ml_regex_t *Regex = fnew(ml_regex_t);
@@ -1319,7 +1208,7 @@ ml_value_t *ml_regex(const char *Pattern) {
 		return ml_error("RegexError", "regex error: %s", ErrorMessage);
 	}
 	GC_end_stubborn_change(Regex);
-	return Regex;
+	return (ml_value_t *)Regex;
 }
 
 regex_t *ml_regex_value(ml_value_t *Value) {
@@ -1327,15 +1216,7 @@ regex_t *ml_regex_value(ml_value_t *Value) {
 	return Regex->Value;
 }
 
-ml_type_t MLStringBufferT[1] = {{
-	MLTypeT,
-	MLAnyT, "stringbuffer",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLStringBufferT, MLAnyT, "stringbuffer");
 
 struct ml_stringbuffer_node_t {
 	ml_stringbuffer_node_t *Next;
@@ -1541,9 +1422,9 @@ ML_METHOD("<>", MLStringT, MLStringT) {
 	ml_string_t *StringA = (ml_string_t *)Args[0];
 	ml_string_t *StringB = (ml_string_t *)Args[1];
 	int Compare = strcmp(StringA->Value, StringB->Value);
-	if (Compare < 0) return NegOne;
-	if (Compare > 0) return One;
-	return Zero;
+	if (Compare < 0) return (ml_value_t *)NegOne;
+	if (Compare > 0) return (ml_value_t *)One;
+	return (ml_value_t *)Zero;
 }
 
 #define ml_comp_method_string_string(NAME, SYMBOL) \
@@ -1583,7 +1464,7 @@ ML_METHOD("~", MLStringT, MLStringT) {
 	int *Row2 = alloca((LenB + 1) * sizeof(int));
 	const int Insert = 1, Replace = 1, Swap = 1, Delete = 1;
 	for (int J = 0; J <= LenB; ++J) Row1[J] = J * Insert;
-	char PrevA, PrevB;
+	char PrevA = 0, PrevB;
 	for (int I = 0; I < LenA; ++I) {
 		Row2[0] = (I + 1) * Delete;
 		for (int J = 0; J < LenB; ++J) {
@@ -1880,15 +1761,7 @@ typedef struct ml_stringifier_t {
 	ml_value_t *Args[];
 } ml_stringifier_t;
 
-ml_type_t MLStringifierT[1] = {{
-	MLTypeT,
-	MLAnyT, "stringifier",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLStringifierT, MLAnyT, "stringifier");
 
 static ml_value_t *ML_TYPED_FN(ml_string_of, MLStringifierT, ml_stringifier_t *Stringifier) {
 	return ml_call(MLStringOfMethod, Stringifier->Count, Stringifier->Args);}
@@ -1903,7 +1776,7 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLStringifierT, ml_string
 	if (Result->Type == MLErrorT) return Result;
 	if (Result->Type != MLStringT) return ml_error("ResultError", "string method did not return string");
 	ml_stringbuffer_add(Buffer, ml_string_value(Result), ml_string_length(Result));
-	return Buffer;
+	return (ml_value_t *)Buffer;
 }
 
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLStringifierT) {
@@ -1913,7 +1786,7 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLStringifierT) {
 	if (Result->Type == MLErrorT) return Result;
 	if (Result->Type != MLStringT) return ml_error("ResultError", "string method did not return string");
 	ml_stringbuffer_add(Buffer, ml_string_value(Result), ml_string_length(Result));
-	return Buffer;
+	return (ml_value_t *)Buffer;
 }
 
 ML_FUNCTION(StringifierNew) {
@@ -1921,7 +1794,7 @@ ML_FUNCTION(StringifierNew) {
 	Stringifier->Type = MLStringifierT;
 	Stringifier->Count = Count;
 	for (int I = 0; I < Count; ++I) Stringifier->Args[I] = Args[I];
-	return Stringifier;
+	return (ml_value_t *)Stringifier;
 }
 
 /****************************** Lists ******************************/
@@ -1953,20 +1826,14 @@ static void ml_list_call(ml_state_t *Caller, ml_list_t *List, int Count, ml_valu
 	ML_RETURN(Value);
 }
 
-ml_type_t MLListT[1] = {{
-	MLTypeT,
-	MLFunctionT, "list",
-	ml_default_hash,
-	(void *)ml_list_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLListT, MLFunctionT, "list",
+	.call = (void *)ml_list_call
+);
 
 ml_value_t *ml_list() {
 	ml_list_t *List = new(ml_list_t);
 	List->Type = MLListT;
-	return List;
+	return (ml_value_t *)List;
 }
 
 int ml_list_length(ml_value_t *Value) {
@@ -2138,7 +2005,7 @@ ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
 		Prev = Node;
 	}
 	Slice->Tail = Node;
-	return Slice;
+	return (ml_value_t *)Slice;
 }
 
 ml_value_t *ml_list_fn(void *Data, int Count, ml_value_t **Args) {
@@ -2155,7 +2022,7 @@ ml_value_t *ml_list_fn(void *Data, int Count, ml_value_t **Args) {
 	}
 	List->Tail = Prev;
 	List->Length = Count;
-	return List;
+	return (ml_value_t *)List;
 }
 
 static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLListT, ml_stringbuffer_t *Buffer, ml_list_t *List) {
@@ -2212,15 +2079,7 @@ static void ML_TYPED_FN(ml_iter_key, MLListIterT, ml_state_t *Caller, ml_list_it
 	ML_RETURN(ml_integer(Iter->Index));
 }
 
-ml_type_t MLListIterT[1] = {{
-	MLTypeT,
-	MLAnyT, "list-iterator",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLListIterT, MLAnyT, "list-iterator");
 
 static void ML_TYPED_FN(ml_iterate, MLListT, ml_state_t *Caller, ml_list_t *List) {
 	if (List->Head) {
@@ -2247,7 +2106,7 @@ ML_METHOD("push", MLListT) {
 	}
 	List->Head = Next;
 	List->Length += Count - 1;
-	return List;
+	return (ml_value_t *)List;
 }
 
 ML_METHOD("put", MLListT) {
@@ -2263,7 +2122,7 @@ ML_METHOD("put", MLListT) {
 	}
 	List->Tail = Prev;
 	List->Length += Count - 1;
-	return List;
+	return (ml_value_t *)List;
 }
 
 ML_METHOD("pop", MLListT) {
@@ -2313,7 +2172,7 @@ ML_METHOD("+", MLListT, MLListT) {
 	}
 	List->Tail = Prev;
 	List->Length = List1->Length + List2->Length;
-	return List;
+	return (ml_value_t *)List;
 }
 
 ML_METHOD(MLStringOfMethod, MLListT) {
@@ -2351,15 +2210,9 @@ ML_METHOD("join", MLListT, MLStringT) {
 	return ml_stringbuffer_get_string(Buffer);
 }
 
-ml_type_t MLNamesT[1] = {{
-	MLTypeT,
-	MLListT, "names",
-	ml_default_hash,
-	(void *)ml_list_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLNamesT, MLListT, "names",
+	.call = (void *)ml_list_call
+);
 
 /****************************** Maps ******************************/
 
@@ -2372,20 +2225,14 @@ static void ml_map_call(ml_state_t *Caller, ml_value_t *Map, int Count, ml_value
 	ML_RETURN(Value);
 }
 
-ml_type_t MLMapT[1] = {{
-	MLTypeT,
-	MLFunctionT, "map",
-	ml_default_hash,
-	(void *)ml_map_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLMapT, MLFunctionT, "map",
+	.call = (void *)ml_map_call
+);
 
 ml_value_t *ml_map() {
 	ml_map_t *Map = new(ml_map_t);
 	Map->Type = MLMapT;
-	return Map;
+	return (ml_value_t *)Map;
 }
 
 ml_value_t *ml_map_search(ml_value_t *Map0, ml_value_t *Key) {
@@ -2595,8 +2442,7 @@ ML_METHOD("size", MLMapT) {
 
 typedef struct ml_map_index_t {
 	const ml_type_t *Type;
-	ml_map_t *Map;
-	ml_value_t *Key;
+	ml_value_t *Map, *Key;
 } ml_map_index_t;
 
 static ml_value_t *ml_map_index_deref(ml_map_index_t *Index) {
@@ -2608,30 +2454,25 @@ static ml_value_t *ml_map_index_assign(ml_map_index_t *Index, ml_value_t *Value)
 	return Value;
 }
 
-ml_type_t MLMapIndexT[1] = {{
-	MLTypeT,
-	MLAnyT, "map-index",
-	ml_default_hash,
-	ml_default_call,
-	(void *)ml_map_index_deref,
-	(void *)ml_map_index_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLMapIndexT, MLAnyT, "map-index",
+	.deref = (void *)ml_map_index_deref,
+	.assign = (void *)ml_map_index_assign
+);
 
 ML_METHOD("[]", MLMapT, MLAnyT) {
 	ml_map_index_t *Index = new(ml_map_index_t);
 	Index->Type = MLMapIndexT;
-	Index->Map = (ml_map_t *)Args[0];
+	Index->Map = Args[0];
 	Index->Key = Args[1];
-	return Index;
+	return (ml_value_t *)Index;
 }
 
 ML_METHOD("::", MLMapT, MLStringT) {
 	ml_map_index_t *Index = new(ml_map_index_t);
 	Index->Type = MLMapIndexT;
-	Index->Map = (ml_map_t *)Args[0];
+	Index->Map = Args[0];
 	Index->Key = Args[1];
-	return Index;
+	return (ml_value_t *)Index;
 }
 
 ML_METHOD("insert", MLMapT, MLAnyT, MLAnyT) {
@@ -2651,7 +2492,7 @@ ml_value_t *ml_map_fn(void *Data, int Count, ml_value_t **Args) {
 	ml_map_t *Map = new(ml_map_t);
 	Map->Type = MLMapT;
 	for (int I = 0; I < Count; I += 2) ml_map_insert((ml_value_t *)Map, Args[I], Args[I + 1]);
-	return Map;
+	return (ml_value_t *)Map;
 }
 
 ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLMapT, ml_stringbuffer_t *Buffer, ml_map_t *Map) {
@@ -2723,15 +2564,7 @@ static void ML_TYPED_FN(ml_iter_key, MLMapIterT, ml_state_t *Caller, ml_map_iter
 	ML_RETURN(Iter->Node->Key);
 }
 
-ml_type_t MLMapIterT[1] = {{
-	MLTypeT,
-	MLAnyT, "map-iterator",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLMapIterT, MLAnyT, "map-iterator");
 
 static void ML_TYPED_FN(ml_iterate, MLMapT, ml_state_t *Caller, ml_value_t *Value) {
 	ml_map_t *Map = (ml_map_t *)Value;
@@ -2895,22 +2728,17 @@ static void ml_method_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_
 	}
 }
 
-ml_type_t MLMethodT[1] = {{
-	MLTypeT,
-	MLFunctionT, "method",
-	ml_method_hash,
-	ml_method_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLMethodT, MLFunctionT, "method",
+	.hash = ml_method_hash,
+	.call = ml_method_call
+);
 
 ml_value_t *ml_method(const char *Name) {
 	if (!Name) {
 		ml_method_t *Method = new(ml_method_t);
 		Method->Type = MLMethodT;
 		Method->Name = "<anon>";
-		return Method;
+		return (ml_value_t *)Method;
 	}
 	ml_method_t **Slot = (ml_method_t **)stringmap_slot(Methods, Name);
 	if (!Slot[0]) {
@@ -2919,7 +2747,7 @@ ml_value_t *ml_method(const char *Name) {
 		Method->Name = Name;
 		Slot[0] = Method;
 	}
-	return Slot[0];
+	return (ml_value_t *)Slot[0];
 }
 
 ML_METHOD(MLMethodOfMethod, MLStringT) {
@@ -3105,15 +2933,7 @@ struct ml_module_t {
 	stringmap_t Exports[1];
 };
 
-ml_type_t MLModuleT[1] = {{
-	MLTypeT,
-	MLAnyT, "module",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLModuleT, MLAnyT, "module");
 
 ML_METHODX("::", MLModuleT, MLStringT) {
 	ml_module_t *Module = (ml_module_t *)Args[0];
@@ -3133,11 +2953,16 @@ ml_value_t *ml_module(const char *Path, ...) {
 		stringmap_insert(Module->Exports, Export, va_arg(Args, ml_value_t *));
 	}
 	va_end(Args);
-	return Module;
+	return (ml_value_t *)Module;
 }
 
 const char *ml_module_path(ml_value_t *Module) {
 	return ((ml_module_t *)Module)->Path;
+}
+
+ml_value_t *ml_module_import(ml_value_t *Module0, const char *Name) {
+	ml_module_t *Module = (ml_module_t *)Module0;
+	return (ml_value_t *)stringmap_search(Module->Exports, Name);
 }
 
 ml_value_t *ml_module_export(ml_value_t *Module0, const char *Name, ml_value_t *Value) {
