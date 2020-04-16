@@ -412,6 +412,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		}
 	}
 	DO_ASSIGN: {
+		Result = Result->Type->deref(Result);
+		ERROR_CHECK(Result);
 		ml_value_t *Ref = Top[-1];
 		*--Top = 0;
 		Result = Ref->Type->assign(Ref, Result);

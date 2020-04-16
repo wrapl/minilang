@@ -361,8 +361,6 @@ static ml_value_t *ml_reference_deref(ml_value_t *Ref) {
 }
 
 static ml_value_t *ml_reference_assign(ml_value_t *Ref, ml_value_t *Value) {
-	Value = Value->Type->deref(Value);
-	if (Value->Type == MLErrorT) return Value;
 	ml_reference_t *Reference = (ml_reference_t *)Ref;
 	return Reference->Address[0] = Value;
 }

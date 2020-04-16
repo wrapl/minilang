@@ -373,8 +373,7 @@ static ml_value_t *ml_tuple_assign(ml_tuple_t *Ref, ml_value_t *Value) {
 	if (TupleValue->Size < Count) Count = TupleValue->Size;
 	ml_value_t **Values = TupleValue->Values;
 	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Value0 = Values[I]->Type->deref(Values[I]);
-		ml_value_t *Result = Ref->Values[I]->Type->assign(Ref->Values[I], Value0);
+		ml_value_t *Result = Ref->Values[I]->Type->assign(Ref->Values[I], Values[I]);
 		if (Result->Type == MLErrorT) return Result;
 	}
 	return Value;
@@ -2049,6 +2048,11 @@ int ml_list_foreach(ml_value_t *Value, void *Data, int (*callback)(ml_value_t *,
 	return 0;
 }
 
+ML_METHOD("size", MLListT) {
+	ml_list_t *List = (ml_list_t *)Args[0];
+	return ml_integer(List->Length);
+}
+
 ML_METHOD("length", MLListT) {
 	ml_list_t *List = (ml_list_t *)Args[0];
 	return ml_integer(List->Length);
@@ -2600,8 +2604,6 @@ static ml_value_t *ml_map_index_deref(ml_map_index_t *Index) {
 }
 
 static ml_value_t *ml_map_index_assign(ml_map_index_t *Index, ml_value_t *Value) {
-	Value = Value->Type->deref(Value);
-	if (Value->Type == MLErrorT) return Value;
 	ml_map_insert(Index->Map, Index->Key, Value);
 	return Value;
 }
