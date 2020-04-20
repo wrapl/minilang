@@ -26,11 +26,6 @@ struct ml_debugger_t {
 
 void ml_debugger_init(stringmap_t *Globals);
 
-int ml_debugger_check(ml_state_t *State);
-ml_source_t ml_debugger_source(ml_state_t *State);
-mlc_decl_t *ml_debugger_decls(ml_state_t *State);
-ml_value_t *ml_debugger_local(ml_state_t *State, int Index);
-
 #ifdef __cplusplus
 }
 #endif

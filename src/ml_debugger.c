@@ -6,34 +6,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-int ml_debugger_check(ml_state_t *State) {
-	if (!State || !State->Type) return 0;
-	typeof(ml_debugger_check) *function = ml_typed_fn_get(State->Type, ml_debugger_check);
-	if (function) return function(State);
-	return 0;
-}
-
-ml_source_t ml_debugger_source(ml_state_t *State) {
-	if (!State || !State->Type) return (ml_source_t){"<unknown>", 0};
-	typeof(ml_debugger_source) *function = ml_typed_fn_get(State->Type, ml_debugger_source);
-	if (function) return function(State);
-	return (ml_source_t){"<unknown>", 0};
-}
-
-mlc_decl_t *ml_debugger_decls(ml_state_t *State) {
-	if (!State || !State->Type) return NULL;
-	typeof(ml_debugger_decls) *function = ml_typed_fn_get(State->Type, ml_debugger_decls);
-	if (function) return function(State);
-	return NULL;
-}
-
-ml_value_t *ml_debugger_local(ml_state_t *State, int Index) {
-	if (!State || !State->Type) return ml_error("DebugError", "Locals not available");
-	typeof(ml_debugger_local) *function = ml_typed_fn_get(State->Type, ml_debugger_local);
-	if (function) return function(State, Index);
-	return ml_error("DebugError", "Locals not available");
-}
-
 static void ml_debug_state_fn(ml_state_t *State, ml_value_t *Value) {
 	ML_CONTINUE(State->Caller, Value);
 }

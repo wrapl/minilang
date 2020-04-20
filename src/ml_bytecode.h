@@ -116,6 +116,11 @@ const char *ml_closure_info_debug(ml_closure_info_t *Info);
 
 void ml_bytecode_init();
 
+int ml_debugger_check(ml_state_t *State);
+ml_source_t ml_debugger_source(ml_state_t *State);
+mlc_decl_t *ml_debugger_decls(ml_state_t *State);
+ml_value_t *ml_debugger_local(ml_state_t *State, int Index);
+
 #ifdef	__cplusplus
 }
 #endif
