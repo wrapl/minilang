@@ -119,7 +119,7 @@ end
 
 if MINILANG_DEBUGGER or defined("DEBUGGER") then
 	Objects:put(file("ml_debugger.o"))
-	LDFLAGS := old + ["-ljansson"]
+	CFLAGS := old + ["-DUSE_ML_DEBUGGER"]
 end
 
 if MINILANG_MODULES or defined("MODULES") then

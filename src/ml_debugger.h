@@ -1,32 +1,38 @@
 #ifndef DEBUGGER_H
 #define DEBUGGER_H
 
-#include "ml_types.h"
+#include "ml_bytecode.h"
+#include <limits.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define SIZE_BITS (CHAR_BIT * sizeof(size_t))
 
 typedef struct ml_debugger_t ml_debugger_t;
-typedef struct ml_debug_module_t ml_debug_module_t;
-typedef struct ml_debug_function_t ml_debug_function_t;
 
-ml_debug_module_t *debug_module(const char *Name);
-void debug_add_line(ml_debug_module_t *Module, const char *Line);
-void debug_add_global_variable(ml_debug_module_t *Module, const char *Name, ml_value_t **Address);
-void debug_add_global_constant(ml_debug_module_t *Module, const char *Name, ml_value_t *Value);
-ml_debug_function_t *debug_function(ml_debug_module_t *Module, int LineNo);
+struct ml_debugger_t {
+	void (*run)(ml_debugger_t *Debugger, ml_state_t *Frame, ml_value_t *Value);
+	size_t *(*breakpoints)(ml_debugger_t *Debugger, const char *Source, int LineNo);
+	ml_state_t *StepOverFrame;
+	ml_state_t *StepOutFrame;
+	size_t Revision;
+	int StepIn:1;
+	int BreakOnError:1;
+};
 
-unsigned char *debug_breakpoints(ml_debug_function_t *Function, int LineNo);
-unsigned char *debug_break_on_send();
-unsigned char *debug_break_on_message();
-int debug_module_id(ml_debug_function_t *Function);
-void debug_add_local_var(ml_debug_function_t *Function, const char *Name, int Index);
-void debug_add_local_def(ml_debug_function_t *Function, const char *Name, ml_value_t *Value);
+#define ML_DEBUGGER_INDEX 1
 
-void debug_enable(const char *SocketPath, int ClientMode);
+void ml_debugger_init(stringmap_t *Globals);
 
-/*
-void debug_break_impl(ml_frame_t *State, int LineNo);
-void debug_error_impl(ml_frame_t *State, int LineNo, ml_value_t *Message);
-void debug_enter_impl(ml_frame_t *State);
-void debug_exit_impl(ml_frame_t *State);
-*/
+int ml_debugger_check(ml_state_t *State);
+ml_source_t ml_debugger_source(ml_state_t *State);
+mlc_decl_t *ml_debugger_decls(ml_state_t *State);
+ml_value_t *ml_debugger_local(ml_state_t *State, int Index);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

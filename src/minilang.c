@@ -40,10 +40,18 @@
 #include "ml_library.h"
 #endif
 
+#ifdef USE_ML_DEBUGGER
+#include "ml_debugger.h"
+#endif
+
 static stringmap_t Globals[1] = {STRINGMAP_INIT};
 
 static ml_value_t *global_get(void *Data, const char *Name) {
 	return stringmap_search(Globals, Name);
+}
+
+static ml_value_t *ml_now(void *Data, int Count, ml_value_t **Args) {
+	return ml_integer(time(NULL));
 }
 
 static ml_value_t *ml_print(void *Data, int Count, ml_value_t **Args) {
@@ -109,20 +117,21 @@ static void ml_import_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t 
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLStringT);
 	const char *FileName = realpath(ml_string_value(Args[0]), NULL);
+	if (!FileName) ML_RETURN(ml_error("ModuleError", "File %s not found", ml_string_value(Args[0])));
 	ml_value_t **Slot = stringmap_slot(Modules, FileName);
 	if (!Slot[0]) {
 		printf("Loading %s\n", FileName);
 		const char *Extension = strrchr(FileName, '.');
-		if (!Extension) ML_CONTINUE(Caller, ml_error("ModuleError", "Unknown module type: %s", FileName));
+		if (!Extension) ML_RETURN(ml_error("ModuleError", "Unknown module type: %s", FileName));
 		if (!strcmp(Extension, ".so")) {
 			return ml_library_load_file(Caller, FileName, stringmap_search, Globals, Slot);
 		} else if (!strcmp(Extension, ".mini")) {
 			return ml_module_load_file(Caller, FileName, stringmap_search, Globals, Slot);
 		} else {
-			ML_CONTINUE(Caller, ml_error("ModuleError", "Unknown module type: %s", FileName));
+			ML_RETURN(ml_error("ModuleError", "Unknown module type: %s", FileName));
 		}
 	}
-	ML_CONTINUE(Caller, Slot[0]);
+	ML_RETURN(Slot[0]);
 }
 
 static ml_functionx_t Import[1] = {{{MLFunctionXT}, ml_import_fnx, NULL}};
@@ -159,6 +168,7 @@ int main(int Argc, const char *Argv[]) {
 	ml_file_init(Globals);
 	ml_object_init(Globals);
 	ml_iterfns_init(Globals);
+	stringmap_insert(Globals, "now", ml_function(0, ml_now));
 	stringmap_insert(Globals, "print", ml_function(0, ml_print));
 	stringmap_insert(Globals, "error", ml_function(0, ml_throw));
 	stringmap_insert(Globals, "debug", ml_function(0, ml_debug));
@@ -191,6 +201,9 @@ int main(int Argc, const char *Argv[]) {
 	ml_module_init(Globals);
 	ml_library_init(Globals);
 	stringmap_insert(Globals, "import", ml_functionx(0, ml_import_fnx));
+#endif
+#ifdef USE_ML_DEBUGGER
+	ml_debugger_init(Globals);
 #endif
 	ml_value_t *Args = ml_list();
 	const char *FileName = 0;
@@ -242,7 +255,7 @@ int main(int Argc, const char *Argv[]) {
 		gtk_main();
 #endif
 	} else {
-		ml_console(stringmap_search, Globals);
+		ml_console(stringmap_search, Globals, "--> ", "... ");
 	}
 	return 0;
 }

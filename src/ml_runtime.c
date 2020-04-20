@@ -21,6 +21,7 @@ ml_context_t MLRootContext = {&MLRootContext, 2, {NULL, NULL}};
 ml_context_t *ml_context_new(ml_context_t *Parent) {
 	ml_context_t *Context = xnew(ml_context_t, MLContextSize, void *);
 	Context->Parent = Parent;
+	Context->Size = MLContextSize;
 	for (int I = 0; I < Parent->Size; ++I) Context->Values[I] = Parent->Values[I];
 	return Context;
 }

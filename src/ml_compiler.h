@@ -3,7 +3,6 @@
 
 #include <setjmp.h>
 
-#include "ml_types.h"
 #include "ml_runtime.h"
 #include "stringmap.h"
 

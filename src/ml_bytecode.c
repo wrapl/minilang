@@ -8,6 +8,7 @@
 #include <stdarg.h>
 #include <inttypes.h>
 #include "ml_bytecode.h"
+#include "ml_debugger.h"
 #endif
 
 #ifdef DEBUG_VERSION
@@ -33,8 +34,11 @@ struct DEBUG_STRUCT(frame) {
 	ml_inst_t *OnError;
 	ml_value_t **UpValues;
 #ifdef DEBUG_VERSION
-	ml_debug_function_t *Debug;
-	DEBUG_STRUCT(frame) *UpState;
+	ml_debugger_t *Debugger;
+	size_t *Breakpoints;
+	mlc_decl_t *Decls;
+	size_t Revision;
+	size_t Reentry;
 #endif
 	ml_value_t *Stack[];
 };
@@ -52,6 +56,26 @@ ml_type_t DEBUG_TYPE(Continuation)[1] = {{
 	ml_default_assign,
 	NULL, 0, 0
 }};
+
+static int ML_TYPED_FN(ml_debugger_check, DEBUG_TYPE(Continuation), DEBUG_STRUCT(frame) *Frame) {
+	return 1;
+}
+
+static ml_source_t ML_TYPED_FN(ml_debugger_source, DEBUG_TYPE(Continuation), DEBUG_STRUCT(frame) *Frame) {
+	return (ml_source_t){Frame->Source, Frame->Inst->LineNo};
+}
+
+static mlc_decl_t *ML_TYPED_FN(ml_debugger_decls, DEBUG_TYPE(Continuation), DEBUG_STRUCT(frame) *Frame) {
+#ifdef DEBUG_VERSION
+	return Frame->Decls;
+#else
+	return NULL;
+#endif
+}
+
+static ml_value_t *ML_TYPED_FN(ml_debugger_local, DEBUG_TYPE(Continuation), DEBUG_STRUCT(frame) *Frame, int Index) {
+	return Frame->Stack[Index];
+}
 
 static void ML_TYPED_FN(ml_iter_value, DEBUG_TYPE(Suspension), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
 	ML_RETURN(Suspension->Top[-1]);
@@ -91,15 +115,30 @@ ml_type_t DEBUG_TYPE(Suspension)[1] = {{
 	Inst = Frame->OnError; \
 	goto *Labels[Inst->Opcode]
 
+#define ADVANCE(N) \
+	Inst = Inst->Params[N].Inst; \
+	goto *Labels[Inst->Opcode]
+
 #define ERROR_CHECK(VALUE) if (VALUE->Type == MLErrorT) { \
 	ml_error_trace_add(VALUE, (ml_source_t){Frame->Source, Inst->LineNo}); \
 	Result = VALUE; \
 	ERROR(); \
 }
 
+static ml_value_t ClosureEntry[1] = {MLAnyT};
+
+#else
+
+#undef ERROR
+#undef ADVANCE
+
+#define ERROR() \
+	Inst = Frame->OnError; \
+	goto DO_DEBUG_ERROR
+
 #define ADVANCE(N) \
 	Inst = Inst->Params[N].Inst; \
-	goto *Labels[Inst->Opcode]
+	goto DO_DEBUG_ADVANCE
 
 #endif
 
@@ -115,7 +154,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_IF_LET] = &&DO_IF_LET,
 		[MLI_ELSE] = &&DO_ELSE,
 		[MLI_PUSH] = &&DO_PUSH,
-		[MLI_PUSHX] = &&DO_PUSHX,
+		[MLI_WITH] = &&DO_WITH,
+		[MLI_WITHX] = &&DO_WITHX,
 		[MLI_POP] = &&DO_POP,
 		[MLI_ENTER] = &&DO_ENTER,
 		[MLI_EXIT] = &&DO_EXIT,
@@ -149,7 +189,13 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	ml_value_t **Top = Frame->Top;
 	if (Result->Type == MLErrorT) {
 		ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
-		ERROR();
+		Inst = Frame->OnError;
+#ifdef DEBUG_VERSION
+		ml_debugger_t *Debugger = Frame->Debugger;
+		if (Debugger->BreakOnError && --Frame->Reentry) goto DO_BREAKPOINT;
+	} else {
+		goto DO_DEBUG_ADVANCE;
+#endif
 	}
 	goto *Labels[Inst->Opcode];
 
@@ -198,6 +244,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			Local->Address = Local->Value;
 			Local->Value[0] = Result;
 			*Top++ = (ml_value_t *)Local;
+#ifdef DEBUG_VERSION
+			Frame->Decls = Inst->Params[2].Decls;
+#endif
 			ADVANCE(1);
 		}
 	}
@@ -210,6 +259,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			ADVANCE(0);
 		} else {
 			*Top++ = Result;
+#ifdef DEBUG_VERSION
+			Frame->Decls = Inst->Params[2].Decls;
+#endif
 			ADVANCE(1);
 		}
 	}
@@ -228,7 +280,14 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		*Top++ = Result;
 		ADVANCE(0);
 	}
-	DO_PUSHX: {
+	DO_WITH: {
+		*Top++ = Result;
+#ifdef DEBUG_VERSION
+		Frame->Decls = Inst->Params[1].Decls;
+#endif
+		ADVANCE(0);
+	}
+	DO_WITHX: {
 		if (Result->Type != MLTupleT) {
 			Result = ml_error("TypeError", "Can only unpack tuples");
 			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
@@ -243,6 +302,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		for (int I = 0; I < Inst->Params[1].Count; ++I) {
 			*Top++ = Tuple->Values[I];
 		}
+#ifdef DEBUG_VERSION
+		Frame->Decls = Inst->Params[2].Decls;
+#endif
 		ADVANCE(0);
 	}
 	DO_POP: {
@@ -261,10 +323,16 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		for (int I = Inst->Params[2].Count; --I >= 0;) {
 			*Top++ = NULL;
 		}
+#ifdef DEBUG_VERSION
+		Frame->Decls = Inst->Params[3].Decls;
+#endif
 		ADVANCE(0);
 	}
 	DO_EXIT: {
 		for (int I = Inst->Params[1].Count; --I >= 0;) *--Top = 0;
+#ifdef DEBUG_VERSION
+		Frame->Decls = Inst->Params[2].Decls;
+#endif
 		ADVANCE(0);
 	}
 	DO_LOOP: {
@@ -284,6 +352,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_value_t **Old = Frame->Stack + Inst->Params[1].Index;
 		while (Top > Old) *--Top = 0;
 		*Top++ = Result;
+#ifdef DEBUG_VERSION
+		Frame->Decls = Inst->Params[2].Decls;
+#endif
 		ADVANCE(0);
 	}
 	DO_LOAD: {
@@ -507,16 +578,51 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_partial_function_set(Top[-1], Inst->Params[1].Index, Result);
 		ADVANCE(0);
 	}
+#ifdef DEBUG_VERSION
+	DO_DEBUG_ADVANCE: {
+		ml_debugger_t *Debugger = Frame->Debugger;
+		if (Result == ClosureEntry || Inst->PotentialBreakpoint) {
+			size_t *Breakpoints;
+			size_t Revision = Debugger->Revision;
+			if (Frame->Revision != Revision) {
+				Frame->Revision = Revision;
+				Breakpoints = Frame->Breakpoints = Debugger->breakpoints(Debugger, Frame->Source, 0);
+			} else {
+				Breakpoints = Frame->Breakpoints;
+			}
+			int LineNo = Inst->LineNo;
+			if (Breakpoints[LineNo / SIZE_BITS] & (1 << LineNo % SIZE_BITS)) goto DO_BREAKPOINT;
+			if (Debugger->StepIn) goto DO_BREAKPOINT;
+			if (Debugger->StepOverFrame == Frame) goto DO_BREAKPOINT;
+			if (Inst->Opcode == MLI_RETURN && Debugger->StepOutFrame == Frame) goto DO_BREAKPOINT;
+		}
+		goto *Labels[Inst->Opcode];
+	}
+	DO_DEBUG_ERROR: {
+		ml_debugger_t *Debugger = Frame->Debugger;
+		if (Debugger->BreakOnError) goto DO_BREAKPOINT;
+		goto *Labels[Inst->Opcode];
+	}
+	DO_BREAKPOINT: {
+		if (--Frame->Reentry) {
+			ml_debugger_t *Debugger = Frame->Debugger;
+			Frame->Inst = Inst;
+			Frame->Top = Top;
+			Frame->Reentry = 1;
+			return Debugger->run(Debugger, Frame, Result);
+		} else {
+			goto *Labels[Inst->Opcode];
+		}
+	}
+#endif
 }
-
-#define DEBUGGER_INDEX 1
 
 static void ml_closure_call_debug(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args);
 
 static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
 	ml_closure_info_t *Info = Closure->Info;
-	ml_debugger_t *Debugger = (ml_debugger_t *)ml_context_get(Caller->Context, DEBUGGER_INDEX);
+	ml_debugger_t *Debugger = (ml_debugger_t *)ml_context_get(Caller->Context, ML_DEBUGGER_INDEX);
 #ifndef DEBUG_VERSION
 	if (Debugger) return ml_closure_call_debug(Caller, Value, Count, Args);
 #endif
@@ -618,22 +724,29 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	Frame->OnError = Info->Return;
 	Frame->UpValues = Closure->UpValues;
 	Frame->Inst = Info->Entry;
-	ML_CONTINUE(Frame, MLNil);
+#ifdef DEBUG_VERSION
+	Frame->Debugger = Debugger;
+	Frame->Revision = Debugger->Revision;
+	Frame->Breakpoints = Debugger->breakpoints(Debugger, Frame->Source, Info->End);
+	Frame->Decls = Info->Decls;
+#endif
+	ML_CONTINUE(Frame, ClosureEntry);
 }
 
 #ifndef DEBUG_VERSION
-static void ml_inst_sha256_pass1(ml_inst_t *Inst, unsigned char Hash[SHA256_BLOCK_SIZE], int I, int J) {
-	if (Inst->Flags) return;
-	Inst->Flags = 1;
+static void ml_inst_process(ml_inst_t *Source, ml_inst_t *Inst, unsigned char Hash[SHA256_BLOCK_SIZE], int I, int J) {
+	if (!Source || (Source->LineNo != Inst->LineNo)) Inst->PotentialBreakpoint = 1;
+	if (Inst->Processed) return;
+	Inst->Processed = 1;
 	Hash[I] ^= Inst->Opcode;
 	Hash[J] ^= (Inst->Opcode << 4);
 	switch (Inst->Opcode) {
-		case MLI_IF:
+	case MLI_IF:
 	case MLI_IF_VAR:
 	case MLI_IF_LET:
 	case MLI_ELSE:
 	case MLI_TRY:
-		ml_inst_sha256_pass1(Inst->Params[1].Inst, Hash, (I + 11) % (SHA256_BLOCK_SIZE - 4), (J + 13) % (SHA256_BLOCK_SIZE - 8));
+		ml_inst_process(Inst, Inst->Params[1].Inst, Hash, (I + 11) % (SHA256_BLOCK_SIZE - 4), (J + 13) % (SHA256_BLOCK_SIZE - 8));
 		break;
 	case MLI_ENTER:
 		*(int *)(Hash + I) ^= Inst->Params[1].Count;
@@ -679,31 +792,12 @@ static void ml_inst_sha256_pass1(ml_inst_t *Inst, unsigned char Hash[SHA256_BLOC
 	}
 	}
 	if (Inst->Opcode != MLI_RETURN) {
-		ml_inst_sha256_pass1(Inst->Params[0].Inst, Hash, (I + 3) % (SHA256_BLOCK_SIZE - 4), (J + 7) % (SHA256_BLOCK_SIZE - 8));
+		ml_inst_process(Inst, Inst->Params[0].Inst, Hash, (I + 3) % (SHA256_BLOCK_SIZE - 4), (J + 7) % (SHA256_BLOCK_SIZE - 8));
 	}
 }
 
-static void ml_inst_sha256_pass2(ml_inst_t *Inst) {
-	if (!Inst->Flags) return;
-	Inst->Flags = 0;
-	if (Inst->Opcode == MLI_RETURN) return;
-	ml_inst_sha256_pass2(Inst->Params[0].Inst);
-	switch (Inst->Opcode) {
-	case MLI_IF:
-	case MLI_IF_VAR:
-	case MLI_IF_LET:
-	case MLI_ELSE:
-	case MLI_TRY:
-		ml_inst_sha256_pass2(Inst->Params[1].Inst);
-		break;
-	default:
-		break;
-	}
-}
-
-void ml_closure_info_sha256(ml_closure_info_t *Info) {
-	ml_inst_sha256_pass1(Info->Entry, Info->Hash, 0, 0);
-	ml_inst_sha256_pass2(Info->Entry);
+void ml_closure_info_finish(ml_closure_info_t *Info) {
+	ml_inst_process(NULL, Info->Entry, Info->Hash, 0, 0);
 }
 
 void ml_closure_sha256(ml_value_t *Value, unsigned char Hash[SHA256_BLOCK_SIZE]) {
@@ -717,9 +811,6 @@ void ml_closure_sha256(ml_value_t *Value, unsigned char Hash[SHA256_BLOCK_SIZE])
 
 static long ml_closure_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
-	/*printf("Closure->Info->Hash =");
-	for (int I = 0; I < SHA256_BLOCK_SIZE; ++I) printf(" %02x", Closure->Info->Hash[I]);
-	printf("\n");*/
 	long Hash = 0;
 	long *P = (long *)Closure->Info->Hash;
 	while (P < (Closure->Info->Hash + SHA256_BLOCK_SIZE)) Hash ^= *P++;
@@ -823,7 +914,13 @@ static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done, const
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
-	case MLI_PUSHX: {
+	case MLI_WITH: {
+		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: with()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
+		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+		break;
+	}
+	case MLI_WITHX: {
 		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: pushx(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, Inst->Params[1].Count);
 		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
 		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
