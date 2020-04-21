@@ -125,7 +125,7 @@ ml_type_t DEBUG_TYPE(Suspension)[1] = {{
 	ERROR(); \
 }
 
-static ml_value_t ClosureEntry[1] = {MLAnyT};
+static ml_value_t ClosureEntry[1] = {{MLAnyT}};
 
 #else
 
