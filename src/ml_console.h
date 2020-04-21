@@ -7,7 +7,9 @@
 extern "C" {
 #endif
 
-void ml_console(ml_getter_t GlobalGet, void *Globals);
+extern ml_value_t MLConsoleBreak[];
+
+void ml_console(ml_getter_t GlobalGet, void *Globals, const char *DefaultPrompt, const char *ContinuePrompt);
 
 #ifdef	__cplusplus
 }

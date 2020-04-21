@@ -1,7 +1,6 @@
 #ifndef ML_BYTECODE_H
 #define ML_BYTECODE_H
 
-#include "ml_debugger.h"
 #include "ml_types.h"
 #include "ml_runtime.h"
 
@@ -14,6 +13,7 @@ extern "C" {
 typedef struct ml_closure_t ml_closure_t;
 typedef struct ml_closure_info_t ml_closure_info_t;
 typedef struct ml_inst_t ml_inst_t;
+typedef struct mlc_decl_t mlc_decl_t;
 
 extern ml_type_t MLClosureT[];
 
@@ -24,9 +24,9 @@ extern ml_type_t MLClosureT[];
 struct ml_closure_info_t {
 	ml_inst_t *Entry, *Return;
 	const char *Source;
-	ml_debug_function_t *Debug;
+	mlc_decl_t *Decls;
 	stringmap_t Params[1];
-	int FrameSize;
+	int End, FrameSize;
 	int NumParams, NumUpValues;
 	int ExtraArgs, NamedArgs;
 	unsigned char Hash[SHA256_BLOCK_SIZE];
@@ -39,12 +39,20 @@ struct ml_closure_t {
 	ml_value_t *UpValues[];
 };
 
+struct mlc_decl_t {
+	mlc_decl_t *Next;
+	const char *Ident;
+	ml_value_t *Value;
+	int Index;
+};
+
 typedef union {
 	ml_inst_t *Inst;
 	int Index;
 	int Count;
 	ml_value_t *Value;
 	ml_closure_info_t *ClosureInfo;
+	mlc_decl_t *Decls;
 } ml_param_t;
 
 typedef enum {
@@ -58,7 +66,8 @@ typedef enum {
 	MLI_IF_LET,
 	MLI_ELSE,
 	MLI_PUSH,
-	MLI_PUSHX,
+	MLI_WITH,
+	MLI_WITHX,
 	MLI_POP,
 	MLI_ENTER,
 	MLI_EXIT,
@@ -91,7 +100,9 @@ typedef enum {
 
 struct ml_inst_t {
 	ml_opcode_t Opcode:8;
-	int Flags:24;
+	int Processed:1;
+	int PotentialBreakpoint:1;
+	int Reserved:22;
 	int LineNo:32;
 	ml_param_t Params[];
 };
@@ -99,10 +110,16 @@ struct ml_inst_t {
 const char *ml_closure_debug(ml_value_t *Value);
 void ml_closure_sha256(ml_value_t *Closure, unsigned char Hash[SHA256_BLOCK_SIZE]);
 
-void ml_closure_info_sha256(ml_closure_info_t *Info);
+void ml_closure_info_finish(ml_closure_info_t *Info);
+
 const char *ml_closure_info_debug(ml_closure_info_t *Info);
 
 void ml_bytecode_init();
+
+int ml_debugger_check(ml_state_t *State);
+ml_source_t ml_debugger_source(ml_state_t *State);
+mlc_decl_t *ml_debugger_decls(ml_state_t *State);
+ml_value_t *ml_debugger_local(ml_state_t *State, int Index);
 
 #ifdef	__cplusplus
 }

@@ -28,7 +28,7 @@ ml_cbor_t ml_to_cbor(ml_value_t *Value);
 ml_value_t *ml_from_cbor(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*TagFn)(uint64_t, void *, void **));
 ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*TagFn)(uint64_t, void *, void **));
 
-typedef int (*ml_cbor_write_fn)(void *Data, const unsigned char *Bytes, unsigned Size);
+typedef void (*ml_cbor_write_fn)(void *Data, const unsigned char *Bytes, unsigned Size);
 
 void ml_cbor_write(ml_value_t *Value, void *Data, ml_cbor_write_fn WriteFn);
 

@@ -131,7 +131,7 @@ static void ml_array_init_run(ml_array_init_state_t *State, ml_value_t *Value) {
 		int Next = ml_integer_value(State->Args[I]) + 1;
 		if (Next <= Array->Dimensions[I].Size) {
 			State->Args[I] = ml_integer(Next);
-			return State->Function->Type->call(State, State->Function, Array->Degree, State->Args);
+			return State->Function->Type->call((ml_state_t *)State, State->Function, Array->Degree, State->Args);
 		} else {
 			State->Args[I] = ml_integer(1);
 		}
@@ -192,18 +192,18 @@ static void ml_array_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value
 	Array->Base.Address = GC_MALLOC_ATOMIC(DataSize);
 	Array->Base.Size = DataSize;
 	if (Count == 2) ML_RETURN(Array);
-	ml_array_init_state_t *InitState = xnew(ml_array_init_state_t, Array->Degree, ml_value_t *);
-	InitState->Base.Caller = Caller;
-	InitState->Base.run = (void *)ml_array_init_run;
-	InitState->Base.Context = Caller->Context;
-	InitState->Address = Array->Base.Address;
-	InitState->Array = Array;
-	ml_value_t *Function = InitState->Function = Args[2];
-	for (int I = 0; I < Array->Degree; ++I) InitState->Args[I] = ml_integer(1);
-	return Function->Type->call(InitState, Function, Array->Degree, InitState->Args);
+	ml_array_init_state_t *State = xnew(ml_array_init_state_t, Array->Degree, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)ml_array_init_run;
+	State->Base.Context = Caller->Context;
+	State->Address = Array->Base.Address;
+	State->Array = Array;
+	ml_value_t *Function = State->Function = Args[2];
+	for (int I = 0; I < Array->Degree; ++I) State->Args[I] = ml_integer(1);
+	return Function->Type->call((ml_state_t *)State, Function, Array->Degree, State->Args);
 }
 
-ml_value_t *ml_array_wrap_fn(char *Address, int Count, ml_value_t **Args) {
+ml_value_t *ml_array_wrap_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(3);
 	ML_CHECK_ARG_TYPE(1, MLBufferT);
 	ML_CHECK_ARG_TYPE(2, MLListT);
@@ -249,7 +249,7 @@ ml_value_t *ml_array_wrap_fn(char *Address, int Count, ml_value_t **Args) {
 	}
 	Array->Base.Address = ((ml_buffer_t *)Args[1])->Address;
 	Array->Base.Size = ((ml_buffer_t *)Args[1])->Size;
-	return Array;
+	return (ml_value_t *)Array;
 }
 
 ML_METHOD("shape", MLArrayT) {
@@ -291,7 +291,7 @@ ML_METHOD("transpose", MLArrayT) {
 		Target->Dimensions[I] = Source->Dimensions[Degree - I - 1];
 	}
 	Target->Base = Source->Base;
-	return Target;
+	return (ml_value_t *)Target;
 }
 
 ML_METHOD("permute", MLArrayT, MLListT) {
@@ -309,7 +309,7 @@ ML_METHOD("permute", MLArrayT, MLListT) {
 		Node = Node->Next;
 	}
 	Target->Base = Source->Base;
-	return Target;
+	return (ml_value_t *)Target;
 }
 
 typedef struct ml_integer_range_t {
@@ -318,7 +318,8 @@ typedef struct ml_integer_range_t {
 } ml_integer_range_t;
 
 extern ml_type_t MLIntegerRangeT[1];
-static ml_value_t *RangeMethod;
+static ML_METHOD_DECL(Range, "..");
+static ML_METHOD_DECL(Symbol, "::");
 
 static ml_value_t *ml_array_value(ml_array_t *Array, char *Address) {
 	typeof(ml_array_value) *function = ml_typed_fn_get(Array->Base.Type, ml_array_value);
@@ -400,7 +401,7 @@ static ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **In
 	ml_array_t *Target = ml_array_new(Source->Format, Degree);
 	for (int I = 0; I < Degree; ++I) Target->Dimensions[I] = TargetDimensions[I];
 	Target->Base.Address = Address;
-	return Target;
+	return (ml_value_t *)Target;
 }
 
 ML_METHOD("[]", MLArrayT) {
@@ -674,7 +675,7 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, ATYPE, ml_stringbuffer_t 
 	} else { \
 		append_array_ ## CTYPE(Buffer, Array->Degree, Array->Dimensions, Array->Base.Address); \
 	} \
-	return Buffer; \
+	return MLSome; \
 } \
 \
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, ATYPE) { \
@@ -707,11 +708,11 @@ UPDATE_ARRAY_METHODS(ATYPE, CTYPE, MLArrayFloat64T, double); \
 \
 static ml_value_t *ml_array_ ## CTYPE ## _deref(ml_array_t *Target, ml_value_t *Value) { \
 	if (Target->Degree == 0)  return RNEW(*(CTYPE *)Target->Base.Address); \
-	return Target; \
+	return (ml_value_t *)Target; \
 } \
 \
 static ml_value_t *ml_array_ ## CTYPE ## _assign(ml_array_t *Target, ml_value_t *Value) { \
-	if (ml_is(Value, MLNumberT)) { \
+	for (;;) if (ml_is(Value, MLNumberT)) { \
 		CTYPE CValue = RFUNC(Value); \
 		set_value_array_ ## CTYPE(Target->Degree, Target->Dimensions, Target->Base.Address, CValue); \
 		return Value; \
@@ -927,7 +928,7 @@ void ml_array_set_ ## CTYPE(CTYPE Value, ml_array_t *Array, ...) { \
 #define MAX(X, Y) ((X > Y) ? X : Y)
 
 #define ML_ARITH_METHOD(OP, NAME) \
-static ml_value_t *NAME ## Method; \
+static ML_METHOD_DECL(NAME, #OP); \
 \
 ML_METHOD(#OP, MLArrayT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
@@ -967,7 +968,7 @@ ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 		break; \
 	} \
 	} \
-	return C; \
+	return (ml_value_t *)C; \
 } \
 \
 ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
@@ -998,7 +999,7 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 		break; \
 	} \
 	} \
-	return C; \
+	return (ml_value_t *)C; \
 } \
 \
 ML_METHOD(#OP, MLArrayT, MLRealT) { \
@@ -1009,7 +1010,7 @@ ML_METHOD(#OP, MLArrayT, MLRealT) { \
 	ML_ARITH_COPY \
 	double *Values = (double *)C->Base.Address; \
 	for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = *Values OP B; \
-	return C; \
+	return (ml_value_t *)C; \
 } \
 \
 ML_METHOD(#OP, MLRealT, MLArrayT) { \
@@ -1020,7 +1021,7 @@ ML_METHOD(#OP, MLRealT, MLArrayT) { \
 	ML_ARITH_COPY \
 	double *Values = (double *)C->Base.Address; \
 	for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = B OP *Values; \
-	return C; \
+	return (ml_value_t *)C; \
 }
 
 METHODS(MLArrayInt8T, int8_t, "%d", ml_integer_value, ml_integer);
@@ -1062,7 +1063,7 @@ static ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, int Real) {
 	if (!Real) Real = ml_array_of_has_real(Value);
 	if (Value->Type == MLListT) {
 		int Size = ml_list_length(Value);
-		if (!Size) return ml_error("ValueError", "Empty dimension in array");
+		if (!Size) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
 		ml_array_t *Array = ml_array_of_create(ml_list_head(Value)->Value, Degree + 1, Real);
 		if (Array->Base.Type == MLErrorT) return Array;
 		Array->Dimensions[Degree].Size = Size;
@@ -1072,7 +1073,7 @@ static ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, int Real) {
 		return Array;
 	} else if (Value->Type == MLTupleT) {
 		int Size = ml_tuple_size(Value);
-		if (!Size) return ml_error("ValueError", "Empty dimension in array");
+		if (!Size) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
 		ml_array_t *Array = ml_array_of_create(ml_tuple_get(Value, 0), Degree + 1, Real);
 		if (Array->Base.Type == MLErrorT) return Array;
 		Array->Dimensions[Degree].Size = Size;
@@ -1178,7 +1179,7 @@ static ml_value_t *ml_array_of_fill(ml_array_format_t Format, ml_array_dimension
 static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
 	ml_array_t *Array = ml_array_of_create(Args[0], 0, 0);
-	if (Array->Base.Type == MLErrorT) return Array;
+	if (Array->Base.Type == MLErrorT) return (ml_value_t *)Array;
 	size_t Size;
 	if (Array->Degree) {
 		Size = Array->Base.Size = Array->Dimensions[0].Stride * Array->Dimensions[0].Size;
@@ -1187,7 +1188,7 @@ static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args) {
 	}
 	char *Address = Array->Base.Address = GC_MALLOC_ATOMIC(Size);
 	ml_array_of_fill(Array->Format, Array->Dimensions, Address, Array->Degree, Args[0]);
-	return Array;
+	return (ml_value_t *)Array;
 }
 
 ML_METHOD("copy", MLArrayT) {
@@ -1236,7 +1237,7 @@ ML_METHOD("copy", MLArrayT) {
 		set_array_double_double(Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address);
 		break;
 	}
-	return Target;
+	return (ml_value_t *)Target;
 }
 
 #define TYPES(ATYPE, CTYPE) { \
@@ -1252,7 +1253,7 @@ ML_METHOD("copy", MLArrayT) {
 
 static void ml_cbor_write_array_dim(int Degree, ml_array_dimension_t *Dimension, char *Address, char *Data, ml_cbor_write_fn WriteFn) {
 	if (Degree < 0) {
-		WriteFn(Data, Address, Dimension->Size * Dimension->Stride);
+		WriteFn(Data, (unsigned char *)Address, Dimension->Size * Dimension->Stride);
 	} else {
 		int Stride = Dimension->Stride;
 		if (Dimension->Indices) {
@@ -1300,19 +1301,50 @@ static void ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char *Data, 
 	ml_cbor_write_bytes(Data, WriteFn, Size);
 	ml_cbor_write_array_dim(FlatDegree, Array->Dimensions, Array->Base.Address, Data, WriteFn);
 }
+
+static ml_value_t *ml_cbor_read_multi_array_fn(void *Data, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_TYPE(0, MLListT);
+	ml_list_node_t *Node = ml_list_head(Args[0]);
+	if (!Node) return ml_error("CborError", "Invalid multi-dimensional array");
+	ml_value_t *Dimensions = Node->Value;
+	if (Dimensions->Type != MLListT) return ml_error("CborError", "Invalid multi-dimensional array");
+	Node = Node->Next;
+	if (!Node) return ml_error("CborError", "Invalid multi-dimensional array");
+	ml_array_t *Source = (ml_array_t *)Node->Value;
+	if (!ml_is((ml_value_t *)Source, MLArrayT)) return ml_error("CborError", "Invalid multi-dimensional array");
+	ml_array_t *Target = ml_array_new(Source->Format, ml_list_length(Dimensions));
+	ml_array_dimension_t *Dimension = Target->Dimensions + Target->Degree;
+	int Stride = MLArraySizes[Source->Format];
+	ML_LIST_REVERSE(Dimensions, Node) {
+		--Dimension;
+		Dimension->Stride = Stride;
+		int Size = Dimension->Size = ml_integer_value(Node->Value);
+		Stride *= Size;
+	}
+	if (Stride != Source->Base.Size) return ml_error("CborError", "Invalid multi-dimensional array");
+	Target->Base.Size = Stride;
+	Target->Base.Address = Source->Base.Address;
+	return (ml_value_t *)Target;
+}
+
+static ml_value_t *ml_cbor_read_typed_array_fn(void *Data, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_TYPE(0, MLBufferT);
+	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
+	ml_array_format_t Format = (intptr_t)Data;
+	int ItemSize = MLArraySizes[Format];
+	ml_array_t *Array = ml_array_new(Format, 1);
+	Array->Dimensions[0].Size = Buffer->Size / ItemSize;
+	Array->Dimensions[0].Stride = ItemSize;
+	Array->Base.Size = Buffer->Size;
+	Array->Base.Address = Buffer->Address;
+	return (ml_value_t *)Array;
+}
+
 #endif
 
 void ml_array_init(stringmap_t *Globals) {
-	AddMethod = ml_method("add");
-	SubMethod = ml_method("sub");
-	MulMethod = ml_method("mul");
-	DivMethod = ml_method("div");
-	RangeMethod = ml_method("..");
-	ml_value_t *Array = ml_map();
 	MLArrayT = ml_type(MLBufferT, "array");
-	ml_map_insert(Array, ml_string("T", -1), (ml_value_t *)MLArrayT);
 	MLArrayAnyT = ml_type(MLArrayT, "value-array");
-	ml_map_insert(Array, ml_string("AnyT", -1), (ml_value_t *)MLArrayAnyT);
 	TYPES(Int8, int8_t);
 	TYPES(Int16, int16_t);
 	TYPES(Int32, int32_t);
@@ -1325,6 +1357,25 @@ void ml_array_init(stringmap_t *Globals) {
 	TYPES(Float64, double);
 #include "ml_array_init.c"
 	if (Globals) {
+#ifdef USE_ML_CBOR
+		ml_value_t *Cbor = stringmap_search(Globals, "cbor");
+		if (Cbor) {
+			ml_value_t *CborDefault = ml_module_import(Cbor, "Default");
+			if (CborDefault) {
+				ml_map_insert(CborDefault, ml_integer(40), ml_function(NULL, ml_cbor_read_multi_array_fn));
+				ml_map_insert(CborDefault, ml_integer(72), ml_function((void *)ML_ARRAY_FORMAT_I8, ml_cbor_read_typed_array_fn));
+				ml_map_insert(CborDefault, ml_integer(64), ml_function((void *)ML_ARRAY_FORMAT_U8, ml_cbor_read_typed_array_fn));
+				ml_map_insert(CborDefault, ml_integer(77), ml_function((void *)ML_ARRAY_FORMAT_I16, ml_cbor_read_typed_array_fn));
+				ml_map_insert(CborDefault, ml_integer(69), ml_function((void *)ML_ARRAY_FORMAT_U16, ml_cbor_read_typed_array_fn));
+				ml_map_insert(CborDefault, ml_integer(78), ml_function((void *)ML_ARRAY_FORMAT_I32, ml_cbor_read_typed_array_fn));
+				ml_map_insert(CborDefault, ml_integer(70), ml_function((void *)ML_ARRAY_FORMAT_U32, ml_cbor_read_typed_array_fn));
+				ml_map_insert(CborDefault, ml_integer(79), ml_function((void *)ML_ARRAY_FORMAT_I64, ml_cbor_read_typed_array_fn));
+				ml_map_insert(CborDefault, ml_integer(71), ml_function((void *)ML_ARRAY_FORMAT_U64, ml_cbor_read_typed_array_fn));
+				ml_map_insert(CborDefault, ml_integer(85), ml_function((void *)ML_ARRAY_FORMAT_F32, ml_cbor_read_typed_array_fn));
+				ml_map_insert(CborDefault, ml_integer(86), ml_function((void *)ML_ARRAY_FORMAT_F64, ml_cbor_read_typed_array_fn));
+			}
+		}
+#endif
 		stringmap_insert(Globals, "array", ml_module("array",
 			"new", ml_functionx(NULL, ml_array_new_fnx),
 			"wrap", ml_function(NULL, ml_array_wrap_fn),

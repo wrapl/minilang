@@ -1,6 +1,6 @@
 1 + 1 = 2
 2 + 1 = 3
-hello + 1 = 
+hello + 1 = <buffer>
 4 + 1 = 5
 Correct! An error has occurred 2: MethodError, no matching method found for +(integer, string)
 Before X loop

@@ -54,6 +54,15 @@ void ml_default_call(ml_state_t *Frame, ml_value_t *Value, int Count, ml_value_t
 ml_value_t *ml_default_deref(ml_value_t *Ref);
 ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value);
 
+#define ML_TYPE(TYPE, PARENT, NAME, ...) ml_type_t TYPE[1] = {{ \
+	MLTypeT, PARENT, NAME, \
+	.hash = ml_default_hash, \
+	.call = ml_default_call, \
+	.deref = ml_default_deref, \
+	.assign = ml_default_assign, \
+	__VA_ARGS__ \
+}}
+
 ml_type_t *ml_type(ml_type_t *Parent, const char *Name);
 void *ml_typed_fn_get(const ml_type_t *Type, void *TypedFn);
 void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function);
@@ -162,7 +171,7 @@ struct ml_stringbuffer_t {
 };
 
 #define ML_STRINGBUFFER_NODE_SIZE 248
-#define ML_STRINGBUFFER_INIT (ml_stringbuffer_t){{MLStringBufferT}, 0,}
+#define ML_STRINGBUFFER_INIT (ml_stringbuffer_t){MLStringBufferT, 0,}
 
 ssize_t ml_stringbuffer_add(ml_stringbuffer_t *Buffer, const char *String, size_t Length);
 ssize_t ml_stringbuffer_addf(ml_stringbuffer_t *Buffer, const char *Format, ...) __attribute__ ((format(printf, 2, 3)));
@@ -300,6 +309,7 @@ extern ml_type_t MLModuleT[];
 
 ml_value_t *ml_module(const char *Path, ...) __attribute__ ((sentinel));
 const char *ml_module_path(ml_value_t *Module);
+ml_value_t *ml_module_import(ml_value_t *Module, const char *Name);
 ml_value_t *ml_module_export(ml_value_t *Module, const char *Name, ml_value_t *Value);
 
 /****************************** Init ******************************/

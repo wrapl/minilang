@@ -14,6 +14,7 @@ typedef struct ml_console_t {
 	ml_getter_t ParentGetter;
 	void *ParentGlobals;
 	const char *Prompt;
+	const char *DefaultPrompt, *ContinuePrompt;
 	stringmap_t Globals[1];
 } ml_console_t;
 
@@ -60,7 +61,7 @@ static const char *ml_console_line_read(ml_console_t *Console) {
 	memcpy(Buffer, Line, Length);
 	Buffer[Length] = '\n';
 	Buffer[Length + 1] = 0;
-	Console->Prompt = "... ";
+	Console->Prompt = Console->ContinuePrompt;
 	return Buffer;
 }
 
@@ -70,9 +71,11 @@ typedef struct {
 	mlc_scanner_t *Scanner;
 } ml_console_repl_state_t;
 
+ml_value_t *MLConsoleBreak[1] = {MLAnyT};
+
 static void ml_console_repl_run(ml_console_repl_state_t *State, ml_value_t *Result) {
-	if (!Result) return;
-	State->Console->Prompt = "--> ";
+	if (!Result || Result == MLConsoleBreak) return;
+	State->Console->Prompt = State->Console->DefaultPrompt;
 	Result = Result->Type->deref(Result);
 	if (Result->Type == MLErrorT) {
 		printf("Error: %s\n", ml_error_message(Result));
@@ -90,9 +93,10 @@ static void ml_console_repl_run(ml_console_repl_state_t *State, ml_value_t *Resu
 	return ml_command_evaluate(State, State->Scanner, State->Console->Globals);
 }
 
-void ml_console(ml_getter_t GlobalGet, void *Globals) {
+void ml_console(ml_getter_t GlobalGet, void *Globals, const char *DefaultPrompt, const char *ContinuePrompt) {
 	ml_console_t Console[1] = {{
-		GlobalGet, Globals, "--> ",
+		GlobalGet, Globals, DefaultPrompt,
+		DefaultPrompt, ContinuePrompt,
 		{STRINGMAP_INIT}
 	}};
 	mlc_context_t Context[1] = {{(ml_getter_t)ml_console_global_get, Console}};

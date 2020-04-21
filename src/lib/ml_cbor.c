@@ -332,19 +332,17 @@ static ml_tag_t ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void **Data)
 	return (ml_tag_t)ml_value_fn;
 }
 
-static ml_value_t *MLDefaultTags;
+static ml_value_t *DefaultTags;
 
-static ml_value_t *ml_default_tag_fn(void *Data, int Count, ml_value_t **Args) {
-	return ml_map_search(MLDefaultTags, Args[0]);
+ML_FUNCTION(DefaultTagFn) {
+	return ml_map_search(DefaultTags, Args[0]);
 }
-
-static ml_function_t MLDefaultTagFn[1] = {{MLFunctionT, ml_default_tag_fn, NULL}};
 
 static ml_value_t *ml_from_cbor_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ml_cbor_t Cbor = {ml_string_value(Args[0]), ml_string_length(Args[0])};
-	return ml_from_cbor(Cbor, Count > 1 ? Args[1] : MLDefaultTagFn, (void *)ml_value_tag_fn);
+	return ml_from_cbor(Cbor, Count > 1 ? Args[1] : (ml_value_t *)DefaultTagFn, (void *)ml_value_tag_fn);
 }
 
 static void ML_TYPED_FN(ml_cbor_write, MLIntegerT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
@@ -397,9 +395,9 @@ static void ML_TYPED_FN(ml_cbor_write, MLMethodT, ml_value_t *Arg, void *Data, m
 }
 
 void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
-	MLDefaultTags = ml_map();
+	DefaultTags = ml_map();
 #include "ml_cbor_init.c"
 	ml_module_export(Module, "encode", ml_function(NULL, ml_to_cbor_fn));
 	ml_module_export(Module, "decode", ml_function(NULL, ml_from_cbor_fn));
-	ml_module_export(Module, "Default", MLDefaultTags);
+	ml_module_export(Module, "Default", DefaultTags);
 }

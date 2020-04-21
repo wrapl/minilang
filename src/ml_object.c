@@ -15,15 +15,7 @@ typedef struct ml_object_t {
 	ml_value_t *Fields[];
 } ml_object_t;
 
-ml_type_t MLObjectT[1] = {{
-	MLTypeT,
-	MLIteratableT, "object",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLObjectT, MLIteratableT, "object");
 
 static void ml_class_call(ml_state_t *Caller, ml_class_t *Class, int Count, ml_value_t **Args) {
 	ml_object_t *Object = xnew(ml_object_t, Class->NumFields, ml_value_t *);
@@ -58,15 +50,9 @@ static void ml_class_call(ml_state_t *Caller, ml_class_t *Class, int Count, ml_v
 	ML_RETURN(Object);
 }
 
-ml_type_t MLClassT[1] = {{
-	MLTypeT,
-	MLTypeT, "class",
-	ml_default_hash,
-	(void *)ml_class_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLClassT, MLTypeT, "class",
+	.call = (void *)ml_class_call
+);
 
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLObjectT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
@@ -135,7 +121,7 @@ static ml_value_t *ml_class_fn(void *Data, int Count, ml_value_t **Args) {
 		for (int I = 0; I < Class->NumFields; ++I) {
 			ml_method_by_value(Class->Fields[I], ((ml_object_t *)0)->Fields + I, ml_field_fn, Class, NULL);
 		}
-		return Class;
+		return (ml_value_t *)Class;
 	} else {
 		for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLMethodT);
 		ml_class_t *Class = xnew(ml_class_t, Count, ml_value_t *);
@@ -153,7 +139,7 @@ static ml_value_t *ml_class_fn(void *Data, int Count, ml_value_t **Args) {
 		for (int I = 0; I < Class->NumFields; ++I) {
 			ml_method_by_value(Class->Fields[I], ((ml_object_t *)0)->Fields + I, ml_field_fn, Class, NULL);
 		}
-		return Class;
+		return (ml_value_t *)Class;
 	}
 }
 
@@ -189,15 +175,10 @@ static ml_value_t *ml_assignable_assign(ml_assignable_t *Assignable, ml_value_t 
 	return ml_call(Assignable->Set, 1, &Value);
 }
 
-static ml_type_t MLAssignableT[1] = {{
-	MLTypeT,
-	MLAnyT, "assignable",
-	ml_default_hash,
-	ml_default_call,
-	(void *)ml_assignable_deref,
-	(void *)ml_assignable_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(MLAssignableT, MLAnyT, "assignable",
+	.deref = (void *)ml_assignable_deref,
+	.assign = (void *)ml_assignable_assign
+);
 
 static ml_value_t *ml_property_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(2);
@@ -205,11 +186,11 @@ static ml_value_t *ml_property_fn(void *Data, int Count, ml_value_t **Args) {
 	Assignable->Type = MLAssignableT;
 	Assignable->Get = Args[0];
 	Assignable->Set = Args[1];
-	return Assignable;
+	return (ml_value_t *)Assignable;
 }
 
 ML_METHOD("?", MLAnyT) {
-	return Args[0]->Type;
+	return (ml_value_t *)Args[0]->Type;
 }
 
 ML_METHOD("?", MLTypeT, MLAnyT) {
