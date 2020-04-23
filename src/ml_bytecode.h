@@ -13,7 +13,6 @@ extern "C" {
 typedef struct ml_closure_t ml_closure_t;
 typedef struct ml_closure_info_t ml_closure_info_t;
 typedef struct ml_inst_t ml_inst_t;
-typedef struct mlc_decl_t mlc_decl_t;
 
 extern ml_type_t MLClosureT[];
 
@@ -24,7 +23,7 @@ extern ml_type_t MLClosureT[];
 struct ml_closure_info_t {
 	ml_inst_t *Entry, *Return;
 	const char *Source;
-	mlc_decl_t *Decls;
+	ml_decl_t *Decls;
 	stringmap_t Params[1];
 	int End, FrameSize;
 	int NumParams, NumUpValues;
@@ -39,20 +38,13 @@ struct ml_closure_t {
 	ml_value_t *UpValues[];
 };
 
-struct mlc_decl_t {
-	mlc_decl_t *Next;
-	const char *Ident;
-	ml_value_t *Value;
-	int Index;
-};
-
 typedef union {
 	ml_inst_t *Inst;
 	int Index;
 	int Count;
 	ml_value_t *Value;
 	ml_closure_info_t *ClosureInfo;
-	mlc_decl_t *Decls;
+	ml_decl_t *Decls;
 } ml_param_t;
 
 typedef enum {
@@ -115,11 +107,6 @@ void ml_closure_info_finish(ml_closure_info_t *Info);
 const char *ml_closure_info_debug(ml_closure_info_t *Info);
 
 void ml_bytecode_init();
-
-int ml_debugger_check(ml_state_t *State);
-ml_source_t ml_debugger_source(ml_state_t *State);
-mlc_decl_t *ml_debugger_decls(ml_state_t *State);
-ml_value_t *ml_debugger_local(ml_state_t *State, int Index);
 
 #ifdef	__cplusplus
 }

@@ -48,7 +48,7 @@ static ml_value_t *debugger_get(debugger_t *Debugger, const char *Name) {
 	if (Value) return Value;
 	Value = stringmap_search(MainGlobals, Name);
 	if (Value) return Value;
-	for (mlc_decl_t *Decl = ml_debugger_decls(Debugger->Active); Decl; Decl = Decl->Next) {
+	for (ml_decl_t *Decl = ml_debugger_decls(Debugger->Active); Decl; Decl = Decl->Next) {
 		if (!strcmp(Decl->Ident, Name)) {
 			if (Decl->Value) return Decl->Value;
 			return ml_debugger_local(Debugger->Active, Decl->Index);
@@ -99,7 +99,7 @@ static void debugger_step_out(ml_state_t *Caller, debugger_t *Debugger, int Coun
 
 static ml_value_t *debugger_locals(debugger_t *Debugger, int Count, ml_value_t **Args) {
 	ml_value_t *Locals = ml_list();
-	for (mlc_decl_t *Decl = ml_debugger_decls(Debugger->Active); Decl; Decl = Decl->Next) {
+	for (ml_decl_t *Decl = ml_debugger_decls(Debugger->Active); Decl; Decl = Decl->Next) {
 		ml_list_put(Locals, ml_string(Decl->Ident, -1));
 	}
 	return Locals;

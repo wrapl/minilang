@@ -19,7 +19,7 @@ ml_type_t *MLArrayFloat32T;
 ml_type_t *MLArrayFloat64T;
 
 size_t MLArraySizes[] = {
-	[ML_ARRAY_FORMAT_ANY] = 0,
+	[ML_ARRAY_FORMAT_NONE] = 0,
 	[ML_ARRAY_FORMAT_I8] = sizeof(int8_t),
 	[ML_ARRAY_FORMAT_U8] = sizeof(uint8_t),
 	[ML_ARRAY_FORMAT_I16] = sizeof(int16_t),
@@ -29,7 +29,8 @@ size_t MLArraySizes[] = {
 	[ML_ARRAY_FORMAT_I64] = sizeof(int64_t),
 	[ML_ARRAY_FORMAT_U64] = sizeof(uint64_t),
 	[ML_ARRAY_FORMAT_F32] = sizeof(float),
-	[ML_ARRAY_FORMAT_F64] = sizeof(double)
+	[ML_ARRAY_FORMAT_F64] = sizeof(double),
+	[ML_ARRAY_FORMAT_ANY] = sizeof(ml_value_t *)
 };
 
 ml_array_t *ml_array_new(ml_array_format_t Format, int Degree) {
@@ -1060,12 +1061,14 @@ static int ml_array_of_has_real(ml_value_t *Value) {
 	return 0;
 }
 
-static ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, int Real) {
-	if (!Real) Real = ml_array_of_has_real(Value);
+static ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, ml_array_format_t Format) {
+	if (Format == ML_ARRAY_FORMAT_NONE) {
+		if (ml_array_of_has_real(Value)) Format = ML_ARRAY_FORMAT_F64;
+	}
 	if (Value->Type == MLListT) {
 		int Size = ml_list_length(Value);
 		if (!Size) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
-		ml_array_t *Array = ml_array_of_create(ml_list_head(Value)->Value, Degree + 1, Real);
+		ml_array_t *Array = ml_array_of_create(ml_list_head(Value)->Value, Degree + 1, Format);
 		if (Array->Base.Type == MLErrorT) return Array;
 		Array->Dimensions[Degree].Size = Size;
 		if (Degree < Array->Degree - 1) {
@@ -1075,7 +1078,7 @@ static ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, int Real) {
 	} else if (Value->Type == MLTupleT) {
 		int Size = ml_tuple_size(Value);
 		if (!Size) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
-		ml_array_t *Array = ml_array_of_create(ml_tuple_get(Value, 0), Degree + 1, Real);
+		ml_array_t *Array = ml_array_of_create(ml_tuple_get(Value, 0), Degree + 1, Format);
 		if (Array->Base.Type == MLErrorT) return Array;
 		Array->Dimensions[Degree].Size = Size;
 		if (Degree < Array->Degree - 1) {
@@ -1085,25 +1088,16 @@ static ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, int Real) {
 	} else if (ml_is(Value, MLArrayT)) {
 		ml_array_t *Nested = (ml_array_t *)Value;
 		ml_array_t *Array;
-		if (Real) {
-			Array = ml_array_new(ML_ARRAY_FORMAT_F64, Degree + Nested->Degree);
-		} else {
-			Array = ml_array_new(ML_ARRAY_FORMAT_I64, Degree + Nested->Degree);
-		}
+		if (Format == ML_ARRAY_FORMAT_NONE) Format = ML_ARRAY_FORMAT_I64;
+		Array = ml_array_new(Format, Degree + Nested->Degree);
 		memcpy(Array->Dimensions + Degree, Nested->Dimensions, Nested->Degree * sizeof(ml_array_dimension_t));
 		return Array;
-	} else if (Real) {
-		ml_array_t *Array = ml_array_new(ML_ARRAY_FORMAT_F64, Degree);
-		if (Degree) {
-			Array->Dimensions[Degree - 1].Size = 1;
-			Array->Dimensions[Degree - 1].Stride = sizeof(double);
-		}
-		return Array;
 	} else {
-		ml_array_t *Array = ml_array_new(ML_ARRAY_FORMAT_I64, Degree);
+		if (Format == ML_ARRAY_FORMAT_NONE) Format = ML_ARRAY_FORMAT_I64;
+		ml_array_t *Array = ml_array_new(Format, Degree);
 		if (Degree) {
 			Array->Dimensions[Degree - 1].Size = 1;
-			Array->Dimensions[Degree - 1].Stride = sizeof(int64_t);
+			Array->Dimensions[Degree - 1].Stride = MLArraySizes[Format];
 		}
 		return Array;
 	}
@@ -1179,7 +1173,37 @@ static ml_value_t *ml_array_of_fill(ml_array_format_t Format, ml_array_dimension
 
 static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
-	ml_array_t *Array = ml_array_of_create(Args[0], 0, 0);
+	ml_value_t *Source = Args[0];
+	ml_array_format_t Format = ML_ARRAY_FORMAT_NONE;
+	if (Count == 2) {
+		if (Args[0] == (ml_value_t *)MLArrayAnyT) {
+			Format = ML_ARRAY_FORMAT_ANY;
+		} else if (Args[0] == (ml_value_t *)MLArrayInt8T) {
+			Format = ML_ARRAY_FORMAT_I8;
+		} else if (Args[0] == (ml_value_t *)MLArrayUInt8T) {
+			Format = ML_ARRAY_FORMAT_U8;
+		} else if (Args[0] == (ml_value_t *)MLArrayInt16T) {
+			Format = ML_ARRAY_FORMAT_I16;
+		} else if (Args[0] == (ml_value_t *)MLArrayUInt16T) {
+			Format = ML_ARRAY_FORMAT_U16;
+		} else if (Args[0] == (ml_value_t *)MLArrayInt32T) {
+			Format = ML_ARRAY_FORMAT_I32;
+		} else if (Args[0] == (ml_value_t *)MLArrayUInt32T) {
+			Format = ML_ARRAY_FORMAT_U32;
+		} else if (Args[0] == (ml_value_t *)MLArrayInt64T) {
+			Format = ML_ARRAY_FORMAT_I64;
+		} else if (Args[0] == (ml_value_t *)MLArrayUInt64T) {
+			Format = ML_ARRAY_FORMAT_U64;
+		} else if (Args[0] == (ml_value_t *)MLArrayFloat32T) {
+			Format = ML_ARRAY_FORMAT_F32;
+		} else if (Args[0] == (ml_value_t *)MLArrayFloat64T) {
+			Format = ML_ARRAY_FORMAT_F64;
+		} else {
+			return ml_error("TypeError", "Unknown type for array");
+		}
+		Source = Args[1];
+	}
+	ml_array_t *Array = ml_array_of_create(Source, 0, Format);
 	if (Array->Base.Type == MLErrorT) return (ml_value_t *)Array;
 	size_t Size;
 	if (Array->Degree) {
@@ -1188,7 +1212,7 @@ static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args) {
 		Size = MLArraySizes[Array->Format];
 	}
 	char *Address = Array->Base.Address = GC_MALLOC_ATOMIC(Size);
-	ml_array_of_fill(Array->Format, Array->Dimensions, Address, Array->Degree, Args[0]);
+	ml_array_of_fill(Array->Format, Array->Dimensions, Address, Array->Degree, Source);
 	return (ml_value_t *)Array;
 }
 
@@ -1207,6 +1231,7 @@ ML_METHOD("copy", MLArrayT) {
 		memcpy(Target->Base.Address, Source->Base.Address, DataSize);
 	} else switch (Source->Format) {
 	case ML_ARRAY_FORMAT_ANY:
+		break;
 	case ML_ARRAY_FORMAT_I8:
 		set_array_int8_t_int8_t(Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address);
 		break;
@@ -1271,7 +1296,6 @@ static void ml_cbor_write_array_dim(int Degree, ml_array_dimension_t *Dimension,
 
 static void ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char *Data, ml_cbor_write_fn WriteFn) {
 	static uint64_t Tags[] = {
-		[ML_ARRAY_FORMAT_ANY] = 41,
 		[ML_ARRAY_FORMAT_I8] = 72,
 		[ML_ARRAY_FORMAT_U8] = 64,
 		[ML_ARRAY_FORMAT_I16] = 77,
@@ -1281,7 +1305,8 @@ static void ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char *Data, 
 		[ML_ARRAY_FORMAT_I64] = 79,
 		[ML_ARRAY_FORMAT_U64] = 71,
 		[ML_ARRAY_FORMAT_F32] = 85,
-		[ML_ARRAY_FORMAT_F64] = 86
+		[ML_ARRAY_FORMAT_F64] = 86,
+		[ML_ARRAY_FORMAT_ANY] = 41
 	};
 	ml_cbor_write_tag(Data, WriteFn, 40);
 	ml_cbor_write_array(Data, WriteFn, 2);

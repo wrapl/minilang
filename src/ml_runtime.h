@@ -2,6 +2,7 @@
 #define ML_RUNTIME_H
 
 #include "ml_types.h"
+#include <limits.h>
 
 #ifdef	__cplusplus
 extern "C" {
@@ -196,6 +197,37 @@ ml_value_t *ml_list_fn(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_tuple_fn(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_map_fn(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_stringifier_fn(void *Data, int Count, ml_value_t **Args);
+
+/****************************** Debugging ******************************/
+
+#define SIZE_BITS (CHAR_BIT * sizeof(size_t))
+
+typedef struct ml_decl_t ml_decl_t;
+typedef struct ml_debugger_t ml_debugger_t;
+
+struct ml_decl_t {
+	ml_decl_t *Next;
+	const char *Ident;
+	ml_value_t *Value;
+	int Index;
+};
+
+struct ml_debugger_t {
+	void (*run)(ml_debugger_t *Debugger, ml_state_t *Frame, ml_value_t *Value);
+	size_t *(*breakpoints)(ml_debugger_t *Debugger, const char *Source, int LineNo);
+	ml_state_t *StepOverFrame;
+	ml_state_t *StepOutFrame;
+	size_t Revision;
+	int StepIn:1;
+	int BreakOnError:1;
+};
+
+#define ML_DEBUGGER_INDEX 1
+
+int ml_debugger_check(ml_state_t *State);
+ml_source_t ml_debugger_source(ml_state_t *State);
+ml_decl_t *ml_debugger_decls(ml_state_t *State);
+ml_value_t *ml_debugger_local(ml_state_t *State, int Index);
 
 void ml_runtime_init();
 

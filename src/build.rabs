@@ -57,6 +57,7 @@ var Objects := [
 	file("sha256.o"),
 	file("stringmap.o"),
 	file("ml_console.o"),
+	file("ml_debugger.o"),
 	file("ml_object.o")
 ]
 
@@ -93,7 +94,7 @@ end
 if MINILANG_USECBOR or defined("USECBOR") then
 	var Dir := PATH / "minicbor"
 	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git", Dir)
-	
+
 	CFLAGS := old + [
 		'-DMINICBOR_PREFIX=ml_cbor_',
 		'-DMINICBOR_READ_FN_PREFIX=ml_cbor_read_',
