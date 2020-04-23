@@ -1,5 +1,6 @@
 #include "minilang.h"
 #include "ml_console.h"
+#include "ml_debugger.h"
 #include "ml_compiler.h"
 #include "ml_macros.h"
 #include "ml_file.h"
@@ -38,10 +39,6 @@
 #ifdef USE_ML_MODULES
 #include "ml_module.h"
 #include "ml_library.h"
-#endif
-
-#ifdef USE_ML_DEBUGGER
-#include "ml_debugger.h"
 #endif
 
 static stringmap_t Globals[1] = {STRINGMAP_INIT};
@@ -168,10 +165,10 @@ int main(int Argc, const char *Argv[]) {
 	ml_file_init(Globals);
 	ml_object_init(Globals);
 	ml_iterfns_init(Globals);
+	ml_debugger_init(Globals);
 	stringmap_insert(Globals, "now", ml_function(0, ml_now));
 	stringmap_insert(Globals, "print", ml_function(0, ml_print));
 	stringmap_insert(Globals, "error", ml_function(0, ml_throw));
-	stringmap_insert(Globals, "debug", ml_function(0, ml_debug));
 	stringmap_insert(Globals, "break", ml_function(0, ml_break));
 	stringmap_insert(Globals, "halt", ml_function(0, ml_halt));
 	stringmap_insert(Globals, "collect", ml_function(0, ml_collect));
@@ -201,9 +198,6 @@ int main(int Argc, const char *Argv[]) {
 	ml_module_init(Globals);
 	ml_library_init(Globals);
 	stringmap_insert(Globals, "import", ml_functionx(0, ml_import_fnx));
-#endif
-#ifdef USE_ML_DEBUGGER
-	ml_debugger_init(Globals);
 #endif
 	ml_value_t *Args = ml_list();
 	const char *FileName = 0;
