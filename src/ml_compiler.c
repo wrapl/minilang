@@ -11,6 +11,17 @@
 #include <stdio.h>
 #include <limits.h>
 
+typedef struct mlc_context_t {
+	ml_getter_t GlobalGet;
+	void *Globals;
+	ml_value_t *Error;
+	jmp_buf OnError;
+} mlc_context_t;
+
+#define MLC_ON_ERROR(CONTEXT) if (setjmp(CONTEXT->OnError))
+
+typedef struct mlc_expr_t mlc_expr_t;
+
 typedef struct mlc_function_t mlc_function_t;
 typedef struct mlc_loop_t mlc_loop_t;
 typedef struct mlc_try_t mlc_try_t;
@@ -1355,7 +1366,10 @@ struct mlc_scanner_t {
 	const char *(*read)(void *);
 };
 
-mlc_scanner_t *ml_scanner(const char *SourceName, void *Data, const char *(*read)(void *), mlc_context_t *Context) {
+mlc_scanner_t *ml_scanner(const char *SourceName, void *Data, const char *(*read)(void *), ml_getter_t GlobalGet, void *Globals) {
+	mlc_context_t *Context = new(mlc_context_t);
+	Context->GlobalGet = GlobalGet;
+	Context->Globals = Globals;
 	mlc_scanner_t *Scanner = new(mlc_scanner_t);
 	Scanner->Context = Context;
 	Scanner->Token = MLT_NONE;
@@ -2757,13 +2771,12 @@ static const char *ml_file_read(void *Data) {
 void ml_load(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]) {
 	FILE *File = fopen(FileName, "r");
 	if (!File) ML_RETURN(ml_error("LoadError", "error opening %s", FileName));
-	mlc_context_t Context[1] = {{GlobalGet, Globals}};
-	MLC_ON_ERROR(Context) ML_RETURN(Context->Error);
-	mlc_scanner_t *Scanner = ml_scanner(FileName, File, ml_file_read, Context);
+	mlc_scanner_t *Scanner = ml_scanner(FileName, File, ml_file_read, GlobalGet, Globals);
+	if (setjmp(Scanner->Context->OnError)) ML_RETURN(Scanner->Context->Error);
 	mlc_expr_t *Expr = ml_accept_block(Scanner);
 	ml_accept_eoi(Scanner);
 	fclose(File);
-	ml_value_t *Closure = ml_compile(Expr, Parameters, Context);
+	ml_value_t *Closure = ml_compile(Expr, Parameters, Scanner->Context);
 	if (MLDebugClosures) ml_closure_debug(Closure);
 	ML_RETURN(Closure);
 }

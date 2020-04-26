@@ -38,7 +38,6 @@ struct console_t {
 	char *History[MAX_HISTORY];
 	int HistoryIndex, HistoryEnd;
 	stringmap_t Globals[1];
-	mlc_context_t Context[1];
 	stringmap_t Cycles[1];
 	stringmap_t Combos[1];
 	char Chars[32];
@@ -505,9 +504,7 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	Console->Input = 0;
 	Console->HistoryIndex = 0;
 	Console->HistoryEnd = 0;
-	Console->Context->GlobalGet = (ml_getter_t)console_global_get;
-	Console->Context->Globals = Console;
-	Console->Scanner = ml_scanner("Console", Console, (void *)console_read, Console->Context);
+	Console->Scanner = ml_scanner("Console", Console, (void *)console_read, (ml_getter_t)console_global_get, Console);
 	GtkWidget *Container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
 	Console->InputView = gtk_source_view_new();
 

@@ -99,8 +99,7 @@ void ml_console(ml_getter_t GlobalGet, void *Globals, const char *DefaultPrompt,
 		DefaultPrompt, ContinuePrompt,
 		{STRINGMAP_INIT}
 	}};
-	mlc_context_t Context[1] = {{(ml_getter_t)ml_console_global_get, Console}};
-	mlc_scanner_t *Scanner = ml_scanner("console", Console, (void *)ml_console_line_read, Context);
+	mlc_scanner_t *Scanner = ml_scanner("console", Console, (void *)ml_console_line_read, (ml_getter_t)ml_console_global_get, Console);
 	ml_console_repl_state_t *State = new(ml_console_repl_state_t);
 	State->Base.run = ml_console_repl_run;
 	State->Base.Context = &MLRootContext;
