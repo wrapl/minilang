@@ -1,6 +1,5 @@
 #include "minilang.h"
 #include "ml_console.h"
-#include "ml_debugger.h"
 #include "ml_compiler.h"
 #include "ml_macros.h"
 #include "ml_file.h"
@@ -115,15 +114,15 @@ static void ml_import_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t 
 	ML_CHECKX_ARG_TYPE(0, MLStringT);
 	const char *FileName = realpath(ml_string_value(Args[0]), NULL);
 	if (!FileName) ML_RETURN(ml_error("ModuleError", "File %s not found", ml_string_value(Args[0])));
-	ml_value_t **Slot = stringmap_slot(Modules, FileName);
+	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Modules, FileName);
 	if (!Slot[0]) {
 		printf("Loading %s\n", FileName);
 		const char *Extension = strrchr(FileName, '.');
 		if (!Extension) ML_RETURN(ml_error("ModuleError", "Unknown module type: %s", FileName));
 		if (!strcmp(Extension, ".so")) {
-			return ml_library_load_file(Caller, FileName, stringmap_search, Globals, Slot);
+			return ml_library_load_file(Caller, FileName, (ml_getter_t)stringmap_search, Globals, Slot);
 		} else if (!strcmp(Extension, ".mini")) {
-			return ml_module_load_file(Caller, FileName, stringmap_search, Globals, Slot);
+			return ml_module_load_file(Caller, FileName, (ml_getter_t)stringmap_search, Globals, Slot);
 		} else {
 			ML_RETURN(ml_error("ModuleError", "Unknown module type: %s", FileName));
 		}
@@ -131,7 +130,7 @@ static void ml_import_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t 
 	ML_RETURN(Slot[0]);
 }
 
-static ml_functionx_t Import[1] = {{{MLFunctionXT}, ml_import_fnx, NULL}};
+static ml_functionx_t Import[1] = {{MLFunctionXT, ml_import_fnx, NULL}};
 #endif
 
 static ml_value_t *MainArgs[1];
@@ -155,7 +154,7 @@ static void ml_loaded_run(ml_state_t *State, ml_value_t *Result) {
 }
 
 static ml_state_t MLLoadedState[1] = {{
-	{MLStateT}, NULL, ml_loaded_run
+	MLStateT, NULL, ml_loaded_run
 }};
 
 int main(int Argc, const char *Argv[]) {
@@ -165,7 +164,6 @@ int main(int Argc, const char *Argv[]) {
 	ml_file_init(Globals);
 	ml_object_init(Globals);
 	ml_iterfns_init(Globals);
-	ml_debugger_init(Globals);
 	stringmap_insert(Globals, "now", ml_function(0, ml_now));
 	stringmap_insert(Globals, "print", ml_function(0, ml_print));
 	stringmap_insert(Globals, "error", ml_function(0, ml_throw));
@@ -232,7 +230,7 @@ int main(int Argc, const char *Argv[]) {
 #ifdef USE_ML_MODULES
 	} else if (ModuleName) {
 		ml_value_t *Args[] = {ml_string(ModuleName, -1)};
-		ml_value_t *Result = ml_call(Import, 1, Args);
+		ml_value_t *Result = ml_call((ml_value_t *)Import, 1, Args);
 		if (Result->Type == MLErrorT) {
 			printf("Error: %s\n", ml_error_message(Result));
 			const char *Source;
@@ -243,13 +241,13 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef USE_ML_GIR
 	} else if (GtkConsole) {
-		console_t *Console = console_new(stringmap_search, Globals);
+		console_t *Console = console_new((ml_getter_t)stringmap_search, Globals);
 		stringmap_insert(Globals, "print", ml_function(Console, (void *)console_print));
 		console_show(Console, NULL);
 		gtk_main();
 #endif
 	} else {
-		ml_console(stringmap_search, Globals, "--> ", "... ");
+		ml_console((ml_getter_t)stringmap_search, Globals, "--> ", "... ");
 	}
 	return 0;
 }

@@ -1,28 +1,36 @@
 #include "ml_debugger.h"
 #include "ml_runtime.h"
 #include "ml_macros.h"
-#include "ml_console.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-static void ml_debug_state_fn(ml_state_t *State, ml_value_t *Value) {
-	ML_CONTINUE(State->Caller, Value);
-}
+typedef struct interactive_debugger_info_t interactive_debugger_info_t;
+
+struct interactive_debugger_t {
+	ml_debugger_t Base;
+	interactive_debugger_info_t *Info;
+	ml_state_t *Frame, *Active;
+	ml_value_t *Value;
+	stringmap_t Globals[1];
+	stringmap_t Modules[1];
+};
+
+struct interactive_debugger_info_t {
+	void (*Enter)(void *Data, interactive_debugger_t *Debugger);
+	void (*Exit)(ml_state_t *Caller, void *Data);
+	void (*Log)(void *Data, ml_value_t *Value);
+	void *Data;
+	ml_getter_t GlobalGet;
+	void *Globals;
+};
 
 typedef struct {
 	size_t Count;
 	size_t Bits[];
 } breakpoints_t;
 
-typedef struct {
-	ml_debugger_t Base;
-	ml_state_t *Frame, *Active;
-	stringmap_t Globals[1];
-	stringmap_t Modules[1];
-} debugger_t;
-
-static size_t *debugger_breakpoints(debugger_t *Debugger, const char *Source, int Max) {
+static size_t *debugger_breakpoints(interactive_debugger_t *Debugger, const char *Source, int Max) {
 	breakpoints_t **Slot = (breakpoints_t **)stringmap_slot(Debugger->Modules, Source);
 	size_t Count = (Max + SIZE_BITS - 1) / SIZE_BITS;
 	if (!Slot[0]) {
@@ -41,12 +49,8 @@ static size_t *debugger_breakpoints(debugger_t *Debugger, const char *Source, in
 	return Slot[0]->Bits;
 }
 
-static stringmap_t *MainGlobals;
-
-static ml_value_t *debugger_get(debugger_t *Debugger, const char *Name) {
+ml_value_t *interactive_debugger_get(interactive_debugger_t *Debugger, const char *Name) {
 	ml_value_t *Value = stringmap_search(Debugger->Globals, Name);
-	if (Value) return Value;
-	Value = stringmap_search(MainGlobals, Name);
 	if (Value) return Value;
 	for (ml_decl_t *Decl = ml_debugger_decls(Debugger->Active); Decl; Decl = Decl->Next) {
 		if (!strcmp(Decl->Ident, Name)) {
@@ -57,7 +61,11 @@ static ml_value_t *debugger_get(debugger_t *Debugger, const char *Name) {
 	return NULL;
 }
 
-static ml_value_t *debugger_break(debugger_t *Debugger, int Count, ml_value_t **Args) {
+void interactive_debugger_resume(interactive_debugger_t *Debugger) {
+	Debugger->Frame->run(Debugger->Frame, Debugger->Value);
+}
+
+static ml_value_t *debugger_break(interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLIntegerT);
@@ -69,35 +77,35 @@ static ml_value_t *debugger_break(debugger_t *Debugger, int Count, ml_value_t **
 	return MLNil;
 }
 
-static void debugger_continue(ml_state_t *Caller, debugger_t *Debugger, int Count, ml_value_t **Args) {
+static void debugger_continue(ml_state_t *Caller, interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
 	Debugger->Base.StepIn = 0;
 	Debugger->Base.StepOverFrame = NULL;
 	Debugger->Base.StepOutFrame = NULL;
-	ML_RETURN(MLConsoleBreak);
+	return Debugger->Info->Exit(Caller, Debugger->Info->Data);
 }
 
-static void debugger_step_in(ml_state_t *Caller, debugger_t *Debugger, int Count, ml_value_t **Args) {
+static void debugger_step_in(ml_state_t *Caller, interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
 	Debugger->Base.StepIn = 1;
 	Debugger->Base.StepOverFrame = NULL;
 	Debugger->Base.StepOutFrame = NULL;
-	ML_RETURN(MLConsoleBreak);
+	return Debugger->Info->Exit(Caller, Debugger->Info->Data);
 }
 
-static void debugger_step_over(ml_state_t *Caller, debugger_t *Debugger, int Count, ml_value_t **Args) {
+static void debugger_step_over(ml_state_t *Caller, interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
 	Debugger->Base.StepIn = 0;
 	Debugger->Base.StepOverFrame = Debugger->Frame;
 	Debugger->Base.StepOutFrame = Debugger->Frame;
-	ML_RETURN(MLConsoleBreak);
+	return Debugger->Info->Exit(Caller, Debugger->Info->Data);
 }
 
-static void debugger_step_out(ml_state_t *Caller, debugger_t *Debugger, int Count, ml_value_t **Args) {
+static void debugger_step_out(ml_state_t *Caller, interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
 	Debugger->Base.StepIn = 0;
 	Debugger->Base.StepOverFrame = NULL;
 	Debugger->Base.StepOutFrame = Debugger->Frame;
-	ML_RETURN(MLConsoleBreak);
+	return Debugger->Info->Exit(Caller, Debugger->Info->Data);
 }
 
-static ml_value_t *debugger_locals(debugger_t *Debugger, int Count, ml_value_t **Args) {
+static ml_value_t *debugger_locals(interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
 	ml_value_t *Locals = ml_list();
 	for (ml_decl_t *Decl = ml_debugger_decls(Debugger->Active); Decl; Decl = Decl->Next) {
 		ml_list_put(Locals, ml_string(Decl->Ident, -1));
@@ -105,7 +113,7 @@ static ml_value_t *debugger_locals(debugger_t *Debugger, int Count, ml_value_t *
 	return Locals;
 }
 
-static ml_value_t *debugger_frames(debugger_t *Debugger, int Count, ml_value_t **Args) {
+static ml_value_t *debugger_frames(interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
 	ml_value_t *Backtrace = ml_list();
 	ml_state_t *Frame = Debugger->Active;
 	while (Frame) {
@@ -121,7 +129,7 @@ static ml_value_t *debugger_frames(debugger_t *Debugger, int Count, ml_value_t *
 	return Backtrace;
 }
 
-static ml_value_t *debugger_frame_up(debugger_t *Debugger, int Count, ml_value_t **Args) {
+static ml_value_t *debugger_frame_up(interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
 	ml_state_t *Frame = Debugger->Active;
 	do {
 		Frame = Frame->Caller;
@@ -138,7 +146,7 @@ static ml_value_t *debugger_frame_up(debugger_t *Debugger, int Count, ml_value_t
 	}
 }
 
-static ml_value_t *debugger_frame_down(debugger_t *Debugger, int Count, ml_value_t **Args) {
+static ml_value_t *debugger_frame_down(interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
 	ml_state_t *Frame = NULL;
 	ml_state_t *Current = Debugger->Frame;
 	ml_state_t *Active = Debugger->Active;
@@ -160,66 +168,80 @@ static ml_value_t *debugger_frame_down(debugger_t *Debugger, int Count, ml_value
 	}
 }
 
-static void debugger_run(debugger_t *Debugger, ml_state_t *Frame, ml_value_t *Value) {
+static void debugger_run(interactive_debugger_t *Debugger, ml_state_t *Frame, ml_value_t *Value) {
 	Debugger->Frame = Frame;
+	Debugger->Value = Value;
 	Debugger->Active = Frame;
 	ml_source_t Source = ml_debugger_source(Frame);
-	printf("\e[34m%s\e[0m:%d\n", Source.Name, Source.Line);
+	ml_value_t *Location = ml_tuple(2);
+	ml_tuple_set(Location, 0, ml_string(Source.Name, -1));
+	ml_tuple_set(Location, 1, ml_integer(Source.Line));
+	Debugger->Info->Log(Debugger->Info->Data, Location);
 	if (Value->Type == MLErrorT) {
-		printf("Error: %s\n", ml_error_message(Value));
-		const char *Source;
-		int Line;
-		for (int I = 0; ml_error_trace(Value, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+		Debugger->Info->Log(Debugger->Info->Data, Value);
 	}
-	ml_console(debugger_get, Debugger, "\e[34m>>>\e[0m ", "\e[34m...\e[0m ");
-	return Frame->run(Frame, Value);
+	Debugger->Info->Enter(Debugger->Info->Data, Debugger);
 }
 
-static void debugger_start(ml_state_t *State, ml_value_t *Function) {
-	State->run = ml_debug_state_fn;
+static void debugger_state_run(ml_state_t *State, ml_value_t *Value) {
+	ML_CONTINUE(State->Caller, Value);
+}
+
+static void debugger_state_load(ml_state_t *State, ml_value_t *Function) {
+	State->run = debugger_state_run;
 	return Function->Type->call(State, Function, 0, NULL);
 }
 
-ML_FUNCTIONX(Debug) {
+static void interactive_debugger_fnx(ml_state_t *Caller, interactive_debugger_info_t *Info, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
-	ml_context_t *Context = ml_context_new(Caller->Context);
-	debugger_t *Debugger = new(debugger_t);
-	stringmap_insert(Debugger->Globals, "break", ml_function(Debugger, debugger_break));
-	stringmap_insert(Debugger->Globals, "continue", ml_functionx(Debugger, debugger_continue));
-	stringmap_insert(Debugger->Globals, "step_in", ml_functionx(Debugger, debugger_step_in));
-	stringmap_insert(Debugger->Globals, "step_over", ml_functionx(Debugger, debugger_step_over));
-	stringmap_insert(Debugger->Globals, "step_out", ml_functionx(Debugger, debugger_step_out));
 
-	stringmap_insert(Debugger->Globals, "locals", ml_function(Debugger, debugger_locals));
-	stringmap_insert(Debugger->Globals, "frames", ml_function(Debugger, debugger_frames));
-	stringmap_insert(Debugger->Globals, "frame_up", ml_function(Debugger, debugger_frame_up));
-	stringmap_insert(Debugger->Globals, "frame_down", ml_function(Debugger, debugger_frame_down));
-
-
+	interactive_debugger_t *Debugger = new(interactive_debugger_t);
 	Debugger->Base.run = debugger_run;
 	Debugger->Base.breakpoints = debugger_breakpoints;
 	Debugger->Base.Revision = 1;
 	Debugger->Base.StepIn = 1;
 	Debugger->Base.BreakOnError = 1;
+	Debugger->Info = Info;
+	stringmap_insert(Debugger->Globals, "break", ml_function(Debugger, debugger_break));
+	stringmap_insert(Debugger->Globals, "continue", ml_functionx(Debugger, debugger_continue));
+	stringmap_insert(Debugger->Globals, "step_in", ml_functionx(Debugger, debugger_step_in));
+	stringmap_insert(Debugger->Globals, "step_over", ml_functionx(Debugger, debugger_step_over));
+	stringmap_insert(Debugger->Globals, "step_out", ml_functionx(Debugger, debugger_step_out));
+	stringmap_insert(Debugger->Globals, "locals", ml_function(Debugger, debugger_locals));
+	stringmap_insert(Debugger->Globals, "frames", ml_function(Debugger, debugger_frames));
+	stringmap_insert(Debugger->Globals, "frame_up", ml_function(Debugger, debugger_frame_up));
+	stringmap_insert(Debugger->Globals, "frame_down", ml_function(Debugger, debugger_frame_down));
+
+	ml_context_t *Context = ml_context_new(Caller->Context);
 	ml_context_set(Context, ML_DEBUGGER_INDEX, Debugger);
 	ml_state_t *State = new(ml_state_t);
 	State->Caller = Caller;
-	State->run = ml_debug_state_fn;
+	State->run = debugger_state_run;
 	State->Context = Context;
 	if (Args[0]->Type == MLStringT) {
-		State->run = debugger_start;
+		State->run = debugger_state_load;
 		const char *FileName = ml_string_value(Args[0]);
-		ml_load(State, stringmap_search, MainGlobals, FileName, NULL);
+		ml_load(State, Info->GlobalGet, Info->Globals, FileName, NULL);
 	} else {
 		ml_value_t *Function = Args[0];
 		return Function->Type->call(State, Function, Count - 1, Args + 1);
 	}
 }
 
-void ml_debugger_init(stringmap_t *Globals) {
-#include "ml_debugger_init.c"
-	if (Globals) {
-		MainGlobals = Globals;
-		stringmap_insert(Globals, "debug", Debug);
-	}
+ml_value_t *interactive_debugger(
+	void (*Enter)(void *Data, interactive_debugger_t *Debugger),
+	void (*Exit)(ml_state_t *Caller, void *Data),
+	void (*Log)(void *Data, ml_value_t *Value),
+	void *Data,
+	ml_getter_t GlobalGet,
+	void *Globals
+) {
+	interactive_debugger_info_t *Info = new(interactive_debugger_info_t);
+	Info->Enter = Enter;
+	Info->Exit = Exit;
+	Info->Log = Log;
+	Info->Data = Data;
+	Info->GlobalGet = GlobalGet;
+	Info->Globals = Globals;
+	return ml_functionx(Info, (void *)interactive_debugger_fnx);
 }

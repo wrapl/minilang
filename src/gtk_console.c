@@ -20,8 +20,16 @@
 #include "ml_gir.h"
 #include "ml_runtime.h"
 #include "ml_bytecode.h"
+#include "ml_debugger.h"
 
 #define MAX_HISTORY 128
+
+typedef struct console_debugger_t console_debugger_t;
+
+struct console_debugger_t {
+	console_debugger_t *Prev;
+	interactive_debugger_t *Debugger;
+};
 
 struct console_t {
 	GtkWidget *Window, *LogScrolled, *LogView, *InputView;
@@ -30,6 +38,7 @@ struct console_t {
 	GtkTextMark *EndMark;
 	ml_getter_t ParentGetter;
 	void *ParentGlobals;
+	console_debugger_t *Debugger;
 	const char *ConfigPath;
 	const char *FontName;
 	GKeyFile *Config;
@@ -98,6 +107,10 @@ static ml_value_t *console_display(console_t *Console, int Count, ml_value_t **A
 }
 
 static ml_value_t *console_global_get(console_t *Console, const char *Name) {
+	if (Console->Debugger) {
+		ml_value_t *Value = interactive_debugger_get(Console->Debugger->Debugger, Name);
+		if (Value) return Value;
+	}
 	ml_value_t *Value = stringmap_search(Console->Globals, Name);
 	if (Value) return Value;
 	Value = (Console->ParentGetter)(Console->ParentGlobals, Name);
@@ -175,15 +188,19 @@ typedef struct {
 	console_t *Console;
 } ml_console_repl_state_t;
 
+static ml_value_t ConsoleBreak[1] = {{MLAnyT}};
+
 static void ml_console_repl_run(ml_console_repl_state_t *State, ml_value_t *Result) {
-	if (!Result) {
+	if (!Result || Result == ConsoleBreak) {
 		gtk_widget_grab_focus(State->Console->InputView);
 		return;
 	}
 	console_log(State->Console, Result);
-	if (Result->Type != MLErrorT) {
-		return ml_command_evaluate((ml_state_t *)State, State->Console->Scanner, State->Console->Globals);
+	if (Result->Type == MLErrorT) {
+		gtk_widget_grab_focus(State->Console->InputView);
+		return;
 	}
+	return ml_command_evaluate((ml_state_t *)State, State->Console->Scanner, State->Console->Globals);
 }
 
 static void console_submit(GtkWidget *Button, console_t *Console) {
@@ -215,6 +232,19 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 	State->Console = Console;
 	ml_scanner_reset(Scanner);
 	ml_command_evaluate((ml_state_t *)State, Scanner, Console->Globals);
+}
+
+static void console_debug_enter(console_t *Console, interactive_debugger_t *Debugger) {
+	console_debugger_t *ConsoleDebugger = new(console_debugger_t);
+	ConsoleDebugger->Prev = ConsoleDebugger->Debugger;
+	ConsoleDebugger->Debugger = Debugger;
+	Console->Debugger = ConsoleDebugger;
+}
+
+static void console_debug_exit(ml_state_t *Caller, console_t *Console) {
+	interactive_debugger_t *Debugger = Console->Debugger->Debugger;
+	Console->Debugger = Console->Debugger->Prev;
+	return interactive_debugger_resume(Debugger);
 }
 
 static void console_clear(GtkWidget *Button, console_t *Console) {
@@ -504,7 +534,7 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	Console->Input = 0;
 	Console->HistoryIndex = 0;
 	Console->HistoryEnd = 0;
-	Console->Scanner = ml_scanner("Console", Console, (void *)console_read, (ml_getter_t)console_global_get, Console);
+	Console->Scanner = ml_scanner("<console>", Console, (void *)console_read, (ml_getter_t)console_global_get, Console);
 	GtkWidget *Container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
 	Console->InputView = gtk_source_view_new();
 
@@ -666,6 +696,15 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	stringmap_insert(Console->Globals, "Console", ml_gir_instance_get(Console->Window));
 	stringmap_insert(Console->Globals, "InputView", ml_gir_instance_get(Console->InputView));
 	stringmap_insert(Console->Globals, "LogView", ml_gir_instance_get(Console->LogView));
+
+	stringmap_insert(Console->Globals, "debug", interactive_debugger(
+		console_debug_enter,
+		console_debug_exit,
+		console_log,
+		Console,
+		(ml_getter_t)console_global_get,
+		Console
+	));
 
 	return Console;
 }
