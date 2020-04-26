@@ -377,18 +377,23 @@ ML_TYPE(MLErrorT, MLAnyT, "error",
 
 ML_TYPE(MLErrorValueT, MLErrorT, "error_value");
 
-ml_value_t *ml_error(const char *Error, const char *Format, ...) {
-	va_list Args;
-	va_start(Args, Format);
+ml_value_t *ml_errorv(const char *Error, const char *Format, va_list Args) {
 	char *Message;
 	vasprintf(&Message, Format, Args);
-	va_end(Args);
 	ml_error_t *Value = new(ml_error_t);
 	Value->Type = MLErrorT;
 	Value->Error = Error;
 	Value->Message = Message;
 	memset(Value->Trace, 0, sizeof(Value->Trace));
 	return (ml_value_t *)Value;
+}
+
+ml_value_t *ml_error(const char *Error, const char *Format, ...) {
+	va_list Args;
+	va_start(Args, Format);
+	ml_value_t *Value = ml_errorv(Error, Format, Args);
+	va_end(Args);
+	return Value;
 }
 
 const char *ml_error_type(ml_value_t *Value) {

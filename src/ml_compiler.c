@@ -1398,6 +1398,14 @@ const char *ml_scanner_clear(mlc_scanner_t *Scanner) {
 	return Next;
 }
 
+void ml_scanner_error(mlc_scanner_t *Scanner, const char *Error, const char *Format, ...) {
+	va_list Args;
+	ml_value_t *Value = ml_errorv(Error, Format, Args);
+	va_end(Args);
+	Scanner->Context->Error = (ml_value_t *)Value;
+	longjmp(Scanner->Context->OnError, 1);
+}
+
 typedef enum {EXPR_SIMPLE, EXPR_AND, EXPR_OR, EXPR_FOR, EXPR_DEFAULT} ml_expr_level_t;
 
 static int ml_parse(mlc_scanner_t *Scanner, ml_token_t Token);

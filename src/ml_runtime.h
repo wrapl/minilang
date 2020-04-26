@@ -3,6 +3,7 @@
 
 #include "ml_types.h"
 #include <limits.h>
+#include <stdarg.h>
 
 #ifdef	__cplusplus
 extern "C" {
@@ -184,6 +185,7 @@ extern ml_type_t MLErrorT[];
 extern ml_type_t MLErrorValueT[];
 
 ml_value_t *ml_error(const char *Error, const char *Format, ...) __attribute__ ((format(printf, 2, 3)));
+ml_value_t *ml_errorv(const char *Error, const char *Format, va_list Args);
 const char *ml_error_type(ml_value_t *Value);
 const char *ml_error_message(ml_value_t *Value);
 int ml_error_trace(ml_value_t *Value, int Level, const char **Source, int *Line);
