@@ -125,12 +125,13 @@ end
 
 if MINILANG_MODULES or defined("MODULES") then
 	Objects:put(file("ml_module.o"))
+	CFLAGS := old + ["-DUSE_ML_MODULES"]
 	if PLATFORM = "Linux" then
 		Objects:put(file("ml_library.o"))
 		LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={file("exports.lst")}']
+		subdir("lib")
 	end
-	CFLAGS := old + ["-DUSE_ML_MODULES"]
-	subdir("lib")
+	
 end
 
 if PLATFORM = "Linux" then
