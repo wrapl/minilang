@@ -2,6 +2,7 @@
 #include "ml_macros.h"
 #include "ml_compiler.h"
 #include "stringmap.h"
+#include "sha256.h"
 #include <gc/gc.h>
 #include <ctype.h>
 #include "ml_bytecode.h"

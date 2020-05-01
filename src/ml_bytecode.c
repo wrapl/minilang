@@ -594,8 +594,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			int LineNo = Inst->LineNo;
 			if (Breakpoints[LineNo / SIZE_BITS] & (1 << LineNo % SIZE_BITS)) goto DO_BREAKPOINT;
 			if (Debugger->StepIn) goto DO_BREAKPOINT;
-			if (Debugger->StepOverFrame == Frame) goto DO_BREAKPOINT;
-			if (Inst->Opcode == MLI_RETURN && Debugger->StepOutFrame == Frame) goto DO_BREAKPOINT;
+			if (Debugger->StepOverFrame == (ml_state_t *)Frame) goto DO_BREAKPOINT;
+			if (Inst->Opcode == MLI_RETURN && Debugger->StepOutFrame == (ml_state_t *)Frame) goto DO_BREAKPOINT;
 		}
 		goto *Labels[Inst->Opcode];
 	}
@@ -610,7 +610,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			Frame->Inst = Inst;
 			Frame->Top = Top;
 			Frame->Reentry = 1;
-			return Debugger->run(Debugger, Frame, Result);
+			return Debugger->run(Debugger, (ml_state_t *)Frame, Result);
 		} else {
 			goto *Labels[Inst->Opcode];
 		}
@@ -814,7 +814,8 @@ static long ml_closure_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
 	long Hash = 0;
 	long *P = (long *)Closure->Info->Hash;
-	while (P < (Closure->Info->Hash + SHA256_BLOCK_SIZE)) Hash ^= *P++;
+	long *Q = (long *)(Closure->Info->Hash + SHA256_BLOCK_SIZE);
+	while (P < Q) Hash ^= *P++;
 	for (int I = 0; I < Closure->Info->NumUpValues; ++I) {
 		Hash ^= ml_hash_chain(Closure->UpValues[I], Chain) << I;
 	}

@@ -8,8 +8,6 @@
 extern "C" {
 #endif
 
-#include "sha256.h"
-
 typedef struct ml_closure_t ml_closure_t;
 typedef struct ml_closure_info_t ml_closure_info_t;
 typedef struct ml_inst_t ml_inst_t;
@@ -19,6 +17,8 @@ extern ml_type_t MLClosureT[];
 #define ML_PARAM_DEFAULT 0
 #define ML_PARAM_EXTRA 1
 #define ML_PARAM_NAMED 2
+
+#define SHA256_BLOCK_SIZE 32
 
 struct ml_closure_info_t {
 	ml_inst_t *Entry, *Return;

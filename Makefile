@@ -49,7 +49,8 @@ common_objects = \
 	obj/sha256.o \
 	obj/stringmap.o \
 	obj/ml_console.o \
-	obj/ml_object.o
+	obj/ml_object.o \
+	obj/ml_debugger.o
 
 platform_objects =
 

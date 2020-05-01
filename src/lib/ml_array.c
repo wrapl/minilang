@@ -19,7 +19,7 @@ ml_type_t *MLArrayFloat32T;
 ml_type_t *MLArrayFloat64T;
 
 size_t MLArraySizes[] = {
-	[ML_ARRAY_FORMAT_NONE] = 0,
+	[ML_ARRAY_FORMAT_NONE] = sizeof(ml_value_t *),
 	[ML_ARRAY_FORMAT_I8] = sizeof(int8_t),
 	[ML_ARRAY_FORMAT_U8] = sizeof(uint8_t),
 	[ML_ARRAY_FORMAT_I16] = sizeof(int16_t),
@@ -36,7 +36,7 @@ size_t MLArraySizes[] = {
 ml_array_t *ml_array_new(ml_array_format_t Format, int Degree) {
 	ml_type_t *Type = MLArrayT;
 	switch (Format) {
-	case ML_ARRAY_FORMAT_ANY: Type = MLArrayAnyT; break;
+	case ML_ARRAY_FORMAT_NONE: Type = MLArrayAnyT; break;
 	case ML_ARRAY_FORMAT_I8: Type = MLArrayInt8T; break;
 	case ML_ARRAY_FORMAT_U8: Type = MLArrayUInt8T; break;
 	case ML_ARRAY_FORMAT_I16: Type = MLArrayInt16T; break;
@@ -47,6 +47,7 @@ ml_array_t *ml_array_new(ml_array_format_t Format, int Degree) {
 	case ML_ARRAY_FORMAT_U64: Type = MLArrayUInt64T; break;
 	case ML_ARRAY_FORMAT_F32: Type = MLArrayFloat32T; break;
 	case ML_ARRAY_FORMAT_F64: Type = MLArrayFloat64T; break;
+	case ML_ARRAY_FORMAT_ANY: Type = MLArrayAnyT; break;
 	};
 	ml_array_t *Array = xnew(ml_array_t, Degree, ml_array_dimension_t);
 	Array->Base.Type = Type;
@@ -1111,7 +1112,7 @@ static ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, ml_array_fo
 			if (Dimension[I].Size != Source->Dimensions[I].Size) return ml_error("Error", "Incompatible assignment"); \
 		} \
 		switch (Format) { \
-		case ML_ARRAY_FORMAT_ANY: return ml_error("ImplementationError", "Not implemented yet!"); \
+		case ML_ARRAY_FORMAT_NONE: return ml_error("ImplementationError", "Not implemented yet!"); \
 		case ML_ARRAY_FORMAT_I8: set_array_int8_t_ ## CTYPE(Dimension, Address, Degree, Source->Dimensions, Source->Base.Address); break; \
 		case ML_ARRAY_FORMAT_U8: set_array_uint8_t_ ## CTYPE(Dimension, Address, Degree, Source->Dimensions, Source->Base.Address); break; \
 		case ML_ARRAY_FORMAT_I16: set_array_int16_t_ ## CTYPE(Dimension, Address, Degree, Source->Dimensions, Source->Base.Address); break; \
@@ -1122,6 +1123,7 @@ static ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, ml_array_fo
 		case ML_ARRAY_FORMAT_U64: set_array_uint64_t_ ## CTYPE(Dimension, Address, Degree, Source->Dimensions, Source->Base.Address); break; \
 		case ML_ARRAY_FORMAT_F32: set_array_float_ ## CTYPE(Dimension, Address, Degree, Source->Dimensions, Source->Base.Address); break; \
 		case ML_ARRAY_FORMAT_F64: set_array_double_ ## CTYPE(Dimension, Address, Degree, Source->Dimensions, Source->Base.Address); break; \
+		case ML_ARRAY_FORMAT_ANY: return ml_error("ImplementationError", "Not implemented yet!"); \
 		} \
 
 static ml_value_t *ml_array_of_fill(ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_value_t *Value) {
@@ -1155,7 +1157,7 @@ static ml_value_t *ml_array_of_fill(ml_array_format_t Format, ml_array_dimension
 	} else {
 		if (Degree) return ml_error("ValueError", "Inconsistent depth in array");
 		switch (Format) {
-		case ML_ARRAY_FORMAT_ANY: *(ml_value_t **)Address = Value; break;
+		case ML_ARRAY_FORMAT_NONE: break;
 		case ML_ARRAY_FORMAT_I8: *(int8_t *)Address = ml_integer_value(Value); break;
 		case ML_ARRAY_FORMAT_U8: *(uint8_t *)Address = ml_integer_value(Value); break;
 		case ML_ARRAY_FORMAT_I16: *(int16_t *)Address = ml_integer_value(Value); break;
@@ -1166,6 +1168,7 @@ static ml_value_t *ml_array_of_fill(ml_array_format_t Format, ml_array_dimension
 		case ML_ARRAY_FORMAT_U64: *(uint64_t *)Address = ml_integer_value(Value); break;
 		case ML_ARRAY_FORMAT_F32: *(float *)Address = ml_real_value(Value); break;
 		case ML_ARRAY_FORMAT_F64: *(double *)Address = ml_real_value(Value); break;
+		case ML_ARRAY_FORMAT_ANY: *(ml_value_t **)Address = Value; break;
 		}
 	}
 	return NULL;

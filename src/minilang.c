@@ -73,15 +73,6 @@ static ml_value_t *ml_throw(void *Data, int Count, ml_value_t **Args) {
 
 extern int MLDebugClosures;
 
-static ml_value_t *ml_debug(void *Data, int Count, ml_value_t **Args) {
-	if (Count > 0 && Args[0] == MLNil) {
-		MLDebugClosures = 0;
-	} else {
-		MLDebugClosures = 1;
-	}
-	return MLNil;
-}
-
 static ml_value_t *ml_break(void *Data, int Count, ml_value_t **Args) {
 #ifdef DEBUG
 	asm("int3");
@@ -199,7 +190,9 @@ int main(int Argc, const char *Argv[]) {
 #endif
 	ml_value_t *Args = ml_list();
 	const char *FileName = 0;
+#ifdef USE_ML_MODULES
 	const char *ModuleName = 0;
+#endif
 	for (int I = 1; I < Argc; ++I) {
 		if (Argv[I][0] == '-') {
 			switch (Argv[I][1]) {

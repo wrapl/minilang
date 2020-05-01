@@ -1,5 +1,6 @@
 #include "ml_debugger.h"
 #include "ml_runtime.h"
+#include "ml_compiler.h"
 #include "ml_macros.h"
 #include <string.h>
 #include <stdlib.h>
@@ -196,21 +197,21 @@ static void interactive_debugger_fnx(ml_state_t *Caller, interactive_debugger_in
 	ML_CHECKX_ARG_COUNT(1);
 
 	interactive_debugger_t *Debugger = new(interactive_debugger_t);
-	Debugger->Base.run = debugger_run;
-	Debugger->Base.breakpoints = debugger_breakpoints;
+	Debugger->Base.run = (void *)debugger_run;
+	Debugger->Base.breakpoints = (void *)debugger_breakpoints;
 	Debugger->Base.Revision = 1;
 	Debugger->Base.StepIn = 1;
 	Debugger->Base.BreakOnError = 1;
 	Debugger->Info = Info;
-	stringmap_insert(Debugger->Globals, "break", ml_function(Debugger, debugger_break));
-	stringmap_insert(Debugger->Globals, "continue", ml_functionx(Debugger, debugger_continue));
-	stringmap_insert(Debugger->Globals, "step_in", ml_functionx(Debugger, debugger_step_in));
-	stringmap_insert(Debugger->Globals, "step_over", ml_functionx(Debugger, debugger_step_over));
-	stringmap_insert(Debugger->Globals, "step_out", ml_functionx(Debugger, debugger_step_out));
-	stringmap_insert(Debugger->Globals, "locals", ml_function(Debugger, debugger_locals));
-	stringmap_insert(Debugger->Globals, "frames", ml_function(Debugger, debugger_frames));
-	stringmap_insert(Debugger->Globals, "frame_up", ml_function(Debugger, debugger_frame_up));
-	stringmap_insert(Debugger->Globals, "frame_down", ml_function(Debugger, debugger_frame_down));
+	stringmap_insert(Debugger->Globals, "break", ml_function(Debugger, (void *)debugger_break));
+	stringmap_insert(Debugger->Globals, "continue", ml_functionx(Debugger, (void *)debugger_continue));
+	stringmap_insert(Debugger->Globals, "step_in", ml_functionx(Debugger, (void *)debugger_step_in));
+	stringmap_insert(Debugger->Globals, "step_over", ml_functionx(Debugger, (void *)debugger_step_over));
+	stringmap_insert(Debugger->Globals, "step_out", ml_functionx(Debugger, (void *)debugger_step_out));
+	stringmap_insert(Debugger->Globals, "locals", ml_function(Debugger, (void *)debugger_locals));
+	stringmap_insert(Debugger->Globals, "frames", ml_function(Debugger, (void *)debugger_frames));
+	stringmap_insert(Debugger->Globals, "frame_up", ml_function(Debugger, (void *)debugger_frame_up));
+	stringmap_insert(Debugger->Globals, "frame_down", ml_function(Debugger, (void *)debugger_frame_down));
 
 	ml_context_t *Context = ml_context_new(Caller->Context);
 	ml_context_set(Context, ML_DEBUGGER_INDEX, Debugger);

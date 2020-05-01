@@ -74,7 +74,7 @@ typedef struct {
 	mlc_scanner_t *Scanner;
 } ml_console_repl_state_t;
 
-ml_value_t MLConsoleBreak[1] = {MLAnyT};
+ml_value_t MLConsoleBreak[1] = {{MLAnyT}};
 
 static void ml_console_log(void *Data, ml_value_t *Value) {
 	if (Value->Type == MLErrorT) {
@@ -97,7 +97,7 @@ static void ml_console_repl_run(ml_console_repl_state_t *State, ml_value_t *Resu
 	State->Console->Prompt = State->Console->DefaultPrompt;
 	Result = Result->Type->deref(Result);
 	ml_console_log(NULL, Result);
-	return ml_command_evaluate(State, State->Scanner, State->Console->Globals);
+	return ml_command_evaluate((ml_state_t *)State, State->Scanner, State->Console->Globals);
 }
 
 typedef struct {
@@ -115,7 +115,7 @@ static void ml_console_debug_enter(ml_console_t *Console, interactive_debugger_t
 	ml_console_debugger_t *ConsoleDebugger = new(ml_console_debugger_t);
 	ConsoleDebugger->Console = Console;
 	ConsoleDebugger->Debugger = Debugger;
-	ml_console(ml_console_debugger_get, ConsoleDebugger, "\e[34m>>>\e[0m ", "\e[34m...\e[0m ");
+	ml_console((void *)ml_console_debugger_get, ConsoleDebugger, "\e[34m>>>\e[0m ", "\e[34m...\e[0m ");
 	interactive_debugger_resume(Debugger);
 }
 
@@ -131,8 +131,8 @@ void ml_console(ml_getter_t GlobalGet, void *Globals, const char *DefaultPrompt,
 		{STRINGMAP_INIT}
 	}};
 	stringmap_insert(Console->Globals, "debug", interactive_debugger(
-		ml_console_debug_enter,
-		ml_console_debug_exit,
+		(void *)ml_console_debug_enter,
+		(void *)ml_console_debug_exit,
 		ml_console_log,
 		Console,
 		(ml_getter_t)ml_console_global_get,
@@ -140,9 +140,9 @@ void ml_console(ml_getter_t GlobalGet, void *Globals, const char *DefaultPrompt,
 	));
 	mlc_scanner_t *Scanner = ml_scanner("<console>", Console, (void *)ml_console_line_read, (ml_getter_t)ml_console_global_get, Console);
 	ml_console_repl_state_t *State = new(ml_console_repl_state_t);
-	State->Base.run = ml_console_repl_run;
+	State->Base.run = (void *)ml_console_repl_run;
 	State->Base.Context = &MLRootContext;
 	State->Console = Console;
 	State->Scanner = Scanner;
-	ml_command_evaluate(State, Scanner, Console->Globals);
+	ml_command_evaluate((ml_state_t *)State, Scanner, Console->Globals);
 }

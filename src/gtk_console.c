@@ -236,7 +236,7 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 
 static void console_debug_enter(console_t *Console, interactive_debugger_t *Debugger) {
 	console_debugger_t *ConsoleDebugger = new(console_debugger_t);
-	ConsoleDebugger->Prev = ConsoleDebugger->Debugger;
+	ConsoleDebugger->Prev = ConsoleDebugger;
 	ConsoleDebugger->Debugger = Debugger;
 	Console->Debugger = ConsoleDebugger;
 }
@@ -698,9 +698,9 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	stringmap_insert(Console->Globals, "LogView", ml_gir_instance_get(Console->LogView));
 
 	stringmap_insert(Console->Globals, "debug", interactive_debugger(
-		console_debug_enter,
-		console_debug_exit,
-		console_log,
+		(void *)console_debug_enter,
+		(void *)console_debug_exit,
+		(void *)console_log,
 		Console,
 		(ml_getter_t)console_global_get,
 		Console

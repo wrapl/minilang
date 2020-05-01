@@ -38,7 +38,7 @@ static void ml_class_call(ml_state_t *Caller, ml_class_t *Class, int Count, ml_v
 					}
 				}
 				ML_RETURN(ml_error("ValueError", "Class %s does not have field %s", Class->Base.Name, ml_method_name(Field)));
-				found: 0;
+				found:;
 			}
 			break;
 		} else if (I > Class->NumFields) {

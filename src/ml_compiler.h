@@ -21,6 +21,8 @@ void ml_scanner_error(mlc_scanner_t *Scanner, const char *Error, const char *For
 void ml_function_compile(ml_state_t *Caller, mlc_scanner_t *Scanner, const char **Parameters);
 void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t *Vars);
 
+void ml_load(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]);
+
 #ifdef	__cplusplus
 }
 #endif
