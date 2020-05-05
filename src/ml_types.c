@@ -205,6 +205,10 @@ int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
 	return 0;
 }
 
+ML_METHOD("isa", MLAnyT, MLTypeT) {
+	return ml_is(Args[0], Args[1]) ? Args[0] : MLNil;
+}
+
 long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	Value = Value->Type->deref(Value);
 	for (ml_hash_chain_t *Link = Chain; Link; Link = Link->Previous) {
