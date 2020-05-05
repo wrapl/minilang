@@ -55,7 +55,7 @@ void ml_eval_state_run(ml_value_state_t *State, ml_value_t *Value);
 #define ML_EVAL_STATE_INIT {{MLStateT, NULL, (ml_state_fn)ml_eval_state_run, &MLRootContext}, MLNil}
 
 #define ML_WRAP_EVAL(FUNCTION, ARGS...) ({ \
-	ml_value_state_t State[1] = ML_EVAL_STATE_INIT; \
+	ml_value_state_t State[1] = {ML_EVAL_STATE_INIT}; \
 	FUNCTION((ml_state_t *)State, ARGS); \
 	State->Value; \
 })
@@ -65,7 +65,7 @@ void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value);
 #define ML_CALL_STATE_INIT {{MLStateT, NULL, (ml_state_fn)ml_call_state_run, &MLRootContext}, MLNil}
 
 #define ML_WRAP_CALL(FUNCTION, ARGS...) ({ \
-	ml_value_state_t State[1] = ML_CALL_STATE_INIT; \
+	ml_value_state_t State[1] = {ML_CALL_STATE_INIT}; \
 	FUNCTION((ml_state_t *)State, ARGS); \
 	State->Value; \
 })
