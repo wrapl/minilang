@@ -1,4 +1,4 @@
-#include "ml_array.h"
+#include "../ml_array.h"
 #include "../ml_macros.h"
 #include <stdint.h>
 #include <string.h>
@@ -1276,7 +1276,7 @@ ML_METHOD("copy", MLArrayT) {
 	ml_typed_fn_set(MLArray ## ATYPE ## T, ml_array_value, ml_array_ ## CTYPE ## _value); \
 }
 
-#include "ml_cbor.h"
+#include "../ml_cbor.h"
 
 static void ml_cbor_write_array_dim(int Degree, ml_array_dimension_t *Dimension, char *Address, char *Data, ml_cbor_write_fn WriteFn) {
 	if (Degree < 0) {

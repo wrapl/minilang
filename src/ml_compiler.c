@@ -1816,11 +1816,11 @@ static void ml_accept_eoi(mlc_scanner_t *Scanner) {
 static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner);
 static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner);
 
-static mlc_expr_t *ml_accept_fun_expr(mlc_scanner_t *Scanner) {
+static mlc_expr_t *ml_accept_fun_expr(mlc_scanner_t *Scanner, ml_token_t EndToken) {
 	mlc_fun_expr_t *FunExpr = new(mlc_fun_expr_t);
 	FunExpr->compile = ml_fun_expr_compile;
 	FunExpr->Source = Scanner->Source;
-	if (!ml_parse(Scanner, MLT_RIGHT_PAREN)) {
+	if (!ml_parse(Scanner, EndToken)) {
 		ml_decl_t **ParamSlot = &FunExpr->Params;
 		do {
 			ml_decl_t *Param = ParamSlot[0] = new(ml_decl_t);
@@ -1850,16 +1850,16 @@ static mlc_expr_t *ml_accept_fun_expr(mlc_scanner_t *Scanner) {
 				Param->Ident = Scanner->Ident;
 			}
 		} while (ml_parse(Scanner, MLT_COMMA));
-		ml_accept(Scanner, MLT_RIGHT_PAREN);
+		ml_accept(Scanner, EndToken);
 	}
 	FunExpr->Body = ml_accept_expression(Scanner, EXPR_DEFAULT);
 	FunExpr->End = Scanner->Source.Line;
 	return (mlc_expr_t *)FunExpr;
 }
 
-static void ml_accept_arguments(mlc_scanner_t *Scanner, mlc_expr_t **ArgsSlot) {
+static void ml_accept_arguments(mlc_scanner_t *Scanner, ml_token_t EndToken, mlc_expr_t **ArgsSlot) {
 	while (ml_parse(Scanner, MLT_EOL));
-	if (!ml_parse(Scanner, MLT_RIGHT_PAREN)) {
+	if (!ml_parse(Scanner, EndToken)) {
 		ml_value_t *Names = NULL;
 		if (ml_parse(Scanner, MLT_SEMICOLON)) goto has_params;
 		do {
@@ -1889,9 +1889,9 @@ static void ml_accept_arguments(mlc_scanner_t *Scanner, mlc_expr_t **ArgsSlot) {
 			}
 		} while (ml_parse(Scanner, MLT_COMMA));
 		if (ml_parse(Scanner, MLT_SEMICOLON)) has_params: {
-			ArgsSlot[0] = ml_accept_fun_expr(Scanner);
+			ArgsSlot[0] = ml_accept_fun_expr(Scanner, EndToken);
 		} else {
-			ml_accept(Scanner, MLT_RIGHT_PAREN);
+			ml_accept(Scanner, EndToken);
 		}
 	}
 }
@@ -2018,7 +2018,7 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 	case MLT_FUN: {
 		Scanner->Token = MLT_NONE;
 		ml_accept(Scanner, MLT_LEFT_PAREN);
-		return ml_accept_fun_expr(Scanner);
+		return ml_accept_fun_expr(Scanner, MLT_RIGHT_PAREN);
 	}
 	case MLT_SUSPEND: case MLT_SUSP: {
 		Scanner->Token = MLT_NONE;
@@ -2109,7 +2109,7 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 			TupleExpr->compile = ml_tuple_expr_compile;
 			TupleExpr->Source = Expr->Source;
 			TupleExpr->Child = Expr;
-			ml_accept_arguments(Scanner, &Expr->Next);
+			ml_accept_arguments(Scanner, MLT_RIGHT_PAREN, &Expr->Next);
 			Expr = (mlc_expr_t *)TupleExpr;
 		} else {
 			ml_accept(Scanner, MLT_RIGHT_PAREN);
@@ -2211,7 +2211,7 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 			CallExpr->compile = ml_call_expr_compile;
 			CallExpr->Source = Scanner->Source;
 			CallExpr->Child = Expr;
-			ml_accept_arguments(Scanner, &Expr->Next);
+			ml_accept_arguments(Scanner, MLT_RIGHT_PAREN, &Expr->Next);
 			Expr = (mlc_expr_t *)CallExpr;
 			break;
 		}
@@ -2223,14 +2223,7 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 			IndexExpr->Value = IndexMethod;
 			IndexExpr->Source = Scanner->Source;
 			IndexExpr->Child = Expr;
-			mlc_expr_t **ArgsSlot = &Expr->Next;
-			if (!ml_parse(Scanner, MLT_RIGHT_SQUARE)) {
-				do {
-					mlc_expr_t *Arg = ArgsSlot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
-					ArgsSlot = &Arg->Next;
-				} while (ml_parse(Scanner, MLT_COMMA));
-				ml_accept(Scanner, MLT_RIGHT_SQUARE);
-			}
+			ml_accept_arguments(Scanner, MLT_RIGHT_SQUARE, &Expr->Next);
 			Expr = (mlc_expr_t *)IndexExpr;
 			break;
 		}
@@ -2241,7 +2234,7 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 			CallExpr->Source = Scanner->Source;
 			CallExpr->Value = ml_method(Scanner->Ident);
 			CallExpr->Child = Expr;
-			if (ml_parse(Scanner, MLT_LEFT_PAREN)) ml_accept_arguments(Scanner, &Expr->Next);
+			if (ml_parse(Scanner, MLT_LEFT_PAREN)) ml_accept_arguments(Scanner, MLT_RIGHT_PAREN, &Expr->Next);
 			Expr = (mlc_expr_t *)CallExpr;
 			break;
 		}
@@ -2466,7 +2459,7 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 						DeclExpr->compile = ml_var_expr_compile;
 						DeclExpr->Source = Scanner->Source;
 						DeclExpr->Decl = Decl;
-						DeclExpr->Child = ml_accept_fun_expr(Scanner);
+						DeclExpr->Child = ml_accept_fun_expr(Scanner, MLT_RIGHT_PAREN);
 						ExprSlot[0] = (mlc_expr_t *)DeclExpr;
 						ExprSlot = &DeclExpr->Next;
 					}
@@ -2504,7 +2497,7 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 					DeclExpr->Source = Scanner->Source;
 					DeclExpr->Decl = Decl;
 					if (ml_parse(Scanner, MLT_LEFT_PAREN)) {
-						DeclExpr->Child = ml_accept_fun_expr(Scanner);
+						DeclExpr->Child = ml_accept_fun_expr(Scanner, MLT_RIGHT_PAREN);
 					} else {
 						ml_accept(Scanner, MLT_ASSIGN);
 						DeclExpr->Child = ml_accept_expression(Scanner, EXPR_DEFAULT);
@@ -2545,7 +2538,7 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 					DeclExpr->Source = Scanner->Source;
 					DeclExpr->Decl = Decl;
 					if (ml_parse(Scanner, MLT_LEFT_PAREN)) {
-						DeclExpr->Child = ml_accept_fun_expr(Scanner);
+						DeclExpr->Child = ml_accept_fun_expr(Scanner, MLT_RIGHT_PAREN);
 					} else {
 						ml_accept(Scanner, MLT_ASSIGN);
 						DeclExpr->Child = ml_accept_expression(Scanner, EXPR_DEFAULT);
@@ -2564,12 +2557,12 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 				DeclExpr->compile = ml_let_expr_compile;
 				DeclExpr->Source = Scanner->Source;
 				DeclExpr->Decl = Decl;
-				DeclExpr->Child = ml_accept_fun_expr(Scanner);
+				DeclExpr->Child = ml_accept_fun_expr(Scanner, MLT_RIGHT_PAREN);
 				ExprSlot[0] = (mlc_expr_t *)DeclExpr;
 				ExprSlot = &DeclExpr->Next;
 			} else {
 				ml_accept(Scanner, MLT_LEFT_PAREN);
-				mlc_expr_t *Expr = ml_accept_fun_expr(Scanner);
+				mlc_expr_t *Expr = ml_accept_fun_expr(Scanner, MLT_RIGHT_PAREN);
 				ExprSlot[0] = Expr;
 				ExprSlot = &Expr->Next;
 			}
@@ -2649,7 +2642,7 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 			}
 			mlc_expr_t *Expr;
 			if (ml_parse(Scanner, MLT_LEFT_PAREN)) {
-				Expr = ml_accept_fun_expr(Scanner);
+				Expr = ml_accept_fun_expr(Scanner, MLT_RIGHT_PAREN);
 			} else {
 				ml_accept(Scanner, MLT_ASSIGN);
 				Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
@@ -2672,7 +2665,7 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 				Slot[0] = (ml_value_t *)Ref;
 			}
 			ml_accept(Scanner, MLT_LEFT_PAREN);
-			mlc_expr_t *Expr = ml_accept_fun_expr(Scanner);
+			mlc_expr_t *Expr = ml_accept_fun_expr(Scanner, MLT_RIGHT_PAREN);
 			Result = ml_compile(Expr, NULL, Scanner->Context);
 			if (Result->Type == MLErrorT) ML_RETURN(Result);
 			Result = ml_call(Result, 0, NULL);
@@ -2681,7 +2674,7 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 			Slot[0] = Result;
 		} else {
 			ml_accept(Scanner, MLT_LEFT_PAREN);
-			mlc_expr_t *Expr = ml_accept_fun_expr(Scanner);
+			mlc_expr_t *Expr = ml_accept_fun_expr(Scanner, MLT_RIGHT_PAREN);
 			Result = ml_compile(Expr, NULL, Scanner->Context);
 			if (Result->Type == MLErrorT) ML_RETURN(Result);
 			Result = ml_call(Result, 0, NULL);

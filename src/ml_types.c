@@ -2312,7 +2312,7 @@ static void ml_map_rebalance(ml_map_node_t **Slot) {
 	}
 }
 
-static ml_value_t *ml_map_insert_internal(ml_map_t *Map, ml_map_node_t **Slot, long Hash, ml_value_t *Key, ml_value_t *Value) {
+static ml_map_node_t *ml_map_node(ml_map_t *Map, ml_map_node_t **Slot, long Hash, ml_value_t *Key) {
 	if (!Slot[0]) {
 		++Map->Size;
 		ml_map_node_t *Node = Slot[0] = new(ml_map_node_t);
@@ -2327,8 +2327,7 @@ static ml_value_t *ml_map_insert_internal(ml_map_t *Map, ml_map_node_t **Slot, l
 		Node->Depth = 1;
 		Node->Hash = Hash;
 		Node->Key = Key;
-		Node->Value = Value;
-		return NULL;
+		return Node;
 	}
 	int Compare;
 	if (Hash < Slot[0]->Hash) {
@@ -2347,20 +2346,21 @@ static ml_value_t *ml_map_insert_internal(ml_map_t *Map, ml_map_node_t **Slot, l
 		}
 	}
 	if (!Compare) {
-		ml_value_t *Old = Slot[0]->Value;
-		Slot[0]->Value = Value;
-		return Old;
+		return Slot[0];
 	} else {
-		ml_value_t *Old = ml_map_insert_internal(Map, Compare < 0 ? &Slot[0]->Left : &Slot[0]->Right, Hash, Key, Value);
+		ml_map_node_t *Node = ml_map_node(Map, Compare < 0 ? &Slot[0]->Left : &Slot[0]->Right, Hash, Key);
 		ml_map_rebalance(Slot);
 		ml_map_update_depth(Slot[0]);
-		return Old;
+		return Node;
 	}
 }
 
 ml_value_t *ml_map_insert(ml_value_t *Map0, ml_value_t *Key, ml_value_t *Value) {
 	ml_map_t *Map = (ml_map_t *)Map0;
-	return ml_map_insert_internal(Map, &Map->Root, Key->Type->hash(Key, NULL), Key, Value);
+	ml_map_node_t *Node = ml_map_node(Map, &Map->Root, Key->Type->hash(Key, NULL), Key);
+	ml_value_t *Old = Node->Value ?: MLNil;
+	Node->Value = Value;
+	return Old;
 }
 
 static void ml_map_remove_depth_helper(ml_map_node_t *Node) {
@@ -2469,6 +2469,38 @@ ML_METHOD("[]", MLMapT, MLAnyT) {
 	Index->Map = Args[0];
 	Index->Key = Args[1];
 	return (ml_value_t *)Index;
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t **Ref;
+} ml_ref_state_t;
+
+static void ml_node_state_run(ml_ref_state_t *State, ml_value_t *Value) {
+	if (Value->Type == MLErrorT) {
+		ML_CONTINUE(State->Base.Caller, Value);
+	} else {
+		State->Ref[0] = Value;
+		ML_CONTINUE(State->Base.Caller, ml_reference(State->Ref));
+	}
+}
+
+ML_METHODX("[]", MLMapT, MLAnyT, MLAnyT) {
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_value_t *Key = Args[1];
+	ml_map_node_t *Node = ml_map_node(Map, &Map->Root, Key->Type->hash(Key, NULL), Key);
+	if (!Node->Value) {
+		Node->Value = MLNil;
+		ml_ref_state_t *State = new(ml_ref_state_t);
+		State->Base.Caller = Caller;
+		State->Base.Context = Caller->Context;
+		State->Base.run = (void *)ml_node_state_run;
+		State->Ref = &Node->Value;
+		ml_value_t *Function = Args[2];
+		return Function->Type->call((ml_state_t *)State, Function, 0, NULL);
+	} else {
+		ML_RETURN(ml_reference(&Node->Value));
+	}
 }
 
 ML_METHOD("::", MLMapT, MLStringT) {
