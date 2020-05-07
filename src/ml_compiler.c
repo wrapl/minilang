@@ -1915,6 +1915,15 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 	case MLT_NOT:
 	case MLT_WHILE:
 	case MLT_UNTIL:
+	{
+		mlc_parent_expr_t *ParentExpr = new(mlc_parent_expr_t);
+		ParentExpr->compile = CompileFns[Scanner->Token];
+		Scanner->Token = MLT_NONE;
+		ParentExpr->Source = Scanner->Source;
+		ParentExpr->Child = ml_accept_expression(Scanner, EXPR_DEFAULT);
+		ParentExpr->End = Scanner->Source.Line;
+		return (mlc_expr_t *)ParentExpr;
+	}
 	case MLT_EXIT:
 	case MLT_RETURN: case MLT_RET:
 	{
@@ -1922,7 +1931,7 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 		ParentExpr->compile = CompileFns[Scanner->Token];
 		Scanner->Token = MLT_NONE;
 		ParentExpr->Source = Scanner->Source;
-		ParentExpr->Child = ml_accept_expression(Scanner, EXPR_DEFAULT);
+		ParentExpr->Child = ml_parse_expression(Scanner, EXPR_DEFAULT);
 		ParentExpr->End = Scanner->Source.Line;
 		return (mlc_expr_t *)ParentExpr;
 	}
