@@ -363,7 +363,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLStringT, ml_value_t *Arg, void *Data, m
 
 static void ML_TYPED_FN(ml_cbor_write, MLListT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	ml_cbor_write_array(Data, WriteFn, ml_list_length(Arg));
-	for (ml_list_node_t *Node = ml_list_head(Arg); Node; Node = Node->Next) {
+	ML_LIST_FOREACH(Arg, Node) {
 		ml_cbor_write(Node->Value, Data, WriteFn);
 	}
 }

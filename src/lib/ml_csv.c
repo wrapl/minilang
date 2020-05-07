@@ -58,8 +58,9 @@ ML_METHOD("read", CsvT) {
 
 ML_METHOD("write", CsvT, MLListT) {
 	csv_t *Csv = (csv_t *)Args[0];
-	ml_list_t *Values = (ml_list_t *)Args[1];
-	for (ml_list_node_t *Node = Values->Head; Node; Node = Node->Next) {
+	int Comma = 0;
+	ML_LIST_FOREACH(Args[1], Node) {
+		if (Comma) fputc(',', Csv->File);
 		ml_value_t *Field = Node->Value;
 		if (Field->Type != MLStringT) {
 			Field = ml_call(MLStringOfMethod, 1, &Field);
@@ -67,7 +68,7 @@ ML_METHOD("write", CsvT, MLListT) {
 			if (Field->Type != MLStringT) return ml_error("ResultError", "string method did not return string");
 		}
 		csv_fwrite(Csv->File, ml_string_value(Field), ml_string_length(Field));
-		if (Node->Next) fputc(',', Csv->File);
+		Comma = 1;
 	}
 	fputc('\n', Csv->File);
 	return Args[0];

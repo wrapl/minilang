@@ -173,10 +173,10 @@ static void ml_array_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value
 	if (Args[1]->Type == MLListT) {
 		int Degree = ml_list_length(Args[1]);
 		Array = ml_array_new(Format, Degree);
-		ml_list_node_t *Node = ml_list_head(Args[1]);
-		for (int I = 0; I < Degree; ++I, Node = Node->Next) {
+		int I = 0;
+		ML_LIST_FOREACH(Args[1], Node) {
 			if (Node->Value->Type != MLIntegerT) ML_RETURN(ml_error("TypeError", "Dimension is not an integer"));
-			Array->Dimensions[I].Size = ml_integer_value(Node->Value);
+			Array->Dimensions[I++].Size = ml_integer_value(Node->Value);
 		}
 	} else {
 		int Degree = Count - 1;
@@ -239,15 +239,13 @@ ml_value_t *ml_array_wrap_fn(void *Data, int Count, ml_value_t **Args) {
 	int Degree = ml_list_length(Args[2]);
 	if (Degree != ml_list_length(Args[3])) return ml_error("ValueError", "Dimensions and strides must have same length");
 	ml_array_t *Array = ml_array_new(Format, Degree);
-	ml_list_node_t *SizeNode = ml_list_head(Args[2]);
-	ml_list_node_t *StrideNode = ml_list_head(Args[3]);
 	for (int I = 0; I < Degree; ++I) {
-		if (SizeNode->Value->Type != MLIntegerT) return ml_error("TypeError", "Dimension is not an integer");
-		if (StrideNode->Value->Type != MLIntegerT) return ml_error("TypeError", "Stride is not an integer");
-		Array->Dimensions[I].Size = ml_integer_value(SizeNode->Value);
-		Array->Dimensions[I].Stride = ml_integer_value(StrideNode->Value);
-		SizeNode = SizeNode->Next;
-		StrideNode = StrideNode->Next;
+		ml_value_t *Size = ml_list_get(Args[2], I + 1);
+		ml_value_t *Stride = ml_list_get(Args[3], I + 1);
+		if (Size->Type != MLIntegerT) return ml_error("TypeError", "Dimension is not an integer");
+		if (Stride->Type != MLIntegerT) return ml_error("TypeError", "Stride is not an integer");
+		Array->Dimensions[I].Size = ml_integer_value(Size);
+		Array->Dimensions[I].Stride = ml_integer_value(Stride);
 	}
 	Array->Base.Address = ((ml_buffer_t *)Args[1])->Address;
 	Array->Base.Size = ((ml_buffer_t *)Args[1])->Size;
@@ -301,14 +299,13 @@ ML_METHOD("permute", MLArrayT, MLListT) {
 	int Degree = Source->Degree;
 	if (ml_list_length(Args[1]) != Degree) return ml_error("Error", "List length must match degree");
 	ml_array_t *Target = ml_array_new(Source->Format, Degree);
-	ml_list_node_t *Node = ml_list_head(Args[1]);
-	for (int I = 0; I < Degree; ++I) {
+	int I = 0;
+	ML_LIST_FOREACH(Args[1], Node) {
 		if (Node->Value->Type != MLIntegerT) return ml_error("Error", "Invalid index");
 		int J = ml_integer_value(Node->Value);
 		if (J <= 0) J += Degree + 1;
 		if (J < 1 || J > Degree) return ml_error("Error", "Invalid index");
-		Target->Dimensions[I] = Source->Dimensions[J - 1];
-		Node = Node->Next;
+		Target->Dimensions[I++] = Source->Dimensions[J - 1];
 	}
 	Target->Base = Source->Base;
 	return (ml_value_t *)Target;
@@ -359,7 +356,7 @@ static ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **In
 			int Size = TargetDimension->Size = ml_list_length(Index);
 			int *Indices = TargetDimension->Indices = (int *)GC_MALLOC_ATOMIC(Size * sizeof(int));
 			int *IndexPtr = Indices;
-			for (ml_list_node_t *Node = ml_list_head(Index); Node; Node = Node->Next) {
+			ML_LIST_FOREACH(Index, Node) {
 				int IndexValue = ml_integer_value(Node->Value);
 				if (IndexValue <= 0) IndexValue += SourceDimension->Size + 1;
 				if (--IndexValue < 0) return MLNil;
@@ -1332,13 +1329,10 @@ static void ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char *Data, 
 
 static ml_value_t *ml_cbor_read_multi_array_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_TYPE(0, MLListT);
-	ml_list_node_t *Node = ml_list_head(Args[0]);
-	if (!Node) return ml_error("CborError", "Invalid multi-dimensional array");
-	ml_value_t *Dimensions = Node->Value;
+	if (ml_list_length(Args[0]) != 2) return ml_error("CborError", "Invalid multi-dimensional array");
+	ml_value_t *Dimensions = ml_list_get(Args[0], 1);
 	if (Dimensions->Type != MLListT) return ml_error("CborError", "Invalid multi-dimensional array");
-	Node = Node->Next;
-	if (!Node) return ml_error("CborError", "Invalid multi-dimensional array");
-	ml_array_t *Source = (ml_array_t *)Node->Value;
+	ml_array_t *Source = (ml_array_t *)ml_list_get(Args[0], 2);
 	if (!ml_is((ml_value_t *)Source, MLArrayT)) return ml_error("CborError", "Invalid multi-dimensional array");
 	ml_array_t *Target = ml_array_new(Source->Format, ml_list_length(Dimensions));
 	ml_array_dimension_t *Dimension = Target->Dimensions + Target->Degree;

@@ -661,25 +661,14 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	}
 	if (Info->ExtraArgs) {
 		ml_reference_t *Local = (ml_reference_t *)ml_reference(NULL);
-		ml_list_t *Rest = new(ml_list_t);
-		Rest->Type = MLListT;
-		int Length = 0;
-		ml_list_node_t **Next = &Rest->Head;
-		ml_list_node_t *Prev = 0;
+		ml_value_t *Rest = ml_list();
 		for (; I < Count; ++I) {
 			ml_value_t *Arg = Args[I]->Type->deref(Args[I]);
 			if (Arg->Type == MLErrorT) ML_RETURN(Arg);
 			if (Arg->Type == MLNamesT) break;
-			ml_list_node_t *Node = new(ml_list_node_t);
-			Node->Value = Arg;
-			Node->Prev = Prev;
-			Next[0] = Prev = Node;
-			Next = &Node->Next;
-			++Length;
+			ml_list_put(Rest, Arg);
 		}
-		Rest->Tail = Prev;
-		Rest->Length = Length;
-		Local->Value[0] = (ml_value_t *)Rest;
+		Local->Value[0] = Rest;
 		Frame->Stack[NumParams] = (ml_value_t *)Local;
 		++NumParams;
 	}
@@ -1162,7 +1151,7 @@ ML_METHOD("!!", MLClosureT, MLListT) {
 	memcpy(Partial, Closure, sizeof(ml_closure_t) + NumUpValues * sizeof(ml_value_t *));
 	Partial->PartialCount += ArgsList->Length;
 	ml_value_t **Arg = Partial->UpValues + NumUpValues;
-	for (ml_list_node_t *Node = ArgsList->Head; Node; Node = Node->Next) *Arg++ = Node->Value;
+	ML_LIST_FOREACH(ArgsList, Node) *Arg++ = Node->Value;
 	return (ml_value_t *)Partial;
 }
 

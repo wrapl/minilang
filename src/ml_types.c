@@ -206,7 +206,7 @@ int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
 }
 
 ML_METHOD("isa", MLAnyT, MLTypeT) {
-	return ml_is(Args[0], Args[1]) ? Args[0] : MLNil;
+	return ml_is(Args[0], (ml_type_t *)Args[1]) ? Args[0] : MLNil;
 }
 
 long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain) {
@@ -1809,113 +1809,141 @@ static void ml_list_call(ml_state_t *Caller, ml_list_t *List, int Count, ml_valu
 	if (Arg->Type == MLErrorT) ML_RETURN(Arg);
 	if (Arg->Type != MLIntegerT) ML_RETURN(ml_error("TypeError", "List index must be an integer"));
 	long Index = ((ml_integer_t *)Args[0])->Value;
-	ml_value_t *Value = MLNil;
-	if (Index > 0) {
-		for (ml_list_node_t *Node = List->Head; Node; Node = Node->Next) {
-			if (--Index == 0) {
-				Value = Node->Value;
-				break;
-			}
-		}
-	} else {
-		Index = -Index;
-		for (ml_list_node_t *Node = List->Tail; Node; Node = Node->Prev) {
-			if (--Index == 0) {
-				Value = Node->Value;
-				break;
-			}
-		}
-	}
-	if (Count > 1) return Value->Type->call(Caller, Value, Count - 1, Args + 1);
-	ML_RETURN(Value);
+	if (--Index < 0) Index += List->Length + 1;
+	if (Index < 0 || Index >= List->Length) ML_RETURN(MLNil);
+	ML_RETURN(ml_reference(&List->Head[Index].Value));
 }
 
 ML_TYPE(MLListT, MLFunctionT, "list",
 	.call = (void *)ml_list_call
 );
 
+#define ML_LIST_SIZE 8
+
 ml_value_t *ml_list() {
 	ml_list_t *List = new(ml_list_t);
 	List->Type = MLListT;
+	List->Nodes = anew(ml_list_node_t, ML_LIST_SIZE * 2);
+	List->Head = List->Nodes + ML_LIST_SIZE;
+	List->Tail = List->Head;
+	List->Space = ML_LIST_SIZE;
+	List->Length = 0;
 	return (ml_value_t *)List;
 }
 
-int ml_list_length(ml_value_t *Value) {
-	return ((ml_list_t *)Value)->Length;
+ml_value_t *ml_list_copy(ml_list_node_t *Nodes, int Length) {
+	ml_list_t *List = new(ml_list_t);
+	List->Type = MLListT;
+	int Size = (Length + ML_LIST_SIZE - 1) & ~ML_LIST_SIZE;
+	List->Nodes = anew(ml_list_node_t, Size);
+	List->Head = List->Nodes;
+	List->Tail = List->Head + Length;
+	memcpy(List->Head, Nodes, Length * sizeof(ml_value_t *));
+	List->Space = Size - Length;
+	List->Length = Length;
+	return (ml_value_t *)List;
 }
 
 void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
 	ml_list_t *List = (ml_list_t *)List0;
-	ml_list_node_t *Node = new(ml_list_node_t);
-	Node->Value = Value;
-	Node->Next = List->Head;
-	if (List->Head) {
-		List->Head->Prev = Node;
-	} else {
-		List->Tail = Node;
+	int Start = List->Head - List->Nodes;
+	if (!Start) {
+		int Space = List->Space;
+		if (Space > ML_LIST_SIZE) {
+			memmove(List->Head + ML_LIST_SIZE, List->Head, List->Length * sizeof(ml_list_node_t));
+			List->Head += ML_LIST_SIZE;
+			List->Tail += ML_LIST_SIZE;
+			List->Space -= ML_LIST_SIZE;
+		} else {
+			int Length = List->Length, Size = Length + Space;
+			ml_list_node_t *Nodes = anew(ml_list_node_t, Size + ML_LIST_SIZE);
+			ml_list_node_t *Head = Nodes + Start;
+			memcpy(Head, List->Head, Length * sizeof(ml_list_node_t));
+			List->Nodes = Nodes;
+			List->Head = Head;
+			List->Tail = Head + Length;
+		}
 	}
-	List->Head = Node;
-	List->Length += 1;
+	(--List->Head)->Value = Value;
+	++List->Length;
 }
 
 void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 	ml_list_t *List = (ml_list_t *)List0;
-	ml_list_node_t *Node = new(ml_list_node_t);
-	Node->Value = Value;
-	Node->Prev = List->Tail;
-	if (List->Tail) {
-		List->Tail->Next = Node;
-	} else {
-		List->Head = Node;
+	int Space = List->Space;
+	if (!Space) {
+		int Start = List->Head - List->Nodes;
+		if (Start > ML_LIST_SIZE) {
+			memmove(List->Head - ML_LIST_SIZE, List->Head, List->Length * sizeof(ml_list_node_t));
+			List->Head -= ML_LIST_SIZE;
+			List->Tail -= ML_LIST_SIZE;
+			List->Space += ML_LIST_SIZE;
+		} else {
+			int Length = List->Length, Size = Start + Length;
+			ml_list_node_t *Nodes = anew(ml_list_node_t, Size + ML_LIST_SIZE);
+			ml_list_node_t *Head = Nodes + Start;
+			memcpy(Head, List->Head, Length * sizeof(ml_list_node_t));
+			List->Nodes = Nodes;
+			List->Head = Head;
+			List->Tail = List->Head + Length;
+			List->Space += ML_LIST_SIZE;
+		}
 	}
-	List->Tail = Node;
-	List->Length += 1;
+	(List->Tail++)->Value = Value;
+	++List->Length;
+	--List->Space;
 }
 
 ml_value_t *ml_list_pop(ml_value_t *List0) {
 	ml_list_t *List = (ml_list_t *)List0;
-	ml_list_node_t *Node = List->Head;
-	if (Node) {
-		List->Head = Node->Next;
-		if (List->Head) {
-			List->Head->Prev = 0;
-		} else {
-			List->Tail = 0;
-		}
+	if (List->Length) {
 		--List->Length;
-		return Node->Value;
+		ml_value_t *Value = List->Head->Value;
+		List->Head->Value = NULL;
+		++List->Head;
+		return Value;
 	} else {
-		return 0;
+		return NULL;
 	}
 }
 
 ml_value_t *ml_list_pull(ml_value_t *List0) {
 	ml_list_t *List = (ml_list_t *)List0;
-	ml_list_node_t *Node = List->Tail;
-	if (Node) {
-		List->Tail = Node->Prev;
-		if (List->Tail) {
-			List->Tail->Next = 0;
-		} else {
-			List->Head = 0;
-		}
+	if (List->Length) {
 		--List->Length;
-		return Node->Value;
+		++List->Space;
+		--List->Tail;
+		ml_value_t *Value = List->Tail->Value;
+		List->Tail->Value = NULL;
+		return Value;
 	} else {
-		return 0;
+		return NULL;
 	}
+}
+
+ml_value_t *ml_list_get(ml_value_t *List0, int Index) {
+	ml_list_t *List = (ml_list_t *)List0;
+	if (--Index < 0) Index += List->Length + 1;
+	if (Index < 0 || Index >= List->Length) return NULL;
+	return List->Head[Index].Value;
+}
+
+ml_value_t *ml_list_set(ml_value_t *List0, int Index, ml_value_t *Value) {
+	ml_list_t *List = (ml_list_t *)List0;
+	if (--Index < 0) Index += List->Length + 1;
+	if (Index < 0 || Index >= List->Length) return NULL;
+	ml_value_t *Old = List->Head[Index].Value;
+	List->Head[Index].Value = Value;
+	return Old;
 }
 
 void ml_list_to_array(ml_value_t *Value, ml_value_t **Array) {
 	ml_list_t *List = (ml_list_t *)Value;
-	for (ml_list_node_t *Node = List->Head; Node; Node = Node->Next) *Array++ = Node->Value;
+	memcpy(Array, List->Nodes, List->Length * sizeof(ml_value_t *));
 }
 
 int ml_list_foreach(ml_value_t *Value, void *Data, int (*callback)(ml_value_t *, void *)) {
-	ml_list_t *List = (ml_list_t *)Value;
-	for (ml_list_node_t *Node = List->Head; Node; Node = Node->Next) {
-		if (callback(Node->Value, Data)) return 1;
-	}
+	ML_LIST_FOREACH(Value, Node) if (callback(Node->Value, Data)) return 1;
 	return 0;
 }
 
@@ -1933,7 +1961,7 @@ ML_METHOD("filter", MLListT, MLFunctionT) {
 	ml_list_t *List = (ml_list_t *)Args[0];
 	ml_value_t *Filter = Args[1];
 	ml_value_t *New = ml_list();
-	for (ml_list_node_t *Node = List->Head; Node; Node = Node->Next) {
+	ML_LIST_FOREACH(List, Node) {
 		ml_value_t *Result = ml_inline(Filter, 1, Node->Value);
 		if (Result->Type == MLErrorT) return Result;
 		if (Result != MLNil) ml_list_append(New, Node->Value);
@@ -1945,7 +1973,7 @@ ML_METHOD("map", MLListT, MLFunctionT) {
 	ml_list_t *List = (ml_list_t *)Args[0];
 	ml_value_t *Map = Args[1];
 	ml_value_t *New = ml_list();
-	for (ml_list_node_t *Node = List->Head; Node; Node = Node->Next) {
+	ML_LIST_FOREACH(List, Node) {
 		ml_value_t *Result = ml_inline(Map, 1, Node->Value);
 		if (Result->Type == MLErrorT) return Result;
 		ml_list_append(New, Result);
@@ -1955,85 +1983,30 @@ ML_METHOD("map", MLListT, MLFunctionT) {
 
 ML_METHOD("[]", MLListT, MLIntegerT) {
 	ml_list_t *List = (ml_list_t *)Args[0];
-	long Index = ((ml_integer_t *)Args[1])->Value;
-	if (Index > 0) {
-		for (ml_list_node_t *Node = List->Head; Node; Node = Node->Next) {
-			if (--Index == 0) return ml_reference(&Node->Value);
-		}
-		return MLNil;
-	} else {
-		Index = -Index;
-		for (ml_list_node_t *Node = List->Tail; Node; Node = Node->Prev) {
-			if (--Index == 0) return ml_reference(&Node->Value);
-		}
-		return MLNil;
-	}
+	int Index = ((ml_integer_t *)Args[1])->Value;
+	if (--Index < 0) Index += List->Length + 1;
+	if (Index < 0 || Index >= List->Length) return MLNil;
+	return ml_reference(&List->Head[Index].Value);
 }
 
 ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
 	ml_list_t *List = (ml_list_t *)Args[0];
-	long Index = ((ml_integer_t *)Args[1])->Value;
-	long End = ((ml_integer_t *)Args[2])->Value;
-	long Start = Index;
-	if (Start <= 0) Start += List->Length + 1;
-	if (End <= 0) End += List->Length + 1;
-	if (Start <= 0 || End < Start || End > List->Length + 1) return MLNil;
-	long Length = End - Start;
-	ml_list_node_t *Source = 0;
-	if (Index > 0) {
-		for (ml_list_node_t *Node = List->Head; Node; Node = Node->Next) {
-			if (--Index == 0) {
-				Source = Node;
-				break;
-			}
-		}
-	} else {
-		Index = -Index;
-		for (ml_list_node_t *Node = List->Tail; Node; Node = Node->Prev) {
-			if (--Index == 0) {
-				Source = Node;
-				break;
-			}
-		}
-	}
-	ml_list_t *Slice = (ml_list_t *)ml_list();
-	Slice->Type = MLListT;
-	Slice->Length = Length;
-	ml_list_node_t **Slot = &Slice->Head, *Prev = 0, *Node = 0;
-	while (--Length >= 0) {
-		Node = Slot[0] = new(ml_list_node_t);
-		Node->Prev = Prev;
-		Node->Value = Source->Value;
-		Slot = &Node->Next;
-		Source = Source->Next;
-		Prev = Node;
-	}
-	Slice->Tail = Node;
-	return (ml_value_t *)Slice;
-}
-
-ml_value_t *ml_list_fn(void *Data, int Count, ml_value_t **Args) {
-	ml_list_t *List = new(ml_list_t);
-	List->Type = MLListT;
-	ml_list_node_t **Slot = &List->Head;
-	ml_list_node_t *Prev = NULL;
-	for (int I = 0; I < Count; ++I) {
-		ml_list_node_t *Node = Slot[0] = new(ml_list_node_t);
-		Node->Value = Args[I];
-		Node->Prev = Prev;
-		Prev = Node;
-		Slot = &Node->Next;
-	}
-	List->Tail = Prev;
-	List->Length = Count;
-	return (ml_value_t *)List;
+	int Start = ((ml_integer_t *)Args[1])->Value;
+	int End = ((ml_integer_t *)Args[2])->Value;
+	if (--Start < 0) Start += List->Length + 1;
+	if (--End < 0) End += List->Length + 1;
+	if (Start < 0 || End < Start || End > List->Length) return MLNil;
+	int Length = End - Start;
+	return ml_list_copy(List->Head + Start, Length);
 }
 
 static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLListT, ml_stringbuffer_t *Buffer, ml_list_t *List) {
-	ml_list_node_t *Node = List->Head;
-	if (Node) {
+	int Length = List->Length;
+	if (--Length >= 0) {
+		ml_list_node_t *Node = List->Head;
 		ml_stringbuffer_append(Buffer, Node->Value);
-		while ((Node = Node->Next)) {
+		while (--Length >= 0) {
+			++Node;
 			ml_stringbuffer_add(Buffer, " ", 1);
 			ml_stringbuffer_append(Buffer, Node->Value);
 		}
@@ -2045,13 +2018,15 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLListT, ml_stringbuffer_
 
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLListT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_list_node_t *Node = ((ml_list_t *)Args[1])->Head;
-	if (Node) {
+	ml_list_t *List = (ml_list_t *)Args[1];
+	int Length = List->Length;
+	if (--Length >= 0) {
+		ml_list_node_t *Node = List->Head;
 		ml_stringbuffer_append(Buffer, Node->Value);
-		ml_inline(MLStringBufferAppendMethod, 2, Buffer, Node->Value);
-		while ((Node = Node->Next)) {
+		while (--Length >= 0) {
+			++Node;
 			ml_stringbuffer_add(Buffer, " ", 1);
-			ml_inline(MLStringBufferAppendMethod, 2, Buffer, Node->Value);
+			ml_stringbuffer_append(Buffer, Node->Value);
 		}
 		return MLSome;
 	} else {
@@ -2061,7 +2036,7 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLListT) {
 
 typedef struct ml_list_iter_t {
 	const ml_type_t *Type;
-	ml_list_node_t *Node;
+	ml_list_node_t *Node, *Tail;
 	long Index;
 } ml_list_iter_t;
 
@@ -2070,9 +2045,8 @@ static void ML_TYPED_FN(ml_iter_value, MLListIterT, ml_state_t *Caller, ml_list_
 }
 
 static void ML_TYPED_FN(ml_iter_next, MLListIterT, ml_state_t *Caller, ml_list_iter_t *Iter) {
-	if (Iter->Node->Next) {
+	if (++Iter->Node < Iter->Tail) {
 		++Iter->Index;
-		Iter->Node = Iter->Node->Next;
 		ML_RETURN(Iter);
 	} else {
 		ML_RETURN(MLNil);
@@ -2090,6 +2064,7 @@ static void ML_TYPED_FN(ml_iterate, MLListT, ml_state_t *Caller, ml_list_t *List
 		ml_list_iter_t *Iter = new(ml_list_iter_t);
 		Iter->Type = MLListIterT;
 		Iter->Node = List->Head;
+		Iter->Tail = List->Tail;
 		Iter->Index = 1;
 		ML_RETURN(Iter);
 	} else {
@@ -2098,59 +2073,27 @@ static void ML_TYPED_FN(ml_iterate, MLListT, ml_state_t *Caller, ml_list_t *List
 }
 
 ML_METHOD("push", MLListT) {
-	ml_list_t *List = (ml_list_t *)Args[0];
-	ml_list_node_t **Slot = List->Head ? &List->Head->Prev : &List->Tail;
-	ml_list_node_t *Next = List->Head;
-	for (int I = Count; --I >= 1;) {
-		ml_list_node_t *Node = Slot[0] = new(ml_list_node_t);
-		Node->Value = Args[I];
-		Node->Next = Next;
-		Next = Node;
-		Slot = &Node->Prev;
-	}
-	List->Head = Next;
-	List->Length += Count - 1;
-	return (ml_value_t *)List;
+	ml_value_t *List = Args[0];
+	for (int I = 1; I < Count; ++I) ml_list_push(List, Args[I]);
+	return Args[0];
 }
 
 ML_METHOD("put", MLListT) {
-	ml_list_t *List = (ml_list_t *)Args[0];
-	ml_list_node_t **Slot = List->Tail ? &List->Tail->Next : &List->Head;
-	ml_list_node_t *Prev = List->Tail;
-	for (int I = 1; I < Count; ++I) {
-		ml_list_node_t *Node = Slot[0] = new(ml_list_node_t);
-		Node->Value = Args[I];
-		Node->Prev = Prev;
-		Prev = Node;
-		Slot = &Node->Next;
-	}
-	List->Tail = Prev;
-	List->Length += Count - 1;
-	return (ml_value_t *)List;
+	ml_value_t *List = Args[0];
+	for (int I = 1; I < Count; ++I) ml_list_put(List, Args[I]);
+	return Args[0];
 }
 
 ML_METHOD("pop", MLListT) {
-	ml_list_t *List = (ml_list_t *)Args[0];
-	ml_list_node_t *Node = List->Head;
-	if (Node) {
-		if (!(List->Head = Node->Next)) List->Tail = NULL;
-		--List->Length;
-		return Node->Value;
-	} else {
-		return MLNil;
-	}
+	return ml_list_pop(Args[0]) ?: MLNil;
 }
 
 ML_METHOD("pull", MLListT) {
-	ml_list_t *List = (ml_list_t *)Args[0];
-	ml_list_node_t *Node = List->Tail;
-	if (Node) {
-		if (!(List->Tail = Node->Next)) List->Head = NULL;
-		--List->Length;
-		return Node->Value;
-	} else {
-		return MLNil;
-	}
+	return ml_list_pull(Args[0]) ?: MLNil;
+}
+
+ML_METHOD("copy", MLListT) {
+	return ml_list_copy(ml_list_head(Args[0]), ml_list_length(Args[0]));
 }
 
 ML_METHOD("+", MLListT, MLListT) {
@@ -2158,24 +2101,14 @@ ML_METHOD("+", MLListT, MLListT) {
 	ml_list_t *List2 = (ml_list_t *)Args[1];
 	ml_list_t *List = new(ml_list_t);
 	List->Type = MLListT;
-	ml_list_node_t **Slot = &List->Head;
-	ml_list_node_t *Prev = NULL;
-	for (ml_list_node_t *Node1 = List1->Head; Node1; Node1 = Node1->Next) {
-		ml_list_node_t *Node = Slot[0] = new(ml_list_node_t);
-		Node->Value = Node1->Value;
-		Node->Prev = Prev;
-		Prev = Node;
-		Slot = &Node->Next;
-	}
-	for (ml_list_node_t *Node2 = List2->Head; Node2; Node2 = Node2->Next) {
-		ml_list_node_t *Node = Slot[0] = new(ml_list_node_t);
-		Node->Value = Node2->Value;
-		Node->Prev = Prev;
-		Prev = Node;
-		Slot = &Node->Next;
-	}
-	List->Tail = Prev;
-	List->Length = List1->Length + List2->Length;
+	int Length = List->Length = List1->Length + List2->Length;
+	int Size = (Length + ML_LIST_SIZE - 1) & ~ML_LIST_SIZE;
+	ml_list_node_t *Nodes = List->Nodes = anew(ml_list_node_t, Size);
+	memcpy(Nodes, List1->Head, List1->Length * sizeof(ml_list_node_t));
+	memcpy(Nodes + List1->Length, List2->Head, List2->Length * sizeof(ml_list_node_t));
+	List->Head = Nodes;
+	List->Tail = Nodes + Length;
+	List->Space = Size - Length;
 	return (ml_value_t *)List;
 }
 
@@ -2185,7 +2118,7 @@ ML_METHOD(MLStringOfMethod, MLListT) {
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	const char *Seperator = "[";
 	int SeperatorLength = 1;
-	for (ml_list_node_t *Node = List->Head; Node; Node = Node->Next) {
+	ML_LIST_FOREACH(List, Node) {
 		ml_stringbuffer_add(Buffer, Seperator, SeperatorLength);
 		ml_value_t *Result = ml_stringbuffer_append(Buffer, Node->Value);
 		if (Result->Type == MLErrorT) return Result;
@@ -2201,11 +2134,13 @@ ML_METHOD("join", MLListT, MLStringT) {
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	const char *Seperator = ml_string_value(Args[1]);
 	size_t SeperatorLength = ml_string_length(Args[1]);
-	ml_list_node_t *Node = List->Head;
-	if (Node) {
+	int Length = List->Length;
+	if (--Length >= 0) {
+		ml_list_node_t *Node = List->Head;
 		ml_value_t *Result = ml_stringbuffer_append(Buffer, Node->Value);
 		if (Result->Type == MLErrorT) return Result;
-		while ((Node = Node->Next)) {
+		while (--Length >= 0) {
+			++Node;
 			ml_stringbuffer_add(Buffer, Seperator, SeperatorLength);
 			ml_value_t *Result = ml_stringbuffer_append(Buffer, Node->Value);
 			if (Result->Type == MLErrorT) return Result;
@@ -2342,7 +2277,7 @@ static ml_map_node_t *ml_map_node(ml_map_t *Map, ml_map_node_t **Slot, long Hash
 		} else if (Result->Type == MLRealT) {
 			Compare = ((ml_real_t *)Result)->Value;
 		} else {
-			return ml_error("CompareError", "comparison must return number");
+			Compare = 1;
 		}
 	}
 	if (!Compare) {

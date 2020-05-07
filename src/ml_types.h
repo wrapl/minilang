@@ -191,37 +191,40 @@ typedef struct ml_list_node_t ml_list_node_t;
 extern ml_type_t MLListT[];
 extern ml_type_t MLNamesT[];
 
-struct ml_list_t {
-	const ml_type_t *Type;
-	ml_list_node_t *Head, *Tail;
-	int Length;
-};
-
 struct ml_list_node_t {
-	ml_list_node_t *Next, *Prev;
 	ml_value_t *Value;
 };
 
+struct ml_list_t {
+	const ml_type_t *Type;
+	ml_list_node_t *Head, *Tail;
+	ml_list_node_t *Nodes;
+	int Length, Space;
+};
+
 ml_value_t *ml_list();
-int ml_list_length(ml_value_t *List);
 void ml_list_push(ml_value_t *List, ml_value_t *Value);
 void ml_list_put(ml_value_t *List, ml_value_t *Value);
 ml_value_t *ml_list_pop(ml_value_t *List);
 ml_value_t *ml_list_pull(ml_value_t *List);
+
+ml_value_t *ml_list_get(ml_value_t *List, int Index);
+ml_value_t *ml_list_set(ml_value_t *List, int Index, ml_value_t *Value);
 
 #define ml_list_append ml_list_put
 
 void ml_list_to_array(ml_value_t *List, ml_value_t **Array);
 int ml_list_foreach(ml_value_t *List, void *Data, int (*callback)(ml_value_t *, void *));
 
-#define ml_list_head(List) ((ml_list_t *)List)->Head
-#define ml_list_tail(List) ((ml_list_t *)List)->Tail
+#define ml_list_length(LIST) ((ml_list_t *)LIST)->Length
+#define ml_list_head(LIST) ((ml_list_t *)LIST)->Head
+#define ml_list_tail(LIST) ((ml_list_t *)LIST)->Tail
 
 #define ML_LIST_FOREACH(LIST, NODE) \
-	for (ml_list_node_t *NODE = ml_list_head(LIST); NODE; NODE = NODE->Next)
+	for (ml_list_node_t *NODE = ml_list_head(LIST); NODE < ml_list_tail(LIST); ++NODE)
 
 #define ML_LIST_REVERSE(LIST, NODE) \
-	for (ml_list_node_t *NODE = ml_list_tail(LIST); NODE; NODE = NODE->Prev)
+	for (ml_list_node_t *NODE = ml_list_tail(LIST) - 1; NODE >= ml_list_head(LIST); --NODE)
 
 #define ML_NAMES_FOREACH(LIST, NODE) ML_LIST_FOREACH(LIST, NODE)
 
