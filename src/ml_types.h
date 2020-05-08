@@ -285,11 +285,13 @@ inline ml_value_t *ml_list_iter_set(ml_list_iter_t Iter, ml_value_t *Value) {
 	return Iter->Node[0] = Value;
 }
 
+typedef struct {ml_value_t **Slot, **Last; ml_value_t *Value;} ml_list_foreach_t;
+
 #define ML_LIST_FOREACH(LIST, ITER) \
-	for (struct {ml_value_t **Slot, **Last; ml_value_t *Value;} ITER[1] = {{((ml_list_t *)LIST)->Head, ((ml_list_t *)LIST)->Tail}}; (ITER->Slot < ITER->Last) && (ITER->Value = ITER->Slot[0]); ++ITER->Slot)
+	for (ml_list_foreach_t ITER[1] = {{((ml_list_t *)LIST)->Head, ((ml_list_t *)LIST)->Tail}}; (ITER->Slot < ITER->Last) && (ITER->Value = ITER->Slot[0]); ++ITER->Slot)
 
 #define ML_LIST_REVERSE(LIST, ITER) \
-	for (struct {ml_value_t **Slot, **Last; ml_value_t *Value;} ITER[1] = {{((ml_list_t *)LIST)->Tail - 1, ((ml_list_t *)LIST)->Head}}; (ITER->Slot > ITER->Last) && (ITER->Value = ITER->Slot[0]); --ITER->Slot)
+	for (ml_list_foreach_t ITER[1] = {{((ml_list_t *)LIST)->Tail - 1, ((ml_list_t *)LIST)->Head}}; (ITER->Slot > ITER->Last) && (ITER->Value = ITER->Slot[0]); --ITER->Slot)
 
 #define ML_NAMES_FOREACH(LIST, ITER) ML_LIST_FOREACH(LIST, ITER)
 
@@ -326,8 +328,10 @@ inline int ml_map_size(ml_value_t *Map) {
 
 int ml_map_foreach(ml_value_t *Map, void *Data, int (*callback)(ml_value_t *, ml_value_t *, void *));
 
+typedef struct {ml_map_node_t *Node; ml_value_t *Key, *Value;} ml_map_foreach_t;
+
 #define ML_MAP_FOREACH(MAP, ITER) \
-	for (struct {ml_map_node_t *Node; ml_value_t *Key, *Value;} ITER[1] = {{((ml_map_t *)MAP)->Head}}; ITER->Node && (ITER->Key = ITER->Node->Key) && (ITER->Value = ITER->Node->Value); ITER->Node = ITER->Node->Next)
+	for (ml_map_foreach_t ITER[1] = {{((ml_map_t *)MAP)->Head}}; ITER->Node && (ITER->Key = ITER->Node->Key) && (ITER->Value = ITER->Node->Value); ITER->Node = ITER->Node->Next)
 
 /****************************** Methods ******************************/
 
