@@ -1066,7 +1066,7 @@ static ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, ml_array_fo
 	if (Value->Type == MLListT) {
 		int Size = ml_list_length(Value);
 		if (!Size) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
-		ml_array_t *Array = ml_array_of_create(ml_list_head(Value)->Value, Degree + 1, Format);
+		ml_array_t *Array = ml_array_of_create(ml_list_get(Value, 1), Degree + 1, Format);
 		if (Array->Base.Type == MLErrorT) return Array;
 		Array->Dimensions[Degree].Size = Size;
 		if (Degree < Array->Degree - 1) {

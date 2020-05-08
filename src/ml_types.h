@@ -113,9 +113,18 @@ struct ml_tuple_t {
 };
 
 ml_value_t *ml_tuple(size_t Size);
-#define  ml_tuple_size(TUPLE) (((ml_tuple_t *)(TUPLE))->Size)
-#define ml_tuple_get(TUPLE, INDEX) (((ml_tuple_t *)(TUPLE))->Values[INDEX])
-#define ml_tuple_set(TUPLE, INDEX, VALUE) (((ml_tuple_t *)(TUPLE))->Values[INDEX] = (VALUE))
+
+inline int ml_tuple_size(ml_value_t *Tuple) {
+	return ((ml_tuple_t *)Tuple)->Size;
+}
+
+inline ml_value_t *ml_tuple_get(ml_value_t *Tuple, int Index) {
+	return ((ml_tuple_t *)Tuple)->Values[Index];
+}
+
+inline ml_value_t *ml_tuple_set(ml_value_t *Tuple, int Index, ml_value_t *Value) {
+	return ((ml_tuple_t *)Tuple)->Values[Index] = Value;
+}
 
 /****************************** Numbers ******************************/
 
@@ -186,7 +195,6 @@ extern ml_value_t *MLStringBufferAppendMethod;
 /****************************** Lists ******************************/
 
 typedef struct ml_list_t ml_list_t;
-typedef struct ml_list_node_t ml_list_node_t;
 
 extern ml_type_t MLListT[];
 extern ml_type_t MLNamesT[];
@@ -197,8 +205,7 @@ struct ml_list_node_t {
 
 struct ml_list_t {
 	const ml_type_t *Type;
-	ml_list_node_t *Head, *Tail;
-	ml_list_node_t *Nodes;
+	ml_value_t **Nodes, **Head, **Tail;
 	int Length, Space;
 };
 
@@ -216,17 +223,75 @@ ml_value_t *ml_list_set(ml_value_t *List, int Index, ml_value_t *Value);
 void ml_list_to_array(ml_value_t *List, ml_value_t **Array);
 int ml_list_foreach(ml_value_t *List, void *Data, int (*callback)(ml_value_t *, void *));
 
-#define ml_list_length(LIST) ((ml_list_t *)LIST)->Length
-#define ml_list_head(LIST) ((ml_list_t *)LIST)->Head
-#define ml_list_tail(LIST) ((ml_list_t *)LIST)->Tail
+inline int ml_list_length(ml_value_t *List) {
+	return ((ml_list_t *)List)->Length;
+}
 
-#define ML_LIST_FOREACH(LIST, NODE) \
-	for (ml_list_node_t *NODE = ml_list_head(LIST); NODE < ml_list_tail(LIST); ++NODE)
+typedef struct { ml_value_t **Node, **Last; } ml_list_iter_t[1];
 
-#define ML_LIST_REVERSE(LIST, NODE) \
-	for (ml_list_node_t *NODE = ml_list_tail(LIST) - 1; NODE >= ml_list_head(LIST); --NODE)
+inline int ml_list_iter_forward(ml_value_t *List0, ml_list_iter_t Iter) {
+	ml_list_t *List = (ml_list_t *)List0;
+	if (!List->Length) {
+		Iter->Node = NULL;
+		return 0;
+	} else {
+		Iter->Last = ((ml_list_t *)List)->Tail;
+		Iter->Node = ((ml_list_t *)List)->Head;
+		return 1;
+	}
+}
 
-#define ML_NAMES_FOREACH(LIST, NODE) ML_LIST_FOREACH(LIST, NODE)
+inline int ml_list_iter_next(ml_list_iter_t Iter) {
+	if (Iter->Node + 1 == Iter->Last) {
+		Iter->Node = NULL;
+		return 0;
+	} else {
+		++Iter->Node;
+		return 1;
+	}
+}
+
+inline int ml_list_iter_backward(ml_value_t *List0, ml_list_iter_t Iter) {
+	ml_list_t *List = (ml_list_t *)List0;
+	if (!List->Length) {
+		Iter->Node = NULL;
+		return 0;
+	} else {
+		Iter->Last = ((ml_list_t *)List)->Head;
+		Iter->Node = ((ml_list_t *)List)->Tail - 1;
+		return 1;
+	}
+}
+
+inline int ml_list_iter_prev(ml_list_iter_t Iter) {
+	if (Iter->Node == Iter->Last) {
+		Iter->Node = NULL;
+		return 0;
+	} else {
+		--Iter->Node;
+		return 1;
+	}
+}
+
+inline int ml_list_iter_valid(ml_list_iter_t Iter) {
+	return !!Iter->Node;
+}
+
+inline ml_value_t *ml_list_iter_get(ml_list_iter_t Iter) {
+	return Iter->Node[0];
+}
+
+inline ml_value_t *ml_list_iter_set(ml_list_iter_t Iter, ml_value_t *Value) {
+	return Iter->Node[0] = Value;
+}
+
+#define ML_LIST_FOREACH(LIST, ITER) \
+	for (struct {ml_value_t **Slot, **Last; ml_value_t *Value;} ITER[1] = {{((ml_list_t *)LIST)->Head, ((ml_list_t *)LIST)->Tail}}; (ITER->Slot < ITER->Last) && (ITER->Value = ITER->Slot[0]); ++ITER->Slot)
+
+#define ML_LIST_REVERSE(LIST, ITER) \
+	for (struct {ml_value_t **Slot, **Last; ml_value_t *Value;} ITER[1] = {{((ml_list_t *)LIST)->Tail - 1, ((ml_list_t *)LIST)->Head}}; (ITER->Slot > ITER->Last) && (ITER->Value = ITER->Slot[0]); --ITER->Slot)
+
+#define ML_NAMES_FOREACH(LIST, ITER) ML_LIST_FOREACH(LIST, ITER)
 
 /****************************** Maps ******************************/
 
@@ -254,14 +319,15 @@ ml_value_t *ml_map();
 ml_value_t *ml_map_search(ml_value_t *Map, ml_value_t *Key);
 ml_value_t *ml_map_insert(ml_value_t *Map, ml_value_t *Key, ml_value_t *Value);
 ml_value_t *ml_map_delete(ml_value_t *Map, ml_value_t *Key);
-int ml_map_size(ml_value_t *Map);
+
+inline int ml_map_size(ml_value_t *Map) {
+	return ((ml_map_t *)Map)->Size;
+}
+
 int ml_map_foreach(ml_value_t *Map, void *Data, int (*callback)(ml_value_t *, ml_value_t *, void *));
 
-#define ml_map_head(Map) ((ml_map_t *)Map)->Head
-#define ml_map_tail(Map) ((ml_map_t *)Map)->Tail
-
-#define ML_MAP_FOREACH(MAP, NODE) \
-	for (ml_map_node_t *NODE = ml_map_head(MAP); NODE; NODE = NODE->Next)
+#define ML_MAP_FOREACH(MAP, ITER) \
+	for (struct {ml_map_node_t *Node; ml_value_t *Key, *Value;} ITER[1] = {{((ml_map_t *)MAP)->Head}}; ITER->Node && (ITER->Key = ITER->Node->Key) && (ITER->Value = ITER->Node->Value); ITER->Node = ITER->Node->Next)
 
 /****************************** Methods ******************************/
 
