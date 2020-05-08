@@ -119,11 +119,11 @@ inline int ml_tuple_size(ml_value_t *Tuple) {
 }
 
 inline ml_value_t *ml_tuple_get(ml_value_t *Tuple, int Index) {
-	return ((ml_tuple_t *)Tuple)->Values[Index];
+	return ((ml_tuple_t *)Tuple)->Values[Index - 1];
 }
 
 inline ml_value_t *ml_tuple_set(ml_value_t *Tuple, int Index, ml_value_t *Value) {
-	return ((ml_tuple_t *)Tuple)->Values[Index] = Value;
+	return ((ml_tuple_t *)Tuple)->Values[Index - 1] = Value;
 }
 
 /****************************** Numbers ******************************/
@@ -281,7 +281,7 @@ inline int ml_list_iter_prev(ml_list_iter_t *Iter) {
 }
 
 inline int ml_list_iter_valid(ml_list_iter_t *Iter) {
-	return !!Iter->Node;
+	return Iter->Node != NULL;
 }
 
 #define ML_LIST_FOREACH(LIST, ITER) \
@@ -325,10 +325,64 @@ inline int ml_map_size(ml_value_t *Map) {
 
 int ml_map_foreach(ml_value_t *Map, void *Data, int (*callback)(ml_value_t *, ml_value_t *, void *));
 
-typedef struct {ml_map_node_t *Node; ml_value_t *Key, *Value;} ml_map_foreach_t;
+typedef struct {
+	ml_map_node_t *Node;
+	ml_value_t *Key, *Value;
+} ml_map_iter_t;
+
+inline int ml_map_iter_forward(ml_value_t *Map0, ml_map_iter_t *Iter) {
+	ml_map_t *Map = (ml_map_t *)Map0;
+	ml_map_node_t *Node = Iter->Node = Map->Head;
+	if (!Node) {
+		return 0;
+	} else {
+		Iter->Key = Node->Key;
+		Iter->Value = Node->Value;
+		return 1;
+	}
+}
+
+inline int ml_map_iter_next(ml_map_iter_t *Iter) {
+	ml_map_node_t *Node = Iter->Node = Iter->Node->Next;
+	if (!Node) {
+		return 0;
+	} else {
+		Iter->Key = Node->Key;
+		Iter->Value = Node->Value;
+		return 1;
+	}
+}
+
+inline int ml_map_iter_backward(ml_value_t *Map0, ml_map_iter_t *Iter) {
+	ml_map_t *Map = (ml_map_t *)Map0;
+	ml_map_node_t *Node = Iter->Node = Map->Tail;
+	if (!Node) {
+		return 0;
+	} else {
+		Iter->Key = Node->Key;
+		Iter->Value = Node->Value;
+		return 1;
+	}
+}
+
+inline int ml_map_iter_prev(ml_map_iter_t *Iter) {
+	ml_map_node_t *Node = Iter->Node = Iter->Node->Prev;
+	if (!Node) {
+		return 0;
+	} else {
+		Iter->Key = Node->Key;
+		Iter->Value = Node->Value;
+		return 1;
+	}
+}
+
+inline int ml_map_iter_valid(ml_map_iter_t *Iter) {
+	return Iter->Node != NULL;
+}
+
 
 #define ML_MAP_FOREACH(MAP, ITER) \
-	for (ml_map_foreach_t ITER[1] = {{((ml_map_t *)MAP)->Head}}; ITER->Node && (ITER->Key = ITER->Node->Key) && (ITER->Value = ITER->Node->Value); ITER->Node = ITER->Node->Next)
+	for (ml_map_iter_t ITER[1] = {{((ml_map_t *)MAP)->Head}}; ITER->Node && (ITER->Key = ITER->Node->Key) && (ITER->Value = ITER->Node->Value); ITER->Node = ITER->Node->Next)
 
 /****************************** Methods ******************************/
 

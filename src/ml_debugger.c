@@ -121,8 +121,8 @@ static ml_value_t *debugger_frames(interactive_debugger_t *Debugger, int Count, 
 		if (ml_debugger_check(Frame)) {
 			ml_source_t Source = ml_debugger_source(Frame);
 			ml_value_t *Location = ml_tuple(2);
-			ml_tuple_set(Location, 0, ml_string(Source.Name, -1));
-			ml_tuple_set(Location, 1, ml_integer(Source.Line));
+			ml_tuple_set(Location, 1, ml_string(Source.Name, -1));
+			ml_tuple_set(Location, 2, ml_integer(Source.Line));
 			ml_list_put(Backtrace, Location);
 		}
 		Frame = Frame->Caller;
@@ -139,8 +139,8 @@ static ml_value_t *debugger_frame_up(interactive_debugger_t *Debugger, int Count
 		Debugger->Active = Frame;
 		ml_source_t Source = ml_debugger_source(Frame);
 		ml_value_t *Location = ml_tuple(2);
-		ml_tuple_set(Location, 0, ml_string(Source.Name, -1));
-		ml_tuple_set(Location, 1, ml_integer(Source.Line));
+		ml_tuple_set(Location, 1, ml_string(Source.Name, -1));
+		ml_tuple_set(Location, 2, ml_integer(Source.Line));
 		return Location;
 	} else {
 		return ml_error("TraceError", "Reached top of debugging stack");
@@ -161,8 +161,8 @@ static ml_value_t *debugger_frame_down(interactive_debugger_t *Debugger, int Cou
 		Debugger->Active = Frame;
 		ml_source_t Source = ml_debugger_source(Frame);
 		ml_value_t *Location = ml_tuple(2);
-		ml_tuple_set(Location, 0, ml_string(Source.Name, -1));
-		ml_tuple_set(Location, 1, ml_integer(Source.Line));
+		ml_tuple_set(Location, 1, ml_string(Source.Name, -1));
+		ml_tuple_set(Location, 2, ml_integer(Source.Line));
 		return Location;
 	} else {
 		return ml_error("TraceError", "Reached bottom of debugging stack");
@@ -175,8 +175,8 @@ static void debugger_run(interactive_debugger_t *Debugger, ml_state_t *Frame, ml
 	Debugger->Active = Frame;
 	ml_source_t Source = ml_debugger_source(Frame);
 	ml_value_t *Location = ml_tuple(2);
-	ml_tuple_set(Location, 0, ml_string(Source.Name, -1));
-	ml_tuple_set(Location, 1, ml_integer(Source.Line));
+	ml_tuple_set(Location, 1, ml_string(Source.Name, -1));
+	ml_tuple_set(Location, 2, ml_integer(Source.Line));
 	Debugger->Info->Log(Debugger->Info->Data, Location);
 	if (Value->Type == MLErrorT) {
 		Debugger->Info->Log(Debugger->Info->Data, Value);

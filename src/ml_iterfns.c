@@ -28,13 +28,13 @@ typedef struct ml_iter_state_t {
 
 static void first2_iter_value(ml_iter_state_t *State, ml_value_t *Result) {
 	if (Result->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Result);
-	ml_tuple_set(State->Values[0], 1, Result);
+	ml_tuple_set(State->Values[0], 2, Result);
 	ML_CONTINUE(State->Base.Caller, State->Values[0]);
 }
 
 static void first2_iter_key(ml_iter_state_t *State, ml_value_t *Result) {
 	if (Result->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Result);
-	ml_tuple_set(State->Values[0], 0, Result);
+	ml_tuple_set(State->Values[0], 1, Result);
 	State->Base.run = (ml_state_fn)first2_iter_value;
 	return ml_iter_value((ml_state_t *)State, State->Iter);
 }
@@ -272,8 +272,8 @@ static void fold2_iter_next(ml_iter_state_t *State, ml_value_t *Result) {
 	if (Result == MLNil) {
 		if (State->Values[1]) {
 			ml_value_t *Tuple = ml_tuple(2);
-			ml_tuple_set(Tuple, 0, State->Values[1]);
-			ml_tuple_set(Tuple, 1, State->Values[2]);
+			ml_tuple_set(Tuple, 1, State->Values[1]);
+			ml_tuple_set(Tuple, 2, State->Values[2]);
 			ML_CONTINUE(State->Base.Caller, Tuple);
 		} else {
 			ML_CONTINUE(State->Base.Caller, MLNil);

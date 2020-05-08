@@ -2518,24 +2518,24 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLMapT) {
 
 #define ML_TREE_MAX_DEPTH 32
 
-typedef struct ml_map_iter_t {
+typedef struct ml_map_iterator_t {
 	const ml_type_t *Type;
 	ml_map_node_t *Node;
 	ml_map_node_t *Stack[ML_TREE_MAX_DEPTH];
 	int Top;
-} ml_map_iter_t;
+} ml_map_iterator_t;
 
-static void ML_TYPED_FN(ml_iter_value, MLMapIterT, ml_state_t *Caller, ml_map_iter_t *Iter) {
+static void ML_TYPED_FN(ml_iter_value, MLMapIterT, ml_state_t *Caller, ml_map_iterator_t *Iter) {
 	ML_RETURN(ml_reference(&Iter->Node->Value));
 }
 
-static void ML_TYPED_FN(ml_iter_next, MLMapIterT, ml_state_t *Caller, ml_map_iter_t *Iter) {
+static void ML_TYPED_FN(ml_iter_next, MLMapIterT, ml_state_t *Caller, ml_map_iterator_t *Iter) {
 	ml_map_node_t *Node = Iter->Node;
 	if ((Iter->Node = Node->Next)) ML_RETURN(Iter);
 	ML_RETURN(MLNil);
 }
 
-static void ML_TYPED_FN(ml_iter_key, MLMapIterT, ml_state_t *Caller, ml_map_iter_t *Iter) {
+static void ML_TYPED_FN(ml_iter_key, MLMapIterT, ml_state_t *Caller, ml_map_iterator_t *Iter) {
 	ML_RETURN(Iter->Node->Key);
 }
 
@@ -2544,7 +2544,7 @@ ML_TYPE(MLMapIterT, MLAnyT, "map-iterator");
 static void ML_TYPED_FN(ml_iterate, MLMapT, ml_state_t *Caller, ml_value_t *Value) {
 	ml_map_t *Map = (ml_map_t *)Value;
 	if (Map->Root) {
-		ml_map_iter_t *Iter = new(ml_map_iter_t);
+		ml_map_iterator_t *Iter = new(ml_map_iterator_t);
 		Iter->Type = MLMapIterT;
 		Iter->Node = Map->Head;
 		Iter->Top = 0;
