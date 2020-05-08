@@ -227,9 +227,12 @@ inline int ml_list_length(ml_value_t *List) {
 	return ((ml_list_t *)List)->Length;
 }
 
-typedef struct { ml_value_t **Node, **Last; } ml_list_iter_t[1];
+typedef struct {
+	ml_value_t **Node, **Last;
+	ml_value_t *Value;
+} ml_list_iter_t;
 
-inline int ml_list_iter_forward(ml_value_t *List0, ml_list_iter_t Iter) {
+inline int ml_list_iter_forward(ml_value_t *List0, ml_list_iter_t *Iter) {
 	ml_list_t *List = (ml_list_t *)List0;
 	if (!List->Length) {
 		Iter->Node = NULL;
@@ -237,21 +240,23 @@ inline int ml_list_iter_forward(ml_value_t *List0, ml_list_iter_t Iter) {
 	} else {
 		Iter->Last = ((ml_list_t *)List)->Tail;
 		Iter->Node = ((ml_list_t *)List)->Head;
+		Iter->Value = Iter->Node[0];
 		return 1;
 	}
 }
 
-inline int ml_list_iter_next(ml_list_iter_t Iter) {
+inline int ml_list_iter_next(ml_list_iter_t *Iter) {
 	if (Iter->Node + 1 == Iter->Last) {
 		Iter->Node = NULL;
 		return 0;
 	} else {
 		++Iter->Node;
+		Iter->Value = Iter->Node[0];
 		return 1;
 	}
 }
 
-inline int ml_list_iter_backward(ml_value_t *List0, ml_list_iter_t Iter) {
+inline int ml_list_iter_backward(ml_value_t *List0, ml_list_iter_t *Iter) {
 	ml_list_t *List = (ml_list_t *)List0;
 	if (!List->Length) {
 		Iter->Node = NULL;
@@ -259,39 +264,31 @@ inline int ml_list_iter_backward(ml_value_t *List0, ml_list_iter_t Iter) {
 	} else {
 		Iter->Last = ((ml_list_t *)List)->Head;
 		Iter->Node = ((ml_list_t *)List)->Tail - 1;
+		Iter->Value = Iter->Node[0];
 		return 1;
 	}
 }
 
-inline int ml_list_iter_prev(ml_list_iter_t Iter) {
+inline int ml_list_iter_prev(ml_list_iter_t *Iter) {
 	if (Iter->Node == Iter->Last) {
 		Iter->Node = NULL;
 		return 0;
 	} else {
 		--Iter->Node;
+		Iter->Value = Iter->Node[0];
 		return 1;
 	}
 }
 
-inline int ml_list_iter_valid(ml_list_iter_t Iter) {
+inline int ml_list_iter_valid(ml_list_iter_t *Iter) {
 	return !!Iter->Node;
 }
 
-inline ml_value_t *ml_list_iter_get(ml_list_iter_t Iter) {
-	return Iter->Node[0];
-}
-
-inline ml_value_t *ml_list_iter_set(ml_list_iter_t Iter, ml_value_t *Value) {
-	return Iter->Node[0] = Value;
-}
-
-typedef struct {ml_value_t **Slot, **Last; ml_value_t *Value;} ml_list_foreach_t;
-
 #define ML_LIST_FOREACH(LIST, ITER) \
-	for (ml_list_foreach_t ITER[1] = {{((ml_list_t *)LIST)->Head, ((ml_list_t *)LIST)->Tail}}; (ITER->Slot < ITER->Last) && (ITER->Value = ITER->Slot[0]); ++ITER->Slot)
+	for (ml_list_iter_t ITER[1] = {{((ml_list_t *)LIST)->Head, ((ml_list_t *)LIST)->Tail}}; (ITER->Node < ITER->Last) && (ITER->Value = ITER->Node[0]); ++ITER->Node)
 
 #define ML_LIST_REVERSE(LIST, ITER) \
-	for (ml_list_foreach_t ITER[1] = {{((ml_list_t *)LIST)->Tail - 1, ((ml_list_t *)LIST)->Head}}; (ITER->Slot > ITER->Last) && (ITER->Value = ITER->Slot[0]); --ITER->Slot)
+	for (ml_list_iter_t ITER[1] = {{((ml_list_t *)LIST)->Tail - 1, ((ml_list_t *)LIST)->Head}}; (ITER->Node > ITER->Last) && (ITER->Value = ITER->Node[0]); --ITER->Node)
 
 #define ML_NAMES_FOREACH(LIST, ITER) ML_LIST_FOREACH(LIST, ITER)
 

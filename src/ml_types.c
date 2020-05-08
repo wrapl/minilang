@@ -1947,13 +1947,11 @@ int ml_list_foreach(ml_value_t *Value, void *Data, int (*callback)(ml_value_t *,
 	return 0;
 }
 
-extern inline int ml_list_iter_forward(ml_value_t *List0, ml_list_iter_t Iter);
-extern inline int ml_list_iter_next(ml_list_iter_t Iter);
-extern inline int ml_list_iter_backward(ml_value_t *List0, ml_list_iter_t Iter);
-extern inline int ml_list_iter_prev(ml_list_iter_t Iter);
-extern inline int ml_list_iter_valid(ml_list_iter_t Iter);
-extern inline ml_value_t *ml_list_iter_get(ml_list_iter_t Iter);
-extern inline ml_value_t *ml_list_iter_set(ml_list_iter_t Iter, ml_value_t *Value);
+extern inline int ml_list_iter_forward(ml_value_t *List0, ml_list_iter_t *Iter);
+extern inline int ml_list_iter_next(ml_list_iter_t *Iter);
+extern inline int ml_list_iter_backward(ml_value_t *List0, ml_list_iter_t *Iter);
+extern inline int ml_list_iter_prev(ml_list_iter_t *Iter);
+extern inline int ml_list_iter_valid(ml_list_iter_t *Iter);
 
 ML_METHOD("size", MLListT) {
 	ml_list_t *List = (ml_list_t *)Args[0];
