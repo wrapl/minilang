@@ -38,7 +38,7 @@ struct ml_closure_t {
 	ml_value_t *UpValues[];
 };
 
-typedef union {
+typedef union ml_param_t {
 	ml_inst_t *Inst;
 	int Index;
 	int Count;

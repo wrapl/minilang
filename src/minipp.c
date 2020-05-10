@@ -97,11 +97,10 @@ static ml_value_t *ml_preprocessor_read(FILE *File, int Count, ml_value_t **Args
 }
 
 static ml_value_t *ml_preprocessor_write(FILE *File, int Count, ml_value_t **Args) {
-	ml_value_t *StringMethod = ml_method("string");
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Result = Args[I];
 		if (Result->Type != MLStringT) {
-			Result = ml_call(StringMethod, 1, &Result);
+			Result = ml_call(MLStringOfMethod, 1, &Result);
 			if (Result->Type == MLErrorT) return Result;
 			if (Result->Type != MLStringT) return ml_error("ResultError", "string method did not return string");
 		}

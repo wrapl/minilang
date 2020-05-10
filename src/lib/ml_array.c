@@ -1,22 +1,25 @@
+#include <libgen.h>
+
 #include "../ml_array.h"
 #include "../ml_macros.h"
 #include <stdint.h>
 #include <string.h>
 #include <stdarg.h>
-#include <libgen.h>
 
-ml_type_t *MLArrayT;
-ml_type_t *MLArrayAnyT;
-ml_type_t *MLArrayInt8T;
-ml_type_t *MLArrayInt16T;
-ml_type_t *MLArrayInt32T;
-ml_type_t *MLArrayInt64T;
-ml_type_t *MLArrayUInt8T;
-ml_type_t *MLArrayUInt16T;
-ml_type_t *MLArrayUInt32T;
-ml_type_t *MLArrayUInt64T;
-ml_type_t *MLArrayFloat32T;
-ml_type_t *MLArrayFloat64T;
+ML_TYPE(MLArrayT, MLBufferT, "array");
+ML_TYPE(MLArrayAnyT, MLArrayT, "value-array");
+
+extern ml_type_t MLArrayInt8T[];
+extern ml_type_t MLArrayUInt8T[];
+extern ml_type_t MLArrayInt16T[];
+extern ml_type_t MLArrayUInt16T[];
+extern ml_type_t MLArrayInt32T[];
+extern ml_type_t MLArrayUInt32T[];
+extern ml_type_t MLArrayInt64T[];
+extern ml_type_t MLArrayUInt64T[];
+extern ml_type_t MLArrayFloat32T[];
+extern ml_type_t MLArrayFloat64T[];
+
 
 size_t MLArraySizes[] = {
 	[ML_ARRAY_FORMAT_NONE] = sizeof(ml_value_t *),
@@ -326,7 +329,7 @@ static ml_value_t *ml_array_value(ml_array_t *Array, char *Address) {
 	return function(Array, Address);
 }
 
-static ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **Indices) {
+static ml_value_t *ml_array_index_internal(ml_array_t *Source, int Count, ml_value_t **Indices) {
 	ml_array_dimension_t TargetDimensions[Source->Degree];
 	ml_array_dimension_t *TargetDimension = TargetDimensions;
 	ml_array_dimension_t *SourceDimension = Source->Dimensions;
@@ -406,7 +409,7 @@ static ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **In
 
 ML_METHOD("[]", MLArrayT) {
 	ml_array_t *Source = (ml_array_t *)Args[0];
-	return ml_array_index(Source, Count - 1, Args + 1);
+	return ml_array_index_internal(Source, Count - 1, Args + 1);
 }
 
 ML_METHOD("[]", MLArrayT, MLMapT) {
@@ -420,10 +423,26 @@ ML_METHOD("[]", MLArrayT, MLMapT) {
 		if (Index < 0 || Index >= Degree) return ml_error("RangeError", "Index out of range");
 		Indices[Index] = Node->Value;
 	}
-	return ml_array_index(Source, Degree, Indices);
+	return ml_array_index_internal(Source, Degree, Indices);
 }
 
 static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args);
+
+static char *ml_array_index(ml_array_t *Array, va_list Indices) {
+	ml_array_dimension_t *Dimension = Array->Dimensions;
+	char *Address = Array->Base.Address;
+	for (int I = 0; I < Array->Degree; ++I) {
+		int Index = va_arg(Indices, int);
+		if (Index < 0 || Index >= Dimension->Size) return 0;
+		if (Dimension->Indices) {
+			Address += Dimension->Stride * Dimension->Indices[Index];
+		} else {
+			Address += Dimension->Stride * Index;
+		}
+		++Dimension;
+	}
+	return Address;
+}
 
 #define UPDATE_ARRAY_METHOD(ATYPE1, CTYPE1, ATYPE2, CTYPE2, NAME, OP) \
 \
@@ -609,6 +628,10 @@ typedef struct call_info_t {
 
 #define METHODS(ATYPE, CTYPE, FORMAT, RFUNC, RNEW) \
 \
+static ml_value_t *ML_TYPED_FN(ml_array_value, ATYPE, ml_array_t *Array, char *Address) { \
+	return RNEW(*(CTYPE *)Array->Base.Address); \
+} \
+\
 static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_array_dimension_t *Dimension, char *Address) { \
 	ml_stringbuffer_add(Buffer, "[", 1); \
 	int Stride = Dimension->Stride; \
@@ -706,31 +729,6 @@ UPDATE_ARRAY_METHODS(ATYPE, CTYPE, MLArrayUInt64T, uint64_t); \
 UPDATE_ARRAY_METHODS(ATYPE, CTYPE, MLArrayFloat32T, float); \
 UPDATE_ARRAY_METHODS(ATYPE, CTYPE, MLArrayFloat64T, double); \
 \
-static ml_value_t *ml_array_ ## CTYPE ## _deref(ml_array_t *Target, ml_value_t *Value) { \
-	if (Target->Degree == 0)  return RNEW(*(CTYPE *)Target->Base.Address); \
-	return (ml_value_t *)Target; \
-} \
-\
-static ml_value_t *ml_array_ ## CTYPE ## _assign(ml_array_t *Target, ml_value_t *Value) { \
-	for (;;) if (ml_is(Value, MLNumberT)) { \
-		CTYPE CValue = RFUNC(Value); \
-		set_value_array_ ## CTYPE(Target->Degree, Target->Dimensions, Target->Base.Address, CValue); \
-		return Value; \
-	SETTER_CASE(CTYPE, MLArrayInt8T, int8_t) \
-	SETTER_CASE(CTYPE, MLArrayInt16T, int16_t) \
-	SETTER_CASE(CTYPE, MLArrayInt32T, int32_t) \
-	SETTER_CASE(CTYPE, MLArrayInt64T, int64_t) \
-	SETTER_CASE(CTYPE, MLArrayUInt8T, uint8_t) \
-	SETTER_CASE(CTYPE, MLArrayUInt16T, uint16_t) \
-	SETTER_CASE(CTYPE, MLArrayUInt32T, uint32_t) \
-	SETTER_CASE(CTYPE, MLArrayUInt64T, uint64_t) \
-	SETTER_CASE(CTYPE, MLArrayFloat32T, float) \
-	SETTER_CASE(CTYPE, MLArrayFloat64T, double) \
-	} else { \
-		Value = ml_array_of_fn(NULL, 1, &Value); \
-	} \
-} \
-\
 static int set_function_array_ ## CTYPE(int Degree, ml_array_dimension_t *Dimension, char *Address, call_info_t *Info) { \
 	if (Degree == 0) { \
 		Info->Args[0] = RNEW(*(CTYPE *)Address); \
@@ -819,28 +817,12 @@ ML_METHOD("partial_sums", ATYPE, MLIntegerT) { \
 	return Args[0]; \
 } \
 \
-static ml_value_t *ml_array_ ## CTYPE ## _value(ml_array_t *Array, char *Address) { \
-	return RNEW(*(CTYPE *)Array->Base.Address); \
-} \
-\
 CTYPE ml_array_get_ ## CTYPE(ml_array_t *Array, ...) { \
-	ml_array_dimension_t *Dimension = Array->Dimensions; \
-	char *Address = Array->Base.Address; \
 	va_list Indices; \
 	va_start(Indices, Array); \
-	for (int I = 0; I < Array->Degree; ++I) { \
-		int Index = va_arg(Indices, int); \
-		if (Index < 0 || Index >= Dimension->Size) return 0; \
-		if (Dimension->Indices) { \
-			Address += Dimension->Stride * Dimension->Indices[Index]; \
-		} else { \
-			Address += Dimension->Stride * Index; \
-		} \
-		++Dimension; \
-	} \
+	char *Address = ml_array_index(Array, Indices); \
 	va_end(Indices); \
 	switch (Array->Format) { \
-	case ML_ARRAY_FORMAT_ANY: return RFUNC(*(ml_value_t **)Address); \
 	case ML_ARRAY_FORMAT_I8: return *(int8_t *)Address; \
 	case ML_ARRAY_FORMAT_U8: return *(uint8_t *)Address; \
 	case ML_ARRAY_FORMAT_I16: return *(int16_t *)Address; \
@@ -851,28 +833,17 @@ CTYPE ml_array_get_ ## CTYPE(ml_array_t *Array, ...) { \
 	case ML_ARRAY_FORMAT_U64: return *(uint64_t *)Address; \
 	case ML_ARRAY_FORMAT_F32: return *(float *)Address; \
 	case ML_ARRAY_FORMAT_F64: return *(double *)Address; \
+	case ML_ARRAY_FORMAT_ANY: return RFUNC(*(ml_value_t **)Address); \
 	} \
 	return (CTYPE)0; \
 } \
 \
 void ml_array_set_ ## CTYPE(CTYPE Value, ml_array_t *Array, ...) { \
-	ml_array_dimension_t *Dimension = Array->Dimensions; \
-	char *Address = Array->Base.Address; \
 	va_list Indices; \
 	va_start(Indices, Array); \
-	for (int I = 0; I < Array->Degree; ++I) { \
-		int Index = va_arg(Indices, int); \
-		if (Index < 0 || Index >= Dimension->Size) return; \
-		if (Dimension->Indices) { \
-			Address += Dimension->Stride * Dimension->Indices[Index]; \
-		} else { \
-			Address += Dimension->Stride * Index; \
-		} \
-		++Dimension; \
-	} \
+	char *Address = ml_array_index(Array, Indices); \
 	va_end(Indices); \
 	switch (Array->Format) { \
-	case ML_ARRAY_FORMAT_ANY: *(ml_value_t **)Address = RNEW(Value); break; \
 	case ML_ARRAY_FORMAT_I8: *(int8_t *)Address = Value; break; \
 	case ML_ARRAY_FORMAT_U8: *(uint8_t *)Address = Value; break; \
 	case ML_ARRAY_FORMAT_I16: *(int16_t *)Address = Value; break; \
@@ -883,12 +854,42 @@ void ml_array_set_ ## CTYPE(CTYPE Value, ml_array_t *Array, ...) { \
 	case ML_ARRAY_FORMAT_U64: *(uint64_t *)Address = Value; break; \
 	case ML_ARRAY_FORMAT_F32: *(float *)Address = Value; break; \
 	case ML_ARRAY_FORMAT_F64: *(double *)Address = Value; break; \
+	case ML_ARRAY_FORMAT_ANY: *(ml_value_t **)Address = RNEW(Value); break; \
 	} \
 } \
+\
+static ml_value_t *ml_array_ ## CTYPE ## _deref(ml_array_t *Target, ml_value_t *Value) { \
+	if (Target->Degree == 0)  return RNEW(*(CTYPE *)Target->Base.Address); \
+	return (ml_value_t *)Target; \
+} \
+\
+static ml_value_t *ml_array_ ## CTYPE ## _assign(ml_array_t *Target, ml_value_t *Value) { \
+	for (;;) if (ml_is(Value, MLNumberT)) { \
+		CTYPE CValue = RFUNC(Value); \
+		set_value_array_ ## CTYPE(Target->Degree, Target->Dimensions, Target->Base.Address, CValue); \
+		return Value; \
+	SETTER_CASE(CTYPE, MLArrayInt8T, int8_t) \
+	SETTER_CASE(CTYPE, MLArrayInt16T, int16_t) \
+	SETTER_CASE(CTYPE, MLArrayInt32T, int32_t) \
+	SETTER_CASE(CTYPE, MLArrayInt64T, int64_t) \
+	SETTER_CASE(CTYPE, MLArrayUInt8T, uint8_t) \
+	SETTER_CASE(CTYPE, MLArrayUInt16T, uint16_t) \
+	SETTER_CASE(CTYPE, MLArrayUInt32T, uint32_t) \
+	SETTER_CASE(CTYPE, MLArrayUInt64T, uint64_t) \
+	SETTER_CASE(CTYPE, MLArrayFloat32T, float) \
+	SETTER_CASE(CTYPE, MLArrayFloat64T, double) \
+	} else { \
+		Value = ml_array_of_fn(NULL, 1, &Value); \
+	} \
+} \
+\
+ML_TYPE(ATYPE, MLArrayT, #CTYPE "-array", \
+	.deref = (void *)ml_array_ ## CTYPE ## _deref, \
+	.assign = (void *)ml_array_ ## CTYPE ## _assign \
+);
 
 #define ML_COPY_CASE(CTYPE) \
 	switch (C->Format) { \
-	case ML_ARRAY_FORMAT_ANY: return ml_error("ImplementationError", "Not implemented yet!"); \
 	case ML_ARRAY_FORMAT_I8: set_array_int8_t_ ## CTYPE(C->Dimensions, C->Base.Address, Degree, A->Dimensions, A->Base.Address); break; \
 	case ML_ARRAY_FORMAT_U8: set_array_uint8_t_ ## CTYPE(C->Dimensions, C->Base.Address, Degree, A->Dimensions, A->Base.Address); break; \
 	case ML_ARRAY_FORMAT_I16: set_array_int16_t_ ## CTYPE(C->Dimensions, C->Base.Address, Degree, A->Dimensions, A->Base.Address); break; \
@@ -910,9 +911,6 @@ void ml_array_set_ ## CTYPE(CTYPE Value, ml_array_t *Array, ...) { \
 	} \
 	C->Base.Address = GC_MALLOC_ATOMIC(DataSize); \
 	switch (A->Format) { \
-	case ML_ARRAY_FORMAT_ANY: \
-		return ml_error("ImplementationError", "Not implemented yet!"); \
-		break; \
 	case ML_ARRAY_FORMAT_I8: ML_COPY_CASE(int8_t); break; \
 	case ML_ARRAY_FORMAT_U8: ML_COPY_CASE(uint8_t); break; \
 	case ML_ARRAY_FORMAT_I16: ML_COPY_CASE(int16_t); break; \
@@ -967,6 +965,9 @@ ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 		for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = *Values OP B; \
 		break; \
 	} \
+	default: { \
+		return ml_error("TypeError", "Invalid types for array operation"); \
+	} \
 	} \
 	return (ml_value_t *)C; \
 } \
@@ -997,6 +998,9 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 		double *Values = (double *)C->Base.Address; \
 		for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = B OP *Values; \
 		break; \
+	} \
+	default: { \
+		return ml_error("TypeError", "Invalid types for array operation"); \
 	} \
 	} \
 	return (ml_value_t *)C; \
@@ -1040,29 +1044,31 @@ ML_ARITH_METHOD(-, Sub);
 ML_ARITH_METHOD(*, Mul);
 ML_ARITH_METHOD(/, Div);
 
-static int ml_array_of_has_real(ml_value_t *Value) {
+static ml_array_format_t ml_array_of_type_guess(ml_value_t *Value, ml_array_format_t Format) {
 	if (Value->Type == MLListT) {
 		ML_LIST_FOREACH(Value, Node) {
-			if (ml_array_of_has_real(Node->Value)) return 1;
+			Format = ml_array_of_type_guess(Node->Value, Format);
 		}
 	} else if (Value->Type == MLTupleT) {
 		ml_tuple_t *Tuple = (ml_tuple_t *)Value;
 		for (int I = 0; I < Tuple->Size; ++I) {
-			if (ml_array_of_has_real(Tuple->Values[I])) return 1;
+			Format = ml_array_of_type_guess(Tuple->Values[I], Format);
 		}
 	} else if (Value->Type == MLArrayT) {
 		ml_array_t *Array = (ml_array_t *)Value;
-		if (Array->Format >= ML_ARRAY_FORMAT_F32) return 1;
+		if (Array->Format >= Format) return Array->Format;
 	} else if (Value->Type == MLRealT) {
-		return 1;
+		return ML_ARRAY_FORMAT_F64;
+	} else if (Value->Type == MLIntegerT) {
+		return ML_ARRAY_FORMAT_I64;
+	} else {
+		return ML_ARRAY_FORMAT_ANY;
 	}
-	return 0;
+	return Format;
 }
 
 static ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, ml_array_format_t Format) {
-	if (Format == ML_ARRAY_FORMAT_NONE) {
-		if (ml_array_of_has_real(Value)) Format = ML_ARRAY_FORMAT_F64;
-	}
+	Format = ml_array_of_type_guess(Value, Format);
 	if (Value->Type == MLListT) {
 		int Size = ml_list_length(Value);
 		if (!Size) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
@@ -1086,12 +1092,10 @@ static ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, ml_array_fo
 	} else if (ml_is(Value, MLArrayT)) {
 		ml_array_t *Nested = (ml_array_t *)Value;
 		ml_array_t *Array;
-		if (Format == ML_ARRAY_FORMAT_NONE) Format = ML_ARRAY_FORMAT_I64;
 		Array = ml_array_new(Format, Degree + Nested->Degree);
 		memcpy(Array->Dimensions + Degree, Nested->Dimensions, Nested->Degree * sizeof(ml_array_dimension_t));
 		return Array;
 	} else {
-		if (Format == ML_ARRAY_FORMAT_NONE) Format = ML_ARRAY_FORMAT_I64;
 		ml_array_t *Array = ml_array_new(Format, Degree);
 		if (Degree) {
 			Array->Dimensions[Degree - 1].Size = 1;
@@ -1120,7 +1124,6 @@ static ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, ml_array_fo
 		case ML_ARRAY_FORMAT_U64: set_array_uint64_t_ ## CTYPE(Dimension, Address, Degree, Source->Dimensions, Source->Base.Address); break; \
 		case ML_ARRAY_FORMAT_F32: set_array_float_ ## CTYPE(Dimension, Address, Degree, Source->Dimensions, Source->Base.Address); break; \
 		case ML_ARRAY_FORMAT_F64: set_array_double_ ## CTYPE(Dimension, Address, Degree, Source->Dimensions, Source->Base.Address); break; \
-		case ML_ARRAY_FORMAT_ANY: return ml_error("ImplementationError", "Not implemented yet!"); \
 		} \
 
 static ml_value_t *ml_array_of_fill(ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_value_t *Value) {
@@ -1266,13 +1269,6 @@ ML_METHOD("copy", MLArrayT) {
 	return (ml_value_t *)Target;
 }
 
-#define TYPES(ATYPE, CTYPE) { \
-	MLArray ## ATYPE ## T = ml_type(MLArrayT, #CTYPE "-array"); \
-	MLArray ## ATYPE ## T->deref = (void *)ml_array_ ## CTYPE ## _deref; \
-	MLArray ## ATYPE ## T->assign = (void *)ml_array_ ## CTYPE ## _assign; \
-	ml_typed_fn_set(MLArray ## ATYPE ## T, ml_array_value, ml_array_ ## CTYPE ## _value); \
-}
-
 #include "../ml_cbor.h"
 
 static void ml_cbor_write_array_dim(int Degree, ml_array_dimension_t *Dimension, char *Address, char *Data, ml_cbor_write_fn WriteFn) {
@@ -1366,18 +1362,6 @@ void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) 
 	ml_value_t *Import = GlobalGet(Globals, "import");
 	ml_value_t *Cbor = ml_inline(Import, 1, ml_string_format("%s/ml_cbor.so", Dir));
 
-	MLArrayT = ml_type(MLBufferT, "array");
-	MLArrayAnyT = ml_type(MLArrayT, "value-array");
-	TYPES(Int8, int8_t);
-	TYPES(Int16, int16_t);
-	TYPES(Int32, int32_t);
-	TYPES(Int64, int64_t);
-	TYPES(UInt8, uint8_t);
-	TYPES(UInt16, uint16_t);
-	TYPES(UInt32, uint32_t);
-	TYPES(UInt64, uint64_t);
-	TYPES(Float32, float);
-	TYPES(Float64, double);
 #include "ml_array_init.c"
 	ml_value_t *CborDefault = ml_inline(SymbolMethod, 2, Cbor, ml_string("Default", -1));
 	ml_map_insert(CborDefault, ml_integer(40), ml_function(NULL, ml_cbor_read_multi_array_fn));

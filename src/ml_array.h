@@ -31,7 +31,7 @@ typedef struct ml_array_t {
 	ml_array_dimension_t Dimensions[];
 } ml_array_t;
 
-extern ml_type_t *MLArrayT;
+extern ml_type_t MLArrayT[];
 
 void ml_array_init(stringmap_t *Globals);
 
@@ -42,18 +42,18 @@ int ml_array_size(ml_value_t *Array, int Dim);
 
 #define ML_ARRAY_ACCESSORS(CTYPE) \
 CTYPE ml_array_get_ ## CTYPE (ml_array_t *Array, ...); \
-void ml_array_set_ ## CTYPE (CTYPE Value, ml_array_t *Array, ...);
+void ml_array_set_ ## CTYPE (CTYPE Value, ml_array_t *Array, ...)
 
-ML_ARRAY_ACCESSORS(int8_t)
-ML_ARRAY_ACCESSORS(uint8_t)
-ML_ARRAY_ACCESSORS(int16_t)
-ML_ARRAY_ACCESSORS(uint16_t)
-ML_ARRAY_ACCESSORS(int32_t)
-ML_ARRAY_ACCESSORS(uint32_t)
-ML_ARRAY_ACCESSORS(int64_t)
-ML_ARRAY_ACCESSORS(uint64_t)
-ML_ARRAY_ACCESSORS(float)
-ML_ARRAY_ACCESSORS(double)
+ML_ARRAY_ACCESSORS(int8_t);
+ML_ARRAY_ACCESSORS(uint8_t);
+ML_ARRAY_ACCESSORS(int16_t);
+ML_ARRAY_ACCESSORS(uint16_t);
+ML_ARRAY_ACCESSORS(int32_t);
+ML_ARRAY_ACCESSORS(uint32_t);
+ML_ARRAY_ACCESSORS(int64_t);
+ML_ARRAY_ACCESSORS(uint64_t);
+ML_ARRAY_ACCESSORS(float);
+ML_ARRAY_ACCESSORS(double);
 
 #ifdef	__cplusplus
 }

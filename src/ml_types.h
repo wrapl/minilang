@@ -284,6 +284,10 @@ inline int ml_list_iter_valid(ml_list_iter_t *Iter) {
 	return Iter->Node != NULL;
 }
 
+inline void ml_list_iter_update(ml_list_iter_t *Iter, ml_value_t *Value) {
+	Iter->Value = Iter->Node[0] = Value;
+}
+
 #define ML_LIST_FOREACH(LIST, ITER) \
 	for (ml_list_iter_t ITER[1] = {{((ml_list_t *)LIST)->Head, ((ml_list_t *)LIST)->Tail}}; (ITER->Node < ITER->Last) && (ITER->Value = ITER->Node[0]); ++ITER->Node)
 
@@ -380,6 +384,9 @@ inline int ml_map_iter_valid(ml_map_iter_t *Iter) {
 	return Iter->Node != NULL;
 }
 
+inline void ml_map_iter_update(ml_map_iter_t *Iter, ml_value_t *Value) {
+	Iter->Value = Iter->Node->Value = Value;
+}
 
 #define ML_MAP_FOREACH(MAP, ITER) \
 	for (ml_map_iter_t ITER[1] = {{((ml_map_t *)MAP)->Head}}; ITER->Node && (ITER->Key = ITER->Node->Key) && (ITER->Value = ITER->Node->Value); ITER->Node = ITER->Node->Next)
