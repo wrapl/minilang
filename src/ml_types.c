@@ -364,6 +364,10 @@ ml_value_t *ml_tuple(size_t Size) {
 	return (ml_value_t *)Tuple;
 }
 
+extern inline int ml_tuple_size(ml_value_t *Tuple);
+extern inline ml_value_t *ml_tuple_get(ml_value_t *Tuple, int Index);
+extern inline ml_value_t *ml_tuple_set(ml_value_t *Tuple, int Index, ml_value_t *Value);
+
 ML_METHOD("size", MLTupleT) {
 	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
 	return ml_integer(Tuple->Size);
@@ -1831,6 +1835,14 @@ ml_value_t *ml_list() {
 	return (ml_value_t *)List;
 }
 
+extern inline int ml_list_length(ml_value_t *List);
+extern inline int ml_list_iter_forward(ml_value_t *List0, ml_list_iter_t *Iter);
+extern inline int ml_list_iter_next(ml_list_iter_t *Iter);
+extern inline int ml_list_iter_backward(ml_value_t *List0, ml_list_iter_t *Iter);
+extern inline int ml_list_iter_prev(ml_list_iter_t *Iter);
+extern inline int ml_list_iter_valid(ml_list_iter_t *Iter);
+extern inline void ml_list_iter_update(ml_list_iter_t *Iter, ml_value_t *Value);
+
 ml_value_t *ml_list_copy(ml_value_t **Nodes, int Length) {
 	ml_list_t *List = new(ml_list_t);
 	List->Type = MLListT;
@@ -2180,6 +2192,14 @@ ml_value_t *ml_map() {
 	Map->Type = MLMapT;
 	return (ml_value_t *)Map;
 }
+
+extern inline int ml_map_size(ml_value_t *Map);
+extern inline int ml_map_iter_forward(ml_value_t *Map0, ml_map_iter_t *Iter);
+extern inline int ml_map_iter_next(ml_map_iter_t *Iter);
+extern inline int ml_map_iter_backward(ml_value_t *Map0, ml_map_iter_t *Iter);
+extern inline int ml_map_iter_prev(ml_map_iter_t *Iter);
+extern inline int ml_map_iter_valid(ml_map_iter_t *Iter);
+extern inline void ml_map_iter_update(ml_map_iter_t *Iter, ml_value_t *Value);
 
 ml_value_t *ml_map_search(ml_value_t *Map0, ml_value_t *Key) {
 	ml_map_t *Map = (ml_map_t *)Map0;
