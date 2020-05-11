@@ -160,6 +160,8 @@ extern ml_type_t MLStringBufferT[];
 ml_value_t *ml_buffer(void *Data, int Count, ml_value_t **Args);
 
 ml_value_t *ml_string(const char *Value, int Length);
+#define ml_cstring(VALUE) ml_string(VALUE, strlen(VALUE))
+
 ml_value_t *ml_string_format(const char *Format, ...);
 const char *ml_string_value(ml_value_t *Value);
 size_t ml_string_length(ml_value_t *Value);

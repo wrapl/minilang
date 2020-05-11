@@ -1363,7 +1363,7 @@ void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) 
 	ml_value_t *Cbor = ml_inline(Import, 1, ml_string_format("%s/ml_cbor.so", Dir));
 
 #include "ml_array_init.c"
-	ml_value_t *CborDefault = ml_inline(SymbolMethod, 2, Cbor, ml_string("Default", -1));
+	ml_value_t *CborDefault = ml_inline(SymbolMethod, 2, Cbor, ml_cstring("Default"));
 	ml_map_insert(CborDefault, ml_integer(40), ml_function(NULL, ml_cbor_read_multi_array_fn));
 	ml_map_insert(CborDefault, ml_integer(72), ml_function((void *)ML_ARRAY_FORMAT_I8, ml_cbor_read_typed_array_fn));
 	ml_map_insert(CborDefault, ml_integer(64), ml_function((void *)ML_ARRAY_FORMAT_U8, ml_cbor_read_typed_array_fn));

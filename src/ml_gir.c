@@ -1394,7 +1394,7 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 		Struct->Base.Parent = StructInstanceT;
 		Struct->Info = Info;
 		Struct->Methods = ml_map();
-		ml_map_insert(Struct->Methods, ml_string("new", -1), ml_function(Struct, (void *)struct_instance_new));
+		ml_map_insert(Struct->Methods, ml_cstring("new"), ml_function(Struct, (void *)struct_instance_new));
 		Slot[0] = (ml_type_t *)Struct;
 		int NumFields = g_struct_info_get_n_fields(Info);
 		for (int I = 0; I < NumFields; ++I) {
