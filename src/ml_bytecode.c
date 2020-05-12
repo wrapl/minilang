@@ -820,6 +820,11 @@ ML_TYPE(MLClosureT, MLFunctionT, "closure",
 	.call = ml_closure_call
 );
 
+ML_METHOD(MLStringOfMethod, MLClosureT) {
+	ml_closure_t *Closure = (ml_closure_t *)Args[0];
+	return ml_string_format("<closure:%s@%d>", Closure->Info->Source, Closure->Info->Entry->LineNo);
+}
+
 static void ml_inst_escape_string(FILE *Graph, const char *String, size_t Length) {
 	for (int I = 0; I < Length; ++I) switch (String[I]) {
 		case 0: fputs("\\\\0", Graph); break;

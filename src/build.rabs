@@ -145,10 +145,11 @@ elseif PLATFORM = "Mingw" then
 end
 
 LIBMINILANG := c_library(LIB_DIR / "libminilang.a", Objects, Libraries)
-MINILANG := c_program(BIN_DIR /"minilang", [file("minilang.o")], Libraries + [LIBMINILANG])
-MINIPP := c_program(BIN_DIR / "minipp", [file("minipp.o")] + Objects, Libraries)
+MINILANG := c_program(BIN_DIR /"minilang", [file("minilang.o")], [LIBMINILANG])
+MINIPP := c_program(BIN_DIR / "minipp", [file("minipp.o")], [LIBMINILANG])
+MINIXE := c_program(BIN_DIR/"minixe", [file("minixe.o")], [LIBMINILANG])
 
-DEFAULT[LIBMINILANG, MINILANG, MINIPP]
+DEFAULT[LIBMINILANG, MINILANG, MINIPP, MINIXE]
 
 var InstallBin := PREFIX / "bin"
 var InstallInclude := PREFIX / "include/minilang"
