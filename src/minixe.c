@@ -39,19 +39,19 @@ static void node_append(ml_value_t *List, ml_value_t *Node) {
 				Concat[Length1 + Length2] = 0;
 				ml_list_set(List, -1, ml_string(Concat, Length1 + Length2));
 			} else {
-				ml_list_append(List, Node);
+				ml_list_put(List, Node);
 			}
 		} else {
-			ml_list_append(List, Node);
+			ml_list_put(List, Node);
 		}
 	} else if (Node->Type == MLIntegerT) {
-		ml_list_append(List, ml_string_format("%ld", ml_integer_value(Node)));
+		ml_list_put(List, ml_string_format("%ld", ml_integer_value(Node)));
 	} else if (Node->Type == MLRealT) {
-		ml_list_append(List, ml_string_format("%f", ml_real_value(Node)));
+		ml_list_put(List, ml_string_format("%f", ml_real_value(Node)));
 	} else if (Node->Type == XENodeT) {
-		ml_list_append(List, Node);
+		ml_list_put(List, Node);
 	} else if (Node->Type == XEVarT) {
-		ml_list_append(List, Node);
+		ml_list_put(List, Node);
 	}
 }
 
@@ -229,7 +229,7 @@ static ml_value_t *parse_node(xe_stream_t *Stream) {
 					ml_stringbuffer_add(Buffer, Next, End - Next);
 					if (Buffer->Length) node_append(Default, ml_stringbuffer_get_string(Buffer));
 					Stream->Next = End + 1;
-					ml_list_append(Default, parse_node(Stream));
+					ml_list_put(Default, parse_node(Stream));
 					End = Next = Stream->Next;
 				} else if (End[0] == '>') {
 					ml_stringbuffer_add(Buffer, Next, End - Next);
@@ -312,7 +312,7 @@ static ml_value_t *parse_node(xe_stream_t *Stream) {
 					ml_stringbuffer_add(Buffer, Next, End - Next);
 					if (Buffer->Length) node_append(Content, ml_stringbuffer_get_string(Buffer));
 					Stream->Next = End + 1;
-					ml_list_append(Content, parse_node(Stream));
+					ml_list_put(Content, parse_node(Stream));
 					End = Next = Stream->Next;
 				} else if (End[0] == '>') {
 					ml_stringbuffer_add(Buffer, Next, End - Next);
@@ -333,7 +333,7 @@ static ml_value_t *parse_node(xe_stream_t *Stream) {
 					End = Next;
 				} else if (End[0] == '<') {
 					Stream->Next = End + 1;
-					ml_list_append(Content, parse_node(Stream));
+					ml_list_put(Content, parse_node(Stream));
 					End = Next = Stream->Next;
 				} else if (End[0] == '>') {
 					break;
@@ -448,8 +448,8 @@ static ml_value_t *node_expand(ml_value_t *Value, node_path_t *Path, xe_scope_t 
 	for (;;) {
 		if (Value->Type == MLListT) {
 			ml_value_t *List = ml_list();
-			ML_LIST_FOREACH(Value, Node) {
-				ml_value_t *Value2 = node_expand(Node->Value, Path, Scope);
+			ML_LIST_FOREACH(Value, Iter) {
+				ml_value_t *Value2 = node_expand(Iter->Value, Path, Scope);
 				if (Value2->Type == MLErrorT) return Value2;
 				node_append(List, Value2);
 			}
@@ -527,19 +527,17 @@ static void compile_inline_value(ml_value_t *Value, ml_stringbuffer_t *Source) {
 		compile_inline_node(Value, Source);
 	} else if (Value->Type == XEVarT) {
 		xe_var_t *Var = (xe_var_t *)Value;
-		if (ml_string_length(Var->Name)) {
-			ml_stringbuffer_add(Source, "Attributes[", strlen("Attributes["));
-			compile_string(Var->Name, Source);
-			ml_stringbuffer_add(Source, "]", 1);
-		} else {
-			ml_stringbuffer_add(Source, "Content", strlen("Content"));
-		}
+		ml_stringbuffer_add(Source, "var(", 4);
+		if (ml_string_length(Var->Name)) compile_string(Var->Name, Source);
+		ml_stringbuffer_add(Source, ")", 1);
 	} else if (Value->Type == MLStringT) {
 		compile_string(Value, Source);
 	} else if (Value->Type == MLIntegerT) {
 		ml_stringbuffer_addf(Source, "%ld", ml_integer_value(Value));
 	} else if (Value->Type == MLRealT) {
 		ml_stringbuffer_addf(Source, "%f", ml_real_value(Value));
+	} else {
+		printf("Unknown value here: <%s>\n", Value->Type->Name);
 	}
 }
 
@@ -577,19 +575,17 @@ static void compile_inline_node(ml_value_t *Value, ml_stringbuffer_t *Source) {
 		}
 	} else if (Value->Type == XEVarT) {
 		xe_var_t *Var = (xe_var_t *)Value;
-		if (ml_string_length(Var->Name)) {
-			ml_stringbuffer_add(Source, "Attributes[", 11);
-			compile_string(Var->Name, Source);
-			ml_stringbuffer_add(Source, "]", 1);
-		} else {
-			ml_stringbuffer_add(Source, "Content", 7);
-		}
+		ml_stringbuffer_add(Source, "var(", 4);
+		if (ml_string_length(Var->Name)) compile_string(Var->Name, Source);
+		ml_stringbuffer_add(Source, ")", 1);
 	} else if (Value->Type == MLStringT) {
 		compile_string(Value, Source);
 	} else if (Value->Type == MLIntegerT) {
 		ml_stringbuffer_addf(Source, "%ld", ml_integer_value(Value));
 	} else if (Value->Type == MLRealT) {
 		ml_stringbuffer_addf(Source, "%f", ml_real_value(Value));
+	} else {
+
 	}
 }
 
@@ -630,12 +626,18 @@ static ml_value_t *compile_macro(ml_value_t *Value) {
 	return Value;
 }
 
+static ml_value_t *attribute_get(ml_value_t *Attributes, const char *Name) {
+	ml_value_t *Value = ml_map_search(Attributes, ml_cstring(Name));
+	if (Value == MLNil) return global_get(Globals, Name);
+	return Value;
+}
+
 ML_FUNCTIONX(XEFunction) {
 	ml_value_t *Attributes = Args[0];
 	ml_value_t *Content = Args[1];
 	xe_scope_t *Scope = (xe_scope_t *)Args[2];
 	ml_stringbuffer_t Source[1] = {ML_STRINGBUFFER_INIT};
-	ml_stringbuffer_add(Source, "fun(Attributes, Content, Scope) do ", strlen("fun(Attributes, Content, Scope) do "));
+	ml_stringbuffer_add(Source, "fun(Args, Content, Scope) do ", strlen("fun(Args, Content, Scope) do "));
 	ML_LIST_FOREACH(Content, Iter) {
 		ml_value_t *Value2 = Iter->Value;
 		if (Value2->Type == MLStringT) {
@@ -647,19 +649,19 @@ ML_FUNCTIONX(XEFunction) {
 	ml_stringbuffer_add(Source, " end", 4);
 	xe_stream_t Stream[1];
 	Stream->Data = ml_stringbuffer_get(Source);
-	//printf("Source = %s\n", Stream->Data);
+	//printf("Function = %s\n", (char *)Stream->Data);
 	Stream->read = string_read;
-	mlc_scanner_t *Scanner = ml_scanner("node", Stream, (void *)string_read, (ml_getter_t)global_get, Globals);
+	mlc_scanner_t *Scanner = ml_scanner("node", Stream, (void *)string_read, (ml_getter_t)attribute_get, Attributes);
 	ml_scanner_source(Scanner, ml_debugger_source(Caller));
 	ml_value_t *Macro = ML_WRAP_EVAL(ml_command_evaluate, Scanner, Globals) ?: ml_error("ParseError", "Empty body");
 	Macro = Macro->Type->deref(Macro);
 	if (Macro->Type == MLErrorT) ML_RETURN(Macro);
 	ml_value_t *Name = ml_map_search(Attributes, ml_integer(1));
-	if (Name != MLNil) {
-		if (Name->Type != MLStringT) ML_RETURN(ml_error("MacroError", "name attribute must be a string"));
-		stringmap_insert(Scope->Symbols, ml_string_value(Name), Macro);
-	}
-	ML_RETURN(Macro);
+	if (Name == MLNil) ML_RETURN(Macro);
+	if (Name->Type != MLStringT) ML_RETURN(ml_error("MacroError", "name attribute must be a string"));
+	if (ml_string_length(Name) == 0) ML_RETURN(Macro);
+	stringmap_insert(Scope->Symbols, ml_string_value(Name), Macro);
+	ML_RETURN(MLNil);
 }
 
 ML_FUNCTION(XEDefine) {
@@ -703,12 +705,6 @@ ML_FUNCTION(XEIn) {
 	return MLNil;
 }
 
-static ml_value_t *attribute_get(ml_value_t *Attributes, const char *Name) {
-	ml_value_t *Value = ml_map_search(Attributes, ml_cstring(Name));
-	if (Value == MLNil) return global_get(Globals, Name);
-	return Value;
-}
-
 ML_FUNCTIONX(XEDo) {
 	ml_value_t *Attributes = Args[0];
 	ml_value_t *Content = Args[1];
@@ -724,7 +720,7 @@ ML_FUNCTIONX(XEDo) {
 	ml_value_t *Result = MLNil;
 	xe_stream_t Stream[1];
 	Stream->Data = ml_stringbuffer_get(Source);
-	//printf("Source = %s\n", Stream->Data);
+	//printf("Do = %s\n", (char *)Stream->Data);
 	Stream->read = string_read;
 	mlc_scanner_t *Scanner = ml_scanner("node", Stream, (void *)string_read, (ml_getter_t)attribute_get, Attributes);
 	ml_scanner_source(Scanner, ml_debugger_source(Caller));
@@ -778,7 +774,7 @@ ML_FUNCTION(XEInclude) {
 		Stream->Next = Next + 1;
 		ml_value_t *Node = parse_node(Stream);
 		if (Node->Type == MLErrorT) return Node;
-		ml_list_append(Contents, Node);
+		ml_list_put(Contents, Node);
 		Next = Stream->Next;
 	}
 	return Contents;
@@ -915,16 +911,30 @@ ML_FUNCTIONX(XENode) {
 	ML_RETURN(Node);
 }
 
+ML_FUNCTIONX(XEVar) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLStringT);
+	xe_var_t *Var = new(xe_var_t);
+	Var->Type = XEVarT;
+	Var->Name = Args[0];
+	ML_RETURN(Var);
+}
+
 ML_FUNCTION(XEEval) {
-	ML_CHECK_ARG_COUNT(3);
-	ML_CHECK_ARG_TYPE(1, MLMapT);
-	ML_CHECK_ARG_TYPE(2, MLListT);
+	ML_CHECK_ARG_COUNT(2);
+	ml_value_t *Content;
+	if (Count > 2) {
+		ML_CHECK_ARG_TYPE(2, MLListT);
+		Content = Args[2];
+	} else {
+		Content = ml_list();
+	}
 	xe_scope_t *Scope = GlobalScope;
 	if (Count > 3) {
 		ML_CHECK_ARG_TYPE(1, XEScopeT);
 		Scope = (xe_scope_t *)Args[3];
 	}
-	return node_eval(Args[0], Args[1], Args[2], Scope);
+	return node_eval(Args[0], Args[1], Content, Scope);
 }
 
 ML_FUNCTION(XEAppend) {
@@ -1025,6 +1035,7 @@ int main(int Argc, char **Argv) {
 	stringmap_insert(Globals, "parse_file", XEParseFile);
 	stringmap_insert(Globals, "expand", XEExpand);
 	stringmap_insert(Globals, "node", XENode);
+	stringmap_insert(Globals, "var", XEVar);
 	stringmap_insert(Globals, "eval", XEEval);
 	stringmap_insert(Globals, "append", XEAppend);
 	stringmap_insert(GlobalScope->Symbols, "!function", XEFunction);
@@ -1047,7 +1058,7 @@ int main(int Argc, char **Argv) {
 		} else if (!FileName) {
 			FileName = Argv[I];
 		} else {
-			ml_list_append(Args, ml_string(Argv[I], -1));
+			ml_list_put(Args, ml_string(Argv[I], -1));
 		}
 	}
 	MainArgs[0] = Args;

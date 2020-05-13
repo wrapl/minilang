@@ -689,7 +689,7 @@ static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_exp
 	if (HasKey) {
 		NextInst->Params[1].Count = 2;
 		ml_inst_t *KeyInst = ml_inst_new(1, Expr->Source, MLI_KEY);
-		ml_inst_t *KeyResultInst = ml_inst_new(1, Expr->Source, MLI_WITH);
+		ml_inst_t *KeyResultInst = ml_inst_new(2, Expr->Source, MLI_WITH);
 		KeyInst->Params[0].Inst = KeyResultInst;
 		KeyResultInst->Params[0].Inst = BodyCompiled.Start;
 		KeyResultInst->Params[1].Decls = Function->Decls;
@@ -960,7 +960,7 @@ static mlc_compiled_t ml_call_expr_compile(mlc_function_t *Function, mlc_parent_
 				}
 			}
 			PartialInst->Params[1].Count = NumArgs;
-			ml_inst_t *PopInst = ml_inst_new(2, Expr->Source, MLI_POP);
+			ml_inst_t *PopInst = ml_inst_new(1, Expr->Source, MLI_POP);
 			LastInst->Params[0].Inst = PopInst;
 			--Function->Top;
 			Compiled.Exits = PopInst;
@@ -1018,7 +1018,7 @@ static mlc_compiled_t ml_const_call_expr_compile(mlc_function_t *Function, mlc_p
 				}
 			}
 			PartialInst->Params[1].Count = NumArgs;
-			ml_inst_t *PopInst = ml_inst_new(2, Expr->Source, MLI_POP);
+			ml_inst_t *PopInst = ml_inst_new(1, Expr->Source, MLI_POP);
 			LastInst->Params[0].Inst = PopInst;
 			--Function->Top;
 			Compiled.Exits = PopInst;
@@ -1078,7 +1078,7 @@ static mlc_compiled_t ml_import_expr_compile(mlc_function_t *Function, mlc_paren
 	}
 	ml_inst_t *PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
 	mlc_connect(Compiled.Exits, PushInst);
-	ml_inst_t *LoadInst = ml_inst_new(1, Expr->Source, MLI_LOAD);
+	ml_inst_t *LoadInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
 	LoadInst->Params[1].Value = Expr->Value;
 	PushInst->Params[0].Inst = LoadInst;
 	PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
