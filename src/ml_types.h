@@ -294,7 +294,7 @@ inline void ml_list_iter_update(ml_list_iter_t *Iter, ml_value_t *Value) {
 	for (ml_list_iter_t ITER[1] = {{((ml_list_t *)LIST)->Head, ((ml_list_t *)LIST)->Tail}}; (ITER->Node < ITER->Last) && (ITER->Value = ITER->Node[0]); ++ITER->Node)
 
 #define ML_LIST_REVERSE(LIST, ITER) \
-	for (ml_list_iter_t ITER[1] = {{((ml_list_t *)LIST)->Tail - 1, ((ml_list_t *)LIST)->Head}}; (ITER->Node > ITER->Last) && (ITER->Value = ITER->Node[0]); --ITER->Node)
+	for (ml_list_iter_t ITER[1] = {{((ml_list_t *)LIST)->Tail - 1, ((ml_list_t *)LIST)->Head}}; (ITER->Node >= ITER->Last) && (ITER->Value = ITER->Node[0]); --ITER->Node)
 
 #define ML_NAMES_FOREACH(LIST, ITER) ML_LIST_FOREACH(LIST, ITER)
 
