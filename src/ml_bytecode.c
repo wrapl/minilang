@@ -524,7 +524,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_LIST_APPEND: {
 		Result = Result->Type->deref(Result);
 		ERROR_CHECK(Result);
-		ml_list_append(Top[-1], Result);
+		ml_list_put(Top[-1], Result);
 		ADVANCE(0);
 	}
 	DO_MAP_NEW: {

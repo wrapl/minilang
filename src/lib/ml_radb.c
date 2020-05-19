@@ -187,7 +187,7 @@ static ml_value_t *ml_string_index_create(void *Data, int Count, ml_value_t **Ar
 	}
 	ml_string_index_t *Store = new(ml_string_index_t);
 	Store->Type = StringIndexT;
-	Store->Handle = string_index_create(ml_string_value(Args[0]), ChunkSize);
+	Store->Handle = string_index_create(ml_string_value(Args[0]), 16, ChunkSize);
 	return (ml_value_t *)Store;
 }
 

@@ -18,7 +18,7 @@ typedef struct xe_node_t {
 
 typedef struct xe_var_t {
 	const ml_type_t *Type;
-	ml_value_t *Name, *Default;
+	ml_value_t *Name;
 } xe_var_t;
 
 ML_TYPE(XENodeT, MLAnyT, "xe-node");
@@ -207,42 +207,8 @@ static ml_value_t *parse_node(xe_stream_t *Stream) {
 		char *Name = GC_malloc_atomic(TagLength + 1);
 		memcpy(Name, Stream->Next + 1, TagLength);
 		Name[TagLength] = 0;
-		ml_value_t *Default = MLNil;
 		SKIP_WHITESPACE;
-		if (Next[0] == ':') {
-			Default = ml_list();
-			ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-			const char *End = ++Next;
-			for (;;) {
-				if (End[0] == 0) {
-					ml_stringbuffer_add(Buffer, Next, End - Next);
-					//ml_stringbuffer_add(Buffer, "\n", 1);
-					Next = Stream->read(Stream);
-					if (!Next) return ml_error("ParseError", "Unexpected end of input at line %d in %s", Stream->LineNo, Stream->Source);
-					++Stream->LineNo;
-					End = Next;
-				} else if (End[0] == '\\') {
-					ml_stringbuffer_add(Buffer, Next, End - Next);
-					End = Next = parse_escape(End, Buffer);
-					if (!End) return ml_error("ParseError", "Invalid escape sequence at line %d in %s", Stream->LineNo, Stream->Source);
-				} else if (End[0] == '<') {
-					ml_stringbuffer_add(Buffer, Next, End - Next);
-					if (Buffer->Length) node_append(Default, ml_stringbuffer_get_string(Buffer));
-					Stream->Next = End + 1;
-					ml_list_put(Default, parse_node(Stream));
-					End = Next = Stream->Next;
-				} else if (End[0] == '>') {
-					ml_stringbuffer_add(Buffer, Next, End - Next);
-					if (Buffer->Length) node_append(Default, ml_stringbuffer_get_string(Buffer));
-					break;
-				} else {
-					++End;
-				}
-			}
-			Stream->Next = End + 1;
-		} else {
-			Stream->Next = Next + 1;
-		}
+		Stream->Next = Next + 1;
 		xe_var_t *Var = new(xe_var_t);
 		Var->Type = XEVarT;
 		if (!TagLength || isalpha(Name[0])) {
@@ -250,15 +216,18 @@ static ml_value_t *parse_node(xe_stream_t *Stream) {
 		} else {
 			Var->Name = ml_integer(atoi(Name));
 		}
-		Var->Default = Default;
 		return (ml_value_t *)Var;
 	} else {
-		char *Tag = GC_malloc_atomic(TagLength + 1);
-		memcpy(Tag, Stream->Next, TagLength);
-		Tag[TagLength] = 0;
+		ml_value_t *Tag;
 		ml_value_t *Attributes = ml_map();
 		ml_value_t *Content = ml_list();
 		int Index = 1;
+		if (Stream->Next[0] == '@') {
+			Tag = ml_cstring("@");
+			ml_map_insert(Attributes, ml_integer(Index++), ml_string(Stream->Next + 1, TagLength - 1));
+		} else {
+			Tag = ml_string(Stream->Next, TagLength);
+		}
 		for (;;) {
 			SKIP_WHITESPACE;
 			if (Next[0] != ':' && Next[0] != '|' && Next[0] != '>' && Next[0] != '?') {
@@ -349,7 +318,7 @@ static ml_value_t *parse_node(xe_stream_t *Stream) {
 		}
 		xe_node_t *Node = new(xe_node_t);
 		Node->Type = XENodeT;
-		Node->Tag = ml_string(Tag, TagLength);
+		Node->Tag = Tag;
 		Node->Attributes = Attributes;
 		Node->Content = Content;
 		Node->Source.Name = Stream->Source;
@@ -408,7 +377,7 @@ static ml_value_t *node_eval(ml_value_t *Value, ml_value_t *Attributes, ml_value
 		xe_var_t *Var = (xe_var_t *)Value;
 		if (ml_string_length(Var->Name)) {
 			ml_value_t *Value2 = ml_map_search(Attributes, Var->Name);
-			if (Value2 == MLNil) return Var->Default;
+			if (Value2 == MLNil) return (ml_value_t *)Var;
 			return Value2;
 		} else {
 			return Content;
@@ -554,6 +523,7 @@ static void compile_inline_node(ml_value_t *Value, ml_stringbuffer_t *Source) {
 				compile_string(Iter->Key, Source);
 				ml_stringbuffer_add(Source, " is ", 4);
 				compile_inline_value(Iter->Value, Source);
+				Comma = 1;
 			}
 			ml_stringbuffer_add(Source, "},[", 3);
 			Comma = 0;
@@ -733,6 +703,32 @@ ML_FUNCTIONX(XEDo) {
 	ML_RETURN(Result);
 }
 
+ML_FUNCTIONX(XEDo2) {
+	ml_value_t *Attributes = Args[0];
+	ml_value_t *Content = Args[1];
+	ml_stringbuffer_t Source[1] = {ML_STRINGBUFFER_INIT};
+	ML_LIST_FOREACH(Content, Iter) {
+		ml_value_t *Value = Iter->Value;
+		if (Value->Type == MLStringT) {
+			ml_stringbuffer_add(Source, ml_string_value(Value), ml_string_length(Value));
+		} else {
+			compile_inline_node(Value, Source);
+		}
+	}
+	xe_stream_t Stream[1];
+	Stream->Data = ml_stringbuffer_get(Source);
+	//printf("Do = %s\n", (char *)Stream->Data);
+	Stream->read = string_read;
+	mlc_scanner_t *Scanner = ml_scanner("node", Stream, (void *)string_read, (ml_getter_t)attribute_get, Attributes);
+	ml_scanner_source(Scanner, ml_debugger_source(Caller));
+	for (;;) {
+		ml_value_t *Value = ML_WRAP_EVAL(ml_command_evaluate, Scanner, Globals);
+		if (!Value) break;
+		if (Value->Type == MLErrorT) ML_RETURN(Value);
+	}
+	ML_RETURN(MLNil);
+}
+
 static const char *file_read(xe_stream_t *Stream) {
 	FILE *File = (FILE *)Stream->Data;
 	char *Line = 0;
@@ -786,6 +782,14 @@ ML_FUNCTION(XEMap) {
 
 ML_FUNCTION(XEList) {
 	return Args[1];
+}
+
+ML_FUNCTION(XEAttr) {
+	ml_value_t *Attr = ml_map_search(Args[0], ml_integer(1));
+	if (Attr->Type != MLStringT) return ml_error("TypeError", "String required, not %s", Attr->Type->Name);
+	xe_node_t *Node = (xe_node_t *)ml_map_search(Args[0], ml_integer(2));
+	if (Node->Type != XENodeT) return ml_error("TypeError", "Node required, not %s", Node->Type->Name);
+	return ml_map_search(Node->Attributes, Attr);
 }
 
 static int xe_attribute_to_string(ml_value_t *Key, ml_value_t *Value, ml_stringbuffer_t *Buffer) {
@@ -1041,11 +1045,14 @@ int main(int Argc, char **Argv) {
 	stringmap_insert(GlobalScope->Symbols, "!function", XEFunction);
 	stringmap_insert(GlobalScope->Symbols, "!define", XEDefine);
 	stringmap_insert(GlobalScope->Symbols, "!in", XEIn);
-	stringmap_insert(GlobalScope->Symbols, "!do", XEDo);
+	stringmap_insert(GlobalScope->Symbols, "!do", XEDo2);
 	stringmap_insert(GlobalScope->Symbols, "", XEDo);
 	stringmap_insert(GlobalScope->Symbols, "!include", XEInclude);
 	stringmap_insert(GlobalScope->Symbols, "!map", XEMap);
 	stringmap_insert(GlobalScope->Symbols, "!list", XEList);
+	stringmap_insert(GlobalScope->Symbols, "@", XEAttr);
+	//stringmap_insert(GlobalScope->Symbols, "!for", XEFor);
+	//stringmap_insert(GlobalScope->Symbols, "!if", XEIf);
 #include "minixe_init.c"
 	ml_value_t *Args = ml_list();
 	const char *FileName = 0;
