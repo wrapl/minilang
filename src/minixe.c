@@ -211,7 +211,9 @@ static ml_value_t *parse_node(xe_stream_t *Stream) {
 		Stream->Next = Next + 1;
 		xe_var_t *Var = new(xe_var_t);
 		Var->Type = XEVarT;
-		if (!TagLength || isalpha(Name[0])) {
+		if (!TagLength) {
+			Var->Name = MLNil;
+		} else if (isalpha(Name[0])) {
 			Var->Name = ml_string(Name, TagLength);
 		} else {
 			Var->Name = ml_integer(atoi(Name));
@@ -375,7 +377,7 @@ static ml_value_t *node_eval(ml_value_t *Value, ml_value_t *Attributes, ml_value
 		return Value;
 	} else if (Value->Type == XEVarT) {
 		xe_var_t *Var = (xe_var_t *)Value;
-		if (ml_string_length(Var->Name)) {
+		if (Var->Name != MLNil) {
 			ml_value_t *Value2 = ml_map_search(Attributes, Var->Name);
 			if (Value2 == MLNil) return (ml_value_t *)Var;
 			return Value2;
