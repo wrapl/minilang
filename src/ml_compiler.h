@@ -16,7 +16,7 @@ mlc_scanner_t *ml_scanner(const char *SourceName, void *Data, const char *(*read
 ml_source_t ml_scanner_source(mlc_scanner_t *Scanner, ml_source_t Source);
 void ml_scanner_reset(mlc_scanner_t *Scanner);
 const char *ml_scanner_clear(mlc_scanner_t *Scanner);
-void ml_scanner_error(mlc_scanner_t *Scanner, const char *Error, const char *Format, ...);
+void ml_scanner_error(mlc_scanner_t *Scanner, const char *Error, const char *Format, ...) __attribute__((noreturn));
 
 void ml_function_compile(ml_state_t *Caller, mlc_scanner_t *Scanner, const char **Parameters);
 void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t *Vars);

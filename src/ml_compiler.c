@@ -1416,6 +1416,7 @@ void ml_scanner_error(mlc_scanner_t *Scanner, const char *Error, const char *For
 	ml_value_t *Value = ml_errorv(Error, Format, Args);
 	va_end(Args);
 	Scanner->Context->Error = (ml_value_t *)Value;
+	ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
 	longjmp(Scanner->Context->OnError, 1);
 }
 
@@ -1448,9 +1449,7 @@ static mlc_expr_t *ml_accept_string(mlc_scanner_t *Scanner) {
 			if (End[0] == '\n') {
 				--Length;
 			} else if (!End[0]) {
-				Scanner->Context->Error = ml_error("ParseError", "end of line while parsing string");
-				ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
-				longjmp(Scanner->Context->OnError, 1);
+				ml_scanner_error(Scanner, "ParseError", "end of line while parsing string");
 			}
 		}
 		++Length;
@@ -1488,9 +1487,7 @@ static mlc_expr_t *ml_accept_string(mlc_scanner_t *Scanner) {
 		Scanner->Next = (Scanner->read)(Scanner->Data);
 		++Scanner->Source.Line;
 		if (!Scanner->Next) {
-			Scanner->Context->Error = ml_error("ParseError", "end of input while parsing string");
-			ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
-			longjmp(Scanner->Context->OnError, 1);
+			ml_scanner_error(Scanner, "ParseError", "end of input while parsing string");
 		}
 		mlc_expr_t *Next = ml_accept_string(Scanner);
 		if (Expr) {
@@ -1584,9 +1581,7 @@ static ml_token_t ml_advance(mlc_scanner_t *Scanner) {
 			const char *End = Scanner->Next;
 			while (End[0] != '\"') {
 				if (!End[0]) {
-					Scanner->Context->Error = ml_error("ParseError", "end of input while parsing string");
-					ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
-					longjmp(Scanner->Context->OnError, 1);
+					ml_scanner_error(Scanner, "ParseError", "end of input while parsing string");
 				}
 				if (End[0] == '\\') {
 					++Length;
@@ -1676,9 +1671,7 @@ static ml_token_t ml_advance(mlc_scanner_t *Scanner) {
 			const char *End = Scanner->Next;
 			while (End[0] != '\"') {
 				if (!End[0]) {
-					Scanner->Context->Error = ml_error("ParseError", "end of input while parsing string");
-					ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
-					longjmp(Scanner->Context->OnError, 1);
+					ml_scanner_error(Scanner, "ParseError", "end of input while parsing string");
 				}
 				if (End[0] == '\\') ++End;
 				++Length;
@@ -1707,6 +1700,10 @@ static ml_token_t ml_advance(mlc_scanner_t *Scanner) {
 			Scanner->Next = End + 1;
 			return Scanner->Token;
 		}
+		/*if (Char == '-' && Scanner->Next[1] == '-') {
+			Scanner->Next = "\n";
+			continue;
+		}*/
 		if (Char == ':') {
 			if (Scanner->Next[1] == '=') {
 				Scanner->Token = MLT_ASSIGN;
@@ -1727,19 +1724,13 @@ static ml_token_t ml_advance(mlc_scanner_t *Scanner) {
 				Scanner->Token = MLT_METHOD;
 				Scanner->Next = End;
 				return Scanner->Token;
-			} else if (Scanner->Next[1] == '(') {
-				Scanner->Token = MLT_INLINE;
-				Scanner->Next += 2;
-				return Scanner->Token;
 			} else if (Scanner->Next[1] == '\"') {
 				Scanner->Next += 2;
 				int Length = 0;
 				const char *End = Scanner->Next;
 				while (End[0] != '\"') {
 					if (!End[0]) {
-						Scanner->Context->Error = ml_error("ParseError", "end of input while parsing string");
-						ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
-						longjmp(Scanner->Context->OnError, 1);
+						ml_scanner_error(Scanner, "ParseError", "end of input while parsing string");
 					}
 					if (End[0] == '\\') ++End;
 					++Length;
@@ -1767,11 +1758,32 @@ static ml_token_t ml_advance(mlc_scanner_t *Scanner) {
 				Scanner->Token = MLT_METHOD;
 				Scanner->Next = End + 1;
 				return Scanner->Token;
+			} else if (Scanner->Next[1] == '>') {
+				Scanner->Next = "\n";
+				continue;
+			} else if (Scanner->Next[1] == '<') {
+				Scanner->Next += 2;
+				int Level = 1;
+				do {
+					if (Scanner->Next[0] == 0) {
+						Scanner->Next = (Scanner->read)(Scanner->Data);
+						++Scanner->Source.Line;
+						if (!Scanner->Next) ml_scanner_error(Scanner, "ParseError", "End of input in comment");
+					} else if (Scanner->Next[0] == '>' && Scanner->Next[1] == ':') {
+						Scanner->Next += 2;
+						--Level;
+					} else if (Scanner->Next[0] == ':' && Scanner->Next[1] == '<') {
+						Scanner->Next = "";
+					} else {
+						++Scanner->Next;
+					}
+				} while (Level);
+				continue;
+			} else if (Scanner->Next[1] == '(') {
+				Scanner->Token = MLT_INLINE;
+				Scanner->Next += 2;
+				return Scanner->Token;
 			}
-		}
-		if (Char == '-' && Scanner->Next[1] == '-') {
-			Scanner->Next = "\n";
-			continue;
 		}
 		for (ml_token_t T = MLT_LEFT_PAREN; T <= MLT_COMMA; ++T) {
 			if (Char == MLTokens[T][0]) {
@@ -1792,9 +1804,7 @@ static ml_token_t ml_advance(mlc_scanner_t *Scanner) {
 			Scanner->Next = End;
 			return Scanner->Token;
 		}
-		Scanner->Context->Error = ml_error("ParseError", "unexpected character <%c>", Char);
-		ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
-		longjmp(Scanner->Context->OnError, 1);
+		ml_scanner_error(Scanner, "ParseError", "unexpected character <%c>", Char);
 	}
 	return Scanner->Token;
 }
@@ -1817,12 +1827,10 @@ static void ml_accept(mlc_scanner_t *Scanner, ml_token_t Token) {
 	while (ml_parse(Scanner, MLT_EOL));
 	if (ml_parse(Scanner, Token)) return;
 	if (Scanner->Token == MLT_IDENT) {
-		Scanner->Context->Error = ml_error("ParseError", "expected %s not %s (%s)", MLTokens[Token], MLTokens[Scanner->Token], Scanner->Ident);
+		ml_scanner_error(Scanner, "ParseError", "expected %s not %s (%s)", MLTokens[Token], MLTokens[Scanner->Token], Scanner->Ident);
 	} else {
-		Scanner->Context->Error = ml_error("ParseError", "expected %s not %s", MLTokens[Token], MLTokens[Scanner->Token]);
+		ml_scanner_error(Scanner, "ParseError", "expected %s not %s", MLTokens[Token], MLTokens[Scanner->Token]);
 	}
-	ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
-	longjmp(Scanner->Context->OnError, 1);
 }
 
 static void ml_accept_eoi(mlc_scanner_t *Scanner) {
@@ -2230,9 +2238,7 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 			if (!ml_parse(Scanner, MLT_OPERATOR) && !ml_parse(Scanner, MLT_IDENT)) {
 				ml_accept(Scanner, MLT_VALUE);
 				if (Scanner->Value->Type != MLStringT) {
-					Scanner->Context->Error = ml_error("ParseError", "expected import not %s", MLTokens[Scanner->Token]);
-					ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
-					longjmp(Scanner->Context->OnError, 1);
+					ml_scanner_error(Scanner, "ParseError", "expected import not %s", MLTokens[Scanner->Token]);
 				}
 				Scanner->Ident = ml_string_value(Scanner->Value);
 			}
@@ -2254,9 +2260,7 @@ static mlc_expr_t *ml_accept_term(mlc_scanner_t *Scanner) {
 	while (ml_parse(Scanner, MLT_EOL));
 	mlc_expr_t *Expr = ml_parse_term(Scanner);
 	if (Expr) return Expr;
-	Scanner->Context->Error = ml_error("ParseError", "expected <factor> not %s", MLTokens[Scanner->Token]);
-	ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
-	longjmp(Scanner->Context->OnError, 1);
+	ml_scanner_error(Scanner, "ParseError", "expected <factor> not %s", MLTokens[Scanner->Token]);
 }
 
 static mlc_expr_t *ml_parse_expression(mlc_scanner_t *Scanner, ml_expr_level_t Level) {
@@ -2381,9 +2385,7 @@ static mlc_expr_t *ml_accept_expression(mlc_scanner_t *Scanner, ml_expr_level_t 
 	while (ml_parse(Scanner, MLT_EOL));
 	mlc_expr_t *Expr = ml_parse_expression(Scanner, Level);
 	if (Expr) return Expr;
-	Scanner->Context->Error = ml_error("ParseError", "expected <expression> not %s", MLTokens[Scanner->Token]);
-	ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
-	longjmp(Scanner->Context->OnError, 1);
+	ml_scanner_error(Scanner, "ParseError", "expected <expression> not %s", MLTokens[Scanner->Token]);
 }
 
 static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
@@ -2552,9 +2554,7 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 		case MLT_ON: {
 			Scanner->Token = MLT_NONE;
 			if (BlockExpr->CatchDecl) {
-				Scanner->Context->Error = ml_error("ParseError", "no more than one error handler allowed in a block");
-				ml_error_trace_add(Scanner->Context->Error, Scanner->Source);
-				longjmp(Scanner->Context->OnError, 1);
+				ml_scanner_error(Scanner, "ParseError", "no more than one error handler allowed in a block");
 			}
 			ml_accept(Scanner, MLT_IDENT);
 			ml_decl_t *Decl = new(ml_decl_t);

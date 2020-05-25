@@ -48,11 +48,14 @@
     <context id="comment">
       <include>
         <context end-at-line-end="true" style-ref="comment">
-          <start>--</start>
+          <start>:&gt;</start>
         </context>
         <context style-ref="comment">
-          <start>-=</start>
-          <end>=-</end>
+          <start>:&lt;</start>
+          <end>&gt;:</end>
+          <include>
+            <context ref="comment"/>
+          </include>
         </context>
       </include>
     </context>
