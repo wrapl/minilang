@@ -1413,6 +1413,7 @@ const char *ml_scanner_clear(mlc_scanner_t *Scanner) {
 
 void ml_scanner_error(mlc_scanner_t *Scanner, const char *Error, const char *Format, ...) {
 	va_list Args;
+	va_start(Args, Format);
 	ml_value_t *Value = ml_errorv(Error, Format, Args);
 	va_end(Args);
 	Scanner->Context->Error = (ml_value_t *)Value;
