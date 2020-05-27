@@ -87,7 +87,7 @@ ML_METHOD("write", MLFileT, MLStringT) {
 	return Args[0];
 }
 
-static int ml_file_write_buffer_chars(const char *Chars, size_t Remaining, ml_file_t *File) {
+static int ml_file_write_buffer_chars(ml_file_t *File, const char *Chars, size_t Remaining) {
 	while (Remaining > 0) {
 		ssize_t Actual = fwrite(Chars, 1, Remaining, File->Handle);
 		if (Actual < 0) return 1;

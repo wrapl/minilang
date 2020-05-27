@@ -38,7 +38,7 @@ struct ml_closure_t {
 	ml_value_t *UpValues[];
 };
 
-typedef union ml_param_t {
+typedef union {
 	ml_inst_t *Inst;
 	int Index;
 	int Count;
@@ -92,9 +92,9 @@ typedef enum {
 
 struct ml_inst_t {
 	ml_opcode_t Opcode:8;
-	int Processed:1;
 	int PotentialBreakpoint:1;
-	int Reserved:22;
+	int Reserved:7;
+	int Processed:16;
 	int LineNo:32;
 	ml_param_t Params[];
 };
@@ -105,6 +105,16 @@ void ml_closure_sha256(ml_value_t *Closure, unsigned char Hash[SHA256_BLOCK_SIZE
 void ml_closure_info_finish(ml_closure_info_t *Info);
 
 const char *ml_closure_info_debug(ml_closure_info_t *Info);
+
+#ifdef USE_ML_CBOR
+
+#include "ml_cbor.h"
+
+void ml_cbor_write_closure(ml_closure_t *Closure, ml_stringbuffer_t *Buffer);
+
+ml_value_t *ml_cbor_read_closure(void *Data, int Count, ml_value_t **Args);
+
+#endif
 
 void ml_bytecode_init();
 

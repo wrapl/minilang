@@ -1,6 +1,7 @@
 #include "minilang.h"
 #include "ml_macros.h"
 #include "ml_cbor.h"
+#include "ml_bytecode.h"
 #include <gc/gc.h>
 #include <string.h>
 
@@ -289,10 +290,25 @@ void ml_cbor_read_error_fn(ml_cbor_reader_t *Reader, int Position, const char *M
 	value_handler(Reader, ml_error("CBORError", "Read error: %s at %d", Message, Position));
 }
 
+static ml_value_t *ml_value_fn(ml_value_t *Callback, ml_value_t *Value) {
+	return ml_inline(Callback, 1, Value);
+}
+
+static ml_tag_t ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void **Data) {
+	Data[0] = ml_inline(Callback, 1, ml_integer(Tag));
+	return (ml_tag_t)ml_value_fn;
+}
+
+ml_value_t *CborDefaultTags;
+
+ML_FUNCTION(DefaultTagFn) {
+	return ml_map_search(CborDefaultTags, Args[0]);
+}
+
 ml_value_t *ml_from_cbor(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*TagFn)(uint64_t, void *, void **)) {
 	ml_cbor_reader_t Reader[1];
-	Reader->TagFnData = TagFnData;
-	Reader->TagFn = TagFn;
+	Reader->TagFnData = TagFnData ?: DefaultTagFn;
+	Reader->TagFn = TagFn ?: ml_value_tag_fn;
 	ml_cbor_reader_init(Reader->Reader);
 	Reader->Reader->UserData = Reader;
 	Reader->Collection = 0;
@@ -306,8 +322,8 @@ ml_value_t *ml_from_cbor(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*TagFn)(uint
 
 ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*TagFn)(uint64_t, void *, void **)) {
 	ml_cbor_reader_t Reader[1];
-	Reader->TagFnData = TagFnData;
-	Reader->TagFn = TagFn;
+	Reader->TagFnData = TagFnData ?: DefaultTagFn;
+	Reader->TagFn = TagFn ?: ml_value_tag_fn;
 	ml_cbor_reader_init(Reader->Reader);
 	Reader->Reader->UserData = Reader;
 	Reader->Collection = 0;
@@ -321,21 +337,6 @@ static ml_value_t *ml_to_cbor_fn(void *Data, int Count, ml_value_t **Args) {
 	ml_cbor_t Cbor = ml_to_cbor(Args[0]);
 	if (Cbor.Data) return ml_string(Cbor.Data, Cbor.Length);
 	return ml_error("CborError", "Error encoding to cbor");
-}
-
-static ml_value_t *ml_value_fn(ml_value_t *Callback, ml_value_t *Value) {
-	return ml_inline(Callback, 1, Value);
-}
-
-static ml_tag_t ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void **Data) {
-	Data[0] = ml_inline(Callback, 1, ml_integer(Tag));
-	return (ml_tag_t)ml_value_fn;
-}
-
-static ml_value_t *DefaultTags;
-
-ML_FUNCTION(DefaultTagFn) {
-	return ml_map_search(DefaultTags, Args[0]);
 }
 
 static ml_value_t *ml_from_cbor_fn(void *Data, int Count, ml_value_t **Args) {
@@ -385,23 +386,33 @@ static void ML_TYPED_FN(ml_cbor_write, MLNilT, ml_value_t *Arg, void *Data, ml_c
 }
 
 static void ML_TYPED_FN(ml_cbor_write, MLMethodT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
-	if (!strcmp(ml_method_name(Arg), "true")) {
+	const char *Name = ml_method_name(Arg);
+	if (!strcmp(Name, "true")) {
 		ml_cbor_write_simple(Data, WriteFn, CBOR_SIMPLE_TRUE);
-	} else if (!strcmp(ml_method_name(Arg), "false")) {
+	} else if (!strcmp(Name, "false")) {
 		ml_cbor_write_simple(Data, WriteFn, CBOR_SIMPLE_FALSE);
 	} else {
-		ml_cbor_write_simple(Data, WriteFn, CBOR_SIMPLE_UNDEF);
+		ml_cbor_write_tag(Data, WriteFn, 26);
+		ml_cbor_write_string(Data, WriteFn, strlen(Name));
+		WriteFn(Data, Name, strlen(Name));
 	}
 }
 
+ml_value_t *ml_cbor_read_method(void *Data, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	return ml_method(ml_string_value(Args[0]));
+}
+
 void ml_cbor_init(stringmap_t *Globals) {
-	DefaultTags = ml_map();
+	CborDefaultTags = ml_map();
+	ml_map_insert(CborDefaultTags, ml_integer(26), ml_function(NULL, ml_cbor_read_method));
+	ml_map_insert(CborDefaultTags, ml_integer(36), ml_function(NULL, ml_cbor_read_closure));
 #include "ml_cbor_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "cbor", ml_module("cbor",
 			"encode", ml_function(NULL, ml_to_cbor_fn),
 			"decode", ml_function(NULL, ml_from_cbor_fn),
-			"Default", DefaultTags,
+			"Default", CborDefaultTags,
 		NULL));
 	}
 }

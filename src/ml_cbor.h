@@ -16,6 +16,8 @@ typedef struct ml_cbor_reader_t ml_cbor_reader_t;
 
 typedef ml_value_t *(*ml_tag_t)(void *Data, ml_value_t *Value);
 
+extern ml_value_t *CborDefaultTags;
+
 ml_cbor_reader_t *ml_cbor_reader_new(void *TagFnData, ml_tag_t (*TagFn)(uint64_t, void *, void **));
 void ml_cbor_reader_read(ml_cbor_reader_t *Reader, unsigned char *Bytes, int Size);
 ml_value_t *ml_cbor_reader_get(ml_cbor_reader_t *Reader);

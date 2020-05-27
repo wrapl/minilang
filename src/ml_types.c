@@ -1306,14 +1306,14 @@ ml_value_t *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) {
 	}
 }
 
-int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(const char *, size_t, void *)) {
+int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t)) {
 	ml_stringbuffer_node_t *Node = Buffer->Nodes;
 	if (!Node) return 0;
 	while (Node->Next) {
-		if (callback(Node->Chars, ML_STRINGBUFFER_NODE_SIZE, Data)) return 1;
+		if (callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE)) return 1;
 		Node = Node->Next;
 	}
-	return callback(Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space, Data);
+	return callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
 }
 
 ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value) {

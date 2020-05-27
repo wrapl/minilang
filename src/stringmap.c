@@ -86,33 +86,6 @@ static void stringmap_rebalance(stringmap_node_t **Slot) {
 	}
 }
 
-static void *stringmap_insert_internal(stringmap_t *Map, stringmap_node_t **Slot, long Hash, const char *Key, void *Value) {
-	if (!Slot[0]) {
-		stringmap_node_t *Node = Slot[0] = new(stringmap_node_t);
-		Node->Depth = 1;
-		Node->Hash = Hash;
-		Node->Key = Key;
-		Node->Value = Value;
-		++Map->Size;
-		return 0;
-	}
-	int Compare = compare(Hash, Key, Slot[0]);
-	if (!Compare) {
-		void *Old = Slot[0]->Value;
-		Slot[0]->Value = Value;
-		return Old;
-	} else {
-		void *Old = stringmap_insert_internal(Map, Compare < 0 ? &Slot[0]->Left : &Slot[0]->Right, Hash, Key, Value);
-		stringmap_rebalance(Slot);
-		stringmap_update_depth(Slot[0]);
-		return Old;
-	}
-}
-
-void *stringmap_insert(stringmap_t *Map, const char *Key, void *Value) {
-	return stringmap_insert_internal(Map, &Map->Root, stringmap_hash(Key), Key, Value);
-}
-
 static void **stringmap_slot_internal(stringmap_t *Map, stringmap_node_t **Slot, long Hash, const char *Key) {
 	if (!Slot[0]) {
 		stringmap_node_t *Node = Slot[0] = new(stringmap_node_t);
@@ -137,8 +110,18 @@ void **stringmap_slot(stringmap_t *Map, const char *Key) {
 	return stringmap_slot_internal(Map, &Map->Root, stringmap_hash(Key), Key);
 }
 
+void *stringmap_insert(stringmap_t *Map, const char *Key, void *Value) {
+	void **Slot = stringmap_slot(Map, Key);
+	void *Old = Slot[0];
+	Slot[0] = Value;
+	return Old;
+}
+
 void *stringmap_hash_insert(stringmap_t *Map, long Hash, const char *Key, void *Value) {
-	return stringmap_insert_internal(Map, &Map->Root, Hash, Key, Value);
+	void **Slot = stringmap_slot_internal(Map, &Map->Root, Hash, Key);
+	void *Old = Slot[0];
+	Slot[0] = Value;
+	return Old;
 }
 
 static void stringmap_remove_depth_helper(stringmap_node_t *Node) {

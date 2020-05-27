@@ -189,7 +189,7 @@ ssize_t ml_stringbuffer_addf(ml_stringbuffer_t *Buffer, const char *Format, ...)
 char *ml_stringbuffer_get(ml_stringbuffer_t *Buffer);
 char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer);
 ml_value_t *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer);
-int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(const char *, size_t, void *));
+int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t));
 ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value);
 
 extern ml_value_t *MLStringBufferAppendMethod;

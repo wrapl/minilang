@@ -724,52 +724,137 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 }
 
 #ifndef DEBUG_VERSION
-static void ml_inst_process(ml_inst_t *Source, ml_inst_t *Inst, unsigned char Hash[SHA256_BLOCK_SIZE], int I, int J) {
+const char *MLInsts[] = {
+	"return", // MLI_RETURN,
+	"suspend", // MLI_SUSPEND,
+	"resume", // MLI_RESUME,
+	"nil", // MLI_NIL,
+	"some", // MLI_SOME,
+	"if", // MLI_IF,
+	"if_var", // MLI_IF_VAR,
+	"if_let", // MLI_IF_LET,
+	"else", // MLI_ELSE,
+	"push", // MLI_PUSH,
+	"with", // MLI_WITH,
+	"withx", // MLI_WITHX,
+	"pop", // MLI_POP,
+	"enter", // MLI_ENTER,
+	"exit", // MLI_EXIT,
+	"loop", // MLI_LOOP,
+	"try", // MLI_TRY,
+	"catch", // MLI_CATCH,
+	"load", // MLI_LOAD,
+	"var", // MLI_VAR,
+	"varx", // MLI_VARX,
+	"let", // MLI_LET,
+	"letx", // MLI_LETX,
+	"for", // MLI_FOR,
+	"next", // MLI_NEXT,
+	"value", // MLI_VALUE,
+	"key", // MLI_KEY,
+	"call", // MLI_CALL,
+	"const_call", // MLI_CONST_CALL,
+	"assign", // MLI_ASSIGN,
+	"local", // MLI_LOCAL,
+	"tuple_new", // MLI_TUPLE_NEW,
+	"tuple_set", // MLI_TUPLE_SET,
+	"list_new", // MLI_LIST_NEW,
+	"list_append", // MLI_LIST_APPEND,
+	"map_new", // MLI_MAP_NEW,
+	"map_insert", // MLI_MAP_INSERT,
+	"closure", // MLI_CLOSURE,
+	"partial_new", // MLI_PARTIAL_NEW,
+	"partial_set" // MLI_PARTIAL_SET
+};
+
+typedef enum {
+	MLIT_NONE,
+	MLIT_INST,
+	MLIT_INST_INST,
+	MLIT_INST_INDEX,
+	MLIT_INST_INDEX_COUNT,
+	MLIT_INST_COUNT,
+	MLIT_INST_COUNT_COUNT,
+	MLIT_INST_COUNT_VALUE,
+	MLIT_INST_VALUE,
+	MLIT_INST_CLOSURE
+} ml_inst_type_t;
+
+const ml_inst_type_t MLInstTypes[] = {
+	MLIT_NONE, // MLI_RETURN,
+	MLIT_INST, // MLI_SUSPEND,
+	MLIT_INST, // MLI_RESUME,
+	MLIT_INST, // MLI_NIL,
+	MLIT_INST, // MLI_SOME,
+	MLIT_INST_INST, // MLI_IF,
+	MLIT_INST_INST, // MLI_IF_VAR,
+	MLIT_INST_INST, // MLI_IF_LET,
+	MLIT_INST_INST, // MLI_ELSE,
+	MLIT_INST, // MLI_PUSH,
+	MLIT_INST, // MLI_WITH,
+	MLIT_INST_COUNT, // MLI_WITHX,
+	MLIT_INST, // MLI_POP,
+	MLIT_INST_COUNT_COUNT, // MLI_ENTER,
+	MLIT_INST_COUNT, // MLI_EXIT,
+	MLIT_INST, // MLI_LOOP,
+	MLIT_INST_INST, // MLI_TRY,
+	MLIT_INST_INDEX, // MLI_CATCH,
+	MLIT_INST_VALUE, // MLI_LOAD,
+	MLIT_INST_INDEX, // MLI_VAR,
+	MLIT_INST_INDEX_COUNT, // MLI_VARX,
+	MLIT_INST_INDEX, // MLI_LET,
+	MLIT_INST_INDEX_COUNT, // MLI_LETX,
+	MLIT_INST, // MLI_FOR,
+	MLIT_INST, // MLI_NEXT,
+	MLIT_INST, // MLI_VALUE,
+	MLIT_INST, // MLI_KEY,
+	MLIT_INST_COUNT, // MLI_CALL,
+	MLIT_INST_COUNT_VALUE, // MLI_CONST_CALL,
+	MLIT_INST, // MLI_ASSIGN,
+	MLIT_INST_INDEX, // MLI_LOCAL,
+	MLIT_INST_COUNT, // MLI_TUPLE_NEW,
+	MLIT_INST_INDEX, // MLI_TUPLE_SET,
+	MLIT_INST, // MLI_LIST_NEW,
+	MLIT_INST, // MLI_LIST_APPEND,
+	MLIT_INST, // MLI_MAP_NEW,
+	MLIT_INST, // MLI_MAP_INSERT,
+	MLIT_INST_CLOSURE, // MLI_CLOSURE,
+	MLIT_INST_COUNT, // MLI_PARTIAL_NEW,
+	MLIT_INST_INDEX, // MLI_PARTIAL_SET
+};
+
+static void ml_inst_process(int Process, ml_inst_t *Source, ml_inst_t *Inst, unsigned char Hash[SHA256_BLOCK_SIZE], int I, int J) {
 	if (!Source || (Source->LineNo != Inst->LineNo)) Inst->PotentialBreakpoint = 1;
-	if (Inst->Processed) return;
-	Inst->Processed = 1;
+	if (Inst->Processed == Process) return;
+	Inst->Processed = Process;
 	Hash[I] ^= Inst->Opcode;
 	Hash[J] ^= (Inst->Opcode << 4);
-	switch (Inst->Opcode) {
-	case MLI_IF:
-	case MLI_IF_VAR:
-	case MLI_IF_LET:
-	case MLI_ELSE:
-	case MLI_TRY:
-		ml_inst_process(Inst, Inst->Params[1].Inst, Hash, (I + 11) % (SHA256_BLOCK_SIZE - 4), (J + 13) % (SHA256_BLOCK_SIZE - 8));
+	switch (MLInstTypes[Inst->Opcode]) {
+	case MLIT_INST_INST:
+		ml_inst_process(Process, Inst, Inst->Params[1].Inst, Hash, (I + 11) % (SHA256_BLOCK_SIZE - 4), (J + 13) % (SHA256_BLOCK_SIZE - 8));
 		break;
-	case MLI_ENTER:
+	case MLIT_INST_COUNT_COUNT:
 		*(int *)(Hash + I) ^= Inst->Params[1].Count;
 		*(int *)(Hash + J) ^= Inst->Params[2].Count;
 		break;
-	case MLI_EXIT:
-	case MLI_NEXT:
-	case MLI_CALL:
-	case MLI_TUPLE_NEW:
-	case MLI_PARTIAL_NEW:
+	case MLIT_INST_COUNT:
 		*(int *)(Hash + I) ^= Inst->Params[1].Count;
 		break;
-	case MLI_CATCH:
-	case MLI_VAR:
-	case MLI_LET:
-	case MLI_LOCAL:
-	case MLI_TUPLE_SET:
-	case MLI_PARTIAL_SET:
+	case MLIT_INST_INDEX:
 		*(int *)(Hash + I) ^= Inst->Params[1].Index;
 		break;
-	case MLI_LOAD:
+	case MLIT_INST_VALUE:
 		*(long *)(Hash + J) ^= ml_hash(Inst->Params[1].Value);
 		break;
-	case MLI_VARX:
-	case MLI_LETX:
+	case MLIT_INST_INDEX_COUNT:
 		*(int *)(Hash + I) ^= Inst->Params[1].Index;
 		*(int *)(Hash + J) ^= Inst->Params[2].Count;
 		break;
-	case MLI_CONST_CALL:
+	case MLIT_INST_COUNT_VALUE:
 		*(int *)(Hash + I) ^= Inst->Params[1].Count;
 		*(long *)(Hash + J) ^= ml_hash(Inst->Params[2].Value);
 		break;
-	case MLI_CLOSURE: {
+	case MLIT_INST_CLOSURE: {
 		ml_closure_info_t *Info = Inst->Params[1].ClosureInfo;
 		*(long *)(Hash + J) ^= *(long *)(Info->Hash + J);
 		for (int N = 0; N < Info->NumUpValues; ++N) {
@@ -782,12 +867,12 @@ static void ml_inst_process(ml_inst_t *Source, ml_inst_t *Inst, unsigned char Ha
 	}
 	}
 	if (Inst->Opcode != MLI_RETURN) {
-		ml_inst_process(Inst, Inst->Params[0].Inst, Hash, (I + 3) % (SHA256_BLOCK_SIZE - 4), (J + 7) % (SHA256_BLOCK_SIZE - 8));
+		ml_inst_process(Process, Inst, Inst->Params[0].Inst, Hash, (I + 3) % (SHA256_BLOCK_SIZE - 4), (J + 7) % (SHA256_BLOCK_SIZE - 8));
 	}
 }
 
 void ml_closure_info_finish(ml_closure_info_t *Info) {
-	ml_inst_process(NULL, Info->Entry, Info->Hash, 0, 0);
+	ml_inst_process(Info->Entry->Processed + 1, NULL, Info->Entry, Info->Hash, 0, 0);
 }
 
 void ml_closure_sha256(ml_value_t *Value, unsigned char Hash[SHA256_BLOCK_SIZE]) {
@@ -838,305 +923,97 @@ static void ml_inst_escape_string(FILE *Graph, const char *String, size_t Length
 	}
 }
 
-static void ml_inst_graph(FILE *Graph, ml_inst_t *Inst, stringmap_t *Done, const char *Colour) {
-	char InstName[16];
-	sprintf(InstName, "I%" PRIxPTR "", (uintptr_t)Inst);
-	if (stringmap_search(Done, InstName)) return;
-	stringmap_insert(Done, strdup(InstName), Inst);
+static void ml_inst_graph(int Process, FILE *Graph, ml_inst_t *Inst) {
+	if (Inst->Processed == Process) return;
+	Inst->Processed = Process;
+	fprintf(Graph, "\tI%" PRIxPTR " [label=\"%d: %s(", (uintptr_t)Inst, Inst->LineNo, MLInsts[Inst->Opcode]);
+	ml_inst_t *Next = NULL, *NotNil = NULL;
+	if (Inst->Opcode != MLI_RETURN) Next = Inst->Params[0].Inst;
 	switch (Inst->Opcode) {
-	case MLI_RETURN: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: return()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
+	case MLI_IF:
+	case MLI_IF_VAR:
+	case MLI_IF_LET:
+		NotNil = Inst->Params[1].Inst;
 		break;
-	}
-	case MLI_SUSPEND: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: suspend()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+	case MLI_ELSE:
+	case MLI_TRY:
+		NotNil = Next;
+		Next = Inst->Params[0].Inst;
 		break;
-	}
-	case MLI_RESUME: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: resume()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+	case MLI_WITHX:
+	case MLI_EXIT:
+	case MLI_CALL:
+	case MLI_TUPLE_NEW:
+	case MLI_PARTIAL_NEW:
+		fprintf(Graph, "%d", Inst->Params[1].Count);
 		break;
-	}
-	case MLI_NIL: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: nil()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+	case MLI_CATCH:
+	case MLI_VAR:
+	case MLI_LET:
+	case MLI_LOCAL:
+	case MLI_TUPLE_SET:
+	case MLI_PARTIAL_SET:
+		fprintf(Graph, "%d", Inst->Params[1].Index);
 		break;
-	}
-	case MLI_SOME: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: some()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+	case MLI_ENTER:
+		fprintf(Graph, "%d, %d", Inst->Params[1].Count, Inst->Params[2].Count);
 		break;
-	}
-	case MLI_IF: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: if()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		ml_inst_graph(Graph, Inst->Params[1].Inst, Done, Colour);
+	case MLI_VARX:
+	case MLI_LETX:
+		fprintf(Graph, "%d, %d", Inst->Params[1].Index, Inst->Params[2].Count);
 		break;
-	}
-	case MLI_IF_VAR: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: if_var()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		ml_inst_graph(Graph, Inst->Params[1].Inst, Done, Colour);
-		break;
-	}
-	case MLI_IF_LET: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: if_def()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		ml_inst_graph(Graph, Inst->Params[1].Inst, Done, Colour);
-		break;
-	}
-	case MLI_ELSE: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: else()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		ml_inst_graph(Graph, Inst->Params[1].Inst, Done, Colour);
-		break;
-	}
-	case MLI_PUSH: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: push()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_WITH: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: with()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_WITHX: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: pushx(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, Inst->Params[1].Count);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_POP: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: pop()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
 	case MLI_LOAD: {
 		ml_value_t *Value = Inst->Params[1].Value;
 		if (Value->Type == MLStringT) {
-			fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: load(\'", (uintptr_t)Inst, Colour, Inst->LineNo);
 			ml_inst_escape_string(Graph, ml_string_value(Value), ml_string_length(Value));
-			fprintf(Graph, "\')\"];\n");
 		} else if (Value->Type == MLIntegerT) {
-			fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: load(%ld)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, ml_integer_value(Value));
+			fprintf(Graph, "%ld", ml_integer_value(Value));
 		} else if (Value->Type == MLRealT) {
-			fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: load(%f)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, ml_real_value(Value));
+			fprintf(Graph, "%f", ml_real_value(Value));
 		} else {
-			fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: load(%s)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, Inst->Params[1].Value->Type->Name);
+			fprintf(Graph, "%s", Inst->Params[1].Value->Type->Name);
 		}
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_ENTER: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: enter(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, Inst->Params[1].Count);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_EXIT: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: exit(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, Inst->Params[1].Count);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_LOOP: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: loop()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_TRY: {
-		intptr_t Handler = (intptr_t)Inst->Params[1].Inst;
-		unsigned char *X = (unsigned char *)&Handler;
-		unsigned int Hash = 0;
-		for (int I = 0; I < sizeof(intptr_t); ++I) Hash ^= X[I];
-		double Hue = Hash / 255.0;
-		char *TryColour;
-		asprintf(&TryColour, "%f 0.9 0.5", Hue);
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: try()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[1].Inst);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"error\" style=dashed color=red];\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, TryColour);
-		ml_inst_graph(Graph, Inst->Params[1].Inst, Done, Colour);
-		break;
-	}
-	case MLI_CATCH: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: catch(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, Inst->Params[1].Index);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_VAR: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: var(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, Inst->Params[1].Index);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_VARX: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: varx(%d, %d)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, Inst->Params[1].Index, Inst->Params[2].Count);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_LET: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: let(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, Inst->Params[1].Index);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_LETX: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: ltex(%d, %d)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, Inst->Params[1].Index, Inst->Params[2].Count);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_FOR: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: for()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_NEXT: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: next()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_VALUE: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: value()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_KEY: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: key()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_CALL: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: call(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, Inst->Params[1].Count);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
 	case MLI_CONST_CALL: {
-		ml_value_t *StringMethod = ml_method("string");
+		fprintf(Graph, "%d, ", Inst->Params[1].Count);
 		ml_value_t *Value = Inst->Params[2].Value;
 		if (Value->Type == MLMethodT) {
-			fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: const_call(%d, :%s)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, Inst->Params[1].Count, ml_method_name(Value));
+			fprintf(Graph, ":%s", ml_method_name(Value));
 		} else {
-			Value = ml_inline(StringMethod, 1, Value);
+			Value = ml_inline(MLStringOfMethod, 1, Value);
 			if (Value->Type == MLStringT) {
-				fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: const_call(%d, %s)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, Inst->Params[1].Count, ml_string_value(Value));
+				fprintf(Graph, "%s", ml_string_value(Value));
 			} else {
-				fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: const_call(%d, %s)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, Inst->Params[1].Count, Inst->Params[2].Value->Type->Name);
+				fprintf(Graph, "%s", Inst->Params[2].Value->Type->Name);
 			}
 		}
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
 		break;
 	}
-	case MLI_ASSIGN: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: assign()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
+	case MLI_CLOSURE:
+		fprintf(Graph, "C%" PRIxPTR, (uintptr_t)Inst->Params[1].ClosureInfo);
 		break;
+	default: break;
 	}
-	case MLI_LOCAL: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: local(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, Inst->Params[1].Index);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
+	fprintf(Graph, ")\"];\n");
+	if (Next) {
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Next);
+		ml_inst_graph(Process, Graph, Next);
 	}
-	case MLI_TUPLE_NEW: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: tuple_new(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, Inst->Params[1].Count);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_TUPLE_SET: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: tuple_set(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, Inst->Params[1].Index);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_LIST_NEW: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: list_new()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_LIST_APPEND: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: list_append()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_MAP_NEW: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: map_new()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_MAP_INSERT: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: map_insert()\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_CLOSURE: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: closure(C%" PRIxPTR ")\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, (uintptr_t)Inst->Params[1].ClosureInfo);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_PARTIAL_NEW: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: partial_new(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, Inst->Params[1].Count);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	case MLI_PARTIAL_SET: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: partial_set(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, Inst->Params[1].Index);
-		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR ";\n", (uintptr_t)Inst, (uintptr_t)Inst->Params[0].Inst);
-		ml_inst_graph(Graph, Inst->Params[0].Inst, Done, Colour);
-		break;
-	}
-	default: {
-		fprintf(Graph, "\tI%" PRIxPTR " [fontcolor=\"%s\" label=\"%d: unknown(%d)\"];\n", (uintptr_t)Inst, Colour, Inst->LineNo, Inst->Opcode);
-		break;
-	}
+	if (NotNil) {
+		fprintf(Graph, "\tI%" PRIxPTR " -> I%" PRIxPTR " [label=\"not nil\" style=dashed color=blue];\n", (uintptr_t)Inst, (uintptr_t)NotNil);
+		ml_inst_graph(Process, Graph, NotNil);
 	}
 }
 
 const char *ml_closure_info_debug(ml_closure_info_t *Info) {
-	stringmap_t Done[1] = {STRINGMAP_INIT};
 	char *FileName;
 	asprintf(&FileName, "C%" PRIxPTR ".dot", (uintptr_t)Info);
 	FILE *File = fopen(FileName, "w");
 	fprintf(File, "digraph C%" PRIxPTR " {\n", (uintptr_t)Info);
 	fprintf(File, "\tgraph [compound=true,ranksep=0.3];\n");
 	fprintf(File, "\tnode [shape=plaintext,margin=0.1,height=0];\n");
-	ml_inst_graph(File, Info->Entry, Done, "black");
+	ml_inst_graph(Info->Entry->Processed + 1, File, Info->Entry);
 	fprintf(File, "}\n");
 	fclose(File);
 	printf("Wrote closure to %s\n", FileName);
@@ -1159,6 +1036,336 @@ ML_METHOD("!!", MLClosureT, MLListT) {
 	ML_LIST_FOREACH(ArgsList, Node) *Arg++ = Node->Value;
 	return (ml_value_t *)Partial;
 }
+
+#ifdef USE_ML_CBOR
+
+static void ml_cbor_closure_write_int(int Value0, ml_stringbuffer_t *Buffer) {
+	unsigned int Value = (unsigned int)Value0;
+	uint8_t Bytes[(sizeof(unsigned int) * 8 + 7) / 7];
+	for (int I = 0;; ++I) {
+		if (Value < 0x80) {
+			Bytes[I] = Value;
+			ml_stringbuffer_add(Buffer, Bytes, I + 1);
+			break;
+		} else {
+			Bytes[I] = Value | 0x80;
+			Value >>= 7;
+		}
+	}
+}
+
+static void ml_cbor_closure_write_string(const char *Value, ml_stringbuffer_t *Buffer) {
+	int Length = strlen(Value);
+	ml_cbor_closure_write_int(Length, Buffer);
+	ml_stringbuffer_add(Buffer, (void *)Value, Length);
+}
+
+static void ml_cbor_closure_find_refs(int Process, ml_inst_t *Inst, stringmap_t *Refs) {
+	if (Inst->Processed == Process) {
+		char *InstName = GC_MALLOC_ATOMIC(3 * sizeof(uintptr_t) * CHAR_BIT / 8 + 2);
+		sprintf(InstName, "%" PRIxPTR, (uintptr_t)Inst);
+		char **Slot = (char **)stringmap_slot(Refs, InstName);
+		if (!Slot[0]) Slot[0] = (char *)NULL + Refs->Size;
+		return;
+	}
+	Inst->Processed = Process;
+	if (MLInstTypes[Inst->Opcode] == MLIT_INST_INST) {
+		ml_cbor_closure_find_refs(Process, Inst->Params[1].Inst, Refs);
+	}
+	if (MLInstTypes[Inst->Opcode] != MLIT_NONE) {
+		ml_cbor_closure_find_refs(Process, Inst->Params[0].Inst, Refs);
+	}
+}
+
+#define MLI_REFER 0xFF
+#define MLI_LABEL 0xFE
+
+static void ml_cbor_closure_write_inst(int Process, ml_inst_t *Inst, stringmap_t *Refs, ml_stringbuffer_t *Buffer) {
+	char InstName[3 * sizeof(uintptr_t) * CHAR_BIT / 8 + 2];
+	sprintf(InstName, "%" PRIxPTR, (uintptr_t)Inst);
+	int Index = (char *)stringmap_search(Refs, InstName) - (char *)NULL;
+	if (Inst->Processed == Process) {
+		ml_stringbuffer_add(Buffer, (char[]){MLI_REFER}, 1);
+		ml_cbor_closure_write_int(Index - 1, Buffer);
+		return;
+	}
+	Inst->Processed = Process;
+	if (Index) {
+		ml_stringbuffer_add(Buffer, (char[]){MLI_LABEL}, 1);
+		ml_cbor_closure_write_int(Index - 1, Buffer);
+	}
+	ml_stringbuffer_add(Buffer, (char[]){Inst->Opcode}, 1);
+	switch (MLInstTypes[Inst->Opcode]) {
+	case MLIT_INST_INST:
+		ml_cbor_closure_write_inst(Process, Inst->Params[1].Inst, Refs, Buffer);
+		break;
+	case MLIT_INST_COUNT_COUNT:
+		ml_cbor_closure_write_int(Inst->Params[1].Count, Buffer);
+		ml_cbor_closure_write_int(Inst->Params[2].Count, Buffer);
+		break;
+	case MLIT_INST_COUNT:
+		ml_cbor_closure_write_int(Inst->Params[1].Count, Buffer);
+		break;
+	case MLIT_INST_INDEX:
+		ml_cbor_closure_write_int(Inst->Params[1].Index, Buffer);
+		break;
+	case MLIT_INST_VALUE:
+		ml_cbor_write(Inst->Params[1].Value, Buffer, ml_stringbuffer_add);
+		break;
+	case MLIT_INST_INDEX_COUNT:
+		ml_cbor_closure_write_int(Inst->Params[1].Index, Buffer);
+		ml_cbor_closure_write_int(Inst->Params[2].Count, Buffer);
+		break;
+	case MLIT_INST_COUNT_VALUE:
+		ml_cbor_closure_write_int(Inst->Params[1].Count, Buffer);
+		ml_cbor_write(Inst->Params[2].Value, Buffer, ml_stringbuffer_add);
+		break;
+	case MLIT_INST_CLOSURE: {
+		ml_closure_info_t *Info = Inst->Params[1].ClosureInfo;
+		for (int N = 0; N < Info->NumUpValues; ++N) {
+			Inst->Params[2 + N].Index;
+		}
+		break;
+	default:
+		break;
+	}
+	}
+	if (MLInstTypes[Inst->Opcode] != MLIT_NONE) {
+		ml_cbor_closure_write_inst(Process, Inst->Params[0].Inst, Refs, Buffer);
+	}
+}
+
+/*
+struct ml_closure_info_t {
+	ml_inst_t *Entry, *Return;
+	const char *Source;
+	ml_decl_t *Decls;
+	stringmap_t Params[1];
+	int End, FrameSize;
+	int NumParams, NumUpValues;
+	int ExtraArgs, NamedArgs;
+	unsigned char Hash[SHA256_BLOCK_SIZE];
+};
+ */
+
+static int ml_cbor_write_closure_param(const char *Name, void *Value, ml_stringbuffer_t *Buffer) {
+	ml_cbor_closure_write_string(Name, Buffer);
+	ml_cbor_closure_write_int((intptr_t)Value, Buffer);
+	return 0;
+}
+
+void ml_cbor_write_closure(ml_closure_t *Closure, ml_stringbuffer_t *Buffer) {
+	ml_closure_info_t *Info = Closure->Info;
+	stringmap_t Refs[1] = {STRINGMAP_INIT};
+	char *InstName = GC_MALLOC_ATOMIC(3 * sizeof(uintptr_t) * CHAR_BIT / 8 + 2);
+	sprintf(InstName, "%" PRIxPTR, (uintptr_t)Info->Return);
+	char **Slot = (char **)stringmap_slot(Refs, InstName);
+	Slot[0] = (char *)NULL + Refs->Size;
+	int Process = Info->Entry->Processed + 1;
+	Info->Return->Processed = Process;
+	ml_cbor_closure_find_refs(Process, Info->Entry, Refs);
+	ml_cbor_closure_write_int(Refs->Size, Buffer);
+	ml_cbor_closure_write_inst(Info->Entry->Processed + 1, Info->Entry, Refs, Buffer);
+	ml_cbor_closure_write_string(Info->Source, Buffer);
+	// TODO: Write Info->Decls
+	ml_cbor_closure_write_int(Info->Params->Size, Buffer);
+	stringmap_foreach(Info->Params, Buffer, ml_cbor_write_closure_param);
+	ml_cbor_closure_write_int(Info->End, Buffer);
+	ml_cbor_closure_write_int(Info->FrameSize, Buffer);
+	ml_cbor_closure_write_int(Info->NumParams, Buffer);
+	ml_cbor_closure_write_int(Info->NumUpValues, Buffer);
+	ml_cbor_closure_write_int(Info->ExtraArgs, Buffer);
+	ml_cbor_closure_write_int(Info->NamedArgs, Buffer);
+	ml_cbor_closure_write_int(Closure->PartialCount, Buffer);
+	for (int I = 0; I < Info->NumUpValues; ++I) {
+		ml_cbor_write(Closure->UpValues[I], Buffer, ml_stringbuffer_add);
+	}
+}
+
+void ML_TYPED_FN(ml_cbor_write, MLClosureT, ml_closure_t *Closure, void *Data, ml_cbor_write_fn WriteFn) {
+	ml_cbor_write_tag(Data, WriteFn, 36); // TODO: Pick correct tag
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_cbor_write_closure(Closure, Buffer);
+	ml_cbor_write_bytes(Data, WriteFn, Buffer->Length);
+	ml_stringbuffer_foreach(Buffer, Data, WriteFn);
+}
+
+typedef struct {
+	ml_value_t *Error;
+	const uint8_t *Data;
+	ml_inst_t **Refs;
+	size_t Length, NumRefs;
+	jmp_buf OnError;
+} ml_cbor_closure_reader_t;
+
+#define ML_CBOR_CLOSURE_ERROR { \
+	Reader->Error = ml_error("CborError", "Invalid closure data (%d)", __LINE__); \
+	longjmp(Reader->OnError, 1); \
+}
+
+static int ml_cbor_closure_read_int(ml_cbor_closure_reader_t *Reader) {
+	unsigned int Value = 0;
+	int Shift = 0;
+	const uint8_t *Data = Reader->Data;
+	size_t Length = Reader->Length;
+	for (;;) {
+		if (!Length) ML_CBOR_CLOSURE_ERROR;
+		uint8_t Byte = *Data++;
+		--Length;
+		Value += (Byte & 0x7F) << Shift;
+		if (Byte < 0x80) break;
+		Shift += 7;
+	}
+	Reader->Data = Data;
+	Reader->Length = Length;
+	return (int)Value;
+}
+
+static const char *ml_cbor_closure_read_string(ml_cbor_closure_reader_t *Reader) {
+	int Length = ml_cbor_closure_read_int(Reader);
+	if (Reader->Length < Length) ML_CBOR_CLOSURE_ERROR;
+	char *Value = GC_MALLOC_ATOMIC(Length + 1);
+	memcpy(Value, Reader->Data, Length);
+	Value[Length] = 0;
+	Reader->Data += Length;
+	Reader->Length -= Length;
+	return Value;
+}
+
+static ml_value_t *ml_cbor_closure_read_value(ml_cbor_closure_reader_t *Reader) {
+	ml_cbor_t Cbor = {Reader->Data, Reader->Length};
+	ml_cbor_result_t Result = ml_from_cbor_extra(Cbor, NULL, NULL);
+	Reader->Data += (Reader->Length - Result.Extra);
+	Reader->Length = Result.Extra;
+	return Result.Value;
+}
+
+static void ml_cbor_closure_read_inst(ml_cbor_closure_reader_t *Reader, ml_inst_t **Slot) {
+	if (!Reader->Length) ML_CBOR_CLOSURE_ERROR;
+	ml_opcode_t Opcode = *Reader->Data++;
+	--Reader->Length;
+	if (Opcode == MLI_REFER) {
+		int Index = ml_cbor_closure_read_int(Reader);
+		if (Index < 0 || Index >= Reader->NumRefs) ML_CBOR_CLOSURE_ERROR;
+		ml_inst_t *Inst = Reader->Refs[Index];
+		if (!Inst) ML_CBOR_CLOSURE_ERROR;
+		Slot[0] = Inst;
+	} else if (Opcode == MLI_LABEL) {
+		int Index = ml_cbor_closure_read_int(Reader);
+		if (Index < 0 || Index >= Reader->NumRefs) ML_CBOR_CLOSURE_ERROR;
+		if (Reader->Refs[Index]) ML_CBOR_CLOSURE_ERROR;
+		ml_cbor_closure_read_inst(Reader, &Reader->Refs[Index]);
+		Slot[0] = Reader->Refs[Index];
+	} else if ((Opcode >= MLI_RETURN) && (Opcode <= MLI_PARTIAL_SET)) {
+		switch (MLInstTypes[Opcode]) {
+		case MLIT_NONE: {
+			ml_inst_t *Inst = Slot[0] = xnew(ml_inst_t, 0, ml_param_t);
+			Inst->Opcode = Opcode;
+			break;
+		}
+		case MLIT_INST: {
+			ml_inst_t *Inst = Slot[0] = xnew(ml_inst_t, 1, ml_param_t);
+			Inst->Opcode = Opcode;
+			ml_cbor_closure_read_inst(Reader, &Inst->Params[0].Inst);
+			break;
+		}
+		case MLIT_INST_INST: {
+			ml_inst_t *Inst = Slot[0] = xnew(ml_inst_t, 2, ml_param_t);
+			Inst->Opcode = Opcode;
+			ml_cbor_closure_read_inst(Reader, &Inst->Params[1].Inst);
+			ml_cbor_closure_read_inst(Reader, &Inst->Params[0].Inst);
+			break;
+		}
+		case MLIT_INST_COUNT_COUNT: {
+			ml_inst_t *Inst = Slot[0] = xnew(ml_inst_t, 3, ml_param_t);
+			Inst->Opcode = Opcode;
+			Inst->Params[1].Count = ml_cbor_closure_read_int(Reader);
+			Inst->Params[2].Count = ml_cbor_closure_read_int(Reader);
+			ml_cbor_closure_read_inst(Reader, &Inst->Params[0].Inst);
+			break;
+		}
+		case MLIT_INST_COUNT: {
+			ml_inst_t *Inst = Slot[0] = xnew(ml_inst_t, 2, ml_param_t);
+			Inst->Opcode = Opcode;
+			Inst->Params[1].Count = ml_cbor_closure_read_int(Reader);
+			ml_cbor_closure_read_inst(Reader, &Inst->Params[0].Inst);
+			break;
+		}
+		case MLIT_INST_INDEX: {
+			ml_inst_t *Inst = Slot[0] = xnew(ml_inst_t, 2, ml_param_t);
+			Inst->Opcode = Opcode;
+			Inst->Params[1].Index = ml_cbor_closure_read_int(Reader);
+			ml_cbor_closure_read_inst(Reader, &Inst->Params[0].Inst);
+			break;
+		}
+		case MLIT_INST_VALUE: {
+			ml_inst_t *Inst = Slot[0] = xnew(ml_inst_t, 2, ml_param_t);
+			Inst->Opcode = Opcode;
+			Inst->Params[1].Value = ml_cbor_closure_read_value(Reader);
+			ml_cbor_closure_read_inst(Reader, &Inst->Params[0].Inst);
+			break;
+		}
+		case MLIT_INST_INDEX_COUNT: {
+			ml_inst_t *Inst = Slot[0] = xnew(ml_inst_t, 3, ml_param_t);
+			Inst->Opcode = Opcode;
+			Inst->Params[1].Index = ml_cbor_closure_read_int(Reader);
+			Inst->Params[2].Count = ml_cbor_closure_read_int(Reader);
+			ml_cbor_closure_read_inst(Reader, &Inst->Params[0].Inst);
+			break;
+		}
+		case MLIT_INST_COUNT_VALUE: {
+			ml_inst_t *Inst = Slot[0] = xnew(ml_inst_t, 3, ml_param_t);
+			Inst->Opcode = Opcode;
+			Inst->Params[1].Count = ml_cbor_closure_read_int(Reader);
+			Inst->Params[2].Value = ml_cbor_closure_read_value(Reader);
+			ml_cbor_closure_read_inst(Reader, &Inst->Params[0].Inst);
+			break;
+		}
+		case MLIT_INST_CLOSURE:  {
+			ML_CBOR_CLOSURE_ERROR;
+		}
+		}
+	}
+}
+
+ml_value_t *ml_cbor_read_closure(void *Data, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_TYPE(0, MLBufferT);
+	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
+	ml_cbor_closure_reader_t Reader[1];
+	Reader->Data = (uint8_t *)Buffer->Address;
+	Reader->Length = Buffer->Size;
+	if (setjmp(Reader->OnError)) return Reader->Error;
+	Reader->NumRefs = ml_cbor_closure_read_int(Reader);
+	if (Reader->NumRefs < 1) return ml_error("CborError", "Invalid closure data (%d)", __LINE__);
+	Reader->Refs = anew(ml_inst_t *, Reader->NumRefs);
+	ml_closure_info_t *Info = new(ml_closure_info_t);
+	ml_cbor_closure_read_inst(Reader, &Info->Entry);
+	Info->Return = Reader->Refs[0];
+	Info->Source = ml_cbor_closure_read_string(Reader);
+	// TODO: Read Info->Decls
+	int NumParams = ml_cbor_closure_read_int(Reader);
+	for (int I = 0; I < NumParams; ++I) {
+		const char *Name = ml_cbor_closure_read_string(Reader);
+		intptr_t Index = ml_cbor_closure_read_int(Reader);
+		stringmap_insert(Info->Params, Name, (void *)Index);
+	}
+	Info->End = ml_cbor_closure_read_int(Reader);
+	Info->FrameSize = ml_cbor_closure_read_int(Reader);
+	Info->NumParams = ml_cbor_closure_read_int(Reader);
+	Info->NumUpValues = ml_cbor_closure_read_int(Reader);
+	Info->ExtraArgs = ml_cbor_closure_read_int(Reader);
+	Info->NamedArgs = ml_cbor_closure_read_int(Reader);
+	ml_closure_t *Closure = new(ml_closure_t);
+	Closure->Type = MLClosureT;
+	Closure->Info = Info;
+	Closure->PartialCount = ml_cbor_closure_read_int(Reader);
+	for (int I = 0; I < Closure->Info->NumUpValues; ++I) {
+		Closure->UpValues[I] = ml_cbor_closure_read_value(Reader);
+	}
+	return (ml_value_t *)Closure;
+}
+
+#endif
 
 #define DEBUG_VERSION
 #include "ml_bytecode.c"

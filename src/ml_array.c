@@ -1363,23 +1363,17 @@ void ml_array_init(stringmap_t *Globals) {
 #include "ml_array_init.c"
 	if (Globals) {
 #ifdef USE_ML_CBOR
-		ml_value_t *Cbor = stringmap_search(Globals, "cbor");
-		if (Cbor) {
-			ml_value_t *CborDefault = ml_module_import(Cbor, "Default");
-			if (CborDefault) {
-				ml_map_insert(CborDefault, ml_integer(40), ml_function(NULL, ml_cbor_read_multi_array_fn));
-				ml_map_insert(CborDefault, ml_integer(72), ml_function((void *)ML_ARRAY_FORMAT_I8, ml_cbor_read_typed_array_fn));
-				ml_map_insert(CborDefault, ml_integer(64), ml_function((void *)ML_ARRAY_FORMAT_U8, ml_cbor_read_typed_array_fn));
-				ml_map_insert(CborDefault, ml_integer(77), ml_function((void *)ML_ARRAY_FORMAT_I16, ml_cbor_read_typed_array_fn));
-				ml_map_insert(CborDefault, ml_integer(69), ml_function((void *)ML_ARRAY_FORMAT_U16, ml_cbor_read_typed_array_fn));
-				ml_map_insert(CborDefault, ml_integer(78), ml_function((void *)ML_ARRAY_FORMAT_I32, ml_cbor_read_typed_array_fn));
-				ml_map_insert(CborDefault, ml_integer(70), ml_function((void *)ML_ARRAY_FORMAT_U32, ml_cbor_read_typed_array_fn));
-				ml_map_insert(CborDefault, ml_integer(79), ml_function((void *)ML_ARRAY_FORMAT_I64, ml_cbor_read_typed_array_fn));
-				ml_map_insert(CborDefault, ml_integer(71), ml_function((void *)ML_ARRAY_FORMAT_U64, ml_cbor_read_typed_array_fn));
-				ml_map_insert(CborDefault, ml_integer(85), ml_function((void *)ML_ARRAY_FORMAT_F32, ml_cbor_read_typed_array_fn));
-				ml_map_insert(CborDefault, ml_integer(86), ml_function((void *)ML_ARRAY_FORMAT_F64, ml_cbor_read_typed_array_fn));
-			}
-		}
+		ml_map_insert(CborDefaultTags, ml_integer(40), ml_function(NULL, ml_cbor_read_multi_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(72), ml_function((void *)ML_ARRAY_FORMAT_I8, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(64), ml_function((void *)ML_ARRAY_FORMAT_U8, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(77), ml_function((void *)ML_ARRAY_FORMAT_I16, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(69), ml_function((void *)ML_ARRAY_FORMAT_U16, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(78), ml_function((void *)ML_ARRAY_FORMAT_I32, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(70), ml_function((void *)ML_ARRAY_FORMAT_U32, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(79), ml_function((void *)ML_ARRAY_FORMAT_I64, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(71), ml_function((void *)ML_ARRAY_FORMAT_U64, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(85), ml_function((void *)ML_ARRAY_FORMAT_F32, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(86), ml_function((void *)ML_ARRAY_FORMAT_F64, ml_cbor_read_typed_array_fn));
 #endif
 		stringmap_insert(Globals, "array", ml_module("array",
 			"new", ml_functionx(NULL, ml_array_new_fnx),
