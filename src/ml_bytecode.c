@@ -805,7 +805,7 @@ const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INST_INDEX, // MLI_LET,
 	MLIT_INST_INDEX_COUNT, // MLI_LETX,
 	MLIT_INST, // MLI_FOR,
-	MLIT_INST, // MLI_NEXT,
+	MLIT_INST_COUNT, // MLI_NEXT,
 	MLIT_INST, // MLI_VALUE,
 	MLIT_INST, // MLI_KEY,
 	MLIT_INST_COUNT, // MLI_CALL,
@@ -940,6 +940,7 @@ static void ml_inst_graph(int Process, FILE *Graph, ml_inst_t *Inst) {
 		NotNil = Next;
 		Next = Inst->Params[0].Inst;
 		break;
+	case MLI_NEXT:
 	case MLI_WITHX:
 	case MLI_EXIT:
 	case MLI_CALL:
