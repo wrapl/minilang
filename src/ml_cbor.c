@@ -1,7 +1,9 @@
 #include "minilang.h"
 #include "ml_macros.h"
 #include "ml_cbor.h"
+#ifdef USE_ML_CBOR_BYTECODE
 #include "ml_bytecode.h"
+#endif
 #include <gc/gc.h>
 #include <string.h>
 
@@ -392,7 +394,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLMethodT, ml_value_t *Arg, void *Data, m
 	} else if (!strcmp(Name, "false")) {
 		ml_cbor_write_simple(Data, WriteFn, CBOR_SIMPLE_FALSE);
 	} else {
-		ml_cbor_write_tag(Data, WriteFn, 26);
+		ml_cbor_write_tag(Data, WriteFn, 26); // TODO: Change this to a proper tag
 		ml_cbor_write_string(Data, WriteFn, strlen(Name));
 		WriteFn(Data, Name, strlen(Name));
 	}
@@ -405,8 +407,10 @@ ml_value_t *ml_cbor_read_method(void *Data, int Count, ml_value_t **Args) {
 
 void ml_cbor_init(stringmap_t *Globals) {
 	CborDefaultTags = ml_map();
-	ml_map_insert(CborDefaultTags, ml_integer(26), ml_function(NULL, ml_cbor_read_method));
+	ml_map_insert(CborDefaultTags, ml_integer(26), ml_function(NULL, ml_cbor_read_method)); // TODO: Change this to a proper tag
+#ifdef USE_ML_CBOR_BYTECODE
 	ml_map_insert(CborDefaultTags, ml_integer(36), ml_function(NULL, ml_cbor_read_closure));
+#endif
 #include "ml_cbor_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "cbor", ml_module("cbor",

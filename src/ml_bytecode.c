@@ -1038,7 +1038,7 @@ ML_METHOD("!!", MLClosureT, MLListT) {
 	return (ml_value_t *)Partial;
 }
 
-#ifdef USE_ML_CBOR
+#ifdef USE_ML_CBOR_BYTECODE
 
 static void ml_cbor_closure_write_int(int Value0, ml_stringbuffer_t *Buffer) {
 	unsigned int Value = (unsigned int)Value0;
@@ -1179,7 +1179,9 @@ void ml_cbor_write_closure(ml_closure_t *Closure, ml_stringbuffer_t *Buffer) {
 	ml_cbor_closure_write_int(Info->NamedArgs, Buffer);
 	ml_cbor_closure_write_int(Closure->PartialCount, Buffer);
 	for (int I = 0; I < Info->NumUpValues; ++I) {
-		ml_cbor_write(Closure->UpValues[I], Buffer, ml_stringbuffer_add);
+		ml_value_t *UpValue = Closure->UpValues[I];
+		UpValue = UpValue->Type->deref(UpValue);
+		ml_cbor_write(UpValue, Buffer, ml_stringbuffer_add);
 	}
 }
 

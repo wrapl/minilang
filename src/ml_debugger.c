@@ -184,12 +184,8 @@ static void debugger_run(interactive_debugger_t *Debugger, ml_state_t *Frame, ml
 	Debugger->Info->Enter(Debugger->Info->Data, Debugger);
 }
 
-static void debugger_state_run(ml_state_t *State, ml_value_t *Value) {
-	ML_CONTINUE(State->Caller, Value);
-}
-
 static void debugger_state_load(ml_state_t *State, ml_value_t *Function) {
-	State->run = debugger_state_run;
+	State->run = ml_default_state_run;
 	return Function->Type->call(State, Function, 0, NULL);
 }
 
@@ -217,7 +213,7 @@ static void interactive_debugger_fnx(ml_state_t *Caller, interactive_debugger_in
 	ml_context_set(Context, ML_DEBUGGER_INDEX, Debugger);
 	ml_state_t *State = new(ml_state_t);
 	State->Caller = Caller;
-	State->run = debugger_state_run;
+	State->run = ml_default_state_run;
 	State->Context = Context;
 	if (Args[0]->Type == MLStringT) {
 		State->run = debugger_state_load;

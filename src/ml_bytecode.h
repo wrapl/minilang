@@ -106,7 +106,7 @@ void ml_closure_info_finish(ml_closure_info_t *Info);
 
 const char *ml_closure_info_debug(ml_closure_info_t *Info);
 
-#ifdef USE_ML_CBOR
+#ifdef USE_ML_CBOR_BYTECODE
 
 #include "ml_cbor.h"
 

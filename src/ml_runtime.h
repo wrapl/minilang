@@ -45,6 +45,8 @@ ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args);
 	ml_call(VALUE, COUNT, (ml_value_t **)(Args ## __LINE__)); \
 })
 
+void ml_default_state_run(ml_state_t *State, ml_value_t *Value);
+
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Value;
@@ -224,7 +226,7 @@ struct ml_debugger_t {
 	int BreakOnError:1;
 };
 
-#define ML_DEBUGGER_INDEX 1
+#define ML_DEBUGGER_INDEX 2
 
 int ml_debugger_check(ml_state_t *State);
 ml_source_t ml_debugger_source(ml_state_t *State);

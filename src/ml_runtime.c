@@ -11,12 +11,13 @@
 
 /****************************** Runtime ******************************/
 
-static int MLContextSize = 2;
+static int MLContextSize = 3;
 // Reserved context slots:
 //  0: Method Table
-//  1: Debugger
+//  1: Context variables
+//  2: Debugger
 
-ml_context_t MLRootContext = {&MLRootContext, 2, {NULL, NULL}};
+ml_context_t MLRootContext = {&MLRootContext, 3, {NULL, NULL, NULL}};
 
 ml_context_t *ml_context_new(ml_context_t *Parent) {
 	ml_context_t *Context = xnew(ml_context_t, MLContextSize, void *);
@@ -35,6 +36,55 @@ void ml_context_set(ml_context_t *Context, int Index, void *Value) {
 	Context->Values[Index] = Value;
 }
 
+#define ML_VARIABLES_INDEX 1
+
+typedef struct  {
+	const ml_type_t *Type;
+} ml_context_key_t;
+
+typedef struct ml_context_value_t ml_context_value_t;
+
+struct ml_context_value_t {
+	ml_context_value_t *Prev;
+	ml_context_key_t *Key;
+	ml_value_t *Value;
+};
+
+static void ml_context_key_call(ml_state_t *Caller, ml_context_key_t *Key, int Count, ml_value_t **Args) {
+	ml_context_value_t *Values = ml_context_get(Caller->Context, ML_VARIABLES_INDEX);
+	if (Count == 0) {
+		while (Values) {
+			if (Values->Key == Key) ML_RETURN(Values->Value);
+		}
+		ML_RETURN(MLNil);
+	} else if (Count == 1) {
+		ML_RETURN(ml_error("CallError", "Context key requires exactly 0 or >2 arguments"));
+	} else {
+		ml_context_value_t *Value = new(ml_context_value_t);
+		Value->Prev = Values;
+		Value->Key = Key;
+		Value->Value = Args[0];
+		ml_context_t *Context = ml_context_new(Caller->Context);
+		ml_context_set(Context, ML_VARIABLES_INDEX, Value);
+		ml_state_t *State = new(ml_state_t);
+		State->Caller = Caller;
+		State->run = ml_default_state_run;
+		State->Context = Context;
+		ml_value_t *Function = Args[1];
+		return Function->Type->call(State, Function, Count - 2, Args + 2);
+	}
+}
+
+ML_TYPE(MLContextKeyT, MLAnyT, "context-key",
+	.call = (void *)ml_context_key_call
+);
+
+ML_FUNCTION(MLContextKey) {
+	ml_context_key_t *Key = new(ml_context_key_t);
+	Key->Type = MLContextKeyT;
+	return (ml_value_t *)Key;
+}
+
 static void ml_state_call(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
 	return State->run(State, Count ? Args[0] : MLNil);
 }
@@ -50,6 +100,10 @@ inline ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 	static ml_value_state_t State[1] = {ML_EVAL_STATE_INIT};
 	Value->Type->call((ml_state_t *)State, Value, Count, Args);
 	return State->Value->Type->deref(State->Value);
+}
+
+void ml_default_state_run(ml_state_t *State, ml_value_t *Value) {
+	ML_CONTINUE(State->Caller, Value);
 }
 
 void ml_eval_state_run(ml_value_state_t *State, ml_value_t *Value) {
