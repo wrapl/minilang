@@ -75,7 +75,7 @@ static void ml_context_key_call(ml_state_t *Caller, ml_context_key_t *Key, int C
 	}
 }
 
-ML_TYPE(MLContextKeyT, MLAnyT, "context-key",
+ML_TYPE(MLContextKeyT, MLFunctionT, "context-key",
 	.call = (void *)ml_context_key_call
 );
 
