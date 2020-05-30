@@ -4,16 +4,19 @@
 #include "ml_macros.h"
 #include "ml_object.h"
 
-typedef struct ml_class_t {
+typedef struct ml_class_t ml_class_t;
+typedef struct ml_object_t ml_object_t;
+
+struct ml_class_t {
 	ml_type_t Base;
 	int NumFields;
 	ml_value_t *Fields[];
-} ml_class_t;
+};
 
-typedef struct ml_object_t {
+struct ml_object_t {
 	const ml_type_t *Type;
 	ml_value_t *Fields[];
-} ml_object_t;
+};
 
 ML_TYPE(MLObjectT, MLIteratableT, "object");
 

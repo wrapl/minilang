@@ -6,6 +6,7 @@
 #endif
 #include <gc/gc.h>
 #include <string.h>
+#include "ml_object.h"
 
 #include "minicbor/minicbor.h"
 
@@ -310,7 +311,7 @@ ML_FUNCTION(DefaultTagFn) {
 ml_value_t *ml_from_cbor(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*TagFn)(uint64_t, void *, void **)) {
 	ml_cbor_reader_t Reader[1];
 	Reader->TagFnData = TagFnData ?: DefaultTagFn;
-	Reader->TagFn = TagFn ?: ml_value_tag_fn;
+	Reader->TagFn = TagFn ?: (void *)ml_value_tag_fn;
 	ml_cbor_reader_init(Reader->Reader);
 	Reader->Reader->UserData = Reader;
 	Reader->Collection = 0;
@@ -325,7 +326,7 @@ ml_value_t *ml_from_cbor(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*TagFn)(uint
 ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*TagFn)(uint64_t, void *, void **)) {
 	ml_cbor_reader_t Reader[1];
 	Reader->TagFnData = TagFnData ?: DefaultTagFn;
-	Reader->TagFn = TagFn ?: ml_value_tag_fn;
+	Reader->TagFn = TagFn ?: (void *)ml_value_tag_fn;
 	ml_cbor_reader_init(Reader->Reader);
 	Reader->Reader->UserData = Reader;
 	Reader->Collection = 0;
@@ -396,7 +397,19 @@ static void ML_TYPED_FN(ml_cbor_write, MLMethodT, ml_value_t *Arg, void *Data, m
 	} else {
 		ml_cbor_write_tag(Data, WriteFn, 26); // TODO: Change this to a proper tag
 		ml_cbor_write_string(Data, WriteFn, strlen(Name));
-		WriteFn(Data, Name, strlen(Name));
+		WriteFn(Data, (void *)Name, strlen(Name));
+	}
+}
+
+static void ML_TYPED_FN(ml_cbor_write, MLObjectT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+	ml_cbor_write_tag(Data, WriteFn, 27);
+	int Size = ml_object_size(Arg);
+	ml_cbor_write_array(Data, WriteFn, 1 + Size);
+	const char *Name = Arg->Type->Name;
+	ml_cbor_write_string(Data, WriteFn, strlen(Name));
+	WriteFn(Data, (void *)Name, strlen(Name));
+	for (int I = 0; I < Size; ++I) {
+		ml_cbor_write(ml_object_field(Arg, I), Data, WriteFn);
 	}
 }
 
@@ -405,9 +418,32 @@ ml_value_t *ml_cbor_read_method(void *Data, int Count, ml_value_t **Args) {
 	return ml_method(ml_string_value(Args[0]));
 }
 
+ml_value_t *CborObjects;
+
+ml_value_t *ml_cbor_read_object(void *Data, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLListT);
+	ml_list_iter_t Iter[1];
+	ml_list_iter_forward(Args[0], Iter);
+	if (!ml_list_iter_valid(Iter)) return ml_error("CBORError", "Object tag requires type name");
+	ml_value_t *TypeName = Iter->Value;
+	if (TypeName->Type != MLStringT) return ml_error("CBORError", "Object tag requires type name");
+	ml_value_t *Constructor = ml_map_search(CborObjects, TypeName);
+	if (Constructor == MLNil) return ml_error("CBORError", "Object %s not found", ml_string_value(TypeName));
+	int Count2 = ml_list_length(Args[0]) - 1;
+	ml_value_t **Args2 = anew(ml_value_t *, Count2);
+	for (int I = 0; I < Count2; ++I) {
+		ml_list_iter_next(Iter);
+		Args2[I] = Iter->Value;
+	}
+	return ML_WRAP_EVAL(Constructor->Type->call, Constructor, Count2, Args2);
+}
+
 void ml_cbor_init(stringmap_t *Globals) {
 	CborDefaultTags = ml_map();
+	CborObjects = ml_map();
 	ml_map_insert(CborDefaultTags, ml_integer(26), ml_function(NULL, ml_cbor_read_method)); // TODO: Change this to a proper tag
+	ml_map_insert(CborDefaultTags, ml_integer(27), ml_function(NULL, ml_cbor_read_object));
 #ifdef USE_ML_CBOR_BYTECODE
 	ml_map_insert(CborDefaultTags, ml_integer(36), ml_function(NULL, ml_cbor_read_closure));
 #endif
@@ -417,6 +453,7 @@ void ml_cbor_init(stringmap_t *Globals) {
 			"encode", ml_function(NULL, ml_to_cbor_fn),
 			"decode", ml_function(NULL, ml_from_cbor_fn),
 			"Default", CborDefaultTags,
+			"Objects", CborObjects,
 		NULL));
 	}
 }
