@@ -187,6 +187,13 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLTypeT, ml_stringbuffer_
 	return MLSome;
 }
 
+ML_METHOD("::", MLTypeT, MLStringT) {
+	ml_type_t *Type = (ml_type_t *)Args[0];
+	const char *Name = ml_string_value(Args[1]);
+	ml_value_t *Value = stringmap_search(Type->Exports, Name) ?: ml_error("ModuleError", "Symbol %s not exported from type %s", Name, Type->Name);
+	return Value;
+}
+
 /****************************** Values ******************************/
 
 ML_TYPE(MLAnyT, NULL, "any");
@@ -2966,6 +2973,15 @@ ml_value_t *ml_module_export(ml_value_t *Module0, const char *Name, ml_value_t *
 	return Value;
 }
 
+ML_METHOD(MLStringOfMethod, MLModuleT) {
+	ml_module_t *Module = (ml_module_t *)Args[0];
+	return ml_string_format("module(%s)", Module->Path);
+}
+
+static ml_value_t *ML_TYPED_FN(ml_string_of, MLModuleT, ml_module_t *Module) {
+	return ml_string_format("module(%s)", Module->Path);
+}
+
 /****************************** Init ******************************/
 
 void ml_init() {
@@ -2995,47 +3011,21 @@ void ml_init() {
 }
 
 void ml_types_init(stringmap_t *Globals) {
-	stringmap_insert(Globals, "type", ml_module("type",
-		"T", MLTypeT,
-		"AnyT", MLAnyT,
-		"NilT", MLNilT,
-	NULL));
-	stringmap_insert(Globals, "function", ml_module("function",
-		"T", MLFunctionT,
-	NULL));
-	stringmap_insert(Globals, "number", ml_module("number",
-		"T", MLNumberT,
-	NULL));
-	stringmap_insert(Globals, "integer", ml_module("integer",
-		"T", MLIntegerT,
-		"of", MLIntegerOfMethod,
-	NULL));
-	stringmap_insert(Globals, "real", ml_module("real",
-		"T", MLRealT,
-		"of", MLRealOfMethod,
-	NULL));
-	stringmap_insert(Globals, "buffer", ml_module("buffer",
-		"T", MLBufferT,
-		"new", ml_function(NULL, ml_buffer),
-	NULL));
-	stringmap_insert(Globals, "string", ml_module("string",
-		"T", MLStringT,
-		"of", MLStringOfMethod,
-	NULL));
-	stringmap_insert(Globals, "stringbuffer", ml_module("stringbuffer",
-		"T", MLStringBufferT,
-	NULL));
-	stringmap_insert(Globals, "regex", ml_module("regex",
-		"T", MLRegexT,
-	NULL));
-	stringmap_insert(Globals, "method", ml_module("method",
-		"T", MLMethodT,
-		"of", MLMethodOfMethod,
-	NULL));
-	stringmap_insert(Globals, "list", ml_module("list",
-		"T", MLListT,
-	NULL));
-	stringmap_insert(Globals, "map", ml_module("map",
-		"T", MLMapT,
-	NULL));
+	stringmap_insert(Globals, "type", MLTypeT);
+	stringmap_insert(Globals, "function", MLFunctionT);
+	stringmap_insert(Globals, "number", MLNumberT);
+	stringmap_insert(Globals, "integer", MLIntegerT);
+	stringmap_insert(MLIntegerT->Exports, "of", MLIntegerOfMethod);
+	stringmap_insert(Globals, "real", MLRealT);
+	stringmap_insert(MLRealT->Exports, "of", MLRealOfMethod);
+	stringmap_insert(Globals, "buffer", MLBufferT);
+	stringmap_insert(MLBufferT->Exports, "new", ml_function(NULL, ml_buffer));
+	stringmap_insert(Globals, "string", MLStringT);
+	stringmap_insert(MLStringT->Exports, "of", MLStringOfMethod);
+	stringmap_insert(Globals, "stringbuffer", MLStringBufferT);
+	stringmap_insert(Globals, "regex", MLRegexT);
+	stringmap_insert(Globals, "method", MLMethodT);
+	stringmap_insert(MLMethodT->Exports, "of", MLMethodOfMethod);
+	stringmap_insert(Globals, "list", MLListT);
+	stringmap_insert(Globals, "map", MLMapT);
 }

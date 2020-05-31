@@ -1042,31 +1042,7 @@ ML_ARITH_METHOD(-, Sub);
 ML_ARITH_METHOD(*, Mul);
 ML_ARITH_METHOD(/, Div);
 
-static ml_array_format_t ml_array_of_type_guess(ml_value_t *Value, ml_array_format_t Format) {
-	if (Value->Type == MLListT) {
-		ML_LIST_FOREACH(Value, Iter) {
-			Format = ml_array_of_type_guess(Iter->Value, Format);
-		}
-	} else if (Value->Type == MLTupleT) {
-		ml_tuple_t *Tuple = (ml_tuple_t *)Value;
-		for (int I = 0; I < Tuple->Size; ++I) {
-			Format = ml_array_of_type_guess(Tuple->Values[I], Format);
-		}
-	} else if (Value->Type == MLArrayT) {
-		ml_array_t *Array = (ml_array_t *)Value;
-		if (Array->Format >= Format) return Array->Format;
-	} else if (Value->Type == MLRealT) {
-		return ML_ARRAY_FORMAT_F64;
-	} else if (Value->Type == MLIntegerT) {
-		return ML_ARRAY_FORMAT_I64;
-	} else {
-		return ML_ARRAY_FORMAT_ANY;
-	}
-	return Format;
-}
-
 static ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, ml_array_format_t Format) {
-	Format = ml_array_of_type_guess(Value, Format);
 	if (Value->Type == MLListT) {
 		int Size = ml_list_length(Value);
 		if (!Size) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
@@ -1172,6 +1148,29 @@ static ml_value_t *ml_array_of_fill(ml_array_format_t Format, ml_array_dimension
 	return NULL;
 }
 
+static ml_array_format_t ml_array_of_type_guess(ml_value_t *Value, ml_array_format_t Format) {
+	if (Value->Type == MLListT) {
+		ML_LIST_FOREACH(Value, Iter) {
+			Format = ml_array_of_type_guess(Iter->Value, Format);
+		}
+	} else if (Value->Type == MLTupleT) {
+		ml_tuple_t *Tuple = (ml_tuple_t *)Value;
+		for (int I = 0; I < Tuple->Size; ++I) {
+			Format = ml_array_of_type_guess(Tuple->Values[I], Format);
+		}
+	} else if (Value->Type == MLArrayT) {
+		ml_array_t *Array = (ml_array_t *)Value;
+		if (Format <= Array->Format) Format = Array->Format;
+	} else if (Value->Type == MLRealT) {
+		if (Format < ML_ARRAY_FORMAT_F64) Format = ML_ARRAY_FORMAT_F64;
+	} else if (Value->Type == MLIntegerT) {
+		if (Format < ML_ARRAY_FORMAT_I64) Format = ML_ARRAY_FORMAT_I64;
+	} else {
+		Format = ML_ARRAY_FORMAT_ANY;
+	}
+	return Format;
+}
+
 static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
 	ml_value_t *Source = Args[0];
@@ -1203,6 +1202,8 @@ static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args) {
 			return ml_error("TypeError", "Unknown type for array");
 		}
 		Source = Args[1];
+	} else {
+		Format = ml_array_of_type_guess(Args[0], ML_ARRAY_FORMAT_NONE);
 	}
 	ml_array_t *Array = ml_array_of_create(Source, 0, Format);
 	if (Array->Base.Type == MLErrorT) return (ml_value_t *)Array;
@@ -1375,22 +1376,20 @@ void ml_array_init(stringmap_t *Globals) {
 		ml_map_insert(CborDefaultTags, ml_integer(85), ml_function((void *)ML_ARRAY_FORMAT_F32, ml_cbor_read_typed_array_fn));
 		ml_map_insert(CborDefaultTags, ml_integer(86), ml_function((void *)ML_ARRAY_FORMAT_F64, ml_cbor_read_typed_array_fn));
 #endif
-		stringmap_insert(Globals, "array", ml_module("array",
-			"new", ml_functionx(NULL, ml_array_new_fnx),
-			"wrap", ml_function(NULL, ml_array_wrap_fn),
-			"of", ml_function(NULL, ml_array_of_fn),
-			"T", MLArrayT,
-			"AnyT", MLArrayAnyT,
-			"Int8T", MLArrayInt8T,
-			"UInt8T", MLArrayUInt8T,
-			"Int16T", MLArrayInt16T,
-			"UInt16T", MLArrayUInt16T,
-			"Int32T", MLArrayInt32T,
-			"UInt32T", MLArrayUInt32T,
-			"Int64T", MLArrayInt64T,
-			"UInt64T", MLArrayUInt64T,
-			"Float32T", MLArrayFloat32T,
-			"Float64T", MLArrayFloat64T,
-		NULL));
+		stringmap_insert(Globals, "array", MLArrayT);
+		stringmap_insert(MLArrayT->Exports, "new", ml_functionx(NULL, ml_array_new_fnx));
+		stringmap_insert(MLArrayT->Exports, "wrap", ml_function(NULL, ml_array_wrap_fn));
+		stringmap_insert(MLArrayT->Exports, "of", ml_function(NULL, ml_array_of_fn));
+		stringmap_insert(MLArrayT->Exports, "any", MLArrayAnyT);
+		stringmap_insert(MLArrayT->Exports, "int8", MLArrayInt8T);
+		stringmap_insert(MLArrayT->Exports, "uint8", MLArrayUInt8T);
+		stringmap_insert(MLArrayT->Exports, "int16", MLArrayInt16T);
+		stringmap_insert(MLArrayT->Exports, "uint16", MLArrayUInt16T);
+		stringmap_insert(MLArrayT->Exports, "int32", MLArrayInt32T);
+		stringmap_insert(MLArrayT->Exports, "uint32", MLArrayUInt32T);
+		stringmap_insert(MLArrayT->Exports, "int64", MLArrayInt64T);
+		stringmap_insert(MLArrayT->Exports, "uint64", MLArrayUInt64T);
+		stringmap_insert(MLArrayT->Exports, "float32", MLArrayFloat32T);
+		stringmap_insert(MLArrayT->Exports, "float64", MLArrayFloat64T);
 	}
 }

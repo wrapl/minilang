@@ -219,10 +219,7 @@ ml_value_t *ml_object_field(ml_value_t *Value, size_t Field) {
 
 void ml_object_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "class", ml_function(NULL, ml_class_fn));
-	ml_value_t *Method = (ml_value_t *)stringmap_search(Globals, "method");
-	if (Method) {
-		ml_module_export(Method, "set", ml_function(NULL, ml_method_set_fn));
-	}
+	stringmap_insert(MLMethodT->Exports, "set", ml_function(NULL, ml_method_set_fn));
 	stringmap_insert(Globals, "property", ml_function(NULL, ml_property_fn));
 	stringmap_insert(Globals, "ObjectT", MLObjectT);
 	stringmap_insert(Globals, "ClassT", MLClassT);

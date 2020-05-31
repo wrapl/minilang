@@ -44,7 +44,8 @@ struct ml_type_t {
 	ml_value_t *(*deref)(ml_value_t *);
 	ml_value_t *(*assign)(ml_value_t *, ml_value_t *);
 	ml_typed_fn_node_t *TypedFns;
-	size_t TypedFnsSize, TypedFnSpace;
+	int TypedFnsSize, TypedFnSpace;
+	stringmap_t Exports[1];
 };
 
 extern ml_type_t MLTypeT[];
@@ -60,6 +61,10 @@ ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value);
 	.call = ml_default_call, \
 	.deref = ml_default_deref, \
 	.assign = ml_default_assign, \
+	.TypedFns = NULL, \
+	.TypedFnsSize = 0, \
+	.TypedFnSpace = 0, \
+	.Exports = {STRINGMAP_INIT}, \
 	__VA_ARGS__ \
 }}
 

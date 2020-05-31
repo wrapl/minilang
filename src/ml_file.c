@@ -153,9 +153,7 @@ void ml_file_init(stringmap_t *Globals) {
 	MLFileT = ml_type(MLAnyT, "file");
 #include "ml_file_init.c"
 	if (Globals) {
-		stringmap_insert(Globals, "file", ml_module("file",
-			"T", MLFileT,
-			"open", ml_function(0, ml_file_open),
-		NULL));
+		stringmap_insert(Globals, "file", MLFileT);
+		stringmap_insert(MLFileT->Exports, "open", ml_function(0, ml_file_open));
 	}
 }
