@@ -27,7 +27,8 @@ extern size_t MLArraySizes[];
 
 typedef struct ml_array_t {
 	ml_buffer_t Base;
-	int Degree, Format;
+	int Degree;
+	ml_array_format_t Format;
 	ml_array_dimension_t Dimensions[];
 } ml_array_t;
 
