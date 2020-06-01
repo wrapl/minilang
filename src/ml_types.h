@@ -425,9 +425,9 @@ void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_t
 
 #ifndef __cplusplus
 
-#define ML_METHOD(METHOD, TYPES ...) INIT_CODE _Generic(METHOD, char *: ml_method_by_name, ml_value_t *: ml_method_by_value)(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), TYPES, NULL);
+#define ML_METHOD(METHOD, TYPES ...) INIT_CODE _Generic(METHOD, char *: ml_method_by_name, ml_value_t *: ml_method_by_value)(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ##TYPES, NULL);
 
-#define ML_METHODX(METHOD, TYPES ...) INIT_CODE _Generic(METHOD, char *: ml_methodx_by_name, ml_value_t *: ml_methodx_by_value)(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), TYPES, NULL);
+#define ML_METHODX(METHOD, TYPES ...) INIT_CODE _Generic(METHOD, char *: ml_methodx_by_name, ml_value_t *: ml_methodx_by_value)(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ##TYPES, NULL);
 
 #else
 

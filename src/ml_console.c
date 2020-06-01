@@ -26,10 +26,9 @@ static ml_value_t *ml_console_global_get(ml_console_t *Console, const char *Name
 	if (Value) return Value;
 	Value = (Console->ParentGetter)(Console->ParentGlobals, Name);
 	if (Value) return Value;
-	ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
-	Uninitialized->Type = MLUninitializedT;
-	stringmap_insert(Console->Globals, Name, Uninitialized);
-	return (ml_value_t *)Uninitialized;
+	Value = ml_uninitialized();
+	stringmap_insert(Console->Globals, Name, Value);
+	return Value;
 }
 
 #ifdef __MINGW32__

@@ -407,7 +407,57 @@ inline ml_value_t *ml_reference(ml_value_t **Address) {
 	return (ml_value_t *)Reference;
 }
 
+typedef struct ml_uninitialized_slot_t ml_uninitialized_slot_t;
+
+struct ml_uninitialized_slot_t {
+	ml_uninitialized_slot_t *Next;
+	ml_value_t **Value;
+};
+
+typedef struct ml_uninitialized_t {
+	const ml_type_t *Type;
+	ml_uninitialized_slot_t *Slots;
+	stringmap_t Unresolved[1];
+} ml_uninitialized_t;
+
 ML_TYPE(MLUninitializedT, MLAnyT, "uninitialized");
+
+ml_value_t *ml_uninitialized() {
+	ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
+	Uninitialized->Type = MLUninitializedT;
+	return (ml_value_t *)Uninitialized;
+}
+
+void ml_uninitialized_use(ml_value_t *Uninitialized0, ml_value_t **Value) {
+	ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Uninitialized0;
+	ml_uninitialized_slot_t *Slot = new(ml_uninitialized_slot_t);
+	Slot->Value = Value;
+	Slot->Next = Uninitialized->Slots;
+	Uninitialized->Slots = Slot;
+}
+
+ML_METHOD_DECL(Symbol, "::");
+
+static int ml_uninitialized_resolve(const char *Name, ml_uninitialized_t *Unitialized, ml_value_t *Value) {
+	ml_value_t *Args[2] = {Value, ml_string(Name, -1)};
+	ml_value_t *Resolved = ml_call(SymbolMethod, 2, Args);
+	ml_uninitialized_set((ml_value_t *)Unitialized, Resolved);
+	return 0;
+}
+
+void ml_uninitialized_set(ml_value_t *Uninitialized0, ml_value_t *Value) {
+	ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Uninitialized0;
+	for (ml_uninitialized_slot_t *Slot = Uninitialized->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Value;
+	stringmap_foreach(Uninitialized->Unresolved, Value, (void *)ml_uninitialized_resolve);
+}
+
+ML_METHOD("::", MLUninitializedT, MLStringT) {
+	ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Args[0];
+	const char *Name = ml_string_value(Args[1]);
+	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Uninitialized->Unresolved, Name);
+	if (!Slot[0]) Slot[0] = ml_uninitialized();
+	return Slot[0];
+}
 
 /****************************** Errors ******************************/
 

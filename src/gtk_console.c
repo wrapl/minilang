@@ -115,10 +115,9 @@ static ml_value_t *console_global_get(console_t *Console, const char *Name) {
 	if (Value) return Value;
 	Value = (Console->ParentGetter)(Console->ParentGlobals, Name);
 	if (Value) return Value;
-	ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
-	Uninitialized->Type = MLUninitializedT;
-	stringmap_insert(Console->Globals, Name, Uninitialized);
-	return (ml_value_t *)Uninitialized;
+	Value = ml_uninitialized();
+	stringmap_insert(Console->Globals, Name, Value);
+	return Value;
 }
 
 static char *console_read(console_t *Console) {

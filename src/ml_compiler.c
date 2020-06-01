@@ -556,10 +556,7 @@ static mlc_compiled_t ml_letx_expr_compile(mlc_function_t *Function, mlc_decl_ex
 }
 
 static inline void ml_decl_set_value(ml_decl_t *Decl, ml_value_t *Value) {
-	ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Decl->Value;
-	if (Uninitialized) {
-		for (ml_slot_t *Slot = Uninitialized->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Value;
-	}
+	if (Decl->Value) ml_uninitialized_set(Decl->Value, Value);
 	Decl->Value = Value;
 }
 
@@ -1078,11 +1075,7 @@ static mlc_compiled_t ml_import_expr_compile(mlc_function_t *Function, mlc_paren
 		ml_value_t *Value = ml_call(SymbolMethod, 2, Args);
 		if (Value->Type != MLErrorT) {
 			if (Value->Type == MLUninitializedT) {
-				ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Value;
-				ml_slot_t *Slot = new(ml_slot_t);
-				Slot->Value = &ValueInst->Params[1].Value;
-				Slot->Next = Uninitialized->Slots;
-				Uninitialized->Slots = Slot;
+				ml_uninitialized_use(Value, &ValueInst->Params[1].Value);
 			}
 			ValueInst->Params[1].Value = Value;
 			return Compiled;
@@ -1201,11 +1194,7 @@ static int ml_upvalue_find(mlc_function_t *Function, ml_decl_t *Decl, mlc_functi
 static mlc_compiled_t ml_ident_expr_finish(mlc_ident_expr_t *Expr, ml_value_t *Value) {
 	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
 	if (Value->Type == MLUninitializedT) {
-		ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Value;
-		ml_slot_t *Slot = new(ml_slot_t);
-		Slot->Value = &ValueInst->Params[1].Value;
-		Slot->Next = Uninitialized->Slots;
-		Uninitialized->Slots = Slot;
+		ml_uninitialized_use(Value, &ValueInst->Params[1].Value);
 	}
 	ValueInst->Params[1].Value = Value;
 	return (mlc_compiled_t){ValueInst, ValueInst};
@@ -1217,9 +1206,7 @@ static mlc_compiled_t ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_
 			if (!strcmp(Decl->Ident, Expr->Ident)) {
 				if (Decl->Index == MLC_DEF_INDEX) {
 					if (!Decl->Value) {
-						ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
-						Uninitialized->Type = MLUninitializedT;
-						Decl->Value = (ml_value_t *)Uninitialized;
+						Decl->Value = ml_uninitialized();
 					}
 					return ml_ident_expr_finish(Expr, Decl->Value);
 				} else {
@@ -2602,9 +2589,8 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 			const char *Ident = Scanner->Ident;
 			ml_reference_t *Ref = (ml_reference_t *)ml_reference(NULL);
 			ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Ident);
-			ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Slot[0];
-			if (Uninitialized && Uninitialized->Type == MLUninitializedT) {
-				for (ml_slot_t *Slot = Uninitialized->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = (ml_value_t *)Ref;
+			if (Slot[0] && Slot[0]->Type == MLUninitializedT) {
+				ml_uninitialized_set(Slot[0], (ml_value_t *)Ref);
 			}
 			Slot[0] = (ml_value_t *)Ref;
 			if (ml_parse(Scanner, MLT_ASSIGN)) {
@@ -2641,27 +2627,31 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 				ml_accept(Scanner, MLT_IN);
 				Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
 			}
-			Result = ml_compile(Expr, NULL, Scanner->Context);
-			if (Result->Type == MLErrorT) ML_RETURN(Result);
-			Result = ml_call(Result, 0, NULL);
-			if (Result->Type == MLErrorT) ML_RETURN(Result);
 			if (!Import) {
 				ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Ident);
-				ml_uninitialized_t *Ref = (ml_uninitialized_t *)Slot[0];
-				if (Ref && Ref->Type == MLUninitializedT) {
-					for (ml_slot_t *Slot = Ref->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Result;
+				if (!Slot[0] || Slot[0]->Type != MLUninitializedT) {
+					Slot[0] = ml_uninitialized();
 				}
+				Result = ml_compile(Expr, NULL, Scanner->Context);
+				if (Result->Type == MLErrorT) ML_RETURN(Result);
+				Result = ml_call(Result, 0, NULL);
+				if (Result->Type == MLErrorT) ML_RETURN(Result);
+				ml_uninitialized_set(Slot[0],  Result);
 				Slot[0] = Result;
 			} else {
+				Result = ml_compile(Expr, NULL, Scanner->Context);
+				if (Result->Type == MLErrorT) ML_RETURN(Result);
+				Result = ml_call(Result, 0, NULL);
+				if (Result->Type == MLErrorT) ML_RETURN(Result);
 				do {
+					ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Import->Ident);
+					if (!Slot[0] || Slot[0]->Type != MLUninitializedT) {
+						Slot[0] = ml_uninitialized();
+					}
 					ml_value_t *Args[2] = {Result, ml_string(Import->Ident, -1)};
 					ml_value_t *Value = ml_call(SymbolMethod, 2, Args);
 					if (Value->Type == MLErrorT) ML_RETURN(Value);
-					ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Import->Ident);
-					ml_uninitialized_t *Ref = (ml_uninitialized_t *)Slot[0];
-					if (Ref && Ref->Type == MLUninitializedT) {
-						for (ml_slot_t *Slot = Ref->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Value;
-					}
+					ml_uninitialized_set(Slot[0],  Value);
 					Slot[0] = Value;
 					Import = Import->Next;
 				} while (Import);
@@ -2671,11 +2661,8 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 		if (ml_parse(Scanner, MLT_IDENT)) {
 			const char *Ident = Scanner->Ident;
 			ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Ident);
-			ml_uninitialized_t *Ref = (ml_uninitialized_t *)Slot[0];
-			if (!Ref || Ref->Type != MLUninitializedT) {
-				Ref = new(ml_uninitialized_t);
-				Ref->Type = MLUninitializedT;
-				Slot[0] = (ml_value_t *)Ref;
+			if (!Slot[0] || Slot[0]->Type != MLUninitializedT) {
+				Slot[0] = ml_uninitialized();
 			}
 			ml_accept(Scanner, MLT_LEFT_PAREN);
 			mlc_expr_t *Expr = ml_accept_fun_expr(Scanner, MLT_RIGHT_PAREN);
@@ -2683,7 +2670,7 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 			if (Result->Type == MLErrorT) ML_RETURN(Result);
 			Result = ml_call(Result, 0, NULL);
 			if (Result->Type == MLErrorT) ML_RETURN(Result);
-			for (ml_slot_t *Slot = Ref->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Result;
+			ml_uninitialized_set(Slot[0], Result);
 			Slot[0] = Result;
 		} else {
 			ml_accept(Scanner, MLT_LEFT_PAREN);

@@ -395,10 +395,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_LET: {
 		Result = Result->Type->deref(Result);
 		ERROR_CHECK(Result);
-		ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Top[Inst->Params[1].Index];
-		if (Uninitialized) {
-			for (ml_slot_t *Slot = Uninitialized->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Result;
-		}
+		ml_value_t *Uninitialized = Top[Inst->Params[1].Index];
+		if (Uninitialized) ml_uninitialized_set(Uninitialized, Result);
 		Top[Inst->Params[1].Index] = Result;
 		ADVANCE(0);
 	}
@@ -420,10 +418,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		for (int I = 0; I < Inst->Params[2].Count; ++I) {
 			Result = Tuple->Values[I]->Type->deref(Tuple->Values[I]);
 			ERROR_CHECK(Result);
-			ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Base[I];
-			if (Uninitialized) {
-				for (ml_slot_t *Slot = Uninitialized->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Result;
-			}
+			ml_value_t *Uninitialized = Base[I];
+			if (Uninitialized) ml_uninitialized_set(Uninitialized, Result);
 			Base[I] = Result;
 		}
 		ADVANCE(0);
@@ -497,9 +493,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_value_t **Slot = (Index < 0) ? &Frame->UpValues[~Index] : &Frame->Stack[Index];
 		Result = Slot[0];
 		if (!Result) {
-			ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
-			Uninitialized->Type = MLUninitializedT;
-			Result = Slot[0] = (ml_value_t *)Uninitialized;
+			Result = Slot[0] = ml_uninitialized();
 		}
 		ADVANCE(0);
 	}
@@ -551,16 +545,10 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			ml_value_t **Slot = (Index < 0) ? &Frame->UpValues[~Index] : &Frame->Stack[Index];
 			ml_value_t *Value = Slot[0];
 			if (!Value) {
-				ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
-				Uninitialized->Type = MLUninitializedT;
-				Slot[0] = Value = (ml_value_t *)Uninitialized;
+				Value = Slot[0] = ml_uninitialized();
 			}
 			if (Value->Type == MLUninitializedT) {
-				ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Value;
-				ml_slot_t *Slot = new(ml_slot_t);
-				Slot->Value = &Closure->UpValues[I];
-				Slot->Next = Uninitialized->Slots;
-				Uninitialized->Slots = Slot;
+				ml_uninitialized_use(Value, &Closure->UpValues[I]);
 			}
 			Closure->UpValues[I] = Value;
 		}

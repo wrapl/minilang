@@ -32,7 +32,15 @@ ML_METHOD_DECL(MLMethodOf, NULL);
 
 /****************************** Types ******************************/
 
-ML_TYPE(MLTypeT, MLIteratableT, "type");
+static void ml_type_call(ml_state_t *Caller, ml_type_t *Type, int Count, ml_value_t **Args) {
+	ml_value_t *Constructor = stringmap_search(Type->Exports, "of");
+	if (!Constructor) ML_RETURN(ml_error("TypeError", "No constructor for <%s>", Type->Name));
+	return Constructor->Type->call(Caller, Constructor, Count, Args);
+}
+
+ML_TYPE(MLTypeT, MLIteratableT, "type",
+	.call = (void *)ml_type_call
+);
 
 void ml_default_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
 	ML_RETURN(ml_error("TypeError", "<%s> is not callable", Value->Type->Name));
@@ -210,6 +218,15 @@ int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
 		Type = Type->Parent;
 	}
 	return 0;
+}
+
+ML_FUNCTION(MLTypeOf) {
+	ML_CHECK_ARG_COUNT(1);
+	return (ml_value_t *)Args[0]->Type;
+}
+
+ML_METHOD("?", MLAnyT) {
+	return (ml_value_t *)Args[0]->Type;
 }
 
 ML_METHOD("isa", MLAnyT, MLTypeT) {
@@ -2752,6 +2769,10 @@ ml_value_t *ml_method(const char *Name) {
 	return (ml_value_t *)Slot[0];
 }
 
+ML_METHOD(MLMethodOfMethod) {
+	return ml_method(NULL);
+}
+
 ML_METHOD(MLMethodOfMethod, MLStringT) {
 	return ml_method(ml_string_value(Args[0]));
 }
@@ -3012,6 +3033,7 @@ void ml_init() {
 
 void ml_types_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "type", MLTypeT);
+	stringmap_insert(MLTypeT->Exports, "of", MLTypeOf);
 	stringmap_insert(Globals, "function", MLFunctionT);
 	stringmap_insert(Globals, "number", MLNumberT);
 	stringmap_insert(Globals, "integer", MLIntegerT);
@@ -3028,4 +3050,5 @@ void ml_types_init(stringmap_t *Globals) {
 	stringmap_insert(MLMethodT->Exports, "of", MLMethodOfMethod);
 	stringmap_insert(Globals, "list", MLListT);
 	stringmap_insert(Globals, "map", MLMapT);
+	stringmap_insert(Globals, "tuple", MLTupleT);
 }
