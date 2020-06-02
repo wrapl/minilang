@@ -248,10 +248,10 @@ ML_METHOD("search", CborIndexT, MLAnyT) {
 ML_METHOD("get", CborIndexT, MLIntegerT) {
 	ml_string_index_t *Store = (ml_string_index_t *)Args[0];
 	int Index = ml_integer_value(Args[1]);
-	ml_cbor_t Cbor = {
-		string_index_get(Store->Handle, Index),
-		string_index_size(Store->Handle, Index)
-	};
+	int Size = string_index_size(Store->Handle, Index);
+	char *Bytes = GC_MALLOC_ATOMIC(Size);
+	string_index_get(Store->Handle, Index, Bytes);
+	ml_cbor_t Cbor = {Bytes, Size};
 	return ml_from_cbor(Cbor, MLNil, (void *)ml_value_tag_fn);
 }
 

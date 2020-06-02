@@ -1168,7 +1168,7 @@ ML_METHOD(MLStringOfMethod, MLIntegerT, MLIntegerT) {
 	if (Base < 2 || Base > 36) return ml_error("RangeError", "Invalid base");
 	ml_string_t *String = new(ml_string_t);
 	String->Type = MLStringT;
-	char *P = GC_malloc_atomic(66) + 65;
+	char *P = GC_MALLOC_ATOMIC(66) + 65;
 	*P = '\0';
 	long Value = Integer->Value;
 	long Neg = Value < 0 ? Value : -Value;
