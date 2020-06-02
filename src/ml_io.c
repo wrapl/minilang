@@ -103,7 +103,7 @@ void ml_io_init(stringmap_t *Globals) {
 #include "ml_io_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "io", ml_module("io",
-			"buffer", ml_function(NULL, ml_buffer),
+			"buffer", MLBufferT,
 			"stdin", ml_fd_new(STDIN_FILENO),
 			"stdout", ml_fd_new(STDOUT_FILENO),
 			"stderr", ml_fd_new(STDERR_FILENO),

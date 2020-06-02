@@ -2088,6 +2088,15 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 		ML_EXPR(ValueExpr, value, value);
 		ValueExpr->Value = Scanner->Value;
 		ValueExpr->End = Scanner->Source.Line;
+		if (ml_is(Scanner->Value, MLNumberT) && ml_parse(Scanner, MLT_IDENT)) {
+			ML_EXPR(IdentExpr, ident, ident);
+			IdentExpr->Ident = Scanner->Ident;
+			ValueExpr->Next = (mlc_expr_t *)IdentExpr;
+			ML_EXPR(CallExpr, parent_value, const_call);
+			CallExpr->Value = ml_method("*");
+			CallExpr->Child = (mlc_expr_t *)ValueExpr;
+			return (mlc_expr_t *)CallExpr;
+		}
 		return (mlc_expr_t *)ValueExpr;
 	}
 	case MLT_EXPR: {
