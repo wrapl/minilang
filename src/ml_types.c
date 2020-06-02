@@ -1870,7 +1870,7 @@ extern inline void ml_list_iter_update(ml_list_iter_t *Iter, ml_value_t *Value);
 ml_value_t *ml_list_copy(ml_value_t **Nodes, int Length) {
 	ml_list_t *List = new(ml_list_t);
 	List->Type = MLListT;
-	int Size = (Length + ML_LIST_SIZE - 1) & ~ML_LIST_SIZE;
+	int Size = (Length + ML_LIST_SIZE - 1) & ~(ML_LIST_SIZE - 1);
 	List->Nodes = anew(ml_value_t *, Size);
 	List->Head = List->Nodes;
 	List->Tail = List->Head + Length;
@@ -2145,7 +2145,7 @@ ML_METHOD("+", MLListT, MLListT) {
 	ml_list_t *List = new(ml_list_t);
 	List->Type = MLListT;
 	int Length = List->Length = List1->Length + List2->Length;
-	int Size = (Length + ML_LIST_SIZE - 1) & ~ML_LIST_SIZE;
+	int Size = (Length + ML_LIST_SIZE - 1) & ~(ML_LIST_SIZE - 1);
 	ml_value_t **Nodes = List->Nodes = anew(ml_value_t *, Size);
 	memcpy(Nodes, List1->Head, List1->Length * sizeof(ml_value_t *));
 	memcpy(Nodes + List1->Length, List2->Head, List2->Length * sizeof(ml_value_t *));
