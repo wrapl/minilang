@@ -298,14 +298,14 @@ ML_METHOD("transpose", MLArrayT) {
 ML_METHOD("permute", MLArrayT, MLListT) {
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Degree = Source->Degree;
-	if (ml_list_length(Args[1]) != Degree) return ml_error("Error", "List length must match degree");
+	if (ml_list_length(Args[1]) != Degree) return ml_error("ArrayError", "List length must match degree");
 	ml_array_t *Target = ml_array_new(Source->Format, Degree);
 	int I = 0;
 	ML_LIST_FOREACH(Args[1], Iter) {
-		if (Iter->Value->Type != MLIntegerT) return ml_error("Error", "Invalid index");
+		if (Iter->Value->Type != MLIntegerT) return ml_error("ArrayError", "Invalid index");
 		int J = ml_integer_value(Iter->Value);
 		if (J <= 0) J += Degree + 1;
-		if (J < 1 || J > Degree) return ml_error("Error", "Invalid index");
+		if (J < 1 || J > Degree) return ml_error("ArrayError", "Invalid index");
 		Target->Dimensions[I++] = Source->Dimensions[J - 1];
 	}
 	Target->Base = Source->Base;
@@ -613,12 +613,13 @@ static void update_prefix(int Op, int PrefixDegree, ml_array_dimension_t *Target
 static ml_value_t *update_array_fn(void *Data, int Count, ml_value_t **Args) {
 	ml_array_t *Target = (ml_array_t *)Args[0];
 	ml_array_t *Source = (ml_array_t *)Args[1];
-	if (Source->Degree > Target->Degree) return ml_error("Error", "Incompatible assignment (%d)", __LINE__);
+	if (Source->Degree > Target->Degree) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__);
 	int PrefixDegree = Target->Degree - Source->Degree;
 	for (int I = 0; I < Source->Degree; ++I) {
-		if (Target->Dimensions[PrefixDegree + I].Size != Source->Dimensions[I].Size) return ml_error("Error", "Incompatible assignment (%d)", __LINE__);
+		if (Target->Dimensions[PrefixDegree + I].Size != Source->Dimensions[I].Size) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__);
 	}
 	int Op = ((char *)Data - (char *)0) * MAX_FORMATS * MAX_FORMATS + Target->Format * MAX_FORMATS + Source->Format;
+	if (!UpdateRowFns[Op]) return ml_error("ArrayError", "Unsupported array format pair (%s, %s)", Target->Base.Type->Name, Source->Base.Type->Name);
 	if (Target->Degree) {
 		update_prefix(Op, PrefixDegree, Target->Dimensions, Target->Base.Address, Source->Degree, Source->Dimensions, Source->Base.Address);
 	} else {
@@ -635,6 +636,7 @@ ML_METHOD(#NAME, ATYPE, MLNumberT) { \
 	CTYPE Value = RFUNC(Args[1]); \
 	ml_array_dimension_t ValueDimension[1] = {{1, 0, NULL}}; \
 	int Op = (BASE) * MAX_FORMATS * MAX_FORMATS + Array->Format * MAX_FORMATS + FORMAT; \
+	if (!UpdateRowFns[Op]) return ml_error("ArrayError", "Unsupported array format pair (%s, %s)", Args[0]->Type->Name, Args[1]->Type->Name); \
 	if (Array->Degree == 0) { \
 		UpdateRowFns[Op](ValueDimension, Array->Base.Address, ValueDimension, (char *)&Value); \
 	} else { \
@@ -827,7 +829,7 @@ ML_METHOD("partial_sums", ATYPE, MLIntegerT) { \
 	ml_array_t *Array = (ml_array_t *)Args[0]; \
 	int Target = ml_integer_value(Args[1]); \
 	if (Target <= 0) Target += Array->Degree + 1; \
-	if (Target < 1 || Target > Array->Degree) return ml_error("Error", "Dimension index invalid"); \
+	if (Target < 1 || Target > Array->Degree) return ml_error("ArrayError", "Dimension index invalid"); \
 	Target = Array->Degree + 1 - Target; \
 	partial_sums_ ## CTYPE(Target, Array->Degree, Array->Dimensions, Array->Base.Address, 0); \
 	return Args[0]; \
@@ -884,6 +886,7 @@ static ml_value_t *ml_array_ ## CTYPE ## _assign(ml_array_t *Target, ml_value_t 
 		CTYPE CValue = RFUNC(Value); \
 		ml_array_dimension_t ValueDimension[1] = {{1, 0, NULL}}; \
 		int Op = Target->Format * MAX_FORMATS + Target->Format; \
+		if (!UpdateRowFns[Op]) return ml_error("ArrayError", "Unsupported array format pair (%s, %s)", Target->Base.Type->Name, Value->Type->Name); \
 		if (Target->Degree == 0) { \
 			UpdateRowFns[Op](ValueDimension, Target->Base.Address, ValueDimension, (char *)&CValue); \
 		} else { \
@@ -892,12 +895,13 @@ static ml_value_t *ml_array_ ## CTYPE ## _assign(ml_array_t *Target, ml_value_t 
 		return Value; \
 	} else if (ml_is(Value, MLArrayT)) { \
 		ml_array_t *Source = (ml_array_t *)Value; \
-		if (Source->Degree > Target->Degree) return ml_error("Error", "Incompatible assignment (%d)", __LINE__); \
+		if (Source->Degree > Target->Degree) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__); \
 		int PrefixDegree = Target->Degree - Source->Degree; \
 		for (int I = 0; I < Source->Degree; ++I) { \
-			if (Target->Dimensions[PrefixDegree + I].Size != Source->Dimensions[I].Size) return ml_error("Error", "Incompatible assignment (%d)", __LINE__); \
+			if (Target->Dimensions[PrefixDegree + I].Size != Source->Dimensions[I].Size) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__); \
 		} \
 		int Op = Target->Format * MAX_FORMATS + Source->Format; \
+		if (!UpdateRowFns[Op]) return ml_error("ArrayError", "Unsupported array format pair (%s, %s)", Target->Base.Type->Name, Source->Base.Type->Name); \
 		if (Target->Degree) { \
 			update_prefix(Op, PrefixDegree, Target->Dimensions, Target->Base.Address, Source->Degree, Source->Dimensions, Source->Base.Address); \
 		} else { \
@@ -1107,11 +1111,11 @@ static ml_value_t *ml_array_of_fill(ml_array_format_t Format, ml_array_dimension
 		}
 	} else if (ml_is(Value, MLArrayT)) {
 		ml_array_t *Source = (ml_array_t *)Value;
-		if (Source->Degree != Degree) return ml_error("Error", "Incompatible assignment (%d)", __LINE__);
+		if (Source->Degree != Degree) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__);
 		for (int I = 0; I < Degree; ++I) {
-			if (Dimension[I].Size != Source->Dimensions[I].Size) return ml_error("Error", "Incompatible assignment (%d)", __LINE__);
+			if (Dimension[I].Size != Source->Dimensions[I].Size) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__);
 		}
-		int Op = Format * MAX_FORMATS + Source->Format; \
+		int Op = Format * MAX_FORMATS + Source->Format;
 		update_array(Op, Dimension, Address, Degree, Source->Dimensions, Source->Base.Address);
 	} else {
 		if (Degree) return ml_error("ValueError", "Inconsistent depth in array");
