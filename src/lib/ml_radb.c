@@ -55,8 +55,8 @@ ML_METHOD("get", StringStoreT, MLIntegerT) {
 	size_t Index = ml_integer_value(Args[1]);
 	size_t Length = string_store_size(Store->Handle, Index);
 	if (Length == INVALID_INDEX) return ml_error("IndexError", "Invalid index");
-	char *Value = snew(Length);
-	string_store_get(Store->Handle, Index, Value);
+	char *Value = snew(Length + 1);
+	string_store_get(Store->Handle, Index, Value, Length);
 	Value[Length] = 0;
 	return ml_string(Value, Length);
 }
@@ -249,8 +249,8 @@ ML_METHOD("get", CborIndexT, MLIntegerT) {
 	ml_string_index_t *Store = (ml_string_index_t *)Args[0];
 	int Index = ml_integer_value(Args[1]);
 	int Size = string_index_size(Store->Handle, Index);
-	char *Bytes = GC_MALLOC_ATOMIC(Size);
-	string_index_get(Store->Handle, Index, Bytes);
+	char *Bytes = snew(Size + 1);
+	string_index_get(Store->Handle, Index, Bytes, Size);
 	ml_cbor_t Cbor = {Bytes, Size};
 	return ml_from_cbor(Cbor, MLNil, (void *)ml_value_tag_fn);
 }
