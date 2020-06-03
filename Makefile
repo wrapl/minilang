@@ -12,7 +12,9 @@ $(SUBDIRS):
 
 *.o: *.h
 
-CFLAGS += -std=gnu99 -fstrict-aliasing -Wstrict-aliasing -Wall \
+CFLAGS += \
+	-std=gnu99 -fstrict-aliasing -foptimize-sibling-calls \
+	-Wstrict-aliasing -Wall \
 	-Iobj -Isrc -pthread -DGC_THREADS -D_GNU_SOURCE
 LDFLAGS += -lm
 
