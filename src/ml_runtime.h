@@ -72,6 +72,8 @@ void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value);
 	State->Value; \
 })
 
+void ml_runtime_init();
+
 /****************************** Functions ******************************/
 
 typedef struct ml_function_t ml_function_t;
@@ -92,6 +94,10 @@ struct ml_functionx_t {
 extern ml_type_t MLFunctionT[];
 extern ml_type_t MLFunctionXT[];
 extern ml_type_t MLPartialFunctionT[];
+
+extern ml_functionx_t MLCallCC[];
+extern ml_functionx_t MLSpawn[];
+extern ml_function_t MLContextKey[];
 
 ml_value_t *ml_function(void *Data, ml_callback_t Function);
 ml_value_t *ml_functionx(void *Data, ml_callbackx_t Function);
@@ -145,6 +151,7 @@ static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Arg
 }
 
 #define ML_RETURN(VALUE) return Caller->run(Caller, (ml_value_t *)(VALUE))
+#define ML_ERROR(ARGS...) ML_RETURN(ml_error(ARGS))
 
 /****************************** References ******************************/
 
@@ -219,13 +226,23 @@ struct ml_debugger_t {
 };
 
 #define ML_DEBUGGER_INDEX 2
+#define ML_SCHEDULER_INDEX 3
 
 int ml_debugger_check(ml_state_t *State);
 ml_source_t ml_debugger_source(ml_state_t *State);
 ml_decl_t *ml_debugger_decls(ml_state_t *State);
 ml_value_t *ml_debugger_local(ml_state_t *State, int Index);
 
-void ml_runtime_init();
+/****************************** Preemption ******************************/
+
+typedef struct ml_schedule_t ml_schedule_t;
+
+struct ml_schedule_t {
+	int *Counter;
+	void (*swap)(ml_state_t *State);
+};
+
+typedef ml_schedule_t (*ml_scheduler_t)(ml_context_t *Context);
 
 #ifdef	__cplusplus
 }

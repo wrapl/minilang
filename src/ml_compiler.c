@@ -1153,21 +1153,31 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 		UpValueSlot = &Decl->Next;
 	}
 	mlc_connect(Compiled.Exits, SubFunction->ReturnInst);
-	int NumUpValues = 0;
-	for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) ++NumUpValues;
-	ml_inst_t *ClosureInst = ml_inst_new(2 + NumUpValues, Expr->Source, MLI_CLOSURE);
-	ml_param_t *Params = ClosureInst->Params;
 	Info->Entry = Compiled.Start;
 	Info->Return = SubFunction->ReturnInst;
 	Info->FrameSize = SubFunction->Size;
 	Info->NumParams = NumParams;
-	Info->NumUpValues = NumUpValues;
 	ml_closure_info_finish(Info);
-	Params[1].ClosureInfo = Info;
-	int Index = 2;
-	for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) Params[Index++].Index = UpValue->Index;
 	if (MLDebugClosures) ml_closure_info_debug(Info);
-	return (mlc_compiled_t){ClosureInst, ClosureInst};
+	if (SubFunction->UpValues) {
+		int NumUpValues = 0;
+		for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) ++NumUpValues;
+		ml_inst_t *ClosureInst = ml_inst_new(2 + NumUpValues, Expr->Source, MLI_CLOSURE);
+		ml_param_t *Params = ClosureInst->Params;
+		Info->NumUpValues = NumUpValues;
+		Params[1].ClosureInfo = Info;
+		int Index = 2;
+		for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) Params[Index++].Index = UpValue->Index;
+		return (mlc_compiled_t){ClosureInst, ClosureInst};
+	} else {
+		Info->NumUpValues = 0;
+		ml_closure_t *Closure = xnew(ml_closure_t, 0, ml_value_t *);
+		Closure->Type = MLClosureT;
+		Closure->Info = Info;
+		ml_inst_t *LoadInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
+		LoadInst->Params[1].Value = (ml_value_t *)Closure;
+		return (mlc_compiled_t){LoadInst, LoadInst};
+	}
 }
 
 struct mlc_ident_expr_t {

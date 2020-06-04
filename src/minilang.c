@@ -94,10 +94,6 @@ static ml_value_t *ml_collect(void *Data, int Count, ml_value_t **Args) {
 	return MLNil;
 }
 
-extern ml_value_t MLCallCC[];
-extern ml_value_t MLSpawn[];
-extern ml_value_t MLContextKey[];
-
 #ifdef USE_ML_MODULES
 static stringmap_t Modules[1] = {STRINGMAP_INIT};
 
@@ -164,7 +160,7 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "collect", ml_function(0, ml_collect));
 	stringmap_insert(Globals, "callcc", MLCallCC);
 	stringmap_insert(Globals, "spawn", MLSpawn);
-	stringmap_insert(Globals, "context_key", MLContextKey);
+	stringmap_insert(Globals, "context", MLContextKey);
 #ifdef USE_ML_CBOR
 	ml_cbor_init(Globals);
 #endif

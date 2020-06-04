@@ -11,11 +11,12 @@
 
 /****************************** Runtime ******************************/
 
-static int MLContextSize = 3;
+static int MLContextSize = 4;
 // Reserved context slots:
 //  0: Method Table
 //  1: Context variables
 //  2: Debugger
+//	3: Scheduler
 
 ml_context_t MLRootContext = {&MLRootContext, 3, {NULL, NULL, NULL}};
 

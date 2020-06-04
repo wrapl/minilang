@@ -33,6 +33,7 @@ struct DEBUG_STRUCT(frame) {
 	ml_value_t **Top;
 	ml_inst_t *OnError;
 	ml_value_t **UpValues;
+	ml_schedule_t Schedule;
 #ifdef DEBUG_VERSION
 	ml_debugger_t *Debugger;
 	size_t *Breakpoints;
@@ -114,10 +115,18 @@ ml_type_t DEBUG_TYPE(Suspension)[1] = {{
 
 #define ERROR() \
 	Inst = Frame->OnError; \
+	if (Counter && --*Counter == 0) { \
+		Frame->Inst = Inst; \
+		return Frame->Schedule.swap((ml_state_t *)Frame); \
+	} \
 	goto *Labels[Inst->Opcode]
 
 #define ADVANCE(N) \
 	Inst = Inst->Params[N].Inst; \
+	if (Counter && --*(Counter) == 0) { \
+		Frame->Inst = Inst; \
+		return Frame->Schedule.swap((ml_state_t *)Frame); \
+	} \
 	goto *Labels[Inst->Opcode]
 
 #define ERROR_CHECK(VALUE) if (VALUE->Type == MLErrorT) { \
@@ -188,6 +197,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	};
 	ml_inst_t *Inst = Frame->Inst;
 	ml_value_t **Top = Frame->Top;
+	int *Counter = Frame->Schedule.Counter;
 	if (Result->Type == MLErrorT) {
 		ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
 		Inst = Frame->OnError;
@@ -544,9 +554,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			int Index = Inst->Params[2 + I].Index;
 			ml_value_t **Slot = (Index < 0) ? &Frame->UpValues[~Index] : &Frame->Stack[Index];
 			ml_value_t *Value = Slot[0];
-			if (!Value) {
-				Value = Slot[0] = ml_uninitialized();
-			}
+			if (!Value) Value = Slot[0] = ml_uninitialized();
 			if (Value->Type == MLUninitializedT) {
 				ml_uninitialized_use(Value, &Closure->UpValues[I]);
 			}
@@ -585,11 +593,19 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			if (Debugger->StepOverFrame == (ml_state_t *)Frame) goto DO_BREAKPOINT;
 			if (Inst->Opcode == MLI_RETURN && Debugger->StepOutFrame == (ml_state_t *)Frame) goto DO_BREAKPOINT;
 		}
+		if (Counter && --*(Counter) == 0) {
+			Frame->Inst = Inst;
+			return Frame->Schedule.swap((ml_state_t *)Frame);
+		}
 		goto *Labels[Inst->Opcode];
 	}
 	DO_DEBUG_ERROR: {
 		ml_debugger_t *Debugger = Frame->Debugger;
 		if (Debugger->BreakOnError) goto DO_BREAKPOINT;
+		if (Counter && --*(Counter) == 0) {
+			Frame->Inst = Inst;
+			return Frame->Schedule.swap((ml_state_t *)Frame);
+		}
 		goto *Labels[Inst->Opcode];
 	}
 	DO_BREAKPOINT: {
@@ -708,6 +724,8 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	Frame->Breakpoints = Debugger->breakpoints(Debugger, Frame->Source, Info->End);
 	Frame->Decls = Info->Decls;
 #endif
+	ml_scheduler_t scheduler = (ml_scheduler_t)ml_context_get(Caller->Context, ML_SCHEDULER_INDEX);
+	if (scheduler) Frame->Schedule = scheduler(Caller->Context);
 	ML_CONTINUE(Frame, ClosureEntry);
 }
 
