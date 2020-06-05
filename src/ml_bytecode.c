@@ -15,13 +15,16 @@
 #undef DEBUG_STRUCT
 #undef DEBUG_FUNC
 #undef DEBUG_TYPE
+#undef DEBUG_VAR
 #define DEBUG_STRUCT(X) ml_ ## X ## _debug_t
 #define DEBUG_FUNC(X) ml_ ## X ## _debug
 #define DEBUG_TYPE(X) ML ## X ## DebugT
+#define DEBUG_VAR(X) ML ## X
 #else
 #define DEBUG_STRUCT(X) ml_ ## X ## _t
 #define DEBUG_FUNC(X) ml_ ## X
 #define DEBUG_TYPE(X) ML ## X ## T
+#define DEBUG_VAR(X) ML ## X ## Debug
 #endif
 
 typedef struct DEBUG_STRUCT(frame) DEBUG_STRUCT(frame);
@@ -115,17 +118,19 @@ ml_type_t DEBUG_TYPE(Suspension)[1] = {{
 
 #define ERROR() \
 	Inst = Frame->OnError; \
-	if (Counter && --*Counter == 0) { \
+	if (--Counter == 0) { \
 		Frame->Inst = Inst; \
-		return Frame->Schedule.swap((ml_state_t *)Frame); \
+		Frame->Top = Top; \
+		return Frame->Schedule.swap((ml_state_t *)Frame, Result); \
 	} \
 	goto *Labels[Inst->Opcode]
 
 #define ADVANCE(N) \
 	Inst = Inst->Params[N].Inst; \
-	if (Counter && --*(Counter) == 0) { \
+	if (--Counter == 0) { \
 		Frame->Inst = Inst; \
-		return Frame->Schedule.swap((ml_state_t *)Frame); \
+		Frame->Top = Top; \
+		return Frame->Schedule.swap((ml_state_t *)Frame, Result); \
 	} \
 	goto *Labels[Inst->Opcode]
 
@@ -136,6 +141,13 @@ ml_type_t DEBUG_TYPE(Suspension)[1] = {{
 }
 
 static ml_value_t ClosureEntry[1] = {{MLAnyT}};
+
+static unsigned int DefaultCounter = UINT_MAX;
+
+static void default_swap(ml_state_t *State, ml_value_t *Value) {
+	DefaultCounter = UINT_MAX;
+	return State->run(State, Value);
+}
 
 #else
 
@@ -197,7 +209,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	};
 	ml_inst_t *Inst = Frame->Inst;
 	ml_value_t **Top = Frame->Top;
-	int *Counter = Frame->Schedule.Counter;
+	unsigned int Counter = Frame->Schedule.Counter[0];
 	if (Result->Type == MLErrorT) {
 		ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
 		Inst = Frame->OnError;
@@ -211,12 +223,14 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	goto *Labels[Inst->Opcode];
 
 	DO_RETURN: {
+		Frame->Schedule.Counter[0] = Counter;
 		ML_CONTINUE(Frame->Base.Caller, Result);
 	}
 	DO_SUSPEND: {
 		Frame->Base.Type = DEBUG_TYPE(Suspension);
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
+		Frame->Schedule.Counter[0] = Counter;
 		ML_CONTINUE(Frame->Base.Caller, (ml_value_t *)Frame);
 	}
 	DO_RESUME: {
@@ -439,6 +453,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ERROR_CHECK(Result);
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
+		Frame->Schedule.Counter[0] = Counter;
 		return ml_iterate((ml_state_t *)Frame, Result);
 	}
 	DO_NEXT: {
@@ -447,18 +462,21 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		*--Top = 0;
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
+		Frame->Schedule.Counter[0] = Counter;
 		return ml_iter_next((ml_state_t *)Frame, Result);
 	}
 	DO_VALUE: {
 		Result = Top[-1];
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
+		Frame->Schedule.Counter[0] = Counter;
 		return ml_iter_value((ml_state_t *)Frame, Result);
 	}
 	DO_KEY: {
 		Result = Top[-2];
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
+		Frame->Schedule.Counter[0] = Counter;
 		return ml_iter_key((ml_state_t *)Frame, Result);
 	}
 	DO_CALL: {
@@ -468,6 +486,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ERROR_CHECK(Function);
 		ml_value_t **Args = Top - Count;
 		ml_inst_t *Next = Inst->Params[0].Inst;
+		Frame->Schedule.Counter[0] = Counter;
 		if (Next->Opcode == MLI_RETURN) {
 			return Function->Type->call(Frame->Base.Caller, Function, Count, Args);
 		} else {
@@ -481,6 +500,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_value_t *Function = Inst->Params[2].Value;
 		ml_value_t **Args = Top - Count;
 		ml_inst_t *Next = Inst->Params[0].Inst;
+		Frame->Schedule.Counter[0] = Counter;
 		if (Next->Opcode == MLI_RETURN) {
 			return Function->Type->call(Frame->Base.Caller, Function, Count, Args);
 		} else {
@@ -593,18 +613,20 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			if (Debugger->StepOverFrame == (ml_state_t *)Frame) goto DO_BREAKPOINT;
 			if (Inst->Opcode == MLI_RETURN && Debugger->StepOutFrame == (ml_state_t *)Frame) goto DO_BREAKPOINT;
 		}
-		if (Counter && --*(Counter) == 0) {
+		if (--Counter == 0) {
 			Frame->Inst = Inst;
-			return Frame->Schedule.swap((ml_state_t *)Frame);
+			Frame->Top = Top;
+			return Frame->Schedule.swap((ml_state_t *)Frame, Result);
 		}
 		goto *Labels[Inst->Opcode];
 	}
 	DO_DEBUG_ERROR: {
 		ml_debugger_t *Debugger = Frame->Debugger;
 		if (Debugger->BreakOnError) goto DO_BREAKPOINT;
-		if (Counter && --*(Counter) == 0) {
+		if (--Counter == 0) {
 			Frame->Inst = Inst;
-			return Frame->Schedule.swap((ml_state_t *)Frame);
+			Frame->Top = Top;
+			return Frame->Schedule.swap((ml_state_t *)Frame, Result);
 		}
 		goto *Labels[Inst->Opcode];
 	}
@@ -725,7 +747,12 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	Frame->Decls = Info->Decls;
 #endif
 	ml_scheduler_t scheduler = (ml_scheduler_t)ml_context_get(Caller->Context, ML_SCHEDULER_INDEX);
-	if (scheduler) Frame->Schedule = scheduler(Caller->Context);
+	if (scheduler) {
+		Frame->Schedule = scheduler(Caller->Context);
+	} else {
+		Frame->Schedule.Counter = &DefaultCounter;
+		Frame->Schedule.swap = default_swap;
+	}
 	ML_CONTINUE(Frame, ClosureEntry);
 }
 

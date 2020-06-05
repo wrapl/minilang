@@ -85,6 +85,8 @@ static void ml_array_init_run(ml_array_init_state_t *State, ml_value_t *Value) {
 	if (Value->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Value);
 	ml_array_t *Array = State->Array;
 	switch (Array->Format) {
+	case ML_ARRAY_FORMAT_NONE:
+		break;
 	case ML_ARRAY_FORMAT_ANY:
 		*(ml_value_t **)State->Address = Value;
 		State->Address += sizeof(ml_value_t *);
@@ -841,6 +843,7 @@ CTYPE ml_array_get_ ## CTYPE(ml_array_t *Array, ...) { \
 	char *Address = ml_array_index(Array, Indices); \
 	va_end(Indices); \
 	switch (Array->Format) { \
+	case ML_ARRAY_FORMAT_NONE: break; \
 	case ML_ARRAY_FORMAT_I8: return *(int8_t *)Address; \
 	case ML_ARRAY_FORMAT_U8: return *(uint8_t *)Address; \
 	case ML_ARRAY_FORMAT_I16: return *(int16_t *)Address; \
@@ -862,6 +865,7 @@ void ml_array_set_ ## CTYPE(CTYPE Value, ml_array_t *Array, ...) { \
 	char *Address = ml_array_index(Array, Indices); \
 	va_end(Indices); \
 	switch (Array->Format) { \
+	case ML_ARRAY_FORMAT_NONE: break; \
 	case ML_ARRAY_FORMAT_I8: *(int8_t *)Address = Value; break; \
 	case ML_ARRAY_FORMAT_U8: *(uint8_t *)Address = Value; break; \
 	case ML_ARRAY_FORMAT_I16: *(int16_t *)Address = Value; break; \
@@ -951,7 +955,7 @@ static ml_value_t *array_infix_fn(void *Data, int Count, ml_value_t **Args) {
 	ml_array_t *B = (ml_array_t *)Args[1];
 	int Degree = A->Degree;
 	ml_array_t *C = ml_array_new(MAX(A->Format, B->Format), Degree);
-	int DataSize = array_copy(C, A);
+	array_copy(C, A);
 	int Op2 = ((char *)Data - (char *)0) * MAX_FORMATS * MAX_FORMATS + C->Format * MAX_FORMATS + B->Format;
 	update_prefix(Op2, C->Degree - B->Degree, C->Dimensions, C->Base.Address, B->Degree, B->Dimensions, B->Base.Address);
 	return (ml_value_t *)C;

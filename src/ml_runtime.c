@@ -120,6 +120,15 @@ void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value) {
 	}
 }
 
+ml_state_t *ml_state_new(ml_state_t *Caller) {
+	ml_state_t *State = new(ml_state_t);
+	State->Type = MLStateT;
+	State->Context = ml_context_new(Caller->Context);
+	State->Caller = Caller;
+	State->run = ml_default_state_run;
+	return State;
+}
+
 typedef struct ml_resumable_state_t {
 	ml_state_t Base;
 	ml_state_t *Last;

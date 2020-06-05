@@ -209,12 +209,8 @@ static void interactive_debugger_fnx(ml_state_t *Caller, interactive_debugger_in
 	stringmap_insert(Debugger->Globals, "frame_up", ml_function(Debugger, (void *)debugger_frame_up));
 	stringmap_insert(Debugger->Globals, "frame_down", ml_function(Debugger, (void *)debugger_frame_down));
 
-	ml_context_t *Context = ml_context_new(Caller->Context);
-	ml_context_set(Context, ML_DEBUGGER_INDEX, Debugger);
-	ml_state_t *State = new(ml_state_t);
-	State->Caller = Caller;
-	State->run = ml_default_state_run;
-	State->Context = Context;
+	ml_state_t *State = ml_state_new(Caller);
+	ml_context_set(State->Context, ML_DEBUGGER_INDEX, Debugger);
 	if (Args[0]->Type == MLStringT) {
 		State->run = debugger_state_load;
 		const char *FileName = ml_string_value(Args[0]);

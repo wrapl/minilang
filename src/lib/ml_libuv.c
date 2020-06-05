@@ -9,14 +9,40 @@
 	&anonymous; \
 })
 
-static uv_loop_t *Loop = 0;
+static uv_loop_t *Loop;
+static uv_idle_t Idle[1];
 
-ML_FUNCTION(Run) {
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLFunctionT);
-	ml_call(Args[0], 0, NULL);
+static unsigned int MLUVCounter = 100;
+
+static void ml_uv_resume(uv_idle_t *Idle) {
+	//printf("Resuming state ... \n");
+	ml_state_t *State = (ml_state_t *)ml_list_pop((ml_value_t *)Idle->data);
+	ml_value_t *Value = ml_list_pop((ml_value_t *)Idle->data);
+	if (!ml_list_length((ml_value_t *)Idle->data)) uv_idle_stop(Idle);
+	MLUVCounter = 100;
+	return State->run(State, Value);
+}
+
+static void ml_uv_swap(ml_state_t *State, ml_value_t *Value) {
+	//printf("Swapping state ...\n");
+	if (!ml_list_length((ml_value_t *)Idle->data)) uv_idle_start(Idle, ml_uv_resume);
+	ml_list_put((ml_value_t *)Idle->data, (ml_value_t *)State);
+	ml_list_put((ml_value_t *)Idle->data, Value);
+}
+
+static ml_schedule_t ml_uv_scheduler(ml_context_t *Context) {
+	return (ml_schedule_t){&MLUVCounter, ml_uv_swap};
+}
+
+ML_FUNCTIONX(Run) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLFunctionT);
+	ml_state_t *State = ml_state_new(Caller);
+	ml_context_set(State->Context, ML_SCHEDULER_INDEX, ml_uv_scheduler);
+	ml_value_t *Function = Args[0];
+	Function->Type->call(State, Function, 0, NULL);
 	uv_run(Loop, UV_RUN_DEFAULT);
-	return MLNil;
+	ML_RETURN(MLNil);
 }
 
 typedef struct ml_uv_file_t {
@@ -147,6 +173,8 @@ void ml_free(void *Ptr) {
 void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
 	uv_replace_allocator(GC_malloc, GC_realloc, ml_calloc, ml_free);
 	Loop = uv_default_loop();
+	uv_idle_init(Loop, Idle);
+	Idle->data = ml_list();
 	MLUVFileT = ml_type(MLAnyT, "uv-file");
 #include "ml_libuv_init.c"
 	ml_module_export(Module, "fs_open", FSOpen);

@@ -38,6 +38,7 @@ struct ml_state_t {
 
 extern ml_type_t MLStateT[];
 
+ml_state_t *ml_state_new(ml_state_t *Caller);
 ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args);
 
 #define ml_inline(VALUE, COUNT, ARGS ...) ({ \
@@ -238,8 +239,8 @@ ml_value_t *ml_debugger_local(ml_state_t *State, int Index);
 typedef struct ml_schedule_t ml_schedule_t;
 
 struct ml_schedule_t {
-	int *Counter;
-	void (*swap)(ml_state_t *State);
+	unsigned int *Counter;
+	void (*swap)(ml_state_t *State, ml_value_t *Value);
 };
 
 typedef ml_schedule_t (*ml_scheduler_t)(ml_context_t *Context);
