@@ -42,7 +42,7 @@ struct DEBUG_STRUCT(frame) {
 	size_t *Breakpoints;
 	ml_decl_t *Decls;
 	size_t Revision;
-	size_t Reentry;
+	int DebugReentry;
 #endif
 	ml_value_t *Stack[];
 };
@@ -116,31 +116,23 @@ ml_type_t DEBUG_TYPE(Suspension)[1] = {{
 
 #ifndef DEBUG_VERSION
 
-#define ERROR() \
+#define ERROR() { \
 	Inst = Frame->OnError; \
-	if (--Counter == 0) { \
-		Frame->Inst = Inst; \
-		Frame->Top = Top; \
-		return Frame->Schedule.swap((ml_state_t *)Frame, Result); \
-	} \
-	goto *Labels[Inst->Opcode]
+	if (--Counter == 0) goto DO_SWAP; \
+	goto *Labels[Inst->Opcode]; \
+}
 
-#define ADVANCE(N) \
+#define ADVANCE(N) { \
 	Inst = Inst->Params[N].Inst; \
-	if (--Counter == 0) { \
-		Frame->Inst = Inst; \
-		Frame->Top = Top; \
-		return Frame->Schedule.swap((ml_state_t *)Frame, Result); \
-	} \
-	goto *Labels[Inst->Opcode]
+	if (--Counter == 0) goto DO_SWAP; \
+	goto *Labels[Inst->Opcode]; \
+}
 
 #define ERROR_CHECK(VALUE) if (VALUE->Type == MLErrorT) { \
 	ml_error_trace_add(VALUE, (ml_source_t){Frame->Source, Inst->LineNo}); \
 	Result = VALUE; \
 	ERROR(); \
 }
-
-static ml_value_t ClosureEntry[1] = {{MLAnyT}};
 
 static unsigned int DefaultCounter = UINT_MAX;
 
@@ -154,13 +146,17 @@ static void default_swap(ml_state_t *State, ml_value_t *Value) {
 #undef ERROR
 #undef ADVANCE
 
-#define ERROR() \
+#define ERROR() { \
 	Inst = Frame->OnError; \
-	goto DO_DEBUG_ERROR
+	if (--Counter == 0) goto DO_SWAP; \
+	goto DO_DEBUG_ERROR; \
+}
 
-#define ADVANCE(N) \
+#define ADVANCE(N) { \
 	Inst = Inst->Params[N].Inst; \
-	goto DO_DEBUG_ADVANCE
+	if (--Counter == 0) goto DO_SWAP; \
+	goto DO_DEBUG_ADVANCE; \
+}
 
 #endif
 
@@ -210,17 +206,18 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	ml_inst_t *Inst = Frame->Inst;
 	ml_value_t **Top = Frame->Top;
 	unsigned int Counter = Frame->Schedule.Counter[0];
-	if (Result->Type == MLErrorT) {
-		ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
-		Inst = Frame->OnError;
-#ifdef DEBUG_VERSION
-		ml_debugger_t *Debugger = Frame->Debugger;
-		if (Debugger->BreakOnError && --Frame->Reentry) goto DO_BREAKPOINT;
-	} else {
-		goto DO_DEBUG_ADVANCE;
-#endif
+#ifdef DEBUG_MODE
+	if (Frame->DebugReentry) {
+		Frame->DebugReentry = 0;
+		goto *Labels[Inst->Opcode];
 	}
+#endif
+	ERROR_CHECK(Result);
+#ifdef DEBUG_MODE
+	goto DO_DEBUG_ADVANCE;
+#else
 	goto *Labels[Inst->Opcode];
+#endif
 
 	DO_RETURN: {
 		Frame->Schedule.Counter[0] = Counter;
@@ -247,10 +244,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_IF: {
 		Result = Result->Type->deref(Result);
-		if (Result->Type == MLErrorT) {
-			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
-			ERROR();
-		} else if (Result == MLNil) {
+		ERROR_CHECK(Result);
+		if (Result == MLNil) {
 			ADVANCE(0);
 		} else {
 			ADVANCE(1);
@@ -258,10 +253,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_IF_VAR: {
 		Result = Result->Type->deref(Result);
-		if (Result->Type == MLErrorT) {
-			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
-			ERROR();
-		} else if (Result == MLNil) {
+		ERROR_CHECK(Result);
+		if (Result == MLNil) {
 			ADVANCE(0);
 		} else {
 			ml_reference_t *Local = xnew(ml_reference_t, 1, ml_value_t *);
@@ -277,10 +270,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_IF_LET: {
 		Result = Result->Type->deref(Result);
-		if (Result->Type == MLErrorT) {
-			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
-			ERROR();
-		} else if (Result == MLNil) {
+		ERROR_CHECK(Result);
+		if (Result == MLNil) {
 			ADVANCE(0);
 		} else {
 			*Top++ = Result;
@@ -292,10 +283,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_ELSE: {
 		Result = Result->Type->deref(Result);
-		if (Result->Type == MLErrorT) {
-			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
-			ERROR();
-		} else if (Result != MLNil) {
+		ERROR_CHECK(Result);
+		if (Result != MLNil) {
 			ADVANCE(0);
 		} else {
 			ADVANCE(1);
@@ -596,9 +585,13 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(0);
 	}
 #ifdef DEBUG_VERSION
+	DO_DEBUG_ERROR: {
+		ml_debugger_t *Debugger = Frame->Debugger;
+		if (Debugger->BreakOnError) goto DO_BREAKPOINT;
+	}
 	DO_DEBUG_ADVANCE: {
 		ml_debugger_t *Debugger = Frame->Debugger;
-		if (Result == ClosureEntry || Inst->PotentialBreakpoint) {
+		if (Inst->PotentialBreakpoint) {
 			size_t *Breakpoints;
 			size_t Revision = Debugger->Revision;
 			if (Frame->Revision != Revision) {
@@ -620,28 +613,19 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		}
 		goto *Labels[Inst->Opcode];
 	}
-	DO_DEBUG_ERROR: {
-		ml_debugger_t *Debugger = Frame->Debugger;
-		if (Debugger->BreakOnError) goto DO_BREAKPOINT;
-		if (--Counter == 0) {
-			Frame->Inst = Inst;
-			Frame->Top = Top;
-			return Frame->Schedule.swap((ml_state_t *)Frame, Result);
-		}
-		goto *Labels[Inst->Opcode];
-	}
 	DO_BREAKPOINT: {
-		if (--Frame->Reentry) {
-			ml_debugger_t *Debugger = Frame->Debugger;
-			Frame->Inst = Inst;
-			Frame->Top = Top;
-			Frame->Reentry = 1;
-			return Debugger->run(Debugger, (ml_state_t *)Frame, Result);
-		} else {
-			goto *Labels[Inst->Opcode];
-		}
+		ml_debugger_t *Debugger = Frame->Debugger;
+		Frame->Inst = Inst;
+		Frame->Top = Top;
+		Frame->DebugReentry = 1;
+		return Debugger->run(Debugger, (ml_state_t *)Frame, Result);
 	}
 #endif
+	DO_SWAP: {
+		Frame->Inst = Inst;
+		Frame->Top = Top;
+		return Frame->Schedule.swap((ml_state_t *)Frame, Result);
+	}
 }
 
 static void ml_closure_call_debug(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args);
@@ -740,12 +724,6 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	Frame->OnError = Info->Return;
 	Frame->UpValues = Closure->UpValues;
 	Frame->Inst = Info->Entry;
-#ifdef DEBUG_VERSION
-	Frame->Debugger = Debugger;
-	Frame->Revision = Debugger->Revision;
-	Frame->Breakpoints = Debugger->breakpoints(Debugger, Frame->Source, Info->End);
-	Frame->Decls = Info->Decls;
-#endif
 	ml_scheduler_t scheduler = (ml_scheduler_t)ml_context_get(Caller->Context, ML_SCHEDULER_INDEX);
 	if (scheduler) {
 		Frame->Schedule = scheduler(Caller->Context);
@@ -753,7 +731,21 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 		Frame->Schedule.Counter = &DefaultCounter;
 		Frame->Schedule.swap = default_swap;
 	}
-	ML_CONTINUE(Frame, ClosureEntry);
+#ifdef DEBUG_VERSION
+	Frame->Debugger = Debugger;
+	Frame->Revision = Debugger->Revision;
+	size_t *Breakpoints = Frame->Breakpoints = Debugger->breakpoints(Debugger, Frame->Source, Info->End);
+	Frame->Decls = Info->Decls;
+	int LineNo = Frame->Inst->LineNo;
+	if (Breakpoints[LineNo / SIZE_BITS] & (1 << LineNo % SIZE_BITS)) {
+		return Debugger->run(Debugger, (ml_state_t *)Frame, MLNil);
+	}
+	if (Debugger->StepIn) {
+		return Debugger->run(Debugger, (ml_state_t *)Frame, MLNil);
+	}
+#else
+	ML_CONTINUE(Frame, MLNil);
+#endif
 }
 
 #ifndef DEBUG_VERSION

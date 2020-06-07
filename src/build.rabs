@@ -117,11 +117,6 @@ if MINILANG_USEMPC or defined("USEMPC") then
 	CFLAGS := old + ["-DUSE_ML_MPC"]
 end
 
-if MINILANG_DEBUGGER or defined("DEBUGGER") then
-	Objects:put(file("ml_debugger.o"))
-	CFLAGS := old + ["-DUSE_ML_DEBUGGER"]
-end
-
 if MINILANG_MODULES or defined("MODULES") then
 	Objects:put(file("ml_module.o"), file("ml_library.o"))
 	CFLAGS := old + ["-DUSE_ML_MODULES"]
