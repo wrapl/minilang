@@ -743,9 +743,8 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	if (Debugger->StepIn) {
 		return Debugger->run(Debugger, (ml_state_t *)Frame, MLNil);
 	}
-#else
-	ML_CONTINUE(Frame, MLNil);
 #endif
+	ML_CONTINUE(Frame, MLNil);
 }
 
 #ifndef DEBUG_VERSION
