@@ -18,7 +18,23 @@ static int MLContextSize = 4;
 //  2: Debugger
 //	3: Scheduler
 
-ml_context_t MLRootContext = {&MLRootContext, 3, {NULL, NULL, NULL}};
+static unsigned int DefaultCounter = UINT_MAX;
+
+static void default_swap(ml_state_t *State, ml_value_t *Value) {
+	DefaultCounter = UINT_MAX;
+	return State->run(State, Value);
+}
+
+static ml_schedule_t default_scheduler(ml_context_t *Context) {
+	return (ml_schedule_t){&DefaultCounter, default_swap};
+}
+
+ml_context_t MLRootContext = {&MLRootContext, 4, {
+	NULL,
+	NULL,
+	NULL,
+	default_scheduler
+}};
 
 ml_context_t *ml_context_new(ml_context_t *Parent) {
 	ml_context_t *Context = xnew(ml_context_t, MLContextSize, void *);
@@ -177,16 +193,12 @@ ML_FUNCTIONX(MLCallCC) {
 	}
 }
 
-static void ml_spawn_state_fn(ml_state_t *State, ml_value_t *Value) {
-	ML_CONTINUE(State->Caller, Value);
-}
-
 ML_FUNCTIONX(MLSpawn) {
 	ML_CHECKX_ARG_COUNT(1);
 	ml_state_t *State = new(ml_state_t);
 	State->Type = MLStateT;
 	State->Caller = Caller;
-	State->run = ml_spawn_state_fn;
+	State->run = ml_default_state_run;
 	State->Context = Caller->Context;
 	ml_value_t *Func = Args[0];
 	ml_value_t **Args2 = anew(ml_value_t *, 1);

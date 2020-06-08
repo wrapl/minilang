@@ -124,7 +124,11 @@ if MINILANG_MODULES or defined("MODULES") then
 		LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={file("exports.lst")}']
 		subdir("lib")
 	end
-	
+	MINILANG_SCHEDULER := 1
+end
+
+if MINILANG_SCHEDULER or defined("SCHEDULER") then
+	CFLAGS := old + ["-DUSE_ML_SCHEDULER"]
 end
 
 if PLATFORM = "Linux" then
