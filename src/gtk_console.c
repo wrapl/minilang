@@ -235,7 +235,7 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 
 static void console_debug_enter(console_t *Console, interactive_debugger_t *Debugger) {
 	console_debugger_t *ConsoleDebugger = new(console_debugger_t);
-	ConsoleDebugger->Prev = ConsoleDebugger;
+	ConsoleDebugger->Prev = Console->Debugger;
 	ConsoleDebugger->Debugger = Debugger;
 	Console->Debugger = ConsoleDebugger;
 }

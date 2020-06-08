@@ -206,14 +206,14 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	ml_inst_t *Inst = Frame->Inst;
 	ml_value_t **Top = Frame->Top;
 	unsigned int Counter = Frame->Schedule.Counter[0];
-#ifdef DEBUG_MODE
+#ifdef DEBUG_VERSION
 	if (Frame->DebugReentry) {
 		Frame->DebugReentry = 0;
 		goto *Labels[Inst->Opcode];
 	}
 #endif
 	ERROR_CHECK(Result);
-#ifdef DEBUG_MODE
+#ifdef DEBUG_VERSION
 	goto DO_DEBUG_ADVANCE;
 #else
 	goto *Labels[Inst->Opcode];
