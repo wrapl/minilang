@@ -15,7 +15,7 @@ typedef struct ml_file_t {
 	FILE *Handle;
 } ml_file_t;
 
-ml_type_t *MLFileT;
+ML_TYPE(MLFileT, (), "file");
 
 FILE *ml_file_handle(ml_value_t *Value) {
 	return ((ml_file_t *)Value)->Handle;
@@ -150,7 +150,6 @@ ml_value_t *ml_file_open(void *Data, int Count, ml_value_t **Args) {
 }
 
 void ml_file_init(stringmap_t *Globals) {
-	MLFileT = ml_type(MLAnyT, "file");
 #include "ml_file_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "file", MLFileT);

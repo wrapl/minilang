@@ -21,9 +21,9 @@ typedef struct ml_string_store_reader_t {
 	string_store_reader_t Handle[1];
 } ml_string_store_reader_t;
 
-static ml_type_t *StringStoreT;
-static ml_type_t *StringStoreWriterT;
-static ml_type_t *StringStoreReaderT;
+ML_TYPE(StringStoreT, (), "string-store");
+ML_TYPE(StringStoreWriterT, (), "string-store-writer");
+ML_TYPE(StringStoreReaderT, (), "string-store-reader");
 
 ML_FUNCTION(StringStoreOpen) {
 	ML_CHECK_ARG_COUNT(1);
@@ -98,7 +98,7 @@ ML_METHOD("read", StringStoreReaderT, MLIntegerT) {
 	return ml_string(Buffer, Length);
 }
 
-static ml_type_t *CborStoreT;
+ML_TYPE(CborStoreT, (), "cbor-store");
 
 ML_FUNCTION(CborStoreOpen) {
 	ML_CHECK_ARG_COUNT(1);
@@ -165,7 +165,7 @@ typedef struct ml_string_index_t {
 	string_index_t *Handle;
 } ml_string_index_t;
 
-static ml_type_t *StringIndexT;
+ML_TYPE(StringIndexT, (), "string-index");
 
 ML_FUNCTION(StringIndexOpen) {
 	ML_CHECK_ARG_COUNT(1);
@@ -204,7 +204,7 @@ ML_METHOD("search", StringIndexT, MLStringT) {
 	return ml_integer(Index);
 }
 
-static ml_type_t *CborIndexT;
+ML_TYPE(CborIndexT, (), "cbor-index");
 
 ML_FUNCTION(CborIndexOpen) {
 	ML_CHECK_ARG_COUNT(1);
@@ -260,21 +260,15 @@ void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) 
 	ml_value_t *Import = GlobalGet(Globals, "import");
 	ml_inline(Import, 1, ml_string_format("%s/ml_cbor.so", Dir));
 
-	StringStoreT = ml_type(MLAnyT, "string-store");
-	StringStoreWriterT = ml_type(MLAnyT, "string-store-writer");
-	StringStoreReaderT = ml_type(MLAnyT, "string-store-reader");
 	ml_module_export(Module, "string_store_open", (ml_value_t *)StringStoreOpen);
 	ml_module_export(Module, "string_store_create", (ml_value_t *)StringStoreCreate);
 
-	CborStoreT = ml_type(MLAnyT, "cbor-store");
 	ml_module_export(Module, "cbor_store_open", (ml_value_t *)CborStoreOpen);
 	ml_module_export(Module, "cbor_store_create", (ml_value_t *)CborStoreCreate);
 
-	StringIndexT = ml_type(MLAnyT, "string-index");
 	ml_module_export(Module, "string_index_open", (ml_value_t *)StringIndexOpen);
 	ml_module_export(Module, "string_index_create", (ml_value_t *)StringIndexCreate);
 
-	CborIndexT = ml_type(MLAnyT, "cbor-index");
 	ml_module_export(Module, "cbor_index_open", (ml_value_t *)CborIndexOpen);
 	ml_module_export(Module, "cbor_index_create", (ml_value_t *)CborIndexCreate);
 

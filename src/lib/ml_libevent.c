@@ -10,7 +10,7 @@ typedef struct event_base_t {
 	struct event_base *Handle;
 } event_base_t;
 
-ML_TYPE(EventBaseT, MLAnyT, "event-base");
+ML_TYPE(EventBaseT, (), "event-base");
 
 ML_FUNCTION(EventBaseNew) {
 	event_base_t *EventBase = new(event_base_t);
@@ -24,7 +24,7 @@ typedef struct event_t {
 	struct event *Handle;
 } ml_event_t;
 
-ML_TYPE(EventT, MLAnyT, "event");
+ML_TYPE(EventT, (), "event");
 
 ML_METHOD("new", EventBaseT, MLFileT) {
 	event_base_t *EventBase = (event_base_t *)Args[0];
@@ -50,7 +50,7 @@ typedef struct evhttp_t {
 	struct evhttp *Handle;
 } evhttp_t;
 
-ML_TYPE(EventHttpT, MLAnyT, "event-http");
+ML_TYPE(EventHttpT, (), "event-http");
 
 ML_METHOD("http", EventBaseT) {
 	event_base_t *EventBase = (event_base_t *)Args[0];

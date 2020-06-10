@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <gc.h>
 
-static ml_type_t *CsvT;
+ML_TYPE(CsvT, (), "csv");
 
 typedef struct csv_row_t csv_row_t;
 
@@ -116,7 +116,6 @@ static ml_value_t *csv_open(void *Data, int Count, ml_value_t **Args) {
 }
 
 void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
-	CsvT = ml_type(MLAnyT, "csv-file");
 #include "ml_csv_init.c"
 	ml_module_export(Module, "open", ml_function(0, csv_open));
 }

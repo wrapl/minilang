@@ -5,7 +5,7 @@
 #include <errno.h>
 #include <string.h>
 
-ml_type_t *MLStreamT;
+ML_TYPE(MLStreamT, MLAnyT, "stream");
 ML_METHOD_DECL(Read, NULL);
 ML_METHOD_DECL(Write, NULL);
 
@@ -44,7 +44,7 @@ typedef struct ml_fd_t {
 	int Fd;
 } ml_fd_t;
 
-ml_type_t *MLFdT;
+ML_TYPE(MLFdT,MLStreamT, "fd");
 
 ml_value_t *ml_fd_new(int Fd) {
 	ml_fd_t *Stream = new(ml_fd_t);
@@ -98,8 +98,6 @@ ML_METHOD(WriteMethod, MLFdT, MLBufferT) {
 }
 
 void ml_io_init(stringmap_t *Globals) {
-	MLStreamT = ml_type(MLAnyT, "stream");
-	MLFdT = ml_type(MLStreamT, "fd");
 #include "ml_io_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "io", ml_module("io",

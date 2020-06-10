@@ -50,7 +50,7 @@ typedef struct ml_uv_file_t {
 	ssize_t Handle;
 } ml_uv_file_t;
 
-static ml_type_t *MLUVFileT = 0;
+ML_TYPE(MLUVFileT, (), "uv-file");
 
 static ml_value_t *ml_uv_file_new(ssize_t Handle) {
 	ml_uv_file_t *File = new(ml_uv_file_t);
@@ -175,7 +175,6 @@ void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) 
 	Loop = uv_default_loop();
 	uv_idle_init(Loop, Idle);
 	Idle->data = ml_list();
-	MLUVFileT = ml_type(MLAnyT, "uv-file");
 #include "ml_libuv_init.c"
 	ml_module_export(Module, "fs_open", FSOpen);
 	ml_module_export(Module, "run", Run);

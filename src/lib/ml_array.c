@@ -6,8 +6,8 @@
 #include <string.h>
 #include <stdarg.h>
 
-ML_TYPE(MLArrayT, MLBufferT, "array");
-ML_TYPE(MLArrayAnyT, MLArrayT, "value-array");
+ML_TYPE(MLArrayT, (MLBufferT), "array");
+ML_TYPE(MLArrayAnyT, (MLArrayT), "value-array");
 
 extern ml_type_t MLArrayInt8T[];
 extern ml_type_t MLArrayUInt8T[];
@@ -883,7 +883,7 @@ static ml_value_t *ml_array_ ## CTYPE ## _assign(ml_array_t *Target, ml_value_t 
 	} \
 } \
 \
-ML_TYPE(ATYPE, MLArrayT, #CTYPE "-array", \
+ML_TYPE(ATYPE, (MLArrayT), #CTYPE "-array", \
 	.deref = (void *)ml_array_ ## CTYPE ## _deref, \
 	.assign = (void *)ml_array_ ## CTYPE ## _assign \
 );

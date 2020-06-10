@@ -12,7 +12,7 @@ typedef struct ml_mini_module_t {
 	stringmap_t Exports[1];
 } ml_mini_module_t;
 
-ML_TYPE(MLMiniModuleT, MLModuleT, "mini-module");
+ML_TYPE(MLMiniModuleT, (MLModuleT), "mini-module");
 
 ML_METHODX("::", MLMiniModuleT, MLStringT) {
 	ml_mini_module_t *Module = (ml_mini_module_t *)Args[0];
@@ -47,7 +47,7 @@ static void ml_export_function_call(ml_state_t *Caller, ml_export_function_t *Ex
 	ML_RETURN(Slot[0] = Value);
 }
 
-ML_TYPE(MLExportFunctionT, MLFunctionT, "export-function",
+ML_TYPE(MLExportFunctionT, (MLFunctionT), "export-function",
 	.call = (void *)ml_export_function_call
 );
 
@@ -57,7 +57,7 @@ typedef struct ml_module_state_t {
 	ml_value_t *Args[1];
 } ml_module_state_t;
 
-static ml_type_t *MLModuleStateT;
+ML_TYPE(MLModuleStateT, (), "module-state");
 
 static void ml_module_done_run(ml_module_state_t *State, ml_value_t *Value) {
 	ML_CONTINUE(State->Base.Caller, State->Module);
@@ -89,6 +89,5 @@ void ml_module_load_file(ml_state_t *Caller, const char *FileName, ml_getter_t G
 }
 
 void ml_module_init(stringmap_t *_Globals) {
-	MLModuleStateT = ml_type(MLAnyT, "module-state");
 #include "ml_module_init.c"
 }

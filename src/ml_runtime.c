@@ -92,7 +92,7 @@ static void ml_context_key_call(ml_state_t *Caller, ml_context_key_t *Key, int C
 	}
 }
 
-ML_TYPE(MLContextKeyT, MLFunctionT, "context-key",
+ML_TYPE(MLContextKeyT, (MLCFunctionT), "context-key",
 	.call = (void *)ml_context_key_call
 );
 
@@ -106,7 +106,7 @@ static void ml_state_call(ml_state_t *Caller, ml_state_t *State, int Count, ml_v
 	return State->run(State, Count ? Args[0] : MLNil);
 }
 
-ML_TYPE(MLStateT, MLFunctionT, "state",
+ML_TYPE(MLStateT, (MLFunctionT), "state",
 	.call = (void *)ml_state_call
 );
 
@@ -155,7 +155,7 @@ static void ml_resumable_state_call(ml_state_t *Caller, ml_resumable_state_t *St
 	ML_CONTINUE(State->Base.Caller, Count ? Args[0] : MLNil);
 }
 
-ML_TYPE(MLResumableStateT, MLStateT, "resumable-state",
+ML_TYPE(MLResumableStateT, (MLStateT), "resumable-state",
 	.call = (void *)ml_resumable_state_call
 );
 
@@ -206,191 +206,6 @@ ML_FUNCTIONX(MLSpawn) {
 	return Func->Type->call(State, Func, 1, Args2);
 }
 
-/****************************** Functions ******************************/
-
-static void ml_function_call(ml_state_t *Caller, ml_function_t *Function, int Count, ml_value_t **Args) {
-	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Arg = Args[I] = Args[I]->Type->deref(Args[I]);
-		if (Arg->Type == MLErrorT) ML_RETURN(Arg);
-	}
-	ML_RETURN((Function->Callback)(Function->Data, Count, Args));
-}
-
-ML_TYPE(MLFunctionT, MLIteratableT, "function",
-	.call = (void *)ml_function_call
-);
-
-ml_value_t *ml_function(void *Data, ml_callback_t Callback) {
-	ml_function_t *Function = fnew(ml_function_t);
-	Function->Type = MLFunctionT;
-	Function->Data = Data;
-	Function->Callback = Callback;
-	GC_end_stubborn_change(Function);
-	return (ml_value_t *)Function;
-}
-
-static void ml_functionx_call(ml_state_t *Caller, ml_functionx_t *Function, int Count, ml_value_t **Args) {
-	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Arg = Args[I] = Args[I]->Type->deref(Args[I]);
-		if (Arg->Type == MLErrorT) ML_RETURN(Arg);
-	}
-	return (Function->Callback)(Caller, Function->Data, Count, Args);
-}
-
-ML_TYPE(MLFunctionXT, MLFunctionT, "functionx",
-	.call = (void *)ml_functionx_call
-);
-
-ml_value_t *ml_functionx(void *Data, ml_callbackx_t Callback) {
-	ml_functionx_t *Function = fnew(ml_functionx_t);
-	Function->Type = MLFunctionXT;
-	Function->Data = Data;
-	Function->Callback = Callback;
-	GC_end_stubborn_change(Function);
-	return (ml_value_t *)Function;
-}
-
-ML_METHODX("!", MLFunctionT, MLListT) {
-	ml_list_t *List = (ml_list_t *)Args[1];
-	ml_value_t **ListArgs = anew(ml_value_t *, List->Length);
-	ml_value_t **Arg = ListArgs;
-	ML_LIST_FOREACH(List, Node) *(Arg++) = Node->Value;
-	ml_value_t *Function = Args[0];
-	return Function->Type->call(Caller, Function, Arg - ListArgs, ListArgs);
-}
-
-ML_METHODX("!", MLFunctionT, MLMapT) {
-	ml_map_t *Map = (ml_map_t *)Args[1];
-	ml_value_t **ListArgs = anew(ml_value_t *, Map->Size + 1);
-	ml_value_t *Names = ml_map();
-	Names->Type = MLNamesT;
-	ml_value_t **Arg = ListArgs;
-	*(Arg++) = Names;
-	ML_MAP_FOREACH(Map, Node) {
-		ml_value_t *Name = Node->Key;
-		if (Name->Type == MLMethodT) {
-			ml_map_insert(Names, Name, ml_integer(Arg - ListArgs));
-		} else if (Name->Type == MLStringT) {
-			ml_map_insert(Names, ml_method(ml_string_value(Name)), ml_integer(Arg - ListArgs));
-		} else {
-			ML_RETURN(ml_error("TypeError", "Parameter names must be strings or methods"));
-		}
-		*(Arg++) = Node->Value;
-	}
-	ml_value_t *Function = Args[0];
-	return Function->Type->call(Caller, Function, Arg - ListArgs, ListArgs);
-}
-
-ML_METHODX("!", MLFunctionT, MLListT, MLMapT) {
-	ml_list_t *List = (ml_list_t *)Args[1];
-	ml_map_t *Map = (ml_map_t *)Args[2];
-	ml_value_t **ListArgs = anew(ml_value_t *, List->Length + Map->Size + 1);
-	ml_value_t **Arg = ListArgs;
-	ML_LIST_FOREACH(List, Node) *(Arg++) = Node->Value;
-	ml_value_t *Names = ml_map();
-	Names->Type = MLNamesT;
-	*(Arg++) = Names;
-	ML_MAP_FOREACH(Map, Node) {
-		ml_value_t *Name = Node->Key;
-		if (Name->Type == MLMethodT) {
-			ml_map_insert(Names, Name, ml_integer(Arg - ListArgs));
-		} else if (Name->Type == MLStringT) {
-			ml_map_insert(Names, ml_method(ml_string_value(Name)), ml_integer(Arg - ListArgs));
-		} else {
-			ML_RETURN(ml_error("TypeError", "Parameter names must be strings or methods"));
-		}
-		*(Arg++) = Node->Value;
-	}
-	ml_value_t *Function = Args[0];
-	return Function->Type->call(Caller, Function, Arg - ListArgs, ListArgs);
-}
-
-ml_value_t *ml_return_nil(void *Data, int Count, ml_value_t **Args) {
-	return MLNil;
-}
-
-ml_value_t *ml_identity(void *Data, int Count, ml_value_t **Args) {
-	return Args[0];
-}
-
-typedef struct ml_partial_function_t {
-	const ml_type_t *Type;
-	ml_value_t *Function;
-	int Count, Set;
-	ml_value_t *Args[];
-} ml_partial_function_t;
-
-static void ml_partial_function_call(ml_state_t *Caller, ml_partial_function_t *Partial, int Count, ml_value_t **Args) {
-	int CombinedCount = Count + Partial->Set;
-	ml_value_t **CombinedArgs = anew(ml_value_t *, CombinedCount);
-	int J = 0;
-	for (int I = 0; I < Partial->Count; ++I) {
-		ml_value_t *Arg = Partial->Args[I];
-		if (Arg) {
-			CombinedArgs[I] = Arg;
-		} else if (J < Count) {
-			CombinedArgs[I] = Args[J++];
-		} else {
-			CombinedArgs[I] = MLNil;
-		}
-	}
-	memcpy(CombinedArgs + Partial->Count, Args + J, (Count - J) * sizeof(ml_value_t *));
-	return Partial->Function->Type->call(Caller, Partial->Function, CombinedCount, CombinedArgs);
-}
-
-ML_TYPE(MLPartialFunctionT, MLFunctionT, "partial-function",
-	.call = (void *)ml_partial_function_call
-);
-
-ml_value_t *ml_partial_function_new(ml_value_t *Function, int Count) {
-	ml_partial_function_t *Partial = xnew(ml_partial_function_t, Count, ml_value_t *);
-	Partial->Type = MLPartialFunctionT;
-	Partial->Function = Function;
-	Partial->Count = Count;
-	Partial->Set = 0;
-	return (ml_value_t *)Partial;
-}
-
-ml_value_t *ml_partial_function_set(ml_value_t *Partial, size_t Index, ml_value_t *Value) {
-	++((ml_partial_function_t *)Partial)->Set;
-	return ((ml_partial_function_t *)Partial)->Args[Index] = Value;
-}
-
-ML_METHOD("!!", MLFunctionT, MLListT) {
-	ml_list_t *ArgsList = (ml_list_t *)Args[1];
-	ml_partial_function_t *Partial = xnew(ml_partial_function_t, ArgsList->Length, ml_value_t *);
-	Partial->Type = MLPartialFunctionT;
-	Partial->Function = Args[0];
-	Partial->Count = Partial->Set = ArgsList->Length;
-	ml_value_t **Arg = Partial->Args;
-	ML_LIST_FOREACH(ArgsList, Node) *Arg++ = Node->Value;
-	return (ml_value_t *)Partial;
-}
-
-ML_METHOD("$", MLFunctionT, MLAnyT) {
-	ml_partial_function_t *Partial = xnew(ml_partial_function_t, 1, ml_value_t *);
-	Partial->Type = MLPartialFunctionT;
-	Partial->Function = Args[0];
-	Partial->Count = 1;
-	Partial->Args[0] = Args[1];
-	return (ml_value_t *)Partial;
-}
-
-ML_METHOD("$", MLPartialFunctionT, MLAnyT) {
-	ml_partial_function_t *Old = (ml_partial_function_t *)Args[0];
-	ml_partial_function_t *Partial = xnew(ml_partial_function_t, Old->Count + 1, ml_value_t *);
-	Partial->Type = MLPartialFunctionT;
-	Partial->Function = Old->Function;
-	Partial->Count = Partial->Set = Old->Count + 1;
-	memcpy(Partial->Args, Old->Args, Old->Count * sizeof(ml_value_t *));
-	Partial->Args[Old->Count] = Args[1];
-	return (ml_value_t *)Partial;
-}
-
-static void ML_TYPED_FN(ml_iterate, MLPartialFunctionT, ml_state_t *Caller, ml_partial_function_t *Partial) {
-	return Partial->Function->Type->call(Caller, Partial->Function, Partial->Count, Partial->Args);
-}
-
 /****************************** References ******************************/
 
 static long ml_reference_hash(ml_value_t *Ref, ml_hash_chain_t *Chain) {
@@ -409,7 +224,7 @@ static ml_value_t *ml_reference_assign(ml_value_t *Ref, ml_value_t *Value) {
 	return Reference->Address[0] = Value;
 }
 
-ML_TYPE(MLReferenceT, MLAnyT, "reference",
+ML_TYPE(MLReferenceT, (), "reference",
 	.hash = ml_reference_hash,
 	.deref = ml_reference_deref,
 	.assign = ml_reference_assign
@@ -442,7 +257,7 @@ typedef struct ml_uninitialized_t {
 	stringmap_t Unresolved[1];
 } ml_uninitialized_t;
 
-ML_TYPE(MLUninitializedT, MLAnyT, "uninitialized");
+ML_TYPE(MLUninitializedT, (), "uninitialized");
 
 ml_value_t *ml_uninitialized() {
 	ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
@@ -497,11 +312,11 @@ static void ml_error_call(ml_state_t *Caller, ml_value_t *Error, int Count, ml_v
 	ML_RETURN(Error);
 }
 
-ML_TYPE(MLErrorT, MLAnyT, "error",
+ML_TYPE(MLErrorT, (), "error",
 	.call = ml_error_call
 );
 
-ML_TYPE(MLErrorValueT, MLErrorT, "error_value");
+ML_TYPE(MLErrorValueT, (MLErrorT), "error_value");
 
 ml_value_t *ml_errorv(const char *Error, const char *Format, va_list Args) {
 	char *Message;

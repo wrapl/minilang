@@ -21,8 +21,8 @@ typedef struct xe_var_t {
 	ml_value_t *Name;
 } xe_var_t;
 
-ML_TYPE(XENodeT, MLAnyT, "xe-node");
-ML_TYPE(XEVarT, MLAnyT, "xe-var");
+ML_TYPE(XENodeT, (), "xe-node");
+ML_TYPE(XEVarT, (), "xe-var");
 
 static void node_append(ml_value_t *List, ml_value_t *Node) {
 	if (Node->Type == MLListT) {
@@ -337,7 +337,7 @@ struct xe_scope_t {
 	stringmap_t Parents[1];
 };
 
-ML_TYPE(XEScopeT, MLAnyT, "xe-scope");
+ML_TYPE(XEScopeT, (), "xe-scope");
 
 static ml_value_t *node_eval(ml_value_t *Value, ml_value_t *Attributes, ml_value_t *Content, xe_scope_t *Scope) {
 	if (Value->Type == MLListT) {

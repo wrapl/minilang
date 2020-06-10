@@ -53,15 +53,9 @@ static void DEBUG_FUNC(continuation_call)(ml_state_t *Caller, ml_state_t *State,
 	return State->run(State, Count ? Args[0] : MLNil);
 }
 
-ml_type_t DEBUG_TYPE(Continuation)[1] = {{
-	MLTypeT,
-	MLStateT, "continuation",
-	ml_default_hash,
-	(void *)DEBUG_FUNC(continuation_call),
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(DEBUG_TYPE(Continuation), (MLStateT), "continuation",
+	.call = (void *)DEBUG_FUNC(continuation_call)
+);
 
 static int ML_TYPED_FN(ml_debugger_check, DEBUG_TYPE(Continuation), DEBUG_STRUCT(frame) *Frame) {
 	return 1;
@@ -106,15 +100,9 @@ static void DEBUG_FUNC(suspension_call)(ml_state_t *Caller, ml_state_t *State, i
 	return State->run(State, Count ? Args[0] : MLNil);
 }
 
-ml_type_t DEBUG_TYPE(Suspension)[1] = {{
-	MLTypeT,
-	MLFunctionT, "suspension",
-	ml_default_hash,
-	(void *)DEBUG_FUNC(suspension_call),
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(DEBUG_TYPE(Suspension), (MLFunctionT), "suspension",
+	.call = (void *)DEBUG_FUNC(suspension_call)
+);
 
 #ifndef DEBUG_VERSION
 
@@ -938,7 +926,7 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Closure), ml_state_t *Frame, ml_v
 	return ml_closure_call(Frame, Closure, 0, NULL);
 }
 
-ML_TYPE(MLClosureT, MLFunctionT, "closure",
+ML_TYPE(MLClosureT, (MLFunctionT), "closure",
 	.hash = ml_closure_hash,
 	.call = ml_closure_call
 );

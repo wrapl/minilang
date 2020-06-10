@@ -15,7 +15,7 @@ typedef struct typelib_t {
 	const char *Namespace;
 } typelib_t;
 
-static ml_type_t *TypelibT;
+ML_TYPE(TypelibT, (MLIteratableT), "gir-typelib");
 
 typedef struct typelib_iter_t {
 	const ml_type_t *Type;
@@ -42,15 +42,7 @@ static void typelib_iter_key(ml_state_t *Caller, typelib_iter_t *Iter) {
 	ML_CONTINUE(Caller, ml_string(g_base_info_get_name(Iter->Current), -1));
 }
 
-ml_type_t TypelibIterT[1] = {{
-	MLTypeT,
-	MLAnyT, "typelib-iter",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(TypelibIterT, (), "typelib-iter");
 
 static ml_value_t *ml_gir_require(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
@@ -76,7 +68,8 @@ typedef struct object_instance_t {
 	void *Handle;
 } object_instance_t;
 
-static ml_type_t *ObjectT, *ObjectInstanceT;
+ML_TYPE(ObjectT, (MLTypeT), "gir-object");
+ML_TYPE(ObjectInstanceT, (), "gir-object-instance");
 static object_instance_t *ObjectInstanceNil;
 
 static ml_type_t *object_info_lookup(GIObjectInfo *Info);
@@ -181,7 +174,8 @@ typedef struct struct_instance_t {
 	void *Value;
 } struct_instance_t;
 
-static ml_type_t *StructT, *StructInstanceT;
+ML_TYPE(StructT, (MLTypeT), "gir-struct");
+ML_TYPE(StructInstanceT, (), "gir-struct-instance");
 
 static ml_value_t *struct_instance_new(struct_t *Struct, int Count, ml_value_t **Args) {
 	struct_instance_t *Instance = new(struct_instance_t);
@@ -212,15 +206,10 @@ static ml_value_t *field_ref_ ## LNAME ## _assign(field_ref_t *Ref, ml_value_t *
 	return Value; \
 } \
 \
-static ml_type_t FieldRef ## UNAME ## T[1] = {{ \
-	MLTypeT, \
-	MLAnyT, "field-ref-" #LNAME, \
-	ml_default_hash, \
-	ml_default_call, \
-	(void *)field_ref_ ## LNAME ## _deref, \
-	(void *)field_ref_ ## LNAME ## _assign, \
-	NULL, 0, 0 \
-}}
+ML_TYPE(FieldRef ## UNAME ## T, (), "field-ref-" #LNAME, \
+	.deref = (void *)field_ref_ ## LNAME ## _deref, \
+	.assign = (void *)field_ref_ ## LNAME ## _assign \
+);
 
 FIELD_REF(Boolean, boolean, gboolean, Value ? MLTrue : MLFalse, Value == MLTrue);
 FIELD_REF(Int8, int8, gint8, ml_integer(Value), ml_integer_value(Value));
@@ -305,7 +294,8 @@ typedef struct enum_value_t {
 	gint64 Value;
 } enum_value_t;
 
-static ml_type_t *EnumT, *EnumValueT;
+ML_TYPE(EnumT, (MLTypeT), "gir-enum");
+ML_TYPE(EnumValueT, (), "gir-value");
 
 ML_METHOD("string", EnumValueT) {
 	enum_value_t *Value = (enum_value_t *)Args[0];
@@ -1367,9 +1357,9 @@ static ml_type_t *object_info_lookup(GIObjectInfo *Info) {
 		Object->Base = ObjectT[0];
 		Object->Base.Type = ObjectT;
 		Object->Base.Name = TypeName;
-		Object->Base.Parent = ObjectInstanceT;
 		Object->Info = Info;
 		Object->Methods = ml_map();
+		ml_type_init((ml_type_t *)Object, ObjectInstanceT, NULL);
 		object_add_methods(Object, Info);
 		Slot[0] = (ml_type_t *)Object;
 	}
@@ -1391,9 +1381,9 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 		Struct->Base = StructT[0];
 		Struct->Base.Type = StructT;
 		Struct->Base.Name = TypeName;
-		Struct->Base.Parent = StructInstanceT;
 		Struct->Info = Info;
 		Struct->Methods = ml_map();
+		ml_type_init((ml_type_t *)Struct, StructInstanceT, NULL);
 		ml_map_insert(Struct->Methods, ml_cstring("new"), ml_function(Struct, (void *)struct_instance_new));
 		Slot[0] = (ml_type_t *)Struct;
 		int NumFields = g_struct_info_get_n_fields(Info);
@@ -1444,8 +1434,8 @@ static ml_type_t *enum_info_lookup(GIEnumInfo *Info) {
 		Enum->Base = EnumT[0];
 		Enum->Base.Type = EnumT;
 		Enum->Base.Name = TypeName;
-		Enum->Base.Parent = EnumValueT;
 		Enum->ByName = ml_map();
+		ml_type_init((ml_type_t *)Enum, EnumValueT, NULL);
 		for (int I = 0; I < NumValues; ++I) {
 			GIValueInfo *ValueInfo = g_enum_info_get_value(Info, I);
 			const char *ValueName = GC_strdup(g_base_info_get_name((GIBaseInfo *)ValueInfo));
@@ -1652,8 +1642,6 @@ typedef struct object_property_t {
 	const char *Name;
 } object_property_t;
 
-static ml_type_t *ObjectPropertyT;
-
 static ml_value_t *object_property_deref(object_property_t *Property) {
 	GValue Value[1] = {G_VALUE_INIT};
 	g_object_get_property(Property->Object, Property->Name, Value);
@@ -1668,6 +1656,11 @@ static ml_value_t *object_property_assign(object_property_t *Property, ml_value_
 	return Value0;
 }
 
+ML_TYPE(ObjectPropertyT, (), "gir-object-property",
+	.deref = (void *)object_property_deref,
+	.assign = (void *)object_property_assign
+);
+
 ML_METHOD("::", ObjectInstanceT, MLStringT) {
 	object_instance_t *Instance = (object_instance_t *)Args[0];
 	object_property_t *Property = new(object_property_t);
@@ -1678,23 +1671,13 @@ ML_METHOD("::", ObjectInstanceT, MLStringT) {
 }
 
 void ml_gir_init(stringmap_t *Globals) {
-	TypelibT = ml_type(MLIteratableT, "gir-typelib");
 	ml_typed_fn_set(TypelibT, ml_iterate, typelib_iterate);
 	ml_typed_fn_set(TypelibIterT, ml_iter_next, typelib_iter_next);
 	ml_typed_fn_set(TypelibIterT, ml_iter_value, typelib_iter_value);
 	ml_typed_fn_set(TypelibIterT, ml_iter_key, typelib_iter_key);
-	ObjectT = ml_type(MLTypeT, "gir-object");
-	ObjectInstanceT = ml_type(MLAnyT, "gir-object-instance");
-	ObjectPropertyT = ml_type(MLAnyT, "gir-object-property");
-	ObjectPropertyT->deref = (void *)object_property_deref;
-	ObjectPropertyT->assign = (void *)object_property_assign;
 	MLQuark = g_quark_from_static_string("<<minilang>>");
 	ObjectInstanceNil = new(object_instance_t);
 	ObjectInstanceNil->Type = (object_t *)ObjectInstanceT;
-	StructT = ml_type(MLTypeT, "gir-struct");
-	StructInstanceT = ml_type(MLAnyT, "gir-struct-instance");
-	EnumT = ml_type(MLTypeT, "gir-enum");
-	EnumValueT = ml_type(MLAnyT, "gir-value");
 	ml_typed_fn_set(EnumT, ml_iterate, enum_iterate);
 	MLTrue = ml_method("true");
 	MLFalse = ml_method("false");

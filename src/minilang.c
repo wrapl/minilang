@@ -118,7 +118,7 @@ static void ml_import_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t 
 	ML_RETURN(Slot[0]);
 }
 
-static ml_functionx_t Import[1] = {{MLFunctionXT, ml_import_fnx, NULL}};
+static ml_functionx_t Import[1] = {{MLCFunctionXT, ml_import_fnx, NULL}};
 #endif
 
 static ml_value_t *MainArgs[1];

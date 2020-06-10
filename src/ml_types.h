@@ -16,6 +16,9 @@ typedef struct ml_state_t ml_state_t;
 
 /****************************** Macros ******************************/
 
+#define _CONCAT2(X, Y) X ## Y
+#define CONCAT2(X, Y) _CONCAT2(X, Y)
+
 #define _CONCAT3(X, Y, Z) X ## Y ## _ ## Z
 #define CONCAT3(X, Y, Z) _CONCAT3(X, Y, Z)
 
@@ -37,7 +40,7 @@ typedef struct ml_typed_fn_node_t ml_typed_fn_node_t;
 
 struct ml_type_t {
 	const ml_type_t *Type;
-	const ml_type_t *Parent;
+	const ml_type_t **Types;
 	const char *Name;
 	long (*hash)(ml_value_t *, ml_hash_chain_t *);
 	void (*call)(ml_state_t *, ml_value_t *, int, ml_value_t **);
@@ -46,6 +49,7 @@ struct ml_type_t {
 	ml_typed_fn_node_t *TypedFns;
 	int TypedFnsSize, TypedFnSpace;
 	stringmap_t Exports[1];
+	int Rank;
 };
 
 extern ml_type_t MLTypeT[];
@@ -55,8 +59,13 @@ void ml_default_call(ml_state_t *Frame, ml_value_t *Value, int Count, ml_value_t
 ml_value_t *ml_default_deref(ml_value_t *Ref);
 ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value);
 
-#define ML_TYPE(TYPE, PARENT, NAME, ...) ml_type_t TYPE[1] = {{ \
-	MLTypeT, PARENT, NAME, \
+#ifndef GENERATE_INIT
+
+#define ML_TYPE(TYPE, PARENTS, NAME, ...) \
+ml_type_t TYPE[1] = {{ \
+	.Type = MLTypeT, \
+	.Types = NULL, \
+	.Name = NAME, \
 	.hash = ml_default_hash, \
 	.call = ml_default_call, \
 	.deref = ml_default_deref, \
@@ -65,8 +74,20 @@ ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value);
 	.TypedFnsSize = 0, \
 	.TypedFnSpace = 0, \
 	.Exports = {STRINGMAP_INIT}, \
+	.Rank = INT_MAX, \
 	__VA_ARGS__ \
 }}
+
+#else
+
+#define UNWRAP(ARGS...) , ##ARGS
+#define ML_TYPE(TYPE, PARENTS, NAME, ...) INIT_CODE ml_type_init(TYPE UNWRAP PARENTS, NULL);
+
+#endif
+
+#define ML_INTERFACE(TYPE, PARENTS, NAME, ...) ML_TYPE(TYPE, PARENTS, NAME, .Rank = -1, __VA_ARGS__)
+
+void ml_type_init(ml_type_t *Type, ...) __attribute__ ((sentinel));
 
 ml_type_t *ml_type(ml_type_t *Parent, const char *Name);
 void *ml_typed_fn_get(const ml_type_t *Type, void *TypedFn);
@@ -104,6 +125,87 @@ void ml_iterate(ml_state_t *Caller, ml_value_t *Value);
 void ml_iter_value(ml_state_t *Caller, ml_value_t *Iter);
 void ml_iter_key(ml_state_t *Caller, ml_value_t *Iter);
 void ml_iter_next(ml_state_t *Caller, ml_value_t *Iter);
+
+/****************************** Functions ******************************/
+
+extern ml_type_t MLFunctionT[];
+
+typedef struct ml_function_t ml_function_t;
+typedef struct ml_functionx_t ml_functionx_t;
+
+struct ml_function_t {
+	const ml_type_t *Type;
+	ml_callback_t Callback;
+	void *Data;
+};
+
+struct ml_functionx_t {
+	const ml_type_t *Type;
+	ml_callbackx_t Callback;
+	void *Data;
+};
+
+extern ml_type_t MLCFunctionT[];
+extern ml_type_t MLCFunctionXT[];
+extern ml_type_t MLPartialFunctionT[];
+
+extern ml_functionx_t MLCallCC[];
+extern ml_functionx_t MLSpawn[];
+extern ml_function_t MLContextKey[];
+
+ml_value_t *ml_function(void *Data, ml_callback_t Function);
+ml_value_t *ml_functionx(void *Data, ml_callbackx_t Function);
+
+ml_value_t *ml_return_nil(void *Data, int Count, ml_value_t **Args);
+ml_value_t *ml_identity(void *Data, int Count, ml_value_t **Args);
+
+ml_value_t *ml_partial_function_new(ml_value_t *Function, int Count);
+ml_value_t *ml_partial_function_set(ml_value_t *Partial, size_t Index, ml_value_t *Value);
+
+#define ML_FUNCTION2(NAME, FUNCTION) static ml_value_t *FUNCTION(void *Data, int Count, ml_value_t **Args); \
+\
+ml_function_t NAME[1] = {{MLCFunctionT, FUNCTION, NULL}}; \
+\
+static ml_value_t *FUNCTION(void *Data, int Count, ml_value_t **Args)
+
+#define ML_FUNCTION(NAME) ML_FUNCTION2(NAME, CONCAT3(ml_function_, __LINE__, __COUNTER__))
+
+#define ML_FUNCTIONX2(NAME, FUNCTION) static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args); \
+\
+ml_functionx_t NAME[1] = {{MLCFunctionXT, FUNCTION, NULL}}; \
+\
+static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args)
+
+#define ML_FUNCTIONX(NAME, TYPES ...) ML_FUNCTIONX2(NAME, CONCAT3(ml_functionx_, __LINE__, __COUNTER__))
+
+#define ML_CHECK_ARG_TYPE(N, TYPE) \
+	if (!ml_is(Args[N], TYPE)) { \
+		return ml_error("TypeError", "%s required", TYPE->Name); \
+	}
+
+#define ML_CHECK_ARG_COUNT(N) \
+	if (Count < N) { \
+		return ml_error("CallError", "%d arguments required", N); \
+	}
+
+#define ML_CHECKX_ARG_TYPE(N, TYPE) \
+	if (!ml_is(Args[N], TYPE)) { \
+		ML_CONTINUE(Caller, ml_error("TypeError", "%s required", TYPE->Name)); \
+	}
+
+#define ML_CHECKX_ARG_COUNT(N) \
+	if (Count < N) { \
+		ML_CONTINUE(Caller, ml_error("CallError", "%d arguments required", N)); \
+	}
+
+#define ML_CONTINUE(STATE, VALUE) { \
+	ml_state_t *__State = (ml_state_t *)(STATE); \
+	ml_value_t *__Value = (ml_value_t *)(VALUE); \
+	return __State->run(__State, __Value); \
+}
+
+#define ML_RETURN(VALUE) return Caller->run(Caller, (ml_value_t *)(VALUE))
+#define ML_ERROR(ARGS...) ML_RETURN(ml_error(ARGS))
 
 /****************************** Tuples ******************************/
 
