@@ -240,5 +240,7 @@ int main(int Argc, const char *Argv[]) {
 	} else {
 		ml_console((ml_getter_t)stringmap_search, Globals, "--> ", "... ");
 	}
+//	extern uint64_t IntHashLoops;
+//	fprintf(stderr, "IntHashLoops = %lu\n", IntHashLoops);
 	return 0;
 }

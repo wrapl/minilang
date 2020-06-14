@@ -18,7 +18,7 @@ CFLAGS := old + [
 LDFLAGS := old + ["-lm"]
 
 if DEBUG then
-	CFLAGS := old + ["-g", "-DGC_DEBUG", "-DDEBUG", "-foptimize-sibling-calls"]
+	CFLAGS := old + ["-g", "-DGC_DEBUG", "-DDEBUG"]
 	LDFLAGS := old + ["-g"]
 else
 	CFLAGS := old + ["-O3", "-g"]
@@ -48,7 +48,6 @@ end
 var Objects := [
 	file("ml_compiler.o"),
 	file("ml_bytecode.o"),
-	:>file("ml_bytecode_threaded.o"),
 	file("ml_runtime.o"),
 	file("ml_types.o"),
 	file("ml_file.o"),

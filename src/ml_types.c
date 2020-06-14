@@ -2795,21 +2795,24 @@ struct ml_methods_t {
 	ml_methods_t *Parent;
 	inthash_t Cache[1];
 	inthash_t Definitions[1];
+	inthash_t Methods[1];
 };
 
 static ml_methods_t MLRootMethods[1] = {{NULL, {INTHASH_INIT}, {INTHASH_INIT}}};
 
 struct ml_method_cached_t {
-	ml_method_cached_t *Next;
+	ml_method_cached_t *Next, *MethodNext;
+	ml_method_t *Method;
 	ml_method_definition_t *Definition;
+	int Count, Score;
+	const ml_type_t *Types[];
 };
 
 struct ml_method_definition_t {
 	ml_method_definition_t *Next;
-	ml_method_t *Method;
 	ml_value_t *Callback;
 	int Count, Variadic;
-	ml_type_t *Types[];
+	const ml_type_t *Types[];
 };
 
 uintptr_t rotl(uintptr_t X, unsigned int N) {
@@ -2826,7 +2829,7 @@ static unsigned int ml_method_definition_score(ml_method_definition_t *Definitio
 		Score = 1;
 	}
 	for (int I = 0; I < Count; ++I) {
-		ml_type_t *Type = Definition->Types[I];
+		const ml_type_t *Type = Definition->Types[I];
 		for (const ml_type_t **T = Args[I]->Type->Types; *T; ++T) {
 			if (*T == Type) goto found;
 		}
@@ -2844,24 +2847,55 @@ static ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, 
 	}
 	ml_method_cached_t *Cached = inthash_search(Methods->Cache, Hash);
 	while (Cached) {
+		if (Cached->Method != Method) goto next;
+		if (Cached->Count != Count) goto next;
+		for (int I = 0; I < Count; ++I) {
+			if (Cached->Types[I] != Args[I]->Type) goto next;
+		}
 		ml_method_definition_t *Definition = Cached->Definition;
-		if (Definition->Method != Method) goto next;
-		if (Definition->Count != Count) {
-			if (!Definition->Variadic) goto next;
-			if (Definition->Count > Count) goto next;
-		}
-		for (int I = 0; I < Definition->Count; ++I) {
-			if (Definition->Types[I] != Args[I]->Type) goto next;
-		}
+		if (!Definition) break;
 		return Definition->Callback;
 	next:
 		Cached = Cached->Next;
 	}
-
+/*
+	fprintf(stderr, "Searching for method: %s(", ml_method_name(Method));
+	for (int I = 0; I < Count; ++I) {
+		fprintf(stderr, I ? ", <%s>" : "<%s>", Args[I]->Type->Name);
+	}
+	fprintf(stderr, ")\n");
+*/
 	unsigned int BestScore = 0;
 	ml_method_definition_t *BestDefinition = NULL;
-	for (ml_methods_t *Scope = Methods; Scope; Scope = Scope->Parent) {
-		ml_method_definition_t *Definition = inthash_search(Methods->Definitions, (uintptr_t)Method);
+	ml_method_definition_t *Definition = inthash_search(Methods->Definitions, (uintptr_t)Method);
+	while (Definition) {
+		unsigned int Score = ml_method_definition_score(Definition, Count, Args, BestScore);
+		if (Score > BestScore) {
+			BestScore = Score;
+			BestDefinition = Definition;
+		}
+		Definition = Definition->Next;
+	}
+
+	for (ml_methods_t *Methods2 = Methods->Parent; Methods2; Methods2 = Methods2->Parent) {
+		ml_method_cached_t *Cached2 = inthash_search(Methods2->Cache, Hash);
+		while (Cached2) {
+			if (Cached2->Method != Method) goto next2;
+			if (Cached2->Count != Count) goto next2;
+			if (!Cached2->Definition) goto next2;
+			for (int I = 0; I < Count; ++I) {
+				if (Cached2->Types[I] != Args[I]->Type) goto next2;
+			}
+			if (Cached2->Score > BestScore) {
+				BestScore = Cached2->Score;
+				BestDefinition = Cached2->Definition;
+				break;
+			}
+		next2:
+			Cached2 = Cached2->Next;
+		}
+		if (Cached2) break;
+		ml_method_definition_t *Definition = inthash_search(Methods2->Definitions, (uintptr_t)Method);
 		while (Definition) {
 			unsigned int Score = ml_method_definition_score(Definition, Count, Args, BestScore);
 			if (Score > BestScore) {
@@ -2871,25 +2905,33 @@ static ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, 
 			Definition = Definition->Next;
 		}
 	}
+
 	if (!BestDefinition) return NULL;
 
-	Cached = new(ml_method_cached_t);
+	if (!Cached) {
+		Cached = xnew(ml_method_cached_t, Count, ml_type_t *);
+		Cached->Method = Method;
+		Cached->Next = inthash_insert(Methods->Cache, Hash, Cached);
+		Cached->MethodNext = inthash_insert(Methods->Methods, (uintptr_t)Method, Cached);
+		Cached->Count = Count;
+		for (int I = 0; I < Count; ++I) Cached->Types[I] = Args[I]->Type;
+	}
 	Cached->Definition = BestDefinition;
-	Cached->Next = inthash_insert(Methods->Cache, Hash, Cached);
+	Cached->Score = BestScore;
 
 	return BestDefinition->Callback;
 }
 
 void ml_method_define(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Callback, int Count, int Variadic, ml_type_t **Types) {
 	ml_method_definition_t *Definition = xnew(ml_method_definition_t, Count, ml_type_t *);
-	Definition->Method = Method;
 	Definition->Callback = Callback;
 	Definition->Count = Count;
 	Definition->Variadic = Variadic;
 	memcpy(Definition->Types, Types, Count * sizeof(ml_type_t *));
 	Definition->Next = inthash_insert(Methods->Definitions, (uintptr_t)Method, Definition);
-	// TODO: Avoid clearing entire cache
-	Methods->Cache[0] = (inthash_t)INTHASH_INIT;
+	for (ml_method_cached_t *Cached = inthash_search(Methods->Methods, (uintptr_t)Method); Cached; Cached = Cached->MethodNext) {
+		Cached->Definition = NULL;
+	}
 }
 
 static stringmap_t Methods[1] = {STRINGMAP_INIT};
@@ -2950,7 +2992,7 @@ ml_value_t *ml_method(const char *Name) {
 	if (!Name) {
 		ml_method_t *Method = new(ml_method_t);
 		Method->Type = MLMethodT;
-		Method->Name = "<anon>";
+		asprintf((char **)&Method->Name, "<anon:0x%lx>", (uintptr_t)Method);
 		return (ml_value_t *)Method;
 	}
 	ml_method_t **Slot = (ml_method_t **)stringmap_slot(Methods, Name);

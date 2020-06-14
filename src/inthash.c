@@ -11,13 +11,19 @@ inthash_t *inthash_new() {
 	return new(inthash_t);
 }
 
+#define INDEX_SHIFT 6
+#define INCR_SHIFT 8
+
+//uint64_t IntHashLoops = 0;
+
 void *inthash_search(const inthash_t *Map, uintptr_t Key) {
 	inthash_node_t *Nodes = Map->Nodes;
 	if (Nodes) {
 		size_t Mask = Map->Size - 1;
-		size_t Index = (Key >> 5) & Mask;
-		size_t Incr = (Key >> 9) | 1;
+		size_t Index = (Key >> INDEX_SHIFT) & Mask;
+		size_t Incr = (Key >> INCR_SHIFT) | 1;
 		for (;;) {
+			//++IntHashLoops;
 			if (Nodes[Index].Key == Key) return Nodes[Index].Value;
 			if (Nodes[Index].Key < Key) break;
 			Index = (Index + Incr) & Mask;
@@ -52,15 +58,15 @@ void *inthash_insert(inthash_t *Map, uintptr_t Key, void *Value) {
 		Nodes = Map->Nodes = anew(inthash_node_t, 4);
 		Map->Size = 4;
 		Map->Space = 3;
-		size_t Index =  (Key >> 5) & 3;
+		size_t Index =  (Key >> INDEX_SHIFT) & 3;
 		Nodes[Index].Key = Key;
 		void *Old = Nodes[Index].Value;
 		Nodes[Index].Value = Value;
 		return Old;
 	}
 	size_t Mask = Map->Size - 1;
-	size_t Index = (Key >> 5) & Mask;
-	size_t Incr = (Key >> 9) | 1;
+	size_t Index = (Key >> INDEX_SHIFT) & Mask;
+	size_t Incr = (Key >> INCR_SHIFT) | 1;
 	for (;;) {
 		if (Nodes[Index].Key == Key) {
 			void *Old = Nodes[Index].Value;
@@ -76,7 +82,7 @@ void *inthash_insert(inthash_t *Map, uintptr_t Key, void *Value) {
 		Nodes[Index].Key = Key;
 		Nodes[Index].Value = Value;
 		while (Key1) {
-			Incr = (Key1 >> 9) | 1;
+			Incr = (Key1 >> INCR_SHIFT) | 1;
 			while (Nodes[Index].Key > Key1) Index = (Index + Incr) & Mask;
 			uintptr_t Key2 = Nodes[Index].Key;
 			void *Value2 = Nodes[Index].Value;
@@ -96,8 +102,8 @@ void *inthash_insert(inthash_t *Map, uintptr_t Key, void *Value) {
 		for (inthash_node_t *Node = Nodes; Node->Key; Node++) {
 			uintptr_t Key2 = Node->Key;
 			void *Value2 = Node->Value;
-			size_t Index2 = (Key2 >> 5) & Mask;
-			size_t Incr2 = (Key2 >> 9) | 1;
+			size_t Index2 = (Key2 >> INDEX_SHIFT) & Mask;
+			size_t Incr2 = (Key2 >> INCR_SHIFT) | 1;
 			while (Nodes2[Index2].Key) Index2 = (Index2 + Incr2) & Mask;
 			Nodes2[Index2].Key = Key2;
 			Nodes2[Index2].Value = Value2;
