@@ -195,6 +195,10 @@ static void ml_console_repl_run(ml_console_repl_state_t *State, ml_value_t *Resu
 		return;
 	}
 	console_log(State->Console, Result);
+	GtkTextIter End[1];
+	GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(State->Console->LogView));
+	gtk_text_buffer_get_end_iter(LogBuffer, End);
+	gtk_text_buffer_insert(LogBuffer, End, "\n", 1);
 	if (Result->Type == MLErrorT) {
 		gtk_widget_grab_focus(State->Console->InputView);
 		return;
@@ -556,7 +560,6 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 		"background", "#FFF0F0",
 		"foreground", "#303030",
 		"indent", 10,
-		"pixels-below-lines", 20,
 	NULL);
 	g_object_set(Console->ErrorTag,
 		"background", "#FFF0F0",

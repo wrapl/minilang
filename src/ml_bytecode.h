@@ -24,6 +24,9 @@ struct ml_closure_info_t {
 	ml_inst_t *Entry, *Return;
 	const char *Source;
 	ml_decl_t *Decls;
+#ifdef USE_ML_JIT
+	void *JITStart, *JITEntry, *JITReturn;
+#endif
 	stringmap_t Params[1];
 	int End, FrameSize;
 	int NumParams, NumUpValues;
@@ -54,11 +57,10 @@ typedef enum {
 	MLI_NIL,
 	MLI_SOME,
 	MLI_IF,
-	MLI_IF_VAR,
-	MLI_IF_LET,
 	MLI_ELSE,
 	MLI_PUSH,
 	MLI_WITH,
+	MLI_WITH_VAR,
 	MLI_WITHX,
 	MLI_POP,
 	MLI_ENTER,
@@ -70,6 +72,7 @@ typedef enum {
 	MLI_VAR,
 	MLI_VARX,
 	MLI_LET,
+	MLI_LETI,
 	MLI_LETX,
 	MLI_FOR,
 	MLI_NEXT,
@@ -79,6 +82,7 @@ typedef enum {
 	MLI_CONST_CALL,
 	MLI_ASSIGN,
 	MLI_LOCAL,
+	MLI_LOCALX,
 	MLI_TUPLE_NEW,
 	MLI_TUPLE_SET,
 	MLI_LIST_NEW,
@@ -90,13 +94,51 @@ typedef enum {
 	MLI_PARTIAL_SET
 } ml_opcode_t;
 
+typedef enum {
+	MLIT_NONE,
+	MLIT_INST,
+	MLIT_INST_INST,
+	MLIT_INST_INDEX,
+	MLIT_INST_INDEX_COUNT,
+	MLIT_INST_COUNT,
+	MLIT_INST_COUNT_COUNT,
+	MLIT_INST_COUNT_VALUE,
+	MLIT_INST_VALUE,
+	MLIT_INST_CLOSURE
+} ml_inst_type_t;
+
+extern const ml_inst_type_t MLInstTypes[];
+
 struct ml_inst_t {
 	ml_opcode_t Opcode:8;
-	int PotentialBreakpoint:1;
-	int Reserved:7;
-	int Processed:16;
-	int LineNo:32;
+	unsigned int PotentialBreakpoint:1;
+	unsigned int Processed:1;
+	unsigned int Reserved:6;
+	unsigned int Label:16;
+	unsigned int LineNo:32;
 	ml_param_t Params[];
+};
+
+typedef struct ml_frame_t ml_frame_t;
+
+struct ml_frame_t {
+	ml_state_t Base;
+	const char *Source;
+	ml_inst_t *Inst;
+	ml_value_t **Top;
+	ml_inst_t *OnError;
+	ml_value_t **UpValues;
+#ifdef USE_ML_SCHEDULER
+	ml_schedule_t Schedule;
+#endif
+#ifdef DEBUG_VERSION
+	ml_debugger_t *Debugger;
+	size_t *Breakpoints;
+	ml_decl_t *Decls;
+	size_t Revision;
+	int DebugReentry;
+#endif
+	ml_value_t *Stack[];
 };
 
 const char *ml_closure_debug(ml_value_t *Value);

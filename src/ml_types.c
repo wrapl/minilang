@@ -32,7 +32,7 @@ ML_METHOD_DECL(MLMethodOf, NULL);
 
 /****************************** Types ******************************/
 
-ML_TYPE(MLAnyT, (), "any");
+ML_INTERFACE(MLAnyT, (), "any");
 
 static void ml_type_call(ml_state_t *Caller, ml_type_t *Type, int Count, ml_value_t **Args) {
 	ml_value_t *Constructor = stringmap_search(Type->Exports, "of");
@@ -40,7 +40,7 @@ static void ml_type_call(ml_state_t *Caller, ml_type_t *Type, int Count, ml_valu
 	return Constructor->Type->call(Caller, Constructor, Count, Args);
 }
 
-ML_TYPE(MLTypeT, (), "type",
+ML_INTERFACE(MLTypeT, (), "type",
 	.call = (void *)ml_type_call
 );
 
@@ -80,17 +80,17 @@ void ml_type_init(ml_type_t *Type, ...) {
 			printf("Types initialized in wrong order %s < %s\n", Type->Name, Parent->Name);
 			asm("int3");
 		}
-		do ++NumParents; while (*++Types);
+		do ++NumParents; while (*++Types != MLAnyT);
 	}
 	va_end(Args);
 	const ml_type_t **Parents = anew(const ml_type_t *, NumParents + 3);
 	Type->Types = Parents;
-	Type->Rank = Rank == INT_MAX ? INT_MAX : Rank + 1;
+	Type->Rank = Rank + 1;
 	*Parents++ = Type;
 	va_start(Args, Type);
 	while ((Parent = va_arg(Args, ml_type_t *))) {
 		const ml_type_t **Types = Parent->Types;
-		while (*Types) *Parents++ = *Types++;
+		while (*Types != MLAnyT) *Parents++ = *Types++;
 	}
 	va_end(Args);
 	*Parents++ = MLAnyT;
@@ -108,105 +108,16 @@ ml_type_t *ml_type(ml_type_t *Parent, const char *Name) {
 	return Type;
 }
 
-struct ml_typed_fn_node_t {
-	void *TypedFn, *Function;
-};
-
 inline void *ml_typed_fn_get(const ml_type_t *Type, void *TypedFn) {
 	for (const ml_type_t **Parents = Type->Types, *Type = Parents[0]; Type; Type = *++Parents) {
-		ml_typed_fn_node_t *Nodes = Type->TypedFns;
-		if (Nodes) {
-			size_t Mask = Type->TypedFnsSize - 1;
-			size_t Index = ((uintptr_t)TypedFn >> 5) & Mask;
-			size_t Incr = ((uintptr_t)TypedFn >> 9) | 1;
-			for (;;) {
-				if (Nodes[Index].TypedFn == TypedFn) return Nodes[Index].Function;
-				if (Nodes[Index].TypedFn < TypedFn) break;
-				Index = (Index + Incr) & Mask;
-			}
-		}
+		void *Function = inthash_search(Type->TypedFns, (uintptr_t)TypedFn);
+		if (Function) return Function;
 	}
 	return NULL;
 }
 
-static void ml_typed_fn_nodes_sort(ml_typed_fn_node_t *A, ml_typed_fn_node_t *B) {
-	ml_typed_fn_node_t *A1 = A, *B1 = B;
-	ml_typed_fn_node_t Temp = *A;
-	ml_typed_fn_node_t Pivot = *B;
-	while (A1 < B1) {
-		if (Temp.TypedFn > Pivot.TypedFn) {
-			*A1 = Temp;
-			++A1;
-			Temp = *A1;
-		} else {
-			*B1 = Temp;
-			--B1;
-			Temp = *B1;
-		}
-	}
-	*A1 = Pivot;
-	if (A1 - A > 1) ml_typed_fn_nodes_sort(A, A1 - 1);
-	if (B - B1 > 1) ml_typed_fn_nodes_sort(B1 + 1, B);
-}
-
 void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function) {
-	ml_typed_fn_node_t *Nodes = Type->TypedFns;
-	if (!Nodes) {
-		Nodes = Type->TypedFns = anew(ml_typed_fn_node_t, 4);
-		Type->TypedFnsSize = 4;
-		Type->TypedFnSpace = 3;
-		size_t Index =  ((uintptr_t)TypedFn >> 5) & 3;
-		Nodes[Index].TypedFn = TypedFn;
-		Nodes[Index].Function = Function;
-		return;
-	}
-	size_t Mask = Type->TypedFnsSize - 1;
-	size_t Index = ((uintptr_t)TypedFn >> 5) & Mask;
-	size_t Incr = ((uintptr_t)TypedFn >> 9) | 1;
-	for (;;) {
-		if (Nodes[Index].TypedFn == TypedFn) {
-			Nodes[Index].Function = Function;
-			return;
-		}
-		if (Nodes[Index].TypedFn < TypedFn) break;
-		Index = (Index + Incr) & Mask;
-	}
-	if (--Type->TypedFnSpace > 1) {
-		void *TypedFn1 = Nodes[Index].TypedFn;
-		void *Function1 = Nodes[Index].Function;
-		Nodes[Index].TypedFn = TypedFn;
-		Nodes[Index].Function = Function;
-		while (TypedFn1) {
-			Incr = ((uintptr_t)TypedFn1 >> 9) | 1;
-			while (Nodes[Index].TypedFn > TypedFn1) Index = (Index + Incr) & Mask;
-			void *TypedFn2 = Nodes[Index].TypedFn;
-			void *Function2 = Nodes[Index].Function;
-			Nodes[Index].TypedFn = TypedFn1;
-			Nodes[Index].Function = Function1;
-			TypedFn1 = TypedFn2;
-			Function1 = Function2;
-		}
-	} else {
-		while (Nodes[Index].TypedFn) Index = (Index + 1) & Mask;
-		Nodes[Index].TypedFn = TypedFn;
-		Nodes[Index].Function = Function;
-		ml_typed_fn_nodes_sort(Nodes, Nodes + Mask);
-		size_t Size2 = 2 * Type->TypedFnsSize;
-		Mask = Size2 - 1;
-		ml_typed_fn_node_t *Nodes2 = anew(ml_typed_fn_node_t, Size2);
-		for (ml_typed_fn_node_t *Node = Nodes; Node->TypedFn; Node++) {
-			void *TypedFn2 = Node->TypedFn;
-			void *Function2 = Node->Function;
-			size_t Index2 = ((uintptr_t)TypedFn2 >> 5) & Mask;
-			size_t Incr2 = ((uintptr_t)TypedFn2 >> 9) | 1;
-			while (Nodes2[Index2].TypedFn) Index2 = (Index2 + Incr2) & Mask;
-			Nodes2[Index2].TypedFn = TypedFn2;
-			Nodes2[Index2].Function = Function2;
-		}
-		Type->TypedFns = Nodes2;
-		Type->TypedFnSpace += Type->TypedFnsSize;
-		Type->TypedFnsSize = Size2;
-	}
+	inthash_insert(Type->TypedFns, (uintptr_t)TypedFn, Function);
 }
 
 ML_METHOD(MLStringOfMethod, MLTypeT) {
@@ -2875,30 +2786,117 @@ ML_METHOD("join", MLMapT, MLStringT, MLStringT) {
 
 #define ML_METHODS_INDEX 0
 
-typedef struct methods_t methods_t;
+typedef struct ml_methods_t ml_methods_t;
+typedef struct ml_method_t ml_method_t;
+typedef struct ml_method_cached_t ml_method_cached_t;
+typedef struct ml_method_definition_t ml_method_definition_t;
 
-struct methods_t {
-	methods_t *Parent;
-	stringmap_t Methods[1];
+struct ml_methods_t {
+	ml_methods_t *Parent;
+	inthash_t Cache[1];
+	inthash_t Definitions[1];
 };
+
+static ml_methods_t MLRootMethods[1] = {{NULL, {INTHASH_INIT}, {INTHASH_INIT}}};
+
+struct ml_method_cached_t {
+	ml_method_cached_t *Next;
+	ml_method_definition_t *Definition;
+};
+
+struct ml_method_definition_t {
+	ml_method_definition_t *Next;
+	ml_method_t *Method;
+	ml_value_t *Callback;
+	int Count, Variadic;
+	ml_type_t *Types[];
+};
+
+uintptr_t rotl(uintptr_t X, unsigned int N) {
+	const unsigned int Mask = (CHAR_BIT * sizeof(uintptr_t) - 1);
+	return (X << (N & Mask)) | (X >> ((-N) & Mask ));
+}
+
+static unsigned int ml_method_definition_score(ml_method_definition_t *Definition, int Count, ml_value_t **Args, unsigned int Best) {
+	unsigned int Score = 0;
+	if (Definition->Count > Count) return 0;
+	if (Definition->Count < Count) {
+		if (!Definition->Variadic) return 0;
+		Count = Definition->Count;
+		Score = 1;
+	}
+	for (int I = 0; I < Count; ++I) {
+		ml_type_t *Type = Definition->Types[I];
+		for (const ml_type_t **T = Args[I]->Type->Types; *T; ++T) {
+			if (*T == Type) goto found;
+		}
+		return 0;
+	found:
+		Score += 5 + Type->Rank;
+	}
+	return Score;
+}
+
+static ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args) {
+	uintptr_t Hash = (uintptr_t)Method;
+	for (int I = 0; I < Count; ++I) {
+		Hash ^= rotl((uintptr_t)Args[I]->Type, I + 1);
+	}
+	ml_method_cached_t *Cached = inthash_search(Methods->Cache, Hash);
+	while (Cached) {
+		ml_method_definition_t *Definition = Cached->Definition;
+		if (Definition->Method != Method) goto next;
+		if (Definition->Count != Count) {
+			if (!Definition->Variadic) goto next;
+			if (Definition->Count > Count) goto next;
+		}
+		for (int I = 0; I < Definition->Count; ++I) {
+			if (Definition->Types[I] != Args[I]->Type) goto next;
+		}
+		return Definition->Callback;
+	next:
+		Cached = Cached->Next;
+	}
+
+	unsigned int BestScore = 0;
+	ml_method_definition_t *BestDefinition = NULL;
+	for (ml_methods_t *Scope = Methods; Scope; Scope = Scope->Parent) {
+		ml_method_definition_t *Definition = inthash_search(Methods->Definitions, (uintptr_t)Method);
+		while (Definition) {
+			unsigned int Score = ml_method_definition_score(Definition, Count, Args, BestScore);
+			if (Score > BestScore) {
+				BestScore = Score;
+				BestDefinition = Definition;
+			}
+			Definition = Definition->Next;
+		}
+	}
+	if (!BestDefinition) return NULL;
+
+	Cached = new(ml_method_cached_t);
+	Cached->Definition = BestDefinition;
+	Cached->Next = inthash_insert(Methods->Cache, Hash, Cached);
+
+	return BestDefinition->Callback;
+}
+
+void ml_method_define(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Callback, int Count, int Variadic, ml_type_t **Types) {
+	ml_method_definition_t *Definition = xnew(ml_method_definition_t, Count, ml_type_t *);
+	Definition->Method = Method;
+	Definition->Callback = Callback;
+	Definition->Count = Count;
+	Definition->Variadic = Variadic;
+	memcpy(Definition->Types, Types, Count * sizeof(ml_type_t *));
+	Definition->Next = inthash_insert(Methods->Definitions, (uintptr_t)Method, Definition);
+	// TODO: Avoid clearing entire cache
+	Methods->Cache[0] = (inthash_t)INTHASH_INIT;
+}
 
 static stringmap_t Methods[1] = {STRINGMAP_INIT};
-
-typedef struct ml_method_t ml_method_t;
-typedef struct ml_method_table_t ml_method_table_t;
-typedef struct ml_method_node_t ml_method_node_t;
-
-struct ml_method_table_t {
-	ml_value_t *Callback;
-	const ml_type_t **Types;
-	ml_method_table_t **Children;
-	size_t Size, Space;
-};
 
 struct ml_method_t {
 	const ml_type_t *Type;
 	const char *Name;
-	ml_method_table_t Table[1];
 };
 
 const char *ml_method_name(ml_value_t *Value) {
@@ -2912,38 +2910,15 @@ static long ml_method_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
-static const ml_method_table_t *ml_method_find(const ml_method_table_t *Table, int Count, ml_value_t **Args) {
-	if (Table->Size == 0) return Table;
-	unsigned int Mask = Table->Size - 1;
-	const ml_type_t **Types = Table->Types;
-	for (const ml_type_t **Parents = Args[0]->Type->Types, *Type = Parents[0]; Type; Type = *++Parents) {
-		unsigned int Index = ((uintptr_t)Type >> 5) & Mask;
-		unsigned int Incr = ((uintptr_t)Type >> 9) | 1;
-		for (;;) {
-			if (Types[Index] == Type) {
-				const ml_method_table_t *Result = (Count - 1)
-					? ml_method_find(Table->Children[Index], Count - 1, Args + 1)
-					: Table->Children[Index];
-				if (Result->Callback) return Result;
-				break;
-			} else if (Types[Index] < Type) {
-				break;
-			} else {
-				Index = (Index + Incr) & Mask;
-			}
-		}
-	}
-	return Table;
-}
-
 static void ml_method_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Arg = Args[I] = Args[I]->Type->deref(Args[I]);
 		if (Arg->Type == MLErrorT) ML_RETURN(Arg);
 	}
 	ml_method_t *Method = (ml_method_t *)Value;
-	const ml_method_table_t *Table = Count ? ml_method_find(Method->Table, Count, Args) : Method->Table;
-	ml_value_t *Callback = Table->Callback;
+	ml_methods_t *Methods = ml_context_get(Caller->Context, ML_METHODS_INDEX);
+	ml_value_t *Callback = ml_method_search(Methods, Method, Count, Args);
+
 	if (Callback) {
 		return Callback->Type->call(Caller, Callback, Count, Args);
 	} else {
@@ -2996,158 +2971,69 @@ ML_METHOD(MLMethodOfMethod, MLStringT) {
 	return ml_method(ml_string_value(Args[0]));
 }
 
-static void ml_method_nodes_sort(int A, int B, const ml_type_t **Types, ml_method_table_t **Children) {
-	int A1 = A, B1 = B;
-	const ml_type_t *TempType = Types[A];
-	ml_method_table_t *TempChild = Children[A];
-	const ml_type_t *PivotType = Types[B];
-	ml_method_table_t *PivotChild = Children[B];
-	while (A1 < B1) {
-		if (TempType > PivotType) {
-			Types[A1] = TempType;
-			Children[A1] = TempChild;
-			++A1;
-			TempType = Types[A1];
-			TempChild = Children[A1];
-		} else {
-			Types[B1] = TempType;
-			Children[B1] = TempChild;
-			--B1;
-			TempType = Types[B1];
-			TempChild = Children[B1];
-		}
-	}
-	Types[A1] = PivotType;
-	Children[A1] = PivotChild;
-	if (A1 - A > 1) ml_method_nodes_sort(A, A1 - 1, Types, Children);
-	if (B - B1 > 1) ml_method_nodes_sort(B1 + 1, B, Types, Children);
-}
-
-static ml_method_table_t *ml_method_insert(ml_method_table_t *Table, const ml_type_t *Type) {
-	if (Table->Size == 0) {
-		const ml_type_t **Types = anew(const ml_type_t *, 4);
-		ml_method_table_t **Children = anew(ml_method_table_t *, 4);
-		unsigned int Index = ((uintptr_t)Type >> 5) & 3;
-		Types[Index] = Type;
-		ml_method_table_t *Child = new(ml_method_table_t);
-		Children[Index] = Child;
-		Table->Types = Types;
-		Table->Children = Children;
-		Table->Size = 4;
-		Table->Space = 3;
-		return Child;
-	}
-	unsigned int Mask = Table->Size - 1;
-	const ml_type_t **Types = Table->Types;
-	ml_method_table_t **Children = Table->Children;
-	unsigned int Index = ((uintptr_t)Type >> 5) & Mask;
-	unsigned int Incr = ((uintptr_t)Type >> 9) | 1;
-	for (;;) {
-		if (Types[Index] == Type) {
-			return Children[Index];
-		} else if (Types[Index] < Type) {
-			break;
-		} else {
-			Index = (Index + Incr) & Mask;
-		}
-	}
-	ml_method_table_t *Child = new(ml_method_table_t);
-	if (--Table->Space > 1) {
-		const ml_type_t *Type1 = Types[Index];
-		ml_method_table_t *Child1 = Children[Index];
-		Types[Index] = Type;
-		Children[Index] = Child;
-		while (Type1) {
-			Incr = ((uintptr_t)Type1 >> 9) | 1;
-			while (Types[Index] > Type1) Index = (Index + Incr) & Mask;
-			const ml_type_t *Type2 = Types[Index];
-			ml_method_table_t *Child2 = Children[Index];
-			Types[Index] = Type1;
-			Children[Index] = Child1;
-			Type1 = Type2;
-			Child1 = Child2;
-		}
-	} else {
-		while (Types[Index]) Index = (Index + 1) & Mask;
-		Types[Index] = Type;
-		Children[Index] = Child;
-		ml_method_nodes_sort(0, Table->Size - 1, Types, Children);
-		size_t Size2 = 2 * Table->Size;
-		Mask = Size2 - 1;
-		const ml_type_t **Types2 = anew(const ml_type_t *, Size2);
-		ml_method_table_t **Children2 = anew(ml_method_table_t *, Size2);
-		for (int I = 0; I < Table->Size; ++I) {
-			const ml_type_t *Type2 = Types[I];
-			ml_method_table_t *Child2 = Children[I];
-			unsigned int Index2 = ((uintptr_t)Type2 >> 5) & Mask;
-			unsigned int Incr2 = ((uintptr_t)Type2 >> 9) | 1;
-			while (Types2[Index2]) Index2 = (Index2 + Incr2) & Mask;
-			Types2[Index2] = Type2;
-			Children2[Index2] = Child2;
-		}
-		Table->Types = Types2;
-		Table->Children = Children2;
-		Table->Space += Table->Size;
-		Table->Size = Size2;
-	}
-	return Child;
-}
-
 void ml_method_by_name(const char *Name, void *Data, ml_callback_t Callback, ...) {
 	ml_method_t *Method = (ml_method_t *)ml_method(Name);
-	ml_method_table_t *Table = Method->Table;
+	int Count = 0;
 	va_list Args;
 	va_start(Args, Callback);
 	ml_type_t *Type;
-	while ((Type = va_arg(Args, ml_type_t *))) Table = ml_method_insert(Table, Type);
+	while ((Type = va_arg(Args, ml_type_t *))) ++Count;
 	va_end(Args);
-	Table->Callback = ml_function(Data, Callback);
+	ml_type_t *Types[Count], **T = Types;
+	va_start(Args, Callback);
+	while ((Type = va_arg(Args, ml_type_t *))) *T++ = Type;
+	va_end(Args);
+	ml_method_define(MLRootMethods, Method, ml_function(Data, Callback), Count, 1, Types);
 }
 
 void ml_method_by_value(ml_value_t *Value, void *Data, ml_callback_t Callback, ...) {
 	ml_method_t *Method = (ml_method_t *)Value;
-	ml_method_table_t *Table = Method->Table;
+	int Count = 0;
 	va_list Args;
 	va_start(Args, Callback);
 	ml_type_t *Type;
-	while ((Type = va_arg(Args, ml_type_t *))) Table = ml_method_insert(Table, Type);
+	while ((Type = va_arg(Args, ml_type_t *))) ++Count;
 	va_end(Args);
-	Table->Callback = ml_function(Data, Callback);
+	ml_type_t *Types[Count], **T = Types;
+	va_start(Args, Callback);
+	while ((Type = va_arg(Args, ml_type_t *))) *T++ = Type;
+	va_end(Args);
+	ml_method_define(MLRootMethods, Method, ml_function(Data, Callback), Count, 1, Types);
 }
 
 void ml_methodx_by_name(const char *Name, void *Data, ml_callbackx_t Callback, ...) {
 	ml_method_t *Method = (ml_method_t *)ml_method(Name);
-	ml_method_table_t *Table = Method->Table;
+	int Count = 0;
 	va_list Args;
 	va_start(Args, Callback);
 	ml_type_t *Type;
-	while ((Type = va_arg(Args, ml_type_t *))) Table = ml_method_insert(Table, Type);
+	while ((Type = va_arg(Args, ml_type_t *))) ++Count;
 	va_end(Args);
-	Table->Callback = ml_functionx(Data, Callback);
+	ml_type_t *Types[Count], **T = Types;
+	va_start(Args, Callback);
+	while ((Type = va_arg(Args, ml_type_t *))) *T++ = Type;
+	va_end(Args);
+	ml_method_define(MLRootMethods, Method, ml_functionx(Data, Callback), Count, 1, Types);
 }
 
 void ml_methodx_by_value(ml_value_t *Value, void *Data, ml_callbackx_t Callback, ...) {
 	ml_method_t *Method = (ml_method_t *)Value;
-	ml_method_table_t *Table = Method->Table;
+	int Count = 0;
 	va_list Args;
 	va_start(Args, Callback);
 	ml_type_t *Type;
-	while ((Type = va_arg(Args, ml_type_t *))) Table = ml_method_insert(Table, Type);
+	while ((Type = va_arg(Args, ml_type_t *))) ++Count;
 	va_end(Args);
-	Table->Callback = ml_functionx(Data, Callback);
+	ml_type_t *Types[Count], **T = Types;
+	va_start(Args, Callback);
+	while ((Type = va_arg(Args, ml_type_t *))) *T++ = Type;
+	va_end(Args);
+	ml_method_define(MLRootMethods, Method, ml_functionx(Data, Callback), Count, 1, Types);
 }
 
 void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_type_t **Types) {
 	ml_method_t *Method = (ml_method_t *)Value;
-	ml_method_table_t *Table = Method->Table;
-	for (int I = 0; I < Count; ++I) {
-		if (Types[I] == (ml_type_t *)MLNil) {
-			Table = ml_method_insert(Table, MLNilT);
-		} else {
-			Table = ml_method_insert(Table, Types[I]);
-		}
-	}
-	Table->Callback = Function;
+	ml_method_define(MLRootMethods, Method, Function, Count, 1, Types);
 }
 
 static ml_value_t *ML_TYPED_FN(ml_string_of, MLMethodT, ml_method_t *Method) {
@@ -3169,6 +3055,17 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLMethodT) {
 	ml_method_t *Method = (ml_method_t *)Args[1];
 	ml_stringbuffer_add(Buffer, Method->Name, strlen(Method->Name));
 	return MLSome;
+}
+
+ML_FUNCTION(MLMethodSet) {
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLMethodT);
+	for (int I = 1; I < Count - 1; ++I) {
+		if (Args[I] != MLNil) ML_CHECK_ARG_TYPE(I, MLTypeT);
+	}
+	ML_CHECK_ARG_TYPE(Count - 1, MLFunctionT);
+	ml_method_by_array(Args[0], Args[Count - 1], Count - 2, (ml_type_t **)(Args + 1));
+	return Args[Count - 1];
 }
 
 /****************************** Modules ******************************/
@@ -3231,6 +3128,10 @@ static ml_value_t *ML_TYPED_FN(ml_string_of, MLModuleT, ml_module_t *Module) {
 /****************************** Init ******************************/
 
 void ml_init() {
+#ifdef USE_ML_JIT
+	GC_set_pages_executable(1);
+#endif
+	GC_INIT();
 	GC_word StringBufferLayout[] = {1};
 	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
 #include "ml_types_init.c"
@@ -3252,6 +3153,7 @@ void ml_init() {
 	ml_method_by_value(MLRealOfMethod, NULL, ml_identity, MLRealT, NULL);
 	ml_method_by_value(MLStringOfMethod, NULL, ml_identity, MLStringT, NULL);
 	ml_method_by_value(MLMethodOfMethod, NULL, ml_identity, MLMethodT, NULL);
+	ml_context_set(&MLRootContext, ML_METHODS_INDEX, MLRootMethods);
 	ml_runtime_init();
 	ml_bytecode_init();
 }
@@ -3275,6 +3177,7 @@ void ml_types_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "regex", MLRegexT);
 	stringmap_insert(Globals, "method", MLMethodT);
 	stringmap_insert(MLMethodT->Exports, "of", MLMethodOfMethod);
+	stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
 	stringmap_insert(Globals, "list", MLListT);
 	stringmap_insert(Globals, "map", MLMapT);
 	stringmap_insert(Globals, "tuple", MLTupleT);

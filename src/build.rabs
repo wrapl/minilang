@@ -18,7 +18,7 @@ CFLAGS := old + [
 LDFLAGS := old + ["-lm"]
 
 if DEBUG then
-	CFLAGS := old + ["-g", "-DGC_DEBUG", "-DDEBUG"]
+	CFLAGS := old + ["-g", "-DGC_DEBUG", "-DDEBUG", "-foptimize-sibling-calls"]
 	LDFLAGS := old + ["-g"]
 else
 	CFLAGS := old + ["-O3", "-g"]
@@ -55,6 +55,7 @@ var Objects := [
 	file("ml_iterfns.o"),
 	file("sha256.o"),
 	file("stringmap.o"),
+	file("inthash.o"),
 	file("ml_console.o"),
 	file("ml_debugger.o"),
 	file("ml_object.o")
@@ -131,6 +132,16 @@ if MINILANG_SCHEDULER or defined("SCHEDULER") then
 	CFLAGS := old + ["-DUSE_ML_SCHEDULER"]
 end
 
+if MINILANG_JIT or defined("USEJIT") then
+	let Source := file("ml_bytecode_x64.dasc")
+	file("ml_bytecode_x64.c")[Source] => fun(Target) do
+		execute("lua5.2", file("dynasm/dynasm.lua"), "-o", Target, Source)
+	end
+	Objects:put(file("ml_bytecode_x64.o"))
+	CFLAGS := old + ["-DUSE_ML_JIT", "-I", Source:dirname]
+	LDFLAGS := old + ["-lZydis"]
+end
+
 if PLATFORM = "Linux" then
 	Objects := old + [file("linenoise.o")]
 	LDFLAGS := old + ["-lgc"]
@@ -167,7 +178,8 @@ var InstallHeaders := [
 	"ml_object.h",
 	"ml_compiler.h",
 	"ml_runtime.h",
-	"stringmap.h"
+	"stringmap.h",
+	"inthash.h"
 ]
 
 if MINILANG_USEMATH or defined("USEMATH") then

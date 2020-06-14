@@ -34,7 +34,9 @@ struct mlc_upvalue_t {
 	int Index;
 };
 
-#define MLC_DEF_INDEX INT_MAX
+#define MLC_DECL_CONSTANT 1
+#define MLC_DECL_FORWARD 2
+#define MLC_DECL_BACKFILL 4
 
 struct mlc_loop_t {
 	mlc_loop_t *Up;
@@ -219,16 +221,16 @@ static mlc_compiled_t ml_if_expr_compile(mlc_function_t *Function, mlc_if_expr_t
 	ml_decl_t *OldDecls = Function->Decls;
 	mlc_if_case_t *Case = Expr->Cases;
 	mlc_compiled_t Compiled = mlc_compile(Function, Case->Condition);
-	ml_inst_t *IfInst;
+	ml_inst_t *IfInst = ml_inst_new(2, Case->Source, MLI_IF);
+	ml_inst_t *ThenInst = NULL;
 	if (Case->Decl) {
-		IfInst = ml_inst_new(3, Case->Source, Case->Decl->Index ? MLI_IF_VAR : MLI_IF_LET);
+		ThenInst = ml_inst_new(2, Case->Source, Case->Decl->Index ? MLI_WITH_VAR : MLI_WITH);
 		mlc_inc_top(Function);
 		Case->Decl->Index = Function->Top - 1;
 		Case->Decl->Next = Function->Decls;
 		Function->Decls = Case->Decl;
-		IfInst->Params[2].Decls = Function->Decls;
-	} else {
-		IfInst = ml_inst_new(2, Case->Source, MLI_IF);
+		ThenInst->Params[1].Decls = Function->Decls;
+		IfInst->Params[1].Inst = ThenInst;
 	}
 	mlc_compiled_t BodyCompiled = mlc_compile(Function, Case->Body);
 	if (Case->Decl) {
@@ -241,19 +243,25 @@ static mlc_compiled_t ml_if_expr_compile(mlc_function_t *Function, mlc_if_expr_t
 		ExitInst->Params[2].Decls = Function->Decls;
 	}
 	mlc_connect(Compiled.Exits, IfInst);
-	IfInst->Params[1].Inst = BodyCompiled.Start;
+	if (ThenInst) {
+		ThenInst->Params[0].Inst = BodyCompiled.Start;
+	} else {
+		IfInst->Params[1].Inst = BodyCompiled.Start;
+	}
 	Compiled.Exits = BodyCompiled.Exits;
 	while ((Case = Case->Next)) {
 		mlc_compiled_t ConditionCompiled = mlc_compile(Function, Case->Condition);
 		IfInst->Params[0].Inst = ConditionCompiled.Start;
+		IfInst = ml_inst_new(2, Case->Source, MLI_IF);
+		ThenInst = NULL;
 		if (Case->Decl) {
-			IfInst = ml_inst_new(3, Case->Source, Case->Decl->Index ? MLI_IF_VAR : MLI_IF_LET);
+			ThenInst = ml_inst_new(2, Case->Source, Case->Decl->Index ? MLI_WITH_VAR : MLI_WITH);
 			mlc_inc_top(Function);
 			Case->Decl->Index = Function->Top - 1;
+			Case->Decl->Next = Function->Decls;
 			Function->Decls = Case->Decl;
-			IfInst->Params[2].Decls = Function->Decls;
-		} else {
-			IfInst = ml_inst_new(2, Case->Source, MLI_IF);
+			ThenInst->Params[1].Decls = Function->Decls;
+			IfInst->Params[1].Inst = ThenInst;
 		}
 		BodyCompiled = mlc_compile(Function, Case->Body);
 		if (Case->Decl) {
@@ -269,7 +277,11 @@ static mlc_compiled_t ml_if_expr_compile(mlc_function_t *Function, mlc_if_expr_t
 		while (Slot[0]) Slot = &Slot[0]->Params[0].Inst;
 		Slot[0] = BodyCompiled.Exits;
 		mlc_connect(ConditionCompiled.Exits, IfInst);
-		IfInst->Params[1].Inst = BodyCompiled.Start;
+		if (ThenInst) {
+			ThenInst->Params[0].Inst = BodyCompiled.Start;
+		} else {
+			IfInst->Params[1].Inst = BodyCompiled.Start;
+		}
 	}
 	if (Expr->Else) {
 		mlc_compiled_t BodyCompiled = mlc_compile(Function, Expr->Else);
@@ -538,8 +550,9 @@ static mlc_compiled_t ml_varx_expr_compile(mlc_function_t *Function, mlc_decl_ex
 
 static mlc_compiled_t ml_let_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
 	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
-	ml_inst_t *LetInst = ml_inst_new(2, Expr->Source, MLI_LET);
+	ml_inst_t *LetInst = ml_inst_new(2, Expr->Source, (Expr->Decl->Flags & MLC_DECL_BACKFILL) ? MLI_LETI : MLI_LET);
 	LetInst->Params[1].Index = Expr->Decl->Index - Function->Top;
+	Expr->Decl->Flags = 0;
 	mlc_connect(Compiled.Exits, LetInst);
 	Compiled.Exits = LetInst;
 	return Compiled;
@@ -548,8 +561,13 @@ static mlc_compiled_t ml_let_expr_compile(mlc_function_t *Function, mlc_decl_exp
 static mlc_compiled_t ml_letx_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
 	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
 	ml_inst_t *LetInst = ml_inst_new(3, Expr->Source, MLI_LETX);
-	LetInst->Params[1].Index = (Expr->Decl->Index - Function->Top) - (Expr->Count - 1);
+	ml_decl_t *Decl = Expr->Decl;
+	LetInst->Params[1].Index = (Decl->Index - Function->Top) - (Expr->Count - 1);
 	LetInst->Params[2].Count = Expr->Count;
+	for (int I = 0; I < Expr->Count; ++I) {
+		Decl->Flags = 0;
+		Decl = Decl->Next;
+	}
 	mlc_connect(Compiled.Exits, LetInst);
 	Compiled.Exits = LetInst;
 	return Compiled;
@@ -810,7 +828,7 @@ static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_
 		ml_decl_t **Slot = (ml_decl_t **)stringmap_slot(Decls, Decl->Ident);
 		if (Slot[0]) ml_expr_error(Expr, ml_error("NameError", "Identifier %s redefined", Decl->Ident));
 		Slot[0] = Decl;
-		Decl->Index = MLC_DEF_INDEX;
+		Decl->Flags = MLC_DECL_CONSTANT;
 		ml_decl_t *NextDecl = Decl->Next;
 		Decl->Next = Function->Decls;
 		Function->Decls = Decl;
@@ -1214,14 +1232,20 @@ static mlc_compiled_t ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_
 	for (mlc_function_t *UpFunction = Function; UpFunction; UpFunction = UpFunction->Up) {
 		for (ml_decl_t *Decl = UpFunction->Decls; Decl; Decl = Decl->Next) {
 			if (!strcmp(Decl->Ident, Expr->Ident)) {
-				if (Decl->Index == MLC_DEF_INDEX) {
+				if (Decl->Flags == MLC_DECL_CONSTANT) {
 					if (!Decl->Value) {
 						Decl->Value = ml_uninitialized();
 					}
 					return ml_ident_expr_finish(Expr, Decl->Value);
 				} else {
 					int Index = ml_upvalue_find(Function, Decl, UpFunction);
-					ml_inst_t *LocalInst = ml_inst_new(2, Expr->Source, MLI_LOCAL);
+					ml_inst_t *LocalInst;
+					if (Decl->Flags & MLC_DECL_FORWARD) Decl->Flags |= MLC_DECL_BACKFILL;
+					if ((Index >= 0) && (Decl->Flags & MLC_DECL_FORWARD)) {
+						LocalInst = ml_inst_new(2, Expr->Source, MLI_LOCALX);
+					} else {
+						LocalInst = ml_inst_new(2, Expr->Source, MLI_LOCAL);
+					}
 					LocalInst->Params[1].Index = Index;
 					return (mlc_compiled_t){LocalInst, LocalInst};
 				}
@@ -2458,6 +2482,7 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 						++Count;
 						Decl = LetsSlot[0] = new(ml_decl_t);
 						Decl->Ident = Scanner->Ident;
+						Decl->Flags = MLC_DECL_FORWARD;
 						LetsSlot = &Decl->Next;
 					} while (ml_parse(Scanner, MLT_COMMA));
 					ml_accept(Scanner, MLT_RIGHT_PAREN);
@@ -2472,6 +2497,7 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 					ml_accept(Scanner, MLT_IDENT);
 					ml_decl_t *Decl = LetsSlot[0] = new(ml_decl_t);
 					Decl->Ident = Scanner->Ident;
+					Decl->Flags = MLC_DECL_FORWARD;
 					LetsSlot = &Decl->Next;
 					ML_EXPR(DeclExpr, decl, let);
 					DeclExpr->Decl = Decl;
@@ -2543,6 +2569,7 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 			if (ml_parse(Scanner, MLT_IDENT)) {
 				ml_decl_t *Decl = LetsSlot[0] = new(ml_decl_t);
 				Decl->Ident = Scanner->Ident;
+				Decl->Flags = MLC_DECL_FORWARD;
 				LetsSlot = &Decl->Next;
 				ml_accept(Scanner, MLT_LEFT_PAREN);
 				ML_EXPR(DeclExpr, decl, let);
@@ -2577,6 +2604,7 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 			if (ml_parse(Scanner, MLT_IDENT)) {
 				ml_decl_t *Decl = LetsSlot[0] = new(ml_decl_t);
 				Decl->Ident = Scanner->Ident;
+				Decl->Flags = MLC_DECL_FORWARD;
 				LetsSlot = &Decl->Next;
 				ML_EXPR(DeclExpr, decl, let);
 				DeclExpr->Decl = Decl;

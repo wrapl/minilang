@@ -11,7 +11,12 @@
 #include "ml_debugger.h"
 #endif
 
+#ifdef USE_ML_JIT
+#include "ml_bytecode_jit.h"
+#endif
+
 #ifdef DEBUG_VERSION
+
 #undef DEBUG_STRUCT
 #undef DEBUG_FUNC
 #undef DEBUG_TYPE
@@ -19,13 +24,7 @@
 #define DEBUG_STRUCT(X) ml_ ## X ## _debug_t
 #define DEBUG_FUNC(X) ml_ ## X ## _debug
 #define DEBUG_TYPE(X) ML ## X ## DebugT
-#define DEBUG_VAR(X) ML ## X
-#else
-#define DEBUG_STRUCT(X) ml_ ## X ## _t
-#define DEBUG_FUNC(X) ml_ ## X
-#define DEBUG_TYPE(X) ML ## X ## T
 #define DEBUG_VAR(X) ML ## X ## Debug
-#endif
 
 typedef struct DEBUG_STRUCT(frame) DEBUG_STRUCT(frame);
 
@@ -48,6 +47,15 @@ struct DEBUG_STRUCT(frame) {
 #endif
 	ml_value_t *Stack[];
 };
+
+#else
+
+#define DEBUG_STRUCT(X) ml_ ## X ## _t
+#define DEBUG_FUNC(X) ml_ ## X
+#define DEBUG_TYPE(X) ML ## X ## T
+#define DEBUG_VAR(X) ML ## X
+
+#endif
 
 static void DEBUG_FUNC(continuation_call)(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
 	return State->run(State, Count ? Args[0] : MLNil);
@@ -157,11 +165,10 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_NIL] = &&DO_NIL,
 		[MLI_SOME] = &&DO_SOME,
 		[MLI_IF] = &&DO_IF,
-		[MLI_IF_VAR] = &&DO_IF_VAR,
-		[MLI_IF_LET] = &&DO_IF_LET,
 		[MLI_ELSE] = &&DO_ELSE,
 		[MLI_PUSH] = &&DO_PUSH,
 		[MLI_WITH] = &&DO_WITH,
+		[MLI_WITH_VAR] = &&DO_WITH_VAR,
 		[MLI_WITHX] = &&DO_WITHX,
 		[MLI_POP] = &&DO_POP,
 		[MLI_ENTER] = &&DO_ENTER,
@@ -173,6 +180,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_VAR] = &&DO_VAR,
 		[MLI_VARX] = &&DO_VARX,
 		[MLI_LET] = &&DO_LET,
+		[MLI_LETI] = &&DO_LETI,
 		[MLI_LETX] = &&DO_LETX,
 		[MLI_FOR] = &&DO_FOR,
 		[MLI_NEXT] = &&DO_NEXT,
@@ -182,6 +190,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_CONST_CALL] = &&DO_CONST_CALL,
 		[MLI_ASSIGN] = &&DO_ASSIGN,
 		[MLI_LOCAL] = &&DO_LOCAL,
+		[MLI_LOCALX] = &&DO_LOCALX,
 		[MLI_TUPLE_NEW] = &&DO_TUPLE_NEW,
 		[MLI_TUPLE_SET] = &&DO_TUPLE_SET,
 		[MLI_LIST_NEW] = &&DO_LIST_NEW,
@@ -246,36 +255,6 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			ADVANCE(1);
 		}
 	}
-	DO_IF_VAR: {
-		Result = Result->Type->deref(Result);
-		ERROR_CHECK(Result);
-		if (Result == MLNil) {
-			ADVANCE(0);
-		} else {
-			ml_reference_t *Local = xnew(ml_reference_t, 1, ml_value_t *);
-			Local->Type = MLReferenceT;
-			Local->Address = Local->Value;
-			Local->Value[0] = Result;
-			*Top++ = (ml_value_t *)Local;
-#ifdef DEBUG_VERSION
-			Frame->Decls = Inst->Params[2].Decls;
-#endif
-			ADVANCE(1);
-		}
-	}
-	DO_IF_LET: {
-		Result = Result->Type->deref(Result);
-		ERROR_CHECK(Result);
-		if (Result == MLNil) {
-			ADVANCE(0);
-		} else {
-			*Top++ = Result;
-#ifdef DEBUG_VERSION
-			Frame->Decls = Inst->Params[2].Decls;
-#endif
-			ADVANCE(1);
-		}
-	}
 	DO_ELSE: {
 		Result = Result->Type->deref(Result);
 		ERROR_CHECK(Result);
@@ -296,6 +275,17 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #endif
 		ADVANCE(0);
 	}
+	DO_WITH_VAR: {
+		ml_reference_t *Local = xnew(ml_reference_t, 1, ml_value_t *);
+		Local->Type = MLReferenceT;
+		Local->Address = Local->Value;
+		Local->Value[0] = Result;
+		*Top++ = (ml_value_t *)Local;
+#ifdef DEBUG_VERSION
+		Frame->Decls = Inst->Params[1].Decls;
+#endif
+		ADVANCE(0);
+	}
 	DO_WITHX: {
 		if (Result->Type != MLTupleT) {
 			Result = ml_error("TypeError", "Can only unpack tuples");
@@ -303,8 +293,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			ERROR();
 		}
 		ml_tuple_t *Tuple = (ml_tuple_t *)Result;
-		if (Tuple->Size < Inst->Params[2].Count) {
-			Result = ml_error("ValueError", "Tuple has too few values (%d < %d)", Tuple->Size, Inst->Params[2].Count);
+		if (Tuple->Size < Inst->Params[1].Count) {
+			Result = ml_error("ValueError", "Tuple has too few values (%d < %d)", Tuple->Size, Inst->Params[1].Count);
 			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
 			ERROR();
 		}
@@ -403,9 +393,15 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_LET: {
 		Result = Result->Type->deref(Result);
 		ERROR_CHECK(Result);
-		ml_value_t *Uninitialized = Top[Inst->Params[1].Index];
-		if (Uninitialized) ml_uninitialized_set(Uninitialized, Result);
 		Top[Inst->Params[1].Index] = Result;
+		ADVANCE(0);
+	}
+	DO_LETI: {
+		Result = Result->Type->deref(Result);
+		ERROR_CHECK(Result);
+		ml_value_t *Uninitialized = Top[Inst->Params[1].Index];
+		Top[Inst->Params[1].Index] = Result;
+		if (Uninitialized) ml_uninitialized_set(Uninitialized, Result);
 		ADVANCE(0);
 	}
 	DO_LETX: {
@@ -427,8 +423,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			Result = Tuple->Values[I]->Type->deref(Tuple->Values[I]);
 			ERROR_CHECK(Result);
 			ml_value_t *Uninitialized = Base[I];
-			if (Uninitialized) ml_uninitialized_set(Uninitialized, Result);
 			Base[I] = Result;
+			if (Uninitialized) ml_uninitialized_set(Uninitialized, Result);
 		}
 		ADVANCE(0);
 	}
@@ -516,11 +512,14 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_LOCAL: {
 		int Index = Inst->Params[1].Index;
-		ml_value_t **Slot = (Index < 0) ? &Frame->UpValues[~Index] : &Frame->Stack[Index];
+		Result = (Index < 0) ? Frame->UpValues[~Index] : Frame->Stack[Index];
+		ADVANCE(0);
+	}
+	DO_LOCALX: {
+		int Index = Inst->Params[1].Index;
+		ml_value_t **Slot = &Frame->Stack[Index];
 		Result = Slot[0];
-		if (!Result) {
-			Result = Slot[0] = ml_uninitialized();
-		}
+		if (!Result) Result = Slot[0] = ml_uninitialized();
 		ADVANCE(0);
 	}
 	DO_TUPLE_NEW: {
@@ -745,6 +744,14 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	if (Debugger->StepIn) {
 		return Debugger->run(Debugger, (ml_state_t *)Frame, MLNil);
 	}
+#else
+#ifdef USE_ML_JIT
+	if (Info->JITStart) {
+		Frame->Base.run = Info->JITStart;
+		Frame->Inst = Info->JITEntry;
+		Frame->OnError = Info->JITReturn;
+	}
+#endif
 #endif
 	ML_CONTINUE(Frame, MLNil);
 }
@@ -757,11 +764,10 @@ const char *MLInsts[] = {
 	"nil", // MLI_NIL,
 	"some", // MLI_SOME,
 	"if", // MLI_IF,
-	"if_var", // MLI_IF_VAR,
-	"if_let", // MLI_IF_LET,
 	"else", // MLI_ELSE,
 	"push", // MLI_PUSH,
 	"with", // MLI_WITH,
+	"with_var", // MLI_WITH_VAR,
 	"withx", // MLI_WITHX,
 	"pop", // MLI_POP,
 	"enter", // MLI_ENTER,
@@ -773,6 +779,7 @@ const char *MLInsts[] = {
 	"var", // MLI_VAR,
 	"varx", // MLI_VARX,
 	"let", // MLI_LET,
+	"leti", // MLI_LETI,
 	"letx", // MLI_LETX,
 	"for", // MLI_FOR,
 	"next", // MLI_NEXT,
@@ -782,6 +789,7 @@ const char *MLInsts[] = {
 	"const_call", // MLI_CONST_CALL,
 	"assign", // MLI_ASSIGN,
 	"local", // MLI_LOCAL,
+	"localx", // MLI_LOCALX,
 	"tuple_new", // MLI_TUPLE_NEW,
 	"tuple_set", // MLI_TUPLE_SET,
 	"list_new", // MLI_LIST_NEW,
@@ -793,19 +801,6 @@ const char *MLInsts[] = {
 	"partial_set" // MLI_PARTIAL_SET
 };
 
-typedef enum {
-	MLIT_NONE,
-	MLIT_INST,
-	MLIT_INST_INST,
-	MLIT_INST_INDEX,
-	MLIT_INST_INDEX_COUNT,
-	MLIT_INST_COUNT,
-	MLIT_INST_COUNT_COUNT,
-	MLIT_INST_COUNT_VALUE,
-	MLIT_INST_VALUE,
-	MLIT_INST_CLOSURE
-} ml_inst_type_t;
-
 const ml_inst_type_t MLInstTypes[] = {
 	MLIT_NONE, // MLI_RETURN,
 	MLIT_INST, // MLI_SUSPEND,
@@ -813,11 +808,10 @@ const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INST, // MLI_NIL,
 	MLIT_INST, // MLI_SOME,
 	MLIT_INST_INST, // MLI_IF,
-	MLIT_INST_INST, // MLI_IF_VAR,
-	MLIT_INST_INST, // MLI_IF_LET,
 	MLIT_INST_INST, // MLI_ELSE,
 	MLIT_INST, // MLI_PUSH,
 	MLIT_INST, // MLI_WITH,
+	MLIT_INST, // MLI_WITH_VAR,
 	MLIT_INST_COUNT, // MLI_WITHX,
 	MLIT_INST, // MLI_POP,
 	MLIT_INST_COUNT_COUNT, // MLI_ENTER,
@@ -829,6 +823,7 @@ const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INST_INDEX, // MLI_VAR,
 	MLIT_INST_INDEX_COUNT, // MLI_VARX,
 	MLIT_INST_INDEX, // MLI_LET,
+	MLIT_INST_INDEX, // MLI_LETI,
 	MLIT_INST_INDEX_COUNT, // MLI_LETX,
 	MLIT_INST, // MLI_FOR,
 	MLIT_INST_COUNT, // MLI_NEXT,
@@ -838,6 +833,7 @@ const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INST_COUNT_VALUE, // MLI_CONST_CALL,
 	MLIT_INST, // MLI_ASSIGN,
 	MLIT_INST_INDEX, // MLI_LOCAL,
+	MLIT_INST_INDEX, // MLI_LOCALX,
 	MLIT_INST_COUNT, // MLI_TUPLE_NEW,
 	MLIT_INST_INDEX, // MLI_TUPLE_SET,
 	MLIT_INST, // MLI_LIST_NEW,
@@ -898,7 +894,10 @@ static void ml_inst_process(int Process, ml_inst_t *Source, ml_inst_t *Inst, uns
 }
 
 void ml_closure_info_finish(ml_closure_info_t *Info) {
-	ml_inst_process(Info->Entry->Processed + 1, NULL, Info->Entry, Info->Hash, 0, 0);
+	ml_inst_process(!Info->Entry->Processed, NULL, Info->Entry, Info->Hash, 0, 0);
+#ifdef USE_ML_JIT
+	ml_bytecode_jit(Info);
+#endif
 }
 
 void ml_closure_sha256(ml_value_t *Value, unsigned char Hash[SHA256_BLOCK_SIZE]) {
@@ -957,8 +956,6 @@ static void ml_inst_graph(int Process, FILE *Graph, ml_inst_t *Inst) {
 	if (Inst->Opcode != MLI_RETURN) Next = Inst->Params[0].Inst;
 	switch (Inst->Opcode) {
 	case MLI_IF:
-	case MLI_IF_VAR:
-	case MLI_IF_LET:
 		NotNil = Inst->Params[1].Inst;
 		break;
 	case MLI_ELSE:
@@ -977,7 +974,9 @@ static void ml_inst_graph(int Process, FILE *Graph, ml_inst_t *Inst) {
 	case MLI_CATCH:
 	case MLI_VAR:
 	case MLI_LET:
+	case MLI_LETI:
 	case MLI_LOCAL:
+	case MLI_LOCALX:
 	case MLI_TUPLE_SET:
 	case MLI_PARTIAL_SET:
 		fprintf(Graph, "%d", Inst->Params[1].Index);
@@ -998,7 +997,7 @@ static void ml_inst_graph(int Process, FILE *Graph, ml_inst_t *Inst) {
 		} else if (Value->Type == MLRealT) {
 			fprintf(Graph, "%f", ml_real_value(Value));
 		} else {
-			fprintf(Graph, "%s", Inst->Params[1].Value->Type->Name);
+			fprintf(Graph, "%s", Value->Type->Name);
 		}
 		break;
 	}
@@ -1012,7 +1011,7 @@ static void ml_inst_graph(int Process, FILE *Graph, ml_inst_t *Inst) {
 			if (Value->Type == MLStringT) {
 				fprintf(Graph, "%s", ml_string_value(Value));
 			} else {
-				fprintf(Graph, "%s", Inst->Params[2].Value->Type->Name);
+				fprintf(Graph, "%s", Value->Type->Name);
 			}
 		}
 		break;
@@ -1040,7 +1039,7 @@ const char *ml_closure_info_debug(ml_closure_info_t *Info) {
 	fprintf(File, "digraph C%" PRIxPTR " {\n", (uintptr_t)Info);
 	fprintf(File, "\tgraph [compound=true,ranksep=0.3];\n");
 	fprintf(File, "\tnode [shape=plaintext,margin=0.1,height=0];\n");
-	ml_inst_graph(Info->Entry->Processed + 1, File, Info->Entry);
+	ml_inst_graph(!Info->Entry->Processed, File, Info->Entry);
 	fprintf(File, "}\n");
 	fclose(File);
 	printf("Wrote closure to %s\n", FileName);
@@ -1050,6 +1049,130 @@ const char *ml_closure_info_debug(ml_closure_info_t *Info) {
 const char *ml_closure_debug(ml_value_t *Value) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
 	return ml_closure_info_debug(Closure->Info);
+}
+
+static void ml_closure_find_labels(int Process, ml_inst_t *Inst, unsigned int *Labels, int NonLinear) {
+	if (Inst->Processed == Process) {
+		Inst->Label = ++*Labels;
+		return;
+	}
+	if (NonLinear) Inst->Label = ++*Labels;
+	Inst->Processed = Process;
+	if (MLInstTypes[Inst->Opcode] != MLIT_NONE) {
+		ml_closure_find_labels(Process, Inst->Params[0].Inst, Labels, 0);
+	}
+	if (MLInstTypes[Inst->Opcode] == MLIT_INST_INST) {
+		ml_closure_find_labels(Process, Inst->Params[1].Inst, Labels, 1);
+	}
+}
+
+static void ml_closure_inst_list(int Process, ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
+	if (Inst->Processed == Process) {
+		ml_stringbuffer_addf(Buffer, "\tjump L%d\n", Inst->Label);
+		return;
+	}
+	if (Inst->Label) ml_stringbuffer_addf(Buffer, "L%d:\n", Inst->Label);
+	Inst->Processed = Process;
+	ml_stringbuffer_addf(Buffer, "\t%s", MLInsts[Inst->Opcode]);
+	switch (MLInstTypes[Inst->Opcode]) {
+	case MLIT_INST_INST:
+		ml_stringbuffer_addf(Buffer, " -> L%d", Inst->Params[1].Inst->Label);
+		break;
+	case MLIT_INST_COUNT_COUNT:
+		ml_stringbuffer_addf(Buffer, " %d, %d", Inst->Params[1].Count, Inst->Params[2].Count);
+		break;
+	case MLIT_INST_COUNT:
+		ml_stringbuffer_addf(Buffer, " %d", Inst->Params[1].Count);
+		break;
+	case MLIT_INST_INDEX:
+		ml_stringbuffer_addf(Buffer, " %d", Inst->Params[1].Index);
+		break;
+	case MLIT_INST_VALUE: {
+		ml_value_t *Value = Inst->Params[1].Value;
+		if (Value->Type == MLStringT) {
+			ml_stringbuffer_add(Buffer, " \"", 2);
+			int Length = ml_string_length(Value);
+			const char *String = ml_string_value(Value);
+			for (int I = 0; I < Length; ++I) switch (String[I]) {
+				case 0: ml_stringbuffer_add(Buffer, "\\0", 2); break;
+				case '\t': ml_stringbuffer_add(Buffer, "\\t", 2); break;
+				case '\r': ml_stringbuffer_add(Buffer, "\\r", 2); break;
+				case '\n': ml_stringbuffer_add(Buffer, "\\n", 2); break;
+				case '\'': ml_stringbuffer_add(Buffer, "\\\'", 2); break;
+				case '\"': ml_stringbuffer_add(Buffer, "\\\"", 2); break;
+				case '\\': ml_stringbuffer_add(Buffer, "\\\\", 2); break;
+				default: ml_stringbuffer_add(Buffer, String + I, 1); break;
+			}
+			ml_stringbuffer_add(Buffer, "\"", 1);
+		} else if (Value->Type == MLIntegerT) {
+			ml_stringbuffer_addf(Buffer, " %ld", ml_integer_value(Value));
+		} else if (Value->Type == MLRealT) {
+			ml_stringbuffer_addf(Buffer, " %f", ml_real_value(Value));
+		} else if (Value->Type == MLMethodT) {
+			ml_stringbuffer_addf(Buffer, " :%s", ml_method_name(Value));
+		} else {
+			ml_stringbuffer_addf(Buffer, " %s", Value->Type->Name);
+		}
+		break;
+	}
+	case MLIT_INST_INDEX_COUNT:
+		ml_stringbuffer_addf(Buffer, " %d, %d", Inst->Params[1].Index, Inst->Params[2].Count);
+		break;
+	case MLIT_INST_COUNT_VALUE: {
+		ml_stringbuffer_addf(Buffer, " %d, ", Inst->Params[1].Count);
+		ml_value_t *Value = Inst->Params[2].Value;
+		if (Value->Type == MLStringT) {
+			int Length = ml_string_length(Value);
+			const char *String = ml_string_value(Value);
+			for (int I = 0; I < Length; ++I) switch (String[I]) {
+				case 0: ml_stringbuffer_add(Buffer, "\\0", 2); break;
+				case '\t': ml_stringbuffer_add(Buffer, "\\t", 2); break;
+				case '\r': ml_stringbuffer_add(Buffer, "\\r", 2); break;
+				case '\n': ml_stringbuffer_add(Buffer, "\\n", 2); break;
+				case '\'': ml_stringbuffer_add(Buffer, "\\\'", 2); break;
+				case '\"': ml_stringbuffer_add(Buffer, "\\\"", 2); break;
+				case '\\': ml_stringbuffer_add(Buffer, "\\\\", 2); break;
+				default: ml_stringbuffer_add(Buffer, String + I, 1); break;
+			}
+		} else if (Value->Type == MLIntegerT) {
+			ml_stringbuffer_addf(Buffer, "%ld", ml_integer_value(Value));
+		} else if (Value->Type == MLRealT) {
+			ml_stringbuffer_addf(Buffer, "%f", ml_real_value(Value));
+		} else if (Value->Type == MLMethodT) {
+			ml_stringbuffer_addf(Buffer, ":%s", ml_method_name(Value));
+		} else {
+			ml_stringbuffer_addf(Buffer, "%s", Value->Type->Name);
+		}
+		break;
+	}
+	case MLIT_INST_CLOSURE: {
+		ml_stringbuffer_addf(Buffer, " closure");
+		ml_closure_info_t *Info = Inst->Params[1].ClosureInfo;
+		for (int N = 0; N < Info->NumUpValues; ++N) {
+			ml_stringbuffer_addf(Buffer, ", %d", Inst->Params[2 + N].Index);
+		}
+		break;
+	default:
+		break;
+	}
+	}
+	ml_stringbuffer_add(Buffer, "\n", 1);
+	if (Inst->Opcode != MLI_RETURN) {
+		ml_closure_inst_list(Process, Inst->Params[0].Inst, Buffer);
+	}
+	if (MLInstTypes[Inst->Opcode] == MLIT_INST_INST) {
+		ml_closure_inst_list(Process, Inst->Params[1].Inst, Buffer);
+	}
+}
+
+ML_METHOD("list", MLClosureT) {
+	ml_closure_t *Closure = (ml_closure_t *)Args[0];
+	ml_closure_info_t *Info = Closure->Info;
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	unsigned int Labels = 0;
+	ml_closure_find_labels(!Info->Entry->Processed, Info->Entry, &Labels, 0);
+	ml_closure_inst_list(!Info->Entry->Processed, Info->Entry, Buffer);
+	return ml_stringbuffer_get_string(Buffer);
 }
 
 ML_METHOD("!!", MLClosureT, MLListT) {
@@ -1063,6 +1186,16 @@ ML_METHOD("!!", MLClosureT, MLListT) {
 	ML_LIST_FOREACH(ArgsList, Node) *Arg++ = Node->Value;
 	return (ml_value_t *)Partial;
 }
+
+#ifdef USE_ML_JIT
+
+ML_METHOD("jit", MLClosureT) {
+	ml_closure_info_t *Info = ((ml_closure_t *)Args[0])->Info;
+	if (!Info->JITEntry) ml_bytecode_jit(Info);
+	return Args[0];
+}
+
+#endif
 
 #ifdef USE_ML_CBOR_BYTECODE
 
@@ -1188,11 +1321,10 @@ void ml_cbor_write_closure(ml_closure_t *Closure, ml_stringbuffer_t *Buffer) {
 	sprintf(InstName, "%" PRIxPTR, (uintptr_t)Info->Return);
 	char **Slot = (char **)stringmap_slot(Refs, InstName);
 	Slot[0] = (char *)NULL + Refs->Size;
-	int Process = Info->Entry->Processed + 1;
-	Info->Return->Processed = Process;
-	ml_cbor_closure_find_refs(Process, Info->Entry, Refs);
+	Info->Return->Processed = !Info->Entry->Processed;
+	ml_cbor_closure_find_refs(!Info->Entry->Processed, Info->Entry, Refs);
 	ml_cbor_closure_write_int(Refs->Size, Buffer);
-	ml_cbor_closure_write_inst(Info->Entry->Processed + 1, Info->Entry, Refs, Buffer);
+	ml_cbor_closure_write_inst(!Info->Entry->Processed, Info->Entry, Refs, Buffer);
 	ml_cbor_closure_write_string(Info->Source, Buffer);
 	// TODO: Write Info->Decls
 	ml_cbor_closure_write_int(Info->Params->Size, Buffer);

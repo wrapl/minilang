@@ -354,12 +354,13 @@ int ml_error_trace(ml_value_t *Value, int Level, const char **Source, int *Line)
 	return 1;
 }
 
-void ml_error_trace_add(ml_value_t *Value, ml_source_t Source) {
+ml_value_t *ml_error_trace_add(ml_value_t *Value, ml_source_t Source) {
 	ml_error_t *Error = (ml_error_t *)Value;
 	for (int I = 0; I < MAX_TRACE; ++I) if (!Error->Trace[I].Name) {
 		Error->Trace[I] = Source;
-		return;
+		break;
 	}
+	return Value;
 }
 
 void ml_error_print(ml_value_t *Value) {

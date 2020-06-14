@@ -1,0 +1,758 @@
+#include "ml_bytecode_jit.h"
+#include "ml_macros.h"
+#include <stdio.h>
+#include <stdint.h>
+#include <inttypes.h>
+
+#define DASM_M_GROW(ctx, t, p, sz, need) { \
+	(p) = GC_REALLOC((p), (need)); \
+	(sz) = (need); \
+}
+#define DASM_M_FREE(ctx, p, sz) {}
+
+#define Dst			Assembler
+#define Dst_DECL	ml_assembler_t *Assembler
+#define Dst_REF		Assembler->Dynasm
+
+typedef struct ml_assembler_t ml_assembler_t;
+
+struct ml_assembler_t {
+	struct dasm_State *Dynasm;
+	stringmap_t Globals[1];
+};
+
+#include "dynasm/dasm_proto.h"
+#include "dynasm/dasm_x86.h"
+
+| .arch x64
+| .actionlist ActionList
+| .globals Globals
+| .globalnames GlobalNames
+| .section values, code
+| .macro global, Name 
+|| if (need_global(Assembler, "Name")) {
+|   .values
+|   ->..Name:
+|   .dword (uint32_t)(uintptr_t)Name, (uint64_t)Name >> 32
+|   .code
+|| }
+| .endmacro
+
+ML_TYPE(MLJITSuspensionT, MLStateT, "jit-suspension");
+
+|.type FRAME, ml_frame_t, rbp
+|.type RESULT, ml_value_t, rax
+|.type STATE, ml_state_t
+|.type VALUE, ml_value_t
+|.type TYPE, ml_type_t
+|.type REFERENCE, ml_reference_t
+|.type TUPLE, ml_tuple_t
+|.type CLOSURE, ml_closure_t
+
+static void ml_closure_inst_prepare(int Process, ml_inst_t *Inst, int NonLinear, int *NumLabels) {
+	if (Inst->Processed == Process) {
+		Inst->Label = ++*NumLabels;
+		return;
+	}
+	Inst->Processed = Process;
+	if (NonLinear) Inst->Label = ++*NumLabels;
+	if (MLInstTypes[Inst->Opcode] == MLIT_INST_INST) {
+		ml_closure_inst_prepare(Process, Inst->Params[1].Inst, 1, NumLabels);
+	}
+	if (MLInstTypes[Inst->Opcode] != MLIT_NONE) {
+		ml_closure_inst_prepare(Process, Inst->Params[0].Inst, 0, NumLabels);
+	}
+}
+
+static void entry_jit(ml_assembler_t *Assembler) {
+	// rdi = Frame
+	// rsi = Result
+	| push rbp
+	| push rbx
+	| mov rbp, rdi
+	| mov rax, rsi
+	| mov rbx, FRAME->Top
+	// rbp = Frame
+	// rax = Result
+	// rbx = Top
+}
+
+static void exit_jit(ml_assembler_t *Assembler) {
+	| pop rbx
+	| pop rbp
+}
+
+static void check_error_jit(ml_assembler_t *Assembler) {
+	| mov rcx, RESULT->Type
+	| cmp rcx, [->MLErrorT]
+	| je =>2
+}
+
+static void deref_jit(ml_assembler_t *Assembler) {
+	| mov rdi, rax
+	| mov rax, RESULT->Type
+	| call aword TYPE:rax->deref
+	check_error_jit(Assembler);
+}
+
+static int need_global(ml_assembler_t *Assembler, const char *Name) {
+	void **Slot = stringmap_slot(Assembler->Globals, Name);
+	if (Slot[0]) return 0;
+	Slot[0] = (void *)Name;
+	return 1;
+}
+
+static ml_value_t **ml_locals(ml_value_t **Top, int Vars, int Nils) {
+	while (--Vars >= 0) {
+		ml_reference_t *Local = xnew(ml_reference_t, 1, ml_value_t *);
+		Local->Type = MLReferenceT;
+		Local->Address = Local->Value;
+		Local->Value[0] = MLNil;
+		*Top++ = (ml_value_t *)Local;
+	}
+	while (--Nils >= 0) *Top++ = NULL;
+	return Top;
+}
+
+static ml_value_t *ml_local(ml_value_t *Value) {
+	ml_reference_t *Local = xnew(ml_reference_t, 1, ml_value_t *);
+	Local->Type = MLReferenceT;
+	Local->Address = Local->Value;
+	Local->Value[0] = Value;
+	return (ml_value_t *)Local;
+}
+
+static ml_value_t *ml_closure(ml_closure_info_t *Info) {
+	ml_closure_t *Closure = xnew(ml_closure_t, Info->NumUpValues, ml_value_t *);
+	Closure->Type = MLClosureT;
+	Closure->Info = Info;
+	return (ml_value_t *)Closure;
+}
+
+static ml_value_t *can_only_unpack_tuples_error() {
+	return ml_error("TypeError", "Can only unpack tuples");
+}
+
+static ml_value_t *tuple_has_too_few_values_error() {
+	return ml_error("ValueError", "Tuple has too few values");
+}
+
+static ml_value_t *expected_error_value_error(ml_type_t *Type) {
+	return ml_error("InternalError", "expected error value, not %s", Type->Name);
+}
+
+extern ml_type_t MLSuspensionT[];
+
+static void ml_closure_inst_jit(int Process, ml_inst_t *Inst, ml_assembler_t *Assembler) {
+	if (Inst->Processed == Process) {
+		| jmp =>Inst->Label
+		return;
+	}
+	if (Inst->Label) {
+		|=>Inst->Label:
+	}
+	Inst->Processed = Process;
+	// rbp = Frame
+	// rsi = Result
+	// rbp = Values
+	// rbx = Top
+	// free = rax, rdx, rcx, r8, r9, r10
+	switch (Inst->Opcode) {
+	case MLI_RETURN: {
+#ifdef USE_ML_SCHEDULER
+		//Frame->Schedule.Counter[0] = Counter;
+#endif
+		| mov rdi, FRAME->Base.Caller
+		| mov rsi, rax
+		exit_jit(Assembler);
+		| jmp aword STATE:rdi->run
+		break;
+	}
+	case MLI_SUSPEND: {
+		| lea rcx, [>1]
+		| mov FRAME->Inst, rcx
+		| mov FRAME->Top, rbx
+#ifdef USE_ML_SCHEDULER
+		//Frame->Schedule.Counter[0] = Counter;
+#endif
+		| global MLSuspensionT
+		| mov rcx, [->MLSuspensionT]
+		| mov FRAME->Base.Type, rcx
+		| mov rdi, FRAME->Base.Caller
+		| mov rsi, rbp
+		exit_jit(Assembler);
+		| jmp aword STATE:rdi->run
+		| 1:
+		break;
+	}
+	case MLI_RESUME: {
+		| xor rdx, rdx
+		| sub rbx, 8
+		| mov [rbx], rdx
+		break;
+	}
+	case MLI_NIL: {
+		| mov rax, [->MLNil]
+		break;
+	}
+	case MLI_SOME: {
+		| global MLSome
+		| mov rax, [->MLSome]
+		break;
+	}
+	case MLI_IF: {
+		deref_jit(Assembler);
+		| cmp rax, aword [->MLNil]
+		| jne =>Inst->Params[1].Inst->Label
+		break;
+	}
+	case MLI_ELSE: {
+		deref_jit(Assembler);
+		| cmp rax, aword [->MLNil]
+		| je =>Inst->Params[1].Inst->Label
+		break;
+	}
+	case MLI_PUSH: {
+		| mov [rbx], rax
+		| add rbx, 8
+		break;
+	}
+	case MLI_WITH: {
+		| mov [rbx], rax
+		| add rbx, 8
+		break;
+	}
+	case MLI_WITH_VAR: {
+		| mov rdi, rax
+		| global ml_local
+		| call aword [->ml_local]
+		| mov [rbx], rax
+		| add rbx, 8
+		break;
+	}
+	case MLI_WITHX: {
+		| global MLTupleT
+		| mov rcx, RESULT->Type
+		| cmp rcx, [->MLTupleT]
+		| je >1
+		| global can_only_unpack_tuples_error
+		| call aword [->can_only_unpack_tuples_error]
+		| jmp =>2
+		| 1:
+		| cmp dword TUPLE:rax->Size, Inst->Params[1].Count
+		| jge >1
+		| global tuple_has_too_few_values_error
+		| call aword [->tuple_has_too_few_values_error]
+		| jmp =>2
+		| 1:
+		| global ml_uninitialized_set
+		for (int I = 0; I < Inst->Params[1].Count; ++I) {
+			| mov rcx, TUPLE:rax->Values[I]
+			| mov [rbx + 8 * I], rcx
+		}
+		| add rbx, 8 * Inst->Params[1].Count
+		break;
+	}
+	case MLI_POP: {
+		| sub rbx, 8
+		| xor rdx, rdx
+		| mov rax, [rbx]
+		| mov [rbx], rdx
+		break;
+	}
+	case MLI_ENTER: {
+		| push rax
+		| mov rdi, rbx
+		| mov rsi, Inst->Params[1].Count
+		| mov rdx, Inst->Params[2].Count
+		| global ml_locals
+		| call aword [->ml_locals]
+		| mov rbx, rax
+		| pop rax
+		break;
+	}
+	case MLI_EXIT: {
+		| xor rdx, rdx
+		for (int I = Inst->Params[1].Count; --I >= 0;) {
+			| sub rbx, 8
+			| mov [rbx], rdx
+		}
+		break;
+	}
+	case MLI_LOOP: {
+		break;
+	}
+	case MLI_TRY: {
+		| lea rcx, [=>Inst->Params[1].Inst->Label]
+		| mov FRAME->OnError, rcx
+		break;
+	}
+	case MLI_CATCH: {
+		| mov rdi, RESULT->Type
+		| cmp rdi, [->MLErrorT]
+		| je >1
+		| global expected_error_value_error
+		| call aword [->expected_error_value_error]
+		| jmp =>2
+		| 1:
+		| global MLErrorValueT
+		| mov rcx, [->MLErrorValueT]
+		| mov RESULT->Type, rcx
+		| lea rcx, FRAME->Stack[Inst->Params[1].Index]
+		| xor rdx, rdx
+		| cmp rbx, rcx
+		| jbe >2
+		| 1:
+		| sub rbx, 8
+		| mov [rbx], rdx
+		| cmp rbx, rcx
+		| ja <1
+		| 2:
+		| mov [rbx], rax
+		| add rbx, 8
+		break;
+	}
+	case MLI_LOAD: {
+		| .values
+		| 1:
+		| .dword (uint32_t)(intptr_t)Inst->Params[1].Value, (uint64_t)Inst->Params[1].Value >> 32
+		| .code
+		| mov rax, [<1]
+		break;
+	}
+	case MLI_VAR: {
+		deref_jit(Assembler);
+		| mov rcx, [rbx + Inst->Params[1].Index * 8]
+		| mov REFERENCE:rcx->Value, rax
+		break;
+	}
+	case MLI_VARX: {
+		deref_jit(Assembler);
+		| global MLTupleT
+		| mov rcx, RESULT->Type
+		| cmp rcx, [MLTupleT]
+		| je >1
+		| global can_only_unpack_tuples_error
+		| call aword [->can_only_unpack_tuples_error]
+		| jmp =>2
+		| 1:
+		| cmp dword TUPLE:rax->Size, Inst->Params[2].Count
+		| jge >1
+		| global tuple_has_too_few_values_error
+		| call aword [->tuple_has_too_few_values_error]
+		| jmp =>2
+		| 1:
+		int Index = Inst->Params[1].Index;
+		for (int I = 0; I < Inst->Params[2].Count; ++I) {
+			| push rax
+			| mov rax, TUPLE:rax->Values[I]
+			deref_jit(Assembler);
+			| mov rdi, [rbx + (Index + I) * 8]
+			| mov REFERENCE:rdi->Value, rax
+			| pop rax
+		}
+		break;
+	}
+	case MLI_LET: {
+		deref_jit(Assembler);
+		| mov [rbx + Inst->Params[1].Index * 8], rax
+		break;
+	}
+	case MLI_LETI: {
+		deref_jit(Assembler);
+		| mov rdi, [rbx + Inst->Params[1].Index * 8]
+		| mov [rbx + Inst->Params[1].Index * 8], rax
+		| test rdi, rdi
+		| jz >1
+		| mov rsi, rax
+		| global ml_uninitialized_set
+		| push rax
+		| call aword [->ml_uninitialized_set]
+		| pop rax
+		| 1:
+		break;
+	}
+	case MLI_LETX: {
+		deref_jit(Assembler);
+		| global MLTupleT
+		| mov rcx, RESULT->Type
+		| cmp rcx, [MLTupleT]
+		| je >1
+		| global can_only_unpack_tuples_error
+		| call aword [->can_only_unpack_tuples_error]
+		| jmp =>2
+		| 1:
+		| cmp dword TUPLE:rax->Size, Inst->Params[2].Count
+		| jge >1
+		| global tuple_has_too_few_values_error
+		| call aword [->tuple_has_too_few_values_error]
+		| jmp =>2
+		| 1:
+		| global ml_uninitialized_set
+		int Index = Inst->Params[1].Index;
+		for (int I = 0; I < Inst->Params[2].Count; ++I) {
+			| push rax
+			| mov rax, TUPLE:rax->Values[I]
+			deref_jit(Assembler);
+			| mov rdi, [rbx + (Index + I) * 8]
+			| mov [rdi], rax
+			| test rdi, rdi
+			| jz >1
+			| mov rsi, rax
+			| call aword [->ml_uninitialized_set]
+			| 1:
+			| pop rax
+		}
+		break;
+	}
+	case MLI_FOR: {
+		deref_jit(Assembler);
+		| lea rcx, [>1]
+		| mov FRAME->Inst, rcx
+		| mov FRAME->Top, rbx
+#ifdef USE_ML_SCHEDULER
+		//Frame->Schedule.Counter[0] = Counter;
+#endif
+		| mov rdi, rbp
+		| mov rsi, rax
+		exit_jit(Assembler);
+		| global ml_iterate
+		| jmp aword [->ml_iterate]
+		| 1:
+		break;
+	}
+	case MLI_NEXT: {
+		| xor rdx, rdx
+		for (int I = Inst->Params[1].Count; --I >= 0;) {
+			| sub rbx, 8
+			| mov [rbx], rdx
+		}
+		| sub rbx, 8
+		| mov rsi, [rbx]
+		| mov [rbx], rdx
+		| lea rcx, [>1]
+		| mov FRAME->Inst, rcx
+		| mov FRAME->Top, rbx
+#ifdef USE_ML_SCHEDULER
+		//Frame->Schedule.Counter[0] = Counter;
+#endif
+		| mov rdi, rbp
+		exit_jit(Assembler);
+		| global ml_iter_next
+		| jmp aword [->ml_iter_next]
+		| 1:
+		break;
+	}
+	case MLI_VALUE: {
+		| mov rsi, [rbx - 8]
+		| lea rcx, [>1]
+		| mov FRAME->Inst, rcx
+		| mov FRAME->Top, rbx
+#ifdef USE_ML_SCHEDULER
+		//Frame->Schedule.Counter[0] = Counter;
+#endif
+		| mov rdi, rbp
+		exit_jit(Assembler);
+		| global ml_iter_value
+		| jmp aword [->ml_iter_value]
+		| 1:
+		break;
+	}
+	case MLI_KEY: {
+		| mov rsi, [rbx - 16]
+		| lea rcx, [>1]
+		| mov FRAME->Inst, rcx
+		| mov FRAME->Top, rbx
+#ifdef USE_ML_SCHEDULER
+		//Frame->Schedule.Counter[0] = Counter;
+#endif
+		| mov rdi, rbp
+		exit_jit(Assembler);
+		| global ml_iter_key
+		| jmp aword [->ml_iter_key]
+		| 1:
+		break;
+	}
+	case MLI_CALL: {
+		int Count = Inst->Params[1].Count;
+		| mov rax, [rbx + ~Count * 8]
+		deref_jit(Assembler);
+		| mov rsi, rax
+		| mov rdx, Count
+		| lea rcx, [rbx - Count * 8]
+#ifdef USE_ML_SCHEDULER
+		//Frame->Schedule.Counter[0] = Counter;
+#endif
+		ml_inst_t *Next = Inst->Params[0].Inst;
+		if (Next->Opcode == MLI_RETURN) {
+			| mov rax, VALUE:rsi->Type
+			| mov rdi, FRAME->Base.Caller
+			exit_jit(Assembler);
+			| jmp aword TYPE:rax->call
+		} else {
+			| lea rax, [>1]
+			| sub rbx, (Count + 1) * 8
+			| mov FRAME->Inst, rax
+			| mov FRAME->Top, rbx
+			| mov rax, VALUE:rsi->Type
+			| mov rdi, rbp
+			exit_jit(Assembler);
+			| jmp aword TYPE:rax->call
+			| 1:
+		}
+		break;
+	}
+	case MLI_CONST_CALL: {
+		| .values
+		| 1:
+		| .dword (uint32_t)(intptr_t)Inst->Params[2].Value, (uint64_t)Inst->Params[2].Value >> 32
+		| .code
+		| mov rsi, [<1]
+		int Count = Inst->Params[1].Count;
+		| mov rdx, Count
+		| lea rcx, [rbx - Count * 8]
+#ifdef USE_ML_SCHEDULER
+		//Frame->Schedule.Counter[0] = Counter;
+#endif
+		ml_inst_t *Next = Inst->Params[0].Inst;
+		if (Next->Opcode == MLI_RETURN) {
+			| mov rax, VALUE:rsi->Type
+			| mov rdi, FRAME->Base.Caller
+			exit_jit(Assembler);
+			| jmp aword TYPE:rax->call
+		} else {
+			| lea rax, [>1]
+			| mov FRAME->Top, rcx
+			| mov FRAME->Inst, rax
+			| mov rax, VALUE:rsi->Type
+			| mov, rdi, rbp
+			exit_jit(Assembler);
+			| jmp aword TYPE:rax->call
+			| 1:
+		}
+		break;
+	}
+	case MLI_ASSIGN: {
+		deref_jit(Assembler);
+		| sub rbx, 8
+		| xor rdx, rdx
+		| mov rdi, [rbx]
+		| mov [rbx], rdx
+		| mov rsi, rax
+		| mov rcx, VALUE:rdi->Type
+		| call aword TYPE:rcx->assign
+		check_error_jit(Assembler);
+		break;
+	}
+	case MLI_LOCAL: {
+		int Index = Inst->Params[1].Index;
+		if (Index < 0) {
+			| mov rcx, FRAME->UpValues
+			| mov rax, [rcx + 8 * ~Index]
+		} else {
+			| mov rax, FRAME->Stack[Index]
+		}
+		break;
+	}
+	case MLI_LOCALX: {
+		int Index = Inst->Params[1].Index;
+		| mov rax, FRAME->Stack[Index]
+		| test rax, rax
+		| jnz >1
+		| global ml_uninitialized
+		| call aword [->ml_uninitialized]
+		| mov FRAME->Stack[Index], rax
+		| 1:
+		break;
+	}
+	case MLI_TUPLE_NEW: {
+		| mov rdi, Inst->Params[1].Count
+		| global ml_tuple
+		| call aword [->ml_tuple]
+		| mov [rbx], rax
+		| add rbx, 8
+		break;
+	}
+	case MLI_TUPLE_SET: {
+		| mov rcx, [rbx - 8]
+		| mov TUPLE:rcx->Values[Inst->Params[1].Index], rax
+		break;
+	}
+	case MLI_LIST_NEW: {
+		| global ml_list
+		| call aword [->ml_list]
+		| mov [rbx], rax
+		| add rbx, 8
+		break;
+	}
+	case MLI_LIST_APPEND: {
+		deref_jit(Assembler);
+		| mov rsi, rax
+		| mov rdi, [rbx - 8]
+		| global ml_list_put
+		| call aword [->ml_list_put]
+		break;
+	}
+	case MLI_MAP_NEW: {
+		| global ml_map
+		| call aword [->ml_map]
+		| mov [rbx], rax
+		| add rbx, 8
+		break;
+	}
+	case MLI_MAP_INSERT: {
+		deref_jit(Assembler);
+		| push rax
+		| mov rax, [rbx - 8]
+		deref_jit(Assembler);
+		| mov rsi, rax
+		| pop rdx
+		| mov rdi, [rbx - 16]
+		| global ml_map_insert
+		| call aword [->ml_map_insert]
+		| sub rbx, 8
+		| xor rdx, rdx
+		| mov [rbx], rdx
+		break;
+	}
+	case MLI_CLOSURE: {
+		// closure <entry> <frame_size> <num_params> <num_upvalues> <upvalue_1> ...
+		ml_closure_info_t *Info = Inst->Params[1].ClosureInfo;
+		| .values
+		| 1:
+		| .dword (uint32_t)(intptr_t)Info, (uint64_t)Info >> 32
+		| .code
+		| mov rdi, [<1] 
+		| global ml_closure
+		| call aword [->ml_closure]
+		| push rbx
+		| mov rbx, rax
+		for (int I = 0; I < Info->NumUpValues; ++I) {
+			int Index = Inst->Params[2 + I].Index;
+			if (Index < 0) {
+				| mov rcx, FRAME->UpValues
+				| mov rax, [rax + 8 * ~Index]
+			} else {
+				| mov rax, FRAME->Stack[Index]
+				| test rax, rax
+				| jnz >1
+				| global ml_uninitialized
+				| call aword [->ml_uninitialized]
+				| mov FRAME->Stack[Index], rax
+				| 1:
+			}
+			| mov CLOSURE:rbx->UpValues[I], rax
+			| global MLUninitializedT
+			| global ml_uninitialized_use
+			| mov rdi, rax
+			| mov rax, VALUE:rdi->Type
+			| cmp rax, [->MLUninitializedT]
+			| jne >1
+			| lea rsi, CLOSURE:rbx->UpValues[I]
+			| call aword [->ml_uninitialized_use]
+			| 1:
+		}
+		| mov rax, rbx
+		| pop rbx
+		break;
+	}
+	case MLI_PARTIAL_NEW: {
+		deref_jit(Assembler);
+		| mov rdi, rax
+		| mov rsi, Inst->Params[1].Count
+		| global ml_partial_function_new
+		| call aword [->ml_partial_function_new]
+		| mov [rbx], rax
+		| add rbx, 8
+		break;
+	}
+	case MLI_PARTIAL_SET: {
+		deref_jit(Assembler);
+		| mov rdi, [rbx - 8]
+		| mov rsi, Inst->Params[1].Index
+		| mov rdx, rax
+		| global ml_partial_function_set
+		| call aword [->ml_partial_function_set]
+		break;
+	}
+	}
+	if (MLInstTypes[Inst->Opcode] == MLIT_INST_INST) {
+		ml_closure_inst_jit(Process, Inst->Params[0].Inst, Assembler);
+		return ml_closure_inst_jit(Process, Inst->Params[1].Inst, Assembler);
+	} else if (Inst->Opcode != MLI_RETURN) {
+		return ml_closure_inst_jit(Process, Inst->Params[0].Inst, Assembler);
+	}
+}
+
+#ifdef DEBUG
+#include <Zydis/Zydis.h>
+#endif
+
+void ml_bytecode_jit(ml_closure_info_t *Info) {
+	ml_assembler_t Assembler[1] = {0,};
+	dasm_init(Dst, DASM_MAXSECTION);
+	void *Globals[Globals_MAX];
+	dasm_setupglobal(Dst, Globals, Globals_MAX);
+	dasm_setup(Dst, ActionList);
+	int NumLabels = 3; // 0: Start, 1: Entry, 2: Error
+	ml_closure_inst_prepare(!Info->Entry->Processed, Info->Entry, 0, &NumLabels);
+	if (!Info->Return->Label) Info->Return->Label = ++NumLabels;
+	dasm_growpc(Dst, NumLabels + 1);
+	| .values
+	| ->MLNil:
+	| .dword (uint32_t)(intptr_t)MLNil, (uint64_t)MLNil >> 32
+	| ->MLErrorT:
+	| .dword (uint32_t)(intptr_t)MLErrorT, (uint64_t)MLErrorT >> 32
+	| ->ml_error_trace_add:
+	| .dword (uint32_t)(intptr_t)ml_error_trace_add, (uint64_t)ml_error_trace_add >> 32
+	| .code
+	| =>0:
+	| push rbp
+	| push rbx
+	| mov rbp, rdi
+	| mov rax, rsi
+	| mov rbx, FRAME->Top
+	check_error_jit(Assembler);
+	| jmp aword FRAME->Inst
+	| =>1:
+	ml_closure_inst_jit(!Info->Entry->Processed, Info->Entry, Assembler);
+	| =>2:
+	| mov rdi, rax
+	| mov rsi, FRAME->Source
+	// rdx should contain line number
+	| xor rdx, rdx
+	| call aword [->ml_error_trace_add]
+	| jmp aword FRAME->OnError
+	size_t Size;
+	dasm_link(Dst, &Size);
+	unsigned char *Code = GC_MALLOC(Size);
+	dasm_encode(Dst, Code);
+	dasm_free(Dst);
+	unsigned char *Start = Code + dasm_getpclabel(Dst, 0);
+	Info->JITStart = Start;
+	Info->JITEntry = Code + dasm_getpclabel(Dst, 1);
+	Info->JITReturn = Code + dasm_getpclabel(Dst, Info->Return->Label);
+
+#ifdef DEBUG
+	fprintf(stderr, "JIT size = %lu\n", Size);
+	fprintf(stderr, "Entry @ %ld\n", (unsigned char *)Info->JITEntry - Code);
+	fprintf(stderr, "Return @ %ld\n", (unsigned char *)Info->JITReturn - Code);
+	ZydisDecoder Decoder;
+	ZydisDecoderInit(&Decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_ADDRESS_WIDTH_64);
+	ZydisFormatter Formatter;
+	ZydisFormatterInit(&Formatter, ZYDIS_FORMATTER_STYLE_INTEL);
+	ZydisFormatterSetProperty(&Formatter, ZYDIS_FORMATTER_PROP_ADDR_BASE, ZYDIS_NUMERIC_BASE_DEC);
+	ZydisFormatterSetProperty(&Formatter, ZYDIS_FORMATTER_PROP_DISP_BASE, ZYDIS_NUMERIC_BASE_DEC);
+	ZydisFormatterSetProperty(&Formatter, ZYDIS_FORMATTER_PROP_DISP_BASE, ZYDIS_NUMERIC_BASE_DEC);
+	
+	int Offset = (Start - Code), Length = Size;
+	ZydisDecodedInstruction Inst;
+	while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&Decoder, Code + Offset, Length - Offset, &Inst))) {
+		fprintf(stderr, "%4d  ", Offset);
+		char Buffer[256];
+		ZydisFormatterFormatInstruction(&Formatter, &Inst, Buffer, sizeof(Buffer), Offset);
+		fprintf(stderr, "%s\n", Buffer);
+		Offset += Inst.length;
+	}
+#endif
+}

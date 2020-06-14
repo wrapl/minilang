@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <regex.h>
 #include "stringmap.h"
+#include "inthash.h"
 
 #ifdef	__cplusplus
 extern "C" {
@@ -46,11 +47,12 @@ struct ml_type_t {
 	void (*call)(ml_state_t *, ml_value_t *, int, ml_value_t **);
 	ml_value_t *(*deref)(ml_value_t *);
 	ml_value_t *(*assign)(ml_value_t *, ml_value_t *);
-	ml_typed_fn_node_t *TypedFns;
-	int TypedFnsSize, TypedFnSpace;
+	inthash_t TypedFns[1];
 	stringmap_t Exports[1];
 	int Rank;
 };
+
+#define ML_RANK_NATIVE 65536
 
 extern ml_type_t MLTypeT[];
 
@@ -70,11 +72,9 @@ ml_type_t TYPE[1] = {{ \
 	.call = ml_default_call, \
 	.deref = ml_default_deref, \
 	.assign = ml_default_assign, \
-	.TypedFns = NULL, \
-	.TypedFnsSize = 0, \
-	.TypedFnSpace = 0, \
+	.TypedFns = {INTHASH_INIT}, \
 	.Exports = {STRINGMAP_INIT}, \
-	.Rank = INT_MAX, \
+	.Rank = ML_RANK_NATIVE, \
 	__VA_ARGS__ \
 }}
 
@@ -85,7 +85,7 @@ ml_type_t TYPE[1] = {{ \
 
 #endif
 
-#define ML_INTERFACE(TYPE, PARENTS, NAME, ...) ML_TYPE(TYPE, PARENTS, NAME, .Rank = -1, __VA_ARGS__)
+#define ML_INTERFACE(TYPE, PARENTS, NAME, ...) ML_TYPE(TYPE, PARENTS, NAME, .Rank = 0, __VA_ARGS__)
 
 void ml_type_init(ml_type_t *Type, ...) __attribute__ ((sentinel));
 

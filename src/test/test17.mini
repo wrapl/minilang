@@ -1,0 +1,3 @@
+with (A, B, C) := (1, 2, 3) do
+	print('A = {A}, B = {B}, C = {C}\n')
+end

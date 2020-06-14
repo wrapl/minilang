@@ -18,7 +18,7 @@ struct ml_object_t {
 	ml_value_t *Fields[];
 };
 
-ML_TYPE(MLObjectT, (), "object");
+ML_INTERFACE(MLObjectT, (), "object");
 
 static void ml_class_call(ml_state_t *Caller, ml_class_t *Class, int Count, ml_value_t **Args) {
 	ml_value_t *Constructor = stringmap_search(Class->Base.Exports, "of");
@@ -112,7 +112,7 @@ ML_FUNCTION(MLClassNew) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	const char *Name = ml_string_value(Args[0]);
-	int NumFields = 0, NumParents = 0;
+	int NumFields = 0, NumParents = 0, Rank = 0;
 	for (int I = 1; I < Count; ++I) {
 		if (Args[I]->Type == MLMethodT) {
 			++NumFields;
@@ -121,11 +121,13 @@ ML_FUNCTION(MLClassNew) {
 			NumFields += Parent->NumFields;
 			const ml_type_t **Types = Parent->Base.Types;
 			do ++NumParents; while (*++Types != MLObjectT);
+			if (Rank < Parent->Base.Rank) Rank = Parent->Base.Rank;
 		} else if (ml_is(Args[I], MLTypeT)) {
 			ml_type_t *Parent = (ml_type_t *)Args[I];
-			if (Parent->Rank == INT_MAX) return ml_error("TypeError", "Classes can not inherit from native types");
+			if (Parent->Rank >= ML_RANK_NATIVE) return ml_error("TypeError", "Classes can not inherit from native types");
 			const ml_type_t **Types = Parent->Types;
 			do ++NumParents; while (*++Types);
+			if (Rank < Parent->Rank) Rank = Parent->Rank;
 		} else if (ml_is(Args[I], MLListT)) {
 			ML_LIST_FOREACH(Args[I], Iter) {
 				if (Iter->Value->Type == MLMethodT) {
@@ -135,11 +137,13 @@ ML_FUNCTION(MLClassNew) {
 					NumFields += Parent->NumFields;
 					const ml_type_t **Types = Parent->Base.Types;
 					do ++NumParents; while (*++Types != MLObjectT);
+					if (Rank < Parent->Base.Rank) Rank = Parent->Base.Rank;
 				} else if (ml_is(Args[I], MLTypeT)) {
 					ml_type_t *Parent = (ml_type_t *)Iter->Value;
-					if (Parent->Rank == INT_MAX) return ml_error("TypeError", "Classes can not inherit from native types");
+					if (Parent->Rank >= ML_RANK_NATIVE) return ml_error("TypeError", "Classes can not inherit from native types");
 					const ml_type_t **Types = Parent->Types;
 					do ++NumParents; while (*++Types);
+					if (Rank < Parent->Rank) Rank = Parent->Rank;
 				}
 			}
 		} else if (ml_is(Args[I], MLMapT)) {
@@ -154,6 +158,7 @@ ML_FUNCTION(MLClassNew) {
 	Class->Base.call = ml_default_call;
 	Class->Base.deref = ml_default_deref;
 	Class->Base.assign = ml_default_assign;
+	Class->Base.Rank = Rank + 1;
 	const ml_type_t **Parents = Class->Base.Types = anew(const ml_type_t *, NumParents + 4);
 	*Parents++ = (ml_type_t *)Class;
 	Class->NumFields = NumFields;
@@ -213,17 +218,6 @@ ML_FUNCTION(MLClassNew) {
 	return (ml_value_t *)Class;
 }
 
-ML_FUNCTION(MLMethodSet) {
-	ML_CHECK_ARG_COUNT(2);
-	ML_CHECK_ARG_TYPE(0, MLMethodT);
-	for (int I = 1; I < Count - 1; ++I) {
-		if (Args[I] != MLNil) ML_CHECK_ARG_TYPE(I, MLTypeT);
-	}
-	ML_CHECK_ARG_TYPE(Count - 1, MLFunctionT);
-	ml_method_by_array(Args[0], Args[Count - 1], Count - 2, (ml_type_t **)(Args + 1));
-	return Args[Count - 1];
-}
-
 typedef struct ml_assignable_t {
 	const ml_type_t *Type;
 	ml_value_t *Get, *Set;
@@ -268,7 +262,6 @@ ml_value_t *ml_object_field(ml_value_t *Value, size_t Field) {
 }
 
 void ml_object_init(stringmap_t *Globals) {
-	stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
 	stringmap_insert(Globals, "property", MLProperty);
 	stringmap_insert(Globals, "object", MLObjectT);
 	stringmap_insert(Globals, "class", MLClassT);
