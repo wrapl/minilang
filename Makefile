@@ -50,6 +50,7 @@ common_objects = \
 	obj/ml_iterfns.o \
 	obj/sha256.o \
 	obj/stringmap.o \
+	obj/inthash.o \
 	obj/ml_console.o \
 	obj/ml_object.o \
 	obj/ml_debugger.o
