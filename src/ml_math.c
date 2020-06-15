@@ -24,6 +24,22 @@ ML_METHOD("^", MLNumberT, MLNumberT) {
 	return ml_real(pow(ml_real_value(Args[0]), ml_real_value(Args[1])));
 }
 
+ML_METHOD("^", MLIntegerT, MLIntegerT) {
+	int64_t Base = ml_integer_value(Args[0]);
+	int64_t Exponent = ml_integer_value(Args[1]);
+	if (Exponent >= 0) {
+		int64_t N = 1;
+		while (Exponent) {
+			if (Exponent & 1) N *= Base;
+			Base *= Base;
+			Exponent >>= 1;
+		}
+		return ml_integer(N);
+	} else {
+		return ml_real(pow(Base, Exponent));
+	}
+}
+
 MATH_REAL(Acos, acos);
 MATH_REAL(Asin, asin);
 MATH_REAL(Atan, atan);

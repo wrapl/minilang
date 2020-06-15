@@ -1,4 +1,4 @@
-var point := class::new("point", :X, :Y)
+class: point("point", :X, :Y)
 
 var A := point(10, 20)
 
@@ -12,7 +12,7 @@ method::set(string::of, point; P) 'point({P:X}, {P:Y})'
 print('A = {A}\n')
 
 method::set(+, point, point; A, B) point(A:X + B:X, A:Y + B:Y)
-
+`
 var B := point(23, 9.1)
 
 print('{A} + {B} = {A + B}\n')
@@ -23,7 +23,7 @@ method::set(*, number, point; N, A) point(N * A:X, N * A:Y)
 print('{A} * 5 = {A * 5}\n')
 print('7.1 * {B} = {7.1 * B}\n')
 
-var vector := class::new("vector", point, :Z)
+class: vector("vector", point, :Z)
 
 var C := vector(1, 2, 3)
 

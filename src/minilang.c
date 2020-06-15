@@ -46,11 +46,11 @@ static ml_value_t *global_get(void *Data, const char *Name) {
 	return stringmap_search(Globals, Name);
 }
 
-static ml_value_t *ml_now(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(MLNow) {
 	return ml_integer(time(NULL));
 }
 
-static ml_value_t *ml_print(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(MLPrint) {
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Result = Args[I];
 		if (Result->Type != MLStringT) {
@@ -64,7 +64,7 @@ static ml_value_t *ml_print(void *Data, int Count, ml_value_t **Args) {
 	return MLNil;
 }
 
-static ml_value_t *ml_throw(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(MLError) {
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLStringT);
@@ -73,14 +73,14 @@ static ml_value_t *ml_throw(void *Data, int Count, ml_value_t **Args) {
 
 extern int MLDebugClosures;
 
-static ml_value_t *ml_break(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(MLBreak) {
 #ifdef DEBUG
 	asm("int3");
 #endif
 	return MLNil;
 }
 
-static ml_value_t *ml_halt(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(MLHalt) {
 	if (Count > 0) {
 		ML_CHECK_ARG_TYPE(0, MLIntegerT);
 		exit(ml_integer_value(Args[0]));
@@ -89,15 +89,28 @@ static ml_value_t *ml_halt(void *Data, int Count, ml_value_t **Args) {
 	}
 }
 
-static ml_value_t *ml_collect(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(MLCollect) {
 	GC_gcollect();
 	return MLNil;
+}
+
+ML_FUNCTIONX(MLTest) {
+	ML_CHECKX_ARG_COUNT(2);
+	ML_CHECKX_ARG_TYPE(0, MLStringT);
+	const char *Test = ml_string_value(Args[0]);
+	if (!strcmp(Test, "methods")) {
+		ml_state_t *State = ml_state_new(Caller);
+		ml_methods_context_new(State->Context);
+		ml_value_t *Function = Args[1];
+		return Function->Type->call(State, Function, Count - 2, Args + 2);
+	}
+	ML_ERROR("ValueError", "Unknown test %s", Test);
 }
 
 #ifdef USE_ML_MODULES
 static stringmap_t Modules[1] = {STRINGMAP_INIT};
 
-static void ml_import_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTIONX(Import) {
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLStringT);
 	const char *FileName = realpath(ml_string_value(Args[0]), NULL);
@@ -117,8 +130,6 @@ static void ml_import_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t 
 	}
 	ML_RETURN(Slot[0]);
 }
-
-static ml_functionx_t Import[1] = {{MLCFunctionXT, ml_import_fnx, NULL}};
 #endif
 
 static ml_value_t *MainArgs[1];
@@ -152,15 +163,16 @@ int main(int Argc, const char *Argv[]) {
 	ml_file_init(Globals);
 	ml_object_init(Globals);
 	ml_iterfns_init(Globals);
-	stringmap_insert(Globals, "now", ml_function(0, ml_now));
-	stringmap_insert(Globals, "print", ml_function(0, ml_print));
-	stringmap_insert(Globals, "error", ml_function(0, ml_throw));
-	stringmap_insert(Globals, "break", ml_function(0, ml_break));
-	stringmap_insert(Globals, "halt", ml_function(0, ml_halt));
-	stringmap_insert(Globals, "collect", ml_function(0, ml_collect));
+	stringmap_insert(Globals, "now", MLNow);
+	stringmap_insert(Globals, "print", MLPrint);
+	stringmap_insert(Globals, "error", MLError);
+	stringmap_insert(Globals, "break", MLBreak);
+	stringmap_insert(Globals, "halt", MLHalt);
+	stringmap_insert(Globals, "collect", MLCollect);
 	stringmap_insert(Globals, "callcc", MLCallCC);
 	stringmap_insert(Globals, "spawn", MLSpawn);
 	stringmap_insert(Globals, "context", MLContextKey);
+	stringmap_insert(Globals, "test", MLTest);
 #ifdef USE_ML_CBOR
 	ml_cbor_init(Globals);
 #endif
@@ -184,7 +196,7 @@ int main(int Argc, const char *Argv[]) {
 #ifdef USE_ML_MODULES
 	ml_module_init(Globals);
 	ml_library_init(Globals);
-	stringmap_insert(Globals, "import", ml_functionx(0, ml_import_fnx));
+	stringmap_insert(Globals, "import", Import);
 #endif
 	ml_value_t *Args = ml_list();
 	const char *FileName = 0;

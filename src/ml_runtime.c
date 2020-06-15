@@ -96,10 +96,14 @@ ML_TYPE(MLContextKeyT, (MLCFunctionT), "context-key",
 	.call = (void *)ml_context_key_call
 );
 
-ML_FUNCTION(MLContextKey) {
+ml_value_t *ml_context_key() {
 	ml_context_key_t *Key = new(ml_context_key_t);
 	Key->Type = MLContextKeyT;
 	return (ml_value_t *)Key;
+}
+
+ML_FUNCTION(MLContextKey) {
+	return ml_context_key();
 }
 
 static void ml_state_call(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {

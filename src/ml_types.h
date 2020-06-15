@@ -543,6 +543,8 @@ void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_t
 
 #endif
 
+void ml_methods_context_new(ml_context_t *Context);
+
 /****************************** Modules ******************************/
 
 extern ml_type_t MLModuleT[];

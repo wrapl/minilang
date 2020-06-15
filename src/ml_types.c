@@ -152,9 +152,11 @@ ML_METHOD("::", MLTypeT, MLStringT) {
 
 ML_TYPE(MLNilT, (), "nil");
 ML_TYPE(MLSomeT, (), "some");
+ML_TYPE(MLBlankT, (), "blank");
 
 ml_value_t MLNil[1] = {{MLNilT}};
 ml_value_t MLSome[1] = {{MLSomeT}};
+ml_value_t MLBlank[1] = {{MLBlankT}};
 
 int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
 	for (const ml_type_t **Parents = Value->Type->Types, *Type = Parents[0]; Type; Type = *++Parents) {
@@ -2786,10 +2788,15 @@ ML_METHOD("join", MLMapT, MLStringT, MLStringT) {
 
 #define ML_METHODS_INDEX 0
 
-typedef struct ml_methods_t ml_methods_t;
 typedef struct ml_method_t ml_method_t;
+typedef struct ml_methods_t ml_methods_t;
 typedef struct ml_method_cached_t ml_method_cached_t;
 typedef struct ml_method_definition_t ml_method_definition_t;
+
+struct ml_method_t {
+	const ml_type_t *Type;
+	const char *Name;
+};
 
 struct ml_methods_t {
 	ml_methods_t *Parent;
@@ -2799,6 +2806,12 @@ struct ml_methods_t {
 };
 
 static ml_methods_t MLRootMethods[1] = {{NULL, {INTHASH_INIT}, {INTHASH_INIT}}};
+
+void ml_methods_context_new(ml_context_t *Context) {
+	ml_methods_t *Methods = new(ml_methods_t);
+	Methods->Parent = ml_context_get(Context, ML_METHODS_INDEX);
+	ml_context_set(Context, ML_METHODS_INDEX, Methods);
+}
 
 struct ml_method_cached_t {
 	ml_method_cached_t *Next, *MethodNext;
@@ -2841,6 +2854,7 @@ static unsigned int ml_method_definition_score(ml_method_definition_t *Definitio
 }
 
 static ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args) {
+	// TODO: Use generation numbers to check Methods->Parent for invalidated definitions
 	uintptr_t Hash = (uintptr_t)Method;
 	for (int I = 0; I < Count; ++I) {
 		Hash ^= rotl((uintptr_t)Args[I]->Type, I + 1);
@@ -2859,7 +2873,7 @@ static ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, 
 		Cached = Cached->Next;
 	}
 /*
-	fprintf(stderr, "Searching for method: %s(", ml_method_name(Method));
+	fprintf(stderr, "Searching for method: %s(", Method->Name);
 	for (int I = 0; I < Count; ++I) {
 		fprintf(stderr, I ? ", <%s>" : "<%s>", Args[I]->Type->Name);
 	}
@@ -2882,19 +2896,18 @@ static ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, 
 		while (Cached2) {
 			if (Cached2->Method != Method) goto next2;
 			if (Cached2->Count != Count) goto next2;
-			if (!Cached2->Definition) goto next2;
 			for (int I = 0; I < Count; ++I) {
 				if (Cached2->Types[I] != Args[I]->Type) goto next2;
 			}
+			if (!Cached2->Definition) break;
 			if (Cached2->Score > BestScore) {
 				BestScore = Cached2->Score;
 				BestDefinition = Cached2->Definition;
-				break;
+				goto next3;
 			}
 		next2:
 			Cached2 = Cached2->Next;
 		}
-		if (Cached2) break;
 		ml_method_definition_t *Definition = inthash_search(Methods2->Definitions, (uintptr_t)Method);
 		while (Definition) {
 			unsigned int Score = ml_method_definition_score(Definition, Count, Args, BestScore);
@@ -2905,7 +2918,7 @@ static ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, 
 			Definition = Definition->Next;
 		}
 	}
-
+next3:
 	if (!BestDefinition) return NULL;
 
 	if (!Cached) {
@@ -2935,11 +2948,6 @@ void ml_method_define(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Ca
 }
 
 static stringmap_t Methods[1] = {STRINGMAP_INIT};
-
-struct ml_method_t {
-	const ml_type_t *Type;
-	const char *Name;
-};
 
 const char *ml_method_name(ml_value_t *Value) {
 	return ((ml_method_t *)Value)->Name;
@@ -3099,15 +3107,24 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLMethodT) {
 	return MLSome;
 }
 
-ML_FUNCTION(MLMethodSet) {
-	ML_CHECK_ARG_COUNT(2);
-	ML_CHECK_ARG_TYPE(0, MLMethodT);
+ML_FUNCTIONX(MLMethodSet) {
+	ML_CHECKX_ARG_COUNT(2);
+	ML_CHECKX_ARG_TYPE(0, MLMethodT);
+	ml_type_t *Types[Count - 2];
 	for (int I = 1; I < Count - 1; ++I) {
-		if (Args[I] != MLNil) ML_CHECK_ARG_TYPE(I, MLTypeT);
+		if (Args[I] == MLNil) {
+			Types[I - 1] = MLNilT;
+		} else {
+			ML_CHECKX_ARG_TYPE(I, MLTypeT);
+			Types[I - 1] = (ml_type_t *)Args[I];
+		}
 	}
-	ML_CHECK_ARG_TYPE(Count - 1, MLFunctionT);
-	ml_method_by_array(Args[0], Args[Count - 1], Count - 2, (ml_type_t **)(Args + 1));
-	return Args[Count - 1];
+	ML_CHECKX_ARG_TYPE(Count - 1, MLFunctionT);
+	ml_method_t *Method = (ml_method_t *)Args[0];
+	ml_value_t *Function = Args[Count - 1];
+	ml_methods_t *Methods = ml_context_get(Caller->Context, ML_METHODS_INDEX);
+	ml_method_define(Methods, Method, Function, Count - 2, 1, Types);
+	ML_RETURN(Function);
 }
 
 /****************************** Modules ******************************/
