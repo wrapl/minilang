@@ -2598,11 +2598,11 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 			if (!Expr) goto end;
 			if (ml_parse(Scanner, MLT_COLON)) {
 				ml_accept(Scanner, MLT_IDENT);
-				ml_decl_t *Decl = LetsSlot[0] = new(ml_decl_t);
+				ml_decl_t *Decl = DefsSlot[0] = new(ml_decl_t);
 				Decl->Ident = Scanner->Ident;
-				Decl->Flags = MLC_DECL_FORWARD;
-				LetsSlot = &Decl->Next;
-				ML_EXPR(DeclExpr, decl, let);
+				Decl->Flags = MLC_DECL_CONSTANT;
+				DefsSlot = &Decl->Next;
+				ML_EXPR(DeclExpr, decl, def);
 				DeclExpr->Decl = Decl;
 				ml_accept(Scanner, MLT_LEFT_PAREN);
 				ml_accept_arguments(Scanner, MLT_RIGHT_PAREN, &Expr->Next);
