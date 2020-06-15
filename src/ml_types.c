@@ -2828,11 +2828,6 @@ struct ml_method_definition_t {
 	const ml_type_t *Types[];
 };
 
-uintptr_t rotl(uintptr_t X, unsigned int N) {
-	const unsigned int Mask = (CHAR_BIT * sizeof(uintptr_t) - 1);
-	return (X << (N & Mask)) | (X >> ((-N) & Mask ));
-}
-
 static unsigned int ml_method_definition_score(ml_method_definition_t *Definition, int Count, ml_value_t **Args, unsigned int Best) {
 	unsigned int Score = 0;
 	if (Definition->Count > Count) return 0;
@@ -2853,11 +2848,16 @@ static unsigned int ml_method_definition_score(ml_method_definition_t *Definitio
 	return Score;
 }
 
+static uintptr_t rotl(uintptr_t X, unsigned int N) {
+	const unsigned int Mask = (CHAR_BIT * sizeof(uintptr_t) - 1);
+	return (X << (N & Mask)) | (X >> ((-N) & Mask ));
+}
+
 static ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args) {
 	// TODO: Use generation numbers to check Methods->Parent for invalidated definitions
 	uintptr_t Hash = (uintptr_t)Method;
 	for (int I = 0; I < Count; ++I) {
-		Hash ^= rotl((uintptr_t)Args[I]->Type, I + 1);
+		Hash = rotl(Hash, 1) ^ (uintptr_t)Args[I]->Type;
 	}
 	ml_method_cached_t *Cached = inthash_search(Methods->Cache, Hash);
 	while (Cached) {
