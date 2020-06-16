@@ -2140,11 +2140,22 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 	}
 	case MLT_LEFT_PAREN: {
 		Scanner->Token = MLT_NONE;
+		if (ml_parse(Scanner, MLT_SEMICOLON)) {
+			ML_EXPR(TupleExpr, parent, tuple);
+			TupleExpr->Child = ml_accept_fun_expr(Scanner, MLT_RIGHT_PAREN);
+			TupleExpr->End = Scanner->Source.Line;
+			return (mlc_expr_t *)TupleExpr;
+		}
 		mlc_expr_t *Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
 		if (ml_parse(Scanner, MLT_COMMA)) {
 			ML_EXPR(TupleExpr, parent, tuple);
 			TupleExpr->Child = Expr;
 			ml_accept_arguments(Scanner, MLT_RIGHT_PAREN, &Expr->Next);
+			Expr = (mlc_expr_t *)TupleExpr;
+		} else if (ml_parse(Scanner, MLT_SEMICOLON)) {
+			ML_EXPR(TupleExpr, parent, tuple);
+			TupleExpr->Child = Expr;
+			Expr->Next = ml_accept_fun_expr(Scanner, MLT_RIGHT_PAREN);
 			Expr = (mlc_expr_t *)TupleExpr;
 		} else {
 			ml_accept(Scanner, MLT_RIGHT_PAREN);
