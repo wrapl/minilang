@@ -78,9 +78,11 @@ ml_value_t MLConsoleBreak[1] = {{MLAnyT}};
 static void ml_console_log(void *Data, ml_value_t *Value) {
 	if (Value->Type == MLErrorT) {
 		printf("Error: %s\n", ml_error_message(Value));
-		const char *Source;
-		int Line;
-		for (int I = 0; ml_error_trace(Value, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+		ml_source_t Source;
+		int Level = 0;
+		while (ml_error_source(Value, Level++, &Source)) {
+			printf("\t%s:%d\n", Source.Name, Source.Line);
+		}
 	} else {
 		ml_value_t *String = ml_string_of(Value);
 		if (String->Type == MLStringT) {

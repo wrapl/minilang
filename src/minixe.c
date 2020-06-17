@@ -1011,7 +1011,7 @@ static void ml_loaded_run(ml_state_t *State, ml_value_t *Result) {
 		printf("Error: %s\n", ml_error_message(Result));
 		const char *Source;
 		int Line;
-		for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+		for (int I = 0; ml_error_source(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 		exit(1);
 	}
 	Result = ml_call(Result, 1, MainArgs);
@@ -1019,7 +1019,7 @@ static void ml_loaded_run(ml_state_t *State, ml_value_t *Result) {
 		printf("Error: %s\n", ml_error_message(Result));
 		const char *Source;
 		int Line;
-		for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+		for (int I = 0; ml_error_source(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 		exit(1);
 	}
 }
@@ -1111,7 +1111,7 @@ int main(int Argc, char **Argv) {
 				printf("Error: %s\n", ml_error_message(Result));
 				const char *Source;
 				int Line;
-				for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+				for (int I = 0; ml_error_source(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 			} else {
 				print(NULL, 1, &Result);
 				puts("");

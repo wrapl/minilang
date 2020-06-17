@@ -62,50 +62,6 @@ static char *stpcpy(char *Dest, const char *Source) {
 #define lstat stat
 #endif
 
-static void console_display_closure(console_t *Console, ml_value_t *Closure) {
-	static GVC_t *Context = 0;
-	if (!Context) {
-		Context = gvContext();
-	}
-	const char *GraphFileName = ml_closure_debug(Closure);
-	FILE *GraphFile = fopen(GraphFileName, "r");
-	graph_t *Graph = agread(GraphFile, NULL);
-	fclose(GraphFile);
-	unlink(GraphFileName);
-	const char *FontSize = "10";
-	for (const char *P = Console->FontName; *P; ++P) if (*P == ' ') FontSize = P + 1;
-	agattr(Graph, AGNODE, "fontsize", (char *)FontSize);
-	agattr(Graph, AGNODE, "fontname", (char *)Console->FontName);
-	agattr(Graph, AGEDGE, "fontsize", (char *)FontSize);
-	agattr(Graph, AGEDGE, "fontname", (char *)Console->FontName);
-	gvLayout(Context, Graph, "dot");
-	char *ImageFileName;
-	asprintf(&ImageFileName, "%s.svg", GraphFileName);
-	FILE *ImageFile = fopen(ImageFileName, "w");
-	gvRender(Context, Graph, "svg", ImageFile);
-	fclose(ImageFile);
-	GtkWidget *Image = gtk_image_new_from_file(ImageFileName);
-	unlink(ImageFileName);
-	GtkTextIter End[1];
-	GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
-	gtk_text_buffer_get_end_iter(LogBuffer, End);
-	GtkTextChildAnchor *Anchor = gtk_text_buffer_create_child_anchor(LogBuffer, End);
-	gtk_text_view_add_child_at_anchor(GTK_TEXT_VIEW(Console->LogView), Image, Anchor);
-	gtk_widget_show_all(Image);
-	gtk_text_buffer_insert(LogBuffer, End, "\n", 1);
-}
-
-static void console_display_value(console_t *Console, ml_value_t *Value) {
-	typeof(console_display_value) *function = ml_typed_fn_get(Value->Type, console_display_value);
-	if (function) function(Console, Value);
-}
-
-static ml_value_t *console_display(console_t *Console, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_COUNT(1);
-	console_display_value(Console, Args[0]);
-	return MLNil;
-}
-
 static ml_value_t *console_global_get(console_t *Console, const char *Name) {
 	if (Console->Debugger) {
 		ml_value_t *Value = interactive_debugger_get(Console->Debugger->Debugger, Name);
@@ -147,10 +103,10 @@ void console_log(console_t *Console, ml_value_t *Value) {
 		char *Buffer;
 		int Length = asprintf(&Buffer, "Error: %s\n", ml_error_message(Value));
 		gtk_text_buffer_insert_with_tags(LogBuffer, End, Buffer, Length, Console->ErrorTag, NULL);
-		const char *Source;
-		int Line;
-		for (int I = 0; ml_error_trace(Value, I, &Source, &Line); ++I) {
-			Length = asprintf(&Buffer, "\t%s:%d\n", Source, Line);
+		ml_source_t Source;
+		int Level = 0;
+		while (ml_error_source(Value, Level++, &Source)) {
+			Length = asprintf(&Buffer, "\t%s:%d\n", Source.Name, Source.Line);
 			gtk_text_buffer_insert_with_tags(LogBuffer, End, Buffer, Length, Console->ErrorTag, NULL);
 		}
 	} else {
@@ -640,9 +596,6 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	stringmap_insert(Console->Globals, "add_cycle", ml_function(Console, (ml_callback_t)console_add_cycle));
 	stringmap_insert(Console->Globals, "add_combo", ml_function(Console, (ml_callback_t)console_add_combo));
 	stringmap_insert(Console->Globals, "include", ml_functionx(Console, (ml_callbackx_t)console_include_fnx));
-	stringmap_insert(Console->Globals, "display", ml_function(Console, (ml_callback_t)console_display));
-
-	ml_typed_fn_set(MLClosureT, console_display_value, console_display_closure);
 
 	if (g_key_file_has_key(Console->Config, "gtk-console", "font", NULL)) {
 		Console->FontName = g_key_file_get_string(Console->Config, "gtk-console", "font", NULL);

@@ -146,8 +146,6 @@ ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, mlc_context_t 
 	longjmp(Function->Context->OnError, 1); \
 }
 
-extern int MLDebugClosures;
-
 static ml_value_t *ml_expr_evaluate(mlc_expr_t *Expr, mlc_function_t *Function) {
 	mlc_function_t SubFunction[1];
 	memset(SubFunction, 0, sizeof(SubFunction));
@@ -168,7 +166,6 @@ static ml_value_t *ml_expr_evaluate(mlc_expr_t *Expr, mlc_function_t *Function) 
 	Info->Source = Expr->Source.Name;
 	Info->FrameSize = SubFunction->Size;
 	Info->NumParams = 0;
-	if (MLDebugClosures) ml_closure_debug((ml_value_t *)Closure);
 	ml_value_t *Result = ml_call((ml_value_t *)Closure, 0, NULL);
 	Result = Result->Type->deref(Result);
 	if (Result->Type == MLErrorT) ml_expr_error(Expr, Result);
@@ -1121,8 +1118,6 @@ struct mlc_fun_expr_t {
 	mlc_expr_t *Body;
 };
 
-int MLDebugClosures = 0;
-
 static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr) {
 	// closure <entry> <frame_size> <num_params> <num_upvalues> <upvalue_1> ...
 	mlc_function_t SubFunction[1];
@@ -1174,7 +1169,6 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	Info->FrameSize = SubFunction->Size;
 	Info->NumParams = NumParams;
 	ml_closure_info_finish(Info);
-	if (MLDebugClosures) ml_closure_info_debug(Info);
 	if (SubFunction->UpValues) {
 		int NumUpValues = 0;
 		for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) ++NumUpValues;
@@ -2816,6 +2810,5 @@ void ml_load(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const cha
 	ml_accept_eoi(Scanner);
 	fclose(File);
 	ml_value_t *Closure = ml_compile(Expr, Parameters, Scanner->Context);
-	if (MLDebugClosures) ml_closure_debug(Closure);
 	ML_RETURN(Closure);
 }

@@ -197,7 +197,7 @@ ML_FUNCTIONX(MLCallCC) {
 	}
 }
 
-ML_FUNCTIONX(MLSpawn) {
+ML_FUNCTIONX(MLMark) {
 	ML_CHECKX_ARG_COUNT(1);
 	ml_state_t *State = new(ml_state_t);
 	State->Type = MLStateT;
@@ -312,7 +312,6 @@ struct ml_error_t {
 };
 
 static void ml_error_call(ml_state_t *Caller, ml_value_t *Error, int Count, ml_value_t **Args) {
-	ml_error_trace_add(Error, (ml_source_t){__FILE__, __LINE__});
 	ML_RETURN(Error);
 }
 
@@ -349,12 +348,11 @@ const char *ml_error_message(ml_value_t *Value) {
 	return ((ml_error_t *)Value)->Message;
 }
 
-int ml_error_trace(ml_value_t *Value, int Level, const char **Source, int *Line) {
+int ml_error_source(ml_value_t *Value, int Level, ml_source_t *Source) {
 	ml_error_t *Error = (ml_error_t *)Value;
 	if (Level >= MAX_TRACE) return 0;
 	if (!Error->Trace[Level].Name) return 0;
-	Source[0] = Error->Trace[Level].Name;
-	Line[0] = Error->Trace[Level].Line;
+	Source[0] = Error->Trace[Level];
 	return 1;
 }
 

@@ -150,7 +150,7 @@ extern ml_type_t MLCFunctionXT[];
 extern ml_type_t MLPartialFunctionT[];
 
 extern ml_functionx_t MLCallCC[];
-extern ml_functionx_t MLSpawn[];
+extern ml_functionx_t MLMark[];
 extern ml_function_t MLContextKey[];
 
 ml_value_t *ml_function(void *Data, ml_callback_t Function);

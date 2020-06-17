@@ -111,7 +111,7 @@ ml_value_t *ml_error(const char *Error, const char *Format, ...) __attribute__ (
 ml_value_t *ml_errorv(const char *Error, const char *Format, va_list Args);
 const char *ml_error_type(ml_value_t *Value);
 const char *ml_error_message(ml_value_t *Value);
-int ml_error_trace(ml_value_t *Value, int Level, const char **Source, int *Line);
+int ml_error_source(ml_value_t *Value, int Level, ml_source_t *Source);
 ml_value_t *ml_error_trace_add(ml_value_t *Error, ml_source_t Source);
 void ml_error_print(ml_value_t *Error);
 

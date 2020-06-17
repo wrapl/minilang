@@ -146,8 +146,6 @@ void ml_closure_sha256(ml_value_t *Closure, unsigned char Hash[SHA256_BLOCK_SIZE
 
 void ml_closure_info_finish(ml_closure_info_t *Info);
 
-const char *ml_closure_info_debug(ml_closure_info_t *Info);
-
 #ifdef USE_ML_CBOR_BYTECODE
 
 #include "ml_cbor.h"

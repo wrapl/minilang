@@ -71,8 +71,6 @@ ML_FUNCTION(MLError) {
 	return ml_error(ml_string_value(Args[0]), "%s", ml_string_value(Args[1]));
 }
 
-extern int MLDebugClosures;
-
 ML_FUNCTION(MLBreak) {
 #ifdef DEBUG
 	asm("int3");
@@ -132,30 +130,6 @@ ML_FUNCTIONX(Import) {
 }
 #endif
 
-static ml_value_t *MainArgs[1];
-
-static void ml_loaded_run(ml_state_t *State, ml_value_t *Result) {
-	if (Result->Type == MLErrorT) {
-		printf("Error: %s\n", ml_error_message(Result));
-		const char *Source;
-		int Line;
-		for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
-		exit(1);
-	}
-	Result = ml_call(Result, 1, MainArgs);
-	if (Result->Type == MLErrorT) {
-		printf("Error: %s\n", ml_error_message(Result));
-		const char *Source;
-		int Line;
-		for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
-		exit(1);
-	}
-}
-
-static ml_state_t MLLoadedState[1] = {{
-	MLStateT, NULL, ml_loaded_run
-}};
-
 int main(int Argc, const char *Argv[]) {
 	static const char *Parameters[] = {"Args", NULL};
 	ml_init();
@@ -170,7 +144,7 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "halt", MLHalt);
 	stringmap_insert(Globals, "collect", MLCollect);
 	stringmap_insert(Globals, "callcc", MLCallCC);
-	stringmap_insert(Globals, "spawn", MLSpawn);
+	stringmap_insert(Globals, "mark", MLMark);
 	stringmap_insert(Globals, "context", MLContextKey);
 	stringmap_insert(Globals, "test", MLTest);
 #ifdef USE_ML_CBOR
@@ -215,7 +189,6 @@ int main(int Argc, const char *Argv[]) {
 				ModuleName = Argv[I];
 			break;
 #endif
-			case 'D': MLDebugClosures = 1; break;
 			case 'z': GC_disable(); break;
 #ifdef USE_ML_GIR
 			case 'G': GtkConsole = 1; break;
@@ -227,18 +200,30 @@ int main(int Argc, const char *Argv[]) {
 			ml_list_append(Args, ml_string(Argv[I], -1));
 		}
 	}
-	MainArgs[0] = Args;
 	if (FileName) {
-		ml_load(MLLoadedState, global_get, 0, FileName, Parameters);
+		ml_value_t *Result = ML_WRAP_EVAL(ml_load, global_get, 0, FileName, Parameters);
+		ml_value_t *MainArgs[1] = {Args};
+		Result = ml_call(Result, 1, MainArgs);
+		if (Result->Type == MLErrorT) {
+			printf("Error: %s\n", ml_error_message(Result));
+			ml_source_t Source;
+			int Level = 0;
+			while (ml_error_source(Result, Level++, &Source)) {
+				printf("\t%s:%d\n", Source.Name, Source.Line);
+			}
+			return 1;
+		}
 #ifdef USE_ML_MODULES
 	} else if (ModuleName) {
 		ml_value_t *Args[] = {ml_string(ModuleName, -1)};
 		ml_value_t *Result = ml_call((ml_value_t *)Import, 1, Args);
 		if (Result->Type == MLErrorT) {
 			printf("Error: %s\n", ml_error_message(Result));
-			const char *Source;
-			int Line;
-			for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+			ml_source_t Source;
+			int Level = 0;
+			while (ml_error_source(Result, Level++, &Source)) {
+				printf("\t%s:%d\n", Source.Name, Source.Line);
+			}
 			return 1;
 		}
 #endif
