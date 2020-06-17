@@ -1009,17 +1009,21 @@ static ml_value_t *MainArgs[1];
 static void ml_loaded_run(ml_state_t *State, ml_value_t *Result) {
 	if (Result->Type == MLErrorT) {
 		printf("Error: %s\n", ml_error_message(Result));
-		const char *Source;
-		int Line;
-		for (int I = 0; ml_error_source(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+		ml_source_t Source;
+		int Level = 0;
+		while (ml_error_source(Result, Level++, &Source)) {
+			printf("\t%s:%d\n", Source.Name, Source.Line);
+		}
 		exit(1);
 	}
 	Result = ml_call(Result, 1, MainArgs);
 	if (Result->Type == MLErrorT) {
 		printf("Error: %s\n", ml_error_message(Result));
-		const char *Source;
-		int Line;
-		for (int I = 0; ml_error_source(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+		ml_source_t Source;
+		int Level = 0;
+		while (ml_error_source(Result, Level++, &Source)) {
+			printf("\t%s:%d\n", Source.Name, Source.Line);
+		}
 		exit(1);
 	}
 }
@@ -1109,9 +1113,11 @@ int main(int Argc, char **Argv) {
 			if (Result->Type == XENodeT) Result = node_expand(Result, NULL, GlobalScope);
 			if (Result->Type == MLErrorT) {
 				printf("Error: %s\n", ml_error_message(Result));
-				const char *Source;
-				int Line;
-				for (int I = 0; ml_error_source(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+				ml_source_t Source;
+				int Level = 0;
+				while (ml_error_source(Result, Level++, &Source)) {
+					printf("\t%s:%d\n", Source.Name, Source.Line);
+				}
 			} else {
 				print(NULL, 1, &Result);
 				puts("");
