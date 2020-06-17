@@ -1,0 +1,53 @@
+div.folders {
+	margin: 0.4em 1em;
+}
+
+div.folders ul {
+	/*font-family: 'Fira Code', monospace;*/
+	/*margin-left: 1em;*/
+}
+
+div.folders ul li {
+	list-style: none;
+	padding-left: 0;
+	margin: 0 0 0 -1em;
+	position: relative;
+}
+
+div.folders ul li:not(:last-child):before {
+	position: absolute;
+	content: "";
+	height: 100%;
+	border-left: 1px solid black;
+	left: -1.5em;
+	top: 0;
+}
+
+div.folders ul li:last-child:before {
+	position: absolute;
+	content: "";
+	height: 0.6em;
+	border-left: 1px solid black;
+	left: -1.5em;
+	top: 0;
+}
+
+div.folders ul li:after {
+	position: absolute;
+	content: "";
+	height: 0.6em;
+	width: 0.6em;
+	border-bottom: 1px solid black;
+	left: -1.5em;
+	top: 0;
+}
+
+code.highlight {
+	color: #333333 !important;
+	background-color: #f5f5f5;
+	border: 1px solid #cccccc;
+}
+
+.highlight-console pre {
+	color: #718c00;
+}

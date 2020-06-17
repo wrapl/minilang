@@ -19,7 +19,6 @@ for X in 1 .. 5 do
 	for Y in 11 .. 15 do
 		print('X = {X}, Y = {Y}\n')
 		if X = 3 and Y = 13 then
-			--break()
 			exit next
 		end
 	end

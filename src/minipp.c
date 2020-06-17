@@ -50,7 +50,7 @@ static const char *ml_preprocessor_line_read(ml_preprocessor_t *Preprocessor) {
 			printf("Error: %s\n", ml_error_message(LineValue));
 			const char *Source;
 			int Line;
-			for (int I = 0; ml_error_trace(LineValue, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+			for (int I = 0; ml_error_source(LineValue, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 			exit(0);
 		} else {
 			printf("Error: line read function did not return string\n");
@@ -97,11 +97,10 @@ static ml_value_t *ml_preprocessor_read(FILE *File, int Count, ml_value_t **Args
 }
 
 static ml_value_t *ml_preprocessor_write(FILE *File, int Count, ml_value_t **Args) {
-	ml_value_t *StringMethod = ml_method("string");
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Result = Args[I];
 		if (Result->Type != MLStringT) {
-			Result = ml_call(StringMethod, 1, &Result);
+			Result = ml_call(MLStringOfMethod, 1, &Result);
 			if (Result->Type == MLErrorT) return Result;
 			if (Result->Type != MLStringT) return ml_error("ResultError", "string method did not return string");
 		}
@@ -128,7 +127,7 @@ static void ml_result_run(ml_state_t *State, ml_value_t *Result) {
 		printf("Error: %s\n", ml_error_message(Result));
 		const char *Source;
 		int Line;
-		for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+		for (int I = 0; ml_error_source(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 	}
 }
 
@@ -149,10 +148,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 	stringmap_insert(Globals, "input", ml_function(Preprocessor, (void *)ml_preprocessor_input));
 	stringmap_insert(Globals, "include", ml_function(Preprocessor, (void *)ml_preprocessor_include));
 	stringmap_insert(Globals, "open", ml_function(0, ml_file_open));
-	mlc_context_t Context[1];
-	Context->GlobalGet = (ml_getter_t)ml_preprocessor_global_get;
-	Context->Globals = Preprocessor;
-	mlc_scanner_t *Scanner = ml_scanner(InputName, Preprocessor, (void *)ml_preprocessor_line_read, Context);
+	mlc_scanner_t *Scanner = ml_scanner(InputName, Preprocessor, (void *)ml_preprocessor_line_read, (ml_getter_t)ml_preprocessor_global_get, Preprocessor);
 	ml_value_t *Semicolon = ml_string(";", 1);
 	for (;;) {
 		ml_preprocessor_input_t *Input = Preprocessor->Input;
@@ -170,7 +166,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 					printf("Error: %s\n", ml_error_message(LineValue));
 					const char *Source;
 					int Line;
-					for (int I = 0; ml_error_trace(LineValue, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+					for (int I = 0; ml_error_source(LineValue, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 					exit(0);
 				} else if (LineValue->Type == MLStringT) {
 					Line = ml_string_value(LineValue);

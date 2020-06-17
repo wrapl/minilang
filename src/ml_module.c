@@ -12,7 +12,7 @@ typedef struct ml_mini_module_t {
 	stringmap_t Exports[1];
 } ml_mini_module_t;
 
-ML_TYPE(MLMiniModuleT, MLModuleT, "mini-module");
+ML_TYPE(MLMiniModuleT, (MLModuleT), "mini-module");
 
 ML_METHODX("::", MLMiniModuleT, MLStringT) {
 	ml_mini_module_t *Module = (ml_mini_module_t *)Args[0];
@@ -20,9 +20,7 @@ ML_METHODX("::", MLMiniModuleT, MLStringT) {
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Module->Exports, Name);
 	ml_value_t *Value = Slot[0];
 	if (!Value) {
-		ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
-		Uninitialized->Type = MLUninitializedT;
-		Value = Slot[0] = (ml_value_t *)Uninitialized;
+		Value = Slot[0] = ml_uninitialized();
 	}
 	ML_RETURN(Value);
 }
@@ -41,16 +39,15 @@ static void ml_export_function_call(ml_state_t *Caller, ml_export_function_t *Ex
 	ml_value_t *Value = Args[1];
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Module->Exports, Name);
 	if (Slot[0]) {
-		ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Slot[0];
-		if (Uninitialized->Type != MLUninitializedT) {
+		if (Slot[0]->Type != MLUninitializedT) {
 			ML_RETURN(ml_error("ExportError", "Duplicate export %s", Name));
 		}
-		for (ml_slot_t *Slot = Uninitialized->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Value;
+		ml_uninitialized_set(Slot[0], Value);
 	}
 	ML_RETURN(Slot[0] = Value);
 }
 
-ML_TYPE(MLExportFunctionT, MLFunctionT, "export-function",
+ML_TYPE(MLExportFunctionT, (MLFunctionT), "export-function",
 	.call = (void *)ml_export_function_call
 );
 
@@ -60,7 +57,7 @@ typedef struct ml_module_state_t {
 	ml_value_t *Args[1];
 } ml_module_state_t;
 
-static ml_type_t *MLModuleStateT;
+ML_TYPE(MLModuleStateT, (), "module-state");
 
 static void ml_module_done_run(ml_module_state_t *State, ml_value_t *Value) {
 	ML_CONTINUE(State->Base.Caller, State->Module);
@@ -92,6 +89,5 @@ void ml_module_load_file(ml_state_t *Caller, const char *FileName, ml_getter_t G
 }
 
 void ml_module_init(stringmap_t *_Globals) {
-	MLModuleStateT = ml_type(MLAnyT, "module-state");
 #include "ml_module_init.c"
 }

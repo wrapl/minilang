@@ -78,7 +78,8 @@ scope("radb";) do
 	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/radb.git", Dir)
 	var Lib := Dir / "libradb.a" => fun() do
 		Dir:chdir
-		execute("make libradb.a")
+		execute("make clean")
+		execute("make libradb.a RADB_MEM=GC")
 	end
 	DEFAULT[minilang_lib(LIB_DIR / "ml_radb.so", [file("ml_radb.o")], [Lib])]
 end

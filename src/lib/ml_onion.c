@@ -195,7 +195,7 @@ static ml_value_t *ml_onion_state_run(ml_onion_state_t *State, ml_value_t *Resul
 		printf("Error: %s\n", ml_error_message(Result));
 		const char *Source;
 		int Line;
-		for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+		for (int I = 0; ml_error_source(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 		State->Status = OCS_INTERNAL_ERROR;
 		return Result;
 	}
@@ -355,7 +355,7 @@ static onion_connection_status ml_onion_websocket_callback(ml_onion_websocket_t 
 			printf("Error: %s\n", ml_error_message(Result));
 			const char *Source;
 			int Line;
-			for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+			for (int I = 0; ml_error_source(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
 			return OCS_INTERNAL_ERROR;
 		}
 		if (Result->Type == OnionConnectionStatusT) {

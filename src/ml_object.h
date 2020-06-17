@@ -17,9 +17,11 @@ ml_value_t *ml_field_fn(void *Data, int Count, ml_value_t **Args);
 extern ml_type_t MLClassT[];
 extern ml_type_t MLObjectT[];
 
+const char *ml_class_name(ml_value_t *Value);
 size_t ml_class_size(ml_value_t *Value);
 ml_value_t *ml_class_field(ml_value_t *Value, size_t Field);
 
+ml_value_t *ml_object_class(ml_value_t *Value);
 size_t ml_object_size(ml_value_t *Value);
 ml_value_t *ml_object_field(ml_value_t *Value, size_t Field);
 

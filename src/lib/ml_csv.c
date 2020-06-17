@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <gc.h>
 
-static ml_type_t *CsvT;
+ML_TYPE(CsvT, (), "csv");
 
 typedef struct csv_row_t csv_row_t;
 
@@ -58,8 +58,9 @@ ML_METHOD("read", CsvT) {
 
 ML_METHOD("write", CsvT, MLListT) {
 	csv_t *Csv = (csv_t *)Args[0];
-	ml_list_t *Values = (ml_list_t *)Args[1];
-	for (ml_list_node_t *Node = Values->Head; Node; Node = Node->Next) {
+	int Comma = 0;
+	ML_LIST_FOREACH(Args[1], Node) {
+		if (Comma) fputc(',', Csv->File);
 		ml_value_t *Field = Node->Value;
 		if (Field->Type != MLStringT) {
 			Field = ml_call(MLStringOfMethod, 1, &Field);
@@ -67,7 +68,7 @@ ML_METHOD("write", CsvT, MLListT) {
 			if (Field->Type != MLStringT) return ml_error("ResultError", "string method did not return string");
 		}
 		csv_fwrite(Csv->File, ml_string_value(Field), ml_string_length(Field));
-		if (Node->Next) fputc(',', Csv->File);
+		Comma = 1;
 	}
 	fputc('\n', Csv->File);
 	return Args[0];
@@ -115,7 +116,6 @@ static ml_value_t *csv_open(void *Data, int Count, ml_value_t **Args) {
 }
 
 void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
-	CsvT = ml_type(MLAnyT, "csv-file");
 #include "ml_csv_init.c"
 	ml_module_export(Module, "open", ml_function(0, csv_open));
 }

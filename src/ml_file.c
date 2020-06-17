@@ -15,7 +15,7 @@ typedef struct ml_file_t {
 	FILE *Handle;
 } ml_file_t;
 
-ml_type_t *MLFileT;
+ML_TYPE(MLFileT, (), "file");
 
 FILE *ml_file_handle(ml_value_t *Value) {
 	return ((ml_file_t *)Value)->Handle;
@@ -87,7 +87,7 @@ ML_METHOD("write", MLFileT, MLStringT) {
 	return Args[0];
 }
 
-static int ml_file_write_buffer_chars(const char *Chars, size_t Remaining, ml_file_t *File) {
+static int ml_file_write_buffer_chars(ml_file_t *File, const char *Chars, size_t Remaining) {
 	while (Remaining > 0) {
 		ssize_t Actual = fwrite(Chars, 1, Remaining, File->Handle);
 		if (Actual < 0) return 1;
@@ -150,12 +150,9 @@ ml_value_t *ml_file_open(void *Data, int Count, ml_value_t **Args) {
 }
 
 void ml_file_init(stringmap_t *Globals) {
-	MLFileT = ml_type(MLAnyT, "file");
 #include "ml_file_init.c"
 	if (Globals) {
-		stringmap_insert(Globals, "file", ml_module("file",
-			"T", MLFileT,
-			"open", ml_function(0, ml_file_open),
-		NULL));
+		stringmap_insert(Globals, "file", MLFileT);
+		stringmap_insert(MLFileT->Exports, "open", ml_function(0, ml_file_open));
 	}
 }

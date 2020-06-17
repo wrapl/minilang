@@ -15,7 +15,7 @@ typedef struct typelib_t {
 	const char *Namespace;
 } typelib_t;
 
-static ml_type_t *TypelibT;
+ML_TYPE(TypelibT, (MLIteratableT), "gir-typelib");
 
 typedef struct typelib_iter_t {
 	const ml_type_t *Type;
@@ -42,15 +42,7 @@ static void typelib_iter_key(ml_state_t *Caller, typelib_iter_t *Iter) {
 	ML_CONTINUE(Caller, ml_string(g_base_info_get_name(Iter->Current), -1));
 }
 
-ml_type_t TypelibIterT[1] = {{
-	MLTypeT,
-	MLAnyT, "typelib-iter",
-	ml_default_hash,
-	ml_default_call,
-	ml_default_deref,
-	ml_default_assign,
-	NULL, 0, 0
-}};
+ML_TYPE(TypelibIterT, (), "typelib-iter");
 
 static ml_value_t *ml_gir_require(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
@@ -68,7 +60,7 @@ static ml_value_t *ml_gir_require(void *Data, int Count, ml_value_t **Args) {
 typedef struct object_t {
 	ml_type_t Base;
 	GIObjectInfo *Info;
-	ml_map_t *Methods;
+	ml_value_t *Methods;
 } object_t;
 
 typedef struct object_instance_t {
@@ -76,7 +68,8 @@ typedef struct object_instance_t {
 	void *Handle;
 } object_instance_t;
 
-static ml_type_t *ObjectT, *ObjectInstanceT;
+ML_TYPE(ObjectT, (MLTypeT), "gir-object");
+ML_TYPE(ObjectInstanceT, (), "gir-object-instance");
 static object_instance_t *ObjectInstanceNil;
 
 static ml_type_t *object_info_lookup(GIObjectInfo *Info);
@@ -96,7 +89,8 @@ ml_value_t *ml_gir_instance_get(void *Handle) {
 	GType Type = G_OBJECT_TYPE(Handle);
 	GIBaseInfo *Info = g_irepository_find_by_gtype(NULL, Type);
 	switch (g_base_info_get_type(Info)) {
-	case GI_INFO_TYPE_INVALID: {
+	case GI_INFO_TYPE_INVALID:
+	case GI_INFO_TYPE_INVALID_0: {
 		return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(Info), __LINE__);
 	}
 	case GI_INFO_TYPE_FUNCTION: {
@@ -172,7 +166,7 @@ ML_METHOD("string", ObjectInstanceT) {
 typedef struct struct_t {
 	ml_type_t Base;
 	GIStructInfo *Info;
-	ml_map_t *Methods;
+	ml_value_t *Methods;
 } struct_t;
 
 typedef struct struct_instance_t {
@@ -180,7 +174,8 @@ typedef struct struct_instance_t {
 	void *Value;
 } struct_instance_t;
 
-static ml_type_t *StructT, *StructInstanceT;
+ML_TYPE(StructT, (MLTypeT), "gir-struct");
+ML_TYPE(StructInstanceT, (), "gir-struct-instance");
 
 static ml_value_t *struct_instance_new(struct_t *Struct, int Count, ml_value_t **Args) {
 	struct_instance_t *Instance = new(struct_instance_t);
@@ -211,15 +206,10 @@ static ml_value_t *field_ref_ ## LNAME ## _assign(field_ref_t *Ref, ml_value_t *
 	return Value; \
 } \
 \
-static ml_type_t FieldRef ## UNAME ## T[1] = {{ \
-	MLTypeT, \
-	MLAnyT, "field-ref-" #LNAME, \
-	ml_default_hash, \
-	ml_default_call, \
-	(void *)field_ref_ ## LNAME ## _deref, \
-	(void *)field_ref_ ## LNAME ## _assign, \
-	NULL, 0, 0 \
-}}
+ML_TYPE(FieldRef ## UNAME ## T, (), "field-ref-" #LNAME, \
+	.deref = (void *)field_ref_ ## LNAME ## _deref, \
+	.assign = (void *)field_ref_ ## LNAME ## _assign \
+);
 
 FIELD_REF(Boolean, boolean, gboolean, Value ? MLTrue : MLFalse, Value == MLTrue);
 FIELD_REF(Int8, int8, gint8, ml_integer(Value), ml_integer_value(Value));
@@ -259,7 +249,8 @@ static ml_value_t *struct_field_ref(GIFieldInfo *Info, int Count, ml_value_t **A
 	case GI_TYPE_TAG_INTERFACE: {
 		GIBaseInfo *InterfaceInfo = g_type_info_get_interface(TypeInfo);
 		switch (g_base_info_get_type(InterfaceInfo)) {
-		case GI_INFO_TYPE_INVALID: return ml_error("TodoError", "Field ref not implemented yet");
+		case GI_INFO_TYPE_INVALID:
+		case GI_INFO_TYPE_INVALID_0: return ml_error("TodoError", "Field ref not implemented yet");
 		case GI_INFO_TYPE_FUNCTION: return ml_error("TodoError", "Field ref not implemented yet");
 		case GI_INFO_TYPE_CALLBACK: return ml_error("TodoError", "Field ref not implemented yet");
 		case GI_INFO_TYPE_STRUCT: return ml_error("TodoError", "Field ref not implemented yet");
@@ -303,7 +294,8 @@ typedef struct enum_value_t {
 	gint64 Value;
 } enum_value_t;
 
-static ml_type_t *EnumT, *EnumValueT;
+ML_TYPE(EnumT, (MLTypeT), "gir-enum");
+ML_TYPE(EnumValueT, (), "gir-value");
 
 ML_METHOD("string", EnumValueT) {
 	enum_value_t *Value = (enum_value_t *)Args[0];
@@ -423,6 +415,16 @@ static void callback_invoke(ffi_cif *Cif, void *Return, void **Params, ml_gir_ca
 		case GI_TYPE_TAG_INTERFACE: {
 			GIBaseInfo *InterfaceInfo = g_type_info_get_interface(TypeInfo);
 			switch (g_base_info_get_type(InterfaceInfo)) {
+			case GI_INFO_TYPE_INVALID:
+			case GI_INFO_TYPE_INVALID_0: {
+				break;
+			}
+			case GI_INFO_TYPE_FUNCTION: {
+				break;
+			}
+			case GI_INFO_TYPE_CALLBACK: {
+				break;
+			}
 			case GI_INFO_TYPE_STRUCT: {
 				struct_instance_t *Instance = new(struct_instance_t);
 				Instance->Type = (struct_t *)struct_info_lookup((GIStructInfo *)InterfaceInfo);
@@ -560,7 +562,8 @@ static void callback_invoke(ffi_cif *Cif, void *Return, void **Params, ml_gir_ca
 	case GI_TYPE_TAG_INTERFACE: {
 		GIBaseInfo *InterfaceInfo = g_type_info_get_interface(ReturnInfo);
 		switch (g_base_info_get_type(InterfaceInfo)) {
-		case GI_INFO_TYPE_INVALID: break;
+		case GI_INFO_TYPE_INVALID:
+		case GI_INFO_TYPE_INVALID_0: break;
 		case GI_INFO_TYPE_FUNCTION: break;
 		case GI_INFO_TYPE_CALLBACK: {
 			ml_gir_callback_t *Callback = new(ml_gir_callback_t);
@@ -569,7 +572,7 @@ static void callback_invoke(ffi_cif *Cif, void *Return, void **Params, ml_gir_ca
 			*(void **)Return = g_callable_info_prepare_closure(
 				InterfaceInfo,
 				Callback->Cif,
-				callback_invoke,
+				(GIFFIClosureCallback)callback_invoke,
 				Callback
 			);
 			break;
@@ -692,6 +695,10 @@ static ml_value_t *argument_to_value(GIArgument *Argument, GITypeInfo *Info) {
 	case GI_TYPE_TAG_INTERFACE: {
 		GIBaseInfo *InterfaceInfo = g_type_info_get_interface(Info);
 		switch (g_base_info_get_type(InterfaceInfo)) {
+		case GI_INFO_TYPE_INVALID:
+		case GI_INFO_TYPE_INVALID_0: break;
+		case GI_INFO_TYPE_FUNCTION: break;
+		case GI_INFO_TYPE_CALLBACK: break;
 		case GI_INFO_TYPE_STRUCT: {
 			struct_instance_t *Instance = new(struct_instance_t);
 			Instance->Type = (struct_t *)struct_info_lookup((GIStructInfo *)InterfaceInfo);
@@ -778,7 +785,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 		case GI_DIRECTION_INOUT: ++NArgsIn; ++NArgsOut; break;
 		}
 	}
-	GIFunctionInfoFlags Flags = g_function_info_get_flags(Info);
+	//GIFunctionInfoFlags Flags = g_function_info_get_flags(Info);
 	GIArgument ArgsIn[NArgsIn];
 	GIArgument ArgsOut[NArgsOut];
 	int IndexIn = 0, IndexOut = 0, N = 0;
@@ -893,7 +900,8 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 				case GI_TYPE_TAG_INTERFACE: {
 					GIBaseInfo *InterfaceInfo = g_type_info_get_interface(TypeInfo);
 					switch (g_base_info_get_type(InterfaceInfo)) {
-					case GI_INFO_TYPE_INVALID: {
+					case GI_INFO_TYPE_INVALID:
+					case GI_INFO_TYPE_INVALID_0: {
 						return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 					}
 					case GI_INFO_TYPE_FUNCTION: {
@@ -906,7 +914,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 						ArgsIn[IndexIn].v_pointer = g_callable_info_prepare_closure(
 							InterfaceInfo,
 							Callback->Cif,
-							callback_invoke,
+							(GIFFIClosureCallback)callback_invoke,
 							Callback
 						);
 						break;
@@ -1061,7 +1069,8 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 			case GI_TYPE_TAG_INTERFACE: {
 				GIBaseInfo *InterfaceInfo = g_type_info_get_interface(TypeInfo);
 				switch (g_base_info_get_type(InterfaceInfo)) {
-				case GI_INFO_TYPE_INVALID: {
+				case GI_INFO_TYPE_INVALID:
+				case GI_INFO_TYPE_INVALID_0: {
 					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_FUNCTION: {
@@ -1200,7 +1209,8 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 			case GI_TYPE_TAG_INTERFACE: {
 				GIBaseInfo *InterfaceInfo = g_type_info_get_interface(TypeInfo);
 				switch (g_base_info_get_type(InterfaceInfo)) {
-				case GI_INFO_TYPE_INVALID: {
+				case GI_INFO_TYPE_INVALID:
+				case GI_INFO_TYPE_INVALID_0: {
 					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_FUNCTION: {
@@ -1310,11 +1320,9 @@ static void interface_add_methods(object_t *Object, GIInterfaceInfo *Info) {
 	for (int I = 0; I < NumMethods; ++I) {
 		GIFunctionInfo *MethodInfo = g_interface_info_get_method(Info, I);
 		const char *MethodName = g_base_info_get_name((GIBaseInfo *)MethodInfo);
-		switch (g_function_info_get_flags(MethodInfo)) {
-		case GI_FUNCTION_IS_METHOD: {
+		GIFunctionInfoFlags Flags = g_function_info_get_flags(MethodInfo);
+		if (Flags & GI_FUNCTION_IS_METHOD) {
 			ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Object, NULL);
-			break;
-		}
 		}
 	}
 }
@@ -1334,7 +1342,7 @@ static void object_add_methods(object_t *Object, GIObjectInfo *Info) {
 		if (Flags & GI_FUNCTION_IS_METHOD) {
 			ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Object, NULL);
 		} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
-			ml_map_insert(Object->Methods, ml_string(MethodName, -1), ml_function(MethodInfo, constructor_invoke));
+			ml_map_insert(Object->Methods, ml_string(MethodName, -1), ml_function(MethodInfo, (void *)constructor_invoke));
 		}
 	}
 }
@@ -1349,9 +1357,9 @@ static ml_type_t *object_info_lookup(GIObjectInfo *Info) {
 		Object->Base = ObjectT[0];
 		Object->Base.Type = ObjectT;
 		Object->Base.Name = TypeName;
-		Object->Base.Parent = ObjectInstanceT;
 		Object->Info = Info;
 		Object->Methods = ml_map();
+		ml_type_init((ml_type_t *)Object, ObjectInstanceT, NULL);
 		object_add_methods(Object, Info);
 		Slot[0] = (ml_type_t *)Object;
 	}
@@ -1373,10 +1381,10 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 		Struct->Base = StructT[0];
 		Struct->Base.Type = StructT;
 		Struct->Base.Name = TypeName;
-		Struct->Base.Parent = StructInstanceT;
 		Struct->Info = Info;
 		Struct->Methods = ml_map();
-		ml_map_insert(Struct->Methods, ml_string("new", -1), ml_function(Struct, struct_instance_new));
+		ml_type_init((ml_type_t *)Struct, StructInstanceT, NULL);
+		ml_map_insert(Struct->Methods, ml_cstring("new"), ml_function(Struct, (void *)struct_instance_new));
 		Slot[0] = (ml_type_t *)Struct;
 		int NumFields = g_struct_info_get_n_fields(Info);
 		for (int I = 0; I < NumFields; ++I) {
@@ -1392,7 +1400,7 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 			if (Flags & GI_FUNCTION_IS_METHOD) {
 				ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Struct, NULL);
 			} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
-				ml_map_insert(Struct->Methods, ml_string(MethodName, -1), ml_function(MethodInfo, constructor_invoke));
+				ml_map_insert(Struct->Methods, ml_string(MethodName, -1), ml_function(MethodInfo, (void *)constructor_invoke));
 			}
 		}
 	}
@@ -1409,7 +1417,7 @@ ML_METHOD("::", StructT, MLStringT) {
 ML_METHOD("::", EnumT, MLStringT) {
 	enum_t *Enum = (enum_t *)Args[0];
 	enum_value_t *Value = (enum_value_t *)ml_map_search(Enum->ByName, Args[1]);
-	if (Value == MLNil) return ml_error("NameError", "Invalid enum name %s", ml_string_value(Args[1]));
+	if ((ml_value_t *)Value == MLNil) return ml_error("NameError", "Invalid enum name %s", ml_string_value(Args[1]));
 	return (ml_value_t *)Value;
 }
 
@@ -1426,8 +1434,8 @@ static ml_type_t *enum_info_lookup(GIEnumInfo *Info) {
 		Enum->Base = EnumT[0];
 		Enum->Base.Type = EnumT;
 		Enum->Base.Name = TypeName;
-		Enum->Base.Parent = EnumValueT;
 		Enum->ByName = ml_map();
+		ml_type_init((ml_type_t *)Enum, EnumValueT, NULL);
 		for (int I = 0; I < NumValues; ++I) {
 			GIValueInfo *ValueInfo = g_enum_info_get_value(Info, I);
 			const char *ValueName = GC_strdup(g_base_info_get_name((GIBaseInfo *)ValueInfo));
@@ -1436,7 +1444,7 @@ static ml_type_t *enum_info_lookup(GIEnumInfo *Info) {
 			Value->Type = Enum;
 			Value->Name = ml_string(ValueName, -1);
 			Value->Value = g_value_info_get_value(ValueInfo);
-			ml_map_insert(Enum->ByName, Value->Name, Value);
+			ml_map_insert(Enum->ByName, Value->Name, (ml_value_t *)Value);
 			Enum->ByIndex[I] = (ml_value_t *)Value;
 		}
 		Enum->Info = Info;
@@ -1459,7 +1467,8 @@ static ml_value_t *constant_info_lookup(GIConstantInfo *Info) {
 
 static ml_value_t *baseinfo_to_value(GIBaseInfo *Info) {
 	switch (g_base_info_get_type(Info)) {
-	case GI_INFO_TYPE_INVALID: {
+	case GI_INFO_TYPE_INVALID:
+	case GI_INFO_TYPE_INVALID_0: {
 		break;
 	}
 	case GI_INFO_TYPE_FUNCTION: {
@@ -1633,8 +1642,6 @@ typedef struct object_property_t {
 	const char *Name;
 } object_property_t;
 
-static ml_type_t *ObjectPropertyT;
-
 static ml_value_t *object_property_deref(object_property_t *Property) {
 	GValue Value[1] = {G_VALUE_INIT};
 	g_object_get_property(Property->Object, Property->Name, Value);
@@ -1649,6 +1656,11 @@ static ml_value_t *object_property_assign(object_property_t *Property, ml_value_
 	return Value0;
 }
 
+ML_TYPE(ObjectPropertyT, (), "gir-object-property",
+	.deref = (void *)object_property_deref,
+	.assign = (void *)object_property_assign
+);
+
 ML_METHOD("::", ObjectInstanceT, MLStringT) {
 	object_instance_t *Instance = (object_instance_t *)Args[0];
 	object_property_t *Property = new(object_property_t);
@@ -1659,23 +1671,13 @@ ML_METHOD("::", ObjectInstanceT, MLStringT) {
 }
 
 void ml_gir_init(stringmap_t *Globals) {
-	TypelibT = ml_type(MLIteratableT, "gir-typelib");
 	ml_typed_fn_set(TypelibT, ml_iterate, typelib_iterate);
 	ml_typed_fn_set(TypelibIterT, ml_iter_next, typelib_iter_next);
 	ml_typed_fn_set(TypelibIterT, ml_iter_value, typelib_iter_value);
 	ml_typed_fn_set(TypelibIterT, ml_iter_key, typelib_iter_key);
-	ObjectT = ml_type(MLTypeT, "gir-object");
-	ObjectInstanceT = ml_type(MLAnyT, "gir-object-instance");
-	ObjectPropertyT = ml_type(MLAnyT, "gir-object-property");
-	ObjectPropertyT->deref = (void *)object_property_deref;
-	ObjectPropertyT->assign = (void *)object_property_assign;
 	MLQuark = g_quark_from_static_string("<<minilang>>");
 	ObjectInstanceNil = new(object_instance_t);
 	ObjectInstanceNil->Type = (object_t *)ObjectInstanceT;
-	StructT = ml_type(MLTypeT, "gir-struct");
-	StructInstanceT = ml_type(MLAnyT, "gir-struct-instance");
-	EnumT = ml_type(MLTypeT, "gir-enum");
-	EnumValueT = ml_type(MLAnyT, "gir-value");
 	ml_typed_fn_set(EnumT, ml_iterate, enum_iterate);
 	MLTrue = ml_method("true");
 	MLFalse = ml_method("false");

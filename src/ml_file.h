@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-extern ml_type_t *MLFileT;
+extern ml_type_t MLFileT[];
 
 void ml_file_init(stringmap_t *Globals);
 

@@ -21,5 +21,6 @@
 /bin/
 /lib/
 /tmp/
-.vscode/c_cpp_properties.json
-.vscode/settings.json
+.vscode/
+.pydevproject
+.cquery

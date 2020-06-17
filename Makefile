@@ -12,7 +12,9 @@ $(SUBDIRS):
 
 *.o: *.h
 
-CFLAGS += -std=gnu99 -fstrict-aliasing -Wstrict-aliasing -Wall \
+CFLAGS += \
+	-std=gnu99 -fstrict-aliasing -foptimize-sibling-calls \
+	-Wstrict-aliasing -Wall \
 	-Iobj -Isrc -pthread -DGC_THREADS -D_GNU_SOURCE
 LDFLAGS += -lm
 
@@ -48,8 +50,10 @@ common_objects = \
 	obj/ml_iterfns.o \
 	obj/sha256.o \
 	obj/stringmap.o \
+	obj/inthash.o \
 	obj/ml_console.o \
-	obj/ml_object.o
+	obj/ml_object.o \
+	obj/ml_debugger.o
 
 platform_objects =
 

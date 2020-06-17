@@ -40,21 +40,17 @@
 #include "ml_library.h"
 #endif
 
-#ifdef USE_ML_DEBUGGER
-#include "ml_debugger.h"
-#endif
-
 static stringmap_t Globals[1] = {STRINGMAP_INIT};
 
 static ml_value_t *global_get(void *Data, const char *Name) {
 	return stringmap_search(Globals, Name);
 }
 
-static ml_value_t *ml_now(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(MLNow) {
 	return ml_integer(time(NULL));
 }
 
-static ml_value_t *ml_print(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(MLPrint) {
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Result = Args[I];
 		if (Result->Type != MLStringT) {
@@ -68,32 +64,21 @@ static ml_value_t *ml_print(void *Data, int Count, ml_value_t **Args) {
 	return MLNil;
 }
 
-static ml_value_t *ml_throw(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(MLError) {
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLStringT);
 	return ml_error(ml_string_value(Args[0]), "%s", ml_string_value(Args[1]));
 }
 
-extern int MLDebugClosures;
-
-static ml_value_t *ml_debug(void *Data, int Count, ml_value_t **Args) {
-	if (Count > 0 && Args[0] == MLNil) {
-		MLDebugClosures = 0;
-	} else {
-		MLDebugClosures = 1;
-	}
-	return MLNil;
-}
-
-static ml_value_t *ml_break(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(MLBreak) {
 #ifdef DEBUG
 	asm("int3");
 #endif
 	return MLNil;
 }
 
-static ml_value_t *ml_halt(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(MLHalt) {
 	if (Count > 0) {
 		ML_CHECK_ARG_TYPE(0, MLIntegerT);
 		exit(ml_integer_value(Args[0]));
@@ -102,64 +87,48 @@ static ml_value_t *ml_halt(void *Data, int Count, ml_value_t **Args) {
 	}
 }
 
-static ml_value_t *ml_collect(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(MLCollect) {
 	GC_gcollect();
 	return MLNil;
 }
 
-extern ml_value_t MLCallCC[];
-extern ml_value_t MLSpawn[];
+ML_FUNCTIONX(MLTest) {
+	ML_CHECKX_ARG_COUNT(2);
+	ML_CHECKX_ARG_TYPE(0, MLStringT);
+	const char *Test = ml_string_value(Args[0]);
+	if (!strcmp(Test, "methods")) {
+		ml_state_t *State = ml_state_new(Caller);
+		ml_methods_context_new(State->Context);
+		ml_value_t *Function = Args[1];
+		return Function->Type->call(State, Function, Count - 2, Args + 2);
+	}
+	ML_ERROR("ValueError", "Unknown test %s", Test);
+}
 
 #ifdef USE_ML_MODULES
 static stringmap_t Modules[1] = {STRINGMAP_INIT};
 
-static void ml_import_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTIONX(Import) {
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLStringT);
 	const char *FileName = realpath(ml_string_value(Args[0]), NULL);
 	if (!FileName) ML_RETURN(ml_error("ModuleError", "File %s not found", ml_string_value(Args[0])));
-	ml_value_t **Slot = stringmap_slot(Modules, FileName);
+	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Modules, FileName);
 	if (!Slot[0]) {
 		printf("Loading %s\n", FileName);
 		const char *Extension = strrchr(FileName, '.');
 		if (!Extension) ML_RETURN(ml_error("ModuleError", "Unknown module type: %s", FileName));
 		if (!strcmp(Extension, ".so")) {
-			return ml_library_load_file(Caller, FileName, stringmap_search, Globals, Slot);
+			return ml_library_load_file(Caller, FileName, (ml_getter_t)stringmap_search, Globals, Slot);
 		} else if (!strcmp(Extension, ".mini")) {
-			return ml_module_load_file(Caller, FileName, stringmap_search, Globals, Slot);
+			return ml_module_load_file(Caller, FileName, (ml_getter_t)stringmap_search, Globals, Slot);
 		} else {
 			ML_RETURN(ml_error("ModuleError", "Unknown module type: %s", FileName));
 		}
 	}
 	ML_RETURN(Slot[0]);
 }
-
-static ml_functionx_t Import[1] = {{{MLFunctionXT}, ml_import_fnx, NULL}};
 #endif
-
-static ml_value_t *MainArgs[1];
-
-static void ml_loaded_run(ml_state_t *State, ml_value_t *Result) {
-	if (Result->Type == MLErrorT) {
-		printf("Error: %s\n", ml_error_message(Result));
-		const char *Source;
-		int Line;
-		for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
-		exit(1);
-	}
-	Result = ml_call(Result, 1, MainArgs);
-	if (Result->Type == MLErrorT) {
-		printf("Error: %s\n", ml_error_message(Result));
-		const char *Source;
-		int Line;
-		for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
-		exit(1);
-	}
-}
-
-static ml_state_t MLLoadedState[1] = {{
-	{MLStateT}, NULL, ml_loaded_run
-}};
 
 int main(int Argc, const char *Argv[]) {
 	static const char *Parameters[] = {"Args", NULL};
@@ -168,15 +137,16 @@ int main(int Argc, const char *Argv[]) {
 	ml_file_init(Globals);
 	ml_object_init(Globals);
 	ml_iterfns_init(Globals);
-	stringmap_insert(Globals, "now", ml_function(0, ml_now));
-	stringmap_insert(Globals, "print", ml_function(0, ml_print));
-	stringmap_insert(Globals, "error", ml_function(0, ml_throw));
-	stringmap_insert(Globals, "debug", ml_function(0, ml_debug));
-	stringmap_insert(Globals, "break", ml_function(0, ml_break));
-	stringmap_insert(Globals, "halt", ml_function(0, ml_halt));
-	stringmap_insert(Globals, "collect", ml_function(0, ml_collect));
+	stringmap_insert(Globals, "now", MLNow);
+	stringmap_insert(Globals, "print", MLPrint);
+	stringmap_insert(Globals, "error", MLError);
+	stringmap_insert(Globals, "break", MLBreak);
+	stringmap_insert(Globals, "halt", MLHalt);
+	stringmap_insert(Globals, "collect", MLCollect);
 	stringmap_insert(Globals, "callcc", MLCallCC);
-	stringmap_insert(Globals, "spawn", MLSpawn);
+	stringmap_insert(Globals, "mark", MLMark);
+	stringmap_insert(Globals, "context", MLContextKey);
+	stringmap_insert(Globals, "test", MLTest);
 #ifdef USE_ML_CBOR
 	ml_cbor_init(Globals);
 #endif
@@ -200,14 +170,13 @@ int main(int Argc, const char *Argv[]) {
 #ifdef USE_ML_MODULES
 	ml_module_init(Globals);
 	ml_library_init(Globals);
-	stringmap_insert(Globals, "import", ml_functionx(0, ml_import_fnx));
-#endif
-#ifdef USE_ML_DEBUGGER
-	ml_debugger_init(Globals);
+	stringmap_insert(Globals, "import", Import);
 #endif
 	ml_value_t *Args = ml_list();
 	const char *FileName = 0;
+#ifdef USE_ML_MODULES
 	const char *ModuleName = 0;
+#endif
 	for (int I = 1; I < Argc; ++I) {
 		if (Argv[I][0] == '-') {
 			switch (Argv[I][1]) {
@@ -220,7 +189,6 @@ int main(int Argc, const char *Argv[]) {
 				ModuleName = Argv[I];
 			break;
 #endif
-			case 'D': MLDebugClosures = 1; break;
 			case 'z': GC_disable(); break;
 #ifdef USE_ML_GIR
 			case 'G': GtkConsole = 1; break;
@@ -232,30 +200,44 @@ int main(int Argc, const char *Argv[]) {
 			ml_list_append(Args, ml_string(Argv[I], -1));
 		}
 	}
-	MainArgs[0] = Args;
 	if (FileName) {
-		ml_load(MLLoadedState, global_get, 0, FileName, Parameters);
+		ml_value_t *Result = ML_WRAP_EVAL(ml_load, global_get, 0, FileName, Parameters);
+		ml_value_t *MainArgs[1] = {Args};
+		Result = ml_call(Result, 1, MainArgs);
+		if (Result->Type == MLErrorT) {
+			printf("Error: %s\n", ml_error_message(Result));
+			ml_source_t Source;
+			int Level = 0;
+			while (ml_error_source(Result, Level++, &Source)) {
+				printf("\t%s:%d\n", Source.Name, Source.Line);
+			}
+			return 1;
+		}
 #ifdef USE_ML_MODULES
 	} else if (ModuleName) {
 		ml_value_t *Args[] = {ml_string(ModuleName, -1)};
-		ml_value_t *Result = ml_call(Import, 1, Args);
+		ml_value_t *Result = ml_call((ml_value_t *)Import, 1, Args);
 		if (Result->Type == MLErrorT) {
 			printf("Error: %s\n", ml_error_message(Result));
-			const char *Source;
-			int Line;
-			for (int I = 0; ml_error_trace(Result, I, &Source, &Line); ++I) printf("\t%s:%d\n", Source, Line);
+			ml_source_t Source;
+			int Level = 0;
+			while (ml_error_source(Result, Level++, &Source)) {
+				printf("\t%s:%d\n", Source.Name, Source.Line);
+			}
 			return 1;
 		}
 #endif
 #ifdef USE_ML_GIR
 	} else if (GtkConsole) {
-		console_t *Console = console_new(stringmap_search, Globals);
+		console_t *Console = console_new((ml_getter_t)stringmap_search, Globals);
 		stringmap_insert(Globals, "print", ml_function(Console, (void *)console_print));
 		console_show(Console, NULL);
 		gtk_main();
 #endif
 	} else {
-		ml_console(stringmap_search, Globals, "--> ", "... ");
+		ml_console((ml_getter_t)stringmap_search, Globals, "--> ", "... ");
 	}
+//	extern uint64_t IntHashLoops;
+//	fprintf(stderr, "IntHashLoops = %lu\n", IntHashLoops);
 	return 0;
 }

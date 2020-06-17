@@ -1,15 +1,23 @@
 def uv := import("lib/ml_libuv.so")
 
+let Threads := all('\e[{N}m{N}\e[0m' for N in 30 .. 36)
+
+print("Without scheduler:\n")
+
+parallel(0 .. 14; N, I) do
+	for J in 1 .. 30 do
+		print('\e[48;5;{I}m[{I}, {J}]\e[0m')
+	end
+end
+
+print("\n\n\nWith scheduler:\n")
+
 uv::run(;) do
 
-var Sum := 0
-parallel(1 .. 100, 5, 10; I) do
-	var Wait := I * 111 % 31
-	print('{I}: waiting {Wait / 100.0} seconds.\n')
-	uv::sleep(10 * Wait)
-	print('{I}: done.\n')
-	Sum := old + Wait
+parallel(0 .. 14; N, I) do
+	for J in 1 .. 30 do
+		print('\e[48;5;{I}m[{I}, {J}]\e[0m')
+	end
 end
-print('Done: Sum = {Sum}\n')
 
 end

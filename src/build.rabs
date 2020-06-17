@@ -1,13 +1,12 @@
--- ROOT --
-
 if PLATFORM = "Darwin" then
 	setenv("LDFLAGS", '-L/usr/local/opt/libffi/lib')
 	setenv("PKG_CONFIG_PATH", '/usr/local/opt/libffi/lib/pkgconfig')
 end
 
 CFLAGS := old + [
-	"-std=gnu11", --'--save-temps',
+	"-std=gnu11", :>'--save-temps',
 	"-fstrict-aliasing",
+	"-foptimize-sibling-calls",
 	"-Wall", "-Wstrict-aliasing",
 	"-Wno-deprecated-declarations",
 	"-Wno-unused-function",
@@ -49,14 +48,15 @@ end
 var Objects := [
 	file("ml_compiler.o"),
 	file("ml_bytecode.o"),
-	--file("ml_bytecode_threaded.o"),
 	file("ml_runtime.o"),
 	file("ml_types.o"),
 	file("ml_file.o"),
 	file("ml_iterfns.o"),
 	file("sha256.o"),
 	file("stringmap.o"),
+	file("inthash.o"),
 	file("ml_console.o"),
+	file("ml_debugger.o"),
 	file("ml_object.o")
 ]
 
@@ -93,7 +93,7 @@ end
 if MINILANG_USECBOR or defined("USECBOR") then
 	var Dir := PATH / "minicbor"
 	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git", Dir)
-	
+
 	CFLAGS := old + [
 		'-DMINICBOR_PREFIX=ml_cbor_',
 		'-DMINICBOR_READ_FN_PREFIX=ml_cbor_read_',
@@ -117,19 +117,28 @@ if MINILANG_USEMPC or defined("USEMPC") then
 	CFLAGS := old + ["-DUSE_ML_MPC"]
 end
 
-if MINILANG_DEBUGGER or defined("DEBUGGER") then
-	Objects:put(file("ml_debugger.o"))
-	CFLAGS := old + ["-DUSE_ML_DEBUGGER"]
+if MINILANG_MODULES or defined("MODULES") then
+	Objects:put(file("ml_module.o"), file("ml_library.o"))
+	CFLAGS := old + ["-DUSE_ML_MODULES"]
+	if PLATFORM = "Linux" then
+		LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={file("exports.lst")}']
+		subdir("lib")
+	end
+	MINILANG_SCHEDULER := 1
 end
 
-if MINILANG_MODULES or defined("MODULES") then
-	Objects:put(file("ml_module.o"))
-	if PLATFORM = "Linux" then
-		Objects:put(file("ml_library.o"))
-		LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={file("exports.lst")}']
+if MINILANG_SCHEDULER or defined("SCHEDULER") then
+	CFLAGS := old + ["-DUSE_ML_SCHEDULER"]
+end
+
+if MINILANG_JIT or defined("USEJIT") then
+	let Source := file("ml_bytecode_x64.dasc")
+	file("ml_bytecode_x64.c")[Source] => fun(Target) do
+		execute("lua5.2", file("dynasm/dynasm.lua"), "-o", Target, Source)
 	end
-	CFLAGS := old + ["-DUSE_ML_MODULES"]
-	subdir("lib")
+	Objects:put(file("ml_bytecode_x64.o"))
+	CFLAGS := old + ["-DUSE_ML_JIT", "-I", Source:dirname]
+	LDFLAGS := old + ["-lZydis"]
 end
 
 if PLATFORM = "Linux" then
@@ -146,10 +155,11 @@ elseif PLATFORM = "Mingw" then
 end
 
 LIBMINILANG := c_library(LIB_DIR / "libminilang.a", Objects, Libraries)
-MINILANG := c_program(BIN_DIR /"minilang", [file("minilang.o")], Libraries + [LIBMINILANG])
-MINIPP := c_program(BIN_DIR / "minipp", [file("minipp.o")] + Objects, Libraries)
+MINILANG := c_program(BIN_DIR /"minilang", [file("minilang.o")], [LIBMINILANG])
+MINIPP := c_program(BIN_DIR / "minipp", [file("minipp.o")], [LIBMINILANG])
+MINIXE := c_program(BIN_DIR/"minixe", [file("minixe.o")], [LIBMINILANG])
 
-DEFAULT[LIBMINILANG, MINILANG, MINIPP]
+DEFAULT[LIBMINILANG, MINILANG, MINIPP, MINIXE]
 
 var InstallBin := PREFIX / "bin"
 var InstallInclude := PREFIX / "include/minilang"
@@ -167,9 +177,8 @@ var InstallHeaders := [
 	"ml_object.h",
 	"ml_compiler.h",
 	"ml_runtime.h",
-	"ml_bytecode.h",
-	"sha256.h",
-	"stringmap.h"
+	"stringmap.h",
+	"inthash.h"
 ]
 
 if MINILANG_USEMATH or defined("USEMATH") then

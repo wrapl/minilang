@@ -1,30 +1,26 @@
 #ifndef DEBUGGER_H
 #define DEBUGGER_H
 
-#include "ml_bytecode.h"
-#include <limits.h>
+#include "stringmap.h"
+#include "ml_runtime.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define SIZE_BITS (CHAR_BIT * sizeof(size_t))
+typedef struct interactive_debugger_t interactive_debugger_t;
 
-typedef struct ml_debugger_t ml_debugger_t;
+ml_value_t *interactive_debugger(
+	void (*Enter)(void *Data, interactive_debugger_t *Debugger),
+	void (*Exit)(ml_state_t *Caller, void *Data),
+	void (*Log)(void *Data, ml_value_t *Value),
+	void *Data,
+	ml_getter_t GlobalGet,
+	void *Globals
+);
 
-struct ml_debugger_t {
-	void (*run)(ml_debugger_t *Debugger, ml_state_t *Frame, ml_value_t *Value);
-	size_t *(*breakpoints)(ml_debugger_t *Debugger, const char *Source, int LineNo);
-	ml_state_t *StepOverFrame;
-	ml_state_t *StepOutFrame;
-	size_t Revision;
-	int StepIn:1;
-	int BreakOnError:1;
-};
-
-#define ML_DEBUGGER_INDEX 1
-
-void ml_debugger_init(stringmap_t *Globals);
+ml_value_t *interactive_debugger_get(interactive_debugger_t *Debugger, const char *Name);
+void interactive_debugger_resume(interactive_debugger_t *Debugger);
 
 #ifdef __cplusplus
 }

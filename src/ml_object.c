@@ -4,53 +4,28 @@
 #include "ml_macros.h"
 #include "ml_object.h"
 
-typedef struct ml_class_t {
+typedef struct ml_class_t ml_class_t;
+typedef struct ml_object_t ml_object_t;
+
+struct ml_class_t {
 	ml_type_t Base;
 	int NumFields;
 	ml_value_t *Fields[];
-} ml_class_t;
+};
 
-typedef struct ml_object_t {
+struct ml_object_t {
 	const ml_type_t *Type;
 	ml_value_t *Fields[];
-} ml_object_t;
+};
 
-ML_TYPE(MLObjectT, MLIteratableT, "object");
+ML_INTERFACE(MLObjectT, (), "object");
 
 static void ml_class_call(ml_state_t *Caller, ml_class_t *Class, int Count, ml_value_t **Args) {
-	ml_object_t *Object = xnew(ml_object_t, Class->NumFields, ml_value_t *);
-	Object->Type = (ml_type_t *)Class;
-	ml_value_t **Slot = Object->Fields;
-	for (int I = Class->NumFields; --I >= 0; ++Slot) *Slot = MLNil;
-	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Arg = Args[I]->Type->deref(Args[I]);
-		if (Arg->Type == MLErrorT) ML_RETURN(Arg);
-		if (Arg->Type == MLNamesT) {
-			ML_NAMES_FOREACH(Args[I], Node) {
-				++I;
-				ml_value_t *Field = Node->Value;
-				for (int J = 0; J < Class->NumFields; ++J) {
-					if (Class->Fields[J] == Field) {
-						ml_value_t *Arg = Args[I]->Type->deref(Args[I]);
-						if (Arg->Type == MLErrorT) ML_RETURN(Arg);
-						Object->Fields[J] = Arg;
-						goto found;
-					}
-				}
-				ML_RETURN(ml_error("ValueError", "Class %s does not have field %s", Class->Base.Name, ml_method_name(Field)));
-				found: 0;
-			}
-			break;
-		} else if (I > Class->NumFields) {
-			break;
-		} else {
-			Object->Fields[I] = Arg;
-		}
-	}
-	ML_RETURN(Object);
+	ml_value_t *Constructor = stringmap_search(Class->Base.Exports, "of");
+	return Constructor->Type->call(Caller, Constructor, Count, Args);
 }
 
-ML_TYPE(MLClassT, MLTypeT, "class",
+ML_TYPE(MLClassT, (MLTypeT), "class",
 	.call = (void *)ml_class_call
 );
 
@@ -97,69 +72,150 @@ ml_value_t *ml_field_fn(void *Data, int Count, ml_value_t **Args) {
 	return ml_reference((ml_value_t **)((char *)Object + Index));
 }
 
-static ml_value_t *ml_class_fn(void *Data, int Count, ml_value_t **Args) {
+static void ml_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int Count, ml_value_t **Args) {
+	ml_object_t *Object = xnew(ml_object_t, Class->NumFields, ml_value_t *);
+	Object->Type = (ml_type_t *)Class;
+	ml_value_t **Slot = Object->Fields;
+	for (int I = Class->NumFields; --I >= 0; ++Slot) *Slot = MLNil;
+	// TODO: If Class has an "init" function, call that instead
+	for (int I = 0; I < Count; ++I) {
+		ml_value_t *Arg = Args[I]->Type->deref(Args[I]);
+		if (Arg->Type == MLErrorT) ML_RETURN(Arg);
+		if (Arg->Type == MLNamesT) {
+			ML_NAMES_FOREACH(Args[I], Node) {
+				++I;
+				ml_value_t *Field = Node->Value;
+				for (int J = 0; J < Class->NumFields; ++J) {
+					if (Class->Fields[J] == Field) {
+						ml_value_t *Arg = Args[I]->Type->deref(Args[I]);
+						if (Arg->Type == MLErrorT) ML_RETURN(Arg);
+						Object->Fields[J] = Arg;
+						goto found;
+					}
+				}
+				ML_RETURN(ml_error("ValueError", "Class %s does not have field %s", Class->Base.Name, ml_method_name(Field)));
+				found:;
+			}
+			break;
+		} else if (I > Class->NumFields) {
+			break;
+		} else {
+			Object->Fields[I] = Arg;
+		}
+	}
+	ML_RETURN(Object);
+}
+
+ML_FUNCTION(MLClassNew) {
+	static ml_value_t **FieldFns = NULL;
+	static int NumFieldFns = 0;
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	const char *Name = ml_string_value(Args[0]);
-	if (Count > 1 && !ml_is(Args[1], MLMethodT)) {
-		ML_CHECK_ARG_TYPE(1, MLClassT);
-		ml_class_t *Parent = (ml_class_t *)Args[1];
-		for (int I = 2; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLMethodT);
-		ml_class_t *Class = xnew(ml_class_t, Parent->NumFields + Count - 2, ml_value_t *);
-		Class->Base.Type = MLClassT;
-		Class->Base.Parent = (ml_type_t *)Parent;
-		Class->Base.Name = Name;
-		Class->Base.hash = ml_default_hash;
-		Class->Base.call = ml_default_call;
-		Class->Base.deref = ml_default_deref;
-		Class->Base.assign = ml_default_assign;
-		Class->NumFields = Parent->NumFields + Count - 2;
-		memcpy(Class->Fields, Parent->Fields, Parent->NumFields * sizeof(ml_value_t *));
-		for (int I = 2; I < Count; ++I) {
-			Class->Fields[Parent->NumFields + I - 2] = Args[I];
+	int NumFields = 0, NumParents = 0, Rank = 0;
+	for (int I = 1; I < Count; ++I) {
+		if (Args[I]->Type == MLMethodT) {
+			++NumFields;
+		} else if (ml_is(Args[I], MLClassT)) {
+			ml_class_t *Parent = (ml_class_t *)Args[I];
+			NumFields += Parent->NumFields;
+			const ml_type_t **Types = Parent->Base.Types;
+			do ++NumParents; while (*++Types != MLObjectT);
+			if (Rank < Parent->Base.Rank) Rank = Parent->Base.Rank;
+		} else if (ml_is(Args[I], MLTypeT)) {
+			ml_type_t *Parent = (ml_type_t *)Args[I];
+			if (Parent->Rank >= ML_RANK_NATIVE) return ml_error("TypeError", "Classes can not inherit from native types");
+			const ml_type_t **Types = Parent->Types;
+			do ++NumParents; while (*++Types);
+			if (Rank < Parent->Rank) Rank = Parent->Rank;
+		} else if (ml_is(Args[I], MLListT)) {
+			ML_LIST_FOREACH(Args[I], Iter) {
+				if (Iter->Value->Type == MLMethodT) {
+					++NumFields;
+				} else if (ml_is(Iter->Value, MLClassT)) {
+					ml_class_t *Parent = (ml_class_t *)Iter->Value;
+					NumFields += Parent->NumFields;
+					const ml_type_t **Types = Parent->Base.Types;
+					do ++NumParents; while (*++Types != MLObjectT);
+					if (Rank < Parent->Base.Rank) Rank = Parent->Base.Rank;
+				} else if (ml_is(Args[I], MLTypeT)) {
+					ml_type_t *Parent = (ml_type_t *)Iter->Value;
+					if (Parent->Rank >= ML_RANK_NATIVE) return ml_error("TypeError", "Classes can not inherit from native types");
+					const ml_type_t **Types = Parent->Types;
+					do ++NumParents; while (*++Types);
+					if (Rank < Parent->Rank) Rank = Parent->Rank;
+				}
+			}
+		} else if (ml_is(Args[I], MLMapT)) {
+		} else {
+			return ml_error("TypeError", "Unexpected argument type: <%s>", Args[I]->Type->Name);
 		}
-		for (int I = 0; I < Class->NumFields; ++I) {
-			ml_method_by_value(Class->Fields[I], ((ml_object_t *)0)->Fields + I, ml_field_fn, Class, NULL);
-		}
-		return (ml_value_t *)Class;
-	} else {
-		for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLMethodT);
-		ml_class_t *Class = xnew(ml_class_t, Count, ml_value_t *);
-		Class->Base.Type = MLClassT;
-		Class->Base.Parent = MLObjectT;
-		Class->Base.Name = Name;
-		Class->Base.hash = ml_default_hash;
-		Class->Base.call = ml_default_call;
-		Class->Base.deref = ml_default_deref;
-		Class->Base.assign = ml_default_assign;
-		Class->NumFields = Count - 1;
-		for (int I = 1; I < Count; ++I) {
-			Class->Fields[I - 1] = Args[I];
-		}
-		for (int I = 0; I < Class->NumFields; ++I) {
-			ml_method_by_value(Class->Fields[I], ((ml_object_t *)0)->Fields + I, ml_field_fn, Class, NULL);
-		}
-		return (ml_value_t *)Class;
 	}
-}
-
-static ml_value_t *ml_method_set_fn(void *Data, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_COUNT(1);
-	if (Count == 1) {
-		if (Args[0]->Type == MLMethodT) return Args[0];
-		ML_CHECK_ARG_TYPE(0, MLStringT);
-		return ml_method(ml_string_value(Args[0]));
+	ml_class_t *Class = xnew(ml_class_t, NumFields, ml_value_t *);
+	Class->Base.Type = MLClassT;
+	Class->Base.Name = Name;
+	Class->Base.hash = ml_default_hash;
+	Class->Base.call = ml_default_call;
+	Class->Base.deref = ml_default_deref;
+	Class->Base.assign = ml_default_assign;
+	Class->Base.Rank = Rank + 1;
+	const ml_type_t **Parents = Class->Base.Types = anew(const ml_type_t *, NumParents + 4);
+	*Parents++ = (ml_type_t *)Class;
+	Class->NumFields = NumFields;
+	ml_value_t **Fields = Class->Fields;
+	ml_value_t *Constructor = ml_functionx(Class, (void *)ml_constructor_fn);
+	stringmap_insert(Class->Base.Exports, "of", Constructor);
+	for (int I = 1; I < Count; ++I) {
+		if (Args[I]->Type == MLMethodT) {
+			*Fields++ = Args[I];
+		} else if (ml_is(Args[I], MLClassT)) {
+			ml_class_t *Parent = (ml_class_t *)Args[I];
+			for (int I = 0; I < Parent->NumFields; ++I) *Fields++ = Parent->Fields[I];
+			const ml_type_t **Types = Parent->Base.Types;
+			while (*Types != MLObjectT) *Parents++ = *Types++;
+		} else if (ml_is(Args[I], MLTypeT)) {
+			ml_type_t *Parent = (ml_type_t *)Args[I];
+			const ml_type_t **Types = Parent->Types;
+			while (*Types) *Parents++ = *Types++;
+		} else if (ml_is(Args[I], MLListT)) {
+			ML_LIST_FOREACH(Args[I], Iter) {
+				if (Iter->Value->Type == MLMethodT) {
+					*Fields++ = Iter->Value;
+				} else if (ml_is(Iter->Value, MLClassT)) {
+					ml_class_t *Parent = (ml_class_t *)Iter->Value;
+					for (int I = 0; I < Parent->NumFields; ++I) *Fields++ = Parent->Fields[I];
+					const ml_type_t **Types = Parent->Base.Types;
+					while (*Types != MLObjectT) *Parents++ = *Types++;
+				} else if (ml_is(Iter->Value, MLTypeT)) {
+					ml_type_t *Parent = (ml_type_t *)Iter->Value;
+					const ml_type_t **Types = Parent->Types;
+					while (*Types) *Parents++ = *Types++;
+				}
+			}
+		} else if (ml_is(Args[I], MLMapT)) {
+			ML_MAP_FOREACH(Args[I], Iter) {
+				ml_value_t *Key = Iter->Key;
+				if (Key->Type != MLStringT) return ml_error("TypeError", "Class field name must be a string");
+				stringmap_insert(Class->Base.Exports, ml_string_value(Key), Iter->Value);
+			}
+		}
 	}
-	ml_value_t *Method = Args[0];
-	if (Method->Type == MLStringT) {
-		Method = ml_method(ml_string_value(Args[0]));
-	} else {
-		ML_CHECK_ARG_TYPE(0, MLMethodT);
+	*Parents++ = MLObjectT;
+	*Parents++ = MLAnyT;
+	if (Class->NumFields > NumFieldFns) {
+		ml_value_t **NewFieldFns = anew(ml_value_t *, Class->NumFields);
+		memcpy(NewFieldFns, FieldFns, NumFieldFns * sizeof(ml_value_t *));
+		for (int I = NumFieldFns; I < Class->NumFields; ++I) {
+			NewFieldFns[I] = ml_function(((ml_object_t *)0)->Fields + I, ml_field_fn);
+		}
+		FieldFns = NewFieldFns;
+		NumFieldFns = Class->NumFields;
 	}
-	for (int I = 1; I < Count - 1; ++I) ML_CHECK_ARG_TYPE(I, MLTypeT);
-	ML_CHECK_ARG_TYPE(Count - 1, MLFunctionT);
-	ml_method_by_array(Method, Args[Count - 1], Count - 2, (ml_type_t **)(Args + 1));
-	return Args[Count - 1];
+	for (int I = 0; I < Class->NumFields; ++I) {
+		ml_method_by_array(Class->Fields[I], FieldFns[I], 1, (ml_type_t **)&Class);
+	}
+	stringmap_insert(Class->Base.Exports, "new", Constructor);
+	return (ml_value_t *)Class;
 }
 
 typedef struct ml_assignable_t {
@@ -175,27 +231,18 @@ static ml_value_t *ml_assignable_assign(ml_assignable_t *Assignable, ml_value_t 
 	return ml_call(Assignable->Set, 1, &Value);
 }
 
-ML_TYPE(MLAssignableT, MLAnyT, "assignable",
+ML_TYPE(MLAssignableT, (), "assignable",
 	.deref = (void *)ml_assignable_deref,
 	.assign = (void *)ml_assignable_assign
 );
 
-static ml_value_t *ml_property_fn(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(MLProperty) {
 	ML_CHECK_ARG_COUNT(2);
 	ml_assignable_t *Assignable = new(ml_assignable_t);
 	Assignable->Type = MLAssignableT;
 	Assignable->Get = Args[0];
 	Assignable->Set = Args[1];
 	return (ml_value_t *)Assignable;
-}
-
-ML_METHOD("?", MLAnyT) {
-	return (ml_value_t *)Args[0]->Type;
-}
-
-ML_METHOD("?", MLTypeT, MLAnyT) {
-	if (ml_is(Args[1], (ml_type_t *)Args[0])) return Args[1];
-	return MLNil;
 }
 
 size_t ml_class_size(ml_value_t *Value) {
@@ -215,13 +262,10 @@ ml_value_t *ml_object_field(ml_value_t *Value, size_t Field) {
 }
 
 void ml_object_init(stringmap_t *Globals) {
-	stringmap_insert(Globals, "class", ml_function(NULL, ml_class_fn));
-	ml_value_t *Method = (ml_value_t *)stringmap_search(Globals, "method");
-	if (Method) {
-		ml_module_export(Method, "set", ml_function(NULL, ml_method_set_fn));
-	}
-	stringmap_insert(Globals, "property", ml_function(NULL, ml_property_fn));
-	stringmap_insert(Globals, "ObjectT", MLObjectT);
-	stringmap_insert(Globals, "ClassT", MLClassT);
+	stringmap_insert(Globals, "property", MLProperty);
+	stringmap_insert(Globals, "object", MLObjectT);
+	stringmap_insert(Globals, "class", MLClassT);
+	stringmap_insert(MLClassT->Exports, "of", MLClassNew);
+	stringmap_insert(MLClassT->Exports, "new", MLClassNew);
 #include "ml_object_init.c"
 }

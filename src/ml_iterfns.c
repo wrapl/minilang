@@ -28,13 +28,13 @@ typedef struct ml_iter_state_t {
 
 static void first2_iter_value(ml_iter_state_t *State, ml_value_t *Result) {
 	if (Result->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Result);
-	ml_tuple_set(State->Values[0], 1, Result);
+	ml_tuple_set(State->Values[0], 2, Result);
 	ML_CONTINUE(State->Base.Caller, State->Values[0]);
 }
 
 static void first2_iter_key(ml_iter_state_t *State, ml_value_t *Result) {
 	if (Result->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Result);
-	ml_tuple_set(State->Values[0], 0, Result);
+	ml_tuple_set(State->Values[0], 1, Result);
 	State->Base.run = (ml_state_fn)first2_iter_value;
 	return ml_iter_value((ml_state_t *)State, State->Iter);
 }
@@ -272,8 +272,8 @@ static void fold2_iter_next(ml_iter_state_t *State, ml_value_t *Result) {
 	if (Result == MLNil) {
 		if (State->Values[1]) {
 			ml_value_t *Tuple = ml_tuple(2);
-			ml_tuple_set(Tuple, 0, State->Values[1]);
-			ml_tuple_set(Tuple, 1, State->Values[2]);
+			ml_tuple_set(Tuple, 1, State->Values[1]);
+			ml_tuple_set(Tuple, 2, State->Values[2]);
 			ML_CONTINUE(State->Base.Caller, Tuple);
 		} else {
 			ML_CONTINUE(State->Base.Caller, MLNil);
@@ -341,7 +341,7 @@ typedef struct ml_limited_t {
 	int Remaining;
 } ml_limited_t;
 
-static ml_type_t *MLLimitedT;
+ML_TYPE(MLLimitedT, (MLIteratableT), "limited");
 
 typedef struct ml_limited_state_t {
 	ml_state_t Base;
@@ -349,7 +349,7 @@ typedef struct ml_limited_state_t {
 	int Remaining;
 } ml_limited_state_t;
 
-static ml_type_t *MLLimitedStateT;
+ML_TYPE(MLLimitedStateT, (), "limited-state");
 
 static void limited_iterate(ml_limited_state_t *State, ml_value_t *Result) {
 	if (Result->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Result);
@@ -405,7 +405,7 @@ typedef struct ml_skipped_t {
 	long Remaining;
 } ml_skipped_t;
 
-static ml_type_t *MLSkippedT;
+ML_TYPE(MLSkippedT, (MLIteratableT), "skipped");
 
 typedef struct ml_skipped_state_t {
 	ml_state_t Base;
@@ -450,7 +450,18 @@ typedef struct {
 	size_t Waiting;
 } ml_tasks_t;
 
-static ml_type_t *MLTasksT;
+static void ml_tasks_call(ml_state_t *Caller, ml_tasks_t *Tasks, int Count, ml_value_t **Args) {
+	if (Tasks->Error) ML_RETURN(Tasks->Error);
+	ML_CHECKX_ARG_TYPE(Count - 1, MLFunctionT);
+	ml_value_t *Function = Args[Count - 1];
+	++Tasks->Waiting;
+	Function->Type->call((ml_state_t *)Tasks, Function, Count - 1, Args);
+	ML_RETURN(Tasks);
+}
+
+ML_TYPE(MLTasksT, (MLFunctionT), "tasks",
+	.call = (void *)ml_tasks_call
+);
 
 static void ml_tasks_continue(ml_tasks_t *Tasks, ml_value_t *Value) {
 	if (Tasks->Error) return;
@@ -468,15 +479,6 @@ ML_FUNCTIONX(Tasks) {
 	Tasks->Base.run = (void *)ml_tasks_continue;
 	Tasks->Base.Context = Caller->Context;
 	Tasks->Waiting = 1;
-	ML_RETURN(Tasks);
-}
-
-static void ml_tasks_call(ml_state_t *Caller, ml_tasks_t *Tasks, int Count, ml_value_t **Args) {
-	if (Tasks->Error) ML_RETURN(Tasks->Error);
-	ML_CHECKX_ARG_TYPE(Count - 1, MLFunctionT);
-	ml_value_t *Function = Args[Count - 1];
-	++Tasks->Waiting;
-	Function->Type->call((ml_state_t *)Tasks, Function, Count - 1, Args);
 	ML_RETURN(Tasks);
 }
 
@@ -585,7 +587,7 @@ typedef struct ml_unique_t {
 	ml_value_t *Iter;
 } ml_unique_t;
 
-static ml_type_t *MLUniqueT;
+ML_TYPE(MLUniqueT, (MLIteratableT), "unique");
 
 typedef struct ml_unique_state_t {
 	ml_state_t Base;
@@ -595,7 +597,7 @@ typedef struct ml_unique_state_t {
 	int Iteration;
 } ml_unique_state_t;
 
-static ml_type_t *MLUniqueStateT;
+ML_TYPE(MLUniqueStateT, (), "unique-state");
 
 static void ml_unique_fnx_iterate(ml_unique_state_t *State, ml_value_t *Result);
 
@@ -657,7 +659,7 @@ typedef struct ml_grouped_t {
 	int Count;
 } ml_grouped_t;
 
-static ml_type_t *MLGroupedT;
+ML_TYPE(MLGroupedT, (MLIteratableT), "grouped");
 
 typedef struct ml_grouped_state_t {
 	ml_state_t Base;
@@ -667,7 +669,7 @@ typedef struct ml_grouped_state_t {
 	int Count, Index, Iteration;
 } ml_grouped_state_t;
 
-static ml_type_t *MLGroupedStateT;
+ML_TYPE(MLGroupedStateT, (), "grouped-state");
 
 static void grouped_iterate(ml_grouped_state_t *State, ml_value_t *Result) {
 	if (Result->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Result);
@@ -743,7 +745,7 @@ typedef struct ml_repeated_t {
 	ml_value_t *Value, *Function;
 } ml_repeated_t;
 
-static ml_type_t *MLRepeatedT;
+ML_TYPE(MLRepeatedT, (MLIteratableT), "repeated");
 
 typedef struct ml_repeated_state_t {
 	ml_state_t Base;
@@ -751,7 +753,7 @@ typedef struct ml_repeated_state_t {
 	int Iteration;
 } ml_repeated_state_t;
 
-static ml_type_t *MLRepeatedStateT;
+ML_TYPE(MLRepeatedStateT, (), "repeated-state");
 
 static void repeated_call(ml_repeated_state_t *State, ml_value_t *Result) {
 	if (Result->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Result);
@@ -798,14 +800,14 @@ typedef struct ml_sequenced_t {
 	ml_value_t *First, *Second;
 } ml_sequenced_t;
 
-static ml_type_t *MLSequencedT;
+ML_TYPE(MLSequencedT, (MLIteratableT), "sequenced");
 
 typedef struct ml_sequenced_state_t {
 	ml_state_t Base;
 	ml_value_t *Iter, *Next;
 } ml_sequenced_state_t;
 
-static ml_type_t *MLSequencedStateT;
+ML_TYPE(MLSequencedStateT, (), "sequenced-state");
 
 static void ml_sequenced_fnx_iterate(ml_sequenced_state_t *State, ml_value_t *Result);
 
@@ -895,9 +897,9 @@ typedef struct ml_chained_iterator_t {
 	ml_value_t **Functions, **Current;
 } ml_chained_iterator_t;
 
-ML_TYPE(MLChainedIteratorT, MLAnyT, "chained-iterator");
+ML_TYPE(MLChainedIteratorT, (), "chained-iterator");
 
-ML_TYPE(MLChainedFunctionT, MLFunctionT, "chained-function",
+ML_TYPE(MLChainedFunctionT, (MLFunctionT), "chained-function",
 	.call = (void *)ml_chained_function_call
 );
 
@@ -993,29 +995,5 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "tasks", Tasks);
 	stringmap_insert(Globals, "group", Group);
 	stringmap_insert(Globals, "repeat", Repeat);
-
-	//stringmap_insert(Globals, "tuple", ml_function(0, ml_tuple_new));
-	//stringmap_insert(Globals, "list", ml_function(0, ml_list_new));
-
-	MLLimitedT = ml_type(MLIteratableT, "limited");
-	MLLimitedStateT = ml_type(MLAnyT, "limited-state");
-
-	MLSkippedT = ml_type(MLIteratableT, "skipped");
-
-	MLTasksT = ml_type(MLFunctionT, "tasks");
-	MLTasksT->call = (void *)ml_tasks_call;
-
-	MLUniqueT = ml_type(MLIteratableT, "unique");
-	MLUniqueStateT = ml_type(MLAnyT, "unique-state");
-
-	MLGroupedT = ml_type(MLIteratableT, "grouped");
-	MLGroupedStateT = ml_type(MLAnyT, "grouped-state");
-
-	MLRepeatedT = ml_type(MLIteratableT, "repeated");
-	MLRepeatedStateT = ml_type(MLAnyT, "repeated-state");
-
-	MLSequencedT = ml_type(MLIteratableT, "sequenced");
-	MLSequencedStateT = ml_type(MLAnyT, "sequenced-state");
-
 #include "ml_iterfns_init.c"
 }

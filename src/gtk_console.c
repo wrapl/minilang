@@ -20,8 +20,16 @@
 #include "ml_gir.h"
 #include "ml_runtime.h"
 #include "ml_bytecode.h"
+#include "ml_debugger.h"
 
 #define MAX_HISTORY 128
+
+typedef struct console_debugger_t console_debugger_t;
+
+struct console_debugger_t {
+	console_debugger_t *Prev;
+	interactive_debugger_t *Debugger;
+};
 
 struct console_t {
 	GtkWidget *Window, *LogScrolled, *LogView, *InputView;
@@ -30,6 +38,7 @@ struct console_t {
 	GtkTextMark *EndMark;
 	ml_getter_t ParentGetter;
 	void *ParentGlobals;
+	console_debugger_t *Debugger;
 	const char *ConfigPath;
 	const char *FontName;
 	GKeyFile *Config;
@@ -38,7 +47,6 @@ struct console_t {
 	char *History[MAX_HISTORY];
 	int HistoryIndex, HistoryEnd;
 	stringmap_t Globals[1];
-	mlc_context_t Context[1];
 	stringmap_t Cycles[1];
 	stringmap_t Combos[1];
 	char Chars[32];
@@ -54,59 +62,18 @@ static char *stpcpy(char *Dest, const char *Source) {
 #define lstat stat
 #endif
 
-static void console_display_closure(console_t *Console, ml_value_t *Closure) {
-	static GVC_t *Context = 0;
-	if (!Context) {
-		Context = gvContext();
-	}
-	const char *GraphFileName = ml_closure_debug(Closure);
-	FILE *GraphFile = fopen(GraphFileName, "r");
-	graph_t *Graph = agread(GraphFile, NULL);
-	fclose(GraphFile);
-	unlink(GraphFileName);
-	const char *FontSize = "10";
-	for (const char *P = Console->FontName; *P; ++P) if (*P == ' ') FontSize = P + 1;
-	agattr(Graph, AGNODE, "fontsize", (char *)FontSize);
-	agattr(Graph, AGNODE, "fontname", (char *)Console->FontName);
-	agattr(Graph, AGEDGE, "fontsize", (char *)FontSize);
-	agattr(Graph, AGEDGE, "fontname", (char *)Console->FontName);
-	gvLayout(Context, Graph, "dot");
-	char *ImageFileName;
-	asprintf(&ImageFileName, "%s.svg", GraphFileName);
-	FILE *ImageFile = fopen(ImageFileName, "w");
-	gvRender(Context, Graph, "svg", ImageFile);
-	fclose(ImageFile);
-	GtkWidget *Image = gtk_image_new_from_file(ImageFileName);
-	unlink(ImageFileName);
-	GtkTextIter End[1];
-	GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
-	gtk_text_buffer_get_end_iter(LogBuffer, End);
-	GtkTextChildAnchor *Anchor = gtk_text_buffer_create_child_anchor(LogBuffer, End);
-	gtk_text_view_add_child_at_anchor(GTK_TEXT_VIEW(Console->LogView), Image, Anchor);
-	gtk_widget_show_all(Image);
-	gtk_text_buffer_insert(LogBuffer, End, "\n", 1);
-}
-
-static void console_display_value(console_t *Console, ml_value_t *Value) {
-	typeof(console_display_value) *function = ml_typed_fn_get(Value->Type, console_display_value);
-	if (function) function(Console, Value);
-}
-
-static ml_value_t *console_display(console_t *Console, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_COUNT(1);
-	console_display_value(Console, Args[0]);
-	return MLNil;
-}
-
 static ml_value_t *console_global_get(console_t *Console, const char *Name) {
+	if (Console->Debugger) {
+		ml_value_t *Value = interactive_debugger_get(Console->Debugger->Debugger, Name);
+		if (Value) return Value;
+	}
 	ml_value_t *Value = stringmap_search(Console->Globals, Name);
 	if (Value) return Value;
 	Value = (Console->ParentGetter)(Console->ParentGlobals, Name);
 	if (Value) return Value;
-	ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
-	Uninitialized->Type = MLUninitializedT;
-	stringmap_insert(Console->Globals, Name, Uninitialized);
-	return (ml_value_t *)Uninitialized;
+	Value = ml_uninitialized();
+	stringmap_insert(Console->Globals, Name, Value);
+	return Value;
 }
 
 static char *console_read(console_t *Console) {
@@ -136,10 +103,10 @@ void console_log(console_t *Console, ml_value_t *Value) {
 		char *Buffer;
 		int Length = asprintf(&Buffer, "Error: %s\n", ml_error_message(Value));
 		gtk_text_buffer_insert_with_tags(LogBuffer, End, Buffer, Length, Console->ErrorTag, NULL);
-		const char *Source;
-		int Line;
-		for (int I = 0; ml_error_trace(Value, I, &Source, &Line); ++I) {
-			Length = asprintf(&Buffer, "\t%s:%d\n", Source, Line);
+		ml_source_t Source;
+		int Level = 0;
+		while (ml_error_source(Value, Level++, &Source)) {
+			Length = asprintf(&Buffer, "\t%s:%d\n", Source.Name, Source.Line);
 			gtk_text_buffer_insert_with_tags(LogBuffer, End, Buffer, Length, Console->ErrorTag, NULL);
 		}
 	} else {
@@ -176,15 +143,23 @@ typedef struct {
 	console_t *Console;
 } ml_console_repl_state_t;
 
+static ml_value_t ConsoleBreak[1] = {{MLAnyT}};
+
 static void ml_console_repl_run(ml_console_repl_state_t *State, ml_value_t *Result) {
-	if (!Result) {
+	if (!Result || Result == ConsoleBreak) {
 		gtk_widget_grab_focus(State->Console->InputView);
 		return;
 	}
 	console_log(State->Console, Result);
-	if (Result->Type != MLErrorT) {
-		return ml_command_evaluate((ml_state_t *)State, State->Console->Scanner, State->Console->Globals);
+	GtkTextIter End[1];
+	GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(State->Console->LogView));
+	gtk_text_buffer_get_end_iter(LogBuffer, End);
+	gtk_text_buffer_insert(LogBuffer, End, "\n", 1);
+	if (Result->Type == MLErrorT) {
+		gtk_widget_grab_focus(State->Console->InputView);
+		return;
 	}
+	return ml_command_evaluate((ml_state_t *)State, State->Console->Scanner, State->Console->Globals);
 }
 
 static void console_submit(GtkWidget *Button, console_t *Console) {
@@ -216,6 +191,19 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 	State->Console = Console;
 	ml_scanner_reset(Scanner);
 	ml_command_evaluate((ml_state_t *)State, Scanner, Console->Globals);
+}
+
+static void console_debug_enter(console_t *Console, interactive_debugger_t *Debugger) {
+	console_debugger_t *ConsoleDebugger = new(console_debugger_t);
+	ConsoleDebugger->Prev = Console->Debugger;
+	ConsoleDebugger->Debugger = Debugger;
+	Console->Debugger = ConsoleDebugger;
+}
+
+static void console_debug_exit(ml_state_t *Caller, console_t *Console) {
+	interactive_debugger_t *Debugger = Console->Debugger->Debugger;
+	Console->Debugger = Console->Debugger->Prev;
+	return interactive_debugger_resume(Debugger);
 }
 
 static void console_clear(GtkWidget *Button, console_t *Console) {
@@ -505,9 +493,7 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	Console->Input = 0;
 	Console->HistoryIndex = 0;
 	Console->HistoryEnd = 0;
-	Console->Context->GlobalGet = (ml_getter_t)console_global_get;
-	Console->Context->Globals = Console;
-	Console->Scanner = ml_scanner("Console", Console, (void *)console_read, Console->Context);
+	Console->Scanner = ml_scanner("<console>", Console, (void *)console_read, (ml_getter_t)console_global_get, Console);
 	GtkWidget *Container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
 	Console->InputView = gtk_source_view_new();
 
@@ -530,7 +516,6 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 		"background", "#FFF0F0",
 		"foreground", "#303030",
 		"indent", 10,
-		"pixels-below-lines", 20,
 	NULL);
 	g_object_set(Console->ErrorTag,
 		"background", "#FFF0F0",
@@ -611,9 +596,6 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	stringmap_insert(Console->Globals, "add_cycle", ml_function(Console, (ml_callback_t)console_add_cycle));
 	stringmap_insert(Console->Globals, "add_combo", ml_function(Console, (ml_callback_t)console_add_combo));
 	stringmap_insert(Console->Globals, "include", ml_functionx(Console, (ml_callbackx_t)console_include_fnx));
-	stringmap_insert(Console->Globals, "display", ml_function(Console, (ml_callback_t)console_display));
-
-	ml_typed_fn_set(MLClosureT, console_display_value, console_display_closure);
 
 	if (g_key_file_has_key(Console->Config, "gtk-console", "font", NULL)) {
 		Console->FontName = g_key_file_get_string(Console->Config, "gtk-console", "font", NULL);
@@ -669,6 +651,15 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	stringmap_insert(Console->Globals, "Console", ml_gir_instance_get(Console->Window));
 	stringmap_insert(Console->Globals, "InputView", ml_gir_instance_get(Console->InputView));
 	stringmap_insert(Console->Globals, "LogView", ml_gir_instance_get(Console->LogView));
+
+	stringmap_insert(Console->Globals, "debug", interactive_debugger(
+		(void *)console_debug_enter,
+		(void *)console_debug_exit,
+		(void *)console_log,
+		Console,
+		(ml_getter_t)console_global_get,
+		Console
+	));
 
 	return Console;
 }

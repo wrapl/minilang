@@ -4,21 +4,22 @@
 #include <string.h>
 #include <stdarg.h>
 
-ml_type_t *MLArrayT;
-ml_type_t *MLArrayAnyT;
-ml_type_t *MLArrayInt8T;
-ml_type_t *MLArrayInt16T;
-ml_type_t *MLArrayInt32T;
-ml_type_t *MLArrayInt64T;
-ml_type_t *MLArrayUInt8T;
-ml_type_t *MLArrayUInt16T;
-ml_type_t *MLArrayUInt32T;
-ml_type_t *MLArrayUInt64T;
-ml_type_t *MLArrayFloat32T;
-ml_type_t *MLArrayFloat64T;
+ML_TYPE(MLArrayT, (MLBufferT), "array");
+ML_TYPE(MLArrayAnyT, (MLArrayT), "value-array");
+
+extern ml_type_t MLArrayInt8T[];
+extern ml_type_t MLArrayUInt8T[];
+extern ml_type_t MLArrayInt16T[];
+extern ml_type_t MLArrayUInt16T[];
+extern ml_type_t MLArrayInt32T[];
+extern ml_type_t MLArrayUInt32T[];
+extern ml_type_t MLArrayInt64T[];
+extern ml_type_t MLArrayUInt64T[];
+extern ml_type_t MLArrayFloat32T[];
+extern ml_type_t MLArrayFloat64T[];
 
 size_t MLArraySizes[] = {
-	[ML_ARRAY_FORMAT_ANY] = 0,
+	[ML_ARRAY_FORMAT_NONE] = sizeof(ml_value_t *),
 	[ML_ARRAY_FORMAT_I8] = sizeof(int8_t),
 	[ML_ARRAY_FORMAT_U8] = sizeof(uint8_t),
 	[ML_ARRAY_FORMAT_I16] = sizeof(int16_t),
@@ -28,13 +29,14 @@ size_t MLArraySizes[] = {
 	[ML_ARRAY_FORMAT_I64] = sizeof(int64_t),
 	[ML_ARRAY_FORMAT_U64] = sizeof(uint64_t),
 	[ML_ARRAY_FORMAT_F32] = sizeof(float),
-	[ML_ARRAY_FORMAT_F64] = sizeof(double)
+	[ML_ARRAY_FORMAT_F64] = sizeof(double),
+	[ML_ARRAY_FORMAT_ANY] = sizeof(ml_value_t *)
 };
 
 ml_array_t *ml_array_new(ml_array_format_t Format, int Degree) {
 	ml_type_t *Type = MLArrayT;
 	switch (Format) {
-	case ML_ARRAY_FORMAT_ANY: Type = MLArrayAnyT; break;
+	case ML_ARRAY_FORMAT_NONE: Type = MLArrayAnyT; break;
 	case ML_ARRAY_FORMAT_I8: Type = MLArrayInt8T; break;
 	case ML_ARRAY_FORMAT_U8: Type = MLArrayUInt8T; break;
 	case ML_ARRAY_FORMAT_I16: Type = MLArrayInt16T; break;
@@ -45,6 +47,7 @@ ml_array_t *ml_array_new(ml_array_format_t Format, int Degree) {
 	case ML_ARRAY_FORMAT_U64: Type = MLArrayUInt64T; break;
 	case ML_ARRAY_FORMAT_F32: Type = MLArrayFloat32T; break;
 	case ML_ARRAY_FORMAT_F64: Type = MLArrayFloat64T; break;
+	case ML_ARRAY_FORMAT_ANY: Type = MLArrayAnyT; break;
 	};
 	ml_array_t *Array = xnew(ml_array_t, Degree, ml_array_dimension_t);
 	Array->Base.Type = Type;
@@ -82,6 +85,8 @@ static void ml_array_init_run(ml_array_init_state_t *State, ml_value_t *Value) {
 	if (Value->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Value);
 	ml_array_t *Array = State->Array;
 	switch (Array->Format) {
+	case ML_ARRAY_FORMAT_NONE:
+		break;
 	case ML_ARRAY_FORMAT_ANY:
 		*(ml_value_t **)State->Address = Value;
 		State->Address += sizeof(ml_value_t *);
@@ -171,10 +176,10 @@ static void ml_array_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value
 	if (Args[1]->Type == MLListT) {
 		int Degree = ml_list_length(Args[1]);
 		Array = ml_array_new(Format, Degree);
-		ml_list_node_t *Node = ml_list_head(Args[1]);
-		for (int I = 0; I < Degree; ++I, Node = Node->Next) {
-			if (Node->Value->Type != MLIntegerT) ML_RETURN(ml_error("TypeError", "Dimension is not an integer"));
-			Array->Dimensions[I].Size = ml_integer_value(Node->Value);
+		int I = 0;
+		ML_LIST_FOREACH(Args[1], Iter) {
+			if (Iter->Value->Type != MLIntegerT) ML_RETURN(ml_error("TypeError", "Dimension is not an integer"));
+			Array->Dimensions[I++].Size = ml_integer_value(Iter->Value);
 		}
 	} else {
 		int Degree = Count - 1;
@@ -237,15 +242,13 @@ ml_value_t *ml_array_wrap_fn(void *Data, int Count, ml_value_t **Args) {
 	int Degree = ml_list_length(Args[2]);
 	if (Degree != ml_list_length(Args[3])) return ml_error("ValueError", "Dimensions and strides must have same length");
 	ml_array_t *Array = ml_array_new(Format, Degree);
-	ml_list_node_t *SizeNode = ml_list_head(Args[2]);
-	ml_list_node_t *StrideNode = ml_list_head(Args[3]);
 	for (int I = 0; I < Degree; ++I) {
-		if (SizeNode->Value->Type != MLIntegerT) return ml_error("TypeError", "Dimension is not an integer");
-		if (StrideNode->Value->Type != MLIntegerT) return ml_error("TypeError", "Stride is not an integer");
-		Array->Dimensions[I].Size = ml_integer_value(SizeNode->Value);
-		Array->Dimensions[I].Stride = ml_integer_value(StrideNode->Value);
-		SizeNode = SizeNode->Next;
-		StrideNode = StrideNode->Next;
+		ml_value_t *Size = ml_list_get(Args[2], I + 1);
+		ml_value_t *Stride = ml_list_get(Args[3], I + 1);
+		if (Size->Type != MLIntegerT) return ml_error("TypeError", "Dimension is not an integer");
+		if (Stride->Type != MLIntegerT) return ml_error("TypeError", "Stride is not an integer");
+		Array->Dimensions[I].Size = ml_integer_value(Size);
+		Array->Dimensions[I].Stride = ml_integer_value(Stride);
 	}
 	Array->Base.Address = ((ml_buffer_t *)Args[1])->Address;
 	Array->Base.Size = ((ml_buffer_t *)Args[1])->Size;
@@ -297,16 +300,15 @@ ML_METHOD("transpose", MLArrayT) {
 ML_METHOD("permute", MLArrayT, MLListT) {
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Degree = Source->Degree;
-	if (ml_list_length(Args[1]) != Degree) return ml_error("Error", "List length must match degree");
+	if (ml_list_length(Args[1]) != Degree) return ml_error("ArrayError", "List length must match degree");
 	ml_array_t *Target = ml_array_new(Source->Format, Degree);
-	ml_list_node_t *Node = ml_list_head(Args[1]);
-	for (int I = 0; I < Degree; ++I) {
-		if (Node->Value->Type != MLIntegerT) return ml_error("Error", "Invalid index");
-		int J = ml_integer_value(Node->Value);
+	int I = 0;
+	ML_LIST_FOREACH(Args[1], Iter) {
+		if (Iter->Value->Type != MLIntegerT) return ml_error("ArrayError", "Invalid index");
+		int J = ml_integer_value(Iter->Value);
 		if (J <= 0) J += Degree + 1;
-		if (J < 1 || J > Degree) return ml_error("Error", "Invalid index");
-		Target->Dimensions[I] = Source->Dimensions[J - 1];
-		Node = Node->Next;
+		if (J < 1 || J > Degree) return ml_error("ArrayError", "Invalid index");
+		Target->Dimensions[I++] = Source->Dimensions[J - 1];
 	}
 	Target->Base = Source->Base;
 	return (ml_value_t *)Target;
@@ -326,7 +328,7 @@ static ml_value_t *ml_array_value(ml_array_t *Array, char *Address) {
 	return function(Array, Address);
 }
 
-static ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **Indices) {
+static ml_value_t *ml_array_index_internal(ml_array_t *Source, int Count, ml_value_t **Indices) {
 	ml_array_dimension_t TargetDimensions[Source->Degree];
 	ml_array_dimension_t *TargetDimension = TargetDimensions;
 	ml_array_dimension_t *SourceDimension = Source->Dimensions;
@@ -357,8 +359,8 @@ static ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **In
 			int Size = TargetDimension->Size = ml_list_length(Index);
 			int *Indices = TargetDimension->Indices = (int *)GC_MALLOC_ATOMIC(Size * sizeof(int));
 			int *IndexPtr = Indices;
-			for (ml_list_node_t *Node = ml_list_head(Index); Node; Node = Node->Next) {
-				int IndexValue = ml_integer_value(Node->Value);
+			ML_LIST_FOREACH(Index, Iter) {
+				int IndexValue = ml_integer_value(Iter->Value);
 				if (IndexValue <= 0) IndexValue += SourceDimension->Size + 1;
 				if (--IndexValue < 0) return MLNil;
 				if (IndexValue >= SourceDimension->Size) return MLNil;
@@ -406,7 +408,7 @@ static ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **In
 
 ML_METHOD("[]", MLArrayT) {
 	ml_array_t *Source = (ml_array_t *)Args[0];
-	return ml_array_index(Source, Count - 1, Args + 1);
+	return ml_array_index_internal(Source, Count - 1, Args + 1);
 }
 
 ML_METHOD("[]", MLArrayT, MLMapT) {
@@ -414,176 +416,243 @@ ML_METHOD("[]", MLArrayT, MLMapT) {
 	int Degree = Source->Degree;
 	ml_value_t *Indices[Degree];
 	for (int I = 0; I < Degree; ++I) Indices[I] = MLNil;
-	ML_MAP_FOREACH(Args[1], Node) {
-		int Index = ml_integer_value(Node->Key) - 1;
+	ML_MAP_FOREACH(Args[1], Iter) {
+		int Index = ml_integer_value(Iter->Key) - 1;
 		if (Index < 0) Index += Degree + 1;
 		if (Index < 0 || Index >= Degree) return ml_error("RangeError", "Index out of range");
-		Indices[Index] = Node->Value;
+		Indices[Index] = Iter->Value;
 	}
-	return ml_array_index(Source, Degree, Indices);
+	return ml_array_index_internal(Source, Degree, Indices);
 }
 
 static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args);
 
-#define UPDATE_ARRAY_METHOD(ATYPE1, CTYPE1, ATYPE2, CTYPE2, NAME, OP) \
-\
-static void NAME ## _array_suffix_ ## CTYPE1 ## _ ## CTYPE2(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData) { \
-	int Size = TargetDimension->Size; \
-	if (TargetDimension->Indices) { \
-		int *TargetIndices = TargetDimension->Indices; \
-		if (SourceDimension->Indices) { \
-			int *SourceIndices = SourceDimension->Indices; \
-			for (int I = 0; I < Size; ++I) { \
-				*(CTYPE1 *)(TargetData + TargetIndices[I] * TargetDimension->Stride) OP *(CTYPE2 *)(SourceData + SourceIndices[I] * SourceDimension->Stride); \
-			} \
-		} else { \
-			int SourceStride = SourceDimension->Stride; \
-			for (int I = 0; I < Size; ++I) { \
-				*(CTYPE1 *)(TargetData + TargetIndices[I] * TargetDimension->Stride) OP *(CTYPE2 *)SourceData; \
-				SourceData += SourceStride; \
-			} \
-		} \
-	} else { \
-		int TargetStride = TargetDimension->Stride; \
-		if (SourceDimension->Indices) { \
-			int *SourceIndices = SourceDimension->Indices; \
-			for (int I = 0; I < Size; ++I) { \
-				*(CTYPE1 *)TargetData OP *(CTYPE2 *)(SourceData + SourceIndices[I] * SourceDimension->Stride); \
-				TargetData += TargetStride; \
-			} \
-		} else { \
-			int SourceStride = SourceDimension->Stride; \
-			for (int I = Size; --I >= 0;) { \
-				*(CTYPE1 *)TargetData OP *(CTYPE2 *)SourceData; \
-				TargetData += TargetStride; \
-				SourceData += SourceStride; \
-			} \
-		} \
-	} \
-} \
-\
-static void NAME ## _array_ ## CTYPE1 ## _ ## CTYPE2(ml_array_dimension_t *TargetDimension, char *TargetData, int SourceDegree, ml_array_dimension_t *SourceDimension, char *SourceData) { \
-	if (SourceDegree == 0) return NAME ## _value_array0_ ## CTYPE1(TargetDimension, TargetData, *(CTYPE2 *)SourceData); \
-	if (SourceDegree == 1) return NAME ## _array_suffix_ ## CTYPE1 ## _ ## CTYPE2(TargetDimension, TargetData, SourceDimension, SourceData); \
-	int Size = TargetDimension->Size; \
-	if (TargetDimension->Indices) { \
-		int *TargetIndices = TargetDimension->Indices; \
-		if (SourceDimension->Indices) { \
-			int *SourceIndices = SourceDimension->Indices; \
-			for (int I = 0; I < Size; ++I) { \
-				NAME ## _array_ ## CTYPE1 ## _ ## CTYPE2(TargetDimension + 1, TargetData + TargetIndices[I] * TargetDimension->Stride, SourceDegree - 1, SourceDimension + 1, SourceData + SourceIndices[I] * SourceDimension->Stride); \
-			} \
-		} else { \
-			int SourceStride = SourceDimension->Stride; \
-			for (int I = 0; I < Size; ++I) { \
-				NAME ## _array_ ## CTYPE1 ## _ ## CTYPE2(TargetDimension + 1, TargetData + TargetIndices[I] * TargetDimension->Stride, SourceDegree - 1, SourceDimension + 1, SourceData); \
-				SourceData += SourceStride; \
-			} \
-		} \
-	} else { \
-		int TargetStride = TargetDimension->Stride; \
-		if (SourceDimension->Indices) { \
-			int *SourceIndices = SourceDimension->Indices; \
-			for (int I = 0; I < Size; ++I) { \
-				NAME ## _array_ ## CTYPE1 ## _ ## CTYPE2(TargetDimension + 1, TargetData, SourceDegree - 1, SourceDimension + 1, SourceData + SourceIndices[I] * SourceDimension->Stride); \
-				TargetData += TargetStride; \
-			} \
-		} else { \
-			int SourceStride = SourceDimension->Stride; \
-			for (int I = Size; --I >= 0;) { \
-				NAME ## _array_ ## CTYPE1 ## _ ## CTYPE2(TargetDimension + 1, TargetData, SourceDegree - 1, SourceDimension + 1, SourceData); \
-				TargetData += TargetStride; \
-				SourceData += SourceStride; \
-			} \
-		} \
-	} \
-} \
-\
-static void NAME ## _array_prefix_ ## CTYPE1 ## _ ## CTYPE2(int PrefixDegree, ml_array_dimension_t *TargetDimension, char *TargetData, int SourceDegree, ml_array_dimension_t *SourceDimension, char *SourceData) { \
-	if (PrefixDegree == 0) return NAME ## _array_ ## CTYPE1 ## _ ## CTYPE2(TargetDimension, TargetData, SourceDegree, SourceDimension, SourceData); \
-	int Size = TargetDimension->Size; \
-	if (TargetDimension->Indices) { \
-		int *TargetIndices = TargetDimension->Indices; \
-		for (int I = Size; --I >= 0;) { \
-			NAME ## _array_prefix_ ## CTYPE1 ## _ ## CTYPE2(PrefixDegree - 1, TargetDimension + 1, TargetData + TargetIndices[I] * TargetDimension->Stride, SourceDegree, SourceDimension, SourceData); \
-		} \
-	} else { \
-		int Stride = TargetDimension->Stride; \
-		for (int I = Size; --I >= 0;) { \
-			NAME ## _array_prefix_ ## CTYPE1 ## _ ## CTYPE2(PrefixDegree - 1, TargetDimension + 1, TargetData, SourceDegree, SourceDimension, SourceData); \
-			TargetData += Stride; \
-		} \
-	} \
-} \
-\
-ML_METHOD(#NAME, ATYPE1, ATYPE2) { \
-	ml_array_t *Target = (ml_array_t *)Args[0]; \
-	ml_array_t *Source = (ml_array_t *)Args[1]; \
-	if (Source->Degree > Target->Degree) return ml_error("Error", "Incompatible assignment"); \
-	int PrefixDegree = Target->Degree - Source->Degree; \
-	for (int I = 0; I < Source->Degree; ++I) { \
-		if (Target->Dimensions[PrefixDegree + I].Size != Source->Dimensions[I].Size) return ml_error("Error", "Incompatible assignment"); \
-	} \
-	if (Target->Degree) { \
-		NAME ## _array_prefix_ ## CTYPE1 ## _ ## CTYPE2(PrefixDegree, Target->Dimensions, Target->Base.Address, Source->Degree, Source->Dimensions, Source->Base.Address); \
-	} else { \
-		*(CTYPE1 *)Target->Base.Address OP *(CTYPE2 *)Source->Base.Address; \
-	} \
-	return Args[0]; \
+static char *ml_array_index(ml_array_t *Array, va_list Indices) {
+	ml_array_dimension_t *Dimension = Array->Dimensions;
+	char *Address = Array->Base.Address;
+	for (int I = 0; I < Array->Degree; ++I) {
+		int Index = va_arg(Indices, int);
+		if (Index < 0 || Index >= Dimension->Size) return 0;
+		if (Dimension->Indices) {
+			Address += Dimension->Stride * Dimension->Indices[Index];
+		} else {
+			Address += Dimension->Stride * Index;
+		}
+		++Dimension;
+	}
+	return Address;
 }
 
-#define UPDATE_ARRAY_METHODS(ATYPE1, CTYPE1, ATYPE2, CTYPE2) \
+#define UPDATE_ROW_IMPL(NAME, OP, TARGET, SOURCE) \
 \
-UPDATE_ARRAY_METHOD(ATYPE1, CTYPE1, ATYPE2, CTYPE2, set, =); \
-UPDATE_ARRAY_METHOD(ATYPE1, CTYPE1, ATYPE2, CTYPE2, add, +=); \
-UPDATE_ARRAY_METHOD(ATYPE1, CTYPE1, ATYPE2, CTYPE2, sub, -=); \
-UPDATE_ARRAY_METHOD(ATYPE1, CTYPE1, ATYPE2, CTYPE2, mul, *=); \
-UPDATE_ARRAY_METHOD(ATYPE1, CTYPE1, ATYPE2, CTYPE2, div, /=);
+static void NAME ## _row_ ## TARGET ## _ ## SOURCE(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData) { \
+	int Size = TargetDimension->Size; \
+	if (TargetDimension->Indices) { \
+		int *TargetIndices = TargetDimension->Indices; \
+		if (SourceDimension->Indices) { \
+			int *SourceIndices = SourceDimension->Indices; \
+			for (int I = 0; I < Size; ++I) { \
+				*(TARGET *)(TargetData + TargetIndices[I] * TargetDimension->Stride) OP *(SOURCE *)(SourceData + SourceIndices[I] * SourceDimension->Stride); \
+			} \
+		} else { \
+			int SourceStride = SourceDimension->Stride; \
+			for (int I = 0; I < Size; ++I) { \
+				*(TARGET *)(TargetData + TargetIndices[I] * TargetDimension->Stride) OP *(SOURCE *)SourceData; \
+				SourceData += SourceStride; \
+			} \
+		} \
+	} else { \
+		int TargetStride = TargetDimension->Stride; \
+		if (SourceDimension->Indices) { \
+			int *SourceIndices = SourceDimension->Indices; \
+			for (int I = 0; I < Size; ++I) { \
+				*(TARGET *)TargetData OP *(SOURCE *)(SourceData + SourceIndices[I] * SourceDimension->Stride); \
+				TargetData += TargetStride; \
+			} \
+		} else { \
+			int SourceStride = SourceDimension->Stride; \
+			for (int I = Size; --I >= 0;) { \
+				*(TARGET *)TargetData OP *(SOURCE *)SourceData; \
+				TargetData += TargetStride; \
+				SourceData += SourceStride; \
+			} \
+		} \
+	} \
+}
 
-#define UPDATE_METHOD(ATYPE, CTYPE, RFUNC, NAME, OP) \
-\
-static void NAME ## _value_array0_ ## CTYPE(ml_array_dimension_t *Dimension, char *Address, CTYPE Value) { \
-	if (Dimension->Indices) { \
-		int *Indices = Dimension->Indices; \
-		for (int I = 0; I < Dimension->Size; ++I) { \
-			*(CTYPE *)(Address + (Indices[I]) * Dimension->Stride) OP Value; \
-		} \
-	} else { \
-		int Stride = Dimension->Stride; \
-		for (int I = Dimension->Size; --I >= 0;) { \
-			*(CTYPE *)Address OP Value; \
-			Address += Stride; \
-		} \
-	} \
-} \
-\
-static void NAME ## _value_array_ ## CTYPE(int Degree, ml_array_dimension_t *Dimension, char *Address, CTYPE Value) { \
-	if (Degree == 0) { *(CTYPE *)Address OP Value; return; } \
-	if (Degree == 1) return NAME ## _value_array0_ ## CTYPE(Dimension, Address, Value); \
-	int Stride = Dimension->Stride; \
-	if (Dimension->Indices) { \
-		int *Indices = Dimension->Indices; \
-		for (int I = 0; I < Dimension->Size; ++I) { \
-			NAME ## _value_array_ ## CTYPE(Degree - 1, Dimension + 1, Address + (Indices[I]) * Dimension->Stride, Value); \
-		} \
-	} else { \
-		for (int I = Dimension->Size; --I >= 0;) { \
-			NAME ## _value_array_ ## CTYPE(Degree - 1, Dimension + 1, Address, Value); \
-			Address += Stride; \
-		} \
-	} \
-} \
+#define UPDATE_ROW_TARGET_IMPL(NAME, OP, TARGET) \
+UPDATE_ROW_IMPL(NAME, OP, TARGET, int8_t) \
+UPDATE_ROW_IMPL(NAME, OP, TARGET, uint8_t) \
+UPDATE_ROW_IMPL(NAME, OP, TARGET, int16_t) \
+UPDATE_ROW_IMPL(NAME, OP, TARGET, uint16_t) \
+UPDATE_ROW_IMPL(NAME, OP, TARGET, int32_t) \
+UPDATE_ROW_IMPL(NAME, OP, TARGET, uint32_t) \
+UPDATE_ROW_IMPL(NAME, OP, TARGET, int64_t) \
+UPDATE_ROW_IMPL(NAME, OP, TARGET, uint64_t) \
+UPDATE_ROW_IMPL(NAME, OP, TARGET, float) \
+UPDATE_ROW_IMPL(NAME, OP, TARGET, double) \
+//UPDATE_ROW_FN(NAME, OP, TARGET, value)
+
+#define UPDATE_ROW_OPS_IMPL(NAME, OP) \
+UPDATE_ROW_TARGET_IMPL(NAME, OP, int8_t) \
+UPDATE_ROW_TARGET_IMPL(NAME, OP, uint8_t) \
+UPDATE_ROW_TARGET_IMPL(NAME, OP, int16_t) \
+UPDATE_ROW_TARGET_IMPL(NAME, OP, uint16_t) \
+UPDATE_ROW_TARGET_IMPL(NAME, OP, int32_t) \
+UPDATE_ROW_TARGET_IMPL(NAME, OP, uint32_t) \
+UPDATE_ROW_TARGET_IMPL(NAME, OP, int64_t) \
+UPDATE_ROW_TARGET_IMPL(NAME, OP, uint64_t) \
+UPDATE_ROW_TARGET_IMPL(NAME, OP, float) \
+UPDATE_ROW_TARGET_IMPL(NAME, OP, double) \
+//UPDATE_ROW_TARGET_IMPL(NAME, OP, value)
+
+UPDATE_ROW_OPS_IMPL(set, =)
+UPDATE_ROW_OPS_IMPL(add, +=)
+UPDATE_ROW_OPS_IMPL(sub, -=)
+UPDATE_ROW_OPS_IMPL(mul, *=)
+UPDATE_ROW_OPS_IMPL(div, /=)
+
+#define UPDATE_ROW_ENTRY(INDEX, NAME, TARGET, SOURCE) \
+	[INDEX] = NAME ## _row_ ## TARGET ## _ ## SOURCE
+
+#define MAX_FORMATS 16
+
+#define UPDATE_ROW_TARGET_ENTRIES(INDEX, NAME, TARGET) \
+UPDATE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_I8, NAME, TARGET, int8_t), \
+UPDATE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_U8, NAME, TARGET, uint8_t), \
+UPDATE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_I16, NAME, TARGET, int16_t), \
+UPDATE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_U16, NAME, TARGET, uint16_t), \
+UPDATE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_I32, NAME, TARGET, int32_t), \
+UPDATE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_U32, NAME, TARGET, uint32_t), \
+UPDATE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_I64, NAME, TARGET, int64_t), \
+UPDATE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_U64, NAME, TARGET, uint64_t), \
+UPDATE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_F32, NAME, TARGET, float), \
+UPDATE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_F64, NAME, TARGET, double) \
+//UPDATE_ROW_ENTRY(MAX_FORMATS * (INDEX) +  + ML_ARRAY_FORMAT_ANY, NAME, TARGET, value)
+
+#define UPDATE_ROW_OPS_ENTRIES(INDEX, NAME) \
+UPDATE_ROW_TARGET_ENTRIES(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_I8, NAME, int8_t), \
+UPDATE_ROW_TARGET_ENTRIES(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_U8, NAME, uint8_t), \
+UPDATE_ROW_TARGET_ENTRIES(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_I16, NAME, int16_t), \
+UPDATE_ROW_TARGET_ENTRIES(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_U16, NAME, uint16_t), \
+UPDATE_ROW_TARGET_ENTRIES(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_I32, NAME, int32_t), \
+UPDATE_ROW_TARGET_ENTRIES(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_U32, NAME, uint32_t), \
+UPDATE_ROW_TARGET_ENTRIES(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_I64, NAME, int64_t), \
+UPDATE_ROW_TARGET_ENTRIES(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_U64, NAME, uint64_t), \
+UPDATE_ROW_TARGET_ENTRIES(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_F32, NAME, float), \
+UPDATE_ROW_TARGET_ENTRIES(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_F64, NAME, double) \
+//UPDATE_ROW_TARGET_ENTRIES(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_ANY, NAME, OP, TARGET, value)
+
+typedef void (*update_row_fn_t)(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData);
+
+static update_row_fn_t UpdateRowFns[] = {
+	UPDATE_ROW_OPS_ENTRIES(0, set),
+	UPDATE_ROW_OPS_ENTRIES(1, add),
+	UPDATE_ROW_OPS_ENTRIES(2, sub),
+	UPDATE_ROW_OPS_ENTRIES(3, mul),
+	UPDATE_ROW_OPS_ENTRIES(4, div)
+};
+
+static void update_array(int Op, ml_array_dimension_t *TargetDimension, char *TargetData, int SourceDegree, ml_array_dimension_t *SourceDimension, char *SourceData) {
+	if (SourceDegree == 0) {
+		ml_array_dimension_t ConstantDimension[1] = {{TargetDimension->Size, 0, NULL}};
+		return UpdateRowFns[Op](TargetDimension, TargetData, ConstantDimension, SourceData);
+	}
+	if (SourceDegree == 1) {
+		return UpdateRowFns[Op](TargetDimension, TargetData, SourceDimension, SourceData);
+	}
+	int Size = TargetDimension->Size;
+	if (TargetDimension->Indices) {
+		int *TargetIndices = TargetDimension->Indices;
+		if (SourceDimension->Indices) {
+			int *SourceIndices = SourceDimension->Indices;
+			for (int I = 0; I < Size; ++I) {
+				update_array(Op, TargetDimension + 1, TargetData + TargetIndices[I] * TargetDimension->Stride, SourceDegree - 1, SourceDimension + 1, SourceData + SourceIndices[I] * SourceDimension->Stride);
+			}
+		} else {
+			int SourceStride = SourceDimension->Stride;
+			for (int I = 0; I < Size; ++I) {
+				update_array(Op, TargetDimension + 1, TargetData + TargetIndices[I] * TargetDimension->Stride, SourceDegree - 1, SourceDimension + 1, SourceData);
+				SourceData += SourceStride;
+			}
+		}
+	} else {
+		int TargetStride = TargetDimension->Stride;
+		if (SourceDimension->Indices) {
+			int *SourceIndices = SourceDimension->Indices;
+			for (int I = 0; I < Size; ++I) {
+				update_array(Op, TargetDimension + 1, TargetData, SourceDegree - 1, SourceDimension + 1, SourceData + SourceIndices[I] * SourceDimension->Stride);
+				TargetData += TargetStride;
+			}
+		} else {
+			int SourceStride = SourceDimension->Stride;
+			for (int I = Size; --I >= 0;) {
+				update_array(Op, TargetDimension + 1, TargetData, SourceDegree - 1, SourceDimension + 1, SourceData);
+				TargetData += TargetStride;
+				SourceData += SourceStride;
+			}
+		}
+	}
+}
+
+static void update_prefix(int Op, int PrefixDegree, ml_array_dimension_t *TargetDimension, char *TargetData, int SourceDegree, ml_array_dimension_t *SourceDimension, char *SourceData) {
+	if (PrefixDegree == 0) return update_array(Op, TargetDimension, TargetData, SourceDegree, SourceDimension, SourceData);
+	int Size = TargetDimension->Size;
+	if (TargetDimension->Indices) {
+		int *TargetIndices = TargetDimension->Indices;
+		for (int I = Size; --I >= 0;) {
+			update_prefix(Op, PrefixDegree - 1, TargetDimension + 1, TargetData + TargetIndices[I] * TargetDimension->Stride, SourceDegree, SourceDimension, SourceData);
+		}
+	} else {
+		int Stride = TargetDimension->Stride;
+		for (int I = Size; --I >= 0;) {
+			update_prefix(Op, PrefixDegree - 1, TargetDimension + 1, TargetData, SourceDegree, SourceDimension, SourceData);
+			TargetData += Stride;
+		}
+	}
+}
+
+static ml_value_t *update_array_fn(void *Data, int Count, ml_value_t **Args) {
+	ml_array_t *Target = (ml_array_t *)Args[0];
+	ml_array_t *Source = (ml_array_t *)Args[1];
+	if (Source->Degree > Target->Degree) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__);
+	int PrefixDegree = Target->Degree - Source->Degree;
+	for (int I = 0; I < Source->Degree; ++I) {
+		if (Target->Dimensions[PrefixDegree + I].Size != Source->Dimensions[I].Size) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__);
+	}
+	int Op = ((char *)Data - (char *)0) * MAX_FORMATS * MAX_FORMATS + Target->Format * MAX_FORMATS + Source->Format;
+	if (!UpdateRowFns[Op]) return ml_error("ArrayError", "Unsupported array format pair (%s, %s)", Target->Base.Type->Name, Source->Base.Type->Name);
+	if (Target->Degree) {
+		update_prefix(Op, PrefixDegree, Target->Dimensions, Target->Base.Address, Source->Degree, Source->Dimensions, Source->Base.Address);
+	} else {
+		ml_array_dimension_t ValueDimension[1] = {{1, 0, NULL}};
+		UpdateRowFns[Op](ValueDimension, Target->Base.Address, ValueDimension, Source->Base.Address);
+	}
+	return Args[0];
+}
+
+#define UPDATE_METHOD(NAME, BASE, ATYPE, CTYPE, RFUNC, FORMAT) \
 \
 ML_METHOD(#NAME, ATYPE, MLNumberT) { \
 	ml_array_t *Array = (ml_array_t *)Args[0]; \
 	CTYPE Value = RFUNC(Args[1]); \
+	ml_array_dimension_t ValueDimension[1] = {{1, 0, NULL}}; \
+	int Op = (BASE) * MAX_FORMATS * MAX_FORMATS + Array->Format * MAX_FORMATS + FORMAT; \
+	if (!UpdateRowFns[Op]) return ml_error("ArrayError", "Unsupported array format pair (%s, %s)", Args[0]->Type->Name, Args[1]->Type->Name); \
 	if (Array->Degree == 0) { \
-		*(CTYPE *)Array->Base.Address OP Value; \
+		UpdateRowFns[Op](ValueDimension, Array->Base.Address, ValueDimension, (char *)&Value); \
 	} else { \
-		NAME ## _value_array_ ## CTYPE(Array->Degree, Array->Dimensions, Array->Base.Address, Value); \
+		update_prefix(Op, Array->Degree - 1, Array->Dimensions, Array->Base.Address, 0, ValueDimension, (char *)&Value); \
 	} \
 	return Args[0]; \
 }
+
+#define UPDATE_METHODS(ATYPE, CTYPE, RFUNC, FORMAT) \
+UPDATE_METHOD(set, 0, ATYPE, CTYPE, RFUNC, FORMAT); \
+UPDATE_METHOD(add, 1, ATYPE, CTYPE, RFUNC, FORMAT); \
+UPDATE_METHOD(sub, 2, ATYPE, CTYPE, RFUNC, FORMAT); \
+UPDATE_METHOD(mul, 3, ATYPE, CTYPE, RFUNC, FORMAT); \
+UPDATE_METHOD(div, 4, ATYPE, CTYPE, RFUNC, FORMAT);
 
 typedef struct call_info_t {
 	int Count;
@@ -592,22 +661,11 @@ typedef struct call_info_t {
 	ml_value_t *Args[];
 } call_info_t;
 
-#define SETTER_CASE(CTYPE1, ATYPE2, CTYPE2) \
-	} else if (Value->Type == ATYPE2) { \
-		ml_array_t *Source = (ml_array_t *)Value; \
-		if (Source->Degree > Target->Degree) return ml_error("Error", "Incompatible assignment"); \
-		int PrefixDegree = Target->Degree - Source->Degree; \
-		for (int I = 0; I < Source->Degree; ++I) { \
-			if (Target->Dimensions[PrefixDegree + I].Size != Source->Dimensions[I].Size) return ml_error("Error", "Incompatible assignment"); \
-		} \
-		if (Target->Degree) { \
-			set_array_prefix_ ## CTYPE1 ## _ ## CTYPE2(PrefixDegree, Target->Dimensions, Target->Base.Address, Source->Degree, Source->Dimensions, Source->Base.Address); \
-		} else { \
-			*(CTYPE1 *)Target->Base.Address = *(CTYPE2 *)Source->Base.Address; \
-		} \
-		return Value; \
-
-#define METHODS(ATYPE, CTYPE, FORMAT, RFUNC, RNEW) \
+#define METHODS(ATYPE, CTYPE, PRINTF, RFUNC, RNEW, FORMAT) \
+\
+static ml_value_t *ML_TYPED_FN(ml_array_value, ATYPE, ml_array_t *Array, char *Address) { \
+	return RNEW(*(CTYPE *)Array->Base.Address); \
+} \
 \
 static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_array_dimension_t *Dimension, char *Address) { \
 	ml_stringbuffer_add(Buffer, "[", 1); \
@@ -616,9 +674,9 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 		int *Indices = Dimension->Indices; \
 		if (Dimension->Size) { \
 			if (Degree == 1) { \
-				ml_stringbuffer_addf(Buffer, FORMAT, *(CTYPE *)(Address + (Indices[0]) * Dimension->Stride)); \
+				ml_stringbuffer_addf(Buffer, PRINTF, *(CTYPE *)(Address + (Indices[0]) * Dimension->Stride)); \
 				for (int I = 1; I < Dimension->Size; ++I) { \
-					ml_stringbuffer_addf(Buffer, ", "FORMAT, *(CTYPE *)(Address + (Indices[I]) * Stride)); \
+					ml_stringbuffer_addf(Buffer, ", "PRINTF, *(CTYPE *)(Address + (Indices[I]) * Stride)); \
 				} \
 			} else { \
 				append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address + (Indices[0]) * Dimension->Stride); \
@@ -630,10 +688,10 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 		} \
 	} else { \
 		if (Degree == 1) { \
-			ml_stringbuffer_addf(Buffer, FORMAT, *(CTYPE *)Address); \
+			ml_stringbuffer_addf(Buffer, PRINTF, *(CTYPE *)Address); \
 			Address += Stride; \
 			for (int I = Dimension->Size; --I > 0;) { \
-				ml_stringbuffer_addf(Buffer, ", "FORMAT, *(CTYPE *)Address); \
+				ml_stringbuffer_addf(Buffer, ", "PRINTF, *(CTYPE *)Address); \
 				Address += Stride; \
 			} \
 		} else { \
@@ -651,7 +709,7 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 \
 static ml_value_t *ML_TYPED_FN(ml_string_of, ATYPE, ml_array_t *Array) { \
 	if (Array->Degree == 0) { \
-		return ml_string_format(FORMAT, *(CTYPE *)Array->Base.Address); \
+		return ml_string_format(PRINTF, *(CTYPE *)Array->Base.Address); \
 	} else { \
 		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT}; \
 		append_array_ ## CTYPE(Buffer, Array->Degree, Array->Dimensions, Array->Base.Address); \
@@ -662,7 +720,7 @@ static ml_value_t *ML_TYPED_FN(ml_string_of, ATYPE, ml_array_t *Array) { \
 ML_METHOD(MLStringOfMethod, ATYPE) { \
 	ml_array_t *Array = (ml_array_t *)Args[0]; \
 	if (Array->Degree == 0) { \
-		return ml_string_format(FORMAT, *(CTYPE *)Array->Base.Address); \
+		return ml_string_format(PRINTF, *(CTYPE *)Array->Base.Address); \
 	} else { \
 		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT}; \
 		append_array_ ## CTYPE(Buffer, Array->Degree, Array->Dimensions, Array->Base.Address); \
@@ -671,7 +729,7 @@ ML_METHOD(MLStringOfMethod, ATYPE) { \
 } \
 static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, ATYPE, ml_stringbuffer_t *Buffer, ml_array_t *Array) { \
 	if (Array->Degree == 0) { \
-		ml_stringbuffer_addf(Buffer, FORMAT, *(CTYPE *)Array->Base.Address); \
+		ml_stringbuffer_addf(Buffer, PRINTF, *(CTYPE *)Array->Base.Address); \
 	} else { \
 		append_array_ ## CTYPE(Buffer, Array->Degree, Array->Dimensions, Array->Base.Address); \
 	} \
@@ -682,54 +740,14 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, ATYPE) { \
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0]; \
 	ml_array_t *Array = (ml_array_t *)Args[1]; \
 	if (Array->Degree == 0) { \
-		ml_stringbuffer_addf(Buffer, FORMAT, *(CTYPE *)Array->Base.Address); \
+		ml_stringbuffer_addf(Buffer, PRINTF, *(CTYPE *)Array->Base.Address); \
 	} else { \
 		append_array_ ## CTYPE(Buffer, Array->Degree, Array->Dimensions, Array->Base.Address); \
 	} \
 	return Args[0]; \
 } \
 \
-UPDATE_METHOD(ATYPE, CTYPE, RFUNC, set, =); \
-UPDATE_METHOD(ATYPE, CTYPE, RFUNC, add, +=); \
-UPDATE_METHOD(ATYPE, CTYPE, RFUNC, sub, -=); \
-UPDATE_METHOD(ATYPE, CTYPE, RFUNC, mul, *=); \
-UPDATE_METHOD(ATYPE, CTYPE, RFUNC, div, /=); \
-\
-UPDATE_ARRAY_METHODS(ATYPE, CTYPE, MLArrayInt8T, int8_t); \
-UPDATE_ARRAY_METHODS(ATYPE, CTYPE, MLArrayUInt8T, uint8_t); \
-UPDATE_ARRAY_METHODS(ATYPE, CTYPE, MLArrayInt16T, int16_t); \
-UPDATE_ARRAY_METHODS(ATYPE, CTYPE, MLArrayUInt16T, uint16_t); \
-UPDATE_ARRAY_METHODS(ATYPE, CTYPE, MLArrayInt32T, int32_t); \
-UPDATE_ARRAY_METHODS(ATYPE, CTYPE, MLArrayUInt32T, uint32_t); \
-UPDATE_ARRAY_METHODS(ATYPE, CTYPE, MLArrayInt64T, int64_t); \
-UPDATE_ARRAY_METHODS(ATYPE, CTYPE, MLArrayUInt64T, uint64_t); \
-UPDATE_ARRAY_METHODS(ATYPE, CTYPE, MLArrayFloat32T, float); \
-UPDATE_ARRAY_METHODS(ATYPE, CTYPE, MLArrayFloat64T, double); \
-\
-static ml_value_t *ml_array_ ## CTYPE ## _deref(ml_array_t *Target, ml_value_t *Value) { \
-	if (Target->Degree == 0)  return RNEW(*(CTYPE *)Target->Base.Address); \
-	return (ml_value_t *)Target; \
-} \
-\
-static ml_value_t *ml_array_ ## CTYPE ## _assign(ml_array_t *Target, ml_value_t *Value) { \
-	for (;;) if (ml_is(Value, MLNumberT)) { \
-		CTYPE CValue = RFUNC(Value); \
-		set_value_array_ ## CTYPE(Target->Degree, Target->Dimensions, Target->Base.Address, CValue); \
-		return Value; \
-	SETTER_CASE(CTYPE, MLArrayInt8T, int8_t) \
-	SETTER_CASE(CTYPE, MLArrayInt16T, int16_t) \
-	SETTER_CASE(CTYPE, MLArrayInt32T, int32_t) \
-	SETTER_CASE(CTYPE, MLArrayInt64T, int64_t) \
-	SETTER_CASE(CTYPE, MLArrayUInt8T, uint8_t) \
-	SETTER_CASE(CTYPE, MLArrayUInt16T, uint16_t) \
-	SETTER_CASE(CTYPE, MLArrayUInt32T, uint32_t) \
-	SETTER_CASE(CTYPE, MLArrayUInt64T, uint64_t) \
-	SETTER_CASE(CTYPE, MLArrayFloat32T, float) \
-	SETTER_CASE(CTYPE, MLArrayFloat64T, double) \
-	} else { \
-		Value = ml_array_of_fn(NULL, 1, &Value); \
-	} \
-} \
+UPDATE_METHODS(ATYPE, CTYPE, RFUNC, FORMAT); \
 \
 static int set_function_array_ ## CTYPE(int Degree, ml_array_dimension_t *Dimension, char *Address, call_info_t *Info) { \
 	if (Degree == 0) { \
@@ -813,34 +831,19 @@ ML_METHOD("partial_sums", ATYPE, MLIntegerT) { \
 	ml_array_t *Array = (ml_array_t *)Args[0]; \
 	int Target = ml_integer_value(Args[1]); \
 	if (Target <= 0) Target += Array->Degree + 1; \
-	if (Target < 1 || Target > Array->Degree) return ml_error("Error", "Dimension index invalid"); \
+	if (Target < 1 || Target > Array->Degree) return ml_error("ArrayError", "Dimension index invalid"); \
 	Target = Array->Degree + 1 - Target; \
 	partial_sums_ ## CTYPE(Target, Array->Degree, Array->Dimensions, Array->Base.Address, 0); \
 	return Args[0]; \
 } \
 \
-static ml_value_t *ml_array_ ## CTYPE ## _value(ml_array_t *Array, char *Address) { \
-	return RNEW(*(CTYPE *)Array->Base.Address); \
-} \
-\
 CTYPE ml_array_get_ ## CTYPE(ml_array_t *Array, ...) { \
-	ml_array_dimension_t *Dimension = Array->Dimensions; \
-	char *Address = Array->Base.Address; \
 	va_list Indices; \
 	va_start(Indices, Array); \
-	for (int I = 0; I < Array->Degree; ++I) { \
-		int Index = va_arg(Indices, int); \
-		if (Index < 0 || Index >= Dimension->Size) return 0; \
-		if (Dimension->Indices) { \
-			Address += Dimension->Stride * Dimension->Indices[Index]; \
-		} else { \
-			Address += Dimension->Stride * Index; \
-		} \
-		++Dimension; \
-	} \
+	char *Address = ml_array_index(Array, Indices); \
 	va_end(Indices); \
 	switch (Array->Format) { \
-	case ML_ARRAY_FORMAT_ANY: return RFUNC(*(ml_value_t **)Address); \
+	case ML_ARRAY_FORMAT_NONE: break; \
 	case ML_ARRAY_FORMAT_I8: return *(int8_t *)Address; \
 	case ML_ARRAY_FORMAT_U8: return *(uint8_t *)Address; \
 	case ML_ARRAY_FORMAT_I16: return *(int16_t *)Address; \
@@ -851,28 +854,18 @@ CTYPE ml_array_get_ ## CTYPE(ml_array_t *Array, ...) { \
 	case ML_ARRAY_FORMAT_U64: return *(uint64_t *)Address; \
 	case ML_ARRAY_FORMAT_F32: return *(float *)Address; \
 	case ML_ARRAY_FORMAT_F64: return *(double *)Address; \
+	case ML_ARRAY_FORMAT_ANY: return RFUNC(*(ml_value_t **)Address); \
 	} \
 	return (CTYPE)0; \
 } \
 \
 void ml_array_set_ ## CTYPE(CTYPE Value, ml_array_t *Array, ...) { \
-	ml_array_dimension_t *Dimension = Array->Dimensions; \
-	char *Address = Array->Base.Address; \
 	va_list Indices; \
 	va_start(Indices, Array); \
-	for (int I = 0; I < Array->Degree; ++I) { \
-		int Index = va_arg(Indices, int); \
-		if (Index < 0 || Index >= Dimension->Size) return; \
-		if (Dimension->Indices) { \
-			Address += Dimension->Stride * Dimension->Indices[Index]; \
-		} else { \
-			Address += Dimension->Stride * Index; \
-		} \
-		++Dimension; \
-	} \
+	char *Address = ml_array_index(Array, Indices); \
 	va_end(Indices); \
 	switch (Array->Format) { \
-	case ML_ARRAY_FORMAT_ANY: *(ml_value_t **)Address = RNEW(Value); break; \
+	case ML_ARRAY_FORMAT_NONE: break; \
 	case ML_ARRAY_FORMAT_I8: *(int8_t *)Address = Value; break; \
 	case ML_ARRAY_FORMAT_U8: *(uint8_t *)Address = Value; break; \
 	case ML_ARRAY_FORMAT_I16: *(int16_t *)Address = Value; break; \
@@ -883,69 +876,100 @@ void ml_array_set_ ## CTYPE(CTYPE Value, ml_array_t *Array, ...) { \
 	case ML_ARRAY_FORMAT_U64: *(uint64_t *)Address = Value; break; \
 	case ML_ARRAY_FORMAT_F32: *(float *)Address = Value; break; \
 	case ML_ARRAY_FORMAT_F64: *(double *)Address = Value; break; \
+	case ML_ARRAY_FORMAT_ANY: *(ml_value_t **)Address = RNEW(Value); break; \
 	} \
 } \
+\
+static ml_value_t *ml_array_ ## CTYPE ## _deref(ml_array_t *Target, ml_value_t *Value) { \
+	if (Target->Degree == 0)  return RNEW(*(CTYPE *)Target->Base.Address); \
+	return (ml_value_t *)Target; \
+} \
+\
+static ml_value_t *ml_array_ ## CTYPE ## _assign(ml_array_t *Target, ml_value_t *Value) { \
+	for (;;) if (ml_is(Value, MLNumberT)) { \
+		CTYPE CValue = RFUNC(Value); \
+		ml_array_dimension_t ValueDimension[1] = {{1, 0, NULL}}; \
+		int Op = Target->Format * MAX_FORMATS + Target->Format; \
+		if (!UpdateRowFns[Op]) return ml_error("ArrayError", "Unsupported array format pair (%s, %s)", Target->Base.Type->Name, Value->Type->Name); \
+		if (Target->Degree == 0) { \
+			UpdateRowFns[Op](ValueDimension, Target->Base.Address, ValueDimension, (char *)&CValue); \
+		} else { \
+			update_prefix(Op, Target->Degree - 1, Target->Dimensions, Target->Base.Address, 0, ValueDimension, (char *)&CValue); \
+		} \
+		return Value; \
+	} else if (ml_is(Value, MLArrayT)) { \
+		ml_array_t *Source = (ml_array_t *)Value; \
+		if (Source->Degree > Target->Degree) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__); \
+		int PrefixDegree = Target->Degree - Source->Degree; \
+		for (int I = 0; I < Source->Degree; ++I) { \
+			if (Target->Dimensions[PrefixDegree + I].Size != Source->Dimensions[I].Size) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__); \
+		} \
+		int Op = Target->Format * MAX_FORMATS + Source->Format; \
+		if (!UpdateRowFns[Op]) return ml_error("ArrayError", "Unsupported array format pair (%s, %s)", Target->Base.Type->Name, Source->Base.Type->Name); \
+		if (Target->Degree) { \
+			update_prefix(Op, PrefixDegree, Target->Dimensions, Target->Base.Address, Source->Degree, Source->Dimensions, Source->Base.Address); \
+		} else { \
+			ml_array_dimension_t ValueDimension[1] = {{1, 0, NULL}}; \
+			UpdateRowFns[Op](ValueDimension, Target->Base.Address, ValueDimension, Source->Base.Address); \
+		} \
+		return Value; \
+	} else { \
+		Value = ml_array_of_fn(NULL, 1, &Value); \
+	} \
+} \
+\
+ML_TYPE(ATYPE, (MLArrayT), #CTYPE "-array", \
+	.deref = (void *)ml_array_ ## CTYPE ## _deref, \
+	.assign = (void *)ml_array_ ## CTYPE ## _assign \
+);
 
-#define ML_COPY_CASE(CTYPE) \
-	switch (C->Format) { \
-	case ML_ARRAY_FORMAT_ANY: return ml_error("ImplementationError", "Not implemented yet!"); \
-	case ML_ARRAY_FORMAT_I8: set_array_int8_t_ ## CTYPE(C->Dimensions, C->Base.Address, Degree, A->Dimensions, A->Base.Address); break; \
-	case ML_ARRAY_FORMAT_U8: set_array_uint8_t_ ## CTYPE(C->Dimensions, C->Base.Address, Degree, A->Dimensions, A->Base.Address); break; \
-	case ML_ARRAY_FORMAT_I16: set_array_int16_t_ ## CTYPE(C->Dimensions, C->Base.Address, Degree, A->Dimensions, A->Base.Address); break; \
-	case ML_ARRAY_FORMAT_U16: set_array_uint16_t_ ## CTYPE(C->Dimensions, C->Base.Address, Degree, A->Dimensions, A->Base.Address); break; \
-	case ML_ARRAY_FORMAT_I32: set_array_int32_t_ ## CTYPE(C->Dimensions, C->Base.Address, Degree, A->Dimensions, A->Base.Address); break; \
-	case ML_ARRAY_FORMAT_U32: set_array_uint32_t_ ## CTYPE(C->Dimensions, C->Base.Address, Degree, A->Dimensions, A->Base.Address); break; \
-	case ML_ARRAY_FORMAT_I64: set_array_int64_t_ ## CTYPE(C->Dimensions, C->Base.Address, Degree, A->Dimensions, A->Base.Address); break; \
-	case ML_ARRAY_FORMAT_U64: set_array_uint64_t_ ## CTYPE(C->Dimensions, C->Base.Address, Degree, A->Dimensions, A->Base.Address); break; \
-	case ML_ARRAY_FORMAT_F32: set_array_float_ ## CTYPE(C->Dimensions, C->Base.Address, Degree, A->Dimensions, A->Base.Address); break; \
-	case ML_ARRAY_FORMAT_F64: set_array_double_ ## CTYPE(C->Dimensions, C->Base.Address, Degree, A->Dimensions, A->Base.Address); break; \
+METHODS(MLArrayInt8T, int8_t, "%d", ml_integer_value, ml_integer, ML_ARRAY_FORMAT_I8);
+METHODS(MLArrayUInt8T, uint8_t, "%ud", ml_integer_value, ml_integer, ML_ARRAY_FORMAT_U8);
+METHODS(MLArrayInt16T, int16_t, "%d", ml_integer_value, ml_integer, ML_ARRAY_FORMAT_I16);
+METHODS(MLArrayUInt16T, uint16_t, "%ud", ml_integer_value, ml_integer, ML_ARRAY_FORMAT_U16);
+METHODS(MLArrayInt32T, int32_t, "%d", ml_integer_value, ml_integer, ML_ARRAY_FORMAT_I32);
+METHODS(MLArrayUInt32T, uint32_t, "%ud", ml_integer_value, ml_integer, ML_ARRAY_FORMAT_U32);
+METHODS(MLArrayInt64T, int64_t, "%ld", ml_integer_value, ml_integer, ML_ARRAY_FORMAT_I64);
+METHODS(MLArrayUInt64T, uint64_t, "%lud", ml_integer_value, ml_integer, ML_ARRAY_FORMAT_U64);
+METHODS(MLArrayFloat32T, float, "%f", ml_real_value, ml_real, ML_ARRAY_FORMAT_F32);
+METHODS(MLArrayFloat64T, double, "%f", ml_real_value, ml_real, ML_ARRAY_FORMAT_F64);
+
+static int array_copy(ml_array_t *Target, ml_array_t *Source) {
+	int Degree = Source->Degree;
+	int DataSize = MLArraySizes[Target->Format];
+	for (int I = Degree; --I >= 0;) {
+		Target->Dimensions[I].Stride = DataSize;
+		int Size = Target->Dimensions[I].Size = Source->Dimensions[I].Size;
+		DataSize *= Size;
 	}
-
-#define ML_ARITH_COPY \
-	int DataSize = MLArraySizes[C->Format]; \
-	for (int I = Degree; --I >= 0;) { \
-		C->Dimensions[I].Stride = DataSize; \
-		int Size = C->Dimensions[I].Size = A->Dimensions[I].Size; \
-		DataSize *= Size; \
-	} \
-	C->Base.Address = GC_MALLOC_ATOMIC(DataSize); \
-	switch (A->Format) { \
-	case ML_ARRAY_FORMAT_ANY: \
-		return ml_error("ImplementationError", "Not implemented yet!"); \
-		break; \
-	case ML_ARRAY_FORMAT_I8: ML_COPY_CASE(int8_t); break; \
-	case ML_ARRAY_FORMAT_U8: ML_COPY_CASE(uint8_t); break; \
-	case ML_ARRAY_FORMAT_I16: ML_COPY_CASE(int16_t); break; \
-	case ML_ARRAY_FORMAT_U16: ML_COPY_CASE(uint16_t); break; \
-	case ML_ARRAY_FORMAT_I32: ML_COPY_CASE(int32_t); break; \
-	case ML_ARRAY_FORMAT_U32: ML_COPY_CASE(uint32_t); break; \
-	case ML_ARRAY_FORMAT_I64: ML_COPY_CASE(int64_t); break; \
-	case ML_ARRAY_FORMAT_U64: ML_COPY_CASE(uint64_t); break; \
-	case ML_ARRAY_FORMAT_F32: ML_COPY_CASE(float); break; \
-	case ML_ARRAY_FORMAT_F64: ML_COPY_CASE(double); break; \
-	} \
+	Target->Base.Address = GC_MALLOC_ATOMIC(DataSize);
+	int Op1 = Target->Format * MAX_FORMATS + Source->Format;
+	update_array(Op1, Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address);
+	return DataSize;
+}
 
 #define MAX(X, Y) ((X > Y) ? X : Y)
 
-#define ML_ARITH_METHOD(OP, NAME) \
-static ML_METHOD_DECL(NAME, #OP); \
-\
-ML_METHOD(#OP, MLArrayT, MLArrayT) { \
-	ml_array_t *A = (ml_array_t *)Args[0]; \
-	ml_array_t *B = (ml_array_t *)Args[1]; \
-	int Degree = A->Degree; \
-	ml_array_t *C = ml_array_new(MAX(A->Format, B->Format), Degree); \
-	ML_ARITH_COPY \
-	Args[0] = (ml_value_t *)C; \
-	return ml_call(NAME ## Method, 2, Args); \
-} \
+static ml_value_t *array_infix_fn(void *Data, int Count, ml_value_t **Args) {
+	ml_array_t *A = (ml_array_t *)Args[0];
+	ml_array_t *B = (ml_array_t *)Args[1];
+	int Degree = A->Degree;
+	ml_array_t *C = ml_array_new(MAX(A->Format, B->Format), Degree);
+	array_copy(C, A);
+	int Op2 = ((char *)Data - (char *)0) * MAX_FORMATS * MAX_FORMATS + C->Format * MAX_FORMATS + B->Format;
+	update_prefix(Op2, C->Degree - B->Degree, C->Dimensions, C->Base.Address, B->Degree, B->Dimensions, B->Base.Address);
+	return (ml_value_t *)C;
+}
+
+#define ML_ARITH_METHOD(BASE, OP) \
 \
 ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
+	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	int64_t B = ml_integer_value(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(MAX(A->Format, ML_ARRAY_FORMAT_I64), Degree); \
-	ML_ARITH_COPY \
+	int DataSize = array_copy(C, A); \
 	switch (C->Format) { \
 	case ML_ARRAY_FORMAT_I64: { \
 		int64_t *Values = (int64_t *)C->Base.Address; \
@@ -967,16 +991,20 @@ ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 		for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = *Values OP B; \
 		break; \
 	} \
+	default: { \
+		return ml_error("TypeError", "Invalid types for array operation"); \
+	} \
 	} \
 	return (ml_value_t *)C; \
 } \
 \
 ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
+	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	int64_t B = ml_integer_value(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(MAX(A->Format, ML_ARRAY_FORMAT_I64), Degree); \
-	ML_ARITH_COPY \
+	int DataSize = array_copy(C, A); \
 	switch (C->Format) { \
 	case ML_ARRAY_FORMAT_I64: { \
 		int64_t *Values = (int64_t *)C->Base.Address; \
@@ -998,16 +1026,20 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 		for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = B OP *Values; \
 		break; \
 	} \
+	default: { \
+		return ml_error("TypeError", "Invalid types for array operation"); \
+	} \
 	} \
 	return (ml_value_t *)C; \
 } \
 \
 ML_METHOD(#OP, MLArrayT, MLRealT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
+	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	double B = ml_integer_value(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_F64, Degree); \
-	ML_ARITH_COPY \
+	int DataSize = array_copy(C, A); \
 	double *Values = (double *)C->Base.Address; \
 	for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = *Values OP B; \
 	return (ml_value_t *)C; \
@@ -1015,56 +1047,26 @@ ML_METHOD(#OP, MLArrayT, MLRealT) { \
 \
 ML_METHOD(#OP, MLRealT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
+	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	double B = ml_integer_value(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_F64, Degree); \
-	ML_ARITH_COPY \
+	int DataSize = array_copy(C, A); \
 	double *Values = (double *)C->Base.Address; \
 	for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = B OP *Values; \
 	return (ml_value_t *)C; \
 }
 
-METHODS(MLArrayInt8T, int8_t, "%d", ml_integer_value, ml_integer);
-METHODS(MLArrayUInt8T, uint8_t, "%ud", ml_integer_value, ml_integer);
-METHODS(MLArrayInt16T, int16_t, "%d", ml_integer_value, ml_integer);
-METHODS(MLArrayUInt16T, uint16_t, "%ud", ml_integer_value, ml_integer);
-METHODS(MLArrayInt32T, int32_t, "%d", ml_integer_value, ml_integer);
-METHODS(MLArrayUInt32T, uint32_t, "%ud", ml_integer_value, ml_integer);
-METHODS(MLArrayInt64T, int64_t, "%ld", ml_integer_value, ml_integer);
-METHODS(MLArrayUInt64T, uint64_t, "%lud", ml_integer_value, ml_integer);
-METHODS(MLArrayFloat32T, float, "%f", ml_real_value, ml_real);
-METHODS(MLArrayFloat64T, double, "%f", ml_real_value, ml_real);
+ML_ARITH_METHOD(1, +);
+ML_ARITH_METHOD(2, -);
+ML_ARITH_METHOD(3, *);
+ML_ARITH_METHOD(4, /);
 
-ML_ARITH_METHOD(+, Add);
-ML_ARITH_METHOD(-, Sub);
-ML_ARITH_METHOD(*, Mul);
-ML_ARITH_METHOD(/, Div);
-
-static int ml_array_of_has_real(ml_value_t *Value) {
-	if (Value->Type == MLListT) {
-		ML_LIST_FOREACH(Value, Node) {
-			if (ml_array_of_has_real(Node->Value)) return 1;
-		}
-	} else if (Value->Type == MLTupleT) {
-		ml_tuple_t *Tuple = (ml_tuple_t *)Value;
-		for (int I = 0; I < Tuple->Size; ++I) {
-			if (ml_array_of_has_real(Tuple->Values[I])) return 1;
-		}
-	} else if (Value->Type == MLArrayT) {
-		ml_array_t *Array = (ml_array_t *)Value;
-		if (Array->Format >= ML_ARRAY_FORMAT_F32) return 1;
-	} else if (Value->Type == MLRealT) {
-		return 1;
-	}
-	return 0;
-}
-
-static ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, int Real) {
-	if (!Real) Real = ml_array_of_has_real(Value);
+static ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, ml_array_format_t Format) {
 	if (Value->Type == MLListT) {
 		int Size = ml_list_length(Value);
 		if (!Size) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
-		ml_array_t *Array = ml_array_of_create(ml_list_head(Value)->Value, Degree + 1, Real);
+		ml_array_t *Array = ml_array_of_create(ml_list_get(Value, 1), Degree + 1, Format);
 		if (Array->Base.Type == MLErrorT) return Array;
 		Array->Dimensions[Degree].Size = Size;
 		if (Degree < Array->Degree - 1) {
@@ -1074,7 +1076,7 @@ static ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, int Real) {
 	} else if (Value->Type == MLTupleT) {
 		int Size = ml_tuple_size(Value);
 		if (!Size) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
-		ml_array_t *Array = ml_array_of_create(ml_tuple_get(Value, 0), Degree + 1, Real);
+		ml_array_t *Array = ml_array_of_create(ml_tuple_get(Value, 1), Degree + 1, Format);
 		if (Array->Base.Type == MLErrorT) return Array;
 		Array->Dimensions[Degree].Size = Size;
 		if (Degree < Array->Degree - 1) {
@@ -1084,57 +1086,25 @@ static ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, int Real) {
 	} else if (ml_is(Value, MLArrayT)) {
 		ml_array_t *Nested = (ml_array_t *)Value;
 		ml_array_t *Array;
-		if (Real) {
-			Array = ml_array_new(ML_ARRAY_FORMAT_F64, Degree + Nested->Degree);
-		} else {
-			Array = ml_array_new(ML_ARRAY_FORMAT_I64, Degree + Nested->Degree);
-		}
+		Array = ml_array_new(Format, Degree + Nested->Degree);
 		memcpy(Array->Dimensions + Degree, Nested->Dimensions, Nested->Degree * sizeof(ml_array_dimension_t));
 		return Array;
-	} else if (Real) {
-		ml_array_t *Array = ml_array_new(ML_ARRAY_FORMAT_F64, Degree);
-		if (Degree) {
-			Array->Dimensions[Degree - 1].Size = 1;
-			Array->Dimensions[Degree - 1].Stride = sizeof(double);
-		}
-		return Array;
 	} else {
-		ml_array_t *Array = ml_array_new(ML_ARRAY_FORMAT_I64, Degree);
+		ml_array_t *Array = ml_array_new(Format, Degree);
 		if (Degree) {
 			Array->Dimensions[Degree - 1].Size = 1;
-			Array->Dimensions[Degree - 1].Stride = sizeof(int64_t);
+			Array->Dimensions[Degree - 1].Stride = MLArraySizes[Format];
 		}
 		return Array;
 	}
 }
 
-#define ML_ARRAY_FILL_NESTED(ATYPE, CTYPE) \
-	} else if (Value->Type == ATYPE) { \
-		ml_array_t *Source = (ml_array_t *)Value; \
-		if (Source->Degree != Degree) return ml_error("Error", "Incompatible assignment"); \
-		for (int I = 0; I < Degree; ++I) { \
-			if (Dimension[I].Size != Source->Dimensions[I].Size) return ml_error("Error", "Incompatible assignment"); \
-		} \
-		switch (Format) { \
-		case ML_ARRAY_FORMAT_ANY: return ml_error("ImplementationError", "Not implemented yet!"); \
-		case ML_ARRAY_FORMAT_I8: set_array_int8_t_ ## CTYPE(Dimension, Address, Degree, Source->Dimensions, Source->Base.Address); break; \
-		case ML_ARRAY_FORMAT_U8: set_array_uint8_t_ ## CTYPE(Dimension, Address, Degree, Source->Dimensions, Source->Base.Address); break; \
-		case ML_ARRAY_FORMAT_I16: set_array_int16_t_ ## CTYPE(Dimension, Address, Degree, Source->Dimensions, Source->Base.Address); break; \
-		case ML_ARRAY_FORMAT_U16: set_array_uint16_t_ ## CTYPE(Dimension, Address, Degree, Source->Dimensions, Source->Base.Address); break; \
-		case ML_ARRAY_FORMAT_I32: set_array_int32_t_ ## CTYPE(Dimension, Address, Degree, Source->Dimensions, Source->Base.Address); break; \
-		case ML_ARRAY_FORMAT_U32: set_array_uint32_t_ ## CTYPE(Dimension, Address, Degree, Source->Dimensions, Source->Base.Address); break; \
-		case ML_ARRAY_FORMAT_I64: set_array_int64_t_ ## CTYPE(Dimension, Address, Degree, Source->Dimensions, Source->Base.Address); break; \
-		case ML_ARRAY_FORMAT_U64: set_array_uint64_t_ ## CTYPE(Dimension, Address, Degree, Source->Dimensions, Source->Base.Address); break; \
-		case ML_ARRAY_FORMAT_F32: set_array_float_ ## CTYPE(Dimension, Address, Degree, Source->Dimensions, Source->Base.Address); break; \
-		case ML_ARRAY_FORMAT_F64: set_array_double_ ## CTYPE(Dimension, Address, Degree, Source->Dimensions, Source->Base.Address); break; \
-		} \
-
 static ml_value_t *ml_array_of_fill(ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_value_t *Value) {
 	if (Value->Type == MLListT) {
 		if (!Degree) return ml_error("ValueError", "Inconsistent depth in array");
 		if (ml_list_length(Value) != Dimension->Size) return ml_error("ValueError", "Inconsistent lengths in array");
-		ML_LIST_FOREACH(Value, Node) {
-			ml_value_t *Error = ml_array_of_fill(Format, Dimension + 1, Address, Degree - 1, Node->Value);
+		ML_LIST_FOREACH(Value, Iter) {
+			ml_value_t *Error = ml_array_of_fill(Format, Dimension + 1, Address, Degree - 1, Iter->Value);
 			if (Error) return Error;
 			Address += Dimension->Stride;
 		}
@@ -1147,20 +1117,18 @@ static ml_value_t *ml_array_of_fill(ml_array_format_t Format, ml_array_dimension
 			if (Error) return Error;
 			Address += Dimension->Stride;
 		}
-	ML_ARRAY_FILL_NESTED(MLArrayInt8T, int8_t)
-	ML_ARRAY_FILL_NESTED(MLArrayUInt8T, uint8_t)
-	ML_ARRAY_FILL_NESTED(MLArrayInt16T, int16_t)
-	ML_ARRAY_FILL_NESTED(MLArrayUInt16T, uint16_t)
-	ML_ARRAY_FILL_NESTED(MLArrayInt32T, int32_t)
-	ML_ARRAY_FILL_NESTED(MLArrayUInt32T, uint32_t)
-	ML_ARRAY_FILL_NESTED(MLArrayInt64T, int64_t)
-	ML_ARRAY_FILL_NESTED(MLArrayUInt64T, uint64_t)
-	ML_ARRAY_FILL_NESTED(MLArrayFloat32T, float)
-	ML_ARRAY_FILL_NESTED(MLArrayFloat64T, double)
+	} else if (ml_is(Value, MLArrayT)) {
+		ml_array_t *Source = (ml_array_t *)Value;
+		if (Source->Degree != Degree) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__);
+		for (int I = 0; I < Degree; ++I) {
+			if (Dimension[I].Size != Source->Dimensions[I].Size) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__);
+		}
+		int Op = Format * MAX_FORMATS + Source->Format;
+		update_array(Op, Dimension, Address, Degree, Source->Dimensions, Source->Base.Address);
 	} else {
 		if (Degree) return ml_error("ValueError", "Inconsistent depth in array");
 		switch (Format) {
-		case ML_ARRAY_FORMAT_ANY: *(ml_value_t **)Address = Value; break;
+		case ML_ARRAY_FORMAT_NONE: break;
 		case ML_ARRAY_FORMAT_I8: *(int8_t *)Address = ml_integer_value(Value); break;
 		case ML_ARRAY_FORMAT_U8: *(uint8_t *)Address = ml_integer_value(Value); break;
 		case ML_ARRAY_FORMAT_I16: *(int16_t *)Address = ml_integer_value(Value); break;
@@ -1171,14 +1139,70 @@ static ml_value_t *ml_array_of_fill(ml_array_format_t Format, ml_array_dimension
 		case ML_ARRAY_FORMAT_U64: *(uint64_t *)Address = ml_integer_value(Value); break;
 		case ML_ARRAY_FORMAT_F32: *(float *)Address = ml_real_value(Value); break;
 		case ML_ARRAY_FORMAT_F64: *(double *)Address = ml_real_value(Value); break;
+		case ML_ARRAY_FORMAT_ANY: *(ml_value_t **)Address = Value; break;
 		}
 	}
 	return NULL;
 }
 
+static ml_array_format_t ml_array_of_type_guess(ml_value_t *Value, ml_array_format_t Format) {
+	if (Value->Type == MLListT) {
+		ML_LIST_FOREACH(Value, Iter) {
+			Format = ml_array_of_type_guess(Iter->Value, Format);
+		}
+	} else if (Value->Type == MLTupleT) {
+		ml_tuple_t *Tuple = (ml_tuple_t *)Value;
+		for (int I = 0; I < Tuple->Size; ++I) {
+			Format = ml_array_of_type_guess(Tuple->Values[I], Format);
+		}
+	} else if (ml_is(Value, MLArrayT)) {
+		ml_array_t *Array = (ml_array_t *)Value;
+		if (Format <= Array->Format) Format = Array->Format;
+	} else if (Value->Type == MLRealT) {
+		if (Format < ML_ARRAY_FORMAT_F64) Format = ML_ARRAY_FORMAT_F64;
+	} else if (Value->Type == MLIntegerT) {
+		if (Format < ML_ARRAY_FORMAT_I64) Format = ML_ARRAY_FORMAT_I64;
+	} else {
+		Format = ML_ARRAY_FORMAT_ANY;
+	}
+	return Format;
+}
+
 static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
-	ml_array_t *Array = ml_array_of_create(Args[0], 0, 0);
+	ml_value_t *Source = Args[0];
+	ml_array_format_t Format = ML_ARRAY_FORMAT_NONE;
+	if (Count == 2) {
+		if (Args[0] == (ml_value_t *)MLArrayAnyT) {
+			Format = ML_ARRAY_FORMAT_ANY;
+		} else if (Args[0] == (ml_value_t *)MLArrayInt8T) {
+			Format = ML_ARRAY_FORMAT_I8;
+		} else if (Args[0] == (ml_value_t *)MLArrayUInt8T) {
+			Format = ML_ARRAY_FORMAT_U8;
+		} else if (Args[0] == (ml_value_t *)MLArrayInt16T) {
+			Format = ML_ARRAY_FORMAT_I16;
+		} else if (Args[0] == (ml_value_t *)MLArrayUInt16T) {
+			Format = ML_ARRAY_FORMAT_U16;
+		} else if (Args[0] == (ml_value_t *)MLArrayInt32T) {
+			Format = ML_ARRAY_FORMAT_I32;
+		} else if (Args[0] == (ml_value_t *)MLArrayUInt32T) {
+			Format = ML_ARRAY_FORMAT_U32;
+		} else if (Args[0] == (ml_value_t *)MLArrayInt64T) {
+			Format = ML_ARRAY_FORMAT_I64;
+		} else if (Args[0] == (ml_value_t *)MLArrayUInt64T) {
+			Format = ML_ARRAY_FORMAT_U64;
+		} else if (Args[0] == (ml_value_t *)MLArrayFloat32T) {
+			Format = ML_ARRAY_FORMAT_F32;
+		} else if (Args[0] == (ml_value_t *)MLArrayFloat64T) {
+			Format = ML_ARRAY_FORMAT_F64;
+		} else {
+			return ml_error("TypeError", "Unknown type for array");
+		}
+		Source = Args[1];
+	} else {
+		Format = ml_array_of_type_guess(Args[0], ML_ARRAY_FORMAT_NONE);
+	}
+	ml_array_t *Array = ml_array_of_create(Source, 0, Format);
 	if (Array->Base.Type == MLErrorT) return (ml_value_t *)Array;
 	size_t Size;
 	if (Array->Degree) {
@@ -1187,7 +1211,7 @@ static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args) {
 		Size = MLArraySizes[Array->Format];
 	}
 	char *Address = Array->Base.Address = GC_MALLOC_ATOMIC(Size);
-	ml_array_of_fill(Array->Format, Array->Dimensions, Address, Array->Degree, Args[0]);
+	ml_array_of_fill(Array->Format, Array->Dimensions, Address, Array->Degree, Source);
 	return (ml_value_t *)Array;
 }
 
@@ -1204,47 +1228,11 @@ ML_METHOD("copy", MLArrayT) {
 	Target->Base.Address = GC_MALLOC_ATOMIC(DataSize);
 	if (Degree == 0) {
 		memcpy(Target->Base.Address, Source->Base.Address, DataSize);
-	} else switch (Source->Format) {
-	case ML_ARRAY_FORMAT_ANY:
-	case ML_ARRAY_FORMAT_I8:
-		set_array_int8_t_int8_t(Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address);
-		break;
-	case ML_ARRAY_FORMAT_U8:
-		set_array_uint8_t_uint8_t(Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address);
-		break;
-	case ML_ARRAY_FORMAT_I16:
-		set_array_int16_t_int16_t(Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address);
-		break;
-	case ML_ARRAY_FORMAT_U16:
-		set_array_uint16_t_uint16_t(Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address);
-		break;
-	case ML_ARRAY_FORMAT_I32:
-		set_array_int32_t_int32_t(Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address);
-		break;
-	case ML_ARRAY_FORMAT_U32:
-		set_array_uint32_t_uint32_t(Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address);
-		break;
-	case ML_ARRAY_FORMAT_I64:
-		set_array_int64_t_int64_t(Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address);
-		break;
-	case ML_ARRAY_FORMAT_U64:
-		set_array_uint64_t_uint64_t(Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address);
-		break;
-	case ML_ARRAY_FORMAT_F32:
-		set_array_float_float(Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address);
-		break;
-	case ML_ARRAY_FORMAT_F64:
-		set_array_double_double(Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address);
-		break;
+	} else {
+		int Op = Target->Format * MAX_FORMATS + Source->Format;
+		update_array(Op, Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address);
 	}
 	return (ml_value_t *)Target;
-}
-
-#define TYPES(ATYPE, CTYPE) { \
-	MLArray ## ATYPE ## T = ml_type(MLArrayT, #CTYPE "-array"); \
-	MLArray ## ATYPE ## T->deref = (void *)ml_array_ ## CTYPE ## _deref; \
-	MLArray ## ATYPE ## T->assign = (void *)ml_array_ ## CTYPE ## _assign; \
-	ml_typed_fn_set(MLArray ## ATYPE ## T, ml_array_value, ml_array_ ## CTYPE ## _value); \
 }
 
 #ifdef USE_ML_CBOR
@@ -1272,7 +1260,6 @@ static void ml_cbor_write_array_dim(int Degree, ml_array_dimension_t *Dimension,
 
 static void ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char *Data, ml_cbor_write_fn WriteFn) {
 	static uint64_t Tags[] = {
-		[ML_ARRAY_FORMAT_ANY] = 41,
 		[ML_ARRAY_FORMAT_I8] = 72,
 		[ML_ARRAY_FORMAT_U8] = 64,
 		[ML_ARRAY_FORMAT_I16] = 77,
@@ -1282,7 +1269,8 @@ static void ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char *Data, 
 		[ML_ARRAY_FORMAT_I64] = 79,
 		[ML_ARRAY_FORMAT_U64] = 71,
 		[ML_ARRAY_FORMAT_F32] = 85,
-		[ML_ARRAY_FORMAT_F64] = 86
+		[ML_ARRAY_FORMAT_F64] = 86,
+		[ML_ARRAY_FORMAT_ANY] = 41
 	};
 	ml_cbor_write_tag(Data, WriteFn, 40);
 	ml_cbor_write_array(Data, WriteFn, 2);
@@ -1304,21 +1292,18 @@ static void ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char *Data, 
 
 static ml_value_t *ml_cbor_read_multi_array_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_TYPE(0, MLListT);
-	ml_list_node_t *Node = ml_list_head(Args[0]);
-	if (!Node) return ml_error("CborError", "Invalid multi-dimensional array");
-	ml_value_t *Dimensions = Node->Value;
+	if (ml_list_length(Args[0]) != 2) return ml_error("CborError", "Invalid multi-dimensional array");
+	ml_value_t *Dimensions = ml_list_get(Args[0], 1);
 	if (Dimensions->Type != MLListT) return ml_error("CborError", "Invalid multi-dimensional array");
-	Node = Node->Next;
-	if (!Node) return ml_error("CborError", "Invalid multi-dimensional array");
-	ml_array_t *Source = (ml_array_t *)Node->Value;
+	ml_array_t *Source = (ml_array_t *)ml_list_get(Args[0], 2);
 	if (!ml_is((ml_value_t *)Source, MLArrayT)) return ml_error("CborError", "Invalid multi-dimensional array");
 	ml_array_t *Target = ml_array_new(Source->Format, ml_list_length(Dimensions));
 	ml_array_dimension_t *Dimension = Target->Dimensions + Target->Degree;
 	int Stride = MLArraySizes[Source->Format];
-	ML_LIST_REVERSE(Dimensions, Node) {
+	ML_LIST_REVERSE(Dimensions, Iter) {
 		--Dimension;
 		Dimension->Stride = Stride;
-		int Size = Dimension->Size = ml_integer_value(Node->Value);
+		int Size = Dimension->Size = ml_integer_value(Iter->Value);
 		Stride *= Size;
 	}
 	if (Stride != Source->Base.Size) return ml_error("CborError", "Invalid multi-dimensional array");
@@ -1343,55 +1328,44 @@ static ml_value_t *ml_cbor_read_typed_array_fn(void *Data, int Count, ml_value_t
 #endif
 
 void ml_array_init(stringmap_t *Globals) {
-	MLArrayT = ml_type(MLBufferT, "array");
-	MLArrayAnyT = ml_type(MLArrayT, "value-array");
-	TYPES(Int8, int8_t);
-	TYPES(Int16, int16_t);
-	TYPES(Int32, int32_t);
-	TYPES(Int64, int64_t);
-	TYPES(UInt8, uint8_t);
-	TYPES(UInt16, uint16_t);
-	TYPES(UInt32, uint32_t);
-	TYPES(UInt64, uint64_t);
-	TYPES(Float32, float);
-	TYPES(Float64, double);
 #include "ml_array_init.c"
+	ml_method_by_name("set", 0 + (char *)0, update_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("add", 1 + (char *)0, update_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("sub", 2 + (char *)0, update_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("mul", 3 + (char *)0, update_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("div", 4 + (char *)0, update_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("+", 1 + (char *)0, array_infix_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("-", 2 + (char *)0, array_infix_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("*", 3 + (char *)0, array_infix_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("/", 4 + (char *)0, array_infix_fn, MLArrayT, MLArrayT, NULL);
 	if (Globals) {
 #ifdef USE_ML_CBOR
-		ml_value_t *Cbor = stringmap_search(Globals, "cbor");
-		if (Cbor) {
-			ml_value_t *CborDefault = ml_module_import(Cbor, "Default");
-			if (CborDefault) {
-				ml_map_insert(CborDefault, ml_integer(40), ml_function(NULL, ml_cbor_read_multi_array_fn));
-				ml_map_insert(CborDefault, ml_integer(72), ml_function((void *)ML_ARRAY_FORMAT_I8, ml_cbor_read_typed_array_fn));
-				ml_map_insert(CborDefault, ml_integer(64), ml_function((void *)ML_ARRAY_FORMAT_U8, ml_cbor_read_typed_array_fn));
-				ml_map_insert(CborDefault, ml_integer(77), ml_function((void *)ML_ARRAY_FORMAT_I16, ml_cbor_read_typed_array_fn));
-				ml_map_insert(CborDefault, ml_integer(69), ml_function((void *)ML_ARRAY_FORMAT_U16, ml_cbor_read_typed_array_fn));
-				ml_map_insert(CborDefault, ml_integer(78), ml_function((void *)ML_ARRAY_FORMAT_I32, ml_cbor_read_typed_array_fn));
-				ml_map_insert(CborDefault, ml_integer(70), ml_function((void *)ML_ARRAY_FORMAT_U32, ml_cbor_read_typed_array_fn));
-				ml_map_insert(CborDefault, ml_integer(79), ml_function((void *)ML_ARRAY_FORMAT_I64, ml_cbor_read_typed_array_fn));
-				ml_map_insert(CborDefault, ml_integer(71), ml_function((void *)ML_ARRAY_FORMAT_U64, ml_cbor_read_typed_array_fn));
-				ml_map_insert(CborDefault, ml_integer(85), ml_function((void *)ML_ARRAY_FORMAT_F32, ml_cbor_read_typed_array_fn));
-				ml_map_insert(CborDefault, ml_integer(86), ml_function((void *)ML_ARRAY_FORMAT_F64, ml_cbor_read_typed_array_fn));
-			}
-		}
+		ml_map_insert(CborDefaultTags, ml_integer(40), ml_function(NULL, ml_cbor_read_multi_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(72), ml_function((void *)ML_ARRAY_FORMAT_I8, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(64), ml_function((void *)ML_ARRAY_FORMAT_U8, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(77), ml_function((void *)ML_ARRAY_FORMAT_I16, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(69), ml_function((void *)ML_ARRAY_FORMAT_U16, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(78), ml_function((void *)ML_ARRAY_FORMAT_I32, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(70), ml_function((void *)ML_ARRAY_FORMAT_U32, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(79), ml_function((void *)ML_ARRAY_FORMAT_I64, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(71), ml_function((void *)ML_ARRAY_FORMAT_U64, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(85), ml_function((void *)ML_ARRAY_FORMAT_F32, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(86), ml_function((void *)ML_ARRAY_FORMAT_F64, ml_cbor_read_typed_array_fn));
 #endif
-		stringmap_insert(Globals, "array", ml_module("array",
-			"new", ml_functionx(NULL, ml_array_new_fnx),
-			"wrap", ml_function(NULL, ml_array_wrap_fn),
-			"of", ml_function(NULL, ml_array_of_fn),
-			"T", MLArrayT,
-			"AnyT", MLArrayAnyT,
-			"Int8T", MLArrayInt8T,
-			"UInt8T", MLArrayUInt8T,
-			"Int16T", MLArrayInt16T,
-			"UInt16T", MLArrayUInt16T,
-			"Int32T", MLArrayInt32T,
-			"UInt32T", MLArrayUInt32T,
-			"Int64T", MLArrayInt64T,
-			"UInt64T", MLArrayUInt64T,
-			"Float32T", MLArrayFloat32T,
-			"Float64T", MLArrayFloat64T,
-		NULL));
+		stringmap_insert(Globals, "array", MLArrayT);
+		stringmap_insert(MLArrayT->Exports, "new", ml_functionx(NULL, ml_array_new_fnx));
+		stringmap_insert(MLArrayT->Exports, "wrap", ml_function(NULL, ml_array_wrap_fn));
+		stringmap_insert(MLArrayT->Exports, "of", ml_function(NULL, ml_array_of_fn));
+		stringmap_insert(MLArrayT->Exports, "any", MLArrayAnyT);
+		stringmap_insert(MLArrayT->Exports, "int8", MLArrayInt8T);
+		stringmap_insert(MLArrayT->Exports, "uint8", MLArrayUInt8T);
+		stringmap_insert(MLArrayT->Exports, "int16", MLArrayInt16T);
+		stringmap_insert(MLArrayT->Exports, "uint16", MLArrayUInt16T);
+		stringmap_insert(MLArrayT->Exports, "int32", MLArrayInt32T);
+		stringmap_insert(MLArrayT->Exports, "uint32", MLArrayUInt32T);
+		stringmap_insert(MLArrayT->Exports, "int64", MLArrayInt64T);
+		stringmap_insert(MLArrayT->Exports, "uint64", MLArrayUInt64T);
+		stringmap_insert(MLArrayT->Exports, "float32", MLArrayFloat32T);
+		stringmap_insert(MLArrayT->Exports, "float64", MLArrayFloat64T);
 	}
 }

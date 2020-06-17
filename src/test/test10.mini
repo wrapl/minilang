@@ -1,34 +1,37 @@
-var PointT := class("point", :X, :Y)
+class: point("point", :X, :Y)
 
-var A := PointT(10, 20)
+var A := point(10, 20)
 
 print('A:X = {A:X}\n')
 print('A = {A}\n')
 
 A:Y := 200
 
-method::set(string::of, PointT; P) 'point({P:X}, {P:Y})'
+method::set(string::of, point; P) 'point({P:X}, {P:Y})'
 
 print('A = {A}\n')
 
-method::set(+, PointT, PointT; A, B) PointT(A:X + B:X, A:Y + B:Y)
-
-var B := PointT(23, 9.1)
+method::set(+, point, point; A, B) point(A:X + B:X, A:Y + B:Y)
+`
+var B := point(23, 9.1)
 
 print('{A} + {B} = {A + B}\n')
 
-method::set(*, PointT, number::T; A, N) PointT(A:X * N, A:Y * N)
-method::set(*, number::T, PointT; N, A) PointT(N * A:X, N * A:Y)
+method::set(*, point, number; A, N) point(A:X * N, A:Y * N)
+method::set(*, number, point; N, A) point(N * A:X, N * A:Y)
 
 print('{A} * 5 = {A * 5}\n')
 print('7.1 * {B} = {7.1 * B}\n')
 
-var VectorT := class("vector", PointT, :Z)
+class: vector("vector", point, :Z)
 
-var C := VectorT(1, 2, 3)
+var C := vector(1, 2, 3)
+
+print('C = {C}\n')
+
+method::set(string::of, vector; V) 'vector({V:X}, {V:Y}, {V:Z})'
 
 print('C = {C}\n')
 
-method::set(string::of, VectorT; V) 'vector({V:X}, {V:Y}, {V:Z})'
 
-print('C = {C}\n')
+
