@@ -2853,12 +2853,7 @@ static uintptr_t rotl(uintptr_t X, unsigned int N) {
 	return (X << (N & Mask)) | (X >> ((-N) & Mask ));
 }
 
-static ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args) {
-	// TODO: Use generation numbers to check Methods->Parent for invalidated definitions
-	uintptr_t Hash = (uintptr_t)Method;
-	for (int I = 0; I < Count; ++I) {
-		Hash = rotl(Hash, 1) ^ (uintptr_t)Args[I]->Type;
-	}
+static ml_method_cached_t *ml_method_search_entry(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args, uint64_t Hash) {
 	ml_method_cached_t *Cached = inthash_search(Methods->Cache, Hash);
 	while (Cached) {
 		if (Cached->Method != Method) goto next;
@@ -2866,19 +2861,11 @@ static ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, 
 		for (int I = 0; I < Count; ++I) {
 			if (Cached->Types[I] != Args[I]->Type) goto next;
 		}
-		ml_method_definition_t *Definition = Cached->Definition;
-		if (!Definition) break;
-		return Definition->Callback;
+		if (!Cached->Definition) break;
+		return Cached;
 	next:
 		Cached = Cached->Next;
 	}
-/*
-	fprintf(stderr, "Searching for method: %s(", Method->Name);
-	for (int I = 0; I < Count; ++I) {
-		fprintf(stderr, I ? ", <%s>" : "<%s>", Args[I]->Type->Name);
-	}
-	fprintf(stderr, ")\n");
-*/
 	unsigned int BestScore = 0;
 	ml_method_definition_t *BestDefinition = NULL;
 	ml_method_definition_t *Definition = inthash_search(Methods->Definitions, (uintptr_t)Method);
@@ -2890,37 +2877,14 @@ static ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, 
 		}
 		Definition = Definition->Next;
 	}
-
-	for (ml_methods_t *Methods2 = Methods->Parent; Methods2; Methods2 = Methods2->Parent) {
-		ml_method_cached_t *Cached2 = inthash_search(Methods2->Cache, Hash);
-		while (Cached2) {
-			if (Cached2->Method != Method) goto next2;
-			if (Cached2->Count != Count) goto next2;
-			for (int I = 0; I < Count; ++I) {
-				if (Cached2->Types[I] != Args[I]->Type) goto next2;
-			}
-			if (!Cached2->Definition) break;
-			if (Cached2->Score > BestScore) {
-				BestScore = Cached2->Score;
-				BestDefinition = Cached2->Definition;
-				goto next3;
-			}
-		next2:
-			Cached2 = Cached2->Next;
-		}
-		ml_method_definition_t *Definition = inthash_search(Methods2->Definitions, (uintptr_t)Method);
-		while (Definition) {
-			unsigned int Score = ml_method_definition_score(Definition, Count, Args, BestScore);
-			if (Score > BestScore) {
-				BestScore = Score;
-				BestDefinition = Definition;
-			}
-			Definition = Definition->Next;
+	if (Methods->Parent) {
+		ml_method_cached_t *Cached2 = ml_method_search_entry(Methods->Parent, Method, Count, Args, Hash);
+		if (Cached2 && Cached2->Score > BestScore) {
+			BestScore = Cached2->Score;
+			BestDefinition = Cached2->Definition;
 		}
 	}
-next3:
 	if (!BestDefinition) return NULL;
-
 	if (!Cached) {
 		Cached = xnew(ml_method_cached_t, Count, ml_type_t *);
 		Cached->Method = Method;
@@ -2931,8 +2895,18 @@ next3:
 	}
 	Cached->Definition = BestDefinition;
 	Cached->Score = BestScore;
+	return Cached;
+}
 
-	return BestDefinition->Callback;
+static ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args) {
+	// TODO: Use generation numbers to check Methods->Parent for invalidated definitions
+	uintptr_t Hash = (uintptr_t)Method;
+	for (int I = 0; I < Count; ++I) {
+		Hash = rotl(Hash, 1) ^ (uintptr_t)Args[I]->Type;
+	}
+	ml_method_cached_t *Cached = ml_method_search_entry(Methods, Method, Count, Args, Hash);
+	if (Cached) return Cached->Definition->Callback;
+	return NULL;
 }
 
 void ml_method_define(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Callback, int Count, int Variadic, ml_type_t **Types) {
