@@ -603,7 +603,7 @@ static void ml_unique_fnx_iterate(ml_unique_state_t *State, ml_value_t *Result);
 
 static void ml_unique_fnx_value(ml_unique_state_t *State, ml_value_t *Result) {
 	if (Result->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Result);
-	if (!ml_map_insert(State->History, Result, MLNil)) {
+	if (ml_map_insert(State->History, Result, MLSome) == MLNil) {
 		State->Value = Result;
 		++State->Iteration;
 		ML_CONTINUE(State->Base.Caller, State);
