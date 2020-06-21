@@ -26,6 +26,7 @@ ML_METHOD_DECL(Symbol, "::");
 
 ML_METHOD_DECL(MLStringOf, NULL);
 ML_METHOD_DECL(MLStringBufferAppend, NULL);
+ML_METHOD_DECL(MLBooleanOf, NULL);
 ML_METHOD_DECL(MLIntegerOf, NULL);
 ML_METHOD_DECL(MLRealOf, NULL);
 ML_METHOD_DECL(MLMethodOf, NULL);
@@ -646,6 +647,30 @@ ml_comp_tuple_tuple("<", Args[1], MLNil, MLNil);
 ml_comp_tuple_tuple("<=", Args[1], Args[1], MLNil);
 ml_comp_tuple_tuple(">", MLNil, MLNil, Args[1]);
 ml_comp_tuple_tuple(">=", MLNil, Args[1], Args[1]);
+
+/****************************** Boolean ******************************/
+
+static long ml_boolean_hash(ml_boolean_t *Boolean, ml_hash_chain_t *Chain) {
+	return (long)Boolean;
+}
+
+ML_TYPE(MLBooleanT, (MLFunctionT), "boolean",
+	.hash = (void *)ml_boolean_hash
+);
+
+int ml_boolean_value(ml_value_t *Value) {
+	return ((ml_boolean_t *)Value)->Value;
+}
+
+ml_boolean_t MLFalse[1] = {{MLBooleanT, "false", 0}};
+ml_boolean_t MLTrue[1] = {{MLBooleanT, "true", 1}};
+
+ML_METHOD(MLBooleanOfMethod, MLStringT) {
+	const char *Name = ml_string_value(Args[0]);
+	if (!strcasecmp(Name, "true")) return (ml_value_t *)MLTrue;
+	if (!strcasecmp(Name, "false")) return (ml_value_t *)MLFalse;
+	return ml_error("ValueError", "Invalid boolean: %s", Name);
+}
 
 /****************************** Numbers ******************************/
 
@@ -1277,6 +1302,11 @@ static ml_value_t *ML_TYPED_FN(ml_string_of, MLSomeT, ml_value_t *Value) {
 
 ML_METHOD(MLStringOfMethod, MLSomeT) {
 	return ml_string("some", 4);
+}
+
+ML_METHOD(MLStringOfMethod, MLBooleanT) {
+	ml_boolean_t *Boolean = (ml_boolean_t *)Args[0];
+	return ml_string(Boolean->Name, -1);
 }
 
 static ml_value_t *ML_TYPED_FN(ml_string_of, MLIntegerT, ml_integer_t *Integer) {
@@ -3197,6 +3227,10 @@ void ml_types_init(stringmap_t *Globals) {
 	stringmap_insert(MLTypeT->Exports, "of", MLTypeOf);
 	stringmap_insert(Globals, "function", MLFunctionT);
 	stringmap_insert(Globals, "iteratable", MLIteratableT);
+	stringmap_insert(Globals, "boolean", MLBooleanT);
+	stringmap_insert(MLBooleanT->Exports, "of", MLBooleanOfMethod);
+	stringmap_insert(Globals, "true", MLTrue);
+	stringmap_insert(Globals, "false", MLFalse);
 	stringmap_insert(Globals, "number", MLNumberT);
 	stringmap_insert(Globals, "integer", MLIntegerT);
 	stringmap_insert(MLIntegerT->Exports, "of", MLIntegerOfMethod);

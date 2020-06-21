@@ -7,8 +7,6 @@
 #include <gtk/gtk.h>
 #include <stdio.h>
 
-static ml_value_t *MLTrue, *MLFalse;
-
 typedef struct typelib_t {
 	const ml_type_t *Type;
 	GITypelib *Handle;
@@ -1587,12 +1585,9 @@ static ml_value_t *_value_to_ml(const GValue *Value) {
 static void _ml_to_value(ml_value_t *Source, GValue *Dest) {
 	if (Source == MLNil) {
 		g_value_init(Dest, G_TYPE_NONE);
-	} else if (Source == MLTrue) {
+	} else if (Source->Type == MLBooleanT) {
 		g_value_init(Dest, G_TYPE_BOOLEAN);
-		g_value_set_boolean(Dest, TRUE);
-	} else if (Source == MLFalse) {
-		g_value_init(Dest, G_TYPE_BOOLEAN);
-		g_value_set_boolean(Dest, FALSE);
+		g_value_set_boolean(Dest, ml_boolean_value(Source));
 	} else if (Source->Type == MLIntegerT) {
 		g_value_init(Dest, G_TYPE_LONG);
 		g_value_set_long(Dest, ml_integer_value(Source));
@@ -1679,8 +1674,6 @@ void ml_gir_init(stringmap_t *Globals) {
 	ObjectInstanceNil = new(object_instance_t);
 	ObjectInstanceNil->Type = (object_t *)ObjectInstanceT;
 	ml_typed_fn_set(EnumT, ml_iterate, enum_iterate);
-	MLTrue = ml_method("true");
-	MLFalse = ml_method("false");
 	stringmap_insert(Globals, "gir", ml_function(NULL, ml_gir_require));
 #include "ml_gir_init.c"
 }

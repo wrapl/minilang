@@ -168,6 +168,8 @@
       <keyword>group</keyword>
       <keyword>tasks</keyword>
       <keyword>parallel</keyword>
+      <keyword>true</keyword>
+      <keyword>false</keyword>
     </context>
     <context id="operators" style-ref="operator" extend-parent="false">
       <match>[-.#~^@;/$%|\=\+\*\!\?&amp;&lt;&gt;\[\]\\{}\()]</match>

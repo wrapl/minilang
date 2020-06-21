@@ -233,6 +233,20 @@ inline ml_value_t *ml_tuple_set(ml_value_t *Tuple, int Index, ml_value_t *Value)
 	return ((ml_tuple_t *)Tuple)->Values[Index - 1] = Value;
 }
 
+/****************************** Booleans ******************************/
+
+typedef struct ml_boolean_t {
+	const ml_type_t *Type;
+	const char *Name;
+	int Value;
+} ml_boolean_t;
+
+extern ml_type_t MLBooleanT[];
+extern ml_boolean_t MLTrue[];
+extern ml_boolean_t MLFalse[];
+
+int ml_boolean_value(ml_value_t *Value);
+
 /****************************** Numbers ******************************/
 
 extern ml_type_t MLNumberT[];

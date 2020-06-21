@@ -1324,6 +1324,9 @@ typedef enum ml_token_t {
 	MLT_METHOD
 } ml_token_t;
 
+#define MLT_DELIM_FIRST MLT_LEFT_PAREN
+#define MLT_DELIM_LAST MLT_COMMA
+
 const char *MLTokens[] = {
 	"", // MLT_NONE,
 	"<end of line>", // MLT_EOL,
@@ -1424,7 +1427,7 @@ const char *ml_scanner_clear(mlc_scanner_t *Scanner) {
 	return Next;
 }
 
-void ml_scanner_error(mlc_scanner_t *Scanner, const char *Error, const char *Format, ...) {
+__attribute__((noreturn)) void ml_scanner_error(mlc_scanner_t *Scanner, const char *Error, const char *Format, ...) {
 	va_list Args;
 	va_start(Args, Format);
 	ml_value_t *Value = ml_errorv(Error, Format, Args);
@@ -1439,7 +1442,13 @@ void ml_scanner_error(mlc_scanner_t *Scanner, const char *Error, const char *For
 	EXPR->compile = ml_ ## COMP ## _expr_compile; \
 	EXPR->Source = Scanner->Source
 
-typedef enum {EXPR_SIMPLE, EXPR_AND, EXPR_OR, EXPR_FOR, EXPR_DEFAULT} ml_expr_level_t;
+typedef enum {
+	EXPR_SIMPLE,
+	EXPR_AND,
+	EXPR_OR,
+	EXPR_FOR,
+	EXPR_DEFAULT
+} ml_expr_level_t;
 
 static int ml_parse(mlc_scanner_t *Scanner, ml_token_t Token);
 static void ml_accept(mlc_scanner_t *Scanner, ml_token_t Token);
@@ -1803,7 +1812,7 @@ static ml_token_t ml_advance(mlc_scanner_t *Scanner) {
 				return Scanner->Token;
 			}
 		}
-		for (ml_token_t T = MLT_LEFT_PAREN; T <= MLT_COMMA; ++T) {
+		for (ml_token_t T = MLT_DELIM_FIRST; T <= MLT_DELIM_LAST; ++T) {
 			if (Char == MLTokens[T][0]) {
 				Scanner->Token = T;
 				++Scanner->Next;
@@ -1897,40 +1906,75 @@ static mlc_expr_t *ml_accept_fun_expr(mlc_scanner_t *Scanner, ml_token_t EndToke
 	return (mlc_expr_t *)FunExpr;
 }
 
+static void ml_accept_named_arguments(mlc_scanner_t *Scanner, ml_token_t EndToken, mlc_expr_t **ArgsSlot, ml_value_t *Names) {
+	mlc_expr_t **NamesSlot = ArgsSlot;
+	mlc_expr_t *Arg = ArgsSlot[0];
+	ArgsSlot = &Arg->Next;
+	if (ml_parse(Scanner, MLT_SEMICOLON)) {
+		ArgsSlot[0] = ml_accept_fun_expr(Scanner, EndToken);
+		return;
+	}
+	Arg = ArgsSlot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
+	ArgsSlot = &Arg->Next;
+	while (ml_parse(Scanner, MLT_COMMA)) {
+		if (ml_parse(Scanner, MLT_IDENT) || ml_parse(Scanner, MLT_METHOD)) {
+			ml_list_append(Names, ml_method(Scanner->Ident));
+		} else {
+			ml_scanner_error(Scanner, "ParseError", "Argument names must be identifiers or methods");
+		}
+		ml_accept(Scanner, MLT_IS);
+		if (ml_parse(Scanner, MLT_SEMICOLON)) {
+			ArgsSlot[0] = ml_accept_fun_expr(Scanner, EndToken);
+			return;
+		}
+		Arg = ArgsSlot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
+		ArgsSlot = &Arg->Next;
+	}
+	if (ml_parse(Scanner, MLT_SEMICOLON)) {
+		mlc_expr_t *FunExpr = ml_accept_fun_expr(Scanner, EndToken);
+		FunExpr->Next = NamesSlot[0];
+		NamesSlot[0] = FunExpr;
+	} else {
+		ml_accept(Scanner, EndToken);
+	}
+}
+
 static void ml_accept_arguments(mlc_scanner_t *Scanner, ml_token_t EndToken, mlc_expr_t **ArgsSlot) {
 	while (ml_parse(Scanner, MLT_EOL));
-	if (!ml_parse(Scanner, EndToken)) {
-		ml_value_t *Names = NULL;
-		if (ml_parse(Scanner, MLT_SEMICOLON)) goto has_params;
+	if (ml_parse(Scanner, MLT_SEMICOLON)) {
+		ArgsSlot[0] = ml_accept_fun_expr(Scanner, EndToken);
+	} else if (!ml_parse(Scanner, EndToken)) {
 		do {
-			if (Names) {
-				ml_accept(Scanner, MLT_IDENT);
-				ml_list_append(Names, ml_method(Scanner->Ident));
-				ml_accept(Scanner, MLT_IS);
-				mlc_expr_t *Arg = ArgsSlot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
-				ArgsSlot = &Arg->Next;
-			} else {
-				mlc_expr_t *Arg = ml_accept_expression(Scanner, EXPR_DEFAULT);
-				if ((Arg->compile == (void *)ml_ident_expr_compile) && ml_parse(Scanner, MLT_IS)) {
-					Names = ml_list();
-					Names->Type = MLNamesT;
+			mlc_expr_t *Arg = ml_accept_expression(Scanner, EXPR_DEFAULT);
+			if (ml_parse(Scanner, MLT_IS)) {
+				ml_value_t *Names = ml_list();
+				Names->Type = MLNamesT;
+				if (Arg->compile == (void *)ml_ident_expr_compile) {
 					ml_list_append(Names, ml_method(((mlc_ident_expr_t *)Arg)->Ident));
-					ML_EXPR(NamesArg, value, value);
-					NamesArg->Value = Names;
-					ArgsSlot[0] = (mlc_expr_t *)NamesArg;
-					Arg = NamesArg->Next = ml_accept_expression(Scanner, EXPR_DEFAULT);
-					ArgsSlot = &Arg->Next;
+				} else if (Arg->compile == (void *)ml_value_expr_compile) {
+					ml_value_t *Name = ((mlc_value_expr_t *)Arg)->Value;
+					if (Name->Type != MLMethodT) {
+						ml_scanner_error(Scanner, "ParseError", "Argument names must be identifiers or methods");
+					}
+					ml_list_append(Names, Name);
 				} else {
-					ArgsSlot[0] = Arg;
-					ArgsSlot = &Arg->Next;
+					ml_scanner_error(Scanner, "ParseError", "Argument names must be identifiers or methods");
 				}
+				ML_EXPR(NamesArg, value, value);
+				NamesArg->Value = Names;
+				ArgsSlot[0] = (mlc_expr_t *)NamesArg;
+				return ml_accept_named_arguments(Scanner, EndToken, ArgsSlot, Names);
+			} else {
+				ArgsSlot[0] = Arg;
+				ArgsSlot = &Arg->Next;
 			}
 		} while (ml_parse(Scanner, MLT_COMMA));
-		if (ml_parse(Scanner, MLT_SEMICOLON)) has_params: {
+		if (ml_parse(Scanner, MLT_SEMICOLON)) {
 			ArgsSlot[0] = ml_accept_fun_expr(Scanner, EndToken);
 		} else {
 			ml_accept(Scanner, EndToken);
 		}
+		return;
 	}
 }
 
@@ -2279,9 +2323,10 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 			Expr = (mlc_expr_t *)ImportExpr;
 			break;
 		}
-		default:
+		default: {
 			Expr->End = Scanner->Source.Line;
 			return Expr;
+		}
 		}
 	}
 	return NULL; // Unreachable
