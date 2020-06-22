@@ -1723,10 +1723,6 @@ static ml_token_t ml_advance(mlc_scanner_t *Scanner) {
 			Scanner->Next = End + 1;
 			return Scanner->Token;
 		}
-		/*if (Char == '-' && Scanner->Next[1] == '-') {
-			Scanner->Next = "\n";
-			continue;
-		}*/
 		if (Char == ':') {
 			if (Scanner->Next[1] == '=') {
 				Scanner->Token = MLT_ASSIGN;

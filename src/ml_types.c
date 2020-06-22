@@ -665,12 +665,43 @@ int ml_boolean_value(ml_value_t *Value) {
 ml_boolean_t MLFalse[1] = {{MLBooleanT, "false", 0}};
 ml_boolean_t MLTrue[1] = {{MLBooleanT, "true", 1}};
 
+static ml_value_t *MLBooleans[2] = {
+	[0] = (ml_value_t *)MLFalse,
+	[1] = (ml_value_t *)MLTrue
+};
+
 ML_METHOD(MLBooleanOfMethod, MLStringT) {
 	const char *Name = ml_string_value(Args[0]);
 	if (!strcasecmp(Name, "true")) return (ml_value_t *)MLTrue;
 	if (!strcasecmp(Name, "false")) return (ml_value_t *)MLFalse;
 	return ml_error("ValueError", "Invalid boolean: %s", Name);
 }
+
+ML_METHOD("-", MLBooleanT) {
+	return MLBooleans[1 - ml_boolean_value(Args[0])];
+}
+
+ML_METHOD("/\\", MLBooleanT, MLBooleanT) {
+	return MLBooleans[ml_boolean_value(Args[0]) & ml_boolean_value(Args[1])];
+}
+
+ML_METHOD("\\/", MLBooleanT, MLBooleanT) {
+	return MLBooleans[ml_boolean_value(Args[0]) | ml_boolean_value(Args[1])];
+}
+
+#define ml_comp_method_boolean_boolean(NAME, SYMBOL) \
+	ML_METHOD(NAME, MLBooleanT, MLBooleanT) { \
+		ml_boolean_t *BooleanA = (ml_boolean_t *)Args[0]; \
+		ml_boolean_t *BooleanB = (ml_boolean_t *)Args[1]; \
+		return BooleanA->Value SYMBOL BooleanB->Value ? Args[1] : MLNil; \
+	}
+
+ml_comp_method_boolean_boolean("=", ==);
+ml_comp_method_boolean_boolean("!=", !=);
+ml_comp_method_boolean_boolean("<", <);
+ml_comp_method_boolean_boolean(">", >);
+ml_comp_method_boolean_boolean("<=", <=);
+ml_comp_method_boolean_boolean(">=", >=);
 
 /****************************** Numbers ******************************/
 
