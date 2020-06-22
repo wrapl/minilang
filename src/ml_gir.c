@@ -209,7 +209,7 @@ ML_TYPE(FieldRef ## UNAME ## T, (), "field-ref-" #LNAME, \
 	.assign = (void *)field_ref_ ## LNAME ## _assign \
 );
 
-FIELD_REF(Boolean, boolean, gboolean, Value ? MLTrue : MLFalse, Value == MLTrue);
+FIELD_REF(Boolean, boolean, gboolean, ml_boolean(Value), ml_boolean_value(Value));
 FIELD_REF(Int8, int8, gint8, ml_integer(Value), ml_integer_value(Value));
 FIELD_REF(UInt8, uint8, guint8, ml_integer(Value), ml_integer_value(Value));
 FIELD_REF(Int16, int16, gint16, ml_integer(Value), ml_integer_value(Value));
@@ -372,7 +372,7 @@ static void callback_invoke(ffi_cif *Cif, void *Return, void **Params, ml_gir_ca
 			Args[I] = MLNil;
 			break;
 		case GI_TYPE_TAG_BOOLEAN:
-			Args[I] = *(int *)Params[I] ? MLTrue : MLFalse;
+			Args[I] = ml_boolean(*(int *)Params[I]);
 			break;
 		case GI_TYPE_TAG_INT8:
 			Args[I] = ml_integer(*(int8_t *)Params[I]);
@@ -508,7 +508,7 @@ static void callback_invoke(ffi_cif *Cif, void *Return, void **Params, ml_gir_ca
 	switch (g_type_info_get_tag(ReturnInfo)) {
 	case GI_TYPE_TAG_VOID: break;
 	case GI_TYPE_TAG_BOOLEAN:
-		*(int *)Return = Result == MLTrue ? TRUE : FALSE;
+		*(int *)Return = ml_boolean_value(Result);
 		break;
 	case GI_TYPE_TAG_INT8:
 		*(int8_t *)Return = ml_integer_value(Result);
@@ -646,7 +646,7 @@ static ml_value_t *argument_to_value(GIArgument *Argument, GITypeInfo *Info) {
 		return MLNil;
 	}
 	case GI_TYPE_TAG_BOOLEAN: {
-		return Argument->v_boolean ? MLTrue : MLFalse;
+		return ml_boolean(Argument->v_boolean);
 	}
 	case GI_TYPE_TAG_INT8: {
 		return ml_integer(Argument->v_int8);
@@ -810,7 +810,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 					break;
 				}
 				case GI_TYPE_TAG_BOOLEAN: {
-					ArgsIn[IndexIn].v_boolean = Arg == MLTrue ? TRUE : FALSE;
+					ArgsIn[IndexIn].v_boolean = ml_boolean_value(Arg);
 					break;
 				}
 				case GI_TYPE_TAG_INT8: {
@@ -1555,7 +1555,7 @@ static ml_value_t *_value_to_ml(const GValue *Value) {
 	case G_TYPE_NONE: return MLNil;
 	case G_TYPE_CHAR: return ml_integer(g_value_get_schar(Value));
 	case G_TYPE_UCHAR: return ml_integer(g_value_get_uchar(Value));
-	case G_TYPE_BOOLEAN: return g_value_get_boolean(Value) ? MLTrue : MLFalse;
+	case G_TYPE_BOOLEAN: return ml_boolean(g_value_get_boolean(Value));
 	case G_TYPE_INT: return ml_integer(g_value_get_int(Value));
 	case G_TYPE_UINT: return ml_integer(g_value_get_uint(Value));
 	case G_TYPE_LONG: return ml_integer(g_value_get_long(Value));

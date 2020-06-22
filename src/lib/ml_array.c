@@ -408,7 +408,7 @@ static ml_value_t *ml_array_index_internal(ml_array_t *Source, int Count, ml_val
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("[]", MLArrayT) {
+ML_METHODV("[]", MLArrayT) {
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	return ml_array_index_internal(Source, Count - 1, Args + 1);
 }
