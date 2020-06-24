@@ -26,6 +26,7 @@ ML_METHOD_DECL(Symbol, "::");
 
 ML_METHOD_DECL(MLStringOf, NULL);
 ML_METHOD_DECL(MLStringBufferAppend, NULL);
+ML_METHOD_DECL(MLBooleanOf, NULL);
 ML_METHOD_DECL(MLIntegerOf, NULL);
 ML_METHOD_DECL(MLRealOf, NULL);
 ML_METHOD_DECL(MLMethodOf, NULL);
@@ -646,6 +647,65 @@ ml_comp_tuple_tuple("<", Args[1], MLNil, MLNil);
 ml_comp_tuple_tuple("<=", Args[1], Args[1], MLNil);
 ml_comp_tuple_tuple(">", MLNil, MLNil, Args[1]);
 ml_comp_tuple_tuple(">=", MLNil, Args[1], Args[1]);
+
+/****************************** Boolean ******************************/
+
+static long ml_boolean_hash(ml_boolean_t *Boolean, ml_hash_chain_t *Chain) {
+	return (long)Boolean;
+}
+
+ML_TYPE(MLBooleanT, (MLFunctionT), "boolean",
+	.hash = (void *)ml_boolean_hash
+);
+
+int ml_boolean_value(ml_value_t *Value) {
+	return ((ml_boolean_t *)Value)->Value;
+}
+
+ml_boolean_t MLFalse[1] = {{MLBooleanT, "false", 0}};
+ml_boolean_t MLTrue[1] = {{MLBooleanT, "true", 1}};
+
+static ml_value_t *MLBooleans[2] = {
+	[0] = (ml_value_t *)MLFalse,
+	[1] = (ml_value_t *)MLTrue
+};
+
+ml_value_t *ml_boolean(int Value) {
+	return Value ? (ml_value_t *)MLTrue : (ml_value_t *)MLFalse;
+}
+
+ML_METHOD(MLBooleanOfMethod, MLStringT) {
+	const char *Name = ml_string_value(Args[0]);
+	if (!strcasecmp(Name, "true")) return (ml_value_t *)MLTrue;
+	if (!strcasecmp(Name, "false")) return (ml_value_t *)MLFalse;
+	return ml_error("ValueError", "Invalid boolean: %s", Name);
+}
+
+ML_METHOD("-", MLBooleanT) {
+	return MLBooleans[1 - ml_boolean_value(Args[0])];
+}
+
+ML_METHOD("/\\", MLBooleanT, MLBooleanT) {
+	return MLBooleans[ml_boolean_value(Args[0]) & ml_boolean_value(Args[1])];
+}
+
+ML_METHOD("\\/", MLBooleanT, MLBooleanT) {
+	return MLBooleans[ml_boolean_value(Args[0]) | ml_boolean_value(Args[1])];
+}
+
+#define ml_comp_method_boolean_boolean(NAME, SYMBOL) \
+	ML_METHOD(NAME, MLBooleanT, MLBooleanT) { \
+		ml_boolean_t *BooleanA = (ml_boolean_t *)Args[0]; \
+		ml_boolean_t *BooleanB = (ml_boolean_t *)Args[1]; \
+		return BooleanA->Value SYMBOL BooleanB->Value ? Args[1] : MLNil; \
+	}
+
+ml_comp_method_boolean_boolean("=", ==);
+ml_comp_method_boolean_boolean("!=", !=);
+ml_comp_method_boolean_boolean("<", <);
+ml_comp_method_boolean_boolean(">", >);
+ml_comp_method_boolean_boolean("<=", <=);
+ml_comp_method_boolean_boolean(">=", >=);
 
 /****************************** Numbers ******************************/
 
@@ -1277,6 +1337,11 @@ static ml_value_t *ML_TYPED_FN(ml_string_of, MLSomeT, ml_value_t *Value) {
 
 ML_METHOD(MLStringOfMethod, MLSomeT) {
 	return ml_string("some", 4);
+}
+
+ML_METHOD(MLStringOfMethod, MLBooleanT) {
+	ml_boolean_t *Boolean = (ml_boolean_t *)Args[0];
+	return ml_string(Boolean->Name, -1);
 }
 
 static ml_value_t *ML_TYPED_FN(ml_string_of, MLIntegerT, ml_integer_t *Integer) {
@@ -2246,13 +2311,13 @@ static void ML_TYPED_FN(ml_iterate, MLListT, ml_state_t *Caller, ml_list_t *List
 	}
 }
 
-ML_METHOD("push", MLListT) {
+ML_METHODV("push", MLListT) {
 	ml_value_t *List = Args[0];
 	for (int I = 1; I < Count; ++I) ml_list_push(List, Args[I]);
 	return Args[0];
 }
 
-ML_METHOD("put", MLListT) {
+ML_METHODV("put", MLListT) {
 	ml_value_t *List = Args[0];
 	for (int I = 1; I < Count; ++I) ml_list_put(List, Args[I]);
 	return Args[0];
@@ -2909,7 +2974,7 @@ static ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, 
 	return NULL;
 }
 
-void ml_method_define(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Callback, int Count, int Variadic, ml_type_t **Types) {
+void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Callback, int Count, int Variadic, ml_type_t **Types) {
 	ml_method_definition_t *Definition = xnew(ml_method_definition_t, Count, ml_type_t *);
 	Definition->Callback = Callback;
 	Definition->Count = Count;
@@ -2919,6 +2984,20 @@ void ml_method_define(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Ca
 	for (ml_method_cached_t *Cached = inthash_search(Methods->Methods, (uintptr_t)Method); Cached; Cached = Cached->MethodNext) {
 		Cached->Definition = NULL;
 	}
+}
+
+void ml_method_define(ml_value_t *Method, ml_value_t *Function, int Variadic, ...) {
+	int Count = 0;
+	va_list Args;
+	va_start(Args, Variadic);
+	ml_type_t *Type;
+	while ((Type = va_arg(Args, ml_type_t *))) ++Count;
+	va_end(Args);
+	ml_type_t *Types[Count], **T = Types;
+	va_start(Args, Variadic);
+	while ((Type = va_arg(Args, ml_type_t *))) *T++ = Type;
+	va_end(Args);
+	ml_method_insert(MLRootMethods, (ml_method_t *)Method, Function, Count, Variadic, Types);
 }
 
 static stringmap_t Methods[1] = {STRINGMAP_INIT};
@@ -3007,7 +3086,7 @@ void ml_method_by_name(const char *Name, void *Data, ml_callback_t Callback, ...
 	va_start(Args, Callback);
 	while ((Type = va_arg(Args, ml_type_t *))) *T++ = Type;
 	va_end(Args);
-	ml_method_define(MLRootMethods, Method, ml_function(Data, Callback), Count, 1, Types);
+	ml_method_insert(MLRootMethods, Method, ml_function(Data, Callback), Count, 1, Types);
 }
 
 void ml_method_by_value(ml_value_t *Value, void *Data, ml_callback_t Callback, ...) {
@@ -3022,7 +3101,7 @@ void ml_method_by_value(ml_value_t *Value, void *Data, ml_callback_t Callback, .
 	va_start(Args, Callback);
 	while ((Type = va_arg(Args, ml_type_t *))) *T++ = Type;
 	va_end(Args);
-	ml_method_define(MLRootMethods, Method, ml_function(Data, Callback), Count, 1, Types);
+	ml_method_insert(MLRootMethods, Method, ml_function(Data, Callback), Count, 1, Types);
 }
 
 void ml_methodx_by_name(const char *Name, void *Data, ml_callbackx_t Callback, ...) {
@@ -3037,7 +3116,7 @@ void ml_methodx_by_name(const char *Name, void *Data, ml_callbackx_t Callback, .
 	va_start(Args, Callback);
 	while ((Type = va_arg(Args, ml_type_t *))) *T++ = Type;
 	va_end(Args);
-	ml_method_define(MLRootMethods, Method, ml_functionx(Data, Callback), Count, 1, Types);
+	ml_method_insert(MLRootMethods, Method, ml_functionx(Data, Callback), Count, 1, Types);
 }
 
 void ml_methodx_by_value(ml_value_t *Value, void *Data, ml_callbackx_t Callback, ...) {
@@ -3052,12 +3131,12 @@ void ml_methodx_by_value(ml_value_t *Value, void *Data, ml_callbackx_t Callback,
 	va_start(Args, Callback);
 	while ((Type = va_arg(Args, ml_type_t *))) *T++ = Type;
 	va_end(Args);
-	ml_method_define(MLRootMethods, Method, ml_functionx(Data, Callback), Count, 1, Types);
+	ml_method_insert(MLRootMethods, Method, ml_functionx(Data, Callback), Count, 1, Types);
 }
 
 void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_type_t **Types) {
 	ml_method_t *Method = (ml_method_t *)Value;
-	ml_method_define(MLRootMethods, Method, Function, Count, 1, Types);
+	ml_method_insert(MLRootMethods, Method, Function, Count, 1, Types);
 }
 
 static ml_value_t *ML_TYPED_FN(ml_string_of, MLMethodT, ml_method_t *Method) {
@@ -3081,11 +3160,18 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLMethodT) {
 	return MLSome;
 }
 
+ML_METHOD_DECL(MLRange, "..");
+
 ML_FUNCTIONX(MLMethodSet) {
 	ML_CHECKX_ARG_COUNT(2);
 	ML_CHECKX_ARG_TYPE(0, MLMethodT);
-	ml_type_t *Types[Count - 2];
-	for (int I = 1; I < Count - 1; ++I) {
+	int NumTypes = Count - 2, Variadic = 0;
+	if (Count >= 3 && Args[Count - 2] == MLRangeMethod) {
+		Variadic = 1;
+		--NumTypes;
+	}
+	ml_type_t *Types[NumTypes];
+	for (int I = 1; I <= NumTypes; ++I) {
 		if (Args[I] == MLNil) {
 			Types[I - 1] = MLNilT;
 		} else {
@@ -3097,7 +3183,7 @@ ML_FUNCTIONX(MLMethodSet) {
 	ml_method_t *Method = (ml_method_t *)Args[0];
 	ml_value_t *Function = Args[Count - 1];
 	ml_methods_t *Methods = ml_context_get(Caller->Context, ML_METHODS_INDEX);
-	ml_method_define(Methods, Method, Function, Count - 2, 1, Types);
+	ml_method_insert(Methods, Method, Function, NumTypes, Variadic, Types);
 	ML_RETURN(Function);
 }
 
@@ -3197,6 +3283,10 @@ void ml_types_init(stringmap_t *Globals) {
 	stringmap_insert(MLTypeT->Exports, "of", MLTypeOf);
 	stringmap_insert(Globals, "function", MLFunctionT);
 	stringmap_insert(Globals, "iteratable", MLIteratableT);
+	stringmap_insert(Globals, "boolean", MLBooleanT);
+	stringmap_insert(MLBooleanT->Exports, "of", MLBooleanOfMethod);
+	stringmap_insert(Globals, "true", MLTrue);
+	stringmap_insert(Globals, "false", MLFalse);
 	stringmap_insert(Globals, "number", MLNumberT);
 	stringmap_insert(Globals, "integer", MLIntegerT);
 	stringmap_insert(MLIntegerT->Exports, "of", MLIntegerOfMethod);
@@ -3212,6 +3302,7 @@ void ml_types_init(stringmap_t *Globals) {
 	stringmap_insert(MLMethodT->Exports, "of", MLMethodOfMethod);
 	stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
 	stringmap_insert(Globals, "list", MLListT);
+	stringmap_insert(Globals, "names", MLNamesT);
 	stringmap_insert(Globals, "map", MLMapT);
 	stringmap_insert(Globals, "tuple", MLTupleT);
 }

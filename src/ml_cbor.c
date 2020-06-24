@@ -268,10 +268,10 @@ void ml_cbor_read_float_fn(ml_cbor_reader_t *Reader, double Value) {
 void ml_cbor_read_simple_fn(ml_cbor_reader_t *Reader, int Value) {
 	switch (Value) {
 	case CBOR_SIMPLE_FALSE:
-		value_handler(Reader, ml_method("false"));
+		value_handler(Reader, (ml_value_t *)MLFalse);
 		break;
 	case CBOR_SIMPLE_TRUE:
-		value_handler(Reader, ml_method("true"));
+		value_handler(Reader, (ml_value_t *)MLTrue);
 		break;
 	case CBOR_SIMPLE_NULL:
 		value_handler(Reader, MLNil);
@@ -388,17 +388,15 @@ static void ML_TYPED_FN(ml_cbor_write, MLNilT, ml_value_t *Arg, void *Data, ml_c
 	ml_cbor_write_simple(Data, WriteFn, CBOR_SIMPLE_NULL);
 }
 
+static void ML_TYPED_FN(ml_cbor_write, MLBooleanT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+	ml_cbor_write_simple(Data, WriteFn, ml_boolean_value(Arg) ? CBOR_SIMPLE_TRUE : CBOR_SIMPLE_FALSE);
+}
+
 static void ML_TYPED_FN(ml_cbor_write, MLMethodT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	const char *Name = ml_method_name(Arg);
-	if (!strcmp(Name, "true")) {
-		ml_cbor_write_simple(Data, WriteFn, CBOR_SIMPLE_TRUE);
-	} else if (!strcmp(Name, "false")) {
-		ml_cbor_write_simple(Data, WriteFn, CBOR_SIMPLE_FALSE);
-	} else {
-		ml_cbor_write_tag(Data, WriteFn, 26); // TODO: Change this to a proper tag
-		ml_cbor_write_string(Data, WriteFn, strlen(Name));
-		WriteFn(Data, (void *)Name, strlen(Name));
-	}
+	ml_cbor_write_tag(Data, WriteFn, 26); // TODO: Change this to a proper tag
+	ml_cbor_write_string(Data, WriteFn, strlen(Name));
+	WriteFn(Data, (void *)Name, strlen(Name));
 }
 
 static void ML_TYPED_FN(ml_cbor_write, MLObjectT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {

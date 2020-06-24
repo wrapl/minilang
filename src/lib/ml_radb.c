@@ -6,6 +6,11 @@
 #include <libgen.h>
 #include <stdio.h>
 
+#define CHECK_HANDLE(STORE) \
+	if (!(STORE)->Handle) { \
+		return ml_error("RadbError", "Radb handle is closed"); \
+	}
+
 typedef struct ml_string_store_t {
 	const ml_type_t *Type;
 	string_store_t *Handle;
@@ -47,11 +52,21 @@ ML_FUNCTION(StringStoreCreate) {
 	ml_string_store_t *Store = new(ml_string_store_t);
 	Store->Type = StringStoreT;
 	Store->Handle = string_store_create(ml_string_value(Args[0]), ml_integer_value(Args[1]), ChunkSize);
+	CHECK_HANDLE(Store);
 	return (ml_value_t *)Store;
+}
+
+ML_METHOD("close", StringStoreT) {
+	ml_string_store_t *Store = (ml_string_store_t *)Args[0];
+	CHECK_HANDLE(Store);
+	string_store_close(Store->Handle);
+	Store->Handle = NULL;
+	return MLNil;
 }
 
 ML_METHOD("get", StringStoreT, MLIntegerT) {
 	ml_string_store_t *Store = (ml_string_store_t *)Args[0];
+	CHECK_HANDLE(Store);
 	size_t Index = ml_integer_value(Args[1]);
 	size_t Length = string_store_size(Store->Handle, Index);
 	if (Length == INVALID_INDEX) return ml_error("IndexError", "Invalid index");
@@ -63,6 +78,7 @@ ML_METHOD("get", StringStoreT, MLIntegerT) {
 
 ML_METHOD("set", StringStoreT, MLIntegerT, MLStringT) {
 	ml_string_store_t *Store = (ml_string_store_t *)Args[0];
+	CHECK_HANDLE(Store);
 	size_t Index = ml_integer_value(Args[1]);
 	string_store_set(Store->Handle, Index, ml_string_value(Args[2]), ml_string_length(Args[2]));
 	return Args[2];
@@ -70,6 +86,7 @@ ML_METHOD("set", StringStoreT, MLIntegerT, MLStringT) {
 
 ML_METHOD("write", StringStoreT, MLIntegerT) {
 	ml_string_store_t *Store = (ml_string_store_t *)Args[0];
+	CHECK_HANDLE(Store);
 	ml_string_store_writer_t *Writer = new(ml_string_store_writer_t);
 	Writer->Type = StringStoreWriterT;
 	string_store_writer_open(Writer->Handle, Store->Handle, ml_integer_value(Args[1]));
@@ -84,6 +101,7 @@ ML_METHOD("write", StringStoreWriterT, MLStringT) {
 
 ML_METHOD("read", StringStoreT, MLIntegerT) {
 	ml_string_store_t *Store = (ml_string_store_t *)Args[0];
+	CHECK_HANDLE(Store);
 	ml_string_store_reader_t *Reader = new(ml_string_store_reader_t);
 	Reader->Type = StringStoreReaderT;
 	string_store_reader_open(Reader->Handle, Store->Handle, ml_integer_value(Args[1]));
@@ -122,7 +140,16 @@ ML_FUNCTION(CborStoreCreate) {
 	ml_string_store_t *Store = new(ml_string_store_t);
 	Store->Type = CborStoreT;
 	Store->Handle = string_store_create(ml_string_value(Args[0]), ml_integer_value(Args[1]), ChunkSize);
+	CHECK_HANDLE(Store);
 	return (ml_value_t *)Store;
+}
+
+ML_METHOD("close", CborStoreT) {
+	ml_string_store_t *Store = (ml_string_store_t *)Args[0];
+	CHECK_HANDLE(Store);
+	string_store_close(Store->Handle);
+	Store->Handle = NULL;
+	return MLNil;
 }
 
 static ml_value_t *ml_value_fn(ml_value_t *Callback, ml_value_t *Value) {
@@ -136,6 +163,7 @@ static ml_tag_t ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void **Data)
 
 ML_METHOD("get", CborStoreT, MLIntegerT) {
 	ml_string_store_t *Store = (ml_string_store_t *)Args[0];
+	CHECK_HANDLE(Store);
 	size_t Index = ml_integer_value(Args[1]);
 	size_t Length = string_store_size(Store->Handle, Index);
 	if (Length == INVALID_INDEX) return ml_error("IndexError", "Invalid index");
@@ -153,6 +181,7 @@ ML_METHOD("get", CborStoreT, MLIntegerT) {
 
 ML_METHOD("set", CborStoreT, MLIntegerT, MLAnyT) {
 	ml_string_store_t *Store = (ml_string_store_t *)Args[0];
+	CHECK_HANDLE(Store);
 	size_t Index = ml_integer_value(Args[1]);
 	string_store_writer_t Writer[1];
 	string_store_writer_open(Writer, Store->Handle, Index);
@@ -188,20 +217,47 @@ ML_FUNCTION(StringIndexCreate) {
 	ml_string_index_t *Store = new(ml_string_index_t);
 	Store->Type = StringIndexT;
 	Store->Handle = string_index_create(ml_string_value(Args[0]), 16, ChunkSize);
+	CHECK_HANDLE(Store);
 	return (ml_value_t *)Store;
+}
+
+ML_METHOD("close", StringIndexT) {
+	ml_string_index_t *Store = (ml_string_index_t *)Args[0];
+	CHECK_HANDLE(Store);
+	string_index_close(Store->Handle);
+	Store->Handle = NULL;
+	return MLNil;
 }
 
 ML_METHOD("insert", StringIndexT, MLStringT) {
 	ml_string_index_t *Store = (ml_string_index_t *)Args[0];
+	CHECK_HANDLE(Store);
 	size_t Index = string_index_insert(Store->Handle, ml_string_value(Args[1]), ml_string_length(Args[1]));
 	return ml_integer(Index);
 }
 
 ML_METHOD("search", StringIndexT, MLStringT) {
 	ml_string_index_t *Store = (ml_string_index_t *)Args[0];
+	CHECK_HANDLE(Store);
 	size_t Index = string_index_search(Store->Handle, ml_string_value(Args[1]), ml_string_length(Args[1]));
 	if (Index == INVALID_INDEX) return MLNil;
 	return ml_integer(Index);
+}
+
+ML_METHOD("get", StringIndexT, MLIntegerT) {
+	ml_string_index_t *Store = (ml_string_index_t *)Args[0];
+	CHECK_HANDLE(Store);
+	size_t Index = ml_integer_value(Args[1]);
+	size_t Size = string_index_size(Store->Handle, Index);
+	char *Value = snew(Size + 1);
+	string_index_get(Store->Handle, Index, Value, Size);
+	return ml_string(Value, Size);
+}
+
+ML_METHOD("count", StringIndexT) {
+	ml_string_index_t *Store = (ml_string_index_t *)Args[0];
+	CHECK_HANDLE(Store);
+	return ml_integer(string_index_count(Store->Handle));
 }
 
 ML_TYPE(CborIndexT, (), "cbor-index");
@@ -227,11 +283,21 @@ ML_FUNCTION(CborIndexCreate) {
 	ml_string_index_t *Store = new(ml_string_index_t);
 	Store->Type = CborIndexT;
 	Store->Handle = string_index_create(ml_string_value(Args[0]), 16, ChunkSize);
+	CHECK_HANDLE(Store);
 	return (ml_value_t *)Store;
+}
+
+ML_METHOD("close", CborIndexT) {
+	ml_string_index_t *Store = (ml_string_index_t *)Args[0];
+	CHECK_HANDLE(Store);
+	string_index_close(Store->Handle);
+	Store->Handle = NULL;
+	return MLNil;
 }
 
 ML_METHOD("insert", CborIndexT, MLAnyT) {
 	ml_string_index_t *Store = (ml_string_index_t *)Args[0];
+	CHECK_HANDLE(Store);
 	ml_cbor_t Cbor = ml_to_cbor(Args[1]);
 	size_t Index = string_index_insert(Store->Handle, Cbor.Data, Cbor.Length);
 	return ml_integer(Index);
@@ -239,6 +305,7 @@ ML_METHOD("insert", CborIndexT, MLAnyT) {
 
 ML_METHOD("search", CborIndexT, MLAnyT) {
 	ml_string_index_t *Store = (ml_string_index_t *)Args[0];
+	CHECK_HANDLE(Store);
 	ml_cbor_t Cbor = ml_to_cbor(Args[1]);
 	size_t Index = string_index_search(Store->Handle, Cbor.Data, Cbor.Length);
 	if (Index == INVALID_INDEX) return MLNil;
@@ -247,6 +314,7 @@ ML_METHOD("search", CborIndexT, MLAnyT) {
 
 ML_METHOD("get", CborIndexT, MLIntegerT) {
 	ml_string_index_t *Store = (ml_string_index_t *)Args[0];
+	CHECK_HANDLE(Store);
 	int Index = ml_integer_value(Args[1]);
 	int Size = string_index_size(Store->Handle, Index);
 	char *Bytes = snew(Size + 1);

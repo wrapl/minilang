@@ -3,6 +3,7 @@
 #include "../ml_cbor.h"
 #include <gc/gc.h>
 #include <string.h>
+#include "../ml_object.h"
 
 #include "minicbor/minicbor.h"
 
@@ -264,10 +265,10 @@ void ml_cbor_read_float_fn(ml_cbor_reader_t *Reader, double Value) {
 void ml_cbor_read_simple_fn(ml_cbor_reader_t *Reader, int Value) {
 	switch (Value) {
 	case CBOR_SIMPLE_FALSE:
-		value_handler(Reader, ml_method("false"));
+		value_handler(Reader, (ml_value_t *)MLFalse);
 		break;
 	case CBOR_SIMPLE_TRUE:
-		value_handler(Reader, ml_method("true"));
+		value_handler(Reader, (ml_value_t *)MLTrue);
 		break;
 	case CBOR_SIMPLE_NULL:
 		value_handler(Reader, MLNil);
@@ -289,10 +290,25 @@ void ml_cbor_read_error_fn(ml_cbor_reader_t *Reader, int Position, const char *M
 	value_handler(Reader, ml_error("CBORError", "Read error: %s at %d", Message, Position));
 }
 
+static ml_value_t *ml_value_fn(ml_value_t *Callback, ml_value_t *Value) {
+	return ml_inline(Callback, 1, Value);
+}
+
+static ml_tag_t ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void **Data) {
+	Data[0] = ml_inline(Callback, 1, ml_integer(Tag));
+	return (ml_tag_t)ml_value_fn;
+}
+
+ml_value_t *CborDefaultTags;
+
+ML_FUNCTION(DefaultTagFn) {
+	return ml_map_search(CborDefaultTags, Args[0]);
+}
+
 ml_value_t *ml_from_cbor(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*TagFn)(uint64_t, void *, void **)) {
 	ml_cbor_reader_t Reader[1];
-	Reader->TagFnData = TagFnData;
-	Reader->TagFn = TagFn;
+	Reader->TagFnData = TagFnData ?: DefaultTagFn;
+	Reader->TagFn = TagFn ?: (void *)ml_value_tag_fn;
 	ml_cbor_reader_init(Reader->Reader);
 	Reader->Reader->UserData = Reader;
 	Reader->Collection = 0;
@@ -306,8 +322,8 @@ ml_value_t *ml_from_cbor(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*TagFn)(uint
 
 ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*TagFn)(uint64_t, void *, void **)) {
 	ml_cbor_reader_t Reader[1];
-	Reader->TagFnData = TagFnData;
-	Reader->TagFn = TagFn;
+	Reader->TagFnData = TagFnData ?: DefaultTagFn;
+	Reader->TagFn = TagFn ?: (void *)ml_value_tag_fn;
 	ml_cbor_reader_init(Reader->Reader);
 	Reader->Reader->UserData = Reader;
 	Reader->Collection = 0;
@@ -321,21 +337,6 @@ static ml_value_t *ml_to_cbor_fn(void *Data, int Count, ml_value_t **Args) {
 	ml_cbor_t Cbor = ml_to_cbor(Args[0]);
 	if (Cbor.Data) return ml_string(Cbor.Data, Cbor.Length);
 	return ml_error("CborError", "Error encoding to cbor");
-}
-
-static ml_value_t *ml_value_fn(ml_value_t *Callback, ml_value_t *Value) {
-	return ml_inline(Callback, 1, Value);
-}
-
-static ml_tag_t ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void **Data) {
-	Data[0] = ml_inline(Callback, 1, ml_integer(Tag));
-	return (ml_tag_t)ml_value_fn;
-}
-
-static ml_value_t *DefaultTags;
-
-ML_FUNCTION(DefaultTagFn) {
-	return ml_map_search(DefaultTags, Args[0]);
 }
 
 static ml_value_t *ml_from_cbor_fn(void *Data, int Count, ml_value_t **Args) {
@@ -384,20 +385,65 @@ static void ML_TYPED_FN(ml_cbor_write, MLNilT, ml_value_t *Arg, void *Data, ml_c
 	ml_cbor_write_simple(Data, WriteFn, CBOR_SIMPLE_NULL);
 }
 
+static void ML_TYPED_FN(ml_cbor_write, MLBooleanT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+	ml_cbor_write_simple(Data, WriteFn, ml_boolean_value(Arg) ? CBOR_SIMPLE_TRUE : CBOR_SIMPLE_FALSE);
+}
+
 static void ML_TYPED_FN(ml_cbor_write, MLMethodT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
-	if (!strcmp(ml_method_name(Arg), "true")) {
-		ml_cbor_write_simple(Data, WriteFn, CBOR_SIMPLE_TRUE);
-	} else if (!strcmp(ml_method_name(Arg), "false")) {
-		ml_cbor_write_simple(Data, WriteFn, CBOR_SIMPLE_FALSE);
-	} else {
-		ml_cbor_write_simple(Data, WriteFn, CBOR_SIMPLE_UNDEF);
+	const char *Name = ml_method_name(Arg);
+	ml_cbor_write_tag(Data, WriteFn, 26); // TODO: Change this to a proper tag
+	ml_cbor_write_string(Data, WriteFn, strlen(Name));
+	WriteFn(Data, (void *)Name, strlen(Name));
+}
+
+static void ML_TYPED_FN(ml_cbor_write, MLObjectT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+	ml_cbor_write_tag(Data, WriteFn, 27);
+	int Size = ml_object_size(Arg);
+	ml_cbor_write_array(Data, WriteFn, 1 + Size);
+	const char *Name = Arg->Type->Name;
+	ml_cbor_write_string(Data, WriteFn, strlen(Name));
+	WriteFn(Data, (void *)Name, strlen(Name));
+	for (int I = 0; I < Size; ++I) {
+		ml_cbor_write(ml_object_field(Arg, I), Data, WriteFn);
 	}
 }
 
+ml_value_t *ml_cbor_read_method(void *Data, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	return ml_method(ml_string_value(Args[0]));
+}
+
+ml_value_t *CborObjects;
+
+ml_value_t *ml_cbor_read_object(void *Data, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLListT);
+	ml_list_iter_t Iter[1];
+	ml_list_iter_forward(Args[0], Iter);
+	if (!ml_list_iter_valid(Iter)) return ml_error("CBORError", "Object tag requires type name");
+	ml_value_t *TypeName = Iter->Value;
+	if (TypeName->Type != MLStringT) return ml_error("CBORError", "Object tag requires type name");
+	ml_value_t *Constructor = ml_map_search(CborObjects, TypeName);
+	if (Constructor == MLNil) return ml_error("CBORError", "Object %s not found", ml_string_value(TypeName));
+	int Count2 = ml_list_length(Args[0]) - 1;
+	ml_value_t **Args2 = anew(ml_value_t *, Count2);
+	for (int I = 0; I < Count2; ++I) {
+		ml_list_iter_next(Iter);
+		Args2[I] = Iter->Value;
+	}
+	return ML_WRAP_EVAL(Constructor->Type->call, Constructor, Count2, Args2);
+}
+
 void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
-	DefaultTags = ml_map();
+	CborDefaultTags = ml_map();
+	CborObjects = ml_map();
+	ml_map_insert(CborDefaultTags, ml_integer(26), ml_function(NULL, ml_cbor_read_method)); // TODO: Change this to a proper tag
+	ml_map_insert(CborDefaultTags, ml_integer(27), ml_function(NULL, ml_cbor_read_object));
+#ifdef USE_ML_CBOR_BYTECODE
+	ml_map_insert(CborDefaultTags, ml_integer(36), ml_function(NULL, ml_cbor_read_closure));
+#endif
 #include "ml_cbor_init.c"
 	ml_module_export(Module, "encode", ml_function(NULL, ml_to_cbor_fn));
 	ml_module_export(Module, "decode", ml_function(NULL, ml_from_cbor_fn));
-	ml_module_export(Module, "Default", DefaultTags);
+	ml_module_export(Module, "Default", CborDefaultTags);
 }

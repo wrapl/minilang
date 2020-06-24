@@ -952,12 +952,12 @@ static void ml_closure_find_labels(int Process, ml_inst_t *Inst, unsigned int *L
 
 static void ml_closure_inst_list(int Process, ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 	if (Inst->Processed == Process) {
-		ml_stringbuffer_addf(Buffer, "\tjump L%d\n", Inst->Label);
+		ml_stringbuffer_addf(Buffer, "\t%3d jump L%d\n", Inst->LineNo, Inst->Label);
 		return;
 	}
 	if (Inst->Label) ml_stringbuffer_addf(Buffer, "L%d:\n", Inst->Label);
 	Inst->Processed = Process;
-	ml_stringbuffer_addf(Buffer, "\t%s", MLInsts[Inst->Opcode]);
+	ml_stringbuffer_addf(Buffer, "\t%3d %s", Inst->LineNo, MLInsts[Inst->Opcode]);
 	switch (MLInstTypes[Inst->Opcode]) {
 	case MLIT_INST_INST:
 		ml_stringbuffer_addf(Buffer, " -> L%d", Inst->Params[1].Inst->Label);

@@ -240,14 +240,14 @@ static gboolean console_keypress(GtkWidget *Widget, GdkEventKey *Event, console_
 	switch (Event->keyval) {
 	case GDK_KEY_Return:
 		Console->NumChars = 0;
-		if (Event->state & GDK_SHIFT_MASK) {
+		if (Event->state & GDK_CONTROL_MASK) {
 			console_submit(NULL, Console);
 			return TRUE;
 		}
 		break;
 	case GDK_KEY_Up:
 		Console->NumChars = 0;
-		if (Event->state & GDK_SHIFT_MASK) {
+		if (Event->state & GDK_CONTROL_MASK) {
 			int HistoryIndex = (Console->HistoryIndex + MAX_HISTORY - 1) % MAX_HISTORY;
 			if (Console->History[HistoryIndex]) {
 				gtk_text_buffer_set_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView)), Console->History[HistoryIndex], -1);
@@ -258,7 +258,7 @@ static gboolean console_keypress(GtkWidget *Widget, GdkEventKey *Event, console_
 		break;
 	case GDK_KEY_Down:
 		Console->NumChars = 0;
-		if (Event->state & GDK_SHIFT_MASK) {
+		if (Event->state & GDK_CONTROL_MASK) {
 			int HistoryIndex = (Console->HistoryIndex + 1) % MAX_HISTORY;
 			if (Console->History[HistoryIndex]) {
 				gtk_text_buffer_set_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView)), Console->History[HistoryIndex], -1);

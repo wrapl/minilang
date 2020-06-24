@@ -88,6 +88,7 @@ static void ml_context_key_call(ml_state_t *Caller, ml_context_key_t *Key, int C
 		State->run = ml_default_state_run;
 		State->Context = Context;
 		ml_value_t *Function = Args[1];
+		Function = Function->Type->deref(Function);
 		return Function->Type->call(State, Function, Count - 2, Args + 2);
 	}
 }
