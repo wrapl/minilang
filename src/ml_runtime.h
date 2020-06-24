@@ -4,6 +4,7 @@
 #include "ml_types.h"
 #include <limits.h>
 #include <stdarg.h>
+#include <stdio.h>
 
 #ifdef	__cplusplus
 extern "C" {
@@ -114,6 +115,7 @@ const char *ml_error_message(ml_value_t *Value);
 int ml_error_source(ml_value_t *Value, int Level, ml_source_t *Source);
 ml_value_t *ml_error_trace_add(ml_value_t *Error, ml_source_t Source);
 void ml_error_print(ml_value_t *Error);
+void ml_error_fprint(FILE *File, ml_value_t *Error);
 
 ml_value_t *ml_reference(ml_value_t **Address);
 

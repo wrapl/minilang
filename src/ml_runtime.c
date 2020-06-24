@@ -374,6 +374,14 @@ void ml_error_print(ml_value_t *Value) {
 	}
 }
 
+void ml_error_fprint(FILE *File, ml_value_t *Value) {
+	ml_error_t *Error = (ml_error_t *)Value;
+	fprintf(File, "Error: %s\n", Error->Message);
+	for (int I = 0; (I < MAX_TRACE) && Error->Trace[I].Name; ++I) {
+		fprintf(File, "\t%s:%d\n", Error->Trace[I].Name, Error->Trace[I].Line);
+	}
+}
+
 ML_METHOD("type", MLErrorT) {
 	return ml_string(((ml_error_t *)Args[0])->Error, -1);
 }
