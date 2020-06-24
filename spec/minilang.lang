@@ -33,6 +33,7 @@
     <style id="keyword" _name="Keyword" map-to="def:keyword"/>
     <style id="operator" _name="Operator" map-to="def:operator"/>
     <style id="function" _name="Function" map-to="def:function"/>
+    <style id="type" _name="Type" map-to="def:type"/>
     <style id="floating-point" _name="Floating point number" map-to="def:floating-point"/>
     <style id="decimal" _name="Decimal number" map-to="def:decimal"/>
   </styles>
@@ -139,8 +140,28 @@
       <keyword>error</keyword>
       <keyword>halt</keyword>
       <keyword>callcc</keyword>
-      <keyword>spawn</keyword>
-      <keyword>open</keyword>
+      <keyword>mark</keyword>
+      <keyword>context</keyword>
+      <keyword>first</keyword>
+      <keyword>first2</keyword>
+      <keyword>all</keyword>
+      <keyword>all2</keyword>
+      <keyword>unique</keyword>
+      <keyword>count</keyword>
+      <keyword>min</keyword>
+      <keyword>min2</keyword>
+      <keyword>max</keyword>
+      <keyword>max2</keyword>
+      <keyword>sum</keyword>
+      <keyword>prod</keyword>
+      <keyword>group</keyword>
+      <keyword>tasks</keyword>
+      <keyword>parallel</keyword>
+      <keyword>property</keyword>
+      <keyword>true</keyword>
+      <keyword>false</keyword>
+    </context>
+    <context id="types" style-ref="type">
       <keyword>class</keyword>
       <keyword>method</keyword>
       <keyword>any</keyword>
@@ -157,19 +178,6 @@
       <keyword>regex</keyword>
       <keyword>array</keyword>
       <keyword>file</keyword>
-      <keyword>all</keyword>
-      <keyword>map</keyword>
-      <keyword>unique</keyword>
-      <keyword>count</keyword>
-      <keyword>min</keyword>
-      <keyword>max</keyword>
-      <keyword>sum</keyword>
-      <keyword>prod</keyword>
-      <keyword>group</keyword>
-      <keyword>tasks</keyword>
-      <keyword>parallel</keyword>
-      <keyword>true</keyword>
-      <keyword>false</keyword>
     </context>
     <context id="operators" style-ref="operator" extend-parent="false">
       <match>[-.#~^@;/$%|\=\+\*\!\?&amp;&lt;&gt;\[\]\\{}\()]</match>
@@ -205,6 +213,7 @@
         <context ref="symbol"/>
         <context ref="keywords"/>
         <context ref="functions"/>
+        <context ref="types"/>
         <context ref="operators"/>
         <context ref="float"/>
         <context ref="decimal-number"/>
