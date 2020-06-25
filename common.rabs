@@ -21,7 +21,7 @@ c_includes := fun(Target) do
 	for File in Files do
 		File := file(File:replace(r"\\ ", " "))
 	end
-	depends(Files)
+	check(Files)
 	ret Files
 end
 
