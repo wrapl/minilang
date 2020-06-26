@@ -233,6 +233,13 @@ inline ml_value_t *ml_tuple_set(ml_value_t *Tuple, int Index, ml_value_t *Value)
 	return ((ml_tuple_t *)Tuple)->Values[Index - 1] = Value;
 }
 
+typedef struct {
+	ml_value_t **Values;
+	int Count;
+} ml_unpacked_t;
+
+ml_unpacked_t ml_unpack(ml_value_t *Value, int Count);
+
 /****************************** Booleans ******************************/
 
 typedef struct ml_boolean_t {

@@ -236,7 +236,7 @@ ML_INTERFACE(MLIteratableT, (), "iteratable");
 
 void ml_iterate(ml_state_t *Caller, ml_value_t *Value) {
 	typeof(ml_iterate) *function = ml_typed_fn_get(Value->Type, ml_iterate);
-	if (!function)  {
+	if (!function) {
 		ml_value_t **Args = anew(ml_value_t *, 1);
 		Args[0] = Value;
 		return IterateMethod->Type->call(Caller, IterateMethod, 1, Args);
@@ -256,7 +256,7 @@ void ml_iter_value(ml_state_t *Caller, ml_value_t *Iter) {
 
 void ml_iter_key(ml_state_t *Caller, ml_value_t *Iter) {
 	typeof(ml_iter_key) *function = ml_typed_fn_get(Iter->Type, ml_iter_key);
-	if (!function)  {
+	if (!function) {
 		ml_value_t **Args = anew(ml_value_t *, 1);
 		Args[0] = Iter;
 		return KeyMethod->Type->call(Caller, KeyMethod, 1, Args);
@@ -525,6 +525,12 @@ extern inline int ml_tuple_size(ml_value_t *Tuple);
 extern inline ml_value_t *ml_tuple_get(ml_value_t *Tuple, int Index);
 extern inline ml_value_t *ml_tuple_set(ml_value_t *Tuple, int Index, ml_value_t *Value);
 
+ml_unpacked_t ml_unpack(ml_value_t *Value, int Count) {
+	typeof(ml_unpack) *function = ml_typed_fn_get(Value->Type, ml_unpack);
+	if (!function) return (ml_unpacked_t){NULL, 0};
+	return function(Value, Count);
+}
+
 ML_METHOD("size", MLTupleT) {
 	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
 	return ml_integer(Tuple->Size);
@@ -601,6 +607,10 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLTupleT) {
 	}
 	ml_stringbuffer_add(Buffer, ")", 1);
 	return MLSome;
+}
+
+ml_unpacked_t ML_TYPED_FN(ml_unpack, MLTupleT, ml_tuple_t *Tuple, int Count) {
+	return (ml_unpacked_t){Tuple->Values, Tuple->Size};
 }
 
 static ml_value_t *ml_tuple_compare(ml_tuple_t *A, ml_tuple_t *B) {
@@ -1623,7 +1633,7 @@ ML_METHOD("[]", MLStringT, MLIntegerT, MLIntegerT) {
 ML_METHOD("+", MLStringT, MLStringT) {
 	int Length1 = ml_string_length(Args[0]);
 	int Length2 = ml_string_length(Args[1]);
-	int Length =  Length1 + Length2;
+	int Length = Length1 + Length2;
 	char *Chars = GC_MALLOC_ATOMIC(Length + 1);
 	memcpy(Chars, ml_string_value(Args[0]), Length1);
 	memcpy(Chars + Length1, ml_string_value(Args[1]), Length2);
@@ -1834,7 +1844,7 @@ ML_METHOD("%", MLStringT, MLStringT) {
 		return ml_error("RegexError", "regex error: %s", ErrorMessage);
 	}
 	default: {
-		ml_value_t *Results = ml_list();
+		ml_value_t *Results = ml_tuple(Regex->re_nsub + 1);
 		for (int I = 0; I < Regex->re_nsub + 1; ++I) {
 			regoff_t Start = Matches[I].rm_so;
 			if (Start >= 0) {
@@ -1842,9 +1852,9 @@ ML_METHOD("%", MLStringT, MLStringT) {
 				char *Chars = snew(Length + 1);
 				memcpy(Chars, Subject + Start, Length);
 				Chars[Length] = 0;
-				ml_list_append(Results, ml_string(Chars, Length));
+				ml_tuple_set(Results, I + 1, ml_string(Chars, Length));
 			} else {
-				ml_list_append(Results, MLNil);
+				ml_tuple_set(Results, I + 1, MLNil);
 			}
 		}
 		regfree(Regex);
@@ -1867,7 +1877,7 @@ ML_METHOD("%", MLStringT, MLRegexT) {
 		return ml_error("RegexError", "regex error: %s", ErrorMessage);
 	}
 	default: {
-		ml_value_t *Results = ml_list();
+		ml_value_t *Results = ml_tuple(Regex->re_nsub + 1);
 		for (int I = 0; I < Regex->re_nsub + 1; ++I) {
 			regoff_t Start = Matches[I].rm_so;
 			if (Start >= 0) {
@@ -1875,12 +1885,40 @@ ML_METHOD("%", MLStringT, MLRegexT) {
 				char *Chars = snew(Length + 1);
 				memcpy(Chars, Subject + Start, Length);
 				Chars[Length] = 0;
-				ml_list_append(Results, ml_string(Chars, Length));
+				ml_tuple_set(Results, I + 1, ml_string(Chars, Length));
 			} else {
-				ml_list_append(Results, MLNil);
+				ml_tuple_set(Results, I + 1, MLNil);
 			}
 		}
 		return Results;
+	}
+	}
+}
+
+ML_METHOD("?", MLStringT, MLRegexT) {
+	const char *Subject = ml_string_value(Args[0]);
+	regex_t *Regex = ml_regex_value(Args[1]);
+	regmatch_t Matches[Regex->re_nsub + 1];
+	switch (regexec(Regex, Subject, Regex->re_nsub + 1, Matches, 0)) {
+	case REG_NOMATCH:
+		return MLNil;
+	case REG_ESPACE: {
+		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
+		char *ErrorMessage = snew(ErrorSize + 1);
+		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
+		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+	}
+	default: {
+		regoff_t Start = Matches[0].rm_so;
+		if (Start >= 0) {
+			size_t Length = Matches[0].rm_eo - Start;
+			char *Chars = snew(Length + 1);
+			memcpy(Chars, Subject + Start, Length);
+			Chars[Length] = 0;
+			return ml_string(Chars, Length);
+		} else {
+			return MLNil;
+		}
 	}
 	}
 }
@@ -2271,6 +2309,10 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLListT) {
 	} else {
 		return MLNil;
 	}
+}
+
+ml_unpacked_t ML_TYPED_FN(ml_unpack, MLListT, ml_list_t *List, int Count) {
+	return (ml_unpacked_t){List->Head, List->Length};
 }
 
 typedef struct ml_list_iterator_t {

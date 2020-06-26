@@ -287,20 +287,19 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(0);
 	}
 	DO_WITHX: {
-		if (Result->Type != MLTupleT) {
-			Result = ml_error("TypeError", "Can only unpack tuples");
+		int Count = Inst->Params[1].Count;
+		ml_unpacked_t Unpacked = ml_unpack(Result, Count);
+		if (!Unpacked.Values) {
+			Result = ml_error("TypeError", "Unable to unpack %s", Result->Type->Name);
 			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
 			ERROR();
 		}
-		ml_tuple_t *Tuple = (ml_tuple_t *)Result;
-		if (Tuple->Size < Inst->Params[1].Count) {
-			Result = ml_error("ValueError", "Tuple has too few values (%d < %d)", Tuple->Size, Inst->Params[1].Count);
+		if (Unpacked.Count < Count) {
+			Result = ml_error("ValueError", "Not enough values to unpack (%d < %d)", Unpacked.Count, Count);
 			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
 			ERROR();
 		}
-		for (int I = 0; I < Inst->Params[1].Count; ++I) {
-			*Top++ = Tuple->Values[I];
-		}
+		for (int I = 0; I < Count; ++I) *Top++ = Unpacked.Values[I];
 #ifdef DEBUG_VERSION
 		Frame->Decls = Inst->Params[2].Decls;
 #endif
@@ -370,20 +369,21 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_VARX: {
 		Result = Result->Type->deref(Result);
 		ERROR_CHECK(Result);
-		if (Result->Type != MLTupleT) {
-			Result = ml_error("TypeError", "Can only unpack tuples");
+		int Count = Inst->Params[2].Count;
+		ml_unpacked_t Unpacked = ml_unpack(Result, Count);
+		if (!Unpacked.Values) {
+			Result = ml_error("TypeError", "Unable to unpack %s", Result->Type->Name);
 			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
 			ERROR();
 		}
-		ml_tuple_t *Tuple = (ml_tuple_t *)Result;
-		if (Tuple->Size < Inst->Params[2].Count) {
-			Result = ml_error("ValueError", "Tuple has too few values (%d < %d)", Tuple->Size, Inst->Params[2].Count);
+		if (Unpacked.Count < Count) {
+			Result = ml_error("ValueError", "Not enough values to unpack (%d < %d)", Unpacked.Count, Count);
 			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
 			ERROR();
 		}
 		ml_value_t **Base = Top + Inst->Params[1].Index;
-		for (int I = 0; I < Inst->Params[2].Count; ++I) {
-			Result = Tuple->Values[I]->Type->deref(Tuple->Values[I]);
+		for (int I = 0; I < Count; ++I) {
+			Result = Unpacked.Values[I]->Type->deref(Unpacked.Values[I]);
 			ERROR_CHECK(Result);
 			ml_reference_t *Local = (ml_reference_t *)Base[I];
 			Local->Value[0] = Result;
@@ -407,20 +407,21 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_LETX: {
 		Result = Result->Type->deref(Result);
 		ERROR_CHECK(Result);
-		if (Result->Type != MLTupleT) {
-			Result = ml_error("TypeError", "Can only unpack tuples");
+		int Count = Inst->Params[2].Count;
+		ml_unpacked_t Unpacked = ml_unpack(Result, Count);
+		if (!Unpacked.Values) {
+			Result = ml_error("TypeError", "Unable to unpack %s", Result->Type->Name);
 			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
 			ERROR();
 		}
-		ml_tuple_t *Tuple = (ml_tuple_t *)Result;
-		if (Tuple->Size < Inst->Params[2].Count) {
-			Result = ml_error("ValueError", "Tuple has too few values (%d < %d)", Tuple->Size, Inst->Params[2].Count);
+		if (Unpacked.Count < Count) {
+			Result = ml_error("ValueError", "Not enough values to unpack (%d < %d)", Unpacked.Count, Count);
 			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
 			ERROR();
 		}
 		ml_value_t **Base = Top + Inst->Params[1].Index;
-		for (int I = 0; I < Inst->Params[2].Count; ++I) {
-			Result = Tuple->Values[I]->Type->deref(Tuple->Values[I]);
+		for (int I = 0; I < Count; ++I) {
+			Result = Unpacked.Values[I]->Type->deref(Unpacked.Values[I]);
 			ERROR_CHECK(Result);
 			ml_value_t *Uninitialized = Base[I];
 			Base[I] = Result;
