@@ -151,6 +151,17 @@ ML_FUNCTIONX(All) {
 	return ml_iterate((ml_state_t *)State, Args[0]);
 }
 
+extern ml_value_t *MLListOfMethod;
+
+ML_METHODX(MLListOfMethod, MLIteratableT) {
+	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)all_iterate;
+	State->Base.Context = Caller->Context;
+	State->Values[0] = ml_list();
+	return ml_iterate((ml_state_t *)State, Args[0]);
+}
+
 static void map_iterate(ml_iter_state_t *State, ml_value_t *Result);
 
 static void map_iter_value(ml_iter_state_t *State, ml_value_t *Result) {
@@ -179,6 +190,17 @@ static void map_iterate(ml_iter_state_t *State, ml_value_t *Result) {
 ML_FUNCTIONX(All2) {
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
+	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)map_iterate;
+	State->Base.Context = Caller->Context;
+	State->Values[0] = ml_map();
+	return ml_iterate((ml_state_t *)State, Args[0]);
+}
+
+extern ml_value_t *MLMapOfMethod;
+
+ML_METHODX(MLMapOfMethod, MLIteratableT) {
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)map_iterate;

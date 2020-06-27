@@ -30,6 +30,8 @@ ML_METHOD_DECL(MLBooleanOf, NULL);
 ML_METHOD_DECL(MLIntegerOf, NULL);
 ML_METHOD_DECL(MLRealOf, NULL);
 ML_METHOD_DECL(MLMethodOf, NULL);
+ML_METHOD_DECL(MLListOf, NULL);
+ML_METHOD_DECL(MLMapOf, NULL);
 
 /****************************** Types ******************************/
 
@@ -3447,7 +3449,9 @@ void ml_types_init(stringmap_t *Globals) {
 	stringmap_insert(MLMethodT->Exports, "of", MLMethodOfMethod);
 	stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
 	stringmap_insert(Globals, "list", MLListT);
+	stringmap_insert(MLListT->Exports, "of", MLListOfMethod);
 	stringmap_insert(Globals, "names", MLNamesT);
 	stringmap_insert(Globals, "map", MLMapT);
+	stringmap_insert(MLMapT->Exports, "of", MLMapOfMethod);
 	stringmap_insert(Globals, "tuple", MLTupleT);
 }
