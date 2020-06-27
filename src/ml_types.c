@@ -1624,6 +1624,9 @@ ML_METHOD("[]", MLStringT, MLIntegerT, MLIntegerT) {
 	if (Hi > String->Length + 1) return MLNil;
 	if (Hi < Lo) return MLNil;
 	int Length = Hi - Lo;
+	if (Hi == String->Length + 1) {
+		return ml_string(String->Value + Lo - 1, Length);
+	}
 	char *Chars = snew(Length + 1);
 	memcpy(Chars, String->Value + Lo - 1, Length);
 	Chars[Length] = 0;
@@ -1723,6 +1726,41 @@ ML_METHOD("~", MLStringT, MLStringT) {
 		PrevA = CharsA[I];
 	}
 	return ml_integer(Row1[LenB]);
+}
+
+ML_METHOD("~>", MLStringT, MLStringT) {
+	int LenA = ml_string_length(Args[0]);
+	int LenB = ml_string_length(Args[1]);
+	const char *CharsA = ml_string_value(Args[0]);
+	const char *CharsB = ml_string_value(Args[1]);
+	int *Row0 = alloca((LenB + 1) * sizeof(int));
+	int *Row1 = alloca((LenB + 1) * sizeof(int));
+	int *Row2 = alloca((LenB + 1) * sizeof(int));
+	int Best = LenB;
+	const int Insert = 1, Replace = 1, Swap = 1, Delete = 1;
+	for (int J = 0; J <= LenB; ++J) Row1[J] = J * Insert;
+	char PrevA = 0, PrevB;
+	for (int I = 0; I < 2 * LenB; ++I) {
+		Row2[0] = (I + 1) * Delete;
+		char CharA = I < LenA ? CharsA[I] : 0;
+		for (int J = 0; J < LenB; ++J) {
+			int Min = Row1[J] + Replace * (CharA != CharsB[J]);
+			if (I > 0 && J > 0 && PrevA == CharsB[J] && CharA == PrevB && Min > Row0[J - 1] + Swap) {
+				Min = Row0[J - 1] + Swap;
+			}
+			if (Min > Row1[J + 1] + Delete) Min = Row1[J + 1] + Delete;
+			if (Min > Row2[J] + Insert) Min = Row2[J] + Insert;
+			Row2[J + 1] = Min;
+			PrevB = CharsB[J];
+		}
+		int *Dummy = Row0;
+		Row0 = Row1;
+		Row1 = Row2;
+		Row2 = Dummy;
+		PrevA = CharA;
+		if (Row1[LenB] < Best) Best = Row1[LenB];
+	}
+	return ml_integer(Best);
 }
 
 ML_METHOD("/", MLStringT, MLStringT) {
