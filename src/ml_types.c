@@ -333,7 +333,7 @@ ML_METHODX("!", MLFunctionT, MLListT, MLMapT) {
 	return Function->Type->call(Caller, Function, Arg - ListArgs, ListArgs);
 }
 
-static void ml_function_call(ml_state_t *Caller, ml_function_t *Function, int Count, ml_value_t **Args) {
+static void ml_cfunction_call(ml_state_t *Caller, ml_function_t *Function, int Count, ml_value_t **Args) {
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Arg = Args[I] = Args[I]->Type->deref(Args[I]);
 		if (Arg->Type == MLErrorT) ML_RETURN(Arg);
@@ -342,7 +342,7 @@ static void ml_function_call(ml_state_t *Caller, ml_function_t *Function, int Co
 }
 
 ML_TYPE(MLCFunctionT, (MLFunctionT), "c-function",
-	.call = (void *)ml_function_call
+	.call = (void *)ml_cfunction_call
 );
 
 ml_value_t *ml_function(void *Data, ml_callback_t Callback) {
@@ -878,6 +878,22 @@ ml_arith_method_number_number("+", +)
 ml_arith_method_number_number("-", -)
 ml_arith_method_number_number("*", *)
 
+ML_METHOD("++", MLIntegerT) {
+	return ml_integer(ml_integer_value(Args[0]) + 1);
+}
+
+ML_METHOD("--", MLIntegerT) {
+	return ml_integer(ml_integer_value(Args[0]) - 1);
+}
+
+ML_METHOD("++", MLRealT) {
+	return ml_real(ml_real_value(Args[0]) + 1);
+}
+
+ML_METHOD("--", MLRealT) {
+	return ml_real(ml_real_value(Args[0]) - 1);
+}
+
 ml_arith_method_real_real("/", /)
 ml_arith_method_real_integer("/", /)
 ml_arith_method_integer_real("/", /)
@@ -1275,7 +1291,7 @@ static long ml_string_hash(ml_string_t *String, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
-ML_TYPE(MLStringT, (MLBufferT), "string",
+ML_TYPE(MLStringT, (MLBufferT, MLIteratableT), "string",
 	.hash = (void *)ml_string_hash
 );
 
@@ -1414,6 +1430,38 @@ ML_METHOD(MLIntegerOfMethod, MLStringT, MLIntegerT) {
 
 ML_METHOD(MLRealOfMethod, MLStringT) {
 	return ml_real(strtod(ml_string_value(Args[0]), 0));
+}
+
+typedef struct {
+	const ml_type_t *Type;
+	const char *Value;
+	int Index, Length;
+} ml_string_iterator_t;
+
+ML_TYPE(MLStringIteratorT, (), "string-iterator");
+
+static void ML_TYPED_FN(ml_iter_next, MLStringIteratorT, ml_state_t *Caller, ml_string_iterator_t *Iter) {
+	if (++Iter->Index > Iter->Length) ML_RETURN(MLNil);
+	++Iter->Value;
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLStringIteratorT, ml_state_t *Caller, ml_string_iterator_t *Iter) {
+	ML_RETURN(ml_string(Iter->Value, 1));
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLStringIteratorT, ml_state_t *Caller, ml_string_iterator_t *Iter) {
+	ML_RETURN(ml_integer(Iter->Index));
+}
+
+static void ML_TYPED_FN(ml_iterate, MLStringT, ml_state_t *Caller, ml_string_t *String) {
+	if (!String->Length) ML_RETURN(MLNil);
+	ml_string_iterator_t *Iter = new(ml_string_iterator_t);
+	Iter->Type = MLStringIteratorT;
+	Iter->Index = 1;
+	Iter->Length = String->Length;
+	Iter->Value = String->Value;
+	ML_RETURN(Iter);
 }
 
 typedef struct ml_regex_t ml_regex_t;
@@ -1825,6 +1873,23 @@ ML_METHOD("find", MLStringT, MLStringT) {
 	const char *Match = strstr(Haystack, Needle);
 	if (Match) {
 		return ml_integer(1 + Match - Haystack);
+	} else {
+		return MLNil;
+	}
+}
+
+ML_METHOD("find", MLStringT, MLStringT, MLIntegerT) {
+	const char *Haystack = ml_string_value(Args[0]);
+	int Length = ml_string_length(Args[0]);
+	const char *Needle = ml_string_value(Args[1]);
+	int Start = ml_integer_value(Args[2]);
+	if (Start <= 0) Start += Length + 1;
+	if (Start <= 0) return MLNil;
+	if (Start > Length) return MLNil;
+	Haystack += Start - 1;
+	const char *Match = strstr(Haystack, Needle);
+	if (Match) {
+		return ml_integer(Start + Match - Haystack);
 	} else {
 		return MLNil;
 	}

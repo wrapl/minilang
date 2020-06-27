@@ -144,6 +144,8 @@
       <keyword>context</keyword>
       <keyword>first</keyword>
       <keyword>first2</keyword>
+      <keyword>last</keyword>
+      <keyword>last2</keyword>
       <keyword>all</keyword>
       <keyword>all2</keyword>
       <keyword>unique</keyword>
@@ -154,6 +156,7 @@
       <keyword>max2</keyword>
       <keyword>sum</keyword>
       <keyword>prod</keyword>
+      <keyword>repeat</keyword>
       <keyword>group</keyword>
       <keyword>tasks</keyword>
       <keyword>parallel</keyword>
