@@ -307,7 +307,8 @@ typedef struct ml_stringbuffer_node_t ml_stringbuffer_node_t;
 struct ml_stringbuffer_t {
 	const ml_type_t *Type;
 	ml_stringbuffer_node_t *Nodes;
-	size_t Space, Length;
+	ml_hash_chain_t *Chain;
+	int Space, Length;
 };
 
 #define ML_STRINGBUFFER_NODE_SIZE 248

@@ -1598,9 +1598,19 @@ int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callbac
 }
 
 ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
+	ml_hash_chain_t *Chain = Buffer->Chain;
+	for (ml_hash_chain_t *Link = Chain; Link; Link = Link->Previous) {
+		if (Link->Value == Value) {
+			ml_stringbuffer_addf(Buffer, "<%s>^%ld", Value->Type->Name, Link->Index);
+			return MLSome;
+		}
+	}
+	ml_hash_chain_t NewChain[1] = {{Chain, Value, Chain ? Chain->Index + 1 : 1}};
+	Buffer->Chain = NewChain;
 	typeof(ml_stringbuffer_append) *function = ml_typed_fn_get(Value->Type, ml_stringbuffer_append);
-	if (!function) return ml_inline(MLStringBufferAppendMethod, 2, Buffer, Value);
-	return function(Buffer, Value);
+	ml_value_t *Result = function ? function(Buffer, Value) : ml_inline(MLStringBufferAppendMethod, 2, Buffer, Value);
+	Buffer->Chain = Chain;
+	return Result;
 }
 
 static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLNilT, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
