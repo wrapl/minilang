@@ -2662,7 +2662,9 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 			break;
 		}
 		}
-		ml_parse(Scanner, MLT_SEMICOLON);
+		if (ml_parse(Scanner, MLT_SEMICOLON)) continue;
+		if (ml_parse(Scanner, MLT_EOL)) continue;
+		break;
 	}
 end:
 	BlockExpr->End = Scanner->Source.Line;
