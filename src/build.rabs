@@ -183,6 +183,7 @@ var InstallHeaders := [
 
 if MINILANG_USEMATH or defined("USEMATH") then
 	InstallHeaders:put("ml_array.h")
+	InstallHeaders:put("ml_math.h")
 end
 
 if MINILANG_USECBOR or defined("USECBOR") then
