@@ -1674,7 +1674,7 @@ static ml_token_t ml_advance(mlc_scanner_t *Scanner) {
 			mlc_expr_t *Child = ml_accept_string(Scanner);
 			if (!Child) {
 				Scanner->Token = MLT_VALUE;
-				Scanner->Value = ml_string("", 0);
+				Scanner->Value = ml_cstring("");
 			} else if (!Child->Next && Child->compile == (void *)ml_value_expr_compile && ((mlc_value_expr_t *)Child)->Value->Type == MLStringT) {
 				Scanner->Token = MLT_VALUE;
 				Scanner->Value = ((mlc_value_expr_t *)Child)->Value;

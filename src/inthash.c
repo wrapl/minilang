@@ -20,9 +20,10 @@ void *inthash_search(const inthash_t *Map, uintptr_t Key) {
 	for (;;) {
 		//++IntHashLoops;
 		if (Keys[Index] == Key) return Map->Values[Index];
-		if (Keys[Index] < Key) return NULL;
+		if (Keys[Index] < Key) break;
 		Index = (Index + Incr) & Mask;
 	}
+	return NULL;
 }
 
 static void inthash_nodes_sort(uintptr_t *KeyA, uintptr_t *KeyB, void **ValueA, void **ValueB) {

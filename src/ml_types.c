@@ -1352,19 +1352,19 @@ static ml_value_t *ML_TYPED_FN(ml_string_of, MLStringT, ml_value_t *Value) {
 }
 
 static ml_value_t *ML_TYPED_FN(ml_string_of, MLNilT, ml_value_t *Value) {
-	return ml_string("nil", 3);
+	return ml_cstring("nil");
 }
 
 ML_METHOD(MLStringOfMethod, MLNilT) {
-	return ml_string("nil", 3);
+	return ml_cstring("nil");
 }
 
 static ml_value_t *ML_TYPED_FN(ml_string_of, MLSomeT, ml_value_t *Value) {
-	return ml_string("some", 4);
+	return ml_cstring("some");
 }
 
 ML_METHOD(MLStringOfMethod, MLSomeT) {
-	return ml_string("some", 4);
+	return ml_cstring("some");
 }
 
 ML_METHOD(MLStringOfMethod, MLBooleanT) {
@@ -1579,7 +1579,7 @@ char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer) {
 ml_value_t *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) {
 	size_t Length = Buffer->Length;
 	if (Length == 0) {
-		return ml_string("", 0);
+		return ml_cstring("");
 	} else {
 		char *Chars = snew(Length + 1);
 		ml_stringbuffer_finish(Buffer, Chars);
@@ -2511,7 +2511,7 @@ ML_METHOD("+", MLListT, MLListT) {
 
 ML_METHOD(MLStringOfMethod, MLListT) {
 	ml_list_t *List = (ml_list_t *)Args[0];
-	if (!List->Length) return ml_string("[]", 2);
+	if (!List->Length) return ml_cstring("[]");
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	const char *Seperator = "[";
 	int SeperatorLength = 1;

@@ -152,7 +152,7 @@ void ml_cbor_read_bytes_fn(ml_cbor_reader_t *Reader, int Size) {
 		Collection->Blocks = 0;
 		Reader->Collection = Collection;
 	} else {
-		value_handler(Reader, ml_string("", 0));
+		value_handler(Reader, ml_cstring(""));
 	}
 }
 
@@ -191,7 +191,7 @@ void ml_cbor_read_string_fn(ml_cbor_reader_t *Reader, int Size) {
 		Collection->Blocks = 0;
 		Reader->Collection = Collection;
 	} else {
-		value_handler(Reader, ml_string("", 0));
+		value_handler(Reader, ml_cstring(""));
 	}
 }
 
