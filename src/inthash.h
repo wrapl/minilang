@@ -8,10 +8,10 @@ extern "C" {
 #endif
 
 typedef struct inthash_t inthash_t;
-typedef struct inthash_node_t inthash_node_t;
 
 struct inthash_t {
-	inthash_node_t *Nodes;
+	uintptr_t *Keys;
+	void **Values;
 	int Size, Space;
 };
 
