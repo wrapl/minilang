@@ -11,6 +11,7 @@ inthash_t *inthash_new() {
 
 //uint64_t IntHashLoops = 0;
 
+#ifndef ASM_INTHASH_SEARCH
 void *inthash_search(const inthash_t *Map, uintptr_t Key) {
 	uintptr_t *Keys = Map->Keys;
 	if (!Keys) return NULL;
@@ -25,6 +26,7 @@ void *inthash_search(const inthash_t *Map, uintptr_t Key) {
 	}
 	return NULL;
 }
+#endif
 
 static void inthash_nodes_sort(uintptr_t *KeyA, uintptr_t *KeyB, void **ValueA, void **ValueB) {
 	uintptr_t *KeyA1 = KeyA, *KeyB1 = KeyB;

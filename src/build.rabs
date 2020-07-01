@@ -31,7 +31,7 @@ for Source in PATH:ls(".*\\.c") do
 		Target:open("w"):close
 		var Init := shell("cc", CFLAGS, "-E -P -DGENERATE_INIT", Source)
 		var Out := Target:open("w")
-		for Line in Init / "\n" do
+		for Line in Init/"\n" do
 			loop
 				var I := while Line:find("INIT_CODE ")
 				Line := Line[I + 10, 0]
@@ -91,7 +91,7 @@ if MINILANG_USEGTK or defined("USEGTK") then
 end
 
 if MINILANG_USECBOR or defined("USECBOR") then
-	var Dir := PATH / "minicbor"
+	var Dir := PATH/"minicbor"
 	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git", Dir)
 
 	CFLAGS := old + [
@@ -108,10 +108,10 @@ if MINILANG_USECBOR or defined("USECBOR") then
 end
 
 if MINILANG_USEMPC or defined("USEMPC") then
-	var Dir := PATH / "mpc"
+	var Dir := PATH/"mpc"
 	Dir:exists or do
 		execute("git clone https://github.com/orangeduck/mpc.git", Dir)
-		execute("cat", PATH / "mpc_extra.c", " >> ", Dir/"mpc.c")
+		execute("cat", PATH/"mpc_extra.c", " >> ", Dir/"mpc.c")
 	end
 	Objects:put(file("ml_mpc.o"), Dir/"mpc.o")
 	CFLAGS := old + ["-DUSE_ML_MPC"]
@@ -141,31 +141,36 @@ if MINILANG_JIT or defined("USEJIT") then
 	LDFLAGS := old + ["-lZydis"]
 end
 
+if MACHINE = "x86_64" then
+	Objects:put(file("inthash_x64.o"))
+	CFLAGS := old + ["-DASM_INTHASH_SEARCH"]
+end
+
 if PLATFORM = "Linux" then
-	Objects := old + [file("linenoise.o")]
+	Objects:put(file("linenoise.o"))
 	LDFLAGS := old + ["-lgc"]
 elseif PLATFORM = "FreeBSD" then
-	Objects := old + [file("linenoise.o")]
+	Objects:put(file("linenoise.o"))
 	CFLAGS := old + ["-I/usr/local/include"]
 	LDFLAGS := old + ["-L/usr/local/lib", "-lgc-threaded"]
 elseif PLATFORM = "Darwin" then
-	Objects := old + [file("linenoise.o")]
+	Objects:put(file("linenoise.o"))
 	LDFLAGS := old + ["-lgc"]
 elseif PLATFORM = "Mingw" then
 end
 
-LIBMINILANG := c_library(LIB_DIR / "libminilang.a", Objects, Libraries)
-MINILANG := c_program(BIN_DIR /"minilang", [file("minilang.o")], [LIBMINILANG])
-MINIPP := c_program(BIN_DIR / "minipp", [file("minipp.o")], [LIBMINILANG])
+LIBMINILANG := c_library(LIB_DIR/"libminilang.a", Objects, Libraries)
+MINILANG := c_program(BIN_DIR/"minilang", [file("minilang.o")], [LIBMINILANG])
+MINIPP := c_program(BIN_DIR/"minipp", [file("minipp.o")], [LIBMINILANG])
 MINIXE := c_program(BIN_DIR/"minixe", [file("minixe.o")], [LIBMINILANG])
 
 DEFAULT[LIBMINILANG, MINILANG, MINIPP, MINIXE]
 
-var InstallBin := PREFIX / "bin"
-var InstallInclude := PREFIX / "include/minilang"
-var InstallLib := PREFIX / "lib"
+var InstallBin := PREFIX/"bin"
+var InstallInclude := PREFIX/"include/minilang"
+var InstallLib := PREFIX/"lib"
 
-install(MINILANG, InstallBin / "minilang", "+x")
+install(MINILANG, InstallBin/"minilang", "+x")
 
 var InstallHeaders := [
 	"minilang.h",
@@ -199,6 +204,6 @@ for Header in InstallHeaders do
 	install(file(Header), InstallInclude / Header)
 end
 
-install(LIBMINILANG, InstallLib / "libminilang.a")
+install(LIBMINILANG, InstallLib/"libminilang.a")
 
 subdir("test")

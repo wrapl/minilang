@@ -129,12 +129,12 @@ static ml_value_t *ml_closure(ml_closure_info_t *Info) {
 	return (ml_value_t *)Closure;
 }
 
-static ml_value_t *can_only_unpack_tuples_error() {
-	return ml_error("TypeError", "Can only unpack tuples");
+static ml_value_t *unable_to_unpack_error() {
+	return ml_error("TypeError", "Unable to unpack values");
 }
 
-static ml_value_t *tuple_has_too_few_values_error() {
-	return ml_error("ValueError", "Tuple has too few values");
+static ml_value_t *not_enough_unpacked_values_error() {
+	return ml_error("ValueError", "Not enough unpacked values");
 }
 
 static ml_value_t *expected_error_value_error(ml_type_t *Type) {
@@ -231,26 +231,29 @@ static void ml_closure_inst_jit(int Process, ml_inst_t *Inst, ml_assembler_t *As
 		break;
 	}
 	case MLI_WITHX: {
-		| global MLTupleT
-		| mov rcx, RESULT->Type
-		| cmp rcx, [->MLTupleT]
-		| je >1
-		| global can_only_unpack_tuples_error
-		| call aword [->can_only_unpack_tuples_error]
+		int Count = Inst->Params[1].Count;
+		| global ml_unpack
+		| mov rdi, rax
+		| mov rsi, Count
+		| call aword [->ml_unpack]
+		| test rax, rax
+		| jnz >1
+		| global unable_to_unpack_error
+		| call aword [->unable_to_unpack_error]
 		| jmp =>2
 		| 1:
-		| cmp dword TUPLE:rax->Size, Inst->Params[1].Count
+		| cmp rdx, Count
 		| jge >1
-		| global tuple_has_too_few_values_error
-		| call aword [->tuple_has_too_few_values_error]
+		| global not_enough_unpacked_values_error
+		| call aword [->not_enough_unpacked_values_error]
 		| jmp =>2
 		| 1:
-		| global ml_uninitialized_set
-		for (int I = 0; I < Inst->Params[1].Count; ++I) {
-			| mov rcx, TUPLE:rax->Values[I]
+		for (int I = 0; I < Count; ++I) {
+			| mov rcx, [rax + 8 * I]
 			| mov [rbx + 8 * I], rcx
 		}
-		| add rbx, 8 * Inst->Params[1].Count
+		| mov rax, rcx
+		| add rbx, 8 * Count
 		break;
 	}
 	case MLI_POP: {
@@ -328,24 +331,27 @@ static void ml_closure_inst_jit(int Process, ml_inst_t *Inst, ml_assembler_t *As
 	}
 	case MLI_VARX: {
 		deref_jit(Assembler);
-		| global MLTupleT
-		| mov rcx, RESULT->Type
-		| cmp rcx, [MLTupleT]
-		| je >1
-		| global can_only_unpack_tuples_error
-		| call aword [->can_only_unpack_tuples_error]
+		int Count = Inst->Params[2].Count;
+		| global ml_unpack
+		| mov rdi, rax
+		| mov rsi, Count
+		| call aword [->ml_unpack]
+		| test rax, rax
+		| jnz >1
+		| global unable_to_unpack_error
+		| call aword [->unable_to_unpack_error]
 		| jmp =>2
 		| 1:
-		| cmp dword TUPLE:rax->Size, Inst->Params[2].Count
+		| cmp rdx, Count
 		| jge >1
-		| global tuple_has_too_few_values_error
-		| call aword [->tuple_has_too_few_values_error]
+		| global not_enough_unpacked_values_error
+		| call aword [->not_enough_unpacked_values_error]
 		| jmp =>2
 		| 1:
 		int Index = Inst->Params[1].Index;
-		for (int I = 0; I < Inst->Params[2].Count; ++I) {
+		for (int I = 0; I < Count; ++I) {
 			| push rax
-			| mov rax, TUPLE:rax->Values[I]
+			| mov rax, [rax + 8 * I]
 			deref_jit(Assembler);
 			| mov rdi, [rbx + (Index + I) * 8]
 			| mov REFERENCE:rdi->Value, rax
@@ -374,28 +380,31 @@ static void ml_closure_inst_jit(int Process, ml_inst_t *Inst, ml_assembler_t *As
 	}
 	case MLI_LETX: {
 		deref_jit(Assembler);
-		| global MLTupleT
-		| mov rcx, RESULT->Type
-		| cmp rcx, [MLTupleT]
-		| je >1
-		| global can_only_unpack_tuples_error
-		| call aword [->can_only_unpack_tuples_error]
+		int Count = Inst->Params[2].Count;
+		| global ml_unpack
+		| mov rdi, rax
+		| mov rsi, Count
+		| call aword [->ml_unpack]
+		| test rax, rax
+		| jnz >1
+		| global unable_to_unpack_error
+		| call aword [->unable_to_unpack_error]
 		| jmp =>2
 		| 1:
-		| cmp dword TUPLE:rax->Size, Inst->Params[2].Count
+		| cmp rdx, Count
 		| jge >1
-		| global tuple_has_too_few_values_error
-		| call aword [->tuple_has_too_few_values_error]
+		| global not_enough_unpacked_values_error
+		| call aword [->not_enough_unpacked_values_error]
 		| jmp =>2
 		| 1:
 		| global ml_uninitialized_set
 		int Index = Inst->Params[1].Index;
-		for (int I = 0; I < Inst->Params[2].Count; ++I) {
+		for (int I = 0; I < Count; ++I) {
 			| push rax
-			| mov rax, TUPLE:rax->Values[I]
+			| mov rax, [rax + 8 * I]
 			deref_jit(Assembler);
 			| mov rdi, [rbx + (Index + I) * 8]
-			| mov [rdi], rax
+			| mov [rbx + (Index + I) * 8], rax
 			| test rdi, rdi
 			| jz >1
 			| mov rsi, rax

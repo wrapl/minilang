@@ -1,0 +1,14 @@
+context: current()
+
+class: element("element", :Tag, :Attributes, :Children, {
+	"of" is fun(Tag, Fn, {Attributes}) do
+		let Element := element::new(Tag, Attributes, [])
+		Fn and current(Element, Fn)
+		if let Current := current() then
+			Current:Children:put(Element)
+		end
+		ret Element
+	end
+})
+
+

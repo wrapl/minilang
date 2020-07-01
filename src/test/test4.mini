@@ -9,3 +9,11 @@ var M := {"a" is 100, 10 is "b"}
 for Key, Value in M do
 	print('Key = {Key}, Value = {Value}\n')
 end
+
+fun test(X) do
+	let (A, B, C) := X
+	print('A = {A}, B = {B}, C = {C}\n')
+end
+
+test((1, 2, 3))
+test([1, 2, 3])
