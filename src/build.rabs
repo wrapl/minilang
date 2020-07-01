@@ -141,7 +141,7 @@ if MINILANG_JIT or defined("USEJIT") then
 	LDFLAGS := old + ["-lZydis"]
 end
 
-if MACHINE = "x86_64" then
+if MACHINE = "x86_64" and PLATFORM = "Linux" then
 	Objects:put(file("inthash_x64.o"))
 	CFLAGS := old + ["-DASM_INTHASH_SEARCH"]
 end
