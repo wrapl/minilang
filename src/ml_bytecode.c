@@ -158,6 +158,16 @@ ML_TYPE(DEBUG_TYPE(Suspension), (MLFunctionT), "suspension",
 #endif
 
 static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
+#ifdef ML_USE_INST_FNS
+#ifndef DEBUG_VERSION
+	if (Result->Type == MLErrorT) {
+		ml_error_trace_add(Result, (ml_source_t){Frame->Source, Frame->Inst->LineNo});
+		return Frame->OnError->run(Frame, Result, Frame->Top, Frame->OnError);
+	} else {
+		return Frame->Inst->run(Frame, Result, Frame->Top, Frame->Inst);
+	}
+#endif
+#endif
 	static void *Labels[] = {
 		[MLI_RETURN] = &&DO_RETURN,
 		[MLI_SUSPEND] = &&DO_SUSPEND,
@@ -846,10 +856,17 @@ const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INST_INDEX, // MLI_PARTIAL_SET
 };
 
+#ifdef ML_USE_INST_FNS
+extern ml_inst_fn_t MLInstFns[];
+#endif
+
 static void ml_inst_process(int Process, ml_inst_t *Source, ml_inst_t *Inst, unsigned char Hash[SHA256_BLOCK_SIZE], int I, int J) {
 	if (!Source || (Source->LineNo != Inst->LineNo)) Inst->PotentialBreakpoint = 1;
 	if (Inst->Processed == Process) return;
 	Inst->Processed = Process;
+#ifdef ML_USE_INST_FNS
+	Inst->run = MLInstFns[Inst->Opcode];
+#endif
 	Hash[I] ^= Inst->Opcode;
 	Hash[J] ^= (Inst->Opcode << 4);
 	switch (MLInstTypes[Inst->Opcode]) {
@@ -895,6 +912,9 @@ static void ml_inst_process(int Process, ml_inst_t *Source, ml_inst_t *Inst, uns
 }
 
 void ml_closure_info_finish(ml_closure_info_t *Info) {
+#ifdef ML_USE_INST_FNS
+	//Info->Return->run = MLInstFns[MLI_RETURN];
+#endif
 	ml_inst_process(!Info->Entry->Processed, NULL, Info->Entry, Info->Hash, 0, 0);
 #ifdef USE_ML_JIT
 	ml_bytecode_jit(Info);

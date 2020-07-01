@@ -107,9 +107,16 @@ typedef enum {
 	MLIT_INST_CLOSURE
 } ml_inst_type_t;
 
+typedef struct ml_frame_t ml_frame_t;
+
 extern const ml_inst_type_t MLInstTypes[];
 
+typedef void (*ml_inst_fn_t)(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst);
+
 struct ml_inst_t {
+#ifdef ML_USE_INST_FNS
+	ml_inst_fn_t run;
+#endif
 	ml_opcode_t Opcode:8;
 	unsigned int PotentialBreakpoint:1;
 	unsigned int Processed:1;
@@ -118,8 +125,6 @@ struct ml_inst_t {
 	unsigned int LineNo:32;
 	ml_param_t Params[];
 };
-
-typedef struct ml_frame_t ml_frame_t;
 
 struct ml_frame_t {
 	ml_state_t Base;

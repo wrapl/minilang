@@ -131,7 +131,12 @@ if MINILANG_SCHEDULER or defined("SCHEDULER") then
 	CFLAGS := old + ["-DUSE_ML_SCHEDULER"]
 end
 
-if MINILANG_JIT or defined("USEJIT") then
+if MINILANG_INST_FNS or defined("USE_INST_FNS") then
+	CFLAGS := old + ["-DML_USE_INST_FNS"]
+	Objects:put(file("ml_bytecode_fns.o"))
+end
+
+if MINILANG_JIT or defined("USE_JIT") then
 	let Source := file("ml_bytecode_x64.dasc")
 	file("ml_bytecode_x64.c")[Source] => fun(Target) do
 		execute("lua5.2", file("dynasm/dynasm.lua"), "-o", Target, Source)
