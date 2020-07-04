@@ -7,7 +7,6 @@
 #define anew(T, N) ((T *)GC_MALLOC((N) * sizeof(T)))
 #define snew(N) ((char *)GC_MALLOC_ATOMIC(N))
 #define xnew(T, N, U) ((T *)GC_MALLOC(sizeof(T) + (N) * sizeof(U)))
-#define fnew(T) ((T *)GC_MALLOC_STUBBORN(sizeof(T)))
 
 #define PP_NARG(...) \
 	PP_NARG_(__VA_ARGS__,PP_RSEQ_N())

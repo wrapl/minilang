@@ -8,8 +8,8 @@ end
 
 print('20! = {fact(20)}\n')
 
-let Start := now()
+let Start := clock()
 for I in 1 .. 1000000 do
 	fact(20)
 end
-print('Time taken = {now() - Start}\n')
+print('Time taken = {clock() - Start}\n')

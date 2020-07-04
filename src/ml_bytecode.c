@@ -35,6 +35,7 @@ struct DEBUG_STRUCT(frame) {
 	ml_value_t **Top;
 	ml_inst_t *OnError;
 	ml_value_t **UpValues;
+	size_t Size;
 #ifdef USE_ML_SCHEDULER
 	ml_schedule_t Schedule;
 #endif
@@ -157,6 +158,10 @@ ML_TYPE(DEBUG_TYPE(Suspension), (MLFunctionT), "suspension",
 
 #endif
 
+#ifndef DEBUG_VERSION
+static void *MLCachedFrame = NULL;
+#endif
+
 static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
 #ifdef ML_USE_INST_FNS
 #ifndef DEBUG_VERSION
@@ -233,7 +238,13 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef USE_ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
-		ML_CONTINUE(Frame->Base.Caller, Result);
+		ml_state_t *Caller = Frame->Base.Caller;
+		if (Frame->Size == 256) {
+			memset(Frame, 0, 256);
+			Frame->Base.Caller = MLCachedFrame;
+			MLCachedFrame = Frame;
+		}
+		ML_CONTINUE(Caller, Result);
 	}
 	DO_SUSPEND: {
 		Frame->Base.Type = DEBUG_TYPE(Suspension);
@@ -488,13 +499,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef USE_ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
-		if (Next->Opcode == MLI_RETURN) {
-			return Function->Type->call(Frame->Base.Caller, Function, Count, Args);
-		} else {
-			Frame->Inst = Next;
-			Frame->Top = Top - (Count + 1);
-			return Function->Type->call((ml_state_t *)Frame, Function, Count, Args);
-		}
+		Frame->Inst = Next;
+		Frame->Top = Top - (Count + 1);
+		return Function->Type->call((ml_state_t *)Frame, Function, Count, Args);
 	}
 	DO_CONST_CALL: {
 		int Count = Inst->Params[1].Count;
@@ -504,13 +511,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef USE_ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
-		if (Next->Opcode == MLI_RETURN) {
-			return Function->Type->call(Frame->Base.Caller, Function, Count, Args);
-		} else {
-			Frame->Inst = Inst->Params[0].Inst;
-			Frame->Top = Top - Count;
-			return Function->Type->call((ml_state_t *)Frame, Function, Count, Args);
-		}
+		Frame->Inst = Next;
+		Frame->Top = Top - Count;
+		return Function->Type->call((ml_state_t *)Frame, Function, Count, Args);
 	}
 	DO_ASSIGN: {
 		Result = Result->Type->deref(Result);
@@ -652,7 +655,19 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 #ifndef DEBUG_VERSION
 	if (Debugger) return ml_closure_call_debug(Caller, Value, Count, Args);
 #endif
-	DEBUG_STRUCT(frame) *Frame = xnew(DEBUG_STRUCT(frame), Info->FrameSize, ml_value_t *);
+	size_t Size = sizeof(DEBUG_STRUCT(frame)) + Info->FrameSize * sizeof(ml_value_t *);
+	DEBUG_STRUCT(frame) *Frame;
+	if (Size <= 256) {
+		if ((Frame = MLCachedFrame)) {
+			MLCachedFrame = Frame->Base.Caller;
+		} else {
+			Frame = GC_MALLOC(256);
+		}
+		Frame->Size = 256;
+	} else {
+		Frame = GC_MALLOC(Size);
+		Frame->Size = Size;
+	}
 	Frame->Base.Type = DEBUG_TYPE(Continuation);
 	Frame->Base.Caller = Caller;
 	Frame->Base.run = (void *)DEBUG_FUNC(frame_run);

@@ -1456,8 +1456,8 @@ static void ml_accept(mlc_scanner_t *Scanner, ml_token_t Token);
 static mlc_expr_t *ml_parse_expression(mlc_scanner_t *Scanner, ml_expr_level_t Level);
 static mlc_expr_t *ml_accept_expression(mlc_scanner_t *Scanner, ml_expr_level_t Level);
 
-extern ml_function_t StringNew[];
-extern ml_function_t StringifierNew[];
+extern ml_cfunction_t StringNew[];
+extern ml_cfunction_t StringifierNew[];
 
 static mlc_expr_t *ml_accept_string(mlc_scanner_t *Scanner) {
 	char Char = Scanner->Next[0];

@@ -50,6 +50,12 @@ ML_FUNCTION(MLNow) {
 	return ml_integer(time(NULL));
 }
 
+ML_FUNCTION(MLClock) {
+	struct timespec Time[1];
+	clock_gettime(CLOCK_REALTIME, Time);
+	return ml_real(Time->tv_sec + Time->tv_nsec / 10000000000.0);
+}
+
 ML_FUNCTION(MLPrint) {
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Result = Args[I];
@@ -138,6 +144,7 @@ int main(int Argc, const char *Argv[]) {
 	ml_object_init(Globals);
 	ml_iterfns_init(Globals);
 	stringmap_insert(Globals, "now", MLNow);
+	stringmap_insert(Globals, "clock", MLClock);
 	stringmap_insert(Globals, "print", MLPrint);
 	stringmap_insert(Globals, "error", MLError);
 	stringmap_insert(Globals, "break", MLBreak);
@@ -237,7 +244,9 @@ int main(int Argc, const char *Argv[]) {
 	} else {
 		ml_console((ml_getter_t)stringmap_search, Globals, "--> ", "... ");
 	}
-//	extern uint64_t IntHashLoops;
-//	fprintf(stderr, "IntHashLoops = %lu\n", IntHashLoops);
+//	extern uint64_t MLReusedSmallFrames, MLNewSmallFrames, MLNewLargeFrames;
+//	fprintf(stderr, "Reused  %lu small frames\n", MLReusedSmallFrames);
+//	fprintf(stderr, "Allocated %lu small frames\n", MLNewSmallFrames);
+//	fprintf(stderr, "Allocated %lu large frames\n", MLNewLargeFrames);
 	return 0;
 }

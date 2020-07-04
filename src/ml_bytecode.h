@@ -133,6 +133,7 @@ struct ml_frame_t {
 	ml_value_t **Top;
 	ml_inst_t *OnError;
 	ml_value_t **UpValues;
+	size_t Size;
 #ifdef USE_ML_SCHEDULER
 	ml_schedule_t Schedule;
 #endif

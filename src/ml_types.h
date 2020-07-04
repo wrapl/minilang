@@ -130,16 +130,16 @@ void ml_iter_next(ml_state_t *Caller, ml_value_t *Iter);
 
 extern ml_type_t MLFunctionT[];
 
-typedef struct ml_function_t ml_function_t;
-typedef struct ml_functionx_t ml_functionx_t;
+typedef struct ml_cfunction_t ml_cfunction_t;
+typedef struct ml_cfunctionx_t ml_cfunctionx_t;
 
-struct ml_function_t {
+struct ml_cfunction_t {
 	const ml_type_t *Type;
 	ml_callback_t Callback;
 	void *Data;
 };
 
-struct ml_functionx_t {
+struct ml_cfunctionx_t {
 	const ml_type_t *Type;
 	ml_callbackx_t Callback;
 	void *Data;
@@ -149,9 +149,9 @@ extern ml_type_t MLCFunctionT[];
 extern ml_type_t MLCFunctionXT[];
 extern ml_type_t MLPartialFunctionT[];
 
-extern ml_functionx_t MLCallCC[];
-extern ml_functionx_t MLMark[];
-extern ml_function_t MLContextKey[];
+extern ml_cfunctionx_t MLCallCC[];
+extern ml_cfunctionx_t MLMark[];
+extern ml_cfunction_t MLContextKey[];
 
 ml_value_t *ml_function(void *Data, ml_callback_t Function);
 ml_value_t *ml_functionx(void *Data, ml_callbackx_t Function);
@@ -164,7 +164,7 @@ ml_value_t *ml_partial_function_set(ml_value_t *Partial, size_t Index, ml_value_
 
 #define ML_FUNCTION2(NAME, FUNCTION) static ml_value_t *FUNCTION(void *Data, int Count, ml_value_t **Args); \
 \
-ml_function_t NAME[1] = {{MLCFunctionT, FUNCTION, NULL}}; \
+ml_cfunction_t NAME[1] = {{MLCFunctionT, FUNCTION, NULL}}; \
 \
 static ml_value_t *FUNCTION(void *Data, int Count, ml_value_t **Args)
 
@@ -172,7 +172,7 @@ static ml_value_t *FUNCTION(void *Data, int Count, ml_value_t **Args)
 
 #define ML_FUNCTIONX2(NAME, FUNCTION) static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args); \
 \
-ml_functionx_t NAME[1] = {{MLCFunctionXT, FUNCTION, NULL}}; \
+ml_cfunctionx_t NAME[1] = {{MLCFunctionXT, FUNCTION, NULL}}; \
 \
 static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args)
 

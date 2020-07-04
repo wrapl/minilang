@@ -335,7 +335,7 @@ ML_METHODX("!", MLFunctionT, MLListT, MLMapT) {
 	return Function->Type->call(Caller, Function, Arg - ListArgs, ListArgs);
 }
 
-static void ml_cfunction_call(ml_state_t *Caller, ml_function_t *Function, int Count, ml_value_t **Args) {
+static void ml_cfunction_call(ml_state_t *Caller, ml_cfunction_t *Function, int Count, ml_value_t **Args) {
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Arg = Args[I] = Args[I]->Type->deref(Args[I]);
 		if (Arg->Type == MLErrorT) ML_RETURN(Arg);
@@ -348,19 +348,18 @@ ML_TYPE(MLCFunctionT, (MLFunctionT), "c-function",
 );
 
 ml_value_t *ml_function(void *Data, ml_callback_t Callback) {
-	ml_function_t *Function = fnew(ml_function_t);
+	ml_cfunction_t *Function = new(ml_cfunction_t);
 	Function->Type = MLCFunctionT;
 	Function->Data = Data;
 	Function->Callback = Callback;
-	GC_end_stubborn_change(Function);
 	return (ml_value_t *)Function;
 }
 
-static void ML_TYPED_FN(ml_iterate, MLCFunctionT, ml_state_t *Caller, ml_function_t *Function) {
+static void ML_TYPED_FN(ml_iterate, MLCFunctionT, ml_state_t *Caller, ml_cfunction_t *Function) {
 	ML_RETURN((Function->Callback)(Function->Data, 0, NULL));
 }
 
-static void ml_functionx_call(ml_state_t *Caller, ml_functionx_t *Function, int Count, ml_value_t **Args) {
+static void ml_functionx_call(ml_state_t *Caller, ml_cfunctionx_t *Function, int Count, ml_value_t **Args) {
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Arg = Args[I] = Args[I]->Type->deref(Args[I]);
 		if (Arg->Type == MLErrorT) ML_RETURN(Arg);
@@ -373,11 +372,10 @@ ML_TYPE(MLCFunctionXT, (MLFunctionT), "c-functionx",
 );
 
 ml_value_t *ml_functionx(void *Data, ml_callbackx_t Callback) {
-	ml_functionx_t *Function = fnew(ml_functionx_t);
+	ml_cfunctionx_t *Function = new(ml_cfunctionx_t);
 	Function->Type = MLCFunctionXT;
 	Function->Data = Data;
 	Function->Callback = Callback;
-	GC_end_stubborn_change(Function);
 	return (ml_value_t *)Function;
 }
 
@@ -531,6 +529,16 @@ ml_unpacked_t ml_unpack(ml_value_t *Value, int Count) {
 	typeof(ml_unpack) *function = ml_typed_fn_get(Value->Type, ml_unpack);
 	if (!function) return (ml_unpacked_t){NULL, 0};
 	return function(Value, Count);
+}
+
+ML_FUNCTION(MLTuple) {
+	ml_value_t *Tuple = ml_tuple(Count);
+	for (int I = 0; I < Count; ++I) {
+		ml_value_t *Value = Args[I]->Type->deref(Args[I]);
+		if (Value->Type == MLErrorT) return Value;
+		ml_tuple_set(Tuple, I + 1, Value);
+	}
+	return Tuple;
 }
 
 ML_METHOD("size", MLTupleT) {
@@ -746,10 +754,9 @@ ML_TYPE(MLIntegerT, (MLNumberT), "integer",
 );
 
 ml_value_t *ml_integer(long Value) {
-	ml_integer_t *Integer = fnew(ml_integer_t);
+	ml_integer_t *Integer = new(ml_integer_t);
 	Integer->Type = MLIntegerT;
 	Integer->Value = Value;
-	GC_end_stubborn_change(Integer);
 	return (ml_value_t *)Integer;
 }
 
@@ -790,10 +797,9 @@ ML_TYPE(MLRealT, (MLNumberT), "real",
 );
 
 ml_value_t *ml_real(double Value) {
-	ml_real_t *Real = fnew(ml_real_t);
+	ml_real_t *Real = new(ml_real_t);
 	Real->Type = MLRealT;
 	Real->Value = Value;
-	GC_end_stubborn_change(Real);
 	return (ml_value_t *)Real;
 }
 
@@ -1298,7 +1304,7 @@ ML_TYPE(MLStringT, (MLBufferT, MLIteratableT), "string",
 );
 
 ml_value_t *ml_string(const char *Value, int Length) {
-	ml_string_t *String = fnew(ml_string_t);
+	ml_string_t *String = new(ml_string_t);
 	String->Type = MLStringT;
 	if (Length >= 0) {
 		if (Value[Length]) {
@@ -1312,7 +1318,6 @@ ml_value_t *ml_string(const char *Value, int Length) {
 	}
 	String->Value = Value;
 	String->Length = Length;
-	GC_end_stubborn_change(String);
 	return (ml_value_t *)String;
 }
 
@@ -1323,13 +1328,12 @@ ML_FUNCTION(StringNew) {
 }
 
 ml_value_t *ml_string_format(const char *Format, ...) {
-	ml_string_t *String = fnew(ml_string_t);
+	ml_string_t *String = new(ml_string_t);
 	String->Type = MLStringT;
 	va_list Args;
 	va_start(Args, Format);
 	String->Length = vasprintf((char **)&String->Value, Format, Args);
 	va_end(Args);
-	GC_end_stubborn_change(String);
 	return (ml_value_t *)String;
 }
 
@@ -1486,7 +1490,7 @@ ML_TYPE(MLRegexT, (), "regex",
 );
 
 ml_value_t *ml_regex(const char *Pattern) {
-	ml_regex_t *Regex = fnew(ml_regex_t);
+	ml_regex_t *Regex = new(ml_regex_t);
 	Regex->Type = MLRegexT;
 	Regex->Pattern = Pattern;
 	int Error = regcomp(Regex->Value, Pattern, REG_EXTENDED);
@@ -1496,13 +1500,18 @@ ml_value_t *ml_regex(const char *Pattern) {
 		regerror(Error, Regex->Value, ErrorMessage, ErrorSize);
 		return ml_error("RegexError", "regex error: %s", ErrorMessage);
 	}
-	GC_end_stubborn_change(Regex);
 	return (ml_value_t *)Regex;
 }
 
 regex_t *ml_regex_value(ml_value_t *Value) {
 	ml_regex_t *Regex = (ml_regex_t *)Value;
 	return Regex->Value;
+}
+
+ML_FUNCTION(MLRegex) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	return ml_regex(ml_string_value(Args[0]));
 }
 
 ML_TYPE(MLStringBufferT, (), "stringbuffer");
@@ -3455,6 +3464,7 @@ void ml_types_init(stringmap_t *Globals) {
 	stringmap_insert(MLStringT->Exports, "of", MLStringOfMethod);
 	stringmap_insert(Globals, "stringbuffer", MLStringBufferT);
 	stringmap_insert(Globals, "regex", MLRegexT);
+	stringmap_insert(MLRegexT->Exports, "of", MLRegex);
 	stringmap_insert(Globals, "method", MLMethodT);
 	stringmap_insert(MLMethodT->Exports, "of", MLMethodOfMethod);
 	stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
@@ -3464,4 +3474,5 @@ void ml_types_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "map", MLMapT);
 	stringmap_insert(MLMapT->Exports, "of", MLMapOfMethod);
 	stringmap_insert(Globals, "tuple", MLTupleT);
+	stringmap_insert(MLTupleT->Exports, "of", MLTuple);
 }
