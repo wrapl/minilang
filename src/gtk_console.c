@@ -591,11 +591,11 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	gtk_window_set_default_size(GTK_WINDOW(Console->Window), 640, 480);
 	g_signal_connect(G_OBJECT(Console->Window), "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), Console);
 
-	stringmap_insert(Console->Globals, "set_font", ml_function(Console, (ml_callback_t)console_set_font));
-	stringmap_insert(Console->Globals, "set_style", ml_function(Console, (ml_callback_t)console_set_style));
-	stringmap_insert(Console->Globals, "add_cycle", ml_function(Console, (ml_callback_t)console_add_cycle));
-	stringmap_insert(Console->Globals, "add_combo", ml_function(Console, (ml_callback_t)console_add_combo));
-	stringmap_insert(Console->Globals, "include", ml_functionx(Console, (ml_callbackx_t)console_include_fnx));
+	stringmap_insert(Console->Globals, "set_font", ml_cfunction(Console, (ml_callback_t)console_set_font));
+	stringmap_insert(Console->Globals, "set_style", ml_cfunction(Console, (ml_callback_t)console_set_style));
+	stringmap_insert(Console->Globals, "add_cycle", ml_cfunction(Console, (ml_callback_t)console_add_cycle));
+	stringmap_insert(Console->Globals, "add_combo", ml_cfunction(Console, (ml_callback_t)console_add_combo));
+	stringmap_insert(Console->Globals, "include", ml_cfunctionx(Console, (ml_callbackx_t)console_include_fnx));
 
 	if (g_key_file_has_key(Console->Config, "gtk-console", "font", NULL)) {
 		Console->FontName = g_key_file_get_string(Console->Config, "gtk-console", "font", NULL);

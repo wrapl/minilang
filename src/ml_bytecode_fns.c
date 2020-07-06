@@ -1,5 +1,6 @@
 #include "ml_bytecode.h"
 #include "ml_macros.h"
+#include <string.h>
 
 #define ERROR() { \
 	Inst = Frame->OnError; \
@@ -11,14 +12,22 @@
 	return Inst->run(Frame, Result, Top, Inst); \
 }
 
-#define ERROR_CHECK(VALUE) if (VALUE->Type == MLErrorT) { \
+#define ERROR_CHECK(VALUE) if (ml_is_error(VALUE)) { \
 	ml_error_trace_add(VALUE, (ml_source_t){Frame->Source, Inst->LineNo}); \
 	Result = VALUE; \
 	ERROR(); \
 }
 
+extern void *MLCachedFrame;
+
 static void DO_RETURN_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
-	ML_CONTINUE(Frame->Base.Caller, Result);
+	ml_state_t *Caller = Frame->Base.Caller;
+	if (Frame->Size == 256) {
+		for (ml_value_t **Top = Frame->Stack; Top < Frame->Top; ++Top) *Top = NULL;
+		Frame->Base.Caller = MLCachedFrame;
+		MLCachedFrame = Frame;
+	}
+	ML_CONTINUE(Caller, Result);
 }
 
 extern ml_type_t MLSuspensionT[];
@@ -46,8 +55,8 @@ static void DO_SOME_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, 
 }
 
 static void DO_IF_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
-	Result = Result->Type->deref(Result);
-	ERROR_CHECK(Result);
+	Result = ml_deref(Result);
+	//ERROR_CHECK(Result);
 	if (Result == MLNil) {
 		ADVANCE(0);
 	} else {
@@ -56,8 +65,8 @@ static void DO_IF_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml
 }
 
 static void DO_ELSE_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
-	Result = Result->Type->deref(Result);
-	ERROR_CHECK(Result);
+	Result = ml_deref(Result);
+	//ERROR_CHECK(Result);
 	if (Result != MLNil) {
 		ADVANCE(0);
 	} else {
@@ -76,10 +85,9 @@ static void DO_WITH_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, 
 }
 
 static void DO_WITH_VAR_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
-	ml_reference_t *Local = xnew(ml_reference_t, 1, ml_value_t *);
-	Local->Type = MLReferenceT;
-	Local->Address = Local->Value;
-	Local->Value[0] = Result;
+	ml_variable_t *Local = new(ml_variable_t);
+	Local->Type = MLVariableT;
+	Local->Value = Result;
 	*Top++ = (ml_value_t *)Local;
 	ADVANCE(0);
 }
@@ -88,7 +96,7 @@ static void DO_WITHX_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top,
 	int Count = Inst->Params[1].Count;
 	ml_unpacked_t Unpacked = ml_unpack(Result, Count);
 	if (!Unpacked.Values) {
-		Result = ml_error("TypeError", "Unable to unpack %s", Result->Type->Name);
+		Result = ml_error("TypeError", "Unable to unpack %s", ml_typeof(Result)->Name);
 		ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
 		ERROR();
 	}
@@ -109,10 +117,9 @@ static void DO_POP_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, m
 
 static void DO_ENTER_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
 	for (int I = Inst->Params[1].Count; --I >= 0;) {
-		ml_reference_t *Local = xnew(ml_reference_t, 1, ml_value_t *);
-		Local->Type = MLReferenceT;
-		Local->Address = Local->Value;
-		Local->Value[0] = MLNil;
+		ml_variable_t *Local = new(ml_variable_t);
+		Local->Type = MLVariableT;
+		Local->Value = MLNil;
 		*Top++ = (ml_value_t *)Local;
 	}
 	for (int I = Inst->Params[2].Count; --I >= 0;) {
@@ -136,8 +143,8 @@ static void DO_TRY_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, m
 }
 
 static void DO_CATCH_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
-	if (Result->Type != MLErrorT) {
-		Result = ml_error("InternalError", "expected error value, not %s", Result->Type->Name);
+	if (!ml_is_error(Result)) {
+		Result = ml_error("InternalError", "expected error value, not %s", ml_typeof(Result)->Name);
 		ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
 		ERROR();
 	}
@@ -154,20 +161,20 @@ static void DO_LOAD_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, 
 }
 
 static void DO_VAR_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
-	Result = Result->Type->deref(Result);
-	ERROR_CHECK(Result);
-	ml_reference_t *Local = (ml_reference_t *)Top[Inst->Params[1].Index];
-	Local->Value[0] = Result;
+	Result = ml_deref(Result);
+	//ERROR_CHECK(Result);
+	ml_variable_t *Local = (ml_variable_t *)Top[Inst->Params[1].Index];
+	Local->Value = Result;
 	ADVANCE(0);
 }
 
 static void DO_VARX_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
-	Result = Result->Type->deref(Result);
-	ERROR_CHECK(Result);
+	Result = ml_deref(Result);
+	//ERROR_CHECK(Result);
 	int Count = Inst->Params[2].Count;
 	ml_unpacked_t Unpacked = ml_unpack(Result, Count);
 	if (!Unpacked.Values) {
-		Result = ml_error("TypeError", "Unable to unpack %s", Result->Type->Name);
+		Result = ml_error("TypeError", "Unable to unpack %s", ml_typeof(Result)->Name);
 		ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
 		ERROR();
 	}
@@ -178,24 +185,24 @@ static void DO_VARX_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, 
 	}
 	ml_value_t **Base = Top + Inst->Params[1].Index;
 	for (int I = 0; I < Count; ++I) {
-		Result = Unpacked.Values[I]->Type->deref(Unpacked.Values[I]);
-		ERROR_CHECK(Result);
-		ml_reference_t *Local = (ml_reference_t *)Base[I];
-		Local->Value[0] = Result;
+		Result = ml_deref(Unpacked.Values[I]);
+		//ERROR_CHECK(Result);
+		ml_variable_t *Local = (ml_variable_t *)Base[I];
+		Local->Value = Result;
 	}
 	ADVANCE(0);
 }
 
 static void DO_LET_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
-	Result = Result->Type->deref(Result);
-	ERROR_CHECK(Result);
+	Result = ml_deref(Result);
+	//ERROR_CHECK(Result);
 	Top[Inst->Params[1].Index] = Result;
 	ADVANCE(0);
 }
 
 static void DO_LETI_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
-	Result = Result->Type->deref(Result);
-	ERROR_CHECK(Result);
+	Result = ml_deref(Result);
+	//ERROR_CHECK(Result);
 	ml_value_t *Uninitialized = Top[Inst->Params[1].Index];
 	Top[Inst->Params[1].Index] = Result;
 	if (Uninitialized) ml_uninitialized_set(Uninitialized, Result);
@@ -203,12 +210,12 @@ static void DO_LETI_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, 
 }
 
 static void DO_LETX_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
-	Result = Result->Type->deref(Result);
-	ERROR_CHECK(Result);
+	Result = ml_deref(Result);
+	//ERROR_CHECK(Result);
 	int Count = Inst->Params[2].Count;
 	ml_unpacked_t Unpacked = ml_unpack(Result, Count);
 	if (!Unpacked.Values) {
-		Result = ml_error("TypeError", "Unable to unpack %s", Result->Type->Name);
+		Result = ml_error("TypeError", "Unable to unpack %s", ml_typeof(Result)->Name);
 		ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
 		ERROR();
 	}
@@ -219,8 +226,8 @@ static void DO_LETX_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, 
 	}
 	ml_value_t **Base = Top + Inst->Params[1].Index;
 	for (int I = 0; I < Count; ++I) {
-		Result = Unpacked.Values[I]->Type->deref(Unpacked.Values[I]);
-		ERROR_CHECK(Result);
+		Result = ml_deref(Unpacked.Values[I]);
+		//ERROR_CHECK(Result);
 		ml_value_t *Uninitialized = Base[I];
 		Base[I] = Result;
 		if (Uninitialized) ml_uninitialized_set(Uninitialized, Result);
@@ -229,8 +236,8 @@ static void DO_LETX_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, 
 }
 
 static void DO_FOR_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
-	Result = Result->Type->deref(Result);
-	ERROR_CHECK(Result);
+	Result = ml_deref(Result);
+	//ERROR_CHECK(Result);
 	Frame->Inst = Inst->Params[0].Inst;
 	Frame->Top = Top;
 	return ml_iterate((ml_state_t *)Frame, Result);
@@ -262,46 +269,42 @@ static void DO_KEY_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, m
 static void DO_CALL_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
 	int Count = Inst->Params[1].Count;
 	ml_value_t *Function = Top[~Count];
-	Function = Function->Type->deref(Function);
-	ERROR_CHECK(Function);
+	Function = ml_deref(Function);
+	//ERROR_CHECK(Function);
 	ml_value_t **Args = Top - Count;
-	ml_inst_t *Next = Inst->Params[0].Inst;
-	if (Next->Opcode == MLI_RETURN) {
-		return Function->Type->call(Frame->Base.Caller, Function, Count, Args);
-	} else {
-		Frame->Inst = Next;
-		Frame->Top = Top - (Count + 1);
-		return Function->Type->call((ml_state_t *)Frame, Function, Count, Args);
-	}
+	Frame->Inst = Inst->Params[0].Inst;
+	Frame->Top = Top - (Count + 1);
+	return ml_typeof(Function)->call((ml_state_t *)Frame, Function, Count, Args);
 }
 
 static void DO_CONST_CALL_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
 	int Count = Inst->Params[1].Count;
 	ml_value_t *Function = Inst->Params[2].Value;
 	ml_value_t **Args = Top - Count;
-	ml_inst_t *Next = Inst->Params[0].Inst;
-	if (Next->Opcode == MLI_RETURN) {
-		return Function->Type->call(Frame->Base.Caller, Function, Count, Args);
-	} else {
-		Frame->Inst = Inst->Params[0].Inst;
-		Frame->Top = Top - Count;
-		return Function->Type->call((ml_state_t *)Frame, Function, Count, Args);
-	}
+	Frame->Inst = Inst->Params[0].Inst;
+	Frame->Top = Top - Count;
+	return ml_typeof(Function)->call((ml_state_t *)Frame, Function, Count, Args);
 }
 
 static void DO_ASSIGN_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
-	Result = Result->Type->deref(Result);
-	ERROR_CHECK(Result);
+	Result = ml_deref(Result);
+	//ERROR_CHECK(Result);
 	ml_value_t *Ref = Top[-1];
 	*--Top = 0;
-	Result = Ref->Type->assign(Ref, Result);
-	ERROR_CHECK(Result);
+	Result = ml_typeof(Ref)->assign(Ref, Result);
+	//ERROR_CHECK(Result);
 	ADVANCE(0);
 }
 
 static void DO_LOCAL_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
 	int Index = Inst->Params[1].Index;
-	Result = (Index < 0) ? Frame->UpValues[~Index] : Frame->Stack[Index];
+	Result = Frame->Stack[Index];
+	ADVANCE(0);
+}
+
+static void DO_UPVALUE_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
+	int Index = Inst->Params[1].Index;
+	Result = Frame->UpValues[Index];
 	ADVANCE(0);
 }
 
@@ -335,8 +338,8 @@ static void DO_LIST_NEW_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **T
 }
 
 static void DO_LIST_APPEND_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
-	Result = Result->Type->deref(Result);
-	ERROR_CHECK(Result);
+	Result = ml_deref(Result);
+	//ERROR_CHECK(Result);
 	ml_list_put(Top[-1], Result);
 	ADVANCE(0);
 }
@@ -347,10 +350,10 @@ static void DO_MAP_NEW_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **To
 }
 
 static void DO_MAP_INSERT_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
-	ml_value_t *Key = Top[-1]->Type->deref(Top[-1]);
-	ERROR_CHECK(Key);
-	Result = Result->Type->deref(Result);
-	ERROR_CHECK(Result);
+	ml_value_t *Key = ml_deref(Top[-1]);
+	//ERROR_CHECK(Key);
+	Result = ml_deref(Result);
+	//ERROR_CHECK(Result);
 	ml_map_insert(Top[-2], Key, Result);
 	*--Top = 0;
 	ADVANCE(0);
@@ -367,7 +370,7 @@ static void DO_CLOSURE_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **To
 		ml_value_t **Slot = (Index < 0) ? &Frame->UpValues[~Index] : &Frame->Stack[Index];
 		ml_value_t *Value = Slot[0];
 		if (!Value) Value = Slot[0] = ml_uninitialized();
-		if (Value->Type == MLUninitializedT) {
+		if (ml_typeof(Value) == MLUninitializedT) {
 			ml_uninitialized_use(Value, &Closure->UpValues[I]);
 		}
 		Closure->UpValues[I] = Value;
@@ -377,15 +380,15 @@ static void DO_CLOSURE_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **To
 }
 
 static void DO_PARTIAL_NEW_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
-	Result = Result->Type->deref(Result);
-	ERROR_CHECK(Result);
+	Result = ml_deref(Result);
+	//ERROR_CHECK(Result);
 	*Top++ = ml_partial_function_new(Result, Inst->Params[1].Count);
 	ADVANCE(0);
 }
 
 static void DO_PARTIAL_SET_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
-	Result = Result->Type->deref(Result);
-	ERROR_CHECK(Result);
+	Result = ml_deref(Result);
+	//ERROR_CHECK(Result);
 	ml_partial_function_set(Top[-1], Inst->Params[1].Index, Result);
 	ADVANCE(0);
 }
@@ -422,6 +425,7 @@ ml_inst_fn_t MLInstFns[] = {
 	[MLI_CONST_CALL] = DO_CONST_CALL_FN,
 	[MLI_ASSIGN] = DO_ASSIGN_FN,
 	[MLI_LOCAL] = DO_LOCAL_FN,
+	[MLI_UPVALUE] = DO_UPVALUE_FN,
 	[MLI_LOCALX] = DO_LOCALX_FN,
 	[MLI_TUPLE_NEW] = DO_TUPLE_NEW_FN,
 	[MLI_TUPLE_SET] = DO_TUPLE_SET_FN,

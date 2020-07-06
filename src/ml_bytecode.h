@@ -82,6 +82,7 @@ typedef enum {
 	MLI_CONST_CALL,
 	MLI_ASSIGN,
 	MLI_LOCAL,
+	MLI_UPVALUE,
 	MLI_LOCALX,
 	MLI_TUPLE_NEW,
 	MLI_TUPLE_SET,
@@ -146,6 +147,15 @@ struct ml_frame_t {
 #endif
 	ml_value_t *Stack[];
 };
+
+typedef struct ml_variable_t ml_variable_t;
+
+struct ml_variable_t {
+	const ml_type_t *Type;
+	ml_value_t *Value;
+};
+
+extern ml_type_t MLVariableT[];
 
 const char *ml_closure_debug(ml_value_t *Value);
 void ml_closure_sha256(ml_value_t *Closure, unsigned char Hash[SHA256_BLOCK_SIZE]);

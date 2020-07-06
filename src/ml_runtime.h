@@ -89,8 +89,9 @@ typedef struct ml_reference_t ml_reference_t;
 struct ml_reference_t {
 	const ml_type_t *Type;
 	ml_value_t **Address;
-	ml_value_t *Value[];
 };
+
+ml_value_t *ml_reference(ml_value_t **Address);
 
 typedef struct ml_source_t {
 	const char *Name;
@@ -108,6 +109,10 @@ typedef struct ml_error_t ml_error_t;
 extern ml_type_t MLErrorT[];
 extern ml_type_t MLErrorValueT[];
 
+static inline int ml_is_error(ml_value_t *Value) {
+	return Value->Type == MLErrorT;
+}
+
 ml_value_t *ml_error(const char *Error, const char *Format, ...) __attribute__ ((format(printf, 2, 3)));
 ml_value_t *ml_errorv(const char *Error, const char *Format, va_list Args);
 const char *ml_error_type(ml_value_t *Value);
@@ -116,8 +121,6 @@ int ml_error_source(ml_value_t *Value, int Level, ml_source_t *Source);
 ml_value_t *ml_error_trace_add(ml_value_t *Error, ml_source_t Source);
 void ml_error_print(ml_value_t *Error);
 void ml_error_fprint(FILE *File, ml_value_t *Error);
-
-ml_value_t *ml_reference(ml_value_t **Address);
 
 ml_value_t *ml_string_fn(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_list_fn(void *Data, int Count, ml_value_t **Args);

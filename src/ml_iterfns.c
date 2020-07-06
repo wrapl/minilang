@@ -231,7 +231,10 @@ ML_FUNCTIONX(Count) {
 	return ml_iterate((ml_state_t *)State, Args[0]);
 }
 
-static ml_value_t *LessMethod, *GreaterMethod, *AddMethod, *MulMethod;
+ML_METHOD_DECL(Less, "<");
+ML_METHOD_DECL(Greater, ">");
+ML_METHOD_DECL(Add, "+");
+ML_METHOD_DECL(Mul, "*");
 
 static void fold_iter_next(ml_iter_state_t *State, ml_value_t *Result);
 
@@ -1198,10 +1201,7 @@ ML_METHOD("swap", MLIteratableT) {
 }
 
 void ml_iterfns_init(stringmap_t *Globals) {
-	LessMethod = ml_method("<");
-	GreaterMethod = ml_method(">");
-	AddMethod = ml_method("+");
-	MulMethod = ml_method("*");
+#include "ml_iterfns_init.c"
 	stringmap_insert(Globals, "first", First);
 	stringmap_insert(Globals, "first2", First2);
 	stringmap_insert(Globals, "last", Last);
@@ -1222,5 +1222,4 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "tasks", Tasks);
 	stringmap_insert(Globals, "group", Group);
 	stringmap_insert(Globals, "repeat", Repeat);
-#include "ml_iterfns_init.c"
 }

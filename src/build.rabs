@@ -4,6 +4,7 @@ if PLATFORM = "Darwin" then
 end
 
 CFLAGS := old + [
+	"-march=native",
 	"-std=gnu11", :>'--save-temps',
 	"-fstrict-aliasing",
 	"-foptimize-sibling-calls",
@@ -31,7 +32,7 @@ for Source in PATH:ls(".*\\.c") do
 		Target:open("w"):close
 		var Init := shell("cc", CFLAGS, "-E -P -DGENERATE_INIT", Source)
 		var Out := Target:open("w")
-		for Line in Init/"\n" do
+		for Line in Init / "\n" do
 			loop
 				var I := while Line:find("INIT_CODE ")
 				Line := Line[I + 10, 0]
@@ -146,9 +147,11 @@ if MINILANG_JIT or defined("USE_JIT") then
 	LDFLAGS := old + ["-lZydis"]
 end
 
-if MACHINE = "x86_64" and PLATFORM = "Linux" then
-	Objects:put(file("inthash_x64.o"))
-	CFLAGS := old + ["-DASM_INTHASH_SEARCH"]
+if MINILANG_USE_ASM or defined("USE_ASM") then
+	if MACHINE = "x86_64" and PLATFORM = "Linux" then
+		Objects:put(file("inthash_x64.o"))
+		CFLAGS := old + ["-DASM_INTHASH_SEARCH"]
+	end
 end
 
 if PLATFORM = "Linux" then

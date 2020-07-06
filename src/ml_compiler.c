@@ -1236,10 +1236,14 @@ static mlc_compiled_t ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_
 					if (Decl->Flags & MLC_DECL_FORWARD) Decl->Flags |= MLC_DECL_BACKFILL;
 					if ((Index >= 0) && (Decl->Flags & MLC_DECL_FORWARD)) {
 						LocalInst = ml_inst_new(2, Expr->Source, MLI_LOCALX);
-					} else {
+						LocalInst->Params[1].Index = Index;
+					} else if (Index >= 0) {
 						LocalInst = ml_inst_new(2, Expr->Source, MLI_LOCAL);
+						LocalInst->Params[1].Index = Index;
+					} else {
+						LocalInst = ml_inst_new(2, Expr->Source, MLI_UPVALUE);
+						LocalInst->Params[1].Index = ~Index;
 					}
-					LocalInst->Params[1].Index = Index;
 					return (mlc_compiled_t){LocalInst, LocalInst};
 				}
 			}
@@ -2692,19 +2696,20 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 		do {
 			ml_accept(Scanner, MLT_IDENT);
 			const char *Ident = Scanner->Ident;
-			ml_reference_t *Ref = (ml_reference_t *)ml_reference(NULL);
+			ml_variable_t *Var = new(ml_variable_t);
+			Var->Type = MLVariableT;
 			ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Ident);
-			if (Slot[0] && Slot[0]->Type == MLUninitializedT) {
-				ml_uninitialized_set(Slot[0], (ml_value_t *)Ref);
+			if (Slot[0] && ml_typeof(Slot[0]) == MLUninitializedT) {
+				ml_uninitialized_set(Slot[0], (ml_value_t *)Var);
 			}
-			Slot[0] = (ml_value_t *)Ref;
+			Slot[0] = (ml_value_t *)Var;
 			if (ml_parse(Scanner, MLT_ASSIGN)) {
 				mlc_expr_t *Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
 				Result = ml_compile(Expr, NULL, Scanner->Context);
-				if (Result->Type == MLErrorT) ML_RETURN(Result);
+				if (ml_is_error(Result)) ML_RETURN(Result);
 				Result = ml_call(Result, 0, NULL);
-				if (Result->Type == MLErrorT) ML_RETURN(Result);
-				Ref->Address[0] = Result;
+				if (ml_is_error(Result)) ML_RETURN(Result);
+				Var->Value = Result;
 			} else {
 				Result = MLNil;
 			}

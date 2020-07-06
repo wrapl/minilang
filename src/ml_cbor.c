@@ -440,16 +440,16 @@ ml_value_t *ml_cbor_read_object(void *Data, int Count, ml_value_t **Args) {
 void ml_cbor_init(stringmap_t *Globals) {
 	CborDefaultTags = ml_map();
 	CborObjects = ml_map();
-	ml_map_insert(CborDefaultTags, ml_integer(26), ml_function(NULL, ml_cbor_read_method)); // TODO: Change this to a proper tag
-	ml_map_insert(CborDefaultTags, ml_integer(27), ml_function(NULL, ml_cbor_read_object));
+	ml_map_insert(CborDefaultTags, ml_integer(26), ml_cfunction(NULL, ml_cbor_read_method)); // TODO: Change this to a proper tag
+	ml_map_insert(CborDefaultTags, ml_integer(27), ml_cfunction(NULL, ml_cbor_read_object));
 #ifdef USE_ML_CBOR_BYTECODE
-	ml_map_insert(CborDefaultTags, ml_integer(36), ml_function(NULL, ml_cbor_read_closure));
+	ml_map_insert(CborDefaultTags, ml_integer(36), ml_cfunction(NULL, ml_cbor_read_closure));
 #endif
 #include "ml_cbor_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "cbor", ml_module("cbor",
-			"encode", ml_function(NULL, ml_to_cbor_fn),
-			"decode", ml_function(NULL, ml_from_cbor_fn),
+			"encode", ml_cfunction(NULL, ml_to_cbor_fn),
+			"decode", ml_cfunction(NULL, ml_from_cbor_fn),
 			"Default", CborDefaultTags,
 			"Objects", CborObjects,
 		NULL));

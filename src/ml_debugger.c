@@ -199,15 +199,15 @@ static void interactive_debugger_fnx(ml_state_t *Caller, interactive_debugger_in
 	Debugger->Base.StepIn = 1;
 	Debugger->Base.BreakOnError = 1;
 	Debugger->Info = Info;
-	stringmap_insert(Debugger->Globals, "break", ml_function(Debugger, (void *)debugger_break));
-	stringmap_insert(Debugger->Globals, "continue", ml_functionx(Debugger, (void *)debugger_continue));
-	stringmap_insert(Debugger->Globals, "step_in", ml_functionx(Debugger, (void *)debugger_step_in));
-	stringmap_insert(Debugger->Globals, "step_over", ml_functionx(Debugger, (void *)debugger_step_over));
-	stringmap_insert(Debugger->Globals, "step_out", ml_functionx(Debugger, (void *)debugger_step_out));
-	stringmap_insert(Debugger->Globals, "locals", ml_function(Debugger, (void *)debugger_locals));
-	stringmap_insert(Debugger->Globals, "frames", ml_function(Debugger, (void *)debugger_frames));
-	stringmap_insert(Debugger->Globals, "frame_up", ml_function(Debugger, (void *)debugger_frame_up));
-	stringmap_insert(Debugger->Globals, "frame_down", ml_function(Debugger, (void *)debugger_frame_down));
+	stringmap_insert(Debugger->Globals, "break", ml_cfunction(Debugger, (void *)debugger_break));
+	stringmap_insert(Debugger->Globals, "continue", ml_cfunctionx(Debugger, (void *)debugger_continue));
+	stringmap_insert(Debugger->Globals, "step_in", ml_cfunctionx(Debugger, (void *)debugger_step_in));
+	stringmap_insert(Debugger->Globals, "step_over", ml_cfunctionx(Debugger, (void *)debugger_step_over));
+	stringmap_insert(Debugger->Globals, "step_out", ml_cfunctionx(Debugger, (void *)debugger_step_out));
+	stringmap_insert(Debugger->Globals, "locals", ml_cfunction(Debugger, (void *)debugger_locals));
+	stringmap_insert(Debugger->Globals, "frames", ml_cfunction(Debugger, (void *)debugger_frames));
+	stringmap_insert(Debugger->Globals, "frame_up", ml_cfunction(Debugger, (void *)debugger_frame_up));
+	stringmap_insert(Debugger->Globals, "frame_down", ml_cfunction(Debugger, (void *)debugger_frame_down));
 
 	ml_state_t *State = ml_state_new(Caller);
 	ml_context_set(State->Context, ML_DEBUGGER_INDEX, Debugger);
@@ -236,5 +236,5 @@ ml_value_t *interactive_debugger(
 	Info->Data = Data;
 	Info->GlobalGet = GlobalGet;
 	Info->Globals = Globals;
-	return ml_functionx(Info, (void *)interactive_debugger_fnx);
+	return ml_cfunctionx(Info, (void *)interactive_debugger_fnx);
 }

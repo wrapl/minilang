@@ -1340,22 +1340,22 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_method_by_name("/", 4 + (char *)0, array_infix_fn, MLArrayT, MLArrayT, NULL);
 	if (Globals) {
 #ifdef USE_ML_CBOR
-		ml_map_insert(CborDefaultTags, ml_integer(40), ml_function(NULL, ml_cbor_read_multi_array_fn));
-		ml_map_insert(CborDefaultTags, ml_integer(72), ml_function((void *)ML_ARRAY_FORMAT_I8, ml_cbor_read_typed_array_fn));
-		ml_map_insert(CborDefaultTags, ml_integer(64), ml_function((void *)ML_ARRAY_FORMAT_U8, ml_cbor_read_typed_array_fn));
-		ml_map_insert(CborDefaultTags, ml_integer(77), ml_function((void *)ML_ARRAY_FORMAT_I16, ml_cbor_read_typed_array_fn));
-		ml_map_insert(CborDefaultTags, ml_integer(69), ml_function((void *)ML_ARRAY_FORMAT_U16, ml_cbor_read_typed_array_fn));
-		ml_map_insert(CborDefaultTags, ml_integer(78), ml_function((void *)ML_ARRAY_FORMAT_I32, ml_cbor_read_typed_array_fn));
-		ml_map_insert(CborDefaultTags, ml_integer(70), ml_function((void *)ML_ARRAY_FORMAT_U32, ml_cbor_read_typed_array_fn));
-		ml_map_insert(CborDefaultTags, ml_integer(79), ml_function((void *)ML_ARRAY_FORMAT_I64, ml_cbor_read_typed_array_fn));
-		ml_map_insert(CborDefaultTags, ml_integer(71), ml_function((void *)ML_ARRAY_FORMAT_U64, ml_cbor_read_typed_array_fn));
-		ml_map_insert(CborDefaultTags, ml_integer(85), ml_function((void *)ML_ARRAY_FORMAT_F32, ml_cbor_read_typed_array_fn));
-		ml_map_insert(CborDefaultTags, ml_integer(86), ml_function((void *)ML_ARRAY_FORMAT_F64, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(40), ml_cfunction(NULL, ml_cbor_read_multi_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(72), ml_cfunction((void *)ML_ARRAY_FORMAT_I8, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(64), ml_cfunction((void *)ML_ARRAY_FORMAT_U8, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(77), ml_cfunction((void *)ML_ARRAY_FORMAT_I16, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(69), ml_cfunction((void *)ML_ARRAY_FORMAT_U16, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(78), ml_cfunction((void *)ML_ARRAY_FORMAT_I32, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(70), ml_cfunction((void *)ML_ARRAY_FORMAT_U32, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(79), ml_cfunction((void *)ML_ARRAY_FORMAT_I64, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(71), ml_cfunction((void *)ML_ARRAY_FORMAT_U64, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(85), ml_cfunction((void *)ML_ARRAY_FORMAT_F32, ml_cbor_read_typed_array_fn));
+		ml_map_insert(CborDefaultTags, ml_integer(86), ml_cfunction((void *)ML_ARRAY_FORMAT_F64, ml_cbor_read_typed_array_fn));
 #endif
 		stringmap_insert(Globals, "array", MLArrayT);
-		stringmap_insert(MLArrayT->Exports, "new", ml_functionx(NULL, ml_array_new_fnx));
-		stringmap_insert(MLArrayT->Exports, "wrap", ml_function(NULL, ml_array_wrap_fn));
-		stringmap_insert(MLArrayT->Exports, "of", ml_function(NULL, ml_array_of_fn));
+		stringmap_insert(MLArrayT->Exports, "new", ml_cfunctionx(NULL, ml_array_new_fnx));
+		stringmap_insert(MLArrayT->Exports, "wrap", ml_cfunction(NULL, ml_array_wrap_fn));
+		stringmap_insert(MLArrayT->Exports, "of", ml_cfunction(NULL, ml_array_of_fn));
 		stringmap_insert(MLArrayT->Exports, "any", MLArrayAnyT);
 		stringmap_insert(MLArrayT->Exports, "int8", MLArrayInt8T);
 		stringmap_insert(MLArrayT->Exports, "uint8", MLArrayUInt8T);

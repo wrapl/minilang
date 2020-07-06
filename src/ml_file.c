@@ -153,6 +153,6 @@ void ml_file_init(stringmap_t *Globals) {
 #include "ml_file_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "file", MLFileT);
-		stringmap_insert(MLFileT->Exports, "open", ml_function(0, ml_file_open));
+		stringmap_insert(MLFileT->Exports, "open", ml_cfunction(0, ml_file_open));
 	}
 }

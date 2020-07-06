@@ -163,7 +163,7 @@ ML_FUNCTION(MLClassNew) {
 	*Parents++ = (ml_type_t *)Class;
 	Class->NumFields = NumFields;
 	ml_value_t **Fields = Class->Fields;
-	ml_value_t *Constructor = ml_functionx(Class, (void *)ml_constructor_fn);
+	ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_constructor_fn);
 	stringmap_insert(Class->Base.Exports, "of", Constructor);
 	for (int I = 1; I < Count; ++I) {
 		if (Args[I]->Type == MLMethodT) {
@@ -206,7 +206,7 @@ ML_FUNCTION(MLClassNew) {
 		ml_value_t **NewFieldFns = anew(ml_value_t *, Class->NumFields);
 		memcpy(NewFieldFns, FieldFns, NumFieldFns * sizeof(ml_value_t *));
 		for (int I = NumFieldFns; I < Class->NumFields; ++I) {
-			NewFieldFns[I] = ml_function(((ml_object_t *)0)->Fields + I, ml_field_fn);
+			NewFieldFns[I] = ml_cfunction(((ml_object_t *)0)->Fields + I, ml_field_fn);
 		}
 		FieldFns = NewFieldFns;
 		NumFieldFns = Class->NumFields;

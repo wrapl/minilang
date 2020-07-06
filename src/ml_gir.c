@@ -1,5 +1,4 @@
 #include "ml_gir.h"
-#include "minilang.h"
 #include "ml_macros.h"
 #include <gc/gc.h>
 #include <girepository.h>
@@ -1340,7 +1339,7 @@ static void object_add_methods(object_t *Object, GIObjectInfo *Info) {
 		if (Flags & GI_FUNCTION_IS_METHOD) {
 			ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Object, NULL);
 		} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
-			ml_map_insert(Object->Methods, ml_string(MethodName, -1), ml_function(MethodInfo, (void *)constructor_invoke));
+			ml_map_insert(Object->Methods, ml_string(MethodName, -1), ml_cfunction(MethodInfo, (void *)constructor_invoke));
 		}
 	}
 }
@@ -1382,7 +1381,7 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 		Struct->Info = Info;
 		Struct->Methods = ml_map();
 		ml_type_init((ml_type_t *)Struct, StructInstanceT, NULL);
-		ml_map_insert(Struct->Methods, ml_cstring("new"), ml_function(Struct, (void *)struct_instance_new));
+		ml_map_insert(Struct->Methods, ml_cstring("new"), ml_cfunction(Struct, (void *)struct_instance_new));
 		Slot[0] = (ml_type_t *)Struct;
 		int NumFields = g_struct_info_get_n_fields(Info);
 		for (int I = 0; I < NumFields; ++I) {
@@ -1398,7 +1397,7 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 			if (Flags & GI_FUNCTION_IS_METHOD) {
 				ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Struct, NULL);
 			} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
-				ml_map_insert(Struct->Methods, ml_string(MethodName, -1), ml_function(MethodInfo, (void *)constructor_invoke));
+				ml_map_insert(Struct->Methods, ml_string(MethodName, -1), ml_cfunction(MethodInfo, (void *)constructor_invoke));
 			}
 		}
 	}
@@ -1470,7 +1469,7 @@ static ml_value_t *baseinfo_to_value(GIBaseInfo *Info) {
 		break;
 	}
 	case GI_INFO_TYPE_FUNCTION: {
-		return ml_function(Info, (ml_callback_t)function_info_invoke);
+		return ml_cfunction(Info, (ml_callback_t)function_info_invoke);
 	}
 	case GI_INFO_TYPE_CALLBACK: {
 		break;
@@ -1674,6 +1673,6 @@ void ml_gir_init(stringmap_t *Globals) {
 	ObjectInstanceNil = new(object_instance_t);
 	ObjectInstanceNil->Type = (object_t *)ObjectInstanceT;
 	ml_typed_fn_set(EnumT, ml_iterate, enum_iterate);
-	stringmap_insert(Globals, "gir", ml_function(NULL, ml_gir_require));
+	stringmap_insert(Globals, "gir", ml_cfunction(NULL, ml_gir_require));
 #include "ml_gir_init.c"
 }

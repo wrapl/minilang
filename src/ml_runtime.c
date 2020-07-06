@@ -68,7 +68,7 @@ struct ml_context_value_t {
 };
 
 static void ml_context_key_call(ml_state_t *Caller, ml_context_key_t *Key, int Count, ml_value_t **Args) {
-	ml_context_value_t *Values = ml_context_get(Caller->Context, ML_VARIABLES_INDEX);
+	ml_context_value_t *Values = Caller->Context->Values[ML_VARIABLES_INDEX];
 	if (Count == 0) {
 		while (Values) {
 			if (Values->Key == Key) ML_RETURN(Values->Value);
@@ -237,14 +237,8 @@ ML_TYPE(MLReferenceT, (), "reference",
 
 inline ml_value_t *ml_reference(ml_value_t **Address) {
 	ml_reference_t *Reference;
-	if (Address == 0) {
-		Reference = xnew(ml_reference_t, 1, ml_value_t *);
-		Reference->Address = Reference->Value;
-		Reference->Value[0] = MLNil;
-	} else {
-		Reference = new(ml_reference_t);
-		Reference->Address = Address;
-	}
+	Reference = new(ml_reference_t);
+	Reference->Address = Address;
 	Reference->Type = MLReferenceT;
 	return (ml_value_t *)Reference;
 }

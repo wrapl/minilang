@@ -237,7 +237,7 @@ int main(int Argc, const char *Argv[]) {
 #ifdef USE_ML_GIR
 	} else if (GtkConsole) {
 		console_t *Console = console_new((ml_getter_t)stringmap_search, Globals);
-		stringmap_insert(Globals, "print", ml_function(Console, (void *)console_print));
+		stringmap_insert(Globals, "print", ml_cfunction(Console, (void *)console_print));
 		console_show(Console, NULL);
 		gtk_main();
 #endif

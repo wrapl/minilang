@@ -3,6 +3,9 @@
 
 //RDI, RSI, RDX, RCX, R8, R9 (R10)
 
+.set INDEX_SHIFT, 6
+.set INCR_SHIFT, 8
+
 .text
 inthash_search:
 	// %rdi -> inthash_t Map
@@ -13,13 +16,13 @@ inthash_search:
 	// %rsi -> uint64_t Key
 	mov %ecx, [%rdi + 16]
 	mov %r8, [%rdi + 8]
-	dec %rcx
-	js .empty
+	sub %rcx, 1
+	jc .empty
 	mov %rdi, [%rdi]
 	mov %rdx, %rsi
 	mov %rax, %rsi
-	shr %rdx, 8
-	shr %rax, 6
+	shr %rdx, INCR_SHIFT
+	shr %rax, INDEX_SHIFT
 	or %rdx, 1
 	jmp .entry
 .search:

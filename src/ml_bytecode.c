@@ -9,6 +9,28 @@
 #include <inttypes.h>
 #include "ml_bytecode.h"
 #include "ml_debugger.h"
+
+static long ml_variable_hash(ml_variable_t *Variable, ml_hash_chain_t *Chain) {
+	ml_value_t *Value = Variable->Value;
+	return ml_typeof(Value)->hash(Value, Chain);
+}
+
+static ml_value_t *ml_variable_deref(ml_variable_t *Variable) {
+	return Variable->Value;
+}
+
+static ml_value_t *ml_variable_assign(ml_variable_t *Variable, ml_value_t *Value) {
+	return (Variable->Value = Value);
+}
+
+ML_TYPE(MLVariableT, (), "variable",
+	.hash = (void *)ml_variable_hash,
+	.deref = (void *)ml_variable_deref,
+	.assign = (void *)ml_variable_assign
+);
+
+
+
 #endif
 
 #ifdef USE_ML_JIT
@@ -159,7 +181,7 @@ ML_TYPE(DEBUG_TYPE(Suspension), (MLFunctionT), "suspension",
 #endif
 
 #ifndef DEBUG_VERSION
-static void *MLCachedFrame = NULL;
+void *MLCachedFrame = NULL;
 #endif
 
 static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
@@ -205,6 +227,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_CONST_CALL] = &&DO_CONST_CALL,
 		[MLI_ASSIGN] = &&DO_ASSIGN,
 		[MLI_LOCAL] = &&DO_LOCAL,
+		[MLI_UPVALUE] = &&DO_UPVALUE,
 		[MLI_LOCALX] = &&DO_LOCALX,
 		[MLI_TUPLE_NEW] = &&DO_TUPLE_NEW,
 		[MLI_TUPLE_SET] = &&DO_TUPLE_SET,
@@ -297,10 +320,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(0);
 	}
 	DO_WITH_VAR: {
-		ml_reference_t *Local = xnew(ml_reference_t, 1, ml_value_t *);
-		Local->Type = MLReferenceT;
-		Local->Address = Local->Value;
-		Local->Value[0] = Result;
+		ml_variable_t *Local = new(ml_variable_t);
+		Local->Type = MLVariableT;
+		Local->Value = Result;
 		*Top++ = (ml_value_t *)Local;
 #ifdef DEBUG_VERSION
 		Frame->Decls = Inst->Params[1].Decls;
@@ -333,10 +355,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_ENTER: {
 		for (int I = Inst->Params[1].Count; --I >= 0;) {
-			ml_reference_t *Local = xnew(ml_reference_t, 1, ml_value_t *);
-			Local->Type = MLReferenceT;
-			Local->Address = Local->Value;
-			Local->Value[0] = MLNil;
+			ml_variable_t *Local = new(ml_variable_t);
+			Local->Type = MLVariableT;
+			Local->Value = MLNil;
 			*Top++ = (ml_value_t *)Local;
 		}
 		for (int I = Inst->Params[2].Count; --I >= 0;) {
@@ -383,8 +404,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_VAR: {
 		Result = Result->Type->deref(Result);
 		ERROR_CHECK(Result);
-		ml_reference_t *Local = (ml_reference_t *)Top[Inst->Params[1].Index];
-		Local->Value[0] = Result;
+		ml_variable_t *Local = (ml_variable_t *)Top[Inst->Params[1].Index];
+		Local->Value = Result;
 		ADVANCE(0);
 	}
 	DO_VARX: {
@@ -406,8 +427,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		for (int I = 0; I < Count; ++I) {
 			Result = Unpacked.Values[I]->Type->deref(Unpacked.Values[I]);
 			ERROR_CHECK(Result);
-			ml_reference_t *Local = (ml_reference_t *)Base[I];
-			Local->Value[0] = Result;
+			ml_variable_t *Local = (ml_variable_t *)Base[I];
+			Local->Value = Result;
 		}
 		ADVANCE(0);
 	}
@@ -526,7 +547,12 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_LOCAL: {
 		int Index = Inst->Params[1].Index;
-		Result = (Index < 0) ? Frame->UpValues[~Index] : Frame->Stack[Index];
+		Result = Frame->Stack[Index];
+		ADVANCE(0);
+	}
+	DO_UPVALUE: {
+		int Index = Inst->Params[1].Index;
+		Result = Frame->UpValues[Index];
 		ADVANCE(0);
 	}
 	DO_LOCALX: {
@@ -651,7 +677,7 @@ static void ml_closure_call_debug(ml_state_t *Caller, ml_value_t *Value, int Cou
 static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
 	ml_closure_info_t *Info = Closure->Info;
-	ml_debugger_t *Debugger = (ml_debugger_t *)ml_context_get(Caller->Context, ML_DEBUGGER_INDEX);
+	ml_debugger_t *Debugger = (ml_debugger_t *)Caller->Context->Values[ML_DEBUGGER_INDEX];
 #ifndef DEBUG_VERSION
 	if (Debugger) return ml_closure_call_debug(Caller, Value, Count, Args);
 #endif
@@ -687,42 +713,46 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	int Min = (Count < NumParams) ? Count : NumParams;
 	int I = 0;
 	for (; I < Min; ++I) {
-		ml_reference_t *Local = (ml_reference_t *)ml_reference(NULL);
-		ml_value_t *Arg = Args[I]->Type->deref(Args[I]);
-		if (Arg->Type == MLErrorT) ML_RETURN(Arg);
-		if (Arg->Type == MLNamesT) break;
-		Local->Value[0] = Arg;
+		ml_variable_t *Local = new(ml_variable_t);
+		Local->Type = MLVariableT;
+		ml_value_t *Arg = ml_deref(Args[I]);
+		if (ml_is_error(Arg)) ML_RETURN(Arg);
+		if (ml_typeof(Arg) == MLNamesT) break;
+		Local->Value = Arg;
 		Frame->Stack[I] = (ml_value_t *)Local;
 	}
 	for (int J = I; J < NumParams; ++J) {
-		ml_reference_t *Local = (ml_reference_t *)ml_reference(NULL);
-		Local->Value[0] = MLNil;
+		ml_variable_t *Local = new(ml_variable_t);
+		Local->Type = MLVariableT;
+		Local->Value = MLNil;
 		Frame->Stack[J] = (ml_value_t *)Local;
 	}
 	if (Info->ExtraArgs) {
-		ml_reference_t *Local = (ml_reference_t *)ml_reference(NULL);
+		ml_variable_t *Local = new(ml_variable_t);
+		Local->Type = MLVariableT;
 		ml_value_t *Rest = ml_list();
 		for (; I < Count; ++I) {
-			ml_value_t *Arg = Args[I]->Type->deref(Args[I]);
-			if (Arg->Type == MLErrorT) ML_RETURN(Arg);
-			if (Arg->Type == MLNamesT) break;
+			ml_value_t *Arg = ml_deref(Args[I]);
+			if (ml_is_error(Arg)) ML_RETURN(Arg);
+			if (ml_typeof(Arg) == MLNamesT) break;
 			ml_list_put(Rest, Arg);
 		}
-		Local->Value[0] = Rest;
+		Local->Value = Rest;
 		Frame->Stack[NumParams] = (ml_value_t *)Local;
 		++NumParams;
 	}
 	if (Info->NamedArgs) {
-		ml_reference_t *Local = (ml_reference_t *)ml_reference(NULL);
+		ml_variable_t *Local = new(ml_variable_t);
+		Local->Type = MLVariableT;
 		ml_value_t *Options = ml_map();
 		for (; I < Count; ++I) {
-			if (Args[I]->Type == MLNamesT) {
+			if (ml_typeof(Args[I]) == MLNamesT) {
 				ML_NAMES_FOREACH(Args[I], Node) {
 					const char *Name = ml_method_name(Node->Value);
 					int Index = (intptr_t)stringmap_search(Info->Params, Name);
 					if (Index) {
-						ml_reference_t *Local = (ml_reference_t *)Frame->Stack[Index - 1];
-						Local->Value[0] = Args[++I];
+						ml_variable_t *Local = (ml_variable_t *)Frame->Stack[Index - 1];
+						Local->Value = Args[++I];
 					} else {
 						ml_map_insert(Options, Node->Value, Args[++I]);
 					}
@@ -730,18 +760,18 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 				break;
 			}
 		}
-		Local->Value[0] = Options;
+		Local->Value = Options;
 		Frame->Stack[NumParams] = (ml_value_t *)Local;
 		++NumParams;
 	} else {
 		for (; I < Count; ++I) {
-			if (Args[I]->Type == MLNamesT) {
+			if (ml_typeof(Args[I]) == MLNamesT) {
 				ML_NAMES_FOREACH(Args[I], Node) {
 					const char *Name = ml_method_name(Node->Value);
 					int Index = (intptr_t)stringmap_search(Info->Params, Name);
 					if (Index) {
-						ml_reference_t *Local = (ml_reference_t *)Frame->Stack[Index - 1];
-						Local->Value[0] = Args[++I];
+						ml_variable_t *Local = (ml_variable_t *)Frame->Stack[Index - 1];
+						Local->Value = Args[++I];
 					} else {
 						ML_RETURN(ml_error("NameError", "Unknown named parameters %s", Name));
 					}
@@ -755,7 +785,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	Frame->UpValues = Closure->UpValues;
 	Frame->Inst = Info->Entry;
 #ifdef USE_ML_SCHEDULER
-	ml_scheduler_t scheduler = (ml_scheduler_t)ml_context_get(Caller->Context, ML_SCHEDULER_INDEX);
+	ml_scheduler_t scheduler = (ml_scheduler_t)Caller->Context->Values[ML_SCHEDULER_INDEX];
 	Frame->Schedule = scheduler(Caller->Context);
 #endif
 #ifdef DEBUG_VERSION
@@ -815,6 +845,7 @@ const char *MLInsts[] = {
 	"const_call", // MLI_CONST_CALL,
 	"assign", // MLI_ASSIGN,
 	"local", // MLI_LOCAL,
+	"upvalue", // MLI_UPVALUE,
 	"localx", // MLI_LOCALX,
 	"tuple_new", // MLI_TUPLE_NEW,
 	"tuple_set", // MLI_TUPLE_SET,
@@ -859,6 +890,7 @@ const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INST_COUNT_VALUE, // MLI_CONST_CALL,
 	MLIT_INST, // MLI_ASSIGN,
 	MLIT_INST_INDEX, // MLI_LOCAL,
+	MLIT_INST_INDEX, // MLI_UPVALUE,
 	MLIT_INST_INDEX, // MLI_LOCALX,
 	MLIT_INST_COUNT, // MLI_TUPLE_NEW,
 	MLIT_INST_INDEX, // MLI_TUPLE_SET,
@@ -927,9 +959,6 @@ static void ml_inst_process(int Process, ml_inst_t *Source, ml_inst_t *Inst, uns
 }
 
 void ml_closure_info_finish(ml_closure_info_t *Info) {
-#ifdef ML_USE_INST_FNS
-	//Info->Return->run = MLInstFns[MLI_RETURN];
-#endif
 	ml_inst_process(!Info->Entry->Processed, NULL, Info->Entry, Info->Hash, 0, 0);
 #ifdef USE_ML_JIT
 	ml_bytecode_jit(Info);

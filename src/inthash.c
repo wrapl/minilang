@@ -9,17 +9,15 @@ inthash_t *inthash_new() {
 #define INDEX_SHIFT 6
 #define INCR_SHIFT 8
 
-//uint64_t IntHashLoops = 0;
 
 #ifndef ASM_INTHASH_SEARCH
 void *inthash_search(const inthash_t *Map, uintptr_t Key) {
+	if (!Map->Size) return NULL;
 	uintptr_t *Keys = Map->Keys;
-	if (!Keys) return NULL;
 	size_t Mask = Map->Size - 1;
 	size_t Index = (Key >> INDEX_SHIFT) & Mask;
 	size_t Incr = (Key >> INCR_SHIFT) | 1;
 	for (;;) {
-		//++IntHashLoops;
 		if (Keys[Index] == Key) return Map->Values[Index];
 		if (Keys[Index] < Key) break;
 		Index = (Index + Incr) & Mask;
