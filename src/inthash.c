@@ -16,12 +16,13 @@ void *inthash_search(const inthash_t *Map, uintptr_t Key) {
 	uintptr_t *Keys = Map->Keys;
 	size_t Mask = Map->Size - 1;
 	size_t Index = (Key >> INDEX_SHIFT) & Mask;
+	if (Keys[Index] == Key) return Map->Values[Index];
+	if (Keys[Index] < Key) return NULL;
 	size_t Incr = (Key >> INCR_SHIFT) | 1;
-	for (;;) {
-		if (Keys[Index] == Key) return Map->Values[Index];
-		if (Keys[Index] < Key) break;
+	do {
 		Index = (Index + Incr) & Mask;
-	}
+		if (Keys[Index] == Key) return Map->Values[Index];
+	} while (Keys[Index] > Key);
 	return NULL;
 }
 #endif
