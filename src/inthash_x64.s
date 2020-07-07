@@ -19,19 +19,23 @@ inthash_search:
 	sub %rcx, 1
 	jc .empty
 	mov %rdi, [%rdi]
-	mov %rdx, %rsi
 	mov %rax, %rsi
-	shr %rdx, INCR_SHIFT
 	shr %rax, INDEX_SHIFT
-	or %rdx, 1
-	jmp .entry
-.search:
-	add %rax, %rdx
-.entry:
 	and %rax, %rcx
 	cmp %rsi, [%rdi + %rax * 8]
-	jb .search
+	je .found
 	ja .empty
+.search:
+	mov %rdx, %rsi
+	shr %rdx, INCR_SHIFT
+	or %rdx, 1
+.loop:
+	add %rax, %rdx
+	and %rax, %rcx
+	cmp %rsi, [%rdi + %rax * 8]
+	jb .loop
+	ja .empty
+.found:
 	mov %rax, [%r8 + %rax * 8]
 	ret
 .empty:

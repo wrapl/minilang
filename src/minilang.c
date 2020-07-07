@@ -53,7 +53,7 @@ ML_FUNCTION(MLNow) {
 ML_FUNCTION(MLClock) {
 	struct timespec Time[1];
 	clock_gettime(CLOCK_REALTIME, Time);
-	return ml_real(Time->tv_sec + Time->tv_nsec / 10000000000.0);
+	return ml_real(Time->tv_sec + Time->tv_nsec / 1000000000.0);
 }
 
 ML_FUNCTION(MLPrint) {
