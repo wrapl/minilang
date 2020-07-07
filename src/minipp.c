@@ -118,7 +118,7 @@ static ml_value_t *ml_preprocessor_include(ml_preprocessor_t *Preprocessor, int 
 	if (!File) return ml_error("FileError", "error opening %s", ml_string_value(Args[0]));
 	ml_preprocessor_input_t *Input = new(ml_preprocessor_input_t);
 	Input->Prev = Preprocessor->Input;
-	Input->Reader = ml_function(File, (void *)ml_preprocessor_read);
+	Input->Reader = ml_cfunction(File, (void *)ml_preprocessor_read);
 	Input->Line = 0;
 	Preprocessor->Input = Input;
 	return MLNil;
@@ -229,5 +229,5 @@ int main(int Argc, const char **Argv) {
 			Input = fopen(InputName = Argv[I], "r");
 		}
 	}
-	ml_preprocess(InputName, ml_function(Input, (void *)ml_preprocessor_read), ml_function(Output, (void *)ml_preprocessor_write));
+	ml_preprocess(InputName, ml_cfunction(Input, (void *)ml_preprocessor_read), ml_cfunction(Output, (void *)ml_preprocessor_write));
 }
