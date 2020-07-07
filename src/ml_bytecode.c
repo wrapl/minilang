@@ -29,8 +29,6 @@ ML_TYPE(MLVariableT, (), "variable",
 	.assign = (void *)ml_variable_assign
 );
 
-
-
 #endif
 
 #ifdef USE_ML_JIT
@@ -292,7 +290,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_IF: {
 		Result = Result->Type->deref(Result);
-		ERROR_CHECK(Result);
+		//ERROR_CHECK(Result);
 		if (Result == MLNil) {
 			ADVANCE(0);
 		} else {
@@ -301,7 +299,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_ELSE: {
 		Result = Result->Type->deref(Result);
-		ERROR_CHECK(Result);
+		//ERROR_CHECK(Result);
 		if (Result != MLNil) {
 			ADVANCE(0);
 		} else {
@@ -403,14 +401,14 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_VAR: {
 		Result = Result->Type->deref(Result);
-		ERROR_CHECK(Result);
+		//ERROR_CHECK(Result);
 		ml_variable_t *Local = (ml_variable_t *)Top[Inst->Params[1].Index];
 		Local->Value = Result;
 		ADVANCE(0);
 	}
 	DO_VARX: {
 		Result = Result->Type->deref(Result);
-		ERROR_CHECK(Result);
+		//ERROR_CHECK(Result);
 		int Count = Inst->Params[2].Count;
 		ml_unpacked_t Unpacked = ml_unpack(Result, Count);
 		if (!Unpacked.Values) {
@@ -426,7 +424,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_value_t **Base = Top + Inst->Params[1].Index;
 		for (int I = 0; I < Count; ++I) {
 			Result = Unpacked.Values[I]->Type->deref(Unpacked.Values[I]);
-			ERROR_CHECK(Result);
+			//ERROR_CHECK(Result);
 			ml_variable_t *Local = (ml_variable_t *)Base[I];
 			Local->Value = Result;
 		}
@@ -434,13 +432,13 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_LET: {
 		Result = Result->Type->deref(Result);
-		ERROR_CHECK(Result);
+		//ERROR_CHECK(Result);
 		Top[Inst->Params[1].Index] = Result;
 		ADVANCE(0);
 	}
 	DO_LETI: {
 		Result = Result->Type->deref(Result);
-		ERROR_CHECK(Result);
+		//ERROR_CHECK(Result);
 		ml_value_t *Uninitialized = Top[Inst->Params[1].Index];
 		Top[Inst->Params[1].Index] = Result;
 		if (Uninitialized) ml_uninitialized_set(Uninitialized, Result);
@@ -448,7 +446,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_LETX: {
 		Result = Result->Type->deref(Result);
-		ERROR_CHECK(Result);
+		//ERROR_CHECK(Result);
 		int Count = Inst->Params[2].Count;
 		ml_unpacked_t Unpacked = ml_unpack(Result, Count);
 		if (!Unpacked.Values) {
@@ -464,7 +462,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_value_t **Base = Top + Inst->Params[1].Index;
 		for (int I = 0; I < Count; ++I) {
 			Result = Unpacked.Values[I]->Type->deref(Unpacked.Values[I]);
-			ERROR_CHECK(Result);
+			//ERROR_CHECK(Result);
 			ml_value_t *Uninitialized = Base[I];
 			Base[I] = Result;
 			if (Uninitialized) ml_uninitialized_set(Uninitialized, Result);
@@ -473,7 +471,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_FOR: {
 		Result = Result->Type->deref(Result);
-		ERROR_CHECK(Result);
+		//ERROR_CHECK(Result);
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
 #ifdef USE_ML_SCHEDULER
@@ -514,7 +512,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		int Count = Inst->Params[1].Count;
 		ml_value_t *Function = Top[~Count];
 		Function = Function->Type->deref(Function);
-		ERROR_CHECK(Function);
+		//ERROR_CHECK(Function);
 		ml_value_t **Args = Top - Count;
 		ml_inst_t *Next = Inst->Params[0].Inst;
 #ifdef USE_ML_SCHEDULER
@@ -538,7 +536,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_ASSIGN: {
 		Result = Result->Type->deref(Result);
-		ERROR_CHECK(Result);
+		//ERROR_CHECK(Result);
 		ml_value_t *Ref = Top[-1];
 		*--Top = 0;
 		Result = Ref->Type->assign(Ref, Result);
@@ -582,7 +580,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_LIST_APPEND: {
 		Result = Result->Type->deref(Result);
-		ERROR_CHECK(Result);
+		//ERROR_CHECK(Result);
 		ml_list_put(Top[-1], Result);
 		ADVANCE(0);
 	}
@@ -592,9 +590,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_MAP_INSERT: {
 		ml_value_t *Key = Top[-1]->Type->deref(Top[-1]);
-		ERROR_CHECK(Key);
+		//ERROR_CHECK(Key);
 		Result = Result->Type->deref(Result);
-		ERROR_CHECK(Result);
+		//ERROR_CHECK(Result);
 		ml_map_insert(Top[-2], Key, Result);
 		*--Top = 0;
 		ADVANCE(0);
@@ -620,13 +618,13 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_PARTIAL_NEW: {
 		Result = Result->Type->deref(Result);
-		ERROR_CHECK(Result);
+		//ERROR_CHECK(Result);
 		*Top++ = ml_partial_function_new(Result, Inst->Params[1].Count);
 		ADVANCE(0);
 	}
 	DO_PARTIAL_SET: {
 		Result = Result->Type->deref(Result);
-		ERROR_CHECK(Result);
+		//ERROR_CHECK(Result);
 		ml_partial_function_set(Top[-1], Inst->Params[1].Index, Result);
 		ADVANCE(0);
 	}

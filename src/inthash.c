@@ -57,15 +57,17 @@ static void inthash_nodes_sort(uintptr_t *KeyA, uintptr_t *KeyB, void **ValueA, 
 	if (KeyB - KeyB1 > 1) inthash_nodes_sort(KeyB1 + 1, KeyB, ValueB1 + 1, ValueB);
 }
 
+#define INITIAL_SIZE 8
+
 void *inthash_insert(inthash_t *Map, uintptr_t Key, void *Value) {
 	uintptr_t *Keys = Map->Keys;
 	void **Values = Map->Values;
 	if (!Keys) {
-		Keys = Map->Keys = anew(uintptr_t, 4);
-		Values = Map->Values = anew(void *, 4);
-		Map->Size = 4;
-		Map->Space = 3;
-		size_t Index =  (Key >> INDEX_SHIFT) & 3;
+		Keys = Map->Keys = anew(uintptr_t, INITIAL_SIZE);
+		Values = Map->Values = anew(void *, INITIAL_SIZE);
+		Map->Size = INITIAL_SIZE;
+		Map->Space = INITIAL_SIZE - 1;
+		size_t Index =  (Key >> INDEX_SHIFT) & (INITIAL_SIZE - 1);
 		Keys[Index] = Key;
 		Values[Index] = Value;
 		return NULL;
@@ -82,7 +84,7 @@ void *inthash_insert(inthash_t *Map, uintptr_t Key, void *Value) {
 		if (Keys[Index] < Key) break;
 		Index = (Index + Incr) & Mask;
 	}
-	if (--Map->Space > 1) {
+	if (--Map->Space > (Map->Size >> 2)) {
 		uintptr_t Key1 = Keys[Index];
 		void *Value1 = Values[Index];
 		Keys[Index] = Key;
