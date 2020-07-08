@@ -110,7 +110,11 @@ extern ml_type_t MLErrorT[];
 extern ml_type_t MLErrorValueT[];
 
 static inline int ml_is_error(ml_value_t *Value) {
+#ifdef USE_NANBOXING
+	return (!ml_tag(Value)) && (Value->Type == MLErrorT);
+#else
 	return Value->Type == MLErrorT;
+#endif
 }
 
 ml_value_t *ml_error(const char *Error, const char *Format, ...) __attribute__ ((format(printf, 2, 3)));

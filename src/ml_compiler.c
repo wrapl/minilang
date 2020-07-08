@@ -168,8 +168,8 @@ static ml_value_t *ml_expr_evaluate(mlc_expr_t *Expr, mlc_function_t *Function) 
 	Info->NumParams = 0;
 	ml_closure_info_finish(Info);
 	ml_value_t *Result = ml_call((ml_value_t *)Closure, 0, NULL);
-	Result = Result->Type->deref(Result);
-	if (Result->Type == MLErrorT) ml_expr_error(Expr, Result);
+	Result = ml_typeof(Result)->deref(Result);
+	if (ml_is_error(Result)) ml_expr_error(Expr, Result);
 	return Result;
 }
 
@@ -579,14 +579,14 @@ extern ml_value_t *SymbolMethod;
 
 static mlc_compiled_t ml_def_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
 	ml_value_t *Result = ml_expr_evaluate(Expr->Child, Function);
-	if (Result->Type == MLErrorT) ml_expr_error(Expr, Result);
+	if (ml_is_error(Result)) ml_expr_error(Expr, Result);
 	ml_decl_t *Decl = Expr->Decl;
 	if (Expr->Count) {
 		ml_value_t *Args[2] = {Result, MLNil};
 		for (int I = Expr->Count; --I >= 0;) {
 			Args[1] = ml_string(Decl->Ident, -1);
 			ml_value_t *Value = ml_call(SymbolMethod, 2, Args);
-			if (Value->Type == MLErrorT) ml_expr_error(Expr, Value);
+			if (ml_is_error(Value)) ml_expr_error(Expr, Value);
 			ml_decl_set_value(Decl, Value);
 			Decl = Decl->Next;
 		}
@@ -600,8 +600,8 @@ static mlc_compiled_t ml_def_expr_compile(mlc_function_t *Function, mlc_decl_exp
 
 static mlc_compiled_t ml_defx_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
 	ml_value_t *Result = ml_expr_evaluate(Expr->Child, Function);
-	if (Result->Type == MLErrorT) ml_expr_error(Expr, Result);
-	if (Result->Type != MLTupleT) {
+	if (ml_is_error(Result)) ml_expr_error(Expr, Result);
+	if (ml_typeof(Result) != MLTupleT) {
 		ml_expr_error(Expr, ml_error("ValueError", "Result is not a tuple"));
 	}
 	ml_tuple_t *Tuple = (ml_tuple_t *)Result;
@@ -610,8 +610,8 @@ static mlc_compiled_t ml_defx_expr_compile(mlc_function_t *Function, mlc_decl_ex
 	}
 	ml_decl_t *Decl = Expr->Decl;
 	for (int I = Expr->Count; --I >= 0;) {
-		ml_value_t *Value = Tuple->Values[I]->Type->deref(Tuple->Values[I]);
-		if (Value->Type == MLErrorT) ml_expr_error(Expr, Value);
+		ml_value_t *Value = ml_typeof(Tuple->Values[I])->deref(Tuple->Values[I]);
+		if (ml_is_error(Value)) ml_expr_error(Expr, Value);
 		ml_decl_set_value(Decl, Value);
 		Decl = Decl->Next;
 	}
@@ -1087,8 +1087,8 @@ static mlc_compiled_t ml_import_expr_compile(mlc_function_t *Function, mlc_paren
 		ml_inst_t *ValueInst = Compiled.Start;
 		ml_value_t *Args[2] = {ValueInst->Params[1].Value, Expr->Value};
 		ml_value_t *Value = ml_call(SymbolMethod, 2, Args);
-		if (Value->Type != MLErrorT) {
-			if (Value->Type == MLUninitializedT) {
+		if (!ml_is_error(Value)) {
+			if (ml_typeof(Value) == MLUninitializedT) {
 				ml_uninitialized_use(Value, &ValueInst->Params[1].Value);
 			}
 			ValueInst->Params[1].Value = Value;
@@ -1214,7 +1214,7 @@ static int ml_upvalue_find(mlc_function_t *Function, ml_decl_t *Decl, mlc_functi
 
 static mlc_compiled_t ml_ident_expr_finish(mlc_ident_expr_t *Expr, ml_value_t *Value) {
 	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
-	if (Value->Type == MLUninitializedT) {
+	if (ml_typeof(Value) == MLUninitializedT) {
 		ml_uninitialized_use(Value, &ValueInst->Params[1].Value);
 	}
 	ValueInst->Params[1].Value = Value;
@@ -1680,7 +1680,11 @@ static ml_token_t ml_advance(mlc_scanner_t *Scanner) {
 			if (!Child) {
 				Scanner->Token = MLT_VALUE;
 				Scanner->Value = ml_cstring("");
-			} else if (!Child->Next && Child->compile == (void *)ml_value_expr_compile && ((mlc_value_expr_t *)Child)->Value->Type == MLStringT) {
+			} else if (
+				!Child->Next &&
+				Child->compile == (void *)ml_value_expr_compile &&
+				ml_is(((mlc_value_expr_t *)Child)->Value, MLStringT)
+			) {
 				Scanner->Token = MLT_VALUE;
 				Scanner->Value = ((mlc_value_expr_t *)Child)->Value;
 			} else {
@@ -1919,7 +1923,7 @@ static void ml_accept_named_arguments(mlc_scanner_t *Scanner, ml_token_t EndToke
 	ArgsSlot = &Arg->Next;
 	while (ml_parse(Scanner, MLT_COMMA)) {
 		if (ml_parse(Scanner, MLT_IDENT) || ml_parse(Scanner, MLT_METHOD)) {
-			ml_list_append(Names, ml_method(Scanner->Ident));
+			ml_names_add(Names, ml_method(Scanner->Ident));
 		} else {
 			ml_scanner_error(Scanner, "ParseError", "Argument names must be identifiers or methods");
 		}
@@ -1948,16 +1952,15 @@ static void ml_accept_arguments(mlc_scanner_t *Scanner, ml_token_t EndToken, mlc
 		do {
 			mlc_expr_t *Arg = ml_accept_expression(Scanner, EXPR_DEFAULT);
 			if (ml_parse(Scanner, MLT_IS)) {
-				ml_value_t *Names = ml_list();
-				Names->Type = MLNamesT;
+				ml_value_t *Names = ml_names();
 				if (Arg->compile == (void *)ml_ident_expr_compile) {
-					ml_list_append(Names, ml_method(((mlc_ident_expr_t *)Arg)->Ident));
+					ml_names_add(Names, ml_method(((mlc_ident_expr_t *)Arg)->Ident));
 				} else if (Arg->compile == (void *)ml_value_expr_compile) {
 					ml_value_t *Name = ((mlc_value_expr_t *)Arg)->Value;
-					if (Name->Type != MLMethodT) {
+					if (ml_typeof(Name) != MLMethodT) {
 						ml_scanner_error(Scanner, "ParseError", "Argument names must be identifiers or methods");
 					}
-					ml_list_append(Names, Name);
+					ml_names_add(Names, Name);
 				} else {
 					ml_scanner_error(Scanner, "ParseError", "Argument names must be identifiers or methods");
 				}
@@ -2313,7 +2316,7 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 			Scanner->Token = MLT_NONE;
 			if (!ml_parse(Scanner, MLT_OPERATOR) && !ml_parse(Scanner, MLT_IDENT)) {
 				ml_accept(Scanner, MLT_VALUE);
-				if (Scanner->Value->Type != MLStringT) {
+				if (!ml_is(Scanner->Value, MLStringT)) {
 					ml_scanner_error(Scanner, "ParseError", "expected import not %s", MLTokens[Scanner->Token]);
 				}
 				Scanner->Ident = ml_string_value(Scanner->Value);
@@ -2739,28 +2742,28 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 			}
 			if (!Import) {
 				ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Ident);
-				if (!Slot[0] || Slot[0]->Type != MLUninitializedT) {
+				if (!Slot[0] || ml_typeof(Slot[0]) != MLUninitializedT) {
 					Slot[0] = ml_uninitialized();
 				}
 				Result = ml_compile(Expr, NULL, Scanner->Context);
-				if (Result->Type == MLErrorT) ML_RETURN(Result);
+				if (ml_is_error(Result)) ML_RETURN(Result);
 				Result = ml_call(Result, 0, NULL);
-				if (Result->Type == MLErrorT) ML_RETURN(Result);
+				if (ml_is_error(Result)) ML_RETURN(Result);
 				ml_uninitialized_set(Slot[0],  Result);
 				Slot[0] = Result;
 			} else {
 				Result = ml_compile(Expr, NULL, Scanner->Context);
-				if (Result->Type == MLErrorT) ML_RETURN(Result);
+				if (ml_is_error(Result)) ML_RETURN(Result);
 				Result = ml_call(Result, 0, NULL);
-				if (Result->Type == MLErrorT) ML_RETURN(Result);
+				if (ml_is_error(Result)) ML_RETURN(Result);
 				do {
 					ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Import->Ident);
-					if (!Slot[0] || Slot[0]->Type != MLUninitializedT) {
+					if (!Slot[0] || ml_typeof(Slot[0]) != MLUninitializedT) {
 						Slot[0] = ml_uninitialized();
 					}
 					ml_value_t *Args[2] = {Result, ml_string(Import->Ident, -1)};
 					ml_value_t *Value = ml_call(SymbolMethod, 2, Args);
-					if (Value->Type == MLErrorT) ML_RETURN(Value);
+					if (ml_is_error(Value)) ML_RETURN(Value);
 					ml_uninitialized_set(Slot[0],  Value);
 					Slot[0] = Value;
 					Import = Import->Next;
@@ -2771,24 +2774,24 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 		if (ml_parse(Scanner, MLT_IDENT)) {
 			const char *Ident = Scanner->Ident;
 			ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Ident);
-			if (!Slot[0] || Slot[0]->Type != MLUninitializedT) {
+			if (!Slot[0] || ml_typeof(Slot[0]) != MLUninitializedT) {
 				Slot[0] = ml_uninitialized();
 			}
 			ml_accept(Scanner, MLT_LEFT_PAREN);
 			mlc_expr_t *Expr = ml_accept_fun_expr(Scanner, MLT_RIGHT_PAREN);
 			Result = ml_compile(Expr, NULL, Scanner->Context);
-			if (Result->Type == MLErrorT) ML_RETURN(Result);
+			if (ml_is_error(Result)) ML_RETURN(Result);
 			Result = ml_call(Result, 0, NULL);
-			if (Result->Type == MLErrorT) ML_RETURN(Result);
+			if (ml_is_error(Result)) ML_RETURN(Result);
 			ml_uninitialized_set(Slot[0], Result);
 			Slot[0] = Result;
 		} else {
 			ml_accept(Scanner, MLT_LEFT_PAREN);
 			mlc_expr_t *Expr = ml_accept_fun_expr(Scanner, MLT_RIGHT_PAREN);
 			Result = ml_compile(Expr, NULL, Scanner->Context);
-			if (Result->Type == MLErrorT) ML_RETURN(Result);
+			if (ml_is_error(Result)) ML_RETURN(Result);
 			Result = ml_call(Result, 0, NULL);
-			if (Result->Type == MLErrorT) ML_RETURN(Result);
+			if (ml_is_error(Result)) ML_RETURN(Result);
 		}
 	} else {
 		mlc_expr_t *Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
@@ -2800,20 +2803,20 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 			ml_accept(Scanner, MLT_LEFT_PAREN);
 			ml_accept_arguments(Scanner, MLT_RIGHT_PAREN, &Expr->Next);
 			ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Ident);
-			if (!Slot[0] || Slot[0]->Type != MLUninitializedT) {
+			if (!Slot[0] || ml_typeof(Slot[0]) != MLUninitializedT) {
 				Slot[0] = ml_uninitialized();
 			}
 			Result = ml_compile((mlc_expr_t *)CallExpr, NULL, Scanner->Context);
-			if (Result->Type == MLErrorT) ML_RETURN(Result);
+			if (ml_is_error(Result)) ML_RETURN(Result);
 			Result = ml_call(Result, 0, NULL);
-			if (Result->Type == MLErrorT) ML_RETURN(Result);
+			if (ml_is_error(Result)) ML_RETURN(Result);
 			ml_uninitialized_set(Slot[0],  Result);
 			Slot[0] = Result;
 		} else {
 			Result = ml_compile(Expr, NULL, Scanner->Context);
-			if (Result->Type == MLErrorT) ML_RETURN(Result);
+			if (ml_is_error(Result)) ML_RETURN(Result);
 			Result = ml_call(Result, 0, NULL);
-			if (Result->Type == MLErrorT) ML_RETURN(Result);
+			if (ml_is_error(Result)) ML_RETURN(Result);
 		}
 	}
 	ml_parse(Scanner, MLT_SEMICOLON);

@@ -117,6 +117,35 @@ long ml_hash(ml_value_t *Value);
 typedef ml_value_t *(*ml_callback_t)(void *Data, int Count, ml_value_t **Args);
 typedef void (*ml_callbackx_t)(ml_state_t *Frame, void *Data, int Count, ml_value_t **Args);
 
+/****************************** Boxing ******************************/
+
+#ifdef USE_NANBOXING
+
+static inline int ml_tag(const ml_value_t *Value) {
+	return (uint64_t)Value >> 48;
+}
+
+static inline int ml_is_int32(ml_value_t *Value) {
+	return ml_tag(Value) == 1;
+}
+
+static inline ml_value_t *ml_int32(int32_t Integer) {
+	return (void *)(((uint64_t)1 << 48) + (uint32_t)Integer);
+}
+
+static inline int ml_is_double(ml_value_t *Value) {
+	return ml_tag(Value) >= 7;
+}
+
+static inline double ml_to_double(ml_value_t *Value) {
+	union { ml_value_t *Value; uint64_t Bits; double Double; } Boxed;
+	Boxed.Value = Value;
+	Boxed.Bits -= 0x07000000000000;
+	return Boxed.Double;
+}
+
+#endif
+
 /****************************** Iterators ******************************/
 
 extern ml_type_t MLIteratableT[];
@@ -261,6 +290,14 @@ extern ml_type_t MLNumberT[];
 extern ml_type_t MLIntegerT[];
 extern ml_type_t MLRealT[];
 
+#ifdef USE_NANBOXING
+
+extern ml_type_t MLInt32T[];
+extern ml_type_t MLInt64T[];
+extern ml_type_t MLDoubleT[];
+
+#endif
+
 ml_value_t *ml_integer(long Value);
 ml_value_t *ml_real(double Value);
 long ml_integer_value(ml_value_t *Value);
@@ -283,6 +320,14 @@ struct ml_buffer_t {
 
 extern ml_type_t MLBufferT[];
 extern ml_type_t MLStringT[];
+
+#ifdef USE_NANBOXING
+
+extern ml_type_t MLStringShortT[];
+extern ml_type_t MLStringLongT[];
+
+#endif
+
 extern ml_type_t MLRegexT[];
 extern ml_type_t MLStringBufferT[];
 
@@ -292,7 +337,24 @@ ml_value_t *ml_string(const char *Value, int Length);
 #define ml_cstring(VALUE) ml_string(VALUE, strlen(VALUE))
 
 ml_value_t *ml_string_format(const char *Format, ...);
+
+#ifdef USE_NANBOXING
+
+#define ml_string_value(VALUE) ({ \
+	int Tag = ml_tag(VALUE); \
+	(Tag >= 2 && Tag <= 6) \
+		? (char *)&(VALUE) \
+		: (Tag == 0 && (VALUE)->Type == MLStringLongT) \
+			? ((ml_buffer_t *)(VALUE))->Address \
+			: NULL; \
+})
+
+#else
+
 const char *ml_string_value(ml_value_t *Value);
+
+#endif
+
 size_t ml_string_length(ml_value_t *Value);
 ml_value_t *ml_string_of(ml_value_t *Value);
 
@@ -329,7 +391,6 @@ extern ml_value_t *MLStringBufferAppendMethod;
 typedef struct ml_list_t ml_list_t;
 
 extern ml_type_t MLListT[];
-extern ml_type_t MLNamesT[];
 
 struct ml_list_t {
 	const ml_type_t *Type;
@@ -421,8 +482,6 @@ static inline void ml_list_iter_update(ml_list_iter_t *Iter, ml_value_t *Value) 
 
 #define ML_LIST_REVERSE(LIST, ITER) \
 	for (ml_list_iter_t ITER[1] = {{((ml_list_t *)LIST)->Tail - 1, ((ml_list_t *)LIST)->Head}}; (ITER->Node >= ITER->Last) && (ITER->Value = ITER->Node[0]); --ITER->Node)
-
-#define ML_NAMES_FOREACH(LIST, ITER) ML_LIST_FOREACH(LIST, ITER)
 
 /****************************** Maps ******************************/
 
@@ -519,6 +578,22 @@ static inline void ml_map_iter_update(ml_map_iter_t *Iter, ml_value_t *Value) {
 #define ML_MAP_FOREACH(MAP, ITER) \
 	for (ml_map_iter_t ITER[1] = {{((ml_map_t *)MAP)->Head}}; ITER->Node && (ITER->Key = ITER->Node->Key) && (ITER->Value = ITER->Node->Value); ITER->Node = ITER->Node->Next)
 
+/****************************** Names ******************************/
+
+extern ml_type_t MLNamesT[];
+
+static inline ml_value_t *ml_names() {
+	ml_value_t *Names = ml_list();
+	Names->Type = MLNamesT;
+	return Names;
+}
+
+static inline void ml_names_add(ml_value_t *Names, ml_value_t *Value) {
+	ml_list_put(Names, Value);
+}
+
+#define ML_NAMES_FOREACH(LIST, ITER) ML_LIST_FOREACH(LIST, ITER)
+
 /****************************** Methods ******************************/
 
 extern ml_type_t MLMethodT[];
@@ -593,6 +668,33 @@ ml_value_t *ml_module_export(ml_value_t *Module, const char *Name, ml_value_t *V
 
 /****************************** Init ******************************/
 
+#ifdef USE_NANBOXING
+
+static inline const ml_type_t *ml_typeof(const ml_value_t *Value) {
+	unsigned Tag = ml_tag(Value);
+	if (__builtin_expect(Tag == 0, 1)) {
+		return Value->Type;
+	} else if (Tag == 1) {
+		return MLInt32T;
+	} else if (Tag < 7) {
+		return MLStringShortT;
+	} else {
+		return MLDoubleT;
+	}
+}
+
+static inline ml_value_t *ml_deref(ml_value_t *Value) {
+	unsigned Tag = ml_tag(Value);
+	if (__builtin_expect(Tag == 0, 1)) {
+		return Value->Type->deref(Value);
+	} else {
+		return Value;
+	}
+}
+
+
+#else
+
 static inline const ml_type_t *ml_typeof(const ml_value_t *Value) {
 	return Value->Type;
 }
@@ -600,6 +702,8 @@ static inline const ml_type_t *ml_typeof(const ml_value_t *Value) {
 static inline ml_value_t *ml_deref(ml_value_t *Value) {
 	return Value->Type->deref(Value);
 }
+
+#endif
 
 void ml_types_init(stringmap_t *Globals);
 

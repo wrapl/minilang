@@ -44,9 +44,9 @@ static const char *ml_preprocessor_line_read(ml_preprocessor_t *Preprocessor) {
 		ml_value_t *LineValue = ml_call(Input->Reader, 0, 0);
 		if (LineValue == MLNil) {
 			Preprocessor->Input = Input = Input->Prev;
-		} else if (LineValue->Type == MLStringT) {
+		} else if (ml_is(LineValue, MLStringT)) {
 			return ml_string_value(LineValue);
-		} else if (LineValue->Type == MLErrorT) {
+		} else if (ml_is(LineValue, MLErrorT)) {
 			printf("Error: %s\n", ml_error_message(LineValue));
 			ml_source_t Source;
 			int Level = 0;
@@ -101,10 +101,10 @@ static ml_value_t *ml_preprocessor_read(FILE *File, int Count, ml_value_t **Args
 static ml_value_t *ml_preprocessor_write(FILE *File, int Count, ml_value_t **Args) {
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Result = Args[I];
-		if (Result->Type != MLStringT) {
+		if (!ml_is(Result, MLStringT)) {
 			Result = ml_call(MLStringOfMethod, 1, &Result);
-			if (Result->Type == MLErrorT) return Result;
-			if (Result->Type != MLStringT) return ml_error("ResultError", "string method did not return string");
+			if (ml_is(Result, MLErrorT)) return Result;
+			if (!ml_is(Result, MLStringT)) return ml_error("ResultError", "string method did not return string");
 		}
 		fwrite(ml_string_value(Result), 1, ml_string_length(Result), File);
 	}
@@ -125,7 +125,7 @@ static ml_value_t *ml_preprocessor_include(ml_preprocessor_t *Preprocessor, int 
 }
 
 static void ml_result_run(ml_state_t *State, ml_value_t *Result) {
-	if (Result->Type == MLErrorT) {
+	if (ml_is(Result, MLErrorT)) {
 		printf("Error: %s\n", ml_error_message(Result));
 		ml_source_t Source;
 		int Level = 0;
@@ -166,7 +166,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 				if (LineValue == MLNil) {
 					Input = Preprocessor->Input = Preprocessor->Input->Prev;
 					if (!Input) return;
-				} else if (LineValue->Type == MLErrorT) {
+				} else if (ml_is(LineValue, MLErrorT)) {
 					printf("Error: %s\n", ml_error_message(LineValue));
 					ml_source_t Source;
 					int Level = 0;
@@ -174,7 +174,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 						printf("\t%s:%d\n", Source.Name, Source.Line);
 					}
 					exit(0);
-				} else if (LineValue->Type == MLStringT) {
+				} else if (ml_is(LineValue, MLStringT)) {
 					Line = ml_string_value(LineValue);
 				} else {
 					printf("Error: line read function did not return string\n");

@@ -870,9 +870,9 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 					switch (g_type_info_get_tag(ElementInfo)) {
 					case GI_TYPE_TAG_INT8:
 					case GI_TYPE_TAG_UINT8: {
-						if (Arg->Type == MLStringT) {
+						if (ml_is(Arg, MLStringT)) {
 							ArgsIn[IndexIn].v_pointer = (void *)ml_string_value(Arg);
-						} else if (Arg->Type == MLListT) {
+						} else if (ml_is(Arg, MLListT)) {
 							char *Array = GC_MALLOC_ATOMIC((ml_list_length(Arg) + 1));
 							// TODO: fill array
 							ArgsIn[IndexIn].v_pointer = Array;
@@ -922,7 +922,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 						} else if (ml_is(Arg, StructInstanceT)) {
 							ArgsIn[IndexIn].v_pointer = ((struct_instance_t *)Arg)->Value;
 						} else {
-							return ml_error("TypeError", "Expected gir struct not %s for parameter %d", Args[I]->Type->Name, I);
+							return ml_error("TypeError", "Expected gir struct not %s for parameter %d", ml_typeof(Args[I])->Name, I);
 						}
 						break;
 					}
@@ -933,7 +933,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 						if (ml_is(Arg, EnumValueT)) {
 							ArgsIn[IndexIn].v_int64 = ((enum_value_t *)Arg)->Value;
 						} else {
-							return ml_error("TypeError", "Expected gir enum not %s for parameter %d", Args[I]->Type->Name, I);
+							return ml_error("TypeError", "Expected gir enum not %s for parameter %d", ml_typeof(Args[I])->Name, I);
 						}
 						break;
 					}
@@ -946,7 +946,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 						} else if (ml_is(Arg, ObjectInstanceT)) {
 							ArgsIn[IndexIn].v_pointer = ((object_instance_t *)Arg)->Handle;
 						} else {
-							return ml_error("TypeError", "Expected gir object not %s for parameter %d", Args[I]->Type->Name, I);
+							return ml_error("TypeError", "Expected gir object not %s for parameter %d", ml_typeof(Args[I])->Name, I);
 						}
 						break;
 					}
@@ -956,7 +956,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 						} else if (ml_is(Arg, ObjectInstanceT)) {
 							ArgsIn[IndexIn].v_pointer = ((object_instance_t *)Arg)->Handle;
 						} else {
-							return ml_error("TypeError", "Expected gir object not %s for parameter %d", Args[I]->Type->Name, I);
+							return ml_error("TypeError", "Expected gir object not %s for parameter %d", ml_typeof(Args[I])->Name, I);
 						}
 						break;
 					}
@@ -1082,7 +1082,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 					if (ml_is(Arg, StructInstanceT)) {
 						ArgsOut[IndexOut].v_pointer = ((struct_instance_t *)Arg)->Value;
 					} else {
-						return ml_error("TypeError", "Expected gir struct not %s for parameter %d", Args[I]->Type->Name, I);
+						return ml_error("TypeError", "Expected gir struct not %s for parameter %d", ml_typeof(Args[I])->Name, I);
 					}
 					break;
 				}
@@ -1222,7 +1222,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 					if (ml_is(Arg, StructInstanceT)) {
 						ArgsIn[IndexIn].v_pointer = ArgsOut[IndexOut].v_pointer = ((struct_instance_t *)Arg)->Value;
 					} else {
-						return ml_error("TypeError", "Expected gir struct not %s for parameter %d", Args[I]->Type->Name, I);
+						return ml_error("TypeError", "Expected gir struct not %s for parameter %d", ml_typeof(Args[I])->Name, I);
 					}
 					break;
 				}
@@ -1584,16 +1584,16 @@ static ml_value_t *_value_to_ml(const GValue *Value) {
 static void _ml_to_value(ml_value_t *Source, GValue *Dest) {
 	if (Source == MLNil) {
 		g_value_init(Dest, G_TYPE_NONE);
-	} else if (Source->Type == MLBooleanT) {
+	} else if (ml_is(Source, MLBooleanT)) {
 		g_value_init(Dest, G_TYPE_BOOLEAN);
 		g_value_set_boolean(Dest, ml_boolean_value(Source));
-	} else if (Source->Type == MLIntegerT) {
+	} else if (ml_is(Source, MLIntegerT)) {
 		g_value_init(Dest, G_TYPE_LONG);
 		g_value_set_long(Dest, ml_integer_value(Source));
-	} else if (Source->Type == MLRealT) {
+	} else if (ml_is(Source, MLRealT)) {
 		g_value_init(Dest, G_TYPE_DOUBLE);
 		g_value_set_double(Dest, ml_real_value(Source));
-	} else if (Source->Type == MLStringT) {
+	} else if (ml_is(Source, MLStringT)) {
 		g_value_init(Dest, G_TYPE_STRING);
 		g_value_set_string(Dest, ml_string_value(Source));
 	} else if (ml_is(Source, ObjectInstanceT)) {

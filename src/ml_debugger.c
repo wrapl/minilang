@@ -51,7 +51,7 @@ static size_t *debugger_breakpoints(interactive_debugger_t *Debugger, const char
 }
 
 ml_value_t *interactive_debugger_get(interactive_debugger_t *Debugger, const char *Name) {
-	ml_value_t *Value = stringmap_search(Debugger->Globals, Name);
+	ml_value_t *Value = (ml_value_t *)stringmap_search(Debugger->Globals, Name);
 	if (Value) return Value;
 	for (ml_decl_t *Decl = ml_debugger_decls(Debugger->Active); Decl; Decl = Decl->Next) {
 		if (!strcmp(Decl->Ident, Name)) {
@@ -178,7 +178,7 @@ static void debugger_run(interactive_debugger_t *Debugger, ml_state_t *Frame, ml
 	ml_tuple_set(Location, 1, ml_string(Source.Name, -1));
 	ml_tuple_set(Location, 2, ml_integer(Source.Line));
 	Debugger->Info->Log(Debugger->Info->Data, Location);
-	if (Value->Type == MLErrorT) {
+	if (ml_is_error(Value)) {
 		Debugger->Info->Log(Debugger->Info->Data, Value);
 	}
 	Debugger->Info->Enter(Debugger->Info->Data, Debugger);
@@ -186,7 +186,7 @@ static void debugger_run(interactive_debugger_t *Debugger, ml_state_t *Frame, ml
 
 static void debugger_state_load(ml_state_t *State, ml_value_t *Function) {
 	State->run = ml_default_state_run;
-	return Function->Type->call(State, Function, 0, NULL);
+	return ml_typeof(Function)->call(State, Function, 0, NULL);
 }
 
 static void interactive_debugger_fnx(ml_state_t *Caller, interactive_debugger_info_t *Info, int Count, ml_value_t **Args) {
@@ -211,13 +211,13 @@ static void interactive_debugger_fnx(ml_state_t *Caller, interactive_debugger_in
 
 	ml_state_t *State = ml_state_new(Caller);
 	ml_context_set(State->Context, ML_DEBUGGER_INDEX, Debugger);
-	if (Args[0]->Type == MLStringT) {
+	if (ml_is(Args[0], MLStringT)) {
 		State->run = debugger_state_load;
 		const char *FileName = ml_string_value(Args[0]);
 		ml_load(State, Info->GlobalGet, Info->Globals, FileName, NULL);
 	} else {
 		ml_value_t *Function = Args[0];
-		return Function->Type->call(State, Function, Count - 1, Args + 1);
+		return ml_typeof(Function)->call(State, Function, Count - 1, Args + 1);
 	}
 }
 

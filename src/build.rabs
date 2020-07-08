@@ -154,6 +154,10 @@ if MINILANG_USE_ASM or defined("USE_ASM") then
 	end
 end
 
+if MINILANG_USE_NANBOXING or defined("USE_NANBOXING") then
+	CFLAGS := old + ["-DUSE_NANBOXING"]
+end
+
 if PLATFORM = "Linux" then
 	Objects:put(file("linenoise.o"))
 	LDFLAGS := old + ["-lgc"]

@@ -99,7 +99,7 @@ void console_log(console_t *Console, ml_value_t *Value) {
 	GtkTextIter End[1];
 	GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
 	gtk_text_buffer_get_end_iter(LogBuffer, End);
-	if (Value->Type == MLErrorT) {
+	if (ml_is_error(Value)) {
 		char *Buffer;
 		int Length = asprintf(&Buffer, "Error: %s\n", ml_error_message(Value));
 		gtk_text_buffer_insert_with_tags(LogBuffer, End, Buffer, Length, Console->ErrorTag, NULL);
@@ -111,7 +111,7 @@ void console_log(console_t *Console, ml_value_t *Value) {
 		}
 	} else {
 		ml_value_t *String = ml_string_of(Value);
-		if (String->Type == MLStringT) {
+		if (ml_is(String, MLStringT)) {
 			const char *Buffer = ml_string_value(String);
 			int Length = ml_string_length(String);
 			if (g_utf8_validate(Buffer, Length, NULL)) {
@@ -131,7 +131,7 @@ void console_log(console_t *Console, ml_value_t *Value) {
 			gtk_text_buffer_insert_with_tags(LogBuffer, End, "\n", 1, Console->ResultTag, NULL);
 		} else {
 			char *Buffer;
-			int Length = asprintf(&Buffer, "<%s>\n", Value->Type->Name);
+			int Length = asprintf(&Buffer, "<%s>\n", ml_typeof(Value)->Name);
 			gtk_text_buffer_insert_with_tags(LogBuffer, End, Buffer, Length, Console->ResultTag, NULL);
 		}
 	}
@@ -155,7 +155,7 @@ static void ml_console_repl_run(ml_console_repl_state_t *State, ml_value_t *Resu
 	GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(State->Console->LogView));
 	gtk_text_buffer_get_end_iter(LogBuffer, End);
 	gtk_text_buffer_insert(LogBuffer, End, "\n", 1);
-	if (Result->Type == MLErrorT) {
+	if (ml_is_error(Result)) {
 		gtk_widget_grab_focus(State->Console->InputView);
 		return;
 	}
@@ -361,10 +361,10 @@ ml_value_t *console_print(console_t *Console, int Count, ml_value_t **Args) {
 	gtk_text_buffer_get_end_iter(LogBuffer, End);
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Result = Args[I];
-		if (Result->Type != MLStringT) {
+		if (!ml_is(Result, MLStringT)) {
 			Result = ml_string_of(Result);
-			if (Result->Type == MLErrorT) return Result;
-			if (Result->Type != MLStringT) return ml_error("ResultError", "string method did not return string");
+			if (ml_is_error(Result)) return Result;
+			if (!ml_is(Result, MLStringT)) return ml_error("ResultError", "string method did not return string");
 		}
 		console_append(Console, ml_string_value(Result), ml_string_length(Result));
 	}
@@ -426,8 +426,8 @@ static ml_value_t *console_add_combo(console_t *Console, int Count, ml_value_t *
 
 static void console_included_run(ml_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Caller;
-	if (Value->Type == MLErrorT) ML_RETURN(Value);
-	return Value->Type->call(Caller, Value, 0, NULL);
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	return ml_typeof(Value)->call(Caller, Value, 0, NULL);
 }
 
 static void console_include_fnx(ml_state_t *Caller, console_t *Console, int Count, ml_value_t **Args) {

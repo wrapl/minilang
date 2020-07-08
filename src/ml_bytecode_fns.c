@@ -267,6 +267,7 @@ static void DO_KEY_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, m
 }
 
 static void DO_CALL_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
+	// TODO: Add TCO
 	int Count = Inst->Params[1].Count;
 	ml_value_t *Function = Top[~Count];
 	Function = ml_deref(Function);
@@ -278,6 +279,7 @@ static void DO_CALL_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, 
 }
 
 static void DO_CONST_CALL_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
+	// TODO: Add TCO
 	int Count = Inst->Params[1].Count;
 	ml_value_t *Function = Inst->Params[2].Value;
 	ml_value_t **Args = Top - Count;

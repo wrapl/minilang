@@ -76,7 +76,7 @@ static ml_value_t *ml_mpc_lift_val(void *Data, int Count, ml_value_t **Args) {
 
 ML_METHOD("expect", MLParserT, MLStringT) {
 	ml_parser_t *Parser = new(ml_parser_t);
-	Parser->Type = Args[0]->Type;
+	Parser->Type = ((ml_parser_t *)Args[0])->Type;
 	Parser->Handle = mpc_expect(((ml_parser_t *)Args[0])->Handle, ml_string_value(Args[1]));
 	return (ml_value_t *)Parser;
 }
@@ -107,7 +107,7 @@ ML_METHOD("apply", MLStringParserT, MLFunctionT) {
 
 static int ml_mpc_check_with(mpc_val_t **Slot, void *Function) {
 	ml_value_t *Result = ml_call((ml_value_t *)Function, 1, (ml_value_t **)Slot);
-	if (Result->Type == MLErrorT) return 0;
+	if (ml_is_error(Result)) return 0;
 	Slot[0] = Result;
 	return 1;
 }
@@ -122,7 +122,7 @@ ML_METHOD("!", MLValueParserT, MLStringT, MLFunctionT) {
 static int ml_mpc_check_with_string(mpc_val_t **Slot, void *Function) {
 	Slot[0] = ml_string(Slot[0], -1);
 	ml_value_t *Result = ml_call((ml_value_t *)Function, 1, (ml_value_t **)Slot);
-	if (Result->Type == MLErrorT) return 0;
+	if (ml_is_error(Result)) return 0;
 	Slot[0] = Result;
 	return 1;
 }
@@ -268,20 +268,20 @@ ML_METHOD(".", MLValueParserT, MLValueParserT) {
 
 ML_METHOD("predictive", MLParserT) {
 	ml_parser_t *Parser = new(ml_parser_t);
-	Parser->Type = Args[0]->Type;
+	Parser->Type = ((ml_parser_t *)Args[0])->Type;
 	Parser->Handle = mpc_predictive(((ml_parser_t *)Args[0])->Handle);
 	return (ml_value_t *)Parser;
 }
 
 ML_METHOD("define", MLParserT, MLParserT) {
 	mpc_define(((ml_parser_t *)Args[0])->Handle, ((ml_parser_t *)Args[1])->Handle);
-	Args[0]->Type = Args[1]->Type;
+	((ml_parser_t *)Args[0])->Type = ((ml_parser_t *)Args[1])->Type;
 	return Args[0];
 }
 
 ML_METHOD("copy", MLParserT) {
 	ml_parser_t *Parser = new(ml_parser_t);
-	Parser->Type = Args[0]->Type;
+	Parser->Type = ((ml_parser_t *)Args[0])->Type;
 	Parser->Handle = mpc_copy(((ml_parser_t *)Args[0])->Handle);
 	return (ml_value_t *)Parser;
 }

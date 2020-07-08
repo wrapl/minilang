@@ -32,14 +32,14 @@ typedef struct ml_export_function_t {
 
 static void ml_export_function_call(ml_state_t *Caller, ml_export_function_t *ExportFunction, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(2);
-	ml_value_t *NameValue = Args[0]->Type->deref(Args[0]);
-	if (NameValue->Type != MLStringT) ML_CHECKX_ARG_TYPE(0, MLStringT);
+	ml_value_t *NameValue = ml_typeof(Args[0])->deref(Args[0]);
+	if (!ml_is(NameValue, MLStringT)) ML_CHECKX_ARG_TYPE(0, MLStringT);
 	const char *Name = ml_string_value(NameValue);
 	ml_mini_module_t *Module = ExportFunction->Module;
 	ml_value_t *Value = Args[1];
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Module->Exports, Name);
 	if (Slot[0]) {
-		if (Slot[0]->Type != MLUninitializedT) {
+		if (ml_typeof(Slot[0]) != MLUninitializedT) {
 			ML_RETURN(ml_error("ExportError", "Duplicate export %s", Name));
 		}
 		ml_uninitialized_set(Slot[0], Value);
@@ -64,9 +64,9 @@ static void ml_module_done_run(ml_module_state_t *State, ml_value_t *Value) {
 }
 
 static void ml_module_init_run(ml_module_state_t *State, ml_value_t *Value) {
-	if (Value->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Value);
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	State->Base.run = (ml_state_fn)ml_module_done_run;
-	return Value->Type->call((ml_state_t *)State, Value, 1, State->Args);
+	return ml_typeof(Value)->call((ml_state_t *)State, Value, 1, State->Args);
 }
 
 void ml_module_load_file(ml_state_t *Caller, const char *FileName, ml_getter_t GlobalGet, void *Globals, ml_value_t **Slot) {

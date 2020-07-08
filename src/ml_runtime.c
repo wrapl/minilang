@@ -88,8 +88,8 @@ static void ml_context_key_call(ml_state_t *Caller, ml_context_key_t *Key, int C
 		State->run = ml_default_state_run;
 		State->Context = Context;
 		ml_value_t *Function = Args[1];
-		Function = Function->Type->deref(Function);
-		return Function->Type->call(State, Function, Count - 2, Args + 2);
+		Function = ml_deref(Function);
+		return ml_typeof(Function)->call(State, Function, Count - 2, Args + 2);
 	}
 }
 
@@ -120,8 +120,8 @@ static void ml_end_state_run(ml_state_t *State, ml_value_t *Value) {
 
 inline ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_value_state_t State[1] = {ML_EVAL_STATE_INIT};
-	Value->Type->call((ml_state_t *)State, Value, Count, Args);
-	return State->Value->Type->deref(State->Value);
+	ml_typeof(Value)->call((ml_state_t *)State, Value, Count, Args);
+	return ml_typeof(State->Value)->deref(State->Value);
 }
 
 void ml_default_state_run(ml_state_t *State, ml_value_t *Value) {
@@ -133,11 +133,11 @@ void ml_eval_state_run(ml_value_state_t *State, ml_value_t *Value) {
 }
 
 void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value) {
-	if (Value->Type == MLErrorT) {
+	if (ml_is_error(Value)) {
 		State->Value = Value;
 	} else {
 		State->Base.run = (ml_state_fn)ml_eval_state_run;
-		Value->Type->call((ml_state_t *)State, Value, 0, NULL);
+		ml_typeof(Value)->call((ml_state_t *)State, Value, 0, NULL);
 	}
 }
 
@@ -185,7 +185,7 @@ ML_FUNCTIONX(MLCallCC) {
 		ml_value_t *Function = Args[1];
 		ml_value_t **Args2 = anew(ml_value_t *, 1);
 		Args2[0] = (ml_value_t *)Resumable;
-		return Function->Type->call(State, Function, 1, Args2);
+		return ml_typeof(Function)->call(State, Function, 1, Args2);
 	} else {
 		ML_CHECKX_ARG_COUNT(1);
 		ml_value_t *Function = Args[0];
@@ -194,7 +194,7 @@ ML_FUNCTIONX(MLCallCC) {
 		ml_state_t *State = new(ml_state_t);
 		State->run = ml_end_state_run;
 		State->Context = Caller->Context;
-		return Function->Type->call(State, Function, 1, Args2);
+		return ml_typeof(Function)->call(State, Function, 1, Args2);
 	}
 }
 
@@ -208,7 +208,7 @@ ML_FUNCTIONX(MLMark) {
 	ml_value_t *Func = Args[0];
 	ml_value_t **Args2 = anew(ml_value_t *, 1);
 	Args2[0] = (ml_value_t *)State;
-	return Func->Type->call(State, Func, 1, Args2);
+	return ml_typeof(Func)->call(State, Func, 1, Args2);
 }
 
 /****************************** References ******************************/
@@ -216,7 +216,7 @@ ML_FUNCTIONX(MLMark) {
 static long ml_reference_hash(ml_value_t *Ref, ml_hash_chain_t *Chain) {
 	ml_reference_t *Reference = (ml_reference_t *)Ref;
 	ml_value_t *Value = Reference->Address[0];
-	return Value->Type->hash(Value, Chain);
+	return ml_typeof(Value)->hash(Value, Chain);
 }
 
 static ml_value_t *ml_reference_deref(ml_value_t *Ref) {
