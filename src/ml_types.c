@@ -6,6 +6,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdint.h>
+#include <ctype.h>
 #include <gc.h>
 #include <gc/gc_typed.h>
 #include <regex.h>
@@ -2088,6 +2089,22 @@ ML_METHOD("/", MLStringT, MLRegexT) {
 	return Results;
 }
 
+ML_METHOD("lower", MLStringT) {
+	const char *Source = ml_string_value(Args[0]);
+	int Length = ml_string_length(Args[0]);
+	char *Target = snew(Length + 1);
+	for (int I = 0; I < Length; ++I) Target[I] = tolower(Source[I]);
+	return ml_string(Target, Length);
+}
+
+ML_METHOD("upper", MLStringT) {
+	const char *Source = ml_string_value(Args[0]);
+	int Length = ml_string_length(Args[0]);
+	char *Target = snew(Length + 1);
+	for (int I = 0; I < Length; ++I) Target[I] = toupper(Source[I]);
+	return ml_string(Target, Length);
+}
+
 ML_METHOD("find", MLStringT, MLStringT) {
 	const char *Haystack = ml_string_value(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
@@ -2117,12 +2134,11 @@ ML_METHOD("find", MLStringT, MLStringT, MLIntegerT) {
 }
 
 ML_METHOD("find", MLStringT, MLRegexT) {
+	const char *Haystack = ml_string_value(Args[0]);
+	int Length = ml_string_length(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 #ifdef __USE_GNU
-	regoff_t Offset = re_search(Regex,
-		ml_string_value(Args[0]), ml_string_length(Args[0]),
-		0, ml_string_length(Args[0]), NULL
-	);
+	regoff_t Offset = re_search(Regex, Haystack, Length, 0, Length, NULL);
 	if (Offset >= 0) {
 		return ml_integer(Offset);
 	} else {
@@ -2130,7 +2146,7 @@ ML_METHOD("find", MLStringT, MLRegexT) {
 	}
 #else
 	regmatch_t Matches[1];
-	switch (regexec(Regex, ml_string_value(Args[0]), 1, Matches, 0)) {
+	switch (regexec(Regex, Haystack, 1, Matches, 0)) {
 	case REG_NOMATCH:
 		return MLNil;
 	case REG_ESPACE: {
@@ -2141,6 +2157,38 @@ ML_METHOD("find", MLStringT, MLRegexT) {
 	}
 	}
 	return ml_integer(Matches->rm_so);
+#endif
+}
+
+ML_METHOD("find", MLStringT, MLRegexT, MLIntegerT) {
+	const char *Haystack = ml_string_value(Args[0]);
+	int Length = ml_string_length(Args[0]);
+	regex_t *Regex = ml_regex_value(Args[1]);
+	int Start = ml_integer_value(Args[2]);
+	if (Start <= 0) Start += Length + 1;
+	if (Start <= 0) return MLNil;
+	if (Start > Length) return MLNil;
+	Haystack += Start - 1;
+#ifdef __USE_GNU
+	regoff_t Offset = re_search(Regex, Haystack, Length, 0, Length, NULL);
+	if (Offset >= 0) {
+		return ml_integer(Start + Offset);
+	} else {
+		return MLNil;
+	}
+#else
+	regmatch_t Matches[1];
+	switch (regexec(Regex, Haystack, 1, Matches, 0)) {
+	case REG_NOMATCH:
+		return MLNil;
+	case REG_ESPACE: {
+		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
+		char *ErrorMessage = snew(ErrorSize + 1);
+		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
+		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+	}
+	}
+	return ml_integer(Start + Matches->rm_so);
 #endif
 }
 
