@@ -2140,7 +2140,7 @@ ML_METHOD("find", MLStringT, MLRegexT) {
 #ifdef __USE_GNU
 	regoff_t Offset = re_search(Regex, Haystack, Length, 0, Length, NULL);
 	if (Offset >= 0) {
-		return ml_integer(Offset);
+		return ml_integer(1 + Offset);
 	} else {
 		return MLNil;
 	}
@@ -2156,7 +2156,7 @@ ML_METHOD("find", MLStringT, MLRegexT) {
 		return ml_error("RegexError", "regex error: %s", ErrorMessage);
 	}
 	}
-	return ml_integer(Matches->rm_so);
+	return ml_integer(1 + Matches->rm_so);
 #endif
 }
 
