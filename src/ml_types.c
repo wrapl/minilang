@@ -3330,7 +3330,7 @@ struct ml_method_definition_t {
 };
 
 static unsigned int ml_method_definition_score(ml_method_definition_t *Definition, int Count, const ml_type_t **Types, unsigned int Best) {
-	unsigned int Score = 0;
+	unsigned int Score = 1;
 	if (Definition->Count > Count) return 0;
 	if (Definition->Count < Count) {
 		if (!Definition->Variadic) return 0;
@@ -3466,6 +3466,7 @@ static void ml_method_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_
 		int Length = 4;
 		for (int I = 0; I < Count; ++I) Length += strlen(ml_typeof(Args[I])->Name) + 2;
 		char *Types = snew(Length);
+		Types[0] = 0;
 		char *P = Types;
 #ifdef __MINGW32__
 		for (int I = 0; I < Count; ++I) {
