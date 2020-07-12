@@ -194,6 +194,7 @@ var InstallHeaders := [
 	"ml_object.h",
 	"ml_compiler.h",
 	"ml_runtime.h",
+	"ml_bytecode.h",
 	"stringmap.h",
 	"inthash.h"
 ]
