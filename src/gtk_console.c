@@ -236,18 +236,24 @@ static void console_font_changed(GtkFontChooser *Widget, console_t *Console) {
 	g_key_file_save_to_file(Console->Config, Console->ConfigPath, NULL);
 }
 
+#ifdef __APPLE__
+#define COMMAND_MASK GDK_META_MASK
+#else
+#define COMMAND_MASK GDK_CONTROL_MASK
+#endif
+
 static gboolean console_keypress(GtkWidget *Widget, GdkEventKey *Event, console_t *Console) {
 	switch (Event->keyval) {
 	case GDK_KEY_Return:
 		Console->NumChars = 0;
-		if (Event->state & GDK_CONTROL_MASK) {
+		if (Event->state & COMMAND_MASK) {
 			console_submit(NULL, Console);
 			return TRUE;
 		}
 		break;
 	case GDK_KEY_Up:
 		Console->NumChars = 0;
-		if (Event->state & GDK_CONTROL_MASK) {
+		if (Event->state & COMMAND_MASK) {
 			int HistoryIndex = (Console->HistoryIndex + MAX_HISTORY - 1) % MAX_HISTORY;
 			if (Console->History[HistoryIndex]) {
 				gtk_text_buffer_set_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView)), Console->History[HistoryIndex], -1);
@@ -258,11 +264,14 @@ static gboolean console_keypress(GtkWidget *Widget, GdkEventKey *Event, console_
 		break;
 	case GDK_KEY_Down:
 		Console->NumChars = 0;
-		if (Event->state & GDK_CONTROL_MASK) {
+		if (Event->state & COMMAND_MASK) {
 			int HistoryIndex = (Console->HistoryIndex + 1) % MAX_HISTORY;
 			if (Console->History[HistoryIndex]) {
 				gtk_text_buffer_set_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView)), Console->History[HistoryIndex], -1);
 				Console->HistoryIndex = HistoryIndex;
+			} else {
+				gtk_text_buffer_set_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView)), "", 0);
+				Console->HistoryIndex = Console->HistoryEnd;
 			}
 			return TRUE;
 		}

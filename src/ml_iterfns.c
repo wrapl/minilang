@@ -965,11 +965,11 @@ static void ML_TYPED_FN(ml_iterate, MLRepeatedT, ml_state_t *Caller, ml_repeated
 }
 
 ML_FUNCTION(Repeat) {
-	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_COUNT(1);
 	ml_repeated_t *Repeated = new(ml_repeated_t);
 	Repeated->Type = MLRepeatedT;
 	Repeated->Value = Args[0];
-	Repeated->Function = Args[1];
+	Repeated->Function = Count > 1 ? Args[1] : ml_integer(1);
 	return (ml_value_t *)Repeated;
 }
 
