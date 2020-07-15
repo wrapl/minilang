@@ -41,6 +41,10 @@ struct ml_closure_t {
 	ml_value_t *UpValues[];
 };
 
+static inline stringmap_t *ml_closure_params(ml_value_t *Closure) {
+	return ((ml_closure_t *)Closure)->Info->Params;
+}
+
 typedef union {
 	ml_inst_t *Inst;
 	int Index;

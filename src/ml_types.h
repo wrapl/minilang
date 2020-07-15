@@ -399,6 +399,7 @@ struct ml_list_t {
 };
 
 ml_value_t *ml_list();
+void ml_list_grow(ml_value_t *List, int Count);
 void ml_list_push(ml_value_t *List, ml_value_t *Value);
 void ml_list_put(ml_value_t *List, ml_value_t *Value);
 ml_value_t *ml_list_pop(ml_value_t *List);

@@ -81,8 +81,8 @@ void ml_type_init(ml_type_t *Type, ...) {
 		if (Rank < Parent->Rank) Rank = Parent->Rank;
 		const ml_type_t **Types = Parent->Types;
 		if (!Types) {
-			printf("Types initialized in wrong order %s < %s\n", Type->Name, Parent->Name);
-			asm("int3");
+			fprintf(stderr, "Types initialized in wrong order %s < %s\n", Type->Name, Parent->Name);
+			exit(1);
 		}
 		do ++NumParents; while (*++Types != MLAnyT);
 	}
@@ -2482,6 +2482,11 @@ ml_value_t *ml_list_from_array(ml_value_t **Values, int Length) {
 void ml_list_to_array(ml_value_t *List0, ml_value_t **Values) {
 	ml_list_t *List = (ml_list_t *)List0;
 	memcpy(Values, List->Head, List->Length * sizeof(ml_value_t *));
+}
+
+void ml_list_grow(ml_value_t *List, int Count) {
+	// TODO: Optimize this function
+	for (int I = 0; I < Count; ++I) ml_list_put(List, MLNil);
 }
 
 void ml_list_push(ml_value_t *List0, ml_value_t *Value) {

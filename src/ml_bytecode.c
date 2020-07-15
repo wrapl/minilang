@@ -1006,6 +1006,19 @@ ML_METHOD(MLStringOfMethod, MLClosureT) {
 	return ml_string_format("<%s:%d>", Closure->Info->Source, Closure->Info->Entry->LineNo);
 }
 
+static int ml_closure_parameter_fn(const char *Name, void *Value, ml_value_t *Parameters) {
+	ml_list_set(Parameters, (intptr_t)Value, ml_string(Name, -1));
+	return 0;
+}
+
+ML_METHOD("parameters", MLClosureT) {
+	ml_closure_t *Closure = (ml_closure_t *)Args[0];
+	ml_value_t *Parameters = ml_list();
+	ml_list_grow(Parameters, Closure->Info->Params->Size);
+	stringmap_foreach(Closure->Info->Params, Parameters, (void *)ml_closure_parameter_fn);
+	return Parameters;
+}
+
 static void ml_closure_find_labels(int Process, ml_inst_t *Inst, unsigned int *Labels, int NonLinear) {
 	if (Inst->Processed == Process) {
 		Inst->Label = ++*Labels;
