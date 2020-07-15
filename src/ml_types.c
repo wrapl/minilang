@@ -3316,7 +3316,7 @@ static ml_methods_t MLRootMethods[1] = {{NULL, {INTHASH_INIT}, {INTHASH_INIT}}};
 void ml_methods_context_new(ml_context_t *Context) {
 	ml_methods_t *Methods = new(ml_methods_t);
 	Methods->Parent = Context->Values[ML_METHODS_INDEX];
-	ml_context_set(Context, ML_METHODS_INDEX, Methods);
+	Context->Values[ML_METHODS_INDEX] = Methods;
 }
 
 struct ml_method_cached_t {
