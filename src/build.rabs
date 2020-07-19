@@ -26,25 +26,29 @@ else
 	LDFLAGS := old + ["-g"]
 end
 
-for Source in PATH:ls(".*\\.c") do
-	Source:basename:find("_init") and next
-	var Target := file(Source:basename:replace(".c", "_init.c"))[Source] => fun() do
-		Target:open("w"):close
-		var Init := shell("cc", CFLAGS, "-E -P -DGENERATE_INIT", Source)
-		var Out := Target:open("w")
-		for Line in Init / "\n" do
-			loop
-				var I := while Line:find("INIT_CODE ")
-				Line := Line[I + 10, 0]
-				var J := while Line:find(");")
-				Out:write(Line[1, J + 2])
-				Out:write("\n")
-				Line := Line[J + 2, 0]
+fun generate_minilang_init() do
+	for Source in PATH:ls(".*\\.c") do
+		Source:basename:find("_init") and next
+		var Target := file(Source:basename:replace(".c", "_init.c"))[Source] => fun() do
+			Target:open("w"):close
+			var Init := shell("cc", CFLAGS, "-E -P -DGENERATE_INIT", Source)
+			var Out := Target:open("w")
+			for Line in Init / "\n" do
+				loop
+					var I := while Line:find("INIT_CODE ")
+					Line := Line[I + 10, 0]
+					var J := while Line:find(");")
+					Out:write(Line[1, J + 2])
+					Out:write("\n")
+					Line := Line[J + 2, 0]
+				end
 			end
+			Out:close
 		end
-		Out:close
 	end
 end
+
+generate_minilang_init()
 
 var Objects := [
 	file("ml_compiler.o"),
@@ -177,6 +181,9 @@ MINIPP := c_program(BIN_DIR/"minipp", [file("minipp.o")], [LIBMINILANG])
 MINIXE := c_program(BIN_DIR/"minixe", [file("minixe.o")], [LIBMINILANG])
 
 DEFAULT[LIBMINILANG, MINILANG, MINIPP, MINIXE]
+
+PARENT."LIBMINILANG" := LIBMINILANG
+PARENT."generate_minilang_init" := generate_minilang_init
 
 var InstallBin := PREFIX/"bin"
 var InstallInclude := PREFIX/"include/minilang"
