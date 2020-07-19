@@ -48,7 +48,7 @@ fun generate_init_files() do
 	end
 end
 
-PARENT."generate_minilang_init" := generate_init_files
+PARENT."generate_init_files" := generate_init_files
 
 generate_init_files()
 
