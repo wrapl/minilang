@@ -775,6 +775,8 @@ ML_FUNCTIONX(Tasks) {
 	ml_tasks_t *Tasks = new(ml_tasks_t);
 	Tasks->Base.Type = MLTasksT;
 	Tasks->Base.run = (void *)ml_tasks_continue;
+	Tasks->Base.Caller = Caller;
+	Tasks->Base.Context = Caller->Context;
 	Tasks->Result = MLNil;
 	Tasks->Waiting = 1;
 	ML_RETURN(Tasks);
@@ -784,7 +786,7 @@ ML_METHODX("wait", MLTasksT) {
 	ml_tasks_t *Tasks = (ml_tasks_t *)Args[0];
 	Tasks->Base.Caller = Caller;
 	Tasks->Base.Context = Caller->Context;
-	if (--Tasks->Waiting == 0) ML_CONTINUE(Tasks->Base.Caller, Tasks->Result);
+	ml_tasks_continue(Tasks, MLNil);
 }
 
 typedef struct ml_parallel_iter_t ml_parallel_iter_t;
