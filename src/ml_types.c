@@ -2442,10 +2442,17 @@ ML_FUNCTION(StringifierNew) {
 static ml_list_node_t *ml_list_index(ml_list_t *List, int Index) {
 	int Length = List->Length;
 	if (Index <= 0) Index += Length + 1;
-	if (Index <= 0 || Index > Length) return NULL;
-	int CachedIndex = List->CachedIndex;
-	if (Index == 1) return List->Head;
+	if (Index > Length) return NULL;
 	if (Index == Length) return List->Tail;
+	if (Index < 1) return NULL;
+	if (Index == 1) return List->Head;
+	int CachedIndex = List->CachedIndex;
+	if (CachedIndex < 0) {
+		CachedIndex = 0;
+		List->CachedNode = List->Head;
+	} else if (CachedIndex > Length) {
+
+	}
 	switch (Index - CachedIndex) {
 	case -1: {
 		List->CachedIndex = Index;
@@ -2457,31 +2464,26 @@ static ml_list_node_t *ml_list_index(ml_list_t *List, int Index) {
 		return (List->CachedNode = List->CachedNode->Next);
 	}
 	}
+	List->CachedIndex = Index;
+	ml_list_node_t *Node;
 	if (2 * Index < CachedIndex) {
-		ml_list_node_t *Node = List->Head;
+		Node = List->Head;
 		int Steps = Index - 1;
 		do Node = Node->Next; while (--Steps);
-		List->CachedIndex = Index;
-		return (List->CachedNode = Node);
 	} else if (Index < CachedIndex) {
-		ml_list_node_t *Node = List->CachedNode;
+		Node = List->CachedNode;
 		int Steps = CachedIndex - Index;
 		do Node = Node->Prev; while (--Steps);
-		List->CachedIndex = Index;
-		return (List->CachedNode = Node);
 	} else if (2 * Index < CachedIndex + Length) {
-		ml_list_node_t *Node = List->CachedNode;
+		Node = List->CachedNode;
 		int Steps = Index - CachedIndex;
 		do Node = Node->Next; while (--Steps);
-		List->CachedIndex = Index;
-		return (List->CachedNode = Node);
 	} else {
-		ml_list_node_t *Node = List->Tail;
+		Node = List->Tail;
 		int Steps = Length - Index;
 		do Node = Node->Prev; while (--Steps);
-		List->CachedIndex = Index;
-		return (List->CachedNode = Node);
 	}
+	return (List->CachedNode = Node);
 }
 
 static void ml_list_call(ml_state_t *Caller, ml_list_t *List, int Count, ml_value_t **Args) {
@@ -2516,7 +2518,6 @@ ml_value_t *ml_list() {
 	List->Type = MLListT;
 	List->Head = List->Tail = NULL;
 	List->Length = 0;
-	List->CachedIndex = 0;
 	return (ml_value_t *)List;
 }
 
@@ -2533,9 +2534,11 @@ void ml_list_to_array(ml_value_t *List, ml_value_t **Values) {
 	}
 }
 
-void ml_list_grow(ml_value_t *List, int Count) {
-	// TODO: Optimize this function
-	for (int I = 0; I < Count; ++I) ml_list_put(List, MLNil);
+void ml_list_grow(ml_value_t *List0, int Count) {
+	ml_list_t *List = (ml_list_t *)List0;
+	for (int I = 0; I < Count; ++I) ml_list_put(List0, MLNil);
+	List->CachedIndex = 1;
+	List->CachedNode = List->Head;
 }
 
 void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
@@ -2548,7 +2551,8 @@ void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
 	} else {
 		List->Tail = Node;
 	}
-	List->Head = Node;
+	List->CachedNode = List->Head = Node;
+	List->CachedIndex = 1;
 	++List->Length;
 }
 
@@ -2562,8 +2566,8 @@ void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 	} else {
 		List->Head = Node;
 	}
-	List->Tail = Node;
-	++List->Length;
+	List->CachedNode = List->Tail = Node;
+	List->CachedIndex = ++List->Length;
 }
 
 ml_value_t *ml_list_pop(ml_value_t *List0) {
@@ -2575,6 +2579,8 @@ ml_value_t *ml_list_pop(ml_value_t *List0) {
 		} else {
 			List->Tail = NULL;
 		}
+		List->CachedNode = List->Head;
+		List->CachedIndex = 1;
 		--List->Length;
 		return Node->Value;
 	} else {
@@ -2591,7 +2597,8 @@ ml_value_t *ml_list_pull(ml_value_t *List0) {
 		} else {
 			List->Head = NULL;
 		}
-		--List->Length;
+		List->CachedNode = List->Tail;
+		List->CachedIndex = --List->Length;
 		return Node->Value;
 	} else {
 		return MLNil;
