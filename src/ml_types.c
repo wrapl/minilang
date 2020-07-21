@@ -535,10 +535,10 @@ ml_value_t *ml_tuple(size_t Size) {
 	return (ml_value_t *)Tuple;
 }
 
-ml_unpacked_t ml_unpack(ml_value_t *Value, int Count) {
+ml_value_t *ml_unpack(ml_value_t *Value, int Index) {
 	typeof(ml_unpack) *function = ml_typed_fn_get(ml_typeof(Value), ml_unpack);
-	if (!function) return (ml_unpacked_t){NULL, 0};
-	return function(Value, Count);
+	if (!function) return NULL;
+	return function(Value, Index);
 }
 
 ML_FUNCTION(MLTuple) {
@@ -629,8 +629,9 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLTupleT) {
 	return MLSome;
 }
 
-ml_unpacked_t ML_TYPED_FN(ml_unpack, MLTupleT, ml_tuple_t *Tuple, int Count) {
-	return (ml_unpacked_t){Tuple->Values, Tuple->Size};
+ml_value_t *ML_TYPED_FN(ml_unpack, MLTupleT, ml_tuple_t *Tuple, int Index) {
+	if (Index >= Tuple->Size) return NULL;
+	return Tuple->Values[Index];
 }
 
 static ml_value_t *ml_tuple_compare(ml_tuple_t *A, ml_tuple_t *B) {
@@ -2683,9 +2684,9 @@ static ml_value_t *ml_list_slice_assign(ml_list_slice_t *Slice, ml_value_t *Valu
 	if (--End < 0) End += List->Length + 1;
 	if (Start < 0 || End < Start || End > List->Length) return ml_error("RangeError", "Index outside list");
 	int Length = End - Start;
-	ml_unpacked_t Unpacked = ml_unpack(Value, Length);
+	/*ml_unpacked_t Unpacked = ml_unpack(Value, Length);
 	if (Unpacked.Count != Length) return ml_error("ValueError", "Incorrect number of values to unpack (%d != %d)", Unpacked.Count, Length);
-	memcpy(List->Head + Start, Unpacked.Values, Length * sizeof(ml_value_t *));
+	memcpy(List->Head + Start, Unpacked.Values, Length * sizeof(ml_value_t *));*/
 	return Value;
 }
 
@@ -2737,8 +2738,9 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLListT) {
 	}
 }
 
-ml_unpacked_t ML_TYPED_FN(ml_unpack, MLListT, ml_list_t *List, int Count) {
-	return (ml_unpacked_t){List->Head, List->Length};
+ml_value_t *ML_TYPED_FN(ml_unpack, MLListT, ml_list_t *List, int Index) {
+	if (Index >= List->Length) return NULL;
+	return List->Head[Index];
 }
 
 typedef struct ml_list_iterator_t {

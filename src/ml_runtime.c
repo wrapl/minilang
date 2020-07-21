@@ -306,11 +306,16 @@ struct ml_error_t {
 	ml_source_t Trace[MAX_TRACE];
 };
 
+static ml_value_t *ml_error_assign(ml_value_t *Error, ml_value_t *Value) {
+	return Error;
+}
+
 static void ml_error_call(ml_state_t *Caller, ml_value_t *Error, int Count, ml_value_t **Args) {
 	ML_RETURN(Error);
 }
 
 ML_TYPE(MLErrorT, (), "error",
+	.assign = ml_error_assign,
 	.call = ml_error_call
 );
 

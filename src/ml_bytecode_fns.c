@@ -22,7 +22,7 @@ extern void *MLCachedFrame;
 
 static void DO_RETURN_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
 	ml_state_t *Caller = Frame->Base.Caller;
-	if (Frame->Size == 256) {
+	if (Frame->Reuse) {
 		for (ml_value_t **Top = Frame->Stack; Top < Frame->Top; ++Top) *Top = NULL;
 		Frame->Base.Caller = MLCachedFrame;
 		MLCachedFrame = Frame;
@@ -273,9 +273,14 @@ static void DO_CALL_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, 
 	Function = ml_deref(Function);
 	//ERROR_CHECK(Function);
 	ml_value_t **Args = Top - Count;
-	Frame->Inst = Inst->Params[0].Inst;
-	Frame->Top = Top - (Count + 1);
-	return ml_typeof(Function)->call((ml_state_t *)Frame, Function, Count, Args);
+	ml_inst_t *Next = Inst->Params[0].Inst;
+	if (Next->Opcode == MLI_RETURN) {
+		return ml_typeof(Function)->call(Frame->Base.Caller, Function, Count, Args);
+	} else {
+		Frame->Inst = Next;
+		Frame->Top = Top - (Count + 1);
+		return ml_typeof(Function)->call((ml_state_t *)Frame, Function, Count, Args);
+	}
 }
 
 static void DO_CONST_CALL_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
@@ -283,9 +288,14 @@ static void DO_CONST_CALL_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t *
 	int Count = Inst->Params[1].Count;
 	ml_value_t *Function = Inst->Params[2].Value;
 	ml_value_t **Args = Top - Count;
-	Frame->Inst = Inst->Params[0].Inst;
-	Frame->Top = Top - Count;
-	return ml_typeof(Function)->call((ml_state_t *)Frame, Function, Count, Args);
+	ml_inst_t *Next = Inst->Params[0].Inst;
+	if (Next->Opcode == MLI_RETURN) {
+		return ml_typeof(Function)->call(Frame->Base.Caller, Function, Count, Args);
+	} else {
+		Frame->Inst = Next;
+		Frame->Top = Top - Count;
+		return ml_typeof(Function)->call((ml_state_t *)Frame, Function, Count, Args);
+	}
 }
 
 static void DO_ASSIGN_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {

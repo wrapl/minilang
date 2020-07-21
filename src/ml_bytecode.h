@@ -138,19 +138,17 @@ struct ml_frame_t {
 	ml_value_t **Top;
 	ml_inst_t *OnError;
 	ml_value_t **UpValues;
-	size_t Size;
+	unsigned int Counter;
+	unsigned int Reuse:1;
+	unsigned int Reentry:1;
 #ifdef USE_ML_SCHEDULER
 	ml_schedule_t Schedule;
 #endif
-#ifdef DEBUG_VERSION
-	ml_debugger_t *Debugger;
-	size_t *Breakpoints;
-	ml_decl_t *Decls;
-	size_t Revision;
-	int DebugReentry;
-#endif
 	ml_value_t *Stack[];
 };
+
+#define ML_FRAME_REUSE (1 << 0)
+#define ML_FRAME_REENTRY (1 << 1)
 
 typedef struct ml_variable_t ml_variable_t;
 
