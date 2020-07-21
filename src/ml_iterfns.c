@@ -768,15 +768,19 @@ ML_TYPE(MLTasksT, (MLFunctionT), "tasks",
 
 static void ml_tasks_continue(ml_tasks_t *Tasks, ml_value_t *Value) {
 	if (ml_is_error(Value)) Tasks->Result = Value;
-	if (--Tasks->Waiting == 0) ML_CONTINUE(Tasks->Base.Caller, Tasks->Result);
+	if (--Tasks->Waiting == 0) {
+		ml_state_t *Caller = Tasks->Base.Caller;
+		if (Caller) {
+			Tasks->Base.Caller = NULL;
+			ML_CONTINUE(Caller, Tasks->Result);
+		}
+	}
 }
 
 ML_FUNCTIONX(Tasks) {
 	ml_tasks_t *Tasks = new(ml_tasks_t);
 	Tasks->Base.Type = MLTasksT;
 	Tasks->Base.run = (void *)ml_tasks_continue;
-	Tasks->Base.Caller = Caller;
-	Tasks->Base.Context = Caller->Context;
 	Tasks->Result = MLNil;
 	Tasks->Waiting = 1;
 	ML_RETURN(Tasks);
