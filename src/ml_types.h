@@ -383,14 +383,22 @@ extern ml_value_t *MLStringBufferAppendMethod;
 
 /****************************** Lists ******************************/
 
+typedef struct ml_list_node_t ml_list_node_t;
 typedef struct ml_list_t ml_list_t;
 
 extern ml_type_t MLListT[];
 
+struct ml_list_node_t {
+	const ml_type_t *Type;
+	ml_list_node_t *Next, *Prev;
+	ml_value_t *Value;
+};
+
 struct ml_list_t {
 	const ml_type_t *Type;
-	ml_value_t **Nodes, **Head, **Tail;
-	int Length, Space;
+	ml_list_node_t *Head, *Tail;
+	ml_list_node_t *CachedNode;
+	int Length, CachedIndex;
 };
 
 ml_value_t *ml_list();
@@ -413,55 +421,47 @@ static inline int ml_list_length(ml_value_t *List) {
 }
 
 typedef struct {
-	ml_value_t **Node, **Last;
+	ml_list_node_t *Node;
 	ml_value_t *Value;
 } ml_list_iter_t;
 
 static inline int ml_list_iter_forward(ml_value_t *List0, ml_list_iter_t *Iter) {
 	ml_list_t *List = (ml_list_t *)List0;
-	if (!List->Length) {
+	if ((Iter->Node = List->Head)) {
+		Iter->Value = Iter->Node->Value;
+		return 1;
+	} else {
 		Iter->Node = NULL;
 		return 0;
-	} else {
-		Iter->Last = List->Tail;
-		Iter->Node = List->Head;
-		Iter->Value = Iter->Node[0];
-		return 1;
 	}
 }
 
 static inline int ml_list_iter_next(ml_list_iter_t *Iter) {
-	if (Iter->Node + 1 == Iter->Last) {
-		Iter->Node = NULL;
-		return 0;
-	} else {
-		++Iter->Node;
-		Iter->Value = Iter->Node[0];
+	if ((Iter->Node = Iter->Node->Next)) {
+		Iter->Value = Iter->Node->Value;
 		return 1;
+	} else {
+		return 0;
 	}
 }
 
 static inline int ml_list_iter_backward(ml_value_t *List0, ml_list_iter_t *Iter) {
 	ml_list_t *List = (ml_list_t *)List0;
-	if (!List->Length) {
+	if ((Iter->Node = List->Tail)) {
+		Iter->Value = Iter->Node->Value;
+		return 1;
+	} else {
 		Iter->Node = NULL;
 		return 0;
-	} else {
-		Iter->Last = List->Head;
-		Iter->Node = List->Tail - 1;
-		Iter->Value = Iter->Node[0];
-		return 1;
 	}
 }
 
 static inline int ml_list_iter_prev(ml_list_iter_t *Iter) {
-	if (Iter->Node == Iter->Last) {
-		Iter->Node = NULL;
-		return 0;
-	} else {
-		--Iter->Node;
-		Iter->Value = Iter->Node[0];
+	if ((Iter->Node = Iter->Node->Prev)) {
+		Iter->Value = Iter->Node->Value;
 		return 1;
+	} else {
+		return 0;
 	}
 }
 
@@ -470,14 +470,14 @@ static inline int ml_list_iter_valid(ml_list_iter_t *Iter) {
 }
 
 static inline void ml_list_iter_update(ml_list_iter_t *Iter, ml_value_t *Value) {
-	Iter->Value = Iter->Node[0] = Value;
+	Iter->Value = Iter->Node->Value = Value;
 }
 
 #define ML_LIST_FOREACH(LIST, ITER) \
-	for (ml_list_iter_t ITER[1] = {{((ml_list_t *)LIST)->Head, ((ml_list_t *)LIST)->Tail}}; (ITER->Node < ITER->Last) && (ITER->Value = ITER->Node[0]); ++ITER->Node)
+	for (ml_list_node_t *ITER = ((ml_list_t *)LIST)->Head; ITER; ITER = ITER->Next)
 
 #define ML_LIST_REVERSE(LIST, ITER) \
-	for (ml_list_iter_t ITER[1] = {{((ml_list_t *)LIST)->Tail - 1, ((ml_list_t *)LIST)->Head}}; (ITER->Node >= ITER->Last) && (ITER->Value = ITER->Node[0]); --ITER->Node)
+	for (ml_list_node_t *ITER = ((ml_list_t *)LIST)->Tail; ITER; ITER = ITER->Prev)
 
 /****************************** Maps ******************************/
 
@@ -493,6 +493,7 @@ struct ml_map_t {
 };
 
 struct ml_map_node_t {
+	const ml_type_t *Type;
 	ml_map_node_t *Next, *Prev;
 	ml_value_t *Key;
 	ml_map_node_t *Left, *Right;
