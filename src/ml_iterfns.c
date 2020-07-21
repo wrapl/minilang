@@ -749,12 +749,12 @@ ML_METHOD("skip", MLIteratableT, MLIntegerT) {
 
 typedef struct {
 	ml_state_t Base;
-	ml_value_t *Error;
+	ml_value_t *Result;
 	size_t Waiting;
 } ml_tasks_t;
 
 static void ml_tasks_call(ml_state_t *Caller, ml_tasks_t *Tasks, int Count, ml_value_t **Args) {
-	if (Tasks->Error) ML_RETURN(MLNil);
+	if (Tasks->Result != MLNil) ML_RETURN(Tasks->Result);
 	ML_CHECKX_ARG_TYPE(Count - 1, MLFunctionT);
 	ml_value_t *Function = Args[Count - 1];
 	++Tasks->Waiting;
@@ -767,30 +767,24 @@ ML_TYPE(MLTasksT, (MLFunctionT), "tasks",
 );
 
 static void ml_tasks_continue(ml_tasks_t *Tasks, ml_value_t *Value) {
-	if (Tasks->Error) return;
-	if (ml_is_error(Value)) {
-		ML_CONTINUE(Tasks->Base.Caller, Tasks->Error = Value);
-	} else {
-		if (--Tasks->Waiting == 0) ML_CONTINUE(Tasks->Base.Caller, MLNil);
-	}
+	if (ml_is_error(Value)) Tasks->Result = Value;
+	if (--Tasks->Waiting == 0) ML_CONTINUE(Tasks->Base.Caller, Tasks->Result);
 }
 
 ML_FUNCTIONX(Tasks) {
 	ml_tasks_t *Tasks = new(ml_tasks_t);
 	Tasks->Base.Type = MLTasksT;
 	Tasks->Base.run = (void *)ml_tasks_continue;
-	Tasks->Base.Caller = Caller;
-	Tasks->Base.Context = Caller->Context;
+	Tasks->Result = MLNil;
 	Tasks->Waiting = 1;
 	ML_RETURN(Tasks);
 }
 
 ML_METHODX("wait", MLTasksT) {
 	ml_tasks_t *Tasks = (ml_tasks_t *)Args[0];
-	if (Tasks->Error) ML_RETURN(MLNil);
 	Tasks->Base.Caller = Caller;
 	Tasks->Base.Context = Caller->Context;
-	if (--Tasks->Waiting == 0) ML_CONTINUE(Tasks->Base.Caller, MLNil);
+	if (--Tasks->Waiting == 0) ML_CONTINUE(Tasks->Base.Caller, Tasks->Result);
 }
 
 typedef struct ml_parallel_iter_t ml_parallel_iter_t;
