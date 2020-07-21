@@ -769,6 +769,10 @@ ML_TYPE(MLTasksT, (MLFunctionT), "tasks",
 static void ml_tasks_continue(ml_tasks_t *Tasks, ml_value_t *Value) {
 	if (Tasks->Error) return;
 	if (ml_is_error(Value)) {
+		if (!Tasks->Base.Caller->run) {
+			printf("Error: State has no run function!\n");
+			return;
+		}
 		ML_CONTINUE(Tasks->Base.Caller, Tasks->Error = Value);
 	} else {
 		if (--Tasks->Waiting == 0) ML_CONTINUE(Tasks->Base.Caller, MLNil);
