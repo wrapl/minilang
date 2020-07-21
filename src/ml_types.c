@@ -1899,10 +1899,19 @@ ML_METHOD("trim", MLStringT) {
 	while (Start < End && Start[0] <= ' ') ++Start;
 	while (Start < End && End[-1] <= ' ') --End;
 	int Length = End - Start;
-	char *Chars = snew(Length + 1);
-	memcpy(Chars, Start, Length);
-	Chars[Length] = 0;
-	return ml_string(Chars, Length);
+	return ml_string(Start, Length);
+}
+
+ML_METHOD("trim", MLStringT, MLStringT) {
+	char Trim[256] = {0,};
+	const char *P = ml_string_value(Args[1]);
+	for (int Length = ml_string_length(Args[1]); --Length >= 0; ++P) Trim[*P] = 1;
+	const char *Start = ml_string_value(Args[0]);
+	const char *End = Start + ml_string_length(Args[0]);
+	while (Start < End && Trim[Start[0]]) ++Start;
+	while (Start < End && Trim[End[-1]]) --End;
+	int Length = End - Start;
+	return ml_string(Start, Length);
 }
 
 ML_METHOD("length", MLStringT) {
@@ -2598,7 +2607,7 @@ ml_value_t *ml_list_pull(ml_value_t *List0) {
 			List->Head = NULL;
 		}
 		List->CachedNode = List->Tail;
-		List->CachedIndex = --List->Length;
+		List->CachedIndex = -List->Length;
 		return Node->Value;
 	} else {
 		return MLNil;
