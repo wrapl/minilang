@@ -1294,8 +1294,6 @@ typedef enum ml_token_t {
 	MLT_IN,
 	MLT_IS,
 	MLT_FUN,
-	MLT_RETURN,
-	MLT_SUSPEND,
 	MLT_RET,
 	MLT_SUSP,
 	MLT_WITH,
@@ -1352,8 +1350,6 @@ const char *MLTokens[] = {
 	"in", // MLT_IN,
 	"is", // MLT_IS,
 	"fun", // MLT_FUN,
-	"return", // MLT_RETURN,
-	"suspend", // MLT_SUSPEND,
 	"ret", // MLT_RET,
 	"susp", // MLT_SUSP,
 	"with", // MLT_WITH,
@@ -1989,7 +1985,6 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 		[MLT_WHILE] = ml_while_expr_compile,
 		[MLT_UNTIL] = ml_until_expr_compile,
 		[MLT_EXIT] = ml_exit_expr_compile,
-		[MLT_RETURN] = ml_return_expr_compile,
 		[MLT_RET] = ml_return_expr_compile,
 		[MLT_NEXT] = ml_next_expr_compile,
 		[MLT_NIL] = ml_nil_expr_compile,
@@ -2011,7 +2006,7 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 		return (mlc_expr_t *)ParentExpr;
 	}
 	case MLT_EXIT:
-	case MLT_RETURN: case MLT_RET:
+	case MLT_RET:
 	{
 		mlc_parent_expr_t *ParentExpr = new(mlc_parent_expr_t);
 		ParentExpr->compile = CompileFns[Scanner->Token];
@@ -2109,7 +2104,7 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 		ml_accept(Scanner, MLT_LEFT_PAREN);
 		return ml_accept_fun_expr(Scanner, MLT_RIGHT_PAREN);
 	}
-	case MLT_SUSPEND: case MLT_SUSP: {
+	case MLT_SUSP: {
 		Scanner->Token = MLT_NONE;
 		ML_EXPR(SuspendExpr, parent, suspend);
 		SuspendExpr->Child = ml_parse_expression(Scanner, EXPR_DEFAULT);

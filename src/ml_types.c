@@ -1703,6 +1703,12 @@ struct ml_stringbuffer_node_t {
 	char Chars[ML_STRINGBUFFER_NODE_SIZE];
 };
 
+ML_FUNCTION(MLStringBuffer) {
+	ml_stringbuffer_t *Buffer = new(ml_stringbuffer_t);
+	Buffer->Type = MLStringBufferT;
+	return (ml_value_t *)Buffer;
+}
+
 static GC_descr StringBufferDesc = 0;
 
 ssize_t ml_stringbuffer_add(ml_stringbuffer_t *Buffer, const char *String, size_t Length) {
@@ -1778,6 +1784,11 @@ ml_value_t *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) {
 	}
 }
 
+ML_METHOD("get", MLStringBufferT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	return ml_stringbuffer_get_string(Buffer);
+}
+
 int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t)) {
 	ml_stringbuffer_node_t *Node = Buffer->Nodes;
 	if (!Node) return 0;
@@ -1802,6 +1813,11 @@ ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value)
 	ml_value_t *Result = function ? function(Buffer, Value) : ml_inline(MLStringBufferAppendMethod, 2, Buffer, Value);
 	Buffer->Chain = Chain;
 	return Result;
+}
+
+ML_METHOD("write", MLStringBufferT, MLAnyT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	return ml_stringbuffer_append(Buffer, Args[1]);
 }
 
 static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLNilT, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
@@ -2852,6 +2868,10 @@ ML_METHOD(MLStringOfMethod, MLListT) {
 }
 
 ML_METHOD("join", MLListT, MLStringT) {
+//<List
+//<Seperator
+//>MLStringT
+// Joins the elements of @List into a string seperated by @Seperator.
 	ml_list_t *List = (ml_list_t *)Args[0];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	const char *Seperator = ml_string_value(Args[1]);
@@ -3716,6 +3736,10 @@ struct ml_module_t {
 ML_TYPE(MLModuleT, (), "module");
 
 ML_METHODX("::", MLModuleT, MLStringT) {
+//<Module
+//<Import Name of import.
+//>MLAnyT
+// Imports a symbol from a module.
 	ml_module_t *Module = (ml_module_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
 	ml_value_t *Value = stringmap_search(Module->Exports, Name) ?: ml_error("ModuleError", "Symbol %s not exported from module %s", Name, Module->Path);
@@ -3813,6 +3837,7 @@ void ml_types_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "string", MLStringT);
 	stringmap_insert(MLStringT->Exports, "of", MLStringOfMethod);
 	stringmap_insert(Globals, "stringbuffer", MLStringBufferT);
+	stringmap_insert(MLStringBufferT->Exports, "of", MLStringBuffer);
 	stringmap_insert(Globals, "regex", MLRegexT);
 	stringmap_insert(MLRegexT->Exports, "of", MLRegex);
 	stringmap_insert(Globals, "method", MLMethodT);

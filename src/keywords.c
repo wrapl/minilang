@@ -137,7 +137,7 @@ lookup (register const char *str, register size_t len)
 #line 13 "keywords.lst"
       {"for", MLT_FOR},
 #line 20 "keywords.lst"
-      {"suspend", MLT_SUSPEND},
+      {"suspend", MLT_SUSP},
 #line 21 "keywords.lst"
       {"ret", MLT_RET},
 #line 23 "keywords.lst"
@@ -145,7 +145,7 @@ lookup (register const char *str, register size_t len)
 #line 24 "keywords.lst"
       {"do", MLT_DO},
 #line 19 "keywords.lst"
-      {"return", MLT_RETURN},
+      {"return", MLT_RET},
 #line 4 "keywords.lst"
       {"then", MLT_THEN},
 #line 31 "keywords.lst"

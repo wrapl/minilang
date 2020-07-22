@@ -16,8 +16,8 @@ to, MLT_TO
 in, MLT_IN
 is, MLT_IS
 fun, MLT_FUN
-return, MLT_RETURN
-suspend, MLT_SUSPEND
+return, MLT_RET
+suspend, MLT_SUSP
 ret, MLT_RET
 susp, MLT_SUSP
 with, MLT_WITH
