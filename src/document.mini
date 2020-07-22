@@ -1,0 +1,105 @@
+let Outputs := {}
+let OutputDirectory := Args[1]
+
+fun process(FileName) do
+	let File := file(FileName, 'r')
+	loop
+		let Line := while File:read
+		if Line % r"^ML_METHOD_DECL" then
+			
+		elseif Line % r"^ML_METHOD" then
+			let I := Line:find("("), J := Line:find(")")
+			let Kind := Line[1, I]
+			let Types := Line[I + 1, J] / ", "
+			let Method := Types:pop
+			let Params := []
+			var Return := nil
+			let Body := stringbuffer()
+			loop
+				let Line := while File:read
+				if Line % r"^//<" then
+					let I := Line:find(r"[: \n]", 4)
+					Params:put(if Line[I] = ":" then
+						let J := Line:find(" ", I + 1)
+						(Line[4, I]:trim, Line[I + 1, J]:trim, Line[J + 1, 0]:trim)
+					else
+						(Line[4, I]:trim, Types:pop, Line[I + 1, 0]:trim)
+					end)
+				elseif Line % r"^//>" then
+					Return := Line[4, 0]:trim
+				elseif Line % r"^// " then
+					Body:write(Line[4, 0])
+				else
+					exit
+				end
+			end
+			print('{Kind}: {Method} -> {Types}\n')
+			print("Params:\n")
+			for Param in Params do print('\t{Param}\n') end
+			print('Returns: {Return}\n')
+			print("Comments:\n")
+			print(Body:get)
+			print("\n")
+		elseif Line % r"^ML_FUNCTION" then
+			let I := Line:find("("), J := Line:find(")")
+			let Kind := Line[1, I]
+			var Name := Line[I + 1, J]
+			let Params := []
+			var Return := nil
+			let Body := stringbuffer()
+			loop
+				let Line := while File:read
+				if Line % r"//@" then
+					Name := Line[4, 0]:trim
+				elseif Line % r"^//<" then
+					let I := Line:find(r"[: \n]", 4)
+					Params:put(if Line[I] = ":" then
+						let J := Line:find(" ", I + 1)
+						(Line[4, I]:trim, Line[I + 1, J]:trim, Line[J + 1, 0]:trim)
+					else
+						(Line[4, I]:trim, "MLAnyT", Line[I + 1, 0]:trim)
+					end)
+				elseif Line % r"^//>" then
+					Return := Line[4, 0]:trim
+				elseif Line % r"^// " then
+					Body:write(Line[4, 0])
+				else
+					exit
+				end
+			end
+			print('{Kind}: {Name}\n')
+			print("Params:\n")
+			for Param in Params do print('\t{Param}\n') end
+			print('Returns: {Return}\n')
+			print("Comments:\n")
+			print(Body:get)
+			print("\n")
+		elseif Line % r"^ML_TYPE" then
+			let I := Line:find("("), J := Line:find("(", I + 1)
+			let K := Line:find(")", J + 1)
+			var Name := Line[I + 1, J]:trim(", ")
+			let Parents := Line[J + 1, K] / ", "
+			let Description := Line[K + 1, 0]:trim(", ){")
+			let Body := stringbuffer()
+			loop
+				let Line := while File:read
+				if Line % r"//@" then
+					Name := Line[4, 0]:trim
+				elseif Line % r"^// " then
+					Body:write(Line[4, 0])
+				else
+					exit
+				end
+			end
+			print('ML_TYPE: {Name}\n')
+			print("Comments:\n")
+			print(Body:get)
+			print("\n")
+		end
+	end
+	File:close
+end
+
+for FileName in Args skip 1 do
+	process(FileName)
+end

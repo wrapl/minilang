@@ -136,7 +136,7 @@ ml_value_t *ml_file_new(FILE *Handle) {
 	return (ml_value_t *)File;
 }
 
-ml_value_t *ml_file_open(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(MLFileOpen) {
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLStringT);
@@ -206,7 +206,7 @@ static void ml_dir_finalize(ml_dir_t *Dir, void *Data) {
 	}
 }
 
-ml_value_t *ml_dir_open(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(MLDirOpen) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	const char *Path = ml_string_value(Args[0]);
@@ -223,8 +223,8 @@ void ml_file_init(stringmap_t *Globals) {
 #include "ml_file_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "file", MLFileT);
-		stringmap_insert(MLFileT->Exports, "of", ml_cfunction(0, ml_file_open));
+		stringmap_insert(MLFileT->Exports, "of", MLFileOpen);
 		stringmap_insert(Globals, "dir", MLDirT);
-		stringmap_insert(MLDirT->Exports, "of", ml_cfunction(0, ml_dir_open));
+		stringmap_insert(MLDirT->Exports, "of", MLDirOpen);
 	}
 }
