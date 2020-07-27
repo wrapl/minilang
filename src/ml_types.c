@@ -2801,11 +2801,11 @@ ML_METHOD("length", MLListT) {
 	return ml_integer(List->Length);
 }
 
-ML_METHOD("drop", MLListT, MLFunctionT) {
+ML_METHOD("filter", MLListT, MLFunctionT) {
 //<List
 //<Filter
 //>list
-// Removes values :mini:`Value` from :mini:`List` for which :mini:`Function(Value)` returns :mini:`nil` and returns those values in a new list.
+// Removes every :mini:`Value` from :mini:`List` for which :mini:`Function(Value)` returns :mini:`nil` and returns those values in a new list.
 	ml_list_t *List = (ml_list_t *)Args[0];
 	ml_list_t *Drop = new(ml_list_t);
 	Drop->Type = MLListT;

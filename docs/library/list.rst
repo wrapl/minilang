@@ -27,9 +27,9 @@ list
 
    :list List: 
 
-.. topic:: **method** :mini:`list List:drop(function Filter)` |rarr| :mini:`list`
+.. topic:: **method** :mini:`list List:filter(function Filter)` |rarr| :mini:`list`
 
-   Removes values :mini:`Value` from :mini:`List` for which :mini:`Function(Value)` returns :mini:`nil` and returns those values in a new list. 
+   Removes every :mini:`Value` from :mini:`List` for which :mini:`Function(Value)` returns :mini:`nil` and returns those values in a new list. 
 
    :list List: 
    :function Filter: 
