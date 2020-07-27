@@ -20,6 +20,11 @@ class MinilangLexer(RegexLexer):
 				"fun", "ret", "susp", "with", "do", "on", "nil", "and",
 				"or", "not", "old", "def", "let", "var", "_"
             ), suffix = r'\b'), Keyword),
+            (words((
+                "class", "method", "any", "type", "function", "number",
+                "integer", "real", "string", "stringbuffer", "list",
+                "map", "tuple", "regex", "array", "file", "boolean"
+			), suffix = r'\b'), Name.Class),
             (r'-?[0-9]+(\.[0-9]*)?((e|E)-?[0-9]+)?', Number),
             (r'-?\.[0-9]+((e|E)-?[0-9]+)?', Number),
             ('\"', String, 'string'),
@@ -83,6 +88,7 @@ class MiniStyle(Style):
     styles = {
         Keyword: '#0098dd',
         Name.Function: '#df631c',
+        Name.Class: '#ad00bc',
         Comment: '#a0a1a7',
         String: '#c5a332',
         String.Escape: '#823ff1',
