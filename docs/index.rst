@@ -45,3 +45,4 @@ Details
    /language
    /types
    /embedding
+   /library

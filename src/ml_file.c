@@ -42,6 +42,7 @@ static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
 
 ML_METHOD("read", MLFileT) {
 	ml_file_t *File = (ml_file_t *)Args[0];
+	if (!File->Handle) return ml_error("FileError", "file closed");
 	char *Line = 0;
 	size_t Length = 0;
 #ifdef __MINGW32__
@@ -55,6 +56,7 @@ ML_METHOD("read", MLFileT) {
 
 ML_METHOD("read", MLFileT, MLIntegerT) {
 	ml_file_t *File = (ml_file_t *)Args[0];
+	if (!File->Handle) return ml_error("FileError", "file closed");
 	if (feof(File->Handle)) return MLNil;
 	ssize_t Requested = ml_integer_value(Args[1]);
 	ml_stringbuffer_t Final[1] = {ML_STRINGBUFFER_INIT};
@@ -76,15 +78,18 @@ ML_METHOD("read", MLFileT, MLIntegerT) {
 	return ml_stringbuffer_get_string(Final);
 }
 
-ML_METHOD("write", MLFileT, MLStringT) {
+ML_METHODV("write", MLFileT, MLStringT) {
 	ml_file_t *File = (ml_file_t *)Args[0];
-	const char *Chars = ml_string_value(Args[1]);
-	ssize_t Remaining = ml_string_length(Args[1]);
-	while (Remaining > 0) {
-		ssize_t Actual = fwrite(Chars, 1, Remaining, File->Handle);
-		if (Actual < 0) return ml_error("FileError", "error writing to file: %s", strerror(errno));
-		Chars += Actual;
-		Remaining -= Actual;
+	if (!File->Handle) return ml_error("FileError", "file closed");
+	for (int I = 1; I < Count; ++I) {
+		const char *Chars = ml_string_value(Args[I]);
+		ssize_t Remaining = ml_string_length(Args[I]);
+		while (Remaining > 0) {
+			ssize_t Actual = fwrite(Chars, 1, Remaining, File->Handle);
+			if (Actual < 0) return ml_error("FileError", "error writing to file: %s", strerror(errno));
+			Chars += Actual;
+			Remaining -= Actual;
+		}
 	}
 	return Args[0];
 }
@@ -101,6 +106,7 @@ static int ml_file_write_buffer_chars(ml_file_t *File, const char *Chars, size_t
 
 ML_METHOD("write", MLFileT, MLStringBufferT) {
 	ml_file_t *File = (ml_file_t *)Args[0];
+	if (!File->Handle) return ml_error("FileError", "file closed");
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[1];
 	if (ml_stringbuffer_foreach(Buffer, File, (void *)ml_file_write_buffer_chars)) return ml_error("FileError", "error writing to file: %s", strerror(errno));
 	return Args[0];
@@ -108,6 +114,7 @@ ML_METHOD("write", MLFileT, MLStringBufferT) {
 
 ML_METHOD("eof", MLFileT) {
 	ml_file_t *File = (ml_file_t *)Args[0];
+	if (!File->Handle) return ml_error("FileError", "file closed");
 	if (feof(File->Handle)) return Args[0];
 	return MLNil;
 }
@@ -122,6 +129,7 @@ ML_METHOD("close", MLFileT) {
 }
 
 static void ml_file_finalize(ml_file_t *File, void *Data) {
+	printf("ml_file_finalize!\n");
 	if (File->Handle) {
 		fclose(File->Handle);
 		File->Handle = NULL;
@@ -137,6 +145,8 @@ ml_value_t *ml_file_new(FILE *Handle) {
 }
 
 ML_FUNCTION(MLFileOpen) {
+//!file
+//@file::open
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLStringT);

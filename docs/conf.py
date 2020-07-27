@@ -71,7 +71,9 @@ author = 'Raja Mukherji'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 
-extensions = []
+extensions = [
+	'sphinx_c_autodoc'
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -100,6 +102,8 @@ html_theme_options = {
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
+c_autodoc_roots = ['../src']
+
 master_doc = 'index'
 
 pygments_style = "minilang.MiniStyle"
@@ -114,7 +118,7 @@ rst_prolog = """
    :class: highlight
 
 .. role:: c(code)
-   :langauge: c
+   :language: c
    :class: highlight
 """
 

@@ -30,7 +30,7 @@ class MinilangLexer(RegexLexer):
             (r':>.*\n', Comment),
             (':<', Comment, 'comment'),
             (r'\s+', Text),
-            (r'[A-Za-z_][A-Za-z0-9_]*', Text),
+            (r'[A-Za-z_]\w*', Text),
             (':=', Operator),
             (',', Operator),
             (';', Operator),

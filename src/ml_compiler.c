@@ -628,15 +628,14 @@ static mlc_compiled_t ml_with_expr_compile(mlc_function_t *Function, mlc_decl_ex
 	for (ml_decl_t *Decl = Expr->Decl; Decl;) {
 		ml_decl_t *NextDecl = Decl->Next;
 		int Count = Decl->Index;
-		mlc_inc_top(Function);
-		Decl->Index = Function->Top - 1;
+		int Top = Function->Top;
+		Decl->Index = Top++;
 		Decl->Next = Function->Decls;
 		Function->Decls = Decl;
 		for (int I = 1; I < Count; ++I) {
 			Decl = NextDecl;
 			NextDecl = Decl->Next;
-			mlc_inc_top(Function);
-			Decl->Index = Function->Top - 1;
+			Decl->Index = Top++;
 			Decl->Next = Function->Decls;
 			Function->Decls = Decl;
 		}
@@ -649,10 +648,12 @@ static mlc_compiled_t ml_with_expr_compile(mlc_function_t *Function, mlc_decl_ex
 		if (Count == 1) {
 			PushInst = ml_inst_new(2, Expr->Source, MLI_WITH);
 			PushInst->Params[1].Decls = Function->Decls;
+			mlc_inc_top(Function);
 		} else {
 			PushInst = ml_inst_new(3, Expr->Source, MLI_WITHX);
 			PushInst->Params[1].Count = Count;
 			PushInst->Params[2].Decls = Function->Decls;
+			for (int I = 0; I < Count; ++I) mlc_inc_top(Function);
 		}
 		mlc_connect(Compiled.Exits, PushInst);
 		Child = Child->Next;

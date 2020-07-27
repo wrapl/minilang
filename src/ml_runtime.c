@@ -389,6 +389,18 @@ ML_METHOD("message", MLErrorT) {
 	return ml_string(((ml_error_t *)Args[0])->Message, -1);
 }
 
+ML_METHOD("trace", MLErrorT) {
+	ml_value_t *Trace = ml_list();
+	ml_source_t Source;
+	for (int I = 0; ml_error_source(Args[0], I, &Source); ++I) {
+		ml_value_t *Tuple = ml_tuple(2);
+		ml_tuple_set(Tuple, 1, ml_string(Source.Name, -1));
+		ml_tuple_set(Tuple, 2, ml_integer(Source.Line));
+		ml_list_put(Trace, Tuple);
+	}
+	return Trace;
+}
+
 /****************************** Debugging ******************************/
 
 int ml_debugger_check(ml_state_t *State) {
