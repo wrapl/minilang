@@ -68,7 +68,7 @@ struct ml_context_value_t {
 };
 
 static void ml_context_key_call(ml_state_t *Caller, ml_context_key_t *Key, int Count, ml_value_t **Args) {
-	ml_context_value_t *Values = ml_context_get(Caller->Context, ML_VARIABLES_INDEX);
+	ml_context_value_t *Values = Caller->Context->Values[ML_VARIABLES_INDEX];
 	if (Count == 0) {
 		while (Values) {
 			if (Values->Key == Key) ML_RETURN(Values->Value);
@@ -88,8 +88,8 @@ static void ml_context_key_call(ml_state_t *Caller, ml_context_key_t *Key, int C
 		State->run = ml_default_state_run;
 		State->Context = Context;
 		ml_value_t *Function = Args[1];
-		Function = Function->Type->deref(Function);
-		return Function->Type->call(State, Function, Count - 2, Args + 2);
+		Function = ml_deref(Function);
+		return ml_typeof(Function)->call(State, Function, Count - 2, Args + 2);
 	}
 }
 
@@ -120,8 +120,8 @@ static void ml_end_state_run(ml_state_t *State, ml_value_t *Value) {
 
 inline ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_value_state_t State[1] = {ML_EVAL_STATE_INIT};
-	Value->Type->call((ml_state_t *)State, Value, Count, Args);
-	return State->Value->Type->deref(State->Value);
+	ml_typeof(Value)->call((ml_state_t *)State, Value, Count, Args);
+	return ml_typeof(State->Value)->deref(State->Value);
 }
 
 void ml_default_state_run(ml_state_t *State, ml_value_t *Value) {
@@ -133,11 +133,11 @@ void ml_eval_state_run(ml_value_state_t *State, ml_value_t *Value) {
 }
 
 void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value) {
-	if (Value->Type == MLErrorT) {
+	if (ml_is_error(Value)) {
 		State->Value = Value;
 	} else {
 		State->Base.run = (ml_state_fn)ml_eval_state_run;
-		Value->Type->call((ml_state_t *)State, Value, 0, NULL);
+		ml_typeof(Value)->call((ml_state_t *)State, Value, 0, NULL);
 	}
 }
 
@@ -185,7 +185,7 @@ ML_FUNCTIONX(MLCallCC) {
 		ml_value_t *Function = Args[1];
 		ml_value_t **Args2 = anew(ml_value_t *, 1);
 		Args2[0] = (ml_value_t *)Resumable;
-		return Function->Type->call(State, Function, 1, Args2);
+		return ml_typeof(Function)->call(State, Function, 1, Args2);
 	} else {
 		ML_CHECKX_ARG_COUNT(1);
 		ml_value_t *Function = Args[0];
@@ -194,7 +194,7 @@ ML_FUNCTIONX(MLCallCC) {
 		ml_state_t *State = new(ml_state_t);
 		State->run = ml_end_state_run;
 		State->Context = Caller->Context;
-		return Function->Type->call(State, Function, 1, Args2);
+		return ml_typeof(Function)->call(State, Function, 1, Args2);
 	}
 }
 
@@ -208,7 +208,7 @@ ML_FUNCTIONX(MLMark) {
 	ml_value_t *Func = Args[0];
 	ml_value_t **Args2 = anew(ml_value_t *, 1);
 	Args2[0] = (ml_value_t *)State;
-	return Func->Type->call(State, Func, 1, Args2);
+	return ml_typeof(Func)->call(State, Func, 1, Args2);
 }
 
 /****************************** References ******************************/
@@ -216,7 +216,7 @@ ML_FUNCTIONX(MLMark) {
 static long ml_reference_hash(ml_value_t *Ref, ml_hash_chain_t *Chain) {
 	ml_reference_t *Reference = (ml_reference_t *)Ref;
 	ml_value_t *Value = Reference->Address[0];
-	return Value->Type->hash(Value, Chain);
+	return ml_typeof(Value)->hash(Value, Chain);
 }
 
 static ml_value_t *ml_reference_deref(ml_value_t *Ref) {
@@ -237,14 +237,8 @@ ML_TYPE(MLReferenceT, (), "reference",
 
 inline ml_value_t *ml_reference(ml_value_t **Address) {
 	ml_reference_t *Reference;
-	if (Address == 0) {
-		Reference = xnew(ml_reference_t, 1, ml_value_t *);
-		Reference->Address = Reference->Value;
-		Reference->Value[0] = MLNil;
-	} else {
-		Reference = new(ml_reference_t);
-		Reference->Address = Address;
-	}
+	Reference = new(ml_reference_t);
+	Reference->Address = Address;
 	Reference->Type = MLReferenceT;
 	return (ml_value_t *)Reference;
 }
@@ -312,11 +306,16 @@ struct ml_error_t {
 	ml_source_t Trace[MAX_TRACE];
 };
 
+static ml_value_t *ml_error_assign(ml_value_t *Error, ml_value_t *Value) {
+	return Error;
+}
+
 static void ml_error_call(ml_state_t *Caller, ml_value_t *Error, int Count, ml_value_t **Args) {
 	ML_RETURN(Error);
 }
 
 ML_TYPE(MLErrorT, (), "error",
+	.assign = ml_error_assign,
 	.call = ml_error_call
 );
 
@@ -388,6 +387,18 @@ ML_METHOD("type", MLErrorT) {
 
 ML_METHOD("message", MLErrorT) {
 	return ml_string(((ml_error_t *)Args[0])->Message, -1);
+}
+
+ML_METHOD("trace", MLErrorT) {
+	ml_value_t *Trace = ml_list();
+	ml_source_t Source;
+	for (int I = 0; ml_error_source(Args[0], I, &Source); ++I) {
+		ml_value_t *Tuple = ml_tuple(2);
+		ml_tuple_set(Tuple, 1, ml_string(Source.Name, -1));
+		ml_tuple_set(Tuple, 2, ml_integer(Source.Line));
+		ml_list_put(Trace, Tuple);
+	}
+	return Trace;
 }
 
 /****************************** Debugging ******************************/

@@ -10,7 +10,7 @@ ML_METHOD_DECL(Read, NULL);
 ML_METHOD_DECL(Write, NULL);
 
 void ml_io_read(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count) {
-	typeof(ml_io_read) *function = ml_typed_fn_get(Value->Type, ml_io_read);
+	typeof(ml_io_read) *function = ml_typed_fn_get(ml_typeof(Value), ml_io_read);
 	if (function) return function(Caller, Value, Address, Count);
 	ml_buffer_t *Buffer = new(ml_buffer_t);
 	Buffer->Type = MLBufferT;
@@ -19,11 +19,11 @@ void ml_io_read(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count)
 	ml_value_t **Args = anew(ml_value_t *, 2);
 	Args[0] = Value;
 	Args[1] = (ml_value_t *)Buffer;
-	return ReadMethod->Type->call(Caller, ReadMethod, 2, Args);
+	return ml_typeof(ReadMethod)->call(Caller, ReadMethod, 2, Args);
 }
 
 void ml_io_write(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count) {
-	typeof(ml_io_write) *function = ml_typed_fn_get(Value->Type, ml_io_write);
+	typeof(ml_io_write) *function = ml_typed_fn_get(ml_typeof(Value), ml_io_write);
 	if (function) return function(Caller, Value, Address, Count);
 	ml_buffer_t *Buffer = new(ml_buffer_t);
 	Buffer->Type = MLBufferT;
@@ -32,7 +32,7 @@ void ml_io_write(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count
 	ml_value_t **Args = anew(ml_value_t *, 3);
 	Args[0] = Value;
 	Args[1] = (ml_value_t *)Buffer;
-	return WriteMethod->Type->call(Caller, WriteMethod, 2, Args);
+	return ml_typeof(WriteMethod)->call(Caller, WriteMethod, 2, Args);
 }
 
 ML_METHODX("write", MLStreamT, MLStringT) {

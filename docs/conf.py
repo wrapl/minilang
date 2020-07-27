@@ -100,6 +100,8 @@ html_theme_options = {
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
+c_autodoc_roots = ['../src']
+
 master_doc = 'index'
 
 pygments_style = "minilang.MiniStyle"
@@ -114,7 +116,7 @@ rst_prolog = """
    :class: highlight
 
 .. role:: c(code)
-   :langauge: c
+   :language: c
    :class: highlight
 """
 

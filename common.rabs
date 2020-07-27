@@ -1,4 +1,5 @@
 PLATFORM := defined("PLATFORM") or shell("uname"):trim
+MACHINE := defined("MACHINE") or shell("uname -m"):trim
 DEBUG := defined("DEBUG")
 
 CFLAGS := ["-pipe"]
@@ -25,8 +26,17 @@ c_includes := fun(Target) do
 	ret Files
 end
 
+as_compile := fun(Source, Object) do
+	execute('cc -c {CFLAGS} -o{Object} {Source}')
+end
+
+as_includes := fun(Target) do
+	ret []
+end
+
 var SourceTypes := {
-	"c" is [c_includes, c_compile]
+	"c" is [c_includes, c_compile],
+	"s" is [as_includes, as_compile]
 }
 
 c_program := fun(Executable, Objects, Libraries) do

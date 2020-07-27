@@ -4,6 +4,7 @@ if PLATFORM = "Darwin" then
 end
 
 CFLAGS := old + [
+	"-march=native",
 	"-std=gnu11", :>'--save-temps',
 	"-fstrict-aliasing",
 	"-foptimize-sibling-calls",
@@ -25,25 +26,31 @@ else
 	LDFLAGS := old + ["-g"]
 end
 
-for Source in PATH:ls(".*\\.c") do
-	Source:basename:find("_init") and next
-	var Target := file(Source:basename:replace(".c", "_init.c"))[Source] => fun() do
-		Target:open("w"):close
-		var Init := shell("cc", CFLAGS, "-E -P -DGENERATE_INIT", Source)
-		var Out := Target:open("w")
-		for Line in Init / "\n" do
-			loop
-				var I := while Line:find("INIT_CODE ")
-				Line := Line[I + 10, 0]
-				var J := while Line:find(");")
-				Out:write(Line[1, J + 2])
-				Out:write("\n")
-				Line := Line[J + 2, 0]
+fun generate_init_files() do
+	for Source in PATH:ls(".*\\.c") do
+		Source:basename:find("_init") and next
+		var Target := file(Source:basename:replace(".c", "_init.c"))[Source] => fun() do
+			Target:open("w"):close
+			var Init := shell("cc", CFLAGS, "-E -P -DGENERATE_INIT", Source)
+			var Out := Target:open("w")
+			for Line in Init / "\n" do
+				loop
+					var I := while Line:find("INIT_CODE ")
+					Line := Line[I + 10, 0]
+					var J := while Line:find(");")
+					Out:write(Line[1, J + 2])
+					Out:write("\n")
+					Line := Line[J + 2, 0]
+				end
 			end
+			Out:close
 		end
-		Out:close
 	end
 end
+
+PARENT."generate_init_files" := generate_init_files
+
+generate_init_files()
 
 var Objects := [
 	file("ml_compiler.o"),
@@ -91,7 +98,7 @@ if MINILANG_USEGTK or defined("USEGTK") then
 end
 
 if MINILANG_USECBOR or defined("USECBOR") then
-	var Dir := PATH / "minicbor"
+	var Dir := PATH/"minicbor"
 	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git", Dir)
 
 	CFLAGS := old + [
@@ -108,10 +115,10 @@ if MINILANG_USECBOR or defined("USECBOR") then
 end
 
 if MINILANG_USEMPC or defined("USEMPC") then
-	var Dir := PATH / "mpc"
+	var Dir := PATH/"mpc"
 	Dir:exists or do
 		execute("git clone https://github.com/orangeduck/mpc.git", Dir)
-		execute("cat", PATH / "mpc_extra.c", " >> ", Dir/"mpc.c")
+		execute("cat", PATH/"mpc_extra.c", " >> ", Dir/"mpc.c")
 	end
 	Objects:put(file("ml_mpc.o"), Dir/"mpc.o")
 	CFLAGS := old + ["-DUSE_ML_MPC"]
@@ -131,7 +138,12 @@ if MINILANG_SCHEDULER or defined("SCHEDULER") then
 	CFLAGS := old + ["-DUSE_ML_SCHEDULER"]
 end
 
-if MINILANG_JIT or defined("USEJIT") then
+if MINILANG_INST_FNS or defined("USE_INST_FNS") then
+	CFLAGS := old + ["-DML_USE_INST_FNS"]
+	Objects:put(file("ml_bytecode_fns.o"))
+end
+
+if MINILANG_JIT or defined("USE_JIT") then
 	let Source := file("ml_bytecode_x64.dasc")
 	file("ml_bytecode_x64.c")[Source] => fun(Target) do
 		execute("lua5.2", file("dynasm/dynasm.lua"), "-o", Target, Source)
@@ -141,31 +153,45 @@ if MINILANG_JIT or defined("USEJIT") then
 	LDFLAGS := old + ["-lZydis"]
 end
 
+if MINILANG_USE_ASM or defined("USE_ASM") then
+	if MACHINE = "x86_64" and PLATFORM = "Linux" then
+		Objects:put(file("inthash_x64.o"))
+		CFLAGS := old + ["-DASM_INTHASH_SEARCH"]
+	end
+end
+
+if MINILANG_USE_NANBOXING or defined("USE_NANBOXING") then
+	CFLAGS := old + ["-DUSE_NANBOXING"]
+end
+
 if PLATFORM = "Linux" then
-	Objects := old + [file("linenoise.o")]
+	Objects:put(file("linenoise.o"))
 	LDFLAGS := old + ["-lgc"]
 elseif PLATFORM = "FreeBSD" then
-	Objects := old + [file("linenoise.o")]
+	Objects:put(file("linenoise.o"))
 	CFLAGS := old + ["-I/usr/local/include"]
 	LDFLAGS := old + ["-L/usr/local/lib", "-lgc-threaded"]
 elseif PLATFORM = "Darwin" then
-	Objects := old + [file("linenoise.o")]
+	Objects:put(file("linenoise.o"))
 	LDFLAGS := old + ["-lgc"]
 elseif PLATFORM = "Mingw" then
 end
 
-LIBMINILANG := c_library(LIB_DIR / "libminilang.a", Objects, Libraries)
-MINILANG := c_program(BIN_DIR /"minilang", [file("minilang.o")], [LIBMINILANG])
-MINIPP := c_program(BIN_DIR / "minipp", [file("minipp.o")], [LIBMINILANG])
+LIBMINILANG := c_library(LIB_DIR/"libminilang.a", Objects, Libraries)
+MINILANG := c_program(BIN_DIR/"minilang", [file("minilang.o")], [LIBMINILANG])
+MINIPP := c_program(BIN_DIR/"minipp", [file("minipp.o")], [LIBMINILANG])
 MINIXE := c_program(BIN_DIR/"minixe", [file("minixe.o")], [LIBMINILANG])
 
 DEFAULT[LIBMINILANG, MINILANG, MINIPP, MINIXE]
 
-var InstallBin := PREFIX / "bin"
-var InstallInclude := PREFIX / "include/minilang"
-var InstallLib := PREFIX / "lib"
+PARENT."LIBMINILANG" := LIBMINILANG
 
-install(MINILANG, InstallBin / "minilang", "+x")
+
+var InstallBin := PREFIX/"bin"
+var InstallInclude := PREFIX/"include/minilang"
+var InstallLib := PREFIX/"lib"
+
+install(MINILANG, InstallBin/"minilang", "+x")
 
 var InstallHeaders := [
 	"minilang.h",
@@ -177,12 +203,14 @@ var InstallHeaders := [
 	"ml_object.h",
 	"ml_compiler.h",
 	"ml_runtime.h",
+	"ml_bytecode.h",
 	"stringmap.h",
 	"inthash.h"
 ]
 
 if MINILANG_USEMATH or defined("USEMATH") then
 	InstallHeaders:put("ml_array.h")
+	InstallHeaders:put("ml_math.h")
 end
 
 if MINILANG_USECBOR or defined("USECBOR") then
@@ -198,6 +226,6 @@ for Header in InstallHeaders do
 	install(file(Header), InstallInclude / Header)
 end
 
-install(LIBMINILANG, InstallLib / "libminilang.a")
+install(LIBMINILANG, InstallLib/"libminilang.a")
 
 subdir("test")

@@ -50,13 +50,19 @@ ML_FUNCTION(MLNow) {
 	return ml_integer(time(NULL));
 }
 
+ML_FUNCTION(MLClock) {
+	struct timespec Time[1];
+	clock_gettime(CLOCK_REALTIME, Time);
+	return ml_real(Time->tv_sec + Time->tv_nsec / 1000000000.0);
+}
+
 ML_FUNCTION(MLPrint) {
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Result = Args[I];
-		if (Result->Type != MLStringT) {
+		if (!ml_is(Result, MLStringT)) {
 			Result = ml_call(MLStringOfMethod, 1, &Result);
-			if (Result->Type == MLErrorT) return Result;
-			if (Result->Type != MLStringT) return ml_error("ResultError", "string method did not return string");
+			if (ml_is_error(Result)) return Result;
+			if (!ml_is(Result, MLStringT)) return ml_error("ResultError", "string method did not return string");
 		}
 		fwrite(ml_string_value(Result), 1, ml_string_length(Result), stdout);
 	}
@@ -100,7 +106,7 @@ ML_FUNCTIONX(MLTest) {
 		ml_state_t *State = ml_state_new(Caller);
 		ml_methods_context_new(State->Context);
 		ml_value_t *Function = Args[1];
-		return Function->Type->call(State, Function, Count - 2, Args + 2);
+		return ml_typeof(Function)->call(State, Function, Count - 2, Args + 2);
 	}
 	ML_ERROR("ValueError", "Unknown test %s", Test);
 }
@@ -138,6 +144,7 @@ int main(int Argc, const char *Argv[]) {
 	ml_object_init(Globals);
 	ml_iterfns_init(Globals);
 	stringmap_insert(Globals, "now", MLNow);
+	stringmap_insert(Globals, "clock", MLClock);
 	stringmap_insert(Globals, "print", MLPrint);
 	stringmap_insert(Globals, "error", MLError);
 	stringmap_insert(Globals, "break", MLBreak);
@@ -204,7 +211,7 @@ int main(int Argc, const char *Argv[]) {
 		ml_value_t *Result = ML_WRAP_EVAL(ml_load, global_get, 0, FileName, Parameters);
 		ml_value_t *MainArgs[1] = {Args};
 		Result = ml_call(Result, 1, MainArgs);
-		if (Result->Type == MLErrorT) {
+		if (ml_is_error(Result)) {
 			printf("Error: %s\n", ml_error_message(Result));
 			ml_source_t Source;
 			int Level = 0;
@@ -217,7 +224,7 @@ int main(int Argc, const char *Argv[]) {
 	} else if (ModuleName) {
 		ml_value_t *Args[] = {ml_string(ModuleName, -1)};
 		ml_value_t *Result = ml_call((ml_value_t *)Import, 1, Args);
-		if (Result->Type == MLErrorT) {
+		if (ml_is_error(Result)) {
 			printf("Error: %s\n", ml_error_message(Result));
 			ml_source_t Source;
 			int Level = 0;
@@ -230,14 +237,16 @@ int main(int Argc, const char *Argv[]) {
 #ifdef USE_ML_GIR
 	} else if (GtkConsole) {
 		console_t *Console = console_new((ml_getter_t)stringmap_search, Globals);
-		stringmap_insert(Globals, "print", ml_function(Console, (void *)console_print));
+		stringmap_insert(Globals, "print", ml_cfunction(Console, (void *)console_print));
 		console_show(Console, NULL);
 		gtk_main();
 #endif
 	} else {
 		ml_console((ml_getter_t)stringmap_search, Globals, "--> ", "... ");
 	}
-//	extern uint64_t IntHashLoops;
-//	fprintf(stderr, "IntHashLoops = %lu\n", IntHashLoops);
+//	extern uint64_t MLReusedSmallFrames, MLNewSmallFrames, MLNewLargeFrames;
+//	fprintf(stderr, "Reused  %lu small frames\n", MLReusedSmallFrames);
+//	fprintf(stderr, "Allocated %lu small frames\n", MLNewSmallFrames);
+//	fprintf(stderr, "Allocated %lu large frames\n", MLNewLargeFrames);
 	return 0;
 }

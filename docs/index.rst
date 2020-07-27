@@ -45,3 +45,8 @@ Details
    /language
    /types
    /embedding
+
+.. toctree::
+   :maxdepth: 1
+   
+   /library

@@ -7,10 +7,10 @@ do
 			exit 1 + "a"
 		end
 	on Error do
-		print('Correct! An error has occurred 1: {Error:type}, {Error:message}\n')
+		print('Correct! An error has occurred 1: {Error:type}\n')
 	end
 on Error do
-	print('Correct! An error has occurred 2: {Error:type}, {Error:message}\n')
+	print('Correct! An error has occurred 2: {Error:type}\n')
 end
 
 print('Before X loop\n')
@@ -31,12 +31,12 @@ for Z in 1 .. 10 do
 		print('5!\n')
 		'a' + 1
 	on Error do
-		print('Correct! An error has occurred 3: {Error:type}, {Error:message}\n')
+		print('Correct! An error has occurred 3: {Error:type}\n')
 		next
 	elseif Z = 9 then
 		1 + 'a'
 	end
 	print('... and on\n')
 on Error do
-	print('Correct! An error has occurred 4: {Error:type}, {Error:message}\n')
+	print('Correct! An error has occurred 4: {Error:type}\n')
 end

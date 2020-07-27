@@ -99,7 +99,7 @@ void console_log(console_t *Console, ml_value_t *Value) {
 	GtkTextIter End[1];
 	GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
 	gtk_text_buffer_get_end_iter(LogBuffer, End);
-	if (Value->Type == MLErrorT) {
+	if (ml_is_error(Value)) {
 		char *Buffer;
 		int Length = asprintf(&Buffer, "Error: %s\n", ml_error_message(Value));
 		gtk_text_buffer_insert_with_tags(LogBuffer, End, Buffer, Length, Console->ErrorTag, NULL);
@@ -111,7 +111,7 @@ void console_log(console_t *Console, ml_value_t *Value) {
 		}
 	} else {
 		ml_value_t *String = ml_string_of(Value);
-		if (String->Type == MLStringT) {
+		if (ml_is(String, MLStringT)) {
 			const char *Buffer = ml_string_value(String);
 			int Length = ml_string_length(String);
 			if (g_utf8_validate(Buffer, Length, NULL)) {
@@ -131,7 +131,7 @@ void console_log(console_t *Console, ml_value_t *Value) {
 			gtk_text_buffer_insert_with_tags(LogBuffer, End, "\n", 1, Console->ResultTag, NULL);
 		} else {
 			char *Buffer;
-			int Length = asprintf(&Buffer, "<%s>\n", Value->Type->Name);
+			int Length = asprintf(&Buffer, "<%s>\n", ml_typeof(Value)->Name);
 			gtk_text_buffer_insert_with_tags(LogBuffer, End, Buffer, Length, Console->ResultTag, NULL);
 		}
 	}
@@ -155,7 +155,7 @@ static void ml_console_repl_run(ml_console_repl_state_t *State, ml_value_t *Resu
 	GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(State->Console->LogView));
 	gtk_text_buffer_get_end_iter(LogBuffer, End);
 	gtk_text_buffer_insert(LogBuffer, End, "\n", 1);
-	if (Result->Type == MLErrorT) {
+	if (ml_is_error(Result)) {
 		gtk_widget_grab_focus(State->Console->InputView);
 		return;
 	}
@@ -236,18 +236,24 @@ static void console_font_changed(GtkFontChooser *Widget, console_t *Console) {
 	g_key_file_save_to_file(Console->Config, Console->ConfigPath, NULL);
 }
 
+#ifdef __APPLE__
+#define COMMAND_MASK GDK_META_MASK
+#else
+#define COMMAND_MASK GDK_CONTROL_MASK
+#endif
+
 static gboolean console_keypress(GtkWidget *Widget, GdkEventKey *Event, console_t *Console) {
 	switch (Event->keyval) {
 	case GDK_KEY_Return:
 		Console->NumChars = 0;
-		if (Event->state & GDK_CONTROL_MASK) {
+		if (Event->state & COMMAND_MASK) {
 			console_submit(NULL, Console);
 			return TRUE;
 		}
 		break;
 	case GDK_KEY_Up:
 		Console->NumChars = 0;
-		if (Event->state & GDK_CONTROL_MASK) {
+		if (Event->state & COMMAND_MASK) {
 			int HistoryIndex = (Console->HistoryIndex + MAX_HISTORY - 1) % MAX_HISTORY;
 			if (Console->History[HistoryIndex]) {
 				gtk_text_buffer_set_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView)), Console->History[HistoryIndex], -1);
@@ -258,11 +264,14 @@ static gboolean console_keypress(GtkWidget *Widget, GdkEventKey *Event, console_
 		break;
 	case GDK_KEY_Down:
 		Console->NumChars = 0;
-		if (Event->state & GDK_CONTROL_MASK) {
+		if (Event->state & COMMAND_MASK) {
 			int HistoryIndex = (Console->HistoryIndex + 1) % MAX_HISTORY;
 			if (Console->History[HistoryIndex]) {
 				gtk_text_buffer_set_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView)), Console->History[HistoryIndex], -1);
 				Console->HistoryIndex = HistoryIndex;
+			} else {
+				gtk_text_buffer_set_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView)), "", 0);
+				Console->HistoryIndex = Console->HistoryEnd;
 			}
 			return TRUE;
 		}
@@ -361,10 +370,10 @@ ml_value_t *console_print(console_t *Console, int Count, ml_value_t **Args) {
 	gtk_text_buffer_get_end_iter(LogBuffer, End);
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Result = Args[I];
-		if (Result->Type != MLStringT) {
+		if (!ml_is(Result, MLStringT)) {
 			Result = ml_string_of(Result);
-			if (Result->Type == MLErrorT) return Result;
-			if (Result->Type != MLStringT) return ml_error("ResultError", "string method did not return string");
+			if (ml_is_error(Result)) return Result;
+			if (!ml_is(Result, MLStringT)) return ml_error("ResultError", "string method did not return string");
 		}
 		console_append(Console, ml_string_value(Result), ml_string_length(Result));
 	}
@@ -426,8 +435,8 @@ static ml_value_t *console_add_combo(console_t *Console, int Count, ml_value_t *
 
 static void console_included_run(ml_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Caller;
-	if (Value->Type == MLErrorT) ML_RETURN(Value);
-	return Value->Type->call(Caller, Value, 0, NULL);
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	return ml_typeof(Value)->call(Caller, Value, 0, NULL);
 }
 
 static void console_include_fnx(ml_state_t *Caller, console_t *Console, int Count, ml_value_t **Args) {
@@ -591,11 +600,11 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	gtk_window_set_default_size(GTK_WINDOW(Console->Window), 640, 480);
 	g_signal_connect(G_OBJECT(Console->Window), "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), Console);
 
-	stringmap_insert(Console->Globals, "set_font", ml_function(Console, (ml_callback_t)console_set_font));
-	stringmap_insert(Console->Globals, "set_style", ml_function(Console, (ml_callback_t)console_set_style));
-	stringmap_insert(Console->Globals, "add_cycle", ml_function(Console, (ml_callback_t)console_add_cycle));
-	stringmap_insert(Console->Globals, "add_combo", ml_function(Console, (ml_callback_t)console_add_combo));
-	stringmap_insert(Console->Globals, "include", ml_functionx(Console, (ml_callbackx_t)console_include_fnx));
+	stringmap_insert(Console->Globals, "set_font", ml_cfunction(Console, (ml_callback_t)console_set_font));
+	stringmap_insert(Console->Globals, "set_style", ml_cfunction(Console, (ml_callback_t)console_set_style));
+	stringmap_insert(Console->Globals, "add_cycle", ml_cfunction(Console, (ml_callback_t)console_add_cycle));
+	stringmap_insert(Console->Globals, "add_combo", ml_cfunction(Console, (ml_callback_t)console_add_combo));
+	stringmap_insert(Console->Globals, "include", ml_cfunctionx(Console, (ml_callbackx_t)console_include_fnx));
 
 	if (g_key_file_has_key(Console->Config, "gtk-console", "font", NULL)) {
 		Console->FontName = g_key_file_get_string(Console->Config, "gtk-console", "font", NULL);

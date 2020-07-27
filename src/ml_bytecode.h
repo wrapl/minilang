@@ -41,6 +41,10 @@ struct ml_closure_t {
 	ml_value_t *UpValues[];
 };
 
+static inline stringmap_t *ml_closure_params(ml_value_t *Closure) {
+	return ((ml_closure_t *)Closure)->Info->Params;
+}
+
 typedef union {
 	ml_inst_t *Inst;
 	int Index;
@@ -82,6 +86,7 @@ typedef enum {
 	MLI_CONST_CALL,
 	MLI_ASSIGN,
 	MLI_LOCAL,
+	MLI_UPVALUE,
 	MLI_LOCALX,
 	MLI_TUPLE_NEW,
 	MLI_TUPLE_SET,
@@ -107,9 +112,16 @@ typedef enum {
 	MLIT_INST_CLOSURE
 } ml_inst_type_t;
 
+typedef struct ml_frame_t ml_frame_t;
+
 extern const ml_inst_type_t MLInstTypes[];
 
+typedef void (*ml_inst_fn_t)(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst);
+
 struct ml_inst_t {
+#ifdef ML_USE_INST_FNS
+	ml_inst_fn_t run;
+#endif
 	ml_opcode_t Opcode:8;
 	unsigned int PotentialBreakpoint:1;
 	unsigned int Processed:1;
@@ -119,8 +131,6 @@ struct ml_inst_t {
 	ml_param_t Params[];
 };
 
-typedef struct ml_frame_t ml_frame_t;
-
 struct ml_frame_t {
 	ml_state_t Base;
 	const char *Source;
@@ -128,18 +138,26 @@ struct ml_frame_t {
 	ml_value_t **Top;
 	ml_inst_t *OnError;
 	ml_value_t **UpValues;
+	unsigned int Counter;
+	unsigned int Reuse:1;
+	unsigned int Reentry:1;
 #ifdef USE_ML_SCHEDULER
 	ml_schedule_t Schedule;
 #endif
-#ifdef DEBUG_VERSION
-	ml_debugger_t *Debugger;
-	size_t *Breakpoints;
-	ml_decl_t *Decls;
-	size_t Revision;
-	int DebugReentry;
-#endif
 	ml_value_t *Stack[];
 };
+
+#define ML_FRAME_REUSE (1 << 0)
+#define ML_FRAME_REENTRY (1 << 1)
+
+typedef struct ml_variable_t ml_variable_t;
+
+struct ml_variable_t {
+	const ml_type_t *Type;
+	ml_value_t *Value;
+};
+
+extern ml_type_t MLVariableT[];
 
 const char *ml_closure_debug(ml_value_t *Value);
 void ml_closure_sha256(ml_value_t *Closure, unsigned char Hash[SHA256_BLOCK_SIZE]);

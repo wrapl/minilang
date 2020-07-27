@@ -1,5 +1,4 @@
 #include "ml_gir.h"
-#include "minilang.h"
 #include "ml_macros.h"
 #include <gc/gc.h>
 #include <girepository.h>
@@ -871,9 +870,9 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 					switch (g_type_info_get_tag(ElementInfo)) {
 					case GI_TYPE_TAG_INT8:
 					case GI_TYPE_TAG_UINT8: {
-						if (Arg->Type == MLStringT) {
+						if (ml_is(Arg, MLStringT)) {
 							ArgsIn[IndexIn].v_pointer = (void *)ml_string_value(Arg);
-						} else if (Arg->Type == MLListT) {
+						} else if (ml_is(Arg, MLListT)) {
 							char *Array = GC_MALLOC_ATOMIC((ml_list_length(Arg) + 1));
 							// TODO: fill array
 							ArgsIn[IndexIn].v_pointer = Array;
@@ -923,7 +922,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 						} else if (ml_is(Arg, StructInstanceT)) {
 							ArgsIn[IndexIn].v_pointer = ((struct_instance_t *)Arg)->Value;
 						} else {
-							return ml_error("TypeError", "Expected gir struct not %s for parameter %d", Args[I]->Type->Name, I);
+							return ml_error("TypeError", "Expected gir struct not %s for parameter %d", ml_typeof(Args[I])->Name, I);
 						}
 						break;
 					}
@@ -934,7 +933,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 						if (ml_is(Arg, EnumValueT)) {
 							ArgsIn[IndexIn].v_int64 = ((enum_value_t *)Arg)->Value;
 						} else {
-							return ml_error("TypeError", "Expected gir enum not %s for parameter %d", Args[I]->Type->Name, I);
+							return ml_error("TypeError", "Expected gir enum not %s for parameter %d", ml_typeof(Args[I])->Name, I);
 						}
 						break;
 					}
@@ -947,7 +946,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 						} else if (ml_is(Arg, ObjectInstanceT)) {
 							ArgsIn[IndexIn].v_pointer = ((object_instance_t *)Arg)->Handle;
 						} else {
-							return ml_error("TypeError", "Expected gir object not %s for parameter %d", Args[I]->Type->Name, I);
+							return ml_error("TypeError", "Expected gir object not %s for parameter %d", ml_typeof(Args[I])->Name, I);
 						}
 						break;
 					}
@@ -957,7 +956,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 						} else if (ml_is(Arg, ObjectInstanceT)) {
 							ArgsIn[IndexIn].v_pointer = ((object_instance_t *)Arg)->Handle;
 						} else {
-							return ml_error("TypeError", "Expected gir object not %s for parameter %d", Args[I]->Type->Name, I);
+							return ml_error("TypeError", "Expected gir object not %s for parameter %d", ml_typeof(Args[I])->Name, I);
 						}
 						break;
 					}
@@ -1083,7 +1082,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 					if (ml_is(Arg, StructInstanceT)) {
 						ArgsOut[IndexOut].v_pointer = ((struct_instance_t *)Arg)->Value;
 					} else {
-						return ml_error("TypeError", "Expected gir struct not %s for parameter %d", Args[I]->Type->Name, I);
+						return ml_error("TypeError", "Expected gir struct not %s for parameter %d", ml_typeof(Args[I])->Name, I);
 					}
 					break;
 				}
@@ -1223,7 +1222,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 					if (ml_is(Arg, StructInstanceT)) {
 						ArgsIn[IndexIn].v_pointer = ArgsOut[IndexOut].v_pointer = ((struct_instance_t *)Arg)->Value;
 					} else {
-						return ml_error("TypeError", "Expected gir struct not %s for parameter %d", Args[I]->Type->Name, I);
+						return ml_error("TypeError", "Expected gir struct not %s for parameter %d", ml_typeof(Args[I])->Name, I);
 					}
 					break;
 				}
@@ -1340,7 +1339,7 @@ static void object_add_methods(object_t *Object, GIObjectInfo *Info) {
 		if (Flags & GI_FUNCTION_IS_METHOD) {
 			ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Object, NULL);
 		} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
-			ml_map_insert(Object->Methods, ml_string(MethodName, -1), ml_function(MethodInfo, (void *)constructor_invoke));
+			ml_map_insert(Object->Methods, ml_string(MethodName, -1), ml_cfunction(MethodInfo, (void *)constructor_invoke));
 		}
 	}
 }
@@ -1382,7 +1381,7 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 		Struct->Info = Info;
 		Struct->Methods = ml_map();
 		ml_type_init((ml_type_t *)Struct, StructInstanceT, NULL);
-		ml_map_insert(Struct->Methods, ml_cstring("new"), ml_function(Struct, (void *)struct_instance_new));
+		ml_map_insert(Struct->Methods, ml_cstring("new"), ml_cfunction(Struct, (void *)struct_instance_new));
 		Slot[0] = (ml_type_t *)Struct;
 		int NumFields = g_struct_info_get_n_fields(Info);
 		for (int I = 0; I < NumFields; ++I) {
@@ -1398,7 +1397,7 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 			if (Flags & GI_FUNCTION_IS_METHOD) {
 				ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Struct, NULL);
 			} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
-				ml_map_insert(Struct->Methods, ml_string(MethodName, -1), ml_function(MethodInfo, (void *)constructor_invoke));
+				ml_map_insert(Struct->Methods, ml_string(MethodName, -1), ml_cfunction(MethodInfo, (void *)constructor_invoke));
 			}
 		}
 	}
@@ -1470,7 +1469,7 @@ static ml_value_t *baseinfo_to_value(GIBaseInfo *Info) {
 		break;
 	}
 	case GI_INFO_TYPE_FUNCTION: {
-		return ml_function(Info, (ml_callback_t)function_info_invoke);
+		return ml_cfunction(Info, (ml_callback_t)function_info_invoke);
 	}
 	case GI_INFO_TYPE_CALLBACK: {
 		break;
@@ -1585,16 +1584,16 @@ static ml_value_t *_value_to_ml(const GValue *Value) {
 static void _ml_to_value(ml_value_t *Source, GValue *Dest) {
 	if (Source == MLNil) {
 		g_value_init(Dest, G_TYPE_NONE);
-	} else if (Source->Type == MLBooleanT) {
+	} else if (ml_is(Source, MLBooleanT)) {
 		g_value_init(Dest, G_TYPE_BOOLEAN);
 		g_value_set_boolean(Dest, ml_boolean_value(Source));
-	} else if (Source->Type == MLIntegerT) {
+	} else if (ml_is(Source, MLIntegerT)) {
 		g_value_init(Dest, G_TYPE_LONG);
 		g_value_set_long(Dest, ml_integer_value(Source));
-	} else if (Source->Type == MLRealT) {
+	} else if (ml_is(Source, MLRealT)) {
 		g_value_init(Dest, G_TYPE_DOUBLE);
 		g_value_set_double(Dest, ml_real_value(Source));
-	} else if (Source->Type == MLStringT) {
+	} else if (ml_is(Source, MLStringT)) {
 		g_value_init(Dest, G_TYPE_STRING);
 		g_value_set_string(Dest, ml_string_value(Source));
 	} else if (ml_is(Source, ObjectInstanceT)) {
@@ -1674,6 +1673,6 @@ void ml_gir_init(stringmap_t *Globals) {
 	ObjectInstanceNil = new(object_instance_t);
 	ObjectInstanceNil->Type = (object_t *)ObjectInstanceT;
 	ml_typed_fn_set(EnumT, ml_iterate, enum_iterate);
-	stringmap_insert(Globals, "gir", ml_function(NULL, ml_gir_require));
+	stringmap_insert(Globals, "gir", ml_cfunction(NULL, ml_gir_require));
 #include "ml_gir_init.c"
 }

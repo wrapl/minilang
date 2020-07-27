@@ -10,8 +10,10 @@ typedef struct ml_parser_t {
 	mpc_parser_t *Handle;
 } ml_parser_t;
 
-static ml_type_t *MLParserT;
-static ml_type_t *MLStringParserT, *MLValueParserT;
+ML_TYPE(MLParserT, (), "parser");
+ML_TYPE(MLStringParserT, (MLParserT), "string-parser");
+ML_TYPE(MLValueParserT, (MLParserT), "value-parser");
+
 static ml_value_t Skip[1] = {{MLAnyT}};
 
 static mpc_val_t *ml_mpc_apply_value(mpc_val_t *Value) {
@@ -74,7 +76,7 @@ static ml_value_t *ml_mpc_lift_val(void *Data, int Count, ml_value_t **Args) {
 
 ML_METHOD("expect", MLParserT, MLStringT) {
 	ml_parser_t *Parser = new(ml_parser_t);
-	Parser->Type = Args[0]->Type;
+	Parser->Type = ((ml_parser_t *)Args[0])->Type;
 	Parser->Handle = mpc_expect(((ml_parser_t *)Args[0])->Handle, ml_string_value(Args[1]));
 	return (ml_value_t *)Parser;
 }
@@ -105,7 +107,7 @@ ML_METHOD("apply", MLStringParserT, MLFunctionT) {
 
 static int ml_mpc_check_with(mpc_val_t **Slot, void *Function) {
 	ml_value_t *Result = ml_call((ml_value_t *)Function, 1, (ml_value_t **)Slot);
-	if (Result->Type == MLErrorT) return 0;
+	if (ml_is_error(Result)) return 0;
 	Slot[0] = Result;
 	return 1;
 }
@@ -120,7 +122,7 @@ ML_METHOD("!", MLValueParserT, MLStringT, MLFunctionT) {
 static int ml_mpc_check_with_string(mpc_val_t **Slot, void *Function) {
 	Slot[0] = ml_string(Slot[0], -1);
 	ml_value_t *Result = ml_call((ml_value_t *)Function, 1, (ml_value_t **)Slot);
-	if (Result->Type == MLErrorT) return 0;
+	if (ml_is_error(Result)) return 0;
 	Slot[0] = Result;
 	return 1;
 }
@@ -266,20 +268,20 @@ ML_METHOD(".", MLValueParserT, MLValueParserT) {
 
 ML_METHOD("predictive", MLParserT) {
 	ml_parser_t *Parser = new(ml_parser_t);
-	Parser->Type = Args[0]->Type;
+	Parser->Type = ((ml_parser_t *)Args[0])->Type;
 	Parser->Handle = mpc_predictive(((ml_parser_t *)Args[0])->Handle);
 	return (ml_value_t *)Parser;
 }
 
 ML_METHOD("define", MLParserT, MLParserT) {
 	mpc_define(((ml_parser_t *)Args[0])->Handle, ((ml_parser_t *)Args[1])->Handle);
-	Args[0]->Type = Args[1]->Type;
+	((ml_parser_t *)Args[0])->Type = ((ml_parser_t *)Args[1])->Type;
 	return Args[0];
 }
 
 ML_METHOD("copy", MLParserT) {
 	ml_parser_t *Parser = new(ml_parser_t);
-	Parser->Type = Args[0]->Type;
+	Parser->Type = ((ml_parser_t *)Args[0])->Type;
 	Parser->Handle = mpc_copy(((ml_parser_t *)Args[0])->Handle);
 	return (ml_value_t *)Parser;
 }
@@ -414,54 +416,49 @@ static ml_value_t *ml_mpc_string_parser(mpc_parser_t *Handle) {
 }
 
 void ml_mpc_init(stringmap_t *Globals) {
-	MLParserT = ml_type(MLAnyT, "parser");
-	MLStringParserT = ml_type(MLParserT, "string-parser");
-	MLValueParserT = ml_type(MLParserT, "value-parser");
 #include "ml_mpc_init.c"
 	if (Globals) {
-		ml_value_t *Module = ml_map();
-		stringmap_insert(Globals, "mpc", Module);
-
-		ml_map_insert(Module, ml_cstring("seq"), ml_function(NULL, ml_mpc_seq));
-		ml_map_insert(Module, ml_cstring("new"), ml_function(NULL, ml_mpc_new));
-		ml_map_insert(Module, ml_cstring("re"), ml_function(NULL, ml_mpc_re));
-		ml_map_insert(Module, ml_cstring("any"), ml_function(NULL, ml_mpc_any));
-		ml_map_insert(Module, ml_cstring("char"), ml_function(NULL, ml_mpc_char));
-		ml_map_insert(Module, ml_cstring("range"), ml_function(NULL, ml_mpc_range));
-		ml_map_insert(Module, ml_cstring("oneof"), ml_function(NULL, ml_mpc_oneof));
-		ml_map_insert(Module, ml_cstring("noneof"), ml_function(NULL, ml_mpc_noneof));
-		ml_map_insert(Module, ml_cstring("string"), ml_function(NULL, ml_mpc_string));
-
-		ml_map_insert(Module, ml_cstring("EOI"), ml_mpc_string_parser(mpc_eoi()));
-		ml_map_insert(Module, ml_cstring("SOI"), ml_mpc_string_parser(mpc_soi()));
-		ml_map_insert(Module, ml_cstring("Boundary"), ml_mpc_string_parser(mpc_boundary()));
-		ml_map_insert(Module, ml_cstring("BoundaryNewLine"), ml_mpc_string_parser(mpc_boundary_newline()));
-		ml_map_insert(Module, ml_cstring("WhiteSpace"), ml_mpc_string_parser(mpc_whitespace()));
-		ml_map_insert(Module, ml_cstring("WhiteSpaces"), ml_mpc_string_parser(mpc_whitespaces()));
-		ml_map_insert(Module, ml_cstring("Blank"), ml_mpc_string_parser(mpc_blank()));
-		ml_map_insert(Module, ml_cstring("NewLine"), ml_mpc_string_parser(mpc_newline()));
-		ml_map_insert(Module, ml_cstring("Tab"), ml_mpc_string_parser(mpc_tab()));
-		ml_map_insert(Module, ml_cstring("Escape"), ml_mpc_string_parser(mpc_escape()));
-		ml_map_insert(Module, ml_cstring("Digit"), ml_mpc_string_parser(mpc_digit()));
-		ml_map_insert(Module, ml_cstring("HexDigit"), ml_mpc_string_parser(mpc_hexdigit()));
-		ml_map_insert(Module, ml_cstring("OctDigit"), ml_mpc_string_parser(mpc_octdigit()));
-		ml_map_insert(Module, ml_cstring("Digits"), ml_mpc_string_parser(mpc_digits()));
-		ml_map_insert(Module, ml_cstring("HexDigits"), ml_mpc_string_parser(mpc_hexdigits()));
-		ml_map_insert(Module, ml_cstring("OctDigits"), ml_mpc_string_parser(mpc_octdigits()));
-		ml_map_insert(Module, ml_cstring("Lower"), ml_mpc_string_parser(mpc_lower()));
-		ml_map_insert(Module, ml_cstring("Upper"), ml_mpc_string_parser(mpc_upper()));
-		ml_map_insert(Module, ml_cstring("Alpha"), ml_mpc_string_parser(mpc_alpha()));
-		ml_map_insert(Module, ml_cstring("Underscore"), ml_mpc_string_parser(mpc_underscore()));
-		ml_map_insert(Module, ml_cstring("AlphaNum"), ml_mpc_string_parser(mpc_alphanum()));
-		ml_map_insert(Module, ml_cstring("Int"), ml_mpc_string_parser(mpc_int()));
-		ml_map_insert(Module, ml_cstring("Hex"), ml_mpc_string_parser(mpc_hex()));
-		ml_map_insert(Module, ml_cstring("Oct"), ml_mpc_string_parser(mpc_oct()));
-		ml_map_insert(Module, ml_cstring("Number"), ml_mpc_string_parser(mpc_number()));
-		ml_map_insert(Module, ml_cstring("Real"), ml_mpc_string_parser(mpc_real()));
-		ml_map_insert(Module, ml_cstring("Float"), ml_mpc_string_parser(mpc_float()));
-		ml_map_insert(Module, ml_cstring("CharLit"), ml_mpc_string_parser(mpc_char_lit()));
-		ml_map_insert(Module, ml_cstring("StringLit"), ml_mpc_string_parser(mpc_string_lit()));
-		ml_map_insert(Module, ml_cstring("RegexLit"), ml_mpc_string_parser(mpc_regex_lit()));
-		ml_map_insert(Module, ml_cstring("Ident"), ml_mpc_string_parser(mpc_ident()));
+		stringmap_insert(Globals, "mpc", ml_module("mpc",
+			"seq", ml_cfunction(NULL, ml_mpc_seq),
+			"new", ml_cfunction(NULL, ml_mpc_new),
+			"re", ml_cfunction(NULL, ml_mpc_re),
+			"any", ml_cfunction(NULL, ml_mpc_any),
+			"char", ml_cfunction(NULL, ml_mpc_char),
+			"range", ml_cfunction(NULL, ml_mpc_range),
+			"oneof", ml_cfunction(NULL, ml_mpc_oneof),
+			"noneof", ml_cfunction(NULL, ml_mpc_noneof),
+			"string", ml_cfunction(NULL, ml_mpc_string),
+			"EOI", ml_mpc_string_parser(mpc_eoi()),
+			"SOI", ml_mpc_string_parser(mpc_soi()),
+			"Boundary", ml_mpc_string_parser(mpc_boundary()),
+			"BoundaryNewLine", ml_mpc_string_parser(mpc_boundary_newline()),
+			"WhiteSpace", ml_mpc_string_parser(mpc_whitespace()),
+			"WhiteSpaces", ml_mpc_string_parser(mpc_whitespaces()),
+			"Blank", ml_mpc_string_parser(mpc_blank()),
+			"NewLine", ml_mpc_string_parser(mpc_newline()),
+			"Tab", ml_mpc_string_parser(mpc_tab()),
+			"Escape", ml_mpc_string_parser(mpc_escape()),
+			"Digit", ml_mpc_string_parser(mpc_digit()),
+			"HexDigit", ml_mpc_string_parser(mpc_hexdigit()),
+			"OctDigit", ml_mpc_string_parser(mpc_octdigit()),
+			"Digits", ml_mpc_string_parser(mpc_digits()),
+			"HexDigits", ml_mpc_string_parser(mpc_hexdigits()),
+			"OctDigits", ml_mpc_string_parser(mpc_octdigits()),
+			"Lower", ml_mpc_string_parser(mpc_lower()),
+			"Upper", ml_mpc_string_parser(mpc_upper()),
+			"Alpha", ml_mpc_string_parser(mpc_alpha()),
+			"Underscore", ml_mpc_string_parser(mpc_underscore()),
+			"AlphaNum", ml_mpc_string_parser(mpc_alphanum()),
+			"Int", ml_mpc_string_parser(mpc_int()),
+			"Hex", ml_mpc_string_parser(mpc_hex()),
+			"Oct", ml_mpc_string_parser(mpc_oct()),
+			"Number", ml_mpc_string_parser(mpc_number()),
+			"Real", ml_mpc_string_parser(mpc_real()),
+			"Float", ml_mpc_string_parser(mpc_float()),
+			"CharLit", ml_mpc_string_parser(mpc_char_lit()),
+			"StringLit", ml_mpc_string_parser(mpc_string_lit()),
+			"RegexLit", ml_mpc_string_parser(mpc_regex_lit()),
+			"Ident", ml_mpc_string_parser(mpc_ident()),
+		NULL));
 	}
 }

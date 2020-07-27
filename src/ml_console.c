@@ -76,7 +76,7 @@ typedef struct {
 ml_value_t MLConsoleBreak[1] = {{MLAnyT}};
 
 static void ml_console_log(void *Data, ml_value_t *Value) {
-	if (Value->Type == MLErrorT) {
+	if (ml_is_error(Value)) {
 		printf("Error: %s\n", ml_error_message(Value));
 		ml_source_t Source;
 		int Level = 0;
@@ -85,10 +85,10 @@ static void ml_console_log(void *Data, ml_value_t *Value) {
 		}
 	} else {
 		ml_value_t *String = ml_string_of(Value);
-		if (String->Type == MLStringT) {
+		if (ml_is(String, MLStringT)) {
 			printf("%s\n", ml_string_value(String));
 		} else {
-			printf("<%s>\n", Value->Type->Name);
+			printf("<%s>\n", ml_typeof(Value)->Name);
 		}
 	}
 }
@@ -96,7 +96,7 @@ static void ml_console_log(void *Data, ml_value_t *Value) {
 static void ml_console_repl_run(ml_console_repl_state_t *State, ml_value_t *Result) {
 	if (!Result || Result == MLConsoleBreak) return;
 	State->Console->Prompt = State->Console->DefaultPrompt;
-	Result = Result->Type->deref(Result);
+	Result = ml_deref(Result);
 	ml_console_log(NULL, Result);
 	return ml_command_evaluate((ml_state_t *)State, State->Scanner, State->Console->Globals);
 }
