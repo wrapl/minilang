@@ -3,39 +3,19 @@ file
 
 .. include:: <isonum.txt>
 
-.. topic:: **type** :mini:`file`
+**type** :mini:`file`
 
-   :Parents: 
+**method** :mini:`file Arg₁:read`
 
-.. topic:: **method** :mini:`file Arg₁:read`
+**method** :mini:`file Arg₁:read(integer Arg₂)`
 
-   :file Arg₁: 
+**method** :mini:`file Arg₁:write(string Arg₂)`
 
-.. topic:: **method** :mini:`file Arg₁:read(integer Arg₂)`
+**method** :mini:`file Arg₁:write(stringbuffer Arg₂)`
 
-   :file Arg₁: 
-   :integer Arg₂: 
+**method** :mini:`file Arg₁:eof`
 
-.. topic:: **method** :mini:`file Arg₁:write(string Arg₂)`
+**method** :mini:`file Arg₁:close`
 
-   :file Arg₁: 
-   :string Arg₂: 
-
-.. topic:: **method** :mini:`file Arg₁:write(stringbuffer Arg₂)`
-
-   :file Arg₁: 
-   :stringbuffer Arg₂: 
-
-.. topic:: **method** :mini:`file Arg₁:eof`
-
-   :file Arg₁: 
-
-.. topic:: **method** :mini:`file Arg₁:close`
-
-   :file Arg₁: 
-
-.. topic:: **function** :mini:`file::open(string Arg₁, string Arg₂)`
-
-   :string Arg₁: 
-   :string Arg₂: 
+**function** :mini:`file::open(string Arg₁, string Arg₂)`
 

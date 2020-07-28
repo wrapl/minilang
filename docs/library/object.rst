@@ -3,7 +3,7 @@ object
 
 .. include:: <isonum.txt>
 
-.. topic:: **method** :mini:`string(object Arg₁)`
+**type** :mini:`object`
 
-   :object Arg₁: 
+**method** :mini:`string(object Arg₁)`
 

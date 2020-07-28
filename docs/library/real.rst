@@ -3,50 +3,31 @@ real
 
 .. include:: <isonum.txt>
 
-.. topic:: **method** :mini:`#OP(real Arg₁, array Arg₂)`
+**method** :mini:`integer(real Arg₁)`
 
-   :real Arg₁: 
-   :array Arg₂: 
-
-.. topic:: **method** :mini:`integer(real Arg₁)`
-
-   :real Arg₁: 
-
-.. topic:: **type** :mini:`real`
-
+**type** :mini:`real`
    :Parents: :mini:`number`
 
-.. topic:: **type** :mini:`double`
 
+**type** :mini:`double`
    :Parents: :mini:`real`
 
-.. topic:: **method** :mini:`integer(real Arg₁)`
 
-   :real Arg₁: 
+**method** :mini:`integer(real Real)` |rarr| :mini:`integer`
+   Converts :mini:`Real` to an integer (using default rounding).
 
-.. topic:: **type** :mini:`real`
 
+**type** :mini:`real`
    :Parents: :mini:`number`
 
-.. topic:: **method** :mini:`++ real Arg₁`
 
-   :real Arg₁: 
+**method** :mini:`++ real Arg₁`
 
-.. topic:: **method** :mini:`-- real Arg₁`
+**method** :mini:`-- real Arg₁`
 
-   :real Arg₁: 
+**method** :mini:`real Arg₁ <> integer Arg₂`
 
-.. topic:: **method** :mini:`real Arg₁ <> integer Arg₂`
+**method** :mini:`real Arg₁ <> real Arg₂`
 
-   :real Arg₁: 
-   :integer Arg₂: 
-
-.. topic:: **method** :mini:`real Arg₁ <> real Arg₂`
-
-   :real Arg₁: 
-   :real Arg₂: 
-
-.. topic:: **method** :mini:`string(real Arg₁)`
-
-   :real Arg₁: 
+**method** :mini:`string(real Arg₁)`
 

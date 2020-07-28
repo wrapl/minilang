@@ -3,11 +3,5 @@ nil
 
 .. include:: <isonum.txt>
 
-.. topic:: **type** :mini:`nil`
-
-   :Parents: 
-
-.. topic:: **method** :mini:`string(nil Arg₁)`
-
-   :nil Arg₁: 
+**method** :mini:`string(nil Arg₁)`
 

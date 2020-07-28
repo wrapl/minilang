@@ -3,63 +3,29 @@ stringparser
 
 .. include:: <isonum.txt>
 
-.. topic:: **method** :mini:`$ stringparser Arg₁`
+**method** :mini:`$ stringparser Arg₁`
 
-   :stringparser Arg₁: 
+**method** :mini:`stringparser Arg₁ => any Arg₂`
 
-.. topic:: **method** :mini:`stringparser Arg₁ => any Arg₂`
+**method** :mini:`^ stringparser Arg₁`
 
-   :stringparser Arg₁: 
-   :any Arg₂: 
+**method** :mini:`stringparser Arg₁:apply(function Arg₂)`
 
-.. topic:: **method** :mini:`^ stringparser Arg₁`
+**method** :mini:`stringparser Arg₁ ! string Arg₂, function Arg₃`
 
-   :stringparser Arg₁: 
+**method** :mini:`¬ stringparser Arg₁`
 
-.. topic:: **method** :mini:`stringparser Arg₁:apply(function Arg₂)`
+**method** :mini:`~ stringparser Arg₁`
 
-   :stringparser Arg₁: 
-   :function Arg₂: 
+**method** :mini:`* stringparser Arg₁`
 
-.. topic:: **method** :mini:`stringparser Arg₁ ! string Arg₂, function Arg₃`
+**method** :mini:`+ stringparser Arg₁`
 
-   :stringparser Arg₁: 
-   :string Arg₂: 
-   :function Arg₃: 
+**method** :mini:`stringparser Arg₁ | stringparser Arg₂`
 
-.. topic:: **method** :mini:`¬ stringparser Arg₁`
+**method** :mini:`stringparser Arg₁ . stringparser Arg₂`
 
-   :stringparser Arg₁: 
+**method** :mini:`stringparser Arg₁ % string Arg₂`
 
-.. topic:: **method** :mini:`~ stringparser Arg₁`
-
-   :stringparser Arg₁: 
-
-.. topic:: **method** :mini:`* stringparser Arg₁`
-
-   :stringparser Arg₁: 
-
-.. topic:: **method** :mini:`+ stringparser Arg₁`
-
-   :stringparser Arg₁: 
-
-.. topic:: **method** :mini:`stringparser Arg₁ | stringparser Arg₂`
-
-   :stringparser Arg₁: 
-   :stringparser Arg₂: 
-
-.. topic:: **method** :mini:`stringparser Arg₁ . stringparser Arg₂`
-
-   :stringparser Arg₁: 
-   :stringparser Arg₂: 
-
-.. topic:: **method** :mini:`stringparser Arg₁ % string Arg₂`
-
-   :stringparser Arg₁: 
-   :string Arg₂: 
-
-.. topic:: **method** :mini:`stringparser Arg₁ % file Arg₂`
-
-   :stringparser Arg₁: 
-   :file Arg₂: 
+**method** :mini:`stringparser Arg₁ % file Arg₂`
 

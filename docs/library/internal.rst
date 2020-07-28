@@ -3,59 +3,51 @@ internal
 
 .. include:: <isonum.txt>
 
-.. topic:: **type** :mini:`foldedstate`
+**type** :mini:`foldedstate`
 
-   :Parents: 
+**type** :mini:`limitedstate`
 
-.. topic:: **type** :mini:`limitedstate`
+**type** :mini:`uniquestate`
 
-   :Parents: 
+**type** :mini:`groupedstate`
 
-.. topic:: **type** :mini:`uniquestate`
+**type** :mini:`repeatedstate`
 
-   :Parents: 
+**type** :mini:`sequencedstate`
 
-.. topic:: **type** :mini:`groupedstate`
+**type** :mini:`swappedstate`
 
-   :Parents: 
+**type** :mini:`modulestate`
 
-.. topic:: **type** :mini:`repeatedstate`
-
-   :Parents: 
-
-.. topic:: **type** :mini:`sequencedstate`
-
-   :Parents: 
-
-.. topic:: **type** :mini:`swappedstate`
-
-   :Parents: 
-
-.. topic:: **type** :mini:`modulestate`
-
-   :Parents: 
-
-.. topic:: **type** :mini:`state`
-
+**type** :mini:`state`
    :Parents: :mini:`function`
 
-.. topic:: **type** :mini:`resumablestate`
 
+**type** :mini:`resumablestate`
    :Parents: :mini:`state`
 
-.. topic:: **type** :mini:`listiter`
 
-   :Parents: 
+**type** :mini:`nil`
 
-.. topic:: **type** :mini:`names`
+**type** :mini:`some`
 
+**type** :mini:`blank`
+
+**type** :mini:`cfunction`
+   :Parents: :mini:`function`
+
+
+**type** :mini:`cfunctionx`
+   :Parents: :mini:`function`
+
+
+**type** :mini:`listiter`
+
+**type** :mini:`names`
    :Parents: :mini:`list`
 
-.. topic:: **type** :mini:`mapindex`
 
-   :Parents: 
+**type** :mini:`mapindex`
 
-.. topic:: **type** :mini:`mapiter`
-
-   :Parents: 
+**type** :mini:`mapiter`
 

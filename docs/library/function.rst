@@ -3,29 +3,37 @@ function
 
 .. include:: <isonum.txt>
 
-.. topic:: **method** :mini:`function Arg₁ ! list Arg₂`
+**type** :mini:`function`
+   The base type of all functions.
 
-   :function Arg₁: 
-   :list Arg₂: 
+   All functions are considered iteratable, they can return an iterator when called.
 
-.. topic:: **method** :mini:`function Arg₁ ! map Arg₂`
+   :Parents: :mini:`iteratable`
 
-   :function Arg₁: 
-   :map Arg₂: 
 
-.. topic:: **method** :mini:`function Arg₁ ! list Arg₂, map Arg₃`
+**method** :mini:`function Function ! list List` |rarr| :mini:`any`
+   Calls :mini:`Function` with the values in :mini:`List` as positional arguments.
 
-   :function Arg₁: 
-   :list Arg₂: 
-   :map Arg₃: 
 
-.. topic:: **method** :mini:`function Arg₁ !! list Arg₂`
+**method** :mini:`function Function ! map Map` |rarr| :mini:`any`
+   Calls :mini:`Function` with the keys and values in :mini:`Map` as named arguments.
 
-   :function Arg₁: 
-   :list Arg₂: 
+   Returns an error if any of the keys in :mini:`Map` is not a string or method.
 
-.. topic:: **method** :mini:`function Arg₁ $ any Arg₂`
 
-   :function Arg₁: 
-   :any Arg₂: 
+**method** :mini:`function Function ! list List, map Map` |rarr| :mini:`any`
+   Calls :mini:`Function` with the values in :mini:`List` as positional arguments and the keys and values in :mini:`Map` as named arguments.
+
+   Returns an error if any of the keys in :mini:`Map` is not a string or method.
+
+
+**type** :mini:`partialfunction`
+   :Parents: :mini:`function`
+
+
+**method** :mini:`function Function !! list List` |rarr| :mini:`partialfunction`
+
+**method** :mini:`function Arg₁ $ any Arg₂`
+
+**method** :mini:`partialfunction Arg₁ $ any Arg₂`
 

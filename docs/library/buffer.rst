@@ -3,21 +3,11 @@ buffer
 
 .. include:: <isonum.txt>
 
-.. topic:: **type** :mini:`buffer`
+**type** :mini:`buffer`
 
-   :Parents: 
+**method** :mini:`buffer Arg₁ + integer Arg₂`
 
-.. topic:: **method** :mini:`buffer Arg₁ + integer Arg₂`
+**method** :mini:`buffer Arg₁ - buffer Arg₂`
 
-   :buffer Arg₁: 
-   :integer Arg₂: 
-
-.. topic:: **method** :mini:`buffer Arg₁ - buffer Arg₂`
-
-   :buffer Arg₁: 
-   :buffer Arg₂: 
-
-.. topic:: **method** :mini:`string(buffer Arg₁)`
-
-   :buffer Arg₁: 
+**method** :mini:`string(buffer Arg₁)`
 

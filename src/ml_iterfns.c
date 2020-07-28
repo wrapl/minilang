@@ -364,6 +364,7 @@ static void count_iterate(ml_count_state_t *State, ml_value_t *Result) {
 
 ML_FUNCTIONX(Count) {
 //!iterator
+	ML_CHECKX_ARG_COUNT(1);
 	ml_count_state_t *State = xnew(ml_count_state_t, 1, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)count_iterate;
@@ -1065,6 +1066,7 @@ static void ML_TYPED_FN(ml_iter_next, MLGroupedStateT, ml_state_t *Caller, ml_gr
 
 ML_FUNCTION(Group) {
 //!iterator
+	ML_CHECK_ARG_COUNT(1);
 	ml_grouped_t *Grouped = new(ml_grouped_t);
 	Grouped->Type = MLGroupedT;
 	Grouped->Count = Count - 1;

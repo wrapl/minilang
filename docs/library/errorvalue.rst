@@ -3,7 +3,7 @@ errorvalue
 
 .. include:: <isonum.txt>
 
-.. topic:: **type** :mini:`errorvalue`
-
+**type** :mini:`errorvalue`
    :Parents: :mini:`error`
+
 

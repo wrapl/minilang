@@ -3,7 +3,7 @@ class
 
 .. include:: <isonum.txt>
 
-.. topic:: **type** :mini:`class`
-
+**type** :mini:`class`
    :Parents: :mini:`type`
+
 

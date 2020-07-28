@@ -3,7 +3,5 @@ StructInstanceT
 
 .. include:: <isonum.txt>
 
-.. topic:: **method** :mini:`StructInstanceT Arg₁:string`
-
-   :StructInstanceT Arg₁: 
+**method** :mini:`StructInstanceT Arg₁:string`
 

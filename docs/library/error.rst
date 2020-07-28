@@ -3,19 +3,11 @@ error
 
 .. include:: <isonum.txt>
 
-.. topic:: **type** :mini:`error`
+**type** :mini:`error`
 
-   :Parents: 
+**method** :mini:`error Arg₁:type`
 
-.. topic:: **method** :mini:`error Arg₁:type`
+**method** :mini:`error Arg₁:message`
 
-   :error Arg₁: 
-
-.. topic:: **method** :mini:`error Arg₁:message`
-
-   :error Arg₁: 
-
-.. topic:: **method** :mini:`error Arg₁:trace`
-
-   :error Arg₁: 
+**method** :mini:`error Arg₁:trace`
 

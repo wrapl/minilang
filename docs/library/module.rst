@@ -3,18 +3,12 @@ module
 
 .. include:: <isonum.txt>
 
-.. topic:: **type** :mini:`module`
+**type** :mini:`module`
 
-   :Parents: 
+**method** :mini:`module Module :: string Import` |rarr| :mini:`any`
+   Imports a symbol from a module.
 
-.. topic:: **method** :mini:`module Module :: string Import` |rarr| :mini:`any`
-
-   Imports a symbol from a module. 
-
-   :module Module: 
    :string Import: Name of import.
 
-.. topic:: **method** :mini:`string(module Arg₁)`
-
-   :module Arg₁: 
+**method** :mini:`string(module Arg₁)`
 

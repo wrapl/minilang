@@ -3,23 +3,13 @@ XENodeT
 
 .. include:: <isonum.txt>
 
-.. topic:: **type** :mini:`XENodeT`
+**type** :mini:`XENodeT`
 
-   :Parents: 
+**method** :mini:`string(XENodeT Arg₁)`
 
-.. topic:: **method** :mini:`string(XENodeT Arg₁)`
+**method** :mini:`XENodeT Arg₁:tag`
 
-   :XENodeT Arg₁: 
+**method** :mini:`XENodeT Arg₁:attributes`
 
-.. topic:: **method** :mini:`XENodeT Arg₁:tag`
-
-   :XENodeT Arg₁: 
-
-.. topic:: **method** :mini:`XENodeT Arg₁:attributes`
-
-   :XENodeT Arg₁: 
-
-.. topic:: **method** :mini:`XENodeT Arg₁:content`
-
-   :XENodeT Arg₁: 
+**method** :mini:`XENodeT Arg₁:content`
 

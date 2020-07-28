@@ -103,6 +103,9 @@ void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function);
 
 #endif
 
+#define ML_VALUE(NAME, TYPE) \
+ml_value_t NAME[1] = {{TYPE}}
+
 extern ml_type_t MLAnyT[];
 extern ml_type_t MLNilT[];
 

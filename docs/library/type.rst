@@ -3,16 +3,31 @@ type
 
 .. include:: <isonum.txt>
 
-.. topic:: **method** :mini:`type Arg₁:rank`
+**type** :mini:`type`
+   Type of all types.
 
-   :type Arg₁: 
+   Every type contains a set of named exports, which allows them to be used as modules.
 
-.. topic:: **method** :mini:`string(type Arg₁)`
+   The export :mini:`"of"` should be a convertor / constructor. E.g. :mini:`string::of(X)` returns :mini:`X` converted to a string.
 
-   :type Arg₁: 
 
-.. topic:: **method** :mini:`type Arg₁ :: string Arg₂`
+**method** :mini:`type Type:rank` |rarr| :mini:`integer`
+   Returns the rank of :mini:`Type`, i.e. the depth of its inheritence tree.
 
-   :type Arg₁: 
-   :string Arg₂: 
+
+**method** :mini:`string(type Type)` |rarr| :mini:`string`
+   Returns a string representing :mini:`Type`.
+
+
+**method** :mini:`type Type :: string Name` |rarr| :mini:`any` or :mini:`error`
+   Returns the value of :mini:`Name` exported from :mini:`Type`.
+
+   Returns an error if :mini:`Name` is not present.
+
+   This allows types to behave as modules.
+
+
+**function** :mini:`type(any Value)` |rarr| :mini:`type`
+   Returns the type of :mini:`Value`.
+
 

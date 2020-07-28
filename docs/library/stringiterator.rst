@@ -3,7 +3,5 @@ stringiterator
 
 .. include:: <isonum.txt>
 
-.. topic:: **type** :mini:`stringiterator`
-
-   :Parents: 
+**type** :mini:`stringiterator`
 

@@ -3,11 +3,7 @@ regex
 
 .. include:: <isonum.txt>
 
-.. topic:: **type** :mini:`regex`
+**type** :mini:`regex`
 
-   :Parents: 
-
-.. topic:: **method** :mini:`string(regex Arg₁)`
-
-   :regex Arg₁: 
+**method** :mini:`string(regex Arg₁)`
 

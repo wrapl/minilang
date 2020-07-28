@@ -29,6 +29,8 @@ fun type_name(Type) do
 	end
 end
 
+fun is_symbol(Method) (Method = "\"<op>\"") or (Method:lower = Method:upper)
+
 fun write_method(Category, Kind, Method, Params, Return, Description) do
 	print('[{Category}] {Kind}: {Method}\n')
 	print("Params:\n")
@@ -41,16 +43,16 @@ fun write_method(Category, Kind, Method, Params, Return, Description) do
 	
 	var Terminator := ""
 	var Skip := 1
-	Title:write('.. topic:: **method** :mini:`')
+	Title:write('**method** :mini:`')
 	if Method = "\"[]\"" then
 		Title:write(type_name(Params[1][2]), " ", Params[1][1], "[")
 		Terminator := "]"
 	elseif Method[1] = "\"" then
-		if Params:length = 1 and Method = Method:upper then
+		if Params:length = 1 and is_symbol(Method) then
 			Title:write('{Method[2, -1]} ', type_name(Params[1][2]), " ", Params[1][1])
 		else
 			Title:write(type_name(Params[1][2]), " ", Params[1][1])
-			if Method = Method:upper then
+			if is_symbol(Method) then
 				Title:write(' {Method[2, -1]} ')
 			else
 				Title:write(':{Method[2, -1]}')
@@ -82,12 +84,14 @@ fun write_method(Category, Kind, Method, Params, Return, Description) do
 		end
 	end
 	let TitleString := Title:get
-	File:write(TitleString, "\n\n")
-	if Description:length > 0 then
-		File:write("   ", Description, "\n\n")
+	File:write(TitleString, "\n")
+	for Line in Description do
+		File:write("   ", Line, "\n")
 	end
 	for Param in Params do
-		File:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")	
+		if Param[3]:length > 0 then
+			File:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")
+		end	
 	end
 	File:write("\n")
 end
@@ -103,7 +107,7 @@ fun write_function(Category, Kind, Name, Params, Return, Description) do
 	let Title := stringbuffer()
 	
 	var Terminator := ""
-	Title:write('.. topic:: **function** :mini:`', Name, "(")
+	Title:write('**function** :mini:`', Name, "(")
 	var Seperator := ""
 	for Param in Params do
 		Title:write(Seperator, type_name(Param[2]), " ", Param[1])
@@ -117,12 +121,14 @@ fun write_function(Category, Kind, Name, Params, Return, Description) do
 		end
 	end
 	let TitleString := Title:get
-	File:write(TitleString, "\n\n")
-	if Description:length > 0 then
-		File:write("   ", Description, "\n\n")
+	File:write(TitleString, "\n")
+	for Line in Description do
+		File:write("   ", Line, "\n")
 	end
 	for Param in Params do
-		File:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")	
+		if Param[3]:length > 0 then
+			File:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")
+		end	
 	end
 	File:write("\n")
 end
@@ -132,17 +138,20 @@ fun write_type(Category, Name, Parents, Description) do
 	print('Description: {Description}\n')
 	let File := Categories[Category, write_category]
 	
-	File:write('.. topic:: **type** :mini:`{type_name(Name)}`\n\n')
-	if Description:length > 0 then
-		File:write("   ", Description, "\n\n")
+	File:write('**type** :mini:`{type_name(Name)}`\n')
+	for Line in Description do
+		File:write("   ", Line, "\n")
 	end
-	File:write("   :Parents: ")
-	var Seperator := ""
-	for Parent in Parents do
-		File:write(Seperator, ":mini:`", type_name(Parent), "`")
-		Seperator := ", "
+	if Parents:length > 0 then
+		File:write("   :Parents: ")
+		var Seperator := ""
+		for Parent in Parents do
+			File:write(Seperator, ":mini:`", type_name(Parent), "`")
+			Seperator := ", "
+		end
+		File:write("\n\n")
 	end
-	File:write("\n\n")
+	File:write("\n")
 end
 
 def Subscripts := {
@@ -168,7 +177,7 @@ fun process(FileName) do
 				var Category := category_name(Types[1] or "general")
 				let Params := []
 				var Return := []
-				let Description := stringbuffer()
+				let Description := []
 				loop
 					let Line := while File:read
 					LineNo := old + 1
@@ -189,11 +198,11 @@ fun process(FileName) do
 							))
 						end
 					elseif Line % r"^//>" then
-						Return := list(Line[4, 0] / "|", :trim)
+						Return := list(Line[4, 0] / "|", :trim, :replace(_, Subscripts))
 					elseif Line % r"^//!" then
 						Category := Line[4, 0]:trim
 					elseif Line % r"^// " then
-						Description:write(Line[4, 0]:trim:replace(Subscripts), " ")
+						Description:put(Line[4, 0]:replace(Subscripts))
 					else
 						exit
 					end
@@ -201,7 +210,7 @@ fun process(FileName) do
 				for Type in Types do
 					Params:put(('Arg/{Params:size + 1}':replace(Subscripts), Type, ""))
 				end
-				write_method(Category, Kind, Method, Params, Return, Description:get)
+				write_method(Category, Kind, Method, Params, Return, Description)
 			elseif Line % r"^ML_FUNCTION" then
 				let I := Line:find("("), J := Line:find(")")
 				let Kind := Line[1, I]
@@ -209,26 +218,34 @@ fun process(FileName) do
 				var Category := "general"
 				let Params := []
 				var Return := []
-				let Description := stringbuffer()
+				let Description := []
 				loop
 					let Line := while File:read
 					LineNo := old + 1
 					if Line % r"//@" then
 						Name := Line[4, 0]:trim
 					elseif Line % r"^//<" then
-						let I := Line:find(r"[: \n]", 4)
-						Params:put(if Line[I] = ":" then
-							let J := Line:find(" ", I + 1)
-							[Line[4, I]:trim:replace(Subscripts), Line[I + 1, J]:trim, Line[J + 1, 0]:trim]
+						if let J := Line:find(":", 4) then
+							let K := Line:find(" ", J + 2) or 0
+							Params:put((
+								Line[4, J]:trim:replace(Subscripts),
+								Line[J + 1, K]:trim,
+								Line[K, 0]:trim
+							))
 						else
-							[Line[4, I]:trim:replace(Subscripts), "MLAnyT", Line[I + 1, 0]:trim]
-						end)
+							let J := Line:find(" ", 4) or 0
+							Params:put((
+								Line[4, J]:trim:replace(Subscripts),
+								"MLAnyT",
+								Line[J, 0]:trim
+							))
+						end
 					elseif Line % r"^//>" then
-						Return := list(Line[4, 0] / "|", :trim)
+						Return := list(Line[4, 0] / "|", :trim, :replace(_, Subscripts))
 					elseif Line % r"^//!" then
 						Category := Line[4, 0]:trim
 					elseif Line % r"^// " then
-						Description:write(Line[4, 0]:trim:replace(Subscripts), " ")
+						Description:put(Line[4, 0]:replace(Subscripts))
 					elseif let Match := Line % r"ML_CHECK(X?)_ARG_COUNT\(([0-9]+)\)" then
 						print('Match = {Match}\n')
 						let Count := integer(Match[3])
@@ -242,15 +259,15 @@ fun process(FileName) do
 						exit
 					end
 				end
-				write_function(Category, Kind, Name, Params, Return, Description:get)
-			elseif Line % r"^ML_TYPE" then
+				write_function(Category, Kind, Name, Params, Return, Description)
+			elseif Line % r"^(ML_TYPE|ML_INTERFACE)" then
 				let I := Line:find("("), J := Line:find("(", I + 1)
 				let K := Line:find(")", J + 1)
 				var Name := Line[I + 1, J]:trim(", ")
 				var Category := category_name(Name)
 				let Parents := Line[J + 1, K] / ", "
 				let Title := Line[K + 1, 0]:trim(", ){")
-				let Description := stringbuffer()
+				let Description := []
 				loop
 					let Line := while File:read
 					LineNo := old + 1
@@ -259,12 +276,18 @@ fun process(FileName) do
 					elseif Line % r"^//!" then
 						Category := Line[4, 0]:trim
 					elseif Line % r"^// " then
-						Description:write(Line[4, 0]:trim:replace(Subscripts), " ")
+						Description:put(Line[4, 0]:replace(Subscripts))
 					else
 						exit
 					end
 				end
-				write_type(Category, Name, Parents, Description:get)
+				write_type(Category, Name, Parents, Description)
+			elseif Line % r"^#define " then
+				loop
+					let Line := while File:read
+					LineNo := old + 1
+					until Line = "\n"
+				end
 			end
 		on Error do
 			print(Line, "\n")

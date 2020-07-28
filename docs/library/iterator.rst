@@ -3,177 +3,111 @@ iterator
 
 .. include:: <isonum.txt>
 
-.. topic:: **type** :mini:`chainediterator`
+**type** :mini:`chainediterator`
 
-   :Parents: 
-
-.. topic:: **type** :mini:`chainedfunction`
-
+**type** :mini:`chainedfunction`
    :Parents: :mini:`function`
 
-.. topic:: **method** :mini:`iteratable Arg₁ >> function Arg₂`
 
-   :iteratable Arg₁: 
-   :function Arg₂: 
+**method** :mini:`iteratable Arg₁ >> function Arg₂`
 
-.. topic:: **method** :mini:`chainedfunction Arg₁ >> function Arg₂`
+**method** :mini:`chainedfunction Arg₁ >> function Arg₂`
 
-   :chainedfunction Arg₁: 
-   :function Arg₂: 
+**function** :mini:`first(any Arg₁)`
 
-.. topic:: **function** :mini:`first(any Arg₁)`
+**function** :mini:`first2(any Arg₁)`
 
-   :any Arg₁: 
+**function** :mini:`last(any Arg₁)`
 
-.. topic:: **function** :mini:`first2(any Arg₁)`
+**function** :mini:`last2(any Arg₁)`
 
-   :any Arg₁: 
+**function** :mini:`all(iteratable Arg₁)`
 
-.. topic:: **function** :mini:`last(any Arg₁)`
+**method** :mini:`list(iteratable Arg₁)`
 
-   :any Arg₁: 
+**function** :mini:`all2(iteratable Arg₁)`
 
-.. topic:: **function** :mini:`last2(any Arg₁)`
+**method** :mini:`map(iteratable Arg₁)`
 
-   :any Arg₁: 
+**function** :mini:`count(any Arg₁)`
 
-.. topic:: **function** :mini:`all(iteratable Arg₁)`
+**function** :mini:`fold(any Arg₁, function Arg₂)`
 
-   :iteratable Arg₁: 
+**function** :mini:`min(any Arg₁)`
 
-.. topic:: **method** :mini:`list(iteratable Arg₁)`
+**function** :mini:`max(any Arg₁)`
 
-   :iteratable Arg₁: 
+**function** :mini:`sum(any Arg₁)`
 
-.. topic:: **function** :mini:`all2(iteratable Arg₁)`
+**function** :mini:`prod(any Arg₁)`
 
-   :iteratable Arg₁: 
+**function** :mini:`fold2(any Arg₁, function Arg₂)`
 
-.. topic:: **method** :mini:`map(iteratable Arg₁)`
+**function** :mini:`min2(any Arg₁)`
 
-   :iteratable Arg₁: 
+**function** :mini:`max2(any Arg₁)`
 
-.. topic:: **function** :mini:`count()`
-
-
-.. topic:: **function** :mini:`fold(any Arg₁, function Arg₂)`
-
-   :any Arg₁: 
-   :function Arg₂: 
-
-.. topic:: **function** :mini:`min(any Arg₁)`
-
-   :any Arg₁: 
-
-.. topic:: **function** :mini:`max(any Arg₁)`
-
-   :any Arg₁: 
-
-.. topic:: **function** :mini:`sum(any Arg₁)`
-
-   :any Arg₁: 
-
-.. topic:: **function** :mini:`prod(any Arg₁)`
-
-   :any Arg₁: 
-
-.. topic:: **function** :mini:`fold2(any Arg₁, function Arg₂)`
-
-   :any Arg₁: 
-   :function Arg₂: 
-
-.. topic:: **function** :mini:`min2(any Arg₁)`
-
-   :any Arg₁: 
-
-.. topic:: **function** :mini:`max2(any Arg₁)`
-
-   :any Arg₁: 
-
-.. topic:: **type** :mini:`folded`
-
+**type** :mini:`folded`
    :Parents: :mini:`iteratable`
 
-.. topic:: **method** :mini:`iteratable Arg₁ // function Arg₂`
 
-   :iteratable Arg₁: 
-   :function Arg₂: 
+**method** :mini:`iteratable Arg₁ // function Arg₂`
 
-.. topic:: **type** :mini:`limited`
-
+**type** :mini:`limited`
    :Parents: :mini:`iteratable`
 
-.. topic:: **method** :mini:`iteratable Arg₁:limit(integer Arg₂)`
 
-   :iteratable Arg₁: 
-   :integer Arg₂: 
+**method** :mini:`iteratable Arg₁:limit(integer Arg₂)`
 
-.. topic:: **type** :mini:`skipped`
-
+**type** :mini:`skipped`
    :Parents: :mini:`iteratable`
 
-.. topic:: **method** :mini:`iteratable Arg₁:skip(integer Arg₂)`
 
-   :iteratable Arg₁: 
-   :integer Arg₂: 
+**method** :mini:`iteratable Arg₁:skip(integer Arg₂)`
 
-.. topic:: **type** :mini:`tasks`
-
+**type** :mini:`tasks`
    :Parents: :mini:`function`
 
-.. topic:: **function** :mini:`tasks()`
 
+**function** :mini:`tasks()`
 
-.. topic:: **method** :mini:`tasks Arg₁:wait`
+**method** :mini:`tasks Arg₁:wait`
 
-   :tasks Arg₁: 
+**function** :mini:`parallel(iteratable Arg₁, any Arg₂)`
 
-.. topic:: **function** :mini:`parallel(iteratable Arg₁, any Arg₂)`
-
-   :iteratable Arg₁: 
-   :any Arg₂: 
-
-.. topic:: **type** :mini:`unique`
-
+**type** :mini:`unique`
    :Parents: :mini:`iteratable`
 
-.. topic:: **function** :mini:`unique(any Arg₁)`
 
-   :any Arg₁: 
+**function** :mini:`unique(any Arg₁)`
 
-.. topic:: **type** :mini:`grouped`
-
+**type** :mini:`grouped`
    :Parents: :mini:`iteratable`
 
-.. topic:: **function** :mini:`group()`
 
+**function** :mini:`group(any Arg₁)`
 
-.. topic:: **type** :mini:`repeated`
-
+**type** :mini:`repeated`
    :Parents: :mini:`iteratable`
 
-.. topic:: **function** :mini:`repeat(any Arg₁)`
 
-   :any Arg₁: 
+**function** :mini:`repeat(any Arg₁)`
 
-.. topic:: **type** :mini:`sequenced`
-
+**type** :mini:`sequenced`
    :Parents: :mini:`iteratable`
 
-.. topic:: **method** :mini:`iteratable Arg₁ || iteratable Arg₂`
 
-   :iteratable Arg₁: 
-   :iteratable Arg₂: 
+**method** :mini:`iteratable Arg₁ || iteratable Arg₂`
 
-.. topic:: **method** :mini:`|| iteratable Arg₁`
+**method** :mini:`|| iteratable Arg₁`
 
-   :iteratable Arg₁: 
-
-.. topic:: **type** :mini:`swapped`
-
+**type** :mini:`swapped`
    :Parents: :mini:`iteratable`
 
-.. topic:: **method** :mini:`iteratable Arg₁:swap`
 
-   :iteratable Arg₁: 
+**method** :mini:`iteratable Arg₁:swap`
+
+**type** :mini:`iteratable`
+   The base type for any iteratable value.
+
 

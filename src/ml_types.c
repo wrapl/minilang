@@ -37,6 +37,7 @@ ML_METHOD_DECL(MLMapOf, NULL);
 /****************************** Types ******************************/
 
 ML_INTERFACE(MLAnyT, (), "any");
+// Base type for all values.
 
 static void ml_type_call(ml_state_t *Caller, ml_type_t *Type, int Count, ml_value_t **Args) {
 	ml_value_t *Constructor = stringmap_search(Type->Exports, "of");
@@ -45,10 +46,16 @@ static void ml_type_call(ml_state_t *Caller, ml_type_t *Type, int Count, ml_valu
 }
 
 ML_INTERFACE(MLTypeT, (), "type",
+// Type of all types.
+// Every type contains a set of named exports, which allows them to be used as modules.
+// The export :mini:`"of"` should be a convertor / constructor. E.g. :mini:`string::of(X)` returns :mini:`X` converted to a string.
 	.call = (void *)ml_type_call
 );
 
 ML_METHOD("rank", MLTypeT) {
+//<Type
+//>integer
+// Returns the rank of :mini:`Type`, i.e. the depth of its inheritence tree.
 	ml_type_t *Type = (ml_type_t *)Args[0];
 	return ml_integer(Type->Rank);
 }
@@ -125,6 +132,9 @@ void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function) {
 }
 
 ML_METHOD(MLStringOfMethod, MLTypeT) {
+//<Type
+//>string
+// Returns a string representing :mini:`Type`.
 	ml_type_t *Type = (ml_type_t *)Args[0];
 	return ml_string_format("<<%s>>", Type->Name);
 }
@@ -146,6 +156,12 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLTypeT, ml_stringbuffer_
 }
 
 ML_METHOD("::", MLTypeT, MLStringT) {
+//<Type
+//<Name
+//>any | error
+// Returns the value of :mini:`Name` exported from :mini:`Type`.
+// Returns an error if :mini:`Name` is not present.
+// This allows types to behave as modules.
 	ml_type_t *Type = (ml_type_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
 	ml_value_t *Value = stringmap_search(Type->Exports, Name) ?: ml_error("ModuleError", "Symbol %s not exported from type %s", Name, Type->Name);
@@ -155,12 +171,17 @@ ML_METHOD("::", MLTypeT, MLStringT) {
 /****************************** Values ******************************/
 
 ML_TYPE(MLNilT, (), "nil");
-ML_TYPE(MLSomeT, (), "some");
-ML_TYPE(MLBlankT, (), "blank");
+//!internal
 
-ml_value_t MLNil[1] = {{MLNilT}};
-ml_value_t MLSome[1] = {{MLSomeT}};
-ml_value_t MLBlank[1] = {{MLBlankT}};
+ML_TYPE(MLSomeT, (), "some");
+//!internal
+
+ML_TYPE(MLBlankT, (), "blank");
+//!internal
+
+ML_VALUE(MLNil, MLNilT);
+ML_VALUE(MLSome, MLSomeT);
+ML_VALUE(MLBlank, MLBlankT);
 
 int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
 	for (const ml_type_t **Parents = ml_typeof(Value)->Types, *Type = Parents[0]; Type; Type = *++Parents) {
@@ -170,15 +191,28 @@ int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
 }
 
 ML_FUNCTION(MLTypeOf) {
+//!type
+//@type
+//<Value
+//>type
+// Returns the type of :mini:`Value`.
 	ML_CHECK_ARG_COUNT(1);
 	return (ml_value_t *)ml_typeof(Args[0]);
 }
 
 ML_METHOD("?", MLAnyT) {
+//<Value
+//>type
+// Returns the type of :mini:`Value`.
 	return (ml_value_t *)ml_typeof(Args[0]);
 }
 
 ML_METHOD("isa", MLAnyT, MLTypeT) {
+//<Value
+//<Type
+//>Value | nil
+// Returns :mini:`Value` if it is an instance of :mini:`Type` or a type that inherits from :mini:`Type`.
+// Returns :mini:`nil` otherwise.
 	return ml_is(Args[0], (ml_type_t *)Args[1]) ? Args[0] : MLNil;
 }
 
@@ -220,25 +254,46 @@ static ml_integer_t Zero[1] = {{MLIntegerT, 0}};
 #endif
 
 ML_METHOD("<>", MLAnyT, MLAnyT) {
+//<Value/1
+//<Value/2
+//>integer
+// Compares :mini:`Value/1` and :mini:`Value/2` and returns :mini:`-1`, :mini:`0` or :mini:`1`.
+// This comparison is based on the internal addresses of :mini:`Value/1` and :mini:`Value/2` and thus only has no persistent meaning.
 	if (Args[0] < Args[1]) return (ml_value_t *)NegOne;
 	if (Args[0] > Args[1]) return (ml_value_t *)One;
 	return (ml_value_t *)Zero;
 }
 
 ML_METHOD("#", MLAnyT) {
+//<Value
+//>integer
+// Returns a hash for :mini:`Value` for use in lookup tables, etc.
 	ml_value_t *Value = Args[0];
 	return ml_integer(ml_typeof(Value)->hash(Value, NULL));
 }
 
 ML_METHOD("=", MLAnyT, MLAnyT) {
+//<Value/1
+//<Value/2
+//>Value/2 | nil
+// Returns :mini:`Value2` if :mini:`Value1` and :mini:`Value2` are exactly the same instance.
+// Returns :mini:`nil` otherwise.
 	return (Args[0] == Args[1]) ? Args[1] : MLNil;
 }
 
 ML_METHOD("!=", MLAnyT, MLAnyT) {
+//<Value/1
+//<Value/2
+//>Value/2 | nil
+// Returns :mini:`Value2` if :mini:`Value1` and :mini:`Value2` are not exactly the same instance.
+// Returns :mini:`nil` otherwise.
 	return (Args[0] != Args[1]) ? Args[1] : MLNil;
 }
 
 ML_METHOD(MLStringOfMethod, MLAnyT) {
+//<Value
+//>string
+// Returns a general (type name only) representation of :mini:`Value` as a string.
 	return ml_string_format("<%s>", ml_typeof(Args[0])->Name);
 }
 
@@ -251,6 +306,8 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLAnyT) {
 /****************************** Iterators ******************************/
 
 ML_INTERFACE(MLIteratableT, (), "iteratable");
+//!iterator
+// The base type for any iteratable value.
 
 void ml_iterate(ml_state_t *Caller, ml_value_t *Value) {
 	typeof(ml_iterate) *function = ml_typed_fn_get(ml_typeof(Value), ml_iterate);
@@ -295,8 +352,14 @@ void ml_iter_next(ml_state_t *Caller, ml_value_t *Iter) {
 /****************************** Functions ******************************/
 
 ML_INTERFACE(MLFunctionT, (MLIteratableT), "function");
+// The base type of all functions.
+// All functions are considered iteratable, they can return an iterator when called.
 
 ML_METHODX("!", MLFunctionT, MLListT) {
+//<Function
+//<List
+//>any
+// Calls :mini:`Function` with the values in :mini:`List` as positional arguments.
 	int Count2 = ml_list_length(Args[1]);
 	ml_value_t **Args2 = anew(ml_value_t *, Count2);
 	ml_list_to_array(Args[1], Args2);
@@ -305,6 +368,11 @@ ML_METHODX("!", MLFunctionT, MLListT) {
 }
 
 ML_METHODX("!", MLFunctionT, MLMapT) {
+//<Function
+//<Map
+//>any
+// Calls :mini:`Function` with the keys and values in :mini:`Map` as named arguments.
+// Returns an error if any of the keys in :mini:`Map` is not a string or method.
 	int Count2 = ml_map_size(Args[1]) + 1;
 	ml_value_t **Args2 = anew(ml_value_t *, Count2);
 	ml_value_t *Names = ml_names();
@@ -326,6 +394,12 @@ ML_METHODX("!", MLFunctionT, MLMapT) {
 }
 
 ML_METHODX("!", MLFunctionT, MLListT, MLMapT) {
+//<Function
+//<List
+//<Map
+//>any
+// Calls :mini:`Function` with the values in :mini:`List` as positional arguments and the keys and values in :mini:`Map` as named arguments.
+// Returns an error if any of the keys in :mini:`Map` is not a string or method.
 	int ListCount = ml_list_length(Args[1]);
 	int MapCount = ml_map_size(Args[2]);
 	int Count2 = ListCount + MapCount + 1;
@@ -358,6 +432,7 @@ static void ml_cfunction_call(ml_state_t *Caller, ml_cfunction_t *Function, int 
 }
 
 ML_TYPE(MLCFunctionT, (MLFunctionT), "c-function",
+//!internal
 	.call = (void *)ml_cfunction_call
 );
 
@@ -382,6 +457,7 @@ static void ml_cfunctionx_call(ml_state_t *Caller, ml_cfunctionx_t *Function, in
 }
 
 ML_TYPE(MLCFunctionXT, (MLFunctionT), "c-functionx",
+//!internal
 	.call = (void *)ml_cfunctionx_call
 );
 
@@ -427,6 +503,7 @@ static void ml_partial_function_call(ml_state_t *Caller, ml_partial_function_t *
 }
 
 ML_TYPE(MLPartialFunctionT, (MLFunctionT), "partial-function",
+//!function
 	.call = (void *)ml_partial_function_call
 );
 
@@ -445,6 +522,9 @@ ml_value_t *ml_partial_function_set(ml_value_t *Partial, size_t Index, ml_value_
 }
 
 ML_METHOD("!!", MLFunctionT, MLListT) {
+//<Function
+//<List
+//>partialfunction
 	ml_list_t *ArgsList = (ml_list_t *)Args[1];
 	ml_partial_function_t *Partial = xnew(ml_partial_function_t, ArgsList->Length, ml_value_t *);
 	Partial->Type = MLPartialFunctionT;
@@ -459,12 +539,13 @@ ML_METHOD("$", MLFunctionT, MLAnyT) {
 	ml_partial_function_t *Partial = xnew(ml_partial_function_t, 1, ml_value_t *);
 	Partial->Type = MLPartialFunctionT;
 	Partial->Function = Args[0];
-	Partial->Count = 1;
+	Partial->Count = Partial->Set = 1;
 	Partial->Args[0] = Args[1];
 	return (ml_value_t *)Partial;
 }
 
 ML_METHOD("$", MLPartialFunctionT, MLAnyT) {
+//!function
 	ml_partial_function_t *Old = (ml_partial_function_t *)Args[0];
 	ml_partial_function_t *Partial = xnew(ml_partial_function_t, Old->Count + 1, ml_value_t *);
 	Partial->Type = MLPartialFunctionT;
@@ -523,6 +604,7 @@ static ml_value_t *ml_tuple_assign(ml_tuple_t *Ref, ml_value_t *Value) {
 }
 
 ML_TYPE(MLTupleT, (), "tuple",
+// An immutable tuple of values.
 	.hash = (void *)ml_tuple_hash,
 	.deref = (void *)ml_tuple_deref,
 	.assign = (void *)ml_tuple_assign
@@ -542,6 +624,13 @@ ml_value_t *ml_unpack(ml_value_t *Value, int Index) {
 }
 
 ML_FUNCTION(MLTuple) {
+//!tuple
+//@tuple
+//<Value/1
+//<:...
+//<Value/n
+//>tuple
+// Returns a tuple of values :mini:`Value/1, ..., Value/n`.
 	ml_value_t *Tuple = ml_tuple(Count);
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Value = ml_deref(Args[I]);
@@ -552,11 +641,19 @@ ML_FUNCTION(MLTuple) {
 }
 
 ML_METHOD("size", MLTupleT) {
+//<Tuple
+//>integer
+// Returns the number of elements in :mini:`Tuple`.
 	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
 	return ml_integer(Tuple->Size);
 }
 
 ML_METHOD("[]", MLTupleT, MLIntegerT) {
+//<Tuple
+//<Index
+//>any | error
+// Returns the :mini:`Index`-th element in :mini:`Tuple` or an error if :mini:`Index` is out of range.
+// Indexing starts at :mini:`1`. Negative indices count from the end, with :mini:`-1` returning the last element.
 	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
 	long Index = ml_integer_value(Args[1]);
 	if (--Index < 0) Index += Tuple->Size + 1;
@@ -587,6 +684,9 @@ static ml_value_t *ML_TYPED_FN(ml_string_of, MLTupleT, ml_tuple_t *Tuple) {
 }
 
 ML_METHOD(MLStringOfMethod, MLTupleT) {
+//<Tuple
+//>string
+// Returns a string representation of :mini:`Tuple`.
 	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_stringbuffer_add(Buffer, "(", 1);
@@ -659,6 +759,10 @@ static ml_value_t *ml_tuple_compare(ml_tuple_t *A, ml_tuple_t *B) {
 }
 
 ML_METHOD("<>", MLTupleT, MLTupleT) {
+//<Tuple/1
+//<Tuple/2
+//>integer
+// Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Tuple/1` is less than, equal to or greater than :mini:`Tuple/2` using lexicographical ordering.
 	return ml_tuple_compare((ml_tuple_t *)Args[0], (ml_tuple_t *)Args[1]);
 }
 
@@ -677,6 +781,16 @@ ml_comp_tuple_tuple("<", Args[1], MLNil, MLNil);
 ml_comp_tuple_tuple("<=", Args[1], Args[1], MLNil);
 ml_comp_tuple_tuple(">", MLNil, MLNil, Args[1]);
 ml_comp_tuple_tuple(">=", MLNil, Args[1], Args[1]);
+
+#if 0
+ML_METHOD("<op>", MLTupleT, MLTupleT) {
+//<Tuple/1
+//<Tuple/2
+//>Tuple/2 | nil
+// :mini:`<op>` is :mini:`=`, :mini:`!=`, :mini:`<`, :mini:`<=`, :mini:`>` or :mini:`>=`
+// Returns :mini:`Tuple/2` if :mini:`Tuple/2 <op> Tuple/1` is true, otherwise returns :mini:`nil`.
+}
+#endif
 
 /****************************** Boolean ******************************/
 
@@ -705,6 +819,11 @@ ml_value_t *ml_boolean(int Value) {
 }
 
 ML_METHOD(MLBooleanOfMethod, MLStringT) {
+//<String
+//>boolean | error
+// Returns :mini:`true` if :mini:`String` equals :mini:`"true"` (ignoring case).
+// Returns :mini:`false` if :mini:`String` equals :mini:`"false"` (ignoring case).
+// Otherwise returns an error.
 	const char *Name = ml_string_value(Args[0]);
 	if (!strcasecmp(Name, "true")) return (ml_value_t *)MLTrue;
 	if (!strcasecmp(Name, "false")) return (ml_value_t *)MLFalse;
@@ -712,15 +831,36 @@ ML_METHOD(MLBooleanOfMethod, MLStringT) {
 }
 
 ML_METHOD("-", MLBooleanT) {
+//<Bool
+//>boolean
+// Returns the logical inverse of :mini:`Bool`
 	return MLBooleans[1 - ml_boolean_value(Args[0])];
 }
 
 ML_METHOD("/\\", MLBooleanT, MLBooleanT) {
+//<Bool/1
+//<Bool/2
+//>boolean
+// Returns the logical and of :mini:`Bool/1` and :mini:`Bool/2`.
 	return MLBooleans[ml_boolean_value(Args[0]) & ml_boolean_value(Args[1])];
 }
 
 ML_METHOD("\\/", MLBooleanT, MLBooleanT) {
+//<Bool/1
+//<Bool/2
+//>boolean
+// Returns the logical or of :mini:`Bool/1` and :mini:`Bool/2`.
 	return MLBooleans[ml_boolean_value(Args[0]) | ml_boolean_value(Args[1])];
+}
+
+ML_METHOD("<>", MLBooleanT, MLBooleanT) {
+//<Bool/1
+//<Bool/2
+//>integer
+// Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Bool/1` is less than, equal to or greater than :mini:`Bool/2` using lexicographical ordering.
+	ml_boolean_t *BooleanA = (ml_boolean_t *)Args[0];
+	ml_boolean_t *BooleanB = (ml_boolean_t *)Args[1];
+	return ml_integer(BooleanA->Value - BooleanB->Value);
 }
 
 #define ml_comp_method_boolean_boolean(NAME, SYMBOL) \
@@ -737,9 +877,21 @@ ml_comp_method_boolean_boolean(">", >);
 ml_comp_method_boolean_boolean("<=", <=);
 ml_comp_method_boolean_boolean(">=", >=);
 
+#if 0
+ML_METHOD("<op>", MLBooleanT, MLBooleanT) {
+//<Bool/1
+//<Bool/2
+//>Bool/2 | nil
+// :mini:`<op>` is :mini:`=`, :mini:`!=`, :mini:`<`, :mini:`<=`, :mini:`>` or :mini:`>=`
+// Returns :mini:`Bool/2` if :mini:`Bool/2 <op> Bool/1` is true, otherwise returns :mini:`nil`.
+// :mini:`true` is considered greater than :mini:`false`.
+}
+#endif
+
 /****************************** Numbers ******************************/
 
 ML_TYPE(MLNumberT, (MLFunctionT), "number");
+// Base type for integers and reals.
 
 #ifdef USE_NANBOXING
 
@@ -896,6 +1048,9 @@ static ml_value_t *ML_TYPED_FN(ml_integer_of, MLRealT, ml_real_t *Real) {
 }
 
 ML_METHOD(MLIntegerOfMethod, MLRealT) {
+//<Real
+//>integer
+// Converts :mini:`Real` to an integer (using default rounding).
 	return ml_integer(((ml_real_t *)Args[0])->Value);
 }
 

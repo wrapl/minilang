@@ -3,25 +3,13 @@ parser
 
 .. include:: <isonum.txt>
 
-.. topic:: **type** :mini:`parser`
+**type** :mini:`parser`
 
-   :Parents: 
+**method** :mini:`parser Arg₁:expect(string Arg₂)`
 
-.. topic:: **method** :mini:`parser Arg₁:expect(string Arg₂)`
+**method** :mini:`parser Arg₁:predictive`
 
-   :parser Arg₁: 
-   :string Arg₂: 
+**method** :mini:`parser Arg₁:define(parser Arg₂)`
 
-.. topic:: **method** :mini:`parser Arg₁:predictive`
-
-   :parser Arg₁: 
-
-.. topic:: **method** :mini:`parser Arg₁:define(parser Arg₂)`
-
-   :parser Arg₁: 
-   :parser Arg₂: 
-
-.. topic:: **method** :mini:`parser Arg₁:copy`
-
-   :parser Arg₁: 
+**method** :mini:`parser Arg₁:copy`
 

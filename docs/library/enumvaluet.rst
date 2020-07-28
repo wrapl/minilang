@@ -3,16 +3,9 @@ EnumValueT
 
 .. include:: <isonum.txt>
 
-.. topic:: **method** :mini:`EnumValueT Arg₁:string`
+**method** :mini:`EnumValueT Arg₁:string`
 
-   :EnumValueT Arg₁: 
+**method** :mini:`EnumValueT Arg₁:integer`
 
-.. topic:: **method** :mini:`EnumValueT Arg₁:integer`
-
-   :EnumValueT Arg₁: 
-
-.. topic:: **method** :mini:`EnumValueT Arg₁ | EnumValueT Arg₂`
-
-   :EnumValueT Arg₁: 
-   :EnumValueT Arg₂: 
+**method** :mini:`EnumValueT Arg₁ | EnumValueT Arg₂`
 

@@ -3,7 +3,5 @@ some
 
 .. include:: <isonum.txt>
 
-.. topic:: **method** :mini:`string(some Arg₁)`
-
-   :some Arg₁: 
+**method** :mini:`string(some Arg₁)`
 

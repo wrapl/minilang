@@ -3,7 +3,7 @@ exportfunction
 
 .. include:: <isonum.txt>
 
-.. topic:: **type** :mini:`exportfunction`
-
+**type** :mini:`exportfunction`
    :Parents: :mini:`function`
+
 
