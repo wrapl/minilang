@@ -26,25 +26,30 @@ else
 	LDFLAGS := old + ["-g"]
 end
 
+generate_init_file := fun(Source) do
+	let InitFile := Source:basename:replace(".c", "_init.c")
+	let Target := file(InitFile)[Source] => fun() do
+		Target:open("w"):close
+		let Init := shell("cc", CFLAGS, "-E -P -DGENERATE_INIT", Source)
+		let Out := Target:open("w")
+		for Line in Init / "\n" do
+			loop
+				let I := while Line:find("INIT_CODE ")
+				Line := Line[I + 10, 0]
+				let J := while Line:find(");")
+				Out:write(Line[1, J + 2])
+				Out:write("\n")
+				Line := Line[J + 2, 0]
+			end
+		end
+		Out:close
+	end
+end
+
 fun generate_init_files() do
 	for Source in PATH:ls(".*\\.c") do
 		Source:basename:find("_init") and next
-		var Target := file(Source:basename:replace(".c", "_init.c"))[Source] => fun() do
-			Target:open("w"):close
-			var Init := shell("cc", CFLAGS, "-E -P -DGENERATE_INIT", Source)
-			var Out := Target:open("w")
-			for Line in Init / "\n" do
-				loop
-					var I := while Line:find("INIT_CODE ")
-					Line := Line[I + 10, 0]
-					var J := while Line:find(");")
-					Out:write(Line[1, J + 2])
-					Out:write("\n")
-					Line := Line[J + 2, 0]
-				end
-			end
-			Out:close
-		end
+		generate_init_file(Source)
 	end
 end
 
