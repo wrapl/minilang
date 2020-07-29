@@ -222,7 +222,7 @@ ML_METHOD(NAME, KiwiVariableT, MLNumberT) { \
 	return (ml_value_t *)new kiwi_constraint_t(V->Value OP N); \
 } \
 \
-ML_METHOD(NAME, KiwiVariableT, MLNumberT) { \
+ML_METHOD(NAME, MLNumberT, KiwiVariableT) { \
 	double N = ml_real_value(Args[0]); \
 	kiwi_variable_t *V = (kiwi_variable_t *)Args[1]; \
 	return (ml_value_t *)new kiwi_constraint_t(V->Value OP N); \
@@ -234,7 +234,7 @@ ML_METHOD(NAME, KiwiExpressionT, MLNumberT) { \
 	return (ml_value_t *)new kiwi_constraint_t(V->Value OP N); \
 } \
 \
-ML_METHOD(NAME, KiwiExpressionT, MLNumberT) { \
+ML_METHOD(NAME, MLNumberT, KiwiExpressionT) { \
 	double N = ml_real_value(Args[0]); \
 	kiwi_expression_t *V = (kiwi_expression_t *)Args[1]; \
 	return (ml_value_t *)new kiwi_constraint_t(V->Value OP N); \
