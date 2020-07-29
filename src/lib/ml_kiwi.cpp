@@ -272,41 +272,75 @@ ML_FUNCTION(KiwiSolver) {
 ML_METHOD("add", KiwiSolverT, KiwiConstraintT) {
 	kiwi_solver_t *S = (kiwi_solver_t *)Args[0];
 	kiwi_constraint_t *C = (kiwi_constraint_t *)Args[1];
-	S->Value.addConstraint(C->Value);
+	try {
+		S->Value.addConstraint(C->Value);
+	} catch (std::exception &Exception) {
+		return ml_error("KiwiError", Exception.what());
+	}
 	return Args[0];
 }
 
 ML_METHOD("remove", KiwiSolverT, KiwiConstraintT) {
 	kiwi_solver_t *S = (kiwi_solver_t *)Args[0];
 	kiwi_constraint_t *C = (kiwi_constraint_t *)Args[1];
-	S->Value.removeConstraint(C->Value);
+	try {
+		S->Value.removeConstraint(C->Value);
+	} catch (std::exception &Exception) {
+		return ml_error("KiwiError", Exception.what());
+	}
 	return Args[0];
 }
 
 ML_METHOD("add", KiwiSolverT, KiwiVariableT, MLNumberT) {
 	kiwi_solver_t *S = (kiwi_solver_t *)Args[0];
 	kiwi_variable_t *V = (kiwi_variable_t *)Args[1];
-	S->Value.addEditVariable(V->Value, ml_real_value(Args[2]));
+	try {
+		S->Value.addEditVariable(V->Value, ml_real_value(Args[2]));
+	} catch (std::exception &Exception) {
+		return ml_error("KiwiError", Exception.what());
+	}
 	return Args[0];
 }
 
 ML_METHOD("remove", KiwiSolverT, KiwiVariableT) {
 	kiwi_solver_t *S = (kiwi_solver_t *)Args[0];
 	kiwi_variable_t *V = (kiwi_variable_t *)Args[1];
-	S->Value.removeEditVariable(V->Value);
+	try {
+		S->Value.removeEditVariable(V->Value);
+	} catch (std::exception &Exception) {
+		return ml_error("KiwiError", Exception.what());
+	}
 	return Args[0];
 }
 
 ML_METHOD("suggest", KiwiSolverT, KiwiVariableT, MLNumberT) {
 	kiwi_solver_t *S = (kiwi_solver_t *)Args[0];
 	kiwi_variable_t *V = (kiwi_variable_t *)Args[1];
-	S->Value.suggestValue(V->Value, ml_real_value(Args[2]));
+	try {
+		S->Value.suggestValue(V->Value, ml_real_value(Args[2]));
+	} catch (std::exception &Exception) {
+		return ml_error("KiwiError", Exception.what());
+	}
 	return Args[0];
 }
 
 ML_METHOD("update", KiwiSolverT) {
 	kiwi_solver_t *S = (kiwi_solver_t *)Args[0];
-	S->Value.updateVariables();
+	try {
+		S->Value.updateVariables();
+	} catch (std::exception &Exception) {
+		return ml_error("KiwiError", Exception.what());
+	}
+	return Args[0];
+}
+
+ML_METHOD("reset", KiwiSolverT) {
+	kiwi_solver_t *S = (kiwi_solver_t *)Args[0];
+	try {
+		S->Value.reset();
+	} catch (std::exception &Exception) {
+		return ml_error("KiwiError", Exception.what());
+	}
 	return Args[0];
 }
 
