@@ -20,7 +20,7 @@ boolean
 
 
 **method** :mini:`boolean Bool₁ <> boolean Bool₂` |rarr| :mini:`integer`
-   Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Bool₁` is less than, equal to or greater than :mini:`Bool₂` using lexicographical ordering.
+   Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Bool₁` is less than, equal to or greater than :mini:`Bool₂`. :mini:`true` is considered greater than :mini:`false`.
 
 
 **method** :mini:`boolean Bool₁ <op> boolean Bool₂` |rarr| :mini:`Bool₂` or :mini:`nil`

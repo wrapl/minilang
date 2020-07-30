@@ -32,11 +32,11 @@ end
 fun is_symbol(Method) (Method = "\"<op>\"") or (Method:lower = Method:upper)
 
 fun write_method(Category, Kind, Method, Params, Return, Description) do
-	print('[{Category}] {Kind}: {Method}\n')
+	:<print('[{Category}] {Kind}: {Method}\n')
 	print("Params:\n")
 	for Param in Params do print('\t{Param}\n') end
 	print('Returns: {Return}\n')
-	print('Description: {Description}\n\n')
+	print('Description: {Description}\n\n')>:
 
 	let File := Categories[Category, write_category]
 	let Title := stringbuffer()
@@ -97,11 +97,11 @@ fun write_method(Category, Kind, Method, Params, Return, Description) do
 end
 
 fun write_function(Category, Kind, Name, Params, Return, Description) do
-	print('[{Category}] {Kind}: {Name}\n')
+	:<print('[{Category}] {Kind}: {Name}\n')
 	print("Params:\n")
 	for Param in Params do print('\t{Param}\n') end
 	print('Returns: {Return}\n')
-	print('Description: {Description}\n')
+	print('Description: {Description}\n')>:
 	
 	let File := Categories[Category, write_category]
 	let Title := stringbuffer()
@@ -134,8 +134,9 @@ fun write_function(Category, Kind, Name, Params, Return, Description) do
 end
 
 fun write_type(Category, Name, Parents, Description) do
-	print('[{Category}] ML_TYPE: {Name} [{Parents}]\n')
-	print('Description: {Description}\n')
+	:<print('[{Category}] ML_TYPE: {Name} [{Parents}]\n')
+	print('Description: {Description}\n')>:
+	
 	let File := Categories[Category, write_category]
 	
 	File:write('**type** :mini:`{type_name(Name)}`\n')
@@ -227,18 +228,18 @@ fun process(FileName) do
 					elseif Line % r"^//<" then
 						if let J := Line:find(":", 4) then
 							let K := Line:find(" ", J + 2) or 0
-							Params:put((
+							Params:put([
 								Line[4, J]:trim:replace(Subscripts),
 								Line[J + 1, K]:trim,
 								Line[K, 0]:trim
-							))
+							])
 						else
 							let J := Line:find(" ", 4) or 0
-							Params:put((
+							Params:put([
 								Line[4, J]:trim:replace(Subscripts),
 								"MLAnyT",
 								Line[J, 0]:trim
-							))
+							])
 						end
 					elseif Line % r"^//>" then
 						Return := list(Line[4, 0] / "|", :trim, :replace(_, Subscripts))
@@ -247,7 +248,6 @@ fun process(FileName) do
 					elseif Line % r"^// " then
 						Description:put(Line[4, 0]:replace(Subscripts))
 					elseif let Match := Line % r"ML_CHECK(X?)_ARG_COUNT\(([0-9]+)\)" then
-						print('Match = {Match}\n')
 						let Count := integer(Match[3])
 						for I in (Params:length + 1) .. Count do
 							Params:put(['Arg/{I}':replace(Subscripts), "any", ""])

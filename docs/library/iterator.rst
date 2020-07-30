@@ -31,7 +31,7 @@ iterator
 
 **function** :mini:`count(any Arg₁)`
 
-**function** :mini:`fold(any Arg₁, function Arg₂)`
+**function** :mini:`fold(function Arg₁, any Arg₂)`
 
 **function** :mini:`min(any Arg₁)`
 
@@ -41,7 +41,7 @@ iterator
 
 **function** :mini:`prod(any Arg₁)`
 
-**function** :mini:`fold2(any Arg₁, function Arg₂)`
+**function** :mini:`fold2(function Arg₁, any Arg₂)`
 
 **function** :mini:`min2(any Arg₁)`
 

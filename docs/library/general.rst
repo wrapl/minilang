@@ -67,10 +67,6 @@ general
 
 **function** :mini:`mlmark(any Arg₁)`
 
-**function** :mini:`stringnew()`
-
-**function** :mini:`mlregex(string Arg₁)`
-
 **function** :mini:`mlstringbuffer()`
 
 **function** :mini:`stringifiernew()`

@@ -422,13 +422,13 @@ static void fold_iterate(ml_iter_state_t *State, ml_value_t *Result) {
 ML_FUNCTIONX(Fold) {
 //!iterator
 	ML_CHECKX_ARG_COUNT(2);
-	ML_CHECKX_ARG_TYPE(1, MLFunctionT);
+	ML_CHECKX_ARG_TYPE(0, MLFunctionT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)fold_iterate;
 	State->Base.Context = Caller->Context;
-	State->Values[0] = Args[1];
-	return ml_iterate((ml_state_t *)State, Args[0]);
+	State->Values[0] = Args[0];
+	return ml_iterate((ml_state_t *)State, ml_chained(Count - 1, Args + 1));
 }
 
 ML_FUNCTIONX(Min) {
@@ -439,7 +439,7 @@ ML_FUNCTIONX(Min) {
 	State->Base.run = (void *)fold_iterate;
 	State->Base.Context = Caller->Context;
 	State->Values[0] = GreaterMethod;
-	return ml_iterate((ml_state_t *)State, Args[0]);
+	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
 ML_FUNCTIONX(Max) {
@@ -450,7 +450,7 @@ ML_FUNCTIONX(Max) {
 	State->Base.run = (void *)fold_iterate;
 	State->Base.Context = Caller->Context;
 	State->Values[0] = LessMethod;
-	return ml_iterate((ml_state_t *)State, Args[0]);
+	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
 ML_FUNCTIONX(Sum) {
@@ -461,7 +461,7 @@ ML_FUNCTIONX(Sum) {
 	State->Base.run = (void *)fold_iterate;
 	State->Base.Context = Caller->Context;
 	State->Values[0] = AddMethod;
-	return ml_iterate((ml_state_t *)State, Args[0]);
+	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
 ML_FUNCTIONX(Prod) {
@@ -472,7 +472,7 @@ ML_FUNCTIONX(Prod) {
 	State->Base.run = (void *)fold_iterate;
 	State->Base.Context = Caller->Context;
 	State->Values[0] = MulMethod;
-	return ml_iterate((ml_state_t *)State, Args[0]);
+	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
 static void fold2_iter_next(ml_iter_state_t *State, ml_value_t *Result);
@@ -546,13 +546,13 @@ static void fold2_iterate(ml_iter_state_t *State, ml_value_t *Result) {
 ML_FUNCTIONX(Fold2) {
 //!iterator
 	ML_CHECKX_ARG_COUNT(2);
-	ML_CHECKX_ARG_TYPE(1, MLFunctionT);
+	ML_CHECKX_ARG_TYPE(0, MLFunctionT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 4, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)fold2_iterate;
 	State->Base.Context = Caller->Context;
-	State->Values[0] = Args[1];
-	return ml_iterate((ml_state_t *)State, Args[0]);
+	State->Values[0] = Args[0];
+	return ml_iterate((ml_state_t *)State, ml_chained(Count - 1, Args + 1));
 }
 
 ML_FUNCTIONX(Min2) {
@@ -563,7 +563,7 @@ ML_FUNCTIONX(Min2) {
 	State->Base.run = (void *)fold2_iterate;
 	State->Base.Context = Caller->Context;
 	State->Values[0] = GreaterMethod;
-	return ml_iterate((ml_state_t *)State, Args[0]);
+	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
 ML_FUNCTIONX(Max2) {
@@ -574,7 +574,7 @@ ML_FUNCTIONX(Max2) {
 	State->Base.run = (void *)fold2_iterate;
 	State->Base.Context = Caller->Context;
 	State->Values[0] = LessMethod;
-	return ml_iterate((ml_state_t *)State, Args[0]);
+	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
 typedef struct ml_folded_t {

@@ -25,6 +25,12 @@ string
 
 **method** :mini:`real(string Arg₁)`
 
+**type** :mini:`regex`
+
+**function** :mini:`regex(string String)` |rarr| :mini:`regex` or :mini:`error`
+   Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
+
+
 **method** :mini:`string Arg₁[integer Arg₂]`
 
 **method** :mini:`string Arg₁[integer Arg₂, integer Arg₃]`

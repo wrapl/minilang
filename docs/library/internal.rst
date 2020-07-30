@@ -41,6 +41,8 @@ internal
    :Parents: :mini:`function`
 
 
+**function** :mini:`stringnew()`
+
 **type** :mini:`listiter`
 
 **type** :mini:`names`

@@ -1456,6 +1456,7 @@ static int ml_parse(mlc_scanner_t *Scanner, ml_token_t Token);
 static void ml_accept(mlc_scanner_t *Scanner, ml_token_t Token);
 static mlc_expr_t *ml_parse_expression(mlc_scanner_t *Scanner, ml_expr_level_t Level);
 static mlc_expr_t *ml_accept_expression(mlc_scanner_t *Scanner, ml_expr_level_t Level);
+static void ml_accept_arguments(mlc_scanner_t *Scanner, ml_token_t EndToken, mlc_expr_t **ArgsSlot);
 
 extern ml_cfunction_t StringNew[];
 extern ml_cfunction_t StringifierNew[];
@@ -1523,16 +1524,14 @@ static mlc_expr_t *ml_accept_string(mlc_scanner_t *Scanner) {
 	} else if (End[0] == '{') {
 		mlc_expr_t *Embedded = ml_accept_expression(Scanner, EXPR_DEFAULT);
 		if (ml_parse(Scanner, MLT_COMMA)) {
-			mlc_expr_t *Tail = Embedded;
-			do {
-				Tail = Tail->Next = ml_accept_expression(Scanner, EXPR_DEFAULT);
-			} while (ml_parse(Scanner, MLT_COMMA));
+			ml_accept_arguments(Scanner, MLT_RIGHT_BRACE, &Embedded->Next);
 			ML_EXPR(CallExpr, parent_value, const_call);
 			CallExpr->Value = (ml_value_t *)StringifierNew;
 			CallExpr->Child = Embedded;
 			Embedded = (mlc_expr_t *)CallExpr;
+		} else {
+			ml_accept(Scanner, MLT_RIGHT_BRACE);
 		}
-		ml_accept(Scanner, MLT_RIGHT_BRACE);
 		Embedded->Next = ml_accept_string(Scanner);
 		if (Expr) {
 			Expr->Next = Embedded;

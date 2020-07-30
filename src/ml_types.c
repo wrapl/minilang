@@ -857,7 +857,7 @@ ML_METHOD("<>", MLBooleanT, MLBooleanT) {
 //<Bool/1
 //<Bool/2
 //>integer
-// Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Bool/1` is less than, equal to or greater than :mini:`Bool/2` using lexicographical ordering.
+// Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Bool/1` is less than, equal to or greater than :mini:`Bool/2`. :mini:`true` is considered greater than :mini:`false`.
 	ml_boolean_t *BooleanA = (ml_boolean_t *)Args[0];
 	ml_boolean_t *BooleanB = (ml_boolean_t *)Args[1];
 	return ml_integer(BooleanA->Value - BooleanB->Value);
@@ -1179,18 +1179,30 @@ ml_arith_method_number_number("-", -)
 ml_arith_method_number_number("*", *)
 
 ML_METHOD("++", MLIntegerT) {
+//<Int
+//>integer
+// Returns :mini:`Int + 1`
 	return ml_integer(ml_integer_value(Args[0]) + 1);
 }
 
 ML_METHOD("--", MLIntegerT) {
+//<Int
+//>integer
+// Returns :mini:`Int - 1`
 	return ml_integer(ml_integer_value(Args[0]) - 1);
 }
 
 ML_METHOD("++", MLRealT) {
+//<Real
+//>real
+// Returns :mini:`Real + 1`
 	return ml_real(ml_real_value(Args[0]) + 1);
 }
 
 ML_METHOD("--", MLRealT) {
+//<Real
+//>real
+// Returns :mini:`Real - 1`
 	return ml_real(ml_real_value(Args[0]) - 1);
 }
 
@@ -1199,6 +1211,10 @@ ml_arith_method_real_integer("/", /)
 ml_arith_method_integer_real("/", /)
 
 ML_METHOD("/", MLIntegerT, MLIntegerT) {
+//<Int/1
+//<Int/2
+//>integer | real
+// Returns :mini:`Int/1 / Int/2` as an integer if the division is exact, otherwise as a real.
 	int64_t IntegerA = ml_integer_value(Args[0]);
 	int64_t IntegerB = ml_integer_value(Args[1]);
 	if (!IntegerB) return ml_error("ValueError", "Division by 0");
@@ -1210,6 +1226,12 @@ ML_METHOD("/", MLIntegerT, MLIntegerT) {
 }
 
 ML_METHOD("%", MLIntegerT, MLIntegerT) {
+//<Int/1
+//<Int/2
+//>integer
+// Returns the remainder of :mini:`Int/1` divided by :mini:`Int/2`.
+// Note: the result is calculated by rounding towards 0. In particular, if :mini:`Int/1` is negative, the result will be negative.
+// For a nonnegative remainder, use :mini:`Int/1 mod Int/2`.
 	int64_t IntegerA = ml_integer_value(Args[0]);
 	int64_t IntegerB = ml_integer_value(Args[1]);
 	if (!IntegerB) return ml_error("ValueError", "Division by 0");
@@ -1217,6 +1239,11 @@ ML_METHOD("%", MLIntegerT, MLIntegerT) {
 }
 
 ML_METHOD("div", MLIntegerT, MLIntegerT) {
+//<Int/1
+//<Int/2
+//>integer
+// Returns the quotient of :mini:`Int/1` divided by :mini:`Int/2`.
+// The result is calculated by rounding down in all cases.
 	int64_t IntegerA = ml_integer_value(Args[0]);
 	int64_t IntegerB = ml_integer_value(Args[1]);
 	if (!IntegerB) return ml_error("ValueError", "Division by 0");
@@ -1230,6 +1257,11 @@ ML_METHOD("div", MLIntegerT, MLIntegerT) {
 }
 
 ML_METHOD("mod", MLIntegerT, MLIntegerT) {
+//<Int/1
+//<Int/2
+//>integer
+// Returns the remainder of :mini:`Int/1` divided by :mini:`Int/2`.
+// Note: the result is calculated by rounding down in all cases. In particular, the result is always nonnegative.
 	int64_t IntegerA = ml_integer_value(Args[0]);
 	int64_t IntegerB = ml_integer_value(Args[1]);
 	if (!IntegerB) return ml_error("ValueError", "Division by 0");
@@ -1282,6 +1314,10 @@ ml_comp_method_number_number("<=", <=)
 ml_comp_method_number_number(">=", >=)
 
 ML_METHOD("<>", MLIntegerT, MLIntegerT) {
+//<Int/1
+//<Int/2
+//>integer
+// Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Int/1` is less than, equal to or greater than :mini:`Int/2`.
 	int64_t IntegerA = ml_integer_value(Args[0]);
 	int64_t IntegerB = ml_integer_value(Args[1]);
 	if (IntegerA < IntegerB) return (ml_value_t *)NegOne;
@@ -1290,6 +1326,10 @@ ML_METHOD("<>", MLIntegerT, MLIntegerT) {
 }
 
 ML_METHOD("<>", MLRealT, MLIntegerT) {
+//<Real/1
+//<Int/2
+//>integer
+// Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Real/1` is less than, equal to or greater than :mini:`Int/2`.
 	double RealA = ml_real_value(Args[0]);
 	int64_t IntegerB = ml_integer_value(Args[1]);
 	if (RealA < IntegerB) return (ml_value_t *)NegOne;
@@ -1298,6 +1338,10 @@ ML_METHOD("<>", MLRealT, MLIntegerT) {
 }
 
 ML_METHOD("<>", MLIntegerT, MLRealT) {
+//<Int/1
+//<Real/2
+//>integer
+// Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Int/1` is less than, equal to or greater than :mini:`Real/2`.
 	int64_t IntegerA = ml_integer_value(Args[0]);
 	double RealB = ml_real_value(Args[1]);
 	if (IntegerA < RealB) return (ml_value_t *)NegOne;
@@ -1306,6 +1350,10 @@ ML_METHOD("<>", MLIntegerT, MLRealT) {
 }
 
 ML_METHOD("<>", MLRealT, MLRealT) {
+//<Real/1
+//<Real/2
+//>integer
+// Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Real/1` is less than, equal to or greater than :mini:`Real/2`.
 	double RealA = ml_real_value(Args[0]);
 	double RealB = ml_real_value(Args[1]);
 	if (RealA < RealB) return (ml_value_t *)NegOne;
@@ -1699,8 +1747,12 @@ size_t ml_string_length(ml_value_t *Value) {
 #endif
 
 ML_FUNCTION(StringNew) {
+//!internal
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	for (int I = 0; I < Count; ++I) ml_stringbuffer_append(Buffer, Args[I]);
+	for (int I = 0; I < Count; ++I) {
+		ml_value_t *Result = ml_stringbuffer_append(Buffer, Args[I]);
+		if (ml_is_error(Result)) return Result;
+	}
 	return ml_stringbuffer_get_string(Buffer);
 }
 
@@ -1760,7 +1812,8 @@ ML_METHOD(MLStringOfMethod, MLIntegerT, MLIntegerT) {
 	int64_t Value = ml_integer_value(Args[0]);
 	int Base = ml_integer_value(Args[1]);
 	if (Base < 2 || Base > 36) return ml_error("RangeError", "Invalid base");
-	char *P = GC_MALLOC_ATOMIC(66) + 65, *Q = P;
+	int Max = 65;
+	char *P = GC_MALLOC_ATOMIC(Max + 1) + Max, *Q = P;
 	*P = '\0';
 	int64_t Neg = Value < 0 ? Value : -Value;
 	do {
@@ -1843,8 +1896,43 @@ static long ml_regex_hash(ml_regex_t *Regex, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
+static void ml_regex_call(ml_state_t *Caller, ml_regex_t *Regex, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLStringT);
+	const char *Subject = ml_string_value(Args[0]);
+	regmatch_t Matches[Regex->Value->re_nsub + 1];
+	switch (regexec(Regex->Value, Subject, Regex->Value->re_nsub + 1, Matches, 0)) {
+	case REG_NOMATCH:
+		ML_RETURN(MLNil);
+	case REG_ESPACE: {
+		size_t ErrorSize = regerror(REG_ESPACE, Regex->Value, NULL, 0);
+		char *ErrorMessage = snew(ErrorSize + 1);
+		regerror(REG_ESPACE, Regex->Value, ErrorMessage, ErrorSize);
+		ML_ERROR("RegexError", "regex error: %s", ErrorMessage);
+	}
+	default: {
+		ml_value_t *Results = ml_tuple(Regex->Value->re_nsub + 1);
+		for (int I = 0; I < Regex->Value->re_nsub + 1; ++I) {
+			regoff_t Start = Matches[I].rm_so;
+			if (Start >= 0) {
+				size_t Length = Matches[I].rm_eo - Start;
+				char *Chars = snew(Length + 1);
+				memcpy(Chars, Subject + Start, Length);
+				Chars[Length] = 0;
+				ml_tuple_set(Results, I + 1, ml_string(Chars, Length));
+			} else {
+				ml_tuple_set(Results, I + 1, MLNil);
+			}
+		}
+		ML_RETURN(Results);
+	}
+	}
+}
+
 ML_TYPE(MLRegexT, (), "regex",
-	.hash = (void *)ml_regex_hash
+//!string
+	.hash = (void *)ml_regex_hash,
+	.call = (void *)ml_regex_call
 );
 
 ml_value_t *ml_regex(const char *Pattern) {
@@ -1867,6 +1955,11 @@ regex_t *ml_regex_value(ml_value_t *Value) {
 }
 
 ML_FUNCTION(MLRegex) {
+//!string
+//@regex
+//<String
+//>regex | error
+// Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	return ml_regex(ml_string_value(Args[0]));

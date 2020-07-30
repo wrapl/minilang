@@ -21,13 +21,21 @@ real
    :Parents: :mini:`number`
 
 
-**method** :mini:`++ real Arg₁`
+**method** :mini:`++ real Real` |rarr| :mini:`real`
+   Returns :mini:`Real + 1`
 
-**method** :mini:`-- real Arg₁`
 
-**method** :mini:`real Arg₁ <> integer Arg₂`
+**method** :mini:`-- real Real` |rarr| :mini:`real`
+   Returns :mini:`Real - 1`
 
-**method** :mini:`real Arg₁ <> real Arg₂`
+
+**method** :mini:`real Real₁ <> integer Int₂` |rarr| :mini:`integer`
+   Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Real₁` is less than, equal to or greater than :mini:`Int₂`.
+
+
+**method** :mini:`real Real₁ <> real Real₂` |rarr| :mini:`integer`
+   Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Real₁` is less than, equal to or greater than :mini:`Real₂`.
+
 
 **method** :mini:`string(real Arg₁)`
 
