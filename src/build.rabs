@@ -26,7 +26,7 @@ else
 	LDFLAGS := old + ["-g"]
 end
 
-generate_init_file := fun(Source) do
+fun generate_init_file(Source) do
 	let InitFile := Source:basename:replace(".c", "_init.c")
 	let Target := file(InitFile)[Source] => fun() do
 		Target:open("w"):close
@@ -45,6 +45,8 @@ generate_init_file := fun(Source) do
 		Out:close
 	end
 end
+
+PARENT."generate_init_file" := generate_init_file
 
 fun generate_init_files() do
 	for Source in PATH:ls(".*\\.c") do
