@@ -1337,7 +1337,7 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_method_by_name("/", 4 + (char *)0, array_infix_fn, MLArrayT, MLArrayT, NULL);
 	stringmap_insert(MLArrayT->Exports, "new", ml_cfunctionx(NULL, ml_array_new_fnx));
 	stringmap_insert(MLArrayT->Exports, "wrap", ml_cfunction(NULL, ml_array_wrap_fn));
-	stringmap_insert(MLArrayT->Exports, "of", ml_cfunction(NULL, ml_array_of_fn));
+	MLArrayT->Constructor = ml_cfunction(NULL, ml_array_of_fn);
 	stringmap_insert(MLArrayT->Exports, "any", MLArrayAnyT);
 	stringmap_insert(MLArrayT->Exports, "int8", MLArrayInt8T);
 	stringmap_insert(MLArrayT->Exports, "uint8", MLArrayUInt8T);

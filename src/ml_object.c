@@ -21,7 +21,7 @@ struct ml_object_t {
 ML_INTERFACE(MLObjectT, (), "object");
 
 static void ml_class_call(ml_state_t *Caller, ml_class_t *Class, int Count, ml_value_t **Args) {
-	ml_value_t *Constructor = stringmap_search(Class->Base.Exports, "of");
+	ml_value_t *Constructor = Class->Base.Constructor;
 	return ml_typeof(Constructor)->call(Caller, Constructor, Count, Args);
 }
 
@@ -164,7 +164,7 @@ ML_FUNCTION(MLClassNew) {
 	Class->NumFields = NumFields;
 	ml_value_t **Fields = Class->Fields;
 	ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_constructor_fn);
-	stringmap_insert(Class->Base.Exports, "of", Constructor);
+	Class->Base.Constructor = Constructor;
 	for (int I = 1; I < Count; ++I) {
 		if (ml_typeof(Args[I]) == MLMethodT) {
 			*Fields++ = Args[I];
@@ -196,7 +196,12 @@ ML_FUNCTION(MLClassNew) {
 			ML_MAP_FOREACH(Args[I], Iter) {
 				ml_value_t *Key = Iter->Key;
 				if (!ml_is(Key, MLStringT)) return ml_error("TypeError", "Class field name must be a string");
-				stringmap_insert(Class->Base.Exports, ml_string_value(Key), Iter->Value);
+				const char *Name = ml_string_value(Key);
+				if (!strcmp(Name, "of")) {
+					Class->Base.Constructor = Iter->Value;
+				} else {
+					stringmap_insert(Class->Base.Exports, Name, Iter->Value);
+				}
 			}
 		}
 	}

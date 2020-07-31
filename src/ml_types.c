@@ -28,6 +28,7 @@ ML_METHOD_DECL(Symbol, "::");
 ML_METHOD_DECL(MLStringOf, NULL);
 ML_METHOD_DECL(MLStringBufferAppend, NULL);
 ML_METHOD_DECL(MLBooleanOf, NULL);
+ML_METHOD_DECL(MLNumberOf, NULL);
 ML_METHOD_DECL(MLIntegerOf, NULL);
 ML_METHOD_DECL(MLRealOf, NULL);
 ML_METHOD_DECL(MLMethodOf, NULL);
@@ -40,16 +41,37 @@ ML_INTERFACE(MLAnyT, (), "any");
 // Base type for all values.
 
 static void ml_type_call(ml_state_t *Caller, ml_type_t *Type, int Count, ml_value_t **Args) {
-	ml_value_t *Constructor = stringmap_search(Type->Exports, "of");
+	ml_value_t *Constructor = Type->Constructor;
+	if (!Constructor) {
+		Constructor = Type->Constructor = stringmap_search(Type->Exports, "of");
+	}
 	if (!Constructor) ML_RETURN(ml_error("TypeError", "No constructor for <%s>", Type->Name));
 	return ml_typeof(Constructor)->call(Caller, Constructor, Count, Args);
 }
 
-ML_INTERFACE(MLTypeT, (), "type",
+ML_INTERFACE(MLIteratableT, (), "iteratable");
+//!iterator
+// The base type for any iteratable value.
+
+ML_INTERFACE(MLFunctionT, (MLIteratableT), "function");
+// The base type of all functions.
+// All functions are considered iteratable, they can return an iterator when called.
+
+ML_FUNCTION(MLTypeOf) {
+//!type
+//@type
+//<Value
+//>type
+// Returns the type of :mini:`Value`.
+	ML_CHECK_ARG_COUNT(1);
+	return (ml_value_t *)ml_typeof(Args[0]);
+}
+
+ML_INTERFACE(MLTypeT, (MLFunctionT), "type",
 // Type of all types.
 // Every type contains a set of named exports, which allows them to be used as modules.
-// The export :mini:`"of"` should be a convertor / constructor. E.g. :mini:`string::of(X)` returns :mini:`X` converted to a string.
-	.call = (void *)ml_type_call
+	.call = (void *)ml_type_call,
+	.Constructor = MLTypeOf
 );
 
 ML_METHOD("rank", MLTypeT) {
@@ -164,8 +186,8 @@ ML_METHOD("::", MLTypeT, MLStringT) {
 // This allows types to behave as modules.
 	ml_type_t *Type = (ml_type_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
-	ml_value_t *Value = stringmap_search(Type->Exports, Name) ?: ml_error("ModuleError", "Symbol %s not exported from type %s", Name, Type->Name);
-	return Value;
+	ml_value_t *Value = strcmp(Name, "of") ? stringmap_search(Type->Exports, Name) : Type->Constructor;
+	return Value ?: ml_error("ModuleError", "Symbol %s not exported from type %s", Name, Type->Name);
 }
 
 /****************************** Values ******************************/
@@ -188,16 +210,6 @@ int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
 		if (Type == Expected) return 1;
 	}
 	return 0;
-}
-
-ML_FUNCTION(MLTypeOf) {
-//!type
-//@type
-//<Value
-//>type
-// Returns the type of :mini:`Value`.
-	ML_CHECK_ARG_COUNT(1);
-	return (ml_value_t *)ml_typeof(Args[0]);
 }
 
 ML_METHOD("?", MLAnyT) {
@@ -305,10 +317,6 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLAnyT) {
 
 /****************************** Iterators ******************************/
 
-ML_INTERFACE(MLIteratableT, (), "iteratable");
-//!iterator
-// The base type for any iteratable value.
-
 void ml_iterate(ml_state_t *Caller, ml_value_t *Value) {
 	typeof(ml_iterate) *function = ml_typed_fn_get(ml_typeof(Value), ml_iterate);
 	if (!function) {
@@ -350,10 +358,6 @@ void ml_iter_next(ml_state_t *Caller, ml_value_t *Iter) {
 }
 
 /****************************** Functions ******************************/
-
-ML_INTERFACE(MLFunctionT, (MLIteratableT), "function");
-// The base type of all functions.
-// All functions are considered iteratable, they can return an iterator when called.
 
 ML_METHODX("!", MLFunctionT, MLListT) {
 //<Function
@@ -603,26 +607,6 @@ static ml_value_t *ml_tuple_assign(ml_tuple_t *Ref, ml_value_t *Value) {
 	return Value;
 }
 
-ML_TYPE(MLTupleT, (), "tuple",
-// An immutable tuple of values.
-	.hash = (void *)ml_tuple_hash,
-	.deref = (void *)ml_tuple_deref,
-	.assign = (void *)ml_tuple_assign
-);
-
-ml_value_t *ml_tuple(size_t Size) {
-	ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
-	Tuple->Type = MLTupleT;
-	Tuple->Size = Size;
-	return (ml_value_t *)Tuple;
-}
-
-ml_value_t *ml_unpack(ml_value_t *Value, int Index) {
-	typeof(ml_unpack) *function = ml_typed_fn_get(ml_typeof(Value), ml_unpack);
-	if (!function) return NULL;
-	return function(Value, Index);
-}
-
 ML_FUNCTION(MLTuple) {
 //!tuple
 //@tuple
@@ -638,6 +622,27 @@ ML_FUNCTION(MLTuple) {
 		ml_tuple_set(Tuple, I + 1, Value);
 	}
 	return Tuple;
+}
+
+ML_TYPE(MLTupleT, (), "tuple",
+// An immutable tuple of values.
+	.hash = (void *)ml_tuple_hash,
+	.deref = (void *)ml_tuple_deref,
+	.assign = (void *)ml_tuple_assign,
+	.Constructor = MLTuple
+);
+
+ml_value_t *ml_tuple(size_t Size) {
+	ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
+	Tuple->Type = MLTupleT;
+	Tuple->Size = Size;
+	return (ml_value_t *)Tuple;
+}
+
+ml_value_t *ml_unpack(ml_value_t *Value, int Index) {
+	typeof(ml_unpack) *function = ml_typed_fn_get(ml_typeof(Value), ml_unpack);
+	if (!function) return NULL;
+	return function(Value, Index);
 }
 
 ML_METHOD("size", MLTupleT) {
@@ -1592,9 +1597,7 @@ ML_METHOD("in", MLRealT, MLRealRangeT) {
 
 /****************************** Strings ******************************/
 
-ML_TYPE(MLBufferT, (), "buffer");
-
-ml_value_t *ml_buffer(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(MLBuffer) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	long Size = ml_integer_value(Args[0]);
@@ -1605,6 +1608,10 @@ ml_value_t *ml_buffer(void *Data, int Count, ml_value_t **Args) {
 	Buffer->Address = GC_MALLOC_ATOMIC(Size);
 	return (ml_value_t *)Buffer;
 }
+
+ML_TYPE(MLBufferT, (), "buffer",
+	.Constructor = MLBuffer
+);
 
 ML_METHOD("+", MLBufferT, MLIntegerT) {
 	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
@@ -1896,43 +1903,21 @@ static long ml_regex_hash(ml_regex_t *Regex, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
-static void ml_regex_call(ml_state_t *Caller, ml_regex_t *Regex, int Count, ml_value_t **Args) {
-	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLStringT);
-	const char *Subject = ml_string_value(Args[0]);
-	regmatch_t Matches[Regex->Value->re_nsub + 1];
-	switch (regexec(Regex->Value, Subject, Regex->Value->re_nsub + 1, Matches, 0)) {
-	case REG_NOMATCH:
-		ML_RETURN(MLNil);
-	case REG_ESPACE: {
-		size_t ErrorSize = regerror(REG_ESPACE, Regex->Value, NULL, 0);
-		char *ErrorMessage = snew(ErrorSize + 1);
-		regerror(REG_ESPACE, Regex->Value, ErrorMessage, ErrorSize);
-		ML_ERROR("RegexError", "regex error: %s", ErrorMessage);
-	}
-	default: {
-		ml_value_t *Results = ml_tuple(Regex->Value->re_nsub + 1);
-		for (int I = 0; I < Regex->Value->re_nsub + 1; ++I) {
-			regoff_t Start = Matches[I].rm_so;
-			if (Start >= 0) {
-				size_t Length = Matches[I].rm_eo - Start;
-				char *Chars = snew(Length + 1);
-				memcpy(Chars, Subject + Start, Length);
-				Chars[Length] = 0;
-				ml_tuple_set(Results, I + 1, ml_string(Chars, Length));
-			} else {
-				ml_tuple_set(Results, I + 1, MLNil);
-			}
-		}
-		ML_RETURN(Results);
-	}
-	}
+ML_FUNCTION(MLRegex) {
+//!string
+//@regex
+//<String
+//>regex | error
+// Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	return ml_regex(ml_string_value(Args[0]));
 }
 
 ML_TYPE(MLRegexT, (), "regex",
 //!string
 	.hash = (void *)ml_regex_hash,
-	.call = (void *)ml_regex_call
+	.Constructor = MLRegex
 );
 
 ml_value_t *ml_regex(const char *Pattern) {
@@ -1954,29 +1939,20 @@ regex_t *ml_regex_value(ml_value_t *Value) {
 	return Regex->Value;
 }
 
-ML_FUNCTION(MLRegex) {
-//!string
-//@regex
-//<String
-//>regex | error
-// Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
-	return ml_regex(ml_string_value(Args[0]));
-}
-
-ML_TYPE(MLStringBufferT, (), "stringbuffer");
-
-struct ml_stringbuffer_node_t {
-	ml_stringbuffer_node_t *Next;
-	char Chars[ML_STRINGBUFFER_NODE_SIZE];
-};
-
 ML_FUNCTION(MLStringBuffer) {
 	ml_stringbuffer_t *Buffer = new(ml_stringbuffer_t);
 	Buffer->Type = MLStringBufferT;
 	return (ml_value_t *)Buffer;
 }
+
+ML_TYPE(MLStringBufferT, (), "stringbuffer",
+	.Constructor = MLStringBuffer
+);
+
+struct ml_stringbuffer_node_t {
+	ml_stringbuffer_node_t *Next;
+	char Chars[ML_STRINGBUFFER_NODE_SIZE];
+};
 
 static GC_descr StringBufferDesc = 0;
 
@@ -4307,6 +4283,15 @@ void ml_init() {
 	GC_word StringBufferLayout[] = {1};
 	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
 #include "ml_types_init.c"
+	MLBooleanT->Constructor = MLBooleanOfMethod;
+	MLNumberT->Constructor = MLNumberOfMethod;
+	MLIntegerT->Constructor = MLIntegerOfMethod;
+	MLRealT->Constructor = MLRealOfMethod;
+	MLStringT->Constructor = MLStringOfMethod;
+	MLMethodT->Constructor = MLMethodOfMethod;
+	stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
+	MLListT->Constructor = MLListOfMethod;
+	MLMapT->Constructor = MLMapOfMethod;
 	ml_method_by_name("<>", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
 	ml_method_by_name("<>", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
 	ml_method_by_name("=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
@@ -4333,34 +4318,21 @@ void ml_init() {
 void ml_types_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "any", MLAnyT);
 	stringmap_insert(Globals, "type", MLTypeT);
-	stringmap_insert(MLTypeT->Exports, "of", MLTypeOf);
 	stringmap_insert(Globals, "function", MLFunctionT);
 	stringmap_insert(Globals, "iteratable", MLIteratableT);
 	stringmap_insert(Globals, "boolean", MLBooleanT);
-	stringmap_insert(MLBooleanT->Exports, "of", MLBooleanOfMethod);
 	stringmap_insert(Globals, "true", MLTrue);
 	stringmap_insert(Globals, "false", MLFalse);
 	stringmap_insert(Globals, "number", MLNumberT);
 	stringmap_insert(Globals, "integer", MLIntegerT);
-	stringmap_insert(MLIntegerT->Exports, "of", MLIntegerOfMethod);
 	stringmap_insert(Globals, "real", MLRealT);
-	stringmap_insert(MLRealT->Exports, "of", MLRealOfMethod);
 	stringmap_insert(Globals, "buffer", MLBufferT);
-	stringmap_insert(MLBufferT->Exports, "new", ml_cfunction(NULL, ml_buffer));
 	stringmap_insert(Globals, "string", MLStringT);
-	stringmap_insert(MLStringT->Exports, "of", MLStringOfMethod);
 	stringmap_insert(Globals, "stringbuffer", MLStringBufferT);
-	stringmap_insert(MLStringBufferT->Exports, "of", MLStringBuffer);
 	stringmap_insert(Globals, "regex", MLRegexT);
-	stringmap_insert(MLRegexT->Exports, "of", MLRegex);
 	stringmap_insert(Globals, "method", MLMethodT);
-	stringmap_insert(MLMethodT->Exports, "of", MLMethodOfMethod);
-	stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
 	stringmap_insert(Globals, "list", MLListT);
-	stringmap_insert(MLListT->Exports, "of", MLListOfMethod);
 	stringmap_insert(Globals, "names", MLNamesT);
 	stringmap_insert(Globals, "map", MLMapT);
-	stringmap_insert(MLMapT->Exports, "of", MLMapOfMethod);
 	stringmap_insert(Globals, "tuple", MLTupleT);
-	stringmap_insert(MLTupleT->Exports, "of", MLTuple);
 }

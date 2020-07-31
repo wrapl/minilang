@@ -47,6 +47,7 @@ struct ml_type_t {
 	void (*call)(ml_state_t *, ml_value_t *, int, ml_value_t **);
 	ml_value_t *(*deref)(ml_value_t *);
 	ml_value_t *(*assign)(ml_value_t *, ml_value_t *);
+	ml_value_t *Constructor;
 	inthash_t TypedFns[1];
 	stringmap_t Exports[1];
 	int Rank;

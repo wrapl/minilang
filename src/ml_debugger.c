@@ -18,9 +18,9 @@ struct interactive_debugger_t {
 };
 
 struct interactive_debugger_info_t {
-	void (*Enter)(void *Data, interactive_debugger_t *Debugger);
-	void (*Exit)(ml_state_t *Caller, void *Data);
-	void (*Log)(void *Data, ml_value_t *Value);
+	void (*enter)(void *Data, interactive_debugger_t *Debugger);
+	void (*exit)(ml_state_t *Caller, void *Data);
+	void (*log)(void *Data, ml_value_t *Value);
 	void *Data;
 	ml_getter_t GlobalGet;
 	void *Globals;
@@ -63,7 +63,9 @@ ml_value_t *interactive_debugger_get(interactive_debugger_t *Debugger, const cha
 }
 
 void interactive_debugger_resume(interactive_debugger_t *Debugger) {
-	Debugger->Frame->run(Debugger->Frame, Debugger->Value);
+	ml_state_t *Frame = Debugger->Frame;
+	Debugger->Frame = Debugger->Active = NULL;
+	return Frame->run(Frame, Debugger->Value);
 }
 
 static ml_value_t *debugger_break(interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
@@ -82,28 +84,28 @@ static void debugger_continue(ml_state_t *Caller, interactive_debugger_t *Debugg
 	Debugger->Base.StepIn = 0;
 	Debugger->Base.StepOverFrame = NULL;
 	Debugger->Base.StepOutFrame = NULL;
-	return Debugger->Info->Exit(Caller, Debugger->Info->Data);
+	return Debugger->Info->exit(Caller, Debugger->Info->Data);
 }
 
 static void debugger_step_in(ml_state_t *Caller, interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
 	Debugger->Base.StepIn = 1;
 	Debugger->Base.StepOverFrame = NULL;
 	Debugger->Base.StepOutFrame = NULL;
-	return Debugger->Info->Exit(Caller, Debugger->Info->Data);
+	return Debugger->Info->exit(Caller, Debugger->Info->Data);
 }
 
 static void debugger_step_over(ml_state_t *Caller, interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
 	Debugger->Base.StepIn = 0;
 	Debugger->Base.StepOverFrame = Debugger->Frame;
 	Debugger->Base.StepOutFrame = Debugger->Frame;
-	return Debugger->Info->Exit(Caller, Debugger->Info->Data);
+	return Debugger->Info->exit(Caller, Debugger->Info->Data);
 }
 
 static void debugger_step_out(ml_state_t *Caller, interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
 	Debugger->Base.StepIn = 0;
 	Debugger->Base.StepOverFrame = NULL;
 	Debugger->Base.StepOutFrame = Debugger->Frame;
-	return Debugger->Info->Exit(Caller, Debugger->Info->Data);
+	return Debugger->Info->exit(Caller, Debugger->Info->Data);
 }
 
 static ml_value_t *debugger_locals(interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
@@ -177,11 +179,11 @@ static void debugger_run(interactive_debugger_t *Debugger, ml_state_t *Frame, ml
 	ml_value_t *Location = ml_tuple(2);
 	ml_tuple_set(Location, 1, ml_string(Source.Name, -1));
 	ml_tuple_set(Location, 2, ml_integer(Source.Line));
-	Debugger->Info->Log(Debugger->Info->Data, Location);
+	Debugger->Info->log(Debugger->Info->Data, Location);
 	if (ml_is_error(Value)) {
-		Debugger->Info->Log(Debugger->Info->Data, Value);
+		Debugger->Info->log(Debugger->Info->Data, Value);
 	}
-	Debugger->Info->Enter(Debugger->Info->Data, Debugger);
+	Debugger->Info->enter(Debugger->Info->Data, Debugger);
 }
 
 static void debugger_state_load(ml_state_t *State, ml_value_t *Function) {
@@ -230,9 +232,9 @@ ml_value_t *interactive_debugger(
 	void *Globals
 ) {
 	interactive_debugger_info_t *Info = new(interactive_debugger_info_t);
-	Info->Enter = Enter;
-	Info->Exit = Exit;
-	Info->Log = Log;
+	Info->enter = Enter;
+	Info->exit = Exit;
+	Info->log = Log;
 	Info->Data = Data;
 	Info->GlobalGet = GlobalGet;
 	Info->Globals = Globals;
