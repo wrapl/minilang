@@ -67,6 +67,8 @@ general
 
 **function** :mini:`mlmark(any Arg₁)`
 
+**function** :mini:`mlbuffer(integer Arg₁)`
+
 **function** :mini:`mlstringbuffer()`
 
 **function** :mini:`stringifiernew()`

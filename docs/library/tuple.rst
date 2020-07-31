@@ -3,12 +3,12 @@ tuple
 
 .. include:: <isonum.txt>
 
-**type** :mini:`tuple`
-   An immutable tuple of values.
-
-
 **function** :mini:`tuple(any Value₁, ... , any Valueₙ)` |rarr| :mini:`tuple`
    Returns a tuple of values :mini:`Value₁, ..., Valueₙ`.
+
+
+**type** :mini:`tuple`
+   An immutable tuple of values.
 
 
 **method** :mini:`tuple Tuple:size` |rarr| :mini:`integer`
