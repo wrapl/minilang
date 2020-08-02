@@ -255,6 +255,8 @@ ml_value_t *ml_array_wrap_fn(void *Data, int Count, ml_value_t **Args) {
 }
 
 ML_METHOD("shape", MLArrayT) {
+//<Array
+//>list
 	ml_array_t *Array = (ml_array_t *)Args[0];
 	ml_value_t *Shape = ml_list();
 	for (int I = 0; I < Array->Degree; ++I) {
@@ -264,6 +266,8 @@ ML_METHOD("shape", MLArrayT) {
 }
 
 ML_METHOD("strides", MLArrayT) {
+//<Array
+//>list
 	ml_array_t *Array = (ml_array_t *)Args[0];
 	ml_value_t *Strides = ml_list();
 	for (int I = 0; I < Array->Degree; ++I) {
@@ -273,6 +277,8 @@ ML_METHOD("strides", MLArrayT) {
 }
 
 ML_METHOD("size", MLArrayT) {
+//<Array
+//>integer
 	ml_array_t *Array = (ml_array_t *)Args[0];
 	size_t Size = Array->Dimensions[Array->Degree - 1].Stride;
 	for (int I = 1; I < Array->Degree; ++I) Size *= Array->Dimensions[I].Size;
@@ -281,11 +287,15 @@ ML_METHOD("size", MLArrayT) {
 }
 
 ML_METHOD("degree", MLArrayT) {
+//<Array
+//>integer
 	ml_array_t *Array = (ml_array_t *)Args[0];
 	return ml_integer(Array->Degree);
 }
 
 ML_METHOD("transpose", MLArrayT) {
+//<Array
+//>array
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Degree = Source->Degree;
 	ml_array_t *Target = ml_array_new(Source->Format, Degree);
@@ -297,18 +307,26 @@ ML_METHOD("transpose", MLArrayT) {
 }
 
 ML_METHOD("permute", MLArrayT, MLListT) {
+//<Array
+//<Indices
+//>array
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Degree = Source->Degree;
+	if (Degree > 64) return ml_error("ArrayError", "Not implemented for degree > 64 yet");
 	if (ml_list_length(Args[1]) != Degree) return ml_error("ArrayError", "List length must match degree");
 	ml_array_t *Target = ml_array_new(Source->Format, Degree);
 	int I = 0;
+	size_t Actual = 0;
 	ML_LIST_FOREACH(Args[1], Iter) {
 		if (!ml_is(Iter->Value, MLIntegerT)) return ml_error("ArrayError", "Invalid index");
 		int J = ml_integer_value(Iter->Value);
 		if (J <= 0) J += Degree + 1;
 		if (J < 1 || J > Degree) return ml_error("ArrayError", "Invalid index");
+		Actual += 1 << (J - 1);
 		Target->Dimensions[I++] = Source->Dimensions[J - 1];
 	}
+	size_t Expected = (1 << Degree) - 1;
+	if (Actual != Expected) return ml_error("ArrayError", "Invalid permutation");
 	Target->Base = Source->Base;
 	return (ml_value_t *)Target;
 }
@@ -406,11 +424,17 @@ static ml_value_t *ml_array_index_internal(ml_array_t *Source, int Count, ml_val
 }
 
 ML_METHODV("[]", MLArrayT) {
+//<Array
+//<Indices...:any
+//>array
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	return ml_array_index_internal(Source, Count - 1, Args + 1);
 }
 
 ML_METHOD("[]", MLArrayT, MLMapT) {
+//<Array
+//<Indices
+//>array
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Degree = Source->Degree;
 	ml_value_t *Indices[Degree];
@@ -1215,6 +1239,8 @@ static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args) {
 }
 
 ML_METHOD("copy", MLArrayT) {
+//<Array
+//>array
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Degree = Source->Degree;
 	ml_array_t *Target = ml_array_new(Source->Format, Degree);

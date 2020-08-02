@@ -10,6 +10,8 @@
 #include <ctype.h>
 #include <gc/gc.h>
 
+//!xe
+
 typedef struct xe_node_t {
 	const ml_type_t *Type;
 	ml_value_t *Tag, *Attributes, *Content;

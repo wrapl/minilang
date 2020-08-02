@@ -305,6 +305,7 @@ static ml_tag_t ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void **Data)
 ml_value_t *CborDefaultTags;
 
 ML_FUNCTION(DefaultTagFn) {
+//@cbor::default
 	return ml_map_search(CborDefaultTags, Args[0]);
 }
 
@@ -336,13 +337,15 @@ ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*
 	return (ml_cbor_result_t){ml_cbor_reader_get(Reader), ml_cbor_reader_extra(Reader)};
 }
 
-static ml_value_t *ml_to_cbor_fn(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(MLEncode) {
+//@cbor::encode
 	ml_cbor_t Cbor = ml_to_cbor(Args[0]);
 	if (Cbor.Data) return ml_string(Cbor.Data, Cbor.Length);
 	return ml_error("CborError", "Error encoding to cbor");
 }
 
-static ml_value_t *ml_from_cbor_fn(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(MLDecode) {
+//@cbor::decode
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ml_cbor_t Cbor = {ml_string_value(Args[0]), ml_string_length(Args[0])};
@@ -554,9 +557,9 @@ void ml_cbor_init(stringmap_t *Globals) {
 #include "ml_cbor_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "cbor", ml_module("cbor",
-			"encode", ml_cfunction(NULL, ml_to_cbor_fn),
-			"decode", ml_cfunction(NULL, ml_from_cbor_fn),
-			"Default", CborDefaultTags,
+			"encode", MLEncode,
+			"decode", MLDecode,
+			"default", CborDefaultTags,
 			"Objects", CborObjects,
 		NULL));
 	}

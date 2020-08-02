@@ -123,6 +123,7 @@
       <keyword>fun</keyword>
       <keyword>ret</keyword>
       <keyword>susp</keyword>
+      <keyword>meth</keyword>
       <keyword>with</keyword>
       <keyword>do</keyword>
       <keyword>nil</keyword>

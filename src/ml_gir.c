@@ -6,6 +6,8 @@
 #include <gtk/gtk.h>
 #include <stdio.h>
 
+//!gobject
+
 typedef struct typelib_t {
 	const ml_type_t *Type;
 	GITypelib *Handle;

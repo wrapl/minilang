@@ -1299,6 +1299,7 @@ typedef enum ml_token_t {
 	MLT_FUN,
 	MLT_RET,
 	MLT_SUSP,
+	MLT_METH,
 	MLT_WITH,
 	MLT_DO,
 	MLT_ON,
@@ -1322,7 +1323,7 @@ typedef enum ml_token_t {
 	MLT_COLON,
 	MLT_COMMA,
 	MLT_ASSIGN,
-	MLT_SYMBOL,
+	MLT_IMPORT,
 	MLT_VALUE,
 	MLT_EXPR,
 	MLT_INLINE,
@@ -1355,6 +1356,7 @@ const char *MLTokens[] = {
 	"fun", // MLT_FUN,
 	"ret", // MLT_RET,
 	"susp", // MLT_SUSP,
+	"meth", // MLT_METH,
 	"with", // MLT_WITH,
 	"do", // MLT_DO,
 	"on", // MLT_ON,
@@ -1582,6 +1584,10 @@ static inline int isoperator(char C) {
 
 #include "keywords.c"
 
+static stringmap_t StringFns[1] = {STRINGMAP_INIT};
+
+typedef ml_value_t *(*string_fn_t)(const char *String);
+
 static ml_token_t ml_advance(mlc_scanner_t *Scanner) {
 	for (;;) {
 		if (!Scanner->Next || !Scanner->Next[0]) {
@@ -1601,42 +1607,6 @@ static ml_token_t ml_advance(mlc_scanner_t *Scanner) {
 			++Scanner->Next;
 			continue;
 		}
-		if (Char == 'r' && Scanner->Next[1] == '\"') {
-			Scanner->Next += 2;
-			int Length = 0;
-			const char *End = Scanner->Next;
-			while (End[0] != '\"') {
-				if (!End[0]) {
-					ml_scanner_error(Scanner, "ParseError", "end of input while parsing string");
-				}
-				if (End[0] == '\\') {
-					++Length;
-					++End;
-				}
-				++Length;
-				++End;
-			}
-			char *Pattern = snew(Length + 1), *D = Pattern;
-			for (const char *S = Scanner->Next; S < End; ++S) {
-				if (*S == '\\') {
-					++S;
-					switch (*S) {
-					case 'r': *D++ = '\r'; break;
-					case 'n': *D++ = '\n'; break;
-					case 't': *D++ = '\t'; break;
-					case 'e': *D++ = '\e'; break;
-					default: *D++ = '\\'; *D++ = *S; break;
-					}
-				} else {
-					*D++ = *S;
-				}
-			}
-			*D = 0;
-			Scanner->Value = ml_regex(Pattern);
-			Scanner->Token = MLT_VALUE;
-			Scanner->Next = End + 1;
-			return Scanner->Token;
-		}
 		if (isidstart(Char)) {
 			const char *End = Scanner->Next + 1;
 			for (Char = End[0]; isidchar(Char); Char = *++End);
@@ -1650,9 +1620,43 @@ static ml_token_t ml_advance(mlc_scanner_t *Scanner) {
 			char *Ident = snew(Length + 1);
 			memcpy(Ident, Scanner->Next, Length);
 			Ident[Length] = 0;
+			Scanner->Next = End;
+			if (End[0] == '\"') {
+				string_fn_t StringFn = stringmap_search(StringFns, Ident);
+				if (!StringFn) ml_scanner_error(Scanner, "ParseError", "Unknown string prefix: %s", Ident);
+				Scanner->Next += 1;
+				const char *End = Scanner->Next;
+				while (End[0] != '\"') {
+					if (!End[0]) {
+						ml_scanner_error(Scanner, "ParseError", "end of input while parsing string");
+					}
+					if (End[0] == '\\') ++End;
+					++End;
+				}
+				int Length = End - Scanner->Next;
+				char *Pattern = snew(Length + 1), *D = Pattern;
+				for (const char *S = Scanner->Next; S < End; ++S) {
+					if (*S == '\\') {
+						++S;
+						switch (*S) {
+						case 'r': *D++ = '\r'; break;
+						case 'n': *D++ = '\n'; break;
+						case 't': *D++ = '\t'; break;
+						case 'e': *D++ = '\e'; break;
+						default: *D++ = '\\'; *D++ = *S; break;
+						}
+					} else {
+						*D++ = *S;
+					}
+				}
+				*D = 0;
+				Scanner->Value = StringFn(Pattern);
+				Scanner->Token = MLT_VALUE;
+				Scanner->Next = End + 1;
+				return Scanner->Token;
+			}
 			Scanner->Ident = Ident;
 			Scanner->Token = MLT_IDENT;
-			Scanner->Next = End;
 			return Scanner->Token;
 		}
 		if (isdigit(Char) || (Char == '-' && isdigit(Scanner->Next[1])) || (Char == '.' && isdigit(Scanner->Next[1]))) {
@@ -1736,7 +1740,7 @@ static ml_token_t ml_advance(mlc_scanner_t *Scanner) {
 				Scanner->Next += 2;
 				return Scanner->Token;
 			} else if (Scanner->Next[1] == ':') {
-				Scanner->Token = MLT_SYMBOL;
+				Scanner->Token = MLT_IMPORT;
 				Scanner->Next += 2;
 				return Scanner->Token;
 			} else if (isidchar(Scanner->Next[1])) {
@@ -1867,6 +1871,7 @@ static void ml_accept_eoi(mlc_scanner_t *Scanner) {
 	ml_accept(Scanner, MLT_EOI);
 }
 
+static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner);
 static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner);
 static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner);
 
@@ -1909,6 +1914,37 @@ static mlc_expr_t *ml_accept_fun_expr(mlc_scanner_t *Scanner, ml_token_t EndToke
 	FunExpr->Body = ml_accept_expression(Scanner, EXPR_DEFAULT);
 	FunExpr->End = Scanner->Source.Line;
 	return (mlc_expr_t *)FunExpr;
+}
+
+extern ml_value_t MLMethodSet[];
+
+static mlc_expr_t *ml_accept_meth_expr(mlc_scanner_t *Scanner) {
+	ML_EXPR(MethodExpr, parent_value, const_call);
+	MethodExpr->Value = MLMethodSet;
+	mlc_expr_t *Method = ml_parse_factor(Scanner);
+	if (!Method) ml_scanner_error(Scanner, "ParseError", "expected <factor> not <%s>", MLTokens[Scanner->Token]);
+	MethodExpr->Child = Method;
+	mlc_expr_t **ArgsSlot = &Method->Next;
+	ml_accept(Scanner, MLT_LEFT_PAREN);
+	ML_EXPR(FunExpr, fun, fun);
+	if (!ml_parse(Scanner, MLT_RIGHT_PAREN)) {
+		ml_decl_t **ParamSlot = &FunExpr->Params;
+		do {
+			ml_decl_t *Param = ParamSlot[0] = new(ml_decl_t);
+			Param->Source = Scanner->Source;
+			ParamSlot = &Param->Next;
+			ml_accept(Scanner, MLT_IDENT);
+			Param->Ident = Scanner->Ident;
+			ml_accept(Scanner, MLT_COLON);
+			mlc_expr_t *Arg = ArgsSlot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
+			ArgsSlot = &Arg->Next;
+		} while (ml_parse(Scanner, MLT_COMMA));
+		ml_accept(Scanner, MLT_RIGHT_PAREN);
+	}
+	FunExpr->Body = ml_accept_expression(Scanner, EXPR_DEFAULT);
+	FunExpr->End = Scanner->Source.Line;
+	ArgsSlot[0] = FunExpr;
+	return (mlc_expr_t *)MethodExpr;
 }
 
 static void ml_accept_named_arguments(mlc_scanner_t *Scanner, ml_token_t EndToken, mlc_expr_t **ArgsSlot, ml_value_t *Names) {
@@ -2109,8 +2145,18 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 	}
 	case MLT_FUN: {
 		Scanner->Token = MLT_NONE;
-		ml_accept(Scanner, MLT_LEFT_PAREN);
-		return ml_accept_fun_expr(Scanner, MLT_RIGHT_PAREN);
+		if (ml_parse(Scanner, MLT_LEFT_PAREN)) {
+			return ml_accept_fun_expr(Scanner, MLT_RIGHT_PAREN);
+		} else {
+			ML_EXPR(FunExpr, fun, fun);
+			FunExpr->Body = ml_accept_expression(Scanner, EXPR_DEFAULT);
+			FunExpr->End = Scanner->Source.Line;
+			return (mlc_expr_t *)FunExpr;
+		}
+	}
+	case MLT_METH: {
+		Scanner->Token = MLT_NONE;
+		return ml_accept_meth_expr(Scanner);
 	}
 	case MLT_SUSP: {
 		Scanner->Token = MLT_NONE;
@@ -2317,7 +2363,7 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 			Expr = (mlc_expr_t *)CallExpr;
 			break;
 		}
-		case MLT_SYMBOL: {
+		case MLT_IMPORT: {
 			Scanner->Token = MLT_NONE;
 			if (!ml_parse(Scanner, MLT_OPERATOR) && !ml_parse(Scanner, MLT_IDENT)) {
 				ml_accept(Scanner, MLT_VALUE);
@@ -2813,6 +2859,12 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 			Result = ml_call(Result, 0, NULL);
 			if (ml_is_error(Result)) ML_RETURN(Result);
 		}
+	} else if (ml_parse(Scanner, MLT_METH)) {
+		mlc_expr_t *Expr = ml_accept_meth_expr(Scanner);
+		Result = ml_compile(Expr, NULL, Scanner->Context);
+		if (ml_is_error(Result)) ML_RETURN(Result);
+		Result = ml_call(Result, 0, NULL);
+		if (ml_is_error(Result)) ML_RETURN(Result);
 	} else {
 		mlc_expr_t *Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
 		if (ml_parse(Scanner, MLT_COLON)) {
@@ -2883,4 +2935,8 @@ void ml_load(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const cha
 	fclose(File);
 	ml_value_t *Closure = ml_compile(Expr, Parameters, Scanner->Context);
 	ML_RETURN(Closure);
+}
+
+void ml_compiler_init() {
+	stringmap_insert(StringFns, "r", ml_regex);
 }

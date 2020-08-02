@@ -82,6 +82,7 @@ static void DEBUG_FUNC(continuation_call)(ml_state_t *Caller, ml_state_t *State,
 }
 
 ML_TYPE(DEBUG_TYPE(Continuation), (MLStateT), "continuation",
+//!internal
 	.call = (void *)DEBUG_FUNC(continuation_call)
 );
 
@@ -129,6 +130,7 @@ static void DEBUG_FUNC(suspension_call)(ml_state_t *Caller, ml_state_t *State, i
 }
 
 ML_TYPE(DEBUG_TYPE(Suspension), (MLFunctionT), "suspension",
+//!internal
 	.call = (void *)DEBUG_FUNC(suspension_call)
 );
 

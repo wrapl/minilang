@@ -319,11 +319,13 @@ static void ml_error_call(ml_state_t *Caller, ml_value_t *Error, int Count, ml_v
 }
 
 ML_TYPE(MLErrorT, (), "error",
+//!error
 	.assign = ml_error_assign,
 	.call = ml_error_call
 );
 
 ML_TYPE(MLErrorValueT, (MLErrorT), "error_value");
+//!error
 
 ml_value_t *ml_errorv(const char *Error, const char *Format, va_list Args) {
 	char *Message;

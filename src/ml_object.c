@@ -19,14 +19,20 @@ struct ml_object_t {
 };
 
 ML_INTERFACE(MLObjectT, (), "object");
+// Parent type of all object classes.
 
 static void ml_class_call(ml_state_t *Caller, ml_class_t *Class, int Count, ml_value_t **Args) {
 	ml_value_t *Constructor = Class->Base.Constructor;
 	return ml_typeof(Constructor)->call(Caller, Constructor, Count, Args);
 }
 
+extern ml_cfunction_t MLClass[];
+
 ML_TYPE(MLClassT, (MLTypeT), "class",
-	.call = (void *)ml_class_call
+//!object
+// Type of all object classes.
+	.call = (void *)ml_class_call,
+	.Constructor = (ml_value_t *)MLClass
 );
 
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLObjectT) {
@@ -106,7 +112,14 @@ static void ml_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int Count, 
 	ML_RETURN(Object);
 }
 
-ML_FUNCTION(MLClassNew) {
+ML_FUNCTION(MLClass) {
+//!object
+//@class
+//<Name
+//<Parents?...:class
+//<Fields?...:method
+//<Either?...:list
+//<Exports?:map
 	static ml_value_t **FieldFns = NULL;
 	static int NumFieldFns = 0;
 	ML_CHECK_ARG_COUNT(1);
@@ -223,31 +236,37 @@ ML_FUNCTION(MLClassNew) {
 	return (ml_value_t *)Class;
 }
 
-typedef struct ml_assignable_t {
+typedef struct ml_property_t {
 	const ml_type_t *Type;
 	ml_value_t *Get, *Set;
-} ml_assignable_t;
+} ml_property_t;
 
-static ml_value_t *ml_assignable_deref(ml_assignable_t *Assignable) {
-	return ml_call(Assignable->Get, 0, NULL);
+static ml_value_t *ml_property_deref(ml_property_t *Property) {
+	return ml_call(Property->Get, 0, NULL);
 }
 
-static ml_value_t *ml_assignable_assign(ml_assignable_t *Assignable, ml_value_t *Value) {
-	return ml_call(Assignable->Set, 1, &Value);
+static ml_value_t *ml_property_assign(ml_property_t *Property, ml_value_t *Value) {
+	return ml_call(Property->Set, 1, &Value);
 }
 
-ML_TYPE(MLAssignableT, (), "assignable",
-	.deref = (void *)ml_assignable_deref,
-	.assign = (void *)ml_assignable_assign
+extern ml_cfunction_t MLProperty[];
+
+ML_TYPE(MLPropertyT, (), "property",
+	.deref = (void *)ml_property_deref,
+	.assign = (void *)ml_property_assign,
+	.Constructor = (ml_value_t *)MLProperty
 );
 
 ML_FUNCTION(MLProperty) {
+//!object
 	ML_CHECK_ARG_COUNT(2);
-	ml_assignable_t *Assignable = new(ml_assignable_t);
-	Assignable->Type = MLAssignableT;
-	Assignable->Get = Args[0];
-	Assignable->Set = Args[1];
-	return (ml_value_t *)Assignable;
+	ML_CHECK_ARG_TYPE(0, MLFunctionT);
+	ML_CHECK_ARG_TYPE(1, MLFunctionT);
+	ml_property_t *Property = new(ml_property_t);
+	Property->Type = MLPropertyT;
+	Property->Get = Args[0];
+	Property->Set = Args[1];
+	return (ml_value_t *)Property;
 }
 
 size_t ml_class_size(ml_value_t *Value) {
@@ -267,10 +286,8 @@ ml_value_t *ml_object_field(ml_value_t *Value, size_t Field) {
 }
 
 void ml_object_init(stringmap_t *Globals) {
-	stringmap_insert(Globals, "property", MLProperty);
+#include "ml_object_init.c"
+	stringmap_insert(Globals, "property", MLPropertyT);
 	stringmap_insert(Globals, "object", MLObjectT);
 	stringmap_insert(Globals, "class", MLClassT);
-	stringmap_insert(MLClassT->Exports, "of", MLClassNew);
-	stringmap_insert(MLClassT->Exports, "new", MLClassNew);
-#include "ml_object_init.c"
 }
