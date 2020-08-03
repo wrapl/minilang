@@ -305,7 +305,7 @@ static ml_tag_t ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void **Data)
 ml_value_t *CborDefaultTags;
 
 ML_FUNCTION(DefaultTagFn) {
-//@cbor::default
+//!internal
 	return ml_map_search(CborDefaultTags, Args[0]);
 }
 
@@ -339,6 +339,9 @@ ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*
 
 ML_FUNCTION(MLEncode) {
 //@cbor::encode
+//<Value
+//>string | error
+	ML_CHECK_ARG_COUNT(1);
 	ml_cbor_t Cbor = ml_to_cbor(Args[0]);
 	if (Cbor.Data) return ml_string(Cbor.Data, Cbor.Length);
 	return ml_error("CborError", "Error encoding to cbor");
@@ -346,6 +349,8 @@ ML_FUNCTION(MLEncode) {
 
 ML_FUNCTION(MLDecode) {
 //@cbor::decode
+//<Bytes
+//>any | error
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ml_cbor_t Cbor = {ml_string_value(Args[0]), ml_string_length(Args[0])};
@@ -559,7 +564,7 @@ void ml_cbor_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "cbor", ml_module("cbor",
 			"encode", MLEncode,
 			"decode", MLDecode,
-			"default", CborDefaultTags,
+			"Default", CborDefaultTags,
 			"Objects", CborObjects,
 		NULL));
 	}

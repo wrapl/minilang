@@ -1,0 +1,51 @@
+boolean
+=======
+
+.. include:: <isonum.txt>
+
+**type** :mini:`boolean`
+   :Parents: :mini:`function`
+
+   *Defined at line 822 in src/ml_types.c*
+
+**method** :mini:`boolean(string String)` |rarr| :mini:`boolean` or :mini:`error`
+   Returns :mini:`true` if :mini:`String` equals :mini:`"true"` (ignoring case).
+
+   Returns :mini:`false` if :mini:`String` equals :mini:`"false"` (ignoring case).
+
+   Otherwise returns an error.
+
+   *Defined at line 843 in src/ml_types.c*
+
+**method** :mini:`- boolean Bool` |rarr| :mini:`boolean`
+   Returns the logical inverse of :mini:`Bool`
+
+   *Defined at line 856 in src/ml_types.c*
+
+**method** :mini:`boolean Bool₁ /\\ boolean Bool₂` |rarr| :mini:`boolean`
+   Returns the logical and of :mini:`Bool₁` and :mini:`Bool₂`.
+
+   *Defined at line 864 in src/ml_types.c*
+
+**method** :mini:`boolean Bool₁ \\/ boolean Bool₂` |rarr| :mini:`boolean`
+   Returns the logical or of :mini:`Bool₁` and :mini:`Bool₂`.
+
+   *Defined at line 873 in src/ml_types.c*
+
+**method** :mini:`boolean Bool₁ <> boolean Bool₂` |rarr| :mini:`integer`
+   Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Bool₁` is less than, equal to or greater than :mini:`Bool₂`. :mini:`true` is considered greater than :mini:`false`.
+
+   *Defined at line 882 in src/ml_types.c*
+
+**method** :mini:`boolean Bool₁ <op> boolean Bool₂` |rarr| :mini:`Bool₂` or :mini:`nil`
+   :mini:`<op>` is :mini:`=`, :mini:`!=`, :mini:`<`, :mini:`<=`, :mini:`>` or :mini:`>=`
+
+   Returns :mini:`Bool₂` if :mini:`Bool₂ <op> Bool₁` is true, otherwise returns :mini:`nil`.
+
+   :mini:`true` is considered greater than :mini:`false`.
+
+   *Defined at line 908 in src/ml_types.c*
+
+**method** :mini:`string(boolean Arg₁)`
+   *Defined at line 1890 in src/ml_types.c*
+

@@ -709,23 +709,15 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	int Min = (Count < NumParams) ? Count : NumParams;
 	int I = 0;
 	for (; I < Min; ++I) {
-		ml_variable_t *Local = new(ml_variable_t);
-		Local->Type = MLVariableT;
 		ml_value_t *Arg = ml_deref(Args[I]);
 		if (ml_is_error(Arg)) ML_RETURN(Arg);
 		if (ml_typeof(Arg) == MLNamesT) break;
-		Local->Value = Arg;
-		Frame->Stack[I] = (ml_value_t *)Local;
+		Frame->Stack[I] = Arg;
 	}
 	for (int J = I; J < NumParams; ++J) {
-		ml_variable_t *Local = new(ml_variable_t);
-		Local->Type = MLVariableT;
-		Local->Value = MLNil;
-		Frame->Stack[J] = (ml_value_t *)Local;
+		Frame->Stack[J] = MLNil;
 	}
 	if (Info->ExtraArgs) {
-		ml_variable_t *Local = new(ml_variable_t);
-		Local->Type = MLVariableT;
 		ml_value_t *Rest = ml_list();
 		for (; I < Count; ++I) {
 			ml_value_t *Arg = ml_deref(Args[I]);
@@ -733,13 +725,10 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 			if (ml_typeof(Arg) == MLNamesT) break;
 			ml_list_put(Rest, Arg);
 		}
-		Local->Value = Rest;
-		Frame->Stack[NumParams] = (ml_value_t *)Local;
+		Frame->Stack[NumParams] = Rest;
 		++NumParams;
 	}
 	if (Info->NamedArgs) {
-		ml_variable_t *Local = new(ml_variable_t);
-		Local->Type = MLVariableT;
 		ml_value_t *Options = ml_map();
 		for (; I < Count; ++I) {
 			if (ml_typeof(Args[I]) == MLNamesT) {
@@ -747,8 +736,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 					const char *Name = ml_method_name(Node->Value);
 					int Index = (intptr_t)stringmap_search(Info->Params, Name);
 					if (Index) {
-						ml_variable_t *Local = (ml_variable_t *)Frame->Stack[Index - 1];
-						Local->Value = Args[++I];
+						Frame->Stack[Index - 1] = Args[++I];
 					} else {
 						ml_map_insert(Options, Node->Value, Args[++I]);
 					}
@@ -756,8 +744,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 				break;
 			}
 		}
-		Local->Value = Options;
-		Frame->Stack[NumParams] = (ml_value_t *)Local;
+		Frame->Stack[NumParams] = Options;
 		++NumParams;
 	} else {
 		for (; I < Count; ++I) {
@@ -766,8 +753,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 					const char *Name = ml_method_name(Node->Value);
 					int Index = (intptr_t)stringmap_search(Info->Params, Name);
 					if (Index) {
-						ml_variable_t *Local = (ml_variable_t *)Frame->Stack[Index - 1];
-						Local->Value = Args[++I];
+						Frame->Stack[Index - 1] = Args[++I];
 					} else {
 						ML_RETURN(ml_error("NameError", "Unknown named parameters %s", Name));
 					}

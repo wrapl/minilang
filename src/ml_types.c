@@ -2038,6 +2038,7 @@ regex_t *ml_regex_value(ml_value_t *Value) {
 
 ML_FUNCTION(MLStringBuffer) {
 //!stringbuffer
+//@stringbuffer
 	ml_stringbuffer_t *Buffer = new(ml_stringbuffer_t);
 	Buffer->Type = MLStringBufferT;
 	return (ml_value_t *)Buffer;
@@ -2177,7 +2178,6 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLNilT, ml_stringbuffer_t
 }
 
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLNilT) {
-//!stringbuffer
 	return MLNil;
 }
 
@@ -2186,7 +2186,6 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLSomeT, ml_stringbuffer_
 }
 
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLSomeT) {
-//!stringbuffer
 	return MLNil;
 }
 
@@ -2196,7 +2195,6 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLIntegerT, ml_stringbuff
 }
 
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLIntegerT) {
-//!stringbuffer
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_addf(Buffer, "%ld", ml_integer_value(Args[1]));
 	return MLSome;
@@ -2208,7 +2206,6 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLRealT, ml_stringbuffer_
 }
 
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLRealT) {
-//!stringbuffer
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_addf(Buffer, "%f", ml_real_value(Args[1]));
 	return MLSome;
@@ -2225,7 +2222,6 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLStringT, ml_stringbuffe
 }
 
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLStringT) {
-//!stringbuffer
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_add(Buffer, ml_string_value(Args[1]), ml_string_length(Args[1]));
 	return ml_string_length(Args[1]) ? MLSome : MLNil;
@@ -4348,7 +4344,6 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLMethodT, ml_stringbuffe
 }
 
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLMethodT) {
-//!method
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_method_t *Method = (ml_method_t *)Args[1];
 	ml_stringbuffer_add(Buffer, Method->Name, strlen(Method->Name));
@@ -4467,6 +4462,7 @@ void ml_init() {
 	MLIntegerT->Constructor = MLIntegerOfMethod;
 	MLRealT->Constructor = MLRealOfMethod;
 	MLStringT->Constructor = MLStringOfMethod;
+	stringmap_insert(MLStringBufferT->Exports, "append", MLStringBufferAppendMethod);
 	MLMethodT->Constructor = MLMethodOfMethod;
 	stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
 	MLListT->Constructor = MLListOfMethod;

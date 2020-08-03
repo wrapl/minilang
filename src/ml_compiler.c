@@ -1907,6 +1907,10 @@ static mlc_expr_t *ml_accept_fun_expr(mlc_scanner_t *Scanner, ml_token_t EndToke
 			} else {
 				ml_accept(Scanner, MLT_IDENT);
 				Param->Ident = Scanner->Ident;
+				if (ml_parse(Scanner, MLT_COLON)) {
+					// Parse type specifications but ignore for now
+					ml_parse_expression(Scanner, EXPR_DEFAULT);
+				}
 			}
 		} while (ml_parse(Scanner, MLT_COMMA));
 		ml_accept(Scanner, EndToken);
@@ -1943,7 +1947,7 @@ static mlc_expr_t *ml_accept_meth_expr(mlc_scanner_t *Scanner) {
 	}
 	FunExpr->Body = ml_accept_expression(Scanner, EXPR_DEFAULT);
 	FunExpr->End = Scanner->Source.Line;
-	ArgsSlot[0] = FunExpr;
+	ArgsSlot[0] = (mlc_expr_t *)FunExpr;
 	return (mlc_expr_t *)MethodExpr;
 }
 

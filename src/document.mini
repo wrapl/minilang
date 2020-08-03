@@ -196,6 +196,9 @@ fun process(FileName) do
 				let Types := Line[I + 1, J] / ", "
 				let Method := Types:pop
 				var Category := DefaultCategory
+				if Method = "MLStringBufferAppendMethod" then
+					Category := "internal"
+				end
 				let Params := []
 				var Return := []
 				let Description := []
