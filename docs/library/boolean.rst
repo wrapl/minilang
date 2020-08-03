@@ -3,12 +3,12 @@ boolean
 
 .. include:: <isonum.txt>
 
-**type** :mini:`boolean`
+:mini:`boolean`
    :Parents: :mini:`function`
 
    *Defined at line 822 in src/ml_types.c*
 
-**method** :mini:`boolean(string String)` |rarr| :mini:`boolean` or :mini:`error`
+:mini:`meth boolean(String: string)` |rarr| :mini:`boolean` or :mini:`error`
    Returns :mini:`true` if :mini:`String` equals :mini:`"true"` (ignoring case).
 
    Returns :mini:`false` if :mini:`String` equals :mini:`"false"` (ignoring case).
@@ -17,27 +17,27 @@ boolean
 
    *Defined at line 843 in src/ml_types.c*
 
-**method** :mini:`- boolean Bool` |rarr| :mini:`boolean`
+:mini:`meth -(Bool: boolean)` |rarr| :mini:`boolean`
    Returns the logical inverse of :mini:`Bool`
 
    *Defined at line 856 in src/ml_types.c*
 
-**method** :mini:`boolean Bool₁ /\\ boolean Bool₂` |rarr| :mini:`boolean`
+:mini:`meth /\\(Bool₁: boolean, Bool₂: boolean)` |rarr| :mini:`boolean`
    Returns the logical and of :mini:`Bool₁` and :mini:`Bool₂`.
 
    *Defined at line 864 in src/ml_types.c*
 
-**method** :mini:`boolean Bool₁ \\/ boolean Bool₂` |rarr| :mini:`boolean`
+:mini:`meth \\/(Bool₁: boolean, Bool₂: boolean)` |rarr| :mini:`boolean`
    Returns the logical or of :mini:`Bool₁` and :mini:`Bool₂`.
 
    *Defined at line 873 in src/ml_types.c*
 
-**method** :mini:`boolean Bool₁ <> boolean Bool₂` |rarr| :mini:`integer`
+:mini:`meth <>(Bool₁: boolean, Bool₂: boolean)` |rarr| :mini:`integer`
    Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Bool₁` is less than, equal to or greater than :mini:`Bool₂`. :mini:`true` is considered greater than :mini:`false`.
 
    *Defined at line 882 in src/ml_types.c*
 
-**method** :mini:`boolean Bool₁ <op> boolean Bool₂` |rarr| :mini:`Bool₂` or :mini:`nil`
+:mini:`meth <op>(Bool₁: boolean, Bool₂: boolean)` |rarr| :mini:`Bool₂` or :mini:`nil`
    :mini:`<op>` is :mini:`=`, :mini:`!=`, :mini:`<`, :mini:`<=`, :mini:`>` or :mini:`>=`
 
    Returns :mini:`Bool₂` if :mini:`Bool₂ <op> Bool₁` is true, otherwise returns :mini:`nil`.
@@ -46,6 +46,6 @@ boolean
 
    *Defined at line 908 in src/ml_types.c*
 
-**method** :mini:`string(boolean Arg₁)`
+:mini:`meth string(Arg₁: boolean)`
    *Defined at line 1890 in src/ml_types.c*
 

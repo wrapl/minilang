@@ -3,9 +3,9 @@ cbor
 
 .. include:: <isonum.txt>
 
-**function** :mini:`cbor::encode(any Value)` |rarr| :mini:`string` or :mini:`error`
+:mini:`fun cbor::encode(Value: any)` |rarr| :mini:`string` or :mini:`error`
    *Defined at line 340 in src/ml_cbor.c*
 
-**function** :mini:`cbor::decode(string Bytes)` |rarr| :mini:`any` or :mini:`error`
+:mini:`fun cbor::decode(Bytes: string)` |rarr| :mini:`any` or :mini:`error`
    *Defined at line 350 in src/ml_cbor.c*
 

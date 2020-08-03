@@ -50,15 +50,15 @@ fun write_method(Category, Kind, Method, Params, Return, Description, Location) 
 	
 	var Terminator := ""
 	var Skip := 1
-	Title:write('**method** :mini:`')
-	if Method = "\"[]\"" then
-		Title:write(type_name(Params[1][2]), " ", Params[1][1], "[")
+	Title:write(':mini:`meth ')
+	:<if Method = "\"[]\"" then
+		Title:write("(", Params[1][1], ": ", type_name(Params[1][2]), ")[")
 		Terminator := "]"
 	elseif Method[1] = "\"" then
 		if Params:length = 1 and is_symbol(Method) then
-			Title:write('{Method[2, -1]} ', type_name(Params[1][2]), " ", Params[1][1])
+			Title:write('{Method[2, -1]}(', Params[1][1], ": ", type_name(Params[1][2]), ")")
 		else
-			Title:write(type_name(Params[1][2]), " ", Params[1][1])
+			Title:write("(", Params[1][1], ": ", type_name(Params[1][2]), ")")
 			if is_symbol(Method) then
 				Title:write(' {Method[2, -1]} ')
 			else
@@ -69,20 +69,26 @@ fun write_method(Category, Kind, Method, Params, Return, Description, Location) 
 				end
 			end
 		end
-	else
+	else>:
 		if let Match := Method % r"ML(\w+)OfMethod" then
 			Title:write('{Match[2]:lower}(')
 		elseif Method = "MLStringBufferAppendMethod" then
 			Title:write('stringbuffer::append(')
+		elseif Method[1] = "\"" then
+			if is_symbol(Method) then
+				Title:write('{Method[2, -1]}(')
+			else
+				Title:write(':{Method[2, -1]}(')
+			end
 		else
 			Title:write('{Method}(')
 		end
 		Skip := 0
 		Terminator := ")"
-	end
+	:<end>:
 	var Seperator := ""
 	for Param in Params skip Skip do
-		Title:write(Seperator, type_name(Param[2]), " ", Param[1])
+		Title:write(Seperator, Param[1], ": ", type_name(Param[2]))
 		Seperator := ", "
 	end
 	Title:write(Terminator, "`")
@@ -117,10 +123,10 @@ fun write_function(Category, Kind, Name, Params, Return, Description, Location) 
 	let Title := stringbuffer()
 	
 	var Terminator := ""
-	Title:write('**function** :mini:`', Name, "(")
+	Title:write(':mini:`fun ', Name, "(")
 	var Seperator := ""
 	for Param in Params do
-		Title:write(Seperator, type_name(Param[2]), " ", Param[1])
+		Title:write(Seperator, Param[1], ": ", type_name(Param[2]))
 		Seperator := ", "
 	end
 	Title:write(")`")
@@ -151,7 +157,7 @@ fun write_type(Category, Name, Parents, Description, Location) do
 	
 	let File := Categories[Category, write_category]
 	
-	File:write('**type** :mini:`{type_name(Name)}`\n')
+	File:write(':mini:`{type_name(Name)}`\n')
 	for Line in Description do
 		File:write("   ", Line, "\n")
 	end

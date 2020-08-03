@@ -3,9 +3,9 @@ deprecated
 
 .. include:: <isonum.txt>
 
-**function** :mini:`all(iteratable Arg₁)`
+:mini:`fun all(Arg₁: iteratable)`
    *Defined at line 295 in src/ml_iterfns.c*
 
-**function** :mini:`all2(iteratable Arg₁)`
+:mini:`fun all2(Arg₁: iteratable)`
    *Defined at line 347 in src/ml_iterfns.c*
 

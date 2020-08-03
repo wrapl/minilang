@@ -3,103 +3,103 @@ internal
 
 .. include:: <isonum.txt>
 
-**method** :mini:`stringbuffer::append(stringbuffer Arg₁, XENodeT Arg₂)`
+:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: XENodeT)`
    *Defined at line 811 in src/minixe.c*
 
-**method** :mini:`stringbuffer::append(stringbuffer Arg₁, XEVarT Arg₂)`
+:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: XEVarT)`
    *Defined at line 847 in src/minixe.c*
 
-**type** :mini:`DEBUG_TYPE`
+:mini:`DEBUG_TYPE`
    :Parents: :mini:`Continuation`
 
    *Defined at line 84 in src/ml_bytecode.c*
 
-**type** :mini:`DEBUG_TYPE`
+:mini:`DEBUG_TYPE`
    :Parents: :mini:`Suspension`
 
    *Defined at line 132 in src/ml_bytecode.c*
 
-**function** :mini:`defaulttagfn()`
+:mini:`fun defaulttagfn()`
    *Defined at line 307 in src/ml_cbor.c*
 
-**method** :mini:`stringbuffer::append(stringbuffer Arg₁, object Arg₂)`
+:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: object)`
    *Defined at line 38 in src/ml_object.c*
 
-**method** :mini:`stringbuffer::append(stringbuffer Arg₁, type Arg₂)`
+:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: type)`
    *Defined at line 172 in src/ml_types.c*
 
-**type** :mini:`nil`
+:mini:`nil`
    *Defined at line 200 in src/ml_types.c*
 
-**type** :mini:`some`
+:mini:`some`
    *Defined at line 203 in src/ml_types.c*
 
-**type** :mini:`blank`
+:mini:`blank`
    *Defined at line 206 in src/ml_types.c*
 
-**method** :mini:`stringbuffer::append(stringbuffer Arg₁, any Arg₂)`
+:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: any)`
    *Defined at line 317 in src/ml_types.c*
 
-**type** :mini:`cfunction`
+:mini:`cfunction`
    :Parents: :mini:`function`
 
    *Defined at line 446 in src/ml_types.c*
 
-**type** :mini:`cfunctionx`
+:mini:`cfunctionx`
    :Parents: :mini:`function`
 
    *Defined at line 471 in src/ml_types.c*
 
-**method** :mini:`stringbuffer::append(stringbuffer Arg₁, tuple Arg₂)`
+:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: tuple)`
    *Defined at line 736 in src/ml_types.c*
 
-**function** :mini:`stringnew()`
+:mini:`fun stringnew()`
    *Defined at line 1845 in src/ml_types.c*
 
-**type** :mini:`stringiterator`
+:mini:`stringiterator`
    *Defined at line 1960 in src/ml_types.c*
 
-**method** :mini:`stringbuffer::append(stringbuffer Arg₁, nil Arg₂)`
+:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: nil)`
    *Defined at line 2180 in src/ml_types.c*
 
-**method** :mini:`stringbuffer::append(stringbuffer Arg₁, some Arg₂)`
+:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: some)`
    *Defined at line 2188 in src/ml_types.c*
 
-**method** :mini:`stringbuffer::append(stringbuffer Arg₁, integer Arg₂)`
+:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: integer)`
    *Defined at line 2197 in src/ml_types.c*
 
-**method** :mini:`stringbuffer::append(stringbuffer Arg₁, real Arg₂)`
+:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: real)`
    *Defined at line 2208 in src/ml_types.c*
 
-**method** :mini:`stringbuffer::append(stringbuffer Arg₁, string Arg₂)`
+:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: string)`
    *Defined at line 2224 in src/ml_types.c*
 
-**type** :mini:`stringifier`
+:mini:`stringifier`
    *Defined at line 2909 in src/ml_types.c*
 
-**method** :mini:`string(stringifier Arg₁)`
+:mini:`meth string(Arg₁: stringifier)`
    *Defined at line 2915 in src/ml_types.c*
 
-**method** :mini:`stringbuffer::append(stringbuffer Arg₁, stringifier Arg₂)`
+:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: stringifier)`
    *Defined at line 2929 in src/ml_types.c*
 
-**function** :mini:`stringifiernew()`
+:mini:`fun stringifiernew()`
    *Defined at line 2940 in src/ml_types.c*
 
-**type** :mini:`listiter`
+:mini:`listiter`
    *Defined at line 3357 in src/ml_types.c*
 
-**type** :mini:`names`
+:mini:`names`
    :Parents: :mini:`list`
 
    *Defined at line 3476 in src/ml_types.c*
 
-**type** :mini:`mapindex`
+:mini:`mapindex`
    *Defined at line 3765 in src/ml_types.c*
 
-**type** :mini:`mapiter`
+:mini:`mapiter`
    *Defined at line 3945 in src/ml_types.c*
 
-**method** :mini:`stringbuffer::append(stringbuffer Arg₁, method Arg₂)`
+:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: method)`
    *Defined at line 4346 in src/ml_types.c*
 

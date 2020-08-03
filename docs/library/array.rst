@@ -3,44 +3,44 @@ array
 
 .. include:: <isonum.txt>
 
-**type** :mini:`array`
+:mini:`array`
    :Parents: :mini:`buffer`
 
    *Defined at line 7 in src/ml_array.c*
 
-**method** :mini:`array Array:shape` |rarr| :mini:`list`
+:mini:`meth :shape(Array: array)` |rarr| :mini:`list`
    *Defined at line 267 in src/ml_array.c*
 
-**method** :mini:`array Array:strides` |rarr| :mini:`list`
+:mini:`meth :strides(Array: array)` |rarr| :mini:`list`
    *Defined at line 278 in src/ml_array.c*
 
-**method** :mini:`array Array:size` |rarr| :mini:`integer`
+:mini:`meth :size(Array: array)` |rarr| :mini:`integer`
    *Defined at line 289 in src/ml_array.c*
 
-**method** :mini:`array Array:degree` |rarr| :mini:`integer`
+:mini:`meth :degree(Array: array)` |rarr| :mini:`integer`
    *Defined at line 299 in src/ml_array.c*
 
-**method** :mini:`array Array:transpose` |rarr| :mini:`array`
+:mini:`meth :transpose(Array: array)` |rarr| :mini:`array`
    *Defined at line 306 in src/ml_array.c*
 
-**method** :mini:`array Array:permute(list Indices)` |rarr| :mini:`array`
+:mini:`meth :permute(Array: array, Indices: list)` |rarr| :mini:`array`
    *Defined at line 319 in src/ml_array.c*
 
-**method** :mini:`array Array[any Indices...]` |rarr| :mini:`array`
+:mini:`meth [](Array: array, Indices...: any)` |rarr| :mini:`array`
    *Defined at line 436 in src/ml_array.c*
 
-**method** :mini:`array Array[map Indices]` |rarr| :mini:`array`
+:mini:`meth [](Array: array, Indices: map)` |rarr| :mini:`array`
    *Defined at line 444 in src/ml_array.c*
 
-**method** :mini:`- array Arg₁`
+:mini:`meth -(Arg₁: array)`
    *Defined at line 1122 in src/ml_array.c*
 
-**method** :mini:`array Array:copy` |rarr| :mini:`array`
+:mini:`meth :copy(Array: array)` |rarr| :mini:`array`
    *Defined at line 1453 in src/ml_array.c*
 
-**method** :mini:`array Array:copy(function Function)` |rarr| :mini:`array`
+:mini:`meth :copy(Array: array, Function: function)` |rarr| :mini:`array`
    *Defined at line 1508 in src/ml_array.c*
 
-**method** :mini:`array Array:update(function Function)` |rarr| :mini:`array`
+:mini:`meth :update(Array: array, Function: function)` |rarr| :mini:`array`
    *Defined at line 1636 in src/ml_array.c*
 

@@ -3,72 +3,72 @@ xe
 
 .. include:: <isonum.txt>
 
-**type** :mini:`XENodeT`
+:mini:`XENodeT`
    *Defined at line 26 in src/minixe.c*
 
-**type** :mini:`XEScopeT`
+:mini:`XEScopeT`
    *Defined at line 342 in src/minixe.c*
 
-**function** :mini:`xefunction()`
+:mini:`fun xefunction()`
    *Defined at line 609 in src/minixe.c*
 
-**function** :mini:`xedefine()`
+:mini:`fun xedefine()`
    *Defined at line 641 in src/minixe.c*
 
-**function** :mini:`xein()`
+:mini:`fun xein()`
    *Defined at line 670 in src/minixe.c*
 
-**function** :mini:`xedo()`
+:mini:`fun xedo()`
    *Defined at line 682 in src/minixe.c*
 
-**function** :mini:`xedo2()`
+:mini:`fun xedo2()`
    *Defined at line 710 in src/minixe.c*
 
-**function** :mini:`xeinclude()`
+:mini:`fun xeinclude()`
    *Defined at line 748 in src/minixe.c*
 
-**function** :mini:`xemap()`
+:mini:`fun xemap()`
    *Defined at line 783 in src/minixe.c*
 
-**function** :mini:`xelist()`
+:mini:`fun xelist()`
    *Defined at line 787 in src/minixe.c*
 
-**function** :mini:`xeattr()`
+:mini:`fun xeattr()`
    *Defined at line 791 in src/minixe.c*
 
-**method** :mini:`string(XENodeT Arg₁)`
+:mini:`meth string(Arg₁: XENodeT)`
    *Defined at line 829 in src/minixe.c*
 
-**method** :mini:`string(XEVarT Arg₁)`
+:mini:`meth string(Arg₁: XEVarT)`
    *Defined at line 856 in src/minixe.c*
 
-**function** :mini:`xeparsestring(string Arg₁)`
+:mini:`fun xeparsestring(Arg₁: string)`
    *Defined at line 865 in src/minixe.c*
 
-**function** :mini:`xeparsefile(string Arg₁)`
+:mini:`fun xeparsefile(Arg₁: string)`
    *Defined at line 880 in src/minixe.c*
 
-**function** :mini:`xeexpand(any Arg₁)`
+:mini:`fun xeexpand(Arg₁: any)`
    *Defined at line 898 in src/minixe.c*
 
-**function** :mini:`xenode(string Arg₁, map Arg₂, list Arg₃)`
+:mini:`fun xenode(Arg₁: string, Arg₂: map, Arg₃: list)`
    *Defined at line 908 in src/minixe.c*
 
-**function** :mini:`xevar(string Arg₁)`
+:mini:`fun xevar(Arg₁: string)`
    *Defined at line 922 in src/minixe.c*
 
-**function** :mini:`xeeval(any Arg₁, any Arg₂)`
+:mini:`fun xeeval(Arg₁: any, Arg₂: any)`
    *Defined at line 931 in src/minixe.c*
 
-**function** :mini:`xeappend(list Arg₁, any Arg₂)`
+:mini:`fun xeappend(Arg₁: list, Arg₂: any)`
    *Defined at line 948 in src/minixe.c*
 
-**method** :mini:`XENodeT Arg₁:tag`
+:mini:`meth :tag(Arg₁: XENodeT)`
    *Defined at line 955 in src/minixe.c*
 
-**method** :mini:`XENodeT Arg₁:attributes`
+:mini:`meth :attributes(Arg₁: XENodeT)`
    *Defined at line 960 in src/minixe.c*
 
-**method** :mini:`XENodeT Arg₁:content`
+:mini:`meth :content(Arg₁: XENodeT)`
    *Defined at line 965 in src/minixe.c*
 

@@ -3,26 +3,26 @@ bytecode
 
 .. include:: <isonum.txt>
 
-**type** :mini:`variable`
+:mini:`variable`
    *Defined at line 26 in src/ml_bytecode.c*
 
-**type** :mini:`closure`
+:mini:`closure`
    :Parents: :mini:`function`
 
    *Defined at line 975 in src/ml_bytecode.c*
 
-**method** :mini:`string(closure Arg₁)`
+:mini:`meth string(Arg₁: closure)`
    *Defined at line 980 in src/ml_bytecode.c*
 
-**method** :mini:`closure Arg₁:parameters`
+:mini:`meth :parameters(Arg₁: closure)`
    *Defined at line 990 in src/ml_bytecode.c*
 
-**method** :mini:`closure Arg₁:list`
+:mini:`meth :list(Arg₁: closure)`
    *Defined at line 1109 in src/ml_bytecode.c*
 
-**method** :mini:`closure Arg₁ !! list Arg₂`
+:mini:`meth !!(Arg₁: closure, Arg₂: list)`
    *Defined at line 1119 in src/ml_bytecode.c*
 
-**method** :mini:`closure Arg₁:jit`
+:mini:`meth :jit(Arg₁: closure)`
    *Defined at line 1133 in src/ml_bytecode.c*
 

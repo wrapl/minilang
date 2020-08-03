@@ -3,55 +3,55 @@ range
 
 .. include:: <isonum.txt>
 
-**type** :mini:`integeriter`
+:mini:`integeriter`
    *Defined at line 1437 in src/ml_types.c*
 
-**type** :mini:`integerrange`
+:mini:`integerrange`
    :Parents: :mini:`iteratable`
 
    *Defined at line 1458 in src/ml_types.c*
 
-**method** :mini:`integer Start .. integer Limit` |rarr| :mini:`integerrange`
+:mini:`meth ..(Start: integer, Limit: integer)` |rarr| :mini:`integerrange`
    *Defined at line 1461 in src/ml_types.c*
 
-**method** :mini:`integer Start:by(integer Step)` |rarr| :mini:`integerrange`
+:mini:`meth :by(Start: integer, Step: integer)` |rarr| :mini:`integerrange`
    *Defined at line 1476 in src/ml_types.c*
 
-**method** :mini:`integerrange Range:by(integer Step)` |rarr| :mini:`integerrange`
+:mini:`meth :by(Range: integerrange, Step: integer)` |rarr| :mini:`integerrange`
    *Defined at line 1491 in src/ml_types.c*
 
-**method** :mini:`integer X:in(integerrange Range)` |rarr| :mini:`X` or :mini:`nil`
+:mini:`meth :in(X: integer, Range: integerrange)` |rarr| :mini:`X` or :mini:`nil`
    *Defined at line 1505 in src/ml_types.c*
 
-**method** :mini:`real X:in(integerrange Range)` |rarr| :mini:`X` or :mini:`nil`
+:mini:`meth :in(X: real, Range: integerrange)` |rarr| :mini:`X` or :mini:`nil`
    *Defined at line 1517 in src/ml_types.c*
 
-**type** :mini:`realiter`
+:mini:`realiter`
    *Defined at line 1550 in src/ml_types.c*
 
-**type** :mini:`realrange`
+:mini:`realrange`
    :Parents: :mini:`iteratable`
 
    *Defined at line 1573 in src/ml_types.c*
 
-**method** :mini:`number Start .. number Limit` |rarr| :mini:`realrange`
+:mini:`meth ..(Start: number, Limit: number)` |rarr| :mini:`realrange`
    *Defined at line 1576 in src/ml_types.c*
 
-**method** :mini:`number Start:by(number Step)` |rarr| :mini:`realrange`
+:mini:`meth :by(Start: number, Step: number)` |rarr| :mini:`realrange`
    *Defined at line 1590 in src/ml_types.c*
 
-**method** :mini:`realrange Range:by(number Step)` |rarr| :mini:`realrange`
+:mini:`meth :by(Range: realrange, Step: number)` |rarr| :mini:`realrange`
    *Defined at line 1604 in src/ml_types.c*
 
-**method** :mini:`realrange Range:in(integer Count)` |rarr| :mini:`realrange`
+:mini:`meth :in(Range: realrange, Count: integer)` |rarr| :mini:`realrange`
    *Defined at line 1621 in src/ml_types.c*
 
-**method** :mini:`integerrange Range:by(real Step)` |rarr| :mini:`realrange`
+:mini:`meth :by(Range: integerrange, Step: real)` |rarr| :mini:`realrange`
    *Defined at line 1636 in src/ml_types.c*
 
-**method** :mini:`integer X:in(realrange Range)` |rarr| :mini:`X` or :mini:`nil`
+:mini:`meth :in(X: integer, Range: realrange)` |rarr| :mini:`X` or :mini:`nil`
    *Defined at line 1653 in src/ml_types.c*
 
-**method** :mini:`real X:in(realrange Range)` |rarr| :mini:`X` or :mini:`nil`
+:mini:`meth :in(X: real, Range: realrange)` |rarr| :mini:`X` or :mini:`nil`
    *Defined at line 1665 in src/ml_types.c*
 

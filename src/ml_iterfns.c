@@ -925,8 +925,8 @@ static void parallel_continue(ml_parallel_t *Parallel, ml_value_t *Value) {
 
 ML_FUNCTIONX(Parallel) {
 //<Iteratable
-//<Max?:integer
-//<Min?:integer
+//<Max:?integer
+//<Min:?integer
 //<Function:function
 //>nil | error
 // Iterates through :mini:`Iteratable` and calls :mini:`Function(Key, Value)` for each :mini:`Key, Value` pair produced **without** waiting for the call to return.

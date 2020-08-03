@@ -34,6 +34,9 @@ static void ml_file_finalize(ml_file_t *File, void *Data) {
 ML_FUNCTION(MLFileOpen) {
 //!file
 //@file
+//<Path
+//<Mode
+//>file
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLStringT);
@@ -70,6 +73,8 @@ static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
 #endif
 
 ML_METHOD("read", MLFileT) {
+//<File
+//>string
 	ml_file_t *File = (ml_file_t *)Args[0];
 	if (!File->Handle) return ml_error("FileError", "file closed");
 	char *Line = 0;
@@ -84,6 +89,9 @@ ML_METHOD("read", MLFileT) {
 }
 
 ML_METHOD("read", MLFileT, MLIntegerT) {
+//<File
+//<Length
+//>string
 	ml_file_t *File = (ml_file_t *)Args[0];
 	if (!File->Handle) return ml_error("FileError", "file closed");
 	if (feof(File->Handle)) return MLNil;
@@ -108,6 +116,9 @@ ML_METHOD("read", MLFileT, MLIntegerT) {
 }
 
 ML_METHODV("write", MLFileT, MLStringT) {
+//<File
+//<String
+//>File
 	ml_file_t *File = (ml_file_t *)Args[0];
 	if (!File->Handle) return ml_error("FileError", "file closed");
 	for (int I = 1; I < Count; ++I) {
@@ -134,6 +145,9 @@ static int ml_file_write_buffer_chars(ml_file_t *File, const char *Chars, size_t
 }
 
 ML_METHOD("write", MLFileT, MLStringBufferT) {
+//<File
+//<Buffer
+//>File
 	ml_file_t *File = (ml_file_t *)Args[0];
 	if (!File->Handle) return ml_error("FileError", "file closed");
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[1];
@@ -142,6 +156,8 @@ ML_METHOD("write", MLFileT, MLStringBufferT) {
 }
 
 ML_METHOD("eof", MLFileT) {
+//<File
+//>File | nil
 	ml_file_t *File = (ml_file_t *)Args[0];
 	if (!File->Handle) return ml_error("FileError", "file closed");
 	if (feof(File->Handle)) return Args[0];
@@ -149,6 +165,8 @@ ML_METHOD("eof", MLFileT) {
 }
 
 ML_METHOD("close", MLFileT) {
+//<File
+//>nil
 	ml_file_t *File = (ml_file_t *)Args[0];
 	if (File->Handle) {
 		fclose(File->Handle);
@@ -168,6 +186,9 @@ ml_value_t *ml_file_new(FILE *Handle) {
 ML_FUNCTION(MLFileRename) {
 //!file
 //@file::rename
+//<Old
+//<New
+//>nil
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLStringT);
@@ -182,6 +203,7 @@ ML_FUNCTION(MLFileRename) {
 ML_FUNCTION(MLFileUnlink) {
 //!file
 //@file::unlink
+//<Path
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	const char *Name = ml_string_value(Args[0]);
@@ -213,6 +235,8 @@ static void ml_dir_finalize(ml_dir_t *Dir, void *Data) {
 
 ML_FUNCTION(MLDirOpen) {
 //@dir
+//<Path
+//>dir
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	const char *Path = ml_string_value(Args[0]);
@@ -226,6 +250,8 @@ ML_FUNCTION(MLDirOpen) {
 }
 
 ML_METHOD("read", MLDirT) {
+//<Dir
+//>string
 	ml_dir_t *Dir = (ml_dir_t *)Args[0];
 	struct dirent *Entry = readdir(Dir->Handle);
 	if (!Entry) return MLNil;
