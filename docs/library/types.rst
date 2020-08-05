@@ -52,8 +52,8 @@ types
    *Defined at line 310 in src/ml_types.c*
 
 :mini:`meth string(Arg₁: nil)`
-   *Defined at line 1878 in src/ml_types.c*
+   *Defined at line 1892 in src/ml_types.c*
 
 :mini:`meth string(Arg₁: some)`
-   *Defined at line 1886 in src/ml_types.c*
+   *Defined at line 1900 in src/ml_types.c*
 

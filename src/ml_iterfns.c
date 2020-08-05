@@ -440,24 +440,37 @@ static void fold_first_value(ml_iter_state_t *State, ml_value_t *Result) {
 static void fold_iterate(ml_iter_state_t *State, ml_value_t *Result) {
 	if (ml_is_error(Result)) ML_CONTINUE(State->Base.Caller, Result);
 	if (Result == MLNil) ML_CONTINUE(State->Base.Caller, MLNil);
-	State->Base.run = (void *)fold_first_value;
+	State->Base.run = State->Values[1] ? (void *)fold_next_value : (void *)fold_first_value;
 	return ml_iter_value((ml_state_t *)State, State->Iter = Result);
 }
 
 ML_FUNCTIONX(Fold) {
-//<Function
-//<Iteratable
+//<?Initial:any
+//<Iteratable:iteratable
+//<Function:function
 //>any | nil
 // Returns :mini:`function(function( ... function(V/1, V/2), V/3) ..., V/n)` where :mini:`V/i` are the values produced by :mini:`Iteratable`.
 	ML_CHECKX_ARG_COUNT(2);
-	ML_CHECKX_ARG_TYPE(0, MLFunctionT);
-	ML_CHECKX_ARG_TYPE(1, MLIteratableT);
-	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
-	State->Base.Caller = Caller;
-	State->Base.run = (void *)fold_iterate;
-	State->Base.Context = Caller->Context;
-	State->Values[0] = Args[0];
-	return ml_iterate((ml_state_t *)State, ml_chained(Count - 1, Args + 1));
+	if (Count == 2) {
+		ML_CHECKX_ARG_TYPE(0, MLIteratableT);
+		ML_CHECKX_ARG_TYPE(1, MLFunctionT);
+		ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
+		State->Base.Caller = Caller;
+		State->Base.run = (void *)fold_iterate;
+		State->Base.Context = Caller->Context;
+		State->Values[0] = Args[1];
+		return ml_iterate((ml_state_t *)State, Args[0]);
+	} else {
+		ML_CHECKX_ARG_TYPE(1, MLIteratableT);
+		ML_CHECKX_ARG_TYPE(2, MLFunctionT);
+		ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
+		State->Base.Caller = Caller;
+		State->Base.run = (void *)fold_iterate;
+		State->Base.Context = Caller->Context;
+		State->Values[0] = Args[2];
+		State->Values[1] = Args[0];
+		return ml_iterate((ml_state_t *)State, Args[1]);
+	}
 }
 
 ML_FUNCTIONX(Min) {
@@ -541,10 +554,10 @@ static void fold2_call(ml_iter_state_t *State, ml_value_t *Result) {
 static void fold2_next_value(ml_iter_state_t *State, ml_value_t *Result) {
 	Result = ml_deref(Result);
 	if (ml_is_error(Result)) ML_CONTINUE(State->Base.Caller, Result);
-	ml_value_t *Compare = State->Values[0];
+	ml_value_t *Function = State->Values[0];
 	State->Values[3] = Result;
 	State->Base.run = (void *)fold2_call;
-	return ml_typeof(Compare)->call((ml_state_t *)State, Compare, 2, State->Values + 2);
+	return ml_typeof(Function)->call((ml_state_t *)State, Function, 2, State->Values + 2);
 }
 
 static void fold2_iter_next(ml_iter_state_t *State, ml_value_t *Result) {
@@ -586,14 +599,14 @@ static void fold2_iterate(ml_iter_state_t *State, ml_value_t *Result) {
 
 ML_FUNCTIONX(Fold2) {
 	ML_CHECKX_ARG_COUNT(2);
-	ML_CHECKX_ARG_TYPE(0, MLFunctionT);
-	ML_CHECKX_ARG_TYPE(1, MLIteratableT);
+	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
+	ML_CHECKX_ARG_TYPE(1, MLFunctionT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 4, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)fold2_iterate;
 	State->Base.Context = Caller->Context;
-	State->Values[0] = Args[0];
-	return ml_iterate((ml_state_t *)State, ml_chained(Count - 1, Args + 1));
+	State->Values[0] = Args[1];
+	return ml_iterate((ml_state_t *)State, Args[0]);
 }
 
 ML_FUNCTIONX(Min2) {

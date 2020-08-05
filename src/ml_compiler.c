@@ -1945,9 +1945,13 @@ static mlc_expr_t *ml_accept_meth_expr(mlc_scanner_t *Scanner) {
 		} while (ml_parse(Scanner, MLT_COMMA));
 		ml_accept(Scanner, MLT_RIGHT_PAREN);
 	}
-	FunExpr->Body = ml_accept_expression(Scanner, EXPR_DEFAULT);
-	FunExpr->End = Scanner->Source.Line;
-	ArgsSlot[0] = (mlc_expr_t *)FunExpr;
+	if (ml_parse(Scanner, MLT_ASSIGN)) {
+		ArgsSlot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
+	} else {
+		FunExpr->Body = ml_accept_expression(Scanner, EXPR_DEFAULT);
+		FunExpr->End = Scanner->Source.Line;
+		ArgsSlot[0] = (mlc_expr_t *)FunExpr;
+	}
 	return (mlc_expr_t *)MethodExpr;
 }
 

@@ -538,6 +538,7 @@ ML_METHOD("!!", MLFunctionT, MLListT) {
 //<Function
 //<List
 //>partialfunction
+// Returns a function equivalent to :mini:`fun(Args...) Function(List..., Args...)`.
 	ml_list_t *ArgsList = (ml_list_t *)Args[1];
 	ml_partial_function_t *Partial = xnew(ml_partial_function_t, ArgsList->Length, ml_value_t *);
 	Partial->Type = MLPartialFunctionT;
@@ -550,6 +551,10 @@ ML_METHOD("!!", MLFunctionT, MLListT) {
 
 ML_METHOD("$", MLFunctionT, MLAnyT) {
 //!function
+//<Function
+//<Arg
+//>partialfunction
+// Returns a function equivalent to :mini:`fun(Args...) Function(Arg, Args...)`.
 	ml_partial_function_t *Partial = xnew(ml_partial_function_t, 1, ml_value_t *);
 	Partial->Type = MLPartialFunctionT;
 	Partial->Function = Args[0];
@@ -559,7 +564,7 @@ ML_METHOD("$", MLFunctionT, MLAnyT) {
 }
 
 ML_METHOD("$", MLPartialFunctionT, MLAnyT) {
-//!function
+//!internal
 	ml_partial_function_t *Old = (ml_partial_function_t *)Args[0];
 	ml_partial_function_t *Partial = xnew(ml_partial_function_t, Old->Count + 1, ml_value_t *);
 	Partial->Type = MLPartialFunctionT;
@@ -1678,6 +1683,9 @@ ML_METHOD("in", MLRealT, MLRealRangeT) {
 
 ML_FUNCTION(MLBuffer) {
 //!buffer
+//@buffer
+//<Length
+//>buffer
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	long Size = ml_integer_value(Args[0]);
@@ -1696,6 +1704,9 @@ ML_TYPE(MLBufferT, (), "buffer",
 
 ML_METHOD("+", MLBufferT, MLIntegerT) {
 //!buffer
+//<Buffer
+//<Offset
+//>buffer
 	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
 	long Offset = ml_integer_value(Args[1]);
 	if (Offset >= Buffer->Size) return ml_error("ValueError", "Offset larger than buffer");
@@ -1708,6 +1719,9 @@ ML_METHOD("+", MLBufferT, MLIntegerT) {
 
 ML_METHOD("-", MLBufferT, MLBufferT) {
 //!buffer
+//<Buffer/1
+//<Buffer/2
+//>integer
 	ml_buffer_t *Buffer1 = (ml_buffer_t *)Args[0];
 	ml_buffer_t *Buffer2 = (ml_buffer_t *)Args[1];
 	return ml_integer(Buffer1->Address - Buffer2->Address);
@@ -4399,7 +4413,7 @@ ML_TYPE(MLModuleT, (), "module");
 ML_METHODX("::", MLModuleT, MLStringT) {
 //!module
 //<Module
-//<Import Name of import.
+//<Name
 //>MLAnyT
 // Imports a symbol from a module.
 	ml_module_t *Module = (ml_module_t *)Args[0];
