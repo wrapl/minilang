@@ -6,7 +6,7 @@ map
 :mini:`meth map(Iteratable: iteratable)` |rarr| :mini:`map`
    Returns a map of all the key and value pairs produced by :mini:`Iteratable`.
 
-   *Defined at line 361 in src/ml_iterfns.c*
+   *Defined at line 446 in src/ml_iterfns.c*
 
 :mini:`map`
    A map of key-value pairs.

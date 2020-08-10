@@ -23,22 +23,22 @@ mpc
 :mini:`meth :expect(Arg₁: parser, Arg₂: string)`
    *Defined at line 77 in src/ml_mpc.c*
 
-:mini:`meth :apply(Arg₁: valueparser, Arg₂: function)`
+:mini:`meth >>(Arg₁: valueparser, Arg₂: function)`
    *Defined at line 89 in src/ml_mpc.c*
 
-:mini:`meth :apply(Arg₁: stringparser, Arg₂: function)`
+:mini:`meth >>(Arg₁: stringparser, Arg₂: function)`
    *Defined at line 101 in src/ml_mpc.c*
 
-:mini:`meth !(Arg₁: valueparser, Arg₂: string, Arg₃: function)`
+:mini:`meth ?(Arg₁: valueparser, Arg₂: string, Arg₃: function)`
    *Defined at line 115 in src/ml_mpc.c*
 
-:mini:`meth !(Arg₁: stringparser, Arg₂: string, Arg₃: function)`
+:mini:`meth ?(Arg₁: stringparser, Arg₂: string, Arg₃: function)`
    *Defined at line 130 in src/ml_mpc.c*
 
-:mini:`meth ¬(Arg₁: valueparser)`
+:mini:`meth !(Arg₁: valueparser)`
    *Defined at line 141 in src/ml_mpc.c*
 
-:mini:`meth ¬(Arg₁: stringparser)`
+:mini:`meth !(Arg₁: stringparser)`
    *Defined at line 148 in src/ml_mpc.c*
 
 :mini:`meth ~(Arg₁: valueparser)`

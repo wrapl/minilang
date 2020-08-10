@@ -6,7 +6,7 @@ list
 :mini:`meth list(Iteratable: iteratable)` |rarr| :mini:`list`
    Returns a list of all of the values produced by :mini:`Iteratable`.
 
-   *Defined at line 309 in src/ml_iterfns.c*
+   *Defined at line 394 in src/ml_iterfns.c*
 
 :mini:`list`
    A list of elements.

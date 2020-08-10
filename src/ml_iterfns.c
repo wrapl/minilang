@@ -116,7 +116,7 @@ static void ML_TYPED_FN(ml_iterate, MLChainedFunctionT, ml_state_t *Caller, ml_c
 	return ml_iterate((ml_state_t *)Iterator, Function);
 }
 
-ML_METHOD(">>", MLIteratableT, MLFunctionT) {
+ML_METHOD("->", MLIteratableT, MLFunctionT) {
 //<Iteratable
 //<Function
 //>chainedfunction
@@ -127,7 +127,7 @@ ML_METHOD(">>", MLIteratableT, MLFunctionT) {
 	return (ml_value_t *)Chained;
 }
 
-ML_METHOD(">>", MLChainedFunctionT, MLFunctionT) {
+ML_METHOD("->", MLChainedFunctionT, MLFunctionT) {
 //<ChainedFunction
 //<Function
 //>chainedfunction
@@ -139,6 +139,91 @@ ML_METHOD(">>", MLChainedFunctionT, MLFunctionT) {
 	for (int I = 0; I < N; ++I) Chained->Functions[I] = Base->Functions[I];
 	Chained->Functions[N] = Args[1];
 	return (ml_value_t *)Chained;
+}
+
+typedef struct ml_double_t {
+	const ml_type_t *Type;
+	ml_value_t *Iteratable, *Function;
+} ml_double_t;
+
+ML_TYPE(MLDoubleT, (MLIteratableT), "double");
+
+typedef struct ml_double_state_t {
+	ml_state_t Base;
+	ml_value_t *Iterator0;
+	ml_value_t *Iterator;
+	ml_value_t *Function;
+	ml_value_t *Arg;
+} ml_double_state_t;
+
+ML_TYPE(MLDoubleStateT, (MLStateT), "double-state");
+
+static void ml_double_iter0_next(ml_double_state_t *State, ml_value_t *Value);
+
+static void ml_double_iter_next(ml_double_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) {
+		State->Base.run = (void *)ml_double_iter0_next;
+		return ml_iter_next((ml_state_t *)State, State->Iterator0);
+	}
+	State->Iterator = Value;
+	ML_CONTINUE(State->Base.Caller, State);
+}
+
+static void ml_double_function_call(ml_double_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (void *)ml_double_iter_next;
+	return ml_iterate((ml_state_t *)State, Value);
+}
+
+static void ml_double_value0(ml_double_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (void *)ml_double_function_call;
+	State->Arg = Value;
+	ml_value_t *Function = State->Function;
+	return ml_typeof(Function)->call((ml_state_t *)State, Function, 1, &State->Arg);
+}
+
+static void ml_double_iter0_next(ml_double_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (void *)ml_double_value0;
+	return ml_iter_value((ml_state_t *)State, State->Iterator0 = Value);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLDoubleT, ml_state_t *Caller, ml_double_t *Double) {
+	ml_double_state_t *State = new(ml_double_state_t);
+	State->Base.Type = MLDoubleStateT;
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)ml_double_iter0_next;
+	State->Function = Double->Function;
+	return ml_iterate((ml_state_t *)State, Double->Iteratable);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLDoubleStateT, ml_state_t *Caller, ml_double_state_t *State) {
+	return ml_iter_key(Caller, State->Iterator);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLDoubleStateT, ml_state_t *Caller, ml_double_state_t *State) {
+	return ml_iter_value(Caller, State->Iterator);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLDoubleStateT, ml_state_t *Caller, ml_double_state_t *State) {
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)ml_double_iter_next;
+	return ml_iter_next((ml_state_t *)State, State->Iterator);
+}
+
+ML_METHOD("->>", MLIteratableT, MLFunctionT) {
+	ml_double_t *Double = new(ml_double_t);
+	Double->Type = MLDoubleT;
+	Double->Iteratable = Args[0];
+	Double->Function = Args[1];
+	return (ml_value_t *)Double;
 }
 
 typedef struct ml_iter_state_t {
@@ -1054,26 +1139,26 @@ ML_FUNCTION(Unique) {
 	return (ml_value_t *)Unique;
 }
 
-typedef struct ml_grouped_t {
+typedef struct ml_zipped_t {
 	const ml_type_t *Type;
 	ml_value_t *Function;
 	ml_value_t **Iters;
 	int Count;
-} ml_grouped_t;
+} ml_zipped_t;
 
-ML_TYPE(MLGroupedT, (MLIteratableT), "grouped");
+ML_TYPE(MLZippedT, (MLIteratableT), "zipped");
 
-typedef struct ml_grouped_state_t {
+typedef struct ml_zipped_state_t {
 	ml_state_t Base;
 	ml_value_t *Function;
 	ml_value_t **Iters;
 	ml_value_t **Args;
 	int Count, Index, Iteration;
-} ml_grouped_state_t;
+} ml_zipped_state_t;
 
-ML_TYPE(MLGroupedStateT, (), "grouped-state");
+ML_TYPE(MLZippedStateT, (), "zipped-state");
 
-static void grouped_iterate(ml_grouped_state_t *State, ml_value_t *Result) {
+static void zipped_iterate(ml_zipped_state_t *State, ml_value_t *Result) {
 	if (ml_is_error(Result)) ML_CONTINUE(State->Base.Caller, Result);
 	if (Result == MLNil) ML_CONTINUE(State->Base.Caller, Result);
 	State->Iters[State->Index] = Result;
@@ -1081,26 +1166,26 @@ static void grouped_iterate(ml_grouped_state_t *State, ml_value_t *Result) {
 	return ml_iterate((ml_state_t *)State, State->Iters[State->Index]);
 }
 
-static void ML_TYPED_FN(ml_iterate, MLGroupedT, ml_state_t *Caller, ml_grouped_t *Grouped) {
-	ml_grouped_state_t *State = new(ml_grouped_state_t);
-	State->Base.Type = MLGroupedStateT;
+static void ML_TYPED_FN(ml_iterate, MLZippedT, ml_state_t *Caller, ml_zipped_t *Zipped) {
+	ml_zipped_state_t *State = new(ml_zipped_state_t);
+	State->Base.Type = MLZippedStateT;
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)grouped_iterate;
+	State->Base.run = (void *)zipped_iterate;
 	State->Base.Context = Caller->Context;
-	State->Function = Grouped->Function;
-	State->Iters = anew(ml_value_t *, Grouped->Count);
-	State->Args = anew(ml_value_t *, Grouped->Count);
-	for (int I = 0; I < Grouped->Count; ++I) State->Iters[I] = Grouped->Iters[I];
-	State->Count = Grouped->Count;
+	State->Function = Zipped->Function;
+	State->Iters = anew(ml_value_t *, Zipped->Count);
+	State->Args = anew(ml_value_t *, Zipped->Count);
+	for (int I = 0; I < Zipped->Count; ++I) State->Iters[I] = Zipped->Iters[I];
+	State->Count = Zipped->Count;
 	State->Iteration = 1;
 	return ml_iterate((ml_state_t *)State, State->Iters[0]);
 }
 
-static void ML_TYPED_FN(ml_iter_key, MLGroupedStateT, ml_state_t *Caller, ml_grouped_state_t *State) {
+static void ML_TYPED_FN(ml_iter_key, MLZippedStateT, ml_state_t *Caller, ml_zipped_state_t *State) {
 	ML_RETURN(ml_integer(State->Iteration));
 }
 
-static void ml_grouped_fnx_value(ml_grouped_state_t *State, ml_value_t *Result) {
+static void ml_zipped_fnx_value(ml_zipped_state_t *State, ml_value_t *Result) {
 	if (ml_is_error(Result)) ML_CONTINUE(State->Base.Caller, Result);
 	State->Args[State->Index] = Result;
 	if (++State->Index ==  State->Count) {
@@ -1109,14 +1194,14 @@ static void ml_grouped_fnx_value(ml_grouped_state_t *State, ml_value_t *Result) 
 	return ml_iter_value((ml_state_t *)State, State->Iters[State->Index]);
 }
 
-static void ML_TYPED_FN(ml_iter_value, MLGroupedStateT, ml_state_t *Caller, ml_grouped_state_t *State) {
+static void ML_TYPED_FN(ml_iter_value, MLZippedStateT, ml_state_t *Caller, ml_zipped_state_t *State) {
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)ml_grouped_fnx_value;
+	State->Base.run = (void *)ml_zipped_fnx_value;
 	State->Index = 0;
 	return ml_iter_value((ml_state_t *)State, State->Iters[0]);
 }
 
-static void grouped_iter_next(ml_grouped_state_t *State, ml_value_t *Result) {
+static void zipped_iter_next(ml_zipped_state_t *State, ml_value_t *Result) {
 	if (ml_is_error(Result)) ML_CONTINUE(State->Base.Caller, Result);
 	if (Result == MLNil) ML_CONTINUE(State->Base.Caller, Result);
 	State->Iters[State->Index] = Result;
@@ -1124,23 +1209,24 @@ static void grouped_iter_next(ml_grouped_state_t *State, ml_value_t *Result) {
 	return ml_iter_next((ml_state_t *)State, State->Iters[State->Index]);
 }
 
-static void ML_TYPED_FN(ml_iter_next, MLGroupedStateT, ml_state_t *Caller, ml_grouped_state_t *State) {
+static void ML_TYPED_FN(ml_iter_next, MLZippedStateT, ml_state_t *Caller, ml_zipped_state_t *State) {
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)grouped_iter_next;
+	State->Base.run = (void *)zipped_iter_next;
 	++State->Iteration;
 	State->Index = 0;
 	return ml_iter_next((ml_state_t *)State, State->Iters[0]);
 }
 
-ML_FUNCTION(Group) {
+ML_FUNCTION(Zip) {
+//@zip
 	ML_CHECK_ARG_COUNT(1);
-	ml_grouped_t *Grouped = new(ml_grouped_t);
-	Grouped->Type = MLGroupedT;
-	Grouped->Count = Count - 1;
-	Grouped->Function = Args[Count - 1];
-	Grouped->Iters = anew(ml_value_t *, Count - 1);
-	for (int I = 0; I < Count - 1; ++I) Grouped->Iters[I] = Args[I];
-	return (ml_value_t *)Grouped;
+	ml_zipped_t *Zipped = new(ml_zipped_t);
+	Zipped->Type = MLZippedT;
+	Zipped->Count = Count - 1;
+	Zipped->Function = Args[Count - 1];
+	Zipped->Iters = anew(ml_value_t *, Count - 1);
+	for (int I = 0; I < Count - 1; ++I) Zipped->Iters[I] = Args[I];
+	return (ml_value_t *)Zipped;
 }
 
 typedef struct ml_repeated_t {
@@ -1335,6 +1421,6 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "parallel", Parallel);
 	stringmap_insert(Globals, "unique", Unique);
 	stringmap_insert(Globals, "tasks", Tasks);
-	stringmap_insert(Globals, "group", Group);
+	stringmap_insert(Globals, "zip", Zip);
 	stringmap_insert(Globals, "repeat", Repeat);
 }

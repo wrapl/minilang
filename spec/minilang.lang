@@ -158,7 +158,7 @@
       <keyword>sum</keyword>
       <keyword>prod</keyword>
       <keyword>repeat</keyword>
-      <keyword>group</keyword>
+      <keyword>zip</keyword>
       <keyword>tasks</keyword>
       <keyword>parallel</keyword>
       <keyword>property</keyword>
@@ -167,6 +167,7 @@
     </context>
     <context id="types" style-ref="type">
       <keyword>class</keyword>
+      <keyword>enum</keyword>
       <keyword>method</keyword>
       <keyword>any</keyword>
       <keyword>type</keyword>

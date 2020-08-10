@@ -77,8 +77,9 @@ struct DEBUG_STRUCT(frame) {
 
 #endif
 
-static void DEBUG_FUNC(continuation_call)(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
-	return State->run(State, Count ? Args[0] : MLNil);
+static void DEBUG_FUNC(continuation_call)(ml_state_t *Caller, DEBUG_STRUCT(frame) *Frame, int Count, ml_value_t **Args) {
+	Frame->Reuse = 0;
+	return Frame->Base.run((ml_state_t *)Frame, Count ? Args[0] : MLNil);
 }
 
 ML_TYPE(DEBUG_TYPE(Continuation), (MLStateT), "continuation",
@@ -267,6 +268,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			memset(Frame, 0, ML_FRAME_REUSE_SIZE);
 			Frame->Base.Caller = MLCachedFrame;
 			MLCachedFrame = Frame;
+		} else {
+			Frame->Inst = Inst;
 		}
 		ML_CONTINUE(Caller, Result);
 	}

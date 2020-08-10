@@ -2773,6 +2773,7 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 			const char *Ident = Scanner->Ident;
 			ml_variable_t *Var = new(ml_variable_t);
 			Var->Type = MLVariableT;
+			Var->Value = MLNil;
 			ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Ident);
 			if (Slot[0] && ml_typeof(Slot[0]) == MLUninitializedT) {
 				ml_uninitialized_set(Slot[0], (ml_value_t *)Var);

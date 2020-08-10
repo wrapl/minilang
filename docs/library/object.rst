@@ -27,3 +27,14 @@ object
 :mini:`fun mlproperty(Arg₁: function, Arg₂: function)`
    *Defined at line 260 in src/ml_object.c*
 
+:mini:`enumvalue`
+   *Defined at line 306 in src/ml_object.c*
+
+:mini:`fun mlenum(Arg₁: string)`
+   *Defined at line 312 in src/ml_object.c*
+
+:mini:`enum`
+   :Parents: :mini:`type`
+
+   *Defined at line 352 in src/ml_object.c*
+
