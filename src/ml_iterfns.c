@@ -68,7 +68,7 @@ static ml_value_t *ml_chained(int Count, ml_value_t **Functions) {
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, Count, ml_chained_entry_t);
 	Chained->Type = MLChainedFunctionT;
 	Chained->Initial = *Functions++;
-	for (int I = 0; I < Count; ++I) {
+	for (int I = 0; I < Count - 1; ++I) {
 		Chained->Entries[I].Function = *Functions++;
 		Chained->Entries[I].Filter = 1;
 	}
