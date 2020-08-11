@@ -26,11 +26,6 @@ string
 
    *Defined at line 1826 in src/ml_types.c*
 
-:mini:`fun regex(String: string)` |rarr| :mini:`regex` or :mini:`error`
-   Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
-
-   *Defined at line 2017 in src/ml_types.c*
-
 :mini:`regex`
    *Defined at line 2028 in src/ml_types.c*
 

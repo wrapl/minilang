@@ -24,3 +24,4 @@
 .vscode/
 .pydevproject
 .cquery
+/test/
