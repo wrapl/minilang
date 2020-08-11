@@ -11,9 +11,9 @@ extern "C" {
 typedef struct interactive_debugger_t interactive_debugger_t;
 
 ml_value_t *interactive_debugger(
-	void (*Enter)(void *Data, interactive_debugger_t *Debugger),
-	void (*Exit)(ml_state_t *Caller, void *Data),
-	void (*Log)(void *Data, ml_value_t *Value),
+	void (*enter)(void *Data, interactive_debugger_t *Debugger),
+	void (*exit)(ml_state_t *Caller, void *Data),
+	void (*log)(void *Data, ml_value_t *Value),
 	void *Data,
 	ml_getter_t GlobalGet,
 	void *Globals

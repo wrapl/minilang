@@ -47,6 +47,7 @@ struct ml_type_t {
 	void (*call)(ml_state_t *, ml_value_t *, int, ml_value_t **);
 	ml_value_t *(*deref)(ml_value_t *);
 	ml_value_t *(*assign)(ml_value_t *, ml_value_t *);
+	ml_value_t *Constructor;
 	inthash_t TypedFns[1];
 	stringmap_t Exports[1];
 	int Rank;
@@ -102,6 +103,9 @@ void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function);
 #define ML_TYPED_FN(FUNCTION, TYPE, ARGS ...) INIT_CODE ml_typed_fn_set(TYPE, FUNCTION, CONCAT3(FUNCTION ## _, __LINE__, __COUNTER__));
 
 #endif
+
+#define ML_VALUE(NAME, TYPE) \
+ml_value_t NAME[1] = {{TYPE}}
 
 extern ml_type_t MLAnyT[];
 extern ml_type_t MLNilT[];
@@ -688,7 +692,6 @@ static inline ml_value_t *ml_deref(ml_value_t *Value) {
 		return Value;
 	}
 }
-
 
 #else
 

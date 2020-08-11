@@ -3,18 +3,30 @@ module
 
 .. include:: <isonum.txt>
 
-.. topic:: **type** :mini:`module`
+:mini:`minimodule`
+   :Parents: :mini:`module`
 
-   :Parents: 
+   *Defined at line 15 in src/ml_module.c*
 
-.. topic:: **method** :mini:`module Module :: string Import` |rarr| :mini:`any`
+:mini:`meth ::(Arg₁: minimodule, Arg₂: string)`
+   *Defined at line 17 in src/ml_module.c*
 
-   Imports a symbol from a module. 
+:mini:`exportfunction`
+   :Parents: :mini:`function`
 
-   :module Module: 
-   :string Import: Name of import.
+   *Defined at line 50 in src/ml_module.c*
 
-.. topic:: **method** :mini:`string(module Arg₁)`
+:mini:`modulestate`
+   *Defined at line 60 in src/ml_module.c*
 
-   :module Arg₁: 
+:mini:`module`
+   *Defined at line 4410 in src/ml_types.c*
+
+:mini:`meth ::(Module: module, Name: string)` |rarr| :mini:`any`
+   Imports a symbol from a module.
+
+   *Defined at line 4413 in src/ml_types.c*
+
+:mini:`meth string(Arg₁: module)`
+   *Defined at line 4454 in src/ml_types.c*
 

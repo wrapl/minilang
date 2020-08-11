@@ -3,21 +3,18 @@ buffer
 
 .. include:: <isonum.txt>
 
-.. topic:: **type** :mini:`buffer`
+:mini:`fun buffer(Length: integer)` |rarr| :mini:`buffer`
+   *Defined at line 1684 in src/ml_types.c*
 
-   :Parents: 
+:mini:`buffer`
+   *Defined at line 1700 in src/ml_types.c*
 
-.. topic:: **method** :mini:`buffer Arg₁ + integer Arg₂`
+:mini:`meth +(Buffer: buffer, Offset: integer)` |rarr| :mini:`buffer`
+   *Defined at line 1705 in src/ml_types.c*
 
-   :buffer Arg₁: 
-   :integer Arg₂: 
+:mini:`meth -(Buffer₁: buffer, Buffer₂: buffer)` |rarr| :mini:`integer`
+   *Defined at line 1720 in src/ml_types.c*
 
-.. topic:: **method** :mini:`buffer Arg₁ - buffer Arg₂`
-
-   :buffer Arg₁: 
-   :buffer Arg₂: 
-
-.. topic:: **method** :mini:`string(buffer Arg₁)`
-
-   :buffer Arg₁: 
+:mini:`meth string(Arg₁: buffer)`
+   *Defined at line 1730 in src/ml_types.c*
 

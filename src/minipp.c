@@ -151,7 +151,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 	stringmap_insert(Globals, "pop", ml_cfunction(Preprocessor, (void *)ml_preprocessor_pop));
 	stringmap_insert(Globals, "input", ml_cfunction(Preprocessor, (void *)ml_preprocessor_input));
 	stringmap_insert(Globals, "include", ml_cfunction(Preprocessor, (void *)ml_preprocessor_include));
-	stringmap_insert(Globals, "open", ml_cfunction(0, ml_file_open));
+	stringmap_insert(Globals, "open", MLFileOpen);
 	mlc_scanner_t *Scanner = ml_scanner(InputName, Preprocessor, (void *)ml_preprocessor_line_read, (ml_getter_t)ml_preprocessor_global_get, Preprocessor);
 	ml_value_t *Semicolon = ml_cstring(";");
 	for (;;) {

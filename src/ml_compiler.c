@@ -117,6 +117,7 @@ ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, mlc_context_t 
 		ml_decl_t **ParamSlot = &Function->Decls;
 		for (const char **P = Parameters; P[0]; ++P) {
 			ml_decl_t *Param = new(ml_decl_t);
+			Param->Source = Expr->Source;
 			Param->Ident = P[0];
 			Param->Index = Function->Top++;
 			ParamSlot[0] = Param;
@@ -801,7 +802,7 @@ static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_
 	stringmap_t Decls[1] = {STRINGMAP_INIT};
 	for (ml_decl_t *Decl = Expr->Vars; Decl;) {
 		ml_decl_t **Slot = (ml_decl_t **)stringmap_slot(Decls, Decl->Ident);
-		if (Slot[0]) ml_expr_error(Expr, ml_error("NameError", "Identifier %s redefined", Decl->Ident));
+		if (Slot[0]) ml_expr_error(Expr, ml_error("NameError", "Identifier %s already defined in line %d", Decl->Ident, Slot[0]->Source.Line));
 		Slot[0] = Decl;
 		Decl->Index = Function->Top++;
 		ml_decl_t *NextDecl = Decl->Next;
@@ -812,7 +813,7 @@ static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_
 	}
 	for (ml_decl_t *Decl = Expr->Lets; Decl;) {
 		ml_decl_t **Slot = (ml_decl_t **)stringmap_slot(Decls, Decl->Ident);
-		if (Slot[0]) ml_expr_error(Expr, ml_error("NameError", "Identifier %s redefined", Decl->Ident));
+		if (Slot[0]) ml_expr_error(Expr, ml_error("NameError", "Identifier %s already defined in line %d", Decl->Ident, Slot[0]->Source.Line));
 		Slot[0] = Decl;
 		Decl->Index = Function->Top++;
 		ml_decl_t *NextDecl = Decl->Next;
@@ -823,7 +824,7 @@ static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_
 	}
 	for (ml_decl_t *Decl = Expr->Defs; Decl;) {
 		ml_decl_t **Slot = (ml_decl_t **)stringmap_slot(Decls, Decl->Ident);
-		if (Slot[0]) ml_expr_error(Expr, ml_error("NameError", "Identifier %s redefined", Decl->Ident));
+		if (Slot[0]) ml_expr_error(Expr, ml_error("NameError", "Identifier %s already defined in line %d", Decl->Ident, Slot[0]->Source.Line));
 		Slot[0] = Decl;
 		Decl->Flags = MLC_DECL_CONSTANT;
 		ml_decl_t *NextDecl = Decl->Next;
@@ -1159,6 +1160,7 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	while (UpValueSlot[0]) UpValueSlot = &UpValueSlot[0]->Next;
 	for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) {
 		ml_decl_t *Decl = new(ml_decl_t);
+		Decl->Source = Expr->Source;
 		Decl->Ident = UpValue->Decl->Ident;
 		Decl->Value = UpValue->Decl->Value;
 		Decl->Index = ~UpValue->Index;
@@ -1297,6 +1299,7 @@ typedef enum ml_token_t {
 	MLT_FUN,
 	MLT_RET,
 	MLT_SUSP,
+	MLT_METH,
 	MLT_WITH,
 	MLT_DO,
 	MLT_ON,
@@ -1320,7 +1323,7 @@ typedef enum ml_token_t {
 	MLT_COLON,
 	MLT_COMMA,
 	MLT_ASSIGN,
-	MLT_SYMBOL,
+	MLT_IMPORT,
 	MLT_VALUE,
 	MLT_EXPR,
 	MLT_INLINE,
@@ -1353,6 +1356,7 @@ const char *MLTokens[] = {
 	"fun", // MLT_FUN,
 	"ret", // MLT_RET,
 	"susp", // MLT_SUSP,
+	"meth", // MLT_METH,
 	"with", // MLT_WITH,
 	"do", // MLT_DO,
 	"on", // MLT_ON,
@@ -1456,6 +1460,7 @@ static int ml_parse(mlc_scanner_t *Scanner, ml_token_t Token);
 static void ml_accept(mlc_scanner_t *Scanner, ml_token_t Token);
 static mlc_expr_t *ml_parse_expression(mlc_scanner_t *Scanner, ml_expr_level_t Level);
 static mlc_expr_t *ml_accept_expression(mlc_scanner_t *Scanner, ml_expr_level_t Level);
+static void ml_accept_arguments(mlc_scanner_t *Scanner, ml_token_t EndToken, mlc_expr_t **ArgsSlot);
 
 extern ml_cfunction_t StringNew[];
 extern ml_cfunction_t StringifierNew[];
@@ -1523,16 +1528,14 @@ static mlc_expr_t *ml_accept_string(mlc_scanner_t *Scanner) {
 	} else if (End[0] == '{') {
 		mlc_expr_t *Embedded = ml_accept_expression(Scanner, EXPR_DEFAULT);
 		if (ml_parse(Scanner, MLT_COMMA)) {
-			mlc_expr_t *Tail = Embedded;
-			do {
-				Tail = Tail->Next = ml_accept_expression(Scanner, EXPR_DEFAULT);
-			} while (ml_parse(Scanner, MLT_COMMA));
+			ml_accept_arguments(Scanner, MLT_RIGHT_BRACE, &Embedded->Next);
 			ML_EXPR(CallExpr, parent_value, const_call);
 			CallExpr->Value = (ml_value_t *)StringifierNew;
 			CallExpr->Child = Embedded;
 			Embedded = (mlc_expr_t *)CallExpr;
+		} else {
+			ml_accept(Scanner, MLT_RIGHT_BRACE);
 		}
-		ml_accept(Scanner, MLT_RIGHT_BRACE);
 		Embedded->Next = ml_accept_string(Scanner);
 		if (Expr) {
 			Expr->Next = Embedded;
@@ -1581,6 +1584,10 @@ static inline int isoperator(char C) {
 
 #include "keywords.c"
 
+static stringmap_t StringFns[1] = {STRINGMAP_INIT};
+
+typedef ml_value_t *(*string_fn_t)(const char *String);
+
 static ml_token_t ml_advance(mlc_scanner_t *Scanner) {
 	for (;;) {
 		if (!Scanner->Next || !Scanner->Next[0]) {
@@ -1600,42 +1607,6 @@ static ml_token_t ml_advance(mlc_scanner_t *Scanner) {
 			++Scanner->Next;
 			continue;
 		}
-		if (Char == 'r' && Scanner->Next[1] == '\"') {
-			Scanner->Next += 2;
-			int Length = 0;
-			const char *End = Scanner->Next;
-			while (End[0] != '\"') {
-				if (!End[0]) {
-					ml_scanner_error(Scanner, "ParseError", "end of input while parsing string");
-				}
-				if (End[0] == '\\') {
-					++Length;
-					++End;
-				}
-				++Length;
-				++End;
-			}
-			char *Pattern = snew(Length + 1), *D = Pattern;
-			for (const char *S = Scanner->Next; S < End; ++S) {
-				if (*S == '\\') {
-					++S;
-					switch (*S) {
-					case 'r': *D++ = '\r'; break;
-					case 'n': *D++ = '\n'; break;
-					case 't': *D++ = '\t'; break;
-					case 'e': *D++ = '\e'; break;
-					default: *D++ = '\\'; *D++ = *S; break;
-					}
-				} else {
-					*D++ = *S;
-				}
-			}
-			*D = 0;
-			Scanner->Value = ml_regex(Pattern);
-			Scanner->Token = MLT_VALUE;
-			Scanner->Next = End + 1;
-			return Scanner->Token;
-		}
 		if (isidstart(Char)) {
 			const char *End = Scanner->Next + 1;
 			for (Char = End[0]; isidchar(Char); Char = *++End);
@@ -1649,9 +1620,43 @@ static ml_token_t ml_advance(mlc_scanner_t *Scanner) {
 			char *Ident = snew(Length + 1);
 			memcpy(Ident, Scanner->Next, Length);
 			Ident[Length] = 0;
+			Scanner->Next = End;
+			if (End[0] == '\"') {
+				string_fn_t StringFn = stringmap_search(StringFns, Ident);
+				if (!StringFn) ml_scanner_error(Scanner, "ParseError", "Unknown string prefix: %s", Ident);
+				Scanner->Next += 1;
+				const char *End = Scanner->Next;
+				while (End[0] != '\"') {
+					if (!End[0]) {
+						ml_scanner_error(Scanner, "ParseError", "end of input while parsing string");
+					}
+					if (End[0] == '\\') ++End;
+					++End;
+				}
+				int Length = End - Scanner->Next;
+				char *Pattern = snew(Length + 1), *D = Pattern;
+				for (const char *S = Scanner->Next; S < End; ++S) {
+					if (*S == '\\') {
+						++S;
+						switch (*S) {
+						case 'r': *D++ = '\r'; break;
+						case 'n': *D++ = '\n'; break;
+						case 't': *D++ = '\t'; break;
+						case 'e': *D++ = '\e'; break;
+						default: *D++ = '\\'; *D++ = *S; break;
+						}
+					} else {
+						*D++ = *S;
+					}
+				}
+				*D = 0;
+				Scanner->Value = StringFn(Pattern);
+				Scanner->Token = MLT_VALUE;
+				Scanner->Next = End + 1;
+				return Scanner->Token;
+			}
 			Scanner->Ident = Ident;
 			Scanner->Token = MLT_IDENT;
-			Scanner->Next = End;
 			return Scanner->Token;
 		}
 		if (isdigit(Char) || (Char == '-' && isdigit(Scanner->Next[1])) || (Char == '.' && isdigit(Scanner->Next[1]))) {
@@ -1735,7 +1740,7 @@ static ml_token_t ml_advance(mlc_scanner_t *Scanner) {
 				Scanner->Next += 2;
 				return Scanner->Token;
 			} else if (Scanner->Next[1] == ':') {
-				Scanner->Token = MLT_SYMBOL;
+				Scanner->Token = MLT_IMPORT;
 				Scanner->Next += 2;
 				return Scanner->Token;
 			} else if (isidchar(Scanner->Next[1])) {
@@ -1866,6 +1871,7 @@ static void ml_accept_eoi(mlc_scanner_t *Scanner) {
 	ml_accept(Scanner, MLT_EOI);
 }
 
+static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner);
 static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner);
 static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner);
 
@@ -1875,6 +1881,7 @@ static mlc_expr_t *ml_accept_fun_expr(mlc_scanner_t *Scanner, ml_token_t EndToke
 		ml_decl_t **ParamSlot = &FunExpr->Params;
 		do {
 			ml_decl_t *Param = ParamSlot[0] = new(ml_decl_t);
+			Param->Source = Scanner->Source;
 			ParamSlot = &Param->Next;
 			if (ml_parse(Scanner, MLT_LEFT_SQUARE)) {
 				ml_accept(Scanner, MLT_IDENT);
@@ -1884,6 +1891,7 @@ static mlc_expr_t *ml_accept_fun_expr(mlc_scanner_t *Scanner, ml_token_t EndToke
 				if (ml_parse(Scanner, MLT_COMMA)) {
 					ml_accept(Scanner, MLT_LEFT_BRACE);
 					ml_decl_t *Param = ParamSlot[0] = new(ml_decl_t);
+					Param->Source = Scanner->Source;
 					ml_accept(Scanner, MLT_IDENT);
 					Param->Ident = Scanner->Ident;
 					Param->Index = ML_PARAM_NAMED;
@@ -1899,6 +1907,10 @@ static mlc_expr_t *ml_accept_fun_expr(mlc_scanner_t *Scanner, ml_token_t EndToke
 			} else {
 				ml_accept(Scanner, MLT_IDENT);
 				Param->Ident = Scanner->Ident;
+				if (ml_parse(Scanner, MLT_COLON)) {
+					// Parse type specifications but ignore for now
+					ml_parse_expression(Scanner, EXPR_DEFAULT);
+				}
 			}
 		} while (ml_parse(Scanner, MLT_COMMA));
 		ml_accept(Scanner, EndToken);
@@ -1906,6 +1918,41 @@ static mlc_expr_t *ml_accept_fun_expr(mlc_scanner_t *Scanner, ml_token_t EndToke
 	FunExpr->Body = ml_accept_expression(Scanner, EXPR_DEFAULT);
 	FunExpr->End = Scanner->Source.Line;
 	return (mlc_expr_t *)FunExpr;
+}
+
+extern ml_value_t MLMethodSet[];
+
+static mlc_expr_t *ml_accept_meth_expr(mlc_scanner_t *Scanner) {
+	ML_EXPR(MethodExpr, parent_value, const_call);
+	MethodExpr->Value = MLMethodSet;
+	mlc_expr_t *Method = ml_parse_factor(Scanner);
+	if (!Method) ml_scanner_error(Scanner, "ParseError", "expected <factor> not <%s>", MLTokens[Scanner->Token]);
+	MethodExpr->Child = Method;
+	mlc_expr_t **ArgsSlot = &Method->Next;
+	ml_accept(Scanner, MLT_LEFT_PAREN);
+	ML_EXPR(FunExpr, fun, fun);
+	if (!ml_parse(Scanner, MLT_RIGHT_PAREN)) {
+		ml_decl_t **ParamSlot = &FunExpr->Params;
+		do {
+			ml_decl_t *Param = ParamSlot[0] = new(ml_decl_t);
+			Param->Source = Scanner->Source;
+			ParamSlot = &Param->Next;
+			ml_accept(Scanner, MLT_IDENT);
+			Param->Ident = Scanner->Ident;
+			ml_accept(Scanner, MLT_COLON);
+			mlc_expr_t *Arg = ArgsSlot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
+			ArgsSlot = &Arg->Next;
+		} while (ml_parse(Scanner, MLT_COMMA));
+		ml_accept(Scanner, MLT_RIGHT_PAREN);
+	}
+	if (ml_parse(Scanner, MLT_ASSIGN)) {
+		ArgsSlot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
+	} else {
+		FunExpr->Body = ml_accept_expression(Scanner, EXPR_DEFAULT);
+		FunExpr->End = Scanner->Source.Line;
+		ArgsSlot[0] = (mlc_expr_t *)FunExpr;
+	}
+	return (mlc_expr_t *)MethodExpr;
 }
 
 static void ml_accept_named_arguments(mlc_scanner_t *Scanner, ml_token_t EndToken, mlc_expr_t **ArgsSlot, ml_value_t *Names) {
@@ -2046,6 +2093,7 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 			Case->Source = Scanner->Source;
 			if (ml_parse(Scanner, MLT_VAR)) {
 				ml_decl_t *Decl = new(ml_decl_t);
+				Decl->Source = Scanner->Source;
 				ml_accept(Scanner, MLT_IDENT);
 				Decl->Ident = Scanner->Ident;
 				Decl->Index = 1;
@@ -2053,6 +2101,7 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 				Case->Decl = Decl;
 			} else if (ml_parse(Scanner, MLT_LET)) {
 				ml_decl_t *Decl = new(ml_decl_t);
+				Decl->Source = Scanner->Source;
 				ml_accept(Scanner, MLT_IDENT);
 				Decl->Ident = Scanner->Ident;
 				Decl->Index = 0;
@@ -2080,11 +2129,13 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 		Scanner->Token = MLT_NONE;
 		ML_EXPR(ForExpr, decl, for);
 		ml_decl_t *Decl = new(ml_decl_t);
+		Decl->Source = Scanner->Source;
 		ml_accept(Scanner, MLT_IDENT);
 		Decl->Ident = Scanner->Ident;
 		if (ml_parse(Scanner, MLT_COMMA)) {
 			ml_accept(Scanner, MLT_IDENT);
 			ml_decl_t *Decl2 = new(ml_decl_t);
+			Decl2->Source = Scanner->Source;
 			Decl2->Ident = Scanner->Ident;
 			Decl->Next = Decl2;
 		}
@@ -2102,8 +2153,18 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 	}
 	case MLT_FUN: {
 		Scanner->Token = MLT_NONE;
-		ml_accept(Scanner, MLT_LEFT_PAREN);
-		return ml_accept_fun_expr(Scanner, MLT_RIGHT_PAREN);
+		if (ml_parse(Scanner, MLT_LEFT_PAREN)) {
+			return ml_accept_fun_expr(Scanner, MLT_RIGHT_PAREN);
+		} else {
+			ML_EXPR(FunExpr, fun, fun);
+			FunExpr->Body = ml_accept_expression(Scanner, EXPR_DEFAULT);
+			FunExpr->End = Scanner->Source.Line;
+			return (mlc_expr_t *)FunExpr;
+		}
+	}
+	case MLT_METH: {
+		Scanner->Token = MLT_NONE;
+		return ml_accept_meth_expr(Scanner);
 	}
 	case MLT_SUSP: {
 		Scanner->Token = MLT_NONE;
@@ -2128,6 +2189,7 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 						ml_accept(Scanner, MLT_IDENT);
 						++Count;
 						ml_decl_t *Decl = DeclSlot[0] = new(ml_decl_t);
+						Decl->Source = Scanner->Source;
 						Decl->Ident = Scanner->Ident;
 						DeclSlot = &Decl->Next;
 					} while (ml_parse(Scanner, MLT_COMMA));
@@ -2136,6 +2198,7 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 			} else {
 				ml_accept(Scanner, MLT_IDENT);
 				ml_decl_t *Decl = DeclSlot[0] = new(ml_decl_t);
+				Decl->Source = Scanner->Source;
 				DeclSlot = &Decl->Next;
 				Decl->Ident = Scanner->Ident;
 				Decl->Index = 1;
@@ -2308,7 +2371,7 @@ static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
 			Expr = (mlc_expr_t *)CallExpr;
 			break;
 		}
-		case MLT_SYMBOL: {
+		case MLT_IMPORT: {
 			Scanner->Token = MLT_NONE;
 			if (!ml_parse(Scanner, MLT_OPERATOR) && !ml_parse(Scanner, MLT_IDENT)) {
 				ml_accept(Scanner, MLT_VALUE);
@@ -2409,11 +2472,13 @@ done:
 			do {
 				ML_EXPR(ForExpr, decl, for);
 				ml_decl_t *Decl = new(ml_decl_t);
+				Decl->Source = Scanner->Source;
 				ml_accept(Scanner, MLT_IDENT);
 				Decl->Ident = Scanner->Ident;
 				if (ml_parse(Scanner, MLT_COMMA)) {
 					ml_accept(Scanner, MLT_IDENT);
 					ml_decl_t *Decl2 = new(ml_decl_t);
+					Decl2->Source = Scanner->Source;
 					Decl2->Ident = Scanner->Ident;
 					Decl->Next = Decl2;
 				}
@@ -2434,6 +2499,7 @@ done:
 						do {
 							ml_accept(Scanner, MLT_IDENT);
 							ml_decl_t *Decl = DeclSlot[0] = new(ml_decl_t);
+							Decl->Source = Scanner->Source;
 							DeclSlot = &Decl->Next;
 							Decl->Ident = Scanner->Ident;
 							ml_accept(Scanner, MLT_ASSIGN);
@@ -2483,6 +2549,7 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 						ml_accept(Scanner, MLT_IDENT);
 						++Count;
 						Decl = VarsSlot[0] = new(ml_decl_t);
+						Decl->Source = Scanner->Source;
 						Decl->Ident = Scanner->Ident;
 						VarsSlot = &Decl->Next;
 					} while (ml_parse(Scanner, MLT_COMMA));
@@ -2497,6 +2564,7 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 				} else {
 					ml_accept(Scanner, MLT_IDENT);
 					ml_decl_t *Decl = VarsSlot[0] = new(ml_decl_t);
+					Decl->Source = Scanner->Source;
 					Decl->Ident = Scanner->Ident;
 					VarsSlot = &Decl->Next;
 					mlc_expr_t *Child = NULL;
@@ -2526,6 +2594,7 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 						ml_accept(Scanner, MLT_IDENT);
 						++Count;
 						Decl = LetsSlot[0] = new(ml_decl_t);
+						Decl->Source = Scanner->Source;
 						Decl->Ident = Scanner->Ident;
 						Decl->Flags = MLC_DECL_FORWARD;
 						LetsSlot = &Decl->Next;
@@ -2541,6 +2610,7 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 				} else {
 					ml_accept(Scanner, MLT_IDENT);
 					ml_decl_t *Decl = LetsSlot[0] = new(ml_decl_t);
+					Decl->Source = Scanner->Source;
 					Decl->Ident = Scanner->Ident;
 					Decl->Flags = MLC_DECL_FORWARD;
 					LetsSlot = &Decl->Next;
@@ -2568,6 +2638,7 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 						ml_accept(Scanner, MLT_IDENT);
 						++Count;
 						Decl = DefsSlot[0] = new(ml_decl_t);
+						Decl->Source = Scanner->Source;
 						Decl->Ident = Scanner->Ident;
 						DefsSlot = &Decl->Next;
 					} while (ml_parse(Scanner, MLT_COMMA));
@@ -2582,6 +2653,7 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 				} else {
 					ml_accept(Scanner, MLT_IDENT);
 					ml_decl_t *Decl = DefsSlot[0] = new(ml_decl_t);
+					Decl->Source = Scanner->Source;
 					Decl->Ident = Scanner->Ident;
 					DefsSlot = &Decl->Next;
 					ML_EXPR(DeclExpr, decl, def);
@@ -2595,6 +2667,7 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 						while (ml_parse(Scanner, MLT_COMMA)) {
 							ml_accept(Scanner, MLT_IDENT);
 							Decl = DefsSlot[0] = new(ml_decl_t);
+							Decl->Source = Scanner->Source;
 							Decl->Ident = Scanner->Ident;
 							DefsSlot = &Decl->Next;
 							++DeclExpr->Count;
@@ -2613,6 +2686,7 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 			Scanner->Token = MLT_NONE;
 			if (ml_parse(Scanner, MLT_IDENT)) {
 				ml_decl_t *Decl = LetsSlot[0] = new(ml_decl_t);
+				Decl->Source = Scanner->Source;
 				Decl->Ident = Scanner->Ident;
 				Decl->Flags = MLC_DECL_FORWARD;
 				LetsSlot = &Decl->Next;
@@ -2637,6 +2711,7 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 			}
 			ml_accept(Scanner, MLT_IDENT);
 			ml_decl_t *Decl = new(ml_decl_t);
+			Decl->Source = Scanner->Source;
 			Decl->Ident = Scanner->Ident;
 			BlockExpr->CatchDecl = Decl;
 			ml_accept(Scanner, MLT_DO);
@@ -2649,6 +2724,7 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 			if (ml_parse(Scanner, MLT_COLON)) {
 				ml_accept(Scanner, MLT_IDENT);
 				ml_decl_t *Decl = DefsSlot[0] = new(ml_decl_t);
+				Decl->Source = Scanner->Source;
 				Decl->Ident = Scanner->Ident;
 				Decl->Flags = MLC_DECL_CONSTANT;
 				DefsSlot = &Decl->Next;
@@ -2697,6 +2773,7 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 			const char *Ident = Scanner->Ident;
 			ml_variable_t *Var = new(ml_variable_t);
 			Var->Type = MLVariableT;
+			Var->Value = MLNil;
 			ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Ident);
 			if (Slot[0] && ml_typeof(Slot[0]) == MLUninitializedT) {
 				ml_uninitialized_set(Slot[0], (ml_value_t *)Var);
@@ -2725,10 +2802,12 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 				Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
 			} else {
 				Import = new(ml_decl_t);
+				Import->Source = Scanner->Source;
 				Import->Ident = Scanner->Ident;
 				while (ml_parse(Scanner, MLT_COMMA)) {
 					ml_accept(Scanner, MLT_IDENT);
 					ml_decl_t *Decl = new(ml_decl_t);
+					Decl->Source = Scanner->Source;
 					Decl->Ident = Scanner->Ident;
 					Decl->Next = Import;
 					Import = Decl;
@@ -2789,6 +2868,12 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 			Result = ml_call(Result, 0, NULL);
 			if (ml_is_error(Result)) ML_RETURN(Result);
 		}
+	} else if (ml_parse(Scanner, MLT_METH)) {
+		mlc_expr_t *Expr = ml_accept_meth_expr(Scanner);
+		Result = ml_compile(Expr, NULL, Scanner->Context);
+		if (ml_is_error(Result)) ML_RETURN(Result);
+		Result = ml_call(Result, 0, NULL);
+		if (ml_is_error(Result)) ML_RETURN(Result);
 	} else {
 		mlc_expr_t *Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
 		if (ml_parse(Scanner, MLT_COLON)) {
@@ -2859,4 +2944,8 @@ void ml_load(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const cha
 	fclose(File);
 	ml_value_t *Closure = ml_compile(Expr, Parameters, Scanner->Context);
 	ML_RETURN(Closure);
+}
+
+void ml_compiler_init() {
+	stringmap_insert(StringFns, "r", ml_regex);
 }

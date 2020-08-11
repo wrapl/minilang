@@ -13,7 +13,8 @@ extern ml_type_t MLFileT[];
 void ml_file_init(stringmap_t *Globals);
 
 ml_value_t *ml_file_new(FILE *File);
-ml_value_t *ml_file_open(void *Data, int Count, ml_value_t **Args);
+
+extern ml_cfunction_t MLFileOpen[];
 
 FILE *ml_file_handle(ml_value_t *Value);
 

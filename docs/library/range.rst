@@ -3,79 +3,55 @@ range
 
 .. include:: <isonum.txt>
 
-.. topic:: **type** :mini:`integeriter`
+:mini:`integeriter`
+   *Defined at line 1442 in src/ml_types.c*
 
-   :Parents: 
-
-.. topic:: **type** :mini:`integerrange`
-
+:mini:`integerrange`
    :Parents: :mini:`iteratable`
 
-.. topic:: **method** :mini:`integer Arg₁ .. integer Arg₂`
+   *Defined at line 1463 in src/ml_types.c*
 
-   :integer Arg₁: 
-   :integer Arg₂: 
+:mini:`meth ..(Start: integer, Limit: integer)` |rarr| :mini:`integerrange`
+   *Defined at line 1466 in src/ml_types.c*
 
-.. topic:: **method** :mini:`integer Arg₁:by(integer Arg₂)`
+:mini:`meth :by(Start: integer, Step: integer)` |rarr| :mini:`integerrange`
+   *Defined at line 1481 in src/ml_types.c*
 
-   :integer Arg₁: 
-   :integer Arg₂: 
+:mini:`meth :by(Range: integerrange, Step: integer)` |rarr| :mini:`integerrange`
+   *Defined at line 1496 in src/ml_types.c*
 
-.. topic:: **method** :mini:`integerrange Arg₁:by(integer Arg₂)`
+:mini:`meth :in(X: integer, Range: integerrange)` |rarr| :mini:`X` or :mini:`nil`
+   *Defined at line 1510 in src/ml_types.c*
 
-   :integerrange Arg₁: 
-   :integer Arg₂: 
+:mini:`meth :in(X: real, Range: integerrange)` |rarr| :mini:`X` or :mini:`nil`
+   *Defined at line 1522 in src/ml_types.c*
 
-.. topic:: **method** :mini:`integer Arg₁:in(integerrange Arg₂)`
+:mini:`realiter`
+   *Defined at line 1555 in src/ml_types.c*
 
-   :integer Arg₁: 
-   :integerrange Arg₂: 
-
-.. topic:: **method** :mini:`real Arg₁:in(integerrange Arg₂)`
-
-   :real Arg₁: 
-   :integerrange Arg₂: 
-
-.. topic:: **type** :mini:`realiter`
-
-   :Parents: 
-
-.. topic:: **type** :mini:`realrange`
-
+:mini:`realrange`
    :Parents: :mini:`iteratable`
 
-.. topic:: **method** :mini:`number Arg₁ .. number Arg₂`
+   *Defined at line 1578 in src/ml_types.c*
 
-   :number Arg₁: 
-   :number Arg₂: 
+:mini:`meth ..(Start: number, Limit: number)` |rarr| :mini:`realrange`
+   *Defined at line 1581 in src/ml_types.c*
 
-.. topic:: **method** :mini:`number Arg₁:by(number Arg₂)`
+:mini:`meth :by(Start: number, Step: number)` |rarr| :mini:`realrange`
+   *Defined at line 1595 in src/ml_types.c*
 
-   :number Arg₁: 
-   :number Arg₂: 
+:mini:`meth :by(Range: realrange, Step: number)` |rarr| :mini:`realrange`
+   *Defined at line 1609 in src/ml_types.c*
 
-.. topic:: **method** :mini:`realrange Arg₁:by(number Arg₂)`
+:mini:`meth :in(Range: realrange, Count: integer)` |rarr| :mini:`realrange`
+   *Defined at line 1626 in src/ml_types.c*
 
-   :realrange Arg₁: 
-   :number Arg₂: 
+:mini:`meth :by(Range: integerrange, Step: real)` |rarr| :mini:`realrange`
+   *Defined at line 1641 in src/ml_types.c*
 
-.. topic:: **method** :mini:`realrange Arg₁:in(integer Arg₂)`
+:mini:`meth :in(X: integer, Range: realrange)` |rarr| :mini:`X` or :mini:`nil`
+   *Defined at line 1658 in src/ml_types.c*
 
-   :realrange Arg₁: 
-   :integer Arg₂: 
-
-.. topic:: **method** :mini:`integerrange Arg₁:by(real Arg₂)`
-
-   :integerrange Arg₁: 
-   :real Arg₂: 
-
-.. topic:: **method** :mini:`integer Arg₁:in(realrange Arg₂)`
-
-   :integer Arg₁: 
-   :realrange Arg₂: 
-
-.. topic:: **method** :mini:`real Arg₁:in(realrange Arg₂)`
-
-   :real Arg₁: 
-   :realrange Arg₂: 
+:mini:`meth :in(X: real, Range: realrange)` |rarr| :mini:`X` or :mini:`nil`
+   *Defined at line 1670 in src/ml_types.c*
 

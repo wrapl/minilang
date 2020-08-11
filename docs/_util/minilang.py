@@ -18,7 +18,7 @@ class MinilangLexer(RegexLexer):
                 "if", "then", "elseif", "else", "end", "loop", "while",
                 "until", "exit", "next", "for", "each", "to", "in", "is",
 				"fun", "ret", "susp", "with", "do", "on", "nil", "and",
-				"or", "not", "old", "def", "let", "var", "_"
+				"or", "not", "old", "def", "let", "var", "_", "meth"
             ), suffix = r'\b'), Keyword),
             (words((
                 "class", "method", "any", "type", "function", "number",

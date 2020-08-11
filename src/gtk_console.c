@@ -143,6 +143,8 @@ typedef struct {
 	console_t *Console;
 } ml_console_repl_state_t;
 
+ML_TYPE(MLConsoleReplStateT, (), "console-repl-state");
+
 static ml_value_t ConsoleBreak[1] = {{MLAnyT}};
 
 static void ml_console_repl_run(ml_console_repl_state_t *State, ml_value_t *Result) {
@@ -186,6 +188,7 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 
 	mlc_scanner_t *Scanner = Console->Scanner;
 	ml_console_repl_state_t *State = new(ml_console_repl_state_t);
+	State->Base.Type = MLConsoleReplStateT;
 	State->Base.run = (ml_state_fn)ml_console_repl_run;
 	State->Base.Context = &MLRootContext;
 	State->Console = Console;

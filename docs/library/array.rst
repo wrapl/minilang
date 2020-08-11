@@ -3,55 +3,44 @@ array
 
 .. include:: <isonum.txt>
 
-.. topic:: **type** :mini:`array`
-
+:mini:`array`
    :Parents: :mini:`buffer`
 
-.. topic:: **method** :mini:`array Arg₁:shape`
+   *Defined at line 7 in src/ml_array.c*
 
-   :array Arg₁: 
+:mini:`meth :shape(Array: array)` |rarr| :mini:`list`
+   *Defined at line 267 in src/ml_array.c*
 
-.. topic:: **method** :mini:`array Arg₁:strides`
+:mini:`meth :strides(Array: array)` |rarr| :mini:`list`
+   *Defined at line 278 in src/ml_array.c*
 
-   :array Arg₁: 
+:mini:`meth :size(Array: array)` |rarr| :mini:`integer`
+   *Defined at line 289 in src/ml_array.c*
 
-.. topic:: **method** :mini:`array Arg₁:size`
+:mini:`meth :degree(Array: array)` |rarr| :mini:`integer`
+   *Defined at line 299 in src/ml_array.c*
 
-   :array Arg₁: 
+:mini:`meth :transpose(Array: array)` |rarr| :mini:`array`
+   *Defined at line 306 in src/ml_array.c*
 
-.. topic:: **method** :mini:`array Arg₁:degree`
+:mini:`meth :permute(Array: array, Indices: list)` |rarr| :mini:`array`
+   *Defined at line 319 in src/ml_array.c*
 
-   :array Arg₁: 
+:mini:`meth [](Array: array, Indices...: any)` |rarr| :mini:`array`
+   *Defined at line 436 in src/ml_array.c*
 
-.. topic:: **method** :mini:`array Arg₁:transpose`
+:mini:`meth [](Array: array, Indices: map)` |rarr| :mini:`array`
+   *Defined at line 444 in src/ml_array.c*
 
-   :array Arg₁: 
+:mini:`meth -(Arg₁: array)`
+   *Defined at line 1122 in src/ml_array.c*
 
-.. topic:: **method** :mini:`array Arg₁:permute(list Arg₂)`
+:mini:`meth :copy(Array: array)` |rarr| :mini:`array`
+   *Defined at line 1453 in src/ml_array.c*
 
-   :array Arg₁: 
-   :list Arg₂: 
+:mini:`meth :copy(Array: array, Function: function)` |rarr| :mini:`array`
+   *Defined at line 1508 in src/ml_array.c*
 
-.. topic:: **method** :mini:`array Arg₁[]`
-
-   :array Arg₁: 
-
-.. topic:: **method** :mini:`array Arg₁[map Arg₂]`
-
-   :array Arg₁: 
-   :map Arg₂: 
-
-.. topic:: **method** :mini:`#OP(array Arg₁, integer Arg₂)`
-
-   :array Arg₁: 
-   :integer Arg₂: 
-
-.. topic:: **method** :mini:`#OP(array Arg₁, real Arg₂)`
-
-   :array Arg₁: 
-   :real Arg₂: 
-
-.. topic:: **method** :mini:`array Arg₁:copy`
-
-   :array Arg₁: 
+:mini:`meth :update(Array: array, Function: function)` |rarr| :mini:`array`
+   *Defined at line 1636 in src/ml_array.c*
 

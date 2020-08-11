@@ -3,19 +3,11 @@ error
 
 .. include:: <isonum.txt>
 
-.. topic:: **type** :mini:`error`
+:mini:`error`
+   *Defined at line 321 in src/ml_runtime.c*
 
-   :Parents: 
+:mini:`errorvalue`
+   :Parents: :mini:`error`
 
-.. topic:: **method** :mini:`error Arg₁:type`
-
-   :error Arg₁: 
-
-.. topic:: **method** :mini:`error Arg₁:message`
-
-   :error Arg₁: 
-
-.. topic:: **method** :mini:`error Arg₁:trace`
-
-   :error Arg₁: 
+   *Defined at line 327 in src/ml_runtime.c*
 

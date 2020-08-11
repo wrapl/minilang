@@ -20,6 +20,7 @@ return, MLT_RET
 suspend, MLT_SUSP
 ret, MLT_RET
 susp, MLT_SUSP
+meth, MLT_METH
 with, MLT_WITH
 do, MLT_DO
 on, MLT_ON

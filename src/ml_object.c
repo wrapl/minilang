@@ -19,14 +19,20 @@ struct ml_object_t {
 };
 
 ML_INTERFACE(MLObjectT, (), "object");
+// Parent type of all object classes.
 
 static void ml_class_call(ml_state_t *Caller, ml_class_t *Class, int Count, ml_value_t **Args) {
-	ml_value_t *Constructor = stringmap_search(Class->Base.Exports, "of");
+	ml_value_t *Constructor = Class->Base.Constructor;
 	return ml_typeof(Constructor)->call(Caller, Constructor, Count, Args);
 }
 
+extern ml_cfunction_t MLClass[];
+
 ML_TYPE(MLClassT, (MLTypeT), "class",
-	.call = (void *)ml_class_call
+//!object
+// Type of all object classes.
+	.call = (void *)ml_class_call,
+	.Constructor = (ml_value_t *)MLClass
 );
 
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLObjectT) {
@@ -106,7 +112,14 @@ static void ml_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int Count, 
 	ML_RETURN(Object);
 }
 
-ML_FUNCTION(MLClassNew) {
+ML_FUNCTION(MLClass) {
+//!object
+//@class
+//<Name
+//<Parents?...:class
+//<Fields?...:method
+//<Either?...:list
+//<Exports?:map
 	static ml_value_t **FieldFns = NULL;
 	static int NumFieldFns = 0;
 	ML_CHECK_ARG_COUNT(1);
@@ -164,7 +177,7 @@ ML_FUNCTION(MLClassNew) {
 	Class->NumFields = NumFields;
 	ml_value_t **Fields = Class->Fields;
 	ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_constructor_fn);
-	stringmap_insert(Class->Base.Exports, "of", Constructor);
+	Class->Base.Constructor = Constructor;
 	for (int I = 1; I < Count; ++I) {
 		if (ml_typeof(Args[I]) == MLMethodT) {
 			*Fields++ = Args[I];
@@ -196,7 +209,12 @@ ML_FUNCTION(MLClassNew) {
 			ML_MAP_FOREACH(Args[I], Iter) {
 				ml_value_t *Key = Iter->Key;
 				if (!ml_is(Key, MLStringT)) return ml_error("TypeError", "Class field name must be a string");
-				stringmap_insert(Class->Base.Exports, ml_string_value(Key), Iter->Value);
+				const char *Name = ml_string_value(Key);
+				if (!strcmp(Name, "of")) {
+					Class->Base.Constructor = Iter->Value;
+				} else {
+					stringmap_insert(Class->Base.Exports, Name, Iter->Value);
+				}
 			}
 		}
 	}
@@ -218,31 +236,37 @@ ML_FUNCTION(MLClassNew) {
 	return (ml_value_t *)Class;
 }
 
-typedef struct ml_assignable_t {
+typedef struct ml_property_t {
 	const ml_type_t *Type;
 	ml_value_t *Get, *Set;
-} ml_assignable_t;
+} ml_property_t;
 
-static ml_value_t *ml_assignable_deref(ml_assignable_t *Assignable) {
-	return ml_call(Assignable->Get, 0, NULL);
+static ml_value_t *ml_property_deref(ml_property_t *Property) {
+	return ml_call(Property->Get, 0, NULL);
 }
 
-static ml_value_t *ml_assignable_assign(ml_assignable_t *Assignable, ml_value_t *Value) {
-	return ml_call(Assignable->Set, 1, &Value);
+static ml_value_t *ml_property_assign(ml_property_t *Property, ml_value_t *Value) {
+	return ml_call(Property->Set, 1, &Value);
 }
 
-ML_TYPE(MLAssignableT, (), "assignable",
-	.deref = (void *)ml_assignable_deref,
-	.assign = (void *)ml_assignable_assign
+extern ml_cfunction_t MLProperty[];
+
+ML_TYPE(MLPropertyT, (), "property",
+	.deref = (void *)ml_property_deref,
+	.assign = (void *)ml_property_assign,
+	.Constructor = (ml_value_t *)MLProperty
 );
 
 ML_FUNCTION(MLProperty) {
+//!object
 	ML_CHECK_ARG_COUNT(2);
-	ml_assignable_t *Assignable = new(ml_assignable_t);
-	Assignable->Type = MLAssignableT;
-	Assignable->Get = Args[0];
-	Assignable->Set = Args[1];
-	return (ml_value_t *)Assignable;
+	ML_CHECK_ARG_TYPE(0, MLFunctionT);
+	ML_CHECK_ARG_TYPE(1, MLFunctionT);
+	ml_property_t *Property = new(ml_property_t);
+	Property->Type = MLPropertyT;
+	Property->Get = Args[0];
+	Property->Set = Args[1];
+	return (ml_value_t *)Property;
 }
 
 size_t ml_class_size(ml_value_t *Value) {
@@ -261,11 +285,79 @@ ml_value_t *ml_object_field(ml_value_t *Value, size_t Field) {
 	return ((ml_object_t *)Value)->Fields[Field];
 }
 
+typedef struct {
+	ml_type_t Base;
+	int NumValues;
+	ml_value_t *Values[];
+} ml_enum_t;
+
+typedef struct {
+	const ml_type_t *Type;
+	ml_value_t *Name;
+	int Index;
+} ml_enum_value_t;
+
+extern ml_type_t MLEnumT[];
+
+static long ml_enum_value_hash(ml_enum_value_t *Value, ml_hash_chain_t *Chain) {
+	return (long)Value->Type + Value->Index;
+}
+
+ML_TYPE(MLEnumValueT, (), "enum-value");
+
+static ml_value_t *ML_TYPED_FN(ml_string_of, MLEnumValueT, ml_enum_value_t *Value) {
+	return Value->Name;
+}
+
+ML_FUNCTION(MLEnum) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLStringT);
+	ml_enum_t *Enum = xnew(ml_enum_t, Count - 1, ml_value_t *);
+	Enum->Base.Type = MLEnumT;
+	Enum->Base.Name = ml_string_value(Args[0]);
+	Enum->Base.deref = ml_default_deref;
+	Enum->Base.assign = ml_default_assign;
+	Enum->Base.hash = (void *)ml_enum_value_hash;
+	Enum->Base.call = ml_default_call;
+	Enum->Base.Rank = ML_RANK_NATIVE;
+	Enum->NumValues = Count - 1;
+	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
+	for (int I = 1; I < Count; ++I) {
+		ml_enum_value_t *Value = new(ml_enum_value_t);
+		Value->Type = (ml_type_t *)Enum;
+		Value->Name = Args[I];
+		Value->Index = I;
+		Enum->Values[I - 1] = (ml_value_t *)Value;
+		stringmap_insert(Enum->Base.Exports, ml_string_value(Args[I]), Value);
+	}
+	return (ml_value_t *)Enum;
+}
+
+static void ml_enum_call(ml_state_t *Caller, ml_enum_t *Enum, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	if (ml_is(Args[0], MLStringT)) {
+		ml_value_t *Value = stringmap_search(Enum->Base.Exports, ml_string_value(Args[0]));
+		if (!Value) ML_ERROR("EnumError", "Invalid enum name");
+		ML_RETURN(Value);
+	} else if (ml_is(Args[0], MLIntegerT)) {
+		int Index = ml_integer_value(Args[0]) - 1;
+		if (Index < 0 || Index >= Enum->NumValues) ML_ERROR("EnumError", "Invalid enum index");
+		ML_RETURN(Enum->Values[Index]);
+	} else {
+		ML_ERROR("TypeError", "Expected <integer> or <string> not <%s>", ml_typeof(Args[0])->Name);
+	}
+}
+
+ML_TYPE(MLEnumT, (MLTypeT), "enum",
+	.call = (void *)ml_enum_call,
+	.Constructor = (void *)MLEnum
+);
+
 void ml_object_init(stringmap_t *Globals) {
-	stringmap_insert(Globals, "property", MLProperty);
+#include "ml_object_init.c"
+	stringmap_insert(Globals, "property", MLPropertyT);
 	stringmap_insert(Globals, "object", MLObjectT);
 	stringmap_insert(Globals, "class", MLClassT);
-	stringmap_insert(MLClassT->Exports, "of", MLClassNew);
-	stringmap_insert(MLClassT->Exports, "new", MLClassNew);
-#include "ml_object_init.c"
+	stringmap_insert(Globals, "enum", MLEnumT);
 }

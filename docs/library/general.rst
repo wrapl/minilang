@@ -3,147 +3,33 @@ general
 
 .. include:: <isonum.txt>
 
-.. topic:: **function** :mini:`mlnow()`
+:mini:`consolereplstate`
+   *Defined at line 146 in src/gtk_console.c*
 
+:mini:`fun mlnow()`
+   *Defined at line 49 in src/minilang.c*
 
-.. topic:: **function** :mini:`mlclock()`
+:mini:`fun mlclock()`
+   *Defined at line 53 in src/minilang.c*
 
+:mini:`fun mlprint()`
+   *Defined at line 59 in src/minilang.c*
 
-.. topic:: **function** :mini:`mlprint()`
+:mini:`fun mlerror(Arg₁: string, Arg₂: string)`
+   *Defined at line 73 in src/minilang.c*
 
+:mini:`fun mlbreak()`
+   *Defined at line 80 in src/minilang.c*
 
-.. topic:: **function** :mini:`mlerror(string Arg₁, string Arg₂)`
+:mini:`fun mlhalt()`
+   *Defined at line 87 in src/minilang.c*
 
-   :string Arg₁: 
-   :string Arg₂: 
+:mini:`fun mlcollect()`
+   *Defined at line 96 in src/minilang.c*
 
-.. topic:: **function** :mini:`mlbreak()`
+:mini:`fun mltest(Arg₁: string, Arg₂: any)`
+   *Defined at line 101 in src/minilang.c*
 
-
-.. topic:: **function** :mini:`mlhalt()`
-
-
-.. topic:: **function** :mini:`mlcollect()`
-
-
-.. topic:: **function** :mini:`mltest(string Arg₁, any Arg₂)`
-
-   :string Arg₁: 
-   :any Arg₂: 
-
-.. topic:: **function** :mini:`import(string Arg₁)`
-
-   :string Arg₁: 
-
-.. topic:: **function** :mini:`xefunction()`
-
-
-.. topic:: **function** :mini:`xedefine()`
-
-
-.. topic:: **function** :mini:`xein()`
-
-
-.. topic:: **function** :mini:`xedo()`
-
-
-.. topic:: **function** :mini:`xedo2()`
-
-
-.. topic:: **function** :mini:`xeinclude()`
-
-
-.. topic:: **function** :mini:`xemap()`
-
-
-.. topic:: **function** :mini:`xelist()`
-
-
-.. topic:: **function** :mini:`xeattr()`
-
-
-.. topic:: **function** :mini:`xeparsestring(string Arg₁)`
-
-   :string Arg₁: 
-
-.. topic:: **function** :mini:`xeparsefile(string Arg₁)`
-
-   :string Arg₁: 
-
-.. topic:: **function** :mini:`xeexpand(any Arg₁)`
-
-   :any Arg₁: 
-
-.. topic:: **function** :mini:`xenode(string Arg₁, map Arg₂, list Arg₃)`
-
-   :string Arg₁: 
-   :map Arg₂: 
-   :list Arg₃: 
-
-.. topic:: **function** :mini:`xevar(string Arg₁)`
-
-   :string Arg₁: 
-
-.. topic:: **function** :mini:`xeeval(any Arg₁, any Arg₂)`
-
-   :any Arg₁: 
-   :any Arg₂: 
-
-.. topic:: **function** :mini:`xeappend(list Arg₁, any Arg₂)`
-
-   :list Arg₁: 
-   :any Arg₂: 
-
-.. topic:: **function** :mini:`defaulttagfn()`
-
-
-.. topic:: **function** :mini:`mldiropen(string Arg₁)`
-
-   :string Arg₁: 
-
-.. topic:: **function** :mini:`mlclassnew()`
-
-
-.. topic:: **function** :mini:`mlproperty(any Arg₁, any Arg₂)`
-
-   :any Arg₁: 
-   :any Arg₂: 
-
-.. topic:: **function** :mini:`mlcontextkey()`
-
-
-.. topic:: **function** :mini:`mlcallcc()`
-
-
-.. topic:: **function** :mini:`mlmark(any Arg₁)`
-
-   :any Arg₁: 
-
-.. topic:: **function** :mini:`mltypeof(any Arg₁)`
-
-   :any Arg₁: 
-
-.. topic:: **function** :mini:`mltuple()`
-
-
-.. topic:: **function** :mini:`stringnew()`
-
-
-.. topic:: **function** :mini:`mlregex(string Arg₁)`
-
-   :string Arg₁: 
-
-.. topic:: **function** :mini:`mlstringbuffer()`
-
-
-.. topic:: **function** :mini:`stringifiernew()`
-
-
-.. topic:: **method** :mini:`method()`
-
-
-.. topic:: **function** :mini:`mlmethodset(method Arg₁, any Arg₂)`
-
-   :method Arg₁: 
-   :any Arg₂: 
+:mini:`fun import(Arg₁: string)`
+   *Defined at line 117 in src/minilang.c*
 

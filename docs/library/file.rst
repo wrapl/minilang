@@ -3,39 +3,44 @@ file
 
 .. include:: <isonum.txt>
 
-.. topic:: **type** :mini:`file`
+:mini:`file`
+   *Defined at line 22 in src/ml_file.c*
 
-   :Parents: 
+:mini:`fun file(Path: string, Mode: string)` |rarr| :mini:`file`
+   *Defined at line 34 in src/ml_file.c*
 
-.. topic:: **method** :mini:`file Arg₁:read`
+:mini:`meth :read(File: file)` |rarr| :mini:`string`
+   *Defined at line 75 in src/ml_file.c*
 
-   :file Arg₁: 
+:mini:`meth :read(File: file, Length: integer)` |rarr| :mini:`string`
+   *Defined at line 91 in src/ml_file.c*
 
-.. topic:: **method** :mini:`file Arg₁:read(integer Arg₂)`
+:mini:`meth :write(File: file, String: string)` |rarr| :mini:`File`
+   *Defined at line 118 in src/ml_file.c*
 
-   :file Arg₁: 
-   :integer Arg₂: 
+:mini:`meth :write(File: file, Buffer: stringbuffer)` |rarr| :mini:`File`
+   *Defined at line 147 in src/ml_file.c*
 
-.. topic:: **method** :mini:`file Arg₁:write(string Arg₂)`
+:mini:`meth :eof(File: file)` |rarr| :mini:`File` or :mini:`nil`
+   *Defined at line 158 in src/ml_file.c*
 
-   :file Arg₁: 
-   :string Arg₂: 
+:mini:`meth :close(File: file)` |rarr| :mini:`nil`
+   *Defined at line 167 in src/ml_file.c*
 
-.. topic:: **method** :mini:`file Arg₁:write(stringbuffer Arg₂)`
+:mini:`fun file::rename(Old: string, New: string)` |rarr| :mini:`nil`
+   *Defined at line 186 in src/ml_file.c*
 
-   :file Arg₁: 
-   :stringbuffer Arg₂: 
+:mini:`fun file::unlink(Path: string)`
+   *Defined at line 203 in src/ml_file.c*
 
-.. topic:: **method** :mini:`file Arg₁:eof`
+:mini:`dir`
+   :Parents: :mini:`iteratable`
 
-   :file Arg₁: 
+   *Defined at line 225 in src/ml_file.c*
 
-.. topic:: **method** :mini:`file Arg₁:close`
+:mini:`fun dir(Path: string)` |rarr| :mini:`dir`
+   *Defined at line 236 in src/ml_file.c*
 
-   :file Arg₁: 
-
-.. topic:: **function** :mini:`file::open(string Arg₁, string Arg₂)`
-
-   :string Arg₁: 
-   :string Arg₂: 
+:mini:`meth :read(Dir: dir)` |rarr| :mini:`string`
+   *Defined at line 252 in src/ml_file.c*
 

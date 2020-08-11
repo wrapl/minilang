@@ -23,6 +23,8 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 
 void ml_load(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]);
 
+void ml_compiler_init();
+
 #ifdef	__cplusplus
 }
 #endif

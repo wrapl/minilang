@@ -36,6 +36,7 @@ end
 
 var SourceTypes := {
 	"c" is [c_includes, c_compile],
+	"cpp" is [c_includes, c_compile],
 	"s" is [as_includes, as_compile]
 }
 

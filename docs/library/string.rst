@@ -3,154 +3,109 @@ string
 
 .. include:: <isonum.txt>
 
-.. topic:: **method** :mini:`boolean(string Arg₁)`
-
-   :string Arg₁: 
-
-.. topic:: **type** :mini:`string`
-
+:mini:`string`
    :Parents: :mini:`iteratable`
 
-.. topic:: **type** :mini:`string`
+   *Defined at line 1738 in src/ml_types.c*
 
+:mini:`stringshort`
+   :Parents: :mini:`string`
+
+   *Defined at line 1749 in src/ml_types.c*
+
+:mini:`stringlong`
+   :Parents: :mini:`string`, :mini:`buffer`
+
+   *Defined at line 1760 in src/ml_types.c*
+
+:mini:`meth +(Arg₁: stringshort, Arg₂: integer)`
+   *Defined at line 1788 in src/ml_types.c*
+
+:mini:`string`
    :Parents: :mini:`buffer`, :mini:`iteratable`
 
-.. topic:: **method** :mini:`integer(string Arg₁)`
+   *Defined at line 1826 in src/ml_types.c*
 
-   :string Arg₁: 
+:mini:`fun regex(String: string)` |rarr| :mini:`regex` or :mini:`error`
+   Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
 
-.. topic:: **method** :mini:`integer(string Arg₁, integer Arg₂)`
+   *Defined at line 2017 in src/ml_types.c*
 
-   :string Arg₁: 
-   :integer Arg₂: 
+:mini:`regex`
+   *Defined at line 2028 in src/ml_types.c*
 
-.. topic:: **method** :mini:`real(string Arg₁)`
+:mini:`meth [](Arg₁: string, Arg₂: integer)`
+   *Defined at line 2244 in src/ml_types.c*
 
-   :string Arg₁: 
+:mini:`meth [](Arg₁: string, Arg₂: integer, Arg₃: integer)`
+   *Defined at line 2255 in src/ml_types.c*
 
-.. topic:: **method** :mini:`string Arg₁[integer Arg₂]`
+:mini:`meth +(Arg₁: string, Arg₂: string)`
+   *Defined at line 2270 in src/ml_types.c*
 
-   :string Arg₁: 
-   :integer Arg₂: 
+:mini:`meth :trim(Arg₁: string)`
+   *Defined at line 2282 in src/ml_types.c*
 
-.. topic:: **method** :mini:`string Arg₁[integer Arg₂, integer Arg₃]`
+:mini:`meth :trim(Arg₁: string, Arg₂: string)`
+   *Defined at line 2292 in src/ml_types.c*
 
-   :string Arg₁: 
-   :integer Arg₂: 
-   :integer Arg₃: 
+:mini:`meth :length(Arg₁: string)`
+   *Defined at line 2305 in src/ml_types.c*
 
-.. topic:: **method** :mini:`string Arg₁ + string Arg₂`
+:mini:`meth <>(Arg₁: string, Arg₂: string)`
+   *Defined at line 2310 in src/ml_types.c*
 
-   :string Arg₁: 
-   :string Arg₂: 
+:mini:`meth ~(Arg₁: string, Arg₂: string)`
+   *Defined at line 2362 in src/ml_types.c*
 
-.. topic:: **method** :mini:`string Arg₁:trim`
+:mini:`meth ~>(Arg₁: string, Arg₂: string)`
+   *Defined at line 2402 in src/ml_types.c*
 
-   :string Arg₁: 
+:mini:`meth /(Arg₁: string, Arg₂: string)`
+   *Defined at line 2438 in src/ml_types.c*
 
-.. topic:: **method** :mini:`string Arg₁:trim(string Arg₂)`
+:mini:`meth /(Arg₁: string, Arg₂: regex)`
+   *Defined at line 2466 in src/ml_types.c*
 
-   :string Arg₁: 
-   :string Arg₂: 
+:mini:`meth :lower(Arg₁: string)`
+   *Defined at line 2496 in src/ml_types.c*
 
-.. topic:: **method** :mini:`string Arg₁:length`
+:mini:`meth :upper(Arg₁: string)`
+   *Defined at line 2505 in src/ml_types.c*
 
-   :string Arg₁: 
+:mini:`meth :find(Arg₁: string, Arg₂: string)`
+   *Defined at line 2514 in src/ml_types.c*
 
-.. topic:: **method** :mini:`string Arg₁ <> string Arg₂`
+:mini:`meth :find(Arg₁: string, Arg₂: string, Arg₃: integer)`
+   *Defined at line 2526 in src/ml_types.c*
 
-   :string Arg₁: 
-   :string Arg₂: 
+:mini:`meth :find(Arg₁: string, Arg₂: regex)`
+   *Defined at line 2544 in src/ml_types.c*
 
-.. topic:: **method** :mini:`string Arg₁ ~ string Arg₂`
+:mini:`meth :find(Arg₁: string, Arg₂: regex, Arg₃: integer)`
+   *Defined at line 2572 in src/ml_types.c*
 
-   :string Arg₁: 
-   :string Arg₂: 
+:mini:`meth %(Arg₁: string, Arg₂: string)`
+   *Defined at line 2605 in src/ml_types.c*
 
-.. topic:: **method** :mini:`string Arg₁ ~> string Arg₂`
+:mini:`meth %(Arg₁: string, Arg₂: regex)`
+   *Defined at line 2649 in src/ml_types.c*
 
-   :string Arg₁: 
-   :string Arg₂: 
+:mini:`meth ?(Arg₁: string, Arg₂: regex)`
+   *Defined at line 2682 in src/ml_types.c*
 
-.. topic:: **method** :mini:`string Arg₁ / string Arg₂`
+:mini:`meth :replace(Arg₁: string, Arg₂: string, Arg₃: string)`
+   *Defined at line 2711 in src/ml_types.c*
 
-   :string Arg₁: 
-   :string Arg₂: 
+:mini:`meth :replace(Arg₁: string, Arg₂: regex, Arg₃: string)`
+   *Defined at line 2733 in src/ml_types.c*
 
-.. topic:: **method** :mini:`string Arg₁ / regex Arg₂`
+:mini:`meth :replace(Arg₁: string, Arg₂: regex, Arg₃: function)`
+   *Defined at line 2765 in src/ml_types.c*
 
-   :string Arg₁: 
-   :regex Arg₂: 
+:mini:`meth :replace(Arg₁: string, Arg₂: map)`
+   *Defined at line 2817 in src/ml_types.c*
 
-.. topic:: **method** :mini:`string Arg₁:lower`
-
-   :string Arg₁: 
-
-.. topic:: **method** :mini:`string Arg₁:upper`
-
-   :string Arg₁: 
-
-.. topic:: **method** :mini:`string Arg₁:find(string Arg₂)`
-
-   :string Arg₁: 
-   :string Arg₂: 
-
-.. topic:: **method** :mini:`string Arg₁:find(string Arg₂, integer Arg₃)`
-
-   :string Arg₁: 
-   :string Arg₂: 
-   :integer Arg₃: 
-
-.. topic:: **method** :mini:`string Arg₁:find(regex Arg₂)`
-
-   :string Arg₁: 
-   :regex Arg₂: 
-
-.. topic:: **method** :mini:`string Arg₁:find(regex Arg₂, integer Arg₃)`
-
-   :string Arg₁: 
-   :regex Arg₂: 
-   :integer Arg₃: 
-
-.. topic:: **method** :mini:`string Arg₁ % string Arg₂`
-
-   :string Arg₁: 
-   :string Arg₂: 
-
-.. topic:: **method** :mini:`string Arg₁ % regex Arg₂`
-
-   :string Arg₁: 
-   :regex Arg₂: 
-
-.. topic:: **method** :mini:`string Arg₁ ? regex Arg₂`
-
-   :string Arg₁: 
-   :regex Arg₂: 
-
-.. topic:: **method** :mini:`string Arg₁:replace(string Arg₂, string Arg₃)`
-
-   :string Arg₁: 
-   :string Arg₂: 
-   :string Arg₃: 
-
-.. topic:: **method** :mini:`string Arg₁:replace(regex Arg₂, string Arg₃)`
-
-   :string Arg₁: 
-   :regex Arg₂: 
-   :string Arg₃: 
-
-.. topic:: **method** :mini:`string Arg₁:replace(regex Arg₂, function Arg₃)`
-
-   :string Arg₁: 
-   :regex Arg₂: 
-   :function Arg₃: 
-
-.. topic:: **method** :mini:`string Arg₁:replace(map Arg₂)`
-
-   :string Arg₁: 
-   :map Arg₂: 
-
-.. topic:: **method** :mini:`method(string Arg₁)`
-
-   :string Arg₁: 
+:mini:`meth string(Arg₁: regex)`
+   *Defined at line 2911 in src/ml_types.c*
 

@@ -10,7 +10,6 @@
 /minilang
 /minipp
 /build.rabs.db/
-*_init.c
 /minicbor/
 /radb/
 /mpc/
@@ -24,3 +23,6 @@
 .vscode/
 .pydevproject
 .cquery
+/test/
+docs/_util/__pycache__
+

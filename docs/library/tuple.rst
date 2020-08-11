@@ -3,30 +3,42 @@ tuple
 
 .. include:: <isonum.txt>
 
-.. topic:: **type** :mini:`tuple`
+:mini:`fun tuple(Value₁: any, : ..., Valueₙ: any)` |rarr| :mini:`tuple`
+   Returns a tuple of values :mini:`Value₁, ..., Valueₙ`.
 
-   :Parents: 
+   *Defined at line 625 in src/ml_types.c*
 
-.. topic:: **method** :mini:`tuple Arg₁:size`
+:mini:`tuple`
+   An immutable tuple of values.
 
-   :tuple Arg₁: 
+   *Defined at line 642 in src/ml_types.c*
 
-.. topic:: **method** :mini:`tuple Arg₁[integer Arg₂]`
+:mini:`meth :size(Tuple: tuple)` |rarr| :mini:`integer`
+   Returns the number of elements in :mini:`Tuple`.
 
-   :tuple Arg₁: 
-   :integer Arg₂: 
+   *Defined at line 664 in src/ml_types.c*
 
-.. topic:: **method** :mini:`string(tuple Arg₁)`
+:mini:`meth [](Tuple: tuple, Index: integer)` |rarr| :mini:`any` or :mini:`error`
+   Returns the :mini:`Index`-th element in :mini:`Tuple` or an error if :mini:`Index` is out of range.
 
-   :tuple Arg₁: 
+   Indexing starts at :mini:`1`. Negative indices count from the end, with :mini:`-1` returning the last element.
 
-.. topic:: **method** :mini:`tuple Arg₁ <> tuple Arg₂`
+   *Defined at line 673 in src/ml_types.c*
 
-   :tuple Arg₁: 
-   :tuple Arg₂: 
+:mini:`meth string(Tuple: tuple)` |rarr| :mini:`string`
+   Returns a string representation of :mini:`Tuple`.
 
-.. topic:: **method** :mini:`NAME(tuple Arg₁, tuple Arg₂)`
+   *Defined at line 709 in src/ml_types.c*
 
-   :tuple Arg₁: 
-   :tuple Arg₂: 
+:mini:`meth <>(Tuple₁: tuple, Tuple₂: tuple)` |rarr| :mini:`integer`
+   Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Tuple₁` is less than, equal to or greater than :mini:`Tuple₂` using lexicographical ordering.
+
+   *Defined at line 785 in src/ml_types.c*
+
+:mini:`meth <op>(Tuple₁: tuple, Tuple₂: tuple)` |rarr| :mini:`Tuple₂` or :mini:`nil`
+   :mini:`<op>` is :mini:`=`, :mini:`!=`, :mini:`<`, :mini:`<=`, :mini:`>` or :mini:`>=`
+
+   Returns :mini:`Tuple₂` if :mini:`Tuple₂ <op> Tuple₁` is true, otherwise returns :mini:`nil`.
+
+   *Defined at line 811 in src/ml_types.c*
 

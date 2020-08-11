@@ -3,25 +3,49 @@ boolean
 
 .. include:: <isonum.txt>
 
-.. topic:: **type** :mini:`boolean`
-
+:mini:`boolean`
    :Parents: :mini:`function`
 
-.. topic:: **method** :mini:`- boolean Arg₁`
+   *Defined at line 827 in src/ml_types.c*
 
-   :boolean Arg₁: 
+:mini:`meth boolean(String: string)` |rarr| :mini:`boolean` or :mini:`error`
+   Returns :mini:`true` if :mini:`String` equals :mini:`"true"` (ignoring case).
 
-.. topic:: **method** :mini:`boolean Arg₁ /\\ boolean Arg₂`
+   Returns :mini:`false` if :mini:`String` equals :mini:`"false"` (ignoring case).
 
-   :boolean Arg₁: 
-   :boolean Arg₂: 
+   Otherwise returns an error.
 
-.. topic:: **method** :mini:`boolean Arg₁ \\/ boolean Arg₂`
+   *Defined at line 848 in src/ml_types.c*
 
-   :boolean Arg₁: 
-   :boolean Arg₂: 
+:mini:`meth -(Bool: boolean)` |rarr| :mini:`boolean`
+   Returns the logical inverse of :mini:`Bool`
 
-.. topic:: **method** :mini:`string(boolean Arg₁)`
+   *Defined at line 861 in src/ml_types.c*
 
-   :boolean Arg₁: 
+:mini:`meth /\\(Bool₁: boolean, Bool₂: boolean)` |rarr| :mini:`boolean`
+   Returns the logical and of :mini:`Bool₁` and :mini:`Bool₂`.
+
+   *Defined at line 869 in src/ml_types.c*
+
+:mini:`meth \\/(Bool₁: boolean, Bool₂: boolean)` |rarr| :mini:`boolean`
+   Returns the logical or of :mini:`Bool₁` and :mini:`Bool₂`.
+
+   *Defined at line 878 in src/ml_types.c*
+
+:mini:`meth <>(Bool₁: boolean, Bool₂: boolean)` |rarr| :mini:`integer`
+   Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Bool₁` is less than, equal to or greater than :mini:`Bool₂`. :mini:`true` is considered greater than :mini:`false`.
+
+   *Defined at line 887 in src/ml_types.c*
+
+:mini:`meth <op>(Bool₁: boolean, Bool₂: boolean)` |rarr| :mini:`Bool₂` or :mini:`nil`
+   :mini:`<op>` is :mini:`=`, :mini:`!=`, :mini:`<`, :mini:`<=`, :mini:`>` or :mini:`>=`
+
+   Returns :mini:`Bool₂` if :mini:`Bool₂ <op> Bool₁` is true, otherwise returns :mini:`nil`.
+
+   :mini:`true` is considered greater than :mini:`false`.
+
+   *Defined at line 913 in src/ml_types.c*
+
+:mini:`meth string(Arg₁: boolean)`
+   *Defined at line 1904 in src/ml_types.c*
 

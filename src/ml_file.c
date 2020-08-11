@@ -17,7 +17,39 @@ typedef struct ml_file_t {
 	FILE *Handle;
 } ml_file_t;
 
-ML_TYPE(MLFileT, (), "file");
+extern ml_cfunction_t MLFileOpen[];
+
+ML_TYPE(MLFileT, (), "file",
+	.Constructor = (ml_value_t *)MLFileOpen
+);
+
+static void ml_file_finalize(ml_file_t *File, void *Data) {
+	printf("ml_file_finalize!\n");
+	if (File->Handle) {
+		fclose(File->Handle);
+		File->Handle = NULL;
+	}
+}
+
+ML_FUNCTION(MLFileOpen) {
+//!file
+//@file
+//<Path
+//<Mode
+//>file
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ML_CHECK_ARG_TYPE(1, MLStringT);
+	const char *Path = ml_string_value(Args[0]);
+	const char *Mode = ml_string_value(Args[1]);
+	FILE *Handle = fopen(Path, Mode);
+	if (!Handle) return ml_error("FileError", "failed to open %s in mode %s: %s", Path, Mode, strerror(errno));
+	ml_file_t *File = new(ml_file_t);
+	File->Type = MLFileT;
+	File->Handle = Handle;
+	GC_register_finalizer(File, (void *)ml_file_finalize, 0, 0, 0);
+	return (ml_value_t *)File;
+}
 
 FILE *ml_file_handle(ml_value_t *Value) {
 	return ((ml_file_t *)Value)->Handle;
@@ -41,6 +73,8 @@ static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
 #endif
 
 ML_METHOD("read", MLFileT) {
+//<File
+//>string
 	ml_file_t *File = (ml_file_t *)Args[0];
 	if (!File->Handle) return ml_error("FileError", "file closed");
 	char *Line = 0;
@@ -55,6 +89,9 @@ ML_METHOD("read", MLFileT) {
 }
 
 ML_METHOD("read", MLFileT, MLIntegerT) {
+//<File
+//<Length
+//>string
 	ml_file_t *File = (ml_file_t *)Args[0];
 	if (!File->Handle) return ml_error("FileError", "file closed");
 	if (feof(File->Handle)) return MLNil;
@@ -79,6 +116,9 @@ ML_METHOD("read", MLFileT, MLIntegerT) {
 }
 
 ML_METHODV("write", MLFileT, MLStringT) {
+//<File
+//<String
+//>File
 	ml_file_t *File = (ml_file_t *)Args[0];
 	if (!File->Handle) return ml_error("FileError", "file closed");
 	for (int I = 1; I < Count; ++I) {
@@ -105,6 +145,9 @@ static int ml_file_write_buffer_chars(ml_file_t *File, const char *Chars, size_t
 }
 
 ML_METHOD("write", MLFileT, MLStringBufferT) {
+//<File
+//<Buffer
+//>File
 	ml_file_t *File = (ml_file_t *)Args[0];
 	if (!File->Handle) return ml_error("FileError", "file closed");
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[1];
@@ -113,6 +156,8 @@ ML_METHOD("write", MLFileT, MLStringBufferT) {
 }
 
 ML_METHOD("eof", MLFileT) {
+//<File
+//>File | nil
 	ml_file_t *File = (ml_file_t *)Args[0];
 	if (!File->Handle) return ml_error("FileError", "file closed");
 	if (feof(File->Handle)) return Args[0];
@@ -120,20 +165,14 @@ ML_METHOD("eof", MLFileT) {
 }
 
 ML_METHOD("close", MLFileT) {
+//<File
+//>nil
 	ml_file_t *File = (ml_file_t *)Args[0];
 	if (File->Handle) {
 		fclose(File->Handle);
 		File->Handle = 0;
 	}
 	return MLNil;
-}
-
-static void ml_file_finalize(ml_file_t *File, void *Data) {
-	printf("ml_file_finalize!\n");
-	if (File->Handle) {
-		fclose(File->Handle);
-		File->Handle = NULL;
-	}
 }
 
 ml_value_t *ml_file_new(FILE *Handle) {
@@ -144,21 +183,34 @@ ml_value_t *ml_file_new(FILE *Handle) {
 	return (ml_value_t *)File;
 }
 
-ML_FUNCTION(MLFileOpen) {
+ML_FUNCTION(MLFileRename) {
 //!file
-//@file::open
+//@file::rename
+//<Old
+//<New
+//>nil
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLStringT);
-	const char *Path = ml_string_value(Args[0]);
-	const char *Mode = ml_string_value(Args[1]);
-	FILE *Handle = fopen(Path, Mode);
-	if (!Handle) return ml_error("FileError", "failed to open %s in mode %s: %s", Path, Mode, strerror(errno));
-	ml_file_t *File = new(ml_file_t);
-	File->Type = MLFileT;
-	File->Handle = Handle;
-	GC_register_finalizer(File, (void *)ml_file_finalize, 0, 0, 0);
-	return (ml_value_t *)File;
+	const char *OldName = ml_string_value(Args[0]);
+	const char *NewName = ml_string_value(Args[1]);
+	if (rename(OldName, NewName)) {
+		return ml_error("FileError", "failed to rename %s to %s: %s", OldName, NewName, strerror(errno));
+	}
+	return MLNil;
+}
+
+ML_FUNCTION(MLFileUnlink) {
+//!file
+//@file::unlink
+//<Path
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	const char *Name = ml_string_value(Args[0]);
+	if (unlink(Name)) {
+		return ml_error("FileError", "failed to unlink %s: %s", Name, strerror(errno));
+	}
+	return MLNil;
 }
 
 typedef struct {
@@ -168,9 +220,38 @@ typedef struct {
 	int Index;
 } ml_dir_t;
 
-ML_TYPE(MLDirT, (MLIteratableT), "directory");
+extern ml_cfunction_t MLDirOpen[];
+
+ML_TYPE(MLDirT, (MLIteratableT), "directory",
+	.Constructor = (ml_value_t *)MLDirOpen
+);
+
+static void ml_dir_finalize(ml_dir_t *Dir, void *Data) {
+	if (Dir->Handle) {
+		closedir(Dir->Handle);
+		Dir->Handle = NULL;
+	}
+}
+
+ML_FUNCTION(MLDirOpen) {
+//@dir
+//<Path
+//>dir
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	const char *Path = ml_string_value(Args[0]);
+	DIR *Handle = opendir(Path);
+	if (!Handle) return ml_error("FileError", "failed to open %s: %s", Path, strerror(errno));
+	ml_dir_t *Dir = new(ml_dir_t);
+	Dir->Type = MLDirT;
+	Dir->Handle = Handle;
+	GC_register_finalizer(Dir, (void *)ml_dir_finalize, 0, 0, 0);
+	return (ml_value_t *)Dir;
+}
 
 ML_METHOD("read", MLDirT) {
+//<Dir
+//>string
 	ml_dir_t *Dir = (ml_dir_t *)Args[0];
 	struct dirent *Entry = readdir(Dir->Handle);
 	if (!Entry) return MLNil;
@@ -209,32 +290,12 @@ static void ML_TYPED_FN(ml_iterate, MLDirT, ml_state_t *Caller, ml_dir_t *Dir) {
 	ML_RETURN(Dir);
 }
 
-static void ml_dir_finalize(ml_dir_t *Dir, void *Data) {
-	if (Dir->Handle) {
-		closedir(Dir->Handle);
-		Dir->Handle = NULL;
-	}
-}
-
-ML_FUNCTION(MLDirOpen) {
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
-	const char *Path = ml_string_value(Args[0]);
-	DIR *Handle = opendir(Path);
-	if (!Handle) return ml_error("FileError", "failed to open %s: %s", Path, strerror(errno));
-	ml_dir_t *Dir = new(ml_dir_t);
-	Dir->Type = MLDirT;
-	Dir->Handle = Handle;
-	GC_register_finalizer(Dir, (void *)ml_dir_finalize, 0, 0, 0);
-	return (ml_value_t *)Dir;
-}
-
 void ml_file_init(stringmap_t *Globals) {
 #include "ml_file_init.c"
+	stringmap_insert(MLFileT->Exports, "rename", MLFileRename);
+	stringmap_insert(MLFileT->Exports, "unlink", MLFileUnlink);
 	if (Globals) {
 		stringmap_insert(Globals, "file", MLFileT);
-		stringmap_insert(MLFileT->Exports, "of", MLFileOpen);
 		stringmap_insert(Globals, "dir", MLDirT);
-		stringmap_insert(MLDirT->Exports, "of", MLDirOpen);
 	}
 }

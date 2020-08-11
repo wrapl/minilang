@@ -86,7 +86,7 @@ static mpc_val_t *ml_mpc_apply_to(mpc_val_t *Value, void *Function) {
 	return ml_call((ml_value_t *)Function, 1, Args);
 }
 
-ML_METHOD("apply", MLValueParserT, MLFunctionT) {
+ML_METHOD(">>", MLValueParserT, MLFunctionT) {
 	ml_parser_t *Parser = new(ml_parser_t);
 	Parser->Type = MLValueParserT;
 	Parser->Handle = mpc_apply_to(((ml_parser_t *)Args[0])->Handle, ml_mpc_apply_to, Args[1]);
@@ -98,7 +98,7 @@ static mpc_val_t *ml_mpc_apply_to_string(mpc_val_t *Value, void *Function) {
 	return ml_call((ml_value_t *)Function, 1, Args);
 }
 
-ML_METHOD("apply", MLStringParserT, MLFunctionT) {
+ML_METHOD(">>", MLStringParserT, MLFunctionT) {
 	ml_parser_t *Parser = new(ml_parser_t);
 	Parser->Type = MLValueParserT;
 	Parser->Handle = mpc_apply_to(((ml_parser_t *)Args[0])->Handle, ml_mpc_apply_to_string, Args[1]);
@@ -112,7 +112,7 @@ static int ml_mpc_check_with(mpc_val_t **Slot, void *Function) {
 	return 1;
 }
 
-ML_METHOD("!", MLValueParserT, MLStringT, MLFunctionT) {
+ML_METHOD("?", MLValueParserT, MLStringT, MLFunctionT) {
 	ml_parser_t *Parser = new(ml_parser_t);
 	Parser->Type = MLValueParserT;
 	Parser->Handle = mpc_check_with(((ml_parser_t *)Args[0])->Handle, mpcf_dtor_null, ml_mpc_check_with, Args[2], ml_string_value(Args[1]));
@@ -127,7 +127,7 @@ static int ml_mpc_check_with_string(mpc_val_t **Slot, void *Function) {
 	return 1;
 }
 
-ML_METHOD("!", MLStringParserT, MLStringT, MLFunctionT) {
+ML_METHOD("?", MLStringParserT, MLStringT, MLFunctionT) {
 	ml_parser_t *Parser = new(ml_parser_t);
 	Parser->Type = MLValueParserT;
 	Parser->Handle = mpc_check_with(((ml_parser_t *)Args[0])->Handle, mpcf_dtor_null, ml_mpc_check_with_string, Args[2], ml_string_value(Args[1]));
@@ -138,14 +138,14 @@ static mpc_val_t *ml_mpc_ctor_nil(void) {
 	return MLNil;
 }
 
-ML_METHOD("¬", MLValueParserT) {
+ML_METHOD("!", MLValueParserT) {
 	ml_parser_t *Parser = new(ml_parser_t);
 	Parser->Type = MLValueParserT;
 	Parser->Handle = mpc_not_lift(((ml_parser_t *)Args[0])->Handle, mpcf_dtor_null, ml_mpc_ctor_nil);
 	return (ml_value_t *)Parser;
 }
 
-ML_METHOD("¬", MLStringParserT) {
+ML_METHOD("!", MLStringParserT) {
 	ml_parser_t *Parser = new(ml_parser_t);
 	Parser->Type = MLValueParserT;
 	Parser->Handle = mpc_not_lift(((ml_parser_t *)Args[0])->Handle, mpcf_dtor_null, mpcf_ctor_str);
@@ -349,10 +349,28 @@ static ml_value_t *ml_mpc_re(void *Data, int Count, ml_value_t **Args) {
 }
 
 static ml_value_t *ml_mpc_any(void *Data, int Count, ml_value_t **Args) {
-	ml_parser_t *Parser = new(ml_parser_t);
-	Parser->Type = MLStringParserT;
-	Parser->Handle = mpc_any();
-	return (ml_value_t *)Parser;
+	if (Count == 0) {
+		ml_parser_t *Parser = new(ml_parser_t);
+		Parser->Type = MLStringParserT;
+		Parser->Handle = mpc_any();
+		return (ml_value_t *)Parser;
+	} else {
+		mpc_parser_t *Parsers[Count];
+		for (int I = 0; I < Count; ++I) {
+			ml_parser_t *Arg = (ml_parser_t *)Args[I];
+			if (Arg->Type == MLValueParserT) {
+				Parsers[I] = Arg->Handle;
+			} else if (Arg->Type == MLStringParserT) {
+				Parsers[I] = mpc_apply(Arg->Handle, ml_mpc_apply_value);
+			} else {
+				ML_CHECK_ARG_TYPE(I, MLParserT);
+			}
+		}
+		ml_parser_t *Parser = new(ml_parser_t);
+		Parser->Type = MLValueParserT;
+		Parser->Handle = mpc_orv(Count, Parsers);
+		return (ml_value_t *)Parser;
+	}
 }
 
 static ml_value_t *ml_mpc_char(void *Data, int Count, ml_value_t **Args) {
