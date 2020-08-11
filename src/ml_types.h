@@ -693,7 +693,6 @@ static inline ml_value_t *ml_deref(ml_value_t *Value) {
 	}
 }
 
-
 #else
 
 static inline const ml_type_t *ml_typeof(const ml_value_t *Value) {

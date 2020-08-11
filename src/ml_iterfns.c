@@ -7,34 +7,46 @@
 
 //!iterator
 
+/****************************** Chained ******************************/
+
+typedef struct ml_chained_entry_t {
+	ml_value_t *Function;
+	int Filter:1;
+	int UseKey:1;
+	int Iterate:1;
+} ml_chained_entry_t;
+
 typedef struct ml_chained_state_t {
 	ml_state_t Base;
 	ml_value_t *Value;
-	ml_value_t **Current;
+	ml_chained_entry_t *Current;
 } ml_chained_state_t;
 
 static void ml_chained_state_run(ml_chained_state_t *State, ml_value_t *Value) {
 	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	ml_value_t *Function = *State->Current++;
-	if (!Function) ML_CONTINUE(State->Base.Caller, Value);
+	ml_chained_entry_t *Entry = State->Current;
+	if (!Entry->Function) ML_CONTINUE(State->Base.Caller, Value);
+	if (Entry->Filter && Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Current = Entry + 1;
 	State->Value = Value;
+	ml_value_t *Function = Entry->Function;
 	return ml_typeof(Function)->call((ml_state_t *)State, Function, 1, &State->Value);
 }
 
 typedef struct ml_chained_function_t {
 	const ml_type_t *Type;
-	ml_value_t *Functions[];
+	ml_value_t *Initial;
+	ml_chained_entry_t Entries[];
 } ml_chained_function_t;
 
 static void ml_chained_function_call(ml_state_t *Caller, ml_chained_function_t *Chained, int Count, ml_value_t **Args) {
-	ml_value_t **Functions = Chained->Functions;
-	ml_value_t *Function = *Functions++;
 	ml_chained_state_t *State = new(ml_chained_state_t);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)ml_chained_state_run;
 	State->Base.Context = Caller->Context;
-	State->Current = Functions;
+	State->Current = Chained->Entries;
+	ml_value_t *Function = Chained->Initial;
 	return ml_typeof(Function)->call((ml_state_t *)State, Function, Count, Args);
 }
 
@@ -42,7 +54,7 @@ typedef struct ml_chained_iterator_t {
 	ml_state_t Base;
 	ml_value_t *Iterator;
 	ml_value_t *Value;
-	ml_value_t **Functions, **Current;
+	ml_chained_entry_t *Current, *Entries;
 } ml_chained_iterator_t;
 
 ML_TYPE(MLChainedStateT, (), "chained-iterator");
@@ -53,77 +65,89 @@ ML_TYPE(MLChainedFunctionT, (MLFunctionT), "chained-function",
 
 static ml_value_t *ml_chained(int Count, ml_value_t **Functions) {
 	if (Count == 1) return Functions[0];
-	ml_chained_function_t *Chained = xnew(ml_chained_function_t, Count + 1, ml_value_t *);
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, Count, ml_chained_entry_t);
 	Chained->Type = MLChainedFunctionT;
-	for (int I = 0; I < Count; ++I) Chained->Functions[I] = Functions[I];
+	Chained->Initial = *Functions++;
+	for (int I = 0; I < Count; ++I) {
+		Chained->Entries[I].Function = *Functions++;
+		Chained->Entries[I].Filter = 1;
+	}
 	return (ml_value_t *)Chained;
 }
 
-static void ML_TYPED_FN(ml_iter_key, MLChainedStateT, ml_state_t *Caller, ml_chained_iterator_t *Chained) {
-	return ml_iter_key(Caller, Chained->Iterator);
+static void ML_TYPED_FN(ml_iter_key, MLChainedStateT, ml_state_t *Caller, ml_chained_iterator_t *State) {
+	return ml_iter_key(Caller, State->Iterator);
 }
 
-static void ML_TYPED_FN(ml_iter_value, MLChainedStateT, ml_state_t *Caller, ml_chained_iterator_t *Chained) {
-	ML_RETURN(Chained->Value);
+static void ML_TYPED_FN(ml_iter_value, MLChainedStateT, ml_state_t *Caller, ml_chained_iterator_t *State) {
+	ML_RETURN(State->Value);
 }
 
-static void ml_chained_iterator_value(ml_chained_iterator_t *Chained, ml_value_t *Iter);
+static void ml_chained_iterator_value(ml_chained_iterator_t *State, ml_value_t *Iter);
 
-static void ml_chained_iterator_apply(ml_chained_iterator_t *Chained, ml_value_t *Value) {
-	if (ml_is_error(Value)) ML_CONTINUE(Chained->Base.Caller, Value);
-	// TODO: Make the nil filtering optional
-	if (Value == MLNil) {
-		Chained->Base.run = (void *)ml_chained_iterator_value;
-		Chained->Current = Chained->Functions;
-		return ml_iter_next((ml_state_t *)Chained, Chained->Iterator);
+static void ml_chained_iterator_apply(ml_chained_iterator_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_chained_entry_t *Entry = State->Current;
+	if (!Entry->Function) {
+		State->Value = Value;
+		ML_CONTINUE(State->Base.Caller, State);
 	}
-	ml_value_t *Current = Chained->Current[0];
-	if (Current) {
-		Chained->Value = ml_deref(Value);
-		++Chained->Current;
-		return ml_typeof(Current)->call((ml_state_t *)Chained, Current, 1, &Chained->Value);
-	} else {
-		Chained->Value = Value;
-		ML_CONTINUE(Chained->Base.Caller, Chained);
+	if (Entry->Filter && Value == MLNil) {
+		State->Base.run = (void *)ml_chained_iterator_value;
+		State->Current = State->Entries;
+		return ml_iter_next((ml_state_t *)State, State->Iterator);
 	}
+	State->Current = Entry + 1;
+	State->Value = Value;
+	ml_value_t *Function = Entry->Function;
+	return ml_typeof(Function)->call((ml_state_t *)State, Function, 1, &State->Value);
 }
 
-static void ml_chained_iterator_value(ml_chained_iterator_t *Chained, ml_value_t *Iter) {
-	if (ml_is_error(Iter)) ML_CONTINUE(Chained->Base.Caller, Iter);
-	if (Iter == MLNil) ML_CONTINUE(Chained->Base.Caller, Iter);
-	Chained->Base.run = (void *)ml_chained_iterator_apply;
-	return ml_iter_value((ml_state_t *)Chained, Chained->Iterator = Iter);
+static void ml_chained_iterator_value(ml_chained_iterator_t *State, ml_value_t *Iter) {
+	if (ml_is_error(Iter)) ML_CONTINUE(State->Base.Caller, Iter);
+	if (Iter == MLNil) ML_CONTINUE(State->Base.Caller, Iter);
+	State->Base.run = (void *)ml_chained_iterator_apply;
+	State->Current = State->Entries;
+	return ml_iter_value((ml_state_t *)State, State->Iterator = Iter);
 }
 
-static void ML_TYPED_FN(ml_iter_next, MLChainedStateT, ml_state_t *Caller, ml_chained_iterator_t *Chained) {
-	Chained->Base.Caller = Caller;
-	Chained->Base.Context = Caller->Context;
-	Chained->Base.run = (void *)ml_chained_iterator_value;
-	Chained->Current = Chained->Functions;
-	return ml_iter_next((ml_state_t *)Chained, Chained->Iterator);
+static void ML_TYPED_FN(ml_iter_next, MLChainedStateT, ml_state_t *Caller, ml_chained_iterator_t *State) {
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)ml_chained_iterator_value;
+	return ml_iter_next((ml_state_t *)State, State->Iterator);
 }
 
 static void ML_TYPED_FN(ml_iterate, MLChainedFunctionT, ml_state_t *Caller, ml_chained_function_t *Chained) {
-	ml_value_t **Functions = Chained->Functions;
-	ml_value_t *Function = *Functions++;
-	ml_chained_iterator_t *Iterator = new(ml_chained_iterator_t);
-	Iterator->Base.Type =  MLChainedStateT;
-	Iterator->Base.Caller = Caller;
-	Iterator->Base.Context = Caller->Context;
-	Iterator->Base.run = (void *)ml_chained_iterator_value;
-	Iterator->Functions = Functions;
-	Iterator->Current = Functions;
-	return ml_iterate((ml_state_t *)Iterator, Function);
+	ml_chained_iterator_t *State = new(ml_chained_iterator_t);
+	State->Base.Type =  MLChainedStateT;
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)ml_chained_iterator_value;
+	State->Entries = Chained->Entries;
+	return ml_iterate((ml_state_t *)State, Chained->Initial);
 }
 
 ML_METHOD("->", MLIteratableT, MLFunctionT) {
 //<Iteratable
 //<Function
 //>chainedfunction
-	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 3, ml_value_t *);
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 2, ml_chained_entry_t);
 	Chained->Type = MLChainedFunctionT;
-	Chained->Functions[0] = Args[0];
-	Chained->Functions[1] = Args[1];
+	Chained->Initial = Args[0];
+	Chained->Entries[0].Function = Args[1];
+	return (ml_value_t *)Chained;
+}
+
+ML_METHOD("?>", MLIteratableT, MLFunctionT) {
+//<Iteratable
+//<Function
+//>chainedfunction
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 2, ml_chained_entry_t);
+	Chained->Type = MLChainedFunctionT;
+	Chained->Initial = Args[0];
+	Chained->Entries[0].Function = Args[1];
+	Chained->Entries[0].Filter = 1;
 	return (ml_value_t *)Chained;
 }
 
@@ -133,13 +157,32 @@ ML_METHOD("->", MLChainedFunctionT, MLFunctionT) {
 //>chainedfunction
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
 	int N = 0;
-	while (Base->Functions[N]) ++N;
-	ml_chained_function_t *Chained = xnew(ml_chained_function_t, N + 2, ml_value_t *);
+	while (Base->Entries[N].Function) ++N;
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, N + 2, ml_chained_entry_t);
 	Chained->Type = MLChainedFunctionT;
-	for (int I = 0; I < N; ++I) Chained->Functions[I] = Base->Functions[I];
-	Chained->Functions[N] = Args[1];
+	Chained->Initial = Base->Initial;
+	for (int I = 0; I < N; ++I) Chained->Entries[I] = Base->Entries[I];
+	Chained->Entries[N].Function = Args[1];
 	return (ml_value_t *)Chained;
 }
+
+ML_METHOD("?>", MLChainedFunctionT, MLFunctionT) {
+//<ChainedFunction
+//<Function
+//>chainedfunction
+	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
+	int N = 0;
+	while (Base->Entries[N].Function) ++N;
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, N + 2, ml_chained_entry_t);
+	Chained->Type = MLChainedFunctionT;
+	Chained->Initial = Base->Initial;
+	for (int I = 0; I < N; ++I) Chained->Entries[I] = Base->Entries[I];
+	Chained->Entries[N].Function = Args[1];
+	Chained->Entries[N].Filter = 1;
+	return (ml_value_t *)Chained;
+}
+
+/****************************** Doubled ******************************/
 
 typedef struct ml_double_t {
 	const ml_type_t *Type;
@@ -225,6 +268,8 @@ ML_METHOD("->>", MLIteratableT, MLFunctionT) {
 	Double->Function = Args[1];
 	return (ml_value_t *)Double;
 }
+
+/****************************** First ******************************/
 
 typedef struct ml_iter_state_t {
 	ml_state_t Base;
@@ -1231,32 +1276,35 @@ ML_FUNCTION(Zip) {
 
 typedef struct ml_repeated_t {
 	const ml_type_t *Type;
-	ml_value_t *Value, *Function;
+	ml_value_t *Value, *Update;
 } ml_repeated_t;
 
 ML_TYPE(MLRepeatedT, (MLIteratableT), "repeated");
 
 typedef struct ml_repeated_state_t {
 	ml_state_t Base;
-	ml_value_t *Value, *Function;
+	ml_value_t *Value, *Update;
 	int Iteration;
 } ml_repeated_state_t;
 
 ML_TYPE(MLRepeatedStateT, (), "repeated-state");
 
-static void repeated_call(ml_repeated_state_t *State, ml_value_t *Result) {
+static void repeated_update(ml_repeated_state_t *State, ml_value_t *Result) {
 	if (ml_is_error(Result)) ML_CONTINUE(State->Base.Caller, Result);
 	if (Result == MLNil) ML_CONTINUE(State->Base.Caller, Result);
 	State->Value = Result;
-	++State->Iteration;
 	ML_CONTINUE(State->Base.Caller, State);
 }
 
 static void ML_TYPED_FN(ml_iter_next, MLRepeatedStateT, ml_state_t *Caller, ml_repeated_state_t *State) {
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
-	State->Base.run = (void *)repeated_call;
-	return ml_typeof(State->Function)->call((ml_state_t *)State, State->Function, 1, &State->Value);
+	++State->Iteration;
+	if (State->Update) {
+		return ml_typeof(State->Update)->call((ml_state_t *)State, State->Update, 1, &State->Value);
+	} else {
+		ML_RETURN(State);
+	}
 }
 
 static void ML_TYPED_FN(ml_iter_key, MLRepeatedStateT, ml_state_t *Caller, ml_repeated_state_t *State) {
@@ -1270,13 +1318,11 @@ static void ML_TYPED_FN(ml_iter_value, MLRepeatedStateT, ml_state_t *Caller, ml_
 static void ML_TYPED_FN(ml_iterate, MLRepeatedT, ml_state_t *Caller, ml_repeated_t *Repeated) {
 	ml_repeated_state_t *State = new(ml_repeated_state_t);
 	State->Base.Type = MLRepeatedStateT;
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (void *)repeated_call;
+	State->Base.run = (void *)repeated_update;
 	State->Value = Repeated->Value;
-	State->Function = Repeated->Function;
-	State->Iteration = 0;
-	return ml_typeof(State->Function)->call((ml_state_t *)State, State->Function, 1, &State->Value);
+	State->Update = Repeated->Update;
+	State->Iteration = 1;
+	ML_RETURN(State);
 }
 
 ML_FUNCTION(Repeat) {
@@ -1284,7 +1330,7 @@ ML_FUNCTION(Repeat) {
 	ml_repeated_t *Repeated = new(ml_repeated_t);
 	Repeated->Type = MLRepeatedT;
 	Repeated->Value = Args[0];
-	Repeated->Function = Count > 1 ? Args[1] : ml_integer(1);
+	if (Count > 1) Repeated->Update = Args[1];
 	return (ml_value_t *)Repeated;
 }
 
