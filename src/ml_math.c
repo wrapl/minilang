@@ -75,13 +75,22 @@ MATH_REAL(Round, rint);
 ML_FUNCTION(RandomInteger) {
 //@integer::random
 //>integer
-	if (Count == 1) {
+	if (Count == 2) {
 		ML_CHECK_ARG_TYPE(0, MLNumberT);
-		int Limit = ml_integer_value(Args[0]);
-		int Divisor = RAND_MAX / (Limit + 1);
+		ML_CHECK_ARG_TYPE(1, MLNumberT);
+		int Base = ml_integer_value(Args[0]);
+		int Limit = ml_integer_value(Args[1]) + 1 - Base;
+		int Divisor = RAND_MAX / Limit;
 		int Random;
 		do Random = random() / Divisor; while (Random > Limit);
-		return ml_integer(Random);
+		return ml_integer(Base + Random);
+	} else if (Count == 1) {
+		ML_CHECK_ARG_TYPE(0, MLNumberT);
+		int Limit = ml_integer_value(Args[0]);
+		int Divisor = RAND_MAX / Limit;
+		int Random;
+		do Random = random() / Divisor; while (Random > Limit);
+		return ml_integer(Random + 1);
 	} else {
 		return ml_integer(random());
 	}
