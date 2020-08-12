@@ -460,6 +460,7 @@ static void map_iter_value(ml_iter_state_t *State, ml_value_t *Result) {
 }
 
 static void map_iter_key(ml_iter_state_t *State, ml_value_t *Result) {
+	Result = ml_deref(Result);
 	if (ml_is_error(Result)) ML_CONTINUE(State->Base.Caller, Result);
 	if (Result == MLNil) Result = ml_integer(ml_map_size(State->Values[0]) + 1);
 	State->Values[1] = Result;
