@@ -15,3 +15,9 @@ math
 :mini:`meth AtanMethod(Arg₁: number, Arg₂: number)`
    *Defined at line 46 in src/ml_math.c*
 
+:mini:`fun integer::random()` |rarr| :mini:`integer`
+   *Defined at line 75 in src/ml_math.c*
+
+:mini:`fun real::random()` |rarr| :mini:`real`
+   *Defined at line 90 in src/ml_math.c*
+
