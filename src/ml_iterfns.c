@@ -528,10 +528,10 @@ ML_FUNCTIONX(Count) {
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
-ML_METHOD_DECL(Less, "<");
-ML_METHOD_DECL(Greater, ">");
-ML_METHOD_DECL(Add, "+");
-ML_METHOD_DECL(Mul, "*");
+static ML_METHOD_DECL(Less, "<");
+static ML_METHOD_DECL(Greater, ">");
+static ML_METHOD_DECL(Add, "+");
+static ML_METHOD_DECL(Mul, "*");
 
 static void fold_iter_next(ml_iter_state_t *State, ml_value_t *Result);
 
