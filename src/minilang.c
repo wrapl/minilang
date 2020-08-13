@@ -7,6 +7,7 @@
 #include "ml_iterfns.h"
 #include "stringmap.h"
 #include <stdio.h>
+#include <string.h>
 #include <gc.h>
 
 #ifdef USE_ML_MATH
