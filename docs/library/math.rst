@@ -19,5 +19,5 @@ math
    *Defined at line 75 in src/ml_math.c*
 
 :mini:`fun real::random()` |rarr| :mini:`real`
-   *Defined at line 90 in src/ml_math.c*
+   *Defined at line 99 in src/ml_math.c*
 

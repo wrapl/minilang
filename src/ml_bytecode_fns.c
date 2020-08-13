@@ -263,11 +263,11 @@ static void DO_CALL_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, 
 	ml_value_t **Args = Top - Count;
 	ml_inst_t *Next = Inst->Params[0].Inst;
 	if (Next->Opcode == MLI_RETURN) {
-		return ml_typeof(Function)->call(Frame->Base.Caller, Function, Count, Args);
+		return ml_call(Frame->Base.Caller, Function, Count, Args);
 	} else {
 		Frame->Inst = Next;
 		Frame->Top = Top - (Count + 1);
-		return ml_typeof(Function)->call((ml_state_t *)Frame, Function, Count, Args);
+		return ml_call(Frame, Function, Count, Args);
 	}
 }
 
@@ -278,11 +278,11 @@ static void DO_CONST_CALL_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t *
 	ml_value_t **Args = Top - Count;
 	ml_inst_t *Next = Inst->Params[0].Inst;
 	if (Next->Opcode == MLI_RETURN) {
-		return ml_typeof(Function)->call(Frame->Base.Caller, Function, Count, Args);
+		return ml_call(Frame->Base.Caller, Function, Count, Args);
 	} else {
 		Frame->Inst = Next;
 		Frame->Top = Top - Count;
-		return ml_typeof(Function)->call((ml_state_t *)Frame, Function, Count, Args);
+		return ml_call(Frame, Function, Count, Args);
 	}
 }
 

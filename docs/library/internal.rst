@@ -4,10 +4,10 @@ internal
 .. include:: <isonum.txt>
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: XENodeT)`
-   *Defined at line 811 in src/minixe.c*
+   *Defined at line 826 in src/minixe.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: XEVarT)`
-   *Defined at line 847 in src/minixe.c*
+   *Defined at line 862 in src/minixe.c*
 
 :mini:`DEBUG_TYPE`
    :Parents: :mini:`Continuation`

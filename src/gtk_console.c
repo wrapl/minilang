@@ -439,7 +439,7 @@ static ml_value_t *console_add_combo(console_t *Console, int Count, ml_value_t *
 static void console_included_run(ml_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
-	return ml_typeof(Value)->call(Caller, Value, 0, NULL);
+	return ml_call(Caller, Value, 0, NULL);
 }
 
 static void console_include_fnx(ml_state_t *Caller, console_t *Console, int Count, ml_value_t **Args) {

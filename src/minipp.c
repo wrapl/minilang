@@ -41,7 +41,7 @@ static const char *ml_preprocessor_line_read(ml_preprocessor_t *Preprocessor) {
 			Input->Line = 0;
 			return Line;
 		}
-		ml_value_t *LineValue = ml_call(Input->Reader, 0, 0);
+		ml_value_t *LineValue = ml_simple_call(Input->Reader, 0, 0);
 		if (LineValue == MLNil) {
 			Preprocessor->Input = Input = Input->Prev;
 		} else if (ml_is(LineValue, MLStringT)) {
@@ -62,7 +62,7 @@ static const char *ml_preprocessor_line_read(ml_preprocessor_t *Preprocessor) {
 }
 
 static ml_value_t *ml_preprocessor_output(ml_preprocessor_t *Preprocessor, int Count, ml_value_t **Args) {
-	return ml_call(Preprocessor->Output->Writer, Count, Args);
+	return ml_simple_call(Preprocessor->Output->Writer, Count, Args);
 }
 
 static ml_value_t *ml_preprocessor_push(ml_preprocessor_t *Preprocessor, int Count, ml_value_t **Args) {
@@ -102,7 +102,7 @@ static ml_value_t *ml_preprocessor_write(FILE *File, int Count, ml_value_t **Arg
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Result = Args[I];
 		if (!ml_is(Result, MLStringT)) {
-			Result = ml_call(MLStringOfMethod, 1, &Result);
+			Result = ml_simple_call(MLStringOfMethod, 1, &Result);
 			if (ml_is(Result, MLErrorT)) return Result;
 			if (!ml_is(Result, MLStringT)) return ml_error("ResultError", "string method did not return string");
 		}
@@ -162,7 +162,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 				Line = Input->Line;
 				Input->Line = 0;
 			} else {
-				ml_value_t *LineValue = ml_call(Preprocessor->Input->Reader, 0, 0);
+				ml_value_t *LineValue = ml_simple_call(Preprocessor->Input->Reader, 0, 0);
 				if (LineValue == MLNil) {
 					Input = Preprocessor->Input = Preprocessor->Input->Prev;
 					if (!Input) return;
@@ -184,17 +184,17 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 		}
 		const char *Escape = strchr(Line, '\\');
 		if (Escape) {
-			if (Line < Escape) ml_inline(Preprocessor->Output->Writer, 1, ml_string(Line, Escape - Line));
+			if (Line < Escape) ml_simple_inline(Preprocessor->Output->Writer, 1, ml_string(Line, Escape - Line));
 			if (Escape[1] == ';') {
 				Input->Line = Escape + 2;
-				ml_inline(Preprocessor->Output->Writer, 1, Semicolon);
+				ml_simple_inline(Preprocessor->Output->Writer, 1, Semicolon);
 			} else {
 				Input->Line = Escape + 1;
 				ml_command_evaluate(MLResultState, Scanner, Globals);
 				Input->Line = ml_scanner_clear(Scanner);
 			}
 		} else {
-			if (Line[0] && Line[0] != '\n') ml_inline(Preprocessor->Output->Writer, 1, ml_string(Line, strlen(Line)));
+			if (Line[0] && Line[0] != '\n') ml_simple_inline(Preprocessor->Output->Writer, 1, ml_string(Line, strlen(Line)));
 		}
 	}
 }

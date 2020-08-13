@@ -83,7 +83,7 @@ ML_METHOD("expect", MLParserT, MLStringT) {
 
 static mpc_val_t *ml_mpc_apply_to(mpc_val_t *Value, void *Function) {
 	ml_value_t *Args[1] = {(ml_value_t *)Value};
-	return ml_call((ml_value_t *)Function, 1, Args);
+	return ml_simple_call((ml_value_t *)Function, 1, Args);
 }
 
 ML_METHOD(">>", MLValueParserT, MLFunctionT) {
@@ -95,7 +95,7 @@ ML_METHOD(">>", MLValueParserT, MLFunctionT) {
 
 static mpc_val_t *ml_mpc_apply_to_string(mpc_val_t *Value, void *Function) {
 	ml_value_t *Args[1] = {ml_string(Value, -1)};
-	return ml_call((ml_value_t *)Function, 1, Args);
+	return ml_simple_call((ml_value_t *)Function, 1, Args);
 }
 
 ML_METHOD(">>", MLStringParserT, MLFunctionT) {
@@ -106,7 +106,7 @@ ML_METHOD(">>", MLStringParserT, MLFunctionT) {
 }
 
 static int ml_mpc_check_with(mpc_val_t **Slot, void *Function) {
-	ml_value_t *Result = ml_call((ml_value_t *)Function, 1, (ml_value_t **)Slot);
+	ml_value_t *Result = ml_simple_call((ml_value_t *)Function, 1, (ml_value_t **)Slot);
 	if (ml_is_error(Result)) return 0;
 	Slot[0] = Result;
 	return 1;
@@ -121,7 +121,7 @@ ML_METHOD("?", MLValueParserT, MLStringT, MLFunctionT) {
 
 static int ml_mpc_check_with_string(mpc_val_t **Slot, void *Function) {
 	Slot[0] = ml_string(Slot[0], -1);
-	ml_value_t *Result = ml_call((ml_value_t *)Function, 1, (ml_value_t **)Slot);
+	ml_value_t *Result = ml_simple_call((ml_value_t *)Function, 1, (ml_value_t **)Slot);
 	if (ml_is_error(Result)) return 0;
 	Slot[0] = Result;
 	return 1;

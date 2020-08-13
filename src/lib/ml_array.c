@@ -138,7 +138,7 @@ static void ml_array_init_run(ml_array_init_state_t *State, ml_value_t *Value) {
 		int Next = ml_integer_value(State->Args[I]) + 1;
 		if (Next <= Array->Dimensions[I].Size) {
 			State->Args[I] = ml_integer(Next);
-			return State->Function->Type->call((ml_state_t *)State, State->Function, Array->Degree, State->Args);
+			return ml_call(State, State->Function, Array->Degree, State->Args);
 		} else {
 			State->Args[I] = ml_integer(1);
 		}
@@ -207,7 +207,7 @@ static void ml_array_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value
 	State->Array = Array;
 	ml_value_t *Function = State->Function = Args[2];
 	for (int I = 0; I < Array->Degree; ++I) State->Args[I] = ml_integer(1);
-	return Function->Type->call((ml_state_t *)State, Function, Array->Degree, State->Args);
+	return ml_call(State, Function, Array->Degree, State->Args);
 }
 
 ml_value_t *ml_array_wrap_fn(void *Data, int Count, ml_value_t **Args) {

@@ -294,11 +294,11 @@ void ml_cbor_read_error_fn(ml_cbor_reader_t *Reader, int Position, const char *M
 }
 
 static ml_value_t *ml_value_fn(ml_value_t *Callback, ml_value_t *Value) {
-	return ml_inline(Callback, 1, Value);
+	return ml_simple_inline(Callback, 1, Value);
 }
 
 static ml_tag_t ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void **Data) {
-	Data[0] = ml_inline(Callback, 1, ml_integer(Tag));
+	Data[0] = ml_simple_inline(Callback, 1, ml_integer(Tag));
 	return (ml_tag_t)ml_value_fn;
 }
 
@@ -535,7 +535,7 @@ ml_value_t *ml_cbor_read_object(void *Data, int Count, ml_value_t **Args) {
 		ml_list_iter_next(Iter);
 		Args2[I] = Iter->Value;
 	}
-	return ML_WRAP_EVAL(ml_typeof(Constructor)->call, Constructor, Count2, Args2);
+	return ml_simple_call(Constructor, Count2, Args2);
 }
 
 void ml_cbor_init(stringmap_t *Globals) {

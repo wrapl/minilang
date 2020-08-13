@@ -31,7 +31,7 @@ static void ml_chained_state_run(ml_chained_state_t *State, ml_value_t *Value) {
 	State->Current = Entry + 1;
 	State->Value = Value;
 	ml_value_t *Function = Entry->Function;
-	return ml_typeof(Function)->call((ml_state_t *)State, Function, 1, &State->Value);
+	return ml_call(State, Function, 1, &State->Value);
 }
 
 typedef struct ml_chained_function_t {
@@ -47,7 +47,7 @@ static void ml_chained_function_call(ml_state_t *Caller, ml_chained_function_t *
 	State->Base.Context = Caller->Context;
 	State->Current = Chained->Entries;
 	ml_value_t *Function = Chained->Initial;
-	return ml_typeof(Function)->call((ml_state_t *)State, Function, Count, Args);
+	return ml_call(State, Function, Count, Args);
 }
 
 typedef struct ml_chained_iterator_t {
@@ -100,7 +100,7 @@ static void ml_chained_iterator_apply(ml_chained_iterator_t *State, ml_value_t *
 	State->Current = Entry + 1;
 	State->Value = Value;
 	ml_value_t *Function = Entry->Function;
-	return ml_typeof(Function)->call((ml_state_t *)State, Function, 1, &State->Value);
+	return ml_call(State, Function, 1, &State->Value);
 }
 
 static void ml_chained_iterator_value(ml_chained_iterator_t *State, ml_value_t *Iter) {
@@ -226,7 +226,7 @@ static void ml_double_value0(ml_double_state_t *State, ml_value_t *Value) {
 	State->Base.run = (void *)ml_double_function_call;
 	State->Arg = Value;
 	ml_value_t *Function = State->Function;
-	return ml_typeof(Function)->call((ml_state_t *)State, Function, 1, &State->Arg);
+	return ml_call(State, Function, 1, &State->Arg);
 }
 
 static void ml_double_iter0_next(ml_double_state_t *State, ml_value_t *Value) {
@@ -550,7 +550,7 @@ static void fold_next_value(ml_iter_state_t *State, ml_value_t *Result) {
 	ml_value_t *Compare = State->Values[0];
 	State->Values[2] = Result;
 	State->Base.run = (void *)fold_call;
-	return ml_typeof(Compare)->call((ml_state_t *)State, Compare, 2, State->Values + 1);
+	return ml_call(State, Compare, 2, State->Values + 1);
 }
 
 static void fold_iter_next(ml_iter_state_t *State, ml_value_t *Result) {
@@ -688,7 +688,7 @@ static void fold2_next_value(ml_iter_state_t *State, ml_value_t *Result) {
 	ml_value_t *Function = State->Values[0];
 	State->Values[3] = Result;
 	State->Base.run = (void *)fold2_call;
-	return ml_typeof(Function)->call((ml_state_t *)State, Function, 2, State->Values + 2);
+	return ml_call(State, Function, 2, State->Values + 2);
 }
 
 static void fold2_iter_next(ml_iter_state_t *State, ml_value_t *Result) {
@@ -787,7 +787,7 @@ static void folded_next_value(ml_iter_state_t *State, ml_value_t *Result) {
 	ml_value_t *FoldFn = State->Values[0];
 	State->Values[2] = Result;
 	State->Base.run = (void *)folded_call;
-	return ml_typeof(FoldFn)->call((ml_state_t *)State, FoldFn, 2, State->Values + 1);
+	return ml_call(State, FoldFn, 2, State->Values + 1);
 }
 
 static void folded_iter_next(ml_iter_state_t *State, ml_value_t *Result) {
@@ -966,7 +966,7 @@ static void ml_tasks_call(ml_state_t *Caller, ml_tasks_t *Tasks, int Count, ml_v
 	ML_CHECKX_ARG_TYPE(Count - 1, MLFunctionT);
 	ml_value_t *Function = Args[Count - 1];
 	++Tasks->Waiting;
-	ml_typeof(Function)->call((ml_state_t *)Tasks, Function, Count - 1, Args);
+	ml_call(Tasks, Function, Count - 1, Args);
 	ML_RETURN(Tasks);
 }
 
@@ -997,7 +997,7 @@ ML_METHODVX("add", MLTasksT, MLAnyT) {
 	ML_CHECKX_ARG_TYPE(Count - 1, MLFunctionT);
 	ml_value_t *Function = Args[Count - 1];
 	++Tasks->Waiting;
-	ml_typeof(Function)->call((ml_state_t *)Tasks, Function, Count - 2, Args + 1);
+	ml_call(Tasks, Function, Count - 2, Args + 1);
 	ML_RETURN(Tasks);
 }
 
@@ -1046,7 +1046,7 @@ static void parallel_iter_value(ml_state_t *State, ml_value_t *Value) {
 	if (Parallel->Error) return;
 	Parallel->Waiting += 1;
 	Parallel->Args[1] = Value;
-	ml_typeof(Parallel->Function)->call((ml_state_t *)Parallel, Parallel->Function, 2, Parallel->Args);
+	ml_call(Parallel, Parallel->Function, 2, Parallel->Args);
 	if (Parallel->Iter) {
 		if (Parallel->Waiting > Parallel->Limit) return;
 		return ml_iter_next(Parallel->NextState, Parallel->Iter);
@@ -1235,7 +1235,7 @@ static void ml_zipped_fnx_value(ml_zipped_state_t *State, ml_value_t *Result) {
 	if (ml_is_error(Result)) ML_CONTINUE(State->Base.Caller, Result);
 	State->Args[State->Index] = Result;
 	if (++State->Index ==  State->Count) {
-		return ml_typeof(State->Function)->call(State->Base.Caller, State->Function, State->Count, State->Args);
+		return ml_call(State->Base.Caller, State->Function, State->Count, State->Args);
 	}
 	return ml_iter_value((ml_state_t *)State, State->Iters[State->Index]);
 }
@@ -1302,7 +1302,7 @@ static void ML_TYPED_FN(ml_iter_next, MLRepeatedStateT, ml_state_t *Caller, ml_r
 	State->Base.Context = Caller->Context;
 	++State->Iteration;
 	if (State->Update) {
-		return ml_typeof(State->Update)->call((ml_state_t *)State, State->Update, 1, &State->Value);
+		return ml_call(State, State->Update, 1, &State->Value);
 	} else {
 		ML_RETURN(State);
 	}

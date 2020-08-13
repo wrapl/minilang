@@ -23,7 +23,7 @@ ML_INTERFACE(MLObjectT, (), "object");
 
 static void ml_class_call(ml_state_t *Caller, ml_class_t *Class, int Count, ml_value_t **Args) {
 	ml_value_t *Constructor = Class->Base.Constructor;
-	return ml_typeof(Constructor)->call(Caller, Constructor, Count, Args);
+	return ml_call(Caller, Constructor, Count, Args);
 }
 
 extern ml_cfunction_t MLClass[];
@@ -37,7 +37,7 @@ ML_TYPE(MLClassT, (MLTypeT), "class",
 
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLObjectT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_value_t *String = ml_inline(MLStringOfMethod, 1, Args[1]);
+	ml_value_t *String = ml_simple_inline(MLStringOfMethod, 1, Args[1]);
 	if (ml_is(String, MLStringT)) {
 		ml_stringbuffer_add(Buffer, ml_string_value(String), ml_string_length(String));
 		return MLSome;
@@ -57,13 +57,13 @@ ML_METHOD(MLStringOfMethod, MLObjectT) {
 		const char *Name = ml_method_name(Class->Fields[0]);
 		ml_stringbuffer_add(Buffer, Name, strlen(Name));
 		ml_stringbuffer_add(Buffer, ": ", 2);
-		ml_inline(MLStringBufferAppendMethod, 2, Buffer, Object->Fields[0]);
+		ml_simple_inline(MLStringBufferAppendMethod, 2, Buffer, Object->Fields[0]);
 		for (int I = 1; I < Class->NumFields; ++I) {
 			ml_stringbuffer_add(Buffer, ", ", 2);
 			const char *Name = ml_method_name(Class->Fields[I]);
 			ml_stringbuffer_add(Buffer, Name, strlen(Name));
 			ml_stringbuffer_add(Buffer, ": ", 2);
-			ml_inline(MLStringBufferAppendMethod, 2, Buffer, Object->Fields[I]);
+			ml_simple_inline(MLStringBufferAppendMethod, 2, Buffer, Object->Fields[I]);
 		}
 		ml_stringbuffer_add(Buffer, ")", 1);
 		return ml_stringbuffer_get_string(Buffer);
@@ -242,11 +242,11 @@ typedef struct ml_property_t {
 } ml_property_t;
 
 static ml_value_t *ml_property_deref(ml_property_t *Property) {
-	return ml_call(Property->Get, 0, NULL);
+	return ml_simple_call(Property->Get, 0, NULL);
 }
 
 static ml_value_t *ml_property_assign(ml_property_t *Property, ml_value_t *Value) {
-	return ml_call(Property->Set, 1, &Value);
+	return ml_simple_call(Property->Set, 1, &Value);
 }
 
 extern ml_cfunction_t MLProperty[];

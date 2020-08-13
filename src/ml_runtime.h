@@ -40,12 +40,6 @@ struct ml_state_t {
 extern ml_type_t MLStateT[];
 
 ml_state_t *ml_state_new(ml_state_t *Caller);
-ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args);
-
-#define ml_inline(VALUE, COUNT, ARGS ...) ({ \
-	void *Args ## __LINE__[COUNT] = {ARGS}; \
-	ml_call(VALUE, COUNT, (ml_value_t **)(Args ## __LINE__)); \
-})
 
 void ml_default_state_run(ml_state_t *State, ml_value_t *Value);
 
@@ -54,24 +48,18 @@ typedef struct {
 	ml_value_t *Value;
 } ml_value_state_t;
 
-void ml_eval_state_run(ml_value_state_t *State, ml_value_t *Value);
-
-#define ML_EVAL_STATE_INIT {{MLStateT, NULL, (ml_state_fn)ml_eval_state_run, &MLRootContext}, MLNil}
-
-#define ML_WRAP_EVAL(FUNCTION, ARGS...) ({ \
-	ml_value_state_t State[1] = {ML_EVAL_STATE_INIT}; \
-	FUNCTION((ml_state_t *)State, ARGS); \
-	State->Value; \
-})
+void ml_value_state_run(ml_value_state_t *State, ml_value_t *Value);
+ml_value_state_t *ml_value_state_new();
+void ml_value_state_free(ml_value_state_t *State);
 
 void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value);
+ml_value_state_t *ml_call_state_new();
 
-#define ML_CALL_STATE_INIT {{MLStateT, NULL, (ml_state_fn)ml_call_state_run, &MLRootContext}, MLNil}
+ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args);
 
-#define ML_WRAP_CALL(FUNCTION, ARGS...) ({ \
-	ml_value_state_t State[1] = {ML_CALL_STATE_INIT}; \
-	FUNCTION((ml_state_t *)State, ARGS); \
-	State->Value; \
+#define ml_simple_inline(VALUE, COUNT, ARGS ...) ({ \
+	void *Args ## __LINE__[COUNT] = {ARGS}; \
+	ml_simple_call(VALUE, COUNT, (ml_value_t **)(Args ## __LINE__)); \
 })
 
 void ml_runtime_init();

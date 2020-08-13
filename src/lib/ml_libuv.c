@@ -42,7 +42,6 @@ ML_FUNCTIONX(Run) {
 	ml_value_t *Function = Args[0];
 	Function->Type->call(State, Function, 0, NULL);
 	uv_run(Loop, UV_RUN_DEFAULT);
-	ML_RETURN(MLNil);
 }
 
 typedef struct ml_uv_file_t {

@@ -576,8 +576,8 @@ static inline void ml_map_iter_update(ml_map_iter_t *Iter, ml_value_t *Value) {
 	Iter->Value = Iter->Node->Value = Value;
 }
 
-#define ML_MAP_FOREACH(MAP, ITER) \
-	for (ml_map_iter_t ITER[1] = {{((ml_map_t *)MAP)->Head}}; ITER->Node && (ITER->Key = ITER->Node->Key) && (ITER->Value = ITER->Node->Value); ITER->Node = ITER->Node->Next)
+#define ML_MAP_FOREACH(LIST, ITER) \
+	for (ml_map_node_t *ITER = ((ml_map_t *)LIST)->Head; ITER; ITER = ITER->Next)
 
 /****************************** Names ******************************/
 
@@ -704,6 +704,19 @@ static inline ml_value_t *ml_deref(ml_value_t *Value) {
 }
 
 #endif
+
+static inline ml_value_t *ml_assign(ml_value_t *Value, ml_value_t *Value2) {
+	return ml_typeof(Value)->assign(Value, Value2);
+}
+
+static inline void ml_call(void *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
+	return ml_typeof(Value)->call((ml_state_t *)Caller, Value, Count, Args);
+}
+
+#define ml_inline(STATE, VALUE, COUNT, ARGS ...) ({ \
+	void *Args ## __LINE__[COUNT] = {ARGS}; \
+	ml_call(STATE, VALUE, COUNT, (ml_value_t **)(Args ## __LINE__)); \
+})
 
 void ml_types_init(stringmap_t *Globals);
 
