@@ -9,7 +9,7 @@
 #include <inttypes.h>
 #include "ml_types.h"
 
-/****************************** Runtime ******************************/
+// Runtime //
 
 static int MLContextSize = 4;
 // Reserved context slots:
@@ -89,7 +89,7 @@ static void ml_context_key_call(ml_state_t *Caller, ml_context_key_t *Key, int C
 		State->Context = Context;
 		ml_value_t *Function = Args[1];
 		Function = ml_deref(Function);
-		return ml_typeof(Function)->call(State, Function, Count - 2, Args + 2);
+		return ml_call(State, Function, Count - 2, Args + 2);
 	}
 }
 
@@ -118,31 +118,60 @@ ML_TYPE(MLStateT, (MLFunctionT), "state",
 static void ml_end_state_run(ml_state_t *State, ml_value_t *Value) {
 }
 
-inline ml_value_t *ml_call(ml_value_t *Value, int Count, ml_value_t **Args) {
-	ml_value_state_t *State = new(ml_value_state_t);
-	State->Base.Type = MLStateT;
-	State->Base.run = (void *)ml_eval_state_run;
-	State->Base.Context = &MLRootContext;
-	State->Value = MLNil;
-	ml_typeof(Value)->call((ml_state_t *)State, Value, Count, Args);
-	return ml_typeof(State->Value)->deref(State->Value);
-}
-
 void ml_default_state_run(ml_state_t *State, ml_value_t *Value) {
 	ML_CONTINUE(State->Caller, Value);
 }
 
-void ml_eval_state_run(ml_value_state_t *State, ml_value_t *Value) {
-	State->Value = Value;
+void ml_value_state_run(ml_value_state_t *State, ml_value_t *Value) {
+	State->Value = ml_deref(Value);
+}
+
+static ml_value_state_t *ValueStateCache = NULL;
+
+ml_value_state_t *ml_value_state_new() {
+	ml_value_state_t *State = ValueStateCache;
+	if (State) {
+		ValueStateCache = (ml_value_state_t *)State->Base.Caller;
+	} else {
+		State = new(ml_value_state_t);
+		State->Base.Context = &MLRootContext;
+		State->Value = MLNil;
+	}
+	State->Base.Type = MLStateT;
+	State->Base.run = (ml_state_fn)ml_value_state_run;
+	return State;
+}
+
+void ml_value_state_free(ml_value_state_t *State) {
+	State->Base.Caller = (ml_state_t *)ValueStateCache;
+	State->Value = MLNil;
+	ValueStateCache = State;
 }
 
 void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
 		State->Value = Value;
 	} else {
-		State->Base.run = (ml_state_fn)ml_eval_state_run;
-		ml_typeof(Value)->call((ml_state_t *)State, Value, 0, NULL);
+		State->Base.run = (ml_state_fn)ml_value_state_run;
+		ml_call(State, Value, 0, NULL);
 	}
+}
+
+ml_value_state_t *ml_call_state_new() {
+	ml_value_state_t *State = new(ml_value_state_t);
+	State->Base.Type = MLStateT;
+	State->Base.Context = &MLRootContext;
+	State->Base.run = (ml_state_fn)ml_call_state_run;
+	State->Value = MLNil;
+	return State;
+}
+
+ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args) {
+	ml_value_state_t *State = ml_value_state_new();
+	ml_call(State, Value, Count, Args);
+	ml_value_t *Result = State->Value;
+	ml_value_state_free(State);
+	return Result;
 }
 
 ml_state_t *ml_state_new(ml_state_t *Caller) {
@@ -189,7 +218,7 @@ ML_FUNCTIONX(MLCallCC) {
 		ml_value_t *Function = Args[1];
 		ml_value_t **Args2 = anew(ml_value_t *, 1);
 		Args2[0] = (ml_value_t *)Resumable;
-		return ml_typeof(Function)->call(State, Function, 1, Args2);
+		return ml_call(State, Function, 1, Args2);
 	} else {
 		ML_CHECKX_ARG_COUNT(1);
 		ml_value_t *Function = Args[0];
@@ -198,7 +227,7 @@ ML_FUNCTIONX(MLCallCC) {
 		ml_state_t *State = new(ml_state_t);
 		State->run = ml_end_state_run;
 		State->Context = Caller->Context;
-		return ml_typeof(Function)->call(State, Function, 1, Args2);
+		return ml_call(State, Function, 1, Args2);
 	}
 }
 
@@ -212,10 +241,10 @@ ML_FUNCTIONX(MLMark) {
 	ml_value_t *Func = Args[0];
 	ml_value_t **Args2 = anew(ml_value_t *, 1);
 	Args2[0] = (ml_value_t *)State;
-	return ml_typeof(Func)->call(State, Func, 1, Args2);
+	return ml_call(State, Func, 1, Args2);
 }
 
-/****************************** References ******************************/
+// References //
 
 static long ml_reference_hash(ml_value_t *Ref, ml_hash_chain_t *Chain) {
 	ml_reference_t *Reference = (ml_reference_t *)Ref;
@@ -279,9 +308,8 @@ void ml_uninitialized_use(ml_value_t *Uninitialized0, ml_value_t **Value) {
 static ML_METHOD_DECL(Symbol, "::");
 
 static int ml_uninitialized_resolve(const char *Name, ml_uninitialized_t *Unitialized, ml_value_t *Value) {
-	ml_value_t *Args[2] = {Value, ml_string(Name, -1)};
-	ml_value_t *Resolved = ml_call(SymbolMethod, 2, Args);
-	ml_uninitialized_set((ml_value_t *)Unitialized, Resolved);
+	ml_value_t *Result = ml_simple_inline(SymbolMethod, 2, Value, ml_string(Name, -1));
+	ml_uninitialized_set((ml_value_t *)Unitialized, Result);
 	return 0;
 }
 
@@ -299,7 +327,7 @@ ML_METHOD("::", MLUninitializedT, MLStringT) {
 	return Slot[0];
 }
 
-/****************************** Errors ******************************/
+// Errors //
 
 #define MAX_TRACE 16
 
@@ -407,7 +435,7 @@ ML_METHOD("trace", MLErrorT) {
 	return Trace;
 }
 
-/****************************** Debugging ******************************/
+// Debugging //
 
 int ml_debugger_check(ml_state_t *State) {
 	if (!State || !State->Type) return 0;

@@ -513,11 +513,11 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Schedule.Counter[0] = Frame->Counter;
 #endif
 		if (Inst->Opcode == MLI_RETURN) {
-			return ml_typeof(Function)->call(Frame->Base.Caller, Function, Count, Args);
+			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		} else {
 			Frame->Inst = Next;
 			Frame->Top = Top - (Count + 1);
-			return ml_typeof(Function)->call((ml_state_t *)Frame, Function, Count, Args);
+			return ml_call(Frame, Function, Count, Args);
 		}
 	}
 	DO_CONST_CALL: {
@@ -529,11 +529,11 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Schedule.Counter[0] = Frame->Counter;
 #endif
 		if (Inst->Opcode == MLI_RETURN) {
-			return ml_typeof(Function)->call(Frame->Base.Caller, Function, Count, Args);
+			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		} else {
 			Frame->Inst = Next;
 			Frame->Top = Top - Count;
-			return ml_typeof(Function)->call((ml_state_t *)Frame, Function, Count, Args);
+			return ml_call(Frame, Function, Count, Args);
 		}
 	}
 	DO_ASSIGN: {

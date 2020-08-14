@@ -387,7 +387,7 @@ static ml_value_t *node_eval(ml_value_t *Value, ml_value_t *Attributes, ml_value
 			return Content;
 		}
 	} else if (ml_is(Value, MLFunctionT)) {
-		return ml_inline(Value, 3, Attributes, Content, Scope);
+		return ml_simple_inline(Value, 3, Attributes, Content, Scope);
 	} else {
 		return Value;
 	}
@@ -436,7 +436,7 @@ static ml_value_t *node_expand(ml_value_t *Value, node_path_t *Path, xe_scope_t 
 			} else {
 				node_path_t SubPath[1] = {{Path, Tag}};
 				ML_MAP_FOREACH(Node->Attributes, Iter) {
-					ml_map_iter_update(Iter, node_expand(Iter->Value, SubPath, Scope));
+					Iter->Value = node_expand(Iter->Value, SubPath, Scope);
 				}
 				ml_value_t *Content = ml_list();
 				ML_LIST_FOREACH(Node->Content, Iter) {
@@ -588,12 +588,12 @@ static ml_value_t *global_get(void *Data, const char *Name) {
 static ml_value_t *compile_macro(ml_value_t *Value) {
 	if (ml_is(Value, MLListT)) {
 		ML_LIST_FOREACH(Value, Iter) {
-			ml_list_iter_update(Iter, compile_macro(Iter->Value));
+			Iter->Value = compile_macro(Iter->Value);
 		}
 	} else if (ml_is(Value, XENodeT)) {
 		xe_node_t *Node = (xe_node_t *)Value;
 		ML_MAP_FOREACH(Node->Attributes, Iter) {
-			ml_map_iter_update(Iter, compile_macro(Iter->Value));
+			Iter->Value = compile_macro(Iter->Value);
 		}
 		compile_macro(Node->Content);
 	}
@@ -627,7 +627,11 @@ ML_FUNCTIONX(XEFunction) {
 	Stream->read = string_read;
 	mlc_scanner_t *Scanner = ml_scanner("node", Stream, (void *)string_read, (ml_getter_t)attribute_get, Attributes);
 	ml_scanner_source(Scanner, ml_debugger_source(Caller));
-	ml_value_t *Macro = ML_WRAP_EVAL(ml_command_evaluate, Scanner, Globals) ?: ml_error("ParseError", "Empty body");
+	ml_value_state_t *State = ml_value_state_new();
+	ml_command_evaluate((ml_state_t *)State, Scanner, Globals);
+	ml_value_t *Result = State->Value;
+	ml_value_state_free(State);
+	ml_value_t *Macro = Result ?: ml_error("ParseError", "Empty body");
 	Macro = ml_deref(Macro);
 	if (ml_is_error(Macro)) ML_RETURN(Macro);
 	ml_value_t *Name = ml_map_search(Attributes, ml_integer(1));
@@ -698,12 +702,17 @@ ML_FUNCTIONX(XEDo) {
 	Stream->read = string_read;
 	mlc_scanner_t *Scanner = ml_scanner("node", Stream, (void *)string_read, (ml_getter_t)attribute_get, Attributes);
 	ml_scanner_source(Scanner, ml_debugger_source(Caller));
+	ml_value_state_t *State = ml_value_state_new();
 	for (;;) {
-		ml_value_t *Value = ML_WRAP_EVAL(ml_command_evaluate, Scanner, Globals);
-		if (!Value) break;
-		if (ml_is_error(Value)) ML_RETURN(Value);
-		Result = ml_deref(Value);
+		ml_command_evaluate((ml_state_t *)State, Scanner, Globals);
+		if (!State->Value) break;
+		if (ml_is_error(State->Value)) {
+			Result = State->Value;
+			break;
+		}
+		Result = ml_deref(State->Value);
 	}
+	ml_value_state_free(State);
 	ML_RETURN(Result);
 }
 
@@ -725,11 +734,17 @@ ML_FUNCTIONX(XEDo2) {
 	Stream->read = string_read;
 	mlc_scanner_t *Scanner = ml_scanner("node", Stream, (void *)string_read, (ml_getter_t)attribute_get, Attributes);
 	ml_scanner_source(Scanner, ml_debugger_source(Caller));
+	ml_value_t *Result = MLNil;
+	ml_value_state_t *State = ml_value_state_new();
 	for (;;) {
-		ml_value_t *Value = ML_WRAP_EVAL(ml_command_evaluate, Scanner, Globals);
-		if (!Value) break;
-		if (ml_is_error(Value)) ML_RETURN(Value);
+		ml_command_evaluate((ml_state_t *)State, Scanner, Globals);
+		if (!State->Value) break;
+		if (ml_is_error(State->Value)) {
+			Result = State->Value;
+			break;
+		}
 	}
+	ml_value_state_free(State);
 	ML_RETURN(MLNil);
 }
 
@@ -801,7 +816,7 @@ static int xe_attribute_to_string(ml_value_t *Key, ml_value_t *Value, ml_stringb
 	ml_stringbuffer_append(Buffer, Key);
 	ml_stringbuffer_add(Buffer, "=", 1);
 	if (ml_is(Value, XENodeT)) {
-		ml_inline(MLStringBufferAppendMethod, 2, Buffer, Value);
+		ml_simple_inline(MLStringBufferAppendMethod, 2, Buffer, Value);
 	} else {
 		compile_inline_value(Value, Buffer);
 	}
@@ -819,7 +834,7 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, XENodeT) {
 	if (ml_list_length(Node->Content)) {
 		ml_stringbuffer_add(Buffer, ":", 1);
 		ML_LIST_FOREACH(Node->Content, Iter) {
-			ml_inline(MLStringBufferAppendMethod, 2, Buffer, Iter->Value);
+			ml_simple_inline(MLStringBufferAppendMethod, 2, Buffer, Iter->Value);
 		}
 	}
 	ml_stringbuffer_add(Buffer, ">", 1);
@@ -837,7 +852,7 @@ ML_METHOD(MLStringOfMethod, XENodeT) {
 	if (ml_list_length(Node->Content)) {
 		ml_stringbuffer_add(Buffer, ":", 1);
 		ML_LIST_FOREACH(Node->Content, Iter) {
-			ml_inline(MLStringBufferAppendMethod, 2, Buffer, Iter->Value);
+			ml_simple_inline(MLStringBufferAppendMethod, 2, Buffer, Iter->Value);
 		}
 	}
 	ml_stringbuffer_add(Buffer, ">", 1);
@@ -971,7 +986,7 @@ static ml_value_t *print(void *Data, int Count, ml_value_t **Args) {
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Result = Args[I];
 		if (!ml_is(Result, MLStringT)) {
-			Result = ml_call(MLStringOfMethod, 1, &Result);
+			Result = ml_simple_call(MLStringOfMethod, 1, &Result);
 			if (ml_is_error(Result)) return Result;
 			if (!ml_is(Result, MLStringT)) return ml_error("ResultError", "string method did not return string");
 		}
@@ -1018,7 +1033,7 @@ static void ml_loaded_run(ml_state_t *State, ml_value_t *Result) {
 		}
 		exit(1);
 	}
-	Result = ml_call(Result, 1, MainArgs);
+	Result = ml_simple_call(Result, 1, MainArgs);
 	if (ml_is_error(Result)) {
 		printf("Error: %s\n", ml_error_message(Result));
 		ml_source_t Source;

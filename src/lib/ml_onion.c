@@ -333,7 +333,7 @@ static ml_type_t *OnionWebsocketT;
 static onion_connection_status ml_onion_websocket_callback(ml_onion_websocket_t *Websocket, onion_websocket *Handle, ssize_t DataReadyLength) {
 	if (DataReadyLength >= 0) {
 		char Buffer[128];
-		ml_value_t *Result;
+		ml_value_t *Result = MLNil;
 		while (DataReadyLength > 128) {
 			int Size = onion_websocket_read(Handle, Buffer, 128);
 			if (Size < 0) {
@@ -368,7 +368,7 @@ static onion_connection_status ml_onion_websocket_callback(ml_onion_websocket_t 
 			return OCS_NEED_MORE_DATA;
 		}
 	} else {
-		ml_value_t *Result = ml_inline(Websocket->Callback, 1, MLNil);
+		ml_value_t *Result = ml_simple_inline(Websocket->Callback, 1, MLNil);
 		if (Result->Type == OnionConnectionStatusT) {
 			return ((ml_onion_connection_status_t *)Result)->Value;
 		} else {
@@ -457,11 +457,11 @@ void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) 
 	OnionStateT = ml_type(MLStateT, "onion-state");
 	OnionWebsocketT = ml_type(MLAnyT, "onion-websocket");
 #include "ml_onion_init.c"
-	ml_module_export(Module, "new", ml_function(NULL, ml_onion_new_fn));
-	ml_module_export(Module, "handler", ml_function(NULL, ml_onion_handler_new_fn));
-	ml_module_export(Module, "local", ml_function(NULL, ml_onion_export_local_fn));
-	ml_module_export(Module, "static", ml_function(NULL, ml_onion_handler_static_fn));
-	ml_module_export(Module, "websocket", ml_function(NULL, ml_websocket_new_fn));
+	ml_module_export(Module, "new", ml_cfunction(NULL, ml_onion_new_fn));
+	ml_module_export(Module, "handler", ml_cfunction(NULL, ml_onion_handler_new_fn));
+	ml_module_export(Module, "local", ml_cfunction(NULL, ml_onion_export_local_fn));
+	ml_module_export(Module, "static", ml_cfunction(NULL, ml_onion_handler_static_fn));
+	ml_module_export(Module, "websocket", ml_cfunction(NULL, ml_websocket_new_fn));
 	ml_module_export(Module, "connection_status", ml_module("connection_status",
 		"NotProcessed", ml_onion_connection_status("NotProcessed", OCS_NOT_PROCESSED),
 		"NeedMoreData", ml_onion_connection_status("NeedMoreData", OCS_NEED_MORE_DATA),

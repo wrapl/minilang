@@ -19,29 +19,29 @@ runtime
 :mini:`resumablestate`
    :Parents: :mini:`state`
 
-   *Defined at line 167 in src/ml_runtime.c*
+   *Defined at line 196 in src/ml_runtime.c*
 
 :mini:`fun mlcallcc()`
-   *Defined at line 175 in src/ml_runtime.c*
+   *Defined at line 204 in src/ml_runtime.c*
 
 :mini:`fun mlmark(Arg₁: any)`
-   *Defined at line 205 in src/ml_runtime.c*
+   *Defined at line 234 in src/ml_runtime.c*
 
 :mini:`reference`
-   *Defined at line 236 in src/ml_runtime.c*
+   *Defined at line 265 in src/ml_runtime.c*
 
 :mini:`uninitialized`
-   *Defined at line 263 in src/ml_runtime.c*
+   *Defined at line 292 in src/ml_runtime.c*
 
 :mini:`meth ::(Arg₁: uninitialized, Arg₂: string)`
-   *Defined at line 294 in src/ml_runtime.c*
+   *Defined at line 322 in src/ml_runtime.c*
 
 :mini:`meth :type(Arg₁: error)`
-   *Defined at line 390 in src/ml_runtime.c*
+   *Defined at line 418 in src/ml_runtime.c*
 
 :mini:`meth :message(Arg₁: error)`
-   *Defined at line 394 in src/ml_runtime.c*
+   *Defined at line 422 in src/ml_runtime.c*
 
 :mini:`meth :trace(Arg₁: error)`
-   *Defined at line 398 in src/ml_runtime.c*
+   *Defined at line 426 in src/ml_runtime.c*
 

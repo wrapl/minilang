@@ -153,11 +153,11 @@ ML_METHOD("close", CborStoreT) {
 }
 
 static ml_value_t *ml_value_fn(ml_value_t *Callback, ml_value_t *Value) {
-	return ml_inline(Callback, 1, Value);
+	return ml_simple_inline(Callback, 1, Value);
 }
 
 static ml_tag_t ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void **Data) {
-	Data[0] = ml_inline(Callback, 1, ml_integer(Tag));
+	Data[0] = ml_simple_inline(Callback, 1, ml_integer(Tag));
 	return (ml_tag_t)ml_value_fn;
 }
 
@@ -326,7 +326,7 @@ ML_METHOD("get", CborIndexT, MLIntegerT) {
 void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
 	const char *Dir = dirname(GC_strdup(ml_module_path(Module)));
 	ml_value_t *Import = GlobalGet(Globals, "import");
-	ml_inline(Import, 1, ml_string_format("%s/ml_cbor.so", Dir));
+	ml_simple_inline(Import, 1, ml_string_format("%s/ml_cbor.so", Dir));
 
 	ml_module_export(Module, "string_store_open", (ml_value_t *)StringStoreOpen);
 	ml_module_export(Module, "string_store_create", (ml_value_t *)StringStoreCreate);

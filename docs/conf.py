@@ -3,7 +3,8 @@ from docutils import nodes
 import re
 from pygments import lexers
 import inspect
-import sphinx_bootstrap_theme
+#import sphinx_bootstrap_theme
+import os
 
 class FoldersDirective(Directive):
 	has_content = True
@@ -73,6 +74,7 @@ author = 'Raja Mukherji'
 
 extensions = []
 
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -87,20 +89,30 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-#html_theme = "sphinx_rtd_theme"
-html_theme = 'bootstrap'
-html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
-
+html_theme = "sphinx_material"
 html_theme_options = {
-    'bootswatch_theme': "united"
+	'color_primary': 'orange',
+	'color_accent': 'yellow',
+	'globaltoc_depth': 3
 }
+
+html_sidebars = {
+    "**": ["logo-text.html", "globaltoc.html", "localtoc.html", "searchbox.html"]
+}
+
+#html_theme = 'bootstrap'
+#html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
+
+#html_theme_options = {
+#    'bootswatch_theme': "united"
+#}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-c_autodoc_roots = ['../src']
+cautodoc_root = os.path.abspath('../src')
 
 master_doc = 'index'
 

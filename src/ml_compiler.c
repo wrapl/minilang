@@ -168,7 +168,7 @@ static ml_value_t *ml_expr_evaluate(mlc_expr_t *Expr, mlc_function_t *Function) 
 	Info->FrameSize = SubFunction->Size;
 	Info->NumParams = 0;
 	ml_closure_info_finish(Info);
-	ml_value_t *Result = ml_call((ml_value_t *)Closure, 0, NULL);
+	ml_value_t *Result = ml_simple_call((ml_value_t *)Closure, 0, NULL);
 	Result = ml_typeof(Result)->deref(Result);
 	if (ml_is_error(Result)) ml_expr_error(Expr, Result);
 	return Result;
@@ -586,7 +586,7 @@ static mlc_compiled_t ml_def_expr_compile(mlc_function_t *Function, mlc_decl_exp
 		ml_value_t *Args[2] = {Result, MLNil};
 		for (int I = Expr->Count; --I >= 0;) {
 			Args[1] = ml_string(Decl->Ident, -1);
-			ml_value_t *Value = ml_call(SymbolMethod, 2, Args);
+			ml_value_t *Value = ml_simple_call(SymbolMethod, 2, Args);
 			if (ml_is_error(Value)) ml_expr_error(Expr, Value);
 			ml_decl_set_value(Decl, Value);
 			Decl = Decl->Next;
@@ -1088,7 +1088,7 @@ static mlc_compiled_t ml_import_expr_compile(mlc_function_t *Function, mlc_paren
 	if ((Compiled.Start == Compiled.Exits) && (Compiled.Start->Opcode == MLI_LOAD)) {
 		ml_inst_t *ValueInst = Compiled.Start;
 		ml_value_t *Args[2] = {ValueInst->Params[1].Value, Expr->Value};
-		ml_value_t *Value = ml_call(SymbolMethod, 2, Args);
+		ml_value_t *Value = ml_simple_call(SymbolMethod, 2, Args);
 		if (!ml_is_error(Value)) {
 			if (ml_typeof(Value) == MLUninitializedT) {
 				ml_uninitialized_use(Value, &ValueInst->Params[1].Value);
@@ -2783,7 +2783,7 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 				mlc_expr_t *Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
 				Result = ml_compile(Expr, NULL, Scanner->Context);
 				if (ml_is_error(Result)) ML_RETURN(Result);
-				Result = ml_call(Result, 0, NULL);
+				Result = ml_simple_call(Result, 0, NULL);
 				if (ml_is_error(Result)) ML_RETURN(Result);
 				Var->Value = Result;
 			} else {
@@ -2822,14 +2822,14 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 				}
 				Result = ml_compile(Expr, NULL, Scanner->Context);
 				if (ml_is_error(Result)) ML_RETURN(Result);
-				Result = ml_call(Result, 0, NULL);
+				Result = ml_simple_call(Result, 0, NULL);
 				if (ml_is_error(Result)) ML_RETURN(Result);
 				ml_uninitialized_set(Slot[0],  Result);
 				Slot[0] = Result;
 			} else {
 				Result = ml_compile(Expr, NULL, Scanner->Context);
 				if (ml_is_error(Result)) ML_RETURN(Result);
-				Result = ml_call(Result, 0, NULL);
+				Result = ml_simple_call(Result, 0, NULL);
 				if (ml_is_error(Result)) ML_RETURN(Result);
 				do {
 					ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Import->Ident);
@@ -2837,7 +2837,7 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 						Slot[0] = ml_uninitialized();
 					}
 					ml_value_t *Args[2] = {Result, ml_string(Import->Ident, -1)};
-					ml_value_t *Value = ml_call(SymbolMethod, 2, Args);
+					ml_value_t *Value = ml_simple_call(SymbolMethod, 2, Args);
 					if (ml_is_error(Value)) ML_RETURN(Value);
 					ml_uninitialized_set(Slot[0],  Value);
 					Slot[0] = Value;
@@ -2856,7 +2856,7 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 			mlc_expr_t *Expr = ml_accept_fun_expr(Scanner, MLT_RIGHT_PAREN);
 			Result = ml_compile(Expr, NULL, Scanner->Context);
 			if (ml_is_error(Result)) ML_RETURN(Result);
-			Result = ml_call(Result, 0, NULL);
+			Result = ml_simple_call(Result, 0, NULL);
 			if (ml_is_error(Result)) ML_RETURN(Result);
 			ml_uninitialized_set(Slot[0], Result);
 			Slot[0] = Result;
@@ -2865,14 +2865,14 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 			mlc_expr_t *Expr = ml_accept_fun_expr(Scanner, MLT_RIGHT_PAREN);
 			Result = ml_compile(Expr, NULL, Scanner->Context);
 			if (ml_is_error(Result)) ML_RETURN(Result);
-			Result = ml_call(Result, 0, NULL);
+			Result = ml_simple_call(Result, 0, NULL);
 			if (ml_is_error(Result)) ML_RETURN(Result);
 		}
 	} else if (ml_parse(Scanner, MLT_METH)) {
 		mlc_expr_t *Expr = ml_accept_meth_expr(Scanner);
 		Result = ml_compile(Expr, NULL, Scanner->Context);
 		if (ml_is_error(Result)) ML_RETURN(Result);
-		Result = ml_call(Result, 0, NULL);
+		Result = ml_simple_call(Result, 0, NULL);
 		if (ml_is_error(Result)) ML_RETURN(Result);
 	} else {
 		mlc_expr_t *Expr = ml_accept_expression(Scanner, EXPR_DEFAULT);
@@ -2889,14 +2889,14 @@ void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t
 			}
 			Result = ml_compile((mlc_expr_t *)CallExpr, NULL, Scanner->Context);
 			if (ml_is_error(Result)) ML_RETURN(Result);
-			Result = ml_call(Result, 0, NULL);
+			Result = ml_simple_call(Result, 0, NULL);
 			if (ml_is_error(Result)) ML_RETURN(Result);
 			ml_uninitialized_set(Slot[0],  Result);
 			Slot[0] = Result;
 		} else {
 			Result = ml_compile(Expr, NULL, Scanner->Context);
 			if (ml_is_error(Result)) ML_RETURN(Result);
-			Result = ml_call(Result, 0, NULL);
+			Result = ml_simple_call(Result, 0, NULL);
 			if (ml_is_error(Result)) ML_RETURN(Result);
 		}
 	}

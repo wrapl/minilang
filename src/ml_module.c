@@ -66,7 +66,7 @@ static void ml_module_done_run(ml_module_state_t *State, ml_value_t *Value) {
 static void ml_module_init_run(ml_module_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	State->Base.run = (ml_state_fn)ml_module_done_run;
-	return ml_typeof(Value)->call((ml_state_t *)State, Value, 1, State->Args);
+	return ml_call(State, Value, 1, State->Args);
 }
 
 void ml_module_load_file(ml_state_t *Caller, const char *FileName, ml_getter_t GlobalGet, void *Globals, ml_value_t **Slot) {

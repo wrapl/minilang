@@ -63,7 +63,7 @@ ML_METHOD("write", CsvT, MLListT) {
 		if (Comma) fputc(',', Csv->File);
 		ml_value_t *Field = Node->Value;
 		if (Field->Type != MLStringT) {
-			Field = ml_call(MLStringOfMethod, 1, &Field);
+			Field = ml_simple_call(MLStringOfMethod, 1, &Field);
 			if (Field->Type == MLErrorT) return Field;
 			if (Field->Type != MLStringT) return ml_error("ResultError", "string method did not return string");
 		}
@@ -94,7 +94,7 @@ static ml_value_t *csv_open(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(2);
 	ml_value_t *FileName = Args[0];
 	if (FileName->Type != MLStringT) {
-		FileName = ml_call(MLStringOfMethod, 1, &FileName);
+		FileName = ml_simple_call(MLStringOfMethod, 1, &FileName);
 		if (FileName->Type == MLErrorT) return FileName;
 		if (FileName->Type != MLStringT) return ml_error("ResultError", "string method did not return string");
 	}

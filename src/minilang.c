@@ -7,6 +7,7 @@
 #include "ml_iterfns.h"
 #include "stringmap.h"
 #include <stdio.h>
+#include <string.h>
 #include <gc.h>
 
 #ifdef USE_ML_MATH
@@ -60,7 +61,7 @@ ML_FUNCTION(MLPrint) {
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Result = Args[I];
 		if (!ml_is(Result, MLStringT)) {
-			Result = ml_call(MLStringOfMethod, 1, &Result);
+			Result = ml_simple_call(MLStringOfMethod, 1, &Result);
 			if (ml_is_error(Result)) return Result;
 			if (!ml_is(Result, MLStringT)) return ml_error("ResultError", "string method did not return string");
 		}
@@ -106,7 +107,7 @@ ML_FUNCTIONX(MLTest) {
 		ml_state_t *State = ml_state_new(Caller);
 		ml_methods_context_new(State->Context);
 		ml_value_t *Function = Args[1];
-		return ml_typeof(Function)->call(State, Function, Count - 2, Args + 2);
+		return ml_call(State, Function, Count - 2, Args + 2);
 	}
 	ML_ERROR("ValueError", "Unknown test %s", Test);
 }
@@ -208,27 +209,27 @@ int main(int Argc, const char *Argv[]) {
 		}
 	}
 	if (FileName) {
-		ml_value_t *Result = ML_WRAP_EVAL(ml_load, global_get, 0, FileName, Parameters);
-		ml_value_t *MainArgs[1] = {Args};
-		Result = ml_call(Result, 1, MainArgs);
-		if (ml_is_error(Result)) {
-			printf("Error: %s\n", ml_error_message(Result));
+		ml_value_state_t *State = ml_value_state_new();
+		ml_load((ml_state_t *)State, global_get, NULL, FileName, Parameters);
+		ml_inline(State, State->Value, 1, Args);
+		if (ml_is_error(State->Value)) {
+			printf("Error: %s\n", ml_error_message(State->Value));
 			ml_source_t Source;
 			int Level = 0;
-			while (ml_error_source(Result, Level++, &Source)) {
+			while (ml_error_source(State->Value, Level++, &Source)) {
 				printf("\t%s:%d\n", Source.Name, Source.Line);
 			}
 			return 1;
 		}
 #ifdef USE_ML_MODULES
 	} else if (ModuleName) {
-		ml_value_t *Args[] = {ml_string(ModuleName, -1)};
-		ml_value_t *Result = ml_call((ml_value_t *)Import, 1, Args);
-		if (ml_is_error(Result)) {
-			printf("Error: %s\n", ml_error_message(Result));
+		ml_value_state_t *State = ml_value_state_new();
+		ml_inline(State, (ml_value_t *)Import, 1, ml_string(ModuleName, -1));
+		if (ml_is_error(State->Value)) {
+			printf("Error: %s\n", ml_error_message(State->Value));
 			ml_source_t Source;
 			int Level = 0;
-			while (ml_error_source(Result, Level++, &Source)) {
+			while (ml_error_source(State->Value, Level++, &Source)) {
 				printf("\t%s:%d\n", Source.Name, Source.Line);
 			}
 			return 1;

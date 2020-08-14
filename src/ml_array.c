@@ -135,7 +135,7 @@ static void ml_array_init_run(ml_array_init_state_t *State, ml_value_t *Value) {
 		int Next = ml_integer_value(State->Args[I]) + 1;
 		if (Next <= Array->Dimensions[I].Size) {
 			State->Args[I] = ml_integer(Next);
-			return ml_typeof(State->Function)->call((ml_state_t *)State, State->Function, Array->Degree, State->Args);
+			return ml_call(State, State->Function, Array->Degree, State->Args);
 		} else {
 			State->Args[I] = ml_integer(1);
 		}
@@ -181,7 +181,7 @@ static void ml_array_typed_new_fnx(ml_state_t *Caller, void *Data, int Count, ml
 	State->Array = Array;
 	ml_value_t *Function = State->Function = Args[1];
 	for (int I = 0; I < Array->Degree; ++I) State->Args[I] = ml_integer(1);
-	return ml_typeof(Function)->call((ml_state_t *)State, Function, Array->Degree, State->Args);
+	return ml_call(State, Function, Array->Degree, State->Args);
 }
 
 static void ml_array_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
@@ -1487,7 +1487,7 @@ static void ml_array_apply_ ## CTYPE(ml_array_apply_state_t *State, ml_value_t *
 	*State->NAME++ = TO_NUM(Value); \
 	if (--State->Remaining) { \
 		State->Args[0] = TO_VAL(*State->NAME); \
-		return ml_typeof(State->Function)->call((ml_state_t *)State, State->Function, 1, State->Args); \
+		return ml_call(State, State->Function, 1, State->Args); \
 	} else { \
 		ML_CONTINUE(State->Base.Caller, State->Array); \
 	} \
@@ -1579,7 +1579,7 @@ ML_METHODX("copy", MLArrayT, MLFunctionT) {
 	}
 	default: ML_ERROR("ArrayError", "Unsupported format");
 	}
-	return ml_typeof(Function)->call((ml_state_t *)State, Function, 1, State->Args);
+	return ml_call(State, Function, 1, State->Args);
 }
 
 typedef struct {
@@ -1608,7 +1608,7 @@ static void ml_array_update_ ## CTYPE(ml_array_update_state_t *State, ml_value_t
 			} \
 			State->Indices[I] = Index + 1; \
 			State->Args[0] = TO_VAL(*(CTYPE *)State->Address); \
-			return ml_typeof(State->Function)->call((ml_state_t *)State, State->Function, 1, State->Args); \
+			return ml_call(State, State->Function, 1, State->Args); \
 		} else { \
 			if (Dimension->Indices) { \
 				State->Address -= (Dimension->Indices[Index] - Dimension->Indices[0]) * Dimension->Stride; \
@@ -1711,7 +1711,7 @@ ML_METHODX("update", MLArrayT, MLFunctionT) {
 	}
 	default: ML_ERROR("ArrayError", "Unsupported format");
 	}
-	return ml_typeof(Function)->call((ml_state_t *)State, Function, 1, State->Args);
+	return ml_call(State, Function, 1, State->Args);
 }
 
 #ifdef __USE_ML_CBOR

@@ -524,7 +524,7 @@ static void callback_invoke(ffi_cif *Cif, void *Return, void **Params, ml_gir_ca
 			break;
 		}
 	}
-	ml_value_t *Result = ml_call(Callback->Function, Count, Args);
+	ml_value_t *Result = ml_simple_call(Callback->Function, Count, Args);
 	GITypeInfo *ReturnInfo = g_callable_info_get_return_type((GICallableInfo *)Info);
 	switch (g_type_info_get_tag(ReturnInfo)) {
 	case GI_TYPE_TAG_VOID: break;
@@ -1620,7 +1620,7 @@ static void _ml_to_value(ml_value_t *Source, GValue *Dest) {
 static void __marshal(GClosure *Closure, GValue *Result, guint NumArgs, const GValue *Args, gpointer Hint, ml_value_t *Function) {
 	ml_value_t *MLArgs[NumArgs];
 	for (guint I = 0; I < NumArgs; ++I) MLArgs[I] = _value_to_ml(Args + I);
-	ml_value_t *MLResult = ml_call(Function, NumArgs, MLArgs);
+	ml_value_t *MLResult = ml_simple_call(Function, NumArgs, MLArgs);
 	if (Result) _ml_to_value(MLResult, Result);
 }
 

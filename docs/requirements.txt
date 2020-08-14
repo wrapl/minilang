@@ -1,3 +1,4 @@
 sphinxcontrib-domaintools
 sphinxcontrib-fulltoc
-sphinx_bootstrap_theme
+sphinx-material
+hawkmoth
