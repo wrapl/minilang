@@ -25,11 +25,7 @@ typedef struct ml_state_t ml_state_t;
 
 // Values and Types //
 
-/**
- * Represents a Minilang value.
- */
 struct ml_value_t {
-	/** Type of this value. */
 	const ml_type_t *Type;
 };
 
@@ -43,9 +39,6 @@ struct ml_hash_chain_t {
 
 typedef struct ml_typed_fn_node_t ml_typed_fn_node_t;
 
-/**
- * Represents a Minilang type.
- */
 struct ml_type_t {
 	const ml_type_t *Type;
 	const ml_type_t **Types;

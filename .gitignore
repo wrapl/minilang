@@ -25,4 +25,4 @@
 .cquery
 /test/
 docs/_util/__pycache__
-
+docs/_build
