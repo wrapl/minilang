@@ -15,7 +15,7 @@ Types
 
    Represents a Minilang type.
    
-   Although this is not a completely opaque type, avoid creating instances directly and instead use the :c:macro:`ML_TYPE` macro to declare and initialize a :c:struct:`ml_type_t`.
+   Although this is not a completely opaque type, avoid creating instances directly and instead use the :c:macro:`ML_TYPE` macro to declare and initialize a :c:type:`ml_type_t`.
    
    .. c:member:: const ml_type_t *Type
    
