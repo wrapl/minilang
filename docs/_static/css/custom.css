@@ -42,10 +42,10 @@ div.folders ul li:after {
 	top: 0;
 }
 
-code.highlight {
+.highlight {
 	color: #333333 !important;
 	background-color: #f5f5f5;
-	border: 1px solid #cccccc;
+	/*border: 1px solid #cccccc;*/
 }
 
 .highlight-console pre {

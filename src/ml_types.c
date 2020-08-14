@@ -35,7 +35,7 @@ ML_METHOD_DECL(MLMethodOf, NULL);
 ML_METHOD_DECL(MLListOf, NULL);
 ML_METHOD_DECL(MLMapOf, NULL);
 
-/****************************** Types ******************************/
+// Types //
 
 ML_INTERFACE(MLAnyT, (), "any");
 // Base type for all values.
@@ -195,7 +195,7 @@ ML_METHOD("::", MLTypeT, MLStringT) {
 	return Value ?: ml_error("ModuleError", "Symbol %s not exported from type %s", Name, Type->Name);
 }
 
-/****************************** Values ******************************/
+// Values //
 
 ML_TYPE(MLNilT, (), "nil");
 //!internal
@@ -320,7 +320,7 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLAnyT) {
 	return MLSome;
 }
 
-/****************************** Iterators ******************************/
+// Iterators //
 
 void ml_iterate(ml_state_t *Caller, ml_value_t *Value) {
 	typeof(ml_iterate) *function = ml_typed_fn_get(ml_typeof(Value), ml_iterate);
@@ -362,7 +362,7 @@ void ml_iter_next(ml_state_t *Caller, ml_value_t *Iter) {
 	return function(Caller, Iter);
 }
 
-/****************************** Functions ******************************/
+// Functions //
 
 ML_METHODX("!", MLFunctionT, MLListT) {
 //!function
@@ -579,7 +579,7 @@ static void ML_TYPED_FN(ml_iterate, MLPartialFunctionT, ml_state_t *Caller, ml_p
 	return ml_call(Caller, Partial->Function, Partial->Count, Partial->Args);
 }
 
-/****************************** Tuples ******************************/
+// Tuples //
 
 static long ml_tuple_hash(ml_tuple_t *Tuple, ml_hash_chain_t *Chain) {
 	long Hash = 739;
@@ -818,7 +818,7 @@ ML_METHOD("<op>", MLTupleT, MLTupleT) {
 }
 #endif
 
-/****************************** Boolean ******************************/
+// Boolean //
 
 static long ml_boolean_hash(ml_boolean_t *Boolean, ml_hash_chain_t *Chain) {
 	return (long)Boolean;
@@ -921,7 +921,7 @@ ML_METHOD("<op>", MLBooleanT, MLBooleanT) {
 }
 #endif
 
-/****************************** Numbers ******************************/
+// Numbers //
 
 ML_TYPE(MLNumberT, (MLFunctionT), "number");
 //!number
@@ -1679,7 +1679,7 @@ ML_METHOD("in", MLRealT, MLRealRangeT) {
 	return Args[0];
 }
 
-/****************************** Strings ******************************/
+// Strings //
 
 ML_FUNCTION(MLBuffer) {
 //!buffer
@@ -2960,7 +2960,7 @@ ML_FUNCTION(StringifierNew) {
 	return (ml_value_t *)Stringifier;
 }
 
-/****************************** Lists ******************************/
+// Lists //
 
 static ml_list_node_t *ml_list_index(ml_list_t *List, int Index) {
 	int Length = List->Length;
@@ -3492,7 +3492,7 @@ ML_TYPE(MLNamesT, (MLListT), "names",
 	.call = (void *)ml_list_call
 );
 
-/****************************** Maps ******************************/
+// Maps //
 
 static void ml_map_call(ml_state_t *Caller, ml_value_t *Map, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
@@ -4042,7 +4042,7 @@ ML_METHOD(MLStringOfMethod, MLMapT, MLStringT, MLStringT) {
 	return ml_stringbuffer_get_string(Stringer->Buffer);
 }
 
-/****************************** Methods ******************************/
+// Methods //
 
 #define ML_METHODS_INDEX 0
 
@@ -4397,7 +4397,7 @@ ML_FUNCTIONX(MLMethodSet) {
 	ML_RETURN(Function);
 }
 
-/****************************** Modules ******************************/
+// Modules //
 
 typedef struct ml_module_t ml_module_t;
 
@@ -4461,7 +4461,7 @@ static ml_value_t *ML_TYPED_FN(ml_string_of, MLModuleT, ml_module_t *Module) {
 	return ml_string_format("module(%s)", Module->Path);
 }
 
-/****************************** Init ******************************/
+// Init //
 
 void ml_init() {
 #ifdef USE_ML_JIT

@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-/****************************** Runtime ******************************/
+// Runtime //
 
 struct ml_context_t {
 	ml_context_t *Parent;
@@ -64,7 +64,7 @@ ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args);
 
 void ml_runtime_init();
 
-/****************************** References ******************************/
+// References //
 
 extern ml_type_t MLReferenceT[];
 extern ml_type_t MLUninitializedT[];
@@ -90,7 +90,7 @@ ml_value_t *ml_uninitialized();
 void ml_uninitialized_use(ml_value_t *Uninitialized, ml_value_t **Slot);
 void ml_uninitialized_set(ml_value_t *Uninitialized, ml_value_t *Value);
 
-/****************************** Errors ******************************/
+// Errors //
 
 typedef struct ml_error_t ml_error_t;
 
@@ -120,7 +120,7 @@ ml_value_t *ml_tuple_fn(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_map_fn(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_stringifier_fn(void *Data, int Count, ml_value_t **Args);
 
-/****************************** Debugging ******************************/
+// Debugging //
 
 #define SIZE_BITS (CHAR_BIT * sizeof(size_t))
 
@@ -153,7 +153,7 @@ ml_source_t ml_debugger_source(ml_state_t *State);
 ml_decl_t *ml_debugger_decls(ml_state_t *State);
 ml_value_t *ml_debugger_local(ml_state_t *State, int Index);
 
-/****************************** Preemption ******************************/
+// Preemption //
 
 typedef struct ml_schedule_t ml_schedule_t;
 

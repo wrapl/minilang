@@ -9,7 +9,7 @@
 #include <inttypes.h>
 #include "ml_types.h"
 
-/****************************** Runtime ******************************/
+// Runtime //
 
 static int MLContextSize = 4;
 // Reserved context slots:
@@ -244,7 +244,7 @@ ML_FUNCTIONX(MLMark) {
 	return ml_call(State, Func, 1, Args2);
 }
 
-/****************************** References ******************************/
+// References //
 
 static long ml_reference_hash(ml_value_t *Ref, ml_hash_chain_t *Chain) {
 	ml_reference_t *Reference = (ml_reference_t *)Ref;
@@ -327,7 +327,7 @@ ML_METHOD("::", MLUninitializedT, MLStringT) {
 	return Slot[0];
 }
 
-/****************************** Errors ******************************/
+// Errors //
 
 #define MAX_TRACE 16
 
@@ -435,7 +435,7 @@ ML_METHOD("trace", MLErrorT) {
 	return Trace;
 }
 
-/****************************** Debugging ******************************/
+// Debugging //
 
 int ml_debugger_check(ml_state_t *State) {
 	if (!State || !State->Type) return 0;

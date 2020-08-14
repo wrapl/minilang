@@ -15,7 +15,7 @@ typedef struct ml_type_t ml_type_t;
 typedef struct ml_context_t ml_context_t;
 typedef struct ml_state_t ml_state_t;
 
-/****************************** Macros ******************************/
+// Macros //
 
 #define _CONCAT2(X, Y) X ## Y
 #define CONCAT2(X, Y) _CONCAT2(X, Y)
@@ -23,9 +23,13 @@ typedef struct ml_state_t ml_state_t;
 #define _CONCAT3(X, Y, Z) X ## Y ## _ ## Z
 #define CONCAT3(X, Y, Z) _CONCAT3(X, Y, Z)
 
-/****************************** Values and Types ******************************/
+// Values and Types //
 
+/**
+ * Represents a Minilang value.
+ */
 struct ml_value_t {
+	/** Type of this value. */
 	const ml_type_t *Type;
 };
 
@@ -39,6 +43,9 @@ struct ml_hash_chain_t {
 
 typedef struct ml_typed_fn_node_t ml_typed_fn_node_t;
 
+/**
+ * Represents a Minilang type.
+ */
 struct ml_type_t {
 	const ml_type_t *Type;
 	const ml_type_t **Types;
@@ -121,7 +128,7 @@ long ml_hash(ml_value_t *Value);
 typedef ml_value_t *(*ml_callback_t)(void *Data, int Count, ml_value_t **Args);
 typedef void (*ml_callbackx_t)(ml_state_t *Frame, void *Data, int Count, ml_value_t **Args);
 
-/****************************** Boxing ******************************/
+// Boxing //
 
 #ifdef USE_NANBOXING
 
@@ -150,7 +157,7 @@ static inline double ml_to_double(ml_value_t *Value) {
 
 #endif
 
-/****************************** Iterators ******************************/
+// Iterators //
 
 extern ml_type_t MLIteratableT[];
 
@@ -159,7 +166,7 @@ void ml_iter_value(ml_state_t *Caller, ml_value_t *Iter);
 void ml_iter_key(ml_state_t *Caller, ml_value_t *Iter);
 void ml_iter_next(ml_state_t *Caller, ml_value_t *Iter);
 
-/****************************** Functions ******************************/
+// Functions //
 
 extern ml_type_t MLFunctionT[];
 
@@ -240,7 +247,7 @@ static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Arg
 #define ML_RETURN(VALUE) return Caller->run(Caller, (ml_value_t *)(VALUE))
 #define ML_ERROR(ARGS...) ML_RETURN(ml_error(ARGS))
 
-/****************************** Tuples ******************************/
+// Tuples //
 
 typedef struct ml_tuple_t ml_tuple_t;
 
@@ -268,7 +275,7 @@ static inline ml_value_t *ml_tuple_set(ml_value_t *Tuple, int Index, ml_value_t 
 
 ml_value_t *ml_unpack(ml_value_t *Value, int Index);
 
-/****************************** Booleans ******************************/
+// Booleans //
 
 typedef struct ml_boolean_t {
 	const ml_type_t *Type;
@@ -283,7 +290,7 @@ extern ml_boolean_t MLFalse[];
 ml_value_t *ml_boolean(int Value);
 int ml_boolean_value(ml_value_t *Value);
 
-/****************************** Numbers ******************************/
+// Numbers //
 
 extern ml_type_t MLNumberT[];
 extern ml_type_t MLIntegerT[];
@@ -307,7 +314,7 @@ ml_value_t *ml_real_of(ml_value_t *Value);
 extern ml_value_t *MLIntegerOfMethod;
 extern ml_value_t *MLRealOfMethod;
 
-/****************************** Strings ******************************/
+// Strings //
 
 typedef struct ml_buffer_t ml_buffer_t;
 
@@ -385,7 +392,7 @@ ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value)
 
 extern ml_value_t *MLStringBufferAppendMethod;
 
-/****************************** Lists ******************************/
+// Lists //
 
 typedef struct ml_list_node_t ml_list_node_t;
 typedef struct ml_list_t ml_list_t;
@@ -483,7 +490,7 @@ static inline void ml_list_iter_update(ml_list_iter_t *Iter, ml_value_t *Value) 
 #define ML_LIST_REVERSE(LIST, ITER) \
 	for (ml_list_node_t *ITER = ((ml_list_t *)LIST)->Tail; ITER; ITER = ITER->Prev)
 
-/****************************** Maps ******************************/
+// Maps //
 
 typedef struct ml_map_t ml_map_t;
 typedef struct ml_map_node_t ml_map_node_t;
@@ -579,7 +586,7 @@ static inline void ml_map_iter_update(ml_map_iter_t *Iter, ml_value_t *Value) {
 #define ML_MAP_FOREACH(LIST, ITER) \
 	for (ml_map_node_t *ITER = ((ml_map_t *)LIST)->Head; ITER; ITER = ITER->Next)
 
-/****************************** Names ******************************/
+// Names //
 
 extern ml_type_t MLNamesT[];
 
@@ -595,7 +602,7 @@ static inline void ml_names_add(ml_value_t *Names, ml_value_t *Value) {
 
 #define ML_NAMES_FOREACH(LIST, ITER) ML_LIST_FOREACH(LIST, ITER)
 
-/****************************** Methods ******************************/
+// Methods //
 
 extern ml_type_t MLMethodT[];
 
@@ -658,7 +665,7 @@ static inline ml_value_t *ml_nop(ml_value_t *Value) {
 
 void ml_methods_context_new(ml_context_t *Context);
 
-/****************************** Modules ******************************/
+// Modules //
 
 extern ml_type_t MLModuleT[];
 
@@ -667,7 +674,7 @@ const char *ml_module_path(ml_value_t *Module);
 ml_value_t *ml_module_import(ml_value_t *Module, const char *Name);
 ml_value_t *ml_module_export(ml_value_t *Module, const char *Name, ml_value_t *Value);
 
-/****************************** Init ******************************/
+// Init //
 
 #ifdef USE_NANBOXING
 
