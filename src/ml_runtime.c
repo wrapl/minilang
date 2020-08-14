@@ -167,10 +167,10 @@ ml_value_state_t *ml_call_state_new() {
 }
 
 ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args) {
-	ml_value_state_t *State = ml_value_state_new();
-	ml_call(State, Value, Count, Args);
-	ml_value_t *Result = State->Value;
-	ml_value_state_free(State);
+	static ml_value_state_t State = {{MLStateT, NULL, (void *)ml_value_state_run, &MLRootContext}, MLNil};
+	ml_call(&State, Value, Count, Args);
+	ml_value_t *Result = State.Value;
+	State.Value = MLNil;
 	return Result;
 }
 

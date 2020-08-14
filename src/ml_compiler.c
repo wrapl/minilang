@@ -602,16 +602,10 @@ static mlc_compiled_t ml_def_expr_compile(mlc_function_t *Function, mlc_decl_exp
 static mlc_compiled_t ml_defx_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
 	ml_value_t *Result = ml_expr_evaluate(Expr->Child, Function);
 	if (ml_is_error(Result)) ml_expr_error(Expr, Result);
-	if (ml_typeof(Result) != MLTupleT) {
-		ml_expr_error(Expr, ml_error("ValueError", "Result is not a tuple"));
-	}
-	ml_tuple_t *Tuple = (ml_tuple_t *)Result;
-	if (Tuple->Size < Expr->Count) {
-		ml_expr_error(Expr, ml_error("ValueError", "Tuple has too few values (%d < %d)", Tuple->Size, Expr->Count));
-	}
 	ml_decl_t *Decl = Expr->Decl;
 	for (int I = Expr->Count; --I >= 0;) {
-		ml_value_t *Value = ml_typeof(Tuple->Values[I])->deref(Tuple->Values[I]);
+		ml_value_t *Value = ml_unpack(Result, I);
+		if (!Value) ml_expr_error(Expr, ml_error("ValueError", "Not enough values to unpack (%d < %d)", I, Expr->Count));
 		if (ml_is_error(Value)) ml_expr_error(Expr, Value);
 		ml_decl_set_value(Decl, Value);
 		Decl = Decl->Next;
@@ -1256,6 +1250,7 @@ static mlc_compiled_t ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_
 	if (!Value) {
 		ml_expr_error(Expr, ml_error("CompilerError", "identifier %s not declared", Expr->Ident));
 	}
+	if (ml_is_error(Value)) ml_expr_error(Expr, Value);
 	return ml_ident_expr_finish(Expr, Value);
 }
 

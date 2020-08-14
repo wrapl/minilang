@@ -609,17 +609,15 @@ static ml_value_t *ml_tuple_deref(ml_tuple_t *Ref) {
 	return (ml_value_t *)Ref;
 }
 
-static ml_value_t *ml_tuple_assign(ml_tuple_t *Ref, ml_value_t *Value) {
-	if (ml_typeof(Value) != MLTupleT) return ml_error("TypeError", "Can only assign a tuple to a tuple");
-	ml_tuple_t *TupleValue = (ml_tuple_t *)Value;
-	size_t Count = Ref->Size;
-	if (TupleValue->Size < Count) Count = TupleValue->Size;
-	ml_value_t **Values = TupleValue->Values;
+static ml_value_t *ml_tuple_assign(ml_tuple_t *Ref, ml_value_t *Values) {
+	int Count = Ref->Size;
 	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Result = ml_typeof(Ref->Values[I])->assign(Ref->Values[I], Values[I]);
+		ml_value_t *Value = ml_unpack(Values, I);
+		if (!Value) return ml_error("ValueError", "Not enough values to unpack (%d < %d)", I, Count);
+		ml_value_t *Result = ml_typeof(Ref->Values[I])->assign(Ref->Values[I], Value);
 		if (ml_is_error(Result)) return Result;
 	}
-	return Value;
+	return Values;
 }
 
 ML_FUNCTION(MLTuple) {
@@ -3271,7 +3269,7 @@ static ml_value_t *ml_list_slice_assign(ml_list_slice_t *Slice, ml_value_t *Pack
 	while (Node && Length) {
 		ml_value_t *Value = ml_unpack(Packed, Index);
 		if (!Value) {
-			return ml_error("ValueError", "Incorrect number of values to unpack (%d != %d)", Index, Slice->Length);
+			return ml_error("ValueError", "Incorrect number of values to unpack (%d < %d)", Index, Slice->Length);
 		}
 		++Index;
 		Node->Value = Value;
@@ -3299,9 +3297,9 @@ ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
 	ml_list_t *List = (ml_list_t *)Args[0];
 	int Start = ml_integer_value(Args[1]);
 	int End = ml_integer_value(Args[2]);
-	if (--Start < 0) Start += List->Length + 1;
-	if (--End < 0) End += List->Length + 1;
-	if (Start < 0 || End < Start || End > List->Length) return MLNil;
+	if (Start <= 0) Start += List->Length + 1;
+	if (End <= 0) End += List->Length + 1;
+	if (Start <= 0 || End < Start || End > List->Length + 1) return MLNil;
 	ml_list_slice_t *Slice = new(ml_list_slice_t);
 	Slice->Type = MLListSliceT;
 	Slice->Head = ml_list_index(List, Start);
