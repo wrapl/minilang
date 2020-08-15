@@ -57,3 +57,9 @@ types
 :mini:`meth string(Arg₁: some)`
    *Defined at line 1898 in src/ml_types.c*
 
+:mini:`meth :sort(Arg₁: list)`
+   *Defined at line 3535 in src/ml_types.c*
+
+:mini:`meth :sort(Arg₁: list, Arg₂: function)`
+   *Defined at line 3539 in src/ml_types.c*
+

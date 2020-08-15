@@ -44,60 +44,60 @@ list
 
    Indexing starts at :mini:`1`. Negative indices are counted from the end of the list, with :mini:`-1` returning the last node.
 
-   *Defined at line 3235 in src/ml_types.c*
+   *Defined at line 3225 in src/ml_types.c*
 
 :mini:`listslice`
    A slice of a list.
 
-   *Defined at line 3282 in src/ml_types.c*
+   *Defined at line 3272 in src/ml_types.c*
 
 :mini:`meth [](List: list, From: integer, To: integer)` |rarr| :mini:`listslice`
    Returns a slice of :mini:`List` starting at :mini:`From` (inclusive) and ending at :mini:`To` (exclusive).
 
    Indexing starts at :mini:`1`. Negative indices are counted from the end of the list, with :mini:`-1` returning the last node.
 
-   *Defined at line 3289 in src/ml_types.c*
+   *Defined at line 3279 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: list)`
-   *Defined at line 3324 in src/ml_types.c*
+   *Defined at line 3314 in src/ml_types.c*
 
 :mini:`meth :push(List: list, Values...: any)` |rarr| :mini:`list`
    Pushes :mini:`Values` onto the start of :mini:`List` and returns :mini:`List`.
 
-   *Defined at line 3384 in src/ml_types.c*
+   *Defined at line 3374 in src/ml_types.c*
 
 :mini:`meth :put(List: list, Values...: any)` |rarr| :mini:`list`
    Pushes :mini:`Values` onto the end of :mini:`List` and returns :mini:`List`.
 
-   *Defined at line 3395 in src/ml_types.c*
+   *Defined at line 3385 in src/ml_types.c*
 
 :mini:`meth :pop(List: list)` |rarr| :mini:`any` or :mini:`nil`
    Removes and returns the first element of :mini:`List` or :mini:`nil` if the :mini:`List` is empty.
 
-   *Defined at line 3406 in src/ml_types.c*
+   *Defined at line 3396 in src/ml_types.c*
 
 :mini:`meth :pull(List: list)` |rarr| :mini:`any` or :mini:`nil`
    Removes and returns the last element of :mini:`List` or :mini:`nil` if the :mini:`List` is empty.
 
-   *Defined at line 3414 in src/ml_types.c*
+   *Defined at line 3404 in src/ml_types.c*
 
 :mini:`meth :copy(List: list)` |rarr| :mini:`list`
    Returns a (shallow) copy of :mini:`List`.
 
-   *Defined at line 3422 in src/ml_types.c*
+   *Defined at line 3412 in src/ml_types.c*
 
 :mini:`meth +(List₁: list, List₂: list)` |rarr| :mini:`list`
    Returns a new list with the elements of :mini:`List₁` followed by the elements of :mini:`List₂`.
 
-   *Defined at line 3432 in src/ml_types.c*
+   *Defined at line 3422 in src/ml_types.c*
 
 :mini:`meth string(List: list)` |rarr| :mini:`string`
    Returns a string containing the elements of :mini:`List` surrounded by :mini:`[`, :mini:`]` and seperated by :mini:`,`.
 
-   *Defined at line 3444 in src/ml_types.c*
+   *Defined at line 3434 in src/ml_types.c*
 
 :mini:`meth string(List: list, Seperator: string)` |rarr| :mini:`string`
    Returns a string containing the elements of :mini:`List` seperated by :mini:`Seperator`.
 
-   *Defined at line 3465 in src/ml_types.c*
+   *Defined at line 3455 in src/ml_types.c*
 

@@ -6,17 +6,17 @@ method
 :mini:`method`
    :Parents: :mini:`function`
 
-   *Defined at line 4241 in src/ml_types.c*
+   *Defined at line 4296 in src/ml_types.c*
 
 :mini:`meth method()` |rarr| :mini:`method`
-   *Defined at line 4264 in src/ml_types.c*
+   *Defined at line 4319 in src/ml_types.c*
 
 :mini:`meth method(Name: string)` |rarr| :mini:`method`
-   *Defined at line 4270 in src/ml_types.c*
+   *Defined at line 4325 in src/ml_types.c*
 
 :mini:`meth string(Arg₁: method)` |rarr| :mini:`string`
-   *Defined at line 4346 in src/ml_types.c*
+   *Defined at line 4401 in src/ml_types.c*
 
 :mini:`fun method::set(Method: method, Types...: type, Function: function)` |rarr| :mini:`Function`
-   *Defined at line 4367 in src/ml_types.c*
+   *Defined at line 4422 in src/ml_types.c*
 
