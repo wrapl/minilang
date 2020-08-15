@@ -185,7 +185,8 @@ ML_METHOD("set", CborStoreT, MLIntegerT, MLAnyT) {
 	size_t Index = ml_integer_value(Args[1]);
 	string_store_writer_t Writer[1];
 	string_store_writer_open(Writer, Store->Handle, Index);
-	ml_cbor_write(Args[2], Writer, (void *)string_store_writer_write);
+	ml_value_t *Error = ml_cbor_write(Args[2], Writer, (void *)string_store_writer_write);
+	if (Error) return Error;
 	return Args[2];
 }
 
