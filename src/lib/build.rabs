@@ -6,10 +6,8 @@ var SourceTypes := {
 }
 
 fun minilang_lib(Library, Objects, Libraries) do
-	Objects := Objects or []
-	Libraries := Libraries or []
 	var Sources := []
-	for Object in Objects do
+	for Object in Objects or [] do
 		for Extension, Functions in SourceTypes do
 			var Source := Object % Extension
 			if Source:exists then

@@ -24,7 +24,6 @@ ML_TYPE(MLFileT, (), "file",
 );
 
 static void ml_file_finalize(ml_file_t *File, void *Data) {
-	printf("ml_file_finalize!\n");
 	if (File->Handle) {
 		fclose(File->Handle);
 		File->Handle = NULL;
