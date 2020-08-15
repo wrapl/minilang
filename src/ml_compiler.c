@@ -1866,7 +1866,7 @@ static void ml_accept_eoi(mlc_scanner_t *Scanner) {
 	ml_accept(Scanner, MLT_EOI);
 }
 
-static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner);
+static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner, int MethDecl);
 static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner);
 static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner);
 
@@ -1920,7 +1920,7 @@ extern ml_value_t MLMethodSet[];
 static mlc_expr_t *ml_accept_meth_expr(mlc_scanner_t *Scanner) {
 	ML_EXPR(MethodExpr, parent_value, const_call);
 	MethodExpr->Value = MLMethodSet;
-	mlc_expr_t *Method = ml_parse_factor(Scanner);
+	mlc_expr_t *Method = ml_parse_factor(Scanner, 1);
 	if (!Method) ml_scanner_error(Scanner, "ParseError", "expected <factor> not <%s>", MLTokens[Scanner->Token]);
 	MethodExpr->Child = Method;
 	mlc_expr_t **ArgsSlot = &Method->Next;
@@ -2021,7 +2021,7 @@ static void ml_accept_arguments(mlc_scanner_t *Scanner, ml_token_t EndToken, mlc
 	}
 }
 
-static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
+static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner, int MethDecl) {
 	static void *CompileFns[] = {
 		[MLT_EACH] = ml_each_expr_compile,
 		[MLT_NOT] = ml_not_expr_compile,
@@ -2301,7 +2301,12 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 	case MLT_OPERATOR: {
 		Scanner->Token = MLT_NONE;
 		ml_value_t *Operator = ml_method(Scanner->Ident);
-		if (ml_parse(Scanner, MLT_LEFT_PAREN)) {
+		if (MethDecl) {
+			ML_EXPR(ValueExpr, value, value);
+			ValueExpr->Value = Operator;
+			ValueExpr->End = Scanner->Source.Line;
+			return (mlc_expr_t *)ValueExpr;
+		} else if (ml_parse(Scanner, MLT_LEFT_PAREN)) {
 			ML_EXPR(CallExpr, parent_value, const_call);
 			CallExpr->Value = Operator;
 			ml_accept_arguments(Scanner, MLT_RIGHT_PAREN, &CallExpr->Child);
@@ -2333,7 +2338,7 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner) {
 }
 
 static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner) {
-	mlc_expr_t *Expr = ml_parse_factor(Scanner);
+	mlc_expr_t *Expr = ml_parse_factor(Scanner, 0);
 	if (!Expr) return NULL;
 	for (;;) {
 		switch (ml_next(Scanner)) {

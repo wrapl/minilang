@@ -3220,16 +3220,6 @@ ML_METHOD("filter", MLListT, MLFunctionT) {
 	List->CachedIndex = Length;
 	List->CachedNode = KeepTail;
 	return (ml_value_t *)Drop;
-
-
-
-	ml_value_t *New = ml_list();
-	ML_LIST_FOREACH(List, Node) {
-		ml_value_t *Result = ml_simple_inline(Filter, 1, Node->Value);
-		if (ml_is_error(Result)) return Result;
-		if (Result != MLNil) ml_list_put(New, Node->Value);
-	}
-	return New;
 }
 
 ML_METHOD("[]", MLListT, MLIntegerT) {
@@ -3483,6 +3473,71 @@ ML_METHOD(MLStringOfMethod, MLListT, MLStringT) {
 		}
 	}
 	return ml_stringbuffer_get_string(Buffer);
+}
+
+static ml_value_t *ml_list_sort(ml_list_t *List, ml_value_t *Compare) {
+	ml_list_node_t *Head = List->Head;
+	int InSize = 1;
+	for (;;) {
+		ml_list_node_t *P = Head;
+		ml_list_node_t *Tail = Head = 0;
+		int NMerges = 0;
+		while (P) {
+			NMerges++;
+			ml_list_node_t *Q = P;
+			int PSize = 0;
+			for (int I = 0; I < InSize; I++) {
+				PSize++;
+				Q = Q->Next;
+				if (!Q) break;
+			}
+			int QSize = InSize;
+			ml_list_node_t *E;
+			while (PSize > 0 || (QSize > 0 && Q)) {
+				if (PSize == 0) {
+					E = Q; Q = Q->Next; QSize--;
+				} else if (QSize == 0 || !Q) {
+					E = P; P = P->Next; PSize--;
+				} else {
+					ml_value_t *Result = ml_simple_inline(Compare, 2, P->Value, Q->Value);
+					if (ml_is_error(Result)) return Result;
+					if (Result == MLNil) {
+						E = Q; Q = Q->Next; QSize--;
+					} else {
+						E = P; P = P->Next; PSize--;
+					}
+				}
+				if (Tail) {
+					Tail->Next = E;
+				} else {
+					Head = E;
+				}
+				E->Prev = Tail;
+				Tail = E;
+			}
+			P = Q;
+		}
+		Tail->Next = 0;
+		if (NMerges <= 1) {
+			List->Head = Head;
+			List->Tail = Tail;
+			List->CachedIndex = 1;
+			List->CachedNode = Head;
+			break;
+		}
+		InSize *= 2;
+	}
+	return (ml_value_t *)List;
+}
+
+static ML_METHOD_DECL(Less, "<");
+
+ML_METHOD("sort", MLListT) {
+	return ml_list_sort((ml_list_t *)Args[0], LessMethod);
+}
+
+ML_METHOD("sort", MLListT, MLFunctionT) {
+	return ml_list_sort((ml_list_t *)Args[0], Args[1]);
 }
 
 ML_TYPE(MLNamesT, (MLListT), "names",
