@@ -98,14 +98,14 @@ internal
 :mini:`names`
    :Parents: :mini:`list`
 
-   *Defined at line 3543 in src/ml_types.c*
+   *Defined at line 3550 in src/ml_types.c*
 
 :mini:`mapindex`
-   *Defined at line 3832 in src/ml_types.c*
+   *Defined at line 3839 in src/ml_types.c*
 
 :mini:`mapiter`
-   *Defined at line 4012 in src/ml_types.c*
+   *Defined at line 4019 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: method)`
-   *Defined at line 4413 in src/ml_types.c*
+   *Defined at line 4420 in src/ml_types.c*
 

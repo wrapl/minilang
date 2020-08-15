@@ -101,3 +101,9 @@ list
 
    *Defined at line 3455 in src/ml_types.c*
 
+:mini:`meth :sort(List: list)` |rarr| :mini:`List`
+   *Defined at line 3535 in src/ml_types.c*
+
+:mini:`meth :sort(List: list, Compare: function)` |rarr| :mini:`List`
+   *Defined at line 3542 in src/ml_types.c*
+

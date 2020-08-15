@@ -3533,10 +3533,17 @@ static ml_value_t *ml_list_sort(ml_list_t *List, ml_value_t *Compare) {
 static ML_METHOD_DECL(Less, "<");
 
 ML_METHOD("sort", MLListT) {
+//!list
+//<List
+//>List
 	return ml_list_sort((ml_list_t *)Args[0], LessMethod);
 }
 
 ML_METHOD("sort", MLListT, MLFunctionT) {
+//!list
+//<List
+//<Compare
+//>List
 	return ml_list_sort((ml_list_t *)Args[0], Args[1]);
 }
 
