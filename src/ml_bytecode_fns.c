@@ -23,7 +23,7 @@ extern void *MLCachedFrame;
 static void DO_RETURN_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst) {
 	ml_state_t *Caller = Frame->Base.Caller;
 	if (Frame->Reuse) {
-		for (ml_value_t **Top = Frame->Stack; Top < Frame->Top; ++Top) *Top = NULL;
+		memset(Frame, 0, ML_FRAME_REUSE_SIZE);
 		Frame->Base.Caller = MLCachedFrame;
 		MLCachedFrame = Frame;
 	}

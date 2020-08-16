@@ -189,7 +189,7 @@ typedef struct ml_double_t {
 	ml_value_t *Iteratable, *Function;
 } ml_double_t;
 
-ML_TYPE(MLDoubleT, (MLIteratableT), "double");
+ML_TYPE(MLChainedIteratorT, (MLIteratableT), "double");
 
 typedef struct ml_double_state_t {
 	ml_state_t Base;
@@ -199,7 +199,7 @@ typedef struct ml_double_state_t {
 	ml_value_t *Arg;
 } ml_double_state_t;
 
-ML_TYPE(MLDoubleStateT, (MLStateT), "double-state");
+ML_TYPE(MLChainedIteratorStateT, (MLStateT), "double-state");
 
 static void ml_double_iter0_next(ml_double_state_t *State, ml_value_t *Value);
 
@@ -236,9 +236,9 @@ static void ml_double_iter0_next(ml_double_state_t *State, ml_value_t *Value) {
 	return ml_iter_value((ml_state_t *)State, State->Iterator0 = Value);
 }
 
-static void ML_TYPED_FN(ml_iterate, MLDoubleT, ml_state_t *Caller, ml_double_t *Double) {
+static void ML_TYPED_FN(ml_iterate, MLChainedIteratorT, ml_state_t *Caller, ml_double_t *Double) {
 	ml_double_state_t *State = new(ml_double_state_t);
-	State->Base.Type = MLDoubleStateT;
+	State->Base.Type = MLChainedIteratorStateT;
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (void *)ml_double_iter0_next;
@@ -246,15 +246,15 @@ static void ML_TYPED_FN(ml_iterate, MLDoubleT, ml_state_t *Caller, ml_double_t *
 	return ml_iterate((ml_state_t *)State, Double->Iteratable);
 }
 
-static void ML_TYPED_FN(ml_iter_key, MLDoubleStateT, ml_state_t *Caller, ml_double_state_t *State) {
+static void ML_TYPED_FN(ml_iter_key, MLChainedIteratorStateT, ml_state_t *Caller, ml_double_state_t *State) {
 	return ml_iter_key(Caller, State->Iterator);
 }
 
-static void ML_TYPED_FN(ml_iter_value, MLDoubleStateT, ml_state_t *Caller, ml_double_state_t *State) {
+static void ML_TYPED_FN(ml_iter_value, MLChainedIteratorStateT, ml_state_t *Caller, ml_double_state_t *State) {
 	return ml_iter_value(Caller, State->Iterator);
 }
 
-static void ML_TYPED_FN(ml_iter_next, MLDoubleStateT, ml_state_t *Caller, ml_double_state_t *State) {
+static void ML_TYPED_FN(ml_iter_next, MLChainedIteratorStateT, ml_state_t *Caller, ml_double_state_t *State) {
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (void *)ml_double_iter_next;
@@ -263,7 +263,7 @@ static void ML_TYPED_FN(ml_iter_next, MLDoubleStateT, ml_state_t *Caller, ml_dou
 
 ML_METHOD("->>", MLIteratableT, MLFunctionT) {
 	ml_double_t *Double = new(ml_double_t);
-	Double->Type = MLDoubleT;
+	Double->Type = MLChainedIteratorT;
 	Double->Iteratable = Args[0];
 	Double->Function = Args[1];
 	return (ml_value_t *)Double;

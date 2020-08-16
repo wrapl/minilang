@@ -77,6 +77,8 @@ static inline ml_inst_t *ml_inst_new(int N, ml_source_t Source, ml_opcode_t Opco
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
+#define MLCF_POTENTIAL_ASSIGNMENT 1
+
 struct mlc_function_t {
 	mlc_context_t *Context;
 	ml_inst_t *ReturnInst;
@@ -872,13 +874,7 @@ static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_
 
 static mlc_compiled_t ml_assign_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
 	int OldSelf = Function->Self;
-	mlc_compiled_t Compiled;
-	if (Expr->Child) {
-		Compiled = mlc_compile(Function, Expr->Child);
-	} else {
-		ml_inst_t *NilInst = ml_inst_new(1, Expr->Source, MLI_NIL);
-		Compiled.Start = Compiled.Exits = NilInst;
-	}
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
 	ml_inst_t *PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
 	mlc_connect(Compiled.Exits, PushInst);
 	Function->Self = Function->Top++;
@@ -964,7 +960,7 @@ static mlc_compiled_t ml_map_expr_compile(mlc_function_t *Function, mlc_parent_e
 
 static mlc_compiled_t ml_call_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
 	for (mlc_expr_t *Child = Expr->Child->Next; Child; Child = Child->Next) {
-		if (Child->compile == ml_blank_expr_compile) {
+		if (Child->compile == (void *)ml_blank_expr_compile) {
 			mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
 			ml_inst_t *PartialInst = ml_inst_new(2, Expr->Source, MLI_PARTIAL_NEW);
 			mlc_connect(Compiled.Exits, PartialInst);
@@ -972,7 +968,7 @@ static mlc_compiled_t ml_call_expr_compile(mlc_function_t *Function, mlc_parent_
 			ml_inst_t *LastInst = PartialInst;
 			++Function->Top;
 			for (mlc_expr_t *Child = Expr->Child->Next; Child; Child = Child->Next, ++NumArgs) {
-				if (Child->compile != ml_blank_expr_compile) {
+				if (Child->compile != (void *)ml_blank_expr_compile) {
 					mlc_compiled_t ChildCompiled = mlc_compile(Function, Child);
 					ml_inst_t *SetInst = ml_inst_new(2, Expr->Source, MLI_PARTIAL_SET);
 					SetInst->Params[1].Count = NumArgs;
@@ -1020,7 +1016,7 @@ struct mlc_parent_value_expr_t {
 
 static mlc_compiled_t ml_const_call_expr_compile(mlc_function_t *Function, mlc_parent_value_expr_t *Expr) {
 	for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next) {
-		if (Child->compile == ml_blank_expr_compile) {
+		if (Child->compile == (void *)ml_blank_expr_compile) {
 			ml_inst_t *LoadInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
 			LoadInst->Params[1].Value = Expr->Value;
 			mlc_compiled_t Compiled = {LoadInst, NULL};
@@ -1030,7 +1026,7 @@ static mlc_compiled_t ml_const_call_expr_compile(mlc_function_t *Function, mlc_p
 			ml_inst_t *LastInst = PartialInst;
 			++Function->Top;
 			for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next, ++NumArgs) {
-				if (Child->compile != ml_blank_expr_compile) {
+				if (Child->compile != (void *)ml_blank_expr_compile) {
 					mlc_compiled_t ChildCompiled = mlc_compile(Function, Child);
 					ml_inst_t *SetInst = ml_inst_new(2, Expr->Source, MLI_PARTIAL_SET);
 					SetInst->Params[1].Count = NumArgs;

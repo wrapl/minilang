@@ -23,12 +23,12 @@ iterator
 :mini:`meth ?>(ChainedFunction: chainedfunction, Function: function)` |rarr| :mini:`chainedfunction`
    *Defined at line 169 in src/ml_iterfns.c*
 
-:mini:`double`
+:mini:`chainediterator`
    :Parents: :mini:`iteratable`
 
    *Defined at line 192 in src/ml_iterfns.c*
 
-:mini:`doublestate`
+:mini:`chainediteratorstate`
    :Parents: :mini:`state`
 
    *Defined at line 202 in src/ml_iterfns.c*

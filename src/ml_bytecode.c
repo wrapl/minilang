@@ -1,7 +1,7 @@
 #ifndef DEBUG_VERSION
 #include "ml_macros.h"
 #include "stringmap.h"
-#include <gc.h>
+#include <gc/gc.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -55,7 +55,6 @@ struct DEBUG_STRUCT(frame) {
 	ml_value_t **Top;
 	ml_inst_t *OnError;
 	ml_value_t **UpValues;
-	unsigned int Counter;
 	unsigned int Reuse:1;
 	unsigned int Reentry:1;
 #ifdef USE_ML_SCHEDULER
@@ -138,7 +137,7 @@ ML_TYPE(DEBUG_TYPE(Suspension), (MLFunctionT), "suspension",
 #ifndef DEBUG_VERSION
 
 #ifdef USE_ML_SCHEDULER
-#define CHECK_COUNTER if (--Frame->Counter == 0) goto DO_SWAP;
+#define CHECK_COUNTER if (--Counter == 0) goto DO_SWAP;
 #else
 #define CHECK_COUNTER
 #endif
@@ -184,11 +183,9 @@ ML_TYPE(DEBUG_TYPE(Suspension), (MLFunctionT), "suspension",
 void *MLCachedFrame = NULL;
 #endif
 
-#define ML_FRAME_REUSE_SIZE 224
-
 static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
 #ifdef USE_ML_SCHEDULER
-	Frame->Counter = Frame->Schedule.Counter[0];
+	int Counter = Frame->Schedule.Counter[0];
 #endif
 #ifdef ML_USE_INST_FNS
 #ifndef DEBUG_VERSION
@@ -219,6 +216,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_TRY] = &&DO_TRY,
 		[MLI_CATCH] = &&DO_CATCH,
 		[MLI_LOAD] = &&DO_LOAD,
+		[MLI_LOAD_PUSH] = &&DO_LOAD_PUSH,
 		[MLI_VAR] = &&DO_VAR,
 		[MLI_VARX] = &&DO_VARX,
 		[MLI_LET] = &&DO_LET,
@@ -232,6 +230,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_CONST_CALL] = &&DO_CONST_CALL,
 		[MLI_ASSIGN] = &&DO_ASSIGN,
 		[MLI_LOCAL] = &&DO_LOCAL,
+		[MLI_LOCAL_PUSH] = &&DO_LOCAL_PUSH,
 		[MLI_UPVALUE] = &&DO_UPVALUE,
 		[MLI_LOCALX] = &&DO_LOCALX,
 		[MLI_TUPLE_NEW] = &&DO_TUPLE_NEW,
@@ -261,12 +260,12 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 
 	DO_RETURN: {
 #ifdef USE_ML_SCHEDULER
-		Frame->Schedule.Counter[0] = Frame->Counter;
+		Frame->Schedule.Counter[0] = Counter;
 #endif
 		ml_state_t *Caller = Frame->Base.Caller;
 		if (Frame->Reuse) {
 			memset(Frame, 0, ML_FRAME_REUSE_SIZE);
-			Frame->Base.Caller = MLCachedFrame;
+			*(ml_frame_t **)Frame = MLCachedFrame;
 			MLCachedFrame = Frame;
 		} else {
 			Frame->Inst = Inst;
@@ -278,7 +277,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
 #ifdef USE_ML_SCHEDULER
-		Frame->Schedule.Counter[0] = Frame->Counter;
+		Frame->Schedule.Counter[0] = Counter;
 #endif
 		ML_CONTINUE(Frame->Base.Caller, (ml_value_t *)Frame);
 	}
@@ -403,6 +402,11 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Result = Inst->Params[1].Value;
 		ADVANCE(0);
 	}
+	DO_LOAD_PUSH: {
+		Result = Inst->Params[1].Value;
+		*Top++ = Result;
+		ADVANCE(0);
+	}
 	DO_VAR: {
 		Result = ml_deref(Result);
 		//ERROR_CHECK(Result);
@@ -469,7 +473,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
 #ifdef USE_ML_SCHEDULER
-		Frame->Schedule.Counter[0] = Frame->Counter;
+		Frame->Schedule.Counter[0] = Counter;
 #endif
 		return ml_iterate((ml_state_t *)Frame, Result);
 	}
@@ -480,7 +484,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
 #ifdef USE_ML_SCHEDULER
-		Frame->Schedule.Counter[0] = Frame->Counter;
+		Frame->Schedule.Counter[0] = Counter;
 #endif
 		return ml_iter_next((ml_state_t *)Frame, Result);
 	}
@@ -489,7 +493,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
 #ifdef USE_ML_SCHEDULER
-		Frame->Schedule.Counter[0] = Frame->Counter;
+		Frame->Schedule.Counter[0] = Counter;
 #endif
 		return ml_iter_value((ml_state_t *)Frame, Result);
 	}
@@ -498,7 +502,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
 #ifdef USE_ML_SCHEDULER
-		Frame->Schedule.Counter[0] = Frame->Counter;
+		Frame->Schedule.Counter[0] = Counter;
 #endif
 		return ml_iter_key((ml_state_t *)Frame, Result);
 	}
@@ -510,7 +514,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_value_t **Args = Top - Count;
 		ml_inst_t *Next = Inst->Params[0].Inst;
 #ifdef USE_ML_SCHEDULER
-		Frame->Schedule.Counter[0] = Frame->Counter;
+		Frame->Schedule.Counter[0] = Counter;
 #endif
 		if (Inst->Opcode == MLI_RETURN) {
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
@@ -526,7 +530,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_value_t **Args = Top - Count;
 		ml_inst_t *Next = Inst->Params[0].Inst;
 #ifdef USE_ML_SCHEDULER
-		Frame->Schedule.Counter[0] = Frame->Counter;
+		Frame->Schedule.Counter[0] = Counter;
 #endif
 		if (Inst->Opcode == MLI_RETURN) {
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
@@ -548,6 +552,12 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_LOCAL: {
 		int Index = Inst->Params[1].Index;
 		Result = Frame->Stack[Index];
+		ADVANCE(0);
+	}
+	DO_LOCAL_PUSH: {
+		int Index = Inst->Params[1].Index;
+		Result = Frame->Stack[Index];
+		*Top++ = Result;
 		ADVANCE(0);
 	}
 	DO_UPVALUE: {
@@ -685,7 +695,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	DEBUG_STRUCT(frame) *Frame;
 	if (Size <= ML_FRAME_REUSE_SIZE) {
 		if ((Frame = MLCachedFrame)) {
-			MLCachedFrame = Frame->Base.Caller;
+			MLCachedFrame = *(ml_frame_t **)Frame;
 		} else {
 			Frame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
 		}
@@ -817,6 +827,7 @@ const char *MLInsts[] = {
 	"try", // MLI_TRY,
 	"catch", // MLI_CATCH,
 	"load", // MLI_LOAD,
+	"push", // MLI_LOAD_PUSH,
 	"var", // MLI_VAR,
 	"varx", // MLI_VARX,
 	"let", // MLI_LET,
@@ -830,6 +841,7 @@ const char *MLInsts[] = {
 	"const_call", // MLI_CONST_CALL,
 	"assign", // MLI_ASSIGN,
 	"local", // MLI_LOCAL,
+	"push_local", // MLI_LOCAL_PUSH,
 	"upvalue", // MLI_UPVALUE,
 	"localx", // MLI_LOCALX,
 	"tuple_new", // MLI_TUPLE_NEW,
@@ -851,7 +863,7 @@ const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INST, // MLI_SOME,
 	MLIT_INST_INST, // MLI_IF,
 	MLIT_INST_INST, // MLI_ELSE,
-	MLIT_INST, // MLI_PUSH,
+	MLIT_INST, // MLI_PUSH,,
 	MLIT_INST, // MLI_WITH,
 	MLIT_INST, // MLI_WITH_VAR,
 	MLIT_INST_COUNT, // MLI_WITHX,
@@ -862,6 +874,7 @@ const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INST_INST, // MLI_TRY,
 	MLIT_INST_INDEX, // MLI_CATCH,
 	MLIT_INST_VALUE, // MLI_LOAD,
+	MLIT_INST_VALUE, // MLI_LOAD_PUSH,
 	MLIT_INST_INDEX, // MLI_VAR,
 	MLIT_INST_INDEX_COUNT, // MLI_VARX,
 	MLIT_INST_INDEX, // MLI_LET,
@@ -875,6 +888,7 @@ const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INST_COUNT_VALUE, // MLI_CONST_CALL,
 	MLIT_INST, // MLI_ASSIGN,
 	MLIT_INST_INDEX, // MLI_LOCAL,
+	MLIT_INST_INDEX, // MLI_PUSH_LOCAL,
 	MLIT_INST_INDEX, // MLI_UPVALUE,
 	MLIT_INST_INDEX, // MLI_LOCALX,
 	MLIT_INST_COUNT, // MLI_TUPLE_NEW,
@@ -896,6 +910,13 @@ static void ml_inst_process(int Process, ml_inst_t *Source, ml_inst_t *Inst, uns
 	if (!Source || (Source->LineNo != Inst->LineNo)) Inst->PotentialBreakpoint = 1;
 	if (Inst->Processed == Process) return;
 	Inst->Processed = Process;
+	if (Inst->Opcode == MLI_LOAD && Inst->Params[0].Inst->Opcode == MLI_PUSH) {
+		Inst->Opcode = MLI_LOAD_PUSH;
+		Inst->Params[0].Inst = Inst->Params[0].Inst->Params[0].Inst;
+	} else if (Inst->Opcode == MLI_LOCAL && Inst->Params[0].Inst->Opcode == MLI_PUSH) {
+		Inst->Opcode = MLI_LOCAL_PUSH;
+		Inst->Params[0].Inst = Inst->Params[0].Inst->Params[0].Inst;
+	}
 #ifdef ML_USE_INST_FNS
 	Inst->run = MLInstFns[Inst->Opcode];
 #endif

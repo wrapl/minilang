@@ -46,6 +46,7 @@ Details
    /types
    /embedding
    /api
+   /internals
 
 .. toctree::
    :maxdepth: 1

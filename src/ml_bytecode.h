@@ -73,6 +73,7 @@ typedef enum {
 	MLI_TRY,
 	MLI_CATCH,
 	MLI_LOAD,
+	MLI_LOAD_PUSH,
 	MLI_VAR,
 	MLI_VARX,
 	MLI_LET,
@@ -86,6 +87,7 @@ typedef enum {
 	MLI_CONST_CALL,
 	MLI_ASSIGN,
 	MLI_LOCAL,
+	MLI_LOCAL_PUSH,
 	MLI_UPVALUE,
 	MLI_LOCALX,
 	MLI_TUPLE_NEW,
@@ -138,7 +140,6 @@ struct ml_frame_t {
 	ml_value_t **Top;
 	ml_inst_t *OnError;
 	ml_value_t **UpValues;
-	unsigned int Counter;
 	unsigned int Reuse:1;
 	unsigned int Reentry:1;
 #ifdef USE_ML_SCHEDULER
@@ -149,6 +150,8 @@ struct ml_frame_t {
 
 #define ML_FRAME_REUSE (1 << 0)
 #define ML_FRAME_REENTRY (1 << 1)
+
+#define ML_FRAME_REUSE_SIZE 224
 
 typedef struct ml_variable_t ml_variable_t;
 

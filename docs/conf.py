@@ -72,7 +72,7 @@ author = 'Raja Mukherji'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 
-extensions = []
+extensions = ['sphinx.ext.graphviz']
 
 
 # Add any paths that contain templates here, relative to this directory.
@@ -140,4 +140,4 @@ def setup(sphinx):
 	lexers.LEXERS['mini'] = ('minilang', 'Minilang', ('mini',), ('*.mini', '*.rabs'), ('text/x-mini',))
 	#sphinx.add_domain(minilangDomain) 
 	sphinx.add_directive('folders', FoldersDirective)
-	sphinx.add_stylesheet('css/custom.css')
+	sphinx.add_css_file('css/custom.css')
