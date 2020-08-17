@@ -78,13 +78,6 @@ ML_FUNCTION(MLError) {
 	return ml_error(ml_string_value(Args[0]), "%s", ml_string_value(Args[1]));
 }
 
-ML_FUNCTION(MLBreak) {
-#ifdef DEBUG
-	asm("int3");
-#endif
-	return MLNil;
-}
-
 ML_FUNCTION(MLHalt) {
 	if (Count > 0) {
 		ML_CHECK_ARG_TYPE(0, MLIntegerT);
@@ -148,7 +141,6 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "clock", MLClock);
 	stringmap_insert(Globals, "print", MLPrint);
 	stringmap_insert(Globals, "error", MLError);
-	stringmap_insert(Globals, "break", MLBreak);
 	stringmap_insert(Globals, "halt", MLHalt);
 	stringmap_insert(Globals, "collect", MLCollect);
 	stringmap_insert(Globals, "callcc", MLCallCC);
