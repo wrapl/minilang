@@ -18,18 +18,15 @@ general
 :mini:`fun mlerror(Arg₁: string, Arg₂: string)`
    *Defined at line 74 in src/minilang.c*
 
-:mini:`fun mlbreak()`
+:mini:`fun mlhalt()`
    *Defined at line 81 in src/minilang.c*
 
-:mini:`fun mlhalt()`
-   *Defined at line 88 in src/minilang.c*
-
 :mini:`fun mlcollect()`
-   *Defined at line 97 in src/minilang.c*
+   *Defined at line 90 in src/minilang.c*
 
 :mini:`fun mltest(Arg₁: string, Arg₂: any)`
-   *Defined at line 102 in src/minilang.c*
+   *Defined at line 95 in src/minilang.c*
 
 :mini:`fun import(Arg₁: string)`
-   *Defined at line 118 in src/minilang.c*
+   *Defined at line 111 in src/minilang.c*
 

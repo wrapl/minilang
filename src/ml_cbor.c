@@ -467,7 +467,7 @@ static void ml_cbor_write_array_dim(int Degree, ml_array_dimension_t *Dimension,
 	}
 }
 
-static void ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char *Data, ml_cbor_write_fn WriteFn) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char *Data, ml_cbor_write_fn WriteFn) {
 	static uint64_t Tags[] = {
 		[ML_ARRAY_FORMAT_I8] = 72,
 		[ML_ARRAY_FORMAT_U8] = 64,
@@ -497,6 +497,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char *Data, 
 	ml_cbor_write_tag(Data, WriteFn, Tags[Array->Format]);
 	ml_cbor_write_bytes(Data, WriteFn, Size);
 	ml_cbor_write_array_dim(FlatDegree, Array->Dimensions, Array->Base.Address, Data, WriteFn);
+	return NULL;
 }
 
 static ml_value_t *ml_cbor_read_multi_array_fn(void *Data, int Count, ml_value_t **Args) {

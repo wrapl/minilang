@@ -1308,12 +1308,13 @@ void ml_cbor_write_closure(ml_closure_t *Closure, ml_stringbuffer_t *Buffer) {
 	}
 }
 
-void ML_TYPED_FN(ml_cbor_write, MLClosureT, ml_closure_t *Closure, void *Data, ml_cbor_write_fn WriteFn) {
+ml_value_t *ML_TYPED_FN(ml_cbor_write, MLClosureT, ml_closure_t *Closure, void *Data, ml_cbor_write_fn WriteFn) {
 	ml_cbor_write_tag(Data, WriteFn, 36); // TODO: Pick correct tag
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_cbor_write_closure(Closure, Buffer);
 	ml_cbor_write_bytes(Data, WriteFn, Buffer->Length);
 	ml_stringbuffer_foreach(Buffer, Data, WriteFn);
+	return NULL;
 }
 
 typedef struct {
