@@ -33,14 +33,14 @@ array
    *Defined at line 444 in src/ml_array.c*
 
 :mini:`meth -(Arg₁: array)`
-   *Defined at line 1122 in src/ml_array.c*
+   *Defined at line 1124 in src/ml_array.c*
 
 :mini:`meth :copy(Array: array)` |rarr| :mini:`array`
-   *Defined at line 1453 in src/ml_array.c*
+   *Defined at line 1455 in src/ml_array.c*
 
 :mini:`meth :copy(Array: array, Function: function)` |rarr| :mini:`array`
-   *Defined at line 1508 in src/ml_array.c*
+   *Defined at line 1510 in src/ml_array.c*
 
 :mini:`meth :update(Array: array, Function: function)` |rarr| :mini:`array`
-   *Defined at line 1636 in src/ml_array.c*
+   *Defined at line 1638 in src/ml_array.c*
 

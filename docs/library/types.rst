@@ -57,3 +57,15 @@ types
 :mini:`meth string(Arg₁: some)`
    *Defined at line 1898 in src/ml_types.c*
 
+:mini:`meth list()`
+   *Defined at line 3051 in src/ml_types.c*
+
+:mini:`meth list(Arg₁: nil)`
+   *Defined at line 3055 in src/ml_types.c*
+
+:mini:`meth map()`
+   *Defined at line 3605 in src/ml_types.c*
+
+:mini:`meth map(Arg₁: nil)`
+   *Defined at line 3609 in src/ml_types.c*
+
