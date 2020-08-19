@@ -16,7 +16,7 @@ ml_value_t *ml_file_new(FILE *File);
 
 extern ml_cfunction_t MLFileOpen[];
 
-FILE *ml_file_handle(ml_value_t *Value);
+FILE *ml_file_handle(ml_value_t *Value) __attribute__((pure));
 
 #ifdef	__cplusplus
 }

@@ -17,7 +17,7 @@ ml_value_t *interactive_debugger(
 	void *Data,
 	ml_getter_t GlobalGet,
 	void *Globals
-);
+) __attribute__ ((malloc));
 
 ml_value_t *interactive_debugger_get(interactive_debugger_t *Debugger, const char *Name);
 void interactive_debugger_resume(interactive_debugger_t *Debugger);

@@ -29,7 +29,7 @@ static inline int compare(long Hash, const char *Key, stringmap_node_t *Node) {
 	return strcmp(Key, Node->Key);
 }
 
-void *stringmap_search(stringmap_t *Map, const char *Key) {
+void *stringmap_search(const stringmap_t *Map, const char *Key) {
 	stringmap_node_t *Node = Map->Root;
 	long Hash = stringmap_hash(Key);
 	while (Node) {

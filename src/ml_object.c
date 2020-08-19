@@ -269,19 +269,19 @@ ML_FUNCTION(MLProperty) {
 	return (ml_value_t *)Property;
 }
 
-size_t ml_class_size(ml_value_t *Value) {
+size_t ml_class_size(const ml_value_t *Value) {
 	return ((ml_class_t *)Value)->NumFields;
 }
 
-ml_value_t *ml_class_field(ml_value_t *Value, size_t Field) {
+ml_value_t *ml_class_field(const ml_value_t *Value, size_t Field) {
 	return ((ml_class_t *)Value)->Fields[Field];
 }
 
-size_t ml_object_size(ml_value_t *Value) {
+size_t ml_object_size(const ml_value_t *Value) {
 	return ((ml_class_t *)ml_typeof(Value))->NumFields;
 }
 
-ml_value_t *ml_object_field(ml_value_t *Value, size_t Field) {
+ml_value_t *ml_object_field(const ml_value_t *Value, size_t Field) {
 	return ((ml_object_t *)Value)->Fields[Field];
 }
 

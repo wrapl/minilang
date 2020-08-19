@@ -447,6 +447,7 @@ static void console_include_fnx(ml_state_t *Caller, console_t *Console, int Coun
 	ML_CHECKX_ARG_TYPE(0, MLStringT);
 	ml_state_t *State = new(ml_state_t);
 	State->Caller = Caller;
+	State->Context = Caller->Context;
 	State->run = console_included_run;
 	return ml_load(State, (ml_getter_t)console_global_get, Console, ml_string_value(Args[0]), NULL);
 }

@@ -374,15 +374,15 @@ ml_value_t *ml_error(const char *Error, const char *Format, ...) {
 	return Value;
 }
 
-const char *ml_error_type(ml_value_t *Value) {
+const char *ml_error_type(const ml_value_t *Value) {
 	return ((ml_error_t *)Value)->Error;
 }
 
-const char *ml_error_message(ml_value_t *Value) {
+const char *ml_error_message(const ml_value_t *Value) {
 	return ((ml_error_t *)Value)->Message;
 }
 
-int ml_error_source(ml_value_t *Value, int Level, ml_source_t *Source) {
+int ml_error_source(const ml_value_t *Value, int Level, ml_source_t *Source) {
 	ml_error_t *Error = (ml_error_t *)Value;
 	if (Level >= MAX_TRACE) return 0;
 	if (!Error->Trace[Level].Name) return 0;
@@ -399,7 +399,7 @@ ml_value_t *ml_error_trace_add(ml_value_t *Value, ml_source_t Source) {
 	return Value;
 }
 
-void ml_error_print(ml_value_t *Value) {
+void ml_error_print(const ml_value_t *Value) {
 	ml_error_t *Error = (ml_error_t *)Value;
 	printf("Error: %s\n", Error->Message);
 	for (int I = 0; (I < MAX_TRACE) && Error->Trace[I].Name; ++I) {
@@ -407,7 +407,7 @@ void ml_error_print(ml_value_t *Value) {
 	}
 }
 
-void ml_error_fprint(FILE *File, ml_value_t *Value) {
+void ml_error_fprint(FILE *File, const ml_value_t *Value) {
 	ml_error_t *Error = (ml_error_t *)Value;
 	fprintf(File, "Error: %s\n", Error->Message);
 	for (int I = 0; (I < MAX_TRACE) && Error->Trace[I].Name; ++I) {

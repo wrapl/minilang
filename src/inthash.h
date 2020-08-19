@@ -17,9 +17,9 @@ struct inthash_t {
 
 #define INTHASH_INIT {NULL, 0, 0}
 
-inthash_t *inthash_new();
+inthash_t *inthash_new() __attribute__ ((malloc));
 
-void *inthash_search(const inthash_t *Map, uintptr_t Key);
+void *inthash_search(const inthash_t *Map, uintptr_t Key) __attribute__ ((pure));
 void *inthash_insert(inthash_t *Map, uintptr_t Key, void *Value);
 int inthash_foreach(inthash_t *Map, void *Data, int (*callback)(uintptr_t, void *, void *));
 

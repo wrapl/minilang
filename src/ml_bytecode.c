@@ -202,6 +202,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_SUSPEND] = &&DO_SUSPEND,
 		[MLI_RESUME] = &&DO_RESUME,
 		[MLI_NIL] = &&DO_NIL,
+		[MLI_NIL_PUSH] = &&DO_NIL_PUSH,
 		[MLI_SOME] = &&DO_SOME,
 		[MLI_IF] = &&DO_IF,
 		[MLI_ELSE] = &&DO_ELSE,
@@ -287,6 +288,11 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_NIL: {
 		Result = MLNil;
+		ADVANCE(0);
+	}
+	DO_NIL_PUSH: {
+		Result = MLNil;
+		*Top++ = Result;
 		ADVANCE(0);
 	}
 	DO_SOME: {
@@ -813,6 +819,7 @@ const char *MLInsts[] = {
 	"suspend", // MLI_SUSPEND,
 	"resume", // MLI_RESUME,
 	"nil", // MLI_NIL,
+	"push_nil", // MLI_NIL_PUSH,
 	"some", // MLI_SOME,
 	"if", // MLI_IF,
 	"else", // MLI_ELSE,
@@ -860,6 +867,7 @@ const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INST, // MLI_SUSPEND,
 	MLIT_INST, // MLI_RESUME,
 	MLIT_INST, // MLI_NIL,
+	MLIT_INST, // MLI_NIL_PUSH,
 	MLIT_INST, // MLI_SOME,
 	MLIT_INST_INST, // MLI_IF,
 	MLIT_INST_INST, // MLI_ELSE,
@@ -915,6 +923,9 @@ static void ml_inst_process(int Process, ml_inst_t *Source, ml_inst_t *Inst, uns
 		Inst->Params[0].Inst = Inst->Params[0].Inst->Params[0].Inst;
 	} else if (Inst->Opcode == MLI_LOCAL && Inst->Params[0].Inst->Opcode == MLI_PUSH) {
 		Inst->Opcode = MLI_LOCAL_PUSH;
+		Inst->Params[0].Inst = Inst->Params[0].Inst->Params[0].Inst;
+	} else if (Inst->Opcode == MLI_NIL && Inst->Params[0].Inst->Opcode == MLI_PUSH) {
+		Inst->Opcode = MLI_NIL_PUSH;
 		Inst->Params[0].Inst = Inst->Params[0].Inst->Params[0].Inst;
 	}
 #ifdef ML_USE_INST_FNS

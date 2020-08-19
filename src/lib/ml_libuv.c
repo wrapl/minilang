@@ -143,7 +143,7 @@ ML_METHODX("write", MLUVFileT, MLStringT) {
 	ml_uv_file_t *File = (ml_uv_file_t *)Args[0];
 	ml_uv_fs_buf_t *Request = xnew(ml_uv_fs_buf_t, 1, uv_buf_t);
 	Request->Base.data = Caller;
-	Request->IOV[0].base = ml_string_value(Args[1]);
+	Request->IOV[0].base = (char *)ml_string_value(Args[1]);
 	Request->IOV[0].len = ml_string_length(Args[1]);
 	uv_fs_write(Loop, (uv_fs_t *)Request, File->Handle, Request->IOV, 1, -1, (uv_fs_cb)ml_uv_fs_write_cb);
 }
@@ -175,7 +175,7 @@ void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) 
 	uv_idle_init(Loop, Idle);
 	Idle->data = ml_list();
 #include "ml_libuv_init.c"
-	ml_module_export(Module, "fs_open", FSOpen);
-	ml_module_export(Module, "run", Run);
-	ml_module_export(Module, "sleep", Sleep);
+	ml_module_export(Module, "fs_open", (ml_value_t *)FSOpen);
+	ml_module_export(Module, "run", (ml_value_t *)Run);
+	ml_module_export(Module, "sleep", (ml_value_t *)Sleep);
 }

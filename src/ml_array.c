@@ -217,7 +217,7 @@ static void ml_array_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value
 	return ml_array_typed_new_fnx(Caller, (void *)Format, Count - 1, Args + 1);
 }
 
-ml_value_t *ml_array_wrap_fn(void *Data, int Count, ml_value_t **Args) {
+static __attribute__ ((malloc)) ml_value_t *ml_array_wrap_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(3);
 	ML_CHECK_ARG_TYPE(1, MLBufferT);
 	ML_CHECK_ARG_TYPE(2, MLListT);
@@ -950,6 +950,7 @@ CTYPE ml_array_get_ ## CTYPE(ml_array_t *Array, ...) { \
 	va_start(Indices, Array); \
 	char *Address = ml_array_index(Array, Indices); \
 	va_end(Indices); \
+	if (!Address) return 0; \
 	switch (Array->Format) { \
 	case ML_ARRAY_FORMAT_NONE: break; \
 	case ML_ARRAY_FORMAT_I8: return FROM_NUM(*(int8_t *)Address); \
@@ -972,6 +973,7 @@ void ml_array_set_ ## CTYPE(CTYPE Value, ml_array_t *Array, ...) { \
 	va_start(Indices, Array); \
 	char *Address = ml_array_index(Array, Indices); \
 	va_end(Indices); \
+	if (!Address) return; \
 	switch (Array->Format) { \
 	case ML_ARRAY_FORMAT_NONE: break; \
 	case ML_ARRAY_FORMAT_I8: *(int8_t *)Address = TO_NUM((int8_t)0, Value); break; \
@@ -1380,7 +1382,7 @@ static ml_value_t *ml_array_of_fill(ml_array_format_t Format, ml_array_dimension
 	return NULL;
 }
 
-static ml_array_format_t ml_array_of_type_guess(ml_value_t *Value, ml_array_format_t Format) {
+static __attribute__ ((pure)) ml_array_format_t ml_array_of_type_guess(ml_value_t *Value, ml_array_format_t Format) {
 	if (ml_is(Value, MLListT)) {
 		ML_LIST_FOREACH(Value, Iter) {
 			Format = ml_array_of_type_guess(Iter->Value, Format);

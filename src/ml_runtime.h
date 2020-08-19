@@ -20,7 +20,7 @@ struct ml_context_t {
 
 extern ml_context_t MLRootContext;
 
-ml_context_t *ml_context_new(ml_context_t *Parent);
+ml_context_t *ml_context_new(ml_context_t *Parent) __attribute__((malloc));
 
 int ml_context_index_new();
 
@@ -49,7 +49,7 @@ typedef struct {
 } ml_value_state_t;
 
 void ml_value_state_run(ml_value_state_t *State, ml_value_t *Value);
-ml_value_state_t *ml_value_state_new();
+ml_value_state_t *ml_value_state_new() __attribute__ ((malloc));
 void ml_value_state_free(ml_value_state_t *State);
 
 void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value);
@@ -79,14 +79,14 @@ struct ml_reference_t {
 	ml_value_t **Address;
 };
 
-ml_value_t *ml_reference(ml_value_t **Address);
+ml_value_t *ml_reference(ml_value_t **Address) __attribute__((malloc));
 
 typedef struct ml_source_t {
 	const char *Name;
 	int Line;
 } ml_source_t;
 
-ml_value_t *ml_uninitialized();
+ml_value_t *ml_uninitialized() __attribute__((malloc));
 void ml_uninitialized_use(ml_value_t *Uninitialized, ml_value_t **Slot);
 void ml_uninitialized_set(ml_value_t *Uninitialized, ml_value_t *Value);
 
@@ -105,14 +105,14 @@ static inline int ml_is_error(ml_value_t *Value) {
 #endif
 }
 
-ml_value_t *ml_error(const char *Error, const char *Format, ...) __attribute__ ((format(printf, 2, 3)));
-ml_value_t *ml_errorv(const char *Error, const char *Format, va_list Args);
-const char *ml_error_type(ml_value_t *Value);
-const char *ml_error_message(ml_value_t *Value);
-int ml_error_source(ml_value_t *Value, int Level, ml_source_t *Source);
+ml_value_t *ml_error(const char *Error, const char *Format, ...) __attribute__ ((malloc, format(printf, 2, 3)));
+ml_value_t *ml_errorv(const char *Error, const char *Format, va_list Args) __attribute__ ((malloc));
+const char *ml_error_type(const ml_value_t *Value) __attribute__ ((pure));
+const char *ml_error_message(const ml_value_t *Value) __attribute__ ((pure));
+int ml_error_source(const ml_value_t *Value, int Level, ml_source_t *Source);
 ml_value_t *ml_error_trace_add(ml_value_t *Error, ml_source_t Source);
-void ml_error_print(ml_value_t *Error);
-void ml_error_fprint(FILE *File, ml_value_t *Error);
+void ml_error_print(const ml_value_t *Error);
+void ml_error_fprint(FILE *File, const ml_value_t *Error);
 
 ml_value_t *ml_string_fn(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_list_fn(void *Data, int Count, ml_value_t **Args);

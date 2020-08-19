@@ -827,7 +827,7 @@ ML_TYPE(MLBooleanT, (MLFunctionT), "boolean",
 	.hash = (void *)ml_boolean_hash
 );
 
-int ml_boolean_value(ml_value_t *Value) {
+int ml_boolean_value(const ml_value_t *Value) {
 	return ((ml_boolean_t *)Value)->Value;
 }
 
@@ -1012,7 +1012,7 @@ ml_value_t *ml_integer(long Value) {
 	return (ml_value_t *)Integer;
 }
 
-long ml_integer_value(ml_value_t *Value) {
+long ml_integer_value(const ml_value_t *Value) {
 	if (Value->Type == MLIntegerT) {
 		return ((ml_integer_t *)Value)->Value;
 	} else if (Value->Type == MLRealT) {
@@ -1107,7 +1107,7 @@ ml_value_t *ml_real(double Value) {
 	return (ml_value_t *)Real;
 }
 
-double ml_real_value(ml_value_t *Value) {
+double ml_real_value(const ml_value_t *Value) {
 	if (Value->Type == MLIntegerT) {
 		return ((ml_integer_t *)Value)->Value;
 	} else if (Value->Type == MLRealT) {
@@ -1728,7 +1728,7 @@ ML_METHOD("-", MLBufferT, MLBufferT) {
 ML_METHOD(MLStringOfMethod, MLBufferT) {
 //!buffer
 	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
-	return ml_string_format("#%" PRIxPTR ":%ld", Buffer->Address, Buffer->Size);
+	return ml_string_format("#%" PRIxPTR ":%ld", (uintptr_t)Buffer->Address, Buffer->Size);
 }
 
 #ifdef USE_NANBOXING
@@ -1844,11 +1844,11 @@ ml_value_t *ml_string(const char *Value, int Length) {
 	return (ml_value_t *)String;
 }
 
-const char *ml_string_value(ml_value_t *Value) {
+const char *ml_string_value(const ml_value_t *Value) {
 	return ((ml_string_t *)Value)->Value;
 }
 
-size_t ml_string_length(ml_value_t *Value) {
+size_t ml_string_length(const ml_value_t *Value) {
 	return ((ml_string_t *)Value)->Length;
 }
 
@@ -2043,7 +2043,7 @@ ml_value_t *ml_regex(const char *Pattern) {
 	return (ml_value_t *)Regex;
 }
 
-regex_t *ml_regex_value(ml_value_t *Value) {
+regex_t *ml_regex_value(const ml_value_t *Value) {
 	ml_regex_t *Regex = (ml_regex_t *)Value;
 	return Regex->Value;
 }
@@ -3048,6 +3048,14 @@ ml_value_t *ml_list() {
 	return (ml_value_t *)List;
 }
 
+ML_METHOD(MLListOfMethod) {
+	return ml_list();
+}
+
+ML_METHOD(MLListOfMethod, MLNilT) {
+	return ml_list();
+}
+
 ml_value_t *ml_list_from_array(ml_value_t **Values, int Length) {
 	ml_value_t *List = ml_list();
 	for (int I = 0; I < Length; ++I) ml_list_put(List, Values[I]);
@@ -3592,6 +3600,14 @@ ml_value_t *ml_map() {
 	ml_map_t *Map = new(ml_map_t);
 	Map->Type = MLMapT;
 	return (ml_value_t *)Map;
+}
+
+ML_METHOD(MLMapOfMethod) {
+	return ml_map();
+}
+
+ML_METHOD(MLMapOfMethod, MLNilT) {
+	return ml_map();
 }
 
 static ml_map_node_t *ml_map_find_node(ml_map_t *Map, ml_value_t *Key) {
@@ -4146,7 +4162,7 @@ struct ml_method_definition_t {
 	const ml_type_t *Types[];
 };
 
-static unsigned int ml_method_definition_score(ml_method_definition_t *Definition, int Count, const ml_type_t **Types, unsigned int Best) {
+static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_definition_t *Definition, int Count, const ml_type_t **Types, unsigned int Best) {
 	unsigned int Score = 1;
 	if (Definition->Count > Count) return 0;
 	if (Definition->Count < Count) {
@@ -4257,7 +4273,7 @@ void ml_method_define(ml_value_t *Method, ml_value_t *Function, int Variadic, ..
 
 static stringmap_t Methods[1] = {STRINGMAP_INIT};
 
-const char *ml_method_name(ml_value_t *Value) {
+const char *ml_method_name(const ml_value_t *Value) {
 	return ((ml_method_t *)Value)->Name;
 }
 

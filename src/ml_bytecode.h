@@ -59,6 +59,7 @@ typedef enum {
 	MLI_SUSPEND,
 	MLI_RESUME,
 	MLI_NIL,
+	MLI_NIL_PUSH,
 	MLI_SOME,
 	MLI_IF,
 	MLI_ELSE,

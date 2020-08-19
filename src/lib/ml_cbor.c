@@ -28,10 +28,10 @@ static void ml_cbor_bytes_fn(unsigned char **End, unsigned char *Bytes, int Size
 ml_cbor_t ml_to_cbor(ml_value_t *Value) {
 	size_t Size = 0;
 	ml_value_t *Error = ml_cbor_write(Value, &Size, (void *)ml_cbor_size_fn);
-	if (Error) return (ml_cbor_t){Error, -1};
+	if (Error) return (ml_cbor_t){{Error}, 0};
 	unsigned char *Bytes = GC_MALLOC_ATOMIC(Size), *End = Bytes;
 	ml_cbor_write(Value, &End, (void *)ml_cbor_bytes_fn);
-	return (ml_cbor_t){Bytes, Size};
+	return (ml_cbor_t){{Bytes}, Size};
 }
 
 typedef struct block_t {
@@ -343,7 +343,7 @@ static ml_value_t *ml_to_cbor_fn(void *Data, int Count, ml_value_t **Args) {
 static ml_value_t *ml_from_cbor_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
-	ml_cbor_t Cbor = {ml_string_value(Args[0]), ml_string_length(Args[0])};
+	ml_cbor_t Cbor = {{ml_string_value(Args[0])}, ml_string_length(Args[0])};
 	return ml_from_cbor(Cbor, Count > 1 ? Args[1] : (ml_value_t *)DefaultTagFn, (void *)ml_value_tag_fn);
 }
 

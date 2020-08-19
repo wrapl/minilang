@@ -11,12 +11,21 @@ CFLAGS := old + [
 	"-Wall", "-Wstrict-aliasing",
 	"-Wno-deprecated-declarations",
 	"-Wno-unused-function",
+	"-Werror=cast-function-type",
+	:>"-Wsuggest-attribute=pure",
+	:>"-Wsuggest-attribute=const",
+	:>"-Wsuggest-attribute=noreturn",
+	:>"-Wsuggest-attribute=malloc",
 	"-I.", "-pthread",
 	"-DGC_THREADS",
 	"-D_GNU_SOURCE",
 	'-D{PLATFORM}'
 ]
 LDFLAGS := old + ["-lm"]
+
+if defined("ANALYZER") then
+	CFLAGS:put("-fanalyzer")
+end
 
 if DEBUG then
 	CFLAGS := old + ["-g", "-DGC_DEBUG", "-DDEBUG"]
