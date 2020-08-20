@@ -7,7 +7,7 @@ bytecode
    *Defined at line 26 in src/ml_bytecode.c*
 
 :mini:`closure`
-   :Parents: :mini:`function`
+   :Parents: :mini:`function`, :mini:`iteratable`
 
    *Defined at line 1010 in src/ml_bytecode.c*
 

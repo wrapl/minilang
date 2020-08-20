@@ -53,10 +53,9 @@ ML_INTERFACE(MLIteratableT, (), "iteratable");
 //!iterator
 // The base type for any iteratable value.
 
-ML_INTERFACE(MLFunctionT, (MLIteratableT), "function");
+ML_INTERFACE(MLFunctionT, (), "function");
 //!function
 // The base type of all functions.
-// All functions are considered iteratable, they can return an iterator when called.
 
 ML_FUNCTION(MLTypeOf) {
 //!type
@@ -197,7 +196,7 @@ ML_METHOD("::", MLTypeT, MLStringT) {
 
 // Values //
 
-ML_TYPE(MLNilT, (), "nil");
+ML_TYPE(MLNilT, (MLIteratableT), "nil");
 //!internal
 
 ML_TYPE(MLSomeT, (), "some");
@@ -215,6 +214,10 @@ int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
 		if (Type == Expected) return 1;
 	}
 	return 0;
+}
+
+static void ML_TYPED_FN(ml_iterate, MLNilT, ml_state_t *Caller, ml_value_t *Value) {
+	ML_RETURN(Value);
 }
 
 ML_METHOD("?", MLAnyT) {
@@ -957,7 +960,7 @@ ML_TYPE(MLInt64T, (MLIntegerT), "int64",
 	.hash = (void *)ml_int64_hash
 );
 
-ml_value_t *ml_integer(int64_t Integer) {
+ml_value_t *ml_integer(const int64_t Integer) {
 	if (Integer >= INT32_MIN && Integer <= INT32_MAX) {
 		return ml_int32(Integer);
 	} else {
@@ -968,7 +971,7 @@ ml_value_t *ml_integer(int64_t Integer) {
 	}
 }
 
-long ml_integer_value(ml_value_t *Value) {
+long ml_integer_value(const ml_value_t *Value) {
 	int Tag = ml_tag(Value);
 	if (Tag == 1) return (int32_t)(intptr_t)Value;
 	if (Tag >= 7) return ml_to_double(Value);
@@ -1064,7 +1067,7 @@ ml_value_t *ml_real(double Value) {
 	return Boxed.Value;
 }
 
-double ml_real_value(ml_value_t *Value) {
+double ml_real_value(const ml_value_t *Value) {
 	int Tag = ml_tag(Value);
 	if (Tag == 1) return (uint64_t)Value & 0xFFFFFFFF;
 	if (Tag >= 7) return ml_to_double(Value);
@@ -1798,7 +1801,7 @@ ML_METHOD("+", MLStringShortT, MLIntegerT) {
 	return String;
 }
 
-size_t ml_string_length(ml_value_t *Value) {
+size_t ml_string_length(const ml_value_t *Value) {
 	int Tag = ml_tag(Value);
 	if (Tag >= 2 && Tag <= 6) return Tag - 2;
 	if (Tag == 0 && Value->Type == MLStringLongT) {
@@ -2020,7 +2023,10 @@ ML_FUNCTION(MLRegex) {
 // Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
-	return ml_regex(ml_string_value(Args[0]));
+	const char *Pattern = ml_string_value(Args[0]);
+	int Length = ml_string_length(Args[0]);
+	if (Pattern[Length]) return ml_error("ValueError", "Regex pattern must be proper string");
+	return ml_regex(Pattern);
 }
 
 ML_TYPE(MLRegexT, (), "regex",
@@ -2047,6 +2053,36 @@ regex_t *ml_regex_value(const ml_value_t *Value) {
 	ml_regex_t *Regex = (ml_regex_t *)Value;
 	return Regex->Value;
 }
+
+const char *ml_regex_pattern(const ml_value_t *Value) {
+	ml_regex_t *Regex = (ml_regex_t *)Value;
+	return Regex->Pattern;
+}
+
+ML_METHOD("<>", MLRegexT, MLRegexT) {
+//!string
+	const char *PatternA = ml_regex_pattern(Args[0]);
+	const char *PatternB = ml_regex_pattern(Args[1]);
+	int Compare = strcmp(PatternA, PatternB);
+	if (Compare < 0) return (ml_value_t *)NegOne;
+	if (Compare > 0) return (ml_value_t *)One;
+	return (ml_value_t *)Zero;
+}
+
+#define ml_comp_method_regex_regex(NAME, SYMBOL) \
+	ML_METHOD(NAME, MLRegexT, MLRegexT) { \
+		const char *PatternA = ml_regex_pattern(Args[0]); \
+		const char *PatternB = ml_regex_pattern(Args[1]); \
+		int Compare = strcmp(PatternA, PatternB); \
+		return Compare SYMBOL 0 ? Args[1] : MLNil; \
+	}
+
+ml_comp_method_regex_regex("=", ==)
+ml_comp_method_regex_regex("!=", !=)
+ml_comp_method_regex_regex("<", <)
+ml_comp_method_regex_regex(">", >)
+ml_comp_method_regex_regex("<=", <=)
+ml_comp_method_regex_regex(">=", >=)
 
 ML_FUNCTION(MLStringBuffer) {
 //!stringbuffer
@@ -3017,7 +3053,7 @@ static void ml_list_call(ml_state_t *Caller, ml_list_t *List, int Count, ml_valu
 	ML_RETURN(Node ? Node->Value : MLNil);
 }
 
-ML_TYPE(MLListT, (MLFunctionT), "list",
+ML_TYPE(MLListT, (MLFunctionT, MLIteratableT), "list",
 //!list
 // A list of elements.
 	.call = (void *)ml_list_call
@@ -3052,8 +3088,11 @@ ML_METHOD(MLListOfMethod) {
 	return ml_list();
 }
 
-ML_METHOD(MLListOfMethod, MLNilT) {
-	return ml_list();
+ML_METHOD(MLListOfMethod, MLTupleT) {
+	ml_value_t *List = ml_list();
+	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
+	for (int I = 0; I < Tuple->Size; ++I) ml_list_put(List, Tuple->Values[I]);
+	return List;
 }
 
 ml_value_t *ml_list_from_array(ml_value_t **Values, int Length) {
@@ -3571,7 +3610,7 @@ static void ml_map_call(ml_state_t *Caller, ml_value_t *Map, int Count, ml_value
 	ML_RETURN(Value);
 }
 
-ML_TYPE(MLMapT, (MLFunctionT), "map",
+ML_TYPE(MLMapT, (MLFunctionT, MLIteratableT), "map",
 //!map
 // A map of key-value pairs.
 // Keys can be of any type supporting hashing and comparison.
@@ -3603,10 +3642,6 @@ ml_value_t *ml_map() {
 }
 
 ML_METHOD(MLMapOfMethod) {
-	return ml_map();
-}
-
-ML_METHOD(MLMapOfMethod, MLNilT) {
 	return ml_map();
 }
 

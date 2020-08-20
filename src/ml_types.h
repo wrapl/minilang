@@ -141,8 +141,8 @@ static inline int ml_is_double(ml_value_t *Value) {
 	return ml_tag(Value) >= 7;
 }
 
-static inline double ml_to_double(ml_value_t *Value) {
-	union { ml_value_t *Value; uint64_t Bits; double Double; } Boxed;
+static inline double ml_to_double(const ml_value_t *Value) {
+	union { const ml_value_t *Value; uint64_t Bits; double Double; } Boxed;
 	Boxed.Value = Value;
 	Boxed.Bits -= 0x07000000000000;
 	return Boxed.Double;
