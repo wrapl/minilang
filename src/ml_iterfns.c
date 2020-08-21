@@ -981,7 +981,8 @@ ML_METHOD("skip", MLIteratableT, MLIntegerT) {
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Result;
-	size_t Waiting;
+	ml_state_t *Limited;
+	size_t Waiting, Limit, Burst;
 } ml_tasks_t;
 
 static void ml_tasks_call(ml_state_t *Caller, ml_tasks_t *Tasks, int Count, ml_value_t **Args) {
@@ -991,7 +992,12 @@ static void ml_tasks_call(ml_state_t *Caller, ml_tasks_t *Tasks, int Count, ml_v
 	ml_value_t *Function = Args[Count - 1];
 	++Tasks->Waiting;
 	ml_call(Tasks, Function, Count - 1, Args);
-	ML_RETURN(Tasks);
+	if (Tasks->Waiting > Tasks->Limit) {
+		if (Tasks->Limited) ML_ERROR("TasksError", "Already waiting on another task");
+		Tasks->Limited = Caller;
+	} else {
+		ML_RETURN(Tasks->Result);
+	}
 }
 
 ML_TYPE(MLTasksT, (MLFunctionT), "tasks",
@@ -1000,7 +1006,13 @@ ML_TYPE(MLTasksT, (MLFunctionT), "tasks",
 
 static void ml_tasks_continue(ml_tasks_t *Tasks, ml_value_t *Value) {
 	if (ml_is_error(Value)) Tasks->Result = Value;
-	if (--Tasks->Waiting == 0) ML_CONTINUE(Tasks->Base.Caller, Tasks->Result);
+	--Tasks->Waiting;
+	if (Tasks->Limited && Tasks->Waiting <= Tasks->Burst) {
+		ml_state_t *Caller = Tasks->Limited;
+		Tasks->Limited = NULL;
+		ML_RETURN(Tasks->Result);
+	}
+	if (Tasks->Waiting == 0) ML_CONTINUE(Tasks->Base.Caller, Tasks->Result);
 }
 
 ML_FUNCTIONX(Tasks) {
@@ -1011,6 +1023,19 @@ ML_FUNCTIONX(Tasks) {
 	Tasks->Base.Context = Caller->Context;
 	Tasks->Result = MLNil;
 	Tasks->Waiting = 1;
+	if (Count >= 2) {
+		ML_CHECKX_ARG_TYPE(0, MLIntegerT);
+		ML_CHECKX_ARG_TYPE(1, MLIntegerT);
+		Tasks->Limit = ml_integer_value(Args[1]);
+		Tasks->Burst = ml_integer_value(Args[0]) + 1;
+	} else if (Count >= 1) {
+		ML_CHECKX_ARG_TYPE(0, MLIntegerT);
+		Tasks->Limit = ml_integer_value(Args[0]);
+		Tasks->Burst = SIZE_MAX;
+	} else {
+		Tasks->Limit = SIZE_MAX;
+		Tasks->Burst = SIZE_MAX;
+	}
 	ML_RETURN(Tasks);
 }
 
@@ -1022,7 +1047,12 @@ ML_METHODVX("add", MLTasksT, MLAnyT) {
 	ml_value_t *Function = Args[Count - 1];
 	++Tasks->Waiting;
 	ml_call(Tasks, Function, Count - 2, Args + 1);
-	ML_RETURN(Tasks);
+	if (Tasks->Waiting > Tasks->Limit) {
+		if (Tasks->Limited) ML_ERROR("TasksError", "Already waiting on another task");
+		Tasks->Limited = Caller;
+	} else {
+		ML_RETURN(Tasks->Result);
+	}
 }
 
 ML_METHODX("wait", MLTasksT) {
