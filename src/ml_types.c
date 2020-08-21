@@ -2336,6 +2336,48 @@ ML_METHOD("trim", MLStringT, MLStringT) {
 	return ml_string((const char *)Start, Length);
 }
 
+ML_METHOD("ltrim", MLStringT) {
+//!string
+	const char *Start = ml_string_value(Args[0]);
+	const char *End = Start + ml_string_length(Args[0]);
+	while (Start < End && Start[0] <= ' ') ++Start;
+	int Length = End - Start;
+	return ml_string(Start, Length);
+}
+
+ML_METHOD("ltrim", MLStringT, MLStringT) {
+//!string
+	char Trim[256] = {0,};
+	const unsigned char *P = (const unsigned char *)ml_string_value(Args[1]);
+	for (int Length = ml_string_length(Args[1]); --Length >= 0; ++P) Trim[*P] = 1;
+	const unsigned char *Start = (const unsigned char *)ml_string_value(Args[0]);
+	const unsigned char *End = Start + ml_string_length(Args[0]);
+	while (Start < End && Trim[Start[0]]) ++Start;
+	int Length = End - Start;
+	return ml_string((const char *)Start, Length);
+}
+
+ML_METHOD("rtrim", MLStringT) {
+//!string
+	const char *Start = ml_string_value(Args[0]);
+	const char *End = Start + ml_string_length(Args[0]);
+	while (Start < End && End[-1] <= ' ') --End;
+	int Length = End - Start;
+	return ml_string(Start, Length);
+}
+
+ML_METHOD("rtrim", MLStringT, MLStringT) {
+//!string
+	char Trim[256] = {0,};
+	const unsigned char *P = (const unsigned char *)ml_string_value(Args[1]);
+	for (int Length = ml_string_length(Args[1]); --Length >= 0; ++P) Trim[*P] = 1;
+	const unsigned char *Start = (const unsigned char *)ml_string_value(Args[0]);
+	const unsigned char *End = Start + ml_string_length(Args[0]);
+	while (Start < End && Trim[End[-1]]) --End;
+	int Length = End - Start;
+	return ml_string((const char *)Start, Length);
+}
+
 ML_METHOD("length", MLStringT) {
 //!string
 	return ml_integer(ml_string_length(Args[0]));

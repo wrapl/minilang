@@ -134,16 +134,16 @@ iterator
 :mini:`tasks`
    :Parents: :mini:`function`
 
-   *Defined at line 997 in src/ml_iterfns.c*
+   *Defined at line 1002 in src/ml_iterfns.c*
 
 :mini:`fun tasks()`
-   *Defined at line 1006 in src/ml_iterfns.c*
-
-:mini:`meth :add(Arg₁: tasks, Arg₂: any)`
    *Defined at line 1017 in src/ml_iterfns.c*
 
+:mini:`meth :add(Arg₁: tasks, Arg₂: any)`
+   *Defined at line 1041 in src/ml_iterfns.c*
+
 :mini:`meth :wait(Arg₁: tasks)`
-   *Defined at line 1028 in src/ml_iterfns.c*
+   *Defined at line 1056 in src/ml_iterfns.c*
 
 :mini:`fun parallel(Iteratable: iteratable, Max: ?integer, Min: ?integer, Function: function)` |rarr| :mini:`nil` or :mini:`error`
    Iterates through :mini:`Iteratable` and calls :mini:`Function(Key, Value)` for each :mini:`Key, Value` pair produced **without** waiting for the call to return.
@@ -154,65 +154,65 @@ iterator
 
    If :mini:`Min` is also given then iteration will be resumed only when the number of calls to :mini:`Function` drops to :mini:`Min`.
 
-   *Defined at line 1094 in src/ml_iterfns.c*
+   *Defined at line 1122 in src/ml_iterfns.c*
 
 :mini:`unique`
    :Parents: :mini:`iteratable`
 
-   *Defined at line 1147 in src/ml_iterfns.c*
+   *Defined at line 1175 in src/ml_iterfns.c*
 
 :mini:`uniquestate`
-   *Defined at line 1157 in src/ml_iterfns.c*
+   *Defined at line 1185 in src/ml_iterfns.c*
 
 :mini:`fun unique(Arg₁: any)`
-   *Defined at line 1204 in src/ml_iterfns.c*
+   *Defined at line 1232 in src/ml_iterfns.c*
 
 :mini:`zipped`
    :Parents: :mini:`iteratable`
 
-   *Defined at line 1219 in src/ml_iterfns.c*
+   *Defined at line 1247 in src/ml_iterfns.c*
 
 :mini:`zippedstate`
-   *Defined at line 1229 in src/ml_iterfns.c*
+   *Defined at line 1257 in src/ml_iterfns.c*
 
 :mini:`fun zip(Arg₁: any)`
-   *Defined at line 1290 in src/ml_iterfns.c*
+   *Defined at line 1318 in src/ml_iterfns.c*
 
 :mini:`repeated`
    :Parents: :mini:`iteratable`
 
-   *Defined at line 1307 in src/ml_iterfns.c*
+   *Defined at line 1335 in src/ml_iterfns.c*
 
 :mini:`repeatedstate`
-   *Defined at line 1315 in src/ml_iterfns.c*
+   *Defined at line 1343 in src/ml_iterfns.c*
 
 :mini:`fun repeat(Arg₁: any)`
-   *Defined at line 1353 in src/ml_iterfns.c*
+   *Defined at line 1381 in src/ml_iterfns.c*
 
 :mini:`sequenced`
    :Parents: :mini:`iteratable`
 
-   *Defined at line 1367 in src/ml_iterfns.c*
+   *Defined at line 1395 in src/ml_iterfns.c*
 
 :mini:`sequencedstate`
-   *Defined at line 1374 in src/ml_iterfns.c*
+   *Defined at line 1402 in src/ml_iterfns.c*
 
 :mini:`meth ||(Arg₁: iteratable, Arg₂: iteratable)`
-   *Defined at line 1410 in src/ml_iterfns.c*
+   *Defined at line 1438 in src/ml_iterfns.c*
 
 :mini:`meth ||(Arg₁: iteratable)`
-   *Defined at line 1418 in src/ml_iterfns.c*
+   *Defined at line 1446 in src/ml_iterfns.c*
 
 :mini:`swapped`
    :Parents: :mini:`iteratable`
 
-   *Defined at line 1431 in src/ml_iterfns.c*
+   *Defined at line 1459 in src/ml_iterfns.c*
 
 :mini:`swappedstate`
-   *Defined at line 1438 in src/ml_iterfns.c*
+   *Defined at line 1466 in src/ml_iterfns.c*
 
 :mini:`meth :swap(Arg₁: iteratable)`
-   *Defined at line 1468 in src/ml_iterfns.c*
+   *Defined at line 1496 in src/ml_iterfns.c*
 
 :mini:`iteratable`
    The base type for any iteratable value.

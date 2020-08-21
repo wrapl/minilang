@@ -83,31 +83,31 @@ internal
    *Defined at line 2272 in src/ml_types.c*
 
 :mini:`stringifier`
-   *Defined at line 2957 in src/ml_types.c*
+   *Defined at line 2999 in src/ml_types.c*
 
 :mini:`meth string(Arg₁: stringifier)`
-   *Defined at line 2963 in src/ml_types.c*
+   *Defined at line 3005 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: stringifier)`
-   *Defined at line 2977 in src/ml_types.c*
+   *Defined at line 3019 in src/ml_types.c*
 
 :mini:`fun stringifiernew()`
-   *Defined at line 2988 in src/ml_types.c*
+   *Defined at line 3030 in src/ml_types.c*
 
 :mini:`listiter`
-   *Defined at line 3406 in src/ml_types.c*
+   *Defined at line 3448 in src/ml_types.c*
 
 :mini:`names`
    :Parents: :mini:`list`
 
-   *Defined at line 3597 in src/ml_types.c*
+   *Defined at line 3639 in src/ml_types.c*
 
 :mini:`mapindex`
-   *Defined at line 3890 in src/ml_types.c*
+   *Defined at line 3932 in src/ml_types.c*
 
 :mini:`mapiter`
-   *Defined at line 4070 in src/ml_types.c*
+   *Defined at line 4112 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: method)`
-   *Defined at line 4471 in src/ml_types.c*
+   *Defined at line 4513 in src/ml_types.c*
 

@@ -992,8 +992,7 @@ static void ml_tasks_call(ml_state_t *Caller, ml_tasks_t *Tasks, int Count, ml_v
 	ml_value_t *Function = Args[Count - 1];
 	++Tasks->Waiting;
 	ml_call(Tasks, Function, Count - 1, Args);
-	if (Tasks->Waiting > Tasks->Limit) {
-		if (Tasks->Limited) ML_ERROR("TasksError", "Already waiting on another task");
+	if (Tasks->Waiting > Tasks->Limit && !Tasks->Limited) {
 		Tasks->Limited = Caller;
 	} else {
 		ML_RETURN(Tasks->Result);
@@ -1047,8 +1046,7 @@ ML_METHODVX("add", MLTasksT, MLAnyT) {
 	ml_value_t *Function = Args[Count - 1];
 	++Tasks->Waiting;
 	ml_call(Tasks, Function, Count - 2, Args + 1);
-	if (Tasks->Waiting > Tasks->Limit) {
-		if (Tasks->Limited) ML_ERROR("TasksError", "Already waiting on another task");
+	if (Tasks->Waiting > Tasks->Limit && !Tasks->Limited) {
 		Tasks->Limited = Caller;
 	} else {
 		ML_RETURN(Tasks->Result);
