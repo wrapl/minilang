@@ -52,6 +52,7 @@ typedef union {
 	ml_value_t *Value;
 	ml_closure_info_t *ClosureInfo;
 	ml_decl_t *Decls;
+	const char *Ptr;
 } ml_param_t;
 
 typedef enum {
@@ -99,7 +100,11 @@ typedef enum {
 	MLI_MAP_INSERT,
 	MLI_CLOSURE,
 	MLI_PARTIAL_NEW,
-	MLI_PARTIAL_SET
+	MLI_PARTIAL_SET,
+	MLI_STRING_NEW,
+	MLI_STRING_ADD,
+	MLI_STRING_ADDS,
+	MLI_STRING_END
 } ml_opcode_t;
 
 typedef enum {
@@ -111,6 +116,7 @@ typedef enum {
 	MLIT_INST_COUNT,
 	MLIT_INST_COUNT_COUNT,
 	MLIT_INST_COUNT_VALUE,
+	MLIT_INST_COUNT_CHARS,
 	MLIT_INST_VALUE,
 	MLIT_INST_CLOSURE
 } ml_inst_type_t;

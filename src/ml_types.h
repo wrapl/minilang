@@ -375,6 +375,7 @@ struct ml_stringbuffer_t {
 #define ML_STRINGBUFFER_NODE_SIZE 248
 #define ML_STRINGBUFFER_INIT (ml_stringbuffer_t){MLStringBufferT, 0,}
 
+ml_value_t *ml_stringbuffer();
 ssize_t ml_stringbuffer_add(ml_stringbuffer_t *Buffer, const char *String, size_t Length);
 ssize_t ml_stringbuffer_addf(ml_stringbuffer_t *Buffer, const char *Format, ...) __attribute__ ((format(printf, 2, 3)));
 char *ml_stringbuffer_get(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));

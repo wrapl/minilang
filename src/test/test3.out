@@ -1,7 +1,7 @@
-1 + 1 = 2
-2 + 1 = 3
-hello + 1 = <buffer>
-4 + 1 = 5
+1 * 2 = 2
+2 * 2 = 4
+Correct! An error has occurred 1: MethodError
+4 * 2 = 8
 Correct! An error has occurred 2: MethodError
 Before X loop
 Before Y loop
@@ -46,7 +46,7 @@ Z = 4
 ... and on
 Z = 5
 5!
-Correct! An error has occurred 3: ValueError
+Correct! An error has occurred 3: MethodError
 Z = 6
 ... and on
 Z = 7

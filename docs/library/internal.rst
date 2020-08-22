@@ -48,66 +48,51 @@ internal
 :mini:`cfunction`
    :Parents: :mini:`function`
 
-   *Defined at line 449 in src/ml_types.c*
+   *Defined at line 457 in src/ml_types.c*
 
 :mini:`cfunctionx`
    :Parents: :mini:`function`
 
-   *Defined at line 474 in src/ml_types.c*
+   *Defined at line 482 in src/ml_types.c*
 
 :mini:`meth $(Arg₁: partialfunction, Arg₂: any)`
-   *Defined at line 569 in src/ml_types.c*
+   *Defined at line 577 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: tuple)`
-   *Defined at line 742 in src/ml_types.c*
-
-:mini:`fun stringnew()`
-   *Defined at line 1860 in src/ml_types.c*
+   *Defined at line 750 in src/ml_types.c*
 
 :mini:`stringiterator`
-   *Defined at line 1975 in src/ml_types.c*
+   *Defined at line 1973 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: nil)`
-   *Defined at line 2228 in src/ml_types.c*
+   *Defined at line 2230 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: some)`
-   *Defined at line 2236 in src/ml_types.c*
+   *Defined at line 2238 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: integer)`
-   *Defined at line 2245 in src/ml_types.c*
+   *Defined at line 2247 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: real)`
-   *Defined at line 2256 in src/ml_types.c*
+   *Defined at line 2258 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: string)`
-   *Defined at line 2272 in src/ml_types.c*
-
-:mini:`stringifier`
-   *Defined at line 2999 in src/ml_types.c*
-
-:mini:`meth string(Arg₁: stringifier)`
-   *Defined at line 3005 in src/ml_types.c*
-
-:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: stringifier)`
-   *Defined at line 3019 in src/ml_types.c*
-
-:mini:`fun stringifiernew()`
-   *Defined at line 3030 in src/ml_types.c*
+   *Defined at line 2274 in src/ml_types.c*
 
 :mini:`listiter`
-   *Defined at line 3448 in src/ml_types.c*
+   *Defined at line 3404 in src/ml_types.c*
 
 :mini:`names`
    :Parents: :mini:`list`
 
-   *Defined at line 3639 in src/ml_types.c*
+   *Defined at line 3595 in src/ml_types.c*
 
 :mini:`mapindex`
-   *Defined at line 3932 in src/ml_types.c*
+   *Defined at line 3888 in src/ml_types.c*
 
 :mini:`mapiter`
-   *Defined at line 4112 in src/ml_types.c*
+   *Defined at line 4068 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: method)`
-   *Defined at line 4513 in src/ml_types.c*
+   *Defined at line 4469 in src/ml_types.c*
 

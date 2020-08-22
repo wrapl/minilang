@@ -6,7 +6,7 @@ boolean
 :mini:`boolean`
    :Parents: :mini:`function`
 
-   *Defined at line 828 in src/ml_types.c*
+   *Defined at line 836 in src/ml_types.c*
 
 :mini:`meth boolean(String: string)` |rarr| :mini:`boolean` or :mini:`error`
    Returns :mini:`true` if :mini:`String` equals :mini:`"true"` (ignoring case).
@@ -15,27 +15,27 @@ boolean
 
    Otherwise returns an error.
 
-   *Defined at line 849 in src/ml_types.c*
+   *Defined at line 857 in src/ml_types.c*
 
 :mini:`meth -(Bool: boolean)` |rarr| :mini:`boolean`
    Returns the logical inverse of :mini:`Bool`
 
-   *Defined at line 862 in src/ml_types.c*
+   *Defined at line 870 in src/ml_types.c*
 
 :mini:`meth /\\(Bool₁: boolean, Bool₂: boolean)` |rarr| :mini:`boolean`
    Returns the logical and of :mini:`Bool₁` and :mini:`Bool₂`.
 
-   *Defined at line 870 in src/ml_types.c*
+   *Defined at line 878 in src/ml_types.c*
 
 :mini:`meth \\/(Bool₁: boolean, Bool₂: boolean)` |rarr| :mini:`boolean`
    Returns the logical or of :mini:`Bool₁` and :mini:`Bool₂`.
 
-   *Defined at line 879 in src/ml_types.c*
+   *Defined at line 887 in src/ml_types.c*
 
 :mini:`meth <>(Bool₁: boolean, Bool₂: boolean)` |rarr| :mini:`integer`
    Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Bool₁` is less than, equal to or greater than :mini:`Bool₂`. :mini:`true` is considered greater than :mini:`false`.
 
-   *Defined at line 888 in src/ml_types.c*
+   *Defined at line 896 in src/ml_types.c*
 
 :mini:`meth <op>(Bool₁: boolean, Bool₂: boolean)` |rarr| :mini:`Bool₂` or :mini:`nil`
    :mini:`<op>` is :mini:`=`, :mini:`!=`, :mini:`<`, :mini:`<=`, :mini:`>` or :mini:`>=`
@@ -44,8 +44,8 @@ boolean
 
    :mini:`true` is considered greater than :mini:`false`.
 
-   *Defined at line 914 in src/ml_types.c*
+   *Defined at line 922 in src/ml_types.c*
 
 :mini:`meth string(Arg₁: boolean)`
-   *Defined at line 1905 in src/ml_types.c*
+   *Defined at line 1903 in src/ml_types.c*
 

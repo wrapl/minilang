@@ -242,7 +242,11 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_MAP_INSERT] = &&DO_MAP_INSERT,
 		[MLI_CLOSURE] = &&DO_CLOSURE,
 		[MLI_PARTIAL_NEW] = &&DO_PARTIAL_NEW,
-		[MLI_PARTIAL_SET] = &&DO_PARTIAL_SET
+		[MLI_PARTIAL_SET] = &&DO_PARTIAL_SET,
+		[MLI_STRING_NEW] = &&DO_STRING_NEW,
+		[MLI_STRING_ADD] = &&DO_STRING_ADD,
+		[MLI_STRING_ADDS] = &&DO_STRING_ADDS,
+		[MLI_STRING_END] = &&DO_STRING_END
 	};
 	ml_inst_t *Inst = Frame->Inst;
 	ml_value_t **Top = Frame->Top;
@@ -646,6 +650,31 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_partial_function_set(Top[-1], Inst->Params[1].Index, Result);
 		ADVANCE(0);
 	}
+	DO_STRING_NEW: {
+		*Top++ = ml_stringbuffer();
+		ADVANCE(0);
+	}
+	DO_STRING_ADD: {
+		int Count = Inst->Params[1].Count;
+		ml_value_t **Args = Top - (Count + 1);
+		ml_inst_t *Next = Inst->Params[0].Inst;
+#ifdef USE_ML_SCHEDULER
+		Frame->Schedule.Counter[0] = Counter;
+#endif
+		Frame->Inst = Next;
+		Frame->Top = Top - Count;
+		return ml_call(Frame, MLStringBufferAppendMethod, Count + 1, Args);
+	}
+	DO_STRING_ADDS: {
+		ml_stringbuffer_add((ml_stringbuffer_t *)Top[-1], Inst->Params[2].Ptr, Inst->Params[1].Count);
+		ADVANCE(0);
+	}
+	DO_STRING_END: {
+		Result = *--Top;
+		*Top = 0;
+		Result = ml_stringbuffer_get_string((ml_stringbuffer_t *)Result);
+		ADVANCE(0);
+	}
 #ifdef DEBUG_VERSION
 	DO_DEBUG_ERROR: {
 		ml_debugger_t *Debugger = Frame->Debugger;
@@ -859,7 +888,11 @@ const char *MLInsts[] = {
 	"map_insert", // MLI_MAP_INSERT,
 	"closure", // MLI_CLOSURE,
 	"partial_new", // MLI_PARTIAL_NEW,
-	"partial_set" // MLI_PARTIAL_SET
+	"partial_set", // MLI_PARTIAL_SET,
+	"string_new", // MLI_STRING_NEW,
+	"string_add", // MLI_STRING_ADD,
+	"string_adds", // MLI_STRING_ADDS,
+	"string_end" // MLI_STRING_END
 };
 
 const ml_inst_type_t MLInstTypes[] = {
@@ -907,7 +940,11 @@ const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INST, // MLI_MAP_INSERT,
 	MLIT_INST_CLOSURE, // MLI_CLOSURE,
 	MLIT_INST_COUNT, // MLI_PARTIAL_NEW,
-	MLIT_INST_INDEX, // MLI_PARTIAL_SET
+	MLIT_INST_INDEX, // MLI_PARTIAL_SET,
+	MLIT_INST, // MLI_STRING_NEW,
+	MLIT_INST_COUNT, // MLI_STRING_ADD,
+	MLIT_INST_COUNT_CHARS, // MLI_STRING_ADDS,
+	MLIT_INST // MLI_STRING_END
 };
 
 #ifdef ML_USE_INST_FNS
@@ -957,6 +994,10 @@ static void ml_inst_process(int Process, ml_inst_t *Source, ml_inst_t *Inst, uns
 	case MLIT_INST_COUNT_VALUE:
 		*(int *)(Hash + I) ^= Inst->Params[1].Count;
 		*(long *)(Hash + J) ^= ml_hash(Inst->Params[2].Value);
+		break;
+	case MLIT_INST_COUNT_CHARS:
+		*(int *)(Hash + I) ^= Inst->Params[1].Count;
+		*(long *)(Hash + J) ^= stringmap_hash(Inst->Params[2].Ptr);
 		break;
 	case MLIT_INST_CLOSURE: {
 		ml_closure_info_t *Info = Inst->Params[1].ClosureInfo;
@@ -1121,6 +1162,9 @@ static void ml_closure_inst_list(int Process, ml_inst_t *Inst, ml_stringbuffer_t
 		}
 		break;
 	}
+	case MLIT_INST_COUNT_CHARS:
+		ml_stringbuffer_addf(Buffer, " %d, %s", Inst->Params[1].Count, Inst->Params[2].Ptr);
+		break;
 	case MLIT_INST_CLOSURE: {
 		ml_stringbuffer_addf(Buffer, " closure");
 		ml_closure_info_t *Info = Inst->Params[1].ClosureInfo;

@@ -1,14 +1,6 @@
-context: current()
-
-class: element("element", :Tag, :Attributes, :Children, {
-	"of" is fun(Tag, Fn, {Attributes}) do
-		let Element := element::new(Tag, Attributes, [])
-		Fn and current(Element, Fn)
-		if let Current := current() then
-			Current:Children:put(Element)
-		end
-		ret Element
-	end
-})
-
-
+print('', 'Hello', ' world!\n')
+print('Hello
+\tworld!')
+let X := 10
+print('X = {X}, Y = {27, 3}, Z = {2 + 2}\nL = {list(1 .. 10), ':'}')
+print('\n')
