@@ -424,7 +424,7 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLBooleanT, ml_value_t *Arg, void 
 
 static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLMethodT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	const char *Name = ml_method_name(Arg);
-	ml_cbor_write_tag(Data, WriteFn, 26); // TODO: Change this to a proper tag
+	ml_cbor_write_tag(Data, WriteFn, 39);
 	ml_cbor_write_string(Data, WriteFn, strlen(Name));
 	WriteFn(Data, (void *)Name, strlen(Name));
 	return NULL;
@@ -567,7 +567,7 @@ ml_value_t *ml_cbor_read_object(void *Data, int Count, ml_value_t **Args) {
 void ml_cbor_init(stringmap_t *Globals) {
 	CborDefaultTags = ml_map();
 	CborObjects = ml_map();
-	ml_map_insert(CborDefaultTags, ml_integer(26), ml_cfunction(NULL, ml_cbor_read_method)); // TODO: Change this to a proper tag
+	ml_map_insert(CborDefaultTags, ml_integer(39), ml_cfunction(NULL, ml_cbor_read_method));
 	ml_map_insert(CborDefaultTags, ml_integer(27), ml_cfunction(NULL, ml_cbor_read_object));
 #ifdef USE_ML_MATH
 	ml_map_insert(CborDefaultTags, ml_integer(40), ml_cfunction(NULL, ml_cbor_read_multi_array_fn));

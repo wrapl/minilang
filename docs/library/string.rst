@@ -38,89 +38,89 @@ string
    *Defined at line 2060 in src/ml_types.c*
 
 :mini:`meth [](Arg₁: string, Arg₂: integer)`
-   *Defined at line 2276 in src/ml_types.c*
+   *Defined at line 2282 in src/ml_types.c*
 
 :mini:`meth [](Arg₁: string, Arg₂: integer, Arg₃: integer)`
-   *Defined at line 2287 in src/ml_types.c*
+   *Defined at line 2293 in src/ml_types.c*
 
 :mini:`meth +(Arg₁: string, Arg₂: string)`
-   *Defined at line 2302 in src/ml_types.c*
+   *Defined at line 2308 in src/ml_types.c*
 
 :mini:`meth :trim(Arg₁: string)`
-   *Defined at line 2314 in src/ml_types.c*
+   *Defined at line 2320 in src/ml_types.c*
 
 :mini:`meth :trim(Arg₁: string, Arg₂: string)`
-   *Defined at line 2324 in src/ml_types.c*
+   *Defined at line 2330 in src/ml_types.c*
 
 :mini:`meth :ltrim(Arg₁: string)`
-   *Defined at line 2337 in src/ml_types.c*
+   *Defined at line 2343 in src/ml_types.c*
 
 :mini:`meth :ltrim(Arg₁: string, Arg₂: string)`
-   *Defined at line 2346 in src/ml_types.c*
+   *Defined at line 2352 in src/ml_types.c*
 
 :mini:`meth :rtrim(Arg₁: string)`
-   *Defined at line 2358 in src/ml_types.c*
+   *Defined at line 2364 in src/ml_types.c*
 
 :mini:`meth :rtrim(Arg₁: string, Arg₂: string)`
-   *Defined at line 2367 in src/ml_types.c*
+   *Defined at line 2373 in src/ml_types.c*
 
 :mini:`meth :length(Arg₁: string)`
-   *Defined at line 2379 in src/ml_types.c*
+   *Defined at line 2385 in src/ml_types.c*
 
 :mini:`meth <>(Arg₁: string, Arg₂: string)`
-   *Defined at line 2384 in src/ml_types.c*
+   *Defined at line 2390 in src/ml_types.c*
 
 :mini:`meth ~(Arg₁: string, Arg₂: string)`
-   *Defined at line 2436 in src/ml_types.c*
+   *Defined at line 2442 in src/ml_types.c*
 
 :mini:`meth ~>(Arg₁: string, Arg₂: string)`
-   *Defined at line 2476 in src/ml_types.c*
+   *Defined at line 2482 in src/ml_types.c*
 
 :mini:`meth /(Arg₁: string, Arg₂: string)`
-   *Defined at line 2512 in src/ml_types.c*
+   *Defined at line 2518 in src/ml_types.c*
 
 :mini:`meth /(Arg₁: string, Arg₂: regex)`
-   *Defined at line 2540 in src/ml_types.c*
+   *Defined at line 2546 in src/ml_types.c*
 
 :mini:`meth :lower(Arg₁: string)`
-   *Defined at line 2570 in src/ml_types.c*
+   *Defined at line 2576 in src/ml_types.c*
 
 :mini:`meth :upper(Arg₁: string)`
-   *Defined at line 2579 in src/ml_types.c*
+   *Defined at line 2585 in src/ml_types.c*
 
 :mini:`meth :find(Arg₁: string, Arg₂: string)`
-   *Defined at line 2588 in src/ml_types.c*
+   *Defined at line 2594 in src/ml_types.c*
 
 :mini:`meth :find(Arg₁: string, Arg₂: string, Arg₃: integer)`
-   *Defined at line 2600 in src/ml_types.c*
+   *Defined at line 2606 in src/ml_types.c*
 
 :mini:`meth :find(Arg₁: string, Arg₂: regex)`
-   *Defined at line 2618 in src/ml_types.c*
+   *Defined at line 2624 in src/ml_types.c*
 
 :mini:`meth :find(Arg₁: string, Arg₂: regex, Arg₃: integer)`
-   *Defined at line 2646 in src/ml_types.c*
+   *Defined at line 2652 in src/ml_types.c*
 
 :mini:`meth %(Arg₁: string, Arg₂: string)`
-   *Defined at line 2679 in src/ml_types.c*
+   *Defined at line 2685 in src/ml_types.c*
 
 :mini:`meth %(Arg₁: string, Arg₂: regex)`
-   *Defined at line 2723 in src/ml_types.c*
+   *Defined at line 2729 in src/ml_types.c*
 
 :mini:`meth ?(Arg₁: string, Arg₂: regex)`
-   *Defined at line 2756 in src/ml_types.c*
+   *Defined at line 2762 in src/ml_types.c*
 
 :mini:`meth :replace(Arg₁: string, Arg₂: string, Arg₃: string)`
-   *Defined at line 2785 in src/ml_types.c*
+   *Defined at line 2791 in src/ml_types.c*
 
 :mini:`meth :replace(Arg₁: string, Arg₂: regex, Arg₃: string)`
-   *Defined at line 2807 in src/ml_types.c*
+   *Defined at line 2813 in src/ml_types.c*
 
 :mini:`meth :replace(Arg₁: string, Arg₂: regex, Arg₃: function)`
-   *Defined at line 2839 in src/ml_types.c*
+   *Defined at line 2845 in src/ml_types.c*
 
 :mini:`meth :replace(Arg₁: string, Arg₂: map)`
-   *Defined at line 2891 in src/ml_types.c*
+   *Defined at line 2897 in src/ml_types.c*
 
 :mini:`meth string(Arg₁: regex)`
-   *Defined at line 2985 in src/ml_types.c*
+   *Defined at line 2991 in src/ml_types.c*
 
