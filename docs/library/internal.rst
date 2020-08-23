@@ -25,9 +25,6 @@ internal
 :mini:`TypelibIterT`
    *Defined at line 45 in src/ml_gir.c*
 
-:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: object)`
-   *Defined at line 38 in src/ml_object.c*
-
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: type)`
    *Defined at line 171 in src/ml_types.c*
 

@@ -35,19 +35,6 @@ ML_TYPE(MLClassT, (MLTypeT), "class",
 	.Constructor = (ml_value_t *)MLClass
 );
 
-ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLObjectT) {
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_value_t *String = ml_simple_inline(MLStringOfMethod, 1, Args[1]);
-	if (ml_is(String, MLStringT)) {
-		ml_stringbuffer_add(Buffer, ml_string_value(String), ml_string_length(String));
-		return MLSome;
-	} else if (ml_is_error(String)) {
-		return String;
-	} else {
-		return ml_error("ResultError", "string method did not return string");
-	}
-}
-
 ML_METHOD(MLStringOfMethod, MLObjectT) {
 	ml_object_t *Object = (ml_object_t *)Args[0];
 	ml_class_t *Class = (ml_class_t *)Object->Type;
