@@ -1512,72 +1512,62 @@ static void ml_accept_arguments(mlc_scanner_t *Scanner, ml_token_t EndToken, mlc
 
 static ml_token_t ml_accept_string(mlc_scanner_t *Scanner) {
 	mlc_string_part_t *Parts = NULL, **Slot = &Parts;
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	const char *End = Scanner->Next;
 	for (;;) {
-		int Length = 0;
-		const char *End = Scanner->Next;
-		while (End[0] && End[0] != '\'' && End[0] != '{') {
-			if (End[0] == '\\') {
-				++End;
-				if (End[0] == '\n') {
-					--Length;
-				} else if (!End[0]) {
-					ml_scanner_error(Scanner, "ParseError", "end of line while parsing string");
-				}
-			}
-			++Length;
-			++End;
-		}
-		if (Length > 0) {
-			char *String = snew(Length + 1), *D = String;
-			for (const char *S = Scanner->Next; S < End; ++S) {
-				if (*S == '\\') {
-					++S;
-					switch (*S) {
-					case 'r': *D++ = '\r'; break;
-					case 'n': *D++ = '\n'; break;
-					case 't': *D++ = '\t'; break;
-					case 'e': *D++ = '\e'; break;
-					case '\'': *D++ = '\''; break;
-					case '\"': *D++ = '\"'; break;
-					case '\\': *D++ = '\\'; break;
-					case '{': *D++ = '{'; break;
-					case '\n': goto eol;
-					}
-				} else {
-					*D++ = *S;
-				}
-			}
-		eol:
-			*D = 0;
-			mlc_string_part_t *Part = new(mlc_string_part_t);
-			Part->Chars = String;
-			Part->Length = Length;
-			Slot[0] = Part;
-			Slot = &Part->Next;
-		}
-		Scanner->Next = End + 1;
-		if (!End[0]) {
+		char C = *End++;
+		if (!C) {
 			Scanner->Next = (Scanner->read)(Scanner->Data);
 			++Scanner->Source.Line;
 			if (!Scanner->Next) {
 				ml_scanner_error(Scanner, "ParseError", "end of input while parsing string");
 			}
-		} else if (End[0] == '{') {
+			End = Scanner->Next;
+		} else if (C == '\'') {
+			Scanner->Next = End;
+			break;
+		} else if (C == '{') {
+			if (Buffer->Length) {
+				mlc_string_part_t *Part = new(mlc_string_part_t);
+				Part->Length = Buffer->Length;
+				Part->Chars = ml_stringbuffer_get(Buffer);
+				Slot[0] = Part;
+				Slot = &Part->Next;
+			}
+			Scanner->Next = End;
 			mlc_string_part_t *Part = new(mlc_string_part_t);
 			ml_accept_arguments(Scanner, MLT_RIGHT_BRACE, &Part->Child);
+			End = Scanner->Next;
 			Slot[0] = Part;
 			Slot = &Part->Next;
+		} else if (C == '\\') {
+			C = *End++;
+			switch (C) {
+			case 'r': ml_stringbuffer_add(Buffer, "\r", 1); break;
+			case 'n': ml_stringbuffer_add(Buffer, "\n", 1); break;
+			case 't': ml_stringbuffer_add(Buffer, "\t", 1); break;
+			case 'e': ml_stringbuffer_add(Buffer, "\e", 1); break;
+			case '\'': ml_stringbuffer_add(Buffer, "\'", 1); break;
+			case '\"': ml_stringbuffer_add(Buffer, "\"", 1); break;
+			case '\\': ml_stringbuffer_add(Buffer, "\\", 1); break;
+			case '{': ml_stringbuffer_add(Buffer, "{", 1); break;
+			case '\n': break;
+			case 0: ml_scanner_error(Scanner, "ParseError", "end of line while parsing string");
+			}
 		} else {
-			break;
+			ml_stringbuffer_add(Buffer, End - 1, 1);
 		}
 	}
 	if (!Parts) {
-		Scanner->Value = ml_cstring("");
-		return (Scanner->Token = MLT_VALUE);
-	} else if (!Parts->Next && Parts->Length) {
-		Scanner->Value = ml_string(Parts->Chars, Parts->Length);
+		Scanner->Value = ml_stringbuffer_value(Buffer);
 		return (Scanner->Token = MLT_VALUE);
 	} else {
+		if (Buffer->Length) {
+			mlc_string_part_t *Part = new(mlc_string_part_t);
+			Part->Length = Buffer->Length;
+			Part->Chars = ml_stringbuffer_get(Buffer);
+			Slot[0] = Part;
+		}
 		ML_EXPR(Expr, string, string);
 		Expr->Parts = Parts;
 		Expr->End = Scanner->Source.Line;

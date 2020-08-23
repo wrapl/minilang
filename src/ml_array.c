@@ -910,7 +910,7 @@ static ml_value_t *ML_TYPED_FN(ml_string_of, ATYPE, ml_array_t *Array) { \
 	} else { \
 		append_array_ ## CTYPE(Buffer, Array->Degree, Array->Dimensions, Array->Base.Address); \
 	} \
-	return ml_stringbuffer_get_string(Buffer); \
+	return ml_stringbuffer_value(Buffer); \
 } \
 \
 ML_METHOD(MLStringOfMethod, ATYPE) { \
@@ -921,7 +921,7 @@ ML_METHOD(MLStringOfMethod, ATYPE) { \
 	} else { \
 		append_array_ ## CTYPE(Buffer, Array->Degree, Array->Dimensions, Array->Base.Address); \
 	} \
-	return ml_stringbuffer_get_string(Buffer); \
+	return ml_stringbuffer_value(Buffer); \
 } \
 static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, ATYPE, ml_stringbuffer_t *Buffer, ml_array_t *Array) { \
 	if (Array->Degree == 0) { \

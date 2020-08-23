@@ -134,7 +134,7 @@ static ml_value_t *parse_string(xe_stream_t *Stream) {
 			++P;
 		}
 	}
-	return ml_stringbuffer_get_string(Buffer);
+	return ml_stringbuffer_value(Buffer);
 }
 
 #define SKIP_WHITESPACE \
@@ -283,13 +283,13 @@ static ml_value_t *parse_node(xe_stream_t *Stream) {
 					if (!End) return ml_error("ParseError", "Invalid escape sequence at line %d in %s", Stream->LineNo, Stream->Source);
 				} else if (End[0] == '<') {
 					ml_stringbuffer_add(Buffer, Next, End - Next);
-					if (Buffer->Length) node_append(Content, ml_stringbuffer_get_string(Buffer));
+					if (Buffer->Length) node_append(Content, ml_stringbuffer_value(Buffer));
 					Stream->Next = End + 1;
 					ml_list_put(Content, parse_node(Stream));
 					End = Next = Stream->Next;
 				} else if (End[0] == '>') {
 					ml_stringbuffer_add(Buffer, Next, End - Next);
-					if (Buffer->Length) node_append(Content, ml_stringbuffer_get_string(Buffer));
+					if (Buffer->Length) node_append(Content, ml_stringbuffer_value(Buffer));
 					break;
 				} else {
 					++End;
@@ -856,7 +856,7 @@ ML_METHOD(MLStringOfMethod, XENodeT) {
 		}
 	}
 	ml_stringbuffer_add(Buffer, ">", 1);
-	return ml_stringbuffer_get_string(Buffer);
+	return ml_stringbuffer_value(Buffer);
 }
 
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, XEVarT) {

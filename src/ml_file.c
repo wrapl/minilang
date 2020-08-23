@@ -100,18 +100,18 @@ ML_METHOD("read", MLFileT, MLIntegerT) {
 	while (Requested >= ML_STRINGBUFFER_NODE_SIZE) {
 		ssize_t Actual = fread(Buffer, 1, ML_STRINGBUFFER_NODE_SIZE, File->Handle);
 		if (Actual < 0) return ml_error("FileError", "error reading from file: %s", strerror(errno));
-		if (Actual == 0) return ml_stringbuffer_get_string(Final);
+		if (Actual == 0) return ml_stringbuffer_value(Final);
 		ml_stringbuffer_add(Final, Buffer, Actual);
 		Requested -= Actual;
 	}
 	while (Requested > 0) {
 		ssize_t Actual = fread(Buffer, 1, Requested, File->Handle);
 		if (Actual < 0) return ml_error("FileError", "error reading from file: %s", strerror(errno));
-		if (Actual == 0) return ml_stringbuffer_get_string(Final);
+		if (Actual == 0) return ml_stringbuffer_value(Final);
 		ml_stringbuffer_add(Final, Buffer, Actual);
 		Requested -= Actual;
 	}
-	return ml_stringbuffer_get_string(Final);
+	return ml_stringbuffer_value(Final);
 }
 
 ML_METHODV("write", MLFileT, MLStringT) {

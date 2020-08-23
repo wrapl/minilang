@@ -672,7 +672,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_STRING_END: {
 		Result = *--Top;
 		*Top = 0;
-		Result = ml_stringbuffer_get_string((ml_stringbuffer_t *)Result);
+		Result = ml_stringbuffer_value((ml_stringbuffer_t *)Result);
 		ADVANCE(0);
 	}
 #ifdef DEBUG_VERSION
@@ -1192,7 +1192,7 @@ ML_METHOD("list", MLClosureT) {
 	unsigned int Labels = 0;
 	ml_closure_find_labels(!Info->Entry->Processed, Info->Entry, &Labels, 0);
 	ml_closure_inst_list(!Info->Entry->Processed, Info->Entry, Buffer);
-	return ml_stringbuffer_get_string(Buffer);
+	return ml_stringbuffer_value(Buffer);
 }
 
 ML_METHOD("!!", MLClosureT, MLListT) {

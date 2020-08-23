@@ -66,7 +66,7 @@ ML_METHOD(MLStringOfMethod, MLObjectT) {
 			ml_simple_inline(MLStringBufferAppendMethod, 2, Buffer, Object->Fields[I]);
 		}
 		ml_stringbuffer_add(Buffer, ")", 1);
-		return ml_stringbuffer_get_string(Buffer);
+		return ml_stringbuffer_value(Buffer);
 	} else {
 		return ml_string_format("%s()", Class->Base.Name);
 	}

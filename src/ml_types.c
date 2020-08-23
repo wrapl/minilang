@@ -712,7 +712,7 @@ static ml_value_t *ML_TYPED_FN(ml_string_of, MLTupleT, ml_tuple_t *Tuple) {
 		}
 	}
 	ml_stringbuffer_add(Buffer, ")", 1);
-	return ml_stringbuffer_get_string(Buffer);
+	return ml_stringbuffer_value(Buffer);
 }
 
 ML_METHOD(MLStringOfMethod, MLTupleT) {
@@ -731,7 +731,7 @@ ML_METHOD(MLStringOfMethod, MLTupleT) {
 		}
 	}
 	ml_stringbuffer_add(Buffer, ")", 1);
-	return ml_stringbuffer_get_string(Buffer);
+	return ml_stringbuffer_value(Buffer);
 }
 
 ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLTupleT, ml_stringbuffer_t *Buffer, ml_tuple_t *Tuple) {
@@ -2108,25 +2108,21 @@ static GC_descr StringBufferDesc = 0;
 
 ssize_t ml_stringbuffer_add(ml_stringbuffer_t *Buffer, const char *String, size_t Length) {
 	size_t Remaining = Length;
-	ml_stringbuffer_node_t **Slot = &Buffer->Nodes;
-	ml_stringbuffer_node_t *Node = Buffer->Nodes;
-	if (Node) {
-		while (Node->Next) Node = Node->Next;
-		Slot = &Node->Next;
-	}
+	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
 	while (Buffer->Space < Remaining) {
 		memcpy(Node->Chars + ML_STRINGBUFFER_NODE_SIZE - Buffer->Space, String, Buffer->Space);
 		String += Buffer->Space;
 		Remaining -= Buffer->Space;
 		ml_stringbuffer_node_t *Next = (ml_stringbuffer_node_t *)GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
 			//printf("Allocating stringbuffer: %d in total\n", ++NumStringBuffers);
-		Node = Slot[0] = Next;
-		Slot = &Node->Next;
+		Node->Next = Next;
+		Node = Next;
 		Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
 	}
 	memcpy(Node->Chars + ML_STRINGBUFFER_NODE_SIZE - Buffer->Space, String, Remaining);
 	Buffer->Space -= Remaining;
 	Buffer->Length += Length;
+	Buffer->Tail = Node;
 	return Length;
 }
 
@@ -2141,7 +2137,7 @@ ssize_t ml_stringbuffer_addf(ml_stringbuffer_t *Buffer, const char *Format, ...)
 
 static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
 	char *P = String;
-	ml_stringbuffer_node_t *Node = Buffer->Nodes;
+	ml_stringbuffer_node_t *Node = Buffer->Head;
 	while (Node->Next) {
 		memcpy(P, Node->Chars, ML_STRINGBUFFER_NODE_SIZE);
 		P += ML_STRINGBUFFER_NODE_SIZE;
@@ -2150,7 +2146,7 @@ static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
 	memcpy(P, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
 	P += ML_STRINGBUFFER_NODE_SIZE - Buffer->Space;
 	*P++ = 0;
-	Buffer->Nodes = NULL;
+	Buffer->Head = Buffer->Tail = NULL;
 	Buffer->Length = Buffer->Space = 0;
 }
 
@@ -2168,7 +2164,7 @@ char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer) {
 	return String;
 }
 
-ml_value_t *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) {
+ml_value_t *ml_stringbuffer_value(ml_stringbuffer_t *Buffer) {
 	size_t Length = Buffer->Length;
 	if (Length == 0) {
 		return ml_cstring("");
@@ -2182,11 +2178,11 @@ ml_value_t *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) {
 ML_METHOD("get", MLStringBufferT) {
 //!stringbuffer
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	return ml_stringbuffer_get_string(Buffer);
+	return ml_stringbuffer_value(Buffer);
 }
 
 int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t)) {
-	ml_stringbuffer_node_t *Node = Buffer->Nodes;
+	ml_stringbuffer_node_t *Node = Buffer->Head;
 	if (!Node) return 0;
 	while (Node->Next) {
 		if (callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE)) return 1;
@@ -2805,7 +2801,7 @@ ML_METHOD("replace", MLStringT, MLStringT, MLStringT) {
 	if (SubjectEnd > Subject) {
 		ml_stringbuffer_add(Buffer, Subject, SubjectEnd - Subject);
 	}
-	return ml_stringbuffer_get_string(Buffer);
+	return ml_stringbuffer_value(Buffer);
 }
 
 ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
@@ -2821,7 +2817,7 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
 		switch (regexec(Pattern->Value, Subject, 1, Matches, 0)) {
 		case REG_NOMATCH:
 			if (SubjectLength) ml_stringbuffer_add(Buffer, Subject, SubjectLength);
-			return ml_stringbuffer_get_string(Buffer);
+			return ml_stringbuffer_value(Buffer);
 		case REG_ESPACE: {
 			size_t ErrorSize = regerror(REG_ESPACE, Pattern->Value, NULL, 0);
 			char *ErrorMessage = snew(ErrorSize + 1);
@@ -2854,7 +2850,7 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLFunctionT) {
 		switch (regexec(Pattern->Value, Subject, NumSub, Matches, 0)) {
 		case REG_NOMATCH:
 			if (SubjectLength) ml_stringbuffer_add(Buffer, Subject, SubjectLength);
-			return ml_stringbuffer_get_string(Buffer);
+			return ml_stringbuffer_value(Buffer);
 		case REG_ESPACE: {
 			size_t ErrorSize = regerror(REG_ESPACE, Pattern->Value, NULL, 0);
 			char *ErrorMessage = snew(ErrorSize + 1);
@@ -2979,7 +2975,7 @@ ML_METHOD("replace", MLStringT, MLMapT) {
 		SubjectLength -= MatchEnd;
 	}
 	if (SubjectLength) ml_stringbuffer_add(Buffer, Subject, SubjectLength);
-	return ml_stringbuffer_get_string(Buffer);
+	return ml_stringbuffer_value(Buffer);
 }
 
 static ml_value_t *ML_TYPED_FN(ml_string_of, MLRegexT, ml_regex_t *Regex) {
@@ -3494,7 +3490,7 @@ ML_METHOD(MLStringOfMethod, MLListT) {
 		SeperatorLength = 2;
 	}
 	ml_stringbuffer_add(Buffer, "]", 1);
-	return ml_stringbuffer_get_string(Buffer);
+	return ml_stringbuffer_value(Buffer);
 }
 
 ML_METHOD(MLStringOfMethod, MLListT, MLStringT) {
@@ -3517,7 +3513,7 @@ ML_METHOD(MLStringOfMethod, MLListT, MLStringT) {
 			if (ml_is_error(Result)) return Result;
 		}
 	}
-	return ml_stringbuffer_get_string(Buffer);
+	return ml_stringbuffer_value(Buffer);
 }
 
 static ml_value_t *ml_list_sort(ml_list_t *List, ml_value_t *Compare) {
@@ -4148,7 +4144,7 @@ ML_METHOD(MLStringOfMethod, MLMapT, MLStringT, MLStringT) {
 		1
 	}};
 	if (ml_map_foreach(Args[0], Stringer, (void *)ml_map_stringer)) return Stringer->Error;
-	return ml_stringbuffer_get_string(Stringer->Buffer);
+	return ml_stringbuffer_value(Stringer->Buffer);
 }
 
 // Methods //
