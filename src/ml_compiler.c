@@ -2037,6 +2037,47 @@ static void ml_accept_arguments(mlc_scanner_t *Scanner, ml_token_t EndToken, mlc
 	}
 }
 
+static mlc_expr_t *ml_accept_with_expr(mlc_scanner_t *Scanner, mlc_expr_t *Child) {
+	ML_EXPR(WithExpr, decl, with);
+	ml_decl_t **DeclSlot = &WithExpr->Decl;
+	mlc_expr_t **ExprSlot = &WithExpr->Child;
+	do {
+		if (ml_parse(Scanner, MLT_LEFT_PAREN)) {
+			int Count = 0;
+			ml_decl_t **First = DeclSlot;
+			do {
+				ml_accept(Scanner, MLT_IDENT);
+				++Count;
+				ml_decl_t *Decl = DeclSlot[0] = new(ml_decl_t);
+				Decl->Source = Scanner->Source;
+				Decl->Ident = Scanner->Ident;
+				DeclSlot = &Decl->Next;
+			} while (ml_parse(Scanner, MLT_COMMA));
+			ml_accept(Scanner, MLT_RIGHT_PAREN);
+			First[0]->Index = Count;
+		} else {
+			ml_accept(Scanner, MLT_IDENT);
+			ml_decl_t *Decl = DeclSlot[0] = new(ml_decl_t);
+			Decl->Source = Scanner->Source;
+			DeclSlot = &Decl->Next;
+			Decl->Ident = Scanner->Ident;
+			Decl->Index = 1;
+		}
+		ml_accept(Scanner, MLT_ASSIGN);
+		mlc_expr_t *Expr = ExprSlot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
+		ExprSlot = &Expr->Next;
+	} while (ml_parse(Scanner, MLT_COMMA));
+	if (Child) {
+		ExprSlot[0] = Child;
+	} else {
+		ml_accept(Scanner, MLT_DO);
+		ExprSlot[0] = ml_accept_block(Scanner);
+		ml_accept(Scanner, MLT_END);
+		WithExpr->End = Scanner->Source.Line;
+	}
+	return (mlc_expr_t *)WithExpr;
+}
+
 static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner, int MethDecl) {
 	static void *CompileFns[] = {
 		[MLT_EACH] = ml_each_expr_compile,
@@ -2189,40 +2230,7 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner, int MethDecl) {
 	}
 	case MLT_WITH: {
 		Scanner->Token = MLT_NONE;
-		ML_EXPR(WithExpr, decl, with);
-		ml_decl_t **DeclSlot = &WithExpr->Decl;
-		mlc_expr_t **ExprSlot = &WithExpr->Child;
-		do {
-			if (ml_parse(Scanner, MLT_LEFT_PAREN)) {
-					int Count = 0;
-					ml_decl_t **First = DeclSlot;
-					do {
-						ml_accept(Scanner, MLT_IDENT);
-						++Count;
-						ml_decl_t *Decl = DeclSlot[0] = new(ml_decl_t);
-						Decl->Source = Scanner->Source;
-						Decl->Ident = Scanner->Ident;
-						DeclSlot = &Decl->Next;
-					} while (ml_parse(Scanner, MLT_COMMA));
-					ml_accept(Scanner, MLT_RIGHT_PAREN);
-					First[0]->Index = Count;
-			} else {
-				ml_accept(Scanner, MLT_IDENT);
-				ml_decl_t *Decl = DeclSlot[0] = new(ml_decl_t);
-				Decl->Source = Scanner->Source;
-				DeclSlot = &Decl->Next;
-				Decl->Ident = Scanner->Ident;
-				Decl->Index = 1;
-			}
-			ml_accept(Scanner, MLT_ASSIGN);
-			mlc_expr_t *Expr = ExprSlot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
-			ExprSlot = &Expr->Next;
-		} while (ml_parse(Scanner, MLT_COMMA));
-		ml_accept(Scanner, MLT_DO);
-		ExprSlot[0] = ml_accept_block(Scanner);
-		ml_accept(Scanner, MLT_END);
-		WithExpr->End = Scanner->Source.Line;
-		return (mlc_expr_t *)WithExpr;
+		return ml_accept_with_expr(Scanner, NULL);
 	}
 	case MLT_IDENT: {
 		Scanner->Token = MLT_NONE;
@@ -2472,6 +2480,9 @@ done:
 		Expr = (mlc_expr_t *)OrExpr;
 	}
 	if (Level >= EXPR_FOR) {
+		if (ml_parse(Scanner, MLT_WITH)) {
+			Expr = ml_accept_with_expr(Scanner, Expr);
+		}
 		int IsComprehension = 0;
 		if (ml_parse(Scanner, MLT_TO)) {
 			Expr->Next = ml_accept_expression(Scanner, EXPR_OR);
@@ -2509,21 +2520,7 @@ done:
 						IfCase->Body = Body;
 						Body = (mlc_expr_t *)IfExpr;
 					} else if (ml_parse(Scanner, MLT_WITH)) {
-						ML_EXPR(WithExpr, decl, with);
-						ml_decl_t **DeclSlot = &WithExpr->Decl;
-						mlc_expr_t **ExprSlot = &WithExpr->Child;
-						do {
-							ml_accept(Scanner, MLT_IDENT);
-							ml_decl_t *Decl = DeclSlot[0] = new(ml_decl_t);
-							Decl->Source = Scanner->Source;
-							DeclSlot = &Decl->Next;
-							Decl->Ident = Scanner->Ident;
-							ml_accept(Scanner, MLT_ASSIGN);
-							mlc_expr_t *Expr = ExprSlot[0] = ml_accept_expression(Scanner, EXPR_DEFAULT);
-							ExprSlot = &Expr->Next;
-						} while (ml_parse(Scanner, MLT_COMMA));
-						ExprSlot[0] = Body;
-						Body = (mlc_expr_t *)WithExpr;
+						Body = ml_accept_with_expr(Scanner, Body);
 					} else {
 						break;
 					}
