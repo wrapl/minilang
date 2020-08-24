@@ -143,8 +143,8 @@ number
    *Defined at line 1950 in src/ml_types.c*
 
 :mini:`meth integer(Arg₁: string, Arg₂: integer)`
-   *Defined at line 1955 in src/ml_types.c*
+   *Defined at line 1962 in src/ml_types.c*
 
 :mini:`meth real(Arg₁: string)`
-   *Defined at line 1960 in src/ml_types.c*
+   *Defined at line 1974 in src/ml_types.c*
 
