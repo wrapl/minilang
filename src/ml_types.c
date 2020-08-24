@@ -1949,17 +1949,38 @@ ML_METHOD(MLStringOfMethod, MLRealT) {
 
 ML_METHOD(MLIntegerOfMethod, MLStringT) {
 //!number
-	return ml_integer(strtol(ml_string_value(Args[0]), 0, 10));
+	const char *Start = ml_string_value(Args[0]);
+	char *End;
+	long Value = strtol(ml_string_value(Args[0]), &End, 10);
+	if (End - Start == ml_string_length(Args[0])) {
+		return ml_integer(Value);
+	} else {
+		return ml_error("ValueError", "Error parsing integer");
+	}
 }
 
 ML_METHOD(MLIntegerOfMethod, MLStringT, MLIntegerT) {
 //!number
-	return ml_integer(strtol(ml_string_value(Args[0]), 0, ml_integer_value(Args[1])));
+	const char *Start = ml_string_value(Args[0]);
+	char *End;
+	long Value = strtol(ml_string_value(Args[0]), &End, ml_integer_value(Args[1]));
+	if (End - Start == ml_string_length(Args[0])) {
+		return ml_integer(Value);
+	} else {
+		return ml_error("ValueError", "Error parsing integer");
+	}
 }
 
 ML_METHOD(MLRealOfMethod, MLStringT) {
 //!number
-	return ml_real(strtod(ml_string_value(Args[0]), 0));
+	const char *Start = ml_string_value(Args[0]);
+	char *End;
+	double Value = strtod(ml_string_value(Args[0]), &End);
+	if (End - Start == ml_string_length(Args[0])) {
+		return ml_real(Value);
+	} else {
+		return ml_error("ValueError", "Error parsing real");
+	}
 }
 
 typedef struct {

@@ -377,6 +377,16 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLStringT, ml_value_t *Arg, void *
 	return NULL;
 }
 
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLRegexT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+	//printf("%s()\n", __func__);
+	const char *Pattern = ml_regex_pattern(Arg);
+	int Length = strlen(Pattern);
+	ml_cbor_write_tag(Data, WriteFn, 35);
+	ml_cbor_write_string(Data, WriteFn, strlen(Pattern));
+	WriteFn(Data, (void *)Pattern, strlen(Pattern));
+	return NULL;
+}
+
 static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTupleT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	int Size = ml_tuple_size(Arg);
 	ml_cbor_write_array(Data, WriteFn, Size);
@@ -537,6 +547,10 @@ static ml_value_t *ml_cbor_read_typed_array_fn(void *Data, int Count, ml_value_t
 
 #endif
 
+ml_value_t *ml_cbor_read_regex(void *Data, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	return ml_regex(ml_string_value(Args[0]));
+}
 
 ml_value_t *ml_cbor_read_method(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_TYPE(0, MLStringT);
@@ -567,6 +581,7 @@ ml_value_t *ml_cbor_read_object(void *Data, int Count, ml_value_t **Args) {
 void ml_cbor_init(stringmap_t *Globals) {
 	CborDefaultTags = ml_map();
 	CborObjects = ml_map();
+	ml_map_insert(CborDefaultTags, ml_integer(35), ml_cfunction(NULL, ml_cbor_read_regex));
 	ml_map_insert(CborDefaultTags, ml_integer(39), ml_cfunction(NULL, ml_cbor_read_method));
 	ml_map_insert(CborDefaultTags, ml_integer(27), ml_cfunction(NULL, ml_cbor_read_object));
 #ifdef USE_ML_MATH

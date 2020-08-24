@@ -361,6 +361,7 @@ extern ml_value_t *MLStringOfMethod;
 
 ml_value_t *ml_regex(const char *Value) __attribute__((malloc));
 regex_t *ml_regex_value(const ml_value_t *Value) __attribute__((const));
+const char *ml_regex_pattern(const ml_value_t *Value) __attribute__((pure));
 
 typedef struct ml_stringbuffer_t ml_stringbuffer_t;
 typedef struct ml_stringbuffer_node_t ml_stringbuffer_node_t;
