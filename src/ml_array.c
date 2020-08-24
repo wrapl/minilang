@@ -929,7 +929,7 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, ATYPE, ml_stringbuffer_t 
 	} else { \
 		append_array_ ## CTYPE(Buffer, Array->Degree, Array->Dimensions, Array->Base.Address); \
 	} \
-	return MLSome; \
+	return (ml_value_t *)Buffer; \
 } \
 \
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, ATYPE) { \

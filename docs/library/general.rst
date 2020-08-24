@@ -13,20 +13,20 @@ general
    *Defined at line 54 in src/minilang.c*
 
 :mini:`fun mlprint()`
-   *Defined at line 60 in src/minilang.c*
+   *Defined at line 65 in src/minilang.c*
 
 :mini:`fun mlerror(Arg₁: string, Arg₂: string)`
-   *Defined at line 74 in src/minilang.c*
+   *Defined at line 76 in src/minilang.c*
 
 :mini:`fun mlhalt()`
-   *Defined at line 81 in src/minilang.c*
+   *Defined at line 83 in src/minilang.c*
 
 :mini:`fun mlcollect()`
-   *Defined at line 90 in src/minilang.c*
+   *Defined at line 92 in src/minilang.c*
 
 :mini:`fun mltest(Arg₁: string, Arg₂: any)`
-   *Defined at line 95 in src/minilang.c*
+   *Defined at line 97 in src/minilang.c*
 
 :mini:`fun import(Arg₁: string)`
-   *Defined at line 111 in src/minilang.c*
+   *Defined at line 113 in src/minilang.c*
 

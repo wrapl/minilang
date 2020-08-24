@@ -345,7 +345,7 @@ void console_show(console_t *Console, GtkWindow *Parent) {
 	gtk_widget_grab_focus(Console->InputView);
 }
 
-void console_append(console_t *Console, const char *Buffer, int Length) {
+int console_append(console_t *Console, const char *Buffer, int Length) {
 	GtkTextIter End[1];
 	GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
 	gtk_text_buffer_get_end_iter(LogBuffer, End);
@@ -365,21 +365,19 @@ void console_append(console_t *Console, const char *Buffer, int Length) {
 		gtk_text_buffer_insert_with_tags(LogBuffer, End, " >", 2, Console->BinaryTag, NULL);
 	}
 	while (gtk_events_pending()) gtk_main_iteration();
+	return 0;
 }
 
 ml_value_t *console_print(console_t *Console, int Count, ml_value_t **Args) {
 	GtkTextIter End[1];
 	GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
 	gtk_text_buffer_get_end_iter(LogBuffer, End);
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Result = Args[I];
-		if (!ml_is(Result, MLStringT)) {
-			Result = ml_string_of(Result);
-			if (ml_is_error(Result)) return Result;
-			if (!ml_is(Result, MLStringT)) return ml_error("ResultError", "string method did not return string");
-		}
-		console_append(Console, ml_string_value(Result), ml_string_length(Result));
+		ml_value_t *Result = ml_simple_inline(MLStringBufferAppendMethod, 2, Buffer, Args[I]);
+		if (ml_is_error(Result)) return Result;
 	}
+	ml_stringbuffer_foreach(Buffer, Console, (void *)console_append);
 	while (gtk_events_pending()) gtk_main_iteration();
 	return MLNil;
 }

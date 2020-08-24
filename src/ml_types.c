@@ -177,7 +177,7 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLTypeT) {
 
 static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLTypeT, ml_stringbuffer_t *Buffer, ml_type_t *Type) {
 	ml_stringbuffer_addf(Buffer, "<<%s>>", Type->Name);
-	return MLSome;
+	return (ml_value_t *)Buffer;
 }
 
 ML_METHOD("::", MLTypeT, MLStringT) {
@@ -325,10 +325,8 @@ ML_METHODV(MLStringBufferAppendMethod, MLStringBufferT, MLAnyT) {
 	int Length = ml_string_length(String);
 	if (Length) {
 		ml_stringbuffer_add(Buffer, ml_string_value(String), Length);
-		return MLSome;
-	} else {
-		return MLNil;
 	}
+	return (ml_value_t *)Buffer;
 }
 
 // Iterators //
@@ -744,7 +742,7 @@ ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLTupleT, ml_stringbuffer_t *Buf
 		}
 	}
 	ml_stringbuffer_add(Buffer, ")", 1);
-	return MLSome;
+	return (ml_value_t *)Buffer;
 }
 
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLTupleT) {
@@ -759,7 +757,7 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLTupleT) {
 		}
 	}
 	ml_stringbuffer_add(Buffer, ")", 1);
-	return MLSome;
+	return (ml_value_t *)Buffer;
 }
 
 ml_value_t *ML_TYPED_FN(ml_unpack, MLTupleT, ml_tuple_t *Tuple, int Index) {
@@ -2195,8 +2193,8 @@ ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value)
 	ml_hash_chain_t *Chain = Buffer->Chain;
 	for (ml_hash_chain_t *Link = Chain; Link; Link = Link->Previous) {
 		if (Link->Value == Value) {
-			ml_stringbuffer_addf(Buffer, "<%s>^%ld", ml_typeof(Value)->Name, Link->Index);
-			return MLSome;
+			ml_stringbuffer_addf(Buffer, "<%s@%ld>", ml_typeof(Value)->Name, Link->Index);
+			return (ml_value_t *)Buffer;
 		}
 	}
 	ml_hash_chain_t NewChain[1] = {{Chain, Value, Chain ? Chain->Index + 1 : 1}};
@@ -2243,40 +2241,38 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLSomeT) {
 
 static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLIntegerT, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
 	ml_stringbuffer_addf(Buffer, "%ld", ml_integer_value(Value));
-	return MLSome;
+	return (ml_value_t *)Buffer;
 }
 
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLIntegerT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_addf(Buffer, "%ld", ml_integer_value(Args[1]));
-	return MLSome;
+	return (ml_value_t *)Buffer;
 }
 
 static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLRealT, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
 	ml_stringbuffer_addf(Buffer, "%f", ml_real_value(Value));
-	return MLSome;
+	return (ml_value_t *)Buffer;
 }
 
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLRealT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_addf(Buffer, "%f", ml_real_value(Args[1]));
-	return MLSome;
+	return (ml_value_t *)Buffer;
 }
 
 static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLStringT, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
 	int Length = ml_string_length(Value);
 	if (Length) {
 		ml_stringbuffer_add(Buffer, ml_string_value(Value), Length);
-		return MLSome;
-	} else {
-		return MLNil;
 	}
+	return (ml_value_t *)Buffer;
 }
 
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLStringT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_add(Buffer, ml_string_value(Args[1]), ml_string_length(Args[1]));
-	return ml_string_length(Args[1]) ? MLSome : MLNil;
+	return (ml_value_t *)Buffer;
 }
 
 ML_METHOD("[]", MLStringT, MLIntegerT) {
@@ -2995,13 +2991,13 @@ ML_METHOD(MLStringOfMethod, MLRegexT) {
 
 static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLRegexT, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
 	ml_stringbuffer_addf(Buffer, "/%s/", ml_regex_pattern(Value));
-	return MLSome;
+	return (ml_value_t *)Buffer;
 }
 
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLRegexT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_addf(Buffer, "/%s/", ml_regex_pattern(Args[1]));
-	return MLSome;
+	return (ml_value_t *)Buffer;
 }
 
 // Lists //
@@ -3355,17 +3351,17 @@ ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
 }
 
 static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLListT, ml_stringbuffer_t *Buffer, ml_list_t *List) {
+	ml_stringbuffer_add(Buffer, "[", 1);
 	ml_list_node_t *Node = List->Head;
 	if (Node) {
 		ml_stringbuffer_append(Buffer, Node->Value);
 		while ((Node = Node->Next)) {
-			ml_stringbuffer_add(Buffer, " ", 1);
+			ml_stringbuffer_add(Buffer, ", ", 2);
 			ml_stringbuffer_append(Buffer, Node->Value);
 		}
-		return MLSome;
-	} else {
-		return MLNil;
 	}
+	ml_stringbuffer_add(Buffer, "]", 1);
+	return (ml_value_t *)Buffer;
 }
 
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLListT) {
@@ -3380,12 +3376,9 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLListT) {
 			ml_stringbuffer_add(Buffer, ", ", 2);
 			ml_stringbuffer_append(Buffer, Node->Value);
 		}
-		ml_stringbuffer_add(Buffer, "]", 1);
-		return MLSome;
-	} else {
-		ml_stringbuffer_add(Buffer, "]", 1);
-		return MLNil;
 	}
+	ml_stringbuffer_add(Buffer, "]", 1);
+	return (ml_value_t *)Buffer;
 }
 
 ml_value_t *ML_TYPED_FN(ml_unpack, MLListT, ml_list_t *List, int Index) {
@@ -4011,6 +4004,7 @@ ml_value_t *ml_map_fn(void *Data, int Count, ml_value_t **Args) {
 }
 
 ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLMapT, ml_stringbuffer_t *Buffer, ml_map_t *Map) {
+	ml_stringbuffer_add(Buffer, "{", 1);
 	ml_map_node_t *Node = Map->Head;
 	if (Node) {
 		ml_stringbuffer_append(Buffer, Node->Key);
@@ -4026,10 +4020,9 @@ ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLMapT, ml_stringbuffer_t *Buffe
 				ml_stringbuffer_append(Buffer, Node->Value);
 			}
 		}
-		return MLSome;
-	} else {
-		return MLNil;
 	}
+	ml_stringbuffer_add(Buffer, "}", 1);
+	return (ml_value_t *)Buffer;
 }
 
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLMapT) {
@@ -4048,12 +4041,9 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLMapT) {
 			ml_stringbuffer_add(Buffer, " is ", 4);
 			ml_stringbuffer_append(Buffer, Node->Value);
 		}
-		ml_stringbuffer_add(Buffer, "}", 1);
-		return MLSome;
-	} else {
-		ml_stringbuffer_add(Buffer, "}", 1);
-		return MLNil;
 	}
+	ml_stringbuffer_add(Buffer, "}", 1);
+	return (ml_value_t *)Buffer;
 }
 
 #define ML_TREE_MAX_DEPTH 32
@@ -4478,7 +4468,7 @@ ML_METHOD(MLStringOfMethod, MLMethodT) {
 static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLMethodT, ml_stringbuffer_t *Buffer, ml_method_t *Value) {
 	ml_stringbuffer_add(Buffer, ":", 1);
 	ml_stringbuffer_add(Buffer, Value->Name, strlen(Value->Name));
-	return MLSome;
+	return (ml_value_t *)Buffer;
 }
 
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLMethodT) {
@@ -4486,7 +4476,7 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLMethodT) {
 	ml_method_t *Method = (ml_method_t *)Args[1];
 	ml_stringbuffer_add(Buffer, ":", 1);
 	ml_stringbuffer_add(Buffer, Method->Name, strlen(Method->Name));
-	return MLSome;
+	return (ml_value_t *)Buffer;
 }
 
 ML_METHOD_DECL(MLRange, "..");

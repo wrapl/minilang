@@ -57,16 +57,18 @@ ML_FUNCTION(MLClock) {
 	return ml_real(Time->tv_sec + Time->tv_nsec / 1000000000.0);
 }
 
+static int ml_stringbuffer_print(FILE *File, const char *String, size_t Length) {
+	fwrite(String, 1, Length, File);
+	return 0;
+}
+
 ML_FUNCTION(MLPrint) {
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Result = Args[I];
-		if (!ml_is(Result, MLStringT)) {
-			Result = ml_simple_call(MLStringOfMethod, 1, &Result);
-			if (ml_is_error(Result)) return Result;
-			if (!ml_is(Result, MLStringT)) return ml_error("ResultError", "string method did not return string");
-		}
-		fwrite(ml_string_value(Result), 1, ml_string_length(Result), stdout);
+		ml_value_t *Result = ml_simple_inline(MLStringBufferAppendMethod, 2, Buffer, Args[I]);
+		if (ml_is_error(Result)) return Result;
 	}
+	ml_stringbuffer_foreach(Buffer, stdout, (void *)ml_stringbuffer_print);
 	fflush(stdout);
 	return MLNil;
 }

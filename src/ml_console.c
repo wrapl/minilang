@@ -75,8 +75,14 @@ typedef struct {
 
 ml_value_t MLConsoleBreak[1] = {{MLAnyT}};
 
+static int ml_stringbuffer_print(FILE *File, const char *String, size_t Length) {
+	fwrite(String, 1, Length, File);
+	return 0;
+}
+
 static void ml_console_log(void *Data, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
+	error:
 		printf("Error: %s\n", ml_error_message(Value));
 		ml_source_t Source;
 		int Level = 0;
@@ -84,12 +90,12 @@ static void ml_console_log(void *Data, ml_value_t *Value) {
 			printf("\t%s:%d\n", Source.Name, Source.Line);
 		}
 	} else {
-		ml_value_t *String = ml_string_of(Value);
-		if (ml_is(String, MLStringT)) {
-			printf("%s\n", ml_string_value(String));
-		} else {
-			printf("<%s>\n", ml_typeof(Value)->Name);
-		}
+		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+		Value = ml_simple_inline(MLStringBufferAppendMethod, 2, Buffer, Value);
+		if (ml_is_error(Value)) goto error;
+		ml_stringbuffer_foreach(Buffer, stdout, (void *)ml_stringbuffer_print);
+		puts("");
+		fflush(stdout);
 	}
 }
 

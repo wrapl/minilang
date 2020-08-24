@@ -11,34 +11,34 @@ function
 :mini:`meth !(Function: function, List: list)` |rarr| :mini:`any`
    Calls :mini:`Function` with the values in :mini:`List` as positional arguments.
 
-   *Defined at line 378 in src/ml_types.c*
+   *Defined at line 376 in src/ml_types.c*
 
 :mini:`meth !(Function: function, Map: map)` |rarr| :mini:`any`
    Calls :mini:`Function` with the keys and values in :mini:`Map` as named arguments.
 
    Returns an error if any of the keys in :mini:`Map` is not a string or method.
 
-   *Defined at line 391 in src/ml_types.c*
+   *Defined at line 389 in src/ml_types.c*
 
 :mini:`meth !(Function: function, List: list, Map: map)` |rarr| :mini:`any`
    Calls :mini:`Function` with the values in :mini:`List` as positional arguments and the keys and values in :mini:`Map` as named arguments.
 
    Returns an error if any of the keys in :mini:`Map` is not a string or method.
 
-   *Defined at line 418 in src/ml_types.c*
+   *Defined at line 416 in src/ml_types.c*
 
 :mini:`partialfunction`
    :Parents: :mini:`function`
 
-   *Defined at line 528 in src/ml_types.c*
+   *Defined at line 526 in src/ml_types.c*
 
 :mini:`meth !!(Function: function, List: list)` |rarr| :mini:`partialfunction`
    Returns a function equivalent to :mini:`fun(Args...) Function(List..., Args...)`.
 
-   *Defined at line 547 in src/ml_types.c*
+   *Defined at line 545 in src/ml_types.c*
 
 :mini:`meth $(Function: function, Arg: any)` |rarr| :mini:`partialfunction`
    Returns a function equivalent to :mini:`fun(Args...) Function(Arg, Args...)`.
 
-   *Defined at line 563 in src/ml_types.c*
+   *Defined at line 561 in src/ml_types.c*
 
