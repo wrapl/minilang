@@ -590,6 +590,7 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	GtkWidget *HeaderBar = gtk_header_bar_new();
 	gtk_header_bar_set_title(GTK_HEADER_BAR(HeaderBar), "Minilang");
 	gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(HeaderBar), FALSE);
+	gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(HeaderBar), TRUE);
 	gtk_header_bar_pack_start(GTK_HEADER_BAR(HeaderBar), MenuButton);
 	gtk_window_set_titlebar(GTK_WINDOW(Console->Window), HeaderBar);
 
