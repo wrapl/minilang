@@ -3,7 +3,6 @@ from docutils import nodes
 import re
 from pygments import lexers
 import inspect
-#import sphinx_bootstrap_theme
 import os
 
 class FoldersDirective(Directive):
@@ -99,13 +98,6 @@ html_theme_options = {
 html_sidebars = {
     "**": ["logo-text.html", "globaltoc.html", "localtoc.html", "searchbox.html"]
 }
-
-#html_theme = 'bootstrap'
-#html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
-
-#html_theme_options = {
-#    'bootswatch_theme': "united"
-#}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
