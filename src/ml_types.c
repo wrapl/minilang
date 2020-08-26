@@ -196,7 +196,7 @@ ML_METHOD("::", MLTypeT, MLStringT) {
 
 // Values //
 
-ML_TYPE(MLNilT, (MLIteratableT), "nil");
+ML_TYPE(MLNilT, (MLFunctionT, MLIteratableT), "nil");
 //!internal
 
 ML_TYPE(MLSomeT, (), "some");

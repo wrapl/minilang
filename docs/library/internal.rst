@@ -29,7 +29,7 @@ internal
    *Defined at line 171 in src/ml_types.c*
 
 :mini:`nil`
-   :Parents: :mini:`iteratable`
+   :Parents: :mini:`function`, :mini:`iteratable`
 
    *Defined at line 199 in src/ml_types.c*
 
