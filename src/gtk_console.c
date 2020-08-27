@@ -145,10 +145,8 @@ typedef struct {
 
 ML_TYPE(MLConsoleReplStateT, (), "console-repl-state");
 
-static ml_value_t ConsoleBreak[1] = {{MLAnyT}};
-
 static void ml_console_repl_run(ml_console_repl_state_t *State, ml_value_t *Result) {
-	if (!Result || Result == ConsoleBreak) {
+	if (Result == MLEndOfInput) {
 		gtk_widget_grab_focus(State->Console->InputView);
 		return;
 	}
@@ -447,7 +445,7 @@ static void console_include_fnx(ml_state_t *Caller, console_t *Console, int Coun
 	State->Caller = Caller;
 	State->Context = Caller->Context;
 	State->run = console_included_run;
-	return ml_load(State, (ml_getter_t)console_global_get, Console, ml_string_value(Args[0]), NULL);
+	return ml_load_file(State, (ml_getter_t)console_global_get, Console, ml_string_value(Args[0]), NULL);
 }
 
 static gboolean console_update_status(console_t *Console) {

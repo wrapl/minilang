@@ -50,10 +50,9 @@ typedef struct {
 
 void ml_value_state_run(ml_value_state_t *State, ml_value_t *Value);
 ml_value_state_t *ml_value_state_new() __attribute__ ((malloc));
-void ml_value_state_free(ml_value_state_t *State);
 
 void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value);
-ml_value_state_t *ml_call_state_new();
+ml_value_state_t *ml_call_state_new() __attribute__ ((malloc));
 
 ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args);
 

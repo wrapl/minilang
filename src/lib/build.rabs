@@ -18,7 +18,6 @@ fun minilang_lib(Library, Objects, Libraries) do
 			end
 		end
 	end
-	print("Library = ", Library, "\n")
 	Library[Objects, Libraries] => fun(Library) do
 		execute('cc', '-o', Library, '-shared', '-export-dynamic', Objects, Libraries, LDFLAGS)
 		DEBUG or execute("strip", Library)

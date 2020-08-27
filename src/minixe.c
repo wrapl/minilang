@@ -629,10 +629,8 @@ ML_FUNCTIONX(XEFunction) {
 	ml_scanner_source(Scanner, ml_debugger_source(Caller));
 	ml_value_state_t *State = ml_value_state_new();
 	ml_command_evaluate((ml_state_t *)State, Scanner, Globals);
-	ml_value_t *Result = State->Value;
-	ml_value_state_free(State);
-	ml_value_t *Macro = Result ?: ml_error("ParseError", "Empty body");
-	Macro = ml_deref(Macro);
+	ml_value_t *Macro = State->Value;
+	if (Macro == MLEndOfInput) Macro = ml_error("ParseError", "Empty body");
 	if (ml_is_error(Macro)) ML_RETURN(Macro);
 	ml_value_t *Name = ml_map_search(Attributes, ml_integer(1));
 	if (Name == MLNil) ML_RETURN(Macro);
@@ -705,14 +703,13 @@ ML_FUNCTIONX(XEDo) {
 	ml_value_state_t *State = ml_value_state_new();
 	for (;;) {
 		ml_command_evaluate((ml_state_t *)State, Scanner, Globals);
-		if (!State->Value) break;
+		if (State->Value == MLEndOfInput) break;
 		if (ml_is_error(State->Value)) {
 			Result = State->Value;
 			break;
 		}
 		Result = ml_deref(State->Value);
 	}
-	ml_value_state_free(State);
 	ML_RETURN(Result);
 }
 
@@ -738,14 +735,13 @@ ML_FUNCTIONX(XEDo2) {
 	ml_value_state_t *State = ml_value_state_new();
 	for (;;) {
 		ml_command_evaluate((ml_state_t *)State, Scanner, Globals);
-		if (!State->Value) break;
+		if (State->Value == MLEndOfInput) break;
 		if (ml_is_error(State->Value)) {
 			Result = State->Value;
 			break;
 		}
 	}
-	ml_value_state_free(State);
-	ML_RETURN(MLNil);
+	ML_RETURN(Result);
 }
 
 static const char *file_read(xe_stream_t *Stream) {
@@ -871,7 +867,7 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, XEVarT) {
 ML_METHOD(MLStringOfMethod, XEVarT) {
 	xe_var_t *Var = (xe_var_t *)Args[0];
 	if (ml_is(Var->Name, MLIntegerT)) {
-		return ml_string_format("<$%d>", ml_integer_value(Var->Name));
+		return ml_string_format("<$%ld>", ml_integer_value(Var->Name));
 	} else {
 		return ml_string_format("<$%s>", ml_string_value(Var->Name));
 	}
@@ -1141,7 +1137,7 @@ int main(int Argc, char **Argv) {
 			}
 		}
 	} else if (FileName) {
-		ml_load(MLLoadedState, global_get, Globals, FileName, Parameters);
+		ml_load_file(MLLoadedState, global_get, Globals, FileName, Parameters);
 	} else {
 		ml_console(global_get, Globals, "--> ", "... ");
 	}

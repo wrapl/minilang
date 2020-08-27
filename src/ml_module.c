@@ -85,7 +85,7 @@ void ml_module_load_file(ml_state_t *Caller, const char *FileName, ml_getter_t G
 	State->Base.Caller = Caller;
 	State->Module = (ml_value_t *)Module;
 	State->Args[0] = (ml_value_t *)ExportFunction;
-	return ml_load((ml_state_t *)State, GlobalGet, Globals, FileName, Parameters);
+	return ml_load_file((ml_state_t *)State, GlobalGet, Globals, FileName, Parameters);
 }
 
 void ml_module_init(stringmap_t *_Globals) {

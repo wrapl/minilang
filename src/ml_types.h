@@ -610,7 +610,7 @@ void ml_method_by_value(ml_value_t *Method, void *Data, ml_callback_t Function, 
 void ml_methodx_by_name(const char *Method, void *Data, ml_callbackx_t Function, ...) __attribute__ ((sentinel));
 void ml_methodx_by_value(ml_value_t *Method, void *Data, ml_callbackx_t Function, ...) __attribute__ ((sentinel));
 
-void ml_method_define(ml_value_t *Method, ml_value_t *Function, int Variadic, ...) __attribute__ ((sentinel));
+void ml_method_define(ml_value_t *Method, ml_value_t *Function, int Variadic, ...);
 
 void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_type_t **Types);
 

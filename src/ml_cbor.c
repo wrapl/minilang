@@ -380,7 +380,6 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLStringT, ml_value_t *Arg, void *
 static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLRegexT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	//printf("%s()\n", __func__);
 	const char *Pattern = ml_regex_pattern(Arg);
-	int Length = strlen(Pattern);
 	ml_cbor_write_tag(Data, WriteFn, 35);
 	ml_cbor_write_string(Data, WriteFn, strlen(Pattern));
 	WriteFn(Data, (void *)Pattern, strlen(Pattern));

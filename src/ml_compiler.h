@@ -19,9 +19,12 @@ const char *ml_scanner_clear(mlc_scanner_t *Scanner);
 void ml_scanner_error(mlc_scanner_t *Scanner, const char *Error, const char *Format, ...) __attribute__((noreturn));
 
 void ml_function_compile(ml_state_t *Caller, mlc_scanner_t *Scanner, const char **Parameters);
+
+extern ml_value_t MLEndOfInput[];
+
 void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t *Vars);
 
-void ml_load(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]);
+void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]);
 
 void ml_compiler_init();
 

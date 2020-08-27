@@ -2772,13 +2772,15 @@ void ml_function_compile(ml_state_t *Caller, mlc_scanner_t *Scanner, const char 
 	ML_RETURN(Function);
 }
 
+ml_value_t MLEndOfInput[1] = {{MLAnyT}};
+
 void ml_command_evaluate(ml_state_t *Caller, mlc_scanner_t *Scanner, stringmap_t *Vars) {
 	MLC_ON_ERROR(Scanner->Context) {
 		ml_scanner_reset(Scanner);
 		ML_RETURN(Scanner->Context->Error);
 	}
 	while (ml_parse(Scanner, MLT_EOL));
-	if (ml_parse(Scanner, MLT_EOI)) ML_RETURN(NULL);
+	if (ml_parse(Scanner, MLT_EOI)) ML_RETURN(MLEndOfInput);
 	ml_value_t *Result = NULL;
 	if (ml_parse(Scanner, MLT_VAR)) {
 		do {
@@ -2947,16 +2949,14 @@ static const char *ml_file_read(void *Data) {
 	return Line;
 }
 
-void ml_load(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]) {
+void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]) {
 	FILE *File = fopen(FileName, "r");
 	if (!File) ML_RETURN(ml_error("LoadError", "error opening %s", FileName));
 	mlc_scanner_t *Scanner = ml_scanner(FileName, File, ml_file_read, GlobalGet, Globals);
-	if (setjmp(Scanner->Context->OnError)) ML_RETURN(Scanner->Context->Error);
-	mlc_expr_t *Expr = ml_accept_block(Scanner);
-	ml_accept_eoi(Scanner);
+	ml_value_state_t *State = ml_value_state_new();
+	ml_function_compile((ml_state_t *)State, Scanner, Parameters);
 	fclose(File);
-	ml_value_t *Closure = ml_compile(Expr, Parameters, Scanner->Context);
-	ML_RETURN(Closure);
+	ML_RETURN(State->Value);
 }
 
 void ml_compiler_init() {

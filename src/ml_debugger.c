@@ -216,7 +216,7 @@ static void interactive_debugger_fnx(ml_state_t *Caller, interactive_debugger_in
 	if (ml_is(Args[0], MLStringT)) {
 		State->run = debugger_state_load;
 		const char *FileName = ml_string_value(Args[0]);
-		ml_load(State, Info->GlobalGet, Info->Globals, FileName, NULL);
+		ml_load_file(State, Info->GlobalGet, Info->Globals, FileName, NULL);
 	} else {
 		ml_value_t *Function = Args[0];
 		return ml_call(State, Function, Count - 1, Args + 1);

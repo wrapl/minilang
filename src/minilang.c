@@ -204,7 +204,7 @@ int main(int Argc, const char *Argv[]) {
 	}
 	if (FileName) {
 		ml_value_state_t *State = ml_value_state_new();
-		ml_load((ml_state_t *)State, global_get, NULL, FileName, Parameters);
+		ml_load_file((ml_state_t *)State, global_get, NULL, FileName, Parameters);
 		ml_inline(State, State->Value, 1, Args);
 		if (ml_is_error(State->Value)) {
 			printf("Error: %s\n", ml_error_message(State->Value));

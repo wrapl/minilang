@@ -73,8 +73,6 @@ typedef struct {
 	mlc_scanner_t *Scanner;
 } ml_console_repl_state_t;
 
-ml_value_t MLConsoleBreak[1] = {{MLAnyT}};
-
 static int ml_stringbuffer_print(FILE *File, const char *String, size_t Length) {
 	fwrite(String, 1, Length, File);
 	return 0;
@@ -100,7 +98,7 @@ static void ml_console_log(void *Data, ml_value_t *Value) {
 }
 
 static void ml_console_repl_run(ml_console_repl_state_t *State, ml_value_t *Result) {
-	if (!Result || Result == MLConsoleBreak) return;
+	if (Result == MLEndOfInput) return;
 	State->Console->Prompt = State->Console->DefaultPrompt;
 	Result = ml_deref(Result);
 	ml_console_log(NULL, Result);
@@ -127,7 +125,7 @@ static void ml_console_debug_enter(ml_console_t *Console, interactive_debugger_t
 }
 
 static void ml_console_debug_exit(ml_state_t *Caller, void *Data) {
-	ML_RETURN(MLConsoleBreak);
+	ML_RETURN(MLEndOfInput);
 }
 
 void ml_console(ml_getter_t GlobalGet, void *Globals, const char *DefaultPrompt, const char *ContinuePrompt) {
