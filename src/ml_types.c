@@ -373,6 +373,17 @@ void ml_iter_next(ml_state_t *Caller, ml_value_t *Iter) {
 
 // Functions //
 
+ML_METHODX("!", MLFunctionT, MLTupleT) {
+//!function
+//<Function
+//<Tuple
+//>any
+// Calls :mini:`Function` with the values in :mini:`Tuple` as positional arguments.
+	ml_tuple_t *Tuple = (ml_tuple_t *)Args[1];
+	ml_value_t *Function = Args[0];
+	return ml_call(Caller, Function, Tuple->Size, Tuple->Values);
+}
+
 ML_METHODX("!", MLFunctionT, MLListT) {
 //!function
 //<Function
@@ -399,6 +410,38 @@ ML_METHODX("!", MLFunctionT, MLMapT) {
 	ml_value_t **Arg = Args2;
 	*(Arg++) = Names;
 	ML_MAP_FOREACH(Args[1], Node) {
+		ml_value_t *Name = Node->Key;
+		if (ml_is(Name, MLMethodT)) {
+			ml_names_add(Names, Name);
+		} else if (ml_is(Name, MLStringT)) {
+			ml_names_add(Names, ml_method(ml_string_value(Name)));
+		} else {
+			ML_RETURN(ml_error("TypeError", "Parameter names must be strings or methods"));
+		}
+		*(Arg++) = Node->Value;
+	}
+	ml_value_t *Function = Args[0];
+	return ml_call(Caller, Function, Count2, Args2);
+}
+
+ML_METHODX("!", MLFunctionT, MLTupleT, MLMapT) {
+//!function
+//<Function
+//<Tuple
+//<Map
+//>any
+// Calls :mini:`Function` with the values in :mini:`Tuple` as positional arguments and the keys and values in :mini:`Map` as named arguments.
+// Returns an error if any of the keys in :mini:`Map` is not a string or method.
+	ml_tuple_t *Tuple = (ml_tuple_t *)Args[1];
+	int TupleCount = Tuple->Size;
+	int MapCount = ml_map_size(Args[2]);
+	int Count2 = TupleCount + MapCount + 1;
+	ml_value_t **Args2 = anew(ml_value_t *, Count2);
+	memcpy(Args2, Tuple->Values, TupleCount * sizeof(ml_value_t *));
+	ml_value_t *Names = ml_names();
+	ml_value_t **Arg = Args2 + TupleCount;
+	*(Arg++) = Names;
+	ML_MAP_FOREACH(Args[2], Node) {
 		ml_value_t *Name = Node->Key;
 		if (ml_is(Name, MLMethodT)) {
 			ml_names_add(Names, Name);

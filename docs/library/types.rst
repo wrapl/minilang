@@ -52,17 +52,17 @@ types
    *Defined at line 313 in src/ml_types.c*
 
 :mini:`meth string(Arg₁: nil)`
-   *Defined at line 1889 in src/ml_types.c*
+   *Defined at line 1932 in src/ml_types.c*
 
 :mini:`meth string(Arg₁: some)`
-   *Defined at line 1897 in src/ml_types.c*
+   *Defined at line 1940 in src/ml_types.c*
 
 :mini:`meth list()`
-   *Defined at line 3114 in src/ml_types.c*
+   *Defined at line 3157 in src/ml_types.c*
 
 :mini:`meth list(Arg₁: tuple)`
-   *Defined at line 3118 in src/ml_types.c*
+   *Defined at line 3161 in src/ml_types.c*
 
 :mini:`meth map()`
-   *Defined at line 3671 in src/ml_types.c*
+   *Defined at line 3714 in src/ml_types.c*
 
