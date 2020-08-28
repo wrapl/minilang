@@ -2934,6 +2934,20 @@ ML_METHOD("%", MLStringT, MLRegexT) {
 	}
 }
 
+int ml_regex_match(ml_value_t *Value, const char *Subject, int Length) {
+	regex_t *Regex = ml_regex_value(Value);
+	regmatch_t Matches[1];
+#ifdef USE_TRE
+	switch (regnexec(Regex, Subject, Length, 1, Matches, 0)) {
+#else
+	switch (regexec(Regex, Subject, 1, Matches, 0)) {
+#endif
+	case REG_NOMATCH: return 0;
+	case REG_ESPACE: return -1;
+	default: return 1;
+	}
+}
+
 ML_METHOD("?", MLStringT, MLRegexT) {
 //!string
 	const char *Subject = ml_string_value(Args[0]);
