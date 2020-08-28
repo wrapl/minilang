@@ -119,20 +119,20 @@ string
    *Defined at line 2898 in src/ml_types.c*
 
 :mini:`meth ?(Arg₁: string, Arg₂: regex)`
-   *Defined at line 2937 in src/ml_types.c*
+   *Defined at line 2951 in src/ml_types.c*
 
 :mini:`meth :replace(Arg₁: string, Arg₂: string, Arg₃: string)`
-   *Defined at line 2972 in src/ml_types.c*
+   *Defined at line 2986 in src/ml_types.c*
 
 :mini:`meth :replace(Arg₁: string, Arg₂: regex, Arg₃: string)`
-   *Defined at line 2994 in src/ml_types.c*
+   *Defined at line 3008 in src/ml_types.c*
 
 :mini:`meth :replace(Arg₁: string, Arg₂: regex, Arg₃: function)`
-   *Defined at line 3031 in src/ml_types.c*
+   *Defined at line 3045 in src/ml_types.c*
 
 :mini:`meth :replace(Arg₁: string, Arg₂: map)`
-   *Defined at line 3088 in src/ml_types.c*
+   *Defined at line 3102 in src/ml_types.c*
 
 :mini:`meth string(Arg₁: regex)`
-   *Defined at line 3188 in src/ml_types.c*
+   *Defined at line 3202 in src/ml_types.c*
 
