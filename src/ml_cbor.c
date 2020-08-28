@@ -548,7 +548,7 @@ static ml_value_t *ml_cbor_read_typed_array_fn(void *Data, int Count, ml_value_t
 
 ml_value_t *ml_cbor_read_regex(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_TYPE(0, MLStringT);
-	return ml_regex(ml_string_value(Args[0]));
+	return ml_regex(ml_string_value(Args[0]), ml_string_length(Args[1]));
 }
 
 ml_value_t *ml_cbor_read_method(void *Data, int Count, ml_value_t **Args) {

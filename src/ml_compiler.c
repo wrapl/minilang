@@ -1616,7 +1616,7 @@ static inline int isoperator(char C) {
 
 static stringmap_t StringFns[1] = {STRINGMAP_INIT};
 
-typedef ml_value_t *(*string_fn_t)(const char *String);
+typedef ml_value_t *(*string_fn_t)(const char *String, int Length);
 
 static ml_token_t ml_advance(mlc_scanner_t *Scanner) {
 	for (;;) {
@@ -1680,7 +1680,7 @@ static ml_token_t ml_advance(mlc_scanner_t *Scanner) {
 					}
 				}
 				*D = 0;
-				ml_value_t *Value = StringFn(Pattern);
+				ml_value_t *Value = StringFn(Pattern, D - Pattern);
 				if (ml_is_error(Value)) {
 					ml_error_trace_add(Value, Scanner->Source);
 					Scanner->Context->Error = Value;

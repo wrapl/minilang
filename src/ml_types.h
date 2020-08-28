@@ -358,7 +358,7 @@ ml_value_t *ml_string_of(ml_value_t *Value);
 
 extern ml_value_t *MLStringOfMethod;
 
-ml_value_t *ml_regex(const char *Value) __attribute__((malloc));
+ml_value_t *ml_regex(const char *Value, int Length) __attribute__((malloc));
 const char *ml_regex_pattern(const ml_value_t *Value) __attribute__((pure));
 
 typedef struct ml_stringbuffer_t ml_stringbuffer_t;
