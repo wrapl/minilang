@@ -2936,11 +2936,10 @@ ML_METHOD("%", MLStringT, MLRegexT) {
 
 int ml_regex_match(ml_value_t *Value, const char *Subject, int Length) {
 	regex_t *Regex = ml_regex_value(Value);
-	regmatch_t Matches[1];
 #ifdef USE_TRE
-	switch (regnexec(Regex, Subject, Length, 1, Matches, 0)) {
+	switch (regnexec(Regex, Subject, Length, 0, NULL, 0)) {
 #else
-	switch (regexec(Regex, Subject, 1, Matches, 0)) {
+	switch (regexec(Regex, Subject, 0, NULL, 0)) {
 #endif
 	case REG_NOMATCH: return 1;
 	case REG_ESPACE: return -1;
