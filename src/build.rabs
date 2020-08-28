@@ -221,16 +221,16 @@ var InstallHeaders := [
 	"inthash.h"
 ]
 
-if MINILANG_USEMATH or defined("USEMATH") then
+if MINILANG_USEMATH or defined("MATH") then
 	InstallHeaders:put("ml_array.h")
 	InstallHeaders:put("ml_math.h")
 end
 
-if MINILANG_USECBOR or defined("USECBOR") then
+if MINILANG_USECBOR or defined("CBOR") then
 	InstallHeaders:put("ml_cbor.h")
 end
 
-if MINILANG_USEGTK or defined("USEGTK") then
+if MINILANG_USEGTK or defined("GTK") then
 	InstallHeaders:put("ml_gir.h")
 	InstallHeaders:put("gtk_console.h")
 end
