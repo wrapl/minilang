@@ -58,11 +58,11 @@ types
    *Defined at line 1944 in src/ml_types.c*
 
 :mini:`meth list()`
-   *Defined at line 3308 in src/ml_types.c*
+   *Defined at line 3307 in src/ml_types.c*
 
 :mini:`meth list(Arg₁: tuple)`
-   *Defined at line 3312 in src/ml_types.c*
+   *Defined at line 3311 in src/ml_types.c*
 
 :mini:`meth map()`
-   *Defined at line 3865 in src/ml_types.c*
+   *Defined at line 3864 in src/ml_types.c*
 
