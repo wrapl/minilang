@@ -28,10 +28,6 @@
 #include "ml_cbor.h"
 #endif
 
-#ifdef USE_ML_MPC
-#include "ml_mpc.h"
-#endif
-
 #ifdef USE_ML_RADB
 #include "ml_radb.h"
 #endif
@@ -162,9 +158,6 @@ int main(int Argc, const char *Argv[]) {
 #ifdef USE_ML_GIR
 	ml_gir_init(Globals);
 	int GtkConsole = 0;
-#endif
-#ifdef USE_ML_MPC
-	ml_mpc_init(Globals);
 #endif
 #ifdef USE_ML_RADB
 	ml_radb_init(Globals);

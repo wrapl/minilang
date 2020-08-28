@@ -1680,7 +1680,13 @@ static ml_token_t ml_advance(mlc_scanner_t *Scanner) {
 					}
 				}
 				*D = 0;
-				Scanner->Value = StringFn(Pattern);
+				ml_value_t *Value = StringFn(Pattern);
+				if (ml_is_error(Value)) {
+					ml_error_trace_add(Value, Scanner->Source);
+					Scanner->Context->Error = Value;
+					longjmp(Scanner->Context->OnError, 1);
+				}
+				Scanner->Value = Value;
 				Scanner->Token = MLT_VALUE;
 				Scanner->Next = End + 1;
 				return Scanner->Token;

@@ -85,35 +85,23 @@ var Objects := [
 
 var Libraries := []
 
-if MINILANG_USEMATH or defined("USEMATH") then
+if MINILANG_USEMATH or defined("MATH") then
 	Objects:put(file("ml_math.o"), file("ml_array.o"))
 	CFLAGS := old + ["-DUSE_ML_MATH"]
 end
 
-if MINILANG_LIBIO or defined("USEIO") then
+if MINILANG_LIBIO or defined("IO") then
 	Objects:put(file("ml_io.o"))
 	CFLAGS := old + ["-DUSE_ML_IO"]
 end
 
-if MINILANG_LIBUV or defined("LIBUV") then
-	Objects:put(file("ml_libuv.o"))
-	CFLAGS := old + ["-DUSE_ML_UV"]
-	LDFLAGS := old + ["-luv"]
-end
-
-if MINILANG_LIBEVENT or defined("LIBEVENT") then
-	Objects:put(file("ml_libevent.o"))
-	CFLAGS := old + ["-DUSE_ML_EVENT"]
-	LDFLAGS := old + ["-levent"]
-end
-
-if MINILANG_USEGTK or defined("USEGTK") then
+if MINILANG_USEGTK or defined("GTK") then
 	Objects:put(file("ml_gir.o"), file("gtk_console.o"))
 	CFLAGS := old + ["-DUSE_ML_GIR", pkgconfig("--cflags gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0 libgvc")]
 	LDFLAGS := old + [pkgconfig("--libs gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0 libgvc")]
 end
 
-if MINILANG_USECBOR or defined("USECBOR") then
+if MINILANG_USECBOR or defined("CBOR") then
 	var Dir := PATH/"minicbor"
 	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git", Dir)
 
@@ -130,7 +118,7 @@ if MINILANG_USECBOR or defined("USECBOR") then
 	)
 end
 
-if MINILANG_USEMPC or defined("USEMPC") then
+if MINILANG_USEMPC or defined("MPC") then
 	var Dir := PATH/"mpc"
 	Dir:exists or do
 		execute("git clone https://github.com/orangeduck/mpc.git", Dir)
@@ -154,12 +142,12 @@ if MINILANG_SCHEDULER or defined("SCHEDULER") then
 	CFLAGS := old + ["-DUSE_ML_SCHEDULER"]
 end
 
-if MINILANG_INST_FNS or defined("USE_INST_FNS") then
+if MINILANG_INST_FNS or defined("INST_FNS") then
 	CFLAGS := old + ["-DML_USE_INST_FNS"]
 	Objects:put(file("ml_bytecode_fns.o"))
 end
 
-if MINILANG_JIT or defined("USE_JIT") then
+if MINILANG_JIT or defined("JIT") then
 	let Source := file("ml_bytecode_x64.dasc")
 	file("ml_bytecode_x64.c")[Source] => fun(Target) do
 		execute("lua5.2", file("dynasm/dynasm.lua"), "-o", Target, Source)
@@ -169,15 +157,24 @@ if MINILANG_JIT or defined("USE_JIT") then
 	LDFLAGS := old + ["-lZydis"]
 end
 
-if MINILANG_USE_ASM or defined("USE_ASM") then
+if PLATFORM = "Linux" and MACHINE = "x86_64" then
+	MINILANG_USE_ASM := 1
+end
+
+if MINILANG_USE_ASM or defined("ASM") then
 	if MACHINE = "x86_64" and PLATFORM = "Linux" then
 		Objects:put(file("inthash_x64.o"))
 		CFLAGS := old + ["-DASM_INTHASH_SEARCH"]
 	end
 end
 
-if MINILANG_USE_NANBOXING or defined("USE_NANBOXING") then
+if MINILANG_USE_NANBOXING or defined("NANBOXING") then
 	CFLAGS := old + ["-DUSE_NANBOXING"]
+end
+
+if MINILANG_USE_TRE or defined("TRE") then
+	CFLAGS := old + ["-DUSE_TRE"]
+	LDFLAGS := old + ["-ltre"]
 end
 
 if PLATFORM = "Linux" then

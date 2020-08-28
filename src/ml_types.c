@@ -9,7 +9,11 @@
 #include <ctype.h>
 #include <gc.h>
 #include <gc/gc_typed.h>
+#ifdef USE_TRE
+#include <tre/regex.h>
+#else
 #include <regex.h>
+#endif
 #include <pthread.h>
 #include <limits.h>
 #include <math.h>
@@ -2684,9 +2688,9 @@ ML_METHOD("find", MLStringT, MLStringT, MLIntegerT) {
 ML_METHOD("find", MLStringT, MLRegexT) {
 //!string
 	const char *Haystack = ml_string_value(Args[0]);
-	int Length = ml_string_length(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
-#ifdef __USE_GNU
+#if defined(__USE_GNU) && !defined(USE_TRE)
+	int Length = ml_string_length(Args[0]);
 	regoff_t Offset = re_search(Regex, Haystack, Length, 0, Length, NULL);
 	if (Offset >= 0) {
 		return ml_integer(1 + Offset);
@@ -2719,7 +2723,7 @@ ML_METHOD("find", MLStringT, MLRegexT, MLIntegerT) {
 	if (Start <= 0) return MLNil;
 	if (Start > Length) return MLNil;
 	Haystack += Start - 1;
-#ifdef __USE_GNU
+#if defined(__USE_GNU) && !defined(USE_TRE)
 	regoff_t Offset = re_search(Regex, Haystack, Length, 0, Length, NULL);
 	if (Offset >= 0) {
 		return ml_integer(Start + Offset);
