@@ -11,4 +11,4 @@ for X in test !! [1, 10, 3] do
 	print('X = {X}\n')
 end
 
-print(all(test !! [1, 100, 7]), "\n")
+print(list(test !! [1, 100, 7]), "\n")
