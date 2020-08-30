@@ -6,7 +6,7 @@ map
 :mini:`meth map(Iteratable: iteratable)` |rarr| :mini:`map`
    Returns a map of all the key and value pairs produced by :mini:`Iteratable`.
 
-   *Defined at line 547 in src/ml_iterfns.c*
+   *Defined at line 550 in src/ml_iterfns.c*
 
 :mini:`map`
    A map of key-value pairs.
@@ -60,23 +60,30 @@ map
 
    *Defined at line 4202 in src/ml_types.c*
 
+:mini:`meth :missing(Map: map, Key: any)` |rarr| :mini:`any` or :mini:`nil`
+   Inserts :mini:`Key` into :mini:`Map` with corresponding value :mini:`Value`.
+
+   Returns the previous value associated with :mini:`Key` if any, otherwise :mini:`nil`.
+
+   *Defined at line 4220 in src/ml_types.c*
+
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: map)`
-   *Defined at line 4242 in src/ml_types.c*
+   *Defined at line 4256 in src/ml_types.c*
 
 :mini:`meth +(Map₁: map, Map₂: map)` |rarr| :mini:`map`
    Returns a new map combining the entries of :mini:`Map₁` and :mini:`Map₂`.
 
    If the same key is in both :mini:`Map₁` and :mini:`Map₂` then the corresponding value from :mini:`Map₂` is chosen.
 
-   *Defined at line 4302 in src/ml_types.c*
+   *Defined at line 4316 in src/ml_types.c*
 
 :mini:`meth string(Map: map)` |rarr| :mini:`string`
    Returns a string containing the entries of :mini:`Map` surrounded by :mini:`{`, :mini:`}` with :mini:`is` between keys and values and :mini:`,` between entries.
 
-   *Defined at line 4336 in src/ml_types.c*
+   *Defined at line 4350 in src/ml_types.c*
 
 :mini:`meth string(Map: map, Seperator: string, Connector: string)` |rarr| :mini:`string`
    Returns a string containing the entries of :mini:`Map` with :mini:`Connector` between keys and values and :mini:`Seperator` between entries.
 
-   *Defined at line 4355 in src/ml_types.c*
+   *Defined at line 4369 in src/ml_types.c*
 

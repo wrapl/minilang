@@ -4217,6 +4217,20 @@ ml_value_t *ml_map_fn(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)Map;
 }
 
+ML_METHOD("missing", MLMapT, MLAnyT) {
+//!map
+//<Map
+//<Key
+//>any | nil
+// Inserts :mini:`Key` into :mini:`Map` with corresponding value :mini:`Value`.
+// Returns the previous value associated with :mini:`Key` if any, otherwise :mini:`nil`.
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_value_t *Key = Args[1];
+	ml_map_node_t *Node = ml_map_node(Map, &Map->Root, ml_typeof(Key)->hash(Key, NULL), Key);
+	if (!Node->Value) return Node->Value = MLSome;
+	return MLNil;
+}
+
 ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLMapT, ml_stringbuffer_t *Buffer, ml_map_t *Map) {
 	ml_stringbuffer_add(Buffer, "{", 1);
 	ml_map_node_t *Node = Map->Head;

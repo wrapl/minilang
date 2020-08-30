@@ -23,14 +23,17 @@ ML_TYPE(FilterT, (MLFunctionT), "chained-filter",
 	.call = (void *)ml_chained_filter_call
 );
 
+static ml_filter_t *FilterNil;
+
 ML_FUNCTION(Filter) {
 //@filter
-//<Function
+//<?Function
 //>filter
 // Returns a filter for use in chained functions and iterators.
+	if (Count == 0) return (ml_value_t *)FilterNil;
 	ml_filter_t *Filter = new(ml_filter_t);
 	Filter->Type = FilterT;
-	Filter->Function = Count ? Args[0] : ml_integer(1);
+	Filter->Function = Args[0];
 	return (ml_value_t *)Filter;
 }
 
@@ -1544,6 +1547,9 @@ ML_METHOD("swap", MLIteratableT) {
 }
 
 void ml_iterfns_init(stringmap_t *Globals) {
+	FilterNil = new(ml_filter_t);
+	FilterNil->Type = FilterT;
+	FilterNil->Function = ml_integer(1);
 #include "ml_iterfns_init.c"
 	stringmap_insert(Globals, "filter", Filter);
 	stringmap_insert(Globals, "first", First);

@@ -91,8 +91,8 @@ internal
    *Defined at line 4110 in src/ml_types.c*
 
 :mini:`mapiter`
-   *Defined at line 4286 in src/ml_types.c*
+   *Defined at line 4300 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: method)`
-   *Defined at line 4688 in src/ml_types.c*
+   *Defined at line 4702 in src/ml_types.c*
 
