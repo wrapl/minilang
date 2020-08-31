@@ -75,7 +75,6 @@ static void ml_chained_state_value(ml_chained_state_t *State, ml_value_t *Value)
 
 typedef struct ml_chained_function_t {
 	const ml_type_t *Type;
-	ml_value_t *Initial;
 	ml_value_t *Entries[];
 } ml_chained_function_t;
 
@@ -84,9 +83,8 @@ static void ml_chained_function_call(ml_state_t *Caller, ml_chained_function_t *
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)ml_chained_state_value;
 	State->Base.Context = Caller->Context;
-	State->Current = Chained->Entries;
-	ml_value_t *Function = Chained->Initial;
-	return ml_call(State, Function, Count, Args);
+	State->Current = Chained->Entries + 1;
+	return ml_call(State, Chained->Entries[0], Count, Args);
 }
 
 typedef struct ml_chained_iterator_t {
@@ -104,12 +102,9 @@ ML_TYPE(MLChainedFunctionT, (MLFunctionT, MLIteratableT), "chained-function",
 
 static ml_value_t *ml_chained(int Count, ml_value_t **Functions) {
 	if (Count == 1) return Functions[0];
-	ml_chained_function_t *Chained = xnew(ml_chained_function_t, Count, ml_value_t *);
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, Count + 1, ml_value_t *);
 	Chained->Type = MLChainedFunctionT;
-	Chained->Initial = *Functions++;
-	for (int I = 0; I < Count - 1; ++I) {
-		Chained->Entries[I] = *Functions++;
-	}
+	for (int I = 0; I < Count; ++I) Chained->Entries[I] = *Functions++;
 	return (ml_value_t *)Chained;
 }
 
@@ -178,18 +173,18 @@ static void ML_TYPED_FN(ml_iterate, MLChainedFunctionT, ml_state_t *Caller, ml_c
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (void *)ml_chained_iterator_next;
-	State->Entries = Chained->Entries;
-	return ml_iterate((ml_state_t *)State, Chained->Initial);
+	State->Entries = Chained->Entries + 1;
+	return ml_iterate((ml_state_t *)State, Chained->Entries[0]);
 }
 
 ML_METHOD("->", MLIteratableT, MLFunctionT) {
 //<Iteratable
 //<Function
 //>chainedfunction
-	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 2, ml_value_t *);
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 3, ml_value_t *);
 	Chained->Type = MLChainedFunctionT;
-	Chained->Initial = Args[0];
-	Chained->Entries[0] = Args[1];
+	Chained->Entries[0] = Args[0];
+	Chained->Entries[1] = Args[1];
 	return (ml_value_t *)Chained;
 }
 
@@ -197,10 +192,24 @@ ML_METHOD("->", MLFunctionT, MLFunctionT) {
 //<Iteratable
 //<Function
 //>chainedfunction
-	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 2, ml_value_t *);
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 3, ml_value_t *);
 	Chained->Type = MLChainedFunctionT;
-	Chained->Initial = Args[0];
-	Chained->Entries[0] = Args[1];
+	Chained->Entries[0] = Args[0];
+	Chained->Entries[1] = Args[1];
+	return (ml_value_t *)Chained;
+}
+
+ML_METHOD("->", MLFunctionT, MLChainedFunctionT) {
+//<Iteratable
+//<Function
+//>chainedfunction
+	ml_chained_function_t *Rest = (ml_chained_function_t *)Args[1];
+	int N = 0;
+	while (Rest->Entries[N]) ++N;
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, N + 2, ml_value_t *);
+	Chained->Type = MLChainedFunctionT;
+	Chained->Entries[0] = Args[0];
+	for (int I = 0; I < N; ++I) Chained->Entries[I + 1] = Rest->Entries[I];
 	return (ml_value_t *)Chained;
 }
 
@@ -213,9 +222,25 @@ ML_METHOD("->", MLChainedFunctionT, MLFunctionT) {
 	while (Base->Entries[N]) ++N;
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, N + 2, ml_value_t *);
 	Chained->Type = MLChainedFunctionT;
-	Chained->Initial = Base->Initial;
 	for (int I = 0; I < N; ++I) Chained->Entries[I] = Base->Entries[I];
 	Chained->Entries[N] = Args[1];
+	return (ml_value_t *)Chained;
+}
+
+ML_METHOD("->", MLChainedFunctionT, MLChainedFunctionT) {
+//<ChainedFunction/1
+//<ChainedFunction/2
+//>chainedfunction
+	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
+	int N = 0;
+	while (Base->Entries[N]) ++N;
+	ml_chained_function_t *Rest = (ml_chained_function_t *)Args[1];
+	int M = 0;
+	while (Rest->Entries[M]) ++M;
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, N + M + 1, ml_value_t *);
+	Chained->Type = MLChainedFunctionT;
+	for (int I = 0; I < N; ++I) Chained->Entries[I] = Base->Entries[I];
+	for (int I = 0; I < M; ++I) Chained->Entries[I + N] = Rest->Entries[I];
 	return (ml_value_t *)Chained;
 }
 
@@ -299,7 +324,7 @@ static void ML_TYPED_FN(ml_iter_next, MLDoubledIteratorStateT, ml_state_t *Calle
 	return ml_iter_next((ml_state_t *)State, State->Iterator);
 }
 
-ML_METHOD("->>", MLIteratableT, MLFunctionT) {
+ML_METHOD(">>", MLIteratableT, MLFunctionT) {
 	ml_double_t *Double = new(ml_double_t);
 	Double->Type = MLDoubledIteratorT;
 	Double->Iteratable = Args[0];

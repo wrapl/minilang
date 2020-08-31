@@ -112,27 +112,30 @@ string
 :mini:`meth :find2(Arg₁: string, Arg₂: regex, Arg₃: integer)`
    *Defined at line 2812 in src/ml_types.c*
 
-:mini:`meth %(Arg₁: string, Arg₂: string)`
+:mini:`meth %(Arg₁: string, Arg₂: regex)`
    *Defined at line 2844 in src/ml_types.c*
 
-:mini:`meth %(Arg₁: string, Arg₂: regex)`
-   *Defined at line 2898 in src/ml_types.c*
-
 :mini:`meth ?(Arg₁: string, Arg₂: regex)`
-   *Defined at line 2950 in src/ml_types.c*
+   *Defined at line 2893 in src/ml_types.c*
+
+:mini:`meth :starts(Arg₁: string, Arg₂: string)`
+   *Defined at line 2925 in src/ml_types.c*
+
+:mini:`meth :starts(Arg₁: string, Arg₂: regex)`
+   *Defined at line 2935 in src/ml_types.c*
 
 :mini:`meth :replace(Arg₁: string, Arg₂: string, Arg₃: string)`
-   *Defined at line 2985 in src/ml_types.c*
+   *Defined at line 2967 in src/ml_types.c*
 
 :mini:`meth :replace(Arg₁: string, Arg₂: regex, Arg₃: string)`
-   *Defined at line 3007 in src/ml_types.c*
+   *Defined at line 2989 in src/ml_types.c*
 
 :mini:`meth :replace(Arg₁: string, Arg₂: regex, Arg₃: function)`
-   *Defined at line 3044 in src/ml_types.c*
+   *Defined at line 3026 in src/ml_types.c*
 
 :mini:`meth :replace(Arg₁: string, Arg₂: map)`
-   *Defined at line 3101 in src/ml_types.c*
+   *Defined at line 3083 in src/ml_types.c*
 
 :mini:`meth string(Arg₁: regex)`
-   *Defined at line 3201 in src/ml_types.c*
+   *Defined at line 3183 in src/ml_types.c*
 

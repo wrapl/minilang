@@ -30,3 +30,6 @@ general
 :mini:`fun import(Arg₁: string)`
    *Defined at line 109 in src/minilang.c*
 
+:mini:`fun unload(Arg₁: string)`
+   *Defined at line 130 in src/minilang.c*
+

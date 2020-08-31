@@ -77,22 +77,22 @@ internal
    *Defined at line 2344 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: regex)`
-   *Defined at line 3211 in src/ml_types.c*
+   *Defined at line 3193 in src/ml_types.c*
 
 :mini:`listiter`
-   *Defined at line 3626 in src/ml_types.c*
+   *Defined at line 3608 in src/ml_types.c*
 
 :mini:`names`
    :Parents: :mini:`list`
 
-   *Defined at line 3817 in src/ml_types.c*
+   *Defined at line 3799 in src/ml_types.c*
 
 :mini:`mapindex`
-   *Defined at line 4110 in src/ml_types.c*
+   *Defined at line 4092 in src/ml_types.c*
 
 :mini:`mapiter`
-   *Defined at line 4300 in src/ml_types.c*
+   *Defined at line 4282 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: method)`
-   *Defined at line 4702 in src/ml_types.c*
+   *Defined at line 4684 in src/ml_types.c*
 

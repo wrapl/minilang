@@ -2387,12 +2387,12 @@ ML_METHOD("+", MLStringT, MLStringT) {
 
 ML_METHOD("trim", MLStringT) {
 //!string
-	const char *Start = ml_string_value(Args[0]);
-	const char *End = Start + ml_string_length(Args[0]);
+	const unsigned char *Start = (const unsigned char *)ml_string_value(Args[0]);
+	const unsigned char *End = Start + ml_string_length(Args[0]);
 	while (Start < End && Start[0] <= ' ') ++Start;
 	while (Start < End && End[-1] <= ' ') --End;
 	int Length = End - Start;
-	return ml_string(Start, Length);
+	return ml_string((const char *)Start, Length);
 }
 
 ML_METHOD("trim", MLStringT, MLStringT) {
@@ -2410,11 +2410,11 @@ ML_METHOD("trim", MLStringT, MLStringT) {
 
 ML_METHOD("ltrim", MLStringT) {
 //!string
-	const char *Start = ml_string_value(Args[0]);
-	const char *End = Start + ml_string_length(Args[0]);
+	const unsigned char *Start = (const unsigned char *)ml_string_value(Args[0]);
+	const unsigned char *End = Start + ml_string_length(Args[0]);
 	while (Start < End && Start[0] <= ' ') ++Start;
 	int Length = End - Start;
-	return ml_string(Start, Length);
+	return ml_string((const char *)Start, Length);
 }
 
 ML_METHOD("ltrim", MLStringT, MLStringT) {
@@ -2431,11 +2431,11 @@ ML_METHOD("ltrim", MLStringT, MLStringT) {
 
 ML_METHOD("rtrim", MLStringT) {
 //!string
-	const char *Start = ml_string_value(Args[0]);
-	const char *End = Start + ml_string_length(Args[0]);
+	const unsigned char *Start = (const unsigned char *)ml_string_value(Args[0]);
+	const unsigned char *End = Start + ml_string_length(Args[0]);
 	while (Start < End && End[-1] <= ' ') --End;
 	int Length = End - Start;
-	return ml_string(Start, Length);
+	return ml_string((const char *)Start, Length);
 }
 
 ML_METHOD("rtrim", MLStringT, MLStringT) {
@@ -2841,60 +2841,6 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
 	return Result;
 }
 
-ML_METHOD("%", MLStringT, MLStringT) {
-//!string
-	const char *Subject = ml_string_value(Args[0]);
-	const char *Pattern = ml_string_value(Args[1]);
-	regex_t Regex[1];
-#ifdef USE_TRE
-	int Length = ml_string_length(Args[1]);
-	int Error = regncomp(Regex, Pattern, Length, REG_EXTENDED);
-#else
-	int Error = regcomp(Regex, Pattern, REG_EXTENDED);
-#endif
-	if (Error) {
-		size_t ErrorSize = regerror(Error, Regex, NULL, 0);
-		char *ErrorMessage = snew(ErrorSize + 1);
-		regerror(Error, Regex, ErrorMessage, ErrorSize);
-		return ml_error("RegexError", "regex error: %s", ErrorMessage);
-	}
-	regmatch_t Matches[Regex->re_nsub + 1];
-#ifdef USE_TRE
-	Length = ml_string_length(Args[0]);
-	switch (regnexec(Regex, Subject, Length, Regex->re_nsub + 1, Matches, 0)) {
-#else
-	switch (regexec(Regex, Subject, Regex->re_nsub + 1, Matches, 0)) {
-#endif
-	case REG_NOMATCH:
-		regfree(Regex);
-		return MLNil;
-	case REG_ESPACE: {
-		regfree(Regex);
-		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
-		char *ErrorMessage = snew(ErrorSize + 1);
-		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
-		return ml_error("RegexError", "regex error: %s", ErrorMessage);
-	}
-	default: {
-		ml_value_t *Results = ml_tuple(Regex->re_nsub + 1);
-		for (int I = 0; I < Regex->re_nsub + 1; ++I) {
-			regoff_t Start = Matches[I].rm_so;
-			if (Start >= 0) {
-				size_t Length = Matches[I].rm_eo - Start;
-				char *Chars = snew(Length + 1);
-				memcpy(Chars, Subject + Start, Length);
-				Chars[Length] = 0;
-				ml_tuple_set(Results, I + 1, ml_string(Chars, Length));
-			} else {
-				ml_tuple_set(Results, I + 1, MLNil);
-			}
-		}
-		regfree(Regex);
-		return Results;
-	}
-	}
-}
-
 ML_METHOD("%", MLStringT, MLRegexT) {
 //!string
 	const char *Subject = ml_string_value(Args[0]);
@@ -2921,10 +2867,7 @@ ML_METHOD("%", MLStringT, MLRegexT) {
 			regoff_t Start = Matches[I].rm_so;
 			if (Start >= 0) {
 				size_t Length = Matches[I].rm_eo - Start;
-				char *Chars = snew(Length + 1);
-				memcpy(Chars, Subject + Start, Length);
-				Chars[Length] = 0;
-				ml_tuple_set(Results, I + 1, ml_string(Chars, Length));
+				ml_tuple_set(Results, I + 1, ml_string(Subject + Start, Length));
 			} else {
 				ml_tuple_set(Results, I + 1, MLNil);
 			}
@@ -2971,10 +2914,49 @@ ML_METHOD("?", MLStringT, MLRegexT) {
 		regoff_t Start = Matches[0].rm_so;
 		if (Start >= 0) {
 			size_t Length = Matches[0].rm_eo - Start;
-			char *Chars = snew(Length + 1);
-			memcpy(Chars, Subject + Start, Length);
-			Chars[Length] = 0;
-			return ml_string(Chars, Length);
+			return ml_string(Subject + Start, Length);
+		} else {
+			return MLNil;
+		}
+	}
+	}
+}
+
+ML_METHOD("starts", MLStringT, MLStringT) {
+//!string
+	const char *Subject = ml_string_value(Args[0]);
+	const char *Prefix = ml_string_value(Args[1]);
+	int Length = ml_string_length(Args[1]);
+	if (Length > ml_string_length(Args[0])) return MLNil;
+	if (memcmp(Subject, Prefix, Length)) return MLNil;
+	return Args[1];
+}
+
+ML_METHOD("starts", MLStringT, MLRegexT) {
+//!string
+	const char *Subject = ml_string_value(Args[0]);
+	regex_t *Regex = ml_regex_value(Args[1]);
+	regmatch_t Matches[Regex->re_nsub + 1];
+#ifdef USE_TRE
+	int Length = ml_string_length(Args[0]);
+	switch (regnexec(Regex, Subject, Length, Regex->re_nsub + 1, Matches, 0)) {
+
+#else
+	switch (regexec(Regex, Subject, Regex->re_nsub + 1, Matches, 0)) {
+#endif
+	case REG_NOMATCH:
+		return MLNil;
+	case REG_ESPACE: {
+		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
+		char *ErrorMessage = snew(ErrorSize + 1);
+		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
+		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+	}
+	default: {
+		regoff_t Start = Matches[0].rm_so;
+		if (Start == 0) {
+			size_t Length = Matches[0].rm_eo - Start;
+			return ml_string(Subject + Start, Length);
 		} else {
 			return MLNil;
 		}

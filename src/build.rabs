@@ -118,16 +118,6 @@ if MINILANG_USECBOR or defined("CBOR") then
 	)
 end
 
-if MINILANG_USEMPC or defined("MPC") then
-	var Dir := PATH/"mpc"
-	Dir:exists or do
-		execute("git clone https://github.com/orangeduck/mpc.git", Dir)
-		execute("cat", PATH/"mpc_extra.c", " >> ", Dir/"mpc.c")
-	end
-	Objects:put(file("ml_mpc.o"), Dir/"mpc.o")
-	CFLAGS := old + ["-DUSE_ML_MPC"]
-end
-
 if MINILANG_MODULES or defined("MODULES") then
 	Objects:put(file("ml_module.o"), file("ml_library.o"))
 	CFLAGS := old + ["-DUSE_ML_MODULES"]

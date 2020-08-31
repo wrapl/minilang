@@ -126,6 +126,16 @@ ML_FUNCTIONX(Import) {
 	}
 	ML_RETURN(Slot[0]);
 }
+
+ML_FUNCTION(Unload) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	const char *FileName = realpath(ml_string_value(Args[0]), NULL);
+	if (!FileName) return ml_error("ModuleError", "File %s not found", ml_string_value(Args[0]));
+	stringmap_remove(Modules, FileName);
+	return MLNil;
+}
+
 #endif
 
 int main(int Argc, const char *Argv[]) {
@@ -166,6 +176,7 @@ int main(int Argc, const char *Argv[]) {
 	ml_module_init(Globals);
 	ml_library_init(Globals);
 	stringmap_insert(Globals, "import", Import);
+	stringmap_insert(Globals, "unload", Unload);
 #endif
 	ml_value_t *Args = ml_list();
 	const char *FileName = 0;

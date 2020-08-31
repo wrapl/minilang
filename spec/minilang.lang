@@ -143,6 +143,7 @@
       <keyword>callcc</keyword>
       <keyword>mark</keyword>
       <keyword>context</keyword>
+      <keyword>filter</keyword>
       <keyword>first</keyword>
       <keyword>first2</keyword>
       <keyword>last</keyword>
