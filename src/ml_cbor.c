@@ -39,8 +39,8 @@ ml_cbor_t ml_to_cbor(ml_value_t *Value) {
 
 typedef struct block_t {
 	struct block_t *Prev;
-	const void *Data;
 	int Size;
+	char Data[];
 } block_t;
 
 typedef struct collection_t {
@@ -172,10 +172,10 @@ void ml_cbor_read_bytes_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, in
 		}
 		value_handler(Reader, ml_string(Buffer, Total));
 	} else {
-		block_t *Block = new(block_t);
+		block_t *Block = xnew(block_t, Size, char);
 		Block->Prev = Collection->Blocks;
-		Block->Data = Bytes;
 		Block->Size = Size;
+		memcpy(Block->Data, Bytes, Size);
 		Collection->Blocks = Block;
 		Collection->Remaining += Size;
 	}
@@ -211,10 +211,10 @@ void ml_cbor_read_string_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, i
 		}
 		value_handler(Reader, ml_string(Buffer, Total));
 	} else {
-		block_t *Block = new(block_t);
+		block_t *Block = xnew(block_t, Size, char);
 		Block->Prev = Collection->Blocks;
-		Block->Data = Bytes;
 		Block->Size = Size;
+		memcpy(Block->Data, Bytes, Size);
 		Collection->Blocks = Block;
 		Collection->Remaining += Size;
 	}

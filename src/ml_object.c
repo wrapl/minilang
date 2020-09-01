@@ -110,10 +110,14 @@ ML_FUNCTION(MLClass) {
 	static ml_value_t **FieldFns = NULL;
 	static int NumFieldFns = 0;
 	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
-	const char *Name = ml_string_value(Args[0]);
+	const char *Name = NULL;
+	int Start = 0;
+	if (Count > 0 && ml_is(Args[0], MLStringT)) {
+		Name = ml_string_value(Args[0]);
+		Start = 1;
+	}
 	int NumFields = 0, NumParents = 0, Rank = 0;
-	for (int I = 1; I < Count; ++I) {
+	for (int I = Start; I < Count; ++I) {
 		if (ml_typeof(Args[I]) == MLMethodT) {
 			++NumFields;
 		} else if (ml_is(Args[I], MLClassT)) {
@@ -153,7 +157,11 @@ ML_FUNCTION(MLClass) {
 	}
 	ml_class_t *Class = xnew(ml_class_t, NumFields, ml_value_t *);
 	Class->Base.Type = MLClassT;
-	Class->Base.Name = Name;
+	if (Name) {
+		Class->Base.Name = Name;
+	} else {
+		asprintf((char **)&Class->Base.Name, "object:%lx", (uintptr_t)Class);
+	}
 	Class->Base.hash = ml_default_hash;
 	Class->Base.call = ml_default_call;
 	Class->Base.deref = ml_default_deref;
@@ -165,7 +173,7 @@ ML_FUNCTION(MLClass) {
 	ml_value_t **Fields = Class->Fields;
 	ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_constructor_fn);
 	Class->Base.Constructor = Constructor;
-	for (int I = 1; I < Count; ++I) {
+	for (int I = Start; I < Count; ++I) {
 		if (ml_typeof(Args[I]) == MLMethodT) {
 			*Fields++ = Args[I];
 		} else if (ml_is(Args[I], MLClassT)) {
