@@ -184,6 +184,11 @@ void *MLCachedFrame = NULL;
 #endif
 
 static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
+	if (!Result) {
+		ml_value_t *Error = ml_error("RuntimeError", "NULL value passed to continuation");
+		ml_error_trace_add(Error, (ml_source_t){Frame->Source, Frame->Inst->LineNo});
+		ML_CONTINUE(Frame->Base.Caller, Error);
+	}
 #ifdef USE_ML_SCHEDULER
 	int Counter = Frame->Schedule.Counter[0];
 #endif
