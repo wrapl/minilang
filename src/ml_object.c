@@ -10,6 +10,7 @@ typedef struct ml_object_t ml_object_t;
 struct ml_class_t {
 	ml_type_t Base;
 	int NumFields;
+	ml_value_t *Initializer;
 	ml_value_t *Fields[];
 };
 
@@ -65,12 +66,28 @@ ml_value_t *ml_field_fn(void *Data, int Count, ml_value_t **Args) {
 	return ml_reference((ml_value_t **)((char *)Object + Index));
 }
 
+static void ml_init_state_run(ml_value_state_t *State, ml_value_t *Result) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Result)) ML_RETURN(Result);
+	ML_RETURN(State->Value);
+}
+
 static void ml_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int Count, ml_value_t **Args) {
 	ml_object_t *Object = xnew(ml_object_t, Class->NumFields, ml_value_t *);
 	Object->Type = (ml_type_t *)Class;
 	ml_value_t **Slot = Object->Fields;
 	for (int I = Class->NumFields; --I >= 0; ++Slot) *Slot = MLNil;
-	// TODO: If Class has an "init" function, call that instead
+	if (Class->Initializer) {
+		ml_value_t **Args2 = anew(ml_value_t *, Count + 1);
+		Args2[0] = (ml_value_t *)Object;
+		for (int I = 0; I < Count; ++I) Args2[I + 1] = Args[I];
+		ml_value_state_t *State = new(ml_value_state_t);
+		State->Base.run = (void *)ml_init_state_run;
+		State->Base.Caller = Caller;
+		State->Base.Context = Caller->Context;
+		State->Value = (ml_value_t *)Object;
+		return ml_call(State, Class->Initializer, Count + 1, Args2);
+	}
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Arg = ml_typeof(Args[I])->deref(Args[I]);
 		if (ml_is_error(Arg)) ML_RETURN(Arg);
@@ -102,11 +119,10 @@ static void ml_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int Count, 
 ML_FUNCTION(MLClass) {
 //!object
 //@class
-//<Name
-//<Parents?...:class
-//<Fields?...:method
-//<Either?...:list
-//<Exports?:map
+//<?Name:string
+//<?Parents...:class
+//<?Fields...:method
+//<?Exports...:named
 	static ml_value_t **FieldFns = NULL;
 	static int NumFieldFns = 0;
 	ML_CHECK_ARG_COUNT(1);
@@ -132,25 +148,8 @@ ML_FUNCTION(MLClass) {
 			const ml_type_t **Types = Parent->Types;
 			do ++NumParents; while (*++Types);
 			if (Rank < Parent->Rank) Rank = Parent->Rank;
-		} else if (ml_is(Args[I], MLListT)) {
-			ML_LIST_FOREACH(Args[I], Iter) {
-				if (ml_typeof(Iter->Value) == MLMethodT) {
-					++NumFields;
-				} else if (ml_is(Iter->Value, MLClassT)) {
-					ml_class_t *Parent = (ml_class_t *)Iter->Value;
-					NumFields += Parent->NumFields;
-					const ml_type_t **Types = Parent->Base.Types;
-					do ++NumParents; while (*++Types != MLObjectT);
-					if (Rank < Parent->Base.Rank) Rank = Parent->Base.Rank;
-				} else if (ml_is(Args[I], MLTypeT)) {
-					ml_type_t *Parent = (ml_type_t *)Iter->Value;
-					if (Parent->Rank >= ML_RANK_NATIVE) return ml_error("TypeError", "Classes can not inherit from native types");
-					const ml_type_t **Types = Parent->Types;
-					do ++NumParents; while (*++Types);
-					if (Rank < Parent->Rank) Rank = Parent->Rank;
-				}
-			}
-		} else if (ml_is(Args[I], MLMapT)) {
+		} else if (ml_is(Args[I], MLNamesT)) {
+			break;
 		} else {
 			return ml_error("TypeError", "Unexpected argument type: <%s>", ml_typeof(Args[I])->Name);
 		}
@@ -185,32 +184,19 @@ ML_FUNCTION(MLClass) {
 			ml_type_t *Parent = (ml_type_t *)Args[I];
 			const ml_type_t **Types = Parent->Types;
 			while (*Types) *Parents++ = *Types++;
-		} else if (ml_is(Args[I], MLListT)) {
+		} else if (ml_is(Args[I], MLNamesT)) {
 			ML_LIST_FOREACH(Args[I], Iter) {
-				if (ml_typeof(Iter->Value) == MLMethodT) {
-					*Fields++ = Iter->Value;
-				} else if (ml_is(Iter->Value, MLClassT)) {
-					ml_class_t *Parent = (ml_class_t *)Iter->Value;
-					for (int I = 0; I < Parent->NumFields; ++I) *Fields++ = Parent->Fields[I];
-					const ml_type_t **Types = Parent->Base.Types;
-					while (*Types != MLObjectT) *Parents++ = *Types++;
-				} else if (ml_is(Iter->Value, MLTypeT)) {
-					ml_type_t *Parent = (ml_type_t *)Iter->Value;
-					const ml_type_t **Types = Parent->Types;
-					while (*Types) *Parents++ = *Types++;
-				}
-			}
-		} else if (ml_is(Args[I], MLMapT)) {
-			ML_MAP_FOREACH(Args[I], Iter) {
-				ml_value_t *Key = Iter->Key;
-				if (!ml_is(Key, MLStringT)) return ml_error("TypeError", "Class field name must be a string");
-				const char *Name = ml_string_value(Key);
+				ml_value_t *Key = Iter->Value;
+				const char *Name = ml_method_name(Key);
 				if (!strcmp(Name, "of")) {
-					Class->Base.Constructor = Iter->Value;
+					Class->Base.Constructor = Args[++I];
+				} else if (!strcmp(Name, "init")) {
+					Class->Initializer = Args[++I];
 				} else {
-					stringmap_insert(Class->Base.Exports, Name, Iter->Value);
+					stringmap_insert(Class->Base.Exports, Name, Args[++I]);
 				}
 			}
+			break;
 		}
 	}
 	*Parents++ = MLObjectT;
