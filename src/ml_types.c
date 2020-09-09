@@ -103,7 +103,7 @@ ml_value_t *ml_default_deref(ml_value_t *Ref) {
 }
 
 ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value) {
-	return ml_error("TypeError", "<%s> is not assignable", ml_typeof(Value)->Name);
+	return ml_error("TypeError", "<%s> is not assignable", ml_typeof(Ref)->Name);
 }
 
 void ml_type_init(ml_type_t *Type, ...) {

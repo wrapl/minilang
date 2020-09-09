@@ -502,7 +502,7 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	Console->Input = 0;
 	Console->HistoryIndex = 0;
 	Console->HistoryEnd = 0;
-	Console->Scanner = ml_scanner("<console>", Console, (void *)console_read, (ml_getter_t)console_global_get, Console);
+	Console->Scanner = ml_scanner("<console>", Console, (void *)console_read, &MLRootContext, (ml_getter_t)console_global_get, Console);
 	GtkWidget *Container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
 	Console->InputView = gtk_source_view_new();
 

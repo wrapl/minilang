@@ -31,20 +31,24 @@ typedef struct ml_export_function_t {
 } ml_export_function_t;
 
 static void ml_export_function_call(ml_state_t *Caller, ml_export_function_t *ExportFunction, int Count, ml_value_t **Args) {
-	ML_CHECKX_ARG_COUNT(2);
-	ml_value_t *NameValue = ml_typeof(Args[0])->deref(Args[0]);
-	if (!ml_is(NameValue, MLStringT)) ML_CHECKX_ARG_TYPE(0, MLStringT);
-	const char *Name = ml_string_value(NameValue);
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLNamesT);
+	int Index = 0;
 	ml_mini_module_t *Module = ExportFunction->Module;
-	ml_value_t *Value = Args[1];
-	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Module->Exports, Name);
-	if (Slot[0]) {
-		if (ml_typeof(Slot[0]) != MLUninitializedT) {
-			ML_RETURN(ml_error("ExportError", "Duplicate export %s", Name));
+	ml_value_t *Value = MLNil;
+	ML_NAMES_FOREACH(Args[0], Iter) {
+		const char *Name = ml_method_name(Iter->Value);
+		Value = Args[++Index];
+		ml_value_t **Slot = (ml_value_t **)stringmap_slot(Module->Exports, Name);
+		if (Slot[0]) {
+			if (ml_typeof(Slot[0]) != MLUninitializedT) {
+				ML_RETURN(ml_error("ExportError", "Duplicate export %s", Name));
+			}
+			ml_uninitialized_set(Slot[0], Value);
 		}
-		ml_uninitialized_set(Slot[0], Value);
+		Slot[0] = Value;
 	}
-	ML_RETURN(Slot[0] = Value);
+	ML_RETURN(Value);
 }
 
 ML_TYPE(MLExportFunctionT, (MLFunctionT), "export-function",
