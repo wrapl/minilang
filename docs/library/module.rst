@@ -14,10 +14,10 @@ module
 :mini:`exportfunction`
    :Parents: :mini:`function`
 
-   *Defined at line 50 in src/ml_module.c*
+   *Defined at line 54 in src/ml_module.c*
 
 :mini:`modulestate`
-   *Defined at line 60 in src/ml_module.c*
+   *Defined at line 64 in src/ml_module.c*
 
 :mini:`module`
    *Defined at line 4735 in src/ml_types.c*
