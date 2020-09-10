@@ -6,18 +6,18 @@ module
 :mini:`minimodule`
    :Parents: :mini:`module`
 
-   *Defined at line 15 in src/ml_module.c*
+   *Defined at line 14 in src/ml_module.c*
 
 :mini:`meth ::(Arg₁: minimodule, Arg₂: string)`
-   *Defined at line 17 in src/ml_module.c*
+   *Defined at line 16 in src/ml_module.c*
 
 :mini:`exportfunction`
    :Parents: :mini:`function`
 
-   *Defined at line 54 in src/ml_module.c*
+   *Defined at line 53 in src/ml_module.c*
 
 :mini:`modulestate`
-   *Defined at line 64 in src/ml_module.c*
+   *Defined at line 63 in src/ml_module.c*
 
 :mini:`module`
    *Defined at line 4735 in src/ml_types.c*

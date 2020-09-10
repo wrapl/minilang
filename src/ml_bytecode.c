@@ -584,7 +584,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		int Index = Inst->Params[1].Index;
 		ml_value_t **Slot = &Frame->Stack[Index];
 		Result = Slot[0];
-		if (!Result) Result = Slot[0] = ml_uninitialized();
+		if (!Result) Result = Slot[0] = ml_uninitialized(Inst->Params[2].Ptr);
 		ADVANCE(0);
 	}
 	DO_TUPLE_NEW: {
@@ -634,7 +634,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			int Index = Inst->Params[2 + I].Index;
 			ml_value_t **Slot = (Index < 0) ? &Frame->UpValues[~Index] : &Frame->Stack[Index];
 			ml_value_t *Value = Slot[0];
-			if (!Value) Value = Slot[0] = ml_uninitialized();
+			if (!Value) Value = Slot[0] = ml_uninitialized("<upvalue>");
 			if (ml_typeof(Value) == MLUninitializedT) {
 				ml_uninitialized_use(Value, &Closure->UpValues[I]);
 			}
@@ -936,7 +936,7 @@ const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INST_INDEX, // MLI_LOCAL,
 	MLIT_INST_INDEX, // MLI_PUSH_LOCAL,
 	MLIT_INST_INDEX, // MLI_UPVALUE,
-	MLIT_INST_INDEX, // MLI_LOCALX,
+	MLIT_INST_INDEX_CHARS, // MLI_LOCALX,
 	MLIT_INST_COUNT, // MLI_TUPLE_NEW,
 	MLIT_INST_INDEX, // MLI_TUPLE_SET,
 	MLIT_INST, // MLI_LIST_NEW,
@@ -956,8 +956,9 @@ const ml_inst_type_t MLInstTypes[] = {
 extern ml_inst_fn_t MLInstFns[];
 #endif
 
-static void ml_inst_process(int Process, ml_inst_t *Source, ml_inst_t *Inst, unsigned char Hash[SHA256_BLOCK_SIZE], int I, int J) {
+static void ml_inst_process(int Process, ml_inst_t *Source, ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) {
 	if (!Source || (Source->LineNo != Inst->LineNo)) Inst->PotentialBreakpoint = 1;
+	if (Inst->LineNo > Info->End) Info->End = Inst->LineNo;
 	if (Inst->Processed == Process) return;
 	Inst->Processed = Process;
 	if (Inst->Opcode == MLI_LOAD && Inst->Params[0].Inst->Opcode == MLI_PUSH) {
@@ -973,43 +974,47 @@ static void ml_inst_process(int Process, ml_inst_t *Source, ml_inst_t *Inst, uns
 #ifdef ML_USE_INST_FNS
 	Inst->run = MLInstFns[Inst->Opcode];
 #endif
-	Hash[I] ^= Inst->Opcode;
-	Hash[J] ^= (Inst->Opcode << 4);
+	Info->Hash[I] ^= Inst->Opcode;
+	Info->Hash[J] ^= (Inst->Opcode << 4);
 	switch (MLInstTypes[Inst->Opcode]) {
 	case MLIT_INST_INST:
-		ml_inst_process(Process, Inst, Inst->Params[1].Inst, Hash, (I + 11) % (SHA256_BLOCK_SIZE - 4), (J + 13) % (SHA256_BLOCK_SIZE - 8));
+		ml_inst_process(Process, Inst, Inst->Params[1].Inst, Info, (I + 11) % (SHA256_BLOCK_SIZE - 4), (J + 13) % (SHA256_BLOCK_SIZE - 8));
 		break;
 	case MLIT_INST_COUNT_COUNT:
-		*(int *)(Hash + I) ^= Inst->Params[1].Count;
-		*(int *)(Hash + J) ^= Inst->Params[2].Count;
+		*(int *)(Info->Hash + I) ^= Inst->Params[1].Count;
+		*(int *)(Info->Hash + J) ^= Inst->Params[2].Count;
 		break;
 	case MLIT_INST_COUNT:
-		*(int *)(Hash + I) ^= Inst->Params[1].Count;
+		*(int *)(Info->Hash + I) ^= Inst->Params[1].Count;
 		break;
 	case MLIT_INST_INDEX:
-		*(int *)(Hash + I) ^= Inst->Params[1].Index;
+		*(int *)(Info->Hash + I) ^= Inst->Params[1].Index;
 		break;
 	case MLIT_INST_VALUE:
-		*(long *)(Hash + J) ^= ml_hash(Inst->Params[1].Value);
+		*(long *)(Info->Hash + J) ^= ml_hash(Inst->Params[1].Value);
 		break;
 	case MLIT_INST_INDEX_COUNT:
-		*(int *)(Hash + I) ^= Inst->Params[1].Index;
-		*(int *)(Hash + J) ^= Inst->Params[2].Count;
+		*(int *)(Info->Hash + I) ^= Inst->Params[1].Index;
+		*(int *)(Info->Hash + J) ^= Inst->Params[2].Count;
+		break;
+	case MLIT_INST_INDEX_CHARS:
+		*(int *)(Info->Hash + I) ^= Inst->Params[1].Index;
+		*(long *)(Info->Hash + J) ^= stringmap_hash(Inst->Params[2].Ptr);
 		break;
 	case MLIT_INST_COUNT_VALUE:
-		*(int *)(Hash + I) ^= Inst->Params[1].Count;
-		*(long *)(Hash + J) ^= ml_hash(Inst->Params[2].Value);
+		*(int *)(Info->Hash + I) ^= Inst->Params[1].Count;
+		*(long *)(Info->Hash + J) ^= ml_hash(Inst->Params[2].Value);
 		break;
 	case MLIT_INST_COUNT_CHARS:
-		*(int *)(Hash + I) ^= Inst->Params[1].Count;
-		*(long *)(Hash + J) ^= stringmap_hash(Inst->Params[2].Ptr);
+		*(int *)(Info->Hash + I) ^= Inst->Params[1].Count;
+		*(long *)(Info->Hash + J) ^= stringmap_hash(Inst->Params[2].Ptr);
 		break;
 	case MLIT_INST_CLOSURE: {
 		ml_closure_info_t *Info = Inst->Params[1].ClosureInfo;
-		*(long *)(Hash + J) ^= *(long *)(Info->Hash + J);
+		*(long *)(Info->Hash + J) ^= *(long *)(Info->Hash + J);
 		for (int N = 0; N < Info->NumUpValues; ++N) {
 			int Index = Inst->Params[2 + N].Index;
-			*(int *)(Hash + I) ^= (Index << N);
+			*(int *)(Info->Hash + I) ^= (Index << N);
 		}
 		break;
 	default:
@@ -1017,12 +1022,12 @@ static void ml_inst_process(int Process, ml_inst_t *Source, ml_inst_t *Inst, uns
 	}
 	}
 	if (Inst->Opcode != MLI_RETURN) {
-		ml_inst_process(Process, Inst, Inst->Params[0].Inst, Hash, (I + 3) % (SHA256_BLOCK_SIZE - 4), (J + 7) % (SHA256_BLOCK_SIZE - 8));
+		ml_inst_process(Process, Inst, Inst->Params[0].Inst, Info, (I + 3) % (SHA256_BLOCK_SIZE - 4), (J + 7) % (SHA256_BLOCK_SIZE - 8));
 	}
 }
 
 void ml_closure_info_finish(ml_closure_info_t *Info) {
-	ml_inst_process(!Info->Entry->Processed, NULL, Info->Entry, Info->Hash, 0, 0);
+	ml_inst_process(!Info->Entry->Processed, NULL, Info->Entry, Info, 0, 0);
 #ifdef USE_ML_JIT
 	ml_bytecode_jit(Info);
 #endif
@@ -1141,6 +1146,9 @@ static void ml_closure_inst_list(int Process, ml_inst_t *Inst, ml_stringbuffer_t
 	}
 	case MLIT_INST_INDEX_COUNT:
 		ml_stringbuffer_addf(Buffer, " %d, %d", Inst->Params[1].Index, Inst->Params[2].Count);
+		break;
+	case MLIT_INST_INDEX_CHARS:
+		ml_stringbuffer_addf(Buffer, " %d, %s", Inst->Params[1].Index, Inst->Params[2].Ptr);
 		break;
 	case MLIT_INST_COUNT_VALUE: {
 		ml_stringbuffer_addf(Buffer, " %d, ", Inst->Params[1].Count);

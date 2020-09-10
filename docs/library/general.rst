@@ -3,8 +3,8 @@ general
 
 .. include:: <isonum.txt>
 
-:mini:`consolereplstate`
-   *Defined at line 146 in src/gtk_console.c*
+:mini:`ConsoleT`
+   *Defined at line 148 in src/gtk_console.c*
 
 :mini:`fun mlnow()`
    *Defined at line 46 in src/minilang.c*

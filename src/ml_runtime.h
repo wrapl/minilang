@@ -85,7 +85,7 @@ typedef struct ml_source_t {
 	int Line;
 } ml_source_t;
 
-ml_value_t *ml_uninitialized() __attribute__((malloc));
+ml_value_t *ml_uninitialized(const char *Name) __attribute__((malloc));
 void ml_uninitialized_use(ml_value_t *Uninitialized, ml_value_t **Slot);
 void ml_uninitialized_set(ml_value_t *Uninitialized, ml_value_t *Value);
 

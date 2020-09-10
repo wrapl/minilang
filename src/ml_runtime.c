@@ -272,15 +272,28 @@ struct ml_uninitialized_slot_t {
 
 typedef struct ml_uninitialized_t {
 	const ml_type_t *Type;
+	const char *Name;
 	ml_uninitialized_slot_t *Slots;
 	stringmap_t Unresolved[1];
 } ml_uninitialized_t;
 
-ML_TYPE(MLUninitializedT, (), "uninitialized");
+static void ml_uninitialized_call(ml_state_t *Caller, ml_uninitialized_t *Uninitialized, int Count, ml_value_t **Args) {
+	ML_ERROR("ValueError", "%s is uninitialized", Uninitialized->Name);
+}
 
-ml_value_t *ml_uninitialized() {
+static ml_value_t *ml_unitialized_assign(ml_uninitialized_t *Uninitialized, ml_value_t *Value) {
+	return ml_error("ValueError", "%s is uninitialized", Uninitialized->Name);
+}
+
+ML_TYPE(MLUninitializedT, (), "uninitialized",
+	.call = (void *)ml_uninitialized_call,
+	.assign = (void *)ml_unitialized_assign
+);
+
+ml_value_t *ml_uninitialized(const char *Name) {
 	ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
 	Uninitialized->Type = MLUninitializedT;
+	Uninitialized->Name = Name;
 	return (ml_value_t *)Uninitialized;
 }
 
@@ -310,7 +323,7 @@ ML_METHOD("::", MLUninitializedT, MLStringT) {
 	ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Uninitialized->Unresolved, Name);
-	if (!Slot[0]) Slot[0] = ml_uninitialized();
+	if (!Slot[0]) Slot[0] = ml_uninitialized(Name);
 	return Slot[0];
 }
 

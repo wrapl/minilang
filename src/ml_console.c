@@ -26,7 +26,7 @@ static ml_value_t *ml_console_global_get(ml_console_t *Console, const char *Name
 	if (Value) return Value;
 	Value = (Console->ParentGetter)(Console->ParentGlobals, Name);
 	if (Value) return Value;
-	Value = ml_uninitialized();
+	Value = ml_uninitialized(Name);
 	stringmap_insert(Console->Globals, Name, Value);
 	return Value;
 }
@@ -116,10 +116,11 @@ static ml_value_t *ml_console_debugger_get(ml_console_debugger_t *ConsoleDebugge
 	return ml_console_global_get(ConsoleDebugger->Console, Name);
 }
 
-static void ml_console_debug_enter(ml_console_t *Console, interactive_debugger_t *Debugger) {
+static void ml_console_debug_enter(ml_console_t *Console, interactive_debugger_t *Debugger, ml_source_t Source) {
 	ml_console_debugger_t *ConsoleDebugger = new(ml_console_debugger_t);
 	ConsoleDebugger->Console = Console;
 	ConsoleDebugger->Debugger = Debugger;
+	printf("Debug break: %s:%d\n", Source.Name, Source.Line);
 	ml_console((void *)ml_console_debugger_get, ConsoleDebugger, "\e[34m>>>\e[0m ", "\e[34m...\e[0m ");
 	interactive_debugger_resume(Debugger);
 }

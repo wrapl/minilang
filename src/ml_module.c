@@ -3,7 +3,6 @@
 #include <gc/gc.h>
 #include <string.h>
 #include <stdio.h>
-#include <stdarg.h>
 #include "ml_runtime.h"
 
 typedef struct ml_mini_module_t {
@@ -20,7 +19,7 @@ ML_METHODX("::", MLMiniModuleT, MLStringT) {
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Module->Exports, Name);
 	ml_value_t *Value = Slot[0];
 	if (!Value) {
-		Value = Slot[0] = ml_uninitialized();
+		Value = Slot[0] = ml_uninitialized(Name);
 	}
 	ML_RETURN(Value);
 }

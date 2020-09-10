@@ -18,7 +18,7 @@ struct interactive_debugger_t {
 };
 
 struct interactive_debugger_info_t {
-	void (*enter)(void *Data, interactive_debugger_t *Debugger);
+	void (*enter)(void *Data, interactive_debugger_t *Debugger, ml_source_t Source);
 	void (*exit)(ml_state_t *Caller, void *Data);
 	void (*log)(void *Data, ml_value_t *Value);
 	void *Data;
@@ -176,14 +176,10 @@ static void debugger_run(interactive_debugger_t *Debugger, ml_state_t *Frame, ml
 	Debugger->Value = Value;
 	Debugger->Active = Frame;
 	ml_source_t Source = ml_debugger_source(Frame);
-	ml_value_t *Location = ml_tuple(2);
-	ml_tuple_set(Location, 1, ml_string(Source.Name, -1));
-	ml_tuple_set(Location, 2, ml_integer(Source.Line));
-	Debugger->Info->log(Debugger->Info->Data, Location);
 	if (ml_is_error(Value)) {
 		Debugger->Info->log(Debugger->Info->Data, Value);
 	}
-	Debugger->Info->enter(Debugger->Info->Data, Debugger);
+	Debugger->Info->enter(Debugger->Info->Data, Debugger, Source);
 }
 
 static void debugger_state_load(ml_state_t *State, ml_value_t *Function) {
@@ -224,7 +220,7 @@ static void interactive_debugger_fnx(ml_state_t *Caller, interactive_debugger_in
 }
 
 ml_value_t *interactive_debugger(
-	void (*Enter)(void *Data, interactive_debugger_t *Debugger),
+	void (*Enter)(void *Data, interactive_debugger_t *Debugger, ml_source_t Source),
 	void (*Exit)(ml_state_t *Caller, void *Data),
 	void (*Log)(void *Data, ml_value_t *Value),
 	void *Data,
