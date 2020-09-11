@@ -34,7 +34,7 @@ struct console_debugger_t {
 struct console_t {
 	ml_state_t Base;
 	const char *Name;
-	GtkWidget *Window, *LogScrolled, *LogView, *InputView;
+	GtkWidget *Window, *LogScrolled, *LogView, *InputView, *SourceView;
 	GtkNotebook *Notebook;
 	GtkSourceLanguage *Language;
 	GtkLabel *MemoryBar;
@@ -176,11 +176,12 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 	Console->HistoryIndex = Console->HistoryEnd = (HistoryEnd + 1) % MAX_HISTORY;
 
 	GtkTextIter End[1];
-	GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
+
+	/*GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
 	gtk_text_buffer_get_end_iter(LogBuffer, End);
 	gtk_source_buffer_create_source_mark(GTK_SOURCE_BUFFER(LogBuffer), NULL, "result", End);
 	gtk_text_buffer_insert_range(LogBuffer, End, InputStart, InputEnd);
-	gtk_text_buffer_insert(LogBuffer, End, "\n", -1);
+	gtk_text_buffer_insert(LogBuffer, End, "\n", -1);*/
 	gtk_text_buffer_set_text(InputBuffer, "", 0);
 
 	GtkTextBuffer *SourceBuffer = GTK_TEXT_BUFFER(Console->SourceBuffer);
@@ -198,7 +199,7 @@ static void console_debug_enter(console_t *Console, interactive_debugger_t *Debu
 	console_printf(Console, "Debug break: %s:%d\n", Source.Name, Source.Line);
 	GtkWidget *SourceView;
 	if (Source.Name == Console->Name) {
-		SourceView = gtk_notebook_get_nth_page(Console->Notebook, 1);
+		SourceView = Console->SourceView;
 	} else {
 		GtkWidget **Slot = (GtkWidget **)stringmap_slot(Console->SourceViews, Source.Name);
 		if (!Slot[0]) {
@@ -555,8 +556,8 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 
 	Console->Notebook = GTK_NOTEBOOK(gtk_notebook_new());
 
-	GtkWidget *Container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
-	gtk_box_pack_start(GTK_BOX(Container), GTK_WIDGET(Console->Notebook), TRUE, TRUE, 2);
+	GtkWidget *VPaned = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
+	gtk_paned_add1(GTK_PANED(VPaned), GTK_WIDGET(Console->Notebook));
 
 	asprintf((char **)&Console->ConfigPath, "%s/%s", g_get_user_config_dir(), "minilang.conf");
 	Console->Config = g_key_file_new();
@@ -620,9 +621,9 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	GtkWidget *FontButton = gtk_font_button_new();
 	g_signal_connect(G_OBJECT(FontButton), "font-set", G_CALLBACK(console_font_changed), Console);
 
-	gtk_notebook_append_page(Console->Notebook, Console->LogScrolled, gtk_label_new("Log"));
+	gtk_paned_add2(GTK_PANED(VPaned), Console->LogScrolled);
 
-	GtkWidget *SourceView = gtk_source_view_new_with_buffer(Console->SourceBuffer);
+	GtkWidget *SourceView = Console->SourceView = gtk_source_view_new_with_buffer(Console->SourceBuffer);
 	gtk_text_view_set_monospace(GTK_TEXT_VIEW(SourceView), TRUE);
 	gtk_source_view_set_tab_width(GTK_SOURCE_VIEW(SourceView), 4);
 	gtk_source_view_set_highlight_current_line(GTK_SOURCE_VIEW(SourceView), TRUE);
@@ -630,6 +631,9 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	GtkWidget *SourceScrolled = gtk_scrolled_window_new(NULL, NULL);
 	gtk_container_add(GTK_CONTAINER(SourceScrolled), SourceView);
 	gtk_notebook_append_page(Console->Notebook, SourceScrolled, gtk_label_new("<console>"));
+
+	GtkWidget *Container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
+	gtk_box_pack_start(GTK_BOX(Container), VPaned, TRUE, TRUE, 2);
 
 	GtkWidget *InputFrame = gtk_frame_new(NULL);
 	gtk_container_add(GTK_CONTAINER(InputFrame), InputPanel);
