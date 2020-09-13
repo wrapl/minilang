@@ -352,6 +352,11 @@ static void ml_error_call(ml_state_t *Caller, ml_value_t *Error, int Count, ml_v
 }
 
 ML_FUNCTION(MLError) {
+//@error
+//<Type
+//<Message
+//>error
+// Creates an error exception with type :mini:`Type` and message :mini:`Message`. Since this creates an exception, it will trigger the current exception handler.
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLStringT);
@@ -365,6 +370,11 @@ ML_FUNCTION(MLError) {
 }
 
 ML_FUNCTION(MLRaise) {
+//@raise
+//<Type
+//<Value
+//>error
+// Creates an exception with type :mini:`Type` and value :mini:`Value`. Since this creates an exception, it will trigger the current exception handler.
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ml_error_t *Error = new(ml_error_t);

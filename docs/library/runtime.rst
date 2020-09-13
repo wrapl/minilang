@@ -34,8 +34,12 @@ runtime
 :mini:`meth ::(Arg₁: uninitialized, Arg₂: string)`
    *Defined at line 321 in src/ml_runtime.c*
 
-:mini:`fun mlerror(Arg₁: string, Arg₂: string)`
-:mini:`fun mlraise(Arg₁: string, Arg₂: any)`
+:mini:`fun error(Type: string, Message: string)` |rarr| :mini:`error`
+   Creates an error exception with type :mini:`Type` and message :mini:`Message`. Since this creates an exception, it will trigger the current exception handler.
+
+:mini:`fun raise(Type: string, Value: any)` |rarr| :mini:`error`
+   Creates an exception with type :mini:`Type` and value :mini:`Value`. Since this creates an exception, it will trigger the current exception handler.
+
 :mini:`errorvalue`
-   *Defined at line 385 in src/ml_runtime.c*
+   *Defined at line 395 in src/ml_runtime.c*
 
