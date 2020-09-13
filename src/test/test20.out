@@ -1,0 +1,9 @@
+test(nil) -> <nil>
+test(hello) -> <string or list>
+test([]) -> <string or list>
+test(1) -> <unknown>
+test(50) -> 100 50, or > 200
+test(100) -> 100 50, or > 200
+test(200) -> <unknown>
+test(201) -> 100 50, or > 200
+test(65) -> 60 .. 70

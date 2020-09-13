@@ -13,7 +13,7 @@ types
 
    *Defined at line 227 in src/ml_types.c*
 
-:mini:`meth :isa(Value: any, Type: type)` |rarr| :mini:`Value` or :mini:`nil`
+:mini:`meth :in(Value: any, Type: type)` |rarr| :mini:`Value` or :mini:`nil`
    Returns :mini:`Value` if it is an instance of :mini:`Type` or a type that inherits from :mini:`Type`.
 
    Returns :mini:`nil` otherwise.

@@ -91,10 +91,9 @@ void ml_uninitialized_set(ml_value_t *Uninitialized, ml_value_t *Value);
 
 // Errors //
 
-typedef struct ml_error_t ml_error_t;
-
 extern ml_type_t MLErrorT[];
 extern ml_type_t MLErrorValueT[];
+extern ml_cfunction_t MLRaise[];
 
 static inline int ml_is_error(ml_value_t *Value) {
 #ifdef USE_NANBOXING
@@ -108,6 +107,7 @@ ml_value_t *ml_error(const char *Error, const char *Format, ...) __attribute__ (
 ml_value_t *ml_errorv(const char *Error, const char *Format, va_list Args) __attribute__ ((malloc));
 const char *ml_error_type(const ml_value_t *Value) __attribute__ ((pure));
 const char *ml_error_message(const ml_value_t *Value) __attribute__ ((pure));
+ml_value_t *ml_error_value(const ml_value_t *Value) __attribute__ ((pure));
 int ml_error_source(const ml_value_t *Value, int Level, ml_source_t *Source);
 ml_value_t *ml_error_trace_add(ml_value_t *Error, ml_source_t Source);
 void ml_error_print(const ml_value_t *Error);

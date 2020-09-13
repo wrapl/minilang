@@ -15,6 +15,7 @@ each, MLT_EACH
 to, MLT_TO
 in, MLT_IN
 is, MLT_IS
+when, MLT_WHEN
 fun, MLT_FUN
 return, MLT_RET
 suspend, MLT_SUSP

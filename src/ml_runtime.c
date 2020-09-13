@@ -5,7 +5,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <stdarg.h>
 #include <inttypes.h>
 #include "ml_types.h"
 
@@ -331,12 +330,18 @@ ML_METHOD("::", MLUninitializedT, MLStringT) {
 
 #define MAX_TRACE 16
 
-struct ml_error_t {
+typedef struct {
 	const ml_type_t *Type;
 	const char *Error;
 	const char *Message;
 	ml_source_t Trace[MAX_TRACE];
-};
+} ml_error_value_t;
+
+typedef struct {
+	const ml_type_t *Type;
+	ml_value_t *Value;
+	ml_error_value_t Error[1];
+} ml_error_t;
 
 static ml_value_t *ml_error_assign(ml_value_t *Error, ml_value_t *Value) {
 	return Error;
@@ -346,13 +351,39 @@ static void ml_error_call(ml_state_t *Caller, ml_value_t *Error, int Count, ml_v
 	ML_RETURN(Error);
 }
 
+ML_FUNCTION(MLError) {
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ML_CHECK_ARG_TYPE(1, MLStringT);
+	ml_error_t *Error = new(ml_error_t);
+	Error->Type = MLErrorT;
+	Error->Error->Type = MLErrorValueT;
+	Error->Error->Error = ml_string_value(Args[0]);
+	Error->Error->Message = ml_string_value(Args[1]);
+	Error->Value = (ml_value_t *)Error->Error;
+	return (ml_value_t *)Error;
+}
+
+ML_FUNCTION(MLRaise) {
+	ML_CHECK_ARG_COUNT(1);
+	ml_error_t *Error = new(ml_error_t);
+	Error->Type = MLErrorT;
+	Error->Error->Type = MLErrorValueT;
+	Error->Error->Error = "ValueRaised";
+	Error->Error->Message = ml_typeof(Args[0])->Name;
+	Error->Value = Args[0];
+	return (ml_value_t *)Error;
+}
+
 ML_TYPE(MLErrorT, (), "error",
 //!error
 	.assign = ml_error_assign,
 	.call = ml_error_call
 );
 
-ML_TYPE(MLErrorValueT, (MLErrorT), "error_value");
+ML_TYPE(MLErrorValueT, (), "error",
+	.Constructor = (ml_value_t *)MLError
+);
 //!error
 
 ml_value_t *ml_errorv(const char *Error, const char *Format, va_list Args) {
@@ -360,9 +391,10 @@ ml_value_t *ml_errorv(const char *Error, const char *Format, va_list Args) {
 	vasprintf(&Message, Format, Args);
 	ml_error_t *Value = new(ml_error_t);
 	Value->Type = MLErrorT;
-	Value->Error = Error;
-	Value->Message = Message;
-	memset(Value->Trace, 0, sizeof(Value->Trace));
+	Value->Error->Type = MLErrorValueT;
+	Value->Error->Error = Error;
+	Value->Error->Message = Message;
+	Value->Value = (ml_value_t *)Value->Error;
 	return (ml_value_t *)Value;
 }
 
@@ -375,25 +407,29 @@ ml_value_t *ml_error(const char *Error, const char *Format, ...) {
 }
 
 const char *ml_error_type(const ml_value_t *Value) {
-	return ((ml_error_t *)Value)->Error;
+	return ((ml_error_t *)Value)->Error->Error;
 }
 
 const char *ml_error_message(const ml_value_t *Value) {
-	return ((ml_error_t *)Value)->Message;
+	return ((ml_error_t *)Value)->Error->Message;
+}
+
+ml_value_t *ml_error_value(const ml_value_t *Value) {
+	return ((ml_error_t *)Value)->Value;
 }
 
 int ml_error_source(const ml_value_t *Value, int Level, ml_source_t *Source) {
 	ml_error_t *Error = (ml_error_t *)Value;
 	if (Level >= MAX_TRACE) return 0;
-	if (!Error->Trace[Level].Name) return 0;
-	Source[0] = Error->Trace[Level];
+	if (!Error->Error->Trace[Level].Name) return 0;
+	Source[0] = Error->Error->Trace[Level];
 	return 1;
 }
 
 ml_value_t *ml_error_trace_add(ml_value_t *Value, ml_source_t Source) {
 	ml_error_t *Error = (ml_error_t *)Value;
-	for (int I = 0; I < MAX_TRACE; ++I) if (!Error->Trace[I].Name) {
-		Error->Trace[I] = Source;
+	for (int I = 0; I < MAX_TRACE; ++I) if (!Error->Error->Trace[I].Name) {
+		Error->Error->Trace[I] = Source;
 		break;
 	}
 	return Value;
@@ -401,35 +437,36 @@ ml_value_t *ml_error_trace_add(ml_value_t *Value, ml_source_t Source) {
 
 void ml_error_print(const ml_value_t *Value) {
 	ml_error_t *Error = (ml_error_t *)Value;
-	printf("Error: %s\n", Error->Message);
-	for (int I = 0; (I < MAX_TRACE) && Error->Trace[I].Name; ++I) {
-		printf("\t%s:%d\n", Error->Trace[I].Name, Error->Trace[I].Line);
+	printf("Error: %s\n", Error->Error->Message);
+	for (int I = 0; (I < MAX_TRACE) && Error->Error->Trace[I].Name; ++I) {
+		printf("\t%s:%d\n", Error->Error->Trace[I].Name, Error->Error->Trace[I].Line);
 	}
 }
 
 void ml_error_fprint(FILE *File, const ml_value_t *Value) {
 	ml_error_t *Error = (ml_error_t *)Value;
-	fprintf(File, "Error: %s\n", Error->Message);
-	for (int I = 0; (I < MAX_TRACE) && Error->Trace[I].Name; ++I) {
-		fprintf(File, "\t%s:%d\n", Error->Trace[I].Name, Error->Trace[I].Line);
+	fprintf(File, "Error: %s\n", Error->Error->Message);
+	for (int I = 0; (I < MAX_TRACE) && Error->Error->Trace[I].Name; ++I) {
+		fprintf(File, "\t%s:%d\n", Error->Error->Trace[I].Name, Error->Error->Trace[I].Line);
 	}
 }
 
-ML_METHOD("type", MLErrorT) {
-	return ml_string(((ml_error_t *)Args[0])->Error, -1);
+ML_METHOD("type", MLErrorValueT) {
+	return ml_string(((ml_error_value_t *)Args[0])->Error, -1);
 }
 
-ML_METHOD("message", MLErrorT) {
-	return ml_string(((ml_error_t *)Args[0])->Message, -1);
+ML_METHOD("message", MLErrorValueT) {
+	return ml_string(((ml_error_value_t *)Args[0])->Message, -1);
 }
 
-ML_METHOD("trace", MLErrorT) {
+ML_METHOD("trace", MLErrorValueT) {
+	ml_error_value_t *Value = (ml_error_value_t *)Args[0];
 	ml_value_t *Trace = ml_list();
-	ml_source_t Source;
-	for (int I = 0; ml_error_source(Args[0], I, &Source); ++I) {
+	ml_source_t *Source = Value->Trace;
+	for (int I = MAX_TRACE; --I >= 0 && Source->Name; ++Source) {
 		ml_value_t *Tuple = ml_tuple(2);
-		ml_tuple_set(Tuple, 1, ml_string(Source.Name, -1));
-		ml_tuple_set(Tuple, 2, ml_integer(Source.Line));
+		ml_tuple_set(Tuple, 1, ml_string(Source->Name, -1));
+		ml_tuple_set(Tuple, 2, ml_integer(Source->Line));
 		ml_list_put(Trace, Tuple);
 	}
 	return Trace;

@@ -404,7 +404,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
 			ERROR();
 		}
-		((ml_value_t *)Result)->Type = MLErrorValueT;
+		Result = ml_error_value(Result);
 		ml_value_t **Old = Frame->Stack + Inst->Params[1].Index;
 		while (Top > Old) *--Top = 0;
 		*Top++ = Result;

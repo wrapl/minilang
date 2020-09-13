@@ -81,7 +81,7 @@ static int ml_stringbuffer_print(FILE *File, const char *String, size_t Length) 
 static void ml_console_log(void *Data, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
 	error:
-		printf("Error: %s\n", ml_error_message(Value));
+		printf("%s: %s\n", ml_error_type(Value), ml_error_message(Value));
 		ml_source_t Source;
 		int Level = 0;
 		while (ml_error_source(Value, Level++, &Source)) {

@@ -6,8 +6,6 @@ tuple
 :mini:`fun tuple(Value₁: any, : ..., Valueₙ: any)` |rarr| :mini:`tuple`
    Returns a tuple of values :mini:`Value₁, ..., Valueₙ`.
 
-   *Defined at line 679 in src/ml_types.c*
-
 :mini:`tuple`
    An immutable tuple of values.
 

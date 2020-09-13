@@ -231,7 +231,7 @@ ML_METHOD("?", MLAnyT) {
 	return (ml_value_t *)ml_typeof(Args[0]);
 }
 
-ML_METHOD("isa", MLAnyT, MLTypeT) {
+ML_METHOD("in", MLAnyT, MLTypeT) {
 //<Value
 //<Type
 //>Value | nil

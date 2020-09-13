@@ -4,8 +4,6 @@ buffer
 .. include:: <isonum.txt>
 
 :mini:`fun buffer(Length: integer)` |rarr| :mini:`buffer`
-   *Defined at line 1738 in src/ml_types.c*
-
 :mini:`buffer`
    *Defined at line 1754 in src/ml_types.c*
 

@@ -135,6 +135,8 @@
       <keyword>def</keyword>
       <keyword>let</keyword>
       <keyword>var</keyword>
+      <keyword>on</keyword>
+      <keyword>when</keyword>
     </context>
     <context id="functions" style-ref="function">
       <keyword>print</keyword>

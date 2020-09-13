@@ -69,13 +69,6 @@ ML_FUNCTION(MLPrint) {
 	return MLNil;
 }
 
-ML_FUNCTION(MLError) {
-	ML_CHECK_ARG_COUNT(2);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
-	ML_CHECK_ARG_TYPE(1, MLStringT);
-	return ml_error(ml_string_value(Args[0]), "%s", ml_string_value(Args[1]));
-}
-
 ML_FUNCTION(MLHalt) {
 	if (Count > 0) {
 		ML_CHECK_ARG_TYPE(0, MLIntegerT);
@@ -148,7 +141,8 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "now", MLNow);
 	stringmap_insert(Globals, "clock", MLClock);
 	stringmap_insert(Globals, "print", MLPrint);
-	stringmap_insert(Globals, "error", MLError);
+	stringmap_insert(Globals, "error", MLErrorValueT);
+	stringmap_insert(Globals, "raise", MLRaise);
 	stringmap_insert(Globals, "halt", MLHalt);
 	stringmap_insert(Globals, "collect", MLCollect);
 	stringmap_insert(Globals, "callcc", MLCallCC);
@@ -211,7 +205,7 @@ int main(int Argc, const char *Argv[]) {
 		ml_load_file((ml_state_t *)State, global_get, NULL, FileName, Parameters);
 		ml_inline(State, State->Value, 1, Args);
 		if (ml_is_error(State->Value)) {
-			printf("Error: %s\n", ml_error_message(State->Value));
+			printf("%s: %s\n", ml_error_type(State->Value), ml_error_message(State->Value));
 			ml_source_t Source;
 			int Level = 0;
 			while (ml_error_source(State->Value, Level++, &Source)) {
@@ -224,7 +218,7 @@ int main(int Argc, const char *Argv[]) {
 		ml_value_state_t *State = ml_value_state_new();
 		ml_inline(State, (ml_value_t *)Import, 1, ml_string(ModuleName, -1));
 		if (ml_is_error(State->Value)) {
-			printf("Error: %s\n", ml_error_message(State->Value));
+			printf("%s: %s\n", ml_error_type(State->Value), ml_error_message(State->Value));
 			ml_source_t Source;
 			int Level = 0;
 			while (ml_error_source(State->Value, Level++, &Source)) {

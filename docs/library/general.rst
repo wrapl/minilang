@@ -4,7 +4,7 @@ general
 .. include:: <isonum.txt>
 
 :mini:`ConsoleT`
-   *Defined at line 148 in src/gtk_console.c*
+   *Defined at line 149 in src/gtk_console.c*
 
 :mini:`fun mlnow()`
    *Defined at line 46 in src/minilang.c*
@@ -15,21 +15,12 @@ general
 :mini:`fun mlprint()`
    *Defined at line 61 in src/minilang.c*
 
-:mini:`fun mlerror(Arg₁: string, Arg₂: string)`
+:mini:`fun mlhalt()`
    *Defined at line 72 in src/minilang.c*
 
-:mini:`fun mlhalt()`
-   *Defined at line 79 in src/minilang.c*
-
 :mini:`fun mlcollect()`
-   *Defined at line 88 in src/minilang.c*
+   *Defined at line 81 in src/minilang.c*
 
 :mini:`fun mltest(Arg₁: string, Arg₂: any)`
-   *Defined at line 93 in src/minilang.c*
-
 :mini:`fun import(Arg₁: string)`
-   *Defined at line 109 in src/minilang.c*
-
 :mini:`fun unload(Arg₁: string)`
-   *Defined at line 130 in src/minilang.c*
-

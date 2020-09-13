@@ -37,6 +37,7 @@ struct console_t {
 	GtkWidget *Window, *LogScrolled, *LogView, *InputView, *SourceView;
 	GtkNotebook *Notebook;
 	GtkSourceLanguage *Language;
+	GtkSourceStyleScheme *StyleScheme;
 	GtkLabel *MemoryBar;
 	GtkTextTag *OutputTag, *ResultTag, *ErrorTag, *BinaryTag;
 	GtkTextMark *EndMark;
@@ -108,7 +109,7 @@ void console_log(console_t *Console, ml_value_t *Value) {
 	gtk_text_buffer_get_end_iter(LogBuffer, End);
 	if (ml_is_error(Value)) {
 		char *Buffer;
-		int Length = asprintf(&Buffer, "Error: %s\n", ml_error_message(Value));
+		int Length = asprintf(&Buffer, "%s: %s\n", ml_error_type(Value), ml_error_message(Value));
 		gtk_text_buffer_insert_with_tags(LogBuffer, End, Buffer, Length, Console->ErrorTag, NULL);
 		ml_source_t Source;
 		int Level = 0;
@@ -204,6 +205,7 @@ static void console_debug_enter(console_t *Console, interactive_debugger_t *Debu
 		GtkWidget **Slot = (GtkWidget **)stringmap_slot(Console->SourceViews, Source.Name);
 		if (!Slot[0]) {
 			GtkSourceBuffer *Buffer = gtk_source_buffer_new_with_language(Console->Language);
+			gtk_source_buffer_set_style_scheme(Buffer, Console->StyleScheme);
 			GtkTextIter End[1];
 			gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(Buffer), End);
 			FILE *File = fopen(Source.Name, "r");
@@ -264,9 +266,9 @@ static void console_clear(GtkWidget *Button, console_t *Console) {
 static void console_style_changed(GtkComboBoxText *Widget, console_t *Console) {
 	const char *StyleId = gtk_combo_box_text_get_active_text(Widget);
 	GtkSourceStyleSchemeManager *StyleManager = gtk_source_style_scheme_manager_get_default();
-	GtkSourceStyleScheme *StyleScheme = gtk_source_style_scheme_manager_get_scheme(StyleManager, StyleId);
-	gtk_source_buffer_set_style_scheme(GTK_SOURCE_BUFFER(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView))), StyleScheme);
-	gtk_source_buffer_set_style_scheme(GTK_SOURCE_BUFFER(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView))), StyleScheme);
+	Console->StyleScheme = gtk_source_style_scheme_manager_get_scheme(StyleManager, StyleId);
+	gtk_source_buffer_set_style_scheme(GTK_SOURCE_BUFFER(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView))), Console->StyleScheme);
+	gtk_source_buffer_set_style_scheme(GTK_SOURCE_BUFFER(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView))), Console->StyleScheme);
 
 	g_key_file_set_string(Console->Config, "gtk-console", "style", StyleId);
 	g_key_file_save_to_file(Console->Config, Console->ConfigPath, NULL);
@@ -452,9 +454,9 @@ static ml_value_t *console_set_style(console_t *Console, int Count, ml_value_t *
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	GtkSourceStyleSchemeManager *StyleManager = gtk_source_style_scheme_manager_get_default();
-	GtkSourceStyleScheme *StyleScheme = gtk_source_style_scheme_manager_get_scheme(StyleManager, ml_string_value(Args[0]));
-	gtk_source_buffer_set_style_scheme(GTK_SOURCE_BUFFER(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView))), StyleScheme);
-	gtk_source_buffer_set_style_scheme(GTK_SOURCE_BUFFER(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView))), StyleScheme);
+	Console->StyleScheme = gtk_source_style_scheme_manager_get_scheme(StyleManager, ml_string_value(Args[0]));
+	gtk_source_buffer_set_style_scheme(GTK_SOURCE_BUFFER(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView))), Console->StyleScheme);
+	gtk_source_buffer_set_style_scheme(GTK_SOURCE_BUFFER(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView))), Console->StyleScheme);
 	return MLNil;
 }
 
@@ -689,10 +691,11 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 
 	if (g_key_file_has_key(Console->Config, "gtk-console", "style", NULL)) {
 		const char *StyleId = g_key_file_get_string(Console->Config, "gtk-console", "style", NULL);
-		GtkSourceStyleScheme *StyleScheme = gtk_source_style_scheme_manager_get_scheme(StyleManager, StyleId);
+		Console->StyleScheme = gtk_source_style_scheme_manager_get_scheme(StyleManager, StyleId);
 		GtkSourceBuffer *InputBuffer = GTK_SOURCE_BUFFER(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView)));
-		gtk_source_buffer_set_style_scheme(InputBuffer, StyleScheme);
-		gtk_source_buffer_set_style_scheme(LogBuffer, StyleScheme);
+		gtk_source_buffer_set_style_scheme(InputBuffer, Console->StyleScheme);
+		gtk_source_buffer_set_style_scheme(LogBuffer, Console->StyleScheme);
+		gtk_source_buffer_set_style_scheme(Console->SourceBuffer, Console->StyleScheme);
 		gtk_combo_box_set_active_id(GTK_COMBO_BOX(StyleCombo), StyleId);
 	}
 
