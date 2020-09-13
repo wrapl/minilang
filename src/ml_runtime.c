@@ -92,19 +92,25 @@ static void ml_context_key_call(ml_state_t *Caller, ml_context_key_t *Key, int C
 	}
 }
 
-ML_TYPE(MLContextKeyT, (MLCFunctionT), "context-key",
-	.call = (void *)ml_context_key_call
-);
-
-ml_value_t *ml_context_key() {
+ML_FUNCTION(MLContextKey) {
+//!context
+//@context
+//>context
+// Creates a new context specific key.
 	ml_context_key_t *Key = new(ml_context_key_t);
 	Key->Type = MLContextKeyT;
 	return (ml_value_t *)Key;
 }
 
-ML_FUNCTION(MLContextKey) {
-	return ml_context_key();
-}
+ML_TYPE(MLContextKeyT, (MLCFunctionT), "context-key",
+//!context
+//@context
+// A context key can be used to create context specific values.
+// If :mini:`key` is a context key, then calling :mini:`key()` no arguments returns the value associated with the key in the current context, or :mini:`nil` is no value is associated.
+// Calling :mini:`key(Value, Function)` will invoke :mini:`Function` in a new context where :mini:`key` is associated with :mini:`Value`.
+	.call = (void *)ml_context_key_call,
+	.Constructor = (ml_value_t *)MLContextKey
+);
 
 static void ml_state_call(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
 	return State->run(State, Count ? Args[0] : MLNil);
@@ -352,6 +358,7 @@ static void ml_error_call(ml_state_t *Caller, ml_value_t *Error, int Count, ml_v
 }
 
 ML_FUNCTION(MLError) {
+//!error
 //@error
 //<Type
 //<Message
@@ -370,6 +377,7 @@ ML_FUNCTION(MLError) {
 }
 
 ML_FUNCTION(MLRaise) {
+//!error
 //@raise
 //<Type
 //<Value
@@ -393,9 +401,9 @@ ML_TYPE(MLErrorT, (), "error",
 );
 
 ML_TYPE(MLErrorValueT, (), "error",
+//!internal
 	.Constructor = (ml_value_t *)MLError
 );
-//!error
 
 ml_value_t *ml_errorv(const char *Error, const char *Format, va_list Args) {
 	char *Message;
@@ -463,14 +471,17 @@ void ml_error_fprint(FILE *File, const ml_value_t *Value) {
 }
 
 ML_METHOD("type", MLErrorValueT) {
+//!error
 	return ml_string(((ml_error_value_t *)Args[0])->Error, -1);
 }
 
 ML_METHOD("message", MLErrorValueT) {
+//!error
 	return ml_string(((ml_error_value_t *)Args[0])->Message, -1);
 }
 
 ML_METHOD("trace", MLErrorValueT) {
+//!error
 	ml_error_value_t *Value = (ml_error_value_t *)Args[0];
 	ml_value_t *Trace = ml_list();
 	ml_source_t *Source = Value->Trace;

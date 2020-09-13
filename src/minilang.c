@@ -147,7 +147,7 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "collect", MLCollect);
 	stringmap_insert(Globals, "callcc", MLCallCC);
 	stringmap_insert(Globals, "mark", MLMark);
-	stringmap_insert(Globals, "context", MLContextKey);
+	stringmap_insert(Globals, "context", MLContextKeyT);
 	stringmap_insert(Globals, "test", MLTest);
 #ifdef USE_ML_CBOR
 	ml_cbor_init(Globals);

@@ -183,6 +183,8 @@ extern ml_type_t MLPartialFunctionT[];
 
 extern ml_cfunctionx_t MLCallCC[];
 extern ml_cfunctionx_t MLMark[];
+
+extern ml_type_t MLContextKeyT[];
 extern ml_cfunction_t MLContextKey[];
 
 ml_value_t *ml_cfunction(void *Data, ml_callback_t Function) __attribute__((malloc));
