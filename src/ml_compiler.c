@@ -186,6 +186,8 @@ typedef struct mlc_ident_expr_t mlc_ident_expr_t;
 typedef struct mlc_parent_value_expr_t mlc_parent_value_expr_t;
 typedef struct mlc_string_expr_t mlc_string_expr_t;
 typedef struct mlc_block_expr_t mlc_block_expr_t;
+typedef struct mlc_catch_expr_t mlc_catch_expr_t;
+typedef struct mlc_catch_type_t mlc_catch_type_t;
 
 extern ml_value_t MLBlank[];
 
@@ -772,36 +774,65 @@ struct mlc_block_expr_t {
 	MLC_EXPR_FIELDS(block);
 	ml_decl_t *Vars, *Lets, *Defs;
 	mlc_expr_t *Child;
-	ml_decl_t *CatchDecl;
-	mlc_expr_t *Catch;
+	mlc_catch_expr_t *Catches;
+};
+
+struct mlc_catch_expr_t {
+	mlc_catch_expr_t *Next;
+	ml_decl_t *Decl;
+	mlc_catch_type_t *Types;
+	mlc_expr_t *Body;
+};
+
+struct mlc_catch_type_t {
+	mlc_catch_type_t *Next;
+	const char *Type;
 };
 
 static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_expr_t *Expr) {
 	int OldTop = Function->Top;
 	ml_decl_t *OldDecls = Function->Decls;
 	mlc_try_t Try;
-	ml_inst_t *CatchExitInst = 0;
-	if (Expr->Catch) {
-		Expr->CatchDecl->Index = Function->Top++;
-		Expr->CatchDecl->Next = Function->Decls;
-		Function->Decls = Expr->CatchDecl;
-		mlc_compiled_t TryCompiled = mlc_compile(Function, Expr->Catch);
-		ml_inst_t *TryInst = ml_inst_new(2, Expr->Source, MLI_TRY);
-		ml_inst_t *CatchInst = ml_inst_new(3, Expr->Source, MLI_CATCH);
-		TryInst->Params[0].Inst = CatchInst;
-		TryInst->Params[1].Inst = Function->Try ? Function->Try->CatchInst : Function->ReturnInst;
-		CatchInst->Params[0].Inst = TryCompiled.Start;
-		CatchInst->Params[1].Index = OldTop;
-		CatchInst->Params[2].Decls = Function->Decls;
-		Function->Decls = OldDecls;
-		Function->Top = OldTop;
-		Try.Up = Function->Try;
-		Try.CatchInst = TryInst;
-		Try.CatchTop = OldTop;
+	ml_inst_t *CatchExitInst = NULL;
+	if (Expr->Catches) {
 		CatchExitInst = ml_inst_new(3, Expr->Source, MLI_EXIT);
 		CatchExitInst->Params[1].Count = 1;
 		CatchExitInst->Params[2].Decls = OldDecls;
-		mlc_connect(TryCompiled.Exits, CatchExitInst);
+		ml_inst_t *TryInst = ml_inst_new(2, Expr->Source, MLI_TRY);
+		TryInst->Params[1].Inst = Function->Try ? Function->Try->CatchInst : Function->ReturnInst;
+		ml_inst_t *Last = TryInst;
+
+		for (mlc_catch_expr_t *CatchExpr = Expr->Catches; CatchExpr; CatchExpr = CatchExpr->Next) {
+			CatchExpr->Decl->Index = Function->Top++;
+			CatchExpr->Decl->Next = Function->Decls;
+			Function->Decls = CatchExpr->Decl;
+			mlc_compiled_t TryCompiled = mlc_compile(Function, CatchExpr->Body);
+			if (CatchExpr->Types) {
+				for (mlc_catch_type_t *Type = CatchExpr->Types; Type; Type = Type->Next) {
+					ml_inst_t *CatchInst = ml_inst_new(5, Expr->Source, MLI_CATCH);
+					Last->Params[0].Inst = CatchInst;
+					Last = CatchInst;
+					CatchInst->Params[1].Inst = TryCompiled.Start;
+					CatchInst->Params[2].Index = OldTop;
+					CatchInst->Params[3].Ptr = Type->Type;
+					CatchInst->Params[4].Decls = Function->Decls;
+				}
+			} else {
+				ml_inst_t *CatchInst = ml_inst_new(5, Expr->Source, MLI_CATCH);
+				Last->Params[0].Inst = CatchInst;
+				Last = CatchInst;
+				CatchInst->Params[1].Inst = TryCompiled.Start;
+				CatchInst->Params[2].Index = OldTop;
+				CatchInst->Params[3].Ptr = NULL;
+			}
+			mlc_connect(TryCompiled.Exits, CatchExitInst);
+			Function->Decls = OldDecls;
+			Function->Top = OldTop;
+		}
+		Last->Params[0].Inst = TryInst->Params[1].Inst;
+		Try.Up = Function->Try;
+		Try.CatchInst = TryInst;
+		Try.CatchTop = OldTop;
 		Function->Try = &Try;
 	}
 	int NumVars = 0, NumLets = 0;
@@ -865,7 +896,7 @@ static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_
 		mlc_connect(Compiled.Exits, ExitInst);
 		Compiled.Exits = ExitInst;
 	}
-	if (Expr->Catch) {
+	if (Expr->Catches) {
 		ml_inst_t *TryInst = ml_inst_new(2, Expr->Source, MLI_TRY);
 		TryInst->Params[0].Inst = Compiled.Start;
 		TryInst->Params[1].Inst = Try.CatchInst;
@@ -1898,7 +1929,7 @@ static void ml_accept_eoi(mlc_scanner_t *Scanner) {
 
 static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner, int MethDecl);
 static mlc_expr_t *ml_parse_term(mlc_scanner_t *Scanner);
-static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner);
+static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner, int NoCatches);
 
 static mlc_expr_t *ml_accept_fun_expr(mlc_scanner_t *Scanner, ml_token_t EndToken) {
 	ML_EXPR(FunExpr, fun, fun);
@@ -2083,7 +2114,7 @@ static mlc_expr_t *ml_accept_with_expr(mlc_scanner_t *Scanner, mlc_expr_t *Child
 		ExprSlot[0] = Child;
 	} else {
 		ml_accept(Scanner, MLT_DO);
-		ExprSlot[0] = ml_accept_block(Scanner);
+		ExprSlot[0] = ml_accept_block(Scanner, 0);
 		ml_accept(Scanner, MLT_END);
 	}
 	return (mlc_expr_t *)WithExpr;
@@ -2141,7 +2172,7 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner, int MethDecl) {
 	}
 	case MLT_DO: {
 		Scanner->Token = MLT_NONE;
-		mlc_expr_t *BlockExpr = ml_accept_block(Scanner);
+		mlc_expr_t *BlockExpr = ml_accept_block(Scanner, 0);
 		ml_accept(Scanner, MLT_END);
 		return BlockExpr;
 	}
@@ -2172,9 +2203,9 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner, int MethDecl) {
 			}
 			Case->Condition = ml_accept_expression(Scanner, EXPR_DEFAULT);
 			ml_accept(Scanner, MLT_THEN);
-			Case->Body = ml_accept_block(Scanner);
+			Case->Body = ml_accept_block(Scanner, 0);
 		} while (ml_parse(Scanner, MLT_ELSEIF));
-		if (ml_parse(Scanner, MLT_ELSE)) IfExpr->Else = ml_accept_block(Scanner);
+		if (ml_parse(Scanner, MLT_ELSE)) IfExpr->Else = ml_accept_block(Scanner, 0);
 		ml_accept(Scanner, MLT_END);
 		return (mlc_expr_t *)IfExpr;
 	}
@@ -2227,9 +2258,9 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner, int MethDecl) {
 				Case->Condition = (mlc_expr_t *)OrExpr;
 			}
 			ml_accept(Scanner, MLT_DO);
-			Case->Body = ml_accept_block(Scanner);
+			Case->Body = ml_accept_block(Scanner, 0);
 			if (ml_parse(Scanner, MLT_ELSE)) {
-				IfExpr->Else = ml_accept_block(Scanner);
+				IfExpr->Else = ml_accept_block(Scanner, 0);
 				ml_accept(Scanner, MLT_END);
 				break;
 			}
@@ -2240,7 +2271,7 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner, int MethDecl) {
 	case MLT_LOOP: {
 		Scanner->Token = MLT_NONE;
 		ML_EXPR(LoopExpr, parent, loop);
-		LoopExpr->Child = ml_accept_block(Scanner);
+		LoopExpr->Child = ml_accept_block(Scanner, 0);
 		ml_accept(Scanner, MLT_END);
 		return (mlc_expr_t *)LoopExpr;
 	}
@@ -2262,9 +2293,9 @@ static mlc_expr_t *ml_parse_factor(mlc_scanner_t *Scanner, int MethDecl) {
 		ml_accept(Scanner, MLT_IN);
 		ForExpr->Child = ml_accept_expression(Scanner, EXPR_DEFAULT);
 		ml_accept(Scanner, MLT_DO);
-		ForExpr->Child->Next = ml_accept_block(Scanner);
+		ForExpr->Child->Next = ml_accept_block(Scanner, 0);
 		if (ml_parse(Scanner, MLT_ELSE)) {
-			ForExpr->Child->Next->Next = ml_accept_block(Scanner);
+			ForExpr->Child->Next->Next = ml_accept_block(Scanner, 0);
 		}
 		ml_accept(Scanner, MLT_END);
 		return (mlc_expr_t *)ForExpr;
@@ -2782,7 +2813,7 @@ static mlc_expr_t *ml_accept_block_export(mlc_scanner_t *Scanner, mlc_expr_t *Ex
 	return (mlc_expr_t *)CallExpr;
 }
 
-static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
+static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner, int NoCatches) {
 	ML_EXPR(BlockExpr, block, block);
 	ml_accept_block_t Accept[1];
 	Accept->ExprSlot = &BlockExpr->Child;
@@ -2813,17 +2844,32 @@ static mlc_expr_t *ml_accept_block(mlc_scanner_t *Scanner) {
 			break;
 		}
 		case MLT_ON: {
+			if (NoCatches) goto end;
 			Scanner->Token = MLT_NONE;
-			if (BlockExpr->CatchDecl) {
-				ml_scanner_error(Scanner, "ParseError", "no more than one error handler allowed in a block");
-			}
-			ml_accept(Scanner, MLT_IDENT);
-			ml_decl_t *Decl = new(ml_decl_t);
-			Decl->Source = Scanner->Source;
-			Decl->Ident = Scanner->Ident;
-			BlockExpr->CatchDecl = Decl;
-			ml_accept(Scanner, MLT_DO);
-			BlockExpr->Catch = ml_accept_block(Scanner);
+			mlc_catch_expr_t **CatchSlot = &BlockExpr->Catches;
+			do {
+				mlc_catch_expr_t *CatchExpr = CatchSlot[0] = new(mlc_catch_expr_t);
+				CatchSlot = &CatchExpr->Next;
+				ml_accept(Scanner, MLT_IDENT);
+				ml_decl_t *Decl = CatchExpr->Decl = new(ml_decl_t);
+				Decl->Source = Scanner->Source;
+				Decl->Ident = Scanner->Ident;
+				if (ml_parse(Scanner, MLT_COLON)) {
+					mlc_catch_type_t **TypeSlot = &CatchExpr->Types;
+					do {
+						ml_accept(Scanner, MLT_VALUE);
+						ml_value_t *Value = Scanner->Value;
+						if (!ml_is(Value, MLStringT)) {
+							ml_scanner_error(Scanner, "ParseError", "Expected <string> not <%s>", ml_typeof(Value)->Name);
+						}
+						mlc_catch_type_t *Type = TypeSlot[0] = new(mlc_catch_type_t);
+						TypeSlot = &Type->Next;
+						Type->Type = ml_string_value(Value);
+					} while (ml_parse(Scanner, MLT_COMMA));
+				}
+				ml_accept(Scanner, MLT_DO);
+				CatchExpr->Body = ml_accept_block(Scanner, 1);
+			} while (ml_parse(Scanner, MLT_ON));
 			goto end;
 		}
 		default: {
@@ -2878,7 +2924,7 @@ end:
 
 void ml_function_compile(ml_state_t *Caller, mlc_scanner_t *Scanner, const char **Parameters) {
 	MLC_ON_ERROR(Scanner->Compiler) ML_RETURN(Scanner->Compiler->Error);
-	mlc_expr_t *Block = ml_accept_block(Scanner);
+	mlc_expr_t *Block = ml_accept_block(Scanner, 0);
 	ml_accept_eoi(Scanner);
 	ml_value_t *Function = ml_compile(Block, Parameters, Scanner->Compiler);
 	ML_RETURN(Function);

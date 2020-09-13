@@ -35,7 +35,7 @@ runtime
    *Defined at line 321 in src/ml_runtime.c*
 
 :mini:`fun mlerror(Arg₁: string, Arg₂: string)`
-:mini:`fun mlraise(Arg₁: any)`
+:mini:`fun mlraise(Arg₁: string, Arg₂: any)`
 :mini:`errorvalue`
-   *Defined at line 384 in src/ml_runtime.c*
+   *Defined at line 385 in src/ml_runtime.c*
 

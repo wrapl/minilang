@@ -365,13 +365,14 @@ ML_FUNCTION(MLError) {
 }
 
 ML_FUNCTION(MLRaise) {
-	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ml_error_t *Error = new(ml_error_t);
 	Error->Type = MLErrorT;
 	Error->Error->Type = MLErrorValueT;
-	Error->Error->Error = "ValueRaised";
-	Error->Error->Message = ml_typeof(Args[0])->Name;
-	Error->Value = Args[0];
+	Error->Error->Error = ml_string_value(Args[0]);
+	Error->Error->Message = ml_typeof(Args[1])->Name;
+	Error->Value = Args[1];
 	return (ml_value_t *)Error;
 }
 

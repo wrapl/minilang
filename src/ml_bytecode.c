@@ -404,14 +404,17 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
 			ERROR();
 		}
+		if (Inst->Params[3].Ptr && strcmp(ml_error_type(Result), Inst->Params[3].Ptr)) {
+			ADVANCE(0);
+		}
 		Result = ml_error_value(Result);
-		ml_value_t **Old = Frame->Stack + Inst->Params[1].Index;
+		ml_value_t **Old = Frame->Stack + Inst->Params[2].Index;
 		while (Top > Old) *--Top = 0;
 		*Top++ = Result;
 #ifdef DEBUG_VERSION
-		Frame->Decls = Inst->Params[2].Decls;
+		Frame->Decls = Inst->Params[4].Decls;
 #endif
-		ADVANCE(0);
+		ADVANCE(1);
 	}
 	DO_LOAD: {
 		Result = Inst->Params[1].Value;
@@ -918,7 +921,7 @@ const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INST_COUNT, // MLI_EXIT,
 	MLIT_INST, // MLI_LOOP,
 	MLIT_INST_INST, // MLI_TRY,
-	MLIT_INST_INDEX, // MLI_CATCH,
+	MLIT_INST_INST_INDEX_CHARS, // MLI_CATCH,
 	MLIT_INST_VALUE, // MLI_LOAD,
 	MLIT_INST_VALUE, // MLI_LOAD_PUSH,
 	MLIT_INST_INDEX, // MLI_VAR,
@@ -979,6 +982,13 @@ static void ml_inst_process(int Process, ml_inst_t *Source, ml_inst_t *Inst, ml_
 	switch (MLInstTypes[Inst->Opcode]) {
 	case MLIT_INST_INST:
 		ml_inst_process(Process, Inst, Inst->Params[1].Inst, Info, (I + 11) % (SHA256_BLOCK_SIZE - 4), (J + 13) % (SHA256_BLOCK_SIZE - 8));
+		break;
+	case MLIT_INST_INST_INDEX_CHARS:
+		ml_inst_process(Process, Inst, Inst->Params[1].Inst, Info, (I + 11) % (SHA256_BLOCK_SIZE - 4), (J + 13) % (SHA256_BLOCK_SIZE - 8));
+		*(int *)(Info->Hash + I) ^= Inst->Params[2].Index;
+		if (Inst->Params[3].Ptr) {
+			*(long *)(Info->Hash + J) ^= stringmap_hash(Inst->Params[3].Ptr);
+		}
 		break;
 	case MLIT_INST_COUNT_COUNT:
 		*(int *)(Info->Hash + I) ^= Inst->Params[1].Count;
@@ -1094,6 +1104,9 @@ static void ml_closure_find_labels(int Process, ml_inst_t *Inst, unsigned int *L
 	if (MLInstTypes[Inst->Opcode] == MLIT_INST_INST) {
 		ml_closure_find_labels(Process, Inst->Params[1].Inst, Labels, 1);
 	}
+	if (MLInstTypes[Inst->Opcode] == MLIT_INST_INST_INDEX_CHARS) {
+		ml_closure_find_labels(Process, Inst->Params[1].Inst, Labels, 1);
+	}
 }
 
 static void ml_closure_inst_list(int Process, ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
@@ -1107,6 +1120,9 @@ static void ml_closure_inst_list(int Process, ml_inst_t *Inst, ml_stringbuffer_t
 	switch (MLInstTypes[Inst->Opcode]) {
 	case MLIT_INST_INST:
 		ml_stringbuffer_addf(Buffer, " -> L%d", Inst->Params[1].Inst->Label);
+		break;
+	case MLIT_INST_INST_INDEX_CHARS:
+		ml_stringbuffer_addf(Buffer, " %s -> L%d, %d", Inst->Params[3].Ptr, Inst->Params[1].Inst->Label, Inst->Params[2].Index);
 		break;
 	case MLIT_INST_COUNT_COUNT:
 		ml_stringbuffer_addf(Buffer, " %d, %d", Inst->Params[1].Count, Inst->Params[2].Count);
@@ -1194,6 +1210,9 @@ static void ml_closure_inst_list(int Process, ml_inst_t *Inst, ml_stringbuffer_t
 		ml_closure_inst_list(Process, Inst->Params[0].Inst, Buffer);
 	}
 	if (MLInstTypes[Inst->Opcode] == MLIT_INST_INST) {
+		ml_closure_inst_list(Process, Inst->Params[1].Inst, Buffer);
+	}
+	if (MLInstTypes[Inst->Opcode] == MLIT_INST_INST_INDEX_CHARS) {
 		ml_closure_inst_list(Process, Inst->Params[1].Inst, Buffer);
 	}
 }
