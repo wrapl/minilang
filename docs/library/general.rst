@@ -22,5 +22,11 @@ general
    *Defined at line 81 in src/minilang.c*
 
 :mini:`fun mltest(Arg₁: string, Arg₂: any)`
+   *Defined at line 86 in src/minilang.c*
+
 :mini:`fun import(Arg₁: string)`
+   *Defined at line 102 in src/minilang.c*
+
 :mini:`fun unload(Arg₁: string)`
+   *Defined at line 123 in src/minilang.c*
+

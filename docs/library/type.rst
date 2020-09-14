@@ -6,6 +6,8 @@ type
 :mini:`fun type(Value: any)` |rarr| :mini:`type`
    Returns the type of :mini:`Value`.
 
+   *Defined at line 64 in src/ml_types.c*
+
 :mini:`type`
    Type of all types.
 

@@ -18,3 +18,5 @@ method
    *Defined at line 4671 in src/ml_types.c*
 
 :mini:`fun method::set(Method: method, Types...: type, Function: function)` |rarr| :mini:`Function`
+   *Defined at line 4694 in src/ml_types.c*
+

@@ -142,7 +142,7 @@ fun write_function(Category, Kind, Name, Params, Return, Description, Location) 
 		File:write("   ", Line, "\n")
 	end
 	for Param in Params do
-		if Param isa method then
+		if Param in method then
 		elseif Param[3]:length > 0 then
 			File:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")
 		end	
