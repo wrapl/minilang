@@ -72,6 +72,25 @@ static void ml_module_init_run(ml_module_state_t *State, ml_value_t *Value) {
 	return ml_call(State, Value, 1, State->Args);
 }
 
+void ml_module_compile(ml_state_t *Caller, mlc_scanner_t *Scanner, ml_value_t **Slot) {
+	static const char *Parameters[] = {"export", NULL};
+	ml_mini_module_t *Module = new(ml_mini_module_t);
+	Module->Type = MLMiniModuleT;
+	Module->FileName = ml_scanner_name(Scanner);
+	Slot[0] = (ml_value_t *)Module;
+	ml_export_function_t *ExportFunction = new(ml_export_function_t);
+	ExportFunction->Type = MLExportFunctionT;
+	ExportFunction->Module = Module;
+	ml_module_state_t *State = new(ml_module_state_t);
+	State->Base.Type = MLModuleStateT;
+	State->Base.run = (void *)ml_module_init_run;
+	State->Base.Context = Caller->Context;
+	State->Base.Caller = Caller;
+	State->Module = (ml_value_t *)Module;
+	State->Args[0] = (ml_value_t *)ExportFunction;
+	ml_function_compile((ml_state_t *)State, Scanner, Parameters);
+}
+
 void ml_module_load_file(ml_state_t *Caller, const char *FileName, ml_getter_t GlobalGet, void *Globals, ml_value_t **Slot) {
 	static const char *Parameters[] = {"export", NULL};
 	ml_mini_module_t *Module = new(ml_mini_module_t);

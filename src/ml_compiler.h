@@ -13,6 +13,7 @@ extern "C" {
 typedef struct mlc_scanner_t mlc_scanner_t;
 
 mlc_scanner_t *ml_scanner(const char *SourceName, void *Data, const char *(*read)(void *), ml_context_t *Context, ml_getter_t GlobalGet, void *Globals);
+const char *ml_scanner_name(mlc_scanner_t *Scanner);
 ml_source_t ml_scanner_source(mlc_scanner_t *Scanner, ml_source_t Source);
 void ml_scanner_reset(mlc_scanner_t *Scanner);
 const char *ml_scanner_clear(mlc_scanner_t *Scanner);

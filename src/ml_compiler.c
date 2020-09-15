@@ -1506,6 +1506,10 @@ mlc_scanner_t *ml_scanner(const char *SourceName, void *Data, const char *(*read
 	return Scanner;
 }
 
+const char *ml_scanner_name(mlc_scanner_t *Scanner) {
+	return Scanner->Source.Name;
+}
+
 ml_source_t ml_scanner_source(mlc_scanner_t *Scanner, ml_source_t Source) {
 	ml_source_t OldSource = Scanner->Source;
 	Scanner->Source = Source;
