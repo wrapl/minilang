@@ -550,7 +550,7 @@ typedef struct {
 
 static ml_queued_state_t *QueuedStates;
 static int QueueSize, QueueFill, QueueWrite, QueueRead;
-static unsigned int Counter = 100;
+static unsigned int Counter = 1000;
 
 static gboolean queue_run(void *Data) {
 	ml_queued_state_t QueuedState = QueuedStates[QueueRead];
@@ -558,7 +558,7 @@ static gboolean queue_run(void *Data) {
 	QueuedStates[QueueRead].Value = NULL;
 	--QueueFill;
 	QueueRead = (QueueRead + 1) % QueueSize;
-	Counter = 100;
+	Counter = 1000;
 	QueuedState.State->run(QueuedState.State, QueuedState.Value);
 	return QueueFill;
 }
@@ -569,12 +569,14 @@ static void console_swap_state(ml_state_t *State, ml_value_t *Value) {
 		int NewQueueSize = QueueSize * 2;
 		ml_queued_state_t *NewQueuedStates = anew(ml_queued_state_t, NewQueueSize);
 		memcpy(NewQueuedStates, QueuedStates, QueueSize * sizeof(ml_queued_state_t));
+		QueueRead = 0;
+		QueueWrite = QueueSize;
 		QueuedStates = NewQueuedStates;
 		QueueSize = NewQueueSize;
 	}
-	QueueWrite = (QueueWrite + 1) % QueueSize;
 	QueuedStates[QueueWrite].State = State;
 	QueuedStates[QueueWrite].Value = Value;
+	QueueWrite = (QueueWrite + 1) % QueueSize;
 	if (QueueFill == 1) g_idle_add(queue_run, NULL);
 }
 
@@ -598,8 +600,7 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 #ifdef USE_ML_SCHEDULER
 	QueueFill = 0;
 	QueueSize = 4;
-	QueueRead = 0;
-	QueueWrite = QueueSize - 1;
+	QueueRead = QueueWrite = 0;
 	QueuedStates = anew(ml_queued_state_t, QueueSize);
 #endif
 
