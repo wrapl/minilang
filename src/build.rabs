@@ -220,6 +220,10 @@ if MINILANG_USEMATH or defined("MATH") then
 	InstallHeaders:put("ml_math.h")
 end
 
+if MINILANG_MODULES or defined("MODULES") then
+	InstallHeaders:put("ml_module.h")
+end
+
 if MINILANG_USECBOR or defined("CBOR") then
 	InstallHeaders:put("ml_cbor.h")
 end
