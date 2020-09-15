@@ -113,6 +113,7 @@ ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, ml_compiler_t 
 	Function->ReturnInst = ml_inst_new(0, Expr->Source, MLI_RETURN);
 	SHA256_CTX HashCompiler[1];
 	sha256_init(HashCompiler);
+	ml_closure_info_t *Info = new(ml_closure_info_t);
 	int NumParams = 0;
 	if (Parameters) {
 		ml_decl_t **ParamSlot = &Function->Decls;
@@ -121,6 +122,7 @@ ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, ml_compiler_t 
 			Param->Source = Expr->Source;
 			Param->Ident = P[0];
 			Param->Index = Function->Top++;
+			stringmap_insert(Info->Params, Param->Ident, (void *)(intptr_t)Function->Top);
 			ParamSlot[0] = Param;
 			ParamSlot = &Param->Next;
 		}
@@ -129,15 +131,15 @@ ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, ml_compiler_t 
 	}
 	mlc_compiled_t Compiled = mlc_compile(Function, Expr);
 	mlc_connect(Compiled.Exits, Function->ReturnInst);
-	ml_closure_t *Closure = new(ml_closure_t);
-	ml_closure_info_t *Info = Closure->Info = new(ml_closure_info_t);
-	Closure->Type = MLClosureT;
 	Info->Entry = Compiled.Start;
 	Info->Return = Function->ReturnInst;
 	Info->Source = Expr->Source.Name;
 	Info->FrameSize = Function->Size;
 	Info->NumParams = NumParams;
 	ml_closure_info_finish(Info);
+	ml_closure_t *Closure = new(ml_closure_t);
+	Closure->Info = Info;
+	Closure->Type = MLClosureT;
 	return (ml_value_t *)Closure;
 }
 
