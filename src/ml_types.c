@@ -14,12 +14,15 @@
 #else
 #include <regex.h>
 #endif
-#include <pthread.h>
 #include <limits.h>
 #include <math.h>
 #include <inttypes.h>
 #include "ml_runtime.h"
 #include "ml_bytecode.h"
+
+#ifdef USE_ML_THREADSAFE
+#include <pthread.h>
+#endif
 
 ML_METHOD_DECL(Iterate, "iterate");
 ML_METHOD_DECL(Value, "value");
@@ -4576,6 +4579,10 @@ ml_value_t *ml_method(const char *Name) {
 		asprintf((char **)&Method->Name, "<anon:0x%lx>", (uintptr_t)Method);
 		return (ml_value_t *)Method;
 	}
+#ifdef USE_ML_THREADSAFE
+	static pthread_mutex_t Lock = PTHREAD_MUTEX_INITIALIZER;
+	pthread_mutex_lock(&Lock);
+#endif
 	ml_method_t **Slot = (ml_method_t **)stringmap_slot(Methods, Name);
 	if (!Slot[0]) {
 		ml_method_t *Method = new(ml_method_t);
@@ -4583,6 +4590,9 @@ ml_value_t *ml_method(const char *Name) {
 		Method->Name = Name;
 		Slot[0] = Method;
 	}
+#ifdef USE_ML_THREADSAFE
+	pthread_mutex_unlock(&Lock);
+#endif
 	return (ml_value_t *)Slot[0];
 }
 

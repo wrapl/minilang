@@ -541,8 +541,67 @@ static gboolean console_update_status(console_t *Console) {
 	return G_SOURCE_CONTINUE;
 }
 
+#ifdef USE_ML_SCHEDULER
+
+typedef struct {
+	ml_state_t *State;
+	ml_value_t *Value;
+} ml_queued_state_t;
+
+static ml_queued_state_t *QueuedStates;
+static int QueueSize, QueueFill, QueueWrite, QueueRead;
+static unsigned int Counter = 100;
+
+static gboolean queue_run(void *Data) {
+	ml_queued_state_t QueuedState = QueuedStates[QueueRead];
+	QueuedStates[QueueRead].State = NULL;
+	QueuedStates[QueueRead].Value = NULL;
+	--QueueFill;
+	QueueRead = (QueueRead + 1) % QueueSize;
+	Counter = 100;
+	QueuedState.State->run(QueuedState.State, QueuedState.Value);
+	return QueueFill;
+}
+
+static void console_swap_state(ml_state_t *State, ml_value_t *Value) {
+	++QueueFill;
+	if (QueueFill > QueueSize) {
+		int NewQueueSize = QueueSize * 2;
+		ml_queued_state_t *NewQueuedStates = anew(ml_queued_state_t, NewQueueSize);
+		memcpy(NewQueuedStates, QueuedStates, QueueSize * sizeof(ml_queued_state_t));
+		QueuedStates = NewQueuedStates;
+		QueueSize = NewQueueSize;
+	}
+	QueueWrite = (QueueWrite + 1) % QueueSize;
+	QueuedStates[QueueWrite].State = State;
+	QueuedStates[QueueWrite].Value = Value;
+	if (QueueFill == 1) g_idle_add(queue_run, NULL);
+}
+
+static ml_schedule_t console_scheduler(ml_context_t *Context) {
+	return (ml_schedule_t){&Counter, console_swap_state};
+}
+
+static void console_schedule(ml_state_t *Caller, console_t *Console, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(Count - 1, MLFunctionT);
+	ml_state_t *State = ml_state_new(Caller);
+	ml_context_set(State->Context, ML_SCHEDULER_INDEX, console_scheduler);
+	return ml_call(State, Args[Count - 1], Count - 1, Args);
+}
+
+#endif
+
 console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	gtk_init(0, 0);
+
+#ifdef USE_ML_SCHEDULER
+	QueueFill = 0;
+	QueueSize = 4;
+	QueueRead = 0;
+	QueueWrite = QueueSize - 1;
+	QueuedStates = anew(ml_queued_state_t, QueueSize);
+#endif
 
 	console_t *Console = new(console_t);
 	Console->Base.Type = ConsoleT;
@@ -555,7 +614,6 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	Console->HistoryIndex = 0;
 	Console->HistoryEnd = 0;
 	Console->Scanner = ml_scanner(Console->Name, Console, (void *)console_read, &MLRootContext, (ml_getter_t)console_global_get, Console);
-
 	Console->Notebook = GTK_NOTEBOOK(gtk_notebook_new());
 
 	GtkWidget *VPaned = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
@@ -677,6 +735,10 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	stringmap_insert(Console->Globals, "add_cycle", ml_cfunction(Console, (ml_callback_t)console_add_cycle));
 	stringmap_insert(Console->Globals, "add_combo", ml_cfunction(Console, (ml_callback_t)console_add_combo));
 	stringmap_insert(Console->Globals, "include", ml_cfunctionx(Console, (ml_callbackx_t)console_include_fnx));
+
+#ifdef USE_ML_SCHEDULER
+	stringmap_insert(Console->Globals, "schedule", ml_cfunctionx(Console, (ml_callbackx_t)console_schedule));
+#endif
 
 	if (g_key_file_has_key(Console->Config, "gtk-console", "font", NULL)) {
 		Console->FontName = g_key_file_get_string(Console->Config, "gtk-console", "font", NULL);

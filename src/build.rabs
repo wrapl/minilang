@@ -132,6 +132,10 @@ if MINILANG_SCHEDULER or defined("SCHEDULER") then
 	CFLAGS := old + ["-DUSE_ML_SCHEDULER"]
 end
 
+if MINILANG_THREADSAFE or defined("THREADSAFE") then
+	CFLAGS := old + ["-DUSE_ML_THREADSAFE"]
+end
+
 if MINILANG_INST_FNS or defined("INST_FNS") then
 	CFLAGS := old + ["-DML_USE_INST_FNS"]
 	Objects:put(file("ml_bytecode_fns.o"))
