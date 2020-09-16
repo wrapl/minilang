@@ -70,7 +70,7 @@ static const char *ml_console_line_read(ml_console_t *Console) {
 typedef struct {
 	ml_state_t Base;
 	ml_console_t *Console;
-	mlc_scanner_t *Scanner;
+	ml_compiler_t *Scanner;
 } ml_console_repl_state_t;
 
 static int ml_stringbuffer_print(FILE *File, const char *String, size_t Length) {
@@ -144,7 +144,7 @@ void ml_console(ml_getter_t GlobalGet, void *Globals, const char *DefaultPrompt,
 		(ml_getter_t)ml_console_global_get,
 		Console
 	));
-	mlc_scanner_t *Scanner = ml_scanner("<console>", Console, (void *)ml_console_line_read, &MLRootContext, (ml_getter_t)ml_console_global_get, Console);
+	ml_compiler_t *Scanner = ml_compiler("<console>", Console, (void *)ml_console_line_read, (ml_getter_t)ml_console_global_get, Console);
 	ml_console_repl_state_t *State = new(ml_console_repl_state_t);
 	State->Base.run = (void *)ml_console_repl_run;
 	State->Base.Context = &MLRootContext;

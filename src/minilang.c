@@ -201,7 +201,7 @@ int main(int Argc, const char *Argv[]) {
 		}
 	}
 	if (FileName) {
-		ml_value_state_t *State = ml_value_state_new();
+		ml_value_state_t *State = ml_value_state_new(NULL);
 		ml_load_file((ml_state_t *)State, global_get, NULL, FileName, Parameters);
 		ml_inline(State, State->Value, 1, Args);
 		if (ml_is_error(State->Value)) {
@@ -215,7 +215,7 @@ int main(int Argc, const char *Argv[]) {
 		}
 #ifdef USE_ML_MODULES
 	} else if (ModuleName) {
-		ml_value_state_t *State = ml_value_state_new();
+		ml_value_state_t *State = ml_value_state_new(NULL);
 		ml_inline(State, (ml_value_t *)Import, 1, ml_string(ModuleName, -1));
 		if (ml_is_error(State->Value)) {
 			printf("%s: %s\n", ml_error_type(State->Value), ml_error_message(State->Value));

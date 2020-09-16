@@ -72,11 +72,11 @@ static void ml_module_init_run(ml_module_state_t *State, ml_value_t *Value) {
 	return ml_call(State, Value, 1, State->Args);
 }
 
-void ml_module_compile(ml_state_t *Caller, mlc_scanner_t *Scanner, ml_value_t **Slot) {
+void ml_module_compile(ml_state_t *Caller, ml_compiler_t *Scanner, ml_value_t **Slot) {
 	static const char *Parameters[] = {"export", NULL};
 	ml_mini_module_t *Module = new(ml_mini_module_t);
 	Module->Type = MLMiniModuleT;
-	Module->FileName = ml_scanner_name(Scanner);
+	Module->FileName = ml_compiler_name(Scanner);
 	Slot[0] = (ml_value_t *)Module;
 	ml_export_function_t *ExportFunction = new(ml_export_function_t);
 	ExportFunction->Type = MLExportFunctionT;

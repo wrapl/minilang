@@ -49,7 +49,7 @@ struct console_t {
 	const char *FontName;
 	GKeyFile *Config;
 	PangoFontDescription *FontDescription;
-	mlc_scanner_t *Scanner;
+	ml_compiler_t *Scanner;
 	char *Input;
 	char *History[MAX_HISTORY];
 	int HistoryIndex, HistoryEnd;
@@ -191,8 +191,8 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 	gtk_text_buffer_insert(SourceBuffer, End, "\n", -1);
 	gtk_source_buffer_set_highlight_matching_brackets(GTK_SOURCE_BUFFER(InputBuffer), TRUE);
 
-	mlc_scanner_t *Scanner = Console->Scanner;
-	ml_scanner_reset(Scanner);
+	ml_compiler_t *Scanner = Console->Scanner;
+	ml_compiler_reset(Scanner);
 	ml_command_evaluate((ml_state_t *)Console, Scanner, Console->Globals);
 }
 
@@ -597,13 +597,6 @@ static void console_schedule(ml_state_t *Caller, console_t *Console, int Count, 
 console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	gtk_init(0, 0);
 
-#ifdef USE_ML_SCHEDULER
-	QueueFill = 0;
-	QueueSize = 4;
-	QueueRead = QueueWrite = 0;
-	QueuedStates = anew(ml_queued_state_t, QueueSize);
-#endif
-
 	console_t *Console = new(console_t);
 	Console->Base.Type = ConsoleT;
 	Console->Base.run = (ml_state_fn)ml_console_repl_run;
@@ -614,8 +607,17 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	Console->Input = 0;
 	Console->HistoryIndex = 0;
 	Console->HistoryEnd = 0;
-	Console->Scanner = ml_scanner(Console->Name, Console, (void *)console_read, &MLRootContext, (ml_getter_t)console_global_get, Console);
+	Console->Scanner = ml_compiler(Console->Name, Console, (void *)console_read, (ml_getter_t)console_global_get, Console);
 	Console->Notebook = GTK_NOTEBOOK(gtk_notebook_new());
+
+#ifdef USE_ML_SCHEDULER
+	QueueFill = 0;
+	QueueSize = 4;
+	QueueRead = QueueWrite = 0;
+	QueuedStates = anew(ml_queued_state_t, QueueSize);
+	ml_context_set(Console->Base.Context, ML_SCHEDULER_INDEX, console_scheduler);
+#endif
+
 
 	GtkWidget *VPaned = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
 	gtk_paned_add1(GTK_PANED(VPaned), GTK_WIDGET(Console->Notebook));

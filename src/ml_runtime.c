@@ -131,9 +131,9 @@ void ml_value_state_run(ml_value_state_t *State, ml_value_t *Value) {
 	State->Value = ml_deref(Value);
 }
 
-ml_value_state_t *ml_value_state_new() {
+ml_value_state_t *ml_value_state_new(ml_context_t *Context) {
 	ml_value_state_t *State = new(ml_value_state_t);
-	State->Base.Context = &MLRootContext;
+	State->Base.Context = Context ?: &MLRootContext;
 	State->Value = MLNil;
 	State->Base.Type = MLStateT;
 	State->Base.run = (ml_state_fn)ml_value_state_run;
@@ -149,10 +149,10 @@ void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value) {
 	}
 }
 
-ml_value_state_t *ml_call_state_new() {
+ml_value_state_t *ml_call_state_new(ml_context_t *Context) {
 	ml_value_state_t *State = new(ml_value_state_t);
 	State->Base.Type = MLStateT;
-	State->Base.Context = &MLRootContext;
+	State->Base.Context = Context ?: &MLRootContext;
 	State->Base.run = (ml_state_fn)ml_call_state_run;
 	State->Value = MLNil;
 	return State;
