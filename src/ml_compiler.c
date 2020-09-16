@@ -1526,7 +1526,7 @@ const char *ml_compiler_clear(ml_compiler_t *Compiler) {
 	return Next;
 }
 
-static __attribute__((noreturn)) void ml_compiler_error(ml_compiler_t *Compiler, const char *Error, const char *Format, ...) {
+void ml_compiler_error(ml_compiler_t *Compiler, const char *Error, const char *Format, ...) {
 	va_list Args;
 	va_start(Args, Format);
 	ml_value_t *Value = ml_errorv(Error, Format, Args);

@@ -19,6 +19,7 @@ const char *ml_compiler_name(ml_compiler_t *Compiler);
 ml_source_t ml_compiler_source(ml_compiler_t *Compiler, ml_source_t Source);
 void ml_compiler_reset(ml_compiler_t *Compiler);
 const char *ml_compiler_clear(ml_compiler_t *Compiler);
+void ml_compiler_error(ml_compiler_t *Compiler, const char *Error, const char *Format, ...) __attribute__((noreturn)) ;
 
 void ml_function_compile(ml_state_t *Caller, ml_compiler_t *Compiler, const char **Parameters);
 
