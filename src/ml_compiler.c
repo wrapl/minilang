@@ -214,6 +214,12 @@ ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, ml_compiler_t 
 	longjmp(Function->Compiler->OnError, 1); \
 }
 
+static inline ml_value_t *ml_compiler_call(ml_compiler_t *Compiler, ml_value_t *Value, int Count, ml_value_t **Args) {
+	Compiler->Value = MLNil;
+	ml_call((ml_state_t *)Compiler, Value, 0, NULL);
+	return Compiler->Value;
+}
+
 static ml_value_t *ml_expr_evaluate(mlc_expr_t *Expr, mlc_function_t *Function) {
 	mlc_function_t SubFunction[1];
 	memset(SubFunction, 0, sizeof(SubFunction));
@@ -235,7 +241,7 @@ static ml_value_t *ml_expr_evaluate(mlc_expr_t *Expr, mlc_function_t *Function) 
 	Info->FrameSize = SubFunction->Size;
 	Info->NumParams = 0;
 	ml_closure_info_finish(Info);
-	ml_value_t *Result = ml_simple_call((ml_value_t *)Closure, 0, NULL);
+	ml_value_t *Result = ml_compiler_call(Function->Compiler, (ml_value_t *)Closure, 0, NULL);
 	Result = ml_typeof(Result)->deref(Result);
 	if (ml_is_error(Result)) ml_expr_error(Expr, Result);
 	return Result;
@@ -667,7 +673,7 @@ static mlc_compiled_t ml_def_expr_compile(mlc_function_t *Function, mlc_decl_exp
 		ml_value_t *Args[2] = {Result, MLNil};
 		for (int I = Expr->Count; --I >= 0;) {
 			Args[1] = ml_string(Decl->Ident, -1);
-			ml_value_t *Value = ml_simple_call(SymbolMethod, 2, Args);
+			ml_value_t *Value = ml_compiler_call(Function->Compiler, SymbolMethod, 2, Args);
 			if (ml_is_error(Value)) ml_expr_error(Expr, Value);
 			ml_decl_set_value(Decl, Value);
 			Decl = Decl->Next;
@@ -2937,12 +2943,6 @@ void ml_function_compile(ml_state_t *Caller, ml_compiler_t *Compiler, const char
 }
 
 ml_value_t MLEndOfInput[1] = {{MLAnyT}};
-
-static inline ml_value_t *ml_compiler_call(ml_compiler_t *Compiler, ml_value_t *Value, int Count, ml_value_t **Args) {
-	Compiler->Value = MLNil;
-	ml_call((ml_state_t *)Compiler, Value, 0, NULL);
-	return Compiler->Value;
-}
 
 void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler, stringmap_t *Vars) {
 	MLC_ON_ERROR(Compiler) {
