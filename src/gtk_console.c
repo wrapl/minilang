@@ -580,12 +580,12 @@ static void console_schedule(ml_state_t *Caller, console_t *Console, int Count, 
 	return ml_call(State, Args[0], Count - 1, Args + 1);
 }
 
-#endif
-
 static gboolean sleep_run(void *Data) {
 	console_swap_state((ml_state_t *)Data, MLNil);
 	return FALSE;
 }
+
+#endif
 
 ML_FUNCTIONX(MLSleep) {
 	ML_CHECKX_ARG_COUNT(1);
@@ -741,9 +741,8 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 
 #ifdef USE_ML_SCHEDULER
 	stringmap_insert(Console->Globals, "schedule", ml_cfunctionx(Console, (ml_callbackx_t)console_schedule));
-#endif
-
 	stringmap_insert(Console->Globals, "sleep", MLSleep);
+#endif
 
 	if (g_key_file_has_key(Console->Config, "gtk-console", "font", NULL)) {
 		Console->FontName = g_key_file_get_string(Console->Config, "gtk-console", "font", NULL);
