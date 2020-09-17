@@ -503,6 +503,12 @@ int ml_debugger_check(ml_state_t *State) {
 	return 0;
 }
 
+void ml_debugger_step_mode(ml_state_t *State, int StepOver, int StepOut) {
+	if (!State || !State->Type) return;
+	typeof(ml_debugger_step_mode) *function = ml_typed_fn_get(State->Type, ml_debugger_step_mode);
+	if (function) return function(State, StepOver, StepOut);
+}
+
 ml_source_t ml_debugger_source(ml_state_t *State) {
 	if (!State || !State->Type) return (ml_source_t){"<unknown>", 0};
 	typeof(ml_debugger_source) *function = ml_typed_fn_get(State->Type, ml_debugger_source);

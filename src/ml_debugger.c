@@ -8,22 +8,28 @@
 
 typedef struct interactive_debugger_info_t interactive_debugger_info_t;
 
-struct interactive_debugger_t {
-	ml_debugger_t Base;
-	interactive_debugger_info_t *Info;
-	ml_state_t *Frame, *Active;
-	ml_value_t *Value;
-	stringmap_t Globals[1];
-	stringmap_t Modules[1];
-};
-
 struct interactive_debugger_info_t {
-	void (*enter)(void *Data, interactive_debugger_t *Debugger, ml_source_t Source);
-	void (*exit)(ml_state_t *Caller, void *Data);
+	void (*enter)(void *Data, interactive_debugger_t *Debugger, ml_source_t Source, int Index);
+	void (*exit)(void *Data, interactive_debugger_t *Debugger, ml_state_t *Caller, int Index);
 	void (*log)(void *Data, ml_value_t *Value);
 	void *Data;
 	ml_getter_t GlobalGet;
 	void *Globals;
+};
+
+typedef struct {
+	ml_state_t *State, *Active;
+	ml_value_t *Value;
+} debug_thread_t;
+
+struct interactive_debugger_t {
+	ml_debugger_t Base;
+	interactive_debugger_info_t *Info;
+	debug_thread_t *Threads;
+	debug_thread_t *ActiveThread;
+	stringmap_t Globals[1];
+	stringmap_t Modules[1];
+	int MaxThreads, NumThreads;
 };
 
 typedef struct {
@@ -53,19 +59,34 @@ static size_t *debugger_breakpoints(interactive_debugger_t *Debugger, const char
 ml_value_t *interactive_debugger_get(interactive_debugger_t *Debugger, const char *Name) {
 	ml_value_t *Value = (ml_value_t *)stringmap_search(Debugger->Globals, Name);
 	if (Value) return Value;
-	for (ml_decl_t *Decl = ml_debugger_decls(Debugger->Active); Decl; Decl = Decl->Next) {
+	debug_thread_t *Thread = Debugger->ActiveThread;
+	if (!Thread) return NULL;
+	for (ml_decl_t *Decl = ml_debugger_decls(Thread->Active); Decl; Decl = Decl->Next) {
 		if (!strcmp(Decl->Ident, Name)) {
 			if (Decl->Value) return Decl->Value;
-			return ml_debugger_local(Debugger->Active, Decl->Index);
+			return ml_debugger_local(Thread->Active, Decl->Index);
 		}
 	}
 	return NULL;
 }
 
+ml_source_t interactive_debugger_switch(interactive_debugger_t *Debugger, int Index) {
+	if (Index < 0 || Index >= Debugger->MaxThreads) return (ml_source_t){"Invalid thread", Index};
+	debug_thread_t *Thread = Debugger->Threads + Index;
+	if (!Thread) return (ml_source_t){"Invalid thread", Index};
+	Debugger->ActiveThread = Thread;
+	return ml_debugger_source(Thread->Active);
+}
+
 void interactive_debugger_resume(interactive_debugger_t *Debugger) {
-	ml_state_t *Frame = Debugger->Frame;
-	Debugger->Frame = Debugger->Active = NULL;
-	return Frame->run(Frame, Debugger->Value);
+	debug_thread_t *Thread = Debugger->ActiveThread;
+	ml_state_t *State = Thread->State;
+	ml_value_t *Value = Thread->Value;
+	Debugger->ActiveThread = NULL;
+	Thread->Active = Thread->State = NULL;
+	Thread->Value = NULL;
+	--Debugger->NumThreads;
+	return State->run(State, Value);
 }
 
 static ml_value_t *debugger_break(interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
@@ -81,44 +102,56 @@ static ml_value_t *debugger_break(interactive_debugger_t *Debugger, int Count, m
 }
 
 static void debugger_continue(ml_state_t *Caller, interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
+	debug_thread_t *Thread = Debugger->ActiveThread;
+	if (!Thread) return;
+	int Index = Thread - Debugger->Threads;
 	Debugger->Base.StepIn = 0;
-	Debugger->Base.StepOverFrame = NULL;
-	Debugger->Base.StepOutFrame = NULL;
-	return Debugger->Info->exit(Caller, Debugger->Info->Data);
+	ml_debugger_step_mode(Thread->State, 0, 0);
+	return Debugger->Info->exit(Debugger->Info->Data, Debugger, Caller, Index);
 }
 
 static void debugger_step_in(ml_state_t *Caller, interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
+	debug_thread_t *Thread = Debugger->ActiveThread;
+	if (!Thread) return;
 	Debugger->Base.StepIn = 1;
-	Debugger->Base.StepOverFrame = NULL;
-	Debugger->Base.StepOutFrame = NULL;
-	return Debugger->Info->exit(Caller, Debugger->Info->Data);
+	int Index = Thread - Debugger->Threads;
+	ml_debugger_step_mode(Thread->State, 0, 0);
+	return Debugger->Info->exit(Debugger->Info->Data, Debugger, Caller, Index);
 }
 
 static void debugger_step_over(ml_state_t *Caller, interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
+	debug_thread_t *Thread = Debugger->ActiveThread;
+	if (!Thread) return;
 	Debugger->Base.StepIn = 0;
-	Debugger->Base.StepOverFrame = Debugger->Frame;
-	Debugger->Base.StepOutFrame = Debugger->Frame;
-	return Debugger->Info->exit(Caller, Debugger->Info->Data);
+	int Index = Thread - Debugger->Threads;
+	ml_debugger_step_mode(Thread->State, 1, 0);
+	return Debugger->Info->exit(Debugger->Info->Data, Debugger, Caller, Index);
 }
 
 static void debugger_step_out(ml_state_t *Caller, interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
+	debug_thread_t *Thread = Debugger->ActiveThread;
+	if (!Thread) return;
 	Debugger->Base.StepIn = 0;
-	Debugger->Base.StepOverFrame = NULL;
-	Debugger->Base.StepOutFrame = Debugger->Frame;
-	return Debugger->Info->exit(Caller, Debugger->Info->Data);
+	int Index = Thread - Debugger->Threads;
+	ml_debugger_step_mode(Thread->State, 0, 1);
+	return Debugger->Info->exit(Debugger->Info->Data, Debugger, Caller, Index);
 }
 
 static ml_value_t *debugger_locals(interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
+	debug_thread_t *Thread = Debugger->ActiveThread;
+	if (!Thread) return ml_error("DebugError", "No active thread");
 	ml_value_t *Locals = ml_list();
-	for (ml_decl_t *Decl = ml_debugger_decls(Debugger->Active); Decl; Decl = Decl->Next) {
+	for (ml_decl_t *Decl = ml_debugger_decls(Thread->Active); Decl; Decl = Decl->Next) {
 		ml_list_put(Locals, ml_string(Decl->Ident, -1));
 	}
 	return Locals;
 }
 
 static ml_value_t *debugger_frames(interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
+	debug_thread_t *Thread = Debugger->ActiveThread;
+	if (!Thread) return ml_error("DebugError", "No active thread");
 	ml_value_t *Backtrace = ml_list();
-	ml_state_t *Frame = Debugger->Active;
+	ml_state_t *Frame = Thread->Active;
 	while (Frame) {
 		if (ml_debugger_check(Frame)) {
 			ml_source_t Source = ml_debugger_source(Frame);
@@ -133,12 +166,14 @@ static ml_value_t *debugger_frames(interactive_debugger_t *Debugger, int Count, 
 }
 
 static ml_value_t *debugger_frame_up(interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
-	ml_state_t *Frame = Debugger->Active;
+	debug_thread_t *Thread = Debugger->ActiveThread;
+	if (!Thread) return ml_error("DebugError", "No active thread");
+	ml_state_t *Frame = Thread->Active;
 	do {
 		Frame = Frame->Caller;
 	} while (Frame && !ml_debugger_check(Frame));
 	if (Frame) {
-		Debugger->Active = Frame;
+		Thread->Active = Frame;
 		ml_source_t Source = ml_debugger_source(Frame);
 		ml_value_t *Location = ml_tuple(2);
 		ml_tuple_set(Location, 1, ml_string(Source.Name, -1));
@@ -150,9 +185,11 @@ static ml_value_t *debugger_frame_up(interactive_debugger_t *Debugger, int Count
 }
 
 static ml_value_t *debugger_frame_down(interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
+	debug_thread_t *Thread = Debugger->ActiveThread;
+	if (!Thread) return ml_error("DebugError", "No active thread");
 	ml_state_t *Frame = NULL;
-	ml_state_t *Current = Debugger->Frame;
-	ml_state_t *Active = Debugger->Active;
+	ml_state_t *Current = Thread->State;
+	ml_state_t *Active = Thread->Active;
 	while (Current != Active) {
 		if (ml_debugger_check(Current)) {
 			Frame = Current;
@@ -160,7 +197,7 @@ static ml_value_t *debugger_frame_down(interactive_debugger_t *Debugger, int Cou
 		Current = Current->Caller;
 	}
 	if (Frame) {
-		Debugger->Active = Frame;
+		Thread->Active = Frame;
 		ml_source_t Source = ml_debugger_source(Frame);
 		ml_value_t *Location = ml_tuple(2);
 		ml_tuple_set(Location, 1, ml_string(Source.Name, -1));
@@ -171,15 +208,58 @@ static ml_value_t *debugger_frame_down(interactive_debugger_t *Debugger, int Cou
 	}
 }
 
-static void debugger_run(interactive_debugger_t *Debugger, ml_state_t *Frame, ml_value_t *Value) {
-	Debugger->Frame = Frame;
-	Debugger->Value = Value;
-	Debugger->Active = Frame;
-	ml_source_t Source = ml_debugger_source(Frame);
+static ml_value_t *debugger_threads(interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
+	ml_value_t *Threads = ml_list();
+	debug_thread_t *Thread = Debugger->Threads;
+	for (int I = 0; I < Debugger->MaxThreads; ++I, ++Thread) {
+		if (Thread->State) {
+			ml_source_t Source = ml_debugger_source(Thread->Active);
+			ml_value_t *Location = ml_tuple(3);
+			ml_tuple_set(Location, 1, ml_integer(I));
+			ml_tuple_set(Location, 2, ml_string(Source.Name, -1));
+			ml_tuple_set(Location, 3, ml_integer(Source.Line));
+			ml_list_put(Threads, Location);
+		}
+	}
+	return Threads;
+}
+
+static ml_value_t *debugger_thread(interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLIntegerT);
+	int Index = ml_integer_value(Args[0]);
+	if (Index < 0 || Index >= Debugger->MaxThreads) return ml_error("IndexError", "Invalid thread number");
+	debug_thread_t *Thread = Debugger->Threads + Index;
+	if (!Thread->State) return ml_error("IndexError", "Invalid thread number");
+	Debugger->ActiveThread = Thread;
+	ml_source_t Source = ml_debugger_source(Thread->Active);
+	ml_value_t *Location = ml_tuple(2);
+	ml_tuple_set(Location, 1, ml_string(Source.Name, -1));
+	ml_tuple_set(Location, 2, ml_integer(Source.Line));
+	return Location;
+}
+
+static void debugger_run(interactive_debugger_t *Debugger, ml_state_t *State, ml_value_t *Value) {
+	if (Debugger->NumThreads == Debugger->MaxThreads) {
+		int MaxThreads = 2 * Debugger->MaxThreads;
+		debug_thread_t *Threads = anew(debug_thread_t, MaxThreads);
+		memcpy(Threads, Debugger->Threads, Debugger->MaxThreads * sizeof(debug_thread_t));
+		int Index =  Debugger->ActiveThread - Debugger->Threads;
+		Debugger->Threads = Threads;
+		Debugger->MaxThreads = MaxThreads;
+		Debugger->ActiveThread = Threads + Index;
+	}
+	++Debugger->NumThreads;
+	debug_thread_t *Thread = Debugger->Threads;
+	while (Thread->State) ++Thread;
+	Thread->State = Thread->Active = State;
+	Thread->Value = Value;
+	Debugger->ActiveThread = Thread;
+	ml_source_t Source = ml_debugger_source(State);
 	if (ml_is_error(Value)) {
 		Debugger->Info->log(Debugger->Info->Data, Value);
 	}
-	Debugger->Info->enter(Debugger->Info->Data, Debugger, Source);
+	Debugger->Info->enter(Debugger->Info->Data, Debugger, Source, Thread - Debugger->Threads);
 }
 
 static void debugger_state_load(ml_state_t *State, ml_value_t *Function) {
@@ -197,6 +277,9 @@ static void interactive_debugger_fnx(ml_state_t *Caller, interactive_debugger_in
 	Debugger->Base.StepIn = 1;
 	Debugger->Base.BreakOnError = 1;
 	Debugger->Info = Info;
+	Debugger->MaxThreads = 16;
+	Debugger->NumThreads = 0;
+	Debugger->Threads = anew(debug_thread_t, 16);
 	stringmap_insert(Debugger->Globals, "break", ml_cfunction(Debugger, (void *)debugger_break));
 	stringmap_insert(Debugger->Globals, "continue", ml_cfunctionx(Debugger, (void *)debugger_continue));
 	stringmap_insert(Debugger->Globals, "step_in", ml_cfunctionx(Debugger, (void *)debugger_step_in));
@@ -206,6 +289,8 @@ static void interactive_debugger_fnx(ml_state_t *Caller, interactive_debugger_in
 	stringmap_insert(Debugger->Globals, "frames", ml_cfunction(Debugger, (void *)debugger_frames));
 	stringmap_insert(Debugger->Globals, "frame_up", ml_cfunction(Debugger, (void *)debugger_frame_up));
 	stringmap_insert(Debugger->Globals, "frame_down", ml_cfunction(Debugger, (void *)debugger_frame_down));
+	stringmap_insert(Debugger->Globals, "threads", ml_cfunction(Debugger, (void *)debugger_threads));
+	stringmap_insert(Debugger->Globals, "thread", ml_cfunction(Debugger, (void *)debugger_thread));
 
 	ml_state_t *State = ml_state_new(Caller);
 	ml_context_set(State->Context, ML_DEBUGGER_INDEX, Debugger);
@@ -220,17 +305,17 @@ static void interactive_debugger_fnx(ml_state_t *Caller, interactive_debugger_in
 }
 
 ml_value_t *interactive_debugger(
-	void (*Enter)(void *Data, interactive_debugger_t *Debugger, ml_source_t Source),
-	void (*Exit)(ml_state_t *Caller, void *Data),
-	void (*Log)(void *Data, ml_value_t *Value),
+	void (*enter)(void *Data, interactive_debugger_t *Debugger, ml_source_t Source, int Index),
+	void (*exit)(void *Data, interactive_debugger_t *Debugger, ml_state_t *Caller, int Index),
+	void (*log)(void *Data, ml_value_t *Value),
 	void *Data,
 	ml_getter_t GlobalGet,
 	void *Globals
 ) {
 	interactive_debugger_info_t *Info = new(interactive_debugger_info_t);
-	Info->enter = Enter;
-	Info->exit = Exit;
-	Info->log = Log;
+	Info->enter = enter;
+	Info->exit = exit;
+	Info->log = log;
 	Info->Data = Data;
 	Info->GlobalGet = GlobalGet;
 	Info->Globals = Globals;

@@ -135,11 +135,9 @@ struct ml_decl_t {
 };
 
 struct ml_debugger_t {
+	size_t Revision;
 	void (*run)(ml_debugger_t *Debugger, ml_state_t *Frame, ml_value_t *Value);
 	size_t *(*breakpoints)(ml_debugger_t *Debugger, const char *Source, int LineNo);
-	ml_state_t *StepOverFrame;
-	ml_state_t *StepOutFrame;
-	size_t Revision;
 	int StepIn:1;
 	int BreakOnError:1;
 };
@@ -148,6 +146,7 @@ struct ml_debugger_t {
 #define ML_SCHEDULER_INDEX 3
 
 int ml_debugger_check(ml_state_t *State);
+void ml_debugger_step_mode(ml_state_t *State, int StepOver, int StepOut);
 ml_source_t ml_debugger_source(ml_state_t *State);
 ml_decl_t *ml_debugger_decls(ml_state_t *State);
 ml_value_t *ml_debugger_local(ml_state_t *State, int Index);

@@ -142,21 +142,6 @@ struct ml_inst_t {
 	ml_param_t Params[];
 };
 
-struct ml_frame_t {
-	ml_state_t Base;
-	const char *Source;
-	ml_inst_t *Inst;
-	ml_value_t **Top;
-	ml_inst_t *OnError;
-	ml_value_t **UpValues;
-	unsigned int Reuse:1;
-	unsigned int Reentry:1;
-#ifdef USE_ML_SCHEDULER
-	ml_schedule_t Schedule;
-#endif
-	ml_value_t *Stack[];
-};
-
 #define ML_FRAME_REUSE (1 << 0)
 #define ML_FRAME_REENTRY (1 << 1)
 

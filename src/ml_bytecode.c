@@ -48,25 +48,6 @@ ML_TYPE(MLVariableT, (), "variable",
 
 typedef struct DEBUG_STRUCT(frame) DEBUG_STRUCT(frame);
 
-struct DEBUG_STRUCT(frame) {
-	ml_state_t Base;
-	const char *Source;
-	ml_inst_t *Inst;
-	ml_value_t **Top;
-	ml_inst_t *OnError;
-	ml_value_t **UpValues;
-	unsigned int Reuse:1;
-	unsigned int Reentry:1;
-#ifdef USE_ML_SCHEDULER
-	ml_schedule_t Schedule;
-#endif
-	ml_debugger_t *Debugger;
-	size_t *Breakpoints;
-	ml_decl_t *Decls;
-	size_t Revision;
-	ml_value_t *Stack[];
-};
-
 #else
 
 #define DEBUG_STRUCT(X) ml_ ## X ## _t
@@ -75,6 +56,29 @@ struct DEBUG_STRUCT(frame) {
 #define DEBUG_VAR(X) ML ## X
 
 #endif
+
+struct DEBUG_STRUCT(frame) {
+	ml_state_t Base;
+	const char *Source;
+	ml_inst_t *Inst;
+	ml_value_t **Top;
+	ml_inst_t *OnError;
+	ml_value_t **UpValues;
+#ifdef USE_ML_SCHEDULER
+	ml_schedule_t Schedule;
+#endif
+	unsigned int Reuse:1;
+	unsigned int Reentry:1;
+#ifdef DEBUG_VERSION
+	unsigned int StepOver:1;
+	unsigned int StepOut:1;
+	ml_debugger_t *Debugger;
+	size_t *Breakpoints;
+	ml_decl_t *Decls;
+	size_t Revision;
+#endif
+	ml_value_t *Stack[];
+};
 
 static void DEBUG_FUNC(continuation_call)(ml_state_t *Caller, DEBUG_STRUCT(frame) *Frame, int Count, ml_value_t **Args) {
 	Frame->Reuse = 0;
@@ -87,7 +91,19 @@ ML_TYPE(DEBUG_TYPE(Continuation), (MLStateT), "continuation",
 );
 
 static int ML_TYPED_FN(ml_debugger_check, DEBUG_TYPE(Continuation), DEBUG_STRUCT(frame) *Frame) {
+#ifdef DEBUG_VERSION
 	return 1;
+#else
+	return 0;
+#endif
+}
+
+static void ML_TYPED_FN(ml_debugger_step_mode, DEBUG_TYPE(Continuation), DEBUG_STRUCT(frame) *Frame, int StepOver, int StepOut) {
+#ifdef DEBUG_VERSION
+	Frame->StepOver = StepOver;
+	Frame->StepOut = StepOut;
+#else
+#endif
 }
 
 static ml_source_t ML_TYPED_FN(ml_debugger_source, DEBUG_TYPE(Continuation), DEBUG_STRUCT(frame) *Frame) {
@@ -182,6 +198,8 @@ ML_TYPE(DEBUG_TYPE(Suspension), (MLFunctionT), "suspension",
 #ifndef DEBUG_VERSION
 void *MLCachedFrame = NULL;
 #endif
+
+extern const char *MLInsts[];
 
 static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
 	if (!Result) {
@@ -702,8 +720,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			int LineNo = Inst->LineNo;
 			if (Breakpoints[LineNo / SIZE_BITS] & (1 << LineNo % SIZE_BITS)) goto DO_BREAKPOINT;
 			if (Debugger->StepIn) goto DO_BREAKPOINT;
-			if (Debugger->StepOverFrame == (ml_state_t *)Frame) goto DO_BREAKPOINT;
-			if (Inst->Opcode == MLI_RETURN && Debugger->StepOutFrame == (ml_state_t *)Frame) goto DO_BREAKPOINT;
+			if (Frame->StepOver) goto DO_BREAKPOINT;
+			if (Inst->Opcode == MLI_RETURN && Frame->StepOut) goto DO_BREAKPOINT;
 		}
 		CHECK_COUNTER
 		goto *Labels[Inst->Opcode];
@@ -718,6 +736,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #endif
 #ifdef USE_ML_SCHEDULER
 	DO_SWAP: {
+		printf("Swapping before %s\n", MLInsts[Inst->Opcode]);
 		Frame->Inst = Inst;
 		Frame->Top = Top;
 		return Frame->Schedule.swap((ml_state_t *)Frame, Result);

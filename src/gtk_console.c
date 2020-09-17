@@ -24,13 +24,6 @@
 
 #define MAX_HISTORY 128
 
-typedef struct console_debugger_t console_debugger_t;
-
-struct console_debugger_t {
-	console_debugger_t *Prev;
-	interactive_debugger_t *Debugger;
-};
-
 struct console_t {
 	ml_state_t Base;
 	const char *Name;
@@ -44,7 +37,7 @@ struct console_t {
 	GtkSourceBuffer *SourceBuffer;
 	ml_getter_t ParentGetter;
 	void *ParentGlobals;
-	console_debugger_t *Debugger;
+	interactive_debugger_t *Debugger;
 	const char *ConfigPath;
 	const char *FontName;
 	GKeyFile *Config;
@@ -72,7 +65,7 @@ static char *stpcpy(char *Dest, const char *Source) {
 
 static ml_value_t *console_global_get(console_t *Console, const char *Name) {
 	if (Console->Debugger) {
-		ml_value_t *Value = interactive_debugger_get(Console->Debugger->Debugger, Name);
+		ml_value_t *Value = interactive_debugger_get(Console->Debugger, Name);
 		if (Value) return Value;
 	}
 	ml_value_t *Value = stringmap_search(Console->Globals, Name);
@@ -196,8 +189,9 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 	ml_command_evaluate((ml_state_t *)Console, Scanner, Console->Globals);
 }
 
-static void console_debug_enter(console_t *Console, interactive_debugger_t *Debugger, ml_source_t Source) {
-	console_printf(Console, "Debug break: %s:%d\n", Source.Name, Source.Line);
+static void console_debug_enter(console_t *Console, interactive_debugger_t *Debugger, ml_source_t Source, int Index) {
+	Console->Debugger = Debugger;
+	console_printf(Console, "Debug break [%d]: %s:%d\n", Index, Source.Name, Source.Line);
 	GtkWidget *SourceView;
 	if (Source.Name == Console->Name) {
 		SourceView = Console->SourceView;
@@ -242,16 +236,9 @@ static void console_debug_enter(console_t *Console, interactive_debugger_t *Debu
 	//gtk_text_buffer_apply_tag(Buffer, PausedTag, LineBeg, LineEnd);
 	gtk_text_buffer_place_cursor(Buffer, LineBeg);
 	gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(SourceView), LineBeg, 0.0, FALSE, 0.0, 0.0);
-
-	console_debugger_t *ConsoleDebugger = new(console_debugger_t);
-	ConsoleDebugger->Prev = Console->Debugger;
-	ConsoleDebugger->Debugger = Debugger;
-	Console->Debugger = ConsoleDebugger;
 }
 
-static void console_debug_exit(ml_state_t *Caller, console_t *Console) {
-	interactive_debugger_t *Debugger = Console->Debugger->Debugger;
-	Console->Debugger = Console->Debugger->Prev;
+static void console_debug_exit(console_t *Console, interactive_debugger_t *Debugger, ml_state_t *Caller, int Index) {
 	return interactive_debugger_resume(Debugger);
 }
 
@@ -553,6 +540,7 @@ static int QueueSize, QueueFill, QueueWrite, QueueRead;
 static unsigned int Counter = 1000;
 
 static gboolean queue_run(void *Data) {
+	if (!QueueFill) return FALSE;
 	ml_queued_state_t QueuedState = QueuedStates[QueueRead];
 	QueuedStates[QueueRead].State = NULL;
 	QueuedStates[QueueRead].Value = NULL;
@@ -586,13 +574,25 @@ static ml_schedule_t console_scheduler(ml_context_t *Context) {
 
 static void console_schedule(ml_state_t *Caller, console_t *Console, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(Count - 1, MLFunctionT);
+	ML_CHECKX_ARG_TYPE(0, MLFunctionT);
 	ml_state_t *State = ml_state_new(Caller);
 	ml_context_set(State->Context, ML_SCHEDULER_INDEX, console_scheduler);
-	return ml_call(State, Args[Count - 1], Count - 1, Args);
+	return ml_call(State, Args[0], Count - 1, Args + 1);
 }
 
 #endif
+
+static gboolean sleep_run(void *Data) {
+	console_swap_state((ml_state_t *)Data, MLNil);
+	return FALSE;
+}
+
+ML_FUNCTIONX(MLSleep) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLNumberT);
+	guint Interval = ml_real_value(Args[0]) * 1000;
+	g_timeout_add(Interval, sleep_run, Caller);
+}
 
 console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	gtk_init(0, 0);
@@ -743,6 +743,8 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	stringmap_insert(Console->Globals, "schedule", ml_cfunctionx(Console, (ml_callbackx_t)console_schedule));
 #endif
 
+	stringmap_insert(Console->Globals, "sleep", MLSleep);
+
 	if (g_key_file_has_key(Console->Config, "gtk-console", "font", NULL)) {
 		Console->FontName = g_key_file_get_string(Console->Config, "gtk-console", "font", NULL);
 	} else {
@@ -799,7 +801,6 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	stringmap_insert(Console->Globals, "Console", ml_gir_instance_get(Console->Window));
 	stringmap_insert(Console->Globals, "InputView", ml_gir_instance_get(Console->InputView));
 	stringmap_insert(Console->Globals, "LogView", ml_gir_instance_get(Console->LogView));
-
 	stringmap_insert(Console->Globals, "debug", interactive_debugger(
 		(void *)console_debug_enter,
 		(void *)console_debug_exit,
