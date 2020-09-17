@@ -199,8 +199,6 @@ ML_TYPE(DEBUG_TYPE(Suspension), (MLFunctionT), "suspension",
 void *MLCachedFrame = NULL;
 #endif
 
-extern const char *MLInsts[];
-
 static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
 	if (!Result) {
 		ml_value_t *Error = ml_error("RuntimeError", "NULL value passed to continuation");
@@ -736,7 +734,6 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #endif
 #ifdef USE_ML_SCHEDULER
 	DO_SWAP: {
-		printf("Swapping before %s\n", MLInsts[Inst->Opcode]);
 		Frame->Inst = Inst;
 		Frame->Top = Top;
 		return Frame->Schedule.swap((ml_state_t *)Frame, Result);
