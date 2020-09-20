@@ -108,8 +108,12 @@ typedef enum ml_token_t {
 	MLT_METHOD
 } ml_token_t;
 
+typedef struct ml_command_t ml_command_t;
+
 struct ml_compiler_t {
 	ml_state_t Base;
+	ml_command_t *Commands, **CommandSlot;
+	ml_context_t *Context;
 	const char *Next;
 	void *Data;
 	const char *(*Read)(void *);
@@ -143,6 +147,52 @@ static inline ml_inst_t *ml_inst_new(int N, ml_source_t Source, ml_opcode_t Opco
 
 #define MLCF_POTENTIAL_ASSIGNMENT 1
 
+extern ml_value_t *IndexMethod;
+extern ml_value_t *SymbolMethod;
+
+struct ml_command_t {
+	void (*start)(ml_command_t *, ml_compiler_t *);
+	ml_value_t *(*finish)(ml_command_t *, ml_value_t *);
+	ml_command_t *Next;
+	ml_value_t *Closure;
+	ml_source_t Source;
+};
+
+static void ml_command_queue(ml_compiler_t *Compiler, ml_command_t *Command) {
+	Compiler->CommandSlot[0] = Command;
+	Compiler->CommandSlot = &Command->Next;
+}
+
+static void ml_command_state_run(ml_compiler_t *Compiler, ml_value_t *Value) {
+	ml_state_t *Caller = Compiler->Base.Caller;
+	ml_command_t *Command = Compiler->Commands;
+	if (ml_is_error(Value)) {
+		ml_error_trace_add(Value, Command->Source);
+		ML_RETURN(Value);
+	}
+	ml_value_t *Error = Command->finish(Command, Value);
+	if (Error) ML_RETURN(Error);
+	Command = Compiler->Commands = Command->Next;
+	if (Command) {
+		Command->start(Command, Compiler);
+	} else {
+		Compiler->CommandSlot = &Compiler->Commands;
+		ML_RETURN(Value);
+	}
+}
+
+static void ml_command_default_start(ml_command_t *Command, ml_compiler_t *Compiler) {
+	ml_call((ml_state_t *)Compiler, Command->Closure, 0, NULL);
+}
+
+static ml_value_t *ml_command_default_finish(ml_command_t *Command, ml_value_t *Value) {
+	return NULL;
+}
+
+static void ml_command_closure_start(ml_command_t *Command, ml_compiler_t *Compiler) {
+	ml_command_state_run(Compiler, Command->Closure);
+}
+
 struct mlc_function_t {
 	ml_compiler_t *Compiler;
 	ml_inst_t *ReturnInst;
@@ -169,6 +219,16 @@ static inline void mlc_connect(ml_inst_t *Exits, ml_inst_t *Start) {
 		Exit->Params[0].Inst = Start;
 		Exit = NextExit;
 	}
+}
+
+typedef struct {
+	ml_command_t Base;
+	ml_closure_info_t *Info;
+} ml_command_closure_info_t;
+
+static void ml_command_closure_info_start(ml_command_closure_info_t *Command, ml_compiler_t *Compiler) {
+	ml_closure_info_finish(Command->Info);
+	Compiler->Base.run((ml_state_t *)Compiler, MLNil);
 }
 
 ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, ml_compiler_t *Compiler) {
@@ -201,10 +261,15 @@ ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, ml_compiler_t 
 	Info->Source = Expr->Source.Name;
 	Info->FrameSize = Function->Size;
 	Info->NumParams = NumParams;
-	ml_closure_info_finish(Info);
 	ml_closure_t *Closure = new(ml_closure_t);
 	Closure->Info = Info;
 	Closure->Type = MLClosureT;
+	ml_command_closure_info_t *Command = new(ml_command_closure_info_t);
+	Command->Base.start = (void *)ml_command_closure_info_start;
+	Command->Base.finish = (void *)ml_command_default_finish;
+	Command->Base.Source = Expr->Source;
+	Command->Info = Info;
+	ml_command_queue(Function->Compiler, (ml_command_t *)Command);
 	return (ml_value_t *)Closure;
 }
 
@@ -214,13 +279,7 @@ ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, ml_compiler_t 
 	longjmp(Function->Compiler->OnError, 1); \
 }
 
-static inline ml_value_t *ml_compiler_call(ml_compiler_t *Compiler, ml_value_t *Value, int Count, ml_value_t **Args) {
-	Compiler->Value = MLNil;
-	ml_call((ml_state_t *)Compiler, Value, 0, NULL);
-	return Compiler->Value;
-}
-
-static ml_value_t *ml_expr_evaluate(mlc_expr_t *Expr, mlc_function_t *Function) {
+static ml_value_t *ml_expr_compile(mlc_expr_t *Expr, mlc_function_t *Function) {
 	mlc_function_t SubFunction[1];
 	memset(SubFunction, 0, sizeof(SubFunction));
 	SubFunction->Compiler = Function->Compiler;
@@ -232,19 +291,22 @@ static ml_value_t *ml_expr_evaluate(mlc_expr_t *Expr, mlc_function_t *Function) 
 	if (SubFunction->UpValues) {
 		ml_expr_error(Expr, ml_error("EvalError", "Use of non-constant value in constant expression"));
 	}
-	ml_closure_t *Closure = new(ml_closure_t);
-	ml_closure_info_t *Info = Closure->Info = new(ml_closure_info_t);
-	Closure->Type = MLClosureT;
+	ml_closure_info_t *Info = new(ml_closure_info_t);
 	Info->Entry = Compiled.Start;
 	Info->Return = SubFunction->ReturnInst;
 	Info->Source = Expr->Source.Name;
 	Info->FrameSize = SubFunction->Size;
 	Info->NumParams = 0;
-	ml_closure_info_finish(Info);
-	ml_value_t *Result = ml_compiler_call(Function->Compiler, (ml_value_t *)Closure, 0, NULL);
-	Result = ml_typeof(Result)->deref(Result);
-	if (ml_is_error(Result)) ml_expr_error(Expr, Result);
-	return Result;
+	ml_closure_t *Closure = new(ml_closure_t);
+	Closure->Type = MLClosureT;
+	Closure->Info = Info;
+	ml_command_closure_info_t *Command = new(ml_command_closure_info_t);
+	Command->Base.start = (void *)ml_command_closure_info_start;
+	Command->Base.finish = (void *)ml_command_default_finish;
+	Command->Base.Source = Expr->Source;
+	Command->Info = Info;
+	ml_command_queue(Function->Compiler, (ml_command_t *)Command);
+	return (ml_value_t *)Closure;
 }
 
 typedef struct mlc_if_expr_t mlc_if_expr_t;
@@ -657,48 +719,110 @@ static mlc_compiled_t ml_letx_expr_compile(mlc_function_t *Function, mlc_decl_ex
 	return Compiled;
 }
 
-static inline void ml_decl_set_value(ml_decl_t *Decl, ml_value_t *Value) {
-	if (Decl->Value) ml_uninitialized_set(Decl->Value, Value);
-	Decl->Value = Value;
+typedef struct {
+	ml_command_t Base;
+	ml_decl_t *Decl;
+	int NumImports;
+} ml_command_def_decl_t;
+
+typedef struct {
+	ml_command_t Base;
+	ml_decl_t *Decl;
+	ml_value_t *Args[2];
+} ml_command_import_decl_t;
+
+static ml_value_t *ml_command_def_decl_finish(ml_command_def_decl_t *Command, ml_value_t *Value) {
+	ml_decl_t *Decl = Command->Decl;
+	if (Decl) {
+		ml_uninitialized_set(Decl->Value, Value);
+		Decl->Value = Value;
+	}
+	ml_command_import_decl_t *Import = (ml_command_import_decl_t *)Command->Base.Next;
+	for (int I = 0; I < Command->NumImports; ++I) {
+		Import->Args[0] = Value;
+		Import = (ml_command_import_decl_t *)Import->Base.Next;
+	}
+	return NULL;
 }
 
-extern ml_value_t *IndexMethod;
-extern ml_value_t *SymbolMethod;
+static void ml_command_import_decl_start(ml_command_import_decl_t *Command, ml_compiler_t *Compiler) {
+	ml_call((ml_state_t *)Compiler, SymbolMethod, 2, Command->Args);
+}
+
+static ml_value_t *ml_command_import_decl_finish(ml_command_import_decl_t *Command, ml_value_t *Value) {
+	ml_decl_t *Decl = Command->Decl;
+	ml_uninitialized_set(Decl->Value, Value);
+	Decl->Value = Value;
+	return NULL;
+}
 
 static mlc_compiled_t ml_def_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
-	ml_value_t *Result = ml_expr_evaluate(Expr->Child, Function);
-	if (ml_is_error(Result)) ml_expr_error(Expr, Result);
 	ml_decl_t *Decl = Expr->Decl;
+	ml_command_def_decl_t *Command = new(ml_command_def_decl_t);
+	Command->Base.Closure = ml_expr_compile(Expr->Child, Function);
+	Command->Base.start = (void *)ml_command_default_start;
+	Command->Base.finish = (void *)ml_command_def_decl_finish;
+	Command->Base.Source = Expr->Source;
+	ml_command_queue(Function->Compiler, (ml_command_t *)Command);
 	if (Expr->Count) {
-		ml_value_t *Args[2] = {Result, MLNil};
-		for (int I = Expr->Count; --I >= 0;) {
-			Args[1] = ml_string(Decl->Ident, -1);
-			ml_value_t *Value = ml_compiler_call(Function->Compiler, SymbolMethod, 2, Args);
-			if (ml_is_error(Value)) ml_expr_error(Expr, Value);
-			ml_decl_set_value(Decl, Value);
-			Decl = Decl->Next;
+		for (int I = Expr->Count; --I >= 0; Decl = Decl->Next) {
+			++Command->NumImports;
+			ml_command_import_decl_t *ImportCommand = new(ml_command_import_decl_t);
+			ImportCommand->Base.start = (void *)ml_command_import_decl_start;
+			ImportCommand->Base.finish = (void *)ml_command_import_decl_finish;
+			ImportCommand->Base.Source = Expr->Source;
+			ImportCommand->Decl = Decl;
+			if (!Decl->Value) Decl->Value = ml_uninitialized(Decl->Ident);
+			ImportCommand->Args[1] = ml_cstring(Decl->Ident);
+			ml_command_queue(Function->Compiler, (ml_command_t *)ImportCommand);
 		}
 	} else {
-		ml_decl_set_value(Decl, Result);
+		Command->Decl = Decl;
+		if (!Decl->Value) Decl->Value = ml_uninitialized(Decl->Ident);
 	}
 	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
-	ValueInst->Params[1].Value = Result;
+	ValueInst->Params[1].Value = Decl->Value;
+	ml_uninitialized_use(Decl->Value, &ValueInst->Params[1].Value);
 	return (mlc_compiled_t){ValueInst, ValueInst};
 }
 
+typedef struct {
+	ml_command_t Base;
+	ml_decl_t *Decl;
+	int Count;
+} ml_command_defx_decl_t;
+
+static ml_value_t *ml_command_defx_decl_finish(ml_command_defx_decl_t *Command, ml_value_t *Value) {
+	ml_decl_t *Decl = Command->Decl;
+	for (int I = Command->Count; --I >= 0; Decl = Decl->Next) {
+		ml_value_t *Unpacked = ml_unpack(Value, I);
+		if (!Unpacked) {
+			ml_value_t *Error = ml_error("ValueError", "Not enough values to unpack (%d < %d)", I, Command->Count);
+			ml_error_trace_add(Error, Command->Base.Source);
+			return Error;
+		}
+		ml_uninitialized_set(Decl->Value, Unpacked);
+		Decl->Value = Unpacked;
+	}
+	return NULL;
+}
+
 static mlc_compiled_t ml_defx_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
-	ml_value_t *Result = ml_expr_evaluate(Expr->Child, Function);
-	if (ml_is_error(Result)) ml_expr_error(Expr, Result);
+	ml_command_defx_decl_t *Command = new(ml_command_defx_decl_t);
+	Command->Base.Closure = ml_expr_compile(Expr->Child, Function);
+	Command->Base.start = (void *)ml_command_default_start;
+	Command->Base.finish = (void *)ml_command_defx_decl_finish;
+	Command->Base.Source = Expr->Source;
+	Command->Decl = Expr->Decl;
+	Command->Count = Expr->Count;
+	ml_command_queue(Function->Compiler, (ml_command_t *)Command);
 	ml_decl_t *Decl = Expr->Decl;
-	for (int I = Expr->Count; --I >= 0;) {
-		ml_value_t *Value = ml_unpack(Result, I);
-		if (!Value) ml_expr_error(Expr, ml_error("ValueError", "Not enough values to unpack (%d < %d)", I, Expr->Count));
-		if (ml_is_error(Value)) ml_expr_error(Expr, Value);
-		ml_decl_set_value(Decl, Value);
-		Decl = Decl->Next;
+	for (int I = Expr->Count; --I >= 0; Decl = Decl->Next) {
+		if (!Decl->Value) Decl->Value = ml_uninitialized(Decl->Ident);
 	}
 	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
-	ValueInst->Params[1].Value = Result;
+	ValueInst->Params[1].Value = Decl->Value;
+	ml_uninitialized_use(Decl->Value, &ValueInst->Params[1].Value);
 	return (mlc_compiled_t){ValueInst, ValueInst};
 }
 
@@ -1189,27 +1313,38 @@ static mlc_compiled_t ml_const_call_expr_compile(mlc_function_t *Function, mlc_p
 	}
 }
 
-static void ml_import_state_run(ml_value_state_t *State, ml_value_t *Value) {
-	State->Value = Value;
+typedef struct {
+	ml_command_t Base;
+	ml_value_t **ModuleParam;
+	ml_inst_t *Inst;
+	ml_value_t *Args[2];
+} ml_command_import_expr_t;
+
+static void ml_command_import_expr_start(ml_command_import_expr_t *Command, ml_compiler_t *Compiler) {
+	Command->Args[0] = Command->ModuleParam[0];
+	ml_call((ml_state_t *)Compiler, SymbolMethod, 2, Command->Args);
+}
+
+static ml_value_t *ml_command_import_expr_finish(ml_command_import_expr_t *Command, ml_value_t *Value) {
+	Command->Inst->Params[1].Value = Value;
+	if (ml_typeof(Value) == MLUninitializedT) ml_uninitialized_use(Value, &Command->Inst->Params[1].Value);
+	return NULL;
 }
 
 static mlc_compiled_t ml_import_expr_compile(mlc_function_t *Function, mlc_parent_value_expr_t *Expr) {
 	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
 	if ((Compiled.Start == Compiled.Exits) && (Compiled.Start->Opcode == MLI_LOAD)) {
 		ml_inst_t *ValueInst = Compiled.Start;
-		ml_value_t *Args[2] = {ValueInst->Params[1].Value, Expr->Value};
-		ml_value_state_t *State = new(ml_value_state_t);
-		State->Base.Context = Function->Compiler->Base.Context;
-		State->Base.run = (void *)ml_import_state_run;
-		ml_call((ml_state_t *)State, SymbolMethod, 2, Args);
-		ml_value_t *Value = State->Value ?: ml_error("NotSupported", "Suspending import functions not supported yet");
-		if (!ml_is_error(Value)) {
-			if (ml_typeof(Value) == MLUninitializedT) {
-				ml_uninitialized_use(Value, &ValueInst->Params[1].Value);
-			}
-			ValueInst->Params[1].Value = Value;
-			return Compiled;
-		}
+		ml_command_import_expr_t *Command = new(ml_command_import_expr_t);
+		Command->Base.start = (void *)ml_command_import_expr_start;
+		Command->Base.finish = (void *)ml_command_import_expr_finish;
+		Command->Base.Source = Expr->Source;
+		Command->ModuleParam = &ValueInst->Params[1].Value;
+		Command->Args[1] = Expr->Value;
+		ml_inst_t *ImportInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
+		Command->Inst = ImportInst;
+		ml_command_queue(Function->Compiler, (ml_command_t *)Command);
+		return (mlc_compiled_t){ImportInst, ImportInst};
 	}
 	ml_inst_t *PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
 	mlc_connect(Compiled.Exits, PushInst);
@@ -1339,7 +1474,12 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	Info->Return = SubFunction->ReturnInst;
 	Info->FrameSize = SubFunction->Size;
 	Info->NumParams = NumParams;
-	ml_closure_info_finish(Info);
+	ml_command_closure_info_t *Command = new(ml_command_closure_info_t);
+	Command->Base.start = (void *)ml_command_closure_info_start;
+	Command->Base.finish = (void *)ml_command_default_finish;
+	Command->Base.Source = Expr->Source;
+	Command->Info = Info;
+	ml_command_queue(Function->Compiler, (ml_command_t *)Command);
 	if (SubFunction->UpValues) {
 		int NumUpValues = 0;
 		for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) ++NumUpValues;
@@ -1428,10 +1568,27 @@ static mlc_compiled_t ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_
 	return ml_ident_expr_finish(Expr, Value);
 }
 
+typedef struct {
+	ml_command_t Base;
+	ml_value_t **Slot;
+} ml_command_inline_t;
+
+static ml_value_t *ml_command_inline_finish(ml_command_inline_t *Command, ml_value_t *Value) {
+	ml_uninitialized_set(Command->Slot[0], Value);
+	Command->Slot[0] = Value;
+	return NULL;
+}
+
 static mlc_compiled_t ml_inline_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
-	ml_value_t *Value = ml_expr_evaluate(Expr->Child, Function);
+	ml_command_inline_t *Command = new(ml_command_inline_t);
+	Command->Base.Closure = ml_expr_compile(Expr->Child, Function);
+	Command->Base.start = (void *)ml_command_default_start;
+	Command->Base.finish = (void *)ml_command_inline_finish;
+	Command->Base.Source = Expr->Source;
 	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
-	ValueInst->Params[1].Value = Value;
+	ValueInst->Params[1].Value = ml_uninitialized("inline");
+	Command->Slot = &ValueInst->Params[1].Value;
+	ml_command_queue(Function->Compiler, (ml_command_t *)Command);
 	return (mlc_compiled_t){ValueInst, ValueInst};
 }
 
@@ -1493,13 +1650,10 @@ const char *MLTokens[] = {
 	"<method>" // MLT_METHOD
 };
 
-static void ml_compiler_state_run(ml_compiler_t *Compiler, ml_value_t *Value) {
-	Compiler->Value = Value;
-}
-
 ml_compiler_t *ml_compiler(const char *SourceName, void *Data, ml_reader_t Read, ml_getter_t GlobalGet, void *Globals) {
 	ml_compiler_t *Compiler = new(ml_compiler_t);
-	Compiler->Base.run = (ml_state_fn)ml_compiler_state_run;
+	Compiler->Base.run = (ml_state_fn)ml_command_state_run;
+	Compiler->CommandSlot = &Compiler->Commands;
 	Compiler->GlobalGet = GlobalGet;
 	Compiler->Globals = Globals;
 	Compiler->Token = MLT_NONE;
@@ -1524,6 +1678,8 @@ ml_source_t ml_compiler_source(ml_compiler_t *Compiler, ml_source_t Source) {
 void ml_compiler_reset(ml_compiler_t *Compiler) {
 	Compiler->Token = MLT_NONE;
 	Compiler->Next = "";
+	Compiler->Commands = NULL;
+	Compiler->CommandSlot = &Compiler->Commands;
 }
 
 const char *ml_compiler_clear(ml_compiler_t *Compiler) {
@@ -2935,24 +3091,78 @@ end:
 
 void ml_function_compile(ml_state_t *Caller, ml_compiler_t *Compiler, const char **Parameters) {
 	MLC_ON_ERROR(Compiler) ML_RETURN(Compiler->Error);
+	Compiler->Context = Caller->Context;
+	Compiler->Base.Caller = Caller;
 	Compiler->Base.Context = Caller->Context;
 	mlc_expr_t *Block = ml_accept_block(Compiler, 0);
 	ml_accept_eoi(Compiler);
-	ml_value_t *Function = ml_compile(Block, Parameters, Compiler);
-	ML_RETURN(Function);
+	ml_command_t *Command = new(ml_command_t);
+	Command->Closure = ml_compile(Block, Parameters, Compiler);
+	Command->start = (void *)ml_command_closure_start;
+	Command->finish = (void *)ml_command_default_finish;
+	Command->Source = Block->Source;
+	ml_command_queue(Compiler, Command);
+	Compiler->Commands->start(Compiler->Commands, Compiler);
 }
 
 ml_value_t MLEndOfInput[1] = {{MLAnyT}};
+
+typedef struct {
+	ml_command_t Base;
+	ml_variable_t *Var;
+} ml_command_var_t;
+
+static ml_value_t *ml_command_var_finish(ml_command_var_t *Command, ml_value_t *Value) {
+	Command->Var->Value = Value;
+	return NULL;
+}
+
+typedef struct {
+	ml_command_t Base;
+	ml_value_t **Slot;
+	ml_value_t *Closure;
+	int NumImports;
+} ml_command_def_t;
+
+typedef struct {
+	ml_command_t Base;
+	ml_value_t **Slot;
+	ml_value_t *Args[2];
+} ml_command_import_t;
+
+static void ml_command_import_start(ml_command_import_t *Command, ml_compiler_t *Compiler) {
+	ml_call((ml_state_t *)Compiler, SymbolMethod, 2, Command->Args);
+}
+
+static ml_value_t *ml_command_import_finish(ml_command_import_t *Command, ml_value_t *Value) {
+	ml_uninitialized_set(Command->Slot[0], Value);
+	Command->Slot[0] = Value;
+	return NULL;
+}
+
+static ml_value_t *ml_command_def_finish(ml_command_def_t *Command, ml_value_t *Value) {
+	if (Command->Slot) {
+		ml_uninitialized_set(Command->Slot[0], Value);
+		Command->Slot[0] = Value;
+	}
+	ml_command_import_t *Import = (ml_command_import_t *)Command->Base.Next;
+	for (int I = 0; I < Command->NumImports; ++I) {
+		Import->Args[0] = Value;
+		Import = (ml_command_import_t *)Import->Base.Next;
+	}
+	return NULL;
+}
 
 void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler, stringmap_t *Vars) {
 	MLC_ON_ERROR(Compiler) {
 		ml_compiler_reset(Compiler);
 		ML_RETURN(Compiler->Error);
 	}
-	Compiler->Base.Context = Caller->Context;
 	while (ml_parse(Compiler, MLT_EOL));
 	if (ml_parse(Compiler, MLT_EOI)) ML_RETURN(MLEndOfInput);
-	ml_value_t *Result = NULL;
+	Compiler->Context = Caller->Context;
+	Compiler->Base.Caller = Caller;
+	Compiler->Base.Context = Caller->Context;
 	if (ml_parse(Compiler, MLT_VAR)) {
 		do {
 			ml_accept(Compiler, MLT_IDENT);
@@ -2967,13 +3177,13 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler, stringmap_
 			Slot[0] = (ml_value_t *)Var;
 			if (ml_parse(Compiler, MLT_ASSIGN)) {
 				mlc_expr_t *Expr = ml_accept_expression(Compiler, EXPR_DEFAULT);
-				Result = ml_compile(Expr, NULL, Compiler);
-				if (ml_is_error(Result)) ML_RETURN(Result);
-				Result = ml_compiler_call(Compiler, Result, 0, NULL);
-				if (ml_is_error(Result)) ML_RETURN(Result);
-				Var->Value = Result;
-			} else {
-				Result = MLNil;
+				ml_command_var_t *Command = new(ml_command_var_t);
+				Command->Base.start = ml_command_default_start;
+				Command->Base.finish = (void *)ml_command_var_finish;
+				Command->Base.Closure = ml_compile(Expr, NULL, Compiler);
+				Command->Base.Source = Expr->Source;
+				Command->Var = Var;
+				ml_command_queue(Compiler, (ml_command_t *)Command);
 			}
 		} while (ml_parse(Compiler, MLT_COMMA));
 	} else if (ml_parse(Compiler, MLT_LET) || ml_parse(Compiler, MLT_DEF)) {
@@ -3006,27 +3216,34 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler, stringmap_
 				if (!Slot[0] || ml_typeof(Slot[0]) != MLUninitializedT) {
 					Slot[0] = ml_uninitialized(Ident);
 				}
-				Result = ml_compile(Expr, NULL, Compiler);
-				if (ml_is_error(Result)) ML_RETURN(Result);
-				Result = ml_compiler_call(Compiler, Result, 0, NULL);
-				if (ml_is_error(Result)) ML_RETURN(Result);
-				ml_uninitialized_set(Slot[0],  Result);
-				Slot[0] = Result;
+				ml_command_def_t *Command = new(ml_command_def_t);
+				Command->Base.start = ml_command_default_start;
+				Command->Base.finish = (void *)ml_command_def_finish;
+				Command->Base.Closure = ml_compile(Expr, NULL, Compiler);
+				Command->Base.Source = Expr->Source;
+				Command->Slot = Slot;
+				ml_command_queue(Compiler, (ml_command_t *)Command);
 			} else {
-				Result = ml_compile(Expr, NULL, Compiler);
-				if (ml_is_error(Result)) ML_RETURN(Result);
-				Result = ml_compiler_call(Compiler, Result, 0, NULL);
-				if (ml_is_error(Result)) ML_RETURN(Result);
+				ml_command_def_t *Command = new(ml_command_def_t);
+				Command->Base.start = ml_command_default_start;
+				Command->Base.finish = (void *)ml_command_def_finish;
+				Command->Base.Closure = ml_compile(Expr, NULL, Compiler);
+				Command->Base.Source = Expr->Source;
+				Command->Slot = NULL;
+				ml_command_queue(Compiler, (ml_command_t *)Command);
 				do {
+					++Command->NumImports;
 					ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Import->Ident);
 					if (!Slot[0] || ml_typeof(Slot[0]) != MLUninitializedT) {
 						Slot[0] = ml_uninitialized(Import->Ident);
 					}
-					ml_value_t *Args[2] = {Result, ml_string(Import->Ident, -1)};
-					ml_value_t *Value = ml_compiler_call(Compiler, SymbolMethod, 2, Args);
-					if (ml_is_error(Value)) ML_RETURN(Value);
-					ml_uninitialized_set(Slot[0],  Value);
-					Slot[0] = Value;
+					ml_command_import_t *ImportCommand = new(ml_command_import_t);
+					ImportCommand->Base.start = (void *)ml_command_import_start;
+					ImportCommand->Base.finish = (void *)ml_command_import_finish;
+					ImportCommand->Base.Source = Expr->Source;
+					ImportCommand->Slot = Slot;
+					ImportCommand->Args[1] = ml_cstring(Import->Ident);
+					ml_command_queue(Compiler, (ml_command_t *)ImportCommand);
 					Import = Import->Next;
 				} while (Import);
 			}
@@ -3040,26 +3257,29 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler, stringmap_
 			}
 			ml_accept(Compiler, MLT_LEFT_PAREN);
 			mlc_expr_t *Expr = ml_accept_fun_expr(Compiler, MLT_RIGHT_PAREN);
-			Result = ml_compile(Expr, NULL, Compiler);
-			if (ml_is_error(Result)) ML_RETURN(Result);
-			Result = ml_compiler_call(Compiler, Result, 0, NULL);
-			if (ml_is_error(Result)) ML_RETURN(Result);
-			ml_uninitialized_set(Slot[0], Result);
-			Slot[0] = Result;
+			ml_command_def_t *Command = new(ml_command_def_t);
+			Command->Base.start = ml_command_default_start;
+			Command->Base.finish = (void *)ml_command_def_finish;
+			Command->Base.Closure = ml_compile(Expr, NULL, Compiler);
+			Command->Base.Source = Expr->Source;
+			Command->Slot = Slot;
+			ml_command_queue(Compiler, (ml_command_t *)Command);
 		} else {
 			ml_accept(Compiler, MLT_LEFT_PAREN);
 			mlc_expr_t *Expr = ml_accept_fun_expr(Compiler, MLT_RIGHT_PAREN);
-			Result = ml_compile(Expr, NULL, Compiler);
-			if (ml_is_error(Result)) ML_RETURN(Result);
-			Result = ml_compiler_call(Compiler, Result, 0, NULL);
-			if (ml_is_error(Result)) ML_RETURN(Result);
+			ml_command_t *Command = new(ml_command_t);
+			Command->start = ml_command_default_start;
+			Command->finish = ml_command_default_finish;
+			Command->Closure = ml_compile(Expr, NULL, Compiler);
+			Command->Source = Expr->Source;
+			ml_command_queue(Compiler, (ml_command_t *)Command);
 		}
-	} else if (ml_parse(Compiler, MLT_METH)) {
+	/*} else if (ml_parse(Compiler, MLT_METH)) {
 		mlc_expr_t *Expr = ml_accept_meth_expr(Compiler);
 		Result = ml_compile(Expr, NULL, Compiler);
 		if (ml_is_error(Result)) ML_RETURN(Result);
 		Result = ml_compiler_call(Compiler, Result, 0, NULL);
-		if (ml_is_error(Result)) ML_RETURN(Result);
+		if (ml_is_error(Result)) ML_RETURN(Result);*/
 	} else {
 		mlc_expr_t *Expr = ml_accept_expression(Compiler, EXPR_DEFAULT);
 		if (ml_parse(Compiler, MLT_COLON)) {
@@ -3073,21 +3293,24 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler, stringmap_
 			if (!Slot[0] || ml_typeof(Slot[0]) != MLUninitializedT) {
 				Slot[0] = ml_uninitialized(Ident);
 			}
-			Result = ml_compile((mlc_expr_t *)CallExpr, NULL, Compiler);
-			if (ml_is_error(Result)) ML_RETURN(Result);
-			Result = ml_compiler_call(Compiler, Result, 0, NULL);
-			if (ml_is_error(Result)) ML_RETURN(Result);
-			ml_uninitialized_set(Slot[0],  Result);
-			Slot[0] = Result;
+			ml_command_def_t *Command = new(ml_command_def_t);
+			Command->Base.start = ml_command_default_start;
+			Command->Base.finish = (void *)ml_command_def_finish;
+			Command->Base.Closure = ml_compile((mlc_expr_t *)CallExpr, NULL, Compiler);
+			Command->Base.Source = Expr->Source;
+			Command->Slot = Slot;
+			ml_command_queue(Compiler, (ml_command_t *)Command);
 		} else {
-			Result = ml_compile(Expr, NULL, Compiler);
-			if (ml_is_error(Result)) ML_RETURN(Result);
-			Result = ml_compiler_call(Compiler, Result, 0, NULL);
-			if (ml_is_error(Result)) ML_RETURN(Result);
+			ml_command_t *Command = new(ml_command_t);
+			Command->start = ml_command_default_start;
+			Command->finish = ml_command_default_finish;
+			Command->Closure = ml_compile(Expr, NULL, Compiler);
+			Command->Source = Expr->Source;
+			ml_command_queue(Compiler, (ml_command_t *)Command);
 		}
 	}
 	ml_parse(Compiler, MLT_SEMICOLON);
-	ML_RETURN(Result);
+	Compiler->Commands->start(Compiler->Commands, Compiler);
 }
 
 #ifdef __MINGW32__
@@ -3120,14 +3343,27 @@ static const char *ml_file_read(void *Data) {
 	return Line;
 }
 
+typedef struct {
+	ml_state_t Base;
+	FILE *File;
+} ml_load_file_state_t;
+
+static void ml_load_file_state_run(ml_load_file_state_t *State, ml_value_t *Value) {
+	fclose(State->File);
+	ml_state_t *Caller = State->Base.Caller;
+	ML_RETURN(Value);
+}
+
 void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]) {
 	FILE *File = fopen(FileName, "r");
 	if (!File) ML_RETURN(ml_error("LoadError", "error opening %s", FileName));
 	ml_compiler_t *Compiler = ml_compiler(FileName, File, ml_file_read, GlobalGet, Globals);
-	Compiler->Base.Context = Caller->Context;
-	ml_function_compile((ml_state_t *)Compiler, Compiler, Parameters);
-	fclose(File);
-	ML_RETURN(Compiler->Value);
+	ml_load_file_state_t *State = new(ml_load_file_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_load_file_state_run;
+	State->File = File;
+	return ml_function_compile((ml_state_t *)State, Compiler, Parameters);
 }
 
 void ml_compiler_init() {

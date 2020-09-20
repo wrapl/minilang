@@ -318,10 +318,37 @@ static int ml_uninitialized_resolve(const char *Name, ml_uninitialized_t *Unitia
 	return 0;
 }
 
+static void ml_uninitialized_transfer(ml_uninitialized_t *Uninitialized, ml_uninitialized_t *Uninitialized2);
+
+static int ml_uninitialized_transfer_import(const char *Name, ml_uninitialized_t *Uninitialized, ml_uninitialized_t *Uninitialized2) {
+	ml_uninitialized_t **Slot = (ml_uninitialized_t **)stringmap_slot(Uninitialized2->Unresolved, Name);
+	if (Slot[0]) {
+		ml_uninitialized_transfer(Uninitialized, Slot[0]);
+	} else {
+		Slot[0] = Uninitialized;
+	}
+	return 0;
+}
+
+static void ml_uninitialized_transfer(ml_uninitialized_t *Uninitialized, ml_uninitialized_t *Uninitialized2) {
+	ml_uninitialized_slot_t *Slot = Uninitialized2->Slots;
+	if (Slot) {
+		while (Slot->Next) Slot = Slot->Next;
+		Slot->Next = Uninitialized->Slots;
+	} else {
+		Uninitialized2->Slots = Uninitialized->Slots;
+	}
+	stringmap_foreach(Uninitialized->Unresolved, Uninitialized2, (void *)ml_uninitialized_transfer_import);
+}
+
 void ml_uninitialized_set(ml_value_t *Uninitialized0, ml_value_t *Value) {
 	ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Uninitialized0;
-	for (ml_uninitialized_slot_t *Slot = Uninitialized->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Value;
-	stringmap_foreach(Uninitialized->Unresolved, Value, (void *)ml_uninitialized_resolve);
+	if (ml_typeof(Value) == MLUninitializedT) {
+		ml_uninitialized_transfer(Uninitialized, (ml_uninitialized_t *)Value);
+	} else {
+		for (ml_uninitialized_slot_t *Slot = Uninitialized->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Value;
+		stringmap_foreach(Uninitialized->Unresolved, Value, (void *)ml_uninitialized_resolve);
+	}
 }
 
 ML_METHOD("::", MLUninitializedT, MLStringT) {
