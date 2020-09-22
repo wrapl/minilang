@@ -52,6 +52,7 @@ typedef union {
 	ml_value_t *Value;
 	ml_closure_info_t *ClosureInfo;
 	ml_decl_t *Decls;
+	const char *Ptr;
 } ml_param_t;
 
 typedef enum {
@@ -59,6 +60,7 @@ typedef enum {
 	MLI_SUSPEND,
 	MLI_RESUME,
 	MLI_NIL,
+	MLI_NIL_PUSH,
 	MLI_SOME,
 	MLI_IF,
 	MLI_ELSE,
@@ -73,6 +75,7 @@ typedef enum {
 	MLI_TRY,
 	MLI_CATCH,
 	MLI_LOAD,
+	MLI_LOAD_PUSH,
 	MLI_VAR,
 	MLI_VARX,
 	MLI_LET,
@@ -86,6 +89,7 @@ typedef enum {
 	MLI_CONST_CALL,
 	MLI_ASSIGN,
 	MLI_LOCAL,
+	MLI_LOCAL_PUSH,
 	MLI_UPVALUE,
 	MLI_LOCALX,
 	MLI_TUPLE_NEW,
@@ -96,18 +100,25 @@ typedef enum {
 	MLI_MAP_INSERT,
 	MLI_CLOSURE,
 	MLI_PARTIAL_NEW,
-	MLI_PARTIAL_SET
+	MLI_PARTIAL_SET,
+	MLI_STRING_NEW,
+	MLI_STRING_ADD,
+	MLI_STRING_ADDS,
+	MLI_STRING_END
 } ml_opcode_t;
 
 typedef enum {
 	MLIT_NONE,
 	MLIT_INST,
 	MLIT_INST_INST,
+	MLIT_INST_INST_INDEX_CHARS,
 	MLIT_INST_INDEX,
 	MLIT_INST_INDEX_COUNT,
+	MLIT_INST_INDEX_CHARS,
 	MLIT_INST_COUNT,
 	MLIT_INST_COUNT_COUNT,
 	MLIT_INST_COUNT_VALUE,
+	MLIT_INST_COUNT_CHARS,
 	MLIT_INST_VALUE,
 	MLIT_INST_CLOSURE
 } ml_inst_type_t;
@@ -131,24 +142,10 @@ struct ml_inst_t {
 	ml_param_t Params[];
 };
 
-struct ml_frame_t {
-	ml_state_t Base;
-	const char *Source;
-	ml_inst_t *Inst;
-	ml_value_t **Top;
-	ml_inst_t *OnError;
-	ml_value_t **UpValues;
-	unsigned int Counter;
-	unsigned int Reuse:1;
-	unsigned int Reentry:1;
-#ifdef USE_ML_SCHEDULER
-	ml_schedule_t Schedule;
-#endif
-	ml_value_t *Stack[];
-};
-
 #define ML_FRAME_REUSE (1 << 0)
 #define ML_FRAME_REENTRY (1 << 1)
+
+#define ML_FRAME_REUSE_SIZE 224
 
 typedef struct ml_variable_t ml_variable_t;
 

@@ -4,6 +4,7 @@ uv::run(;) do
 
 var Sum := 0
 parallel(1 .. 100, 5, 10; I) do
+:>for I in 1 .. 100 do
 	var Wait := I * 111 % 31
 	print('{I}: waiting {Wait / 100.0} seconds.\n')
 	uv::sleep(10 * Wait)

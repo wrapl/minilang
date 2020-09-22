@@ -135,14 +135,17 @@
       <keyword>def</keyword>
       <keyword>let</keyword>
       <keyword>var</keyword>
+      <keyword>on</keyword>
+      <keyword>when</keyword>
     </context>
     <context id="functions" style-ref="function">
       <keyword>print</keyword>
-      <keyword>error</keyword>
+      <keyword>raise</keyword>
       <keyword>halt</keyword>
       <keyword>callcc</keyword>
       <keyword>mark</keyword>
       <keyword>context</keyword>
+      <keyword>filter</keyword>
       <keyword>first</keyword>
       <keyword>first2</keyword>
       <keyword>last</keyword>
@@ -171,6 +174,7 @@
       <keyword>method</keyword>
       <keyword>any</keyword>
       <keyword>type</keyword>
+      <keyword>error</keyword>
       <keyword>function</keyword>
       <keyword>number</keyword>
       <keyword>integer</keyword>

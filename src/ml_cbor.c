@@ -10,12 +10,12 @@
 
 #include "minicbor/minicbor.h"
 
-void ml_cbor_write(ml_value_t *Value, void *Data, ml_cbor_write_fn WriteFn) {
-	typeof(ml_cbor_write) *function = ml_typed_fn_get(ml_typeof(Value), ml_cbor_write);
+ml_value_t *ml_cbor_write(ml_value_t *Value, void *Data, ml_cbor_write_fn WriteFn) {
+	typeof(ml_cbor_write) *function = ml_typed_fn_get(Value->Type, ml_cbor_write);
 	if (function) {
-		function(Value, Data, WriteFn);
+		return function(Value, Data, WriteFn);
 	} else {
-		ml_cbor_write_simple(Data, WriteFn, CBOR_SIMPLE_UNDEF);
+		return ml_error("CBORError", "No method to encode %s to CBOR", ml_typeof(Value)->Name);
 	}
 }
 
@@ -30,16 +30,17 @@ static void ml_cbor_bytes_fn(unsigned char **End, unsigned char *Bytes, int Size
 
 ml_cbor_t ml_to_cbor(ml_value_t *Value) {
 	size_t Size = 0;
-	ml_cbor_write(Value, &Size, (void *)ml_cbor_size_fn);
+	ml_value_t *Error = ml_cbor_write(Value, &Size, (void *)ml_cbor_size_fn);
+	if (Error) return (ml_cbor_t){{.Error = Error}, 0};
 	unsigned char *Bytes = GC_MALLOC_ATOMIC(Size), *End = Bytes;
 	ml_cbor_write(Value, &End, (void *)ml_cbor_bytes_fn);
-	return (ml_cbor_t){Bytes, Size};
+	return (ml_cbor_t){{.Data = Bytes}, Size};
 }
 
 typedef struct block_t {
 	struct block_t *Prev;
-	const void *Data;
 	int Size;
+	char Data[];
 } block_t;
 
 typedef struct collection_t {
@@ -171,10 +172,10 @@ void ml_cbor_read_bytes_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, in
 		}
 		value_handler(Reader, ml_string(Buffer, Total));
 	} else {
-		block_t *Block = new(block_t);
+		block_t *Block = xnew(block_t, Size, char);
 		Block->Prev = Collection->Blocks;
-		Block->Data = Bytes;
 		Block->Size = Size;
+		memcpy(Block->Data, Bytes, Size);
 		Collection->Blocks = Block;
 		Collection->Remaining += Size;
 	}
@@ -210,10 +211,10 @@ void ml_cbor_read_string_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, i
 		}
 		value_handler(Reader, ml_string(Buffer, Total));
 	} else {
-		block_t *Block = new(block_t);
+		block_t *Block = xnew(block_t, Size, char);
 		Block->Prev = Collection->Blocks;
-		Block->Data = Bytes;
 		Block->Size = Size;
+		memcpy(Block->Data, Bytes, Size);
 		Collection->Blocks = Block;
 		Collection->Remaining += Size;
 	}
@@ -343,6 +344,7 @@ ML_FUNCTION(MLEncode) {
 //>string | error
 	ML_CHECK_ARG_COUNT(1);
 	ml_cbor_t Cbor = ml_to_cbor(Args[0]);
+	if (!Cbor.Length) return Cbor.Error;
 	if (Cbor.Data) return ml_string(Cbor.Data, Cbor.Length);
 	return ml_error("CborError", "Error encoding to cbor");
 }
@@ -353,11 +355,11 @@ ML_FUNCTION(MLDecode) {
 //>any | error
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
-	ml_cbor_t Cbor = {ml_string_value(Args[0]), ml_string_length(Args[0])};
+	ml_cbor_t Cbor = {{.Data = ml_string_value(Args[0])}, ml_string_length(Args[0])};
 	return ml_from_cbor(Cbor, Count > 1 ? Args[1] : (ml_value_t *)DefaultTagFn, (void *)ml_value_tag_fn);
 }
 
-static void ML_TYPED_FN(ml_cbor_write, MLIntegerT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLIntegerT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	//printf("%s()\n", __func__);
 	int64_t Value = ml_integer_value(Arg);
 	if (Value < 0) {
@@ -365,49 +367,79 @@ static void ML_TYPED_FN(ml_cbor_write, MLIntegerT, ml_value_t *Arg, void *Data, 
 	} else {
 		ml_cbor_write_positive(Data, WriteFn, Value);
 	}
+	return NULL;
 }
 
-static void ML_TYPED_FN(ml_cbor_write, MLStringT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLStringT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	//printf("%s()\n", __func__);
 	ml_cbor_write_string(Data, WriteFn, ml_string_length(Arg));
 	WriteFn(Data, (const unsigned char *)ml_string_value(Arg), ml_string_length(Arg));
+	return NULL;
 }
 
-static void ML_TYPED_FN(ml_cbor_write, MLListT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLRegexT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+	//printf("%s()\n", __func__);
+	const char *Pattern = ml_regex_pattern(Arg);
+	ml_cbor_write_tag(Data, WriteFn, 35);
+	ml_cbor_write_string(Data, WriteFn, strlen(Pattern));
+	WriteFn(Data, (void *)Pattern, strlen(Pattern));
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTupleT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+	int Size = ml_tuple_size(Arg);
+	ml_cbor_write_array(Data, WriteFn, Size);
+	for (int I = 1; I <= Size; ++I) {
+		ml_value_t *Error = ml_cbor_write(ml_tuple_get(Arg, I), Data, WriteFn);
+		if (Error) return Error;
+	}
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLListT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	ml_cbor_write_array(Data, WriteFn, ml_list_length(Arg));
 	ML_LIST_FOREACH(Arg, Node) {
-		ml_cbor_write(Node->Value, Data, WriteFn);
+		ml_value_t *Error = ml_cbor_write(Node->Value, Data, WriteFn);
+		if (Error) return Error;
 	}
+	return NULL;
 }
 
-static void ML_TYPED_FN(ml_cbor_write, MLMapT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLMapT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	ml_cbor_write_map(Data, WriteFn, ml_map_size(Arg));
 	ML_MAP_FOREACH(Arg, Node) {
-		ml_cbor_write(Node->Key, Data, WriteFn);
-		ml_cbor_write(Node->Value, Data, WriteFn);
+		ml_value_t *Error = ml_cbor_write(Node->Key, Data, WriteFn);
+		if (Error) return Error;
+		Error = ml_cbor_write(Node->Value, Data, WriteFn);
+		if (Error) return Error;
 	}
+	return NULL;
 }
 
-static void ML_TYPED_FN(ml_cbor_write, MLRealT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLRealT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	ml_cbor_write_float8(Data, WriteFn, ml_real_value(Arg));
+	return NULL;
 }
 
-static void ML_TYPED_FN(ml_cbor_write, MLNilT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLNilT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	ml_cbor_write_simple(Data, WriteFn, CBOR_SIMPLE_NULL);
+	return NULL;
 }
 
-static void ML_TYPED_FN(ml_cbor_write, MLBooleanT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLBooleanT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	ml_cbor_write_simple(Data, WriteFn, ml_boolean_value(Arg) ? CBOR_SIMPLE_TRUE : CBOR_SIMPLE_FALSE);
+	return NULL;
 }
 
-static void ML_TYPED_FN(ml_cbor_write, MLMethodT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLMethodT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	const char *Name = ml_method_name(Arg);
-	ml_cbor_write_tag(Data, WriteFn, 26); // TODO: Change this to a proper tag
+	ml_cbor_write_tag(Data, WriteFn, 39);
 	ml_cbor_write_string(Data, WriteFn, strlen(Name));
 	WriteFn(Data, (void *)Name, strlen(Name));
+	return NULL;
 }
 
-static void ML_TYPED_FN(ml_cbor_write, MLObjectT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLObjectT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	ml_cbor_write_tag(Data, WriteFn, 27);
 	int Size = ml_object_size(Arg);
 	ml_cbor_write_array(Data, WriteFn, 1 + Size);
@@ -415,8 +447,10 @@ static void ML_TYPED_FN(ml_cbor_write, MLObjectT, ml_value_t *Arg, void *Data, m
 	ml_cbor_write_string(Data, WriteFn, strlen(Name));
 	WriteFn(Data, (void *)Name, strlen(Name));
 	for (int I = 0; I < Size; ++I) {
-		ml_cbor_write(ml_object_field(Arg, I), Data, WriteFn);
+		ml_value_t *Error = ml_cbor_write(ml_object_field(Arg, I), Data, WriteFn);
+		if (Error) return Error;
 	}
+	return NULL;
 }
 
 #ifdef USE_ML_MATH
@@ -442,7 +476,7 @@ static void ml_cbor_write_array_dim(int Degree, ml_array_dimension_t *Dimension,
 	}
 }
 
-static void ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char *Data, ml_cbor_write_fn WriteFn) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char *Data, ml_cbor_write_fn WriteFn) {
 	static uint64_t Tags[] = {
 		[ML_ARRAY_FORMAT_I8] = 72,
 		[ML_ARRAY_FORMAT_U8] = 64,
@@ -472,6 +506,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char *Data, 
 	ml_cbor_write_tag(Data, WriteFn, Tags[Array->Format]);
 	ml_cbor_write_bytes(Data, WriteFn, Size);
 	ml_cbor_write_array_dim(FlatDegree, Array->Dimensions, Array->Base.Address, Data, WriteFn);
+	return NULL;
 }
 
 static ml_value_t *ml_cbor_read_multi_array_fn(void *Data, int Count, ml_value_t **Args) {
@@ -511,6 +546,10 @@ static ml_value_t *ml_cbor_read_typed_array_fn(void *Data, int Count, ml_value_t
 
 #endif
 
+ml_value_t *ml_cbor_read_regex(void *Data, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	return ml_regex(ml_string_value(Args[0]), ml_string_length(Args[1]));
+}
 
 ml_value_t *ml_cbor_read_method(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_TYPE(0, MLStringT);
@@ -541,7 +580,8 @@ ml_value_t *ml_cbor_read_object(void *Data, int Count, ml_value_t **Args) {
 void ml_cbor_init(stringmap_t *Globals) {
 	CborDefaultTags = ml_map();
 	CborObjects = ml_map();
-	ml_map_insert(CborDefaultTags, ml_integer(26), ml_cfunction(NULL, ml_cbor_read_method)); // TODO: Change this to a proper tag
+	ml_map_insert(CborDefaultTags, ml_integer(35), ml_cfunction(NULL, ml_cbor_read_regex));
+	ml_map_insert(CborDefaultTags, ml_integer(39), ml_cfunction(NULL, ml_cbor_read_method));
 	ml_map_insert(CborDefaultTags, ml_integer(27), ml_cfunction(NULL, ml_cbor_read_object));
 #ifdef USE_ML_MATH
 	ml_map_insert(CborDefaultTags, ml_integer(40), ml_cfunction(NULL, ml_cbor_read_multi_array_fn));

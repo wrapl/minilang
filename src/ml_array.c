@@ -217,7 +217,7 @@ static void ml_array_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value
 	return ml_array_typed_new_fnx(Caller, (void *)Format, Count - 1, Args + 1);
 }
 
-ml_value_t *ml_array_wrap_fn(void *Data, int Count, ml_value_t **Args) {
+static __attribute__ ((malloc)) ml_value_t *ml_array_wrap_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(3);
 	ML_CHECK_ARG_TYPE(1, MLBufferT);
 	ML_CHECK_ARG_TYPE(2, MLListT);
@@ -910,7 +910,7 @@ static ml_value_t *ML_TYPED_FN(ml_string_of, ATYPE, ml_array_t *Array) { \
 	} else { \
 		append_array_ ## CTYPE(Buffer, Array->Degree, Array->Dimensions, Array->Base.Address); \
 	} \
-	return ml_stringbuffer_get_string(Buffer); \
+	return ml_stringbuffer_value(Buffer); \
 } \
 \
 ML_METHOD(MLStringOfMethod, ATYPE) { \
@@ -921,7 +921,7 @@ ML_METHOD(MLStringOfMethod, ATYPE) { \
 	} else { \
 		append_array_ ## CTYPE(Buffer, Array->Degree, Array->Dimensions, Array->Base.Address); \
 	} \
-	return ml_stringbuffer_get_string(Buffer); \
+	return ml_stringbuffer_value(Buffer); \
 } \
 static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, ATYPE, ml_stringbuffer_t *Buffer, ml_array_t *Array) { \
 	if (Array->Degree == 0) { \
@@ -929,7 +929,7 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, ATYPE, ml_stringbuffer_t 
 	} else { \
 		append_array_ ## CTYPE(Buffer, Array->Degree, Array->Dimensions, Array->Base.Address); \
 	} \
-	return MLSome; \
+	return (ml_value_t *)Buffer; \
 } \
 \
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, ATYPE) { \
@@ -950,6 +950,7 @@ CTYPE ml_array_get_ ## CTYPE(ml_array_t *Array, ...) { \
 	va_start(Indices, Array); \
 	char *Address = ml_array_index(Array, Indices); \
 	va_end(Indices); \
+	if (!Address) return 0; \
 	switch (Array->Format) { \
 	case ML_ARRAY_FORMAT_NONE: break; \
 	case ML_ARRAY_FORMAT_I8: return FROM_NUM(*(int8_t *)Address); \
@@ -972,6 +973,7 @@ void ml_array_set_ ## CTYPE(CTYPE Value, ml_array_t *Array, ...) { \
 	va_start(Indices, Array); \
 	char *Address = ml_array_index(Array, Indices); \
 	va_end(Indices); \
+	if (!Address) return; \
 	switch (Array->Format) { \
 	case ML_ARRAY_FORMAT_NONE: break; \
 	case ML_ARRAY_FORMAT_I8: *(int8_t *)Address = TO_NUM((int8_t)0, Value); break; \
@@ -1380,7 +1382,7 @@ static ml_value_t *ml_array_of_fill(ml_array_format_t Format, ml_array_dimension
 	return NULL;
 }
 
-static ml_array_format_t ml_array_of_type_guess(ml_value_t *Value, ml_array_format_t Format) {
+static __attribute__ ((pure)) ml_array_format_t ml_array_of_type_guess(ml_value_t *Value, ml_array_format_t Format) {
 	if (ml_is(Value, MLListT)) {
 		ML_LIST_FOREACH(Value, Iter) {
 			Format = ml_array_of_type_guess(Iter->Value, Format);
@@ -1735,7 +1737,7 @@ static void ml_cbor_write_array_dim(int Degree, ml_array_dimension_t *Dimension,
 	}
 }
 
-static void ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char *Data, ml_cbor_write_fn WriteFn) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char *Data, ml_cbor_write_fn WriteFn) {
 	static uint64_t Tags[] = {
 		[ML_ARRAY_FORMAT_I8] = 72,
 		[ML_ARRAY_FORMAT_U8] = 64,
@@ -1765,6 +1767,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char *Data, 
 	ml_cbor_write_tag(Data, WriteFn, Tags[Array->Format]);
 	ml_cbor_write_bytes(Data, WriteFn, Size);
 	ml_cbor_write_array_dim(FlatDegree, Array->Dimensions, Array->Base.Address, Data, WriteFn);
+	return NULL;
 }
 
 static ml_value_t *ml_cbor_read_multi_array_fn(void *Data, int Count, ml_value_t **Args) {

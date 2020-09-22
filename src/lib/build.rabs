@@ -6,10 +6,8 @@ var SourceTypes := {
 }
 
 fun minilang_lib(Library, Objects, Libraries) do
-	Objects := Objects or []
-	Libraries := Libraries or []
 	var Sources := []
-	for Object in Objects do
+	for Object in Objects or [] do
 		for Extension, Functions in SourceTypes do
 			var Source := Object % Extension
 			if Source:exists then
@@ -20,7 +18,6 @@ fun minilang_lib(Library, Objects, Libraries) do
 			end
 		end
 	end
-	print("Library = ", Library, "\n")
 	Library[Objects, Libraries] => fun(Library) do
 		execute('cc', '-o', Library, '-shared', '-export-dynamic', Objects, Libraries, LDFLAGS)
 		DEBUG or execute("strip", Library)
@@ -81,15 +78,25 @@ scope("onion";) do
 end
 
 scope("kiwi";) do
-	var Kiwi := file("kiwi") => fun() do
-		var Dir := file("kiwi"):rmdir
-		execute("git clone https://github.com/nucleic/kiwi")
-		Dir:chdir
+	var Kiwi := file("kiwi") => fun(Dir) do
+		Dir:rmdir
+		execute("git clone https://github.com/nucleic/kiwi", Dir)
 	end
 	PREBUILDS := old + [Kiwi]
 	CFLAGS := old + ["-I", file("kiwi")]
 	generate_init_file(file("ml_kiwi.cpp"))
 	DEFAULT[minilang_lib(LIB_DIR / "ml_kiwi.so", [file("ml_kiwi.o")])]
+end
+
+scope("mpc";) do
+	var MPC := file("mpc") => fun(Dir) do
+		Dir:rmdir
+		execute("git clone https://github.com/orangeduck/mpc.git", Dir)
+		execute("cat", PATH/"mpc_extra.c", " >> ", Dir/"mpc.c")
+	end
+	PREBUILDS := old + [MPC]
+	generate_init_file(file("ml_mpc.c"))
+	DEFAULT[minilang_lib(LIB_DIR / "ml_mpc.so", [file("ml_mpc.o"), MPC/"mpc.o"])]
 end
 
 nil and scope("facil";) do

@@ -5,7 +5,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <stdarg.h>
 #include <inttypes.h>
 #include "ml_types.h"
 
@@ -93,19 +92,25 @@ static void ml_context_key_call(ml_state_t *Caller, ml_context_key_t *Key, int C
 	}
 }
 
-ML_TYPE(MLContextKeyT, (MLCFunctionT), "context-key",
-	.call = (void *)ml_context_key_call
-);
-
-ml_value_t *ml_context_key() {
+ML_FUNCTION(MLContextKey) {
+//!context
+//@context
+//>context
+// Creates a new context specific key.
 	ml_context_key_t *Key = new(ml_context_key_t);
 	Key->Type = MLContextKeyT;
 	return (ml_value_t *)Key;
 }
 
-ML_FUNCTION(MLContextKey) {
-	return ml_context_key();
-}
+ML_TYPE(MLContextKeyT, (MLCFunctionT), "context-key",
+//!context
+//@context
+// A context key can be used to create context specific values.
+// If :mini:`key` is a context key, then calling :mini:`key()` no arguments returns the value associated with the key in the current context, or :mini:`nil` is no value is associated.
+// Calling :mini:`key(Value, Function)` will invoke :mini:`Function` in a new context where :mini:`key` is associated with :mini:`Value`.
+	.call = (void *)ml_context_key_call,
+	.Constructor = (ml_value_t *)MLContextKey
+);
 
 static void ml_state_call(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
 	return State->run(State, Count ? Args[0] : MLNil);
@@ -126,26 +131,13 @@ void ml_value_state_run(ml_value_state_t *State, ml_value_t *Value) {
 	State->Value = ml_deref(Value);
 }
 
-static ml_value_state_t *ValueStateCache = NULL;
-
-ml_value_state_t *ml_value_state_new() {
-	ml_value_state_t *State = ValueStateCache;
-	if (State) {
-		ValueStateCache = (ml_value_state_t *)State->Base.Caller;
-	} else {
-		State = new(ml_value_state_t);
-		State->Base.Context = &MLRootContext;
-		State->Value = MLNil;
-	}
+ml_value_state_t *ml_value_state_new(ml_context_t *Context) {
+	ml_value_state_t *State = new(ml_value_state_t);
+	State->Base.Context = Context ?: &MLRootContext;
+	State->Value = MLNil;
 	State->Base.Type = MLStateT;
 	State->Base.run = (ml_state_fn)ml_value_state_run;
 	return State;
-}
-
-void ml_value_state_free(ml_value_state_t *State) {
-	State->Base.Caller = (ml_state_t *)ValueStateCache;
-	State->Value = MLNil;
-	ValueStateCache = State;
 }
 
 void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value) {
@@ -157,20 +149,20 @@ void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value) {
 	}
 }
 
-ml_value_state_t *ml_call_state_new() {
+ml_value_state_t *ml_call_state_new(ml_context_t *Context) {
 	ml_value_state_t *State = new(ml_value_state_t);
 	State->Base.Type = MLStateT;
-	State->Base.Context = &MLRootContext;
+	State->Base.Context = Context ?: &MLRootContext;
 	State->Base.run = (ml_state_fn)ml_call_state_run;
 	State->Value = MLNil;
 	return State;
 }
 
 ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args) {
-	ml_value_state_t *State = ml_value_state_new();
-	ml_call(State, Value, Count, Args);
-	ml_value_t *Result = State->Value;
-	ml_value_state_free(State);
+	static ml_value_state_t State = {{MLStateT, NULL, (void *)ml_value_state_run, &MLRootContext}, MLNil};
+	ml_call(&State, Value, Count, Args);
+	ml_value_t *Result = State.Value;
+	State.Value = MLNil;
 	return Result;
 }
 
@@ -285,15 +277,28 @@ struct ml_uninitialized_slot_t {
 
 typedef struct ml_uninitialized_t {
 	const ml_type_t *Type;
+	const char *Name;
 	ml_uninitialized_slot_t *Slots;
 	stringmap_t Unresolved[1];
 } ml_uninitialized_t;
 
-ML_TYPE(MLUninitializedT, (), "uninitialized");
+static void ml_uninitialized_call(ml_state_t *Caller, ml_uninitialized_t *Uninitialized, int Count, ml_value_t **Args) {
+	ML_ERROR("ValueError", "%s is uninitialized", Uninitialized->Name);
+}
 
-ml_value_t *ml_uninitialized() {
+static ml_value_t *ml_unitialized_assign(ml_uninitialized_t *Uninitialized, ml_value_t *Value) {
+	return ml_error("ValueError", "%s is uninitialized", Uninitialized->Name);
+}
+
+ML_TYPE(MLUninitializedT, (), "uninitialized",
+	.call = (void *)ml_uninitialized_call,
+	.assign = (void *)ml_unitialized_assign
+);
+
+ml_value_t *ml_uninitialized(const char *Name) {
 	ml_uninitialized_t *Uninitialized = new(ml_uninitialized_t);
 	Uninitialized->Type = MLUninitializedT;
+	Uninitialized->Name = Name;
 	return (ml_value_t *)Uninitialized;
 }
 
@@ -313,17 +318,44 @@ static int ml_uninitialized_resolve(const char *Name, ml_uninitialized_t *Unitia
 	return 0;
 }
 
+static void ml_uninitialized_transfer(ml_uninitialized_t *Uninitialized, ml_uninitialized_t *Uninitialized2);
+
+static int ml_uninitialized_transfer_import(const char *Name, ml_uninitialized_t *Uninitialized, ml_uninitialized_t *Uninitialized2) {
+	ml_uninitialized_t **Slot = (ml_uninitialized_t **)stringmap_slot(Uninitialized2->Unresolved, Name);
+	if (Slot[0]) {
+		ml_uninitialized_transfer(Uninitialized, Slot[0]);
+	} else {
+		Slot[0] = Uninitialized;
+	}
+	return 0;
+}
+
+static void ml_uninitialized_transfer(ml_uninitialized_t *Uninitialized, ml_uninitialized_t *Uninitialized2) {
+	ml_uninitialized_slot_t *Slot = Uninitialized2->Slots;
+	if (Slot) {
+		while (Slot->Next) Slot = Slot->Next;
+		Slot->Next = Uninitialized->Slots;
+	} else {
+		Uninitialized2->Slots = Uninitialized->Slots;
+	}
+	stringmap_foreach(Uninitialized->Unresolved, Uninitialized2, (void *)ml_uninitialized_transfer_import);
+}
+
 void ml_uninitialized_set(ml_value_t *Uninitialized0, ml_value_t *Value) {
 	ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Uninitialized0;
-	for (ml_uninitialized_slot_t *Slot = Uninitialized->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Value;
-	stringmap_foreach(Uninitialized->Unresolved, Value, (void *)ml_uninitialized_resolve);
+	if (ml_typeof(Value) == MLUninitializedT) {
+		ml_uninitialized_transfer(Uninitialized, (ml_uninitialized_t *)Value);
+	} else {
+		for (ml_uninitialized_slot_t *Slot = Uninitialized->Slots; Slot; Slot = Slot->Next) Slot->Value[0] = Value;
+		stringmap_foreach(Uninitialized->Unresolved, Value, (void *)ml_uninitialized_resolve);
+	}
 }
 
 ML_METHOD("::", MLUninitializedT, MLStringT) {
 	ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Uninitialized->Unresolved, Name);
-	if (!Slot[0]) Slot[0] = ml_uninitialized();
+	if (!Slot[0]) Slot[0] = ml_uninitialized(Name);
 	return Slot[0];
 }
 
@@ -331,12 +363,18 @@ ML_METHOD("::", MLUninitializedT, MLStringT) {
 
 #define MAX_TRACE 16
 
-struct ml_error_t {
+typedef struct {
 	const ml_type_t *Type;
 	const char *Error;
 	const char *Message;
 	ml_source_t Trace[MAX_TRACE];
-};
+} ml_error_value_t;
+
+typedef struct {
+	const ml_type_t *Type;
+	ml_value_t *Value;
+	ml_error_value_t Error[1];
+} ml_error_t;
 
 static ml_value_t *ml_error_assign(ml_value_t *Error, ml_value_t *Value) {
 	return Error;
@@ -346,23 +384,63 @@ static void ml_error_call(ml_state_t *Caller, ml_value_t *Error, int Count, ml_v
 	ML_RETURN(Error);
 }
 
+ML_FUNCTION(MLError) {
+//!error
+//@error
+//<Type
+//<Message
+//>error
+// Creates an error exception with type :mini:`Type` and message :mini:`Message`. Since this creates an exception, it will trigger the current exception handler.
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ML_CHECK_ARG_TYPE(1, MLStringT);
+	ml_error_t *Error = new(ml_error_t);
+	Error->Type = MLErrorT;
+	Error->Error->Type = MLErrorValueT;
+	Error->Error->Error = ml_string_value(Args[0]);
+	Error->Error->Message = ml_string_value(Args[1]);
+	Error->Value = (ml_value_t *)Error->Error;
+	return (ml_value_t *)Error;
+}
+
+ML_FUNCTION(MLRaise) {
+//!error
+//@raise
+//<Type
+//<Value
+//>error
+// Creates an exception with type :mini:`Type` and value :mini:`Value`. Since this creates an exception, it will trigger the current exception handler.
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ml_error_t *Error = new(ml_error_t);
+	Error->Type = MLErrorT;
+	Error->Error->Type = MLErrorValueT;
+	Error->Error->Error = ml_string_value(Args[0]);
+	Error->Error->Message = ml_typeof(Args[1])->Name;
+	Error->Value = Args[1];
+	return (ml_value_t *)Error;
+}
+
 ML_TYPE(MLErrorT, (), "error",
 //!error
 	.assign = ml_error_assign,
 	.call = ml_error_call
 );
 
-ML_TYPE(MLErrorValueT, (MLErrorT), "error_value");
-//!error
+ML_TYPE(MLErrorValueT, (), "error",
+//!internal
+	.Constructor = (ml_value_t *)MLError
+);
 
 ml_value_t *ml_errorv(const char *Error, const char *Format, va_list Args) {
 	char *Message;
 	vasprintf(&Message, Format, Args);
 	ml_error_t *Value = new(ml_error_t);
 	Value->Type = MLErrorT;
-	Value->Error = Error;
-	Value->Message = Message;
-	memset(Value->Trace, 0, sizeof(Value->Trace));
+	Value->Error->Type = MLErrorValueT;
+	Value->Error->Error = Error;
+	Value->Error->Message = Message;
+	Value->Value = (ml_value_t *)Value->Error;
 	return (ml_value_t *)Value;
 }
 
@@ -374,62 +452,70 @@ ml_value_t *ml_error(const char *Error, const char *Format, ...) {
 	return Value;
 }
 
-const char *ml_error_type(ml_value_t *Value) {
-	return ((ml_error_t *)Value)->Error;
+const char *ml_error_type(const ml_value_t *Value) {
+	return ((ml_error_t *)Value)->Error->Error;
 }
 
-const char *ml_error_message(ml_value_t *Value) {
-	return ((ml_error_t *)Value)->Message;
+const char *ml_error_message(const ml_value_t *Value) {
+	return ((ml_error_t *)Value)->Error->Message;
 }
 
-int ml_error_source(ml_value_t *Value, int Level, ml_source_t *Source) {
+ml_value_t *ml_error_value(const ml_value_t *Value) {
+	return ((ml_error_t *)Value)->Value;
+}
+
+int ml_error_source(const ml_value_t *Value, int Level, ml_source_t *Source) {
 	ml_error_t *Error = (ml_error_t *)Value;
 	if (Level >= MAX_TRACE) return 0;
-	if (!Error->Trace[Level].Name) return 0;
-	Source[0] = Error->Trace[Level];
+	if (!Error->Error->Trace[Level].Name) return 0;
+	Source[0] = Error->Error->Trace[Level];
 	return 1;
 }
 
 ml_value_t *ml_error_trace_add(ml_value_t *Value, ml_source_t Source) {
 	ml_error_t *Error = (ml_error_t *)Value;
-	for (int I = 0; I < MAX_TRACE; ++I) if (!Error->Trace[I].Name) {
-		Error->Trace[I] = Source;
+	for (int I = 0; I < MAX_TRACE; ++I) if (!Error->Error->Trace[I].Name) {
+		Error->Error->Trace[I] = Source;
 		break;
 	}
 	return Value;
 }
 
-void ml_error_print(ml_value_t *Value) {
+void ml_error_print(const ml_value_t *Value) {
 	ml_error_t *Error = (ml_error_t *)Value;
-	printf("Error: %s\n", Error->Message);
-	for (int I = 0; (I < MAX_TRACE) && Error->Trace[I].Name; ++I) {
-		printf("\t%s:%d\n", Error->Trace[I].Name, Error->Trace[I].Line);
+	printf("Error: %s\n", Error->Error->Message);
+	for (int I = 0; (I < MAX_TRACE) && Error->Error->Trace[I].Name; ++I) {
+		printf("\t%s:%d\n", Error->Error->Trace[I].Name, Error->Error->Trace[I].Line);
 	}
 }
 
-void ml_error_fprint(FILE *File, ml_value_t *Value) {
+void ml_error_fprint(FILE *File, const ml_value_t *Value) {
 	ml_error_t *Error = (ml_error_t *)Value;
-	fprintf(File, "Error: %s\n", Error->Message);
-	for (int I = 0; (I < MAX_TRACE) && Error->Trace[I].Name; ++I) {
-		fprintf(File, "\t%s:%d\n", Error->Trace[I].Name, Error->Trace[I].Line);
+	fprintf(File, "Error: %s\n", Error->Error->Message);
+	for (int I = 0; (I < MAX_TRACE) && Error->Error->Trace[I].Name; ++I) {
+		fprintf(File, "\t%s:%d\n", Error->Error->Trace[I].Name, Error->Error->Trace[I].Line);
 	}
 }
 
-ML_METHOD("type", MLErrorT) {
-	return ml_string(((ml_error_t *)Args[0])->Error, -1);
+ML_METHOD("type", MLErrorValueT) {
+//!error
+	return ml_string(((ml_error_value_t *)Args[0])->Error, -1);
 }
 
-ML_METHOD("message", MLErrorT) {
-	return ml_string(((ml_error_t *)Args[0])->Message, -1);
+ML_METHOD("message", MLErrorValueT) {
+//!error
+	return ml_string(((ml_error_value_t *)Args[0])->Message, -1);
 }
 
-ML_METHOD("trace", MLErrorT) {
+ML_METHOD("trace", MLErrorValueT) {
+//!error
+	ml_error_value_t *Value = (ml_error_value_t *)Args[0];
 	ml_value_t *Trace = ml_list();
-	ml_source_t Source;
-	for (int I = 0; ml_error_source(Args[0], I, &Source); ++I) {
+	ml_source_t *Source = Value->Trace;
+	for (int I = MAX_TRACE; --I >= 0 && Source->Name; ++Source) {
 		ml_value_t *Tuple = ml_tuple(2);
-		ml_tuple_set(Tuple, 1, ml_string(Source.Name, -1));
-		ml_tuple_set(Tuple, 2, ml_integer(Source.Line));
+		ml_tuple_set(Tuple, 1, ml_string(Source->Name, -1));
+		ml_tuple_set(Tuple, 2, ml_integer(Source->Line));
 		ml_list_put(Trace, Tuple);
 	}
 	return Trace;
@@ -442,6 +528,12 @@ int ml_debugger_check(ml_state_t *State) {
 	typeof(ml_debugger_check) *function = ml_typed_fn_get(State->Type, ml_debugger_check);
 	if (function) return function(State);
 	return 0;
+}
+
+void ml_debugger_step_mode(ml_state_t *State, int StepOver, int StepOut) {
+	if (!State || !State->Type) return;
+	typeof(ml_debugger_step_mode) *function = ml_typed_fn_get(State->Type, ml_debugger_step_mode);
+	if (function) return function(State, StepOver, StepOut);
 }
 
 ml_source_t ml_debugger_source(ml_state_t *State) {

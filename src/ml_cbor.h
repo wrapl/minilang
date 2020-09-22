@@ -23,7 +23,14 @@ void ml_cbor_reader_read(ml_cbor_reader_t *Reader, unsigned char *Bytes, int Siz
 ml_value_t *ml_cbor_reader_get(ml_cbor_reader_t *Reader);
 int ml_cbor_reader_extra(ml_cbor_reader_t *Reader);
 
-typedef struct {const void *Data; size_t Length;} ml_cbor_t;
+typedef struct {
+	union {
+		const void *Data;
+		ml_value_t *Error;
+	};
+	size_t Length;
+} ml_cbor_t;
+
 typedef struct {ml_value_t *Value; int Extra;} ml_cbor_result_t;
 
 ml_cbor_t ml_to_cbor(ml_value_t *Value);
@@ -32,7 +39,7 @@ ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*
 
 typedef void (*ml_cbor_write_fn)(void *Data, const unsigned char *Bytes, unsigned Size);
 
-void ml_cbor_write(ml_value_t *Value, void *Data, ml_cbor_write_fn WriteFn);
+ml_value_t *ml_cbor_write(ml_value_t *Value, void *Data, ml_cbor_write_fn WriteFn);
 
 void ml_cbor_write_integer(void *Data, ml_cbor_write_fn WriteFn, int64_t Number);
 void ml_cbor_write_positive(void *Data, ml_cbor_write_fn WriteFn, uint64_t Number);

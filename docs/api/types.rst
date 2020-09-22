@@ -1,7 +1,7 @@
 Types
 =====
 
-.. c:type:: struct ml_value_t
+.. c:type:: ml_value_t
 
    Represents a Minilang value.
    Every Minilang value must contain this struct at the start.
@@ -11,7 +11,7 @@ Types
    Type of this value.
 
 
-.. c:type:: struct ml_type_t
+.. c:type:: ml_type_t
 
    Represents a Minilang type.
    
@@ -95,9 +95,9 @@ Types
 
 .. c:function:: long ml_hash(ml_value_t *Value)
 
-   Equivalent to :c:func:`ml_hash_chain(Value, NULL)`.
+   Equivalent to :c:func:`ml_hash_chain()`.
 
-.. c:type:: struct ml_hash_chain_t
+.. c:type:: ml_hash_chain_t
 
    If :c:func:`ml_hash_chain()` is called with a value already in the chain, the previous index is returned, preventing cycles.
 

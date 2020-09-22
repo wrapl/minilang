@@ -26,7 +26,7 @@ static ml_value_t *ml_console_global_get(ml_console_t *Console, const char *Name
 	if (Value) return Value;
 	Value = (Console->ParentGetter)(Console->ParentGlobals, Name);
 	if (Value) return Value;
-	Value = ml_uninitialized();
+	Value = ml_uninitialized(Name);
 	stringmap_insert(Console->Globals, Name, Value);
 	return Value;
 }
@@ -70,31 +70,35 @@ static const char *ml_console_line_read(ml_console_t *Console) {
 typedef struct {
 	ml_state_t Base;
 	ml_console_t *Console;
-	mlc_scanner_t *Scanner;
+	ml_compiler_t *Scanner;
 } ml_console_repl_state_t;
 
-ml_value_t MLConsoleBreak[1] = {{MLAnyT}};
+static int ml_stringbuffer_print(FILE *File, const char *String, size_t Length) {
+	fwrite(String, 1, Length, File);
+	return 0;
+}
 
 static void ml_console_log(void *Data, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
-		printf("Error: %s\n", ml_error_message(Value));
+	error:
+		printf("%s: %s\n", ml_error_type(Value), ml_error_message(Value));
 		ml_source_t Source;
 		int Level = 0;
 		while (ml_error_source(Value, Level++, &Source)) {
 			printf("\t%s:%d\n", Source.Name, Source.Line);
 		}
 	} else {
-		ml_value_t *String = ml_string_of(Value);
-		if (ml_is(String, MLStringT)) {
-			printf("%s\n", ml_string_value(String));
-		} else {
-			printf("<%s>\n", ml_typeof(Value)->Name);
-		}
+		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+		Value = ml_simple_inline(MLStringBufferAppendMethod, 2, Buffer, Value);
+		if (ml_is_error(Value)) goto error;
+		ml_stringbuffer_foreach(Buffer, stdout, (void *)ml_stringbuffer_print);
+		puts("");
+		fflush(stdout);
 	}
 }
 
 static void ml_console_repl_run(ml_console_repl_state_t *State, ml_value_t *Result) {
-	if (!Result || Result == MLConsoleBreak) return;
+	if (Result == MLEndOfInput) return;
 	State->Console->Prompt = State->Console->DefaultPrompt;
 	Result = ml_deref(Result);
 	ml_console_log(NULL, Result);
@@ -112,16 +116,17 @@ static ml_value_t *ml_console_debugger_get(ml_console_debugger_t *ConsoleDebugge
 	return ml_console_global_get(ConsoleDebugger->Console, Name);
 }
 
-static void ml_console_debug_enter(ml_console_t *Console, interactive_debugger_t *Debugger) {
+static void ml_console_debug_enter(ml_console_t *Console, interactive_debugger_t *Debugger, ml_source_t Source, int Index) {
 	ml_console_debugger_t *ConsoleDebugger = new(ml_console_debugger_t);
 	ConsoleDebugger->Console = Console;
 	ConsoleDebugger->Debugger = Debugger;
+	printf("Debug break [%d]: %s:%d\n", Index, Source.Name, Source.Line);
 	ml_console((void *)ml_console_debugger_get, ConsoleDebugger, "\e[34m>>>\e[0m ", "\e[34m...\e[0m ");
 	interactive_debugger_resume(Debugger);
 }
 
-static void ml_console_debug_exit(ml_state_t *Caller, void *Data) {
-	ML_RETURN(MLConsoleBreak);
+static void ml_console_debug_exit(void *Data, interactive_debugger_t *Debugger, ml_state_t *Caller, int Index) {
+	ML_RETURN(MLEndOfInput);
 }
 
 void ml_console(ml_getter_t GlobalGet, void *Globals, const char *DefaultPrompt, const char *ContinuePrompt) {
@@ -139,7 +144,7 @@ void ml_console(ml_getter_t GlobalGet, void *Globals, const char *DefaultPrompt,
 		(ml_getter_t)ml_console_global_get,
 		Console
 	));
-	mlc_scanner_t *Scanner = ml_scanner("<console>", Console, (void *)ml_console_line_read, (ml_getter_t)ml_console_global_get, Console);
+	ml_compiler_t *Scanner = ml_compiler("<console>", Console, (void *)ml_console_line_read, (ml_getter_t)ml_console_global_get, Console);
 	ml_console_repl_state_t *State = new(ml_console_repl_state_t);
 	State->Base.run = (void *)ml_console_repl_run;
 	State->Base.Context = &MLRootContext;

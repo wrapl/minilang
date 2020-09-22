@@ -1,15 +1,18 @@
-fun fact(N) do
-	var F := 1
-	for I in 1 .. N do
-		F := old * I
+fun test(X) do
+	when X is nil do
+		"<nil>"
+	is in string, list do
+		"<string or list>"
+	is 100, 50, > 200 do
+		"100 50, or > 200"
+	is in 60 .. 70 do
+		"60 .. 70"
+	else
+		"<unknown>"
 	end
-	ret F
 end
 
-print('20! = {fact(20)}\n')
-
-let Start := now()
-for I in 1 .. 1000000 do
-	fact(20)
+for X in [nil, "hello", [], 1, 50, 100, 200, 201, 65] do
+	print('test({X}) -> {test(X)}\n')
 end
-print('Time taken = {now() - Start}\n')
+

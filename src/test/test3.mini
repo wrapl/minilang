@@ -2,9 +2,9 @@ var L := [1, 2, "hello", 4, 5]
 
 do
 	for X in L do
-		print('{X} + 1 = {X + 1}\n')
+		print('{X} * 2 = {X * 2}\n')
 		if X = 4 then
-			exit 1 + "a"
+			exit "a" * 2
 		end
 	on Error do
 		print('Correct! An error has occurred 1: {Error:type}\n')
@@ -29,12 +29,12 @@ for Z in 1 .. 10 do
 	print('Z = {Z}\n')
 	if Z = 5 then
 		print('5!\n')
-		'a' + 1
+		'a' * 2
 	on Error do
 		print('Correct! An error has occurred 3: {Error:type}\n')
 		next
 	elseif Z = 9 then
-		1 + 'a'
+		'a' * 2
 	end
 	print('... and on\n')
 on Error do

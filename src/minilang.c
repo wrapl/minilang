@@ -28,10 +28,6 @@
 #include "ml_cbor.h"
 #endif
 
-#ifdef USE_ML_MPC
-#include "ml_mpc.h"
-#endif
-
 #ifdef USE_ML_RADB
 #include "ml_radb.h"
 #endif
@@ -57,31 +53,19 @@ ML_FUNCTION(MLClock) {
 	return ml_real(Time->tv_sec + Time->tv_nsec / 1000000000.0);
 }
 
+static int ml_stringbuffer_print(FILE *File, const char *String, size_t Length) {
+	fwrite(String, 1, Length, File);
+	return 0;
+}
+
 ML_FUNCTION(MLPrint) {
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Result = Args[I];
-		if (!ml_is(Result, MLStringT)) {
-			Result = ml_simple_call(MLStringOfMethod, 1, &Result);
-			if (ml_is_error(Result)) return Result;
-			if (!ml_is(Result, MLStringT)) return ml_error("ResultError", "string method did not return string");
-		}
-		fwrite(ml_string_value(Result), 1, ml_string_length(Result), stdout);
+		ml_value_t *Result = ml_simple_inline(MLStringBufferAppendMethod, 2, Buffer, Args[I]);
+		if (ml_is_error(Result)) return Result;
 	}
+	ml_stringbuffer_foreach(Buffer, stdout, (void *)ml_stringbuffer_print);
 	fflush(stdout);
-	return MLNil;
-}
-
-ML_FUNCTION(MLError) {
-	ML_CHECK_ARG_COUNT(2);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
-	ML_CHECK_ARG_TYPE(1, MLStringT);
-	return ml_error(ml_string_value(Args[0]), "%s", ml_string_value(Args[1]));
-}
-
-ML_FUNCTION(MLBreak) {
-#ifdef DEBUG
-	asm("int3");
-#endif
 	return MLNil;
 }
 
@@ -135,6 +119,16 @@ ML_FUNCTIONX(Import) {
 	}
 	ML_RETURN(Slot[0]);
 }
+
+ML_FUNCTION(Unload) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	const char *FileName = realpath(ml_string_value(Args[0]), NULL);
+	if (!FileName) return ml_error("ModuleError", "File %s not found", ml_string_value(Args[0]));
+	stringmap_remove(Modules, FileName);
+	return MLNil;
+}
+
 #endif
 
 int main(int Argc, const char *Argv[]) {
@@ -147,13 +141,13 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "now", MLNow);
 	stringmap_insert(Globals, "clock", MLClock);
 	stringmap_insert(Globals, "print", MLPrint);
-	stringmap_insert(Globals, "error", MLError);
-	stringmap_insert(Globals, "break", MLBreak);
+	stringmap_insert(Globals, "error", MLErrorValueT);
+	stringmap_insert(Globals, "raise", MLRaise);
 	stringmap_insert(Globals, "halt", MLHalt);
 	stringmap_insert(Globals, "collect", MLCollect);
 	stringmap_insert(Globals, "callcc", MLCallCC);
 	stringmap_insert(Globals, "mark", MLMark);
-	stringmap_insert(Globals, "context", MLContextKey);
+	stringmap_insert(Globals, "context", MLContextKeyT);
 	stringmap_insert(Globals, "test", MLTest);
 #ifdef USE_ML_CBOR
 	ml_cbor_init(Globals);
@@ -169,9 +163,6 @@ int main(int Argc, const char *Argv[]) {
 	ml_gir_init(Globals);
 	int GtkConsole = 0;
 #endif
-#ifdef USE_ML_MPC
-	ml_mpc_init(Globals);
-#endif
 #ifdef USE_ML_RADB
 	ml_radb_init(Globals);
 #endif
@@ -179,6 +170,7 @@ int main(int Argc, const char *Argv[]) {
 	ml_module_init(Globals);
 	ml_library_init(Globals);
 	stringmap_insert(Globals, "import", Import);
+	stringmap_insert(Globals, "unload", Unload);
 #endif
 	ml_value_t *Args = ml_list();
 	const char *FileName = 0;
@@ -209,11 +201,11 @@ int main(int Argc, const char *Argv[]) {
 		}
 	}
 	if (FileName) {
-		ml_value_state_t *State = ml_value_state_new();
-		ml_load((ml_state_t *)State, global_get, NULL, FileName, Parameters);
+		ml_value_state_t *State = ml_value_state_new(NULL);
+		ml_load_file((ml_state_t *)State, global_get, NULL, FileName, Parameters);
 		ml_inline(State, State->Value, 1, Args);
 		if (ml_is_error(State->Value)) {
-			printf("Error: %s\n", ml_error_message(State->Value));
+			printf("%s: %s\n", ml_error_type(State->Value), ml_error_message(State->Value));
 			ml_source_t Source;
 			int Level = 0;
 			while (ml_error_source(State->Value, Level++, &Source)) {
@@ -223,10 +215,10 @@ int main(int Argc, const char *Argv[]) {
 		}
 #ifdef USE_ML_MODULES
 	} else if (ModuleName) {
-		ml_value_state_t *State = ml_value_state_new();
+		ml_value_state_t *State = ml_value_state_new(NULL);
 		ml_inline(State, (ml_value_t *)Import, 1, ml_string(ModuleName, -1));
 		if (ml_is_error(State->Value)) {
-			printf("Error: %s\n", ml_error_message(State->Value));
+			printf("%s: %s\n", ml_error_type(State->Value), ml_error_message(State->Value));
 			ml_source_t Source;
 			int Level = 0;
 			while (ml_error_source(State->Value, Level++, &Source)) {

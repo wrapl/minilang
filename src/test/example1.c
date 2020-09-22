@@ -20,7 +20,7 @@ int main(int Argc, char **Argv) {
 	ml_init();
 	stringmap_t *Globals = stringmap_new();
 	stringmap_insert(Globals, "print", ml_function(NULL, print));
-	ml_value_t *Value = ml_load((ml_getter_t)stringmap_search, Globals, "example1.mini");
+	ml_value_t *Value = ml_load_file((ml_getter_t)stringmap_search, Globals, "example1.mini");
 	if (Value->Type == MLErrorT) {
 		ml_error_print(Value);
 		exit(1);

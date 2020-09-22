@@ -3,7 +3,6 @@ from docutils import nodes
 import re
 from pygments import lexers
 import inspect
-#import sphinx_bootstrap_theme
 import os
 
 class FoldersDirective(Directive):
@@ -72,7 +71,7 @@ author = 'Raja Mukherji'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 
-extensions = []
+extensions = ['sphinx.ext.graphviz']
 
 
 # Add any paths that contain templates here, relative to this directory.
@@ -99,13 +98,6 @@ html_theme_options = {
 html_sidebars = {
     "**": ["logo-text.html", "globaltoc.html", "localtoc.html", "searchbox.html"]
 }
-
-#html_theme = 'bootstrap'
-#html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
-
-#html_theme_options = {
-#    'bootswatch_theme': "united"
-#}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -140,4 +132,4 @@ def setup(sphinx):
 	lexers.LEXERS['mini'] = ('minilang', 'Minilang', ('mini',), ('*.mini', '*.rabs'), ('text/x-mini',))
 	#sphinx.add_domain(minilangDomain) 
 	sphinx.add_directive('folders', FoldersDirective)
-	sphinx.add_stylesheet('css/custom.css')
+	sphinx.add_css_file('css/custom.css')

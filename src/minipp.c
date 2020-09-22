@@ -152,7 +152,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 	stringmap_insert(Globals, "input", ml_cfunction(Preprocessor, (void *)ml_preprocessor_input));
 	stringmap_insert(Globals, "include", ml_cfunction(Preprocessor, (void *)ml_preprocessor_include));
 	stringmap_insert(Globals, "open", MLFileOpen);
-	mlc_scanner_t *Scanner = ml_scanner(InputName, Preprocessor, (void *)ml_preprocessor_line_read, (ml_getter_t)ml_preprocessor_global_get, Preprocessor);
+	ml_compiler_t *Scanner = ml_compiler(InputName, Preprocessor, (void *)ml_preprocessor_line_read, (ml_getter_t)ml_preprocessor_global_get, Preprocessor);
 	ml_value_t *Semicolon = ml_cstring(";");
 	for (;;) {
 		ml_preprocessor_input_t *Input = Preprocessor->Input;
@@ -191,7 +191,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 			} else {
 				Input->Line = Escape + 1;
 				ml_command_evaluate(MLResultState, Scanner, Globals);
-				Input->Line = ml_scanner_clear(Scanner);
+				Input->Line = ml_compiler_clear(Scanner);
 			}
 		} else {
 			if (Line[0] && Line[0] != '\n') ml_simple_inline(Preprocessor->Output->Writer, 1, ml_string(Line, strlen(Line)));

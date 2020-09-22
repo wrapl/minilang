@@ -134,7 +134,7 @@ static ml_value_t *parse_string(xe_stream_t *Stream) {
 			++P;
 		}
 	}
-	return ml_stringbuffer_get_string(Buffer);
+	return ml_stringbuffer_value(Buffer);
 }
 
 #define SKIP_WHITESPACE \
@@ -283,13 +283,13 @@ static ml_value_t *parse_node(xe_stream_t *Stream) {
 					if (!End) return ml_error("ParseError", "Invalid escape sequence at line %d in %s", Stream->LineNo, Stream->Source);
 				} else if (End[0] == '<') {
 					ml_stringbuffer_add(Buffer, Next, End - Next);
-					if (Buffer->Length) node_append(Content, ml_stringbuffer_get_string(Buffer));
+					if (Buffer->Length) node_append(Content, ml_stringbuffer_value(Buffer));
 					Stream->Next = End + 1;
 					ml_list_put(Content, parse_node(Stream));
 					End = Next = Stream->Next;
 				} else if (End[0] == '>') {
 					ml_stringbuffer_add(Buffer, Next, End - Next);
-					if (Buffer->Length) node_append(Content, ml_stringbuffer_get_string(Buffer));
+					if (Buffer->Length) node_append(Content, ml_stringbuffer_value(Buffer));
 					break;
 				} else {
 					++End;
@@ -625,14 +625,12 @@ ML_FUNCTIONX(XEFunction) {
 	Stream->Data = ml_stringbuffer_get(Source);
 	//printf("Function = %s\n", (char *)Stream->Data);
 	Stream->read = string_read;
-	mlc_scanner_t *Scanner = ml_scanner("node", Stream, (void *)string_read, (ml_getter_t)attribute_get, Attributes);
-	ml_scanner_source(Scanner, ml_debugger_source(Caller));
-	ml_value_state_t *State = ml_value_state_new();
+	ml_compiler_t *Scanner = ml_compiler("node", Stream, (void *)string_read, (ml_getter_t)attribute_get, Attributes);
+	ml_compiler_source(Scanner, ml_debugger_source(Caller));
+	ml_value_state_t *State = ml_value_state_new(Caller->Context);
 	ml_command_evaluate((ml_state_t *)State, Scanner, Globals);
-	ml_value_t *Result = State->Value;
-	ml_value_state_free(State);
-	ml_value_t *Macro = Result ?: ml_error("ParseError", "Empty body");
-	Macro = ml_deref(Macro);
+	ml_value_t *Macro = State->Value;
+	if (Macro == MLEndOfInput) Macro = ml_error("ParseError", "Empty body");
 	if (ml_is_error(Macro)) ML_RETURN(Macro);
 	ml_value_t *Name = ml_map_search(Attributes, ml_integer(1));
 	if (Name == MLNil) ML_RETURN(Macro);
@@ -700,19 +698,18 @@ ML_FUNCTIONX(XEDo) {
 	Stream->Data = ml_stringbuffer_get(Source);
 	//printf("Do = %s\n", (char *)Stream->Data);
 	Stream->read = string_read;
-	mlc_scanner_t *Scanner = ml_scanner("node", Stream, (void *)string_read, (ml_getter_t)attribute_get, Attributes);
-	ml_scanner_source(Scanner, ml_debugger_source(Caller));
-	ml_value_state_t *State = ml_value_state_new();
+	ml_compiler_t *Scanner = ml_compiler("node", Stream, (void *)string_read, (ml_getter_t)attribute_get, Attributes);
+	ml_compiler_source(Scanner, ml_debugger_source(Caller));
+	ml_value_state_t *State = ml_value_state_new(Caller->Context);
 	for (;;) {
 		ml_command_evaluate((ml_state_t *)State, Scanner, Globals);
-		if (!State->Value) break;
+		if (State->Value == MLEndOfInput) break;
 		if (ml_is_error(State->Value)) {
 			Result = State->Value;
 			break;
 		}
 		Result = ml_deref(State->Value);
 	}
-	ml_value_state_free(State);
 	ML_RETURN(Result);
 }
 
@@ -732,20 +729,19 @@ ML_FUNCTIONX(XEDo2) {
 	Stream->Data = ml_stringbuffer_get(Source);
 	//printf("Do = %s\n", (char *)Stream->Data);
 	Stream->read = string_read;
-	mlc_scanner_t *Scanner = ml_scanner("node", Stream, (void *)string_read, (ml_getter_t)attribute_get, Attributes);
-	ml_scanner_source(Scanner, ml_debugger_source(Caller));
+	ml_compiler_t *Scanner = ml_compiler("node", Stream, (void *)string_read, (ml_getter_t)attribute_get, Attributes);
+	ml_compiler_source(Scanner, ml_debugger_source(Caller));
 	ml_value_t *Result = MLNil;
-	ml_value_state_t *State = ml_value_state_new();
+	ml_value_state_t *State = ml_value_state_new(Caller->Context);
 	for (;;) {
 		ml_command_evaluate((ml_state_t *)State, Scanner, Globals);
-		if (!State->Value) break;
+		if (State->Value == MLEndOfInput) break;
 		if (ml_is_error(State->Value)) {
 			Result = State->Value;
 			break;
 		}
 	}
-	ml_value_state_free(State);
-	ML_RETURN(MLNil);
+	ML_RETURN(Result);
 }
 
 static const char *file_read(xe_stream_t *Stream) {
@@ -856,7 +852,7 @@ ML_METHOD(MLStringOfMethod, XENodeT) {
 		}
 	}
 	ml_stringbuffer_add(Buffer, ">", 1);
-	return ml_stringbuffer_get_string(Buffer);
+	return ml_stringbuffer_value(Buffer);
 }
 
 ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, XEVarT) {
@@ -871,7 +867,7 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, XEVarT) {
 ML_METHOD(MLStringOfMethod, XEVarT) {
 	xe_var_t *Var = (xe_var_t *)Args[0];
 	if (ml_is(Var->Name, MLIntegerT)) {
-		return ml_string_format("<$%d>", ml_integer_value(Var->Name));
+		return ml_string_format("<$%ld>", ml_integer_value(Var->Name));
 	} else {
 		return ml_string_format("<$%s>", ml_string_value(Var->Name));
 	}
@@ -1141,7 +1137,7 @@ int main(int Argc, char **Argv) {
 			}
 		}
 	} else if (FileName) {
-		ml_load(MLLoadedState, global_get, Globals, FileName, Parameters);
+		ml_load_file(MLLoadedState, global_get, Globals, FileName, Parameters);
 	} else {
 		ml_console(global_get, Globals, "--> ", "... ");
 	}

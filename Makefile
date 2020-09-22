@@ -40,6 +40,7 @@ obj/ml_file.o: obj/ml_file_init.c
 obj/ml_iterfns.o: obj/ml_iterfns_init.c
 obj/ml_bytecode.o: obj/ml_bytecode_init.c
 obj/ml_runtime.o: obj/ml_runtime_init.c
+obj/ml_compiler.o: obj/ml_compiler_init.c
 
 common_objects = \
 	obj/ml_compiler.o \

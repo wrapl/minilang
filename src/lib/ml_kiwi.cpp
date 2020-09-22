@@ -27,7 +27,7 @@ ML_METHOD(MLStringOfMethod, KiwiVariableT) {
 	kiwi_variable_t *V = (kiwi_variable_t *)Args[0];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_stringbuffer_addf(Buffer, "?%s", V->Value.name().c_str());
-	return ml_stringbuffer_get_string(Buffer);
+	return ml_stringbuffer_value(Buffer);
 }
 
 ML_TYPE(KiwiExpressionT, (), "kiwi-expression");
@@ -51,7 +51,7 @@ ML_METHOD(MLStringOfMethod, KiwiExpressionT) {
 		}
 		ml_stringbuffer_addf(Buffer, "%s", Term.variable().name().c_str());
 	}
-	return ml_stringbuffer_get_string(Buffer);
+	return ml_stringbuffer_value(Buffer);
 }
 
 ML_TYPE(KiwiConstraintT, (), "kiwi-constraint");
@@ -87,7 +87,7 @@ ML_METHOD(MLStringOfMethod, KiwiConstraintT) {
 		break;
 	}
 	ml_stringbuffer_addf(Buffer, " @ %f", C->Value.strength());
-	return ml_stringbuffer_get_string(Buffer);
+	return ml_stringbuffer_value(Buffer);
 }
 
 ML_METHOD("-", KiwiVariableT) {
