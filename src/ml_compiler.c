@@ -954,7 +954,7 @@ static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_
 			mlc_compiled_t TryCompiled = mlc_compile(Function, CatchExpr->Body);
 			if (CatchExpr->Types) {
 				for (mlc_catch_type_t *Type = CatchExpr->Types; Type; Type = Type->Next) {
-					ml_inst_t *CatchInst = ml_inst_new(5, Expr->Source, MLI_CATCH);
+					ml_inst_t *CatchInst = ml_inst_new(5, CatchExpr->Decl->Source, MLI_CATCH);
 					Last->Params[0].Inst = CatchInst;
 					Last = CatchInst;
 					CatchInst->Params[1].Inst = TryCompiled.Start;
@@ -1370,6 +1370,7 @@ struct mlc_fun_expr_t {
 	MLC_EXPR_FIELDS(fun);
 	ml_decl_t *Params;
 	mlc_expr_t *Body;
+	ml_source_t End;
 };
 
 static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr) {
@@ -1377,7 +1378,7 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	mlc_function_t SubFunction[1];
 	memset(SubFunction, 0, sizeof(SubFunction));
 	SubFunction->Compiler = Function->Compiler;
-	SubFunction->ReturnInst = ml_inst_new(0, Expr->Source, MLI_RETURN);
+	SubFunction->ReturnInst = ml_inst_new(0, Expr->End, MLI_RETURN);
 	SubFunction->Up = Function;
 	ml_closure_info_t *Info = new(ml_closure_info_t);
 	Info->Source = Expr->Source.Name;
@@ -1772,8 +1773,10 @@ static ml_token_t ml_advance(ml_compiler_t *Compiler) {
 	for (;;) {
 		if (!Compiler->Next || !Compiler->Next[0]) {
 			Compiler->Next = (Compiler->Read)(Compiler->Data);
-			++Compiler->Source.Line;
-			if (Compiler->Next) continue;
+			if (Compiler->Next) {
+				++Compiler->Source.Line;
+				continue;
+			}
 			Compiler->Token = MLT_EOI;
 			return Compiler->Token;
 		}
@@ -2083,6 +2086,7 @@ static mlc_expr_t *ml_accept_fun_expr(ml_compiler_t *Compiler, ml_token_t EndTok
 		ml_accept(Compiler, EndToken);
 	}
 	FunExpr->Body = ml_accept_expression(Compiler, EXPR_DEFAULT);
+	FunExpr->End = Compiler->Source;
 	return (mlc_expr_t *)FunExpr;
 }
 
@@ -2925,6 +2929,7 @@ static mlc_expr_t *ml_accept_block_export(ml_compiler_t *Compiler, mlc_expr_t *E
 }
 
 static mlc_expr_t *ml_accept_block(ml_compiler_t *Compiler, int NoCatches) {
+	if (Compiler->Token == MLT_NONE) ml_advance(Compiler);
 	ML_EXPR(BlockExpr, block, block);
 	ml_accept_block_t Accept[1];
 	Accept->ExprSlot = &BlockExpr->Child;
@@ -3036,7 +3041,7 @@ ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, ml_compiler_t 
 	mlc_function_t Function[1];
 	memset(Function, 0, sizeof(mlc_function_t));
 	Function->Compiler = Compiler;
-	Function->ReturnInst = ml_inst_new(0, Expr->Source, MLI_RETURN);
+	Function->ReturnInst = ml_inst_new(0, Compiler->Source, MLI_RETURN);
 	SHA256_CTX HashCompiler[1];
 	sha256_init(HashCompiler);
 	ml_closure_info_t *Info = new(ml_closure_info_t);

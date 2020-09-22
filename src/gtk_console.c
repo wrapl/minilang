@@ -397,6 +397,7 @@ int console_append(console_t *Console, const char *Buffer, int Length) {
 		}
 		gtk_text_buffer_insert_with_tags(LogBuffer, End, " >", 2, Console->BinaryTag, NULL);
 	}
+	gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(Console->LogView), Console->EndMark);
 	while (gtk_events_pending()) gtk_main_iteration();
 	return 0;
 }

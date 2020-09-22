@@ -851,9 +851,9 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	if (Breakpoints[LineNo / SIZE_BITS] & (1 << LineNo % SIZE_BITS)) {
 		return Debugger->run(Debugger, (ml_state_t *)Frame, MLNil);
 	}
-	if (Debugger->StepIn) {
+	/*if (Debugger->StepIn) {
 		return Debugger->run(Debugger, (ml_state_t *)Frame, MLNil);
-	}
+	}*/
 #else
 #ifdef USE_ML_JIT
 	if (Info->JITStart) {
@@ -1132,7 +1132,7 @@ static void ml_closure_inst_list(int Process, ml_inst_t *Inst, ml_stringbuffer_t
 	}
 	if (Inst->Label) ml_stringbuffer_addf(Buffer, "L%d:\n", Inst->Label);
 	Inst->Processed = Process;
-	ml_stringbuffer_addf(Buffer, "\t%3d %s", Inst->LineNo, MLInsts[Inst->Opcode]);
+	ml_stringbuffer_addf(Buffer, "\t%s%3d %s", Inst->PotentialBreakpoint ? "*" : " ", Inst->LineNo, MLInsts[Inst->Opcode]);
 	switch (MLInstTypes[Inst->Opcode]) {
 	case MLIT_INST_INST:
 		ml_stringbuffer_addf(Buffer, " -> L%d", Inst->Params[1].Inst->Label);

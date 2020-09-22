@@ -7,7 +7,7 @@ general
    *Defined at line 142 in src/gtk_console.c*
 
 :mini:`fun mlsleep(Arg₁: number)`
-   *Defined at line 588 in src/gtk_console.c*
+   *Defined at line 589 in src/gtk_console.c*
 
 :mini:`fun mlnow()`
    *Defined at line 46 in src/minilang.c*
