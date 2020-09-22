@@ -585,14 +585,14 @@ static gboolean sleep_run(void *Data) {
 	return FALSE;
 }
 
-#endif
-
 ML_FUNCTIONX(MLSleep) {
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLNumberT);
 	guint Interval = ml_real_value(Args[0]) * 1000;
 	g_timeout_add(Interval, sleep_run, Caller);
 }
+
+#endif
 
 console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	gtk_init(0, 0);
