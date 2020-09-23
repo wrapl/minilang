@@ -1288,7 +1288,7 @@ static ml_value_t *ml_task_resolve_finish(ml_task_resolve_t *Task, ml_value_t *V
 
 static ml_value_t *ml_task_resolve_error(ml_task_resolve_t *Task, ml_value_t *Value) {
 	Task->Inst->Opcode = MLI_RESOLVE;
-	Task->Inst->Params[1].Value = Task->Args[0];
+	Task->Inst->Params[1].Value = Task->ModuleParam[0];
 	Task->Inst->Params[2].Value = Task->Args[1];
 	return NULL;
 }
