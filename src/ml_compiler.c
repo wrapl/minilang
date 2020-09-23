@@ -1290,7 +1290,6 @@ static ml_value_t *ml_task_resolve_error(ml_task_resolve_t *Task, ml_value_t *Va
 	Task->Inst->Opcode = MLI_RESOLVE;
 	Task->Inst->Params[1].Value = Task->Args[0];
 	Task->Inst->Params[2].Value = Task->Args[1];
-	if (ml_typeof(Value) == MLUninitializedT) ml_uninitialized_use(Value, &Task->Inst->Params[1].Value);
 	return NULL;
 }
 
@@ -1301,6 +1300,7 @@ static mlc_compiled_t ml_resolve_expr_compile(mlc_function_t *Function, mlc_pare
 		ml_task_resolve_t *Task = new(ml_task_resolve_t);
 		Task->Base.start = (void *)ml_task_resolve_start;
 		Task->Base.finish = (void *)ml_task_resolve_finish;
+		Task->Base.error = (void *)ml_task_resolve_error;
 		Task->Base.Source = Expr->Source;
 		Task->ModuleParam = &ValueInst->Params[1].Value;
 		Task->Args[1] = Expr->Value;
