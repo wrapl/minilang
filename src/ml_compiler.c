@@ -247,6 +247,7 @@ static ml_value_t *ml_expr_compile(mlc_expr_t *Expr, mlc_function_t *Function) {
 	Info->Entry = Compiled.Start;
 	Info->Return = SubFunction->ReturnInst;
 	Info->Source = Expr->Source.Name;
+	Info->LineNo = Expr->Source.Line;
 	Info->FrameSize = SubFunction->Size;
 	Info->NumParams = 0;
 	ml_closure_t *Closure = new(ml_closure_t);
@@ -1382,6 +1383,7 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	SubFunction->Up = Function;
 	ml_closure_info_t *Info = new(ml_closure_info_t);
 	Info->Source = Expr->Source.Name;
+	Info->LineNo = Expr->Source.Line;
 	int NumParams = 0;
 	ml_decl_t **ParamSlot = &SubFunction->Decls;
 	for (ml_decl_t *Param = Expr->Params; Param;) {
@@ -1409,12 +1411,13 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	mlc_compiled_t Compiled = mlc_compile(SubFunction, Expr->Body);
 	ml_decl_t **UpValueSlot = &SubFunction->Decls;
 	while (UpValueSlot[0]) UpValueSlot = &UpValueSlot[0]->Next;
-	for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) {
+	int Index = 0;
+	for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next, ++Index) {
 		ml_decl_t *Decl = new(ml_decl_t);
 		Decl->Source = Expr->Source;
 		Decl->Ident = UpValue->Decl->Ident;
 		Decl->Value = UpValue->Decl->Value;
-		Decl->Index = ~UpValue->Index;
+		Decl->Index = ~Index;
 		UpValueSlot[0] = Decl;
 		UpValueSlot = &Decl->Next;
 	}
@@ -1595,7 +1598,7 @@ const char *MLTokens[] = {
 	"<method>" // MLT_METHOD
 };
 
-ml_compiler_t *ml_compiler(const char *SourceName, void *Data, ml_reader_t Read, ml_getter_t GlobalGet, void *Globals) {
+ml_compiler_t *ml_compiler(ml_reader_t Read, void *Data, ml_getter_t GlobalGet, void *Globals) {
 	ml_compiler_t *Compiler = new(ml_compiler_t);
 	Compiler->Base.run = (ml_state_fn)ml_tasks_state_run;
 	Compiler->TaskSlot = &Compiler->Tasks;
@@ -1603,7 +1606,7 @@ ml_compiler_t *ml_compiler(const char *SourceName, void *Data, ml_reader_t Read,
 	Compiler->Globals = Globals;
 	Compiler->Token = MLT_NONE;
 	Compiler->Next = "";
-	Compiler->Source.Name = SourceName;
+	Compiler->Source.Name = "";
 	Compiler->Source.Line = 0;
 	Compiler->Data = Data;
 	Compiler->Read = Read;
@@ -1625,6 +1628,11 @@ void ml_compiler_reset(ml_compiler_t *Compiler) {
 	Compiler->Next = "";
 	Compiler->Tasks = NULL;
 	Compiler->TaskSlot = &Compiler->Tasks;
+}
+
+void ml_compiler_input(ml_compiler_t *Compiler, const char *Text) {
+	Compiler->Next = Text;
+	++Compiler->Source.Line;
 }
 
 const char *ml_compiler_clear(ml_compiler_t *Compiler) {
@@ -1773,16 +1781,14 @@ static ml_token_t ml_advance(ml_compiler_t *Compiler) {
 	for (;;) {
 		if (!Compiler->Next || !Compiler->Next[0]) {
 			Compiler->Next = (Compiler->Read)(Compiler->Data);
-			if (Compiler->Next) {
-				++Compiler->Source.Line;
-				continue;
-			}
+			if (Compiler->Next) continue;
 			Compiler->Token = MLT_EOI;
 			return Compiler->Token;
 		}
 		char Char = Compiler->Next[0];
 		if (Char == '\n') {
 			++Compiler->Next;
+			++Compiler->Source.Line;
 			Compiler->Token = MLT_EOL;
 			return Compiler->Token;
 		}
@@ -1811,7 +1817,7 @@ static ml_token_t ml_advance(ml_compiler_t *Compiler) {
 				const char *End = Compiler->Next;
 				while (End[0] != '\"') {
 					if (!End[0]) {
-						ml_compiler_error(Compiler, "ParseError", "end of input while parsing string");
+						ml_compiler_error(Compiler, "ParseError", "End of input while parsing string");
 					}
 					if (End[0] == '\\') ++End;
 					++End;
@@ -1959,7 +1965,9 @@ static ml_token_t ml_advance(ml_compiler_t *Compiler) {
 				Compiler->Next = End + 1;
 				return Compiler->Token;
 			} else if (Compiler->Next[1] == '>') {
-				Compiler->Next = "\n";
+				const char *End = Compiler->Next + 2;
+				while (End[0] && End[0] != '\n') ++End;
+				Compiler->Next = End;
 				continue;
 			} else if (Compiler->Next[1] == '<') {
 				Compiler->Next += 2;
@@ -2119,6 +2127,7 @@ static mlc_expr_t *ml_accept_meth_expr(ml_compiler_t *Compiler) {
 		ArgsSlot[0] = ml_accept_expression(Compiler, EXPR_DEFAULT);
 	} else {
 		FunExpr->Body = ml_accept_expression(Compiler, EXPR_DEFAULT);
+		FunExpr->End = Compiler->Source;
 		ArgsSlot[0] = (mlc_expr_t *)FunExpr;
 	}
 	return (mlc_expr_t *)MethodExpr;
@@ -2422,6 +2431,7 @@ static mlc_expr_t *ml_parse_factor(ml_compiler_t *Compiler, int MethDecl) {
 		} else {
 			ML_EXPR(FunExpr, fun, fun);
 			FunExpr->Body = ml_accept_expression(Compiler, EXPR_DEFAULT);
+			FunExpr->End = Compiler->Source;
 			return (mlc_expr_t *)FunExpr;
 		}
 	}
@@ -2728,6 +2738,7 @@ done:
 				Body = (mlc_expr_t *)ForExpr;
 			} while (ml_parse(Compiler, MLT_FOR));
 			FunExpr->Body = Body;
+			FunExpr->End = Compiler->Source;
 			Expr = (mlc_expr_t *)FunExpr;
 		}
 	}
@@ -3065,6 +3076,7 @@ ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, ml_compiler_t 
 	Info->Entry = Compiled.Start;
 	Info->Return = Function->ReturnInst;
 	Info->Source = Expr->Source.Name;
+	Info->LineNo = Expr->Source.Line;
 	Info->FrameSize = Function->Size;
 	Info->NumParams = NumParams;
 	ml_closure_t *Closure = new(ml_closure_t);
@@ -3336,7 +3348,8 @@ static void ml_load_file_state_run(ml_load_file_state_t *State, ml_value_t *Valu
 void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]) {
 	FILE *File = fopen(FileName, "r");
 	if (!File) ML_RETURN(ml_error("LoadError", "error opening %s", FileName));
-	ml_compiler_t *Compiler = ml_compiler(FileName, File, ml_file_read, GlobalGet, Globals);
+	ml_compiler_t *Compiler = ml_compiler(ml_file_read, File, GlobalGet, Globals);
+	ml_compiler_source(Compiler, (ml_source_t){FileName, 1});
 	ml_load_file_state_t *State = new(ml_load_file_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;

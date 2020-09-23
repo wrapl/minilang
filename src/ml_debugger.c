@@ -256,6 +256,7 @@ static void debugger_run(interactive_debugger_t *Debugger, ml_state_t *State, ml
 	Thread->Value = Value;
 	Debugger->ActiveThread = Thread;
 	ml_source_t Source = ml_debugger_source(State);
+	if (!Source.Line) asm("int3");
 	if (ml_is_error(Value)) {
 		Debugger->Info->log(Debugger->Info->Data, Value);
 	}

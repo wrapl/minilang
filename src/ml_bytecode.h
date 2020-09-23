@@ -28,7 +28,7 @@ struct ml_closure_info_t {
 	void *JITStart, *JITEntry, *JITReturn;
 #endif
 	stringmap_t Params[1];
-	int End, FrameSize;
+	int LineNo, End, FrameSize;
 	int NumParams, NumUpValues;
 	int ExtraArgs, NamedArgs;
 	unsigned char Hash[SHA256_BLOCK_SIZE];

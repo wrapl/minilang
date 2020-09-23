@@ -152,7 +152,8 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 	stringmap_insert(Globals, "input", ml_cfunction(Preprocessor, (void *)ml_preprocessor_input));
 	stringmap_insert(Globals, "include", ml_cfunction(Preprocessor, (void *)ml_preprocessor_include));
 	stringmap_insert(Globals, "open", MLFileOpen);
-	ml_compiler_t *Scanner = ml_compiler(InputName, Preprocessor, (void *)ml_preprocessor_line_read, (ml_getter_t)ml_preprocessor_global_get, Preprocessor);
+	ml_compiler_t *Scanner = ml_compiler((void *)ml_preprocessor_line_read, Preprocessor, (ml_getter_t)ml_preprocessor_global_get, Preprocessor);
+	ml_compiler_source(Compiler, (ml_source_t){InputName, 1});
 	ml_value_t *Semicolon = ml_cstring(";");
 	for (;;) {
 		ml_preprocessor_input_t *Input = Preprocessor->Input;

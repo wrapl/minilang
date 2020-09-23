@@ -625,7 +625,7 @@ ML_FUNCTIONX(XEFunction) {
 	Stream->Data = ml_stringbuffer_get(Source);
 	//printf("Function = %s\n", (char *)Stream->Data);
 	Stream->read = string_read;
-	ml_compiler_t *Scanner = ml_compiler("node", Stream, (void *)string_read, (ml_getter_t)attribute_get, Attributes);
+	ml_compiler_t *Scanner = ml_compiler((void *)string_read, Stream, (ml_getter_t)attribute_get, Attributes);
 	ml_compiler_source(Scanner, ml_debugger_source(Caller));
 	ml_value_state_t *State = ml_value_state_new(Caller->Context);
 	ml_command_evaluate((ml_state_t *)State, Scanner, Globals);
@@ -698,7 +698,7 @@ ML_FUNCTIONX(XEDo) {
 	Stream->Data = ml_stringbuffer_get(Source);
 	//printf("Do = %s\n", (char *)Stream->Data);
 	Stream->read = string_read;
-	ml_compiler_t *Scanner = ml_compiler("node", Stream, (void *)string_read, (ml_getter_t)attribute_get, Attributes);
+	ml_compiler_t *Scanner = ml_compiler((void *)string_read, Stream, (ml_getter_t)attribute_get, Attributes);
 	ml_compiler_source(Scanner, ml_debugger_source(Caller));
 	ml_value_state_t *State = ml_value_state_new(Caller->Context);
 	for (;;) {
@@ -729,7 +729,7 @@ ML_FUNCTIONX(XEDo2) {
 	Stream->Data = ml_stringbuffer_get(Source);
 	//printf("Do = %s\n", (char *)Stream->Data);
 	Stream->read = string_read;
-	ml_compiler_t *Scanner = ml_compiler("node", Stream, (void *)string_read, (ml_getter_t)attribute_get, Attributes);
+	ml_compiler_t *Scanner = ml_compiler((void *)string_read, Stream, (ml_getter_t)attribute_get, Attributes);
 	ml_compiler_source(Scanner, ml_debugger_source(Caller));
 	ml_value_t *Result = MLNil;
 	ml_value_state_t *State = ml_value_state_new(Caller->Context);

@@ -1091,7 +1091,7 @@ ML_TYPE(MLClosureT, (MLFunctionT, MLIteratableT), "closure",
 
 ML_METHOD(MLStringOfMethod, MLClosureT) {
 	ml_closure_t *Closure = (ml_closure_t *)Args[0];
-	return ml_string_format("<%s:%d>", Closure->Info->Source, Closure->Info->Entry->LineNo);
+	return ml_string_format("<%s:%d>", Closure->Info->Source, Closure->Info->LineNo);
 }
 
 static int ml_closure_parameter_fn(const char *Name, void *Value, ml_value_t *Parameters) {
@@ -1127,7 +1127,7 @@ static void ml_closure_find_labels(int Process, ml_inst_t *Inst, unsigned int *L
 
 static void ml_closure_inst_list(int Process, ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 	if (Inst->Processed == Process) {
-		ml_stringbuffer_addf(Buffer, "\t%3d jump L%d\n", Inst->LineNo, Inst->Label);
+		ml_stringbuffer_addf(Buffer, "\t %3d jump L%d\n", Inst->LineNo, Inst->Label);
 		return;
 	}
 	if (Inst->Label) ml_stringbuffer_addf(Buffer, "L%d:\n", Inst->Label);
