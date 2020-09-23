@@ -104,7 +104,8 @@ typedef enum {
 	MLI_STRING_NEW,
 	MLI_STRING_ADD,
 	MLI_STRING_ADDS,
-	MLI_STRING_END
+	MLI_STRING_END,
+	MLI_RESOLVE
 } ml_opcode_t;
 
 typedef enum {
@@ -120,6 +121,7 @@ typedef enum {
 	MLIT_INST_COUNT_VALUE,
 	MLIT_INST_COUNT_CHARS,
 	MLIT_INST_VALUE,
+	MLIT_INST_VALUE_VALUE,
 	MLIT_INST_CLOSURE
 } ml_inst_type_t;
 

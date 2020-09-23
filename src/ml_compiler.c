@@ -151,6 +151,7 @@ extern ml_value_t *SymbolMethod;
 struct ml_compiler_task_t {
 	void (*start)(ml_compiler_task_t *, ml_compiler_t *);
 	ml_value_t *(*finish)(ml_compiler_task_t *, ml_value_t *);
+	ml_value_t *(*error)(ml_compiler_task_t *, ml_value_t *);
 	ml_compiler_task_t *Next;
 	ml_value_t *Closure;
 	ml_source_t Source;
@@ -172,11 +173,16 @@ static void ml_task_queue(ml_compiler_t *Compiler, ml_compiler_task_t *Task) {
 static void ml_tasks_state_run(ml_compiler_t *Compiler, ml_value_t *Value) {
 	ml_state_t *Caller = Compiler->Base.Caller;
 	ml_compiler_task_t *Task = Compiler->Tasks;
+	ml_value_t *Error;
 	if (ml_is_error(Value)) {
-		ml_error_trace_add(Value, Task->Source);
-		ML_RETURN(Value);
+		if (!Task->error) {
+			ml_error_trace_add(Value, Task->Source);
+			ML_RETURN(Value);
+		}
+		Error = Task->error(Task, Value);
+	} else {
+		Error = Task->finish(Task, Value);
 	}
-	ml_value_t *Error = Task->finish(Task, Value);
 	if (Error) ML_RETURN(Error);
 	Task = Compiler->Tasks = Task->Next;
 	if (Task) {
@@ -1280,6 +1286,14 @@ static ml_value_t *ml_task_resolve_finish(ml_task_resolve_t *Task, ml_value_t *V
 	return NULL;
 }
 
+static ml_value_t *ml_task_resolve_error(ml_task_resolve_t *Task, ml_value_t *Value) {
+	Task->Inst->Opcode = MLI_RESOLVE;
+	Task->Inst->Params[1].Value = Task->Args[0];
+	Task->Inst->Params[2].Value = Task->Args[1];
+	if (ml_typeof(Value) == MLUninitializedT) ml_uninitialized_use(Value, &Task->Inst->Params[1].Value);
+	return NULL;
+}
+
 static mlc_compiled_t ml_resolve_expr_compile(mlc_function_t *Function, mlc_parent_value_expr_t *Expr) {
 	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
 	if ((Compiled.Start == Compiled.Exits) && (Compiled.Start->Opcode == MLI_LOAD)) {
@@ -1290,9 +1304,10 @@ static mlc_compiled_t ml_resolve_expr_compile(mlc_function_t *Function, mlc_pare
 		Task->Base.Source = Expr->Source;
 		Task->ModuleParam = &ValueInst->Params[1].Value;
 		Task->Args[1] = Expr->Value;
-		ml_inst_t *ImportInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
+		ml_inst_t *ImportInst = ml_inst_new(3, Expr->Source, MLI_LOAD);
 		Task->Inst = ImportInst;
 		ml_task_queue(Function->Compiler, (ml_compiler_task_t *)Task);
+		if (Function->Top + 2 >= Function->Size) Function->Size = Function->Top + 3;
 		return (mlc_compiled_t){ImportInst, ImportInst};
 	}
 	ml_inst_t *PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);

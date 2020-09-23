@@ -197,6 +197,8 @@ ML_TYPE(DEBUG_TYPE(Suspension), (MLFunctionT), "suspension",
 
 #ifndef DEBUG_VERSION
 void *MLCachedFrame = NULL;
+
+extern ml_value_t *SymbolMethod;
 #endif
 
 static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
@@ -267,7 +269,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_STRING_NEW] = &&DO_STRING_NEW,
 		[MLI_STRING_ADD] = &&DO_STRING_ADD,
 		[MLI_STRING_ADDS] = &&DO_STRING_ADDS,
-		[MLI_STRING_END] = &&DO_STRING_END
+		[MLI_STRING_END] = &&DO_STRING_END,
+		[MLI_RESOLVE] = &&DO_RESOLVE
 	};
 	ml_inst_t *Inst = Frame->Inst;
 	ml_value_t **Top = Frame->Top;
@@ -699,6 +702,19 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Result = ml_stringbuffer_value((ml_stringbuffer_t *)Result);
 		ADVANCE(0);
 	}
+	DO_RESOLVE: {
+		*Top++ = Inst->Params[1].Value;
+		*Top++ = Inst->Params[2].Value;
+		ml_value_t **Args = Top - 2;
+		ml_inst_t *Next = Inst->Params[0].Inst;
+#ifdef USE_ML_SCHEDULER
+		Frame->Schedule.Counter[0] = Counter;
+#endif
+		Frame->Inst = Next;
+		Frame->Top = Top - 2;
+		return ml_call(Frame, SymbolMethod, 2, Args);
+		ADVANCE(0);
+	}
 #ifdef DEBUG_VERSION
 	DO_DEBUG_ERROR: {
 		ml_debugger_t *Debugger = Frame->Debugger;
@@ -916,7 +932,8 @@ const char *MLInsts[] = {
 	"string_new", // MLI_STRING_NEW,
 	"string_add", // MLI_STRING_ADD,
 	"string_adds", // MLI_STRING_ADDS,
-	"string_end" // MLI_STRING_END
+	"string_end", // MLI_STRING_END
+	"resolve" // MLI_RESOLVE
 };
 
 const ml_inst_type_t MLInstTypes[] = {
@@ -968,7 +985,8 @@ const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INST, // MLI_STRING_NEW,
 	MLIT_INST_COUNT, // MLI_STRING_ADD,
 	MLIT_INST_COUNT_CHARS, // MLI_STRING_ADDS,
-	MLIT_INST // MLI_STRING_END
+	MLIT_INST, // MLI_STRING_END
+	MLIT_INST_VALUE_VALUE // MLI_RESOLVE
 };
 
 #ifdef ML_USE_INST_FNS
@@ -1018,6 +1036,10 @@ static void ml_inst_process(int Process, ml_inst_t *Source, ml_inst_t *Inst, ml_
 		break;
 	case MLIT_INST_VALUE:
 		*(long *)(Info->Hash + J) ^= ml_hash(Inst->Params[1].Value);
+		break;
+	case MLIT_INST_VALUE_VALUE:
+		*(long *)(Info->Hash + J) ^= ml_hash(Inst->Params[1].Value);
+		*(long *)(Info->Hash + J) ^= ml_hash(Inst->Params[2].Value);
 		break;
 	case MLIT_INST_INDEX_COUNT:
 		*(int *)(Info->Hash + I) ^= Inst->Params[1].Index;
@@ -1151,6 +1173,57 @@ static void ml_closure_inst_list(int Process, ml_inst_t *Inst, ml_stringbuffer_t
 		break;
 	case MLIT_INST_VALUE: {
 		ml_value_t *Value = Inst->Params[1].Value;
+		if (ml_is(Value, MLStringT)) {
+			ml_stringbuffer_add(Buffer, " \"", 2);
+			int Length = ml_string_length(Value);
+			const char *String = ml_string_value(Value);
+			for (int I = 0; I < Length; ++I) switch (String[I]) {
+				case 0: ml_stringbuffer_add(Buffer, "\\0", 2); break;
+				case '\t': ml_stringbuffer_add(Buffer, "\\t", 2); break;
+				case '\r': ml_stringbuffer_add(Buffer, "\\r", 2); break;
+				case '\n': ml_stringbuffer_add(Buffer, "\\n", 2); break;
+				case '\'': ml_stringbuffer_add(Buffer, "\\\'", 2); break;
+				case '\"': ml_stringbuffer_add(Buffer, "\\\"", 2); break;
+				case '\\': ml_stringbuffer_add(Buffer, "\\\\", 2); break;
+				default: ml_stringbuffer_add(Buffer, String + I, 1); break;
+			}
+			ml_stringbuffer_add(Buffer, "\"", 1);
+		} else if (ml_is(Value, MLNumberT)) {
+			ml_stringbuffer_add(Buffer, " ", 1);
+			ml_stringbuffer_append(Buffer, Value);
+		} else if (ml_typeof(Value) == MLMethodT) {
+			ml_stringbuffer_addf(Buffer, " :%s", ml_method_name(Value));
+		} else {
+			ml_stringbuffer_addf(Buffer, " %s", ml_typeof(Value)->Name);
+		}
+		break;
+	}
+	case MLIT_INST_VALUE_VALUE: {
+		ml_value_t *Value = Inst->Params[1].Value;
+		if (ml_is(Value, MLStringT)) {
+			ml_stringbuffer_add(Buffer, " \"", 2);
+			int Length = ml_string_length(Value);
+			const char *String = ml_string_value(Value);
+			for (int I = 0; I < Length; ++I) switch (String[I]) {
+				case 0: ml_stringbuffer_add(Buffer, "\\0", 2); break;
+				case '\t': ml_stringbuffer_add(Buffer, "\\t", 2); break;
+				case '\r': ml_stringbuffer_add(Buffer, "\\r", 2); break;
+				case '\n': ml_stringbuffer_add(Buffer, "\\n", 2); break;
+				case '\'': ml_stringbuffer_add(Buffer, "\\\'", 2); break;
+				case '\"': ml_stringbuffer_add(Buffer, "\\\"", 2); break;
+				case '\\': ml_stringbuffer_add(Buffer, "\\\\", 2); break;
+				default: ml_stringbuffer_add(Buffer, String + I, 1); break;
+			}
+			ml_stringbuffer_add(Buffer, "\"", 1);
+		} else if (ml_is(Value, MLNumberT)) {
+			ml_stringbuffer_add(Buffer, " ", 1);
+			ml_stringbuffer_append(Buffer, Value);
+		} else if (ml_typeof(Value) == MLMethodT) {
+			ml_stringbuffer_addf(Buffer, " :%s", ml_method_name(Value));
+		} else {
+			ml_stringbuffer_addf(Buffer, " %s", ml_typeof(Value)->Name);
+		}
+		Value = Inst->Params[2].Value;
 		if (ml_is(Value, MLStringT)) {
 			ml_stringbuffer_add(Buffer, " \"", 2);
 			int Length = ml_string_length(Value);
