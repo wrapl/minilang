@@ -1598,6 +1598,10 @@ const char *MLTokens[] = {
 	"<method>" // MLT_METHOD
 };
 
+static const char *ml_compiler_no_input(void *Data) {
+	return NULL;
+}
+
 ml_compiler_t *ml_compiler(ml_reader_t Read, void *Data, ml_getter_t GlobalGet, void *Globals) {
 	ml_compiler_t *Compiler = new(ml_compiler_t);
 	Compiler->Base.run = (ml_state_fn)ml_tasks_state_run;
@@ -1609,7 +1613,7 @@ ml_compiler_t *ml_compiler(ml_reader_t Read, void *Data, ml_getter_t GlobalGet, 
 	Compiler->Source.Name = "";
 	Compiler->Source.Line = 0;
 	Compiler->Data = Data;
-	Compiler->Read = Read;
+	Compiler->Read = Read ?: ml_compiler_no_input;
 	return Compiler;
 }
 

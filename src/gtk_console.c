@@ -43,7 +43,6 @@ struct console_t {
 	GKeyFile *Config;
 	PangoFontDescription *FontDescription;
 	ml_compiler_t *Compiler;
-	char *Input;
 	char *History[MAX_HISTORY];
 	int HistoryIndex, HistoryEnd;
 	stringmap_t SourceViews[1];
@@ -75,27 +74,6 @@ static ml_value_t *console_global_get(console_t *Console, const char *Name) {
 	Value = ml_uninitialized(Name);
 	stringmap_insert(Console->Globals, Name, Value);
 	return Value;
-}
-
-static char *console_read(console_t *Console) {
-	return NULL;
-
-	/*if (!Console->Input) return 0;
-	char *Line = Console->Input;
-	for (char *End = Console->Input; *End; ++End) {
-		if (*End == '\n') {
-			int Length = End - Console->Input;
-			Console->Input = End + 1;
-			char *Buffer = snew(Length + 2);
-			memcpy(Buffer, Line, Length);
-			Buffer[Length] = '\n';
-			Buffer[Length + 1] = 0;
-			return Buffer;
-		}
-	}
-	Console->Input = 0;
-	printf("Line = <%s>\n", Line);
-	return Line;*/
 }
 
 void console_log(console_t *Console, ml_value_t *Value) {
@@ -166,7 +144,6 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 	gtk_source_buffer_set_highlight_matching_brackets(GTK_SOURCE_BUFFER(InputBuffer), FALSE);
 	gtk_text_buffer_get_bounds(InputBuffer, InputStart, InputEnd);
 	const char *Text = gtk_text_buffer_get_text(InputBuffer, InputStart, InputEnd, FALSE);
-	//Console->Input = Text;
 
 	int HistoryEnd = Console->HistoryEnd;
 	Console->History[HistoryEnd] = GC_strdup(Text);
@@ -609,10 +586,9 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	Console->Name = strdup("<console>");
 	Console->ParentGetter = ParentGetter;
 	Console->ParentGlobals = ParentGlobals;
-	Console->Input = 0;
 	Console->HistoryIndex = 0;
 	Console->HistoryEnd = 0;
-	Console->Compiler = ml_compiler((void *)console_read, Console, (ml_getter_t)console_global_get, Console);
+	Console->Compiler = ml_compiler(NULL, NULL, (ml_getter_t)console_global_get, Console);
 	ml_compiler_source(Console->Compiler, (ml_source_t){Console->Name, 0});
 	Console->Notebook = GTK_NOTEBOOK(gtk_notebook_new());
 

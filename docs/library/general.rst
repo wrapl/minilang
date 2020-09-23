@@ -4,10 +4,10 @@ general
 .. include:: <isonum.txt>
 
 :mini:`ConsoleT`
-   *Defined at line 144 in src/gtk_console.c*
+   *Defined at line 122 in src/gtk_console.c*
 
 :mini:`fun mlsleep(Arg₁: number)`
-   *Defined at line 593 in src/gtk_console.c*
+   *Defined at line 570 in src/gtk_console.c*
 
 :mini:`fun mlnow()`
    *Defined at line 46 in src/minilang.c*
