@@ -384,6 +384,7 @@ static ml_value_t *ml_array_index_internal(ml_array_t *Source, int Count, ml_val
 			Address += SourceDimension->Stride * IndexValue;
 		} else if (ml_is(Index, MLListT)) {
 			int Size = TargetDimension->Size = ml_list_length(Index);
+			if (!Size) return ml_error("IndexError", "Empty dimension");
 			int *Indices = TargetDimension->Indices = (int *)GC_MALLOC_ATOMIC(Size * sizeof(int));
 			int *IndexPtr = Indices;
 			ML_LIST_FOREACH(Index, Iter) {
@@ -393,7 +394,10 @@ static ml_value_t *ml_array_index_internal(ml_array_t *Source, int Count, ml_val
 				if (IndexValue >= SourceDimension->Size) return MLNil;
 				*IndexPtr++ = IndexValue;
 			}
+			int First = Indices[0];
+			for (int I = 0; I < Size; ++I) Indices[I] -= First;
 			TargetDimension->Stride = SourceDimension->Stride;
+			Address += SourceDimension->Stride * First;
 			++TargetDimension;
 		} else if (ml_is(Index, MLIntegerRangeT)) {
 			ml_integer_range_t *IndexValue = (ml_integer_range_t *)Index;
@@ -855,7 +859,12 @@ UPDATE_METHOD(div, 4, ATYPE, CTYPE, FROM_VAL, FORMAT);
 
 #define BUFFER_APPEND(BUFFER, PRINTF, VALUE) ml_stringbuffer_append(BUFFER, VALUE)
 
-#define METHODS(ATYPE, CTYPE, APPEND, PRINTF, FROM_VAL, TO_VAL, FROM_NUM, TO_NUM, FORMAT) \
+static long srotl(long X, unsigned int N) {
+	const unsigned int Mask = (CHAR_BIT * sizeof(long) - 1);
+	return (X << (N & Mask)) | (X >> ((-N) & Mask ));
+}
+
+#define METHODS(ATYPE, CTYPE, APPEND, PRINTF, FROM_VAL, TO_VAL, FROM_NUM, TO_NUM, FORMAT, HASH) \
 \
 static ml_value_t *ML_TYPED_FN(ml_array_value, ATYPE, ml_array_t *Array, char *Address) { \
 	return TO_VAL(*(CTYPE *)Array->Base.Address); \
@@ -990,6 +999,55 @@ void ml_array_set_ ## CTYPE(CTYPE Value, ml_array_t *Array, ...) { \
 	} \
 } \
 \
+static long hash_array_ ## CTYPE(int Degree, ml_array_dimension_t *Dimension, char *Address) { \
+	int Stride = Dimension->Stride; \
+	if (Dimension->Indices) { \
+		int *Indices = Dimension->Indices; \
+		if (Dimension->Size) { \
+			if (Degree == 1) { \
+				long Hash = HASH(*(CTYPE *)(Address + (Indices[0]) * Dimension->Stride)); \
+				for (int I = 1; I < Dimension->Size; ++I) { \
+					Hash = srotl(Hash, 1) | HASH(*(CTYPE *)(Address + (Indices[I]) * Stride)); \
+				} \
+				return srotl(Hash, Degree); \
+			} else { \
+				long Hash = hash_array_ ## CTYPE(Degree - 1, Dimension + 1, Address + (Indices[0]) * Dimension->Stride); \
+				for (int I = 1; I < Dimension->Size; ++I) { \
+					Hash = srotl(Hash, 1) | hash_array_ ## CTYPE(Degree - 1, Dimension + 1, Address + (Indices[I]) * Dimension->Stride); \
+				} \
+				return srotl(Hash, Degree); \
+			} \
+		} \
+		return 0; \
+	} else { \
+		if (Degree == 1) { \
+			long Hash = HASH(*(CTYPE *)Address); \
+			Address += Stride; \
+			for (int I = Dimension->Size; --I > 0;) { \
+				Hash = srotl(Hash, 1) | HASH(*(CTYPE *)Address); \
+				Address += Stride; \
+			} \
+			return srotl(Hash, Degree); \
+		} else { \
+			long Hash = hash_array_ ## CTYPE(Degree - 1, Dimension + 1, Address); \
+			Address += Stride; \
+			for (int I = Dimension->Size; --I > 0;) { \
+				Hash = srotl(Hash, 1) | hash_array_ ## CTYPE(Degree - 1, Dimension + 1, Address); \
+				Address += Stride; \
+			} \
+			return srotl(Hash, Degree); \
+		} \
+	} \
+} \
+\
+static long ml_array_ ## CTYPE ## _hash(ml_array_t *Array) { \
+	if (Array->Degree == 0) { \
+		return Array->Format + (long)*(CTYPE *)Array->Base.Address; \
+	} else { \
+		return Array->Format + hash_array_ ## CTYPE(Array->Degree, Array->Dimensions, Array->Base.Address); \
+	} \
+} \
+\
 static ml_value_t *ml_array_ ## CTYPE ## _deref(ml_array_t *Target, ml_value_t *Value) { \
 	if (Target->Degree == 0)  return TO_VAL(*(CTYPE *)Target->Base.Address); \
 	return (ml_value_t *)Target; \
@@ -1032,6 +1090,7 @@ static ml_value_t *ml_array_ ## CTYPE ## _assign(ml_array_t *Target, ml_value_t 
 } \
 \
 ML_TYPE(ATYPE, (MLArrayT), #CTYPE "-array", \
+	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
 	.deref = (void *)ml_array_ ## CTYPE ## _deref, \
 	.assign = (void *)ml_array_ ## CTYPE ## _assign \
 );
@@ -1040,17 +1099,17 @@ typedef ml_value_t *value;
 
 #define NOP_VAL(T, X) X
 
-METHODS(MLArrayInt8T, int8_t, ml_stringbuffer_addf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I8);
-METHODS(MLArrayUInt8T, uint8_t, ml_stringbuffer_addf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U8);
-METHODS(MLArrayInt16T, int16_t, ml_stringbuffer_addf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I16);
-METHODS(MLArrayUInt16T, uint16_t, ml_stringbuffer_addf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U16);
-METHODS(MLArrayInt32T, int32_t, ml_stringbuffer_addf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I32);
-METHODS(MLArrayUInt32T, uint32_t, ml_stringbuffer_addf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U32);
-METHODS(MLArrayInt64T, int64_t, ml_stringbuffer_addf, "%ld", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I64);
-METHODS(MLArrayUInt64T, uint64_t, ml_stringbuffer_addf, "%lud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U64);
-METHODS(MLArrayFloat32T, float, ml_stringbuffer_addf, "%f", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F32);
-METHODS(MLArrayFloat64T, double, ml_stringbuffer_addf, "%f", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F64);
-METHODS(MLArrayAnyT, value, BUFFER_APPEND, "?", ml_nop, ml_nop, ml_number, ml_number_value, ML_ARRAY_FORMAT_ANY);
+METHODS(MLArrayInt8T, int8_t, ml_stringbuffer_addf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I8, (long));
+METHODS(MLArrayUInt8T, uint8_t, ml_stringbuffer_addf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U8, (long));
+METHODS(MLArrayInt16T, int16_t, ml_stringbuffer_addf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I16, (long));
+METHODS(MLArrayUInt16T, uint16_t, ml_stringbuffer_addf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U16, (long));
+METHODS(MLArrayInt32T, int32_t, ml_stringbuffer_addf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I32, (long));
+METHODS(MLArrayUInt32T, uint32_t, ml_stringbuffer_addf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U32, (long));
+METHODS(MLArrayInt64T, int64_t, ml_stringbuffer_addf, "%ld", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I64, (long));
+METHODS(MLArrayUInt64T, uint64_t, ml_stringbuffer_addf, "%lud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U64, (long));
+METHODS(MLArrayFloat32T, float, ml_stringbuffer_addf, "%f", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F32, (long));
+METHODS(MLArrayFloat64T, double, ml_stringbuffer_addf, "%f", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F64, (long));
+METHODS(MLArrayAnyT, value, BUFFER_APPEND, "?", ml_nop, ml_nop, ml_number, ml_number_value, ML_ARRAY_FORMAT_ANY, ml_hash);
 
 #define PARTIAL_SUMS(ATYPE, CTYPE) \
 \
