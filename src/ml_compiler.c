@@ -1386,7 +1386,7 @@ struct mlc_fun_expr_t {
 	MLC_EXPR_FIELDS(fun);
 	ml_decl_t *Params;
 	mlc_expr_t *Body;
-	ml_source_t End;
+	//ml_source_t End;
 };
 
 static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr) {
@@ -1394,7 +1394,7 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	mlc_function_t SubFunction[1];
 	memset(SubFunction, 0, sizeof(SubFunction));
 	SubFunction->Compiler = Function->Compiler;
-	SubFunction->ReturnInst = ml_inst_new(0, Expr->End, MLI_RETURN);
+	SubFunction->ReturnInst = ml_inst_new(0, Expr->Source, MLI_RETURN);
 	SubFunction->Up = Function;
 	ml_closure_info_t *Info = new(ml_closure_info_t);
 	Info->Source = Expr->Source.Name;
@@ -2113,7 +2113,8 @@ static mlc_expr_t *ml_accept_fun_expr(ml_compiler_t *Compiler, ml_token_t EndTok
 		ml_accept(Compiler, EndToken);
 	}
 	FunExpr->Body = ml_accept_expression(Compiler, EXPR_DEFAULT);
-	FunExpr->End = Compiler->Source;
+	FunExpr->Source = FunExpr->Body->Source;
+	//FunExpr->End = Compiler->Source;
 	return (mlc_expr_t *)FunExpr;
 }
 
@@ -2146,7 +2147,7 @@ static mlc_expr_t *ml_accept_meth_expr(ml_compiler_t *Compiler) {
 		ArgsSlot[0] = ml_accept_expression(Compiler, EXPR_DEFAULT);
 	} else {
 		FunExpr->Body = ml_accept_expression(Compiler, EXPR_DEFAULT);
-		FunExpr->End = Compiler->Source;
+		//FunExpr->End = Compiler->Source;
 		ArgsSlot[0] = (mlc_expr_t *)FunExpr;
 	}
 	return (mlc_expr_t *)MethodExpr;
@@ -2450,7 +2451,7 @@ static mlc_expr_t *ml_parse_factor(ml_compiler_t *Compiler, int MethDecl) {
 		} else {
 			ML_EXPR(FunExpr, fun, fun);
 			FunExpr->Body = ml_accept_expression(Compiler, EXPR_DEFAULT);
-			FunExpr->End = Compiler->Source;
+			//FunExpr->End = Compiler->Source;
 			return (mlc_expr_t *)FunExpr;
 		}
 	}
@@ -2757,7 +2758,7 @@ done:
 				Body = (mlc_expr_t *)ForExpr;
 			} while (ml_parse(Compiler, MLT_FOR));
 			FunExpr->Body = Body;
-			FunExpr->End = Compiler->Source;
+			//FunExpr->End = Compiler->Source;
 			Expr = (mlc_expr_t *)FunExpr;
 		}
 	}
@@ -2959,7 +2960,7 @@ static mlc_expr_t *ml_accept_block_export(ml_compiler_t *Compiler, mlc_expr_t *E
 }
 
 static mlc_expr_t *ml_accept_block(ml_compiler_t *Compiler, int NoCatches) {
-	if (Compiler->Token == MLT_NONE) ml_advance(Compiler);
+	//if (Compiler->Token == MLT_NONE) ml_advance(Compiler);
 	ML_EXPR(BlockExpr, block, block);
 	ml_accept_block_t Accept[1];
 	Accept->ExprSlot = &BlockExpr->Child;
@@ -3064,6 +3065,7 @@ static mlc_expr_t *ml_accept_block(ml_compiler_t *Compiler, int NoCatches) {
 		break;
 	}
 end:
+	BlockExpr->Source = Compiler->Source;
 	return (mlc_expr_t *)BlockExpr;
 }
 

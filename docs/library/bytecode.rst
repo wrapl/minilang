@@ -17,12 +17,15 @@ bytecode
 :mini:`meth :parameters(Arg₁: closure)`
    *Defined at line 1124 in src/ml_bytecode.c*
 
-:mini:`meth :list(Arg₁: closure)`
+:mini:`meth :info(Arg₁: closure)`
    *Defined at line 1309 in src/ml_bytecode.c*
 
+:mini:`meth :list(Arg₁: closure)`
+   *Defined at line 1320 in src/ml_bytecode.c*
+
 :mini:`meth !!(Arg₁: closure, Arg₂: list)`
-   *Defined at line 1319 in src/ml_bytecode.c*
+   *Defined at line 1330 in src/ml_bytecode.c*
 
 :mini:`meth :jit(Arg₁: closure)`
-   *Defined at line 1333 in src/ml_bytecode.c*
+   *Defined at line 1344 in src/ml_bytecode.c*
 
