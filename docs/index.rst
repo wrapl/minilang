@@ -44,6 +44,7 @@ Details
    /start
    /language
    /types
+   /grammar
    /embedding
    /api
    /internals

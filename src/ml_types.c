@@ -3281,6 +3281,18 @@ ML_TYPE(MLListNodeT, (), "list-node",
 	.assign = (void *)ml_list_node_assign
 );
 
+static void ML_TYPED_FN(ml_iter_next, MLListNodeT, ml_state_t *Caller, ml_list_node_t *Node) {
+	ML_RETURN((ml_value_t *)Node->Next ?: MLNil);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLListNodeT, ml_state_t *Caller, ml_list_node_t *Node) {
+	ML_RETURN(ml_integer(Node->Index));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLListNodeT, ml_state_t *Caller, ml_list_node_t *Node) {
+	ML_RETURN(Node);
+}
+
 ml_value_t *ml_list() {
 	ml_list_t *List = new(ml_list_t);
 	List->Type = MLListT;
@@ -3325,6 +3337,7 @@ void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
 	ml_list_node_t *Node = new(ml_list_node_t);
 	Node->Type = MLListNodeT;
 	Node->Value = Value;
+	List->ValidIndices = 0;
 	if ((Node->Next = List->Head)) {
 		List->Head->Prev = Node;
 	} else {
@@ -3340,6 +3353,7 @@ void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 	ml_list_node_t *Node = new(ml_list_node_t);
 	Node->Type = MLListNodeT;
 	Node->Value = Value;
+	List->ValidIndices = 0;
 	if ((Node->Prev = List->Tail)) {
 		List->Tail->Next = Node;
 	} else {
@@ -3352,6 +3366,7 @@ void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 ml_value_t *ml_list_pop(ml_value_t *List0) {
 	ml_list_t *List = (ml_list_t *)List0;
 	ml_list_node_t *Node = List->Head;
+	List->ValidIndices = 0;
 	if (Node) {
 		if ((List->Head = Node->Next)) {
 			List->Head->Prev = NULL;
@@ -3370,6 +3385,7 @@ ml_value_t *ml_list_pop(ml_value_t *List0) {
 ml_value_t *ml_list_pull(ml_value_t *List0) {
 	ml_list_t *List = (ml_list_t *)List0;
 	ml_list_node_t *Node = List->Tail;
+	List->ValidIndices = 0;
 	if (Node) {
 		if ((List->Tail = Node->Prev)) {
 			List->Tail->Next = NULL;
@@ -3471,6 +3487,7 @@ ML_METHOD("filter", MLListT, MLFunctionT) {
 	List->Length = Length;
 	List->CachedIndex = Length;
 	List->CachedNode = KeepTail;
+	List->ValidIndices = 0;
 	return (ml_value_t *)Drop;
 }
 
@@ -3585,7 +3602,7 @@ ml_value_t *ML_TYPED_FN(ml_unpack, MLListT, ml_list_t *List, int Index) {
 	return Node ? Node->Value : NULL;
 }
 
-typedef struct ml_list_iterator_t {
+/*typedef struct ml_list_iterator_t {
 	const ml_type_t *Type;
 	ml_list_node_t *Node;
 	long Index;
@@ -3610,14 +3627,23 @@ static void ML_TYPED_FN(ml_iter_key, MLListIterT, ml_state_t *Caller, ml_list_it
 
 ML_TYPE(MLListIterT, (), "list-iterator");
 //!internal
+*/
 
 static void ML_TYPED_FN(ml_iterate, MLListT, ml_state_t *Caller, ml_list_t *List) {
 	if (List->Length) {
-		ml_list_iterator_t *Iter = new(ml_list_iterator_t);
+		if (!List->ValidIndices) {
+			int I = 0;
+			for (ml_list_node_t *Node = List->Head; Node; Node = Node->Next) {
+				Node->Index = ++I;
+			}
+			List->ValidIndices = 1;
+		}
+		ML_RETURN(List->Head);
+		/*ml_list_iterator_t *Iter = new(ml_list_iterator_t);
 		Iter->Type = MLListIterT;
 		Iter->Node = List->Head;
 		Iter->Index = 1;
-		ML_RETURN(Iter);
+		ML_RETURN(Iter);*/
 	} else {
 		ML_RETURN(MLNil);
 	}
@@ -3779,6 +3805,7 @@ static ml_value_t *ml_list_sort(ml_list_t *List, ml_value_t *Compare) {
 		}
 		InSize *= 2;
 	}
+	List->ValidIndices = 0;
 	return (ml_value_t *)List;
 }
 
@@ -4259,6 +4286,7 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLMapT) {
 	return (ml_value_t *)Buffer;
 }
 
+/*
 #define ML_TREE_MAX_DEPTH 32
 
 typedef struct ml_map_iterator_t {
@@ -4268,18 +4296,18 @@ typedef struct ml_map_iterator_t {
 	int Top;
 } ml_map_iterator_t;
 
+static void ML_TYPED_FN(ml_iter_key, MLMapIterT, ml_state_t *Caller, ml_map_iterator_t *Iter) {
+	ML_RETURN(Iter->Node->Key);
+}
+
 static void ML_TYPED_FN(ml_iter_value, MLMapIterT, ml_state_t *Caller, ml_map_iterator_t *Iter) {
-	ML_RETURN(ml_reference(&Iter->Node->Value));
+	ML_RETURN(Iter->Node);
 }
 
 static void ML_TYPED_FN(ml_iter_next, MLMapIterT, ml_state_t *Caller, ml_map_iterator_t *Iter) {
 	ml_map_node_t *Node = Iter->Node;
 	if ((Iter->Node = Node->Next)) ML_RETURN(Iter);
 	ML_RETURN(MLNil);
-}
-
-static void ML_TYPED_FN(ml_iter_key, MLMapIterT, ml_state_t *Caller, ml_map_iterator_t *Iter) {
-	ML_RETURN(Iter->Node->Key);
 }
 
 ML_TYPE(MLMapIterT, (), "map-iterator");
@@ -4296,6 +4324,23 @@ static void ML_TYPED_FN(ml_iterate, MLMapT, ml_state_t *Caller, ml_value_t *Valu
 	} else {
 		ML_RETURN(MLNil);
 	}
+}
+*/
+
+static void ML_TYPED_FN(ml_iter_next, MLMapNodeT, ml_state_t *Caller, ml_map_node_t *Node) {
+	ML_RETURN((ml_value_t *)Node->Next ?: MLNil);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLMapNodeT, ml_state_t *Caller, ml_map_node_t *Node) {
+	ML_RETURN(Node->Key);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLMapNodeT, ml_state_t *Caller, ml_map_node_t *Node) {
+	ML_RETURN(Node);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLMapT, ml_state_t *Caller, ml_map_t *Map) {
+	ML_RETURN((ml_value_t *)Map->Head ?: MLNil);
 }
 
 ML_METHOD("+", MLMapT, MLMapT) {

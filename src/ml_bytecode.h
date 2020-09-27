@@ -28,7 +28,7 @@ struct ml_closure_info_t {
 	void *JITStart, *JITEntry, *JITReturn;
 #endif
 	stringmap_t Params[1];
-	int End, FrameSize;
+	int LineNo, End, FrameSize;
 	int NumParams, NumUpValues;
 	int ExtraArgs, NamedArgs;
 	unsigned char Hash[SHA256_BLOCK_SIZE];
@@ -62,8 +62,8 @@ typedef enum {
 	MLI_NIL,
 	MLI_NIL_PUSH,
 	MLI_SOME,
-	MLI_IF,
-	MLI_ELSE,
+	MLI_AND,
+	MLI_OR,
 	MLI_PUSH,
 	MLI_WITH,
 	MLI_WITH_VAR,
@@ -82,6 +82,7 @@ typedef enum {
 	MLI_LETI,
 	MLI_LETX,
 	MLI_FOR,
+	MLI_IF,
 	MLI_NEXT,
 	MLI_VALUE,
 	MLI_KEY,
@@ -104,7 +105,8 @@ typedef enum {
 	MLI_STRING_NEW,
 	MLI_STRING_ADD,
 	MLI_STRING_ADDS,
-	MLI_STRING_END
+	MLI_STRING_END,
+	MLI_RESOLVE
 } ml_opcode_t;
 
 typedef enum {
@@ -120,6 +122,7 @@ typedef enum {
 	MLIT_INST_COUNT_VALUE,
 	MLIT_INST_COUNT_CHARS,
 	MLIT_INST_VALUE,
+	MLIT_INST_VALUE_VALUE,
 	MLIT_INST_CLOSURE
 } ml_inst_type_t;
 

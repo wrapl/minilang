@@ -74,23 +74,23 @@ declaration.
 
 .. code-block:: mini
 
-   print('Y = {Y}\n') -- Y is nil here
+   print('Y = {Y}\n') :> Y is nil here
    
    var Y := 1 + 2
    
-   print('Y = {Y}\n') -- Y is 3 here
+   print('Y = {Y}\n') :> Y is 3 here
    
    var X
    
    do
-      X := 1 -- Sets X in surrounding scope
+      X := 1 :> Sets X in surrounding scope
    end
    
    print('X = {X}\n')
    
    do
-      var X -- Shadows declaration of X 
-      X := 2 -- Assigns to X in the previous line
+      var X :> Shadows declaration of X 
+      X := 2 :> Assigns to X in the previous line
       print('X = {X}\n')
    end
    
@@ -114,7 +114,7 @@ This is equivalent to writing
 
 .. code-block:: mini
 
-   var add := fun(X, Y) X + Y
+   let add := fun(X, Y) X + Y
 
 Functions themselves are described in :ref:`minilang/functions`.
 
@@ -149,17 +149,23 @@ Lists:
    of any type including other lists and maps.
 Maps:
    :mini:`{"a" is 1, 10 is "string"}`. The keys of a map have to be immutable
-   and comparable (e.g. numbers and strings). The values can be of any type. 
-
-
+   and comparable (e.g. numbers and strings). The values can be of any type.
+Tuples:
+   :mini:`(1, 2, 3)`, :mini:`("a", 1.23, [nil])`. Like lists, tuples can
+   contain values of any type. Tuple differ from lists by being immutable; 
+   once constructed the elements of a tuple cannot be modified. 
+Booleans:
+   :mini:`true` and :mini:`false`.
+Methods:
+   :mini:`:length`, :mini:`:X`, :mini:`<>`, :mini:`+`, :mini:`:"[]"`. Methods consisting only of the characters ``!``, ``@``, ``#``, ``$``, ``%``, ``^``, ``&``, ``*``, ``-``, ``+``, ``=``, ``|``, ``\\``, ``~``, `````, ``/``, ``?``, ``<``, ``>`` or ``.`` can be written directly without surrounding ``:"`` and ``"``.
 
 .. _minilang/functions:
 
 Functions
 ~~~~~~~~~
 
-Functions in *Minilang* are first class values. That means they can be passed to
-other functions and stored in variables, lists, maps, etc. Functions have
+Functions in *Minilang* are first class values. That means they can be passed
+to other functions and stored in variables, lists, maps, etc. Functions have
 access to variables in their surrounding scope when they were created.
 
 The general syntax of a function is :mini:`fun(Arguments) Body`. Calling a
@@ -181,11 +187,11 @@ expression which returns a function.
 
 .. code-block:: mini
 
-   var X := (if nil then add else sub end)(10, 3) -- 7
+   var X := (if nil then add else sub end)(10, 3) :> 7
    
    var f := fun(A) fun(B) A + B
    
-   var Y := f(2)(3) -- 5
+   var Y := f(2)(3) :> 5
 
 As a shorthand, the code :mini:`var Name := fun(Arguments) Body` can be written
 as :mini:`fun Name(Arguments) Body`. Internally, the two forms are identical.

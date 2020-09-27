@@ -70,7 +70,7 @@ static const char *ml_console_line_read(ml_console_t *Console) {
 typedef struct {
 	ml_state_t Base;
 	ml_console_t *Console;
-	ml_compiler_t *Scanner;
+	ml_compiler_t *Compiler;
 } ml_console_repl_state_t;
 
 static int ml_stringbuffer_print(FILE *File, const char *String, size_t Length) {
@@ -102,7 +102,7 @@ static void ml_console_repl_run(ml_console_repl_state_t *State, ml_value_t *Resu
 	State->Console->Prompt = State->Console->DefaultPrompt;
 	Result = ml_deref(Result);
 	ml_console_log(NULL, Result);
-	return ml_command_evaluate((ml_state_t *)State, State->Scanner, State->Console->Globals);
+	return ml_command_evaluate((ml_state_t *)State, State->Compiler, State->Console->Globals);
 }
 
 typedef struct {
@@ -144,11 +144,12 @@ void ml_console(ml_getter_t GlobalGet, void *Globals, const char *DefaultPrompt,
 		(ml_getter_t)ml_console_global_get,
 		Console
 	));
-	ml_compiler_t *Scanner = ml_compiler("<console>", Console, (void *)ml_console_line_read, (ml_getter_t)ml_console_global_get, Console);
+	ml_compiler_t *Compiler = ml_compiler((void *)ml_console_line_read, Console, (ml_getter_t)ml_console_global_get, Console);
+	ml_compiler_source(Compiler, (ml_source_t){"<console>", 1});
 	ml_console_repl_state_t *State = new(ml_console_repl_state_t);
 	State->Base.run = (void *)ml_console_repl_run;
 	State->Base.Context = &MLRootContext;
 	State->Console = Console;
-	State->Scanner = Scanner;
-	ml_command_evaluate((ml_state_t *)State, Scanner, Console->Globals);
+	State->Compiler = Compiler;
+	ml_command_evaluate((ml_state_t *)State, Compiler, Console->Globals);
 }

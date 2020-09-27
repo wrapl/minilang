@@ -42,8 +42,7 @@ struct console_t {
 	const char *FontName;
 	GKeyFile *Config;
 	PangoFontDescription *FontDescription;
-	ml_compiler_t *Scanner;
-	char *Input;
+	ml_compiler_t *Compiler;
 	char *History[MAX_HISTORY];
 	int HistoryIndex, HistoryEnd;
 	stringmap_t SourceViews[1];
@@ -75,25 +74,6 @@ static ml_value_t *console_global_get(console_t *Console, const char *Name) {
 	Value = ml_uninitialized(Name);
 	stringmap_insert(Console->Globals, Name, Value);
 	return Value;
-}
-
-static char *console_read(console_t *Console) {
-	if (!Console->Input) return 0;
-	char *Line = Console->Input;
-	for (char *End = Console->Input; *End; ++End) {
-		if (*End == '\n') {
-			int Length = End - Console->Input;
-			Console->Input = End + 1;
-			char *Buffer = snew(Length + 2);
-			memcpy(Buffer, Line, Length);
-			Buffer[Length] = '\n';
-			Buffer[Length + 1] = 0;
-			return Buffer;
-		}
-	}
-	Console->Input = 0;
-	printf("Line = <%s>\n", Line);
-	return Line;
 }
 
 void console_log(console_t *Console, ml_value_t *Value) {
@@ -155,7 +135,7 @@ static void ml_console_repl_run(console_t *Console, ml_value_t *Result) {
 		gtk_widget_grab_focus(Console->InputView);
 		return;
 	}
-	return ml_command_evaluate((ml_state_t *)Console, Console->Scanner, Console->Globals);
+	return ml_command_evaluate((ml_state_t *)Console, Console->Compiler, Console->Globals);
 }
 
 static void console_submit(GtkWidget *Button, console_t *Console) {
@@ -163,10 +143,10 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 	GtkTextIter InputStart[1], InputEnd[1];
 	gtk_source_buffer_set_highlight_matching_brackets(GTK_SOURCE_BUFFER(InputBuffer), FALSE);
 	gtk_text_buffer_get_bounds(InputBuffer, InputStart, InputEnd);
-	Console->Input = gtk_text_buffer_get_text(InputBuffer, InputStart, InputEnd, FALSE);
+	const char *Text = gtk_text_buffer_get_text(InputBuffer, InputStart, InputEnd, FALSE);
 
 	int HistoryEnd = Console->HistoryEnd;
-	Console->History[HistoryEnd] = GC_strdup(Console->Input);
+	Console->History[HistoryEnd] = GC_strdup(Text);
 	Console->HistoryIndex = Console->HistoryEnd = (HistoryEnd + 1) % MAX_HISTORY;
 
 	GtkTextIter End[1];
@@ -180,13 +160,14 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 
 	GtkTextBuffer *SourceBuffer = GTK_TEXT_BUFFER(Console->SourceBuffer);
 	gtk_text_buffer_get_end_iter(SourceBuffer, End);
-	gtk_text_buffer_insert(SourceBuffer, End, Console->Input, -1);
+	gtk_text_buffer_insert(SourceBuffer, End, Text, -1);
 	gtk_text_buffer_insert(SourceBuffer, End, "\n", -1);
 	gtk_source_buffer_set_highlight_matching_brackets(GTK_SOURCE_BUFFER(InputBuffer), TRUE);
 
-	ml_compiler_t *Scanner = Console->Scanner;
-	ml_compiler_reset(Scanner);
-	ml_command_evaluate((ml_state_t *)Console, Scanner, Console->Globals);
+	ml_compiler_t *Compiler = Console->Compiler;
+	ml_compiler_reset(Compiler);
+	ml_compiler_input(Compiler, Text);
+	ml_command_evaluate((ml_state_t *)Console, Compiler, Console->Globals);
 }
 
 static void console_debug_enter(console_t *Console, interactive_debugger_t *Debugger, ml_source_t Source, int Index) {
@@ -397,6 +378,7 @@ int console_append(console_t *Console, const char *Buffer, int Length) {
 		}
 		gtk_text_buffer_insert_with_tags(LogBuffer, End, " >", 2, Console->BinaryTag, NULL);
 	}
+	gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(Console->LogView), Console->EndMark);
 	while (gtk_events_pending()) gtk_main_iteration();
 	return 0;
 }
@@ -604,10 +586,10 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	Console->Name = strdup("<console>");
 	Console->ParentGetter = ParentGetter;
 	Console->ParentGlobals = ParentGlobals;
-	Console->Input = 0;
 	Console->HistoryIndex = 0;
 	Console->HistoryEnd = 0;
-	Console->Scanner = ml_compiler(Console->Name, Console, (void *)console_read, (ml_getter_t)console_global_get, Console);
+	Console->Compiler = ml_compiler(NULL, NULL, (ml_getter_t)console_global_get, Console);
+	ml_compiler_source(Console->Compiler, (ml_source_t){Console->Name, 0});
 	Console->Notebook = GTK_NOTEBOOK(gtk_notebook_new());
 
 #ifdef USE_ML_SCHEDULER

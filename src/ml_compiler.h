@@ -14,12 +14,14 @@ typedef struct ml_compiler_t ml_compiler_t;
 
 typedef const char *(*ml_reader_t)(void *);
 
-ml_compiler_t *ml_compiler(const char *SourceName, void *Data, ml_reader_t Read, ml_getter_t GlobalGet, void *Globals);
+ml_compiler_t *ml_compiler(ml_reader_t Read, void *Data, ml_getter_t GlobalGet, void *Globals);
 const char *ml_compiler_name(ml_compiler_t *Compiler);
 ml_source_t ml_compiler_source(ml_compiler_t *Compiler, ml_source_t Source);
 void ml_compiler_reset(ml_compiler_t *Compiler);
+void ml_compiler_input(ml_compiler_t *Compiler, const char *Text);
 const char *ml_compiler_clear(ml_compiler_t *Compiler);
 void ml_compiler_error(ml_compiler_t *Compiler, const char *Error, const char *Format, ...) __attribute__((noreturn)) ;
+
 
 void ml_function_compile(ml_state_t *Caller, ml_compiler_t *Compiler, const char **Parameters);
 
