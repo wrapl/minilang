@@ -1,0 +1,24 @@
+fun test_defs() do
+	def M := map(V to K for K, V in "ABCDEF")
+	def (A, B) in M
+	def (C, D) := (3, 4)
+	print('A = {A}, B = {B}, C = {C}, D = {D}\n')
+end
+
+fun test_lets() do
+	let M := map(V to K for K, V in "ABCDEF")
+	let (A, B) in M
+	let (C, D) := (3, 4)
+	print('A = {A}, B = {B}, C = {C}, D = {D}\n')
+end
+
+fun test_vars() do
+	var M := map(V to K for K, V in "ABCDEF")
+	var (A, B) in M
+	var (C, D) := (3, 4)
+	print('A = {A}, B = {B}, C = {C}, D = {D}\n')
+end
+
+test_defs()
+test_lets()
+test_vars()

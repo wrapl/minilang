@@ -32,6 +32,7 @@ class MinilangLexer(RegexLexer):
             ('\(', Operator, 'brackets'),
             ('\{', Operator, 'braces'),
             (r':[A-Za-z_]+', Name.Function),
+            (':\"', Name.Function, 'method'),
             (r':>.*\n', Comment),
             (':<', Comment, 'comment'),
             (r'\s+', Text),
@@ -53,6 +54,11 @@ class MinilangLexer(RegexLexer):
             (r'\\.', String.Escape),
             ('{', Operator, 'braces'),
             (r'[^\'\\{]+', String)
+        ],
+        'method': [
+            ('\"', Name.Function, '#pop'),
+            (r'\\.', String.Escape),
+            (r'[^"\\]+', Name.Function)
         ],
         'braces': [
             ('}', Operator, '#pop'),
