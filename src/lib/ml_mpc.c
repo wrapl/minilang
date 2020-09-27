@@ -351,7 +351,7 @@ ML_METHOD("%", MLStringT, MLValueParserT) {
 	if (mpc_parse("", String, Parser->Handle, Result)) {
 		return (ml_value_t *)Result->output;
 	} else {
-		return ml_error("ParseError", "Error parsing string");
+		return ml_error("ParseError", "Error parsing string: %s", mpc_err_string(Result->error));
 	}
 }
 
@@ -362,7 +362,7 @@ ML_METHOD("%", MLFileT, MLValueParserT) {
 	if (mpc_parse_file("", File, Parser->Handle, Result)) {
 		return (ml_value_t *)Result->output;
 	} else {
-		return ml_error("ParseError", "Error parsing file");
+		return ml_error("ParseError", "Error parsing file: %s", mpc_err_string(Result->error));
 	}
 }
 
@@ -373,7 +373,7 @@ ML_METHOD("%", MLStringT, MLStringParserT) {
 	if (mpc_parse("", String, Parser->Handle, Result)) {
 		return ml_string(Result->output, -1);
 	} else {
-		return ml_error("ParseError", "Error parsing string");
+		return ml_error("ParseError", "Error parsing string: %s", mpc_err_string(Result->error));
 	}
 }
 
@@ -384,7 +384,7 @@ ML_METHOD("%", MLFileT, MLStringParserT) {
 	if (mpc_parse_file("", File, Parser->Handle, Result)) {
 		return ml_string(Result->output, -1);
 	} else {
-		return ml_error("ParseError", "Error parsing file");
+		return ml_error("ParseError", "Error parsing file: %s", mpc_err_string(Result->error));
 	}
 }
 

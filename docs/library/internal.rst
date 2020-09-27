@@ -83,19 +83,19 @@ internal
    *Defined at line 3196 in src/ml_types.c*
 
 :mini:`listiter`
-   *Defined at line 3611 in src/ml_types.c*
+   *Defined at line 3628 in src/ml_types.c*
 
 :mini:`names`
    :Parents: :mini:`list`
 
-   *Defined at line 3802 in src/ml_types.c*
+   *Defined at line 3829 in src/ml_types.c*
 
 :mini:`mapindex`
-   *Defined at line 4095 in src/ml_types.c*
+   *Defined at line 4122 in src/ml_types.c*
 
 :mini:`mapiter`
-   *Defined at line 4285 in src/ml_types.c*
+   *Defined at line 4313 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: method)`
-   *Defined at line 4694 in src/ml_types.c*
+   *Defined at line 4739 in src/ml_types.c*
 

@@ -400,6 +400,7 @@ struct ml_list_node_t {
 	const ml_type_t *Type;
 	ml_list_node_t *Next, *Prev;
 	ml_value_t *Value;
+	int Index;
 };
 
 struct ml_list_t {
@@ -407,6 +408,7 @@ struct ml_list_t {
 	ml_list_node_t *Head, *Tail;
 	ml_list_node_t *CachedNode;
 	int Length, CachedIndex;
+	int ValidIndices;
 };
 
 ml_value_t *ml_list() __attribute__((malloc));
