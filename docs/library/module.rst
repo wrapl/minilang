@@ -11,13 +11,16 @@ module
 :mini:`meth ::(Arg₁: minimodule, Arg₂: string)`
    *Defined at line 16 in src/ml_module.c*
 
+:mini:`meth :exports(Arg₁: minimodule)`
+   *Defined at line 32 in src/ml_module.c*
+
 :mini:`exportfunction`
    :Parents: :mini:`function`
 
-   *Defined at line 53 in src/ml_module.c*
+   *Defined at line 65 in src/ml_module.c*
 
 :mini:`modulestate`
-   *Defined at line 63 in src/ml_module.c*
+   *Defined at line 75 in src/ml_module.c*
 
 :mini:`module`
    *Defined at line 4790 in src/ml_types.c*

@@ -3041,6 +3041,74 @@ static mlc_expr_t *ml_accept_block_export(ml_compiler_t *Compiler, mlc_expr_t *E
 	return (mlc_expr_t *)CallExpr;
 }
 
+typedef enum {
+	MLC_STATEMENT_NONE,
+	MLC_STATEMENT_VAR,
+	MLC_STATEMENT_LET,
+	MLC_STATEMENT_DEF,
+	MLC_STATEMENT_EXPR
+} mlc_statement_type_t;
+
+static mlc_expr_t *ml_accept_block_expr(ml_compiler_t *Compiler, ml_accept_block_t *Accept) {
+	mlc_expr_t *Expr = ml_parse_expression(Compiler, EXPR_DEFAULT);
+	if (!Expr) return NULL;
+	if (ml_parse(Compiler, MLT_COLON)) {
+		if (ml_parse(Compiler, MLT_VAR)) {
+			ml_decl_t **Exports = Accept->VarsSlot;
+			ml_accept_block_var(Compiler, Accept);
+			Expr = ml_accept_block_export(Compiler, Expr, Exports[0]);
+		} else if (ml_parse(Compiler, MLT_LET)) {
+			ml_decl_t **Exports = Accept->LetsSlot;
+			ml_accept_block_let(Compiler, Accept);
+			Expr = ml_accept_block_export(Compiler, Expr, Exports[0]);
+		} else if (ml_parse(Compiler, MLT_DEF)) {
+			ml_decl_t **Exports = Accept->DefsSlot;
+			ml_accept_block_def(Compiler, Accept);
+			Expr = ml_accept_block_export(Compiler, Expr, Exports[0]);
+		} else if (ml_parse(Compiler, MLT_FUN)) {
+			ml_decl_t **Exports = Accept->LetsSlot;
+			ml_accept_block_fun(Compiler, Accept);
+			Expr = ml_accept_block_export(Compiler, Expr, Exports[0]);
+		} else {
+			ml_accept_block_t Previous = *Accept;
+			mlc_expr_t *Child = ml_accept_block_expr(Compiler, Accept);
+			if (Accept->VarsSlot != Previous.VarsSlot) {
+				Accept->ExprSlot[0] = Child;
+				Accept->ExprSlot = &Child->Next;
+				Expr = ml_accept_block_export(Compiler, Expr, Previous.VarsSlot[0]);
+			} else if (Accept->LetsSlot != Previous.LetsSlot) {
+				Accept->ExprSlot[0] = Child;
+				Accept->ExprSlot = &Child->Next;
+				Expr = ml_accept_block_export(Compiler, Expr, Previous.LetsSlot[0]);
+			} else if (Accept->DefsSlot != Previous.DefsSlot) {
+				Accept->ExprSlot[0] = Child;
+				Accept->ExprSlot = &Child->Next;
+				Expr = ml_accept_block_export(Compiler, Expr, Previous.DefsSlot[0]);
+			} else {
+				mlc_parent_expr_t *CallExpr = (mlc_parent_expr_t *)Child;
+				if (CallExpr->compile != ml_call_expr_compile) {
+					ml_compiler_error(Compiler, "ParseError", "Invalid declaration");
+				}
+				mlc_ident_expr_t *IdentExpr = (mlc_ident_expr_t *)CallExpr->Child;
+				if (!IdentExpr || IdentExpr->compile != ml_ident_expr_compile) {
+					ml_compiler_error(Compiler, "ParseError", "Invalid declaration");
+				}
+				ml_decl_t *Decl = Accept->DefsSlot[0] = new(ml_decl_t);
+				Decl->Source = IdentExpr->Source;
+				Decl->Ident = IdentExpr->Ident;
+				Accept->DefsSlot = &Decl->Next;
+				ML_EXPR(DeclExpr, decl, def);
+				DeclExpr->Decl = Decl;
+				Expr->Next = IdentExpr->Next;
+				CallExpr->Child = Expr;
+				DeclExpr->Child = (mlc_expr_t *)CallExpr;
+				Expr = (mlc_expr_t *)DeclExpr;
+			}
+		}
+	}
+	return Expr;
+}
+
 static mlc_expr_t *ml_accept_block(ml_compiler_t *Compiler, int NoCatches) {
 	//if (Compiler->Token == MLT_NONE) ml_advance(Compiler);
 	ML_EXPR(BlockExpr, block, block);
@@ -3102,41 +3170,8 @@ static mlc_expr_t *ml_accept_block(ml_compiler_t *Compiler, int NoCatches) {
 			goto end;
 		}
 		default: {
-			mlc_expr_t *Expr = ml_parse_expression(Compiler, EXPR_DEFAULT);
+			mlc_expr_t *Expr = ml_accept_block_expr(Compiler, Accept);
 			if (!Expr) goto end;
-			if (ml_parse(Compiler, MLT_COLON)) {
-				if (ml_parse(Compiler, MLT_VAR)) {
-					ml_decl_t **Exports = Accept->VarsSlot;
-					ml_accept_block_var(Compiler, Accept);
-					Expr = ml_accept_block_export(Compiler, Expr, Exports[0]);
-				} else if (ml_parse(Compiler, MLT_LET)) {
-					ml_decl_t **Exports = Accept->LetsSlot;
-					ml_accept_block_let(Compiler, Accept);
-					Expr = ml_accept_block_export(Compiler, Expr, Exports[0]);
-				} else if (ml_parse(Compiler, MLT_DEF)) {
-					ml_decl_t **Exports = Accept->DefsSlot;
-					ml_accept_block_def(Compiler, Accept);
-					Expr = ml_accept_block_export(Compiler, Expr, Exports[0]);
-				} else if (ml_parse(Compiler, MLT_FUN)) {
-					ml_decl_t **Exports = Accept->LetsSlot;
-					ml_accept_block_fun(Compiler, Accept);
-					Expr = ml_accept_block_export(Compiler, Expr, Exports[0]);
-				} else {
-					ml_accept(Compiler, MLT_IDENT);
-					ml_decl_t *Decl = Accept->DefsSlot[0] = new(ml_decl_t);
-					Decl->Source = Compiler->Source;
-					Decl->Ident = Compiler->Ident;
-					Accept->DefsSlot = &Decl->Next;
-					ML_EXPR(DeclExpr, decl, def);
-					DeclExpr->Decl = Decl;
-					ml_accept(Compiler, MLT_LEFT_PAREN);
-					ml_accept_arguments(Compiler, MLT_RIGHT_PAREN, &Expr->Next);
-					ML_EXPR(CallExpr, parent, call);
-					CallExpr->Child = Expr;
-					DeclExpr->Child = (mlc_expr_t *)CallExpr;
-					Expr = (mlc_expr_t *)DeclExpr;
-				}
-			}
 			Accept->ExprSlot[0] = Expr;
 			Accept->ExprSlot = &Expr->Next;
 			break;
@@ -3310,7 +3345,6 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler, stringmap_
 			ml_command_def_t *Task = new(ml_command_def_t);
 			Task->Base.start = ml_task_default_start;
 			Task->Base.finish = (void *)ml_command_def_finish;
-			ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
 			if (ml_parse(Compiler, MLT_LEFT_PAREN)) {
 				ml_command_import_t **Unpacks = &Task->Unpacks;
 				do {
@@ -3330,6 +3364,9 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler, stringmap_
 				mlc_expr_t *Expr;
 				if (ml_parse(Compiler, MLT_IN)) {
 					Expr = ml_accept_expression(Compiler, EXPR_DEFAULT);
+					Task->Base.Closure = ml_compile(Expr, NULL, Compiler);
+					Task->Base.Source = Expr->Source;
+					ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
 					Task->NumImports = Task->NumUnpack;
 					Task->NumUnpack = 0;
 					ml_command_import_t *Import = Task->Unpacks;
@@ -3344,9 +3381,10 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler, stringmap_
 				} else {
 					ml_accept(Compiler, MLT_ASSIGN);
 					Expr = ml_accept_expression(Compiler, EXPR_DEFAULT);
+					Task->Base.Closure = ml_compile(Expr, NULL, Compiler);
+					Task->Base.Source = Expr->Source;
+					ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
 				}
-				Task->Base.Closure = ml_compile(Expr, NULL, Compiler);
-				Task->Base.Source = Expr->Source;
 			} else {
 				ml_accept(Compiler, MLT_IDENT);
 				const char *Ident = Compiler->Ident;
@@ -3364,6 +3402,9 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler, stringmap_
 					Slot[0] = ml_uninitialized(Ident);
 				}
 				Task->Slot = Slot;
+				Task->Base.Closure = ml_compile(Expr, NULL, Compiler);
+				Task->Base.Source = Expr->Source;
+				ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
 			}
 		} while (ml_parse(Compiler, MLT_COMMA));
 	} else if (ml_parse(Compiler, MLT_FUN)) {

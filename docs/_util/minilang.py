@@ -18,7 +18,8 @@ class MinilangLexer(RegexLexer):
                 "if", "then", "elseif", "else", "end", "loop", "while",
                 "until", "exit", "next", "for", "each", "to", "in", "is",
 				"fun", "ret", "susp", "with", "do", "on", "nil", "and",
-				"or", "not", "old", "def", "let", "var", "_", "meth"
+				"or", "not", "old", "def", "let", "var", "_", "meth",
+				"when"
             ), suffix = r'\b'), Keyword),
             (words((
                 "class", "method", "any", "type", "function", "number",
@@ -34,7 +35,7 @@ class MinilangLexer(RegexLexer):
             (r':[A-Za-z_]+', Name.Function),
             (':\"', Name.Function, 'method'),
             (r':>.*\n', Comment),
-            (':<', Comment, 'comment'),
+            (':<', Comment.Multiline, 'comment'),
             (r'\s+', Text),
             (r'[A-Za-z_]\w*', Text),
             (':=', Operator),
@@ -47,18 +48,18 @@ class MinilangLexer(RegexLexer):
         'string': [
             ('\"', String, '#pop'),
             (r'\\.', String.Escape),
-            (r'[^"\\]+', String)
+            (r'.', String)
         ],
         'string2': [
             ('\'', String, '#pop'),
             (r'\\.', String.Escape),
             ('{', Operator, 'braces'),
-            (r'[^\'\\{]+', String)
+            (r'.', String)
         ],
         'method': [
             ('\"', Name.Function, '#pop'),
             (r'\\.', String.Escape),
-            (r'[^"\\]+', Name.Function)
+            (r'.', Name.Function)
         ],
         'braces': [
             ('}', Operator, '#pop'),
@@ -69,8 +70,10 @@ class MinilangLexer(RegexLexer):
             include('root')
         ],
         'comment': [
-        	(':<', Comment, 'comment'),
-        	('>:', Comment, '#pop')
+			(r'[^:<>]', Comment.Multiline),
+        	(':<', Comment.Multiline, '#push'),
+        	('>:', Comment.Multiline, '#pop'),
+        	(r'[:<>]', Comment.Multiline)
         ]
     }
 

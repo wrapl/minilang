@@ -1,10 +1,11 @@
 Language
 ========
 
-*Minilang* has a simple syntax, not too different from *Pascal* (although
-probably closer to *Oberon-2*). Keywords are in lower case, statements are
-delimited by semicolons ``;``, these can be and are usually omitted at the end
-of a line. The following is an example of *Minilang* code showing an
+*Minilang* has a simple syntax, similar to *Pascal* and *Oberon-2*. Keywords are in lower case, statements are delimited by semicolons ``;``, these can be and are usually omitted at the end of a line.
+
+As *Minilang* is designed to be embedded into larger applications, there is no implicit requirement to store *Minilang* code in source files with any specific extension (or indeed to store *Minilang* in files at all). However, :file:`.mini` is used for the sample and test scripts and there are highlighters created for *GtkSourceview* and *Visual Studio Code* that recognize this extension. 
+
+The following is an example of *Minilang* code showing an
 implementation of the Fibonacci numbers.
 
 .. code-block:: mini
@@ -49,24 +50,124 @@ This produces the following output:
       test/test12.mini:3
       test/test12.mini:20
 
+Comments
+--------
+
+Line comments start with ``:>`` and run until the end of the line.
+
+Block comments start with ``:<`` and end with ``>:`` and can be nested.
+
+.. code-block:: mini
+
+   :> This is a line comment.
+   
+   :<
+      This is a block comment
+      spanning multiple lines
+      that contains another :< comment >:
+   >:
+
+Identifiers and Keywords
+------------------------
+
+Identifiers in *Minilang* start with a letter or underscore and can contain letters, digits and underscores. *Minilang* is case sensitive.
+
+.. code-block:: mini
+
+   A
+   factorial
+   _Var
+   X1
+   X2
+
+The following identifiers are reserved as keywords.
+
+.. code-block:: mini
+
+   if then elseif else end loop while until exit next
+   for each to in is when fun ret susp meth with do on
+   nil and or not old def let var _
+
+
+Whitespace and Line Breaks
+--------------------------
+
+*Minilang* code consists of declarations (variables and functions) and expressions to evaluate. The bodies of complex expressions such as :mini:`if`, :mini:`for`, etc, can contain multiple declarations and expressions, in any order. Both semicolons ``;`` and line breaks can be used to separate declarations and expressions, however if a line break occurs where a token is required then it will be ignored. Other whitespace (spaces and tabs) have no significance other than to separate tokens or within string literals.
+
+For example the following are equivalent as the semicolons are replaced by line breaks:
+
+.. code-block:: mini
+
+   do print("Hello "); print("world"); end
+   
+   do
+      print("Hello ")
+      print("world")
+   end
+
+The following are also equivalent as the line break occurs after an infix operator where at least one more token is required to complete the expression:
+
+.. code-block:: mini
+
+   let X := "Hello " + "world"
+   
+   let X := "Hello " +
+      "world"
+
+However the following code is not equivalent to the code above as the line break occurs before the infix operator and hence no token is required to complete the expression: 
+
+.. code-block:: mini
+
+   let X := "Hello "
+      + "world"
+      
+Instead the above code is equivalent to following where semicolons have been added to show the separate declaration and expression (with a prefix operation):
+
+.. code-block:: mini
+
+   let X := "Hello ";
+   
+   + "world";
+
+
+Literals
+--------
+
+The simplest expressions are single values. More information on values in
+*Minilang* can be found in :doc:`/minilang/types`.
+
+:Nil: :mini:`nil`.
+
+:Integers: :mini:`1`, :mini:`-257`. Note that the leading ``-`` is parsed as part of a negative number, so that :mini:`2-1` (with no spaces) will be parsed as ``2 -1`` (and be invalid syntax) and not ``2 - 1``.
+
+:Reals: :mini:`1.2`, :mini:`.13`, :mini:`-1.3e5`.
+
+:Strings: :mini:`"Hello world!\n"`, :mini:`'X = {X}'`. Strings can be written using double quotes or single quotes. Strings written with single quotes can have embedded expressions (between ``{`` and ``}``) and may span multiple lines (the line breaks are embedded in the string).
+
+:Regular Expressions: :mini:`r".*\.c"`.
+
+:Lists: :mini:`[1, 2, 3]`, :mini:`["a", 1.23, [nil]]`. The values in a list can be of any type including other lists and maps.
+
+:Maps: :mini:`{"a" is 1, 10 is "string"}`. The keys of a map have to be immutable and comparable (e.g. numbers and strings). The values can be of any type.
+
+:Tuples: :mini:`(1, 2, 3)`, :mini:`("a", 1.23, [nil])`. Like lists, tuples can contain values of any type. Tuple differ from lists by being immutable; once constructed the elements of a tuple cannot be modified. 
+
+:Booleans: :mini:`true` and :mini:`false`. Note that unlike :mini:`nil`, :mini:`true` and :mini:`false` are predefined identifiers and not keywords.
+
+:Methods: :mini:`:length`, :mini:`:X`, :mini:`<>`, :mini:`+`, :mini:`:"[]"`. Methods consisting only of the characters ``!``, ``@``, ``#``, ``$``, ``%``, ``^``, ``&``, ``*``, ``-``, ``+``, ``=``, ``|``, ``\\``, ``~``, `````, ``/``, ``?``, ``<``, ``>`` or ``.`` can be written directly without surrounding ``:"`` and ``"``.
+
 Declarations
 ------------
 
+All identifiers in *Minilang* (other than those provided by the compiler / embedding) must be explicitly declared. Declarations are only visible within their scope (block) and any nested scopes and can be referenced before their actual declaration. This allows (among other things) mutually recursive functions. 
+
 There are 3 types of declaration in *Minilang*:
 
-#. Variable declarations using :mini:`var Name := Expression`. Variables can
-   be reassigned using :mini:`Name :=  Expression`. Here :mini:`:= Expression`
-   may be omitted in the declaration in which case initial value of
-   :mini:`Name` will be :mini:`nil`.
-#. Value declarations using :mini:`let Name := Expression`. Values cannot be
-   reassigned and hence :mini:`:= Expression` is required. :mini:`Expression`
-   is evaluated once during execution. 
-#. Constant declarations using :mini:`def Name := Expression`. Constants
-   cannot be reassigned and hence :mini:`:= Expression` is required. Unlike
-   values declared with :mini:`let`, constants declared with :mini:`def` are
-   evaluated at compile time and inlined into the rest of the code.
-   Consequently, :mini:`Expression` can only contain constant values such as
-   numbers, strings, function calls as well as references to other constants.
+#. :mini:`var Name` delcares a new variable called :mini:`Name` in the current scope with an initial value of :mini:`nil` and which can be reassigned using :mini:`Name :=  Expression`. A variable declaration can optionally include an initial expression to evaluate and assign to the variable :mini:`var Name := Expression`.
+
+#. :mini:`let Name := Expression` declares a new value called :mini:`Value` with the result of evaluating :mini:`Expression` each time the block containing the declaration is run. :mini:`Name` cannot be reassigned later in the block, hence the intial expression is required.
+
+#. :mini:`def Name := Expression` declares a constant with the result of evaluating :mini:`Expression`. Unlike a :mini:`let`-declaration, :mini:`Expression` is evaluated once only when the code is first loaded. Consequently, :mini:`Expression` can only contain references to identifiers that are visible at load time (e.g. global identifiers or other constants).
  
 All identifiers in *Minilang* are visible within their scope and any nested
 scopes, including nested functions, unless they are shadowed by another
@@ -104,60 +205,76 @@ declaration.
    X = 2
    X = 1
 
-For convenience, functions can declared using the following syntax:
+Declaration Syntax Sugar
+........................
+
+.. list-table::
+   :header-rows: 1
+   :width: 100%
+   :widths: auto
+
+   * - Syntax
+     - Equivalent
+     - Purpose
+     
+   * - .. code-block:: mini
+   
+          fun Name(Args...) Body
+       
+     - .. code-block:: mini
+     
+          let Name := fun(Args...) Body
+          
+     - Declare a function.
+   
+   * - .. code-block:: mini
+   
+          Expression: Name(Args...)
+          
+     - .. code-block:: mini
+     
+          def Name := Expression(Args...)
+           
+     - Can be used for imports, classes, etc.
+   
+   * - .. code-block:: mini
+       
+          Expression: var Name
+          Expression: let Name := Value
+          Expression: def Name := Value
+          Expression: fun Name(Args...) Body
+   
+     - .. code-block:: mini
+     
+          var Name
+          Expression("Name", Name)
+          
+          let Name := Value
+          Expression("Name", Name)
+          
+          def Name := Value
+          Expression("Name", Name)
+          
+          fun Name(Args...) Body
+          Expression("Name", Name)
+     
+     - Can be used for exports.
+     
+   
+For example the following code shows how a module which exports a class may be written in *Minilang* where the specific embedding has provided the :mini:`class`, :mini:`import` and :mini:`export` functions.
+
 
 .. code-block:: mini
 
-   fun add(X, Y) X + Y
-
-This is equivalent to writing
-
-.. code-block:: mini
-
-   let add := fun(X, Y) X + Y
-
-Functions themselves are described in :ref:`minilang/functions`.
+   import: utils("lib/utils.mini")
+   
+   
 
 Expressions
 -----------
 
 Other than declarations, everything else in *Minilang* is an expression
 (something that can be evaluated).
-
-Values
-~~~~~~
-
-The simplest expressions are single values. More information on values in
-*Minilang* can be found in :doc:`/minilang/types`.
-
-Nil:
-   :mini:`nil`.
-Integers:
-   :mini:`1`, :mini:`-257`. Note that the leading ``-`` is parsed as part of
-   a negative number, so that :mini:`2-1` (with no spaces) will be parsed as
-   ``2 -1`` (and be invalid syntax) and not ``2 - 1``.
-Reals:
-   :mini:`1.2`, :mini:`.13`, :mini:`-1.3e5`.
-Strings:
-   :mini:`"Hello world!\n"`, :mini:`'X = {X}'`. Strings can be written using
-   double quotes or single quotes. Strings written with single quotes can have
-   embedded expressions (between ``{`` and ``}``) and may span multiple lines.
-Regular Expressions:
-   :mini:`r".*\.c"`.
-Lists:
-   :mini:`[1, 2, 3]`, :mini:`["a", 1.23, [nil]]`. The values in a list can be
-   of any type including other lists and maps.
-Maps:
-   :mini:`{"a" is 1, 10 is "string"}`. The keys of a map have to be immutable
-   and comparable (e.g. numbers and strings). The values can be of any type.
-Tuples:
-   :mini:`(1, 2, 3)`, :mini:`("a", 1.23, [nil])`. Like lists, tuples can
-   contain values of any type. Tuple differ from lists by being immutable; 
-   once constructed the elements of a tuple cannot be modified. 
-Booleans:
-   :mini:`true` and :mini:`false`.
-Methods:
-   :mini:`:length`, :mini:`:X`, :mini:`<>`, :mini:`+`, :mini:`:"[]"`. Methods consisting only of the characters ``!``, ``@``, ``#``, ``$``, ``%``, ``^``, ``&``, ``*``, ``-``, ``+``, ``=``, ``|``, ``\\``, ``~``, `````, ``/``, ``?``, ``<``, ``>`` or ``.`` can be written directly without surrounding ``:"`` and ``"``.
 
 .. _minilang/functions:
 
@@ -173,8 +290,8 @@ function is achieved by the traditional syntax :mini:`Function(Arguments)`.
 
 .. code-block:: mini
 
-   var add := fun(A, B) A + B
-   var sub := fun(A, B) A - B
+   let add := fun(A, B) A + B
+   let sub := fun(A, B) A - B
    
    print('add(2, 3) = {add(2, 3)}\n')
    
@@ -189,7 +306,7 @@ expression which returns a function.
 
    var X := (if nil then add else sub end)(10, 3) :> 7
    
-   var f := fun(A) fun(B) A + B
+   let f := fun(A) fun(B) A + B
    
    var Y := f(2)(3) :> 5
 
