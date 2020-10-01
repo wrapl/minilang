@@ -2058,9 +2058,12 @@ static ml_token_t ml_advance(ml_compiler_t *Compiler) {
 				Compiler->Next += 2;
 				int Level = 1;
 				do {
-					if (Compiler->Next[0] == 0) {
-						Compiler->Next = (Compiler->Read)(Compiler->Data);
+					if (Compiler->Next[0] == '\n') {
+						++Compiler->Next;
 						++Compiler->Source.Line;
+					} else if (Compiler->Next[0] == 0) {
+						Compiler->Next = (Compiler->Read)(Compiler->Data);
+
 						if (!Compiler->Next) ml_compiler_error(Compiler, "ParseError", "End of input in comment");
 					} else if (Compiler->Next[0] == '>' && Compiler->Next[1] == ':') {
 						Compiler->Next += 2;
