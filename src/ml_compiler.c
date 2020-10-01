@@ -2135,7 +2135,7 @@ static void ml_accept_eoi(ml_compiler_t *Compiler) {
 }
 
 static mlc_expr_t *ml_parse_factor(ml_compiler_t *Compiler, int MethDecl);
-static mlc_expr_t *ml_parse_term(ml_compiler_t *Compiler);
+static mlc_expr_t *ml_parse_term(ml_compiler_t *Compiler, int MethDecl);
 static mlc_expr_t *ml_accept_block(ml_compiler_t *Compiler, int NoCatches);
 
 static mlc_expr_t *ml_accept_fun_expr(ml_compiler_t *Compiler, ml_token_t EndToken) {
@@ -2189,7 +2189,7 @@ extern ml_value_t MLMethodSet[];
 static mlc_expr_t *ml_accept_meth_expr(ml_compiler_t *Compiler) {
 	ML_EXPR(MethodExpr, parent_value, const_call);
 	MethodExpr->Value = MLMethodSet;
-	mlc_expr_t *Method = ml_parse_factor(Compiler, 1);
+	mlc_expr_t *Method = ml_parse_term(Compiler, 1);
 	if (!Method) ml_compiler_error(Compiler, "ParseError", "expected <factor> not <%s>", MLTokens[Compiler->Token]);
 	MethodExpr->Child = Method;
 	mlc_expr_t **ArgsSlot = &Method->Next;
@@ -2634,7 +2634,7 @@ static mlc_expr_t *ml_parse_factor(ml_compiler_t *Compiler, int MethDecl) {
 			ml_accept_arguments(Compiler, MLT_RIGHT_PAREN, &CallExpr->Child);
 			return (mlc_expr_t *)CallExpr;
 		} else {
-			mlc_expr_t *Child = ml_parse_term(Compiler);
+			mlc_expr_t *Child = ml_parse_term(Compiler, 0);
 			if (Child) {
 				ML_EXPR(CallExpr, parent_value, const_call);
 				CallExpr->Value = Operator;
@@ -2657,12 +2657,13 @@ static mlc_expr_t *ml_parse_factor(ml_compiler_t *Compiler, int MethDecl) {
 	}
 }
 
-static mlc_expr_t *ml_parse_term(ml_compiler_t *Compiler) {
-	mlc_expr_t *Expr = ml_parse_factor(Compiler, 0);
+static mlc_expr_t *ml_parse_term(ml_compiler_t *Compiler, int MethDecl) {
+	mlc_expr_t *Expr = ml_parse_factor(Compiler, MethDecl);
 	if (!Expr) return NULL;
 	for (;;) {
 		switch (ml_next(Compiler)) {
 		case MLT_LEFT_PAREN: {
+			if (MethDecl) return Expr;
 			Compiler->Token = MLT_NONE;
 			ML_EXPR(CallExpr, parent, call);
 			CallExpr->Child = Expr;
@@ -2716,13 +2717,13 @@ static mlc_expr_t *ml_parse_term(ml_compiler_t *Compiler) {
 
 static mlc_expr_t *ml_accept_term(ml_compiler_t *Compiler) {
 	while (ml_parse(Compiler, MLT_EOL));
-	mlc_expr_t *Expr = ml_parse_term(Compiler);
+	mlc_expr_t *Expr = ml_parse_term(Compiler, 0);
 	if (Expr) return Expr;
 	ml_compiler_error(Compiler, "ParseError", "expected <expression> not %s", MLTokens[Compiler->Token]);
 }
 
 static mlc_expr_t *ml_parse_expression(ml_compiler_t *Compiler, ml_expr_level_t Level) {
-	mlc_expr_t *Expr = ml_parse_term(Compiler);
+	mlc_expr_t *Expr = ml_parse_term(Compiler, 0);
 	if (!Expr) return NULL;
 	for (;;) switch (ml_next(Compiler)) {
 	case MLT_OPERATOR: case MLT_IDENT: {

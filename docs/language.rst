@@ -268,6 +268,7 @@ For example the following code shows how a module which exports a class may be w
 
    import: utils("lib/utils.mini")
    
+   export: class: point(:X, :Y)
    
 
 Expressions
