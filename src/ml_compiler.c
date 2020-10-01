@@ -3396,8 +3396,6 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler, stringmap_
 					ml_accept(Compiler, MLT_ASSIGN);
 					Expr = ml_accept_expression(Compiler, EXPR_DEFAULT);
 				}
-				Task->Base.Closure = ml_compile(Expr, NULL, Compiler);
-				Task->Base.Source = Expr->Source;
 				ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Ident);
 				if (!Slot[0] || ml_typeof(Slot[0]) != MLUninitializedT) {
 					Slot[0] = ml_uninitialized(Ident);

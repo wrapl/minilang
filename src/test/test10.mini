@@ -7,7 +7,7 @@ print('A = {A}\n')
 
 A:Y := 200
 
-meth (string::of)(P: point) 'point({P:X}, {P:Y})'
+meth string::of(P: point) 'point({P:X}, {P:Y})'
 
 print('A = {A}\n')
 
@@ -29,7 +29,7 @@ var C := vector(1, 2, 3)
 
 print('C = {C}\n')
 
-meth (string::of)(V: vector) 'vector({V:X}, {V:Y}, {V:Z})'
+meth string::of(V: vector) 'vector({V:X}, {V:Y}, {V:Z})'
 
 print('C = {C}\n')
 

@@ -47,15 +47,6 @@ ML_METHOD_DECL(MLMapOf, NULL);
 ML_INTERFACE(MLAnyT, (), "any");
 // Base type for all values.
 
-static void ml_type_call(ml_state_t *Caller, ml_type_t *Type, int Count, ml_value_t **Args) {
-	ml_value_t *Constructor = Type->Constructor;
-	if (!Constructor) {
-		Constructor = Type->Constructor = stringmap_search(Type->Exports, "of");
-	}
-	if (!Constructor) ML_RETURN(ml_error("TypeError", "No constructor for <%s>", Type->Name));
-	return ml_call(Caller, Constructor, Count, Args);
-}
-
 ML_INTERFACE(MLIteratableT, (), "iteratable");
 //!iterator
 // The base type for any iteratable value.
@@ -74,10 +65,24 @@ ML_FUNCTION(MLTypeOf) {
 	return (ml_value_t *)ml_typeof(Args[0]);
 }
 
+static long ml_type_hash(ml_type_t *Type) {
+	return (intptr_t)Type;
+}
+
+static void ml_type_call(ml_state_t *Caller, ml_type_t *Type, int Count, ml_value_t **Args) {
+	ml_value_t *Constructor = Type->Constructor;
+	if (!Constructor) {
+		Constructor = Type->Constructor = stringmap_search(Type->Exports, "of");
+	}
+	if (!Constructor) ML_RETURN(ml_error("TypeError", "No constructor for <%s>", Type->Name));
+	return ml_call(Caller, Constructor, Count, Args);
+}
+
 ML_INTERFACE(MLTypeT, (MLFunctionT), "type",
 //!type
 // Type of all types.
 // Every type contains a set of named exports, which allows them to be used as modules.
+	.hash = (void *)ml_type_hash,
 	.call = (void *)ml_type_call,
 	.Constructor = (ml_value_t *)MLTypeOf
 );
