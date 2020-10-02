@@ -727,6 +727,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_DEBUG_ADVANCE: {
 		ml_debugger_t *Debugger = Frame->Debugger;
 		if (Inst->PotentialBreakpoint) {
+			if (Debugger->StepIn) goto DO_BREAKPOINT;
+			if (Frame->StepOver) goto DO_BREAKPOINT;
+			if (Inst->Opcode == MLI_RETURN && Frame->StepOut) goto DO_BREAKPOINT;
 			size_t *Breakpoints;
 			unsigned int Revision = Debugger->Revision;
 			if (Frame->Revision != Revision) {
@@ -737,9 +740,6 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			}
 			int LineNo = Inst->LineNo;
 			if (Breakpoints[LineNo / SIZE_BITS] & (1 << LineNo % SIZE_BITS)) goto DO_BREAKPOINT;
-			if (Debugger->StepIn) goto DO_BREAKPOINT;
-			if (Frame->StepOver) goto DO_BREAKPOINT;
-			if (Inst->Opcode == MLI_RETURN && Frame->StepOut) goto DO_BREAKPOINT;
 		}
 		CHECK_COUNTER
 		goto *Labels[Inst->Opcode];
