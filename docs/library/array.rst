@@ -26,21 +26,29 @@ array
 :mini:`meth :permute(Array: array, Indices: list)` |rarr| :mini:`array`
    *Defined at line 320 in src/ml_array.c*
 
+:mini:`meth :expand(Array: array, Indices: list)` |rarr| :mini:`array`
+   *Defined at line 345 in src/ml_array.c*
+
 :mini:`meth [](Array: array, Indices...: any)` |rarr| :mini:`array`
-   *Defined at line 441 in src/ml_array.c*
+   *Defined at line 475 in src/ml_array.c*
 
 :mini:`meth [](Array: array, Indices: map)` |rarr| :mini:`array`
-   *Defined at line 449 in src/ml_array.c*
+   *Defined at line 483 in src/ml_array.c*
 
 :mini:`meth -(Arg₁: array)`
-   *Defined at line 1184 in src/ml_array.c*
+   *Defined at line 1414 in src/ml_array.c*
 
 :mini:`meth :copy(Array: array)` |rarr| :mini:`array`
-   *Defined at line 1515 in src/ml_array.c*
+   *Defined at line 1745 in src/ml_array.c*
 
 :mini:`meth :copy(Array: array, Function: function)` |rarr| :mini:`array`
-   *Defined at line 1570 in src/ml_array.c*
+   *Defined at line 1800 in src/ml_array.c*
 
 :mini:`meth :update(Array: array, Function: function)` |rarr| :mini:`array`
-   *Defined at line 1698 in src/ml_array.c*
+   *Defined at line 1928 in src/ml_array.c*
+
+:mini:`meth .(A: array, B: array)` |rarr| :mini:`array`
+   Returns the inner product of :mini:`A` and :mini:`B`.
+
+   *Defined at line 2157 in src/ml_array.c*
 

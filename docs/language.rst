@@ -206,7 +206,9 @@ declaration.
    X = 1
 
 Declaration Syntax Sugar
-........................
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+*Minilang* language provides no built-in support for modules, classes and probably some other useful features. Instead, *Minilang* allows for these features to be implemented as functions provided by the runtime, with evaluation at load time to remove any additional overhead from function calls. *Minilang* provides some syntax sugar constructs to simplify writing declarations of this form:
 
 .. list-table::
    :header-rows: 1
@@ -216,6 +218,7 @@ Declaration Syntax Sugar
    * - Syntax
      - Equivalent
      - Purpose
+     - Example
      
    * - .. code-block:: mini
    
@@ -226,6 +229,16 @@ Declaration Syntax Sugar
           let Name := fun(Args...) Body
           
      - Declare a function.
+     
+     - .. code-block:: mini
+     
+          fun fact(N) do
+              if N < 2 then
+                  return 1
+              else
+                  return N * fact(N - 1)
+              end
+          end
    
    * - .. code-block:: mini
    
@@ -236,6 +249,12 @@ Declaration Syntax Sugar
           def Name := Expression(Args...)
            
      - Can be used for imports, classes, etc.
+     
+     - .. code-block:: mini
+     
+          import: utils("lib/utils.mini")
+          
+          class: point(:X, :Y)
    
    * - .. code-block:: mini
        
@@ -259,6 +278,12 @@ Declaration Syntax Sugar
           Expression("Name", Name)
      
      - Can be used for exports.
+     
+     - .. code-block:: mini
+     
+          export: fun add(X, Y) X + Y
+          
+          export: class: point(:X, :Y)
      
    
 For example the following code shows how a module which exports a class may be written in *Minilang* where the specific embedding has provided the :mini:`class`, :mini:`import` and :mini:`export` functions.

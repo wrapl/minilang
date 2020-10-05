@@ -61,7 +61,7 @@ ml_array_t *ml_array(ml_array_format_t Format, int Degree, ...) {
 	int DataSize = MLArraySizes[Format];
 	va_list Sizes;
 	va_start(Sizes, Degree);
-	for (int I = Array->Degree; --I >= 0;) {
+	for (int I = Degree; --I >= 0;) {
 		Array->Dimensions[I].Stride = DataSize;
 		int Size = Array->Dimensions[I].Size = va_arg(Sizes, int);
 		DataSize *= Size;
@@ -338,6 +338,40 @@ ML_METHOD("permute", MLArrayT, MLListT) {
 	}
 	size_t Expected = (1 << Degree) - 1;
 	if (Actual != Expected) return ml_error("ArrayError", "Invalid permutation");
+	Target->Base = Source->Base;
+	return (ml_value_t *)Target;
+}
+
+ML_METHOD("expand", MLArrayT, MLListT) {
+//<Array
+//<Indices
+//>array
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	int Degree = Source->Degree + ml_list_length(Args[1]);
+	int Expands[Source->Degree + 1];
+	for (int I = 0; I <= Source->Degree; ++I) Expands[I] = 0;
+	ML_LIST_FOREACH(Args[1], Iter) {
+		if (!ml_is(Iter->Value, MLIntegerT)) return ml_error("ArrayError", "Invalid index");
+		int J = ml_integer_value(Iter->Value);
+		if (J <= 0) J += Degree + 1;
+		if (J < 1 || J >= Degree + 1) return ml_error("ArrayError", "Invalid index");
+		Expands[J - 1] += 1;
+	}
+	ml_array_t *Target = ml_array_new(Source->Format, Degree);
+	ml_array_dimension_t *Dim = Target->Dimensions;
+	for (int I = 0; I < Degree; ++I) {
+		for (int J = 0; J < Expands[I]; ++J) {
+			Dim->Size = 1;
+			Dim->Stride = 0;
+			++Dim;
+		}
+		*Dim++ = Source->Dimensions[I];
+	}
+	for (int J = 0; J < Expands[Source->Degree]; ++J) {
+		Dim->Size = 1;
+		Dim->Stride = 0;
+		++Dim;
+	}
 	Target->Base = Source->Base;
 	return (ml_value_t *)Target;
 }
@@ -954,14 +988,8 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, ATYPE) { \
 } \
 \
 UPDATE_METHODS(ATYPE, CTYPE, FROM_VAL, FORMAT); \
-\
-CTYPE ml_array_get_ ## CTYPE(ml_array_t *Array, ...) { \
-	va_list Indices; \
-	va_start(Indices, Array); \
-	char *Address = ml_array_index(Array, Indices); \
-	va_end(Indices); \
-	if (!Address) return 0; \
-	switch (Array->Format) { \
+static CTYPE ml_array_get0_ ## CTYPE(void *Address, int Format) { \
+	switch (Format) { \
 	case ML_ARRAY_FORMAT_NONE: break; \
 	case ML_ARRAY_FORMAT_I8: return FROM_NUM(*(int8_t *)Address); \
 	case ML_ARRAY_FORMAT_U8: return FROM_NUM(*(uint8_t *)Address); \
@@ -976,6 +1004,15 @@ CTYPE ml_array_get_ ## CTYPE(ml_array_t *Array, ...) { \
 	case ML_ARRAY_FORMAT_ANY: return FROM_VAL(*(ml_value_t **)Address); \
 	} \
 	return (CTYPE)0; \
+} \
+\
+CTYPE ml_array_get_ ## CTYPE(ml_array_t *Array, ...) { \
+	va_list Indices; \
+	va_start(Indices, Array); \
+	char *Address = ml_array_index(Array, Indices); \
+	va_end(Indices); \
+	if (!Address) return 0; \
+	return ml_array_get0_ ## CTYPE(Address, Array->Format); \
 } \
 \
 void ml_array_set_ ## CTYPE(CTYPE Value, ml_array_t *Array, ...) { \
@@ -1112,9 +1149,9 @@ METHODS(MLArrayFloat32T, float, ml_stringbuffer_addf, "%f", ml_real_value, ml_re
 METHODS(MLArrayFloat64T, double, ml_stringbuffer_addf, "%f", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F64, (long));
 METHODS(MLArrayAnyT, value, BUFFER_APPEND, "?", ml_nop, ml_nop, ml_number, ml_number_value, ML_ARRAY_FORMAT_ANY, ml_hash);
 
-#define PARTIAL_SUMS(ATYPE, CTYPE) \
+#define PARTIAL_FUNCTIONS(ATYPE, CTYPE, TO_VAL) \
 \
-void partial_sums_ ## CTYPE(int Target, int Degree, ml_array_dimension_t *Dimension, char *Address, int LastRow) { \
+static void partial_sums_ ## CTYPE(int Target, int Degree, ml_array_dimension_t *Dimension, char *Address, int LastRow) { \
 	if (Degree == 0) { \
 		*(CTYPE *)Address += *(CTYPE *)(Address - LastRow); \
 	} else if (Target == Degree) { \
@@ -1146,7 +1183,7 @@ void partial_sums_ ## CTYPE(int Target, int Degree, ml_array_dimension_t *Dimens
 	} \
 } \
 \
-ML_METHOD("partial_sums", ATYPE, MLIntegerT) { \
+ML_METHOD("sums", ATYPE, MLIntegerT) { \
 	ml_array_t *Array = (ml_array_t *)Args[0]; \
 	int Target = ml_integer_value(Args[1]); \
 	if (Target <= 0) Target += Array->Degree + 1; \
@@ -1154,18 +1191,211 @@ ML_METHOD("partial_sums", ATYPE, MLIntegerT) { \
 	Target = Array->Degree + 1 - Target; \
 	partial_sums_ ## CTYPE(Target, Array->Degree, Array->Dimensions, Array->Base.Address, 0); \
 	return Args[0]; \
+} \
+\
+static void partial_prods_ ## CTYPE(int Target, int Degree, ml_array_dimension_t *Dimension, char *Address, int LastRow) { \
+	if (Degree == 0) { \
+		*(CTYPE *)Address *= *(CTYPE *)(Address - LastRow); \
+	} else if (Target == Degree) { \
+		int Stride = Dimension->Stride; \
+		if (Dimension->Indices) { \
+			int *Indices = Dimension->Indices; \
+			for (int I = 1; I < Dimension->Size; ++I) { \
+				partial_prods_ ## CTYPE(Target, Degree - 1, Dimension + 1, Address + Indices[I] * Stride, (Indices[I] - Indices[I - 1]) * Stride); \
+			} \
+		} else { \
+			for (int I = 1; I < Dimension->Size; ++I) { \
+				Address += Stride; \
+				partial_prods_ ## CTYPE(Target, Degree - 1, Dimension + 1, Address, Stride); \
+			} \
+		} \
+	} else { \
+		int Stride = Dimension->Stride; \
+		if (Dimension->Indices) { \
+			int *Indices = Dimension->Indices; \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				partial_prods_ ## CTYPE(Target, Degree - 1, Dimension + 1, Address + Indices[I] * Stride, LastRow); \
+			} \
+		} else { \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				partial_prods_ ## CTYPE(Target, Degree - 1, Dimension + 1, Address, LastRow); \
+				Address += Stride; \
+			} \
+		} \
+	} \
+} \
+\
+ML_METHOD("prods", ATYPE, MLIntegerT) { \
+	ml_array_t *Array = (ml_array_t *)Args[0]; \
+	int Target = ml_integer_value(Args[1]); \
+	if (Target <= 0) Target += Array->Degree + 1; \
+	if (Target < 1 || Target > Array->Degree) return ml_error("ArrayError", "Dimension index invalid"); \
+	Target = Array->Degree + 1 - Target; \
+	partial_prods_ ## CTYPE(Target, Array->Degree, Array->Dimensions, Array->Base.Address, 0); \
+	return Args[0]; \
+} \
+\
+static CTYPE compute_sums_ ## CTYPE(int Degree, ml_array_dimension_t *Dimension, void *Address) { \
+	CTYPE Sum = 0; \
+	if (Degree > 1) { \
+		int Stride = Dimension->Stride; \
+		if (Dimension->Indices) { \
+			int *Indices = Dimension->Indices; \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				Sum += compute_sums_ ## CTYPE(Degree - 1, Dimension + 1, Address + Indices[I] * Stride); \
+			} \
+		} else { \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				Sum += compute_sums_ ## CTYPE(Degree - 1, Dimension + 1, Address); \
+				Address += Stride; \
+			} \
+		} \
+	} else { \
+		int Stride = Dimension->Stride; \
+		if (Dimension->Indices) { \
+			int *Indices = Dimension->Indices; \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				Sum += *(CTYPE *)(Address + Indices[I] * Stride); \
+			} \
+		} else { \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				Sum += *(CTYPE *)Address; \
+				Address += Stride; \
+			} \
+		} \
+	} \
+	return Sum; \
+} \
+\
+static void fill_sums_ ## CTYPE(int TargetDegree, ml_array_dimension_t *TargetDimension, void *TargetAddress, int SourceDegree, ml_array_dimension_t *SourceDimension, void *SourceAddress) { \
+	if (TargetDegree == 0) { \
+		*(CTYPE *)TargetAddress = compute_sums_ ## CTYPE(SourceDegree, SourceDimension, SourceAddress); \
+	} else { \
+		int TargetStride = TargetDimension->Stride; \
+		int SourceStride = SourceDimension->Stride; \
+		if (SourceDimension->Indices) { \
+			int *Indices = SourceDimension->Indices; \
+			for (int I = 0; I < SourceDimension->Size; ++I) { \
+				fill_sums_ ## CTYPE(TargetDegree - 1, TargetDimension + 1, TargetAddress, SourceDegree - 1, SourceDimension + 1, SourceAddress + Indices[I] * SourceStride); \
+				TargetAddress += TargetStride; \
+			} \
+		} else { \
+			for (int I = 0; I < SourceDimension->Size; ++I) { \
+				fill_sums_ ## CTYPE(TargetDegree - 1, TargetDimension + 1, TargetAddress, SourceDegree - 1, SourceDimension + 1, SourceAddress); \
+				TargetAddress += TargetStride; \
+				SourceAddress += SourceStride; \
+			} \
+		} \
+	} \
+} \
+\
+ML_METHOD("sum", ATYPE) { \
+	ml_array_t *Source = (ml_array_t *)Args[0]; \
+	return TO_VAL(compute_sums_ ## CTYPE(Source->Degree, Source->Dimensions, Source->Base.Address)); \
+} \
+\
+ML_METHOD("sum", ATYPE, MLIntegerT) { \
+	ml_array_t *Source = (ml_array_t *)Args[0]; \
+	int SumDegree = ml_integer_value(Args[1]); \
+	if (SumDegree <= 0 || SumDegree >= Source->Degree) return ml_error("RangeError", "Invalid axes count for sum"); \
+	ml_array_t *Target = ml_array_new(Source->Format, Source->Degree - SumDegree); \
+	int DataSize = MLArraySizes[Target->Format]; \
+	for (int I = Target->Degree; --I >= 0;) { \
+		Target->Dimensions[I].Stride = DataSize; \
+		int Size = Target->Dimensions[I].Size = Source->Dimensions[I].Size; \
+		DataSize *= Size; \
+	} \
+	Target->Base.Address = GC_MALLOC_ATOMIC(DataSize); \
+	fill_sums_ ## CTYPE(Target->Degree, Target->Dimensions, Target->Base.Address, Source->Degree, Source->Dimensions, Source->Base.Address); \
+	return (ml_value_t *)Target; \
+} \
+\
+static CTYPE compute_prods_ ## CTYPE(int Degree, ml_array_dimension_t *Dimension, void *Address) { \
+	CTYPE Prod = 1; \
+	if (Degree > 1) { \
+		int Stride = Dimension->Stride; \
+		if (Dimension->Indices) { \
+			int *Indices = Dimension->Indices; \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				Prod += compute_prods_ ## CTYPE(Degree - 1, Dimension + 1, Address + Indices[I] * Stride); \
+			} \
+		} else { \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				Prod += compute_prods_ ## CTYPE(Degree - 1, Dimension + 1, Address); \
+				Address += Stride; \
+			} \
+		} \
+	} else { \
+		int Stride = Dimension->Stride; \
+		if (Dimension->Indices) { \
+			int *Indices = Dimension->Indices; \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				Prod += *(CTYPE *)(Address + Indices[I] * Stride); \
+			} \
+		} else { \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				Prod += *(CTYPE *)Address; \
+				Address += Stride; \
+			} \
+		} \
+	} \
+	return Prod; \
+} \
+\
+static void fill_prods_ ## CTYPE(int TargetDegree, ml_array_dimension_t *TargetDimension, void *TargetAddress, int SourceDegree, ml_array_dimension_t *SourceDimension, void *SourceAddress) { \
+	if (TargetDegree == 0) { \
+		*(CTYPE *)TargetAddress = compute_prods_ ## CTYPE(SourceDegree, SourceDimension, SourceAddress); \
+	} else { \
+		int TargetStride = TargetDimension->Stride; \
+		int SourceStride = SourceDimension->Stride; \
+		if (SourceDimension->Indices) { \
+			int *Indices = SourceDimension->Indices; \
+			for (int I = 0; I < SourceDimension->Size; ++I) { \
+				fill_prods_ ## CTYPE(TargetDegree - 1, TargetDimension + 1, TargetAddress, SourceDegree - 1, SourceDimension + 1, SourceAddress + Indices[I] * SourceStride); \
+				TargetAddress += TargetStride; \
+			} \
+		} else { \
+			for (int I = 0; I < SourceDimension->Size; ++I) { \
+				fill_prods_ ## CTYPE(TargetDegree - 1, TargetDimension + 1, TargetAddress, SourceDegree - 1, SourceDimension + 1, SourceAddress); \
+				TargetAddress += TargetStride; \
+				SourceAddress += SourceStride; \
+			} \
+		} \
+	} \
+} \
+\
+ML_METHOD("prod", ATYPE) { \
+	ml_array_t *Source = (ml_array_t *)Args[0]; \
+	return TO_VAL(compute_prods_ ## CTYPE(Source->Degree, Source->Dimensions, Source->Base.Address)); \
+} \
+\
+ML_METHOD("prod", ATYPE, MLIntegerT) { \
+	ml_array_t *Source = (ml_array_t *)Args[0]; \
+	int ProdDegree = ml_integer_value(Args[1]); \
+	if (ProdDegree <= 0 || ProdDegree >= Source->Degree) return ml_error("RangeError", "Invalid axes count for prod"); \
+	ml_array_t *Target = ml_array_new(Source->Format, Source->Degree - ProdDegree); \
+	int DataSize = MLArraySizes[Target->Format]; \
+	for (int I = Target->Degree; --I >= 0;) { \
+		Target->Dimensions[I].Stride = DataSize; \
+		int Size = Target->Dimensions[I].Size = Source->Dimensions[I].Size; \
+		DataSize *= Size; \
+	} \
+	Target->Base.Address = GC_MALLOC_ATOMIC(DataSize); \
+	fill_prods_ ## CTYPE(Target->Degree, Target->Dimensions, Target->Base.Address, Source->Degree, Source->Dimensions, Source->Base.Address); \
+	return (ml_value_t *)Target; \
 }
 
-PARTIAL_SUMS(MLArrayInt8T, int8_t);
-PARTIAL_SUMS(MLArrayUInt8T, uint8_t);
-PARTIAL_SUMS(MLArrayInt16T, int16_t);
-PARTIAL_SUMS(MLArrayUInt16T, uint16_t);
-PARTIAL_SUMS(MLArrayInt32T, int32_t);
-PARTIAL_SUMS(MLArrayUInt32T, uint32_t);
-PARTIAL_SUMS(MLArrayInt64T, int64_t);
-PARTIAL_SUMS(MLArrayUInt64T, uint64_t);
-PARTIAL_SUMS(MLArrayFloat32T, float);
-PARTIAL_SUMS(MLArrayFloat64T, double);
+
+PARTIAL_FUNCTIONS(MLArrayInt8T, int8_t, ml_integer);
+PARTIAL_FUNCTIONS(MLArrayUInt8T, uint8_t, ml_integer);
+PARTIAL_FUNCTIONS(MLArrayInt16T, int16_t, ml_integer);
+PARTIAL_FUNCTIONS(MLArrayUInt16T, uint16_t, ml_integer);
+PARTIAL_FUNCTIONS(MLArrayInt32T, int32_t, ml_integer);
+PARTIAL_FUNCTIONS(MLArrayUInt32T, uint32_t, ml_integer);
+PARTIAL_FUNCTIONS(MLArrayInt64T, int64_t, ml_integer);
+PARTIAL_FUNCTIONS(MLArrayUInt64T, uint64_t, ml_integer);
+PARTIAL_FUNCTIONS(MLArrayFloat32T, float, ml_real);
+PARTIAL_FUNCTIONS(MLArrayFloat64T, double, ml_real);
 
 static int array_copy(ml_array_t *Target, ml_array_t *Source) {
 	int Degree = Source->Degree;
@@ -1776,6 +2006,195 @@ ML_METHODX("update", MLArrayT, MLFunctionT) {
 	return ml_call(State, Function, 1, State->Args);
 }
 
+#define ML_ARRAY_DOT(CTYPE) \
+static CTYPE ml_array_dot_ ## CTYPE( \
+	void *DataA, ml_array_dimension_t *DimA, int FormatA, \
+	void *DataB, ml_array_dimension_t *DimB, int FormatB \
+) { \
+	CTYPE Sum = 0; \
+	int Size = DimA->Size; \
+	int StrideA = DimA->Stride; \
+	int StrideB = DimB->Stride; \
+	if (DimA->Indices) { \
+		int *IndicesA = DimA->Indices; \
+		if (DimB->Indices) { \
+			int *IndicesB = DimB->Indices; \
+			for (int I = 0; I < Size; ++I) { \
+				CTYPE ValueA = ml_array_get0_ ## CTYPE(DataA + IndicesA[I] * StrideA, FormatA); \
+				CTYPE ValueB = ml_array_get0_ ## CTYPE(DataB + IndicesB[I] * StrideB, FormatB); \
+				Sum += ValueA * ValueB; \
+			} \
+		} else { \
+			for (int I = 0; I < Size; ++I) { \
+				CTYPE ValueA = ml_array_get0_ ## CTYPE(DataA + IndicesA[I] * StrideA, FormatA); \
+				CTYPE ValueB = ml_array_get0_ ## CTYPE(DataB, FormatB); \
+				Sum += ValueA * ValueB; \
+				DataB += StrideB; \
+			} \
+		} \
+	} else { \
+		if (DimB->Indices) { \
+			int *IndicesB = DimB->Indices; \
+			for (int I = 0; I < Size; ++I) { \
+				CTYPE ValueA = ml_array_get0_ ## CTYPE(DataA, FormatA); \
+				CTYPE ValueB = ml_array_get0_ ## CTYPE(DataB + IndicesB[I] * StrideB, FormatB); \
+				Sum += ValueA * ValueB; \
+				DataA += StrideA; \
+			} \
+		} else { \
+			for (int I = 0; I < Size; ++I) { \
+				CTYPE ValueA = ml_array_get0_ ## CTYPE(DataA, FormatA); \
+				CTYPE ValueB = ml_array_get0_ ## CTYPE(DataB, FormatB); \
+				Sum += ValueA * ValueB; \
+				DataA += StrideA; \
+				DataB += StrideB; \
+			} \
+		} \
+	} \
+	return Sum; \
+}
+
+ML_ARRAY_DOT(int8_t);
+ML_ARRAY_DOT(uint8_t);
+ML_ARRAY_DOT(int16_t);
+ML_ARRAY_DOT(uint16_t);
+ML_ARRAY_DOT(int32_t);
+ML_ARRAY_DOT(uint32_t);
+ML_ARRAY_DOT(int64_t);
+ML_ARRAY_DOT(uint64_t);
+ML_ARRAY_DOT(float);
+ML_ARRAY_DOT(double);
+
+static void ml_array_dot_fill(
+	void *DataA, ml_array_dimension_t *DimA, int FormatA, int DegreeA,
+	void *DataB, ml_array_dimension_t *DimB, int FormatB, int DegreeB,
+	void *DataC, ml_array_dimension_t *DimC, int FormatC, int DegreeC
+) {
+	if (DegreeA > 1) {
+		int StrideA = DimA->Stride;
+		int StrideC = DimC->Stride;
+		if (DimA->Indices) {
+			int *Indices = DimA->Indices;
+			for (int I = 0; I < DimA->Size; ++I) {
+				ml_array_dot_fill(
+					DataA + (Indices[I]) * StrideA, DimA + 1, FormatA, DegreeA - 1,
+					DataB, DimB, FormatB, DegreeB,
+					DataC, DimC + 1, FormatC, DegreeC - 1
+				);
+				DataC += StrideC;
+			}
+		} else {
+			for (int I = DimA->Size; --I >= 0;) {
+				ml_array_dot_fill(
+					DataA, DimA + 1, FormatA, DegreeA - 1,
+					DataB, DimB, FormatB, DegreeB,
+					DataC, DimC + 1, FormatC, DegreeC - 1
+				);
+				DataA += StrideA;
+				DataC += StrideC;
+			}
+		}
+	} else if (DegreeB > 1) {
+		int StrideB = DimB->Stride;
+		int StrideC = (DimC + DegreeC - 1)->Stride;
+		if (DimB->Indices) {
+			int *Indices = DimB->Indices;
+			for (int I = 0; I < DimB->Size; ++I) {
+				ml_array_dot_fill(
+					DataA, DimA, FormatA, DegreeA,
+					DataB + (Indices[I]) * StrideB, DimB - 1, FormatB, DegreeB - 1,
+					DataC, DimC, FormatC, DegreeC - 1
+				);
+				DataC += StrideC;
+			}
+		} else {
+			for (int I = DimB->Size; --I >= 0;) {
+				ml_array_dot_fill(
+					DataA, DimA, FormatA, DegreeA,
+					DataB, DimB - 1, FormatB, DegreeB - 1,
+					DataC, DimC, FormatC, DegreeC - 1
+				);
+				DataB += StrideB;
+				DataC += StrideC;
+			}
+		}
+	} else {
+		switch (FormatC) {
+		case ML_ARRAY_FORMAT_I8:
+			*(int8_t *)DataC = ml_array_dot_int8_t(DataA, DimA, FormatA, DataB, DimB + (DegreeB - 1), FormatB);
+			break;
+		case ML_ARRAY_FORMAT_U8:
+			*(uint8_t *)DataC = ml_array_dot_uint8_t(DataA, DimA, FormatA, DataB, DimB + (DegreeB - 1), FormatB);
+			break;
+		case ML_ARRAY_FORMAT_I16:
+			*(int16_t *)DataC = ml_array_dot_int16_t(DataA, DimA, FormatA, DataB, DimB + (DegreeB - 1), FormatB);
+			break;
+		case ML_ARRAY_FORMAT_U16:
+			*(uint16_t *)DataC = ml_array_dot_uint16_t(DataA, DimA, FormatA, DataB, DimB + (DegreeB - 1), FormatB);
+			break;
+		case ML_ARRAY_FORMAT_I32:
+			*(int32_t *)DataC = ml_array_dot_int32_t(DataA, DimA, FormatA, DataB, DimB + (DegreeB - 1), FormatB);
+			break;
+		case ML_ARRAY_FORMAT_U32:
+			*(uint32_t *)DataC = ml_array_dot_uint32_t(DataA, DimA, FormatA, DataB, DimB + (DegreeB - 1), FormatB);
+			break;
+		case ML_ARRAY_FORMAT_I64:
+			*(int64_t *)DataC = ml_array_dot_int64_t(DataA, DimA, FormatA, DataB, DimB + (DegreeB - 1), FormatB);
+			break;
+		case ML_ARRAY_FORMAT_U64:
+			*(uint64_t *)DataC = ml_array_dot_uint64_t(DataA, DimA, FormatA, DataB, DimB + (DegreeB - 1), FormatB);
+			break;
+		case ML_ARRAY_FORMAT_F32:
+			*(float *)DataC = ml_array_dot_float(DataA, DimA, FormatA, DataB, DimB + (DegreeB - 1), FormatB);
+			break;
+		case ML_ARRAY_FORMAT_F64:
+			*(double *)DataC = ml_array_dot_double(DataA, DimA, FormatA, DataB, DimB + (DegreeB - 1), FormatB);
+			break;
+		}
+	}
+}
+
+ML_METHOD(".", MLArrayT, MLArrayT) {
+//<A
+//<B
+//>array
+// Returns the inner product of :mini:`A` and :mini:`B`.
+	ml_array_t *A = (ml_array_t *)Args[0];
+	ml_array_t *B = (ml_array_t *)Args[1];
+	if (!A->Degree || !B->Degree) return ml_error("ShapeError", "Empty array");
+	int Size = A->Dimensions[A->Degree - 1].Size;
+	if (Size != B->Dimensions[0].Size) return ml_error("ShapeError", "Incompatible arrays");
+	if (A->Degree == 1 && B->Degree == 1) {
+		double Sum = 0;
+		for (int I = 0; I < Size; ++I) {
+			Sum += ml_array_get_double(A, I) * ml_array_get_double(B, I);
+		}
+		return ml_real(Sum);
+	}
+	int Degree = A->Degree + B->Degree - 2;
+	ml_array_t *C = ml_array_new(MAX(A->Format, B->Format), Degree);
+	int DataSize = MLArraySizes[C->Format];
+	int Base = A->Degree - 2;
+	for (int I = B->Degree; --I >= 1;) {
+		C->Dimensions[Base + I].Stride = DataSize;
+		int Size = C->Dimensions[Base + I].Size = B->Dimensions[I].Size;
+		DataSize *= Size;
+	}
+	for (int I = A->Degree - 1; --I >= 0;) {
+		C->Dimensions[I].Stride = DataSize;
+		int Size = C->Dimensions[I].Size = A->Dimensions[I].Size;
+		DataSize *= Size;
+	}
+	C->Base.Address = GC_MALLOC_ATOMIC(DataSize);
+	C->Base.Size = DataSize;
+	ml_array_dot_fill(
+		A->Base.Address, A->Dimensions, A->Format, A->Degree,
+		B->Base.Address, B->Dimensions + (B->Degree - 1), B->Format, B->Degree,
+		C->Base.Address, C->Dimensions, C->Format, C->Degree
+	);
+	return (ml_value_t *)C;
+}
+
 #ifdef __USE_ML_CBOR
 
 static void ml_cbor_write_array_dim(int Degree, ml_array_dimension_t *Dimension, char *Address, char *Data, ml_cbor_write_fn WriteFn) {
@@ -1786,7 +2205,7 @@ static void ml_cbor_write_array_dim(int Degree, ml_array_dimension_t *Dimension,
 		if (Dimension->Indices) {
 			int *Indices = Dimension->Indices;
 			for (int I = 0; I < Dimension->Size; ++I) {
-				ml_cbor_write_array_dim(Degree - 1, Dimension + 1, Address + (Indices[I]) * Dimension->Stride, Data, WriteFn);
+				ml_cbor_write_array_dim(Degree - 1, Dimension + 1, Address + (Indices[I]) * Stride, Data, WriteFn);
 			}
 		} else {
 			for (int I = Dimension->Size; --I >= 0;) {
@@ -1905,6 +2324,6 @@ void ml_array_init(stringmap_t *Globals) {
 	stringmap_insert(MLArrayT->Exports, "float64", MLArrayFloat64T);
 	if (Globals) {
 		stringmap_insert(Globals, "array", MLArrayT);
-		
+
 	}
 }
