@@ -176,10 +176,7 @@ static void ml_tasks_state_run(ml_compiler_t *Compiler, ml_value_t *Value) {
 	ml_compiler_task_t *Task = Compiler->Tasks;
 	ml_value_t *Error;
 	if (ml_is_error(Value)) {
-		if (!Task->error) {
-			ml_error_trace_add(Value, Task->Source);
-			ML_RETURN(Value);
-		}
+		if (!Task->error) ML_RETURN(Value);
 		Error = Task->error(Task, Value);
 	} else {
 		Error = Task->finish(Task, Value);
