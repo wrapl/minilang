@@ -514,6 +514,7 @@ struct ml_map_node_t {
 
 ml_value_t *ml_map() __attribute__((malloc));
 ml_value_t *ml_map_search(ml_value_t *Map, ml_value_t *Key);
+ml_map_node_t *ml_map_slot(ml_value_t *Map, ml_value_t *Key);
 ml_value_t *ml_map_insert(ml_value_t *Map, ml_value_t *Key, ml_value_t *Value);
 ml_value_t *ml_map_delete(ml_value_t *Map, ml_value_t *Key);
 

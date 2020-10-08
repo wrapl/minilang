@@ -3992,6 +3992,11 @@ static ml_map_node_t *ml_map_node(ml_map_t *Map, ml_map_node_t **Slot, long Hash
 	}
 }
 
+ml_map_node_t *ml_map_slot(ml_value_t *Map0, ml_value_t *Key) {
+	ml_map_t *Map = (ml_map_t *)Map0;
+	return ml_map_node(Map, &Map->Root, ml_typeof(Key)->hash(Key, NULL), Key);
+}
+
 ml_value_t *ml_map_insert(ml_value_t *Map0, ml_value_t *Key, ml_value_t *Value) {
 	ml_map_t *Map = (ml_map_t *)Map0;
 	ml_map_node_t *Node = ml_map_node(Map, &Map->Root, ml_typeof(Key)->hash(Key, NULL), Key);

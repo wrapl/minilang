@@ -604,11 +604,50 @@ ML_FUNCTIONX(Count) {
 // Returns the count of the values produced by :mini:`Iteratable`.
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
-	ml_count_state_t *State = xnew(ml_count_state_t, 1, ml_value_t *);
+	ml_count_state_t *State = new(ml_count_state_t);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)count_iterate;
 	State->Base.Context = Caller->Context;
 	State->Count = 0;
+	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
+}
+
+typedef struct ml_count2_state_t {
+	ml_state_t Base;
+	ml_value_t *Iter;
+	ml_value_t *Counts;
+} ml_count2_state_t;
+
+static void count2_iterate(ml_count2_state_t *State, ml_value_t *Value);
+
+static void count2_value(ml_count2_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value != MLNil) {
+		ml_map_node_t *Node = ml_map_slot(State->Counts, Value);
+		Node->Value = ml_integer((Node->Value ? ml_integer_value(Node->Value) : 0) + 1);
+	}
+	State->Base.run = (void *)count2_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void count2_iterate(ml_count2_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Counts);
+	State->Base.run = (void *)count2_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+ML_FUNCTIONX(Count2) {
+//<Iteratable
+//>map
+// Returns a map of the values produced by :mini:`Iteratable` with associated counts.
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
+	ml_count2_state_t *State = new(ml_count2_state_t);
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)count2_iterate;
+	State->Base.Context = Caller->Context;
+	State->Counts = ml_map();
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
@@ -1584,6 +1623,7 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "all", All);
 	stringmap_insert(Globals, "all2", All2);
 	stringmap_insert(Globals, "count", Count);
+	stringmap_insert(Globals, "count2", Count2);
 	stringmap_insert(Globals, "reduce", Reduce);
 	stringmap_insert(Globals, "min", Min);
 	stringmap_insert(Globals, "max", Max);

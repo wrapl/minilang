@@ -26,7 +26,7 @@ internal
    *Defined at line 45 in src/ml_gir.c*
 
 :mini:`errorvalue`
-   *Defined at line 430 in src/ml_runtime.c*
+   *Defined at line 434 in src/ml_runtime.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: type)`
    *Defined at line 183 in src/ml_types.c*
@@ -91,11 +91,11 @@ internal
    *Defined at line 3834 in src/ml_types.c*
 
 :mini:`mapindex`
-   *Defined at line 4127 in src/ml_types.c*
+   *Defined at line 4132 in src/ml_types.c*
 
 :mini:`mapiter`
-   *Defined at line 4318 in src/ml_types.c*
+   *Defined at line 4323 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: method)`
-   *Defined at line 4744 in src/ml_types.c*
+   *Defined at line 4749 in src/ml_types.c*
 
