@@ -142,6 +142,7 @@ void ml_math_init(stringmap_t *Globals) {
 			"pi", ml_real(M_PI),
 			"π", ml_real(M_PI),
 			"e", ml_real(M_E),
+			"ℯ", ml_real(M_E),
 		NULL));
 	}
 }
