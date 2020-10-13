@@ -3266,7 +3266,7 @@ typedef struct {
 } ml_command_var_t;
 
 static ml_value_t *ml_command_var_finish(ml_command_var_t *Task, ml_value_t *Value) {
-	Task->Var->Value = Value;
+	Task->Var->Value = ml_deref(Value);
 	return NULL;
 }
 
@@ -3284,6 +3284,7 @@ typedef struct {
 } ml_command_def_t;
 
 static ml_value_t *ml_command_def_finish(ml_command_def_t *Task, ml_value_t *Value) {
+	Value = ml_deref(Value);
 	if (Task->Slot) {
 		ml_uninitialized_set(Task->Slot[0], Value);
 		Task->Slot[0] = Value;
