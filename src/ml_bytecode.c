@@ -123,15 +123,15 @@ static ml_value_t *ML_TYPED_FN(ml_debugger_local, DEBUG_TYPE(Continuation), DEBU
 	return Frame->Stack[Index];
 }
 
-static void ML_TYPED_FN(ml_iter_value, DEBUG_TYPE(Suspension), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+static void ML_TYPED_FN(ml_iter_value, DEBUG_TYPE(Continuation), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
 	ML_RETURN(Suspension->Top[-1]);
 }
 
-static void ML_TYPED_FN(ml_iter_key, DEBUG_TYPE(Suspension), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+static void ML_TYPED_FN(ml_iter_key, DEBUG_TYPE(Continuation), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
 	ML_RETURN(Suspension->Top[-2]);
 }
 
-static void ML_TYPED_FN(ml_iter_next, DEBUG_TYPE(Suspension), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+static void ML_TYPED_FN(ml_iter_next, DEBUG_TYPE(Continuation), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
 	Suspension->Base.Type = DEBUG_TYPE(Continuation);
 	Suspension->Top[-2] = Suspension->Top[-1];
 	--Suspension->Top;
@@ -139,16 +139,6 @@ static void ML_TYPED_FN(ml_iter_next, DEBUG_TYPE(Suspension), ml_state_t *Caller
 	Suspension->Base.Context = Caller->Context;
 	ML_CONTINUE(Suspension, MLNil);
 }
-
-static void DEBUG_FUNC(suspension_call)(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
-	State->Caller = Caller;
-	return State->run(State, Count ? Args[0] : MLNil);
-}
-
-ML_TYPE(DEBUG_TYPE(Suspension), (MLFunctionT), "suspension",
-//!internal
-	.call = (void *)DEBUG_FUNC(suspension_call)
-);
 
 #ifndef DEBUG_VERSION
 
@@ -303,7 +293,6 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ML_CONTINUE(Caller, Result);
 	}
 	DO_SUSPEND: {
-		Frame->Base.Type = DEBUG_TYPE(Suspension);
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
 #ifdef USE_ML_SCHEDULER
@@ -871,9 +860,6 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	if (Breakpoints[LineNo / SIZE_BITS] & (1 << LineNo % SIZE_BITS)) {
 		return Debugger->run(Debugger, (ml_state_t *)Frame, MLNil);
 	}
-	/*if (Debugger->StepIn) {
-		return Debugger->run(Debugger, (ml_state_t *)Frame, MLNil);
-	}*/
 #else
 #ifdef USE_ML_JIT
 	if (Info->JITStart) {

@@ -232,13 +232,6 @@ static void ML_TYPED_FN(ml_iterate, MLNilT, ml_state_t *Caller, ml_value_t *Valu
 	ML_RETURN(Value);
 }
 
-ML_METHOD("?", MLAnyT) {
-//<Value
-//>type
-// Returns the type of :mini:`Value`.
-	return (ml_value_t *)ml_typeof(Args[0]);
-}
-
 ML_METHOD("in", MLAnyT, MLTypeT) {
 //<Value
 //<Type
@@ -1347,6 +1340,28 @@ ML_METHOD("%", MLIntegerT, MLIntegerT) {
 	return ml_integer(IntegerA % IntegerB);
 }
 
+ML_METHOD("|", MLIntegerT, MLIntegerT) {
+//!number
+//<Int/1
+//<Int/2
+//>integer
+// Returns :mini:`Int/2`. if it is divisible by :mini:`Int/1` and :mini:`nil` otherwise.
+	int64_t IntegerA = ml_integer_value(Args[0]);
+	int64_t IntegerB = ml_integer_value(Args[1]);
+	return (IntegerB % IntegerA) ? MLNil : Args[1];
+}
+
+ML_METHOD("!|", MLIntegerT, MLIntegerT) {
+//!number
+//<Int/1
+//<Int/2
+//>integer
+// Returns :mini:`Int/2`. if it is not divisible by :mini:`Int/1` and :mini:`nil` otherwise.
+	int64_t IntegerA = ml_integer_value(Args[0]);
+	int64_t IntegerB = ml_integer_value(Args[1]);
+	return (IntegerB % IntegerA) ? Args[1] : MLNil;
+}
+
 ML_METHOD("div", MLIntegerT, MLIntegerT) {
 //!number
 //<Int/1
@@ -1530,6 +1545,7 @@ ML_METHOD("..", MLIntegerT, MLIntegerT) {
 //<Start
 //<Limit
 //>integerrange
+// Returns a range from :mini:`Start` to :mini:`Limit` (inclusive).
 	int64_t IntegerA = ml_integer_value(Args[0]);
 	int64_t IntegerB = ml_integer_value(Args[1]);
 	ml_integer_range_t *Range = new(ml_integer_range_t);
@@ -1545,6 +1561,7 @@ ML_METHOD("by", MLIntegerT, MLIntegerT) {
 //<Start
 //<Step
 //>integerrange
+// Returns a unlimited range from :mini:`Start` in steps of :mini:`Step`.
 	int64_t IntegerA = ml_integer_value(Args[0]);
 	int64_t IntegerB = ml_integer_value(Args[1]);
 	ml_integer_range_t *Range = new(ml_integer_range_t);
@@ -1560,6 +1577,7 @@ ML_METHOD("by", MLIntegerRangeT, MLIntegerT) {
 //<Range
 //<Step
 //>integerrange
+// Returns a range with the same limits as :mini:`Range` but with step :mini:`Step`.
 	ml_integer_range_t *Range0 = (ml_integer_range_t *)Args[0];
 	ml_integer_range_t *Range = new(ml_integer_range_t);
 	Range->Type = MLIntegerRangeT;
