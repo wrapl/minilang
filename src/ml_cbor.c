@@ -457,19 +457,19 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLObjectT, ml_value_t *Arg, void *
 
 #include "ml_array.h"
 
-static void ml_cbor_write_array_dim(int Degree, ml_array_dimension_t *Dimension, char *Address, char *Data, ml_cbor_write_fn WriteFn) {
+static void ml_cbor_write_array_dim(int Degree, size_t FlatSize, ml_array_dimension_t *Dimension, char *Address, char *Data, ml_cbor_write_fn WriteFn) {
 	if (Degree < 0) {
-		WriteFn(Data, (unsigned char *)Address, Dimension->Size * Dimension->Stride);
+		WriteFn(Data, (unsigned char *)Address, FlatSize);
 	} else {
 		int Stride = Dimension->Stride;
 		if (Dimension->Indices) {
 			int *Indices = Dimension->Indices;
 			for (int I = 0; I < Dimension->Size; ++I) {
-				ml_cbor_write_array_dim(Degree - 1, Dimension + 1, Address + (Indices[I]) * Dimension->Stride, Data, WriteFn);
+				ml_cbor_write_array_dim(Degree - 1, FlatSize, Dimension + 1, Address + Indices[I] * Stride, Data, WriteFn);
 			}
 		} else {
 			for (int I = Dimension->Size; --I >= 0;) {
-				ml_cbor_write_array_dim(Degree - 1, Dimension + 1, Address, Data, WriteFn);
+				ml_cbor_write_array_dim(Degree - 1, FlatSize, Dimension + 1, Address, Data, WriteFn);
 				Address += Stride;
 			}
 		}
@@ -496,16 +496,22 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char 
 	for (int I = 0; I < Array->Degree; ++I) ml_cbor_write_integer(Data, WriteFn, Array->Dimensions[I].Size);
 	size_t Size = MLArraySizes[Array->Format];
 	int FlatDegree = -1;
+	size_t FlatSize = Size;
 	for (int I = Array->Degree; --I >= 0;) {
 		if (FlatDegree < 0) {
-			if (Array->Dimensions[I].Indices) FlatDegree = I;
-			if (Array->Dimensions[I].Stride != Size) FlatDegree = I;
+			if (Array->Dimensions[I].Indices) {
+				FlatDegree = I;
+			} else if (Array->Dimensions[I].Stride != Size) {
+				FlatDegree = I;
+			} else {
+				FlatSize = Size * Array->Dimensions[I].Size;
+			}
 		}
 		Size *= Array->Dimensions[I].Size;
 	}
 	ml_cbor_write_tag(Data, WriteFn, Tags[Array->Format]);
 	ml_cbor_write_bytes(Data, WriteFn, Size);
-	ml_cbor_write_array_dim(FlatDegree, Array->Dimensions, Array->Base.Address, Data, WriteFn);
+	ml_cbor_write_array_dim(FlatDegree, FlatSize, Array->Dimensions, Array->Base.Address, Data, WriteFn);
 	return NULL;
 }
 
