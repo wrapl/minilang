@@ -28,6 +28,7 @@ struct console_t {
 	ml_state_t Base;
 	const char *Name;
 	GtkWidget *Window, *LogScrolled, *LogView, *InputView, *SourceView;
+	GtkWidget *DebugButtons;
 	GtkNotebook *Notebook;
 	GtkSourceLanguage *Language;
 	GtkSourceStyleScheme *StyleScheme;
@@ -138,6 +139,34 @@ static void ml_console_repl_run(console_t *Console, ml_value_t *Result) {
 	return ml_command_evaluate((ml_state_t *)Console, Console->Compiler, Console->Globals);
 }
 
+static void console_step_in(GtkWidget *Button, console_t *Console) {
+	ml_compiler_t *Compiler = Console->Compiler;
+	ml_compiler_reset(Compiler);
+	ml_compiler_input(Compiler, "step_in()");
+	ml_command_evaluate((ml_state_t *)Console, Compiler, Console->Globals);
+}
+
+static void console_step_over(GtkWidget *Button, console_t *Console) {
+	ml_compiler_t *Compiler = Console->Compiler;
+	ml_compiler_reset(Compiler);
+	ml_compiler_input(Compiler, "step_over()");
+	ml_command_evaluate((ml_state_t *)Console, Compiler, Console->Globals);
+}
+
+static void console_step_out(GtkWidget *Button, console_t *Console) {
+	ml_compiler_t *Compiler = Console->Compiler;
+	ml_compiler_reset(Compiler);
+	ml_compiler_input(Compiler, "step_out()");
+	ml_command_evaluate((ml_state_t *)Console, Compiler, Console->Globals);
+}
+
+static void console_continue(GtkWidget *Button, console_t *Console) {
+	ml_compiler_t *Compiler = Console->Compiler;
+	ml_compiler_reset(Compiler);
+	ml_compiler_input(Compiler, "continue()");
+	ml_command_evaluate((ml_state_t *)Console, Compiler, Console->Globals);
+}
+
 static void console_submit(GtkWidget *Button, console_t *Console) {
 	GtkTextBuffer *InputBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView));
 	GtkTextIter InputStart[1], InputEnd[1];
@@ -171,6 +200,7 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 }
 
 static void console_debug_enter(console_t *Console, interactive_debugger_t *Debugger, ml_source_t Source, int Index) {
+	gtk_widget_show(Console->DebugButtons);
 	Console->Debugger = Debugger;
 	console_printf(Console, "Debug break [%d]: %s:%d\n", Index, Source.Name, Source.Line);
 	GtkWidget *SourceView;
@@ -220,6 +250,7 @@ static void console_debug_enter(console_t *Console, interactive_debugger_t *Debu
 }
 
 static void console_debug_exit(console_t *Console, interactive_debugger_t *Debugger, ml_state_t *Caller, int Index) {
+	gtk_widget_hide(Console->DebugButtons);
 	return interactive_debugger_resume(Debugger);
 }
 
@@ -356,6 +387,7 @@ static gboolean console_keypress(GtkWidget *Widget, GdkEventKey *Event, console_
 void console_show(console_t *Console, GtkWindow *Parent) {
 	gtk_window_set_transient_for(GTK_WINDOW(Console->Window), Parent);
 	gtk_widget_show_all(Console->Window);
+	gtk_widget_hide(Console->DebugButtons);
 	gtk_widget_grab_focus(Console->InputView);
 }
 
@@ -645,7 +677,29 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	GtkSourceStyleSchemeManager *StyleManager = gtk_source_style_scheme_manager_get_default();
 	Console->SourceBuffer = gtk_source_buffer_new_with_language(Console->Language);
 
+
+
 	GtkWidget *InputPanel = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2);
+
+	GtkWidget *DebugButtons = Console->DebugButtons = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2);
+	GtkWidget *StepInButton = gtk_button_new();
+	gtk_button_set_label(GTK_BUTTON(StepInButton), "In");
+	gtk_box_pack_start(GTK_BOX(DebugButtons), StepInButton, FALSE, FALSE, 2);
+	GtkWidget *StepOverButton = gtk_button_new();
+	gtk_button_set_label(GTK_BUTTON(StepOverButton), "Over");
+	gtk_box_pack_start(GTK_BOX(DebugButtons), StepOverButton, FALSE, FALSE, 2);
+	GtkWidget *StepOutButton = gtk_button_new();
+	gtk_button_set_label(GTK_BUTTON(StepOutButton), "Out");
+	gtk_box_pack_start(GTK_BOX(DebugButtons), StepOutButton, FALSE, FALSE, 2);
+	GtkWidget *ContinueButton = gtk_button_new();
+	gtk_button_set_label(GTK_BUTTON(ContinueButton), "Run");
+	gtk_box_pack_start(GTK_BOX(DebugButtons), ContinueButton, FALSE, FALSE, 2);
+	g_signal_connect(G_OBJECT(StepInButton), "clicked", G_CALLBACK(console_step_in), Console);
+	g_signal_connect(G_OBJECT(StepOverButton), "clicked", G_CALLBACK(console_step_over), Console);
+	g_signal_connect(G_OBJECT(StepOutButton), "clicked", G_CALLBACK(console_step_out), Console);
+	g_signal_connect(G_OBJECT(ContinueButton), "clicked", G_CALLBACK(console_continue), Console);
+	gtk_box_pack_start(GTK_BOX(InputPanel), DebugButtons, FALSE, FALSE, 2);
+
 	GtkWidget *SubmitButton = gtk_button_new();
 	gtk_button_set_image(GTK_BUTTON(SubmitButton), gtk_image_new_from_icon_name("go-jump-symbolic", GTK_ICON_SIZE_BUTTON));
 	GtkWidget *ClearButton = gtk_button_new();

@@ -130,48 +130,59 @@ Instead the above code is equivalent to following where semicolons have been add
    + "world";
 
 
-Literals
---------
+Blocks
+------
 
-The simplest expressions are single values. More information on values in
-*Minilang* can be found in :doc:`/minilang/types`.
+A block in *Minilang* is a group of expressions and declarations. A block returns the result of the last expression in the block. Every block creates a new identifier scope; identifiers declared in a block are not visible outside that block (although they are visible within nested blocks). Some constructs such as the bodies of :mini:`if`-expressions, :mini:`for`-expressions, etc, are always blocks. A :mini:`do`-expression wraps a block into a single expression.
 
-:Nil: :mini:`nil`.
+When any code is loaded in *Minilang*, it is implicitly treated as a block.
 
-:Integers: :mini:`1`, :mini:`-257`. Note that the leading ``-`` is parsed as part of a negative number, so that :mini:`2-1` (with no spaces) will be parsed as ``2 -1`` (and be invalid syntax) and not ``2 - 1``.
+.. code-block:: mini
 
-:Reals: :mini:`1.2`, :mini:`.13`, :mini:`-1.3e5`.
+   var X := do
+      let Y := 7
+      print("Y = ", Y, "\n")
+      Y - 5
+   end
 
-:Strings: :mini:`"Hello world!\n"`, :mini:`'X = {X}'`. Strings can be written using double quotes or single quotes. Strings written with single quotes can have embedded expressions (between ``{`` and ``}``) and may span multiple lines (the line breaks are embedded in the string).
+   if X = 2 then
+      let Y := 10
+      let Z := 11
+      print("X = ", X, "\n")
+      print("Y = ", Y, "\n")
+      print("Z = ", Z, "\n")
+   end
 
-:Regular Expressions: :mini:`r".*\.c"`.
+.. code-block:: console
 
-:Lists: :mini:`[1, 2, 3]`, :mini:`["a", 1.23, [nil]]`. The values in a list can be of any type including other lists and maps.
+   Y = 7
+   X = 2
+   Y = 10
+   Z = 11
 
-:Maps: :mini:`{"a" is 1, 10 is "string"}`. The keys of a map have to be immutable and comparable (e.g. numbers and strings). The values can be of any type.
+The code above has three blocks;
 
-:Tuples: :mini:`(1, 2, 3)`, :mini:`("a", 1.23, [nil])`. Like lists, tuples can contain values of any type. Tuple differ from lists by being immutable; once constructed the elements of a tuple cannot be modified. 
+#. the body of :mini:`do`-expression,
+#. the :mini:`then`-clause of the :mini:`if`-expression,
+#. the top-level block containing the entire code.
 
-:Booleans: :mini:`true` and :mini:`false`. Note that unlike :mini:`nil`, :mini:`true` and :mini:`false` are predefined identifiers and not keywords.
+The identifier :mini:`X` is declared in the top-level block and so is visible  throughout the code. The identifier :mini:`Y` is declared twice in two separate blocks, each block sees its local definition. Finally, the identifier :mini:`Z` is only declared in the :mini:`then`-block and is only visible there.
 
-:Methods: :mini:`:length`, :mini:`:X`, :mini:`<>`, :mini:`+`, :mini:`:"[]"`. Methods consisting only of the characters ``!``, ``@``, ``#``, ``$``, ``%``, ``^``, ``&``, ``*``, ``-``, ``+``, ``=``, ``|``, ``\\``, ``~``, `````, ``/``, ``?``, ``<``, ``>`` or ``.`` can be written directly without surrounding ``:"`` and ``"``.
 
 Declarations
 ------------
 
-All identifiers in *Minilang* (other than those provided by the compiler / embedding) must be explicitly declared. Declarations are only visible within their scope (block) and any nested scopes and can be referenced before their actual declaration. This allows (among other things) mutually recursive functions. 
+All identifiers in *Minilang* (other than those provided by the compiler / embedding) must be explicitly declared. Declarations are only visible within their containing block and can be referenced before their actual declaration. This allows (among other things) mutually recursive functions. 
 
 There are 3 types of declaration in *Minilang*:
 
-#. :mini:`var Name` delcares a new variable called :mini:`Name` in the current scope with an initial value of :mini:`nil` and which can be reassigned using :mini:`Name :=  Expression`. A variable declaration can optionally include an initial expression to evaluate and assign to the variable :mini:`var Name := Expression`.
+#. :mini:`var Name` binds :mini:`Name` to a new variable with an initial value of :mini:`nil`. Variables can be reassigned using :mini:`Name :=  Expression`. A variable declaration can optionally include an initial expression to evaluate and assign to the variable :mini:`var Name := Expression`, this is equivalent to :mini:`var Name; Name := Expression`.
 
-#. :mini:`let Name := Expression` declares a new value called :mini:`Value` with the result of evaluating :mini:`Expression` each time the block containing the declaration is run. :mini:`Name` cannot be reassigned later in the block, hence the intial expression is required.
+#. :mini:`let Name := Expression` binds :mini:`Name` to the result of evaluating :mini:`Expression`. :mini:`Name` cannot be reassigned later in the block, hence the intial expression is required.
 
-#. :mini:`def Name := Expression` declares a constant with the result of evaluating :mini:`Expression`. Unlike a :mini:`let`-declaration, :mini:`Expression` is evaluated once only when the code is first loaded. Consequently, :mini:`Expression` can only contain references to identifiers that are visible at load time (e.g. global identifiers or other constants).
+#. :mini:`def Name := Expression` binds :mini:`Name` to the result of evaluating :mini:`Expression`. Unlike a :mini:`let`-declaration, :mini:`Expression` is evaluated once only when the code is first loaded. Consequently, :mini:`Expression` can only contain references to identifiers that are visible at load time (e.g. global identifiers or other :mini:`def`-declarations).
  
-All identifiers in *Minilang* are visible within their scope and any nested
-scopes, including nested functions, unless they are shadowed by another
-declaration.
+Declarations in *Minilang* are visible in nested blocks (including nested functions), unless they are shadowed by another declaration.
 
 .. code-block:: mini
 
@@ -205,10 +216,11 @@ declaration.
    X = 2
    X = 1
 
-Declaration Syntax Sugar
-~~~~~~~~~~~~~~~~~~~~~~~~
 
-*Minilang* language provides no built-in support for modules, classes and probably some other useful features. Instead, *Minilang* allows for these features to be implemented as functions provided by the runtime, with evaluation at load time to remove any additional overhead from function calls. *Minilang* provides some syntax sugar constructs to simplify writing declarations of this form:
+Compound Declarations
+~~~~~~~~~~~~~~~~~~~~~
+
+The *Minilang* language provides no built-in support for modules, classes and probably some other useful features. Instead, *Minilang* allows for these features to be implemented as functions provided by the runtime, with evaluation at load time to remove any additional overhead from function calls. *Minilang* provides some syntax sugar constructs to simplify writing these types of declaration.
 
 .. list-table::
    :header-rows: 1
@@ -217,7 +229,7 @@ Declaration Syntax Sugar
 
    * - Syntax
      - Equivalent
-     - Purpose
+     - Description
      - Example
      
    * - .. code-block:: mini
@@ -258,14 +270,14 @@ Declaration Syntax Sugar
    
    * - .. code-block:: mini
        
-          Expression: var Name
+          Expression: var Name [:= Value]
           Expression: let Name := Value
           Expression: def Name := Value
           Expression: fun Name(Args...) Body
    
      - .. code-block:: mini
      
-          var Name
+          var Name [:= Value]
           Expression("Name", Name)
           
           let Name := Value
@@ -285,8 +297,9 @@ Declaration Syntax Sugar
           
           export: class: point(:X, :Y)
      
-   
-For example the following code shows how a module which exports a class may be written in *Minilang* where the specific embedding has provided the :mini:`class`, :mini:`import` and :mini:`export` functions.
+Notice that some forms above use a specific declaration type (:mini:`let` or :mini:`def`). If another declaration type is required then the declaration needs to be written in full.
+
+Compound declarations can be combined. For example, the following code shows how a module which exports a class may be written in *Minilang* where the specific embedding has provided the :mini:`class`, :mini:`import` and :mini:`export` functions.
 
 
 .. code-block:: mini
@@ -295,12 +308,58 @@ For example the following code shows how a module which exports a class may be w
    
    export: class: point(:X, :Y)
    
+Destructuring Declarations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Multiple identifiers can be declared and initialized with contents of a single aggregrate value (such as a tuple, list, map, module, etc). This avoids the need to declare a temporary identifier to hold the result. There are two forms of destructing declaration. Note that both forms can be used with :mini:`var`, :mini:`let` or :mini:`def`, for brevity only the :mini:`let` forms are shown below.
+
+#. :mini:`let (Name₁, Name₂, ...) := Expression`. Effectively equivalent to the following:
+
+   .. code-block:: mini
+   
+      let Temp := Expression
+      let Name₁ := Temp[1]
+      let Name₂ := Temp[2]
+   
+#. :mini:`let (Name₁, Name₂, ...) in Expression`. Effectively equivalent to the following:
+
+   .. code-block:: mini
+   
+      let Temp := Expression
+      let Name₁ := Temp["Name₁"]
+      let Name₂ := Temp["Name₂"]
 
 Expressions
 -----------
 
 Other than declarations, everything else in *Minilang* is an expression
 (something that can be evaluated).
+
+Literals
+~~~~~~~~
+
+The simplest expressions are single values. More information on values in
+*Minilang* can be found in :doc:`/minilang/types`.
+
+:Nil: :mini:`nil`.
+
+:Integers: :mini:`1`, :mini:`-257`. Note that the leading ``-`` is parsed as part of a negative number, so that :mini:`2-1` (with no spaces) will be parsed as ``2 -1`` (and be invalid syntax) and not ``2 - 1``.
+
+:Reals: :mini:`1.2`, :mini:`.13`, :mini:`-1.3e5`.
+
+:Strings: :mini:`"Hello world!\n"`, :mini:`'X = {X}'`. Strings can be written using double quotes or single quotes. Strings written with single quotes can have embedded expressions (between ``{`` and ``}``) and may span multiple lines (the line breaks are embedded in the string).
+
+:Regular Expressions: :mini:`r".*\.c"`.
+
+:Lists: :mini:`[1, 2, 3]`, :mini:`["a", 1.23, [nil]]`. The values in a list can be of any type including other lists and maps.
+
+:Maps: :mini:`{"a" is 1, 10 is "string"}`. The keys of a map have to be immutable and comparable (e.g. numbers and strings). The values can be of any type.
+
+:Tuples: :mini:`(1, 2, 3)`, :mini:`("a", 1.23, [nil])`. Like lists, tuples can contain values of any type. Tuple differ from lists by being immutable; once constructed the elements of a tuple cannot be modified. 
+
+:Booleans: :mini:`true` and :mini:`false`. Note that unlike :mini:`nil`, :mini:`true` and :mini:`false` are predefined identifiers and not keywords.
+
+:Methods: :mini:`:length`, :mini:`:X`, :mini:`<>`, :mini:`+`, :mini:`:"[]"`. Methods consisting only of the characters ``!``, ``@``, ``#``, ``$``, ``%``, ``^``, ``&``, ``*``, ``-``, ``+``, ``=``, ``|``, ``\\``, ``~``, `````, ``/``, ``?``, ``<``, ``>`` or ``.`` can be written directly without surrounding ``:"`` and ``"``.
 
 .. _minilang/functions:
 

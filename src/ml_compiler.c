@@ -760,13 +760,8 @@ static ml_value_t *ml_task_def_finish(ml_task_def_t *Task, ml_value_t *Value) {
 	Task->Inst->Params[1].Value = Value;
 	ml_decl_t *Decl = Task->Decl;
 	if (Task->NumUnpack) {
-			for (int I = Task->NumUnpack; --I >= 0; Decl = Decl->Next) {
-			ml_value_t *Unpacked = ml_unpack(Value, I);
-			if (!Unpacked) {
-				ml_value_t *Error = ml_error("ValueError", "Not enough values to unpack (%d < %d)", I, Task->NumUnpack);
-				ml_error_trace_add(Error, Task->Base.Source);
-				return Error;
-			}
+		for (int I = Task->NumUnpack; --I >= 0; Decl = Decl->Next) {
+			ml_value_t *Unpacked = ml_unpack(Value, I + 1);
 			if (Decl->Value) ml_uninitialized_set(Decl->Value, Unpacked);
 			Decl->Value = Unpacked;
 		}
@@ -3292,8 +3287,7 @@ static ml_value_t *ml_command_def_finish(ml_command_def_t *Task, ml_value_t *Val
 	if (Task->NumUnpack) {
 		int Index = 0;
 		for (ml_command_import_t *Unpack = Task->Unpacks; Unpack; Unpack = (ml_command_import_t *)Unpack->Base.Next, ++Index) {
-			ml_value_t *Unpacked = ml_unpack(Value, Index);
-			if (!Unpacked) return ml_error("ValueError", "Not enough values to unpack (%d < %d)", Index, Task->NumUnpack);
+			ml_value_t *Unpacked = ml_unpack(Value, Index + 1);
 			ml_uninitialized_set(Unpack->Slot[0], Unpacked);
 			Unpack->Slot[0] = Unpacked;
 		}

@@ -669,8 +669,7 @@ static ml_value_t *ml_tuple_deref(ml_tuple_t *Ref) {
 static ml_value_t *ml_tuple_assign(ml_tuple_t *Ref, ml_value_t *Values) {
 	int Count = Ref->Size;
 	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Value = ml_unpack(Values, I);
-		if (!Value) return ml_error("ValueError", "Not enough values to unpack (%d < %d)", I, Count);
+		ml_value_t *Value = ml_unpack(Values, I + 1);
 		ml_value_t *Result = ml_typeof(Ref->Values[I])->assign(Ref->Values[I], Value);
 		if (ml_is_error(Result)) return Result;
 	}
@@ -712,7 +711,7 @@ ml_value_t *ml_tuple(size_t Size) {
 
 ml_value_t *ml_unpack(ml_value_t *Value, int Index) {
 	typeof(ml_unpack) *function = ml_typed_fn_get(ml_typeof(Value), ml_unpack);
-	if (!function) return NULL;
+	if (!function) return ml_simple_inline(IndexMethod, 2, Value, ml_integer(Index));
 	return function(Value, Index);
 }
 
@@ -809,8 +808,8 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLTupleT) {
 }
 
 ml_value_t *ML_TYPED_FN(ml_unpack, MLTupleT, ml_tuple_t *Tuple, int Index) {
-	if (Index >= Tuple->Size) return NULL;
-	return Tuple->Values[Index];
+	if (Index > Tuple->Size) return MLNil;
+	return Tuple->Values[Index - 1];
 }
 
 static ml_value_t *ml_tuple_compare(ml_tuple_t *A, ml_tuple_t *B) {
@@ -3549,10 +3548,7 @@ static ml_value_t *ml_list_slice_assign(ml_list_slice_t *Slice, ml_value_t *Pack
 	int Length = Slice->Length;
 	int Index = 0;
 	while (Node && Length) {
-		ml_value_t *Value = ml_unpack(Packed, Index);
-		if (!Value) {
-			return ml_error("ValueError", "Incorrect number of values to unpack (%d < %d)", Index, Slice->Length);
-		}
+		ml_value_t *Value = ml_unpack(Packed, Index + 1);
 		++Index;
 		Node->Value = Value;
 		Node = Node->Next;
@@ -3621,8 +3617,8 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLListT) {
 }
 
 ml_value_t *ML_TYPED_FN(ml_unpack, MLListT, ml_list_t *List, int Index) {
-	ml_list_node_t *Node = ml_list_index(List, Index + 1);
-	return Node ? Node->Value : NULL;
+	ml_list_node_t *Node = ml_list_index(List, Index);
+	return Node ? Node->Value : MLNil;
 }
 
 /*typedef struct ml_list_iterator_t {
