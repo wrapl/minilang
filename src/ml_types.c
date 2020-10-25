@@ -555,19 +555,15 @@ typedef struct ml_partial_function_t {
 
 static void ml_partial_function_call(ml_state_t *Caller, ml_partial_function_t *Partial, int Count, ml_value_t **Args) {
 	int CombinedCount = Count + Partial->Set;
+	if (Partial->Count > CombinedCount) CombinedCount = Partial->Count;
 	ml_value_t **CombinedArgs = anew(ml_value_t *, CombinedCount);
-	int J = 0;
-	for (int I = 0; I < Partial->Count; ++I) {
-		ml_value_t *Arg = Partial->Args[I];
-		if (Arg) {
-			CombinedArgs[I] = Arg;
-		} else if (J < Count) {
-			CombinedArgs[I] = Args[J++];
-		} else {
-			CombinedArgs[I] = MLNil;
-		}
+	int I = 0, J = 0;
+	for (; I < Partial->Count; ++I) {
+		CombinedArgs[I] = Partial->Args[I] ?: (J < Count) ? Args[J++] : MLNil;
 	}
-	memcpy(CombinedArgs + Partial->Count, Args + J, (Count - J) * sizeof(ml_value_t *));
+	for (; I < CombinedCount; ++I) {
+		CombinedArgs[I] = (J < Count) ? Args[J++] : MLNil;
+	}
 	return ml_call(Caller, Partial->Function, CombinedCount, CombinedArgs);
 }
 
@@ -580,14 +576,16 @@ ml_value_t *ml_partial_function_new(ml_value_t *Function, int Count) {
 	ml_partial_function_t *Partial = xnew(ml_partial_function_t, Count, ml_value_t *);
 	Partial->Type = MLPartialFunctionT;
 	Partial->Function = Function;
-	Partial->Count = Count;
+	Partial->Count = 0;
 	Partial->Set = 0;
 	return (ml_value_t *)Partial;
 }
 
-ml_value_t *ml_partial_function_set(ml_value_t *Partial, size_t Index, ml_value_t *Value) {
-	++((ml_partial_function_t *)Partial)->Set;
-	return ((ml_partial_function_t *)Partial)->Args[Index] = Value;
+ml_value_t *ml_partial_function_set(ml_value_t *Partial0, size_t Index, ml_value_t *Value) {
+	ml_partial_function_t *Partial = (ml_partial_function_t *)Partial0;
+	++Partial->Set;
+	if (Partial->Count < Index + 1) Partial->Count = Index + 1;
+	return Partial->Args[Index] = Value;
 }
 
 ML_METHOD("!!", MLFunctionT, MLListT) {
@@ -595,7 +593,7 @@ ML_METHOD("!!", MLFunctionT, MLListT) {
 //<Function
 //<List
 //>partialfunction
-// Returns a function equivalent to :mini:`fun(Args...) Function(List..., Args...)`.
+// Returns a function equivalent to :mini:`fun(Args...) Function(List/1, List/2, ..., Args...)`.
 	ml_list_t *ArgsList = (ml_list_t *)Args[1];
 	ml_partial_function_t *Partial = xnew(ml_partial_function_t, ArgsList->Length, ml_value_t *);
 	Partial->Type = MLPartialFunctionT;

@@ -36,8 +36,6 @@ struct ml_hash_chain_t {
 	long Index;
 };
 
-typedef struct ml_typed_fn_node_t ml_typed_fn_node_t;
-
 struct ml_type_t {
 	const ml_type_t *Type;
 	const ml_type_t **Types;
