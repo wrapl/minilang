@@ -51,46 +51,46 @@ internal
    *Defined at line 528 in src/ml_types.c*
 
 :mini:`meth $(Arg₁: partialfunction, Arg₂: any)`
-   *Defined at line 623 in src/ml_types.c*
+   *Defined at line 621 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: tuple)`
-   *Defined at line 795 in src/ml_types.c*
+   *Defined at line 793 in src/ml_types.c*
 
 :mini:`stringiterator`
-   *Defined at line 2064 in src/ml_types.c*
+   *Defined at line 2062 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: nil)`
-   *Defined at line 2322 in src/ml_types.c*
+   *Defined at line 2320 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: some)`
-   *Defined at line 2333 in src/ml_types.c*
+   *Defined at line 2331 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: integer)`
-   *Defined at line 2344 in src/ml_types.c*
+   *Defined at line 2342 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: real)`
-   *Defined at line 2355 in src/ml_types.c*
+   *Defined at line 2353 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: string)`
-   *Defined at line 2369 in src/ml_types.c*
+   *Defined at line 2367 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: regex)`
-   *Defined at line 3218 in src/ml_types.c*
+   *Defined at line 3216 in src/ml_types.c*
 
 :mini:`listiter`
-   *Defined at line 3647 in src/ml_types.c*
+   *Defined at line 3645 in src/ml_types.c*
 
 :mini:`names`
    :Parents: :mini:`list`
 
-   *Defined at line 3848 in src/ml_types.c*
+   *Defined at line 3846 in src/ml_types.c*
 
 :mini:`mapindex`
-   *Defined at line 4146 in src/ml_types.c*
+   *Defined at line 4144 in src/ml_types.c*
 
 :mini:`mapiter`
-   *Defined at line 4337 in src/ml_types.c*
+   *Defined at line 4335 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: method)`
-   *Defined at line 4763 in src/ml_types.c*
+   *Defined at line 4761 in src/ml_types.c*
 

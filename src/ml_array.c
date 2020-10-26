@@ -906,7 +906,7 @@ static ml_value_t *ML_TYPED_FN(ml_array_value, ATYPE, ml_array_t *Array, char *A
 } \
 \
 static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_array_dimension_t *Dimension, char *Address) { \
-	ml_stringbuffer_add(Buffer, "[", 1); \
+	ml_stringbuffer_add(Buffer, "<", 1); \
 	int Stride = Dimension->Stride; \
 	if (Dimension->Indices) { \
 		int *Indices = Dimension->Indices; \
@@ -914,13 +914,13 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 			if (Degree == 1) { \
 				APPEND(Buffer, PRINTF, *(CTYPE *)(Address + (Indices[0]) * Dimension->Stride)); \
 				for (int I = 1; I < Dimension->Size; ++I) { \
-					ml_stringbuffer_add(Buffer, ", ", 2); \
+					ml_stringbuffer_add(Buffer, " ", 1); \
 					APPEND(Buffer, PRINTF, *(CTYPE *)(Address + (Indices[I]) * Stride)); \
 				} \
 			} else { \
 				append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address + (Indices[0]) * Dimension->Stride); \
 				for (int I = 1; I < Dimension->Size; ++I) { \
-					ml_stringbuffer_add(Buffer, ", ", 2); \
+					ml_stringbuffer_add(Buffer, " ", 1); \
 					append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address + (Indices[I]) * Dimension->Stride); \
 				} \
 			} \
@@ -930,7 +930,7 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 			APPEND(Buffer, PRINTF, *(CTYPE *)Address); \
 			Address += Stride; \
 			for (int I = Dimension->Size; --I > 0;) { \
-				ml_stringbuffer_add(Buffer, ", ", 2); \
+				ml_stringbuffer_add(Buffer, " ", 1); \
 				APPEND(Buffer, PRINTF, *(CTYPE *)Address); \
 				Address += Stride; \
 			} \
@@ -938,13 +938,13 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 			append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address); \
 			Address += Stride; \
 			for (int I = Dimension->Size; --I > 0;) { \
-				ml_stringbuffer_add(Buffer, ", ", 2); \
+				ml_stringbuffer_add(Buffer, " ", 1); \
 				append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address); \
 				Address += Stride; \
 			} \
 		} \
 	} \
-	ml_stringbuffer_add(Buffer, "]", 1); \
+	ml_stringbuffer_add(Buffer, ">", 1); \
 } \
 \
 static ml_value_t *ML_TYPED_FN(ml_string_of, ATYPE, ml_array_t *Array) { \
@@ -1092,9 +1092,9 @@ static ml_value_t *ml_array_ ## CTYPE ## _deref(ml_array_t *Target, ml_value_t *
 } \
 \
 static ml_value_t *ml_array_ ## CTYPE ## _assign(ml_array_t *Target, ml_value_t *Value) { \
-	for (;;) if (Target->Format == ML_ARRAY_FORMAT_ANY && Target->Degree == 0) { \
-			return *(ml_value_t **)Target->Base.Address = Value; \
-		} else if (ml_is(Value, MLNumberT)) { \
+	for (;;) if (FORMAT == ML_ARRAY_FORMAT_ANY && !Target->Degree) { \
+		return *(ml_value_t **)Target->Base.Address = Value; \
+	} else if (ml_is(Value, MLNumberT)) { \
 		CTYPE CValue = FROM_VAL(Value); \
 		ml_array_dimension_t ValueDimension[1] = {{1, 0, NULL}}; \
 		int Op = Target->Format * MAX_FORMATS + Target->Format; \

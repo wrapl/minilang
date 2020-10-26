@@ -42,15 +42,15 @@ function
 :mini:`partialfunction`
    :Parents: :mini:`function`
 
-   *Defined at line 574 in src/ml_types.c*
+   *Defined at line 570 in src/ml_types.c*
 
 :mini:`meth !!(Function: function, List: list)` |rarr| :mini:`partialfunction`
-   Returns a function equivalent to :mini:`fun(Args...) Function(List..., Args...)`.
+   Returns a function equivalent to :mini:`fun(Args...) Function(List₁, List₂, ..., Args...)`.
 
-   *Defined at line 593 in src/ml_types.c*
+   *Defined at line 591 in src/ml_types.c*
 
 :mini:`meth $(Function: function, Arg: any)` |rarr| :mini:`partialfunction`
    Returns a function equivalent to :mini:`fun(Args...) Function(Arg, Args...)`.
 
-   *Defined at line 609 in src/ml_types.c*
+   *Defined at line 607 in src/ml_types.c*
 
