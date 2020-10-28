@@ -2201,6 +2201,18 @@ static mlc_expr_t *ml_accept_meth_expr(ml_compiler_t *Compiler) {
 	if (!ml_parse(Compiler, MLT_RIGHT_PAREN)) {
 		ml_decl_t **ParamSlot = &FunExpr->Params;
 		do {
+			if (ml_parse(Compiler, MLT_OPERATOR)) {
+				if (!strcmp(Compiler->Ident, "..")) {
+					ml_value_t *Operator = ml_method(Compiler->Ident);
+					ML_EXPR(ValueExpr, value, value);
+					ValueExpr->Value = Operator;
+					mlc_expr_t *Arg = ArgsSlot[0] = (mlc_expr_t *)ValueExpr;
+					ArgsSlot = &Arg->Next;
+					break;
+				} else {
+					ml_compiler_error(Compiler, "ParseError", "expected <identfier> not %s (%s)", MLTokens[Compiler->Token], Compiler->Ident);
+				}
+			}
 			ml_decl_t *Param = ParamSlot[0] = new(ml_decl_t);
 			Param->Source = Compiler->Source;
 			ParamSlot = &Param->Next;

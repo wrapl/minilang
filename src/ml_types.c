@@ -3843,7 +3843,7 @@ ML_METHOD("sort", MLListT, MLFunctionT) {
 	return ml_list_sort((ml_list_t *)Args[0], Args[1]);
 }
 
-ML_TYPE(MLNamesT, (MLListT), "names",
+ML_TYPE(MLNamesT, (), "names",
 //!internal
 	.call = (void *)ml_list_call
 );
@@ -4485,7 +4485,8 @@ static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_
 	if (Definition->Count < Count) {
 		if (!Definition->Variadic) return 0;
 		Count = Definition->Count;
-		Score = 1;
+	} else if (!Definition->Variadic) {
+		Score = 2;
 	}
 	for (int I = 0; I < Count; ++I) {
 		const ml_type_t *Type = Definition->Types[I];
