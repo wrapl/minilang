@@ -36,19 +36,19 @@ array
    *Defined at line 483 in src/ml_array.c*
 
 :mini:`meth -(Arg₁: array)`
-   *Defined at line 1414 in src/ml_array.c*
+   *Defined at line 1627 in src/ml_array.c*
 
 :mini:`meth :copy(Array: array)` |rarr| :mini:`array`
-   *Defined at line 1745 in src/ml_array.c*
+   *Defined at line 2043 in src/ml_array.c*
 
 :mini:`meth :copy(Array: array, Function: function)` |rarr| :mini:`array`
-   *Defined at line 1800 in src/ml_array.c*
+   *Defined at line 2098 in src/ml_array.c*
 
 :mini:`meth :update(Array: array, Function: function)` |rarr| :mini:`array`
-   *Defined at line 1928 in src/ml_array.c*
+   *Defined at line 2226 in src/ml_array.c*
 
 :mini:`meth .(A: array, B: array)` |rarr| :mini:`array`
    Returns the inner product of :mini:`A` and :mini:`B`.
 
-   *Defined at line 2157 in src/ml_array.c*
+   *Defined at line 2455 in src/ml_array.c*
 
