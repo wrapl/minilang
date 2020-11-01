@@ -1726,11 +1726,72 @@ static void ML_TYPED_FN(ml_iter_next, MLSwappedStateT, ml_state_t *Caller, ml_sw
 	return ml_iter_next((ml_state_t *)State, State->Iter);
 }
 
-ML_METHOD("swap", MLIteratableT) {
+ML_FUNCTION(Swap) {
+//@swap
+//<Iteratable:iteratable
+// Returns a new iteratable which swaps the keys and values produced by :mini:`Iteratable`.
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLIteratableT);
 	ml_swapped_t *Swapped = new(ml_swapped_t);
 	Swapped->Type = MLSwappedT;
 	Swapped->Value = Args[0];
 	return (ml_value_t *)Swapped;
+}
+
+typedef struct {
+	const ml_type_t *Type;
+	ml_value_t *Value;
+} ml_key_t;
+
+ML_TYPE(MLKeyT, (MLIteratableT), "key");
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Iter;
+	int Iteration;
+} ml_key_state_t;
+
+ML_TYPE(MLKeyStateT, (), "keys-state");
+
+static void key_iterate(ml_key_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Iter = Value;
+	++State->Iteration;
+	ML_CONTINUE(State->Base.Caller, State);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLKeyT, ml_state_t *Caller, ml_key_t *Key) {
+	ml_key_state_t *State = new(ml_key_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Type = MLKeyStateT;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)key_iterate;
+	return ml_iterate((ml_state_t *)State, Key->Value);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLKeyStateT, ml_state_t *Caller, ml_key_state_t *State) {
+	ML_RETURN(ml_integer(State->Iteration));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLKeyStateT, ml_state_t *Caller, ml_key_state_t *State) {
+	return ml_iter_key(Caller, State->Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLKeyStateT, ml_state_t *Caller, ml_key_state_t *State) {
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+ML_FUNCTION(Key) {
+//@swap
+//<Iteratable:iteratable
+// Returns a new iteratable which produces the keys of :mini:`Iteratable`.
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLIteratableT);
+	ml_key_t *Key = new(ml_key_t);
+	Key->Type = MLKeyT;
+	Key->Value = Args[0];
+	return (ml_value_t *)Key;
 }
 
 void ml_iterfns_init(stringmap_t *Globals) {
@@ -1760,4 +1821,6 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "tasks", Tasks);
 	stringmap_insert(Globals, "zip", Zip);
 	stringmap_insert(Globals, "weave", Weave);
+	stringmap_insert(Globals, "swap", Swap);
+	stringmap_insert(Globals, "key", Key);
 }

@@ -171,6 +171,10 @@ if MINILANG_USE_TRE or defined("TRE") then
 	LDFLAGS := old + ["-ltre"]
 end
 
+if MINILANG_USE_GENERICS or defined("GENERICS") then
+	CFLAGS := old + ["-DUSE_GENERICS"]
+end
+
 if PLATFORM = "Linux" then
 	Objects:put(file("linenoise.o"))
 	LDFLAGS := old + ["-lgc"]

@@ -904,20 +904,26 @@ static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_exp
 	mlc_inc_top(Function);
 	ml_inst_t *NextInst = ml_inst_new(2, Expr->Source, MLI_NEXT);
 	NextInst->Params[0].Inst = IfInst;
-	NextInst->Params[1].Count = 1;
 	ml_decl_t *Decl = Expr->Decl;
-	int HasKey = Decl->Next != 0;
-	if (HasKey) {
-		Function->Top += 2;
-		Decl->Index = Function->Top - 1;
-		Decl->Next->Index = Function->Top - 2;
-		Decl->Next->Next = Function->Decls;
+	int Count = Decl->Index;
+	ml_decl_t *KeyDecl = (Count == 0) ? Decl : NULL;
+	if (KeyDecl) {
+		Decl = Decl->Next;
+		Count = Decl->Index;
+		KeyDecl->Index = Function->Top++;
+		KeyDecl->Next = Function->Decls;
+		Function->Decls = KeyDecl;
+		NextInst->Params[1].Count = Count + 1;
 	} else {
-		Function->Top += 1;
-		Decl->Index = Function->Top - 1;
-		Decl->Next = Function->Decls;
+		NextInst->Params[1].Count = Count;
 	}
-	Function->Decls = Decl;
+	for (int I = 0; I < Count; ++I) {
+		ml_decl_t *Next = Decl->Next;
+		Decl->Index = Function->Top++;
+		Decl->Next = Function->Decls;
+		Function->Decls = Decl;
+		Decl = Next;
+	}
 	mlc_loop_t Loop = {
 		Function->Loop, Function->Try,
 		NextInst, NULL,
@@ -928,21 +934,28 @@ static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_exp
 	Function->Loop = &Loop;
 	mlc_compiled_t BodyCompiled = mlc_compile(Function, Child->Next);
 	mlc_connect(BodyCompiled.Exits, NextInst);
-	ml_inst_t *ValueInst = ml_inst_new(1, Expr->Source, MLI_VALUE);
-	ml_inst_t *ValueResultInst = ml_inst_new(2, Expr->Source, MLI_WITH);
-	ValueInst->Params[0].Inst = ValueResultInst;
-	ValueResultInst->Params[1].Decls = Function->Decls;
-	PushInst->Params[0].Inst = ValueInst;
-	if (HasKey) {
-		NextInst->Params[1].Count = 2;
-		ml_inst_t *KeyInst = ml_inst_new(1, Expr->Source, MLI_KEY);
+	if (KeyDecl) {
+		ml_inst_t *KeyInst = ml_inst_new(2, Expr->Source, MLI_KEY);
+		KeyInst->Params[1].Index = -1;
 		ml_inst_t *KeyResultInst = ml_inst_new(2, Expr->Source, MLI_WITH);
 		KeyInst->Params[0].Inst = KeyResultInst;
-		KeyResultInst->Params[0].Inst = BodyCompiled.Start;
-		KeyResultInst->Params[1].Decls = Function->Decls;
-		ValueResultInst->Params[0].Inst = KeyInst;
-		ValueResultInst->Params[1].Decls = Function->Decls->Next;
+		PushInst->Params[0].Inst = KeyInst;
+		PushInst = KeyResultInst;
+		KeyResultInst->Params[1].Decls = KeyDecl;
+	}
+	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_VALUE);
+	ValueInst->Params[1].Index = KeyDecl ? -2 : -1;
+	PushInst->Params[0].Inst = ValueInst;
+	if (Count > 1) {
+		ml_inst_t *ValueResultInst = ml_inst_new(3, Expr->Source, MLI_WITHX);
+		ValueInst->Params[0].Inst = ValueResultInst;
+		ValueResultInst->Params[1].Count = Count;
+		ValueResultInst->Params[2].Decls = Function->Decls;
+		ValueResultInst->Params[0].Inst = BodyCompiled.Start;
 	} else {
+		ml_inst_t *ValueResultInst = ml_inst_new(2, Expr->Source, MLI_WITH);
+		ValueInst->Params[0].Inst = ValueResultInst;
+		ValueResultInst->Params[1].Decls = Function->Decls;
 		ValueResultInst->Params[0].Inst = BodyCompiled.Start;
 	}
 	Compiled.Exits = Loop.Exits;
@@ -2345,6 +2358,39 @@ static mlc_expr_t *ml_accept_with_expr(ml_compiler_t *Compiler, mlc_expr_t *Chil
 	return (mlc_expr_t *)WithExpr;
 }
 
+static void ml_accept_for_decl(ml_compiler_t *Compiler, ml_decl_t **DeclSlot) {
+	if (ml_parse(Compiler, MLT_IDENT)) {
+		ml_decl_t *Decl = DeclSlot[0] = new(ml_decl_t);
+		Decl->Source = Compiler->Source;
+		Decl->Ident = Compiler->Ident;
+		DeclSlot = &Decl->Next;
+		if (!ml_parse(Compiler, MLT_COMMA)) {
+			Decl->Index = 1;
+			return;
+		}
+	}
+	if (ml_parse(Compiler, MLT_LEFT_PAREN)) {
+		int Count = 0;
+		ml_decl_t **First = DeclSlot;
+		do {
+			ml_accept(Compiler, MLT_IDENT);
+			++Count;
+			ml_decl_t *Decl = DeclSlot[0] = new(ml_decl_t);
+			Decl->Source = Compiler->Source;
+			Decl->Ident = Compiler->Ident;
+			DeclSlot = &Decl->Next;
+		} while (ml_parse(Compiler, MLT_COMMA));
+		ml_accept(Compiler, MLT_RIGHT_PAREN);
+		First[0]->Index = Count;
+	} else {
+		ml_accept(Compiler, MLT_IDENT);
+		ml_decl_t *Decl = DeclSlot[0] = new(ml_decl_t);
+		Decl->Source = Compiler->Source;
+		Decl->Ident = Compiler->Ident;
+		Decl->Index = 1;
+	}
+}
+
 static ML_METHOD_DECL(MLIn, "in");
 static ML_METHOD_DECL(MLIs, "=");
 
@@ -2503,18 +2549,7 @@ static mlc_expr_t *ml_parse_factor(ml_compiler_t *Compiler, int MethDecl) {
 	case MLT_FOR: {
 		ml_next(Compiler);
 		ML_EXPR(ForExpr, decl, for);
-		ml_decl_t *Decl = new(ml_decl_t);
-		Decl->Source = Compiler->Source;
-		ml_accept(Compiler, MLT_IDENT);
-		Decl->Ident = Compiler->Ident;
-		if (ml_parse(Compiler, MLT_COMMA)) {
-			ml_accept(Compiler, MLT_IDENT);
-			ml_decl_t *Decl2 = new(ml_decl_t);
-			Decl2->Source = Compiler->Source;
-			Decl2->Ident = Compiler->Ident;
-			Decl->Next = Decl2;
-		}
-		ForExpr->Decl = Decl;
+		ml_accept_for_decl(Compiler, &ForExpr->Decl);
 		ml_accept(Compiler, MLT_IN);
 		ForExpr->Child = ml_accept_expression(Compiler, EXPR_DEFAULT);
 		ml_accept(Compiler, MLT_DO);
@@ -2809,18 +2844,7 @@ done:
 			mlc_expr_t *Body = (mlc_expr_t *)SuspendExpr;
 			do {
 				ML_EXPR(ForExpr, decl, for);
-				ml_decl_t *Decl = new(ml_decl_t);
-				Decl->Source = Compiler->Source;
-				ml_accept(Compiler, MLT_IDENT);
-				Decl->Ident = Compiler->Ident;
-				if (ml_parse(Compiler, MLT_COMMA)) {
-					ml_accept(Compiler, MLT_IDENT);
-					ml_decl_t *Decl2 = new(ml_decl_t);
-					Decl2->Source = Compiler->Source;
-					Decl2->Ident = Compiler->Ident;
-					Decl->Next = Decl2;
-				}
-				ForExpr->Decl = Decl;
+				ml_accept_for_decl(Compiler, &ForExpr->Decl);
 				ml_accept(Compiler, MLT_IN);
 				ForExpr->Child = ml_accept_expression(Compiler, EXPR_OR);
 				for (;;) {

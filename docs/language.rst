@@ -217,10 +217,27 @@ Declarations in *Minilang* are visible in nested blocks (including nested functi
    X = 1
 
 
+Function Declarations
+~~~~~~~~~~~~~~~~~~~~~
+
+Since functions are first class values in *Minilang*, they can be assigned to variables or used to initialize identifiers. For convenience, *Minilang* allows the following syntax for binding functions to identifiers. Instead of writing :mini:`let Name := fun(Args...) Body`, we can write :mini:`fun Name(Args...) Body`. For example:
+
+.. code-block:: mini
+
+   fun fact(N) do
+      if N < 2 then
+         return 1
+      else
+         return N * fact(N - 1)
+      end
+   end
+   
+Note that this shorthand is only for :mini:`let`-declarations, if another type of declaration is required (:mini:`var` or :mini:`def`) then the full declaration must be written.
+
 Compound Declarations
 ~~~~~~~~~~~~~~~~~~~~~
 
-The *Minilang* language provides no built-in support for modules, classes and probably some other useful features. Instead, *Minilang* allows for these features to be implemented as functions provided by the runtime, with evaluation at load time to remove any additional overhead from function calls. *Minilang* provides some syntax sugar constructs to simplify writing these types of declaration.
+*Minilang* provides no language support for modules, classes and probably some other useful features. Instead, *Minilang* allows for these features to be implemented as functions provided by the runtime, with evaluation at load time to remove any additional overhead from function calls. *Minilang* provides some syntax sugar constructs to simplify writing these types of declaration.
 
 .. list-table::
    :header-rows: 1
@@ -231,27 +248,7 @@ The *Minilang* language provides no built-in support for modules, classes and pr
      - Equivalent
      - Description
      - Example
-     
-   * - .. code-block:: mini
-   
-          fun Name(Args...) Body
-       
-     - .. code-block:: mini
-     
-          let Name := fun(Args...) Body
-          
-     - Declare a function.
-     
-     - .. code-block:: mini
-     
-          fun fact(N) do
-              if N < 2 then
-                  return 1
-              else
-                  return N * fact(N - 1)
-              end
-          end
-   
+    
    * - .. code-block:: mini
    
           Expression: Name(Args...)
@@ -296,8 +293,6 @@ The *Minilang* language provides no built-in support for modules, classes and pr
           export: fun add(X, Y) X + Y
           
           export: class: point(:X, :Y)
-     
-Notice that some forms above use a specific declaration type (:mini:`let` or :mini:`def`). If another declaration type is required then the declaration needs to be written in full.
 
 Compound declarations can be combined. For example, the following code shows how a module which exports a class may be written in *Minilang* where the specific embedding has provided the :mini:`class`, :mini:`import` and :mini:`export` functions.
 
@@ -349,84 +344,22 @@ The simplest expressions are single values. More information on values in
 
 :Strings: :mini:`"Hello world!\n"`, :mini:`'X = {X}'`. Strings can be written using double quotes or single quotes. Strings written with single quotes can have embedded expressions (between ``{`` and ``}``) and may span multiple lines (the line breaks are embedded in the string).
 
-:Regular Expressions: :mini:`r".*\.c"`.
+:Regular Expressions: :mini:`r".*\.c"`. *Minilang* uses `TRE <https://github.com/laurikari/tre/>`_ as its regular expression implementation, the precise syntax supported can be found here `<https://laurikari.net/tre/documentation/regex-syntax/>`_.
 
 :Lists: :mini:`[1, 2, 3]`, :mini:`["a", 1.23, [nil]]`. The values in a list can be of any type including other lists and maps.
 
-:Maps: :mini:`{"a" is 1, 10 is "string"}`. The keys of a map have to be immutable and comparable (e.g. numbers and strings). The values can be of any type.
+:Maps: :mini:`{"a" is 1, 10 is "string"}`. The keys of a map have to be immutable and comparable (e.g. numbers, strings, tuples, etc). The values can be of any type.
 
-:Tuples: :mini:`(1, 2, 3)`, :mini:`("a", 1.23, [nil])`. Like lists, tuples can contain values of any type. Tuple differ from lists by being immutable; once constructed the elements of a tuple cannot be modified. 
-
-:Booleans: :mini:`true` and :mini:`false`. Note that unlike :mini:`nil`, :mini:`true` and :mini:`false` are predefined identifiers and not keywords.
+:Tuples: :mini:`(1, 2, 3)`, :mini:`("a", 1.23, [nil])`. Like lists, tuples can contain values of any type. Tuple differ from lists by being immutable; once constructed the elements of a tuple cannot be modified. This allows them to be used as keys in maps. They can also be used for destructing assignments, 
 
 :Methods: :mini:`:length`, :mini:`:X`, :mini:`<>`, :mini:`+`, :mini:`:"[]"`. Methods consisting only of the characters ``!``, ``@``, ``#``, ``$``, ``%``, ``^``, ``&``, ``*``, ``-``, ``+``, ``=``, ``|``, ``\\``, ``~``, `````, ``/``, ``?``, ``<``, ``>`` or ``.`` can be written directly without surrounding ``:"`` and ``"``.
 
-.. _minilang/functions:
-
-Functions
-~~~~~~~~~
-
-Functions in *Minilang* are first class values. That means they can be passed
-to other functions and stored in variables, lists, maps, etc. Functions have
-access to variables in their surrounding scope when they were created.
-
-The general syntax of a function is :mini:`fun(Arguments) Body`. Calling a
-function is achieved by the traditional syntax :mini:`Function(Arguments)`. 
-
-.. code-block:: mini
-
-   let add := fun(A, B) A + B
-   let sub := fun(A, B) A - B
-   
-   print('add(2, 3) = {add(2, 3)}\n')
-   
-.. code-block:: console
-
-   add(2, 3) = 5
-
-Note that :mini:`Function` can be a variable containing a function, or any
-expression which returns a function.
-
-.. code-block:: mini
-
-   var X := (if nil then add else sub end)(10, 3) :> 7
-   
-   let f := fun(A) fun(B) A + B
-   
-   var Y := f(2)(3) :> 5
-
-As a shorthand, the code :mini:`var Name := fun(Arguments) Body` can be written
-as :mini:`fun Name(Arguments) Body`. Internally, the two forms are identical.
-
-.. code-block:: mini
-
-   fun add(A, B) A + B
-
-The body of a function can be a block :mini:`do ... end` containing local
-variables and other expressions.
-
-When calling a function which expects another function as its last parameter,
-the following shorthand can be used:
-
-.. code-block:: mini
-
-   f(1, 2, fun(A, B) do
-      ret A + B
-   end)
-
-can be written as
-
-.. code-block:: mini
-
-   f(1, 2; A, B) do
-      ret A + B
-   end
+:Functions: :mini:`fun(A, B) A + B`. If the last argument to a function or method call is an anonymous function then the following shorthand can be used: :mini:`f(1, 2, fun(A, B) A + B)` can be written as :mini:`f(1, 2; A, B) A + B`. 
 
 If Expressions
 ~~~~~~~~~~~~~~
 
-The basic :mini:`if ... then ... else ... end` expression in *Minilang* returns
-the value of the selected branch. For example:
+The :mini:`if`-expression, :mini:`if ... then ... else ... end` evalutes each condition until one has a value other than :mini:`nil` and returns the value of the selected branch. For example:
 
 .. code-block:: mini
 
@@ -451,14 +384,12 @@ Multiple conditions can be included using :mini:`elseif`.
       end
    end
 
+The :mini:`else`-clause is optional, if omitted and no other branch is selected then the :mini:`if`-expression returns :mini:`nil`.
+
 Loop Expressions
 ~~~~~~~~~~~~~~~~
 
-*Minilang* provides a simple looping expression, :mini:`loop ... end`. This
-keeps evaluating the code inside indefinitely. The expression
-:mini:`exit <value>` exits a loop and returns the given value as the value of
-the loop. The value can be omitted, in which case the loop evaluates to
-:mini:`nil`.
+A :mini:`loop`-expression, :mini:`loop ... end` evaluates its code repeatedly until an :mini:`exit`-expression is evaluated: :mini:`exit Value` exits a loop and returns the given value as the value of the loop. The value can be omitted, in which case the loop evaluates to :mini:`nil`.
 
 .. code-block:: mini
 
@@ -471,11 +402,9 @@ the loop. The value can be omitted, in which case the loop evaluates to
    end}\n')
 
 
-The keyword :mini:`next` jumps to the start of the next iteration of the loop.
+A :mini:`next`-expression jumps to the start of the next iteration of the loop.
 
-Note that if an expression is passed to :mini:`exit`, it is evaluated outside
-the loop. This allows control of nested loops by writing code like
-:mini:`exit exit Value` or :mini:`exit next`.
+If an expression is passed to :mini:`exit`, it is evaluated outside the loop. This allows control of nested loops by writing code like :mini:`exit exit Value` or :mini:`exit next`.
 
 For Expressions
 ~~~~~~~~~~~~~~~
@@ -559,6 +488,64 @@ method.
    X = 5
    X = 7
    X = 9
+
+Functions
+~~~~~~~~~
+
+.. _minilang/functions:
+
+Functions in *Minilang* are first class values. That means they can be passed to other functions and stored in variables, lists, maps, etc. Functions have access to variables in their surrounding scope when they were created.
+
+   The general syntax of a function is :mini:`fun(Arguments) Body`. Calling a function is achieved by the traditional syntax :mini:`Function(Arguments)`. 
+
+.. code-block:: mini
+
+   let add := fun(A, B) A + B
+   let sub := fun(A, B) A - B
+   
+   print('add(2, 3) = {add(2, 3)}\n')
+   
+.. code-block:: console
+
+   add(2, 3) = 5
+
+Note that :mini:`Function` can be a variable containing a function, or any
+expression which returns a function.
+
+.. code-block:: mini
+
+   var X := (if nil then add else sub end)(10, 3) :> 7
+   
+   let f := fun(A) fun(B) A + B
+   
+   var Y := f(2)(3) :> 5
+
+As a shorthand, the code :mini:`var Name := fun(Arguments) Body` can be written
+as :mini:`fun Name(Arguments) Body`. Internally, the two forms are identical.
+
+.. code-block:: mini
+
+   fun add(A, B) A + B
+
+The body of a function can be a block :mini:`do ... end` containing local
+variables and other expressions.
+
+When calling a function which expects another function as its last parameter,
+the following shorthand can be used:
+
+.. code-block:: mini
+
+   f(1, 2, fun(A, B) do
+      ret A + B
+   end)
+
+can be written as
+
+.. code-block:: mini
+
+   f(1, 2; A, B) do
+      ret A + B
+   end
 
 Methods
 ~~~~~~~

@@ -22,10 +22,13 @@ type
 
    *Defined at line 90 in src/ml_types.c*
 
+:mini:`meth :parents(Type: type)` |rarr| :mini:`list`
+   *Defined at line 99 in src/ml_types.c*
+
 :mini:`meth string(Type: type)` |rarr| :mini:`string`
    Returns a string representing :mini:`Type`.
 
-   *Defined at line 170 in src/ml_types.c*
+   *Defined at line 193 in src/ml_types.c*
 
 :mini:`meth ::(Type: type, Name: string)` |rarr| :mini:`any` or :mini:`error`
    Returns the value of :mini:`Name` exported from :mini:`Type`.
@@ -34,5 +37,5 @@ type
 
    This allows types to behave as modules.
 
-   *Defined at line 195 in src/ml_types.c*
+   *Defined at line 218 in src/ml_types.c*
 

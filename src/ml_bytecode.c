@@ -504,7 +504,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		return ml_iter_next((ml_state_t *)Frame, Result);
 	}
 	DO_VALUE: {
-		Result = Top[-1];
+		Result = Top[Inst->Params[1].Index];
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
 #ifdef USE_ML_SCHEDULER
@@ -513,7 +513,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		return ml_iter_value((ml_state_t *)Frame, Result);
 	}
 	DO_KEY: {
-		Result = Top[-2];
+		Result = Top[Inst->Params[1].Index];
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
 #ifdef USE_ML_SCHEDULER
@@ -941,8 +941,8 @@ const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INST, // MLI_FOR,
 	MLIT_INST_INST, // MLI_IF,
 	MLIT_INST_COUNT, // MLI_NEXT,
-	MLIT_INST, // MLI_VALUE,
-	MLIT_INST, // MLI_KEY,
+	MLIT_INST_INDEX, // MLI_VALUE,
+	MLIT_INST_INDEX, // MLI_KEY,
 	MLIT_INST_COUNT, // MLI_CALL,
 	MLIT_INST_COUNT_VALUE, // MLI_CONST_CALL,
 	MLIT_INST, // MLI_ASSIGN,

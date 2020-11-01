@@ -261,8 +261,23 @@ iterator
 :mini:`swappedstate`
    *Defined at line 1699 in src/ml_iterfns.c*
 
-:mini:`meth :swap(Arg₁: iteratable)`
+:mini:`fun swap(Iteratable: iteratable)`
+   Returns a new iteratable which swaps the keys and values produced by :mini:`Iteratable`.
+
    *Defined at line 1729 in src/ml_iterfns.c*
+
+:mini:`key`
+   :Parents: :mini:`iteratable`
+
+   *Defined at line 1746 in src/ml_iterfns.c*
+
+:mini:`keystate`
+   *Defined at line 1754 in src/ml_iterfns.c*
+
+:mini:`fun swap(Iteratable: iteratable)`
+   Returns a new iteratable which produces the keys of :mini:`Iteratable`.
+
+   *Defined at line 1785 in src/ml_iterfns.c*
 
 :mini:`iteratable`
    The base type for any iteratable value.
