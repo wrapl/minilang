@@ -588,11 +588,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(0);
 	}
 	DO_TUPLE_NEW: {
-		int Size = Inst->Params[1].Count;
-		ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
-		Tuple->Type = MLTupleT;
-		Tuple->Size = Size;
-		*Top++ = (ml_value_t *)Tuple;
+		*Top++ = ml_tuple(Inst->Params[1].Count);
 		ADVANCE(0);
 	}
 	DO_TUPLE_SET: {

@@ -23,13 +23,13 @@ module
    *Defined at line 75 in src/ml_module.c*
 
 :mini:`module`
-   *Defined at line 5070 in src/ml_types.c*
+   *Defined at line 5181 in src/ml_types.c*
 
 :mini:`meth ::(Module: module, Name: string)` |rarr| :mini:`any`
    Imports a symbol from a module.
 
-   *Defined at line 5073 in src/ml_types.c*
+   *Defined at line 5184 in src/ml_types.c*
 
 :mini:`meth string(Arg₁: module)`
-   *Defined at line 5114 in src/ml_types.c*
+   *Defined at line 5225 in src/ml_types.c*
 

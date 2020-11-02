@@ -17,7 +17,7 @@ map
 
    :Parents: :mini:`function`, :mini:`iteratable`
 
-   *Defined at line 3980 in src/ml_types.c*
+   *Defined at line 4064 in src/ml_types.c*
 
 :mini:`mapnode`
    A node in a :mini:`map`.
@@ -26,70 +26,70 @@ map
 
    Assigning to a :mini:`mapnode` updates the corresponding value in the :mini:`map`.
 
-   *Defined at line 4052 in src/ml_types.c*
+   *Defined at line 4139 in src/ml_types.c*
 
 :mini:`meth :size(Map: map)` |rarr| :mini:`integer`
    Returns the number of entries in :mini:`Map`.
 
-   *Defined at line 4274 in src/ml_types.c*
+   *Defined at line 4361 in src/ml_types.c*
 
 :mini:`meth [](Map: map, Key: any)` |rarr| :mini:`mapnode`
    Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then the reference withh return :mini:`nil` when dereferenced and will insert :mini:`Key` into :mini:`Map` when assigned.
 
-   *Defined at line 4339 in src/ml_types.c*
+   *Defined at line 4426 in src/ml_types.c*
 
 :mini:`meth [](Map: map, Key: any, Default: function)` |rarr| :mini:`mapnode`
    Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then :mini:`Default(Key)` is called and the result inserted into :mini:`Map`.
 
-   *Defined at line 4370 in src/ml_types.c*
+   *Defined at line 4457 in src/ml_types.c*
 
 :mini:`meth ::(Map: map, Key: string)` |rarr| :mini:`mapnode`
    Same as :mini:`Map[Key]`. This method allows maps to be used as modules.
 
-   *Defined at line 4395 in src/ml_types.c*
+   *Defined at line 4482 in src/ml_types.c*
 
 :mini:`meth :insert(Map: map, Key: any, Value: any)` |rarr| :mini:`any` or :mini:`nil`
    Inserts :mini:`Key` into :mini:`Map` with corresponding value :mini:`Value`.
 
    Returns the previous value associated with :mini:`Key` if any, otherwise :mini:`nil`.
 
-   *Defined at line 4411 in src/ml_types.c*
+   *Defined at line 4498 in src/ml_types.c*
 
 :mini:`meth :delete(Map: map, Key: any)` |rarr| :mini:`any` or :mini:`nil`
    Removes :mini:`Key` from :mini:`Map` and returns the corresponding value if any, otherwise :mini:`nil`.
 
-   *Defined at line 4425 in src/ml_types.c*
+   *Defined at line 4512 in src/ml_types.c*
 
 :mini:`meth :missing(Map: map, Key: any)` |rarr| :mini:`any` or :mini:`nil`
    Inserts :mini:`Key` into :mini:`Map` with corresponding value :mini:`Value`.
 
    Returns the previous value associated with :mini:`Key` if any, otherwise :mini:`nil`.
 
-   *Defined at line 4443 in src/ml_types.c*
+   *Defined at line 4530 in src/ml_types.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: map)`
-   *Defined at line 4479 in src/ml_types.c*
+   *Defined at line 4566 in src/ml_types.c*
 
 :mini:`meth +(Map₁: map, Map₂: map)` |rarr| :mini:`map`
    Returns a new map combining the entries of :mini:`Map₁` and :mini:`Map₂`.
 
    If the same key is in both :mini:`Map₁` and :mini:`Map₂` then the corresponding value from :mini:`Map₂` is chosen.
 
-   *Defined at line 4557 in src/ml_types.c*
+   *Defined at line 4644 in src/ml_types.c*
 
 :mini:`meth string(Map: map)` |rarr| :mini:`string`
    Returns a string containing the entries of :mini:`Map` surrounded by :mini:`{`, :mini:`}` with :mini:`is` between keys and values and :mini:`,` between entries.
 
-   *Defined at line 4591 in src/ml_types.c*
+   *Defined at line 4678 in src/ml_types.c*
 
 :mini:`meth string(Map: map, Seperator: string, Connector: string)` |rarr| :mini:`string`
    Returns a string containing the entries of :mini:`Map` with :mini:`Connector` between keys and values and :mini:`Seperator` between entries.
 
-   *Defined at line 4610 in src/ml_types.c*
+   *Defined at line 4697 in src/ml_types.c*
 
 :mini:`meth :sort(Map: map)` |rarr| :mini:`Map`
-   *Defined at line 4680 in src/ml_types.c*
+   *Defined at line 4767 in src/ml_types.c*
 
 :mini:`meth :sort(Map: map, Compare: function)` |rarr| :mini:`Map`
-   *Defined at line 4687 in src/ml_types.c*
+   *Defined at line 4774 in src/ml_types.c*
 

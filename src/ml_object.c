@@ -125,7 +125,6 @@ ML_FUNCTION(MLClass) {
 //<?Exports...:named
 	static ml_value_t **FieldFns = NULL;
 	static int NumFieldFns = 0;
-	ML_CHECK_ARG_COUNT(1);
 	const char *Name = NULL;
 	int Start = 0;
 	if (Count > 0 && ml_is(Args[0], MLStringT)) {
