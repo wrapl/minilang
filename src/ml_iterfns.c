@@ -562,7 +562,7 @@ ML_FUNCTIONX(All2) {
 //!deprecated
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
-	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
+	ml_iter_state_t *State = xnew(ml_iter_state_t, 2, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)map_iterate;
 	State->Base.Context = Caller->Context;
@@ -906,7 +906,7 @@ ML_FUNCTIONX(Reduce2) {
 ML_FUNCTIONX(Min2) {
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
-	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
+	ml_iter_state_t *State = xnew(ml_iter_state_t, 4, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)reduce2_iterate;
 	State->Base.Context = Caller->Context;
@@ -917,7 +917,7 @@ ML_FUNCTIONX(Min2) {
 ML_FUNCTIONX(Max2) {
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
-	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
+	ml_iter_state_t *State = xnew(ml_iter_state_t, 4, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)reduce2_iterate;
 	State->Base.Context = Caller->Context;
