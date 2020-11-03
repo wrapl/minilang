@@ -154,6 +154,7 @@
       <keyword>all2</keyword>
       <keyword>unique</keyword>
       <keyword>count</keyword>
+      <keyword>count2</keyword>
       <keyword>min</keyword>
       <keyword>min2</keyword>
       <keyword>max</keyword>
@@ -162,6 +163,9 @@
       <keyword>prod</keyword>
       <keyword>repeat</keyword>
       <keyword>zip</keyword>
+      <keyword>weave</keyword>
+      <keyword>swap</keyword>
+      <keyword>key</keyword>
       <keyword>tasks</keyword>
       <keyword>parallel</keyword>
       <keyword>property</keyword>

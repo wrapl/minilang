@@ -36,8 +36,6 @@ struct ml_hash_chain_t {
 	long Index;
 };
 
-typedef struct ml_typed_fn_node_t ml_typed_fn_node_t;
-
 struct ml_type_t {
 	const ml_type_t *Type;
 	const ml_type_t **Types;
@@ -85,7 +83,7 @@ ml_type_t TYPE[1] = {{ \
 
 #endif
 
-#define ML_INTERFACE(TYPE, PARENTS, NAME, ...) ML_TYPE(TYPE, PARENTS, NAME, .Rank = 0, __VA_ARGS__)
+#define ML_INTERFACE(TYPE, PARENTS, NAME, ...) ML_TYPE(TYPE, PARENTS, NAME, .Rank = 1, __VA_ARGS__)
 
 void ml_type_init(ml_type_t *Type, ...) __attribute__ ((sentinel));
 
@@ -514,6 +512,7 @@ struct ml_map_node_t {
 
 ml_value_t *ml_map() __attribute__((malloc));
 ml_value_t *ml_map_search(ml_value_t *Map, ml_value_t *Key);
+ml_map_node_t *ml_map_slot(ml_value_t *Map, ml_value_t *Key);
 ml_value_t *ml_map_insert(ml_value_t *Map, ml_value_t *Key, ml_value_t *Value);
 ml_value_t *ml_map_delete(ml_value_t *Map, ml_value_t *Key);
 

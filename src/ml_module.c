@@ -24,6 +24,18 @@ ML_METHODX("::", MLMiniModuleT, MLStringT) {
 	ML_RETURN(Value);
 }
 
+static int ml_exports_fn(const char *Name, void *Value, ml_value_t *Exports) {
+	ml_map_insert(Exports, ml_cstring(Name), Value);
+	return 0;
+}
+
+ML_METHOD("exports", MLMiniModuleT) {
+	ml_mini_module_t *Module = (ml_mini_module_t *)Args[0];
+	ml_value_t *Exports = ml_map();
+	stringmap_foreach(Module->Exports, Exports, (void *)ml_exports_fn);
+	return Exports;
+}
+
 typedef struct ml_export_function_t {
 	const ml_type_t *Type;
 	ml_mini_module_t *Module;

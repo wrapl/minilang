@@ -96,12 +96,7 @@ static void DO_WITHX_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top,
 	ml_value_t *Packed = Result;
 	int Count = Inst->Params[1].Count;
 	for (int I = 0; I < Count; ++I) {
-		Result = ml_unpack(Packed, I);
-		if (!Result) {
-			Result = ml_error("ValueError", "Not enough values to unpack (%d < %d)", I, Count);
-			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
-			ERROR();
-		}
+		Result = ml_unpack(Packed, I + 1);
 		*Top++ = Result;
 	}
 	ADVANCE(0);
@@ -172,12 +167,7 @@ static void DO_VARX_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, 
 	int Count = Inst->Params[2].Count;
 	ml_value_t **Base = Top + Inst->Params[1].Index;
 	for (int I = 0; I < Count; ++I) {
-		Result = ml_unpack(Packed, I);
-		if (!Result) {
-			Result = ml_error("ValueError", "Not enough values to unpack (%d < %d)", I, Count);
-			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
-			ERROR();
-		}
+		Result = ml_unpack(Packed, I + 1);
 		Result = ml_deref(Result);
 		//ERROR_CHECK(Result);
 		ml_variable_t *Local = (ml_variable_t *)Base[I];
@@ -208,12 +198,7 @@ static void DO_LETX_FN(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, 
 	int Count = Inst->Params[2].Count;
 	ml_value_t **Base = Top + Inst->Params[1].Index;
 	for (int I = 0; I < Count; ++I) {
-		Result = ml_unpack(Packed, I);
-		if (!Result) {
-			Result = ml_error("ValueError", "Not enough values to unpack (%d < %d)", I, Count);
-			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
-			ERROR();
-		}
+		Result = ml_unpack(Packed, I + 1);
 		Result = ml_deref(Result);
 		//ERROR_CHECK(Result);
 		ml_value_t *Uninitialized = Base[I];

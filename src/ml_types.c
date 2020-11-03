@@ -44,17 +44,8 @@ ML_METHOD_DECL(MLMapOf, NULL);
 
 // Types //
 
-ML_INTERFACE(MLAnyT, (), "any");
+ML_INTERFACE(MLAnyT, (), "any", .Rank = 0);
 // Base type for all values.
-
-static void ml_type_call(ml_state_t *Caller, ml_type_t *Type, int Count, ml_value_t **Args) {
-	ml_value_t *Constructor = Type->Constructor;
-	if (!Constructor) {
-		Constructor = Type->Constructor = stringmap_search(Type->Exports, "of");
-	}
-	if (!Constructor) ML_RETURN(ml_error("TypeError", "No constructor for <%s>", Type->Name));
-	return ml_call(Caller, Constructor, Count, Args);
-}
 
 ML_INTERFACE(MLIteratableT, (), "iteratable");
 //!iterator
@@ -74,10 +65,24 @@ ML_FUNCTION(MLTypeOf) {
 	return (ml_value_t *)ml_typeof(Args[0]);
 }
 
+static long ml_type_hash(ml_type_t *Type) {
+	return (intptr_t)Type;
+}
+
+static void ml_type_call(ml_state_t *Caller, ml_type_t *Type, int Count, ml_value_t **Args) {
+	ml_value_t *Constructor = Type->Constructor;
+	if (!Constructor) {
+		Constructor = Type->Constructor = stringmap_search(Type->Exports, "of");
+	}
+	if (!Constructor) ML_RETURN(ml_error("TypeError", "No constructor for <%s>", Type->Name));
+	return ml_call(Caller, Constructor, Count, Args);
+}
+
 ML_INTERFACE(MLTypeT, (MLFunctionT), "type",
 //!type
 // Type of all types.
 // Every type contains a set of named exports, which allows them to be used as modules.
+	.hash = (void *)ml_type_hash,
 	.call = (void *)ml_type_call,
 	.Constructor = (ml_value_t *)MLTypeOf
 );
@@ -89,6 +94,18 @@ ML_METHOD("rank", MLTypeT) {
 // Returns the rank of :mini:`Type`, i.e. the depth of its inheritence tree.
 	ml_type_t *Type = (ml_type_t *)Args[0];
 	return ml_integer(Type->Rank);
+}
+
+ML_METHOD("parents", MLTypeT) {
+//!type
+//<Type
+//>list
+	ml_type_t *Type = (ml_type_t *)Args[0];
+	ml_value_t *Parents = ml_list();
+	for (const ml_type_t **Parent = Type->Types; Parent[0]; ++Parent) {
+		ml_list_put(Parents, (ml_value_t *)Parent[0]);
+	}
+	return Parents;
 }
 
 void ml_default_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
@@ -109,14 +126,31 @@ ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value) {
 	return ml_error("TypeError", "<%s> is not assignable", ml_typeof(Ref)->Name);
 }
 
+static void ml_types_sort(const ml_type_t **Types, int Lo, int Hi) {
+	if (Lo >= Hi) return;
+	const ml_type_t *Pivot = Types[(Hi + Lo) / 2];
+	int Rank = Pivot->Rank;
+	int I = Lo - 1;
+	int J = Hi + 1;
+	for (;;) {
+		do ++I; while (Types[I]->Rank > Rank || (Types[I]->Rank == Rank && Types[I] > Pivot));
+		do --J; while (Types[J]->Rank < Rank || (Types[J]->Rank == Rank && Types[J] < Pivot));
+		if (I >= J) break;
+		const ml_type_t *Temp = Types[I];
+		Types[I] = Types[J];
+		Types[J] = Temp;
+	}
+	if (J + 1 >= Hi) return ml_types_sort(Types, Lo, J);
+	if (Lo < J) ml_types_sort(Types, Lo, J);
+	return ml_types_sort(Types, J + 1, Hi);
+}
+
 void ml_type_init(ml_type_t *Type, ...) {
 	int NumParents = 0;
-	int Rank = Type->Rank;
 	va_list Args;
 	va_start(Args, Type);
 	ml_type_t *Parent;
 	while ((Parent = va_arg(Args, ml_type_t *))) {
-		if (Rank < Parent->Rank) Rank = Parent->Rank;
 		const ml_type_t **Types = Parent->Types;
 		if (!Types) {
 			fprintf(stderr, "Types initialized in wrong order %s < %s\n", Type->Name, Parent->Name);
@@ -125,17 +159,24 @@ void ml_type_init(ml_type_t *Type, ...) {
 		do ++NumParents; while (*++Types != MLAnyT);
 	}
 	va_end(Args);
-	const ml_type_t **Parents = anew(const ml_type_t *, NumParents + 3);
-	Type->Types = Parents;
-	Type->Rank = Rank + 1;
-	*Parents++ = Type;
+	const ml_type_t **Types = Type->Types = anew(const ml_type_t *, NumParents + 3);
+	const ml_type_t **Last = Types;
+	*Last++ = Type;
 	va_start(Args, Type);
 	while ((Parent = va_arg(Args, ml_type_t *))) {
 		const ml_type_t **Types = Parent->Types;
-		while (*Types != MLAnyT) *Parents++ = *Types++;
+		while (*Types != MLAnyT) *Last++ = *Types++;
 	}
 	va_end(Args);
-	*Parents++ = MLAnyT;
+	int NumTypes = Last - Types;
+	*Last++ = MLAnyT;
+	ml_types_sort(Types, 1, NumTypes);
+	Last = Types + 1;
+	for (const ml_type_t **Next = Types + 1; Next[0]; ++Next) {
+		if (Next[0] != Next[-1]) *Last++ = Next[0];
+	}
+	Last[0] = NULL;
+	if (Types[1]) Type->Rank = Types[1]->Rank + 1;
 }
 
 ml_type_t *ml_type(ml_type_t *Parent, const char *Name) {
@@ -223,15 +264,73 @@ int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
 	return 0;
 }
 
-static void ML_TYPED_FN(ml_iterate, MLNilT, ml_state_t *Caller, ml_value_t *Value) {
-	ML_RETURN(Value);
+const ml_type_t *ml_type_max(const ml_type_t *Type1, const ml_type_t *Type2) {
+	if (Type1 == Type2) return Type1;
+	const ml_type_t **Parent1 = Type1->Types;
+	const ml_type_t **Parent2 = Type2->Types;
+	for (;;) {
+		const ml_type_t *Type = Parent1[0];
+		int Rank = Type->Rank;
+		for (const ml_type_t **Parent3 = Parent2; Parent3[0]; ++Parent3) {
+			if (Type == Parent3[0]) return Type;
+			if (Rank > Parent3[0]->Rank) break;
+		}
+		++Parent1;
+	}
+	return MLAnyT;
 }
 
-ML_METHOD("?", MLAnyT) {
-//<Value
-//>type
-// Returns the type of :mini:`Value`.
-	return (ml_value_t *)ml_typeof(Args[0]);
+ML_METHOD("*", MLTypeT, MLTypeT) {
+	return (ml_value_t *)ml_type_max((ml_type_t *)Args[0], (ml_type_t *)Args[1]);
+}
+
+ML_METHOD("<", MLTypeT, MLTypeT) {
+	ml_type_t *Type1 = (ml_type_t *)Args[0];
+	ml_type_t *Type2 = (ml_type_t *)Args[1];
+	for (const ml_type_t **Parent = Type1->Types + 1; Parent[0]; ++Parent) {
+		if (Parent[0] == Type2) return Args[1];
+	}
+	return MLNil;
+}
+
+ML_METHOD("<=", MLTypeT, MLTypeT) {
+	ml_type_t *Type1 = (ml_type_t *)Args[0];
+	ml_type_t *Type2 = (ml_type_t *)Args[1];
+	for (const ml_type_t **Parent = Type1->Types; Parent[0]; ++Parent) {
+		if (Parent[0] == Type2) return Args[1];
+	}
+	return MLNil;
+}
+
+ML_METHOD(">", MLTypeT, MLTypeT) {
+	ml_type_t *Type1 = (ml_type_t *)Args[0];
+	ml_type_t *Type2 = (ml_type_t *)Args[1];
+	for (const ml_type_t **Parent = Type2->Types + 1; Parent[0]; ++Parent) {
+		if (Parent[0] == Type1) return Args[1];
+	}
+	return MLNil;
+}
+
+ML_METHOD(">=", MLTypeT, MLTypeT) {
+	ml_type_t *Type1 = (ml_type_t *)Args[0];
+	ml_type_t *Type2 = (ml_type_t *)Args[1];
+	for (const ml_type_t **Parent = Type2->Types; Parent[0]; ++Parent) {
+		if (Parent[0] == Type1) return Args[1];
+	}
+	return MLNil;
+}
+
+#ifdef USE_GENERICS
+ML_METHODVX("[]", MLTypeT) {
+	ml_type_t *Type = (ml_type_t *)Args[0];
+	ml_value_t *Function = stringmap_search(Type->Exports, "[]");
+	if (!Function) ML_ERROR("TypeError", "%s is not a generic type", Type->Name);
+	return ml_call(Caller, Function, Count - 1, Args + 1);
+}
+#endif
+
+static void ML_TYPED_FN(ml_iterate, MLNilT, ml_state_t *Caller, ml_value_t *Value) {
+	ML_RETURN(Value);
 }
 
 ML_METHOD("in", MLAnyT, MLTypeT) {
@@ -557,19 +656,15 @@ typedef struct ml_partial_function_t {
 
 static void ml_partial_function_call(ml_state_t *Caller, ml_partial_function_t *Partial, int Count, ml_value_t **Args) {
 	int CombinedCount = Count + Partial->Set;
+	if (Partial->Count > CombinedCount) CombinedCount = Partial->Count;
 	ml_value_t **CombinedArgs = anew(ml_value_t *, CombinedCount);
-	int J = 0;
-	for (int I = 0; I < Partial->Count; ++I) {
-		ml_value_t *Arg = Partial->Args[I];
-		if (Arg) {
-			CombinedArgs[I] = Arg;
-		} else if (J < Count) {
-			CombinedArgs[I] = Args[J++];
-		} else {
-			CombinedArgs[I] = MLNil;
-		}
+	int I = 0, J = 0;
+	for (; I < Partial->Count; ++I) {
+		CombinedArgs[I] = Partial->Args[I] ?: (J < Count) ? Args[J++] : MLNil;
 	}
-	memcpy(CombinedArgs + Partial->Count, Args + J, (Count - J) * sizeof(ml_value_t *));
+	for (; I < CombinedCount; ++I) {
+		CombinedArgs[I] = (J < Count) ? Args[J++] : MLNil;
+	}
 	return ml_call(Caller, Partial->Function, CombinedCount, CombinedArgs);
 }
 
@@ -582,14 +677,16 @@ ml_value_t *ml_partial_function_new(ml_value_t *Function, int Count) {
 	ml_partial_function_t *Partial = xnew(ml_partial_function_t, Count, ml_value_t *);
 	Partial->Type = MLPartialFunctionT;
 	Partial->Function = Function;
-	Partial->Count = Count;
+	Partial->Count = 0;
 	Partial->Set = 0;
 	return (ml_value_t *)Partial;
 }
 
-ml_value_t *ml_partial_function_set(ml_value_t *Partial, size_t Index, ml_value_t *Value) {
-	++((ml_partial_function_t *)Partial)->Set;
-	return ((ml_partial_function_t *)Partial)->Args[Index] = Value;
+ml_value_t *ml_partial_function_set(ml_value_t *Partial0, size_t Index, ml_value_t *Value) {
+	ml_partial_function_t *Partial = (ml_partial_function_t *)Partial0;
+	++Partial->Set;
+	if (Partial->Count < Index + 1) Partial->Count = Index + 1;
+	return Partial->Args[Index] = Value;
 }
 
 ML_METHOD("!!", MLFunctionT, MLListT) {
@@ -597,7 +694,7 @@ ML_METHOD("!!", MLFunctionT, MLListT) {
 //<Function
 //<List
 //>partialfunction
-// Returns a function equivalent to :mini:`fun(Args...) Function(List..., Args...)`.
+// Returns a function equivalent to :mini:`fun(Args...) Function(List/1, List/2, ..., Args...)`.
 	ml_list_t *ArgsList = (ml_list_t *)Args[1];
 	ml_partial_function_t *Partial = xnew(ml_partial_function_t, ArgsList->Length, ml_value_t *);
 	Partial->Type = MLPartialFunctionT;
@@ -671,8 +768,7 @@ static ml_value_t *ml_tuple_deref(ml_tuple_t *Ref) {
 static ml_value_t *ml_tuple_assign(ml_tuple_t *Ref, ml_value_t *Values) {
 	int Count = Ref->Size;
 	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Value = ml_unpack(Values, I);
-		if (!Value) return ml_error("ValueError", "Not enough values to unpack (%d < %d)", I, Count);
+		ml_value_t *Value = ml_unpack(Values, I + 1);
 		ml_value_t *Result = ml_typeof(Ref->Values[I])->assign(Ref->Values[I], Value);
 		if (ml_is_error(Result)) return Result;
 	}
@@ -705,16 +801,63 @@ ML_TYPE(MLTupleT, (), "tuple",
 	.Constructor = (ml_value_t *)MLTuple
 );
 
+#ifdef USE_GENERICS
+static ml_type_t *ml_tuple_generic(int Size) {
+	static ml_type_t **Types;
+	static int MaxSize = 0;
+	if (Size > MaxSize) {
+		ml_type_t **NewTypes = anew(ml_type_t *, Size + 1);
+		NewTypes[0] = MLTupleT;
+		for (int I = 1; I <= MaxSize; ++I) NewTypes[I] = Types[I];
+		for (int I = MaxSize + 1; I <= Size; ++I) {
+			char *Name;
+			asprintf(&Name, "tuple[%d]", I);
+			ml_type_t *Type = NewTypes[I] = new(ml_type_t);
+			Type->Type = MLTypeT;
+			Type->Name = Name;
+			Type->hash = MLTupleT->hash;
+			Type->call = MLTupleT->call;
+			Type->deref = MLTupleT->deref;
+			Type->assign = MLTupleT->assign;
+			int NumTypes = I;
+			for (const ml_type_t **Parent = MLTupleT->Types; Parent[0]; ++Parent) ++NumTypes;
+			const ml_type_t **Types = anew(const ml_type_t *, NumTypes);
+			Type->Types = Types;
+			*Types++ = Type;
+			for (int J = I; --J >= 0;) *Types++ = NewTypes[J];
+			for (const ml_type_t **Parent = MLTupleT->Types + 1; Parent[0]; ++Parent) {
+				*Types++ = Parent[0];
+			}
+			Type->Rank = Type->Types[1]->Rank + 1;
+			stringmap_insert(Type->Exports, "N", ml_integer(I));
+		}
+		Types = NewTypes;
+		MaxSize = Size;
+	}
+	return Types[Size];
+}
+
+ML_FUNCTION(MLTupleGeneric) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLIntegerT);
+	return (ml_value_t *)ml_tuple_generic(ml_integer_value(Args[0]));
+}
+#endif
+
 ml_value_t *ml_tuple(size_t Size) {
 	ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
+#ifdef USE_GENERICS
+	Tuple->Type = ml_tuple_generic(Size);
+#else
 	Tuple->Type = MLTupleT;
+#endif
 	Tuple->Size = Size;
 	return (ml_value_t *)Tuple;
 }
 
 ml_value_t *ml_unpack(ml_value_t *Value, int Index) {
 	typeof(ml_unpack) *function = ml_typed_fn_get(ml_typeof(Value), ml_unpack);
-	if (!function) return NULL;
+	if (!function) return ml_simple_inline(IndexMethod, 2, Value, ml_integer(Index));
 	return function(Value, Index);
 }
 
@@ -811,8 +954,8 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLTupleT) {
 }
 
 ml_value_t *ML_TYPED_FN(ml_unpack, MLTupleT, ml_tuple_t *Tuple, int Index) {
-	if (Index >= Tuple->Size) return NULL;
-	return Tuple->Values[Index];
+	if (Index > Tuple->Size) return MLNil;
+	return Tuple->Values[Index - 1];
 }
 
 static ml_value_t *ml_tuple_compare(ml_tuple_t *A, ml_tuple_t *B) {
@@ -1342,6 +1485,28 @@ ML_METHOD("%", MLIntegerT, MLIntegerT) {
 	return ml_integer(IntegerA % IntegerB);
 }
 
+ML_METHOD("|", MLIntegerT, MLIntegerT) {
+//!number
+//<Int/1
+//<Int/2
+//>integer
+// Returns :mini:`Int/2`. if it is divisible by :mini:`Int/1` and :mini:`nil` otherwise.
+	int64_t IntegerA = ml_integer_value(Args[0]);
+	int64_t IntegerB = ml_integer_value(Args[1]);
+	return (IntegerB % IntegerA) ? MLNil : Args[1];
+}
+
+ML_METHOD("!|", MLIntegerT, MLIntegerT) {
+//!number
+//<Int/1
+//<Int/2
+//>integer
+// Returns :mini:`Int/2`. if it is not divisible by :mini:`Int/1` and :mini:`nil` otherwise.
+	int64_t IntegerA = ml_integer_value(Args[0]);
+	int64_t IntegerB = ml_integer_value(Args[1]);
+	return (IntegerB % IntegerA) ? Args[1] : MLNil;
+}
+
 ML_METHOD("div", MLIntegerT, MLIntegerT) {
 //!number
 //<Int/1
@@ -1525,6 +1690,7 @@ ML_METHOD("..", MLIntegerT, MLIntegerT) {
 //<Start
 //<Limit
 //>integerrange
+// Returns a range from :mini:`Start` to :mini:`Limit` (inclusive).
 	int64_t IntegerA = ml_integer_value(Args[0]);
 	int64_t IntegerB = ml_integer_value(Args[1]);
 	ml_integer_range_t *Range = new(ml_integer_range_t);
@@ -1540,6 +1706,7 @@ ML_METHOD("by", MLIntegerT, MLIntegerT) {
 //<Start
 //<Step
 //>integerrange
+// Returns a unlimited range from :mini:`Start` in steps of :mini:`Step`.
 	int64_t IntegerA = ml_integer_value(Args[0]);
 	int64_t IntegerB = ml_integer_value(Args[1]);
 	ml_integer_range_t *Range = new(ml_integer_range_t);
@@ -1555,6 +1722,7 @@ ML_METHOD("by", MLIntegerRangeT, MLIntegerT) {
 //<Range
 //<Step
 //>integerrange
+// Returns a range with the same limits as :mini:`Range` but with step :mini:`Step`.
 	ml_integer_range_t *Range0 = (ml_integer_range_t *)Args[0];
 	ml_integer_range_t *Range = new(ml_integer_range_t);
 	Range->Type = MLIntegerRangeT;
@@ -3272,6 +3440,50 @@ static ml_value_t *ml_list_node_assign(ml_list_node_t *Node, ml_value_t *Value) 
 	return (Node->Value = Value);
 }
 
+#ifdef USE_GENERICS
+static ml_type_t *ml_list_generic(const ml_type_t *Element) {
+	static inthash_t Cache[1] = {INTHASH_INIT};
+	ml_type_t *Type = (ml_type_t *)inthash_search(Cache, (uintptr_t)Element);
+	if (Type) return Type;
+	if (Element == MLAnyT) {
+		Type = MLListT;
+	} else {
+		char *Name;
+		asprintf(&Name, "list[%s]", Element->Name);
+		Type = new(ml_type_t);
+		Type->Type = MLTypeT;
+		Type->Name = Name;
+		Type->hash = MLListT->hash;
+		Type->call = MLListT->call;
+		Type->deref = MLListT->deref;
+		Type->assign = MLListT->assign;
+		int NumTypes = 1;
+		for (const ml_type_t **Parent = Element->Types + 1; Parent[0] != MLAnyT; ++Parent) ++NumTypes;
+		for (const ml_type_t **Parent = MLListT->Types; Parent[0]; ++Parent) ++NumTypes;
+		const ml_type_t **Types = Type->Types = anew(const ml_type_t *, NumTypes);
+		const ml_type_t **Last = Types;
+		*Last++ = Type;
+		for (const ml_type_t **Parent = Element->Types + 1; Parent[0] != MLAnyT; ++Parent) {
+			*Last++ = ml_list_generic(Parent[0]);
+		}
+		for (const ml_type_t **Parent = MLListT->Types; Parent[0]; ++Parent) {
+			*Last++ = Parent[0];
+		}
+		ml_types_sort(Types, 1, (Last - Types) - 1);
+		Type->Rank = Type->Types[1]->Rank + 1;
+		stringmap_insert(Type->Exports, "T", (void *)Element);
+	}
+	inthash_insert(Cache, (uintptr_t)Element, Type);
+	return Type;
+}
+
+ML_FUNCTION(MLListGeneric) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLTypeT);
+	return (ml_value_t *)ml_list_generic((ml_type_t *)Args[0]);
+}
+#endif
+
 ML_TYPE(MLListNodeT, (), "list-node",
 //!list
 // A node in a :mini:`list`.
@@ -3340,8 +3552,20 @@ void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
 	List->ValidIndices = 0;
 	if ((Node->Next = List->Head)) {
 		List->Head->Prev = Node;
+#ifdef USE_GENERICS
+		const ml_type_t *Type = stringmap_search(List->Type->Exports, "T");
+		if (Type != ml_typeof(Value)) {
+			const ml_type_t *Type2 = ml_type_max(Type, Value->Type);
+			if (Type != Type2) {
+				List->Type = ml_list_generic(Type2);
+			}
+		}
+#endif
 	} else {
 		List->Tail = Node;
+#ifdef USE_GENERICS
+		List->Type = ml_list_generic(ml_typeof(Value));
+#endif
 	}
 	List->CachedNode = List->Head = Node;
 	List->CachedIndex = 1;
@@ -3356,8 +3580,20 @@ void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 	List->ValidIndices = 0;
 	if ((Node->Prev = List->Tail)) {
 		List->Tail->Next = Node;
+#ifdef USE_GENERICS
+		const ml_type_t *Type = stringmap_search(List->Type->Exports, "T");
+		if (Type != ml_typeof(Value)) {
+			const ml_type_t *Type2 = ml_type_max(Type, ml_typeof(Value));
+			if (Type != Type2) {
+				List->Type = ml_list_generic(Type2);
+			}
+		}
+#endif
 	} else {
 		List->Head = Node;
+#ifdef USE_GENERICS
+		List->Type = ml_list_generic(ml_typeof(Value));
+#endif
 	}
 	List->CachedNode = List->Tail = Node;
 	List->CachedIndex = ++List->Length;
@@ -3526,10 +3762,7 @@ static ml_value_t *ml_list_slice_assign(ml_list_slice_t *Slice, ml_value_t *Pack
 	int Length = Slice->Length;
 	int Index = 0;
 	while (Node && Length) {
-		ml_value_t *Value = ml_unpack(Packed, Index);
-		if (!Value) {
-			return ml_error("ValueError", "Incorrect number of values to unpack (%d < %d)", Index, Slice->Length);
-		}
+		ml_value_t *Value = ml_unpack(Packed, Index + 1);
 		++Index;
 		Node->Value = Value;
 		Node = Node->Next;
@@ -3598,8 +3831,8 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLListT) {
 }
 
 ml_value_t *ML_TYPED_FN(ml_unpack, MLListT, ml_list_t *List, int Index) {
-	ml_list_node_t *Node = ml_list_index(List, Index + 1);
-	return Node ? Node->Value : NULL;
+	ml_list_node_t *Node = ml_list_index(List, Index);
+	return Node ? Node->Value : MLNil;
 }
 
 /*typedef struct ml_list_iterator_t {
@@ -3826,7 +4059,7 @@ ML_METHOD("sort", MLListT, MLFunctionT) {
 	return ml_list_sort((ml_list_t *)Args[0], Args[1]);
 }
 
-ML_TYPE(MLNamesT, (MLListT), "names",
+ML_TYPE(MLNamesT, (), "names",
 //!internal
 	.call = (void *)ml_list_call
 );
@@ -3857,6 +4090,66 @@ static ml_value_t *ml_map_node_deref(ml_map_node_t *Node) {
 static ml_value_t *ml_map_node_assign(ml_map_node_t *Node, ml_value_t *Value) {
 	return (Node->Value = Value);
 }
+
+#ifdef USE_GENERICS
+static ml_type_t *ml_map_generic(const ml_type_t *Key, const ml_type_t *Value) {
+	static inthash_t Cache[1] = {INTHASH_INIT};
+	inthash_t *Cache2 = (inthash_t *)inthash_search(Cache, (uintptr_t)Key);
+	if (!Cache2) {
+		Cache2 = inthash_new();
+		inthash_insert(Cache, (uintptr_t)Key, Cache2);
+	}
+	ml_type_t *Type = (ml_type_t *)inthash_search(Cache2, (uintptr_t)Value);
+	if (Type) return Type;
+	if (Key == MLAnyT && Value == MLAnyT) {
+		Type = MLMapT;
+	} else {
+		char *Name;
+		asprintf(&Name, "map[%s,%s]", Key->Name, Value->Name);
+		Type = new(ml_type_t);
+		Type->Type = MLTypeT;
+		Type->Name = Name;
+		Type->hash = MLMapT->hash;
+		Type->call = MLMapT->call;
+		Type->deref = MLMapT->deref;
+		Type->assign = MLMapT->assign;
+		int NumKeyTypes = 0;
+		for (const ml_type_t **Parent = Key->Types; Parent[0]; ++Parent) ++NumKeyTypes;
+		int NumValueTypes = 0;
+		for (const ml_type_t **Parent = Value->Types; Parent[0]; ++Parent) ++NumValueTypes;
+		int NumTypes = 0;
+		for (const ml_type_t **Parent = MLMapT->Types + 1; Parent[0]; ++Parent) ++NumTypes;
+		NumTypes += NumKeyTypes * NumValueTypes;
+		const ml_type_t **Types = Type->Types = anew(const ml_type_t *, NumTypes);
+		const ml_type_t **Last = Types;
+		*Last++ = Type;
+		for (const ml_type_t **Parent2 = Value->Types + 1; Parent2[0]; ++Parent2) {
+			*Last++ = ml_map_generic(Key, Parent2[0]);
+		}
+		for (const ml_type_t **Parent1 = Key->Types + 1; Parent1[0]; ++Parent1) {
+			for (const ml_type_t **Parent2 = Value->Types; Parent2[0]; ++Parent2) {
+				*Last++ = ml_map_generic(Parent1[0], Parent2[0]);
+			}
+		}
+		for (const ml_type_t **Parent = MLMapT->Types + 1; Parent[0]; ++Parent) {
+			*Last++ = Parent[0];
+		}
+		ml_types_sort(Types, 1, (Last - Types) - 1);
+		Type->Rank = Types[1]->Rank + 1;
+		stringmap_insert(Type->Exports, "K", (void *)Key);
+		stringmap_insert(Type->Exports, "V", (void *)Value);
+	}
+	inthash_insert(Cache2, (uintptr_t)Value, Type);
+	return Type;
+}
+
+ML_FUNCTION(MLMapGeneric) {
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLTypeT);
+	ML_CHECK_ARG_TYPE(1, MLTypeT);
+	return (ml_value_t *)ml_map_generic((ml_type_t *)Args[0], (ml_type_t *)Args[1]);
+}
+#endif
 
 ML_TYPE(MLMapNodeT, (), "map-node",
 //!map
@@ -3987,11 +4280,31 @@ static ml_map_node_t *ml_map_node(ml_map_t *Map, ml_map_node_t **Slot, long Hash
 	}
 }
 
+ml_map_node_t *ml_map_slot(ml_value_t *Map0, ml_value_t *Key) {
+	ml_map_t *Map = (ml_map_t *)Map0;
+	return ml_map_node(Map, &Map->Root, ml_typeof(Key)->hash(Key, NULL), Key);
+}
+
 ml_value_t *ml_map_insert(ml_value_t *Map0, ml_value_t *Key, ml_value_t *Value) {
 	ml_map_t *Map = (ml_map_t *)Map0;
 	ml_map_node_t *Node = ml_map_node(Map, &Map->Root, ml_typeof(Key)->hash(Key, NULL), Key);
 	ml_value_t *Old = Node->Value ?: MLNil;
 	Node->Value = Value;
+#ifdef USE_GENERICS
+	if (Map->Size == 1) {
+		Map->Type = ml_map_generic(ml_typeof(Key), ml_typeof(Value));
+	} else {
+		const ml_type_t *KeyType = stringmap_search(Map->Type->Exports, "K");
+		const ml_type_t *ValueType = stringmap_search(Map->Type->Exports, "V");
+		if (KeyType != ml_typeof(Key) || ValueType != ml_typeof(Value)) {
+			const ml_type_t *KeyType2 = ml_type_max(KeyType, ml_typeof(Key));
+			const ml_type_t *ValueType2 = ml_type_max(ValueType, ml_typeof(Value));
+			if (KeyType != KeyType2 || ValueType != ValueType2) {
+				Map->Type = ml_map_generic(KeyType2, ValueType2);
+			}
+		}
+	}
+#endif
 	return Old;
 }
 
@@ -4413,6 +4726,74 @@ ML_METHOD(MLStringOfMethod, MLMapT, MLStringT, MLStringT) {
 	return ml_stringbuffer_value(Stringer->Buffer);
 }
 
+static ml_value_t *ml_map_sort(ml_map_t *Map, ml_value_t *Compare) {
+	ml_map_node_t *Head = Map->Head;
+	int InSize = 1;
+	for (;;) {
+		ml_map_node_t *P = Head;
+		ml_map_node_t *Tail = Head = 0;
+		int NMerges = 0;
+		while (P) {
+			NMerges++;
+			ml_map_node_t *Q = P;
+			int PSize = 0;
+			for (int I = 0; I < InSize; I++) {
+				PSize++;
+				Q = Q->Next;
+				if (!Q) break;
+			}
+			int QSize = InSize;
+			ml_map_node_t *E;
+			while (PSize > 0 || (QSize > 0 && Q)) {
+				if (PSize == 0) {
+					E = Q; Q = Q->Next; QSize--;
+				} else if (QSize == 0 || !Q) {
+					E = P; P = P->Next; PSize--;
+				} else {
+					ml_value_t *Result = ml_simple_inline(Compare, 2, P->Value, Q->Value);
+					if (ml_is_error(Result)) return Result;
+					if (Result == MLNil) {
+						E = Q; Q = Q->Next; QSize--;
+					} else {
+						E = P; P = P->Next; PSize--;
+					}
+				}
+				if (Tail) {
+					Tail->Next = E;
+				} else {
+					Head = E;
+				}
+				E->Prev = Tail;
+				Tail = E;
+			}
+			P = Q;
+		}
+		Tail->Next = 0;
+		if (NMerges <= 1) {
+			Map->Head = Head;
+			Map->Tail = Tail;
+			break;
+		}
+		InSize *= 2;
+	}
+	return (ml_value_t *)Map;
+}
+
+ML_METHOD("sort", MLMapT) {
+//!map
+//<Map
+//>Map
+	return ml_map_sort((ml_map_t *)Args[0], LessMethod);
+}
+
+ML_METHOD("sort", MLMapT, MLFunctionT) {
+//!map
+//<Map
+//<Compare
+//>Map
+	return ml_map_sort((ml_map_t *)Args[0], Args[1]);
+}
+
 // Methods //
 
 #define ML_METHODS_INDEX 0
@@ -4457,13 +4838,14 @@ struct ml_method_definition_t {
 	const ml_type_t *Types[];
 };
 
-static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_definition_t *Definition, int Count, const ml_type_t **Types, unsigned int Best) {
+static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_definition_t *Definition, int Count, const ml_type_t **Types) {
 	unsigned int Score = 1;
 	if (Definition->Count > Count) return 0;
 	if (Definition->Count < Count) {
 		if (!Definition->Variadic) return 0;
 		Count = Definition->Count;
-		Score = 1;
+	} else if (!Definition->Variadic) {
+		Score = 2;
 	}
 	for (int I = 0; I < Count; ++I) {
 		const ml_type_t *Type = Definition->Types[I];
@@ -4499,7 +4881,7 @@ static ml_method_cached_t *ml_method_search_entry(ml_methods_t *Methods, ml_meth
 	ml_method_definition_t *BestDefinition = NULL;
 	ml_method_definition_t *Definition = inthash_search(Methods->Definitions, (uintptr_t)Method);
 	while (Definition) {
-		unsigned int Score = ml_method_definition_score(Definition, Count, Types, BestScore);
+		unsigned int Score = ml_method_definition_score(Definition, Count, Types);
 		if (Score > BestScore) {
 			BestScore = Score;
 			BestDefinition = Definition;
@@ -4744,6 +5126,30 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, MLMethodT) {
 	return (ml_value_t *)Buffer;
 }
 
+/*ML_METHODVX("[]", MLMethodT) {
+	ml_method_t *Method = (ml_method_t *)Args[0];
+	for (int I = 1; I < Count; ++I) ML_CHECKX_ARG_TYPE(I, MLTypeT);
+	ml_value_t *Matches = ml_list();
+	const ml_type_t **Types = (const ml_type_t **)Args + 1;
+	--Count;
+	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
+	do {
+		ml_method_definition_t *Definition = inthash_search(Methods->Definitions, (uintptr_t)Method);
+		while (Definition) {
+			unsigned int Score = ml_method_definition_score(Definition, Count, Types);
+			if (Score) {
+				ml_value_t *Match = ml_tuple(2);
+				ml_tuple_set(Match, 1, Definition->Callback);
+				ml_tuple_set(Match, 2, ml_integer(Score));
+				ml_list_put(Matches, Match);
+			}
+			Definition = Definition->Next;
+		}
+		Methods = Methods->Parent;
+	} while (Methods);
+	ML_RETURN(Matches);
+}*/
+
 ML_METHOD_DECL(MLRange, "..");
 
 ML_FUNCTIONX(MLMethodSet) {
@@ -4902,7 +5308,20 @@ void ml_types_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "regex", MLRegexT);
 	stringmap_insert(Globals, "method", MLMethodT);
 	stringmap_insert(Globals, "list", MLListT);
+#ifdef USE_GENERICS
+	stringmap_insert(MLListT->Exports, "T", MLAnyT);
+	stringmap_insert(MLListT->Exports, "[]", MLListGeneric);
+#endif
 	stringmap_insert(Globals, "names", MLNamesT);
 	stringmap_insert(Globals, "map", MLMapT);
+#ifdef USE_GENERICS
+	stringmap_insert(MLMapT->Exports, "K", MLAnyT);
+	stringmap_insert(MLMapT->Exports, "V", MLAnyT);
+	stringmap_insert(MLMapT->Exports, "[]", MLMapGeneric);
+#endif
 	stringmap_insert(Globals, "tuple", MLTupleT);
+#ifdef USE_GENERICS
+	stringmap_insert(MLTupleT->Exports, "N", Zero);
+	stringmap_insert(MLTupleT->Exports, "[]", MLTupleGeneric);
+#endif
 }

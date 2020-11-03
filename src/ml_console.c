@@ -102,6 +102,7 @@ static void ml_console_repl_run(ml_console_repl_state_t *State, ml_value_t *Resu
 	State->Console->Prompt = State->Console->DefaultPrompt;
 	Result = ml_deref(Result);
 	ml_console_log(NULL, Result);
+	if (ml_is_error(Result)) ml_compiler_reset(State->Compiler);
 	return ml_command_evaluate((ml_state_t *)State, State->Compiler, State->Console->Globals);
 }
 

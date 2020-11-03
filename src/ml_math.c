@@ -80,6 +80,7 @@ ML_FUNCTION(RandomInteger) {
 		ML_CHECK_ARG_TYPE(1, MLNumberT);
 		int Base = ml_integer_value(Args[0]);
 		int Limit = ml_integer_value(Args[1]) + 1 - Base;
+		if (Limit <= 0) return Args[0];
 		int Divisor = RAND_MAX / Limit;
 		int Random;
 		do Random = random() / Divisor; while (Random > Limit);
@@ -87,6 +88,7 @@ ML_FUNCTION(RandomInteger) {
 	} else if (Count == 1) {
 		ML_CHECK_ARG_TYPE(0, MLNumberT);
 		int Limit = ml_integer_value(Args[0]);
+		if (Limit <= 0) return Args[0];
 		int Divisor = RAND_MAX / Limit;
 		int Random;
 		do Random = random() / Divisor; while (Random > Limit);
@@ -99,7 +101,22 @@ ML_FUNCTION(RandomInteger) {
 ML_FUNCTION(RandomReal) {
 //@real::random
 //>real
-	return ml_real(random() / (double)RAND_MAX);
+	if (Count == 2) {
+		ML_CHECK_ARG_TYPE(0, MLNumberT);
+		ML_CHECK_ARG_TYPE(1, MLNumberT);
+		double Base = ml_real_value(Args[0]);
+		double Limit = ml_real_value(Args[1]) - Base;
+		if (Limit <= 0) return Args[0];
+		double Scale = Limit / (double)RAND_MAX;
+		return ml_real(Base + random() * Scale);
+	} else if (Count == 1) {
+		double Limit = ml_real_value(Args[0]);
+		if (Limit <= 0) return Args[0];
+		double Scale = Limit / (double)RAND_MAX;
+		return ml_real(random() * Scale);
+	} else {
+		return ml_real(random() / (double)RAND_MAX);
+	}
 }
 
 void ml_math_init(stringmap_t *Globals) {
@@ -142,6 +159,7 @@ void ml_math_init(stringmap_t *Globals) {
 			"pi", ml_real(M_PI),
 			"π", ml_real(M_PI),
 			"e", ml_real(M_E),
+			"ℯ", ml_real(M_E),
 		NULL));
 	}
 }

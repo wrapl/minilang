@@ -68,6 +68,7 @@ struct DEBUG_STRUCT(frame) {
 	ml_schedule_t Schedule;
 #endif
 	unsigned int Reuse:1;
+	unsigned int Suspend:1;
 	unsigned int Reentry:1;
 #ifdef DEBUG_VERSION
 	unsigned int StepOver:1;
@@ -123,15 +124,18 @@ static ml_value_t *ML_TYPED_FN(ml_debugger_local, DEBUG_TYPE(Continuation), DEBU
 	return Frame->Stack[Index];
 }
 
-static void ML_TYPED_FN(ml_iter_value, DEBUG_TYPE(Suspension), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+static void ML_TYPED_FN(ml_iter_value, DEBUG_TYPE(Continuation), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+	if (!Suspension->Suspend) ML_ERROR("StateError", "Function did not suspend");
 	ML_RETURN(Suspension->Top[-1]);
 }
 
-static void ML_TYPED_FN(ml_iter_key, DEBUG_TYPE(Suspension), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+static void ML_TYPED_FN(ml_iter_key, DEBUG_TYPE(Continuation), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+	if (!Suspension->Suspend) ML_ERROR("StateError", "Function did not suspend");
 	ML_RETURN(Suspension->Top[-2]);
 }
 
-static void ML_TYPED_FN(ml_iter_next, DEBUG_TYPE(Suspension), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+static void ML_TYPED_FN(ml_iter_next, DEBUG_TYPE(Continuation), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+	if (!Suspension->Suspend) ML_ERROR("StateError", "Function did not suspend");
 	Suspension->Base.Type = DEBUG_TYPE(Continuation);
 	Suspension->Top[-2] = Suspension->Top[-1];
 	--Suspension->Top;
@@ -140,15 +144,10 @@ static void ML_TYPED_FN(ml_iter_next, DEBUG_TYPE(Suspension), ml_state_t *Caller
 	ML_CONTINUE(Suspension, MLNil);
 }
 
-static void DEBUG_FUNC(suspension_call)(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
-	State->Caller = Caller;
-	return State->run(State, Count ? Args[0] : MLNil);
+static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+	if (!Suspension->Suspend) ML_ERROR("StateError", "Function did not suspend");
+	ML_RETURN(Suspension);
 }
-
-ML_TYPE(DEBUG_TYPE(Suspension), (MLFunctionT), "suspension",
-//!internal
-	.call = (void *)DEBUG_FUNC(suspension_call)
-);
 
 #ifndef DEBUG_VERSION
 
@@ -303,15 +302,16 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ML_CONTINUE(Caller, Result);
 	}
 	DO_SUSPEND: {
-		Frame->Base.Type = DEBUG_TYPE(Suspension);
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
 #ifdef USE_ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
+		Frame->Suspend = 1;
 		ML_CONTINUE(Frame->Base.Caller, (ml_value_t *)Frame);
 	}
 	DO_RESUME: {
+		Frame->Suspend = 0;
 		*--Top = 0;
 		ADVANCE(0);
 	}
@@ -367,12 +367,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_value_t *Packed = Result;
 		int Count = Inst->Params[1].Count;
 		for (int I = 0; I < Count; ++I) {
-			Result = ml_unpack(Packed, I);
-			if (!Result) {
-				Result = ml_error("ValueError", "Not enough values to unpack (%d < %d)", I, Count);
-				ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
-				ERROR();
-			}
+			Result = ml_unpack(Packed, I + 1);
 			*Top++ = Result;
 		}
 #ifdef DEBUG_VERSION
@@ -454,12 +449,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		int Count = Inst->Params[2].Count;
 		ml_value_t **Base = Top + Inst->Params[1].Index;
 		for (int I = 0; I < Count; ++I) {
-			Result = ml_unpack(Packed, I);
-			if (!Result) {
-				Result = ml_error("ValueError", "Not enough values to unpack (%d < %d)", I, Count);
-				ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
-				ERROR();
-			}
+			Result = ml_unpack(Packed, I + 1);
 			Result = ml_deref(Result);
 			//ERROR_CHECK(Result);
 			ml_variable_t *Local = (ml_variable_t *)Base[I];
@@ -487,12 +477,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		int Count = Inst->Params[2].Count;
 		ml_value_t **Base = Top + Inst->Params[1].Index;
 		for (int I = 0; I < Count; ++I) {
-			Result = ml_unpack(Packed, I);
-			if (!Result) {
-				Result = ml_error("ValueError", "Not enough values to unpack (%d < %d)", I, Count);
-				ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
-				ERROR();
-			}
+			Result = ml_unpack(Packed, I + 1);
 			Result = ml_deref(Result);
 			//ERROR_CHECK(Result);
 			ml_value_t *Uninitialized = Base[I];
@@ -530,7 +515,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		return ml_iter_next((ml_state_t *)Frame, Result);
 	}
 	DO_VALUE: {
-		Result = Top[-1];
+		Result = Top[Inst->Params[1].Index];
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
 #ifdef USE_ML_SCHEDULER
@@ -539,7 +524,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		return ml_iter_value((ml_state_t *)Frame, Result);
 	}
 	DO_KEY: {
-		Result = Top[-2];
+		Result = Top[Inst->Params[1].Index];
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
 #ifdef USE_ML_SCHEDULER
@@ -614,11 +599,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(0);
 	}
 	DO_TUPLE_NEW: {
-		int Size = Inst->Params[1].Count;
-		ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
-		Tuple->Type = MLTupleT;
-		Tuple->Size = Size;
-		*Top++ = (ml_value_t *)Tuple;
+		*Top++ = ml_tuple(Inst->Params[1].Count);
 		ADVANCE(0);
 	}
 	DO_TUPLE_SET: {
@@ -727,6 +708,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_DEBUG_ADVANCE: {
 		ml_debugger_t *Debugger = Frame->Debugger;
 		if (Inst->PotentialBreakpoint) {
+			if (Debugger->StepIn) goto DO_BREAKPOINT;
+			if (Frame->StepOver) goto DO_BREAKPOINT;
+			if (Inst->Opcode == MLI_RETURN && Frame->StepOut) goto DO_BREAKPOINT;
 			size_t *Breakpoints;
 			unsigned int Revision = Debugger->Revision;
 			if (Frame->Revision != Revision) {
@@ -737,9 +721,6 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			}
 			int LineNo = Inst->LineNo;
 			if (Breakpoints[LineNo / SIZE_BITS] & (1 << LineNo % SIZE_BITS)) goto DO_BREAKPOINT;
-			if (Debugger->StepIn) goto DO_BREAKPOINT;
-			if (Frame->StepOver) goto DO_BREAKPOINT;
-			if (Inst->Opcode == MLI_RETURN && Frame->StepOut) goto DO_BREAKPOINT;
 		}
 		CHECK_COUNTER
 		goto *Labels[Inst->Opcode];
@@ -871,9 +852,6 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	if (Breakpoints[LineNo / SIZE_BITS] & (1 << LineNo % SIZE_BITS)) {
 		return Debugger->run(Debugger, (ml_state_t *)Frame, MLNil);
 	}
-	/*if (Debugger->StepIn) {
-		return Debugger->run(Debugger, (ml_state_t *)Frame, MLNil);
-	}*/
 #else
 #ifdef USE_ML_JIT
 	if (Info->JITStart) {
@@ -970,8 +948,8 @@ const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INST, // MLI_FOR,
 	MLIT_INST_INST, // MLI_IF,
 	MLIT_INST_COUNT, // MLI_NEXT,
-	MLIT_INST, // MLI_VALUE,
-	MLIT_INST, // MLI_KEY,
+	MLIT_INST_INDEX, // MLI_VALUE,
+	MLIT_INST_INDEX, // MLI_KEY,
 	MLIT_INST_COUNT, // MLI_CALL,
 	MLIT_INST_COUNT_VALUE, // MLI_CONST_CALL,
 	MLIT_INST, // MLI_ASSIGN,

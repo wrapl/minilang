@@ -324,7 +324,7 @@ static void ML_TYPED_FN(ml_iter_next, MLDoubledIteratorStateT, ml_state_t *Calle
 	return ml_iter_next((ml_state_t *)State, State->Iterator);
 }
 
-ML_METHOD(">>", MLIteratableT, MLFunctionT) {
+ML_METHOD("^", MLIteratableT, MLFunctionT) {
 	ml_double_t *Double = new(ml_double_t);
 	Double->Type = MLDoubledIteratorT;
 	Double->Iteratable = Args[0];
@@ -604,11 +604,50 @@ ML_FUNCTIONX(Count) {
 // Returns the count of the values produced by :mini:`Iteratable`.
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
-	ml_count_state_t *State = xnew(ml_count_state_t, 1, ml_value_t *);
+	ml_count_state_t *State = new(ml_count_state_t);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)count_iterate;
 	State->Base.Context = Caller->Context;
 	State->Count = 0;
+	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
+}
+
+typedef struct ml_count2_state_t {
+	ml_state_t Base;
+	ml_value_t *Iter;
+	ml_value_t *Counts;
+} ml_count2_state_t;
+
+static void count2_iterate(ml_count2_state_t *State, ml_value_t *Value);
+
+static void count2_value(ml_count2_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value != MLNil) {
+		ml_map_node_t *Node = ml_map_slot(State->Counts, Value);
+		Node->Value = ml_integer((Node->Value ? ml_integer_value(Node->Value) : 0) + 1);
+	}
+	State->Base.run = (void *)count2_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void count2_iterate(ml_count2_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Counts);
+	State->Base.run = (void *)count2_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+ML_FUNCTIONX(Count2) {
+//<Iteratable
+//>map
+// Returns a map of the values produced by :mini:`Iteratable` with associated counts.
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
+	ml_count2_state_t *State = new(ml_count2_state_t);
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)count2_iterate;
+	State->Base.Context = Caller->Context;
+	State->Counts = ml_map();
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
@@ -740,6 +779,49 @@ ML_FUNCTIONX(Prod) {
 	State->Base.Context = Caller->Context;
 	State->Values[0] = MulMethod;
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
+}
+
+typedef struct ml_join_state_t {
+	ml_state_t Base;
+	const char *Separator;
+	ml_value_t *Iter;
+	ml_stringbuffer_t Buffer[1];
+	size_t SeparatorLength;
+} ml_join_state_t;
+
+static void join_append(ml_join_state_t *State, ml_value_t *Value);
+
+static void join_next(ml_join_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, ml_stringbuffer_value(State->Buffer));
+	ml_stringbuffer_add(State->Buffer, State->Separator, State->SeparatorLength);
+	State->Base.run = (void *)join_append;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+static void join_append(ml_join_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_stringbuffer_append(State->Buffer, Value);
+	State->Base.run = (void *)join_next;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void join_first(ml_join_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, ml_stringbuffer_value(State->Buffer));
+	State->Base.run = (void *)join_append;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+ML_METHODVX("*", MLStringT, MLIteratableT) {
+	ml_join_state_t *State = new(ml_join_state_t);
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)join_first;
+	State->Base.Context = Caller->Context;
+	State->Separator = ml_string_value(Args[0]);
+	State->SeparatorLength = ml_string_length(Args[0]);
+	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
+	return ml_iterate((ml_state_t *)State, ml_chained(Count - 1, Args + 1));
 }
 
 static void reduce2_iter_next(ml_iter_state_t *State, ml_value_t *Value);
@@ -1444,17 +1526,28 @@ static void ML_TYPED_FN(ml_iterate, MLRepeatedT, ml_state_t *Caller, ml_repeated
 	ML_RETURN(State);
 }
 
-ML_FUNCTION(Repeat) {
+ML_METHOD("@", MLAnyT) {
 //<Value
-//<?Update:function
 //>iteratable
 // Returns an iteratable that repeatedly produces :mini:`Value`.
-// If :mini:`Update` is provided then :mini:`Value` is replaced with :mini:`Update(Value)` after each iteration.
 	ML_CHECK_ARG_COUNT(1);
 	ml_repeated_t *Repeated = new(ml_repeated_t);
 	Repeated->Type = MLRepeatedT;
 	Repeated->Value = Args[0];
-	if (Count > 1) Repeated->Update = Args[1];
+	return (ml_value_t *)Repeated;
+}
+
+ML_METHOD("@", MLAnyT, MLFunctionT) {
+//<Value
+//<Update:function
+//>iteratable
+// Returns an iteratable that repeatedly produces :mini:`Value`.
+// :mini:`Value` is replaced with :mini:`Update(Value)` after each iteration.
+	ML_CHECK_ARG_COUNT(1);
+	ml_repeated_t *Repeated = new(ml_repeated_t);
+	Repeated->Type = MLRepeatedT;
+	Repeated->Value = Args[0];
+	Repeated->Update = Args[1];
 	return (ml_value_t *)Repeated;
 }
 
@@ -1506,7 +1599,7 @@ static void ML_TYPED_FN(ml_iterate, MLSequencedT, ml_state_t *Caller, ml_sequenc
 	return ml_iterate((ml_state_t *)State, Sequenced->First);
 }
 
-ML_METHOD("||", MLIteratableT, MLIteratableT) {
+ML_METHOD(">>", MLIteratableT, MLIteratableT) {
 	ml_sequenced_t *Sequenced = xnew(ml_sequenced_t, 3, ml_value_t *);
 	Sequenced->Type = MLSequencedT;
 	Sequenced->First = Args[0];
@@ -1514,12 +1607,81 @@ ML_METHOD("||", MLIteratableT, MLIteratableT) {
 	return (ml_value_t *)Sequenced;
 }
 
-ML_METHOD("||", MLIteratableT) {
+ML_METHOD(">>", MLIteratableT) {
 	ml_sequenced_t *Sequenced = xnew(ml_sequenced_t, 3, ml_value_t *);
 	Sequenced->Type = MLSequencedT;
 	Sequenced->First = Args[0];
 	Sequenced->Second = (ml_value_t *)Sequenced;
 	return (ml_value_t *)Sequenced;
+}
+
+typedef struct ml_weaved_t {
+	const ml_type_t *Type;
+	int Count;
+	ml_value_t *Iters[];
+} ml_weaved_t;
+
+ML_TYPE(MLWeavedT, (MLIteratableT), "weaved");
+
+typedef struct ml_weaved_state_t {
+	ml_state_t Base;
+	int Count, Index, Iteration;
+	ml_value_t *Iters[];
+} ml_weaved_state_t;
+
+ML_TYPE(MLWeavedStateT, (), "weaved-state");
+
+static void weaved_iterate(ml_weaved_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Iters[State->Index] = Value;
+	ML_CONTINUE(State->Base.Caller, State);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLWeavedT, ml_state_t *Caller, ml_weaved_t *Weaved) {
+	ml_weaved_state_t *State = xnew(ml_weaved_state_t, Weaved->Count, ml_value_t *);
+	State->Base.Type = MLWeavedStateT;
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)weaved_iterate;
+	State->Base.Context = Caller->Context;
+	for (int I = 0; I < Weaved->Count; ++I) State->Iters[I] = Weaved->Iters[I];
+	State->Count = Weaved->Count;
+	State->Iteration = 1;
+	return ml_iterate((ml_state_t *)State, State->Iters[0]);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLWeavedStateT, ml_state_t *Caller, ml_weaved_state_t *State) {
+	ML_RETURN(ml_integer(State->Iteration));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLWeavedStateT, ml_state_t *Caller, ml_weaved_state_t *State) {
+	return ml_iter_value(Caller, State->Iters[State->Index]);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLWeavedStateT, ml_state_t *Caller, ml_weaved_state_t *State) {
+	State->Base.Caller = Caller;
+	if (++State->Index == State->Count) State->Index = 0;
+	if (++State->Iteration > State->Count) {
+		return ml_iter_next((ml_state_t *)State, State->Iters[State->Index]);
+	} else {
+		return ml_iterate((ml_state_t *)State, State->Iters[State->Index]);
+	}
+}
+
+ML_FUNCTION(Weave) {
+//@weave
+//<Iteratable/1:iteratable
+//<...:iteratable
+//<Iteratable/n:iteratable
+//>iteratable
+// Returns a new iteratable that produces interleaved values :mini:`V/i` from each of :mini:`Iteratable/i`.
+// The iteratable stops produces values when any of the :mini:`Iteratable/i` stops.
+	ML_CHECK_ARG_COUNT(1);
+	ml_weaved_t *Weaved = xnew(ml_weaved_t, Count, ml_value_t *);
+	Weaved->Type = MLWeavedT;
+	Weaved->Count = Count;
+	for (int I = 0; I < Count; ++I) Weaved->Iters[I] = Args[I];
+	return (ml_value_t *)Weaved;
 }
 
 typedef struct {
@@ -1564,11 +1726,72 @@ static void ML_TYPED_FN(ml_iter_next, MLSwappedStateT, ml_state_t *Caller, ml_sw
 	return ml_iter_next((ml_state_t *)State, State->Iter);
 }
 
-ML_METHOD("swap", MLIteratableT) {
+ML_FUNCTION(Swap) {
+//@swap
+//<Iteratable:iteratable
+// Returns a new iteratable which swaps the keys and values produced by :mini:`Iteratable`.
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLIteratableT);
 	ml_swapped_t *Swapped = new(ml_swapped_t);
 	Swapped->Type = MLSwappedT;
 	Swapped->Value = Args[0];
 	return (ml_value_t *)Swapped;
+}
+
+typedef struct {
+	const ml_type_t *Type;
+	ml_value_t *Value;
+} ml_key_t;
+
+ML_TYPE(MLKeyT, (MLIteratableT), "key");
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Iter;
+	int Iteration;
+} ml_key_state_t;
+
+ML_TYPE(MLKeyStateT, (), "keys-state");
+
+static void key_iterate(ml_key_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Iter = Value;
+	++State->Iteration;
+	ML_CONTINUE(State->Base.Caller, State);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLKeyT, ml_state_t *Caller, ml_key_t *Key) {
+	ml_key_state_t *State = new(ml_key_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Type = MLKeyStateT;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)key_iterate;
+	return ml_iterate((ml_state_t *)State, Key->Value);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLKeyStateT, ml_state_t *Caller, ml_key_state_t *State) {
+	ML_RETURN(ml_integer(State->Iteration));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLKeyStateT, ml_state_t *Caller, ml_key_state_t *State) {
+	return ml_iter_key(Caller, State->Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLKeyStateT, ml_state_t *Caller, ml_key_state_t *State) {
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+ML_FUNCTION(Key) {
+//@swap
+//<Iteratable:iteratable
+// Returns a new iteratable which produces the keys of :mini:`Iteratable`.
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLIteratableT);
+	ml_key_t *Key = new(ml_key_t);
+	Key->Type = MLKeyT;
+	Key->Value = Args[0];
+	return (ml_value_t *)Key;
 }
 
 void ml_iterfns_init(stringmap_t *Globals) {
@@ -1584,6 +1807,7 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "all", All);
 	stringmap_insert(Globals, "all2", All2);
 	stringmap_insert(Globals, "count", Count);
+	stringmap_insert(Globals, "count2", Count2);
 	stringmap_insert(Globals, "reduce", Reduce);
 	stringmap_insert(Globals, "min", Min);
 	stringmap_insert(Globals, "max", Max);
@@ -1596,5 +1820,7 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "unique", Unique);
 	stringmap_insert(Globals, "tasks", Tasks);
 	stringmap_insert(Globals, "zip", Zip);
-	stringmap_insert(Globals, "repeat", Repeat);
+	stringmap_insert(Globals, "weave", Weave);
+	stringmap_insert(Globals, "swap", Swap);
+	stringmap_insert(Globals, "key", Key);
 }
