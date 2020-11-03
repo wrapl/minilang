@@ -409,8 +409,7 @@ If an expression is passed to :mini:`exit`, it is evaluated outside the loop. Th
 For Expressions
 ~~~~~~~~~~~~~~~
 
-The for expression, :mini:`for Value in Collection do ... end` is used to
-iterate through a collection of values.
+The for expression, :mini:`for Value in Collection do ... end` is used to iterate through a collection of values.
 
 .. code-block:: mini
 
@@ -418,21 +417,14 @@ iterate through a collection of values.
       print('X = {X}\n')
    end
 
-If the collection has a key associated with each value, then a second variable
-can be added, :mini:`for Key, Value in Collection do ... end`. When iterating
-through a list, the index of each value is used as the key.
-
+If the collection has a key associated with each value, then a second variable can be added, :mini:`for Key, Value in Collection do ... end`. When iterating through a list, the index of each value is used as the key.
 .. code-block:: mini
 
    for Key, Value in {"a" is 1, "b" is 2, "c" is 3} do
       print('{Key} -> {Value}\n')
    end
 
-A for loop is also an expression (like most things in *Minilang*), and can
-return a value using :mini:`exit`. Unlike a basic loop expression in
-*Minilang*, a for loop can also end when it runs out of values. In this case,
-the value of the for loop is :mini:`nil`. An optional :mini:`else` clause can
-be added to the for loop to give a different value in this case.
+A for loop is also an expression (like most things in *Minilang*), and can return a value using :mini:`exit`. Unlike a basic loop expression in *Minilang*, a for loop can also end when it runs out of values. In this case, the value of the for loop is :mini:`nil`. An optional :mini:`else` clause can be added to the for loop to give a different value in this case.
 
 .. code-block:: mini
 
@@ -448,15 +440,12 @@ be added to the for loop to give a different value in this case.
    Index of 6 is
    Index of 6 is not found
    
-Generators
-..........
+Iteratables
+...........
 
-For loops are not restricted to using lists and maps. Any value can be used in a
-for loop if it can generate a sequence of values (or key / value pairs for the
-two variable version).
+For loops are not restricted to using lists and maps. Any value can be used in a for loop if it is iteratable, i.e. can generate a sequence of values (or key / value pairs for the two variable version).
 
-In order to loop over a range of numbers, *Minilang* has a range type, created
-using the :mini:`..` operator.
+In order to loop over a range of numbers, *Minilang* has a range type, created using the :mini:`..` operator.
 
 .. code-block:: mini
 
@@ -472,8 +461,7 @@ using the :mini:`..` operator.
    X = 4
    X = 5
 
-The default step size is :mini:`1` but can be changed using the :mini:`:by`
-method.
+The default step size is :mini:`1` but can be changed using the :mini:`:by` method.
 
 .. code-block:: mini
 
@@ -496,7 +484,7 @@ Functions
 
 Functions in *Minilang* are first class values. That means they can be passed to other functions and stored in variables, lists, maps, etc. Functions have access to variables in their surrounding scope when they were created.
 
-   The general syntax of a function is :mini:`fun(Arguments) Body`. Calling a function is achieved by the traditional syntax :mini:`Function(Arguments)`. 
+   The general syntax of a function is :mini:`fun(Name₁, Name₂, ...) Expression`. Calling a function is achieved by the traditional syntax :mini:`Function(Expression, Expression, ...)`. 
 
 .. code-block:: mini
 
@@ -520,15 +508,24 @@ expression which returns a function.
    
    var Y := f(2)(3) :> 5
 
-As a shorthand, the code :mini:`var Name := fun(Arguments) Body` can be written
-as :mini:`fun Name(Arguments) Body`. Internally, the two forms are identical.
+As a shorthand, the code :mini:`var Name := fun(Name₁, Name₂, ...) Expression` can be written
+as :mini:`fun Name(Name₁, Name₂, ...) Expression`. Internally, the two forms are identical.
 
 .. code-block:: mini
 
    fun add(A, B) A + B
 
-The body of a function can be a block :mini:`do ... end` containing local
-variables and other expressions.
+Although a function contains a single expression, this expression can be a block expression, :mini:`do ... end`. A block can contain any number of declarations and expressions, which are evaluated in sequence. The last value evaluated is returned as the value of the block. A return expression, :mini:`ret Expression`, returns the value of :mini:`Expression` from the enclosing function. If :mini:`Expression` is omitted, then :mini:`nil` is returned.  
+
+.. code-block:: mini
+
+   fun fact(N) do
+      var F := 1
+      for I in 1 .. N do
+         F := F * I
+      end
+      ret F
+   end 
 
 When calling a function which expects another function as its last parameter,
 the following shorthand can be used:
@@ -547,25 +544,54 @@ can be written as
       ret A + B
    end
 
+Generators
+..........
+
+*Minilang* functions can be used as generators using suspend expressions, :mini:`susp Key, Value`. If :mini:`Key` is omitted, :mini:`nil` is used as the key. The function should return :mini:`nil` when it has no more values to produce.
+
+.. code-block:: mini
+
+   fun squares(N) do
+      for I in 1 .. N do
+         susp I, I * I
+      end
+      ret nil
+   end
+   
+   for I, S in squares(10) do
+      print('I = {I}, I² = {S}\n')
+   end
+
+.. code-block:: console
+
+   I = 1, I² = 1
+   I = 2, I² = 4
+   I = 3, I² = 9
+   I = 4, I² = 16
+   I = 5, I² = 25
+   I = 6, I² = 36
+   I = 7, I² = 49
+   I = 8, I² = 64
+   I = 9, I² = 81
+   I = 10, I² = 100
+
 Methods
 ~~~~~~~
 
-Internally, *Minilang* treats every value as an object with methods defining
-their behaviour. More information can be found in :doc:`/minilang/oop`. Method
-names are first class objects in *Minilang*, and can be created using a colon
-``:`` followed by one or more alphanumeric characters, or by using two colons
-``::`` followed by one or more symbol characters (``!``, ``@``, ``#``, ``$``,
-``%``, ``^``, ``&``, ``*``, ``-``, ``+``, ``=``, ``|``, ``\``, ``~``, `````,
-``/``, ``?``, ``<``, ``>`` or ``.``). Note that is currently not possible to
-mix the two sets of characters in a method name.
+Internally, *Minilang* treats every value as an object with methods defining their behaviour. More information can be found in :doc:`/oop`. Method names are first class objects in *Minilang*, and can be created using a colon ``:`` followed by one or more alphanumeric characters, or any combination of characters surrounded by quotes.
+
+Methods consisting of only the characters ``!``, ``@``, ``#``, ``$``, ``%``, ``^``, ``&``, ``*``, ``-``, ``+``, ``=``, ``|``, ``\``, ``~``, `````, ``/``, ``?``, ``<``, ``>`` or ``.`` can be written directly, without any leading ``:`` or quotes.
+
+Methods behave as *atoms*, that is two methods with the same characters internally point to the same object, and are thus identically equal. 
 
 .. code-block:: mini
 
    :put
-   ::+
-
-Methods behave as *atoms*, that is two methods with the same characters
-internally point to the same object, and are thus identically equal.
+   :write
+   :"write" :> same as previous method
+   :"do+struff"
+   +
+   <>
  
 Methods can be called like any other function, using parentheses after the
 method.
@@ -595,10 +621,10 @@ notation. The following are equivalent:
 
 .. code-block:: mini
 
-   ::+(A, B)
+   +(A, B)
    A + B
    
-   ::+(A, ::*(B, C))
+   +(A, *(B, C))
    A + (B * C)
 
 .. warning::

@@ -984,7 +984,8 @@ static mlc_compiled_t ml_each_expr_compile(mlc_function_t *Function, mlc_parent_
 	mlc_connect(Compiled.Exits, EachInst);
 	ml_inst_t *PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
 	IfInst->Params[1].Inst = PushInst;
-	ml_inst_t *ValueInst = ml_inst_new(1, Expr->Source, MLI_VALUE);
+	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_VALUE);
+	ValueInst->Params[1].Index = -1;
 	PushInst->Params[0].Inst = ValueInst;
 	ml_inst_t *NextInst = ml_inst_new(2, Expr->Source, MLI_NEXT);
 	ValueInst->Params[0].Inst = NextInst;

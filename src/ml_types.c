@@ -44,7 +44,7 @@ ML_METHOD_DECL(MLMapOf, NULL);
 
 // Types //
 
-ML_INTERFACE(MLAnyT, (), "any");
+ML_INTERFACE(MLAnyT, (), "any", .Rank = 0);
 // Base type for all values.
 
 ML_INTERFACE(MLIteratableT, (), "iteratable");
@@ -126,16 +126,31 @@ ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value) {
 	return ml_error("TypeError", "<%s> is not assignable", ml_typeof(Ref)->Name);
 }
 
-
+static void ml_types_sort(const ml_type_t **Types, int Lo, int Hi) {
+	if (Lo >= Hi) return;
+	const ml_type_t *Pivot = Types[(Hi + Lo) / 2];
+	int Rank = Pivot->Rank;
+	int I = Lo - 1;
+	int J = Hi + 1;
+	for (;;) {
+		do ++I; while (Types[I]->Rank > Rank || (Types[I]->Rank == Rank && Types[I] > Pivot));
+		do --J; while (Types[J]->Rank < Rank || (Types[J]->Rank == Rank && Types[J] < Pivot));
+		if (I >= J) break;
+		const ml_type_t *Temp = Types[I];
+		Types[I] = Types[J];
+		Types[J] = Temp;
+	}
+	if (J + 1 >= Hi) return ml_types_sort(Types, Lo, J);
+	if (Lo < J) ml_types_sort(Types, Lo, J);
+	return ml_types_sort(Types, J + 1, Hi);
+}
 
 void ml_type_init(ml_type_t *Type, ...) {
 	int NumParents = 0;
-	int Rank = Type->Rank;
 	va_list Args;
 	va_start(Args, Type);
 	ml_type_t *Parent;
 	while ((Parent = va_arg(Args, ml_type_t *))) {
-		if (Rank < Parent->Rank) Rank = Parent->Rank;
 		const ml_type_t **Types = Parent->Types;
 		if (!Types) {
 			fprintf(stderr, "Types initialized in wrong order %s < %s\n", Type->Name, Parent->Name);
@@ -144,26 +159,24 @@ void ml_type_init(ml_type_t *Type, ...) {
 		do ++NumParents; while (*++Types != MLAnyT);
 	}
 	va_end(Args);
-	const ml_type_t **Parents = anew(const ml_type_t *, NumParents + 3);
-	const ml_type_t **Tail = Parents;
-	Type->Rank = Rank + 1;
-	*Tail++ = Type;
+	const ml_type_t **Types = Type->Types = anew(const ml_type_t *, NumParents + 3);
+	const ml_type_t **Last = Types;
+	*Last++ = Type;
 	va_start(Args, Type);
 	while ((Parent = va_arg(Args, ml_type_t *))) {
 		const ml_type_t **Types = Parent->Types;
-		while (*Types != MLAnyT) *Tail++ = *Types++;
+		while (*Types != MLAnyT) *Last++ = *Types++;
 	}
 	va_end(Args);
-	*Tail++ = MLAnyT;
-	inthash_t Duplicate[1] = {INTHASH_INIT};
-	const ml_type_t **Head = Tail;
-	while (Tail > Parents) {
-		const ml_type_t *Type = *--Tail;
-		if (!inthash_insert(Duplicate, (uintptr_t)Type, (void *)Type)) {
-			*--Head = Type;
-		}
+	int NumTypes = Last - Types;
+	*Last++ = MLAnyT;
+	ml_types_sort(Types, 1, NumTypes);
+	Last = Types + 1;
+	for (const ml_type_t **Next = Types + 1; Next[0]; ++Next) {
+		if (Next[0] != Next[-1]) *Last++ = Next[0];
 	}
-	Type->Types = Head;
+	Last[0] = NULL;
+	if (Types[1]) Type->Rank = Types[1]->Rank + 1;
 }
 
 ml_type_t *ml_type(ml_type_t *Parent, const char *Name) {
@@ -3447,15 +3460,16 @@ static ml_type_t *ml_list_generic(const ml_type_t *Element) {
 		int NumTypes = 1;
 		for (const ml_type_t **Parent = Element->Types + 1; Parent[0] != MLAnyT; ++Parent) ++NumTypes;
 		for (const ml_type_t **Parent = MLListT->Types; Parent[0]; ++Parent) ++NumTypes;
-		const ml_type_t **Types = anew(const ml_type_t *, NumTypes);
-		Type->Types = Types;
-		*Types++ = Type;
+		const ml_type_t **Types = Type->Types = anew(const ml_type_t *, NumTypes);
+		const ml_type_t **Last = Types;
+		*Last++ = Type;
 		for (const ml_type_t **Parent = Element->Types + 1; Parent[0] != MLAnyT; ++Parent) {
-			*Types++ = ml_list_generic(Parent[0]);
+			*Last++ = ml_list_generic(Parent[0]);
 		}
 		for (const ml_type_t **Parent = MLListT->Types; Parent[0]; ++Parent) {
-			*Types++ = Parent[0];
+			*Last++ = Parent[0];
 		}
+		ml_types_sort(Types, 1, (Last - Types) - 1);
 		Type->Rank = Type->Types[1]->Rank + 1;
 		stringmap_insert(Type->Exports, "T", (void *)Element);
 	}
@@ -4106,21 +4120,22 @@ static ml_type_t *ml_map_generic(const ml_type_t *Key, const ml_type_t *Value) {
 		int NumTypes = 0;
 		for (const ml_type_t **Parent = MLMapT->Types + 1; Parent[0]; ++Parent) ++NumTypes;
 		NumTypes += NumKeyTypes * NumValueTypes;
-		const ml_type_t **Types = anew(const ml_type_t *, NumTypes);
-		Type->Types = Types;
-		*Types++ = Type;
+		const ml_type_t **Types = Type->Types = anew(const ml_type_t *, NumTypes);
+		const ml_type_t **Last = Types;
+		*Last++ = Type;
 		for (const ml_type_t **Parent2 = Value->Types + 1; Parent2[0]; ++Parent2) {
-			*Types++ = ml_map_generic(Key, Parent2[0]);
+			*Last++ = ml_map_generic(Key, Parent2[0]);
 		}
 		for (const ml_type_t **Parent1 = Key->Types + 1; Parent1[0]; ++Parent1) {
 			for (const ml_type_t **Parent2 = Value->Types; Parent2[0]; ++Parent2) {
-				*Types++ = ml_map_generic(Parent1[0], Parent2[0]);
+				*Last++ = ml_map_generic(Parent1[0], Parent2[0]);
 			}
 		}
 		for (const ml_type_t **Parent = MLMapT->Types + 1; Parent[0]; ++Parent) {
-			*Types++ = Parent[0];
+			*Last++ = Parent[0];
 		}
-		Type->Rank = Type->Types[1]->Rank + 1;
+		ml_types_sort(Types, 1, (Last - Types) - 1);
+		Type->Rank = Types[1]->Rank + 1;
 		stringmap_insert(Type->Exports, "K", (void *)Key);
 		stringmap_insert(Type->Exports, "V", (void *)Value);
 	}

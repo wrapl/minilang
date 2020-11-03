@@ -68,6 +68,7 @@ struct DEBUG_STRUCT(frame) {
 	ml_schedule_t Schedule;
 #endif
 	unsigned int Reuse:1;
+	unsigned int Suspend:1;
 	unsigned int Reentry:1;
 #ifdef DEBUG_VERSION
 	unsigned int StepOver:1;
@@ -124,20 +125,28 @@ static ml_value_t *ML_TYPED_FN(ml_debugger_local, DEBUG_TYPE(Continuation), DEBU
 }
 
 static void ML_TYPED_FN(ml_iter_value, DEBUG_TYPE(Continuation), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+	if (!Suspension->Suspend) ML_ERROR("StateError", "Function did not suspend");
 	ML_RETURN(Suspension->Top[-1]);
 }
 
 static void ML_TYPED_FN(ml_iter_key, DEBUG_TYPE(Continuation), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+	if (!Suspension->Suspend) ML_ERROR("StateError", "Function did not suspend");
 	ML_RETURN(Suspension->Top[-2]);
 }
 
 static void ML_TYPED_FN(ml_iter_next, DEBUG_TYPE(Continuation), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+	if (!Suspension->Suspend) ML_ERROR("StateError", "Function did not suspend");
 	Suspension->Base.Type = DEBUG_TYPE(Continuation);
 	Suspension->Top[-2] = Suspension->Top[-1];
 	--Suspension->Top;
 	Suspension->Base.Caller = Caller;
 	Suspension->Base.Context = Caller->Context;
 	ML_CONTINUE(Suspension, MLNil);
+}
+
+static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+	if (!Suspension->Suspend) ML_ERROR("StateError", "Function did not suspend");
+	ML_RETURN(Suspension);
 }
 
 #ifndef DEBUG_VERSION
@@ -298,9 +307,11 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef USE_ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
+		Frame->Suspend = 1;
 		ML_CONTINUE(Frame->Base.Caller, (ml_value_t *)Frame);
 	}
 	DO_RESUME: {
+		Frame->Suspend = 0;
 		*--Top = 0;
 		ADVANCE(0);
 	}
