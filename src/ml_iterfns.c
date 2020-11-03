@@ -577,7 +577,7 @@ ML_METHODVX(MLMapOfMethod, MLIteratableT) {
 //<Iteratable
 //>map
 // Returns a map of all the key and value pairs produced by :mini:`Iteratable`.
-	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
+	ml_iter_state_t *State = xnew(ml_iter_state_t, 2, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)map_iterate;
 	State->Base.Context = Caller->Context;

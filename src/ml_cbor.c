@@ -128,8 +128,8 @@ void ml_cbor_read_positive_fn(ml_cbor_reader_t *Reader, uint64_t Value) {
 }
 
 void ml_cbor_read_negative_fn(ml_cbor_reader_t *Reader, uint64_t Value) {
-	if (Value <= 0x7FFFFFFFL) {
-		value_handler(Reader, ml_integer(~(uint32_t)Value));
+	if (Value <= 0x7FFFFFFFFFFFFFFFL) {
+		value_handler(Reader, ml_integer(~(int64_t)Value));
 	} else {
 		value_handler(Reader, ml_integer(Value));
 		// TODO: Implement large numbers somehow
