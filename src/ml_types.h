@@ -39,6 +39,9 @@ struct ml_hash_chain_t {
 struct ml_type_t {
 	const ml_type_t *Type;
 	const ml_type_t **Types;
+#ifdef USE_GENERICS
+	const ml_type_t **Generic;
+#endif
 	const char *Name;
 	long (*hash)(ml_value_t *, ml_hash_chain_t *);
 	void (*call)(ml_state_t *, ml_value_t *, int, ml_value_t **);
@@ -90,6 +93,11 @@ void ml_type_init(ml_type_t *Type, ...) __attribute__ ((sentinel));
 ml_type_t *ml_type(ml_type_t *Parent, const char *Name);
 void *ml_typed_fn_get(const ml_type_t *Type, void *TypedFn);
 void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function);
+
+#ifdef USE_GENERICS
+const ml_type_t *ml_type_generic(const ml_type_t *Base, int Count, const ml_type_t **Args);
+ml_value_t *ml_type_generic_fn(void *Data, int Count, ml_value_t **Args);
+#endif
 
 #ifndef GENERATE_INIT
 

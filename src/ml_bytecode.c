@@ -264,6 +264,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_MAP_NEW] = &&DO_MAP_NEW,
 		[MLI_MAP_INSERT] = &&DO_MAP_INSERT,
 		[MLI_CLOSURE] = &&DO_CLOSURE,
+#ifdef USE_GENERICS
+		[MLI_CLOSURE_TYPED] = &&DO_CLOSURE_TYPED,
+#endif
 		[MLI_PARTIAL_NEW] = &&DO_PARTIAL_NEW,
 		[MLI_PARTIAL_SET] = &&DO_PARTIAL_SET,
 		[MLI_STRING_NEW] = &&DO_STRING_NEW,
@@ -650,6 +653,33 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Result = (ml_value_t *)Closure;
 		ADVANCE(0);
 	}
+#ifdef USE_GENERICS
+	DO_CLOSURE_TYPED: {
+		// closure <entry> <frame_size> <num_params> <num_upvalues> <upvalue_1> ...
+		if (!ml_is(Result, MLTypeT)) {
+			Result = ml_error("InternalError", "expected type, not %s", ml_typeof(Result)->Name);
+			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
+			ERROR();
+		}
+		ml_closure_info_t *Info = Inst->Params[1].ClosureInfo;
+		ml_closure_t *Closure = xnew(ml_closure_t, Info->NumUpValues, ml_value_t *);
+		const ml_type_t *Type = (ml_type_t *)Result;
+		Closure->Type = ml_type_generic(MLClosureT, 1, &Type);
+		Closure->Info = Info;
+		for (int I = 0; I < Info->NumUpValues; ++I) {
+			int Index = Inst->Params[2 + I].Index;
+			ml_value_t **Slot = (Index < 0) ? &Frame->UpValues[~Index] : &Frame->Stack[Index];
+			ml_value_t *Value = Slot[0];
+			if (!Value) Value = Slot[0] = ml_uninitialized("<upvalue>");
+			if (ml_typeof(Value) == MLUninitializedT) {
+				ml_uninitialized_use(Value, &Closure->UpValues[I]);
+			}
+			Closure->UpValues[I] = Value;
+		}
+		Result = (ml_value_t *)Closure;
+		ADVANCE(0);
+	}
+#endif
 	DO_PARTIAL_NEW: {
 		Result = ml_deref(Result);
 		//ERROR_CHECK(Result);
@@ -910,6 +940,9 @@ const char *MLInsts[] = {
 	"map_new", // MLI_MAP_NEW,
 	"map_insert", // MLI_MAP_INSERT,
 	"closure", // MLI_CLOSURE,
+#ifdef USE_GENERICS
+	"typed_closure", // MLI_CLOSURE_TYPED,
+#endif
 	"partial_new", // MLI_PARTIAL_NEW,
 	"partial_set", // MLI_PARTIAL_SET,
 	"string_new", // MLI_STRING_NEW,
@@ -964,6 +997,9 @@ const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INST, // MLI_MAP_NEW,
 	MLIT_INST, // MLI_MAP_INSERT,
 	MLIT_INST_CLOSURE, // MLI_CLOSURE,
+#ifdef USE_GENERICS
+	MLIT_INST_CLOSURE, // MLI_CLOSURE_TYPED,
+#endif
 	MLIT_INST_COUNT, // MLI_PARTIAL_NEW,
 	MLIT_INST_INDEX, // MLI_PARTIAL_SET,
 	MLIT_INST, // MLI_STRING_NEW,
@@ -1670,6 +1706,10 @@ ml_value_t *ml_cbor_read_closure(void *Data, int Count, ml_value_t **Args) {
 #undef DEBUG_VERSION
 
 void ml_bytecode_init() {
+#ifdef USE_GENERICS
+	stringmap_insert(MLClosureT->Exports, "T", MLAnyT);
+	stringmap_insert(MLClosureT->Exports, "[]", ml_cfunction(MLClosureT, ml_type_generic_fn));
+#endif
 #include "ml_bytecode_init.c"
 }
 #endif

@@ -35,20 +35,38 @@ array
 :mini:`meth [](Array: array, Indices: map)` |rarr| :mini:`array`
    *Defined at line 483 in src/ml_array.c*
 
+:mini:`meth :sums(Arg₁: array, Arg₂: integer)`
+   *Defined at line 1285 in src/ml_array.c*
+
+:mini:`meth :prods(Arg₁: array, Arg₂: integer)`
+   *Defined at line 1322 in src/ml_array.c*
+
+:mini:`meth :sum(Arg₁: array)`
+   *Defined at line 1359 in src/ml_array.c*
+
+:mini:`meth :sum(Arg₁: array, Arg₂: integer)`
+   *Defined at line 1387 in src/ml_array.c*
+
+:mini:`meth :prod(Arg₁: array)`
+   *Defined at line 1449 in src/ml_array.c*
+
+:mini:`meth :prod(Arg₁: array, Arg₂: integer)`
+   *Defined at line 1477 in src/ml_array.c*
+
 :mini:`meth -(Arg₁: array)`
-   *Defined at line 1627 in src/ml_array.c*
+   *Defined at line 1539 in src/ml_array.c*
 
 :mini:`meth :copy(Array: array)` |rarr| :mini:`array`
-   *Defined at line 2043 in src/ml_array.c*
+   *Defined at line 1955 in src/ml_array.c*
 
 :mini:`meth :copy(Array: array, Function: function)` |rarr| :mini:`array`
-   *Defined at line 2098 in src/ml_array.c*
+   *Defined at line 2010 in src/ml_array.c*
 
 :mini:`meth :update(Array: array, Function: function)` |rarr| :mini:`array`
-   *Defined at line 2226 in src/ml_array.c*
+   *Defined at line 2138 in src/ml_array.c*
 
 :mini:`meth .(A: array, B: array)` |rarr| :mini:`array`
    Returns the inner product of :mini:`A` and :mini:`B`.
 
-   *Defined at line 2455 in src/ml_array.c*
+   *Defined at line 2367 in src/ml_array.c*
 

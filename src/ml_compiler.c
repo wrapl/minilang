@@ -1459,6 +1459,7 @@ struct mlc_fun_expr_t {
 	MLC_EXPR_FIELDS(fun);
 	ml_decl_t *Params;
 	mlc_expr_t *Body;
+	mlc_expr_t *Type;
 	//ml_source_t End;
 };
 
@@ -1520,16 +1521,29 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	Task->Base.Source = Expr->Source;
 	Task->Info = Info;
 	ml_task_queue(Function->Compiler, (ml_compiler_task_t *)Task);
-	if (SubFunction->UpValues) {
+	if (SubFunction->UpValues
+#ifdef USE_GENERICS
+		|| Expr->Type
+#endif
+	) {
 		int NumUpValues = 0;
 		for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) ++NumUpValues;
 		ml_inst_t *ClosureInst = ml_inst_new(2 + NumUpValues, Expr->Source, MLI_CLOSURE);
+		ml_inst_t *TypeInst = ClosureInst;
+#ifdef USE_GENERICS
+		if (Expr->Type) {
+			ClosureInst->Opcode = MLI_CLOSURE_TYPED;
+			mlc_compiled_t Compiled = mlc_compile(Function, Expr->Type);
+			TypeInst = Compiled.Start;
+			mlc_connect(Compiled.Exits, ClosureInst);
+		}
+#endif
 		ml_param_t *Params = ClosureInst->Params;
 		Info->NumUpValues = NumUpValues;
 		Params[1].ClosureInfo = Info;
 		int Index = 2;
 		for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) Params[Index++].Index = UpValue->Index;
-		return (mlc_compiled_t){ClosureInst, ClosureInst};
+		return (mlc_compiled_t){TypeInst, ClosureInst};
 	} else {
 		Info->NumUpValues = 0;
 		ml_closure_t *Closure = xnew(ml_closure_t, 0, ml_value_t *);
@@ -2185,8 +2199,12 @@ static mlc_expr_t *ml_accept_fun_expr(ml_compiler_t *Compiler, ml_token_t EndTok
 				ml_accept(Compiler, MLT_RIGHT_BRACE);
 				break;
 			} else {
-				ml_accept(Compiler, MLT_IDENT);
-				Param->Ident = Compiler->Ident;
+				if (ml_parse(Compiler, MLT_BLANK)) {
+					Param->Ident = "_";
+				} else {
+					ml_accept(Compiler, MLT_IDENT);
+					Param->Ident = Compiler->Ident;
+				}
 				if (ml_parse(Compiler, MLT_COLON)) {
 					// Parse type specifications but ignore for now
 					ml_parse_expression(Compiler, EXPR_DEFAULT);
@@ -2194,6 +2212,9 @@ static mlc_expr_t *ml_accept_fun_expr(ml_compiler_t *Compiler, ml_token_t EndTok
 			}
 		} while (ml_parse(Compiler, MLT_COMMA));
 		ml_accept(Compiler, EndToken);
+	}
+	if (ml_parse(Compiler, MLT_COLON)) {
+		FunExpr->Type = ml_parse_term(Compiler, 0);
 	}
 	FunExpr->Body = ml_accept_expression(Compiler, EXPR_DEFAULT);
 	FunExpr->Source = FunExpr->Body->Source;
@@ -2230,8 +2251,12 @@ static mlc_expr_t *ml_accept_meth_expr(ml_compiler_t *Compiler) {
 			ml_decl_t *Param = ParamSlot[0] = new(ml_decl_t);
 			Param->Source = Compiler->Source;
 			ParamSlot = &Param->Next;
-			ml_accept(Compiler, MLT_IDENT);
-			Param->Ident = Compiler->Ident;
+			if (ml_parse(Compiler, MLT_BLANK)) {
+				Param->Ident = "_";
+			} else {
+				ml_accept(Compiler, MLT_IDENT);
+				Param->Ident = Compiler->Ident;
+			}
 			ml_accept(Compiler, MLT_COLON);
 			mlc_expr_t *Arg = ArgsSlot[0] = ml_accept_expression(Compiler, EXPR_DEFAULT);
 			ArgsSlot = &Arg->Next;
