@@ -4,7 +4,7 @@ array
 .. include:: <isonum.txt>
 
 :mini:`array`
-   :Parents: :mini:`buffer`
+   :Parents: :mini:`buffer`, :mini:`iteratable`
 
    *Defined at line 7 in src/ml_array.c*
 
@@ -35,38 +35,41 @@ array
 :mini:`meth [](Array: array, Indices: map)` |rarr| :mini:`array`
    *Defined at line 483 in src/ml_array.c*
 
+:mini:`arrayiterator`
+   *Defined at line 555 in src/ml_array.c*
+
 :mini:`meth :sums(Arg₁: array, Arg₂: integer)`
-   *Defined at line 1285 in src/ml_array.c*
+   *Defined at line 1410 in src/ml_array.c*
 
 :mini:`meth :prods(Arg₁: array, Arg₂: integer)`
-   *Defined at line 1322 in src/ml_array.c*
+   *Defined at line 1447 in src/ml_array.c*
 
 :mini:`meth :sum(Arg₁: array)`
-   *Defined at line 1359 in src/ml_array.c*
+   *Defined at line 1484 in src/ml_array.c*
 
 :mini:`meth :sum(Arg₁: array, Arg₂: integer)`
-   *Defined at line 1387 in src/ml_array.c*
+   *Defined at line 1512 in src/ml_array.c*
 
 :mini:`meth :prod(Arg₁: array)`
-   *Defined at line 1449 in src/ml_array.c*
+   *Defined at line 1574 in src/ml_array.c*
 
 :mini:`meth :prod(Arg₁: array, Arg₂: integer)`
-   *Defined at line 1477 in src/ml_array.c*
+   *Defined at line 1602 in src/ml_array.c*
 
 :mini:`meth -(Arg₁: array)`
-   *Defined at line 1539 in src/ml_array.c*
+   *Defined at line 1664 in src/ml_array.c*
 
 :mini:`meth :copy(Array: array)` |rarr| :mini:`array`
-   *Defined at line 1955 in src/ml_array.c*
+   *Defined at line 2080 in src/ml_array.c*
 
 :mini:`meth :copy(Array: array, Function: function)` |rarr| :mini:`array`
-   *Defined at line 2010 in src/ml_array.c*
+   *Defined at line 2135 in src/ml_array.c*
 
 :mini:`meth :update(Array: array, Function: function)` |rarr| :mini:`array`
-   *Defined at line 2138 in src/ml_array.c*
+   *Defined at line 2263 in src/ml_array.c*
 
 :mini:`meth .(A: array, B: array)` |rarr| :mini:`array`
    Returns the inner product of :mini:`A` and :mini:`B`.
 
-   *Defined at line 2367 in src/ml_array.c*
+   *Defined at line 2492 in src/ml_array.c*
 
