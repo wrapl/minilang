@@ -197,8 +197,8 @@ ml_type_t *ml_type(ml_type_t *Parent, const char *Name) {
 }
 
 inline void *ml_typed_fn_get(const ml_type_t *Type, void *TypedFn) {
-	for (const ml_type_t **Parents = Type->Types, *Type = Parents[0]; Type; Type = *++Parents) {
-		void *Function = inthash_search(Type->TypedFns, (uintptr_t)TypedFn);
+	for (const ml_type_t **Parents = Type->Types; Parents[0]; ++Parents) {
+		void *Function = inthash_search(Parents[0]->TypedFns, (uintptr_t)TypedFn);
 		if (Function) return Function;
 	}
 	return NULL;

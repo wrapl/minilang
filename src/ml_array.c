@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdarg.h>
 
-ML_TYPE(MLArrayT, (MLBufferT), "array");
+ML_TYPE(MLArrayT, (MLBufferT, MLIteratableT), "array");
 
 extern ml_type_t MLArrayInt8T[];
 extern ml_type_t MLArrayUInt8T[];
@@ -513,6 +513,131 @@ static char *ml_array_index(ml_array_t *Array, va_list Indices) {
 		++Dimension;
 	}
 	return Address;
+}
+
+typedef struct {
+	char *Address;
+	int *Indices;
+	int Size, Stride, Index;
+} ml_array_iter_dim_t;
+
+typedef ml_value_t *(*ml_array_iter_val_t)(char *);
+
+#define ML_ARRAY_ITER_FN(CTYPE, TO_VAL) \
+\
+static ml_value_t *ml_array_iter_val_ ## CTYPE(char *Address) { \
+	return TO_VAL(*(CTYPE *)Address); \
+}
+
+ML_ARRAY_ITER_FN(int8_t, ml_integer);
+ML_ARRAY_ITER_FN(uint8_t, ml_integer);
+ML_ARRAY_ITER_FN(int16_t, ml_integer);
+ML_ARRAY_ITER_FN(uint16_t, ml_integer);
+ML_ARRAY_ITER_FN(int32_t, ml_integer);
+ML_ARRAY_ITER_FN(uint32_t, ml_integer);
+ML_ARRAY_ITER_FN(int64_t, ml_integer);
+ML_ARRAY_ITER_FN(uint64_t, ml_integer);
+ML_ARRAY_ITER_FN(float, ml_real);
+ML_ARRAY_ITER_FN(double, ml_real);
+
+static ml_value_t *ml_array_iter_val_any(char *Address) {
+	return *(ml_value_t **)Address;
+}
+
+typedef struct {
+	const ml_type_t *Type;
+	char *Address;
+	ml_array_iter_val_t ToVal;
+	int Degree;
+	ml_array_iter_dim_t Dimensions[];
+} ml_array_iterator_t;
+
+ML_TYPE(MLArrayIteratorT, (), "array-iterator");
+
+static void ML_TYPED_FN(ml_iter_next, MLArrayIteratorT, ml_state_t *Caller, ml_array_iterator_t *Iterator) {
+	int I = Iterator->Degree;
+	ml_array_iter_dim_t *Dimensions = Iterator->Dimensions;
+	for (;;) {
+		if (--I < 0) ML_RETURN(MLNil);
+		if (++Dimensions[I].Index < Dimensions[I].Size) {
+			char *Address = Dimensions[I].Address;
+			if (Dimensions[I].Indices) {
+				Address += Dimensions[I].Indices[Dimensions[I].Index] * Dimensions[I].Stride;
+			} else {
+				Address += Dimensions[I].Index * Dimensions[I].Stride;
+			}
+			for (int J = I + 1; J < Iterator->Degree; ++J) {
+				Dimensions[J].Address = Address;
+				Dimensions[J].Index = 0;
+			}
+			Iterator->Address = Address;
+			ML_RETURN(Iterator);
+		}
+	}
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLArrayIteratorT, ml_state_t *Caller, ml_array_iterator_t *Iterator) {
+	ML_RETURN(Iterator->ToVal(Iterator->Address));
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLArrayIteratorT, ml_state_t *Caller, ml_array_iterator_t *Iterator) {
+	ml_value_t *Tuple = ml_tuple(Iterator->Degree - 1);
+	for (int I = 1; I <= Iterator->Degree; ++I) {
+		ml_tuple_set(Tuple, I, ml_integer(Iterator->Dimensions[I].Index + 1));
+	}
+	ML_RETURN(Tuple);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLArrayT, ml_state_t *Caller, ml_array_t *Array) {
+	ml_array_iterator_t *Iterator = xnew(ml_array_iterator_t, Array->Degree, ml_array_iter_dim_t);
+	Iterator->Type = MLArrayIteratorT;
+	Iterator->Address = Array->Base.Address;
+	Iterator->Degree = Array->Degree;
+	switch (Array->Format) {
+	case ML_ARRAY_FORMAT_I8:
+		Iterator->ToVal = ml_array_iter_val_int8_t;
+		break;
+	case ML_ARRAY_FORMAT_U8:
+		Iterator->ToVal = ml_array_iter_val_uint8_t;
+		break;
+	case ML_ARRAY_FORMAT_I16:
+		Iterator->ToVal = ml_array_iter_val_int16_t;
+		break;
+	case ML_ARRAY_FORMAT_U16:
+		Iterator->ToVal = ml_array_iter_val_uint16_t;
+		break;
+	case ML_ARRAY_FORMAT_I32:
+		Iterator->ToVal = ml_array_iter_val_int32_t;
+		break;
+	case ML_ARRAY_FORMAT_U32:
+		Iterator->ToVal = ml_array_iter_val_uint32_t;
+		break;
+	case ML_ARRAY_FORMAT_I64:
+		Iterator->ToVal = ml_array_iter_val_int64_t;
+		break;
+	case ML_ARRAY_FORMAT_U64:
+		Iterator->ToVal = ml_array_iter_val_uint64_t;
+		break;
+	case ML_ARRAY_FORMAT_F32:
+		Iterator->ToVal = ml_array_iter_val_float;
+		break;
+	case ML_ARRAY_FORMAT_F64:
+		Iterator->ToVal = ml_array_iter_val_double;
+		break;
+	case ML_ARRAY_FORMAT_ANY:
+		Iterator->ToVal = ml_array_iter_val_any;
+		break;
+	default:
+		ML_ERROR("TypeError", "Invalid array type for iteration");
+	}
+	for (int I = 0; I < Array->Degree; ++I) {
+		Iterator->Dimensions[I].Size = Array->Dimensions[I].Size;
+		Iterator->Dimensions[I].Stride = Array->Dimensions[I].Stride;
+		Iterator->Dimensions[I].Indices = Array->Dimensions[I].Indices;
+		Iterator->Dimensions[I].Index = 0;
+		Iterator->Dimensions[I].Address = Array->Base.Address;
+	}
+	ML_RETURN(Iterator);
 }
 
 #include "array/update_decl.h"
@@ -2449,6 +2574,5 @@ void ml_array_init(stringmap_t *Globals) {
 	stringmap_insert(MLArrayT->Exports, "float64", MLArrayFloat64T);
 	if (Globals) {
 		stringmap_insert(Globals, "array", MLArrayT);
-
 	}
 }
