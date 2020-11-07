@@ -22,19 +22,19 @@ object
    *Defined at line 119 in src/ml_object.c*
 
 :mini:`property`
-   *Defined at line 234 in src/ml_object.c*
+   *Defined at line 235 in src/ml_object.c*
 
 :mini:`fun mlproperty(Arg₁: function, Arg₂: function)`
-   *Defined at line 240 in src/ml_object.c*
+   *Defined at line 241 in src/ml_object.c*
 
 :mini:`enumvalue`
-   *Defined at line 286 in src/ml_object.c*
+   *Defined at line 287 in src/ml_object.c*
 
 :mini:`fun mlenum(Arg₁: string)`
-   *Defined at line 292 in src/ml_object.c*
+   *Defined at line 293 in src/ml_object.c*
 
 :mini:`enum`
    :Parents: :mini:`type`
 
-   *Defined at line 332 in src/ml_object.c*
+   *Defined at line 333 in src/ml_object.c*
 

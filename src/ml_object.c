@@ -213,6 +213,7 @@ ML_FUNCTION(MLClass) {
 		ml_method_by_array(Class->Fields[I], FieldFns[I], 1, (ml_type_t **)&Class);
 	}
 	stringmap_insert(Class->Base.Exports, "new", Constructor);
+	stringmap_insert(Class->Base.Exports, "init", Class->Initializer);
 	return (ml_value_t *)Class;
 }
 

@@ -182,6 +182,7 @@ void ml_type_init(ml_type_t *Type, ...) {
 	}
 	Last[0] = NULL;
 	if (Types[1]) Type->Rank = Types[1]->Rank + 1;
+	if (Type->Constructor) stringmap_insert(Type->Exports, "of", Type->Constructor);
 }
 
 ml_type_t *ml_type(ml_type_t *Parent, const char *Name) {
@@ -243,7 +244,7 @@ ML_METHOD("::", MLTypeT, MLStringT) {
 // This allows types to behave as modules.
 	ml_type_t *Type = (ml_type_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
-	ml_value_t *Value = strcmp(Name, "of") ? stringmap_search(Type->Exports, Name) : Type->Constructor;
+	ml_value_t *Value = stringmap_search(Type->Exports, Name);
 	return Value ?: ml_error("ModuleError", "Symbol %s not exported from type %s", Name, Type->Name);
 }
 
@@ -5098,6 +5099,7 @@ ML_FUNCTIONX(MLMethodSet) {
 //<Function:function
 //>Function
 	ML_CHECKX_ARG_COUNT(2);
+	if (ml_is(Args[0], MLTypeT)) Args[0] = ((ml_type_t *)Args[0])->Constructor;
 	ML_CHECKX_ARG_TYPE(0, MLMethodT);
 	int NumTypes = Count - 2, Variadic = 0;
 	if (Count >= 3 && Args[Count - 2] == MLRangeMethod) {
@@ -5196,15 +5198,30 @@ void ml_init() {
 	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
 #include "ml_types_init.c"
 	MLBooleanT->Constructor = MLBooleanOfMethod;
+	stringmap_insert(MLBooleanT->Exports, "of", MLBooleanOfMethod);
 	MLNumberT->Constructor = MLNumberOfMethod;
+	stringmap_insert(MLNumberT->Exports, "of", MLNumberOfMethod);
 	MLIntegerT->Constructor = MLIntegerOfMethod;
+	stringmap_insert(MLIntegerT->Exports, "of", MLIntegerOfMethod);
 	MLRealT->Constructor = MLRealOfMethod;
+	stringmap_insert(MLRealT->Exports, "of", MLRealOfMethod);
 	MLStringT->Constructor = MLStringOfMethod;
+	stringmap_insert(MLStringT->Exports, "of", MLStringOfMethod);
 	stringmap_insert(MLStringBufferT->Exports, "append", MLStringBufferAppendMethod);
 	MLMethodT->Constructor = MLMethodOfMethod;
+	stringmap_insert(MLMethodT->Exports, "of", MLMethodOfMethod);
 	stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
 	MLListT->Constructor = MLListOfMethod;
+	stringmap_insert(MLListT->Exports, "of", MLListOfMethod);
 	MLMapT->Constructor = MLMapOfMethod;
+	stringmap_insert(MLMapT->Exports, "of", MLMapOfMethod);
+#ifdef USE_GENERICS
+	stringmap_insert(MLFunctionT->Exports, "[]", ml_cfunction(MLFunctionT, ml_type_generic_fn));
+	stringmap_insert(MLIteratableT->Exports, "[]", ml_cfunction(MLIteratableT, ml_type_generic_fn));
+	stringmap_insert(MLListT->Exports, "[]", ml_cfunction(MLListT, ml_type_generic_fn));
+	stringmap_insert(MLMapT->Exports, "[]", ml_cfunction(MLMapT, ml_type_generic_fn));
+	stringmap_insert(MLTupleT->Exports, "[]", ml_cfunction(MLTupleT, ml_type_generic_fn));
+#endif
 	ml_method_by_name("<>", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
 	ml_method_by_name("<>", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
 	ml_method_by_name("=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
@@ -5221,6 +5238,8 @@ void ml_init() {
 	ml_method_by_name(">=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
 	ml_method_by_value(MLIntegerOfMethod, NULL, ml_identity, MLIntegerT, NULL);
 	ml_method_by_value(MLRealOfMethod, NULL, ml_identity, MLRealT, NULL);
+	ml_method_by_value(MLNumberOfMethod, NULL, ml_identity, MLRealT, NULL);
+	ml_method_by_value(MLNumberOfMethod, NULL, ml_identity, MLIntegerT, NULL);
 	ml_method_by_value(MLStringOfMethod, NULL, ml_identity, MLStringT, NULL);
 	ml_method_by_value(MLMethodOfMethod, NULL, ml_identity, MLMethodT, NULL);
 	ml_context_set(&MLRootContext, ML_METHODS_INDEX, MLRootMethods);
@@ -5233,13 +5252,7 @@ void ml_types_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "any", MLAnyT);
 	stringmap_insert(Globals, "type", MLTypeT);
 	stringmap_insert(Globals, "function", MLFunctionT);
-#ifdef USE_GENERICS
-	stringmap_insert(MLFunctionT->Exports, "[]", ml_cfunction(MLFunctionT, ml_type_generic_fn));
-#endif
 	stringmap_insert(Globals, "iteratable", MLIteratableT);
-#ifdef USE_GENERICS
-	stringmap_insert(MLIteratableT->Exports, "[]", ml_cfunction(MLIteratableT, ml_type_generic_fn));
-#endif
 	stringmap_insert(Globals, "boolean", MLBooleanT);
 	stringmap_insert(Globals, "true", MLTrue);
 	stringmap_insert(Globals, "false", MLFalse);
@@ -5252,16 +5265,7 @@ void ml_types_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "regex", MLRegexT);
 	stringmap_insert(Globals, "method", MLMethodT);
 	stringmap_insert(Globals, "list", MLListT);
-#ifdef USE_GENERICS
-	stringmap_insert(MLListT->Exports, "[]", ml_cfunction(MLListT, ml_type_generic_fn));
-#endif
 	stringmap_insert(Globals, "names", MLNamesT);
 	stringmap_insert(Globals, "map", MLMapT);
-#ifdef USE_GENERICS
-	stringmap_insert(MLMapT->Exports, "[]", ml_cfunction(MLMapT, ml_type_generic_fn));
-#endif
 	stringmap_insert(Globals, "tuple", MLTupleT);
-#ifdef USE_GENERICS
-	stringmap_insert(MLTupleT->Exports, "[]", ml_cfunction(MLTupleT, ml_type_generic_fn));
-#endif
 }

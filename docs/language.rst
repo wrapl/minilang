@@ -575,10 +575,93 @@ Generators
    I = 9, I² = 81
    I = 10, I² = 100
 
+Types
+~~~~~
+
+Every value in *Minilang* has an associate type. The type of a value can be obtained by calling :mini:`type(Value)`.
+
+.. code-block:: mini
+
+   print(type(10), "\n")
+   print(type("Hello"), "\n")
+   print(type(integer), "\n")
+   print(type(type), "\n")
+
+.. code-block:: console
+
+   <<integer>>
+   <<string>>
+   <<type>>
+   <<type>>
+
+Types are displayed as their names enclosed between `<<` and `>>`. Note that :mini:`type` is itself a type (whose type is itself, :mini:`type`). Most types in *Minilang* can be called as functions which return instances of that type based on the arguments passed.
+
+For example:
+
+:mini:`boolean(X)`, :mini:`integer(X)`, :mini:`real(X)`, :mini:`number(X)`, :mini:`string(X)`, :mini:`regex(X)`
+   Convert :mini:`X` to an integer, real, number (integer or real), string or regular expression respectively.
+
+:mini:`list(X)`, :mini:`map(X)`
+   These expect :mini:`X` to be iteratable and the values (and keys) produced by :mini:`X` into a list or map respectively.
+
+:mini:`tuple(X₁, X₂, ...)`
+   Constructs a new tuple with values :mini:`X₁, X₂, ...`.
+
+:mini:`method(X)`, :mini:`method()`
+   Returns the (unique) method with name :mini:`X`. If no name is passed then a completely new anonymous method is returned.
+
+:mini:`type(X)`
+   Returns the type of :mini:`X`. 
+
+:mini:`stringbuffer()`
+   Returns a new stringbuffer.
+
+Classes
+~~~~~~~
+
+If selected when embedding *Minilang*, user defined types can be created using the :mini:`class` type.
+
+:mini:`class(Arg₁, Arg₂, ...)`
+   Creates a new class with additional properties based on the types of :mini:`Arg₁, Arg₂, ...`:
+
+   :mini:`string`
+      Sets the name of the class. If omitted, an anonymous name (of the form :mini:`"object:7f501a8c5f30"`) is used. The name is used for debugging and display purposes only.
+   
+   :mini:`class`
+      Adds a parent class. Multiple parent classes are allowed.
+   
+   :mini:`method`
+      Adds a field. Instances of this class will have space allocated for all fields, fields cannot be added or removed from instances later. Fields are accessed using the associated method.
+      
+   :mini:`Name is Value`
+      Named arguments add shared values to the class. If :mini:`Class` is a class, then :mini:`Class::Name` will return the shared value called *Name*.
+
+Certain shared values have special meaning. If :mini:`c` is a class, then:
+
+* The name :mini:`c::new` is always set to a function equivalent to the following:
+  
+  .. code-block:: mini
+  
+   fun(Arg₁, Arg₂, ...) do
+      let Instance := new instance of c
+      c::init(Instance, Arg₁, Arg₂, ...)
+      ret Instance
+   end
+  
+This cannot be overridden, if *new* is passed as a named argument to :mini:`class()`, it is ignored.
+
+* The value of :mini:`c::init` is used as the initializer and should be a callable value (function, method, etc). This value is called by :mini:`c::new` to initialize a new instance :mini:`c` with the given arguments.
+
+  If *init* is not set, a default initializer is set which assigns positional arguments to the instance fields in order. Any named arguments are assigned to the corresponding field by name. 
+
+* The value of :mini:`c::of` is used as the constructor and should be a callable value (function, method, etc). This value is called when the class is called as a function, i.e. :mini:`c(...)` is equivalent to :mini:`c::of(...)`. 
+
+  If *of* is not set, a default constructor is set which simply calls :mini:`c::new`.
+
 Methods
 ~~~~~~~
 
-Internally, *Minilang* treats every value as an object with methods defining their behaviour. More information can be found in :doc:`/oop`. Method names are first class objects in *Minilang*, and can be created using a colon ``:`` followed by one or more alphanumeric characters, or any combination of characters surrounded by quotes.
+Every value in *Minilang* has  with methods defining their behaviour. More information can be found in :doc:`/oop`. Method names are first class objects in *Minilang*, and can be created using a colon ``:`` followed by one or more alphanumeric characters, or any combination of characters surrounded by quotes.
 
 Methods consisting of only the characters ``!``, ``@``, ``#``, ``$``, ``%``, ``^``, ``&``, ``*``, ``-``, ``+``, ``=``, ``|``, ``\``, ``~``, `````, ``/``, ``?``, ``<``, ``>`` or ``.`` can be written directly, without any leading ``:`` or quotes.
 
