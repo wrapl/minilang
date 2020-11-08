@@ -271,6 +271,7 @@ typedef struct mlc_if_case_t mlc_if_case_t;
 typedef struct mlc_when_expr_t mlc_when_expr_t;
 typedef struct mlc_parent_expr_t mlc_parent_expr_t;
 typedef struct mlc_fun_expr_t mlc_fun_expr_t;
+typedef struct mlc_decl_type_t mlc_decl_type_t;
 typedef struct mlc_decl_expr_t mlc_decl_expr_t;
 typedef struct mlc_dot_expr_t mlc_dot_expr_t;
 typedef struct mlc_value_expr_t mlc_value_expr_t;
@@ -280,6 +281,12 @@ typedef struct mlc_string_expr_t mlc_string_expr_t;
 typedef struct mlc_block_expr_t mlc_block_expr_t;
 typedef struct mlc_catch_expr_t mlc_catch_expr_t;
 typedef struct mlc_catch_type_t mlc_catch_type_t;
+
+struct mlc_decl_type_t {
+	mlc_decl_type_t *Next;
+	mlc_expr_t *Expr;
+	ml_decl_t *Decl;
+};
 
 extern ml_value_t MLBlank[];
 
@@ -638,6 +645,15 @@ static mlc_compiled_t ml_var_expr_compile(mlc_function_t *Function, mlc_decl_exp
 	VarInst->Params[1].Index = Expr->Decl->Index - Function->Top;
 	mlc_connect(Compiled.Exits, VarInst);
 	Compiled.Exits = VarInst;
+	return Compiled;
+}
+
+static mlc_compiled_t ml_var_type_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
+	ml_inst_t *TypeInst = ml_inst_new(2, Expr->Source, MLI_VAR_TYPE);
+	TypeInst->Params[1].Index = Expr->Decl->Index - Function->Top;
+	mlc_connect(Compiled.Exits, TypeInst);
+	Compiled.Exits = TypeInst;
 	return Compiled;
 }
 
@@ -1459,6 +1475,7 @@ struct mlc_fun_expr_t {
 	MLC_EXPR_FIELDS(fun);
 	ml_decl_t *Params;
 	mlc_expr_t *Body;
+	mlc_decl_type_t *ParamTypes;
 	mlc_expr_t *Type;
 	//ml_source_t End;
 };
@@ -1521,7 +1538,7 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	Task->Base.Source = Expr->Source;
 	Task->Info = Info;
 	ml_task_queue(Function->Compiler, (ml_compiler_task_t *)Task);
-	if (SubFunction->UpValues
+	if (SubFunction->UpValues || Expr->ParamTypes
 #ifdef USE_GENERICS
 		|| Expr->Type
 #endif
@@ -1543,6 +1560,22 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 		Params[1].ClosureInfo = Info;
 		int Index = 2;
 		for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) Params[Index++].Index = UpValue->Index;
+		if (Expr->ParamTypes) {
+			ml_inst_t *PushInst = ml_inst_new(1, Expr->Source, MLI_PUSH);
+			ClosureInst->Params[0].Inst = PushInst;
+			mlc_inc_top(Function);
+			for (mlc_decl_type_t *Type = Expr->ParamTypes; Type; Type = Type->Next) {
+				mlc_compiled_t Compiled = mlc_compile(Function, Type->Expr);
+				PushInst->Params[0].Inst = Compiled.Start;
+				ml_inst_t *TypeInst = ml_inst_new(2, Expr->Source, MLI_PARAM_TYPE);
+				TypeInst->Params[1].Index = Type->Decl->Index;
+				mlc_connect(Compiled.Exits, TypeInst);
+				PushInst = TypeInst;
+			}
+			ClosureInst = ml_inst_new(1, Expr->Source, MLI_POP);
+			PushInst->Params[0].Inst = ClosureInst;
+			--Function->Top;
+		}
 		return (mlc_compiled_t){TypeInst, ClosureInst};
 	} else {
 		Info->NumUpValues = 0;
@@ -1775,6 +1808,7 @@ typedef enum {
 static int ml_parse(ml_compiler_t *Compiler, ml_token_t Token);
 static void ml_accept(ml_compiler_t *Compiler, ml_token_t Token);
 static mlc_expr_t *ml_parse_expression(ml_compiler_t *Compiler, ml_expr_level_t Level);
+static mlc_expr_t *ml_accept_term(ml_compiler_t *Compiler);
 static mlc_expr_t *ml_accept_expression(ml_compiler_t *Compiler, ml_expr_level_t Level);
 static void ml_accept_arguments(ml_compiler_t *Compiler, ml_token_t EndToken, mlc_expr_t **ArgsSlot);
 
@@ -2173,6 +2207,7 @@ static mlc_expr_t *ml_accept_fun_expr(ml_compiler_t *Compiler, ml_token_t EndTok
 	ML_EXPR(FunExpr, fun, fun);
 	if (!ml_parse(Compiler, EndToken)) {
 		ml_decl_t **ParamSlot = &FunExpr->Params;
+		mlc_decl_type_t **TypeSlot = &FunExpr->ParamTypes;
 		do {
 			ml_decl_t *Param = ParamSlot[0] = new(ml_decl_t);
 			Param->Source = Compiler->Source;
@@ -2206,8 +2241,10 @@ static mlc_expr_t *ml_accept_fun_expr(ml_compiler_t *Compiler, ml_token_t EndTok
 					Param->Ident = Compiler->Ident;
 				}
 				if (ml_parse(Compiler, MLT_COLON)) {
-					// Parse type specifications but ignore for now
-					ml_parse_expression(Compiler, EXPR_DEFAULT);
+					mlc_decl_type_t *Type = TypeSlot[0] = new(mlc_decl_type_t);
+					Type->Decl = Param;
+					Type->Expr = ml_accept_term(Compiler);
+					TypeSlot = &Type->Next;
 				}
 			}
 		} while (ml_parse(Compiler, MLT_COMMA));
@@ -2947,6 +2984,13 @@ static void ml_accept_block_var(ml_compiler_t *Compiler, ml_accept_block_t *Acce
 			Decl->Source = Compiler->Source;
 			Decl->Ident = Compiler->Ident;
 			Accept->VarsSlot = &Decl->Next;
+			if (ml_parse(Compiler, MLT_COLON)) {
+				ML_EXPR(TypeExpr, decl, var_type);
+				TypeExpr->Decl = Decl;
+				TypeExpr->Child = ml_accept_term(Compiler);
+				Accept->ExprSlot[0] = (mlc_expr_t *)TypeExpr;
+				Accept->ExprSlot = &TypeExpr->Next;
+			}
 			mlc_expr_t *Child = NULL;
 			if (ml_parse(Compiler, MLT_LEFT_PAREN)) {
 				Child = ml_accept_fun_expr(Compiler, MLT_RIGHT_PAREN);
@@ -3319,11 +3363,23 @@ ml_value_t MLEndOfInput[1] = {{MLAnyT}};
 
 typedef struct {
 	ml_compiler_task_t Base;
-	ml_variable_t *Var;
+	ml_variable_t *Variable;
 } ml_command_var_t;
 
 static ml_value_t *ml_command_var_finish(ml_command_var_t *Task, ml_value_t *Value) {
-	Task->Var->Value = ml_deref(Value);
+	Value = ml_deref(Value);
+	ml_variable_t *Variable = Task->Variable;
+	if (Variable->VarType && !ml_is(Value, Variable->VarType)) {
+		return ml_error("TypeError", "Cannot assign %s to variable of type %s", ml_typeof(Value)->Name, Variable->VarType->Name);
+	}
+	Variable->Value = Value;
+	return NULL;
+}
+
+static ml_value_t *ml_command_var_type_finish(ml_command_var_t *Task, ml_value_t *Value) {
+	Value = ml_deref(Value);
+	if (!ml_is(Value, MLTypeT)) return ml_error("TypeError", "expected type, not %s", ml_typeof(Value)->Name);
+	Task->Variable->VarType = (ml_type_t *)Value;
 	return NULL;
 }
 
@@ -3395,6 +3451,16 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler, stringmap_
 				ml_uninitialized_set(Slot[0], (ml_value_t *)Var);
 			}
 			Slot[0] = (ml_value_t *)Var;
+			if (ml_parse(Compiler, MLT_COLON)) {
+				mlc_expr_t *Expr = ml_accept_term(Compiler);
+				ml_command_var_t *Task = new(ml_command_var_t);
+				Task->Base.start = ml_task_default_start;
+				Task->Base.finish = (void *)ml_command_var_type_finish;
+				Task->Base.Closure = ml_compile(Expr, NULL, Compiler);
+				Task->Base.Source = Expr->Source;
+				Task->Variable = Var;
+				ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
+			}
 			if (ml_parse(Compiler, MLT_ASSIGN)) {
 				mlc_expr_t *Expr = ml_accept_expression(Compiler, EXPR_DEFAULT);
 				ml_command_var_t *Task = new(ml_command_var_t);
@@ -3402,7 +3468,7 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler, stringmap_
 				Task->Base.finish = (void *)ml_command_var_finish;
 				Task->Base.Closure = ml_compile(Expr, NULL, Compiler);
 				Task->Base.Source = Expr->Source;
-				Task->Var = Var;
+				Task->Variable = Var;
 				ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
 			}
 		} while (ml_parse(Compiler, MLT_COMMA));

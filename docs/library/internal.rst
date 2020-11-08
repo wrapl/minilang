@@ -12,7 +12,7 @@ internal
 :mini:`DEBUG_TYPE`
    :Parents: :mini:`Continuation`
 
-   *Defined at line 89 in src/ml_bytecode.c*
+   *Defined at line 92 in src/ml_bytecode.c*
 
 :mini:`fun defaulttagfn()`
    *Defined at line 308 in src/ml_cbor.c*
