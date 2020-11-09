@@ -39,18 +39,22 @@ struct ml_hash_chain_t {
 struct ml_type_t {
 	const ml_type_t *Type;
 	const ml_type_t **Types;
-#ifdef USE_GENERICS
-	const ml_type_t **Generic;
-#endif
 	const char *Name;
 	long (*hash)(ml_value_t *, ml_hash_chain_t *);
 	void (*call)(ml_state_t *, ml_value_t *, int, ml_value_t **);
 	ml_value_t *(*deref)(ml_value_t *);
 	ml_value_t *(*assign)(ml_value_t *, ml_value_t *);
 	ml_value_t *Constructor;
+#ifdef USE_GENERICS
+	const ml_type_t **Args;
+#endif
+	inthash_t Parents[1];
 	inthash_t TypedFns[1];
 	stringmap_t Exports[1];
 	int Rank;
+#ifdef USE_GENERICS
+	int NumArgs;
+#endif
 };
 
 #define ML_RANK_NATIVE 65536
