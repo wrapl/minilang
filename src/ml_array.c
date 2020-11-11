@@ -2531,7 +2531,6 @@ ML_METHOD(".", MLArrayT, MLArrayT) {
 }
 
 void ml_array_init(stringmap_t *Globals) {
-#include "ml_array_init.c"
 	MLArrayAnyT->Constructor = ml_cfunctionx((void *)ML_ARRAY_FORMAT_ANY, ml_array_typed_new_fnx);
 	MLArrayInt8T->Constructor = ml_cfunctionx((void *)ML_ARRAY_FORMAT_I8, ml_array_typed_new_fnx);
 	MLArrayUInt8T->Constructor = ml_cfunctionx((void *)ML_ARRAY_FORMAT_U8, ml_array_typed_new_fnx);
@@ -2543,6 +2542,8 @@ void ml_array_init(stringmap_t *Globals) {
 	MLArrayUInt64T->Constructor = ml_cfunctionx((void *)ML_ARRAY_FORMAT_U64, ml_array_typed_new_fnx);
 	MLArrayFloat32T->Constructor = ml_cfunctionx((void *)ML_ARRAY_FORMAT_F32, ml_array_typed_new_fnx);
 	MLArrayFloat64T->Constructor = ml_cfunctionx((void *)ML_ARRAY_FORMAT_F64, ml_array_typed_new_fnx);
+	MLArrayT->Constructor = ml_cfunction(NULL, ml_array_of_fn);
+#include "ml_array_init.c"
 	ml_method_by_name("set", 0 + (char *)0, update_array_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("add", 1 + (char *)0, update_array_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("sub", 2 + (char *)0, update_array_fn, MLArrayT, MLArrayT, NULL);
@@ -2560,7 +2561,6 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_method_by_name(">=", 5 + (char *)0, compare_array_fn, MLArrayT, MLArrayT, NULL);
 	stringmap_insert(MLArrayT->Exports, "new", ml_cfunctionx(NULL, ml_array_new_fnx));
 	stringmap_insert(MLArrayT->Exports, "wrap", ml_cfunction(NULL, ml_array_wrap_fn));
-	MLArrayT->Constructor = ml_cfunction(NULL, ml_array_of_fn);
 	stringmap_insert(MLArrayT->Exports, "any", MLArrayAnyT);
 	stringmap_insert(MLArrayT->Exports, "int8", MLArrayInt8T);
 	stringmap_insert(MLArrayT->Exports, "uint8", MLArrayUInt8T);
