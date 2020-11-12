@@ -26,7 +26,7 @@ range
 
    *Defined at line 1790 in src/ml_types.c*
 
-:mini:`meth :size(X: integerrange)` |rarr| :mini:`integer`
+:mini:`meth :count(X: integerrange)` |rarr| :mini:`integer`
    *Defined at line 1805 in src/ml_types.c*
 
 :mini:`meth :in(X: integer, Range: integerrange)` |rarr| :mini:`X` or :mini:`nil`
@@ -58,7 +58,7 @@ range
 :mini:`meth :by(Range: integerrange, Step: real)` |rarr| :mini:`realrange`
    *Defined at line 1951 in src/ml_types.c*
 
-:mini:`meth :size(X: realrange)` |rarr| :mini:`integer`
+:mini:`meth :count(X: realrange)` |rarr| :mini:`integer`
    *Defined at line 1968 in src/ml_types.c*
 
 :mini:`meth :in(X: integer, Range: realrange)` |rarr| :mini:`X` or :mini:`nil`
