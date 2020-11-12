@@ -455,6 +455,19 @@ static mlc_compiled_t ml_and_expr_compile(mlc_function_t *Function, mlc_parent_e
 	return Compiled;
 }
 
+static mlc_compiled_t ml_not_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
+	ml_inst_t *NotInst = ml_inst_new(2, Expr->Source, MLI_AND);
+	mlc_connect(Compiled.Exits, NotInst);
+	ml_inst_t *NilInst = ml_inst_new(1, Expr->Source, MLI_NIL);
+	ml_inst_t *SomeInst = ml_inst_new(1, Expr->Source, MLI_SOME);
+	NotInst->Params[0].Inst = SomeInst;
+	NotInst->Params[1].Inst = NilInst;
+	NilInst->Params[0].Inst = SomeInst;
+	Compiled.Exits = NilInst;
+	return Compiled;
+}
+
 static mlc_compiled_t ml_loop_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
 	ml_inst_t *LoopInst = ml_inst_new(1, Expr->Source, MLI_LOOP);
 	mlc_loop_t Loop = {
@@ -495,28 +508,26 @@ static mlc_compiled_t ml_next_expr_compile(mlc_function_t *Function, mlc_expr_t 
 }
 
 static mlc_compiled_t ml_exit_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
-	if (!Function->Loop) {
-		ml_expr_error(Expr, ml_error("CompilerError", "exit not in loop"));
-	}
 	mlc_loop_t *Loop = Function->Loop;
-	mlc_try_t *Try = Function->Try;
-	Function->Loop = Loop->Up;
-	Function->Try = Loop->Try;
+	if (!Loop) ml_expr_error(Expr, ml_error("CompilerError", "exit not in loop"));
 	mlc_compiled_t Compiled;
 	if (Expr->Child) {
+		mlc_try_t *Try = Function->Try;
+		Function->Loop = Loop->Up;
+		Function->Try = Loop->Try;
 		Compiled = mlc_compile(Function, Expr->Child);
+		Function->Loop = Loop;
+		Function->Try = Try;
 	} else {
 		ml_inst_t *NilInst = ml_inst_new(1, Expr->Source, MLI_NIL);
 		Compiled.Start = Compiled.Exits = NilInst;
 	}
-	if (Function->Try != Try) {
+	if (Function->Try != Loop->Try) {
 		ml_inst_t *TryInst = ml_inst_new(2, Expr->Source, MLI_TRY);
-		TryInst->Params[1].Inst = Function->Try ? Function->Try->CatchInst : Function->ReturnInst;
+		TryInst->Params[1].Inst = Loop->Try ? Loop->Try->CatchInst : Function->ReturnInst;
 		TryInst->Params[0].Inst = Compiled.Start;
 		Compiled.Start = TryInst;
 	}
-	Function->Loop = Loop;
-	Function->Try = Try;
 	if (Function->Top > Function->Loop->ExitTop) {
 		ml_inst_t *ExitInst = ml_inst_new(3, Expr->Source, MLI_EXIT);
 		ExitInst->Params[1].Count = Function->Top - Function->Loop->ExitTop;
@@ -532,62 +543,67 @@ static mlc_compiled_t ml_exit_expr_compile(mlc_function_t *Function, mlc_parent_
 	return (mlc_compiled_t){Compiled.Start, NULL};
 }
 
-static mlc_compiled_t ml_not_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
-	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
-	ml_inst_t *NotInst = ml_inst_new(2, Expr->Source, MLI_AND);
-	mlc_connect(Compiled.Exits, NotInst);
-	ml_inst_t *NilInst = ml_inst_new(1, Expr->Source, MLI_NIL);
-	ml_inst_t *SomeInst = ml_inst_new(1, Expr->Source, MLI_SOME);
-	NotInst->Params[0].Inst = SomeInst;
-	NotInst->Params[1].Inst = NilInst;
-	NilInst->Params[0].Inst = SomeInst;
-	Compiled.Exits = NilInst;
-	return Compiled;
-}
-
 static mlc_compiled_t ml_while_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
-	if (!Function->Loop) {
-		ml_expr_error(Expr, ml_error("CompilerError", "while not in loop"));
-	}
+	mlc_loop_t *Loop = Function->Loop;
+	if (!Loop) ml_expr_error(Expr, ml_error("CompilerError", "exit not in loop"));
 	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
 	ml_inst_t *ExitInst = ml_inst_new(3, Expr->Source, MLI_EXIT);
+	ml_inst_t *StartInst = ExitInst;
 	ExitInst->Params[1].Count = Function->Top - Function->Loop->ExitTop;
 	ExitInst->Params[2].Decls = Function->Loop->ExitDecls;
-	mlc_loop_t *Loop = Function->Loop;
+	if (Expr->Child->Next) {
+		mlc_try_t *Try = Function->Try;
+		Function->Loop = Loop->Up;
+		Function->Try = Loop->Try;
+		mlc_compiled_t ChildCompiled = mlc_compile(Function, Expr->Child->Next);
+		mlc_connect(ChildCompiled.Exits, StartInst);
+		StartInst = ChildCompiled.Start;
+		Function->Loop = Loop;
+		Function->Try = Try;
+	}
 	if (Function->Try != Loop->Try) {
 		ml_inst_t *TryInst = ml_inst_new(2, Expr->Source, MLI_TRY);
 		TryInst->Params[1].Inst = Loop->Try ? Loop->Try->CatchInst : Function->ReturnInst;
-		TryInst->Params[0].Inst = ExitInst;
-		ExitInst = TryInst;
+		TryInst->Params[0].Inst = StartInst;
+		StartInst = TryInst;
 	}
 	ml_inst_t *WhileInst = ml_inst_new(2, Expr->Source, MLI_OR);
 	mlc_connect(Compiled.Exits, WhileInst);
 	Compiled.Exits = WhileInst;
-	WhileInst->Params[1].Inst = ExitInst;
+	WhileInst->Params[1].Inst = StartInst;
 	ExitInst->Params[0].Inst = Function->Loop->Exits;
 	Function->Loop->Exits = ExitInst;
 	return Compiled;
 }
 
 static mlc_compiled_t ml_until_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
-	if (!Function->Loop) {
-		ml_expr_error(Expr, ml_error("CompilerError", "until not in loop"));
-	}
+	mlc_loop_t *Loop = Function->Loop;
+	if (!Loop) ml_expr_error(Expr, ml_error("CompilerError", "exit not in loop"));
 	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
 	ml_inst_t *ExitInst = ml_inst_new(3, Expr->Source, MLI_EXIT);
+	ml_inst_t *StartInst = ExitInst;
 	ExitInst->Params[1].Count = Function->Top - Function->Loop->ExitTop;
 	ExitInst->Params[2].Decls = Function->Loop->ExitDecls;
-	mlc_loop_t *Loop = Function->Loop;
+	if (Expr->Child->Next) {
+		mlc_try_t *Try = Function->Try;
+		Function->Loop = Loop->Up;
+		Function->Try = Loop->Try;
+		mlc_compiled_t ChildCompiled = mlc_compile(Function, Expr->Child->Next);
+		mlc_connect(ChildCompiled.Exits, StartInst);
+		StartInst = ChildCompiled.Start;
+		Function->Loop = Loop;
+		Function->Try = Try;
+	}
 	if (Function->Try != Loop->Try) {
 		ml_inst_t *TryInst = ml_inst_new(2, Expr->Source, MLI_TRY);
 		TryInst->Params[1].Inst = Loop->Try ? Loop->Try->CatchInst : Function->ReturnInst;
-		TryInst->Params[0].Inst = ExitInst;
-		ExitInst = TryInst;
+		TryInst->Params[0].Inst = StartInst;
+		StartInst = TryInst;
 	}
 	ml_inst_t *UntilInst = ml_inst_new(2, Expr->Source, MLI_AND);
 	mlc_connect(Compiled.Exits, UntilInst);
 	Compiled.Exits = UntilInst;
-	UntilInst->Params[1].Inst = ExitInst;
+	UntilInst->Params[1].Inst = StartInst;
 	ExitInst->Params[0].Inst = Function->Loop->Exits;
 	Function->Loop->Exits = ExitInst;
 	return Compiled;
@@ -2473,6 +2489,14 @@ static mlc_expr_t *ml_parse_factor(ml_compiler_t *Compiler, int MethDecl) {
 	switch (ml_current(Compiler)) {
 	case MLT_EACH:
 	case MLT_NOT:
+	{
+		mlc_parent_expr_t *ParentExpr = new(mlc_parent_expr_t);
+		ParentExpr->compile = CompileFns[Compiler->Token];
+		ml_next(Compiler);
+		ParentExpr->Source = Compiler->Source;
+		ParentExpr->Child = ml_accept_expression(Compiler, EXPR_DEFAULT);
+		return (mlc_expr_t *)ParentExpr;
+	}
 	case MLT_WHILE:
 	case MLT_UNTIL:
 	{
@@ -2481,6 +2505,9 @@ static mlc_expr_t *ml_parse_factor(ml_compiler_t *Compiler, int MethDecl) {
 		ml_next(Compiler);
 		ParentExpr->Source = Compiler->Source;
 		ParentExpr->Child = ml_accept_expression(Compiler, EXPR_DEFAULT);
+		if (ml_parse(Compiler, MLT_COMMA)) {
+			ParentExpr->Child->Next = ml_accept_expression(Compiler, EXPR_DEFAULT);
+		}
 		return (mlc_expr_t *)ParentExpr;
 	}
 	case MLT_EXIT:

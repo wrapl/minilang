@@ -297,6 +297,15 @@ ML_METHOD("size", MLArrayT) {
 	return MLNil;
 }
 
+ML_METHOD("count", MLArrayT) {
+//<Array
+//>integer
+	ml_array_t *Array = (ml_array_t *)Args[0];
+	size_t Size = 1;
+	for (int I = 0; I < Array->Degree; ++I) Size *= Array->Dimensions[I].Size;
+	return ml_integer(Size);
+}
+
 ML_METHOD("degree", MLArrayT) {
 //<Array
 //>integer

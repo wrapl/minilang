@@ -617,6 +617,7 @@ static inline void ml_names_add(ml_value_t *Names, ml_value_t *Value) {
 extern ml_type_t MLMethodT[];
 
 ml_value_t *ml_method(const char *Name);
+ml_value_t *ml_method_anon(const char *Name);
 const char *ml_method_name(const ml_value_t *Value) __attribute__((pure));
 
 void ml_method_by_name(const char *Method, void *Data, ml_callback_t Function, ...) __attribute__ ((sentinel));
@@ -644,6 +645,7 @@ static inline ml_value_t *ml_nop(ml_value_t *Value) {
 }
 
 #define ML_METHOD_DECL(NAME, METHOD) ml_value_t *NAME ## Method
+#define ML_METHOD_ANON(NAME, METHOD) ml_value_t *NAME ## Method
 
 #else
 
@@ -670,6 +672,7 @@ static inline ml_value_t *ml_nop(ml_value_t *Value) {
 #endif
 
 #define ML_METHOD_DECL(NAME, METHOD) INIT_CODE NAME ## Method = ml_method(METHOD);
+#define ML_METHOD_ANON(NAME, METHOD) INIT_CODE NAME ## Method = ml_method_anon(METHOD);
 
 #endif
 

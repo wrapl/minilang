@@ -6,8 +6,8 @@
 #include <string.h>
 
 ML_TYPE(MLStreamT, (MLAnyT), "stream");
-ML_METHOD_DECL(Read, NULL);
-ML_METHOD_DECL(Write, NULL);
+ML_METHOD_DECL(Read, "io::read");
+ML_METHOD_DECL(Write, "io::write");
 
 void ml_io_read(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count) {
 	typeof(ml_io_read) *function = ml_typed_fn_get(ml_typeof(Value), ml_io_read);

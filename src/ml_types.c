@@ -32,15 +32,15 @@ ML_METHOD_DECL(Compare, "<>");
 ML_METHOD_DECL(Index, "[]");
 ML_METHOD_DECL(Symbol, "::");
 
-ML_METHOD_DECL(MLStringOf, NULL);
-ML_METHOD_DECL(MLStringBufferAppend, NULL);
-ML_METHOD_DECL(MLBooleanOf, NULL);
-ML_METHOD_DECL(MLNumberOf, NULL);
-ML_METHOD_DECL(MLIntegerOf, NULL);
-ML_METHOD_DECL(MLRealOf, NULL);
-ML_METHOD_DECL(MLMethodOf, NULL);
-ML_METHOD_DECL(MLListOf, NULL);
-ML_METHOD_DECL(MLMapOf, NULL);
+ML_METHOD_DECL(MLStringOf, "string::of");
+ML_METHOD_DECL(MLStringBufferAppend, "stringbuffer::append");
+ML_METHOD_DECL(MLBooleanOf, "boolean::of");
+ML_METHOD_DECL(MLNumberOf, "number::of");
+ML_METHOD_DECL(MLIntegerOf, "integer::of");
+ML_METHOD_DECL(MLRealOf, "real::of");
+ML_METHOD_DECL(MLMethodOf, "method::of");
+ML_METHOD_DECL(MLListOf, "list::of");
+ML_METHOD_DECL(MLMapOf, "map::of");
 
 static uintptr_t rotl(uintptr_t X, unsigned int N) {
 	const unsigned int Mask = (CHAR_BIT * sizeof(uintptr_t) - 1);
@@ -1802,7 +1802,7 @@ ML_METHOD("by", MLIntegerRangeT, MLIntegerT) {
 	return (ml_value_t *)Range;
 }
 
-ML_METHOD("size", MLIntegerRangeT) {
+ML_METHOD("count", MLIntegerRangeT) {
 //!range
 //<X
 //>integer
@@ -1965,7 +1965,7 @@ ML_METHOD("by", MLIntegerRangeT, MLRealT) {
 	return (ml_value_t *)Range;
 }
 
-ML_METHOD("size", MLRealRangeT) {
+ML_METHOD("count", MLRealRangeT) {
 //!range
 //<X
 //>integer
@@ -2715,6 +2715,11 @@ ML_METHOD("rtrim", MLStringT, MLStringT) {
 }
 
 ML_METHOD("length", MLStringT) {
+//!string
+	return ml_integer(ml_string_length(Args[0]));
+}
+
+ML_METHOD("count", MLStringT) {
 //!string
 	return ml_integer(ml_string_length(Args[0]));
 }
@@ -3712,7 +3717,7 @@ int ml_list_foreach(ml_value_t *Value, void *Data, int (*callback)(ml_value_t *,
 	return 0;
 }
 
-ML_METHOD("size", MLListT) {
+ML_METHOD("count", MLListT) {
 //!list
 //<List
 //>integer
@@ -4379,6 +4384,15 @@ ML_METHOD("size", MLMapT) {
 	return ml_integer(Map->Size);
 }
 
+ML_METHOD("count", MLMapT) {
+//!map
+//<Map
+//>integer
+// Returns the number of entries in :mini:`Map`.
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	return ml_integer(Map->Size);
+}
+
 static ml_value_t *ml_map_index_deref(ml_map_node_t *Index) {
 	return MLNil;
 }
@@ -5011,6 +5025,13 @@ ml_value_t *ml_method(const char *Name) {
 	pthread_mutex_unlock(&Lock);
 #endif
 	return (ml_value_t *)Slot[0];
+}
+
+ml_value_t *ml_method_anon(const char *Name) {
+	ml_method_t *Method = new(ml_method_t);
+	Method->Type = MLMethodT;
+	Method->Name = Name;
+	return (ml_value_t *)Method;
 }
 
 ML_METHOD(MLMethodOfMethod) {
