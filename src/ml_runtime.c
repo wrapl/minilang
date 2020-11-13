@@ -302,6 +302,10 @@ ml_value_t *ml_uninitialized(const char *Name) {
 	return (ml_value_t *)Uninitialized;
 }
 
+const char *ml_uninitialized_name(ml_value_t *Uninitialized) {
+	return ((ml_uninitialized_t *)Uninitialized)->Name;
+}
+
 void ml_uninitialized_use(ml_value_t *Uninitialized0, ml_value_t **Value) {
 	ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Uninitialized0;
 	ml_uninitialized_slot_t *Slot = new(ml_uninitialized_slot_t);

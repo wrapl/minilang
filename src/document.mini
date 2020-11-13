@@ -239,7 +239,7 @@ fun process(FileName) do
 					end
 				end
 				for Type in Types do
-					Params:put(('Arg/{Params:size + 1}':replace(Subscripts), Type, ""))
+					Params:put(('Arg/{Params:length + 1}':replace(Subscripts), Type, ""))
 				end
 				write_method(Category, Kind, Method, Params, Return, Description, Location)
 			elseif Line % r"^ML_FUNCTION" then
