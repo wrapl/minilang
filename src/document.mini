@@ -108,7 +108,7 @@ fun write_method(Category, Kind, Method, Params, Return, Description, Location) 
 			File:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")
 		end	
 	end
-	File:write('   *Defined at line {Location[2]} in {Location[1]}*\n')
+	:>File:write('   *Defined at line {Location[2]} in {Location[1]}*\n')
 	File:write("\n")
 end
 
@@ -147,7 +147,46 @@ fun write_function(Category, Kind, Name, Params, Return, Description, Location) 
 			File:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")
 		end	
 	end
-	File:write('   *Defined at line {Location[2]} in {Location[1]}*\n')
+	:>File:write('   *Defined at line {Location[2]} in {Location[1]}*\n')
+	File:write("\n")
+end
+
+fun write_constructor(Category, Kind, Name, Params, Return, Description, Location) do
+	:<print('[{Category}] {Kind}: {Name}\n')
+	print("Params:\n")
+	for Param in Params do print('\t{Param}\n') end
+	print('Returns: {Return}\n')
+	print('Description: {Description}\n')>:
+	
+	let File := Categories[Category, write_category]
+	let Title := stringbuffer()
+	
+	var Terminator := ""
+	Title:write(':mini:`constructor ', Name, "(")
+	var Seperator := ""
+	for Param in Params do
+		Title:write(Seperator, Param[1], ": ", type_name(Param[2]))
+		Seperator := ", "
+	end
+	Title:write(")`")
+	if Return:length > 0 then
+		Title:write(" |rarr| :mini:`", type_name(Return[1]), "`")
+		for Type in Return skip 1 do
+			Title:write(" or :mini:`", type_name(Type), "`")
+		end
+	end
+	let TitleString := Title:get
+	File:write(TitleString, "\n")
+	for Line in Description do
+		File:write("   ", Line, "\n")
+	end
+	for Param in Params do
+		if Param in method then
+		elseif Param[3]:length > 0 then
+			File:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")
+		end	
+	end
+	:>File:write('   *Defined at line {Location[2]} in {Location[1]}*\n')
 	File:write("\n")
 end
 
@@ -170,7 +209,7 @@ fun write_type(Category, Name, Parents, Description, Location) do
 		end
 		File:write("\n\n")
 	end
-	File:write('   *Defined at line {Location[2]} in {Location[1]}*\n')
+	:>File:write('   *Defined at line {Location[2]} in {Location[1]}*\n')
 	File:write("\n")
 end
 
@@ -291,6 +330,44 @@ fun process(FileName) do
 					end
 				end
 				write_function(Category, Kind, Name, Params, Return, Description, Location)
+			elseif Line % r"^ML_CONSTRUCTOR" then
+				let Location := (FileName, LineNo)
+				let I := Line:find("("), J := Line:find(")")
+				let Kind := Line[1, I]
+				var Name := Line[I + 1, J]:lower
+				var Category := DefaultCategory
+				let Params := []
+				let Description := []
+				loop
+					let Line := while File:read
+					LineNo := old + 1
+					if Line % r"//@" then
+						Name := Line[4, 0]:trim
+					elseif Line % r"^//<" then
+						if let J := Line:find(":", 4) then
+							let K := Line:find(" ", J + 2) or 0
+							Params:put([
+								Line[4, J]:trim:replace(Subscripts),
+								Line[J + 1, K]:trim,
+								Line[K, 0]:trim
+							])
+						else
+							let J := Line:find(" ", 4) or 0
+							Params:put([
+								Line[4, J]:trim:replace(Subscripts),
+								"MLAnyT",
+								Line[J, 0]:trim
+							])
+						end
+					elseif Line % r"^//!" then
+						Category := Line[4, 0]:trim
+					elseif Line % r"^// " then
+						Description:put(Line[4, 0]:replace(Subscripts))
+					else
+						exit
+					end
+				end
+				write_constructor(Category, Kind, Name, Params, [Name], Description, Location)
 			elseif Line % r"^(ML_TYPE|ML_INTERFACE)" then
 				let Location := (FileName, LineNo)
 				let I := Line:find("("), J := Line:find("(", I + 1)

@@ -32,7 +32,8 @@ class MinilangLexer(RegexLexer):
             ('\'', String, 'string2'),
             ('\(', Operator, 'brackets'),
             ('\{', Operator, 'braces'),
-            (r':[A-Za-z_]+', Name.Function),
+            (r'::[A-Za-z_][A-Za-z0-9_]*', Name.Attribute),
+            (r':[A-Za-z_][A-Za-z0-9_]*', Name.Function),
             (':\"', Name.Function, 'method'),
             (r':>.*\n', Comment),
             (':<', Comment.Multiline, 'comment'),
@@ -96,6 +97,7 @@ class MiniStyle(Style):
     default_style = ""
     styles = {
         Keyword: '#0098dd',
+        Name.Attribute: '#5caf8f',
         Name.Function: '#df631c',
         Name.Class: '#ad00bc',
         Comment: '#a0a1a7',

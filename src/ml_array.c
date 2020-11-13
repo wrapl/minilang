@@ -5,6 +5,16 @@
 #include <stdarg.h>
 
 ML_TYPE(MLArrayT, (MLBufferT, MLIteratableT), "array");
+// Base type for multidimensional arrays.
+
+/*
+
+ML_CONSTRUCTOR(array);
+//<List:list
+// Returns a new array containing the values in :mini:`List`.
+// The shape and type of the array is determined from the elements in :mini:`List`.
+
+*/
 
 extern ml_type_t MLArrayInt8T[];
 extern ml_type_t MLArrayUInt8T[];
@@ -17,6 +27,54 @@ extern ml_type_t MLArrayUInt64T[];
 extern ml_type_t MLArrayFloat32T[];
 extern ml_type_t MLArrayFloat64T[];
 extern ml_type_t MLArrayAnyT[];
+
+/*
+
+ML_TYPE(MLArrayInt8T, (MLArrayT), "int8t-array");
+//@array::int8
+// Arrays of signed 8 bit integers.
+
+ML_TYPE(MLArrayUInt8T, (MLArrayT), "uint8t-array");
+//@array::uint8
+// Arrays of unsigned 8 bit integers.
+
+ML_TYPE(MLArrayInt16T, (MLArrayT), "int16t-array");
+//@array::int16
+// Arrays of signed 16 bit integers.
+
+ML_TYPE(MLArrayUInt16T, (MLArrayT), "uint16t-array");
+//@array::uint16
+// Arrays of unsigned 16 bit integers.
+
+ML_TYPE(MLArrayInt32T, (MLArrayT), "int32t-array");
+//@array::int32
+// Arrays of signed 32 bit integers.
+
+ML_TYPE(MLArrayUInt32T, (MLArrayT), "uint32t-array");
+//@array::uint32
+// Arrays of unsigned 32 bit integers.
+
+ML_TYPE(MLArrayInt64T, (MLArrayT), "int64t-array");
+//@array::int64
+// Arrays of signed 64 bit integers.
+
+ML_TYPE(MLArrayUInt64T, (MLArrayT), "uint64t-array");
+//@array::uint64
+// Arrays of unsigned 64 bit integers.
+
+ML_TYPE(MLArrayFloat32T, (MLArrayT), "float-array");
+//@array::float32
+// Arrays of 32 bit reals.
+
+ML_TYPE(MLArrayFloat64T, (MLArrayT), "double-array");
+//@array::float64
+// Arrays of 64 bit reals.
+
+ML_TYPE(MLArrayAnyT, (MLArrayT), "value-array");
+//@array::any
+// Arrays of any *Minilang* values.
+
+*/
 
 size_t MLArraySizes[] = {
 	[ML_ARRAY_FORMAT_NONE] = sizeof(ml_value_t *),
@@ -265,9 +323,18 @@ static __attribute__ ((malloc)) ml_value_t *ml_array_wrap_fn(void *Data, int Cou
 	return (ml_value_t *)Array;
 }
 
+ML_METHOD("degree", MLArrayT) {
+//<Array
+//>integer
+// Return the degree of :mini:`Array`.
+	ml_array_t *Array = (ml_array_t *)Args[0];
+	return ml_integer(Array->Degree);
+}
+
 ML_METHOD("shape", MLArrayT) {
 //<Array
 //>list
+// Return the shape of :mini:`Array`.
 	ml_array_t *Array = (ml_array_t *)Args[0];
 	ml_value_t *Shape = ml_list();
 	for (int I = 0; I < Array->Degree; ++I) {
@@ -276,46 +343,20 @@ ML_METHOD("shape", MLArrayT) {
 	return Shape;
 }
 
-ML_METHOD("strides", MLArrayT) {
-//<Array
-//>list
-	ml_array_t *Array = (ml_array_t *)Args[0];
-	ml_value_t *Strides = ml_list();
-	for (int I = 0; I < Array->Degree; ++I) {
-		ml_list_put(Strides, ml_integer(Array->Dimensions[I].Stride));
-	}
-	return Strides;
-}
-
-ML_METHOD("size", MLArrayT) {
-//<Array
-//>integer
-	ml_array_t *Array = (ml_array_t *)Args[0];
-	size_t Size = Array->Dimensions[Array->Degree - 1].Stride;
-	for (int I = 1; I < Array->Degree; ++I) Size *= Array->Dimensions[I].Size;
-	if (Array->Dimensions[0].Stride == Size) return ml_integer(Size * Array->Dimensions[0].Size);
-	return MLNil;
-}
-
 ML_METHOD("count", MLArrayT) {
 //<Array
 //>integer
+// Return the number of elements in :mini:`Array`.
 	ml_array_t *Array = (ml_array_t *)Args[0];
 	size_t Size = 1;
 	for (int I = 0; I < Array->Degree; ++I) Size *= Array->Dimensions[I].Size;
 	return ml_integer(Size);
 }
 
-ML_METHOD("degree", MLArrayT) {
-//<Array
-//>integer
-	ml_array_t *Array = (ml_array_t *)Args[0];
-	return ml_integer(Array->Degree);
-}
-
 ML_METHOD("transpose", MLArrayT) {
 //<Array
 //>array
+// Returns the transpose of :mini:`Array`, sharing the underlying data.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Degree = Source->Degree;
 	ml_array_t *Target = ml_array_new(Source->Format, Degree);
@@ -330,6 +371,7 @@ ML_METHOD("permute", MLArrayT, MLListT) {
 //<Array
 //<Indices
 //>array
+// Returns an array sharing the underlying data with :mini:`Array`, permuting the axes according to :mini:`Indices`.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Degree = Source->Degree;
 	if (Degree > 64) return ml_error("ArrayError", "Not implemented for degree > 64 yet");
@@ -355,6 +397,7 @@ ML_METHOD("expand", MLArrayT, MLListT) {
 //<Array
 //<Indices
 //>array
+// Returns an array sharing the underlying data with :mini:`Array` with additional unit-length axes at the specified :mini:`Indices`.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Degree = Source->Degree + ml_list_length(Args[1]);
 	int Expands[Source->Degree + 1];
@@ -383,6 +426,29 @@ ML_METHOD("expand", MLArrayT, MLListT) {
 	}
 	Target->Base = Source->Base;
 	return (ml_value_t *)Target;
+}
+
+ML_METHOD("strides", MLArrayT) {
+//<Array
+//>list
+// Return the strides of :mini:`Array` in bytes.
+	ml_array_t *Array = (ml_array_t *)Args[0];
+	ml_value_t *Strides = ml_list();
+	for (int I = 0; I < Array->Degree; ++I) {
+		ml_list_put(Strides, ml_integer(Array->Dimensions[I].Stride));
+	}
+	return Strides;
+}
+
+ML_METHOD("size", MLArrayT) {
+//<Array
+//>integer
+// Return the size of :mini:`Array` in bytes.
+	ml_array_t *Array = (ml_array_t *)Args[0];
+	size_t Size = Array->Dimensions[Array->Degree - 1].Stride;
+	for (int I = 1; I < Array->Degree; ++I) Size *= Array->Dimensions[I].Size;
+	if (Array->Dimensions[0].Stride == Size) return ml_integer(Size * Array->Dimensions[0].Size);
+	return MLNil;
 }
 
 typedef struct ml_integer_range_t {
@@ -485,6 +551,12 @@ ML_METHODV("[]", MLArrayT) {
 //<Array
 //<Indices...:any
 //>array
+// Returns a sub-array of :mini:`Array` sharing the underlying data.
+// The :mini:`i`-th dimension is indexed by the corresponding :mini:`Index/i`.
+// * If :mini:`Index/i` is :mini:`nil` then the :mini:`i`-th dimension is copied unchanged.
+// * If :mini:`Index/i` is an integer then the :mini:`Index/i`-th value is selected and the :mini:`i`-th dimension is dropped from the result.
+// * If :mini:`Index/i` is a list of integers then the :mini:`i`-th dimension is copied as a sparse dimension with the respective entries.
+// If fewer than :mini:`A:degree` indices are provided then the remaining dimensions are copied unchanged.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	return ml_array_index_internal(Source, Count - 1, Args + 1);
 }
@@ -493,6 +565,8 @@ ML_METHOD("[]", MLArrayT, MLMapT) {
 //<Array
 //<Indices
 //>array
+// Returns a sub-array of :mini:`Array` sharing the underlying data.
+// The :mini:`i`-th dimension is indexed by :mini:`Indices[i]` if present, and :mini:`nil` otherwise.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Degree = Source->Degree;
 	ml_value_t *Indices[Degree];
@@ -562,6 +636,7 @@ typedef struct {
 } ml_array_iterator_t;
 
 ML_TYPE(MLArrayIteratorT, (), "array-iterator");
+//!internal
 
 static void ML_TYPED_FN(ml_iter_next, MLArrayIteratorT, ml_state_t *Caller, ml_array_iterator_t *Iterator) {
 	int I = Iterator->Degree;
@@ -1417,6 +1492,10 @@ static int array_copy(ml_array_t *Target, ml_array_t *Source) {
 }
 
 ML_METHOD("sums", MLArrayT, MLIntegerT) {
+//<Array
+//<Index
+//>array
+// Returns a new array with the partial sums of :mini:`Array` in the :mini:`Index`-th dimension.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Index = ml_integer_value(Args[1]);
 	if (Index <= 0) Index += Source->Degree + 1;
@@ -1454,6 +1533,10 @@ ML_METHOD("sums", MLArrayT, MLIntegerT) {
 }
 
 ML_METHOD("prods", MLArrayT, MLIntegerT) {
+//<Array
+//<Index
+//>array
+// Returns a new array with the partial products of :mini:`Array` in the :mini:`Index`-th dimension.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Index = ml_integer_value(Args[1]);
 	if (Index <= 0) Index += Source->Degree + 1;
@@ -1491,6 +1574,9 @@ ML_METHOD("prods", MLArrayT, MLIntegerT) {
 }
 
 ML_METHOD("sum", MLArrayT) {
+//<Array
+//>integer|real
+// Returns the sum of the values in :mini:`Array`.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	switch (Source->Format) {
 	case ML_ARRAY_FORMAT_I8:
@@ -1519,6 +1605,10 @@ ML_METHOD("sum", MLArrayT) {
 }
 
 ML_METHOD("sum", MLArrayT, MLIntegerT) {
+//<Array
+//<Index
+//>array
+// Returns a new array with the sums of :mini:`Array` in the :mini:`Index`-th dimension.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int SumDegree = ml_integer_value(Args[1]);
 	if (SumDegree <= 0 || SumDegree >= Source->Degree) return ml_error("RangeError", "Invalid axes count for sum");
@@ -1581,6 +1671,9 @@ ML_METHOD("sum", MLArrayT, MLIntegerT) {
 }
 
 ML_METHOD("prod", MLArrayT) {
+//<Array
+//>integer|real
+// Returns the product of the values in :mini:`Array`.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	switch (Source->Format) {
 	case ML_ARRAY_FORMAT_I8:
@@ -1609,6 +1702,10 @@ ML_METHOD("prod", MLArrayT) {
 }
 
 ML_METHOD("prod", MLArrayT, MLIntegerT) {
+//<Array
+//<Index
+//>array
+// Returns a new array with the products of :mini:`Array` in the :mini:`Index`-th dimension.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int SumDegree = ml_integer_value(Args[1]);
 	if (SumDegree <= 0 || SumDegree >= Source->Degree) return ml_error("RangeError", "Invalid axes count for prod");
@@ -1671,6 +1768,9 @@ ML_METHOD("prod", MLArrayT, MLIntegerT) {
 }
 
 ML_METHOD("-", MLArrayT) {
+//<Array
+//>array
+// Returns an array with the negated values from :mini:`Array`.
 	ml_array_t *A = (ml_array_t *)Args[0];
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation");
 	int Degree = A->Degree;
@@ -2089,6 +2189,7 @@ static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args) {
 ML_METHOD("copy", MLArrayT) {
 //<Array
 //>array
+// Return a new array with the same values of :mini:`Array` but not sharing the underlying data.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	ml_array_t *Target = ml_array_new(Source->Format, Source->Degree);
 	array_copy(Target, Source);
@@ -2145,6 +2246,7 @@ ML_METHODX("copy", MLArrayT, MLFunctionT) {
 //<Array
 //<Function
 //>array
+// Return a new array with the results of applying :mini:`Function` to each value of :mini:`Array`.
 	ml_array_t *A = (ml_array_t *)Args[0];
 	int Degree = A->Degree;
 	ml_array_t *C = ml_array_new(A->Format, Degree);
@@ -2273,6 +2375,7 @@ ML_METHODX("update", MLArrayT, MLFunctionT) {
 //<Array
 //<Function
 //>array
+// Update the values in :mini:`Array` in place by applying :mini:`Function` to each value.
 	ml_array_t *A = (ml_array_t *)Args[0];
 	int Degree = A->Degree;
 	ml_array_update_state_t *State = xnew(ml_array_update_state_t, Degree, int);
