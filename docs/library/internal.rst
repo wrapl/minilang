@@ -21,7 +21,7 @@ internal
    *Defined at line 45 in src/ml_gir.c*
 
 :mini:`errorvalue`
-   *Defined at line 434 in src/ml_runtime.c*
+   *Defined at line 438 in src/ml_runtime.c*
 
 :mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: type)`
    *Defined at line 232 in src/ml_types.c*
