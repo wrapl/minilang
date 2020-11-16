@@ -89,7 +89,7 @@ static void DEBUG_FUNC(continuation_call)(ml_state_t *Caller, DEBUG_STRUCT(frame
 	return Frame->Base.run((ml_state_t *)Frame, Count ? Args[0] : MLNil);
 }
 
-ML_TYPE(DEBUG_TYPE(Continuation), (MLStateT), "continuation",
+ML_TYPE(DEBUG_TYPE(Continuation), (MLStateT, MLIteratableT), "continuation",
 //!internal
 	.call = (void *)DEBUG_FUNC(continuation_call)
 );
