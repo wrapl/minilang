@@ -107,6 +107,8 @@ iterator
    :Parents: :mini:`iteratable`
 
 
+:mini:`meth :count(Arg₁: limited)`
+
 :mini:`limitedstate`
 
 :mini:`meth :limit(Arg₁: iteratable, Arg₂: integer)`

@@ -1017,6 +1017,11 @@ typedef struct ml_limited_t {
 
 ML_TYPE(MLLimitedT, (MLIteratableT), "limited");
 
+ML_METHOD("count", MLLimitedT) {
+	ml_limited_t *Limited = (ml_limited_t *)Args[0];
+	return ml_integer(Limited->Remaining);
+}
+
 typedef struct ml_limited_state_t {
 	ml_state_t Base;
 	ml_value_t *Iter;
