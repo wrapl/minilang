@@ -1374,7 +1374,8 @@ ML_FUNCTION(Unique) {
 	ML_CHECK_ARG_COUNT(1);
 	ml_unique_t *Unique = new(ml_unique_t);
 	Unique->Type = MLUniqueT;
-	Unique->Iter = Args[0];
+	//Unique->Iter = Args[0];
+	Unique->Iter = ml_chained(Count, Args);
 	return (ml_value_t *)Unique;
 }
 
