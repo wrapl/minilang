@@ -45,9 +45,16 @@ struct ml_type_t {
 	ml_value_t *(*deref)(ml_value_t *);
 	ml_value_t *(*assign)(ml_value_t *, ml_value_t *);
 	ml_value_t *Constructor;
+#ifdef USE_GENERICS
+	const ml_type_t **Args;
+#endif
+	inthash_t Parents[1];
 	inthash_t TypedFns[1];
 	stringmap_t Exports[1];
 	int Rank;
+#ifdef USE_GENERICS
+	int NumArgs;
+#endif
 };
 
 #define ML_RANK_NATIVE 65536
@@ -90,6 +97,11 @@ void ml_type_init(ml_type_t *Type, ...) __attribute__ ((sentinel));
 ml_type_t *ml_type(ml_type_t *Parent, const char *Name);
 void *ml_typed_fn_get(const ml_type_t *Type, void *TypedFn);
 void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function);
+
+#ifdef USE_GENERICS
+const ml_type_t *ml_type_generic(const ml_type_t *Base, int Count, const ml_type_t **Args);
+ml_value_t *ml_type_generic_fn(void *Data, int Count, ml_value_t **Args);
+#endif
 
 #ifndef GENERATE_INIT
 
@@ -605,6 +617,7 @@ static inline void ml_names_add(ml_value_t *Names, ml_value_t *Value) {
 extern ml_type_t MLMethodT[];
 
 ml_value_t *ml_method(const char *Name);
+ml_value_t *ml_method_anon(const char *Name);
 const char *ml_method_name(const ml_value_t *Value) __attribute__((pure));
 
 void ml_method_by_name(const char *Method, void *Data, ml_callback_t Function, ...) __attribute__ ((sentinel));
@@ -632,6 +645,7 @@ static inline ml_value_t *ml_nop(ml_value_t *Value) {
 }
 
 #define ML_METHOD_DECL(NAME, METHOD) ml_value_t *NAME ## Method
+#define ML_METHOD_ANON(NAME, METHOD) ml_value_t *NAME ## Method
 
 #else
 
@@ -658,6 +672,7 @@ static inline ml_value_t *ml_nop(ml_value_t *Value) {
 #endif
 
 #define ML_METHOD_DECL(NAME, METHOD) INIT_CODE NAME ## Method = ml_method(METHOD);
+#define ML_METHOD_ANON(NAME, METHOD) INIT_CODE NAME ## Method = ml_method_anon(METHOD);
 
 #endif
 

@@ -1,20 +1,18 @@
 Types
 =====
 
-*Minilang* provides a number of built-in types.
-
 Nil
 ---
 
-The special built in value :mini:`nil` denotes the absence of any other value. Every variable has the value :mini:`nil` before they are assigned any other value. Likewise, function parameters default to :mini:`nil` if a function is called with too few arguments.
+The special built in value :mini:`nil` denotes the absence of any other value. Variables have the value :mini:`nil` before they are assigned any other value. Likewise, function parameters default to :mini:`nil` if a function is called with fewer arguments than parameters.
 
 .. note::
 
-   *Minilang* has no boolean values, such as ``true`` or ``false``. Instead, conditional and looping statements treat :mini:`nil` as false and *any* other value as true.  
+   Although *Minilang* has boolean values, conditional and looping statements treat only :mini:`nil` as false and *any* other value as true.  
 
 .. code-block:: mini
 
-   -- Nil
+   :> Nil
    nil
    
    if nil then
@@ -27,12 +25,16 @@ The special built in value :mini:`nil` denotes the absence of any other value. E
 
 .. _comparisons:
 
-In *Minilang*, comparison operators such as :mini:`=`, :mini:`>=`, etc, all return the second argument if the comparison is true, and :mini:`nil` if it is not.
+Comparison operators such as :mini:`=`, :mini:`>=`, etc, return the second argument if the comparison is true, and :mini:`nil` if it isn't. Comparisons also return :mini:`nil` if either argument is :mini:`nil`, allowing comparisons to be chained.
 
 .. code-block:: mini
 
-   1 < 2 -- returns 2
-   1 > 2 -- returns nil 
+   1 < 2 :> returns 2
+   1 > 2 :> returns nil
+   
+   1 < 2 < 3 :> returns 3
+   1 < 0 < 3 :> return nil
+
 
 Numbers
 -------
@@ -45,33 +47,40 @@ They support the standard arithmetic operations, comparison operations and conve
 
 .. code-block:: mini
 
-   -- Integers
+   :> Integers
    10
    127
    -1
    
-   --Reals
+   :>Reals
    1.234
    10.
    0.78e-12
 
 .. code-block:: mini
 
-   -- Arithmetic
-   1 + 1 -- 2
-   2 - 1.5 -- 0.5
-   2 * 3 -- 6
-   4 / 2 -- 2
-   3 / 2 -- 1.5
-   3 // 2 -- 1
+   :> Arithmetic
+   1 + 1 :> 2
+   2 - 1.5 :> 0.5
+   2 * 3 :> 6
+   4 / 2 :> 2
+   3 / 2 :> 1.5
+   5 div 2 :> 2
+   5 mod 2 :> 1
    
-   -- Comparison
-   1 < 2 -- 2
-   1 <= 2 -- 2
-   1 = 1.0 -- 1.0
-   1 > 1 -- nil
-   1 >= 1 -- 1
-   1 != 1 -- nil
+   :> Comparison
+   1 < 2 :> 2
+   1 <= 2 :> 2
+   1 = 1.0 :> 1.0
+   1 > 1 :> nil
+   1 >= 1 :> 1
+   1 != 1 :> nil
+
+   :> Conversion
+   integer("1") :> 1
+   real("2.5") :> 2.5
+   number("1") :> integer 1
+   number("1.1") :> real 1.1
 
 Strings
 -------
@@ -84,13 +93,18 @@ Complex strings are written between single quotes ``'`` and can contain the same
 
 .. code-block:: mini
 
-   -- Regular strings
+   :> Regular strings
    "Hello world!"
    "This has a new line\n", "\t"
    
-   -- Complex strings
+   :> Complex strings
    'The value of x is \'{x}\''
    'L:length = {L:length}\n'
+   
+   :> Conversion
+   string(1) :> "1"
+   string([1, 2, 3]) :> "[1, 2, 3]"
+   string([1, 2, 3], ":") :> "1:2:3"
 
 :mini:`String[I]`
    Returns the *I*-th character of *String* as a string of length 1.
@@ -105,8 +119,11 @@ Regular expressions can be written as ``r"expression"``, where *expression* is a
 
 .. code-block:: mini
 
-   -- Regular expressions
+   :> Regular expressions
    r"[0-9]+/[0-9]+/[0-9]+"
+
+   :> Conversion
+   regex("[A-Za-z_]*") :> r"[A-Za-z_]*"
 
 Lists
 -----
@@ -136,12 +153,6 @@ Lists are extendable ordered collections of values, and are created using square
    
 :mini:`List:length`
    Returns the number of elements in *List*.
-   
-:mini:`List:string`
-   Returns *List* converted to a string.
-   
-:mini:`List:join(Sep)`
-   Returns *List* converted to a list with *Sep* between each element.
 
 :mini:`for Value in List do ... end`
    Iterates through the values in *List*.

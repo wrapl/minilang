@@ -86,7 +86,22 @@ var Objects := [
 var Libraries := []
 
 if MINILANG_USEMATH or defined("MATH") then
-	Objects:put(file("ml_math.o"), file("ml_array.o"))
+	file("array"):mkdir
+	Objects:put(
+		file("ml_math.o"),
+		file("ml_array.o"),
+		file("array/update_set.o"),
+		file("array/update_add.o"),
+		file("array/update_sub.o"),
+		file("array/update_mul.o"),
+		file("array/update_div.o"),
+		file("array/compare_eq.o"),
+		file("array/compare_ne.o"),
+		file("array/compare_lt.o"),
+		file("array/compare_gt.o"),
+		file("array/compare_le.o"),
+		file("array/compare_ge.o")
+	)
 	CFLAGS := old + ["-DUSE_ML_MATH"]
 end
 

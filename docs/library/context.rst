@@ -6,7 +6,6 @@ context
 :mini:`fun context()` |rarr| :mini:`context`
    Creates a new context specific key.
 
-   *Defined at line 95 in src/ml_runtime.c*
 
 :mini:`context`
    A context key can be used to create context specific values.
@@ -17,5 +16,4 @@ context
 
    :Parents: :mini:`cfunction`
 
-   *Defined at line 105 in src/ml_runtime.c*
 

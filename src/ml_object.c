@@ -178,7 +178,10 @@ ML_FUNCTION(MLClass) {
 			ml_class_t *Parent = (ml_class_t *)Args[I];
 			for (int I = 0; I < Parent->NumFields; ++I) *Fields++ = Parent->Fields[I];
 			const ml_type_t **Types = Parent->Base.Types;
-			while (*Types != MLObjectT) *Parents++ = *Types++;
+			while (*Types != MLObjectT) {
+				inthash_insert(Class->Base.Parents, (uintptr_t)*Types, (void *)*Types);
+				*Parents++ = *Types++;
+			}
 		} else if (ml_is(Args[I], MLTypeT)) {
 			ml_type_t *Parent = (ml_type_t *)Args[I];
 			const ml_type_t **Types = Parent->Types;
@@ -200,6 +203,8 @@ ML_FUNCTION(MLClass) {
 	}
 	*Parents++ = MLObjectT;
 	*Parents++ = MLAnyT;
+	inthash_insert(Class->Base.Parents, (uintptr_t)MLObjectT, (void *)MLObjectT);
+	inthash_insert(Class->Base.Parents, (uintptr_t)MLAnyT, (void *)MLAnyT);
 	if (Class->NumFields > NumFieldFns) {
 		ml_value_t **NewFieldFns = anew(ml_value_t *, Class->NumFields);
 		memcpy(NewFieldFns, FieldFns, NumFieldFns * sizeof(ml_value_t *));
@@ -213,6 +218,7 @@ ML_FUNCTION(MLClass) {
 		ml_method_by_array(Class->Fields[I], FieldFns[I], 1, (ml_type_t **)&Class);
 	}
 	stringmap_insert(Class->Base.Exports, "new", Constructor);
+	stringmap_insert(Class->Base.Exports, "init", Class->Initializer);
 	return (ml_value_t *)Class;
 }
 

@@ -34,9 +34,18 @@ struct ml_closure_info_t {
 	unsigned char Hash[SHA256_BLOCK_SIZE];
 };
 
+typedef struct ml_param_type_t ml_param_type_t;
+
+struct ml_param_type_t {
+	ml_param_type_t *Next;
+	const ml_type_t *Type;
+	int Index;
+};
+
 struct ml_closure_t {
 	const ml_type_t *Type;
 	ml_closure_info_t *Info;
+	ml_param_type_t *ParamTypes;
 	int PartialCount;
 	ml_value_t *UpValues[];
 };
@@ -77,6 +86,7 @@ typedef enum {
 	MLI_LOAD,
 	MLI_LOAD_PUSH,
 	MLI_VAR,
+	MLI_VAR_TYPE,
 	MLI_VARX,
 	MLI_LET,
 	MLI_LETI,
@@ -100,6 +110,10 @@ typedef enum {
 	MLI_MAP_NEW,
 	MLI_MAP_INSERT,
 	MLI_CLOSURE,
+#ifdef USE_GENERICS
+	MLI_CLOSURE_TYPED,
+#endif
+	MLI_PARAM_TYPE,
 	MLI_PARTIAL_NEW,
 	MLI_PARTIAL_SET,
 	MLI_STRING_NEW,
@@ -155,6 +169,7 @@ typedef struct ml_variable_t ml_variable_t;
 struct ml_variable_t {
 	const ml_type_t *Type;
 	ml_value_t *Value;
+	const ml_type_t *VarType;
 };
 
 extern ml_type_t MLVariableT[];

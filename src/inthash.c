@@ -25,6 +25,21 @@ void *inthash_search(const inthash_t *Map, uintptr_t Key) {
 	} while (Keys[Index] > Key);
 	return NULL;
 }
+
+inthash_result_t inthash_search2(const inthash_t *Map, uintptr_t Key) {
+	if (!Map->Size) return (inthash_result_t){NULL, 0};
+	uintptr_t *Keys = Map->Keys;
+	size_t Mask = Map->Size - 1;
+	size_t Index = (Key >> INDEX_SHIFT) & Mask;
+	if (Keys[Index] == Key) return Map->Values[Index];
+	if (Keys[Index] < Key) return (inthash_result_t){NULL, 0};
+	size_t Incr = (Key >> INCR_SHIFT) | 1;
+	do {
+		Index = (Index + Incr) & Mask;
+		if (Keys[Index] == Key) return (inthash_result_t){Map->Values[Index], 1};
+	} while (Keys[Index] > Key);
+	return (inthash_result_t){NULL, 0};
+}
 #endif
 
 static void inthash_nodes_sort(uintptr_t *KeyA, uintptr_t *KeyB, void **ValueA, void **ValueB) {
