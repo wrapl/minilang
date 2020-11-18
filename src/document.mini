@@ -29,6 +29,7 @@ fun write_category(Category) do
 end
 
 fun type_name(Type) do
+	Type or ret "any"
 	if let Match := Type % r"^ML(.*)T$" then
 		ret Match[2]:lower
 	else
@@ -280,6 +281,30 @@ fun process(FileName) do
 				for Type in Types do
 					Params:put(('Arg/{Params:length + 1}':replace(Subscripts), Type, ""))
 				end
+				write_method(Category, Kind, Method, Params, Return, Description, Location)
+			elseif Line % r"^MATH_REAL" then
+				let Location := (FileName, LineNo)
+				let I := Line:find("("), J := Line:find(")")
+				let Kind := Line[1, I]
+				let Types := ["number"]
+				let Method := (Line[I + 1, J] / ", ")[2]
+				var Category := "math"
+				let Params := []
+				var Return := []
+				let Description := []
+				Params:put((
+					"Arg/1":trim:replace(Subscripts),
+					"number",
+					""
+				))
+				if Kind = "MATH_REAL_REAL" then
+					Params:put((
+						"Arg/2":trim:replace(Subscripts),
+						"number",
+						""
+					))
+				end
+				Return := ["number"]
 				write_method(Category, Kind, Method, Params, Return, Description, Location)
 			elseif Line % r"^ML_FUNCTION" then
 				let Location := (FileName, LineNo)

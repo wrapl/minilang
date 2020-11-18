@@ -65,8 +65,8 @@ iterator
    Returns a map of the values produced by :mini:`Iteratable` with associated counts.
 
 
-:mini:`fun reduce(?Initial: any, Iteratable: iteratable, Function: function)` |rarr| :mini:`any` or :mini:`nil`
-   Returns :mini:`function(function( ... function(Initial, V₁), V₂) ..., Vₙ)` where :mini:`Vᵢ` are the values produced by :mini:`Iteratable`.
+:mini:`fun reduce(?Initial: any, Iteratable: iteratable, Fn: function)` |rarr| :mini:`any` or :mini:`nil`
+   Returns :mini:`Fn(Fn( ... Fn(Initial, V₁), V₂) ..., Vₙ)` where :mini:`Vᵢ` are the values produced by :mini:`Iteratable`.
 
    If :mini:`Initial` is omitted, first value produced by :mini:`Iteratable` is used.
 
@@ -76,7 +76,7 @@ iterator
 
 
 :mini:`fun max(Iteratable: iteratable)` |rarr| :mini:`any` or :mini:`nil`
-   Returns the smallest value (based on :mini:`>`) produced by :mini:`Iteratable`.
+   Returns the largest value (based on :mini:`>`) produced by :mini:`Iteratable`.
 
 
 :mini:`fun sum(Iteratable: iteratable)` |rarr| :mini:`any` or :mini:`nil`
@@ -87,83 +87,41 @@ iterator
    Returns the product of the values (based on :mini:`*`) produced by :mini:`Iteratable`.
 
 
-:mini:`meth *(Arg₁: string, Arg₂: iteratable)`
+:mini:`meth :join(Iteratable: iteratable, Separator: string)` |rarr| :mini:`string`
+   Joins the elements of :mini:`Iteratable` into a string using :mini:`Separator` between elements.
+
 
 :mini:`fun reduce2(Arg₁: iteratable, Arg₂: function)`
 
-:mini:`fun min2(Arg₁: iteratable)`
-
-:mini:`fun max2(Arg₁: iteratable)`
-
-:mini:`stacked`
-   :Parents: :mini:`iteratable`
+:mini:`fun min2(Iteratable: iteratable)` |rarr| :mini:`any` or :mini:`nil`
+   Returns a tuple with the key and value of the smallest value (based on :mini:`<`) produced by :mini:`Iteratable`.
 
 
-:mini:`stackedstate`
-
-:mini:`meth //(Iteratable: iteratable, Reducer: function)` |rarr| :mini:`stacked`
-
-:mini:`limited`
-   :Parents: :mini:`iteratable`
+:mini:`fun max2(Iteratable: iteratable)` |rarr| :mini:`any` or :mini:`nil`
+   Returns a tuple with the key and value of the largest value (based on :mini:`>`) produced by :mini:`Iteratable`.
 
 
-:mini:`meth :count(Arg₁: limited)`
-
-:mini:`limitedstate`
-
-:mini:`meth :limit(Arg₁: iteratable, Arg₂: integer)`
-
-:mini:`skipped`
-   :Parents: :mini:`iteratable`
+:mini:`meth //(Iteratable: iteratable, Fn: function)` |rarr| :mini:`iteratable`
+   Returns an iteratable that produces :mini:`V₁`, :mini:`Fn(V₁, V₂)`, :mini:`Fn(Fn(V₁, V₂), V₃)`, ... .
 
 
-:mini:`meth :skip(Arg₁: iteratable, Arg₂: integer)`
-
-:mini:`tasks`
-   :Parents: :mini:`function`
+:mini:`meth :limit(Iteratable: iteratable, Limit: integer)` |rarr| :mini:`iteratable`
+   Returns an iteratable that produces at most :mini:`Limit` values from :mini:`Iteratable`.
 
 
-:mini:`fun tasks()`
-
-:mini:`meth :add(Arg₁: tasks, Arg₂: any)`
-
-:mini:`meth :wait(Arg₁: tasks)`
-
-:mini:`fun parallel(Iteratable: iteratable, Max: ?integer, Min: ?integer, Function: function)` |rarr| :mini:`nil` or :mini:`error`
-   Iterates through :mini:`Iteratable` and calls :mini:`Function(Key, Value)` for each :mini:`Key, Value` pair produced **without** waiting for the call to return.
-
-   The call to :mini:`parallel` returns when all calls to :mini:`Function` return, or an error occurs.
-
-   If :mini:`Max` is given, at most :mini:`Max` calls to :mini:`Function` will run at a time by pausing iteration through :mini:`Iteratable`.
-
-   If :mini:`Min` is also given then iteration will be resumed only when the number of calls to :mini:`Function` drops to :mini:`Min`.
+:mini:`meth :skip(Iteratable: iteratable, Skip: integer)` |rarr| :mini:`iteratable`
+   Returns an iteratable that skips the first :mini:`Skip` values from :mini:`Iteratable` and then produces the rest.
 
 
-:mini:`unique`
-   :Parents: :mini:`iteratable`
+:mini:`fun unique(Iteratable: any)` |rarr| :mini:`iteratable`
+   Returns an iteratable that returns the unique values produced by :mini:`Iteratable` (based on inserting into a :mini:`map`).
 
-
-:mini:`uniquestate`
-
-:mini:`fun unique(Arg₁: any)`
-
-:mini:`zipped`
-   :Parents: :mini:`iteratable`
-
-
-:mini:`zippedstate`
 
 :mini:`fun zip(Iteratable₁: iteratable, ...: iteratable, Iteratableₙ: iteratable, Function: any)` |rarr| :mini:`iteratable`
    Returns a new iteratable that draws values :mini:`Vᵢ` from each of :mini:`Iteratableᵢ` and then produces :mini:`Functon(V₁, V₂, ..., Vₙ)`.
 
    The iteratable stops produces values when any of the :mini:`Iteratableᵢ` stops.
 
-
-:mini:`repeated`
-   :Parents: :mini:`iteratable`
-
-
-:mini:`repeatedstate`
 
 :mini:`meth @(Value: any)` |rarr| :mini:`iteratable`
    Returns an iteratable that repeatedly produces :mini:`Value`.
@@ -175,21 +133,13 @@ iterator
    :mini:`Value` is replaced with :mini:`Update(Value)` after each iteration.
 
 
-:mini:`sequenced`
-   :Parents: :mini:`iteratable`
+:mini:`meth >>(Iteratable₁: iteratable, Iteratable₂: iteratable)` |rarr| :mini:`Iteratable`
+   Returns an iteratable that produces the values from :mini:`Iteratable₁` followed by those from :mini:`Iteratable₂`.
 
 
-:mini:`sequencedstate`
+:mini:`meth >>(Iteratable: iteratable)` |rarr| :mini:`Iteratable`
+   Returns an iteratable that repeatedly produces the values from :mini:`Iteratable` (for use with :mini:`limit`).
 
-:mini:`meth >>(Arg₁: iteratable, Arg₂: iteratable)`
-
-:mini:`meth >>(Arg₁: iteratable)`
-
-:mini:`weaved`
-   :Parents: :mini:`iteratable`
-
-
-:mini:`weavedstate`
 
 :mini:`fun weave(Iteratable₁: iteratable, ...: iteratable, Iteratableₙ: iteratable)` |rarr| :mini:`iteratable`
    Returns a new iteratable that produces interleaved values :mini:`Vᵢ` from each of :mini:`Iteratableᵢ`.
@@ -197,23 +147,11 @@ iterator
    The iteratable stops produces values when any of the :mini:`Iteratableᵢ` stops.
 
 
-:mini:`swapped`
-   :Parents: :mini:`iteratable`
-
-
-:mini:`swappedstate`
-
 :mini:`fun swap(Iteratable: iteratable)`
    Returns a new iteratable which swaps the keys and values produced by :mini:`Iteratable`.
 
 
-:mini:`key`
-   :Parents: :mini:`iteratable`
-
-
-:mini:`keystate`
-
-:mini:`fun swap(Iteratable: iteratable)`
+:mini:`fun key(Iteratable: iteratable)`
    Returns a new iteratable which produces the keys of :mini:`Iteratable`.
 
 

@@ -698,9 +698,9 @@ static void reduce_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 ML_FUNCTIONX(Reduce) {
 //<?Initial:any
 //<Iteratable:iteratable
-//<Function:function
+//<Fn:function
 //>any | nil
-// Returns :mini:`function(function( ... function(Initial, V/1), V/2) ..., V/n)` where :mini:`V/i` are the values produced by :mini:`Iteratable`.
+// Returns :mini:`Fn(Fn( ... Fn(Initial, V/1), V/2) ..., V/n)` where :mini:`V/i` are the values produced by :mini:`Iteratable`.
 // If :mini:`Initial` is omitted, first value produced by :mini:`Iteratable` is used.
 	ML_CHECKX_ARG_COUNT(2);
 	if (Count == 2) {
@@ -742,7 +742,7 @@ ML_FUNCTIONX(Min) {
 ML_FUNCTIONX(Max) {
 //<Iteratable
 //>any | nil
-// Returns the smallest value (based on :mini:`>`) produced by :mini:`Iteratable`.
+// Returns the largest value (based on :mini:`>`) produced by :mini:`Iteratable`.
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
@@ -813,15 +813,19 @@ static void join_first(ml_join_state_t *State, ml_value_t *Value) {
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_METHODVX("*", MLStringT, MLIteratableT) {
+ML_METHODVX("join", MLIteratableT, MLStringT) {
+//<Iteratable
+//<Separator
+//>string
+// Joins the elements of :mini:`Iteratable` into a string using :mini:`Separator` between elements.
 	ml_join_state_t *State = new(ml_join_state_t);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)join_first;
 	State->Base.Context = Caller->Context;
-	State->Separator = ml_string_value(Args[0]);
-	State->SeparatorLength = ml_string_length(Args[0]);
+	State->Separator = ml_string_value(Args[1]);
+	State->SeparatorLength = ml_string_length(Args[1]);
 	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
-	return ml_iterate((ml_state_t *)State, ml_chained(Count - 1, Args + 1));
+	return ml_iterate((ml_state_t *)State, Args[0]);
 }
 
 static void reduce2_iter_next(ml_iter_state_t *State, ml_value_t *Value);
@@ -904,6 +908,9 @@ ML_FUNCTIONX(Reduce2) {
 }
 
 ML_FUNCTIONX(Min2) {
+//<Iteratable
+//>any | nil
+// Returns a tuple with the key and value of the smallest value (based on :mini:`<`) produced by :mini:`Iteratable`.
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 4, ml_value_t *);
@@ -915,6 +922,9 @@ ML_FUNCTIONX(Min2) {
 }
 
 ML_FUNCTIONX(Max2) {
+//<Iteratable
+//>any | nil
+// Returns a tuple with the key and value of the largest value (based on :mini:`>`) produced by :mini:`Iteratable`.
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 4, ml_value_t *);
@@ -931,8 +941,10 @@ typedef struct ml_stacked_t {
 } ml_stacked_t;
 
 ML_TYPE(MLStackedT, (MLIteratableT), "stacked");
+//!internal
 
 ML_TYPE(MLStackedStateT, (), "stacked-state");
+//!internal
 
 static void stacked_iter_next(ml_iter_state_t *State, ml_value_t *Value);
 
@@ -1000,8 +1012,9 @@ static void ML_TYPED_FN(ml_iterate, MLStackedT, ml_state_t *Caller, ml_stacked_t
 
 ML_METHOD("//", MLIteratableT, MLFunctionT) {
 //<Iteratable
-//<Reducer
-//>stacked
+//<Fn
+//>iteratable
+// Returns an iteratable that produces :mini:`V/1`, :mini:`Fn(V/1, V/2)`, :mini:`Fn(Fn(V/1, V/2), V/3)`, ... .
 	ml_stacked_t *Stacked = new(ml_stacked_t);
 	Stacked->Type = MLStackedT;
 	Stacked->Value = Args[0];
@@ -1016,8 +1029,10 @@ typedef struct ml_limited_t {
 } ml_limited_t;
 
 ML_TYPE(MLLimitedT, (MLIteratableT), "limited");
+//!internal
 
 ML_METHOD("count", MLLimitedT) {
+//!internal
 	ml_limited_t *Limited = (ml_limited_t *)Args[0];
 	return ml_integer(Limited->Remaining);
 }
@@ -1029,6 +1044,7 @@ typedef struct ml_limited_state_t {
 } ml_limited_state_t;
 
 ML_TYPE(MLLimitedStateT, (), "limited-state");
+//!internal
 
 static void limited_iterate(ml_limited_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
@@ -1071,6 +1087,10 @@ static void ML_TYPED_FN(ml_iter_next, MLLimitedStateT, ml_state_t *Caller, ml_li
 }
 
 ML_METHOD("limit", MLIteratableT, MLIntegerT) {
+//<Iteratable
+//<Limit
+//>iteratable
+// Returns an iteratable that produces at most :mini:`Limit` values from :mini:`Iteratable`.
 	ml_limited_t *Limited = new(ml_limited_t);
 	Limited->Type = MLLimitedT;
 	Limited->Value = Args[0];
@@ -1085,6 +1105,7 @@ typedef struct ml_skipped_t {
 } ml_skipped_t;
 
 ML_TYPE(MLSkippedT, (MLIteratableT), "skipped");
+//!internal
 
 typedef struct ml_skipped_state_t {
 	ml_state_t Base;
@@ -1116,6 +1137,10 @@ static void ML_TYPED_FN(ml_iterate, MLSkippedT, ml_state_t *Caller, ml_skipped_t
 }
 
 ML_METHOD("skip", MLIteratableT, MLIntegerT) {
+//<Iteratable
+//<Skip
+//>iteratable
+// Returns an iteratable that skips the first :mini:`Skip` values from :mini:`Iteratable` and then produces the rest.
 	ml_skipped_t *Skipped = new(ml_skipped_t);
 	Skipped->Type = MLSkippedT;
 	Skipped->Value = Args[0];
@@ -1145,6 +1170,8 @@ static void ml_tasks_call(ml_state_t *Caller, ml_tasks_t *Tasks, int Count, ml_v
 }
 
 ML_TYPE(MLTasksT, (MLFunctionT), "tasks",
+//!tasks
+// A dynamic set of tasks (function calls). Multiple tasks can run in parallel (depending on the availability of a scheduler and/or asynchronous function calls).
 	.call = (void *)ml_tasks_call
 );
 
@@ -1160,6 +1187,13 @@ static void ml_tasks_continue(ml_tasks_t *Tasks, ml_value_t *Value) {
 }
 
 ML_FUNCTIONX(Tasks) {
+//!tasks
+//<?Max:integer
+//<?Min:integer
+//>tasks
+// Creates a new :mini:`tasks` set.
+// If specified, at most :mini:`Max` functions will be called in parallel (the default is unlimited).
+// If :mini:`Min` is also specified then the number of running tasks must drop below :mini:`Min` before more tasks are launched.
 	ml_tasks_t *Tasks = new(ml_tasks_t);
 	Tasks->Base.Type = MLTasksT;
 	Tasks->Base.run = (void *)ml_tasks_continue;
@@ -1184,6 +1218,12 @@ ML_FUNCTIONX(Tasks) {
 }
 
 ML_METHODVX("add", MLTasksT, MLAnyT) {
+//!tasks
+//<Tasks
+//<Function
+//<?Args...
+// Adds the function call :mini:`Function(Args...)` to a set of tasks.
+// Adding a task to a completed tasks set returns an error.
 	ml_tasks_t *Tasks = (ml_tasks_t *)Args[0];
 	if (!Tasks->Waiting) ML_ERROR("TasksError", "Tasks have already completed");
 	if (Tasks->Value != MLNil) ML_RETURN(Tasks->Value);
@@ -1199,6 +1239,10 @@ ML_METHODVX("add", MLTasksT, MLAnyT) {
 }
 
 ML_METHODX("wait", MLTasksT) {
+//!tasks
+//<Tasks
+//>nil | error
+// Waits until all of the tasks in a tasks set have returned, or one of the tasks has returned an error (which is then returned from this call).
 	ml_tasks_t *Tasks = (ml_tasks_t *)Args[0];
 	Tasks->Base.Caller = Caller;
 	Tasks->Base.Context = Caller->Context;
@@ -1265,6 +1309,7 @@ static void parallel_continue(ml_parallel_t *Parallel, ml_value_t *Value) {
 }
 
 ML_FUNCTIONX(Parallel) {
+//!tasks
 //<Iteratable
 //<Max:?integer
 //<Min:?integer
@@ -1275,7 +1320,6 @@ ML_FUNCTIONX(Parallel) {
 // If :mini:`Max` is given, at most :mini:`Max` calls to :mini:`Function` will run at a time by pausing iteration through :mini:`Iteratable`.
 // If :mini:`Min` is also given then iteration will be resumed only when the number of calls to :mini:`Function` drops to :mini:`Min`.
 	ML_CHECKX_ARG_COUNT(2);
-	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
 
 	ml_parallel_t *Parallel = new(ml_parallel_t);
 	Parallel->Base.Caller = Caller;
@@ -1318,6 +1362,7 @@ typedef struct ml_unique_t {
 } ml_unique_t;
 
 ML_TYPE(MLUniqueT, (MLIteratableT), "unique");
+//!internal
 
 typedef struct ml_unique_state_t {
 	ml_state_t Base;
@@ -1328,6 +1373,7 @@ typedef struct ml_unique_state_t {
 } ml_unique_state_t;
 
 ML_TYPE(MLUniqueStateT, (), "unique-state");
+//!internal
 
 static void ml_unique_fnx_iterate(ml_unique_state_t *State, ml_value_t *Value);
 
@@ -1376,10 +1422,12 @@ static void ML_TYPED_FN(ml_iter_next, MLUniqueStateT, ml_state_t *Caller, ml_uni
 }
 
 ML_FUNCTION(Unique) {
+//<Iteratable
+//>iteratable
+// Returns an iteratable that returns the unique values produced by :mini:`Iteratable` (based on inserting into a :mini:`map`).
 	ML_CHECK_ARG_COUNT(1);
 	ml_unique_t *Unique = new(ml_unique_t);
 	Unique->Type = MLUniqueT;
-	//Unique->Iter = Args[0];
 	Unique->Iter = ml_chained(Count, Args);
 	return (ml_value_t *)Unique;
 }
@@ -1392,6 +1440,7 @@ typedef struct ml_zipped_t {
 } ml_zipped_t;
 
 ML_TYPE(MLZippedT, (MLIteratableT), "zipped");
+//!internal
 
 typedef struct ml_zipped_state_t {
 	ml_state_t Base;
@@ -1402,6 +1451,7 @@ typedef struct ml_zipped_state_t {
 } ml_zipped_state_t;
 
 ML_TYPE(MLZippedStateT, (), "zipped-state");
+//!internal
 
 static void zipped_iterate(ml_zipped_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
@@ -1487,6 +1537,7 @@ typedef struct ml_repeated_t {
 } ml_repeated_t;
 
 ML_TYPE(MLRepeatedT, (MLIteratableT), "repeated");
+//!internal
 
 typedef struct ml_repeated_state_t {
 	ml_state_t Base;
@@ -1495,6 +1546,7 @@ typedef struct ml_repeated_state_t {
 } ml_repeated_state_t;
 
 ML_TYPE(MLRepeatedStateT, (), "repeated-state");
+//!internal
 
 static void repeated_update(ml_repeated_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
@@ -1563,6 +1615,7 @@ typedef struct ml_sequenced_t {
 } ml_sequenced_t;
 
 ML_TYPE(MLSequencedT, (MLIteratableT), "sequenced");
+//!internal
 
 typedef struct ml_sequenced_state_t {
 	ml_state_t Base;
@@ -1570,6 +1623,7 @@ typedef struct ml_sequenced_state_t {
 } ml_sequenced_state_t;
 
 ML_TYPE(MLSequencedStateT, (), "sequenced-state");
+//!internal
 
 static void ml_sequenced_fnx_iterate(ml_sequenced_state_t *State, ml_value_t *Value);
 
@@ -1606,6 +1660,10 @@ static void ML_TYPED_FN(ml_iterate, MLSequencedT, ml_state_t *Caller, ml_sequenc
 }
 
 ML_METHOD(">>", MLIteratableT, MLIteratableT) {
+//<Iteratable/1
+//<Iteratable/2
+//>Iteratable
+// Returns an iteratable that produces the values from :mini:`Iteratable/1` followed by those from :mini:`Iteratable/2`.
 	ml_sequenced_t *Sequenced = xnew(ml_sequenced_t, 3, ml_value_t *);
 	Sequenced->Type = MLSequencedT;
 	Sequenced->First = Args[0];
@@ -1614,6 +1672,9 @@ ML_METHOD(">>", MLIteratableT, MLIteratableT) {
 }
 
 ML_METHOD(">>", MLIteratableT) {
+//<Iteratable
+//>Iteratable
+// Returns an iteratable that repeatedly produces the values from :mini:`Iteratable` (for use with :mini:`limit`).
 	ml_sequenced_t *Sequenced = xnew(ml_sequenced_t, 3, ml_value_t *);
 	Sequenced->Type = MLSequencedT;
 	Sequenced->First = Args[0];
@@ -1628,6 +1689,7 @@ typedef struct ml_weaved_t {
 } ml_weaved_t;
 
 ML_TYPE(MLWeavedT, (MLIteratableT), "weaved");
+//!internal
 
 typedef struct ml_weaved_state_t {
 	ml_state_t Base;
@@ -1636,6 +1698,7 @@ typedef struct ml_weaved_state_t {
 } ml_weaved_state_t;
 
 ML_TYPE(MLWeavedStateT, (), "weaved-state");
+//!internal
 
 static void weaved_iterate(ml_weaved_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
@@ -1696,6 +1759,7 @@ typedef struct {
 } ml_swapped_t;
 
 ML_TYPE(MLSwappedT, (MLIteratableT), "swapped");
+//!internal
 
 typedef struct {
 	ml_state_t Base;
@@ -1703,6 +1767,7 @@ typedef struct {
 } ml_swapped_state_t;
 
 ML_TYPE(MLSwappedStateT, (), "swapped-state");
+//!internal
 
 static void swapped_iterate(ml_swapped_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
@@ -1750,6 +1815,7 @@ typedef struct {
 } ml_key_t;
 
 ML_TYPE(MLKeyT, (MLIteratableT), "key");
+//!internal
 
 typedef struct {
 	ml_state_t Base;
@@ -1758,6 +1824,7 @@ typedef struct {
 } ml_key_state_t;
 
 ML_TYPE(MLKeyStateT, (), "keys-state");
+//!internal
 
 static void key_iterate(ml_key_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
@@ -1789,7 +1856,7 @@ static void ML_TYPED_FN(ml_iter_next, MLKeyStateT, ml_state_t *Caller, ml_key_st
 }
 
 ML_FUNCTION(Key) {
-//@swap
+//@key
 //<Iteratable:iteratable
 // Returns a new iteratable which produces the keys of :mini:`Iteratable`.
 	ML_CHECK_ARG_COUNT(1);
