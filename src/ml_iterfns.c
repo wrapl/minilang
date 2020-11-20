@@ -624,7 +624,7 @@ static void count2_value(ml_count2_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value != MLNil) {
 		ml_map_node_t *Node = ml_map_slot(State->Counts, Value);
-		Node->Value = ml_integer((Node->Value ? ml_integer_value(Node->Value) : 0) + 1);
+		Node->Value = (ml_value_t *)((char *)Node->Value + 1);
 	}
 	State->Base.run = (void *)count2_iterate;
 	return ml_iter_next((ml_state_t *)State, State->Iter);
@@ -632,7 +632,10 @@ static void count2_value(ml_count2_state_t *State, ml_value_t *Value) {
 
 static void count2_iterate(ml_count2_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Counts);
+	if (Value == MLNil) {
+		ML_MAP_FOREACH(State->Counts, Iter) Iter->Value = ml_integer((char *)Iter->Value - (char *)0);
+		ML_CONTINUE(State->Base.Caller, State->Counts);
+	}
 	State->Base.run = (void *)count2_value;
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
@@ -1094,7 +1097,7 @@ ML_METHOD("limit", MLIteratableT, MLIntegerT) {
 	ml_limited_t *Limited = new(ml_limited_t);
 	Limited->Type = MLLimitedT;
 	Limited->Value = Args[0];
-	Limited->Remaining = ml_integer_value(Args[1]);
+	Limited->Remaining = ml_integer_value_fast(Args[1]);
 	return (ml_value_t *)Limited;
 }
 
@@ -1144,7 +1147,7 @@ ML_METHOD("skip", MLIteratableT, MLIntegerT) {
 	ml_skipped_t *Skipped = new(ml_skipped_t);
 	Skipped->Type = MLSkippedT;
 	Skipped->Value = Args[0];
-	Skipped->Remaining = ml_integer_value(Args[1]);
+	Skipped->Remaining = ml_integer_value_fast(Args[1]);
 	return (ml_value_t *)Skipped;
 }
 
@@ -1204,11 +1207,11 @@ ML_FUNCTIONX(Tasks) {
 	if (Count >= 2) {
 		ML_CHECKX_ARG_TYPE(0, MLIntegerT);
 		ML_CHECKX_ARG_TYPE(1, MLIntegerT);
-		Tasks->Limit = ml_integer_value(Args[1]);
-		Tasks->Burst = ml_integer_value(Args[0]) + 1;
+		Tasks->Limit = ml_integer_value_fast(Args[1]);
+		Tasks->Burst = ml_integer_value_fast(Args[0]) + 1;
 	} else if (Count >= 1) {
 		ML_CHECKX_ARG_TYPE(0, MLIntegerT);
-		Tasks->Limit = ml_integer_value(Args[0]);
+		Tasks->Limit = ml_integer_value_fast(Args[0]);
 		Tasks->Burst = SIZE_MAX;
 	} else {
 		Tasks->Limit = SIZE_MAX;
@@ -1337,13 +1340,13 @@ ML_FUNCTIONX(Parallel) {
 		ML_CHECKX_ARG_TYPE(1, MLIntegerT);
 		ML_CHECKX_ARG_TYPE(2, MLIntegerT);
 		ML_CHECKX_ARG_TYPE(3, MLFunctionT);
-		Parallel->Limit = ml_integer_value(Args[2]);
-		Parallel->Burst = ml_integer_value(Args[1]) + 1;
+		Parallel->Limit = ml_integer_value_fast(Args[2]);
+		Parallel->Burst = ml_integer_value_fast(Args[1]) + 1;
 		Parallel->Function = Args[3];
 	} else if (Count > 2) {
 		ML_CHECKX_ARG_TYPE(1, MLIntegerT);
 		ML_CHECKX_ARG_TYPE(2, MLFunctionT);
-		Parallel->Limit = ml_integer_value(Args[1]);
+		Parallel->Limit = ml_integer_value_fast(Args[1]);
 		Parallel->Burst = SIZE_MAX;
 		Parallel->Function = Args[2];
 	} else {

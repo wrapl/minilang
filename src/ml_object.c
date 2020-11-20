@@ -153,22 +153,23 @@ static void ml_named_init_state_run(ml_named_init_state_t *State, ml_value_t *Re
 }
 
 static void ml_named_constructor_fn(ml_state_t *Caller, ml_named_type_t *Class, int Count, ml_value_t **Args) {
-	if (!Class->Initializer) {
-		ml_named_init_state_t *State = new(ml_named_init_state_t);
-		State->Base.run = (void *)ml_named_init_state_run;
-		State->Base.Caller = Caller;
-		State->Base.Context = Caller->Context;
-		State->Old = Class->Native;
-		State->New = (ml_type_t *)Class;
-		return ml_call(State, Class->Native->Constructor, Count, Args);
-	} else {
-		ml_named_init_state_t *State = xnew(ml_named_init_state_t, Count + 1, ml_value_t *);
-		for (int I = 0; I < Count; ++I) State->Args[I + 1] = Args[I];
-		State->Base.run = (void *)ml_named_init_state_run;
-		State->Base.Caller = Caller;
-		State->Base.Context = Caller->Context;
-		return ml_call(State, Class->Native->Constructor, 0, NULL);
-	}
+	ml_named_init_state_t *State = new(ml_named_init_state_t);
+	State->Base.run = (void *)ml_named_init_state_run;
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Old = Class->Native;
+	State->New = (ml_type_t *)Class;
+	return ml_call(State, Class->Native->Constructor, Count, Args);
+}
+
+static void ml_named_initializer_fn(ml_state_t *Caller, ml_named_type_t *Class, int Count, ml_value_t **Args) {
+	ml_named_init_state_t *State = xnew(ml_named_init_state_t, Count + 1, ml_value_t *);
+	for (int I = 0; I < Count; ++I) State->Args[I + 1] = Args[I];
+	State->Base.run = (void *)ml_named_init_state_run;
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Init = Class->Initializer;
+	return ml_call(State, Class->Native->Constructor, 0, NULL);
 }
 
 ML_FUNCTION(MLClass) {
@@ -251,12 +252,14 @@ ML_FUNCTION(MLClass) {
 				ML_LIST_FOREACH(Args[I], Iter) {
 					ml_value_t *Key = Iter->Value;
 					const char *Name = ml_method_name(Key);
+					ml_value_t *Value = Args[++I];
+					stringmap_insert(Class->Base.Exports, Name, Value);
 					if (!strcmp(Name, "of")) {
-						Class->Base.Constructor = Args[++I];
+						Class->Base.Constructor = Value;
 					} else if (!strcmp(Name, "init")) {
-						Class->Initializer = Args[++I];
-					} else {
-						stringmap_insert(Class->Base.Exports, Name, Args[++I]);
+						Class->Initializer = Value;
+						Class->Base.Constructor = ml_cfunctionx(Class, (void *)ml_named_initializer_fn);
+
 					}
 				}
 				break;
@@ -265,7 +268,6 @@ ML_FUNCTION(MLClass) {
 		*Parents++ = MLAnyT;
 		inthash_insert(Class->Base.Parents, (uintptr_t)MLAnyT, (void *)MLAnyT);
 		stringmap_insert(Class->Base.Exports, "new", Constructor);
-		if (Class->Initializer) stringmap_insert(Class->Base.Exports, "init", Class->Initializer);
 		return (ml_value_t *)Class;
 	} else {
 		ml_class_t *Class = xnew(ml_class_t, NumFields, ml_value_t *);
@@ -308,12 +310,12 @@ ML_FUNCTION(MLClass) {
 				ML_LIST_FOREACH(Args[I], Iter) {
 					ml_value_t *Key = Iter->Value;
 					const char *Name = ml_method_name(Key);
+					ml_value_t *Value = Args[++I];
+					stringmap_insert(Class->Base.Exports, Name, Value);
 					if (!strcmp(Name, "of")) {
-						Class->Base.Constructor = Args[++I];
+						Class->Base.Constructor = Value;
 					} else if (!strcmp(Name, "init")) {
-						Class->Initializer = Args[++I];
-					} else {
-						stringmap_insert(Class->Base.Exports, Name, Args[++I]);
+						Class->Initializer = Value;
 					}
 				}
 				break;
@@ -336,7 +338,6 @@ ML_FUNCTION(MLClass) {
 			ml_method_by_array(Class->Fields[I], FieldFns[I], 1, (ml_type_t **)&Class);
 		}
 		stringmap_insert(Class->Base.Exports, "new", Constructor);
-		if (Class->Initializer) stringmap_insert(Class->Base.Exports, "init", Class->Initializer);
 		return (ml_value_t *)Class;
 	}
 }
@@ -446,7 +447,7 @@ static void ml_enum_call(ml_state_t *Caller, ml_enum_t *Enum, int Count, ml_valu
 		if (!Value) ML_ERROR("EnumError", "Invalid enum name");
 		ML_RETURN(Value);
 	} else if (ml_is(Args[0], MLIntegerT)) {
-		int Index = ml_integer_value(Args[0]) - 1;
+		int Index = ml_integer_value_fast(Args[0]) - 1;
 		if (Index < 0 || Index >= Enum->NumValues) ML_ERROR("EnumError", "Invalid enum index");
 		ML_RETURN(Enum->Values[Index]);
 	} else {

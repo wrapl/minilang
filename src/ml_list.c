@@ -57,7 +57,7 @@ static void ml_list_call(ml_state_t *Caller, ml_list_t *List, int Count, ml_valu
 	ml_value_t *Arg = ml_deref(Args[0]);
 	//if (ml_is_error(Arg)) ML_RETURN(Arg);
 	if (ml_typeof(Arg) != MLIntegerT) ML_RETURN(ml_error("TypeError", "List index must be an integer"));
-	int Index = ml_integer_value(Args[0]);
+	int Index = ml_integer_value_fast(Args[0]);
 	ml_list_node_t *Node = ml_list_index(List, Index);
 	ML_RETURN(Node ? Node->Value : MLNil);
 }
@@ -333,7 +333,7 @@ ML_METHOD("[]", MLListT, MLIntegerT) {
 // Returns the :mini:`Index`-th node in :mini:`List` or :mini:`nil` if :mini:`Index` is outside the range of :mini:`List`.
 // Indexing starts at :mini:`1`. Negative indices are counted from the end of the list, with :mini:`-1` returning the last node.
 	ml_list_t *List = (ml_list_t *)Args[0];
-	int Index = ml_integer_value(Args[1]);
+	int Index = ml_integer_value_fast(Args[1]);
 	return (ml_value_t *)ml_list_index(List, Index) ?: MLNil;
 }
 
@@ -385,8 +385,8 @@ ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
 // Returns a slice of :mini:`List` starting at :mini:`From` (inclusive) and ending at :mini:`To` (exclusive).
 // Indexing starts at :mini:`1`. Negative indices are counted from the end of the list, with :mini:`-1` returning the last node.
 	ml_list_t *List = (ml_list_t *)Args[0];
-	int Start = ml_integer_value(Args[1]);
-	int End = ml_integer_value(Args[2]);
+	int Start = ml_integer_value_fast(Args[1]);
+	int End = ml_integer_value_fast(Args[2]);
 	if (Start <= 0) Start += List->Length + 1;
 	if (End <= 0) End += List->Length + 1;
 	if (Start <= 0 || End < Start || End > List->Length + 1) return MLNil;

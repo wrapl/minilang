@@ -76,7 +76,7 @@ ML_FUNCTION(MLPrint) {
 ML_FUNCTION(MLHalt) {
 	if (Count > 0) {
 		ML_CHECK_ARG_TYPE(0, MLIntegerT);
-		exit(ml_integer_value(Args[0]));
+		exit(ml_integer_value_fast(Args[0]));
 	} else {
 		exit(0);
 	}

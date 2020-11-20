@@ -47,7 +47,7 @@ static void node_append(ml_value_t *List, ml_value_t *Node) {
 			ml_list_put(List, Node);
 		}
 	} else if (ml_is(Node, MLIntegerT)) {
-		ml_list_put(List, ml_string_format("%ld", ml_integer_value(Node)));
+		ml_list_put(List, ml_string_format("%ld", ml_integer_value_fast(Node)));
 	} else if (ml_is(Node, MLRealT)) {
 		ml_list_put(List, ml_string_format("%f", ml_real_value(Node)));
 	} else if (ml_is(Node, XENodeT)) {
@@ -506,7 +506,7 @@ static void compile_inline_value(ml_value_t *Value, ml_stringbuffer_t *Source) {
 	} else if (ml_is(Value, MLStringT)) {
 		compile_string(Value, Source);
 	} else if (ml_is(Value, MLIntegerT)) {
-		ml_stringbuffer_addf(Source, "%ld", ml_integer_value(Value));
+		ml_stringbuffer_addf(Source, "%ld", ml_integer_value_fast(Value));
 	} else if (ml_is(Value, MLRealT)) {
 		ml_stringbuffer_addf(Source, "%f", ml_real_value(Value));
 	} else {
@@ -555,7 +555,7 @@ static void compile_inline_node(ml_value_t *Value, ml_stringbuffer_t *Source) {
 	} else if (ml_is(Value, MLStringT)) {
 		compile_string(Value, Source);
 	} else if (ml_is(Value, MLIntegerT)) {
-		ml_stringbuffer_addf(Source, "%ld", ml_integer_value(Value));
+		ml_stringbuffer_addf(Source, "%ld", ml_integer_value_fast(Value));
 	} else if (ml_is(Value, MLRealT)) {
 		ml_stringbuffer_addf(Source, "%f", ml_real_value(Value));
 	} else {
@@ -867,7 +867,7 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, XEVarT) {
 ML_METHOD(MLStringOfMethod, XEVarT) {
 	xe_var_t *Var = (xe_var_t *)Args[0];
 	if (ml_is(Var->Name, MLIntegerT)) {
-		return ml_string_format("<$%ld>", ml_integer_value(Var->Name));
+		return ml_string_format("<$%ld>", ml_integer_value_fast(Var->Name));
 	} else {
 		return ml_string_format("<$%s>", ml_string_value(Var->Name));
 	}

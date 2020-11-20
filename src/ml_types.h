@@ -123,8 +123,6 @@ extern ml_type_t MLNilT[];
 extern ml_value_t MLNil[];
 extern ml_value_t MLSome[];
 
-int ml_is(const ml_value_t *Value, const ml_type_t *Type) __attribute__ ((pure));
-
 long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain);
 long ml_hash(ml_value_t *Value);
 
@@ -156,6 +154,26 @@ static inline double ml_to_double(const ml_value_t *Value) {
 	Boxed.Value = Value;
 	Boxed.Bits -= 0x07000000000000;
 	return Boxed.Double;
+}
+
+#else
+
+typedef struct {
+	const ml_type_t *Type;
+	long Value;
+} ml_integer_t;
+
+inline long ml_integer_value_fast(const ml_value_t *Value) {
+	return ((ml_integer_t *)Value)->Value;
+}
+
+typedef struct {
+	const ml_type_t *Type;
+	double Value;
+} ml_real_t;
+
+inline double ml_real_value_fast(const ml_value_t *Value) {
+	return ((ml_real_t *)Value)->Value;
 }
 
 #endif
@@ -724,6 +742,13 @@ static inline ml_value_t *ml_deref(ml_value_t *Value) {
 }
 
 #endif
+
+static inline int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
+	const ml_type_t *Type = ml_typeof(Value);
+	if (Type == Expected) return 1;
+	if (inthash_search(Type->Parents, (uintptr_t)Expected)) return 1;
+	return 0;
+}
 
 static inline ml_value_t *ml_assign(ml_value_t *Value, ml_value_t *Value2) {
 	return ml_typeof(Value)->assign(Value, Value2);

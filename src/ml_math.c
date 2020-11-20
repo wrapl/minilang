@@ -25,8 +25,8 @@ ML_METHOD("^", MLNumberT, MLNumberT) {
 }
 
 ML_METHOD("^", MLIntegerT, MLIntegerT) {
-	int64_t Base = ml_integer_value(Args[0]);
-	int64_t Exponent = ml_integer_value(Args[1]);
+	int64_t Base = ml_integer_value_fast(Args[0]);
+	int64_t Exponent = ml_integer_value_fast(Args[1]);
 	if (Exponent >= 0) {
 		int64_t N = 1;
 		while (Exponent) {

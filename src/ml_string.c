@@ -22,7 +22,7 @@ ML_FUNCTION(MLBuffer) {
 //>buffer
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
-	long Size = ml_integer_value(Args[0]);
+	long Size = ml_integer_value_fast(Args[0]);
 	if (Size < 0) return ml_error("ValueError", "Buffer size must be non-negative");
 	ml_buffer_t *Buffer = new(ml_buffer_t);
 	Buffer->Type = MLBufferT;
@@ -42,7 +42,7 @@ ML_METHOD("+", MLBufferT, MLIntegerT) {
 //<Offset
 //>buffer
 	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
-	long Offset = ml_integer_value(Args[1]);
+	long Offset = ml_integer_value_fast(Args[1]);
 	if (Offset >= Buffer->Size) return ml_error("ValueError", "Offset larger than buffer");
 	ml_buffer_t *Buffer2 = new(ml_buffer_t);
 	Buffer2->Type = MLBufferT;
@@ -233,21 +233,21 @@ ML_METHOD(MLStringOfMethod, MLBooleanT) {
 
 static ml_value_t *ML_TYPED_FN(ml_string_of, MLIntegerT, ml_value_t *Integer) {
 	char *Value;
-	int Length = asprintf(&Value, "%ld", ml_integer_value(Integer));
+	int Length = asprintf(&Value, "%ld", ml_integer_value_fast(Integer));
 	return ml_string(Value, Length);
 }
 
 ML_METHOD(MLStringOfMethod, MLIntegerT) {
 //!number
 	char *Value;
-	int Length = asprintf(&Value, "%ld", ml_integer_value(Args[0]));
+	int Length = asprintf(&Value, "%ld", ml_integer_value_fast(Args[0]));
 	return ml_string(Value, Length);
 }
 
 ML_METHOD(MLStringOfMethod, MLIntegerT, MLIntegerT) {
 //!number
-	int64_t Value = ml_integer_value(Args[0]);
-	int Base = ml_integer_value(Args[1]);
+	int64_t Value = ml_integer_value_fast(Args[0]);
+	int Base = ml_integer_value_fast(Args[1]);
 	if (Base < 2 || Base > 36) return ml_error("RangeError", "Invalid base");
 	int Max = 65;
 	char *P = GC_MALLOC_ATOMIC(Max + 1) + Max, *Q = P;
@@ -263,14 +263,14 @@ ML_METHOD(MLStringOfMethod, MLIntegerT, MLIntegerT) {
 
 static ml_value_t *ML_TYPED_FN(ml_string_of, MLRealT, ml_value_t *Real) {
 	char *Value;
-	int Length = asprintf(&Value, "%f", ml_real_value(Real));
+	int Length = asprintf(&Value, "%f", ml_real_value_fast(Real));
 	return ml_string(Value, Length);
 }
 
 ML_METHOD(MLStringOfMethod, MLRealT) {
 //!number
 	char *Value;
-	int Length = asprintf(&Value, "%f", ml_real_value(Args[0]));
+	int Length = asprintf(&Value, "%f", ml_real_value_fast(Args[0]));
 	return ml_string(Value, Length);
 }
 
@@ -290,7 +290,7 @@ ML_METHOD(MLIntegerOfMethod, MLStringT, MLIntegerT) {
 //!number
 	const char *Start = ml_string_value(Args[0]);
 	char *End;
-	long Value = strtol(ml_string_value(Args[0]), &End, ml_integer_value(Args[1]));
+	long Value = strtol(ml_string_value(Args[0]), &End, ml_integer_value_fast(Args[1]));
 	if (End - Start == ml_string_length(Args[0])) {
 		return ml_integer(Value);
 	} else {
@@ -409,21 +409,11 @@ const char *ml_regex_pattern(const ml_value_t *Value) {
 
 #ifdef USE_NANBOXING
 
-typedef struct {
-	const ml_type_t *Type;
-	int64_t Value;
-} ml_int64_t;
-
 #define NegOne ml_int32(-1)
 #define One ml_int32(1)
 #define Zero ml_int32(0)
 
 #else
-
-typedef struct ml_integer_t {
-	const ml_type_t *Type;
-	long Value;
-} ml_integer_t;
 
 static ml_integer_t One[1] = {{MLIntegerT, 1}};
 static ml_integer_t NegOne[1] = {{MLIntegerT, -1}};
@@ -629,24 +619,24 @@ ML_METHOD("write", MLStringBufferT, MLSomeT) {
 }
 
 static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLIntegerT, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
-	ml_stringbuffer_addf(Buffer, "%ld", ml_integer_value(Value));
+	ml_stringbuffer_addf(Buffer, "%ld", ml_integer_value_fast(Value));
 	return (ml_value_t *)Buffer;
 }
 
 ML_METHOD("write", MLStringBufferT, MLIntegerT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_addf(Buffer, "%ld", ml_integer_value(Args[1]));
+	ml_stringbuffer_addf(Buffer, "%ld", ml_integer_value_fast(Args[1]));
 	return (ml_value_t *)Buffer;
 }
 
 static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLRealT, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
-	ml_stringbuffer_addf(Buffer, "%f", ml_real_value(Value));
+	ml_stringbuffer_addf(Buffer, "%f", ml_real_value_fast(Value));
 	return (ml_value_t *)Buffer;
 }
 
 ML_METHOD("write", MLStringBufferT, MLRealT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_addf(Buffer, "%f", ml_real_value(Args[1]));
+	ml_stringbuffer_addf(Buffer, "%f", ml_real_value_fast(Args[1]));
 	return (ml_value_t *)Buffer;
 }
 
@@ -668,7 +658,7 @@ ML_METHOD("[]", MLStringT, MLIntegerT) {
 //!string
 	const char *Chars = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
-	int Index = ml_integer_value(Args[1]);
+	int Index = ml_integer_value_fast(Args[1]);
 	if (Index <= 0) Index += Length + 1;
 	if (Index <= 0) return MLNil;
 	if (Index > Length) return MLNil;
@@ -679,8 +669,8 @@ ML_METHOD("[]", MLStringT, MLIntegerT, MLIntegerT) {
 //!string
 	const char *Chars = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
-	int Lo = ml_integer_value(Args[1]);
-	int Hi = ml_integer_value(Args[2]);
+	int Lo = ml_integer_value_fast(Args[1]);
+	int Hi = ml_integer_value_fast(Args[2]);
 	if (Lo <= 0) Lo += Length + 1;
 	if (Hi <= 0) Hi += Length + 1;
 	if (Lo <= 0) return MLNil;
@@ -1019,7 +1009,7 @@ ML_METHOD("find", MLStringT, MLStringT, MLIntegerT) {
 	const char *Haystack = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
-	int Start = ml_integer_value(Args[2]);
+	int Start = ml_integer_value_fast(Args[2]);
 	if (Start <= 0) Start += Length + 1;
 	if (Start <= 0) return MLNil;
 	if (Start > Length) return MLNil;
@@ -1037,7 +1027,7 @@ ML_METHOD("find2", MLStringT, MLStringT, MLIntegerT) {
 	const char *Haystack = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
-	int Start = ml_integer_value(Args[2]);
+	int Start = ml_integer_value_fast(Args[2]);
 	if (Start <= 0) Start += Length + 1;
 	if (Start <= 0) return MLNil;
 	if (Start > Length) return MLNil;
@@ -1107,7 +1097,7 @@ ML_METHOD("find", MLStringT, MLRegexT, MLIntegerT) {
 	const char *Haystack = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
-	int Start = ml_integer_value(Args[2]);
+	int Start = ml_integer_value_fast(Args[2]);
 	if (Start <= 0) Start += Length + 1;
 	if (Start <= 0) return MLNil;
 	if (Start > Length) return MLNil;
@@ -1136,7 +1126,7 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
 	const char *Haystack = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
-	int Start = ml_integer_value(Args[2]);
+	int Start = ml_integer_value_fast(Args[2]);
 	if (Start <= 0) Start += Length + 1;
 	if (Start <= 0) return MLNil;
 	if (Start > Length) return MLNil;

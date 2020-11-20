@@ -361,7 +361,7 @@ ML_FUNCTION(MLDecode) {
 
 static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLIntegerT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	//printf("%s()\n", __func__);
-	int64_t Value = ml_integer_value(Arg);
+	int64_t Value = ml_integer_value_fast(Arg);
 	if (Value < 0) {
 		ml_cbor_write_negative(Data, WriteFn, ~Value);
 	} else {
@@ -417,7 +417,7 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLMapT, ml_value_t *Arg, void *Dat
 }
 
 static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLRealT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
-	ml_cbor_write_float8(Data, WriteFn, ml_real_value(Arg));
+	ml_cbor_write_float8(Data, WriteFn, ml_real_value_fast(Arg));
 	return NULL;
 }
 

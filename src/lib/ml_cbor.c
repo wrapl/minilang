@@ -349,7 +349,7 @@ static ml_value_t *ml_from_cbor_fn(void *Data, int Count, ml_value_t **Args) {
 
 static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLIntegerT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	//printf("%s()\n", __func__);
-	int64_t Value = ml_integer_value(Arg);
+	int64_t Value = ml_integer_value_fast(Arg);
 	if (Value < 0) {
 		ml_cbor_write_negative(Data, WriteFn, ~Value);
 	} else {
