@@ -1104,16 +1104,8 @@ ML_METHOD(MLStringOfMethod, ATYPE) { \
 	} \
 	return ml_stringbuffer_value(Buffer); \
 } \
-static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, ATYPE, ml_stringbuffer_t *Buffer, ml_array_t *Array) { \
-	if (Array->Degree == 0) { \
-		APPEND(Buffer, PRINTF, *(CTYPE *)Array->Base.Address); \
-	} else { \
-		append_array_ ## CTYPE(Buffer, Array->Degree, Array->Dimensions, Array->Base.Address); \
-	} \
-	return (ml_value_t *)Buffer; \
-} \
 \
-ML_METHOD("write", MLStringBufferT, ATYPE) { \
+ML_METHOD("append", MLStringBufferT, ATYPE) { \
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0]; \
 	ml_array_t *Array = (ml_array_t *)Args[1]; \
 	if (Array->Degree == 0) { \
@@ -1121,7 +1113,7 @@ ML_METHOD("write", MLStringBufferT, ATYPE) { \
 	} else { \
 		append_array_ ## CTYPE(Buffer, Array->Degree, Array->Dimensions, Array->Base.Address); \
 	} \
-	return Args[0]; \
+	return MLSome; \
 } \
 \
 UPDATE_METHODS(ATYPE, CTYPE, FROM_VAL, FORMAT); \

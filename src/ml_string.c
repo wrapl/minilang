@@ -595,62 +595,39 @@ ML_METHODV("write", MLStringBufferT, MLAnyT) {
 	return Args[0];
 }
 
-static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLNilT, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
-	ml_stringbuffer_add(Buffer, "nil", 3);
-	return MLNil;
-}
-
-ML_METHOD("write", MLStringBufferT, MLNilT) {
+ML_METHOD("append", MLStringBufferT, MLNilT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_add(Buffer, "nil", 3);
-	return MLNil;
+	return MLSome;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLSomeT, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
-	ml_stringbuffer_add(Buffer, "some", 4);
-	return MLNil;
-}
-
-ML_METHOD("write", MLStringBufferT, MLSomeT) {
+ML_METHOD("append", MLStringBufferT, MLSomeT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_add(Buffer, "some", 4);
-	return MLNil;
+	return MLSome;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLIntegerT, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
-	ml_stringbuffer_addf(Buffer, "%ld", ml_integer_value_fast(Value));
-	return (ml_value_t *)Buffer;
-}
-
-ML_METHOD("write", MLStringBufferT, MLIntegerT) {
+ML_METHOD("append", MLStringBufferT, MLIntegerT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_addf(Buffer, "%ld", ml_integer_value_fast(Args[1]));
-	return (ml_value_t *)Buffer;
+	return MLSome;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLRealT, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
-	ml_stringbuffer_addf(Buffer, "%f", ml_real_value_fast(Value));
-	return (ml_value_t *)Buffer;
-}
-
-ML_METHOD("write", MLStringBufferT, MLRealT) {
+ML_METHOD("append", MLStringBufferT, MLRealT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_addf(Buffer, "%f", ml_real_value_fast(Args[1]));
-	return (ml_value_t *)Buffer;
+	return MLSome;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLStringT, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
-	int Length = ml_string_length(Value);
-	if (Length) {
-		ml_stringbuffer_add(Buffer, ml_string_value(Value), Length);
-	}
-	return (ml_value_t *)Buffer;
-}
-
-ML_METHOD("write", MLStringBufferT, MLStringT) {
+ML_METHOD("append", MLStringBufferT, MLStringT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_add(Buffer, ml_string_value(Args[1]), ml_string_length(Args[1]));
-	return (ml_value_t *)Buffer;
+	int Length = ml_string_length(Args[1]);
+	if (Length) {
+		ml_stringbuffer_add(Buffer, ml_string_value(Args[1]), Length);
+		return MLSome;
+	} else {
+		return MLNil;
+	}
 }
 
 ML_METHOD("[]", MLStringT, MLIntegerT) {
@@ -1496,15 +1473,10 @@ ML_METHOD(MLStringOfMethod, MLRegexT) {
 	return ml_string_format("/%s/", ml_regex_pattern(Args[0]));
 }
 
-static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLRegexT, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
-	ml_stringbuffer_addf(Buffer, "/%s/", ml_regex_pattern(Value));
-	return (ml_value_t *)Buffer;
-}
-
-ML_METHOD("write", MLStringBufferT, MLRegexT) {
+ML_METHOD("append", MLStringBufferT, MLRegexT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_addf(Buffer, "/%s/", ml_regex_pattern(Args[1]));
-	return (ml_value_t *)Buffer;
+	return MLSome;
 }
 
 void ml_string_init(stringmap_t *Globals) {

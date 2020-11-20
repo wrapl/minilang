@@ -63,7 +63,7 @@ map
    Returns the previous value associated with :mini:`Key` if any, otherwise :mini:`nil`.
 
 
-:mini:`meth :write(Arg₁: stringbuffer, Arg₂: map)`
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: map)`
 
 :mini:`meth +(Map₁: map, Map₂: map)` |rarr| :mini:`map`
    Returns a new map combining the entries of :mini:`Map₁` and :mini:`Map₂`.

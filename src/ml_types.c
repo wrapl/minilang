@@ -223,16 +223,11 @@ static ml_value_t *ML_TYPED_FN(ml_string_of, MLTypeT, ml_type_t *Type) {
 	return ml_string_format("<<%s>>", Type->Name);
 }
 
-ML_METHOD("write", MLStringBufferT, MLTypeT) {
+ML_METHOD("append", MLStringBufferT, MLTypeT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_type_t *Type = (ml_type_t *)Args[1];
 	ml_stringbuffer_addf(Buffer, "<<%s>>", Type->Name);
-	return Args[0];
-}
-
-static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLTypeT, ml_stringbuffer_t *Buffer, ml_type_t *Type) {
-	ml_stringbuffer_addf(Buffer, "<<%s>>", Type->Name);
-	return (ml_value_t *)Buffer;
+	return MLSome;
 }
 
 ML_METHOD("::", MLTypeT, MLStringT) {
@@ -965,20 +960,7 @@ ML_METHOD(MLStringOfMethod, MLTupleT) {
 	return ml_stringbuffer_value(Buffer);
 }
 
-ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLTupleT, ml_stringbuffer_t *Buffer, ml_tuple_t *Tuple) {
-	ml_stringbuffer_add(Buffer, "(", 1);
-	if (Tuple->Size) {
-		ml_stringbuffer_append(Buffer, Tuple->Values[0]);
-		for (int I = 1; I < Tuple->Size; ++I) {
-			ml_stringbuffer_add(Buffer, ", ", 2);
-			ml_stringbuffer_append(Buffer, Tuple->Values[I]);
-		}
-	}
-	ml_stringbuffer_add(Buffer, ")", 1);
-	return (ml_value_t *)Buffer;
-}
-
-ML_METHOD("write", MLStringBufferT, MLTupleT) {
+ML_METHOD("append", MLStringBufferT, MLTupleT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_tuple_t *Value = (ml_tuple_t *)Args[1];
 	ml_stringbuffer_add(Buffer, "(", 1);
@@ -990,7 +972,7 @@ ML_METHOD("write", MLStringBufferT, MLTupleT) {
 		}
 	}
 	ml_stringbuffer_add(Buffer, ")", 1);
-	return (ml_value_t *)Buffer;
+	return MLSome;
 }
 
 ml_value_t *ML_TYPED_FN(ml_unpack, MLTupleT, ml_tuple_t *Tuple, int Index) {
@@ -2288,18 +2270,12 @@ ML_METHOD(MLStringOfMethod, MLMethodT) {
 	return ml_string_format(":%s", Method->Name);
 }
 
-static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLMethodT, ml_stringbuffer_t *Buffer, ml_method_t *Value) {
-	ml_stringbuffer_add(Buffer, ":", 1);
-	ml_stringbuffer_add(Buffer, Value->Name, strlen(Value->Name));
-	return (ml_value_t *)Buffer;
-}
-
-ML_METHOD("write", MLStringBufferT, MLMethodT) {
+ML_METHOD("append", MLStringBufferT, MLMethodT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_method_t *Method = (ml_method_t *)Args[1];
 	ml_stringbuffer_add(Buffer, ":", 1);
 	ml_stringbuffer_add(Buffer, Method->Name, strlen(Method->Name));
-	return (ml_value_t *)Buffer;
+	return MLSome;
 }
 
 /*ML_METHODVX("[]", MLMethodT) {

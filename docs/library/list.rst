@@ -53,7 +53,7 @@ list
    Indexing starts at :mini:`1`. Negative indices are counted from the end of the list, with :mini:`-1` returning the last node.
 
 
-:mini:`meth :write(Arg₁: stringbuffer, Arg₂: list)`
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: list)`
 
 :mini:`meth :push(List: list, Values...: any)` |rarr| :mini:`list`
    Pushes :mini:`Values` onto the start of :mini:`List` and returns :mini:`List`.

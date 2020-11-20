@@ -397,21 +397,7 @@ ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
 	return (ml_value_t *)Slice;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLListT, ml_stringbuffer_t *Buffer, ml_list_t *List) {
-	ml_stringbuffer_add(Buffer, "[", 1);
-	ml_list_node_t *Node = List->Head;
-	if (Node) {
-		ml_stringbuffer_append(Buffer, Node->Value);
-		while ((Node = Node->Next)) {
-			ml_stringbuffer_add(Buffer, ", ", 2);
-			ml_stringbuffer_append(Buffer, Node->Value);
-		}
-	}
-	ml_stringbuffer_add(Buffer, "]", 1);
-	return (ml_value_t *)Buffer;
-}
-
-ML_METHOD("write", MLStringBufferT, MLListT) {
+ML_METHOD("append", MLStringBufferT, MLListT) {
 //!list
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_add(Buffer, "[", 1);

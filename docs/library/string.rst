@@ -37,15 +37,15 @@ string
 
 :mini:`meth :write(Arg₁: stringbuffer, Arg₂: any)`
 
-:mini:`meth :write(Arg₁: stringbuffer, Arg₂: nil)`
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: nil)`
 
-:mini:`meth :write(Arg₁: stringbuffer, Arg₂: some)`
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: some)`
 
-:mini:`meth :write(Arg₁: stringbuffer, Arg₂: integer)`
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: integer)`
 
-:mini:`meth :write(Arg₁: stringbuffer, Arg₂: real)`
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: real)`
 
-:mini:`meth :write(Arg₁: stringbuffer, Arg₂: string)`
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: string)`
 
 :mini:`meth [](Arg₁: string, Arg₂: integer)`
 
@@ -117,5 +117,5 @@ string
 
 :mini:`meth string(Arg₁: regex)`
 
-:mini:`meth :write(Arg₁: stringbuffer, Arg₂: regex)`
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: regex)`
 

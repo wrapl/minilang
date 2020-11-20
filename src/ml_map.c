@@ -445,29 +445,7 @@ ML_METHOD("missing", MLMapT, MLAnyT) {
 	return MLNil;
 }
 
-ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, MLMapT, ml_stringbuffer_t *Buffer, ml_map_t *Map) {
-	ml_stringbuffer_add(Buffer, "{", 1);
-	ml_map_node_t *Node = Map->Head;
-	if (Node) {
-		ml_stringbuffer_append(Buffer, Node->Key);
-		if (Node->Value != MLNil) {
-			ml_stringbuffer_add(Buffer, "=", 1);
-			ml_stringbuffer_append(Buffer, Node->Value);
-		}
-		while ((Node = Node->Next)) {
-			ml_stringbuffer_add(Buffer, " ", 1);
-			ml_stringbuffer_append(Buffer, Node->Key);
-			if (Node->Value != MLNil) {
-				ml_stringbuffer_add(Buffer, "=", 1);
-				ml_stringbuffer_append(Buffer, Node->Value);
-			}
-		}
-	}
-	ml_stringbuffer_add(Buffer, "}", 1);
-	return (ml_value_t *)Buffer;
-}
-
-ML_METHOD("write", MLStringBufferT, MLMapT) {
+ML_METHOD("append", MLStringBufferT, MLMapT) {
 //!map
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_add(Buffer, "{", 1);
@@ -475,13 +453,17 @@ ML_METHOD("write", MLStringBufferT, MLMapT) {
 	ml_map_node_t *Node = Map->Head;
 	if (Node) {
 		ml_stringbuffer_append(Buffer, Node->Key);
-		ml_stringbuffer_add(Buffer, " is ", 4);
-		ml_stringbuffer_append(Buffer, Node->Value);
+		if (Node->Value != MLSome) {
+			ml_stringbuffer_add(Buffer, " is ", 4);
+			ml_stringbuffer_append(Buffer, Node->Value);
+		}
 		while ((Node = Node->Next)) {
 			ml_stringbuffer_add(Buffer, ", ", 2);
 			ml_stringbuffer_append(Buffer, Node->Key);
-			ml_stringbuffer_add(Buffer, " is ", 4);
-			ml_stringbuffer_append(Buffer, Node->Value);
+			if (Node->Value != MLSome) {
+				ml_stringbuffer_add(Buffer, " is ", 4);
+				ml_stringbuffer_append(Buffer, Node->Value);
+			}
 		}
 	}
 	ml_stringbuffer_add(Buffer, "}", 1);
