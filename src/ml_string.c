@@ -567,8 +567,7 @@ ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value)
 	}
 	ml_hash_chain_t NewChain[1] = {{Chain, Value, Chain ? Chain->Index + 1 : 1}};
 	Buffer->Chain = NewChain;
-	typeof(ml_stringbuffer_append) *function = ml_typed_fn_get(ml_typeof(Value), ml_stringbuffer_append);
-	ml_value_t *Result = function ? function(Buffer, Value) : ml_simple_inline(AppendMethod, 2, Buffer, Value);
+	ml_value_t *Result = ml_simple_inline(AppendMethod, 2, Buffer, Value);
 	Buffer->Chain = Chain;
 	return Result;
 }
