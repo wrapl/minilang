@@ -73,6 +73,9 @@ var Objects := [
 	file("ml_bytecode.o"),
 	file("ml_runtime.o"),
 	file("ml_types.o"),
+	file("ml_string.o"),
+	file("ml_list.o"),
+	file("ml_map.o"),
 	file("ml_file.o"),
 	file("ml_iterfns.o"),
 	file("sha256.o"),
@@ -188,6 +191,11 @@ end
 
 if MINILANG_USE_GENERICS or defined("GENERICS") then
 	CFLAGS := old + ["-DUSE_GENERICS"]
+end
+
+if MINILANG_USE_MAP_OBJECTS or defined("MAP_OBJECTS") then
+	Objects:put(file("ml_map_object.o"))
+	CFLAGS := old + ["-DUSE_ML_MAP_OBJECTS"]
 end
 
 if PLATFORM = "Linux" then

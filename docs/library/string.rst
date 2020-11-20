@@ -21,6 +21,10 @@ string
    :Parents: :mini:`buffer`, :mini:`iteratable`
 
 
+:mini:`meth string(Arg₁: nil)`
+
+:mini:`meth string(Arg₁: some)`
+
 :mini:`fun regex(String: string)` |rarr| :mini:`regex` or :mini:`error`
    Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
 
@@ -28,6 +32,20 @@ string
 :mini:`regex`
 
 :mini:`meth <>(Arg₁: regex, Arg₂: regex)`
+
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: any)`
+
+:mini:`meth :write(Arg₁: stringbuffer, Arg₂: any)`
+
+:mini:`meth :write(Arg₁: stringbuffer, Arg₂: nil)`
+
+:mini:`meth :write(Arg₁: stringbuffer, Arg₂: some)`
+
+:mini:`meth :write(Arg₁: stringbuffer, Arg₂: integer)`
+
+:mini:`meth :write(Arg₁: stringbuffer, Arg₂: real)`
+
+:mini:`meth :write(Arg₁: stringbuffer, Arg₂: string)`
 
 :mini:`meth [](Arg₁: string, Arg₂: integer)`
 
@@ -98,4 +116,6 @@ string
 :mini:`meth :replace(Arg₁: string, Arg₂: map)`
 
 :mini:`meth string(Arg₁: regex)`
+
+:mini:`meth :write(Arg₁: stringbuffer, Arg₂: regex)`
 

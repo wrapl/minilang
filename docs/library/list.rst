@@ -21,6 +21,10 @@ list
    Assigning to a :mini:`listnode` updates the corresponding value in the :mini:`list`.
 
 
+:mini:`meth list()`
+
+:mini:`meth list(Arg₁: tuple)`
+
 :mini:`meth :count(List: list)` |rarr| :mini:`integer`
    Returns the length of :mini:`List`
 
@@ -49,7 +53,7 @@ list
    Indexing starts at :mini:`1`. Negative indices are counted from the end of the list, with :mini:`-1` returning the last node.
 
 
-:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: list)`
+:mini:`meth :write(Arg₁: stringbuffer, Arg₂: list)`
 
 :mini:`meth :push(List: list, Values...: any)` |rarr| :mini:`list`
    Pushes :mini:`Values` onto the start of :mini:`List` and returns :mini:`List`.

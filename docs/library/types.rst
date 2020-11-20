@@ -7,6 +7,8 @@ types
    Base type for all values.
 
 
+:mini:`meth :write(Arg₁: stringbuffer, Arg₂: type)`
+
 :mini:`typerule`
 
 :mini:`meth *(Arg₁: type, Arg₂: type)`
@@ -53,13 +55,7 @@ types
    Returns a general (type name only) representation of :mini:`Value` as a string.
 
 
-:mini:`meth string(Arg₁: nil)`
+:mini:`meth :write(Arg₁: stringbuffer, Arg₂: tuple)`
 
-:mini:`meth string(Arg₁: some)`
-
-:mini:`meth list()`
-
-:mini:`meth list(Arg₁: tuple)`
-
-:mini:`meth map()`
+:mini:`meth :write(Arg₁: stringbuffer, Arg₂: method)`
 

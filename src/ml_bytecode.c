@@ -203,6 +203,8 @@ void *MLCachedFrame = NULL;
 extern ml_value_t *SymbolMethod;
 #endif
 
+static ML_METHOD_DECL(Append, "append");
+
 static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
 	if (!Result) {
 		ml_value_t *Error = ml_error("RuntimeError", "NULL value passed to continuation");
@@ -741,7 +743,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #endif
 		Frame->Inst = Next;
 		Frame->Top = Top - Count;
-		return ml_call(Frame, MLStringBufferAppendMethod, Count + 1, Args);
+		return ml_call(Frame, AppendMethod, Count + 1, Args);
 	}
 	DO_STRING_ADDS: {
 		ml_stringbuffer_add((ml_stringbuffer_t *)Top[-1], Inst->Params[2].Ptr, Inst->Params[1].Count);

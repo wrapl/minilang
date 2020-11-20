@@ -1113,7 +1113,7 @@ static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, ATYPE, ml_stringbuffer_t 
 	return (ml_value_t *)Buffer; \
 } \
 \
-ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, ATYPE) { \
+ML_METHOD("write", MLStringBufferT, ATYPE) { \
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0]; \
 	ml_array_t *Array = (ml_array_t *)Args[1]; \
 	if (Array->Degree == 0) { \

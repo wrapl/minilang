@@ -51,13 +51,13 @@ struct ml_type_t {
 	inthash_t Parents[1];
 	inthash_t TypedFns[1];
 	stringmap_t Exports[1];
-	int Rank;
+	int Rank, Interface;
 #ifdef USE_GENERICS
 	int NumArgs;
 #endif
 };
 
-#define ML_RANK_NATIVE 65536
+//#define ML_RANK_NATIVE 65536
 
 extern ml_type_t MLTypeT[];
 
@@ -79,7 +79,8 @@ ml_type_t TYPE[1] = {{ \
 	.assign = ml_default_assign, \
 	.TypedFns = {INTHASH_INIT}, \
 	.Exports = {STRINGMAP_INIT}, \
-	.Rank = ML_RANK_NATIVE, \
+	.Rank = 0, \
+	.Interface = 0, \
 	__VA_ARGS__ \
 }}
 
@@ -90,7 +91,7 @@ ml_type_t TYPE[1] = {{ \
 
 #endif
 
-#define ML_INTERFACE(TYPE, PARENTS, NAME, ...) ML_TYPE(TYPE, PARENTS, NAME, .Rank = 1, __VA_ARGS__)
+#define ML_INTERFACE(TYPE, PARENTS, NAME, ...) ML_TYPE(TYPE, PARENTS, NAME, .Interface = 1, __VA_ARGS__)
 
 void ml_type_init(ml_type_t *Type, ...) __attribute__ ((sentinel));
 
@@ -397,7 +398,6 @@ ml_value_t *ml_stringbuffer_value(ml_stringbuffer_t *Buffer) __attribute__ ((mal
 int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t));
 ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value);
 
-extern ml_value_t *MLStringBufferAppendMethod;
 
 // Lists //
 

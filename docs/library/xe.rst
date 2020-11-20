@@ -25,7 +25,11 @@ xe
 
 :mini:`fun xeattr()`
 
+:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: XENodeT)`
+
 :mini:`meth string(Arg₁: XENodeT)`
+
+:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: XEVarT)`
 
 :mini:`meth string(Arg₁: XEVarT)`
 

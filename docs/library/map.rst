@@ -25,6 +25,8 @@ map
    Assigning to a :mini:`mapnode` updates the corresponding value in the :mini:`map`.
 
 
+:mini:`meth map()`
+
 :mini:`meth :size(Map: map)` |rarr| :mini:`integer`
    Returns the number of entries in :mini:`Map`.
 
@@ -61,7 +63,7 @@ map
    Returns the previous value associated with :mini:`Key` if any, otherwise :mini:`nil`.
 
 
-:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: map)`
+:mini:`meth :write(Arg₁: stringbuffer, Arg₂: map)`
 
 :mini:`meth +(Map₁: map, Map₂: map)` |rarr| :mini:`map`
    Returns a new map combining the entries of :mini:`Map₁` and :mini:`Map₂`.

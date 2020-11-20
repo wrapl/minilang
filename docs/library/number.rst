@@ -3,6 +3,18 @@ number
 
 .. include:: <isonum.txt>
 
+:mini:`meth string(Arg₁: integer)`
+
+:mini:`meth string(Arg₁: integer, Arg₂: integer)`
+
+:mini:`meth string(Arg₁: real)`
+
+:mini:`meth integer(Arg₁: string)`
+
+:mini:`meth integer(Arg₁: string, Arg₂: integer)`
+
+:mini:`meth real(Arg₁: string)`
+
 :mini:`number`
    Base type for integers and reals.
 
@@ -112,16 +124,4 @@ number
 :mini:`meth <>(Real₁: real, Real₂: real)` |rarr| :mini:`integer`
    Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Real₁` is less than, equal to or greater than :mini:`Real₂`.
 
-
-:mini:`meth string(Arg₁: integer)`
-
-:mini:`meth string(Arg₁: integer, Arg₂: integer)`
-
-:mini:`meth string(Arg₁: real)`
-
-:mini:`meth integer(Arg₁: string)`
-
-:mini:`meth integer(Arg₁: string, Arg₂: integer)`
-
-:mini:`meth real(Arg₁: string)`
 

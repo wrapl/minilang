@@ -3,6 +3,14 @@ object
 
 .. include:: <isonum.txt>
 
+:mini:`mapclass`
+   Type of all object classes.
+
+   :Parents: :mini:`type`
+
+
+:mini:`fun class(?Name: string, ?Parents...: class, ?Exports...: named)`
+
 :mini:`object`
    Parent type of all object classes.
 
@@ -14,6 +22,10 @@ object
 
 
 :mini:`meth string(Arg₁: object)`
+
+:mini:`namedtype`
+   :Parents: :mini:`type`
+
 
 :mini:`fun class(?Name: string, ?Parents...: class, ?Fields...: method, ?Exports...: named)`
 
@@ -28,4 +40,6 @@ object
 :mini:`enum`
    :Parents: :mini:`type`
 
+
+:mini:`meth :count(Arg₁: enum)`
 
