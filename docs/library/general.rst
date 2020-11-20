@@ -23,11 +23,3 @@ general
 
 :mini:`fun unload(Arg₁: string)`
 
-:mini:`mapobject`
-   Parent type of all object classes.
-
-   :Parents: :mini:`map`
-
-
-:mini:`meth string(Arg₁: mapobject)`
-

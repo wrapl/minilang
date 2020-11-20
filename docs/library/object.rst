@@ -3,14 +3,6 @@ object
 
 .. include:: <isonum.txt>
 
-:mini:`mapclass`
-   Type of all object classes.
-
-   :Parents: :mini:`type`
-
-
-:mini:`fun class(?Name: string, ?Parents...: class, ?Exports...: named)`
-
 :mini:`object`
    Parent type of all object classes.
 
