@@ -3,5 +3,6 @@
 		ml_*;
 		ML*;
 		stringmap_*;
+		inthash_*;
 	};
 };
