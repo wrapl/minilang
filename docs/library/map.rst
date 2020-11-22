@@ -3,10 +3,6 @@ map
 
 .. include:: <isonum.txt>
 
-:mini:`meth map(Iteratable: iteratable)` |rarr| :mini:`map`
-   Returns a map of all the key and value pairs produced by :mini:`Iteratable`.
-
-
 :mini:`map`
    A map of key-value pairs.
 
@@ -26,6 +22,12 @@ map
 
 
 :mini:`meth map()`
+
+:mini:`meth map(Arg₁: names)`
+
+:mini:`meth map(Iteratable: iteratable)` |rarr| :mini:`map`
+   Returns a map of all the key and value pairs produced by :mini:`Iteratable`.
+
 
 :mini:`meth :size(Map: map)` |rarr| :mini:`integer`
    Returns the number of entries in :mini:`Map`.

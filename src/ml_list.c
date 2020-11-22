@@ -1,6 +1,7 @@
 #include "ml_list.h"
 #include "minilang.h"
 #include "ml_macros.h"
+#include "ml_iterfns.h"
 #include <string.h>
 
 ML_METHOD_DECL(MLListOf, "list::of");
@@ -114,6 +115,36 @@ ML_METHOD(MLListOfMethod, MLTupleT) {
 	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
 	for (int I = 0; I < Tuple->Size; ++I) ml_list_put(List, Tuple->Values[I]);
 	return List;
+}
+
+static void list_iterate(ml_iter_state_t *State, ml_value_t *Value);
+
+static void list_iter_value(ml_iter_state_t *State, ml_value_t *Value) {
+	Value = ml_deref(Value);
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_list_put(State->Values[0], Value);
+	State->Base.run = (void *)list_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void list_iterate(ml_iter_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (void *)list_iter_value;
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Values[0]);
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+ML_METHODVX(MLListOfMethod, MLIteratableT) {
+//!list
+//<Iteratable
+//>list
+// Returns a list of all of the values produced by :mini:`Iteratable`.
+	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)list_iterate;
+	State->Base.Context = Caller->Context;
+	State->Values[0] = ml_list();
+	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
 ml_value_t *ml_list_from_array(ml_value_t **Values, int Length) {
@@ -655,4 +686,9 @@ void ml_list_init(stringmap_t *Globals) {
 	stringmap_insert(MLListT->Exports, "of", MLListOfMethod);
 	stringmap_insert(Globals, "list", MLListT);
 	stringmap_insert(Globals, "names", MLNamesT);
+#ifdef USE_GENERICS
+	ml_type_add_parent(MLListT, MLListT, -1, 1, 0, 0);
+	ml_type_add_parent(MLListT, MLMapT, 1, 0, MLIntegerT, -1, 2, 0, 0);
+	ml_type_add_parent(MLListT, MLIteratableT, 1, 0, MLIntegerT, -1, 2, 0, 0);
+#endif
 }

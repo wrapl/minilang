@@ -219,10 +219,6 @@ ML_METHOD(MLStringOfMethod, MLTypeT) {
 	return ml_string_format("<<%s>>", Type->Name);
 }
 
-static ml_value_t *ML_TYPED_FN(ml_string_of, MLTypeT, ml_type_t *Type) {
-	return ml_string_format("<<%s>>", Type->Name);
-}
-
 ML_METHOD("append", MLStringBufferT, MLTypeT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_type_t *Type = (ml_type_t *)Args[1];
@@ -307,27 +303,57 @@ ml_value_t *ml_type_generic_fn(void *Data, int Count, ml_value_t **Args) {
 
 ML_TYPE(MLTypeRuleT, (), "type-rule");
 
-typedef struct ml_type_rule_t ml_type_rule_t;
+// T[P₁, P₂, …] ⊂ U[Q₁, Q₂, …]
+//     0 or more rules: [Pᵢ / Qᵢ / V] ⊂ [Pⱼ / Qⱼ / V]
+//        Negative Index => Pᵢ
+//        Positive Index => Qᵢ
+//        0 => V
+//        Index1 and Index2 cannot both be 0
 
-struct ml_type_rule_t {
+typedef struct {
+	int Index1, Index2;
+	const ml_type_t *Type;
+} ml_type_rule_entry_t;
+
+typedef struct {
 	const ml_type_t *Type;
 	ml_value_t *Next;
-	ml_value_t **Values;
-};
+	ml_type_rule_entry_t Entries[];
+} ml_type_rule_t;
 
 void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent, ...) {
-	int Count = 0;
-	va_list Values;
-	va_start(Values, Parent);
-	while (va_arg(Values, ml_value_t *)) ++Count;
-	va_end(Values);
-	ml_type_rule_t *Rule = xnew(ml_type_rule_t, Count + 1, ml_value_t *);
+	int Count = 1;
+	va_list Args;
+	va_start(Args, Parent);
+	for (;;) {
+		int Index1 = va_arg(Args, int);
+		int Index2 = va_arg(Args, int);
+		if (Index1 == 0) {
+			if (Index2 == 0) break;
+			va_arg(Args, const ml_type_t *);
+		} else if (Index2 == 0) {
+			va_arg(Args, const ml_type_t *);
+		}
+		++Count;
+	}
+	va_end(Args);
+	ml_type_rule_t *Rule = xnew(ml_type_rule_t, Count, ml_type_rule_entry_t);
 	Rule->Type = MLTypeRuleT;
 	Rule->Next = inthash_insert(Type->Parents, (uintptr_t)Parent, Rule);
-	ml_value_t **Value = Rule->Values;
-	va_start(Values, Parent);
-	while ((*Value++ = va_arg(Values, ml_value_t *)));
-	va_end(Values);
+	ml_type_rule_entry_t *Entry = Rule->Entries;
+	va_start(Args, Parent);
+	for (;;) {
+		int Index1 = Entry->Index1 = va_arg(Args, int);
+		int Index2 = Entry->Index2 = va_arg(Args, int);
+		if (Index1 == 0) {
+			if (Index2 == 0) break;
+			Entry->Type = va_arg(Args, const ml_type_t *);
+		} else if (Index2 == 0) {
+			Entry->Type = va_arg(Args, const ml_type_t *);
+		}
+		++Entry;
+	}
+	va_end(Args);
 }
 
 #endif
@@ -347,22 +373,49 @@ ML_VALUE(MLNil, MLNilT);
 ML_VALUE(MLSome, MLSomeT);
 ML_VALUE(MLBlank, MLBlankT);
 
-__attribute__ ((pure)) int ml_is_subtype(const ml_type_t *Type, const ml_type_t *Parent) {
-	if (Type == Parent) return 1;
-	ml_value_t *Value = inthash_search(Type->Parents, (uintptr_t)Parent);
+__attribute__ ((pure)) int ml_is_subtype(const ml_type_t *Type1, const ml_type_t *Type2) {
+	if (Type1 == Type2) return 1;
 #ifdef USE_GENERICS
+	if (Type1->Args && Type1->Args[0] == Type2) return 1;
+	const ml_type_t *Base1 = Type1->Args ? Type1->Args[0] : Type1;
+	const ml_type_t *Base2 = Type2->Args ? Type2->Args[0] : Type2;
+	ml_value_t *Value = inthash_search(Base1->Parents, (uintptr_t)Base2);
 	while (Value && Value->Type == MLTypeRuleT) {
 		ml_type_rule_t *Rule = (ml_type_rule_t *)Value;
-		int I = 0;
-		ml_value_t *Arg;
-		while ((Arg = Rule->Values[I])) {
-
-			++I;
+		ml_type_rule_entry_t *Entry = Rule->Entries;
+		for (;;) {
+			int Index1 = Entry->Index1;
+			int Index2 = Entry->Index2;
+			if (Index1 == 0 && Index2 == 0) return 1;
+			const ml_type_t *A, *B;
+			if (Index1 == 0) {
+				A = Entry->Type;
+			} else if (Index1 < 0) {
+				Index1 = -Index1;
+				if (Index1 > Type1->NumArgs) break;
+				A = Type1->Args[Index1];
+			} else {
+				if (Index1 > Type2->NumArgs) break;
+				A = Type2->Args[Index1];
+			}
+			if (Index2 == 0) {
+				B = Entry->Type;
+			} else if (Index2 < 0) {
+				Index2 = -Index2;
+				if (Index2 > Type1->NumArgs) break;
+				B = Type1->Args[Index2];
+			} else {
+				if (Index2 > Type2->NumArgs) break;
+				B = Type2->Args[Index2];
+			}
+			if (!ml_is_subtype(A, B)) break;
+			++Entry;
 		}
 		Value = Rule->Next;
 	}
 	return Value != NULL;
 #else
+	ml_value_t *Value = inthash_search(Type1->Parents, (uintptr_t)Type2);
 	return Value != NULL;
 #endif
 }
@@ -927,20 +980,6 @@ ml_value_t *ml_tuple_fn(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)Tuple;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_string_of, MLTupleT, ml_tuple_t *Tuple) {
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	ml_stringbuffer_add(Buffer, "(", 1);
-	if (Tuple->Size) {
-		ml_stringbuffer_append(Buffer, Tuple->Values[0]);
-		for (int I = 1; I < Tuple->Size; ++I) {
-			ml_stringbuffer_add(Buffer, ", ", 2);
-			ml_stringbuffer_append(Buffer, Tuple->Values[I]);
-		}
-	}
-	ml_stringbuffer_add(Buffer, ")", 1);
-	return ml_stringbuffer_value(Buffer);
-}
-
 ML_METHOD(MLStringOfMethod, MLTupleT) {
 //!tuple
 //<Tuple
@@ -1249,21 +1288,7 @@ long ml_integer_value(const ml_value_t *Value) {
 
 #endif
 
-ml_value_t *ml_integer_of(ml_value_t *Value) {
-	typeof(ml_integer_of) *function = ml_typed_fn_get(ml_typeof(Value), ml_string_of);
-	if (!function) return ml_simple_inline(MLIntegerOfMethod, 1, Value);
-	return function(Value);
-}
-
-static ml_value_t *ML_TYPED_FN(ml_integer_of, MLIntegerT, ml_value_t *Value) {
-	return Value;
-}
-
 #ifdef USE_NANBOXING
-
-static ml_value_t *ML_TYPED_FN(ml_integer_of, MLRealT, ml_value_t *Value) {
-	return ml_integer(ml_to_double(Value));
-}
 
 ML_METHOD(MLIntegerOfMethod, MLRealT) {
 //!number
@@ -1303,10 +1328,6 @@ double ml_real_value(const ml_value_t *Value) {
 
 
 #else
-
-static ml_value_t *ML_TYPED_FN(ml_integer_of, MLRealT, ml_real_t *Real) {
-	return ml_integer(Real->Value);
-}
 
 ML_METHOD(MLIntegerOfMethod, MLRealT) {
 //!number
@@ -1350,21 +1371,7 @@ double ml_real_value(const ml_value_t *Value) {
 
 #endif
 
-ml_value_t *ml_real_of(ml_value_t *Value) {
-	typeof(ml_integer_of) *function = ml_typed_fn_get(ml_typeof(Value), ml_string_of);
-	if (!function) return ml_simple_inline(MLRealOfMethod, 1, Value);
-	return function(Value);
-}
-
 #ifdef USE_NANBOXING
-
-static ml_value_t *ML_TYPED_FN(ml_real_of, MLInt32T, ml_value_t *Value) {
-	return ml_real((uint64_t)Value & 0xFFFFFFFF);
-}
-
-static ml_value_t *ML_TYPED_FN(ml_real_of, MLInt64T, ml_value_t *Value) {
-	return ml_real(((ml_int64_t *)Value)->Value);
-}
 
 ML_METHOD(MLRealOfMethod, MLInt32T) {
 //!number
@@ -1378,20 +1385,12 @@ ML_METHOD(MLRealOfMethod, MLInt64T) {
 
 #else
 
-static ml_value_t *ML_TYPED_FN(ml_real_of, MLIntegerT, ml_integer_t *Integer) {
-	return ml_real(Integer->Value);
-}
-
 ML_METHOD(MLRealOfMethod, MLIntegerT) {
 //!number
 	return ml_real(((ml_integer_t *)Args[0])->Value);
 }
 
 #endif
-
-static ml_value_t *ML_TYPED_FN(ml_real_of, MLRealT, ml_value_t *Value) {
-	return Value;
-}
 
 #define ml_arith_method_integer(NAME, SYMBOL) \
 	ML_METHOD(NAME, MLIntegerT) { \
@@ -2066,7 +2065,8 @@ static ml_method_cached_t *ml_method_search_entry(ml_methods_t *Methods, ml_meth
 
 static ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args) {
 	// TODO: Use generation numbers to check Methods->Parent for invalidated definitions
-	const ml_type_t **Types = alloca(Count * sizeof(ml_type_t *));
+	// Use alloca here, VLA prevents TCO.
+	const ml_type_t **Types = alloca(Count * sizeof(const ml_type_t *));
 	uintptr_t Hash = (uintptr_t)Method;
 	for (int I = Count; --I >= 0;) {
 		const ml_type_t *Type = Types[I] = ml_typeof(Args[I]);
@@ -2263,10 +2263,6 @@ void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_t
 	ml_method_insert(MLRootMethods, Method, Function, Count, 1, Types);
 }
 
-static ml_value_t *ML_TYPED_FN(ml_string_of, MLMethodT, ml_method_t *Method) {
-	return ml_string_format(":%s", Method->Name);
-}
-
 ML_METHOD(MLStringOfMethod, MLMethodT) {
 //!method
 //>string
@@ -2395,10 +2391,6 @@ ml_value_t *ml_module_export(ml_value_t *Module0, const char *Name, ml_value_t *
 ML_METHOD(MLStringOfMethod, MLModuleT) {
 //!module
 	ml_module_t *Module = (ml_module_t *)Args[0];
-	return ml_string_format("module(%s)", Module->Path);
-}
-
-static ml_value_t *ML_TYPED_FN(ml_string_of, MLModuleT, ml_module_t *Module) {
 	return ml_string_format("module(%s)", Module->Path);
 }
 

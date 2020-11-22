@@ -1,6 +1,8 @@
 #include "ml_map.h"
 #include "minilang.h"
 #include "ml_macros.h"
+#include "ml_iterfns.h"
+#include <string.h>
 
 ML_METHOD_DECL(MLMapOf, "map::of");
 
@@ -46,6 +48,54 @@ ml_value_t *ml_map() {
 
 ML_METHOD(MLMapOfMethod) {
 	return ml_map();
+}
+
+ML_METHODV(MLMapOfMethod, MLNamesT) {
+	ml_value_t *Map = ml_map();
+	ml_value_t **Values = Args + 1;
+	ML_NAMES_FOREACH(Args[0], Iter) {
+		ml_map_insert(Map, ml_cstring(ml_method_name(Iter->Value)), *Values++);
+	}
+	return Map;
+}
+
+static void map_iterate(ml_iter_state_t *State, ml_value_t *Value);
+
+static void map_iter_value(ml_iter_state_t *State, ml_value_t *Value) {
+	Value = ml_deref(Value);
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_map_insert(State->Values[0], State->Values[1], Value);
+	State->Base.run = (void *)map_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void map_iter_key(ml_iter_state_t *State, ml_value_t *Value) {
+	Value = ml_deref(Value);
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) Value = ml_integer(ml_map_size(State->Values[0]) + 1);
+	State->Values[1] = Value;
+	State->Base.run = (void *)map_iter_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter);
+}
+
+static void map_iterate(ml_iter_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Values[0]);
+	State->Base.run = (void *)map_iter_key;
+	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
+}
+
+ML_METHODVX(MLMapOfMethod, MLIteratableT) {
+//!map
+//<Iteratable
+//>map
+// Returns a map of all the key and value pairs produced by :mini:`Iteratable`.
+	ml_iter_state_t *State = xnew(ml_iter_state_t, 2, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)map_iterate;
+	State->Base.Context = Caller->Context;
+	State->Values[0] = ml_map();
+	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
 extern ml_value_t *CompareMethod;
@@ -672,4 +722,8 @@ void ml_map_init(stringmap_t *Globals) {
 	MLMapT->Constructor = MLMapOfMethod;
 	stringmap_insert(MLMapT->Exports, "of", MLMapOfMethod);
 	stringmap_insert(Globals, "map", MLMapT);
+#ifdef USE_GENERICS
+	ml_type_add_parent(MLMapT, MLMapT, -1, 1, -2, 2, 0, 0);
+	ml_type_add_parent(MLMapT, MLIteratableT, -1, 1, -2, 2, 0, 0);
+#endif
 }

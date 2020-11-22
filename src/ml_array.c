@@ -1084,16 +1084,6 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 	ml_stringbuffer_add(Buffer, ">", 1); \
 } \
 \
-static ml_value_t *ML_TYPED_FN(ml_string_of, ATYPE, ml_array_t *Array) { \
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT}; \
-	if (Array->Degree == 0) { \
-		APPEND(Buffer, PRINTF, *(CTYPE *)Array->Base.Address); \
-	} else { \
-		append_array_ ## CTYPE(Buffer, Array->Degree, Array->Dimensions, Array->Base.Address); \
-	} \
-	return ml_stringbuffer_value(Buffer); \
-} \
-\
 ML_METHOD(MLStringOfMethod, ATYPE) { \
 	ml_array_t *Array = (ml_array_t *)Args[0]; \
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT}; \

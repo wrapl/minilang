@@ -100,7 +100,7 @@ ML_TYPE(MLChainedFunctionT, (MLFunctionT, MLIteratableT), "chained-function",
 	.call = (void *)ml_chained_function_call
 );
 
-static ml_value_t *ml_chained(int Count, ml_value_t **Functions) {
+ml_value_t *ml_chained(int Count, ml_value_t **Functions) {
 	if (Count == 1) return Functions[0];
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, Count + 1, ml_value_t *);
 	Chained->Type = MLChainedFunctionT;
@@ -334,12 +334,6 @@ ML_METHOD("^", MLIteratableT, MLFunctionT) {
 
 /****************************** All ******************************/
 
-typedef struct ml_iter_state_t {
-	ml_state_t Base;
-	ml_value_t *Iter;
-	ml_value_t *Values[];
-} ml_iter_state_t;
-
 static void all_iterate(ml_iter_state_t *State, ml_value_t *Value);
 
 static void all_iter_value(ml_iter_state_t *State, ml_value_t *Value) {
@@ -497,91 +491,6 @@ ML_FUNCTIONX(Last2) {
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)last2_iterate;
 	State->Base.Context = Caller->Context;
-	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
-}
-
-static void list_iterate(ml_iter_state_t *State, ml_value_t *Value);
-
-static void list_iter_value(ml_iter_state_t *State, ml_value_t *Value) {
-	Value = ml_deref(Value);
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	ml_list_put(State->Values[0], Value);
-	State->Base.run = (void *)list_iterate;
-	return ml_iter_next((ml_state_t *)State, State->Iter);
-}
-
-static void list_iterate(ml_iter_state_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	State->Base.run = (void *)list_iter_value;
-	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Values[0]);
-	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
-}
-
-extern ml_value_t *MLListOfMethod;
-
-ML_METHODVX(MLListOfMethod, MLIteratableT) {
-//!list
-//<Iteratable
-//>list
-// Returns a list of all of the values produced by :mini:`Iteratable`.
-	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
-	State->Base.Caller = Caller;
-	State->Base.run = (void *)list_iterate;
-	State->Base.Context = Caller->Context;
-	State->Values[0] = ml_list();
-	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
-}
-
-static void map_iterate(ml_iter_state_t *State, ml_value_t *Value);
-
-static void map_iter_value(ml_iter_state_t *State, ml_value_t *Value) {
-	Value = ml_deref(Value);
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	ml_map_insert(State->Values[0], State->Values[1], Value);
-	State->Base.run = (void *)map_iterate;
-	return ml_iter_next((ml_state_t *)State, State->Iter);
-}
-
-static void map_iter_key(ml_iter_state_t *State, ml_value_t *Value) {
-	Value = ml_deref(Value);
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (Value == MLNil) Value = ml_integer(ml_map_size(State->Values[0]) + 1);
-	State->Values[1] = Value;
-	State->Base.run = (void *)map_iter_value;
-	return ml_iter_value((ml_state_t *)State, State->Iter);
-}
-
-static void map_iterate(ml_iter_state_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Values[0]);
-	State->Base.run = (void *)map_iter_key;
-	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
-}
-
-ML_FUNCTIONX(All2) {
-//!deprecated
-	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
-	ml_iter_state_t *State = xnew(ml_iter_state_t, 2, ml_value_t *);
-	State->Base.Caller = Caller;
-	State->Base.run = (void *)map_iterate;
-	State->Base.Context = Caller->Context;
-	State->Values[0] = ml_map();
-	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
-}
-
-extern ml_value_t *MLMapOfMethod;
-
-ML_METHODVX(MLMapOfMethod, MLIteratableT) {
-//!map
-//<Iteratable
-//>map
-// Returns a map of all the key and value pairs produced by :mini:`Iteratable`.
-	ml_iter_state_t *State = xnew(ml_iter_state_t, 2, ml_value_t *);
-	State->Base.Caller = Caller;
-	State->Base.run = (void *)map_iterate;
-	State->Base.Context = Caller->Context;
-	State->Values[0] = ml_map();
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
@@ -1881,7 +1790,6 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "last", Last);
 	stringmap_insert(Globals, "last2", Last2);
 	stringmap_insert(Globals, "all", All);
-	stringmap_insert(Globals, "all2", All2);
 	stringmap_insert(Globals, "count", Count);
 	stringmap_insert(Globals, "count2", Count2);
 	stringmap_insert(Globals, "reduce", Reduce);

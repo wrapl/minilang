@@ -124,9 +124,9 @@ static void ml_object_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int 
 typedef struct {
 	ml_type_t Base;
 	ml_type_t *Native;
+	ml_value_t *Constructor;
 	ml_value_t *Initializer;
 } ml_named_type_t;
-
 
 ML_TYPE(MLNamedTypeT, (MLTypeT), "named-type",
 	.call = (void *)ml_class_call
@@ -168,7 +168,10 @@ static void ml_named_initializer_fn(ml_state_t *Caller, ml_named_type_t *Class, 
 	State->Base.run = (void *)ml_named_init_state_run;
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
+	State->Old = Class->Native;
+	State->New = (ml_type_t *)Class;
 	State->Init = Class->Initializer;
+	State->Count = Count + 1;
 	return ml_call(State, Class->Native->Constructor, 0, NULL);
 }
 
@@ -410,10 +413,6 @@ static long ml_enum_value_hash(ml_enum_value_t *Value, ml_hash_chain_t *Chain) {
 }
 
 ML_TYPE(MLEnumValueT, (), "enum-value");
-
-static ml_value_t *ML_TYPED_FN(ml_string_of, MLEnumValueT, ml_enum_value_t *Value) {
-	return Value->Name;
-}
 
 ML_FUNCTION(MLEnum) {
 	ML_CHECK_ARG_COUNT(1);

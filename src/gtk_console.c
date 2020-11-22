@@ -92,7 +92,7 @@ void console_log(console_t *Console, ml_value_t *Value) {
 			gtk_text_buffer_insert_with_tags(LogBuffer, End, Buffer, Length, Console->ErrorTag, NULL);
 		}
 	} else {
-		ml_value_t *String = ml_string_of(Value);
+		ml_value_t *String = ml_simple_inline(MLStringOfMethod, 1, Value);
 		if (ml_is(String, MLStringT)) {
 			const char *Buffer = ml_string_value(String);
 			int Length = ml_string_length(String);

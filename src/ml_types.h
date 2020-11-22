@@ -102,7 +102,10 @@ void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function);
 #ifdef USE_GENERICS
 const ml_type_t *ml_type_generic(const ml_type_t *Base, int Count, const ml_type_t **Args);
 ml_value_t *ml_type_generic_fn(void *Data, int Count, ml_value_t **Args);
+void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent, ...);
 #endif
+
+const ml_type_t *ml_type_max(const ml_type_t *Type1, const ml_type_t *Type2);
 
 #ifndef GENERATE_INIT
 
@@ -331,8 +334,6 @@ ml_value_t *ml_integer(long Value) __attribute__((malloc));
 ml_value_t *ml_real(double Value) __attribute__((malloc));
 long ml_integer_value(const ml_value_t *Value) __attribute__ ((const));
 double ml_real_value(const ml_value_t *Value) __attribute__ ((const));
-ml_value_t *ml_integer_of(ml_value_t *Value);
-ml_value_t *ml_real_of(ml_value_t *Value);
 
 extern ml_value_t *MLIntegerOfMethod;
 extern ml_value_t *MLRealOfMethod;
@@ -385,7 +386,6 @@ const char *ml_string_value(const ml_value_t *Value) __attribute__((const));
 #endif
 
 size_t ml_string_length(const ml_value_t *Value) __attribute__((pure));
-ml_value_t *ml_string_of(ml_value_t *Value);
 
 extern ml_value_t *MLStringOfMethod;
 
