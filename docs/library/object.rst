@@ -3,6 +3,8 @@ object
 
 .. include:: <isonum.txt>
 
+:mini:`field`
+
 :mini:`object`
    Parent type of all object classes.
 
