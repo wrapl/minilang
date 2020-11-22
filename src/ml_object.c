@@ -14,9 +14,27 @@ struct ml_class_t {
 	ml_value_t *Fields[];
 };
 
+typedef struct {
+	const ml_type_t *Type;
+	ml_value_t *Value;
+} ml_field_t;
+
+static ml_value_t *ml_field_deref(ml_field_t *Field) {
+	return Field->Value;
+}
+
+static ml_value_t *ml_field_assign(ml_field_t *Field, ml_value_t *Value) {
+	return Field->Value = Value;
+}
+
+ML_TYPE(MLFieldT, (), "field",
+	.deref = (void *)ml_field_deref,
+	.assign = (void *)ml_field_assign
+);
+
 struct ml_object_t {
 	const ml_type_t *Type;
-	ml_value_t *Fields[];
+	ml_field_t Fields[];
 };
 
 ML_INTERFACE(MLObjectT, (), "object");
@@ -45,13 +63,13 @@ ML_METHOD(MLStringOfMethod, MLObjectT) {
 		const char *Name = ml_method_name(Class->Fields[0]);
 		ml_stringbuffer_add(Buffer, Name, strlen(Name));
 		ml_stringbuffer_add(Buffer, ": ", 2);
-		ml_stringbuffer_append(Buffer, Object->Fields[0]);
+		ml_stringbuffer_append(Buffer, Object->Fields[0].Value);
 		for (int I = 1; I < Class->NumFields; ++I) {
 			ml_stringbuffer_add(Buffer, ", ", 2);
 			const char *Name = ml_method_name(Class->Fields[I]);
 			ml_stringbuffer_add(Buffer, Name, strlen(Name));
 			ml_stringbuffer_add(Buffer, ": ", 2);
-			ml_stringbuffer_append(Buffer, Object->Fields[I]);
+			ml_stringbuffer_append(Buffer, Object->Fields[I].Value);
 		}
 		ml_stringbuffer_add(Buffer, ")", 1);
 		return ml_stringbuffer_value(Buffer);
@@ -61,9 +79,8 @@ ML_METHOD(MLStringOfMethod, MLObjectT) {
 }
 
 ml_value_t *ml_field_fn(void *Data, int Count, ml_value_t **Args) {
-	int Index = (char *)Data - (char *)0;
 	ml_object_t *Object = (ml_object_t *)Args[0];
-	return ml_reference((ml_value_t **)((char *)Object + Index));
+	return (ml_value_t *)(Object->Fields + (uintptr_t)Data);
 }
 
 typedef struct {
@@ -79,10 +96,13 @@ static void ml_init_state_run(ml_init_state_t *State, ml_value_t *Result) {
 }
 
 static void ml_object_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int Count, ml_value_t **Args) {
-	ml_object_t *Object = xnew(ml_object_t, Class->NumFields, ml_value_t *);
+	ml_object_t *Object = xnew(ml_object_t, Class->NumFields, ml_field_t);
 	Object->Type = (ml_type_t *)Class;
-	ml_value_t **Slot = Object->Fields;
-	for (int I = Class->NumFields; --I >= 0; ++Slot) *Slot = MLNil;
+	ml_field_t *Slot = Object->Fields;
+	for (int I = Class->NumFields; --I >= 0; ++Slot) {
+		Slot->Type = MLFieldT;
+		Slot->Value = MLNil;
+	}
 	if (Class->Initializer) {
 		ml_init_state_t *State = xnew(ml_init_state_t, Count + 1, ml_value_t *);
 		State->Args[0] = (ml_value_t *)Object;
@@ -104,7 +124,7 @@ static void ml_object_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int 
 					if (Class->Fields[J] == Field) {
 						ml_value_t *Arg = ml_typeof(Args[I])->deref(Args[I]);
 						if (ml_is_error(Arg)) ML_RETURN(Arg);
-						Object->Fields[J] = Arg;
+						Object->Fields[J].Value = Arg;
 						goto found;
 					}
 				}
@@ -115,7 +135,7 @@ static void ml_object_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int 
 		} else if (I > Class->NumFields) {
 			break;
 		} else {
-			Object->Fields[I] = Arg;
+			Object->Fields[I].Value = Arg;
 		}
 	}
 	ML_RETURN(Object);
@@ -332,7 +352,7 @@ ML_FUNCTION(MLClass) {
 			ml_value_t **NewFieldFns = anew(ml_value_t *, Class->NumFields);
 			memcpy(NewFieldFns, FieldFns, NumFieldFns * sizeof(ml_value_t *));
 			for (int I = NumFieldFns; I < Class->NumFields; ++I) {
-				NewFieldFns[I] = ml_cfunction(((ml_object_t *)0)->Fields + I, ml_field_fn);
+				NewFieldFns[I] = ml_cfunction((void *)(uintptr_t)I, ml_field_fn);
 			}
 			FieldFns = NewFieldFns;
 			NumFieldFns = Class->NumFields;
@@ -391,7 +411,7 @@ size_t ml_object_size(const ml_value_t *Value) {
 }
 
 ml_value_t *ml_object_field(const ml_value_t *Value, size_t Field) {
-	return ((ml_object_t *)Value)->Fields[Field];
+	return ((ml_object_t *)Value)->Fields[Field].Value;
 }
 
 typedef struct {

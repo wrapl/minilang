@@ -30,6 +30,7 @@ ML_METHOD_DECL(Symbol, "::");
 ML_METHOD_DECL(Range, "..");
 ML_METHOD_DECL(Less, "<");
 
+ML_METHOD_DECL(MLStringOf, "string::of");
 ML_METHOD_DECL(MLBooleanOf, "boolean::of");
 ML_METHOD_DECL(MLNumberOf, "number::of");
 ML_METHOD_DECL(MLIntegerOf, "integer::of");
@@ -2440,6 +2441,9 @@ void ml_init() {
 	ml_method_by_value(MLNumberOfMethod, NULL, ml_identity, MLIntegerT, NULL);
 	ml_method_by_value(MLMethodOfMethod, NULL, ml_identity, MLMethodT, NULL);
 	ml_context_set(&MLRootContext, ML_METHODS_INDEX, MLRootMethods);
+	ml_string_init();
+	ml_list_init();
+	ml_map_init();
 	ml_compiler_init();
 	ml_runtime_init();
 	ml_bytecode_init();
@@ -2457,8 +2461,12 @@ void ml_types_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "integer", MLIntegerT);
 	stringmap_insert(Globals, "real", MLRealT);
 	stringmap_insert(Globals, "method", MLMethodT);
-	ml_string_init(Globals);
-	ml_list_init(Globals);
-	ml_map_init(Globals);
+	stringmap_insert(Globals, "buffer", MLBufferT);
+	stringmap_insert(Globals, "string", MLStringT);
+	stringmap_insert(Globals, "stringbuffer", MLStringBufferT);
+	stringmap_insert(Globals, "regex", MLRegexT);
 	stringmap_insert(Globals, "tuple", MLTupleT);
+	stringmap_insert(Globals, "list", MLListT);
+	stringmap_insert(Globals, "names", MLNamesT);
+	stringmap_insert(Globals, "map", MLMapT);
 }

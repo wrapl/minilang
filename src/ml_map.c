@@ -717,11 +717,10 @@ ML_METHOD("sort", MLMapT, MLFunctionT) {
 	return ml_map_sort((ml_map_t *)Args[0], Args[1]);
 }
 
-void ml_map_init(stringmap_t *Globals) {
+void ml_map_init() {
 #include "ml_map_init.c"
 	MLMapT->Constructor = MLMapOfMethod;
 	stringmap_insert(MLMapT->Exports, "of", MLMapOfMethod);
-	stringmap_insert(Globals, "map", MLMapT);
 #ifdef USE_GENERICS
 	ml_type_add_parent(MLMapT, MLMapT, -1, 1, -2, 2, 0, 0);
 	ml_type_add_parent(MLMapT, MLIteratableT, -1, 1, -2, 2, 0, 0);

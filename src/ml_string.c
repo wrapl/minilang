@@ -13,8 +13,6 @@
 
 extern ml_type_t MLSomeT[];
 
-ML_METHOD_DECL(MLStringOf, "string::of");
-
 ML_FUNCTION(MLBuffer) {
 //!buffer
 //@buffer
@@ -199,26 +197,9 @@ ml_value_t *ml_string_format(const char *Format, ...) {
 	return ml_string(Value, Length);
 }
 
-ml_value_t *ml_string_of(ml_value_t *Value) {
-	typeof(ml_string_of) *function = ml_typed_fn_get(ml_typeof(Value), ml_string_of);
-	if (!function) return ml_simple_inline(MLStringOfMethod, 1, Value);
-	return function(Value);
-}
-
-static ml_value_t *ML_TYPED_FN(ml_string_of, MLStringT, ml_value_t *Value) {
-	return Value;
-}
-
-static ml_value_t *ML_TYPED_FN(ml_string_of, MLNilT, ml_value_t *Value) {
-	return ml_cstring("nil");
-}
 
 ML_METHOD(MLStringOfMethod, MLNilT) {
 	return ml_cstring("nil");
-}
-
-static ml_value_t *ML_TYPED_FN(ml_string_of, MLSomeT, ml_value_t *Value) {
-	return ml_cstring("some");
 }
 
 ML_METHOD(MLStringOfMethod, MLSomeT) {
@@ -229,12 +210,6 @@ ML_METHOD(MLStringOfMethod, MLBooleanT) {
 //!boolean
 	ml_boolean_t *Boolean = (ml_boolean_t *)Args[0];
 	return ml_string(Boolean->Name, -1);
-}
-
-static ml_value_t *ML_TYPED_FN(ml_string_of, MLIntegerT, ml_value_t *Integer) {
-	char *Value;
-	int Length = asprintf(&Value, "%ld", ml_integer_value_fast(Integer));
-	return ml_string(Value, Length);
 }
 
 ML_METHOD(MLStringOfMethod, MLIntegerT) {
@@ -259,12 +234,6 @@ ML_METHOD(MLStringOfMethod, MLIntegerT, MLIntegerT) {
 	} while (Neg);
 	if (Value < 0) *--P = '-';
 	return ml_string(P, Q - P);
-}
-
-static ml_value_t *ML_TYPED_FN(ml_string_of, MLRealT, ml_value_t *Real) {
-	char *Value;
-	int Length = asprintf(&Value, "%f", ml_real_value_fast(Real));
-	return ml_string(Value, Length);
 }
 
 ML_METHOD(MLStringOfMethod, MLRealT) {
@@ -1464,10 +1433,6 @@ ML_METHOD("replace", MLStringT, MLMapT) {
 	return ml_stringbuffer_value(Buffer);
 }
 
-static ml_value_t *ML_TYPED_FN(ml_string_of, MLRegexT, ml_value_t *Regex) {
-	return ml_string_format("/%s/", ml_regex_pattern(Regex));
-}
-
 ML_METHOD(MLStringOfMethod, MLRegexT) {
 //!string
 	return ml_string_format("/%s/", ml_regex_pattern(Args[0]));
@@ -1479,15 +1444,11 @@ ML_METHOD("append", MLStringBufferT, MLRegexT) {
 	return MLSome;
 }
 
-void ml_string_init(stringmap_t *Globals) {
+void ml_string_init() {
 	GC_word StringBufferLayout[] = {1};
 	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
 #include "ml_string_init.c"
 	ml_method_by_value(MLStringOfMethod, NULL, ml_identity, MLStringT, NULL);
 	MLStringT->Constructor = MLStringOfMethod;
 	stringmap_insert(MLStringT->Exports, "of", MLStringOfMethod);
-	stringmap_insert(Globals, "buffer", MLBufferT);
-	stringmap_insert(Globals, "string", MLStringT);
-	stringmap_insert(Globals, "stringbuffer", MLStringBufferT);
-	stringmap_insert(Globals, "regex", MLRegexT);
 }

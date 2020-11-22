@@ -680,12 +680,10 @@ ML_TYPE(MLNamesT, (), "names",
 );
 
 
-void ml_list_init(stringmap_t *Globals) {
+void ml_list_init() {
 #include "ml_list_init.c"
 	MLListT->Constructor = MLListOfMethod;
 	stringmap_insert(MLListT->Exports, "of", MLListOfMethod);
-	stringmap_insert(Globals, "list", MLListT);
-	stringmap_insert(Globals, "names", MLNamesT);
 #ifdef USE_GENERICS
 	ml_type_add_parent(MLListT, MLListT, -1, 1, 0, 0);
 	ml_type_add_parent(MLListT, MLMapT, 1, 0, MLIntegerT, -1, 2, 0, 0);
