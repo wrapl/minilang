@@ -2337,10 +2337,15 @@ static void ml_accept_named_arguments(ml_compiler_t *Compiler, ml_token_t EndTok
 	Arg = ArgsSlot[0] = ml_accept_expression(Compiler, EXPR_DEFAULT);
 	ArgsSlot = &Arg->Next;
 	while (ml_parse(Compiler, MLT_COMMA)) {
-		if (ml_parse(Compiler, MLT_IDENT) || ml_parse(Compiler, MLT_METHOD)) {
-			ml_names_add(Names, ml_method(Compiler->Ident));
+		if (ml_parse(Compiler, MLT_IDENT)) {
+			ml_names_add(Names, ml_cstring(Compiler->Ident));
+		} else if (ml_parse(Compiler, MLT_VALUE)) {
+			if (ml_typeof(Compiler->Value) != MLStringT) {
+				ml_compiler_error(Compiler, "ParseError", "Argument names must be identifiers or string");
+			}
+			ml_names_add(Names, Compiler->Value);
 		} else {
-			ml_compiler_error(Compiler, "ParseError", "Argument names must be identifiers or methods");
+			ml_compiler_error(Compiler, "ParseError", "Argument names must be identifiers or string");
 		}
 		ml_accept(Compiler, MLT_IS);
 		if (ml_parse(Compiler, MLT_SEMICOLON)) {
@@ -2369,15 +2374,15 @@ static void ml_accept_arguments(ml_compiler_t *Compiler, ml_token_t EndToken, ml
 			if (ml_parse(Compiler, MLT_IS)) {
 				ml_value_t *Names = ml_names();
 				if (Arg->compile == (void *)ml_ident_expr_compile) {
-					ml_names_add(Names, ml_method(((mlc_ident_expr_t *)Arg)->Ident));
+					ml_names_add(Names, ml_cstring(((mlc_ident_expr_t *)Arg)->Ident));
 				} else if (Arg->compile == (void *)ml_value_expr_compile) {
 					ml_value_t *Name = ((mlc_value_expr_t *)Arg)->Value;
-					if (ml_typeof(Name) != MLMethodT) {
-						ml_compiler_error(Compiler, "ParseError", "Argument names must be identifiers or methods");
+					if (ml_typeof(Name) != MLStringT) {
+						ml_compiler_error(Compiler, "ParseError", "Argument names must be identifiers or strings");
 					}
 					ml_names_add(Names, Name);
 				} else {
-					ml_compiler_error(Compiler, "ParseError", "Argument names must be identifiers or methods");
+					ml_compiler_error(Compiler, "ParseError", "Argument names must be identifiers or strings");
 				}
 				ML_EXPR(NamesArg, value, value);
 				NamesArg->Value = Names;
@@ -3168,7 +3173,7 @@ static mlc_expr_t *ml_accept_block_export(ml_compiler_t *Compiler, mlc_expr_t *E
 	Expr->Next = (mlc_expr_t *)NamesExpr;
 	mlc_expr_t **ArgsSlot = &NamesExpr->Next;
 	while (Export) {
-		ml_names_add(Names, ml_method(Export->Ident));
+		ml_names_add(Names, ml_cstring(Export->Ident));
 		ML_EXPR(IdentExpr, ident, ident);
 		IdentExpr->Ident = Export->Ident;
 		ArgsSlot[0] = (mlc_expr_t *)IdentExpr;

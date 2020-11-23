@@ -53,9 +53,7 @@ ML_METHOD(MLMapOfMethod) {
 ML_METHODV(MLMapOfMethod, MLNamesT) {
 	ml_value_t *Map = ml_map();
 	ml_value_t **Values = Args + 1;
-	ML_NAMES_FOREACH(Args[0], Iter) {
-		ml_map_insert(Map, ml_cstring(ml_method_name(Iter->Value)), *Values++);
-	}
+	ML_NAMES_FOREACH(Args[0], Iter) ml_map_insert(Map, Iter->Value, *Values++);
 	return Map;
 }
 

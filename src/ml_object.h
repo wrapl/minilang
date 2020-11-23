@@ -19,7 +19,6 @@ extern ml_type_t MLObjectT[];
 
 const char *ml_class_name(const ml_value_t *Value) __attribute__ ((pure));
 size_t ml_class_size(const ml_value_t *Value) __attribute__ ((pure));
-ml_value_t *ml_class_field(const ml_value_t *Value, size_t Field) __attribute__ ((pure));
 
 ml_value_t *ml_object_class(const ml_value_t *Value) __attribute__ ((pure));
 size_t ml_object_size(const ml_value_t *Value) __attribute__ ((pure));

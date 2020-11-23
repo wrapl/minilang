@@ -74,6 +74,7 @@ var Objects := [
 	file("ml_runtime.o"),
 	file("ml_types.o"),
 	file("ml_string.o"),
+	file("ml_method.o"),
 	file("ml_list.o"),
 	file("ml_map.o"),
 	file("ml_file.o"),

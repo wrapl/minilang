@@ -105,6 +105,7 @@ ml_value_t *ml_type_generic_fn(void *Data, int Count, ml_value_t **Args);
 void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent, ...);
 #endif
 
+int ml_is_subtype(const ml_type_t *Type1, const ml_type_t *Type2) __attribute__ ((pure));
 const ml_type_t *ml_type_max(const ml_type_t *Type1, const ml_type_t *Type2);
 
 #ifndef GENERATE_INIT
@@ -341,11 +342,19 @@ extern ml_value_t *MLRealOfMethod;
 // Strings //
 
 typedef struct ml_buffer_t ml_buffer_t;
+typedef struct ml_string_t ml_string_t;
 
 struct ml_buffer_t {
 	const ml_type_t *Type;
 	char *Address;
 	size_t Size;
+};
+
+struct ml_string_t {
+	const ml_type_t *Type;
+	const char *Value;
+	size_t Length;
+	long Hash;
 };
 
 extern ml_type_t MLBufferT[];
@@ -631,6 +640,13 @@ static inline void ml_names_add(ml_value_t *Names, ml_value_t *Value) {
 #define ML_NAMES_FOREACH(LIST, ITER) ML_LIST_FOREACH(LIST, ITER)
 
 // Methods //
+
+typedef struct ml_method_t ml_method_t;
+typedef struct ml_methods_t ml_methods_t;
+
+#define ML_METHODS_INDEX 0
+
+void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Callback, int Count, int Variadic, ml_type_t **Types);
 
 extern ml_type_t MLMethodT[];
 

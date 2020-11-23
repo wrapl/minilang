@@ -143,15 +143,13 @@ size_t ml_string_length(const ml_value_t *Value) {
 
 #else
 
-typedef struct ml_string_t {
-	const ml_type_t *Type;
-	const char *Value;
-	size_t Length;
-} ml_string_t;
-
 static long ml_string_hash(ml_string_t *String, ml_hash_chain_t *Chain) {
-	long Hash = 5381;
-	for (int I = 0; I < String->Length; ++I) Hash = ((Hash << 5) + Hash) + String->Value[I];
+	long Hash = String->Hash;
+	if (!Hash) {
+		Hash = 5381;
+		for (int I = 0; I < String->Length; ++I) Hash = ((Hash << 5) + Hash) + String->Value[I];
+		String->Hash = Hash;
+	}
 	return Hash;
 }
 

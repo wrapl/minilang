@@ -35,6 +35,7 @@ obj/%_init.c: src/%.c | obj
 
 obj/ml_types.o: obj/ml_types_init.c
 obj/ml_string.o: obj/ml_string_init.c
+obj/ml_method.o: obj/ml_method_init.c
 obj/ml_list.o: obj/ml_list_init.c
 obj/ml_map.o: obj/ml_map_init.c
 obj/ml_object.o: obj/ml_object_init.c
@@ -51,6 +52,7 @@ common_objects = \
 	obj/ml_bytecode.o \
 	obj/ml_types.o \
 	obj/ml_string.o \
+	obj/ml_method.o \
 	obj/ml_list.o \
 	obj/ml_map.o \
 	obj/ml_file.o \

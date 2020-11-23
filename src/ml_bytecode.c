@@ -874,7 +874,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 		for (; I < Count; ++I) {
 			if (ml_typeof(Args[I]) == MLNamesT) {
 				ML_NAMES_FOREACH(Args[I], Node) {
-					const char *Name = ml_method_name(Node->Value);
+					const char *Name = ml_string_value(Node->Value);
 					int Index = (intptr_t)stringmap_search(Info->Params, Name);
 					if (Index) {
 						Frame->Stack[Index - 1] = Args[++I];
@@ -891,7 +891,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 		for (; I < Count; ++I) {
 			if (ml_typeof(Args[I]) == MLNamesT) {
 				ML_NAMES_FOREACH(Args[I], Node) {
-					const char *Name = ml_method_name(Node->Value);
+					const char *Name = ml_string_value(Node->Value);
 					int Index = (intptr_t)stringmap_search(Info->Params, Name);
 					if (Index) {
 						Frame->Stack[Index - 1] = Args[++I];
