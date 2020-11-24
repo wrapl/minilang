@@ -21,7 +21,7 @@ object
    :Parents: :mini:`type`
 
 
-:mini:`fun class(?Name: string, ?Parents...: class, ?Fields...: method, ?Exports...: named)`
+:mini:`fun class(Name?: string, Parents...: class, Fields...: method, Exports...: named)`
 
 :mini:`property`
 

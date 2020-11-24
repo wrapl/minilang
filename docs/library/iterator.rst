@@ -7,7 +7,7 @@ iterator
    :Parents: :mini:`function`
 
 
-:mini:`fun filter(?Function: any)` |rarr| :mini:`filter`
+:mini:`fun filter(Function?: any)` |rarr| :mini:`filter`
    Returns a filter for use in chained functions and iterators.
 
 
@@ -65,7 +65,7 @@ iterator
    Returns a map of the values produced by :mini:`Iteratable` with associated counts.
 
 
-:mini:`fun reduce(?Initial: any, Iteratable: iteratable, Fn: function)` |rarr| :mini:`any` or :mini:`nil`
+:mini:`fun reduce(Initial?: any, Iteratable: iteratable, Fn: function)` |rarr| :mini:`any` or :mini:`nil`
    Returns :mini:`Fn(Fn( ... Fn(Initial, V₁), V₂) ..., Vₙ)` where :mini:`Vᵢ` are the values produced by :mini:`Iteratable`.
 
    If :mini:`Initial` is omitted, first value produced by :mini:`Iteratable` is used.

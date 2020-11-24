@@ -74,7 +74,11 @@ MATH_REAL(Round, rint);
 
 ML_FUNCTION(RandomInteger) {
 //@integer::random
+//<Min?:number
+//<Max?:number
 //>integer
+// Returns a random integer between :mini:`Min` and :mini:`Max` (where :mini:`Max <= 2³² - 1`.
+// If omitted, :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`2³² - 1`.
 	if (Count == 2) {
 		ML_CHECK_ARG_TYPE(0, MLNumberT);
 		ML_CHECK_ARG_TYPE(1, MLNumberT);
@@ -100,7 +104,11 @@ ML_FUNCTION(RandomInteger) {
 
 ML_FUNCTION(RandomReal) {
 //@real::random
+//<Min?:number
+//<Max?:number
 //>real
+// Returns a random real between :mini:`Min` and :mini:`Max`.
+// If omitted, :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`1`.
 	if (Count == 2) {
 		ML_CHECK_ARG_TYPE(0, MLNumberT);
 		ML_CHECK_ARG_TYPE(1, MLNumberT);

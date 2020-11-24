@@ -174,6 +174,7 @@
     </context>
     <context id="types" style-ref="type">
       <keyword>class</keyword>
+      <keyword>object</keyword>
       <keyword>enum</keyword>
       <keyword>method</keyword>
       <keyword>any</keyword>

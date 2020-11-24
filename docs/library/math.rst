@@ -67,7 +67,15 @@ math
 
 :mini:`meth rint(Arg₁: number)` |rarr| :mini:`number`
 
-:mini:`fun integer::random()` |rarr| :mini:`integer`
+:mini:`fun integer::random(Min?: number, Max?: number)` |rarr| :mini:`integer`
+   Returns a random integer between :mini:`Min` and :mini:`Max` (where :mini:`Max <= 2³² - 1`.
 
-:mini:`fun real::random()` |rarr| :mini:`real`
+   If omitted, :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`2³² - 1`.
+
+
+:mini:`fun real::random(Min?: number, Max?: number)` |rarr| :mini:`real`
+   Returns a random real between :mini:`Min` and :mini:`Max`.
+
+   If omitted, :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`1`.
+
 

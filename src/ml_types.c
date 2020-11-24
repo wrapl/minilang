@@ -29,6 +29,7 @@ ML_METHOD_DECL(Compare, "<>");
 ML_METHOD_DECL(Index, "[]");
 ML_METHOD_DECL(Symbol, "::");
 ML_METHOD_DECL(Less, "<");
+ML_METHOD_DECL(Call, "()");
 
 ML_METHOD_DECL(MLStringOf, "string::of");
 ML_METHOD_DECL(MLBooleanOf, "boolean::of");
@@ -108,7 +109,11 @@ ML_METHOD("parents", MLTypeT) {
 }
 
 void ml_default_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
-	ML_RETURN(ml_error("TypeError", "<%s> is not callable", ml_typeof(Value)->Name));
+	//ML_RETURN(ml_error("TypeError", "<%s> is not callable", ml_typeof(Value)->Name));
+	ml_value_t **Args2 = anew(ml_value_t *, Count + 1);
+	Args2[0] = Value;
+	for (int I = 0; I < Count; ++I) Args2[I + 1] = Args[I];
+	return ml_call(Caller, CallMethod, Count + 1, Args2);
 }
 
 long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
@@ -729,10 +734,7 @@ ML_METHODX("!", MLFunctionT, MLListT, MLMapT) {
 }
 
 static void ml_cfunction_call(ml_state_t *Caller, ml_cfunction_t *Function, int Count, ml_value_t **Args) {
-	for (int I = 0; I < Count; ++I) {
-		Args[I] = ml_deref(Args[I]);
-		//if (ml_is_error(Args[I])) ML_RETURN(Args[I]);
-	}
+	for (int I = 0; I < Count; ++I) Args[I] = ml_deref(Args[I]);
 	ML_RETURN((Function->Callback)(Function->Data, Count, Args));
 }
 
@@ -754,10 +756,7 @@ static void ML_TYPED_FN(ml_iterate, MLCFunctionT, ml_state_t *Caller, ml_cfuncti
 }
 
 static void ml_cfunctionx_call(ml_state_t *Caller, ml_cfunctionx_t *Function, int Count, ml_value_t **Args) {
-	for (int I = 0; I < Count; ++I) {
-		Args[I] = ml_deref(Args[I]);
-		//if (ml_is_error(Args[I])) ML_RETURN(Args[I]);
-	}
+	for (int I = 0; I < Count; ++I) Args[I] = ml_deref(Args[I]);
 	return (Function->Callback)(Caller, Function->Data, Count, Args);
 }
 
@@ -1446,6 +1445,11 @@ ml_arith_method_number("-", -)
 ml_arith_method_number_number("+", +)
 ml_arith_method_number_number("-", -)
 ml_arith_method_number_number("*", *)
+ml_arith_method_integer_integer("shl", <<);
+ml_arith_method_integer_integer("shr", >>);
+ml_arith_method_integer_integer("and", &);
+ml_arith_method_integer_integer("or", |);
+ml_arith_method_integer_integer("xor", ^);
 
 ML_METHOD("++", MLIntegerT) {
 //!number

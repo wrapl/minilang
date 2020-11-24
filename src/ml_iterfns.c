@@ -27,7 +27,7 @@ static ml_filter_t *FilterNil;
 
 ML_FUNCTION(Filter) {
 //@filter
-//<?Function
+//<Function?
 //>filter
 // Returns a filter for use in chained functions and iterators.
 	if (Count == 0) return (ml_value_t *)FilterNil;
@@ -608,7 +608,7 @@ static void reduce_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 }
 
 ML_FUNCTIONX(Reduce) {
-//<?Initial:any
+//<Initial?:any
 //<Iteratable:iteratable
 //<Fn:function
 //>any | nil
@@ -1081,12 +1081,6 @@ static void ml_tasks_call(ml_state_t *Caller, ml_tasks_t *Tasks, int Count, ml_v
 	}
 }
 
-ML_TYPE(MLTasksT, (MLFunctionT), "tasks",
-//!tasks
-// A dynamic set of tasks (function calls). Multiple tasks can run in parallel (depending on the availability of a scheduler and/or asynchronous function calls).
-	.call = (void *)ml_tasks_call
-);
-
 static void ml_tasks_continue(ml_tasks_t *Tasks, ml_value_t *Value) {
 	if (ml_is_error(Value)) Tasks->Value = Value;
 	--Tasks->Waiting;
@@ -1098,10 +1092,12 @@ static void ml_tasks_continue(ml_tasks_t *Tasks, ml_value_t *Value) {
 	if (Tasks->Waiting == 0) ML_CONTINUE(Tasks->Base.Caller, Tasks->Value);
 }
 
+extern ml_type_t MLTasksT[];
+
 ML_FUNCTIONX(Tasks) {
 //!tasks
-//<?Max:integer
-//<?Min:integer
+//<Max?:integer
+//<Min?:integer
 //>tasks
 // Creates a new :mini:`tasks` set.
 // If specified, at most :mini:`Max` functions will be called in parallel (the default is unlimited).
@@ -1129,11 +1125,18 @@ ML_FUNCTIONX(Tasks) {
 	ML_RETURN(Tasks);
 }
 
+ML_TYPE(MLTasksT, (MLFunctionT), "tasks",
+//!tasks
+// A dynamic set of tasks (function calls). Multiple tasks can run in parallel (depending on the availability of a scheduler and/or asynchronous function calls).
+	.call = (void *)ml_tasks_call,
+	.Constructor = (ml_value_t *)Tasks
+);
+
 ML_METHODVX("add", MLTasksT, MLAnyT) {
 //!tasks
 //<Tasks
+//<Args...
 //<Function
-//<?Args...
 // Adds the function call :mini:`Function(Args...)` to a set of tasks.
 // Adding a task to a completed tasks set returns an error.
 	ml_tasks_t *Tasks = (ml_tasks_t *)Args[0];
@@ -1223,8 +1226,8 @@ static void parallel_continue(ml_parallel_t *Parallel, ml_value_t *Value) {
 ML_FUNCTIONX(Parallel) {
 //!tasks
 //<Iteratable
-//<Max:?integer
-//<Min:?integer
+//<Max?:integer
+//<Min?:integer
 //<Function:function
 //>nil | error
 // Iterates through :mini:`Iteratable` and calls :mini:`Function(Key, Value)` for each :mini:`Key, Value` pair produced **without** waiting for the call to return.
@@ -1802,7 +1805,7 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "max2", Max2);
 	stringmap_insert(Globals, "parallel", Parallel);
 	stringmap_insert(Globals, "unique", Unique);
-	stringmap_insert(Globals, "tasks", Tasks);
+	stringmap_insert(Globals, "tasks", MLTasksT);
 	stringmap_insert(Globals, "zip", Zip);
 	stringmap_insert(Globals, "weave", Weave);
 	stringmap_insert(Globals, "swap", Swap);

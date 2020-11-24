@@ -217,10 +217,10 @@ static int setup_field(const char *Name, char *Offset, class_setup_t *Setup) {
 ML_FUNCTIONX(MLClass) {
 //!object
 //@class
-//<?Name:string
-//<?Parents...:class
-//<?Fields...:method
-//<?Exports...:named
+//<Name?:string
+//<Parents...:class
+//<Fields...:method
+//<Exports...:named
 	static ml_value_t **FieldFns = NULL;
 	static int NumFieldFns = 0;
 	const char *Name = NULL;
