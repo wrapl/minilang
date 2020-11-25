@@ -665,9 +665,9 @@ static void ML_TYPED_FN(ml_iter_value, MLArrayIteratorT, ml_state_t *Caller, ml_
 }
 
 static void ML_TYPED_FN(ml_iter_key, MLArrayIteratorT, ml_state_t *Caller, ml_array_iterator_t *Iterator) {
-	ml_value_t *Tuple = ml_tuple(Iterator->Degree - 1);
-	for (int I = 1; I <= Iterator->Degree; ++I) {
-		ml_tuple_set(Tuple, I, ml_integer(Iterator->Dimensions[I].Index + 1));
+	ml_value_t *Tuple = ml_tuple(Iterator->Degree);
+	for (int I = 0; I < Iterator->Degree; ++I) {
+		ml_tuple_set(Tuple, I + 1, ml_integer(Iterator->Dimensions[I].Index + 1));
 	}
 	ML_RETURN(Tuple);
 }
