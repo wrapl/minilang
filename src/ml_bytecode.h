@@ -123,26 +123,7 @@ typedef enum {
 	MLI_RESOLVE
 } ml_opcode_t;
 
-typedef enum {
-	MLIT_NONE,
-	MLIT_INST,
-	MLIT_INST_INST,
-	MLIT_INST_INST_INDEX_CHARS,
-	MLIT_INST_INDEX,
-	MLIT_INST_INDEX_COUNT,
-	MLIT_INST_INDEX_CHARS,
-	MLIT_INST_COUNT,
-	MLIT_INST_COUNT_COUNT,
-	MLIT_INST_COUNT_VALUE,
-	MLIT_INST_COUNT_CHARS,
-	MLIT_INST_VALUE,
-	MLIT_INST_VALUE_VALUE,
-	MLIT_INST_CLOSURE
-} ml_inst_type_t;
-
 typedef struct ml_frame_t ml_frame_t;
-
-extern const ml_inst_type_t MLInstTypes[];
 
 typedef void (*ml_inst_fn_t)(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst);
 

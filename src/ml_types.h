@@ -135,6 +135,9 @@ typedef void (*ml_callbackx_t)(ml_state_t *Frame, void *Data, int Count, ml_valu
 
 // Boxing //
 
+long ml_integer_value(const ml_value_t *Value) __attribute__ ((const));
+double ml_real_value(const ml_value_t *Value) __attribute__ ((const));
+
 #ifdef USE_NANBOXING
 
 static inline int ml_tag(const ml_value_t *Value) {
@@ -158,6 +161,14 @@ static inline double ml_to_double(const ml_value_t *Value) {
 	Boxed.Value = Value;
 	Boxed.Bits -= 0x07000000000000;
 	return Boxed.Double;
+}
+
+inline long ml_integer_value_fast(const ml_value_t *Value) {
+	return ml_integer_value(Value);
+}
+
+inline double ml_real_value_fast(const ml_value_t *Value) {
+	return ml_real_value(Value);
 }
 
 #else
@@ -333,8 +344,6 @@ extern ml_type_t MLDoubleT[];
 
 ml_value_t *ml_integer(long Value) __attribute__((malloc));
 ml_value_t *ml_real(double Value) __attribute__((malloc));
-long ml_integer_value(const ml_value_t *Value) __attribute__ ((const));
-double ml_real_value(const ml_value_t *Value) __attribute__ ((const));
 
 extern ml_value_t *MLIntegerOfMethod;
 extern ml_value_t *MLRealOfMethod;
@@ -360,13 +369,6 @@ struct ml_string_t {
 extern ml_type_t MLBufferT[];
 extern ml_type_t MLStringT[];
 
-#ifdef USE_NANBOXING
-
-extern ml_type_t MLStringShortT[];
-extern ml_type_t MLStringLongT[];
-
-#endif
-
 extern ml_type_t MLRegexT[];
 extern ml_type_t MLStringBufferT[];
 
@@ -377,23 +379,7 @@ ml_value_t *ml_string(const char *Value, int Length) __attribute__((malloc));
 
 ml_value_t *ml_string_format(const char *Format, ...) __attribute__((malloc, format(printf, 1, 2)));
 
-#ifdef USE_NANBOXING
-
-#define ml_string_value(VALUE) ({ \
-	int Tag = ml_tag(VALUE); \
-	(Tag >= 2 && Tag <= 6) \
-		? (char *)&(VALUE) \
-		: (Tag == 0 && (VALUE)->Type == MLStringLongT) \
-			? ((ml_buffer_t *)(VALUE))->Address \
-			: NULL; \
-})
-
-#else
-
 const char *ml_string_value(const ml_value_t *Value) __attribute__((const));
-
-#endif
-
 size_t ml_string_length(const ml_value_t *Value) __attribute__((pure));
 
 extern ml_value_t *MLStringOfMethod;
@@ -731,7 +717,7 @@ static inline const ml_type_t *ml_typeof(const ml_value_t *Value) {
 	} else if (Tag == 1) {
 		return MLInt32T;
 	} else if (Tag < 7) {
-		return MLStringShortT;
+		return NULL;
 	} else {
 		return MLDoubleT;
 	}

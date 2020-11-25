@@ -65,84 +65,6 @@ ML_METHOD(MLStringOfMethod, MLBufferT) {
 	return ml_string_format("#%" PRIxPTR ":%ld", (uintptr_t)Buffer->Address, Buffer->Size);
 }
 
-#ifdef USE_NANBOXING
-
-ML_TYPE(MLStringT, (MLIteratableT), "string");
-//!string
-
-static long ml_string_short_hash(ml_value_t *String, ml_hash_chain_t *Chain) {
-	long Hash = 5381;
-	int Length = ml_tag(String) - 2;
-	char *Bytes = (char *)&String;
-	for (int I = 0; I < Length; ++I) Hash = ((Hash << 5) + Hash) + Bytes[I];
-	return Hash;
-}
-
-ML_TYPE(MLStringShortT, (MLStringT), "short-string",
-//!string
-	.hash = (void *)ml_string_short_hash
-);
-
-static long ml_string_long_hash(ml_buffer_t *String, ml_hash_chain_t *Chain) {
-	long Hash = 5381;
-	for (int I = 0; I < String->Size; ++I) Hash = ((Hash << 5) + Hash) + String->Address[I];
-	return Hash;
-}
-
-ML_TYPE(MLStringLongT, (MLStringT, MLBufferT), "long-string",
-//!string
-	.hash = (void *)ml_string_long_hash
-);
-
-ml_value_t *ml_string(const char *Value, int Length) {
-	if (Length < 0) Length = Value ? strlen(Value) : 0;
-	if (Length <= 4) {
-		ml_value_t *String = (void *)(((uint64_t)Length + 2) << 48);
-		char *Bytes = (char *)&String;
-		for (int I = 0; I < Length; ++I) Bytes[I] = Value[I];
-		Bytes[Length] = 0;
-		return String;
-	} else {
-		ml_buffer_t *String = new(ml_buffer_t);
-		String->Type = MLStringLongT;
-		if (Value[Length]) {
-			char *Copy = snew(Length + 1);
-			memcpy(Copy, Value, Length);
-			Copy[Length] = 0;
-			Value = Copy;
-		}
-		String->Address = (char *)Value;
-		String->Size = Length;
-		return (ml_value_t *)String;
-	}
-}
-
-ML_METHOD("+", MLStringShortT, MLIntegerT) {
-//!string
-	const char *Chars  = (const char *)&Args[0];
-	int Length = ml_tag(Args[0]) - 2;
-	long Offset = ml_integer_value(Args[1]);
-	if (Offset >= Length) return ml_error("ValueError", "Offset larger than buffer");
-	Length -= Offset;
-	Chars += Offset;
-	ml_value_t *String = (void *)(((uint64_t)Length + 2) << 48);
-	char *Bytes = (char *)&String;
-	for (int I = 0; I < Length; ++I) Bytes[I] = Chars[I];
-	Bytes[Length] = 0;
-	return String;
-}
-
-size_t ml_string_length(const ml_value_t *Value) {
-	int Tag = ml_tag(Value);
-	if (Tag >= 2 && Tag <= 6) return Tag - 2;
-	if (Tag == 0 && Value->Type == MLStringLongT) {
-		return ((ml_buffer_t *)Value)->Size;
-	}
-	return 0;
-}
-
-#else
-
 static long ml_string_hash(ml_string_t *String, ml_hash_chain_t *Chain) {
 	long Hash = String->Hash;
 	if (!Hash) {
@@ -183,8 +105,6 @@ const char *ml_string_value(const ml_value_t *Value) {
 size_t ml_string_length(const ml_value_t *Value) {
 	return ((ml_string_t *)Value)->Length;
 }
-
-#endif
 
 ml_value_t *ml_string_format(const char *Format, ...) {
 	va_list Args;

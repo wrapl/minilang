@@ -4,20 +4,6 @@ string
 .. include:: <isonum.txt>
 
 :mini:`string`
-   :Parents: :mini:`iteratable`
-
-
-:mini:`stringshort`
-   :Parents: :mini:`string`
-
-
-:mini:`stringlong`
-   :Parents: :mini:`string`, :mini:`buffer`
-
-
-:mini:`meth +(Arg₁: stringshort, Arg₂: integer)`
-
-:mini:`string`
    :Parents: :mini:`buffer`, :mini:`iteratable`
 
 

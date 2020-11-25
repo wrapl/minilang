@@ -136,13 +136,6 @@ struct ml_compiler_t {
 	mlc_expr_t *Next; \
 	ml_source_t Source;
 
-static inline ml_inst_t *ml_inst_new(int N, ml_source_t Source, ml_opcode_t Opcode) {
-	ml_inst_t *Inst = xnew(ml_inst_t, N, ml_param_t);
-	Inst->LineNo = Source.Line;
-	Inst->Opcode = Opcode;
-	return Inst;
-}
-
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
@@ -199,8 +192,31 @@ struct mlc_function_t {
 	mlc_loop_t *Loop;
 	mlc_try_t *Try;
 	mlc_upvalue_t *UpValues;
-	int Top, Size, Self;
+	void *NextInst;
+	int Top, Size, Self, InstSpace;
 };
+
+static ml_inst_t *ml_inst_alloc(mlc_function_t *Function, int N, ml_source_t Source, ml_opcode_t Opcode) {
+	int Size = sizeof(ml_inst_t) + N * sizeof(ml_param_t);
+	if ((Function->InstSpace -= Size) < 0) {
+		Function->NextInst = GC_malloc(272);
+		Function->InstSpace = 272 - Size;
+	}
+	ml_inst_t *Inst = Function->NextInst;
+	Function->NextInst += Size;
+	Inst->LineNo = Source.Line;
+	Inst->Opcode = Opcode;
+	return Inst;
+}
+
+/*static inline ml_inst_t *ml_inst_new(int N, ml_source_t Source, ml_opcode_t Opcode) {
+	ml_inst_t *Inst = xnew(ml_inst_t, N, ml_param_t);
+	Inst->LineNo = Source.Line;
+	Inst->Opcode = Opcode;
+	return Inst;
+}*/
+
+#define ml_inst_new(N, SOURCE, OPCODE) ml_inst_alloc(Function, N, SOURCE, OPCODE)
 
 static inline void mlc_inc_top(mlc_function_t *Function) {
 	if (++Function->Top >= Function->Size) Function->Size = Function->Top + 1;
@@ -1625,7 +1641,7 @@ static int ml_upvalue_find(mlc_function_t *Function, ml_decl_t *Decl, mlc_functi
 	return ~Index;
 }
 
-static mlc_compiled_t ml_ident_expr_finish(mlc_ident_expr_t *Expr, ml_value_t *Value) {
+static mlc_compiled_t ml_ident_expr_finish(mlc_function_t *Function, mlc_ident_expr_t *Expr, ml_value_t *Value) {
 	ml_inst_t *ValueInst = ml_inst_new(2, Expr->Source, MLI_LOAD);
 	if (ml_typeof(Value) == MLUninitializedT) {
 		ml_uninitialized_use(Value, &ValueInst->Params[1].Value);
@@ -1640,7 +1656,7 @@ static mlc_compiled_t ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_
 			if (!strcmp(Decl->Ident, Expr->Ident)) {
 				if (Decl->Flags == MLC_DECL_CONSTANT) {
 					if (!Decl->Value) Decl->Value = ml_uninitialized(Decl->Ident);
-					return ml_ident_expr_finish(Expr, Decl->Value);
+					return ml_ident_expr_finish(Function, Expr, Decl->Value);
 				} else {
 					int Index = ml_upvalue_find(Function, Decl, UpFunction);
 					ml_inst_t *LocalInst;
@@ -1666,7 +1682,7 @@ static mlc_compiled_t ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_
 		ml_expr_error(Expr, ml_error("CompilerError", "identifier %s not declared", Expr->Ident));
 	}
 	if (ml_is_error(Value)) ml_expr_error(Expr, Value);
-	return ml_ident_expr_finish(Expr, Value);
+	return ml_ident_expr_finish(Function, Expr, Value);
 }
 
 typedef struct {

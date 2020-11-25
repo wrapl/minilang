@@ -118,7 +118,23 @@ static ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, 
 	const ml_type_t **Types = alloca(Count * sizeof(const ml_type_t *));
 	uintptr_t Hash = (uintptr_t)Method;
 	for (int I = Count; --I >= 0;) {
+#ifdef USE_NANBOXING
+		ml_value_t *Value = Args[I];
+		const ml_type_t *Type;
+		unsigned Tag = ml_tag(Value);
+		if (__builtin_expect(Tag == 0, 1)) {
+			Type = ml_typeof(Value->Type->deref(Value));
+		} else if (Tag == 1) {
+			Type = MLInt32T;
+		} else if (Tag < 7) {
+			Type = NULL;
+		} else {
+			Type = MLDoubleT;
+		}
+		Types[I] = Type;
+#else
 		const ml_type_t *Type = Types[I] = ml_typeof(ml_deref(Args[I]));
+#endif
 		Hash = rotl(Hash, 1) ^ (uintptr_t)Type;
 	}
 	ml_method_cached_t *Cached = ml_method_search_entry(Methods, Method, Count, Types, Hash);
@@ -166,10 +182,6 @@ static long ml_method_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 }
 
 static void ml_method_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
-	/*for (int I = 0; I < Count; ++I) {
-		Args[I] = ml_deref(Args[I]);
-		//if (ml_is_error(Args[I])) ML_RETURN(Args[I]);
-	}*/
 	ml_method_t *Method = (ml_method_t *)Value;
 	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
 	ml_value_t *Callback = ml_method_search(Methods, Method, Count, Args);

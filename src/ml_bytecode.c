@@ -303,7 +303,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #endif
 		ml_state_t *Caller = Frame->Base.Caller;
 		if (Frame->Reuse) {
-			memset(Frame, 0, ML_FRAME_REUSE_SIZE);
+			//memset(Frame, 0, ML_FRAME_REUSE_SIZE);
+			while (Top > Frame->Stack) *--Top = 0;
 			*(ml_frame_t **)Frame = MLCachedFrame;
 			MLCachedFrame = Frame;
 		} else {
@@ -998,7 +999,24 @@ const char *MLInsts[] = {
 	"resolve" // MLI_RESOLVE
 };
 
-const ml_inst_type_t MLInstTypes[] = {
+typedef enum {
+	MLIT_NONE,
+	MLIT_INST,
+	MLIT_INST_INST,
+	MLIT_INST_INST_INDEX_CHARS,
+	MLIT_INST_INDEX,
+	MLIT_INST_INDEX_COUNT,
+	MLIT_INST_INDEX_CHARS,
+	MLIT_INST_COUNT,
+	MLIT_INST_COUNT_COUNT,
+	MLIT_INST_COUNT_VALUE,
+	MLIT_INST_COUNT_CHARS,
+	MLIT_INST_VALUE,
+	MLIT_INST_VALUE_VALUE,
+	MLIT_INST_CLOSURE
+} ml_inst_type_t;
+
+static const ml_inst_type_t MLInstTypes[] = {
 	MLIT_NONE, // MLI_RETURN,
 	MLIT_INST, // MLI_SUSPEND,
 	MLIT_INST, // MLI_RESUME,
