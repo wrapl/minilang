@@ -561,15 +561,17 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_CALL: {
 		int Count = Inst->Params[1].Count;
-		ml_value_t *Function = Top[~Count];
-		Function = ml_deref(Function);
+		ml_value_t *Function = ml_deref(Top[~Count]);
 		//ERROR_CHECK(Function);
 		ml_value_t **Args = Top - Count;
 		ml_inst_t *Next = Inst->Params[0].Inst;
 #ifdef USE_ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
-		if (Inst->Opcode == MLI_RETURN) {
+		if (Next->Opcode == MLI_RETURN) {
+			*(ml_frame_t **)Frame = MLCachedFrame;
+			MLCachedFrame = Frame;
+			// ^ safe as long as ml_call never suspends before copying arguments
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		} else {
 			Frame->Inst = Next;
@@ -585,7 +587,10 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef USE_ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
-		if (Inst->Opcode == MLI_RETURN) {
+		if (Next->Opcode == MLI_RETURN) {
+			*(ml_frame_t **)Frame = MLCachedFrame;
+			MLCachedFrame = Frame;
+			// ^ safe as long as ml_call never suspends before copying arguments
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		} else {
 			Frame->Inst = Next;

@@ -246,6 +246,9 @@ ML_FUNCTIONX(MLClass) {
 			NativeType = Parent->Native;
 		} else if (ml_is(Args[I], MLTypeT)) {
 			ml_type_t *Parent = (ml_type_t *)Args[I];
+			if (Parent->NoInherit) {
+				ML_ERROR("TypeError", "Classes can not inherit from <%s>", Parent->Name);
+			}
 			if (!Parent->Interface) {
 				if (NativeType && NativeType != Parent) {
 					ML_ERROR("TypeError", "Classes can not inherit from multiple native types");

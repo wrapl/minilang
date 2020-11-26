@@ -112,7 +112,7 @@ static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 	return (X << (N & Mask)) | (X >> ((-N) & Mask ));
 }
 
-static ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args) {
+static inline ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args) {
 	// TODO: Use generation numbers to check Methods->Parent for invalidated definitions
 	// Use alloca here, VLA prevents TCO.
 	const ml_type_t **Types = alloca(Count * sizeof(const ml_type_t *));

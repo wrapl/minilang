@@ -66,7 +66,7 @@
     <context id="symbol">
       <include>
         <context style-ref="symbol">
-          <match>\:[a-zA-Z_][a-zA-Z0-9_]*</match>
+          <match>:[a-zA-Z_][a-zA-Z0-9_]*</match>
         </context>
         <context style-ref="symbol">
           <start>:"</start>
@@ -78,7 +78,7 @@
       </include>
     </context>
     <context id="resolution" style-ref="operator" extend-parent="false">
-      <match>::</match>
+      <match>::[a-zA-Z_][a-zA-Z0-9_]*</match>
     </context>
     <context id="complex-string" style-ref="string">
       <start>'</start>

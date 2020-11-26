@@ -51,13 +51,14 @@ struct ml_type_t {
 	inthash_t Parents[1];
 	inthash_t TypedFns[1];
 	stringmap_t Exports[1];
-	int Rank, Interface;
+	int Rank;
+	int Interface:1;
+	int NoInherit:1;
+	int Reserved:30;
 #ifdef USE_GENERICS
 	int NumArgs;
 #endif
 };
-
-//#define ML_RANK_NATIVE 65536
 
 extern ml_type_t MLTypeT[];
 

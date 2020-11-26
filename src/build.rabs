@@ -31,7 +31,7 @@ if DEBUG then
 	CFLAGS := old + ["-g", "-DGC_DEBUG", "-DDEBUG"]
 	LDFLAGS := old + ["-g"]
 else
-	CFLAGS := old + ["-O3", "-g"]
+	CFLAGS := old + ["-O3", "-fexpensive-optimizations", "-g"]
 	LDFLAGS := old + ["-g"]
 end
 
