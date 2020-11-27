@@ -103,6 +103,14 @@ ML_METHODVX("[]", MLTableT, MLStringT) {
 	return ml_call(Caller, IndexMethod, Count - 1, Args + 1);
 }
 
+ML_METHODVX("::", MLTableT, MLStringT) {
+	ml_table_t *Table = (ml_table_t *)Args[0];
+	ml_value_t *Column = ml_map_search(Table->Columns, Args[1]);
+	if (Column == MLNil) ML_RETURN(Column);
+	Args[1] = Column;
+	return ml_call(Caller, IndexMethod, Count - 1, Args + 1);
+}
+
 struct ml_table_row_t {
 	const ml_type_t *Type;
 	ml_table_t *Table;
@@ -125,6 +133,13 @@ ML_METHOD("[]", MLTableT, MLIntegerT) {
 }
 
 ML_METHOD("[]", MLTableRowT, MLStringT) {
+	ml_table_row_t *Row = (ml_table_row_t *)Args[0];
+	ml_value_t *Column = ml_map_search(Row->Table->Columns, Args[1]);
+	if (Column == MLNil) return Column;
+	return ml_array_index((ml_array_t *)Column, Row->Count, Row->Indices);
+}
+
+ML_METHOD("::", MLTableRowT, MLStringT) {
 	ml_table_row_t *Row = (ml_table_row_t *)Args[0];
 	ml_value_t *Column = ml_map_search(Row->Table->Columns, Args[1]);
 	if (Column == MLNil) return Column;
