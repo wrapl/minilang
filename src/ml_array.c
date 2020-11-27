@@ -1844,7 +1844,7 @@ static ml_value_t *array_infix_fn(void *Data, int Count, ml_value_t **Args) {
 ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	int64_t B = ml_integer_value(Args[1]); \
+	int64_t B = ml_integer_value_fast(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(MAX(A->Format, ML_ARRAY_FORMAT_I64), Degree); \
 	int DataSize = array_copy(C, A); \
@@ -1879,7 +1879,7 @@ ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	int64_t B = ml_integer_value(Args[0]); \
+	int64_t B = ml_integer_value_fast(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(MAX(A->Format, ML_ARRAY_FORMAT_I64), Degree); \
 	int DataSize = array_copy(C, A); \
@@ -1914,7 +1914,7 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 ML_METHOD(#OP, MLArrayT, MLRealT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	double B = ml_integer_value(Args[1]); \
+	double B = ml_real_value_fast(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_F64, Degree); \
 	int DataSize = array_copy(C, A); \
@@ -1926,7 +1926,7 @@ ML_METHOD(#OP, MLArrayT, MLRealT) { \
 ML_METHOD(#OP, MLRealT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	double B = ml_integer_value(Args[0]); \
+	double B = ml_real_value_fast(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_F64, Degree); \
 	int DataSize = array_copy(C, A); \
@@ -1945,7 +1945,7 @@ ML_ARITH_METHOD(4, /);
 ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	int64_t B = ml_integer_value(Args[1]); \
+	int64_t B = ml_integer_value_fast(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_I8, Degree); \
 	int DataSize = 1; \
@@ -1964,7 +1964,7 @@ ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	int64_t B = ml_integer_value(Args[0]); \
+	int64_t B = ml_integer_value_fast(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_I8, Degree); \
 	int DataSize = 1; \
@@ -1983,7 +1983,7 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 ML_METHOD(#OP, MLArrayT, MLRealT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	double B = ml_real_value(Args[1]); \
+	double B = ml_real_value_fast(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_I8, Degree); \
 	int DataSize = 1; \
@@ -2002,7 +2002,7 @@ ML_METHOD(#OP, MLArrayT, MLRealT) { \
 ML_METHOD(#OP, MLRealT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	double B = ml_real_value(Args[0]); \
+	double B = ml_real_value_fast(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_I8, Degree); \
 	int DataSize = 1; \
