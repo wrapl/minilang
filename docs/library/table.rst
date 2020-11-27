@@ -13,7 +13,9 @@ table
 
 :mini:`meth table(Arg₁: names)`
 
-:mini:`meth :add(Arg₁: table, Arg₂: string, Arg₃: array)`
+:mini:`meth :insert(Arg₁: table, Arg₂: string, Arg₃: array)`
+
+:mini:`meth :delete(Arg₁: table, Arg₂: string)`
 
 :mini:`meth string(Arg₁: table)`
 

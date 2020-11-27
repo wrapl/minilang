@@ -83,8 +83,12 @@ ml_value_t *ml_table_columns(ml_value_t *Table) {
 	return ((ml_table_t *)Table)->Columns;
 }
 
-ML_METHOD("add", MLTableT, MLStringT, MLArrayT) {
+ML_METHOD("insert", MLTableT, MLStringT, MLArrayT) {
 	return ml_table_insert(Args[0], Args[1], Args[2]);
+}
+
+ML_METHOD("delete", MLTableT, MLStringT) {
+	return ml_map_delete(Args[0], Args[1]);
 }
 
 ML_METHOD(MLStringOfMethod, MLTableT) {
