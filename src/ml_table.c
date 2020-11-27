@@ -18,17 +18,19 @@ struct ml_table_t {
 
 ML_TYPE(MLTableT, (MLIteratableT), "table");
 
-ML_METHOD(MLTableOfMethod) {
+ml_value_t *ml_table() {
 	ml_table_t *Table = new(ml_table_t);
 	Table->Type = MLTableT;
 	Table->Columns = ml_map();
 	return (ml_value_t *)Table;
 }
 
+ML_METHOD(MLTableOfMethod) {
+	return ml_table();
+}
+
 ML_METHOD(MLTableOfMethod, MLMapT) {
-	ml_table_t *Table = new(ml_table_t);
-	Table->Type = MLTableT;
-	Table->Columns = ml_map();
+	ml_table_t *Table = (ml_table_t *)ml_table();
 	ML_MAP_FOREACH(Args[0], Iter) {
 		ml_value_t *Key = Iter->Key;
 		ml_value_t *Value = Iter->Value;
@@ -47,9 +49,7 @@ ML_METHOD(MLTableOfMethod, MLMapT) {
 }
 
 ML_METHODV(MLTableOfMethod, MLNamesT) {
-	ml_table_t *Table = new(ml_table_t);
-	Table->Type = MLTableT;
-	Table->Columns = ml_map();
+	ml_table_t *Table = (ml_table_t *)ml_table();
 	int N = 1;
 	ML_NAMES_FOREACH(Args[0], Iter) {
 		ML_CHECK_ARG_TYPE(N, MLArrayT);
@@ -66,17 +66,25 @@ ML_METHODV(MLTableOfMethod, MLNamesT) {
 	return (ml_value_t *)Table;
 }
 
-ML_METHOD("add", MLTableT, MLStringT, MLArrayT) {
-	ml_table_t *Table = (ml_table_t *)Args[0];
-	if (!ml_array_degree(Args[2])) return ml_error("ValueError", "Cannot add empty array to table");
-	int Size = ml_array_size(Args[2], 0);
+ml_value_t *ml_table_insert(ml_value_t *Value, ml_value_t *Name, ml_value_t *Column) {
+	ml_table_t *Table = (ml_table_t *)Value;
+	if (!ml_array_degree(Column)) return ml_error("ValueError", "Cannot add empty array to table");
+	int Size = ml_array_size(Column, 0);
 	if (Table->Size) {
 		if (Size != Table->Size) return ml_error("ValueError", "Array size does not match table");
 	} else {
 		Table->Size = Size;
 	}
-	ml_map_insert(Table->Columns, Args[1], Args[2]);
-	return Args[0];
+	ml_map_insert(Table->Columns, Name, Column);
+	return Value;
+}
+
+ml_value_t *ml_table_columns(ml_value_t *Table) {
+	return ((ml_table_t *)Table)->Columns;
+}
+
+ML_METHOD("add", MLTableT, MLStringT, MLArrayT) {
+	return ml_table_insert(Args[0], Args[1], Args[2]);
 }
 
 ML_METHOD(MLStringOfMethod, MLTableT) {
