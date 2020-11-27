@@ -256,6 +256,10 @@ if MINILANG_USECBOR or defined("CBOR") then
 	InstallHeaders:put("ml_cbor.h")
 end
 
+if MINILANG_TABLES or defined("TABLES") then
+	InstallHeaders:put("ml_table.h")
+end
+
 if MINILANG_USEGTK or defined("GTK") then
 	InstallHeaders:put("ml_gir.h")
 	InstallHeaders:put("gtk_console.h")

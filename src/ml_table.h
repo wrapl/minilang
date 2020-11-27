@@ -9,6 +9,7 @@ extern "C" {
 
 extern ml_type_t MLTableT[];
 
+void ml_table_init(stringmap_t *Globals);
 ml_value_t *ml_table();
 ml_value_t *ml_table_insert(ml_value_t *Table, ml_value_t *Name, ml_value_t *Value);
 ml_value_t *ml_table_columns(ml_value_t *Table);
