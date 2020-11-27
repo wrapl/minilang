@@ -194,9 +194,9 @@ if MINILANG_USE_GENERICS or defined("GENERICS") then
 	CFLAGS := old + ["-DUSE_GENERICS"]
 end
 
-if MINILANG_USE_MAP_OBJECTS or defined("MAP_OBJECTS") then
-	Objects:put(file("ml_map_object.o"))
-	CFLAGS := old + ["-DUSE_ML_MAP_OBJECTS"]
+if MINILANG_TABLES or defined("TABLES") then
+	Objects:put(file("ml_table.o"))
+	CFLAGS := old + ["-DUSE_ML_TABLES"]
 end
 
 if PLATFORM = "Linux" then

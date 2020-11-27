@@ -37,8 +37,8 @@
 #include "ml_library.h"
 #endif
 
-#ifdef USE_ML_MAP_OBJECTS
-#include "ml_map_object.h"
+#ifdef USE_ML_TABLES
+#include "ml_table.h"
 #endif
 
 static stringmap_t Globals[1] = {STRINGMAP_INIT};
@@ -176,8 +176,8 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "import", Import);
 	stringmap_insert(Globals, "unload", Unload);
 #endif
-#ifdef USE_ML_MAP_OBJECTS
-	ml_map_object_init(Globals);
+#ifdef USE_ML_TABLES
+	ml_table_init(Globals);
 #endif
 	ml_value_t *Args = ml_list();
 	const char *FileName = 0;

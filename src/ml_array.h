@@ -2,13 +2,12 @@
 #define ML_ARRAY_H
 
 #include "minilang.h"
-#include "ml_cbor.h"
 
 #ifdef	__cplusplus
 extern "C" {
 #endif
 
-typedef struct ml_array_dimension_t {
+typedef struct {
 	int Size, Stride;
 	int *Indices;
 } ml_array_dimension_t;
@@ -25,7 +24,7 @@ typedef enum {
 
 extern size_t MLArraySizes[];
 
-typedef struct ml_array_t {
+typedef struct {
 	ml_buffer_t Base;
 	int Degree;
 	ml_array_format_t Format;
@@ -40,6 +39,7 @@ ml_array_t *ml_array_new(ml_array_format_t Format, int Degree);
 ml_array_t *ml_array(ml_array_format_t Format, int Degree, ...);
 int ml_array_degree(ml_value_t *Array);
 int ml_array_size(ml_value_t *Array, int Dim);
+ml_value_t *ml_array_index(ml_array_t *Array, int Count, ml_value_t **Indices);
 
 #define ML_ARRAY_ACCESSORS(CTYPE) \
 CTYPE ml_array_get_ ## CTYPE (ml_array_t *Array, ...); \

@@ -130,6 +130,16 @@ ml_array_t *ml_array(ml_array_format_t Format, int Degree, ...) {
 	return Array;
 }
 
+int ml_array_degree(ml_value_t *Value) {
+	return ((ml_array_t *)Value)->Degree;
+}
+
+int ml_array_size(ml_value_t *Value, int Dim) {
+	ml_array_t *Array = (ml_array_t *)Value;
+	if (Dim < 0 || Dim >= Array->Degree) return 0;
+	return Array->Dimensions[Dim].Size;
+}
+
 typedef struct ml_array_init_state_t {
 	ml_state_t Base;
 	char *Address;
@@ -465,7 +475,7 @@ static ml_value_t *ml_array_value(ml_array_t *Array, char *Address) {
 	return function(Array, Address);
 }
 
-static ml_value_t *ml_array_index_internal(ml_array_t *Source, int Count, ml_value_t **Indices) {
+ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **Indices) {
 	ml_array_dimension_t TargetDimensions[Source->Degree];
 	ml_array_dimension_t *TargetDimension = TargetDimensions;
 	ml_array_dimension_t *SourceDimension = Source->Dimensions;
@@ -558,7 +568,7 @@ ML_METHODV("[]", MLArrayT) {
 // * If :mini:`Index/i` is a list of integers then the :mini:`i`-th dimension is copied as a sparse dimension with the respective entries.
 // If fewer than :mini:`A:degree` indices are provided then the remaining dimensions are copied unchanged.
 	ml_array_t *Source = (ml_array_t *)Args[0];
-	return ml_array_index_internal(Source, Count - 1, Args + 1);
+	return ml_array_index(Source, Count - 1, Args + 1);
 }
 
 ML_METHOD("[]", MLArrayT, MLMapT) {
@@ -577,12 +587,12 @@ ML_METHOD("[]", MLArrayT, MLMapT) {
 		if (Index < 0 || Index >= Degree) return ml_error("RangeError", "Index out of range");
 		Indices[Index] = Iter->Value;
 	}
-	return ml_array_index_internal(Source, Degree, Indices);
+	return ml_array_index(Source, Degree, Indices);
 }
 
 static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args);
 
-static char *ml_array_index(ml_array_t *Array, va_list Indices) {
+static char *ml_array_indexv(ml_array_t *Array, va_list Indices) {
 	ml_array_dimension_t *Dimension = Array->Dimensions;
 	char *Address = Array->Base.Address;
 	for (int I = 0; I < Array->Degree; ++I) {
@@ -1128,7 +1138,7 @@ static CTYPE ml_array_get0_ ## CTYPE(void *Address, int Format) { \
 CTYPE ml_array_get_ ## CTYPE(ml_array_t *Array, ...) { \
 	va_list Indices; \
 	va_start(Indices, Array); \
-	char *Address = ml_array_index(Array, Indices); \
+	char *Address = ml_array_indexv(Array, Indices); \
 	va_end(Indices); \
 	if (!Address) return 0; \
 	return ml_array_get0_ ## CTYPE(Address, Array->Format); \
@@ -1137,7 +1147,7 @@ CTYPE ml_array_get_ ## CTYPE(ml_array_t *Array, ...) { \
 void ml_array_set_ ## CTYPE(CTYPE Value, ml_array_t *Array, ...) { \
 	va_list Indices; \
 	va_start(Indices, Array); \
-	char *Address = ml_array_index(Array, Indices); \
+	char *Address = ml_array_indexv(Array, Indices); \
 	va_end(Indices); \
 	if (!Address) return; \
 	switch (Array->Format) { \
