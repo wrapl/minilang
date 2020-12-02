@@ -3,7 +3,7 @@ function
 
 .. include:: <isonum.txt>
 
-:mini:`function`
+:mini:`def function`
    The base type of all functions.
 
 
@@ -33,9 +33,7 @@ function
    Returns an error if any of the keys in :mini:`Map` is not a string or method.
 
 
-:mini:`partialfunction`
-   :Parents: :mini:`function`
-
+:mini:`def partialfunction < function`
 
 :mini:`meth !!(Function: function, List: list)` |rarr| :mini:`partialfunction`
    Returns a function equivalent to :mini:`fun(Args...) Function(List₁, List₂, ..., Args...)`.

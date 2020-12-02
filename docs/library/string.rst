@@ -3,9 +3,7 @@ string
 
 .. include:: <isonum.txt>
 
-:mini:`string`
-   :Parents: :mini:`buffer`, :mini:`iteratable`
-
+:mini:`def string < buffer, iteratable`
 
 :mini:`meth string(Arg₁: nil)`
 
@@ -15,9 +13,15 @@ string
    Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
 
 
-:mini:`regex`
+:mini:`def regex`
 
 :mini:`meth <>(Arg₁: regex, Arg₂: regex)`
+
+:mini:`fun stringbuffer()`
+
+:mini:`def stringbuffer`
+
+:mini:`meth :get(Arg₁: stringbuffer)`
 
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: any)`
 
@@ -33,9 +37,9 @@ string
 
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: string)`
 
-:mini:`meth [](Arg₁: string, Arg₂: integer)`
+:mini:`meth (Arg₁: string)[Arg₂: integer]`
 
-:mini:`meth [](Arg₁: string, Arg₂: integer, Arg₃: integer)`
+:mini:`meth (Arg₁: string)[Arg₂: integer, Arg₃: integer]`
 
 :mini:`meth +(Arg₁: string, Arg₂: string)`
 

@@ -3,9 +3,9 @@ xe
 
 .. include:: <isonum.txt>
 
-:mini:`XENodeT`
+:mini:`def XENodeT`
 
-:mini:`XEScopeT`
+:mini:`def XEScopeT`
 
 :mini:`fun xefunction()`
 
@@ -25,11 +25,11 @@ xe
 
 :mini:`fun xeattr()`
 
-:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: XENodeT)`
+:mini:`meth MLStringBufferAppendMethod(Arg₁: stringbuffer, Arg₂: XENodeT)`
 
 :mini:`meth string(Arg₁: XENodeT)`
 
-:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: XEVarT)`
+:mini:`meth MLStringBufferAppendMethod(Arg₁: stringbuffer, Arg₂: XEVarT)`
 
 :mini:`meth string(Arg₁: XEVarT)`
 

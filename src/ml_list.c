@@ -64,7 +64,6 @@ static void ml_list_call(ml_state_t *Caller, ml_list_t *List, int Count, ml_valu
 }
 
 ML_TYPE(MLListT, (MLFunctionT, MLIteratableT), "list",
-//!list
 // A list of elements.
 	.call = (void *)ml_list_call
 );
@@ -78,7 +77,6 @@ static ml_value_t *ml_list_node_assign(ml_list_node_t *Node, ml_value_t *Value) 
 }
 
 ML_TYPE(MLListNodeT, (), "list-node",
-//!list
 // A node in a :mini:`list`.
 // Dereferencing a :mini:`listnode` returns the corresponding value from the :mini:`list`.
 // Assigning to a :mini:`listnode` updates the corresponding value in the :mini:`list`.
@@ -135,7 +133,6 @@ static void list_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 }
 
 ML_METHODVX(MLListOfMethod, MLIteratableT) {
-//!list
 //<Iteratable
 //>list
 // Returns a list of all of the values produced by :mini:`Iteratable`.
@@ -287,7 +284,6 @@ int ml_list_foreach(ml_value_t *Value, void *Data, int (*callback)(ml_value_t *,
 }
 
 ML_METHOD("count", MLListT) {
-//!list
 //<List
 //>integer
 // Returns the length of :mini:`List`
@@ -296,7 +292,6 @@ ML_METHOD("count", MLListT) {
 }
 
 ML_METHOD("length", MLListT) {
-//!list
 //<List
 //>integer
 // Returns the length of :mini:`List`
@@ -305,7 +300,6 @@ ML_METHOD("length", MLListT) {
 }
 
 ML_METHOD("filter", MLListT, MLFunctionT) {
-//!list
 //<List
 //<Filter
 //>list
@@ -357,7 +351,6 @@ ML_METHOD("filter", MLListT, MLFunctionT) {
 }
 
 ML_METHOD("[]", MLListT, MLIntegerT) {
-//!list
 //<List
 //<Index
 //>listnode | nil
@@ -401,14 +394,12 @@ static ml_value_t *ml_list_slice_assign(ml_list_slice_t *Slice, ml_value_t *Pack
 }
 
 ML_TYPE(MLListSliceT, (), "list-slice",
-//!list
 // A slice of a list.
 	.deref = (void *)ml_list_slice_deref,
 	.assign = (void *)ml_list_slice_assign
 );
 
 ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
-//!list
 //<List
 //<From
 //<To
@@ -429,7 +420,6 @@ ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
 }
 
 ML_METHOD("append", MLStringBufferT, MLListT) {
-//!list
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_add(Buffer, "[", 1);
 	ml_list_t *List = (ml_list_t *)Args[1];
@@ -498,7 +488,6 @@ static void ML_TYPED_FN(ml_iterate, MLListT, ml_state_t *Caller, ml_list_t *List
 }
 
 ML_METHODV("push", MLListT) {
-//!list
 //<List
 //<Values...: any
 //>list
@@ -509,7 +498,6 @@ ML_METHODV("push", MLListT) {
 }
 
 ML_METHODV("put", MLListT) {
-//!list
 //<List
 //<Values...: MLAnyT
 //>list
@@ -520,7 +508,6 @@ ML_METHODV("put", MLListT) {
 }
 
 ML_METHOD("pop", MLListT) {
-//!list
 //<List
 //>any | nil
 // Removes and returns the first element of :mini:`List` or :mini:`nil` if the :mini:`List` is empty.
@@ -528,7 +515,6 @@ ML_METHOD("pop", MLListT) {
 }
 
 ML_METHOD("pull", MLListT) {
-//!list
 //<List
 //>any | nil
 // Removes and returns the last element of :mini:`List` or :mini:`nil` if the :mini:`List` is empty.
@@ -536,7 +522,6 @@ ML_METHOD("pull", MLListT) {
 }
 
 ML_METHOD("copy", MLListT) {
-//!list
 //<List
 //>list
 // Returns a (shallow) copy of :mini:`List`.
@@ -546,7 +531,6 @@ ML_METHOD("copy", MLListT) {
 }
 
 ML_METHOD("+", MLListT, MLListT) {
-//!list
 //<List/1
 //<List/2
 //>list
@@ -558,7 +542,6 @@ ML_METHOD("+", MLListT, MLListT) {
 }
 
 ML_METHOD(MLStringOfMethod, MLListT) {
-//!list
 //<List
 //>string
 // Returns a string containing the elements of :mini:`List` surrounded by :mini:`[`, :mini:`]` and seperated by :mini:`,`.
@@ -579,7 +562,6 @@ ML_METHOD(MLStringOfMethod, MLListT) {
 }
 
 ML_METHOD(MLStringOfMethod, MLListT, MLStringT) {
-//!list
 //<List
 //<Seperator
 //>string
@@ -660,14 +642,12 @@ static ml_value_t *ml_list_sort(ml_list_t *List, ml_value_t *Compare) {
 extern ml_value_t *LessMethod;
 
 ML_METHOD("sort", MLListT) {
-//!list
 //<List
 //>List
 	return ml_list_sort((ml_list_t *)Args[0], LessMethod);
 }
 
 ML_METHOD("sort", MLListT, MLFunctionT) {
-//!list
 //<List
 //<Compare
 //>List

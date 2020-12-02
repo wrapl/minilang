@@ -3,21 +3,17 @@ module
 
 .. include:: <isonum.txt>
 
-:mini:`minimodule`
-   :Parents: :mini:`module`
-
+:mini:`def minimodule < module`
 
 :mini:`meth ::(Arg₁: minimodule, Arg₂: string)`
 
 :mini:`meth :exports(Arg₁: minimodule)`
 
-:mini:`exportfunction`
-   :Parents: :mini:`function`
+:mini:`def exportfunction < function`
 
+:mini:`def modulestate`
 
-:mini:`modulestate`
-
-:mini:`module`
+:mini:`def module`
 
 :mini:`meth ::(Module: module, Name: string)` |rarr| :mini:`any`
    Imports a symbol from a module.

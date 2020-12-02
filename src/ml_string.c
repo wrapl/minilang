@@ -76,7 +76,6 @@ static long ml_string_hash(ml_string_t *String, ml_hash_chain_t *Chain) {
 }
 
 ML_TYPE(MLStringT, (MLBufferT, MLIteratableT), "string",
-//!string
 	.hash = (void *)ml_string_hash
 );
 
@@ -247,7 +246,6 @@ static long ml_regex_hash(ml_regex_t *Regex, ml_hash_chain_t *Chain) {
 }
 
 ML_FUNCTION(MLRegex) {
-//!string
 //@regex
 //<String
 //>regex | error
@@ -261,7 +259,6 @@ ML_FUNCTION(MLRegex) {
 }
 
 ML_TYPE(MLRegexT, (), "regex",
-//!string
 	.hash = (void *)ml_regex_hash,
 	.Constructor = (ml_value_t *)MLRegex
 );
@@ -309,7 +306,6 @@ static ml_integer_t Zero[1] = {{MLIntegerT, 0}};
 #endif
 
 ML_METHOD("<>", MLRegexT, MLRegexT) {
-//!string
 	const char *PatternA = ml_regex_pattern(Args[0]);
 	const char *PatternB = ml_regex_pattern(Args[1]);
 	int Compare = strcmp(PatternA, PatternB);
@@ -340,13 +336,11 @@ ml_value_t *ml_stringbuffer() {
 }
 
 ML_FUNCTION(MLStringBuffer) {
-//!stringbuffer
 //@stringbuffer
 	return ml_stringbuffer();
 }
 
 ML_TYPE(MLStringBufferT, (), "stringbuffer",
-//!stringbuffer
 	.Constructor = (ml_value_t *)MLStringBuffer
 );
 
@@ -427,7 +421,6 @@ ml_value_t *ml_stringbuffer_value(ml_stringbuffer_t *Buffer) {
 }
 
 ML_METHOD("get", MLStringBufferT) {
-//!stringbuffer
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	return ml_stringbuffer_value(Buffer);
 }
@@ -518,7 +511,6 @@ ML_METHOD("append", MLStringBufferT, MLStringT) {
 }
 
 ML_METHOD("[]", MLStringT, MLIntegerT) {
-//!string
 	const char *Chars = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	int Index = ml_integer_value_fast(Args[1]);
@@ -529,7 +521,6 @@ ML_METHOD("[]", MLStringT, MLIntegerT) {
 }
 
 ML_METHOD("[]", MLStringT, MLIntegerT, MLIntegerT) {
-//!string
 	const char *Chars = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	int Lo = ml_integer_value_fast(Args[1]);
@@ -544,7 +535,6 @@ ML_METHOD("[]", MLStringT, MLIntegerT, MLIntegerT) {
 }
 
 ML_METHOD("+", MLStringT, MLStringT) {
-//!string
 	int Length1 = ml_string_length(Args[0]);
 	int Length2 = ml_string_length(Args[1]);
 	int Length = Length1 + Length2;
@@ -556,7 +546,6 @@ ML_METHOD("+", MLStringT, MLStringT) {
 }
 
 ML_METHOD("trim", MLStringT) {
-//!string
 	const unsigned char *Start = (const unsigned char *)ml_string_value(Args[0]);
 	const unsigned char *End = Start + ml_string_length(Args[0]);
 	while (Start < End && Start[0] <= ' ') ++Start;
@@ -566,7 +555,6 @@ ML_METHOD("trim", MLStringT) {
 }
 
 ML_METHOD("trim", MLStringT, MLStringT) {
-//!string
 	char Trim[256] = {0,};
 	const unsigned char *P = (const unsigned char *)ml_string_value(Args[1]);
 	for (int Length = ml_string_length(Args[1]); --Length >= 0; ++P) Trim[*P] = 1;
@@ -579,7 +567,6 @@ ML_METHOD("trim", MLStringT, MLStringT) {
 }
 
 ML_METHOD("ltrim", MLStringT) {
-//!string
 	const unsigned char *Start = (const unsigned char *)ml_string_value(Args[0]);
 	const unsigned char *End = Start + ml_string_length(Args[0]);
 	while (Start < End && Start[0] <= ' ') ++Start;
@@ -588,7 +575,6 @@ ML_METHOD("ltrim", MLStringT) {
 }
 
 ML_METHOD("ltrim", MLStringT, MLStringT) {
-//!string
 	char Trim[256] = {0,};
 	const unsigned char *P = (const unsigned char *)ml_string_value(Args[1]);
 	for (int Length = ml_string_length(Args[1]); --Length >= 0; ++P) Trim[*P] = 1;
@@ -600,7 +586,6 @@ ML_METHOD("ltrim", MLStringT, MLStringT) {
 }
 
 ML_METHOD("rtrim", MLStringT) {
-//!string
 	const unsigned char *Start = (const unsigned char *)ml_string_value(Args[0]);
 	const unsigned char *End = Start + ml_string_length(Args[0]);
 	while (Start < End && End[-1] <= ' ') --End;
@@ -609,7 +594,6 @@ ML_METHOD("rtrim", MLStringT) {
 }
 
 ML_METHOD("rtrim", MLStringT, MLStringT) {
-//!string
 	char Trim[256] = {0,};
 	const unsigned char *P = (const unsigned char *)ml_string_value(Args[1]);
 	for (int Length = ml_string_length(Args[1]); --Length >= 0; ++P) Trim[*P] = 1;
@@ -621,17 +605,14 @@ ML_METHOD("rtrim", MLStringT, MLStringT) {
 }
 
 ML_METHOD("length", MLStringT) {
-//!string
 	return ml_integer(ml_string_length(Args[0]));
 }
 
 ML_METHOD("count", MLStringT) {
-//!string
 	return ml_integer(ml_string_length(Args[0]));
 }
 
 ML_METHOD("<>", MLStringT, MLStringT) {
-//!string
 	const char *StringA = ml_string_value(Args[0]);
 	const char *StringB = ml_string_value(Args[1]);
 	int LengthA = ml_string_length(Args[0]);
@@ -683,7 +664,6 @@ ml_comp_method_string_string(">=", >=)
 }
 
 ML_METHOD("~", MLStringT, MLStringT) {
-//!string
 	const char *CharsA, *CharsB;
 	int LenA = ml_string_length(Args[0]);
 	int LenB = ml_string_length(Args[1]);
@@ -723,7 +703,6 @@ ML_METHOD("~", MLStringT, MLStringT) {
 }
 
 ML_METHOD("~>", MLStringT, MLStringT) {
-//!string
 	int LenA = ml_string_length(Args[0]);
 	int LenB = ml_string_length(Args[1]);
 	const char *CharsA = ml_string_value(Args[0]);
@@ -759,7 +738,6 @@ ML_METHOD("~>", MLStringT, MLStringT) {
 }
 
 ML_METHOD("/", MLStringT, MLStringT) {
-//!string
 	ml_value_t *Results = ml_list();
 	const char *Subject = ml_string_value(Args[0]);
 	const char *Pattern = ml_string_value(Args[1]);
@@ -787,7 +765,6 @@ ML_METHOD("/", MLStringT, MLStringT) {
 }
 
 ML_METHOD("/", MLStringT, MLRegexT) {
-//!string
 	ml_value_t *Results = ml_list();
 	const char *Subject = ml_string_value(Args[0]);
 	int SubjectLength = ml_string_length(Args[0]);
@@ -823,7 +800,6 @@ ML_METHOD("/", MLStringT, MLRegexT) {
 }
 
 ML_METHOD("lower", MLStringT) {
-//!string
 	const char *Source = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	char *Target = snew(Length + 1);
@@ -832,7 +808,6 @@ ML_METHOD("lower", MLStringT) {
 }
 
 ML_METHOD("upper", MLStringT) {
-//!string
 	const char *Source = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	char *Target = snew(Length + 1);
@@ -841,7 +816,6 @@ ML_METHOD("upper", MLStringT) {
 }
 
 ML_METHOD("find", MLStringT, MLStringT) {
-//!string
 	const char *Haystack = ml_string_value(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
 	const char *Match = strstr(Haystack, Needle);
@@ -853,7 +827,6 @@ ML_METHOD("find", MLStringT, MLStringT) {
 }
 
 ML_METHOD("find2", MLStringT, MLStringT) {
-//!string
 	const char *Haystack = ml_string_value(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
 	const char *Match = strstr(Haystack, Needle);
@@ -868,7 +841,6 @@ ML_METHOD("find2", MLStringT, MLStringT) {
 }
 
 ML_METHOD("find", MLStringT, MLStringT, MLIntegerT) {
-//!string
 	const char *Haystack = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
@@ -886,7 +858,6 @@ ML_METHOD("find", MLStringT, MLStringT, MLIntegerT) {
 }
 
 ML_METHOD("find2", MLStringT, MLStringT, MLIntegerT) {
-//!string
 	const char *Haystack = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
@@ -907,7 +878,6 @@ ML_METHOD("find2", MLStringT, MLStringT, MLIntegerT) {
 }
 
 ML_METHOD("find", MLStringT, MLRegexT) {
-//!string
 	const char *Haystack = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[1];
@@ -930,7 +900,6 @@ ML_METHOD("find", MLStringT, MLRegexT) {
 }
 
 ML_METHOD("find2", MLStringT, MLRegexT) {
-//!string
 	const char *Haystack = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[1];
@@ -956,7 +925,6 @@ ML_METHOD("find2", MLStringT, MLRegexT) {
 }
 
 ML_METHOD("find", MLStringT, MLRegexT, MLIntegerT) {
-//!string
 	const char *Haystack = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
@@ -985,7 +953,6 @@ ML_METHOD("find", MLStringT, MLRegexT, MLIntegerT) {
 }
 
 ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
-//!string
 	const char *Haystack = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
@@ -1017,7 +984,6 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
 }
 
 ML_METHOD("%", MLStringT, MLRegexT) {
-//!string
 	const char *Subject = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
@@ -1066,7 +1032,6 @@ int ml_regex_match(ml_value_t *Value, const char *Subject, int Length) {
 }
 
 ML_METHOD("?", MLStringT, MLRegexT) {
-//!string
 	const char *Subject = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
@@ -1098,7 +1063,6 @@ ML_METHOD("?", MLStringT, MLRegexT) {
 }
 
 ML_METHOD("starts", MLStringT, MLStringT) {
-//!string
 	const char *Subject = ml_string_value(Args[0]);
 	const char *Prefix = ml_string_value(Args[1]);
 	int Length = ml_string_length(Args[1]);
@@ -1108,7 +1072,6 @@ ML_METHOD("starts", MLStringT, MLStringT) {
 }
 
 ML_METHOD("starts", MLStringT, MLRegexT) {
-//!string
 	const char *Subject = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
@@ -1140,7 +1103,6 @@ ML_METHOD("starts", MLStringT, MLRegexT) {
 }
 
 ML_METHOD("replace", MLStringT, MLStringT, MLStringT) {
-//!string
 	const char *Subject = ml_string_value(Args[0]);
 	const char *SubjectEnd = Subject + ml_string_length(Args[0]);
 	const char *Pattern = ml_string_value(Args[1]);
@@ -1162,7 +1124,6 @@ ML_METHOD("replace", MLStringT, MLStringT, MLStringT) {
 }
 
 ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
-//!string
 	const char *Subject = ml_string_value(Args[0]);
 	int SubjectLength = ml_string_length(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
@@ -1199,7 +1160,6 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
 }
 
 ML_METHOD("replace", MLStringT, MLRegexT, MLFunctionT) {
-//!string
 	const char *Subject = ml_string_value(Args[0]);
 	int SubjectLength = ml_string_length(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
@@ -1256,7 +1216,6 @@ typedef struct {
 } ml_replacement_t;
 
 ML_METHOD("replace", MLStringT, MLMapT) {
-//!string
 	int NumPatterns = ml_map_size(Args[1]);
 	ml_replacement_t Replacements[NumPatterns], *Last = Replacements + NumPatterns;
 	int I = 0, MaxSub = 0;
@@ -1352,7 +1311,6 @@ ML_METHOD("replace", MLStringT, MLMapT) {
 }
 
 ML_METHOD(MLStringOfMethod, MLRegexT) {
-//!string
 	return ml_string_format("/%s/", ml_regex_pattern(Args[0]));
 }
 

@@ -3,21 +3,17 @@ runtime
 
 .. include:: <isonum.txt>
 
-:mini:`state`
-   :Parents: :mini:`function`
+:mini:`def state < function`
 
-
-:mini:`resumablestate`
-   :Parents: :mini:`state`
-
+:mini:`def resumablestate < state`
 
 :mini:`fun mlcallcc()`
 
 :mini:`fun mlmark(Arg₁: any)`
 
-:mini:`reference`
+:mini:`def reference`
 
-:mini:`uninitialized`
+:mini:`def uninitialized`
 
 :mini:`meth ::(Arg₁: uninitialized, Arg₂: string)`
 

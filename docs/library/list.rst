@@ -3,13 +3,11 @@ list
 
 .. include:: <isonum.txt>
 
-:mini:`list`
+:mini:`def list < function, iteratable`
    A list of elements.
 
-   :Parents: :mini:`function`, :mini:`iteratable`
 
-
-:mini:`listnode`
+:mini:`def listnode`
    A node in a :mini:`list`.
 
    Dereferencing a :mini:`listnode` returns the corresponding value from the :mini:`list`.
@@ -37,17 +35,17 @@ list
    Removes every :mini:`Value` from :mini:`List` for which :mini:`Function(Value)` returns :mini:`nil` and returns those values in a new list.
 
 
-:mini:`meth [](List: list, Index: integer)` |rarr| :mini:`listnode` or :mini:`nil`
+:mini:`meth (List: list)[Index: integer]` |rarr| :mini:`listnode` or :mini:`nil`
    Returns the :mini:`Index`-th node in :mini:`List` or :mini:`nil` if :mini:`Index` is outside the range of :mini:`List`.
 
    Indexing starts at :mini:`1`. Negative indices are counted from the end of the list, with :mini:`-1` returning the last node.
 
 
-:mini:`listslice`
+:mini:`def listslice`
    A slice of a list.
 
 
-:mini:`meth [](List: list, From: integer, To: integer)` |rarr| :mini:`listslice`
+:mini:`meth (List: list)[From: integer, To: integer]` |rarr| :mini:`listslice`
    Returns a slice of :mini:`List` starting at :mini:`From` (inclusive) and ending at :mini:`To` (exclusive).
 
    Indexing starts at :mini:`1`. Negative indices are counted from the end of the list, with :mini:`-1` returning the last node.

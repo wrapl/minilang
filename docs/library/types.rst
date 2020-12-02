@@ -3,13 +3,13 @@ types
 
 .. include:: <isonum.txt>
 
-:mini:`any`
+:mini:`def any`
    Base type for all values.
 
 
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: type)`
 
-:mini:`typerule`
+:mini:`def typerule`
 
 :mini:`meth *(Arg₁: type, Arg₂: type)`
 
@@ -21,7 +21,7 @@ types
 
 :mini:`meth >=(Arg₁: type, Arg₂: type)`
 
-:mini:`meth [](Arg₁: type)`
+:mini:`meth (Arg₁: type)[]`
 
 :mini:`meth :in(Value: any, Type: type)` |rarr| :mini:`Value` or :mini:`nil`
    Returns :mini:`Value` if it is an instance of :mini:`Type` or a type that inherits from :mini:`Type`.

@@ -5,9 +5,7 @@ boolean
 
 :mini:`meth string(Arg₁: boolean)`
 
-:mini:`boolean`
-   :Parents: :mini:`function`
-
+:mini:`def boolean < function`
 
 :mini:`meth boolean(String: string)` |rarr| :mini:`boolean` or :mini:`error`
    Returns :mini:`true` if :mini:`String` equals :mini:`"true"` (ignoring case).

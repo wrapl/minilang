@@ -3,43 +3,35 @@ gobject
 
 .. include:: <isonum.txt>
 
-:mini:`TypelibT`
+:mini:`def TypelibT < iteratable`
    A gobject-introspection typelib.
 
-   :Parents: :mini:`iteratable`
 
-
-:mini:`ObjectT`
+:mini:`def ObjectT < type`
    A gobject-introspection object type.
 
-   :Parents: :mini:`type`
 
-
-:mini:`ObjectInstanceT`
+:mini:`def ObjectInstanceT`
    A gobject-introspection object instance.
 
 
 :mini:`meth string(Object: ObjectInstanceT)` |rarr| :mini:`string`
 
-:mini:`StructT`
+:mini:`def StructT < type`
    A gobject-introspection struct type.
 
-   :Parents: :mini:`type`
 
-
-:mini:`StructInstanceT`
+:mini:`def StructInstanceT`
    A gobject-introspection struct instance.
 
 
 :mini:`meth string(Struct: StructInstanceT)` |rarr| :mini:`string`
 
-:mini:`EnumT`
+:mini:`def EnumT < type`
    A gobject-instrospection enum type.
 
-   :Parents: :mini:`type`
 
-
-:mini:`EnumValueT`
+:mini:`def EnumValueT`
    A gobject-instrospection enum value.
 
 
@@ -53,7 +45,7 @@ gobject
 
 :mini:`meth :connect(Object: ObjectInstanceT, Signal: string, Handler: function)` |rarr| :mini:`Object`
 
-:mini:`ObjectPropertyT`
+:mini:`def ObjectPropertyT`
 
 :mini:`meth ::(Object: ObjectInstanceT, Property: string)` |rarr| :mini:`any`
 

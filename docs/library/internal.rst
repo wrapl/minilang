@@ -3,103 +3,79 @@ internal
 
 .. include:: <isonum.txt>
 
-:mini:`arrayiterator`
+:mini:`def arrayiterator`
 
-:mini:`DEBUG_TYPE`
-   :Parents: :mini:`Continuation`
-
+:mini:`def DEBUG_TYPE < Continuation`
 
 :mini:`fun defaulttagfn()`
 
-:mini:`TypelibIterT`
+:mini:`def TypelibIterT`
 
-:mini:`stacked`
-   :Parents: :mini:`iteratable`
+:mini:`def stacked < iteratable`
 
+:mini:`def stackedstate`
 
-:mini:`stackedstate`
-
-:mini:`limited`
-   :Parents: :mini:`iteratable`
-
+:mini:`def limited < iteratable`
 
 :mini:`meth :count(Arg₁: limited)`
 
-:mini:`limitedstate`
+:mini:`def limitedstate`
 
-:mini:`skipped`
-   :Parents: :mini:`iteratable`
+:mini:`def skipped < iteratable`
 
+:mini:`def unique < iteratable`
 
-:mini:`unique`
-   :Parents: :mini:`iteratable`
+:mini:`def uniquestate`
 
+:mini:`def zipped < iteratable`
 
-:mini:`uniquestate`
+:mini:`def zippedstate`
 
-:mini:`zipped`
-   :Parents: :mini:`iteratable`
+:mini:`def repeated < iteratable`
 
+:mini:`def repeatedstate`
 
-:mini:`zippedstate`
+:mini:`def sequenced < iteratable`
 
-:mini:`repeated`
-   :Parents: :mini:`iteratable`
+:mini:`def sequencedstate`
 
+:mini:`def weaved < iteratable`
 
-:mini:`repeatedstate`
+:mini:`def weavedstate`
 
-:mini:`sequenced`
-   :Parents: :mini:`iteratable`
+:mini:`def swapped < iteratable`
 
+:mini:`def swappedstate`
 
-:mini:`sequencedstate`
+:mini:`def key < iteratable`
 
-:mini:`weaved`
-   :Parents: :mini:`iteratable`
+:mini:`def keystate`
 
+:mini:`def listiter`
 
-:mini:`weavedstate`
+:mini:`def names`
 
-:mini:`swapped`
-   :Parents: :mini:`iteratable`
+:mini:`def mapindex`
 
+:mini:`def mapiter`
 
-:mini:`swappedstate`
+:mini:`def errorvalue`
 
-:mini:`key`
-   :Parents: :mini:`iteratable`
+:mini:`def stringiterator`
 
+:mini:`def tableiter`
 
-:mini:`keystate`
+:mini:`def tablerowiter`
 
-:mini:`listiter`
+:mini:`def nil < function, iteratable`
 
-:mini:`names`
+:mini:`def some`
 
-:mini:`mapindex`
+:mini:`def blank`
 
-:mini:`mapiter`
+:mini:`def cfunction < function`
 
-:mini:`errorvalue`
-
-:mini:`stringiterator`
-
-:mini:`nil`
-   :Parents: :mini:`function`, :mini:`iteratable`
-
-
-:mini:`some`
-
-:mini:`blank`
-
-:mini:`cfunction`
-   :Parents: :mini:`function`
-
-
-:mini:`cfunctionx`
-   :Parents: :mini:`function`
-
+:mini:`def cfunctionx < function`
 
 :mini:`meth $(Arg₁: partialfunction, Arg₂: any)`
 

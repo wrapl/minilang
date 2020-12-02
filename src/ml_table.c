@@ -17,6 +17,7 @@ struct ml_table_t {
 };
 
 ML_TYPE(MLTableT, (MLIteratableT), "table");
+// A table is a set of named arrays. The arrays must have the same length.
 
 ml_value_t *ml_table() {
 	ml_table_t *Table = new(ml_table_t);
@@ -26,44 +27,112 @@ ml_value_t *ml_table() {
 }
 
 ML_METHOD(MLTableOfMethod) {
+//>table
+// Returns an empty table.
 	return ml_table();
 }
 
-ML_METHOD(MLTableOfMethod, MLMapT) {
+typedef struct {
+	ml_state_t Base;
+	ml_table_t *Table;
+	ml_map_node_t *Node;
+	ml_value_t *Args[1];
+} ml_table_init_state_t;
+
+static void ml_table_init_fun(ml_table_init_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	ml_table_t *Table = State->Table;
+	if (!ml_array_degree(Value)) ML_ERROR("ValueError", "Cannot add empty array to table");
+	int Size = ml_array_size(Value, 0);
+	if (Table->Size) {
+		if (Size != Table->Size) ML_ERROR("ValueError", "Array size does not match table");
+	} else {
+		Table->Size = Size;
+	}
+	ml_map_node_t *Node = State->Node;
+	Node->Value = Value;
+	Node = Node->Next;
+	while (Node) {
+		if (ml_is(Node->Value, MLArrayT)) {
+			Node = Node->Next;
+		} else {
+			State->Node = Node;
+			State->Args[0] = Node->Value;
+			return ml_call((ml_state_t *)State, (ml_value_t *)MLArrayT, 1, State->Args);
+		}
+	}
+	ML_RETURN(Table);
+}
+
+ML_METHODX(MLTableOfMethod, MLMapT) {
+//<Columns
+//>table
+// Returns a table with the entries from :mini:`Columns`. The keys of :mini:`Columns` must be strings, the values of :mini:`Columns` are converted to arrays using :mini:`array()` if necessary.
 	ml_table_t *Table = (ml_table_t *)ml_table();
 	ML_MAP_FOREACH(Args[0], Iter) {
 		ml_value_t *Key = Iter->Key;
-		ml_value_t *Value = Iter->Value;
-		if (!ml_is(Key, MLStringT)) return ml_error("TypeError", "Column name must be a string");
-		if (!ml_is(Value, MLArrayT)) return ml_error("TypeError", "Column value must be an array");
-		if (!ml_array_degree(Value)) return ml_error("ValueError", "Cannot add empty array to table");
-		int Size = ml_array_size(Value, 0);
-		if (Table->Size) {
-			if (Size != Table->Size) return ml_error("ValueError", "Array size does not match table");
-		} else {
-			Table->Size = Size;
-		}
-		ml_map_insert(Table->Columns, Key, Value);
+		if (!ml_is(Key, MLStringT)) ML_ERROR("TypeError", "Column name must be a string");
+		ml_map_insert(Table->Columns, Key, Iter->Value);
 	}
-	return (ml_value_t *)Table;
+	ml_map_node_t *Node = ((ml_map_t *)Table->Columns)->Head;
+	while (Node) {
+		if (ml_is(Node->Value, MLArrayT)) {
+			ml_value_t *Value = Node->Value;
+			if (!ml_array_degree(Value)) ML_ERROR("ValueError", "Cannot add empty array to table");
+			int Size = ml_array_size(Value, 0);
+			if (Table->Size) {
+				if (Size != Table->Size) ML_ERROR("ValueError", "Array size does not match table");
+			} else {
+				Table->Size = Size;
+			}
+			Node = Node->Next;
+		} else {
+			ml_table_init_state_t *State = new(ml_table_init_state_t);
+			State->Base.Caller = Caller;
+			State->Base.Context = Caller->Context;
+			State->Base.run = (ml_state_fn)ml_table_init_fun;
+			State->Table = Table;
+			State->Node = Node;
+			State->Args[0] = Node->Value;
+			return ml_call((ml_state_t *)State, (ml_value_t *)MLArrayT, 1, State->Args);
+		}
+	}
+	ML_RETURN(Table);
 }
 
-ML_METHODV(MLTableOfMethod, MLNamesT) {
+ML_METHODVX(MLTableOfMethod, MLNamesT) {
+//<Names
+//<Value/1, ..., Value/n:any
+//>table
+// Returns a table using :mini:`Names` for column names and :mini:`Values` as column values, converted to arrays using :mini:`array()` if necessary.
 	ml_table_t *Table = (ml_table_t *)ml_table();
 	int N = 1;
-	ML_NAMES_FOREACH(Args[0], Iter) {
-		ML_CHECK_ARG_TYPE(N, MLArrayT);
-		ml_value_t *Value = Args[N++];
-		if (!ml_array_degree(Value)) return ml_error("ValueError", "Cannot add empty array to table");
-		int Size = ml_array_size(Value, 0);
-		if (Table->Size) {
-			if (Size != Table->Size) return ml_error("ValueError", "Array size does not match table");
+	ML_NAMES_FOREACH(Args[0], Iter) ml_map_insert(Table->Columns, Iter->Value, Args[N++]);
+	ml_map_node_t *Node = ((ml_map_t *)Table->Columns)->Head;
+	while (Node) {
+		if (ml_is(Node->Value, MLArrayT)) {
+			ml_value_t *Value = Node->Value;
+			if (!ml_array_degree(Value)) ML_ERROR("ValueError", "Cannot add empty array to table");
+			int Size = ml_array_size(Value, 0);
+			if (Table->Size) {
+				if (Size != Table->Size) ML_ERROR("ValueError", "Array size does not match table");
+			} else {
+				Table->Size = Size;
+			}
+			Node = Node->Next;
 		} else {
-			Table->Size = Size;
+			ml_table_init_state_t *State = new(ml_table_init_state_t);
+			State->Base.Caller = Caller;
+			State->Base.Context = Caller->Context;
+			State->Base.run = (ml_state_fn)ml_table_init_fun;
+			State->Table = Table;
+			State->Node = Node;
+			State->Args[0] = Node->Value;
+			return ml_call((ml_state_t *)State, (ml_value_t *)MLArrayT, 1, State->Args);
 		}
-		ml_map_insert(Table->Columns, Iter->Value, Value);
 	}
-	return (ml_value_t *)Table;
+	ML_RETURN(Table);
 }
 
 ml_value_t *ml_table_insert(ml_value_t *Value, ml_value_t *Name, ml_value_t *Column) {
@@ -84,10 +153,42 @@ ml_value_t *ml_table_columns(ml_value_t *Table) {
 }
 
 ML_METHOD("insert", MLTableT, MLStringT, MLArrayT) {
+//<Table
+//<Name
+//<Value
+//>table
+// Insert the column :mini:`Name` with values :mini:`Value` into :mini:`Table`.
 	return ml_table_insert(Args[0], Args[1], Args[2]);
 }
 
+ML_METHODV("insert", MLTableT, MLNamesT) {
+//<Table
+//<Names
+//<Value/1, ..., Value/n:array
+//>table
+// Insert columns with names from :mini:`Names` and values :mini:`Value/1`, ..., :mini:`Value/n` into :mini:`Table`.
+	ml_table_t *Table = (ml_table_t *)Args[0];
+	int N = 2;
+	ML_NAMES_FOREACH(Args[1], Iter) {
+		ML_CHECK_ARG_TYPE(N, MLArrayT);
+		ml_value_t *Value = Args[N++];
+		if (!ml_array_degree(Value)) return ml_error("ValueError", "Cannot add empty array to table");
+		int Size = ml_array_size(Value, 0);
+		if (Table->Size) {
+			if (Size != Table->Size) return ml_error("ValueError", "Array size does not match table");
+		} else {
+			Table->Size = Size;
+		}
+		ml_map_insert(Table->Columns, Iter->Value, Value);
+	}
+	return (ml_value_t *)Table;
+}
+
 ML_METHOD("delete", MLTableT, MLStringT) {
+//<Table
+//<Name
+//>array
+// Remove the column :mini:`Name` from :mini:`Table` and return the value array.
 	return ml_map_delete(Args[0], Args[1]);
 }
 
@@ -130,7 +231,86 @@ struct ml_table_row_t {
 	ml_value_t *Indices[];
 };
 
-ML_TYPE(MLTableRowT, (MLIteratableT), "table-row");
+static ml_value_t *table_row_assign(ml_table_row_t *Row, ml_value_t *Value) {
+	ml_table_t *Table = Row->Table;
+	if (ml_is(Value, MLMapT)) {
+		ML_MAP_FOREACH(Value, Iter) {
+			if (!ml_is(Iter->Key, MLStringT)) return ml_error("TypeError", "Column names must be strings");
+			ml_value_t *Column = ml_map_search(Table->Columns, Iter->Key);
+			if (Column == MLNil) return ml_error("NameError", "Column %s not in table", ml_string_value(Iter->Key));
+			ml_value_t *Slot = ml_array_index((ml_array_t *)Column, Row->Count, Row->Indices);
+			ml_value_t *Result = ml_assign(Slot, Iter->Value);
+			if (ml_is_error(Result)) return Result;
+		}
+	} else if (ml_is(Value, MLListT)) {
+		ml_map_node_t *Node = ((ml_map_t *)Table->Columns)->Head;
+		ML_LIST_FOREACH(Value, Iter) {
+			if (!Node) return ml_error("ValueError", "Too many columns in assignment");
+			ml_value_t *Column = Node->Value;
+			ml_value_t *Slot = ml_array_index((ml_array_t *)Column, Row->Count, Row->Indices);
+			ml_value_t *Result = ml_assign(Slot, Iter->Value);
+			if (ml_is_error(Result)) return Result;
+			Node = Node->Next;
+		}
+	} else if (ml_is(Value, MLTupleT)) {
+		ml_map_node_t *Node = ((ml_map_t *)Table->Columns)->Head;
+		int Size = ml_tuple_size(Value);
+		for (int Index = 1; Index <= Size; ++Index) {
+			if (!Node) return ml_error("ValueError", "Too many columns in assignment");
+			ml_value_t *Column = Node->Value;
+			ml_value_t *Slot = ml_array_index((ml_array_t *)Column, Row->Count, Row->Indices);
+			ml_value_t *Result = ml_assign(Slot, ml_tuple_get(Value, Index));
+			if (ml_is_error(Result)) return Result;
+			Node = Node->Next;
+		}
+	} else {
+		return ml_error("TypeError", "Cannot assign %s to table row", ml_typeof(Value)->Name);
+	}
+	return Value;
+}
+
+ML_TYPE(MLTableRowT, (MLIteratableT), "table-row",
+	.assign = (void *)table_row_assign
+);
+
+typedef struct {
+	const ml_type_t *Type;
+	ml_table_t *Table;
+	ml_value_t *Index;
+} ml_table_iter_t;
+
+ML_TYPE(MLTableIterT, (), "table-row-iter"
+//!internal
+);
+
+static void ML_TYPED_FN(ml_iterate, MLTableT, ml_state_t *Caller, ml_table_t *Table) {
+	if (!Table->Size) ML_RETURN(MLNil);
+	ml_table_iter_t *Iter = new(ml_table_iter_t);
+	Iter->Type = MLTableIterT;
+	Iter->Table = Table;
+	Iter->Index = ml_integer(1);
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLTableIterT, ml_state_t *Caller, ml_table_iter_t *Iter) {
+	int Index = ml_integer_value_fast(Iter->Index) + 1;
+	if (Index > Iter->Table->Size) ML_RETURN(MLNil);
+	Iter->Index = ml_integer(Index);
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLTableIterT, ml_state_t *Caller, ml_table_iter_t *Iter) {
+	ML_RETURN(Iter->Index);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLTableIterT, ml_state_t *Caller, ml_table_iter_t *Iter) {
+	ml_table_row_t *Row = xnew(ml_table_row_t, 1, ml_value_t *);
+	Row->Type = MLTableRowT;
+	Row->Table = Iter->Table;
+	Row->Count = 1;
+	Row->Indices[0] = Iter->Index;
+	ML_RETURN(Row);
+}
 
 ML_METHOD("[]", MLTableT, MLIntegerT) {
 	ml_table_t *Table = (ml_table_t *)Args[0];
@@ -173,6 +353,41 @@ ML_METHOD(MLStringOfMethod, MLTableRowT) {
 	}
 	ml_stringbuffer_add(Buffer, "}", 1);
 	return ml_stringbuffer_value(Buffer);
+}
+
+typedef struct {
+	const ml_type_t *Type;
+	ml_map_node_t *Node;
+	ml_table_row_t *Row;
+} ml_table_row_iter_t;
+
+ML_TYPE(MLTableRowIterT, (), "table-row-iter"
+//!internal
+);
+
+static void ML_TYPED_FN(ml_iterate, MLTableRowT, ml_state_t *Caller, ml_table_row_t *Row) {
+	ml_map_node_t *Node = ((ml_map_t *)Row->Table->Columns)->Head;
+	if (!Node) ML_RETURN(MLNil);
+	ml_table_row_iter_t *Iter = new(ml_table_row_iter_t);
+	Iter->Type = MLTableRowIterT;
+	Iter->Row = Row;
+	Iter->Node = Node;
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLTableRowIterT, ml_state_t *Caller, ml_table_row_iter_t *Iter) {
+	ml_map_node_t *Node = Iter->Node->Next;
+	if (!Node) ML_RETURN(MLNil);
+	Iter->Node = Node;
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLTableRowIterT, ml_state_t *Caller, ml_table_row_iter_t *Iter) {
+	ML_RETURN(Iter->Node->Key);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLTableRowIterT, ml_state_t *Caller, ml_table_row_iter_t *Iter) {
+	ML_RETURN(ml_array_index((ml_array_t *)Iter->Node->Value, Iter->Row->Count, Iter->Row->Indices));
 }
 
 void ml_table_init(stringmap_t *Globals) {

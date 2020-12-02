@@ -3,17 +3,15 @@ map
 
 .. include:: <isonum.txt>
 
-:mini:`map`
+:mini:`def map < function, iteratable`
    A map of key-value pairs.
 
    Keys can be of any type supporting hashing and comparison.
 
    Insert order is preserved.
 
-   :Parents: :mini:`function`, :mini:`iteratable`
 
-
-:mini:`mapnode`
+:mini:`def mapnode`
    A node in a :mini:`map`.
 
    Dereferencing a :mini:`mapnode` returns the corresponding value from the :mini:`map`.
@@ -37,11 +35,11 @@ map
    Returns the number of entries in :mini:`Map`.
 
 
-:mini:`meth [](Map: map, Key: any)` |rarr| :mini:`mapnode`
+:mini:`meth (Map: map)[Key: any]` |rarr| :mini:`mapnode`
    Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then the reference withh return :mini:`nil` when dereferenced and will insert :mini:`Key` into :mini:`Map` when assigned.
 
 
-:mini:`meth [](Map: map, Key: any, Default: function)` |rarr| :mini:`mapnode`
+:mini:`meth (Map: map)[Key: any, Default: function]` |rarr| :mini:`mapnode`
    Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then :mini:`Default(Key)` is called and the result inserted into :mini:`Map`.
 
 

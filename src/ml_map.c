@@ -16,7 +16,6 @@ static void ml_map_call(ml_state_t *Caller, ml_value_t *Map, int Count, ml_value
 }
 
 ML_TYPE(MLMapT, (MLFunctionT, MLIteratableT), "map",
-//!map
 // A map of key-value pairs.
 // Keys can be of any type supporting hashing and comparison.
 // Insert order is preserved.
@@ -32,7 +31,6 @@ static ml_value_t *ml_map_node_assign(ml_map_node_t *Node, ml_value_t *Value) {
 }
 
 ML_TYPE(MLMapNodeT, (), "map-node",
-//!map
 // A node in a :mini:`map`.
 // Dereferencing a :mini:`mapnode` returns the corresponding value from the :mini:`map`.
 // Assigning to a :mini:`mapnode` updates the corresponding value in the :mini:`map`.
@@ -84,7 +82,6 @@ static void map_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 }
 
 ML_METHODVX(MLMapOfMethod, MLIteratableT) {
-//!map
 //<Iteratable
 //>map
 // Returns a map of all the key and value pairs produced by :mini:`Iteratable`.
@@ -304,7 +301,6 @@ int ml_map_foreach(ml_value_t *Value, void *Data, int (*callback)(ml_value_t *, 
 }
 
 ML_METHOD("size", MLMapT) {
-//!map
 //<Map
 //>integer
 // Returns the number of entries in :mini:`Map`.
@@ -313,7 +309,6 @@ ML_METHOD("size", MLMapT) {
 }
 
 ML_METHOD("count", MLMapT) {
-//!map
 //<Map
 //>integer
 // Returns the number of entries in :mini:`Map`.
@@ -376,7 +371,6 @@ ML_TYPE(MLMapIndexT, (), "map-index",
 );
 
 ML_METHOD("[]", MLMapT, MLAnyT) {
-//!map
 //<Map
 //<Key
 //>mapnode
@@ -407,7 +401,6 @@ static void ml_node_state_run(ml_ref_state_t *State, ml_value_t *Value) {
 }
 
 ML_METHODX("[]", MLMapT, MLAnyT, MLFunctionT) {
-//!map
 //<Map
 //<Key
 //<Default
@@ -432,7 +425,6 @@ ML_METHODX("[]", MLMapT, MLAnyT, MLFunctionT) {
 }
 
 ML_METHOD("::", MLMapT, MLStringT) {
-//!map
 //<Map
 //<Key
 //>mapnode
@@ -448,7 +440,6 @@ ML_METHOD("::", MLMapT, MLStringT) {
 }
 
 ML_METHOD("insert", MLMapT, MLAnyT, MLAnyT) {
-//!map
 //<Map
 //<Key
 //<Value
@@ -462,7 +453,6 @@ ML_METHOD("insert", MLMapT, MLAnyT, MLAnyT) {
 }
 
 ML_METHOD("delete", MLMapT, MLAnyT) {
-//!map
 //<Map
 //<Key
 //>any | nil
@@ -480,7 +470,6 @@ ml_value_t *ml_map_fn(void *Data, int Count, ml_value_t **Args) {
 }
 
 ML_METHOD("missing", MLMapT, MLAnyT) {
-//!map
 //<Map
 //<Key
 //>any | nil
@@ -494,7 +483,6 @@ ML_METHOD("missing", MLMapT, MLAnyT) {
 }
 
 ML_METHOD("append", MLStringBufferT, MLMapT) {
-//!map
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_add(Buffer, "{", 1);
 	ml_map_t *Map = (ml_map_t *)Args[1];
@@ -576,7 +564,6 @@ static void ML_TYPED_FN(ml_iterate, MLMapT, ml_state_t *Caller, ml_map_t *Map) {
 }
 
 ML_METHOD("+", MLMapT, MLMapT) {
-//!map
 //<Map/1
 //<Map/2
 //>map
@@ -610,7 +597,6 @@ static int ml_map_stringer(ml_value_t *Key, ml_value_t *Value, ml_map_stringer_t
 }
 
 ML_METHOD(MLStringOfMethod, MLMapT) {
-//!map
 //<Map
 //>string
 // Returns a string containing the entries of :mini:`Map` surrounded by :mini:`{`, :mini:`}` with :mini:`is` between keys and values and :mini:`,` between entries.
@@ -629,7 +615,6 @@ ML_METHOD(MLStringOfMethod, MLMapT) {
 }
 
 ML_METHOD(MLStringOfMethod, MLMapT, MLStringT, MLStringT) {
-//!map
 //<Map
 //<Seperator
 //<Connector
@@ -701,14 +686,12 @@ static ml_value_t *ml_map_sort(ml_map_t *Map, ml_value_t *Compare) {
 extern ml_value_t *LessMethod;
 
 ML_METHOD("sort", MLMapT) {
-//!map
 //<Map
 //>Map
 	return ml_map_sort((ml_map_t *)Args[0], LessMethod);
 }
 
 ML_METHOD("sort", MLMapT, MLFunctionT) {
-//!map
 //<Map
 //<Compare
 //>Map

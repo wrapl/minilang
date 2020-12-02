@@ -15,45 +15,29 @@ number
 
 :mini:`meth real(Arg₁: string)`
 
-:mini:`number`
+:mini:`def number < function`
    Base type for integers and reals.
 
-   :Parents: :mini:`function`
 
+:mini:`def integer < number`
 
-:mini:`integer`
-   :Parents: :mini:`number`
+:mini:`def int32 < integer`
 
+:mini:`def int64 < integer`
 
-:mini:`int32`
-   :Parents: :mini:`integer`
-
-
-:mini:`int64`
-   :Parents: :mini:`integer`
-
-
-:mini:`integer`
-   :Parents: :mini:`number`
-
+:mini:`def integer < number`
 
 :mini:`meth integer(Arg₁: real)`
 
-:mini:`real`
-   :Parents: :mini:`number`
+:mini:`def real < number`
 
-
-:mini:`double`
-   :Parents: :mini:`real`
-
+:mini:`def double < real`
 
 :mini:`meth integer(Real: real)` |rarr| :mini:`integer`
    Converts :mini:`Real` to an integer (using default rounding).
 
 
-:mini:`real`
-   :Parents: :mini:`number`
-
+:mini:`def real < number`
 
 :mini:`meth real(Arg₁: int32)`
 
