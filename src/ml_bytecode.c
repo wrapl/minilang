@@ -138,7 +138,7 @@ static void ML_TYPED_FN(ml_iter_key, DEBUG_TYPE(Continuation), ml_state_t *Calle
 }
 
 static void ML_TYPED_FN(ml_iter_next, DEBUG_TYPE(Continuation), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
-	if (!Suspension->Suspend) ML_ERROR("StateError", "Function did not suspend");
+	if (!Suspension->Suspend) ML_CONTINUE(Caller, MLNil);
 	Suspension->Base.Type = DEBUG_TYPE(Continuation);
 	Suspension->Top[-2] = Suspension->Top[-1];
 	--Suspension->Top;
