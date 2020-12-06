@@ -188,6 +188,7 @@
       <keyword>stringbuffer</keyword>
       <keyword>list</keyword>
       <keyword>map</keyword>
+      <keyword>queue</keyword>
       <keyword>tuple</keyword>
       <keyword>regex</keyword>
       <keyword>array</keyword>

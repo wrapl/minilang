@@ -199,9 +199,9 @@ if MINILANG_TABLES or defined("TABLES") then
 	CFLAGS := old + ["-DUSE_ML_TABLES"]
 end
 
-if MINILANG_HEAPS or defined("HEAPS") then
-	Objects:put(file("ml_heap.o"))
-	CFLAGS := old + ["-DUSE_ML_HEAPS"]
+if MINILANG_QUEUES or defined("QUEUES") then
+	Objects:put(file("ml_queue.o"))
+	CFLAGS := old + ["-DUSE_ML_QUEUES"]
 end
 
 if PLATFORM = "Linux" then
