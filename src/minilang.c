@@ -41,6 +41,10 @@
 #include "ml_table.h"
 #endif
 
+#ifdef USE_ML_HEAPS
+#include "ml_heap.h"
+#endif
+
 static stringmap_t Globals[1] = {STRINGMAP_INIT};
 
 static ml_value_t *global_get(void *Data, const char *Name) {
@@ -178,6 +182,9 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef USE_ML_TABLES
 	ml_table_init(Globals);
+#endif
+#ifdef USE_ML_HEAPS
+	ml_heap_init(Globals);
 #endif
 	ml_value_t *Args = ml_list();
 	const char *FileName = 0;

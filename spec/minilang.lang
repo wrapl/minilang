@@ -194,7 +194,7 @@
       <keyword>file</keyword>
     </context>
     <context id="operators" style-ref="operator" extend-parent="false">
-      <match>[-.:#~^@;/$%|\=\+\*\!\?&amp;&lt;&gt;\[\]\\{}\()]</match>
+      <match>[-.:#~^@;,/$%|\=\+\*\!\?&amp;&lt;&gt;\[\]\\{}\()]</match>
     </context>
     <context id="assignment" style-ref="operator" extend-parent="false">
       <match>:=</match>

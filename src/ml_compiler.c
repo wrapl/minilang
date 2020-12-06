@@ -2251,7 +2251,7 @@ static void ml_accept_eoi(ml_compiler_t *Compiler) {
 
 static mlc_expr_t *ml_parse_factor(ml_compiler_t *Compiler, int MethDecl);
 static mlc_expr_t *ml_parse_term(ml_compiler_t *Compiler, int MethDecl);
-static mlc_expr_t *ml_accept_block(ml_compiler_t *Compiler, int NoCatches);
+static mlc_expr_t *ml_accept_block(ml_compiler_t *Compiler);
 
 static mlc_expr_t *ml_accept_fun_expr(ml_compiler_t *Compiler, ml_token_t EndToken) {
 	ML_EXPR(FunExpr, fun, fun);
@@ -2469,7 +2469,7 @@ static mlc_expr_t *ml_accept_with_expr(ml_compiler_t *Compiler, mlc_expr_t *Chil
 		ExprSlot[0] = Child;
 	} else {
 		ml_accept(Compiler, MLT_DO);
-		ExprSlot[0] = ml_accept_block(Compiler, 0);
+		ExprSlot[0] = ml_accept_block(Compiler);
 		ml_accept(Compiler, MLT_END);
 	}
 	return (mlc_expr_t *)WithExpr;
@@ -2571,7 +2571,7 @@ static mlc_expr_t *ml_parse_factor(ml_compiler_t *Compiler, int MethDecl) {
 	}
 	case MLT_DO: {
 		ml_next(Compiler);
-		mlc_expr_t *BlockExpr = ml_accept_block(Compiler, 0);
+		mlc_expr_t *BlockExpr = ml_accept_block(Compiler);
 		ml_accept(Compiler, MLT_END);
 		return BlockExpr;
 	}
@@ -2602,9 +2602,9 @@ static mlc_expr_t *ml_parse_factor(ml_compiler_t *Compiler, int MethDecl) {
 			}
 			Case->Condition = ml_accept_expression(Compiler, EXPR_DEFAULT);
 			ml_accept(Compiler, MLT_THEN);
-			Case->Body = ml_accept_block(Compiler, 0);
+			Case->Body = ml_accept_block(Compiler);
 		} while (ml_parse2(Compiler, MLT_ELSEIF));
-		if (ml_parse2(Compiler, MLT_ELSE)) IfExpr->Else = ml_accept_block(Compiler, 0);
+		if (ml_parse2(Compiler, MLT_ELSE)) IfExpr->Else = ml_accept_block(Compiler);
 		ml_accept(Compiler, MLT_END);
 		return (mlc_expr_t *)IfExpr;
 	}
@@ -2657,9 +2657,9 @@ static mlc_expr_t *ml_parse_factor(ml_compiler_t *Compiler, int MethDecl) {
 				Case->Condition = (mlc_expr_t *)OrExpr;
 			}
 			ml_accept(Compiler, MLT_DO);
-			Case->Body = ml_accept_block(Compiler, 0);
+			Case->Body = ml_accept_block(Compiler);
 			if (ml_parse2(Compiler, MLT_ELSE)) {
-				IfExpr->Else = ml_accept_block(Compiler, 0);
+				IfExpr->Else = ml_accept_block(Compiler);
 				ml_accept(Compiler, MLT_END);
 				break;
 			}
@@ -2670,7 +2670,7 @@ static mlc_expr_t *ml_parse_factor(ml_compiler_t *Compiler, int MethDecl) {
 	case MLT_LOOP: {
 		ml_next(Compiler);
 		ML_EXPR(LoopExpr, parent, loop);
-		LoopExpr->Child = ml_accept_block(Compiler, 0);
+		LoopExpr->Child = ml_accept_block(Compiler);
 		ml_accept(Compiler, MLT_END);
 		return (mlc_expr_t *)LoopExpr;
 	}
@@ -2681,9 +2681,9 @@ static mlc_expr_t *ml_parse_factor(ml_compiler_t *Compiler, int MethDecl) {
 		ml_accept(Compiler, MLT_IN);
 		ForExpr->Child = ml_accept_expression(Compiler, EXPR_DEFAULT);
 		ml_accept(Compiler, MLT_DO);
-		ForExpr->Child->Next = ml_accept_block(Compiler, 0);
+		ForExpr->Child->Next = ml_accept_block(Compiler);
 		if (ml_parse2(Compiler, MLT_ELSE)) {
-			ForExpr->Child->Next->Next = ml_accept_block(Compiler, 0);
+			ForExpr->Child->Next->Next = ml_accept_block(Compiler);
 		}
 		ml_accept(Compiler, MLT_END);
 		return (mlc_expr_t *)ForExpr;
@@ -3282,8 +3282,7 @@ static mlc_expr_t *ml_parse_block_expr(ml_compiler_t *Compiler, ml_accept_block_
 	return Expr;
 }
 
-static mlc_expr_t *ml_accept_block(ml_compiler_t *Compiler, int NoCatches) {
-	//if (Compiler->Token == MLT_NONE) ml_advance(Compiler);
+static mlc_block_expr_t *ml_accept_block_body(ml_compiler_t *Compiler) {
 	ML_EXPR(BlockExpr, block, block);
 	ml_accept_block_t Accept[1];
 	Accept->ExprSlot = &BlockExpr->Child;
@@ -3313,38 +3312,9 @@ static mlc_expr_t *ml_accept_block(ml_compiler_t *Compiler, int NoCatches) {
 			ml_accept_block_fun(Compiler, Accept);
 			break;
 		}
-		case MLT_ON: {
-			if (NoCatches) goto end;
-			ml_next(Compiler);
-			mlc_catch_expr_t **CatchSlot = &BlockExpr->Catches;
-			do {
-				mlc_catch_expr_t *CatchExpr = CatchSlot[0] = new(mlc_catch_expr_t);
-				CatchSlot = &CatchExpr->Next;
-				ml_accept(Compiler, MLT_IDENT);
-				ml_decl_t *Decl = CatchExpr->Decl = new(ml_decl_t);
-				Decl->Source = Compiler->Source;
-				Decl->Ident = Compiler->Ident;
-				if (ml_parse2(Compiler, MLT_COLON)) {
-					mlc_catch_type_t **TypeSlot = &CatchExpr->Types;
-					do {
-						ml_accept(Compiler, MLT_VALUE);
-						ml_value_t *Value = Compiler->Value;
-						if (!ml_is(Value, MLStringT)) {
-							ml_compiler_error(Compiler, "ParseError", "Expected <string> not <%s>", ml_typeof(Value)->Name);
-						}
-						mlc_catch_type_t *Type = TypeSlot[0] = new(mlc_catch_type_t);
-						TypeSlot = &Type->Next;
-						Type->Type = ml_string_value(Value);
-					} while (ml_parse2(Compiler, MLT_COMMA));
-				}
-				ml_accept(Compiler, MLT_DO);
-				CatchExpr->Body = ml_accept_block(Compiler, 1);
-			} while (ml_parse2(Compiler, MLT_ON));
-			goto end;
-		}
 		default: {
 			mlc_expr_t *Expr = ml_parse_block_expr(Compiler, Accept);
-			if (!Expr) goto end;
+			if (!Expr) return BlockExpr;
 			Accept->ExprSlot[0] = Expr;
 			Accept->ExprSlot = &Expr->Next;
 			break;
@@ -3352,9 +3322,39 @@ static mlc_expr_t *ml_accept_block(ml_compiler_t *Compiler, int NoCatches) {
 		}
 		if (ml_parse(Compiler, MLT_SEMICOLON)) continue;
 		if (ml_parse(Compiler, MLT_EOL)) continue;
-		break;
+		return BlockExpr;
 	}
-end:
+	return BlockExpr;
+}
+
+static mlc_expr_t *ml_accept_block(ml_compiler_t *Compiler) {
+	mlc_block_expr_t *BlockExpr = ml_accept_block_body(Compiler);
+	if (ml_parse(Compiler, MLT_ON)) {
+		mlc_catch_expr_t **CatchSlot = &BlockExpr->Catches;
+		do {
+			mlc_catch_expr_t *CatchExpr = CatchSlot[0] = new(mlc_catch_expr_t);
+			CatchSlot = &CatchExpr->Next;
+			ml_accept(Compiler, MLT_IDENT);
+			ml_decl_t *Decl = CatchExpr->Decl = new(ml_decl_t);
+			Decl->Source = Compiler->Source;
+			Decl->Ident = Compiler->Ident;
+			if (ml_parse2(Compiler, MLT_COLON)) {
+				mlc_catch_type_t **TypeSlot = &CatchExpr->Types;
+				do {
+					ml_accept(Compiler, MLT_VALUE);
+					ml_value_t *Value = Compiler->Value;
+					if (!ml_is(Value, MLStringT)) {
+						ml_compiler_error(Compiler, "ParseError", "Expected <string> not <%s>", ml_typeof(Value)->Name);
+					}
+					mlc_catch_type_t *Type = TypeSlot[0] = new(mlc_catch_type_t);
+					TypeSlot = &Type->Next;
+					Type->Type = ml_string_value(Value);
+				} while (ml_parse2(Compiler, MLT_COMMA));
+			}
+			ml_accept(Compiler, MLT_DO);
+			CatchExpr->Body = (mlc_expr_t *)ml_accept_block_body(Compiler);
+		} while (ml_parse(Compiler, MLT_ON));
+	}
 	BlockExpr->Source = Compiler->Source;
 	return (mlc_expr_t *)BlockExpr;
 }
@@ -3411,7 +3411,7 @@ void ml_function_compile(ml_state_t *Caller, ml_compiler_t *Compiler, const char
 	Compiler->Context = Caller->Context;
 	Compiler->Base.Caller = Caller;
 	Compiler->Base.Context = Caller->Context;
-	mlc_expr_t *Block = ml_accept_block(Compiler, 0);
+	mlc_expr_t *Block = ml_accept_block(Compiler);
 	ml_accept_eoi(Compiler);
 	ml_compiler_task_t *Task = new(ml_compiler_task_t);
 	Task->Closure = ml_compile(Block, Parameters, Compiler);

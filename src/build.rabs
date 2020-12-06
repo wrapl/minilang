@@ -199,6 +199,11 @@ if MINILANG_TABLES or defined("TABLES") then
 	CFLAGS := old + ["-DUSE_ML_TABLES"]
 end
 
+if MINILANG_HEAPS or defined("HEAPS") then
+	Objects:put(file("ml_heap.o"))
+	CFLAGS := old + ["-DUSE_ML_HEAPS"]
+end
+
 if PLATFORM = "Linux" then
 	Objects:put(file("linenoise.o"))
 	LDFLAGS := old + ["-lgc"]
