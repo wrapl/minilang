@@ -89,6 +89,21 @@ var Objects := [
 
 var Libraries := []
 
+var InstallHeaders := [
+	"minilang.h",
+	"ml_console.h",
+	"ml_file.h",
+	"ml_iterfns.h",
+	"ml_macros.h",
+	"ml_types.h",
+	"ml_object.h",
+	"ml_compiler.h",
+	"ml_runtime.h",
+	"ml_bytecode.h",
+	"stringmap.h",
+	"inthash.h"
+]
+
 if MINILANG_USEMATH or defined("MATH") then
 	file("array"):mkdir
 	Objects:put(
@@ -107,6 +122,8 @@ if MINILANG_USEMATH or defined("MATH") then
 		file("array/compare_ge.o")
 	)
 	CFLAGS := old + ["-DUSE_ML_MATH"]
+	InstallHeaders:put("ml_array.h")
+	InstallHeaders:put("ml_math.h")
 end
 
 if MINILANG_LIBIO or defined("IO") then
@@ -118,6 +135,8 @@ if MINILANG_USEGTK or defined("GTK") then
 	Objects:put(file("ml_gir.o"), file("gtk_console.o"))
 	CFLAGS := old + ["-DUSE_ML_GIR", pkgconfig("--cflags gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0 libgvc")]
 	LDFLAGS := old + [pkgconfig("--libs gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0 libgvc")]
+	InstallHeaders:put("ml_gir.h")
+	InstallHeaders:put("gtk_console.h")
 end
 
 if MINILANG_USECBOR or defined("CBOR") then
@@ -135,6 +154,7 @@ if MINILANG_USECBOR or defined("CBOR") then
 		file("minicbor/minicbor_reader.o"),
 		file("minicbor/minicbor_writer.o")
 	)
+	InstallHeaders:put("ml_cbor.h")
 end
 
 if MINILANG_MODULES or defined("MODULES") then
@@ -145,6 +165,7 @@ if MINILANG_MODULES or defined("MODULES") then
 		subdir("lib")
 	end
 	MINILANG_SCHEDULER := 1
+	InstallHeaders:put("ml_module.h")
 end
 
 if MINILANG_SCHEDULER or defined("SCHEDULER") then
@@ -197,11 +218,13 @@ end
 if MINILANG_TABLES or defined("TABLES") then
 	Objects:put(file("ml_table.o"))
 	CFLAGS := old + ["-DUSE_ML_TABLES"]
+	InstallHeaders:put("ml_table.h")
 end
 
 if MINILANG_QUEUES or defined("QUEUES") then
 	Objects:put(file("ml_queue.o"))
 	CFLAGS := old + ["-DUSE_ML_QUEUES"]
+	InstallHeaders:put("ml_queue.h")
 end
 
 if PLATFORM = "Linux" then
@@ -226,49 +249,11 @@ DEFAULT[LIBMINILANG, MINILANG, MINIPP, MINIXE]
 
 PARENT."LIBMINILANG" := LIBMINILANG
 
-
 var InstallBin := PREFIX/"bin"
 var InstallInclude := PREFIX/"include/minilang"
 var InstallLib := PREFIX/"lib"
 
 install(MINILANG, InstallBin/"minilang", "+x")
-
-var InstallHeaders := [
-	"minilang.h",
-	"ml_console.h",
-	"ml_file.h",
-	"ml_iterfns.h",
-	"ml_macros.h",
-	"ml_types.h",
-	"ml_object.h",
-	"ml_compiler.h",
-	"ml_runtime.h",
-	"ml_bytecode.h",
-	"stringmap.h",
-	"inthash.h"
-]
-
-if MINILANG_USEMATH or defined("MATH") then
-	InstallHeaders:put("ml_array.h")
-	InstallHeaders:put("ml_math.h")
-end
-
-if MINILANG_MODULES or defined("MODULES") then
-	InstallHeaders:put("ml_module.h")
-end
-
-if MINILANG_USECBOR or defined("CBOR") then
-	InstallHeaders:put("ml_cbor.h")
-end
-
-if MINILANG_TABLES or defined("TABLES") then
-	InstallHeaders:put("ml_table.h")
-end
-
-if MINILANG_USEGTK or defined("GTK") then
-	InstallHeaders:put("ml_gir.h")
-	InstallHeaders:put("gtk_console.h")
-end
 
 for Header in InstallHeaders do
 	install(file(Header), InstallInclude / Header)
