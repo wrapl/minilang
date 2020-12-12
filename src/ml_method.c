@@ -202,7 +202,10 @@ static void ml_method_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_
 			P += 2;
 		}
 #else
-		for (int I = 0; I < Count; ++I) P = stpcpy(stpcpy(P, ml_typeof(Args[I])->Name), ", ");
+		for (int I = 0; I < Count; ++I) {
+			ml_value_t *Arg = ml_deref(Args[I]);
+			P = stpcpy(stpcpy(P, ml_typeof(Arg)->Name), ", ");
+		}
 #endif
 		P[-2] = 0;
 		ML_RETURN(ml_error("MethodError", "no method found for %s(%s)", Method->Name, Types));

@@ -36,6 +36,16 @@ struct ml_hash_chain_t {
 	long Index;
 };
 
+#ifdef USE_GENERICS
+typedef struct ml_parent_rule_t ml_parent_rule_t;
+
+struct ml_type_parent_t {
+	ml_type_parent_t *Next;
+	const ml_type_t *Parent;
+	uintptr_t Args[];
+};
+#endif
+
 struct ml_type_t {
 	const ml_type_t *Type;
 	const ml_type_t **Types;
@@ -47,8 +57,10 @@ struct ml_type_t {
 	ml_value_t *Constructor;
 #ifdef USE_GENERICS
 	const ml_type_t **Args;
-#endif
+	ml_type_parent_t *Parents;
+#else
 	inthash_t Parents[1];
+#endif
 	inthash_t TypedFns[1];
 	stringmap_t Exports[1];
 	int Rank;
@@ -259,7 +271,7 @@ static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Arg
 
 #define ML_CHECK_ARG_TYPE(N, TYPE) \
 	if (!ml_is(Args[N], TYPE)) { \
-		return ml_error("TypeError", "%s required", TYPE->Name); \
+		return ml_error("TypeError", "expected %s for argument %d", TYPE->Name, N + 1); \
 	}
 
 #define ML_CHECK_ARG_COUNT(N) \
@@ -269,7 +281,7 @@ static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Arg
 
 #define ML_CHECKX_ARG_TYPE(N, TYPE) \
 	if (!ml_is(Args[N], TYPE)) { \
-		ML_CONTINUE(Caller, ml_error("TypeError", "%s required", TYPE->Name)); \
+		ML_CONTINUE(Caller, ml_error("TypeError", "expected %s required for argument %d", TYPE->Name, N + 1)); \
 	}
 
 #define ML_CHECKX_ARG_COUNT(N) \

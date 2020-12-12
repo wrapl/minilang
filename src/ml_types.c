@@ -378,6 +378,17 @@ ML_VALUE(MLNil, MLNilT);
 ML_VALUE(MLSome, MLSomeT);
 ML_VALUE(MLBlank, MLBlankT);
 
+#ifdef USE_GENERICS
+typedef struct {
+	const ml_type_t *Parent;
+
+} ml_parent_t;
+
+static int ml_find_parent(const ml_type_t *Type2) {
+
+}
+#endif
+
 int ml_is_subtype(const ml_type_t *Type1, const ml_type_t *Type2) {
 	if (Type1 == Type2) return 1;
 #ifdef USE_GENERICS

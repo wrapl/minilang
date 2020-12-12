@@ -53,19 +53,8 @@ static ml_list_node_t *ml_list_index(ml_list_t *List, int Index) {
 	return (List->CachedNode = Node);
 }
 
-static void ml_list_call(ml_state_t *Caller, ml_list_t *List, int Count, ml_value_t **Args) {
-	ML_CHECKX_ARG_COUNT(1);
-	ml_value_t *Arg = ml_deref(Args[0]);
-	//if (ml_is_error(Arg)) ML_RETURN(Arg);
-	if (ml_typeof(Arg) != MLIntegerT) ML_RETURN(ml_error("TypeError", "List index must be an integer"));
-	int Index = ml_integer_value_fast(Args[0]);
-	ml_list_node_t *Node = ml_list_index(List, Index);
-	ML_RETURN(Node ? Node->Value : MLNil);
-}
-
-ML_TYPE(MLListT, (MLFunctionT, MLIteratableT), "list",
+ML_TYPE(MLListT, (MLIteratableT), "list",
 // A list of elements.
-	.call = (void *)ml_list_call
 );
 
 static ml_value_t *ml_list_node_deref(ml_list_node_t *Node) {
@@ -656,7 +645,6 @@ ML_METHOD("sort", MLListT, MLFunctionT) {
 
 ML_TYPE(MLNamesT, (), "names",
 //!internal
-	.call = (void *)ml_list_call
 );
 
 

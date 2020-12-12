@@ -6,20 +6,10 @@
 
 ML_METHOD_DECL(MLMapOf, "map::of");
 
-static void ml_map_call(ml_state_t *Caller, ml_value_t *Map, int Count, ml_value_t **Args) {
-	ML_CHECKX_ARG_COUNT(1);
-	ml_value_t *Arg = ml_deref(Args[0]);
-	//if (Arg->Type == MLErrorT) ML_RETURN(Arg);
-	ml_value_t *Value = ml_map_search(Map, Arg);
-	if (Count > 1) return ml_call(Caller, Value, Count - 1, Args + 1);
-	ML_RETURN(Value);
-}
-
-ML_TYPE(MLMapT, (MLFunctionT, MLIteratableT), "map",
+ML_TYPE(MLMapT, (MLIteratableT), "map",
 // A map of key-value pairs.
 // Keys can be of any type supporting hashing and comparison.
 // Insert order is preserved.
-	.call = (void *)ml_map_call
 );
 
 static ml_value_t *ml_map_node_deref(ml_map_node_t *Node) {

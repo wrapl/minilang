@@ -1437,6 +1437,7 @@ ML_FUNCTION(Zip) {
 // Returns a new iteratable that draws values :mini:`V/i` from each of :mini:`Iteratable/i` and then produces :mini:`Functon(V/1, V/2, ..., V/n)`.
 // The iteratable stops produces values when any of the :mini:`Iteratable/i` stops.
 	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(Count - 1, MLFunctionT);
 	ml_zipped_t *Zipped = new(ml_zipped_t);
 	Zipped->Type = MLZippedT;
 	Zipped->Count = Count - 1;
