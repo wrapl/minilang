@@ -3436,6 +3436,7 @@ static ml_value_t *ml_global_deref(ml_global_t *Global) {
 }
 
 static ml_value_t *ml_global_assign(ml_global_t *Global, ml_value_t *Value) {
+	if (!Global->Value) return ml_error("NameError", "identifier %s not declared", Global->Name);
 	return ml_assign(Global->Value, Value);
 }
 
