@@ -3,7 +3,7 @@ list
 
 .. include:: <isonum.txt>
 
-:mini:`def list < function, iteratable`
+:mini:`def list < iteratable`
    A list of elements.
 
 

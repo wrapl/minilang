@@ -3,7 +3,7 @@ map
 
 .. include:: <isonum.txt>
 
-:mini:`def map < function, iteratable`
+:mini:`def map < iteratable`
    A map of key-value pairs.
 
    Keys can be of any type supporting hashing and comparison.

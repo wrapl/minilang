@@ -3425,6 +3425,26 @@ void ml_function_compile(ml_state_t *Caller, ml_compiler_t *Compiler, const char
 ml_value_t MLEndOfInput[1] = {{MLAnyT}};
 
 typedef struct {
+	const ml_type_t *Type;
+	ml_value_t *Value;
+	const char *Name;
+} ml_global_t;
+
+static ml_value_t *ml_global_deref(ml_global_t *Global) {
+	if (!Global->Value) return ml_error("NameError", "identifier %s not declared", Global->Name);
+	return ml_deref(Global->Value);
+}
+
+static ml_value_t *ml_global_assign(ml_global_t *Global, ml_value_t *Value) {
+	return ml_assign(Global->Value, Value);
+}
+
+ML_TYPE(MLGlobalT, (), "global",
+	.deref = (void *)ml_global_deref,
+	.assign = (void *)ml_global_assign
+);
+
+typedef struct {
 	ml_compiler_task_t Base;
 	ml_variable_t *Variable;
 } ml_command_var_t;
@@ -3448,29 +3468,45 @@ static ml_value_t *ml_command_var_type_finish(ml_command_var_t *Task, ml_value_t
 
 typedef struct {
 	ml_compiler_task_t Base;
-	ml_value_t **Slot;
+	ml_global_t *Global;
 	ml_value_t *Args[2];
+	ml_token_t Type;
 } ml_command_import_t;
 
 typedef struct {
 	ml_compiler_task_t Base;
-	ml_value_t **Slot;
+	ml_global_t *Global;
+	ml_type_t *DeclType;
 	ml_command_import_t *Unpacks;
 	int NumImports, NumUnpack;
-} ml_command_def_t;
+	ml_token_t Type;
+} ml_command_decl_t;
 
-static ml_value_t *ml_command_def_finish(ml_command_def_t *Task, ml_value_t *Value) {
+static ml_value_t *ml_command_decl_finish(ml_command_decl_t *Task, ml_value_t *Value) {
 	Value = ml_deref(Value);
-	if (Task->Slot) {
-		ml_uninitialized_set(Task->Slot[0], Value);
-		Task->Slot[0] = Value;
+	if (Task->Global) {
+		if (Task->Type == MLT_VAR) {
+			ml_variable_t *Var = new(ml_variable_t);
+			Var->Type = MLVariableT;
+			Var->Value = Value;
+			if (Task->DeclType) Var->VarType = Task->DeclType;
+			Task->Global->Value = (ml_value_t *)Var;
+		} else {
+			Task->Global->Value = Value;
+		}
 	}
 	if (Task->NumUnpack) {
 		int Index = 0;
 		for (ml_command_import_t *Unpack = Task->Unpacks; Unpack; Unpack = (ml_command_import_t *)Unpack->Base.Next, ++Index) {
 			ml_value_t *Unpacked = ml_unpack(Value, Index + 1);
-			ml_uninitialized_set(Unpack->Slot[0], Unpacked);
-			Unpack->Slot[0] = Unpacked;
+			if (Task->Type == MLT_VAR) {
+				ml_variable_t *Var = new(ml_variable_t);
+				Var->Type = MLVariableT;
+				Var->Value = Unpacked;
+				Unpack->Global->Value = (ml_value_t *)Var;
+			} else {
+				Unpack->Global->Value = Unpacked;
+			}
 		}
 	} else if (Task->NumImports) {
 		ml_command_import_t *Import = (ml_command_import_t *)Task->Base.Next;
@@ -3487,12 +3523,135 @@ static void ml_command_import_start(ml_command_import_t *Task, ml_compiler_t *Co
 }
 
 static ml_value_t *ml_command_import_finish(ml_command_import_t *Task, ml_value_t *Value) {
-	ml_uninitialized_set(Task->Slot[0], Value);
-	Task->Slot[0] = Value;
+	if (Task->Type == MLT_VAR) {
+		ml_variable_t *Var = new(ml_variable_t);
+		Var->Type = MLVariableT;
+		Var->Value = Value;
+		Task->Global->Value = (ml_value_t *)Var;
+	} else {
+		Task->Global->Value = Value;
+	}
 	return NULL;
 }
 
-void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler, stringmap_t *Vars) {
+typedef struct {
+	ml_compiler_task_t Base;
+	ml_command_decl_t *Parent;
+} ml_command_decl_type_t;
+
+static ml_value_t *ml_command_decl_type_finish(ml_command_decl_type_t *Task, ml_value_t *Value) {
+	Value = ml_deref(Value);
+	if (!ml_is(Value, MLTypeT)) return ml_error("TypeError", "expected type, not %s", ml_typeof(Value)->Name);
+	Task->Parent->DeclType = (ml_type_t *)Value;
+	return NULL;
+}
+
+static inline ml_global_t *ml_command_global(stringmap_t *Globals, const char *Name) {
+	ml_global_t *Global;
+	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Globals, Name);
+	if (!Slot[0]) {
+		Global = new(ml_global_t);
+		Global->Type = MLGlobalT;
+		Global->Name = Name;
+		Slot[0] = (ml_value_t *)Global;
+	} else if (ml_typeof(Slot[0]) == MLGlobalT) {
+		Global = (ml_global_t *)Slot[0];
+	} else if (ml_typeof(Slot[0]) == MLUninitializedT) {
+		Global = new(ml_global_t);
+		Global->Type = MLGlobalT;
+		Global->Name = Name;
+		ml_uninitialized_set(Slot[0], (ml_value_t *)Global);
+		Slot[0] = (ml_value_t *)Global;
+	} else {
+		Global = new(ml_global_t);
+		Global->Type = MLGlobalT;
+		Global->Name = Name;
+		Slot[0] = (ml_value_t *)Global;
+	}
+	return Global;
+}
+
+static void ml_accept_command_decl(ml_token_t Type, ml_compiler_t *Compiler, stringmap_t *Globals) {
+	do {
+		ml_command_decl_t *Task = new(ml_command_decl_t);
+		Task->Base.start = ml_task_default_start;
+		Task->Base.finish = (void *)ml_command_decl_finish;
+		Task->Type = Type;
+		if (ml_parse(Compiler, MLT_LEFT_PAREN)) {
+			ml_command_import_t **Unpacks = &Task->Unpacks;
+			do {
+				ml_accept(Compiler, MLT_IDENT);
+				const char *Ident = Compiler->Ident;
+				++Task->NumUnpack;
+				ml_command_import_t *Unpack = Unpacks[0] = new(ml_command_import_t);
+				Unpacks = (ml_command_import_t **)&Unpack->Base.Next;
+				Unpack->Global = ml_command_global(Globals, Ident);
+				Unpack->Args[1] = ml_cstring(Ident);
+			} while (ml_parse(Compiler, MLT_COMMA));
+			ml_accept(Compiler, MLT_RIGHT_PAREN);
+			mlc_expr_t *Expr;
+			if (ml_parse(Compiler, MLT_IN)) {
+				Expr = ml_accept_expression(Compiler, EXPR_DEFAULT);
+				Task->Base.Closure = ml_compile(Expr, NULL, Compiler);
+				Task->Base.Source = Expr->Source;
+				ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
+				Task->NumImports = Task->NumUnpack;
+				Task->NumUnpack = 0;
+				ml_command_import_t *Import = Task->Unpacks;
+				while (Import) {
+					ml_command_import_t *Next = (ml_command_import_t *)Import->Base.Next;
+					Import->Base.start = (void *)ml_command_import_start;
+					Import->Base.finish = (void *)ml_command_import_finish;
+					Import->Base.Source = Expr->Source;
+					ml_task_queue(Compiler, (ml_compiler_task_t *)Import);
+					Import = Next;
+				}
+			} else {
+				ml_accept(Compiler, MLT_ASSIGN);
+				Expr = ml_accept_expression(Compiler, EXPR_DEFAULT);
+				Task->Base.Closure = ml_compile(Expr, NULL, Compiler);
+				Task->Base.Source = Expr->Source;
+				ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
+			}
+		} else {
+			ml_accept(Compiler, MLT_IDENT);
+			const char *Ident = Compiler->Ident;
+			mlc_expr_t *Expr;
+			if (ml_parse(Compiler, MLT_LEFT_PAREN)) {
+				Expr = ml_accept_fun_expr(Compiler, MLT_RIGHT_PAREN);
+			} else {
+				if (ml_parse(Compiler, MLT_COLON)) {
+					mlc_expr_t *Expr = ml_accept_term(Compiler);
+					ml_command_decl_type_t *TypeTask = new(ml_command_decl_type_t);
+					TypeTask->Base.start = ml_task_default_start;
+					TypeTask->Base.finish = (void *)ml_command_decl_type_finish;
+					TypeTask->Base.Closure = ml_compile(Expr, NULL, Compiler);
+					TypeTask->Base.Source = Expr->Source;
+					TypeTask->Parent = Task;
+					ml_task_queue(Compiler, (ml_compiler_task_t *)TypeTask);
+				}
+				if (Type == MLT_VAR) {
+					if (ml_parse(Compiler, MLT_ASSIGN)) {
+						Expr = ml_accept_expression(Compiler, EXPR_DEFAULT);
+					} else {
+						Expr = new(mlc_expr_t);
+						Expr->compile = ml_nil_expr_compile;
+						Expr->Source = Compiler->Source;
+					}
+				} else {
+					ml_accept(Compiler, MLT_ASSIGN);
+					Expr = ml_accept_expression(Compiler, EXPR_DEFAULT);
+				}
+			}
+			Task->Global = ml_command_global(Globals, Ident);
+			Task->Base.Closure = ml_compile(Expr, NULL, Compiler);
+			Task->Base.Source = Expr->Source;
+			ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
+		}
+	} while (ml_parse(Compiler, MLT_COMMA));
+}
+
+void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler, stringmap_t *Globals) {
 	MLC_ON_ERROR(Compiler) {
 		ml_compiler_reset(Compiler);
 		ML_RETURN(Compiler->Error);
@@ -3503,118 +3662,22 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler, stringmap_
 	Compiler->Base.Caller = Caller;
 	Compiler->Base.Context = Caller->Context;
 	if (ml_parse(Compiler, MLT_VAR)) {
-		do {
-			ml_accept(Compiler, MLT_IDENT);
-			const char *Ident = Compiler->Ident;
-			ml_variable_t *Var = new(ml_variable_t);
-			Var->Type = MLVariableT;
-			Var->Value = MLNil;
-			ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Ident);
-			if (Slot[0] && ml_typeof(Slot[0]) == MLUninitializedT) {
-				ml_uninitialized_set(Slot[0], (ml_value_t *)Var);
-			}
-			Slot[0] = (ml_value_t *)Var;
-			if (ml_parse(Compiler, MLT_COLON)) {
-				mlc_expr_t *Expr = ml_accept_term(Compiler);
-				ml_command_var_t *Task = new(ml_command_var_t);
-				Task->Base.start = ml_task_default_start;
-				Task->Base.finish = (void *)ml_command_var_type_finish;
-				Task->Base.Closure = ml_compile(Expr, NULL, Compiler);
-				Task->Base.Source = Expr->Source;
-				Task->Variable = Var;
-				ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
-			}
-			if (ml_parse(Compiler, MLT_ASSIGN)) {
-				mlc_expr_t *Expr = ml_accept_expression(Compiler, EXPR_DEFAULT);
-				ml_command_var_t *Task = new(ml_command_var_t);
-				Task->Base.start = ml_task_default_start;
-				Task->Base.finish = (void *)ml_command_var_finish;
-				Task->Base.Closure = ml_compile(Expr, NULL, Compiler);
-				Task->Base.Source = Expr->Source;
-				Task->Variable = Var;
-				ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
-			}
-		} while (ml_parse(Compiler, MLT_COMMA));
-	} else if (ml_parse(Compiler, MLT_LET) || ml_parse(Compiler, MLT_DEF)) {
-		do {
-			ml_command_def_t *Task = new(ml_command_def_t);
-			Task->Base.start = ml_task_default_start;
-			Task->Base.finish = (void *)ml_command_def_finish;
-			if (ml_parse(Compiler, MLT_LEFT_PAREN)) {
-				ml_command_import_t **Unpacks = &Task->Unpacks;
-				do {
-					ml_accept(Compiler, MLT_IDENT);
-					const char *Ident = Compiler->Ident;
-					ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Ident);
-					if (!Slot[0] || ml_typeof(Slot[0]) != MLUninitializedT) {
-						Slot[0] = ml_uninitialized(Ident);
-					}
-					++Task->NumUnpack;
-					ml_command_import_t *Unpack = Unpacks[0] = new(ml_command_import_t);
-					Unpacks = (ml_command_import_t **)&Unpack->Base.Next;
-					Unpack->Slot = Slot;
-					Unpack->Args[1] = ml_cstring(Ident);
-				} while (ml_parse(Compiler, MLT_COMMA));
-				ml_accept(Compiler, MLT_RIGHT_PAREN);
-				mlc_expr_t *Expr;
-				if (ml_parse(Compiler, MLT_IN)) {
-					Expr = ml_accept_expression(Compiler, EXPR_DEFAULT);
-					Task->Base.Closure = ml_compile(Expr, NULL, Compiler);
-					Task->Base.Source = Expr->Source;
-					ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
-					Task->NumImports = Task->NumUnpack;
-					Task->NumUnpack = 0;
-					ml_command_import_t *Import = Task->Unpacks;
-					while (Import) {
-						ml_command_import_t *Next = (ml_command_import_t *)Import->Base.Next;
-						Import->Base.start = (void *)ml_command_import_start;
-						Import->Base.finish = (void *)ml_command_import_finish;
-						Import->Base.Source = Expr->Source;
-						ml_task_queue(Compiler, (ml_compiler_task_t *)Import);
-						Import = Next;
-					}
-				} else {
-					ml_accept(Compiler, MLT_ASSIGN);
-					Expr = ml_accept_expression(Compiler, EXPR_DEFAULT);
-					Task->Base.Closure = ml_compile(Expr, NULL, Compiler);
-					Task->Base.Source = Expr->Source;
-					ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
-				}
-			} else {
-				ml_accept(Compiler, MLT_IDENT);
-				const char *Ident = Compiler->Ident;
-				mlc_expr_t *Expr;
-				if (ml_parse(Compiler, MLT_LEFT_PAREN)) {
-					Expr = ml_accept_fun_expr(Compiler, MLT_RIGHT_PAREN);
-				} else {
-					ml_accept(Compiler, MLT_ASSIGN);
-					Expr = ml_accept_expression(Compiler, EXPR_DEFAULT);
-				}
-				ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Ident);
-				if (!Slot[0] || ml_typeof(Slot[0]) != MLUninitializedT) {
-					Slot[0] = ml_uninitialized(Ident);
-				}
-				Task->Slot = Slot;
-				Task->Base.Closure = ml_compile(Expr, NULL, Compiler);
-				Task->Base.Source = Expr->Source;
-				ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
-			}
-		} while (ml_parse(Compiler, MLT_COMMA));
+		ml_accept_command_decl(MLT_VAR, Compiler, Globals);
+	} else if (ml_parse(Compiler, MLT_LET)) {
+		ml_accept_command_decl(MLT_LET, Compiler, Globals);
+	} else if (ml_parse(Compiler, MLT_DEF)) {
+		ml_accept_command_decl(MLT_DEF, Compiler, Globals);
 	} else if (ml_parse(Compiler, MLT_FUN)) {
 		if (ml_parse(Compiler, MLT_IDENT)) {
 			const char *Ident = Compiler->Ident;
-			ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Ident);
-			if (!Slot[0] || ml_typeof(Slot[0]) != MLUninitializedT) {
-				Slot[0] = ml_uninitialized(Ident);
-			}
 			ml_accept(Compiler, MLT_LEFT_PAREN);
 			mlc_expr_t *Expr = ml_accept_fun_expr(Compiler, MLT_RIGHT_PAREN);
-			ml_command_def_t *Task = new(ml_command_def_t);
+			ml_command_decl_t *Task = new(ml_command_decl_t);
 			Task->Base.start = ml_task_default_start;
-			Task->Base.finish = (void *)ml_command_def_finish;
+			Task->Base.finish = (void *)ml_command_decl_finish;
 			Task->Base.Closure = ml_compile(Expr, NULL, Compiler);
 			Task->Base.Source = Expr->Source;
-			Task->Slot = Slot;
+			Task->Global = ml_command_global(Globals, Ident);
 			ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
 		} else {
 			ml_accept(Compiler, MLT_LEFT_PAREN);
@@ -3635,16 +3698,12 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler, stringmap_
 			CallExpr->Child = Expr;
 			ml_accept(Compiler, MLT_LEFT_PAREN);
 			ml_accept_arguments(Compiler, MLT_RIGHT_PAREN, &Expr->Next);
-			ml_value_t **Slot = (ml_value_t **)stringmap_slot(Vars, Ident);
-			if (!Slot[0] || ml_typeof(Slot[0]) != MLUninitializedT) {
-				Slot[0] = ml_uninitialized(Ident);
-			}
-			ml_command_def_t *Task = new(ml_command_def_t);
+			ml_command_decl_t *Task = new(ml_command_decl_t);
 			Task->Base.start = ml_task_default_start;
-			Task->Base.finish = (void *)ml_command_def_finish;
+			Task->Base.finish = (void *)ml_command_decl_finish;
 			Task->Base.Closure = ml_compile((mlc_expr_t *)CallExpr, NULL, Compiler);
 			Task->Base.Source = Expr->Source;
-			Task->Slot = Slot;
+			Task->Global = ml_command_global(Globals, Ident);
 			ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
 		} else {
 			ml_compiler_task_t *Task = new(ml_compiler_task_t);
