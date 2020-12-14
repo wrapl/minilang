@@ -5,7 +5,7 @@ buffer
 
 :mini:`fun buffer(Length: integer)` |rarr| :mini:`buffer`
 
-:mini:`buffer`
+:mini:`def buffer`
 
 :mini:`meth +(Buffer: buffer, Offset: integer)` |rarr| :mini:`buffer`
 

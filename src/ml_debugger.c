@@ -94,7 +94,7 @@ static ml_value_t *debugger_break(interactive_debugger_t *Debugger, int Count, m
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLIntegerT);
 	const char *Source = ml_string_value(Args[0]);
-	int LineNo = ml_integer_value(Args[1]);
+	int LineNo = ml_integer_value_fast(Args[1]);
 	size_t *Breakpoints = debugger_breakpoints(Debugger, Source, LineNo);
 	Breakpoints[LineNo / SIZE_BITS] |= 1 << (LineNo % SIZE_BITS);
 	++Debugger->Base.Revision;
@@ -227,7 +227,7 @@ static ml_value_t *debugger_threads(interactive_debugger_t *Debugger, int Count,
 static ml_value_t *debugger_thread(interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
-	int Index = ml_integer_value(Args[0]);
+	int Index = ml_integer_value_fast(Args[0]);
 	if (Index < 0 || Index >= Debugger->MaxThreads) return ml_error("IndexError", "Invalid thread number");
 	debug_thread_t *Thread = Debugger->Threads + Index;
 	if (!Thread->State) return ml_error("IndexError", "Invalid thread number");

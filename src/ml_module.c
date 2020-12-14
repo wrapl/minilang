@@ -48,7 +48,7 @@ static void ml_export_function_call(ml_state_t *Caller, ml_export_function_t *Ex
 	ml_mini_module_t *Module = ExportFunction->Module;
 	ml_value_t *Value = MLNil;
 	ML_NAMES_FOREACH(Args[0], Iter) {
-		const char *Name = ml_method_name(Iter->Value);
+		const char *Name = ml_string_value(Iter->Value);
 		Value = Args[++Index];
 		ml_value_t **Slot = (ml_value_t **)stringmap_slot(Module->Exports, Name);
 		if (Slot[0]) {

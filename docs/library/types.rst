@@ -3,11 +3,13 @@ types
 
 .. include:: <isonum.txt>
 
-:mini:`any`
+:mini:`def any`
    Base type for all values.
 
 
-:mini:`typerule`
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: type)`
+
+:mini:`def typerule`
 
 :mini:`meth *(Arg₁: type, Arg₂: type)`
 
@@ -19,7 +21,7 @@ types
 
 :mini:`meth >=(Arg₁: type, Arg₂: type)`
 
-:mini:`meth [](Arg₁: type)`
+:mini:`meth (Arg₁: type)[]`
 
 :mini:`meth :in(Value: any, Type: type)` |rarr| :mini:`Value` or :mini:`nil`
    Returns :mini:`Value` if it is an instance of :mini:`Type` or a type that inherits from :mini:`Type`.
@@ -53,13 +55,5 @@ types
    Returns a general (type name only) representation of :mini:`Value` as a string.
 
 
-:mini:`meth string(Arg₁: nil)`
-
-:mini:`meth string(Arg₁: some)`
-
-:mini:`meth list()`
-
-:mini:`meth list(Arg₁: tuple)`
-
-:mini:`meth map()`
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: tuple)`
 

@@ -37,6 +37,14 @@
 #include "ml_library.h"
 #endif
 
+#ifdef USE_ML_TABLES
+#include "ml_table.h"
+#endif
+
+#ifdef USE_ML_QUEUES
+#include "ml_queue.h"
+#endif
+
 static stringmap_t Globals[1] = {STRINGMAP_INIT};
 
 static ml_value_t *global_get(void *Data, const char *Name) {
@@ -61,7 +69,7 @@ static int ml_stringbuffer_print(FILE *File, const char *String, size_t Length) 
 ML_FUNCTION(MLPrint) {
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Result = ml_simple_inline(MLStringBufferAppendMethod, 2, Buffer, Args[I]);
+		ml_value_t *Result = ml_stringbuffer_append(Buffer, Args[I]);
 		if (ml_is_error(Result)) return Result;
 	}
 	ml_stringbuffer_foreach(Buffer, stdout, (void *)ml_stringbuffer_print);
@@ -72,7 +80,7 @@ ML_FUNCTION(MLPrint) {
 ML_FUNCTION(MLHalt) {
 	if (Count > 0) {
 		ML_CHECK_ARG_TYPE(0, MLIntegerT);
-		exit(ml_integer_value(Args[0]));
+		exit(ml_integer_value_fast(Args[0]));
 	} else {
 		exit(0);
 	}
@@ -171,6 +179,12 @@ int main(int Argc, const char *Argv[]) {
 	ml_library_init(Globals);
 	stringmap_insert(Globals, "import", Import);
 	stringmap_insert(Globals, "unload", Unload);
+#endif
+#ifdef USE_ML_TABLES
+	ml_table_init(Globals);
+#endif
+#ifdef USE_ML_QUEUES
+	ml_queue_init(Globals);
 #endif
 	ml_value_t *Args = ml_list();
 	const char *FileName = 0;

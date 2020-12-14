@@ -92,7 +92,7 @@ void console_log(console_t *Console, ml_value_t *Value) {
 			gtk_text_buffer_insert_with_tags(LogBuffer, End, Buffer, Length, Console->ErrorTag, NULL);
 		}
 	} else {
-		ml_value_t *String = ml_string_of(Value);
+		ml_value_t *String = ml_simple_inline(MLStringOfMethod, 1, Value);
 		if (ml_is(String, MLStringT)) {
 			const char *Buffer = ml_string_value(String);
 			int Length = ml_string_length(String);
@@ -421,7 +421,7 @@ ml_value_t *console_print(console_t *Console, int Count, ml_value_t **Args) {
 	gtk_text_buffer_get_end_iter(LogBuffer, End);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Result = ml_simple_inline(MLStringBufferAppendMethod, 2, Buffer, Args[I]);
+		ml_value_t *Result = ml_stringbuffer_append(Buffer, Args[I]);
 		if (ml_is_error(Result)) return Result;
 	}
 	ml_stringbuffer_foreach(Buffer, Console, (void *)console_append);

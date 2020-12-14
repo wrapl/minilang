@@ -355,10 +355,6 @@ void ml_uninitialized_set(ml_value_t *Uninitialized0, ml_value_t *Value) {
 	}
 }
 
-static ml_value_t *ML_TYPED_FN(ml_string_of, MLUninitializedT, ml_uninitialized_t *Uninitialized) {
-	return ml_string_format("<uninitialized: %s>", Uninitialized->Name);
-}
-
 ML_METHOD("::", MLUninitializedT, MLStringT) {
 	ml_uninitialized_t *Uninitialized = (ml_uninitialized_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);

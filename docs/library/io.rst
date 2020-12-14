@@ -3,15 +3,11 @@ io
 
 .. include:: <isonum.txt>
 
-:mini:`stream`
-   :Parents: :mini:`any`
-
+:mini:`def stream < any`
 
 :mini:`meth :write(Arg₁: stream, Arg₂: string)`
 
-:mini:`fd`
-   :Parents: :mini:`stream`
-
+:mini:`def fd < stream`
 
 :mini:`meth ReadMethod(Arg₁: fd, Arg₂: buffer)`
 

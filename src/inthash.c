@@ -31,7 +31,7 @@ inthash_result_t inthash_search2(const inthash_t *Map, uintptr_t Key) {
 	uintptr_t *Keys = Map->Keys;
 	size_t Mask = Map->Size - 1;
 	size_t Index = (Key >> INDEX_SHIFT) & Mask;
-	if (Keys[Index] == Key) return Map->Values[Index];
+	if (Keys[Index] == Key) return (inthash_result_t){Map->Values[Index], 1};
 	if (Keys[Index] < Key) return (inthash_result_t){NULL, 0};
 	size_t Incr = (Key >> INCR_SHIFT) | 1;
 	do {

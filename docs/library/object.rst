@@ -3,29 +3,31 @@ object
 
 .. include:: <isonum.txt>
 
-:mini:`object`
+:mini:`def field`
+
+:mini:`def object`
    Parent type of all object classes.
 
 
-:mini:`class`
+:mini:`def class < type`
    Type of all object classes.
-
-   :Parents: :mini:`type`
 
 
 :mini:`meth string(Arg₁: object)`
 
-:mini:`fun class(?Name: string, ?Parents...: class, ?Fields...: method, ?Exports...: named)`
+:mini:`def namedtype < type`
 
-:mini:`property`
+:mini:`fun class(Name?: string, Parents...: class, Fields...: method, Exports...: named)`
+
+:mini:`def property`
 
 :mini:`fun mlproperty(Arg₁: function, Arg₂: function)`
 
-:mini:`enumvalue`
+:mini:`def enumvalue`
 
 :mini:`fun mlenum(Arg₁: string)`
 
-:mini:`enum`
-   :Parents: :mini:`type`
+:mini:`def enum < type`
 
+:mini:`meth :count(Arg₁: enum)`
 

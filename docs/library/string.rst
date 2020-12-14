@@ -3,35 +3,43 @@ string
 
 .. include:: <isonum.txt>
 
-:mini:`string`
-   :Parents: :mini:`iteratable`
+:mini:`def string < buffer, iteratable`
 
+:mini:`meth string(Arg₁: nil)`
 
-:mini:`stringshort`
-   :Parents: :mini:`string`
-
-
-:mini:`stringlong`
-   :Parents: :mini:`string`, :mini:`buffer`
-
-
-:mini:`meth +(Arg₁: stringshort, Arg₂: integer)`
-
-:mini:`string`
-   :Parents: :mini:`buffer`, :mini:`iteratable`
-
+:mini:`meth string(Arg₁: some)`
 
 :mini:`fun regex(String: string)` |rarr| :mini:`regex` or :mini:`error`
    Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
 
 
-:mini:`regex`
+:mini:`def regex`
 
 :mini:`meth <>(Arg₁: regex, Arg₂: regex)`
 
-:mini:`meth [](Arg₁: string, Arg₂: integer)`
+:mini:`fun stringbuffer()`
 
-:mini:`meth [](Arg₁: string, Arg₂: integer, Arg₃: integer)`
+:mini:`def stringbuffer`
+
+:mini:`meth :get(Arg₁: stringbuffer)`
+
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: any)`
+
+:mini:`meth :write(Arg₁: stringbuffer, Arg₂: any)`
+
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: nil)`
+
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: some)`
+
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: integer)`
+
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: real)`
+
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: string)`
+
+:mini:`meth (Arg₁: string)[Arg₂: integer]`
+
+:mini:`meth (Arg₁: string)[Arg₂: integer, Arg₃: integer]`
 
 :mini:`meth +(Arg₁: string, Arg₂: string)`
 
@@ -89,6 +97,12 @@ string
 
 :mini:`meth :starts(Arg₁: string, Arg₂: regex)`
 
+:mini:`meth :ends(Arg₁: string, Arg₂: string)`
+
+:mini:`meth :after(Arg₁: string, Arg₂: string)`
+
+:mini:`meth :before(Arg₁: string, Arg₂: string)`
+
 :mini:`meth :replace(Arg₁: string, Arg₂: string, Arg₃: string)`
 
 :mini:`meth :replace(Arg₁: string, Arg₂: regex, Arg₃: string)`
@@ -98,4 +112,6 @@ string
 :mini:`meth :replace(Arg₁: string, Arg₂: map)`
 
 :mini:`meth string(Arg₁: regex)`
+
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: regex)`
 

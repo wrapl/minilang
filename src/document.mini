@@ -52,10 +52,10 @@ fun write_method(Category, Kind, Method, Params, Return, Description, Location) 
 	var Terminator := ""
 	var Skip := 1
 	Title:write(':mini:`meth ')
-	:<if Method = "\"[]\"" then
+	if Method = "\"[]\"" then
 		Title:write("(", Params[1][1], ": ", type_name(Params[1][2]), ")[")
 		Terminator := "]"
-	elseif Method[1] = "\"" then
+	:<elseif Method[1] = "\"" then
 		if Params:length = 1 and is_symbol(Method) then
 			Title:write('{Method[2, -1]}(', Params[1][1], ": ", type_name(Params[1][2]), ")")
 		else
@@ -69,12 +69,10 @@ fun write_method(Category, Kind, Method, Params, Return, Description, Location) 
 					Terminator := ")"
 				end
 			end
-		end
-	else>:
+		end>:
+	else
 		if let Match := Method % r"ML(\w+)OfMethod" then
 			Title:write('{Match[2]:lower}(')
-		elseif Method = "MLStringBufferAppendMethod" then
-			Title:write('stringbuffer::append(')
 		elseif Method[1] = "\"" then
 			if is_symbol(Method) then
 				Title:write('{Method[2, -1]}(')
@@ -86,7 +84,7 @@ fun write_method(Category, Kind, Method, Params, Return, Description, Location) 
 		end
 		Skip := 0
 		Terminator := ")"
-	:<end>:
+	end
 	var Seperator := ""
 	for Param in Params skip Skip do
 		Title:write(Seperator, Param[1], ": ", type_name(Param[2]))
@@ -196,19 +194,21 @@ fun write_type(Category, Name, Parents, Description, Location) do
 	print('Description: {Description}\n')>:
 	
 	let File := Categories[Category, write_category]
+	let Title := stringbuffer()
 	
-	File:write(':mini:`{type_name(Name)}`\n')
-	for Line in Description do
-		File:write("   ", Line, "\n")
-	end
+	Title:write(':mini:`def {type_name(Name)}')
 	if Parents:length > 0 then
-		File:write("   :Parents: ")
+		Title:write(" < ")
 		var Seperator := ""
 		for Parent in Parents do
-			File:write(Seperator, ":mini:`", type_name(Parent), "`")
+			Title:write(Seperator, type_name(Parent))
 			Seperator := ", "
 		end
-		File:write("\n\n")
+	end
+	Title:write("`\n")
+	File:write(Title:get)
+	for Line in Description do
+		File:write("   ", Line, "\n")
 	end
 	:>File:write('   *Defined at line {Location[2]} in {Location[1]}*\n')
 	File:write("\n")
@@ -243,9 +243,6 @@ fun process(FileName) do
 				let Types := Line[I + 1, J] / ", "
 				let Method := Types:pop
 				var Category := DefaultCategory
-				if Method = "MLStringBufferAppendMethod" then
-					Category := "internal"
-				end
 				let Params := []
 				var Return := []
 				let Description := []

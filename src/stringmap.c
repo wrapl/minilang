@@ -152,6 +152,7 @@ static void *stringmap_remove_internal(stringmap_t *Map, stringmap_node_t **Slot
 		} else {
 			Slot[0] = 0;
 		}
+		--Map->Size;
 	} else {
 		Removed = stringmap_remove_internal(Map, Compare < 0 ? &Slot[0]->Left : &Slot[0]->Right, Hash, Key);
 	}

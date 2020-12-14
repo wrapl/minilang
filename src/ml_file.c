@@ -94,7 +94,7 @@ ML_METHOD("read", MLFileT, MLIntegerT) {
 	ml_file_t *File = (ml_file_t *)Args[0];
 	if (!File->Handle) return ml_error("FileError", "file closed");
 	if (feof(File->Handle)) return MLNil;
-	ssize_t Requested = ml_integer_value(Args[1]);
+	ssize_t Requested = ml_integer_value_fast(Args[1]);
 	ml_stringbuffer_t Final[1] = {ML_STRINGBUFFER_INIT};
 	char Buffer[ML_STRINGBUFFER_NODE_SIZE];
 	while (Requested >= ML_STRINGBUFFER_NODE_SIZE) {

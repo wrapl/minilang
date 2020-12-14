@@ -31,7 +31,7 @@ if DEBUG then
 	CFLAGS := old + ["-g", "-DGC_DEBUG", "-DDEBUG"]
 	LDFLAGS := old + ["-g"]
 else
-	CFLAGS := old + ["-O3", "-g"]
+	CFLAGS := old + ["-O3", "-fexpensive-optimizations", "-g"]
 	LDFLAGS := old + ["-g"]
 end
 
@@ -73,6 +73,10 @@ var Objects := [
 	file("ml_bytecode.o"),
 	file("ml_runtime.o"),
 	file("ml_types.o"),
+	file("ml_string.o"),
+	file("ml_method.o"),
+	file("ml_list.o"),
+	file("ml_map.o"),
 	file("ml_file.o"),
 	file("ml_iterfns.o"),
 	file("sha256.o"),
@@ -84,6 +88,21 @@ var Objects := [
 ]
 
 var Libraries := []
+
+var InstallHeaders := [
+	"minilang.h",
+	"ml_console.h",
+	"ml_file.h",
+	"ml_iterfns.h",
+	"ml_macros.h",
+	"ml_types.h",
+	"ml_object.h",
+	"ml_compiler.h",
+	"ml_runtime.h",
+	"ml_bytecode.h",
+	"stringmap.h",
+	"inthash.h"
+]
 
 if MINILANG_USEMATH or defined("MATH") then
 	file("array"):mkdir
@@ -103,6 +122,8 @@ if MINILANG_USEMATH or defined("MATH") then
 		file("array/compare_ge.o")
 	)
 	CFLAGS := old + ["-DUSE_ML_MATH"]
+	InstallHeaders:put("ml_array.h")
+	InstallHeaders:put("ml_math.h")
 end
 
 if MINILANG_LIBIO or defined("IO") then
@@ -114,6 +135,8 @@ if MINILANG_USEGTK or defined("GTK") then
 	Objects:put(file("ml_gir.o"), file("gtk_console.o"))
 	CFLAGS := old + ["-DUSE_ML_GIR", pkgconfig("--cflags gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0 libgvc")]
 	LDFLAGS := old + [pkgconfig("--libs gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0 libgvc")]
+	InstallHeaders:put("ml_gir.h")
+	InstallHeaders:put("gtk_console.h")
 end
 
 if MINILANG_USECBOR or defined("CBOR") then
@@ -131,6 +154,7 @@ if MINILANG_USECBOR or defined("CBOR") then
 		file("minicbor/minicbor_reader.o"),
 		file("minicbor/minicbor_writer.o")
 	)
+	InstallHeaders:put("ml_cbor.h")
 end
 
 if MINILANG_MODULES or defined("MODULES") then
@@ -141,6 +165,7 @@ if MINILANG_MODULES or defined("MODULES") then
 		subdir("lib")
 	end
 	MINILANG_SCHEDULER := 1
+	InstallHeaders:put("ml_module.h")
 end
 
 if MINILANG_SCHEDULER or defined("SCHEDULER") then
@@ -190,6 +215,18 @@ if MINILANG_USE_GENERICS or defined("GENERICS") then
 	CFLAGS := old + ["-DUSE_GENERICS"]
 end
 
+if MINILANG_TABLES or defined("TABLES") then
+	Objects:put(file("ml_table.o"))
+	CFLAGS := old + ["-DUSE_ML_TABLES"]
+	InstallHeaders:put("ml_table.h")
+end
+
+if MINILANG_QUEUES or defined("QUEUES") then
+	Objects:put(file("ml_queue.o"))
+	CFLAGS := old + ["-DUSE_ML_QUEUES"]
+	InstallHeaders:put("ml_queue.h")
+end
+
 if PLATFORM = "Linux" then
 	Objects:put(file("linenoise.o"))
 	LDFLAGS := old + ["-lgc"]
@@ -212,45 +249,11 @@ DEFAULT[LIBMINILANG, MINILANG, MINIPP, MINIXE]
 
 PARENT."LIBMINILANG" := LIBMINILANG
 
-
 var InstallBin := PREFIX/"bin"
 var InstallInclude := PREFIX/"include/minilang"
 var InstallLib := PREFIX/"lib"
 
 install(MINILANG, InstallBin/"minilang", "+x")
-
-var InstallHeaders := [
-	"minilang.h",
-	"ml_console.h",
-	"ml_file.h",
-	"ml_iterfns.h",
-	"ml_macros.h",
-	"ml_types.h",
-	"ml_object.h",
-	"ml_compiler.h",
-	"ml_runtime.h",
-	"ml_bytecode.h",
-	"stringmap.h",
-	"inthash.h"
-]
-
-if MINILANG_USEMATH or defined("MATH") then
-	InstallHeaders:put("ml_array.h")
-	InstallHeaders:put("ml_math.h")
-end
-
-if MINILANG_MODULES or defined("MODULES") then
-	InstallHeaders:put("ml_module.h")
-end
-
-if MINILANG_USECBOR or defined("CBOR") then
-	InstallHeaders:put("ml_cbor.h")
-end
-
-if MINILANG_USEGTK or defined("GTK") then
-	InstallHeaders:put("ml_gir.h")
-	InstallHeaders:put("gtk_console.h")
-end
 
 for Header in InstallHeaders do
 	install(file(Header), InstallInclude / Header)

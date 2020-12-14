@@ -3,26 +3,28 @@ map
 
 .. include:: <isonum.txt>
 
-:mini:`meth map(Iteratable: iteratable)` |rarr| :mini:`map`
-   Returns a map of all the key and value pairs produced by :mini:`Iteratable`.
-
-
-:mini:`map`
+:mini:`def map < iteratable`
    A map of key-value pairs.
 
    Keys can be of any type supporting hashing and comparison.
 
    Insert order is preserved.
 
-   :Parents: :mini:`function`, :mini:`iteratable`
 
-
-:mini:`mapnode`
+:mini:`def mapnode`
    A node in a :mini:`map`.
 
    Dereferencing a :mini:`mapnode` returns the corresponding value from the :mini:`map`.
 
    Assigning to a :mini:`mapnode` updates the corresponding value in the :mini:`map`.
+
+
+:mini:`meth map()`
+
+:mini:`meth map(Arg₁: names)`
+
+:mini:`meth map(Iteratable: iteratable)` |rarr| :mini:`map`
+   Returns a map of all the key and value pairs produced by :mini:`Iteratable`.
 
 
 :mini:`meth :size(Map: map)` |rarr| :mini:`integer`
@@ -33,11 +35,11 @@ map
    Returns the number of entries in :mini:`Map`.
 
 
-:mini:`meth [](Map: map, Key: any)` |rarr| :mini:`mapnode`
+:mini:`meth (Map: map)[Key: any]` |rarr| :mini:`mapnode`
    Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then the reference withh return :mini:`nil` when dereferenced and will insert :mini:`Key` into :mini:`Map` when assigned.
 
 
-:mini:`meth [](Map: map, Key: any, Default: function)` |rarr| :mini:`mapnode`
+:mini:`meth (Map: map)[Key: any, Default: function]` |rarr| :mini:`mapnode`
    Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then :mini:`Default(Key)` is called and the result inserted into :mini:`Map`.
 
 
@@ -61,7 +63,7 @@ map
    Returns the previous value associated with :mini:`Key` if any, otherwise :mini:`nil`.
 
 
-:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: map)`
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: map)`
 
 :mini:`meth +(Map₁: map, Map₂: map)` |rarr| :mini:`map`
    Returns a new map combining the entries of :mini:`Map₁` and :mini:`Map₂`.

@@ -3,10 +3,8 @@ array
 
 .. include:: <isonum.txt>
 
-:mini:`array`
+:mini:`def array < buffer, iteratable`
    Base type for multidimensional arrays.
-
-   :Parents: :mini:`buffer`, :mini:`iteratable`
 
 
 :mini:`constructor array(List: list)` |rarr| :mini:`array`
@@ -15,70 +13,48 @@ array
    The shape and type of the array is determined from the elements in :mini:`List`.
 
 
-:mini:`array::int8`
+:mini:`def array::int8 < array`
    Arrays of signed 8 bit integers.
 
-   :Parents: :mini:`array`
 
-
-:mini:`array::uint8`
+:mini:`def array::uint8 < array`
    Arrays of unsigned 8 bit integers.
 
-   :Parents: :mini:`array`
 
-
-:mini:`array::int16`
+:mini:`def array::int16 < array`
    Arrays of signed 16 bit integers.
 
-   :Parents: :mini:`array`
 
-
-:mini:`array::uint16`
+:mini:`def array::uint16 < array`
    Arrays of unsigned 16 bit integers.
 
-   :Parents: :mini:`array`
 
-
-:mini:`array::int32`
+:mini:`def array::int32 < array`
    Arrays of signed 32 bit integers.
 
-   :Parents: :mini:`array`
 
-
-:mini:`array::uint32`
+:mini:`def array::uint32 < array`
    Arrays of unsigned 32 bit integers.
 
-   :Parents: :mini:`array`
 
-
-:mini:`array::int64`
+:mini:`def array::int64 < array`
    Arrays of signed 64 bit integers.
 
-   :Parents: :mini:`array`
 
-
-:mini:`array::uint64`
+:mini:`def array::uint64 < array`
    Arrays of unsigned 64 bit integers.
 
-   :Parents: :mini:`array`
 
-
-:mini:`array::float32`
+:mini:`def array::float32 < array`
    Arrays of 32 bit reals.
 
-   :Parents: :mini:`array`
 
-
-:mini:`array::float64`
+:mini:`def array::float64 < array`
    Arrays of 64 bit reals.
 
-   :Parents: :mini:`array`
 
-
-:mini:`array::any`
+:mini:`def array::any < array`
    Arrays of any *Minilang* values.
-
-   :Parents: :mini:`array`
 
 
 :mini:`meth :degree(Array: array)` |rarr| :mini:`integer`
@@ -113,7 +89,7 @@ array
    Return the size of :mini:`Array` in bytes.
 
 
-:mini:`meth [](Array: array, Indices...: any)` |rarr| :mini:`array`
+:mini:`meth (Array: array)[Indices...: any]` |rarr| :mini:`array`
    Returns a sub-array of :mini:`Array` sharing the underlying data.
 
    The :mini:`i`-th dimension is indexed by the corresponding :mini:`Indexᵢ`.
@@ -127,7 +103,7 @@ array
    If fewer than :mini:`A:degree` indices are provided then the remaining dimensions are copied unchanged.
 
 
-:mini:`meth [](Array: array, Indices: map)` |rarr| :mini:`array`
+:mini:`meth (Array: array)[Indices: map]` |rarr| :mini:`array`
    Returns a sub-array of :mini:`Array` sharing the underlying data.
 
    The :mini:`i`-th dimension is indexed by :mini:`Indices[i]` if present, and :mini:`nil` otherwise.

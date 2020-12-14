@@ -3,127 +3,79 @@ internal
 
 .. include:: <isonum.txt>
 
-:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: XENodeT)`
+:mini:`def arrayiterator`
 
-:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: XEVarT)`
-
-:mini:`arrayiterator`
-
-:mini:`DEBUG_TYPE`
-   :Parents: :mini:`Continuation`
-
+:mini:`def DEBUG_TYPE < Continuation`
 
 :mini:`fun defaulttagfn()`
 
-:mini:`TypelibIterT`
+:mini:`def TypelibIterT`
 
-:mini:`stacked`
-   :Parents: :mini:`iteratable`
+:mini:`def stacked < iteratable`
 
+:mini:`def stackedstate`
 
-:mini:`stackedstate`
-
-:mini:`limited`
-   :Parents: :mini:`iteratable`
-
+:mini:`def limited < iteratable`
 
 :mini:`meth :count(Arg₁: limited)`
 
-:mini:`limitedstate`
+:mini:`def limitedstate`
 
-:mini:`skipped`
-   :Parents: :mini:`iteratable`
+:mini:`def skipped < iteratable`
 
+:mini:`def unique < iteratable`
 
-:mini:`unique`
-   :Parents: :mini:`iteratable`
+:mini:`def uniquestate`
 
+:mini:`def zipped < iteratable`
 
-:mini:`uniquestate`
+:mini:`def zippedstate`
 
-:mini:`zipped`
-   :Parents: :mini:`iteratable`
+:mini:`def repeated < iteratable`
 
+:mini:`def repeatedstate`
 
-:mini:`zippedstate`
+:mini:`def sequenced < iteratable`
 
-:mini:`repeated`
-   :Parents: :mini:`iteratable`
+:mini:`def sequencedstate`
 
+:mini:`def weaved < iteratable`
 
-:mini:`repeatedstate`
+:mini:`def weavedstate`
 
-:mini:`sequenced`
-   :Parents: :mini:`iteratable`
+:mini:`def swapped < iteratable`
 
+:mini:`def swappedstate`
 
-:mini:`sequencedstate`
+:mini:`def key < iteratable`
 
-:mini:`weaved`
-   :Parents: :mini:`iteratable`
+:mini:`def keystate`
 
+:mini:`def listiter`
 
-:mini:`weavedstate`
+:mini:`def names`
 
-:mini:`swapped`
-   :Parents: :mini:`iteratable`
+:mini:`def mapindex`
 
+:mini:`def mapiter`
 
-:mini:`swappedstate`
+:mini:`def errorvalue`
 
-:mini:`key`
-   :Parents: :mini:`iteratable`
+:mini:`def stringiterator`
 
+:mini:`def tableiter`
 
-:mini:`keystate`
+:mini:`def tablerowiter`
 
-:mini:`errorvalue`
+:mini:`def nil < function, iteratable`
 
-:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: type)`
+:mini:`def some`
 
-:mini:`nil`
-   :Parents: :mini:`function`, :mini:`iteratable`
+:mini:`def blank`
 
+:mini:`def cfunction < function`
 
-:mini:`some`
-
-:mini:`blank`
-
-:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: any)`
-
-:mini:`cfunction`
-   :Parents: :mini:`function`
-
-
-:mini:`cfunctionx`
-   :Parents: :mini:`function`
-
+:mini:`def cfunctionx < function`
 
 :mini:`meth $(Arg₁: partialfunction, Arg₂: any)`
-
-:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: tuple)`
-
-:mini:`stringiterator`
-
-:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: nil)`
-
-:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: some)`
-
-:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: integer)`
-
-:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: real)`
-
-:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: string)`
-
-:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: regex)`
-
-:mini:`listiter`
-
-:mini:`names`
-
-:mini:`mapindex`
-
-:mini:`mapiter`
-
-:mini:`meth stringbuffer::append(Arg₁: stringbuffer, Arg₂: method)`
 

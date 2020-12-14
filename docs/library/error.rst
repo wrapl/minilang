@@ -11,7 +11,7 @@ error
    Creates an exception with type :mini:`Type` and value :mini:`Value`. Since this creates an exception, it will trigger the current exception handler.
 
 
-:mini:`error`
+:mini:`def error`
 
 :mini:`meth :type(Arg₁: errorvalue)`
 

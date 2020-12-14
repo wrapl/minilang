@@ -27,7 +27,7 @@ static ml_filter_t *FilterNil;
 
 ML_FUNCTION(Filter) {
 //@filter
-//<?Function
+//<Function?
 //>filter
 // Returns a filter for use in chained functions and iterators.
 	if (Count == 0) return (ml_value_t *)FilterNil;
@@ -100,7 +100,7 @@ ML_TYPE(MLChainedFunctionT, (MLFunctionT, MLIteratableT), "chained-function",
 	.call = (void *)ml_chained_function_call
 );
 
-static ml_value_t *ml_chained(int Count, ml_value_t **Functions) {
+ml_value_t *ml_chained(int Count, ml_value_t **Functions) {
 	if (Count == 1) return Functions[0];
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, Count + 1, ml_value_t *);
 	Chained->Type = MLChainedFunctionT;
@@ -334,12 +334,6 @@ ML_METHOD("^", MLIteratableT, MLFunctionT) {
 
 /****************************** All ******************************/
 
-typedef struct ml_iter_state_t {
-	ml_state_t Base;
-	ml_value_t *Iter;
-	ml_value_t *Values[];
-} ml_iter_state_t;
-
 static void all_iterate(ml_iter_state_t *State, ml_value_t *Value);
 
 static void all_iter_value(ml_iter_state_t *State, ml_value_t *Value) {
@@ -351,6 +345,7 @@ static void all_iter_value(ml_iter_state_t *State, ml_value_t *Value) {
 }
 
 static void all_iterate(ml_iter_state_t *State, ml_value_t *Value) {
+	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, MLSome);
 	State->Base.run = (void *)all_iter_value;
@@ -500,91 +495,6 @@ ML_FUNCTIONX(Last2) {
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
-static void list_iterate(ml_iter_state_t *State, ml_value_t *Value);
-
-static void list_iter_value(ml_iter_state_t *State, ml_value_t *Value) {
-	Value = ml_deref(Value);
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	ml_list_put(State->Values[0], Value);
-	State->Base.run = (void *)list_iterate;
-	return ml_iter_next((ml_state_t *)State, State->Iter);
-}
-
-static void list_iterate(ml_iter_state_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	State->Base.run = (void *)list_iter_value;
-	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Values[0]);
-	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
-}
-
-extern ml_value_t *MLListOfMethod;
-
-ML_METHODVX(MLListOfMethod, MLIteratableT) {
-//!list
-//<Iteratable
-//>list
-// Returns a list of all of the values produced by :mini:`Iteratable`.
-	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
-	State->Base.Caller = Caller;
-	State->Base.run = (void *)list_iterate;
-	State->Base.Context = Caller->Context;
-	State->Values[0] = ml_list();
-	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
-}
-
-static void map_iterate(ml_iter_state_t *State, ml_value_t *Value);
-
-static void map_iter_value(ml_iter_state_t *State, ml_value_t *Value) {
-	Value = ml_deref(Value);
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	ml_map_insert(State->Values[0], State->Values[1], Value);
-	State->Base.run = (void *)map_iterate;
-	return ml_iter_next((ml_state_t *)State, State->Iter);
-}
-
-static void map_iter_key(ml_iter_state_t *State, ml_value_t *Value) {
-	Value = ml_deref(Value);
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (Value == MLNil) Value = ml_integer(ml_map_size(State->Values[0]) + 1);
-	State->Values[1] = Value;
-	State->Base.run = (void *)map_iter_value;
-	return ml_iter_value((ml_state_t *)State, State->Iter);
-}
-
-static void map_iterate(ml_iter_state_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Values[0]);
-	State->Base.run = (void *)map_iter_key;
-	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
-}
-
-ML_FUNCTIONX(All2) {
-//!deprecated
-	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
-	ml_iter_state_t *State = xnew(ml_iter_state_t, 2, ml_value_t *);
-	State->Base.Caller = Caller;
-	State->Base.run = (void *)map_iterate;
-	State->Base.Context = Caller->Context;
-	State->Values[0] = ml_map();
-	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
-}
-
-extern ml_value_t *MLMapOfMethod;
-
-ML_METHODVX(MLMapOfMethod, MLIteratableT) {
-//!map
-//<Iteratable
-//>map
-// Returns a map of all the key and value pairs produced by :mini:`Iteratable`.
-	ml_iter_state_t *State = xnew(ml_iter_state_t, 2, ml_value_t *);
-	State->Base.Caller = Caller;
-	State->Base.run = (void *)map_iterate;
-	State->Base.Context = Caller->Context;
-	State->Values[0] = ml_map();
-	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
-}
-
 typedef struct ml_count_state_t {
 	ml_state_t Base;
 	ml_value_t *Iter;
@@ -621,10 +531,11 @@ typedef struct ml_count2_state_t {
 static void count2_iterate(ml_count2_state_t *State, ml_value_t *Value);
 
 static void count2_value(ml_count2_state_t *State, ml_value_t *Value) {
+	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value != MLNil) {
 		ml_map_node_t *Node = ml_map_slot(State->Counts, Value);
-		Node->Value = ml_integer((Node->Value ? ml_integer_value(Node->Value) : 0) + 1);
+		Node->Value = (ml_value_t *)((char *)Node->Value + 1);
 	}
 	State->Base.run = (void *)count2_iterate;
 	return ml_iter_next((ml_state_t *)State, State->Iter);
@@ -632,7 +543,10 @@ static void count2_value(ml_count2_state_t *State, ml_value_t *Value) {
 
 static void count2_iterate(ml_count2_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Counts);
+	if (Value == MLNil) {
+		ML_MAP_FOREACH(State->Counts, Iter) Iter->Value = ml_integer((char *)Iter->Value - (char *)0);
+		ML_CONTINUE(State->Base.Caller, State->Counts);
+	}
 	State->Base.run = (void *)count2_value;
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
@@ -696,7 +610,7 @@ static void reduce_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 }
 
 ML_FUNCTIONX(Reduce) {
-//<?Initial:any
+//<Initial?:any
 //<Iteratable:iteratable
 //<Fn:function
 //>any | nil
@@ -792,6 +706,7 @@ typedef struct ml_join_state_t {
 static void join_append(ml_join_state_t *State, ml_value_t *Value);
 
 static void join_next(ml_join_state_t *State, ml_value_t *Value) {
+	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, ml_stringbuffer_value(State->Buffer));
 	ml_stringbuffer_add(State->Buffer, State->Separator, State->SeparatorLength);
@@ -1094,7 +1009,7 @@ ML_METHOD("limit", MLIteratableT, MLIntegerT) {
 	ml_limited_t *Limited = new(ml_limited_t);
 	Limited->Type = MLLimitedT;
 	Limited->Value = Args[0];
-	Limited->Remaining = ml_integer_value(Args[1]);
+	Limited->Remaining = ml_integer_value_fast(Args[1]);
 	return (ml_value_t *)Limited;
 }
 
@@ -1144,7 +1059,7 @@ ML_METHOD("skip", MLIteratableT, MLIntegerT) {
 	ml_skipped_t *Skipped = new(ml_skipped_t);
 	Skipped->Type = MLSkippedT;
 	Skipped->Value = Args[0];
-	Skipped->Remaining = ml_integer_value(Args[1]);
+	Skipped->Remaining = ml_integer_value_fast(Args[1]);
 	return (ml_value_t *)Skipped;
 }
 
@@ -1169,12 +1084,6 @@ static void ml_tasks_call(ml_state_t *Caller, ml_tasks_t *Tasks, int Count, ml_v
 	}
 }
 
-ML_TYPE(MLTasksT, (MLFunctionT), "tasks",
-//!tasks
-// A dynamic set of tasks (function calls). Multiple tasks can run in parallel (depending on the availability of a scheduler and/or asynchronous function calls).
-	.call = (void *)ml_tasks_call
-);
-
 static void ml_tasks_continue(ml_tasks_t *Tasks, ml_value_t *Value) {
 	if (ml_is_error(Value)) Tasks->Value = Value;
 	--Tasks->Waiting;
@@ -1186,10 +1095,12 @@ static void ml_tasks_continue(ml_tasks_t *Tasks, ml_value_t *Value) {
 	if (Tasks->Waiting == 0) ML_CONTINUE(Tasks->Base.Caller, Tasks->Value);
 }
 
+extern ml_type_t MLTasksT[];
+
 ML_FUNCTIONX(Tasks) {
 //!tasks
-//<?Max:integer
-//<?Min:integer
+//<Max?:integer
+//<Min?:integer
 //>tasks
 // Creates a new :mini:`tasks` set.
 // If specified, at most :mini:`Max` functions will be called in parallel (the default is unlimited).
@@ -1204,11 +1115,11 @@ ML_FUNCTIONX(Tasks) {
 	if (Count >= 2) {
 		ML_CHECKX_ARG_TYPE(0, MLIntegerT);
 		ML_CHECKX_ARG_TYPE(1, MLIntegerT);
-		Tasks->Limit = ml_integer_value(Args[1]);
-		Tasks->Burst = ml_integer_value(Args[0]) + 1;
+		Tasks->Limit = ml_integer_value_fast(Args[1]);
+		Tasks->Burst = ml_integer_value_fast(Args[0]) + 1;
 	} else if (Count >= 1) {
 		ML_CHECKX_ARG_TYPE(0, MLIntegerT);
-		Tasks->Limit = ml_integer_value(Args[0]);
+		Tasks->Limit = ml_integer_value_fast(Args[0]);
 		Tasks->Burst = SIZE_MAX;
 	} else {
 		Tasks->Limit = SIZE_MAX;
@@ -1217,11 +1128,18 @@ ML_FUNCTIONX(Tasks) {
 	ML_RETURN(Tasks);
 }
 
+ML_TYPE(MLTasksT, (MLFunctionT), "tasks",
+//!tasks
+// A dynamic set of tasks (function calls). Multiple tasks can run in parallel (depending on the availability of a scheduler and/or asynchronous function calls).
+	.call = (void *)ml_tasks_call,
+	.Constructor = (ml_value_t *)Tasks
+);
+
 ML_METHODVX("add", MLTasksT, MLAnyT) {
 //!tasks
 //<Tasks
+//<Args...
 //<Function
-//<?Args...
 // Adds the function call :mini:`Function(Args...)` to a set of tasks.
 // Adding a task to a completed tasks set returns an error.
 	ml_tasks_t *Tasks = (ml_tasks_t *)Args[0];
@@ -1311,8 +1229,8 @@ static void parallel_continue(ml_parallel_t *Parallel, ml_value_t *Value) {
 ML_FUNCTIONX(Parallel) {
 //!tasks
 //<Iteratable
-//<Max:?integer
-//<Min:?integer
+//<Max?:integer
+//<Min?:integer
 //<Function:function
 //>nil | error
 // Iterates through :mini:`Iteratable` and calls :mini:`Function(Key, Value)` for each :mini:`Key, Value` pair produced **without** waiting for the call to return.
@@ -1337,13 +1255,13 @@ ML_FUNCTIONX(Parallel) {
 		ML_CHECKX_ARG_TYPE(1, MLIntegerT);
 		ML_CHECKX_ARG_TYPE(2, MLIntegerT);
 		ML_CHECKX_ARG_TYPE(3, MLFunctionT);
-		Parallel->Limit = ml_integer_value(Args[2]);
-		Parallel->Burst = ml_integer_value(Args[1]) + 1;
+		Parallel->Limit = ml_integer_value_fast(Args[2]);
+		Parallel->Burst = ml_integer_value_fast(Args[1]) + 1;
 		Parallel->Function = Args[3];
 	} else if (Count > 2) {
 		ML_CHECKX_ARG_TYPE(1, MLIntegerT);
 		ML_CHECKX_ARG_TYPE(2, MLFunctionT);
-		Parallel->Limit = ml_integer_value(Args[1]);
+		Parallel->Limit = ml_integer_value_fast(Args[1]);
 		Parallel->Burst = SIZE_MAX;
 		Parallel->Function = Args[2];
 	} else {
@@ -1522,6 +1440,7 @@ ML_FUNCTION(Zip) {
 // Returns a new iteratable that draws values :mini:`V/i` from each of :mini:`Iteratable/i` and then produces :mini:`Functon(V/1, V/2, ..., V/n)`.
 // The iteratable stops produces values when any of the :mini:`Iteratable/i` stops.
 	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(Count - 1, MLFunctionT);
 	ml_zipped_t *Zipped = new(ml_zipped_t);
 	Zipped->Type = MLZippedT;
 	Zipped->Count = Count - 1;
@@ -1878,7 +1797,6 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "last", Last);
 	stringmap_insert(Globals, "last2", Last2);
 	stringmap_insert(Globals, "all", All);
-	stringmap_insert(Globals, "all2", All2);
 	stringmap_insert(Globals, "count", Count);
 	stringmap_insert(Globals, "count2", Count2);
 	stringmap_insert(Globals, "reduce", Reduce);
@@ -1891,7 +1809,7 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "max2", Max2);
 	stringmap_insert(Globals, "parallel", Parallel);
 	stringmap_insert(Globals, "unique", Unique);
-	stringmap_insert(Globals, "tasks", Tasks);
+	stringmap_insert(Globals, "tasks", MLTasksT);
 	stringmap_insert(Globals, "zip", Zip);
 	stringmap_insert(Globals, "weave", Weave);
 	stringmap_insert(Globals, "swap", Swap);

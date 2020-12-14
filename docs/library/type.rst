@@ -7,12 +7,10 @@ type
    Returns the type of :mini:`Value`.
 
 
-:mini:`type`
+:mini:`def type < function`
    Type of all types.
 
    Every type contains a set of named exports, which allows them to be used as modules.
-
-   :Parents: :mini:`function`
 
 
 :mini:`meth :rank(Type: type)` |rarr| :mini:`integer`

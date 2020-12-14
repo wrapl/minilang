@@ -138,7 +138,7 @@ static void ML_TYPED_FN(ml_iter_key, DEBUG_TYPE(Continuation), ml_state_t *Calle
 }
 
 static void ML_TYPED_FN(ml_iter_next, DEBUG_TYPE(Continuation), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
-	if (!Suspension->Suspend) ML_ERROR("StateError", "Function did not suspend");
+	if (!Suspension->Suspend) ML_CONTINUE(Caller, MLNil);
 	Suspension->Base.Type = DEBUG_TYPE(Continuation);
 	Suspension->Top[-2] = Suspension->Top[-1];
 	--Suspension->Top;
@@ -202,6 +202,8 @@ void *MLCachedFrame = NULL;
 
 extern ml_value_t *SymbolMethod;
 #endif
+
+static ML_METHOD_DECL(Append, "append");
 
 static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
 	if (!Result) {
@@ -301,7 +303,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #endif
 		ml_state_t *Caller = Frame->Base.Caller;
 		if (Frame->Reuse) {
-			memset(Frame, 0, ML_FRAME_REUSE_SIZE);
+			//memset(Frame, 0, ML_FRAME_REUSE_SIZE);
+			while (Top > Frame->Stack) *--Top = 0;
 			*(ml_frame_t **)Frame = MLCachedFrame;
 			MLCachedFrame = Frame;
 		} else {
@@ -558,15 +561,17 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_CALL: {
 		int Count = Inst->Params[1].Count;
-		ml_value_t *Function = Top[~Count];
-		Function = ml_deref(Function);
+		ml_value_t *Function = ml_deref(Top[~Count]);
 		//ERROR_CHECK(Function);
 		ml_value_t **Args = Top - Count;
 		ml_inst_t *Next = Inst->Params[0].Inst;
 #ifdef USE_ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
-		if (Inst->Opcode == MLI_RETURN) {
+		if (Next->Opcode == MLI_RETURN) {
+			*(ml_frame_t **)Frame = MLCachedFrame;
+			MLCachedFrame = Frame;
+			// ^ safe as long as ml_call never suspends before copying arguments
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		} else {
 			Frame->Inst = Next;
@@ -582,7 +587,10 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef USE_ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
-		if (Inst->Opcode == MLI_RETURN) {
+		if (Next->Opcode == MLI_RETURN) {
+			*(ml_frame_t **)Frame = MLCachedFrame;
+			MLCachedFrame = Frame;
+			// ^ safe as long as ml_call never suspends before copying arguments
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		} else {
 			Frame->Inst = Next;
@@ -741,7 +749,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #endif
 		Frame->Inst = Next;
 		Frame->Top = Top - Count;
-		return ml_call(Frame, MLStringBufferAppendMethod, Count + 1, Args);
+		return ml_call(Frame, AppendMethod, Count + 1, Args);
 	}
 	DO_STRING_ADDS: {
 		ml_stringbuffer_add((ml_stringbuffer_t *)Top[-1], Inst->Params[2].Ptr, Inst->Params[1].Count);
@@ -872,7 +880,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 		for (; I < Count; ++I) {
 			if (ml_typeof(Args[I]) == MLNamesT) {
 				ML_NAMES_FOREACH(Args[I], Node) {
-					const char *Name = ml_method_name(Node->Value);
+					const char *Name = ml_string_value(Node->Value);
 					int Index = (intptr_t)stringmap_search(Info->Params, Name);
 					if (Index) {
 						Frame->Stack[Index - 1] = Args[++I];
@@ -889,7 +897,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 		for (; I < Count; ++I) {
 			if (ml_typeof(Args[I]) == MLNamesT) {
 				ML_NAMES_FOREACH(Args[I], Node) {
-					const char *Name = ml_method_name(Node->Value);
+					const char *Name = ml_string_value(Node->Value);
 					int Index = (intptr_t)stringmap_search(Info->Params, Name);
 					if (Index) {
 						Frame->Stack[Index - 1] = Args[++I];
@@ -996,7 +1004,24 @@ const char *MLInsts[] = {
 	"resolve" // MLI_RESOLVE
 };
 
-const ml_inst_type_t MLInstTypes[] = {
+typedef enum {
+	MLIT_NONE,
+	MLIT_INST,
+	MLIT_INST_INST,
+	MLIT_INST_INST_INDEX_CHARS,
+	MLIT_INST_INDEX,
+	MLIT_INST_INDEX_COUNT,
+	MLIT_INST_INDEX_CHARS,
+	MLIT_INST_COUNT,
+	MLIT_INST_COUNT_COUNT,
+	MLIT_INST_COUNT_VALUE,
+	MLIT_INST_COUNT_CHARS,
+	MLIT_INST_VALUE,
+	MLIT_INST_VALUE_VALUE,
+	MLIT_INST_CLOSURE
+} ml_inst_type_t;
+
+static const ml_inst_type_t MLInstTypes[] = {
 	MLIT_NONE, // MLI_RETURN,
 	MLIT_INST, // MLI_SUSPEND,
 	MLIT_INST, // MLI_RESUME,

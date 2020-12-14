@@ -130,6 +130,16 @@ ml_array_t *ml_array(ml_array_format_t Format, int Degree, ...) {
 	return Array;
 }
 
+int ml_array_degree(ml_value_t *Value) {
+	return ((ml_array_t *)Value)->Degree;
+}
+
+int ml_array_size(ml_value_t *Value, int Dim) {
+	ml_array_t *Array = (ml_array_t *)Value;
+	if (Dim < 0 || Dim >= Array->Degree) return 0;
+	return Array->Dimensions[Dim].Size;
+}
+
 typedef struct ml_array_init_state_t {
 	ml_state_t Base;
 	char *Address;
@@ -465,7 +475,7 @@ static ml_value_t *ml_array_value(ml_array_t *Array, char *Address) {
 	return function(Array, Address);
 }
 
-static ml_value_t *ml_array_index_internal(ml_array_t *Source, int Count, ml_value_t **Indices) {
+ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **Indices) {
 	ml_array_dimension_t TargetDimensions[Source->Degree];
 	ml_array_dimension_t *TargetDimension = TargetDimensions;
 	ml_array_dimension_t *SourceDimension = Source->Dimensions;
@@ -558,7 +568,7 @@ ML_METHODV("[]", MLArrayT) {
 // * If :mini:`Index/i` is a list of integers then the :mini:`i`-th dimension is copied as a sparse dimension with the respective entries.
 // If fewer than :mini:`A:degree` indices are provided then the remaining dimensions are copied unchanged.
 	ml_array_t *Source = (ml_array_t *)Args[0];
-	return ml_array_index_internal(Source, Count - 1, Args + 1);
+	return ml_array_index(Source, Count - 1, Args + 1);
 }
 
 ML_METHOD("[]", MLArrayT, MLMapT) {
@@ -577,12 +587,12 @@ ML_METHOD("[]", MLArrayT, MLMapT) {
 		if (Index < 0 || Index >= Degree) return ml_error("RangeError", "Index out of range");
 		Indices[Index] = Iter->Value;
 	}
-	return ml_array_index_internal(Source, Degree, Indices);
+	return ml_array_index(Source, Degree, Indices);
 }
 
 static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args);
 
-static char *ml_array_index(ml_array_t *Array, va_list Indices) {
+static char *ml_array_indexv(ml_array_t *Array, va_list Indices) {
 	ml_array_dimension_t *Dimension = Array->Dimensions;
 	char *Address = Array->Base.Address;
 	for (int I = 0; I < Array->Degree; ++I) {
@@ -665,9 +675,9 @@ static void ML_TYPED_FN(ml_iter_value, MLArrayIteratorT, ml_state_t *Caller, ml_
 }
 
 static void ML_TYPED_FN(ml_iter_key, MLArrayIteratorT, ml_state_t *Caller, ml_array_iterator_t *Iterator) {
-	ml_value_t *Tuple = ml_tuple(Iterator->Degree - 1);
-	for (int I = 1; I <= Iterator->Degree; ++I) {
-		ml_tuple_set(Tuple, I, ml_integer(Iterator->Dimensions[I].Index + 1));
+	ml_value_t *Tuple = ml_tuple(Iterator->Degree);
+	for (int I = 0; I < Iterator->Degree; ++I) {
+		ml_tuple_set(Tuple, I + 1, ml_integer(Iterator->Dimensions[I].Index + 1));
 	}
 	ML_RETURN(Tuple);
 }
@@ -1084,16 +1094,6 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 	ml_stringbuffer_add(Buffer, ">", 1); \
 } \
 \
-static ml_value_t *ML_TYPED_FN(ml_string_of, ATYPE, ml_array_t *Array) { \
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT}; \
-	if (Array->Degree == 0) { \
-		APPEND(Buffer, PRINTF, *(CTYPE *)Array->Base.Address); \
-	} else { \
-		append_array_ ## CTYPE(Buffer, Array->Degree, Array->Dimensions, Array->Base.Address); \
-	} \
-	return ml_stringbuffer_value(Buffer); \
-} \
-\
 ML_METHOD(MLStringOfMethod, ATYPE) { \
 	ml_array_t *Array = (ml_array_t *)Args[0]; \
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT}; \
@@ -1104,16 +1104,8 @@ ML_METHOD(MLStringOfMethod, ATYPE) { \
 	} \
 	return ml_stringbuffer_value(Buffer); \
 } \
-static ml_value_t *ML_TYPED_FN(ml_stringbuffer_append, ATYPE, ml_stringbuffer_t *Buffer, ml_array_t *Array) { \
-	if (Array->Degree == 0) { \
-		APPEND(Buffer, PRINTF, *(CTYPE *)Array->Base.Address); \
-	} else { \
-		append_array_ ## CTYPE(Buffer, Array->Degree, Array->Dimensions, Array->Base.Address); \
-	} \
-	return (ml_value_t *)Buffer; \
-} \
 \
-ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, ATYPE) { \
+ML_METHOD("append", MLStringBufferT, ATYPE) { \
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0]; \
 	ml_array_t *Array = (ml_array_t *)Args[1]; \
 	if (Array->Degree == 0) { \
@@ -1121,7 +1113,7 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, ATYPE) { \
 	} else { \
 		append_array_ ## CTYPE(Buffer, Array->Degree, Array->Dimensions, Array->Base.Address); \
 	} \
-	return Args[0]; \
+	return MLSome; \
 } \
 \
 UPDATE_METHODS(ATYPE, CTYPE, FROM_VAL, FORMAT); \
@@ -1146,7 +1138,7 @@ static CTYPE ml_array_get0_ ## CTYPE(void *Address, int Format) { \
 CTYPE ml_array_get_ ## CTYPE(ml_array_t *Array, ...) { \
 	va_list Indices; \
 	va_start(Indices, Array); \
-	char *Address = ml_array_index(Array, Indices); \
+	char *Address = ml_array_indexv(Array, Indices); \
 	va_end(Indices); \
 	if (!Address) return 0; \
 	return ml_array_get0_ ## CTYPE(Address, Array->Format); \
@@ -1155,7 +1147,7 @@ CTYPE ml_array_get_ ## CTYPE(ml_array_t *Array, ...) { \
 void ml_array_set_ ## CTYPE(CTYPE Value, ml_array_t *Array, ...) { \
 	va_list Indices; \
 	va_start(Indices, Array); \
-	char *Address = ml_array_index(Array, Indices); \
+	char *Address = ml_array_indexv(Array, Indices); \
 	va_end(Indices); \
 	if (!Address) return; \
 	switch (Array->Format) { \
@@ -1852,7 +1844,7 @@ static ml_value_t *array_infix_fn(void *Data, int Count, ml_value_t **Args) {
 ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	int64_t B = ml_integer_value(Args[1]); \
+	int64_t B = ml_integer_value_fast(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(MAX(A->Format, ML_ARRAY_FORMAT_I64), Degree); \
 	int DataSize = array_copy(C, A); \
@@ -1887,7 +1879,7 @@ ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	int64_t B = ml_integer_value(Args[0]); \
+	int64_t B = ml_integer_value_fast(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(MAX(A->Format, ML_ARRAY_FORMAT_I64), Degree); \
 	int DataSize = array_copy(C, A); \
@@ -1922,7 +1914,7 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 ML_METHOD(#OP, MLArrayT, MLRealT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	double B = ml_integer_value(Args[1]); \
+	double B = ml_real_value_fast(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_F64, Degree); \
 	int DataSize = array_copy(C, A); \
@@ -1934,7 +1926,7 @@ ML_METHOD(#OP, MLArrayT, MLRealT) { \
 ML_METHOD(#OP, MLRealT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	double B = ml_integer_value(Args[0]); \
+	double B = ml_real_value_fast(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_F64, Degree); \
 	int DataSize = array_copy(C, A); \
@@ -1953,7 +1945,7 @@ ML_ARITH_METHOD(4, /);
 ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	int64_t B = ml_integer_value(Args[1]); \
+	int64_t B = ml_integer_value_fast(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_I8, Degree); \
 	int DataSize = 1; \
@@ -1972,7 +1964,7 @@ ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	int64_t B = ml_integer_value(Args[0]); \
+	int64_t B = ml_integer_value_fast(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_I8, Degree); \
 	int DataSize = 1; \
@@ -1991,7 +1983,7 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 ML_METHOD(#OP, MLArrayT, MLRealT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	double B = ml_real_value(Args[1]); \
+	double B = ml_real_value_fast(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_I8, Degree); \
 	int DataSize = 1; \
@@ -2010,7 +2002,7 @@ ML_METHOD(#OP, MLArrayT, MLRealT) { \
 ML_METHOD(#OP, MLRealT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	double B = ml_real_value(Args[0]); \
+	double B = ml_real_value_fast(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_I8, Degree); \
 	int DataSize = 1; \

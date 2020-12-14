@@ -3,11 +3,9 @@ bytecode
 
 .. include:: <isonum.txt>
 
-:mini:`variable`
+:mini:`def variable`
 
-:mini:`closure`
-   :Parents: :mini:`function`, :mini:`iteratable`
-
+:mini:`def closure < function, iteratable`
 
 :mini:`meth string(Arg₁: closure)`
 

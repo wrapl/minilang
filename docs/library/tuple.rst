@@ -7,7 +7,7 @@ tuple
    Returns a tuple of values :mini:`Value₁, ..., Valueₙ`.
 
 
-:mini:`tuple`
+:mini:`def tuple`
    An immutable tuple of values.
 
 
@@ -15,7 +15,7 @@ tuple
    Returns the number of elements in :mini:`Tuple`.
 
 
-:mini:`meth [](Tuple: tuple, Index: integer)` |rarr| :mini:`any` or :mini:`error`
+:mini:`meth (Tuple: tuple)[Index: integer]` |rarr| :mini:`any` or :mini:`error`
    Returns the :mini:`Index`-th element in :mini:`Tuple` or an error if :mini:`Index` is out of range.
 
    Indexing starts at :mini:`1`. Negative indices count from the end, with :mini:`-1` returning the last element.
