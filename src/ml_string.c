@@ -842,13 +842,14 @@ ML_METHOD("find2", MLStringT, MLStringT) {
 
 ML_METHOD("find", MLStringT, MLStringT, MLIntegerT) {
 	const char *Haystack = ml_string_value(Args[0]);
-	int Length = ml_string_length(Args[0]);
+	size_t HaystackLength = ml_string_length(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
 	int Start = ml_integer_value_fast(Args[2]);
-	if (Start <= 0) Start += Length + 1;
+	if (Start <= 0) Start += HaystackLength + 1;
 	if (Start <= 0) return MLNil;
-	if (Start > Length) return MLNil;
+	if (Start > HaystackLength) return MLNil;
 	Haystack += Start - 1;
+	HaystackLength -= (Start - 1);
 	const char *Match = strstr(Haystack, Needle);
 	if (Match) {
 		return ml_integer(Start + Match - Haystack);
@@ -859,13 +860,14 @@ ML_METHOD("find", MLStringT, MLStringT, MLIntegerT) {
 
 ML_METHOD("find2", MLStringT, MLStringT, MLIntegerT) {
 	const char *Haystack = ml_string_value(Args[0]);
-	int Length = ml_string_length(Args[0]);
+	size_t HaystackLength = ml_string_length(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
 	int Start = ml_integer_value_fast(Args[2]);
-	if (Start <= 0) Start += Length + 1;
+	if (Start <= 0) Start += HaystackLength + 1;
 	if (Start <= 0) return MLNil;
-	if (Start > Length) return MLNil;
+	if (Start > HaystackLength) return MLNil;
 	Haystack += Start - 1;
+	HaystackLength -= (Start - 1);
 	const char *Match = strstr(Haystack, Needle);
 	if (Match) {
 		ml_value_t *Result = ml_tuple(2);
@@ -1110,6 +1112,32 @@ ML_METHOD("ends", MLStringT, MLStringT) {
 	if (Length > Length0) return MLNil;
 	if (memcmp(Subject + Length0 - Length, Suffix, Length)) return MLNil;
 	return Args[1];
+}
+
+ML_METHOD("after", MLStringT, MLStringT) {
+	const char *Haystack = ml_string_value(Args[0]);
+	size_t HaystackLength = ml_string_length(Args[0]);
+	const char *Needle = ml_string_value(Args[1]);
+	size_t NeedleLength = ml_string_length(Args[1]);
+	const char *Match = strstr(Haystack, Needle);
+	if (Match) {
+		Match += NeedleLength;
+		int Length = HaystackLength - (Match - Haystack);
+		return ml_string(Match, Length);
+	} else {
+		return MLNil;
+	}
+}
+
+ML_METHOD("before", MLStringT, MLStringT) {
+	const char *Haystack = ml_string_value(Args[0]);
+	const char *Needle = ml_string_value(Args[1]);
+	const char *Match = strstr(Haystack, Needle);
+	if (Match) {
+		return ml_string(Haystack, Match - Haystack);
+	} else {
+		return MLNil;
+	}
 }
 
 ML_METHOD("replace", MLStringT, MLStringT, MLStringT) {

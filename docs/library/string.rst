@@ -99,6 +99,10 @@ string
 
 :mini:`meth :ends(Arg₁: string, Arg₂: string)`
 
+:mini:`meth :after(Arg₁: string, Arg₂: string)`
+
+:mini:`meth :before(Arg₁: string, Arg₂: string)`
+
 :mini:`meth :replace(Arg₁: string, Arg₂: string, Arg₃: string)`
 
 :mini:`meth :replace(Arg₁: string, Arg₂: regex, Arg₃: string)`
