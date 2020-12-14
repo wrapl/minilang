@@ -345,6 +345,7 @@ static void all_iter_value(ml_iter_state_t *State, ml_value_t *Value) {
 }
 
 static void all_iterate(ml_iter_state_t *State, ml_value_t *Value) {
+	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, MLSome);
 	State->Base.run = (void *)all_iter_value;
@@ -530,6 +531,7 @@ typedef struct ml_count2_state_t {
 static void count2_iterate(ml_count2_state_t *State, ml_value_t *Value);
 
 static void count2_value(ml_count2_state_t *State, ml_value_t *Value) {
+	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value != MLNil) {
 		ml_map_node_t *Node = ml_map_slot(State->Counts, Value);
@@ -704,6 +706,7 @@ typedef struct ml_join_state_t {
 static void join_append(ml_join_state_t *State, ml_value_t *Value);
 
 static void join_next(ml_join_state_t *State, ml_value_t *Value) {
+	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, ml_stringbuffer_value(State->Buffer));
 	ml_stringbuffer_add(State->Buffer, State->Separator, State->SeparatorLength);
