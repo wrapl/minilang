@@ -1102,6 +1102,16 @@ ML_METHOD("starts", MLStringT, MLRegexT) {
 	}
 }
 
+ML_METHOD("ends", MLStringT, MLStringT) {
+	const char *Subject = ml_string_value(Args[0]);
+	const char *Suffix = ml_string_value(Args[1]);
+	int Length = ml_string_length(Args[1]);
+	int Length0 = ml_string_length(Args[0]);
+	if (Length > Length0) return MLNil;
+	if (memcmp(Subject + Length0 - Length, Suffix, Length)) return MLNil;
+	return Args[1];
+}
+
 ML_METHOD("replace", MLStringT, MLStringT, MLStringT) {
 	const char *Subject = ml_string_value(Args[0]);
 	const char *SubjectEnd = Subject + ml_string_length(Args[0]);
