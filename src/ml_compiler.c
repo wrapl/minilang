@@ -3447,28 +3447,6 @@ ML_TYPE(MLGlobalT, (), "global",
 
 typedef struct {
 	ml_compiler_task_t Base;
-	ml_variable_t *Variable;
-} ml_command_var_t;
-
-static ml_value_t *ml_command_var_finish(ml_command_var_t *Task, ml_value_t *Value) {
-	Value = ml_deref(Value);
-	ml_variable_t *Variable = Task->Variable;
-	if (Variable->VarType && !ml_is(Value, Variable->VarType)) {
-		return ml_error("TypeError", "Cannot assign %s to variable of type %s", ml_typeof(Value)->Name, Variable->VarType->Name);
-	}
-	Variable->Value = Value;
-	return NULL;
-}
-
-static ml_value_t *ml_command_var_type_finish(ml_command_var_t *Task, ml_value_t *Value) {
-	Value = ml_deref(Value);
-	if (!ml_is(Value, MLTypeT)) return ml_error("TypeError", "expected type, not %s", ml_typeof(Value)->Name);
-	Task->Variable->VarType = (ml_type_t *)Value;
-	return NULL;
-}
-
-typedef struct {
-	ml_compiler_task_t Base;
 	ml_global_t *Global;
 	ml_value_t *Args[2];
 	ml_token_t Type;

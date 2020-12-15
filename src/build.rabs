@@ -104,6 +104,13 @@ var InstallHeaders := [
 	"inthash.h"
 ]
 
+if MINILANG_TABLES or defined("TABLES") then
+	Objects:put(file("ml_table.o"))
+	CFLAGS := old + ["-DUSE_ML_TABLES"]
+	InstallHeaders:put("ml_table.h")
+	MINILANG_USEMATH := 1
+end
+
 if MINILANG_USEMATH or defined("MATH") then
 	file("array"):mkdir
 	Objects:put(
@@ -213,12 +220,6 @@ end
 
 if MINILANG_USE_GENERICS or defined("GENERICS") then
 	CFLAGS := old + ["-DUSE_GENERICS"]
-end
-
-if MINILANG_TABLES or defined("TABLES") then
-	Objects:put(file("ml_table.o"))
-	CFLAGS := old + ["-DUSE_ML_TABLES"]
-	InstallHeaders:put("ml_table.h")
 end
 
 if MINILANG_QUEUES or defined("QUEUES") then
