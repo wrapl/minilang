@@ -105,8 +105,12 @@ clean:
 	rm -rf bin lib obj
 
 PREFIX = /usr
+install_bin = $(DESTDIR)$(PREFIX)/bin
 install_include = $(DESTDIR)$(PREFIX)/include/minilang
 install_lib = $(DESTDIR)$(PREFIX)/lib
+
+install_exe = \
+	$(install_bin)/minilang
 
 install_h = \
 	$(install_include)/linenoise.h \
@@ -125,6 +129,10 @@ install_h = \
 
 install_a = $(install_lib)/libminilang.a
 
+$(install_exe): $(install_bin)/%: bin/%
+	mkdir -p $(install_bin)
+	cp $< $@
+
 $(install_h): $(install_include)/%: src/%
 	mkdir -p $(install_include)
 	cp $< $@
@@ -133,6 +141,6 @@ $(install_a): $(install_lib)/%: lib/%
 	mkdir -p $(install_lib)
 	cp $< $@
 
-install: $(install_h) $(install_a)
+install: $(install_exe) $(install_h) $(install_a)
 
 	
