@@ -57,9 +57,9 @@ parallel build system. As result, it was designed with the following requirement
 Additional features have been added since the original use in Rabs.
 
 * **Configurable builds** Minilang can be built with Rabs (as well as Make) enabling several optional features as desired.
-**Module system** Minilang files can be loaded as modules, with imports and exports.
-**Gnome introspection suppport** Minilang can be built with support for Gnome introspection, providing automatic bindings for a wide range of libraries including GUI, networking, etc.
-**Continuation based implementation** Function calls are implemented using one-short continuation based approach. This adds (optional) support for the following:
+* **Module system** Minilang files can be loaded as modules, with imports and exports.
+* **Gnome introspection suppport** Minilang can be built with support for Gnome introspection, providing automatic bindings for a wide range of libraries including GUI, networking, etc.
+* **Continuation based implementation** Function calls are implemented using one-short continuation based approach. This adds (optional) support for the following:
   - **Asynchronous calls**
   - **Cooperative multitasking**
   - **Preemptive multitasking**
