@@ -1,17 +1,48 @@
-# Minilang
+# Minilang is a small but extensible scripting language for embedding in C/C++ applications
 
-Minilang is a simple language designed to be embedded into C/C++ applications with 
-minimal fuss. It is intentionally lacking in many built in features, but is easy to extend 
-with new functionality.
+Minilang is a simple language designed to be embedded into C/C++ applications with minimal fuss and maximum effect.
 
-<aside class="warning">
-    Minilang uses the <a href="https://github.com/ivmai/bdwgc">Hans-Boehm conservative
-    garbage collector</a>. This simplifies memory management in most cases, but may not
-    be compatible with all use cases. In the future, the option to use a different form
-    of memory management may be added to Minilang. 
-</aside>
+## Key Features
 
-## Introduction
+Minilang was designed from the ground up to be embedded into C/C++ applications. As a result, it has a rich API for embedding that support a wide range of use cases.
+
+### Minimal Dependencies
+
+Minilang only has one required dependency, the [Hans-Boehm conservative garbage collector](https://github.com/ivmai/bdwgc), which is commonly available in the standard repositories of most Linux distributions, in Homebrew on macOS and easily built from source.
+
+### Code Safety
+
+Minilang's VM is safe, there is no way to access raw memory to perform unsafe type-casting, indexing operations are bounds checked, arguments to internal functions are type-checked, etc. Minilang only provides core functionality by default, and does not provide file or network functions, module loading, or any other potentially unsafe functions.
+
+### Extensible
+
+Although Minilang's core functionality is intentionally restricted, functionality can be easily added by the host application, either globally or each time Minilang code is loaded. For example, there is no built-in `print()` function, one must be added by the host application. This extra step means that the `print()` function can write to a file or log instead if desired, or even send text across a websocket to display in a browser.
+
+### Flexible Code Loading
+
+The C API provides functions for incremental source code loading, allowing Minilang to be used for interactive sessions such as REPL shells and notebooks as well as loading complete Minilang code from files, databases, etc.
+
+### Source Level Debugging
+
+The C API also provides features for source level debugging of Minilang code. The host application can specify a debugger when running any function and the VM will invoke the debugger at breakpoints, errors, etc. The debugger API is flexible, debugging can be implementing in a console, desktop GUI or even across a network.
+
+### Stackless Execution and One-Shot Continuations
+
+Minilang uses a stackless VM for execution. Moreover, every function call passes the calling state to the called function, returns are implemented by resuming the calling state. This provides a number of additional features:
+
+* **Inline Asynchronous Calls** Any Minilang function call can be asynchronous without any change in the calling code.
+* **Parallel Asynchronous Calls** Multiple asynchronous calls can also be launched in parallel, with the calling state resumed automatically when all the calls have completed. Minilang is thus suitable for scripting complex workflows in distributed applications.
+* **Preemptive Multitasking** Minilang can optionally use a scheduler to swap the running VM state.
+
+### Per-Context Settings
+
+Every Minilang state has an associated context which is inherited by default from the calling state but can be explicitly set by the host application. The context stores local settings such as the current debugger, preemptive scheduler, etc. The host application can register additional context settings.
+
+### Multi-tenant Support
+
+Combining all of the above features, Minilang is ideal for multi-tenant distributed applications.
+
+## History
 
 Minilang was originally designed for [Rabs](https://github.com/wrapl/rabs), an imperative 
 parallel build system. As result, it was designed with the following requirements:
