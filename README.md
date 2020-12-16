@@ -1,4 +1,4 @@
-# Minilang is a small but extensible scripting language for embedding in C/C++ applications
+# Minilang is a small extensible scripting language for embedding in C/C++ applications
 
 Minilang is a simple language designed to be embedded into C/C++ applications with minimal fuss and maximum effect.
 
