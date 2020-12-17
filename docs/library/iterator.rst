@@ -115,6 +115,8 @@ iterator
    The iteratable stops produces values when any of the :mini:`Iteratableᵢ` stops.
 
 
+:mini:`fun pair(Iteratable₁: iteratable, Iteratable₂: iteratable)` |rarr| :mini:`iteratable`
+
 :mini:`meth @(Value: any)` |rarr| :mini:`iteratable`
    Returns an iteratable that repeatedly produces :mini:`Value`.
 

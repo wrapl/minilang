@@ -31,6 +31,10 @@ internal
 
 :mini:`def zippedstate`
 
+:mini:`def paired < iteratable`
+
+:mini:`def pairedstate`
+
 :mini:`def repeated < iteratable`
 
 :mini:`def repeatedstate`
