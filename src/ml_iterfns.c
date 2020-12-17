@@ -1450,6 +1450,89 @@ ML_FUNCTION(Zip) {
 	return (ml_value_t *)Zipped;
 }
 
+typedef struct ml_paired_t {
+	const ml_type_t *Type;
+	ml_value_t *Keys, *Values;
+} ml_paired_t;
+
+ML_TYPE(MLPairedT, (MLIteratableT), "paired");
+//!internal
+
+typedef struct ml_paired_state_t {
+	ml_state_t Base;
+	ml_value_t *Keys, *Values;
+} ml_paired_state_t;
+
+ML_TYPE(MLPairedStateT, (), "paired-state");
+//!internal
+
+static void paired_value_iterate(ml_paired_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Values = Value;
+	ML_CONTINUE(State->Base.Caller, State);
+}
+
+static void paired_key_iterate(ml_paired_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Keys = Value;
+	State->Base.run = (void *)paired_value_iterate;
+	return ml_iterate((ml_state_t *)State, State->Values);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLPairedT, ml_state_t *Caller, ml_paired_t *Paired) {
+	ml_paired_state_t *State = new(ml_paired_state_t);
+	State->Base.Type = MLPairedStateT;
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)paired_key_iterate;
+	State->Base.Context = Caller->Context;
+	State->Values = Paired->Values;
+	return ml_iterate((ml_state_t *)State, Paired->Keys);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLPairedStateT, ml_state_t *Caller, ml_paired_state_t *State) {
+	return ml_iter_value(Caller, State->Keys);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLPairedStateT, ml_state_t *Caller, ml_paired_state_t *State) {
+	return ml_iter_value(Caller, State->Values);
+}
+
+static void paired_value_iter_next(ml_paired_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Values = Value;
+	ML_CONTINUE(State->Base.Caller, State);
+}
+
+static void paired_key_iter_next(ml_paired_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Keys = Value;
+	State->Base.run = (void *)paired_value_iter_next;
+	return ml_iter_next((ml_state_t *)State, State->Values);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLPairedStateT, ml_state_t *Caller, ml_paired_state_t *State) {
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)paired_key_iter_next;
+	return ml_iter_next((ml_state_t *)State, State->Keys);
+}
+
+ML_FUNCTION(Pair) {
+//@pair
+//<Iteratable/1:iteratable
+//<Iteratable/2:iteratable
+//>iteratable
+	ML_CHECK_ARG_COUNT(2);
+	ml_paired_t *Paired = new(ml_paired_t);
+	Paired->Type = MLPairedT;
+	Paired->Keys = Args[0];
+	Paired->Values = Args[1];
+	return (ml_value_t *)Paired;
+}
+
 typedef struct ml_repeated_t {
 	const ml_type_t *Type;
 	ml_value_t *Value, *Update;
@@ -1811,6 +1894,7 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	stringmap_insert(Globals, "unique", Unique);
 	stringmap_insert(Globals, "tasks", MLTasksT);
 	stringmap_insert(Globals, "zip", Zip);
+	stringmap_insert(Globals, "pair", Pair);
 	stringmap_insert(Globals, "weave", Weave);
 	stringmap_insert(Globals, "swap", Swap);
 	stringmap_insert(Globals, "key", Key);
