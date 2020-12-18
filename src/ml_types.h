@@ -37,11 +37,11 @@ struct ml_hash_chain_t {
 };
 
 #ifdef USE_GENERICS
-typedef struct ml_parent_rule_t ml_parent_rule_t;
+typedef struct ml_type_rule_t ml_type_rule_t;
 
-struct ml_type_parent_t {
-	ml_type_parent_t *Next;
-	const ml_type_t *Parent;
+struct ml_type_rule_t {
+	ml_type_rule_t *Next;
+	int NumArgs;
 	uintptr_t Args[];
 };
 #endif
@@ -57,7 +57,7 @@ struct ml_type_t {
 	ml_value_t *Constructor;
 #ifdef USE_GENERICS
 	const ml_type_t **Args;
-	ml_type_parent_t *Parents;
+	ml_type_rule_t *Parents;
 #else
 	inthash_t Parents[1];
 #endif
@@ -115,7 +115,11 @@ void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function);
 #ifdef USE_GENERICS
 const ml_type_t *ml_type_generic(const ml_type_t *Base, int Count, const ml_type_t **Args);
 ml_value_t *ml_type_generic_fn(void *Data, int Count, ml_value_t **Args);
-void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent, ...);
+void ml_type_add_parent(ml_type_t *Type, ...);
+#define ML_TYPE_ARG(N) ((1L << 48) + N)
+
+#else
+#define ml_type_add_parent(TYPE, PARENT, _) inthash_insert(((ml_type_t *)TYPE)->Parents, (uintptr_t)PARENT, (void *)PARENT)
 #endif
 
 int ml_is_subtype(const ml_type_t *Type1, const ml_type_t *Type2) __attribute__ ((pure));
@@ -760,7 +764,11 @@ static inline ml_value_t *ml_deref(ml_value_t *Value) {
 static inline int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
 	const ml_type_t *Type = ml_typeof(Value);
 	if (Type == Expected) return 1;
+#ifdef USE_GENERICS
+	return ml_is_subtype(Type, Expected);
+#else
 	if (inthash_search(Type->Parents, (uintptr_t)Expected)) return 1;
+#endif
 	return 0;
 }
 

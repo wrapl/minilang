@@ -287,7 +287,7 @@ ML_FUNCTIONX(MLClass) {
 				ml_type_t *Parent = (ml_type_t *)Args[I];
 				const ml_type_t **Types = Parent->Types;
 				while (*Types) {
-					inthash_insert(Class->Base.Parents, (uintptr_t)*Types, (void *)*Types);
+					ml_type_add_parent((ml_type_t *)Class, *Types, NULL);
 					*Parents++ = *Types++;
 				}
 			} else if (ml_is(Args[I], MLNamesT)) {
@@ -308,7 +308,7 @@ ML_FUNCTIONX(MLClass) {
 			}
 		}
 		*Parents++ = MLAnyT;
-		inthash_insert(Class->Base.Parents, (uintptr_t)MLAnyT, (void *)MLAnyT);
+		ml_type_add_parent((ml_type_t *)Class, MLAnyT, NULL);
 		stringmap_insert(Class->Base.Exports, "new", Constructor);
 		ML_RETURN(Class);
 	} else {
@@ -336,14 +336,14 @@ ML_FUNCTIONX(MLClass) {
 				stringmap_foreach(Parent->Fields, Class, (void *)add_field);
 				const ml_type_t **Types = Parent->Base.Types;
 				while (*Types != MLObjectT) {
-					inthash_insert(Class->Base.Parents, (uintptr_t)*Types, (void *)*Types);
+					ml_type_add_parent((ml_type_t *)Class, *Types, NULL);
 					*Parents++ = *Types++;
 				}
 			} else if (ml_is(Args[I], MLTypeT)) {
 				ml_type_t *Parent = (ml_type_t *)Args[I];
 				const ml_type_t **Types = Parent->Types;
 				while (*Types) {
-					inthash_insert(Class->Base.Parents, (uintptr_t)*Types, (void *)*Types);
+					ml_type_add_parent((ml_type_t *)Class, *Types, NULL);
 					*Parents++ = *Types++;
 				}
 			} else if (ml_is(Args[I], MLNamesT)) {
@@ -363,8 +363,8 @@ ML_FUNCTIONX(MLClass) {
 		}
 		*Parents++ = MLObjectT;
 		*Parents++ = MLAnyT;
-		inthash_insert(Class->Base.Parents, (uintptr_t)MLObjectT, (void *)MLObjectT);
-		inthash_insert(Class->Base.Parents, (uintptr_t)MLAnyT, (void *)MLAnyT);
+		ml_type_add_parent((ml_type_t *)Class, MLObjectT, NULL);
+		ml_type_add_parent((ml_type_t *)Class, MLAnyT, NULL);
 		int NumFields = Class->Fields->Size;
 		if (NumFields > NumFieldFns) {
 			ml_value_t **NewFieldFns = anew(ml_value_t *, NumFields);

@@ -96,15 +96,45 @@ ML_METHOD("rank", MLTypeT) {
 	return ml_integer(Type->Rank);
 }
 
+#ifdef USE_GENERICS
+static void ml_parents(ml_value_t *Parents, int NumArgs, const ml_type_t **Args) {
+	const ml_type_t *V = Args[0];
+	for (ml_type_rule_t *Rule = V->Parents; Rule; Rule = Rule->Next) {
+		int NumArgs2 = Rule->NumArgs;
+		const ml_type_t *Args2[NumArgs2];
+		for (int I = 0; I < NumArgs2; ++I) {
+			uintptr_t Arg = Rule->Args[I];
+			if (Arg >> 48) {
+				unsigned int J = Arg & 0xFFFF;
+				Args2[I] = (J < NumArgs) ? Args[J] : MLAnyT;
+			} else {
+				Args2[I] = (ml_type_t *)Arg;
+			}
+		}
+		const ml_type_t *Parent = ml_type_generic(Args2[0], NumArgs2 - 1, Args2 + 1);
+		ml_list_put(Parents, (ml_value_t *)Parent);
+		ml_parents(Parents, NumArgs2, Args2);
+	}
+}
+#endif
+
 ML_METHOD("parents", MLTypeT) {
 //!type
 //<Type
 //>list
-	ml_type_t *Type = (ml_type_t *)Args[0];
+	const ml_type_t *Type = (ml_type_t *)Args[0];
 	ml_value_t *Parents = ml_list();
+#ifdef USE_GENERICS
+	if (Type->Args) {
+		ml_parents(Parents, Type->NumArgs, Type->Args);
+	} else {
+		ml_parents(Parents, 1, &Type);
+	}
+#else
 	for (const ml_type_t **Parent = Type->Types; Parent[0]; ++Parent) {
 		ml_list_put(Parents, (ml_value_t *)Parent[0]);
 	}
+#endif
 	return Parents;
 }
 
@@ -178,7 +208,7 @@ void ml_type_init(ml_type_t *Type, ...) {
 	Last = Types + 1;
 	for (const ml_type_t **Next = Types + 1; Next[0]; ++Next) {
 		if (Next[0] != Next[-1]) {
-			inthash_insert(Type->Parents, (uintptr_t)Next[0], (void *)Next[0]);
+			ml_type_add_parent(Type, Next[0], NULL);
 			*Last++ = Next[0];
 		}
 	}
@@ -288,7 +318,7 @@ const ml_type_t *ml_type_generic(const ml_type_t *Base, int Count, const ml_type
 	*Types++ = Type;
 	for (const ml_type_t **Parent = Base->Types; Parent[0]; ++Parent) {
 		*Types++ = Parent[0];
-		inthash_insert(Type->Parents, (uintptr_t)Parent[0], (void *)Parent[0]);
+		ml_type_add_parent(Type, Parent[0], NULL);
 	}
 	ml_generic_t *Generic = xnew(ml_generic_t, Count + 2, const ml_type_t *);
 	Generic->Type = Type;
@@ -306,59 +336,24 @@ ml_value_t *ml_type_generic_fn(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)ml_type_generic((const ml_type_t *)Data, Count, (const ml_type_t **)Args);
 }
 
-ML_TYPE(MLTypeRuleT, (), "type-rule");
-
-// T[P₁, P₂, …] ⊂ U[Q₁, Q₂, …]
-//     0 or more rules: [Pᵢ / Qᵢ / V] ⊂ [Pⱼ / Qⱼ / V]
-//        Negative Index => Pᵢ
-//        Positive Index => Qᵢ
-//        0 => V
-//        Index1 and Index2 cannot both be 0
-
-typedef struct {
-	int Index1, Index2;
-	const ml_type_t *Type;
-} ml_type_rule_entry_t;
-
-typedef struct {
-	const ml_type_t *Type;
-	ml_value_t *Next;
-	ml_type_rule_entry_t Entries[];
-} ml_type_rule_t;
-
-void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent, ...) {
-	int Count = 1;
+void ml_type_add_parent(ml_type_t *Type, ...) {
+	int NumArgs = 0;
 	va_list Args;
-	va_start(Args, Parent);
+	va_start(Args, Type);
+	while (va_arg(Args, uintptr_t)) ++NumArgs;
+	va_end(Args);
+	ml_type_rule_t *Rule = xnew(ml_type_rule_t, NumArgs, uintptr_t);
+	Rule->NumArgs = NumArgs;
+	uintptr_t *RuleArgs = Rule->Args;
+	va_start(Args, Type);
 	for (;;) {
-		int Index1 = va_arg(Args, int);
-		int Index2 = va_arg(Args, int);
-		if (Index1 == 0) {
-			if (Index2 == 0) break;
-			va_arg(Args, const ml_type_t *);
-		} else if (Index2 == 0) {
-			va_arg(Args, const ml_type_t *);
-		}
-		++Count;
+		uintptr_t Arg = va_arg(Args, uintptr_t);
+		if (!Arg) break;
+		*RuleArgs++ = Arg;
 	}
 	va_end(Args);
-	ml_type_rule_t *Rule = xnew(ml_type_rule_t, Count, ml_type_rule_entry_t);
-	Rule->Type = MLTypeRuleT;
-	Rule->Next = inthash_insert(Type->Parents, (uintptr_t)Parent, Rule);
-	ml_type_rule_entry_t *Entry = Rule->Entries;
-	va_start(Args, Parent);
-	for (;;) {
-		int Index1 = Entry->Index1 = va_arg(Args, int);
-		int Index2 = Entry->Index2 = va_arg(Args, int);
-		if (Index1 == 0) {
-			if (Index2 == 0) break;
-			Entry->Type = va_arg(Args, const ml_type_t *);
-		} else if (Index2 == 0) {
-			Entry->Type = va_arg(Args, const ml_type_t *);
-		}
-		++Entry;
-	}
-	va_end(Args);
+	Rule->Next = Type->Parents;
+	Type->Parents = Rule;
 }
 
 #endif
@@ -379,60 +374,49 @@ ML_VALUE(MLSome, MLSomeT);
 ML_VALUE(MLBlank, MLBlankT);
 
 #ifdef USE_GENERICS
-typedef struct {
-	const ml_type_t *Parent;
-
-} ml_parent_t;
-
-static int ml_find_parent(const ml_type_t *Type2) {
-
+static int ml_find_parent(int NumArgs, const ml_type_t **Args, const ml_type_t *U) {
+	const ml_type_t *V = Args[0];
+	if (V == U) return 1;
+	if (U->Args) {
+		if (U->Args[0] == V) {
+			if (NumArgs == U->NumArgs) {
+				for (int I = 1; I < NumArgs; ++I) {
+					if (!ml_is_subtype(Args[I], U->Args[I])) goto different;
+				}
+				return 1;
+			}
+		}
+	}
+different:
+	for (ml_type_rule_t *Rule = V->Parents; Rule; Rule = Rule->Next) {
+		int NumArgs2 = Rule->NumArgs;
+		const ml_type_t *Args2[NumArgs2];
+		for (int I = 0; I < NumArgs2; ++I) {
+			uintptr_t Arg = Rule->Args[I];
+			if (Arg >> 48) {
+				unsigned int J = Arg & 0xFFFF;
+				Args2[I] = (J < NumArgs) ? Args[J] : MLAnyT;
+			} else {
+				Args2[I] = (ml_type_t *)Arg;
+			}
+		}
+		if (ml_find_parent(NumArgs2, Args2, U)) return 1;
+	}
+	return 0;
 }
 #endif
 
-int ml_is_subtype(const ml_type_t *Type1, const ml_type_t *Type2) {
-	if (Type1 == Type2) return 1;
+int ml_is_subtype(const ml_type_t *T, const ml_type_t *U) {
+	if (T == U) return 1;
 #ifdef USE_GENERICS
-	if (Type1->Args && Type1->Args[0] == Type2) return 1;
-	const ml_type_t *Base1 = Type1->Args ? Type1->Args[0] : Type1;
-	const ml_type_t *Base2 = Type2->Args ? Type2->Args[0] : Type2;
-	ml_value_t *Value = inthash_search(Base1->Parents, (uintptr_t)Base2);
-	while (Value && Value->Type == MLTypeRuleT) {
-		ml_type_rule_t *Rule = (ml_type_rule_t *)Value;
-		ml_type_rule_entry_t *Entry = Rule->Entries;
-		for (;;) {
-			int Index1 = Entry->Index1;
-			int Index2 = Entry->Index2;
-			if (Index1 == 0 && Index2 == 0) return 1;
-			const ml_type_t *A, *B;
-			if (Index1 == 0) {
-				A = Entry->Type;
-			} else if (Index1 < 0) {
-				Index1 = -Index1;
-				if (Index1 > Type1->NumArgs) break;
-				A = Type1->Args[Index1];
-			} else {
-				if (Index1 > Type2->NumArgs) break;
-				A = Type2->Args[Index1];
-			}
-			if (Index2 == 0) {
-				B = Entry->Type;
-			} else if (Index2 < 0) {
-				Index2 = -Index2;
-				if (Index2 > Type1->NumArgs) break;
-				B = Type1->Args[Index2];
-			} else {
-				if (Index2 > Type2->NumArgs) break;
-				B = Type2->Args[Index2];
-			}
-			if (!ml_is_subtype(A, B)) break;
-			++Entry;
-		}
-		Value = Rule->Next;
+	if (T->Args) {
+		return ml_find_parent(T->NumArgs, T->Args, U);
+	} else {
+		return ml_find_parent(1, &T, U);
 	}
-	return Value != NULL;
+	return 0;
 #else
-	ml_value_t *Value = inthash_search(Type1->Parents, (uintptr_t)Type2);
-	return Value != NULL;
+	return !!inthash_search(T->Parents, (uintptr_t)U);
 #endif
 }
 

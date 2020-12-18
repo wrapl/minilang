@@ -693,7 +693,6 @@ void ml_map_init() {
 	MLMapT->Constructor = MLMapOfMethod;
 	stringmap_insert(MLMapT->Exports, "of", MLMapOfMethod);
 #ifdef USE_GENERICS
-	ml_type_add_parent(MLMapT, MLMapT, -1, 1, -2, 2, 0, 0);
-	ml_type_add_parent(MLMapT, MLIteratableT, -1, 1, -2, 2, 0, 0);
+	ml_type_add_parent(MLMapT, MLIteratableT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 #endif
 }

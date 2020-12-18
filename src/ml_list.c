@@ -653,8 +653,6 @@ void ml_list_init() {
 	MLListT->Constructor = MLListOfMethod;
 	stringmap_insert(MLListT->Exports, "of", MLListOfMethod);
 #ifdef USE_GENERICS
-	ml_type_add_parent(MLListT, MLListT, -1, 1, 0, 0);
-	ml_type_add_parent(MLListT, MLMapT, 1, 0, MLIntegerT, -1, 2, 0, 0);
-	ml_type_add_parent(MLListT, MLIteratableT, 1, 0, MLIntegerT, -1, 2, 0, 0);
+	ml_type_add_parent(MLListT, MLIteratableT, MLIntegerT, ML_TYPE_ARG(1), NULL);
 #endif
 }

@@ -9,8 +9,6 @@ types
 
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: type)`
 
-:mini:`def typerule`
-
 :mini:`meth *(Arg₁: type, Arg₂: type)`
 
 :mini:`meth <(Arg₁: type, Arg₂: type)`
