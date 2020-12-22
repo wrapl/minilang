@@ -10,7 +10,7 @@ typedef struct ml_queue_t ml_queue_t;
 typedef struct ml_queue_node_t ml_queue_node_t;
 
 struct ml_queue_node_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_queue_t *Queue;
 	ml_value_t *Value;
 	double Score;
@@ -20,7 +20,7 @@ struct ml_queue_node_t {
 ML_TYPE(MLQueueNodeT, (), "queue-node");
 
 struct ml_queue_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_queue_node_t **Nodes;
 	int Count, Size;
 };
@@ -177,7 +177,7 @@ ml_value_t *ML_TYPED_FN(ml_unpack, MLQueueNodeT, ml_queue_node_t *Node, int Inde
 }
 
 typedef struct {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_queue_node_t **Nodes;
 	int Index, Count;
 } ml_queue_iter_t;

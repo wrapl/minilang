@@ -162,12 +162,13 @@ void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
 	if ((Node->Next = List->Head)) {
 		List->Head->Prev = Node;
 #ifdef USE_GENERICS
-		if (List->Type->Args) {
-			const ml_type_t *Type = List->Type->Args[1];
+		if (List->Type->Type == MLGenericTypeT) {
+			ml_type_t *Type = ml_generic_type_args(List->Type)[1];
 			if (Type != ml_typeof(Value)) {
-				const ml_type_t *Type2 = ml_type_max(Type, Value->Type);
+				ml_type_t *Type2 = ml_type_max(Type, Value->Type);
 				if (Type != Type2) {
-					List->Type = ml_type_generic(MLListT, 1, &Type2);
+					ml_type_t *Types[] = {MLListT, Type2};
+					List->Type = ml_generic_type(2, Types);
 				}
 			}
 		}
@@ -175,8 +176,8 @@ void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
 	} else {
 		List->Tail = Node;
 #ifdef USE_GENERICS
-		const ml_type_t *Type = ml_typeof(Value);
-		List->Type = ml_type_generic(MLListT, 1, &Type);
+		ml_type_t *Types[] = {MLListT, ml_typeof(Value)};
+		List->Type = ml_generic_type(2, Types);
 #endif
 	}
 	List->CachedNode = List->Head = Node;
@@ -193,12 +194,13 @@ void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 	if ((Node->Prev = List->Tail)) {
 		List->Tail->Next = Node;
 #ifdef USE_GENERICS
-		if (List->Type->Args) {
-			const ml_type_t *Type = List->Type->Args[1];
+		if (List->Type->Type == MLGenericTypeT) {
+			ml_type_t *Type = ml_generic_type_args(List->Type)[1];
 			if (Type != ml_typeof(Value)) {
-				const ml_type_t *Type2 = ml_type_max(Type, Value->Type);
+				ml_type_t *Type2 = ml_type_max(Type, Value->Type);
 				if (Type != Type2) {
-					List->Type = ml_type_generic(MLListT, 1, &Type2);
+					ml_type_t *Types[] = {MLListT, Type2};
+					List->Type = ml_generic_type(2, Types);
 				}
 			}
 		}
@@ -206,8 +208,8 @@ void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 	} else {
 		List->Head = Node;
 #ifdef USE_GENERICS
-		const ml_type_t *Type = ml_typeof(Value);
-		List->Type = ml_type_generic(MLListT, 1, &Type);
+		ml_type_t *Types[] = {MLListT, ml_typeof(Value)};
+		List->Type = ml_generic_type(2, Types);
 #endif
 	}
 	List->CachedNode = List->Tail = Node;
@@ -351,7 +353,7 @@ ML_METHOD("[]", MLListT, MLIntegerT) {
 }
 
 typedef struct {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_list_node_t *Head;
 	int Length;
 } ml_list_slice_t;
@@ -430,7 +432,7 @@ ml_value_t *ML_TYPED_FN(ml_unpack, MLListT, ml_list_t *List, int Index) {
 }
 
 /*typedef struct ml_list_iterator_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_list_node_t *Node;
 	long Index;
 } ml_list_iterator_t;
@@ -653,6 +655,6 @@ void ml_list_init() {
 	MLListT->Constructor = MLListOfMethod;
 	stringmap_insert(MLListT->Exports, "of", MLListOfMethod);
 #ifdef USE_GENERICS
-	ml_type_add_parent(MLListT, MLIteratableT, MLIntegerT, ML_TYPE_ARG(1), NULL);
+	ml_type_add_rule(MLListT, MLIteratableT, MLIntegerT, ML_TYPE_ARG(1), NULL);
 #endif
 }

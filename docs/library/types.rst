@@ -7,6 +7,10 @@ types
    Base type for all values.
 
 
+:mini:`def generictype < type`
+
+:mini:`meth :parents(Arg₁: generictype)`
+
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: type)`
 
 :mini:`meth *(Arg₁: type, Arg₂: type)`
@@ -19,7 +23,7 @@ types
 
 :mini:`meth >=(Arg₁: type, Arg₂: type)`
 
-:mini:`meth (Arg₁: type)[]`
+:mini:`meth (Arg₁: type)[Arg₂: type]`
 
 :mini:`meth :in(Value: any, Type: type)` |rarr| :mini:`Value` or :mini:`nil`
    Returns :mini:`Value` if it is an instance of :mini:`Type` or a type that inherits from :mini:`Type`.

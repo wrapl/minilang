@@ -6,7 +6,7 @@
 #include "ml_runtime.h"
 
 typedef struct ml_mini_module_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	const char *FileName;
 	stringmap_t Exports[1];
 } ml_mini_module_t;
@@ -37,7 +37,7 @@ ML_METHOD("exports", MLMiniModuleT) {
 }
 
 typedef struct ml_export_function_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_mini_module_t *Module;
 } ml_export_function_t;
 

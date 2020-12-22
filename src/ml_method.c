@@ -9,7 +9,7 @@ typedef struct ml_method_cached_t ml_method_cached_t;
 typedef struct ml_method_definition_t ml_method_definition_t;
 
 struct ml_method_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	const char *Name;
 };
 
@@ -33,17 +33,17 @@ struct ml_method_cached_t {
 	ml_method_t *Method;
 	ml_method_definition_t *Definition;
 	int Count, Score;
-	const ml_type_t *Types[];
+	ml_type_t *Types[];
 };
 
 struct ml_method_definition_t {
 	ml_method_definition_t *Next;
 	ml_value_t *Callback;
 	int Count, Variadic;
-	const ml_type_t *Types[];
+	ml_type_t *Types[];
 };
 
-static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_definition_t *Definition, int Count, const ml_type_t **Types) {
+static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_definition_t *Definition, int Count, ml_type_t **Types) {
 	unsigned int Score = 1;
 	if (Definition->Count > Count) return 0;
 	if (Definition->Count < Count) {
@@ -53,7 +53,7 @@ static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_
 		Score = 2;
 	}
 	for (int I = 0; I < Count; ++I) {
-		const ml_type_t *Type = Definition->Types[I];
+		ml_type_t *Type = Definition->Types[I];
 		if (ml_is_subtype(Types[I], Type)) goto found;
 		return 0;
 	found:
@@ -62,7 +62,7 @@ static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_
 	return Score;
 }
 
-static ml_method_cached_t *ml_method_search_entry(ml_methods_t *Methods, ml_method_t *Method, int Count, const ml_type_t **Types, uint64_t Hash) {
+static ml_method_cached_t *ml_method_search_entry(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_type_t **Types, uint64_t Hash) {
 	ml_method_cached_t *Cached = inthash_search(Methods->Cache, Hash);
 	while (Cached) {
 		if (Cached->Method != Method) goto next;
@@ -115,12 +115,12 @@ static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 static inline ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args) {
 	// TODO: Use generation numbers to check Methods->Parent for invalidated definitions
 	// Use alloca here, VLA prevents TCO.
-	const ml_type_t **Types = alloca(Count * sizeof(const ml_type_t *));
+	ml_type_t **Types = alloca(Count * sizeof(const ml_type_t *));
 	uintptr_t Hash = (uintptr_t)Method;
 	for (int I = Count; --I >= 0;) {
 #ifdef USE_NANBOXING
 		ml_value_t *Value = Args[I];
-		const ml_type_t *Type;
+		ml_type_t *Type;
 		unsigned Tag = ml_tag(Value);
 		if (__builtin_expect(Tag == 0, 1)) {
 			Type = ml_typeof(Value->Type->deref(Value));
@@ -133,7 +133,7 @@ static inline ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *M
 		}
 		Types[I] = Type;
 #else
-		const ml_type_t *Type = Types[I] = ml_typeof(ml_deref(Args[I]));
+		ml_type_t *Type = Types[I] = ml_typeof(ml_deref(Args[I]));
 #endif
 		Hash = rotl(Hash, 1) ^ (uintptr_t)Type;
 	}

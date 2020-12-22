@@ -151,7 +151,7 @@ ML_TYPE(MLNamedTypeT, (MLTypeT), "named-type",
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Object;
-	const ml_type_t *Old, *New;
+	ml_type_t *Old, *New;
 	ml_value_t *Init;
 	int Count;
 	ml_value_t *Args[];
@@ -229,14 +229,12 @@ ML_FUNCTIONX(MLClass) {
 		Name = ml_string_value(Args[0]);
 		Start = 1;
 	}
-	int NumParents = 0, Rank = 0;
+	int Rank = 0;
 	ml_type_t *NativeType = NULL;
 	for (int I = Start; I < Count; ++I) {
 		if (ml_typeof(Args[I]) == MLMethodT) {
 		} else if (ml_is(Args[I], MLClassT)) {
 			ml_class_t *Parent = (ml_class_t *)Args[I];
-			const ml_type_t **Types = Parent->Base.Types;
-			do ++NumParents; while (*++Types != MLObjectT);
 			if (Rank < Parent->Base.Rank) Rank = Parent->Base.Rank;
 		} else if (ml_is(Args[I], MLNamedTypeT)) {
 			ml_named_type_t *Parent = (ml_named_type_t *)Args[I];
@@ -255,8 +253,6 @@ ML_FUNCTIONX(MLClass) {
 				}
 				NativeType = Parent;
 			}
-			const ml_type_t **Types = Parent->Types;
-			do ++NumParents; while (*++Types);
 			if (Rank < Parent->Rank) Rank = Parent->Rank;
 		} else if (ml_is(Args[I], MLNamesT)) {
 			break;
@@ -278,18 +274,12 @@ ML_FUNCTIONX(MLClass) {
 		Class->Base.assign = ml_default_assign;
 		Class->Base.Rank = Rank + 1;
 		Class->Native = NativeType;
-		const ml_type_t **Parents = Class->Base.Types = anew(const ml_type_t *, NumParents + 4);
-		*Parents++ = (ml_type_t *)Class;
 		ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_named_constructor_fn);
 		Class->Base.Constructor = Constructor;
 		for (int I = Start; I < Count; ++I) {
 			if (ml_is(Args[I], MLTypeT)) {
 				ml_type_t *Parent = (ml_type_t *)Args[I];
-				const ml_type_t **Types = Parent->Types;
-				while (*Types) {
-					ml_type_add_parent((ml_type_t *)Class, *Types, NULL);
-					*Parents++ = *Types++;
-				}
+				ml_type_add_parent((ml_type_t *)Class, Parent);
 			} else if (ml_is(Args[I], MLNamesT)) {
 				ML_LIST_FOREACH(Args[I], Iter) {
 					ml_value_t *Key = Iter->Value;
@@ -307,8 +297,6 @@ ML_FUNCTIONX(MLClass) {
 				break;
 			}
 		}
-		*Parents++ = MLAnyT;
-		ml_type_add_parent((ml_type_t *)Class, MLAnyT, NULL);
 		stringmap_insert(Class->Base.Exports, "new", Constructor);
 		ML_RETURN(Class);
 	} else {
@@ -324,8 +312,6 @@ ML_FUNCTIONX(MLClass) {
 		Class->Base.deref = ml_default_deref;
 		Class->Base.assign = ml_default_assign;
 		Class->Base.Rank = Rank + 1;
-		const ml_type_t **Parents = Class->Base.Types = anew(const ml_type_t *, NumParents + 4);
-		*Parents++ = (ml_type_t *)Class;
 		ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_object_constructor_fn);
 		Class->Base.Constructor = Constructor;
 		for (int I = Start; I < Count; ++I) {
@@ -334,18 +320,10 @@ ML_FUNCTIONX(MLClass) {
 			} else if (ml_is(Args[I], MLClassT)) {
 				ml_class_t *Parent = (ml_class_t *)Args[I];
 				stringmap_foreach(Parent->Fields, Class, (void *)add_field);
-				const ml_type_t **Types = Parent->Base.Types;
-				while (*Types != MLObjectT) {
-					ml_type_add_parent((ml_type_t *)Class, *Types, NULL);
-					*Parents++ = *Types++;
-				}
+				ml_type_add_parent((ml_type_t *)Class, (ml_type_t *)Parent);
 			} else if (ml_is(Args[I], MLTypeT)) {
 				ml_type_t *Parent = (ml_type_t *)Args[I];
-				const ml_type_t **Types = Parent->Types;
-				while (*Types) {
-					ml_type_add_parent((ml_type_t *)Class, *Types, NULL);
-					*Parents++ = *Types++;
-				}
+				ml_type_add_parent((ml_type_t *)Class, Parent);
 			} else if (ml_is(Args[I], MLNamesT)) {
 				ML_LIST_FOREACH(Args[I], Iter) {
 					ml_value_t *Key = Iter->Value;
@@ -361,10 +339,7 @@ ML_FUNCTIONX(MLClass) {
 				break;
 			}
 		}
-		*Parents++ = MLObjectT;
-		*Parents++ = MLAnyT;
-		ml_type_add_parent((ml_type_t *)Class, MLObjectT, NULL);
-		ml_type_add_parent((ml_type_t *)Class, MLAnyT, NULL);
+		ml_type_add_parent((ml_type_t *)Class, MLObjectT);
 		int NumFields = Class->Fields->Size;
 		if (NumFields > NumFieldFns) {
 			ml_value_t **NewFieldFns = anew(ml_value_t *, NumFields);

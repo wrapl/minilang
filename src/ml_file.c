@@ -13,7 +13,7 @@
 #define xnew(T, N, U) ((T *)GC_MALLOC(sizeof(T) + (N) * sizeof(U)))
 
 typedef struct ml_file_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	FILE *Handle;
 } ml_file_t;
 
@@ -213,7 +213,7 @@ ML_FUNCTION(MLFileUnlink) {
 }
 
 typedef struct {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	DIR *Handle;
 	ml_value_t *Entry;
 	int Index;

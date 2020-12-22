@@ -462,7 +462,7 @@ ML_METHOD("size", MLArrayT) {
 }
 
 typedef struct ml_integer_range_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	long Start, Limit, Step;
 } ml_integer_range_t;
 
@@ -638,7 +638,7 @@ static ml_value_t *ml_array_iter_val_any(char *Address) {
 }
 
 typedef struct {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	char *Address;
 	ml_array_iter_val_t ToVal;
 	int Degree;

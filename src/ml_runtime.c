@@ -55,7 +55,7 @@ void ml_context_set(ml_context_t *Context, int Index, void *Value) {
 #define ML_VARIABLES_INDEX 1
 
 typedef struct  {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 } ml_context_key_t;
 
 typedef struct ml_context_value_t ml_context_value_t;
@@ -276,7 +276,7 @@ struct ml_uninitialized_slot_t {
 };
 
 typedef struct ml_uninitialized_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	const char *Name;
 	ml_uninitialized_slot_t *Slots;
 	stringmap_t Unresolved[1];
@@ -368,14 +368,14 @@ ML_METHOD("::", MLUninitializedT, MLStringT) {
 #define MAX_TRACE 16
 
 typedef struct {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	const char *Error;
 	const char *Message;
 	ml_source_t Trace[MAX_TRACE];
 } ml_error_value_t;
 
 typedef struct {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_value_t *Value;
 	ml_error_value_t Error[1];
 } ml_error_t;

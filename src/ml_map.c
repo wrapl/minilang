@@ -207,17 +207,17 @@ ml_value_t *ml_map_insert(ml_value_t *Map0, ml_value_t *Key, ml_value_t *Value) 
 	Node->Value = Value;
 #ifdef USE_GENERICS
 	if (Map->Size == 1) {
-		const ml_type_t *Types[] = {ml_typeof(Key), ml_typeof(Value)};
-		Map->Type = ml_type_generic(MLMapT, 2, Types);
-	} else if (Map->Type->Args) {
-		const ml_type_t *KeyType = Map->Type->Args[1];
-		const ml_type_t *ValueType = Map->Type->Args[2];
+		ml_type_t *Types[] = {MLMapT, ml_typeof(Key), ml_typeof(Value)};
+		Map->Type = ml_generic_type(3, Types);
+	} else if (Map->Type->Type == MLGenericTypeT) {
+		ml_type_t *KeyType = ml_generic_type_args(Map->Type)[1];
+		ml_type_t *ValueType = ml_generic_type_args(Map->Type)[2];
 		if (KeyType != ml_typeof(Key) || ValueType != ml_typeof(Value)) {
-			const ml_type_t *KeyType2 = ml_type_max(KeyType, ml_typeof(Key));
-			const ml_type_t *ValueType2 = ml_type_max(ValueType, ml_typeof(Value));
+			ml_type_t *KeyType2 = ml_type_max(KeyType, ml_typeof(Key));
+			ml_type_t *ValueType2 = ml_type_max(ValueType, ml_typeof(Value));
 			if (KeyType != KeyType2 || ValueType != ValueType2) {
-				const ml_type_t *Types[] = {KeyType2, ValueType2};
-				Map->Type = ml_type_generic(MLMapT, 2, Types);
+				ml_type_t *Types[] = {MLMapT, KeyType2, ValueType2};
+				Map->Type = ml_generic_type(3, Types);
 			}
 		}
 	}
@@ -500,7 +500,7 @@ ML_METHOD("append", MLStringBufferT, MLMapT) {
 #define ML_TREE_MAX_DEPTH 32
 
 typedef struct ml_map_iterator_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_map_node_t *Node;
 	ml_map_node_t *Stack[ML_TREE_MAX_DEPTH];
 	int Top;
@@ -693,6 +693,6 @@ void ml_map_init() {
 	MLMapT->Constructor = MLMapOfMethod;
 	stringmap_insert(MLMapT->Exports, "of", MLMapOfMethod);
 #ifdef USE_GENERICS
-	ml_type_add_parent(MLMapT, MLIteratableT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
+	ml_type_add_rule(MLMapT, MLIteratableT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 #endif
 }

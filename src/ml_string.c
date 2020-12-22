@@ -197,7 +197,7 @@ ML_METHOD(MLRealOfMethod, MLStringT) {
 }
 
 typedef struct {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	const char *Value;
 	int Index, Length;
 } ml_string_iterator_t;
@@ -233,7 +233,7 @@ static void ML_TYPED_FN(ml_iterate, MLStringT, ml_state_t *Caller, ml_value_t *S
 typedef struct ml_regex_t ml_regex_t;
 
 typedef struct ml_regex_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	const char *Pattern;
 	regex_t Value[1];
 } ml_regex_t;

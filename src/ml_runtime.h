@@ -31,7 +31,7 @@ void ml_context_set(ml_context_t *Context, int Index, void *Value);
 typedef void (*ml_state_fn)(ml_state_t *, ml_value_t *);
 
 struct ml_state_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_state_t *Caller;
 	ml_state_fn run;
 	ml_context_t *Context;
@@ -74,7 +74,7 @@ typedef ml_value_t *(*ml_setter_t)(void *Data, const char *Name, ml_value_t *Val
 typedef struct ml_reference_t ml_reference_t;
 
 struct ml_reference_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_value_t **Address;
 };
 

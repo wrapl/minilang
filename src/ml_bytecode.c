@@ -637,7 +637,15 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_TUPLE_SET: {
 		int Index = Inst->Params[1].Index;
 		ml_tuple_t *Tuple = (ml_tuple_t *)Top[-1];
+#ifdef USE_GENERICS
+		if (Index == Tuple->Size - 1) {
+			ml_tuple_set((ml_value_t *)Tuple, Index + 1, Result);
+		} else {
+#endif
 		Tuple->Values[Index] = Result;
+#ifdef USE_GENERICS
+		}
+#endif
 		ADVANCE(0);
 	}
 	DO_LIST_NEW: {
@@ -692,8 +700,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		}
 		ml_closure_info_t *Info = Inst->Params[1].ClosureInfo;
 		ml_closure_t *Closure = xnew(ml_closure_t, Info->NumUpValues, ml_value_t *);
-		const ml_type_t *Type = (ml_type_t *)Result;
-		Closure->Type = ml_type_generic(MLClosureT, 1, &Type);
+		ml_type_t *Types[] = {MLClosureT, (ml_type_t *)Result};
+		Closure->Type = ml_generic_type(2, Types);
 		Closure->Info = Info;
 		for (int I = 0; I < Info->NumUpValues; ++I) {
 			int Index = Inst->Params[2 + I].Index;
@@ -1778,8 +1786,7 @@ ml_value_t *ml_cbor_read_closure(void *Data, int Count, ml_value_t **Args) {
 
 void ml_bytecode_init() {
 #ifdef USE_GENERICS
-	stringmap_insert(MLClosureT->Exports, "T", MLAnyT);
-	stringmap_insert(MLClosureT->Exports, "[]", ml_cfunction(MLClosureT, ml_type_generic_fn));
+	ml_type_add_rule(MLClosureT, MLFunctionT, ML_TYPE_ARG(1), NULL);
 #endif
 #include "ml_bytecode_init.c"
 }

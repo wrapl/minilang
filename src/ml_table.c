@@ -11,7 +11,7 @@ typedef struct ml_table_t ml_table_t;
 typedef struct ml_table_row_t ml_table_row_t;
 
 struct ml_table_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_value_t *Columns;
 	int Size;
 };
@@ -225,7 +225,7 @@ ML_METHODVX("::", MLTableT, MLStringT) {
 }
 
 struct ml_table_row_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_table_t *Table;
 	int Count;
 	ml_value_t *Indices[];
@@ -274,7 +274,7 @@ ML_TYPE(MLTableRowT, (MLIteratableT), "table-row",
 );
 
 typedef struct {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_table_t *Table;
 	ml_value_t *Index;
 } ml_table_iter_t;
@@ -356,7 +356,7 @@ ML_METHOD(MLStringOfMethod, MLTableRowT) {
 }
 
 typedef struct {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_map_node_t *Node;
 	ml_table_row_t *Row;
 } ml_table_row_iter_t;

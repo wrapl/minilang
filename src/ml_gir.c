@@ -9,7 +9,7 @@
 //!gobject
 
 typedef struct typelib_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	GITypelib *Handle;
 	const char *Namespace;
 } typelib_t;
@@ -18,7 +18,7 @@ ML_TYPE(TypelibT, (MLIteratableT), "gir-typelib");
 // A gobject-introspection typelib.
 
 typedef struct typelib_iter_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	GITypelib *Handle;
 	const char *Namespace;
 	GIBaseInfo *Current;
@@ -200,7 +200,7 @@ ML_METHOD(MLStringOfMethod, StructInstanceT) {
 }
 
 typedef struct field_ref_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	void *Address;
 } field_ref_t;
 
@@ -1638,7 +1638,7 @@ ML_METHOD("connect", ObjectInstanceT, MLStringT, MLFunctionT) {
 }
 
 typedef struct object_property_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	GObject *Object;
 	const char *Name;
 } object_property_t;

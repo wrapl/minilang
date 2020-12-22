@@ -3425,7 +3425,7 @@ void ml_function_compile(ml_state_t *Caller, ml_compiler_t *Compiler, const char
 ml_value_t MLEndOfInput[1] = {{MLAnyT}};
 
 typedef struct {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_value_t *Value;
 	const char *Name;
 } ml_global_t;

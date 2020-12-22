@@ -10,7 +10,7 @@
 /****************************** Chained ******************************/
 
 typedef struct ml_filter_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_value_t *Function;
 } ml_filter_t;
 
@@ -74,7 +74,7 @@ static void ml_chained_state_value(ml_chained_state_t *State, ml_value_t *Value)
 }
 
 typedef struct ml_chained_function_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_value_t *Entries[];
 } ml_chained_function_t;
 
@@ -247,7 +247,7 @@ ML_METHOD("->", MLChainedFunctionT, MLChainedFunctionT) {
 /****************************** Doubled ******************************/
 
 typedef struct ml_double_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_value_t *Iteratable, *Function;
 } ml_double_t;
 
@@ -851,7 +851,7 @@ ML_FUNCTIONX(Max2) {
 }
 
 typedef struct ml_stacked_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_value_t *Value, *ReduceFn;
 } ml_stacked_t;
 
@@ -938,7 +938,7 @@ ML_METHOD("//", MLIteratableT, MLFunctionT) {
 }
 
 typedef struct ml_limited_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_value_t *Value;
 	int Remaining;
 } ml_limited_t;
@@ -1014,7 +1014,7 @@ ML_METHOD("limit", MLIteratableT, MLIntegerT) {
 }
 
 typedef struct ml_skipped_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_value_t *Value;
 	long Remaining;
 } ml_skipped_t;
@@ -1275,7 +1275,7 @@ ML_FUNCTIONX(Parallel) {
 }
 
 typedef struct ml_unique_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_value_t *Iter;
 } ml_unique_t;
 
@@ -1351,7 +1351,7 @@ ML_FUNCTION(Unique) {
 }
 
 typedef struct ml_zipped_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_value_t *Function;
 	ml_value_t **Iters;
 	int Count;
@@ -1451,7 +1451,7 @@ ML_FUNCTION(Zip) {
 }
 
 typedef struct ml_paired_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_value_t *Keys, *Values;
 } ml_paired_t;
 
@@ -1534,7 +1534,7 @@ ML_FUNCTION(Pair) {
 }
 
 typedef struct ml_repeated_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_value_t *Value, *Update;
 } ml_repeated_t;
 
@@ -1612,7 +1612,7 @@ ML_METHOD("@", MLAnyT, MLFunctionT) {
 }
 
 typedef struct ml_sequenced_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_value_t *First, *Second;
 } ml_sequenced_t;
 
@@ -1685,7 +1685,7 @@ ML_METHOD(">>", MLIteratableT) {
 }
 
 typedef struct ml_weaved_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	int Count;
 	ml_value_t *Iters[];
 } ml_weaved_t;
@@ -1756,7 +1756,7 @@ ML_FUNCTION(Weave) {
 }
 
 typedef struct {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_value_t *Value;
 } ml_swapped_t;
 
@@ -1812,7 +1812,7 @@ ML_FUNCTION(Swap) {
 }
 
 typedef struct {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_value_t *Value;
 } ml_key_t;
 

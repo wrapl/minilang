@@ -180,18 +180,24 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 
 	GtkTextIter End[1];
 
-	/*GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
+	GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
 	gtk_text_buffer_get_end_iter(LogBuffer, End);
 	gtk_source_buffer_create_source_mark(GTK_SOURCE_BUFFER(LogBuffer), NULL, "result", End);
 	gtk_text_buffer_insert_range(LogBuffer, End, InputStart, InputEnd);
-	gtk_text_buffer_insert(LogBuffer, End, "\n", -1);*/
+	gtk_text_buffer_insert(LogBuffer, End, "\n", -1);
 	gtk_text_buffer_set_text(InputBuffer, "", 0);
 
 	GtkTextBuffer *SourceBuffer = GTK_TEXT_BUFFER(Console->SourceBuffer);
 	gtk_text_buffer_get_end_iter(SourceBuffer, End);
 	gtk_text_buffer_insert(SourceBuffer, End, Text, -1);
 	gtk_text_buffer_insert(SourceBuffer, End, "\n", -1);
-	gtk_source_buffer_set_highlight_matching_brackets(GTK_SOURCE_BUFFER(InputBuffer), TRUE);
+gtk_source_buffer_set_highlight_matching_brackets(GTK_SOURCE_BUFFER(InputBuffer), TRUE);
+
+
+	//GtkTextIter End[1];
+	//GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
+	gtk_text_buffer_get_end_iter(LogBuffer, End);
+	gtk_text_buffer_insert(LogBuffer, End, "\n", 1);
 
 	ml_compiler_t *Compiler = Console->Compiler;
 	ml_compiler_reset(Compiler);
@@ -831,8 +837,8 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	g_timeout_add(1000, (GSourceFunc)console_update_status, Console);
 
 	GError *Error = 0;
-	g_irepository_require(NULL, "Gtk", NULL, 0, &Error);
-	g_irepository_require(NULL, "GtkSource", NULL, 0, &Error);
+	g_irepository_require(NULL, "Gtk", "3.0", 0, &Error);
+	g_irepository_require(NULL, "GtkSource", "4", 0, &Error);
 	stringmap_insert(Console->Globals, "Console", ml_gir_instance_get(Console->Window));
 	stringmap_insert(Console->Globals, "InputView", ml_gir_instance_get(Console->InputView));
 	stringmap_insert(Console->Globals, "LogView", ml_gir_instance_get(Console->LogView));
