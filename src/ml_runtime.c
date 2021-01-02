@@ -113,7 +113,8 @@ ML_TYPE(MLContextKeyT, (MLCFunctionT), "context-key",
 );
 
 static void ml_state_call(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
-	return State->run(State, Count ? Args[0] : MLNil);
+	State->run(State, Count ? Args[0] : MLNil);
+	ML_RETURN(MLNil);
 }
 
 ML_TYPE(MLStateT, (MLFunctionT), "state",
@@ -127,39 +128,53 @@ void ml_default_state_run(ml_state_t *State, ml_value_t *Value) {
 	ML_CONTINUE(State->Caller, Value);
 }
 
-void ml_value_state_run(ml_value_state_t *State, ml_value_t *Value) {
-	State->Value = ml_deref(Value);
-}
-
-ml_value_state_t *ml_value_state_new(ml_context_t *Context) {
-	ml_value_state_t *State = new(ml_value_state_t);
-	State->Base.Context = Context ?: &MLRootContext;
-	State->Value = MLNil;
-	State->Base.Type = MLStateT;
-	State->Base.run = (ml_state_fn)ml_value_state_run;
-	return State;
-}
-
-void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) {
-		State->Value = Value;
-	} else {
-		State->Base.run = (ml_state_fn)ml_value_state_run;
-		ml_call(State, Value, 0, NULL);
+static void ml_main_state_run(ml_state_t *State, ml_value_t *Result) {
+	if (ml_is_error(Result)) {
+		printf("%s: %s\n", ml_error_type(Result), ml_error_message(Result));
+		ml_source_t Source;
+		int Level = 0;
+		while (ml_error_source(Result, Level++, &Source)) {
+			printf("\t%s:%d\n", Source.Name, Source.Line);
+		}
+		exit(1);
 	}
 }
 
-ml_value_state_t *ml_call_state_new(ml_context_t *Context) {
-	ml_value_state_t *State = new(ml_value_state_t);
+ml_state_t MLMain[1] = {{MLStateT, NULL, ml_main_state_run, &MLRootContext}};
+
+static void ml_call_state_run(ml_call_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) {
+		ML_CONTINUE(State->Base.Caller, Value);
+	} else {
+		ml_call(State->Base.Caller, Value, State->Count, State->Args);
+	}
+}
+
+ml_call_state_t *ml_call_state_new(ml_state_t *Caller, int Count) {
+	ml_call_state_t *State = xnew(ml_call_state_t, Count, ml_value_t *);
 	State->Base.Type = MLStateT;
-	State->Base.Context = Context ?: &MLRootContext;
 	State->Base.run = (ml_state_fn)ml_call_state_run;
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Count = Count;
+	return State;
+}
+
+void ml_result_state_run(ml_result_state_t *State, ml_value_t *Value) {
+	State->Value = ml_deref(Value);
+}
+
+ml_result_state_t *ml_result_state_new(ml_context_t *Context) {
+	ml_result_state_t *State = new(ml_result_state_t);
+	State->Base.Context = Context ?: &MLRootContext;
 	State->Value = MLNil;
+	State->Base.Type = MLStateT;
+	State->Base.run = (ml_state_fn)ml_result_state_run;
 	return State;
 }
 
 ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args) {
-	static ml_value_state_t State = {{MLStateT, NULL, (void *)ml_value_state_run, &MLRootContext}, MLNil};
+	static ml_result_state_t State = {{MLStateT, NULL, (void *)ml_result_state_run, &MLRootContext}, MLNil};
 	ml_call(&State, Value, Count, Args);
 	ml_value_t *Result = State.Value;
 	State.Value = MLNil;
@@ -194,6 +209,7 @@ static void ml_resumable_state_run(ml_resumable_state_t *State, ml_value_t *Valu
 }
 
 ML_FUNCTIONX(MLCallCC) {
+	if (!Caller->Type) Caller->Type = MLStateT;
 	if (Count > 1) {
 		ML_CHECKX_ARG_TYPE(0, MLStateT);
 		ml_state_t *State = (ml_state_t *)Args[0];
@@ -223,7 +239,7 @@ ML_FUNCTIONX(MLCallCC) {
 	}
 }
 
-ML_FUNCTIONX(MLMark) {
+ML_FUNCTIONX(MLMarkCC) {
 	ML_CHECKX_ARG_COUNT(1);
 	ml_state_t *State = new(ml_state_t);
 	State->Type = MLStateT;
@@ -234,6 +250,13 @@ ML_FUNCTIONX(MLMark) {
 	ml_value_t **Args2 = anew(ml_value_t *, 1);
 	Args2[0] = (ml_value_t *)State;
 	return ml_call(State, Func, 1, Args2);
+}
+
+ML_FUNCTIONX(MLSwapCC) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLStateT);
+	ml_state_t *State = (ml_state_t *)State;
+	return State->run(State, Count > 1 ? Args[1] : MLNil);
 }
 
 // References //

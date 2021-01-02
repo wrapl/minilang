@@ -103,7 +103,7 @@ static void ml_console_repl_run(ml_console_repl_state_t *State, ml_value_t *Resu
 	Result = ml_deref(Result);
 	ml_console_log(NULL, Result);
 	if (ml_is_error(Result)) ml_compiler_reset(State->Compiler);
-	return ml_command_evaluate((ml_state_t *)State, State->Compiler, State->Console->Globals);
+	return ml_command_evaluate((ml_state_t *)State, State->Compiler);
 }
 
 typedef struct {
@@ -145,12 +145,12 @@ void ml_console(ml_getter_t GlobalGet, void *Globals, const char *DefaultPrompt,
 		(ml_getter_t)ml_console_global_get,
 		Console
 	));
-	ml_compiler_t *Compiler = ml_compiler((void *)ml_console_line_read, Console, (ml_getter_t)ml_console_global_get, Console);
+	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)ml_console_global_get, Console, (void *)ml_console_line_read, Console);
 	ml_compiler_source(Compiler, (ml_source_t){"<console>", 1});
 	ml_console_repl_state_t *State = new(ml_console_repl_state_t);
 	State->Base.run = (void *)ml_console_repl_run;
 	State->Base.Context = &MLRootContext;
 	State->Console = Console;
 	State->Compiler = Compiler;
-	ml_command_evaluate((ml_state_t *)State, Compiler, Console->Globals);
+	ml_command_evaluate((ml_state_t *)State, Compiler);
 }

@@ -5,8 +5,6 @@
 #include <string.h>
 #include <stdarg.h>
 
-ML_METHOD_DECL(MLTableOf, "table::of");
-
 typedef struct ml_table_t ml_table_t;
 typedef struct ml_table_row_t ml_table_row_t;
 
@@ -26,7 +24,7 @@ ml_value_t *ml_table() {
 	return (ml_value_t *)Table;
 }
 
-ML_METHOD(MLTableOfMethod) {
+ML_METHOD(MLTableT) {
 //>table
 // Returns an empty table.
 	return ml_table();
@@ -65,7 +63,7 @@ static void ml_table_init_fun(ml_table_init_state_t *State, ml_value_t *Value) {
 	ML_RETURN(Table);
 }
 
-ML_METHODX(MLTableOfMethod, MLMapT) {
+ML_METHODX(MLTableT, MLMapT) {
 //<Columns
 //>table
 // Returns a table with the entries from :mini:`Columns`. The keys of :mini:`Columns` must be strings, the values of :mini:`Columns` are converted to arrays using :mini:`array()` if necessary.
@@ -101,7 +99,7 @@ ML_METHODX(MLTableOfMethod, MLMapT) {
 	ML_RETURN(Table);
 }
 
-ML_METHODVX(MLTableOfMethod, MLNamesT) {
+ML_METHODVX(MLTableT, MLNamesT) {
 //<Names
 //<Value/1, ..., Value/n:any
 //>table
@@ -192,7 +190,7 @@ ML_METHOD("delete", MLTableT, MLStringT) {
 	return ml_map_delete(Args[0], Args[1]);
 }
 
-ML_METHOD(MLStringOfMethod, MLTableT) {
+ML_METHOD(MLStringT, MLTableT) {
 	ml_table_t *Table = (ml_table_t *)Args[0];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_stringbuffer_add(Buffer, "table(", 6);
@@ -338,7 +336,7 @@ ML_METHOD("::", MLTableRowT, MLStringT) {
 	return ml_array_index((ml_array_t *)Column, Row->Count, Row->Indices);
 }
 
-ML_METHOD(MLStringOfMethod, MLTableRowT) {
+ML_METHOD(MLStringT, MLTableRowT) {
 	ml_table_row_t *Row = (ml_table_row_t *)Args[0];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_stringbuffer_add(Buffer, "{", 1);
@@ -392,6 +390,5 @@ static void ML_TYPED_FN(ml_iter_value, MLTableRowIterT, ml_state_t *Caller, ml_t
 
 void ml_table_init(stringmap_t *Globals) {
 #include "ml_table_init.c"
-	MLTableT->Constructor = MLTableOfMethod;
 	stringmap_insert(Globals, "table", MLTableT);
 }

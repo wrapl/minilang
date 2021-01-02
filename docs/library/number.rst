@@ -15,6 +15,8 @@ number
 
 :mini:`meth real(Arg₁: string)`
 
+:mini:`meth number(Arg₁: string)`
+
 :mini:`def number < function`
    Base type for integers and reals.
 

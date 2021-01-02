@@ -700,8 +700,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		}
 		ml_closure_info_t *Info = Inst->Params[1].ClosureInfo;
 		ml_closure_t *Closure = xnew(ml_closure_t, Info->NumUpValues, ml_value_t *);
-		ml_type_t *Types[] = {MLClosureT, (ml_type_t *)Result};
-		Closure->Type = ml_generic_type(2, Types);
+		// A new block is necessary here to allow GCC to perform TCO in this function
+		Closure->Type = ({ml_generic_type(2, (ml_type_t *[]){MLClosureT, (ml_type_t *)Result});});
 		Closure->Info = Info;
 		for (int I = 0; I < Info->NumUpValues; ++I) {
 			int Index = Inst->Params[2 + I].Index;
@@ -1210,7 +1210,7 @@ ML_TYPE(MLClosureT, (MLFunctionT, MLIteratableT), "closure",
 	.call = ml_closure_call
 );
 
-ML_METHOD(MLStringOfMethod, MLClosureT) {
+ML_METHOD(MLStringT, MLClosureT) {
 	ml_closure_t *Closure = (ml_closure_t *)Args[0];
 	return ml_string_format("<%s:%d>", Closure->Info->Source, Closure->Info->LineNo);
 }

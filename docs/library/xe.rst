@@ -25,11 +25,11 @@ xe
 
 :mini:`fun xeattr()`
 
-:mini:`meth MLStringBufferAppendMethod(Arg₁: stringbuffer, Arg₂: XENodeT)`
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: XENodeT)`
 
 :mini:`meth string(Arg₁: XENodeT)`
 
-:mini:`meth MLStringBufferAppendMethod(Arg₁: stringbuffer, Arg₂: XEVarT)`
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: XEVarT)`
 
 :mini:`meth string(Arg₁: XEVarT)`
 

@@ -59,3 +59,5 @@ types
 
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: tuple)`
 
+:mini:`meth :exports(Arg₁: module)`
+

@@ -7,8 +7,6 @@ module
 
 :mini:`meth ::(Arg₁: minimodule, Arg₂: string)`
 
-:mini:`meth :exports(Arg₁: minimodule)`
-
 :mini:`def exportfunction < function`
 
 :mini:`def modulestate`

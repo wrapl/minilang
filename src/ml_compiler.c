@@ -126,6 +126,7 @@ struct ml_compiler_t {
 	void *Globals;
 	ml_value_t *Error;
 	ml_source_t Source;
+	stringmap_t Vars[1];
 	int LineNo;
 	ml_token_t Token;
 	jmp_buf OnError;
@@ -167,6 +168,10 @@ static void ml_task_queue(ml_compiler_t *Compiler, ml_compiler_task_t *Task) {
 static void ml_tasks_state_run(ml_compiler_t *Compiler, ml_value_t *Value) {
 	ml_state_t *Caller = Compiler->Base.Caller;
 	ml_compiler_task_t *Task = Compiler->Tasks;
+	if (!Task) {
+		Compiler->TaskSlot = &Compiler->Tasks;
+		ML_RETURN(Value);
+	}
 	ml_value_t *Error;
 	if (ml_is_error(Value)) {
 		if (!Task->error) ML_RETURN(Value);
@@ -1677,7 +1682,8 @@ static mlc_compiled_t ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_
 			}
 		}
 	}
-	ml_value_t *Value = (Function->Compiler->GlobalGet)(Function->Compiler->Globals, Expr->Ident);
+	ml_value_t *Value = (ml_value_t *)stringmap_search(Function->Compiler->Vars, Expr->Ident);
+	if (!Value) Value = Function->Compiler->GlobalGet(Function->Compiler->Globals, Expr->Ident);
 	if (!Value) {
 		ml_expr_error(Expr, ml_error("CompilerError", "identifier %s not declared", Expr->Ident));
 	}
@@ -1769,8 +1775,47 @@ static const char *ml_compiler_no_input(void *Data) {
 	return NULL;
 }
 
-ml_compiler_t *ml_compiler(ml_reader_t Read, void *Data, ml_getter_t GlobalGet, void *Globals) {
+static void ml_compiler_call(ml_state_t *Caller, ml_compiler_t *Compiler, int Count, ml_value_t **Args) {
+	ml_tasks_state_run(Compiler, Count ? Args[0] : MLNil);
+	ML_RETURN(MLNil);
+}
+
+static const char *ml_function_read(ml_value_t *Function) {
+	ml_value_t *Result = ml_simple_call(Function, 0, NULL);
+	if (!ml_is(Result, MLStringT)) return NULL;
+	return ml_string_value(Result);
+}
+
+static ml_value_t *ml_function_global_get(ml_value_t *Function, const char *Name) {
+	ml_value_t *Value = ml_simple_inline(Function, 1, ml_cstring(Name));
+	return (Value != MLNotFound) ? Value : NULL;
+}
+
+static ml_value_t *ml_map_global_get(ml_value_t *Map, const char *Name) {
+	return ml_map_search0(Map, ml_cstring(Name));
+}
+
+ML_FUNCTION(MLCompiler) {
+	ML_CHECK_ARG_COUNT(1);
+	ml_getter_t GlobalGet = (ml_getter_t)ml_function_global_get;
+	if (ml_is(Args[0], MLMapT)) GlobalGet = (ml_getter_t)ml_map_global_get;
+	void *Input = NULL;
+	ml_reader_t Reader = ml_compiler_no_input;
+	if (Count > 1) {
+		Input = Args[1];
+		Reader = (ml_reader_t)ml_function_read;
+	}
+	return (ml_value_t *)ml_compiler(GlobalGet, Args[0], Reader, Input);
+}
+
+ML_TYPE(MLCompilerT, (MLStateT), "compiler",
+	.call = (void *)ml_compiler_call,
+	.Constructor = (ml_value_t *)MLCompiler
+);
+
+ml_compiler_t *ml_compiler(ml_getter_t GlobalGet, void *Globals, ml_reader_t Read, void *Data) {
 	ml_compiler_t *Compiler = new(ml_compiler_t);
+	Compiler->Base.Type = MLCompilerT;
 	Compiler->Base.run = (ml_state_fn)ml_tasks_state_run;
 	Compiler->TaskSlot = &Compiler->Tasks;
 	Compiler->GlobalGet = GlobalGet;
@@ -1851,7 +1896,7 @@ static ml_token_t ml_accept_string(ml_compiler_t *Compiler) {
 	for (;;) {
 		char C = *End++;
 		if (!C) {
-			Compiler->Next = (Compiler->Read)(Compiler->Data);
+			Compiler->Next = Compiler->Read(Compiler->Data);
 			++Compiler->LineNo;
 			if (!Compiler->Next) {
 				ml_compiler_error(Compiler, "ParseError", "end of input while parsing string");
@@ -1954,7 +1999,7 @@ typedef ml_value_t *(*string_fn_t)(const char *String, int Length);
 static ml_token_t ml_scan(ml_compiler_t *Compiler) {
 	for (;;) {
 		if (!Compiler->Next || !Compiler->Next[0]) {
-			Compiler->Next = (Compiler->Read)(Compiler->Data);
+			Compiler->Next = Compiler->Read(Compiler->Data);
 			if (Compiler->Next) continue;
 			Compiler->Token = MLT_EOI;
 			return Compiler->Token;
@@ -2151,7 +2196,7 @@ static ml_token_t ml_scan(ml_compiler_t *Compiler) {
 						++Compiler->Next;
 						++Compiler->LineNo;
 					} else if (Compiler->Next[0] == 0) {
-						Compiler->Next = (Compiler->Read)(Compiler->Data);
+						Compiler->Next = Compiler->Read(Compiler->Data);
 						if (!Compiler->Next) ml_compiler_error(Compiler, "ParseError", "End of input in comment");
 					} else if (Compiler->Next[0] == '>' && Compiler->Next[1] == ':') {
 						Compiler->Next += 2;
@@ -2309,11 +2354,11 @@ static mlc_expr_t *ml_accept_fun_expr(ml_compiler_t *Compiler, ml_token_t EndTok
 	return (mlc_expr_t *)FunExpr;
 }
 
-extern ml_value_t MLMethodSet[];
+extern ml_cfunctionx_t MLMethodSet[];
 
 static mlc_expr_t *ml_accept_meth_expr(ml_compiler_t *Compiler) {
 	ML_EXPR(MethodExpr, parent_value, const_call);
-	MethodExpr->Value = MLMethodSet;
+	MethodExpr->Value = (ml_value_t *)MLMethodSet;
 	mlc_expr_t *Method = ml_parse_term(Compiler, 1);
 	if (!Method) ml_compiler_error(Compiler, "ParseError", "expected <factor> not <%s>", MLTokens[Compiler->Token]);
 	MethodExpr->Child = Method;
@@ -2325,9 +2370,8 @@ static mlc_expr_t *ml_accept_meth_expr(ml_compiler_t *Compiler) {
 		do {
 			if (ml_parse2(Compiler, MLT_OPERATOR)) {
 				if (!strcmp(Compiler->Ident, "..")) {
-					ml_value_t *Operator = ml_method(Compiler->Ident);
 					ML_EXPR(ValueExpr, value, value);
-					ValueExpr->Value = Operator;
+					ValueExpr->Value = ml_method("..");
 					mlc_expr_t *Arg = ArgsSlot[0] = (mlc_expr_t *)ValueExpr;
 					ArgsSlot = &Arg->Next;
 					break;
@@ -2338,15 +2382,46 @@ static mlc_expr_t *ml_accept_meth_expr(ml_compiler_t *Compiler) {
 			ml_decl_t *Param = ParamSlot[0] = new(ml_decl_t);
 			Param->Source = Compiler->Source;
 			ParamSlot = &Param->Next;
-			if (ml_parse2(Compiler, MLT_BLANK)) {
-				Param->Ident = "_";
-			} else {
+			if (ml_parse2(Compiler, MLT_LEFT_SQUARE)) {
 				ml_accept(Compiler, MLT_IDENT);
 				Param->Ident = Compiler->Ident;
+				Param->Index = ML_PARAM_EXTRA;
+				ml_accept(Compiler, MLT_RIGHT_SQUARE);
+				if (ml_parse2(Compiler, MLT_COMMA)) {
+					ml_accept(Compiler, MLT_LEFT_BRACE);
+					ml_decl_t *Param = ParamSlot[0] = new(ml_decl_t);
+					Param->Source = Compiler->Source;
+					ml_accept(Compiler, MLT_IDENT);
+					Param->Ident = Compiler->Ident;
+					Param->Index = ML_PARAM_NAMED;
+					ml_accept(Compiler, MLT_RIGHT_BRACE);
+				}
+				ML_EXPR(ValueExpr, value, value);
+				ValueExpr->Value = ml_method("..");
+				mlc_expr_t *Arg = ArgsSlot[0] = (mlc_expr_t *)ValueExpr;
+				ArgsSlot = &Arg->Next;
+				break;
+			} else if (ml_parse2(Compiler, MLT_LEFT_BRACE)) {
+				ml_accept(Compiler, MLT_IDENT);
+				Param->Ident = Compiler->Ident;
+				Param->Index = ML_PARAM_NAMED;
+				ml_accept(Compiler, MLT_RIGHT_BRACE);
+				ML_EXPR(ValueExpr, value, value);
+				ValueExpr->Value = ml_method("..");
+				mlc_expr_t *Arg = ArgsSlot[0] = (mlc_expr_t *)ValueExpr;
+				ArgsSlot = &Arg->Next;
+				break;
+			} else {
+				if (ml_parse2(Compiler, MLT_BLANK)) {
+					Param->Ident = "_";
+				} else {
+					ml_accept(Compiler, MLT_IDENT);
+					Param->Ident = Compiler->Ident;
+				}
+				ml_accept(Compiler, MLT_COLON);
+				mlc_expr_t *Arg = ArgsSlot[0] = ml_accept_expression(Compiler, EXPR_DEFAULT);
+				ArgsSlot = &Arg->Next;
 			}
-			ml_accept(Compiler, MLT_COLON);
-			mlc_expr_t *Arg = ArgsSlot[0] = ml_accept_expression(Compiler, EXPR_DEFAULT);
-			ArgsSlot = &Arg->Next;
 		} while (ml_parse2(Compiler, MLT_COMMA));
 		ml_accept(Compiler, MLT_RIGHT_PAREN);
 	}
@@ -3422,7 +3497,92 @@ void ml_function_compile(ml_state_t *Caller, ml_compiler_t *Compiler, const char
 	Compiler->Tasks->start(Compiler->Tasks, Compiler);
 }
 
+ML_METHODX("compile", MLCompilerT) {
+	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
+	return ml_function_compile(Caller, Compiler, NULL);
+}
+
+ML_METHODX("compile", MLCompilerT, MLListT) {
+	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
+	const char **Parameters = anew(const char *, ml_list_length(Args[1]));
+	int I = 0;
+	ML_LIST_FOREACH(Args[1], Iter) {
+		if (!ml_is(Iter->Value, MLStringT)) ML_ERROR("TypeError", "Parameter name must be a string");
+		Parameters[I++] = ml_string_value(Iter->Value);
+	}
+	return ml_function_compile(Caller, Compiler, Parameters);
+}
+
+ML_METHOD("source", MLCompilerT, MLStringT, MLIntegerT) {
+	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
+	ml_source_t Source = {ml_string_value(Args[1]), ml_integer_value(Args[2])};
+	Source = ml_compiler_source(Compiler, Source);
+	ml_value_t *Tuple = ml_tuple(2);
+	ml_tuple_set(Tuple, 1, ml_cstring(Source.Name));
+	ml_tuple_set(Tuple, 2, ml_integer(Source.Line));
+	return Tuple;
+}
+
+ML_METHOD("reset", MLCompilerT) {
+	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
+	ml_compiler_reset(Compiler);
+	return Args[0];
+}
+
+ML_METHOD("input", MLCompilerT, MLStringT) {
+	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
+	ml_compiler_input(Compiler, ml_string_value(Args[1]));
+	return Args[0];
+}
+
+ML_METHOD("clear", MLCompilerT) {
+	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
+	return ml_cstring(ml_compiler_clear(Compiler));
+}
+
+ML_METHODX("evaluate", MLCompilerT) {
+	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
+	return ml_command_evaluate(Caller, Compiler);
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_compiler_t *Compiler;
+} ml_evaluate_state_t;
+
+static void ml_evaluate_state_run(ml_evaluate_state_t *State, ml_value_t *Value) {
+	if (Value == MLEndOfInput) ML_CONTINUE(State->Base.Caller, MLNil);
+	return ml_command_evaluate((ml_state_t *)State, State->Compiler);
+}
+
+ML_METHODX("run", MLCompilerT) {
+	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
+	ml_evaluate_state_t *State = new(ml_evaluate_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_evaluate_state_run;
+	State->Compiler = Compiler;
+	return ml_command_evaluate((ml_state_t *)State, Compiler);
+}
+
+ML_METHOD("[]", MLCompilerT, MLStringT) {
+	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
+	return (ml_value_t *)stringmap_search(Compiler->Vars, ml_string_value(Args[1])) ?: MLNil;
+}
+
 ml_value_t MLEndOfInput[1] = {{MLAnyT}};
+ml_value_t MLNotFound[1] = {{MLAnyT}};
+
+static ml_value_t *ml_stringmap_global(stringmap_t *Globals, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ml_value_t *Value = (ml_value_t *)stringmap_search(Globals, ml_string_value(Args[0]));
+	return Value ?: MLNotFound;
+}
+
+ml_value_t *ml_stringmap_globals(stringmap_t *Globals) {
+	return ml_cfunction(Globals, (ml_callback_t)ml_stringmap_global);
+}
 
 typedef struct {
 	ml_type_t *Type;
@@ -3444,6 +3604,89 @@ ML_TYPE(MLGlobalT, (), "global",
 	.deref = (void *)ml_global_deref,
 	.assign = (void *)ml_global_assign
 );
+
+ML_METHOD("var", MLCompilerT, MLStringT) {
+	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
+	const char *Name = ml_string_value(Args[1]);
+	ml_variable_t *Var = new(ml_variable_t);
+	Var->Type = MLVariableT;
+	Var->Value = MLNil;
+	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Compiler->Vars, Name);
+	ml_global_t *Global;
+	if (!Slot[0] || ml_typeof(Slot[0]) != MLGlobalT) {
+		Global = new(ml_global_t);
+		Global->Type = MLGlobalT;
+		Global->Name = Name;
+		Slot[0] = (ml_value_t *)Global;
+	} else {
+		Global = (ml_global_t *)Slot[0];
+	}
+	return (Global->Value = (ml_value_t *)Var);
+}
+
+ML_METHOD("var", MLCompilerT, MLStringT, MLTypeT) {
+	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
+	const char *Name = ml_string_value(Args[1]);
+	ml_variable_t *Var = new(ml_variable_t);
+	Var->Type = MLVariableT;
+	Var->Value = MLNil;
+	Var->VarType = (ml_type_t *)Args[2];
+	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Compiler->Vars, Name);
+	ml_global_t *Global;
+	if (!Slot[0] || ml_typeof(Slot[0]) != MLGlobalT) {
+		Global = new(ml_global_t);
+		Global->Type = MLGlobalT;
+		Global->Name = Name;
+		Slot[0] = (ml_value_t *)Global;
+	} else {
+		Global = (ml_global_t *)Slot[0];
+	}
+	return (Global->Value = (ml_value_t *)Var);
+}
+
+ML_METHOD("let", MLCompilerT, MLStringT, MLAnyT) {
+	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
+	const char *Name = ml_string_value(Args[1]);
+	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Compiler->Vars, Name);
+	ml_global_t *Global;
+	if (!Slot[0] || ml_typeof(Slot[0]) != MLGlobalT) {
+		Global = new(ml_global_t);
+		Global->Type = MLGlobalT;
+		Global->Name = Name;
+		Slot[0] = (ml_value_t *)Global;
+	} else {
+		Global = (ml_global_t *)Slot[0];
+	}
+	return (Global->Value = Args[2]);
+}
+
+ML_METHOD("def", MLCompilerT, MLStringT, MLAnyT) {
+	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
+	const char *Name = ml_string_value(Args[1]);
+	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Compiler->Vars, Name);
+	ml_global_t *Global;
+	if (!Slot[0] || ml_typeof(Slot[0]) != MLGlobalT) {
+		Global = new(ml_global_t);
+		Global->Type = MLGlobalT;
+		Global->Name = Name;
+		Slot[0] = (ml_value_t *)Global;
+	} else {
+		Global = (ml_global_t *)Slot[0];
+	}
+	return (Global->Value = Args[2]);
+}
+
+static int ml_compiler_var_fn(const char *Name, ml_value_t *Value, ml_value_t *Vars) {
+	ml_map_insert(Vars, ml_cstring(Name), ml_deref(Value));
+	return 0;
+}
+
+ML_METHOD("vars", MLCompilerT) {
+	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
+	ml_value_t *Vars = ml_map();
+	stringmap_foreach(Compiler->Vars, Vars, (void *)ml_compiler_var_fn);
+	return Vars;
+}
 
 typedef struct {
 	ml_compiler_task_t Base;
@@ -3550,7 +3793,7 @@ static inline ml_global_t *ml_command_global(stringmap_t *Globals, const char *N
 	return Global;
 }
 
-static void ml_accept_command_decl(ml_token_t Type, ml_compiler_t *Compiler, stringmap_t *Globals) {
+static void ml_accept_command_decl(ml_token_t Type, ml_compiler_t *Compiler) {
 	do {
 		ml_command_decl_t *Task = new(ml_command_decl_t);
 		Task->Base.start = ml_task_default_start;
@@ -3564,7 +3807,7 @@ static void ml_accept_command_decl(ml_token_t Type, ml_compiler_t *Compiler, str
 				++Task->NumUnpack;
 				ml_command_import_t *Unpack = Unpacks[0] = new(ml_command_import_t);
 				Unpacks = (ml_command_import_t **)&Unpack->Base.Next;
-				Unpack->Global = ml_command_global(Globals, Ident);
+				Unpack->Global = ml_command_global(Compiler->Vars, Ident);
 				Unpack->Args[1] = ml_cstring(Ident);
 			} while (ml_parse(Compiler, MLT_COMMA));
 			ml_accept(Compiler, MLT_RIGHT_PAREN);
@@ -3622,7 +3865,7 @@ static void ml_accept_command_decl(ml_token_t Type, ml_compiler_t *Compiler, str
 					Expr = ml_accept_expression(Compiler, EXPR_DEFAULT);
 				}
 			}
-			Task->Global = ml_command_global(Globals, Ident);
+			Task->Global = ml_command_global(Compiler->Vars, Ident);
 			Task->Base.Closure = ml_compile(Expr, NULL, Compiler);
 			Task->Base.Source = Expr->Source;
 			ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
@@ -3630,7 +3873,7 @@ static void ml_accept_command_decl(ml_token_t Type, ml_compiler_t *Compiler, str
 	} while (ml_parse(Compiler, MLT_COMMA));
 }
 
-void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler, stringmap_t *Globals) {
+void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler) {
 	MLC_ON_ERROR(Compiler) {
 		ml_compiler_reset(Compiler);
 		ML_RETURN(Compiler->Error);
@@ -3641,11 +3884,11 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler, stringmap_
 	Compiler->Base.Caller = Caller;
 	Compiler->Base.Context = Caller->Context;
 	if (ml_parse(Compiler, MLT_VAR)) {
-		ml_accept_command_decl(MLT_VAR, Compiler, Globals);
+		ml_accept_command_decl(MLT_VAR, Compiler);
 	} else if (ml_parse(Compiler, MLT_LET)) {
-		ml_accept_command_decl(MLT_LET, Compiler, Globals);
+		ml_accept_command_decl(MLT_LET, Compiler);
 	} else if (ml_parse(Compiler, MLT_DEF)) {
-		ml_accept_command_decl(MLT_DEF, Compiler, Globals);
+		ml_accept_command_decl(MLT_DEF, Compiler);
 	} else if (ml_parse(Compiler, MLT_FUN)) {
 		if (ml_parse(Compiler, MLT_IDENT)) {
 			const char *Ident = Compiler->Ident;
@@ -3656,7 +3899,7 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler, stringmap_
 			Task->Base.finish = (void *)ml_command_decl_finish;
 			Task->Base.Closure = ml_compile(Expr, NULL, Compiler);
 			Task->Base.Source = Expr->Source;
-			Task->Global = ml_command_global(Globals, Ident);
+			Task->Global = ml_command_global(Compiler->Vars, Ident);
 			ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
 		} else {
 			ml_accept(Compiler, MLT_LEFT_PAREN);
@@ -3682,7 +3925,7 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler, stringmap_
 			Task->Base.finish = (void *)ml_command_decl_finish;
 			Task->Base.Closure = ml_compile((mlc_expr_t *)CallExpr, NULL, Compiler);
 			Task->Base.Source = Expr->Source;
-			Task->Global = ml_command_global(Globals, Ident);
+			Task->Global = ml_command_global(Compiler->Vars, Ident);
 			ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
 		} else {
 			ml_compiler_task_t *Task = new(ml_compiler_task_t);
@@ -3745,7 +3988,7 @@ static void ml_load_file_state_run(ml_load_file_state_t *State, ml_value_t *Valu
 void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]) {
 	FILE *File = fopen(FileName, "r");
 	if (!File) ML_RETURN(ml_error("LoadError", "error opening %s", FileName));
-	ml_compiler_t *Compiler = ml_compiler(ml_file_read, File, GlobalGet, Globals);
+	ml_compiler_t *Compiler = ml_compiler(GlobalGet, Globals, ml_file_read, File);
 	ml_compiler_source(Compiler, (ml_source_t){FileName, 1});
 	ml_load_file_state_t *State = new(ml_load_file_state_t);
 	State->Base.Caller = Caller;
@@ -3757,5 +4000,7 @@ void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, cons
 
 void ml_compiler_init() {
 #include "ml_compiler_init.c"
+	stringmap_insert(MLCompilerT->Exports, "EOI", MLEndOfInput);
+	stringmap_insert(MLCompilerT->Exports, "NotFound", MLNotFound);
 	stringmap_insert(StringFns, "r", ml_regex);
 }

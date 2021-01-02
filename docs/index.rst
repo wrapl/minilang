@@ -38,7 +38,7 @@ Sample
    print("Hello world!\n")
    
    var L := [1, 2, 3, 4, 5]
- 
+   
    for X in L do
       print('X = {X}\n')
    end

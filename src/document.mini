@@ -71,7 +71,7 @@ fun write_method(Category, Kind, Method, Params, Return, Description, Location) 
 			end
 		end>:
 	else
-		if let Match := Method % r"ML(\w+)OfMethod" then
+		if let Match := Method % r"ML(\w+)T" then
 			Title:write('{Match[2]:lower}(')
 		elseif Method[1] = "\"" then
 			if is_symbol(Method) then

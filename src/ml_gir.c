@@ -53,7 +53,12 @@ static ml_value_t *ml_gir_require(void *Data, int Count, ml_value_t **Args) {
 	Typelib->Type = TypelibT;
 	GError *Error = 0;
 	Typelib->Namespace = ml_string_value(Args[0]);
-	Typelib->Handle = g_irepository_require(NULL, Typelib->Namespace, NULL, 0, &Error);
+	const char *Version = NULL;
+	if (Count > 1) {
+		ML_CHECK_ARG_TYPE(1, MLStringT);
+		Version = ml_string_value(Args[1]);
+	}
+	Typelib->Handle = g_irepository_require(NULL, Typelib->Namespace, Version, 0, &Error);
 	if (!Typelib->Handle) return ml_error("GirError", Error->message);
 	return (ml_value_t *)Typelib;
 }
@@ -162,7 +167,7 @@ ml_value_t *ml_gir_instance_get(void *Handle) {
 	return MLNil;
 }
 
-ML_METHOD(MLStringOfMethod, ObjectInstanceT) {
+ML_METHOD(MLStringT, ObjectInstanceT) {
 //<Object
 //>string
 	object_instance_t *Instance = (object_instance_t *)Args[0];
@@ -192,7 +197,7 @@ static ml_value_t *struct_instance_new(struct_t *Struct, int Count, ml_value_t *
 	return (ml_value_t *)Instance;
 }
 
-ML_METHOD(MLStringOfMethod, StructInstanceT) {
+ML_METHOD(MLStringT, StructInstanceT) {
 //<Struct
 //>string
 	struct_instance_t *Instance = (struct_instance_t *)Args[0];
@@ -309,14 +314,14 @@ ML_TYPE(EnumT, (MLTypeT), "gir-enum");
 ML_TYPE(EnumValueT, (), "gir-value");
 // A gobject-instrospection enum value.
 
-ML_METHOD(MLStringOfMethod, EnumValueT) {
+ML_METHOD(MLStringT, EnumValueT) {
 //<Value
 //>string
 	enum_value_t *Value = (enum_value_t *)Args[0];
 	return Value->Name;
 }
 
-ML_METHOD(MLIntegerOfMethod, EnumValueT) {
+ML_METHOD(MLIntegerT, EnumValueT) {
 //<Value
 //>integer
 	enum_value_t *Value = (enum_value_t *)Args[0];
@@ -1429,9 +1434,13 @@ static ml_type_t *enum_info_lookup(GIEnumInfo *Info) {
 	if (!Slot[0]) {
 		int NumValues = g_enum_info_get_n_values(Info);
 		enum_t *Enum = xnew(enum_t, NumValues, ml_value_t *);
-		Enum->Base = EnumT[0];
 		Enum->Base.Type = EnumT;
 		Enum->Base.Name = TypeName;
+		Enum->Base.hash = ml_default_hash;
+		Enum->Base.call = ml_default_call;
+		Enum->Base.deref = ml_default_deref;
+		Enum->Base.assign = ml_default_assign;
+		Enum->Base.Rank = EnumT->Rank + 1;
 		ml_type_init((ml_type_t *)Enum, EnumValueT, NULL);
 		for (int I = 0; I < NumValues; ++I) {
 			GIValueInfo *ValueInfo = g_enum_info_get_value(Info, I);
@@ -1439,7 +1448,7 @@ static ml_type_t *enum_info_lookup(GIEnumInfo *Info) {
 			printf("Enum: %s\n", ValueName);
 			enum_value_t *Value = new(enum_value_t);
 			Value->Type = Enum;
-			Value->Name = ml_string(ValueName, -1);
+			Value->Name = ml_cstring(ValueName);
 			Value->Value = g_value_info_get_value(ValueInfo);
 			stringmap_insert(Enum->Base.Exports, ValueName, (ml_value_t *)Value);
 			Enum->ByIndex[I] = (ml_value_t *)Value;

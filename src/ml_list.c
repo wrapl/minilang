@@ -4,8 +4,6 @@
 #include "ml_iterfns.h"
 #include <string.h>
 
-ML_METHOD_DECL(MLListOf, "list::of");
-
 static ml_list_node_t *ml_list_index(ml_list_t *List, int Index) {
 	int Length = List->Length;
 	if (Index <= 0) Index += Length + 1;
@@ -93,11 +91,11 @@ ml_value_t *ml_list() {
 	return (ml_value_t *)List;
 }
 
-ML_METHOD(MLListOfMethod) {
+ML_METHOD(MLListT) {
 	return ml_list();
 }
 
-ML_METHOD(MLListOfMethod, MLTupleT) {
+ML_METHOD(MLListT, MLTupleT) {
 	ml_value_t *List = ml_list();
 	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
 	for (int I = 0; I < Tuple->Size; ++I) ml_list_put(List, Tuple->Values[I]);
@@ -121,7 +119,7 @@ static void list_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_METHODVX(MLListOfMethod, MLIteratableT) {
+ML_METHODVX(MLListT, MLIteratableT) {
 //<Iteratable
 //>list
 // Returns a list of all of the values produced by :mini:`Iteratable`.
@@ -176,8 +174,10 @@ void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
 	} else {
 		List->Tail = Node;
 #ifdef USE_GENERICS
-		ml_type_t *Types[] = {MLListT, ml_typeof(Value)};
-		List->Type = ml_generic_type(2, Types);
+		if (List->Type == MLListT) {
+			ml_type_t *Types[] = {MLListT, ml_typeof(Value)};
+			List->Type = ml_generic_type(2, Types);
+		}
 #endif
 	}
 	List->CachedNode = List->Head = Node;
@@ -208,8 +208,10 @@ void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 	} else {
 		List->Head = Node;
 #ifdef USE_GENERICS
-		ml_type_t *Types[] = {MLListT, ml_typeof(Value)};
-		List->Type = ml_generic_type(2, Types);
+		if (List->Type == MLListT) {
+			ml_type_t *Types[] = {MLListT, ml_typeof(Value)};
+			List->Type = ml_generic_type(2, Types);
+		}
 #endif
 	}
 	List->CachedNode = List->Tail = Node;
@@ -532,7 +534,7 @@ ML_METHOD("+", MLListT, MLListT) {
 	return List;
 }
 
-ML_METHOD(MLStringOfMethod, MLListT) {
+ML_METHOD(MLStringT, MLListT) {
 //<List
 //>string
 // Returns a string containing the elements of :mini:`List` surrounded by :mini:`[`, :mini:`]` and seperated by :mini:`,`.
@@ -552,7 +554,7 @@ ML_METHOD(MLStringOfMethod, MLListT) {
 	return ml_stringbuffer_value(Buffer);
 }
 
-ML_METHOD(MLStringOfMethod, MLListT, MLStringT) {
+ML_METHOD(MLStringT, MLListT, MLStringT) {
 //<List
 //<Seperator
 //>string
@@ -649,11 +651,29 @@ ML_TYPE(MLNamesT, (), "names",
 //!internal
 );
 
+ml_value_t *ml_names() {
+	ml_value_t *Names = ml_list();
+	Names->Type = MLNamesT;
+	return Names;
+}
+
+void ml_names_add(ml_value_t *Names, ml_value_t *Value) {
+	ml_list_t *List = (ml_list_t *)Names;
+	ml_list_node_t *Node = new(ml_list_node_t);
+	Node->Type = MLListNodeT;
+	Node->Value = Value;
+	List->ValidIndices = 0;
+	if ((Node->Prev = List->Tail)) {
+		List->Tail->Next = Node;
+	} else {
+		List->Head = Node;
+	}
+	List->CachedNode = List->Tail = Node;
+	List->CachedIndex = ++List->Length;
+}
 
 void ml_list_init() {
 #include "ml_list_init.c"
-	MLListT->Constructor = MLListOfMethod;
-	stringmap_insert(MLListT->Exports, "of", MLListOfMethod);
 #ifdef USE_GENERICS
 	ml_type_add_rule(MLListT, MLIteratableT, MLIntegerT, ML_TYPE_ARG(1), NULL);
 #endif

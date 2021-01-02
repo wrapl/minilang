@@ -625,10 +625,10 @@ ML_FUNCTIONX(XEFunction) {
 	Stream->Data = ml_stringbuffer_get(Source);
 	//printf("Function = %s\n", (char *)Stream->Data);
 	Stream->read = string_read;
-	ml_compiler_t *Compiler = ml_compiler((void *)string_read, Stream, (ml_getter_t)attribute_get, Attributes);
+	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)attribute_get, Attributes, (void *)string_read, Stream);
 	ml_compiler_source(Compiler, ml_debugger_source(Caller));
-	ml_value_state_t *State = ml_value_state_new(Caller->Context);
-	ml_command_evaluate((ml_state_t *)State, Compiler, Globals);
+	ml_result_state_t *State = ml_result_state_new(Caller->Context);
+	ml_command_evaluate((ml_state_t *)State, Compiler);
 	ml_value_t *Macro = State->Value;
 	if (Macro == MLEndOfInput) Macro = ml_error("ParseError", "Empty body");
 	if (ml_is_error(Macro)) ML_RETURN(Macro);
@@ -698,11 +698,11 @@ ML_FUNCTIONX(XEDo) {
 	Stream->Data = ml_stringbuffer_get(Source);
 	//printf("Do = %s\n", (char *)Stream->Data);
 	Stream->read = string_read;
-	ml_compiler_t *Compiler = ml_compiler((void *)string_read, Stream, (ml_getter_t)attribute_get, Attributes);
+	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)attribute_get, Attributes, (void *)string_read, Stream);
 	ml_compiler_source(Compiler, ml_debugger_source(Caller));
-	ml_value_state_t *State = ml_value_state_new(Caller->Context);
+	ml_result_state_t *State = ml_result_state_new(Caller->Context);
 	for (;;) {
-		ml_command_evaluate((ml_state_t *)State, Compiler, Globals);
+		ml_command_evaluate((ml_state_t *)State, Compiler);
 		if (State->Value == MLEndOfInput) break;
 		if (ml_is_error(State->Value)) {
 			Result = State->Value;
@@ -729,12 +729,12 @@ ML_FUNCTIONX(XEDo2) {
 	Stream->Data = ml_stringbuffer_get(Source);
 	//printf("Do = %s\n", (char *)Stream->Data);
 	Stream->read = string_read;
-	ml_compiler_t *Compiler = ml_compiler((void *)string_read, Stream, (ml_getter_t)attribute_get, Attributes);
+	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)attribute_get, Attributes, (void *)string_read, Stream);
 	ml_compiler_source(Compiler, ml_debugger_source(Caller));
 	ml_value_t *Result = MLNil;
-	ml_value_state_t *State = ml_value_state_new(Caller->Context);
+	ml_result_state_t *State = ml_result_state_new(Caller->Context);
 	for (;;) {
-		ml_command_evaluate((ml_state_t *)State, Compiler, Globals);
+		ml_command_evaluate((ml_state_t *)State, Compiler);
 		if (State->Value == MLEndOfInput) break;
 		if (ml_is_error(State->Value)) {
 			Result = State->Value;
@@ -812,14 +812,14 @@ static int xe_attribute_to_string(ml_value_t *Key, ml_value_t *Value, ml_stringb
 	ml_stringbuffer_append(Buffer, Key);
 	ml_stringbuffer_add(Buffer, "=", 1);
 	if (ml_is(Value, XENodeT)) {
-		ml_simple_inline(MLStringBufferAppendMethod, 2, Buffer, Value);
+		ml_stringbuffer_append(Buffer, Value);
 	} else {
 		compile_inline_value(Value, Buffer);
 	}
 	return 0;
 }
 
-ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, XENodeT) {
+ML_METHOD("append", MLStringBufferT, XENodeT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	xe_node_t *Node = (xe_node_t *)Args[1];
 	ml_stringbuffer_add(Buffer, "<", 1);
@@ -830,14 +830,14 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, XENodeT) {
 	if (ml_list_length(Node->Content)) {
 		ml_stringbuffer_add(Buffer, ":", 1);
 		ML_LIST_FOREACH(Node->Content, Iter) {
-			ml_simple_inline(MLStringBufferAppendMethod, 2, Buffer, Iter->Value);
+			ml_stringbuffer_append(Buffer, Iter->Value);
 		}
 	}
 	ml_stringbuffer_add(Buffer, ">", 1);
 	return Args[0];
 }
 
-ML_METHOD(MLStringOfMethod, XENodeT) {
+ML_METHOD(MLStringT, XENodeT) {
 	xe_node_t *Node = (xe_node_t *)Args[0];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_stringbuffer_add(Buffer, "<", 1);
@@ -848,14 +848,14 @@ ML_METHOD(MLStringOfMethod, XENodeT) {
 	if (ml_list_length(Node->Content)) {
 		ml_stringbuffer_add(Buffer, ":", 1);
 		ML_LIST_FOREACH(Node->Content, Iter) {
-			ml_simple_inline(MLStringBufferAppendMethod, 2, Buffer, Iter->Value);
+			ml_stringbuffer_append(Buffer, Iter->Value);
 		}
 	}
 	ml_stringbuffer_add(Buffer, ">", 1);
 	return ml_stringbuffer_value(Buffer);
 }
 
-ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, XEVarT) {
+ML_METHOD("append", MLStringBufferT, XEVarT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	xe_var_t *Var = (xe_var_t *)Args[1];
 	ml_stringbuffer_add(Buffer, "<$", 2);
@@ -864,7 +864,7 @@ ML_METHOD(MLStringBufferAppendMethod, MLStringBufferT, XEVarT) {
 	return Args[0];
 }
 
-ML_METHOD(MLStringOfMethod, XEVarT) {
+ML_METHOD(MLStringT, XEVarT) {
 	xe_var_t *Var = (xe_var_t *)Args[0];
 	if (ml_is(Var->Name, MLIntegerT)) {
 		return ml_string_format("<$%ld>", ml_integer_value_fast(Var->Name));
@@ -982,7 +982,7 @@ static ml_value_t *print(void *Data, int Count, ml_value_t **Args) {
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Result = Args[I];
 		if (!ml_is(Result, MLStringT)) {
-			Result = ml_simple_call(MLStringOfMethod, 1, &Result);
+			Result = ml_simple_call((ml_value_t *)MLStringT, 1, &Result);
 			if (ml_is_error(Result)) return Result;
 			if (!ml_is(Result, MLStringT)) return ml_error("ResultError", "string method did not return string");
 		}

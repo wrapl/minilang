@@ -102,7 +102,7 @@ static ml_value_t *ml_preprocessor_write(FILE *File, int Count, ml_value_t **Arg
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Result = Args[I];
 		if (!ml_is(Result, MLStringT)) {
-			Result = ml_simple_call(MLStringOfMethod, 1, &Result);
+			Result = ml_simple_call((ml_value_t *)MLStringT, 1, &Result);
 			if (ml_is(Result, MLErrorT)) return Result;
 			if (!ml_is(Result, MLStringT)) return ml_error("ResultError", "string method did not return string");
 		}
@@ -152,7 +152,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 	stringmap_insert(Globals, "input", ml_cfunction(Preprocessor, (void *)ml_preprocessor_input));
 	stringmap_insert(Globals, "include", ml_cfunction(Preprocessor, (void *)ml_preprocessor_include));
 	stringmap_insert(Globals, "open", MLFileOpen);
-	ml_compiler_t *Compiler = ml_compiler((void *)ml_preprocessor_line_read, Preprocessor, (ml_getter_t)ml_preprocessor_global_get, Preprocessor);
+	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)ml_preprocessor_global_get, Preprocessor, (void *)ml_preprocessor_line_read, Preprocessor);
 	ml_compiler_source(Compiler, (ml_source_t){InputName, 1});
 	ml_value_t *Semicolon = ml_cstring(";");
 	for (;;) {
@@ -191,7 +191,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 				ml_simple_inline(Preprocessor->Output->Writer, 1, Semicolon);
 			} else {
 				Input->Line = Escape + 1;
-				ml_command_evaluate(MLResultState, Compiler, Globals);
+				ml_command_evaluate(MLResultState, Compiler);
 				Input->Line = ml_compiler_clear(Compiler);
 			}
 		} else {

@@ -8,6 +8,7 @@
 #include "stringmap.h"
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include <gc.h>
 
 #ifdef USE_ML_MATH
@@ -114,7 +115,6 @@ ML_FUNCTIONX(Import) {
 	if (!FileName) ML_RETURN(ml_error("ModuleError", "File %s not found", ml_string_value(Args[0])));
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Modules, FileName);
 	if (!Slot[0]) {
-		printf("Loading %s\n", FileName);
 		const char *Extension = strrchr(FileName, '.');
 		if (!Extension) ML_RETURN(ml_error("ModuleError", "Unknown module type: %s", FileName));
 		if (!strcmp(Extension, ".so")) {
@@ -154,8 +154,11 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "halt", MLHalt);
 	stringmap_insert(Globals, "collect", MLCollect);
 	stringmap_insert(Globals, "callcc", MLCallCC);
-	stringmap_insert(Globals, "mark", MLMark);
+	stringmap_insert(Globals, "markcc", MLMarkCC);
+	stringmap_insert(Globals, "swapcc", MLSwapCC);
 	stringmap_insert(Globals, "context", MLContextKeyT);
+	stringmap_insert(Globals, "compiler", MLCompilerT);
+	stringmap_insert(Globals, "global", ml_stringmap_globals(Globals));
 	stringmap_insert(Globals, "test", MLTest);
 #ifdef USE_ML_CBOR
 	ml_cbor_init(Globals);
@@ -211,35 +214,16 @@ int main(int Argc, const char *Argv[]) {
 		} else if (!FileName) {
 			FileName = Argv[I];
 		} else {
-			ml_list_append(Args, ml_string(Argv[I], -1));
+			ml_list_append(Args, ml_cstring(Argv[I]));
 		}
 	}
 	if (FileName) {
-		ml_value_state_t *State = ml_value_state_new(NULL);
+		ml_call_state_t *State = ml_call_state_new(MLMain, 1);
+		State->Args[0] = Args;
 		ml_load_file((ml_state_t *)State, global_get, NULL, FileName, Parameters);
-		ml_inline(State, State->Value, 1, Args);
-		if (ml_is_error(State->Value)) {
-			printf("%s: %s\n", ml_error_type(State->Value), ml_error_message(State->Value));
-			ml_source_t Source;
-			int Level = 0;
-			while (ml_error_source(State->Value, Level++, &Source)) {
-				printf("\t%s:%d\n", Source.Name, Source.Line);
-			}
-			return 1;
-		}
 #ifdef USE_ML_MODULES
 	} else if (ModuleName) {
-		ml_value_state_t *State = ml_value_state_new(NULL);
-		ml_inline(State, (ml_value_t *)Import, 1, ml_string(ModuleName, -1));
-		if (ml_is_error(State->Value)) {
-			printf("%s: %s\n", ml_error_type(State->Value), ml_error_message(State->Value));
-			ml_source_t Source;
-			int Level = 0;
-			while (ml_error_source(State->Value, Level++, &Source)) {
-				printf("\t%s:%d\n", Source.Name, Source.Line);
-			}
-			return 1;
-		}
+		ml_inline(MLMain, (ml_value_t *)Import, 1, ml_string(ModuleName, -1));
 #endif
 #ifdef USE_ML_GIR
 	} else if (GtkConsole) {
@@ -251,9 +235,5 @@ int main(int Argc, const char *Argv[]) {
 	} else {
 		ml_console((ml_getter_t)stringmap_search, Globals, "--> ", "... ");
 	}
-//	extern uint64_t MLReusedSmallFrames, MLNewSmallFrames, MLNewLargeFrames;
-//	fprintf(stderr, "Reused  %lu small frames\n", MLReusedSmallFrames);
-//	fprintf(stderr, "Allocated %lu small frames\n", MLNewSmallFrames);
-//	fprintf(stderr, "Allocated %lu large frames\n", MLNewLargeFrames);
 	return 0;
 }

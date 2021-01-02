@@ -4,8 +4,14 @@
 #include <string.h>
 #include <stdarg.h>
 
-ML_TYPE(MLArrayT, (MLBufferT, MLIteratableT), "array");
+static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args);
+
+ML_CFUNCTION(MLArray, NULL, ml_array_of_fn);
+
+ML_TYPE(MLArrayT, (MLBufferT, MLIteratableT), "array",
 // Base type for multidimensional arrays.
+	.Constructor = (ml_value_t *)MLArray
+);
 
 /*
 
@@ -590,8 +596,6 @@ ML_METHOD("[]", MLArrayT, MLMapT) {
 	return ml_array_index(Source, Degree, Indices);
 }
 
-static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args);
-
 static char *ml_array_indexv(ml_array_t *Array, va_list Indices) {
 	ml_array_dimension_t *Dimension = Array->Dimensions;
 	char *Address = Array->Base.Address;
@@ -1094,7 +1098,7 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 	ml_stringbuffer_add(Buffer, ">", 1); \
 } \
 \
-ML_METHOD(MLStringOfMethod, ATYPE) { \
+ML_METHOD(MLStringT, ATYPE) { \
 	ml_array_t *Array = (ml_array_t *)Args[0]; \
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT}; \
 	if (Array->Degree == 0) { \
@@ -1256,10 +1260,13 @@ static ml_value_t *ml_array_ ## CTYPE ## _assign(ml_array_t *Target, ml_value_t 
 	return NULL; \
 } \
 \
+ML_CFUNCTIONX(ATYPE ## New, (void *)FORMAT, ml_array_typed_new_fnx); \
+\
 ML_TYPE(ATYPE, (MLArrayT), #CTYPE "-array", \
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
 	.deref = (void *)ml_array_ ## CTYPE ## _deref, \
-	.assign = (void *)ml_array_ ## CTYPE ## _assign \
+	.assign = (void *)ml_array_ ## CTYPE ## _assign, \
+	.Constructor = (ml_value_t *)ATYPE ## New \
 );
 
 typedef ml_value_t *value;
@@ -2635,18 +2642,6 @@ ML_METHOD(".", MLArrayT, MLArrayT) {
 }
 
 void ml_array_init(stringmap_t *Globals) {
-	MLArrayAnyT->Constructor = ml_cfunctionx((void *)ML_ARRAY_FORMAT_ANY, ml_array_typed_new_fnx);
-	MLArrayInt8T->Constructor = ml_cfunctionx((void *)ML_ARRAY_FORMAT_I8, ml_array_typed_new_fnx);
-	MLArrayUInt8T->Constructor = ml_cfunctionx((void *)ML_ARRAY_FORMAT_U8, ml_array_typed_new_fnx);
-	MLArrayInt16T->Constructor = ml_cfunctionx((void *)ML_ARRAY_FORMAT_I16, ml_array_typed_new_fnx);
-	MLArrayUInt16T->Constructor = ml_cfunctionx((void *)ML_ARRAY_FORMAT_U16, ml_array_typed_new_fnx);
-	MLArrayInt32T->Constructor = ml_cfunctionx((void *)ML_ARRAY_FORMAT_I32, ml_array_typed_new_fnx);
-	MLArrayUInt32T->Constructor = ml_cfunctionx((void *)ML_ARRAY_FORMAT_U32, ml_array_typed_new_fnx);
-	MLArrayInt64T->Constructor = ml_cfunctionx((void *)ML_ARRAY_FORMAT_I64, ml_array_typed_new_fnx);
-	MLArrayUInt64T->Constructor = ml_cfunctionx((void *)ML_ARRAY_FORMAT_U64, ml_array_typed_new_fnx);
-	MLArrayFloat32T->Constructor = ml_cfunctionx((void *)ML_ARRAY_FORMAT_F32, ml_array_typed_new_fnx);
-	MLArrayFloat64T->Constructor = ml_cfunctionx((void *)ML_ARRAY_FORMAT_F64, ml_array_typed_new_fnx);
-	MLArrayT->Constructor = ml_cfunction(NULL, ml_array_of_fn);
 #include "ml_array_init.c"
 	ml_method_by_name("set", 0 + (char *)0, update_array_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("add", 1 + (char *)0, update_array_fn, MLArrayT, MLArrayT, NULL);

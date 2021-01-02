@@ -4,8 +4,6 @@
 #include "ml_iterfns.h"
 #include <string.h>
 
-ML_METHOD_DECL(MLMapOf, "map::of");
-
 ML_TYPE(MLMapT, (MLIteratableT), "map",
 // A map of key-value pairs.
 // Keys can be of any type supporting hashing and comparison.
@@ -34,11 +32,11 @@ ml_value_t *ml_map() {
 	return (ml_value_t *)Map;
 }
 
-ML_METHOD(MLMapOfMethod) {
+ML_METHOD(MLMapT) {
 	return ml_map();
 }
 
-ML_METHODV(MLMapOfMethod, MLNamesT) {
+ML_METHODV(MLMapT, MLNamesT) {
 	ml_value_t *Map = ml_map();
 	ml_value_t **Values = Args + 1;
 	ML_NAMES_FOREACH(Args[0], Iter) ml_map_insert(Map, Iter->Value, *Values++);
@@ -71,7 +69,7 @@ static void map_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_METHODVX(MLMapOfMethod, MLIteratableT) {
+ML_METHODVX(MLMapT, MLIteratableT) {
 //<Iteratable
 //>map
 // Returns a map of all the key and value pairs produced by :mini:`Iteratable`.
@@ -112,6 +110,11 @@ static ml_map_node_t *ml_map_find_node(ml_map_t *Map, ml_value_t *Key) {
 ml_value_t *ml_map_search(ml_value_t *Map0, ml_value_t *Key) {
 	ml_map_node_t *Node = ml_map_find_node((ml_map_t *)Map0, Key);
 	return Node ? Node->Value : MLNil;
+}
+
+ml_value_t *ml_map_search0(ml_value_t *Map0, ml_value_t *Key) {
+	ml_map_node_t *Node = ml_map_find_node((ml_map_t *)Map0, Key);
+	return Node ? Node->Value : NULL;
 }
 
 static int ml_map_balance(ml_map_node_t *Node) {
@@ -206,7 +209,7 @@ ml_value_t *ml_map_insert(ml_value_t *Map0, ml_value_t *Key, ml_value_t *Value) 
 	ml_value_t *Old = Node->Value ?: MLNil;
 	Node->Value = Value;
 #ifdef USE_GENERICS
-	if (Map->Size == 1) {
+	if (Map->Size == 1 && Map->Type == MLMapT) {
 		ml_type_t *Types[] = {MLMapT, ml_typeof(Key), ml_typeof(Value)};
 		Map->Type = ml_generic_type(3, Types);
 	} else if (Map->Type->Type == MLGenericTypeT) {
@@ -586,7 +589,7 @@ static int ml_map_stringer(ml_value_t *Key, ml_value_t *Value, ml_map_stringer_t
 	return 0;
 }
 
-ML_METHOD(MLStringOfMethod, MLMapT) {
+ML_METHOD(MLStringT, MLMapT) {
 //<Map
 //>string
 // Returns a string containing the entries of :mini:`Map` surrounded by :mini:`{`, :mini:`}` with :mini:`is` between keys and values and :mini:`,` between entries.
@@ -604,7 +607,7 @@ ML_METHOD(MLStringOfMethod, MLMapT) {
 	return ml_string(ml_stringbuffer_get(Stringer->Buffer), -1);
 }
 
-ML_METHOD(MLStringOfMethod, MLMapT, MLStringT, MLStringT) {
+ML_METHOD(MLStringT, MLMapT, MLStringT, MLStringT) {
 //<Map
 //<Seperator
 //<Connector
@@ -690,8 +693,6 @@ ML_METHOD("sort", MLMapT, MLFunctionT) {
 
 void ml_map_init() {
 #include "ml_map_init.c"
-	MLMapT->Constructor = MLMapOfMethod;
-	stringmap_insert(MLMapT->Exports, "of", MLMapOfMethod);
 #ifdef USE_GENERICS
 	ml_type_add_rule(MLMapT, MLIteratableT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 #endif

@@ -177,7 +177,7 @@ typedef struct ml_onion_connection_status_t {
 
 static ml_type_t *OnionConnectionStatusT;
 
-ML_METHOD(MLStringOfMethod, OnionConnectionStatusT) {
+ML_METHOD(MLStringT, OnionConnectionStatusT) {
 	ml_onion_connection_status_t *Status = (ml_onion_connection_status_t *)Args[0];
 	return ml_string(Status->Name, -1);
 }

@@ -3,15 +3,8 @@
 #include "ml_macros.h"
 #include <string.h>
 
-ML_METHOD_DECL(MLMethodOf, "method::of");
-
 typedef struct ml_method_cached_t ml_method_cached_t;
 typedef struct ml_method_definition_t ml_method_definition_t;
-
-struct ml_method_t {
-	ml_type_t *Type;
-	const char *Name;
-};
 
 struct ml_methods_t {
 	ml_methods_t *Parent;
@@ -249,13 +242,13 @@ ml_value_t *ml_method_anon(const char *Name) {
 	return (ml_value_t *)Method;
 }
 
-ML_METHOD(MLMethodOfMethod) {
+ML_METHOD(MLMethodT) {
 //!method
 //>method
 	return ml_method(NULL);
 }
 
-ML_METHOD(MLMethodOfMethod, MLStringT) {
+ML_METHOD(MLMethodT, MLStringT) {
 //!method
 //<Name
 //>method
@@ -327,7 +320,7 @@ void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_t
 	ml_method_insert(MLRootMethods, Method, Function, Count, 1, Types);
 }
 
-ML_METHOD(MLStringOfMethod, MLMethodT) {
+ML_METHOD(MLStringT, MLMethodT) {
 //!method
 //>string
 	ml_method_t *Method = (ml_method_t *)Args[0];
@@ -403,8 +396,6 @@ ML_FUNCTIONX(MLMethodSet) {
 void ml_method_init() {
 	ml_context_set(&MLRootContext, ML_METHODS_INDEX, MLRootMethods);
 #include "ml_method_init.c"
-	MLMethodT->Constructor = MLMethodOfMethod;
-	stringmap_insert(MLMethodT->Exports, "of", MLMethodOfMethod);
 	stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
-	ml_method_by_value(MLMethodOfMethod, NULL, ml_identity, MLMethodT, NULL);
+	ml_method_by_value(MLMethodT->Constructor, NULL, ml_identity, MLMethodT, NULL);
 }

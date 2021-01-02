@@ -89,14 +89,13 @@ scope("kiwi";) do
 end
 
 scope("mpc";) do
-	var MPC := file("mpc") => fun(Dir) do
-		Dir:rmdir
+	var Dir := file("mpc")
+	Dir:exists or do
 		execute("git clone https://github.com/orangeduck/mpc.git", Dir)
-		execute("cat", PATH/"mpc_extra.c", " >> ", Dir/"mpc.c")
+		execute("cat", file("mpc_extra.c"), " >> ", Dir/"mpc.c")
 	end
-	PREBUILDS := old + [MPC]
 	generate_init_file(file("ml_mpc.c"))
-	DEFAULT[minilang_lib(LIB_DIR / "ml_mpc.so", [file("ml_mpc.o"), MPC/"mpc.o"])]
+	DEFAULT[minilang_lib(LIB_DIR / "ml_mpc.so", [file("ml_mpc.o"), Dir/"mpc.o"])]
 end
 
 nil and scope("facil";) do

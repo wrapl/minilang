@@ -28,7 +28,7 @@ int ml_context_index_new();
 
 void ml_context_set(ml_context_t *Context, int Index, void *Value);
 
-typedef void (*ml_state_fn)(ml_state_t *, ml_value_t *);
+typedef void (*ml_state_fn)(ml_state_t *State, ml_value_t *Result);
 
 struct ml_state_t {
 	ml_type_t *Type;
@@ -43,22 +43,29 @@ ml_state_t *ml_state_new(ml_state_t *Caller);
 
 void ml_default_state_run(ml_state_t *State, ml_value_t *Value);
 
+extern ml_state_t MLMain[];
+
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Value;
-} ml_value_state_t;
+} ml_result_state_t;
 
-void ml_value_state_run(ml_value_state_t *State, ml_value_t *Value);
-ml_value_state_t *ml_value_state_new(ml_context_t *Context) __attribute__ ((malloc));
+void ml_result_state_run(ml_result_state_t *State, ml_value_t *Value);
+ml_result_state_t *ml_result_state_new(ml_context_t *Context) __attribute__ ((malloc));
 
-void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value);
-ml_value_state_t *ml_call_state_new(ml_context_t *Context) __attribute__ ((malloc));
+
+typedef struct {
+	ml_state_t Base;
+	int Count;
+	ml_value_t *Args[];
+} ml_call_state_t;
+
+ml_call_state_t *ml_call_state_new(ml_state_t *Caller, int Count) __attribute__ ((malloc));
 
 ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args);
 
 #define ml_simple_inline(VALUE, COUNT, ARGS ...) ({ \
-	void *Args ## __LINE__[COUNT] = {ARGS}; \
-	ml_simple_call(VALUE, COUNT, (ml_value_t **)(Args ## __LINE__)); \
+	ml_simple_call((ml_value_t *)VALUE, COUNT, (ml_value_t **)(void *[]){ARGS}); \
 })
 
 void ml_runtime_init();
@@ -68,8 +75,8 @@ void ml_runtime_init();
 extern ml_type_t MLReferenceT[];
 extern ml_type_t MLUninitializedT[];
 
-typedef ml_value_t *(*ml_getter_t)(void *Data, const char *Name);
-typedef ml_value_t *(*ml_setter_t)(void *Data, const char *Name, ml_value_t *Value);
+typedef ml_value_t *(*ml_getter_t)(void *Globals, const char *Name);
+typedef ml_value_t *(*ml_setter_t)(void *Globals, const char *Name, ml_value_t *Value);
 
 typedef struct ml_reference_t ml_reference_t;
 

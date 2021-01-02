@@ -67,7 +67,7 @@ static int field_string(const char *Name, void *Offset, ml_object_stringer_t *St
 	return 0;
 }
 
-ML_METHOD(MLStringOfMethod, MLObjectT) {
+ML_METHOD(MLStringT, MLObjectT) {
 	ml_object_t *Object = (ml_object_t *)Args[0];
 	ml_class_t *Class = (ml_class_t *)Object->Type;
 	ml_object_stringer_t Stringer = {Object, {ML_STRINGBUFFER_INIT}, 0};
@@ -291,7 +291,6 @@ ML_FUNCTIONX(MLClass) {
 					} else if (!strcmp(Name, "init")) {
 						Class->Initializer = Value;
 						Class->Base.Constructor = ml_cfunctionx(Class, (void *)ml_named_initializer_fn);
-
 					}
 				}
 				break;
@@ -475,8 +474,10 @@ ML_METHOD("count", MLEnumT) {
 
 void ml_object_init(stringmap_t *Globals) {
 #include "ml_object_init.c"
-	stringmap_insert(Globals, "property", MLPropertyT);
-	stringmap_insert(Globals, "object", MLObjectT);
-	stringmap_insert(Globals, "class", MLClassT);
-	stringmap_insert(Globals, "enum", MLEnumT);
+	if (Globals) {
+		stringmap_insert(Globals, "property", MLPropertyT);
+		stringmap_insert(Globals, "object", MLObjectT);
+		stringmap_insert(Globals, "class", MLClassT);
+		stringmap_insert(Globals, "enum", MLEnumT);
+	}
 }

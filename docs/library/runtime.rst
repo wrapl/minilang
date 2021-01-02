@@ -9,7 +9,9 @@ runtime
 
 :mini:`fun mlcallcc()`
 
-:mini:`fun mlmark(Arg₁: any)`
+:mini:`fun mlmarkcc(Arg₁: any)`
+
+:mini:`fun mlswapcc(Arg₁: state)`
 
 :mini:`def reference`
 

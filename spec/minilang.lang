@@ -143,7 +143,8 @@
       <keyword>raise</keyword>
       <keyword>halt</keyword>
       <keyword>callcc</keyword>
-      <keyword>mark</keyword>
+      <keyword>markcc</keyword>
+      <keyword>swapcc</keyword>
       <keyword>context</keyword>
       <keyword>filter</keyword>
       <keyword>first</keyword>
@@ -172,6 +173,8 @@
       <keyword>property</keyword>
       <keyword>true</keyword>
       <keyword>false</keyword>
+      <keyword>import</keyword>
+      <keyword>export</keyword>
     </context>
     <context id="types" style-ref="type">
       <keyword>class</keyword>

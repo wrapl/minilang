@@ -1874,28 +1874,30 @@ void ml_iterfns_init(stringmap_t *Globals) {
 	FilterNil->Type = FilterT;
 	FilterNil->Function = ml_integer(1);
 #include "ml_iterfns_init.c"
-	stringmap_insert(Globals, "filter", Filter);
-	stringmap_insert(Globals, "first", First);
-	stringmap_insert(Globals, "first2", First2);
-	stringmap_insert(Globals, "last", Last);
-	stringmap_insert(Globals, "last2", Last2);
-	stringmap_insert(Globals, "all", All);
-	stringmap_insert(Globals, "count", Count);
-	stringmap_insert(Globals, "count2", Count2);
-	stringmap_insert(Globals, "reduce", Reduce);
-	stringmap_insert(Globals, "min", Min);
-	stringmap_insert(Globals, "max", Max);
-	stringmap_insert(Globals, "sum", Sum);
-	stringmap_insert(Globals, "prod", Prod);
-	stringmap_insert(Globals, "reduce2", Reduce2);
-	stringmap_insert(Globals, "min2", Min2);
-	stringmap_insert(Globals, "max2", Max2);
-	stringmap_insert(Globals, "parallel", Parallel);
-	stringmap_insert(Globals, "unique", Unique);
-	stringmap_insert(Globals, "tasks", MLTasksT);
-	stringmap_insert(Globals, "zip", Zip);
-	stringmap_insert(Globals, "pair", Pair);
-	stringmap_insert(Globals, "weave", Weave);
-	stringmap_insert(Globals, "swap", Swap);
-	stringmap_insert(Globals, "key", Key);
+	if (Globals) {
+		stringmap_insert(Globals, "filter", Filter);
+		stringmap_insert(Globals, "first", First);
+		stringmap_insert(Globals, "first2", First2);
+		stringmap_insert(Globals, "last", Last);
+		stringmap_insert(Globals, "last2", Last2);
+		stringmap_insert(Globals, "all", All);
+		stringmap_insert(Globals, "count", Count);
+		stringmap_insert(Globals, "count2", Count2);
+		stringmap_insert(Globals, "reduce", Reduce);
+		stringmap_insert(Globals, "min", Min);
+		stringmap_insert(Globals, "max", Max);
+		stringmap_insert(Globals, "sum", Sum);
+		stringmap_insert(Globals, "prod", Prod);
+		stringmap_insert(Globals, "reduce2", Reduce2);
+		stringmap_insert(Globals, "min2", Min2);
+		stringmap_insert(Globals, "max2", Max2);
+		stringmap_insert(Globals, "parallel", Parallel);
+		stringmap_insert(Globals, "unique", Unique);
+		stringmap_insert(Globals, "tasks", MLTasksT);
+		stringmap_insert(Globals, "zip", Zip);
+		stringmap_insert(Globals, "pair", Pair);
+		stringmap_insert(Globals, "weave", Weave);
+		stringmap_insert(Globals, "swap", Swap);
+		stringmap_insert(Globals, "key", Key);
+	}
 }
