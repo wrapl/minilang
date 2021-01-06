@@ -85,7 +85,10 @@ struct DEBUG_STRUCT(frame) {
 };
 
 static void DEBUG_FUNC(continuation_call)(ml_state_t *Caller, DEBUG_STRUCT(frame) *Frame, int Count, ml_value_t **Args) {
+	if (Frame->Suspend) ML_ERROR("StateError", "Cannot call suspended function");
 	Frame->Reuse = 0;
+	Frame->Base.Caller = Caller;
+	Frame->Base.Context = Caller->Context;
 	return Frame->Base.run((ml_state_t *)Frame, Count ? Args[0] : MLNil);
 }
 
@@ -139,9 +142,8 @@ static void ML_TYPED_FN(ml_iter_key, DEBUG_TYPE(Continuation), ml_state_t *Calle
 
 static void ML_TYPED_FN(ml_iter_next, DEBUG_TYPE(Continuation), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
 	if (!Suspension->Suspend) ML_CONTINUE(Caller, MLNil);
-	Suspension->Base.Type = DEBUG_TYPE(Continuation);
-	Suspension->Top[-2] = Suspension->Top[-1];
-	--Suspension->Top;
+	//Suspension->Top[-2] = Suspension->Top[-1];
+	//--Suspension->Top;
 	Suspension->Base.Caller = Caller;
 	Suspension->Base.Context = Caller->Context;
 	ML_CONTINUE(Suspension, MLNil);
@@ -213,16 +215,6 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 #ifdef USE_ML_SCHEDULER
 	int Counter = Frame->Schedule.Counter[0];
-#endif
-#ifdef ML_USE_INST_FNS
-#ifndef DEBUG_VERSION
-	if (ml_is_error(Result)) {
-		ml_error_trace_add(Result, (ml_source_t){Frame->Source, Frame->Inst->LineNo});
-		return Frame->OnError->run(Frame, Result, Frame->Top, Frame->OnError);
-	} else {
-		return Frame->Inst->run(Frame, Result, Frame->Top, Frame->Inst);
-	}
-#endif
 #endif
 	static void *Labels[] = {
 		[MLI_RETURN] = &&DO_RETURN,
@@ -323,6 +315,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_RESUME: {
 		Frame->Suspend = 0;
+		*--Top = 0;
 		*--Top = 0;
 		ADVANCE(0);
 	}
@@ -1088,10 +1081,6 @@ static const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INST_VALUE_VALUE // MLI_RESOLVE
 };
 
-#ifdef ML_USE_INST_FNS
-extern ml_inst_fn_t MLInstFns[];
-#endif
-
 static void ml_inst_process(int Process, ml_inst_t *Source, ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) {
 	if (!Source || (Source->LineNo != Inst->LineNo)) Inst->PotentialBreakpoint = 1;
 	if (Inst->LineNo > Info->End) Info->End = Inst->LineNo;
@@ -1107,9 +1096,6 @@ static void ml_inst_process(int Process, ml_inst_t *Source, ml_inst_t *Inst, ml_
 		Inst->Opcode = MLI_NIL_PUSH;
 		Inst->Params[0].Inst = Inst->Params[0].Inst->Params[0].Inst;
 	}
-#ifdef ML_USE_INST_FNS
-	Inst->run = MLInstFns[Inst->Opcode];
-#endif
 	Info->Hash[I] ^= Inst->Opcode;
 	Info->Hash[J] ^= (Inst->Opcode << 4);
 	switch (MLInstTypes[Inst->Opcode]) {

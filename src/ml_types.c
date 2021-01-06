@@ -543,11 +543,6 @@ long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain) {
 
 #ifdef USE_NANBOXING
 
-typedef struct {
-	const ml_type_t *Type;
-	int64_t Value;
-} ml_int64_t;
-
 #define NegOne ml_int32(-1)
 #define One ml_int32(1)
 #define Zero ml_int32(0)
@@ -780,6 +775,24 @@ ml_value_t *ml_cfunction(void *Data, ml_callback_t Callback) {
 	return (ml_value_t *)Function;
 }
 
+static void ml_cfunction_noderef_call(ml_state_t *Caller, ml_cfunction_t *Function, int Count, ml_value_t **Args) {
+	for (int I = 0; I < Count; ++I) Args[I] = ml_deref(Args[I]);
+	ML_RETURN((Function->Callback)(Function->Data, Count, Args));
+}
+
+ML_TYPE(MLCFunctionNoDerefT, (MLFunctionT), "c-function",
+//!internal
+	.call = (void *)ml_cfunction_noderef_call
+);
+
+ml_value_t *ml_cfunction_noderef(void *Data, ml_callback_t Callback) {
+	ml_cfunction_t *Function = new(ml_cfunction_t);
+	Function->Type = MLCFunctionNoDerefT;
+	Function->Data = Data;
+	Function->Callback = Callback;
+	return (ml_value_t *)Function;
+}
+
 static void ML_TYPED_FN(ml_iterate, MLCFunctionT, ml_state_t *Caller, ml_cfunction_t *Function) {
 	ML_RETURN((Function->Callback)(Function->Data, 0, NULL));
 }
@@ -797,6 +810,23 @@ ML_TYPE(MLCFunctionXT, (MLFunctionT), "c-functionx",
 ml_value_t *ml_cfunctionx(void *Data, ml_callbackx_t Callback) {
 	ml_cfunctionx_t *Function = new(ml_cfunctionx_t);
 	Function->Type = MLCFunctionXT;
+	Function->Data = Data;
+	Function->Callback = Callback;
+	return (ml_value_t *)Function;
+}
+
+static void ml_cfunctionz_call(ml_state_t *Caller, ml_cfunctionx_t *Function, int Count, ml_value_t **Args) {
+	return (Function->Callback)(Caller, Function->Data, Count, Args);
+}
+
+ML_TYPE(MLCFunctionZT, (MLFunctionT), "c-functionx",
+//!internal
+	.call = (void *)ml_cfunctionz_call
+);
+
+ml_value_t *ml_cfunctionz(void *Data, ml_callbackx_t Callback) {
+	ml_cfunctionx_t *Function = new(ml_cfunctionx_t);
+	Function->Type = MLCFunctionZT;
 	Function->Data = Data;
 	Function->Callback = Callback;
 	return (ml_value_t *)Function;
@@ -2103,6 +2133,18 @@ void ml_init() {
 	ml_bytecode_init();
 }
 
+ML_FUNCTIONZ(MLExchange) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_value_t *New = ml_deref(Args[0]);
+	for (int I = Count; --I >= 0;) {
+		ml_value_t *Old = ml_deref(Args[I]);
+		ml_value_t *Error = ml_assign(Args[I], New);
+		if (ml_is_error(Error)) ML_RETURN(Error);
+		New = Old;
+	}
+	ML_RETURN(New);
+}
+
 void ml_types_init(stringmap_t *Globals) {
 	if (Globals) {
 		stringmap_insert(Globals, "any", MLAnyT);
@@ -2124,5 +2166,6 @@ void ml_types_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "list", MLListT);
 		stringmap_insert(Globals, "names", MLNamesT);
 		stringmap_insert(Globals, "map", MLMapT);
+		stringmap_insert(Globals, "exchange", MLExchange);
 	}
 }

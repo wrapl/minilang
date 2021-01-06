@@ -163,7 +163,7 @@ void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
 		if (List->Type->Type == MLGenericTypeT) {
 			ml_type_t *Type = ml_generic_type_args(List->Type)[1];
 			if (Type != ml_typeof(Value)) {
-				ml_type_t *Type2 = ml_type_max(Type, Value->Type);
+				ml_type_t *Type2 = ml_type_max(Type, ml_typeof(Value));
 				if (Type != Type2) {
 					ml_type_t *Types[] = {MLListT, Type2};
 					List->Type = ml_generic_type(2, Types);
@@ -197,7 +197,7 @@ void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 		if (List->Type->Type == MLGenericTypeT) {
 			ml_type_t *Type = ml_generic_type_args(List->Type)[1];
 			if (Type != ml_typeof(Value)) {
-				ml_type_t *Type2 = ml_type_max(Type, Value->Type);
+				ml_type_t *Type2 = ml_type_max(Type, ml_typeof(Value));
 				if (Type != Type2) {
 					ml_type_t *Types[] = {MLListT, Type2};
 					List->Type = ml_generic_type(2, Types);

@@ -40,6 +40,29 @@ ML_METHOD("^", MLIntegerT, MLIntegerT) {
 	}
 }
 
+ML_METHOD("!", MLIntegerT) {
+	int N = ml_integer_value(Args[0]);
+	if (N > 20) return ml_error("RangeError", "Factorials over 20 are not supported yet");
+	int64_t F = N;
+	while (--N > 1) F *= N;
+	return ml_integer(F);
+}
+
+#define MIN(X, Y) (X < Y) ? X : Y
+
+ML_METHOD("!", MLIntegerT, MLIntegerT) {
+	int N = ml_integer_value(Args[0]);
+	int K = ml_integer_value(Args[1]);
+	if (K > 20) return ml_error("RangeError", "Factorials over 20 are not supported yet");
+	int64_t C = 1;
+	if (K > N - K) K = N - K;
+	for (int I = 0; I < K; ++I) {
+		C *= (N - I);
+		C /= (I + 1);
+	}
+	return ml_integer(C);
+}
+
 MATH_REAL(Acos, acos);
 MATH_REAL(Asin, asin);
 MATH_REAL(Atan, atan);
@@ -72,7 +95,7 @@ MATH_REAL(Log1p, log1p);
 MATH_REAL_REAL(Rem, remainder);
 MATH_REAL(Round, rint);
 
-ML_FUNCTION(RandomInteger) {
+ML_FUNCTION(IntegerRandom) {
 //@integer::random
 //<Min?:number
 //<Max?:number
@@ -102,7 +125,51 @@ ML_FUNCTION(RandomInteger) {
 	}
 }
 
-ML_FUNCTION(RandomReal) {
+ML_FUNCTION(IntegerPermutation) {
+//@integer::permutation
+//<Max:number
+	ML_CHECK_ARG_TYPE(0, MLNumberT);
+	int Limit = ml_integer_value(Args[0]);
+	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
+	ml_value_t *Permutation = ml_list();
+	ml_list_put(Permutation, ml_integer(1));
+	for (int I = 2; I <= Limit; ++I) {
+		int Divisor = RAND_MAX / I, J;
+		do J = random() / Divisor; while (J > I);
+		++J;
+		if (J == I) {
+			ml_list_put(Permutation, ml_integer(I));
+		} else {
+			ml_value_t *Old = ml_list_get(Permutation, J);
+			ml_list_set(Permutation, J, ml_integer(I));
+			ml_list_put(Permutation, Old);
+		}
+	}
+	return Permutation;
+}
+
+ML_FUNCTION(IntegerCycle) {
+//@integer::permutation
+//<Max:number
+	ML_CHECK_ARG_TYPE(0, MLNumberT);
+	int Limit = ml_integer_value(Args[0]);
+	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
+	ml_value_t *Permutation = ml_list();
+	ml_list_put(Permutation, ml_integer(1));
+	if (Limit == 1) return Permutation;
+	ml_list_push(Permutation, ml_integer(2));
+	for (int I = 2; I < Limit; ++I) {
+		int Divisor = RAND_MAX / I, J;
+		do J = random() / Divisor; while (J > I);
+		++J;
+		ml_value_t *Old = ml_list_get(Permutation, J);
+		ml_list_set(Permutation, J, ml_integer(I + 1));
+		ml_list_put(Permutation, Old);
+	}
+	return Permutation;
+}
+
+ML_FUNCTION(RealRandom) {
 //@real::random
 //<Min?:number
 //<Max?:number
@@ -130,8 +197,10 @@ ML_FUNCTION(RandomReal) {
 void ml_math_init(stringmap_t *Globals) {
 	srandom(time(NULL));
 #include "ml_math_init.c"
-	stringmap_insert(MLIntegerT->Exports, "random", RandomInteger);
-	stringmap_insert(MLRealT->Exports, "random", RandomReal);
+	stringmap_insert(MLIntegerT->Exports, "random", IntegerRandom);
+	stringmap_insert(MLIntegerT->Exports, "permutation", IntegerPermutation);
+	stringmap_insert(MLIntegerT->Exports, "cycle", IntegerCycle);
+	stringmap_insert(MLRealT->Exports, "random", RealRandom);
 	if (Globals) {
 		stringmap_insert(Globals, "math", ml_module("math",
 			"acos", AcosMethod,

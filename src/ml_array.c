@@ -525,6 +525,25 @@ ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **Indices) 
 			TargetDimension->Stride = SourceDimension->Stride;
 			Address += SourceDimension->Stride * First;
 			++TargetDimension;
+		} else if (ml_is(Index, MLArrayT)) {
+			ml_array_t *IndexArray = (ml_array_t *)Index;
+			if (IndexArray->Degree != 1) return ml_error("IndexError", "Index array must have degree 1");
+			int Size = TargetDimension->Size = IndexArray->Dimensions[0].Size;
+			if (!Size) return ml_error("IndexError", "Empty dimension");
+			int *Indices = TargetDimension->Indices = (int *)GC_MALLOC_ATOMIC(Size * sizeof(int));
+			int *IndexPtr = Indices;
+			for (int I = 0; I < Size; ++I) {
+				int IndexValue = ml_array_get_int32_t(IndexArray, I);
+				if (IndexValue <= 0) IndexValue += SourceDimension->Size + 1;
+				if (--IndexValue < 0) return MLNil;
+				if (IndexValue >= SourceDimension->Size) return MLNil;
+				*IndexPtr++ = IndexValue;
+			}
+			int First = Indices[0];
+			for (int I = 0; I < Size; ++I) Indices[I] -= First;
+			TargetDimension->Stride = SourceDimension->Stride;
+			Address += SourceDimension->Stride * First;
+			++TargetDimension;
 		} else if (ml_is(Index, MLIntegerRangeT)) {
 			ml_integer_range_t *IndexValue = (ml_integer_range_t *)Index;
 			Min = IndexValue->Start;

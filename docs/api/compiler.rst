@@ -14,7 +14,7 @@ Compiler
    
    Signature for callbacks for reading input for a compiler. If the end of input is reached, :c:expr:`NULL` should be returned.
    
-.. c:function:: ml_compiler_t *ml_compiler(ml_reader_t Read, void *Data, ml_getter_t GlobalGet, void *Globals);
+.. c:function:: ml_compiler_t *ml_compiler(ml_getter_t GlobalGet, void *Globals, ml_reader_t Read, void *Input);
 
    Creates a new :c:type:`ml_compiler_t`.
 

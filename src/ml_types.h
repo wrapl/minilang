@@ -128,6 +128,14 @@ ml_type_t *ml_type_max(ml_type_t *Type1, ml_type_t *Type2);
 
 #ifdef USE_NANBOXING
 
+extern ml_type_t MLInt32T[];
+extern ml_type_t MLInt64T[];
+extern ml_type_t MLDoubleT[];
+
+static inline int ml_tag(const ml_value_t *Value) {
+	return (uint64_t)Value >> 48;
+}
+
 static inline ml_type_t *ml_typeof(const ml_value_t *Value) {
 	unsigned Tag = ml_tag(Value);
 	if (__builtin_expect(Tag == 0, 1)) {
@@ -156,6 +164,10 @@ static inline ml_type_t *ml_typeof(const ml_value_t *Value) {
 	return Value->Type;
 }
 
+static inline ml_value_t *ml_deref(ml_value_t *Value) {
+	return Value->Type->deref(Value);
+}
+
 #endif
 
 static inline int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
@@ -169,13 +181,8 @@ static inline int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
 
 long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain);
 
-
 static inline long ml_hash(ml_value_t *Value) {
 	return ml_hash_chain(Value, NULL);
-}
-
-static inline ml_value_t *ml_deref(ml_value_t *Value) {
-	return Value->Type->deref(Value);
 }
 
 static inline ml_value_t *ml_assign(ml_value_t *Value, ml_value_t *Value2) {
@@ -244,11 +251,14 @@ struct ml_cfunctionx_t {
 
 extern ml_type_t MLCFunctionT[];
 extern ml_type_t MLCFunctionXT[];
+extern ml_type_t MLCFunctionZT[];
 extern ml_type_t MLPartialFunctionT[];
 
 #define ML_CFUNCTION(NAME, DATA, CALLBACK) static ml_cfunction_t NAME[1] = {{MLCFunctionT, CALLBACK, DATA}}
 
 #define ML_CFUNCTIONX(NAME, DATA, CALLBACK) static ml_cfunctionx_t NAME[1] = {{MLCFunctionXT, CALLBACK, DATA}}
+
+#define ML_CFUNCTIONZ(NAME, DATA, CALLBACK) static ml_cfunctionx_t NAME[1] = {{MLCFunctionZT, CALLBACK, DATA}}
 
 extern ml_cfunctionx_t MLCallCC[];
 extern ml_cfunctionx_t MLMarkCC[];
@@ -259,6 +269,7 @@ extern ml_cfunction_t MLContextKey[];
 
 ml_value_t *ml_cfunction(void *Data, ml_callback_t Function) __attribute__((malloc));
 ml_value_t *ml_cfunctionx(void *Data, ml_callbackx_t Function) __attribute__((malloc));
+ml_value_t *ml_cfunctionz(void *Data, ml_callbackx_t Function) __attribute__((malloc));
 
 ml_value_t *ml_return_nil(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_identity(void *Data, int Count, ml_value_t **Args);
@@ -281,6 +292,14 @@ ml_cfunctionx_t NAME[1] = {{MLCFunctionXT, FUNCTION, NULL}}; \
 static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args)
 
 #define ML_FUNCTIONX(NAME, TYPES ...) ML_FUNCTIONX2(NAME, CONCAT3(ml_cfunctionx_, __LINE__, __COUNTER__))
+
+#define ML_FUNCTIONZ2(NAME, FUNCTION) static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args); \
+\
+ml_cfunctionx_t NAME[1] = {{MLCFunctionZT, FUNCTION, NULL}}; \
+\
+static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args)
+
+#define ML_FUNCTIONZ(NAME, TYPES ...) ML_FUNCTIONZ2(NAME, CONCAT3(ml_cfunctionx_, __LINE__, __COUNTER__))
 
 #define ML_CHECK_ARG_TYPE(N, TYPE) \
 	if (!ml_is(Args[N], TYPE)) { \
@@ -369,14 +388,6 @@ extern ml_type_t MLNumberT[];
 extern ml_type_t MLIntegerT[];
 extern ml_type_t MLRealT[];
 
-#ifdef USE_NANBOXING
-
-extern ml_type_t MLInt32T[];
-extern ml_type_t MLInt64T[];
-extern ml_type_t MLDoubleT[];
-
-#endif
-
 ml_value_t *ml_integer(long Value) __attribute__((malloc));
 ml_value_t *ml_real(double Value) __attribute__((malloc));
 
@@ -385,9 +396,10 @@ double ml_real_value(const ml_value_t *Value) __attribute__ ((const));
 
 #ifdef USE_NANBOXING
 
-static inline int ml_tag(const ml_value_t *Value) {
-	return (uint64_t)Value >> 48;
-}
+typedef struct {
+	const ml_type_t *Type;
+	int64_t Value;
+} ml_int64_t;
 
 static inline int ml_is_int32(ml_value_t *Value) {
 	return ml_tag(Value) == 1;
@@ -408,12 +420,13 @@ static inline double ml_to_double(const ml_value_t *Value) {
 	return Boxed.Double;
 }
 
-inline long ml_integer_value_fast(const ml_value_t *Value) {
-	return ml_integer_value(Value);
+static inline long ml_integer_value_fast(const ml_value_t *Value) {
+	if (ml_tag(Value) == 1) return (int32_t)(intptr_t)Value;
+	return ((ml_int64_t *)Value)->Value;
 }
 
-inline double ml_real_value_fast(const ml_value_t *Value) {
-	return ml_real_value(Value);
+static inline double ml_real_value_fast(const ml_value_t *Value) {
+	return ml_to_double(Value);
 }
 
 #else

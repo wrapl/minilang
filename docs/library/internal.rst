@@ -65,6 +65,8 @@ internal
 
 :mini:`def errorvalue`
 
+:mini:`fun mlchannel()`
+
 :mini:`def stringiterator`
 
 :mini:`def tableiter`
@@ -79,7 +81,11 @@ internal
 
 :mini:`def cfunction < function`
 
+:mini:`def cfunctionnoderef < function`
+
 :mini:`def cfunctionx < function`
+
+:mini:`def cfunctionz < function`
 
 :mini:`meth $(Arg₁: partialfunction, Arg₂: any)`
 

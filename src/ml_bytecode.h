@@ -125,12 +125,7 @@ typedef enum {
 
 typedef struct ml_frame_t ml_frame_t;
 
-typedef void (*ml_inst_fn_t)(ml_frame_t *Frame, ml_value_t *Result, ml_value_t **Top, ml_inst_t *Inst);
-
 struct ml_inst_t {
-#ifdef ML_USE_INST_FNS
-	ml_inst_fn_t run;
-#endif
 	ml_opcode_t Opcode:8;
 	unsigned int PotentialBreakpoint:1;
 	unsigned int Processed:1;

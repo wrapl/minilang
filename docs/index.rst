@@ -50,9 +50,10 @@ Details
    :maxdepth: 2
    
    /start
+   /embedding
    /language
    /types
-   /embedding
+   /extending
    /api
    /internals
 

@@ -1,10 +1,32 @@
 Embedding
 =========
 
-.. warning::
-   Minilang uses the `Hans-Boehm conservative garbage collector <https://github.com/ivmai/bdwgc>`_. This simplifies memory management in most cases, but may not be compatible with all use cases. In the future, the option to use a different form of memory management may be added to Minilang.
+Since Minilang has been designed to support a wide range of use cases, it provides a rich API for embedding into C or C++ applications. In general, an application only needs to include ``minilang/minilang.h`` and link to ``libminilang.a`` and ``libgc.a`` to use Minilang.
 
-Since Minilang has been designed to support a wide range of use cases, it provides a rich API for embedding into C or C++ applications.
+Memory Management
+-----------------
+
+Minilang uses the `Hans-Boehm conservative garbage collector <https://github.com/ivmai/bdwgc>`_. This simplifies memory management in most cases, but may not be compatible with all use cases. In the future, the option to use a different form of memory management may be added to Minilang.
+
+All memory that is passed to Minilang or is used to store Minilang values should be allocated with the garbage collector in order to ensure that memory does not leak and that Minilang values are not prematurely collected. For more complex uses (e.g. storing Minilang values in non-gc allocated memory or using finalizers to clean up resources when Minilang values are collected), the application can use the garbage collector API directly.
+
+A number of macros are defined in ``minilang/ml_macros.h`` which simply allocating memory for structs and arrays. This header file is not included automatically (in order to avoid conflicts with C++ code, and to keep application header files clean).
+
+.. c:macro:: new(T)
+
+   Returns a block of memory of :c:expr:`sizeof(T)` bytes, cast to :c:expr:`T *`. Used for allocating single values / structs.
+
+.. c:macro:: anew(T, N)
+
+   Returns a block of memory of :c:expr:`N * sizeof(T)` bytes, cast to :c:expr:`T *`. Used for allocating arrays of values / structs.
+
+.. c:macro:: xnew(T, N, U)
+
+   Returns a block of memory of :c:expr:`sizeof(T) + N * sizeof(U)` bytes, cast to :c:expr:`T *`. Used for allocating structs with variable-length arrays (*VLA*'s) as the last field.
+   
+.. c:macro:: snew(N)
+
+   Returns a block of memory of :c:expr:`N` bytes that is expected to remain free of pointers. Used for allocating strings.
 
 Values
 ------
@@ -52,7 +74,7 @@ Tuples, lists, maps and other aggregrate types are covered later.
 Testing Types
 ~~~~~~~~~~~~~
 
-The basic types are defined as :c:expr:`extern ml_type_t[]` values. Although it is possible to use :c:expr:`ml_typeof(Value) == Type` directly, the preferred way to test the type of an :c:struct:`ml_value_t` is to use :c:func:`ml_is` which also checks for subtypes.
+The basic types are defined as :code:`extern ml_type_t[]` values. Although it is possible to use :c:expr:`ml_typeof(Value) == Type` directly, the preferred way to test the type of an :c:struct:`ml_value_t` is to use :c:func:`ml_is` which also checks for subtypes.
 
 .. code-block:: c
 
@@ -238,4 +260,40 @@ Incremental Evaluation
 
 This functions reads in a single expression or declaration and evaluates it within the compiler, running :c:expr:`Caller` with the result. Each compiler maintains its own set of toplevel declarations.
 
-Typically this function is used with :c:func:`ml_compiler_input` to set the input code at each evaluation. Since a single piece of code can contain multiple expressions or declarations, :c:func:`ml_command_evaluate` should be called again within :c:expr:`Caller`'s run function unless the value passed to :c:expr:`Caller->run` is :c:var:`MLEndOfInput`.
+Typically this function is used with :c:func:`ml_compiler_input` to set the input code at each evaluation. Since a single piece of code can contain multiple expressions or declarations, :c:func:`ml_command_evaluate` should be called again within :c:expr:`Caller`'s run function until the value passed to :c:expr:`Caller->run` is :c:var:`MLEndOfInput`.
+
+The following (incomplete) code shows an outline of how to use a Minilang compiler in a read-eval-print-loop (*REPL*).
+
+.. code-block:: c
+
+   #include <minilang/minilang.h>
+   #include <minilang/ml_macros.h>
+
+   typedef struct {
+      ml_state_t Base;
+      ml_compiler_t *Compiler;
+      // ...
+   } repl_state_t;
+
+   static void repl_state_run(repl_state_t *REPL, ml_value_t *Result) {
+      if (Result == MLEndOfInput) return;
+      // Do something with Result (e.g. print to console)
+      ml_command_evaluate((ml_state_t *)REPL, REPL->Compiler);
+   }
+   
+   const char *repl_read_line(repl_state_t *REPL) {
+      // Return next line(s) of input
+   }
+   
+   int main() {
+      ml_init();
+      stringmap_t *Globals = stringmap_new();
+      ml_types_init(Globals);
+      // Initialize other optional features
+      // Add additional globals
+      repl_state_t *REPL = new(repl_state_t);
+      REPL->Base.run = (ml_state_fn)repl_state_run;
+      REPL->Base.Context = &MLRootContext;
+      REPL->Compiler = ml_compiler((ml_getter_t)stringmap_search, Globals, (ml_reader_t)repl_read_line, REPL);
+      ml_command_evaluate((ml_state_t *)REPL, REPL->Compiler);
+   }

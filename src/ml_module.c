@@ -18,16 +18,10 @@ ML_METHODX("::", MLMiniModuleT, MLStringT) {
 	ML_RETURN(Value);
 }
 
-typedef struct ml_export_function_t {
-	ml_type_t *Type;
-	ml_module_t *Module;
-} ml_export_function_t;
-
-static void ml_export_function_call(ml_state_t *Caller, ml_export_function_t *ExportFunction, int Count, ml_value_t **Args) {
+static void ml_export(ml_state_t *Caller, ml_module_t *Module, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLNamesT);
 	int Index = 0;
-	ml_module_t *Module = ExportFunction->Module;
 	ml_value_t *Value = MLNil;
 	ML_NAMES_FOREACH(Args[0], Iter) {
 		const char *Name = ml_string_value(Iter->Value);
@@ -43,10 +37,6 @@ static void ml_export_function_call(ml_state_t *Caller, ml_export_function_t *Ex
 	}
 	ML_RETURN(Value);
 }
-
-ML_TYPE(MLExportFunctionT, (MLFunctionT), "export-function",
-	.call = (void *)ml_export_function_call
-);
 
 typedef struct ml_module_state_t {
 	ml_state_t Base;
@@ -72,16 +62,13 @@ void ml_module_compile(ml_state_t *Caller, ml_compiler_t *Scanner, ml_value_t **
 	Module->Type = MLMiniModuleT;
 	Module->Path = ml_compiler_name(Scanner);
 	Slot[0] = (ml_value_t *)Module;
-	ml_export_function_t *ExportFunction = new(ml_export_function_t);
-	ExportFunction->Type = MLExportFunctionT;
-	ExportFunction->Module = Module;
 	ml_module_state_t *State = new(ml_module_state_t);
 	State->Base.Type = MLModuleStateT;
 	State->Base.run = (void *)ml_module_init_run;
 	State->Base.Context = Caller->Context;
 	State->Base.Caller = Caller;
 	State->Module = (ml_value_t *)Module;
-	State->Args[0] = (ml_value_t *)ExportFunction;
+	State->Args[0] = ml_cfunctionz(Module, (ml_callbackx_t)ml_export);
 	ml_function_compile((ml_state_t *)State, Scanner, Parameters);
 }
 
@@ -91,16 +78,13 @@ void ml_module_load_file(ml_state_t *Caller, const char *FileName, ml_getter_t G
 	Module->Type = MLMiniModuleT;
 	Module->Path = FileName;
 	Slot[0] = (ml_value_t *)Module;
-	ml_export_function_t *ExportFunction = new(ml_export_function_t);
-	ExportFunction->Type = MLExportFunctionT;
-	ExportFunction->Module = Module;
 	ml_module_state_t *State = new(ml_module_state_t);
 	State->Base.Type = MLModuleStateT;
 	State->Base.run = (void *)ml_module_init_run;
 	State->Base.Context = Caller->Context;
 	State->Base.Caller = Caller;
 	State->Module = (ml_value_t *)Module;
-	State->Args[0] = (ml_value_t *)ExportFunction;
+	State->Args[0] = ml_cfunctionz(Module, (ml_callbackx_t)ml_export);
 	return ml_load_file((ml_state_t *)State, GlobalGet, Globals, FileName, Parameters);
 }
 
