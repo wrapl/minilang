@@ -589,63 +589,91 @@ ml_value_t *ml_debugger_local(ml_state_t *State, int Index) {
 
 // Channels
 
-static void ml_channel_run(ml_state_t *Channel, ml_value_t *Value) {
-	ml_state_t *Receiver = Channel->Caller;
-	Channel->Caller = NULL;
-	ML_CONTINUE(Receiver, Value);
+typedef struct ml_channel_message_t ml_channel_message_t;
+
+struct ml_channel_message_t {
+	ml_channel_message_t *Next;
+	ml_state_t *Sender;
+	ml_value_t *Value;
+};
+
+typedef struct {
+	ml_state_t Base;
+	ml_state_t *Sender;
+	ml_channel_message_t *Head, **Tail;
+	int Open;
+} ml_channel_t;
+
+static void ml_channel_run(ml_channel_t *Channel, ml_value_t *Value) {
+	Channel->Open = 0;
+	ML_CONTINUE(Channel->Base.Caller, Value);
 }
 
 extern ml_type_t MLChannelT[];
 
 ML_FUNCTION(MLChannel) {
 //!internal
-	ml_state_t *Channel = new(ml_state_t);
-	Channel->Type = MLChannelT;
-	Channel->run = ml_channel_run;
+	ml_channel_t *Channel = new(ml_channel_t);
+	Channel->Base.Type = MLChannelT;
+	Channel->Base.run = (ml_state_fn)ml_channel_run;
+	Channel->Tail = &Channel->Head;
 	return (ml_value_t *)Channel;
 }
 
-static void ml_channel_call(ml_state_t *Caller, ml_state_t *Channel, int Count, ml_value_t **Args) {
-	ml_state_t *Receiver = Channel->Caller;
-	if (!Receiver) ML_ERROR("ChannelError", "Channel is not open");
-	Channel->Caller = Caller;
-	Channel->Context = Caller->Context;
-	ML_CONTINUE(Receiver, Count ? Args[0] : MLNil);
-}
-
 ML_TYPE(MLChannelT, (), "channel",
-	.call = (void *)ml_channel_call,
 	.Constructor = (ml_value_t *)MLChannel
 );
 
 ML_METHODVX("open", MLChannelT, MLAnyT) {
-	ml_state_t *Channel = (ml_state_t *)Args[0];
-	Channel->Caller = Caller;
-	Channel->Context = Caller->Context;
+	ml_channel_t *Channel = (ml_channel_t *)Args[0];
+	Channel->Base.Caller = Caller;
+	Channel->Base.Context = Caller->Context;
+	Channel->Open = 1;
 	ml_value_t *Function = Args[1];
 	Args[1] = Args[0];
 	return ml_call(Channel, Function, Count - 1, Args + 1);
 }
 
 ML_METHOD("ready", MLChannelT) {
-	ml_state_t *Channel = (ml_state_t *)Args[0];
-	return Channel->Caller ? Args[0] : MLNil;
+	ml_channel_t *Channel = (ml_channel_t *)Args[0];
+	return Channel->Open ? Args[0] : MLNil;
+}
+
+ML_METHODX("next", MLChannelT) {
+	ml_channel_t *Channel = (ml_channel_t *)Args[0];
+	ml_value_t *Value = (Count > 1) ? Args[1] : MLNil;
+	if (!Channel->Open) ML_ERROR("ChannelError", "Channel is not open");
+	ml_channel_message_t *Message = Channel->Head;
+	ml_channel_message_t *Next = Message->Next;
+	Channel->Head = Next;
+	Channel->Base.Caller = Caller;
+	if (Next) {
+		Caller->run(Caller, Next->Value);
+	} else {
+		Channel->Tail = &Channel->Head;
+	}
+	ML_CONTINUE(Message->Sender, Value);
 }
 
 ML_METHODX("send", MLChannelT, MLAnyT) {
-	ml_state_t *Channel = (ml_state_t *)Args[0];
-	ml_state_t *Receiver = Channel->Caller;
-	if (!Receiver) ML_ERROR("ChannelError", "Channel is not open");
-	Channel->Caller = Caller;
-	Channel->Context = Caller->Context;
-	ML_CONTINUE(Receiver, Args[1]);
+	ml_channel_t *Channel = (ml_channel_t *)Args[0];
+	if (!Channel->Open) ML_ERROR("ChannelError", "Channel is not open");
+	ml_channel_message_t *Message = new(ml_channel_message_t);
+	Message->Sender = Caller;
+	Message->Value = Args[1];
+	Channel->Tail[0] = Message;
+	Channel->Tail = &Message->Next;
+	if (Message == Channel->Head) {
+		ML_CONTINUE(Channel->Base.Caller, Channel->Head->Value);
+	}
 }
 
 ML_METHODVX("close", MLChannelT, MLAnyT) {
-	ml_state_t *Channel = (ml_state_t *)Args[0];
-	return ml_call(Channel, Args[1], Count - 2, Args + 2);
+	ml_channel_t *Channel = (ml_channel_t *)Args[0];
+	return ml_call((ml_state_t *)Channel, Args[1], Count - 2, Args + 2);
 }
 
+/*
 ML_METHODX("error", MLChannelT, MLStringT, MLStringT) {
 	ml_state_t *Channel = (ml_state_t *)Args[0];
 	ml_state_t *Receiver = Channel->Caller;
@@ -687,6 +715,7 @@ ML_METHODX("raise", MLChannelT, MLErrorValueT) {
 	Error->Error[0] = *(ml_error_value_t *)Args[1];
 	ML_CONTINUE(Receiver, Error);
 }
+*/
 
 void ml_runtime_init() {
 #include "ml_runtime_init.c"

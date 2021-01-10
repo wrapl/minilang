@@ -14,7 +14,7 @@ print("\n\n\nWith scheduler:\n")
 
 uv::run(;) do
 
-parallel(0 .. 14; N, I) do
+parallel(0 .. 14, 4, 2; N, I) do
 	for J in 1 .. 30 do
 		print('\e[48;5;{I}m[{I}, {J}]\e[0m')
 	end

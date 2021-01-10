@@ -167,10 +167,6 @@ end
 if MINILANG_MODULES or defined("MODULES") then
 	Objects:put(file("ml_module.o"), file("ml_library.o"))
 	CFLAGS := old + ["-DUSE_ML_MODULES"]
-	if PLATFORM = "Linux" then
-		LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={file("exports.lst")}']
-		subdir("lib")
-	end
 	MINILANG_SCHEDULER := 1
 	InstallHeaders:put("ml_module.h")
 end
@@ -261,5 +257,12 @@ for Header in InstallHeaders do
 end
 
 install(LIBMINILANG, InstallLib/"libminilang.a")
+
+if MINILANG_MODULES or defined("MODULES") then
+	if PLATFORM = "Linux" then
+		LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={file("exports.lst")}']
+		subdir("lib")
+	end
+end
 
 subdir("test")

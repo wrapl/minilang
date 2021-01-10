@@ -1177,6 +1177,7 @@ typedef struct {
 	ml_value_t *Iter, *Function, *Error;
 	ml_value_t *Args[2];
 	size_t Waiting, Limit, Burst;
+	int Calling;
 } ml_parallel_t;
 
 static void parallel_iter_next(ml_state_t *State, ml_value_t *Iter) {
@@ -1205,7 +1206,9 @@ static void parallel_iter_value(ml_state_t *State, ml_value_t *Value) {
 	if (Parallel->Error) return;
 	Parallel->Waiting += 1;
 	Parallel->Args[1] = Value;
+	Parallel->Calling = 1;
 	ml_call(Parallel, Parallel->Function, 2, Parallel->Args);
+	Parallel->Calling = 0;
 	if (Parallel->Iter) {
 		if (Parallel->Waiting > Parallel->Limit) return;
 		return ml_iter_next(Parallel->NextState, Parallel->Iter);
@@ -1219,7 +1222,7 @@ static void parallel_continue(ml_parallel_t *Parallel, ml_value_t *Value) {
 		ML_CONTINUE(Parallel->Base.Caller, Value);
 	}
 	--Parallel->Waiting;
-	if (Parallel->Iter) {
+	if (Parallel->Iter && !Parallel->Calling) {
 		if (Parallel->Waiting > Parallel->Burst) return;
 		return ml_iter_next(Parallel->NextState, Parallel->Iter);
 	}

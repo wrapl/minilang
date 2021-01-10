@@ -139,6 +139,52 @@ ML_FUNCTION(Unload) {
 
 #endif
 
+#ifdef USE_ML_SCHEDULER
+
+typedef struct {
+	ml_state_t *State;
+	ml_value_t *Value;
+} ml_queued_state_t;
+
+static ml_queued_state_t *QueuedStates;
+static int QueueSize, QueueFill, QueueWrite, QueueRead;
+static unsigned int SliceSize = 0, Counter;
+
+static void simple_queue_run() {
+	while (QueueFill) {
+		ml_queued_state_t QueuedState = QueuedStates[QueueRead];
+		QueuedStates[QueueRead].State = NULL;
+		QueuedStates[QueueRead].Value = NULL;
+		--QueueFill;
+		QueueRead = (QueueRead + 1) % QueueSize;
+		Counter = SliceSize;
+		QueuedState.State->run(QueuedState.State, QueuedState.Value);
+	}
+}
+
+static void simple_swap_state(ml_state_t *State, ml_value_t *Value) {
+	//printf("\e[34mSwapping state\n\e[0m");
+	++QueueFill;
+	if (QueueFill > QueueSize) {
+		int NewQueueSize = QueueSize * 2;
+		ml_queued_state_t *NewQueuedStates = anew(ml_queued_state_t, NewQueueSize);
+		memcpy(NewQueuedStates, QueuedStates, QueueSize * sizeof(ml_queued_state_t));
+		QueueRead = 0;
+		QueueWrite = QueueSize;
+		QueuedStates = NewQueuedStates;
+		QueueSize = NewQueueSize;
+	}
+	QueuedStates[QueueWrite].State = State;
+	QueuedStates[QueueWrite].Value = Value;
+	QueueWrite = (QueueWrite + 1) % QueueSize;
+}
+
+static ml_schedule_t simple_scheduler(ml_context_t *Context) {
+	return (ml_schedule_t){&Counter, simple_swap_state};
+}
+
+#endif
+
 int main(int Argc, const char *Argv[]) {
 	static const char *Parameters[] = {"Args", NULL};
 	ml_init();
@@ -207,6 +253,15 @@ int main(int Argc, const char *Argv[]) {
 				ModuleName = Argv[I];
 			break;
 #endif
+#ifdef USE_ML_SCHEDULER
+			case 's':
+				if (++I >= Argc) {
+					printf("Error: module name required\n");
+					exit(-1);
+				}
+				SliceSize = atoi(Argv[I]);
+			break;
+#endif
 			case 'z': GC_disable(); break;
 #ifdef USE_ML_GIR
 			case 'G': GtkConsole = 1; break;
@@ -218,13 +273,29 @@ int main(int Argc, const char *Argv[]) {
 			ml_list_append(Args, ml_cstring(Argv[I]));
 		}
 	}
+#ifdef USE_ML_SCHEDULER
+	if (SliceSize) {
+		Counter = SliceSize;
+		QueueFill = 0;
+		QueueSize = 4;
+		QueueRead = QueueWrite = 0;
+		QueuedStates = anew(ml_queued_state_t, QueueSize);
+		ml_context_set(&MLRootContext, ML_SCHEDULER_INDEX, simple_scheduler);
+	}
+#endif
 	if (FileName) {
 		ml_call_state_t *State = ml_call_state_new(MLMain, 1);
 		State->Args[0] = Args;
 		ml_load_file((ml_state_t *)State, global_get, NULL, FileName, Parameters);
+#ifdef USE_ML_SCHEDULER
+		if (SliceSize) simple_queue_run();
+#endif
 #ifdef USE_ML_MODULES
 	} else if (ModuleName) {
 		ml_inline(MLMain, (ml_value_t *)Import, 1, ml_string(ModuleName, -1));
+#ifdef USE_ML_SCHEDULER
+		if (SliceSize) simple_queue_run();
+#endif
 #endif
 #ifdef USE_ML_GIR
 	} else if (GtkConsole) {

@@ -25,6 +25,8 @@ runtime
 
 :mini:`meth :ready(Arg₁: channel)`
 
+:mini:`meth :next(Arg₁: channel)`
+
 :mini:`meth :send(Arg₁: channel, Arg₂: any)`
 
 :mini:`meth :close(Arg₁: channel, Arg₂: any)`

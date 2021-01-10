@@ -406,7 +406,7 @@ static inline int ml_is_int32(ml_value_t *Value) {
 }
 
 static inline ml_value_t *ml_int32(int32_t Integer) {
-	return (void *)(((uint64_t)1 << 48) + (uint32_t)Integer);
+	return (ml_value_t *)(((uint64_t)1 << 48) + (uint32_t)Integer);
 }
 
 static inline int ml_is_double(ml_value_t *Value) {
