@@ -37,7 +37,7 @@ end
 
 fun generate_init_file(Source) do
 	let InitFile := Source:basename:replace(".c", "_init.c")
-	let Target := file(InitFile)[Source] => fun() do
+	let Target := file(InitFile)[Source, PREBUILDS] => fun() do
 		Target:open("w"):close
 		let Init := shell("cc", CFLAGS, "-E -P -DGENERATE_INIT", Source)
 		let Out := Target:open("w")
