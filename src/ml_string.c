@@ -5,7 +5,7 @@
 #include <ctype.h>
 #include <inttypes.h>
 #include <gc/gc_typed.h>
-#ifdef USE_TRE
+#ifdef ML_TRE
 #include <tre/regex.h>
 #else
 #include <regex.h>
@@ -279,7 +279,7 @@ ml_value_t *ml_regex(const char *Pattern, int Length) {
 	ml_regex_t *Regex = new(ml_regex_t);
 	Regex->Type = MLRegexT;
 	Regex->Pattern = Pattern;
-#ifdef USE_TRE
+#ifdef ML_TRE
 	int Error = regncomp(Regex->Value, Pattern, Length, REG_EXTENDED);
 #else
 	int Error = regcomp(Regex->Value, Pattern, REG_EXTENDED);
@@ -303,7 +303,7 @@ const char *ml_regex_pattern(const ml_value_t *Value) {
 	return Regex->Pattern;
 }
 
-#ifdef USE_NANBOXING
+#ifdef ML_NANBOXING
 
 #define NegOne ml_int32(-1)
 #define One ml_int32(1)
@@ -785,7 +785,7 @@ ML_METHOD("/", MLStringT, MLRegexT) {
 	int Index = Pattern->Value->re_nsub ? 1 : 0;
 	regmatch_t Matches[2];
 	for (;;) {
-#ifdef USE_TRE
+#ifdef ML_TRE
 		switch (regnexec(Pattern->Value, Subject, SubjectLength, Index + 1, Matches, 0)) {
 #else
 		switch (regexec(Pattern->Value, Subject, Index + 1, Matches, 0)) {
@@ -895,7 +895,7 @@ ML_METHOD("find", MLStringT, MLRegexT) {
 	const char *Haystack = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[1];
-#ifdef USE_TRE
+#ifdef ML_TRE
 	int Length = ml_string_length(Args[0]);
 	switch (regnexec(Regex, Haystack, Length, 1, Matches, 0)) {
 #else
@@ -917,7 +917,7 @@ ML_METHOD("find2", MLStringT, MLRegexT) {
 	const char *Haystack = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[1];
-#ifdef USE_TRE
+#ifdef ML_TRE
 	int Length = ml_string_length(Args[0]);
 	switch (regnexec(Regex, Haystack, Length, 1, Matches, 0)) {
 #else
@@ -949,7 +949,7 @@ ML_METHOD("find", MLStringT, MLRegexT, MLIntegerT) {
 	Haystack += Start - 1;
 	Length -= (Start - 1);
 	regmatch_t Matches[1];
-#ifdef USE_TRE
+#ifdef ML_TRE
 	switch (regnexec(Regex, Haystack, Length, 1, Matches, 0)) {
 #else
 	switch (regexec(Regex, Haystack, 1, Matches, 0)) {
@@ -977,7 +977,7 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
 	Haystack += Start - 1;
 	Length -= (Start - 1);
 	regmatch_t Matches[1];
-#ifdef USE_TRE
+#ifdef ML_TRE
 	switch (regnexec(Regex, Haystack, Length, 1, Matches, 0)) {
 #else
 	switch (regexec(Regex, Haystack, 1, Matches, 0)) {
@@ -1001,7 +1001,7 @@ ML_METHOD("%", MLStringT, MLRegexT) {
 	const char *Subject = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
-#ifdef USE_TRE
+#ifdef ML_TRE
 	int Length = ml_string_length(Args[0]);
 	switch (regnexec(Regex, Subject, Length, Regex->re_nsub + 1, Matches, 0)) {
 
@@ -1034,7 +1034,7 @@ ML_METHOD("%", MLStringT, MLRegexT) {
 
 int ml_regex_match(ml_value_t *Value, const char *Subject, int Length) {
 	regex_t *Regex = ml_regex_value(Value);
-#ifdef USE_TRE
+#ifdef ML_TRE
 	switch (regnexec(Regex, Subject, Length, 0, NULL, 0)) {
 #else
 	switch (regexec(Regex, Subject, 0, NULL, 0)) {
@@ -1049,7 +1049,7 @@ ML_METHOD("?", MLStringT, MLRegexT) {
 	const char *Subject = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
-#ifdef USE_TRE
+#ifdef ML_TRE
 	int Length = ml_string_length(Args[0]);
 	switch (regnexec(Regex, Subject, Length, Regex->re_nsub + 1, Matches, 0)) {
 
@@ -1089,7 +1089,7 @@ ML_METHOD("starts", MLStringT, MLRegexT) {
 	const char *Subject = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
-#ifdef USE_TRE
+#ifdef ML_TRE
 	int Length = ml_string_length(Args[0]);
 	switch (regnexec(Regex, Subject, Length, Regex->re_nsub + 1, Matches, 0)) {
 
@@ -1182,7 +1182,7 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
 	regmatch_t Matches[1];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (;;) {
-#ifdef USE_TRE
+#ifdef ML_TRE
 		switch (regnexec(Regex, Subject, SubjectLength, 1, Matches, 0)) {
 
 #else
@@ -1219,7 +1219,7 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLFunctionT) {
 	ml_value_t *SubArgs[NumSub];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (;;) {
-#ifdef USE_TRE
+#ifdef ML_TRE
 		switch (regnexec(Regex, Subject, SubjectLength, NumSub, Matches, 0)) {
 
 #else
@@ -1304,7 +1304,7 @@ ML_METHOD("replace", MLStringT, MLMapT) {
 			if (Replacement->PatternLength < 0) {
 				regex_t *Regex = Replacement->Pattern.Regex;
 				int NumSub = Replacement->Pattern.Regex->re_nsub + 1;
-#ifdef USE_TRE
+#ifdef ML_TRE
 				switch (regnexec(Regex, Subject, SubjectLength, NumSub, Matches, 0)) {
 
 #else

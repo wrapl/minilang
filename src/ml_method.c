@@ -111,7 +111,7 @@ static inline ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *M
 	ml_type_t **Types = alloca(Count * sizeof(const ml_type_t *));
 	uintptr_t Hash = (uintptr_t)Method;
 	for (int I = Count; --I >= 0;) {
-#ifdef USE_NANBOXING
+#ifdef ML_NANBOXING
 		ml_value_t *Value = Args[I];
 		ml_type_t *Type;
 		unsigned Tag = ml_tag(Value);
@@ -218,7 +218,7 @@ ml_value_t *ml_method(const char *Name) {
 		asprintf((char **)&Method->Name, "<anon:0x%lx>", (uintptr_t)Method);
 		return (ml_value_t *)Method;
 	}
-#ifdef USE_ML_THREADSAFE
+#ifdef ML_THREADSAFE
 	static pthread_mutex_t Lock = PTHREAD_MUTEX_INITIALIZER;
 	pthread_mutex_lock(&Lock);
 #endif
@@ -229,7 +229,7 @@ ml_value_t *ml_method(const char *Name) {
 		Method->Name = Name;
 		Slot[0] = Method;
 	}
-#ifdef USE_ML_THREADSAFE
+#ifdef ML_THREADSAFE
 	pthread_mutex_unlock(&Lock);
 #endif
 	return (ml_value_t *)Slot[0];

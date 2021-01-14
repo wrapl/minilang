@@ -1576,7 +1576,7 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	Task->Info = Info;
 	ml_task_queue(Function->Compiler, (ml_compiler_task_t *)Task);
 	if (SubFunction->UpValues || Expr->ParamTypes
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 		|| Expr->Type
 #endif
 	) {
@@ -1584,7 +1584,7 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 		for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) ++NumUpValues;
 		ml_inst_t *ClosureInst = ml_inst_new(2 + NumUpValues, Expr->Source, MLI_CLOSURE);
 		ml_inst_t *TypeInst = ClosureInst;
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 		if (Expr->Type) {
 			ClosureInst->Opcode = MLI_CLOSURE_TYPED;
 			mlc_compiled_t Compiled = mlc_compile(Function, Expr->Type);

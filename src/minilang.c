@@ -11,38 +11,38 @@
 #include <time.h>
 #include <gc.h>
 
-#ifdef USE_ML_MATH
+#ifdef ML_MATH
 #include "ml_math.h"
 #include "ml_array.h"
 #endif
 
-#ifdef USE_ML_IO
+#ifdef ML_IO
 #include "ml_io.h"
 #endif
 
-#ifdef USE_ML_GIR
+#ifdef ML_GIR
 #include "gtk_console.h"
 #include "ml_gir.h"
 #endif
 
-#ifdef USE_ML_CBOR
+#ifdef ML_CBOR
 #include "ml_cbor.h"
 #endif
 
-#ifdef USE_ML_RADB
+#ifdef ML_RADB
 #include "ml_radb.h"
 #endif
 
-#ifdef USE_ML_MODULES
+#ifdef ML_MODULES
 #include "ml_module.h"
 #include "ml_library.h"
 #endif
 
-#ifdef USE_ML_TABLES
+#ifdef ML_TABLES
 #include "ml_table.h"
 #endif
 
-#ifdef USE_ML_QUEUES
+#ifdef ML_QUEUES
 #include "ml_queue.h"
 #endif
 
@@ -105,7 +105,7 @@ ML_FUNCTIONX(MLTest) {
 	ML_ERROR("ValueError", "Unknown test %s", Test);
 }
 
-#ifdef USE_ML_MODULES
+#ifdef ML_MODULES
 static stringmap_t Modules[1] = {STRINGMAP_INIT};
 
 ML_FUNCTIONX(Import) {
@@ -139,7 +139,7 @@ ML_FUNCTION(Unload) {
 
 #endif
 
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 
 typedef struct {
 	ml_state_t *State;
@@ -207,44 +207,44 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "compiler", MLCompilerT);
 	stringmap_insert(Globals, "global", ml_stringmap_globals(Globals));
 	stringmap_insert(Globals, "test", MLTest);
-#ifdef USE_ML_CBOR
+#ifdef ML_CBOR
 	ml_cbor_init(Globals);
 #endif
-#ifdef USE_ML_MATH
+#ifdef ML_MATH
 	ml_math_init(Globals);
 	ml_array_init(Globals);
 #endif
-#ifdef USE_ML_IO
+#ifdef ML_IO
 	ml_io_init(Globals);
 #endif
-#ifdef USE_ML_GIR
+#ifdef ML_GIR
 	ml_gir_init(Globals);
 	int GtkConsole = 0;
 #endif
-#ifdef USE_ML_RADB
+#ifdef ML_RADB
 	ml_radb_init(Globals);
 #endif
-#ifdef USE_ML_MODULES
+#ifdef ML_MODULES
 	ml_module_init(Globals);
 	ml_library_init(Globals);
 	stringmap_insert(Globals, "import", Import);
 	stringmap_insert(Globals, "unload", Unload);
 #endif
-#ifdef USE_ML_TABLES
+#ifdef ML_TABLES
 	ml_table_init(Globals);
 #endif
-#ifdef USE_ML_QUEUES
+#ifdef ML_QUEUES
 	ml_queue_init(Globals);
 #endif
 	ml_value_t *Args = ml_list();
 	const char *FileName = 0;
-#ifdef USE_ML_MODULES
+#ifdef ML_MODULES
 	const char *ModuleName = 0;
 #endif
 	for (int I = 1; I < Argc; ++I) {
 		if (Argv[I][0] == '-') {
 			switch (Argv[I][1]) {
-#ifdef USE_ML_MODULES
+#ifdef ML_MODULES
 			case 'm':
 				if (++I >= Argc) {
 					printf("Error: module name required\n");
@@ -253,7 +253,7 @@ int main(int Argc, const char *Argv[]) {
 				ModuleName = Argv[I];
 			break;
 #endif
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 			case 's':
 				if (++I >= Argc) {
 					printf("Error: module name required\n");
@@ -263,7 +263,7 @@ int main(int Argc, const char *Argv[]) {
 			break;
 #endif
 			case 'z': GC_disable(); break;
-#ifdef USE_ML_GIR
+#ifdef ML_GIR
 			case 'G': GtkConsole = 1; break;
 #endif
 			}
@@ -273,7 +273,7 @@ int main(int Argc, const char *Argv[]) {
 			ml_list_append(Args, ml_cstring(Argv[I]));
 		}
 	}
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 	if (SliceSize) {
 		Counter = SliceSize;
 		QueueFill = 0;
@@ -287,17 +287,17 @@ int main(int Argc, const char *Argv[]) {
 		ml_call_state_t *State = ml_call_state_new(MLMain, 1);
 		State->Args[0] = Args;
 		ml_load_file((ml_state_t *)State, global_get, NULL, FileName, Parameters);
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 		if (SliceSize) simple_queue_run();
 #endif
-#ifdef USE_ML_MODULES
+#ifdef ML_MODULES
 	} else if (ModuleName) {
 		ml_inline(MLMain, (ml_value_t *)Import, 1, ml_string(ModuleName, -1));
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 		if (SliceSize) simple_queue_run();
 #endif
 #endif
-#ifdef USE_ML_GIR
+#ifdef ML_GIR
 	} else if (GtkConsole) {
 		console_t *Console = console_new((ml_getter_t)stringmap_search, Globals);
 		stringmap_insert(Globals, "print", ml_cfunction(Console, (void *)console_print));

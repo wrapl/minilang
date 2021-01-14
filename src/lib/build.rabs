@@ -1,5 +1,3 @@
-print("Building in ", PATH, "\n")
-
 var SourceTypes := {
 	"c" is [c_includes, c_compile],
 	"cpp" is [c_includes, c_compile]
@@ -24,7 +22,7 @@ fun minilang_lib(Library, Objects, Libraries) do
 	end
 end
 
-CFLAGS := old + ["-fpic"]
+CFLAGS := old + ["-fpic", '-I{PATH}']
 
 scope("csv";) do
 	generate_init_file(file("ml_csv.c"))
@@ -91,15 +89,14 @@ scope("kiwi";) do
 end
 
 scope("mpc";) do
-	var Dir := file("mpc") => fun(Dir) do
-		Dir:rmdir
-		execute("git clone https://github.com/orangeduck/mpc.git", Dir)
-		execute("cat", file("mpc_extra.c"), " >> ", Dir/"mpc.c")
+	var MPC := file("mpc/mpc.c") => fun() do
+		file("mpc"):rmdir
+		execute("git clone https://github.com/orangeduck/mpc.git")
+		execute("cat", file("mpc_extra.c"), " >> ", "mpc/mpc.c")
 	end
-	(Dir/"mpc.c")[Dir] => fun() nil
-	PREBUILDS := old = [Dir]
+	PREBUILDS := old + [MPC]
 	generate_init_file(file("ml_mpc.c"))
-	DEFAULT[minilang_lib(LIB_DIR / "ml_mpc.so", [file("ml_mpc.o"), Dir/"mpc.o"])]
+	DEFAULT[minilang_lib(LIB_DIR / "ml_mpc.so", [file("ml_mpc.o"), file("mpc/mpc.o")])]
 end
 
 nil and scope("facil";) do

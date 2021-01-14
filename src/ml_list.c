@@ -159,7 +159,7 @@ void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
 	List->ValidIndices = 0;
 	if ((Node->Next = List->Head)) {
 		List->Head->Prev = Node;
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 		if (List->Type->Type == MLGenericTypeT) {
 			ml_type_t *Type = ml_generic_type_args(List->Type)[1];
 			if (Type != ml_typeof(Value)) {
@@ -173,7 +173,7 @@ void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
 #endif
 	} else {
 		List->Tail = Node;
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 		if (List->Type == MLListT) {
 			ml_type_t *Types[] = {MLListT, ml_typeof(Value)};
 			List->Type = ml_generic_type(2, Types);
@@ -193,7 +193,7 @@ void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 	List->ValidIndices = 0;
 	if ((Node->Prev = List->Tail)) {
 		List->Tail->Next = Node;
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 		if (List->Type->Type == MLGenericTypeT) {
 			ml_type_t *Type = ml_generic_type_args(List->Type)[1];
 			if (Type != ml_typeof(Value)) {
@@ -207,7 +207,7 @@ void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 #endif
 	} else {
 		List->Head = Node;
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 		if (List->Type == MLListT) {
 			ml_type_t *Types[] = {MLListT, ml_typeof(Value)};
 			List->Type = ml_generic_type(2, Types);
@@ -674,7 +674,7 @@ void ml_names_add(ml_value_t *Names, ml_value_t *Value) {
 
 void ml_list_init() {
 #include "ml_list_init.c"
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 	ml_type_add_rule(MLListT, MLIteratableT, MLIntegerT, ML_TYPE_ARG(1), NULL);
 #endif
 }

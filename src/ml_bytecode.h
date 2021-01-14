@@ -24,7 +24,7 @@ struct ml_closure_info_t {
 	ml_inst_t *Entry, *Return;
 	const char *Source;
 	ml_decl_t *Decls;
-#ifdef USE_ML_JIT
+#ifdef ML_JIT
 	void *JITStart, *JITEntry, *JITReturn;
 #endif
 	stringmap_t Params[1];
@@ -110,7 +110,7 @@ typedef enum {
 	MLI_MAP_NEW,
 	MLI_MAP_INSERT,
 	MLI_CLOSURE,
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 	MLI_CLOSURE_TYPED,
 #endif
 	MLI_PARAM_TYPE,
@@ -138,7 +138,7 @@ struct ml_inst_t {
 #define ML_FRAME_REUSE (1 << 0)
 #define ML_FRAME_REENTRY (1 << 1)
 
-#define ML_FRAME_REUSE_SIZE 224
+#define ML_FRAME_REML_SIZE 224
 
 typedef struct ml_variable_t ml_variable_t;
 
@@ -155,7 +155,7 @@ void ml_closure_sha256(ml_value_t *Closure, unsigned char Hash[SHA256_BLOCK_SIZE
 
 void ml_closure_info_finish(ml_closure_info_t *Info);
 
-#ifdef USE_ML_CBOR_BYTECODE
+#ifdef ML_CBOR_BYTECODE
 
 #include "ml_cbor.h"
 

@@ -17,7 +17,7 @@
 #include "ml_list.h"
 #include "ml_map.h"
 
-#ifdef USE_ML_THREADSAFE
+#ifdef ML_THREADSAFE
 #include <pthread.h>
 #endif
 
@@ -85,7 +85,7 @@ ML_METHOD("rank", MLTypeT) {
 	return ml_integer(Type->Rank);
 }
 
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 
 ML_TYPE(MLGenericTypeT, (MLTypeT), "generic-type");
 
@@ -142,7 +142,7 @@ ML_METHOD("parents", MLTypeT) {
 //>list
 	ml_type_t *Type = (ml_type_t *)Args[0];
 	ml_value_t *Parents = ml_list();
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 	ml_generic_parents(Parents, 1, &Type);
 #endif
 	for (int I = 0; I < Type->Parents->Size; ++I) {
@@ -209,7 +209,7 @@ void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent) {
 }
 
 inline void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn) {
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 	if (Type->Type == MLGenericTypeT) return ml_typed_fn_get(ml_generic_type_args(Type)[0], TypedFn);
 #endif
 	inthash_result_t Result = inthash_search2(Type->TypedFns, (uintptr_t)TypedFn);
@@ -264,7 +264,7 @@ ML_METHOD("::", MLTypeT, MLStringT) {
 	return Value ?: ml_error("ModuleError", "Symbol %s not exported from type %s", Name, Type->Name);
 }
 
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 
 ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
 	inthash_t Cache[1] = {INTHASH_INIT};
@@ -349,7 +349,7 @@ ML_VALUE(MLNil, MLNilT);
 ML_VALUE(MLSome, MLSomeT);
 ML_VALUE(MLBlank, MLBlankT);
 
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 
 static int ml_is_generic_subtype(int TNumArgs, ml_type_t **TArgs, int UNumArgs, ml_type_t **UArgs) {
 	if (UNumArgs <= TNumArgs) {
@@ -377,7 +377,7 @@ different:
 int ml_is_subtype(ml_type_t *T, ml_type_t *U) {
 	if (T == U) return 1;
 	if (U == MLAnyT) return 1;
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 	if (T->Type == MLGenericTypeT) {
 		ml_generic_type_t *GenericT = (ml_generic_type_t *)T;
 		if (U->Type == MLGenericTypeT) {
@@ -399,7 +399,7 @@ int ml_is_subtype(ml_type_t *T, ml_type_t *U) {
 	return (uintptr_t)inthash_search(T->Parents, (uintptr_t)U);
 }
 
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 
 static ml_type_t *ml_generic_type_max(ml_type_t *Max, int TNumArgs, ml_type_t **TArgs, int UNumArgs, ml_type_t **UArgs) {
 	if (TArgs[0] == UArgs[0]) {
@@ -459,7 +459,7 @@ ml_type_t *ml_type_max(ml_type_t *T, ml_type_t *U) {
 			}
 		}
 	}
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 	if (T->Type == MLGenericTypeT) {
 		ml_generic_type_t *GenericT = (ml_generic_type_t *)T;
 		if (U->Type == MLGenericTypeT) {
@@ -517,7 +517,7 @@ ML_METHOD(">=", MLTypeT, MLTypeT) {
 	return MLNil;
 }
 
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 ML_METHODVX("[]", MLTypeT, MLTypeT) {
 	for (int I = 2; I < Count; ++I) ML_CHECKX_ARG_TYPE(I, MLTypeT);
 	ML_RETURN(ml_generic_type(Count, (ml_type_t **)Args));
@@ -546,7 +546,7 @@ long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return ml_typeof(Value)->hash(Value, NewChain);
 }
 
-#ifdef USE_NANBOXING
+#ifdef ML_NANBOXING
 
 #define NegOne ml_int32(-1)
 #define One ml_int32(1)
@@ -1006,7 +1006,7 @@ ml_value_t *ml_tuple(size_t Size) {
 	return (ml_value_t *)Tuple;
 }
 
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 
 ml_value_t *ml_tuple_set(ml_value_t *Tuple0, int Index, ml_value_t *Value) {
 	ml_tuple_t *Tuple = (ml_tuple_t *)Tuple0;
@@ -1278,7 +1278,7 @@ ML_TYPE(MLNumberT, (MLFunctionT), "number");
 //!number
 // Base type for integers and reals.
 
-#ifdef USE_NANBOXING
+#ifdef ML_NANBOXING
 
 static long ml_int32_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return (uint64_t)Value & 0xFFFFFFFF;
@@ -1380,7 +1380,7 @@ long ml_integer_value(const ml_value_t *Value) {
 
 #endif
 
-#ifdef USE_NANBOXING
+#ifdef ML_NANBOXING
 
 ML_METHOD(MLIntegerT, MLRealT) {
 //!number
@@ -1464,7 +1464,7 @@ double ml_real_value(const ml_value_t *Value) {
 
 #endif
 
-#ifdef USE_NANBOXING
+#ifdef ML_NANBOXING
 
 ML_METHOD(MLRealT, MLInt32T) {
 //!number
@@ -2120,7 +2120,7 @@ ML_METHOD("exports", MLModuleT) {
 // Init //
 
 void ml_init() {
-#ifdef USE_ML_JIT
+#ifdef ML_JIT
 	GC_set_pages_executable(1);
 #endif
 	GC_INIT();

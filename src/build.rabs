@@ -16,7 +16,7 @@ CFLAGS := old + [
 	:>"-Wsuggest-attribute=const",
 	:>"-Wsuggest-attribute=noreturn",
 	:>"-Wsuggest-attribute=malloc",
-	"-I.", "-pthread",
+	'-I{PATH}', "-pthread",
 	"-DGC_THREADS",
 	"-D_GNU_SOURCE",
 	'-D{PLATFORM}'
@@ -37,7 +37,7 @@ end
 
 fun generate_init_file(Source) do
 	let InitFile := Source:basename:replace(".c", "_init.c")
-	let Target := file(InitFile)[Source, PREBUILDS] => fun() do
+	let Target := file(InitFile)[Source, file("config.h"), PREBUILDS] => fun() do
 		Target:open("w"):close
 		let Init := shell("cc", CFLAGS, "-E -P -DGENERATE_INIT", Source)
 		let Out := Target:open("w")
@@ -91,6 +91,7 @@ var Libraries := []
 
 var InstallHeaders := [
 	"minilang.h",
+	"config.h",
 	"ml_console.h",
 	"ml_file.h",
 	"ml_iterfns.h",
@@ -104,14 +105,44 @@ var InstallHeaders := [
 	"inthash.h"
 ]
 
-if MINILANG_TABLES or defined("TABLES") then
-	Objects:put(file("ml_table.o"))
-	CFLAGS := old + ["-DUSE_ML_TABLES"]
-	InstallHeaders:put("ml_table.h")
-	MINILANG_USEMATH := 1
+MINILANG_TABLES := old or defined("TABLES")
+MINILANG_MATH := MINILANG_TABLES or old or defined("MATH")
+MINILANG_IO := old or defined("IO")
+MINILANG_GIR := old or defined("GIR")
+MINILANG_CBOR := old or defined("CBOR")
+MINILANG_MODULES := old or defined("MODULES")
+MINILANG_SCHEDULER := MINILANG_MODULES or old or defined("SCHEDULER")
+MINILANG_THREADSAFE := old or defined("THREADSAFE")
+MINILANG_JIT := old or defined("JIT")
+MINILANG_NANBOXING := old or defined("NANBOXING")
+MINILANG_TRE := old or defined("TRE")
+MINILANG_GENERICS := old or defined("GENERICS")
+MINILANG_QUEUES := old or defined("QUEUES")
+
+file("config.h") => fun(Target) do
+	let File := Target:open("w")
+	File:write("#ifndef ML_CONFIG_H\n")
+	File:write("#define ML_CONFIG_H\n")
+	if MINILANG_NANBOXING then
+		File:write("\n#define ML_NANBOXING\n")
+	end
+	if MINILANG_GENERICS then
+		File:write("\n#define ML_GENERICS\n")
+	end
+	if MINILANG_THREADSAFE then
+		File:write("\n#define ML_THREADSAFE\n")
+	end
+	File:write("\n#endif")
+	File:close
 end
 
-if MINILANG_USEMATH or defined("MATH") then
+if MINILANG_TABLES then
+	Objects:put(file("ml_table.o"))
+	CFLAGS := old + ["-DML_TABLES"]
+	InstallHeaders:put("ml_table.h")
+end
+
+if MINILANG_MATH then
 	file("array"):mkdir
 	Objects:put(
 		file("ml_math.o"),
@@ -128,33 +159,32 @@ if MINILANG_USEMATH or defined("MATH") then
 		file("array/compare_le.o"),
 		file("array/compare_ge.o")
 	)
-	CFLAGS := old + ["-DUSE_ML_MATH"]
+	CFLAGS := old + ["-DML_MATH"]
 	InstallHeaders:put("ml_array.h")
 	InstallHeaders:put("ml_math.h")
 end
 
-if MINILANG_LIBIO or defined("IO") then
+if MINILANG_IO then
 	Objects:put(file("ml_io.o"))
-	CFLAGS := old + ["-DUSE_ML_IO"]
+	CFLAGS := old + ["-DML_IO"]
 end
 
-if MINILANG_USEGTK or defined("GTK") then
+if MINILANG_GIR then
 	Objects:put(file("ml_gir.o"), file("gtk_console.o"))
-	CFLAGS := old + ["-DUSE_ML_GIR", pkgconfig("--cflags gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0 libgvc")]
+	CFLAGS := old + ["-DML_GIR", pkgconfig("--cflags gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0 libgvc")]
 	LDFLAGS := old + [pkgconfig("--libs gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0 libgvc")]
 	InstallHeaders:put("ml_gir.h")
 	InstallHeaders:put("gtk_console.h")
 end
 
-if MINILANG_USECBOR or defined("CBOR") then
+if MINILANG_CBOR then
 	var Dir := PATH/"minicbor"
 	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git", Dir)
-
 	CFLAGS := old + [
 		'-DMINICBOR_PREFIX=ml_cbor_',
 		'-DMINICBOR_READ_FN_PREFIX=ml_cbor_read_',
 		'-DMINICBOR_READDATA_TYPE=\"struct ml_cbor_reader_t *\"',
-		 "-DUSE_ML_CBOR"
+		 "-DML_CBOR"
 	]
 	Objects:put(
 		file("ml_cbor.o"),
@@ -164,63 +194,38 @@ if MINILANG_USECBOR or defined("CBOR") then
 	InstallHeaders:put("ml_cbor.h")
 end
 
-if MINILANG_MODULES or defined("MODULES") then
+if MINILANG_MODULES then
 	Objects:put(file("ml_module.o"), file("ml_library.o"))
-	CFLAGS := old + ["-DUSE_ML_MODULES"]
-	MINILANG_SCHEDULER := 1
 	InstallHeaders:put("ml_module.h")
 end
 
-if MINILANG_SCHEDULER or defined("SCHEDULER") then
-	CFLAGS := old + ["-DUSE_ML_SCHEDULER"]
+if MINILANG_SCHEDULER then
+	CFLAGS := old + ["-DML_SCHEDULER"]
 end
 
-if MINILANG_THREADSAFE or defined("THREADSAFE") then
-	CFLAGS := old + ["-DUSE_ML_THREADSAFE"]
-end
-
-if MINILANG_INST_FNS or defined("INST_FNS") then
-	CFLAGS := old + ["-DML_USE_INST_FNS"]
-	Objects:put(file("ml_bytecode_fns.o"))
-end
-
-if MINILANG_JIT or defined("JIT") then
+if MINILANG_JIT then
 	let Source := file("ml_bytecode_x64.dasc")
 	file("ml_bytecode_x64.c")[Source] => fun(Target) do
 		execute("lua5.2", file("dynasm/dynasm.lua"), "-o", Target, Source)
 	end
 	Objects:put(file("ml_bytecode_x64.o"))
-	CFLAGS := old + ["-DUSE_ML_JIT", "-I", Source:dirname]
+	CFLAGS := old + ["-DML_JIT", "-I", Source:dirname]
 	LDFLAGS := old + ["-lZydis"]
 end
 
 if PLATFORM = "Linux" and MACHINE = "x86_64" then
-	MINILANG_USE_ASM := 1
+	Objects:put(file("inthash_x64.o"))
+	CFLAGS := old + ["-DASM_INTHASH_SEARCH"]
 end
 
-if MINILANG_USE_ASM or defined("ASM") then
-	if MACHINE = "x86_64" and PLATFORM = "Linux" then
-		Objects:put(file("inthash_x64.o"))
-		CFLAGS := old + ["-DASM_INTHASH_SEARCH"]
-	end
-end
-
-if MINILANG_USE_NANBOXING or defined("NANBOXING") then
-	CFLAGS := old + ["-DUSE_NANBOXING"]
-end
-
-if MINILANG_USE_TRE or defined("TRE") then
-	CFLAGS := old + ["-DUSE_TRE"]
+if MINILANG_TRE then
+	CFLAGS := old + ["-DML_TRE"]
 	LDFLAGS := old + ["-ltre"]
-end
-
-if MINILANG_USE_GENERICS or defined("GENERICS") then
-	CFLAGS := old + ["-DUSE_GENERICS"]
 end
 
 if MINILANG_QUEUES or defined("QUEUES") then
 	Objects:put(file("ml_queue.o"))
-	CFLAGS := old + ["-DUSE_ML_QUEUES"]
+	CFLAGS := old + ["-DML_QUEUES"]
 	InstallHeaders:put("ml_queue.h")
 end
 
@@ -258,11 +263,9 @@ end
 
 install(LIBMINILANG, InstallLib/"libminilang.a")
 
-if MINILANG_MODULES or defined("MODULES") then
-	if PLATFORM = "Linux" then
-		LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={file("exports.lst")}']
-		subdir("lib")
-	end
+if MINILANG_MODULES and PLATFORM = "Linux" then
+	LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={file("exports.lst")}']
+	subdir("lib")
 end
 
 subdir("test")

@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include "stringmap.h"
 #include "inthash.h"
+#include "config.h"
 
 #ifdef	__cplusplus
 extern "C" {
@@ -46,7 +47,7 @@ struct ml_type_t {
 	ml_value_t *(*deref)(ml_value_t *);
 	ml_value_t *(*assign)(ml_value_t *, ml_value_t *);
 	ml_value_t *Constructor;
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 	ml_generic_rule_t *Rules;
 #endif
 	inthash_t Parents[1];
@@ -100,7 +101,7 @@ ml_type_t *ml_type(ml_type_t *Parent, const char *Name);
 
 void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent);
 
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 
 typedef struct ml_generic_type_t ml_generic_type_t;
 
@@ -126,7 +127,7 @@ void ml_type_add_rule(ml_type_t *Type, ml_type_t *Parent, ...) __attribute__ ((s
 int ml_is_subtype(ml_type_t *Type1, ml_type_t *Type2) __attribute__ ((pure));
 ml_type_t *ml_type_max(ml_type_t *Type1, ml_type_t *Type2);
 
-#ifdef USE_NANBOXING
+#ifdef ML_NANBOXING
 
 extern ml_type_t MLInt32T[];
 extern ml_type_t MLInt64T[];
@@ -172,7 +173,7 @@ static inline ml_value_t *ml_deref(ml_value_t *Value) {
 
 static inline int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
 	const ml_type_t *Type = ml_typeof(Value);
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 	if (Type->Type == MLGenericTypeT) Type = ml_generic_type_args(Type)[0];
 #endif
 	if (Type == Expected) return 1;
@@ -352,7 +353,7 @@ static inline ml_value_t *ml_tuple_get(ml_value_t *Tuple, int Index) {
 	return ((ml_tuple_t *)Tuple)->Values[Index - 1];
 }
 
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 
 ml_value_t *ml_tuple_set(ml_value_t *Tuple0, int Index, ml_value_t *Value);
 
@@ -394,7 +395,7 @@ ml_value_t *ml_real(double Value) __attribute__((malloc));
 long ml_integer_value(const ml_value_t *Value) __attribute__ ((const));
 double ml_real_value(const ml_value_t *Value) __attribute__ ((const));
 
-#ifdef USE_NANBOXING
+#ifdef ML_NANBOXING
 
 typedef struct {
 	const ml_type_t *Type;

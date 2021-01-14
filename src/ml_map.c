@@ -208,7 +208,7 @@ ml_value_t *ml_map_insert(ml_value_t *Map0, ml_value_t *Key, ml_value_t *Value) 
 	ml_map_node_t *Node = ml_map_node(Map, &Map->Root, ml_typeof(Key)->hash(Key, NULL), Key);
 	ml_value_t *Old = Node->Value ?: MLNil;
 	Node->Value = Value;
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 	if (Map->Size == 1 && Map->Type == MLMapT) {
 		ml_type_t *Types[] = {MLMapT, ml_typeof(Key), ml_typeof(Value)};
 		Map->Type = ml_generic_type(3, Types);
@@ -693,7 +693,7 @@ ML_METHOD("sort", MLMapT, MLFunctionT) {
 
 void ml_map_init() {
 #include "ml_map_init.c"
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 	ml_type_add_rule(MLMapT, MLIteratableT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 #endif
 }

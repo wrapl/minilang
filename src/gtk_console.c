@@ -548,7 +548,7 @@ static gboolean console_update_status(console_t *Console) {
 	return G_SOURCE_CONTINUE;
 }
 
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 
 typedef struct {
 	ml_state_t *State;
@@ -630,7 +630,7 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	ml_compiler_source(Console->Compiler, (ml_source_t){Console->Name, 0});
 	Console->Notebook = GTK_NOTEBOOK(gtk_notebook_new());
 
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 	QueueFill = 0;
 	QueueSize = 4;
 	QueueRead = QueueWrite = 0;
@@ -781,7 +781,7 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	stringmap_insert(Console->Globals, "add_combo", ml_cfunction(Console, (ml_callback_t)console_add_combo));
 	stringmap_insert(Console->Globals, "include", ml_cfunctionx(Console, (ml_callbackx_t)console_include_fnx));
 
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 	stringmap_insert(Console->Globals, "schedule", ml_cfunctionx(Console, (ml_callbackx_t)console_schedule));
 	stringmap_insert(Console->Globals, "sleep", MLSleep);
 #endif

@@ -159,7 +159,7 @@ static void ml_closure_inst_jit(int Process, ml_inst_t *Inst, ml_assembler_t *As
 	// free = rax, rdx, rcx, r8, r9, r10
 	switch (Inst->Opcode) {
 	case MLI_RETURN: {
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 		//Frame->Schedule.Counter[0] = Counter;
 #endif
 		| mov rdi, FRAME->Base.Caller
@@ -172,7 +172,7 @@ static void ml_closure_inst_jit(int Process, ml_inst_t *Inst, ml_assembler_t *As
 		| lea rcx, [>1]
 		| mov FRAME->Inst, rcx
 		| mov FRAME->Top, rbx
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 		//Frame->Schedule.Counter[0] = Counter;
 #endif
 		| global MLSuspensionT
@@ -419,7 +419,7 @@ static void ml_closure_inst_jit(int Process, ml_inst_t *Inst, ml_assembler_t *As
 		| lea rcx, [>1]
 		| mov FRAME->Inst, rcx
 		| mov FRAME->Top, rbx
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 		//Frame->Schedule.Counter[0] = Counter;
 #endif
 		| mov rdi, rbp
@@ -442,7 +442,7 @@ static void ml_closure_inst_jit(int Process, ml_inst_t *Inst, ml_assembler_t *As
 		| lea rcx, [>1]
 		| mov FRAME->Inst, rcx
 		| mov FRAME->Top, rbx
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 		//Frame->Schedule.Counter[0] = Counter;
 #endif
 		| mov rdi, rbp
@@ -457,7 +457,7 @@ static void ml_closure_inst_jit(int Process, ml_inst_t *Inst, ml_assembler_t *As
 		| lea rcx, [>1]
 		| mov FRAME->Inst, rcx
 		| mov FRAME->Top, rbx
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 		//Frame->Schedule.Counter[0] = Counter;
 #endif
 		| mov rdi, rbp
@@ -472,7 +472,7 @@ static void ml_closure_inst_jit(int Process, ml_inst_t *Inst, ml_assembler_t *As
 		| lea rcx, [>1]
 		| mov FRAME->Inst, rcx
 		| mov FRAME->Top, rbx
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 		//Frame->Schedule.Counter[0] = Counter;
 #endif
 		| mov rdi, rbp
@@ -489,7 +489,7 @@ static void ml_closure_inst_jit(int Process, ml_inst_t *Inst, ml_assembler_t *As
 		| mov rsi, rax
 		| mov rdx, Count
 		| lea rcx, [rbx - Count * 8]
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 		//Frame->Schedule.Counter[0] = Counter;
 #endif
 		ml_inst_t *Next = Inst->Params[0].Inst;
@@ -520,7 +520,7 @@ static void ml_closure_inst_jit(int Process, ml_inst_t *Inst, ml_assembler_t *As
 		int Count = Inst->Params[1].Count;
 		| mov rdx, Count
 		| lea rcx, [rbx - Count * 8]
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 		//Frame->Schedule.Counter[0] = Counter;
 #endif
 		ml_inst_t *Next = Inst->Params[0].Inst;

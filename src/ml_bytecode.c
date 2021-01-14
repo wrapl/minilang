@@ -34,7 +34,7 @@ ML_TYPE(MLVariableT, (), "variable",
 
 #endif
 
-#ifdef USE_ML_JIT
+#ifdef ML_JIT
 #include "ml_bytecode_jit.h"
 #endif
 
@@ -67,7 +67,7 @@ struct DEBUG_STRUCT(frame) {
 	ml_value_t **Top;
 	ml_inst_t *OnError;
 	ml_value_t **UpValues;
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 	ml_schedule_t Schedule;
 #endif
 	unsigned int Reuse:1;
@@ -156,7 +156,7 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller
 
 #ifndef DEBUG_VERSION
 
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 #define CHECK_COUNTER if (--Counter == 0) goto DO_SWAP;
 #else
 #define CHECK_COUNTER
@@ -213,7 +213,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_error_trace_add(Error, (ml_source_t){Frame->Source, Frame->Inst->LineNo});
 		ML_CONTINUE(Frame->Base.Caller, Error);
 	}
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 	int Counter = Frame->Schedule.Counter[0];
 #endif
 	static void *Labels[] = {
@@ -262,7 +262,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_MAP_NEW] = &&DO_MAP_NEW,
 		[MLI_MAP_INSERT] = &&DO_MAP_INSERT,
 		[MLI_CLOSURE] = &&DO_CLOSURE,
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 		[MLI_CLOSURE_TYPED] = &&DO_CLOSURE_TYPED,
 #endif
 		[MLI_PARAM_TYPE] = &&DO_PARAM_TYPE,
@@ -290,12 +290,12 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #endif
 
 	DO_RETURN: {
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
 		ml_state_t *Caller = Frame->Base.Caller;
 		if (Frame->Reuse) {
-			//memset(Frame, 0, ML_FRAME_REUSE_SIZE);
+			//memset(Frame, 0, ML_FRAME_REML_SIZE);
 			while (Top > Frame->Stack) *--Top = 0;
 			*(ml_frame_t **)Frame = MLCachedFrame;
 			MLCachedFrame = Frame;
@@ -307,7 +307,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_SUSPEND: {
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
 		Frame->Suspend = 1;
@@ -511,7 +511,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		//ERROR_CHECK(Result);
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
 		return ml_iterate((ml_state_t *)Frame, Result);
@@ -529,7 +529,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		*--Top = 0;
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
 		return ml_iter_next((ml_state_t *)Frame, Result);
@@ -538,7 +538,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Result = Top[Inst->Params[1].Index];
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
 		return ml_iter_value((ml_state_t *)Frame, Result);
@@ -547,7 +547,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Result = Top[Inst->Params[1].Index];
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
 		return ml_iter_key((ml_state_t *)Frame, Result);
@@ -558,7 +558,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		//ERROR_CHECK(Function);
 		ml_value_t **Args = Top - Count;
 		ml_inst_t *Next = Inst->Params[0].Inst;
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
 		if (Next->Opcode == MLI_RETURN) {
@@ -577,7 +577,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_value_t *Function = Inst->Params[2].Value;
 		ml_value_t **Args = Top - Count;
 		ml_inst_t *Next = Inst->Params[0].Inst;
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
 		if (Next->Opcode == MLI_RETURN) {
@@ -630,13 +630,13 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_TUPLE_SET: {
 		int Index = Inst->Params[1].Index;
 		ml_tuple_t *Tuple = (ml_tuple_t *)Top[-1];
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 		if (Index == Tuple->Size - 1) {
 			ml_tuple_set((ml_value_t *)Tuple, Index + 1, Result);
 		} else {
 #endif
 		Tuple->Values[Index] = Result;
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 		}
 #endif
 		ADVANCE(0);
@@ -683,7 +683,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Result = (ml_value_t *)Closure;
 		ADVANCE(0);
 	}
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 	DO_CLOSURE_TYPED: {
 		// closure <entry> <frame_size> <num_params> <num_upvalues> <upvalue_1> ...
 		if (!ml_is(Result, MLTypeT)) {
@@ -745,7 +745,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		int Count = Inst->Params[1].Count;
 		ml_value_t **Args = Top - (Count + 1);
 		ml_inst_t *Next = Inst->Params[0].Inst;
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
 		Frame->Inst = Next;
@@ -767,7 +767,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		*Top++ = Inst->Params[2].Value;
 		ml_value_t **Args = Top - 2;
 		ml_inst_t *Next = Inst->Params[0].Inst;
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
 		Frame->Inst = Next;
@@ -808,7 +808,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		return Debugger->run(Debugger, (ml_state_t *)Frame, Result);
 	}
 #endif
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 	DO_SWAP: {
 		Frame->Inst = Inst;
 		Frame->Top = Top;
@@ -828,11 +828,11 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 #endif
 	size_t Size = sizeof(DEBUG_STRUCT(frame)) + Info->FrameSize * sizeof(ml_value_t *);
 	DEBUG_STRUCT(frame) *Frame;
-	if (Size <= ML_FRAME_REUSE_SIZE) {
+	if (Size <= ML_FRAME_REML_SIZE) {
 		if ((Frame = MLCachedFrame)) {
 			MLCachedFrame = *(ml_frame_t **)Frame;
 		} else {
-			Frame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
+			Frame = GC_MALLOC(ML_FRAME_REML_SIZE);
 		}
 		Frame->Reuse = 1;
 	} else {
@@ -920,7 +920,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	Frame->OnError = Info->Return;
 	Frame->UpValues = Closure->UpValues;
 	Frame->Inst = Info->Entry;
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 	ml_scheduler_t scheduler = (ml_scheduler_t)Caller->Context->Values[ML_SCHEDULER_INDEX];
 	Frame->Schedule = scheduler(Caller->Context);
 #endif
@@ -934,7 +934,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 		return Debugger->run(Debugger, (ml_state_t *)Frame, MLNil);
 	}
 #else
-#ifdef USE_ML_JIT
+#ifdef ML_JIT
 	if (Info->JITStart) {
 		Frame->Base.run = Info->JITStart;
 		Frame->Inst = Info->JITEntry;
@@ -992,7 +992,7 @@ const char *MLInsts[] = {
 	"map_new", // MLI_MAP_NEW,
 	"map_insert", // MLI_MAP_INSERT,
 	"closure", // MLI_CLOSURE,
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 	"typed_closure", // MLI_CLOSURE_TYPED,
 #endif
 	"param_type", // MLI_PARAM_TYPE,
@@ -1068,7 +1068,7 @@ static const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INST, // MLI_MAP_NEW,
 	MLIT_INST, // MLI_MAP_INSERT,
 	MLIT_INST_CLOSURE, // MLI_CLOSURE,
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 	MLIT_INST_CLOSURE, // MLI_CLOSURE_TYPED,
 #endif
 	MLIT_INST_INDEX, // MLI_PARAM_TYPE,
@@ -1161,7 +1161,7 @@ static void ml_inst_process(int Process, ml_inst_t *Source, ml_inst_t *Inst, ml_
 
 void ml_closure_info_finish(ml_closure_info_t *Info) {
 	ml_inst_process(!Info->Entry->Processed, NULL, Info->Entry, Info, 0, 0);
-#ifdef USE_ML_JIT
+#ifdef ML_JIT
 	ml_bytecode_jit(Info);
 #endif
 }
@@ -1424,7 +1424,7 @@ ML_METHOD("!!", MLClosureT, MLListT) {
 	return (ml_value_t *)Partial;
 }
 
-#ifdef USE_ML_JIT
+#ifdef ML_JIT
 
 ML_METHOD("jit", MLClosureT) {
 	ml_closure_info_t *Info = ((ml_closure_t *)Args[0])->Info;
@@ -1434,7 +1434,7 @@ ML_METHOD("jit", MLClosureT) {
 
 #endif
 
-#ifdef USE_ML_CBOR_BYTECODE
+#ifdef ML_CBOR_BYTECODE
 
 static void ml_cbor_closure_write_int(int Value0, ml_stringbuffer_t *Buffer) {
 	unsigned int Value = (unsigned int)Value0;
@@ -1771,7 +1771,7 @@ ml_value_t *ml_cbor_read_closure(void *Data, int Count, ml_value_t **Args) {
 #undef DEBUG_VERSION
 
 void ml_bytecode_init() {
-#ifdef USE_GENERICS
+#ifdef ML_GENERICS
 	ml_type_add_rule(MLClosureT, MLFunctionT, ML_TYPE_ARG(1), NULL);
 #endif
 #include "ml_bytecode_init.c"

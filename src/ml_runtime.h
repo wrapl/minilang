@@ -104,7 +104,7 @@ extern ml_type_t MLErrorValueT[];
 extern ml_cfunction_t MLRaise[];
 
 static inline int ml_is_error(ml_value_t *Value) {
-#ifdef USE_NANBOXING
+#ifdef ML_NANBOXING
 	return (!ml_tag(Value)) && (Value->Type == MLErrorT);
 #else
 	return Value->Type == MLErrorT;
