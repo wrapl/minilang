@@ -395,6 +395,27 @@ ml_value_t *ml_real(double Value) __attribute__((malloc));
 long ml_integer_value(const ml_value_t *Value) __attribute__ ((const));
 double ml_real_value(const ml_value_t *Value) __attribute__ ((const));
 
+#ifdef ML_COMPLEX
+
+#include <complex.h>
+#undef I
+
+typedef struct {
+	ml_type_t *Type;
+	complex double Value;
+} ml_complex_t;
+
+extern ml_type_t MLComplexT[];
+
+ml_value_t *ml_complex(complex double Value);
+complex double ml_complex_value(const ml_value_t *Value);
+
+inline complex double ml_complex_value_fast(const ml_value_t *Value) {
+	return ((ml_complex_t *)Value)->Value;
+}
+
+#endif
+
 #ifdef ML_NANBOXING
 
 typedef struct {

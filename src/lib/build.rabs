@@ -22,7 +22,7 @@ fun minilang_lib(Library, Objects, Libraries) do
 	end
 end
 
-CFLAGS := old + ["-fpic", '-I{PATH}']
+CFLAGS := old + ["-fpic"]
 
 scope("csv";) do
 	generate_init_file(file("ml_csv.c"))

@@ -9,6 +9,8 @@ number
 
 :mini:`meth string(Arg₁: real)`
 
+:mini:`meth string(Arg₁: complex)`
+
 :mini:`meth integer(Arg₁: string)`
 
 :mini:`meth integer(Arg₁: string, Arg₂: integer)`
@@ -35,17 +37,19 @@ number
 
 :mini:`def double < real`
 
+:mini:`meth real(Arg₁: int32)`
+
+:mini:`meth real(Arg₁: int64)`
+
 :mini:`meth integer(Real: real)` |rarr| :mini:`integer`
    Converts :mini:`Real` to an integer (using default rounding).
 
 
 :mini:`def real < number`
 
-:mini:`meth real(Arg₁: int32)`
-
-:mini:`meth real(Arg₁: int64)`
-
 :mini:`meth real(Arg₁: integer)`
+
+:mini:`def complex < number`
 
 :mini:`meth ++(Int: integer)` |rarr| :mini:`integer`
    Returns :mini:`Int + 1`

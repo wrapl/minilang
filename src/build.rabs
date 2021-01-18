@@ -16,7 +16,7 @@ CFLAGS := old + [
 	:>"-Wsuggest-attribute=const",
 	:>"-Wsuggest-attribute=noreturn",
 	:>"-Wsuggest-attribute=malloc",
-	'-I{PATH}', "-pthread",
+	'-I.', "-pthread",
 	"-DGC_THREADS",
 	"-D_GNU_SOURCE",
 	'-D{PLATFORM}'
@@ -37,7 +37,7 @@ end
 
 fun generate_init_file(Source) do
 	let InitFile := Source:basename:replace(".c", "_init.c")
-	let Target := file(InitFile)[Source, file("config.h"), PREBUILDS] => fun() do
+	let Target := file(InitFile)[Source, PREBUILDS] => fun() do
 		Target:open("w"):close
 		let Init := shell("cc", CFLAGS, "-E -P -DGENERATE_INIT", Source)
 		let Out := Target:open("w")
@@ -107,6 +107,7 @@ var InstallHeaders := [
 
 MINILANG_TABLES := old or defined("TABLES")
 MINILANG_MATH := MINILANG_TABLES or old or defined("MATH")
+MINILANG_COMPLEX := old or defined("COMPLEX")
 MINILANG_IO := old or defined("IO")
 MINILANG_GIR := old or defined("GIR")
 MINILANG_CBOR := old or defined("CBOR")
@@ -126,6 +127,9 @@ file("config.h") => fun(Target) do
 	if MINILANG_NANBOXING then
 		File:write("\n#define ML_NANBOXING\n")
 	end
+	if MINILANG_COMPLEX then
+		File:write("\n#define ML_COMPLEX\n")
+	end
 	if MINILANG_GENERICS then
 		File:write("\n#define ML_GENERICS\n")
 	end
@@ -135,6 +139,8 @@ file("config.h") => fun(Target) do
 	File:write("\n#endif")
 	File:close
 end
+
+PREBUILDS := old + [file("config.h")]
 
 if MINILANG_TABLES then
 	Objects:put(file("ml_table.o"))

@@ -2076,6 +2076,14 @@ static ml_token_t ml_scan(ml_compiler_t *Compiler) {
 		if (isdigit(Char) || (Char == '-' && isdigit(Compiler->Next[1])) || (Char == '.' && isdigit(Compiler->Next[1]))) {
 			char *End;
 			double Double = strtod(Compiler->Next, (char **)&End);
+#ifdef ML_COMPLEX
+			if (*End == 'i') {
+				Compiler->Value = ml_complex(Double * 1i);
+				Compiler->Token = MLT_VALUE;
+				Compiler->Next = End + 1;
+				return Compiler->Token;
+			}
+#endif
 			for (const char *P = Compiler->Next; P < End; ++P) {
 				if (P[0] == '.' || P[0] == 'e' || P[0] == 'E') {
 					Compiler->Value = ml_real(Double);

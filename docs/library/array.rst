@@ -69,7 +69,7 @@ array
    Return the number of elements in :mini:`Array`.
 
 
-:mini:`meth :transpose(Array: array)` |rarr| :mini:`array`
+:mini:`meth ^(Array: array)` |rarr| :mini:`array`
    Returns the transpose of :mini:`Array`, sharing the underlying data.
 
 
@@ -141,6 +141,8 @@ array
    Return a new array with the same values of :mini:`Array` but not sharing the underlying data.
 
 
+:mini:`meth ^(Arg₁: list)`
+
 :mini:`meth :copy(Array: array, Function: function)` |rarr| :mini:`array`
    Return a new array with the results of applying :mini:`Function` to each value of :mini:`Array`.
 
@@ -150,6 +152,10 @@ array
 
 
 :mini:`meth .(A: array, B: array)` |rarr| :mini:`array`
+   Returns the inner product of :mini:`A` and :mini:`B`.
+
+
+:mini:`meth **(A: array, B: array)` |rarr| :mini:`array`
    Returns the inner product of :mini:`A` and :mini:`B`.
 
 

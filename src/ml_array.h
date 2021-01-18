@@ -19,6 +19,9 @@ typedef enum {
 	ML_ARRAY_FORMAT_I32, ML_ARRAY_FORMAT_U32,
 	ML_ARRAY_FORMAT_I64, ML_ARRAY_FORMAT_U64,
 	ML_ARRAY_FORMAT_F32, ML_ARRAY_FORMAT_F64,
+#ifdef ML_COMPLEX
+	ML_ARRAY_FORMAT_C32, ML_ARRAY_FORMAT_C64,
+#endif
 	ML_ARRAY_FORMAT_ANY
 } ml_array_format_t;
 
@@ -55,6 +58,16 @@ ML_ARRAY_ACCESSORS(int64_t);
 ML_ARRAY_ACCESSORS(uint64_t);
 ML_ARRAY_ACCESSORS(float);
 ML_ARRAY_ACCESSORS(double);
+
+#ifdef ML_COMPLEX
+
+typedef complex float complex_float;
+typedef complex double complex_double;
+
+ML_ARRAY_ACCESSORS(complex_float);
+ML_ARRAY_ACCESSORS(complex_double);
+
+#endif
 
 #ifdef	__cplusplus
 }

@@ -59,6 +59,10 @@ types
 
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: tuple)`
 
+:mini:`meth :re(Arg₁: complex)`
+
+:mini:`meth :im(Arg₁: complex)`
+
 :mini:`meth :exports(Arg₁: module)`
 
 :mini:`fun mlexchange(Arg₁: any)`

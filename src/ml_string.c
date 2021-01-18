@@ -160,6 +160,18 @@ ML_METHOD(MLStringT, MLRealT) {
 	return ml_string(Value, Length);
 }
 
+#ifdef ML_COMPLEX
+
+ML_METHOD(MLStringT, MLComplexT) {
+//!number
+	complex double Complex = ml_complex_value_fast(Args[0]);
+	char *Value;
+	int Length = asprintf(&Value, "%f + %fi", creal(Complex), cimag(Complex));
+	return ml_string(Value, Length);
+}
+
+#endif
+
 ML_METHOD(MLIntegerT, MLStringT) {
 //!number
 	const char *Start = ml_string_value(Args[0]);
