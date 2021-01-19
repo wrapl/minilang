@@ -77,7 +77,7 @@
         </context>
       </include>
     </context>
-    <context id="resolution" style-ref="operator" extend-parent="false">
+    <context id="resolution" style-ref="keyword" extend-parent="false">
       <match>::[a-zA-Z_][a-zA-Z0-9_]*</match>
     </context>
     <context id="complex-string" style-ref="string">

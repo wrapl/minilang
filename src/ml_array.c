@@ -843,8 +843,8 @@ UPDATE_ROW_ENTRY_VALUE(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_ANY, NAME, TARGET
 
 #define UPDATE_ROW_TARGET_ENTRIES(INDEX, NAME, TARGET) \
 UPDATE_ROW_TARGET_ENTRIES_BASE(INDEX, NAME, TARGET), \
-UPDATE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_C32, NAME, TARGET, float), \
-UPDATE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_C64, NAME, TARGET, double)
+UPDATE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_C32, NAME, TARGET, complex_float), \
+UPDATE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_C64, NAME, TARGET, complex_double)
 
 #else
 
@@ -870,8 +870,8 @@ UPDATE_ROW_VALUE_ENTRY_VALUE(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_ANY, NAME)
 
 #define UPDATE_ROW_VALUE_TARGET_ENTRIES(INDEX, NAME) \
 UPDATE_ROW_VALUE_TARGET_ENTRIES_BASE(INDEX, NAME), \
-UPDATE_ROW_VALUE_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_C32, NAME, float), \
-UPDATE_ROW_VALUE_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_C64, NAME, double)
+UPDATE_ROW_VALUE_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_C32, NAME, complex_float), \
+UPDATE_ROW_VALUE_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_C64, NAME, complex_double)
 
 #else
 
@@ -1181,12 +1181,18 @@ static ml_value_t *compare_array_fn(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)Target;
 }
 
-#define BUFFER_APPEND(BUFFER, PRINTF, VALUE) ml_stringbuffer_append(BUFFER, VALUE)
-
 static long srotl(long X, unsigned int N) {
 	const unsigned int Mask = (CHAR_BIT * sizeof(long) - 1);
 	return (X << (N & Mask)) | (X >> ((-N) & Mask ));
 }
+
+#define BUFFER_APPEND(BUFFER, PRINTF, VALUE) ml_stringbuffer_append(BUFFER, VALUE)
+
+#ifdef ML_COMPLEX
+
+#define COMPLEX_APPEND(BUFFER, PRINTF, VALUE) ml_stringbuffer_addf(BUFFER, PRINTF, creal(VALUE), cimag(VALUE))
+
+#endif
 
 #define ml_number(X) _Generic(X, ml_value_t *: ml_nop, double: ml_real, default: ml_integer)(X)
 
@@ -1447,8 +1453,8 @@ METHODS(MLArrayFloat64T, double, ml_stringbuffer_addf, "%f", ml_real_value, ml_r
 
 #ifdef ML_COMPLEX
 
-METHODS(MLArrayComplex32T, complex_float, ml_stringbuffer_addf, "%f + %fi", ml_complex_value, ml_complex, , NOP_VAL, ML_ARRAY_FORMAT_C32, (long));
-METHODS(MLArrayComplex64T, complex_double, ml_stringbuffer_addf, "%f + %fi", ml_complex_value, ml_complex, , NOP_VAL, ML_ARRAY_FORMAT_C64, (long));
+METHODS(MLArrayComplex32T, complex_float, COMPLEX_APPEND, "%f + %fi", ml_complex_value, ml_complex, , NOP_VAL, ML_ARRAY_FORMAT_C32, (long));
+METHODS(MLArrayComplex64T, complex_double, COMPLEX_APPEND, "%f + %fi", ml_complex_value, ml_complex, , NOP_VAL, ML_ARRAY_FORMAT_C64, (long));
 
 #endif
 
@@ -2087,7 +2093,40 @@ static ml_value_t *array_infix_fn(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)C;
 }
 
-#define ML_ARITH_METHOD(BASE, OP) \
+#ifdef ML_COMPLEX
+
+#define op_complex_array_integer(OP) \
+	case ML_ARRAY_FORMAT_C32: { \
+		complex_float *Values = (complex_float *)C->Base.Address; \
+		for (int I = DataSize / sizeof(complex_float); --I >= 0; ++Values) *Values = *Values OP B; \
+		break; \
+	} \
+	case ML_ARRAY_FORMAT_C64: { \
+		complex_double *Values = (complex_double *)C->Base.Address; \
+		for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = *Values OP B; \
+		break; \
+	}
+
+#define op_complex_integer_array(OP) \
+	case ML_ARRAY_FORMAT_C32: { \
+		complex_float *Values = (complex_float *)C->Base.Address; \
+		for (int I = DataSize / sizeof(complex_float); --I >= 0; ++Values) *Values = B OP *Values; \
+		break; \
+	} \
+	case ML_ARRAY_FORMAT_C64: { \
+		complex_double *Values = (complex_double *)C->Base.Address; \
+		for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = B OP *Values; \
+		break; \
+	}
+
+#else
+
+#define op_complex_array_integer(OP)
+#define op_complex_integer_array(OP)
+
+#endif
+
+#define ML_ARITH_METHOD_BASE(BASE, OP) \
 \
 ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
@@ -2117,6 +2156,7 @@ ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 		for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = *Values OP B; \
 		break; \
 	} \
+	op_complex_array_integer(OP) \
 	default: { \
 		return ml_error("TypeError", "Invalid types for array operation"); \
 	} \
@@ -2152,6 +2192,7 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 		for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = B OP *Values; \
 		break; \
 	} \
+	op_complex_integer_array(OP) \
 	default: { \
 		return ml_error("TypeError", "Invalid types for array operation"); \
 	} \
@@ -2164,10 +2205,19 @@ ML_METHOD(#OP, MLArrayT, MLRealT) { \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	double B = ml_real_value_fast(Args[1]); \
 	int Degree = A->Degree; \
-	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_F64, Degree); \
+	ml_array_t *C = ml_array_new(MAX(A->Format, ML_ARRAY_FORMAT_F64), Degree); \
 	int DataSize = array_copy(C, A); \
-	double *Values = (double *)C->Base.Address; \
-	for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = *Values OP B; \
+	switch (C->Format) { \
+	case ML_ARRAY_FORMAT_F64: { \
+		double *Values = (double *)C->Base.Address; \
+		for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = *Values OP B; \
+		break; \
+	} \
+	op_complex_array_integer(OP) \
+	default: { \
+		return ml_error("TypeError", "Invalid types for array operation"); \
+	} \
+	} \
 	return (ml_value_t *)C; \
 } \
 \
@@ -2176,19 +2226,64 @@ ML_METHOD(#OP, MLRealT, MLArrayT) { \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	double B = ml_real_value_fast(Args[0]); \
 	int Degree = A->Degree; \
-	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_F64, Degree); \
+	ml_array_t *C = ml_array_new(MAX(A->Format, ML_ARRAY_FORMAT_F64), Degree); \
 	int DataSize = array_copy(C, A); \
-	double *Values = (double *)C->Base.Address; \
-	for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = B OP *Values; \
+	switch (C->Format) { \
+	case ML_ARRAY_FORMAT_F64: { \
+		double *Values = (double *)C->Base.Address; \
+		for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = B OP *Values; \
+		break; \
+	} \
+	op_complex_integer_array(OP) \
+	default: { \
+		return ml_error("TypeError", "Invalid types for array operation"); \
+	} \
+	} \
 	return (ml_value_t *)C; \
 }
+
+#ifdef ML_COMPLEX
+
+#define ML_ARITH_METHOD(BASE, OP) \
+ML_ARITH_METHOD_BASE(BASE, OP) \
+\
+ML_METHOD(#OP, MLArrayT, MLComplexT) { \
+	ml_array_t *A = (ml_array_t *)Args[0]; \
+	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
+	double B = ml_complex_value_fast(Args[1]); \
+	int Degree = A->Degree; \
+	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_C64, Degree); \
+	int DataSize = array_copy(C, A); \
+	complex_double *Values = (complex_double *)C->Base.Address; \
+	for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = *Values OP B; \
+	return (ml_value_t *)C; \
+} \
+\
+ML_METHOD(#OP, MLComplexT, MLArrayT) { \
+	ml_array_t *A = (ml_array_t *)Args[1]; \
+	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
+	double B = ml_complex_value_fast(Args[0]); \
+	int Degree = A->Degree; \
+	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_C64, Degree); \
+	int DataSize = array_copy(C, A); \
+	complex_double *Values = (complex_double *)C->Base.Address; \
+	for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = B OP *Values; \
+	return (ml_value_t *)C; \
+}
+
+#else
+
+#define ML_ARITH_METHOD(BASE, OP) \
+ML_ARITH_METHOD_BASE(BASE, OP)
+
+#endif
 
 ML_ARITH_METHOD(1, +);
 ML_ARITH_METHOD(2, -);
 ML_ARITH_METHOD(3, *);
 ML_ARITH_METHOD(4, /);
 
-#define ML_COMPARE_METHOD(BASE, BASE2, OP) \
+#define ML_COMPARE_METHOD_BASE(BASE, BASE2, OP) \
 \
 ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
@@ -2265,6 +2360,56 @@ ML_METHOD(#OP, MLRealT, MLArrayT) { \
 	compare_prefix(Op, C->Dimensions, C->Base.Address, Degree - 1, A->Dimensions, A->Base.Address, 0, NULL, (char *)&B); \
 	return (ml_value_t *)C; \
 }
+
+#ifdef ML_COMPLEX
+
+#define ML_COMPARE_METHOD(BASE, BASE2, OP) \
+ML_COMPARE_METHOD_BASE(BASE, BASE2, OP) \
+\
+ML_METHOD(#OP, MLArrayT, MLComplexT) { \
+	ml_array_t *A = (ml_array_t *)Args[0]; \
+	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
+	double B = ml_complex_value_fast(Args[1]); \
+	int Degree = A->Degree; \
+	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_I8, Degree); \
+	int DataSize = 1; \
+	for (int I = Degree; --I >= 0;) { \
+		C->Dimensions[I].Stride = DataSize; \
+		int Size = C->Dimensions[I].Size = A->Dimensions[I].Size; \
+		DataSize *= Size; \
+	} \
+	C->Base.Address = GC_MALLOC_ATOMIC(DataSize); \
+	int Op = BASE * MAX_FORMATS * MAX_FORMATS + A->Format * MAX_FORMATS + ML_ARRAY_FORMAT_C64; \
+	if (!CompareRowFns[Op]) return ml_error("ArrayError", "Unsupported array format pair (%s, integer)", A->Base.Type->Name); \
+	compare_prefix(Op, C->Dimensions, C->Base.Address, Degree - 1, A->Dimensions, A->Base.Address, 0, NULL, (char *)&B); \
+	return (ml_value_t *)C; \
+} \
+\
+ML_METHOD(#OP, MLComplexT, MLArrayT) { \
+	ml_array_t *A = (ml_array_t *)Args[1]; \
+	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
+	double B = ml_real_value_fast(Args[0]); \
+	int Degree = A->Degree; \
+	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_I8, Degree); \
+	int DataSize = 1; \
+	for (int I = Degree; --I >= 0;) { \
+		C->Dimensions[I].Stride = DataSize; \
+		int Size = C->Dimensions[I].Size = A->Dimensions[I].Size; \
+		DataSize *= Size; \
+	} \
+	C->Base.Address = GC_MALLOC_ATOMIC(DataSize); \
+	int Op = BASE2 * MAX_FORMATS * MAX_FORMATS + A->Format * MAX_FORMATS + ML_ARRAY_FORMAT_C64; \
+	if (!CompareRowFns[Op]) return ml_error("ArrayError", "Unsupported array format pair (%s, integer)", A->Base.Type->Name); \
+	compare_prefix(Op, C->Dimensions, C->Base.Address, Degree - 1, A->Dimensions, A->Base.Address, 0, NULL, (char *)&B); \
+	return (ml_value_t *)C; \
+}
+
+#else
+
+#define ML_COMPARE_METHOD(BASE, BASE2, OP) \
+ML_COMPARE_METHOD_BASE(BASE, BASE2, OP)
+
+#endif
 
 ML_COMPARE_METHOD(0, 0, =);
 ML_COMPARE_METHOD(1, 1, !=);

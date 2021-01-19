@@ -35,6 +35,8 @@ else
 	LDFLAGS := old + ["-g"]
 end
 
+PREBUILDS := old + [file("config.h")]
+
 fun generate_init_file(Source) do
 	let InitFile := Source:basename:replace(".c", "_init.c")
 	let Target := file(InitFile)[Source, PREBUILDS] => fun() do
@@ -139,8 +141,6 @@ file("config.h") => fun(Target) do
 	File:write("\n#endif")
 	File:close
 end
-
-PREBUILDS := old + [file("config.h")]
 
 if MINILANG_TABLES then
 	Objects:put(file("ml_table.o"))
