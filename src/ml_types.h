@@ -263,6 +263,7 @@ extern ml_type_t MLPartialFunctionT[];
 
 extern ml_cfunctionx_t MLCallCC[];
 extern ml_cfunctionx_t MLMarkCC[];
+extern ml_cfunctionx_t MLCallDC[];
 extern ml_cfunctionx_t MLSwapCC[];
 
 extern ml_type_t MLContextKeyT[];

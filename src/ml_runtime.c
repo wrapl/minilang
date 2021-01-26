@@ -80,12 +80,8 @@ static void ml_context_key_call(ml_state_t *Caller, ml_context_key_t *Key, int C
 		Value->Prev = Values;
 		Value->Key = Key;
 		Value->Value = Args[0];
-		ml_context_t *Context = ml_context_new(Caller->Context);
-		ml_context_set(Context, ML_VARIABLES_INDEX, Value);
-		ml_state_t *State = new(ml_state_t);
-		State->Caller = Caller;
-		State->run = ml_default_state_run;
-		State->Context = Context;
+		ml_state_t *State = ml_state_new(Caller);
+		ml_context_set(State->Context, ML_VARIABLES_INDEX, Value);
 		ml_value_t *Function = Args[1];
 		Function = ml_deref(Function);
 		return ml_call(State, Function, Count - 2, Args + 2);
@@ -181,13 +177,21 @@ ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 	return Result;
 }
 
+typedef struct {
+	ml_state_t Base;
+	ml_context_t Context[1];
+} ml_context_state_t;
+
 ml_state_t *ml_state_new(ml_state_t *Caller) {
-	ml_state_t *State = new(ml_state_t);
-	State->Type = MLStateT;
-	State->Context = ml_context_new(Caller->Context);
-	State->Caller = Caller;
-	State->run = ml_default_state_run;
-	return State;
+	ml_context_state_t *State = xnew(ml_context_state_t, MLContextSize, void *);
+	ml_context_t *Parent = Caller->Context;
+	State->Context->Parent = Parent;
+	State->Context->Size = MLContextSize;
+	for (int I = 0; I < Parent->Size; ++I) State->Context->Values[I] = Parent->Values[I];
+	State->Base.Caller = Caller;
+	State->Base.run = ml_default_state_run;
+	State->Base.Context = State->Context;
+	return (ml_state_t *)State;
 }
 
 typedef struct ml_resumable_state_t {
@@ -211,33 +215,13 @@ static void ml_resumable_state_run(ml_resumable_state_t *State, ml_value_t *Valu
 ML_FUNCTIONX(MLCallCC) {
 //@callcc
 	if (!Caller->Type) Caller->Type = MLStateT;
-	if (Count > 1) {
-		ML_CHECKX_ARG_TYPE(0, MLStateT);
-		ml_state_t *State = (ml_state_t *)Args[0];
-		ml_state_t *Last = Caller;
-		while (Last && Last->Caller != State) Last = Last->Caller;
-		if (!Last) ML_RETURN(ml_error("StateError", "State not in current call chain"));
-		Last->Caller = NULL;
-		ml_resumable_state_t *Resumable = new(ml_resumable_state_t);
-		Resumable->Base.Type = MLResumableStateT;
-		Resumable->Base.Caller = Caller;
-		Resumable->Base.run = (void *)ml_resumable_state_run;
-		Resumable->Base.Context = Caller->Context;
-		Resumable->Last = Last;
-		ml_value_t *Function = Args[1];
-		ml_value_t **Args2 = anew(ml_value_t *, 1);
-		Args2[0] = (ml_value_t *)Resumable;
-		return ml_call(State, Function, 1, Args2);
-	} else {
-		ML_CHECKX_ARG_COUNT(1);
-		ml_value_t *Function = Args[0];
-		ml_value_t **Args2 = anew(ml_value_t *, 1);
-		Args2[0] = (ml_value_t *)Caller;
-		ml_state_t *State = new(ml_state_t);
-		State->run = ml_end_state_run;
-		State->Context = Caller->Context;
-		return ml_call(State, Function, 1, Args2);
-	}
+	ML_CHECKX_ARG_COUNT(1);
+	ml_value_t *Function = Args[0];
+	Args[0] = (ml_value_t *)Caller;
+	ml_state_t *State = new(ml_state_t);
+	State->run = ml_end_state_run;
+	State->Context = Caller->Context;
+	return ml_call(State, Function, Count, Args);
 }
 
 ML_FUNCTIONX(MLMarkCC) {
@@ -254,11 +238,33 @@ ML_FUNCTIONX(MLMarkCC) {
 	return ml_call(State, Func, 1, Args2);
 }
 
+ML_FUNCTIONX(MLCallDC) {
+//@calldc
+	if (!Caller->Type) Caller->Type = MLStateT;
+	ML_CHECKX_ARG_COUNT(2);
+	ML_CHECKX_ARG_TYPE(0, MLStateT);
+	ml_state_t *State = (ml_state_t *)Args[0];
+	ml_state_t *Last = Caller;
+	while (Last && Last->Caller != State) Last = Last->Caller;
+	if (!Last) ML_RETURN(ml_error("StateError", "State not in current call chain"));
+	Last->Caller = NULL;
+	ml_resumable_state_t *Resumable = new(ml_resumable_state_t);
+	Resumable->Base.Type = MLResumableStateT;
+	Resumable->Base.Caller = Caller;
+	Resumable->Base.run = (void *)ml_resumable_state_run;
+	Resumable->Base.Context = Caller->Context;
+	Resumable->Last = Last;
+	ml_value_t *Function = Args[1];
+	ml_value_t **Args2 = anew(ml_value_t *, 1);
+	Args2[0] = (ml_value_t *)Resumable;
+	return ml_call(State, Function, 1, Args2);
+}
+
 ML_FUNCTIONX(MLSwapCC) {
 //@swapcc
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLStateT);
-	ml_state_t *State = (ml_state_t *)State;
+	ml_state_t *State = (ml_state_t *)Args[0];
 	return State->run(State, Count > 1 ? Args[1] : MLNil);
 }
 

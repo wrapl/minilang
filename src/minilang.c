@@ -201,6 +201,7 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "collect", MLCollect);
 	stringmap_insert(Globals, "callcc", MLCallCC);
 	stringmap_insert(Globals, "markcc", MLMarkCC);
+	stringmap_insert(Globals, "calldc", MLCallDC);
 	stringmap_insert(Globals, "swapcc", MLSwapCC);
 	stringmap_insert(Globals, "channel", MLChannelT);
 	stringmap_insert(Globals, "context", MLContextKeyT);

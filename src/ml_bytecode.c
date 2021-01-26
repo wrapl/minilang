@@ -1519,8 +1519,9 @@ static void ml_cbor_closure_write_inst(int Process, ml_inst_t *Inst, stringmap_t
 		break;
 	case MLIT_INST_CLOSURE: {
 		ml_closure_info_t *Info = Inst->Params[1].ClosureInfo;
+		ml_cbor_closure_write_int(Info->NumUpValues, Buffer);
 		for (int N = 0; N < Info->NumUpValues; ++N) {
-			Inst->Params[2 + N].Index;
+			ml_cbor_closure_write_int(Inst->Params[2 + N].Index, Buffer);
 		}
 		break;
 	default:

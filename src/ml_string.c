@@ -156,7 +156,7 @@ ML_METHOD(MLStringT, MLIntegerT, MLIntegerT) {
 ML_METHOD(MLStringT, MLRealT) {
 //!number
 	char *Value;
-	int Length = asprintf(&Value, "%f", ml_real_value_fast(Args[0]));
+	int Length = asprintf(&Value, "%g", ml_real_value_fast(Args[0]));
 	return ml_string(Value, Length);
 }
 
@@ -166,7 +166,7 @@ ML_METHOD(MLStringT, MLComplexT) {
 //!number
 	complex double Complex = ml_complex_value_fast(Args[0]);
 	char *Value;
-	int Length = asprintf(&Value, "%f + %fi", creal(Complex), cimag(Complex));
+	int Length = asprintf(&Value, "%g + %gi", creal(Complex), cimag(Complex));
 	return ml_string(Value, Length);
 }
 
@@ -519,7 +519,7 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT) {
 
 ML_METHOD("append", MLStringBufferT, MLRealT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_addf(Buffer, "%f", ml_real_value_fast(Args[1]));
+	ml_stringbuffer_addf(Buffer, "%g", ml_real_value_fast(Args[1]));
 	return MLSome;
 }
 

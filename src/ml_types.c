@@ -1536,6 +1536,8 @@ ml_value_t *ml_complex(complex double Value) {
 	return (ml_value_t *)Complex;
 }
 
+extern complex double ml_complex_value_fast(const ml_value_t *Value);
+
 complex double ml_complex_value(const ml_value_t *Value) {
 #ifdef ML_NANBOXING
 	int Tag = ml_tag(Value);

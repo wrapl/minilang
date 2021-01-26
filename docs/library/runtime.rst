@@ -11,6 +11,8 @@ runtime
 
 :mini:`fun markcc(Arg₁: any)`
 
+:mini:`fun calldc()`
+
 :mini:`fun swapcc(Arg₁: state)`
 
 :mini:`def reference`
