@@ -1872,6 +1872,64 @@ ML_FUNCTION(Key) {
 	return (ml_value_t *)Key;
 }
 
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Value;
+} ml_dup_t;
+
+ML_TYPE(MLDupT, (MLIteratableT), "dup");
+//!internal
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Iter;
+	int Iteration;
+} ml_dup_state_t;
+
+ML_TYPE(MLDupStateT, (), "keys-state");
+//!internal
+
+static void dup_iterate(ml_dup_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Iter = Value;
+	++State->Iteration;
+	ML_CONTINUE(State->Base.Caller, State);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLDupT, ml_state_t *Caller, ml_dup_t *Dup) {
+	ml_dup_state_t *State = new(ml_dup_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Type = MLDupStateT;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)dup_iterate;
+	return ml_iterate((ml_state_t *)State, Dup->Value);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLDupStateT, ml_state_t *Caller, ml_dup_state_t *State) {
+	return ml_iter_value(Caller, State->Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLDupStateT, ml_state_t *Caller, ml_dup_state_t *State) {
+	return ml_iter_value(Caller, State->Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLDupStateT, ml_state_t *Caller, ml_dup_state_t *State) {
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+ML_FUNCTION(Dup) {
+//@key
+//<Iteratable:iteratable
+// Returns a new iteratable which produces the keys of :mini:`Iteratable`.
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLIteratableT);
+	ml_dup_t *Dup = new(ml_dup_t);
+	Dup->Type = MLDupT;
+	Dup->Value = Args[0];
+	return (ml_value_t *)Dup;
+}
+
 void ml_iterfns_init(stringmap_t *Globals) {
 	FilterNil = new(ml_filter_t);
 	FilterNil->Type = FilterT;
@@ -1902,5 +1960,6 @@ void ml_iterfns_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "weave", Weave);
 		stringmap_insert(Globals, "swap", Swap);
 		stringmap_insert(Globals, "key", Key);
+		stringmap_insert(Globals, "dup", Dup);
 	}
 }
