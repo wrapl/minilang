@@ -9,19 +9,31 @@ iterator
    Returns a filter for use in chained functions and iterators.
 
 
-:mini:`def chainedstate`
-
 :mini:`def chainedfunction < function, iteratable`
 
-:mini:`meth ->(Iteratable: iteratable, Function: function)` |rarr| :mini:`chainedfunction`
+:mini:`def chainedstate`
 
 :mini:`meth ->(Iteratable: function, Function: function)` |rarr| :mini:`chainedfunction`
 
-:mini:`meth ->(Iteratable: function, Function: chainedfunction)` |rarr| :mini:`chainedfunction`
+:mini:`meth ->(Iteratable: iteratable, Function: function)` |rarr| :mini:`chainedfunction`
+
+:mini:`meth =>(Iteratable: iteratable, Function: function)` |rarr| :mini:`chainedfunction`
+
+:mini:`meth =>(Iteratable: iteratable, Function: function, Arg₃: function)` |rarr| :mini:`chainedfunction`
 
 :mini:`meth ->(ChainedFunction: chainedfunction, Function: function)` |rarr| :mini:`chainedfunction`
 
-:mini:`meth ->(ChainedFunction₁: chainedfunction, ChainedFunction₂: chainedfunction)` |rarr| :mini:`chainedfunction`
+:mini:`meth =>(ChainedFunction: chainedfunction, Function: function)` |rarr| :mini:`chainedfunction`
+
+:mini:`meth =>(ChainedFunction: chainedfunction, Function: function, Arg₃: function)` |rarr| :mini:`chainedfunction`
+
+:mini:`meth ->?(Iteratable: iteratable, Function: function)` |rarr| :mini:`chainedfunction`
+
+:mini:`meth =>?(Iteratable: iteratable, Function: function)` |rarr| :mini:`chainedfunction`
+
+:mini:`meth ->?(ChainedFunction: chainedfunction, Function: function)` |rarr| :mini:`chainedfunction`
+
+:mini:`meth =>?(ChainedFunction: chainedfunction, Function: function)` |rarr| :mini:`chainedfunction`
 
 :mini:`def doublediterator < iteratable`
 
