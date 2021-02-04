@@ -1,6 +1,7 @@
 #include "ml_math.h"
 #include "ml_macros.h"
 #include <math.h>
+#include <float.h>
 
 #define MATH_REAL(NAME, CNAME) \
 ML_METHOD_DECL(NAME, NULL); \
@@ -20,10 +21,6 @@ ML_METHOD("%", MLNumberT, MLNumberT) {
 	return ml_real(fmod(ml_real_value(Args[0]), ml_real_value(Args[1])));
 }
 
-ML_METHOD("^", MLNumberT, MLNumberT) {
-	return ml_real(pow(ml_real_value(Args[0]), ml_real_value(Args[1])));
-}
-
 ML_METHOD("^", MLIntegerT, MLIntegerT) {
 	int64_t Base = ml_integer_value_fast(Args[0]);
 	int64_t Exponent = ml_integer_value_fast(Args[1]);
@@ -39,6 +36,54 @@ ML_METHOD("^", MLIntegerT, MLIntegerT) {
 		return ml_real(pow(Base, Exponent));
 	}
 }
+
+ML_METHOD("^", MLRealT, MLIntegerT) {
+	return ml_real(pow(ml_real_value_fast(Args[0]), ml_integer_value_fast(Args[1])));
+}
+
+ML_METHOD("^", MLRealT, MLRealT) {
+	return ml_real(pow(ml_real_value_fast(Args[0]), ml_real_value_fast(Args[1])));
+}
+
+#ifdef ML_COMPLEX
+
+ML_METHOD("^", MLComplexT, MLIntegerT) {
+	complex double Base = ml_complex_value_fast(Args[0]);
+	int64_t Power = ml_integer_value_fast(Args[1]);
+	if (Power == 0) return ml_real(0);
+	complex double Result;
+	if (Power > 0 && Power < 10) {
+		Result = Base;
+		while (--Power > 0) Result *= Base;
+	} else {
+		Result = cpow(Base, Power);
+	}
+	if (fabs(cimag(Result)) <= DBL_EPSILON) {
+		return ml_real(creal(Result));
+	} else {
+		return ml_complex(Result);
+	}
+}
+
+ML_METHOD("^", MLComplexT, MLNumberT) {
+	complex double V = cpow(ml_complex_value_fast(Args[0]), ml_complex_value(Args[1]));
+	if (fabs(cimag(V)) <= DBL_EPSILON) {
+		return ml_real(creal(V));
+	} else {
+		return ml_complex(V);
+	}
+}
+
+ML_METHOD("^", MLNumberT, MLComplexT) {
+	complex double V = cpow(ml_complex_value(Args[0]), ml_complex_value_fast(Args[1]));
+	if (fabs(cimag(V)) < DBL_EPSILON) {
+		return ml_real(creal(V));
+	} else {
+		return ml_complex(V);
+	}
+}
+
+#endif
 
 ML_METHOD("!", MLIntegerT) {
 	int N = ml_integer_value(Args[0]);
@@ -149,7 +194,7 @@ ML_FUNCTION(IntegerPermutation) {
 }
 
 ML_FUNCTION(IntegerCycle) {
-//@integer::permutation
+//@integer::cycle
 //<Max:number
 	ML_CHECK_ARG_TYPE(0, MLNumberT);
 	int Limit = ml_integer_value(Args[0]);

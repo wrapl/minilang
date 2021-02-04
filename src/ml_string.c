@@ -4,6 +4,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <inttypes.h>
+#include <math.h>
+#include <float.h>
 #include <gc/gc_typed.h>
 #ifdef ML_TRE
 #include <tre/regex.h>
@@ -166,7 +168,12 @@ ML_METHOD(MLStringT, MLComplexT) {
 //!number
 	complex double Complex = ml_complex_value_fast(Args[0]);
 	char *Value;
-	int Length = asprintf(&Value, "%g + %gi", creal(Complex), cimag(Complex));
+	int Length;
+	if (fabs(creal(Complex)) <= DBL_EPSILON) {
+		Length = asprintf(&Value, "%gi", cimag(Complex));
+	} else {
+		Length = asprintf(&Value, "%g + %gi", creal(Complex), cimag(Complex));
+	}
 	return ml_string(Value, Length);
 }
 

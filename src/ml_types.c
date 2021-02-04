@@ -9,6 +9,7 @@
 #include <gc/gc.h>
 #include <limits.h>
 #include <math.h>
+#include <float.h>
 #include <inttypes.h>
 #include "ml_runtime.h"
 #include "ml_bytecode.h"
@@ -1571,42 +1572,72 @@ complex double ml_complex_value(const ml_value_t *Value) {
 #define ml_arith_method_complex(NAME, SYMBOL) \
 	ML_METHOD(NAME, MLComplexT) { \
 		complex double ComplexA = ml_complex_value_fast(Args[0]); \
-		return ml_complex(SYMBOL(ComplexA)); \
+		complex double ComplexB = SYMBOL(ComplexA); \
+		if (fabs(cimag(ComplexB)) <= DBL_EPSILON) { \
+			return ml_real(creal(ComplexB)); \
+		} else { \
+			return ml_complex(ComplexB); \
+		} \
 	}
 
 #define ml_arith_method_complex_complex(NAME, SYMBOL) \
 	ML_METHOD(NAME, MLComplexT, MLComplexT) { \
 		complex double ComplexA = ml_complex_value_fast(Args[0]); \
 		complex double ComplexB = ml_complex_value_fast(Args[1]); \
-		return ml_complex(ComplexA SYMBOL ComplexB); \
+		complex double ComplexC = ComplexA SYMBOL ComplexB; \
+		if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
+			return ml_real(creal(ComplexC)); \
+		} else { \
+			return ml_complex(ComplexC); \
+		} \
 	}
 
 #define ml_arith_method_complex_integer(NAME, SYMBOL) \
 	ML_METHOD(NAME, MLComplexT, MLIntegerT) { \
 		complex double ComplexA = ml_complex_value_fast(Args[0]); \
 		int64_t IntegerB = ml_integer_value_fast(Args[1]); \
-		return ml_complex(ComplexA SYMBOL IntegerB); \
+		complex double ComplexC = ComplexA SYMBOL IntegerB; \
+		if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
+			return ml_real(creal(ComplexC)); \
+		} else { \
+			return ml_complex(ComplexC); \
+		} \
 	}
 
 #define ml_arith_method_integer_complex(NAME, SYMBOL) \
 	ML_METHOD(NAME, MLIntegerT, MLComplexT) { \
 		int64_t IntegerA = ml_integer_value_fast(Args[0]); \
 		complex double ComplexB = ml_complex_value_fast(Args[1]); \
-		return ml_complex(IntegerA SYMBOL ComplexB); \
+		complex double ComplexC = IntegerA SYMBOL ComplexB; \
+		if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
+			return ml_real(creal(ComplexC)); \
+		} else { \
+			return ml_complex(ComplexC); \
+		} \
 	}
 
 #define ml_arith_method_complex_real(NAME, SYMBOL) \
 	ML_METHOD(NAME, MLComplexT, MLRealT) { \
 		complex double ComplexA = ml_complex_value_fast(Args[0]); \
 		double RealB = ml_real_value_fast(Args[1]); \
-		return ml_complex(ComplexA SYMBOL RealB); \
+		complex double ComplexC = ComplexA SYMBOL RealB; \
+		if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
+			return ml_real(creal(ComplexC)); \
+		} else { \
+			return ml_complex(ComplexC); \
+		} \
 	}
 
 #define ml_arith_method_real_complex(NAME, SYMBOL) \
 	ML_METHOD(NAME, MLRealT, MLComplexT) { \
 		double RealA = ml_real_value_fast(Args[0]); \
 		complex double ComplexB = ml_complex_value_fast(Args[1]); \
-		return ml_complex(RealA SYMBOL ComplexB); \
+		complex double ComplexC = RealA SYMBOL ComplexB; \
+		if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
+			return ml_real(creal(ComplexC)); \
+		} else { \
+			return ml_complex(ComplexC); \
+		} \
 	}
 
 ML_METHOD("re", MLComplexT) {

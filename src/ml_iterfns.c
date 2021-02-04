@@ -9,6 +9,11 @@
 
 /****************************** Chained ******************************/
 
+ML_METHOD_DECL(Solo, "->");
+ML_METHOD_DECL(Duo, "=>");
+ML_METHOD_DECL(FilterSolo, "->?");
+ML_METHOD_DECL(FilterDuo, "=>?");
+
 typedef struct ml_filter_t {
 	ml_type_t *Type;
 	ml_value_t *Function;
@@ -146,35 +151,40 @@ static void ml_chained_iterator_duo_key(ml_chained_iterator_t *State, ml_value_t
 	State->Values[1] = State->Values[0];
 	State->Values[0] = Value;
 	ml_value_t **Entry = State->Current;
-	if (!Entry[0]) ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Missing value function for duo"));
 	ml_value_t *Function = Entry[0];
+	if (!Function) ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Missing value function for chain"));
 	State->Current = Entry + 1;
 	State->Base.run = (void *)ml_chained_iterator_value;
 	return ml_call(State, Function, 2, State->Values + 1);
 }
 
-ML_METHOD_DECL(FilterSolo, "->?");
-ML_METHOD_DECL(FilterDuo, "=>?");
-ML_METHOD_DECL(Duo, "=>");
-
 static void ml_chained_iterator_continue(ml_chained_iterator_t *State) {
 	ml_value_t **Entry = State->Current;
-	if (!Entry[0]) ML_CONTINUE(State->Base.Caller, State);
 	ml_value_t *Function = Entry[0];
-	if (Function == FilterSoloMethod) {
+	if (!Function) ML_CONTINUE(State->Base.Caller, State);
+	if (Function == SoloMethod) {
 		Function = Entry[1];
+		if (!Function) ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Missing value function for chain"));
+		State->Current = Entry + 2;
+		State->Base.run = (void *)ml_chained_iterator_value;
+		return ml_call(State, Function, 1, State->Values + 1);
+	} else if (Function == DuoMethod) {
+		Function = Entry[1];
+		if (!Function) ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Missing value function for chain"));
+		State->Current = Entry + 2;
+		State->Base.run = (void *)ml_chained_iterator_duo_key;
+		return ml_call(State, Function, 2, State->Values);
+	} else if (Function == FilterSoloMethod) {
+		Function = Entry[1];
+		if (!Function) ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Missing value function for chain"));
 		State->Current = Entry + 2;
 		State->Base.run = (void *)ml_chained_iterator_filter;
 		return ml_call(State, Function, 1, State->Values + 1);
 	} else if (Function == FilterDuoMethod) {
 		Function = Entry[1];
+		if (!Function) ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Missing value function for chain"));
 		State->Current = Entry + 2;
 		State->Base.run = (void *)ml_chained_iterator_filter;
-		return ml_call(State, Function, 2, State->Values);
-	} else if (Function == DuoMethod) {
-		Function = Entry[1];
-		State->Current = Entry + 2;
-		State->Base.run = (void *)ml_chained_iterator_duo_key;
 		return ml_call(State, Function, 2, State->Values);
 	} else {
 		State->Current = Entry + 1;
