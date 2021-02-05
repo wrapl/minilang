@@ -3,7 +3,7 @@ table
 
 .. include:: <isonum.txt>
 
-:mini:`def table < iteratable`
+:mini:`type table < iteratable`
    A table is a set of named arrays. The arrays must have the same length.
 
 
@@ -37,7 +37,7 @@ table
 
 :mini:`meth ::(Arg₁: table, Arg₂: string)`
 
-:mini:`def tablerow < iteratable`
+:mini:`type tablerow < iteratable`
 
 :mini:`meth (Arg₁: table)[Arg₂: integer]`
 

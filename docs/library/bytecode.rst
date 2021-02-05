@@ -3,9 +3,9 @@ bytecode
 
 .. include:: <isonum.txt>
 
-:mini:`def variable`
+:mini:`type variable`
 
-:mini:`def closure < function, iteratable`
+:mini:`type closure < function, iteratable`
 
 :mini:`meth string(Arg₁: closure)`
 
@@ -16,6 +16,4 @@ bytecode
 :mini:`meth :list(Arg₁: closure)`
 
 :mini:`meth !!(Arg₁: closure, Arg₂: list)`
-
-:mini:`meth :jit(Arg₁: closure)`
 

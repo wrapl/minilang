@@ -3,9 +3,9 @@ compiler
 
 .. include:: <isonum.txt>
 
-:mini:`fun mlcompiler(Arg₁: any)`
+:mini:`fun compiler(Arg₁: any)`
 
-:mini:`def compiler < state`
+:mini:`type compiler < state`
 
 :mini:`meth :compile(Arg₁: compiler)`
 
@@ -25,7 +25,7 @@ compiler
 
 :mini:`meth (Arg₁: compiler)[Arg₂: string]`
 
-:mini:`def global`
+:mini:`type global`
 
 :mini:`meth :var(Arg₁: compiler, Arg₂: string)`
 

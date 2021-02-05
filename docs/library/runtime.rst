@@ -3,9 +3,9 @@ runtime
 
 .. include:: <isonum.txt>
 
-:mini:`def state < function`
+:mini:`type state < function`
 
-:mini:`def resumablestate < state`
+:mini:`type resumablestate < state`
 
 :mini:`fun callcc()`
 
@@ -15,13 +15,13 @@ runtime
 
 :mini:`fun swapcc(Arg₁: state)`
 
-:mini:`def reference`
+:mini:`type reference`
 
-:mini:`def uninitialized`
+:mini:`type uninitialized`
 
 :mini:`meth ::(Arg₁: uninitialized, Arg₂: string)`
 
-:mini:`def channel`
+:mini:`type channel`
 
 :mini:`meth :open(Arg₁: channel, Arg₂: any)`
 

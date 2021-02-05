@@ -3,7 +3,7 @@ map
 
 .. include:: <isonum.txt>
 
-:mini:`def map < iteratable`
+:mini:`type map < iteratable`
    A map of key-value pairs.
 
    Keys can be of any type supporting hashing and comparison.
@@ -11,7 +11,7 @@ map
    Insert order is preserved.
 
 
-:mini:`def mapnode`
+:mini:`type mapnode`
    A node in a :mini:`map`.
 
    Dereferencing a :mini:`mapnode` returns the corresponding value from the :mini:`map`.
@@ -36,7 +36,7 @@ map
 
 
 :mini:`meth (Map: map)[Key: any]` |rarr| :mini:`mapnode`
-   Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then the reference withh return :mini:`nil` when dereferenced and will insert :mini:`Key` into :mini:`Map` when assigned.
+   Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then a new floating node is returned with value :mini:`nil`. This node will insert :mini:`Key` into :mini:`Map` if assigned.
 
 
 :mini:`meth (Map: map)[Key: any, Default: function]` |rarr| :mini:`mapnode`
@@ -71,8 +71,16 @@ map
    If the same key is in both :mini:`Map₁` and :mini:`Map₂` then the corresponding value from :mini:`Map₂` is chosen.
 
 
+:mini:`meth *(Map₁: map, Map₂: map)` |rarr| :mini:`map`
+   Returns a new map containing the entries of :mini:`Map₁` which are also in :mini:`Map₂`. The values are chosen from :mini:`Map₁`.
+
+
+:mini:`meth /(Map₁: map, Map₂: map)` |rarr| :mini:`map`
+   Returns a new map containing the entries of :mini:`Map₁` which are not in :mini:`Map₂`.
+
+
 :mini:`meth string(Map: map)` |rarr| :mini:`string`
-   Returns a string containing the entries of :mini:`Map` surrounded by :mini:`{`, :mini:`}` with :mini:`is` between keys and values and :mini:`,` between entries.
+   Returns a string containing the entries of :mini:`Map` surrounded by :mini:`"{"`, :mini:`"}"` with :mini:`" is "` between keys and values and :mini:`", "` between entries.
 
 
 :mini:`meth string(Map: map, Seperator: string, Connector: string)` |rarr| :mini:`string`

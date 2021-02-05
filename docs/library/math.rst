@@ -85,9 +85,9 @@ math
    If omitted, :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`2³² - 1`.
 
 
-:mini:`fun integer::permutation(Max: number)`
+:mini:`fun integer::random_permutation(Max: number)`
 
-:mini:`fun integer::cycle(Max: number)`
+:mini:`fun integer::random_cycle(Max: number)`
 
 :mini:`fun real::random(Min?: number, Max?: number)` |rarr| :mini:`real`
    Returns a random real between :mini:`Min` and :mini:`Max`.

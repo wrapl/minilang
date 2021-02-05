@@ -537,7 +537,7 @@ ML_METHOD("+", MLListT, MLListT) {
 ML_METHOD(MLStringT, MLListT) {
 //<List
 //>string
-// Returns a string containing the elements of :mini:`List` surrounded by :mini:`[`, :mini:`]` and seperated by :mini:`,`.
+// Returns a string containing the elements of :mini:`List` surrounded by :mini:`"["`, :mini:`"]"` and seperated by :mini:`", "`.
 	ml_list_t *List = (ml_list_t *)Args[0];
 	if (!List->Length) return ml_cstring("[]");
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};

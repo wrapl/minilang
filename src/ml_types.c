@@ -1297,7 +1297,7 @@ ML_TYPE(MLIntegerT, (MLNumberT), "integer");
 //!number
 
 ML_TYPE(MLInt32T, (MLIntegerT), "int32",
-//!number
+//!internal
 	.hash = (void *)ml_int32_hash,
 	.call = (void *)ml_int32_call,
 	.NoInherit = 1
@@ -1308,7 +1308,7 @@ static long ml_int64_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 }
 
 ML_TYPE(MLInt64T, (MLIntegerT), "int64",
-//!number
+//!internal
 	.hash = (void *)ml_int64_hash,
 	.NoInherit = 1
 );
@@ -1396,7 +1396,7 @@ static long ml_double_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 }
 
 ML_TYPE(MLDoubleT, (MLRealT), "double",
-//!number
+//!internal
 	.hash = (void *)ml_double_hash,
 	.NoInherit = 1
 );

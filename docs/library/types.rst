@@ -3,11 +3,11 @@ types
 
 .. include:: <isonum.txt>
 
-:mini:`def any`
+:mini:`type any`
    Base type for all values.
 
 
-:mini:`def generictype < type`
+:mini:`type generictype < type`
 
 :mini:`meth :parents(Arg₁: generictype)`
 

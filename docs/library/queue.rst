@@ -3,9 +3,9 @@ queue
 
 .. include:: <isonum.txt>
 
-:mini:`def queuenode`
+:mini:`type queuenode`
 
-:mini:`def queue < iteratable`
+:mini:`type queue < iteratable`
    A priority queue with values and associated scores.
 
 
@@ -27,5 +27,5 @@ queue
 
 :mini:`meth :score(Arg₁: queuenode)`
 
-:mini:`def queueiter`
+:mini:`type queueiter`
 

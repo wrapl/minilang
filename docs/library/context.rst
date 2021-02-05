@@ -7,7 +7,7 @@ context
    Creates a new context specific key.
 
 
-:mini:`def context < cfunction`
+:mini:`type context < cfunction`
    A context key can be used to create context specific values.
 
    If :mini:`key` is a context key, then calling :mini:`key()` no arguments returns the value associated with the key in the current context, or :mini:`nil` is no value is associated.

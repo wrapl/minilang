@@ -19,23 +19,17 @@ number
 
 :mini:`meth number(Arg₁: string)`
 
-:mini:`def number < function`
+:mini:`type number < function`
    Base type for integers and reals.
 
 
-:mini:`def integer < number`
+:mini:`type integer < number`
 
-:mini:`def int32 < integer`
-
-:mini:`def int64 < integer`
-
-:mini:`def integer < number`
+:mini:`type integer < number`
 
 :mini:`meth integer(Arg₁: real)`
 
-:mini:`def real < number`
-
-:mini:`def double < real`
+:mini:`type real < number`
 
 :mini:`meth real(Arg₁: int32)`
 
@@ -45,11 +39,11 @@ number
    Converts :mini:`Real` to an integer (using default rounding).
 
 
-:mini:`def real < number`
+:mini:`type real < number`
 
 :mini:`meth real(Arg₁: integer)`
 
-:mini:`def complex < number`
+:mini:`type complex < number`
 
 :mini:`meth ++(Int: integer)` |rarr| :mini:`integer`
    Returns :mini:`Int + 1`

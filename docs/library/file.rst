@@ -3,7 +3,7 @@ file
 
 .. include:: <isonum.txt>
 
-:mini:`def file`
+:mini:`type file`
 
 :mini:`fun file(Path: string, Mode: string)` |rarr| :mini:`file`
 
@@ -23,7 +23,7 @@ file
 
 :mini:`fun file::unlink(Path: string)`
 
-:mini:`def dir < iteratable`
+:mini:`type dir < iteratable`
 
 :mini:`fun dir(Path: string)` |rarr| :mini:`dir`
 

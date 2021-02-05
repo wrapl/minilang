@@ -3,9 +3,9 @@ range
 
 .. include:: <isonum.txt>
 
-:mini:`def integeriter`
+:mini:`type integeriter`
 
-:mini:`def integerrange < iteratable`
+:mini:`type integerrange < iteratable`
 
 :mini:`meth ..(Start: integer, Limit: integer)` |rarr| :mini:`integerrange`
    Returns a range from :mini:`Start` to :mini:`Limit` (inclusive).
@@ -25,9 +25,9 @@ range
 
 :mini:`meth :in(X: real, Range: integerrange)` |rarr| :mini:`X` or :mini:`nil`
 
-:mini:`def realiter`
+:mini:`type realiter`
 
-:mini:`def realrange < iteratable`
+:mini:`type realrange < iteratable`
 
 :mini:`meth ..(Start: number, Limit: number)` |rarr| :mini:`realrange`
 

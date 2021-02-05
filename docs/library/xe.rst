@@ -3,9 +3,9 @@ xe
 
 .. include:: <isonum.txt>
 
-:mini:`def XENodeT`
+:mini:`type XENodeT`
 
-:mini:`def XEScopeT`
+:mini:`type XEScopeT`
 
 :mini:`fun xefunction()`
 

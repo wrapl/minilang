@@ -1427,6 +1427,7 @@ ML_METHOD("!!", MLClosureT, MLListT) {
 #ifdef ML_JIT
 
 ML_METHOD("jit", MLClosureT) {
+//!internal
 	ml_closure_info_t *Info = ((ml_closure_t *)Args[0])->Info;
 	if (!Info->JITEntry) ml_bytecode_jit(Info);
 	return Args[0];

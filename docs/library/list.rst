@@ -3,11 +3,11 @@ list
 
 .. include:: <isonum.txt>
 
-:mini:`def list < iteratable`
+:mini:`type list < iteratable`
    A list of elements.
 
 
-:mini:`def listnode`
+:mini:`type listnode`
    A node in a :mini:`list`.
 
    Dereferencing a :mini:`listnode` returns the corresponding value from the :mini:`list`.
@@ -41,7 +41,7 @@ list
    Indexing starts at :mini:`1`. Negative indices are counted from the end of the list, with :mini:`-1` returning the last node.
 
 
-:mini:`def listslice`
+:mini:`type listslice`
    A slice of a list.
 
 
@@ -78,7 +78,7 @@ list
 
 
 :mini:`meth string(List: list)` |rarr| :mini:`string`
-   Returns a string containing the elements of :mini:`List` surrounded by :mini:`[`, :mini:`]` and seperated by :mini:`,`.
+   Returns a string containing the elements of :mini:`List` surrounded by :mini:`"["`, :mini:`"]"` and seperated by :mini:`", "`.
 
 
 :mini:`meth string(List: list, Seperator: string)` |rarr| :mini:`string`

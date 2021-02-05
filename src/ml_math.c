@@ -170,8 +170,8 @@ ML_FUNCTION(IntegerRandom) {
 	}
 }
 
-ML_FUNCTION(IntegerPermutation) {
-//@integer::permutation
+ML_FUNCTION(IntegerRandomPermutation) {
+//@integer::random_permutation
 //<Max:number
 	ML_CHECK_ARG_TYPE(0, MLNumberT);
 	int Limit = ml_integer_value(Args[0]);
@@ -193,8 +193,8 @@ ML_FUNCTION(IntegerPermutation) {
 	return Permutation;
 }
 
-ML_FUNCTION(IntegerCycle) {
-//@integer::cycle
+ML_FUNCTION(IntegerRandomCycle) {
+//@integer::random_cycle
 //<Max:number
 	ML_CHECK_ARG_TYPE(0, MLNumberT);
 	int Limit = ml_integer_value(Args[0]);
@@ -243,8 +243,8 @@ void ml_math_init(stringmap_t *Globals) {
 	srandom(time(NULL));
 #include "ml_math_init.c"
 	stringmap_insert(MLIntegerT->Exports, "random", IntegerRandom);
-	stringmap_insert(MLIntegerT->Exports, "permutation", IntegerPermutation);
-	stringmap_insert(MLIntegerT->Exports, "cycle", IntegerCycle);
+	stringmap_insert(MLIntegerT->Exports, "permutation", IntegerRandomPermutation);
+	stringmap_insert(MLIntegerT->Exports, "cycle", IntegerRandomCycle);
 	stringmap_insert(MLRealT->Exports, "random", RealRandom);
 	if (Globals) {
 		stringmap_insert(Globals, "math", ml_module("math",

@@ -367,7 +367,7 @@ ML_METHOD("[]", MLMapT, MLAnyT) {
 //<Map
 //<Key
 //>mapnode
-// Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then the reference withh return :mini:`nil` when dereferenced and will insert :mini:`Key` into :mini:`Map` when assigned.
+// Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then a new floating node is returned with value :mini:`nil`. This node will insert :mini:`Key` into :mini:`Map` if assigned.
 	ml_map_node_t *Node = ml_map_find_node((ml_map_t *)Args[0], Args[1]);
 	if (!Node) {
 		Node = new(ml_map_node_t);
@@ -499,47 +499,6 @@ ML_METHOD("append", MLStringBufferT, MLMapT) {
 	return (ml_value_t *)Buffer;
 }
 
-/*
-#define ML_TREE_MAX_DEPTH 32
-
-typedef struct ml_map_iterator_t {
-	ml_type_t *Type;
-	ml_map_node_t *Node;
-	ml_map_node_t *Stack[ML_TREE_MAX_DEPTH];
-	int Top;
-} ml_map_iterator_t;
-
-static void ML_TYPED_FN(ml_iter_key, MLMapIterT, ml_state_t *Caller, ml_map_iterator_t *Iter) {
-	ML_RETURN(Iter->Node->Key);
-}
-
-static void ML_TYPED_FN(ml_iter_value, MLMapIterT, ml_state_t *Caller, ml_map_iterator_t *Iter) {
-	ML_RETURN(Iter->Node);
-}
-
-static void ML_TYPED_FN(ml_iter_next, MLMapIterT, ml_state_t *Caller, ml_map_iterator_t *Iter) {
-	ml_map_node_t *Node = Iter->Node;
-	if ((Iter->Node = Node->Next)) ML_RETURN(Iter);
-	ML_RETURN(MLNil);
-}
-
-ML_TYPE(MLMapIterT, (), "map-iterator");
-//!internal
-
-static void ML_TYPED_FN(ml_iterate, MLMapT, ml_state_t *Caller, ml_value_t *Value) {
-	ml_map_t *Map = (ml_map_t *)Value;
-	if (Map->Root) {
-		ml_map_iterator_t *Iter = new(ml_map_iterator_t);
-		Iter->Type = MLMapIterT;
-		Iter->Node = Map->Head;
-		Iter->Top = 0;
-		ML_RETURN(Iter);
-	} else {
-		ML_RETURN(MLNil);
-	}
-}
-*/
-
 static void ML_TYPED_FN(ml_iter_next, MLMapNodeT, ml_state_t *Caller, ml_map_node_t *Node) {
 	ML_RETURN((ml_value_t *)Node->Next ?: MLNil);
 }
@@ -568,6 +527,30 @@ ML_METHOD("+", MLMapT, MLMapT) {
 	return Map;
 }
 
+ML_METHOD("*", MLMapT, MLMapT) {
+//<Map/1
+//<Map/2
+//>map
+// Returns a new map containing the entries of :mini:`Map/1` which are also in :mini:`Map/2`. The values are chosen from :mini:`Map/1`.
+	ml_value_t *Map = ml_map();
+	ML_MAP_FOREACH(Args[0], Node) {
+		if (ml_map_search0(Args[1], Node->Key)) ml_map_insert(Map, Node->Key, Node->Value);
+	}
+	return Map;
+}
+
+ML_METHOD("/", MLMapT, MLMapT) {
+//<Map/1
+//<Map/2
+//>map
+// Returns a new map containing the entries of :mini:`Map/1` which are not in :mini:`Map/2`.
+	ml_value_t *Map = ml_map();
+	ML_MAP_FOREACH(Args[0], Node) {
+		if (!ml_map_search0(Args[1], Node->Key)) ml_map_insert(Map, Node->Key, Node->Value);
+	}
+	return Map;
+}
+
 typedef struct ml_map_stringer_t {
 	const char *Seperator, *Equals;
 	ml_stringbuffer_t Buffer[1];
@@ -592,7 +575,7 @@ static int ml_map_stringer(ml_value_t *Key, ml_value_t *Value, ml_map_stringer_t
 ML_METHOD(MLStringT, MLMapT) {
 //<Map
 //>string
-// Returns a string containing the entries of :mini:`Map` surrounded by :mini:`{`, :mini:`}` with :mini:`is` between keys and values and :mini:`,` between entries.
+// Returns a string containing the entries of :mini:`Map` surrounded by :mini:`"{"`, :mini:`"}"` with :mini:`" is "` between keys and values and :mini:`", "` between entries.
 	ml_map_stringer_t Stringer[1] = {{
 		", ", " is ",
 		{ML_STRINGBUFFER_INIT},

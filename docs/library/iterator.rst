@@ -3,15 +3,15 @@ iterator
 
 .. include:: <isonum.txt>
 
-:mini:`def filter < function`
+:mini:`type filter < function`
 
 :mini:`fun filter(Function?: any)` |rarr| :mini:`filter`
    Returns a filter for use in chained functions and iterators.
 
 
-:mini:`def chainedfunction < function, iteratable`
+:mini:`type chainedfunction < function, iteratable`
 
-:mini:`def chainedstate`
+:mini:`type chainedstate`
 
 :mini:`meth ->(Iteratable: function, Function: function)` |rarr| :mini:`chainedfunction`
 
@@ -35,9 +35,9 @@ iterator
 
 :mini:`meth =>?(ChainedFunction: chainedfunction, Function: function)` |rarr| :mini:`chainedfunction`
 
-:mini:`def doublediterator < iteratable`
+:mini:`type doublediterator < iteratable`
 
-:mini:`def doublediteratorstate < state`
+:mini:`type doublediteratorstate < state`
 
 :mini:`meth ^(Arg₁: iteratable, Arg₂: function)`
 
@@ -161,7 +161,7 @@ iterator
    Returns a new iteratable which produces the keys of :mini:`Iteratable`.
 
 
-:mini:`def iteratable`
+:mini:`type iteratable`
    The base type for any iteratable value.
 
 
