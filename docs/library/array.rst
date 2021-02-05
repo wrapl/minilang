@@ -3,7 +3,7 @@ array
 
 .. include:: <isonum.txt>
 
-:mini:`def array < buffer, iteratable`
+:mini:`type array < buffer, iteratable`
    Base type for multidimensional arrays.
 
 
@@ -13,47 +13,47 @@ array
    The shape and type of the array is determined from the elements in :mini:`List`.
 
 
-:mini:`def array::int8 < array`
+:mini:`type array::int8 < array`
    Arrays of signed 8 bit integers.
 
 
-:mini:`def array::uint8 < array`
+:mini:`type array::uint8 < array`
    Arrays of unsigned 8 bit integers.
 
 
-:mini:`def array::int16 < array`
+:mini:`type array::int16 < array`
    Arrays of signed 16 bit integers.
 
 
-:mini:`def array::uint16 < array`
+:mini:`type array::uint16 < array`
    Arrays of unsigned 16 bit integers.
 
 
-:mini:`def array::int32 < array`
+:mini:`type array::int32 < array`
    Arrays of signed 32 bit integers.
 
 
-:mini:`def array::uint32 < array`
+:mini:`type array::uint32 < array`
    Arrays of unsigned 32 bit integers.
 
 
-:mini:`def array::int64 < array`
+:mini:`type array::int64 < array`
    Arrays of signed 64 bit integers.
 
 
-:mini:`def array::uint64 < array`
+:mini:`type array::uint64 < array`
    Arrays of unsigned 64 bit integers.
 
 
-:mini:`def array::float32 < array`
+:mini:`type array::float32 < array`
    Arrays of 32 bit reals.
 
 
-:mini:`def array::float64 < array`
+:mini:`type array::float64 < array`
    Arrays of 64 bit reals.
 
 
-:mini:`def array::any < array`
+:mini:`type array::any < array`
    Arrays of any *Minilang* values.
 
 
@@ -69,7 +69,7 @@ array
    Return the number of elements in :mini:`Array`.
 
 
-:mini:`meth :transpose(Array: array)` |rarr| :mini:`array`
+:mini:`meth ^(Array: array)` |rarr| :mini:`array`
    Returns the transpose of :mini:`Array`, sharing the underlying data.
 
 
@@ -141,6 +141,8 @@ array
    Return a new array with the same values of :mini:`Array` but not sharing the underlying data.
 
 
+:mini:`meth ^(Arg₁: list)`
+
 :mini:`meth :copy(Array: array, Function: function)` |rarr| :mini:`array`
    Return a new array with the results of applying :mini:`Function` to each value of :mini:`Array`.
 
@@ -150,6 +152,10 @@ array
 
 
 :mini:`meth .(A: array, B: array)` |rarr| :mini:`array`
+   Returns the inner product of :mini:`A` and :mini:`B`.
+
+
+:mini:`meth **(A: array, B: array)` |rarr| :mini:`array`
    Returns the inner product of :mini:`A` and :mini:`B`.
 
 

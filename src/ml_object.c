@@ -67,7 +67,7 @@ static int field_string(const char *Name, void *Offset, ml_object_stringer_t *St
 	return 0;
 }
 
-ML_METHOD(MLStringOfMethod, MLObjectT) {
+ML_METHOD(MLStringT, MLObjectT) {
 	ml_object_t *Object = (ml_object_t *)Args[0];
 	ml_class_t *Class = (ml_class_t *)Object->Type;
 	ml_object_stringer_t Stringer = {Object, {ML_STRINGBUFFER_INIT}, 0};
@@ -151,7 +151,7 @@ ML_TYPE(MLNamedTypeT, (MLTypeT), "named-type",
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Object;
-	const ml_type_t *Old, *New;
+	ml_type_t *Old, *New;
 	ml_value_t *Init;
 	int Count;
 	ml_value_t *Args[];
@@ -229,14 +229,12 @@ ML_FUNCTIONX(MLClass) {
 		Name = ml_string_value(Args[0]);
 		Start = 1;
 	}
-	int NumParents = 0, Rank = 0;
+	int Rank = 0;
 	ml_type_t *NativeType = NULL;
 	for (int I = Start; I < Count; ++I) {
 		if (ml_typeof(Args[I]) == MLMethodT) {
 		} else if (ml_is(Args[I], MLClassT)) {
 			ml_class_t *Parent = (ml_class_t *)Args[I];
-			const ml_type_t **Types = Parent->Base.Types;
-			do ++NumParents; while (*++Types != MLObjectT);
 			if (Rank < Parent->Base.Rank) Rank = Parent->Base.Rank;
 		} else if (ml_is(Args[I], MLNamedTypeT)) {
 			ml_named_type_t *Parent = (ml_named_type_t *)Args[I];
@@ -255,8 +253,6 @@ ML_FUNCTIONX(MLClass) {
 				}
 				NativeType = Parent;
 			}
-			const ml_type_t **Types = Parent->Types;
-			do ++NumParents; while (*++Types);
 			if (Rank < Parent->Rank) Rank = Parent->Rank;
 		} else if (ml_is(Args[I], MLNamesT)) {
 			break;
@@ -278,18 +274,12 @@ ML_FUNCTIONX(MLClass) {
 		Class->Base.assign = ml_default_assign;
 		Class->Base.Rank = Rank + 1;
 		Class->Native = NativeType;
-		const ml_type_t **Parents = Class->Base.Types = anew(const ml_type_t *, NumParents + 4);
-		*Parents++ = (ml_type_t *)Class;
 		ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_named_constructor_fn);
 		Class->Base.Constructor = Constructor;
 		for (int I = Start; I < Count; ++I) {
 			if (ml_is(Args[I], MLTypeT)) {
 				ml_type_t *Parent = (ml_type_t *)Args[I];
-				const ml_type_t **Types = Parent->Types;
-				while (*Types) {
-					inthash_insert(Class->Base.Parents, (uintptr_t)*Types, (void *)*Types);
-					*Parents++ = *Types++;
-				}
+				ml_type_add_parent((ml_type_t *)Class, Parent);
 			} else if (ml_is(Args[I], MLNamesT)) {
 				ML_LIST_FOREACH(Args[I], Iter) {
 					ml_value_t *Key = Iter->Value;
@@ -301,14 +291,11 @@ ML_FUNCTIONX(MLClass) {
 					} else if (!strcmp(Name, "init")) {
 						Class->Initializer = Value;
 						Class->Base.Constructor = ml_cfunctionx(Class, (void *)ml_named_initializer_fn);
-
 					}
 				}
 				break;
 			}
 		}
-		*Parents++ = MLAnyT;
-		inthash_insert(Class->Base.Parents, (uintptr_t)MLAnyT, (void *)MLAnyT);
 		stringmap_insert(Class->Base.Exports, "new", Constructor);
 		ML_RETURN(Class);
 	} else {
@@ -324,8 +311,6 @@ ML_FUNCTIONX(MLClass) {
 		Class->Base.deref = ml_default_deref;
 		Class->Base.assign = ml_default_assign;
 		Class->Base.Rank = Rank + 1;
-		const ml_type_t **Parents = Class->Base.Types = anew(const ml_type_t *, NumParents + 4);
-		*Parents++ = (ml_type_t *)Class;
 		ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_object_constructor_fn);
 		Class->Base.Constructor = Constructor;
 		for (int I = Start; I < Count; ++I) {
@@ -334,18 +319,10 @@ ML_FUNCTIONX(MLClass) {
 			} else if (ml_is(Args[I], MLClassT)) {
 				ml_class_t *Parent = (ml_class_t *)Args[I];
 				stringmap_foreach(Parent->Fields, Class, (void *)add_field);
-				const ml_type_t **Types = Parent->Base.Types;
-				while (*Types != MLObjectT) {
-					inthash_insert(Class->Base.Parents, (uintptr_t)*Types, (void *)*Types);
-					*Parents++ = *Types++;
-				}
+				ml_type_add_parent((ml_type_t *)Class, (ml_type_t *)Parent);
 			} else if (ml_is(Args[I], MLTypeT)) {
 				ml_type_t *Parent = (ml_type_t *)Args[I];
-				const ml_type_t **Types = Parent->Types;
-				while (*Types) {
-					inthash_insert(Class->Base.Parents, (uintptr_t)*Types, (void *)*Types);
-					*Parents++ = *Types++;
-				}
+				ml_type_add_parent((ml_type_t *)Class, Parent);
 			} else if (ml_is(Args[I], MLNamesT)) {
 				ML_LIST_FOREACH(Args[I], Iter) {
 					ml_value_t *Key = Iter->Value;
@@ -361,10 +338,7 @@ ML_FUNCTIONX(MLClass) {
 				break;
 			}
 		}
-		*Parents++ = MLObjectT;
-		*Parents++ = MLAnyT;
-		inthash_insert(Class->Base.Parents, (uintptr_t)MLObjectT, (void *)MLObjectT);
-		inthash_insert(Class->Base.Parents, (uintptr_t)MLAnyT, (void *)MLAnyT);
+		ml_type_add_parent((ml_type_t *)Class, MLObjectT);
 		int NumFields = Class->Fields->Size;
 		if (NumFields > NumFieldFns) {
 			ml_value_t **NewFieldFns = anew(ml_value_t *, NumFields);
@@ -500,8 +474,10 @@ ML_METHOD("count", MLEnumT) {
 
 void ml_object_init(stringmap_t *Globals) {
 #include "ml_object_init.c"
-	stringmap_insert(Globals, "property", MLPropertyT);
-	stringmap_insert(Globals, "object", MLObjectT);
-	stringmap_insert(Globals, "class", MLClassT);
-	stringmap_insert(Globals, "enum", MLEnumT);
+	if (Globals) {
+		stringmap_insert(Globals, "property", MLPropertyT);
+		stringmap_insert(Globals, "object", MLObjectT);
+		stringmap_insert(Globals, "class", MLClassT);
+		stringmap_insert(Globals, "enum", MLEnumT);
+	}
 }

@@ -139,7 +139,3 @@ void *inthash_insert(inthash_t *Map, uintptr_t Key, void *Value) {
 	}
 	return NULL;
 }
-
-int inthash_foreach(inthash_t *Map, void *Data, int (*callback)(uintptr_t, void *, void *)) {
-	return 0;
-}

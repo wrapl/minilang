@@ -453,7 +453,7 @@ void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) 
 	CborObjects = ml_map();
 	ml_map_insert(CborDefaultTags, ml_integer(26), ml_cfunction(NULL, ml_cbor_read_method)); // TODO: Change this to a proper tag
 	ml_map_insert(CborDefaultTags, ml_integer(27), ml_cfunction(NULL, ml_cbor_read_object));
-#ifdef USE_ML_CBOR_BYTECODE
+#ifdef ML_CBOR_BYTECODE
 	ml_map_insert(CborDefaultTags, ml_integer(36), ml_cfunction(NULL, ml_cbor_read_closure));
 #endif
 #include "ml_cbor_init.c"

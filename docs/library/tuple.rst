@@ -7,7 +7,7 @@ tuple
    Returns a tuple of values :mini:`Value₁, ..., Valueₙ`.
 
 
-:mini:`def tuple`
+:mini:`type tuple`
    An immutable tuple of values.
 
 

@@ -3,15 +3,8 @@
 #include "ml_macros.h"
 #include <string.h>
 
-ML_METHOD_DECL(MLMethodOf, "method::of");
-
 typedef struct ml_method_cached_t ml_method_cached_t;
 typedef struct ml_method_definition_t ml_method_definition_t;
-
-struct ml_method_t {
-	const ml_type_t *Type;
-	const char *Name;
-};
 
 struct ml_methods_t {
 	ml_methods_t *Parent;
@@ -33,17 +26,17 @@ struct ml_method_cached_t {
 	ml_method_t *Method;
 	ml_method_definition_t *Definition;
 	int Count, Score;
-	const ml_type_t *Types[];
+	ml_type_t *Types[];
 };
 
 struct ml_method_definition_t {
 	ml_method_definition_t *Next;
 	ml_value_t *Callback;
 	int Count, Variadic;
-	const ml_type_t *Types[];
+	ml_type_t *Types[];
 };
 
-static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_definition_t *Definition, int Count, const ml_type_t **Types) {
+static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_definition_t *Definition, int Count, ml_type_t **Types) {
 	unsigned int Score = 1;
 	if (Definition->Count > Count) return 0;
 	if (Definition->Count < Count) {
@@ -53,7 +46,7 @@ static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_
 		Score = 2;
 	}
 	for (int I = 0; I < Count; ++I) {
-		const ml_type_t *Type = Definition->Types[I];
+		ml_type_t *Type = Definition->Types[I];
 		if (ml_is_subtype(Types[I], Type)) goto found;
 		return 0;
 	found:
@@ -62,7 +55,7 @@ static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_
 	return Score;
 }
 
-static ml_method_cached_t *ml_method_search_entry(ml_methods_t *Methods, ml_method_t *Method, int Count, const ml_type_t **Types, uint64_t Hash) {
+static ml_method_cached_t *ml_method_search_entry(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_type_t **Types, uint64_t Hash) {
 	ml_method_cached_t *Cached = inthash_search(Methods->Cache, Hash);
 	while (Cached) {
 		if (Cached->Method != Method) goto next;
@@ -115,12 +108,12 @@ static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 static inline ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args) {
 	// TODO: Use generation numbers to check Methods->Parent for invalidated definitions
 	// Use alloca here, VLA prevents TCO.
-	const ml_type_t **Types = alloca(Count * sizeof(const ml_type_t *));
+	ml_type_t **Types = alloca(Count * sizeof(const ml_type_t *));
 	uintptr_t Hash = (uintptr_t)Method;
 	for (int I = Count; --I >= 0;) {
-#ifdef USE_NANBOXING
+#ifdef ML_NANBOXING
 		ml_value_t *Value = Args[I];
-		const ml_type_t *Type;
+		ml_type_t *Type;
 		unsigned Tag = ml_tag(Value);
 		if (__builtin_expect(Tag == 0, 1)) {
 			Type = ml_typeof(Value->Type->deref(Value));
@@ -133,7 +126,7 @@ static inline ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *M
 		}
 		Types[I] = Type;
 #else
-		const ml_type_t *Type = Types[I] = ml_typeof(ml_deref(Args[I]));
+		ml_type_t *Type = Types[I] = ml_typeof(ml_deref(Args[I]));
 #endif
 		Hash = rotl(Hash, 1) ^ (uintptr_t)Type;
 	}
@@ -225,7 +218,7 @@ ml_value_t *ml_method(const char *Name) {
 		asprintf((char **)&Method->Name, "<anon:0x%lx>", (uintptr_t)Method);
 		return (ml_value_t *)Method;
 	}
-#ifdef USE_ML_THREADSAFE
+#ifdef ML_THREADSAFE
 	static pthread_mutex_t Lock = PTHREAD_MUTEX_INITIALIZER;
 	pthread_mutex_lock(&Lock);
 #endif
@@ -236,7 +229,7 @@ ml_value_t *ml_method(const char *Name) {
 		Method->Name = Name;
 		Slot[0] = Method;
 	}
-#ifdef USE_ML_THREADSAFE
+#ifdef ML_THREADSAFE
 	pthread_mutex_unlock(&Lock);
 #endif
 	return (ml_value_t *)Slot[0];
@@ -249,13 +242,13 @@ ml_value_t *ml_method_anon(const char *Name) {
 	return (ml_value_t *)Method;
 }
 
-ML_METHOD(MLMethodOfMethod) {
+ML_METHOD(MLMethodT) {
 //!method
 //>method
 	return ml_method(NULL);
 }
 
-ML_METHOD(MLMethodOfMethod, MLStringT) {
+ML_METHOD(MLMethodT, MLStringT) {
 //!method
 //<Name
 //>method
@@ -327,7 +320,7 @@ void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_t
 	ml_method_insert(MLRootMethods, Method, Function, Count, 1, Types);
 }
 
-ML_METHOD(MLStringOfMethod, MLMethodT) {
+ML_METHOD(MLStringT, MLMethodT) {
 //!method
 //>string
 	ml_method_t *Method = (ml_method_t *)Args[0];
@@ -403,8 +396,6 @@ ML_FUNCTIONX(MLMethodSet) {
 void ml_method_init() {
 	ml_context_set(&MLRootContext, ML_METHODS_INDEX, MLRootMethods);
 #include "ml_method_init.c"
-	MLMethodT->Constructor = MLMethodOfMethod;
-	stringmap_insert(MLMethodT->Exports, "of", MLMethodOfMethod);
 	stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
-	ml_method_by_value(MLMethodOfMethod, NULL, ml_identity, MLMethodT, NULL);
+	ml_method_by_value(MLMethodT->Constructor, NULL, ml_identity, MLMethodT, NULL);
 }

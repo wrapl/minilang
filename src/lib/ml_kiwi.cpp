@@ -23,7 +23,7 @@ ML_METHOD("value", KiwiVariableT) {
 	return ml_real(V->Value.value());
 }
 
-ML_METHOD(MLStringOfMethod, KiwiVariableT) {
+ML_METHOD(MLStringT, KiwiVariableT) {
 	kiwi_variable_t *V = (kiwi_variable_t *)Args[0];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_stringbuffer_addf(Buffer, "?%s", V->Value.name().c_str());
@@ -39,7 +39,7 @@ struct kiwi_expression_t : public gc {
 	kiwi_expression_t(kiwi::Expression E) : Value(E) {}
 };
 
-ML_METHOD(MLStringOfMethod, KiwiExpressionT) {
+ML_METHOD(MLStringT, KiwiExpressionT) {
 	kiwi_expression_t *E = (kiwi_expression_t *)Args[0];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_stringbuffer_addf(Buffer, "%g", E->Value.constant());
@@ -63,7 +63,7 @@ struct kiwi_constraint_t : public gc {
 	kiwi_constraint_t(kiwi::Constraint C) : Value(C) {}
 };
 
-ML_METHOD(MLStringOfMethod, KiwiConstraintT) {
+ML_METHOD(MLStringT, KiwiConstraintT) {
 	kiwi_constraint_t *C = (kiwi_constraint_t *)Args[0];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_stringbuffer_addf(Buffer, "%g", C->Value.expression().constant());

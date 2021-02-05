@@ -71,7 +71,7 @@ fun write_method(Category, Kind, Method, Params, Return, Description, Location) 
 			end
 		end>:
 	else
-		if let Match := Method % r"ML(\w+)OfMethod" then
+		if let Match := Method % r"ML(\w+)T" then
 			Title:write('{Match[2]:lower}(')
 		elseif Method[1] = "\"" then
 			if is_symbol(Method) then
@@ -196,7 +196,7 @@ fun write_type(Category, Name, Parents, Description, Location) do
 	let File := Categories[Category, write_category]
 	let Title := stringbuffer()
 	
-	Title:write(':mini:`def {type_name(Name)}')
+	Title:write(':mini:`type {type_name(Name)}')
 	if Parents:length > 0 then
 		Title:write(" < ")
 		var Seperator := ""

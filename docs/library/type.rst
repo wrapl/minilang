@@ -7,7 +7,7 @@ type
    Returns the type of :mini:`Value`.
 
 
-:mini:`def type < function`
+:mini:`type type < function`
    Type of all types.
 
    Every type contains a set of named exports, which allows them to be used as modules.

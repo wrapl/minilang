@@ -3,7 +3,7 @@ general
 
 .. include:: <isonum.txt>
 
-:mini:`def ConsoleT`
+:mini:`type ConsoleT`
 
 :mini:`fun mlsleep(Arg₁: number)`
 

@@ -1,5 +1,3 @@
-print("Building in ", PATH, "\n")
-
 var SourceTypes := {
 	"c" is [c_includes, c_compile],
 	"cpp" is [c_includes, c_compile]
@@ -48,13 +46,15 @@ scope("cbor";) do
 end
 
 scope("radb";) do
-	var Dir := PATH / "radb"
-	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/radb.git", Dir)
+	var Dir := file("radb")
 	var Lib := Dir / "libradb.a" => fun() do
+		Dir:rmdir
+		execute("git clone -b dev https://github.com/rajamukherji/radb.git", Dir)
 		Dir:chdir
 		execute("make clean")
 		execute("make libradb.a RADB_MEM=GC")
 	end
+	PREBUILDS := old + [Lib]
 	generate_init_file(file("ml_radb.c"))
 	DEFAULT[minilang_lib(LIB_DIR / "ml_radb.so", [file("ml_radb.o")], [Lib])]
 end
@@ -78,25 +78,25 @@ scope("onion";) do
 end
 
 scope("kiwi";) do
-	var Kiwi := file("kiwi") => fun(Dir) do
+	var Dir := file("kiwi") => fun(Dir) do
 		Dir:rmdir
 		execute("git clone https://github.com/nucleic/kiwi", Dir)
 	end
-	PREBUILDS := old + [Kiwi]
+	PREBUILDS := old + [Dir]
 	CFLAGS := old + ["-I", file("kiwi")]
 	generate_init_file(file("ml_kiwi.cpp"))
 	DEFAULT[minilang_lib(LIB_DIR / "ml_kiwi.so", [file("ml_kiwi.o")])]
 end
 
 scope("mpc";) do
-	var MPC := file("mpc") => fun(Dir) do
-		Dir:rmdir
-		execute("git clone https://github.com/orangeduck/mpc.git", Dir)
-		execute("cat", PATH/"mpc_extra.c", " >> ", Dir/"mpc.c")
+	var MPC := file("mpc/mpc.c") => fun() do
+		file("mpc"):rmdir
+		execute("git clone https://github.com/orangeduck/mpc.git")
+		execute("cat", file("mpc_extra.c"), " >> ", "mpc/mpc.c")
 	end
 	PREBUILDS := old + [MPC]
 	generate_init_file(file("ml_mpc.c"))
-	DEFAULT[minilang_lib(LIB_DIR / "ml_mpc.so", [file("ml_mpc.o"), MPC/"mpc.o"])]
+	DEFAULT[minilang_lib(LIB_DIR / "ml_mpc.so", [file("ml_mpc.o"), file("mpc/mpc.o")])]
 end
 
 nil and scope("facil";) do

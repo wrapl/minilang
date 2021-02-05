@@ -5,9 +5,21 @@ math
 
 :mini:`meth %(Arg₁: number, Arg₂: number)`
 
-:mini:`meth ^(Arg₁: number, Arg₂: number)`
-
 :mini:`meth ^(Arg₁: integer, Arg₂: integer)`
+
+:mini:`meth ^(Arg₁: real, Arg₂: integer)`
+
+:mini:`meth ^(Arg₁: real, Arg₂: real)`
+
+:mini:`meth ^(Arg₁: complex, Arg₂: integer)`
+
+:mini:`meth ^(Arg₁: complex, Arg₂: number)`
+
+:mini:`meth ^(Arg₁: number, Arg₂: complex)`
+
+:mini:`meth !(Arg₁: integer)`
+
+:mini:`meth !(Arg₁: integer, Arg₂: integer)`
 
 :mini:`meth acos(Arg₁: number)` |rarr| :mini:`number`
 
@@ -72,6 +84,10 @@ math
 
    If omitted, :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`2³² - 1`.
 
+
+:mini:`fun integer::random_permutation(Max: number)`
+
+:mini:`fun integer::random_cycle(Max: number)`
 
 :mini:`fun real::random(Min?: number, Max?: number)` |rarr| :mini:`real`
    Returns a random real between :mini:`Min` and :mini:`Max`.

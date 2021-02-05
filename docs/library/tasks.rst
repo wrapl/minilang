@@ -11,7 +11,7 @@ tasks
    If :mini:`Min` is also specified then the number of running tasks must drop below :mini:`Min` before more tasks are launched.
 
 
-:mini:`def tasks < function`
+:mini:`type tasks < function`
    A dynamic set of tasks (function calls). Multiple tasks can run in parallel (depending on the availability of a scheduler and/or asynchronous function calls).
 
 

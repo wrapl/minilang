@@ -55,7 +55,7 @@ void ml_context_set(ml_context_t *Context, int Index, void *Value) {
 #define ML_VARIABLES_INDEX 1
 
 typedef struct  {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 } ml_context_key_t;
 
 typedef struct ml_context_value_t ml_context_value_t;
@@ -80,12 +80,8 @@ static void ml_context_key_call(ml_state_t *Caller, ml_context_key_t *Key, int C
 		Value->Prev = Values;
 		Value->Key = Key;
 		Value->Value = Args[0];
-		ml_context_t *Context = ml_context_new(Caller->Context);
-		ml_context_set(Context, ML_VARIABLES_INDEX, Value);
-		ml_state_t *State = new(ml_state_t);
-		State->Caller = Caller;
-		State->run = ml_default_state_run;
-		State->Context = Context;
+		ml_state_t *State = ml_state_new(Caller);
+		ml_context_set(State->Context, ML_VARIABLES_INDEX, Value);
 		ml_value_t *Function = Args[1];
 		Function = ml_deref(Function);
 		return ml_call(State, Function, Count - 2, Args + 2);
@@ -102,7 +98,7 @@ ML_FUNCTION(MLContextKey) {
 	return (ml_value_t *)Key;
 }
 
-ML_TYPE(MLContextKeyT, (MLCFunctionT), "context-key",
+ML_TYPE(MLContextKeyT, (MLCFunctionT), "context",
 //!context
 //@context
 // A context key can be used to create context specific values.
@@ -113,7 +109,8 @@ ML_TYPE(MLContextKeyT, (MLCFunctionT), "context-key",
 );
 
 static void ml_state_call(ml_state_t *Caller, ml_state_t *State, int Count, ml_value_t **Args) {
-	return State->run(State, Count ? Args[0] : MLNil);
+	State->run(State, Count ? Args[0] : MLNil);
+	ML_RETURN(MLNil);
 }
 
 ML_TYPE(MLStateT, (MLFunctionT), "state",
@@ -127,52 +124,74 @@ void ml_default_state_run(ml_state_t *State, ml_value_t *Value) {
 	ML_CONTINUE(State->Caller, Value);
 }
 
-void ml_value_state_run(ml_value_state_t *State, ml_value_t *Value) {
-	State->Value = ml_deref(Value);
-}
-
-ml_value_state_t *ml_value_state_new(ml_context_t *Context) {
-	ml_value_state_t *State = new(ml_value_state_t);
-	State->Base.Context = Context ?: &MLRootContext;
-	State->Value = MLNil;
-	State->Base.Type = MLStateT;
-	State->Base.run = (ml_state_fn)ml_value_state_run;
-	return State;
-}
-
-void ml_call_state_run(ml_value_state_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) {
-		State->Value = Value;
-	} else {
-		State->Base.run = (ml_state_fn)ml_value_state_run;
-		ml_call(State, Value, 0, NULL);
+static void ml_main_state_run(ml_state_t *State, ml_value_t *Result) {
+	if (ml_is_error(Result)) {
+		printf("%s: %s\n", ml_error_type(Result), ml_error_message(Result));
+		ml_source_t Source;
+		int Level = 0;
+		while (ml_error_source(Result, Level++, &Source)) {
+			printf("\t%s:%d\n", Source.Name, Source.Line);
+		}
+		exit(1);
 	}
 }
 
-ml_value_state_t *ml_call_state_new(ml_context_t *Context) {
-	ml_value_state_t *State = new(ml_value_state_t);
+ml_state_t MLMain[1] = {{MLStateT, NULL, ml_main_state_run, &MLRootContext}};
+
+static void ml_call_state_run(ml_call_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) {
+		ML_CONTINUE(State->Base.Caller, Value);
+	} else {
+		ml_call(State->Base.Caller, Value, State->Count, State->Args);
+	}
+}
+
+ml_call_state_t *ml_call_state_new(ml_state_t *Caller, int Count) {
+	ml_call_state_t *State = xnew(ml_call_state_t, Count, ml_value_t *);
 	State->Base.Type = MLStateT;
-	State->Base.Context = Context ?: &MLRootContext;
 	State->Base.run = (ml_state_fn)ml_call_state_run;
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Count = Count;
+	return State;
+}
+
+void ml_result_state_run(ml_result_state_t *State, ml_value_t *Value) {
+	State->Value = ml_deref(Value);
+}
+
+ml_result_state_t *ml_result_state_new(ml_context_t *Context) {
+	ml_result_state_t *State = new(ml_result_state_t);
+	State->Base.Context = Context ?: &MLRootContext;
 	State->Value = MLNil;
+	State->Base.Type = MLStateT;
+	State->Base.run = (ml_state_fn)ml_result_state_run;
 	return State;
 }
 
 ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args) {
-	static ml_value_state_t State = {{MLStateT, NULL, (void *)ml_value_state_run, &MLRootContext}, MLNil};
+	static ml_result_state_t State = {{MLStateT, NULL, (void *)ml_result_state_run, &MLRootContext}, MLNil};
 	ml_call(&State, Value, Count, Args);
 	ml_value_t *Result = State.Value;
 	State.Value = MLNil;
 	return Result;
 }
 
+typedef struct {
+	ml_state_t Base;
+	ml_context_t Context[1];
+} ml_context_state_t;
+
 ml_state_t *ml_state_new(ml_state_t *Caller) {
-	ml_state_t *State = new(ml_state_t);
-	State->Type = MLStateT;
-	State->Context = ml_context_new(Caller->Context);
-	State->Caller = Caller;
-	State->run = ml_default_state_run;
-	return State;
+	ml_context_state_t *State = xnew(ml_context_state_t, MLContextSize, void *);
+	ml_context_t *Parent = Caller->Context;
+	State->Context->Parent = Parent;
+	State->Context->Size = MLContextSize;
+	for (int I = 0; I < Parent->Size; ++I) State->Context->Values[I] = Parent->Values[I];
+	State->Base.Caller = Caller;
+	State->Base.run = ml_default_state_run;
+	State->Base.Context = State->Context;
+	return (ml_state_t *)State;
 }
 
 typedef struct ml_resumable_state_t {
@@ -194,36 +213,19 @@ static void ml_resumable_state_run(ml_resumable_state_t *State, ml_value_t *Valu
 }
 
 ML_FUNCTIONX(MLCallCC) {
-	if (Count > 1) {
-		ML_CHECKX_ARG_TYPE(0, MLStateT);
-		ml_state_t *State = (ml_state_t *)Args[0];
-		ml_state_t *Last = Caller;
-		while (Last && Last->Caller != State) Last = Last->Caller;
-		if (!Last) ML_RETURN(ml_error("StateError", "State not in current call chain"));
-		Last->Caller = NULL;
-		ml_resumable_state_t *Resumable = new(ml_resumable_state_t);
-		Resumable->Base.Type = MLResumableStateT;
-		Resumable->Base.Caller = Caller;
-		Resumable->Base.run = (void *)ml_resumable_state_run;
-		Resumable->Base.Context = Caller->Context;
-		Resumable->Last = Last;
-		ml_value_t *Function = Args[1];
-		ml_value_t **Args2 = anew(ml_value_t *, 1);
-		Args2[0] = (ml_value_t *)Resumable;
-		return ml_call(State, Function, 1, Args2);
-	} else {
-		ML_CHECKX_ARG_COUNT(1);
-		ml_value_t *Function = Args[0];
-		ml_value_t **Args2 = anew(ml_value_t *, 1);
-		Args2[0] = (ml_value_t *)Caller;
-		ml_state_t *State = new(ml_state_t);
-		State->run = ml_end_state_run;
-		State->Context = Caller->Context;
-		return ml_call(State, Function, 1, Args2);
-	}
+//@callcc
+	if (!Caller->Type) Caller->Type = MLStateT;
+	ML_CHECKX_ARG_COUNT(1);
+	ml_value_t *Function = Args[0];
+	Args[0] = (ml_value_t *)Caller;
+	ml_state_t *State = new(ml_state_t);
+	State->run = ml_end_state_run;
+	State->Context = Caller->Context;
+	return ml_call(State, Function, Count, Args);
 }
 
-ML_FUNCTIONX(MLMark) {
+ML_FUNCTIONX(MLMarkCC) {
+//@markcc
 	ML_CHECKX_ARG_COUNT(1);
 	ml_state_t *State = new(ml_state_t);
 	State->Type = MLStateT;
@@ -234,6 +236,36 @@ ML_FUNCTIONX(MLMark) {
 	ml_value_t **Args2 = anew(ml_value_t *, 1);
 	Args2[0] = (ml_value_t *)State;
 	return ml_call(State, Func, 1, Args2);
+}
+
+ML_FUNCTIONX(MLCallDC) {
+//@calldc
+	if (!Caller->Type) Caller->Type = MLStateT;
+	ML_CHECKX_ARG_COUNT(2);
+	ML_CHECKX_ARG_TYPE(0, MLStateT);
+	ml_state_t *State = (ml_state_t *)Args[0];
+	ml_state_t *Last = Caller;
+	while (Last && Last->Caller != State) Last = Last->Caller;
+	if (!Last) ML_RETURN(ml_error("StateError", "State not in current call chain"));
+	Last->Caller = NULL;
+	ml_resumable_state_t *Resumable = new(ml_resumable_state_t);
+	Resumable->Base.Type = MLResumableStateT;
+	Resumable->Base.Caller = Caller;
+	Resumable->Base.run = (void *)ml_resumable_state_run;
+	Resumable->Base.Context = Caller->Context;
+	Resumable->Last = Last;
+	ml_value_t *Function = Args[1];
+	ml_value_t **Args2 = anew(ml_value_t *, 1);
+	Args2[0] = (ml_value_t *)Resumable;
+	return ml_call(State, Function, 1, Args2);
+}
+
+ML_FUNCTIONX(MLSwapCC) {
+//@swapcc
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLStateT);
+	ml_state_t *State = (ml_state_t *)Args[0];
+	return State->run(State, Count > 1 ? Args[1] : MLNil);
 }
 
 // References //
@@ -276,7 +308,7 @@ struct ml_uninitialized_slot_t {
 };
 
 typedef struct ml_uninitialized_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	const char *Name;
 	ml_uninitialized_slot_t *Slots;
 	stringmap_t Unresolved[1];
@@ -368,14 +400,14 @@ ML_METHOD("::", MLUninitializedT, MLStringT) {
 #define MAX_TRACE 16
 
 typedef struct {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	const char *Error;
 	const char *Message;
 	ml_source_t Trace[MAX_TRACE];
 } ml_error_value_t;
 
 typedef struct {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_value_t *Value;
 	ml_error_value_t Error[1];
 } ml_error_t;
@@ -560,6 +592,136 @@ ml_value_t *ml_debugger_local(ml_state_t *State, int Index) {
 	if (function) return function(State, Index);
 	return ml_error("DebugError", "Locals not available");
 }
+
+// Channels
+
+typedef struct ml_channel_message_t ml_channel_message_t;
+
+struct ml_channel_message_t {
+	ml_channel_message_t *Next;
+	ml_state_t *Sender;
+	ml_value_t *Value;
+};
+
+typedef struct {
+	ml_state_t Base;
+	ml_state_t *Sender;
+	ml_channel_message_t *Head, **Tail;
+	int Open;
+} ml_channel_t;
+
+static void ml_channel_run(ml_channel_t *Channel, ml_value_t *Value) {
+	Channel->Open = 0;
+	ML_CONTINUE(Channel->Base.Caller, Value);
+}
+
+extern ml_type_t MLChannelT[];
+
+ML_FUNCTION(MLChannel) {
+//!internal
+	ml_channel_t *Channel = new(ml_channel_t);
+	Channel->Base.Type = MLChannelT;
+	Channel->Base.run = (ml_state_fn)ml_channel_run;
+	Channel->Tail = &Channel->Head;
+	return (ml_value_t *)Channel;
+}
+
+ML_TYPE(MLChannelT, (), "channel",
+	.Constructor = (ml_value_t *)MLChannel
+);
+
+ML_METHODVX("open", MLChannelT, MLAnyT) {
+	ml_channel_t *Channel = (ml_channel_t *)Args[0];
+	Channel->Base.Caller = Caller;
+	Channel->Base.Context = Caller->Context;
+	Channel->Open = 1;
+	ml_value_t *Function = Args[1];
+	Args[1] = Args[0];
+	return ml_call(Channel, Function, Count - 1, Args + 1);
+}
+
+ML_METHOD("ready", MLChannelT) {
+	ml_channel_t *Channel = (ml_channel_t *)Args[0];
+	return Channel->Open ? Args[0] : MLNil;
+}
+
+ML_METHODX("next", MLChannelT) {
+	ml_channel_t *Channel = (ml_channel_t *)Args[0];
+	ml_value_t *Value = (Count > 1) ? Args[1] : MLNil;
+	if (!Channel->Open) ML_ERROR("ChannelError", "Channel is not open");
+	ml_channel_message_t *Message = Channel->Head;
+	ml_channel_message_t *Next = Message->Next;
+	Channel->Head = Next;
+	Channel->Base.Caller = Caller;
+	if (Next) {
+		Caller->run(Caller, Next->Value);
+	} else {
+		Channel->Tail = &Channel->Head;
+	}
+	ML_CONTINUE(Message->Sender, Value);
+}
+
+ML_METHODX("send", MLChannelT, MLAnyT) {
+	ml_channel_t *Channel = (ml_channel_t *)Args[0];
+	if (!Channel->Open) ML_ERROR("ChannelError", "Channel is not open");
+	ml_channel_message_t *Message = new(ml_channel_message_t);
+	Message->Sender = Caller;
+	Message->Value = Args[1];
+	Channel->Tail[0] = Message;
+	Channel->Tail = &Message->Next;
+	if (Message == Channel->Head) {
+		ML_CONTINUE(Channel->Base.Caller, Channel->Head->Value);
+	}
+}
+
+ML_METHODVX("close", MLChannelT, MLAnyT) {
+	ml_channel_t *Channel = (ml_channel_t *)Args[0];
+	return ml_call((ml_state_t *)Channel, Args[1], Count - 2, Args + 2);
+}
+
+/*
+ML_METHODX("error", MLChannelT, MLStringT, MLStringT) {
+	ml_state_t *Channel = (ml_state_t *)Args[0];
+	ml_state_t *Receiver = Channel->Caller;
+	if (!Receiver) ML_ERROR("ChannelError", "Channel is not open");
+	Channel->Caller = Caller;
+	Channel->Context = Caller->Context;
+	ml_error_t *Error = new(ml_error_t);
+	Error->Type = MLErrorT;
+	Error->Error->Type = MLErrorValueT;
+	Error->Error->Error = ml_string_value(Args[1]);
+	Error->Error->Message = ml_string_value(Args[2]);
+	Error->Value = (ml_value_t *)Error->Error;
+	ML_CONTINUE(Receiver, Error);
+}
+
+ML_METHODX("raise", MLChannelT, MLStringT, MLAnyT) {
+	ml_state_t *Channel = (ml_state_t *)Args[0];
+	ml_state_t *Receiver = Channel->Caller;
+	if (!Receiver) ML_ERROR("ChannelError", "Channel is not open");
+	Channel->Caller = Caller;
+	Channel->Context = Caller->Context;
+	ml_error_t *Error = new(ml_error_t);
+	Error->Type = MLErrorT;
+	Error->Error->Type = MLErrorValueT;
+	Error->Error->Error = ml_string_value(Args[1]);
+	Error->Error->Message = ml_typeof(Args[2])->Name;
+	Error->Value = Args[2];
+	ML_CONTINUE(Receiver, Error);
+}
+
+ML_METHODX("raise", MLChannelT, MLErrorValueT) {
+	ml_state_t *Channel = (ml_state_t *)Args[0];
+	ml_state_t *Receiver = Channel->Caller;
+	if (!Receiver) ML_ERROR("ChannelError", "Channel is not open");
+	Channel->Caller = Caller;
+	Channel->Context = Caller->Context;
+	ml_error_t *Error = new(ml_error_t);
+	Error->Type = MLErrorT;
+	Error->Error[0] = *(ml_error_value_t *)Args[1];
+	ML_CONTINUE(Receiver, Error);
+}
+*/
 
 void ml_runtime_init() {
 #include "ml_runtime_init.c"

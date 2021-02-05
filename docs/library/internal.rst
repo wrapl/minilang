@@ -3,79 +3,95 @@ internal
 
 .. include:: <isonum.txt>
 
-:mini:`def arrayiterator`
+:mini:`type arrayiterator`
 
-:mini:`def DEBUG_TYPE < Continuation`
+:mini:`type DEBUG_TYPE < Continuation`
+
+:mini:`meth :jit(Arg₁: closure)`
 
 :mini:`fun defaulttagfn()`
 
-:mini:`def TypelibIterT`
+:mini:`type TypelibIterT`
 
-:mini:`def stacked < iteratable`
+:mini:`type stacked < iteratable`
 
-:mini:`def stackedstate`
+:mini:`type stackedstate`
 
-:mini:`def limited < iteratable`
+:mini:`type limited < iteratable`
 
 :mini:`meth :count(Arg₁: limited)`
 
-:mini:`def limitedstate`
+:mini:`type limitedstate`
 
-:mini:`def skipped < iteratable`
+:mini:`type skipped < iteratable`
 
-:mini:`def unique < iteratable`
+:mini:`type unique < iteratable`
 
-:mini:`def uniquestate`
+:mini:`type uniquestate`
 
-:mini:`def zipped < iteratable`
+:mini:`type zipped < iteratable`
 
-:mini:`def zippedstate`
+:mini:`type zippedstate`
 
-:mini:`def repeated < iteratable`
+:mini:`type paired < iteratable`
 
-:mini:`def repeatedstate`
+:mini:`type pairedstate`
 
-:mini:`def sequenced < iteratable`
+:mini:`type repeated < iteratable`
 
-:mini:`def sequencedstate`
+:mini:`type repeatedstate`
 
-:mini:`def weaved < iteratable`
+:mini:`type sequenced < iteratable`
 
-:mini:`def weavedstate`
+:mini:`type sequencedstate`
 
-:mini:`def swapped < iteratable`
+:mini:`type weaved < iteratable`
 
-:mini:`def swappedstate`
+:mini:`type weavedstate`
 
-:mini:`def key < iteratable`
+:mini:`type swapped < iteratable`
 
-:mini:`def keystate`
+:mini:`type swappedstate`
 
-:mini:`def listiter`
+:mini:`type key < iteratable`
 
-:mini:`def names`
+:mini:`type keystate`
 
-:mini:`def mapindex`
+:mini:`type listiter`
 
-:mini:`def mapiter`
+:mini:`type names`
 
-:mini:`def errorvalue`
+:mini:`type mapindex`
 
-:mini:`def stringiterator`
+:mini:`type errorvalue`
 
-:mini:`def tableiter`
+:mini:`fun mlchannel()`
 
-:mini:`def tablerowiter`
+:mini:`type stringiterator`
 
-:mini:`def nil < function, iteratable`
+:mini:`type tableiter`
 
-:mini:`def some`
+:mini:`type tablerowiter`
 
-:mini:`def blank`
+:mini:`type nil < function, iteratable`
 
-:mini:`def cfunction < function`
+:mini:`type some`
 
-:mini:`def cfunctionx < function`
+:mini:`type blank`
+
+:mini:`type cfunction < function`
+
+:mini:`type cfunctionnoderef < function`
+
+:mini:`type cfunctionx < function`
+
+:mini:`type cfunctionz < function`
 
 :mini:`meth $(Arg₁: partialfunction, Arg₂: any)`
+
+:mini:`type int32 < integer`
+
+:mini:`type int64 < integer`
+
+:mini:`type double < real`
 

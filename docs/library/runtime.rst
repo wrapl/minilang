@@ -3,17 +3,39 @@ runtime
 
 .. include:: <isonum.txt>
 
-:mini:`def state < function`
+:mini:`type state < function`
 
-:mini:`def resumablestate < state`
+:mini:`type resumablestate < state`
 
-:mini:`fun mlcallcc()`
+:mini:`fun callcc()`
 
-:mini:`fun mlmark(Arg₁: any)`
+:mini:`fun markcc(Arg₁: any)`
 
-:mini:`def reference`
+:mini:`fun calldc()`
 
-:mini:`def uninitialized`
+:mini:`fun swapcc(Arg₁: state)`
+
+:mini:`type reference`
+
+:mini:`type uninitialized`
 
 :mini:`meth ::(Arg₁: uninitialized, Arg₂: string)`
+
+:mini:`type channel`
+
+:mini:`meth :open(Arg₁: channel, Arg₂: any)`
+
+:mini:`meth :ready(Arg₁: channel)`
+
+:mini:`meth :next(Arg₁: channel)`
+
+:mini:`meth :send(Arg₁: channel, Arg₂: any)`
+
+:mini:`meth :close(Arg₁: channel, Arg₂: any)`
+
+:mini:`meth :error(Arg₁: channel, Arg₂: string, Arg₃: string)`
+
+:mini:`meth :raise(Arg₁: channel, Arg₂: string, Arg₃: any)`
+
+:mini:`meth :raise(Arg₁: channel, Arg₂: errorvalue)`
 

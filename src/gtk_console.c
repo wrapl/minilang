@@ -92,7 +92,7 @@ void console_log(console_t *Console, ml_value_t *Value) {
 			gtk_text_buffer_insert_with_tags(LogBuffer, End, Buffer, Length, Console->ErrorTag, NULL);
 		}
 	} else {
-		ml_value_t *String = ml_simple_inline(MLStringOfMethod, 1, Value);
+		ml_value_t *String = ml_simple_inline(MLStringT, 1, Value);
 		if (ml_is(String, MLStringT)) {
 			const char *Buffer = ml_string_value(String);
 			int Length = ml_string_length(String);
@@ -136,35 +136,35 @@ static void ml_console_repl_run(console_t *Console, ml_value_t *Result) {
 		gtk_widget_grab_focus(Console->InputView);
 		return;
 	}
-	return ml_command_evaluate((ml_state_t *)Console, Console->Compiler, Console->Globals);
+	return ml_command_evaluate((ml_state_t *)Console, Console->Compiler);
 }
 
 static void console_step_in(GtkWidget *Button, console_t *Console) {
 	ml_compiler_t *Compiler = Console->Compiler;
 	ml_compiler_reset(Compiler);
 	ml_compiler_input(Compiler, "step_in()");
-	ml_command_evaluate((ml_state_t *)Console, Compiler, Console->Globals);
+	ml_command_evaluate((ml_state_t *)Console, Compiler);
 }
 
 static void console_step_over(GtkWidget *Button, console_t *Console) {
 	ml_compiler_t *Compiler = Console->Compiler;
 	ml_compiler_reset(Compiler);
 	ml_compiler_input(Compiler, "step_over()");
-	ml_command_evaluate((ml_state_t *)Console, Compiler, Console->Globals);
+	ml_command_evaluate((ml_state_t *)Console, Compiler);
 }
 
 static void console_step_out(GtkWidget *Button, console_t *Console) {
 	ml_compiler_t *Compiler = Console->Compiler;
 	ml_compiler_reset(Compiler);
 	ml_compiler_input(Compiler, "step_out()");
-	ml_command_evaluate((ml_state_t *)Console, Compiler, Console->Globals);
+	ml_command_evaluate((ml_state_t *)Console, Compiler);
 }
 
 static void console_continue(GtkWidget *Button, console_t *Console) {
 	ml_compiler_t *Compiler = Console->Compiler;
 	ml_compiler_reset(Compiler);
 	ml_compiler_input(Compiler, "continue()");
-	ml_command_evaluate((ml_state_t *)Console, Compiler, Console->Globals);
+	ml_command_evaluate((ml_state_t *)Console, Compiler);
 }
 
 static void console_submit(GtkWidget *Button, console_t *Console) {
@@ -180,23 +180,29 @@ static void console_submit(GtkWidget *Button, console_t *Console) {
 
 	GtkTextIter End[1];
 
-	/*GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
+	GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
 	gtk_text_buffer_get_end_iter(LogBuffer, End);
 	gtk_source_buffer_create_source_mark(GTK_SOURCE_BUFFER(LogBuffer), NULL, "result", End);
 	gtk_text_buffer_insert_range(LogBuffer, End, InputStart, InputEnd);
-	gtk_text_buffer_insert(LogBuffer, End, "\n", -1);*/
+	gtk_text_buffer_insert(LogBuffer, End, "\n", -1);
 	gtk_text_buffer_set_text(InputBuffer, "", 0);
 
 	GtkTextBuffer *SourceBuffer = GTK_TEXT_BUFFER(Console->SourceBuffer);
 	gtk_text_buffer_get_end_iter(SourceBuffer, End);
 	gtk_text_buffer_insert(SourceBuffer, End, Text, -1);
 	gtk_text_buffer_insert(SourceBuffer, End, "\n", -1);
-	gtk_source_buffer_set_highlight_matching_brackets(GTK_SOURCE_BUFFER(InputBuffer), TRUE);
+gtk_source_buffer_set_highlight_matching_brackets(GTK_SOURCE_BUFFER(InputBuffer), TRUE);
+
+
+	//GtkTextIter End[1];
+	//GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
+	gtk_text_buffer_get_end_iter(LogBuffer, End);
+	gtk_text_buffer_insert(LogBuffer, End, "\n", 1);
 
 	ml_compiler_t *Compiler = Console->Compiler;
 	ml_compiler_reset(Compiler);
 	ml_compiler_input(Compiler, Text);
-	ml_command_evaluate((ml_state_t *)Console, Compiler, Console->Globals);
+	ml_command_evaluate((ml_state_t *)Console, Compiler);
 }
 
 static void console_debug_enter(console_t *Console, interactive_debugger_t *Debugger, ml_source_t Source, int Index) {
@@ -542,7 +548,7 @@ static gboolean console_update_status(console_t *Console) {
 	return G_SOURCE_CONTINUE;
 }
 
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 
 typedef struct {
 	ml_state_t *State;
@@ -620,11 +626,11 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	Console->ParentGlobals = ParentGlobals;
 	Console->HistoryIndex = 0;
 	Console->HistoryEnd = 0;
-	Console->Compiler = ml_compiler(NULL, NULL, (ml_getter_t)console_global_get, Console);
+	Console->Compiler = ml_compiler((ml_getter_t)console_global_get, Console, NULL, NULL);
 	ml_compiler_source(Console->Compiler, (ml_source_t){Console->Name, 0});
 	Console->Notebook = GTK_NOTEBOOK(gtk_notebook_new());
 
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 	QueueFill = 0;
 	QueueSize = 4;
 	QueueRead = QueueWrite = 0;
@@ -775,7 +781,7 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	stringmap_insert(Console->Globals, "add_combo", ml_cfunction(Console, (ml_callback_t)console_add_combo));
 	stringmap_insert(Console->Globals, "include", ml_cfunctionx(Console, (ml_callbackx_t)console_include_fnx));
 
-#ifdef USE_ML_SCHEDULER
+#ifdef ML_SCHEDULER
 	stringmap_insert(Console->Globals, "schedule", ml_cfunctionx(Console, (ml_callbackx_t)console_schedule));
 	stringmap_insert(Console->Globals, "sleep", MLSleep);
 #endif
@@ -831,8 +837,8 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	g_timeout_add(1000, (GSourceFunc)console_update_status, Console);
 
 	GError *Error = 0;
-	g_irepository_require(NULL, "Gtk", NULL, 0, &Error);
-	g_irepository_require(NULL, "GtkSource", NULL, 0, &Error);
+	g_irepository_require(NULL, "Gtk", "3.0", 0, &Error);
+	g_irepository_require(NULL, "GtkSource", "4", 0, &Error);
 	stringmap_insert(Console->Globals, "Console", ml_gir_instance_get(Console->Window));
 	stringmap_insert(Console->Globals, "InputView", ml_gir_instance_get(Console->InputView));
 	stringmap_insert(Console->Globals, "LogView", ml_gir_instance_get(Console->LogView));

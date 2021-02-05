@@ -4,8 +4,10 @@
 #include <string.h>
 #include <ctype.h>
 #include <inttypes.h>
+#include <math.h>
+#include <float.h>
 #include <gc/gc_typed.h>
-#ifdef USE_TRE
+#ifdef ML_TRE
 #include <tre/regex.h>
 #else
 #include <regex.h>
@@ -59,12 +61,6 @@ ML_METHOD("-", MLBufferT, MLBufferT) {
 	return ml_integer(Buffer1->Address - Buffer2->Address);
 }
 
-ML_METHOD(MLStringOfMethod, MLBufferT) {
-//!buffer
-	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
-	return ml_string_format("#%" PRIxPTR ":%ld", (uintptr_t)Buffer->Address, Buffer->Size);
-}
-
 static long ml_string_hash(ml_string_t *String, ml_hash_chain_t *Chain) {
 	long Hash = String->Hash;
 	if (!Hash) {
@@ -78,6 +74,12 @@ static long ml_string_hash(ml_string_t *String, ml_hash_chain_t *Chain) {
 ML_TYPE(MLStringT, (MLBufferT, MLIteratableT), "string",
 	.hash = (void *)ml_string_hash
 );
+
+ML_METHOD(MLStringT, MLBufferT) {
+//!buffer
+	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
+	return ml_string_format("#%" PRIxPTR ":%ld", (uintptr_t)Buffer->Address, Buffer->Size);
+}
 
 ml_value_t *ml_string(const char *Value, int Length) {
 	ml_string_t *String = new(ml_string_t);
@@ -115,28 +117,28 @@ ml_value_t *ml_string_format(const char *Format, ...) {
 }
 
 
-ML_METHOD(MLStringOfMethod, MLNilT) {
+ML_METHOD(MLStringT, MLNilT) {
 	return ml_cstring("nil");
 }
 
-ML_METHOD(MLStringOfMethod, MLSomeT) {
+ML_METHOD(MLStringT, MLSomeT) {
 	return ml_cstring("some");
 }
 
-ML_METHOD(MLStringOfMethod, MLBooleanT) {
+ML_METHOD(MLStringT, MLBooleanT) {
 //!boolean
 	ml_boolean_t *Boolean = (ml_boolean_t *)Args[0];
 	return ml_string(Boolean->Name, -1);
 }
 
-ML_METHOD(MLStringOfMethod, MLIntegerT) {
+ML_METHOD(MLStringT, MLIntegerT) {
 //!number
 	char *Value;
 	int Length = asprintf(&Value, "%ld", ml_integer_value_fast(Args[0]));
 	return ml_string(Value, Length);
 }
 
-ML_METHOD(MLStringOfMethod, MLIntegerT, MLIntegerT) {
+ML_METHOD(MLStringT, MLIntegerT, MLIntegerT) {
 //!number
 	int64_t Value = ml_integer_value_fast(Args[0]);
 	int Base = ml_integer_value_fast(Args[1]);
@@ -153,18 +155,35 @@ ML_METHOD(MLStringOfMethod, MLIntegerT, MLIntegerT) {
 	return ml_string(P, Q - P);
 }
 
-ML_METHOD(MLStringOfMethod, MLRealT) {
+ML_METHOD(MLStringT, MLRealT) {
 //!number
 	char *Value;
-	int Length = asprintf(&Value, "%f", ml_real_value_fast(Args[0]));
+	int Length = asprintf(&Value, "%g", ml_real_value_fast(Args[0]));
 	return ml_string(Value, Length);
 }
 
-ML_METHOD(MLIntegerOfMethod, MLStringT) {
+#ifdef ML_COMPLEX
+
+ML_METHOD(MLStringT, MLComplexT) {
+//!number
+	complex double Complex = ml_complex_value_fast(Args[0]);
+	char *Value;
+	int Length;
+	if (fabs(creal(Complex)) <= DBL_EPSILON) {
+		Length = asprintf(&Value, "%gi", cimag(Complex));
+	} else {
+		Length = asprintf(&Value, "%g + %gi", creal(Complex), cimag(Complex));
+	}
+	return ml_string(Value, Length);
+}
+
+#endif
+
+ML_METHOD(MLIntegerT, MLStringT) {
 //!number
 	const char *Start = ml_string_value(Args[0]);
 	char *End;
-	long Value = strtol(ml_string_value(Args[0]), &End, 10);
+	long Value = strtol(Start, &End, 10);
 	if (End - Start == ml_string_length(Args[0])) {
 		return ml_integer(Value);
 	} else {
@@ -172,11 +191,11 @@ ML_METHOD(MLIntegerOfMethod, MLStringT) {
 	}
 }
 
-ML_METHOD(MLIntegerOfMethod, MLStringT, MLIntegerT) {
+ML_METHOD(MLIntegerT, MLStringT, MLIntegerT) {
 //!number
 	const char *Start = ml_string_value(Args[0]);
 	char *End;
-	long Value = strtol(ml_string_value(Args[0]), &End, ml_integer_value_fast(Args[1]));
+	long Value = strtol(Start, &End, ml_integer_value_fast(Args[1]));
 	if (End - Start == ml_string_length(Args[0])) {
 		return ml_integer(Value);
 	} else {
@@ -184,11 +203,11 @@ ML_METHOD(MLIntegerOfMethod, MLStringT, MLIntegerT) {
 	}
 }
 
-ML_METHOD(MLRealOfMethod, MLStringT) {
+ML_METHOD(MLRealT, MLStringT) {
 //!number
 	const char *Start = ml_string_value(Args[0]);
 	char *End;
-	double Value = strtod(ml_string_value(Args[0]), &End);
+	double Value = strtod(Start, &End);
 	if (End - Start == ml_string_length(Args[0])) {
 		return ml_real(Value);
 	} else {
@@ -196,8 +215,20 @@ ML_METHOD(MLRealOfMethod, MLStringT) {
 	}
 }
 
+ML_METHOD(MLNumberT, MLStringT) {
+//!number
+	const char *Start = ml_string_value(Args[0]);
+	int Length = ml_string_length(Args[0]);
+	char *End;
+	long Integer = strtol(Start, &End, 10);
+	if (End - Start == Length) return ml_integer(Integer);
+	double Real = strtod(Start, &End);
+	if (End - Start == Length) return ml_real(Real);
+	return ml_error("ValueError", "Error parsing number");
+}
+
 typedef struct {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	const char *Value;
 	int Index, Length;
 } ml_string_iterator_t;
@@ -233,7 +264,7 @@ static void ML_TYPED_FN(ml_iterate, MLStringT, ml_state_t *Caller, ml_value_t *S
 typedef struct ml_regex_t ml_regex_t;
 
 typedef struct ml_regex_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	const char *Pattern;
 	regex_t Value[1];
 } ml_regex_t;
@@ -267,7 +298,7 @@ ml_value_t *ml_regex(const char *Pattern, int Length) {
 	ml_regex_t *Regex = new(ml_regex_t);
 	Regex->Type = MLRegexT;
 	Regex->Pattern = Pattern;
-#ifdef USE_TRE
+#ifdef ML_TRE
 	int Error = regncomp(Regex->Value, Pattern, Length, REG_EXTENDED);
 #else
 	int Error = regcomp(Regex->Value, Pattern, REG_EXTENDED);
@@ -291,7 +322,7 @@ const char *ml_regex_pattern(const ml_value_t *Value) {
 	return Regex->Pattern;
 }
 
-#ifdef USE_NANBOXING
+#ifdef ML_NANBOXING
 
 #define NegOne ml_int32(-1)
 #define One ml_int32(1)
@@ -453,7 +484,7 @@ ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value)
 }
 
 ML_METHODV("append", MLStringBufferT, MLAnyT) {
-	ml_value_t *String = ml_simple_call(MLStringOfMethod, Count - 1, Args + 1);
+	ml_value_t *String = ml_simple_call((ml_value_t *)MLStringT, Count - 1, Args + 1);
 	if (ml_is_error(String)) return String;
 	if (!ml_is(String, MLStringT)) return ml_error("TypeError", "String expected, not %s", ml_typeof(String)->Name);
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
@@ -495,7 +526,7 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT) {
 
 ML_METHOD("append", MLStringBufferT, MLRealT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_addf(Buffer, "%f", ml_real_value_fast(Args[1]));
+	ml_stringbuffer_addf(Buffer, "%g", ml_real_value_fast(Args[1]));
 	return MLSome;
 }
 
@@ -773,7 +804,7 @@ ML_METHOD("/", MLStringT, MLRegexT) {
 	int Index = Pattern->Value->re_nsub ? 1 : 0;
 	regmatch_t Matches[2];
 	for (;;) {
-#ifdef USE_TRE
+#ifdef ML_TRE
 		switch (regnexec(Pattern->Value, Subject, SubjectLength, Index + 1, Matches, 0)) {
 #else
 		switch (regexec(Pattern->Value, Subject, Index + 1, Matches, 0)) {
@@ -883,7 +914,7 @@ ML_METHOD("find", MLStringT, MLRegexT) {
 	const char *Haystack = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[1];
-#ifdef USE_TRE
+#ifdef ML_TRE
 	int Length = ml_string_length(Args[0]);
 	switch (regnexec(Regex, Haystack, Length, 1, Matches, 0)) {
 #else
@@ -905,7 +936,7 @@ ML_METHOD("find2", MLStringT, MLRegexT) {
 	const char *Haystack = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[1];
-#ifdef USE_TRE
+#ifdef ML_TRE
 	int Length = ml_string_length(Args[0]);
 	switch (regnexec(Regex, Haystack, Length, 1, Matches, 0)) {
 #else
@@ -937,7 +968,7 @@ ML_METHOD("find", MLStringT, MLRegexT, MLIntegerT) {
 	Haystack += Start - 1;
 	Length -= (Start - 1);
 	regmatch_t Matches[1];
-#ifdef USE_TRE
+#ifdef ML_TRE
 	switch (regnexec(Regex, Haystack, Length, 1, Matches, 0)) {
 #else
 	switch (regexec(Regex, Haystack, 1, Matches, 0)) {
@@ -965,7 +996,7 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
 	Haystack += Start - 1;
 	Length -= (Start - 1);
 	regmatch_t Matches[1];
-#ifdef USE_TRE
+#ifdef ML_TRE
 	switch (regnexec(Regex, Haystack, Length, 1, Matches, 0)) {
 #else
 	switch (regexec(Regex, Haystack, 1, Matches, 0)) {
@@ -989,7 +1020,7 @@ ML_METHOD("%", MLStringT, MLRegexT) {
 	const char *Subject = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
-#ifdef USE_TRE
+#ifdef ML_TRE
 	int Length = ml_string_length(Args[0]);
 	switch (regnexec(Regex, Subject, Length, Regex->re_nsub + 1, Matches, 0)) {
 
@@ -1022,7 +1053,7 @@ ML_METHOD("%", MLStringT, MLRegexT) {
 
 int ml_regex_match(ml_value_t *Value, const char *Subject, int Length) {
 	regex_t *Regex = ml_regex_value(Value);
-#ifdef USE_TRE
+#ifdef ML_TRE
 	switch (regnexec(Regex, Subject, Length, 0, NULL, 0)) {
 #else
 	switch (regexec(Regex, Subject, 0, NULL, 0)) {
@@ -1037,7 +1068,7 @@ ML_METHOD("?", MLStringT, MLRegexT) {
 	const char *Subject = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
-#ifdef USE_TRE
+#ifdef ML_TRE
 	int Length = ml_string_length(Args[0]);
 	switch (regnexec(Regex, Subject, Length, Regex->re_nsub + 1, Matches, 0)) {
 
@@ -1077,7 +1108,7 @@ ML_METHOD("starts", MLStringT, MLRegexT) {
 	const char *Subject = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
-#ifdef USE_TRE
+#ifdef ML_TRE
 	int Length = ml_string_length(Args[0]);
 	switch (regnexec(Regex, Subject, Length, Regex->re_nsub + 1, Matches, 0)) {
 
@@ -1170,7 +1201,7 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
 	regmatch_t Matches[1];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (;;) {
-#ifdef USE_TRE
+#ifdef ML_TRE
 		switch (regnexec(Regex, Subject, SubjectLength, 1, Matches, 0)) {
 
 #else
@@ -1207,7 +1238,7 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLFunctionT) {
 	ml_value_t *SubArgs[NumSub];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (;;) {
-#ifdef USE_TRE
+#ifdef ML_TRE
 		switch (regnexec(Regex, Subject, SubjectLength, NumSub, Matches, 0)) {
 
 #else
@@ -1292,7 +1323,7 @@ ML_METHOD("replace", MLStringT, MLMapT) {
 			if (Replacement->PatternLength < 0) {
 				regex_t *Regex = Replacement->Pattern.Regex;
 				int NumSub = Replacement->Pattern.Regex->re_nsub + 1;
-#ifdef USE_TRE
+#ifdef ML_TRE
 				switch (regnexec(Regex, Subject, SubjectLength, NumSub, Matches, 0)) {
 
 #else
@@ -1348,7 +1379,7 @@ ML_METHOD("replace", MLStringT, MLMapT) {
 	return ml_stringbuffer_value(Buffer);
 }
 
-ML_METHOD(MLStringOfMethod, MLRegexT) {
+ML_METHOD(MLStringT, MLRegexT) {
 	return ml_string_format("/%s/", ml_regex_pattern(Args[0]));
 }
 
@@ -1362,7 +1393,5 @@ void ml_string_init() {
 	GC_word StringBufferLayout[] = {1};
 	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
 #include "ml_string_init.c"
-	ml_method_by_value(MLStringOfMethod, NULL, ml_identity, MLStringT, NULL);
-	MLStringT->Constructor = MLStringOfMethod;
-	stringmap_insert(MLStringT->Exports, "of", MLStringOfMethod);
+	ml_method_by_value(MLStringT->Constructor, NULL, ml_identity, MLStringT, NULL);
 }

@@ -1,6 +1,7 @@
 #include "ml_math.h"
 #include "ml_macros.h"
 #include <math.h>
+#include <float.h>
 
 #define MATH_REAL(NAME, CNAME) \
 ML_METHOD_DECL(NAME, NULL); \
@@ -20,10 +21,6 @@ ML_METHOD("%", MLNumberT, MLNumberT) {
 	return ml_real(fmod(ml_real_value(Args[0]), ml_real_value(Args[1])));
 }
 
-ML_METHOD("^", MLNumberT, MLNumberT) {
-	return ml_real(pow(ml_real_value(Args[0]), ml_real_value(Args[1])));
-}
-
 ML_METHOD("^", MLIntegerT, MLIntegerT) {
 	int64_t Base = ml_integer_value_fast(Args[0]);
 	int64_t Exponent = ml_integer_value_fast(Args[1]);
@@ -38,6 +35,77 @@ ML_METHOD("^", MLIntegerT, MLIntegerT) {
 	} else {
 		return ml_real(pow(Base, Exponent));
 	}
+}
+
+ML_METHOD("^", MLRealT, MLIntegerT) {
+	return ml_real(pow(ml_real_value_fast(Args[0]), ml_integer_value_fast(Args[1])));
+}
+
+ML_METHOD("^", MLRealT, MLRealT) {
+	return ml_real(pow(ml_real_value_fast(Args[0]), ml_real_value_fast(Args[1])));
+}
+
+#ifdef ML_COMPLEX
+
+ML_METHOD("^", MLComplexT, MLIntegerT) {
+	complex double Base = ml_complex_value_fast(Args[0]);
+	int64_t Power = ml_integer_value_fast(Args[1]);
+	if (Power == 0) return ml_real(0);
+	complex double Result;
+	if (Power > 0 && Power < 10) {
+		Result = Base;
+		while (--Power > 0) Result *= Base;
+	} else {
+		Result = cpow(Base, Power);
+	}
+	if (fabs(cimag(Result)) <= DBL_EPSILON) {
+		return ml_real(creal(Result));
+	} else {
+		return ml_complex(Result);
+	}
+}
+
+ML_METHOD("^", MLComplexT, MLNumberT) {
+	complex double V = cpow(ml_complex_value_fast(Args[0]), ml_complex_value(Args[1]));
+	if (fabs(cimag(V)) <= DBL_EPSILON) {
+		return ml_real(creal(V));
+	} else {
+		return ml_complex(V);
+	}
+}
+
+ML_METHOD("^", MLNumberT, MLComplexT) {
+	complex double V = cpow(ml_complex_value(Args[0]), ml_complex_value_fast(Args[1]));
+	if (fabs(cimag(V)) < DBL_EPSILON) {
+		return ml_real(creal(V));
+	} else {
+		return ml_complex(V);
+	}
+}
+
+#endif
+
+ML_METHOD("!", MLIntegerT) {
+	int N = ml_integer_value(Args[0]);
+	if (N > 20) return ml_error("RangeError", "Factorials over 20 are not supported yet");
+	int64_t F = N;
+	while (--N > 1) F *= N;
+	return ml_integer(F);
+}
+
+#define MIN(X, Y) (X < Y) ? X : Y
+
+ML_METHOD("!", MLIntegerT, MLIntegerT) {
+	int N = ml_integer_value(Args[0]);
+	int K = ml_integer_value(Args[1]);
+	if (K > 20) return ml_error("RangeError", "Factorials over 20 are not supported yet");
+	int64_t C = 1;
+	if (K > N - K) K = N - K;
+	for (int I = 0; I < K; ++I) {
+		C *= (N - I);
+		C /= (I + 1);
+	}
+	return ml_integer(C);
 }
 
 MATH_REAL(Acos, acos);
@@ -72,7 +140,7 @@ MATH_REAL(Log1p, log1p);
 MATH_REAL_REAL(Rem, remainder);
 MATH_REAL(Round, rint);
 
-ML_FUNCTION(RandomInteger) {
+ML_FUNCTION(IntegerRandom) {
 //@integer::random
 //<Min?:number
 //<Max?:number
@@ -102,7 +170,51 @@ ML_FUNCTION(RandomInteger) {
 	}
 }
 
-ML_FUNCTION(RandomReal) {
+ML_FUNCTION(IntegerRandomPermutation) {
+//@integer::random_permutation
+//<Max:number
+	ML_CHECK_ARG_TYPE(0, MLNumberT);
+	int Limit = ml_integer_value(Args[0]);
+	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
+	ml_value_t *Permutation = ml_list();
+	ml_list_put(Permutation, ml_integer(1));
+	for (int I = 2; I <= Limit; ++I) {
+		int Divisor = RAND_MAX / I, J;
+		do J = random() / Divisor; while (J > I);
+		++J;
+		if (J == I) {
+			ml_list_put(Permutation, ml_integer(I));
+		} else {
+			ml_value_t *Old = ml_list_get(Permutation, J);
+			ml_list_set(Permutation, J, ml_integer(I));
+			ml_list_put(Permutation, Old);
+		}
+	}
+	return Permutation;
+}
+
+ML_FUNCTION(IntegerRandomCycle) {
+//@integer::random_cycle
+//<Max:number
+	ML_CHECK_ARG_TYPE(0, MLNumberT);
+	int Limit = ml_integer_value(Args[0]);
+	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
+	ml_value_t *Permutation = ml_list();
+	ml_list_put(Permutation, ml_integer(1));
+	if (Limit == 1) return Permutation;
+	ml_list_push(Permutation, ml_integer(2));
+	for (int I = 2; I < Limit; ++I) {
+		int Divisor = RAND_MAX / I, J;
+		do J = random() / Divisor; while (J > I);
+		++J;
+		ml_value_t *Old = ml_list_get(Permutation, J);
+		ml_list_set(Permutation, J, ml_integer(I + 1));
+		ml_list_put(Permutation, Old);
+	}
+	return Permutation;
+}
+
+ML_FUNCTION(RealRandom) {
 //@real::random
 //<Min?:number
 //<Max?:number
@@ -130,8 +242,10 @@ ML_FUNCTION(RandomReal) {
 void ml_math_init(stringmap_t *Globals) {
 	srandom(time(NULL));
 #include "ml_math_init.c"
-	stringmap_insert(MLIntegerT->Exports, "random", RandomInteger);
-	stringmap_insert(MLRealT->Exports, "random", RandomReal);
+	stringmap_insert(MLIntegerT->Exports, "random", IntegerRandom);
+	stringmap_insert(MLIntegerT->Exports, "permutation", IntegerRandomPermutation);
+	stringmap_insert(MLIntegerT->Exports, "cycle", IntegerRandomCycle);
+	stringmap_insert(MLRealT->Exports, "random", RealRandom);
 	if (Globals) {
 		stringmap_insert(Globals, "math", ml_module("math",
 			"acos", AcosMethod,

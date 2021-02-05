@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include "stringmap.h"
 #include "inthash.h"
+#include "config.h"
 
 #ifdef	__cplusplus
 extern "C" {
@@ -25,7 +26,7 @@ typedef struct ml_state_t ml_state_t;
 // Values and Types //
 
 struct ml_value_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 };
 
 typedef struct ml_hash_chain_t ml_hash_chain_t;
@@ -36,40 +37,26 @@ struct ml_hash_chain_t {
 	long Index;
 };
 
-#ifdef USE_GENERICS
-typedef struct ml_parent_rule_t ml_parent_rule_t;
-
-struct ml_type_parent_t {
-	ml_type_parent_t *Next;
-	const ml_type_t *Parent;
-	uintptr_t Args[];
-};
-#endif
+typedef struct ml_generic_rule_t ml_generic_rule_t;
 
 struct ml_type_t {
-	const ml_type_t *Type;
-	const ml_type_t **Types;
+	ml_type_t *Type;
 	const char *Name;
 	long (*hash)(ml_value_t *, ml_hash_chain_t *);
 	void (*call)(ml_state_t *, ml_value_t *, int, ml_value_t **);
 	ml_value_t *(*deref)(ml_value_t *);
 	ml_value_t *(*assign)(ml_value_t *, ml_value_t *);
 	ml_value_t *Constructor;
-#ifdef USE_GENERICS
-	const ml_type_t **Args;
-	ml_type_parent_t *Parents;
-#else
-	inthash_t Parents[1];
+#ifdef ML_GENERICS
+	ml_generic_rule_t *Rules;
 #endif
+	inthash_t Parents[1];
 	inthash_t TypedFns[1];
 	stringmap_t Exports[1];
 	int Rank;
 	int Interface:1;
 	int NoInherit:1;
 	int Reserved:30;
-#ifdef USE_GENERICS
-	int NumArgs;
-#endif
 };
 
 extern ml_type_t MLTypeT[];
@@ -82,14 +69,16 @@ ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value);
 #ifndef GENERATE_INIT
 
 #define ML_TYPE(TYPE, PARENTS, NAME, ...) \
+static ml_method_t CONCAT2(TYPE, Of)[1] = {{MLMethodT, NAME "::of"}}; \
+\
 ml_type_t TYPE[1] = {{ \
 	.Type = MLTypeT, \
-	.Types = NULL, \
 	.Name = NAME, \
 	.hash = ml_default_hash, \
 	.call = ml_default_call, \
 	.deref = ml_default_deref, \
 	.assign = ml_default_assign, \
+	.Constructor = (ml_value_t *)CONCAT2(TYPE, Of), \
 	.TypedFns = {INTHASH_INIT}, \
 	.Exports = {STRINGMAP_INIT}, \
 	.Rank = 0, \
@@ -104,22 +93,111 @@ ml_type_t TYPE[1] = {{ \
 
 #endif
 
-#define ML_INTERFACE(TYPE, PARENTS, NAME, ...) ML_TYPE(TYPE, PARENTS, NAME, .Interface = 1, __VA_ARGS__)
+#define ML_INTERFACE(TYPE, PARENTS, NAME, ...) ML_TYPE(TYPE, PARENTS, NAME, .Rank = 1, .Interface = 1, __VA_ARGS__)
 
 void ml_type_init(ml_type_t *Type, ...) __attribute__ ((sentinel));
 
 ml_type_t *ml_type(ml_type_t *Parent, const char *Name);
-void *ml_typed_fn_get(const ml_type_t *Type, void *TypedFn);
-void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function);
 
-#ifdef USE_GENERICS
-const ml_type_t *ml_type_generic(const ml_type_t *Base, int Count, const ml_type_t **Args);
-ml_value_t *ml_type_generic_fn(void *Data, int Count, ml_value_t **Args);
-void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent, ...);
+void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent);
+
+#ifdef ML_GENERICS
+
+typedef struct ml_generic_type_t ml_generic_type_t;
+
+struct ml_generic_type_t {
+	ml_type_t Base;
+	int NumArgs;
+	ml_generic_type_t *NextGeneric;
+	ml_type_t *Args[];
+};
+
+extern ml_type_t MLGenericTypeT[];
+
+ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]);
+
+#define ml_generic_type_num_args(TYPE) ((ml_generic_type_t *)TYPE)->NumArgs
+#define ml_generic_type_args(TYPE) ((ml_generic_type_t *)TYPE)->Args
+
 #endif
 
-int ml_is_subtype(const ml_type_t *Type1, const ml_type_t *Type2) __attribute__ ((pure));
-const ml_type_t *ml_type_max(const ml_type_t *Type1, const ml_type_t *Type2);
+void ml_type_add_rule(ml_type_t *Type, ml_type_t *Parent, ...) __attribute__ ((sentinel));
+#define ML_TYPE_ARG(N) ((1L << 48) + N)
+
+int ml_is_subtype(ml_type_t *Type1, ml_type_t *Type2) __attribute__ ((pure));
+ml_type_t *ml_type_max(ml_type_t *Type1, ml_type_t *Type2);
+
+#ifdef ML_NANBOXING
+
+extern ml_type_t MLInt32T[];
+extern ml_type_t MLInt64T[];
+extern ml_type_t MLDoubleT[];
+
+static inline int ml_tag(const ml_value_t *Value) {
+	return (uint64_t)Value >> 48;
+}
+
+static inline ml_type_t *ml_typeof(const ml_value_t *Value) {
+	unsigned Tag = ml_tag(Value);
+	if (__builtin_expect(Tag == 0, 1)) {
+		return Value->Type;
+	} else if (Tag == 1) {
+		return MLInt32T;
+	} else if (Tag < 7) {
+		return NULL;
+	} else {
+		return MLDoubleT;
+	}
+}
+
+static inline ml_value_t *ml_deref(ml_value_t *Value) {
+	unsigned Tag = ml_tag(Value);
+	if (__builtin_expect(Tag == 0, 1)) {
+		return Value->Type->deref(Value);
+	} else {
+		return Value;
+	}
+}
+
+#else
+
+static inline ml_type_t *ml_typeof(const ml_value_t *Value) {
+	return Value->Type;
+}
+
+static inline ml_value_t *ml_deref(ml_value_t *Value) {
+	return Value->Type->deref(Value);
+}
+
+#endif
+
+static inline int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
+	const ml_type_t *Type = ml_typeof(Value);
+#ifdef ML_GENERICS
+	if (Type->Type == MLGenericTypeT) Type = ml_generic_type_args(Type)[0];
+#endif
+	if (Type == Expected) return 1;
+	return (uintptr_t)inthash_search(Type->Parents, (uintptr_t)Expected);
+}
+
+long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain);
+
+static inline long ml_hash(ml_value_t *Value) {
+	return ml_hash_chain(Value, NULL);
+}
+
+static inline ml_value_t *ml_assign(ml_value_t *Value, ml_value_t *Value2) {
+	return ml_typeof(Value)->assign(Value, Value2);
+}
+
+#define ml_call(CALLER, VALUE, COUNT, ARGS) ml_typeof(VALUE)->call((ml_state_t *)CALLER, VALUE, COUNT, ARGS)
+
+#define ml_inline(STATE, VALUE, COUNT, ARGS ...) ({ \
+	ml_call(STATE, VALUE, COUNT, (ml_value_t **)(void *[]){ARGS}); \
+})
+
+void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn);
+void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function);
 
 #ifndef GENERATE_INIT
 
@@ -140,71 +218,9 @@ extern ml_type_t MLNilT[];
 extern ml_value_t MLNil[];
 extern ml_value_t MLSome[];
 
-long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain);
-long ml_hash(ml_value_t *Value);
 
 typedef ml_value_t *(*ml_callback_t)(void *Data, int Count, ml_value_t **Args);
 typedef void (*ml_callbackx_t)(ml_state_t *Frame, void *Data, int Count, ml_value_t **Args);
-
-// Boxing //
-
-long ml_integer_value(const ml_value_t *Value) __attribute__ ((const));
-double ml_real_value(const ml_value_t *Value) __attribute__ ((const));
-
-#ifdef USE_NANBOXING
-
-static inline int ml_tag(const ml_value_t *Value) {
-	return (uint64_t)Value >> 48;
-}
-
-static inline int ml_is_int32(ml_value_t *Value) {
-	return ml_tag(Value) == 1;
-}
-
-static inline ml_value_t *ml_int32(int32_t Integer) {
-	return (void *)(((uint64_t)1 << 48) + (uint32_t)Integer);
-}
-
-static inline int ml_is_double(ml_value_t *Value) {
-	return ml_tag(Value) >= 7;
-}
-
-static inline double ml_to_double(const ml_value_t *Value) {
-	union { const ml_value_t *Value; uint64_t Bits; double Double; } Boxed;
-	Boxed.Value = Value;
-	Boxed.Bits -= 0x07000000000000;
-	return Boxed.Double;
-}
-
-inline long ml_integer_value_fast(const ml_value_t *Value) {
-	return ml_integer_value(Value);
-}
-
-inline double ml_real_value_fast(const ml_value_t *Value) {
-	return ml_real_value(Value);
-}
-
-#else
-
-typedef struct {
-	const ml_type_t *Type;
-	long Value;
-} ml_integer_t;
-
-inline long ml_integer_value_fast(const ml_value_t *Value) {
-	return ((ml_integer_t *)Value)->Value;
-}
-
-typedef struct {
-	const ml_type_t *Type;
-	double Value;
-} ml_real_t;
-
-inline double ml_real_value_fast(const ml_value_t *Value) {
-	return ((ml_real_t *)Value)->Value;
-}
-
-#endif
 
 // Iterators //
 
@@ -223,29 +239,39 @@ typedef struct ml_cfunction_t ml_cfunction_t;
 typedef struct ml_cfunctionx_t ml_cfunctionx_t;
 
 struct ml_cfunction_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_callback_t Callback;
 	void *Data;
 };
 
 struct ml_cfunctionx_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_callbackx_t Callback;
 	void *Data;
 };
 
 extern ml_type_t MLCFunctionT[];
 extern ml_type_t MLCFunctionXT[];
+extern ml_type_t MLCFunctionZT[];
 extern ml_type_t MLPartialFunctionT[];
 
+#define ML_CFUNCTION(NAME, DATA, CALLBACK) static ml_cfunction_t NAME[1] = {{MLCFunctionT, CALLBACK, DATA}}
+
+#define ML_CFUNCTIONX(NAME, DATA, CALLBACK) static ml_cfunctionx_t NAME[1] = {{MLCFunctionXT, CALLBACK, DATA}}
+
+#define ML_CFUNCTIONZ(NAME, DATA, CALLBACK) static ml_cfunctionx_t NAME[1] = {{MLCFunctionZT, CALLBACK, DATA}}
+
 extern ml_cfunctionx_t MLCallCC[];
-extern ml_cfunctionx_t MLMark[];
+extern ml_cfunctionx_t MLMarkCC[];
+extern ml_cfunctionx_t MLCallDC[];
+extern ml_cfunctionx_t MLSwapCC[];
 
 extern ml_type_t MLContextKeyT[];
 extern ml_cfunction_t MLContextKey[];
 
 ml_value_t *ml_cfunction(void *Data, ml_callback_t Function) __attribute__((malloc));
 ml_value_t *ml_cfunctionx(void *Data, ml_callbackx_t Function) __attribute__((malloc));
+ml_value_t *ml_cfunctionz(void *Data, ml_callbackx_t Function) __attribute__((malloc));
 
 ml_value_t *ml_return_nil(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_identity(void *Data, int Count, ml_value_t **Args);
@@ -268,6 +294,14 @@ ml_cfunctionx_t NAME[1] = {{MLCFunctionXT, FUNCTION, NULL}}; \
 static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args)
 
 #define ML_FUNCTIONX(NAME, TYPES ...) ML_FUNCTIONX2(NAME, CONCAT3(ml_cfunctionx_, __LINE__, __COUNTER__))
+
+#define ML_FUNCTIONZ2(NAME, FUNCTION) static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args); \
+\
+ml_cfunctionx_t NAME[1] = {{MLCFunctionZT, FUNCTION, NULL}}; \
+\
+static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args)
+
+#define ML_FUNCTIONZ(NAME, TYPES ...) ML_FUNCTIONZ2(NAME, CONCAT3(ml_cfunctionx_, __LINE__, __COUNTER__))
 
 #define ML_CHECK_ARG_TYPE(N, TYPE) \
 	if (!ml_is(Args[N], TYPE)) { \
@@ -305,7 +339,7 @@ typedef struct ml_tuple_t ml_tuple_t;
 extern ml_type_t MLTupleT[];
 
 struct ml_tuple_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	int Size, NoRefs;
 	ml_value_t *Values[];
 };
@@ -320,16 +354,25 @@ static inline ml_value_t *ml_tuple_get(ml_value_t *Tuple, int Index) {
 	return ((ml_tuple_t *)Tuple)->Values[Index - 1];
 }
 
-static inline ml_value_t *ml_tuple_set(ml_value_t *Tuple, int Index, ml_value_t *Value) {
-	return ((ml_tuple_t *)Tuple)->Values[Index - 1] = Value;
+#ifdef ML_GENERICS
+
+ml_value_t *ml_tuple_set(ml_value_t *Tuple0, int Index, ml_value_t *Value);
+
+#else
+
+static inline ml_value_t *ml_tuple_set(ml_value_t *Tuple0, int Index, ml_value_t *Value) {
+	ml_tuple_t *Tuple = (ml_tuple_t *)Tuple0;
+	return Tuple->Values[Index - 1] = Value;
 }
+
+#endif
 
 ml_value_t *ml_unpack(ml_value_t *Value, int Index);
 
 // Booleans //
 
 typedef struct ml_boolean_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	const char *Name;
 	int Value;
 } ml_boolean_t;
@@ -347,19 +390,89 @@ extern ml_type_t MLNumberT[];
 extern ml_type_t MLIntegerT[];
 extern ml_type_t MLRealT[];
 
-#ifdef USE_NANBOXING
-
-extern ml_type_t MLInt32T[];
-extern ml_type_t MLInt64T[];
-extern ml_type_t MLDoubleT[];
-
-#endif
-
 ml_value_t *ml_integer(long Value) __attribute__((malloc));
 ml_value_t *ml_real(double Value) __attribute__((malloc));
 
-extern ml_value_t *MLIntegerOfMethod;
-extern ml_value_t *MLRealOfMethod;
+long ml_integer_value(const ml_value_t *Value) __attribute__ ((const));
+double ml_real_value(const ml_value_t *Value) __attribute__ ((const));
+
+#ifdef ML_COMPLEX
+
+#include <complex.h>
+#undef I
+
+typedef struct {
+	ml_type_t *Type;
+	complex double Value;
+} ml_complex_t;
+
+extern ml_type_t MLComplexT[];
+
+ml_value_t *ml_complex(complex double Value);
+complex double ml_complex_value(const ml_value_t *Value);
+
+inline complex double ml_complex_value_fast(const ml_value_t *Value) {
+	return ((ml_complex_t *)Value)->Value;
+}
+
+#endif
+
+#ifdef ML_NANBOXING
+
+typedef struct {
+	const ml_type_t *Type;
+	int64_t Value;
+} ml_int64_t;
+
+static inline int ml_is_int32(ml_value_t *Value) {
+	return ml_tag(Value) == 1;
+}
+
+static inline ml_value_t *ml_int32(int32_t Integer) {
+	return (ml_value_t *)(((uint64_t)1 << 48) + (uint32_t)Integer);
+}
+
+static inline int ml_is_double(ml_value_t *Value) {
+	return ml_tag(Value) >= 7;
+}
+
+static inline double ml_to_double(const ml_value_t *Value) {
+	union { const ml_value_t *Value; uint64_t Bits; double Double; } Boxed;
+	Boxed.Value = Value;
+	Boxed.Bits -= 0x07000000000000;
+	return Boxed.Double;
+}
+
+static inline long ml_integer_value_fast(const ml_value_t *Value) {
+	if (ml_tag(Value) == 1) return (int32_t)(intptr_t)Value;
+	return ((ml_int64_t *)Value)->Value;
+}
+
+static inline double ml_real_value_fast(const ml_value_t *Value) {
+	return ml_to_double(Value);
+}
+
+#else
+
+typedef struct {
+	ml_type_t *Type;
+	long Value;
+} ml_integer_t;
+
+inline long ml_integer_value_fast(const ml_value_t *Value) {
+	return ((ml_integer_t *)Value)->Value;
+}
+
+typedef struct {
+	ml_type_t *Type;
+	double Value;
+} ml_real_t;
+
+inline double ml_real_value_fast(const ml_value_t *Value) {
+	return ((ml_real_t *)Value)->Value;
+}
+
+#endif
 
 // Strings //
 
@@ -367,13 +480,13 @@ typedef struct ml_buffer_t ml_buffer_t;
 typedef struct ml_string_t ml_string_t;
 
 struct ml_buffer_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	char *Address;
 	size_t Size;
 };
 
 struct ml_string_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	const char *Value;
 	size_t Length;
 	long Hash;
@@ -385,8 +498,6 @@ extern ml_type_t MLStringT[];
 extern ml_type_t MLRegexT[];
 extern ml_type_t MLStringBufferT[];
 
-ml_value_t *ml_buffer(void *Data, int Count, ml_value_t **Args);
-
 ml_value_t *ml_string(const char *Value, int Length) __attribute__((malloc));
 #define ml_cstring(VALUE) ml_string(VALUE, strlen(VALUE))
 
@@ -394,8 +505,6 @@ ml_value_t *ml_string_format(const char *Format, ...) __attribute__((malloc, for
 
 const char *ml_string_value(const ml_value_t *Value) __attribute__((const));
 size_t ml_string_length(const ml_value_t *Value) __attribute__((pure));
-
-extern ml_value_t *MLStringOfMethod;
 
 ml_value_t *ml_regex(const char *Value, int Length) __attribute__((malloc));
 const char *ml_regex_pattern(const ml_value_t *Value) __attribute__((pure));
@@ -406,7 +515,7 @@ typedef struct ml_stringbuffer_t ml_stringbuffer_t;
 typedef struct ml_stringbuffer_node_t ml_stringbuffer_node_t;
 
 struct ml_stringbuffer_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_stringbuffer_node_t *Head, *Tail;
 	ml_hash_chain_t *Chain;
 	int Space, Length;
@@ -424,7 +533,6 @@ ml_value_t *ml_stringbuffer_value(ml_stringbuffer_t *Buffer) __attribute__ ((mal
 int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t));
 ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value);
 
-
 // Lists //
 
 typedef struct ml_list_node_t ml_list_node_t;
@@ -433,14 +541,14 @@ typedef struct ml_list_t ml_list_t;
 extern ml_type_t MLListT[];
 
 struct ml_list_node_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_list_node_t *Next, *Prev;
 	ml_value_t *Value;
 	int Index;
 };
 
 struct ml_list_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_list_node_t *Head, *Tail;
 	ml_list_node_t *CachedNode;
 	int Length, CachedIndex;
@@ -533,13 +641,13 @@ typedef struct ml_map_node_t ml_map_node_t;
 extern ml_type_t MLMapT[];
 
 struct ml_map_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_map_node_t *Head, *Tail, *Root;
 	int Size;
 };
 
 struct ml_map_node_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_map_node_t *Next, *Prev;
 	ml_value_t *Key;
 	ml_map_node_t *Left, *Right;
@@ -550,6 +658,7 @@ struct ml_map_node_t {
 
 ml_value_t *ml_map() __attribute__((malloc));
 ml_value_t *ml_map_search(ml_value_t *Map, ml_value_t *Key);
+ml_value_t *ml_map_search0(ml_value_t *Map0, ml_value_t *Key);
 ml_map_node_t *ml_map_slot(ml_value_t *Map, ml_value_t *Key);
 ml_value_t *ml_map_insert(ml_value_t *Map, ml_value_t *Key, ml_value_t *Value);
 ml_value_t *ml_map_delete(ml_value_t *Map, ml_value_t *Key);
@@ -626,15 +735,8 @@ static inline void ml_map_iter_update(ml_map_iter_t *Iter, ml_value_t *Value) {
 
 extern ml_type_t MLNamesT[];
 
-static inline ml_value_t *ml_names() {
-	ml_value_t *Names = ml_list();
-	Names->Type = MLNamesT;
-	return Names;
-}
-
-static inline void ml_names_add(ml_value_t *Names, ml_value_t *Value) {
-	ml_list_put(Names, Value);
-}
+ml_value_t *ml_names();
+void ml_names_add(ml_value_t *Names, ml_value_t *Value);
 
 #define ML_NAMES_FOREACH(LIST, ITER) ML_LIST_FOREACH(LIST, ITER)
 
@@ -642,6 +744,11 @@ static inline void ml_names_add(ml_value_t *Names, ml_value_t *Value) {
 
 typedef struct ml_method_t ml_method_t;
 typedef struct ml_methods_t ml_methods_t;
+
+struct ml_method_t {
+	ml_type_t *Type;
+	const char *Name;
+};
 
 #define ML_METHODS_INDEX 0
 
@@ -664,6 +771,10 @@ void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_t
 
 #ifndef GENERATE_INIT
 
+static inline ml_value_t *ml_type_constructor(ml_type_t *Type) {
+	return Type->Constructor;
+}
+
 #define ML_METHOD(METHOD, TYPES ...) static ml_value_t *CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)(void *Data, int Count, ml_value_t **Args)
 
 #define ML_METHODX(METHOD, TYPES ...) static void CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args)
@@ -683,13 +794,13 @@ static inline ml_value_t *ml_nop(ml_value_t *Value) {
 
 #ifndef __cplusplus
 
-#define ML_METHOD(METHOD, TYPES ...) INIT_CODE ml_method_define(_Generic(METHOD, char *: ml_method, ml_value_t *: ml_nop)(METHOD), ml_cfunction(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)), 0, ##TYPES, NULL);
+#define ML_METHOD(METHOD, TYPES ...) INIT_CODE ml_method_define(_Generic(METHOD, char *: ml_method, ml_value_t *: ml_nop, ml_type_t *: ml_type_constructor)(METHOD), ml_cfunction(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)), 0, ##TYPES, NULL);
 
-#define ML_METHODX(METHOD, TYPES ...) INIT_CODE ml_method_define(_Generic(METHOD, char *: ml_method, ml_value_t *: ml_nop)(METHOD), ml_cfunctionx(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)), 0, ##TYPES, NULL);
+#define ML_METHODX(METHOD, TYPES ...) INIT_CODE ml_method_define(_Generic(METHOD, char *: ml_method, ml_value_t *: ml_nop, ml_type_t *: ml_type_constructor)(METHOD), ml_cfunctionx(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)), 0, ##TYPES, NULL);
 
-#define ML_METHODV(METHOD, TYPES ...) INIT_CODE ml_method_define(_Generic(METHOD, char *: ml_method, ml_value_t *: ml_nop)(METHOD), ml_cfunction(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)), 1, ##TYPES, NULL);
+#define ML_METHODV(METHOD, TYPES ...) INIT_CODE ml_method_define(_Generic(METHOD, char *: ml_method, ml_value_t *: ml_nop, ml_type_t *: ml_type_constructor)(METHOD), ml_cfunction(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)), 1, ##TYPES, NULL);
 
-#define ML_METHODVX(METHOD, TYPES ...) INIT_CODE ml_method_define(_Generic(METHOD, char *: ml_method, ml_value_t *: ml_nop)(METHOD), ml_cfunctionx(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)), 1, ##TYPES, NULL);
+#define ML_METHODVX(METHOD, TYPES ...) INIT_CODE ml_method_define(_Generic(METHOD, char *: ml_method, ml_value_t *: ml_nop, ml_type_t *: ml_type_constructor)(METHOD), ml_cfunctionx(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)), 1, ##TYPES, NULL);
 
 #else
 
@@ -714,68 +825,18 @@ void ml_methods_context_new(ml_context_t *Context);
 
 extern ml_type_t MLModuleT[];
 
+typedef struct {
+	const ml_type_t *Type;
+	const char *Path;
+	stringmap_t Exports[1];
+} ml_module_t;
+
 ml_value_t *ml_module(const char *Path, ...) __attribute__ ((malloc, sentinel));
 const char *ml_module_path(ml_value_t *Module) __attribute__ ((pure));
 ml_value_t *ml_module_import(ml_value_t *Module, const char *Name) __attribute__ ((pure));
 ml_value_t *ml_module_export(ml_value_t *Module, const char *Name, ml_value_t *Value);
 
 // Init //
-
-#ifdef USE_NANBOXING
-
-static inline const ml_type_t *ml_typeof(const ml_value_t *Value) {
-	unsigned Tag = ml_tag(Value);
-	if (__builtin_expect(Tag == 0, 1)) {
-		return Value->Type;
-	} else if (Tag == 1) {
-		return MLInt32T;
-	} else if (Tag < 7) {
-		return NULL;
-	} else {
-		return MLDoubleT;
-	}
-}
-
-static inline ml_value_t *ml_deref(ml_value_t *Value) {
-	unsigned Tag = ml_tag(Value);
-	if (__builtin_expect(Tag == 0, 1)) {
-		return Value->Type->deref(Value);
-	} else {
-		return Value;
-	}
-}
-
-#else
-
-static inline const ml_type_t *ml_typeof(const ml_value_t *Value) {
-	return Value->Type;
-}
-
-static inline ml_value_t *ml_deref(ml_value_t *Value) {
-	return Value->Type->deref(Value);
-}
-
-#endif
-
-static inline int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
-	const ml_type_t *Type = ml_typeof(Value);
-	if (Type == Expected) return 1;
-	if (inthash_search(Type->Parents, (uintptr_t)Expected)) return 1;
-	return 0;
-}
-
-static inline ml_value_t *ml_assign(ml_value_t *Value, ml_value_t *Value2) {
-	return ml_typeof(Value)->assign(Value, Value2);
-}
-
-static inline void ml_call(void *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
-	return ml_typeof(Value)->call((ml_state_t *)Caller, Value, Count, Args);
-}
-
-#define ml_inline(STATE, VALUE, COUNT, ARGS ...) ({ \
-	void *Args ## __LINE__[COUNT] = {ARGS}; \
-	ml_call(STATE, VALUE, COUNT, (ml_value_t **)(Args ## __LINE__)); \
-})
 
 void ml_types_init(stringmap_t *Globals);
 
@@ -790,12 +851,20 @@ template <typename... args> void ml_method_by_auto(ml_value_t *Method, void *Dat
 	ml_method_define(Method, ml_cfunction(Data, Function), 0, Args...);
 }
 
+template <typename... args> void ml_method_by_auto(ml_type_t *Type, void *Data, ml_callback_t Function, args... Args) {
+	ml_method_define(Type->Constructor, ml_cfunction(Data, Function), 0, Args...);
+}
+
 template <typename... args> void ml_methodx_by_auto(const char *Method, void *Data, ml_callbackx_t Function, args... Args) {
 	ml_method_define(ml_method(Method), ml_cfunctionx(Data, Function), 0, Args...);
 }
 
 template <typename... args> void ml_methodx_by_auto(ml_value_t *Method, void *Data, ml_callbackx_t Function, args... Args) {
 	ml_methodx_define(Method, ml_cfunctionx(Data, Function), 0, Args...);
+}
+
+template <typename... args> void ml_methodx_by_auto(ml_type_t *Type, void *Data, ml_callbackx_t Function, args... Args) {
+	ml_methodx_define(Type->Constructor, ml_cfunctionx(Data, Function), 0, Args...);
 }
 
 #endif

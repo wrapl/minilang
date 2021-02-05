@@ -4,13 +4,11 @@
 #include "ml_iterfns.h"
 #include <string.h>
 
-ML_METHOD_DECL(MLQueueOf, "queue::of");
-
 typedef struct ml_queue_t ml_queue_t;
 typedef struct ml_queue_node_t ml_queue_node_t;
 
 struct ml_queue_node_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_queue_t *Queue;
 	ml_value_t *Value;
 	double Score;
@@ -20,7 +18,7 @@ struct ml_queue_node_t {
 ML_TYPE(MLQueueNodeT, (), "queue-node");
 
 struct ml_queue_t {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_queue_node_t **Nodes;
 	int Count, Size;
 };
@@ -28,7 +26,7 @@ struct ml_queue_t {
 ML_TYPE(MLQueueT, (MLIteratableT), "queue");
 // A priority queue with values and associated scores.
 
-ML_METHOD(MLQueueOfMethod) {
+ML_METHOD(MLQueueT) {
 	ml_queue_t *Queue = new(ml_queue_t);
 	Queue->Type = MLQueueT;
 	Queue->Size = 16;
@@ -177,7 +175,7 @@ ml_value_t *ML_TYPED_FN(ml_unpack, MLQueueNodeT, ml_queue_node_t *Node, int Inde
 }
 
 typedef struct {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	ml_queue_node_t **Nodes;
 	int Index, Count;
 } ml_queue_iter_t;
@@ -209,6 +207,5 @@ static void ML_TYPED_FN(ml_iter_value, MLQueueIterT, ml_state_t *Caller, ml_queu
 
 void ml_queue_init(stringmap_t *Globals) {
 #include "ml_queue_init.c"
-	MLQueueT->Constructor = MLQueueOfMethod;
 	stringmap_insert(Globals, "queue", MLQueueT);
 }

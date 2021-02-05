@@ -3,29 +3,41 @@ iterator
 
 .. include:: <isonum.txt>
 
-:mini:`def filter < function`
+:mini:`type filter < function`
 
 :mini:`fun filter(Function?: any)` |rarr| :mini:`filter`
    Returns a filter for use in chained functions and iterators.
 
 
-:mini:`def chainedstate`
+:mini:`type chainedfunction < function, iteratable`
 
-:mini:`def chainedfunction < function, iteratable`
-
-:mini:`meth ->(Iteratable: iteratable, Function: function)` |rarr| :mini:`chainedfunction`
+:mini:`type chainedstate`
 
 :mini:`meth ->(Iteratable: function, Function: function)` |rarr| :mini:`chainedfunction`
 
-:mini:`meth ->(Iteratable: function, Function: chainedfunction)` |rarr| :mini:`chainedfunction`
+:mini:`meth ->(Iteratable: iteratable, Function: function)` |rarr| :mini:`chainedfunction`
+
+:mini:`meth =>(Iteratable: iteratable, Function: function)` |rarr| :mini:`chainedfunction`
+
+:mini:`meth =>(Iteratable: iteratable, Function: function, Arg₃: function)` |rarr| :mini:`chainedfunction`
 
 :mini:`meth ->(ChainedFunction: chainedfunction, Function: function)` |rarr| :mini:`chainedfunction`
 
-:mini:`meth ->(ChainedFunction₁: chainedfunction, ChainedFunction₂: chainedfunction)` |rarr| :mini:`chainedfunction`
+:mini:`meth =>(ChainedFunction: chainedfunction, Function: function)` |rarr| :mini:`chainedfunction`
 
-:mini:`def doublediterator < iteratable`
+:mini:`meth =>(ChainedFunction: chainedfunction, Function: function, Arg₃: function)` |rarr| :mini:`chainedfunction`
 
-:mini:`def doublediteratorstate < state`
+:mini:`meth ->?(Iteratable: iteratable, Function: function)` |rarr| :mini:`chainedfunction`
+
+:mini:`meth =>?(Iteratable: iteratable, Function: function)` |rarr| :mini:`chainedfunction`
+
+:mini:`meth ->?(ChainedFunction: chainedfunction, Function: function)` |rarr| :mini:`chainedfunction`
+
+:mini:`meth =>?(ChainedFunction: chainedfunction, Function: function)` |rarr| :mini:`chainedfunction`
+
+:mini:`type doublediterator < iteratable`
+
+:mini:`type doublediteratorstate < state`
 
 :mini:`meth ^(Arg₁: iteratable, Arg₂: function)`
 
@@ -115,6 +127,8 @@ iterator
    The iteratable stops produces values when any of the :mini:`Iteratableᵢ` stops.
 
 
+:mini:`fun pair(Iteratable₁: iteratable, Iteratable₂: iteratable)` |rarr| :mini:`iteratable`
+
 :mini:`meth @(Value: any)` |rarr| :mini:`iteratable`
    Returns an iteratable that repeatedly produces :mini:`Value`.
 
@@ -147,7 +161,7 @@ iterator
    Returns a new iteratable which produces the keys of :mini:`Iteratable`.
 
 
-:mini:`def iteratable`
+:mini:`type iteratable`
    The base type for any iteratable value.
 
 

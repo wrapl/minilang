@@ -5,16 +5,10 @@
 #include <stdio.h>
 #include "ml_runtime.h"
 
-typedef struct ml_mini_module_t {
-	const ml_type_t *Type;
-	const char *FileName;
-	stringmap_t Exports[1];
-} ml_mini_module_t;
-
-ML_TYPE(MLMiniModuleT, (MLModuleT), "mini-module");
+ML_TYPE(MLMiniModuleT, (MLModuleT), "module");
 
 ML_METHODX("::", MLMiniModuleT, MLStringT) {
-	ml_mini_module_t *Module = (ml_mini_module_t *)Args[0];
+	ml_module_t *Module = (ml_module_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Module->Exports, Name);
 	ml_value_t *Value = Slot[0];
@@ -24,28 +18,10 @@ ML_METHODX("::", MLMiniModuleT, MLStringT) {
 	ML_RETURN(Value);
 }
 
-static int ml_exports_fn(const char *Name, void *Value, ml_value_t *Exports) {
-	ml_map_insert(Exports, ml_cstring(Name), Value);
-	return 0;
-}
-
-ML_METHOD("exports", MLMiniModuleT) {
-	ml_mini_module_t *Module = (ml_mini_module_t *)Args[0];
-	ml_value_t *Exports = ml_map();
-	stringmap_foreach(Module->Exports, Exports, (void *)ml_exports_fn);
-	return Exports;
-}
-
-typedef struct ml_export_function_t {
-	const ml_type_t *Type;
-	ml_mini_module_t *Module;
-} ml_export_function_t;
-
-static void ml_export_function_call(ml_state_t *Caller, ml_export_function_t *ExportFunction, int Count, ml_value_t **Args) {
+static void ml_export(ml_state_t *Caller, ml_module_t *Module, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLNamesT);
 	int Index = 0;
-	ml_mini_module_t *Module = ExportFunction->Module;
 	ml_value_t *Value = MLNil;
 	ML_NAMES_FOREACH(Args[0], Iter) {
 		const char *Name = ml_string_value(Iter->Value);
@@ -61,10 +37,6 @@ static void ml_export_function_call(ml_state_t *Caller, ml_export_function_t *Ex
 	}
 	ML_RETURN(Value);
 }
-
-ML_TYPE(MLExportFunctionT, (MLFunctionT), "export-function",
-	.call = (void *)ml_export_function_call
-);
 
 typedef struct ml_module_state_t {
 	ml_state_t Base;
@@ -86,39 +58,33 @@ static void ml_module_init_run(ml_module_state_t *State, ml_value_t *Value) {
 
 void ml_module_compile(ml_state_t *Caller, ml_compiler_t *Scanner, ml_value_t **Slot) {
 	static const char *Parameters[] = {"export", NULL};
-	ml_mini_module_t *Module = new(ml_mini_module_t);
+	ml_module_t *Module = new(ml_module_t);
 	Module->Type = MLMiniModuleT;
-	Module->FileName = ml_compiler_name(Scanner);
+	Module->Path = ml_compiler_name(Scanner);
 	Slot[0] = (ml_value_t *)Module;
-	ml_export_function_t *ExportFunction = new(ml_export_function_t);
-	ExportFunction->Type = MLExportFunctionT;
-	ExportFunction->Module = Module;
 	ml_module_state_t *State = new(ml_module_state_t);
 	State->Base.Type = MLModuleStateT;
 	State->Base.run = (void *)ml_module_init_run;
 	State->Base.Context = Caller->Context;
 	State->Base.Caller = Caller;
 	State->Module = (ml_value_t *)Module;
-	State->Args[0] = (ml_value_t *)ExportFunction;
+	State->Args[0] = ml_cfunctionz(Module, (ml_callbackx_t)ml_export);
 	ml_function_compile((ml_state_t *)State, Scanner, Parameters);
 }
 
 void ml_module_load_file(ml_state_t *Caller, const char *FileName, ml_getter_t GlobalGet, void *Globals, ml_value_t **Slot) {
 	static const char *Parameters[] = {"export", NULL};
-	ml_mini_module_t *Module = new(ml_mini_module_t);
+	ml_module_t *Module = new(ml_module_t);
 	Module->Type = MLMiniModuleT;
-	Module->FileName = FileName;
+	Module->Path = FileName;
 	Slot[0] = (ml_value_t *)Module;
-	ml_export_function_t *ExportFunction = new(ml_export_function_t);
-	ExportFunction->Type = MLExportFunctionT;
-	ExportFunction->Module = Module;
 	ml_module_state_t *State = new(ml_module_state_t);
 	State->Base.Type = MLModuleStateT;
 	State->Base.run = (void *)ml_module_init_run;
 	State->Base.Context = Caller->Context;
 	State->Base.Caller = Caller;
 	State->Module = (ml_value_t *)Module;
-	State->Args[0] = (ml_value_t *)ExportFunction;
+	State->Args[0] = ml_cfunctionz(Module, (ml_callbackx_t)ml_export);
 	return ml_load_file((ml_state_t *)State, GlobalGet, Globals, FileName, Parameters);
 }
 

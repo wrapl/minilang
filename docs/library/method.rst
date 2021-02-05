@@ -3,7 +3,7 @@ method
 
 .. include:: <isonum.txt>
 
-:mini:`def method < function`
+:mini:`type method < function`
 
 :mini:`meth method()` |rarr| :mini:`method`
 

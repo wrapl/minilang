@@ -1,7 +1,7 @@
 #include "minilang.h"
 #include "ml_macros.h"
 #include "ml_cbor.h"
-#ifdef USE_ML_CBOR_BYTECODE
+#ifdef ML_CBOR_BYTECODE
 #include "ml_bytecode.h"
 #endif
 #include <gc/gc.h>
@@ -453,7 +453,7 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLObjectT, ml_value_t *Arg, void *
 	return NULL;
 }
 
-#ifdef USE_ML_MATH
+#ifdef ML_MATH
 
 #include "ml_array.h"
 
@@ -594,7 +594,7 @@ static ml_value_t *ml_cbor_read_any_array_fn(void *Data, int Count, ml_value_t *
 
 #endif
 
-#ifdef USE_ML_TABLES
+#ifdef ML_TABLES
 #include "ml_table.h"
 
 static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTableT, ml_value_t *Table, char *Data, ml_cbor_write_fn WriteFn) {
@@ -654,7 +654,7 @@ void ml_cbor_init(stringmap_t *Globals) {
 	ml_map_insert(CborDefaultTags, ml_integer(35), ml_cfunction(NULL, ml_cbor_read_regex));
 	ml_map_insert(CborDefaultTags, ml_integer(39), ml_cfunction(NULL, ml_cbor_read_method));
 	ml_map_insert(CborDefaultTags, ml_integer(27), ml_cfunction(NULL, ml_cbor_read_object));
-#ifdef USE_ML_MATH
+#ifdef ML_MATH
 	ml_map_insert(CborDefaultTags, ml_integer(40), ml_cfunction(NULL, ml_cbor_read_multi_array_fn));
 	ml_map_insert(CborDefaultTags, ml_integer(41), ml_cfunction(NULL, ml_cbor_read_any_array_fn));
 	ml_map_insert(CborDefaultTags, ml_integer(72), ml_cfunction((void *)ML_ARRAY_FORMAT_I8, ml_cbor_read_typed_array_fn));
@@ -668,10 +668,10 @@ void ml_cbor_init(stringmap_t *Globals) {
 	ml_map_insert(CborDefaultTags, ml_integer(85), ml_cfunction((void *)ML_ARRAY_FORMAT_F32, ml_cbor_read_typed_array_fn));
 	ml_map_insert(CborDefaultTags, ml_integer(86), ml_cfunction((void *)ML_ARRAY_FORMAT_F64, ml_cbor_read_typed_array_fn));
 #endif
-#ifdef USE_ML_CBOR_BYTECODE
+#ifdef ML_CBOR_BYTECODE
 	ml_map_insert(CborDefaultTags, ml_integer(36), ml_cfunction(NULL, ml_cbor_read_closure));
 #endif
-#ifdef USE_ML_TABLES
+#ifdef ML_TABLES
 	ml_map_insert(CborDefaultTags, ml_integer(60), ml_cfunction(NULL, ml_cbor_read_table_fn));
 #endif
 #include "ml_cbor_init.c"
