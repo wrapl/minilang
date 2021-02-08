@@ -17,6 +17,14 @@ internal
 
 :mini:`type stackedstate`
 
+:mini:`type repeated < iteratable`
+
+:mini:`type repeatedstate`
+
+:mini:`type sequenced < iteratable`
+
+:mini:`type sequencedstate`
+
 :mini:`type limited < iteratable`
 
 :mini:`meth :count(Arg₁: limited)`
@@ -36,14 +44,6 @@ internal
 :mini:`type paired < iteratable`
 
 :mini:`type pairedstate`
-
-:mini:`type repeated < iteratable`
-
-:mini:`type repeatedstate`
-
-:mini:`type sequenced < iteratable`
-
-:mini:`type sequencedstate`
 
 :mini:`type weaved < iteratable`
 

@@ -95,7 +95,7 @@ iterator
    Joins the elements of :mini:`Iteratable` into a string using :mini:`Separator` between elements.
 
 
-:mini:`fun reduce2(Arg₁: iteratable, Arg₂: function)`
+:mini:`fun reduce2(Iteratable: iteratable, Fn: function)` |rarr| :mini:`any` or :mini:`nil`
 
 :mini:`fun min2(Iteratable: iteratable)` |rarr| :mini:`any` or :mini:`nil`
    Returns a tuple with the key and value of the smallest value (based on :mini:`<`) produced by :mini:`Iteratable`.
@@ -107,6 +107,28 @@ iterator
 
 :mini:`meth //(Iteratable: iteratable, Fn: function)` |rarr| :mini:`iteratable`
    Returns an iteratable that produces :mini:`V₁`, :mini:`Fn(V₁, V₂)`, :mini:`Fn(Fn(V₁, V₂), V₃)`, ... .
+
+
+:mini:`meth //(Iteratable: iteratable, Initial: any, Fn: function)` |rarr| :mini:`iteratable`
+   Returns an iteratable that produces :mini:`Initial`, :mini:`Fn(Initial, V₁)`, :mini:`Fn(Fn(Initial, V₁), V₂)`, ... .
+
+
+:mini:`meth @(Value: any)` |rarr| :mini:`iteratable`
+   Returns an iteratable that repeatedly produces :mini:`Value`.
+
+
+:mini:`meth @(Value: any, Update: function)` |rarr| :mini:`iteratable`
+   Returns an iteratable that repeatedly produces :mini:`Value`.
+
+   :mini:`Value` is replaced with :mini:`Update(Value)` after each iteration.
+
+
+:mini:`meth >>(Iteratable₁: iteratable, Iteratable₂: iteratable)` |rarr| :mini:`Iteratable`
+   Returns an iteratable that produces the values from :mini:`Iteratable₁` followed by those from :mini:`Iteratable₂`.
+
+
+:mini:`meth >>(Iteratable: iteratable)` |rarr| :mini:`Iteratable`
+   Returns an iteratable that repeatedly produces the values from :mini:`Iteratable` (for use with :mini:`limit`).
 
 
 :mini:`meth :limit(Iteratable: iteratable, Limit: integer)` |rarr| :mini:`iteratable`
@@ -128,24 +150,6 @@ iterator
 
 
 :mini:`fun pair(Iteratable₁: iteratable, Iteratable₂: iteratable)` |rarr| :mini:`iteratable`
-
-:mini:`meth @(Value: any)` |rarr| :mini:`iteratable`
-   Returns an iteratable that repeatedly produces :mini:`Value`.
-
-
-:mini:`meth @(Value: any, Update: function, Arg₃: function)` |rarr| :mini:`iteratable`
-   Returns an iteratable that repeatedly produces :mini:`Value`.
-
-   :mini:`Value` is replaced with :mini:`Update(Value)` after each iteration.
-
-
-:mini:`meth >>(Iteratable₁: iteratable, Iteratable₂: iteratable)` |rarr| :mini:`Iteratable`
-   Returns an iteratable that produces the values from :mini:`Iteratable₁` followed by those from :mini:`Iteratable₂`.
-
-
-:mini:`meth >>(Iteratable: iteratable)` |rarr| :mini:`Iteratable`
-   Returns an iteratable that repeatedly produces the values from :mini:`Iteratable` (for use with :mini:`limit`).
-
 
 :mini:`fun weave(Iteratable₁: iteratable, ...: iteratable, Iteratableₙ: iteratable)` |rarr| :mini:`iteratable`
    Returns a new iteratable that produces interleaved values :mini:`Vᵢ` from each of :mini:`Iteratableᵢ`.
