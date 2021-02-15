@@ -47,7 +47,6 @@ struct console_t {
 	char *History[MAX_HISTORY];
 	int HistoryIndex, HistoryEnd;
 	stringmap_t SourceViews[1];
-	stringmap_t Globals[1];
 	stringmap_t Cycles[1];
 	stringmap_t Combos[1];
 	char Chars[32];
@@ -68,13 +67,7 @@ static ml_value_t *console_global_get(console_t *Console, const char *Name) {
 		ml_value_t *Value = interactive_debugger_get(Console->Debugger, Name);
 		if (Value) return Value;
 	}
-	ml_value_t *Value = stringmap_search(Console->Globals, Name);
-	if (Value) return Value;
-	Value = (Console->ParentGetter)(Console->ParentGlobals, Name);
-	if (Value) return Value;
-	Value = ml_uninitialized(Name);
-	stringmap_insert(Console->Globals, Name, Value);
-	return Value;
+	return (Console->ParentGetter)(Console->ParentGlobals, Name);
 }
 
 void console_log(console_t *Console, ml_value_t *Value) {
@@ -500,7 +493,7 @@ static void console_include_fnx(ml_state_t *Caller, console_t *Console, int Coun
 	State->Caller = Caller;
 	State->Context = Caller->Context;
 	State->run = console_included_run;
-	return ml_load_file(State, (ml_getter_t)console_global_get, Console, ml_string_value(Args[0]), NULL);
+	return ml_load_file(State, (ml_getter_t)ml_compiler_lookup, Console->Compiler, ml_string_value(Args[0]), NULL);
 }
 
 static gboolean console_update_status(console_t *Console) {
@@ -614,16 +607,16 @@ ML_FUNCTIONX(MLSleep) {
 
 #endif
 
-console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
+console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globals) {
 	gtk_init(0, 0);
 
 	console_t *Console = new(console_t);
 	Console->Base.Type = ConsoleT;
 	Console->Base.run = (ml_state_fn)ml_console_repl_run;
-	Console->Base.Context = &MLRootContext;
+	Console->Base.Context = Context;
 	Console->Name = strdup("<console>");
-	Console->ParentGetter = ParentGetter;
-	Console->ParentGlobals = ParentGlobals;
+	Console->ParentGetter = GlobalGet;
+	Console->ParentGlobals = Globals;
 	Console->HistoryIndex = 0;
 	Console->HistoryEnd = 0;
 	Console->Compiler = ml_compiler((ml_getter_t)console_global_get, Console, NULL, NULL);
@@ -637,7 +630,6 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	QueuedStates = anew(ml_queued_state_t, QueueSize);
 	ml_context_set(Console->Base.Context, ML_SCHEDULER_INDEX, console_scheduler);
 #endif
-
 
 	GtkWidget *VPaned = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
 	gtk_paned_add1(GTK_PANED(VPaned), GTK_WIDGET(Console->Notebook));
@@ -775,15 +767,15 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	gtk_window_set_default_size(GTK_WINDOW(Console->Window), 640, 480);
 	g_signal_connect(G_OBJECT(Console->Window), "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), Console);
 
-	stringmap_insert(Console->Globals, "set_font", ml_cfunction(Console, (ml_callback_t)console_set_font));
-	stringmap_insert(Console->Globals, "set_style", ml_cfunction(Console, (ml_callback_t)console_set_style));
-	stringmap_insert(Console->Globals, "add_cycle", ml_cfunction(Console, (ml_callback_t)console_add_cycle));
-	stringmap_insert(Console->Globals, "add_combo", ml_cfunction(Console, (ml_callback_t)console_add_combo));
-	stringmap_insert(Console->Globals, "include", ml_cfunctionx(Console, (ml_callbackx_t)console_include_fnx));
+	ml_compiler_define(Console->Compiler, "set_font", ml_cfunction(Console, (ml_callback_t)console_set_font));
+	ml_compiler_define(Console->Compiler, "set_style", ml_cfunction(Console, (ml_callback_t)console_set_style));
+	ml_compiler_define(Console->Compiler, "add_cycle", ml_cfunction(Console, (ml_callback_t)console_add_cycle));
+	ml_compiler_define(Console->Compiler, "add_combo", ml_cfunction(Console, (ml_callback_t)console_add_combo));
+	ml_compiler_define(Console->Compiler, "include", ml_cfunctionx(Console, (ml_callbackx_t)console_include_fnx));
 
 #ifdef ML_SCHEDULER
-	stringmap_insert(Console->Globals, "schedule", ml_cfunctionx(Console, (ml_callbackx_t)console_schedule));
-	stringmap_insert(Console->Globals, "sleep", MLSleep);
+	ml_compiler_define(Console->Compiler, "schedule", ml_cfunctionx(Console, (ml_callbackx_t)console_schedule));
+	ml_compiler_define(Console->Compiler, "sleep", (ml_value_t *)MLSleep);
 #endif
 
 	if (g_key_file_has_key(Console->Config, "gtk-console", "font", NULL)) {
@@ -839,16 +831,16 @@ console_t *console_new(ml_getter_t ParentGetter, void *ParentGlobals) {
 	GError *Error = 0;
 	g_irepository_require(NULL, "Gtk", "3.0", 0, &Error);
 	g_irepository_require(NULL, "GtkSource", "4", 0, &Error);
-	stringmap_insert(Console->Globals, "Console", ml_gir_instance_get(Console->Window));
-	stringmap_insert(Console->Globals, "InputView", ml_gir_instance_get(Console->InputView));
-	stringmap_insert(Console->Globals, "LogView", ml_gir_instance_get(Console->LogView));
-	stringmap_insert(Console->Globals, "debug", interactive_debugger(
+	ml_compiler_define(Console->Compiler, "Console", ml_gir_instance_get(Console->Window));
+	ml_compiler_define(Console->Compiler, "InputView", ml_gir_instance_get(Console->InputView));
+	ml_compiler_define(Console->Compiler, "LogView", ml_gir_instance_get(Console->LogView));
+	ml_compiler_define(Console->Compiler, "debug", interactive_debugger(
 		(void *)console_debug_enter,
 		(void *)console_debug_exit,
 		(void *)console_log,
 		Console,
-		(ml_getter_t)console_global_get,
-		Console
+		GlobalGet,
+		Globals
 	));
 
 	return Console;

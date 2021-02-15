@@ -119,3 +119,7 @@ void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) 
 #include "ml_csv_init.c"
 	ml_module_export(Module, "open", ml_cfunction(0, csv_open));
 }
+
+void ml_csv_init(ml_state_t *Caller, ml_value_t *Module) {
+
+}

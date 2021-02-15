@@ -598,6 +598,43 @@ ML_METHOD("!=", MLAnyT, MLAnyT) {
 	return (Args[0] != Args[1]) ? Args[1] : MLNil;
 }
 
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Comparison;
+	ml_value_t **Args, **End;
+} ml_compare_state_t;
+
+static void ml_compare_state_run(ml_compare_state_t *State, ml_value_t *Result) {
+	if (ml_is_error(Result)) ML_CONTINUE(State->Base.Caller, Result);
+	if (Result == MLNil) ML_CONTINUE(State->Base.Caller, Result);
+	State->Args[0] = Result;
+	if (++State->Args == State->End) {
+		return ml_call(State->Base.Caller, State->Comparison, 2, State->Args - 1);
+	} else {
+		return ml_call((ml_state_t *)State, State->Comparison, 2, State->Args - 1);
+	}
+}
+
+#define ml_comp_any_any_any(NAME) \
+ML_METHODVX(NAME, MLAnyT, MLAnyT, MLAnyT) { \
+	ml_compare_state_t *State = new(ml_compare_state_t); \
+	State->Base.Caller = Caller; \
+	State->Base.Context = Caller->Context; \
+	State->Base.run = (ml_state_fn)ml_compare_state_run; \
+	State->Comparison = ml_method(NAME); \
+	State->Args = anew(ml_value_t *, Count - 1); \
+	for (int I = 2; I < Count; ++I) State->Args[I - 1] = Args[I]; \
+	State->End = State->Args + (Count - 2); \
+	return ml_call((ml_state_t *)State, State->Comparison, 2, Args); \
+}
+
+ml_comp_any_any_any("=");
+ml_comp_any_any_any("!=");
+ml_comp_any_any_any("<");
+ml_comp_any_any_any("<=");
+ml_comp_any_any_any(">");
+ml_comp_any_any_any(">=");
+
 ML_METHOD(MLStringT, MLAnyT) {
 //<Value
 //>string

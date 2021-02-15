@@ -19,6 +19,8 @@ typedef struct ml_compiler_t ml_compiler_t;
 typedef const char *(*ml_reader_t)(void *);
 
 ml_compiler_t *ml_compiler(ml_getter_t GlobalGet, void *Globals, ml_reader_t Read, void *Data);
+void ml_compiler_define(ml_compiler_t *Compiler, const char *Name, ml_value_t *Value);
+ml_value_t *ml_compiler_lookup(ml_compiler_t *Compiler, const char *Name);
 const char *ml_compiler_name(ml_compiler_t *Compiler);
 ml_source_t ml_compiler_source(ml_compiler_t *Compiler, ml_source_t Source);
 void ml_compiler_reset(ml_compiler_t *Compiler);

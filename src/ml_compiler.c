@@ -1831,6 +1831,16 @@ ml_compiler_t *ml_compiler(ml_getter_t GlobalGet, void *Globals, ml_reader_t Rea
 	return Compiler;
 }
 
+void ml_compiler_define(ml_compiler_t *Compiler, const char *Name, ml_value_t *Value) {
+	stringmap_insert(Compiler->Vars, Name, Value);
+}
+
+ml_value_t *ml_compiler_lookup(ml_compiler_t *Compiler, const char *Name) {
+	ml_value_t *Value = (ml_value_t *)stringmap_search(Compiler->Vars, Name);
+	if (!Value) Value = Compiler->GlobalGet(Compiler->Globals, Name);
+	return Value;
+}
+
 const char *ml_compiler_name(ml_compiler_t *Compiler) {
 	return Compiler->Source.Name;
 }
@@ -3906,9 +3916,9 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler) {
 			ml_command_decl_t *Task = new(ml_command_decl_t);
 			Task->Base.start = ml_task_default_start;
 			Task->Base.finish = (void *)ml_command_decl_finish;
+			Task->Global = ml_command_global(Compiler->Vars, Ident);
 			Task->Base.Closure = ml_compile(Expr, NULL, Compiler);
 			Task->Base.Source = Expr->Source;
-			Task->Global = ml_command_global(Compiler->Vars, Ident);
 			ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
 		} else {
 			ml_accept(Compiler, MLT_LEFT_PAREN);
@@ -3932,9 +3942,9 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler) {
 			ml_command_decl_t *Task = new(ml_command_decl_t);
 			Task->Base.start = ml_task_default_start;
 			Task->Base.finish = (void *)ml_command_decl_finish;
+			Task->Global = ml_command_global(Compiler->Vars, Ident);
 			Task->Base.Closure = ml_compile((mlc_expr_t *)CallExpr, NULL, Compiler);
 			Task->Base.Source = Expr->Source;
-			Task->Global = ml_command_global(Compiler->Vars, Ident);
 			ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
 		} else {
 			ml_compiler_task_t *Task = new(ml_compiler_task_t);

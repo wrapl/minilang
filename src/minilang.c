@@ -29,10 +29,6 @@
 #include "ml_cbor.h"
 #endif
 
-#ifdef ML_RADB
-#include "ml_radb.h"
-#endif
-
 #ifdef ML_MODULES
 #include "ml_module.h"
 #include "ml_library.h"
@@ -222,9 +218,6 @@ int main(int Argc, const char *Argv[]) {
 	ml_gir_init(Globals);
 	int GtkConsole = 0;
 #endif
-#ifdef ML_RADB
-	ml_radb_init(Globals);
-#endif
 #ifdef ML_MODULES
 	ml_module_init(Globals);
 	ml_library_init(Globals);
@@ -300,13 +293,13 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_GIR
 	} else if (GtkConsole) {
-		console_t *Console = console_new((ml_getter_t)stringmap_search, Globals);
+		console_t *Console = console_new(&MLRootContext, (ml_getter_t)stringmap_search, Globals);
 		stringmap_insert(Globals, "print", ml_cfunction(Console, (void *)console_print));
 		console_show(Console, NULL);
 		gtk_main();
 #endif
 	} else {
-		ml_console((ml_getter_t)stringmap_search, Globals, "--> ", "... ");
+		ml_console(&MLRootContext, (ml_getter_t)stringmap_search, Globals, "--> ", "... ");
 	}
 	return 0;
 }
