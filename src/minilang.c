@@ -251,7 +251,7 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_SCHEDULER
 			case 's':
 				if (++I >= Argc) {
-					printf("Error: module name required\n");
+					printf("Error: slice size required\n");
 					exit(-1);
 				}
 				SliceSize = atoi(Argv[I]);

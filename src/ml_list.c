@@ -665,6 +665,7 @@ static void ml_list_sort_state_run(ml_list_sort_state_t *State, ml_value_t *Resu
 			State->List->Tail = State->Tail;
 			State->List->CachedIndex = 1;
 			State->List->CachedNode = State->Head;
+			State->List->Length = State->Length;
 			break;
 		}
 		State->InSize *= 2;
