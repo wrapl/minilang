@@ -137,6 +137,7 @@
       <keyword>var</keyword>
       <keyword>on</keyword>
       <keyword>when</keyword>
+      <keyword>debug</keyword>
     </context>
     <context id="functions" style-ref="function">
       <keyword>print</keyword>

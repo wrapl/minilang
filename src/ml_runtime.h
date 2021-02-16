@@ -159,6 +159,8 @@ ml_source_t ml_debugger_source(ml_state_t *State);
 ml_decl_t *ml_debugger_decls(ml_state_t *State);
 ml_value_t *ml_debugger_local(ml_state_t *State, int Index);
 
+extern ml_cfunctionx_t MLBreak[];
+
 // Preemption //
 
 typedef struct ml_schedule_t ml_schedule_t;

@@ -593,6 +593,15 @@ ml_value_t *ml_debugger_local(ml_state_t *State, int Index) {
 	return ml_error("DebugError", "Locals not available");
 }
 
+ML_FUNCTIONX(MLBreak) {
+//<Condition?
+// If a debugger present and :mini:`Condition` is omitted or not :mini:`nil` then triggers a breakpoint.
+	ml_debugger_t *Debugger = Caller->Context->Values[ML_DEBUGGER_INDEX];
+	if (!Debugger) ML_RETURN(MLNil);
+	if (Count && Args[0] == MLNil) ML_RETURN(MLNil);
+	return Debugger->run(Debugger, Caller, MLNil);
+}
+
 // Channels
 
 typedef struct ml_channel_message_t ml_channel_message_t;

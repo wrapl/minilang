@@ -194,6 +194,7 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "error", MLErrorValueT);
 	stringmap_insert(Globals, "raise", MLRaise);
 	stringmap_insert(Globals, "halt", MLHalt);
+	stringmap_insert(Globals, "break", MLBreak);
 	stringmap_insert(Globals, "collect", MLCollect);
 	stringmap_insert(Globals, "callcc", MLCallCC);
 	stringmap_insert(Globals, "markcc", MLMarkCC);

@@ -121,7 +121,7 @@ void ml_console(ml_context_t *Context, ml_getter_t GlobalGet, void *Globals, con
 	Console->ContinuePrompt = ContinuePrompt;
 	Console->Debugger = NULL;
 	ml_compiler_t *Compiler = ml_compiler(GlobalGet, Globals, (void *)ml_console_line_read, Console);
-	ml_compiler_define(Compiler, "debug", interactive_debugger(
+	ml_compiler_define(Compiler, "debugger", interactive_debugger(
 		(void *)ml_console_debug_enter,
 		(void *)ml_console_debug_exit,
 		ml_console_log,

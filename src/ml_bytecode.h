@@ -120,7 +120,8 @@ typedef enum {
 	MLI_STRING_ADD,
 	MLI_STRING_ADDS,
 	MLI_STRING_END,
-	MLI_RESOLVE
+	MLI_RESOLVE,
+	MLI_IF_DEBUG
 } ml_opcode_t;
 
 typedef struct ml_frame_t ml_frame_t;

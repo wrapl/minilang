@@ -272,7 +272,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_STRING_ADD] = &&DO_STRING_ADD,
 		[MLI_STRING_ADDS] = &&DO_STRING_ADDS,
 		[MLI_STRING_END] = &&DO_STRING_END,
-		[MLI_RESOLVE] = &&DO_RESOLVE
+		[MLI_RESOLVE] = &&DO_RESOLVE,
+		[MLI_IF_DEBUG] = &&DO_IF_DEBUG
 	};
 	ml_inst_t *Inst = Frame->Inst;
 	ml_value_t **Top = Frame->Top;
@@ -775,6 +776,13 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		return ml_call(Frame, SymbolMethod, 2, Args);
 		ADVANCE(0);
 	}
+	DO_IF_DEBUG: {
+#ifdef DEBUG_VERSION
+		ADVANCE(1);
+#else
+		ADVANCE(0);
+#endif
+	}
 #ifdef DEBUG_VERSION
 	DO_DEBUG_ERROR: {
 		ml_debugger_t *Debugger = Frame->Debugger;
@@ -1002,7 +1010,8 @@ const char *MLInsts[] = {
 	"string_add", // MLI_STRING_ADD,
 	"string_adds", // MLI_STRING_ADDS,
 	"string_end", // MLI_STRING_END
-	"resolve" // MLI_RESOLVE
+	"resolve", // MLI_RESOLVE,
+	"debug", // MLI_DEBUG
 };
 
 typedef enum {
@@ -1078,7 +1087,8 @@ static const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INST_COUNT, // MLI_STRING_ADD,
 	MLIT_INST_COUNT_CHARS, // MLI_STRING_ADDS,
 	MLIT_INST, // MLI_STRING_END
-	MLIT_INST_VALUE_VALUE // MLI_RESOLVE
+	MLIT_INST_VALUE_VALUE, // MLI_RESOLVE,
+	MLIT_INST_INST, // MLI_DEBUG
 };
 
 static void ml_inst_process(int Process, ml_inst_t *Source, ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) {

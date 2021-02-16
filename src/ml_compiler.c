@@ -76,6 +76,7 @@ typedef enum ml_token_t {
 	MLT_FUN,
 	MLT_RET,
 	MLT_SUSP,
+	MLT_DEBUG,
 	MLT_METH,
 	MLT_WITH,
 	MLT_DO,
@@ -666,6 +667,16 @@ static mlc_compiled_t ml_suspend_expr_compile(mlc_function_t *Function, mlc_pare
 	SuspendInst->Params[0].Inst = ResumeInst;
 	--Function->Top;
 	Compiled.Exits = ResumeInst;
+	return Compiled;
+}
+
+static mlc_compiled_t ml_debug_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
+	ml_inst_t *DebugInst = ml_inst_new(2, Expr->Source, MLI_IF_DEBUG);
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
+	DebugInst->Params[1].Inst = Compiled.Start;
+	Compiled.Start = DebugInst;
+	DebugInst->Params[0].Inst = Compiled.Exits;
+	Compiled.Exits = DebugInst;
 	return Compiled;
 }
 
@@ -1739,6 +1750,7 @@ const char *MLTokens[] = {
 	"fun", // MLT_FUN,
 	"ret", // MLT_RET,
 	"susp", // MLT_SUSP,
+	"debug", // MLT_DEBUG,
 	"meth", // MLT_METH,
 	"with", // MLT_WITH,
 	"do", // MLT_DO,
@@ -2616,11 +2628,13 @@ static mlc_expr_t *ml_parse_factor(ml_compiler_t *Compiler, int MethDecl) {
 		[MLT_NEXT] = ml_next_expr_compile,
 		[MLT_NIL] = ml_nil_expr_compile,
 		[MLT_BLANK] = ml_blank_expr_compile,
-		[MLT_OLD] = ml_old_expr_compile
+		[MLT_OLD] = ml_old_expr_compile,
+		[MLT_DEBUG] = ml_debug_expr_compile
 	};
 	switch (ml_current(Compiler)) {
 	case MLT_EACH:
 	case MLT_NOT:
+	case MLT_DEBUG:
 	{
 		mlc_parent_expr_t *ParentExpr = new(mlc_parent_expr_t);
 		ParentExpr->compile = CompileFns[Compiler->Token];
