@@ -7,6 +7,8 @@ types
    Base type for all values.
 
 
+:mini:`meth :exports(Arg₁: type)`
+
 :mini:`type generictype < type`
 
 :mini:`meth :parents(Arg₁: generictype)`
