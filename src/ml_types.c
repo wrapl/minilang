@@ -86,6 +86,18 @@ ML_METHOD("rank", MLTypeT) {
 	return ml_integer(Type->Rank);
 }
 
+static int ml_type_exports_fn(const char *Name, void *Value, ml_value_t *Exports) {
+	ml_map_insert(Exports, ml_cstring(Name), Value);
+	return 0;
+}
+
+ML_METHOD("exports", MLTypeT) {
+	ml_type_t *Type = (ml_type_t *)Args[0];
+	ml_value_t *Exports = ml_map();
+	stringmap_foreach(Type->Exports, Exports, (void *)ml_type_exports_fn);
+	return Exports;
+}
+
 #ifdef ML_GENERICS
 
 ML_TYPE(MLGenericTypeT, (MLTypeT), "generic-type");
@@ -2300,7 +2312,7 @@ ML_METHOD(MLStringT, MLModuleT) {
 	return ml_string_format("module(%s)", Module->Path);
 }
 
-static int ml_exports_fn(const char *Name, void *Value, ml_value_t *Exports) {
+static int ml_module_exports_fn(const char *Name, void *Value, ml_value_t *Exports) {
 	ml_map_insert(Exports, ml_cstring(Name), Value);
 	return 0;
 }
@@ -2308,7 +2320,7 @@ static int ml_exports_fn(const char *Name, void *Value, ml_value_t *Exports) {
 ML_METHOD("exports", MLModuleT) {
 	ml_module_t *Module = (ml_module_t *)Args[0];
 	ml_value_t *Exports = ml_map();
-	stringmap_foreach(Module->Exports, Exports, (void *)ml_exports_fn);
+	stringmap_foreach(Module->Exports, Exports, (void *)ml_module_exports_fn);
 	return Exports;
 }
 
