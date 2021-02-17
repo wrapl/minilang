@@ -606,72 +606,140 @@ ML_METHOD(MLStringT, MLMapT, MLStringT, MLStringT) {
 	return ml_stringbuffer_value(Stringer->Buffer);
 }
 
-static ml_value_t *ml_map_sort(ml_map_t *Map, ml_value_t *Compare) {
-	ml_map_node_t *Head = Map->Head;
-	int InSize = 1;
+typedef struct {
+	ml_state_t Base;
+	ml_map_t *Map;
+	ml_value_t *Compare;
+	ml_value_t *Args[4];
+	ml_map_node_t *Head, *Tail;
+	ml_map_node_t *P, *Q;
+	int Count, Size;
+	int InSize, NMerges;
+	int PSize, QSize;
+} ml_map_sort_state_t;
+
+static void ml_map_sort_state_run(ml_map_sort_state_t *State, ml_value_t *Result) {
+	if (Result) {
+		if (ml_is_error(Result)) ML_CONTINUE(State->Base.Caller, Result);
+		goto resume;
+	}
 	for (;;) {
-		ml_map_node_t *P = Head;
-		ml_map_node_t *Tail = Head = 0;
-		int NMerges = 0;
-		while (P) {
-			NMerges++;
-			ml_map_node_t *Q = P;
-			int PSize = 0;
-			for (int I = 0; I < InSize; I++) {
-				PSize++;
-				Q = Q->Next;
-				if (!Q) break;
+		State->P = State->Head;
+		State->Tail = State->Head = NULL;
+		State->NMerges = 0;
+		while (State->P) {
+			State->NMerges++;
+			State->Q = State->P;
+			State->PSize = 0;
+			for (int I = 0; I < State->InSize; I++) {
+				State->PSize++;
+				State->Q = State->Q->Next;
+				if (!State->Q) break;
 			}
-			int QSize = InSize;
-			ml_map_node_t *E;
-			while (PSize > 0 || (QSize > 0 && Q)) {
-				if (PSize == 0) {
-					E = Q; Q = Q->Next; QSize--;
-				} else if (QSize == 0 || !Q) {
-					E = P; P = P->Next; PSize--;
+			State->QSize = State->InSize;
+			while (State->PSize > 0 || (State->QSize > 0 && State->Q)) {
+				ml_map_node_t *E;
+				if (State->PSize == 0) {
+					E = State->Q; State->Q = State->Q->Next; State->QSize--;
+				} else if (State->QSize == 0 || !State->Q) {
+					E = State->P; State->P = State->P->Next; State->PSize--;
 				} else {
-					ml_value_t *Result = ml_simple_inline(Compare, 2, P->Value, Q->Value);
-					if (ml_is_error(Result)) return Result;
+					State->Args[0] = State->P->Key;
+					State->Args[1] = State->Q->Key;
+					State->Args[2] = State->P->Value;
+					State->Args[3] = State->Q->Value;
+					return ml_call((ml_state_t *)State, State->Compare, State->Count, State->Args);
+				resume:
 					if (Result == MLNil) {
-						E = Q; Q = Q->Next; QSize--;
+						E = State->Q; State->Q = State->Q->Next; State->QSize--;
 					} else {
-						E = P; P = P->Next; PSize--;
+						E = State->P; State->P = State->P->Next; State->PSize--;
 					}
 				}
-				if (Tail) {
-					Tail->Next = E;
+				if (State->Tail) {
+					State->Tail->Next = E;
 				} else {
-					Head = E;
+					State->Head = E;
 				}
-				E->Prev = Tail;
-				Tail = E;
+				E->Prev = State->Tail;
+				State->Tail = E;
 			}
-			P = Q;
+			State->P = State->Q;
 		}
-		Tail->Next = 0;
-		if (NMerges <= 1) {
-			Map->Head = Head;
-			Map->Tail = Tail;
+		State->Tail->Next = 0;
+		if (State->NMerges <= 1) {
+			State->Map->Head = State->Head;
+			State->Map->Tail = State->Tail;
+			State->Map->Size = State->Size;
 			break;
 		}
-		InSize *= 2;
+		State->InSize *= 2;
 	}
-	return (ml_value_t *)Map;
+	ML_CONTINUE(State->Base.Caller, State->Map);
 }
 
 extern ml_value_t *LessMethod;
 
-ML_METHOD("sort", MLMapT) {
+ML_METHODX("sort", MLMapT) {
 //<Map
 //>Map
-	return ml_map_sort((ml_map_t *)Args[0], LessMethod);
+	ml_map_sort_state_t *State = new(ml_map_sort_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_map_sort_state_run;
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	State->Map = Map;
+	State->Count = 2;
+	State->Compare = LessMethod;
+	State->Head = State->Map->Head;
+	State->Size = Map->Size;
+	State->InSize = 1;
+	// TODO: Improve ml_map_sort_state_run so that List is still valid during sort
+	Map->Head = Map->Tail = NULL;
+	Map->Size = 0;
+	return ml_map_sort_state_run(State, NULL);
 }
 
-ML_METHOD("sort", MLMapT, MLFunctionT) {
+ML_METHODX("sort", MLMapT, MLFunctionT) {
 //<Map
 //<Compare
 //>Map
-	return ml_map_sort((ml_map_t *)Args[0], Args[1]);
+	ml_map_sort_state_t *State = new(ml_map_sort_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_map_sort_state_run;
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	State->Map = Map;
+	State->Count = 2;
+	State->Compare = Args[1];
+	State->Head = State->Map->Head;
+	State->Size = Map->Size;
+	State->InSize = 1;
+	// TODO: Improve ml_map_sort_state_run so that List is still valid during sort
+	Map->Head = Map->Tail = NULL;
+	Map->Size = 0;
+	return ml_map_sort_state_run(State, NULL);
+}
+
+ML_METHODX("sort2", MLMapT, MLFunctionT) {
+//<Map
+//<Compare
+//>Map
+	ml_map_sort_state_t *State = new(ml_map_sort_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_map_sort_state_run;
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	State->Map = Map;
+	State->Count = 4;
+	State->Compare = Args[1];
+	State->Head = State->Map->Head;
+	State->Size = Map->Size;
+	State->InSize = 1;
+	// TODO: Improve ml_map_sort_state_run so that List is still valid during sort
+	Map->Head = Map->Tail = NULL;
+	Map->Size = 0;
+	return ml_map_sort_state_run(State, NULL);
 }
 
 void ml_map_init() {

@@ -686,6 +686,7 @@ ML_METHODX("sort", MLListT) {
 	State->List = List;
 	State->Compare = LessMethod;
 	State->Head = State->List->Head;
+	State->Length = List->Length;
 	State->InSize = 1;
 	// TODO: Improve ml_list_sort_state_run so that List is still valid during sort
 	List->ValidIndices = 0;
