@@ -91,3 +91,5 @@ map
 
 :mini:`meth :sort(Map: map, Compare: function)` |rarr| :mini:`Map`
 
+:mini:`meth :sort2(Map: map, Compare: function)` |rarr| :mini:`Map`
+
