@@ -107,6 +107,10 @@ var InstallHeaders := [
 	"inthash.h"
 ]
 
+fun use_module(Url) do
+	
+end
+
 MINILANG_TABLES := old or defined("TABLES")
 MINILANG_MATH := MINILANG_TABLES or old or defined("MATH")
 MINILANG_COMPLEX := old or defined("COMPLEX")
@@ -126,6 +130,12 @@ file("config.h") => fun(Target) do
 	let File := Target:open("w")
 	File:write("#ifndef ML_CONFIG_H\n")
 	File:write("#define ML_CONFIG_H\n")
+	if MINILANG_MODULES then
+		File:write("\n#define ML_MODULES\n")
+	end
+	if MINILANG_SCHEDULER then
+		File:write("\n#define ML_SCHEDULER\n")
+	end
 	if MINILANG_NANBOXING then
 		File:write("\n#define ML_NANBOXING\n")
 	end
@@ -203,10 +213,6 @@ end
 if MINILANG_MODULES then
 	Objects:put(file("ml_module.o"), file("ml_library.o"))
 	InstallHeaders:put("ml_module.h")
-end
-
-if MINILANG_SCHEDULER then
-	CFLAGS := old + ["-DML_SCHEDULER"]
 end
 
 if MINILANG_JIT then

@@ -76,6 +76,7 @@ typedef enum ml_token_t {
 	MLT_FUN,
 	MLT_RET,
 	MLT_SUSP,
+	MLT_DEBUG,
 	MLT_METH,
 	MLT_WITH,
 	MLT_DO,
@@ -666,6 +667,16 @@ static mlc_compiled_t ml_suspend_expr_compile(mlc_function_t *Function, mlc_pare
 	SuspendInst->Params[0].Inst = ResumeInst;
 	--Function->Top;
 	Compiled.Exits = ResumeInst;
+	return Compiled;
+}
+
+static mlc_compiled_t ml_debug_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
+	ml_inst_t *DebugInst = ml_inst_new(2, Expr->Source, MLI_IF_DEBUG);
+	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
+	DebugInst->Params[1].Inst = Compiled.Start;
+	Compiled.Start = DebugInst;
+	DebugInst->Params[0].Inst = Compiled.Exits;
+	Compiled.Exits = DebugInst;
 	return Compiled;
 }
 
@@ -1739,6 +1750,7 @@ const char *MLTokens[] = {
 	"fun", // MLT_FUN,
 	"ret", // MLT_RET,
 	"susp", // MLT_SUSP,
+	"debug", // MLT_DEBUG,
 	"meth", // MLT_METH,
 	"with", // MLT_WITH,
 	"do", // MLT_DO,
@@ -1829,6 +1841,16 @@ ml_compiler_t *ml_compiler(ml_getter_t GlobalGet, void *Globals, ml_reader_t Rea
 	Compiler->Data = Data;
 	Compiler->Read = Read ?: ml_compiler_no_input;
 	return Compiler;
+}
+
+void ml_compiler_define(ml_compiler_t *Compiler, const char *Name, ml_value_t *Value) {
+	stringmap_insert(Compiler->Vars, Name, Value);
+}
+
+ml_value_t *ml_compiler_lookup(ml_compiler_t *Compiler, const char *Name) {
+	ml_value_t *Value = (ml_value_t *)stringmap_search(Compiler->Vars, Name);
+	if (!Value) Value = Compiler->GlobalGet(Compiler->Globals, Name);
+	return Value;
 }
 
 const char *ml_compiler_name(ml_compiler_t *Compiler) {
@@ -2606,11 +2628,13 @@ static mlc_expr_t *ml_parse_factor(ml_compiler_t *Compiler, int MethDecl) {
 		[MLT_NEXT] = ml_next_expr_compile,
 		[MLT_NIL] = ml_nil_expr_compile,
 		[MLT_BLANK] = ml_blank_expr_compile,
-		[MLT_OLD] = ml_old_expr_compile
+		[MLT_OLD] = ml_old_expr_compile,
+		[MLT_DEBUG] = ml_debug_expr_compile
 	};
 	switch (ml_current(Compiler)) {
 	case MLT_EACH:
 	case MLT_NOT:
+	case MLT_DEBUG:
 	{
 		mlc_parent_expr_t *ParentExpr = new(mlc_parent_expr_t);
 		ParentExpr->compile = CompileFns[Compiler->Token];
@@ -3906,9 +3930,9 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler) {
 			ml_command_decl_t *Task = new(ml_command_decl_t);
 			Task->Base.start = ml_task_default_start;
 			Task->Base.finish = (void *)ml_command_decl_finish;
+			Task->Global = ml_command_global(Compiler->Vars, Ident);
 			Task->Base.Closure = ml_compile(Expr, NULL, Compiler);
 			Task->Base.Source = Expr->Source;
-			Task->Global = ml_command_global(Compiler->Vars, Ident);
 			ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
 		} else {
 			ml_accept(Compiler, MLT_LEFT_PAREN);
@@ -3932,9 +3956,9 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler) {
 			ml_command_decl_t *Task = new(ml_command_decl_t);
 			Task->Base.start = ml_task_default_start;
 			Task->Base.finish = (void *)ml_command_decl_finish;
+			Task->Global = ml_command_global(Compiler->Vars, Ident);
 			Task->Base.Closure = ml_compile((mlc_expr_t *)CallExpr, NULL, Compiler);
 			Task->Base.Source = Expr->Source;
-			Task->Global = ml_command_global(Compiler->Vars, Ident);
 			ml_task_queue(Compiler, (ml_compiler_task_t *)Task);
 		} else {
 			ml_compiler_task_t *Task = new(ml_compiler_task_t);

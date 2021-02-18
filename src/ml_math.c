@@ -138,7 +138,7 @@ MATH_REAL(Cbrt, cbrt);
 MATH_REAL(Expm1, expm1);
 MATH_REAL(Log1p, log1p);
 MATH_REAL_REAL(Rem, remainder);
-MATH_REAL(Round, rint);
+MATH_REAL(Round, round);
 
 ML_FUNCTION(IntegerRandom) {
 //@integer::random

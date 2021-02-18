@@ -11,7 +11,7 @@
 #include "minicbor/minicbor.h"
 
 ml_value_t *ml_cbor_write(ml_value_t *Value, void *Data, ml_cbor_write_fn WriteFn) {
-	typeof(ml_cbor_write) *function = ml_typed_fn_get(Value->Type, ml_cbor_write);
+	typeof(ml_cbor_write) *function = ml_typed_fn_get(ml_typeof(Value), ml_cbor_write);
 	if (function) {
 		return function(Value, Data, WriteFn);
 	} else {

@@ -19,6 +19,7 @@ when, MLT_WHEN
 fun, MLT_FUN
 ret, MLT_RET
 susp, MLT_SUSP
+debug, MLT_DEBUG
 meth, MLT_METH
 with, MLT_WITH
 do, MLT_DO

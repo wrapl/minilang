@@ -945,6 +945,9 @@ static void reduce2_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 }
 
 ML_FUNCTIONX(Reduce2) {
+//<Iteratable
+//<Fn
+//>any | nil
 	ML_CHECKX_ARG_COUNT(2);
 	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
 	ML_CHECKX_ARG_TYPE(1, MLFunctionT);
@@ -986,7 +989,7 @@ ML_FUNCTIONX(Max2) {
 
 typedef struct ml_stacked_t {
 	ml_type_t *Type;
-	ml_value_t *Value, *ReduceFn;
+	ml_value_t *Initial, *Value, *ReduceFn;
 } ml_stacked_t;
 
 ML_TYPE(MLStackedT, (MLIteratableT), "stacked");
@@ -1029,7 +1032,11 @@ static void stacked_first_value(ml_iter_state_t *State, ml_value_t *Value) {
 static void stacked_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, MLNil);
-	State->Base.run = (void *)stacked_first_value;
+	if (State->Values[1]) {
+		State->Base.run = (void *)stacked_next_value;
+	} else {
+		State->Base.run = (void *)stacked_first_value;
+	}
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
 
@@ -1056,6 +1063,7 @@ static void ML_TYPED_FN(ml_iterate, MLStackedT, ml_state_t *Caller, ml_stacked_t
 	State->Base.run = (void *)stacked_iterate;
 	State->Base.Context = Caller->Context;
 	State->Values[0] = Stacked->ReduceFn;
+	State->Values[1] = Stacked->Initial;
 	return ml_iterate((ml_state_t *)State, Stacked->Value);
 }
 
@@ -1069,6 +1077,171 @@ ML_METHOD("//", MLIteratableT, MLFunctionT) {
 	Stacked->Value = Args[0];
 	Stacked->ReduceFn = Args[1];
 	return (ml_value_t *)Stacked;
+}
+
+ML_METHOD("//", MLIteratableT, MLAnyT, MLFunctionT) {
+//<Iteratable
+//<Initial
+//<Fn
+//>iteratable
+// Returns an iteratable that produces :mini:`Initial`, :mini:`Fn(Initial, V/1)`, :mini:`Fn(Fn(Initial, V/1), V/2)`, ... .
+	ml_stacked_t *Stacked = new(ml_stacked_t);
+	Stacked->Type = MLStackedT;
+	Stacked->Value = Args[0];
+	Stacked->Initial = Args[1];
+	Stacked->ReduceFn = Args[2];
+	return (ml_value_t *)Stacked;
+}
+
+typedef struct ml_repeated_t {
+	ml_type_t *Type;
+	ml_value_t *Value, *Update;
+} ml_repeated_t;
+
+ML_TYPE(MLRepeatedT, (MLIteratableT), "repeated");
+//!internal
+
+typedef struct ml_repeated_state_t {
+	ml_state_t Base;
+	ml_value_t *Value, *Update;
+	int Iteration;
+} ml_repeated_state_t;
+
+ML_TYPE(MLRepeatedStateT, (), "repeated-state");
+//!internal
+
+static void repeated_update(ml_repeated_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Value = Value;
+	ML_CONTINUE(State->Base.Caller, State);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLRepeatedStateT, ml_state_t *Caller, ml_repeated_state_t *State) {
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	++State->Iteration;
+	if (State->Update) {
+		return ml_call(State, State->Update, 1, &State->Value);
+	} else {
+		ML_RETURN(State);
+	}
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLRepeatedStateT, ml_state_t *Caller, ml_repeated_state_t *State) {
+	ML_RETURN(ml_integer(State->Iteration));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLRepeatedStateT, ml_state_t *Caller, ml_repeated_state_t *State) {
+	ML_RETURN(State->Value);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLRepeatedT, ml_state_t *Caller, ml_repeated_t *Repeated) {
+	ml_repeated_state_t *State = new(ml_repeated_state_t);
+	State->Base.Type = MLRepeatedStateT;
+	State->Base.run = (void *)repeated_update;
+	State->Value = Repeated->Value;
+	State->Update = Repeated->Update;
+	State->Iteration = 1;
+	ML_RETURN(State);
+}
+
+ML_METHOD("@", MLAnyT) {
+//<Value
+//>iteratable
+// Returns an iteratable that repeatedly produces :mini:`Value`.
+	ML_CHECK_ARG_COUNT(1);
+	ml_repeated_t *Repeated = new(ml_repeated_t);
+	Repeated->Type = MLRepeatedT;
+	Repeated->Value = Args[0];
+	return (ml_value_t *)Repeated;
+}
+
+ML_METHOD("@", MLAnyT, MLFunctionT) {
+//<Value
+//<Update
+//>iteratable
+// Returns an iteratable that repeatedly produces :mini:`Value`.
+// :mini:`Value` is replaced with :mini:`Update(Value)` after each iteration.
+	ML_CHECK_ARG_COUNT(1);
+	ml_repeated_t *Repeated = new(ml_repeated_t);
+	Repeated->Type = MLRepeatedT;
+	Repeated->Value = Args[0];
+	Repeated->Update = Args[1];
+	return (ml_value_t *)Repeated;
+}
+
+typedef struct ml_sequenced_t {
+	ml_type_t *Type;
+	ml_value_t *First, *Second;
+} ml_sequenced_t;
+
+ML_TYPE(MLSequencedT, (MLIteratableT), "sequenced");
+//!internal
+
+typedef struct ml_sequenced_state_t {
+	ml_state_t Base;
+	ml_value_t *Iter, *Next;
+} ml_sequenced_state_t;
+
+ML_TYPE(MLSequencedStateT, (), "sequenced-state");
+//!internal
+
+static void ml_sequenced_fnx_iterate(ml_sequenced_state_t *State, ml_value_t *Value);
+
+static void ML_TYPED_FN(ml_iter_next, MLSequencedStateT, ml_state_t *Caller, ml_sequenced_state_t *State) {
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)ml_sequenced_fnx_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLSequencedStateT, ml_state_t *Caller, ml_sequenced_state_t *State) {
+	return ml_iter_key(Caller, State->Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLSequencedStateT, ml_state_t *Caller, ml_sequenced_state_t *State) {
+	return ml_iter_value(Caller, State->Iter);
+}
+
+static void ml_sequenced_fnx_iterate(ml_sequenced_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) {
+		return ml_iterate(State->Base.Caller, State->Next);
+	}
+	State->Iter = Value;
+	ML_CONTINUE(State->Base.Caller, State);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLSequencedT, ml_state_t *Caller, ml_sequenced_t *Sequenced) {
+	ml_sequenced_state_t *State = new(ml_sequenced_state_t);
+	State->Base.Type = MLSequencedStateT;
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)ml_sequenced_fnx_iterate;
+	State->Next = Sequenced->Second;
+	return ml_iterate((ml_state_t *)State, Sequenced->First);
+}
+
+ML_METHOD(">>", MLIteratableT, MLIteratableT) {
+//<Iteratable/1
+//<Iteratable/2
+//>Iteratable
+// Returns an iteratable that produces the values from :mini:`Iteratable/1` followed by those from :mini:`Iteratable/2`.
+	ml_sequenced_t *Sequenced = xnew(ml_sequenced_t, 3, ml_value_t *);
+	Sequenced->Type = MLSequencedT;
+	Sequenced->First = Args[0];
+	Sequenced->Second = Args[1];
+	return (ml_value_t *)Sequenced;
+}
+
+ML_METHOD(">>", MLIteratableT) {
+//<Iteratable
+//>Iteratable
+// Returns an iteratable that repeatedly produces the values from :mini:`Iteratable` (for use with :mini:`limit`).
+	ml_sequenced_t *Sequenced = xnew(ml_sequenced_t, 3, ml_value_t *);
+	Sequenced->Type = MLSequencedT;
+	Sequenced->First = Args[0];
+	Sequenced->Second = (ml_value_t *)Sequenced;
+	return (ml_value_t *)Sequenced;
 }
 
 typedef struct ml_limited_t {
@@ -1668,157 +1841,6 @@ ML_FUNCTION(Pair) {
 	Paired->Keys = Args[0];
 	Paired->Values = Args[1];
 	return (ml_value_t *)Paired;
-}
-
-typedef struct ml_repeated_t {
-	ml_type_t *Type;
-	ml_value_t *Value, *Update;
-} ml_repeated_t;
-
-ML_TYPE(MLRepeatedT, (MLIteratableT), "repeated");
-//!internal
-
-typedef struct ml_repeated_state_t {
-	ml_state_t Base;
-	ml_value_t *Value, *Update;
-	int Iteration;
-} ml_repeated_state_t;
-
-ML_TYPE(MLRepeatedStateT, (), "repeated-state");
-//!internal
-
-static void repeated_update(ml_repeated_state_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
-	State->Value = Value;
-	ML_CONTINUE(State->Base.Caller, State);
-}
-
-static void ML_TYPED_FN(ml_iter_next, MLRepeatedStateT, ml_state_t *Caller, ml_repeated_state_t *State) {
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	++State->Iteration;
-	if (State->Update) {
-		return ml_call(State, State->Update, 1, &State->Value);
-	} else {
-		ML_RETURN(State);
-	}
-}
-
-static void ML_TYPED_FN(ml_iter_key, MLRepeatedStateT, ml_state_t *Caller, ml_repeated_state_t *State) {
-	ML_RETURN(ml_integer(State->Iteration));
-}
-
-static void ML_TYPED_FN(ml_iter_value, MLRepeatedStateT, ml_state_t *Caller, ml_repeated_state_t *State) {
-	ML_RETURN(State->Value);
-}
-
-static void ML_TYPED_FN(ml_iterate, MLRepeatedT, ml_state_t *Caller, ml_repeated_t *Repeated) {
-	ml_repeated_state_t *State = new(ml_repeated_state_t);
-	State->Base.Type = MLRepeatedStateT;
-	State->Base.run = (void *)repeated_update;
-	State->Value = Repeated->Value;
-	State->Update = Repeated->Update;
-	State->Iteration = 1;
-	ML_RETURN(State);
-}
-
-ML_METHOD("@", MLAnyT) {
-//<Value
-//>iteratable
-// Returns an iteratable that repeatedly produces :mini:`Value`.
-	ML_CHECK_ARG_COUNT(1);
-	ml_repeated_t *Repeated = new(ml_repeated_t);
-	Repeated->Type = MLRepeatedT;
-	Repeated->Value = Args[0];
-	return (ml_value_t *)Repeated;
-}
-
-ML_METHOD("@", MLAnyT, MLFunctionT) {
-//<Value
-//<Update:function
-//>iteratable
-// Returns an iteratable that repeatedly produces :mini:`Value`.
-// :mini:`Value` is replaced with :mini:`Update(Value)` after each iteration.
-	ML_CHECK_ARG_COUNT(1);
-	ml_repeated_t *Repeated = new(ml_repeated_t);
-	Repeated->Type = MLRepeatedT;
-	Repeated->Value = Args[0];
-	Repeated->Update = Args[1];
-	return (ml_value_t *)Repeated;
-}
-
-typedef struct ml_sequenced_t {
-	ml_type_t *Type;
-	ml_value_t *First, *Second;
-} ml_sequenced_t;
-
-ML_TYPE(MLSequencedT, (MLIteratableT), "sequenced");
-//!internal
-
-typedef struct ml_sequenced_state_t {
-	ml_state_t Base;
-	ml_value_t *Iter, *Next;
-} ml_sequenced_state_t;
-
-ML_TYPE(MLSequencedStateT, (), "sequenced-state");
-//!internal
-
-static void ml_sequenced_fnx_iterate(ml_sequenced_state_t *State, ml_value_t *Value);
-
-static void ML_TYPED_FN(ml_iter_next, MLSequencedStateT, ml_state_t *Caller, ml_sequenced_state_t *State) {
-	State->Base.Caller = Caller;
-	State->Base.run = (void *)ml_sequenced_fnx_iterate;
-	return ml_iter_next((ml_state_t *)State, State->Iter);
-}
-
-static void ML_TYPED_FN(ml_iter_key, MLSequencedStateT, ml_state_t *Caller, ml_sequenced_state_t *State) {
-	return ml_iter_key(Caller, State->Iter);
-}
-
-static void ML_TYPED_FN(ml_iter_value, MLSequencedStateT, ml_state_t *Caller, ml_sequenced_state_t *State) {
-	return ml_iter_value(Caller, State->Iter);
-}
-
-static void ml_sequenced_fnx_iterate(ml_sequenced_state_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (Value == MLNil) {
-		return ml_iterate(State->Base.Caller, State->Next);
-	}
-	State->Iter = Value;
-	ML_CONTINUE(State->Base.Caller, State);
-}
-
-static void ML_TYPED_FN(ml_iterate, MLSequencedT, ml_state_t *Caller, ml_sequenced_t *Sequenced) {
-	ml_sequenced_state_t *State = new(ml_sequenced_state_t);
-	State->Base.Type = MLSequencedStateT;
-	State->Base.Caller = Caller;
-	State->Base.run = (void *)ml_sequenced_fnx_iterate;
-	State->Next = Sequenced->Second;
-	return ml_iterate((ml_state_t *)State, Sequenced->First);
-}
-
-ML_METHOD(">>", MLIteratableT, MLIteratableT) {
-//<Iteratable/1
-//<Iteratable/2
-//>Iteratable
-// Returns an iteratable that produces the values from :mini:`Iteratable/1` followed by those from :mini:`Iteratable/2`.
-	ml_sequenced_t *Sequenced = xnew(ml_sequenced_t, 3, ml_value_t *);
-	Sequenced->Type = MLSequencedT;
-	Sequenced->First = Args[0];
-	Sequenced->Second = Args[1];
-	return (ml_value_t *)Sequenced;
-}
-
-ML_METHOD(">>", MLIteratableT) {
-//<Iteratable
-//>Iteratable
-// Returns an iteratable that repeatedly produces the values from :mini:`Iteratable` (for use with :mini:`limit`).
-	ml_sequenced_t *Sequenced = xnew(ml_sequenced_t, 3, ml_value_t *);
-	Sequenced->Type = MLSequencedT;
-	Sequenced->First = Args[0];
-	Sequenced->Second = (ml_value_t *)Sequenced;
-	return (ml_value_t *)Sequenced;
 }
 
 typedef struct ml_weaved_t {

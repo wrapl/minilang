@@ -21,6 +21,10 @@ runtime
 
 :mini:`meth ::(Arg₁: uninitialized, Arg₂: string)`
 
+:mini:`fun mlbreak(Condition?: any)`
+   If a debugger present and :mini:`Condition` is omitted or not :mini:`nil` then triggers a breakpoint.
+
+
 :mini:`type channel`
 
 :mini:`meth :open(Arg₁: channel, Arg₂: any)`

@@ -158,8 +158,16 @@ typedef struct {
 } ml_named_init_state_t;
 
 static void ml_named_init_state_run(ml_named_init_state_t *State, ml_value_t *Result) {
-	if (ml_typeof(Result) != State->Old) ML_CONTINUE(State->Base.Caller, Result);
-	Result->Type = State->New;
+	ml_type_t *Old = ml_typeof(Result);
+	if (Old == State->Old) {
+		Result->Type = State->New;
+#ifdef ML_GENERICS
+	} else if (Old->Type == MLGenericTypeT && ml_generic_type_args(Old)[0] == State->Old) {
+		Result->Type = State->New;
+#endif
+	} else {
+		ML_CONTINUE(State->Base.Caller, Result);
+	}
 	if (State->Init) {
 		State->Object = State->Args[0] = Result;
 		State->Base.run = (void *)ml_init_state_run;
@@ -360,17 +368,22 @@ ML_FUNCTIONX(MLClass) {
 typedef struct ml_property_t {
 	const ml_type_t *Type;
 	ml_value_t *Get, *Set;
+	ml_result_state_t State[1];
 } ml_property_t;
 
 static ml_value_t *ml_property_deref(ml_property_t *Property) {
-	return ml_simple_call(Property->Get, 0, NULL);
+	Property->State->Value = NULL;
+	ml_call(Property->State, Property->Get, 0, NULL);
+	return Property->State->Value ?: ml_error("StateError", "Property functions must not suspend");
 }
 
 static ml_value_t *ml_property_assign(ml_property_t *Property, ml_value_t *Value) {
-	return ml_simple_call(Property->Set, 1, &Value);
+	Property->State->Value = NULL;
+	ml_call(Property->State, Property->Set, 1, &Value);
+	return Property->State->Value ?: ml_error("StateError", "Property functions must not suspend");
 }
 
-extern ml_cfunction_t MLProperty[];
+extern ml_cfunctionx_t MLProperty[];
 
 ML_TYPE(MLPropertyT, (), "property",
 	.deref = (void *)ml_property_deref,
@@ -378,16 +391,18 @@ ML_TYPE(MLPropertyT, (), "property",
 	.Constructor = (ml_value_t *)MLProperty
 );
 
-ML_FUNCTION(MLProperty) {
+ML_FUNCTIONX(MLProperty) {
 //!object
-	ML_CHECK_ARG_COUNT(2);
-	ML_CHECK_ARG_TYPE(0, MLFunctionT);
-	ML_CHECK_ARG_TYPE(1, MLFunctionT);
+	ML_CHECKX_ARG_COUNT(2);
+	ML_CHECKX_ARG_TYPE(0, MLFunctionT);
+	ML_CHECKX_ARG_TYPE(1, MLFunctionT);
 	ml_property_t *Property = new(ml_property_t);
 	Property->Type = MLPropertyT;
 	Property->Get = Args[0];
 	Property->Set = Args[1];
-	return (ml_value_t *)Property;
+	Property->State->Base.run = (ml_state_fn)ml_result_state_run;
+	Property->State->Base.Context = Caller->Context;
+	ML_RETURN(Property);
 }
 
 size_t ml_class_size(const ml_value_t *Value) {

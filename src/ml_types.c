@@ -86,6 +86,18 @@ ML_METHOD("rank", MLTypeT) {
 	return ml_integer(Type->Rank);
 }
 
+static int ml_type_exports_fn(const char *Name, void *Value, ml_value_t *Exports) {
+	ml_map_insert(Exports, ml_cstring(Name), Value);
+	return 0;
+}
+
+ML_METHOD("exports", MLTypeT) {
+	ml_type_t *Type = (ml_type_t *)Args[0];
+	ml_value_t *Exports = ml_map();
+	stringmap_foreach(Type->Exports, Exports, (void *)ml_type_exports_fn);
+	return Exports;
+}
+
 #ifdef ML_GENERICS
 
 ML_TYPE(MLGenericTypeT, (MLTypeT), "generic-type");
@@ -597,6 +609,43 @@ ML_METHOD("!=", MLAnyT, MLAnyT) {
 // Returns :mini:`nil` otherwise.
 	return (Args[0] != Args[1]) ? Args[1] : MLNil;
 }
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Comparison;
+	ml_value_t **Args, **End;
+} ml_compare_state_t;
+
+static void ml_compare_state_run(ml_compare_state_t *State, ml_value_t *Result) {
+	if (ml_is_error(Result)) ML_CONTINUE(State->Base.Caller, Result);
+	if (Result == MLNil) ML_CONTINUE(State->Base.Caller, Result);
+	State->Args[0] = Result;
+	if (++State->Args == State->End) {
+		return ml_call(State->Base.Caller, State->Comparison, 2, State->Args - 1);
+	} else {
+		return ml_call((ml_state_t *)State, State->Comparison, 2, State->Args - 1);
+	}
+}
+
+#define ml_comp_any_any_any(NAME) \
+ML_METHODVX(NAME, MLAnyT, MLAnyT, MLAnyT) { \
+	ml_compare_state_t *State = new(ml_compare_state_t); \
+	State->Base.Caller = Caller; \
+	State->Base.Context = Caller->Context; \
+	State->Base.run = (ml_state_fn)ml_compare_state_run; \
+	State->Comparison = ml_method(NAME); \
+	State->Args = anew(ml_value_t *, Count - 1); \
+	for (int I = 2; I < Count; ++I) State->Args[I - 1] = Args[I]; \
+	State->End = State->Args + (Count - 2); \
+	return ml_call((ml_state_t *)State, State->Comparison, 2, Args); \
+}
+
+ml_comp_any_any_any("=");
+ml_comp_any_any_any("!=");
+ml_comp_any_any_any("<");
+ml_comp_any_any_any("<=");
+ml_comp_any_any_any(">");
+ml_comp_any_any_any(">=");
 
 ML_METHOD(MLStringT, MLAnyT) {
 //<Value
@@ -2263,7 +2312,7 @@ ML_METHOD(MLStringT, MLModuleT) {
 	return ml_string_format("module(%s)", Module->Path);
 }
 
-static int ml_exports_fn(const char *Name, void *Value, ml_value_t *Exports) {
+static int ml_module_exports_fn(const char *Name, void *Value, ml_value_t *Exports) {
 	ml_map_insert(Exports, ml_cstring(Name), Value);
 	return 0;
 }
@@ -2271,7 +2320,7 @@ static int ml_exports_fn(const char *Name, void *Value, ml_value_t *Exports) {
 ML_METHOD("exports", MLModuleT) {
 	ml_module_t *Module = (ml_module_t *)Args[0];
 	ml_value_t *Exports = ml_map();
-	stringmap_foreach(Module->Exports, Exports, (void *)ml_exports_fn);
+	stringmap_foreach(Module->Exports, Exports, (void *)ml_module_exports_fn);
 	return Exports;
 }
 

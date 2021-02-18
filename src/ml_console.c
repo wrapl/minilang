@@ -12,24 +12,13 @@
 #include <stdio.h>
 #include <string.h>
 
-typedef struct ml_console_t {
-	ml_getter_t ParentGetter;
-	void *ParentGlobals;
+typedef struct {
+	ml_state_t Base;
+	ml_compiler_t *Compiler;
 	const char *Prompt;
 	const char *DefaultPrompt, *ContinuePrompt;
 	ml_debugger_t *Debugger;
-	stringmap_t Globals[1];
 } ml_console_t;
-
-static ml_value_t *ml_console_global_get(ml_console_t *Console, const char *Name) {
-	ml_value_t *Value = stringmap_search(Console->Globals, Name);
-	if (Value) return Value;
-	Value = (Console->ParentGetter)(Console->ParentGlobals, Name);
-	if (Value) return Value;
-	Value = ml_uninitialized(Name);
-	stringmap_insert(Console->Globals, Name, Value);
-	return Value;
-}
 
 #ifdef __MINGW32__
 static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
@@ -67,12 +56,6 @@ static const char *ml_console_line_read(ml_console_t *Console) {
 	return Buffer;
 }
 
-typedef struct {
-	ml_state_t Base;
-	ml_console_t *Console;
-	ml_compiler_t *Compiler;
-} ml_console_repl_state_t;
-
 static int ml_stringbuffer_print(FILE *File, const char *String, size_t Length) {
 	fwrite(String, 1, Length, File);
 	return 0;
@@ -97,13 +80,13 @@ static void ml_console_log(void *Data, ml_value_t *Value) {
 	}
 }
 
-static void ml_console_repl_run(ml_console_repl_state_t *State, ml_value_t *Result) {
+static void ml_console_repl_run(ml_console_t *Console, ml_value_t *Result) {
 	if (Result == MLEndOfInput) return;
-	State->Console->Prompt = State->Console->DefaultPrompt;
+	Console->Prompt = Console->DefaultPrompt;
 	Result = ml_deref(Result);
 	ml_console_log(NULL, Result);
-	if (ml_is_error(Result)) ml_compiler_reset(State->Compiler);
-	return ml_command_evaluate((ml_state_t *)State, State->Compiler);
+	if (ml_is_error(Result)) ml_compiler_reset(Console->Compiler);
+	return ml_command_evaluate((ml_state_t *)Console, Console->Compiler);
 }
 
 typedef struct {
@@ -114,7 +97,7 @@ typedef struct {
 static ml_value_t *ml_console_debugger_get(ml_console_debugger_t *ConsoleDebugger, const char *Name) {
 	ml_value_t *Value = interactive_debugger_get(ConsoleDebugger->Debugger, Name);
 	if (Value) return Value;
-	return ml_console_global_get(ConsoleDebugger->Console, Name);
+	return ml_compiler_lookup(ConsoleDebugger->Console->Compiler, Name);
 }
 
 static void ml_console_debug_enter(ml_console_t *Console, interactive_debugger_t *Debugger, ml_source_t Source, int Index) {
@@ -122,7 +105,7 @@ static void ml_console_debug_enter(ml_console_t *Console, interactive_debugger_t
 	ConsoleDebugger->Console = Console;
 	ConsoleDebugger->Debugger = Debugger;
 	printf("Debug break [%d]: %s:%d\n", Index, Source.Name, Source.Line);
-	ml_console((void *)ml_console_debugger_get, ConsoleDebugger, "\e[34m>>>\e[0m ", "\e[34m...\e[0m ");
+	ml_console(Console->Base.Context, (void *)ml_console_debugger_get, ConsoleDebugger, "\e[34m>>>\e[0m ", "\e[34m...\e[0m ");
 	interactive_debugger_resume(Debugger);
 }
 
@@ -130,27 +113,24 @@ static void ml_console_debug_exit(void *Data, interactive_debugger_t *Debugger, 
 	ML_RETURN(MLEndOfInput);
 }
 
-void ml_console(ml_getter_t GlobalGet, void *Globals, const char *DefaultPrompt, const char *ContinuePrompt) {
-	ml_console_t Console[1] = {{
-		GlobalGet, Globals, DefaultPrompt,
-		DefaultPrompt, ContinuePrompt,
-		NULL,
-		{STRINGMAP_INIT}
-	}};
-	stringmap_insert(Console->Globals, "debug", interactive_debugger(
+void ml_console(ml_context_t *Context, ml_getter_t GlobalGet, void *Globals, const char *DefaultPrompt, const char *ContinuePrompt) {
+	ml_console_t Console[1];
+	Console->Base.run = (void *)ml_console_repl_run;
+	Console->Base.Context = Context;
+	Console->Prompt = Console->DefaultPrompt = DefaultPrompt;
+	Console->ContinuePrompt = ContinuePrompt;
+	Console->Debugger = NULL;
+	ml_compiler_t *Compiler = ml_compiler(GlobalGet, Globals, (void *)ml_console_line_read, Console);
+	ml_compiler_define(Compiler, "debugger", interactive_debugger(
 		(void *)ml_console_debug_enter,
 		(void *)ml_console_debug_exit,
 		ml_console_log,
 		Console,
-		(ml_getter_t)ml_console_global_get,
-		Console
+		GlobalGet,
+		Globals
 	));
-	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)ml_console_global_get, Console, (void *)ml_console_line_read, Console);
+
 	ml_compiler_source(Compiler, (ml_source_t){"<console>", 1});
-	ml_console_repl_state_t *State = new(ml_console_repl_state_t);
-	State->Base.run = (void *)ml_console_repl_run;
-	State->Base.Context = &MLRootContext;
-	State->Console = Console;
-	State->Compiler = Compiler;
-	ml_command_evaluate((ml_state_t *)State, Compiler);
+	Console->Compiler = Compiler;
+	ml_command_evaluate((ml_state_t *)Console, Compiler);
 }
