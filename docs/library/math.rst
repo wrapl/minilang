@@ -77,7 +77,7 @@ math
 
 :mini:`meth remainder(Arg₁: number, Arg₂: number)` |rarr| :mini:`number`
 
-:mini:`meth rint(Arg₁: number)` |rarr| :mini:`number`
+:mini:`meth round(Arg₁: number)` |rarr| :mini:`number`
 
 :mini:`fun integer::random(Min?: number, Max?: number)` |rarr| :mini:`integer`
    Returns a random integer between :mini:`Min` and :mini:`Max` (where :mini:`Max <= 2³² - 1`.
