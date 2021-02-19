@@ -499,6 +499,67 @@ ML_METHOD("expand", MLArrayT, MLListT) {
 	return (ml_value_t *)Target;
 }
 
+ML_METHOD("split", MLArrayT, MLIntegerT, MLListT) {
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	int Degree = Source->Degree;
+	int Expand = ml_integer_value_fast(Args[1]);
+	if (Expand <= 0) Expand += Degree + 1;
+	if (Expand < 1 || Expand > Degree) return ml_error("ArrayError", "Invalid index");
+	--Expand;
+	if (Source->Dimensions[Expand].Indices) return ml_error("ArrayError", "Cannot split indexed dimension yet");
+	size_t Total = 1;
+	ML_LIST_FOREACH(Args[2], Iter) {
+		if (!ml_is(Iter->Value, MLIntegerT)) return ml_error("ArrayError", "Invalid size");
+		int Size = ml_integer_value_fast(Iter->Value);
+		if (Size <= 0) return ml_error("RangeError", "Invalid size");
+		Total *= Size;
+	}
+	if (Source->Dimensions[Expand].Size != Total) return ml_error("ArrayError", "Invalid size");
+	ml_array_t *Target = ml_array_new(Source->Format, Degree + ml_list_length(Args[2]) - 1);
+	ml_array_dimension_t *SourceDimension = Source->Dimensions + Degree;
+	ml_array_dimension_t *TargetDimension = Target->Dimensions + Target->Degree;
+	for (int I = Expand + 1; I < Degree; ++I) *--TargetDimension = *--SourceDimension;
+	int Stride = (--SourceDimension)->Stride;
+	ML_LIST_REVERSE(Args[2], Iter) {
+		--TargetDimension;
+		int Size = TargetDimension->Size = ml_integer_value_fast(Iter->Value);
+		TargetDimension->Stride = Stride;
+		Stride *= Size;
+	}
+	for (int I = 0; I < Expand; ++I) *--TargetDimension = *--SourceDimension;
+	Target->Base = Source->Base;
+	return (ml_value_t *)Target;
+}
+
+ML_METHOD("join", MLArrayT, MLIntegerT, MLIntegerT) {
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	int Degree = Source->Degree;
+	int Start = ml_integer_value_fast(Args[1]);
+	if (Start <= 0) Start += Degree + 1;
+	if (Start < 1 || Start > Degree) return ml_error("ArrayError", "Invalid index");
+	int Join = ml_integer_value_fast(Args[2]);
+	if (Join <= 0) return ml_error("ArrayError", "Invalid run");
+	--Start;
+	int End = Start + Join - 1;
+	if (End >= Degree) return ml_error("RangeError", "Invalid run");
+	ml_array_t *Target = ml_array_new(Source->Format, Degree + 1 - Join);
+	ml_array_dimension_t *SourceDimension = Source->Dimensions + Degree;
+	ml_array_dimension_t *TargetDimension = Target->Dimensions + Target->Degree;
+	for (int I = End + 1; I < Degree; ++I) *--TargetDimension = *--SourceDimension;
+	--TargetDimension;
+	TargetDimension->Stride = SourceDimension[-1].Stride;
+	int Size = 1;
+	for (int I = 0; I < Join; ++I) {
+		--SourceDimension;
+		if (SourceDimension->Indices) return ml_error("ArrayError", "Cannot join indexed dimension yet");
+		Size *= SourceDimension->Size;
+	}
+	TargetDimension->Size = Size;
+	for (int I = 0; I < Start; ++I) *--TargetDimension = *--SourceDimension;
+	Target->Base = Source->Base;
+	return (ml_value_t *)Target;
+}
+
 ML_METHOD("strides", MLArrayT) {
 //<Array
 //>list

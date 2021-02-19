@@ -83,6 +83,10 @@ array
    Returns an array sharing the underlying data with :mini:`Array` with additional unit-length axes at the specified :mini:`Indices`.
 
 
+:mini:`meth :split(Arg₁: array, Arg₂: integer, Arg₃: list)`
+
+:mini:`meth :join(Arg₁: array, Arg₂: integer, Arg₃: integer)`
+
 :mini:`meth :strides(Array: array)` |rarr| :mini:`list`
    Return the strides of :mini:`Array` in bytes.
 
