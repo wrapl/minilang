@@ -6,6 +6,7 @@
 #include <inttypes.h>
 #include <math.h>
 #include <float.h>
+#include <printf.h>
 #include <gc/gc_typed.h>
 #ifdef ML_TRE
 #include <tre/regex.h>
@@ -155,11 +156,53 @@ ML_METHOD(MLStringT, MLIntegerT, MLIntegerT) {
 	return ml_string(P, Q - P);
 }
 
+ML_METHOD(MLStringT, MLIntegerT, MLStringT) {
+	const char *Template = ml_string_value(Args[1]);
+	int ArgTypes[1];
+	if (parse_printf_format(Template, 1, ArgTypes) != 1) {
+		return ml_error("FormatError", "Invalid format string");
+	}
+	int64_t Value = ml_integer_value_fast(Args[0]);
+	char *String;
+	int Length;
+	if (ArgTypes[0] == PA_INT) {
+		Length = asprintf(&String, Template, (int)Value);
+	} else if (ArgTypes[0] == (PA_INT | PA_FLAG_LONG)) {
+		Length = asprintf(&String, Template, (long)Value);
+	} else if (ArgTypes[0] == PA_DOUBLE) {
+		Length = asprintf(&String, Template, (double)Value);
+	} else {
+		return ml_error("FormatError", "Invalid format string");
+	}
+	return ml_string(String, Length);
+}
+
 ML_METHOD(MLStringT, MLRealT) {
 //!number
-	char *Value;
-	int Length = asprintf(&Value, "%g", ml_real_value_fast(Args[0]));
-	return ml_string(Value, Length);
+	char *String;
+	int Length = asprintf(&String, "%g", ml_real_value_fast(Args[0]));
+	return ml_string(String, Length);
+}
+
+ML_METHOD(MLStringT, MLRealT, MLStringT) {
+	const char *Template = ml_string_value(Args[1]);
+	int ArgTypes[1];
+	if (parse_printf_format(Template, 1, ArgTypes) != 1) {
+		return ml_error("FormatError", "Invalid format string");
+	}
+	double Value = ml_real_value_fast(Args[0]);
+	char *String;
+	int Length;
+	if (ArgTypes[0] == PA_INT) {
+		Length = asprintf(&String, Template, (int)Value);
+	} else if (ArgTypes[0] == (PA_INT | PA_FLAG_LONG)) {
+		Length = asprintf(&String, Template, (long)Value);
+	} else if (ArgTypes[0] == PA_DOUBLE) {
+		Length = asprintf(&String, Template, (double)Value);
+	} else {
+		return ml_error("FormatError", "Invalid format string");
+	}
+	return ml_string(String, Length);
 }
 
 #ifdef ML_COMPLEX
@@ -167,14 +210,14 @@ ML_METHOD(MLStringT, MLRealT) {
 ML_METHOD(MLStringT, MLComplexT) {
 //!number
 	complex double Complex = ml_complex_value_fast(Args[0]);
-	char *Value;
+	char *String;
 	int Length;
 	if (fabs(creal(Complex)) <= DBL_EPSILON) {
-		Length = asprintf(&Value, "%gi", cimag(Complex));
+		Length = asprintf(&String, "%gi", cimag(Complex));
 	} else {
-		Length = asprintf(&Value, "%g + %gi", creal(Complex), cimag(Complex));
+		Length = asprintf(&String, "%g + %gi", creal(Complex), cimag(Complex));
 	}
-	return ml_string(Value, Length);
+	return ml_string(String, Length);
 }
 
 #endif

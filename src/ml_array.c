@@ -447,6 +447,23 @@ ML_METHOD("permute", MLArrayT, MLListT) {
 	return (ml_value_t *)Target;
 }
 
+ML_METHOD("swap", MLArrayT, MLIntegerT, MLIntegerT) {
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	int Degree = Source->Degree;
+	int IndexA = ml_integer_value_fast(Args[1]);
+	int IndexB = ml_integer_value_fast(Args[2]);
+	if (IndexA <= 0) IndexA += (Degree + 1);
+	if (IndexB <= 0) IndexB += (Degree + 1);
+	if (IndexA < 1 || IndexA > Degree) return ml_error("ArrayError", "Invalid index");
+	if (IndexB < 1 || IndexB > Degree) return ml_error("ArrayError", "Invalid index");
+	ml_array_t *Target = ml_array_new(Source->Format, Degree);
+	for (int I = 0; I < Degree; ++I) Target->Dimensions[I] = Source->Dimensions[I];
+	Target->Dimensions[IndexA - 1] = Source->Dimensions[IndexB - 1];
+	Target->Dimensions[IndexB - 1] = Source->Dimensions[IndexA - 1];
+	Target->Base = Source->Base;
+	return (ml_value_t *)Target;
+}
+
 ML_METHOD("expand", MLArrayT, MLListT) {
 //<Array
 //<Indices
@@ -1672,6 +1689,45 @@ static int array_copy(ml_array_t *Target, ml_array_t *Source) {
 	int Op = Target->Format * MAX_FORMATS + Source->Format;
 	update_array(Op, Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address);
 	return DataSize;
+}
+
+ML_METHOD("reshape", MLArrayT, MLListT) {
+	int TargetDegree = ml_list_length(Args[1]);
+	size_t TargetCount = 1;
+	ML_LIST_FOREACH(Args[1], Iter) {
+		if (!ml_is(Iter->Value, MLIntegerT)) return ml_error("ArrayError", "Invalid size");
+		int Size = ml_integer_value_fast(Iter->Value);
+		if (Size <= 0) return ml_error("ArrayError", "Invalid size");
+		TargetCount *= Size;
+	}
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	int SourceDegree = Source->Degree;
+	size_t SourceCount = 1;
+	for (int I = 0; I < SourceDegree; ++I) SourceCount *= Source->Dimensions[I].Size;
+	if (TargetCount != SourceCount) return ml_error("ArrayError", "Incompatible shapes");
+	ml_array_dimension_t TempDimensions[SourceDegree];
+	int DataSize = MLArraySizes[Source->Format];
+	for (int I = SourceDegree; --I >= 0;) {
+		TempDimensions[I].Stride = DataSize;
+		int Size = TempDimensions[I].Size = Source->Dimensions[I].Size;
+		DataSize *= Size;
+		TempDimensions[I].Indices = NULL;
+	}
+	char *Address = GC_MALLOC_ATOMIC(DataSize);
+	int Op = Source->Format * MAX_FORMATS + Source->Format;
+	update_array(Op, TempDimensions, Address, SourceDegree, Source->Dimensions, Source->Base.Address);
+	ml_array_t *Target = ml_array_new(Source->Format, TargetDegree);
+	Target->Base.Address = Address;
+	DataSize = MLArraySizes[Target->Format];
+	int I = TargetDegree;
+	ML_LIST_REVERSE(Args[1], Iter) {
+		--I;
+		Target->Dimensions[I].Stride = DataSize;
+		int Size = Target->Dimensions[I].Size = ml_integer_value_fast(Iter->Value);
+		DataSize *= Size;
+	}
+	Target->Base.Size = DataSize;
+	return (ml_value_t *)Target;
 }
 
 ML_METHOD("sums", MLArrayT, MLIntegerT) {
@@ -3290,7 +3346,7 @@ ML_METHOD(".", MLArrayT, MLArrayT) {
 //<A
 //<B
 //>array
-// Returns the inner product of :mini:`A` and :mini:`B`.
+// Returns the inner product of :mini:`A` and :mini:`B`. The last dimension of :mini:`A` and the first dimension of :mini:`B` must match, skipping any dimensions of size :mini:`1`.
 	ml_array_t *A = (ml_array_t *)Args[0];
 	ml_array_t *B = (ml_array_t *)Args[1];
 	int DegreeA = A->Degree;
@@ -3329,7 +3385,6 @@ ML_METHOD(".", MLArrayT, MLArrayT) {
 	}
 	ml_array_t *C = ml_array_new(MAX(A->Format, B->Format), Degree);
 	int DataSize = MLArraySizes[C->Format];
-	printf("ADegree = %d, BDegree = %d, Degree = %d\n", DegreeA, DegreeB, Degree);
 	if (UseProd) {
 		int Base = DegreeA;
 		for (int I = DegreeB; --I >= 0;) {
@@ -3377,7 +3432,7 @@ ML_METHOD("**", MLArrayT, MLArrayT) {
 //<A
 //<B
 //>array
-// Returns the inner product of :mini:`A` and :mini:`B`.
+// Returns the pairwise products of the entries of :mini:`A` and :mini:`B`.
 	ml_array_t *A = (ml_array_t *)Args[0];
 	ml_array_t *B = (ml_array_t *)Args[1];
 	int DegreeA = A->Degree;
@@ -3388,7 +3443,6 @@ ML_METHOD("**", MLArrayT, MLArrayT) {
 	int Degree = DegreeA + DegreeB;
 	ml_array_t *C = ml_array_new(MAX(A->Format, B->Format), Degree);
 	int DataSize = MLArraySizes[C->Format];
-	printf("ADegree = %d, BDegree = %d, Degree = %d\n", DegreeA, DegreeB, Degree);
 	int Base = DegreeA;
 	for (int I = DegreeB; --I >= 0;) {
 		C->Dimensions[Base + I].Stride = DataSize;
