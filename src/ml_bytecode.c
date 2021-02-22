@@ -19,11 +19,11 @@ static ml_value_t *ml_variable_deref(ml_variable_t *Variable) {
 	return Variable->Value;
 }
 
-static ml_value_t *ml_variable_assign(ml_variable_t *Variable, ml_value_t *Value) {
+static void ml_variable_assign(ml_state_t *Caller, ml_variable_t *Variable, ml_value_t *Value) {
 	if (Variable->VarType && !ml_is(Value, Variable->VarType)) {
-		return ml_error("TypeError", "Cannot assign %s to variable of type %s", ml_typeof(Value)->Name, Variable->VarType->Name);
+		ML_ERROR("TypeError", "Cannot assign %s to variable of type %s", ml_typeof(Value)->Name, Variable->VarType->Name);
 	}
-	return (Variable->Value = Value);
+	ML_RETURN(Variable->Value = Value);
 }
 
 ML_TYPE(MLVariableT, (), "variable",
@@ -594,12 +594,14 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_ASSIGN: {
 		Result = ml_deref(Result);
-		//ERROR_CHECK(Result);
 		ml_value_t *Ref = Top[-1];
 		*--Top = 0;
-		Result = ml_typeof(Ref)->assign(Ref, Result);
-		ERROR_CHECK(Result);
-		ADVANCE(0);
+		Frame->Inst = Inst->Params[0].Inst;
+		Frame->Top = Top;
+#ifdef ML_SCHEDULER
+		Frame->Schedule.Counter[0] = Counter;
+#endif
+		return ml_assign(Frame, Ref, Result);
 	}
 	DO_LOCAL: {
 		int Index = Inst->Params[1].Index;

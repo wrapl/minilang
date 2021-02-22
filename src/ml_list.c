@@ -59,8 +59,8 @@ static ml_value_t *ml_list_node_deref(ml_list_node_t *Node) {
 	return Node->Value;
 }
 
-static ml_value_t *ml_list_node_assign(ml_list_node_t *Node, ml_value_t *Value) {
-	return (Node->Value = Value);
+static void ml_list_node_assign(ml_state_t *Caller, ml_list_node_t *Node, ml_value_t *Value) {
+	ML_RETURN(Node->Value = Value);
 }
 
 ML_TYPE(MLListNodeT, (), "list-node",
@@ -397,7 +397,7 @@ static ml_value_t *ml_list_slice_deref(ml_list_slice_t *Slice) {
 	return List;
 }
 
-static ml_value_t *ml_list_slice_assign(ml_list_slice_t *Slice, ml_value_t *Packed) {
+static void ml_list_slice_assign(ml_state_t *Caller, ml_list_slice_t *Slice, ml_value_t *Packed) {
 	ml_list_node_t *Node = Slice->Head;
 	int Length = Slice->Length;
 	int Index = 0;
@@ -408,7 +408,7 @@ static ml_value_t *ml_list_slice_assign(ml_list_slice_t *Slice, ml_value_t *Pack
 		Node = Node->Next;
 		--Length;
 	}
-	return Packed;
+	ML_RETURN(Packed);
 }
 
 ML_TYPE(MLListSliceT, (), "list-slice",

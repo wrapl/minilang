@@ -1803,15 +1803,11 @@ static ml_value_t *ml_function_global_get(ml_value_t *Function, const char *Name
 	return (Value != MLNotFound) ? Value : NULL;
 }
 
-static ml_value_t *ml_map_global_get(ml_value_t *Map, const char *Name) {
-	return ml_map_search0(Map, ml_cstring(Name));
-}
-
 ML_FUNCTION(MLCompiler) {
 //@compiler
 	ML_CHECK_ARG_COUNT(1);
 	ml_getter_t GlobalGet = (ml_getter_t)ml_function_global_get;
-	if (ml_is(Args[0], MLMapT)) GlobalGet = (ml_getter_t)ml_map_global_get;
+	if (ml_is(Args[0], MLMapT)) GlobalGet = (ml_getter_t)ml_map_search_string;
 	void *Input = NULL;
 	ml_reader_t Reader = ml_compiler_no_input;
 	if (Count > 1) {
@@ -3628,9 +3624,9 @@ static ml_value_t *ml_global_deref(ml_global_t *Global) {
 	return ml_deref(Global->Value);
 }
 
-static ml_value_t *ml_global_assign(ml_global_t *Global, ml_value_t *Value) {
-	if (!Global->Value) return ml_error("NameError", "identifier %s not declared", Global->Name);
-	return ml_assign(Global->Value, Value);
+static void ml_global_assign(ml_state_t *Caller, ml_global_t *Global, ml_value_t *Value) {
+	if (!Global->Value) ML_ERROR("NameError", "identifier %s not declared", Global->Name);
+	return ml_assign(Caller, Global->Value, Value);
 }
 
 ML_TYPE(MLGlobalT, (), "global",
@@ -3710,7 +3706,7 @@ ML_METHOD("def", MLCompilerT, MLStringT, MLAnyT) {
 }
 
 static int ml_compiler_var_fn(const char *Name, ml_value_t *Value, ml_value_t *Vars) {
-	ml_map_insert(Vars, ml_cstring(Name), ml_deref(Value));
+	ml_map_insert_string(Vars, Name, ml_deref(Value));
 	return 0;
 }
 

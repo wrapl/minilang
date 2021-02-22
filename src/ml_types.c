@@ -87,7 +87,7 @@ ML_METHOD("rank", MLTypeT) {
 }
 
 static int ml_type_exports_fn(const char *Name, void *Value, ml_value_t *Exports) {
-	ml_map_insert(Exports, ml_cstring(Name), Value);
+	ml_map_insert_string(Exports, Name, Value);
 	return 0;
 }
 
@@ -183,8 +183,8 @@ ml_value_t *ml_default_deref(ml_value_t *Ref) {
 	return Ref;
 }
 
-ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value) {
-	return ml_error("TypeError", "<%s> is not assignable", ml_typeof(Ref)->Name);
+void ml_default_assign(ml_state_t *Caller, ml_value_t *Ref, ml_value_t *Value) {
+	ML_ERROR("TypeError", "<%s> is not assignable", ml_typeof(Ref)->Name);
 }
 
 void ml_type_init(ml_type_t *Type, ...) {
@@ -1013,14 +1013,32 @@ static ml_value_t *ml_tuple_deref(ml_tuple_t *Ref) {
 	return (ml_value_t *)Ref;
 }
 
-static ml_value_t *ml_tuple_assign(ml_tuple_t *Ref, ml_value_t *Values) {
-	int Count = Ref->Size;
-	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Value = ml_unpack(Values, I + 1);
-		ml_value_t *Result = ml_typeof(Ref->Values[I])->assign(Ref->Values[I], Value);
-		if (ml_is_error(Result)) return Result;
-	}
-	return Values;
+typedef struct {
+	ml_state_t Base;
+	ml_tuple_t *Tuple;
+	ml_value_t *Values;
+	int Index;
+} ml_tuple_assign_state_t;
+
+static void ml_tuple_assign_state_run(ml_tuple_assign_state_t *State, ml_value_t *Result) {
+	if (ml_is_error(Result)) ML_CONTINUE(State->Base.Caller, Result);
+	int Index = State->Index;
+	if (Index == State->Tuple->Size) ML_CONTINUE(State->Base.Caller, State->Values);
+	State->Index = Index + 1;
+	ml_value_t *Value = ml_unpack(State->Values, State->Index);
+	return ml_assign(State, State->Tuple->Values[Index], Value);
+}
+
+static void ml_tuple_assign(ml_state_t *Caller, ml_tuple_t *Tuple, ml_value_t *Values) {
+	ml_tuple_assign_state_t *State = new(ml_tuple_assign_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_tuple_assign_state_run;
+	State->Tuple = Tuple;
+	State->Values = Values;
+	State->Index = 1;
+	ml_value_t *Value = ml_unpack(Values, 1);
+	return ml_assign(State, Tuple->Values[0], Value);
 }
 
 ML_FUNCTION(MLTuple) {
@@ -2358,7 +2376,7 @@ void ml_init() {
 }
 
 ML_FUNCTIONZ(MLExchange) {
-	ML_CHECKX_ARG_COUNT(1);
+/*	ML_CHECKX_ARG_COUNT(1);
 	ml_value_t *New = ml_deref(Args[0]);
 	for (int I = Count; --I >= 0;) {
 		ml_value_t *Old = ml_deref(Args[I]);
@@ -2366,7 +2384,7 @@ ML_FUNCTIONZ(MLExchange) {
 		if (ml_is_error(Error)) ML_RETURN(Error);
 		New = Old;
 	}
-	ML_RETURN(New);
+	ML_RETURN(New);*/
 }
 
 void ml_types_init(stringmap_t *Globals) {

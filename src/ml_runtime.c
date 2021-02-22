@@ -281,9 +281,9 @@ static ml_value_t *ml_reference_deref(ml_value_t *Ref) {
 	return Reference->Address[0];
 }
 
-static ml_value_t *ml_reference_assign(ml_value_t *Ref, ml_value_t *Value) {
+static void ml_reference_assign(ml_state_t *Caller, ml_value_t *Ref, ml_value_t *Value) {
 	ml_reference_t *Reference = (ml_reference_t *)Ref;
-	return Reference->Address[0] = Value;
+	ML_RETURN(Reference->Address[0] = Value);
 }
 
 ML_TYPE(MLReferenceT, (), "reference",
@@ -318,8 +318,8 @@ static void ml_uninitialized_call(ml_state_t *Caller, ml_uninitialized_t *Uninit
 	ML_ERROR("ValueError", "%s is uninitialized", Uninitialized->Name);
 }
 
-static ml_value_t *ml_unitialized_assign(ml_uninitialized_t *Uninitialized, ml_value_t *Value) {
-	return ml_error("ValueError", "%s is uninitialized", Uninitialized->Name);
+static void ml_unitialized_assign(ml_state_t *Caller, ml_uninitialized_t *Uninitialized, ml_value_t *Value) {
+	ML_ERROR("ValueError", "%s is uninitialized", Uninitialized->Name);
 }
 
 ML_TYPE(MLUninitializedT, (), "uninitialized",
@@ -412,8 +412,8 @@ typedef struct {
 	ml_error_value_t Error[1];
 } ml_error_t;
 
-static ml_value_t *ml_error_assign(ml_value_t *Error, ml_value_t *Value) {
-	return Error;
+static void ml_error_assign(ml_state_t *Caller, ml_value_t *Error, ml_value_t *Value) {
+	ML_RETURN(Error);
 }
 
 static void ml_error_call(ml_state_t *Caller, ml_value_t *Error, int Count, ml_value_t **Args) {

@@ -45,7 +45,7 @@ struct ml_type_t {
 	long (*hash)(ml_value_t *, ml_hash_chain_t *);
 	void (*call)(ml_state_t *, ml_value_t *, int, ml_value_t **);
 	ml_value_t *(*deref)(ml_value_t *);
-	ml_value_t *(*assign)(ml_value_t *, ml_value_t *);
+	void (*assign)(ml_state_t *, ml_value_t *, ml_value_t *);
 	ml_value_t *Constructor;
 #ifdef ML_GENERICS
 	ml_generic_rule_t *Rules;
@@ -62,9 +62,9 @@ struct ml_type_t {
 extern ml_type_t MLTypeT[];
 
 long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain);
-void ml_default_call(ml_state_t *Frame, ml_value_t *Value, int Count, ml_value_t **Args);
+void ml_default_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args);
 ml_value_t *ml_default_deref(ml_value_t *Ref);
-ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value);
+void ml_default_assign(ml_state_t *Caller, ml_value_t *Ref, ml_value_t *Value);
 
 #ifndef GENERATE_INIT
 
@@ -186,9 +186,7 @@ static inline long ml_hash(ml_value_t *Value) {
 	return ml_hash_chain(Value, NULL);
 }
 
-static inline ml_value_t *ml_assign(ml_value_t *Value, ml_value_t *Value2) {
-	return ml_typeof(Value)->assign(Value, Value2);
-}
+#define ml_assign(CALLER, REF, VALUE) ml_typeof(REF)->assign((ml_state_t *)CALLER, REF, VALUE)
 
 #define ml_call(CALLER, VALUE, COUNT, ARGS) ml_typeof(VALUE)->call((ml_state_t *)CALLER, VALUE, COUNT, ARGS)
 
@@ -657,11 +655,13 @@ struct ml_map_node_t {
 };
 
 ml_value_t *ml_map() __attribute__((malloc));
-ml_value_t *ml_map_search(ml_value_t *Map, ml_value_t *Key);
-ml_value_t *ml_map_search0(ml_value_t *Map0, ml_value_t *Key);
-ml_map_node_t *ml_map_slot(ml_value_t *Map, ml_value_t *Key);
-ml_value_t *ml_map_insert(ml_value_t *Map, ml_value_t *Key, ml_value_t *Value);
-ml_value_t *ml_map_delete(ml_value_t *Map, ml_value_t *Key);
+void ml_map_search(ml_state_t *Caller, ml_value_t *Map, ml_value_t *Key);
+void ml_map_slot(ml_state_t *Caller, ml_value_t *Map, ml_value_t *Key);
+void ml_map_insert(ml_state_t *Caller, ml_value_t *Map, ml_value_t *Key, ml_value_t *Value);
+void ml_map_delete(ml_state_t *Caller, ml_value_t *Map, ml_value_t *Key);
+
+ml_value_t *ml_map_search_string(ml_value_t *Map, const char *String);
+void ml_map_insert_string(ml_value_t *Map, const char *String, ml_value_t *Value);
 
 static inline int ml_map_size(ml_value_t *Map) {
 	return ((ml_map_t *)Map)->Size;

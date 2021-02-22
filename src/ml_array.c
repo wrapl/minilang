@@ -1469,40 +1469,40 @@ static ml_value_t *ml_array_ ## CTYPE ## _deref(ml_array_t *Target, ml_value_t *
 	return (ml_value_t *)Target; \
 } \
 \
-static ml_value_t *ml_array_ ## CTYPE ## _assign(ml_array_t *Target, ml_value_t *Value) { \
+static void ml_array_ ## CTYPE ## _assign(ml_state_t *Caller, ml_array_t *Target, ml_value_t *Value) { \
 	for (;;) if (FORMAT == ML_ARRAY_FORMAT_ANY && !Target->Degree) { \
-		return *(ml_value_t **)Target->Base.Address = Value; \
+		ML_RETURN(*(ml_value_t **)Target->Base.Address = Value); \
 	} else if (ml_is(Value, MLNumberT)) { \
 		CTYPE CValue = FROM_VAL(Value); \
 		ml_array_dimension_t ValueDimension[1] = {{1, 0, NULL}}; \
 		int Op = Target->Format * MAX_FORMATS + Target->Format; \
-		if (!UpdateRowFns[Op]) return ml_error("ArrayError", "Unsupported array format pair (%s, %s)", Target->Base.Type->Name, ml_typeof(Value)->Name); \
+		if (!UpdateRowFns[Op]) ML_ERROR("ArrayError", "Unsupported array format pair (%s, %s)", Target->Base.Type->Name, ml_typeof(Value)->Name); \
 		if (Target->Degree == 0) { \
 			UpdateRowFns[Op](ValueDimension, Target->Base.Address, ValueDimension, (char *)&CValue); \
 		} else { \
 			update_prefix(Op, Target->Degree - 1, Target->Dimensions, Target->Base.Address, 0, ValueDimension, (char *)&CValue); \
 		} \
-		return Value; \
+		ML_RETURN(Value); \
 	} else if (ml_is(Value, MLArrayT)) { \
 		ml_array_t *Source = (ml_array_t *)Value; \
-		if (Source->Degree > Target->Degree) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__); \
+		if (Source->Degree > Target->Degree) ML_ERROR("ArrayError", "Incompatible assignment (%d)", __LINE__); \
 		int PrefixDegree = Target->Degree - Source->Degree; \
 		for (int I = 0; I < Source->Degree; ++I) { \
-			if (Target->Dimensions[PrefixDegree + I].Size != Source->Dimensions[I].Size) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__); \
+			if (Target->Dimensions[PrefixDegree + I].Size != Source->Dimensions[I].Size) ML_ERROR("ArrayError", "Incompatible assignment (%d)", __LINE__); \
 		} \
 		int Op = Target->Format * MAX_FORMATS + Source->Format; \
-		if (!UpdateRowFns[Op]) return ml_error("ArrayError", "Unsupported array format pair (%s, %s)", Target->Base.Type->Name, Source->Base.Type->Name); \
+		if (!UpdateRowFns[Op]) ML_ERROR("ArrayError", "Unsupported array format pair (%s, %s)", Target->Base.Type->Name, Source->Base.Type->Name); \
 		if (Target->Degree) { \
 			update_prefix(Op, PrefixDegree, Target->Dimensions, Target->Base.Address, Source->Degree, Source->Dimensions, Source->Base.Address); \
 		} else { \
 			ml_array_dimension_t ValueDimension[1] = {{1, 0, NULL}}; \
 			UpdateRowFns[Op](ValueDimension, Target->Base.Address, ValueDimension, Source->Base.Address); \
 		} \
-		return Value; \
+		ML_RETURN(Value); \
 	} else { \
 		Value = ml_array_of_fn(NULL, 1, &Value); \
 	} \
-	return NULL; \
+	ML_RETURN(NULL); \
 } \
 \
 ML_CFUNCTIONX(ATYPE ## New, (void *)FORMAT, ml_array_typed_new_fnx); \

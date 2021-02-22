@@ -305,9 +305,9 @@ static ml_tag_t ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void **Data)
 
 ml_value_t *CborDefaultTags;
 
-ML_FUNCTION(DefaultTagFn) {
+ML_FUNCTIONX(DefaultTagFn) {
 //!internal
-	return ml_map_search(CborDefaultTags, Args[0]);
+	return ml_map_search(Caller, CborDefaultTags, Args[0]);
 }
 
 ml_value_t *ml_from_cbor(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*TagFn)(uint64_t, void *, void **)) {
@@ -637,7 +637,7 @@ ml_value_t *ml_cbor_read_object(void *Data, int Count, ml_value_t **Args) {
 	if (!ml_list_iter_valid(Iter)) return ml_error("CBORError", "Object tag requires type name");
 	ml_value_t *TypeName = Iter->Value;
 	if (ml_typeof(TypeName) != MLStringT) return ml_error("CBORError", "Object tag requires type name");
-	ml_value_t *Constructor = ml_map_search(CborObjects, TypeName);
+	ml_value_t *Constructor = ml_map_search_string(CborObjects, ml_string_value(TypeName));
 	if (Constructor == MLNil) return ml_error("CBORError", "Object %s not found", ml_string_value(TypeName));
 	int Count2 = ml_list_length(Args[0]) - 1;
 	ml_value_t **Args2 = anew(ml_value_t *, Count2);

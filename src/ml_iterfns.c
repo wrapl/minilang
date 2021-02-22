@@ -664,12 +664,18 @@ typedef struct ml_count2_state_t {
 
 static void count2_iterate(ml_count2_state_t *State, ml_value_t *Value);
 
+static void count2_slot(ml_count2_state_t *State, ml_map_node_t *Node) {
+	Node->Value = (ml_value_t *)((char *)Node->Value + 1);
+	State->Base.run = (void *)count2_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
 static void count2_value(ml_count2_state_t *State, ml_value_t *Value) {
 	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value != MLNil) {
-		ml_map_node_t *Node = ml_map_slot(State->Counts, Value);
-		Node->Value = (ml_value_t *)((char *)Node->Value + 1);
+		State->Base.run = (void *)count2_slot;
+		ml_map_slot((ml_state_t *)State, State->Counts, Value);
 	}
 	State->Base.run = (void *)count2_iterate;
 	return ml_iter_next((ml_state_t *)State, State->Iter);
