@@ -125,6 +125,7 @@ MINILANG_NANBOXING := old or defined("NANBOXING")
 MINILANG_TRE := old or defined("TRE")
 MINILANG_GENERICS := old or defined("GENERICS")
 MINILANG_QUEUES := old or defined("QUEUES")
+MINILANG_LIBS := old or defined("LIBS")
 
 file("config.h") => fun(Target) do
 	let File := Target:open("w")
@@ -187,8 +188,8 @@ end
 
 if MINILANG_GIR then
 	Objects:put(file("ml_gir.o"), file("gtk_console.o"))
-	CFLAGS := old + ["-DML_GIR", pkgconfig("--cflags gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0 libgvc")]
-	LDFLAGS := old + [pkgconfig("--libs gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0 libgvc")]
+	CFLAGS := old + ["-DML_GIR", pkgconfig("--cflags gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0")]
+	LDFLAGS := old + [pkgconfig("--libs gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0")]
 	InstallHeaders:put("ml_gir.h")
 	InstallHeaders:put("gtk_console.h")
 end
@@ -211,6 +212,7 @@ if MINILANG_CBOR then
 end
 
 if MINILANG_MODULES then
+	LDFLAGS := old + ["-ldl"]
 	Objects:put(file("ml_module.o"), file("ml_library.o"))
 	InstallHeaders:put("ml_module.h")
 end
@@ -275,7 +277,7 @@ end
 
 install(LIBMINILANG, InstallLib/"libminilang.a")
 
-if MINILANG_MODULES and PLATFORM = "Linux" then
+if MINILANG_LIBS and PLATFORM = "Linux" then
 	LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={file("exports.lst")}']
 	subdir("lib")
 end
