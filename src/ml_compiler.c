@@ -2017,7 +2017,9 @@ static inline int isoperator(char C) {
 
 static stringmap_t StringFns[1] = {STRINGMAP_INIT};
 
-typedef ml_value_t *(*string_fn_t)(const char *String, int Length);
+void ml_string_fn_register(const char *Prefix, string_fn_t Fn) {
+	stringmap_insert(StringFns, Prefix, Fn);
+}
 
 static ml_token_t ml_scan(ml_compiler_t *Compiler) {
 	for (;;) {

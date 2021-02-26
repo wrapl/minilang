@@ -30,16 +30,6 @@ ML_TYPE(StringStoreT, (), "string-store");
 ML_TYPE(StringStoreWriterT, (), "string-store-writer");
 ML_TYPE(StringStoreReaderT, (), "string-store-reader");
 
-ML_FUNCTION(StringStoreOpen) {
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
-	ml_string_store_t *Store = new(ml_string_store_t);
-	Store->Type = StringStoreT;
-	Store->Handle = string_store_open(ml_string_value(Args[0]));
-	if (!Store->Handle) return ml_error("StoreError", "Error opening string store");
-	return (ml_value_t *)Store;
-}
-
 ML_FUNCTION(StringStoreCreate) {
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
@@ -53,6 +43,16 @@ ML_FUNCTION(StringStoreCreate) {
 	Store->Type = StringStoreT;
 	Store->Handle = string_store_create(ml_string_value(Args[0]), ml_integer_value_fast(Args[1]), ChunkSize);
 	CHECK_HANDLE(Store);
+	return (ml_value_t *)Store;
+}
+
+ML_FUNCTION(StringStoreOpen) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ml_string_store_t *Store = new(ml_string_store_t);
+	Store->Type = StringStoreT;
+	Store->Handle = string_store_open(ml_string_value(Args[0]));
+	if (!Store->Handle) return ml_error("StoreError", "Error opening string store");
 	return (ml_value_t *)Store;
 }
 
@@ -118,16 +118,6 @@ ML_METHOD("read", StringStoreReaderT, MLIntegerT) {
 
 ML_TYPE(CborStoreT, (), "cbor-store");
 
-ML_FUNCTION(CborStoreOpen) {
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
-	ml_string_store_t *Store = new(ml_string_store_t);
-	Store->Type = CborStoreT;
-	Store->Handle = string_store_open(ml_string_value(Args[0]));
-	if (!Store->Handle) return ml_error("StoreError", "Error opening string store");
-	return (ml_value_t *)Store;
-}
-
 ML_FUNCTION(CborStoreCreate) {
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
@@ -141,6 +131,16 @@ ML_FUNCTION(CborStoreCreate) {
 	Store->Type = CborStoreT;
 	Store->Handle = string_store_create(ml_string_value(Args[0]), ml_integer_value_fast(Args[1]), ChunkSize);
 	CHECK_HANDLE(Store);
+	return (ml_value_t *)Store;
+}
+
+ML_FUNCTION(CborStoreOpen) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ml_string_store_t *Store = new(ml_string_store_t);
+	Store->Type = CborStoreT;
+	Store->Handle = string_store_open(ml_string_value(Args[0]));
+	if (!Store->Handle) return ml_error("StoreError", "Error opening string store");
 	return (ml_value_t *)Store;
 }
 
@@ -197,16 +197,6 @@ typedef struct ml_string_index_t {
 
 ML_TYPE(StringIndexT, (), "string-index");
 
-ML_FUNCTION(StringIndexOpen) {
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
-	ml_string_index_t *Store = new(ml_string_index_t);
-	Store->Type = StringIndexT;
-	Store->Handle = string_index_open(ml_string_value(Args[0]));
-	if (!Store->Handle) return ml_error("StoreError", "Error opening string store");
-	return (ml_value_t *)Store;
-}
-
 ML_FUNCTION(StringIndexCreate) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
@@ -219,6 +209,16 @@ ML_FUNCTION(StringIndexCreate) {
 	Store->Type = StringIndexT;
 	Store->Handle = string_index_create(ml_string_value(Args[0]), 16, ChunkSize);
 	CHECK_HANDLE(Store);
+	return (ml_value_t *)Store;
+}
+
+ML_FUNCTION(StringIndexOpen) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ml_string_index_t *Store = new(ml_string_index_t);
+	Store->Type = StringIndexT;
+	Store->Handle = string_index_open(ml_string_value(Args[0]));
+	if (!Store->Handle) return ml_error("StoreError", "Error opening string store");
 	return (ml_value_t *)Store;
 }
 
@@ -263,16 +263,6 @@ ML_METHOD("count", StringIndexT) {
 
 ML_TYPE(CborIndexT, (), "cbor-index");
 
-ML_FUNCTION(CborIndexOpen) {
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
-	ml_string_index_t *Store = new(ml_string_index_t);
-	Store->Type = CborIndexT;
-	Store->Handle = string_index_open(ml_string_value(Args[0]));
-	if (!Store->Handle) return ml_error("StoreError", "Error opening string store");
-	return (ml_value_t *)Store;
-}
-
 ML_FUNCTION(CborIndexCreate) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
@@ -285,6 +275,16 @@ ML_FUNCTION(CborIndexCreate) {
 	Store->Type = CborIndexT;
 	Store->Handle = string_index_create(ml_string_value(Args[0]), 16, ChunkSize);
 	CHECK_HANDLE(Store);
+	return (ml_value_t *)Store;
+}
+
+ML_FUNCTION(CborIndexOpen) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ml_string_index_t *Store = new(ml_string_index_t);
+	Store->Type = CborIndexT;
+	Store->Handle = string_index_open(ml_string_value(Args[0]));
+	if (!Store->Handle) return ml_error("StoreError", "Error opening string store");
 	return (ml_value_t *)Store;
 }
 
@@ -327,21 +327,16 @@ ML_METHOD("get", CborIndexT, MLIntegerT) {
 }
 
 void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
-	const char *Dir = dirname(GC_strdup(ml_module_path(Module)));
-	ml_value_t *Import = GlobalGet(Globals, "import");
-	ml_simple_inline(Import, 1, ml_string_format("%s/ml_cbor.so", Dir));
-
-	ml_module_export(Module, "string_store_open", (ml_value_t *)StringStoreOpen);
+	//const char *Dir = dirname(GC_strdup(ml_module_path(Module)));
+	//ml_value_t *Import = GlobalGet(Globals, "import");
+	//ml_simple_inline(Import, 1, ml_string_format("%s/ml_cbor.so", Dir));
 	ml_module_export(Module, "string_store_create", (ml_value_t *)StringStoreCreate);
-
-	ml_module_export(Module, "cbor_store_open", (ml_value_t *)CborStoreOpen);
+	ml_module_export(Module, "string_store_open", (ml_value_t *)StringStoreOpen);
 	ml_module_export(Module, "cbor_store_create", (ml_value_t *)CborStoreCreate);
-
-	ml_module_export(Module, "string_index_open", (ml_value_t *)StringIndexOpen);
+	ml_module_export(Module, "cbor_store_open", (ml_value_t *)CborStoreOpen);
 	ml_module_export(Module, "string_index_create", (ml_value_t *)StringIndexCreate);
-
-	ml_module_export(Module, "cbor_index_open", (ml_value_t *)CborIndexOpen);
+	ml_module_export(Module, "string_index_open", (ml_value_t *)StringIndexOpen);
 	ml_module_export(Module, "cbor_index_create", (ml_value_t *)CborIndexCreate);
-
+	ml_module_export(Module, "cbor_index_open", (ml_value_t *)CborIndexOpen);
 #include "ml_radb_init.c"
 }

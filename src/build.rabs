@@ -125,6 +125,8 @@ MINILANG_NANBOXING := old or defined("NANBOXING")
 MINILANG_TRE := old or defined("TRE")
 MINILANG_GENERICS := old or defined("GENERICS")
 MINILANG_QUEUES := old or defined("QUEUES")
+MINILANG_TIME := old or defined("TIME")
+MINILANG_UUID := old or defined("UUID")
 MINILANG_LIBS := old or defined("LIBS")
 
 file("config.h") => fun(Target) do
@@ -237,10 +239,23 @@ if MINILANG_TRE then
 	LDFLAGS := old + ["-ltre"]
 end
 
-if MINILANG_QUEUES or defined("QUEUES") then
+if MINILANG_QUEUES then
 	Objects:put(file("ml_queue.o"))
 	CFLAGS := old + ["-DML_QUEUES"]
 	InstallHeaders:put("ml_queue.h")
+end
+
+if MINILANG_TIME then
+	Objects:put(file("ml_time.o"))
+	CFLAGS := old + ["-DML_TIME"]
+	InstallHeaders:put("ml_time.h")
+end
+
+if MINILANG_UUID then
+	Objects:put(file("ml_uuid.o"))
+	CFLAGS := old + ["-DML_UUID"]
+	LDFLAGS := old + ["-luuid"]
+	InstallHeaders:put("ml_uuid.h")
 end
 
 if PLATFORM = "Linux" then

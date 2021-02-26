@@ -303,7 +303,12 @@ static ml_tag_t ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void **Data)
 	return (ml_tag_t)ml_value_fn;
 }
 
-ml_value_t *CborDefaultTags;
+ml_value_t *CborDefaultTags = NULL;
+
+void ml_cbor_default_tag(long Tag, void *Data, ml_callback_t Callback) {
+	if (!CborDefaultTags) CborDefaultTags = ml_map();
+	ml_map_insert(CborDefaultTags, ml_integer(Tag), ml_cfunction(Data, Callback));
+}
 
 ML_FUNCTION(DefaultTagFn) {
 //!internal
@@ -453,167 +458,10 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLObjectT, ml_value_t *Arg, void *
 	return NULL;
 }
 
-#ifdef ML_MATH
-
-#include "ml_array.h"
-
-static void ml_cbor_write_array_typed(int Degree, size_t FlatSize, ml_array_dimension_t *Dimension, char *Address, char *Data, ml_cbor_write_fn WriteFn) {
-	if (Degree < 0) {
-		WriteFn(Data, (unsigned char *)Address, FlatSize);
-	} else {
-		int Stride = Dimension->Stride;
-		if (Dimension->Indices) {
-			int *Indices = Dimension->Indices;
-			for (int I = 0; I < Dimension->Size; ++I) {
-				ml_cbor_write_array_typed(Degree - 1, FlatSize, Dimension + 1, Address + Indices[I] * Stride, Data, WriteFn);
-			}
-		} else {
-			for (int I = Dimension->Size; --I >= 0;) {
-				ml_cbor_write_array_typed(Degree - 1, FlatSize, Dimension + 1, Address, Data, WriteFn);
-				Address += Stride;
-			}
-		}
-	}
-}
-
-static void ml_cbor_write_array_any(int Degree, ml_array_dimension_t *Dimension, char *Address, char *Data, ml_cbor_write_fn WriteFn) {
-	if (Degree == 0) {
-		ml_cbor_write(*(ml_value_t **)Address, Data, WriteFn);
-	} else {
-		int Stride = Dimension->Stride;
-		if (Dimension->Indices) {
-			int *Indices = Dimension->Indices;
-			for (int I = 0; I < Dimension->Size; ++I) {
-				ml_cbor_write_array_any(Degree - 1, Dimension + 1, Address + Indices[I] * Stride, Data, WriteFn);
-			}
-		} else {
-			for (int I = Dimension->Size; --I >= 0;) {
-				ml_cbor_write_array_any(Degree - 1, Dimension + 1, Address, Data, WriteFn);
-				Address += Stride;
-			}
-		}
-	}
-}
-
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char *Data, ml_cbor_write_fn WriteFn) {
-	static uint64_t Tags[] = {
-		[ML_ARRAY_FORMAT_I8] = 72,
-		[ML_ARRAY_FORMAT_U8] = 64,
-		[ML_ARRAY_FORMAT_I16] = 77,
-		[ML_ARRAY_FORMAT_U16] = 69,
-		[ML_ARRAY_FORMAT_I32] = 78,
-		[ML_ARRAY_FORMAT_U32] = 70,
-		[ML_ARRAY_FORMAT_I64] = 79,
-		[ML_ARRAY_FORMAT_U64] = 71,
-		[ML_ARRAY_FORMAT_F32] = 85,
-		[ML_ARRAY_FORMAT_F64] = 86
-	};
-	ml_cbor_write_tag(Data, WriteFn, 40);
-	ml_cbor_write_array(Data, WriteFn, 2);
-	ml_cbor_write_array(Data, WriteFn, Array->Degree);
-	if (Array->Format == ML_ARRAY_FORMAT_ANY) {
-		size_t Size = 1;
-		for (int I = 0; I < Array->Degree; ++I) {
-			Size *= Array->Dimensions[I].Size;
-			ml_cbor_write_integer(Data, WriteFn, Array->Dimensions[I].Size);
-		}
-		ml_cbor_write_tag(Data, WriteFn, 41);
-		ml_cbor_write_array(Data, WriteFn, Size);
-		ml_cbor_write_array_any(Array->Degree, Array->Dimensions, Array->Base.Address, Data, WriteFn);
-	} else {
-		for (int I = 0; I < Array->Degree; ++I) ml_cbor_write_integer(Data, WriteFn, Array->Dimensions[I].Size);
-		size_t Size = MLArraySizes[Array->Format];
-		int FlatDegree = -1;
-		size_t FlatSize = Size;
-		for (int I = Array->Degree; --I >= 0;) {
-			if (FlatDegree < 0) {
-				if (Array->Dimensions[I].Indices) {
-					FlatDegree = I;
-				} else if (Array->Dimensions[I].Stride != Size) {
-					FlatDegree = I;
-				} else {
-					FlatSize = Size * Array->Dimensions[I].Size;
-				}
-			}
-			Size *= Array->Dimensions[I].Size;
-		}
-		ml_cbor_write_tag(Data, WriteFn, Tags[Array->Format]);
-		ml_cbor_write_bytes(Data, WriteFn, Size);
-		ml_cbor_write_array_typed(FlatDegree, FlatSize, Array->Dimensions, Array->Base.Address, Data, WriteFn);
-	}
-	return NULL;
-}
-
-static ml_value_t *ml_cbor_read_multi_array_fn(void *Data, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_TYPE(0, MLListT);
-	if (ml_list_length(Args[0]) != 2) return ml_error("CborError", "Invalid multi-dimensional array");
-	ml_value_t *Dimensions = ml_list_get(Args[0], 1);
-	if (Dimensions->Type != MLListT) return ml_error("CborError", "Invalid multi-dimensional array");
-	ml_array_t *Source = (ml_array_t *)ml_list_get(Args[0], 2);
-	if (!ml_is((ml_value_t *)Source, MLArrayT)) return ml_error("CborError", "Invalid multi-dimensional array");
-	ml_array_t *Target = ml_array_new(Source->Format, ml_list_length(Dimensions));
-	ml_array_dimension_t *Dimension = Target->Dimensions + Target->Degree;
-	int Stride = MLArraySizes[Source->Format];
-	ML_LIST_REVERSE(Dimensions, Iter) {
-		--Dimension;
-		Dimension->Stride = Stride;
-		int Size = Dimension->Size = ml_integer_value(Iter->Value);
-		Stride *= Size;
-	}
-	if (Stride != Source->Base.Size) return ml_error("CborError", "Invalid multi-dimensional array");
-	Target->Base.Size = Stride;
-	Target->Base.Address = Source->Base.Address;
-	return (ml_value_t *)Target;
-}
-
-static ml_value_t *ml_cbor_read_typed_array_fn(void *Data, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_TYPE(0, MLBufferT);
-	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
-	ml_array_format_t Format = (intptr_t)Data;
-	int ItemSize = MLArraySizes[Format];
-	ml_array_t *Array = ml_array_new(Format, 1);
-	Array->Dimensions[0].Size = Buffer->Size / ItemSize;
-	Array->Dimensions[0].Stride = ItemSize;
-	Array->Base.Size = Buffer->Size;
-	Array->Base.Address = Buffer->Address;
-	return (ml_value_t *)Array;
-}
-
-static ml_value_t *ml_cbor_read_any_array_fn(void *Data, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_TYPE(0, MLListT);
-	size_t Size = ml_list_length(Args[0]);
-	ml_array_t *Array = ml_array_new(ML_ARRAY_FORMAT_ANY, 1);
-	Array->Dimensions[0].Size = Size;
-	Array->Dimensions[0].Stride = MLArraySizes[ML_ARRAY_FORMAT_ANY];
-	ml_value_t **Values = anew(ml_value_t *, Size);
-	Array->Base.Size = Size * MLArraySizes[ML_ARRAY_FORMAT_ANY];
-	Array->Base.Address = (char *)Values;
-	ML_LIST_FOREACH(Args[0], Iter) *Values++ = Iter->Value;
-	return (ml_value_t *)Array;
-}
-
-#endif
-
 #ifdef ML_TABLES
 #include "ml_table.h"
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTableT, ml_value_t *Table, char *Data, ml_cbor_write_fn WriteFn) {
-	ml_cbor_write_tag(Data, WriteFn, 60);
-	ml_cbor_write(ml_table_columns(Table), Data, WriteFn);
-	return NULL;
-}
 
-static ml_value_t *ml_cbor_read_table_fn(void *Data, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_TYPE(0, MLMapT);
-	ml_value_t *Table = ml_table();
-	ML_MAP_FOREACH(Args[0], Iter) {
-		if (!ml_is(Iter->Key, MLStringT)) return ml_error("CborError", "Invalid table");
-		if (!ml_is(Iter->Value, MLArrayT)) return ml_error("CborError", "Invalid table");
-		ml_value_t *Result = ml_table_insert(Table, Iter->Key, Iter->Value);
-		if (ml_is_error(Result)) return ml_error("CborError", "Invalid table");
-	}
-	return Table;
-}
 
 #endif
 
@@ -627,7 +475,7 @@ ml_value_t *ml_cbor_read_method(void *Data, int Count, ml_value_t **Args) {
 	return ml_method(ml_string_value(Args[0]));
 }
 
-ml_value_t *CborObjects;
+ml_value_t *CborObjects = NULL;
 
 ml_value_t *ml_cbor_read_object(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(1);
@@ -649,30 +497,13 @@ ml_value_t *ml_cbor_read_object(void *Data, int Count, ml_value_t **Args) {
 }
 
 void ml_cbor_init(stringmap_t *Globals) {
-	CborDefaultTags = ml_map();
-	CborObjects = ml_map();
-	ml_map_insert(CborDefaultTags, ml_integer(35), ml_cfunction(NULL, ml_cbor_read_regex));
-	ml_map_insert(CborDefaultTags, ml_integer(39), ml_cfunction(NULL, ml_cbor_read_method));
-	ml_map_insert(CborDefaultTags, ml_integer(27), ml_cfunction(NULL, ml_cbor_read_object));
-#ifdef ML_MATH
-	ml_map_insert(CborDefaultTags, ml_integer(40), ml_cfunction(NULL, ml_cbor_read_multi_array_fn));
-	ml_map_insert(CborDefaultTags, ml_integer(41), ml_cfunction(NULL, ml_cbor_read_any_array_fn));
-	ml_map_insert(CborDefaultTags, ml_integer(72), ml_cfunction((void *)ML_ARRAY_FORMAT_I8, ml_cbor_read_typed_array_fn));
-	ml_map_insert(CborDefaultTags, ml_integer(64), ml_cfunction((void *)ML_ARRAY_FORMAT_U8, ml_cbor_read_typed_array_fn));
-	ml_map_insert(CborDefaultTags, ml_integer(77), ml_cfunction((void *)ML_ARRAY_FORMAT_I16, ml_cbor_read_typed_array_fn));
-	ml_map_insert(CborDefaultTags, ml_integer(69), ml_cfunction((void *)ML_ARRAY_FORMAT_U16, ml_cbor_read_typed_array_fn));
-	ml_map_insert(CborDefaultTags, ml_integer(78), ml_cfunction((void *)ML_ARRAY_FORMAT_I32, ml_cbor_read_typed_array_fn));
-	ml_map_insert(CborDefaultTags, ml_integer(70), ml_cfunction((void *)ML_ARRAY_FORMAT_U32, ml_cbor_read_typed_array_fn));
-	ml_map_insert(CborDefaultTags, ml_integer(79), ml_cfunction((void *)ML_ARRAY_FORMAT_I64, ml_cbor_read_typed_array_fn));
-	ml_map_insert(CborDefaultTags, ml_integer(71), ml_cfunction((void *)ML_ARRAY_FORMAT_U64, ml_cbor_read_typed_array_fn));
-	ml_map_insert(CborDefaultTags, ml_integer(85), ml_cfunction((void *)ML_ARRAY_FORMAT_F32, ml_cbor_read_typed_array_fn));
-	ml_map_insert(CborDefaultTags, ml_integer(86), ml_cfunction((void *)ML_ARRAY_FORMAT_F64, ml_cbor_read_typed_array_fn));
-#endif
+	if (!CborDefaultTags) CborDefaultTags = ml_map();
+	if (!CborObjects) CborObjects = ml_map();
+	ml_cbor_default_tag(35, NULL, ml_cbor_read_regex);
+	ml_cbor_default_tag(39, NULL, ml_cbor_read_method);
+	ml_cbor_default_tag(27, NULL, ml_cbor_read_object);
 #ifdef ML_CBOR_BYTECODE
-	ml_map_insert(CborDefaultTags, ml_integer(36), ml_cfunction(NULL, ml_cbor_read_closure));
-#endif
-#ifdef ML_TABLES
-	ml_map_insert(CborDefaultTags, ml_integer(60), ml_cfunction(NULL, ml_cbor_read_table_fn));
+	ml_cbor_default_tag(36, NULL, ml_cbor_read_closure);
 #endif
 #include "ml_cbor_init.c"
 	if (Globals) {

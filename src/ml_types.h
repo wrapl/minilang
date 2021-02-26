@@ -398,6 +398,9 @@ double ml_real_value(const ml_value_t *Value) __attribute__ ((const));
 
 #ifdef ML_COMPLEX
 
+#ifdef	__cplusplus
+#else
+
 #include <complex.h>
 #undef I
 
@@ -414,6 +417,8 @@ complex double ml_complex_value(const ml_value_t *Value);
 inline complex double ml_complex_value_fast(const ml_value_t *Value) {
 	return ((ml_complex_t *)Value)->Value;
 }
+
+#endif
 
 #endif
 

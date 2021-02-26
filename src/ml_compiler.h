@@ -34,6 +34,10 @@ void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, cons
 
 ml_value_t *ml_stringmap_globals(stringmap_t *Globals);
 
+typedef ml_value_t *(*string_fn_t)(const char *String, int Length);
+
+void ml_string_fn_register(const char *Prefix, string_fn_t Fn);
+
 void ml_compiler_init();
 
 #ifdef	__cplusplus
