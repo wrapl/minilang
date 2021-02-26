@@ -10,4 +10,6 @@ void ml_time_init(stringmap_t *Globals);
 ml_value_t *ml_time(time_t Sec, unsigned long NSec);
 ml_value_t *ml_time_parse(const char *Value, int Length);
 
+void ml_time_value(ml_value_t *Value, struct timespec *Time);
+
 #endif

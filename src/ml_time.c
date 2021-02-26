@@ -1,7 +1,6 @@
 #include "ml_time.h"
 #include "ml_macros.h"
 #include <string.h>
-#include <time.h>
 
 #ifdef ML_CBOR
 #include "ml_cbor.h"
@@ -19,6 +18,10 @@ static long ml_time_hash(ml_time_t *Time, ml_hash_chain_t *Chain) {
 ML_TYPE(MLTimeT, (), "time",
 	.hash = (void *)ml_time_hash
 );
+
+void ml_time_value(ml_value_t *Value, struct timespec *Time) {
+	Time[0] = ((ml_time_t *)Value)->Value[0];
+}
 
 ML_METHOD(MLTimeT) {
 	ml_time_t *Time = new(ml_time_t);
@@ -176,7 +179,7 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTimeT, ml_time_t *Time, void *Da
 	}
 	ml_cbor_write_tag(Data, WriteFn, 0);
 	ml_cbor_write_string(Data, WriteFn, Length);
-	WriteFn(Data, String, Length);
+	WriteFn(Data, (const unsigned char *)String, Length);
 	return NULL;
 }
 
@@ -188,7 +191,6 @@ static ml_value_t *ml_cbor_read_time_fn(void *Data, int Count, ml_value_t **Args
 		return (ml_value_t *)Time;
 	} else if (ml_is(Args[0], MLStringT)) {
 		const char *Value = ml_string_value(Args[0]);
-		int Length = ml_string_length(Args[0]);
 		ml_time_t *Time = new(ml_time_t);
 		Time->Type = MLTimeT;
 		struct tm TM = {0,};
