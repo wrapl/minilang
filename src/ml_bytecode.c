@@ -864,8 +864,11 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	if (Info->NamedArgs) --NumParams;
 	int Min = (Count < NumParams) ? Count : NumParams;
 	int I = 0;
+	ml_decl_t *Decl = Info->Decls;
 	for (; I < Min; ++I) {
-		ml_value_t *Arg = ml_deref(Args[I]);
+		ml_value_t *Arg = Args[I];
+		if (!(Decl->Flags & MLC_DECL_BYREF)) Arg = ml_deref(Arg);
+		Decl = Decl->Next;
 		if (ml_is_error(Arg)) ML_RETURN(Arg);
 		if (ml_typeof(Arg) == MLNamesT) break;
 		Frame->Stack[I] = Arg;

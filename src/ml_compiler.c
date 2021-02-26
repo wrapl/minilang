@@ -27,10 +27,6 @@ struct mlc_upvalue_t {
 	int Index;
 };
 
-#define MLC_DECL_CONSTANT 1
-#define MLC_DECL_FORWARD 2
-#define MLC_DECL_BACKFILL 4
-
 struct mlc_loop_t {
 	mlc_loop_t *Up;
 	mlc_try_t *Try;
@@ -2365,6 +2361,7 @@ static mlc_expr_t *ml_accept_fun_expr(ml_compiler_t *Compiler, ml_token_t EndTok
 				if (ml_parse2(Compiler, MLT_BLANK)) {
 					Param->Ident = "_";
 				} else {
+					if (ml_parse2(Compiler, MLT_VAR)) Param->Flags |= MLC_DECL_BYREF;
 					ml_accept(Compiler, MLT_IDENT);
 					Param->Ident = Compiler->Ident;
 				}
@@ -3500,6 +3497,7 @@ ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, ml_compiler_t 
 	Info->LineNo = Expr->Source.Line;
 	Info->FrameSize = Function->Size;
 	Info->NumParams = NumParams;
+	Info->Decls = Function->Decls;
 	ml_closure_t *Closure = new(ml_closure_t);
 	Closure->Info = Info;
 	Closure->Type = MLClosureT;
