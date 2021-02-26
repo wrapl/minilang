@@ -161,22 +161,18 @@ ML_METHOD("-", MLTimeT, MLTimeT) {
 static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTimeT, ml_time_t *Time, void *Data, ml_cbor_write_fn WriteFn) {
 	struct tm TM = {0,};
 	gmtime_r(&Time->Value->tv_sec, &TM);
-	size_t Length = strftime(NULL, -1, "%F %T", &TM);
+	size_t Length = strftime(NULL, -1, "%FT%T", &TM);
 	char *String;
 	unsigned long NSec = Time->Value->tv_nsec;
-	if (NSec) {
-		int Width = 9;
-		while (NSec % 10 == 0) {
-			--Width;
-			NSec /= 10;
-		}
-		Length += Width + 1;
-		String = snew(Length + 1);
-		char *End = String + strftime(String, Length + 1, "%FT%T", &TM);
-		sprintf(End, ".%0*lu", Width, NSec);
-	} else {
-		strftime(String = snew(Length + 1), Length + 1, "%FT%T", &TM);
+	int Width = 9;
+	while (NSec % 10 == 0) {
+		--Width;
+		NSec /= 10;
 	}
+	Length += Width + 1;
+	String = snew(Length + 1);
+	char *End = String + strftime(String, Length + 1, "%FT%T", &TM);
+	sprintf(End, ".%0*lu", Width, NSec);
 	ml_cbor_write_tag(Data, WriteFn, 0);
 	ml_cbor_write_string(Data, WriteFn, Length);
 	WriteFn(Data, (const unsigned char *)String, Length);
