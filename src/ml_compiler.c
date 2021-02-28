@@ -111,7 +111,6 @@ typedef struct ml_compiler_task_t ml_compiler_task_t;
 struct ml_compiler_t {
 	ml_state_t Base;
 	ml_compiler_task_t *Tasks, **TaskSlot;
-	ml_context_t *Context;
 	const char *Next;
 	void *Data;
 	const char *(*Read)(void *);
@@ -3554,7 +3553,6 @@ static void ml_task_closure_start(ml_compiler_task_t *Task, ml_compiler_t *Compi
 
 void ml_function_compile(ml_state_t *Caller, ml_compiler_t *Compiler, const char **Parameters) {
 	MLC_ON_ERROR(Compiler) ML_RETURN(Compiler->Error);
-	Compiler->Context = Caller->Context;
 	Compiler->Base.Caller = Caller;
 	Compiler->Base.Context = Caller->Context;
 	mlc_expr_t *Block = ml_accept_block(Compiler);
@@ -3956,7 +3954,6 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler) {
 	}
 	ml_skip_eol(Compiler);
 	if (ml_parse(Compiler, MLT_EOI)) ML_RETURN(MLEndOfInput);
-	Compiler->Context = Caller->Context;
 	Compiler->Base.Caller = Caller;
 	Compiler->Base.Context = Caller->Context;
 	if (ml_parse(Compiler, MLT_VAR)) {
