@@ -627,7 +627,8 @@ static void ml_channel_run(ml_channel_t *Channel, ml_value_t *Value) {
 extern ml_type_t MLChannelT[];
 
 ML_FUNCTION(MLChannel) {
-//!internal
+//!channel
+//@channel
 	ml_channel_t *Channel = new(ml_channel_t);
 	Channel->Base.Type = MLChannelT;
 	Channel->Base.run = (ml_state_fn)ml_channel_run;
@@ -636,10 +637,15 @@ ML_FUNCTION(MLChannel) {
 }
 
 ML_TYPE(MLChannelT, (), "channel",
+//!channel
 	.Constructor = (ml_value_t *)MLChannel
 );
 
-ML_METHODVX("open", MLChannelT, MLAnyT) {
+ML_METHODVX("add", MLChannelT, MLFunctionT) {
+//!channel
+//<Channel
+//<Function
+//>any
 	ml_channel_t *Channel = (ml_channel_t *)Args[0];
 	Channel->Base.Caller = Caller;
 	Channel->Base.Context = Caller->Context;
@@ -649,14 +655,15 @@ ML_METHODVX("open", MLChannelT, MLAnyT) {
 	return ml_call(Channel, Function, Count - 1, Args + 1);
 }
 
-ML_METHOD("ready", MLChannelT) {
+ML_METHOD("open", MLChannelT) {
+//!channel
+//<Channel
+//>channel | nil
 	ml_channel_t *Channel = (ml_channel_t *)Args[0];
 	return Channel->Open ? Args[0] : MLNil;
 }
 
-ML_METHODX("next", MLChannelT) {
-	ml_channel_t *Channel = (ml_channel_t *)Args[0];
-	ml_value_t *Value = (Count > 1) ? Args[1] : MLNil;
+static inline void ml_channel_next(ml_state_t *Caller, ml_channel_t *Channel, ml_value_t *Value) {
 	if (!Channel->Open) ML_ERROR("ChannelError", "Channel is not open");
 	ml_channel_message_t *Message = Channel->Head;
 	ml_channel_message_t *Next = Message->Next;
@@ -670,7 +677,26 @@ ML_METHODX("next", MLChannelT) {
 	ML_CONTINUE(Message->Sender, Value);
 }
 
+ML_METHODX("next", MLChannelT) {
+//!channel
+//<Channel
+//>any
+	return ml_channel_next(Caller, (ml_channel_t *)Args[0], MLNil);
+}
+
+ML_METHODX("next", MLChannelT, MLAnyT) {
+//!channel
+//<Channel
+//<Reply
+//>any
+	return ml_channel_next(Caller, (ml_channel_t *)Args[0], Args[1]);
+}
+
 ML_METHODX("send", MLChannelT, MLAnyT) {
+//!channel
+//<Channel
+//<Message
+//>any
 	ml_channel_t *Channel = (ml_channel_t *)Args[0];
 	if (!Channel->Open) ML_ERROR("ChannelError", "Channel is not open");
 	ml_channel_message_t *Message = new(ml_channel_message_t);
@@ -683,7 +709,10 @@ ML_METHODX("send", MLChannelT, MLAnyT) {
 	}
 }
 
-ML_METHODVX("close", MLChannelT, MLAnyT) {
+ML_METHODVX("close", MLChannelT, MLFunctionT) {
+//!channel
+//<Channel
+//<Function
 	ml_channel_t *Channel = (ml_channel_t *)Args[0];
 	return ml_call((ml_state_t *)Channel, Args[1], Count - 2, Args + 2);
 }

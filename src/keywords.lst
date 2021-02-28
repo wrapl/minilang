@@ -31,5 +31,6 @@ not, MLT_NOT
 old, MLT_OLD
 def, MLT_DEF
 let, MLT_LET
+ref, MLT_REF
 var, MLT_VAR
 _, MLT_BLANK

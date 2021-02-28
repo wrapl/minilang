@@ -1,6 +1,6 @@
 /* ANSI-C code produced by gperf version 3.1 */
 /* Command-line: gperf -LANSI-C -C -c -t -KName -Zkeyword -Hhash -Nlookup -m 100 keywords.lst  */
-/* Computed positions: -k'1-2' */
+/* Computed positions: -k'1,$' */
 
 #if !((' ' == 32) && ('!' == 33) && ('"' == 34) && ('#' == 35) \
       && ('%' == 37) && ('&' == 38) && ('\'' == 39) && ('(' == 40) \
@@ -32,12 +32,12 @@
 #line 1 "keywords.lst"
 struct keyword_t {const char *Name; int Token;};
 
-#define TOTAL_KEYWORDS 33
+#define TOTAL_KEYWORDS 34
 #define MIN_WORD_LENGTH 1
 #define MAX_WORD_LENGTH 6
 #define MIN_HASH_VALUE 1
-#define MAX_HASH_VALUE 33
-/* maximum key range = 33, duplicates = 0 */
+#define MAX_HASH_VALUE 44
+/* maximum key range = 44, duplicates = 0 */
 
 #ifdef __GNUC__
 __inline
@@ -51,45 +51,34 @@ hash (register const char *str, register size_t len)
 {
   static const unsigned char asso_values[] =
     {
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34,  0, 34, 27, 34, 34,
-       9,  2, 10, 34, 16, 15, 34, 34,  4, 26,
-       0,  0, 34, 34, 24, 11,  2, 10,  1,  0,
-      18, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45,  0,  0, 45,  3, 45,
+      26,  5,  1, 11, 11, 45,  3, 45, 28, 24,
+       9,  0, 15, 45,  8,  8,  0, 15,  0, 18,
+       5, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45
     };
-  register unsigned int hval = len;
-
-  switch (hval)
-    {
-      default:
-        hval += asso_values[(unsigned char)str[1]];
-      /*FALLTHROUGH*/
-      case 1:
-        hval += asso_values[(unsigned char)str[0]];
-        break;
-    }
-  return hval;
+  return len + asso_values[(unsigned char)str[len - 1]] + asso_values[(unsigned char)str[0]+1];
 }
 
 const struct keyword_t *
@@ -98,72 +87,76 @@ lookup (register const char *str, register size_t len)
   static const struct keyword_t wordlist[] =
     {
       {""},
-#line 35 "keywords.lst"
+#line 36 "keywords.lst"
       {"_", MLT_BLANK},
-#line 26 "keywords.lst"
-      {"on", MLT_ON},
+      {""},
 #line 30 "keywords.lst"
       {"not", MLT_NOT},
-#line 15 "keywords.lst"
-      {"to", MLT_TO},
-#line 7 "keywords.lst"
-      {"end", MLT_END},
 #line 12 "keywords.lst"
       {"next", MLT_NEXT},
-#line 31 "keywords.lst"
-      {"old", MLT_OLD},
-#line 8 "keywords.lst"
-      {"loop", MLT_LOOP},
-#line 33 "keywords.lst"
-      {"let", MLT_LET},
-#line 6 "keywords.lst"
-      {"else", MLT_ELSE},
+#line 11 "keywords.lst"
+      {"exit", MLT_EXIT},
+#line 3 "keywords.lst"
+      {"if", MLT_IF},
 #line 25 "keywords.lst"
       {"do", MLT_DO},
 #line 5 "keywords.lst"
       {"elseif", MLT_ELSEIF},
-#line 13 "keywords.lst"
-      {"for", MLT_FOR},
 #line 32 "keywords.lst"
       {"def", MLT_DEF},
-#line 10 "keywords.lst"
-      {"until", MLT_UNTIL},
-#line 22 "keywords.lst"
-      {"debug", MLT_DEBUG},
-#line 16 "keywords.lst"
-      {"in", MLT_IN},
-#line 27 "keywords.lst"
-      {"nil", MLT_NIL},
-#line 24 "keywords.lst"
-      {"with", MLT_WITH},
-#line 18 "keywords.lst"
-      {"when", MLT_WHEN},
-#line 9 "keywords.lst"
-      {"while", MLT_WHILE},
-#line 4 "keywords.lst"
-      {"then", MLT_THEN},
-#line 19 "keywords.lst"
-      {"fun", MLT_FUN},
-#line 11 "keywords.lst"
-      {"exit", MLT_EXIT},
-#line 21 "keywords.lst"
-      {"susp", MLT_SUSP},
-#line 29 "keywords.lst"
-      {"or", MLT_OR},
-#line 3 "keywords.lst"
-      {"if", MLT_IF},
-#line 17 "keywords.lst"
-      {"is", MLT_IS},
+#line 6 "keywords.lst"
+      {"else", MLT_ELSE},
 #line 20 "keywords.lst"
       {"ret", MLT_RET},
-#line 28 "keywords.lst"
-      {"and", MLT_AND},
 #line 34 "keywords.lst"
-      {"var", MLT_VAR},
+      {"ref", MLT_REF},
+#line 17 "keywords.lst"
+      {"is", MLT_IS},
+#line 16 "keywords.lst"
+      {"in", MLT_IN},
+#line 9 "keywords.lst"
+      {"while", MLT_WHILE},
+#line 14 "keywords.lst"
+      {"each", MLT_EACH},
+#line 15 "keywords.lst"
+      {"to", MLT_TO},
+#line 18 "keywords.lst"
+      {"when", MLT_WHEN},
+#line 21 "keywords.lst"
+      {"susp", MLT_SUSP},
+#line 24 "keywords.lst"
+      {"with", MLT_WITH},
+#line 22 "keywords.lst"
+      {"debug", MLT_DEBUG},
+#line 13 "keywords.lst"
+      {"for", MLT_FOR},
+#line 19 "keywords.lst"
+      {"fun", MLT_FUN},
 #line 23 "keywords.lst"
       {"meth", MLT_METH},
-#line 14 "keywords.lst"
-      {"each", MLT_EACH}
+#line 29 "keywords.lst"
+      {"or", MLT_OR},
+#line 26 "keywords.lst"
+      {"on", MLT_ON},
+#line 33 "keywords.lst"
+      {"let", MLT_LET},
+#line 4 "keywords.lst"
+      {"then", MLT_THEN},
+#line 35 "keywords.lst"
+      {"var", MLT_VAR},
+#line 7 "keywords.lst"
+      {"end", MLT_END},
+#line 27 "keywords.lst"
+      {"nil", MLT_NIL},
+#line 28 "keywords.lst"
+      {"and", MLT_AND},
+#line 10 "keywords.lst"
+      {"until", MLT_UNTIL},
+      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+#line 8 "keywords.lst"
+      {"loop", MLT_LOOP},
+#line 31 "keywords.lst"
+      {"old", MLT_OLD}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)

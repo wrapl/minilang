@@ -25,18 +25,6 @@ runtime
    If a debugger present and :mini:`Condition` is omitted or not :mini:`nil` then triggers a breakpoint.
 
 
-:mini:`type channel`
-
-:mini:`meth :open(Arg₁: channel, Arg₂: any)`
-
-:mini:`meth :ready(Arg₁: channel)`
-
-:mini:`meth :next(Arg₁: channel)`
-
-:mini:`meth :send(Arg₁: channel, Arg₂: any)`
-
-:mini:`meth :close(Arg₁: channel, Arg₂: any)`
-
 :mini:`meth :error(Arg₁: channel, Arg₂: string, Arg₃: string)`
 
 :mini:`meth :raise(Arg₁: channel, Arg₂: string, Arg₃: any)`

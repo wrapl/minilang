@@ -65,8 +65,6 @@ internal
 
 :mini:`type errorvalue`
 
-:mini:`fun mlchannel()`
-
 :mini:`type stringiterator`
 
 :mini:`type tableiter`

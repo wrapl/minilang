@@ -84,6 +84,7 @@ typedef enum ml_token_t {
 	MLT_OLD,
 	MLT_DEF,
 	MLT_LET,
+	MLT_REF,
 	MLT_VAR,
 	MLT_IDENT,
 	MLT_BLANK,
@@ -746,9 +747,23 @@ static mlc_compiled_t ml_var_unpack_expr_compile(mlc_function_t *Function, mlc_d
 
 static mlc_compiled_t ml_let_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
 	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
-	ml_inst_t *LetInst = ml_inst_new(2, Expr->Source, (Expr->Decl->Flags & MLC_DECL_BACKFILL) ? MLI_LETI : MLI_LET);
+	ml_inst_t *LetInst;
+	switch (Expr->Decl->Flags & (MLC_DECL_BYREF | MLC_DECL_BACKFILL)) {
+	case MLC_DECL_BYREF | MLC_DECL_BACKFILL:
+		LetInst = ml_inst_new(2, Expr->Source, MLI_REFI);
+		break;
+	case MLC_DECL_BYREF:
+		LetInst = ml_inst_new(2, Expr->Source, MLI_REF);
+		break;
+	case MLC_DECL_BACKFILL:
+		LetInst = ml_inst_new(2, Expr->Source, MLI_LETI);
+		break;
+	default:
+		LetInst = ml_inst_new(2, Expr->Source, MLI_LET);
+		break;
+	}
 	LetInst->Params[1].Index = Expr->Decl->Index - Function->Top;
-	Expr->Decl->Flags = 0;
+	Expr->Decl->Flags &= ~MLC_DECL_BACKFILL;
 	mlc_connect(Compiled.Exits, LetInst);
 	Compiled.Exits = LetInst;
 	return Compiled;
@@ -775,7 +790,20 @@ static mlc_compiled_t ml_let_in_expr_compile(mlc_function_t *Function, mlc_decl_
 		CallInst->Params[1].Count = 2;
 		ValueInst->Params[0].Inst = CallInst;
 		Function->Top -= 2;
-		LetInst = ml_inst_new(2, Expr->Source, (Decl->Flags & MLC_DECL_BACKFILL) ? MLI_LETI : MLI_LET);
+		switch (Decl->Flags & (MLC_DECL_BYREF | MLC_DECL_BACKFILL)) {
+		case MLC_DECL_BYREF | MLC_DECL_BACKFILL:
+			LetInst = ml_inst_new(2, Expr->Source, MLI_REFI);
+			break;
+		case MLC_DECL_BYREF:
+			LetInst = ml_inst_new(2, Expr->Source, MLI_REF);
+			break;
+		case MLC_DECL_BACKFILL:
+			LetInst = ml_inst_new(2, Expr->Source, MLI_LETI);
+			break;
+		default:
+			LetInst = ml_inst_new(2, Expr->Source, MLI_LET);
+			break;
+		}
 		LetInst->Params[1].Index = Decl->Index - Function->Top;
 		CallInst->Params[0].Inst = LetInst;
 		Decl->Flags = 0;
@@ -790,8 +818,8 @@ static mlc_compiled_t ml_let_in_expr_compile(mlc_function_t *Function, mlc_decl_
 
 static mlc_compiled_t ml_let_unpack_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
 	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
-	ml_inst_t *LetInst = ml_inst_new(3, Expr->Source, MLI_LETX);
 	ml_decl_t *Decl = Expr->Decl;
+	ml_inst_t *LetInst = ml_inst_new(3, Expr->Source, Decl->Flags & MLC_DECL_BYREF ? MLI_REFX : MLI_LETX);
 	LetInst->Params[1].Index = (Decl->Index - Function->Top) - (Expr->Count - 1);
 	LetInst->Params[2].Count = Expr->Count;
 	for (int I = 0; I < Expr->Count; ++I) {
@@ -1758,6 +1786,7 @@ const char *MLTokens[] = {
 	"old", // MLT_OLD,
 	"def", // MLT_DEF,
 	"let", // MLT_LET,
+	"ref", // MLT_REF,
 	"var", // MLT_VAR,
 	"<identifier>", // MLT_IDENT,
 	"_", // MLT_BLANK,
@@ -2361,7 +2390,7 @@ static mlc_expr_t *ml_accept_fun_expr(ml_compiler_t *Compiler, ml_token_t EndTok
 				if (ml_parse2(Compiler, MLT_BLANK)) {
 					Param->Ident = "_";
 				} else {
-					if (ml_parse2(Compiler, MLT_VAR)) Param->Flags |= MLC_DECL_BYREF;
+					if (ml_parse2(Compiler, MLT_REF)) Param->Flags |= MLC_DECL_BYREF;
 					ml_accept(Compiler, MLT_IDENT);
 					Param->Ident = Compiler->Ident;
 				}
@@ -3177,7 +3206,7 @@ static void ml_accept_block_var(ml_compiler_t *Compiler, ml_accept_block_t *Acce
 	} while (ml_parse(Compiler, MLT_COMMA));
 }
 
-static void ml_accept_block_let(ml_compiler_t *Compiler, ml_accept_block_t *Accept) {
+static void ml_accept_block_let(ml_compiler_t *Compiler, ml_accept_block_t *Accept, int Flags) {
 	do {
 		if (ml_parse2(Compiler, MLT_LEFT_PAREN)) {
 			int Count = 0;
@@ -3188,7 +3217,7 @@ static void ml_accept_block_let(ml_compiler_t *Compiler, ml_accept_block_t *Acce
 				Decl = Accept->LetsSlot[0] = new(ml_decl_t);
 				Decl->Source = Compiler->Source;
 				Decl->Ident = Compiler->Ident;
-				Decl->Flags = MLC_DECL_FORWARD;
+				Decl->Flags = MLC_DECL_FORWARD | Flags;
 				Accept->LetsSlot = &Decl->Next;
 			} while (ml_parse2(Compiler, MLT_COMMA));
 			ml_accept(Compiler, MLT_RIGHT_PAREN);
@@ -3213,7 +3242,7 @@ static void ml_accept_block_let(ml_compiler_t *Compiler, ml_accept_block_t *Acce
 			ml_decl_t *Decl = Accept->LetsSlot[0] = new(ml_decl_t);
 			Decl->Source = Compiler->Source;
 			Decl->Ident = Compiler->Ident;
-			Decl->Flags = MLC_DECL_FORWARD;
+			Decl->Flags = MLC_DECL_FORWARD | Flags;
 			Accept->LetsSlot = &Decl->Next;
 			ML_EXPR(DeclExpr, decl, let);
 			DeclExpr->Decl = Decl;
@@ -3338,7 +3367,11 @@ static mlc_expr_t *ml_parse_block_expr(ml_compiler_t *Compiler, ml_accept_block_
 			Expr = ml_accept_block_export(Compiler, Expr, Exports[0]);
 		} else if (ml_parse2(Compiler, MLT_LET)) {
 			ml_decl_t **Exports = Accept->LetsSlot;
-			ml_accept_block_let(Compiler, Accept);
+			ml_accept_block_let(Compiler, Accept, 0);
+			Expr = ml_accept_block_export(Compiler, Expr, Exports[0]);
+		} else if (ml_parse2(Compiler, MLT_REF)) {
+			ml_decl_t **Exports = Accept->LetsSlot;
+			ml_accept_block_let(Compiler, Accept, MLC_DECL_BYREF);
 			Expr = ml_accept_block_export(Compiler, Expr, Exports[0]);
 		} else if (ml_parse2(Compiler, MLT_DEF)) {
 			ml_decl_t **Exports = Accept->DefsSlot;
@@ -3406,7 +3439,12 @@ static mlc_block_expr_t *ml_accept_block_body(ml_compiler_t *Compiler) {
 		}
 		case MLT_LET: {
 			ml_next(Compiler);
-			ml_accept_block_let(Compiler, Accept);
+			ml_accept_block_let(Compiler, Accept, 0);
+			break;
+		}
+		case MLT_REF: {
+			ml_next(Compiler);
+			ml_accept_block_let(Compiler, Accept, MLC_DECL_BYREF);
 			break;
 		}
 		case MLT_DEF: {
@@ -3638,6 +3676,10 @@ ML_TYPE(MLGlobalT, (), "global",
 	.assign = (void *)ml_global_assign
 );
 
+static ml_value_t *ML_TYPED_FN(ml_unpack, MLGlobalT, ml_global_t *Global, int Index) {
+	return ml_unpack(Global->Value, Index);
+}
+
 ML_METHOD("var", MLCompilerT, MLStringT) {
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
@@ -3738,7 +3780,7 @@ typedef struct {
 } ml_command_decl_t;
 
 static ml_value_t *ml_command_decl_finish(ml_command_decl_t *Task, ml_value_t *Value) {
-	Value = ml_deref(Value);
+	if (Task->Type != MLT_REF) Value = ml_deref(Value);
 	if (Task->Global) {
 		if (Task->Type == MLT_VAR) {
 			ml_variable_t *Var = new(ml_variable_t);
@@ -3754,6 +3796,7 @@ static ml_value_t *ml_command_decl_finish(ml_command_decl_t *Task, ml_value_t *V
 		int Index = 0;
 		for (ml_command_import_t *Unpack = Task->Unpacks; Unpack; Unpack = (ml_command_import_t *)Unpack->Base.Next, ++Index) {
 			ml_value_t *Unpacked = ml_unpack(Value, Index + 1);
+			if (Task->Type != MLT_REF) Unpacked = ml_deref(Unpacked);
 			if (Task->Type == MLT_VAR) {
 				ml_variable_t *Var = new(ml_variable_t);
 				Var->Type = MLVariableT;
@@ -3920,6 +3963,8 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler) {
 		ml_accept_command_decl(MLT_VAR, Compiler);
 	} else if (ml_parse(Compiler, MLT_LET)) {
 		ml_accept_command_decl(MLT_LET, Compiler);
+	} else if (ml_parse(Compiler, MLT_REF)) {
+		ml_accept_command_decl(MLT_REF, Compiler);
 	} else if (ml_parse(Compiler, MLT_DEF)) {
 		ml_accept_command_decl(MLT_DEF, Compiler);
 	} else if (ml_parse(Compiler, MLT_FUN)) {
