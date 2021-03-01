@@ -3348,14 +3348,6 @@ static mlc_expr_t *ml_accept_block_export(ml_compiler_t *Compiler, mlc_expr_t *E
 	return (mlc_expr_t *)CallExpr;
 }
 
-typedef enum {
-	MLC_STATEMENT_NONE,
-	MLC_STATEMENT_VAR,
-	MLC_STATEMENT_LET,
-	MLC_STATEMENT_DEF,
-	MLC_STATEMENT_EXPR
-} mlc_statement_type_t;
-
 static mlc_expr_t *ml_parse_block_expr(ml_compiler_t *Compiler, ml_accept_block_t *Accept) {
 	mlc_expr_t *Expr = ml_parse_expression(Compiler, EXPR_DEFAULT);
 	if (!Expr) return NULL;
@@ -3428,7 +3420,7 @@ static mlc_block_expr_t *ml_accept_block_body(ml_compiler_t *Compiler) {
 	Accept->VarsSlot = &BlockExpr->Vars;
 	Accept->LetsSlot = &BlockExpr->Lets;
 	Accept->DefsSlot = &BlockExpr->Defs;
-	for (;;) {
+	do {
 		ml_skip_eol(Compiler);
 		switch (ml_current(Compiler)) {
 		case MLT_VAR: {
@@ -3464,10 +3456,7 @@ static mlc_block_expr_t *ml_accept_block_body(ml_compiler_t *Compiler) {
 			break;
 		}
 		}
-		if (ml_parse(Compiler, MLT_SEMICOLON)) continue;
-		if (ml_parse(Compiler, MLT_EOL)) continue;
-		return BlockExpr;
-	}
+	} while (ml_parse(Compiler, MLT_SEMICOLON) || ml_parse(Compiler, MLT_EOL));
 	return BlockExpr;
 }
 
