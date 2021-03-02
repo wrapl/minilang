@@ -1738,6 +1738,118 @@ COMPLETE_FUNCTIONS(complex_double, complex_double);
 
 #endif
 
+static char *array_flatten_to(char *Target, int Size, int Degree, int FlatDegree, ml_array_dimension_t *Dimension, char *Source) {
+	if (Degree == FlatDegree) {
+		int Total = Dimension->Size * Dimension->Stride;
+		memcpy(Target, Source, Total);
+		return Target + Total;
+	} else if (Degree == 1) {
+		if (!Dimension->Indices) {
+			int Stride = Dimension->Stride;
+			switch (Size) {
+			case 1:
+				for (int I = Dimension->Size; --I >= 0;) {
+					memcpy(Target, Source, 1);
+					Target += 1;
+					Source += Stride;
+				}
+				break;
+			case 2:
+				for (int I = Dimension->Size; --I >= 0;) {
+					memcpy(Target, Source, 2);
+					Target += 2;
+					Source += Stride;
+				}
+				break;
+			case 4:
+				for (int I = Dimension->Size; --I >= 0;) {
+					memcpy(Target, Source, 4);
+					Target += 4;
+					Source += Stride;
+				}
+				break;
+			case 8:
+				for (int I = Dimension->Size; --I >= 0;) {
+					memcpy(Target, Source, 8);
+					Target += 8;
+					Source += Stride;
+				}
+				break;
+			case 16:
+				for (int I = Dimension->Size; --I >= 0;) {
+					memcpy(Target, Source, 16);
+					Target += 16;
+					Source += Stride;
+				}
+				break;
+			}
+		} else {
+			int Stride = Dimension->Stride;
+			int *Indices = Dimension->Indices;
+			switch (Size) {
+			case 1:
+				for (int I = Dimension->Size; --I >= 0;) {
+					memcpy(Target, Source + Stride * *Indices++, 1);
+					Target += 1;
+				}
+				break;
+			case 2:
+				for (int I = Dimension->Size; --I >= 0;) {
+					memcpy(Target, Source + Stride * *Indices++, 2);
+					Target += 2;
+				}
+				break;
+			case 4:
+				for (int I = Dimension->Size; --I >= 0;) {
+					memcpy(Target, Source + Stride * *Indices++, 4);
+					Target += 4;
+				}
+				break;
+			case 8:
+				for (int I = Dimension->Size; --I >= 0;) {
+					memcpy(Target, Source + Stride * *Indices++, 8);
+					Target += 8;
+				}
+				break;
+			case 16:
+				for (int I = Dimension->Size; --I >= 0;) {
+					memcpy(Target, Source + Stride * *Indices++, 16);
+					Target += 16;
+				}
+				break;
+			}
+		}
+		return Target;
+	} else if (!Dimension->Indices) {
+		int Stride = Dimension->Stride;
+		for (int I = Dimension->Size; --I >= 0;) {
+			Target = array_flatten_to(Target, Size, Degree - 1, FlatDegree, Dimension + 1, Source);
+			Source += Stride;
+		}
+		return Target;
+	} else {
+		int Stride = Dimension->Stride;
+		int *Indices = Dimension->Indices;
+		for (int I = Dimension->Size; --I >= 0;) {
+			Target = array_flatten_to(Target, Size, Degree - 1, FlatDegree, Dimension + 1, Source + Stride * *Indices++);
+		}
+		return Target;
+	}
+}
+
+static char *array_flatten(ml_array_t *Source) {
+	size_t Size = MLArraySizes[Source->Format];
+	int FlatDegree = Source->Degree;
+	for (int I = Source->Degree; --I >= 0;) {
+		if (Size == Source->Dimensions[I].Stride) FlatDegree = I;
+		Size *= Source->Dimensions[I].Size;
+	}
+	FlatDegree = Source->Degree - FlatDegree;
+	char *Data = GC_malloc_atomic(Size);
+	array_flatten_to(Data, MLArraySizes[Source->Format], Source->Degree, FlatDegree, Source->Dimensions, Source->Base.Address);
+	return Data;
+}
+
 static int array_copy(ml_array_t *Target, ml_array_t *Source) {
 	int Degree = Source->Degree;
 	int DataSize = MLArraySizes[Target->Format];
@@ -1746,9 +1858,14 @@ static int array_copy(ml_array_t *Target, ml_array_t *Source) {
 		int Size = Target->Dimensions[I].Size = Source->Dimensions[I].Size;
 		DataSize *= Size;
 	}
-	Target->Base.Address = GC_MALLOC_ATOMIC(DataSize);
-	int Op = Target->Format * MAX_FORMATS + Source->Format;
-	update_array(Op, Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address);
+	Target->Base.Size = DataSize;
+	if (Target->Format == Source->Format) {
+		Target->Base.Address = array_flatten(Source);
+	} else {
+		Target->Base.Address = GC_MALLOC_ATOMIC(DataSize);
+		int Op = Target->Format * MAX_FORMATS + Source->Format;
+		update_array(Op, Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address);
+	}
 	return DataSize;
 }
 
@@ -1766,20 +1883,10 @@ ML_METHOD("reshape", MLArrayT, MLListT) {
 	size_t SourceCount = 1;
 	for (int I = 0; I < SourceDegree; ++I) SourceCount *= Source->Dimensions[I].Size;
 	if (TargetCount != SourceCount) return ml_error("ArrayError", "Incompatible shapes");
-	ml_array_dimension_t TempDimensions[SourceDegree];
-	int DataSize = MLArraySizes[Source->Format];
-	for (int I = SourceDegree; --I >= 0;) {
-		TempDimensions[I].Stride = DataSize;
-		int Size = TempDimensions[I].Size = Source->Dimensions[I].Size;
-		DataSize *= Size;
-		TempDimensions[I].Indices = NULL;
-	}
-	char *Address = GC_MALLOC_ATOMIC(DataSize);
-	int Op = Source->Format * MAX_FORMATS + Source->Format;
-	update_array(Op, TempDimensions, Address, SourceDegree, Source->Dimensions, Source->Base.Address);
+
 	ml_array_t *Target = ml_array_new(Source->Format, TargetDegree);
-	Target->Base.Address = Address;
-	DataSize = MLArraySizes[Target->Format];
+	Target->Base.Address = array_flatten(Source);
+	size_t DataSize = MLArraySizes[Target->Format];
 	int I = TargetDegree;
 	ML_LIST_REVERSE(Args[1], Iter) {
 		--I;
