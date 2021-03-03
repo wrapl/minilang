@@ -15,5 +15,3 @@ bytecode
 
 :mini:`meth :list(Arg₁: closure)`
 
-:mini:`meth !!(Arg₁: closure, Arg₂: list)`
-

@@ -85,8 +85,6 @@ internal
 
 :mini:`type cfunctionz < function`
 
-:mini:`meth $(Arg₁: partialfunction, Arg₂: any)`
-
 :mini:`type int32 < integer`
 
 :mini:`type int64 < integer`

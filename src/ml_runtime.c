@@ -10,6 +10,8 @@
 
 // Runtime //
 
+ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
+
 static int MLContextSize = 4;
 // Reserved context slots:
 //  0: Method Table
@@ -233,9 +235,8 @@ ML_FUNCTIONX(MLMarkCC) {
 	State->run = ml_default_state_run;
 	State->Context = Caller->Context;
 	ml_value_t *Func = Args[0];
-	ml_value_t **Args2 = anew(ml_value_t *, 1);
-	Args2[0] = (ml_value_t *)State;
-	return ml_call(State, Func, 1, Args2);
+	Args[0] = (ml_value_t *)State;
+	return ml_call(State, Func, 1, Args);
 }
 
 ML_FUNCTIONX(MLCallDC) {
@@ -255,9 +256,8 @@ ML_FUNCTIONX(MLCallDC) {
 	Resumable->Base.Context = Caller->Context;
 	Resumable->Last = Last;
 	ml_value_t *Function = Args[1];
-	ml_value_t **Args2 = anew(ml_value_t *, 1);
-	Args2[0] = (ml_value_t *)Resumable;
-	return ml_call(State, Function, 1, Args2);
+	Args[0] = (ml_value_t *)Resumable;
+	return ml_call(State, Function, 1, Args);
 }
 
 ML_FUNCTIONX(MLSwapCC) {

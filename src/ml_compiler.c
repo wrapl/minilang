@@ -1317,14 +1317,14 @@ static mlc_compiled_t ml_call_expr_compile(mlc_function_t *Function, mlc_parent_
 			mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
 			ml_inst_t *PartialInst = ml_inst_new(2, Expr->Source, MLI_PARTIAL_NEW);
 			mlc_connect(Compiled.Exits, PartialInst);
-			int NumArgs = 0;
+			int Index = 0, NumArgs = 0;
 			ml_inst_t *LastInst = PartialInst;
 			++Function->Top;
-			for (mlc_expr_t *Child = Expr->Child->Next; Child; Child = Child->Next, ++NumArgs) {
+			for (mlc_expr_t *Child = Expr->Child->Next; Child; Child = Child->Next, ++Index) {
 				if (Child->compile != (void *)ml_blank_expr_compile) {
 					mlc_compiled_t ChildCompiled = mlc_compile(Function, Child);
 					ml_inst_t *SetInst = ml_inst_new(2, Expr->Source, MLI_PARTIAL_SET);
-					SetInst->Params[1].Count = NumArgs;
+					SetInst->Params[1].Index = NumArgs = Index;
 					LastInst->Params[0].Inst = ChildCompiled.Start;
 					mlc_connect(ChildCompiled.Exits, SetInst);
 					LastInst = SetInst;

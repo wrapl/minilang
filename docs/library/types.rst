@@ -59,6 +59,10 @@ types
    Returns a general (type name only) representation of :mini:`Value` as a string.
 
 
+:mini:`meth :count(Arg₁: partialfunction)`
+
+:mini:`meth :set(Arg₁: partialfunction)`
+
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: tuple)`
 
 :mini:`meth :re(Arg₁: complex)`

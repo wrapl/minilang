@@ -33,13 +33,13 @@ function
    Returns an error if any of the keys in :mini:`Map` is not a string or method.
 
 
-:mini:`type partialfunction < function`
+:mini:`type partialfunction < function, iteratable`
 
 :mini:`meth !!(Function: function, List: list)` |rarr| :mini:`partialfunction`
    Returns a function equivalent to :mini:`fun(Args...) Function(List₁, List₂, ..., Args...)`.
 
 
-:mini:`meth $(Function: function, Arg: any)` |rarr| :mini:`partialfunction`
-   Returns a function equivalent to :mini:`fun(Args...) Function(Arg, Args...)`.
+:mini:`meth $(Function: function, Values...: any)` |rarr| :mini:`partialfunction`
+   Returns a function equivalent to :mini:`fun(Args...) Function(Values..., Args...)`.
 
 

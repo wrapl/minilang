@@ -488,7 +488,7 @@ ml_value_t *ml_cbor_read_object(void *Data, int Count, ml_value_t **Args) {
 	ml_value_t *Constructor = ml_map_search(CborObjects, TypeName);
 	if (Constructor == MLNil) return ml_error("CBORError", "Object %s not found", ml_string_value(TypeName));
 	int Count2 = ml_list_length(Args[0]) - 1;
-	ml_value_t **Args2 = anew(ml_value_t *, Count2);
+	ml_value_t **Args2 = ml_alloc_args(Count2);
 	for (int I = 0; I < Count2; ++I) {
 		ml_list_iter_next(Iter);
 		Args2[I] = Iter->Value;

@@ -167,7 +167,7 @@ ML_METHOD("parents", MLTypeT) {
 
 void ml_default_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
 	//ML_RETURN(ml_error("TypeError", "<%s> is not callable", ml_typeof(Value)->Name));
-	ml_value_t **Args2 = anew(ml_value_t *, Count + 1);
+	ml_value_t **Args2 = ml_alloc_args(Count + 1);
 	Args2[0] = Value;
 	for (int I = 0; I < Count; ++I) Args2[I + 1] = Args[I];
 	return ml_call(Caller, CallMethod, Count + 1, Args2);
@@ -365,17 +365,20 @@ ML_VALUE(MLBlank, MLBlankT);
 #ifdef ML_GENERICS
 
 static int ml_is_generic_subtype(int TNumArgs, ml_type_t **TArgs, int UNumArgs, ml_type_t **UArgs) {
-	if (UNumArgs <= TNumArgs) {
-		if (TArgs[0] != UArgs[0]) goto different;
-		for (int I = 1; I < UNumArgs; ++I) {
-			if (!ml_is_subtype(TArgs[I], UArgs[I])) goto different;
+	if (TArgs[0] == UArgs[0]) {
+		if (UNumArgs == 1) return 1;
+		if (UNumArgs <= TNumArgs) {
+			for (int I = 0; I < UNumArgs; ++I) {
+				if (!ml_is_subtype(TArgs[I], UArgs[I])) goto different;
+			}
+			return 1;
 		}
-		return 1;
 	}
 different:
-	if (TArgs[0] == MLTupleT && TNumArgs > 1) {
+	/*if (TArgs[0] == MLTupleT && TNumArgs > 1) {
+
 		if (ml_is_generic_subtype(TNumArgs - 1, TArgs, UNumArgs, UArgs)) return 1;
-	}
+	}*/
 	for (ml_generic_rule_t *Rule = TArgs[0]->Rules; Rule; Rule = Rule->Next) {
 		int TNumArgs2 = Rule->NumArgs;
 		ml_type_t *TArgs2[TNumArgs2];
@@ -614,6 +617,7 @@ typedef struct {
 	ml_state_t Base;
 	ml_value_t *Comparison;
 	ml_value_t **Args, **End;
+	ml_value_t *Values[];
 } ml_compare_state_t;
 
 static void ml_compare_state_run(ml_compare_state_t *State, ml_value_t *Result) {
@@ -629,13 +633,13 @@ static void ml_compare_state_run(ml_compare_state_t *State, ml_value_t *Result) 
 
 #define ml_comp_any_any_any(NAME) \
 ML_METHODVX(NAME, MLAnyT, MLAnyT, MLAnyT) { \
-	ml_compare_state_t *State = new(ml_compare_state_t); \
+	ml_compare_state_t *State = xnew(ml_compare_state_t, Count - 1, ml_value_t *); \
 	State->Base.Caller = Caller; \
 	State->Base.Context = Caller->Context; \
 	State->Base.run = (ml_state_fn)ml_compare_state_run; \
 	State->Comparison = ml_method(NAME); \
-	State->Args = anew(ml_value_t *, Count - 1); \
-	for (int I = 2; I < Count; ++I) State->Args[I - 1] = Args[I]; \
+	for (int I = 2; I < Count; ++I) State->Values[I - 1] = Args[I]; \
+	State->Args = State->Values; \
 	State->End = State->Args + (Count - 2); \
 	return ml_call((ml_state_t *)State, State->Comparison, 2, Args); \
 }
@@ -659,7 +663,7 @@ ML_METHOD(MLStringT, MLAnyT) {
 void ml_iterate(ml_state_t *Caller, ml_value_t *Value) {
 	typeof(ml_iterate) *function = ml_typed_fn_get(ml_typeof(Value), ml_iterate);
 	if (!function) {
-		ml_value_t **Args = anew(ml_value_t *, 1);
+		ml_value_t **Args = ml_alloc_args(1);
 		Args[0] = Value;
 		return ml_call(Caller, IterateMethod, 1, Args);
 	}
@@ -669,7 +673,7 @@ void ml_iterate(ml_state_t *Caller, ml_value_t *Value) {
 void ml_iter_value(ml_state_t *Caller, ml_value_t *Iter) {
 	typeof(ml_iter_value) *function = ml_typed_fn_get(ml_typeof(Iter), ml_iter_value);
 	if (!function) {
-		ml_value_t **Args = anew(ml_value_t *, 1);
+		ml_value_t **Args = ml_alloc_args(1);
 		Args[0] = Iter;
 		return ml_call(Caller, ValueMethod, 1, Args);
 	}
@@ -679,7 +683,7 @@ void ml_iter_value(ml_state_t *Caller, ml_value_t *Iter) {
 void ml_iter_key(ml_state_t *Caller, ml_value_t *Iter) {
 	typeof(ml_iter_key) *function = ml_typed_fn_get(ml_typeof(Iter), ml_iter_key);
 	if (!function) {
-		ml_value_t **Args = anew(ml_value_t *, 1);
+		ml_value_t **Args = ml_alloc_args(1);
 		Args[0] = Iter;
 		return ml_call(Caller, KeyMethod, 1, Args);
 	}
@@ -689,7 +693,7 @@ void ml_iter_key(ml_state_t *Caller, ml_value_t *Iter) {
 void ml_iter_next(ml_state_t *Caller, ml_value_t *Iter) {
 	typeof(ml_iter_next) *function = ml_typed_fn_get(ml_typeof(Iter), ml_iter_next);
 	if (!function) {
-		ml_value_t **Args = anew(ml_value_t *, 1);
+		ml_value_t **Args = ml_alloc_args(1);
 		Args[0] = Iter;
 		return ml_call(Caller, NextMethod, 1, Args);
 	}
@@ -715,10 +719,11 @@ ML_METHODX("!", MLFunctionT, MLListT) {
 //<List
 //>any
 // Calls :mini:`Function` with the values in :mini:`List` as positional arguments.
-	int Count2 = ml_list_length(Args[1]);
-	ml_value_t **Args2 = anew(ml_value_t *, Count2);
-	ml_list_to_array(Args[1], Args2);
 	ml_value_t *Function = Args[0];
+	ml_value_t *List = Args[1];
+	int Count2 = ml_list_length(List);
+	ml_value_t **Args2 = ml_alloc_args(Count2);
+	ml_list_to_array(List, Args2);
 	return ml_call(Caller, Function, Count2, Args2);
 }
 
@@ -729,12 +734,14 @@ ML_METHODX("!", MLFunctionT, MLMapT) {
 //>any
 // Calls :mini:`Function` with the keys and values in :mini:`Map` as named arguments.
 // Returns an error if any of the keys in :mini:`Map` is not a string or method.
-	int Count2 = ml_map_size(Args[1]) + 1;
-	ml_value_t **Args2 = anew(ml_value_t *, Count2);
+	ml_value_t *Function = Args[0];
+	ml_value_t *Map = Args[1];
+	int Count2 = ml_map_size(Map) + 1;
+	ml_value_t **Args2 = ml_alloc_args(Count2);
 	ml_value_t *Names = ml_names();
 	ml_value_t **Arg = Args2;
 	*(Arg++) = Names;
-	ML_MAP_FOREACH(Args[1], Node) {
+	ML_MAP_FOREACH(Map, Node) {
 		ml_value_t *Name = Node->Key;
 		if (ml_is(Name, MLMethodT)) {
 			ml_names_add(Names, Name);
@@ -745,7 +752,6 @@ ML_METHODX("!", MLFunctionT, MLMapT) {
 		}
 		*(Arg++) = Node->Value;
 	}
-	ml_value_t *Function = Args[0];
 	return ml_call(Caller, Function, Count2, Args2);
 }
 
@@ -757,16 +763,18 @@ ML_METHODX("!", MLFunctionT, MLTupleT, MLMapT) {
 //>any
 // Calls :mini:`Function` with the values in :mini:`Tuple` as positional arguments and the keys and values in :mini:`Map` as named arguments.
 // Returns an error if any of the keys in :mini:`Map` is not a string or method.
+	ml_value_t *Function = Args[0];
 	ml_tuple_t *Tuple = (ml_tuple_t *)Args[1];
+	ml_value_t *Map = Args[2];
 	int TupleCount = Tuple->Size;
-	int MapCount = ml_map_size(Args[2]);
+	int MapCount = ml_map_size(Map);
 	int Count2 = TupleCount + MapCount + 1;
-	ml_value_t **Args2 = anew(ml_value_t *, Count2);
+	ml_value_t **Args2 = ml_alloc_args(Count2);
 	memcpy(Args2, Tuple->Values, TupleCount * sizeof(ml_value_t *));
 	ml_value_t *Names = ml_names();
 	ml_value_t **Arg = Args2 + TupleCount;
 	*(Arg++) = Names;
-	ML_MAP_FOREACH(Args[2], Node) {
+	ML_MAP_FOREACH(Map, Node) {
 		ml_value_t *Name = Node->Key;
 		if (ml_is(Name, MLMethodT)) {
 			ml_names_add(Names, Name);
@@ -777,7 +785,6 @@ ML_METHODX("!", MLFunctionT, MLTupleT, MLMapT) {
 		}
 		*(Arg++) = Node->Value;
 	}
-	ml_value_t *Function = Args[0];
 	return ml_call(Caller, Function, Count2, Args2);
 }
 
@@ -789,15 +796,17 @@ ML_METHODX("!", MLFunctionT, MLListT, MLMapT) {
 //>any
 // Calls :mini:`Function` with the values in :mini:`List` as positional arguments and the keys and values in :mini:`Map` as named arguments.
 // Returns an error if any of the keys in :mini:`Map` is not a string or method.
+	ml_value_t *Function = Args[0];
 	int ListCount = ml_list_length(Args[1]);
-	int MapCount = ml_map_size(Args[2]);
+	ml_value_t *Map = Args[2];
+	int MapCount = ml_map_size(Map);
 	int Count2 = ListCount + MapCount + 1;
-	ml_value_t **Args2 = anew(ml_value_t *, Count2);
+	ml_value_t **Args2 = ml_alloc_args(Count2);
 	ml_list_to_array(Args[1], Args2);
 	ml_value_t *Names = ml_names();
 	ml_value_t **Arg = Args2 + ListCount;
 	*(Arg++) = Names;
-	ML_MAP_FOREACH(Args[2], Node) {
+	ML_MAP_FOREACH(Map, Node) {
 		ml_value_t *Name = Node->Key;
 		if (ml_is(Name, MLMethodT)) {
 			ml_names_add(Names, Name);
@@ -808,7 +817,6 @@ ML_METHODX("!", MLFunctionT, MLListT, MLMapT) {
 		}
 		*(Arg++) = Node->Value;
 	}
-	ml_value_t *Function = Args[0];
 	return ml_call(Caller, Function, Count2, Args2);
 }
 
@@ -904,8 +912,9 @@ typedef struct ml_partial_function_t {
 
 static void ml_partial_function_call(ml_state_t *Caller, ml_partial_function_t *Partial, int Count, ml_value_t **Args) {
 	int CombinedCount = Count + Partial->Set;
-	if (Partial->Count > CombinedCount) CombinedCount = Partial->Count;
-	ml_value_t **CombinedArgs = anew(ml_value_t *, CombinedCount);
+	if (CombinedCount < Partial->Count) CombinedCount = Partial->Count;
+	ml_value_t **CombinedArgs = ml_alloc_args(CombinedCount);
+	if (CombinedArgs == Args) CombinedArgs = anew(ml_value_t *, CombinedCount);
 	int I = 0, J = 0;
 	for (; I < Partial->Count; ++I) {
 		CombinedArgs[I] = Partial->Args[I] ?: (J < Count) ? Args[J++] : MLNil;
@@ -916,7 +925,7 @@ static void ml_partial_function_call(ml_state_t *Caller, ml_partial_function_t *
 	return ml_call(Caller, Partial->Function, CombinedCount, CombinedArgs);
 }
 
-ML_TYPE(MLPartialFunctionT, (MLFunctionT), "partial-function",
+ML_TYPE(MLPartialFunctionT, (MLFunctionT, MLIteratableT), "partial-function",
 //!function
 	.call = (void *)ml_partial_function_call
 );
@@ -937,6 +946,16 @@ ml_value_t *ml_partial_function_set(ml_value_t *Partial0, size_t Index, ml_value
 	return Partial->Args[Index] = Value;
 }
 
+ML_METHOD("count", MLPartialFunctionT) {
+	ml_partial_function_t *Partial = (ml_partial_function_t *)Args[0];
+	return ml_integer(Partial->Count);
+}
+
+ML_METHOD("set", MLPartialFunctionT) {
+	ml_partial_function_t *Partial = (ml_partial_function_t *)Args[0];
+	return ml_integer(Partial->Set);
+}
+
 ML_METHOD("!!", MLFunctionT, MLListT) {
 //!function
 //<Function
@@ -953,33 +972,22 @@ ML_METHOD("!!", MLFunctionT, MLListT) {
 	return (ml_value_t *)Partial;
 }
 
-ML_METHOD("$", MLFunctionT, MLAnyT) {
+ML_METHODV("$", MLFunctionT, MLAnyT) {
 //!function
 //<Function
-//<Arg
+//<Values...
 //>partialfunction
-// Returns a function equivalent to :mini:`fun(Args...) Function(Arg, Args...)`.
-	ml_partial_function_t *Partial = xnew(ml_partial_function_t, 1, ml_value_t *);
+// Returns a function equivalent to :mini:`fun(Args...) Function(Values..., Args...)`.
+	ml_partial_function_t *Partial = xnew(ml_partial_function_t, Count - 1, ml_value_t *);
 	Partial->Type = MLPartialFunctionT;
 	Partial->Function = Args[0];
-	Partial->Count = Partial->Set = 1;
-	Partial->Args[0] = Args[1];
-	return (ml_value_t *)Partial;
-}
-
-ML_METHOD("$", MLPartialFunctionT, MLAnyT) {
-//!internal
-	ml_partial_function_t *Old = (ml_partial_function_t *)Args[0];
-	ml_partial_function_t *Partial = xnew(ml_partial_function_t, Old->Count + 1, ml_value_t *);
-	Partial->Type = MLPartialFunctionT;
-	Partial->Function = Old->Function;
-	Partial->Count = Partial->Set = Old->Count + 1;
-	memcpy(Partial->Args, Old->Args, Old->Count * sizeof(ml_value_t *));
-	Partial->Args[Old->Count] = Args[1];
+	Partial->Count = Partial->Set = Count - 1;
+	for (int I = 1; I < Count; ++I) Partial->Args[I - 1] = Args[I];
 	return (ml_value_t *)Partial;
 }
 
 static void ML_TYPED_FN(ml_iterate, MLPartialFunctionT, ml_state_t *Caller, ml_partial_function_t *Partial) {
+	if (Partial->Set != Partial->Count) ML_ERROR("CallError", "Partial function used with missing arguments");
 	return ml_call(Caller, Partial->Function, Partial->Count, Partial->Args);
 }
 
@@ -1069,14 +1077,6 @@ ml_value_t *ml_tuple_set(ml_value_t *Tuple0, int Index, ml_value_t *Value) {
 			Types[I + 1] = ml_typeof(Tuple->Values[I]);
 		}
 		Tuple->Type = ml_generic_type(Tuple->Size + 1, Types);
-	} else {
-		ml_generic_type_t *Type = (ml_generic_type_t *)Tuple->Type;
-		if (Type->Args[Index + 1] != ml_typeof(Value)) {
-			ml_type_t *Types[Tuple->Size + 1];
-			Types[0] = MLTupleT;
-			for (int I = 0; I < Tuple->Size; ++I) Types[I + 1] = ml_typeof(Tuple->Values[I]);
-			Tuple->Type = ml_generic_type(Tuple->Size + 1, Types);
-		}
 	}
 	return Value;
 }

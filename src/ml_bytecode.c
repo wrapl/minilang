@@ -862,14 +862,6 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	Frame->Base.Context = Caller->Context;
 	Frame->Source = Info->Source;
 	int NumParams = Info->NumParams;
-	if (Closure->PartialCount) {
-		int CombinedCount = Count + Closure->PartialCount;
-		ml_value_t **CombinedArgs = anew(ml_value_t *, CombinedCount);
-		memcpy(CombinedArgs, Closure->UpValues + Info->NumUpValues, Closure->PartialCount * sizeof(ml_value_t *));
-		memcpy(CombinedArgs + Closure->PartialCount, Args, Count * sizeof(ml_value_t *));
-		Count = CombinedCount;
-		Args = CombinedArgs;
-	}
 	if (Info->ExtraArgs) --NumParams;
 	if (Info->NamedArgs) --NumParams;
 	int Min = (Count < NumParams) ? Count : NumParams;
@@ -1441,17 +1433,6 @@ ML_METHOD("list", MLClosureT) {
 	return ml_stringbuffer_value(Buffer);
 }
 
-ML_METHOD("!!", MLClosureT, MLListT) {
-	ml_closure_t *Closure = (ml_closure_t *)Args[0];
-	ml_list_t *ArgsList = (ml_list_t *)Args[1];
-	int NumUpValues = Closure->Info->NumUpValues + Closure->PartialCount;
-	ml_closure_t *Partial = xnew(ml_closure_t, NumUpValues + ArgsList->Length, ml_value_t *);
-	memcpy(Partial, Closure, sizeof(ml_closure_t) + NumUpValues * sizeof(ml_value_t *));
-	Partial->PartialCount += ArgsList->Length;
-	ml_value_t **Arg = Partial->UpValues + NumUpValues;
-	ML_LIST_FOREACH(ArgsList, Node) *Arg++ = Node->Value;
-	return (ml_value_t *)Partial;
-}
 
 #ifdef ML_JIT
 
