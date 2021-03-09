@@ -279,11 +279,12 @@ ML_METHOD("::", MLTypeT, MLStringT) {
 
 #ifdef ML_GENERICS
 
+static inthash_t GenericTypeCache[1] = {INTHASH_INIT};
+
 ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
-	static inthash_t Cache[1] = {INTHASH_INIT};
 	uintptr_t Hash = (uintptr_t)3541;
 	for (int I = NumArgs; --I >= 0;) Hash = rotl(Hash, 1) ^ (uintptr_t)Args[I];
-	ml_generic_type_t *Type = (ml_generic_type_t *)inthash_search(Cache, Hash);
+	ml_generic_type_t *Type = (ml_generic_type_t *)inthash_search(GenericTypeCache, Hash);
 	while (Type) {
 		if (Type->NumArgs != NumArgs) goto next;
 		for (int I = 0; I < NumArgs; ++I) {
@@ -317,7 +318,7 @@ ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
 	Type->Base.Rank = Base->Rank + 1;
 	Type->NumArgs = NumArgs;
 	for (int I = 0; I < NumArgs; ++I) Type->Args[I] = Args[I];
-	Type->NextGeneric = (ml_generic_type_t *)inthash_insert(Cache, Hash, Type);
+	Type->NextGeneric = (ml_generic_type_t *)inthash_insert(GenericTypeCache, Hash, Type);
 	return (ml_type_t *)Type;
 }
 
