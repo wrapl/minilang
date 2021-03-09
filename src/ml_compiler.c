@@ -4111,4 +4111,5 @@ void ml_compiler_init() {
 	stringmap_insert(MLCompilerT->Exports, "EOI", MLEndOfInput);
 	stringmap_insert(MLCompilerT->Exports, "NotFound", MLNotFound);
 	stringmap_insert(StringFns, "r", ml_regex);
+	stringmap_insert(StringFns, "ri", ml_regexi);
 }

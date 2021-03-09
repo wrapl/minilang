@@ -512,6 +512,7 @@ const char *ml_string_value(const ml_value_t *Value) __attribute__((const));
 size_t ml_string_length(const ml_value_t *Value) __attribute__((pure));
 
 ml_value_t *ml_regex(const char *Value, int Length) __attribute__((malloc));
+ml_value_t *ml_regexi(const char *Value, int Length) __attribute__((malloc));
 const char *ml_regex_pattern(const ml_value_t *Value) __attribute__((pure));
 
 int ml_regex_match(ml_value_t *Value, const char *Subject, int Length);

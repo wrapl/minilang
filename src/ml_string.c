@@ -355,6 +355,24 @@ ml_value_t *ml_regex(const char *Pattern, int Length) {
 	return (ml_value_t *)Regex;
 }
 
+ml_value_t *ml_regexi(const char *Pattern, int Length) {
+	ml_regex_t *Regex = new(ml_regex_t);
+	Regex->Type = MLRegexT;
+	Regex->Pattern = Pattern;
+#ifdef ML_TRE
+	int Error = regncomp(Regex->Value, Pattern, Length, REG_EXTENDED | REG_ICASE);
+#else
+	int Error = regcomp(Regex->Value, Pattern, REG_EXTENDED | REG_ICASE);
+#endif
+	if (Error) {
+		size_t ErrorSize = regerror(Error, Regex->Value, NULL, 0);
+		char *ErrorMessage = snew(ErrorSize + 1);
+		regerror(Error, Regex->Value, ErrorMessage, ErrorSize);
+		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+	}
+	return (ml_value_t *)Regex;
+}
+
 regex_t *ml_regex_value(const ml_value_t *Value) {
 	ml_regex_t *Regex = (ml_regex_t *)Value;
 	return Regex->Value;
@@ -978,12 +996,12 @@ ML_METHOD("find", MLStringT, MLRegexT) {
 ML_METHOD("find2", MLStringT, MLRegexT) {
 	const char *Haystack = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
-	regmatch_t Matches[1];
+	regmatch_t Matches[Regex->re_nsub + 1];
 #ifdef ML_TRE
 	int Length = ml_string_length(Args[0]);
-	switch (regnexec(Regex, Haystack, Length, 1, Matches, 0)) {
+	switch (regnexec(Regex, Haystack, Length, Regex->re_nsub + 1, Matches, 0)) {
 #else
-	switch (regexec(Regex, Haystack, 1, Matches, 0)) {
+	switch (regexec(Regex, Haystack, Regex->re_nsub + 1, Matches, 0)) {
 #endif
 	case REG_NOMATCH:
 		return MLNil;
@@ -994,9 +1012,17 @@ ML_METHOD("find2", MLStringT, MLRegexT) {
 		return ml_error("RegexError", "regex error: %s", ErrorMessage);
 	}
 	}
-	ml_value_t *Result = ml_tuple(2);
+	ml_value_t *Result = ml_tuple(Regex->re_nsub + 2);
 	ml_tuple_set(Result, 1, ml_integer(1 + Matches->rm_so));
-	ml_tuple_set(Result, 2, ml_string(Haystack + Matches->rm_so, Matches->rm_eo - Matches->rm_so));
+	for (int I = 0; I < Regex->re_nsub + 1; ++I) {
+		regoff_t Start = Matches[I].rm_so;
+		if (Start >= 0) {
+			size_t Length = Matches[I].rm_eo - Start;
+			ml_tuple_set(Result, I + 2, ml_string(Haystack + Start, Length));
+		} else {
+			ml_tuple_set(Result, I + 2, MLNil);
+		}
+	}
 	return Result;
 }
 
@@ -1038,11 +1064,11 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
 	if (Start > Length) return MLNil;
 	Haystack += Start - 1;
 	Length -= (Start - 1);
-	regmatch_t Matches[1];
+	regmatch_t Matches[Regex->re_nsub + 1];
 #ifdef ML_TRE
-	switch (regnexec(Regex, Haystack, Length, 1, Matches, 0)) {
+	switch (regnexec(Regex, Haystack, Length, Regex->re_nsub + 1, Matches, 0)) {
 #else
-	switch (regexec(Regex, Haystack, 1, Matches, 0)) {
+	switch (regexec(Regex, Haystack, Regex->re_nsub + 1, Matches, 0)) {
 #endif
 	case REG_NOMATCH:
 		return MLNil;
@@ -1053,9 +1079,17 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
 		return ml_error("RegexError", "regex error: %s", ErrorMessage);
 	}
 	}
-	ml_value_t *Result = ml_tuple(2);
+	ml_value_t *Result = ml_tuple(Regex->re_nsub + 2);
 	ml_tuple_set(Result, 1, ml_integer(Start + Matches->rm_so));
-	ml_tuple_set(Result, 2, ml_string(Haystack + Matches->rm_so, Matches->rm_eo - Matches->rm_so));
+	for (int I = 0; I < Regex->re_nsub + 1; ++I) {
+		regoff_t Start = Matches[I].rm_so;
+		if (Start >= 0) {
+			size_t Length = Matches[I].rm_eo - Start;
+			ml_tuple_set(Result, I + 2, ml_string(Haystack + Start, Length));
+		} else {
+			ml_tuple_set(Result, I + 2, MLNil);
+		}
+	}
 	return Result;
 }
 
