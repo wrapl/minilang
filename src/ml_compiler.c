@@ -1833,6 +1833,9 @@ static ml_value_t *ml_map_global_get(ml_value_t *Map, const char *Name) {
 
 ML_FUNCTION(MLCompiler) {
 //@compiler
+//<Global:function|map
+//<?Read:function
+//>compiler
 	ML_CHECK_ARG_COUNT(1);
 	ml_getter_t GlobalGet = (ml_getter_t)ml_function_global_get;
 	if (ml_is(Args[0], MLMapT)) GlobalGet = (ml_getter_t)ml_map_global_get;
@@ -3556,11 +3559,16 @@ void ml_function_compile(ml_state_t *Caller, ml_compiler_t *Compiler, const char
 }
 
 ML_METHODX("compile", MLCompilerT) {
+//<Compiler
+//>any
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
 	return ml_function_compile(Caller, Compiler, NULL);
 }
 
 ML_METHODX("compile", MLCompilerT, MLListT) {
+//<Compiler
+//<Parameters
+//>any
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
 	const char **Parameters = anew(const char *, ml_list_length(Args[1]));
 	int I = 0;
@@ -3572,6 +3580,10 @@ ML_METHODX("compile", MLCompilerT, MLListT) {
 }
 
 ML_METHOD("source", MLCompilerT, MLStringT, MLIntegerT) {
+//<Compiler
+//<Source
+//<Line
+//>tuple
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
 	ml_source_t Source = {ml_string_value(Args[1]), ml_integer_value(Args[2])};
 	Source = ml_compiler_source(Compiler, Source);
@@ -3582,23 +3594,32 @@ ML_METHOD("source", MLCompilerT, MLStringT, MLIntegerT) {
 }
 
 ML_METHOD("reset", MLCompilerT) {
+//<Compiler
+//>compiler
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
 	ml_compiler_reset(Compiler);
 	return Args[0];
 }
 
 ML_METHOD("input", MLCompilerT, MLStringT) {
+//<Compiler
+//<String
+//>compiler
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
 	ml_compiler_input(Compiler, ml_string_value(Args[1]));
 	return Args[0];
 }
 
 ML_METHOD("clear", MLCompilerT) {
+//<Compiler
+//>string
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
 	return ml_cstring(ml_compiler_clear(Compiler));
 }
 
 ML_METHODX("evaluate", MLCompilerT) {
+//<Compiler
+//>any
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
 	return ml_command_evaluate(Caller, Compiler);
 }
@@ -3614,6 +3635,8 @@ static void ml_evaluate_state_run(ml_evaluate_state_t *State, ml_value_t *Value)
 }
 
 ML_METHODX("run", MLCompilerT) {
+//<Compiler
+//>any
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
 	ml_evaluate_state_t *State = new(ml_evaluate_state_t);
 	State->Base.Caller = Caller;
@@ -3624,6 +3647,9 @@ ML_METHODX("run", MLCompilerT) {
 }
 
 ML_METHOD("[]", MLCompilerT, MLStringT) {
+//<Compiler
+//<Name
+//>any
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
 	return (ml_value_t *)stringmap_search(Compiler->Vars, ml_string_value(Args[1])) ?: MLNil;
 }
@@ -3659,6 +3685,7 @@ static ml_value_t *ml_global_assign(ml_global_t *Global, ml_value_t *Value) {
 }
 
 ML_TYPE(MLGlobalT, (), "global",
+//!compiler
 	.deref = (void *)ml_global_deref,
 	.assign = (void *)ml_global_assign
 );
@@ -3668,6 +3695,9 @@ static ml_value_t *ML_TYPED_FN(ml_unpack, MLGlobalT, ml_global_t *Global, int In
 }
 
 ML_METHOD("var", MLCompilerT, MLStringT) {
+//<Compiler
+//<Name
+//>global
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
 	ml_variable_t *Var = new(ml_variable_t);
@@ -3687,6 +3717,10 @@ ML_METHOD("var", MLCompilerT, MLStringT) {
 }
 
 ML_METHOD("var", MLCompilerT, MLStringT, MLTypeT) {
+//<Compiler
+//<Name
+//<Type
+//>global
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
 	ml_variable_t *Var = new(ml_variable_t);
@@ -3707,6 +3741,10 @@ ML_METHOD("var", MLCompilerT, MLStringT, MLTypeT) {
 }
 
 ML_METHOD("let", MLCompilerT, MLStringT, MLAnyT) {
+//<Compiler
+//<Name
+//<Value
+//>global
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Compiler->Vars, Name);
@@ -3723,6 +3761,10 @@ ML_METHOD("let", MLCompilerT, MLStringT, MLAnyT) {
 }
 
 ML_METHOD("def", MLCompilerT, MLStringT, MLAnyT) {
+//<Compiler
+//<Name
+//<Value
+//>global
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Compiler->Vars, Name);
@@ -3744,6 +3786,8 @@ static int ml_compiler_var_fn(const char *Name, ml_value_t *Value, ml_value_t *V
 }
 
 ML_METHOD("vars", MLCompilerT) {
+//<Compiler
+//>map
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
 	ml_value_t *Vars = ml_map();
 	stringmap_foreach(Compiler->Vars, Vars, (void *)ml_compiler_var_fn);

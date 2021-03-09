@@ -280,7 +280,7 @@ ML_METHOD("::", MLTypeT, MLStringT) {
 #ifdef ML_GENERICS
 
 ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
-	inthash_t Cache[1] = {INTHASH_INIT};
+	static inthash_t Cache[1] = {INTHASH_INIT};
 	uintptr_t Hash = (uintptr_t)3541;
 	for (int I = NumArgs; --I >= 0;) Hash = rotl(Hash, 1) ^ (uintptr_t)Args[I];
 	ml_generic_type_t *Type = (ml_generic_type_t *)inthash_search(Cache, Hash);
