@@ -1102,11 +1102,12 @@ static const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INST_INST, // MLI_DEBUG
 };
 
-static void ml_inst_process(int Process, ml_inst_t *Source, ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) {
-	if (!Source || (Source->LineNo != Inst->LineNo)) Inst->PotentialBreakpoint = 1;
-	if (Inst->LineNo > Info->End) Info->End = Inst->LineNo;
-	if (Inst->Processed == Process) return;
-	Inst->Processed = Process;
+static void ml_inst_process(int Source, ml_inst_t *Inst, ml_closure_info_t *Info) {
+	int LineNo = Inst->LineNo;
+	if (LineNo != Source) Inst->PotentialBreakpoint = 1;
+	if (LineNo > Info->End) Info->End = Inst->LineNo;
+	if (Inst->Processed) return;
+	Inst->Processed = 1;
 	if (Inst->Opcode == MLI_LOAD && Inst->Params[0].Inst->Opcode == MLI_PUSH) {
 		Inst->Opcode = MLI_LOAD_PUSH;
 		Inst->Params[0].Inst = Inst->Params[0].Inst->Params[0].Inst;
@@ -1117,14 +1118,37 @@ static void ml_inst_process(int Process, ml_inst_t *Source, ml_inst_t *Inst, ml_
 		Inst->Opcode = MLI_NIL_PUSH;
 		Inst->Params[0].Inst = Inst->Params[0].Inst->Params[0].Inst;
 	}
+	switch (MLInstTypes[Inst->Opcode]) {
+	case MLIT_INST_INST:
+	case MLIT_INST_INST_INDEX_CHARS:
+		ml_inst_process(LineNo, Inst->Params[1].Inst, Info);
+		break;
+	default:
+		break;
+	}
+	if (Inst->Opcode != MLI_RETURN) {
+		ml_inst_process(LineNo, Inst->Params[0].Inst, Info);
+	}
+}
+
+void ml_closure_info_finish(ml_closure_info_t *Info) {
+	ml_inst_process(-1, Info->Entry, Info);
+#ifdef ML_JIT
+	ml_bytecode_jit(Info);
+#endif
+}
+
+static void ml_inst_hash(ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) {
+	if (Inst->Hashed) return;
+	Inst->Hashed = 1;
 	Info->Hash[I] ^= Inst->Opcode;
 	Info->Hash[J] ^= (Inst->Opcode << 4);
 	switch (MLInstTypes[Inst->Opcode]) {
 	case MLIT_INST_INST:
-		ml_inst_process(Process, Inst, Inst->Params[1].Inst, Info, (I + 11) % (SHA256_BLOCK_SIZE - 4), (J + 13) % (SHA256_BLOCK_SIZE - 8));
+		ml_inst_hash(Inst->Params[1].Inst, Info, (I + 11) % (SHA256_BLOCK_SIZE - 4), (J + 13) % (SHA256_BLOCK_SIZE - 8));
 		break;
 	case MLIT_INST_INST_INDEX_CHARS:
-		ml_inst_process(Process, Inst, Inst->Params[1].Inst, Info, (I + 11) % (SHA256_BLOCK_SIZE - 4), (J + 13) % (SHA256_BLOCK_SIZE - 8));
+		ml_inst_hash(Inst->Params[1].Inst, Info, (I + 11) % (SHA256_BLOCK_SIZE - 4), (J + 13) % (SHA256_BLOCK_SIZE - 8));
 		*(int *)(Info->Hash + I) ^= Inst->Params[2].Index;
 		if (Inst->Params[3].Ptr) {
 			*(long *)(Info->Hash + J) ^= stringmap_hash(Inst->Params[3].Ptr);
@@ -1176,21 +1200,19 @@ static void ml_inst_process(int Process, ml_inst_t *Source, ml_inst_t *Inst, ml_
 	}
 	}
 	if (Inst->Opcode != MLI_RETURN) {
-		ml_inst_process(Process, Inst, Inst->Params[0].Inst, Info, (I + 3) % (SHA256_BLOCK_SIZE - 4), (J + 7) % (SHA256_BLOCK_SIZE - 8));
+		ml_inst_hash(Inst->Params[0].Inst, Info, (I + 3) % (SHA256_BLOCK_SIZE - 4), (J + 7) % (SHA256_BLOCK_SIZE - 8));
 	}
-}
-
-void ml_closure_info_finish(ml_closure_info_t *Info) {
-	ml_inst_process(!Info->Entry->Processed, NULL, Info->Entry, Info, 0, 0);
-#ifdef ML_JIT
-	ml_bytecode_jit(Info);
-#endif
 }
 
 void ml_closure_sha256(ml_value_t *Value, unsigned char Hash[SHA256_BLOCK_SIZE]) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
-	memcpy(Hash, Closure->Info->Hash, SHA256_BLOCK_SIZE);
-	for (int I = 0; I < Closure->Info->NumUpValues; ++I) {
+	ml_closure_info_t *Info = Closure->Info;
+	if (!Info->Hashed) {
+		ml_inst_hash(Info->Entry, Info, 0, 0);
+		Info->Hashed = 1;
+	}
+	memcpy(Hash, Info->Hash, SHA256_BLOCK_SIZE);
+	for (int I = 0; I < Info->NumUpValues; ++I) {
 		long ValueHash = ml_hash(Closure->UpValues[I]);
 		*(long *)(Hash + (I % 16)) ^= ValueHash;
 	}
@@ -1198,11 +1220,16 @@ void ml_closure_sha256(ml_value_t *Value, unsigned char Hash[SHA256_BLOCK_SIZE])
 
 static long ml_closure_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
+	ml_closure_info_t *Info = Closure->Info;
+	if (!Info->Hashed) {
+		ml_inst_hash(Info->Entry, Info, 0, 0);
+		Info->Hashed = 1;
+	}
 	long Hash = 0;
-	long *P = (long *)Closure->Info->Hash;
-	long *Q = (long *)(Closure->Info->Hash + SHA256_BLOCK_SIZE);
+	long *P = (long *)Info->Hash;
+	long *Q = (long *)(Info->Hash + SHA256_BLOCK_SIZE);
 	while (P < Q) Hash ^= *P++;
-	for (int I = 0; I < Closure->Info->NumUpValues; ++I) {
+	for (int I = 0; I < Info->NumUpValues; ++I) {
 		Hash ^= ml_hash_chain(Closure->UpValues[I], Chain) << I;
 	}
 	return Hash;

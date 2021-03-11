@@ -31,6 +31,7 @@ struct ml_closure_info_t {
 	int LineNo, End, FrameSize;
 	int NumParams, NumUpValues;
 	int ExtraArgs, NamedArgs;
+	int Hashed;
 	unsigned char Hash[SHA256_BLOCK_SIZE];
 };
 
@@ -132,7 +133,8 @@ struct ml_inst_t {
 	ml_opcode_t Opcode:8;
 	unsigned int PotentialBreakpoint:1;
 	unsigned int Processed:1;
-	unsigned int Reserved:6;
+	unsigned int Hashed:1;
+	unsigned int Reserved:5;
 	unsigned int Label:16;
 	unsigned int LineNo:32;
 	ml_param_t Params[];

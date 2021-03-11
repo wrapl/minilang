@@ -200,12 +200,15 @@ struct mlc_function_t {
 
 static ml_inst_t *ml_inst_alloc(mlc_function_t *Function, int N, ml_source_t Source, ml_opcode_t Opcode) {
 	int Size = sizeof(ml_inst_t) + N * sizeof(ml_param_t);
-	if ((Function->InstSpace -= Size) < 0) {
+	//printf("Instruction size %d -> %d\n", N, Size);
+	if (Function->InstSpace < Size) {
+		//printf("Allocating instruction space\n");
 		Function->NextInst = GC_malloc(272);
-		Function->InstSpace = 272 - Size;
+		Function->InstSpace = 272;
 	}
 	ml_inst_t *Inst = Function->NextInst;
 	Function->NextInst += Size;
+	Function->InstSpace -= Size;
 	Inst->LineNo = Source.Line;
 	Inst->Opcode = Opcode;
 	return Inst;
@@ -1147,41 +1150,56 @@ static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_
 		Try.CatchTop = OldTop;
 		Function->Try = &Try;
 	}
-	int NumVars = 0, NumLets = 0;
-	stringmap_t Decls[1] = {STRINGMAP_INIT};
+	int NumVars = 0, NumLets = 0, Top = Function->Top;
+	inthash_t DeclHashes[1] = {INTHASH_INIT};
+	ml_decl_t *Last = Function->Decls, *Decls = Last;
 	for (ml_decl_t *Decl = Expr->Vars; Decl;) {
-		ml_decl_t **Slot = (ml_decl_t **)stringmap_slot(Decls, Decl->Ident);
-		if (Slot[0]) ml_expr_error(Expr, ml_error("NameError", "Identifier %s already defined in line %d", Decl->Ident, Slot[0]->Source.Line));
-		Slot[0] = Decl;
-		Decl->Index = Function->Top++;
+		if (inthash_insert(DeclHashes, (uintptr_t)Decl->Hash, Decl)) {
+			for (ml_decl_t *Previous = Decls; Previous != Last; Previous = Previous->Next) {
+				if (!strcmp(Previous->Ident, Decl->Ident)) {
+					ml_expr_error(Expr, ml_error("NameError", "Identifier %s redefined in line %d, previously declared on line %d", Decl->Ident, Decl->Source.Line, Previous->Source.Line));
+				}
+			}
+		}
+		Decl->Index = Top++;
 		ml_decl_t *NextDecl = Decl->Next;
-		Decl->Next = Function->Decls;
-		Function->Decls = Decl;
+		Decl->Next = Decls;
+		Decls = Decl;
 		Decl = NextDecl;
 		++NumVars;
 	}
 	for (ml_decl_t *Decl = Expr->Lets; Decl;) {
-		ml_decl_t **Slot = (ml_decl_t **)stringmap_slot(Decls, Decl->Ident);
-		if (Slot[0]) ml_expr_error(Expr, ml_error("NameError", "Identifier %s already defined in line %d", Decl->Ident, Slot[0]->Source.Line));
-		Slot[0] = Decl;
-		Decl->Index = Function->Top++;
+		if (inthash_insert(DeclHashes, (uintptr_t)Decl->Hash, Decl)) {
+			for (ml_decl_t *Previous = Decls; Previous != Last; Previous = Previous->Next) {
+				if (!strcmp(Previous->Ident, Decl->Ident)) {
+					ml_expr_error(Expr, ml_error("NameError", "Identifier %s redefined in line %d, previously declared on line %d", Decl->Ident, Decl->Source.Line, Previous->Source.Line));
+				}
+			}
+		}
+		Decl->Index = Top++;
 		ml_decl_t *NextDecl = Decl->Next;
-		Decl->Next = Function->Decls;
-		Function->Decls = Decl;
+		Decl->Next = Decls;
+		Decls = Decl;
 		Decl = NextDecl;
 		++NumLets;
 	}
 	for (ml_decl_t *Decl = Expr->Defs; Decl;) {
-		ml_decl_t **Slot = (ml_decl_t **)stringmap_slot(Decls, Decl->Ident);
-		if (Slot[0]) ml_expr_error(Expr, ml_error("NameError", "Identifier %s already defined in line %d", Decl->Ident, Slot[0]->Source.Line));
-		Slot[0] = Decl;
+		if (inthash_insert(DeclHashes, (uintptr_t)Decl->Hash, Decl)) {
+			for (ml_decl_t *Previous = Decls; Previous != Last; Previous = Previous->Next) {
+				if (!strcmp(Previous->Ident, Decl->Ident)) {
+					ml_expr_error(Expr, ml_error("NameError", "Identifier %s redefined in line %d, previously declared on line %d", Decl->Ident, Decl->Source.Line, Previous->Source.Line));
+				}
+			}
+		}
 		Decl->Flags = MLC_DECL_CONSTANT;
 		ml_decl_t *NextDecl = Decl->Next;
-		Decl->Next = Function->Decls;
-		Function->Decls = Decl;
+		Decl->Next = Decls;
+		Decls = Decl;
 		Decl = NextDecl;
 	}
-	if (Function->Top >= Function->Size) Function->Size = Function->Top + 1;
+	if (Top >= Function->Size) Function->Size = Top + 1;
+	Function->Top = Top;
+	Function->Decls = Decls;
 	mlc_expr_t *Child = Expr->Child;
 	mlc_compiled_t Compiled;
 	if (Child) {
@@ -1551,6 +1569,12 @@ struct mlc_fun_expr_t {
 	//ml_source_t End;
 };
 
+long ml_ident_hash(const char *Ident) {
+	long Hash = 5381;
+	while (*Ident) Hash = ((Hash << 5) + Hash) + *Ident++;
+	return Hash;
+}
+
 static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr) {
 	// closure <entry> <frame_size> <num_params> <num_upvalues> <upvalue_1> ...
 	mlc_function_t SubFunction[1];
@@ -1593,6 +1617,7 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 		ml_decl_t *Decl = new(ml_decl_t);
 		Decl->Source = Expr->Source;
 		Decl->Ident = UpValue->Decl->Ident;
+		Decl->Hash = UpValue->Decl->Hash;
 		Decl->Value = UpValue->Decl->Value;
 		Decl->Index = ~Index;
 		UpValueSlot[0] = Decl;
@@ -1690,28 +1715,33 @@ static mlc_compiled_t ml_ident_expr_finish(mlc_function_t *Function, mlc_ident_e
 }
 
 static mlc_compiled_t ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Expr) {
+	long Hash = ml_ident_hash(Expr->Ident);
+	//printf("#<%s> -> %ld\n", Expr->Ident, Hash);
 	for (mlc_function_t *UpFunction = Function; UpFunction; UpFunction = UpFunction->Up) {
 		for (ml_decl_t *Decl = UpFunction->Decls; Decl; Decl = Decl->Next) {
-			if (!strcmp(Decl->Ident, Expr->Ident)) {
-				if (Decl->Flags == MLC_DECL_CONSTANT) {
-					if (!Decl->Value) Decl->Value = ml_uninitialized(Decl->Ident);
-					return ml_ident_expr_finish(Function, Expr, Decl->Value);
-				} else {
-					int Index = ml_upvalue_find(Function, Decl, UpFunction);
-					ml_inst_t *LocalInst;
-					if (Decl->Flags & MLC_DECL_FORWARD) Decl->Flags |= MLC_DECL_BACKFILL;
-					if ((Index >= 0) && (Decl->Flags & MLC_DECL_FORWARD)) {
-						LocalInst = ml_inst_new(3, Expr->Source, MLI_LOCALX);
-						LocalInst->Params[1].Index = Index;
-						LocalInst->Params[2].Ptr = Decl->Ident;
-					} else if (Index >= 0) {
-						LocalInst = ml_inst_new(2, Expr->Source, MLI_LOCAL);
-						LocalInst->Params[1].Index = Index;
+			if (Hash == Decl->Hash) {
+				//printf("\tTesting <%s>\n", Decl->Ident);
+				if (!strcmp(Decl->Ident, Expr->Ident)) {
+					if (Decl->Flags == MLC_DECL_CONSTANT) {
+						if (!Decl->Value) Decl->Value = ml_uninitialized(Decl->Ident);
+						return ml_ident_expr_finish(Function, Expr, Decl->Value);
 					} else {
-						LocalInst = ml_inst_new(2, Expr->Source, MLI_UPVALUE);
-						LocalInst->Params[1].Index = ~Index;
+						int Index = ml_upvalue_find(Function, Decl, UpFunction);
+						ml_inst_t *LocalInst;
+						if (Decl->Flags & MLC_DECL_FORWARD) Decl->Flags |= MLC_DECL_BACKFILL;
+						if ((Index >= 0) && (Decl->Flags & MLC_DECL_FORWARD)) {
+							LocalInst = ml_inst_new(3, Expr->Source, MLI_LOCALX);
+							LocalInst->Params[1].Index = Index;
+							LocalInst->Params[2].Ptr = Decl->Ident;
+						} else if (Index >= 0) {
+							LocalInst = ml_inst_new(2, Expr->Source, MLI_LOCAL);
+							LocalInst->Params[1].Index = Index;
+						} else {
+							LocalInst = ml_inst_new(2, Expr->Source, MLI_UPVALUE);
+							LocalInst->Params[1].Index = ~Index;
+						}
+						return (mlc_compiled_t){LocalInst, LocalInst};
 					}
-					return (mlc_compiled_t){LocalInst, LocalInst};
 				}
 			}
 		}
@@ -2370,6 +2400,7 @@ static mlc_expr_t *ml_accept_fun_expr(ml_compiler_t *Compiler, ml_token_t EndTok
 			if (ml_parse2(Compiler, MLT_LEFT_SQUARE)) {
 				ml_accept(Compiler, MLT_IDENT);
 				Param->Ident = Compiler->Ident;
+				Param->Hash = ml_ident_hash(Compiler->Ident);
 				Param->Index = ML_PARAM_EXTRA;
 				ml_accept(Compiler, MLT_RIGHT_SQUARE);
 				if (ml_parse2(Compiler, MLT_COMMA)) {
@@ -2378,6 +2409,7 @@ static mlc_expr_t *ml_accept_fun_expr(ml_compiler_t *Compiler, ml_token_t EndTok
 					Param->Source = Compiler->Source;
 					ml_accept(Compiler, MLT_IDENT);
 					Param->Ident = Compiler->Ident;
+					Param->Hash = ml_ident_hash(Compiler->Ident);
 					Param->Index = ML_PARAM_NAMED;
 					ml_accept(Compiler, MLT_RIGHT_BRACE);
 				}
@@ -2385,6 +2417,7 @@ static mlc_expr_t *ml_accept_fun_expr(ml_compiler_t *Compiler, ml_token_t EndTok
 			} else if (ml_parse2(Compiler, MLT_LEFT_BRACE)) {
 				ml_accept(Compiler, MLT_IDENT);
 				Param->Ident = Compiler->Ident;
+				Param->Hash = ml_ident_hash(Compiler->Ident);
 				Param->Index = ML_PARAM_NAMED;
 				ml_accept(Compiler, MLT_RIGHT_BRACE);
 				break;
@@ -2395,6 +2428,7 @@ static mlc_expr_t *ml_accept_fun_expr(ml_compiler_t *Compiler, ml_token_t EndTok
 					if (ml_parse2(Compiler, MLT_REF)) Param->Flags |= MLC_DECL_BYREF;
 					ml_accept(Compiler, MLT_IDENT);
 					Param->Ident = Compiler->Ident;
+					Param->Hash = ml_ident_hash(Compiler->Ident);
 				}
 				if (ml_parse2(Compiler, MLT_COLON)) {
 					mlc_decl_type_t *Type = TypeSlot[0] = new(mlc_decl_type_t);
@@ -2446,6 +2480,7 @@ static mlc_expr_t *ml_accept_meth_expr(ml_compiler_t *Compiler) {
 			if (ml_parse2(Compiler, MLT_LEFT_SQUARE)) {
 				ml_accept(Compiler, MLT_IDENT);
 				Param->Ident = Compiler->Ident;
+				Param->Hash = ml_ident_hash(Compiler->Ident);
 				Param->Index = ML_PARAM_EXTRA;
 				ml_accept(Compiler, MLT_RIGHT_SQUARE);
 				if (ml_parse2(Compiler, MLT_COMMA)) {
@@ -2454,6 +2489,7 @@ static mlc_expr_t *ml_accept_meth_expr(ml_compiler_t *Compiler) {
 					Param->Source = Compiler->Source;
 					ml_accept(Compiler, MLT_IDENT);
 					Param->Ident = Compiler->Ident;
+					Param->Hash = ml_ident_hash(Compiler->Ident);
 					Param->Index = ML_PARAM_NAMED;
 					ml_accept(Compiler, MLT_RIGHT_BRACE);
 				}
@@ -2465,6 +2501,7 @@ static mlc_expr_t *ml_accept_meth_expr(ml_compiler_t *Compiler) {
 			} else if (ml_parse2(Compiler, MLT_LEFT_BRACE)) {
 				ml_accept(Compiler, MLT_IDENT);
 				Param->Ident = Compiler->Ident;
+				Param->Hash = ml_ident_hash(Compiler->Ident);
 				Param->Index = ML_PARAM_NAMED;
 				ml_accept(Compiler, MLT_RIGHT_BRACE);
 				ML_EXPR(ValueExpr, value, value);
@@ -2478,6 +2515,7 @@ static mlc_expr_t *ml_accept_meth_expr(ml_compiler_t *Compiler) {
 				} else {
 					ml_accept(Compiler, MLT_IDENT);
 					Param->Ident = Compiler->Ident;
+					Param->Hash = ml_ident_hash(Compiler->Ident);
 				}
 				ml_accept(Compiler, MLT_COLON);
 				mlc_expr_t *Arg = ArgsSlot[0] = ml_accept_expression(Compiler, EXPR_DEFAULT);
@@ -2585,6 +2623,7 @@ static mlc_expr_t *ml_accept_with_expr(ml_compiler_t *Compiler, mlc_expr_t *Chil
 				ml_decl_t *Decl = DeclSlot[0] = new(ml_decl_t);
 				Decl->Source = Compiler->Source;
 				Decl->Ident = Compiler->Ident;
+				Decl->Hash = ml_ident_hash(Compiler->Ident);
 				DeclSlot = &Decl->Next;
 			} while (ml_parse2(Compiler, MLT_COMMA));
 			ml_accept(Compiler, MLT_RIGHT_PAREN);
@@ -2595,6 +2634,7 @@ static mlc_expr_t *ml_accept_with_expr(ml_compiler_t *Compiler, mlc_expr_t *Chil
 			Decl->Source = Compiler->Source;
 			DeclSlot = &Decl->Next;
 			Decl->Ident = Compiler->Ident;
+			Decl->Hash = ml_ident_hash(Compiler->Ident);
 			Decl->Index = 1;
 		}
 		ml_accept(Compiler, MLT_ASSIGN);
@@ -2616,6 +2656,7 @@ static void ml_accept_for_decl(ml_compiler_t *Compiler, ml_decl_t **DeclSlot) {
 		ml_decl_t *Decl = DeclSlot[0] = new(ml_decl_t);
 		Decl->Source = Compiler->Source;
 		Decl->Ident = Compiler->Ident;
+		Decl->Hash = ml_ident_hash(Compiler->Ident);
 		DeclSlot = &Decl->Next;
 		if (!ml_parse2(Compiler, MLT_COMMA)) {
 			Decl->Index = 1;
@@ -2631,6 +2672,7 @@ static void ml_accept_for_decl(ml_compiler_t *Compiler, ml_decl_t **DeclSlot) {
 			ml_decl_t *Decl = DeclSlot[0] = new(ml_decl_t);
 			Decl->Source = Compiler->Source;
 			Decl->Ident = Compiler->Ident;
+			Decl->Hash = ml_ident_hash(Compiler->Ident);
 			DeclSlot = &Decl->Next;
 		} while (ml_parse2(Compiler, MLT_COMMA));
 		ml_accept(Compiler, MLT_RIGHT_PAREN);
@@ -2640,6 +2682,7 @@ static void ml_accept_for_decl(ml_compiler_t *Compiler, ml_decl_t **DeclSlot) {
 		ml_decl_t *Decl = DeclSlot[0] = new(ml_decl_t);
 		Decl->Source = Compiler->Source;
 		Decl->Ident = Compiler->Ident;
+		Decl->Hash = ml_ident_hash(Compiler->Ident);
 		Decl->Index = 1;
 	}
 }
@@ -2726,6 +2769,7 @@ static mlc_expr_t *ml_parse_factor(ml_compiler_t *Compiler, int MethDecl) {
 				Decl->Source = Compiler->Source;
 				ml_accept(Compiler, MLT_IDENT);
 				Decl->Ident = Compiler->Ident;
+				Decl->Hash = ml_ident_hash(Compiler->Ident);
 				Decl->Index = 1;
 				ml_accept(Compiler, MLT_ASSIGN);
 				Case->Decl = Decl;
@@ -2734,6 +2778,7 @@ static mlc_expr_t *ml_parse_factor(ml_compiler_t *Compiler, int MethDecl) {
 				Decl->Source = Compiler->Source;
 				ml_accept(Compiler, MLT_IDENT);
 				Decl->Ident = Compiler->Ident;
+				Decl->Hash = ml_ident_hash(Compiler->Ident);
 				Decl->Index = 0;
 				ml_accept(Compiler, MLT_ASSIGN);
 				Case->Decl = Decl;
@@ -2755,6 +2800,7 @@ static mlc_expr_t *ml_parse_factor(ml_compiler_t *Compiler, int MethDecl) {
 		ml_decl_t *Decl = WhenExpr->Decl = new(ml_decl_t);
 		Decl->Source = Compiler->Source;
 		Decl->Ident = Ident;
+		Decl->Hash = ml_ident_hash(Ident);
 		Decl->Index = 1;
 		ML_EXPR(IfExpr, if, if);
 		mlc_if_case_t **CaseSlot = &IfExpr->Cases;
@@ -3159,6 +3205,7 @@ static void ml_accept_block_var(ml_compiler_t *Compiler, ml_accept_block_t *Acce
 				Decl = Accept->VarsSlot[0] = new(ml_decl_t);
 				Decl->Source = Compiler->Source;
 				Decl->Ident = Compiler->Ident;
+				Decl->Hash = ml_ident_hash(Compiler->Ident);
 				Accept->VarsSlot = &Decl->Next;
 			} while (ml_parse2(Compiler, MLT_COMMA));
 			ml_accept(Compiler, MLT_RIGHT_PAREN);
@@ -3183,6 +3230,7 @@ static void ml_accept_block_var(ml_compiler_t *Compiler, ml_accept_block_t *Acce
 			ml_decl_t *Decl = Accept->VarsSlot[0] = new(ml_decl_t);
 			Decl->Source = Compiler->Source;
 			Decl->Ident = Compiler->Ident;
+			Decl->Hash = ml_ident_hash(Compiler->Ident);
 			Accept->VarsSlot = &Decl->Next;
 			if (ml_parse(Compiler, MLT_COLON)) {
 				ML_EXPR(TypeExpr, decl, var_type);
@@ -3219,6 +3267,7 @@ static void ml_accept_block_let(ml_compiler_t *Compiler, ml_accept_block_t *Acce
 				Decl = Accept->LetsSlot[0] = new(ml_decl_t);
 				Decl->Source = Compiler->Source;
 				Decl->Ident = Compiler->Ident;
+				Decl->Hash = ml_ident_hash(Compiler->Ident);
 				Decl->Flags = MLC_DECL_FORWARD | Flags;
 				Accept->LetsSlot = &Decl->Next;
 			} while (ml_parse2(Compiler, MLT_COMMA));
@@ -3244,6 +3293,7 @@ static void ml_accept_block_let(ml_compiler_t *Compiler, ml_accept_block_t *Acce
 			ml_decl_t *Decl = Accept->LetsSlot[0] = new(ml_decl_t);
 			Decl->Source = Compiler->Source;
 			Decl->Ident = Compiler->Ident;
+			Decl->Hash = ml_ident_hash(Compiler->Ident);
 			Decl->Flags = MLC_DECL_FORWARD | Flags;
 			Accept->LetsSlot = &Decl->Next;
 			ML_EXPR(DeclExpr, decl, let);
@@ -3271,6 +3321,7 @@ static void ml_accept_block_def(ml_compiler_t *Compiler, ml_accept_block_t *Acce
 				Decl = Accept->DefsSlot[0] = new(ml_decl_t);
 				Decl->Source = Compiler->Source;
 				Decl->Ident = Compiler->Ident;
+				Decl->Hash = ml_ident_hash(Compiler->Ident);
 				Accept->DefsSlot = &Decl->Next;
 			} while (ml_parse2(Compiler, MLT_COMMA));
 			ml_accept(Compiler, MLT_RIGHT_PAREN);
@@ -3295,6 +3346,7 @@ static void ml_accept_block_def(ml_compiler_t *Compiler, ml_accept_block_t *Acce
 			ml_decl_t *Decl = Accept->DefsSlot[0] = new(ml_decl_t);
 			Decl->Source = Compiler->Source;
 			Decl->Ident = Compiler->Ident;
+			Decl->Hash = ml_ident_hash(Compiler->Ident);
 			Accept->DefsSlot = &Decl->Next;
 			ML_EXPR(DeclExpr, decl, def);
 			DeclExpr->Count = 0;
@@ -3316,6 +3368,7 @@ static void ml_accept_block_fun(ml_compiler_t *Compiler, ml_accept_block_t *Acce
 		ml_decl_t *Decl = Accept->LetsSlot[0] = new(ml_decl_t);
 		Decl->Source = Compiler->Source;
 		Decl->Ident = Compiler->Ident;
+		Decl->Hash = ml_ident_hash(Compiler->Ident);
 		Decl->Flags = MLC_DECL_FORWARD;
 		Accept->LetsSlot = &Decl->Next;
 		ml_accept(Compiler, MLT_LEFT_PAREN);
@@ -3403,6 +3456,7 @@ static mlc_expr_t *ml_parse_block_expr(ml_compiler_t *Compiler, ml_accept_block_
 				ml_decl_t *Decl = Accept->DefsSlot[0] = new(ml_decl_t);
 				Decl->Source = IdentExpr->Source;
 				Decl->Ident = IdentExpr->Ident;
+				Decl->Hash = ml_ident_hash(IdentExpr->Ident);
 				Accept->DefsSlot = &Decl->Next;
 				ML_EXPR(DeclExpr, decl, def);
 				DeclExpr->Decl = Decl;
@@ -3474,6 +3528,7 @@ static mlc_expr_t *ml_accept_block(ml_compiler_t *Compiler) {
 			ml_decl_t *Decl = CatchExpr->Decl = new(ml_decl_t);
 			Decl->Source = Compiler->Source;
 			Decl->Ident = Compiler->Ident;
+			Decl->Hash = ml_ident_hash(Compiler->Ident);
 			if (ml_parse2(Compiler, MLT_COLON)) {
 				mlc_catch_type_t **TypeSlot = &CatchExpr->Types;
 				do {
@@ -3510,6 +3565,7 @@ ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, ml_compiler_t 
 			ml_decl_t *Param = new(ml_decl_t);
 			Param->Source = Expr->Source;
 			Param->Ident = P[0];
+			Param->Hash = ml_ident_hash(P[0]);
 			Param->Index = Function->Top++;
 			stringmap_insert(Info->Params, Param->Ident, (void *)(intptr_t)Function->Top);
 			ParamSlot[0] = Param;

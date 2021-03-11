@@ -146,6 +146,7 @@ struct ml_decl_t {
 	ml_decl_t *Next;
 	const char *Ident;
 	ml_value_t *Value;
+	long Hash;
 	ml_source_t Source;
 	int Index, Flags;
 };
