@@ -14,7 +14,7 @@ $(SUBDIRS):
 
 CFLAGS += \
 	-std=gnu99 -fstrict-aliasing -foptimize-sibling-calls \
-	-Wstrict-aliasing -Wall \
+	-Wstrict-aliasing -Wall -winitializer-overrides \
 	-Iobj -Isrc -pthread -DGC_THREADS -D_GNU_SOURCE
 LDFLAGS += -lm
 
