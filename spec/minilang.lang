@@ -134,6 +134,7 @@
       <keyword>imp</keyword>
       <keyword>def</keyword>
       <keyword>let</keyword>
+      <keyword>ref</keyword>
       <keyword>var</keyword>
       <keyword>on</keyword>
       <keyword>when</keyword>

@@ -454,8 +454,7 @@ ML_METHOD("append", MLStringBufferT, MLListT) {
 }
 
 ml_value_t *ML_TYPED_FN(ml_unpack, MLListT, ml_list_t *List, int Index) {
-	ml_list_node_t *Node = ml_list_index(List, Index);
-	return Node ? Node->Value : MLNil;
+	return (ml_value_t *)ml_list_index(List, Index) ?: MLNil;
 }
 
 /*typedef struct ml_list_iterator_t {
@@ -517,7 +516,7 @@ ML_METHODV("push", MLListT) {
 
 ML_METHODV("put", MLListT) {
 //<List
-//<Values...: MLAnyT
+//<Values...: any
 //>list
 // Pushes :mini:`Values` onto the end of :mini:`List` and returns :mini:`List`.
 	ml_value_t *List = Args[0];

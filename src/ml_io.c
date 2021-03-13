@@ -16,7 +16,7 @@ void ml_io_read(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count)
 	Buffer->Type = MLBufferT;
 	Buffer->Address = Address;
 	Buffer->Size = Count;
-	ml_value_t **Args = anew(ml_value_t *, 2);
+	ml_value_t **Args = ml_alloc_args(2);
 	Args[0] = Value;
 	Args[1] = (ml_value_t *)Buffer;
 	return ml_call(Caller, ReadMethod, 2, Args);
@@ -29,7 +29,7 @@ void ml_io_write(ml_state_t *Caller, ml_value_t *Value, const void *Address, int
 	Buffer->Type = MLBufferT;
 	Buffer->Address = (void *)Address;
 	Buffer->Size = Count;
-	ml_value_t **Args = anew(ml_value_t *, 3);
+	ml_value_t **Args = ml_alloc_args(3);
 	Args[0] = Value;
 	Args[1] = (ml_value_t *)Buffer;
 	return ml_call(Caller, WriteMethod, 2, Args);
@@ -101,7 +101,8 @@ void ml_io_init(stringmap_t *Globals) {
 #include "ml_io_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "io", ml_module("io",
-			"buffer", MLBufferT,
+			"stream", MLStreamT,
+			"fd", MLFdT,
 			"stdin", ml_fd_new(STDIN_FILENO),
 			"stdout", ml_fd_new(STDOUT_FILENO),
 			"stderr", ml_fd_new(STDERR_FILENO),

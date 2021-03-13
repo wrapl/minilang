@@ -3,37 +3,37 @@ compiler
 
 .. include:: <isonum.txt>
 
-:mini:`fun compiler(Arg₁: any)`
+:mini:`fun compiler(Global: function|map, ?Read: function)` |rarr| :mini:`compiler`
 
 :mini:`type compiler < state`
 
-:mini:`meth :compile(Arg₁: compiler)`
+:mini:`meth :compile(Compiler: compiler)` |rarr| :mini:`any`
 
-:mini:`meth :compile(Arg₁: compiler, Arg₂: list)`
+:mini:`meth :compile(Compiler: compiler, Parameters: list)` |rarr| :mini:`any`
 
-:mini:`meth :source(Arg₁: compiler, Arg₂: string, Arg₃: integer)`
+:mini:`meth :source(Compiler: compiler, Source: string, Line: integer)` |rarr| :mini:`tuple`
 
-:mini:`meth :reset(Arg₁: compiler)`
+:mini:`meth :reset(Compiler: compiler)` |rarr| :mini:`compiler`
 
-:mini:`meth :input(Arg₁: compiler, Arg₂: string)`
+:mini:`meth :input(Compiler: compiler, String: string)` |rarr| :mini:`compiler`
 
-:mini:`meth :clear(Arg₁: compiler)`
+:mini:`meth :clear(Compiler: compiler)` |rarr| :mini:`string`
 
-:mini:`meth :evaluate(Arg₁: compiler)`
+:mini:`meth :evaluate(Compiler: compiler)` |rarr| :mini:`any`
 
-:mini:`meth :run(Arg₁: compiler)`
+:mini:`meth :run(Compiler: compiler)` |rarr| :mini:`any`
 
-:mini:`meth (Arg₁: compiler)[Arg₂: string]`
+:mini:`meth (Compiler: compiler)[Name: string]` |rarr| :mini:`any`
 
 :mini:`type global`
 
-:mini:`meth :var(Arg₁: compiler, Arg₂: string)`
+:mini:`meth :var(Compiler: compiler, Name: string)` |rarr| :mini:`global`
 
-:mini:`meth :var(Arg₁: compiler, Arg₂: string, Arg₃: type)`
+:mini:`meth :var(Compiler: compiler, Name: string, Type: type)` |rarr| :mini:`global`
 
-:mini:`meth :let(Arg₁: compiler, Arg₂: string, Arg₃: any)`
+:mini:`meth :let(Compiler: compiler, Name: string, Value: any)` |rarr| :mini:`global`
 
-:mini:`meth :def(Arg₁: compiler, Arg₂: string, Arg₃: any)`
+:mini:`meth :def(Compiler: compiler, Name: string, Value: any)` |rarr| :mini:`global`
 
-:mini:`meth :vars(Arg₁: compiler)`
+:mini:`meth :vars(Compiler: compiler)` |rarr| :mini:`map`
 

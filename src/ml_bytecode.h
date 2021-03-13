@@ -31,6 +31,7 @@ struct ml_closure_info_t {
 	int LineNo, End, FrameSize;
 	int NumParams, NumUpValues;
 	int ExtraArgs, NamedArgs;
+	int Hashed;
 	unsigned char Hash[SHA256_BLOCK_SIZE];
 };
 
@@ -46,7 +47,6 @@ struct ml_closure_t {
 	const ml_type_t *Type;
 	ml_closure_info_t *Info;
 	ml_param_type_t *ParamTypes;
-	int PartialCount;
 	ml_value_t *UpValues[];
 };
 
@@ -91,6 +91,9 @@ typedef enum {
 	MLI_LET,
 	MLI_LETI,
 	MLI_LETX,
+	MLI_REF,
+	MLI_REFI,
+	MLI_REFX,
 	MLI_FOR,
 	MLI_IF,
 	MLI_NEXT,
@@ -130,7 +133,8 @@ struct ml_inst_t {
 	ml_opcode_t Opcode:8;
 	unsigned int PotentialBreakpoint:1;
 	unsigned int Processed:1;
-	unsigned int Reserved:6;
+	unsigned int Hashed:1;
+	unsigned int Reserved:5;
 	unsigned int Label:16;
 	unsigned int LineNo:32;
 	ml_param_t Params[];
@@ -139,7 +143,7 @@ struct ml_inst_t {
 #define ML_FRAME_REUSE (1 << 0)
 #define ML_FRAME_REENTRY (1 << 1)
 
-#define ML_FRAME_REML_SIZE 224
+#define ML_FRAME_REUSE_SIZE 224
 
 typedef struct ml_variable_t ml_variable_t;
 

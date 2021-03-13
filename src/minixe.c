@@ -1139,7 +1139,7 @@ int main(int Argc, char **Argv) {
 	} else if (FileName) {
 		ml_load_file(MLLoadedState, global_get, Globals, FileName, Parameters);
 	} else {
-		ml_console(global_get, Globals, "--> ", "... ");
+		ml_console(&MLRootContext, global_get, Globals, "--> ", "... ");
 	}
 	return 0;
 }

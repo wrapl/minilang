@@ -14,8 +14,6 @@
 #include "stringmap.h"
 #include "ml_compiler.h"
 #include <sys/stat.h>
-#include <graphviz/cgraph.h>
-#include <graphviz/gvc.h>
 
 #include "ml_gir.h"
 #include "ml_runtime.h"

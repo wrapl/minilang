@@ -1663,8 +1663,8 @@ ML_FUNCTION(Unique) {
 typedef struct ml_zipped_t {
 	ml_type_t *Type;
 	ml_value_t *Function;
-	ml_value_t **Iters;
 	int Count;
+	ml_value_t *Iters[];
 } ml_zipped_t;
 
 ML_TYPE(MLZippedT, (MLIteratableT), "zipped");
@@ -1674,8 +1674,8 @@ typedef struct ml_zipped_state_t {
 	ml_state_t Base;
 	ml_value_t *Function;
 	ml_value_t **Iters;
-	ml_value_t **Args;
 	int Count, Index, Iteration;
+	ml_value_t *Args[];
 } ml_zipped_state_t;
 
 ML_TYPE(MLZippedStateT, (), "zipped-state");
@@ -1690,14 +1690,13 @@ static void zipped_iterate(ml_zipped_state_t *State, ml_value_t *Value) {
 }
 
 static void ML_TYPED_FN(ml_iterate, MLZippedT, ml_state_t *Caller, ml_zipped_t *Zipped) {
-	ml_zipped_state_t *State = new(ml_zipped_state_t);
+	ml_zipped_state_t *State = xnew(ml_zipped_state_t, 2 * Zipped->Count, ml_value_t *);
 	State->Base.Type = MLZippedStateT;
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)zipped_iterate;
 	State->Base.Context = Caller->Context;
 	State->Function = Zipped->Function;
-	State->Iters = anew(ml_value_t *, Zipped->Count);
-	State->Args = anew(ml_value_t *, Zipped->Count);
+	State->Iters = State->Args + Zipped->Count;
 	for (int I = 0; I < Zipped->Count; ++I) State->Iters[I] = Zipped->Iters[I];
 	State->Count = Zipped->Count;
 	State->Iteration = 1;
@@ -1751,11 +1750,10 @@ ML_FUNCTION(Zip) {
 // The iteratable stops produces values when any of the :mini:`Iteratable/i` stops.
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(Count - 1, MLFunctionT);
-	ml_zipped_t *Zipped = new(ml_zipped_t);
+	ml_zipped_t *Zipped = xnew(ml_zipped_t, Count - 1, ml_value_t *);
 	Zipped->Type = MLZippedT;
 	Zipped->Count = Count - 1;
 	Zipped->Function = Args[Count - 1];
-	Zipped->Iters = anew(ml_value_t *, Count - 1);
 	for (int I = 0; I < Count - 1; ++I) Zipped->Iters[I] = Args[I];
 	return (ml_value_t *)Zipped;
 }

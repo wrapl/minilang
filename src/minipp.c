@@ -136,7 +136,7 @@ static void ml_result_run(ml_state_t *State, ml_value_t *Result) {
 }
 
 static ml_state_t MLResultState[1] = {{
-	MLStateT, NULL, ml_result_run
+	MLStateT, NULL, ml_result_run, &MLRootContext
 }};
 
 void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer) {

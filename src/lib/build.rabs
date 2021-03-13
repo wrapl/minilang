@@ -22,14 +22,14 @@ fun minilang_lib(Library, Objects, Libraries) do
 	end
 end
 
-CFLAGS := old + ["-fpic"]
+CFLAGS := old + ["-fpic", "-I.."]
 
 scope("csv";) do
 	generate_init_file(file("ml_csv.c"))
 	DEFAULT[minilang_lib(LIB_DIR / "ml_csv.so", [file("ml_csv.o"), file("libcsv.o")])]
 end
 
-scope("cbor";) do
+:<scope("cbor";) do
 	var Dir := PATH / "minicbor"
 	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git", Dir)
 	CFLAGS := old + [
@@ -43,7 +43,7 @@ scope("cbor";) do
 		file("minicbor/minicbor_reader.o"),
 		file("minicbor/minicbor_writer.o")
 	])]
-end
+end>:
 
 scope("radb";) do
 	var Dir := file("radb")
@@ -57,6 +57,20 @@ scope("radb";) do
 	PREBUILDS := old + [Lib]
 	generate_init_file(file("ml_radb.c"))
 	DEFAULT[minilang_lib(LIB_DIR / "ml_radb.so", [file("ml_radb.o")], [Lib])]
+end
+
+scope("ravs";) do
+	var Dir := file("ravs")
+	var Lib := Dir / "libravs.a" => fun() do
+		Dir:rmdir
+		execute("git clone --recursive -b dev https://github.com/rajamukherji/ravs.git", Dir)
+		Dir:chdir
+		execute("make clean")
+		execute("make libravs.a RADB_MEM=GC")
+	end
+	PREBUILDS := old + [Lib]
+	generate_init_file(file("ml_ravs.c"))
+	DEFAULT[minilang_lib(LIB_DIR / "ml_ravs.so", [file("ml_ravs.o")], [Lib])]
 end
 
 scope("libevent";) do

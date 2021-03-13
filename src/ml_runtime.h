@@ -12,6 +12,14 @@ extern "C" {
 
 // Runtime //
 
+#define ML_ARG_CACHE_SIZE 64
+
+extern ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
+
+#define ml_alloc_args(COUNT) (((COUNT) <= ML_ARG_CACHE_SIZE) ? MLArgCache : anew(ml_value_t *, COUNT))
+
+//#define ml_alloc_args(COUNT) anew(ml_value_t *, COUNT)
+
 struct ml_context_t {
 	ml_context_t *Parent;
 	int Size;
@@ -138,9 +146,15 @@ struct ml_decl_t {
 	ml_decl_t *Next;
 	const char *Ident;
 	ml_value_t *Value;
+	long Hash;
 	ml_source_t Source;
 	int Index, Flags;
 };
+
+#define MLC_DECL_CONSTANT 1
+#define MLC_DECL_FORWARD 2
+#define MLC_DECL_BACKFILL 4
+#define MLC_DECL_BYREF 8
 
 struct ml_debugger_t {
 	size_t Revision;

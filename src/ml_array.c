@@ -447,6 +447,23 @@ ML_METHOD("permute", MLArrayT, MLListT) {
 	return (ml_value_t *)Target;
 }
 
+ML_METHOD("swap", MLArrayT, MLIntegerT, MLIntegerT) {
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	int Degree = Source->Degree;
+	int IndexA = ml_integer_value_fast(Args[1]);
+	int IndexB = ml_integer_value_fast(Args[2]);
+	if (IndexA <= 0) IndexA += (Degree + 1);
+	if (IndexB <= 0) IndexB += (Degree + 1);
+	if (IndexA < 1 || IndexA > Degree) return ml_error("ArrayError", "Invalid index");
+	if (IndexB < 1 || IndexB > Degree) return ml_error("ArrayError", "Invalid index");
+	ml_array_t *Target = ml_array_new(Source->Format, Degree);
+	for (int I = 0; I < Degree; ++I) Target->Dimensions[I] = Source->Dimensions[I];
+	Target->Dimensions[IndexA - 1] = Source->Dimensions[IndexB - 1];
+	Target->Dimensions[IndexB - 1] = Source->Dimensions[IndexA - 1];
+	Target->Base = Source->Base;
+	return (ml_value_t *)Target;
+}
+
 ML_METHOD("expand", MLArrayT, MLListT) {
 //<Array
 //<Indices
@@ -478,6 +495,67 @@ ML_METHOD("expand", MLArrayT, MLListT) {
 		Dim->Stride = 0;
 		++Dim;
 	}
+	Target->Base = Source->Base;
+	return (ml_value_t *)Target;
+}
+
+ML_METHOD("split", MLArrayT, MLIntegerT, MLListT) {
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	int Degree = Source->Degree;
+	int Expand = ml_integer_value_fast(Args[1]);
+	if (Expand <= 0) Expand += Degree + 1;
+	if (Expand < 1 || Expand > Degree) return ml_error("ArrayError", "Invalid index");
+	--Expand;
+	if (Source->Dimensions[Expand].Indices) return ml_error("ArrayError", "Cannot split indexed dimension yet");
+	size_t Total = 1;
+	ML_LIST_FOREACH(Args[2], Iter) {
+		if (!ml_is(Iter->Value, MLIntegerT)) return ml_error("ArrayError", "Invalid size");
+		int Size = ml_integer_value_fast(Iter->Value);
+		if (Size <= 0) return ml_error("RangeError", "Invalid size");
+		Total *= Size;
+	}
+	if (Source->Dimensions[Expand].Size != Total) return ml_error("ArrayError", "Invalid size");
+	ml_array_t *Target = ml_array_new(Source->Format, Degree + ml_list_length(Args[2]) - 1);
+	ml_array_dimension_t *SourceDimension = Source->Dimensions + Degree;
+	ml_array_dimension_t *TargetDimension = Target->Dimensions + Target->Degree;
+	for (int I = Expand + 1; I < Degree; ++I) *--TargetDimension = *--SourceDimension;
+	int Stride = (--SourceDimension)->Stride;
+	ML_LIST_REVERSE(Args[2], Iter) {
+		--TargetDimension;
+		int Size = TargetDimension->Size = ml_integer_value_fast(Iter->Value);
+		TargetDimension->Stride = Stride;
+		Stride *= Size;
+	}
+	for (int I = 0; I < Expand; ++I) *--TargetDimension = *--SourceDimension;
+	Target->Base = Source->Base;
+	return (ml_value_t *)Target;
+}
+
+ML_METHOD("join", MLArrayT, MLIntegerT, MLIntegerT) {
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	int Degree = Source->Degree;
+	int Start = ml_integer_value_fast(Args[1]);
+	if (Start <= 0) Start += Degree + 1;
+	if (Start < 1 || Start > Degree) return ml_error("ArrayError", "Invalid index");
+	int Join = ml_integer_value_fast(Args[2]);
+	if (Join <= 0) return ml_error("ArrayError", "Invalid run");
+	--Start;
+	int End = Start + Join - 1;
+	if (End >= Degree) return ml_error("RangeError", "Invalid run");
+	ml_array_t *Target = ml_array_new(Source->Format, Degree + 1 - Join);
+	ml_array_dimension_t *SourceDimension = Source->Dimensions + Degree;
+	ml_array_dimension_t *TargetDimension = Target->Dimensions + Target->Degree;
+	for (int I = End + 1; I < Degree; ++I) *--TargetDimension = *--SourceDimension;
+	--TargetDimension;
+	TargetDimension->Stride = SourceDimension[-1].Stride;
+	int Size = 1;
+	for (int I = 0; I < Join; ++I) {
+		--SourceDimension;
+		if (SourceDimension->Indices) return ml_error("ArrayError", "Cannot join indexed dimension yet");
+		Size *= SourceDimension->Size;
+	}
+	TargetDimension->Size = Size;
+	for (int I = 0; I < Start; ++I) *--TargetDimension = *--SourceDimension;
 	Target->Base = Source->Base;
 	return (ml_value_t *)Target;
 }
@@ -1660,6 +1738,118 @@ COMPLETE_FUNCTIONS(complex_double, complex_double);
 
 #endif
 
+static char *array_flatten_to(char *Target, int Size, int Degree, int FlatDegree, ml_array_dimension_t *Dimension, char *Source) {
+	if (Degree == FlatDegree) {
+		int Total = Dimension->Size * Dimension->Stride;
+		memcpy(Target, Source, Total);
+		return Target + Total;
+	} else if (Degree == 1) {
+		if (!Dimension->Indices) {
+			int Stride = Dimension->Stride;
+			switch (Size) {
+			case 1:
+				for (int I = Dimension->Size; --I >= 0;) {
+					memcpy(Target, Source, 1);
+					Target += 1;
+					Source += Stride;
+				}
+				break;
+			case 2:
+				for (int I = Dimension->Size; --I >= 0;) {
+					memcpy(Target, Source, 2);
+					Target += 2;
+					Source += Stride;
+				}
+				break;
+			case 4:
+				for (int I = Dimension->Size; --I >= 0;) {
+					memcpy(Target, Source, 4);
+					Target += 4;
+					Source += Stride;
+				}
+				break;
+			case 8:
+				for (int I = Dimension->Size; --I >= 0;) {
+					memcpy(Target, Source, 8);
+					Target += 8;
+					Source += Stride;
+				}
+				break;
+			case 16:
+				for (int I = Dimension->Size; --I >= 0;) {
+					memcpy(Target, Source, 16);
+					Target += 16;
+					Source += Stride;
+				}
+				break;
+			}
+		} else {
+			int Stride = Dimension->Stride;
+			int *Indices = Dimension->Indices;
+			switch (Size) {
+			case 1:
+				for (int I = Dimension->Size; --I >= 0;) {
+					memcpy(Target, Source + Stride * *Indices++, 1);
+					Target += 1;
+				}
+				break;
+			case 2:
+				for (int I = Dimension->Size; --I >= 0;) {
+					memcpy(Target, Source + Stride * *Indices++, 2);
+					Target += 2;
+				}
+				break;
+			case 4:
+				for (int I = Dimension->Size; --I >= 0;) {
+					memcpy(Target, Source + Stride * *Indices++, 4);
+					Target += 4;
+				}
+				break;
+			case 8:
+				for (int I = Dimension->Size; --I >= 0;) {
+					memcpy(Target, Source + Stride * *Indices++, 8);
+					Target += 8;
+				}
+				break;
+			case 16:
+				for (int I = Dimension->Size; --I >= 0;) {
+					memcpy(Target, Source + Stride * *Indices++, 16);
+					Target += 16;
+				}
+				break;
+			}
+		}
+		return Target;
+	} else if (!Dimension->Indices) {
+		int Stride = Dimension->Stride;
+		for (int I = Dimension->Size; --I >= 0;) {
+			Target = array_flatten_to(Target, Size, Degree - 1, FlatDegree, Dimension + 1, Source);
+			Source += Stride;
+		}
+		return Target;
+	} else {
+		int Stride = Dimension->Stride;
+		int *Indices = Dimension->Indices;
+		for (int I = Dimension->Size; --I >= 0;) {
+			Target = array_flatten_to(Target, Size, Degree - 1, FlatDegree, Dimension + 1, Source + Stride * *Indices++);
+		}
+		return Target;
+	}
+}
+
+static char *array_flatten(ml_array_t *Source) {
+	size_t Size = MLArraySizes[Source->Format];
+	int FlatDegree = Source->Degree;
+	for (int I = Source->Degree; --I >= 0;) {
+		if (Size == Source->Dimensions[I].Stride) FlatDegree = I;
+		Size *= Source->Dimensions[I].Size;
+	}
+	FlatDegree = Source->Degree - FlatDegree;
+	char *Data = GC_malloc_atomic(Size);
+	array_flatten_to(Data, MLArraySizes[Source->Format], Source->Degree, FlatDegree, Source->Dimensions, Source->Base.Address);
+	return Data;
+}
+
 static int array_copy(ml_array_t *Target, ml_array_t *Source) {
 	int Degree = Source->Degree;
 	int DataSize = MLArraySizes[Target->Format];
@@ -1668,10 +1858,44 @@ static int array_copy(ml_array_t *Target, ml_array_t *Source) {
 		int Size = Target->Dimensions[I].Size = Source->Dimensions[I].Size;
 		DataSize *= Size;
 	}
-	Target->Base.Address = GC_MALLOC_ATOMIC(DataSize);
-	int Op = Target->Format * MAX_FORMATS + Source->Format;
-	update_array(Op, Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address);
+	Target->Base.Size = DataSize;
+	if (Target->Format == Source->Format) {
+		Target->Base.Address = array_flatten(Source);
+	} else {
+		Target->Base.Address = GC_MALLOC_ATOMIC(DataSize);
+		int Op = Target->Format * MAX_FORMATS + Source->Format;
+		update_array(Op, Target->Dimensions, Target->Base.Address, Degree, Source->Dimensions, Source->Base.Address);
+	}
 	return DataSize;
+}
+
+ML_METHOD("reshape", MLArrayT, MLListT) {
+	int TargetDegree = ml_list_length(Args[1]);
+	size_t TargetCount = 1;
+	ML_LIST_FOREACH(Args[1], Iter) {
+		if (!ml_is(Iter->Value, MLIntegerT)) return ml_error("ArrayError", "Invalid size");
+		int Size = ml_integer_value_fast(Iter->Value);
+		if (Size <= 0) return ml_error("ArrayError", "Invalid size");
+		TargetCount *= Size;
+	}
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	int SourceDegree = Source->Degree;
+	size_t SourceCount = 1;
+	for (int I = 0; I < SourceDegree; ++I) SourceCount *= Source->Dimensions[I].Size;
+	if (TargetCount != SourceCount) return ml_error("ArrayError", "Incompatible shapes");
+
+	ml_array_t *Target = ml_array_new(Source->Format, TargetDegree);
+	Target->Base.Address = array_flatten(Source);
+	size_t DataSize = MLArraySizes[Target->Format];
+	int I = TargetDegree;
+	ML_LIST_REVERSE(Args[1], Iter) {
+		--I;
+		Target->Dimensions[I].Stride = DataSize;
+		int Size = Target->Dimensions[I].Size = ml_integer_value_fast(Iter->Value);
+		DataSize *= Size;
+	}
+	Target->Base.Size = DataSize;
+	return (ml_value_t *)Target;
 }
 
 ML_METHOD("sums", MLArrayT, MLIntegerT) {
@@ -3290,7 +3514,7 @@ ML_METHOD(".", MLArrayT, MLArrayT) {
 //<A
 //<B
 //>array
-// Returns the inner product of :mini:`A` and :mini:`B`.
+// Returns the inner product of :mini:`A` and :mini:`B`. The last dimension of :mini:`A` and the first dimension of :mini:`B` must match, skipping any dimensions of size :mini:`1`.
 	ml_array_t *A = (ml_array_t *)Args[0];
 	ml_array_t *B = (ml_array_t *)Args[1];
 	int DegreeA = A->Degree;
@@ -3329,7 +3553,6 @@ ML_METHOD(".", MLArrayT, MLArrayT) {
 	}
 	ml_array_t *C = ml_array_new(MAX(A->Format, B->Format), Degree);
 	int DataSize = MLArraySizes[C->Format];
-	printf("ADegree = %d, BDegree = %d, Degree = %d\n", DegreeA, DegreeB, Degree);
 	if (UseProd) {
 		int Base = DegreeA;
 		for (int I = DegreeB; --I >= 0;) {
@@ -3377,7 +3600,7 @@ ML_METHOD("**", MLArrayT, MLArrayT) {
 //<A
 //<B
 //>array
-// Returns the inner product of :mini:`A` and :mini:`B`.
+// Returns the pairwise products of the entries of :mini:`A` and :mini:`B`.
 	ml_array_t *A = (ml_array_t *)Args[0];
 	ml_array_t *B = (ml_array_t *)Args[1];
 	int DegreeA = A->Degree;
@@ -3388,7 +3611,6 @@ ML_METHOD("**", MLArrayT, MLArrayT) {
 	int Degree = DegreeA + DegreeB;
 	ml_array_t *C = ml_array_new(MAX(A->Format, B->Format), Degree);
 	int DataSize = MLArraySizes[C->Format];
-	printf("ADegree = %d, BDegree = %d, Degree = %d\n", DegreeA, DegreeB, Degree);
 	int Base = DegreeA;
 	for (int I = DegreeB; --I >= 0;) {
 		C->Dimensions[Base + I].Stride = DataSize;
@@ -3409,6 +3631,147 @@ ML_METHOD("**", MLArrayT, MLArrayT) {
 	);
 	return (ml_value_t *)C;
 }
+
+#ifdef ML_CBOR
+
+#include "ml_cbor.h"
+
+static void ml_cbor_write_array_typed(int Degree, size_t FlatSize, ml_array_dimension_t *Dimension, char *Address, char *Data, ml_cbor_write_fn WriteFn) {
+	if (Degree < 0) {
+		WriteFn(Data, (unsigned char *)Address, FlatSize);
+	} else {
+		int Stride = Dimension->Stride;
+		if (Dimension->Indices) {
+			int *Indices = Dimension->Indices;
+			for (int I = 0; I < Dimension->Size; ++I) {
+				ml_cbor_write_array_typed(Degree - 1, FlatSize, Dimension + 1, Address + Indices[I] * Stride, Data, WriteFn);
+			}
+		} else {
+			for (int I = Dimension->Size; --I >= 0;) {
+				ml_cbor_write_array_typed(Degree - 1, FlatSize, Dimension + 1, Address, Data, WriteFn);
+				Address += Stride;
+			}
+		}
+	}
+}
+
+static void ml_cbor_write_array_any(int Degree, ml_array_dimension_t *Dimension, char *Address, char *Data, ml_cbor_write_fn WriteFn) {
+	if (Degree == 0) {
+		ml_cbor_write(*(ml_value_t **)Address, Data, WriteFn);
+	} else {
+		int Stride = Dimension->Stride;
+		if (Dimension->Indices) {
+			int *Indices = Dimension->Indices;
+			for (int I = 0; I < Dimension->Size; ++I) {
+				ml_cbor_write_array_any(Degree - 1, Dimension + 1, Address + Indices[I] * Stride, Data, WriteFn);
+			}
+		} else {
+			for (int I = Dimension->Size; --I >= 0;) {
+				ml_cbor_write_array_any(Degree - 1, Dimension + 1, Address, Data, WriteFn);
+				Address += Stride;
+			}
+		}
+	}
+}
+
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char *Data, ml_cbor_write_fn WriteFn) {
+	static uint64_t Tags[] = {
+		[ML_ARRAY_FORMAT_I8] = 72,
+		[ML_ARRAY_FORMAT_U8] = 64,
+		[ML_ARRAY_FORMAT_I16] = 77,
+		[ML_ARRAY_FORMAT_U16] = 69,
+		[ML_ARRAY_FORMAT_I32] = 78,
+		[ML_ARRAY_FORMAT_U32] = 70,
+		[ML_ARRAY_FORMAT_I64] = 79,
+		[ML_ARRAY_FORMAT_U64] = 71,
+		[ML_ARRAY_FORMAT_F32] = 85,
+		[ML_ARRAY_FORMAT_F64] = 86
+	};
+	ml_cbor_write_tag(Data, WriteFn, 40);
+	ml_cbor_write_array(Data, WriteFn, 2);
+	ml_cbor_write_array(Data, WriteFn, Array->Degree);
+	if (Array->Format == ML_ARRAY_FORMAT_ANY) {
+		size_t Size = 1;
+		for (int I = 0; I < Array->Degree; ++I) {
+			Size *= Array->Dimensions[I].Size;
+			ml_cbor_write_integer(Data, WriteFn, Array->Dimensions[I].Size);
+		}
+		ml_cbor_write_tag(Data, WriteFn, 41);
+		ml_cbor_write_array(Data, WriteFn, Size);
+		ml_cbor_write_array_any(Array->Degree, Array->Dimensions, Array->Base.Address, Data, WriteFn);
+	} else {
+		for (int I = 0; I < Array->Degree; ++I) ml_cbor_write_integer(Data, WriteFn, Array->Dimensions[I].Size);
+		size_t Size = MLArraySizes[Array->Format];
+		int FlatDegree = -1;
+		size_t FlatSize = Size;
+		for (int I = Array->Degree; --I >= 0;) {
+			if (FlatDegree < 0) {
+				if (Array->Dimensions[I].Indices) {
+					FlatDegree = I;
+				} else if (Array->Dimensions[I].Stride != Size) {
+					FlatDegree = I;
+				} else {
+					FlatSize = Size * Array->Dimensions[I].Size;
+				}
+			}
+			Size *= Array->Dimensions[I].Size;
+		}
+		ml_cbor_write_tag(Data, WriteFn, Tags[Array->Format]);
+		ml_cbor_write_bytes(Data, WriteFn, Size);
+		ml_cbor_write_array_typed(FlatDegree, FlatSize, Array->Dimensions, Array->Base.Address, Data, WriteFn);
+	}
+	return NULL;
+}
+
+static ml_value_t *ml_cbor_read_multi_array_fn(void *Data, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_TYPE(0, MLListT);
+	if (ml_list_length(Args[0]) != 2) return ml_error("CborError", "Invalid multi-dimensional array");
+	ml_value_t *Dimensions = ml_list_get(Args[0], 1);
+	if (Dimensions->Type != MLListT) return ml_error("CborError", "Invalid multi-dimensional array");
+	ml_array_t *Source = (ml_array_t *)ml_list_get(Args[0], 2);
+	if (!ml_is((ml_value_t *)Source, MLArrayT)) return ml_error("CborError", "Invalid multi-dimensional array");
+	ml_array_t *Target = ml_array_new(Source->Format, ml_list_length(Dimensions));
+	ml_array_dimension_t *Dimension = Target->Dimensions + Target->Degree;
+	int Stride = MLArraySizes[Source->Format];
+	ML_LIST_REVERSE(Dimensions, Iter) {
+		--Dimension;
+		Dimension->Stride = Stride;
+		int Size = Dimension->Size = ml_integer_value(Iter->Value);
+		Stride *= Size;
+	}
+	if (Stride != Source->Base.Size) return ml_error("CborError", "Invalid multi-dimensional array");
+	Target->Base.Size = Stride;
+	Target->Base.Address = Source->Base.Address;
+	return (ml_value_t *)Target;
+}
+
+static ml_value_t *ml_cbor_read_typed_array_fn(void *Data, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_TYPE(0, MLBufferT);
+	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
+	ml_array_format_t Format = (intptr_t)Data;
+	int ItemSize = MLArraySizes[Format];
+	ml_array_t *Array = ml_array_new(Format, 1);
+	Array->Dimensions[0].Size = Buffer->Size / ItemSize;
+	Array->Dimensions[0].Stride = ItemSize;
+	Array->Base.Size = Buffer->Size;
+	Array->Base.Address = Buffer->Address;
+	return (ml_value_t *)Array;
+}
+
+static ml_value_t *ml_cbor_read_any_array_fn(void *Data, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_TYPE(0, MLListT);
+	size_t Size = ml_list_length(Args[0]);
+	ml_array_t *Array = ml_array_new(ML_ARRAY_FORMAT_ANY, 1);
+	Array->Dimensions[0].Size = Size;
+	Array->Dimensions[0].Stride = MLArraySizes[ML_ARRAY_FORMAT_ANY];
+	ml_value_t **Values = anew(ml_value_t *, Size);
+	Array->Base.Size = Size * MLArraySizes[ML_ARRAY_FORMAT_ANY];
+	Array->Base.Address = (char *)Values;
+	ML_LIST_FOREACH(Args[0], Iter) *Values++ = Iter->Value;
+	return (ml_value_t *)Array;
+}
+
+#endif
 
 void ml_array_init(stringmap_t *Globals) {
 #include "ml_array_init.c"
@@ -3448,4 +3811,18 @@ void ml_array_init(stringmap_t *Globals) {
 	if (Globals) {
 		stringmap_insert(Globals, "array", MLArrayT);
 	}
+#ifdef ML_CBOR
+	ml_cbor_default_tag(40, NULL, ml_cbor_read_multi_array_fn);
+	ml_cbor_default_tag(41, NULL, ml_cbor_read_any_array_fn);
+	ml_cbor_default_tag(72, (void *)ML_ARRAY_FORMAT_I8, ml_cbor_read_typed_array_fn);
+	ml_cbor_default_tag(64, (void *)ML_ARRAY_FORMAT_U8, ml_cbor_read_typed_array_fn);
+	ml_cbor_default_tag(77, (void *)ML_ARRAY_FORMAT_I16, ml_cbor_read_typed_array_fn);
+	ml_cbor_default_tag(69, (void *)ML_ARRAY_FORMAT_U16, ml_cbor_read_typed_array_fn);
+	ml_cbor_default_tag(78, (void *)ML_ARRAY_FORMAT_I32, ml_cbor_read_typed_array_fn);
+	ml_cbor_default_tag(70, (void *)ML_ARRAY_FORMAT_U32, ml_cbor_read_typed_array_fn);
+	ml_cbor_default_tag(79, (void *)ML_ARRAY_FORMAT_I64, ml_cbor_read_typed_array_fn);
+	ml_cbor_default_tag(71, (void *)ML_ARRAY_FORMAT_U64, ml_cbor_read_typed_array_fn);
+	ml_cbor_default_tag(85, (void *)ML_ARRAY_FORMAT_F32, ml_cbor_read_typed_array_fn);
+	ml_cbor_default_tag(86, (void *)ML_ARRAY_FORMAT_F64, ml_cbor_read_typed_array_fn);
+#endif
 }

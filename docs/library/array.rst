@@ -77,9 +77,15 @@ array
    Returns an array sharing the underlying data with :mini:`Array`, permuting the axes according to :mini:`Indices`.
 
 
+:mini:`meth :swap(Arg₁: array, Arg₂: integer, Arg₃: integer)`
+
 :mini:`meth :expand(Array: array, Indices: list)` |rarr| :mini:`array`
    Returns an array sharing the underlying data with :mini:`Array` with additional unit-length axes at the specified :mini:`Indices`.
 
+
+:mini:`meth :split(Arg₁: array, Arg₂: integer, Arg₃: list)`
+
+:mini:`meth :join(Arg₁: array, Arg₂: integer, Arg₃: integer)`
 
 :mini:`meth :strides(Array: array)` |rarr| :mini:`list`
    Return the strides of :mini:`Array` in bytes.
@@ -108,6 +114,8 @@ array
 
    The :mini:`i`-th dimension is indexed by :mini:`Indices[i]` if present, and :mini:`nil` otherwise.
 
+
+:mini:`meth :reshape(Arg₁: array, Arg₂: list)`
 
 :mini:`meth :sums(Array: array, Index: integer)` |rarr| :mini:`array`
    Returns a new array with the partial sums of :mini:`Array` in the :mini:`Index`-th dimension.
@@ -152,10 +160,10 @@ array
 
 
 :mini:`meth .(A: array, B: array)` |rarr| :mini:`array`
-   Returns the inner product of :mini:`A` and :mini:`B`.
+   Returns the inner product of :mini:`A` and :mini:`B`. The last dimension of :mini:`A` and the first dimension of :mini:`B` must match, skipping any dimensions of size :mini:`1`.
 
 
 :mini:`meth **(A: array, B: array)` |rarr| :mini:`array`
-   Returns the inner product of :mini:`A` and :mini:`B`.
+   Returns the pairwise products of the entries of :mini:`A` and :mini:`B`.
 
 

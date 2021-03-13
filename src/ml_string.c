@@ -6,6 +6,7 @@
 #include <inttypes.h>
 #include <math.h>
 #include <float.h>
+#include <printf.h>
 #include <gc/gc_typed.h>
 #ifdef ML_TRE
 #include <tre/regex.h>
@@ -43,7 +44,7 @@ ML_METHOD("+", MLBufferT, MLIntegerT) {
 //>buffer
 	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
 	long Offset = ml_integer_value_fast(Args[1]);
-	if (Offset >= Buffer->Size) return ml_error("ValueError", "Offset larger than buffer");
+	if (Offset > Buffer->Size) return ml_error("ValueError", "Offset larger than buffer");
 	ml_buffer_t *Buffer2 = new(ml_buffer_t);
 	Buffer2->Type = MLBufferT;
 	Buffer2->Address = Buffer->Address + Offset;
@@ -155,11 +156,55 @@ ML_METHOD(MLStringT, MLIntegerT, MLIntegerT) {
 	return ml_string(P, Q - P);
 }
 
+static regex_t IntFormat[1];
+static regex_t LongFormat[1];
+static regex_t RealFormat[1];
+
+ML_METHOD(MLStringT, MLIntegerT, MLStringT) {
+	const char *Format = ml_string_value(Args[1]);
+	int64_t Value = ml_integer_value_fast(Args[0]);
+	char *String;
+	int Length;
+	int Error = regexec(IntFormat, Format, 0, NULL, 0);
+	if (Error) {
+		char Message[128];
+		regerror(Error, IntFormat, Message, 128);
+		printf("Regex error: %s\n", Message);
+	}
+	if (!regexec(IntFormat, Format, 0, NULL, 0)) {
+		Length = asprintf(&String, Format, (int)Value);
+	} else if (!regexec(LongFormat, Format, 0, NULL, 0)) {
+		Length = asprintf(&String, Format, (long)Value);
+	} else if (!regexec(RealFormat, Format, 0, NULL, 0)) {
+		Length = asprintf(&String, Format, (double)Value);
+	} else {
+		return ml_error("FormatError", "Invalid format string");
+	}
+	return ml_string(String, Length);
+}
+
 ML_METHOD(MLStringT, MLRealT) {
 //!number
-	char *Value;
-	int Length = asprintf(&Value, "%g", ml_real_value_fast(Args[0]));
-	return ml_string(Value, Length);
+	char *String;
+	int Length = asprintf(&String, "%g", ml_real_value_fast(Args[0]));
+	return ml_string(String, Length);
+}
+
+ML_METHOD(MLStringT, MLRealT, MLStringT) {
+	const char *Format = ml_string_value(Args[1]);
+	double Value = ml_real_value_fast(Args[0]);
+	char *String;
+	int Length;
+	if (!regexec(IntFormat, Format, 0, NULL, 0)) {
+		Length = asprintf(&String, Format, (int)Value);
+	} else if (!regexec(LongFormat, Format, 0, NULL, 0)) {
+		Length = asprintf(&String, Format, (long)Value);
+	} else if (!regexec(RealFormat, Format, 0, NULL, 0)) {
+		Length = asprintf(&String, Format, (double)Value);
+	} else {
+		return ml_error("FormatError", "Invalid format string");
+	}
+	return ml_string(String, Length);
 }
 
 #ifdef ML_COMPLEX
@@ -167,14 +212,14 @@ ML_METHOD(MLStringT, MLRealT) {
 ML_METHOD(MLStringT, MLComplexT) {
 //!number
 	complex double Complex = ml_complex_value_fast(Args[0]);
-	char *Value;
+	char *String;
 	int Length;
 	if (fabs(creal(Complex)) <= DBL_EPSILON) {
-		Length = asprintf(&Value, "%gi", cimag(Complex));
+		Length = asprintf(&String, "%gi", cimag(Complex));
 	} else {
-		Length = asprintf(&Value, "%g + %gi", creal(Complex), cimag(Complex));
+		Length = asprintf(&String, "%g + %gi", creal(Complex), cimag(Complex));
 	}
-	return ml_string(Value, Length);
+	return ml_string(String, Length);
 }
 
 #endif
@@ -302,6 +347,24 @@ ml_value_t *ml_regex(const char *Pattern, int Length) {
 	int Error = regncomp(Regex->Value, Pattern, Length, REG_EXTENDED);
 #else
 	int Error = regcomp(Regex->Value, Pattern, REG_EXTENDED);
+#endif
+	if (Error) {
+		size_t ErrorSize = regerror(Error, Regex->Value, NULL, 0);
+		char *ErrorMessage = snew(ErrorSize + 1);
+		regerror(Error, Regex->Value, ErrorMessage, ErrorSize);
+		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+	}
+	return (ml_value_t *)Regex;
+}
+
+ml_value_t *ml_regexi(const char *Pattern, int Length) {
+	ml_regex_t *Regex = new(ml_regex_t);
+	Regex->Type = MLRegexT;
+	Regex->Pattern = Pattern;
+#ifdef ML_TRE
+	int Error = regncomp(Regex->Value, Pattern, Length, REG_EXTENDED | REG_ICASE);
+#else
+	int Error = regcomp(Regex->Value, Pattern, REG_EXTENDED | REG_ICASE);
 #endif
 	if (Error) {
 		size_t ErrorSize = regerror(Error, Regex->Value, NULL, 0);
@@ -935,12 +998,12 @@ ML_METHOD("find", MLStringT, MLRegexT) {
 ML_METHOD("find2", MLStringT, MLRegexT) {
 	const char *Haystack = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
-	regmatch_t Matches[1];
+	regmatch_t Matches[Regex->re_nsub + 1];
 #ifdef ML_TRE
 	int Length = ml_string_length(Args[0]);
-	switch (regnexec(Regex, Haystack, Length, 1, Matches, 0)) {
+	switch (regnexec(Regex, Haystack, Length, Regex->re_nsub + 1, Matches, 0)) {
 #else
-	switch (regexec(Regex, Haystack, 1, Matches, 0)) {
+	switch (regexec(Regex, Haystack, Regex->re_nsub + 1, Matches, 0)) {
 #endif
 	case REG_NOMATCH:
 		return MLNil;
@@ -951,9 +1014,17 @@ ML_METHOD("find2", MLStringT, MLRegexT) {
 		return ml_error("RegexError", "regex error: %s", ErrorMessage);
 	}
 	}
-	ml_value_t *Result = ml_tuple(2);
+	ml_value_t *Result = ml_tuple(Regex->re_nsub + 2);
 	ml_tuple_set(Result, 1, ml_integer(1 + Matches->rm_so));
-	ml_tuple_set(Result, 2, ml_string(Haystack + Matches->rm_so, Matches->rm_eo - Matches->rm_so));
+	for (int I = 0; I < Regex->re_nsub + 1; ++I) {
+		regoff_t Start = Matches[I].rm_so;
+		if (Start >= 0) {
+			size_t Length = Matches[I].rm_eo - Start;
+			ml_tuple_set(Result, I + 2, ml_string(Haystack + Start, Length));
+		} else {
+			ml_tuple_set(Result, I + 2, MLNil);
+		}
+	}
 	return Result;
 }
 
@@ -995,11 +1066,11 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
 	if (Start > Length) return MLNil;
 	Haystack += Start - 1;
 	Length -= (Start - 1);
-	regmatch_t Matches[1];
+	regmatch_t Matches[Regex->re_nsub + 1];
 #ifdef ML_TRE
-	switch (regnexec(Regex, Haystack, Length, 1, Matches, 0)) {
+	switch (regnexec(Regex, Haystack, Length, Regex->re_nsub + 1, Matches, 0)) {
 #else
-	switch (regexec(Regex, Haystack, 1, Matches, 0)) {
+	switch (regexec(Regex, Haystack, Regex->re_nsub + 1, Matches, 0)) {
 #endif
 	case REG_NOMATCH:
 		return MLNil;
@@ -1010,9 +1081,17 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
 		return ml_error("RegexError", "regex error: %s", ErrorMessage);
 	}
 	}
-	ml_value_t *Result = ml_tuple(2);
+	ml_value_t *Result = ml_tuple(Regex->re_nsub + 2);
 	ml_tuple_set(Result, 1, ml_integer(Start + Matches->rm_so));
-	ml_tuple_set(Result, 2, ml_string(Haystack + Matches->rm_so, Matches->rm_eo - Matches->rm_so));
+	for (int I = 0; I < Regex->re_nsub + 1; ++I) {
+		regoff_t Start = Matches[I].rm_so;
+		if (Start >= 0) {
+			size_t Length = Matches[I].rm_eo - Start;
+			ml_tuple_set(Result, I + 2, ml_string(Haystack + Start, Length));
+		} else {
+			ml_tuple_set(Result, I + 2, MLNil);
+		}
+	}
 	return Result;
 }
 
@@ -1392,6 +1471,9 @@ ML_METHOD("append", MLStringBufferT, MLRegexT) {
 void ml_string_init() {
 	GC_word StringBufferLayout[] = {1};
 	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
+	regcomp(IntFormat, "^%[-+ #'0]*[.0-9]*[dioxX]$", REG_NOSUB);
+	regcomp(LongFormat, "^%[-+ #'0]*[.0-9]*l[dioxX]$", REG_NOSUB);
+	regcomp(RealFormat, "^%[-+ #'0]*[.0-9]*[aefgAEG]$", REG_NOSUB);
 #include "ml_string_init.c"
 	ml_method_by_value(MLStringT->Constructor, NULL, ml_identity, MLStringT, NULL);
 }
