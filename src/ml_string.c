@@ -44,7 +44,7 @@ ML_METHOD("+", MLBufferT, MLIntegerT) {
 //>buffer
 	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
 	long Offset = ml_integer_value_fast(Args[1]);
-	if (Offset >= Buffer->Size) return ml_error("ValueError", "Offset larger than buffer");
+	if (Offset > Buffer->Size) return ml_error("ValueError", "Offset larger than buffer");
 	ml_buffer_t *Buffer2 = new(ml_buffer_t);
 	Buffer2->Type = MLBufferT;
 	Buffer2->Address = Buffer->Address + Offset;
@@ -156,21 +156,27 @@ ML_METHOD(MLStringT, MLIntegerT, MLIntegerT) {
 	return ml_string(P, Q - P);
 }
 
+static regex_t IntFormat[1];
+static regex_t LongFormat[1];
+static regex_t RealFormat[1];
+
 ML_METHOD(MLStringT, MLIntegerT, MLStringT) {
-	const char *Template = ml_string_value(Args[1]);
-	int ArgTypes[1];
-	if (parse_printf_format(Template, 1, ArgTypes) != 1) {
-		return ml_error("FormatError", "Invalid format string");
-	}
+	const char *Format = ml_string_value(Args[1]);
 	int64_t Value = ml_integer_value_fast(Args[0]);
 	char *String;
 	int Length;
-	if (ArgTypes[0] == PA_INT) {
-		Length = asprintf(&String, Template, (int)Value);
-	} else if (ArgTypes[0] == (PA_INT | PA_FLAG_LONG)) {
-		Length = asprintf(&String, Template, (long)Value);
-	} else if (ArgTypes[0] == PA_DOUBLE) {
-		Length = asprintf(&String, Template, (double)Value);
+	int Error = regexec(IntFormat, Format, 0, NULL, 0);
+	if (Error) {
+		char Message[128];
+		regerror(Error, IntFormat, Message, 128);
+		printf("Regex error: %s\n", Message);
+	}
+	if (!regexec(IntFormat, Format, 0, NULL, 0)) {
+		Length = asprintf(&String, Format, (int)Value);
+	} else if (!regexec(LongFormat, Format, 0, NULL, 0)) {
+		Length = asprintf(&String, Format, (long)Value);
+	} else if (!regexec(RealFormat, Format, 0, NULL, 0)) {
+		Length = asprintf(&String, Format, (double)Value);
 	} else {
 		return ml_error("FormatError", "Invalid format string");
 	}
@@ -185,20 +191,16 @@ ML_METHOD(MLStringT, MLRealT) {
 }
 
 ML_METHOD(MLStringT, MLRealT, MLStringT) {
-	const char *Template = ml_string_value(Args[1]);
-	int ArgTypes[1];
-	if (parse_printf_format(Template, 1, ArgTypes) != 1) {
-		return ml_error("FormatError", "Invalid format string");
-	}
+	const char *Format = ml_string_value(Args[1]);
 	double Value = ml_real_value_fast(Args[0]);
 	char *String;
 	int Length;
-	if (ArgTypes[0] == PA_INT) {
-		Length = asprintf(&String, Template, (int)Value);
-	} else if (ArgTypes[0] == (PA_INT | PA_FLAG_LONG)) {
-		Length = asprintf(&String, Template, (long)Value);
-	} else if (ArgTypes[0] == PA_DOUBLE) {
-		Length = asprintf(&String, Template, (double)Value);
+	if (!regexec(IntFormat, Format, 0, NULL, 0)) {
+		Length = asprintf(&String, Format, (int)Value);
+	} else if (!regexec(LongFormat, Format, 0, NULL, 0)) {
+		Length = asprintf(&String, Format, (long)Value);
+	} else if (!regexec(RealFormat, Format, 0, NULL, 0)) {
+		Length = asprintf(&String, Format, (double)Value);
 	} else {
 		return ml_error("FormatError", "Invalid format string");
 	}
@@ -1469,6 +1471,9 @@ ML_METHOD("append", MLStringBufferT, MLRegexT) {
 void ml_string_init() {
 	GC_word StringBufferLayout[] = {1};
 	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
+	regcomp(IntFormat, "^%[-+ #'0]*[.0-9]*[dioxX]$", REG_NOSUB);
+	regcomp(LongFormat, "^%[-+ #'0]*[.0-9]*l[dioxX]$", REG_NOSUB);
+	regcomp(RealFormat, "^%[-+ #'0]*[.0-9]*[aefgAEG]$", REG_NOSUB);
 #include "ml_string_init.c"
 	ml_method_by_value(MLStringT->Constructor, NULL, ml_identity, MLStringT, NULL);
 }

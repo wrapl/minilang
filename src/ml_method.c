@@ -119,8 +119,8 @@ static inline ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *M
 			Type = ml_typeof(Value->Type->deref(Value));
 		} else if (Tag == 1) {
 			Type = MLInt32T;
-		} else if (Tag < 7) {
-			Type = NULL;
+		/*} else if (Tag < 7) {
+			Type = NULL;*/
 		} else {
 			Type = MLDoubleT;
 		}

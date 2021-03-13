@@ -143,7 +143,7 @@ struct ml_inst_t {
 #define ML_FRAME_REUSE (1 << 0)
 #define ML_FRAME_REENTRY (1 << 1)
 
-#define ML_FRAME_REML_SIZE 224
+#define ML_FRAME_REUSE_SIZE 224
 
 typedef struct ml_variable_t ml_variable_t;
 

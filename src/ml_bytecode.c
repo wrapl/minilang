@@ -70,9 +70,10 @@ struct DEBUG_STRUCT(frame) {
 #ifdef ML_SCHEDULER
 	ml_schedule_t Schedule;
 #endif
+	unsigned int LineNo;
+	unsigned int Reentry:1;
 	unsigned int Reuse:1;
 	unsigned int Suspend:1;
-	unsigned int Reentry:1;
 #ifdef DEBUG_VERSION
 	unsigned int StepOver:1;
 	unsigned int StepOut:1;
@@ -286,7 +287,10 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		goto *Labels[Inst->Opcode];
 	}
 #endif
-	ERROR_CHECK(Result);
+	if (ml_is_error(Result)) {
+		ml_error_trace_add(Result, (ml_source_t){Frame->Source, Frame->LineNo});
+		ERROR();
+	}
 #ifdef DEBUG_VERSION
 	goto DO_DEBUG_ADVANCE;
 #else
@@ -304,11 +308,13 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			*(ml_frame_t **)Frame = MLCachedFrame;
 			MLCachedFrame = Frame;
 		} else {
+			Frame->LineNo = Inst->LineNo;
 			Frame->Inst = Inst;
 		}
 		ML_CONTINUE(Caller, Result);
 	}
 	DO_SUSPEND: {
+		Frame->LineNo = Inst->LineNo;
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
 #ifdef ML_SCHEDULER
@@ -527,6 +533,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_FOR: {
 		Result = ml_deref(Result);
+		Frame->LineNo = Inst->LineNo;
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
 #ifdef ML_SCHEDULER
@@ -545,6 +552,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		for (int I = Inst->Params[1].Count; --I >= 0;) *--Top = 0;
 		Result = Top[-1];
 		*--Top = 0;
+		Frame->LineNo = Inst->LineNo;
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
 #ifdef ML_SCHEDULER
@@ -554,6 +562,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_VALUE: {
 		Result = Top[Inst->Params[1].Index];
+		Frame->LineNo = Inst->LineNo;
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
 #ifdef ML_SCHEDULER
@@ -563,6 +572,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_KEY: {
 		Result = Top[Inst->Params[1].Index];
+		Frame->LineNo = Inst->LineNo;
 		Frame->Inst = Inst->Params[0].Inst;
 		Frame->Top = Top;
 #ifdef ML_SCHEDULER
@@ -585,6 +595,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		} else {
 			Frame->Inst = Next;
+			Frame->LineNo = Inst->LineNo;
 			Frame->Top = Top - (Count + 1);
 			return ml_call(Frame, Function, Count, Args);
 		}
@@ -604,6 +615,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		} else {
 			Frame->Inst = Next;
+			Frame->LineNo = Inst->LineNo;
 			Frame->Top = Top - Count;
 			return ml_call(Frame, Function, Count, Args);
 		}
@@ -759,6 +771,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
+		Frame->LineNo = Inst->LineNo;
 		Frame->Inst = Next;
 		Frame->Top = Top - Count;
 		return ml_call(Frame, AppendMethod, Count + 1, Args);
@@ -781,6 +794,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
+		Frame->LineNo = Inst->LineNo;
 		Frame->Inst = Next;
 		Frame->Top = Top - 2;
 		return ml_call(Frame, SymbolMethod, 2, Args);
@@ -820,6 +834,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_BREAKPOINT: {
 		ml_debugger_t *Debugger = Frame->Debugger;
+		Frame->LineNo = Inst->LineNo;
 		Frame->Inst = Inst;
 		Frame->Top = Top;
 		Frame->Reentry = 1;
@@ -828,6 +843,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #endif
 #ifdef ML_SCHEDULER
 	DO_SWAP: {
+		Frame->LineNo = Inst->LineNo;
 		Frame->Inst = Inst;
 		Frame->Top = Top;
 		return Frame->Schedule.swap((ml_state_t *)Frame, Result);
@@ -846,11 +862,11 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 #endif
 	size_t Size = sizeof(DEBUG_STRUCT(frame)) + Info->FrameSize * sizeof(ml_value_t *);
 	DEBUG_STRUCT(frame) *Frame;
-	if (Size <= ML_FRAME_REML_SIZE) {
+	if (Size <= ML_FRAME_REUSE_SIZE) {
 		if ((Frame = MLCachedFrame)) {
 			MLCachedFrame = *(ml_frame_t **)Frame;
 		} else {
-			Frame = GC_MALLOC(ML_FRAME_REML_SIZE);
+			Frame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
 		}
 		Frame->Reuse = 1;
 	} else {
@@ -933,6 +949,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	Frame->OnError = Info->Return;
 	Frame->UpValues = Closure->UpValues;
 	Frame->Inst = Info->Entry;
+	Frame->LineNo = Info->Entry->LineNo;
 #ifdef ML_SCHEDULER
 	ml_scheduler_t scheduler = (ml_scheduler_t)Caller->Context->Values[ML_SCHEDULER_INDEX];
 	Frame->Schedule = scheduler(Caller->Context);
@@ -951,6 +968,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	if (Info->JITStart) {
 		Frame->Base.run = Info->JITStart;
 		Frame->Inst = Info->JITEntry;
+		Frame->LineNo = Info->JITEntry->LineNo;
 		Frame->OnError = Info->JITReturn;
 	}
 #endif

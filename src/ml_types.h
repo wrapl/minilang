@@ -143,8 +143,8 @@ static inline ml_type_t *ml_typeof(const ml_value_t *Value) {
 		return Value->Type;
 	} else if (Tag == 1) {
 		return MLInt32T;
-	} else if (Tag < 7) {
-		return NULL;
+	/*} else if (Tag < 7) {
+		return NULL;*/
 	} else {
 		return MLDoubleT;
 	}
