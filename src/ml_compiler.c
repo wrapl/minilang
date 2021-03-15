@@ -3308,13 +3308,13 @@ static void ml_accept_block_let(ml_compiler_t *Compiler, ml_accept_block_t *Acce
 			Decl->Flags = MLC_DECL_FORWARD | Flags;
 			Accept->LetsSlot = &Decl->Next;
 			ML_EXPR(DeclExpr, decl, let);
-			DeclExpr->Decl = Decl;
 			if (ml_parse2(Compiler, MLT_LEFT_PAREN)) {
 				DeclExpr->Child = ml_accept_fun_expr(Compiler, MLT_RIGHT_PAREN);
 			} else {
 				ml_accept(Compiler, MLT_ASSIGN);
 				DeclExpr->Child = ml_accept_expression(Compiler, EXPR_DEFAULT);
 			}
+			DeclExpr->Decl = Decl;
 			Accept->ExprSlot[0] = ML_EXPR_END(DeclExpr);
 			Accept->ExprSlot = &DeclExpr->Next;
 		}
@@ -3360,7 +3360,6 @@ static void ml_accept_block_def(ml_compiler_t *Compiler, ml_accept_block_t *Acce
 			Decl->Hash = ml_ident_hash(Compiler->Ident);
 			Accept->DefsSlot = &Decl->Next;
 			ML_EXPR(DeclExpr, decl, def);
-			DeclExpr->Count = 0;
 			if (ml_parse2(Compiler, MLT_LEFT_PAREN)) {
 				DeclExpr->Child = ml_accept_fun_expr(Compiler, MLT_RIGHT_PAREN);
 			} else {
@@ -3739,12 +3738,6 @@ static ml_value_t *ml_stringmap_global(stringmap_t *Globals, int Count, ml_value
 ml_value_t *ml_stringmap_globals(stringmap_t *Globals) {
 	return ml_cfunction(Globals, (ml_callback_t)ml_stringmap_global);
 }
-
-typedef struct {
-	ml_type_t *Type;
-	ml_value_t *Value;
-	const char *Name;
-} ml_global_t;
 
 static ml_value_t *ml_global_deref(ml_global_t *Global) {
 	if (!Global->Value) return ml_error("NameError", "identifier %s not declared", Global->Name);

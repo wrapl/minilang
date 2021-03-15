@@ -146,6 +146,7 @@ MINILANG_QUEUES := old or defined("QUEUES")
 MINILANG_TIME := old or defined("TIME")
 MINILANG_UUID := old or defined("UUID")
 MINILANG_LIBS := old or defined("LIBS")
+MINILANG_JSENCODE := old or defined("JSENCODE")
 
 file("config.h") => fun(Target) do
 	let File := Target:open("w")
@@ -274,6 +275,13 @@ if MINILANG_UUID then
 	CFLAGS := old + ["-DML_UUID"]
 	LDFLAGS := old + ["-luuid"]
 	InstallHeaders:put("ml_uuid.h")
+end
+
+if MINILANG_JSENCODE then
+	Objects:put(file("ml_jsencode.o"))
+	CFLAGS := old + ["-DML_JSENCODE"]
+	LDFLAGS := old + ["-ljansson"]
+	InstallHeaders:put("ml_jsencode.h")
 end
 
 if PLATFORM = "Linux" then

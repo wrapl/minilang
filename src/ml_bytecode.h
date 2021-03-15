@@ -127,6 +127,27 @@ typedef enum {
 	MLI_IF_DEBUG
 } ml_opcode_t;
 
+extern const char *MLInstNames[];
+
+typedef enum {
+	MLIT_NONE,
+	MLIT_INST,
+	MLIT_INST_INST,
+	MLIT_INST_INST_INDEX_CHARS,
+	MLIT_INST_INDEX,
+	MLIT_INST_INDEX_COUNT,
+	MLIT_INST_INDEX_CHARS,
+	MLIT_INST_COUNT,
+	MLIT_INST_COUNT_COUNT,
+	MLIT_INST_COUNT_VALUE,
+	MLIT_INST_COUNT_CHARS,
+	MLIT_INST_VALUE,
+	MLIT_INST_VALUE_VALUE,
+	MLIT_INST_CLOSURE
+} ml_inst_type_t;
+
+extern const ml_inst_type_t MLInstTypes[];
+
 typedef struct ml_frame_t ml_frame_t;
 
 struct ml_inst_t {

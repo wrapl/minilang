@@ -977,7 +977,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 }
 
 #ifndef DEBUG_VERSION
-const char *MLInsts[] = {
+const char *MLInstNames[] = {
 	"return", // MLI_RETURN,
 	"suspend", // MLI_SUSPEND,
 	"resume", // MLI_RESUME,
@@ -1040,24 +1040,7 @@ const char *MLInsts[] = {
 	"debug", // MLI_DEBUG
 };
 
-typedef enum {
-	MLIT_NONE,
-	MLIT_INST,
-	MLIT_INST_INST,
-	MLIT_INST_INST_INDEX_CHARS,
-	MLIT_INST_INDEX,
-	MLIT_INST_INDEX_COUNT,
-	MLIT_INST_INDEX_CHARS,
-	MLIT_INST_COUNT,
-	MLIT_INST_COUNT_COUNT,
-	MLIT_INST_COUNT_VALUE,
-	MLIT_INST_COUNT_CHARS,
-	MLIT_INST_VALUE,
-	MLIT_INST_VALUE_VALUE,
-	MLIT_INST_CLOSURE
-} ml_inst_type_t;
-
-static const ml_inst_type_t MLInstTypes[] = {
+const ml_inst_type_t MLInstTypes[] = {
 	MLIT_NONE, // MLI_RETURN,
 	MLIT_INST, // MLI_SUSPEND,
 	MLIT_INST, // MLI_RESUME,
@@ -1285,7 +1268,7 @@ static void ml_closure_find_labels(int Process, ml_inst_t *Inst, unsigned int *L
 		Inst->Label = ++*Labels;
 		return;
 	}
-	if (NonLinear) Inst->Label = ++*Labels;
+	Inst->Label = NonLinear? ++*Labels : 0;
 	Inst->Processed = Process;
 	if (MLInstTypes[Inst->Opcode] != MLIT_NONE) {
 		ml_closure_find_labels(Process, Inst->Params[0].Inst, Labels, 0);
@@ -1305,7 +1288,7 @@ static void ml_closure_inst_list(int Process, ml_inst_t *Inst, ml_stringbuffer_t
 	}
 	if (Inst->Label) ml_stringbuffer_addf(Buffer, "L%d:\n", Inst->Label);
 	Inst->Processed = Process;
-	ml_stringbuffer_addf(Buffer, "\t%s%3d %s", Inst->PotentialBreakpoint ? "*" : " ", Inst->LineNo, MLInsts[Inst->Opcode]);
+	ml_stringbuffer_addf(Buffer, "\t%s%3d %s", Inst->PotentialBreakpoint ? "*" : " ", Inst->LineNo, MLInstNames[Inst->Opcode]);
 	switch (MLInstTypes[Inst->Opcode]) {
 	case MLIT_INST_INST:
 		ml_stringbuffer_addf(Buffer, " ->L%d", Inst->Params[1].Inst->Label);

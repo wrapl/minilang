@@ -50,6 +50,10 @@
 #include "ml_uuid.h"
 #endif
 
+#ifdef ML_JSENCODE
+#include "ml_jsencode.h"
+#endif
+
 static stringmap_t Globals[1] = {STRINGMAP_INIT};
 
 static ml_value_t *global_get(void *Data, const char *Name) {
@@ -244,6 +248,9 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_UUID
 	ml_uuid_init(Globals);
+#endif
+#ifdef ML_JSENCODE
+	ml_jsencode_init(Globals);
 #endif
 	ml_value_t *Args = ml_list();
 	const char *FileName = 0;

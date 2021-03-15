@@ -25,9 +25,15 @@ object
 
 :mini:`type enumvalue`
 
+:mini:`meth integer(Arg₁: enumvalue)`
+
+:mini:`meth string(Arg₁: enumvalue)`
+
 :mini:`fun mlenum(Arg₁: string)`
 
 :mini:`type enum < type`
 
 :mini:`meth :count(Arg₁: enum)`
+
+:mini:`meth ::(Arg₁: enum, Arg₂: string)`
 
