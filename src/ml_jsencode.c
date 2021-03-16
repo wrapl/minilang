@@ -115,6 +115,7 @@ static int ml_closure_inst_encode(int Process, ml_inst_t *Inst, ml_json_encoder_
 	Inst->Processed = Process;
 	int Index = Inst->Label = json_array_size(Json);
 	json_array_append(Json, json_integer(Inst->Opcode));
+	json_array_append(Json, json_integer(Inst->LineNo));
 	if (MLInstTypes[Inst->Opcode] != MLIT_NONE) json_array_append(Json, json_null());
 	switch (MLInstTypes[Inst->Opcode]) {
 	case MLIT_INST_INST: {
@@ -173,13 +174,13 @@ static int ml_closure_inst_encode(int Process, ml_inst_t *Inst, ml_json_encoder_
 	}
 	if (MLInstTypes[Inst->Opcode] != MLIT_NONE) {
 		int Label = ml_closure_inst_encode(Process, Inst->Params[0].Inst, Encoder, Json);
-		json_array_set(Json, Index + 1, json_integer(Label));
+		json_array_set(Json, Index + 2, json_integer(Label));
 	}
 	switch (MLInstTypes[Inst->Opcode]) {
 	case MLIT_INST_INST:
 	case MLIT_INST_INST_INDEX_CHARS: {
 		int Label = ml_closure_inst_encode(Process, Inst->Params[1].Inst, Encoder, Json);
-		json_array_set(Json, Index + 2, json_integer(Label));
+		json_array_set(Json, Index + 3, json_integer(Label));
 		break;
 	}
 	default: break;

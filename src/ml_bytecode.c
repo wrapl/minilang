@@ -266,9 +266,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_MAP_NEW] = &&DO_MAP_NEW,
 		[MLI_MAP_INSERT] = &&DO_MAP_INSERT,
 		[MLI_CLOSURE] = &&DO_CLOSURE,
-#ifdef ML_GENERICS
 		[MLI_CLOSURE_TYPED] = &&DO_CLOSURE_TYPED,
-#endif
 		[MLI_PARAM_TYPE] = &&DO_PARAM_TYPE,
 		[MLI_PARTIAL_NEW] = &&DO_PARTIAL_NEW,
 		[MLI_PARTIAL_SET] = &&DO_PARTIAL_SET,
@@ -708,8 +706,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Result = (ml_value_t *)Closure;
 		ADVANCE(0);
 	}
-#ifdef ML_GENERICS
 	DO_CLOSURE_TYPED: {
+#ifdef ML_GENERICS
 		// closure <entry> <frame_size> <num_params> <num_upvalues> <upvalue_1> ...
 		if (!ml_is(Result, MLTypeT)) {
 			Result = ml_error("InternalError", "expected type, not %s", ml_typeof(Result)->Name);
@@ -733,8 +731,10 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		}
 		Result = (ml_value_t *)Closure;
 		ADVANCE(0);
-	}
+#else
+		goto DO_CLOSURE:
 #endif
+	}
 	DO_PARAM_TYPE: {
 		Result = ml_deref(Result);
 		if (!ml_is(Result, MLTypeT)) {
@@ -1026,9 +1026,7 @@ const char *MLInstNames[] = {
 	"map_new", // MLI_MAP_NEW,
 	"map_insert", // MLI_MAP_INSERT,
 	"closure", // MLI_CLOSURE,
-#ifdef ML_GENERICS
 	"typed_closure", // MLI_CLOSURE_TYPED,
-#endif
 	"param_type", // MLI_PARAM_TYPE,
 	"partial_new", // MLI_PARTIAL_NEW,
 	"partial_set", // MLI_PARTIAL_SET,
@@ -1089,9 +1087,7 @@ const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INST, // MLI_MAP_NEW,
 	MLIT_INST, // MLI_MAP_INSERT,
 	MLIT_INST_CLOSURE, // MLI_CLOSURE,
-#ifdef ML_GENERICS
 	MLIT_INST_CLOSURE, // MLI_CLOSURE_TYPED,
-#endif
 	MLIT_INST_INDEX, // MLI_PARAM_TYPE,
 	MLIT_INST_COUNT, // MLI_PARTIAL_NEW,
 	MLIT_INST_INDEX, // MLI_PARTIAL_SET,
