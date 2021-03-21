@@ -31,7 +31,7 @@ if DEBUG then
 	CFLAGS := old + ["-g", "-DGC_DEBUG", "-DDEBUG"]
 	LDFLAGS := old + ["-g"]
 else
-	CFLAGS := old + ["-O3", "-fexpensive-optimizations", "-g"]
+	CFLAGS := old + ["-O3", "-march=native", "-fexpensive-optimizations", "-g"]
 	LDFLAGS := old + ["-g"]
 end
 
@@ -146,6 +146,7 @@ MINILANG_QUEUES := old or defined("QUEUES")
 MINILANG_TIME := old or defined("TIME")
 MINILANG_UUID := old or defined("UUID")
 MINILANG_LIBS := old or defined("LIBS")
+MINILANG_BACKTRACE := old or defined("BACKTRACE")
 MINILANG_JSENCODE := old or defined("JSENCODE")
 
 file("config.h") => fun(Target) do
@@ -230,6 +231,21 @@ if MINILANG_CBOR then
 		file("minicbor/minicbor_writer.o")
 	)
 	InstallHeaders:put("ml_cbor.h")
+end
+
+if MINILANG_BACKTRACE then
+	var Dir := PATH/"libbacktrace"
+	var Lib := Dir / ".libs/libbacktrace.a" => fun() do
+		Dir:rmdir
+		execute("git clone https://github.com/ianlancetaylor/libbacktrace.git", Dir)
+		Dir:chdir
+		execute("./configure")
+		execute("make clean")
+		execute("make -j4")
+	end
+	PREBUILDS := old + [Lib]
+	CFLAGS := old + ['-DML_BACKTRACE', '-I{Dir}']
+	LDFLAGS := old + [Lib]
 end
 
 if MINILANG_MODULES then
