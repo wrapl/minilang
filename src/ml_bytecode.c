@@ -933,9 +933,9 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 					const char *Name = ml_string_value(Node->Value);
 					int Index = (intptr_t)stringmap_search(Info->Params, Name);
 					if (Index) {
-						Frame->Stack[Index - 1] = Args[++I];
+						Frame->Stack[Index - 1] = ml_deref(Args[++I]);
 					} else {
-						ml_map_insert(Options, Node->Value, Args[++I]);
+						ml_map_insert(Options, Node->Value, ml_deref(Args[++I]));
 					}
 				}
 				break;

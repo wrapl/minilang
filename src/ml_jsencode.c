@@ -70,6 +70,16 @@ static json_t *ML_TYPED_FN(ml_json_encode, MLListT, ml_json_encoder_t *Encoder, 
 	return Json;
 }
 
+static json_t *ML_TYPED_FN(ml_json_encode, MLNamesT, ml_json_encoder_t *Encoder, ml_list_t *Value) {
+	json_t *Json = json_array();
+	json_array_append(Json, json_string("names"));
+	inthash_insert(Encoder->Cached, (uintptr_t)Value, Json);
+	ML_LIST_FOREACH(Value, Iter) {
+		json_array_append(Json, ml_json_encode(Encoder, Iter->Value));
+	}
+	return Json;
+}
+
 static json_t *ML_TYPED_FN(ml_json_encode, MLMapT, ml_json_encoder_t *Encoder, ml_map_t *Value) {
 	json_t *Json = json_array();
 	json_array_append(Json, json_string("map"));
