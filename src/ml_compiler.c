@@ -3014,6 +3014,7 @@ done:
 				Body = ML_EXPR_END(ForExpr);
 			} while (ml_parse2(Compiler, MLT_FOR));
 			FunExpr->Body = Body;
+			FunExpr->StartLine = FunExpr->Body->StartLine;
 			Expr = ML_EXPR_END(FunExpr);
 		}
 	}
