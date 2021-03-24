@@ -212,7 +212,7 @@ static int ml_closure_find_labels(ml_inst_t *Inst, inthash_t *Labels, uintptr_t 
 static json_t *ml_closure_info_encode(ml_closure_info_t *Info, ml_json_encoder_t *Encoder) {
 	json_t *Json = json_array();
 	json_array_append(Json, json_string("!"));
-	json_array_append(Json, json_string(Info->Source || ""));
+	json_array_append(Json, json_string(Info->Source ?: ""));
 	json_array_append(Json, json_integer(Info->LineNo));
 	json_array_append(Json, json_integer(Info->FrameSize));
 	json_array_append(Json, json_integer(Info->NumParams));
