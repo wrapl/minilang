@@ -228,6 +228,7 @@ static json_t *ml_closure_info_encode(ml_closure_info_t *Info, ml_json_encoder_t
 	uintptr_t Offset = 0, Return = 0;
 	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
 		if (Inst->Opcode == MLI_LINK) {
+			if (Inst->Label) inthash_insert(Labels, Inst->Label, (void *)Offset);
 			Inst = Inst[1].Inst;
 		} else {
 			if (Inst == Info->Return) Return = Offset;
