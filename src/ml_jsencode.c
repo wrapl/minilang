@@ -183,8 +183,7 @@ static int ml_closure_info_param_fn(const char *Name, void *Index, json_t *Param
 	return 0;
 }
 
-static int ml_closure_find_labels(ml_inst_t *Inst, inthash_t *Labels, uintptr_t *Offset) {
-	if (Inst->Label) inthash_insert(Labels, Inst->Label, (void *)*Offset);
+static int ml_closure_find_labels(ml_inst_t *Inst, uintptr_t *Offset) {
 	switch (MLInstTypes[Inst->Opcode]) {
 	case MLIT_NONE: *Offset += 2; return 1;
 	case MLIT_INST: *Offset += 3; return 2;
@@ -227,12 +226,12 @@ static json_t *ml_closure_info_encode(ml_closure_info_t *Info, ml_json_encoder_t
 	inthash_t Labels[1] = {INTHASH_INIT};
 	uintptr_t Offset = 0, Return = 0;
 	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
+		if (Inst->Label) inthash_insert(Labels, Inst->Label, (void *)Offset);
 		if (Inst->Opcode == MLI_LINK) {
-			if (Inst->Label) inthash_insert(Labels, Inst->Label, (void *)Offset);
 			Inst = Inst[1].Inst;
 		} else {
 			if (Inst == Info->Return) Return = Offset;
-			Inst += ml_closure_find_labels(Inst, Labels, &Offset);
+			Inst += ml_closure_find_labels(Inst, &Offset);
 		}
 	}
 	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
