@@ -2,6 +2,7 @@
 #include "../ml_macros.h"
 #define HAVE_PTHREADS
 #include <onion/onion.h>
+#include <onion/block.h>
 #include <onion/low.h>
 #include <onion/log.h>
 #include <onion/exportlocal.h>
@@ -119,6 +120,13 @@ ML_METHOD("get_file", OnionRequestT, MLStringT) {
 ML_METHOD("get_cookie", OnionRequestT, MLStringT) {
 	ml_onion_request_t *Request = (ml_onion_request_t *)Args[0];
 	return ml_string(onion_request_get_cookie(Request->Handle, ml_string_value(Args[1])), -1);
+}
+
+ML_METHOD("get_data", OnionRequestT) {
+	ml_onion_request_t *Request = (ml_onion_request_t *)Args[0];
+	const onion_block *Block = onion_request_get_data(Request->Handle);
+	if (!Block) return MLNil;
+	return ml_string(onion_block_data(Block), onion_block_size(Block));
 }
 
 typedef struct ml_onion_response_t {

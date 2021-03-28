@@ -31,7 +31,7 @@ if DEBUG then
 	CFLAGS := old + ["-g", "-DGC_DEBUG", "-DDEBUG"]
 	LDFLAGS := old + ["-g"]
 else
-	CFLAGS := old + ["-O3", "-fexpensive-optimizations", "-g"]
+	CFLAGS := old + ["-O3", "-march=native", "-fexpensive-optimizations", "-g"]
 	LDFLAGS := old + ["-g"]
 end
 
@@ -146,6 +146,8 @@ MINILANG_QUEUES := old or defined("QUEUES")
 MINILANG_TIME := old or defined("TIME")
 MINILANG_UUID := old or defined("UUID")
 MINILANG_LIBS := old or defined("LIBS")
+MINILANG_BACKTRACE := old or defined("BACKTRACE")
+MINILANG_JSENCODE := old or defined("JSENCODE")
 
 file("config.h") => fun(Target) do
 	let File := Target:open("w")
@@ -231,6 +233,21 @@ if MINILANG_CBOR then
 	InstallHeaders:put("ml_cbor.h")
 end
 
+if MINILANG_BACKTRACE then
+	var Dir := PATH/"libbacktrace"
+	var Lib := Dir / ".libs/libbacktrace.a" => fun() do
+		Dir:rmdir
+		execute("git clone https://github.com/ianlancetaylor/libbacktrace.git", Dir)
+		Dir:chdir
+		execute("./configure")
+		execute("make clean")
+		execute("make -j4")
+	end
+	PREBUILDS := old + [Lib]
+	CFLAGS := old + ['-DML_BACKTRACE', '-I{Dir}']
+	LDFLAGS := old + [Lib]
+end
+
 if MINILANG_MODULES then
 	LDFLAGS := old + ["-ldl"]
 	Objects:put(file("ml_module.o"), file("ml_library.o"))
@@ -274,6 +291,13 @@ if MINILANG_UUID then
 	CFLAGS := old + ["-DML_UUID"]
 	LDFLAGS := old + ["-luuid"]
 	InstallHeaders:put("ml_uuid.h")
+end
+
+if MINILANG_JSENCODE then
+	Objects:put(file("ml_jsencode.o"))
+	CFLAGS := old + ["-DML_JSENCODE"]
+	LDFLAGS := old + ["-ljansson"]
+	InstallHeaders:put("ml_jsencode.h")
 end
 
 if PLATFORM = "Linux" then

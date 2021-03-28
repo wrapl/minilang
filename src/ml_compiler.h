@@ -10,9 +10,16 @@
 extern "C" {
 #endif
 
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Value;
+	const char *Name;
+} ml_global_t;
+
 extern ml_value_t MLEndOfInput[];
 extern ml_value_t MLNotFound[];
 extern ml_type_t MLCompilerT[];
+extern ml_type_t MLGlobalT[];
 
 typedef struct ml_compiler_t ml_compiler_t;
 

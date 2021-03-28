@@ -30,24 +30,27 @@ struct mlc_upvalue_t {
 struct mlc_loop_t {
 	mlc_loop_t *Up;
 	mlc_try_t *Try;
-	ml_inst_t *Next, *Exits;
 	ml_decl_t *NextDecls, *ExitDecls;
+	ml_inst_t *Nexts, *Exits;
 	int NextTop, ExitTop;
 };
 
 struct mlc_try_t {
 	mlc_try_t *Up;
-	ml_inst_t *CatchInst;
-	int CatchTop;
+	ml_inst_t *Retries;
+	int Top;
 };
 
-typedef struct { ml_inst_t *Start, *Exits; } mlc_compiled_t;
-
 struct mlc_expr_t {
-	mlc_compiled_t (*compile)(mlc_function_t *, mlc_expr_t *);
+	int (*compile)(mlc_function_t *, mlc_expr_t *, int);
 	mlc_expr_t *Next;
 	int StartLine, EndLine;
 };
+
+#define MLC_EXPR_FIELDS(name) \
+	int (*compile)(mlc_function_t *, mlc_## name ## _expr_t *, int); \
+	mlc_expr_t *Next; \
+	int StartLine, EndLine;
 
 typedef enum ml_token_t {
 	MLT_NONE,
@@ -129,11 +132,6 @@ struct ml_compiler_t {
 	jmp_buf OnError;
 };
 
-#define MLC_EXPR_FIELDS(name) \
-	mlc_compiled_t (*compile)(mlc_function_t *, mlc_## name ## _expr_t *); \
-	mlc_expr_t *Next; \
-	int StartLine, EndLine;
-
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
@@ -189,56 +187,57 @@ static void ml_tasks_state_run(ml_compiler_t *Compiler, ml_value_t *Value) {
 struct mlc_function_t {
 	ml_compiler_t *Compiler;
 	const char *Source;
-	ml_inst_t *ReturnInst;
 	mlc_function_t *Up;
 	ml_decl_t *Decls;
 	mlc_loop_t *Loop;
 	mlc_try_t *Try;
 	mlc_upvalue_t *UpValues;
-	void *NextInst;
-	int Top, Size, Self, InstSpace;
+	ml_inst_t *Next, *Returns;
+	int Top, Size, Self, Space;
 };
 
-static ml_inst_t *ml_inst_alloc(mlc_function_t *Function, int N, int Line, ml_opcode_t Opcode) {
-	int Size = sizeof(ml_inst_t) + N * sizeof(ml_param_t);
-	//printf("Instruction size %d -> %d\n", N, Size);
-	if (Function->InstSpace < Size) {
-		//printf("Allocating instruction space\n");
-		Function->NextInst = GC_malloc(272);
-		Function->InstSpace = 272;
+static ml_inst_t *ml_inst_alloc(mlc_function_t *Function, int LineNo, ml_opcode_t Opcode, int N) {
+	int Count = N + 1;
+	if (Function->Space < Count) {
+		ml_inst_t *GotoInst = Function->Next;
+		GotoInst->Opcode = MLI_LINK;
+		GotoInst->LineNo = LineNo;
+		GotoInst[1].Inst = Function->Next = anew(ml_inst_t, 128);
+		Function->Space = 126;
 	}
-	ml_inst_t *Inst = Function->NextInst;
-	Function->NextInst += Size;
-	Function->InstSpace -= Size;
-	Inst->LineNo = Line;
+	ml_inst_t *Inst = Function->Next;
+	Function->Next += Count;
+	Function->Space -= Count;
 	Inst->Opcode = Opcode;
+	Inst->LineNo = LineNo;
 	return Inst;
 }
 
-/*static inline ml_inst_t *ml_inst_new(int N, ml_source_t Source, ml_opcode_t Opcode) {
-	ml_inst_t *Inst = xnew(ml_inst_t, N, ml_param_t);
-	Inst->LineNo = Source.Line;
-	Inst->Opcode = Opcode;
-	return Inst;
-}*/
+static inline void mlc_fix_links(ml_inst_t *Start, ml_inst_t *Target) {
+	while (Start) {
+		ml_inst_t *Next = Start->Inst;
+		Start->Inst = Target;
+		Start = Next;
+	}
+}
 
-#define ml_inst_new(N, LINE, OPCODE) ml_inst_alloc(Function, N, LINE, OPCODE)
+#define mlc_emit(LINE, OPCODE, N) ml_inst_alloc(Function, LINE, OPCODE, N)
+#define mlc_link(START, TARGET) mlc_fix_links(START, TARGET)
 
 static inline void mlc_inc_top(mlc_function_t *Function) {
 	if (++Function->Top >= Function->Size) Function->Size = Function->Top + 1;
 }
 
-static inline mlc_compiled_t mlc_compile(mlc_function_t *Function, mlc_expr_t *Expr) {
-	return Expr->compile(Function, Expr);
-}
+#define MLC_JUMP 1
+#define MLC_PUSH 2
 
-static inline void mlc_connect(ml_inst_t *Exits, ml_inst_t *Start) {
-	for (ml_inst_t *Exit = Exits; Exit;) {
-		if (Exit->Opcode == MLI_RETURN) return;
-		ml_inst_t *NextExit = Exit->Params[0].Inst;
-		Exit->Params[0].Inst = Start;
-		Exit = NextExit;
+static inline int mlc_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags) {
+	int Result = Expr->compile(Function, Expr, Flags);
+	if ((Flags & MLC_PUSH) && !(Result & MLC_PUSH)) {
+		mlc_emit(Expr->EndLine, MLI_PUSH, 0);
+		mlc_inc_top(Function);
 	}
+	return Result;
 }
 
 typedef struct {
@@ -257,25 +256,28 @@ static void ml_task_closure_info_start(ml_task_closure_info_t *Task, ml_compiler
 	longjmp(Function->Compiler->OnError, 1); \
 }
 
-static ml_value_t *ml_expr_compile(mlc_expr_t *Expr, mlc_function_t *Function) {
-	mlc_function_t SubFunction[1];
-	memset(SubFunction, 0, sizeof(SubFunction));
-	SubFunction->Compiler = Function->Compiler;
-	SubFunction->Source = Function->Source;
-	SubFunction->ReturnInst = ml_inst_new(0, Expr->EndLine, MLI_RETURN);
-	SubFunction->Up = Function;
-	SubFunction->Size = 1;
-	mlc_compiled_t Compiled = mlc_compile(SubFunction, Expr);
-	mlc_connect(Compiled.Exits, SubFunction->ReturnInst);
-	if (SubFunction->UpValues) {
+static ml_value_t *ml_expr_compile(mlc_expr_t *Expr, mlc_function_t *Parent) {
+	mlc_function_t Function[1];
+	memset(Function, 0, sizeof(Function));
+	Function->Compiler = Parent->Compiler;
+	Function->Source = Parent->Source;
+	Function->Up = Parent;
+	Function->Size = 1;
+	Function->Next = anew(ml_inst_t, 128);
+	Function->Space = 126;
+	Function->Returns = NULL;
+	ml_closure_info_t *Info = new(ml_closure_info_t);
+	Info->Entry = Function->Next;
+	mlc_compile(Function, Expr, 0);
+	if (Function->UpValues) {
 		ml_expr_error(Expr, ml_error("EvalError", "Use of non-constant value in constant expression"));
 	}
-	ml_closure_info_t *Info = new(ml_closure_info_t);
-	Info->Entry = Compiled.Start;
-	Info->Return = SubFunction->ReturnInst;
-	Info->Source = SubFunction->Source;
+	Info->Return = mlc_emit(Expr->EndLine, MLI_RETURN, 0);
+	mlc_link(Function->Returns, Info->Return);
+	Info->Halt = Function->Next;
+	Info->Source = Function->Source;
 	Info->LineNo = Expr->StartLine;
-	Info->FrameSize = SubFunction->Size;
+	Info->FrameSize = Function->Size;
 	Info->NumParams = 0;
 	ml_closure_t *Closure = new(ml_closure_t);
 	Closure->Type = MLClosureT;
@@ -283,10 +285,10 @@ static ml_value_t *ml_expr_compile(mlc_expr_t *Expr, mlc_function_t *Function) {
 	ml_task_closure_info_t *Task = new(ml_task_closure_info_t);
 	Task->Base.start = (void *)ml_task_closure_info_start;
 	Task->Base.finish = (void *)ml_task_default_finish;
-	Task->Base.Source.Name = Function->Source;
+	Task->Base.Source.Name = Parent->Source;
 	Task->Base.Source.Line = Expr->StartLine;
 	Task->Info = Info;
-	ml_task_queue(Function->Compiler, (ml_compiler_task_t *)Task);
+	ml_task_queue(Parent->Compiler, (ml_compiler_task_t *)Task);
 	return (ml_value_t *)Closure;
 }
 
@@ -314,16 +316,25 @@ struct mlc_decl_type_t {
 
 extern ml_value_t MLBlank[];
 
-static mlc_compiled_t ml_blank_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr) {
-	ml_inst_t *ValueInst = ml_inst_new(2, Expr->StartLine, MLI_LOAD);
-	ValueInst->Params[1].Value = MLBlank;
-	return (mlc_compiled_t){ValueInst, ValueInst};
+static int ml_blank_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags) {
+	ml_inst_t *Inst = mlc_emit(Expr->StartLine, MLI_LOAD, 1);
+	Inst[1].Value = MLBlank;
+	if (Flags & MLC_PUSH) {
+		Inst->Opcode = MLI_LOAD_PUSH;
+		mlc_inc_top(Function);
+		return MLC_PUSH;
+	}
+	return 0;
 }
 
-static mlc_compiled_t ml_nil_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr) {
-	ml_inst_t *ValueInst = ml_inst_new(2, Expr->StartLine, MLI_LOAD);
-	ValueInst->Params[1].Value = MLNil;
-	return (mlc_compiled_t){ValueInst, ValueInst};
+static int ml_nil_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags) {
+	ml_inst_t *Inst = mlc_emit(Expr->StartLine, MLI_NIL, 0);
+	if (Flags & MLC_PUSH) {
+		Inst->Opcode = MLI_NIL_PUSH;
+		mlc_inc_top(Function);
+		return MLC_PUSH;
+	}
+	return 0;
 }
 
 struct mlc_value_expr_t {
@@ -331,10 +342,15 @@ struct mlc_value_expr_t {
 	ml_value_t *Value;
 };
 
-static mlc_compiled_t ml_value_expr_compile(mlc_function_t *Function, mlc_value_expr_t *Expr) {
-	ml_inst_t *ValueInst = ml_inst_new(2, Expr->StartLine, MLI_LOAD);
-	ValueInst->Params[1].Value = Expr->Value;
-	return (mlc_compiled_t){ValueInst, ValueInst};
+static int ml_value_expr_compile(mlc_function_t *Function, mlc_value_expr_t *Expr, int Flags) {
+	ml_inst_t *Inst = mlc_emit(Expr->StartLine, MLI_LOAD, 1);
+	Inst[1].Value = Expr->Value;
+	if (Flags & MLC_PUSH) {
+		Inst->Opcode = MLI_LOAD_PUSH;
+		mlc_inc_top(Function);
+		return MLC_PUSH;
+	}
+	return 0;
 }
 
 struct mlc_if_case_t {
@@ -351,83 +367,68 @@ struct mlc_if_expr_t {
 	mlc_expr_t *Else;
 };
 
-static mlc_compiled_t ml_if_expr_compile(mlc_function_t *Function, mlc_if_expr_t *Expr) {
+static int ml_if_expr_compile(mlc_function_t *Function, mlc_if_expr_t *Expr, int Flags) {
 	ml_decl_t *OldDecls = Function->Decls;
 	mlc_if_case_t *Case = Expr->Cases;
-	mlc_compiled_t Compiled = mlc_compile(Function, Case->Condition);
-	ml_inst_t *IfInst = ml_inst_new(2, Case->Line, MLI_AND);
-	ml_inst_t *ThenInst = NULL;
+	mlc_compile(Function, Case->Condition, 0);
+	ml_inst_t *IfInst = mlc_emit(Case->Line, MLI_AND, 1);
 	if (Case->Decl) {
-		ThenInst = ml_inst_new(2, Case->Line, Case->Decl->Index ? MLI_WITH_VAR : MLI_WITH);
 		mlc_inc_top(Function);
 		Case->Decl->Index = Function->Top - 1;
 		Case->Decl->Next = Function->Decls;
 		Function->Decls = Case->Decl;
-		ThenInst->Params[1].Decls = Function->Decls;
-		IfInst->Params[1].Inst = ThenInst;
+		ml_inst_t *WithInst = mlc_emit(Case->Line, Case->Decl->Index ? MLI_WITH_VAR : MLI_WITH, 1);
+		WithInst[1].Decls = Function->Decls;
 	}
-	mlc_compiled_t BodyCompiled = mlc_compile(Function, Case->Body);
+	int Result = mlc_compile(Function, Case->Body, 0);
 	if (Case->Decl) {
-		ml_inst_t *ExitInst = ml_inst_new(3, Expr->EndLine, MLI_EXIT);
-		ExitInst->Params[1].Count = 1;
-		mlc_connect(BodyCompiled.Exits, ExitInst);
-		BodyCompiled.Exits = ExitInst;
 		Function->Decls = OldDecls;
 		--Function->Top;
-		ExitInst->Params[2].Decls = Function->Decls;
+		ml_inst_t *ExitInst = mlc_emit(Expr->EndLine, MLI_EXIT, 2);
+		ExitInst[1].Count = 1;
+		ExitInst[2].Decls = Function->Decls;
 	}
-	mlc_connect(Compiled.Exits, IfInst);
-	if (ThenInst) {
-		ThenInst->Params[0].Inst = BodyCompiled.Start;
-	} else {
-		IfInst->Params[1].Inst = BodyCompiled.Start;
-	}
-	Compiled.Exits = BodyCompiled.Exits;
-	while ((Case = Case->Next)) {
-		mlc_compiled_t ConditionCompiled = mlc_compile(Function, Case->Condition);
-		IfInst->Params[0].Inst = ConditionCompiled.Start;
-		IfInst = ml_inst_new(2, Case->Line, MLI_AND);
-		ThenInst = NULL;
+	ml_inst_t *Exits = NULL;
+	while (Case->Next) {
+		if (!(Result & MLC_JUMP)) {
+			ml_inst_t *GotoInst = mlc_emit(Case->Body->EndLine, MLI_GOTO, 1);
+			GotoInst[1].Inst = Exits;
+			Exits = GotoInst + 1;
+		}
+		Case = Case->Next;
+		IfInst[1].Inst = Function->Next;
+		mlc_compile(Function, Case->Condition, 0);
+		IfInst = mlc_emit(Case->Line, MLI_AND, 1);
 		if (Case->Decl) {
-			ThenInst = ml_inst_new(2, Case->Line, Case->Decl->Index ? MLI_WITH_VAR : MLI_WITH);
 			mlc_inc_top(Function);
 			Case->Decl->Index = Function->Top - 1;
 			Case->Decl->Next = Function->Decls;
 			Function->Decls = Case->Decl;
-			ThenInst->Params[1].Decls = Function->Decls;
-			IfInst->Params[1].Inst = ThenInst;
+			ml_inst_t *WithInst = mlc_emit(Case->Line, Case->Decl->Index ? MLI_WITH_VAR : MLI_WITH, 1);
+			WithInst[1].Decls = Function->Decls;
 		}
-		BodyCompiled = mlc_compile(Function, Case->Body);
+		Result = mlc_compile(Function, Case->Body, 0);
 		if (Case->Decl) {
-			ml_inst_t *ExitInst = ml_inst_new(3, Expr->EndLine, MLI_EXIT);
-			ExitInst->Params[1].Count = 1;
-			mlc_connect(BodyCompiled.Exits, ExitInst);
-			BodyCompiled.Exits = ExitInst;
 			Function->Decls = OldDecls;
 			--Function->Top;
-			ExitInst->Params[2].Decls = Function->Decls;
-		}
-		ml_inst_t **Slot = &Compiled.Exits;
-		while (Slot[0]) Slot = &Slot[0]->Params[0].Inst;
-		Slot[0] = BodyCompiled.Exits;
-		mlc_connect(ConditionCompiled.Exits, IfInst);
-		if (ThenInst) {
-			ThenInst->Params[0].Inst = BodyCompiled.Start;
-		} else {
-			IfInst->Params[1].Inst = BodyCompiled.Start;
+			ml_inst_t *ExitInst = mlc_emit(Expr->EndLine, MLI_EXIT, 2);
+			ExitInst[1].Count = 1;
+			ExitInst[2].Decls = Function->Decls;
 		}
 	}
 	if (Expr->Else) {
-		mlc_compiled_t BodyCompiled = mlc_compile(Function, Expr->Else);
-		IfInst->Params[0].Inst = BodyCompiled.Start;
-		ml_inst_t **Slot = &Compiled.Exits;
-		while (Slot[0]) Slot = &Slot[0]->Params[0].Inst;
-		Slot[0] = BodyCompiled.Exits;
+		if (!(Result & MLC_JUMP)) {
+			ml_inst_t *GotoInst = mlc_emit(Case->Body->EndLine, MLI_GOTO, 1);
+			GotoInst[1].Inst = Exits;
+			Exits = GotoInst + 1;
+		}
+		IfInst[1].Inst = Function->Next;
+		mlc_compile(Function, Expr->Else, 0);
 	} else {
-		IfInst->Params[0].Inst = Compiled.Exits;
-		Compiled.Exits = IfInst;
+		IfInst[1].Inst = Function->Next;
 	}
-	return Compiled;
+	mlc_link(Exits, Function->Next);
+	return 0;
 }
 
 struct mlc_parent_expr_t {
@@ -435,251 +436,220 @@ struct mlc_parent_expr_t {
 	mlc_expr_t *Child;
 };
 
-static mlc_compiled_t ml_or_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
+static int ml_or_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
 	mlc_expr_t *Child = Expr->Child;
-	mlc_compiled_t Compiled = mlc_compile(Function, Child);
-	ml_inst_t *OrInst = ml_inst_new(2, Expr->StartLine, MLI_OR);
-	mlc_connect(Compiled.Exits, OrInst);
-	Compiled.Exits = OrInst;
-	for (Child = Child->Next; Child->Next; Child = Child->Next) {
-		mlc_compiled_t ChildCompiled = mlc_compile(Function, Child);
-		OrInst->Params[1].Inst = ChildCompiled.Start;
-		OrInst = ml_inst_new(2, Expr->StartLine, MLI_OR);
-		mlc_connect(ChildCompiled.Exits, OrInst);
-		OrInst->Params[0].Inst = Compiled.Exits;
-		Compiled.Exits = OrInst;
+	mlc_compile(Function, Child, 0);
+	ml_inst_t *Exits = 0;
+	while ((Child = Child->Next)) {
+		ml_inst_t *OrInst = mlc_emit(Child->StartLine, MLI_OR, 1);
+		OrInst[1].Inst = Exits;
+		Exits = OrInst + 1;
+		mlc_compile(Function, Child, 0);
 	}
-	mlc_compiled_t ChildCompiled = mlc_compile(Function, Child);
-	OrInst->Params[1].Inst = ChildCompiled.Start;
-	ml_inst_t **Slot = &Compiled.Exits;
-	while (Slot[0]) Slot = &Slot[0]->Params[0].Inst;
-	Slot[0] = ChildCompiled.Exits;
-	return Compiled;
+	mlc_link(Exits, Function->Next);
+	return 0;
 }
 
-static mlc_compiled_t ml_and_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
+static int ml_and_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
 	mlc_expr_t *Child = Expr->Child;
-	mlc_compiled_t Compiled = mlc_compile(Function, Child);
-	ml_inst_t *IfInst = ml_inst_new(2, Expr->StartLine, MLI_AND);
-	mlc_connect(Compiled.Exits, IfInst);
-	Compiled.Exits = IfInst;
-	for (Child = Child->Next; Child->Next; Child = Child->Next) {
-		mlc_compiled_t ChildCompiled = mlc_compile(Function, Child);
-		IfInst->Params[1].Inst = ChildCompiled.Start;
-		IfInst = ml_inst_new(2, Expr->StartLine, MLI_AND);
-		mlc_connect(ChildCompiled.Exits, IfInst);
-		IfInst->Params[0].Inst = Compiled.Exits;
-		Compiled.Exits = IfInst;
+	mlc_compile(Function, Child, 0);
+	ml_inst_t *Exits = 0;
+	while ((Child = Child->Next)) {
+		ml_inst_t *AndInst = mlc_emit(Child->StartLine, MLI_AND, 1);
+		AndInst[1].Inst = Exits;
+		Exits = AndInst + 1;
+		mlc_compile(Function, Child, 0);
 	}
-	mlc_compiled_t ChildCompiled = mlc_compile(Function, Child);
-	IfInst->Params[1].Inst = ChildCompiled.Start;
-	ml_inst_t **Slot = &Compiled.Exits;
-	while (Slot[0]) Slot = &Slot[0]->Params[0].Inst;
-	Slot[0] = ChildCompiled.Exits;
-	return Compiled;
+	mlc_link(Exits, Function->Next);
+	return 0;
 }
 
-static mlc_compiled_t ml_not_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
-	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
-	ml_inst_t *NotInst = ml_inst_new(2, Expr->StartLine, MLI_AND);
-	mlc_connect(Compiled.Exits, NotInst);
-	ml_inst_t *NilInst = ml_inst_new(1, Expr->StartLine, MLI_NIL);
-	ml_inst_t *SomeInst = ml_inst_new(1, Expr->StartLine, MLI_SOME);
-	NotInst->Params[0].Inst = SomeInst;
-	NotInst->Params[1].Inst = NilInst;
-	NilInst->Params[0].Inst = SomeInst;
-	Compiled.Exits = NilInst;
-	return Compiled;
+static int ml_not_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
+	mlc_compile(Function, Expr->Child, 0);
+	mlc_emit(Expr->EndLine, MLI_NOT, 0);
+	return 0;
 }
 
-static mlc_compiled_t ml_loop_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
-	ml_inst_t *LoopInst = ml_inst_new(1, Expr->StartLine, MLI_LOOP);
+static int ml_loop_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
 	mlc_loop_t Loop = {
 		Function->Loop, Function->Try,
-		LoopInst, NULL,
 		Function->Decls, Function->Decls,
+		NULL, NULL,
 		Function->Top, Function->Top
 	};
 	Function->Loop = &Loop;
-	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
-	LoopInst->Params[0].Inst = Compiled.Start;
-	mlc_connect(Compiled.Exits, LoopInst);
+	ml_inst_t *Next = Function->Next;
+	mlc_compile(Function, Expr->Child, 0);
+	mlc_link(Loop.Nexts, Next);
+	ml_inst_t *GotoInst = mlc_emit(Expr->EndLine, MLI_GOTO, 1);
+	GotoInst[1].Inst = Next;
+	mlc_link(Loop.Exits, Function->Next);
 	Function->Loop = Loop.Up;
-	Compiled.Exits = Loop.Exits;
-	return Compiled;
+	return 0;
 }
 
-static mlc_compiled_t ml_next_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr) {
-	if (!Function->Loop) {
-		ml_expr_error(Expr, ml_error("CompilerError", "next not in loop"));
+static int ml_next_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags) {
+	mlc_loop_t *Loop = Function->Loop;
+	if (!Loop) ml_expr_error(Expr, ml_error("CompilerError", "next not in loop"));
+	if (Function->Try != Loop->Try) {
+		ml_inst_t *TryInst = mlc_emit(Expr->StartLine, MLI_TRY, 1);
+		if (Loop->Try) {
+			TryInst[1].Inst = Loop->Try->Retries;
+			Loop->Try->Retries = TryInst + 1;
+		} else {
+			TryInst[1].Inst = Function->Returns;
+			Function->Returns = TryInst + 1;
+		}
 	}
-	ml_inst_t *NextInst = Function->Loop->Next;
-	if (Function->Try != Function->Loop->Try) {
-		ml_inst_t *TryInst = ml_inst_new(2, Expr->StartLine, MLI_TRY);
-		TryInst->Params[1].Inst = Function->Try ? Function->Try->CatchInst : Function->ReturnInst;
-		TryInst->Params[0].Inst = NextInst;
-		NextInst = TryInst;
+	if (Function->Top > Loop->NextTop) {
+		ml_inst_t *ExitInst = mlc_emit(Expr->EndLine, MLI_EXIT, 2);
+		ExitInst[1].Count = Function->Top - Loop->NextTop;
+		ExitInst[2].Decls = Loop->NextDecls;
 	}
-	if (Function->Top > Function->Loop->NextTop) {
-		ml_inst_t *ExitInst = ml_inst_new(3, Expr->EndLine, MLI_EXIT);
-		ExitInst->Params[0].Inst = NextInst;
-		ExitInst->Params[1].Count = Function->Top - Function->Loop->NextTop;
-		ExitInst->Params[2].Decls = Function->Loop->NextDecls;
-		NextInst = ExitInst;
-	} else {
-	}
-	return (mlc_compiled_t){NextInst, NULL};
+	ml_inst_t *GotoInst = mlc_emit(Expr->EndLine, MLI_GOTO, 1);
+	GotoInst[1].Inst = Loop->Nexts;
+	Loop->Nexts = GotoInst + 1;
+	return MLC_JUMP;
 }
 
-static mlc_compiled_t ml_exit_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
+static int ml_exit_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
 	mlc_loop_t *Loop = Function->Loop;
 	if (!Loop) ml_expr_error(Expr, ml_error("CompilerError", "exit not in loop"));
-	mlc_compiled_t Compiled;
+	if (Function->Try != Loop->Try) {
+		ml_inst_t *TryInst = mlc_emit(Expr->StartLine, MLI_TRY, 1);
+		if (Loop->Try) {
+			TryInst[1].Inst = Loop->Try->Retries;
+			Loop->Try->Retries = TryInst + 1;
+		} else {
+			TryInst[1].Inst = Function->Returns;
+			Function->Returns = TryInst + 1;
+		}
+	}
+	int Jumps = 0;
 	if (Expr->Child) {
 		mlc_try_t *Try = Function->Try;
 		Function->Loop = Loop->Up;
 		Function->Try = Loop->Try;
-		Compiled = mlc_compile(Function, Expr->Child);
+		Jumps = mlc_compile(Function, Expr->Child, 0) & MLC_JUMP;
 		Function->Loop = Loop;
 		Function->Try = Try;
 	} else {
-		ml_inst_t *NilInst = ml_inst_new(1, Expr->StartLine, MLI_NIL);
-		Compiled.Start = Compiled.Exits = NilInst;
+		mlc_emit(Expr->StartLine, MLI_NIL, 0);
 	}
-	if (Function->Try != Loop->Try) {
-		ml_inst_t *TryInst = ml_inst_new(2, Expr->StartLine, MLI_TRY);
-		TryInst->Params[1].Inst = Loop->Try ? Loop->Try->CatchInst : Function->ReturnInst;
-		TryInst->Params[0].Inst = Compiled.Start;
-		Compiled.Start = TryInst;
+	if (!Jumps) {
+		if (Function->Top > Loop->ExitTop) {
+			ml_inst_t *ExitInst = mlc_emit(Expr->EndLine, MLI_EXIT, 2);
+			ExitInst[1].Count = Function->Top - Loop->ExitTop;
+			ExitInst[2].Decls = Loop->ExitDecls;
+		}
+		ml_inst_t *GotoInst = mlc_emit(Expr->EndLine, MLI_GOTO, 1);
+		GotoInst[1].Inst = Loop->Exits;
+		Loop->Exits = GotoInst + 1;
 	}
-	if (Function->Top > Function->Loop->ExitTop) {
-		ml_inst_t *ExitInst = ml_inst_new(3, Expr->EndLine, MLI_EXIT);
-		ExitInst->Params[1].Count = Function->Top - Function->Loop->ExitTop;
-		ExitInst->Params[2].Decls = Function->Loop->ExitDecls;
-		mlc_connect(Compiled.Exits, ExitInst);
-		Compiled.Exits = ExitInst;
-	}
-	if (Compiled.Exits) {
-		ml_inst_t **Slot = &Function->Loop->Exits;
-		while (Slot[0]) Slot = &Slot[0]->Params[0].Inst;
-		Slot[0] = Compiled.Exits;
-	}
-	return (mlc_compiled_t){Compiled.Start, NULL};
+	return MLC_JUMP;
 }
 
-static mlc_compiled_t ml_while_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
+static int ml_while_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
 	mlc_loop_t *Loop = Function->Loop;
 	if (!Loop) ml_expr_error(Expr, ml_error("CompilerError", "exit not in loop"));
-	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
-	ml_inst_t *ExitInst = ml_inst_new(3, Expr->EndLine, MLI_EXIT);
-	ml_inst_t *StartInst = ExitInst;
-	ExitInst->Params[1].Count = Function->Top - Function->Loop->ExitTop;
-	ExitInst->Params[2].Decls = Function->Loop->ExitDecls;
+	mlc_compile(Function, Expr->Child, 0);
+	ml_inst_t *OrInst = mlc_emit(Expr->Child->EndLine, MLI_OR, 1);
+	if (Function->Try != Loop->Try) {
+		ml_inst_t *TryInst = mlc_emit(Expr->StartLine, MLI_TRY, 1);
+		if (Loop->Try) {
+			TryInst[1].Inst = Loop->Try->Retries;
+			Loop->Try->Retries = TryInst + 1;
+		} else {
+			TryInst[1].Inst = Function->Returns;
+			Function->Returns = TryInst + 1;
+		}
+	}
 	if (Expr->Child->Next) {
 		mlc_try_t *Try = Function->Try;
 		Function->Loop = Loop->Up;
 		Function->Try = Loop->Try;
-		mlc_compiled_t ChildCompiled = mlc_compile(Function, Expr->Child->Next);
-		mlc_connect(ChildCompiled.Exits, StartInst);
-		StartInst = ChildCompiled.Start;
+		mlc_compile(Function, Expr->Child->Next, 0);
 		Function->Loop = Loop;
 		Function->Try = Try;
 	}
-	if (Function->Try != Loop->Try) {
-		ml_inst_t *TryInst = ml_inst_new(2, Expr->StartLine, MLI_TRY);
-		TryInst->Params[1].Inst = Loop->Try ? Loop->Try->CatchInst : Function->ReturnInst;
-		TryInst->Params[0].Inst = StartInst;
-		StartInst = TryInst;
+	if (Function->Top > Loop->ExitTop) {
+		ml_inst_t *ExitInst = mlc_emit(Expr->EndLine, MLI_EXIT, 2);
+		ExitInst[1].Count = Function->Top - Loop->ExitTop;
+		ExitInst[2].Decls = Loop->ExitDecls;
 	}
-	ml_inst_t *WhileInst = ml_inst_new(2, Expr->StartLine, MLI_OR);
-	mlc_connect(Compiled.Exits, WhileInst);
-	Compiled.Exits = WhileInst;
-	WhileInst->Params[1].Inst = StartInst;
-	ExitInst->Params[0].Inst = Function->Loop->Exits;
-	Function->Loop->Exits = ExitInst;
-	return Compiled;
+	ml_inst_t *GotoInst = mlc_emit(Expr->EndLine, MLI_GOTO, 1);
+	GotoInst[1].Inst = Loop->Exits;
+	Loop->Exits = GotoInst + 1;
+	OrInst[1].Inst = Function->Next;
+	return 0;
 }
 
-static mlc_compiled_t ml_until_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
+static int ml_until_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
 	mlc_loop_t *Loop = Function->Loop;
 	if (!Loop) ml_expr_error(Expr, ml_error("CompilerError", "exit not in loop"));
-	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
-	ml_inst_t *ExitInst = ml_inst_new(3, Expr->EndLine, MLI_EXIT);
-	ml_inst_t *StartInst = ExitInst;
-	ExitInst->Params[1].Count = Function->Top - Function->Loop->ExitTop;
-	ExitInst->Params[2].Decls = Function->Loop->ExitDecls;
+	mlc_compile(Function, Expr->Child, 0);
+	ml_inst_t *AndInst = mlc_emit(Expr->Child->EndLine, MLI_AND, 1);
+	if (Function->Try != Loop->Try) {
+		ml_inst_t *TryInst = mlc_emit(Expr->StartLine, MLI_TRY, 1);
+		if (Loop->Try) {
+			TryInst[1].Inst = Loop->Try->Retries;
+			Loop->Try->Retries = TryInst + 1;
+		} else {
+			TryInst[1].Inst = Function->Returns;
+			Function->Returns = TryInst + 1;
+		}
+	}
 	if (Expr->Child->Next) {
 		mlc_try_t *Try = Function->Try;
 		Function->Loop = Loop->Up;
 		Function->Try = Loop->Try;
-		mlc_compiled_t ChildCompiled = mlc_compile(Function, Expr->Child->Next);
-		mlc_connect(ChildCompiled.Exits, StartInst);
-		StartInst = ChildCompiled.Start;
+		mlc_compile(Function, Expr->Child->Next, 0);
 		Function->Loop = Loop;
 		Function->Try = Try;
 	}
-	if (Function->Try != Loop->Try) {
-		ml_inst_t *TryInst = ml_inst_new(2, Expr->StartLine, MLI_TRY);
-		TryInst->Params[1].Inst = Loop->Try ? Loop->Try->CatchInst : Function->ReturnInst;
-		TryInst->Params[0].Inst = StartInst;
-		StartInst = TryInst;
+	if (Function->Top > Loop->ExitTop) {
+		ml_inst_t *ExitInst = mlc_emit(Expr->EndLine, MLI_EXIT, 2);
+		ExitInst[1].Count = Function->Top - Loop->ExitTop;
+		ExitInst[2].Decls = Loop->ExitDecls;
 	}
-	ml_inst_t *UntilInst = ml_inst_new(2, Expr->StartLine, MLI_AND);
-	mlc_connect(Compiled.Exits, UntilInst);
-	Compiled.Exits = UntilInst;
-	UntilInst->Params[1].Inst = StartInst;
-	ExitInst->Params[0].Inst = Function->Loop->Exits;
-	Function->Loop->Exits = ExitInst;
-	return Compiled;
+	ml_inst_t *GotoInst = mlc_emit(Expr->EndLine, MLI_GOTO, 1);
+	GotoInst[1].Inst = Loop->Exits;
+	Loop->Exits = GotoInst + 1;
+	AndInst[1].Inst = Function->Next;
+	return 0;
 }
 
-static mlc_compiled_t ml_return_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
-	mlc_compiled_t Compiled;
+static int ml_return_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
 	if (Expr->Child) {
-		Compiled = mlc_compile(Function, Expr->Child);
+		mlc_compile(Function, Expr->Child, 0);
 	} else {
-		ml_inst_t *NilInst = ml_inst_new(1, Expr->StartLine, MLI_NIL);
-		Compiled.Start = Compiled.Exits = NilInst;
+		mlc_emit(Expr->StartLine, MLI_NIL, 0);
 	}
-	mlc_connect(Compiled.Exits, Function->ReturnInst);
-	Compiled.Exits = NULL;
-	return Compiled;
+	mlc_emit(Expr->EndLine, MLI_RETURN, 0);
+	return MLC_JUMP;
 }
 
-static mlc_compiled_t ml_suspend_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
-	mlc_compiled_t Compiled;
+static int ml_suspend_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
 	mlc_expr_t *ValueExpr = Expr->Child;
 	if (ValueExpr->Next) {
-		Compiled = mlc_compile(Function, ValueExpr);
+		mlc_compile(Function, ValueExpr, MLC_PUSH);
 		ValueExpr = ValueExpr->Next;
 	} else {
-		ml_inst_t *NilInst = ml_inst_new(1, Expr->StartLine, MLI_NIL);
-		Compiled.Start = Compiled.Exits = NilInst;
+		mlc_emit(Expr->StartLine, MLI_NIL_PUSH, 0);
+		mlc_inc_top(Function);
 	}
-	ml_inst_t *KeyPushInst = ml_inst_new(1, Expr->StartLine, MLI_PUSH);
-	mlc_connect(Compiled.Exits, KeyPushInst);
-	mlc_inc_top(Function);
-	mlc_compiled_t ValueCompiled = mlc_compile(Function, ValueExpr);
-	KeyPushInst->Params[0].Inst = ValueCompiled.Start;
-	ml_inst_t *ValuePushInst = ml_inst_new(1, Expr->StartLine, MLI_PUSH);
-	mlc_connect(ValueCompiled.Exits, ValuePushInst);
-	ml_inst_t *SuspendInst = ml_inst_new(1, Expr->StartLine, MLI_SUSPEND);
-	ValuePushInst->Params[0].Inst = SuspendInst;
-	ml_inst_t *ResumeInst = ml_inst_new(1, Expr->StartLine, MLI_RESUME);
-	SuspendInst->Params[0].Inst = ResumeInst;
-	--Function->Top;
-	Compiled.Exits = ResumeInst;
-	return Compiled;
+	mlc_compile(Function, ValueExpr, MLC_PUSH);
+	mlc_emit(Expr->StartLine, MLI_SUSPEND, 0);
+	mlc_emit(Expr->StartLine, MLI_RESUME, 0);
+	Function->Top -= 2;
+	return 0;
 }
 
-static mlc_compiled_t ml_debug_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
-	ml_inst_t *DebugInst = ml_inst_new(2, Expr->StartLine, MLI_IF_DEBUG);
-	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
-	DebugInst->Params[1].Inst = Compiled.Start;
-	Compiled.Start = DebugInst;
-	DebugInst->Params[0].Inst = Compiled.Exits;
-	Compiled.Exits = DebugInst;
-	return Compiled;
+static int ml_debug_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
+	ml_inst_t *DebugInst = mlc_emit(Expr->StartLine, MLI_IF_DEBUG, 1);
+	mlc_compile(Function, Expr->Child, 0);
+	DebugInst[1].Inst = Function->Next;
+	return 0;
 }
 
 struct mlc_decl_expr_t {
@@ -689,151 +659,122 @@ struct mlc_decl_expr_t {
 	int Count;
 };
 
-static mlc_compiled_t ml_var_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
-	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
-	ml_inst_t *VarInst = ml_inst_new(2, Expr->StartLine, MLI_VAR);
-	VarInst->Params[1].Index = Expr->Decl->Index - Function->Top;
-	mlc_connect(Compiled.Exits, VarInst);
-	Compiled.Exits = VarInst;
-	return Compiled;
+static int ml_var_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr, int Flags) {
+	mlc_compile(Function, Expr->Child, 0);
+	ml_inst_t *VarInst = mlc_emit(Expr->StartLine, MLI_VAR, 1);
+	VarInst[1].Index = Expr->Decl->Index - Function->Top;
+	return 0;
 }
 
-static mlc_compiled_t ml_var_type_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
-	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
-	ml_inst_t *TypeInst = ml_inst_new(2, Expr->StartLine, MLI_VAR_TYPE);
-	TypeInst->Params[1].Index = Expr->Decl->Index - Function->Top;
-	mlc_connect(Compiled.Exits, TypeInst);
-	Compiled.Exits = TypeInst;
-	return Compiled;
+static int ml_var_type_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr, int Flags) {
+	mlc_compile(Function, Expr->Child, 0);
+	ml_inst_t *TypeInst = mlc_emit(Expr->StartLine, MLI_VAR_TYPE, 1);
+	TypeInst[1].Index = Expr->Decl->Index - Function->Top;
+	return 0;
 }
 
-static mlc_compiled_t ml_var_in_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
-	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
-	ml_inst_t *PushInst = ml_inst_new(1, Expr->StartLine, MLI_PUSH);
-	mlc_connect(Compiled.Exits, PushInst);
-	mlc_inc_top(Function);
-	ml_inst_t *VarInst = PushInst;
+static int ml_var_in_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr, int Flags) {
+	mlc_compile(Function, Expr->Child, MLC_PUSH);
 	ml_decl_t *Decl = Expr->Decl;
 	for (int I = 0; I < Expr->Count; ++I) {
-		ml_inst_t *PushInst = ml_inst_new(2, Expr->StartLine, MLI_LOCAL_PUSH);
-		PushInst->Params[1].Index = Function->Top - 1;
-		VarInst->Params[0].Inst = PushInst;
+		ml_inst_t *PushInst = mlc_emit(Expr->StartLine, MLI_LOCAL_PUSH, 1);
+		PushInst[1].Index = Function->Top - 1;
 		mlc_inc_top(Function);
-		ml_inst_t *ValueInst = ml_inst_new(2, Expr->StartLine, MLI_LOAD_PUSH);
-		ValueInst->Params[1].Value = ml_cstring(Decl->Ident);
-		PushInst->Params[0].Inst = ValueInst;
+		ml_inst_t *ValueInst = mlc_emit(Expr->StartLine, MLI_LOAD_PUSH, 1);
+		ValueInst[1].Value = ml_cstring(Decl->Ident);
 		mlc_inc_top(Function);
-		ml_inst_t *CallInst = ml_inst_new(3, Expr->StartLine, MLI_CONST_CALL);
-		CallInst->Params[2].Value = SymbolMethod;
-		CallInst->Params[1].Count = 2;
-		ValueInst->Params[0].Inst = CallInst;
+		ml_inst_t *CallInst = mlc_emit(Expr->StartLine, MLI_CONST_CALL, 2);
+		CallInst[1].Count = 2;
+		CallInst[2].Value = SymbolMethod;
 		Function->Top -= 2;
-		VarInst = ml_inst_new(2, Expr->StartLine, MLI_VAR);
-		VarInst->Params[1].Index = Decl->Index - Function->Top;
-		CallInst->Params[0].Inst = VarInst;
+		ml_inst_t *VarInst = mlc_emit(Expr->StartLine, MLI_VAR, 1);
+		VarInst[1].Index = Decl->Index - Function->Top;
 		Decl = Decl->Next;
 	}
-	ml_inst_t *PopInst = ml_inst_new(1, Expr->StartLine, MLI_POP);
-	VarInst->Params[0].Inst = PopInst;
+	mlc_emit(Expr->StartLine, MLI_POP, 0);
 	--Function->Top;
-	Compiled.Exits = PopInst;
-	return Compiled;
+	return 0;
 }
 
-static mlc_compiled_t ml_var_unpack_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
-	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
-	ml_inst_t *LetInst = ml_inst_new(3, Expr->StartLine, MLI_VARX);
-	LetInst->Params[1].Index = (Expr->Decl->Index - Function->Top) - (Expr->Count - 1);
-	LetInst->Params[2].Count = Expr->Count;
-	mlc_connect(Compiled.Exits, LetInst);
-	Compiled.Exits = LetInst;
-	return Compiled;
+static int ml_var_unpack_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr, int Flags) {
+	mlc_compile(Function, Expr->Child, 0);
+	ml_inst_t *LetInst = mlc_emit(Expr->StartLine, MLI_VARX, 2);
+	LetInst[1].Index = (Expr->Decl->Index - Function->Top) - (Expr->Count - 1);
+	LetInst[2].Count = Expr->Count;
+	return 0;
 }
 
-static mlc_compiled_t ml_let_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
-	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
+static int ml_let_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr, int Flags) {
+	mlc_compile(Function, Expr->Child, 0);
 	ml_inst_t *LetInst;
 	switch (Expr->Decl->Flags & (MLC_DECL_BYREF | MLC_DECL_BACKFILL)) {
 	case MLC_DECL_BYREF | MLC_DECL_BACKFILL:
-		LetInst = ml_inst_new(2, Expr->StartLine, MLI_REFI);
+		LetInst = mlc_emit(Expr->StartLine, MLI_REFI, 1);
 		break;
 	case MLC_DECL_BYREF:
-		LetInst = ml_inst_new(2, Expr->StartLine, MLI_REF);
+		LetInst = mlc_emit(Expr->StartLine, MLI_REF, 1);
 		break;
 	case MLC_DECL_BACKFILL:
-		LetInst = ml_inst_new(2, Expr->StartLine, MLI_LETI);
+		LetInst = mlc_emit(Expr->StartLine, MLI_LETI, 1);
 		break;
 	default:
-		LetInst = ml_inst_new(2, Expr->StartLine, MLI_LET);
+		LetInst = mlc_emit(Expr->StartLine, MLI_LET, 1);
 		break;
 	}
-	LetInst->Params[1].Index = Expr->Decl->Index - Function->Top;
-	Expr->Decl->Flags &= ~MLC_DECL_BACKFILL;
-	mlc_connect(Compiled.Exits, LetInst);
-	Compiled.Exits = LetInst;
-	return Compiled;
+	LetInst[1].Index = Expr->Decl->Index - Function->Top;
+	Expr->Decl->Flags &= ~(MLC_DECL_BACKFILL | MLC_DECL_FORWARD);
+	return 0;
 }
 
-static mlc_compiled_t ml_let_in_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
-	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
-	ml_inst_t *PushInst = ml_inst_new(1, Expr->StartLine, MLI_PUSH);
-	mlc_connect(Compiled.Exits, PushInst);
-	mlc_inc_top(Function);
-	ml_inst_t *LetInst = PushInst;
+static int ml_let_in_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr, int Flags) {
+	mlc_compile(Function, Expr->Child, MLC_PUSH);
 	ml_decl_t *Decl = Expr->Decl;
 	for (int I = 0; I < Expr->Count; ++I) {
-		ml_inst_t *PushInst = ml_inst_new(2, Expr->StartLine, MLI_LOCAL_PUSH);
-		PushInst->Params[1].Index = Function->Top - 1;
-		LetInst->Params[0].Inst = PushInst;
+		ml_inst_t *PushInst = mlc_emit(Expr->StartLine, MLI_LOCAL_PUSH, 1);
+		PushInst[1].Index = Function->Top - 1;
 		mlc_inc_top(Function);
-		ml_inst_t *ValueInst = ml_inst_new(2, Expr->StartLine, MLI_LOAD_PUSH);
-		ValueInst->Params[1].Value = ml_cstring(Decl->Ident);
-		PushInst->Params[0].Inst = ValueInst;
+		ml_inst_t *ValueInst = mlc_emit(Expr->StartLine, MLI_LOAD_PUSH, 1);
+		ValueInst[1].Value = ml_cstring(Decl->Ident);
 		mlc_inc_top(Function);
-		ml_inst_t *CallInst = ml_inst_new(3, Expr->StartLine, MLI_CONST_CALL);
-		CallInst->Params[2].Value = SymbolMethod;
-		CallInst->Params[1].Count = 2;
-		ValueInst->Params[0].Inst = CallInst;
+		ml_inst_t *CallInst = mlc_emit(Expr->StartLine, MLI_CONST_CALL, 2);
+		CallInst[1].Count = 2;
+		CallInst[2].Value = SymbolMethod;
 		Function->Top -= 2;
+		ml_inst_t *LetInst;
 		switch (Decl->Flags & (MLC_DECL_BYREF | MLC_DECL_BACKFILL)) {
 		case MLC_DECL_BYREF | MLC_DECL_BACKFILL:
-			LetInst = ml_inst_new(2, Expr->StartLine, MLI_REFI);
+			LetInst = mlc_emit(Expr->StartLine, MLI_REFI, 1);
 			break;
 		case MLC_DECL_BYREF:
-			LetInst = ml_inst_new(2, Expr->StartLine, MLI_REF);
+			LetInst = mlc_emit(Expr->StartLine, MLI_REF, 1);
 			break;
 		case MLC_DECL_BACKFILL:
-			LetInst = ml_inst_new(2, Expr->StartLine, MLI_LETI);
+			LetInst = mlc_emit(Expr->StartLine, MLI_LETI, 1);
 			break;
 		default:
-			LetInst = ml_inst_new(2, Expr->StartLine, MLI_LET);
+			LetInst = mlc_emit(Expr->StartLine, MLI_LET, 1);
 			break;
 		}
-		LetInst->Params[1].Index = Decl->Index - Function->Top;
-		CallInst->Params[0].Inst = LetInst;
+		LetInst[1].Index = Decl->Index - Function->Top;
 		Decl->Flags = 0;
 		Decl = Decl->Next;
 	}
-	ml_inst_t *PopInst = ml_inst_new(1, Expr->StartLine, MLI_POP);
-	LetInst->Params[0].Inst = PopInst;
+	mlc_emit(Expr->StartLine, MLI_POP, 0);
 	--Function->Top;
-	Compiled.Exits = PopInst;
-	return Compiled;
+	return 0;
 }
 
-static mlc_compiled_t ml_let_unpack_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
-	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
+static int ml_let_unpack_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr, int Flags) {
+	mlc_compile(Function, Expr->Child, 0);
 	ml_decl_t *Decl = Expr->Decl;
-	ml_inst_t *LetInst = ml_inst_new(3, Expr->StartLine, Decl->Flags & MLC_DECL_BYREF ? MLI_REFX : MLI_LETX);
-	LetInst->Params[1].Index = (Decl->Index - Function->Top) - (Expr->Count - 1);
-	LetInst->Params[2].Count = Expr->Count;
+	ml_inst_t *LetInst = mlc_emit(Expr->StartLine, Decl->Flags & MLC_DECL_BYREF ? MLI_REFX : MLI_LETX, 2);
+	LetInst[1].Index = (Decl->Index - Function->Top) - (Expr->Count - 1);
+	LetInst[2].Count = Expr->Count;
 	for (int I = 0; I < Expr->Count; ++I) {
 		Decl->Flags = 0;
 		Decl = Decl->Next;
 	}
-	mlc_connect(Compiled.Exits, LetInst);
-	Compiled.Exits = LetInst;
-	return Compiled;
+	return 0;
 }
 
 typedef struct {
@@ -850,7 +791,7 @@ typedef struct {
 } ml_task_def_import_t;
 
 static ml_value_t *ml_task_def_finish(ml_task_def_t *Task, ml_value_t *Value) {
-	Task->Inst->Params[1].Value = Value;
+	Task->Inst->Value = Value;
 	ml_decl_t *Decl = Task->Decl;
 	if (Task->NumUnpack) {
 		for (int I = Task->NumUnpack; --I >= 0; Decl = Decl->Next) {
@@ -882,7 +823,7 @@ static ml_value_t *ml_task_def_import_finish(ml_task_def_import_t *Task, ml_valu
 	return NULL;
 }
 
-static mlc_compiled_t ml_def_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
+static int ml_def_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr, int Flags) {
 	ml_decl_t *Decl = Expr->Decl;
 	ml_task_def_t *Task = new(ml_task_def_t);
 	Task->Base.Closure = ml_expr_compile(Expr->Child, Function);
@@ -892,12 +833,12 @@ static mlc_compiled_t ml_def_expr_compile(mlc_function_t *Function, mlc_decl_exp
 	Task->Base.Source.Line = Expr->StartLine;
 	ml_task_queue(Function->Compiler, (ml_compiler_task_t *)Task);
 	Task->Decl = Decl;
-	ml_inst_t *ValueInst = ml_inst_new(2, Expr->StartLine, MLI_LOAD);
-	Task->Inst = ValueInst;
-	return (mlc_compiled_t){ValueInst, ValueInst};
+	ml_inst_t *ValueInst = mlc_emit(Expr->StartLine, MLI_LOAD, 1);
+	Task->Inst = ValueInst + 1;
+	return 0;
 }
 
-static mlc_compiled_t ml_def_in_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
+static int ml_def_in_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr, int Flags) {
 	ml_decl_t *Decl = Expr->Decl;
 	ml_task_def_t *Task = new(ml_task_def_t);
 	Task->Base.Closure = ml_expr_compile(Expr->Child, Function);
@@ -917,12 +858,12 @@ static mlc_compiled_t ml_def_in_expr_compile(mlc_function_t *Function, mlc_decl_
 		ImportCommand->Args[1] = ml_cstring(Decl->Ident);
 		ml_task_queue(Function->Compiler, (ml_compiler_task_t *)ImportCommand);
 	}
-	ml_inst_t *ValueInst = ml_inst_new(2, Expr->StartLine, MLI_LOAD);
-	Task->Inst = ValueInst;
-	return (mlc_compiled_t){ValueInst, ValueInst};
+	ml_inst_t *ValueInst = mlc_emit(Expr->StartLine, MLI_LOAD, 1);
+	Task->Inst = ValueInst + 1;
+	return 0;
 }
 
-static mlc_compiled_t ml_def_unpack_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
+static int ml_def_unpack_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr, int Flags) {
 	ml_task_def_t *Task = new(ml_task_def_t);
 	Task->Base.Closure = ml_expr_compile(Expr->Child, Function);
 	Task->Base.start = (void *)ml_task_default_start;
@@ -932,16 +873,15 @@ static mlc_compiled_t ml_def_unpack_expr_compile(mlc_function_t *Function, mlc_d
 	Task->Decl = Expr->Decl;
 	Task->NumUnpack = Expr->Count;
 	ml_task_queue(Function->Compiler, (ml_compiler_task_t *)Task);
-	ml_inst_t *ValueInst = ml_inst_new(2, Expr->StartLine, MLI_LOAD);
-	Task->Inst = ValueInst;
-	return (mlc_compiled_t){ValueInst, ValueInst};
+	ml_inst_t *ValueInst = mlc_emit(Expr->StartLine, MLI_LOAD, 1);
+	Task->Inst = ValueInst + 1;
+	return 0;
 }
 
-static mlc_compiled_t ml_with_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
+static int ml_with_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr, int Flags) {
 	int OldTop = Function->Top;
 	ml_decl_t *OldDecls = Function->Decls;
 	mlc_expr_t *Child = Expr->Child;
-	ml_inst_t *Start = NULL, *PushInst = NULL;
 	for (ml_decl_t *Decl = Expr->Decl; Decl;) {
 		ml_decl_t *NextDecl = Decl->Next;
 		int Count = Decl->Index;
@@ -956,53 +896,39 @@ static mlc_compiled_t ml_with_expr_compile(mlc_function_t *Function, mlc_decl_ex
 			Decl->Next = Function->Decls;
 			Function->Decls = Decl;
 		}
-		mlc_compiled_t Compiled = mlc_compile(Function, Child);
-		if (PushInst) {
-			PushInst->Params[0].Inst = Compiled.Start;
-		} else {
-			Start = Compiled.Start;
-		}
+		mlc_compile(Function, Child, 0);
 		if (Count == 1) {
-			PushInst = ml_inst_new(2, Expr->StartLine, MLI_WITH);
-			PushInst->Params[1].Decls = Function->Decls;
+			ml_inst_t *PushInst = mlc_emit(Expr->StartLine, MLI_WITH, 1);
+			PushInst[1].Decls = Function->Decls;
 			mlc_inc_top(Function);
 		} else {
-			PushInst = ml_inst_new(3, Expr->StartLine, MLI_WITHX);
-			PushInst->Params[1].Count = Count;
-			PushInst->Params[2].Decls = Function->Decls;
+			ml_inst_t *PushInst = mlc_emit(Expr->StartLine, MLI_WITHX, 2);
+			PushInst[1].Count = Count;
+			PushInst[2].Decls = Function->Decls;
 			for (int I = 0; I < Count; ++I) mlc_inc_top(Function);
 		}
-		mlc_connect(Compiled.Exits, PushInst);
 		Child = Child->Next;
 		Decl = NextDecl;
 	}
-	mlc_compiled_t ChildCompiled = mlc_compile(Function, Child);
-	PushInst->Params[0].Inst = ChildCompiled.Start;
-	ml_inst_t *ExitInst = ml_inst_new(3, Expr->EndLine, MLI_EXIT);
-	ExitInst->Params[1].Count = Function->Top - OldTop;
-	ExitInst->Params[2].Decls = OldDecls;
-	mlc_connect(ChildCompiled.Exits, ExitInst);
+	mlc_compile(Function, Child, 0);
+	ml_inst_t *ExitInst = mlc_emit(Expr->EndLine, MLI_EXIT, 2);
+	ExitInst[1].Count = Function->Top - OldTop;
+	ExitInst[2].Decls = OldDecls;
 	Function->Decls = OldDecls;
 	Function->Top = OldTop;
-	return (mlc_compiled_t){Start, ExitInst};
+	return 0;
 }
 
-static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr) {
+static int ml_for_expr_compile(mlc_function_t *Function, mlc_decl_expr_t *Expr, int Flags) {
 	int OldTop = Function->Top;
 	ml_decl_t *OldDecls = Function->Decls;
 	mlc_expr_t *Child = Expr->Child;
-	mlc_compiled_t Compiled = mlc_compile(Function, Child);
-	ml_inst_t *ForInst = ml_inst_new(1, Expr->StartLine, MLI_FOR);
-	ml_inst_t *IfInst = ml_inst_new(2, Expr->StartLine, MLI_IF);
-	ForInst->Params[0].Inst = IfInst;
-	mlc_connect(Compiled.Exits, ForInst);
-	ml_inst_t *PushInst = ml_inst_new(1, Expr->StartLine, MLI_PUSH);
-	IfInst->Params[1].Inst = PushInst;
+	mlc_compile(Function, Child, 0);
+	mlc_emit(Child->EndLine, MLI_FOR, 0);
+	ml_inst_t *IterInst = mlc_emit(Child->EndLine, MLI_ITER, 1);
 	mlc_inc_top(Function);
-	ml_inst_t *NextInst = ml_inst_new(2, Expr->EndLine, MLI_NEXT);
-	NextInst->Params[0].Inst = IfInst;
 	ml_decl_t *Decl = Expr->Decl;
-	int Count = Decl->Index;
+	int Count = Decl->Index, NextCount = Count;
 	ml_decl_t *KeyDecl = (Count == 0) ? Decl : NULL;
 	if (KeyDecl) {
 		Decl = Decl->Next;
@@ -1010,9 +936,11 @@ static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_exp
 		KeyDecl->Index = Function->Top++;
 		KeyDecl->Next = Function->Decls;
 		Function->Decls = KeyDecl;
-		NextInst->Params[1].Count = Count + 1;
-	} else {
-		NextInst->Params[1].Count = Count;
+		++NextCount;
+		ml_inst_t *KeyInst = mlc_emit(Expr->StartLine, MLI_KEY, 1);
+		KeyInst[1].Index = -1;
+		ml_inst_t *WithInst = mlc_emit(Expr->StartLine, MLI_WITH, 1);
+		WithInst[1].Decls = KeyDecl;
 	}
 	for (int I = 0; I < Count; ++I) {
 		ml_decl_t *Next = Decl->Next;
@@ -1021,75 +949,54 @@ static mlc_compiled_t ml_for_expr_compile(mlc_function_t *Function, mlc_decl_exp
 		Function->Decls = Decl;
 		Decl = Next;
 	}
+	ml_inst_t *ValueInst = mlc_emit(Expr->StartLine, MLI_VALUE, 1);
+	ValueInst[1].Index = KeyDecl ? -2 : -1;
+	if (Count > 1) {
+		ml_inst_t *WithInst = mlc_emit(Expr->StartLine, MLI_WITHX, 2);
+		WithInst[1].Count = Count;
+		WithInst[2].Decls = Function->Decls;
+	} else {
+		ml_inst_t *WithInst = mlc_emit(Expr->StartLine, MLI_WITH, 1);
+		WithInst[1].Decls = Function->Decls;
+	}
 	mlc_loop_t Loop = {
 		Function->Loop, Function->Try,
-		NextInst, NULL,
-		Function->Decls, OldDecls,
-		Function->Top, OldTop
+		OldDecls, OldDecls,
+		NULL, NULL,
+		OldTop + 1, OldTop
 	};
 	if (Function->Top >= Function->Size) Function->Size = Function->Top + 1;
 	Function->Loop = &Loop;
-	mlc_compiled_t BodyCompiled = mlc_compile(Function, Child->Next);
-	mlc_connect(BodyCompiled.Exits, NextInst);
-	if (KeyDecl) {
-		ml_inst_t *KeyInst = ml_inst_new(2, Expr->StartLine, MLI_KEY);
-		KeyInst->Params[1].Index = -1;
-		ml_inst_t *KeyResultInst = ml_inst_new(2, Expr->StartLine, MLI_WITH);
-		KeyInst->Params[0].Inst = KeyResultInst;
-		PushInst->Params[0].Inst = KeyInst;
-		PushInst = KeyResultInst;
-		KeyResultInst->Params[1].Decls = KeyDecl;
-	}
-	ml_inst_t *ValueInst = ml_inst_new(2, Expr->StartLine, MLI_VALUE);
-	ValueInst->Params[1].Index = KeyDecl ? -2 : -1;
-	PushInst->Params[0].Inst = ValueInst;
-	if (Count > 1) {
-		ml_inst_t *ValueResultInst = ml_inst_new(3, Expr->StartLine, MLI_WITHX);
-		ValueInst->Params[0].Inst = ValueResultInst;
-		ValueResultInst->Params[1].Count = Count;
-		ValueResultInst->Params[2].Decls = Function->Decls;
-		ValueResultInst->Params[0].Inst = BodyCompiled.Start;
-	} else {
-		ml_inst_t *ValueResultInst = ml_inst_new(2, Expr->StartLine, MLI_WITH);
-		ValueInst->Params[0].Inst = ValueResultInst;
-		ValueResultInst->Params[1].Decls = Function->Decls;
-		ValueResultInst->Params[0].Inst = BodyCompiled.Start;
-	}
-	Compiled.Exits = Loop.Exits;
+	mlc_compile(Function, Child->Next, 0);
+	ml_inst_t *ExitInst = mlc_emit(Child->EndLine, MLI_EXIT, 2);
+	ExitInst[1].Count = KeyDecl ? 2 : 1;
+	ExitInst[2].Decls = OldDecls;
+	ml_inst_t *NextInst = mlc_emit(Child->EndLine, MLI_NEXT, 1);
+	NextInst[1].Inst = IterInst;
+	mlc_link(Loop.Nexts, NextInst);
+	IterInst[1].Inst = Function->Next;
 	Function->Loop = Loop.Up;
 	Function->Top = OldTop;
-	if (Child->Next->Next) {
-		mlc_compiled_t ElseCompiled = mlc_compile(Function, Child->Next->Next);
-		IfInst->Params[0].Inst = ElseCompiled.Start;;
-		ml_inst_t **Slot = &Compiled.Exits;
-		while (Slot[0]) Slot = &Slot[0]->Params[0].Inst;
-		Slot[0] = ElseCompiled.Exits;
-	} else {
-		IfInst->Params[0].Inst = Compiled.Exits;
-		Compiled.Exits = IfInst;
-	}
 	Function->Decls = OldDecls;
-	return Compiled;
+	if (Child->Next->Next) {
+		mlc_compile(Function, Child->Next->Next, 0);
+	}
+	mlc_link(Loop.Exits, Function->Next);
+	return 0;
 }
 
-static mlc_compiled_t ml_each_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
+static int ml_each_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
 	mlc_expr_t *Child = Expr->Child;
-	mlc_compiled_t Compiled = mlc_compile(Function, Child);
-	ml_inst_t *EachInst = ml_inst_new(1, Expr->StartLine, MLI_FOR);
-	ml_inst_t *IfInst = ml_inst_new(2, Expr->StartLine, MLI_IF);
-	EachInst->Params[0].Inst = IfInst;
-	mlc_connect(Compiled.Exits, EachInst);
-	ml_inst_t *PushInst = ml_inst_new(1, Expr->StartLine, MLI_PUSH);
-	IfInst->Params[1].Inst = PushInst;
-	ml_inst_t *ValueInst = ml_inst_new(2, Expr->StartLine, MLI_VALUE);
-	ValueInst->Params[1].Index = -1;
-	PushInst->Params[0].Inst = ValueInst;
-	ml_inst_t *NextInst = ml_inst_new(2, Expr->EndLine, MLI_NEXT);
-	ValueInst->Params[0].Inst = NextInst;
-	NextInst->Params[0].Inst = IfInst;
-	NextInst->Params[1].Count = 0;
-	Compiled.Exits = IfInst;
-	return Compiled;
+	mlc_compile(Function, Child, 0);
+	mlc_emit(Child->EndLine, MLI_FOR, 0);
+	ml_inst_t *AndInst = mlc_emit(Expr->StartLine, MLI_ITER, 1);
+	mlc_inc_top(Function);
+	ml_inst_t *ValueInst = mlc_emit(Expr->StartLine, MLI_VALUE, 1);
+	ValueInst[1].Index = -1;
+	ml_inst_t *NextInst = mlc_emit(Expr->EndLine, MLI_NEXT, 1);
+	NextInst[1].Inst = AndInst;
+	AndInst[1].Inst = Function->Next;
+	return 0;
 }
 
 struct mlc_block_expr_t {
@@ -1104,58 +1011,24 @@ struct mlc_catch_expr_t {
 	ml_decl_t *Decl;
 	mlc_catch_type_t *Types;
 	mlc_expr_t *Body;
+	int Line;
 };
 
 struct mlc_catch_type_t {
 	mlc_catch_type_t *Next;
 	const char *Type;
-	int Line;
 };
 
-static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_expr_t *Expr) {
+static int ml_block_expr_compile(mlc_function_t *Function, mlc_block_expr_t *Expr, int Flags) {
 	int OldTop = Function->Top;
 	ml_decl_t *OldDecls = Function->Decls;
 	mlc_try_t Try;
-	ml_inst_t *CatchExitInst = NULL;
+	ml_inst_t *MainTryInst = NULL;
 	if (Expr->Catches) {
-		CatchExitInst = ml_inst_new(3, Expr->EndLine, MLI_EXIT);
-		CatchExitInst->Params[1].Count = 1;
-		CatchExitInst->Params[2].Decls = OldDecls;
-		ml_inst_t *TryInst = ml_inst_new(2, Expr->StartLine, MLI_TRY);
-		TryInst->Params[1].Inst = Function->Try ? Function->Try->CatchInst : Function->ReturnInst;
-		ml_inst_t *Last = TryInst;
-
-		for (mlc_catch_expr_t *CatchExpr = Expr->Catches; CatchExpr; CatchExpr = CatchExpr->Next) {
-			CatchExpr->Decl->Index = Function->Top++;
-			CatchExpr->Decl->Next = Function->Decls;
-			Function->Decls = CatchExpr->Decl;
-			mlc_compiled_t TryCompiled = mlc_compile(Function, CatchExpr->Body);
-			if (CatchExpr->Types) {
-				for (mlc_catch_type_t *Type = CatchExpr->Types; Type; Type = Type->Next) {
-					ml_inst_t *CatchInst = ml_inst_new(5, Type->Line, MLI_CATCH);
-					Last->Params[0].Inst = CatchInst;
-					Last = CatchInst;
-					CatchInst->Params[1].Inst = TryCompiled.Start;
-					CatchInst->Params[2].Index = OldTop;
-					CatchInst->Params[3].Ptr = Type->Type;
-					CatchInst->Params[4].Decls = Function->Decls;
-				}
-			} else {
-				ml_inst_t *CatchInst = ml_inst_new(5, Expr->StartLine, MLI_CATCH);
-				Last->Params[0].Inst = CatchInst;
-				Last = CatchInst;
-				CatchInst->Params[1].Inst = TryCompiled.Start;
-				CatchInst->Params[2].Index = OldTop;
-				CatchInst->Params[3].Ptr = NULL;
-			}
-			mlc_connect(TryCompiled.Exits, CatchExitInst);
-			Function->Decls = OldDecls;
-			Function->Top = OldTop;
-		}
-		Last->Params[0].Inst = TryInst->Params[1].Inst;
+		MainTryInst = mlc_emit(Expr->StartLine, MLI_TRY, 1);
 		Try.Up = Function->Try;
-		Try.CatchInst = TryInst;
-		Try.CatchTop = OldTop;
+		Try.Retries = NULL;
+		Try.Top = OldTop;
 		Function->Try = &Try;
 	}
 	int NumVars = 0, NumLets = 0, Top = Function->Top;
@@ -1208,183 +1081,189 @@ static mlc_compiled_t ml_block_expr_compile(mlc_function_t *Function, mlc_block_
 	if (Top >= Function->Size) Function->Size = Top + 1;
 	Function->Top = Top;
 	Function->Decls = Decls;
+	if (NumVars + NumLets > 0) {
+		ml_inst_t *EnterInst = mlc_emit(Expr->StartLine, MLI_ENTER, 3);
+		EnterInst[1].Count = NumVars;
+		EnterInst[2].Count = NumLets;
+		EnterInst[3].Decls = Function->Decls;
+	}
 	mlc_expr_t *Child = Expr->Child;
-	mlc_compiled_t Compiled;
+	int Result = 0;
 	if (Child) {
-		Compiled = mlc_compile(Function, Child);
-		while ((Child = Child->Next)) {
-			mlc_compiled_t ChildCompiled = mlc_compile(Function, Child);
-			mlc_connect(Compiled.Exits, ChildCompiled.Start);
-			Compiled.Exits = ChildCompiled.Exits;
-		}
+		do Result = mlc_compile(Function, Child, 0); while ((Child = Child->Next));
 	} else {
-		ml_inst_t *NilInst = ml_inst_new(1, Expr->StartLine, MLI_NIL);
-		Compiled.Start = Compiled.Exits = NilInst;
+		mlc_emit(Expr->StartLine, MLI_NIL, 0);
 	}
 	if (NumVars + NumLets > 0) {
-		ml_inst_t *EnterInst = ml_inst_new(4, Expr->StartLine, MLI_ENTER);
-		EnterInst->Params[0].Inst = Compiled.Start;
-		EnterInst->Params[1].Count = NumVars;
-		EnterInst->Params[2].Count = NumLets;
-		EnterInst->Params[3].Decls = Function->Decls;
-		Compiled.Start = EnterInst;
-		ml_inst_t *ExitInst = ml_inst_new(3, Expr->EndLine, MLI_EXIT);
-		ExitInst->Params[1].Count = NumVars + NumLets;
-		ExitInst->Params[2].Decls = OldDecls;
-		mlc_connect(Compiled.Exits, ExitInst);
-		Compiled.Exits = ExitInst;
-	}
-	if (Expr->Catches) {
-		ml_inst_t *TryInst = ml_inst_new(2, Expr->StartLine, MLI_TRY);
-		TryInst->Params[0].Inst = Compiled.Start;
-		TryInst->Params[1].Inst = Try.CatchInst;
-		Compiled.Start = TryInst;
-		Function->Try = Try.Up;
-		TryInst = ml_inst_new(2, Expr->StartLine, MLI_TRY);
-		TryInst->Params[1].Inst = Function->Try ? Function->Try->CatchInst : Function->ReturnInst;
-		TryInst->Params[0].Inst = CatchExitInst;
-		mlc_connect(Compiled.Exits, TryInst);
-		Compiled.Exits = TryInst;
+		ml_inst_t *ExitInst = mlc_emit(Expr->EndLine, MLI_EXIT, 2);
+		ExitInst[1].Count = NumVars + NumLets;
+		ExitInst[2].Decls = OldDecls;
 	}
 	Function->Decls = OldDecls;
 	Function->Top = OldTop;
-	return Compiled;
+	ml_inst_t *Exits = NULL;
+	if (Expr->Catches) {
+		Result = 0;
+		Function->Try = Function->Try->Up;
+		ml_inst_t *TryInst = mlc_emit(Expr->StartLine, MLI_TRY, 1);
+		if (Function->Try) {
+			TryInst[1].Inst = Function->Try->Retries;
+			Function->Try->Retries = TryInst + 1;
+		} else {
+			TryInst[1].Inst = Function->Returns;
+			Function->Returns = TryInst + 1;
+		}
+		ml_inst_t *GotoInst = mlc_emit(Expr->EndLine, MLI_GOTO, 1);
+		GotoInst[1].Inst = Exits;
+		Exits = GotoInst + 1;
+		TryInst = mlc_emit(Expr->StartLine, MLI_TRY, 1);
+		mlc_link(Try.Retries, TryInst);
+		if (Function->Try) {
+			TryInst[1].Inst = Function->Try->Retries;
+			Function->Try->Retries = TryInst + 1;
+		} else {
+			TryInst[1].Inst = Function->Returns;
+			Function->Returns = TryInst + 1;
+		}
+		MainTryInst[1].Inst = TryInst;
+		mlc_catch_expr_t *CatchExpr = Expr->Catches;
+		ml_inst_t *CatchTypeInst = NULL;
+		do {
+			if (CatchTypeInst) {
+				CatchTypeInst[1].Inst = Function->Next;
+				CatchTypeInst = NULL;
+			}
+			if (CatchExpr->Types) {
+				int NumTypes = 0;
+				for (mlc_catch_type_t *Type = CatchExpr->Types; Type; Type = Type->Next) ++NumTypes;
+				CatchTypeInst = mlc_emit(CatchExpr->Line, MLI_CATCH_TYPE, 2);
+				const char **Ptrs = CatchTypeInst[2].Ptrs = anew(const char *, NumTypes + 1);
+				for (mlc_catch_type_t *Type = CatchExpr->Types; Type; Type = Type->Next) *Ptrs++ = Type->Type;
+			}
+			ml_decl_t *CatchDecl = CatchExpr->Decl;
+			CatchDecl->Index = Function->Top;
+			CatchDecl->Next = Function->Decls;
+			Function->Decls = CatchDecl;
+			mlc_inc_top(Function);
+			ml_inst_t *CatchInst = mlc_emit(Expr->StartLine, MLI_CATCH, 2);
+			CatchInst[1].Index = OldTop;
+			CatchInst[2].Decls = Function->Decls;
+			mlc_compile(Function, CatchExpr->Body, 0);
+			ml_inst_t *ExitInst = mlc_emit(Expr->EndLine, MLI_EXIT, 2);
+			ExitInst[1].Count = 1;
+			ExitInst[2].Decls = OldDecls;
+			Function->Decls = OldDecls;
+			Function->Top = OldTop;
+			ml_inst_t *GotoInst = mlc_emit(Expr->EndLine, MLI_GOTO, 1);
+			GotoInst[1].Inst = Exits;
+			Exits = GotoInst + 1;
+		} while ((CatchExpr = CatchExpr->Next));
+		if (CatchTypeInst) {
+			CatchTypeInst[1].Inst = Function->Next;
+			mlc_emit(Expr->EndLine, MLI_RETRY, 0);
+		}
+	}
+	mlc_link(Exits, Function->Next);
+	return Result;
 }
 
-static mlc_compiled_t ml_assign_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
+static int ml_assign_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
 	int OldSelf = Function->Self;
-	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
-	ml_inst_t *PushInst = ml_inst_new(1, Expr->StartLine, MLI_PUSH);
-	mlc_connect(Compiled.Exits, PushInst);
-	Function->Self = Function->Top++;
-	mlc_compiled_t ValueCompiled = mlc_compile(Function, Expr->Child->Next);
-	PushInst->Params[0].Inst = ValueCompiled.Start;
-	ml_inst_t *AssignInst = ml_inst_new(1, Expr->StartLine, MLI_ASSIGN);
-	mlc_connect(ValueCompiled.Exits, AssignInst);
-	Compiled.Exits = AssignInst;
+	Function->Self = Function->Top;
+	mlc_compile(Function, Expr->Child, MLC_PUSH);
+	mlc_compile(Function, Expr->Child->Next, 0);
+	mlc_emit(Expr->StartLine, MLI_ASSIGN, 0);
 	--Function->Top;
 	Function->Self = OldSelf;
-	return Compiled;
+	return 0;
 }
 
-static mlc_compiled_t ml_old_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr) {
-	ml_inst_t *OldInst = ml_inst_new(2, Expr->StartLine, MLI_LOCAL);
-	OldInst->Params[1].Index = Function->Self;
-	return (mlc_compiled_t){OldInst, OldInst};
+static int ml_old_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags) {
+	ml_inst_t *OldInst = mlc_emit(Expr->StartLine, MLI_LOCAL, 1);
+	OldInst[1].Index = Function->Self;
+	return 0;
 }
 
-static mlc_compiled_t ml_tuple_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
-	ml_inst_t *TupleInst = ml_inst_new(2, Expr->StartLine, MLI_TUPLE_NEW);
+static int ml_tuple_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
+	ml_inst_t *TupleInst = mlc_emit(Expr->StartLine, MLI_TUPLE_NEW, 1);
 	if (++Function->Top >= Function->Size) Function->Size = Function->Top + 1;
-	mlc_compiled_t Compiled = {TupleInst, TupleInst};
 	int Count = 0;
 	for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next) {
-		mlc_compiled_t ChildCompiled = mlc_compile(Function, Child);
-		Compiled.Exits->Params[0].Inst = ChildCompiled.Start;
-		ml_inst_t *SetInst = ml_inst_new(2, Expr->StartLine, MLI_TUPLE_SET);
-		SetInst->Params[1].Index = Count++;
-		mlc_connect(ChildCompiled.Exits, SetInst);
-		Compiled.Exits = SetInst;
+		mlc_compile(Function, Child, 0);
+		ml_inst_t *SetInst = mlc_emit(Expr->StartLine, MLI_TUPLE_SET, 1);
+		SetInst[1].Index = Count++;
 	}
-	TupleInst->Params[1].Count = Count;
-	ml_inst_t *PopInst = ml_inst_new(1, Expr->StartLine, MLI_POP);
-	Compiled.Exits->Params[0].Inst = PopInst;
-	Compiled.Exits = PopInst;
+	TupleInst[1].Count = Count;
+	if (Flags & MLC_PUSH) return MLC_PUSH;
+	mlc_emit(Expr->StartLine, MLI_POP, 0);
 	--Function->Top;
-	return Compiled;
+	return 0;
 }
 
-static mlc_compiled_t ml_list_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
-	ml_inst_t *ListInst = ml_inst_new(1, Expr->StartLine, MLI_LIST_NEW);
+static int ml_list_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
+	mlc_emit(Expr->StartLine, MLI_LIST_NEW, 0);
 	if (++Function->Top >= Function->Size) Function->Size = Function->Top + 1;
-	mlc_compiled_t Compiled = {ListInst, ListInst};
 	for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next) {
-		mlc_compiled_t ChildCompiled = mlc_compile(Function, Child);
-		Compiled.Exits->Params[0].Inst = ChildCompiled.Start;
-		ml_inst_t *AppendInst = ml_inst_new(1, Expr->StartLine, MLI_LIST_APPEND);
-		mlc_connect(ChildCompiled.Exits, AppendInst);
-		Compiled.Exits = AppendInst;
+		mlc_compile(Function, Child, 0);
+		mlc_emit(Expr->StartLine, MLI_LIST_APPEND, 0);
 	}
-	ml_inst_t *PopInst = ml_inst_new(1, Expr->StartLine, MLI_POP);
-	Compiled.Exits->Params[0].Inst = PopInst;
-	Compiled.Exits = PopInst;
+	if (Flags & MLC_PUSH) return MLC_PUSH;
+	mlc_emit(Expr->StartLine, MLI_POP, 0);
 	--Function->Top;
-	return Compiled;
+	return 0;
 }
 
-static mlc_compiled_t ml_map_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
-	ml_inst_t *TupleInst = ml_inst_new(1, Expr->StartLine, MLI_MAP_NEW);
+static int ml_map_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
+	mlc_emit(Expr->StartLine, MLI_MAP_NEW, 0);
 	if (Function->Top + 2 >= Function->Size) Function->Size = Function->Top + 3;
 	++Function->Top;
-	mlc_compiled_t Compiled = {TupleInst, TupleInst};
 	for (mlc_expr_t *Key = Expr->Child; Key; Key = Key->Next->Next) {
-		mlc_compiled_t KeyCompiled = mlc_compile(Function, Key);
-		Compiled.Exits->Params[0].Inst = KeyCompiled.Start;
-		ml_inst_t *PushInst = ml_inst_new(1, Expr->StartLine, MLI_PUSH);
-		mlc_connect(KeyCompiled.Exits, PushInst);
-		++Function->Top;
-		mlc_compiled_t ValueCompiled = mlc_compile(Function, Key->Next);
-		PushInst->Params[0].Inst = ValueCompiled.Start;
-		ml_inst_t *InsertInst = ml_inst_new(1, Expr->StartLine, MLI_MAP_INSERT);
-		mlc_connect(ValueCompiled.Exits, InsertInst);
-		Compiled.Exits = InsertInst;
+		mlc_compile(Function, Key, MLC_PUSH);
+		mlc_compile(Function, Key->Next, 0);
+		mlc_emit(Expr->StartLine, MLI_MAP_INSERT, 0);
 		--Function->Top;
 	}
-	ml_inst_t *PopInst = ml_inst_new(1, Expr->StartLine, MLI_POP);
-	Compiled.Exits->Params[0].Inst = PopInst;
-	Compiled.Exits = PopInst;
+	if (Flags & MLC_PUSH) return MLC_PUSH;
+	mlc_emit(Expr->StartLine, MLI_POP, 0);
 	--Function->Top;
-	return Compiled;
+	return 0;
 }
 
-static mlc_compiled_t ml_call_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
+static int ml_call_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
 	for (mlc_expr_t *Child = Expr->Child->Next; Child; Child = Child->Next) {
 		if (Child->compile == (void *)ml_blank_expr_compile) {
-			mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
-			ml_inst_t *PartialInst = ml_inst_new(2, Expr->StartLine, MLI_PARTIAL_NEW);
-			mlc_connect(Compiled.Exits, PartialInst);
-			int Index = 0, NumArgs = 0;
-			ml_inst_t *LastInst = PartialInst;
+			mlc_compile(Function, Expr->Child, 0);
+			ml_inst_t *PartialInst = mlc_emit(Expr->StartLine, MLI_PARTIAL_NEW, 1);
+			int NumArgs = 0;
 			++Function->Top;
-			for (mlc_expr_t *Child = Expr->Child->Next; Child; Child = Child->Next, ++Index) {
+			for (mlc_expr_t *Child = Expr->Child->Next; Child; Child = Child->Next, ++NumArgs) {
 				if (Child->compile != (void *)ml_blank_expr_compile) {
-					mlc_compiled_t ChildCompiled = mlc_compile(Function, Child);
-					ml_inst_t *SetInst = ml_inst_new(2, Expr->StartLine, MLI_PARTIAL_SET);
-					SetInst->Params[1].Index = NumArgs = Index;
-					LastInst->Params[0].Inst = ChildCompiled.Start;
-					mlc_connect(ChildCompiled.Exits, SetInst);
-					LastInst = SetInst;
+					mlc_compile(Function, Child, 0);
+					ml_inst_t *SetInst = mlc_emit(Expr->StartLine, MLI_PARTIAL_SET, 1);
+					SetInst[1].Index = NumArgs;
 				}
 			}
-			PartialInst->Params[1].Count = NumArgs;
-			ml_inst_t *PopInst = ml_inst_new(1, Expr->StartLine, MLI_POP);
-			LastInst->Params[0].Inst = PopInst;
+			PartialInst[1].Count = NumArgs;
+			mlc_emit(Expr->StartLine, MLI_POP, 0);
 			--Function->Top;
-			Compiled.Exits = PopInst;
-			return Compiled;
+			return 0;
 		}
 	}
 	int OldTop = Function->Top;
-	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
-	ml_inst_t *PushInst = ml_inst_new(1, Expr->StartLine, MLI_PUSH);
-	mlc_connect(Compiled.Exits, PushInst);
-	++Function->Top;
+	mlc_expr_t *Child = Expr->Child;
+	mlc_compile(Function, Expr->Child, MLC_PUSH);
 	int NumArgs = 0;
-	for (mlc_expr_t *Child = Expr->Child->Next; Child; Child = Child->Next) {
+	Child = Child->Next;
+	while (Child) {
 		++NumArgs;
-		mlc_compiled_t ChildCompiled = mlc_compile(Function, Child);
-		PushInst->Params[0].Inst = ChildCompiled.Start;
-		PushInst = ml_inst_new(1, Expr->StartLine, MLI_PUSH);
-		mlc_connect(ChildCompiled.Exits, PushInst);
-		++Function->Top;
+		mlc_compile(Function, Child, MLC_PUSH);
+		Child = Child->Next;
 	}
 	if (Function->Top >= Function->Size) Function->Size = Function->Top + 1;
-	ml_inst_t *CallInst = ml_inst_new(2, Expr->StartLine, MLI_CALL);
-	CallInst->Params[1].Count = NumArgs;
-	PushInst->Params[0].Inst = CallInst;
-	Compiled.Exits = CallInst;
+	ml_inst_t *CallInst = mlc_emit(Expr->StartLine, MLI_CALL, 1);
+	CallInst[1].Count = NumArgs;
 	Function->Top = OldTop;
-	return Compiled;
+	return 0;
 }
 
 struct mlc_parent_value_expr_t {
@@ -1393,65 +1272,41 @@ struct mlc_parent_value_expr_t {
 	ml_value_t *Value;
 };
 
-static mlc_compiled_t ml_const_call_expr_compile(mlc_function_t *Function, mlc_parent_value_expr_t *Expr) {
+static int ml_const_call_expr_compile(mlc_function_t *Function, mlc_parent_value_expr_t *Expr, int Flags) {
 	for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next) {
 		if (Child->compile == (void *)ml_blank_expr_compile) {
-			ml_inst_t *LoadInst = ml_inst_new(2, Expr->StartLine, MLI_LOAD);
-			LoadInst->Params[1].Value = Expr->Value;
-			mlc_compiled_t Compiled = {LoadInst, NULL};
-			ml_inst_t *PartialInst = ml_inst_new(2, Expr->StartLine, MLI_PARTIAL_NEW);
-			LoadInst->Params[0].Inst = PartialInst;
+			ml_inst_t *LoadInst = mlc_emit(Expr->StartLine, MLI_LOAD, 1);
+			LoadInst[1].Value = Expr->Value;
+			ml_inst_t *PartialInst = mlc_emit(Expr->StartLine, MLI_PARTIAL_NEW, 1);
 			int NumArgs = 0;
-			ml_inst_t *LastInst = PartialInst;
 			++Function->Top;
 			for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next, ++NumArgs) {
 				if (Child->compile != (void *)ml_blank_expr_compile) {
-					mlc_compiled_t ChildCompiled = mlc_compile(Function, Child);
-					ml_inst_t *SetInst = ml_inst_new(2, Expr->StartLine, MLI_PARTIAL_SET);
-					SetInst->Params[1].Count = NumArgs;
-					LastInst->Params[0].Inst = ChildCompiled.Start;
-					mlc_connect(ChildCompiled.Exits, SetInst);
-					LastInst = SetInst;
+					mlc_compile(Function, Child, 0);
+					ml_inst_t *SetInst = mlc_emit(Expr->StartLine, MLI_PARTIAL_SET, 1);
+					SetInst[1].Count = NumArgs;
 				}
 			}
-			PartialInst->Params[1].Count = NumArgs;
-			ml_inst_t *PopInst = ml_inst_new(1, Expr->StartLine, MLI_POP);
-			LastInst->Params[0].Inst = PopInst;
+			PartialInst[1].Count = NumArgs;
+			mlc_emit(Expr->StartLine, MLI_POP, 0);
 			--Function->Top;
-			Compiled.Exits = PopInst;
-			return Compiled;
+			return 0;
 		}
 	}
 	int OldTop = Function->Top;
-	if (Expr->Child) {
-		int NumArgs = 1;
-		mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
-		ml_inst_t *PushInst = ml_inst_new(1, Expr->StartLine, MLI_PUSH);
-		mlc_connect(Compiled.Exits, PushInst);
-		++Function->Top;
-		for (mlc_expr_t *Child = Expr->Child->Next; Child; Child = Child->Next) {
-			++NumArgs;
-			mlc_compiled_t ChildCompiled = mlc_compile(Function, Child);
-			PushInst->Params[0].Inst = ChildCompiled.Start;
-			PushInst = ml_inst_new(1, Expr->StartLine, MLI_PUSH);
-			mlc_connect(ChildCompiled.Exits, PushInst);
-			++Function->Top;
-		}
-		if (Function->Top >= Function->Size) Function->Size = Function->Top + 1;
-		ml_inst_t *CallInst = ml_inst_new(3, Expr->StartLine, MLI_CONST_CALL);
-		CallInst->Params[2].Value = Expr->Value;
-		CallInst->Params[1].Count = NumArgs;
-		PushInst->Params[0].Inst = CallInst;
-		Compiled.Exits = CallInst;
-		Function->Top = OldTop;
-		return Compiled;
-	} else {
-		ml_inst_t *CallInst = ml_inst_new(3, Expr->StartLine, MLI_CONST_CALL);
-		CallInst->Params[2].Value = Expr->Value;
-		CallInst->Params[1].Count = 0;
-		Function->Top = OldTop;
-		return (mlc_compiled_t){CallInst, CallInst};
+	int NumArgs = 0;
+	mlc_expr_t *Child = Expr->Child;
+	while (Child) {
+		++NumArgs;
+		mlc_compile(Function, Child, MLC_PUSH);
+		Child = Child->Next;
 	}
+	if (Function->Top >= Function->Size) Function->Size = Function->Top + 1;
+	ml_inst_t *CallInst = mlc_emit(Expr->StartLine, MLI_CONST_CALL, 2);
+	CallInst[1].Count = NumArgs;
+	CallInst[2].Value = Expr->Value;
+	Function->Top = OldTop;
+	return 0;
 }
 
 typedef struct {
@@ -1467,52 +1322,36 @@ static void ml_task_resolve_start(ml_task_resolve_t *Task, ml_compiler_t *Compil
 }
 
 static ml_value_t *ml_task_resolve_finish(ml_task_resolve_t *Task, ml_value_t *Value) {
-	Task->Inst->Params[1].Value = Value;
-	if (ml_typeof(Value) == MLUninitializedT) ml_uninitialized_use(Value, &Task->Inst->Params[1].Value);
+	Task->Inst->Opcode = MLI_LOAD;
+	Task->Inst[1].Value = Value;
+	if (ml_typeof(Value) == MLUninitializedT) ml_uninitialized_use(Value, &Task->Inst[1].Value);
 	return NULL;
 }
 
 static ml_value_t *ml_task_resolve_error(ml_task_resolve_t *Task, ml_value_t *Value) {
-	Task->Inst->Opcode = MLI_RESOLVE;
-	Task->Inst->Params[1].Value = Task->ModuleParam[0];
-	Task->Inst->Params[2].Value = Task->Args[1];
 	return NULL;
 }
 
-static mlc_compiled_t ml_resolve_expr_compile(mlc_function_t *Function, mlc_parent_value_expr_t *Expr) {
-	mlc_compiled_t Compiled = mlc_compile(Function, Expr->Child);
-	if ((Compiled.Start == Compiled.Exits) && (Compiled.Start->Opcode == MLI_LOAD)) {
-		ml_inst_t *ValueInst = Compiled.Start;
+static int ml_resolve_expr_compile(mlc_function_t *Function, mlc_parent_value_expr_t *Expr, int Flags) {
+	ml_inst_t *Next = Function->Next;
+	mlc_compile(Function, Expr->Child, 0);
+	if (Next->Opcode == MLI_LINK) Next = Next[1].Inst;
+	int UseTask = (Function->Next == Next + 2) && (Next->Opcode == MLI_LOAD);
+	ml_inst_t *ResolveInst = mlc_emit(Expr->StartLine, MLI_RESOLVE, 1);
+	ResolveInst[1].Value = Expr->Value;
+	if (UseTask) {
 		ml_task_resolve_t *Task = new(ml_task_resolve_t);
 		Task->Base.start = (void *)ml_task_resolve_start;
 		Task->Base.finish = (void *)ml_task_resolve_finish;
 		Task->Base.error = (void *)ml_task_resolve_error;
 		Task->Base.Source.Name = Function->Source;
 		Task->Base.Source.Line = Expr->StartLine;
-		Task->ModuleParam = &ValueInst->Params[1].Value;
+		Task->ModuleParam = &Next[1].Value;
 		Task->Args[1] = Expr->Value;
-		ml_inst_t *ImportInst = ml_inst_new(3, Expr->StartLine, MLI_LOAD);
-		Task->Inst = ImportInst;
+		Task->Inst = ResolveInst;
 		ml_task_queue(Function->Compiler, (ml_compiler_task_t *)Task);
-		if (Function->Top + 2 >= Function->Size) Function->Size = Function->Top + 3;
-		return (mlc_compiled_t){ImportInst, ImportInst};
 	}
-	ml_inst_t *PushInst = ml_inst_new(1, Expr->StartLine, MLI_PUSH);
-	mlc_connect(Compiled.Exits, PushInst);
-	ml_inst_t *LoadInst = ml_inst_new(2, Expr->StartLine, MLI_LOAD);
-	LoadInst->Params[1].Value = Expr->Value;
-	PushInst->Params[0].Inst = LoadInst;
-	PushInst = ml_inst_new(1, Expr->StartLine, MLI_PUSH);
-	LoadInst->Params[0].Inst = PushInst;
-	Function->Top += 2;
-	ml_inst_t *CallInst = ml_inst_new(3, Expr->StartLine, MLI_CONST_CALL);
-	PushInst->Params[0].Inst = CallInst;
-	CallInst->Params[1].Count = 2;
-	CallInst->Params[2].Value = SymbolMethod;
-	Compiled.Exits = CallInst;
-	if (Function->Top >= Function->Size) Function->Size = Function->Top + 1;
-	Function->Top -= 2;
-	return Compiled;
+	return 0;
 }
 
 typedef struct mlc_string_part_t mlc_string_part_t;
@@ -1531,42 +1370,30 @@ struct mlc_string_part_t {
 	int Length;
 };
 
-static mlc_compiled_t ml_string_expr_compile(mlc_function_t *Function, mlc_string_expr_t *Expr) {
-	ml_inst_t *StringInst = ml_inst_new(1, Expr->StartLine, MLI_STRING_NEW);
+static int ml_string_expr_compile(mlc_function_t *Function, mlc_string_expr_t *Expr, int Flags) {
+	mlc_emit(Expr->StartLine, MLI_STRING_NEW, 0);
 	if (++Function->Top >= Function->Size) Function->Size = Function->Top + 1;
-	mlc_compiled_t Compiled = {StringInst, StringInst};
 	for (mlc_string_part_t *Part = Expr->Parts; Part; Part = Part->Next) {
 		if (Part->Length) {
-			ml_inst_t *AddInst = ml_inst_new(3, Expr->StartLine, MLI_STRING_ADDS);
-			AddInst->Params[1].Count = Part->Length;
-			AddInst->Params[2].Ptr = Part->Chars;
-			Compiled.Exits->Params[0].Inst = AddInst;
-			Compiled.Exits = AddInst;
+			ml_inst_t *AddInst = mlc_emit(Expr->StartLine, MLI_STRING_ADDS, 2);
+			AddInst[1].Count = Part->Length;
+			AddInst[2].Ptr = Part->Chars;
 		} else {
 			int OldTop = Function->Top;
 			int NumArgs = 0;
 			for (mlc_expr_t *Child = Part->Child; Child; Child = Child->Next) {
 				++NumArgs;
-				mlc_compiled_t ChildCompiled = mlc_compile(Function, Child);
-				Compiled.Exits->Params[0].Inst = ChildCompiled.Start;
-				ml_inst_t *PushInst = ml_inst_new(1, Expr->StartLine, MLI_PUSH);
-				mlc_connect(ChildCompiled.Exits, PushInst);
-				Compiled.Exits = PushInst;
-				++Function->Top;
+				mlc_compile(Function, Child, MLC_PUSH);
 			}
 			if (Function->Top >= Function->Size) Function->Size = Function->Top + 1;
-			ml_inst_t *AddInst = ml_inst_new(3, Expr->StartLine, MLI_STRING_ADD);
-			AddInst->Params[1].Count = NumArgs;
-			Compiled.Exits->Params[0].Inst = AddInst;
-			Compiled.Exits = AddInst;
+			ml_inst_t *AddInst = mlc_emit(Expr->StartLine, MLI_STRING_ADD, 1);
+			AddInst[1].Count = NumArgs;
 			Function->Top = OldTop;
 		}
 	}
-	ml_inst_t *EndInst = ml_inst_new(1, Expr->StartLine, MLI_STRING_END);
-	Compiled.Exits->Params[0].Inst = EndInst;
-	Compiled.Exits = EndInst;
+	mlc_emit(Expr->StartLine, MLI_STRING_END, 0);
 	--Function->Top;
-	return Compiled;
+	return 0;
 }
 
 struct mlc_fun_expr_t {
@@ -1584,12 +1411,11 @@ long ml_ident_hash(const char *Ident) {
 	return Hash;
 }
 
-static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr) {
+static int ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, int Flags) {
 	// closure <entry> <frame_size> <num_params> <num_upvalues> <upvalue_1> ...
 	mlc_function_t SubFunction[1];
 	memset(SubFunction, 0, sizeof(SubFunction));
 	SubFunction->Compiler = Function->Compiler;
-	SubFunction->ReturnInst = ml_inst_new(0, Expr->EndLine, MLI_RETURN);
 	SubFunction->Up = Function;
 	ml_closure_info_t *Info = new(ml_closure_info_t);
 	Info->Source = Function->Source;
@@ -1617,8 +1443,15 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 		Param = NextParam;
 	}
 	SubFunction->Top = SubFunction->Size = NumParams;
+	SubFunction->Next = anew(ml_inst_t, 128);
+	SubFunction->Space = 126;
+	SubFunction->Returns = NULL;
 	Info->Decls = SubFunction->Decls;
-	mlc_compiled_t Compiled = mlc_compile(SubFunction, Expr->Body);
+	Info->Entry = SubFunction->Next;
+	mlc_compile(SubFunction, Expr->Body, 0);
+	Info->Return = ml_inst_alloc(SubFunction, Expr->EndLine, MLI_RETURN, 0);
+	mlc_link(SubFunction->Returns, Info->Return);
+	Info->Halt = SubFunction->Next;
 	ml_decl_t **UpValueSlot = &SubFunction->Decls;
 	while (UpValueSlot[0]) UpValueSlot = &UpValueSlot[0]->Next;
 	int Index = 0;
@@ -1633,9 +1466,6 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 		UpValueSlot[0] = Decl;
 		UpValueSlot = &Decl->Next;
 	}
-	mlc_connect(Compiled.Exits, SubFunction->ReturnInst);
-	Info->Entry = Compiled.Start;
-	Info->Return = SubFunction->ReturnInst;
 	Info->FrameSize = SubFunction->Size;
 	Info->NumParams = NumParams;
 	ml_task_closure_info_t *Task = new(ml_task_closure_info_t);
@@ -1645,54 +1475,44 @@ static mlc_compiled_t ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr
 	Task->Base.Source.Line = Expr->StartLine;
 	Task->Info = Info;
 	ml_task_queue(Function->Compiler, (ml_compiler_task_t *)Task);
-	if (SubFunction->UpValues || Expr->ParamTypes
-#ifdef ML_GENERICS
-		|| Expr->Type
-#endif
-	) {
+	if (SubFunction->UpValues || Expr->ParamTypes || Expr->Type) {
 		int NumUpValues = 0;
 		for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) ++NumUpValues;
-		ml_inst_t *ClosureInst = ml_inst_new(2 + NumUpValues, Expr->StartLine, MLI_CLOSURE);
-		ml_inst_t *TypeInst = ClosureInst;
+		ml_inst_t *ClosureInst;
 #ifdef ML_GENERICS
 		if (Expr->Type) {
-			ClosureInst->Opcode = MLI_CLOSURE_TYPED;
-			mlc_compiled_t Compiled = mlc_compile(Function, Expr->Type);
-			TypeInst = Compiled.Start;
-			mlc_connect(Compiled.Exits, ClosureInst);
+			mlc_compile(Function, Expr->Type, 0);
+			ClosureInst = mlc_emit(Expr->StartLine, MLI_CLOSURE_TYPED, NumUpValues + 1);
+		} else {
+#endif
+			 ClosureInst = mlc_emit(Expr->StartLine, MLI_CLOSURE, NumUpValues + 1);
+#ifdef ML_GENERICS
 		}
 #endif
-		ml_param_t *Params = ClosureInst->Params;
 		Info->NumUpValues = NumUpValues;
-		Params[1].ClosureInfo = Info;
-		int Index = 2;
-		for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) Params[Index++].Index = UpValue->Index;
+		ClosureInst[1].ClosureInfo = Info;
+		int Index = 1;
+		for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next) ClosureInst[++Index].Index = UpValue->Index;
 		if (Expr->ParamTypes) {
-			ml_inst_t *PushInst = ml_inst_new(1, Expr->StartLine, MLI_PUSH);
-			ClosureInst->Params[0].Inst = PushInst;
+			mlc_emit(Expr->StartLine, MLI_PUSH, 0);
 			mlc_inc_top(Function);
 			for (mlc_decl_type_t *Type = Expr->ParamTypes; Type; Type = Type->Next) {
-				mlc_compiled_t Compiled = mlc_compile(Function, Type->Expr);
-				PushInst->Params[0].Inst = Compiled.Start;
-				ml_inst_t *TypeInst = ml_inst_new(2, Expr->StartLine, MLI_PARAM_TYPE);
-				TypeInst->Params[1].Index = Type->Decl->Index;
-				mlc_connect(Compiled.Exits, TypeInst);
-				PushInst = TypeInst;
+				mlc_compile(Function, Type->Expr, 0);
+				ml_inst_t *TypeInst = mlc_emit(Expr->StartLine, MLI_PARAM_TYPE, 1);
+				TypeInst[1].Index = Type->Decl->Index;
 			}
-			ClosureInst = ml_inst_new(1, Expr->StartLine, MLI_POP);
-			PushInst->Params[0].Inst = ClosureInst;
+			mlc_emit(Expr->StartLine, MLI_POP, 0);
 			--Function->Top;
 		}
-		return (mlc_compiled_t){TypeInst, ClosureInst};
 	} else {
 		Info->NumUpValues = 0;
 		ml_closure_t *Closure = xnew(ml_closure_t, 0, ml_value_t *);
 		Closure->Type = MLClosureT;
 		Closure->Info = Info;
-		ml_inst_t *LoadInst = ml_inst_new(2, Expr->StartLine, MLI_LOAD);
-		LoadInst->Params[1].Value = (ml_value_t *)Closure;
-		return (mlc_compiled_t){LoadInst, LoadInst};
+		ml_inst_t *LoadInst = mlc_emit(Expr->StartLine, MLI_LOAD, 1);
+		LoadInst[1].Value = (ml_value_t *)Closure;
 	}
+	return 0;
 }
 
 struct mlc_ident_expr_t {
@@ -1716,16 +1536,21 @@ static int ml_upvalue_find(mlc_function_t *Function, ml_decl_t *Decl, mlc_functi
 	return ~Index;
 }
 
-static mlc_compiled_t ml_ident_expr_finish(mlc_function_t *Function, mlc_ident_expr_t *Expr, ml_value_t *Value) {
-	ml_inst_t *ValueInst = ml_inst_new(2, Expr->StartLine, MLI_LOAD);
+static int ml_ident_expr_finish(mlc_function_t *Function, mlc_ident_expr_t *Expr, ml_value_t *Value, int Flags) {
+	ml_inst_t *ValueInst = mlc_emit(Expr->StartLine, MLI_LOAD, 1);
 	if (ml_typeof(Value) == MLUninitializedT) {
-		ml_uninitialized_use(Value, &ValueInst->Params[1].Value);
+		ml_uninitialized_use(Value, &ValueInst[1].Value);
 	}
-	ValueInst->Params[1].Value = Value;
-	return (mlc_compiled_t){ValueInst, ValueInst};
+	ValueInst[1].Value = Value;
+	if (Flags & MLC_PUSH) {
+		ValueInst->Opcode = MLI_LOAD_PUSH;
+		mlc_inc_top(Function);
+		return MLC_PUSH;
+	}
+	return 0;
 }
 
-static mlc_compiled_t ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Expr) {
+static int ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Expr, int Flags) {
 	long Hash = ml_ident_hash(Expr->Ident);
 	//printf("#<%s> -> %ld\n", Expr->Ident, Hash);
 	for (mlc_function_t *UpFunction = Function; UpFunction; UpFunction = UpFunction->Up) {
@@ -1735,23 +1560,27 @@ static mlc_compiled_t ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_
 				if (!strcmp(Decl->Ident, Expr->Ident)) {
 					if (Decl->Flags == MLC_DECL_CONSTANT) {
 						if (!Decl->Value) Decl->Value = ml_uninitialized(Decl->Ident);
-						return ml_ident_expr_finish(Function, Expr, Decl->Value);
+						return ml_ident_expr_finish(Function, Expr, Decl->Value, Flags);
 					} else {
 						int Index = ml_upvalue_find(Function, Decl, UpFunction);
-						ml_inst_t *LocalInst;
 						if (Decl->Flags & MLC_DECL_FORWARD) Decl->Flags |= MLC_DECL_BACKFILL;
 						if ((Index >= 0) && (Decl->Flags & MLC_DECL_FORWARD)) {
-							LocalInst = ml_inst_new(3, Expr->StartLine, MLI_LOCALX);
-							LocalInst->Params[1].Index = Index;
-							LocalInst->Params[2].Ptr = Decl->Ident;
+							ml_inst_t *LocalInst = mlc_emit(Expr->StartLine, MLI_LOCALX, 2);
+							LocalInst[1].Index = Index;
+							LocalInst[2].Ptr = Decl->Ident;
 						} else if (Index >= 0) {
-							LocalInst = ml_inst_new(2, Expr->StartLine, MLI_LOCAL);
-							LocalInst->Params[1].Index = Index;
+							ml_inst_t *LocalInst = mlc_emit(Expr->StartLine, MLI_LOCAL, 1);
+							LocalInst[1].Index = Index;
+							if (Flags & MLC_PUSH) {
+								LocalInst->Opcode = MLI_LOCAL_PUSH;
+								mlc_inc_top(Function);
+								return MLC_PUSH;
+							}
 						} else {
-							LocalInst = ml_inst_new(2, Expr->StartLine, MLI_UPVALUE);
-							LocalInst->Params[1].Index = ~Index;
+							ml_inst_t *LocalInst = mlc_emit(Expr->StartLine, MLI_UPVALUE, 1);
+							LocalInst[1].Index = ~Index;
 						}
-						return (mlc_compiled_t){LocalInst, LocalInst};
+						return 0;
 					}
 				}
 			}
@@ -1763,7 +1592,7 @@ static mlc_compiled_t ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_
 		ml_expr_error(Expr, ml_error("CompilerError", "identifier %s not declared", Expr->Ident));
 	}
 	if (ml_is_error(Value)) ml_expr_error(Expr, Value);
-	return ml_ident_expr_finish(Function, Expr, Value);
+	return ml_ident_expr_finish(Function, Expr, Value, Flags);
 }
 
 typedef struct {
@@ -1772,21 +1601,21 @@ typedef struct {
 } ml_command_inline_t;
 
 static ml_value_t *ml_command_inline_finish(ml_command_inline_t *Task, ml_value_t *Value) {
-	Task->Inst->Params[1].Value = Value;
+	Task->Inst->Value = Value;
 	return NULL;
 }
 
-static mlc_compiled_t ml_inline_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr) {
+static int ml_inline_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
 	ml_command_inline_t *Task = new(ml_command_inline_t);
 	Task->Base.Closure = ml_expr_compile(Expr->Child, Function);
 	Task->Base.start = (void *)ml_task_default_start;
 	Task->Base.finish = (void *)ml_command_inline_finish;
 	Task->Base.Source.Name = Function->Source;
 	Task->Base.Source.Line = Expr->StartLine;
-	ml_inst_t *ValueInst = ml_inst_new(2, Expr->StartLine, MLI_LOAD);
-	Task->Inst = ValueInst;
+	ml_inst_t *ValueInst = mlc_emit(Expr->StartLine, MLI_LOAD, 1);
+	Task->Inst = ValueInst + 1;
 	ml_task_queue(Function->Compiler, (ml_compiler_task_t *)Task);
-	return (mlc_compiled_t){ValueInst, ValueInst};
+	return 0;
 }
 
 #define MLT_DELIM_FIRST MLT_LEFT_PAREN
@@ -3088,8 +2917,8 @@ static mlc_expr_t *ml_parse_term(ml_compiler_t *Compiler, int MethDecl) {
 static mlc_expr_t *ml_accept_term(ml_compiler_t *Compiler) {
 	ml_skip_eol(Compiler);
 	mlc_expr_t *Expr = ml_parse_term(Compiler, 0);
-	if (Expr) return Expr;
-	ml_compiler_error(Compiler, "ParseError", "expected <expression> not %s", MLTokens[Compiler->Token]);
+	if (!Expr) ml_compiler_error(Compiler, "ParseError", "expected <expression> not %s", MLTokens[Compiler->Token]);
+	return Expr;
 }
 
 static mlc_expr_t *ml_parse_expression(ml_compiler_t *Compiler, ml_expr_level_t Level) {
@@ -3185,6 +3014,7 @@ done:
 				Body = ML_EXPR_END(ForExpr);
 			} while (ml_parse2(Compiler, MLT_FOR));
 			FunExpr->Body = Body;
+			FunExpr->StartLine = FunExpr->Body->StartLine;
 			Expr = ML_EXPR_END(FunExpr);
 		}
 	}
@@ -3194,8 +3024,8 @@ done:
 static mlc_expr_t *ml_accept_expression(ml_compiler_t *Compiler, ml_expr_level_t Level) {
 	ml_skip_eol(Compiler);
 	mlc_expr_t *Expr = ml_parse_expression(Compiler, Level);
-	if (Expr) return Expr;
-	ml_compiler_error(Compiler, "ParseError", "expected <expression> not %s", MLTokens[Compiler->Token]);
+	if (!Expr) ml_compiler_error(Compiler, "ParseError", "expected <expression> not %s", MLTokens[Compiler->Token]);
+	return Expr;
 }
 
 typedef struct {
@@ -3308,13 +3138,13 @@ static void ml_accept_block_let(ml_compiler_t *Compiler, ml_accept_block_t *Acce
 			Decl->Flags = MLC_DECL_FORWARD | Flags;
 			Accept->LetsSlot = &Decl->Next;
 			ML_EXPR(DeclExpr, decl, let);
-			DeclExpr->Decl = Decl;
 			if (ml_parse2(Compiler, MLT_LEFT_PAREN)) {
 				DeclExpr->Child = ml_accept_fun_expr(Compiler, MLT_RIGHT_PAREN);
 			} else {
 				ml_accept(Compiler, MLT_ASSIGN);
 				DeclExpr->Child = ml_accept_expression(Compiler, EXPR_DEFAULT);
 			}
+			DeclExpr->Decl = Decl;
 			Accept->ExprSlot[0] = ML_EXPR_END(DeclExpr);
 			Accept->ExprSlot = &DeclExpr->Next;
 		}
@@ -3360,7 +3190,6 @@ static void ml_accept_block_def(ml_compiler_t *Compiler, ml_accept_block_t *Acce
 			Decl->Hash = ml_ident_hash(Compiler->Ident);
 			Accept->DefsSlot = &Decl->Next;
 			ML_EXPR(DeclExpr, decl, def);
-			DeclExpr->Count = 0;
 			if (ml_parse2(Compiler, MLT_LEFT_PAREN)) {
 				DeclExpr->Child = ml_accept_fun_expr(Compiler, MLT_RIGHT_PAREN);
 			} else {
@@ -3535,6 +3364,7 @@ static mlc_expr_t *ml_accept_block(ml_compiler_t *Compiler) {
 		mlc_catch_expr_t **CatchSlot = &BlockExpr->Catches;
 		do {
 			mlc_catch_expr_t *CatchExpr = CatchSlot[0] = new(mlc_catch_expr_t);
+			CatchExpr->Line = Compiler->Source.Line;
 			CatchSlot = &CatchExpr->Next;
 			ml_accept(Compiler, MLT_IDENT);
 			ml_decl_t *Decl = CatchExpr->Decl = new(ml_decl_t);
@@ -3552,7 +3382,6 @@ static mlc_expr_t *ml_accept_block(ml_compiler_t *Compiler) {
 					mlc_catch_type_t *Type = TypeSlot[0] = new(mlc_catch_type_t);
 					TypeSlot = &Type->Next;
 					Type->Type = ml_string_value(Value);
-					Type->Line = Compiler->Source.Line;
 				} while (ml_parse2(Compiler, MLT_COMMA));
 			}
 			ml_accept(Compiler, MLT_DO);
@@ -3568,7 +3397,6 @@ ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, ml_compiler_t 
 	memset(Function, 0, sizeof(mlc_function_t));
 	Function->Compiler = Compiler;
 	Function->Source = Compiler->Source.Name;
-	Function->ReturnInst = ml_inst_new(0, Expr->EndLine, MLI_RETURN);
 	SHA256_CTX HashCompiler[1];
 	sha256_init(HashCompiler);
 	ml_closure_info_t *Info = new(ml_closure_info_t);
@@ -3589,10 +3417,14 @@ ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, ml_compiler_t 
 		NumParams = Function->Top;
 		Function->Size = Function->Top + 1;
 	}
-	mlc_compiled_t Compiled = mlc_compile(Function, Expr);
-	mlc_connect(Compiled.Exits, Function->ReturnInst);
-	Info->Entry = Compiled.Start;
-	Info->Return = Function->ReturnInst;
+	Function->Next = anew(ml_inst_t, 128);
+	Function->Space = 126;
+	Function->Returns = NULL;
+	Info->Entry = Function->Next;
+	mlc_compile(Function, Expr, 0);
+	Info->Return = mlc_emit(Expr->EndLine, MLI_RETURN, 0);
+	mlc_link(Function->Returns, Info->Return);
+	Info->Halt = Function->Next;
 	Info->Source = Function->Source;
 	Info->LineNo = Expr->StartLine;
 	Info->FrameSize = Function->Size;
@@ -3739,12 +3571,6 @@ static ml_value_t *ml_stringmap_global(stringmap_t *Globals, int Count, ml_value
 ml_value_t *ml_stringmap_globals(stringmap_t *Globals) {
 	return ml_cfunction(Globals, (ml_callback_t)ml_stringmap_global);
 }
-
-typedef struct {
-	ml_type_t *Type;
-	ml_value_t *Value;
-	const char *Name;
-} ml_global_t;
 
 static ml_value_t *ml_global_deref(ml_global_t *Global) {
 	if (!Global->Value) return ml_error("NameError", "identifier %s not declared", Global->Name);

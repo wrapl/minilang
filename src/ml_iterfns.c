@@ -111,7 +111,7 @@ typedef struct ml_chained_iterator_t {
 	ml_value_t *Values[3];
 } ml_chained_iterator_t;
 
-ML_TYPE(MLChainedStateT, (), "chained-iterator");
+ML_TYPE(MLChainedStateT, (), "chained-state");
 
 static void ML_TYPED_FN(ml_iter_key, MLChainedStateT, ml_state_t *Caller, ml_chained_iterator_t *State) {
 	ML_RETURN(State->Values[0]);

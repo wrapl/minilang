@@ -50,6 +50,14 @@
 #include "ml_uuid.h"
 #endif
 
+#ifdef ML_JSENCODE
+#include "ml_jsencode.h"
+#endif
+
+#ifdef ML_BACKTRACE
+#include <backtrace.h>
+#endif
+
 static stringmap_t Globals[1] = {STRINGMAP_INIT};
 
 static ml_value_t *global_get(void *Data, const char *Name) {
@@ -94,6 +102,17 @@ ML_FUNCTION(MLHalt) {
 ML_FUNCTION(MLCollect) {
 	GC_gcollect();
 	return MLNil;
+}
+
+static int ml_globals_add(const char *Name, ml_value_t *Value, ml_value_t *Result) {
+	ml_map_insert(Result, ml_cstring(Name), Value);
+	return 0;
+}
+
+static ml_value_t *ml_globals(stringmap_t *Globals, int Count, ml_value_t **Args) {
+	ml_value_t *Result = ml_map();
+	stringmap_foreach(Globals, Result, (void *)ml_globals_add);
+	return Result;
 }
 
 ML_FUNCTIONX(MLTest) {
@@ -189,7 +208,20 @@ static ml_schedule_t simple_scheduler(ml_context_t *Context) {
 
 #endif
 
+#ifdef ML_BACKTRACE
+struct backtrace_state *BacktraceState = NULL;
+
+static void error_handler(int Signal) {
+	backtrace_print(BacktraceState, 0, stderr);
+	exit(0);
+}
+#endif
+
 int main(int Argc, const char *Argv[]) {
+#ifdef ML_BACKTRACE
+	BacktraceState = backtrace_create_state(Argv[0], 0, NULL, NULL);
+	signal(SIGSEGV, error_handler);
+#endif
 	static const char *Parameters[] = {"Args", NULL};
 	ml_init();
 	ml_types_init(Globals);
@@ -212,6 +244,7 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "context", MLContextKeyT);
 	stringmap_insert(Globals, "compiler", MLCompilerT);
 	stringmap_insert(Globals, "global", ml_stringmap_globals(Globals));
+	stringmap_insert(Globals, "globals", ml_cfunction(Globals, (void *)ml_globals));
 	stringmap_insert(Globals, "test", MLTest);
 #ifdef ML_CBOR
 	ml_cbor_init(Globals);
@@ -244,6 +277,9 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_UUID
 	ml_uuid_init(Globals);
+#endif
+#ifdef ML_JSENCODE
+	ml_jsencode_init(Globals);
 #endif
 	ml_value_t *Args = ml_list();
 	const char *FileName = 0;

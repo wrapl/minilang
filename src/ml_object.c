@@ -419,8 +419,7 @@ ml_value_t *ml_object_field(const ml_value_t *Value, size_t Field) {
 
 typedef struct {
 	ml_type_t Base;
-	int NumValues;
-	ml_value_t *Values[];
+	inthash_t Values[1];
 } ml_enum_t;
 
 typedef struct {
@@ -437,11 +436,20 @@ static long ml_enum_value_hash(ml_enum_value_t *Value, ml_hash_chain_t *Chain) {
 
 ML_TYPE(MLEnumValueT, (), "enum-value");
 
+ML_METHOD(MLIntegerT, MLEnumValueT) {
+	ml_enum_value_t *Value = (ml_enum_value_t *)Args[0];
+	return ml_integer(Value->Index);
+}
+
+ML_METHOD(MLStringT, MLEnumValueT) {
+	ml_enum_value_t *Value = (ml_enum_value_t *)Args[0];
+	return Value->Name;
+}
+
 ML_FUNCTION(MLEnum) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
-	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLStringT);
-	ml_enum_t *Enum = xnew(ml_enum_t, Count - 1, ml_value_t *);
+	ml_enum_t *Enum = new(ml_enum_t);
 	Enum->Base.Type = MLEnumT;
 	Enum->Base.Name = ml_string_value(Args[0]);
 	Enum->Base.deref = ml_default_deref;
@@ -449,16 +457,8 @@ ML_FUNCTION(MLEnum) {
 	Enum->Base.hash = (void *)ml_enum_value_hash;
 	Enum->Base.call = ml_default_call;
 	Enum->Base.Rank = 1;
-	Enum->NumValues = Count - 1;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
-	for (int I = 1; I < Count; ++I) {
-		ml_enum_value_t *Value = new(ml_enum_value_t);
-		Value->Type = (ml_type_t *)Enum;
-		Value->Name = Args[I];
-		Value->Index = I;
-		Enum->Values[I - 1] = (ml_value_t *)Value;
-		stringmap_insert(Enum->Base.Exports, ml_string_value(Args[I]), Value);
-	}
+	memset(Enum->Base.Exports, 0, sizeof(stringmap_t));
 	return (ml_value_t *)Enum;
 }
 
@@ -469,9 +469,10 @@ static void ml_enum_call(ml_state_t *Caller, ml_enum_t *Enum, int Count, ml_valu
 		if (!Value) ML_ERROR("EnumError", "Invalid enum name");
 		ML_RETURN(Value);
 	} else if (ml_is(Args[0], MLIntegerT)) {
-		int Index = ml_integer_value_fast(Args[0]) - 1;
-		if (Index < 0 || Index >= Enum->NumValues) ML_ERROR("EnumError", "Invalid enum index");
-		ML_RETURN(Enum->Values[Index]);
+		int Index = ml_integer_value_fast(Args[0]);
+		ml_value_t *Value = inthash_search(Enum->Values, (uintptr_t)Index);
+		if (!Value) ML_ERROR("EnumError", "Invalid enum index");
+		ML_RETURN(Value);
 	} else {
 		ML_ERROR("TypeError", "Expected <integer> or <string> not <%s>", ml_typeof(Args[0])->Name);
 	}
@@ -484,7 +485,23 @@ ML_TYPE(MLEnumT, (MLTypeT), "enum",
 
 ML_METHOD("count", MLEnumT) {
 	ml_enum_t *Enum = (ml_enum_t *)Args[0];
-	return ml_integer(Enum->NumValues);
+	return ml_integer(Enum->Base.Exports->Size);
+}
+
+ML_METHOD("::", MLEnumT, MLStringT) {
+	ml_enum_t *Enum = (ml_enum_t *)Args[0];
+	const char *Name = ml_string_value(Args[1]);
+	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Enum->Base.Exports, Name);
+	if (!Slot[0]) {
+		ml_enum_value_t *Value = new(ml_enum_value_t);
+		Value->Type = (ml_type_t *)Enum;
+		Value->Name = Args[1];
+		int Index = Value->Index = Enum->Base.Exports->Size;
+		inthash_insert(Enum->Values, (uintptr_t)Index, Value);
+		stringmap_insert(Enum->Base.Exports, Name, Value);
+		Slot[0] = (ml_value_t *)Value;
+	}
+	return Slot[0];
 }
 
 void ml_object_init(stringmap_t *Globals) {
