@@ -279,7 +279,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_STRING_ADDS] = &&DO_STRING_ADDS,
 		[MLI_STRING_END] = &&DO_STRING_END,
 		[MLI_RESOLVE] = &&DO_RESOLVE,
-		[MLI_IF_DEBUG] = &&DO_IF_DEBUG
+		[MLI_IF_DEBUG] = &&DO_IF_DEBUG,
+		[MLI_ASSIGN_LOCAL] = &&DO_ASSIGN_LOCAL
 	};
 	ml_inst_t *Inst = Frame->Inst;
 	ml_value_t **Top = Frame->Top;
@@ -651,6 +652,14 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Result = Frame->Stack[Index];
 		ADVANCE(Inst + 2);
 	}
+	DO_ASSIGN_LOCAL: {
+		Result = ml_deref(Result);
+		int Index = Inst[1].Index;
+		ml_value_t *Ref = Frame->Stack[Index];
+		Result = ml_typeof(Ref)->assign(Ref, Result);
+		ERROR_CHECK(Result);
+		ADVANCE(Inst + 2);
+	}
 	DO_LOCAL_PUSH: {
 		int Index = Inst[1].Index;
 		Result = Frame->Stack[Index];
@@ -969,7 +978,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	Frame->OnError = Info->Return;
 	Frame->UpValues = Closure->UpValues;
 	Frame->Inst = Info->Entry;
-	Frame->LineNo = Info->Entry->LineNo;
+	Frame->LineNo = Info->Entry->LineNo - 1;
 #ifdef ML_SCHEDULER
 	ml_scheduler_t scheduler = (ml_scheduler_t)Caller->Context->Values[ML_SCHEDULER_INDEX];
 	Frame->Schedule = scheduler(Caller->Context);
@@ -1059,7 +1068,8 @@ const char *MLInstNames[] = {
 	"string_adds", // MLI_STRING_ADDS,
 	"string_end", // MLI_STRING_END
 	"resolve", // MLI_RESOLVE,
-	"debug", // MLI_DEBUG
+	"debug", // MLI_IF_DEBUG,
+	"assign_local" // MLI_ASSIGN_LOCAL
 };
 
 const ml_inst_type_t MLInstTypes[] = {
@@ -1124,7 +1134,8 @@ const ml_inst_type_t MLInstTypes[] = {
 	MLIT_COUNT_CHARS, // MLI_STRING_ADDS,
 	MLIT_NONE, // MLI_STRING_END
 	MLIT_VALUE, // MLI_RESOLVE,
-	MLIT_INST, // MLI_DEBUG
+	MLIT_INST, // MLI_IF_DEBUG,
+	MLIT_INDEX // MLI_ASSIGN_LOCAL
 };
 
 static int ml_closure_find_labels(ml_inst_t *Inst, unsigned int *Labels) {

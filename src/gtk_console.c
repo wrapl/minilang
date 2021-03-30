@@ -26,7 +26,7 @@ struct console_t {
 	ml_state_t Base;
 	const char *Name;
 	GtkWidget *Window, *LogScrolled, *LogView, *InputView, *SourceView;
-	GtkWidget *DebugButtons;
+	GtkWidget *DebugButtons, *Paned;
 	GtkNotebook *Notebook;
 	GtkSourceLanguage *Language;
 	GtkSourceStyleScheme *StyleScheme;
@@ -257,6 +257,17 @@ static void console_clear(GtkWidget *Button, console_t *Console) {
 	gtk_text_buffer_get_start_iter(LogBuffer, Start);
 	gtk_text_buffer_get_end_iter(LogBuffer, End);
 	gtk_text_buffer_delete(LogBuffer, Start, End);
+}
+
+static void toggle_layout(GtkWidget *Button, console_t *Console) {
+	switch (gtk_orientable_get_orientation(GTK_ORIENTABLE(Console->Paned))) {
+	case GTK_ORIENTATION_HORIZONTAL:
+		gtk_orientable_set_orientation(GTK_ORIENTABLE(Console->Paned), GTK_ORIENTATION_VERTICAL);
+		break;
+	case GTK_ORIENTATION_VERTICAL:
+		gtk_orientable_set_orientation(GTK_ORIENTABLE(Console->Paned), GTK_ORIENTATION_HORIZONTAL);
+		break;
+	}
 }
 
 static void console_style_changed(GtkComboBoxText *Widget, console_t *Console) {
@@ -629,9 +640,6 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 	ml_context_set(Console->Base.Context, ML_SCHEDULER_INDEX, console_scheduler);
 #endif
 
-	GtkWidget *VPaned = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
-	gtk_paned_add1(GTK_PANED(VPaned), GTK_WIDGET(Console->Notebook));
-
 	asprintf((char **)&Console->ConfigPath, "%s/%s", g_get_user_config_dir(), "minilang.conf");
 	Console->Config = g_key_file_new();
 	g_key_file_load_from_file(Console->Config, Console->ConfigPath, G_KEY_FILE_NONE, NULL);
@@ -716,7 +724,9 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 	GtkWidget *FontButton = gtk_font_button_new();
 	g_signal_connect(G_OBJECT(FontButton), "font-set", G_CALLBACK(console_font_changed), Console);
 
-	gtk_paned_add2(GTK_PANED(VPaned), Console->LogScrolled);
+	Console->Paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
+	gtk_paned_add1(GTK_PANED(Console->Paned), Console->LogScrolled);
+	gtk_paned_add2(GTK_PANED(Console->Paned), GTK_WIDGET(Console->Notebook));
 
 	GtkWidget *SourceView = Console->SourceView = gtk_source_view_new_with_buffer(Console->SourceBuffer);
 	gtk_text_view_set_monospace(GTK_TEXT_VIEW(SourceView), TRUE);
@@ -728,7 +738,7 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 	gtk_notebook_append_page(Console->Notebook, SourceScrolled, gtk_label_new("<console>"));
 
 	GtkWidget *Container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
-	gtk_box_pack_start(GTK_BOX(Container), VPaned, TRUE, TRUE, 2);
+	gtk_box_pack_start(GTK_BOX(Container), Console->Paned, TRUE, TRUE, 2);
 
 	GtkWidget *InputFrame = gtk_frame_new(NULL);
 	gtk_container_add(GTK_CONTAINER(InputFrame), InputPanel);
@@ -739,10 +749,14 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 	Console->Window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_icon_name(GTK_WINDOW(Console->Window), "face-smile");
 
+	GtkWidget *LayoutButton = gtk_button_new_with_label("Layout");
+	g_signal_connect(G_OBJECT(LayoutButton), "clicked", G_CALLBACK(toggle_layout), Console);
+
 	GtkWidget *MenuButton = gtk_menu_button_new();
 	GtkWidget *ActionsBox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
 	gtk_box_pack_start(GTK_BOX(ActionsBox), StyleCombo, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(ActionsBox), FontButton, FALSE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(ActionsBox), LayoutButton, FALSE, TRUE, 0);
 	GtkWidget *ActionsPopover = gtk_popover_new(MenuButton);
 	gtk_container_add(GTK_CONTAINER(ActionsPopover), ActionsBox);
 	gtk_menu_button_set_popover(GTK_MENU_BUTTON(MenuButton), ActionsPopover);

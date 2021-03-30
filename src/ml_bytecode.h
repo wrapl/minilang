@@ -75,7 +75,8 @@ typedef enum {
 	MLI_STRING_ADDS,
 	MLI_STRING_END,
 	MLI_RESOLVE,
-	MLI_IF_DEBUG
+	MLI_IF_DEBUG,
+	MLI_ASSIGN_LOCAL
 } ml_opcode_t;
 
 typedef union ml_inst_t ml_inst_t;

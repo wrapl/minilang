@@ -56,6 +56,10 @@ static json_t *ML_TYPED_FN(ml_json_encode, MLStringT, ml_json_encoder_t *Encoder
 	return json_stringn(Value->Value, Value->Length);
 }
 
+static json_t *ML_TYPED_FN(ml_json_encode, MLRegexT, ml_json_encoder_t *Encoder, ml_value_t *Value) {
+	return json_pack("[ss]", "regex", ml_regex_pattern(Value));
+}
+
 static json_t *ML_TYPED_FN(ml_json_encode, MLMethodT, ml_json_encoder_t *Encoder, ml_value_t *Value) {
 	return json_pack("[ss]", "method", ml_method_name(Value));
 }
