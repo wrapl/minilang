@@ -390,7 +390,7 @@ extern ml_type_t MLNumberT[];
 extern ml_type_t MLIntegerT[];
 extern ml_type_t MLRealT[];
 
-ml_value_t *ml_integer(long Value) __attribute__((malloc));
+ml_value_t *ml_integer(const int64_t Value) __attribute__((malloc));
 ml_value_t *ml_real(double Value) __attribute__((malloc));
 
 long ml_integer_value(const ml_value_t *Value) __attribute__ ((const));

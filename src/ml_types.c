@@ -356,8 +356,14 @@ ML_TYPE(MLNilT, (MLFunctionT, MLIteratableT), "nil");
 ML_TYPE(MLSomeT, (), "some");
 //!internal
 
-ML_TYPE(MLBlankT, (), "blank");
+static ml_value_t *ml_blank_assign(ml_value_t *Blank, ml_value_t *Value) {
+	return Value;
+}
+
+ML_TYPE(MLBlankT, (), "blank",
 //!internal
+	.assign = ml_blank_assign
+);
 
 ML_VALUE(MLNil, MLNilT);
 ML_VALUE(MLSome, MLSomeT);
