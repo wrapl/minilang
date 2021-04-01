@@ -1423,7 +1423,7 @@ struct mlc_fun_expr_t {
 	mlc_expr_t *Body;
 	mlc_decl_type_t *ParamTypes;
 	mlc_expr_t *Type;
-	//ml_source_t End;
+	const char *Source;
 };
 
 long ml_ident_hash(const char *Ident) {
@@ -1438,8 +1438,9 @@ static int ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, i
 	memset(SubFunction, 0, sizeof(SubFunction));
 	SubFunction->Compiler = Function->Compiler;
 	SubFunction->Up = Function;
+	SubFunction->Source = Expr->Source;
 	ml_closure_info_t *Info = new(ml_closure_info_t);
-	Info->Source = Function->Source;
+	Info->Source = Expr->Source;
 	Info->LineNo = Expr->StartLine;
 	int NumParams = 0;
 	ml_decl_t **ParamSlot = &SubFunction->Decls;
@@ -2260,6 +2261,7 @@ static mlc_expr_t *ml_accept_block(ml_compiler_t *Compiler);
 
 static mlc_expr_t *ml_accept_fun_expr(ml_compiler_t *Compiler, ml_token_t EndToken) {
 	ML_EXPR(FunExpr, fun, fun);
+	FunExpr->Source = Compiler->Source.Name;
 	if (!ml_parse2(Compiler, EndToken)) {
 		ml_decl_t **ParamSlot = &FunExpr->Params;
 		mlc_decl_type_t **TypeSlot = &FunExpr->ParamTypes;
