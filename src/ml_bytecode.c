@@ -761,7 +761,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Result = (ml_value_t *)Closure;
 		ADVANCE(Inst + Info->NumUpValues + 2);
 #else
-		goto DO_CLOSURE:
+		goto DO_CLOSURE;
 #endif
 	}
 	DO_PARAM_TYPE: {
@@ -850,7 +850,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			unsigned int Revision = Debugger->Revision;
 			if (Frame->Revision != Revision) {
 				Frame->Revision = Revision;
-				Breakpoints = Frame->Breakpoints = Debugger->breakpoints(Debugger, Frame->Source, 0);
+				Breakpoints = Frame->Breakpoints = Debugger->breakpoints(Debugger, Frame->Source, Inst->LineNo);
 			} else {
 				Breakpoints = Frame->Breakpoints;
 			}
