@@ -279,6 +279,7 @@ static ml_value_t *ml_expr_compile(mlc_expr_t *Expr, mlc_function_t *Parent) {
 	Info->Halt = Function->Next;
 	Info->Source = Function->Source;
 	Info->LineNo = Expr->StartLine;
+	Info->End = Expr->EndLine;
 	Info->FrameSize = Function->Size;
 	Info->NumParams = 0;
 	ml_closure_t *Closure = new(ml_closure_t);
@@ -1442,6 +1443,7 @@ static int ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, i
 	ml_closure_info_t *Info = new(ml_closure_info_t);
 	Info->Source = Expr->Source;
 	Info->LineNo = Expr->StartLine;
+	Info->End = Expr->EndLine;
 	int NumParams = 0;
 	ml_decl_t **ParamSlot = &SubFunction->Decls;
 	for (ml_decl_t *Param = Expr->Params; Param;) {
@@ -3453,6 +3455,7 @@ ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, ml_compiler_t 
 	Info->Halt = Function->Next;
 	Info->Source = Function->Source;
 	Info->LineNo = Expr->StartLine;
+	Info->End = Expr->EndLine;
 	Info->FrameSize = Function->Size;
 	Info->NumParams = NumParams;
 	Info->Decls = Function->Decls;

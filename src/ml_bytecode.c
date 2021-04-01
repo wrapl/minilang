@@ -850,7 +850,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			unsigned int Revision = Debugger->Revision;
 			if (Frame->Revision != Revision) {
 				Frame->Revision = Revision;
-				Breakpoints = Frame->Breakpoints = Debugger->breakpoints(Debugger, Frame->Source, Inst->LineNo);
+				Breakpoints = Frame->Breakpoints = Debugger->breakpoints(Debugger, Frame->Source, 0);
 			} else {
 				Breakpoints = Frame->Breakpoints;
 			}
