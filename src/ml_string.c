@@ -893,7 +893,7 @@ ML_METHOD("/", MLStringT, MLRegexT) {
 	return Results;
 }
 
-ML_METHOD("/+", MLStringT, MLStringT) {
+ML_METHOD("/*", MLStringT, MLStringT) {
 	const char *Subject = ml_string_value(Args[0]);
 	const char *End = Subject + ml_string_length(Args[0]);
 	const char *Pattern = ml_string_value(Args[1]);
@@ -911,7 +911,7 @@ ML_METHOD("/+", MLStringT, MLStringT) {
 	return Results;
 }
 
-ML_METHOD("/+", MLStringT, MLRegexT) {
+ML_METHOD("/*", MLStringT, MLRegexT) {
 	const char *Subject = ml_string_value(Args[0]);
 	int SubjectLength = ml_string_length(Args[0]);
 	ml_regex_t *Pattern = (ml_regex_t *)Args[1];
@@ -941,7 +941,7 @@ ML_METHOD("/+", MLStringT, MLRegexT) {
 	}
 }
 
-ML_METHOD("+/", MLStringT, MLStringT) {
+ML_METHOD("*/", MLStringT, MLStringT) {
 	const char *Subject = ml_string_value(Args[0]);
 	const char *End = Subject + ml_string_length(Args[0]);
 	const char *Pattern = ml_string_value(Args[1]);
@@ -962,7 +962,7 @@ ML_METHOD("+/", MLStringT, MLStringT) {
 	return Results;
 }
 
-ML_METHOD("+/", MLStringT, MLRegexT) {
+ML_METHOD("*/", MLStringT, MLRegexT) {
 	const char *Subject = ml_string_value(Args[0]);
 	const char *End = Subject + ml_string_length(Args[0]);
 	ml_regex_t *Pattern = (ml_regex_t *)Args[1];
@@ -998,7 +998,6 @@ ML_METHOD("+/", MLStringT, MLRegexT) {
 	ml_tuple_set(Results, 2, ml_cstring(""));
 	return Results;
 }
-
 
 ML_METHOD("lower", MLStringT) {
 	const char *Source = ml_string_value(Args[0]);

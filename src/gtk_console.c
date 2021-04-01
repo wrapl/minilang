@@ -727,6 +727,7 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 	Console->Paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
 	gtk_paned_add1(GTK_PANED(Console->Paned), Console->LogScrolled);
 	gtk_paned_add2(GTK_PANED(Console->Paned), GTK_WIDGET(Console->Notebook));
+	gtk_paned_set_position(GTK_PANED(Console->Paned), 500);
 
 	GtkWidget *SourceView = Console->SourceView = gtk_source_view_new_with_buffer(Console->SourceBuffer);
 	gtk_text_view_set_monospace(GTK_TEXT_VIEW(SourceView), TRUE);

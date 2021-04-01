@@ -16,6 +16,6 @@ var test_minilang := fun(Source) do
 	DEFAULT[Target]
 end
 
-for I in 1 .. 21 do
+for I in 1 .. 22 do
 	test_minilang(file('test{I}.mini'))
 end

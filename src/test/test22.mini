@@ -1,0 +1,71 @@
+var L, S, R
+
+L := list(1 .. 10)
+S := []
+R := L:splice(3, 4, S)
+print('L = {L}\n')
+print('S = {S}\n')
+print('R = {R}\n')
+
+L := list(1 .. 10)
+S := ["A", "B", "C"]
+R := L:splice(3, 4, S)
+print('L = {L}\n')
+print('S = {S}\n')
+print('R = {R}\n')
+
+L := list(1 .. 10)
+S := ["A", "B", "C"]
+R := L:splice(1, 4, S)
+print('L = {L}\n')
+print('S = {S}\n')
+print('R = {R}\n')
+
+L := list(1 .. 10)
+S := ["A", "B", "C"]
+R := L:splice(7, 4, S)
+print('L = {L}\n')
+print('S = {S}\n')
+print('R = {R}\n')
+
+L := list(1 .. 10)
+S := ["A", "B", "C"]
+R := L:splice(5, S)
+print('L = {L}\n')
+print('S = {S}\n')
+print('R = {R}\n')
+
+L := list(1 .. 10)
+S := ["A", "B", "C"]
+R := L:splice(1, 0, S)
+print('L = {L}\n')
+print('S = {S}\n')
+print('R = {R}\n')
+
+L := list(1 .. 10)
+S := ["A", "B", "C"]
+R := L:splice(10, 0, S)
+print('L = {L}\n')
+print('S = {S}\n')
+print('R = {R}\n')
+
+L := list(1 .. 10)
+S := ["A", "B", "C"]
+R := L:splice(0, 0, S)
+print('L = {L}\n')
+print('S = {S}\n')
+print('R = {R}\n')
+
+L := list(1 .. 10)
+S := ["A", "B", "C"]
+R := L:splice(11, 0, S)
+print('L = {L}\n')
+print('S = {S}\n')
+print('R = {R}\n')
+
+L := list(1 .. 10)
+S := ["A", "B", "C"]
+R := L:splice(12, 0, S)
+print('L = {L}\n')
+print('S = {S}\n')
+print('R = {R}\n')

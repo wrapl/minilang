@@ -77,6 +77,18 @@ list
    Returns a new list with the elements of :mini:`List₁` followed by the elements of :mini:`List₂`.
 
 
+:mini:`meth :splice(List: list, Index: integer, Count: integer)` |rarr| :mini:`list` or :mini:`nil`
+   Removes :mini:`Count` elements from :mini:`List` starting at :mini:`Index`. Returns the removed elements as a new list.
+
+
+:mini:`meth :splice(List: list, Index: integer, Count: integer, Source: list)` |rarr| :mini:`list` or :mini:`nil`
+   Removes :mini:`Count` elements from :mini:`List` starting at :mini:`Index`, then inserts the elements from :mini:`Source`, leaving :mini:`Source` empty. Returns the removed elements as a new list.
+
+
+:mini:`meth :splice(List: list, Index: integer, Source: list)` |rarr| :mini:`nil`
+   Inserts the elements from :mini:`Source` into :mini:`List` starting at :mini:`Index`, leaving :mini:`Source` empty.
+
+
 :mini:`meth string(List: list)` |rarr| :mini:`string`
    Returns a string containing the elements of :mini:`List` surrounded by :mini:`"["`, :mini:`"]"` and seperated by :mini:`", "`.
 

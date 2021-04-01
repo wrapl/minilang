@@ -558,6 +558,235 @@ ML_METHOD("+", MLListT, MLListT) {
 	return List;
 }
 
+ML_METHOD("splice", MLListT, MLIntegerT, MLIntegerT) {
+//<List
+//<Index
+//<Count
+//>list | nil
+// Removes :mini:`Count` elements from :mini:`List` starting at :mini:`Index`. Returns the removed elements as a new list.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	int Start = ml_integer_value_fast(Args[1]);
+	if (Start <= 0) Start += List->Length + 1;
+	if (Start <= 0) return MLNil;
+	int Remove = ml_integer_value_fast(Args[2]);
+	if (Remove < 0) return MLNil;
+	ml_list_t *Removed = (ml_list_t *)ml_list();
+	if (Remove == 0) {
+		if (Start > List->Length + 1) return MLNil;
+	} else {
+		int End = Start + Remove - 1;
+		if (End > List->Length) return MLNil;
+		if (Start == 1) {
+			if (End == List->Length) {
+				*Removed = *List;
+				List->Head = List->Tail = NULL;
+				List->Length = 0;
+			} else {
+				ml_list_node_t *EndNode = ml_list_index(List, End);
+				ml_list_node_t *NextNode = EndNode->Next;
+				EndNode->Next = NULL;
+				Removed->CachedNode = Removed->Head = List->Head;
+				Removed->Tail = EndNode;
+				Removed->Length = Remove;
+				List->Head = NextNode;
+				NextNode->Prev = NULL;
+				List->CachedNode = List->Head;
+				List->CachedIndex = 1;
+				List->Length -= Remove;
+			}
+		} else {
+			ml_list_node_t *StartNode = ml_list_index(List, Start);
+			ml_list_node_t *PrevNode = StartNode->Prev;
+			StartNode->Prev = NULL;
+			if (End == List->Length) {
+				Removed->CachedNode = Removed->Head = StartNode;
+				Removed->Tail = List->Tail;
+				Removed->Length = Remove;
+				List->Tail = PrevNode;
+				PrevNode->Next = NULL;
+				List->CachedNode = List->Head;
+				List->CachedIndex = 1;
+				List->Length -= Remove;
+			} else {
+				ml_list_node_t *EndNode = ml_list_index(List, End);
+				ml_list_node_t *NextNode = EndNode->Next;
+				EndNode->Next = NULL;
+				Removed->CachedNode = Removed->Head = StartNode;
+				Removed->Tail = EndNode;
+				Removed->Length = Remove;
+				NextNode->Prev = PrevNode;
+				PrevNode->Next = NextNode;
+				List->CachedNode = List->Head;
+				List->CachedIndex = 1;
+				List->Length -= Remove;
+			}
+		}
+	}
+	return (ml_value_t *)Removed;
+}
+
+ML_METHOD("splice", MLListT, MLIntegerT, MLIntegerT, MLListT) {
+//<List
+//<Index
+//<Count
+//<Source
+//>list | nil
+// Removes :mini:`Count` elements from :mini:`List` starting at :mini:`Index`, then inserts the elements from :mini:`Source`, leaving :mini:`Source` empty. Returns the removed elements as a new list.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	int Start = ml_integer_value_fast(Args[1]);
+	if (Start <= 0) Start += List->Length + 1;
+	if (Start <= 0) return MLNil;
+	int Remove = ml_integer_value_fast(Args[2]);
+	if (Remove < 0) return MLNil;
+	ml_list_t *Source = (ml_list_t *)Args[3];
+	ml_list_t *Removed = (ml_list_t *)ml_list();
+	if (Remove == 0) {
+		if (Start > List->Length + 1) return MLNil;
+		if (!Source->Length) return (ml_value_t *)Removed;
+		if (Start == 1) {
+			Source->Tail->Next = List->Head;
+			if (List->Head) {
+				List->Head->Prev = Source->Tail;
+			} else {
+				List->Tail = Source->Tail;
+			}
+			List->Head = Source->Head;
+		} else if (Start == List->Length + 1) {
+			Source->Head->Prev = List->Tail;
+			if (List->Tail) {
+				List->Tail->Next = Source->Head;
+			} else {
+				List->Head = Source->Head;
+			}
+			List->Tail = Source->Tail;
+		} else {
+			ml_list_node_t *StartNode = ml_list_index(List, Start);
+			ml_list_node_t *PrevNode = StartNode->Prev;
+			PrevNode->Next = Source->Head;
+			Source->Head->Prev = PrevNode;
+			StartNode->Prev = Source->Tail;
+			Source->Tail->Next = StartNode;
+		}
+		List->CachedNode = List->Head;
+		List->CachedIndex = 1;
+	} else {
+		int End = Start + Remove - 1;
+		if (End > List->Length) return MLNil;
+		if (Start == 1) {
+			if (End == List->Length) {
+				*Removed = *List;
+				*List = *Source;
+			} else {
+				ml_list_node_t *EndNode = ml_list_index(List, End);
+				ml_list_node_t *NextNode = EndNode->Next;
+				EndNode->Next = NULL;
+				Removed->CachedNode = Removed->Head = List->Head;
+				Removed->Tail = EndNode;
+				Removed->Length = Remove;
+				if (Source->Length) {
+					List->Head = Source->Head;
+					Source->Tail->Next = NextNode;
+					NextNode->Prev = Source->Tail;
+				} else {
+					List->Head = NextNode;
+					NextNode->Prev = NULL;
+				}
+				List->CachedNode = List->Head;
+				List->CachedIndex = 1;
+				List->Length -= Remove;
+			}
+		} else {
+			ml_list_node_t *StartNode = ml_list_index(List, Start);
+			ml_list_node_t *PrevNode = StartNode->Prev;
+			StartNode->Prev = NULL;
+			if (End == List->Length) {
+				Removed->CachedNode = Removed->Head = StartNode;
+				Removed->Tail = List->Tail;
+				Removed->Length = Remove;
+				if (Source->Length) {
+					List->Tail = Source->Tail;
+					Source->Head->Prev = PrevNode;
+					PrevNode->Next = Source->Head;
+				} else {
+					List->Tail = PrevNode;
+					PrevNode->Next = NULL;
+				}
+				List->CachedNode = List->Head;
+				List->CachedIndex = 1;
+				List->Length -= Remove;
+			} else {
+				ml_list_node_t *EndNode = ml_list_index(List, End);
+				ml_list_node_t *NextNode = EndNode->Next;
+				EndNode->Next = NULL;
+				Removed->CachedNode = Removed->Head = StartNode;
+				Removed->Tail = EndNode;
+				Removed->Length = Remove;
+				if (Source->Length) {
+					Source->Tail->Next = NextNode;
+					NextNode->Prev = Source->Tail;
+					Source->Head->Prev = PrevNode;
+					PrevNode->Next = Source->Head;
+				} else {
+					NextNode->Prev = PrevNode;
+					PrevNode->Next = NextNode;
+				}
+				List->CachedNode = List->Head;
+				List->CachedIndex = 1;
+				List->Length -= Remove;
+			}
+		}
+	}
+	List->Length += Source->Length;
+	Source->Head = Source->Tail = NULL;
+	Source->Length = 0;
+	return (ml_value_t *)Removed;
+}
+
+ML_METHOD("splice", MLListT, MLIntegerT, MLListT) {
+//<List
+//<Index
+//<Source
+//>nil
+// Inserts the elements from :mini:`Source` into :mini:`List` starting at :mini:`Index`, leaving :mini:`Source` empty.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	int Start = ml_integer_value_fast(Args[1]);
+	if (Start <= 0) Start += List->Length + 1;
+	if (Start <= 0) return MLNil;
+	ml_list_t *Source = (ml_list_t *)Args[2];
+	if (Start > List->Length + 1) return MLNil;
+	if (!Source->Length) return MLNil;
+	if (Start == 1) {
+		Source->Tail->Next = List->Head;
+		if (List->Head) {
+			List->Head->Prev = Source->Tail;
+		} else {
+			List->Tail = Source->Tail;
+		}
+		List->Head = Source->Head;
+	} else if (Start == List->Length + 1) {
+		Source->Head->Prev = List->Tail;
+		if (List->Tail) {
+			List->Tail->Next = Source->Head;
+		} else {
+			List->Head = Source->Head;
+		}
+		List->Tail = Source->Tail;
+	} else {
+		ml_list_node_t *StartNode = ml_list_index(List, Start);
+		ml_list_node_t *PrevNode = StartNode->Prev;
+		PrevNode->Next = Source->Head;
+		Source->Head->Prev = PrevNode;
+		StartNode->Prev = Source->Tail;
+		Source->Tail->Next = StartNode;
+	}
+	List->CachedNode = List->Head;
+	List->CachedIndex = 1;
+	List->Length += Source->Length;
+	Source->Head = Source->Tail = NULL;
+	Source->Length = 0;
+	return MLNil;
+}
+
 ML_METHOD(MLStringT, MLListT) {
 //<List
 //>string

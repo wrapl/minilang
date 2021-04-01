@@ -73,6 +73,14 @@ string
 
 :mini:`meth /(Arg₁: string, Arg₂: regex)`
 
+:mini:`meth /*(Arg₁: string, Arg₂: string)`
+
+:mini:`meth /*(Arg₁: string, Arg₂: regex)`
+
+:mini:`meth */(Arg₁: string, Arg₂: string)`
+
+:mini:`meth */(Arg₁: string, Arg₂: regex)`
+
 :mini:`meth :lower(Arg₁: string)`
 
 :mini:`meth :upper(Arg₁: string)`
