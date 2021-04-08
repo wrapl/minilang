@@ -60,7 +60,7 @@ typedef enum {
 	MLI_UPVALUE,
 	MLI_LOCALX,
 	MLI_TUPLE_NEW,
-	MLI_TUPLE_SET,
+	MLI_UNPACK,
 	MLI_LIST_NEW,
 	MLI_LIST_APPEND,
 	MLI_MAP_NEW,
@@ -89,7 +89,7 @@ union ml_inst_t {
 		unsigned int Hashed:1;
 		unsigned int Reserved:5;
 		unsigned int Label:16;
-		unsigned int LineNo:32;
+		unsigned int Line:32;
 	};
 	ml_inst_t *Inst;
 	int Index;
@@ -111,7 +111,7 @@ struct ml_closure_info_t {
 	void *JITStart, *JITEntry, *JITReturn;
 #endif
 	stringmap_t Params[1];
-	int LineNo, End, FrameSize;
+	int StartLine, EndLine, FrameSize;
 	int NumParams, NumUpValues;
 	int ExtraArgs, NamedArgs;
 	int Hashed;

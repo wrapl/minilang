@@ -40,6 +40,12 @@ static json_t *ML_TYPED_FN(ml_json_encode, MLNilT, ml_json_encoder_t *Encoder, m
 	return json_null();
 }
 
+extern ml_type_t MLBlankT[];
+
+static json_t *ML_TYPED_FN(ml_json_encode, MLBlankT, ml_json_encoder_t *Encoder, ml_value_t *Value) {
+	return json_pack("[s]", "blank");
+}
+
 static json_t *ML_TYPED_FN(ml_json_encode, MLBooleanT, ml_json_encoder_t *Encoder, ml_value_t *Value) {
 	return json_boolean(Value == (ml_value_t *)MLTrue);
 }
@@ -111,7 +117,7 @@ static json_t *ml_closure_info_encode(ml_closure_info_t *Info, ml_json_encoder_t
 
 static int ml_closure_inst_encode(ml_inst_t *Inst, ml_json_encoder_t *Encoder, json_t *Json, inthash_t *Labels) {
 	json_array_append(Json, json_integer(Inst->Opcode));
-	json_array_append(Json, json_integer(Inst->LineNo));
+	json_array_append(Json, json_integer(Inst->Line));
 	switch (MLInstTypes[Inst->Opcode]) {
 	case MLIT_NONE:
 		return 1;
@@ -216,7 +222,7 @@ static json_t *ml_closure_info_encode(ml_closure_info_t *Info, ml_json_encoder_t
 	json_t *Json = json_array();
 	json_array_append(Json, json_string("!"));
 	json_array_append(Json, json_string(Info->Source ?: ""));
-	json_array_append(Json, json_integer(Info->LineNo));
+	json_array_append(Json, json_integer(Info->StartLine));
 	json_array_append(Json, json_integer(Info->FrameSize));
 	json_array_append(Json, json_integer(Info->NumParams));
 	json_array_append(Json, json_integer(Info->NumUpValues));

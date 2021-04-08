@@ -127,7 +127,7 @@ struct ml_compiler_t {
 	ml_value_t *Error;
 	ml_source_t Source;
 	stringmap_t Vars[1];
-	int LineNo;
+	int Line;
 	ml_token_t Token;
 	jmp_buf OnError;
 };
@@ -196,12 +196,12 @@ struct mlc_function_t {
 	int Top, Size, Self, Space;
 };
 
-static ml_inst_t *ml_inst_alloc(mlc_function_t *Function, int LineNo, ml_opcode_t Opcode, int N) {
+static ml_inst_t *ml_inst_alloc(mlc_function_t *Function, int Line, ml_opcode_t Opcode, int N) {
 	int Count = N + 1;
 	if (Function->Space < Count) {
 		ml_inst_t *GotoInst = Function->Next;
 		GotoInst->Opcode = MLI_LINK;
-		GotoInst->LineNo = LineNo;
+		GotoInst->Line = Line;
 		GotoInst[1].Inst = Function->Next = anew(ml_inst_t, 128);
 		Function->Space = 126;
 	}
@@ -209,7 +209,7 @@ static ml_inst_t *ml_inst_alloc(mlc_function_t *Function, int LineNo, ml_opcode_
 	Function->Next += Count;
 	Function->Space -= Count;
 	Inst->Opcode = Opcode;
-	Inst->LineNo = LineNo;
+	Inst->Line = Line;
 	return Inst;
 }
 
@@ -278,8 +278,8 @@ static ml_value_t *ml_expr_compile(mlc_expr_t *Expr, mlc_function_t *Parent) {
 	mlc_link(Function->Returns, Info->Return);
 	Info->Halt = Function->Next;
 	Info->Source = Function->Source;
-	Info->LineNo = Expr->StartLine;
-	Info->End = Expr->EndLine;
+	Info->StartLine = Expr->StartLine;
+	Info->EndLine = Expr->EndLine;
 	Info->FrameSize = Function->Size;
 	Info->NumParams = 0;
 	ml_closure_t *Closure = new(ml_closure_t);
@@ -1207,18 +1207,14 @@ static int ml_old_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int F
 }
 
 static int ml_tuple_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
-	ml_inst_t *TupleInst = mlc_emit(Expr->StartLine, MLI_TUPLE_NEW, 1);
-	if (++Function->Top >= Function->Size) Function->Size = Function->Top + 1;
 	int Count = 0;
 	for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next) {
-		mlc_compile(Function, Child, 0);
-		ml_inst_t *SetInst = mlc_emit(Child->EndLine, MLI_TUPLE_SET, 1);
-		SetInst[1].Index = Count++;
+		mlc_compile(Function, Child, MLC_PUSH);
+		++Count;
 	}
+	ml_inst_t *TupleInst = mlc_emit(Expr->StartLine, MLI_TUPLE_NEW, 1);
 	TupleInst[1].Count = Count;
-	if (Flags & MLC_PUSH) return MLC_PUSH;
-	mlc_emit(Expr->EndLine, MLI_POP, 0);
-	--Function->Top;
+	Function->Top -= Count;
 	return 0;
 }
 
@@ -1442,8 +1438,8 @@ static int ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, i
 	SubFunction->Source = Expr->Source;
 	ml_closure_info_t *Info = new(ml_closure_info_t);
 	Info->Source = Expr->Source;
-	Info->LineNo = Expr->StartLine;
-	Info->End = Expr->EndLine;
+	Info->StartLine = Expr->StartLine;
+	Info->EndLine = Expr->EndLine;
 	int NumParams = 0;
 	ml_decl_t **ParamSlot = &SubFunction->Decls;
 	for (ml_decl_t *Param = Expr->Params; Param;) {
@@ -1762,7 +1758,7 @@ ml_compiler_t *ml_compiler(ml_getter_t GlobalGet, void *Globals, ml_reader_t Rea
 	Compiler->Next = "";
 	Compiler->Source.Name = "";
 	Compiler->Source.Line = 0;
-	Compiler->LineNo = 0;
+	Compiler->Line = 0;
 	Compiler->Data = Data;
 	Compiler->Read = Read ?: ml_compiler_no_input;
 	return Compiler;
@@ -1785,7 +1781,7 @@ const char *ml_compiler_name(ml_compiler_t *Compiler) {
 ml_source_t ml_compiler_source(ml_compiler_t *Compiler, ml_source_t Source) {
 	ml_source_t OldSource = Compiler->Source;
 	Compiler->Source = Source;
-	Compiler->LineNo = Source.Line;
+	Compiler->Line = Source.Line;
 	return OldSource;
 }
 
@@ -1798,7 +1794,7 @@ void ml_compiler_reset(ml_compiler_t *Compiler) {
 
 void ml_compiler_input(ml_compiler_t *Compiler, const char *Text) {
 	Compiler->Next = Text;
-	++Compiler->LineNo;
+	++Compiler->Line;
 }
 
 const char *ml_compiler_clear(ml_compiler_t *Compiler) {
@@ -1847,7 +1843,7 @@ static ml_token_t ml_accept_string(ml_compiler_t *Compiler) {
 		char C = *End++;
 		if (!C) {
 			Compiler->Next = Compiler->Read(Compiler->Data);
-			++Compiler->LineNo;
+			++Compiler->Line;
 			if (!Compiler->Next) {
 				ml_compiler_error(Compiler, "ParseError", "end of input while parsing string");
 			}
@@ -1962,7 +1958,7 @@ static ml_token_t ml_scan(ml_compiler_t *Compiler) {
 		char Char = Compiler->Next[0];
 		if (Char == '\n') {
 			++Compiler->Next;
-			++Compiler->LineNo;
+			++Compiler->Line;
 			Compiler->Token = MLT_EOL;
 			return Compiler->Token;
 		}
@@ -2157,7 +2153,7 @@ static ml_token_t ml_scan(ml_compiler_t *Compiler) {
 				do {
 					if (Compiler->Next[0] == '\n') {
 						++Compiler->Next;
-						++Compiler->LineNo;
+						++Compiler->Line;
 					} else if (Compiler->Next[0] == 0) {
 						Compiler->Next = Compiler->Read(Compiler->Data);
 						if (!Compiler->Next) ml_compiler_error(Compiler, "ParseError", "End of input in comment");
@@ -2213,14 +2209,14 @@ static inline ml_token_t ml_current(ml_compiler_t *Compiler) {
 
 static inline void ml_next(ml_compiler_t *Compiler) {
 	Compiler->Token = MLT_NONE;
-	Compiler->Source.Line = Compiler->LineNo;
+	Compiler->Source.Line = Compiler->Line;
 }
 
 static inline int ml_parse(ml_compiler_t *Compiler, ml_token_t Token) {
 	if (Compiler->Token == MLT_NONE) ml_scan(Compiler);
 	if (Compiler->Token == Token) {
 		Compiler->Token = MLT_NONE;
-		Compiler->Source.Line = Compiler->LineNo;
+		Compiler->Source.Line = Compiler->Line;
 		return 1;
 	} else {
 		return 0;
@@ -2237,7 +2233,7 @@ static inline int ml_parse2(ml_compiler_t *Compiler, ml_token_t Token) {
 	while (Compiler->Token == MLT_EOL) ml_scan(Compiler);
 	if (Compiler->Token == Token) {
 		Compiler->Token = MLT_NONE;
-		Compiler->Source.Line = Compiler->LineNo;
+		Compiler->Source.Line = Compiler->Line;
 		return 1;
 	} else {
 		return 0;
@@ -3454,8 +3450,8 @@ ml_value_t *ml_compile(mlc_expr_t *Expr, const char **Parameters, ml_compiler_t 
 	mlc_link(Function->Returns, Info->Return);
 	Info->Halt = Function->Next;
 	Info->Source = Function->Source;
-	Info->LineNo = Expr->StartLine;
-	Info->End = Expr->EndLine;
+	Info->StartLine = Expr->StartLine;
+	Info->EndLine = Expr->EndLine;
 	Info->FrameSize = Function->Size;
 	Info->NumParams = NumParams;
 	Info->Decls = Function->Decls;
