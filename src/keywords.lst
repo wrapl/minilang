@@ -17,6 +17,7 @@ in, MLT_IN
 is, MLT_IS
 when, MLT_WHEN
 fun, MLT_FUN
+macro, MLT_MACRO
 ret, MLT_RET
 susp, MLT_SUSP
 debug, MLT_DEBUG

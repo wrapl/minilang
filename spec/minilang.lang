@@ -139,6 +139,7 @@
       <keyword>on</keyword>
       <keyword>when</keyword>
       <keyword>debug</keyword>
+      <keyword>macro</keyword>
     </context>
     <context id="functions" style-ref="function">
       <keyword>print</keyword>

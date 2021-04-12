@@ -53,10 +53,9 @@ struct ml_type_t {
 	inthash_t Parents[1];
 	inthash_t TypedFns[1];
 	stringmap_t Exports[1];
-	int Rank;
+	int Rank:30;
 	int Interface:1;
 	int NoInherit:1;
-	int Reserved:30;
 };
 
 extern ml_type_t MLTypeT[];
@@ -825,7 +824,7 @@ static inline ml_value_t *ml_nop(ml_value_t *Value) {
 
 #endif
 
-void ml_methods_context_new(ml_context_t *Context);
+ml_methods_t *ml_methods_context_new(ml_context_t *Context);
 
 // Modules //
 

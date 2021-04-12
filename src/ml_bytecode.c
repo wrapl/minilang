@@ -627,7 +627,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_CONST_CALL: {
 		int Count = Inst[1].Count;
-		ml_value_t *Function = Inst[2].Value;
+		ml_value_t *Function = ml_deref(Inst[2].Value);
 		ml_value_t **Args = Top - Count;
 		ml_inst_t *Next = Inst + 3;
 #ifdef ML_SCHEDULER
@@ -649,7 +649,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Result = ml_deref(Result);
 		ml_value_t *Ref = Top[-1];
 		*--Top = NULL;
-		Result = ml_typeof(Ref)->assign(Ref, Result);
+		Result = ml_assign(Ref, Result);
 		ERROR_CHECK(Result);
 		ADVANCE(Inst + 1);
 	}
@@ -662,7 +662,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Result = ml_deref(Result);
 		int Index = Inst[1].Index;
 		ml_value_t *Ref = Frame->Stack[Index];
-		Result = ml_typeof(Ref)->assign(Ref, Result);
+		Result = ml_assign(Ref, Result);
 		ERROR_CHECK(Result);
 		ADVANCE(Inst + 2);
 	}

@@ -1032,7 +1032,7 @@ static ml_value_t *ml_tuple_assign(ml_tuple_t *Ref, ml_value_t *Values) {
 	int Count = Ref->Size;
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Value = ml_deref(ml_unpack(Values, I + 1));
-		ml_value_t *Result = ml_typeof(Ref->Values[I])->assign(Ref->Values[I], Value);
+		ml_value_t *Result = ml_assign(Ref->Values[I], Value);
 		if (ml_is_error(Result)) return Result;
 	}
 	return Values;

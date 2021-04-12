@@ -47,6 +47,10 @@ void ml_string_fn_register(const char *Prefix, string_fn_t Fn);
 
 void ml_compiler_init();
 
+typedef struct ml_scope_macro_t ml_scope_macro_t;
+ml_scope_macro_t *ml_scope_macro_new();
+void ml_scope_macro_define(ml_scope_macro_t *Macro, const char *Name, ml_value_t *Value);
+
 #ifdef	__cplusplus
 }
 #endif
