@@ -270,26 +270,27 @@ ML_FUNCTIONX(MLSwapCC) {
 
 // References //
 
-static long ml_reference_hash(ml_value_t *Ref, ml_hash_chain_t *Chain) {
-	ml_reference_t *Reference = (ml_reference_t *)Ref;
-	ml_value_t *Value = Reference->Address[0];
-	return ml_typeof(Value)->hash(Value, Chain);
+static long ml_reference_hash(ml_reference_t *Reference, ml_hash_chain_t *Chain) {
+	return ml_hash_chain(Reference->Address[0], Chain);
 }
 
-static ml_value_t *ml_reference_deref(ml_value_t *Ref) {
-	ml_reference_t *Reference = (ml_reference_t *)Ref;
+static ml_value_t *ml_reference_deref(ml_reference_t *Reference) {
 	return Reference->Address[0];
 }
 
-static ml_value_t *ml_reference_assign(ml_value_t *Ref, ml_value_t *Value) {
-	ml_reference_t *Reference = (ml_reference_t *)Ref;
+static ml_value_t *ml_reference_assign(ml_reference_t *Reference, ml_value_t *Value) {
 	return Reference->Address[0] = Value;
 }
 
+static void ml_reference_call(ml_state_t *Caller, ml_reference_t *Reference, int Count, ml_value_t **Args) {
+	return ml_call(Caller, Reference->Address[0], Count, Args);
+}
+
 ML_TYPE(MLReferenceT, (), "reference",
-	.hash = ml_reference_hash,
-	.deref = ml_reference_deref,
-	.assign = ml_reference_assign
+	.hash = (void *)ml_reference_hash,
+	.deref = (void *)ml_reference_deref,
+	.assign = (void *)ml_reference_assign,
+	.call = (void *)ml_reference_call
 );
 
 inline ml_value_t *ml_reference(ml_value_t **Address) {

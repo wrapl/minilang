@@ -18,12 +18,17 @@ static ml_value_t *ml_map_node_assign(ml_map_node_t *Node, ml_value_t *Value) {
 	return (Node->Value = Value);
 }
 
+static void ml_map_node_call(ml_state_t *Caller, ml_map_node_t *Node, int Count, ml_value_t **Args) {
+	return ml_call(Caller, Node->Value, Count, Args);
+}
+
 ML_TYPE(MLMapNodeT, (), "map-node",
 // A node in a :mini:`map`.
 // Dereferencing a :mini:`mapnode` returns the corresponding value from the :mini:`map`.
 // Assigning to a :mini:`mapnode` updates the corresponding value in the :mini:`map`.
 	.deref = (void *)ml_map_node_deref,
-	.assign = (void *)ml_map_node_assign
+	.assign = (void *)ml_map_node_assign,
+	.call = (void *)ml_map_node_call
 );
 
 ml_value_t *ml_map() {
@@ -357,10 +362,15 @@ static ml_value_t *ml_map_index_assign(ml_map_node_t *Index, ml_value_t *Value) 
 	return Node->Value = Value;
 }
 
+static void ml_map_index_call(ml_state_t *Caller, ml_map_node_t *Index, int Count, ml_value_t **Args) {
+	return ml_call(Caller, MLNil, Count, Args);
+}
+
 ML_TYPE(MLMapIndexT, (), "map-index",
 //!internal
 	.deref = (void *)ml_map_index_deref,
-	.assign = (void *)ml_map_index_assign
+	.assign = (void *)ml_map_index_assign,
+	.call = (void *)ml_map_index_call
 );
 
 ML_METHOD("[]", MLMapT, MLAnyT) {

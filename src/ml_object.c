@@ -26,9 +26,14 @@ static ml_value_t *ml_field_assign(ml_field_t *Field, ml_value_t *Value) {
 	return Field->Value = Value;
 }
 
+static void ml_field_call(ml_state_t *Caller, ml_field_t *Field, int Count, ml_value_t **Args) {
+	return ml_call(Caller, Field->Value, Count, Args);
+}
+
 ML_TYPE(MLFieldT, (), "field",
 	.deref = (void *)ml_field_deref,
-	.assign = (void *)ml_field_assign
+	.assign = (void *)ml_field_assign,
+	.call = (void *)ml_field_call
 );
 
 struct ml_object_t {
@@ -383,11 +388,18 @@ static ml_value_t *ml_property_assign(ml_property_t *Property, ml_value_t *Value
 	return Property->State->Value ?: ml_error("StateError", "Property functions must not suspend");
 }
 
+static void ml_property_call(ml_state_t *Caller, ml_property_t *Property, int Count, ml_value_t **Args) {
+	Property->State->Value = NULL;
+	ml_call(Property->State, Property->Get, 0, NULL);
+	return ml_call(Caller, Property->State->Value ?: MLNil, Count, Args);
+}
+
 extern ml_cfunctionx_t MLProperty[];
 
 ML_TYPE(MLPropertyT, (), "property",
 	.deref = (void *)ml_property_deref,
 	.assign = (void *)ml_property_assign,
+	.call = (void *)ml_property_call,
 	.Constructor = (ml_value_t *)MLProperty
 );
 

@@ -63,12 +63,17 @@ static ml_value_t *ml_list_node_assign(ml_list_node_t *Node, ml_value_t *Value) 
 	return (Node->Value = Value);
 }
 
+static void ml_list_node_call(ml_state_t *Caller, ml_list_node_t *Node, int Count, ml_value_t **Args) {
+	return ml_call(Caller, Node->Value, Count, Args);
+}
+
 ML_TYPE(MLListNodeT, (), "list-node",
 // A node in a :mini:`list`.
 // Dereferencing a :mini:`listnode` returns the corresponding value from the :mini:`list`.
 // Assigning to a :mini:`listnode` updates the corresponding value in the :mini:`list`.
 	.deref = (void *)ml_list_node_deref,
-	.assign = (void *)ml_list_node_assign
+	.assign = (void *)ml_list_node_assign,
+	.call = (void *)ml_list_node_call
 );
 
 static void ML_TYPED_FN(ml_iter_next, MLListNodeT, ml_state_t *Caller, ml_list_node_t *Node) {

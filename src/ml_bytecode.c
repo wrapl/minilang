@@ -26,10 +26,15 @@ static ml_value_t *ml_variable_assign(ml_variable_t *Variable, ml_value_t *Value
 	return (Variable->Value = Value);
 }
 
+static void ml_variable_call(ml_state_t *Caller, ml_variable_t *Variable, int Count, ml_value_t **Args) {
+	return ml_call(Caller, Variable->Value, Count, Args);
+}
+
 ML_TYPE(MLVariableT, (), "variable",
 	.hash = (void *)ml_variable_hash,
 	.deref = (void *)ml_variable_deref,
-	.assign = (void *)ml_variable_assign
+	.assign = (void *)ml_variable_assign,
+	.call = (void *)ml_variable_call
 );
 
 #endif
@@ -607,7 +612,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_CALL: {
 		int Count = Inst[1].Count;
-		ml_value_t *Function = ml_deref(Top[~Count]);
+		ml_value_t *Function = Top[~Count];
 		ml_value_t **Args = Top - Count;
 		ml_inst_t *Next = Inst + 2;
 #ifdef ML_SCHEDULER
@@ -627,7 +632,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_CONST_CALL: {
 		int Count = Inst[1].Count;
-		ml_value_t *Function = ml_deref(Inst[2].Value);
+		ml_value_t *Function = Inst[2].Value;
 		ml_value_t **Args = Top - Count;
 		ml_inst_t *Next = Inst + 3;
 #ifdef ML_SCHEDULER

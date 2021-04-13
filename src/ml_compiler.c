@@ -3788,10 +3788,15 @@ static ml_value_t *ml_global_assign(ml_global_t *Global, ml_value_t *Value) {
 	return ml_assign(Global->Value, Value);
 }
 
+static void ml_global_call(ml_state_t *Caller, ml_global_t *Global, int Count, ml_value_t **Args) {
+	return ml_call(Caller, Global->Value, Count, Args);
+}
+
 ML_TYPE(MLGlobalT, (), "global",
 //!compiler
 	.deref = (void *)ml_global_deref,
-	.assign = (void *)ml_global_assign
+	.assign = (void *)ml_global_assign,
+	.call = (void *)ml_global_call
 );
 
 static ml_value_t *ML_TYPED_FN(ml_unpack, MLGlobalT, ml_global_t *Global, int Index) {
