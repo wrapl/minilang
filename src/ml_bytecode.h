@@ -118,10 +118,6 @@ struct ml_closure_info_t {
 	unsigned char Hash[SHA256_BLOCK_SIZE];
 };
 
-#define ML_PARAM_DEFAULT 0
-#define ML_PARAM_EXTRA 1
-#define ML_PARAM_NAMED 2
-
 typedef struct ml_param_type_t ml_param_type_t;
 
 struct ml_param_type_t {
