@@ -1369,15 +1369,11 @@ ML_TYPE(MLInt64T, (MLIntegerT), "int64",
 	.NoInherit = 1
 );
 
-ml_value_t *ml_integer(const int64_t Integer) {
-	if (Integer >= INT32_MIN && Integer <= INT32_MAX) {
-		return ml_int32(Integer);
-	} else {
-		ml_int64_t *Value = new(ml_int64_t);
-		Value->Type = MLInt64T;
-		Value->Value = Integer;
-		return (ml_value_t *)Value;
-	}
+ml_value_t *ml_int64(int64_t Integer) {
+	ml_int64_t *Value = new(ml_int64_t);
+	Value->Type = MLInt64T;
+	Value->Value = Integer;
+	return (ml_value_t *)Value;
 }
 
 long ml_integer_value(const ml_value_t *Value) {

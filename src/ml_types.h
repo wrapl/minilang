@@ -436,6 +436,16 @@ static inline ml_value_t *ml_int32(int32_t Integer) {
 	return (ml_value_t *)(((uint64_t)1 << 48) + (uint32_t)Integer);
 }
 
+ml_value_t *ml_int64(int64_t Integer);
+
+static inline ml_value_t *ml_integer(int64_t Integer) {
+	if (Integer >= INT32_MIN && Integer <= INT32_MAX) {
+		return ml_int32(Integer);
+	} else {
+		return ml_int64(Integer);
+	}
+}
+
 static inline int ml_is_double(ml_value_t *Value) {
 	return ml_tag(Value) >= 7;
 }
