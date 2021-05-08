@@ -2971,6 +2971,9 @@ static ml_token_t ml_scan(ml_compiler_t *Compiler) {
 					Operator[Length] = 0;
 					Compiler->Ident = Operator;
 					Compiler->Next = End;
+				} else {
+					Compiler->Ident = "::";
+					Compiler->Token = MLT_OPERATOR;
 				}
 				return Compiler->Token;
 			} else if (ml_isidchar(Compiler->Next[1])) {
