@@ -97,6 +97,7 @@ ml_type_t TYPE[1] = {{ \
 void ml_type_init(ml_type_t *Type, ...) __attribute__ ((sentinel));
 
 ml_type_t *ml_type(ml_type_t *Parent, const char *Name);
+const char *ml_type_name(const ml_value_t *Value) __attribute__((pure));
 
 void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent);
 
@@ -389,9 +390,6 @@ extern ml_type_t MLNumberT[];
 extern ml_type_t MLIntegerT[];
 extern ml_type_t MLRealT[];
 
-ml_value_t *ml_integer(const int64_t Value) __attribute__((malloc));
-ml_value_t *ml_real(double Value) __attribute__((malloc));
-
 long ml_integer_value(const ml_value_t *Value) __attribute__ ((const));
 double ml_real_value(const ml_value_t *Value) __attribute__ ((const));
 
@@ -446,6 +444,13 @@ static inline ml_value_t *ml_integer(int64_t Integer) {
 	}
 }
 
+static inline ml_value_t *ml_real(double Value) {
+	union { ml_value_t *Value; uint64_t Bits; double Double; } Boxed;
+	Boxed.Double = Value;
+	Boxed.Bits += 0x07000000000000;
+	return Boxed.Value;
+}
+
 static inline int ml_is_double(ml_value_t *Value) {
 	return ml_tag(Value) >= 7;
 }
@@ -467,6 +472,9 @@ static inline double ml_real_value_fast(const ml_value_t *Value) {
 }
 
 #else
+
+ml_value_t *ml_integer(const int64_t Value) __attribute__((malloc));
+ml_value_t *ml_real(double Value) __attribute__((malloc));
 
 typedef struct {
 	ml_type_t *Type;

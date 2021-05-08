@@ -213,6 +213,10 @@ ml_type_t *ml_type(ml_type_t *Parent, const char *Name) {
 	return Type;
 }
 
+const char *ml_type_name(const ml_value_t *Value) {
+	return ((ml_type_t *)Value)->Name;
+}
+
 void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent) {
 	inthash_insert(Type->Parents, (uintptr_t)Parent, Parent);
 	for (int I = 0; I < Parent->Parents->Size; ++I) {
@@ -1452,13 +1456,6 @@ ML_TYPE(MLDoubleT, (MLRealT), "double",
 	.hash = (void *)ml_double_hash,
 	.NoInherit = 1
 );
-
-ml_value_t *ml_real(double Value) {
-	union { ml_value_t *Value; uint64_t Bits; double Double; } Boxed;
-	Boxed.Double = Value;
-	Boxed.Bits += 0x07000000000000;
-	return Boxed.Value;
-}
 
 double ml_real_value(const ml_value_t *Value) {
 	int Tag = ml_tag(Value);

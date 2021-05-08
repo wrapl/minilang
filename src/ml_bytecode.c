@@ -1367,6 +1367,8 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 			ml_stringbuffer_append(Buffer, Value);
 		} else if (ml_typeof(Value) == MLMethodT) {
 			ml_stringbuffer_addf(Buffer, " :%s", ml_method_name(Value));
+		} else if (ml_typeof(Value) == MLTypeT) {
+			ml_stringbuffer_addf(Buffer, " <%s>", ml_type_name(Value));
 		} else {
 			ml_stringbuffer_addf(Buffer, " %s", ml_typeof(Value)->Name);
 		}
@@ -1380,6 +1382,7 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 			const char *String = ml_string_value(Value);
 			for (int I = 0; I < Length; ++I) switch (String[I]) {
 				case 0: ml_stringbuffer_add(Buffer, "\\0", 2); break;
+				case '\e': ml_stringbuffer_add(Buffer, "\\e", 2); break;
 				case '\t': ml_stringbuffer_add(Buffer, "\\t", 2); break;
 				case '\r': ml_stringbuffer_add(Buffer, "\\r", 2); break;
 				case '\n': ml_stringbuffer_add(Buffer, "\\n", 2); break;
@@ -1394,6 +1397,8 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 			ml_stringbuffer_append(Buffer, Value);
 		} else if (ml_typeof(Value) == MLMethodT) {
 			ml_stringbuffer_addf(Buffer, " :%s", ml_method_name(Value));
+		} else if (ml_typeof(Value) == MLTypeT) {
+			ml_stringbuffer_addf(Buffer, " <%s>", ml_type_name(Value));
 		} else {
 			ml_stringbuffer_addf(Buffer, " %s", ml_typeof(Value)->Name);
 		}
@@ -1404,6 +1409,7 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 			const char *String = ml_string_value(Value);
 			for (int I = 0; I < Length; ++I) switch (String[I]) {
 				case 0: ml_stringbuffer_add(Buffer, "\\0", 2); break;
+				case '\e': ml_stringbuffer_add(Buffer, "\\e", 2); break;
 				case '\t': ml_stringbuffer_add(Buffer, "\\t", 2); break;
 				case '\r': ml_stringbuffer_add(Buffer, "\\r", 2); break;
 				case '\n': ml_stringbuffer_add(Buffer, "\\n", 2); break;
@@ -1418,6 +1424,8 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 			ml_stringbuffer_append(Buffer, Value);
 		} else if (ml_typeof(Value) == MLMethodT) {
 			ml_stringbuffer_addf(Buffer, " :%s", ml_method_name(Value));
+		} else if (ml_typeof(Value) == MLTypeT) {
+			ml_stringbuffer_addf(Buffer, " <%s>", ml_type_name(Value));
 		} else {
 			ml_stringbuffer_addf(Buffer, " %s", ml_typeof(Value)->Name);
 		}
@@ -1433,10 +1441,12 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 		ml_stringbuffer_addf(Buffer, " %d, ", Inst[1].Count);
 		ml_value_t *Value = Inst[2].Value;
 		if (ml_is(Value, MLStringT)) {
+			ml_stringbuffer_add(Buffer, " \"", 2);
 			int Length = ml_string_length(Value);
 			const char *String = ml_string_value(Value);
 			for (int I = 0; I < Length; ++I) switch (String[I]) {
 				case 0: ml_stringbuffer_add(Buffer, "\\0", 2); break;
+				case '\e': ml_stringbuffer_add(Buffer, "\\e", 2); break;
 				case '\t': ml_stringbuffer_add(Buffer, "\\t", 2); break;
 				case '\r': ml_stringbuffer_add(Buffer, "\\r", 2); break;
 				case '\n': ml_stringbuffer_add(Buffer, "\\n", 2); break;
@@ -1445,17 +1455,32 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 				case '\\': ml_stringbuffer_add(Buffer, "\\\\", 2); break;
 				default: ml_stringbuffer_add(Buffer, String + I, 1); break;
 			}
+			ml_stringbuffer_add(Buffer, "\"", 1);
 		} else if (ml_is(Value, MLNumberT)) {
 			ml_stringbuffer_append(Buffer, Value);
 		} else if (ml_typeof(Value) == MLMethodT) {
 			ml_stringbuffer_addf(Buffer, ":%s", ml_method_name(Value));
+		} else if (ml_typeof(Value) == MLTypeT) {
+			ml_stringbuffer_addf(Buffer, " <%s>", ml_type_name(Value));
 		} else {
 			ml_stringbuffer_addf(Buffer, "%s", ml_typeof(Value)->Name);
 		}
 		return 3;
 	}
 	case MLIT_COUNT_CHARS:
-		ml_stringbuffer_addf(Buffer, " %d, %s", Inst[1].Count, Inst[2].Ptr);
+		ml_stringbuffer_addf(Buffer, " %d, \"", Inst[1].Count);
+		for (const char *P = Inst[2].Ptr; *P; ++P) switch(*P) {
+			case 0: ml_stringbuffer_add(Buffer, "\\0", 2); break;
+			case '\e': ml_stringbuffer_add(Buffer, "\\e", 2); break;
+			case '\t': ml_stringbuffer_add(Buffer, "\\t", 2); break;
+			case '\r': ml_stringbuffer_add(Buffer, "\\r", 2); break;
+			case '\n': ml_stringbuffer_add(Buffer, "\\n", 2); break;
+			case '\'': ml_stringbuffer_add(Buffer, "\\\'", 2); break;
+			case '\"': ml_stringbuffer_add(Buffer, "\\\"", 2); break;
+			case '\\': ml_stringbuffer_add(Buffer, "\\\\", 2); break;
+			default: ml_stringbuffer_add(Buffer, P, 1); break;
+		}
+		ml_stringbuffer_add(Buffer, "\"", 1);
 		return 3;
 	case MLIT_DECL:
 		if (Inst[1].Decls) {
@@ -1486,8 +1511,8 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 		}
 		return 4;
 	case MLIT_CLOSURE: {
-		ml_stringbuffer_addf(Buffer, " closure");
 		ml_closure_info_t *Info = Inst[1].ClosureInfo;
+		ml_stringbuffer_addf(Buffer, " %s:%d", Info->Source, Info->StartLine);
 		for (int N = 0; N < Info->NumUpValues; ++N) {
 			ml_stringbuffer_addf(Buffer, ", %d", Inst[2 + N].Index);
 		}
@@ -1523,6 +1548,19 @@ ML_METHOD("list", MLClosureT) {
 	return ml_stringbuffer_value(Buffer);
 }
 
+void ml_bytecode_list(ml_closure_t *Closure) {
+	ml_closure_info_t *Info = Closure->Info;
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
+		if (Inst->Opcode == MLI_LINK) {
+			Inst = Inst[1].Inst;
+		} else {
+			Inst += ml_closure_inst_list(Inst, Buffer);
+		}
+		ml_stringbuffer_add(Buffer, "\n", 1);
+	}
+	puts(ml_stringbuffer_get(Buffer));
+}
 
 #ifdef ML_JIT
 
