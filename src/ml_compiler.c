@@ -190,10 +190,10 @@ struct mlc_frame_t {
 };
 
 static void mlc_function_run(mlc_function_t *Function, ml_value_t *Value) {
-	if (ml_is_error(Value)) {
+	/*if (ml_is_error(Value)) {
 		ml_state_t *Caller = Function->Base.Caller;
 		ML_RETURN(Value);
-	}
+	}*/
 	Function->Frame->run(Function, Value, Function->Frame->Data);
 }
 
@@ -1331,6 +1331,10 @@ static void ml_let_unpack_expr_compile(mlc_function_t *Function, mlc_local_expr_
 }
 
 static void ml_def_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_local_expr_frame_t *Frame) {
+	if (ml_is_error(Value)) {
+		ml_state_t *Caller = Function->Base.Caller;
+		ML_RETURN(Value);
+	}
 	mlc_local_expr_t *Expr = Frame->Expr;
 	mlc_local_t *Local = Expr->Local;
 	ml_decl_t *Decl = Function->Block->Decls[Local->Index];
@@ -1360,6 +1364,10 @@ typedef struct {
 } mlc_def_in_expr_frame_t;
 
 static void ml_def_in_expr_compile3(mlc_function_t *Function, ml_value_t *Value, mlc_def_in_expr_frame_t *Frame) {
+	if (ml_is_error(Value)) {
+		ml_state_t *Caller = Function->Base.Caller;
+		ML_RETURN(Value);
+	}
 	mlc_local_expr_t *Expr = Frame->Expr;
 	int Index = Frame->Index;
 	mlc_local_t *Local = Frame->Local;
@@ -1381,6 +1389,10 @@ static void ml_def_in_expr_compile3(mlc_function_t *Function, ml_value_t *Value,
 }
 
 static void ml_def_in_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_def_in_expr_frame_t *Frame) {
+	if (ml_is_error(Value)) {
+		ml_state_t *Caller = Function->Base.Caller;
+		ML_RETURN(Value);
+	}
 	mlc_local_expr_t *Expr = Frame->Expr;
 	Frame->Args[0] = Value;
 	mlc_local_t *Local = Frame->Local = Expr->Local;
@@ -1399,6 +1411,10 @@ static void ml_def_in_expr_compile(mlc_function_t *Function, mlc_local_expr_t *E
 }
 
 static void ml_def_unpack_expr_compile2(mlc_function_t *Function, ml_value_t *Packed, mlc_local_expr_frame_t *Frame) {
+	if (ml_is_error(Packed)) {
+		ml_state_t *Caller = Function->Base.Caller;
+		ML_RETURN(Packed);
+	}
 	mlc_local_expr_t *Expr = Frame->Expr;
 	mlc_local_t *Local = Expr->Local;
 	ml_decl_t **Decls = Function->Block->Decls + Local->Index;
@@ -2038,6 +2054,18 @@ typedef struct {
 
 static void ml_resolve_expr_compile3(mlc_function_t *Function, ml_value_t *Value, ml_resolve_expr_frame_t *Frame) {
 	mlc_parent_value_expr_t *Expr = Frame->Expr;
+	if (ml_is_error(Value)) {
+		ml_inst_t *LoadInst = mlc_emit(Expr->EndLine, MLI_LOAD, 1);
+		LoadInst[1].Value = Frame->Args[0];
+		ml_inst_t *ResolveInst = mlc_emit(Expr->EndLine, MLI_RESOLVE, 1);
+		ResolveInst[1].Value = Expr->Value;
+		if (Frame->Flags & MLCF_PUSH) {
+			mlc_emit(Expr->EndLine, MLI_PUSH, 0);
+			mlc_inc_top(Function);
+		}
+		MLC_POP();
+		MLC_RETURN(NULL);
+	}
 	int Flags = Frame->Flags;
 	if (Flags & MLCF_CONSTANT) {
 		MLC_POP();
@@ -2482,6 +2510,10 @@ typedef struct {
 } ml_inline_expr_frame_t;
 
 static void ml_inline_expr_compile2(mlc_function_t *Function, ml_value_t *Value, ml_inline_expr_frame_t *Frame) {
+	if (ml_is_error(Value)) {
+		ml_state_t *Caller = Function->Base.Caller;
+		ML_RETURN(Value);
+	}
 	mlc_parent_expr_t *Expr = Frame->Expr;
 	int Flags = Frame->Flags;
 	if (Flags & MLCF_CONSTANT) MLC_RETURN(Value);
@@ -4627,6 +4659,10 @@ typedef struct {
 } ml_command_idents_frame_t;
 
 static void ml_command_idents_in2(mlc_function_t *Function, ml_value_t *Value, ml_command_idents_frame_t *Frame) {
+	if (ml_is_error(Value)) {
+		ml_state_t *Caller = Function->Base.Caller;
+		ML_RETURN(Value);
+	}
 	ml_global_t *Global = Frame->Globals[Frame->Index];
 	if (Frame->Type != MLT_REF) Value = ml_deref(Value);
 	if (Frame->Type == MLT_VAR) {
@@ -4700,6 +4736,10 @@ typedef struct {
 } ml_command_ident_frame_t;
 
 static void ml_command_ident_run(mlc_function_t *Function, ml_value_t *Value, ml_command_ident_frame_t *Frame) {
+	if (ml_is_error(Value)) {
+		ml_state_t *Caller = Function->Base.Caller;
+		ML_RETURN(Value);
+	}
 	/*ml_compiler_t *Compiler = Function->Compiler;
 	if (!ml_is(VarType, MLTypeT)) {
 		ml_parse_error(Compiler, "TypeError", "Expected <type> not <%s>", ml_typeof(VarType)->Name);
