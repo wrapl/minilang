@@ -190,9 +190,9 @@ ML_METHOD("-", MLTimeT, MLNumberT) {
 static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTimeT, ml_time_t *Time, void *Data, ml_cbor_write_fn WriteFn) {
 	struct tm TM = {0,};
 	gmtime_r(&Time->Value->tv_sec, &TM);
-	size_t Length = strftime(NULL, -1, "%FT%T", &TM) + 4;
+	size_t Length = strftime(NULL, -1, "%FT%TZ", &TM) + 4;
 	char *String = snew(Length + 1);
-	char *End = String + strftime(String, Length + 1, "%FT%T", &TM);
+	char *End = String + strftime(String, Length + 1, "%FT%TZ", &TM);
 	unsigned long NSec = Time->Value->tv_nsec;
 	char Milli[5] = ".000";
 	Milli[1] = '0' + (NSec / 100000000) % 10;
@@ -216,7 +216,7 @@ static ml_value_t *ml_cbor_read_time_fn(void *Data, int Count, ml_value_t **Args
 		ml_time_t *Time = new(ml_time_t);
 		Time->Type = MLTimeT;
 		struct tm TM = {0,};
-		const char *Rest = strptime(Value, "%FT%T", &TM);
+		const char *Rest = strptime(Value, "%FT%TZ", &TM);
 		if (!Rest) return ml_error("TimeError", "Error parsing time");
 		if (Rest[0] == '.') {
 			++Rest;
