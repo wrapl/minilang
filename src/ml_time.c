@@ -1,6 +1,7 @@
 #include "ml_time.h"
 #include "ml_macros.h"
 #include <string.h>
+#include <math.h>
 
 #ifdef ML_CBOR
 #include "ml_cbor.h"
@@ -150,8 +151,36 @@ ML_METHOD("-", MLTimeT, MLTimeT) {
 	ml_time_t *TimeA = (ml_time_t *)Args[0];
 	ml_time_t *TimeB = (ml_time_t *)Args[1];
 	double Sec = difftime(TimeA->Value->tv_sec, TimeB->Value->tv_sec);
-	double NSec = (TimeA->Value->tv_nsec / 1000000000.0) - (TimeB->Value->tv_nsec / 1000000000.0);
+	double NSec = ((double)TimeA->Value->tv_nsec - (double)TimeB->Value->tv_nsec) / 1000000000.0;
 	return ml_real(Sec + NSec);
+}
+
+ML_METHOD("+", MLTimeT, MLNumberT) {
+	ml_time_t *TimeA = (ml_time_t *)Args[0];
+	double Diff = ml_real_value(Args[1]);
+	double DiffSec = floor(Diff);
+	unsigned long DiffNSec = (Diff - DiffSec) * 1000000000.0;
+	time_t Sec = TimeA->Value->tv_sec + DiffSec;
+	unsigned long NSec = TimeA->Value->tv_nsec + DiffNSec;
+	if (NSec >= 1000000000) {
+		NSec -= 1000000000;
+		++Sec;
+	}
+	return ml_time(Sec, NSec);
+}
+
+ML_METHOD("-", MLTimeT, MLNumberT) {
+	ml_time_t *TimeA = (ml_time_t *)Args[0];
+	double Diff = -ml_real_value(Args[1]);
+	double DiffSec = floor(Diff);
+	unsigned long DiffNSec = (Diff - DiffSec) * 1000000000.0;
+	time_t Sec = TimeA->Value->tv_sec + DiffSec;
+	unsigned long NSec = TimeA->Value->tv_nsec + DiffNSec;
+	if (NSec >= 1000000000) {
+		NSec -= 1000000000;
+		++Sec;
+	}
+	return ml_time(Sec, NSec);
 }
 
 #ifdef ML_CBOR
