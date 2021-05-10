@@ -195,9 +195,9 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTimeT, ml_time_t *Time, void *Da
 	char *End = String + strftime(String, Length + 1, "%FT%T", &TM);
 	unsigned long NSec = Time->Value->tv_nsec;
 	char Milli[5] = ".000";
-	Milli[1] = '0' + NSec / 100000000;
-	Milli[2] = '0' + NSec / 10000000;
-	Milli[3] = '0' + NSec / 1000000;
+	Milli[1] = '0' + (NSec / 100000000) % 10;
+	Milli[2] = '0' + (NSec / 10000000) % 10;
+	Milli[3] = '0' + (NSec / 1000000) % 10;
 	strcpy(End, Milli);
 	ml_cbor_write_tag(Data, WriteFn, 0);
 	ml_cbor_write_string(Data, WriteFn, Length);
