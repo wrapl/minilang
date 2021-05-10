@@ -2036,7 +2036,7 @@ static void ml_const_call_expr_compile(mlc_function_t *Function, mlc_parent_valu
 	for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next) ++Count;
 	Frame->Count = Count;
 	Frame->Flags = Flags;
-	for (mlc_expr_t *Child = Expr->Child->Next; Child; Child = Child->Next) {
+	for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next) {
 		if (Child->compile == (void *)ml_blank_expr_compile) {
 			ml_inst_t *LoadInst = mlc_emit(Expr->StartLine, MLI_LOAD, 1);
 			LoadInst[1].Value = Expr->Value;
