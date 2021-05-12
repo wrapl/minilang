@@ -33,7 +33,7 @@ ml_source_t ml_compiler_source(ml_compiler_t *Compiler, ml_source_t Source);
 void ml_compiler_reset(ml_compiler_t *Compiler);
 void ml_compiler_input(ml_compiler_t *Compiler, const char *Text);
 const char *ml_compiler_clear(ml_compiler_t *Compiler);
-void ml_compiler_error(ml_compiler_t *Compiler, const char *Error, const char *Format, ...) __attribute__((noreturn));
+void ml_parse_error(ml_compiler_t *Compiler, const char *Error, const char *Format, ...) __attribute__((noreturn));
 
 void ml_function_compile(ml_state_t *Caller, ml_compiler_t *Compiler, const char **Parameters);
 void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler);

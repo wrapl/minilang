@@ -2646,7 +2646,6 @@ ML_TYPE(MLCompilerT, (MLStateT), "compiler",
 
 static mlc_expr_t *ml_accept_block(ml_compiler_t *Compiler);
 static void ml_accept_eoi(ml_compiler_t *Compiler);
-static ml_value_t *ml_accept_command(ml_compiler_t *Compiler);
 
 ml_compiler_t *ml_compiler(ml_getter_t GlobalGet, void *Globals, ml_reader_t Read, void *Data) {
 	ml_compiler_t *Compiler = new(ml_compiler_t);
