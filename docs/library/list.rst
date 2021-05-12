@@ -97,6 +97,8 @@ list
    Returns a string containing the elements of :mini:`List` seperated by :mini:`Seperator`.
 
 
+:mini:`meth :reverse(Arg₁: list)`
+
 :mini:`meth :sort(List: list)` |rarr| :mini:`List`
 
 :mini:`meth :sort(List: list, Compare: function)` |rarr| :mini:`List`

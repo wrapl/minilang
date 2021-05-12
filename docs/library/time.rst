@@ -21,3 +21,7 @@ time
 
 :mini:`meth -(Arg₁: time, Arg₂: time)`
 
+:mini:`meth +(Arg₁: time, Arg₂: number)`
+
+:mini:`meth -(Arg₁: time, Arg₂: number)`
+

@@ -3,6 +3,8 @@ compiler
 
 .. include:: <isonum.txt>
 
+:mini:`type macro`
+
 :mini:`fun compiler(Global: function|map, ?Read: function)` |rarr| :mini:`compiler`
 
 :mini:`type compiler < state`
