@@ -2871,6 +2871,10 @@ static int ml_scan_quoted(ml_compiler_t *Compiler) {
 			case 'n': *D++ = '\n'; break;
 			case 't': *D++ = '\t'; break;
 			case 'e': *D++ = '\e'; break;
+			case '\'': *D++ = '\''; break;
+			case '\"': *D++ = '\"'; break;
+			case '\\': *D++ = '\\'; break;
+			case '0': *D++ = '\0'; break;
 			default: *D++ = '\\'; *D++ = *S; break;
 			}
 		} else {
