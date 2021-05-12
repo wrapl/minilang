@@ -2887,6 +2887,24 @@ static int ml_scan_string(ml_compiler_t *Compiler) {
 	return D - Quoted;
 }
 
+static int ml_scan_raw_string(ml_compiler_t *Compiler) {
+	const char *End = Compiler->Next;
+	while (End[0] != '\"') {
+		if (!End[0]) {
+			ml_parse_error(Compiler, "ParseError", "End of input while parsing string");
+		}
+		if (End[0] == '\\') ++End;
+		++End;
+	}
+	int Length = End - Compiler->Next;
+	char *Raw = snew(Length + 1);
+	memcpy(Raw, Compiler->Next, Length);
+	Raw[Length] = 0;
+	Compiler->Ident = Raw;
+	Compiler->Next = End + 1;
+	return Length;
+}
+
 static ml_token_t ml_scan(ml_compiler_t *Compiler) {
 	for (;;) {
 		//GC_gcollect();
@@ -2925,7 +2943,7 @@ static ml_token_t ml_scan(ml_compiler_t *Compiler) {
 				string_fn_t StringFn = stringmap_search(StringFns, Ident);
 				if (!StringFn) ml_parse_error(Compiler, "ParseError", "Unknown string prefix: %s", Ident);
 				Compiler->Next += 1;
-				int Length = ml_scan_string(Compiler);
+				int Length = ml_scan_raw_string(Compiler);
 				ml_value_t *Value = StringFn(Compiler->Ident, Length);
 				if (ml_is_error(Value)) {
 					ml_error_trace_add(Value, Compiler->Source);
@@ -4828,7 +4846,7 @@ void ml_command_evaluate(ml_state_t *Caller, ml_compiler_t *Compiler) {
 	Function->Compiler = Compiler;
 	Function->Source = Compiler->Source.Name;
 	Function->Up = NULL;
-	MLC_FRAME(void, ml_command_evaluate2);
+	__attribute__((unused)) MLC_FRAME(void, ml_command_evaluate2);
 	if (setjmp(Compiler->OnError)) MLC_RETURN(Compiler->Value);
 	ml_skip_eol(Compiler);
 	if (ml_parse(Compiler, MLT_EOI)) MLC_RETURN(MLEndOfInput);
