@@ -3396,7 +3396,7 @@ static mlc_expr_t *ml_accept_with_expr(ml_compiler_t *Compiler, mlc_expr_t *Chil
 			Local->Line = Compiler->Source.Line;
 			LocalSlot = &Local->Next;
 			Local->Ident = Compiler->Ident;
-			Local->Index = 1;
+			Local->Index = 0;
 		}
 		ml_accept(Compiler, MLT_ASSIGN);
 		mlc_expr_t *Expr = ExprSlot[0] = ml_accept_expression(Compiler, EXPR_DEFAULT);
