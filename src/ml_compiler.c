@@ -2852,7 +2852,7 @@ void ml_string_fn_register(const char *Prefix, string_fn_t Fn) {
 	stringmap_insert(StringFns, Prefix, Fn);
 }
 
-static int ml_scan_quoted(ml_compiler_t *Compiler) {
+static int ml_scan_string(ml_compiler_t *Compiler) {
 	const char *End = Compiler->Next;
 	while (End[0] != '\"') {
 		if (!End[0]) {
@@ -2885,6 +2885,24 @@ static int ml_scan_quoted(ml_compiler_t *Compiler) {
 	Compiler->Ident = Quoted;
 	Compiler->Next = End + 1;
 	return D - Quoted;
+}
+
+static int ml_scan_raw_string(ml_compiler_t *Compiler) {
+	const char *End = Compiler->Next;
+	while (End[0] != '\"') {
+		if (!End[0]) {
+			ml_parse_error(Compiler, "ParseError", "End of input while parsing string");
+		}
+		if (End[0] == '\\') ++End;
+		++End;
+	}
+	int Length = End - Compiler->Next;
+	char *Raw = snew(Length + 1);
+	memcpy(Raw, Compiler->Next, Length);
+	Raw[Length] = 0;
+	Compiler->Ident = Raw;
+	Compiler->Next = End + 1;
+	return Length;
 }
 
 static ml_token_t ml_scan(ml_compiler_t *Compiler) {
@@ -2925,7 +2943,7 @@ static ml_token_t ml_scan(ml_compiler_t *Compiler) {
 				string_fn_t StringFn = stringmap_search(StringFns, Ident);
 				if (!StringFn) ml_parse_error(Compiler, "ParseError", "Unknown string prefix: %s", Ident);
 				Compiler->Next += 1;
-				int Length = ml_scan_quoted(Compiler);
+				int Length = ml_scan_raw_string(Compiler);
 				ml_value_t *Value = StringFn(Compiler->Ident, Length);
 				if (ml_is_error(Value)) {
 					ml_error_trace_add(Value, Compiler->Source);
@@ -2971,7 +2989,7 @@ static ml_token_t ml_scan(ml_compiler_t *Compiler) {
 		}
 		if (Char == '\"') {
 			++Compiler->Next;
-			int Length = ml_scan_quoted(Compiler);;
+			int Length = ml_scan_string(Compiler);;
 			Compiler->Value = ml_string(Compiler->Ident, Length);
 			Compiler->Token = MLT_VALUE;
 			return Compiler->Token;
@@ -2996,7 +3014,7 @@ static ml_token_t ml_scan(ml_compiler_t *Compiler) {
 					Compiler->Next = End;
 				} else if (Char == '\"') {
 					Compiler->Next += 1;
-					ml_scan_quoted(Compiler);
+					ml_scan_string(Compiler);
 				} else if (ml_isoperator(Char)) {
 					const char *End = Compiler->Next;
 					for (Char = End[0]; ml_isoperator(Char); Char = *++End);
@@ -3024,7 +3042,7 @@ static ml_token_t ml_scan(ml_compiler_t *Compiler) {
 				return Compiler->Token;
 			} else if (Compiler->Next[1] == '\"') {
 				Compiler->Next += 2;
-				ml_scan_quoted(Compiler);
+				ml_scan_string(Compiler);
 				Compiler->Token = MLT_METHOD;
 				return Compiler->Token;
 			} else if (Compiler->Next[1] == '>') {
