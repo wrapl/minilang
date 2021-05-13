@@ -1479,6 +1479,7 @@ void ml_closure_list(ml_value_t *Value) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
 	ml_closure_info_t *Info = Closure->Info;
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_stringbuffer_addf(Buffer, "<%s:%d>\n", Info->Source, Info->StartLine);
 	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
 		if (Inst->Opcode == MLI_LINK) {
 			Inst = Inst[1].Inst;
