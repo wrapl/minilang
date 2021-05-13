@@ -4359,7 +4359,6 @@ static void ml_function_compile2(mlc_function_t *Function, ml_value_t *Value, ml
 	Info->Return = mlc_emit(Expr->EndLine, MLI_RETURN, 0);
 	mlc_link(Function->Returns, Info->Return);
 	Info->Halt = Function->Next;
-	Info->Source = Function->Source;
 	Info->StartLine = Expr->StartLine;
 	Info->EndLine = Expr->EndLine;
 	Info->FrameSize = Function->Size;
@@ -4403,6 +4402,7 @@ void ml_function_compile(ml_state_t *Caller, ml_compiler_t *Compiler, const char
 		Function->Size = Function->Top + 1;
 	}
 	Info->NumParams = NumParams;
+	Info->Source = Function->Source;
 	Function->Next = Info->Entry = anew(ml_inst_t, 128);
 	Function->Space = 126;
 	Function->Returns = NULL;
