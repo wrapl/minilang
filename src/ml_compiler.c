@@ -3228,6 +3228,7 @@ static mlc_expr_t *ml_accept_meth_expr(ml_compiler_t *Compiler) {
 	mlc_expr_t **ArgsSlot = &Method->Next;
 	ml_accept(Compiler, MLT_LEFT_PAREN);
 	ML_EXPR(FunExpr, fun, fun);
+	FunExpr->Source = Compiler->Source.Name;
 	if (!ml_parse2(Compiler, MLT_RIGHT_PAREN)) {
 		mlc_param_t **ParamSlot = &FunExpr->Params;
 		do {
@@ -3632,6 +3633,7 @@ static mlc_expr_t *ml_parse_factor(ml_compiler_t *Compiler, int MethDecl) {
 			return ml_accept_fun_expr(Compiler, MLT_RIGHT_PAREN);
 		} else {
 			ML_EXPR(FunExpr, fun, fun);
+			FunExpr->Source = Compiler->Source.Name;
 			FunExpr->Body = ml_accept_expression(Compiler, EXPR_DEFAULT);
 			return ML_EXPR_END(FunExpr);
 		}
@@ -3901,6 +3903,7 @@ done:
 		}
 		if (IsComprehension) {
 			ML_EXPR(FunExpr, fun, fun);
+			FunExpr->Source = Compiler->Source.Name;
 			ML_EXPR(SuspendExpr, parent, suspend);
 			SuspendExpr->Child = Expr;
 			mlc_expr_t *Body = ML_EXPR_END(SuspendExpr);
