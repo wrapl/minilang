@@ -1487,10 +1487,13 @@ void ml_closure_list(ml_value_t *Value) {
 		}
 		ml_stringbuffer_add(Buffer, "\n", 1);
 	}
+	ml_stringbuffer_add(Buffer, "\n", 1);
 	for (int I = 0; I < Info->NumUpValues; ++I) {
-		ml_stringbuffer_addf(Buffer, "\tUpvalues[%d]", I);
-		ml_closure_value_list(Closure->UpValues[I], Buffer);
-		ml_stringbuffer_add(Buffer, "\n", 1);
+		ml_value_t *UpValue = Closure->UpValues[I];
+		ml_stringbuffer_addf(Buffer, "Upvalues %d:", I);
+		ml_closure_value_list(UpValue, Buffer);
+		long Hash = ml_hash(UpValue);
+		ml_stringbuffer_addf(Buffer, " [%ld]\n", Hash);
 	}
 	puts(ml_stringbuffer_get(Buffer));
 }
