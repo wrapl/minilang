@@ -1349,6 +1349,8 @@ static void ml_closure_value_list(ml_value_t *Value, ml_stringbuffer_t *Buffer) 
 	} else {
 		ml_stringbuffer_addf(Buffer, " %s", ml_typeof(Value)->Name);
 	}
+	long Hash = ml_hash(Value);
+	ml_stringbuffer_addf(Buffer, "[%ld]", Hash);
 }
 
 static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
@@ -1494,7 +1496,7 @@ void ml_closure_list(ml_value_t *Value) {
 		ml_stringbuffer_addf(Buffer, "Upvalues %d:", I);
 		ml_closure_value_list(UpValue, Buffer);
 		long Hash = ml_hash(UpValue);
-		ml_stringbuffer_addf(Buffer, " [%ld]\n", Hash);
+		ml_stringbuffer_addf(Buffer, "[%ld]\n", Hash);
 	}
 	puts(ml_stringbuffer_get(Buffer));
 }
