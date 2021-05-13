@@ -565,7 +565,7 @@ ML_METHOD("in", MLAnyT, MLTypeT) {
 }
 
 long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain) {
-	Value = ml_deref(Value);
+	//Value = ml_deref(Value);
 	for (ml_hash_chain_t *Link = Chain; Link; Link = Link->Previous) {
 		if (Link->Value == Value) return Link->Index;
 	}
