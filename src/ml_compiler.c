@@ -186,14 +186,15 @@ typedef void (*mlc_frame_fn)(mlc_function_t *Function, ml_value_t *Value, void *
 struct mlc_frame_t {
 	mlc_frame_t *Next;
 	mlc_frame_fn run;
+	int AllowErrors;
 	void *Data[];
 };
 
 static void mlc_function_run(mlc_function_t *Function, ml_value_t *Value) {
-	/*if (ml_is_error(Value)) {
+	if (ml_is_error(Value) && !Function->Frame->AllowErrors) {
 		ml_state_t *Caller = Function->Base.Caller;
 		ML_RETURN(Value);
-	}*/
+	}
 	Function->Frame->run(Function, Value, Function->Frame->Data);
 }
 
@@ -238,6 +239,7 @@ static void *mlc_frame_alloc(mlc_function_t *Function, size_t Size, mlc_frame_fn
 	} else {
 		Frame->Next = Function->Frame;
 	}
+	Frame->AllowErrors = 0;
 	Frame->run = run;
 	Function->Frame = Frame;
 	return (void *)Frame->Data;
@@ -2089,6 +2091,7 @@ static void ml_resolve_expr_compile2(mlc_function_t *Function, ml_value_t *Value
 	if (Value) {
 		Frame->Args[0] = Value;
 		Frame->Args[1] = Expr->Value;
+		Function->Frame->AllowErrors = 1;
 		Function->Frame->run = (mlc_frame_fn)ml_resolve_expr_compile3;
 		return ml_call(Function, SymbolMethod, 2, Frame->Args);
 	} else {
