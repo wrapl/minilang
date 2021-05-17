@@ -1147,18 +1147,12 @@ const ml_inst_type_t MLInstTypes[] = {
 static int ml_closure_find_labels(ml_inst_t *Inst, unsigned int *Labels) {
 	switch (MLInstTypes[Inst->Opcode]) {
 	case MLIT_NONE: return 1;
-	case MLIT_INST: {
-		ml_inst_t *Next = Inst[1].Inst;
-		if (Next->Opcode == MLI_LINK) Next = Next[1].Inst;
-		if (!Next->Label) Next->Label = ++*Labels;
+	case MLIT_INST:
+		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
 		return 2;
-	}
-	case MLIT_INST_TYPES: {
-		ml_inst_t *Next = Inst[1].Inst;
-		if (Next->Opcode == MLI_LINK) Next = Next[1].Inst;
-		if (!Next->Label) Next->Label = ++*Labels;
+	case MLIT_INST_TYPES:
+		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
 		return 3;
-	}
 	case MLIT_COUNT_COUNT: return 3;
 	case MLIT_COUNT: return 2;
 	case MLIT_INDEX: return 2;
