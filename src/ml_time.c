@@ -190,15 +190,18 @@ ML_METHOD("-", MLTimeT, MLNumberT) {
 static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTimeT, ml_time_t *Time, void *Data, ml_cbor_write_fn WriteFn) {
 	struct tm TM = {0,};
 	gmtime_r(&Time->Value->tv_sec, &TM);
-	size_t Length = strftime(NULL, -1, "%FT%T", &TM) + 5;
+	size_t Length = strftime(NULL, -1, "%FT%T", &TM) + 8;
 	char *String = snew(Length + 1);
 	char *End = String + strftime(String, Length + 1, "%FT%T", &TM);
 	unsigned long NSec = Time->Value->tv_nsec;
-	char Milli[6] = ".000Z";
-	Milli[1] = '0' + (NSec / 100000000) % 10;
-	Milli[2] = '0' + (NSec / 10000000) % 10;
-	Milli[3] = '0' + (NSec / 1000000) % 10;
-	strcpy(End, Milli);
+	*End++ = '.';
+	*End++ = '0' + (NSec / 100000000) % 10;
+	*End++ = '0' + (NSec / 10000000) % 10;
+	*End++ = '0' + (NSec / 1000000) % 10;
+	*End++ = '0' + (NSec / 100000) % 10;
+	*End++ = '0' + (NSec / 10000) % 10;
+	*End++ = '0' + (NSec / 1000) % 10;
+	*End++ = 'Z';
 	ml_cbor_write_tag(Data, WriteFn, 0);
 	ml_cbor_write_string(Data, WriteFn, Length);
 	WriteFn(Data, (const unsigned char *)String, Length);
