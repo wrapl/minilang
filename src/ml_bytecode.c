@@ -1171,7 +1171,9 @@ static int ml_closure_find_labels(ml_inst_t *Inst, unsigned int *Labels) {
 	}
 }
 
-void ml_closure_info_finish(ml_closure_info_t *Info) {
+void ml_closure_info_labels(ml_closure_info_t *Info) {
+	if (Info->Labelled) return;
+	Info->Labelled = 1;
 	unsigned int Labels = 0;
 	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
 		if (Inst->Opcode == MLI_LINK) {
@@ -1180,9 +1182,6 @@ void ml_closure_info_finish(ml_closure_info_t *Info) {
 			Inst += ml_closure_find_labels(Inst, &Labels);
 		}
 	}
-#ifdef ML_JIT
-	ml_bytecode_jit(Info);
-#endif
 }
 
 static int ml_inst_hash(ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) {
@@ -1381,7 +1380,7 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 	}
 	case MLIT_VALUE_VALUE: {
 		ml_closure_value_list(Inst[1].Value, Buffer);
-		ml_stringbuffer_add(Buffer, ", ", 2);
+		ml_stringbuffer_add(Buffer, ",", 2);
 		ml_closure_value_list(Inst[2].Value, Buffer);
 		return 3;
 	}
@@ -1392,7 +1391,7 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 		ml_stringbuffer_addf(Buffer, " %d, %s", Inst[1].Index, Inst[2].Ptr);
 		return 3;
 	case MLIT_COUNT_VALUE: {
-		ml_stringbuffer_addf(Buffer, " %d, ", Inst[1].Count);
+		ml_stringbuffer_addf(Buffer, " %d,", Inst[1].Count);
 		ml_closure_value_list(Inst[2].Value, Buffer);
 		return 3;
 	}
@@ -1465,6 +1464,7 @@ ML_METHOD("info", MLClosureT) {
 ML_METHOD("list", MLClosureT) {
 	ml_closure_t *Closure = (ml_closure_t *)Args[0];
 	ml_closure_info_t *Info = Closure->Info;
+	ml_closure_info_labels(Info);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
 		if (Inst->Opcode == MLI_LINK) {
@@ -1480,6 +1480,7 @@ ML_METHOD("list", MLClosureT) {
 void ml_closure_list(ml_value_t *Value) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
 	ml_closure_info_t *Info = Closure->Info;
+	ml_closure_info_labels(Info);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_stringbuffer_addf(Buffer, "<%s:%d>\n", Info->Source, Info->StartLine);
 	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {

@@ -114,7 +114,7 @@ struct ml_closure_info_t {
 	int StartLine, EndLine, FrameSize;
 	int NumParams, NumUpValues;
 	int ExtraArgs, NamedArgs;
-	int Hashed;
+	int Labelled, Hashed;
 	unsigned char Hash[SHA256_BLOCK_SIZE];
 };
 
@@ -183,7 +183,7 @@ extern ml_type_t MLVariableT[];
 const char *ml_closure_debug(ml_value_t *Value);
 void ml_closure_sha256(ml_value_t *Closure, unsigned char Hash[SHA256_BLOCK_SIZE]);
 
-void ml_closure_info_finish(ml_closure_info_t *Info);
+void ml_closure_info_labels(ml_closure_info_t *Info);
 
 void ml_closure_list(ml_value_t *Closure);
 

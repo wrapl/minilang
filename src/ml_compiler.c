@@ -315,7 +315,6 @@ static void mlc_expr_call2(mlc_function_t *Function, ml_value_t *Value, mlc_comp
 	ml_closure_t *Closure = new(ml_closure_t);
 	Closure->Type = MLClosureT;
 	Closure->Info = Info;
-	ml_closure_info_finish(Info);
 	MLC_POP();
 	ml_call(Caller, (ml_value_t *)Closure, 0, NULL);
 }
@@ -2309,7 +2308,6 @@ static void ml_fun_expr_compile2(mlc_function_t *Function, ml_value_t *Value, ml
 		UpValueSlot = &Decl->Next;
 	}
 	Info->FrameSize = SubFunction->Size;
-	ml_closure_info_finish(Info);
 	if (SubFunction->UpValues || Frame->HasParamTypes || Expr->ReturnType) {
 #ifdef ML_GENERICS
 		if (Expr->ReturnType) {
@@ -4372,7 +4370,6 @@ static void ml_function_compile2(mlc_function_t *Function, ml_value_t *Value, ml
 	ml_closure_t *Closure = new(ml_closure_t);
 	Closure->Info = Info;
 	Closure->Type = MLClosureT;
-	ml_closure_info_finish(Info);
 	ml_state_t *Caller = Function->Base.Caller;
 	ML_RETURN(Closure);
 }

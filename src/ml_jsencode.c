@@ -235,6 +235,7 @@ static json_t *ml_closure_info_encode(ml_closure_info_t *Info, ml_json_encoder_t
 	json_t *Instructions = json_array();
 	inthash_t Labels[1] = {INTHASH_INIT};
 	uintptr_t Offset = 0, Return = 0;
+	ml_closure_info_labels(Info);
 	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
 		if (Inst->Label) inthash_insert(Labels, Inst->Label, (void *)Offset);
 		if (Inst->Opcode == MLI_LINK) {
