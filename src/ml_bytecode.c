@@ -222,7 +222,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef ML_SCHEDULER
 	uint64_t Counter = Frame->Schedule.Counter[0];
 #endif
-	static void *Labels[] = {
+	static const void *Labels[] = {
 		[MLI_LINK] = &&DO_LINK,
 		[MLI_RETURN] = &&DO_RETURN,
 		[MLI_SUSPEND] = &&DO_SUSPEND,

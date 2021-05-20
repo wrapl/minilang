@@ -198,7 +198,7 @@ static void mlc_function_run(mlc_function_t *Function, ml_value_t *Value) {
 	Function->Frame->run(Function, Value, Function->Frame->Data);
 }
 
-#define FRAME_BLOCK_SIZE 1024
+#define FRAME_BLOCK_SIZE 4096
 
 static inline void mlc_return(mlc_function_t *Function, ml_value_t *Value) {
 	mlc_frame_t *Frame = Function->Frame;
@@ -976,7 +976,11 @@ static void ml_for_expr_compile4(mlc_function_t *Function, ml_value_t *Value, ml
 static void ml_for_expr_compile3(mlc_function_t *Function, ml_value_t *Value, mlc_for_expr_frame_t *Frame) {
 	mlc_for_expr_t *Expr = Frame->Expr;
 	ml_inst_t *ExitInst = mlc_emit(Expr->EndLine, MLI_EXIT, 2);
-	ExitInst[1].Count = Expr->Key ? 2 : 1;
+	if (Expr->Unpack) {
+		ExitInst[1].Count = Expr->Unpack + !!Expr->Key;
+	} else {
+		ExitInst[1].Count = 1 + !!Expr->Key;
+	}
 	ExitInst[2].Decls = Frame->Loop->Decls;
 	ml_inst_t *NextInst = mlc_emit(Expr->StartLine, MLI_NEXT, 1);
 	NextInst[1].Inst = Frame->IterInst;
@@ -2732,12 +2736,11 @@ static ml_token_t ml_accept_string(ml_compiler_t *Compiler) {
 	for (;;) {
 		char C = *End++;
 		if (!C) {
-			Compiler->Next = Compiler->Read(Compiler->Data);
-			++Compiler->Line;
-			if (!Compiler->Next) {
+			End = Compiler->Read(Compiler->Data);
+			if (!End) {
 				ml_parse_error(Compiler, "ParseError", "end of input while parsing string");
 			}
-			End = Compiler->Next;
+			++Compiler->Line;
 		} else if (C == '\'') {
 			Compiler->Next = End;
 			break;
@@ -2794,14 +2797,24 @@ static ml_token_t ml_accept_string(ml_compiler_t *Compiler) {
 }
 
 typedef enum {
-	ML_CHAR_NONE,
+	ML_CHAR_OTHER,
+	ML_CHAR_EOI,
+	ML_CHAR_SPACE,
+	ML_CHAR_LINE,
 	ML_CHAR_ALPHA,
 	ML_CHAR_DIGIT,
-	ML_CHAR_OPER
+	ML_CHAR_OPER,
+	ML_CHAR_DELIM,
+	ML_CHAR_COLON,
+	ML_CHAR_SQUOTE,
+	ML_CHAR_DQUOTE
 } ml_char_type_t;
 
 static const ml_char_type_t CharTypes[256] = {
-	ML_CHAR_NONE,
+	ML_CHAR_OTHER,
+	[0] = ML_CHAR_EOI,
+	[1 ... ' '] = ML_CHAR_SPACE,
+	['\n'] = ML_CHAR_LINE,
 	['0' ... '9'] = ML_CHAR_DIGIT,
 	['_'] = ML_CHAR_ALPHA,
 	['A' ... 'Z'] = ML_CHAR_ALPHA,
@@ -2826,7 +2839,31 @@ static const ml_char_type_t CharTypes[256] = {
 	['<'] = ML_CHAR_OPER,
 	['>'] = ML_CHAR_OPER,
 	['.'] = ML_CHAR_OPER,
+	[':'] = ML_CHAR_COLON,
+	['('] = ML_CHAR_DELIM,
+	[')'] = ML_CHAR_DELIM,
+	['['] = ML_CHAR_DELIM,
+	[']'] = ML_CHAR_DELIM,
+	['{'] = ML_CHAR_DELIM,
+	['}'] = ML_CHAR_DELIM,
+	[';'] = ML_CHAR_DELIM,
+	[','] = ML_CHAR_DELIM,
+	['\''] = ML_CHAR_SQUOTE,
+	['\"'] = ML_CHAR_DQUOTE,
 	[128 ... 255] = ML_CHAR_ALPHA
+};
+
+static const ml_token_t CharTokens[256] = {
+	0,
+	['('] = MLT_LEFT_PAREN,
+	[')'] = MLT_RIGHT_PAREN,
+	['['] = MLT_LEFT_SQUARE,
+	[']'] = MLT_RIGHT_SQUARE,
+	['{'] = MLT_LEFT_BRACE,
+	['}'] = MLT_RIGHT_BRACE,
+	[';'] = MLT_SEMICOLON,
+	[':'] = MLT_COLON,
+	[','] = MLT_COMMA
 };
 
 static inline int ml_isidstart(char C) {
@@ -2907,43 +2944,54 @@ static int ml_scan_raw_string(ml_compiler_t *Compiler) {
 }
 
 static ml_token_t ml_scan(ml_compiler_t *Compiler) {
+	const char *Next = Compiler->Next;
 	for (;;) {
-		//GC_gcollect();
-		if (!Compiler->Next || !Compiler->Next[0]) {
-			Compiler->Next = Compiler->Read(Compiler->Data);
-			if (Compiler->Next) continue;
+		char Char = Next[0];
+		static const void *Labels[] = {
+			&&DO_CHAR_OTHER,
+			&&DO_CHAR_EOI,
+			&&DO_CHAR_SPACE,
+			&&DO_CHAR_LINE,
+			&&DO_CHAR_ALPHA,
+			&&DO_CHAR_DIGIT,
+			&&DO_CHAR_OPER,
+			&&DO_CHAR_DELIM,
+			&&DO_CHAR_COLON,
+			&&DO_CHAR_SQUOTE,
+			&&DO_CHAR_DQUOTE
+		};
+		goto *Labels[CharTypes[(unsigned char)Char]];
+		DO_CHAR_EOI:
+			Next = Compiler->Read(Compiler->Data);
+			if (Next) continue;
+			Compiler->Next = "";
 			Compiler->Token = MLT_EOI;
 			return Compiler->Token;
-		}
-		char Char = Compiler->Next[0];
-		if (Char == '\n') {
-			++Compiler->Next;
+		DO_CHAR_LINE:
+			Compiler->Next = Next + 1;
 			++Compiler->Line;
 			Compiler->Token = MLT_EOL;
 			return Compiler->Token;
-		}
-		if (0 <= Char && Char <= ' ') {
-			++Compiler->Next;
+		DO_CHAR_SPACE:
+			++Next;
 			continue;
-		}
-		if (ml_isidstart(Char)) {
-			const char *End = Compiler->Next + 1;
-			for (Char = End[0]; ml_isidchar(Char); Char = *++End);
-			int Length = End - Compiler->Next;
-			const struct keyword_t *Keyword = lookup(Compiler->Next, Length);
+		DO_CHAR_ALPHA: {
+			const char *End = Next + 1;
+			while (ml_isidchar(*End)) ++End;
+			int Length = End - Next;
+			const struct keyword_t *Keyword = lookup(Next, Length);
 			if (Keyword) {
 				Compiler->Token = Keyword->Token;
 				Compiler->Next = End;
 				return Compiler->Token;
 			}
 			char *Ident = snew(Length + 1);
-			memcpy(Ident, Compiler->Next, Length);
+			memcpy(Ident, Next, Length);
 			Ident[Length] = 0;
-			Compiler->Next = End;
 			if (End[0] == '\"') {
 				string_fn_t StringFn = stringmap_search(StringFns, Ident);
 				if (!StringFn) ml_parse_error(Compiler, "ParseError", "Unknown string prefix: %s", Ident);
-				Compiler->Next += 1;
+				Compiler->Next = End + 1;
 				int Length = ml_scan_raw_string(Compiler);
 				ml_value_t *Value = StringFn(Compiler->Ident, Length);
 				if (ml_is_error(Value)) {
@@ -2955,13 +3003,14 @@ static ml_token_t ml_scan(ml_compiler_t *Compiler) {
 				Compiler->Token = MLT_VALUE;
 				return Compiler->Token;
 			}
+			Compiler->Next = End;
 			Compiler->Ident = Ident;
 			Compiler->Token = MLT_IDENT;
 			return Compiler->Token;
 		}
-		if (ml_isdigit(Char) || (Char == '-' && ml_isdigit(Compiler->Next[1])) || (Char == '.' && ml_isdigit(Compiler->Next[1]))) {
+		DO_CHAR_DIGIT: {
 			char *End;
-			double Double = strtod(Compiler->Next, (char **)&End);
+			double Double = strtod(Next, (char **)&End);
 #ifdef ML_COMPLEX
 			if (*End == 'i') {
 				Compiler->Value = ml_complex(Double * 1i);
@@ -2970,7 +3019,7 @@ static ml_token_t ml_scan(ml_compiler_t *Compiler) {
 				return Compiler->Token;
 			}
 #endif
-			for (const char *P = Compiler->Next; P < End; ++P) {
+			for (const char *P = Next; P < End; ++P) {
 				if (P[0] == '.' || P[0] == 'e' || P[0] == 'E') {
 					Compiler->Value = ml_real(Double);
 					Compiler->Token = MLT_VALUE;
@@ -2978,134 +3027,143 @@ static ml_token_t ml_scan(ml_compiler_t *Compiler) {
 					return Compiler->Token;
 				}
 			}
-			long Integer = strtol(Compiler->Next, (char **)&End, 10);
+			long Integer = strtol(Next, (char **)&End, 10);
 			Compiler->Value = ml_integer(Integer);
 			Compiler->Token = MLT_VALUE;
 			Compiler->Next = End;
 			return Compiler->Token;
 		}
-		if (Char == '\'') {
-			++Compiler->Next;
+		DO_CHAR_SQUOTE:
+			Compiler->Next = Next + 1;
 			return ml_accept_string(Compiler);
-		}
-		if (Char == '\"') {
-			++Compiler->Next;
+		DO_CHAR_DQUOTE:
+			Compiler->Next = Next + 1;
 			int Length = ml_scan_string(Compiler);;
 			Compiler->Value = ml_string(Compiler->Ident, Length);
 			Compiler->Token = MLT_VALUE;
 			return Compiler->Token;
-		}
-		if (Char == ':') {
-			if (Compiler->Next[1] == '=') {
+		DO_CHAR_COLON: {
+			Char = *++Next;
+			if (Char == '=') {
 				Compiler->Token = MLT_ASSIGN;
-				Compiler->Next += 2;
+				Compiler->Next = Next + 1;
 				return Compiler->Token;
-			} else if (Compiler->Next[1] == ':') {
+			} else if (Char == ':') {
 				Compiler->Token = MLT_IMPORT;
-				Compiler->Next += 2;
-				Char = Compiler->Next[0];
+				Char = *++Next;
 				if (ml_isidchar(Char)) {
-					const char *End = Compiler->Next;
-					for (Char = End[0]; ml_isidchar(Char); Char = *++End);
-					int Length = End - Compiler->Next;
+					const char *End = Next + 1;
+					while (ml_isidchar(*End)) ++End;
+					int Length = End - Next;
 					char *Ident = snew(Length + 1);
-					memcpy(Ident, Compiler->Next, Length);
+					memcpy(Ident, Next, Length);
 					Ident[Length] = 0;
 					Compiler->Ident = Ident;
 					Compiler->Next = End;
 				} else if (Char == '\"') {
-					Compiler->Next += 1;
+					Compiler->Next = Next + 1;
 					ml_scan_string(Compiler);
 				} else if (ml_isoperator(Char)) {
-					const char *End = Compiler->Next;
-					for (Char = End[0]; ml_isoperator(Char); Char = *++End);
-					int Length = End - Compiler->Next;
+					const char *End = Next + 1;
+					while (ml_isoperator(*End)) ++End;
+					int Length = End - Next;
 					char *Operator = snew(Length + 1);
-					memcpy(Operator, Compiler->Next, Length);
+					memcpy(Operator, Next, Length);
 					Operator[Length] = 0;
 					Compiler->Ident = Operator;
 					Compiler->Next = End;
 				} else {
+					Compiler->Next = Next;
 					Compiler->Ident = "::";
 					Compiler->Token = MLT_OPERATOR;
 				}
 				return Compiler->Token;
-			} else if (ml_isidchar(Compiler->Next[1])) {
-				const char *End = Compiler->Next + 1;
-				for (Char = End[0]; ml_isidchar(Char); Char = *++End);
-				int Length = End - Compiler->Next - 1;
+			} else if (ml_isidchar(Char)) {
+				const char *End = Next + 1;
+				while (ml_isidchar(*End)) ++End;
+				int Length = End - Next;
 				char *Ident = snew(Length + 1);
-				memcpy(Ident, Compiler->Next + 1, Length);
+				memcpy(Ident, Next, Length);
 				Ident[Length] = 0;
 				Compiler->Ident = Ident;
 				Compiler->Token = MLT_METHOD;
 				Compiler->Next = End;
 				return Compiler->Token;
-			} else if (Compiler->Next[1] == '\"') {
-				Compiler->Next += 2;
+			} else if (Char == '\"') {
+				Compiler->Next = Next + 1;
 				ml_scan_string(Compiler);
 				Compiler->Token = MLT_METHOD;
 				return Compiler->Token;
-			} else if (Compiler->Next[1] == '>') {
-				const char *End = Compiler->Next + 2;
+			} else if (Char == '>') {
+				const char *End = Next + 1;
 				while (End[0] && End[0] != '\n') ++End;
-				Compiler->Next = End;
+				Next = End;
 				continue;
-			} else if (Compiler->Next[1] == '<') {
-				Compiler->Next += 2;
+			} else if (Char == '<') {
+				++Next;
 				int Level = 1;
 				do {
-					if (Compiler->Next[0] == '\n') {
-						++Compiler->Next;
+					switch (*Next++) {
+					case '\n':
 						++Compiler->Line;
-					} else if (Compiler->Next[0] == 0) {
-						Compiler->Next = Compiler->Read(Compiler->Data);
-						if (!Compiler->Next) ml_parse_error(Compiler, "ParseError", "End of input in comment");
-					} else if (Compiler->Next[0] == '>' && Compiler->Next[1] == ':') {
-						Compiler->Next += 2;
-						--Level;
-					} else if (Compiler->Next[0] == ':' && Compiler->Next[1] == '<') {
-						Compiler->Next += 2;
-						++Level;
-					} else {
-						++Compiler->Next;
+						break;
+					case 0:
+						Next = Compiler->Read(Compiler->Data);
+						if (!Next) {
+							Compiler->Next = "";
+							ml_parse_error(Compiler, "ParseError", "End of input in comment");
+						}
+						break;
+					case '>':
+						if (Next[0] == ':') {
+							++Next;
+							--Level;
+						}
+						break;
+					case ':':
+						if (Next[0] == '<') {
+							++Next;
+							++Level;
+						}
+						break;
 					}
 				} while (Level);
 				continue;
-			} else if (Compiler->Next[1] == '(') {
+			} else if (Char == '(') {
 				Compiler->Token = MLT_INLINE;
-				Compiler->Next += 2;
+				Compiler->Next = Next + 1;
 				return Compiler->Token;
-			} else if (Compiler->Next[1] == '$') {
+			} else if (Char == '$') {
 				Compiler->Token = MLT_EXPAND;
-				Compiler->Next += 2;
+				Compiler->Next = Next + 1;
 				return Compiler->Token;
 			} else {
 				Compiler->Token = MLT_COLON;
-				Compiler->Next += 1;
+				Compiler->Next = Next;
 				return Compiler->Token;
 			}
 		}
-		for (ml_token_t T = MLT_DELIM_FIRST; T <= MLT_DELIM_LAST; ++T) {
-			if (Char == MLTokens[T][0]) {
-				Compiler->Token = T;
-				++Compiler->Next;
-				return Compiler->Token;
+		DO_CHAR_DELIM:
+			Compiler->Next = Next + 1;
+			Compiler->Token = CharTokens[(unsigned char)Char];
+			return Compiler->Token;
+		DO_CHAR_OPER: {
+			if (Char == '-' || Char == '.') {
+				if (ml_isdigit(Next[1])) goto DO_CHAR_DIGIT;
 			}
-		}
-		if (ml_isoperator(Char)) {
-			const char *End = Compiler->Next;
-			for (Char = End[0]; ml_isoperator(Char); Char = *++End);
-			int Length = End - Compiler->Next;
+			const char *End = Next + 1;
+			while (ml_isoperator(*End)) ++End;
+			int Length = End - Next;
 			char *Operator = snew(Length + 1);
-			memcpy(Operator, Compiler->Next, Length);
+			memcpy(Operator, Next, Length);
 			Operator[Length] = 0;
 			Compiler->Ident = Operator;
 			Compiler->Token = MLT_OPERATOR;
 			Compiler->Next = End;
 			return Compiler->Token;
 		}
-		ml_parse_error(Compiler, "ParseError", "unexpected character <%c>", Char);
+		DO_CHAR_OTHER:
+			ml_parse_error(Compiler, "ParseError", "unexpected character <%c>", Char);
 	}
 	return Compiler->Token;
 }
