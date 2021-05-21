@@ -330,9 +330,12 @@ static void interactive_debugger_fnx(ml_state_t *Caller, interactive_debugger_in
 	ml_state_t *State = ml_state_new(Caller);
 	ml_context_set(State->Context, ML_DEBUGGER_INDEX, Debugger);
 	if (ml_is(Args[0], MLStringT)) {
-		State->run = debugger_state_load;
+		ml_call_state_t *State2 = ml_call_state_new(State, 1);
+		ml_value_t *Args2 = ml_list();
+		for (int I = 1; I < Count; ++I) ml_list_put(Args2, Args[I]);
+		State2->Args[0] = Args2;
 		const char *FileName = ml_string_value(Args[0]);
-		ml_load_file(State, Info->GlobalGet, Info->Globals, FileName, NULL);
+		ml_load_file((ml_state_t *)State2, Info->GlobalGet, Info->Globals, FileName, NULL);
 	} else {
 		ml_value_t *Function = Args[0];
 		return ml_call(State, Function, Count - 1, Args + 1);

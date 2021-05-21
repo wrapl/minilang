@@ -120,7 +120,7 @@ static void ML_TYPED_FN(ml_debugger_step_mode, DEBUG_TYPE(Continuation), DEBUG_S
 }
 
 static ml_source_t ML_TYPED_FN(ml_debugger_source, DEBUG_TYPE(Continuation), DEBUG_STRUCT(frame) *Frame) {
-	return (ml_source_t){Frame->Source, Frame->Inst->Line};
+	return (ml_source_t){Frame->Source, Frame->Line};
 }
 
 static ml_decl_t *ML_TYPED_FN(ml_debugger_decls, DEBUG_TYPE(Continuation), DEBUG_STRUCT(frame) *Frame) {
@@ -290,12 +290,6 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	ml_inst_t *Inst = Frame->Inst;
 	ml_value_t **Top = Frame->Top;
 #ifdef DEBUG_VERSION
-	unsigned int Revision = Frame->Debugger->Revision;
-	ml_debugger_t *Debugger = Frame->Debugger;
-	if (Frame->Revision != Revision) {
-		Frame->Revision = Revision;
-		Frame->Breakpoints = Debugger->breakpoints(Debugger, Frame->Source, 0);
-	}
 	int Line = Frame->Line;
 	if (Frame->Reentry) {
 		Frame->Reentry = 0;
@@ -852,10 +846,20 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef DEBUG_VERSION
 	DO_DEBUG_ERROR: {
 		ml_debugger_t *Debugger = Frame->Debugger;
-		if (Debugger->BreakOnError) goto DO_BREAKPOINT;
+		if (Debugger->BreakOnError) {
+			Frame->Inst = Inst;
+			Frame->Top = Top;
+			Frame->Reentry = 1;
+			return Debugger->run(Debugger, (ml_state_t *)Frame, Result);
+		}
 	}
 	DO_DEBUG_ADVANCE: {
 		ml_debugger_t *Debugger = Frame->Debugger;
+		unsigned int Revision = Debugger->Revision;
+		if (Frame->Revision != Revision) {
+			Frame->Revision = Revision;
+			Frame->Breakpoints = Debugger->breakpoints(Debugger, Frame->Source, 0);
+		}
 		if (Inst->Line != Line) {
 			if (Debugger->StepIn) goto DO_BREAKPOINT;
 			if (Frame->StepOver) goto DO_BREAKPOINT;

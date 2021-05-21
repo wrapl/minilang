@@ -222,7 +222,6 @@ int main(int Argc, const char *Argv[]) {
 	BacktraceState = backtrace_create_state(Argv[0], 0, NULL, NULL);
 	signal(SIGSEGV, error_handler);
 #endif
-	static const char *Parameters[] = {"Args", NULL};
 	ml_init();
 	ml_types_init(Globals);
 	ml_file_init(Globals);
@@ -331,7 +330,7 @@ int main(int Argc, const char *Argv[]) {
 	if (FileName) {
 		ml_call_state_t *State = ml_call_state_new(MLMain, 1);
 		State->Args[0] = Args;
-		ml_load_file((ml_state_t *)State, global_get, NULL, FileName, Parameters);
+		ml_load_file((ml_state_t *)State, global_get, NULL, FileName, NULL);
 #ifdef ML_SCHEDULER
 		if (SliceSize) simple_queue_run();
 #endif

@@ -5021,6 +5021,8 @@ static void ml_load_file_state_run(ml_load_file_state_t *State, ml_value_t *Valu
 }
 
 void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]) {
+	static const char *DefaultParameters[] = {"Args", NULL};
+	if (!Parameters) Parameters = DefaultParameters;
 	FILE *File = fopen(FileName, "r");
 	if (!File) ML_RETURN(ml_error("LoadError", "error opening %s", FileName));
 	ml_compiler_t *Compiler = ml_compiler(GlobalGet, Globals, ml_file_read, File);
