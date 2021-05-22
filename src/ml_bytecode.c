@@ -285,7 +285,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_STRING_END] = &&DO_STRING_END,
 		[MLI_RESOLVE] = &&DO_RESOLVE,
 		[MLI_IF_DEBUG] = &&DO_IF_DEBUG,
-		[MLI_ASSIGN_LOCAL] = &&DO_ASSIGN_LOCAL
+		[MLI_ASSIGN_LOCAL] = &&DO_ASSIGN_LOCAL,
+		[MLI_SWITCH] = &&DO_SWITCH
 	};
 	ml_inst_t *Inst = Frame->Inst;
 	ml_value_t **Top = Frame->Top;
@@ -836,6 +837,11 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Top = Top;
 		return ml_call(Frame, SymbolMethod, 2, Args);
 	}
+	DO_SWITCH: {
+		int Index = ml_integer_value_fast(Result);
+		// TODO: Check Index is within ranges Inst[1].Count
+		ADVANCE(Inst[2].Insts[Index]);
+	}
 	DO_IF_DEBUG: {
 #ifdef DEBUG_VERSION
 		ADVANCE(Inst[1].Inst);
@@ -1079,7 +1085,8 @@ const char *MLInstNames[] = {
 	"string_end", // MLI_STRING_END
 	"resolve", // MLI_RESOLVE,
 	"debug", // MLI_IF_DEBUG,
-	"assign_local" // MLI_ASSIGN_LOCAL
+	"assign_local", // MLI_ASSIGN_LOCAL,
+	"switch" // MLI_SWITCH
 };
 
 const ml_inst_type_t MLInstTypes[] = {
@@ -1145,7 +1152,8 @@ const ml_inst_type_t MLInstTypes[] = {
 	MLIT_NONE, // MLI_STRING_END
 	MLIT_VALUE, // MLI_RESOLVE,
 	MLIT_INST, // MLI_IF_DEBUG,
-	MLIT_INDEX // MLI_ASSIGN_LOCAL
+	MLIT_INDEX, // MLI_ASSIGN_LOCAL
+	MLIT_SWITCH // MLI_SWITCH
 };
 
 static int ml_closure_find_labels(ml_inst_t *Inst, unsigned int *Labels) {
@@ -1171,6 +1179,15 @@ static int ml_closure_find_labels(ml_inst_t *Inst, unsigned int *Labels) {
 	case MLIT_COUNT_DECL: return 3;
 	case MLIT_COUNT_COUNT_DECL: return 4;
 	case MLIT_CLOSURE: return 2 + Inst[1].ClosureInfo->NumUpValues;
+	case MLIT_SWITCH: {
+		int Count = Inst[1].Count;
+		ml_inst_t **Insts = Inst[2].Insts;
+		for (int I = 0; I < Count; ++I) {
+			ml_inst_t *Next = Insts[I];
+			if (!Next->Label) Next->Label = ++*Labels;
+		}
+		return 3;
+	}
 	default: return 0;
 	}
 }
@@ -1253,9 +1270,11 @@ static int ml_inst_hash(ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) 
 			*(int *)(Info->Hash + I) ^= (Index << N);
 		}
 		return 2 + Inst[1].ClosureInfo->NumUpValues;
+	}
+	case MLIT_SWITCH:
+		return 3;
 	default:
 		return 0;
-	}
 	}
 }
 
@@ -1449,6 +1468,9 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 			ml_stringbuffer_addf(Buffer, ", %d", Inst[2 + N].Index);
 		}
 		return 2 + Info->NumUpValues;
+	}
+	case MLIT_SWITCH: {
+		return 3;
 	}
 	default: return 0;
 	}

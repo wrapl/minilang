@@ -76,7 +76,8 @@ typedef enum {
 	MLI_STRING_END,
 	MLI_RESOLVE,
 	MLI_IF_DEBUG,
-	MLI_ASSIGN_LOCAL
+	MLI_ASSIGN_LOCAL,
+	MLI_SWITCH
 } ml_opcode_t;
 
 typedef union ml_inst_t ml_inst_t;
@@ -92,6 +93,7 @@ union ml_inst_t {
 		unsigned int Line:32;
 	};
 	ml_inst_t *Inst;
+	ml_inst_t **Insts;
 	int Index;
 	int Count;
 	ml_value_t *Value;
@@ -137,7 +139,6 @@ static inline stringmap_t *ml_closure_params(ml_value_t *Closure) {
 	return ((ml_closure_t *)Closure)->Info->Params;
 }
 
-
 extern const char *MLInstNames[];
 
 typedef enum {
@@ -158,7 +159,8 @@ typedef enum {
 	MLIT_VALUE,
 	MLIT_VALUE_VALUE,
 	MLIT_CLOSURE,
-	MLIT_TYPES
+	MLIT_TYPES,
+	MLIT_SWITCH
 } ml_inst_type_t;
 
 extern const ml_inst_type_t MLInstTypes[];

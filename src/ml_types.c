@@ -11,8 +11,8 @@
 #include <math.h>
 #include <float.h>
 #include <inttypes.h>
+#include "ml_parser.h"
 #include "ml_runtime.h"
-#include "ml_bytecode.h"
 #include "ml_string.h"
 #include "ml_method.h"
 #include "ml_list.h"
@@ -2324,6 +2324,210 @@ ML_METHOD("exports", MLModuleT) {
 	return Exports;
 }
 
+// Case macros //
+
+typedef struct {
+	int64_t Min, Max;
+	ml_value_t *Index;
+} ml_integer_case_range_t;
+
+static ml_value_t *ml_integer_case_range(ml_integer_case_range_t *Range, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_TYPE(0, MLNumberT);
+	int64_t Value = ml_integer_value(Args[0]);
+	for (;;) {
+		if (Range->Min <= Value && Range->Max >= Value) return Range->Index;
+		++Range;
+	}
+	return ml_integer(0);
+}
+
+typedef struct mlc_integer_range_t mlc_integer_range_t;
+
+struct mlc_integer_range_t {
+	mlc_integer_range_t *Next;
+	int64_t Min, Max;
+};
+
+typedef struct mlc_integer_case_t mlc_integer_case_t;
+
+struct mlc_integer_case_t {
+	mlc_integer_case_t *Next;
+	mlc_integer_range_t *Range;
+	mlc_expr_t *Child;
+};
+
+typedef struct {
+	mlc_expr_t *Expr;
+	mlc_integer_case_t *Case;
+	mlc_expr_t *Else;
+	ml_decl_t *Decls;
+	const char *Ident;
+	ml_integer_case_range_t *Ranges;
+	ml_inst_t **Insts;
+	ml_inst_t *Exits;
+	int Flags, Count;
+} mlc_integer_case_frame_t;
+
+static void ml_integer_case_apply4(mlc_function_t *Function, ml_value_t *Value, mlc_integer_case_frame_t *Frame) {
+	mlc_expr_t *Expr = Frame->Expr;
+	MLC_LINK(Frame->Exits, Function->Next);
+	if (Frame->Ident) {
+		ml_inst_t *ExitInst = MLC_EMIT(Expr->EndLine, MLI_EXIT, 2);
+		ExitInst[1].Count = 1;
+		ExitInst[2].Decls = Function->Decls = Frame->Decls;
+		--Function->Top;
+	}
+	if (Frame->Flags & MLCF_PUSH) {
+		MLC_EMIT(Expr->EndLine, MLI_PUSH, 0);
+		mlc_inc_top(Function);
+	}
+	MLC_POP();
+	MLC_RETURN(NULL);
+}
+
+static void ml_integer_case_apply3(mlc_function_t *Function, ml_value_t *Value, mlc_integer_case_frame_t *Frame) {
+	mlc_integer_case_t *Case = Frame->Case;
+	ml_inst_t *GotoInst = MLC_EMIT(Case->Child->EndLine, MLI_GOTO, 1);
+	GotoInst[1].Inst = Frame->Exits;
+	Frame->Exits = GotoInst + 1;
+	Frame->Insts[0] = Function->Next;
+	++Frame->Insts;
+	if ((Case = Case->Next)) {
+		Frame->Case = Case;
+		return mlc_compile(Function, Case->Child, 0);
+	}
+	Function->Frame->run = (mlc_frame_fn)ml_integer_case_apply4;
+	if (Frame->Else) {
+		return mlc_compile(Function, Frame->Else, 0);
+	} else {
+		MLC_EMIT(Frame->Expr->EndLine, MLI_NIL, 0);
+		return ml_integer_case_apply4(Function, NULL, Frame);
+	}
+}
+
+static void ml_integer_case_apply2(mlc_function_t *Function, ml_value_t *Value, mlc_integer_case_frame_t *Frame) {
+	mlc_expr_t *Expr = Frame->Expr;
+	if (Frame->Ident) {
+		ml_decl_t *Decl = new(ml_decl_t);
+		Decl->Source.Name = Function->Source;
+		Decl->Source.Line = Expr->StartLine;
+		Decl->Ident = Frame->Ident;
+		Decl->Hash = ml_ident_hash(Decl->Ident);
+		Decl->Index = Function->Top - 1;
+		Frame->Decls = Decl->Next = Function->Decls;
+		ml_inst_t *WithInst = MLC_EMIT(Expr->StartLine, MLI_WITH, 1);
+		WithInst[1].Decls = Function->Decls = Decl;
+	}
+	MLC_EMIT(Expr->StartLine, MLI_PUSH, 0);
+	ml_inst_t *CallInst = MLC_EMIT(Expr->StartLine, MLI_CONST_CALL, 2);
+	CallInst[1].Count = 1;
+	CallInst[2].Value = ml_cfunction(Frame->Ranges, (ml_callback_t)ml_integer_case_range);
+	ml_inst_t *SwitchInst = MLC_EMIT(Expr->StartLine, MLI_SWITCH, 2);
+	SwitchInst[1].Count = Frame->Count;
+	SwitchInst[2].Insts = Frame->Insts;
+	Function->Frame->run = (mlc_frame_fn)ml_integer_case_apply3;
+	Frame->Insts[0] = Function->Next;
+	++Frame->Insts;
+	return mlc_compile(Function, Frame->Case->Child, 0);
+}
+
+ML_METHOD_DECL(MLRange, "..");
+
+static mlc_integer_range_t **ml_integer_case_ranges(mlc_expr_t *Child, mlc_integer_range_t **Slot) {
+	if (!Child) {
+		return Slot;
+	} else if (mlc_expr_type(Child) == ML_EXPR_VALUE) {
+		ml_value_t *Value = ((mlc_value_expr_t *)Child)->Value;
+		if (!ml_is(Value, MLNumberT)) return NULL;
+		mlc_integer_range_t *Range = Slot[0] = new(mlc_integer_range_t);
+		Range->Min = Range->Max = ml_integer_value(Value);
+		return ml_integer_case_ranges(Child->Next, &Range->Next);
+	} else if (mlc_expr_type(Child) == ML_EXPR_CONST_CALL) {
+		mlc_parent_value_expr_t *Call = (mlc_parent_value_expr_t *)Child;
+		if (Call->Value != MLRangeMethod || !Call->Child || !Call->Child->Next) {
+			return NULL;
+		}
+		mlc_expr_t *MinChild = Call->Child, *MaxChild = MinChild->Next;
+		if (mlc_expr_type(MinChild) != ML_EXPR_VALUE || mlc_expr_type(MaxChild) != ML_EXPR_VALUE) {
+			return NULL;
+		}
+		ml_value_t *Min = ((mlc_value_expr_t *)MinChild)->Value;
+		ml_value_t *Max = ((mlc_value_expr_t *)MaxChild)->Value;
+		if (!ml_is(Min, MLNumberT) || !ml_is(Max, MLNumberT)) {
+			return NULL;
+		}
+		mlc_integer_range_t *Range = Slot[0] = new(mlc_integer_range_t);
+		Range->Min = ml_integer_value(Min);
+		Range->Max = ml_integer_value(Max);
+		return ml_integer_case_ranges(Child->Next, &Range->Next);
+	} else if (mlc_expr_type(Child) == ML_EXPR_TUPLE) {
+		mlc_parent_expr_t *Tuple = (mlc_parent_expr_t *)Child;
+		Slot = ml_integer_case_ranges(Tuple->Child, Slot);
+		if (!Slot) return Slot;
+		return ml_integer_case_ranges(Child->Next, Slot);
+	} else {
+		return NULL;
+	}
+}
+
+static void ml_integer_case_apply(mlc_function_t *Function, ml_macro_t *Macro, mlc_expr_t *Expr, mlc_expr_t *Child, int Flags) {
+	if (!Child || !Child->Next || mlc_expr_type(Child->Next) != ML_EXPR_FUN) {
+		MLC_EXPR_ERROR(Expr, ml_error("CaseError", "Invalid case syntax"));
+	}
+	mlc_fun_expr_t *Fun = (mlc_fun_expr_t *)Child->Next;
+	const char *Ident = Fun->Params ? Fun->Params->Ident : NULL;
+	mlc_if_expr_t *Body = (mlc_if_expr_t *)Fun->Body;
+	if (mlc_expr_type((mlc_expr_t *)Body) != ML_EXPR_IF) {
+		MLC_EXPR_ERROR(Expr, ml_error("CaseError", "Invalid case syntax"));
+	}
+	mlc_integer_case_t *Cases = NULL, **CaseSlot = &Cases;
+	for (mlc_if_case_t *CaseExpr = Body->Cases; CaseExpr; CaseExpr = CaseExpr->Next) {
+		mlc_integer_case_t *Case = CaseSlot[0] = new(mlc_integer_case_t);
+		if (!ml_integer_case_ranges(CaseExpr->Condition, &Case->Range)) {
+			MLC_EXPR_ERROR(CaseExpr, ml_error("CaseError", "Invalid case values"));
+		}
+		if (!Case->Range) {
+			MLC_EXPR_ERROR(CaseExpr, ml_error("CaseError", "Invalid case values"));
+		}
+		Case->Child = CaseExpr->Body;
+		CaseSlot = &Case->Next;
+	}
+	int NumRanges = 0, NumCases = 0;
+	for (mlc_integer_case_t *Case = Cases; Case; Case = Case->Next) {
+		for (mlc_integer_range_t *Range = Case->Range; Range; Range = Range->Next) {
+			++NumRanges;
+		}
+	}
+	ml_integer_case_range_t *Ranges = anew(ml_integer_case_range_t, NumRanges + 1);
+	NumRanges = 0;
+	for (mlc_integer_case_t *Case = Cases; Case; Case = Case->Next) {
+		for (mlc_integer_range_t *Range = Case->Range; Range; Range = Range->Next) {
+			Ranges[NumRanges].Min = Range->Min;
+			Ranges[NumRanges].Max = Range->Max;
+			Ranges[NumRanges].Index = ml_integer(NumCases);
+			++NumRanges;
+		}
+		++NumCases;
+	}
+	Ranges[NumRanges].Min = INT64_MIN;
+	Ranges[NumRanges].Max = INT64_MAX;
+	Ranges[NumRanges].Index = ml_integer(NumCases);
+	++NumCases;
+	MLC_FRAME(mlc_integer_case_frame_t, ml_integer_case_apply2);
+	Frame->Expr = Expr;
+	Frame->Flags = Flags & MLCF_PUSH;
+	Frame->Ident = Ident;
+	Frame->Case = Cases;
+	Frame->Ranges = Ranges;
+	Frame->Count = NumCases;
+	Frame->Insts = anew(ml_inst_t *, NumCases);
+	Frame->Else = Body->Else;
+	Frame->Exits = NULL;
+	return mlc_compile(Function, Child, 0);
+}
+
+static ml_macro_t MLIntegerCase[1] = {{MLMacroT, ml_integer_case_apply}};
+
 // Init //
 
 void ml_init() {
@@ -2333,6 +2537,7 @@ void ml_init() {
 	GC_INIT();
 	GC_allow_register_threads();
 #include "ml_types_init.c"
+	stringmap_insert(MLIntegerT->Exports, "case", MLIntegerCase);
 	ml_method_by_value(MLIntegerT->Constructor, NULL, ml_identity, MLIntegerT, NULL);
 	ml_method_by_value(MLRealT->Constructor, NULL, ml_identity, MLRealT, NULL);
 	ml_method_by_value(MLNumberT->Constructor, NULL, ml_identity, MLRealT, NULL);

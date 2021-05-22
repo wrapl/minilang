@@ -1,0 +1,19 @@
+fun test() do
+	for I in 0 .. 10 do
+		print('{I + 1} -> ')
+		integer::case(I + 1; X) if 2 then
+			print('Two')
+		elseif 3 then
+			print('Three')
+		elseif (4, 5) then
+			print('Four or five')
+		elseif 7 .. 10 then
+			print('Seven to ten')
+		else
+			print('Other')
+		end
+		print("\n")
+	end
+end
+
+test()
