@@ -23,6 +23,8 @@ typedef enum ml_token_t {
 	MLT_IN,
 	MLT_IS,
 	MLT_WHEN,
+	MLT_SWITCH,
+	MLT_CASE,
 	MLT_FUN,
 	MLT_MACRO,
 	MLT_RET,

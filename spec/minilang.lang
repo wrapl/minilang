@@ -140,6 +140,8 @@
       <keyword>when</keyword>
       <keyword>debug</keyword>
       <keyword>macro</keyword>
+      <keyword>switch</keyword>
+      <keyword>case</keyword>
     </context>
     <context id="functions" style-ref="function">
       <keyword>print</keyword>

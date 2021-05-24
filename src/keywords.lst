@@ -16,6 +16,8 @@ to, MLT_TO
 in, MLT_IN
 is, MLT_IS
 when, MLT_WHEN
+switch, MLT_SWITCH
+case, MLT_CASE
 fun, MLT_FUN
 macro, MLT_MACRO
 ret, MLT_RET

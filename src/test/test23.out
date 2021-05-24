@@ -1,11 +1,4 @@
-1 -> Other
-2 -> Two
-3 -> Three
-4 -> Four or five
-5 -> Four or five
-6 -> Other
-7 -> Seven to ten
-8 -> Seven to ten
-9 -> Seven to ten
-10 -> Seven to ten
-11 -> Other
+One
+Two
+Three
+Error: case 4 outside range [1, 3]

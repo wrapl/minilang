@@ -5,11 +5,11 @@
 #include "sha256.h"
 #include <gc/gc.h>
 #include "ml_runtime.h"
-#include "ml_parser.h"
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <limits.h>
+#include "ml_compiler2.h"
 
 struct mlc_upvalue_t {
 	mlc_upvalue_t *Next;
@@ -334,6 +334,7 @@ typedef struct {
 	int Flags, Count;
 } mlc_parent_expr_frame_t;
 
+
 typedef struct {
 	mlc_parent_expr_t *Expr;
 	mlc_expr_t *Child;
@@ -429,6 +430,55 @@ static void ml_not_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Exp
 	Frame->Expr = Expr;
 	Frame->Flags = Flags;
 	return mlc_compile(Function, Expr->Child, 0);
+}
+
+typedef struct {
+	mlc_parent_expr_t *Expr;
+	mlc_expr_t *Child;
+	ml_inst_t *Exits;
+	ml_inst_t **Insts;
+	int Flags;
+} mlc_case_expr_frame_t;
+
+static void ml_case_expr_compile3(mlc_function_t *Function, ml_value_t *Value, mlc_case_expr_frame_t *Frame) {
+	mlc_expr_t *Child = Frame->Child;
+	if (Child->Next) {
+		ml_inst_t *GotoInst = MLC_EMIT(Child->EndLine, MLI_GOTO, 1);
+		Frame->Child = Child = Child->Next;
+		GotoInst[1].Inst = Frame->Exits;
+		Frame->Exits = GotoInst + 1;
+		*Frame->Insts++ = Function->Next;
+		return mlc_compile(Function, Child, 0);
+	}
+	MLC_LINK(Frame->Exits, Function->Next);
+	if (Frame->Flags & MLCF_PUSH) {
+		MLC_EMIT(Child->EndLine, MLI_PUSH, 0);
+		mlc_inc_top(Function);
+	}
+	MLC_POP();
+	MLC_RETURN(NULL);
+}
+
+static void ml_case_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_case_expr_frame_t *Frame) {
+	mlc_expr_t *Child = Frame->Child;
+	int Count = 0;
+	for (mlc_expr_t *Next = Child->Next; Next; Next = Next->Next) ++Count;
+	ml_inst_t *SwitchInst = MLC_EMIT(Child->EndLine, MLI_SWITCH, 2);
+	SwitchInst[1].Count = Count;
+	Frame->Insts = SwitchInst[2].Insts = anew(ml_inst_t *, Count);
+	Frame->Child = Child = Child->Next;
+	Function->Frame->run = (mlc_frame_fn)ml_case_expr_compile3;
+	*Frame->Insts++ = Function->Next;
+	return mlc_compile(Function, Child, 0);
+}
+
+static void ml_case_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
+	MLC_FRAME(mlc_case_expr_frame_t, ml_case_expr_compile2);
+	Frame->Expr = Expr;
+	Frame->Flags = Flags;
+	Frame->Exits = NULL;
+	mlc_expr_t *Child = Frame->Child = Expr->Child;
+	return mlc_compile(Function, Child, 0);
 }
 
 struct mlc_loop_t {
@@ -2310,6 +2360,8 @@ const char *MLTokens[] = {
 	"in", // MLT_IN,
 	"is", // MLT_IS,
 	"when", // MLT_WHEN,
+	"switch", // MLT_SWITCH,
+	"case", // MLT_CASE,
 	"fun", // MLT_FUN,
 	"macro", // MLT_MACRO,
 	"ret", // MLT_RET,
@@ -3352,6 +3404,16 @@ static mlc_expr_t *ml_parse_factor(ml_compiler_t *Compiler, int MethDecl) {
 		if (ml_parse2(Compiler, MLT_ELSE)) IfExpr->Else = ml_accept_block(Compiler);
 		ml_accept(Compiler, MLT_END);
 		return ML_EXPR_END(IfExpr);
+	}
+	case MLT_SWITCH: {
+		ml_next(Compiler);
+		ML_EXPR(CaseExpr, parent, case);
+		mlc_expr_t *Child = CaseExpr->Child = ml_accept_expression(Compiler, EXPR_DEFAULT);
+		while (ml_parse2(Compiler, MLT_CASE)) {
+			Child = Child->Next = ml_accept_block(Compiler);
+		}
+		ml_accept(Compiler, MLT_END);
+		return ML_EXPR_END(CaseExpr);
 	}
 	case MLT_WHEN: {
 		ml_next(Compiler);

@@ -838,9 +838,19 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		return ml_call(Frame, SymbolMethod, 2, Args);
 	}
 	DO_SWITCH: {
+		if (!ml_is(Result, MLIntegerT)) {
+			Result = ml_error("TypeError", "expected integer, not %s", ml_typeof(Result)->Name);
+			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
+			ERROR();
+		}
 		int Index = ml_integer_value_fast(Result);
-		// TODO: Check Index is within ranges Inst[1].Count
-		ADVANCE(Inst[2].Insts[Index]);
+		int Count = Inst[1].Count;
+		if (Index <= 0 || Index > Count) {
+			Result = ml_error("TypeError", "case %d outside range [1, %d]", Index, Count);
+			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
+			ERROR();
+		}
+		ADVANCE(Inst[2].Insts[Index - 1]);
 	}
 	DO_IF_DEBUG: {
 #ifdef DEBUG_VERSION
@@ -1470,6 +1480,14 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 		return 2 + Info->NumUpValues;
 	}
 	case MLIT_SWITCH: {
+		int Count = Inst[1].Count;
+		if (Count) {
+			ml_inst_t **Insts = Inst[2].Insts;
+			ml_stringbuffer_addf(Buffer, " L%d", Insts[0]->Label);
+			for (int I = 1; I < Count; ++I) {
+				ml_stringbuffer_addf(Buffer, ", L%d", Insts[I]->Label);
+			}
+		}
 		return 3;
 	}
 	default: return 0;
