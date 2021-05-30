@@ -1351,7 +1351,7 @@ static void ml_block_expr_compile(mlc_function_t *Function, mlc_block_expr_t *Ex
 		Decl->Hash = ml_ident_hash(Local->Ident);
 		Decl->Index = Top++;
 		Frame->Decls[Local->Index] = Decl;
-		if (inthash_insert(DeclHashes, (uintptr_t)Decl->Hash, Decl)) {
+		if (Local->Ident[0] && inthash_insert(DeclHashes, (uintptr_t)Decl->Hash, Decl)) {
 			for (ml_decl_t *Prev = Decls; Prev != Last; Prev = Prev->Next) {
 				if (!strcmp(Prev->Ident, Decl->Ident)) {
 					MLC_EXPR_ERROR(Expr, ml_error("NameError", "Identifier %s redefined in line %d, previously declared on line %d", Decl->Ident, Decl->Source.Line, Prev->Source.Line));
@@ -1370,7 +1370,7 @@ static void ml_block_expr_compile(mlc_function_t *Function, mlc_block_expr_t *Ex
 		Decl->Index = Top++;
 		Decl->Flags = MLC_DECL_FORWARD;
 		Frame->Decls[Local->Index] = Decl;
-		if (inthash_insert(DeclHashes, (uintptr_t)Decl->Hash, Decl)) {
+		if (Local->Ident[0] && inthash_insert(DeclHashes, (uintptr_t)Decl->Hash, Decl)) {
 			for (ml_decl_t *Prev = Decls; Prev != Last; Prev = Prev->Next) {
 				if (!strcmp(Prev->Ident, Decl->Ident)) {
 					MLC_EXPR_ERROR(Expr, ml_error("NameError", "Identifier %s redefined in line %d, previously declared on line %d", Decl->Ident, Decl->Source.Line, Prev->Source.Line));
@@ -1388,7 +1388,7 @@ static void ml_block_expr_compile(mlc_function_t *Function, mlc_block_expr_t *Ex
 		Decl->Hash = ml_ident_hash(Local->Ident);
 		Decl->Flags = MLC_DECL_CONSTANT;
 		Frame->Decls[Local->Index] = Decl;
-		if (inthash_insert(DeclHashes, (uintptr_t)Decl->Hash, Decl)) {
+		if (Local->Ident[0] && inthash_insert(DeclHashes, (uintptr_t)Decl->Hash, Decl)) {
 			for (ml_decl_t *Prev = Decls; Prev != Last; Prev = Prev->Next) {
 				if (!strcmp(Prev->Ident, Decl->Ident)) {
 					MLC_EXPR_ERROR(Expr, ml_error("NameError", "Identifier %s redefined in line %d, previously declared on line %d", Decl->Ident, Decl->Source.Line, Prev->Source.Line));
@@ -2779,6 +2779,7 @@ static ml_token_t ml_scan(ml_compiler_t *Compiler) {
 			const struct keyword_t *Keyword = lookup(Next, Length);
 			if (Keyword) {
 				Compiler->Token = Keyword->Token;
+				Compiler->Ident = MLTokens[Compiler->Token];
 				Compiler->Next = End;
 				return Compiler->Token;
 			}
@@ -3132,9 +3133,11 @@ static mlc_expr_t *ml_accept_meth_expr(ml_compiler_t *Compiler) {
 				ArgsSlot = &Arg->Next;
 				break;
 			} else {
+
 				if (ml_parse2(Compiler, MLT_BLANK)) {
 					Param->Ident = "_";
 				} else {
+					if (ml_parse2(Compiler, MLT_REF)) Param->Flags = ML_PARAM_BYREF;
 					ml_accept(Compiler, MLT_IDENT);
 					Param->Ident = Compiler->Ident;
 				}
@@ -3238,7 +3241,7 @@ static mlc_expr_t *ml_accept_with_expr(ml_compiler_t *Compiler, mlc_expr_t *Chil
 			int Count = 0;
 			mlc_local_t **First = LocalSlot;
 			do {
-				ml_accept(Compiler, MLT_IDENT);
+				if (!ml_parse2(Compiler, MLT_BLANK)) ml_accept(Compiler, MLT_IDENT);
 				++Count;
 				mlc_local_t *Local = LocalSlot[0] = new(mlc_local_t);
 				Local->Line = Compiler->Source.Line;
@@ -3822,7 +3825,7 @@ static void ml_accept_block_var(ml_compiler_t *Compiler, ml_accept_block_t *Acce
 			int Count = 0;
 			mlc_local_t *Locals, **Slot = &Locals;
 			do {
-				ml_accept(Compiler, MLT_IDENT);
+				if (!ml_parse2(Compiler, MLT_BLANK)) ml_accept(Compiler, MLT_IDENT);
 				++Count;
 				mlc_local_t *Local = Slot[0] = new(mlc_local_t);
 				Local->Line = Compiler->Source.Line;
@@ -3884,7 +3887,7 @@ static void ml_accept_block_let(ml_compiler_t *Compiler, ml_accept_block_t *Acce
 			int Count = 0;
 			mlc_local_t *Locals, **Slot = &Locals;
 			do {
-				ml_accept(Compiler, MLT_IDENT);
+				if (!ml_parse2(Compiler, MLT_BLANK)) ml_accept(Compiler, MLT_IDENT);
 				++Count;
 				mlc_local_t *Local = Slot[0] = new(mlc_local_t);
 				Local->Line = Compiler->Source.Line;
@@ -3939,7 +3942,7 @@ static void ml_accept_block_def(ml_compiler_t *Compiler, ml_accept_block_t *Acce
 			int Count = 0;
 			mlc_local_t *Locals, **Slot = &Locals;
 			do {
-				ml_accept(Compiler, MLT_IDENT);
+				if (!ml_parse2(Compiler, MLT_BLANK)) ml_accept(Compiler, MLT_IDENT);
 				++Count;
 				mlc_local_t *Local = Slot[0] = new(mlc_local_t);
 				Local->Line = Compiler->Source.Line;
@@ -4596,7 +4599,7 @@ static void ml_command_idents_unpack(mlc_function_t *Function, ml_value_t *Packe
 }
 
 static ml_command_idents_frame_t *ml_accept_command_idents(mlc_function_t *Function, ml_compiler_t *Compiler, int Index) {
-	ml_accept(Compiler, MLT_IDENT);
+	if (!ml_parse2(Compiler, MLT_BLANK)) ml_accept(Compiler, MLT_IDENT);
 	const char *Ident = Compiler->Ident;
 	if (ml_parse(Compiler, MLT_COMMA)) {
 		ml_command_idents_frame_t *Frame = ml_accept_command_idents(Function, Compiler, Index + 1);

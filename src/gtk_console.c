@@ -87,7 +87,11 @@ void console_log(console_t *Console, ml_value_t *Value) {
 		if (ml_is(String, MLStringT)) {
 			const char *Buffer = ml_string_value(String);
 			int Length = ml_string_length(String);
-			if (g_utf8_validate(Buffer, Length, NULL)) {
+			if (Length > 10240) {
+				char Text[32];
+				int TextLength = sprintf(Text, "<%d bytes>", Length);
+				gtk_text_buffer_insert_with_tags(LogBuffer, End, Text, TextLength, Console->ResultTag, NULL);
+			} else if (g_utf8_validate(Buffer, Length, NULL)) {
 				gtk_text_buffer_insert_with_tags(LogBuffer, End, Buffer, Length, Console->ResultTag, NULL);
 			} else {
 				gtk_text_buffer_insert_with_tags(LogBuffer, End, "<", 1, Console->BinaryTag, NULL);
