@@ -2067,8 +2067,9 @@ static void _ml_to_value(ml_value_t *Source, GValue *Dest) {
 static void __marshal(GClosure *Closure, GValue *Result, guint NumArgs, const GValue *Args, gpointer Hint, ml_value_t *Function) {
 	GICallableInfo *SignalInfo = (GICallableInfo *)Closure->data;
 	ml_value_t *MLArgs[NumArgs];
-	for (guint I = 0; I < NumArgs; ++I) {
-		GIArgInfo *ArgInfo = g_callable_info_get_arg(SignalInfo, I);
+	MLArgs[0] = _value_to_ml(Args, NULL);
+	for (guint I = 1; I < NumArgs; ++I) {
+		GIArgInfo *ArgInfo = g_callable_info_get_arg(SignalInfo, I - 1);
 		GITypeInfo TypeInfo[1];
 		g_arg_info_load_type(ArgInfo, TypeInfo);
 		MLArgs[I] = _value_to_ml(Args + I, g_type_info_get_interface(TypeInfo));
