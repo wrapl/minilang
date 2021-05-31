@@ -2064,7 +2064,7 @@ static void _ml_to_value(ml_value_t *Source, GValue *Dest) {
 	}
 }
 
-static void __marshal(GClosure *Closure, GValue *Result, guint NumArgs, const GValue *Args, gpointer Hint, ml_value_t *Function) {
+static void __marshal(GClosure *Closure, GValue *Dest, guint NumArgs, const GValue *Args, gpointer Hint, ml_value_t *Function) {
 	GICallableInfo *SignalInfo = (GICallableInfo *)Closure->data;
 	ml_value_t *MLArgs[NumArgs];
 	MLArgs[0] = _value_to_ml(Args, NULL);
@@ -2074,8 +2074,29 @@ static void __marshal(GClosure *Closure, GValue *Result, guint NumArgs, const GV
 		g_arg_info_load_type(ArgInfo, TypeInfo);
 		MLArgs[I] = _value_to_ml(Args + I, g_type_info_get_interface(TypeInfo));
 	}
-	ml_value_t *MLResult = ml_simple_call(Function, NumArgs, MLArgs);
-	if (Result) _ml_to_value(MLResult, Result);
+	ml_value_t *Source = ml_simple_call(Function, NumArgs, MLArgs);
+	if (Dest) {
+		if (ml_is(Source, MLBooleanT)) {
+			g_value_set_boolean(Dest, ml_boolean_value(Source));
+		} else if (ml_is(Source, MLIntegerT)) {
+			g_value_set_long(Dest, ml_integer_value(Source));
+		} else if (ml_is(Source, MLRealT)) {
+			g_value_set_double(Dest, ml_real_value(Source));
+		} else if (ml_is(Source, MLStringT)) {
+			g_value_set_string(Dest, ml_string_value(Source));
+		} else if (ml_is(Source, ObjectInstanceT)) {
+			void *Object = ((object_instance_t *)Source)->Handle;
+			g_value_set_object(Dest, Object);
+		} else if (ml_is(Source, StructInstanceT)) {
+			void *Value = ((struct_instance_t *)Source)->Value;
+			g_value_set_object(Dest, Value);
+		} else if (ml_is(Source, EnumValueT)) {
+			enum_t *Enum = (enum_t *)((enum_value_t *)Source)->Type;
+			GType Type = g_type_from_name(g_base_info_get_name((GIBaseInfo *)Enum->Info));
+			g_value_init(Dest, Type);
+			g_value_set_enum(Dest, ((enum_value_t *)Source)->Value);
+		}
+	}
 }
 
 ML_METHOD("connect", ObjectInstanceT, MLStringT, MLFunctionT) {
