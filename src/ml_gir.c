@@ -100,88 +100,49 @@ static void instance_finalize(object_instance_t *Instance, void *Data) {
 
 static GQuark MLQuark;
 
-ml_value_t *ml_gir_instance_get(void *Handle, GIBaseInfo *Info) {
+ml_value_t *ml_gir_instance_get(void *Handle, GIBaseInfo *Fallback) {
 	if (Handle == 0) return (ml_value_t *)ObjectInstanceNil;
-	ml_value_t *Instance = (ml_value_t *)g_object_get_qdata(Handle, MLQuark);
-	if (Instance) return Instance;
-	if (!Info) {
-		GType Type = G_OBJECT_TYPE(Handle);
-		Info = g_irepository_find_by_gtype(NULL, Type);
-		if (!Info) return ml_error("UnknownType", "Type %s not found", g_type_name(Type));
-	}
-	switch (g_base_info_get_type(Info)) {
-	case GI_INFO_TYPE_INVALID:
-	case GI_INFO_TYPE_INVALID_0: {
-		return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(Info), __LINE__);
-	}
-	case GI_INFO_TYPE_FUNCTION: {
-		return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(Info), __LINE__);
-	}
-	case GI_INFO_TYPE_CALLBACK: {
-		return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(Info), __LINE__);
-	}
-	case GI_INFO_TYPE_STRUCT: {
-		return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(Info), __LINE__);
-	}
-	case GI_INFO_TYPE_BOXED: {
-		return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(Info), __LINE__);
-	}
-	case GI_INFO_TYPE_ENUM: {
-		return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(Info), __LINE__);
-	}
-	case GI_INFO_TYPE_FLAGS: {
-		return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(Info), __LINE__);
-	}
-	case GI_INFO_TYPE_OBJECT: {
-		object_instance_t *Instance = new(object_instance_t);
-		Instance->Type = (object_t *)object_info_lookup((GIObjectInfo *)Info);
-		Instance->Handle = Handle;
+	object_instance_t *Instance = (object_instance_t *)g_object_get_qdata(Handle, MLQuark);
+	if (Instance) return (ml_value_t *)Instance;
+	Instance = new(object_instance_t);
+	Instance->Handle = Handle;
+	g_object_ref_sink(Handle);
+	GC_register_finalizer(Instance, (GC_finalization_proc)instance_finalize, 0, 0, 0);
+	GType Type = G_OBJECT_TYPE(Handle);
+	GIBaseInfo *Info = g_irepository_find_by_gtype(NULL, Type);
+	if (Info) {
+		switch (g_base_info_get_type(Info)) {
+		case GI_INFO_TYPE_OBJECT: {
+			Instance->Type = (object_t *)object_info_lookup((GIObjectInfo *)Info);
+			break;
+		}
+		case GI_INFO_TYPE_INTERFACE: {
+			Instance->Type = (object_t *)interface_info_lookup((GIInterfaceInfo *)Info);
+			break;
+		}
+		default: {
+			return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(Info), __LINE__);
+		}
+		}
 		g_object_set_qdata(Handle, MLQuark, Instance);
-		g_object_ref_sink(Handle);
-		GC_register_finalizer(Instance, (GC_finalization_proc)instance_finalize, 0, 0, 0);
-		return (ml_value_t *)Instance;
+	} else if (Fallback) {
+		switch (g_base_info_get_type(Fallback)) {
+		case GI_INFO_TYPE_OBJECT: {
+			Instance->Type = (object_t *)object_info_lookup((GIObjectInfo *)Fallback);
+			break;
+		}
+		case GI_INFO_TYPE_INTERFACE: {
+			Instance->Type = (object_t *)interface_info_lookup((GIInterfaceInfo *)Fallback);
+			break;
+		}
+		default: {
+			return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(Info), __LINE__);
+		}
+		}
+	} else {
+		return ml_error("UnknownType", "Type %s not found", g_type_name(Type));
 	}
-	case GI_INFO_TYPE_INTERFACE: {
-		object_instance_t *Instance = new(object_instance_t);
-		Instance->Type = (object_t *)interface_info_lookup((GIInterfaceInfo *)Info);
-		Instance->Handle = Handle;
-		g_object_set_qdata(Handle, MLQuark, Instance);
-		g_object_ref_sink(Handle);
-		GC_register_finalizer(Instance, (GC_finalization_proc)instance_finalize, 0, 0, 0);
-		return (ml_value_t *)Instance;
-	}
-	case GI_INFO_TYPE_CONSTANT: {
-		return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(Info), __LINE__);
-	}
-	case GI_INFO_TYPE_UNION: {
-		return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(Info), __LINE__);
-	}
-	case GI_INFO_TYPE_VALUE: {
-		return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(Info), __LINE__);
-	}
-	case GI_INFO_TYPE_SIGNAL: {
-		return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(Info), __LINE__);
-	}
-	case GI_INFO_TYPE_VFUNC: {
-		return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(Info), __LINE__);
-	}
-	case GI_INFO_TYPE_PROPERTY: {
-		return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(Info), __LINE__);
-	}
-	case GI_INFO_TYPE_FIELD: {
-		return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(Info), __LINE__);
-	}
-	case GI_INFO_TYPE_ARG: {
-		return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(Info), __LINE__);
-	}
-	case GI_INFO_TYPE_TYPE: {
-		return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(Info), __LINE__);
-	}
-	case GI_INFO_TYPE_UNRESOLVED: {
-		return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(Info), __LINE__);
-	}
-	}
-	return MLNil;
+	return (ml_value_t *)Instance;
 }
 
 ML_METHOD(MLStringT, ObjectInstanceT) {
@@ -1135,7 +1096,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 		N = 1;
 		IndexIn = 1;
 	}
-	printf("%s(", g_base_info_get_name((GIBaseInfo *)Info));
+	//printf("%s(", g_base_info_get_name((GIBaseInfo *)Info));
 	uint64_t Skips = 0;
 	for (int I = 0; I < NArgs; ++I) {
 		GIArgInfo *ArgInfo = g_callable_info_get_arg((GICallableInfo *)Info, I);
@@ -1143,7 +1104,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 		if (ClosureArg >= 0) Skips |= 1 << ClosureArg;
 		GITypeInfo TypeInfo[1];
 		g_arg_info_load_type(ArgInfo, TypeInfo);
-		printf(I ? ", %s : %d" : "%s : %d", g_base_info_get_name((GIBaseInfo *)ArgInfo), g_type_info_get_tag(TypeInfo));
+		//printf(I ? ", %s : %d" : "%s : %d", g_base_info_get_name((GIBaseInfo *)ArgInfo), g_type_info_get_tag(TypeInfo));
 		if (g_type_info_get_tag(TypeInfo) == GI_TYPE_TAG_ARRAY) {
 			int LengthIndex = g_type_info_get_array_length(TypeInfo);
 			if (LengthIndex >= 0) {
@@ -1151,7 +1112,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 			}
 		}
 	}
-	printf(")\n");
+	//printf(")\n");
 	for (int I = 0; I < NArgs; ++I, Skips >>= 1) {
 		GIArgInfo *ArgInfo = g_callable_info_get_arg((GICallableInfo *)Info, I);
 		GITypeInfo TypeInfo[1];
