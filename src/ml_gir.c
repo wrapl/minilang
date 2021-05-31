@@ -33,7 +33,7 @@ ML_TYPE(BaseInfoT, (MLTypeT), "gir-base-info");
 
 static ml_value_t *baseinfo_to_value(GIBaseInfo *Info);
 static void _ml_to_value(ml_value_t *Source, GValue *Dest);
-static ml_value_t *_value_to_ml(const GValue *Value);
+static ml_value_t *_value_to_ml(const GValue *Value, GIBaseInfo *Info);
 
 static void typelib_iter_value(ml_state_t *Caller, typelib_iter_t *Iter) {
 	const char *Type = g_info_type_to_string(g_base_info_get_type(Iter->Current));
@@ -710,7 +710,7 @@ static ml_value_t *argument_to_value(GIArgument *Argument, GITypeInfo *Info) {
 		GIBaseInfo *InterfaceInfo = g_type_info_get_interface(Info);
 		//printf("Interface = %s\n", g_base_info_get_name(InterfaceInfo));
 		if (g_base_info_equal(InterfaceInfo, GValueInfo)) {
-			return _value_to_ml(Argument->v_pointer);
+			return _value_to_ml(Argument->v_pointer, NULL);
 		} else switch (g_base_info_get_type(InterfaceInfo)) {
 		case GI_INFO_TYPE_INVALID:
 		case GI_INFO_TYPE_INVALID_0: break;
@@ -1696,7 +1696,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 			case GI_TYPE_TAG_INTERFACE: {
 				GIBaseInfo *InterfaceInfo = g_type_info_get_interface(TypeInfo);
 				if (g_base_info_equal(InterfaceInfo, GValueInfo)) {
-					ml_tuple_set(Result, IndexResult + 2, _value_to_ml((const GValue *)ResultsOut[IndexResult].v_pointer));
+					ml_tuple_set(Result, IndexResult + 2, _value_to_ml((const GValue *)ResultsOut[IndexResult].v_pointer, NULL));
 				} else switch (g_base_info_get_type(InterfaceInfo)) {
 				case GI_INFO_TYPE_OBJECT:
 				case GI_INFO_TYPE_INTERFACE: {
@@ -1999,7 +1999,7 @@ static void typelib_iterate(ml_state_t *Caller, typelib_t *Typelib) {
 	ML_CONTINUE(Caller, Iter);
 }
 
-static ml_value_t *_value_to_ml(const GValue *Value) {
+static ml_value_t *_value_to_ml(const GValue *Value, GIBaseInfo *Info) {
 	switch (G_VALUE_TYPE(Value)) {
 	case G_TYPE_NONE: return MLNil;
 	case G_TYPE_CHAR: return ml_integer(g_value_get_schar(Value));
@@ -2022,7 +2022,7 @@ static ml_value_t *_value_to_ml(const GValue *Value) {
 	case G_TYPE_POINTER: return MLNil; //Std$Address$new(g_value_get_pointer(Value));
 	default: {
 		if (G_VALUE_HOLDS(Value, G_TYPE_OBJECT)) {
-			return ml_gir_instance_get(g_value_get_object(Value), NULL);
+			return ml_gir_instance_get(g_value_get_object(Value), Info);
 		} else {
 			printf("Warning: Unknown parameter type: %s\n", G_VALUE_TYPE_NAME(Value));
 			return MLNil;
@@ -2065,8 +2065,14 @@ static void _ml_to_value(ml_value_t *Source, GValue *Dest) {
 }
 
 static void __marshal(GClosure *Closure, GValue *Result, guint NumArgs, const GValue *Args, gpointer Hint, ml_value_t *Function) {
+	GICallableInfo *SignalInfo = (GICallableInfo *)Closure->data;
 	ml_value_t *MLArgs[NumArgs];
-	for (guint I = 0; I < NumArgs; ++I) MLArgs[I] = _value_to_ml(Args + I);
+	for (guint I = 0; I < NumArgs; ++I) {
+		GIArgInfo *ArgInfo = g_callable_info_get_arg(SignalInfo, I);
+		GITypeInfo TypeInfo[1];
+		g_arg_info_load_type(ArgInfo, TypeInfo);
+		MLArgs[I] = _value_to_ml(Args + I, g_type_info_get_interface(TypeInfo));
+	}
 	ml_value_t *MLResult = ml_simple_call(Function, NumArgs, MLArgs);
 	if (Result) _ml_to_value(MLResult, Result);
 }
@@ -2078,13 +2084,20 @@ ML_METHOD("connect", ObjectInstanceT, MLStringT, MLFunctionT) {
 //>Object
 	object_instance_t *Instance = (object_instance_t *)Args[0];
 	const char *Signal = ml_string_value(Args[1]);
-	GClosure *Closure = g_closure_new_simple(sizeof(GClosure), NULL);
+	GISignalInfo *SignalInfo = NULL;
+	if (GI_IS_OBJECT_INFO(Instance->Type->Info)) {
+		SignalInfo = g_object_info_find_signal(Instance->Type->Info, Signal);
+	} else if (GI_IS_INTERFACE_INFO(Instance->Type->Info)) {
+		SignalInfo = g_interface_info_find_signal(Instance->Type->Info, Signal);
+	}
+	if (!SignalInfo) return ml_error("NameError", "Signal %s not found", Signal);
+	GClosure *Closure = g_closure_new_simple(sizeof(GClosure), SignalInfo);
 	g_closure_set_meta_marshal(Closure, Args[2], (GClosureMarshal)__marshal);
 	g_signal_connect_closure(Instance->Handle, Signal, Closure, Count > 3 && Args[3] != MLNil);
 	return Args[0];
 }
 
-typedef struct object_property_t {
+typedef struct {
 	ml_type_t *Type;
 	GObject *Object;
 	const char *Name;
@@ -2093,7 +2106,7 @@ typedef struct object_property_t {
 static ml_value_t *object_property_deref(object_property_t *Property) {
 	GValue Value[1] = {G_VALUE_INIT};
 	g_object_get_property(Property->Object, Property->Name, Value);
-	return _value_to_ml(Value);
+	return _value_to_ml(Value, NULL);
 }
 
 static ml_value_t *object_property_assign(object_property_t *Property, ml_value_t *Value0) {
