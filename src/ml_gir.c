@@ -136,7 +136,7 @@ ml_value_t *ml_gir_instance_get(void *Handle, GIBaseInfo *Fallback) {
 			break;
 		}
 		default: {
-			return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(Info), __LINE__);
+			return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(Fallback), __LINE__);
 		}
 		}
 	} else {
