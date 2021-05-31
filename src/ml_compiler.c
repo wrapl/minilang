@@ -4836,6 +4836,14 @@ void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, cons
 	FILE *File = fopen(FileName, "r");
 	if (!File) ML_RETURN(ml_error("LoadError", "error opening %s", FileName));
 	ml_compiler_t *Compiler = ml_compiler(GlobalGet, Globals, ml_file_read, File);
+	const char *Line = ml_file_read(File);
+	if (Line[0] == '#' && Line[1] == '!') {
+		Compiler->Line = 2;
+		Compiler->Next = ml_file_read(File);
+	} else {
+		Compiler->Line = 1;
+		Compiler->Next = Line;
+	}
 	ml_compiler_source(Compiler, (ml_source_t){FileName, 1});
 	ml_load_file_state_t *State = new(ml_load_file_state_t);
 	State->Base.Caller = Caller;
