@@ -74,6 +74,7 @@ static ml_value_t *ml_gir_require(void *Data, int Count, ml_value_t **Args) {
 typedef struct object_t {
 	ml_type_t Base;
 	GIObjectInfo *Info;
+	stringmap_t Signals[1];
 } object_t;
 
 typedef struct object_instance_t {
@@ -1736,6 +1737,12 @@ static void interface_add_methods(object_t *Object, GIInterfaceInfo *Info) {
 			ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Object, NULL);
 		}
 	}
+	int NumSignals = g_interface_info_get_n_signals(Info);
+	for (int I = 0; I < NumSignals; ++I) {
+		GISignalInfo *SignalInfo = g_interface_info_get_signal(Info, I);
+		const char *SignalName = g_base_info_get_name((GIBaseInfo *)SignalInfo);
+		stringmap_insert(Object->Signals, SignalName, SignalInfo);
+	}
 }
 
 static void object_add_methods(object_t *Object, GIObjectInfo *Info) {
@@ -1755,6 +1762,12 @@ static void object_add_methods(object_t *Object, GIObjectInfo *Info) {
 		} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
 			stringmap_insert(Object->Base.Exports, MethodName, ml_cfunction(MethodInfo, (void *)constructor_invoke));
 		}
+	}
+	int NumSignals = g_object_info_get_n_signals(Info);
+	for (int I = 0; I < NumSignals; ++I) {
+		GISignalInfo *SignalInfo = g_object_info_get_signal(Info, I);
+		const char *SignalName = g_base_info_get_name((GIBaseInfo *)SignalInfo);
+		stringmap_insert(Object->Signals, SignalName, SignalInfo);
 	}
 }
 
@@ -2106,12 +2119,7 @@ ML_METHOD("connect", ObjectInstanceT, MLStringT, MLFunctionT) {
 //>Object
 	object_instance_t *Instance = (object_instance_t *)Args[0];
 	const char *Signal = ml_string_value(Args[1]);
-	GISignalInfo *SignalInfo = NULL;
-	if (GI_IS_OBJECT_INFO(Instance->Type->Info)) {
-		SignalInfo = g_object_info_find_signal(Instance->Type->Info, Signal);
-	} else if (GI_IS_INTERFACE_INFO(Instance->Type->Info)) {
-		SignalInfo = g_interface_info_find_signal(Instance->Type->Info, Signal);
-	}
+	GISignalInfo *SignalInfo = (GISignalInfo *)stringmap_search(Instance->Type->Signals, Signal);
 	if (!SignalInfo) return ml_error("NameError", "Signal %s not found", Signal);
 	GClosure *Closure = g_closure_new_simple(sizeof(GClosure), SignalInfo);
 	g_closure_set_meta_marshal(Closure, Args[2], (GClosureMarshal)__marshal);
