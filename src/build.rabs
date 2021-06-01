@@ -117,6 +117,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_COMPLEX := 1
 	MINILANG_GIR := 1
 	MINILANG_CBOR := 1
+	MINILANG_JSON := 1
 	MINILANG_MODULES := 1
 	MINILANG_SCHEDULER := 1
 	MINILANG_TRE := 1
@@ -135,6 +136,7 @@ MINILANG_COMPLEX := old or defined("COMPLEX")
 MINILANG_IO := old or defined("IO")
 MINILANG_GIR := old or defined("GIR")
 MINILANG_CBOR := old or defined("CBOR")
+MINILANG_JSON := old or defined("JSON")
 MINILANG_MODULES := old or defined("MODULES")
 MINILANG_SCHEDULER := MINILANG_MODULES or old or defined("SCHEDULER")
 MINILANG_THREADSAFE := old or defined("THREADSAFE")
@@ -231,6 +233,13 @@ if MINILANG_CBOR then
 		file("minicbor/minicbor_writer.o")
 	)
 	InstallHeaders:put("ml_cbor.h")
+end
+
+if MINILANG_JSON then
+	CFLAGS := old + ['-DML_JSON']
+	LDFLAGS := old + ["-lyajl"]
+	Objects:put(file("ml_json.o"))
+	InstallHeaders:put("ml_json.h")
 end
 
 if MINILANG_BACKTRACE then

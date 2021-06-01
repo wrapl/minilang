@@ -29,6 +29,10 @@
 #include "ml_cbor.h"
 #endif
 
+#ifdef ML_JSON
+#include "ml_json.h"
+#endif
+
 #ifdef ML_MODULES
 #include "ml_module.h"
 #include "ml_library.h"
@@ -247,6 +251,9 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "test", MLTest);
 #ifdef ML_CBOR
 	ml_cbor_init(Globals);
+#endif
+#ifdef ML_JSON
+	ml_json_init(Globals);
 #endif
 #ifdef ML_MATH
 	ml_math_init(Globals);

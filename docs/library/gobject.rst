@@ -7,7 +7,9 @@ gobject
    A gobject-introspection typelib.
 
 
-:mini:`type ObjectT < type`
+:mini:`type BaseInfoT < type`
+
+:mini:`type ObjectT < BaseInfoT`
    A gobject-introspection object type.
 
 
@@ -17,7 +19,7 @@ gobject
 
 :mini:`meth string(Object: ObjectInstanceT)` |rarr| :mini:`string`
 
-:mini:`type StructT < type`
+:mini:`type StructT < BaseInfoT`
    A gobject-introspection struct type.
 
 
@@ -27,7 +29,7 @@ gobject
 
 :mini:`meth string(Struct: StructInstanceT)` |rarr| :mini:`string`
 
-:mini:`type EnumT < type`
+:mini:`type EnumT < BaseInfoT`
    A gobject-instrospection enum type.
 
 
@@ -38,6 +40,10 @@ gobject
 :mini:`meth string(Value: EnumValueT)` |rarr| :mini:`string`
 
 :mini:`meth integer(Value: EnumValueT)` |rarr| :mini:`integer`
+
+:mini:`meth |(Value₁: EnumValueT, Value₂: nil)` |rarr| :mini:`EnumValueT`
+
+:mini:`meth |(Value₁: nil, Value₂: EnumValueT)` |rarr| :mini:`EnumValueT`
 
 :mini:`meth |(Value₁: EnumValueT, Value₂: EnumValueT)` |rarr| :mini:`EnumValueT`
 
