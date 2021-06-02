@@ -146,24 +146,24 @@ static void console_step_in(GtkWidget *Button, console_t *Console) {
 static void console_step_over(GtkWidget *Button, console_t *Console) {
 	ml_parser_t *Parser = Console->Parser;
 	ml_compiler_t *Compiler = Console->Compiler;
-	ml_parser_reset(Compiler);
-	ml_parser_input(Compiler, "step_over()");
+	ml_parser_reset(Parser);
+	ml_parser_input(Parser, "step_over()");
 	ml_command_evaluate((ml_state_t *)Console, Parser, Compiler);
 }
 
 static void console_step_out(GtkWidget *Button, console_t *Console) {
 	ml_parser_t *Parser = Console->Parser;
 	ml_compiler_t *Compiler = Console->Compiler;
-	ml_parser_reset(Compiler);
-	ml_parser_input(Compiler, "step_out()");
+	ml_parser_reset(Parser);
+	ml_parser_input(Parser, "step_out()");
 	ml_command_evaluate((ml_state_t *)Console, Parser, Compiler);
 }
 
 static void console_continue(GtkWidget *Button, console_t *Console) {
 	ml_parser_t *Parser = Console->Parser;
 	ml_compiler_t *Compiler = Console->Compiler;
-	ml_parser_reset(Compiler);
-	ml_parser_input(Compiler, "continue()");
+	ml_parser_reset(Parser);
+	ml_parser_input(Parser, "continue()");
 	ml_command_evaluate((ml_state_t *)Console, Parser, Compiler);
 }
 
@@ -201,8 +201,8 @@ gtk_source_buffer_set_highlight_matching_brackets(GTK_SOURCE_BUFFER(InputBuffer)
 
 	ml_parser_t *Parser = Console->Parser;
 	ml_compiler_t *Compiler = Console->Compiler;
-	ml_parser_reset(Compiler);
-	ml_parser_input(Compiler, Text);
+	ml_parser_reset(Parser);
+	ml_parser_input(Parser, Text);
 	ml_command_evaluate((ml_state_t *)Console, Parser, Compiler);
 }
 
@@ -640,7 +640,7 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 	Console->HistoryEnd = 0;
 	Console->Parser = ml_parser(NULL, NULL);
 	Console->Compiler = ml_compiler((ml_getter_t)console_global_get, Console);
-	ml_parser_source(Console->Compiler, (ml_source_t){Console->Name, 0});
+	ml_parser_source(Console->Parser, (ml_source_t){Console->Name, 0});
 	Console->Notebook = GTK_NOTEBOOK(gtk_notebook_new());
 
 #ifdef ML_SCHEDULER
