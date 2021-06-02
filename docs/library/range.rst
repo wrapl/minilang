@@ -35,9 +35,19 @@ range
 
 :mini:`meth :by(Range: realrange, Step: number)` |rarr| :mini:`realrange`
 
+:mini:`meth :in(Range: integerrange, Count: integer)` |rarr| :mini:`realrange`
+
 :mini:`meth :in(Range: realrange, Count: integer)` |rarr| :mini:`realrange`
 
 :mini:`meth :by(Range: integerrange, Step: real)` |rarr| :mini:`realrange`
+
+:mini:`meth :bin(Range: integerrange, Value: integer)` |rarr| :mini:`integer` or :mini:`nil`
+
+:mini:`meth :bin(Range: integerrange, Value: real)` |rarr| :mini:`integer` or :mini:`nil`
+
+:mini:`meth :bin(Range: realrange, Value: integer)` |rarr| :mini:`integer` or :mini:`nil`
+
+:mini:`meth :bin(Range: realrange, Value: real)` |rarr| :mini:`integer` or :mini:`nil`
 
 :mini:`meth :count(X: realrange)` |rarr| :mini:`integer`
 

@@ -2464,7 +2464,7 @@ static const char *ml_function_read(ml_value_t *Function) {
 }
 
 ML_FUNCTION(MLParser) {
-//@parser
+//@compiler
 	void *Input = NULL;
 	ml_reader_t Reader = ml_parser_no_input;
 	if (Count > 0) {
@@ -2475,7 +2475,7 @@ ML_FUNCTION(MLParser) {
 }
 
 ML_TYPE(MLParserT, (), "parser",
-	//.Constructor = (ml_value_t *)MLParser
+	.Constructor = (ml_value_t *)MLParser
 );
 
 ml_parser_t *ml_parser(ml_reader_t Read, void *Data) {
@@ -4333,7 +4333,7 @@ ML_METHODX("compile", MLParserT, MLCompilerT, MLListT) {
 	if (!Expr) ML_RETURN(Parser->Value);
 	const char **Parameters = anew(const char *, ml_list_length(Args[2]));
 	int I = 0;
-	ML_LIST_FOREACH(Args[1], Iter) {
+	ML_LIST_FOREACH(Args[2], Iter) {
 		if (!ml_is(Iter->Value, MLStringT)) ML_ERROR("TypeError", "Parameter name must be a string");
 		Parameters[I++] = ml_string_value(Iter->Value);
 	}

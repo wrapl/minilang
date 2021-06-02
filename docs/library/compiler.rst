@@ -9,21 +9,25 @@ compiler
 
 :mini:`type compiler < state`
 
-:mini:`meth :compile(Compiler: compiler)` |rarr| :mini:`any`
+:mini:`fun compiler()`
 
-:mini:`meth :compile(Compiler: compiler, Parameters: list)` |rarr| :mini:`any`
+:mini:`type parser`
 
-:mini:`meth :source(Compiler: compiler, Source: string, Line: integer)` |rarr| :mini:`tuple`
+:mini:`meth :compile(Parser: parser, Compiler: compiler)` |rarr| :mini:`any`
 
-:mini:`meth :reset(Compiler: compiler)` |rarr| :mini:`compiler`
+:mini:`meth :compile(Parser: parser, Compiler: compiler, Parameters: list)` |rarr| :mini:`any`
 
-:mini:`meth :input(Compiler: compiler, String: string)` |rarr| :mini:`compiler`
+:mini:`meth :source(Parser: parser, Source: string, Line: integer)` |rarr| :mini:`tuple`
 
-:mini:`meth :clear(Compiler: compiler)` |rarr| :mini:`string`
+:mini:`meth :reset(Parser: parser)` |rarr| :mini:`parser`
 
-:mini:`meth :evaluate(Compiler: compiler)` |rarr| :mini:`any`
+:mini:`meth :input(Parser: parser, String: string)` |rarr| :mini:`compiler`
 
-:mini:`meth :run(Compiler: compiler)` |rarr| :mini:`any`
+:mini:`meth :clear(Parser: parser)` |rarr| :mini:`string`
+
+:mini:`meth :evaluate(Parser: parser, Compiler: compiler)` |rarr| :mini:`any`
+
+:mini:`meth :run(Compiler: parser, Arg₂: compiler)` |rarr| :mini:`any`
 
 :mini:`meth (Compiler: compiler)[Name: string]` |rarr| :mini:`any`
 

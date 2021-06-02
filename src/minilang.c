@@ -245,6 +245,7 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "swapcc", MLSwapCC);
 	stringmap_insert(Globals, "channel", MLChannelT);
 	stringmap_insert(Globals, "context", MLContextKeyT);
+	stringmap_insert(Globals, "parser", MLParserT);
 	stringmap_insert(Globals, "compiler", MLCompilerT);
 	stringmap_insert(Globals, "global", ml_stringmap_globals(Globals));
 	stringmap_insert(Globals, "globals", ml_cfunction(Globals, (void *)ml_globals));
