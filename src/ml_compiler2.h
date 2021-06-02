@@ -1,6 +1,7 @@
-#ifndef ML_PARSER_H
-#define ML_PARSER_H
+#ifndef ML_COMPILER2_H
+#define ML_COMPILER2_H
 
+#include "ml_compiler.h"
 #include "ml_bytecode.h"
 
 typedef enum ml_token_t {
@@ -64,7 +65,6 @@ typedef enum ml_token_t {
 	MLT_METHOD
 } ml_token_t;
 
-typedef struct mlc_expr_t mlc_expr_t;
 typedef struct mlc_function_t mlc_function_t;
 typedef struct mlc_frame_t mlc_frame_t;
 typedef struct mlc_loop_t mlc_loop_t;
@@ -76,6 +76,7 @@ typedef struct mlc_define_t mlc_define_t;
 struct mlc_expr_t {
 	void (*compile)(mlc_function_t *, mlc_expr_t *, int);
 	mlc_expr_t *Next;
+	const char *Source;
 	int StartLine, EndLine;
 };
 
@@ -153,6 +154,7 @@ ml_expr_type_t mlc_expr_type(mlc_expr_t *Expr);
 #define MLC_EXPR_FIELDS(name) \
 	void (*compile)(mlc_function_t *, mlc_## name ## _expr_t *, int); \
 	mlc_expr_t *Next; \
+	const char *Source; \
 	int StartLine, EndLine;
 
 typedef struct mlc_value_expr_t mlc_value_expr_t;
@@ -278,7 +280,6 @@ struct mlc_fun_expr_t {
 	mlc_param_t *Params;
 	mlc_expr_t *Body;
 	mlc_expr_t *ReturnType;
-	const char *Source;
 };
 
 typedef struct mlc_ident_expr_t mlc_ident_expr_t;

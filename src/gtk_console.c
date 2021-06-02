@@ -41,6 +41,7 @@ struct console_t {
 	const char *FontName;
 	GKeyFile *Config;
 	PangoFontDescription *FontDescription;
+	ml_parser_t *Parser;
 	ml_compiler_t *Compiler;
 	char *History[MAX_HISTORY];
 	int HistoryIndex, HistoryEnd;
@@ -131,35 +132,39 @@ static void ml_console_repl_run(console_t *Console, ml_value_t *Result) {
 		gtk_widget_grab_focus(Console->InputView);
 		return;
 	}
-	return ml_command_evaluate((ml_state_t *)Console, Console->Compiler);
+	return ml_command_evaluate((ml_state_t *)Console, Console->Parser, Console->Compiler);
 }
 
 static void console_step_in(GtkWidget *Button, console_t *Console) {
+	ml_parser_t *Parser = Console->Parser;
 	ml_compiler_t *Compiler = Console->Compiler;
-	ml_compiler_reset(Compiler);
-	ml_compiler_input(Compiler, "step_in()");
-	ml_command_evaluate((ml_state_t *)Console, Compiler);
+	ml_parser_reset(Parser);
+	ml_parser_input(Parser, "step_in()");
+	ml_command_evaluate((ml_state_t *)Console, Parser, Compiler);
 }
 
 static void console_step_over(GtkWidget *Button, console_t *Console) {
+	ml_parser_t *Parser = Console->Parser;
 	ml_compiler_t *Compiler = Console->Compiler;
-	ml_compiler_reset(Compiler);
-	ml_compiler_input(Compiler, "step_over()");
-	ml_command_evaluate((ml_state_t *)Console, Compiler);
+	ml_parser_reset(Compiler);
+	ml_parser_input(Compiler, "step_over()");
+	ml_command_evaluate((ml_state_t *)Console, Parser, Compiler);
 }
 
 static void console_step_out(GtkWidget *Button, console_t *Console) {
+	ml_parser_t *Parser = Console->Parser;
 	ml_compiler_t *Compiler = Console->Compiler;
-	ml_compiler_reset(Compiler);
-	ml_compiler_input(Compiler, "step_out()");
-	ml_command_evaluate((ml_state_t *)Console, Compiler);
+	ml_parser_reset(Compiler);
+	ml_parser_input(Compiler, "step_out()");
+	ml_command_evaluate((ml_state_t *)Console, Parser, Compiler);
 }
 
 static void console_continue(GtkWidget *Button, console_t *Console) {
+	ml_parser_t *Parser = Console->Parser;
 	ml_compiler_t *Compiler = Console->Compiler;
-	ml_compiler_reset(Compiler);
-	ml_compiler_input(Compiler, "continue()");
-	ml_command_evaluate((ml_state_t *)Console, Compiler);
+	ml_parser_reset(Compiler);
+	ml_parser_input(Compiler, "continue()");
+	ml_command_evaluate((ml_state_t *)Console, Parser, Compiler);
 }
 
 static void console_submit(GtkWidget *Button, console_t *Console) {
@@ -194,10 +199,11 @@ gtk_source_buffer_set_highlight_matching_brackets(GTK_SOURCE_BUFFER(InputBuffer)
 	gtk_text_buffer_get_end_iter(LogBuffer, End);
 	gtk_text_buffer_insert(LogBuffer, End, "\n", 1);
 
+	ml_parser_t *Parser = Console->Parser;
 	ml_compiler_t *Compiler = Console->Compiler;
-	ml_compiler_reset(Compiler);
-	ml_compiler_input(Compiler, Text);
-	ml_command_evaluate((ml_state_t *)Console, Compiler);
+	ml_parser_reset(Compiler);
+	ml_parser_input(Compiler, Text);
+	ml_command_evaluate((ml_state_t *)Console, Parser, Compiler);
 }
 
 static void console_debug_enter(console_t *Console, interactive_debugger_t *Debugger, ml_source_t Source, int Index) {
@@ -632,8 +638,9 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 	Console->ParentGlobals = Globals;
 	Console->HistoryIndex = 0;
 	Console->HistoryEnd = 0;
-	Console->Compiler = ml_compiler((ml_getter_t)console_global_get, Console, NULL, NULL);
-	ml_compiler_source(Console->Compiler, (ml_source_t){Console->Name, 0});
+	Console->Parser = ml_parser(NULL, NULL);
+	Console->Compiler = ml_compiler((ml_getter_t)console_global_get, Console);
+	ml_parser_source(Console->Compiler, (ml_source_t){Console->Name, 0});
 	Console->Notebook = GTK_NOTEBOOK(gtk_notebook_new());
 
 #ifdef ML_SCHEDULER

@@ -56,11 +56,11 @@ static void ml_module_init_run(ml_module_state_t *State, ml_value_t *Value) {
 	return ml_call(State, Value, 1, State->Args);
 }
 
-void ml_module_compile(ml_state_t *Caller, ml_compiler_t *Scanner, ml_value_t **Slot) {
+void ml_module_compile(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t *Compiler, ml_value_t **Slot) {
 	static const char *Parameters[] = {"export", NULL};
 	ml_module_t *Module = new(ml_module_t);
 	Module->Type = MLMiniModuleT;
-	Module->Path = ml_compiler_name(Scanner);
+	Module->Path = ml_parser_name(Parser);
 	Slot[0] = (ml_value_t *)Module;
 	ml_module_state_t *State = new(ml_module_state_t);
 	State->Base.Type = MLModuleStateT;
@@ -69,7 +69,9 @@ void ml_module_compile(ml_state_t *Caller, ml_compiler_t *Scanner, ml_value_t **
 	State->Base.Caller = Caller;
 	State->Module = (ml_value_t *)Module;
 	State->Args[0] = ml_cfunctionz(Module, (ml_callbackx_t)ml_export);
-	ml_function_compile((ml_state_t *)State, Scanner, Parameters);
+	mlc_expr_t *Expr = ml_accept_file(Parser);
+	if (!Expr) ML_RETURN(ml_parser_value(Parser));
+	ml_function_compile((ml_state_t *)State, Expr, Compiler, Parameters);
 }
 
 void ml_module_load_file(ml_state_t *Caller, const char *FileName, ml_getter_t GlobalGet, void *Globals, ml_value_t **Slot) {

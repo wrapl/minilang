@@ -1745,12 +1745,29 @@ static void interface_add_methods(object_t *Object, GIInterfaceInfo *Info) {
 	}
 }
 
+static void object_add_signals(object_t *Object, GIObjectInfo *Info) {
+	int NumSignals = g_object_info_get_n_signals(Info);
+	for (int I = 0; I < NumSignals; ++I) {
+		GISignalInfo *SignalInfo = g_object_info_get_signal(Info, I);
+		const char *SignalName = g_base_info_get_name((GIBaseInfo *)SignalInfo);
+		stringmap_insert(Object->Signals, SignalName, SignalInfo);
+	}
+}
+
 static void object_add_methods(object_t *Object, GIObjectInfo *Info) {
-	GIObjectInfo *Parent = g_object_info_get_parent(Info);
-	if (Parent) object_add_methods(Object, Parent);
+	object_add_signals(Object, Info);
+	GIObjectInfo *ParentInfo = g_object_info_get_parent(Info);
+	while (ParentInfo) {
+		object_add_signals(Object, ParentInfo);
+		ml_type_t *Parent = object_info_lookup(ParentInfo);
+		ml_type_add_parent((ml_type_t *)Object, Parent);
+		ParentInfo = g_object_info_get_parent(ParentInfo);
+	}
 	int NumInterfaces = g_object_info_get_n_interfaces(Info);
 	for (int I = 0; I < NumInterfaces; ++I) {
-		interface_add_methods(Object, g_object_info_get_interface(Info, I));
+		GIInterfaceInfo *InterfaceInfo = g_object_info_get_interface(Info, I);
+		ml_type_t *Interface = interface_info_lookup(InterfaceInfo);
+		ml_type_add_parent((ml_type_t *)Object, Interface);
 	}
 	int NumMethods = g_object_info_get_n_methods(Info);
 	for (int I = 0; I < NumMethods; ++I) {
@@ -1762,12 +1779,6 @@ static void object_add_methods(object_t *Object, GIObjectInfo *Info) {
 		} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
 			stringmap_insert(Object->Base.Exports, MethodName, ml_cfunction(MethodInfo, (void *)constructor_invoke));
 		}
-	}
-	int NumSignals = g_object_info_get_n_signals(Info);
-	for (int I = 0; I < NumSignals; ++I) {
-		GISignalInfo *SignalInfo = g_object_info_get_signal(Info, I);
-		const char *SignalName = g_base_info_get_name((GIBaseInfo *)SignalInfo);
-		stringmap_insert(Object->Signals, SignalName, SignalInfo);
 	}
 }
 

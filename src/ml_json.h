@@ -1,5 +1,5 @@
-#ifndef ML_JSENCODE_H
-#define ML_JSENCODE_H
+#ifndef ML_JSON_H
+#define ML_JSON_H
 
 #include "minilang.h"
 

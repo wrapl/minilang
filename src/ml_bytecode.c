@@ -881,7 +881,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			if (Frame->StepOver) goto DO_BREAKPOINT;
 			if (Inst->Opcode == MLI_RETURN && Frame->StepOut) goto DO_BREAKPOINT;
 			int Line = Inst->Line;
-			if (Frame->Breakpoints[Line / SIZE_BITS] & (1 << Line % SIZE_BITS)) goto DO_BREAKPOINT;
+			if (Frame->Breakpoints[Line / SIZE_BITS] & (1L << Line % SIZE_BITS)) goto DO_BREAKPOINT;
 		}
 		CHECK_COUNTER
 		Line = Inst->Line;
@@ -1015,7 +1015,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	size_t *Breakpoints = Frame->Breakpoints = Debugger->breakpoints(Debugger, Frame->Source, Info->EndLine);
 	Frame->Decls = Info->Decls;
 	int Line = Frame->Inst->Line;
-	if (Breakpoints[Line / SIZE_BITS] & (1 << Line % SIZE_BITS)) {
+	if (Breakpoints[Line / SIZE_BITS] & (1L << Line % SIZE_BITS)) {
 		return Debugger->run(Debugger, (ml_state_t *)Frame, MLNil);
 	}
 #else

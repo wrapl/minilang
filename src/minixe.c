@@ -625,10 +625,11 @@ ML_FUNCTIONX(XEFunction) {
 	Stream->Data = ml_stringbuffer_get(Source);
 	//printf("Function = %s\n", (char *)Stream->Data);
 	Stream->read = string_read;
-	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)attribute_get, Attributes, (void *)string_read, Stream);
-	ml_compiler_source(Compiler, ml_debugger_source(Caller));
+	ml_parser_t *Parser = ml_parser((void *)string_read, Stream);
+	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)attribute_get, Attributes);
+	ml_parser_source(Parser, ml_debugger_source(Caller));
 	ml_result_state_t *State = ml_result_state_new(Caller->Context);
-	ml_command_evaluate((ml_state_t *)State, Compiler);
+	ml_command_evaluate((ml_state_t *)State, Parser, Compiler);
 	ml_value_t *Macro = State->Value;
 	if (Macro == MLEndOfInput) Macro = ml_error("ParseError", "Empty body");
 	if (ml_is_error(Macro)) ML_RETURN(Macro);
@@ -698,11 +699,12 @@ ML_FUNCTIONX(XEDo) {
 	Stream->Data = ml_stringbuffer_get(Source);
 	//printf("Do = %s\n", (char *)Stream->Data);
 	Stream->read = string_read;
-	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)attribute_get, Attributes, (void *)string_read, Stream);
-	ml_compiler_source(Compiler, ml_debugger_source(Caller));
+	ml_parser_t *Parser = ml_parser((void *)string_read, Stream);
+	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)attribute_get, Attributes);
+	ml_parser_source(Parser, ml_debugger_source(Caller));
 	ml_result_state_t *State = ml_result_state_new(Caller->Context);
 	for (;;) {
-		ml_command_evaluate((ml_state_t *)State, Compiler);
+		ml_command_evaluate((ml_state_t *)State, Parser, Compiler);
 		if (State->Value == MLEndOfInput) break;
 		if (ml_is_error(State->Value)) {
 			Result = State->Value;
@@ -729,12 +731,13 @@ ML_FUNCTIONX(XEDo2) {
 	Stream->Data = ml_stringbuffer_get(Source);
 	//printf("Do = %s\n", (char *)Stream->Data);
 	Stream->read = string_read;
-	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)attribute_get, Attributes, (void *)string_read, Stream);
-	ml_compiler_source(Compiler, ml_debugger_source(Caller));
+	ml_parser_t *Parser = ml_parser((void *)string_read, Stream);
+	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)attribute_get, Attributes);
+	ml_parser_source(Parser, ml_debugger_source(Caller));
 	ml_value_t *Result = MLNil;
 	ml_result_state_t *State = ml_result_state_new(Caller->Context);
 	for (;;) {
-		ml_command_evaluate((ml_state_t *)State, Compiler);
+		ml_command_evaluate((ml_state_t *)State, Parser, Compiler);
 		if (State->Value == MLEndOfInput) break;
 		if (ml_is_error(State->Value)) {
 			Result = State->Value;
