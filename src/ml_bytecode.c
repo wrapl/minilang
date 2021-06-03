@@ -843,14 +843,10 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
 			ERROR();
 		}
-		int Index = ml_integer_value_fast(Result);
 		int Count = Inst[1].Count;
-		if (Index <= 0 || Index > Count) {
-			Result = ml_error("TypeError", "case %d outside range [1, %d]", Index, Count);
-			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
-			ERROR();
-		}
-		ADVANCE(Inst[2].Insts[Index - 1]);
+		int Index = ml_integer_value_fast(Result) - 1;
+		if (Index < 0 || Index >= Count) Index = Count - 1;
+		ADVANCE(Inst[2].Insts[Index]);
 	}
 	DO_IF_DEBUG: {
 #ifdef DEBUG_VERSION

@@ -443,9 +443,9 @@ typedef struct {
 	ml_inst_t *Exits;
 	ml_inst_t **Insts;
 	int Flags;
-} mlc_case_expr_frame_t;
+} mlc_switch_expr_frame_t;
 
-static void ml_case_expr_compile3(mlc_function_t *Function, ml_value_t *Value, mlc_case_expr_frame_t *Frame) {
+static void ml_switch_expr_compile3(mlc_function_t *Function, ml_value_t *Value, mlc_switch_expr_frame_t *Frame) {
 	mlc_expr_t *Child = Frame->Child;
 	if (Child->Next) {
 		ml_inst_t *GotoInst = MLC_EMIT(Child->EndLine, MLI_GOTO, 1);
@@ -464,7 +464,7 @@ static void ml_case_expr_compile3(mlc_function_t *Function, ml_value_t *Value, m
 	MLC_RETURN(NULL);
 }
 
-static void ml_case_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_case_expr_frame_t *Frame) {
+static void ml_switch_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_switch_expr_frame_t *Frame) {
 	mlc_expr_t *Child = Frame->Child;
 	int Count = 0;
 	for (mlc_expr_t *Next = Child->Next; Next; Next = Next->Next) ++Count;
@@ -472,13 +472,13 @@ static void ml_case_expr_compile2(mlc_function_t *Function, ml_value_t *Value, m
 	SwitchInst[1].Count = Count;
 	Frame->Insts = SwitchInst[2].Insts = anew(ml_inst_t *, Count);
 	Frame->Child = Child = Child->Next;
-	Function->Frame->run = (mlc_frame_fn)ml_case_expr_compile3;
+	Function->Frame->run = (mlc_frame_fn)ml_switch_expr_compile3;
 	*Frame->Insts++ = Function->Next;
 	return mlc_compile(Function, Child, 0);
 }
 
-static void ml_case_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
-	MLC_FRAME(mlc_case_expr_frame_t, ml_case_expr_compile2);
+static void ml_switch_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
+	MLC_FRAME(mlc_switch_expr_frame_t, ml_switch_expr_compile2);
 	Frame->Expr = Expr;
 	Frame->Flags = Flags;
 	Frame->Exits = NULL;
@@ -3434,10 +3434,17 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 	}
 	case MLT_SWITCH: {
 		ml_next(Parser);
-		ML_EXPR(CaseExpr, parent, case);
+		ML_EXPR(CaseExpr, parent, switch);
 		mlc_expr_t *Child = CaseExpr->Child = ml_accept_expression(Parser, EXPR_DEFAULT);
 		while (ml_parse2(Parser, MLT_CASE)) {
 			Child = Child->Next = ml_accept_block(Parser);
+		}
+		if (ml_parse2(Parser, MLT_ELSE)) {
+			Child->Next = ml_accept_block(Parser);
+		} else {
+			mlc_expr_t *NilExpr = new(mlc_expr_t);
+			NilExpr->compile = ml_nil_expr_compile;
+			Child->Next = ML_EXPR_END(NilExpr);
 		}
 		ml_accept(Parser, MLT_END);
 		return ML_EXPR_END(CaseExpr);
