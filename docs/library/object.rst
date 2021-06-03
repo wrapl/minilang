@@ -23,17 +23,39 @@ object
 
 :mini:`fun mlproperty(Arg₁: function, Arg₂: function)`
 
-:mini:`type enumvalue`
+:mini:`type enumvalue < int64`
 
-:mini:`meth integer(Arg₁: enumvalue)`
+:mini:`type enumvalue < integer`
 
 :mini:`meth string(Arg₁: enumvalue)`
 
-:mini:`fun mlenum(Arg₁: string)`
+:mini:`fun mlenum(Arg₁: string, Arg₂: list)`
 
-:mini:`type enum < type`
+:mini:`type enum < type, iteratable`
 
 :mini:`meth :count(Arg₁: enum)`
 
-:mini:`meth ::(Arg₁: enum, Arg₂: string)`
+:mini:`type enumiter`
+
+:mini:`type flagsvalue < int64`
+
+:mini:`type flagsvalue < integer`
+
+:mini:`meth string(Arg₁: flagsvalue)`
+
+:mini:`fun mlflags(Arg₁: string, Arg₂: list)`
+
+:mini:`type flags < type`
+
+:mini:`meth +(Arg₁: flagsvalue, Arg₂: flagsvalue)`
+
+:mini:`meth -(Arg₁: flagsvalue, Arg₂: flagsvalue)`
+
+:mini:`meth <(Arg₁: flagsvalue, Arg₂: flagsvalue)`
+
+:mini:`meth <=(Arg₁: flagsvalue, Arg₂: flagsvalue)`
+
+:mini:`meth >(Arg₁: flagsvalue, Arg₂: flagsvalue)`
+
+:mini:`meth >=(Arg₁: flagsvalue, Arg₂: flagsvalue)`
 
