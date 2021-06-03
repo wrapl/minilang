@@ -422,7 +422,7 @@ inline complex double ml_complex_value_fast(const ml_value_t *Value) {
 #ifdef ML_NANBOXING
 
 typedef struct {
-	const ml_type_t *Type;
+	ml_type_t *Type;
 	int64_t Value;
 } ml_int64_t;
 
@@ -462,7 +462,7 @@ static inline double ml_to_double(const ml_value_t *Value) {
 	return Boxed.Double;
 }
 
-static inline long ml_integer_value_fast(const ml_value_t *Value) {
+static inline int64_t ml_integer_value_fast(const ml_value_t *Value) {
 	if (ml_tag(Value) == 1) return (int32_t)(intptr_t)Value;
 	return ((ml_int64_t *)Value)->Value;
 }
@@ -478,10 +478,10 @@ ml_value_t *ml_real(double Value) __attribute__((malloc));
 
 typedef struct {
 	ml_type_t *Type;
-	long Value;
+	int64_t Value;
 } ml_integer_t;
 
-inline long ml_integer_value_fast(const ml_value_t *Value) {
+inline int64_t ml_integer_value_fast(const ml_value_t *Value) {
 	return ((ml_integer_t *)Value)->Value;
 }
 

@@ -150,6 +150,7 @@ MINILANG_UUID := old or defined("UUID")
 MINILANG_LIBS := old or defined("LIBS")
 MINILANG_BACKTRACE := old or defined("BACKTRACE")
 MINILANG_JSENCODE := old or defined("JSENCODE")
+MINILANG_SQLITE := old or defined("SQLITE")
 
 file("config.h") => fun(Target) do
 	let File := Target:open("w")
@@ -307,6 +308,13 @@ if MINILANG_JSENCODE then
 	CFLAGS := old + ["-DML_JSENCODE"]
 	LDFLAGS := old + ["-ljansson"]
 	InstallHeaders:put("ml_jsencode.h")
+end
+
+if MINILANG_SQLITE then
+	Objects:put(file("ml_sqlite.o"))
+	CFLAGS := old + ["-DML_SQLITE"]
+	LDFLAGS := old + ["-lsqlite3"]
+	InstallHeaders:put("ml_sqlite.h")
 end
 
 if PLATFORM = "Linux" then

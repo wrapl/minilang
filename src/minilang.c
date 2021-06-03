@@ -58,6 +58,10 @@
 #include "ml_jsencode.h"
 #endif
 
+#ifdef ML_SQLITE
+#include "ml_sqlite.h"
+#endif
+
 #ifdef ML_BACKTRACE
 #include <backtrace.h>
 #endif
@@ -287,6 +291,9 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_JSENCODE
 	ml_jsencode_init(Globals);
+#endif
+#ifdef ML_SQLITE
+	ml_sqlite_init(Globals);
 #endif
 	ml_value_t *Args = ml_list();
 	const char *FileName = 0;
