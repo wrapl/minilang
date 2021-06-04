@@ -83,92 +83,92 @@ typedef struct {
 	int Index, Status;
 } ml_sqlite_stmt_t;
 
-static void ml_sqlite_stmt_call(ml_state_t *Caller, ml_sqlite_stmt_t *Stat, int Count, ml_value_t **Args) {
-	sqlite3_reset(Stat->Handle);
+static void ml_sqlite_stmt_call(ml_state_t *Caller, ml_sqlite_stmt_t *Stmt, int Count, ml_value_t **Args) {
+	sqlite3_reset(Stmt->Handle);
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Arg = Args[I];
 		int Status;
 		if (Arg == MLNil) {
-			Status = sqlite3_bind_null(Stat->Handle, I + 1);
+			Status = sqlite3_bind_null(Stmt->Handle, I + 1);
 		} else if (ml_is(Arg, MLIntegerT)) {
-			Status = sqlite3_bind_int64(Stat->Handle, I + 1, ml_integer_value(Arg));
+			Status = sqlite3_bind_int64(Stmt->Handle, I + 1, ml_integer_value(Arg));
 		} else if (ml_is(Arg, MLBooleanT)) {
-			Status = sqlite3_bind_int(Stat->Handle, I + 1, ml_boolean_value(Arg));
+			Status = sqlite3_bind_int(Stmt->Handle, I + 1, ml_boolean_value(Arg));
 		} else if (ml_is(Arg, MLRealT)) {
-			Status = sqlite3_bind_double(Stat->Handle, I + 1, ml_real_value(Arg));
+			Status = sqlite3_bind_double(Stmt->Handle, I + 1, ml_real_value(Arg));
 		} else if (ml_is(Arg, MLStringT)) {
-			Status = sqlite3_bind_text(Stat->Handle, I + 1, ml_string_value(Arg), ml_string_length(Arg), SQLITE_STATIC);
+			Status = sqlite3_bind_text(Stmt->Handle, I + 1, ml_string_value(Arg), ml_string_length(Arg), SQLITE_STATIC);
 		} else if (ml_is(Arg, MLIntegerT)) {
-			Status = sqlite3_bind_int64(Stat->Handle, I + 1, ml_integer_value(Arg));
+			Status = sqlite3_bind_int64(Stmt->Handle, I + 1, ml_integer_value(Arg));
 		} else {
 			ML_ERROR("SqliteError", "Unsupported parameter type %s", ml_typeof(Arg)->Name);
 		}
 		if (Status != SQLITE_OK) {
-			ML_ERROR("SqliteError", "Error binding parameter: %s", sqlite3_errmsg(Stat->Sqlite));
+			ML_ERROR("SqliteError", "Error binding parameter: %s", sqlite3_errmsg(Stmt->Sqlite));
 		}
 	}
-	Stat->Status = sqlite3_step(Stat->Handle);
-	if (Stat->Status == SQLITE_ERROR) {
-		ML_ERROR("SqliteError", "Error executing statement: %s", sqlite3_errmsg(Stat->Sqlite));
+	Stmt->Status = sqlite3_step(Stmt->Handle);
+	if (Stmt->Status == SQLITE_ERROR) {
+		ML_ERROR("SqliteError", "Error executing statement: %s", sqlite3_errmsg(Stmt->Sqlite));
 	}
-	Stat->Index = 1;
-	ML_RETURN(Stat);
+	Stmt->Index = 1;
+	ML_RETURN(Stmt);
 }
 
 ML_TYPE(MLSqliteStmtT, (MLIteratableT), "sqlite-statement",
 	.call = (void *)ml_sqlite_stmt_call
 );
 
-static void ml_sqlite_stat_finalize(ml_sqlite_stmt_t *Stat, void *Data) {
-	sqlite3_finalize(Stat->Handle);
+static void ml_sqlite_stat_finalize(ml_sqlite_stmt_t *Stmt, void *Data) {
+	sqlite3_finalize(Stmt->Handle);
 }
 
-static void ML_TYPED_FN(ml_iterate, MLSqliteStmtT, ml_state_t *Caller, ml_sqlite_stmt_t *Stat) {
-	if (Stat->Status == SQLITE_ROW) ML_RETURN(Stat);
+static void ML_TYPED_FN(ml_iterate, MLSqliteStmtT, ml_state_t *Caller, ml_sqlite_stmt_t *Stmt) {
+	if (Stmt->Status == SQLITE_ROW) ML_RETURN(Stmt);
 	ML_RETURN(MLNil);
 }
 
-static void ML_TYPED_FN(ml_iter_next, MLSqliteStmtT, ml_state_t *Caller, ml_sqlite_stmt_t *Stat) {
-	Stat->Status = sqlite3_step(Stat->Handle);
-	if (Stat->Status == SQLITE_ERROR) {
-		ML_ERROR("SqliteError", "Error executing statement: %s", sqlite3_errmsg(Stat->Sqlite));
-	} else if (Stat->Status == SQLITE_ROW) {
-		++Stat->Index;
-		ML_RETURN(Stat);
+static void ML_TYPED_FN(ml_iter_next, MLSqliteStmtT, ml_state_t *Caller, ml_sqlite_stmt_t *Stmt) {
+	Stmt->Status = sqlite3_step(Stmt->Handle);
+	if (Stmt->Status == SQLITE_ERROR) {
+		ML_ERROR("SqliteError", "Error executing statement: %s", sqlite3_errmsg(Stmt->Sqlite));
+	} else if (Stmt->Status == SQLITE_ROW) {
+		++Stmt->Index;
+		ML_RETURN(Stmt);
 	}
 	ML_RETURN(MLNil);
 }
 
-static void ML_TYPED_FN(ml_iter_key, MLSqliteStmtT, ml_state_t *Caller, ml_sqlite_stmt_t *Stat) {
-	ML_RETURN(ml_integer(Stat->Index));
+static void ML_TYPED_FN(ml_iter_key, MLSqliteStmtT, ml_state_t *Caller, ml_sqlite_stmt_t *Stmt) {
+	ML_RETURN(ml_integer(Stmt->Index));
 }
 
-static void ML_TYPED_FN(ml_iter_value, MLSqliteStmtT, ml_state_t *Caller, ml_sqlite_stmt_t *Stat) {
-	int Count = sqlite3_column_count(Stat->Handle);
+static void ML_TYPED_FN(ml_iter_value, MLSqliteStmtT, ml_state_t *Caller, ml_sqlite_stmt_t *Stmt) {
+	int Count = sqlite3_column_count(Stmt->Handle);
 	ml_value_t *Tuple = ml_tuple(Count);
 	for (int I = 0; I < Count; ++I) {
-		switch (sqlite3_column_type(Stat->Handle, I)) {
+		switch (sqlite3_column_type(Stmt->Handle, I)) {
 		case SQLITE_NULL:
 			ml_tuple_set(Tuple, I + 1, MLNil);
 			break;
 		case SQLITE_INTEGER:
-			ml_tuple_set(Tuple, I + 1, ml_integer(sqlite3_column_int64(Stat->Handle, I)));
+			ml_tuple_set(Tuple, I + 1, ml_integer(sqlite3_column_int64(Stmt->Handle, I)));
 			break;
 		case SQLITE_FLOAT:
-			ml_tuple_set(Tuple, I + 1, ml_real(sqlite3_column_double(Stat->Handle, I)));
+			ml_tuple_set(Tuple, I + 1, ml_real(sqlite3_column_double(Stmt->Handle, I)));
 			break;
 		case SQLITE_TEXT: {
-			int Length = sqlite3_column_bytes(Stat->Handle, I);
+			int Length = sqlite3_column_bytes(Stmt->Handle, I);
 			char *Value = snew(Length + 1);
-			memcpy(Value, sqlite3_column_text(Stat->Handle, I), Length);
+			memcpy(Value, sqlite3_column_text(Stmt->Handle, I), Length);
 			Value[Length] = 0;
 			ml_tuple_set(Tuple, I + 1, ml_string(Value, Length));
 			break;
 		}
 		case SQLITE_BLOB: {
-			int Length = sqlite3_column_bytes(Stat->Handle, I);
+			int Length = sqlite3_column_bytes(Stmt->Handle, I);
 			char *Value = snew(Length + 1);
-			memcpy(Value, sqlite3_column_blob(Stat->Handle, I), Length);
+			memcpy(Value, sqlite3_column_blob(Stmt->Handle, I), Length);
 			Value[Length] = 0;
 			ml_tuple_set(Tuple, I + 1, ml_string(Value, Length));
 			break;
@@ -181,14 +181,54 @@ static void ML_TYPED_FN(ml_iter_value, MLSqliteStmtT, ml_state_t *Caller, ml_sql
 ML_METHOD("prepare", MLSqliteT, MLStringT) {
 	ml_sqlite_t *Sqlite = (ml_sqlite_t *)Args[0];
 	if (!Sqlite->Handle) return ml_error("SqliteError", "Connection already closed");
-	ml_sqlite_stmt_t *Stat = new(ml_sqlite_stmt_t);
-	Stat->Type = MLSqliteStmtT;
-	int Status = sqlite3_prepare_v2(Sqlite->Handle, ml_string_value(Args[1]), ml_string_length(Args[1]), &Stat->Handle, NULL);
+	ml_sqlite_stmt_t *Stmt = new(ml_sqlite_stmt_t);
+	Stmt->Type = MLSqliteStmtT;
+	int Status = sqlite3_prepare_v2(Sqlite->Handle, ml_string_value(Args[1]), ml_string_length(Args[1]), &Stmt->Handle, NULL);
 	if (Status != SQLITE_OK) {
 		return ml_error("SqliteError", "Error opening database: %s", sqlite3_errmsg(Sqlite->Handle));
 	}
-	GC_register_finalizer(Stat, (void *)ml_sqlite_stat_finalize, NULL, NULL, NULL);
-	return (ml_value_t *)Stat;
+	GC_register_finalizer(Stmt, (void *)ml_sqlite_stat_finalize, NULL, NULL, NULL);
+	return (ml_value_t *)Stmt;
+}
+
+ML_METHODV("execute", MLSqliteT, MLStringT) {
+	ml_sqlite_t *Sqlite = (ml_sqlite_t *)Args[0];
+	if (!Sqlite->Handle) return ml_error("SqliteError", "Connection already closed");
+	ml_sqlite_stmt_t *Stmt = new(ml_sqlite_stmt_t);
+	Stmt->Type = MLSqliteStmtT;
+	int Status = sqlite3_prepare_v2(Sqlite->Handle, ml_string_value(Args[1]), ml_string_length(Args[1]), &Stmt->Handle, NULL);
+	if (Status != SQLITE_OK) {
+		return ml_error("SqliteError", "Error opening database: %s", sqlite3_errmsg(Sqlite->Handle));
+	}
+	GC_register_finalizer(Stmt, (void *)ml_sqlite_stat_finalize, NULL, NULL, NULL);
+	for (int I = 2; I < Count; ++I) {
+		ml_value_t *Arg = Args[I];
+		int Status;
+		if (Arg == MLNil) {
+			Status = sqlite3_bind_null(Stmt->Handle, I - 1);
+		} else if (ml_is(Arg, MLIntegerT)) {
+			Status = sqlite3_bind_int64(Stmt->Handle, I - 1, ml_integer_value(Arg));
+		} else if (ml_is(Arg, MLBooleanT)) {
+			Status = sqlite3_bind_int(Stmt->Handle, I - 1, ml_boolean_value(Arg));
+		} else if (ml_is(Arg, MLRealT)) {
+			Status = sqlite3_bind_double(Stmt->Handle, I - 1, ml_real_value(Arg));
+		} else if (ml_is(Arg, MLStringT)) {
+			Status = sqlite3_bind_text(Stmt->Handle, I - 1, ml_string_value(Arg), ml_string_length(Arg), SQLITE_STATIC);
+		} else if (ml_is(Arg, MLIntegerT)) {
+			Status = sqlite3_bind_int64(Stmt->Handle, I - 1, ml_integer_value(Arg));
+		} else {
+			return ml_error("SqliteError", "Unsupported parameter type %s", ml_typeof(Arg)->Name);
+		}
+		if (Status != SQLITE_OK) {
+			return ml_error("SqliteError", "Error binding parameter: %s", sqlite3_errmsg(Stmt->Sqlite));
+		}
+	}
+	Stmt->Status = sqlite3_step(Stmt->Handle);
+	if (Stmt->Status == SQLITE_ERROR) {
+		return ml_error("SqliteError", "Error executing statement: %s", sqlite3_errmsg(Stmt->Sqlite));
+	}
+	Stmt->Index = 1;
+	return (ml_value_t *)Stmt;
 }
 
 void ml_sqlite_init(stringmap_t *Globals) {

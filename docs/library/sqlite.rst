@@ -13,3 +13,5 @@ sqlite
 
 :mini:`meth :prepare(Arg₁: sqlite, Arg₂: string)`
 
+:mini:`meth :execute(Arg₁: sqlite, Arg₂: string)`
+

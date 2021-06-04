@@ -581,7 +581,7 @@ static void callback_invoke(ffi_cif *Cif, void *Return, void **Params, ml_gir_ca
 		case GI_INFO_TYPE_INVALID_0: break;
 		case GI_INFO_TYPE_FUNCTION: break;
 		case GI_INFO_TYPE_CALLBACK: {
-			ml_gir_callback_t *Callback = new(ml_gir_callback_t);
+			ml_gir_callback_t *Callback = (ml_gir_callback_t *)GC_MALLOC_UNCOLLECTABLE(sizeof(ml_gir_callback_t));
 			Callback->Info = InterfaceInfo;
 			Callback->Function = Result;
 			*(void **)Return = g_callable_info_prepare_closure(
@@ -989,7 +989,7 @@ static GSList *list_to_slist(ml_value_t *List, GITypeInfo *TypeInfo) {
 		case GI_INFO_TYPE_CALLBACK: {
 			ML_LIST_FOREACH(List, Iter) {
 				GSList *Node = Slot[0] = g_slist_alloc();
-				ml_gir_callback_t *Callback = new(ml_gir_callback_t);
+				ml_gir_callback_t *Callback = (ml_gir_callback_t *)GC_MALLOC_UNCOLLECTABLE(sizeof(ml_gir_callback_t));
 				Callback->Info = InterfaceInfo;
 				Callback->Function = Iter->Value;
 				Node->data = g_callable_info_prepare_closure(
@@ -1260,7 +1260,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_CALLBACK: {
-					ml_gir_callback_t *Callback = new(ml_gir_callback_t);
+					ml_gir_callback_t *Callback = (ml_gir_callback_t *)GC_MALLOC_UNCOLLECTABLE(sizeof(ml_gir_callback_t));
 					Callback->Info = InterfaceInfo;
 					Callback->Function = Arg;
 					ArgsIn[IndexIn].v_pointer = g_callable_info_prepare_closure(
