@@ -603,6 +603,82 @@ ML_FUNCTIONX(MLBreak) {
 	return Debugger->run(Debugger, Caller, MLNil);
 }
 
+// Semaphore
+
+typedef struct {
+	ml_type_t *Type;
+	ml_state_t **States;
+	int64_t Value;
+	int Size, Fill, Write, Read;
+} ml_semaphore_t;
+
+ML_FUNCTION(MLSemaphore) {
+//!semaphore
+//@semaphore
+//<Initial? : integer
+	if (Count > 0) ML_CHECK_ARG_TYPE(0, MLIntegerT);
+	ml_semaphore_t *Semaphore = new(ml_semaphore_t);
+	Semaphore->Type = MLSemaphoreT;
+	Semaphore->Value = (Count > 0) ? ml_integer_value(Args[0]) : 1;
+	Semaphore->Fill = 0;
+	Semaphore->Size = 4;
+	Semaphore->Read = Semaphore->Write = 0;
+	Semaphore->States = anew(ml_state_t *, 4);
+	return (ml_value_t *)Semaphore;
+}
+
+ML_TYPE(MLSemaphoreT, (), "semaphore",
+//!semaphore
+	.Constructor = (ml_value_t *)MLSemaphore
+);
+
+ML_METHODX("wait", MLSemaphoreT) {
+//!semaphore
+//<Semaphore
+	ml_semaphore_t *Semaphore = (ml_semaphore_t *)Args[0];
+	int64_t Value = Semaphore->Value;
+	if (Value) {
+		Semaphore->Value = Value - 1;
+		ML_RETURN(Args[0]);
+	}
+	++Semaphore->Fill;
+	if (Semaphore->Fill > Semaphore->Size) {
+		int NewSize = Semaphore->Size * 2;
+		ml_state_t **NewStates = anew(ml_state_t *, NewSize);
+		memcpy(NewStates, Semaphore->States, Semaphore->Size * sizeof(ml_state_t *));
+		Semaphore->Read = 0;
+		Semaphore->Write = Semaphore->Size;
+		Semaphore->States = NewStates;
+		Semaphore->Size = NewSize;
+	}
+	Semaphore->States[Semaphore->Write] = Caller;
+	Semaphore->Write = (Semaphore->Write + 1) % Semaphore->Size;
+}
+
+ML_METHOD("signal", MLSemaphoreT) {
+//!semaphore
+//<Semaphore
+	ml_semaphore_t *Semaphore = (ml_semaphore_t *)Args[0];
+	int Fill = Semaphore->Fill;
+	if (Fill) {
+		Semaphore->Fill = Fill - 1;
+		ml_state_t *State = Semaphore->States[Semaphore->Read];
+		Semaphore->States[Semaphore->Read] = NULL;
+		Semaphore->Read = (Semaphore->Read + 1) % Semaphore->Size;
+		State->run(State, Args[0]);
+	} else {
+		++Semaphore->Value;
+	}
+	return Args[0];
+}
+
+ML_METHOD("value", MLSemaphoreT) {
+//!semaphore
+//<Semaphore
+	ml_semaphore_t *Semaphore = (ml_semaphore_t *)Args[0];
+	return ml_integer(Semaphore->Value);
+}
+
 // Channels
 
 typedef struct ml_channel_message_t ml_channel_message_t;
@@ -624,8 +700,6 @@ static void ml_channel_run(ml_channel_t *Channel, ml_value_t *Value) {
 	Channel->Open = 0;
 	ML_CONTINUE(Channel->Base.Caller, Value);
 }
-
-extern ml_type_t MLChannelT[];
 
 ML_FUNCTION(MLChannel) {
 //!channel

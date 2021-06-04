@@ -91,6 +91,12 @@ scope("onion";) do
 	DEFAULT[minilang_lib(LIB_DIR / "ml_onion.so", [file("ml_onion.o")])]
 end
 
+scope("sqlite";) do
+	LDFLAGS := old + ["-lsqlite3"]
+	generate_init_file(file("ml_sqlite.c"))
+	DEFAULT[minilang_lib(LIB_DIR / "ml_sqlite.so", [file("ml_sqlite.o")])]
+end
+
 scope("kiwi";) do
 	var Dir := file("kiwi") => fun(Dir) do
 		Dir:rmdir

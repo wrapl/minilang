@@ -248,6 +248,7 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "calldc", MLCallDC);
 	stringmap_insert(Globals, "swapcc", MLSwapCC);
 	stringmap_insert(Globals, "channel", MLChannelT);
+	stringmap_insert(Globals, "semaphore", MLSemaphoreT);
 	stringmap_insert(Globals, "context", MLContextKeyT);
 	stringmap_insert(Globals, "parser", MLParserT);
 	stringmap_insert(Globals, "compiler", MLCompilerT);

@@ -186,6 +186,10 @@ struct ml_schedule_t {
 
 typedef ml_schedule_t (*ml_scheduler_t)(ml_context_t *Context);
 
+// Semaphores
+
+extern ml_type_t MLSemaphoreT[];
+
 // Channels
 
 extern ml_type_t MLChannelT[];

@@ -404,7 +404,7 @@ ML_TYPE(MLPropertyT, (), "property",
 );
 
 ML_FUNCTIONX(MLProperty) {
-//!object
+//@property
 	ML_CHECKX_ARG_COUNT(2);
 	ML_CHECKX_ARG_TYPE(0, MLFunctionT);
 	ML_CHECKX_ARG_TYPE(1, MLFunctionT);
@@ -461,6 +461,7 @@ ML_METHOD(MLStringT, MLEnumValueT) {
 }
 
 ML_FUNCTION(MLEnum) {
+//@enum
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLListT);
@@ -623,6 +624,7 @@ ML_METHOD(MLStringT, MLFlagsValueT) {
 }
 
 ML_FUNCTION(MLFlags) {
+//@flags
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLListT);

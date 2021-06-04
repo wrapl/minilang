@@ -21,7 +21,7 @@ object
 
 :mini:`type property`
 
-:mini:`fun mlproperty(Arg₁: function, Arg₂: function)`
+:mini:`fun property(Arg₁: function, Arg₂: function)`
 
 :mini:`type enumvalue < int64`
 
@@ -29,7 +29,7 @@ object
 
 :mini:`meth string(Arg₁: enumvalue)`
 
-:mini:`fun mlenum(Arg₁: string, Arg₂: list)`
+:mini:`fun enum(Arg₁: string, Arg₂: list)`
 
 :mini:`type enum < type, iteratable`
 
@@ -43,7 +43,7 @@ object
 
 :mini:`meth string(Arg₁: flagsvalue)`
 
-:mini:`fun mlflags(Arg₁: string, Arg₂: list)`
+:mini:`fun flags(Arg₁: string, Arg₂: list)`
 
 :mini:`type flags < type`
 
