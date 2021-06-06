@@ -27,6 +27,11 @@ if defined("ANALYZER") then
 	CFLAGS:put("-fanalyzer")
 end
 
+if defined("LTO") then
+	CFLAGS:put("-flto")
+	LDFLAGS:put("-flto")
+end
+
 if DEBUG then
 	CFLAGS := old + ["-g", "-DGC_DEBUG", "-DDEBUG"]
 	LDFLAGS := old + ["-g"]
@@ -70,7 +75,7 @@ PARENT."generate_init_files" := generate_init_files
 
 generate_init_files()
 
-var Objects := [
+let Objects := [
 	file("ml_compiler.o"),
 	file("ml_bytecode.o"),
 	file("ml_runtime.o"),
@@ -89,9 +94,9 @@ var Objects := [
 	file("ml_object.o")
 ]
 
-var Libraries := []
+let Libraries := []
 
-var InstallHeaders := [
+let InstallHeaders := [
 	"minilang.h",
 	"config.h",
 	"ml_console.h",
@@ -220,7 +225,7 @@ if MINILANG_GIR then
 end
 
 if MINILANG_CBOR then
-	var Dir := PATH/"minicbor"
+	let Dir := PATH/"minicbor"
 	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git", Dir)
 	CFLAGS := old + [
 		'-DMINICBOR_PREFIX=ml_cbor_',
@@ -244,8 +249,8 @@ if MINILANG_JSON then
 end
 
 if MINILANG_BACKTRACE then
-	var Dir := PATH/"libbacktrace"
-	var Lib := Dir / ".libs/libbacktrace.a" => fun() do
+	let Dir := PATH/"libbacktrace"
+	let Lib := Dir / ".libs/libbacktrace.a" => fun() do
 		Dir:rmdir
 		execute("git clone https://github.com/ianlancetaylor/libbacktrace.git", Dir)
 		Dir:chdir
@@ -260,7 +265,7 @@ end
 
 if MINILANG_MODULES then
 	LDFLAGS := old + ["-ldl"]
-	Objects:put(file("ml_module.o"), file("ml_library.o"))
+	Objects:put(file("ml_module.o"), file("ml_library.o"), file("whereami.o"))
 	InstallHeaders:put("ml_module.h")
 end
 
@@ -339,9 +344,9 @@ DEFAULT[LIBMINILANG, MINILANG, MINIPP, MINIXE]
 
 PARENT."LIBMINILANG" := LIBMINILANG
 
-var InstallBin := PREFIX/"bin"
-var InstallInclude := PREFIX/"include/minilang"
-var InstallLib := PREFIX/"lib"
+let InstallBin := PREFIX/"bin"
+let InstallInclude := PREFIX/"include/minilang"
+let InstallLib := PREFIX/"lib"
 
 install(MINILANG, InstallBin/"minilang", "+x")
 

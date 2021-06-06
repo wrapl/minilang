@@ -1,21 +1,27 @@
-var SourceTypes := {
+MODULE_DIR := old or (LIB_DIR/"minilang"):mkdir
+
+let InstallModules := PREFIX / "lib/minilang"
+
+let SourceTypes := {
 	"c" is [c_includes, c_compile],
 	"cpp" is [c_includes, c_compile]
 }
 
-fun minilang_lib(Library, Objects, Libraries) do
-	var Sources := []
+fun minilang_lib(Name, Objects, Libraries) do
+	let Library := MODULE_DIR / Name
+	let Sources := []
 	for Object in Objects or [] do
 		for Extension, Functions in SourceTypes do
-			var Source := Object % Extension
+			let Source := Object % Extension
 			if Source:exists then
 				Sources:put(Source)
-				var Scan := Source:scan("INCLUDES")[PREBUILDS] => Functions[1]
+				let Scan := Source:scan("INCLUDES")[PREBUILDS] => Functions[1]
 				Object[Source, Scan] => (Functions[2] !! [Source])
 				exit
 			end
 		end
 	end
+	install(Library, InstallModules / Name)
 	Library[Objects, Libraries] => fun(Library) do
 		execute('cc', '-o', Library, '-shared', '-export-dynamic', Objects, Libraries, LDFLAGS)
 		DEBUG or execute("strip", Library)
@@ -26,11 +32,11 @@ CFLAGS := old + ["-fpic", "-I.."]
 
 scope("csv";) do
 	generate_init_file(file("ml_csv.c"))
-	DEFAULT[minilang_lib(LIB_DIR / "ml_csv.so", [file("ml_csv.o"), file("libcsv.o")])]
+	DEFAULT[minilang_lib("csv.so", [file("ml_csv.o"), file("libcsv.o")])]
 end
 
 :<scope("cbor";) do
-	var Dir := PATH / "minicbor"
+	let Dir := PATH / "minicbor"
 	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git", Dir)
 	CFLAGS := old + [
 		'-DMINICBOR_PREFIX=ml_cbor_',
@@ -38,7 +44,7 @@ end
 		'-DMINICBOR_READDATA_TYPE=\"struct ml_cbor_reader_t *\"'
 	]
 	generate_init_file(file("ml_cbor.c"))
-	DEFAULT[minilang_lib(LIB_DIR / "ml_cbor.so", [
+	DEFAULT[minilang_lib("cbor.so", [
 		file("ml_cbor.o"),
 		file("minicbor/minicbor_reader.o"),
 		file("minicbor/minicbor_writer.o")
@@ -46,8 +52,8 @@ end
 end>:
 
 scope("radb";) do
-	var Dir := file("radb")
-	var Lib := Dir / "libradb.a" => fun() do
+	let Dir := file("radb")
+	let Lib := Dir / "libradb.a" => fun() do
 		Dir:rmdir
 		execute("git clone -b dev https://github.com/rajamukherji/radb.git", Dir)
 		Dir:chdir
@@ -56,12 +62,12 @@ scope("radb";) do
 	end
 	PREBUILDS := old + [Lib]
 	generate_init_file(file("ml_radb.c"))
-	DEFAULT[minilang_lib(LIB_DIR / "ml_radb.so", [file("ml_radb.o")], [Lib])]
+	DEFAULT[minilang_lib("radb.so", [file("ml_radb.o")], [Lib])]
 end
 
 scope("ravs";) do
-	var Dir := file("ravs")
-	var Lib := Dir / "libravs.a" => fun() do
+	let Dir := file("ravs")
+	let Lib := Dir / "libravs.a" => fun() do
 		Dir:rmdir
 		execute("git clone --recursive -b dev https://github.com/rajamukherji/ravs.git", Dir)
 		Dir:chdir
@@ -70,58 +76,58 @@ scope("ravs";) do
 	end
 	PREBUILDS := old + [Lib]
 	generate_init_file(file("ml_ravs.c"))
-	DEFAULT[minilang_lib(LIB_DIR / "ml_ravs.so", [file("ml_ravs.o")], [Lib])]
+	DEFAULT[minilang_lib("ravs.so", [file("ml_ravs.o")], [Lib])]
 end
 
 scope("libevent";) do
 	LDFLAGS := old + ["-levent"]
 	generate_init_file(file("ml_libevent.c"))
-	DEFAULT[minilang_lib(LIB_DIR / "ml_libevent.so", [file("ml_libevent.o")])]
+	DEFAULT[minilang_lib("libevent.so", [file("ml_libevent.o")])]
 end
 
 scope("libuv";) do
 	LDFLAGS := old + ["-luv"]
 	generate_init_file(file("ml_libuv.c"))
-	DEFAULT[minilang_lib(LIB_DIR / "ml_libuv.so", [file("ml_libuv.o")])]
+	DEFAULT[minilang_lib("libuv.so", [file("ml_libuv.o")])]
 end
 
 scope("onion";) do
 	LDFLAGS := old + ["-lonion"]
 	generate_init_file(file("ml_onion.c"))
-	DEFAULT[minilang_lib(LIB_DIR / "ml_onion.so", [file("ml_onion.o")])]
+	DEFAULT[minilang_lib("onion.so", [file("ml_onion.o")])]
 end
 
 scope("sqlite";) do
 	LDFLAGS := old + ["-lsqlite3"]
 	generate_init_file(file("ml_sqlite.c"))
-	DEFAULT[minilang_lib(LIB_DIR / "ml_sqlite.so", [file("ml_sqlite.o")])]
+	DEFAULT[minilang_lib("sqlite.so", [file("ml_sqlite.o")])]
 end
 
 scope("kiwi";) do
-	var Dir := file("kiwi") => fun(Dir) do
+	let Dir := file("kiwi") => fun(Dir) do
 		Dir:rmdir
 		execute("git clone https://github.com/nucleic/kiwi", Dir)
 	end
 	PREBUILDS := old + [Dir]
 	CFLAGS := old + ["-I", file("kiwi")]
 	generate_init_file(file("ml_kiwi.cpp"))
-	DEFAULT[minilang_lib(LIB_DIR / "ml_kiwi.so", [file("ml_kiwi.o")])]
+	DEFAULT[minilang_lib("kiwi.so", [file("ml_kiwi.o")])]
 end
 
 scope("mpc";) do
-	var MPC := file("mpc/mpc.c") => fun() do
+	let MPC := file("mpc/mpc.c") => fun() do
 		file("mpc"):rmdir
 		execute("git clone https://github.com/orangeduck/mpc.git")
 		execute("cat", file("mpc_extra.c"), " >> ", "mpc/mpc.c")
 	end
 	PREBUILDS := old + [MPC]
 	generate_init_file(file("ml_mpc.c"))
-	DEFAULT[minilang_lib(LIB_DIR / "ml_mpc.so", [file("ml_mpc.o"), file("mpc/mpc.o")])]
+	DEFAULT[minilang_lib("mpc.so", [file("ml_mpc.o"), file("mpc/mpc.o")])]
 end
 
 nil and scope("facil";) do
-	var Lib := file("lib/libfacil.a") => fun() do
-		var Dir := file("facil.io"):rmdir
+	let Lib := file("lib/libfacil.a") => fun() do
+		let Dir := file("facil.io"):rmdir
 		execute("git clone https://github.com/boazsegev/facil.io.git")
 		Dir:chdir
 		execute('cmake . -DCMAKE_INSTALL_PREFIX={PATH} -DCMAKE_BUILD_TYPE=Release')
@@ -130,5 +136,5 @@ nil and scope("facil";) do
 	end
 	PREBUILDS := old + [Lib]
 	generate_init_file(file("ml_facil.c"))
-	DEFAULT[minilang_lib(LIB_DIR / "ml_facil.so", [file("ml_facil.o")], [Lib])]
+	DEFAULT[minilang_lib("facil.so", [file("ml_facil.o")], [Lib])]
 end

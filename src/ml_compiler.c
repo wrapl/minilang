@@ -3439,13 +3439,8 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 		while (ml_parse2(Parser, MLT_CASE)) {
 			Child = Child->Next = ml_accept_block(Parser);
 		}
-		if (ml_parse2(Parser, MLT_ELSE)) {
-			Child->Next = ml_accept_block(Parser);
-		} else {
-			mlc_expr_t *NilExpr = new(mlc_expr_t);
-			NilExpr->compile = ml_nil_expr_compile;
-			Child->Next = ML_EXPR_END(NilExpr);
-		}
+		ml_accept(Parser, MLT_ELSE);
+		Child->Next = ml_accept_block(Parser);
 		ml_accept(Parser, MLT_END);
 		return ML_EXPR_END(CaseExpr);
 	}
