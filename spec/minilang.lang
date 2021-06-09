@@ -33,6 +33,7 @@
     <style id="keyword" _name="Keyword" map-to="def:keyword"/>
     <style id="operator" _name="Operator" map-to="def:operator"/>
     <style id="function" _name="Function" map-to="def:function"/>
+    <style id="identifier" _name="Identifier" map-to="def:identifier"/>
     <style id="type" _name="Type" map-to="def:type"/>
     <style id="floating-point" _name="Floating point number" map-to="def:floating-point"/>
     <style id="decimal" _name="Decimal number" map-to="def:decimal"/>
@@ -79,10 +80,10 @@
     </context>
     <context id="resolution">
       <include>
-        <context style-ref="keyword" extend-parent="false">
+        <context style-ref="identifier" extend-parent="false">
           <match>::[a-zA-Z_][a-zA-Z0-9_]*</match>
         </context>
-        <context style-ref="keyword" extend-parent="false">
+        <context style-ref="identifier" extend-parent="false">
           <start>::"</start>
           <end>"</end>
           <include>

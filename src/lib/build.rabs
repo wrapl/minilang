@@ -30,6 +30,20 @@ end
 
 CFLAGS := old + ["-fpic", "-I.."]
 
+scope("zlog";) do
+	let Dir := file("zlog")
+	let Lib := Dir / "src/libzlog.a" => fun(Lib) do
+		Dir:rmdir:mkdir:chdir
+		execute("wget https://github.com/HardySimpson/zlog/archive/latest-stable.tar.gz -O- | tar xvzP --strip-components=1")
+		execute("make clean")
+		execute("make WARNINGS=")
+	end
+	PREBUILDS := old + [Lib]
+	CFLAGS := old + ["-I", file("zlog/src")]
+	generate_init_file(file("ml_zlog.c"))
+	DEFAULT[minilang_lib("zlog.so", [file("ml_zlog.o")], [Lib])]
+end
+
 scope("csv";) do
 	generate_init_file(file("ml_csv.c"))
 	DEFAULT[minilang_lib("csv.so", [file("ml_csv.o"), file("libcsv.o")])]

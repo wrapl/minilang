@@ -71,9 +71,16 @@ ML_TYPE(MLMacroT, (), "macro");
 static void mlc_function_run(mlc_function_t *Function, ml_value_t *Value) {
 	if (ml_is_error(Value) && !Function->Frame->AllowErrors) {
 		ml_state_t *Caller = Function->Base.Caller;
+		ml_error_trace_add(Value, (ml_source_t){Function->Source, Function->Frame->Line});
 		ML_RETURN(Value);
 	}
 	Function->Frame->run(Function, Value, Function->Frame->Data);
+}
+
+ML_TYPE(MLCompilerFunctionT, (MLStateT), "compiler-function");
+
+static ml_source_t ML_TYPED_FN(ml_debugger_source, MLCompilerFunctionT, mlc_function_t *Function) {
+	return (ml_source_t){Function->Source, 0};
 }
 
 #define FRAME_BLOCK_SIZE 384
@@ -166,7 +173,7 @@ static void mlc_expr_call2(mlc_function_t *Function, ml_value_t *Value, mlc_comp
 	mlc_expr_t *Expr = Frame->Expr;
 	ml_state_t *Caller = Function->Base.Caller;
 	if (Function->UpValues) {
-		ml_value_t *Error = ml_error("EvalError", "Use of non-constant value in constant expression");
+		ml_value_t *Error = ml_error("EvalError", "Use of non-constant value %s in constant expression", Function->UpValues->Decl->Ident);
 		ml_error_trace_add(Error, (ml_source_t){Function->Source, Expr->EndLine});
 		ML_RETURN(Error);
 	}
@@ -186,7 +193,9 @@ static void mlc_expr_call2(mlc_function_t *Function, ml_value_t *Value, mlc_comp
 }
 
 static void mlc_expr_call(mlc_function_t *Parent, mlc_expr_t *Expr) {
+	Parent->Frame->Line = Expr->EndLine;
 	mlc_function_t *Function = new(mlc_function_t);
+	Function->Base.Type = MLCompilerFunctionT;
 	Function->Base.Caller = (ml_state_t *)Parent;
 	Function->Base.Context = Parent->Base.Context;
 	Function->Base.run = (ml_state_fn)mlc_function_run;
@@ -2070,6 +2079,7 @@ static void ml_subfunction_run(mlc_function_t *SubFunction, ml_value_t *Value, v
 static void ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, int Flags) {
 	// closure <entry> <frame_size> <num_params> <num_upvalues> <upvalue_1> ...
 	mlc_function_t *SubFunction = new(mlc_function_t);
+	SubFunction->Base.Type = MLCompilerFunctionT;
 	SubFunction->Base.Caller = (ml_state_t *)Function;
 	SubFunction->Base.Context = Function->Base.Context;
 	SubFunction->Base.run = (ml_state_fn)mlc_function_run;
@@ -4277,6 +4287,7 @@ static void ml_function_compile2(mlc_function_t *Function, ml_value_t *Value, ml
 
 void ml_function_compile(ml_state_t *Caller, mlc_expr_t *Expr, ml_compiler_t *Compiler, const char **Parameters) {
 	mlc_function_t *Function = new(mlc_function_t);
+	Function->Base.Type = MLCompilerFunctionT;
 	Function->Base.Caller = Caller;
 	Function->Base.Context = Caller->Context;
 	Function->Base.run = (ml_state_fn)mlc_function_run;
@@ -4756,6 +4767,7 @@ static void ml_command_evaluate2(mlc_function_t *Function, ml_value_t *Value, vo
 
 void ml_command_evaluate(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t *Compiler) {
 	mlc_function_t *Function = new(mlc_function_t);
+	Function->Base.Type = MLCompilerFunctionT;
 	Function->Base.Caller = (ml_state_t *)Caller;
 	Function->Base.Context = Caller->Context;
 	Function->Base.run = (ml_state_fn)mlc_function_run;

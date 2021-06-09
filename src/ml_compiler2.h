@@ -309,7 +309,7 @@ typedef void (*mlc_frame_fn)(mlc_function_t *Function, ml_value_t *Value, void *
 struct mlc_frame_t {
 	mlc_frame_t *Next;
 	mlc_frame_fn run;
-	int AllowErrors;
+	int AllowErrors, Line;
 	void *Data[];
 };
 

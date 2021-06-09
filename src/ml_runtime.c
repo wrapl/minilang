@@ -534,6 +534,22 @@ void ml_error_fprint(FILE *File, const ml_value_t *Value) {
 	}
 }
 
+const char *ml_error_value_type(const ml_value_t *Value) {
+	return ((ml_error_value_t *)Value)->Error;
+}
+
+const char *ml_error_value_message(const ml_value_t *Value) {
+	return ((ml_error_value_t *)Value)->Message;
+}
+
+int ml_error_value_source(const ml_value_t *Value, int Level, ml_source_t *Source) {
+	ml_error_value_t *Error = (ml_error_value_t *)Value;
+	if (Level >= MAX_TRACE) return 0;
+	if (!Error->Trace[Level].Name) return 0;
+	Source[0] = Error->Trace[Level];
+	return 1;
+}
+
 ML_METHOD("type", MLErrorValueT) {
 //!error
 	return ml_string(((ml_error_value_t *)Args[0])->Error, -1);
@@ -558,6 +574,19 @@ ML_METHOD("trace", MLErrorValueT) {
 	return Trace;
 }
 
+ML_METHOD("append", MLStringBufferT, MLErrorValueT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_error_value_t *Value = (ml_error_value_t *)Args[1];
+	ml_stringbuffer_add(Buffer, Value->Error, strlen(Value->Error));
+	ml_stringbuffer_add(Buffer, ": ", 2);
+	ml_stringbuffer_add(Buffer, Value->Message, strlen(Value->Message));
+	ml_source_t *Source = Value->Trace;
+	for (int I = MAX_TRACE; --I >= 0 && Source->Name; ++Source) {
+		ml_stringbuffer_addf(Buffer, "\n\t%s:%d", Source->Name, Source->Line);
+	}
+	return Args[0];
+}
+
 // Debugging //
 
 int ml_debugger_check(ml_state_t *State) {
@@ -577,6 +606,7 @@ ml_source_t ml_debugger_source(ml_state_t *State) {
 	if (!State || !State->Type) return (ml_source_t){"<unknown>", 0};
 	typeof(ml_debugger_source) *function = ml_typed_fn_get(State->Type, ml_debugger_source);
 	if (function) return function(State);
+	if (State->Caller) return ml_debugger_source(State->Caller);
 	return (ml_source_t){"<unknown>", 0};
 }
 

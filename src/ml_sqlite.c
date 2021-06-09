@@ -86,7 +86,7 @@ typedef struct {
 static void ml_sqlite_stmt_call(ml_state_t *Caller, ml_sqlite_stmt_t *Stmt, int Count, ml_value_t **Args) {
 	sqlite3_reset(Stmt->Handle);
 	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Arg = Args[I];
+		ml_value_t *Arg = ml_deref(Args[I]);
 		int Status;
 		if (Arg == MLNil) {
 			Status = sqlite3_bind_null(Stmt->Handle, I + 1);
@@ -178,14 +178,14 @@ static void ML_TYPED_FN(ml_iter_value, MLSqliteStmtT, ml_state_t *Caller, ml_sql
 	ML_RETURN(Tuple);
 }
 
-ML_METHOD("prepare", MLSqliteT, MLStringT) {
+ML_METHOD("statement", MLSqliteT, MLStringT) {
 	ml_sqlite_t *Sqlite = (ml_sqlite_t *)Args[0];
 	if (!Sqlite->Handle) return ml_error("SqliteError", "Connection already closed");
 	ml_sqlite_stmt_t *Stmt = new(ml_sqlite_stmt_t);
 	Stmt->Type = MLSqliteStmtT;
 	int Status = sqlite3_prepare_v2(Sqlite->Handle, ml_string_value(Args[1]), ml_string_length(Args[1]), &Stmt->Handle, NULL);
 	if (Status != SQLITE_OK) {
-		return ml_error("SqliteError", "Error opening database: %s", sqlite3_errmsg(Sqlite->Handle));
+		return ml_error("SqliteError", "Error preparing statement: %s", sqlite3_errmsg(Sqlite->Handle));
 	}
 	GC_register_finalizer(Stmt, (void *)ml_sqlite_stat_finalize, NULL, NULL, NULL);
 	return (ml_value_t *)Stmt;

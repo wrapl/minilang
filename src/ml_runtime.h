@@ -129,6 +129,10 @@ ml_value_t *ml_error_trace_add(ml_value_t *Error, ml_source_t Source);
 void ml_error_print(const ml_value_t *Error);
 void ml_error_fprint(FILE *File, const ml_value_t *Error);
 
+const char *ml_error_value_type(const ml_value_t *Value) __attribute__ ((pure));
+const char *ml_error_value_message(const ml_value_t *Value) __attribute__ ((pure));
+int ml_error_value_source(const ml_value_t *Value, int Level, ml_source_t *Source);
+
 ml_value_t *ml_string_fn(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_list_fn(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_tuple_fn(void *Data, int Count, ml_value_t **Args);
