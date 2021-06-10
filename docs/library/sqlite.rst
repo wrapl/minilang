@@ -11,7 +11,7 @@ sqlite
 
 :mini:`type sqlitestmt < iteratable`
 
-:mini:`meth :prepare(Arg₁: sqlite, Arg₂: string)`
+:mini:`meth :statement(Arg₁: sqlite, Arg₂: string)`
 
 :mini:`meth :execute(Arg₁: sqlite, Arg₂: string)`
 

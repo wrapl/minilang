@@ -21,6 +21,8 @@ runtime
 
 :mini:`meth ::(Arg₁: uninitialized, Arg₂: string)`
 
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: errorvalue)`
+
 :mini:`fun mlbreak(Condition?: any)`
    If a debugger present and :mini:`Condition` is omitted or not :mini:`nil` then triggers a breakpoint.
 

@@ -2442,9 +2442,23 @@ void ml_init() {
 }
 
 ML_FUNCTIONZ(MLExchange) {
+//@exchange
 	ML_CHECKX_ARG_COUNT(1);
 	ml_value_t *New = ml_deref(Args[0]);
 	for (int I = Count; --I >= 0;) {
+		ml_value_t *Old = ml_deref(Args[I]);
+		ml_value_t *Error = ml_assign(Args[I], New);
+		if (ml_is_error(Error)) ML_RETURN(Error);
+		New = Old;
+	}
+	ML_RETURN(New);
+}
+
+ML_FUNCTIONZ(MLReplace) {
+//@replace
+	ML_CHECKX_ARG_COUNT(2);
+	ml_value_t *New = ml_deref(Args[Count - 1]);
+	for (int I = Count - 1; --I >= 0;) {
 		ml_value_t *Old = ml_deref(Args[I]);
 		ml_value_t *Error = ml_assign(Args[I], New);
 		if (ml_is_error(Error)) ML_RETURN(Error);
@@ -2479,5 +2493,6 @@ void ml_types_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "names", MLNamesT);
 		stringmap_insert(Globals, "map", MLMapT);
 		stringmap_insert(Globals, "exchange", MLExchange);
+		stringmap_insert(Globals, "replace", MLReplace);
 	}
 }

@@ -5,6 +5,8 @@ compiler
 
 :mini:`type macro`
 
+:mini:`type compilerfunction < state`
+
 :mini:`fun compiler(Global: function|map, ?Read: function)` |rarr| :mini:`compiler`
 
 :mini:`type compiler < state`
