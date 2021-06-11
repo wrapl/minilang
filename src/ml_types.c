@@ -235,7 +235,9 @@ inline void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn) {
 #ifdef ML_GENERICS
 	if (Type->Type == MLGenericTypeT) return ml_typed_fn_get(ml_generic_type_args(Type)[0], TypedFn);
 #endif
+	ML_RUNTIME_LOCK();
 	inthash_result_t Result = inthash_search2(Type->TypedFns, (uintptr_t)TypedFn);
+	ML_RUNTIME_UNLOCK();
 	if (Result.Present) return Result.Value;
 	void *BestFn = NULL;
 	int BestRank = 0;
@@ -249,7 +251,9 @@ inline void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn) {
 			}
 		}
 	}
+	ML_RUNTIME_LOCK();
 	inthash_insert(Type->TypedFns, (uintptr_t)TypedFn, BestFn);
+	ML_RUNTIME_UNLOCK();
 	return BestFn;
 }
 
@@ -289,17 +293,18 @@ ML_METHOD("::", MLTypeT, MLStringT) {
 
 #ifdef ML_GENERICS
 
-static inthash_t GenericTypeCache[1] = {INTHASH_INIT};
-
 ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
+	static inthash_t GenericTypeCache[1] = {INTHASH_INIT};
 	uintptr_t Hash = (uintptr_t)3541;
 	for (int I = NumArgs; --I >= 0;) Hash = rotl(Hash, 1) ^ (uintptr_t)Args[I];
+	ML_RUNTIME_LOCK();
 	ml_generic_type_t *Type = (ml_generic_type_t *)inthash_search(GenericTypeCache, Hash);
 	while (Type) {
 		if (Type->NumArgs != NumArgs) goto next;
 		for (int I = 0; I < NumArgs; ++I) {
 			if (Args[I] != Type->Args[I]) goto next;
 		}
+		ML_RUNTIME_UNLOCK();
 		return (ml_type_t *)Type;
 	next:
 		Type = Type->NextGeneric;
@@ -329,6 +334,7 @@ ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
 	Type->NumArgs = NumArgs;
 	for (int I = 0; I < NumArgs; ++I) Type->Args[I] = Args[I];
 	Type->NextGeneric = (ml_generic_type_t *)inthash_insert(GenericTypeCache, Hash, Type);
+	ML_RUNTIME_UNLOCK();
 	return (ml_type_t *)Type;
 }
 

@@ -206,7 +206,15 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller
 #endif
 
 #ifndef DEBUG_VERSION
-void *MLCachedFrame = NULL;
+#ifdef ML_THREADSAFE
+
+static __thread void *MLCachedFrame = NULL;
+
+#else
+
+static void *MLCachedFrame = NULL;
+
+#endif
 
 extern ml_value_t *SymbolMethod;
 #endif

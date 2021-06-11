@@ -10,7 +10,15 @@
 
 // Runtime //
 
+#ifdef ML_THREADSAFE
+
+__thread ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
+
+#else
+
 ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
+
+#endif
 
 static int MLContextSize = 4;
 // Reserved context slots:
@@ -865,6 +873,22 @@ ML_METHODX("raise", MLChannelT, MLErrorValueT) {
 	ML_CONTINUE(Receiver, Error);
 }
 */
+
+#ifdef ML_THREADSAFE
+
+#include <pthread.h>
+
+static pthread_mutex_t RuntimeLock[1] = {PTHREAD_MUTEX_INITIALIZER};
+
+void ml_runtime_lock() {
+	pthread_mutex_lock(RuntimeLock);
+}
+
+void ml_runtime_unlock() {
+	pthread_mutex_unlock(RuntimeLock);
+}
+
+#endif
 
 void ml_runtime_init() {
 #include "ml_runtime_init.c"

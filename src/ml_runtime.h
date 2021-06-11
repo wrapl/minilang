@@ -76,6 +76,21 @@ ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args);
 	ml_simple_call((ml_value_t *)VALUE, COUNT, (ml_value_t **)(void *[]){ARGS}); \
 })
 
+#ifdef ML_THREADSAFE
+
+void ml_runtime_lock();
+void ml_runtime_unlock();
+
+#define ML_RUNTIME_LOCK() ml_runtime_lock()
+#define ML_RUNTIME_UNLOCK() ml_runtime_unlock()
+
+#else
+
+#define ML_RUNTIME_LOCK() {}
+#define ML_RUNTIME_UNLOCK() {}
+
+#endif
+
 void ml_runtime_init();
 
 // References //
