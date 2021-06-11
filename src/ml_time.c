@@ -143,10 +143,9 @@ ML_METHOD(MLStringT, MLTimeT) {
 	ml_time_t *Time = (ml_time_t *)Args[0];
 	struct tm TM = {0,};
 	localtime_r(&Time->Value->tv_sec, &TM);
-	size_t Length = strftime(NULL, -1, "%F %T", &TM);
-	char *String = snew(Length + 1);
-	Length = strftime(String, Length + 1, "%F %T", &TM);
-	return ml_string(String, Length);
+	char Buffer[30];
+	size_t Length = strftime(Buffer, 30, "%F %T", &TM);
+	return ml_string(GC_strdup(Buffer), Length);
 }
 
 ML_METHOD(MLStringT, MLTimeT, MLNilT) {
@@ -157,8 +156,8 @@ ML_METHOD(MLStringT, MLTimeT, MLNilT) {
 	ml_time_t *Time = (ml_time_t *)Args[0];
 	struct tm TM = {0,};
 	gmtime_r(&Time->Value->tv_sec, &TM);
-	size_t Length = strftime(NULL, -1, "%FT%TZ", &TM);
-	char *String;
+	char Buffer[50];
+	size_t Length;
 	unsigned long NSec = Time->Value->tv_nsec;
 	if (NSec) {
 		int Width = 9;
@@ -166,14 +165,12 @@ ML_METHOD(MLStringT, MLTimeT, MLNilT) {
 			--Width;
 			NSec /= 10;
 		}
-		Length += Width + 1;
-		String = snew(Length + 1);
-		char *End = String + strftime(String, Length + 1, "%FT%T", &TM);
-		sprintf(End, ".%0*luZ", Width, NSec);
+		Length = strftime(Buffer, 40, "%FT%T", &TM);
+		Length += sprintf(Buffer + Length, ".%0*luZ", Width, NSec);
 	} else {
-		strftime(String = snew(Length + 1), Length + 1, "%FT%TZ", &TM);
+		Length = strftime(Buffer, 60, "%FT%TZ", &TM);
 	}
-	return ml_string(String, Length);
+	return ml_string(GC_strdup(Buffer), Length);
 }
 
 ML_METHOD(MLStringT, MLTimeT, MLStringT) {
@@ -185,10 +182,9 @@ ML_METHOD(MLStringT, MLTimeT, MLStringT) {
 	const char *Format = ml_string_value(Args[1]);
 	struct tm TM = {0,};
 	localtime_r(&Time->Value->tv_sec, &TM);
-	size_t Length = strftime(NULL, -1, Format, &TM);
-	char *String = snew(Length + 1);
-	strftime(String, Length + 1, Format, &TM);
-	return ml_string(String, Length);
+	char Buffer[120];
+	size_t Length = strftime(Buffer, 120, Format, &TM);
+	return ml_string(GC_strdup(Buffer), Length);
 }
 
 ML_METHOD(MLStringT, MLTimeT, MLStringT, MLNilT) {
@@ -205,10 +201,9 @@ ML_METHOD(MLStringT, MLTimeT, MLStringT, MLNilT) {
 	} else {
 		localtime_r(&Time->Value->tv_sec, &TM);
 	}
-	size_t Length = strftime(NULL, -1, Format, &TM);
-	char *String = snew(Length + 1);
-	strftime(String, Length + 1, Format, &TM);
-	return ml_string(String, Length);
+	char Buffer[120];
+	size_t Length = strftime(Buffer, 120, Format, &TM);
+	return ml_string(GC_strdup(Buffer), Length);
 }
 
 static int ml_time_compare(ml_time_t *TimeA, ml_time_t *TimeB) {
@@ -283,9 +278,8 @@ ML_METHOD("-", MLTimeT, MLNumberT) {
 static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTimeT, ml_time_t *Time, void *Data, ml_cbor_write_fn WriteFn) {
 	struct tm TM = {0,};
 	gmtime_r(&Time->Value->tv_sec, &TM);
-	size_t Length = strftime(NULL, -1, "%FT%T", &TM) + 8;
-	char *String = snew(Length + 1);
-	char *End = String + strftime(String, Length + 1, "%FT%T", &TM);
+	char Buffer[60];
+	char *End = Buffer + strftime(Buffer, 50, "%FT%T", &TM);
 	unsigned long NSec = Time->Value->tv_nsec;
 	*End++ = '.';
 	*End++ = '0' + (NSec / 100000000) % 10;
@@ -295,9 +289,11 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTimeT, ml_time_t *Time, void *Da
 	*End++ = '0' + (NSec / 10000) % 10;
 	*End++ = '0' + (NSec / 1000) % 10;
 	*End++ = 'Z';
+	*End = 0;
 	ml_cbor_write_tag(Data, WriteFn, 0);
+	size_t Length = End - Buffer;
 	ml_cbor_write_string(Data, WriteFn, Length);
-	WriteFn(Data, (const unsigned char *)String, Length);
+	WriteFn(Data, (const unsigned char *)Buffer, Length);
 	return NULL;
 }
 
