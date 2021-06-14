@@ -2419,7 +2419,6 @@ void ml_init() {
 	GC_set_pages_executable(1);
 #endif
 	GC_INIT();
-	GC_allow_register_threads();
 #include "ml_types_init.c"
 	ml_method_by_value(MLIntegerT->Constructor, NULL, ml_identity, MLIntegerT, NULL);
 	ml_method_by_value(MLRealT->Constructor, NULL, ml_identity, MLRealT, NULL);

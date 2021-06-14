@@ -206,15 +206,7 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller
 #endif
 
 #ifndef DEBUG_VERSION
-#ifdef ML_THREADSAFE
-
-static __thread void *MLCachedFrame = NULL;
-
-#else
-
 static void *MLCachedFrame = NULL;
-
-#endif
 
 extern ml_value_t *SymbolMethod;
 #endif
@@ -327,8 +319,10 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		if (Frame->Reuse) {
 			//memset(Frame, 0, ML_FRAME_REML_SIZE);
 			while (Top > Frame->Stack) *--Top = NULL;
+			ML_RUNTIME_LOCK();
 			*(ml_frame_t **)Frame = MLCachedFrame;
 			MLCachedFrame = Frame;
+			ML_RUNTIME_UNLOCK();
 		} else {
 			Frame->Line = Inst->Line;
 			Frame->Inst = Inst;
@@ -622,8 +616,10 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Schedule.Counter[0] = Counter;
 #endif
 		if (Next->Opcode == MLI_RETURN) {
+			ML_RUNTIME_LOCK();
 			*(ml_frame_t **)Frame = MLCachedFrame;
 			MLCachedFrame = Frame;
+			ML_RUNTIME_UNLOCK();
 			// ^ safe as long as ml_call never suspends before copying arguments
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		} else {
@@ -642,8 +638,10 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Schedule.Counter[0] = Counter;
 #endif
 		if (Next->Opcode == MLI_RETURN) {
+			ML_RUNTIME_LOCK();
 			*(ml_frame_t **)Frame = MLCachedFrame;
 			MLCachedFrame = Frame;
+			ML_RUNTIME_UNLOCK();
 			// ^ safe as long as ml_call never suspends before copying arguments
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		} else {
@@ -922,9 +920,12 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	size_t Size = sizeof(DEBUG_STRUCT(frame)) + Info->FrameSize * sizeof(ml_value_t *);
 	DEBUG_STRUCT(frame) *Frame;
 	if (Size <= ML_FRAME_REUSE_SIZE) {
+		ML_RUNTIME_LOCK();
 		if ((Frame = MLCachedFrame)) {
 			MLCachedFrame = *(ml_frame_t **)Frame;
+			ML_RUNTIME_UNLOCK();
 		} else {
+			ML_RUNTIME_UNLOCK();
 			Frame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
 		}
 		Frame->Reuse = 1;

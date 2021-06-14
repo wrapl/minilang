@@ -14,9 +14,17 @@ extern "C" {
 
 #define ML_ARG_CACHE_SIZE 64
 
+#ifdef ML_THREADSAFE
+
+#define ml_alloc_args(COUNT) anew(ml_value_t *, COUNT)
+
+#else
+
 extern ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
 
 #define ml_alloc_args(COUNT) (((COUNT) <= ML_ARG_CACHE_SIZE) ? MLArgCache : anew(ml_value_t *, COUNT))
+
+#endif
 
 //#define ml_alloc_args(COUNT) anew(ml_value_t *, COUNT)
 

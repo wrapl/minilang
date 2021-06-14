@@ -1762,9 +1762,10 @@ static void ml_call_expr_compile5(mlc_function_t *Function, ml_value_t *Value, m
 static void ml_call_expr_compile4(mlc_function_t *Function, ml_value_t *Value, ml_call_expr_frame_t *Frame) {
 	mlc_expr_t *Expr = Frame->Expr;
 	if (Value) {
-		if (ml_typeof(Value) == MLMacroT) {
+		ml_value_t *Deref = ml_deref(Value);
+		if (ml_typeof(Deref) == MLMacroT) {
 			MLC_POP();
-			ml_macro_t *Macro = (ml_macro_t *)Value;
+			ml_macro_t *Macro = (ml_macro_t *)Deref;
 			return Macro->apply(Function, Macro, Expr, Frame->Child, Frame->Flags);
 		}
 	}
@@ -3108,6 +3109,29 @@ static mlc_expr_t *ml_accept_fun_expr(ml_parser_t *Parser, ml_token_t EndToken) 
 	return ML_EXPR_END(FunExpr);
 }
 
+static mlc_expr_t *ml_accept_macro_expr(ml_parser_t *Parser) {
+	ML_EXPR(MacroExpr, value, value);
+	MacroExpr->StartLine = Parser->Source.Line;
+	ml_accept(Parser, MLT_LEFT_PAREN);
+	ml_template_macro_t *Macro = new(ml_template_macro_t);
+	Macro->Base.Type = MLMacroT;
+	Macro->Base.apply = (void *)ml_template_macro_apply;
+	ml_decl_t **ParamSlot = &Macro->Params;
+	if (!ml_parse2(Parser, MLT_RIGHT_PAREN)) {
+		do {
+			ml_accept(Parser, MLT_IDENT);
+			ml_decl_t *Param = ParamSlot[0] = new(ml_decl_t);
+			Param->Ident = Parser->Ident;
+			Param->Hash = ml_ident_hash(Parser->Ident);
+			ParamSlot = &Param->Next;
+		} while (ml_parse2(Parser, MLT_COMMA));
+		ml_accept(Parser, MLT_RIGHT_PAREN);
+	}
+	Macro->Expr = ml_accept_expression(Parser, EXPR_DEFAULT);
+	MacroExpr->Value = (ml_value_t *)Macro;
+	return ML_EXPR_END(MacroExpr);
+}
+
 extern ml_cfunctionx_t MLMethodSet[];
 
 static mlc_expr_t *ml_accept_meth_expr(ml_parser_t *Parser) {
@@ -3542,6 +3566,10 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 			FunExpr->Body = ml_accept_expression(Parser, EXPR_DEFAULT);
 			return ML_EXPR_END(FunExpr);
 		}
+	}
+	case MLT_MACRO: {
+		ml_next(Parser);
+		return ml_accept_macro_expr(Parser);
 	}
 	case MLT_METH: {
 		ml_next(Parser);
@@ -4045,36 +4073,21 @@ static void ml_accept_block_fun(ml_parser_t *Parser, ml_accept_block_t *Accept) 
 }
 
 static void ml_accept_block_macro(ml_parser_t *Parser, ml_accept_block_t *Accept) {
-	ml_accept(Parser, MLT_IDENT);
-	ML_EXPR(ValueExpr, value, value);
-	ValueExpr->StartLine = Parser->Source.Line;
-	mlc_local_t *Local = Accept->DefsSlot[0] = new(mlc_local_t);
-	Local->Line = Parser->Source.Line;
-	Local->Ident = Parser->Ident;
-	Accept->DefsSlot = &Local->Next;
-	ml_accept(Parser, MLT_LEFT_PAREN);
-	ml_template_macro_t *Macro = new(ml_template_macro_t);
-	Macro->Base.Type = MLMacroT;
-	Macro->Base.apply = (void *)ml_template_macro_apply;
-	ml_decl_t **ParamSlot = &Macro->Params;
-	if (!ml_parse2(Parser, MLT_RIGHT_PAREN)) {
-		do {
-			ml_accept(Parser, MLT_IDENT);
-			ml_decl_t *Param = ParamSlot[0] = new(ml_decl_t);
-			Param->Ident = Parser->Ident;
-			Param->Hash = ml_ident_hash(Parser->Ident);
-			ParamSlot = &Param->Next;
-		} while (ml_parse2(Parser, MLT_COMMA));
-		ml_accept(Parser, MLT_RIGHT_PAREN);
+	if (ml_parse2(Parser, MLT_IDENT)) {
+		mlc_local_t *Local = Accept->DefsSlot[0] = new(mlc_local_t);
+		Local->Line = Parser->Source.Line;
+		Local->Ident = Parser->Ident;
+		Accept->DefsSlot = &Local->Next;
+		ML_EXPR(LocalExpr, local, def);
+		LocalExpr->Local = Local;
+		LocalExpr->Child = ml_accept_macro_expr(Parser);
+		Accept->ExprSlot[0] = ML_EXPR_END(LocalExpr);
+		Accept->ExprSlot = &LocalExpr->Next;
+	} else {
+		mlc_expr_t *Expr = ml_accept_macro_expr(Parser);
+		Accept->ExprSlot[0] = Expr;
+		Accept->ExprSlot = &Expr->Next;
 	}
-	Macro->Expr = ml_accept_expression(Parser, EXPR_DEFAULT);
-	ValueExpr->Value = (ml_value_t *)Macro;
-	ML_EXPR_END(ValueExpr);
-	ML_EXPR(LocalExpr, local, def);
-	LocalExpr->Local = Local;
-	LocalExpr->Child = (mlc_expr_t *)ValueExpr;
-	Accept->ExprSlot[0] = ML_EXPR_END(LocalExpr);
-	Accept->ExprSlot = &LocalExpr->Next;
 }
 
 static mlc_expr_t *ml_accept_block_export(ml_parser_t *Parser, mlc_expr_t *Expr, mlc_local_t *Export) {
@@ -4803,27 +4816,32 @@ void ml_command_evaluate(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t 
 			return mlc_expr_call(Function, Expr);
 		}
 	} else if (ml_parse(Parser, MLT_MACRO)) {
-		ml_accept(Parser, MLT_IDENT);
-		const char *Name = Parser->Ident;
-		ml_accept(Parser, MLT_LEFT_PAREN);
-		ml_template_macro_t *Macro = new(ml_template_macro_t);
-		Macro->Base.Type = MLMacroT;
-		Macro->Base.apply = (void *)ml_template_macro_apply;
-		ml_decl_t **ParamSlot = &Macro->Params;
-		if (!ml_parse2(Parser, MLT_RIGHT_PAREN)) {
-			do {
-				ml_accept(Parser, MLT_IDENT);
-				ml_decl_t *Param = ParamSlot[0] = new(ml_decl_t);
-				Param->Ident = Parser->Ident;
-				Param->Hash = ml_ident_hash(Parser->Ident);
-				ParamSlot = &Param->Next;
-			} while (ml_parse2(Parser, MLT_COMMA));
-			ml_accept(Parser, MLT_RIGHT_PAREN);
+		if (ml_parse(Parser, MLT_IDENT)) {
+			const char *Name = Parser->Ident;
+			ml_accept(Parser, MLT_LEFT_PAREN);
+			ml_template_macro_t *Macro = new(ml_template_macro_t);
+			Macro->Base.Type = MLMacroT;
+			Macro->Base.apply = (void *)ml_template_macro_apply;
+			ml_decl_t **ParamSlot = &Macro->Params;
+			if (!ml_parse2(Parser, MLT_RIGHT_PAREN)) {
+				do {
+					ml_accept(Parser, MLT_IDENT);
+					ml_decl_t *Param = ParamSlot[0] = new(ml_decl_t);
+					Param->Ident = Parser->Ident;
+					Param->Hash = ml_ident_hash(Parser->Ident);
+					ParamSlot = &Param->Next;
+				} while (ml_parse2(Parser, MLT_COMMA));
+				ml_accept(Parser, MLT_RIGHT_PAREN);
+			}
+			Macro->Expr = ml_accept_expression(Parser, EXPR_DEFAULT);
+			ml_parse(Parser, MLT_SEMICOLON);
+			stringmap_insert(Compiler->Vars, Name, Macro);
+			MLC_RETURN((ml_value_t *)Macro);
+		} else {
+			mlc_expr_t *Expr = ml_accept_macro_expr(Parser);
+			ml_parse(Parser, MLT_SEMICOLON);
+			return mlc_expr_call(Function, Expr);
 		}
-		Macro->Expr = ml_accept_expression(Parser, EXPR_DEFAULT);
-		ml_parse(Parser, MLT_SEMICOLON);
-		stringmap_insert(Compiler->Vars, Name, Macro);
-		MLC_RETURN((ml_value_t *)Macro);
 	} else {
 		mlc_expr_t *Expr = ml_accept_expression(Parser, EXPR_DEFAULT);
 		if (ml_parse(Parser, MLT_COLON)) {

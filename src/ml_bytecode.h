@@ -159,7 +159,6 @@ typedef enum {
 	MLIT_VALUE,
 	MLIT_VALUE_VALUE,
 	MLIT_CLOSURE,
-	MLIT_TYPES,
 	MLIT_SWITCH
 } ml_inst_type_t;
 

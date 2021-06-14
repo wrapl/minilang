@@ -144,7 +144,9 @@ static inline ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *M
 #endif
 		Hash = rotl(Hash, 1) ^ (uintptr_t)Type;
 	}
+	ML_RUNTIME_LOCK();
 	ml_method_cached_t *Cached = ml_method_search_entry(Methods, Method, Count, Types, Hash);
+	ML_RUNTIME_UNLOCK();
 	if (Cached) return Cached->Definition->Callback;
 	return NULL;
 }
@@ -155,10 +157,12 @@ void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Ca
 	Definition->Count = Count;
 	Definition->Variadic = Variadic;
 	memcpy(Definition->Types, Types, Count * sizeof(ml_type_t *));
+	ML_RUNTIME_LOCK();
 	Definition->Next = inthash_insert(Methods->Definitions, (uintptr_t)Method, Definition);
 	for (ml_method_cached_t *Cached = inthash_search(Methods->Methods, (uintptr_t)Method); Cached; Cached = Cached->MethodNext) {
 		Cached->Definition = NULL;
 	}
+	ML_RUNTIME_UNLOCK();
 }
 
 void ml_method_define(ml_value_t *Method, ml_value_t *Function, int Variadic, ...) {
@@ -232,10 +236,7 @@ ml_value_t *ml_method(const char *Name) {
 		asprintf((char **)&Method->Name, "<anon:0x%lx>", (uintptr_t)Method);
 		return (ml_value_t *)Method;
 	}
-#ifdef ML_THREADSAFE
-	static pthread_mutex_t Lock = PTHREAD_MUTEX_INITIALIZER;
-	pthread_mutex_lock(&Lock);
-#endif
+	ML_RUNTIME_LOCK();
 	ml_method_t **Slot = (ml_method_t **)stringmap_slot(Methods, Name);
 	if (!Slot[0]) {
 		ml_method_t *Method = new(ml_method_t);
@@ -243,9 +244,7 @@ ml_value_t *ml_method(const char *Name) {
 		Method->Name = Name;
 		Slot[0] = Method;
 	}
-#ifdef ML_THREADSAFE
-	pthread_mutex_unlock(&Lock);
-#endif
+	ML_RUNTIME_UNLOCK();
 	return (ml_value_t *)Slot[0];
 }
 

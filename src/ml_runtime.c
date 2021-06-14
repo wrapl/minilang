@@ -10,11 +10,7 @@
 
 // Runtime //
 
-#ifdef ML_THREADSAFE
-
-__thread ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
-
-#else
+#ifndef ML_THREADSAFE
 
 ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
 
