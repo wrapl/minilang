@@ -4460,6 +4460,71 @@ ml_value_t *ml_stringmap_globals(stringmap_t *Globals) {
 	return ml_cfunction(Globals, (ml_callback_t)ml_stringmap_global);
 }
 
+ML_METHOD("var", MLCompilerT, MLStringT) {
+//<Compiler
+//<Name
+//>variable
+	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
+	const char *Name = ml_string_value(Args[1]);
+	ml_value_t *Var = ml_variable(MLNil, NULL);
+	stringmap_insert(Compiler->Vars, Name, Var);
+	return Var;
+}
+
+ML_METHOD("var", MLCompilerT, MLStringT, MLTypeT) {
+//<Compiler
+//<Name
+//<Type
+//>variable
+	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
+	const char *Name = ml_string_value(Args[1]);
+	ml_value_t *Var = ml_variable(MLNil, Args[2]);
+	stringmap_insert(Compiler->Vars, Name, Var);
+	return Var;
+}
+
+ML_METHOD("let", MLCompilerT, MLStringT, MLAnyT) {
+//<Compiler
+//<Name
+//<Value
+//>any
+	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
+	const char *Name = ml_string_value(Args[1]);
+	stringmap_insert(Compiler->Vars, Name, Args[2]);
+	return Args[2];
+}
+
+ML_METHOD("def", MLCompilerT, MLStringT, MLAnyT) {
+//<Compiler
+//<Name
+//<Value
+//>any
+	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
+	const char *Name = ml_string_value(Args[1]);
+	stringmap_insert(Compiler->Vars, Name, Args[2]);
+	return Args[2];
+}
+
+static int ml_compiler_var_fn(const char *Name, ml_value_t *Value, ml_value_t *Vars) {
+	ml_map_insert(Vars, ml_cstring(Name), ml_deref(Value));
+	return 0;
+}
+
+ML_METHOD("vars", MLCompilerT) {
+//<Compiler
+//>map
+	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
+	ml_value_t *Vars = ml_map();
+	stringmap_foreach(Compiler->Vars, Vars, (void *)ml_compiler_var_fn);
+	return Vars;
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Value;
+	const char *Name;
+} ml_global_t;
+
 static ml_value_t *ml_global_deref(ml_global_t *Global) {
 	if (!Global->Value) return ml_error("NameError", "identifier %s not declared", Global->Name);
 	return ml_deref(Global->Value);
@@ -4481,133 +4546,93 @@ ML_TYPE(MLGlobalT, (), "global",
 	.call = (void *)ml_global_call
 );
 
+ml_value_t *ml_global(const char *Name) {
+	ml_global_t *Global = new(ml_global_t);
+	Global->Type =  MLGlobalT;
+	Global->Name = Name;
+	return (ml_value_t *)Global;
+}
+
+ml_value_t *ml_global_get(ml_value_t *Global) {
+	return ((ml_global_t *)Global)->Value;
+}
+
+ml_value_t *ml_global_set(ml_value_t *Global, ml_value_t *Value) {
+	return ((ml_global_t *)Global)->Value = Value;
+}
+
 static ml_value_t *ML_TYPED_FN(ml_unpack, MLGlobalT, ml_global_t *Global, int Index) {
 	return ml_unpack(Global->Value, Index);
 }
 
-ML_METHOD("var", MLCompilerT, MLStringT) {
+ML_METHOD("command_var", MLCompilerT, MLStringT) {
 //<Compiler
 //<Name
-//>global
+//>variable
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
-	ml_variable_t *Var = new(ml_variable_t);
-	Var->Type = MLVariableT;
-	Var->Value = MLNil;
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Compiler->Vars, Name);
-	ml_global_t *Global;
 	if (!Slot[0] || ml_typeof(Slot[0]) != MLGlobalT) {
-		Global = new(ml_global_t);
-		Global->Type = MLGlobalT;
-		Global->Name = Name;
-		Slot[0] = (ml_value_t *)Global;
-	} else {
-		Global = (ml_global_t *)Slot[0];
+		Slot[0] = ml_global(Name);
 	}
-	return (Global->Value = (ml_value_t *)Var);
+	return ml_global_set(Slot[0], ml_variable(MLNil, NULL));
 }
 
-ML_METHOD("var", MLCompilerT, MLStringT, MLTypeT) {
+ML_METHOD("command_var", MLCompilerT, MLStringT, MLTypeT) {
 //<Compiler
 //<Name
 //<Type
-//>global
+//>variable
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
-	ml_variable_t *Var = new(ml_variable_t);
-	Var->Type = MLVariableT;
-	Var->Value = MLNil;
-	Var->VarType = (ml_type_t *)Args[2];
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Compiler->Vars, Name);
-	ml_global_t *Global;
 	if (!Slot[0] || ml_typeof(Slot[0]) != MLGlobalT) {
-		Global = new(ml_global_t);
-		Global->Type = MLGlobalT;
-		Global->Name = Name;
-		Slot[0] = (ml_value_t *)Global;
-	} else {
-		Global = (ml_global_t *)Slot[0];
+		Slot[0] = ml_global(Name);
 	}
-	return (Global->Value = (ml_value_t *)Var);
+	return ml_global_set(Slot[0], ml_variable(MLNil, Args[2]));
 }
 
-ML_METHOD("let", MLCompilerT, MLStringT, MLAnyT) {
+ML_METHOD("command_let", MLCompilerT, MLStringT, MLAnyT) {
 //<Compiler
 //<Name
 //<Value
-//>global
+//>any
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Compiler->Vars, Name);
-	ml_global_t *Global;
 	if (!Slot[0] || ml_typeof(Slot[0]) != MLGlobalT) {
-		Global = new(ml_global_t);
-		Global->Type = MLGlobalT;
-		Global->Name = Name;
-		Slot[0] = (ml_value_t *)Global;
-	} else {
-		Global = (ml_global_t *)Slot[0];
+		Slot[0] = ml_global(Name);
 	}
-	return (Global->Value = Args[2]);
+	return ml_global_set(Slot[0], Args[2]);
 }
 
-ML_METHOD("def", MLCompilerT, MLStringT, MLAnyT) {
+ML_METHOD("command_def", MLCompilerT, MLStringT, MLAnyT) {
 //<Compiler
 //<Name
 //<Value
-//>global
+//>any
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Compiler->Vars, Name);
-	ml_global_t *Global;
 	if (!Slot[0] || ml_typeof(Slot[0]) != MLGlobalT) {
-		Global = new(ml_global_t);
-		Global->Type = MLGlobalT;
-		Global->Name = Name;
-		Slot[0] = (ml_value_t *)Global;
-	} else {
-		Global = (ml_global_t *)Slot[0];
+		Slot[0] = ml_global(Name);
 	}
-	return (Global->Value = Args[2]);
-}
-
-static int ml_compiler_var_fn(const char *Name, ml_value_t *Value, ml_value_t *Vars) {
-	ml_map_insert(Vars, ml_cstring(Name), ml_deref(Value));
-	return 0;
-}
-
-ML_METHOD("vars", MLCompilerT) {
-//<Compiler
-//>map
-	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
-	ml_value_t *Vars = ml_map();
-	stringmap_foreach(Compiler->Vars, Vars, (void *)ml_compiler_var_fn);
-	return Vars;
+	return ml_global_set(Slot[0], Args[2]);
 }
 
 static ml_global_t *ml_command_global(stringmap_t *Globals, const char *Name) {
-	ml_global_t *Global;
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Globals, Name);
 	if (!Slot[0]) {
-		Global = new(ml_global_t);
-		Global->Type = MLGlobalT;
-		Global->Name = Name;
-		Slot[0] = (ml_value_t *)Global;
+		Slot[0] = ml_global(Name);
 	} else if (ml_typeof(Slot[0]) == MLGlobalT) {
-		Global = (ml_global_t *)Slot[0];
 	} else if (ml_typeof(Slot[0]) == MLUninitializedT) {
-		Global = new(ml_global_t);
-		Global->Type = MLGlobalT;
-		Global->Name = Name;
-		ml_uninitialized_set(Slot[0], (ml_value_t *)Global);
-		Slot[0] = (ml_value_t *)Global;
+		ml_value_t *Global = ml_global(Name);
+		ml_uninitialized_set(Slot[0], Global);
+		Slot[0] = Global;
 	} else {
-		Global = new(ml_global_t);
-		Global->Type = MLGlobalT;
-		Global->Name = Name;
-		Slot[0] = (ml_value_t *)Global;
+		Slot[0] = ml_global(Name);
 	}
-	return Global;
+	return (ml_global_t *)Slot[0];
 }
 
 typedef struct {
@@ -4625,10 +4650,7 @@ static void ml_command_idents_in2(mlc_function_t *Function, ml_value_t *Value, m
 	ml_global_t *Global = Frame->Globals[Frame->Index];
 	if (Frame->Type != MLT_REF) Value = ml_deref(Value);
 	if (Frame->Type == MLT_VAR) {
-		ml_variable_t *Var = new(ml_variable_t);
-		Var->Type = MLVariableT;
-		Var->Value = Value;
-		Value = (ml_value_t *)Var;
+		Value = ml_variable(Value, NULL);
 	}
 	Global->Value = Value;
 	if (Frame->Index) {
@@ -4654,10 +4676,7 @@ static void ml_command_idents_unpack(mlc_function_t *Function, ml_value_t *Packe
 		ml_global_t *Global = Frame->Globals[Index];
 		if (Frame->Type != MLT_REF) Value = ml_deref(Value);
 		if (Frame->Type == MLT_VAR) {
-			ml_variable_t *Var = new(ml_variable_t);
-			Var->Type = MLVariableT;
-			Var->Value = Value;
-			Value = (ml_value_t *)Var;
+			Value = ml_variable(Value, NULL);
 		}
 		Global->Value = Value;
 	}
@@ -4706,11 +4725,8 @@ static void ml_command_ident_run(mlc_function_t *Function, ml_value_t *Value, ml
 	ml_global_t *Global = Frame->Global;
 	if (Frame->Type != MLT_REF) Value = ml_deref(Value);
 	if (Frame->Type == MLT_VAR) {
-		ml_variable_t *Var = new(ml_variable_t);
-		Var->Type = MLVariableT;
-		Var->Value = Value;
 		//if (VarType) Var->VarType = VarType;
-		Value = (ml_value_t *)Var;
+		Value = ml_variable(Value, NULL);
 	}
 	Global->Value = Value;
 	MLC_POP();

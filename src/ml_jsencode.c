@@ -105,11 +105,14 @@ static json_t *ML_TYPED_FN(ml_json_encode, MLTypeT, ml_json_encoder_cache_t *Cac
 	return json_pack("[ss]", "type", Value->Name);
 }
 
-static json_t *ML_TYPED_FN(ml_json_encode, MLGlobalT, ml_json_encoder_cache_t *Cache, ml_global_t *Value) {
+static json_t *ML_TYPED_FN(ml_json_encode, MLGlobalT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
+	return ml_json_encode(Cache, ml_global_get(Value));
+}
+
+static json_t *ML_TYPED_FN(ml_json_encode, MLVariableT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
 	json_t *Json = json_array();
-	json_array_append(Json, json_string("global"));
+	json_array_append(Json, json_string("variable"));
 	inthash_insert(Cache->Cached, (uintptr_t)Value, Json);
-	json_array_append(Json, ml_json_encode(Cache, Value->Value));
 	return Json;
 }
 

@@ -10,6 +10,12 @@
 #include "ml_bytecode.h"
 #include "ml_debugger.h"
 
+typedef struct {
+	const ml_type_t *Type;
+	ml_value_t *Value;
+	const ml_type_t *VarType;
+} ml_variable_t;
+
 static long ml_variable_hash(ml_variable_t *Variable, ml_hash_chain_t *Chain) {
 	ml_value_t *Value = Variable->Value;
 	return ml_typeof(Value)->hash(Value, Chain);
@@ -36,6 +42,14 @@ ML_TYPE(MLVariableT, (), "variable",
 	.assign = (void *)ml_variable_assign,
 	.call = (void *)ml_variable_call
 );
+
+ml_value_t *ml_variable(ml_value_t *Value, ml_value_t *Type) {
+	ml_variable_t *Variable = new(ml_variable_t);
+	Variable->Type = MLVariableT;
+	Variable->Value = Value;
+	Variable->VarType = Type;
+	return (ml_value_t *)Variable;
+}
 
 #endif
 

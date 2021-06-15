@@ -33,15 +33,23 @@ compiler
 
 :mini:`meth (Compiler: compiler)[Name: string]` |rarr| :mini:`any`
 
-:mini:`type global`
+:mini:`meth :var(Compiler: compiler, Name: string)` |rarr| :mini:`variable`
 
-:mini:`meth :var(Compiler: compiler, Name: string)` |rarr| :mini:`global`
+:mini:`meth :var(Compiler: compiler, Name: string, Type: type)` |rarr| :mini:`variable`
 
-:mini:`meth :var(Compiler: compiler, Name: string, Type: type)` |rarr| :mini:`global`
+:mini:`meth :let(Compiler: compiler, Name: string, Value: any)` |rarr| :mini:`any`
 
-:mini:`meth :let(Compiler: compiler, Name: string, Value: any)` |rarr| :mini:`global`
-
-:mini:`meth :def(Compiler: compiler, Name: string, Value: any)` |rarr| :mini:`global`
+:mini:`meth :def(Compiler: compiler, Name: string, Value: any)` |rarr| :mini:`any`
 
 :mini:`meth :vars(Compiler: compiler)` |rarr| :mini:`map`
+
+:mini:`type global`
+
+:mini:`meth :command_var(Compiler: compiler, Name: string)` |rarr| :mini:`variable`
+
+:mini:`meth :command_var(Compiler: compiler, Name: string, Type: type)` |rarr| :mini:`variable`
+
+:mini:`meth :command_let(Compiler: compiler, Name: string, Value: any)` |rarr| :mini:`any`
+
+:mini:`meth :command_def(Compiler: compiler, Name: string, Value: any)` |rarr| :mini:`any`
 

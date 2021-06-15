@@ -171,13 +171,7 @@ typedef struct ml_frame_t ml_frame_t;
 
 #define ML_FRAME_REUSE_SIZE 224
 
-typedef struct ml_variable_t ml_variable_t;
-
-struct ml_variable_t {
-	const ml_type_t *Type;
-	ml_value_t *Value;
-	const ml_type_t *VarType;
-};
+ml_value_t *ml_variable(ml_value_t *Value, ml_value_t *Type);
 
 extern ml_type_t MLVariableT[];
 

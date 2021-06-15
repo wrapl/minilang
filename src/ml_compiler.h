@@ -10,12 +10,6 @@
 extern "C" {
 #endif
 
-typedef struct {
-	ml_type_t *Type;
-	ml_value_t *Value;
-	const char *Name;
-} ml_global_t;
-
 extern ml_value_t MLEndOfInput[];
 extern ml_value_t MLNotFound[];
 extern ml_type_t MLCompilerT[];
@@ -58,6 +52,10 @@ void ml_compiler_init();
 typedef struct ml_scope_macro_t ml_scope_macro_t;
 ml_scope_macro_t *ml_scope_macro_new();
 void ml_scope_macro_define(ml_scope_macro_t *Macro, const char *Name, ml_value_t *Value);
+
+ml_value_t *ml_global(const char *Name);
+ml_value_t *ml_global_get(ml_value_t *Global);
+ml_value_t *ml_global_set(ml_value_t *Global, ml_value_t *Value);
 
 #ifdef	__cplusplus
 }
