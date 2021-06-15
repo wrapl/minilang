@@ -5,20 +5,22 @@
 #include <stdio.h>
 #include "ml_runtime.h"
 
+typedef struct {
+	ml_module_t Base;
+	int Flags;
+} ml_mini_module_t;
+
 ML_TYPE(MLMiniModuleT, (MLModuleT), "module");
 
 ML_METHODX("::", MLMiniModuleT, MLStringT) {
-	ml_module_t *Module = (ml_module_t *)Args[0];
+	ml_mini_module_t *Module = (ml_mini_module_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
-	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Module->Exports, Name);
-	ml_value_t *Value = Slot[0];
-	if (!Value) {
-		Value = Slot[0] = ml_uninitialized(Name);
-	}
-	ML_RETURN(Value);
+	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Module->Base.Exports, Name);
+	if (!Slot[0]) Slot[0] = ml_uninitialized(Name);
+	ML_RETURN(Slot[0]);
 }
 
-static void ml_export(ml_state_t *Caller, ml_module_t *Module, int Count, ml_value_t **Args) {
+static void ml_export(ml_state_t *Caller, ml_mini_module_t *Module, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLNamesT);
 	int Index = 0;
@@ -26,14 +28,30 @@ static void ml_export(ml_state_t *Caller, ml_module_t *Module, int Count, ml_val
 	ML_NAMES_FOREACH(Args[0], Iter) {
 		const char *Name = ml_string_value(Iter->Value);
 		Value = Args[++Index];
-		ml_value_t **Slot = (ml_value_t **)stringmap_slot(Module->Exports, Name);
-		if (Slot[0]) {
-			if (ml_typeof(Slot[0]) != MLUninitializedT) {
-				ML_RETURN(ml_error("ExportError", "Duplicate export %s", Name));
+		ml_value_t **Slot = (ml_value_t **)stringmap_slot(Module->Base.Exports, Name);
+		if (Module->Flags & MLMF_USE_GLOBALS) {
+			if (Slot[0]) {
+				if (ml_typeof(Slot[0]) == MLGlobalT) {
+				} else if (ml_typeof(Slot[0]) == MLUninitializedT) {
+					ml_value_t *Global = ml_global(Name);
+					ml_uninitialized_set(Slot[0], Global);
+					Slot[0] = Global;
+				} else {
+					ML_RETURN(ml_error("ExportError", "Duplicate export %s", Name));
+				}
+			} else {
+				Slot[0] = ml_global(Name);
 			}
-			ml_uninitialized_set(Slot[0], Value);
+			ml_global_set(Slot[0], Value);
+		} else {
+			if (Slot[0]) {
+				if (ml_typeof(Slot[0]) != MLUninitializedT) {
+					ML_RETURN(ml_error("ExportError", "Duplicate export %s", Name));
+				}
+				ml_uninitialized_set(Slot[0], Value);
+			}
+			Slot[0] = Value;
 		}
-		Slot[0] = Value;
 	}
 	ML_RETURN(Value);
 }
@@ -56,12 +74,18 @@ static void ml_module_init_run(ml_module_state_t *State, ml_value_t *Value) {
 	return ml_call(State, Value, 1, State->Args);
 }
 
-void ml_module_compile(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t *Compiler, ml_value_t **Slot) {
+void ml_module_compile2(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t *Compiler, ml_value_t **Slot, int Flags) {
 	static const char *Parameters[] = {"export", NULL};
-	ml_module_t *Module = new(ml_module_t);
-	Module->Type = MLMiniModuleT;
-	Module->Path = ml_parser_name(Parser);
-	Slot[0] = (ml_value_t *)Module;
+	ml_mini_module_t *Module;
+	if ((Flags & MLMF_USE_GLOBALS) && Slot[0] && ml_typeof(Slot[0]) == MLMiniModuleT) {
+		Module = (ml_mini_module_t *)Slot[0];
+	} else {
+		Module = new(ml_mini_module_t);
+		Module->Base.Type = MLMiniModuleT;
+		Module->Base.Path = ml_parser_name(Parser);
+		Module->Flags = Flags;
+		Slot[0] = (ml_value_t *)Module;
+	}
 	ml_module_state_t *State = new(ml_module_state_t);
 	State->Base.Type = MLModuleStateT;
 	State->Base.run = (void *)ml_module_init_run;
@@ -74,11 +98,16 @@ void ml_module_compile(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t *C
 	ml_function_compile((ml_state_t *)State, Expr, Compiler, Parameters);
 }
 
+
+void ml_module_compile(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t *Compiler, ml_value_t **Slot) {
+	return ml_module_compile2(Caller, Parser, Compiler, Slot, 0);
+}
+
 void ml_module_load_file(ml_state_t *Caller, const char *FileName, ml_getter_t GlobalGet, void *Globals, ml_value_t **Slot) {
 	static const char *Parameters[] = {"export", NULL};
-	ml_module_t *Module = new(ml_module_t);
-	Module->Type = MLMiniModuleT;
-	Module->Path = FileName;
+	ml_mini_module_t *Module = new(ml_mini_module_t);
+	Module->Base.Type = MLMiniModuleT;
+	Module->Base.Path = FileName;
 	Slot[0] = (ml_value_t *)Module;
 	ml_module_state_t *State = new(ml_module_state_t);
 	State->Base.Type = MLModuleStateT;
