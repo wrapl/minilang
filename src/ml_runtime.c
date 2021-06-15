@@ -10,7 +10,11 @@
 
 // Runtime //
 
+#ifndef ML_THREADSAFE
+
 ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
+
+#endif
 
 static int MLContextSize = 4;
 // Reserved context slots:
@@ -270,26 +274,27 @@ ML_FUNCTIONX(MLSwapCC) {
 
 // References //
 
-static long ml_reference_hash(ml_value_t *Ref, ml_hash_chain_t *Chain) {
-	ml_reference_t *Reference = (ml_reference_t *)Ref;
-	ml_value_t *Value = Reference->Address[0];
-	return ml_typeof(Value)->hash(Value, Chain);
+static long ml_reference_hash(ml_reference_t *Reference, ml_hash_chain_t *Chain) {
+	return ml_hash_chain(Reference->Address[0], Chain);
 }
 
-static ml_value_t *ml_reference_deref(ml_value_t *Ref) {
-	ml_reference_t *Reference = (ml_reference_t *)Ref;
+static ml_value_t *ml_reference_deref(ml_reference_t *Reference) {
 	return Reference->Address[0];
 }
 
-static ml_value_t *ml_reference_assign(ml_value_t *Ref, ml_value_t *Value) {
-	ml_reference_t *Reference = (ml_reference_t *)Ref;
+static ml_value_t *ml_reference_assign(ml_reference_t *Reference, ml_value_t *Value) {
 	return Reference->Address[0] = Value;
 }
 
+static void ml_reference_call(ml_state_t *Caller, ml_reference_t *Reference, int Count, ml_value_t **Args) {
+	return ml_call(Caller, Reference->Address[0], Count, Args);
+}
+
 ML_TYPE(MLReferenceT, (), "reference",
-	.hash = ml_reference_hash,
-	.deref = ml_reference_deref,
-	.assign = ml_reference_assign
+	.hash = (void *)ml_reference_hash,
+	.deref = (void *)ml_reference_deref,
+	.assign = (void *)ml_reference_assign,
+	.call = (void *)ml_reference_call
 );
 
 inline ml_value_t *ml_reference(ml_value_t **Address) {
@@ -533,6 +538,22 @@ void ml_error_fprint(FILE *File, const ml_value_t *Value) {
 	}
 }
 
+const char *ml_error_value_type(const ml_value_t *Value) {
+	return ((ml_error_value_t *)Value)->Error;
+}
+
+const char *ml_error_value_message(const ml_value_t *Value) {
+	return ((ml_error_value_t *)Value)->Message;
+}
+
+int ml_error_value_source(const ml_value_t *Value, int Level, ml_source_t *Source) {
+	ml_error_value_t *Error = (ml_error_value_t *)Value;
+	if (Level >= MAX_TRACE) return 0;
+	if (!Error->Trace[Level].Name) return 0;
+	Source[0] = Error->Trace[Level];
+	return 1;
+}
+
 ML_METHOD("type", MLErrorValueT) {
 //!error
 	return ml_string(((ml_error_value_t *)Args[0])->Error, -1);
@@ -557,6 +578,19 @@ ML_METHOD("trace", MLErrorValueT) {
 	return Trace;
 }
 
+ML_METHOD("append", MLStringBufferT, MLErrorValueT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_error_value_t *Value = (ml_error_value_t *)Args[1];
+	ml_stringbuffer_add(Buffer, Value->Error, strlen(Value->Error));
+	ml_stringbuffer_add(Buffer, ": ", 2);
+	ml_stringbuffer_add(Buffer, Value->Message, strlen(Value->Message));
+	ml_source_t *Source = Value->Trace;
+	for (int I = MAX_TRACE; --I >= 0 && Source->Name; ++Source) {
+		ml_stringbuffer_addf(Buffer, "\n\t%s:%d", Source->Name, Source->Line);
+	}
+	return Args[0];
+}
+
 // Debugging //
 
 int ml_debugger_check(ml_state_t *State) {
@@ -576,6 +610,7 @@ ml_source_t ml_debugger_source(ml_state_t *State) {
 	if (!State || !State->Type) return (ml_source_t){"<unknown>", 0};
 	typeof(ml_debugger_source) *function = ml_typed_fn_get(State->Type, ml_debugger_source);
 	if (function) return function(State);
+	if (State->Caller) return ml_debugger_source(State->Caller);
 	return (ml_source_t){"<unknown>", 0};
 }
 
@@ -602,6 +637,82 @@ ML_FUNCTIONX(MLBreak) {
 	return Debugger->run(Debugger, Caller, MLNil);
 }
 
+// Semaphore
+
+typedef struct {
+	ml_type_t *Type;
+	ml_state_t **States;
+	int64_t Value;
+	int Size, Fill, Write, Read;
+} ml_semaphore_t;
+
+ML_FUNCTION(MLSemaphore) {
+//!semaphore
+//@semaphore
+//<Initial? : integer
+	if (Count > 0) ML_CHECK_ARG_TYPE(0, MLIntegerT);
+	ml_semaphore_t *Semaphore = new(ml_semaphore_t);
+	Semaphore->Type = MLSemaphoreT;
+	Semaphore->Value = (Count > 0) ? ml_integer_value(Args[0]) : 1;
+	Semaphore->Fill = 0;
+	Semaphore->Size = 4;
+	Semaphore->Read = Semaphore->Write = 0;
+	Semaphore->States = anew(ml_state_t *, 4);
+	return (ml_value_t *)Semaphore;
+}
+
+ML_TYPE(MLSemaphoreT, (), "semaphore",
+//!semaphore
+	.Constructor = (ml_value_t *)MLSemaphore
+);
+
+ML_METHODX("wait", MLSemaphoreT) {
+//!semaphore
+//<Semaphore
+	ml_semaphore_t *Semaphore = (ml_semaphore_t *)Args[0];
+	int64_t Value = Semaphore->Value;
+	if (Value) {
+		Semaphore->Value = Value - 1;
+		ML_RETURN(Args[0]);
+	}
+	++Semaphore->Fill;
+	if (Semaphore->Fill > Semaphore->Size) {
+		int NewSize = Semaphore->Size * 2;
+		ml_state_t **NewStates = anew(ml_state_t *, NewSize);
+		memcpy(NewStates, Semaphore->States, Semaphore->Size * sizeof(ml_state_t *));
+		Semaphore->Read = 0;
+		Semaphore->Write = Semaphore->Size;
+		Semaphore->States = NewStates;
+		Semaphore->Size = NewSize;
+	}
+	Semaphore->States[Semaphore->Write] = Caller;
+	Semaphore->Write = (Semaphore->Write + 1) % Semaphore->Size;
+}
+
+ML_METHOD("signal", MLSemaphoreT) {
+//!semaphore
+//<Semaphore
+	ml_semaphore_t *Semaphore = (ml_semaphore_t *)Args[0];
+	int Fill = Semaphore->Fill;
+	if (Fill) {
+		Semaphore->Fill = Fill - 1;
+		ml_state_t *State = Semaphore->States[Semaphore->Read];
+		Semaphore->States[Semaphore->Read] = NULL;
+		Semaphore->Read = (Semaphore->Read + 1) % Semaphore->Size;
+		State->run(State, Args[0]);
+	} else {
+		++Semaphore->Value;
+	}
+	return Args[0];
+}
+
+ML_METHOD("value", MLSemaphoreT) {
+//!semaphore
+//<Semaphore
+	ml_semaphore_t *Semaphore = (ml_semaphore_t *)Args[0];
+	return ml_integer(Semaphore->Value);
+}
+
 // Channels
 
 typedef struct ml_channel_message_t ml_channel_message_t;
@@ -623,8 +734,6 @@ static void ml_channel_run(ml_channel_t *Channel, ml_value_t *Value) {
 	Channel->Open = 0;
 	ML_CONTINUE(Channel->Base.Caller, Value);
 }
-
-extern ml_type_t MLChannelT[];
 
 ML_FUNCTION(MLChannel) {
 //!channel
@@ -760,6 +869,22 @@ ML_METHODX("raise", MLChannelT, MLErrorValueT) {
 	ML_CONTINUE(Receiver, Error);
 }
 */
+
+#ifdef ML_THREADSAFE
+
+#include <pthread.h>
+
+static pthread_mutex_t RuntimeLock[1] = {PTHREAD_MUTEX_INITIALIZER};
+
+void ml_runtime_lock() {
+	pthread_mutex_lock(RuntimeLock);
+}
+
+void ml_runtime_unlock() {
+	pthread_mutex_unlock(RuntimeLock);
+}
+
+#endif
 
 void ml_runtime_init() {
 #include "ml_runtime_init.c"

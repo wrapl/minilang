@@ -1,0 +1,29 @@
+fun test(N) do
+	print(switch N
+	case "One"
+	case "Two"
+	case "Three"
+	else error("CaseError", "Case outside range")
+	end, "\n")
+end
+
+for I in 1 .. 4 do
+	test(I)
+on Error do
+	print('Error: {Error:message}\n')
+end
+
+fun test2(N) do
+	print(switch N
+	case "One"
+	case "Two"
+	case "Three"
+	else "Else"
+	end, "\n")
+end
+
+for I in 1 .. 5 do
+	test2(I)
+on Error do
+	print('Error: {Error:message}\n')
+end

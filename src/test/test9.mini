@@ -11,4 +11,4 @@ var test2 := fun() do
 	print("In test2!\n")
 end
 
-test(10, 20) 
+test(10, 20)

@@ -115,9 +115,9 @@ static ml_value_t *debugger_breakpoint_set(interactive_debugger_t *Debugger, int
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLIntegerT);
 	const char *Source = ml_string_value(Args[0]);
-	int LineNo = ml_integer_value_fast(Args[1]);
+	size_t LineNo = ml_integer_value_fast(Args[1]);
 	size_t *Breakpoints = debugger_breakpoints(Debugger, Source, LineNo);
-	Breakpoints[LineNo / SIZE_BITS] |= 1 << (LineNo % SIZE_BITS);
+	Breakpoints[LineNo / SIZE_BITS] |= 1L << (LineNo % SIZE_BITS);
 	++Debugger->Base.Revision;
 	return debugger_breakpoints_list(Debugger, 0, NULL);
 }
@@ -127,9 +127,9 @@ static ml_value_t *debugger_breakpoint_clear(interactive_debugger_t *Debugger, i
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLIntegerT);
 	const char *Source = ml_string_value(Args[0]);
-	int LineNo = ml_integer_value_fast(Args[1]);
+	size_t LineNo = ml_integer_value_fast(Args[1]);
 	size_t *Breakpoints = debugger_breakpoints(Debugger, Source, LineNo);
-	Breakpoints[LineNo / SIZE_BITS] &= ~(1 << (LineNo % SIZE_BITS));
+	Breakpoints[LineNo / SIZE_BITS] &= ~(1L << (LineNo % SIZE_BITS));
 	++Debugger->Base.Revision;
 	return debugger_breakpoints_list(Debugger, 0, NULL);
 }
@@ -295,11 +295,6 @@ static void debugger_run(interactive_debugger_t *Debugger, ml_state_t *State, ml
 	Debugger->Info->enter(Debugger->Info->Data, Debugger, Source, Thread - Debugger->Threads);
 }
 
-static void debugger_state_load(ml_state_t *State, ml_value_t *Function) {
-	State->run = ml_default_state_run;
-	return ml_call(State, Function, 0, NULL);
-}
-
 static void interactive_debugger_fnx(ml_state_t *Caller, interactive_debugger_info_t *Info, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
 
@@ -330,9 +325,12 @@ static void interactive_debugger_fnx(ml_state_t *Caller, interactive_debugger_in
 	ml_state_t *State = ml_state_new(Caller);
 	ml_context_set(State->Context, ML_DEBUGGER_INDEX, Debugger);
 	if (ml_is(Args[0], MLStringT)) {
-		State->run = debugger_state_load;
+		ml_call_state_t *State2 = ml_call_state_new(State, 1);
+		ml_value_t *Args2 = ml_list();
+		for (int I = 1; I < Count; ++I) ml_list_put(Args2, Args[I]);
+		State2->Args[0] = Args2;
 		const char *FileName = ml_string_value(Args[0]);
-		ml_load_file(State, Info->GlobalGet, Info->Globals, FileName, NULL);
+		ml_load_file((ml_state_t *)State2, Info->GlobalGet, Info->Globals, FileName, NULL);
 	} else {
 		ml_value_t *Function = Args[0];
 		return ml_call(State, Function, Count - 1, Args + 1);

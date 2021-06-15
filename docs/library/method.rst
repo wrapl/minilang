@@ -3,6 +3,8 @@ method
 
 .. include:: <isonum.txt>
 
+:mini:`type methods`
+
 :mini:`type method < function`
 
 :mini:`meth method()` |rarr| :mini:`method`
@@ -14,4 +16,6 @@ method
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: method)`
 
 :mini:`fun method::set(Method: any, Types...: type, Function: function)` |rarr| :mini:`Function`
+
+:mini:`fun mlmethodcontext()`
 

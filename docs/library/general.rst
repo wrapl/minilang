@@ -21,5 +21,7 @@ general
 
 :mini:`fun import(Arg₁: string)`
 
+:mini:`fun library(Arg₁: string)`
+
 :mini:`fun unload(Arg₁: string)`
 

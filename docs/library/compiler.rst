@@ -3,37 +3,53 @@ compiler
 
 .. include:: <isonum.txt>
 
+:mini:`type macro`
+
+:mini:`type compilerfunction < state`
+
 :mini:`fun compiler(Global: function|map, ?Read: function)` |rarr| :mini:`compiler`
 
 :mini:`type compiler < state`
 
-:mini:`meth :compile(Compiler: compiler)` |rarr| :mini:`any`
+:mini:`fun compiler()`
 
-:mini:`meth :compile(Compiler: compiler, Parameters: list)` |rarr| :mini:`any`
+:mini:`type parser`
 
-:mini:`meth :source(Compiler: compiler, Source: string, Line: integer)` |rarr| :mini:`tuple`
+:mini:`meth :compile(Parser: parser, Compiler: compiler)` |rarr| :mini:`any`
 
-:mini:`meth :reset(Compiler: compiler)` |rarr| :mini:`compiler`
+:mini:`meth :compile(Parser: parser, Compiler: compiler, Parameters: list)` |rarr| :mini:`any`
 
-:mini:`meth :input(Compiler: compiler, String: string)` |rarr| :mini:`compiler`
+:mini:`meth :source(Parser: parser, Source: string, Line: integer)` |rarr| :mini:`tuple`
 
-:mini:`meth :clear(Compiler: compiler)` |rarr| :mini:`string`
+:mini:`meth :reset(Parser: parser)` |rarr| :mini:`parser`
 
-:mini:`meth :evaluate(Compiler: compiler)` |rarr| :mini:`any`
+:mini:`meth :input(Parser: parser, String: string)` |rarr| :mini:`compiler`
 
-:mini:`meth :run(Compiler: compiler)` |rarr| :mini:`any`
+:mini:`meth :clear(Parser: parser)` |rarr| :mini:`string`
+
+:mini:`meth :evaluate(Parser: parser, Compiler: compiler)` |rarr| :mini:`any`
+
+:mini:`meth :run(Compiler: parser, Arg₂: compiler)` |rarr| :mini:`any`
 
 :mini:`meth (Compiler: compiler)[Name: string]` |rarr| :mini:`any`
 
-:mini:`type global`
+:mini:`meth :var(Compiler: compiler, Name: string)` |rarr| :mini:`variable`
 
-:mini:`meth :var(Compiler: compiler, Name: string)` |rarr| :mini:`global`
+:mini:`meth :var(Compiler: compiler, Name: string, Type: type)` |rarr| :mini:`variable`
 
-:mini:`meth :var(Compiler: compiler, Name: string, Type: type)` |rarr| :mini:`global`
+:mini:`meth :let(Compiler: compiler, Name: string, Value: any)` |rarr| :mini:`any`
 
-:mini:`meth :let(Compiler: compiler, Name: string, Value: any)` |rarr| :mini:`global`
-
-:mini:`meth :def(Compiler: compiler, Name: string, Value: any)` |rarr| :mini:`global`
+:mini:`meth :def(Compiler: compiler, Name: string, Value: any)` |rarr| :mini:`any`
 
 :mini:`meth :vars(Compiler: compiler)` |rarr| :mini:`map`
+
+:mini:`type global`
+
+:mini:`meth :command_var(Compiler: compiler, Name: string)` |rarr| :mini:`variable`
+
+:mini:`meth :command_var(Compiler: compiler, Name: string, Type: type)` |rarr| :mini:`variable`
+
+:mini:`meth :command_let(Compiler: compiler, Name: string, Value: any)` |rarr| :mini:`any`
+
+:mini:`meth :command_def(Compiler: compiler, Name: string, Value: any)` |rarr| :mini:`any`
 

@@ -42,6 +42,7 @@ class MinilangLexer(RegexLexer):
             (':=', Operator),
             (',', Operator),
             (';', Operator),
+            (':', Operator),
             (']', Operator),
             ('\[', Operator),
             (r'[!@#$%^&*+=|\\~`/?<>.-]+', Operator)

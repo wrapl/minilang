@@ -152,8 +152,9 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 	stringmap_insert(Globals, "input", ml_cfunction(Preprocessor, (void *)ml_preprocessor_input));
 	stringmap_insert(Globals, "include", ml_cfunction(Preprocessor, (void *)ml_preprocessor_include));
 	stringmap_insert(Globals, "open", MLFileOpen);
-	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)ml_preprocessor_global_get, Preprocessor, (void *)ml_preprocessor_line_read, Preprocessor);
-	ml_compiler_source(Compiler, (ml_source_t){InputName, 1});
+	ml_parser_t *Parser = ml_parser((void *)ml_preprocessor_line_read, Preprocessor);
+	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)ml_preprocessor_global_get, Preprocessor);
+	ml_parser_source(Parser, (ml_source_t){InputName, 1});
 	ml_value_t *Semicolon = ml_cstring(";");
 	for (;;) {
 		ml_preprocessor_input_t *Input = Preprocessor->Input;
@@ -191,8 +192,8 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 				ml_simple_inline(Preprocessor->Output->Writer, 1, Semicolon);
 			} else {
 				Input->Line = Escape + 1;
-				ml_command_evaluate(MLResultState, Compiler);
-				Input->Line = ml_compiler_clear(Compiler);
+				ml_command_evaluate(MLResultState, Parser, Compiler);
+				Input->Line = ml_parser_clear(Parser);
 			}
 		} else {
 			if (Line[0] && Line[0] != '\n') ml_simple_inline(Preprocessor->Output->Writer, 1, ml_string(Line, strlen(Line)));

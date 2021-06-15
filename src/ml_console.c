@@ -14,6 +14,7 @@
 
 typedef struct {
 	ml_state_t Base;
+	ml_parser_t *Parser;
 	ml_compiler_t *Compiler;
 	const char *Prompt;
 	const char *DefaultPrompt, *ContinuePrompt;
@@ -85,8 +86,8 @@ static void ml_console_repl_run(ml_console_t *Console, ml_value_t *Result) {
 	Console->Prompt = Console->DefaultPrompt;
 	Result = ml_deref(Result);
 	ml_console_log(NULL, Result);
-	if (ml_is_error(Result)) ml_compiler_reset(Console->Compiler);
-	return ml_command_evaluate((ml_state_t *)Console, Console->Compiler);
+	if (ml_is_error(Result)) ml_parser_reset(Console->Parser);
+	return ml_command_evaluate((ml_state_t *)Console, Console->Parser, Console->Compiler);
 }
 
 typedef struct {
@@ -120,7 +121,8 @@ void ml_console(ml_context_t *Context, ml_getter_t GlobalGet, void *Globals, con
 	Console->Prompt = Console->DefaultPrompt = DefaultPrompt;
 	Console->ContinuePrompt = ContinuePrompt;
 	Console->Debugger = NULL;
-	ml_compiler_t *Compiler = ml_compiler(GlobalGet, Globals, (void *)ml_console_line_read, Console);
+	ml_parser_t *Parser = ml_parser((void *)ml_console_line_read, Console);
+	ml_compiler_t *Compiler = ml_compiler(GlobalGet, Globals);
 	ml_compiler_define(Compiler, "debugger", interactive_debugger(
 		(void *)ml_console_debug_enter,
 		(void *)ml_console_debug_exit,
@@ -130,7 +132,8 @@ void ml_console(ml_context_t *Context, ml_getter_t GlobalGet, void *Globals, con
 		Globals
 	));
 
-	ml_compiler_source(Compiler, (ml_source_t){"<console>", 1});
+	ml_parser_source(Parser, (ml_source_t){"<console>", 1});
+	Console->Parser = Parser;
 	Console->Compiler = Compiler;
-	ml_command_evaluate((ml_state_t *)Console, Compiler);
+	ml_command_evaluate((ml_state_t *)Console, Parser, Compiler);
 }

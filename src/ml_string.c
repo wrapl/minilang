@@ -893,6 +893,149 @@ ML_METHOD("/", MLStringT, MLRegexT) {
 	return Results;
 }
 
+ML_METHOD("/", MLStringT, MLRegexT, MLIntegerT) {
+	ml_value_t *Results = ml_list();
+	const char *Subject = ml_string_value(Args[0]);
+	int SubjectLength = ml_string_length(Args[0]);
+	const char *SubjectEnd = Subject + SubjectLength;
+	ml_regex_t *Pattern = (ml_regex_t *)Args[1];
+	int Index = ml_integer_value(Args[2]);
+	if (Index < 0 || Index >= Pattern->Value->re_nsub) return ml_error("RegexError", "Invalid regex group");
+
+	regmatch_t Matches[2];
+	for (;;) {
+#ifdef ML_TRE
+		switch (regnexec(Pattern->Value, Subject, SubjectLength, Index + 1, Matches, 0)) {
+#else
+		switch (regexec(Pattern->Value, Subject, Index + 1, Matches, 0)) {
+#endif
+		case REG_NOMATCH: {
+			if (SubjectEnd > Subject) ml_list_put(Results, ml_string(Subject, SubjectEnd - Subject));
+			return Results;
+		}
+		case REG_ESPACE: {
+			size_t ErrorSize = regerror(REG_ESPACE, Pattern->Value, NULL, 0);
+			char *ErrorMessage = snew(ErrorSize + 1);
+			regerror(REG_ESPACE, Pattern->Value, ErrorMessage, ErrorSize);
+			return ml_error("RegexError", "regex error: %s", ErrorMessage);
+		}
+		default: {
+			regoff_t Start = Matches[Index].rm_so;
+			if (Start > 0) ml_list_put(Results, ml_string(Subject, Start));
+			Subject += Matches[Index].rm_eo;
+			SubjectLength -= Matches[Index].rm_eo;
+		}
+		}
+	}
+	return Results;
+}
+
+ML_METHOD("/*", MLStringT, MLStringT) {
+	const char *Subject = ml_string_value(Args[0]);
+	const char *End = Subject + ml_string_length(Args[0]);
+	const char *Pattern = ml_string_value(Args[1]);
+	size_t Length = strlen(Pattern);
+	ml_value_t *Results = ml_tuple(2);
+	const char *Next = strstr(Subject, Pattern);
+	if (Next) {
+		ml_tuple_set(Results, 1, ml_string(Subject, Next - Subject));
+		Next += Length;
+		ml_tuple_set(Results, 2, ml_string(Next, End - Next));
+	} else {
+		ml_tuple_set(Results, 1, Args[0]);
+		ml_tuple_set(Results, 2, ml_cstring(""));
+	}
+	return Results;
+}
+
+ML_METHOD("/*", MLStringT, MLRegexT) {
+	const char *Subject = ml_string_value(Args[0]);
+	int SubjectLength = ml_string_length(Args[0]);
+	ml_regex_t *Pattern = (ml_regex_t *)Args[1];
+	ml_value_t *Results = ml_tuple(2);
+	regmatch_t Matches[2];
+#ifdef ML_TRE
+	switch (regnexec(Pattern->Value, Subject, SubjectLength, 1, Matches, 0)) {
+#else
+	switch (regexec(Pattern->Value, Subject, 1, Matches, 0)) {
+#endif
+	case REG_NOMATCH:
+		ml_tuple_set(Results, 1, Args[0]);
+		ml_tuple_set(Results, 2, ml_cstring(""));
+		return Results;
+	case REG_ESPACE: {
+		size_t ErrorSize = regerror(REG_ESPACE, Pattern->Value, NULL, 0);
+		char *ErrorMessage = snew(ErrorSize + 1);
+		regerror(REG_ESPACE, Pattern->Value, ErrorMessage, ErrorSize);
+		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+	}
+	default: {
+		ml_tuple_set(Results, 1, ml_string(Subject, Matches[0].rm_so));
+		const char *Next = Subject + Matches[0].rm_eo;
+		ml_tuple_set(Results, 2, ml_string(Next, Subject + SubjectLength - Next));
+		return Results;
+	}
+	}
+}
+
+ML_METHOD("*/", MLStringT, MLStringT) {
+	const char *Subject = ml_string_value(Args[0]);
+	const char *End = Subject + ml_string_length(Args[0]);
+	const char *Pattern = ml_string_value(Args[1]);
+	size_t Length = strlen(Pattern);
+	ml_value_t *Results = ml_tuple(2);
+	const char *Next = End - Length;
+	while (Next >= Subject) {
+		if (!memcmp(Next, Pattern, Length)) {
+			ml_tuple_set(Results, 1, ml_string(Subject, Next - Subject));
+			Next += Length;
+			ml_tuple_set(Results, 2, ml_string(Next, End - Next));
+			return Results;
+		}
+		--Next;
+	}
+	ml_tuple_set(Results, 1, Args[0]);
+	ml_tuple_set(Results, 2, ml_cstring(""));
+	return Results;
+}
+
+ML_METHOD("*/", MLStringT, MLRegexT) {
+	const char *Subject = ml_string_value(Args[0]);
+	const char *End = Subject + ml_string_length(Args[0]);
+	ml_regex_t *Pattern = (ml_regex_t *)Args[1];
+	ml_value_t *Results = ml_tuple(2);
+	regmatch_t Matches[2];
+	const char *Next = End - 1;
+	int NextLength = 1;
+	while (Next >= Subject) {
+#ifdef ML_TRE
+		switch (regnexec(Pattern->Value, Next, NextLength, 1, Matches, 0)) {
+#else
+		switch (regexec(Pattern->Value, Next, 1, Matches, 0)) {
+#endif
+		case REG_NOMATCH:
+			--Next;
+			++NextLength;
+			break;
+		case REG_ESPACE: {
+			size_t ErrorSize = regerror(REG_ESPACE, Pattern->Value, NULL, 0);
+			char *ErrorMessage = snew(ErrorSize + 1);
+			regerror(REG_ESPACE, Pattern->Value, ErrorMessage, ErrorSize);
+			return ml_error("RegexError", "regex error: %s", ErrorMessage);
+		}
+		default: {
+			ml_tuple_set(Results, 1, ml_string(Subject, Next - Subject));
+			Next += Matches[0].rm_eo;
+			ml_tuple_set(Results, 2, ml_string(Next, End - Next));
+			return Results;
+		}
+		}
+	}
+	ml_tuple_set(Results, 1, Args[0]);
+	ml_tuple_set(Results, 2, ml_cstring(""));
+	return Results;
+}
+
 ML_METHOD("lower", MLStringT) {
 	const char *Source = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);

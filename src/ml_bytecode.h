@@ -60,7 +60,7 @@ typedef enum {
 	MLI_UPVALUE,
 	MLI_LOCALX,
 	MLI_TUPLE_NEW,
-	MLI_TUPLE_SET,
+	MLI_UNPACK,
 	MLI_LIST_NEW,
 	MLI_LIST_APPEND,
 	MLI_MAP_NEW,
@@ -75,7 +75,9 @@ typedef enum {
 	MLI_STRING_ADDS,
 	MLI_STRING_END,
 	MLI_RESOLVE,
-	MLI_IF_DEBUG
+	MLI_IF_DEBUG,
+	MLI_ASSIGN_LOCAL,
+	MLI_SWITCH
 } ml_opcode_t;
 
 typedef union ml_inst_t ml_inst_t;
@@ -88,9 +90,10 @@ union ml_inst_t {
 		unsigned int Hashed:1;
 		unsigned int Reserved:5;
 		unsigned int Label:16;
-		unsigned int LineNo:32;
+		unsigned int Line:32;
 	};
 	ml_inst_t *Inst;
+	ml_inst_t **Insts;
 	int Index;
 	int Count;
 	ml_value_t *Value;
@@ -110,16 +113,12 @@ struct ml_closure_info_t {
 	void *JITStart, *JITEntry, *JITReturn;
 #endif
 	stringmap_t Params[1];
-	int LineNo, End, FrameSize;
+	int StartLine, EndLine, FrameSize;
 	int NumParams, NumUpValues;
 	int ExtraArgs, NamedArgs;
-	int Hashed;
+	int Labelled, Hashed;
 	unsigned char Hash[SHA256_BLOCK_SIZE];
 };
-
-#define ML_PARAM_DEFAULT 0
-#define ML_PARAM_EXTRA 1
-#define ML_PARAM_NAMED 2
 
 typedef struct ml_param_type_t ml_param_type_t;
 
@@ -139,7 +138,6 @@ struct ml_closure_t {
 static inline stringmap_t *ml_closure_params(ml_value_t *Closure) {
 	return ((ml_closure_t *)Closure)->Info->Params;
 }
-
 
 extern const char *MLInstNames[];
 
@@ -161,7 +159,7 @@ typedef enum {
 	MLIT_VALUE,
 	MLIT_VALUE_VALUE,
 	MLIT_CLOSURE,
-	MLIT_TYPES
+	MLIT_SWITCH
 } ml_inst_type_t;
 
 extern const ml_inst_type_t MLInstTypes[];
@@ -173,20 +171,16 @@ typedef struct ml_frame_t ml_frame_t;
 
 #define ML_FRAME_REUSE_SIZE 224
 
-typedef struct ml_variable_t ml_variable_t;
-
-struct ml_variable_t {
-	const ml_type_t *Type;
-	ml_value_t *Value;
-	const ml_type_t *VarType;
-};
+ml_value_t *ml_variable(ml_value_t *Value, ml_value_t *Type);
 
 extern ml_type_t MLVariableT[];
 
 const char *ml_closure_debug(ml_value_t *Value);
 void ml_closure_sha256(ml_value_t *Closure, unsigned char Hash[SHA256_BLOCK_SIZE]);
 
-void ml_closure_info_finish(ml_closure_info_t *Info);
+void ml_closure_info_labels(ml_closure_info_t *Info);
+
+void ml_closure_list(ml_value_t *Closure);
 
 #ifdef ML_CBOR_BYTECODE
 

@@ -247,7 +247,7 @@ A declaration of the form :mini:`Expression: Name(Args...)` is equivalent to :mi
 .. code-block:: mini
 
    import: utils("lib/utils.mini")
-          
+   
    class: point(:X, :Y)
 
 
@@ -300,8 +300,7 @@ Other than declarations, everything else in *Minilang* is an expression
 Literals
 ~~~~~~~~
 
-The simplest expressions are single values. More information on values in
-*Minilang* can be found in :doc:`/minilang/types`.
+The simplest expressions are single values.
 
 Nil
    :mini:`nil`.
@@ -349,7 +348,7 @@ The expression :mini:`not A` returns :mini:`nil` if the value of :mini:`A` is no
 If Expressions
 ~~~~~~~~~~~~~~
 
-The :mini:`if`-expression, :mini:`if ... then ... else ... end` evalutes each condition until one has a value other than :mini:`nil` and returns the value of the selected branch. For example:
+The :mini:`if`-expression, :mini:`if ... then ... else ... end` evaluates each condition until one has a value other than :mini:`nil` and returns the value of the selected branch. For example:
 
 .. code-block:: mini
 
@@ -394,7 +393,7 @@ A :mini:`loop`-expression, :mini:`loop ... end` evaluates its code repeatedly un
 
 A :mini:`next`-expression jumps to the start of the next iteration of the loop.
 
-If an expression is passed to :mini:`exit`, it is evaluated outside the loop. This allows control of nested loops by writing code like :mini:`exit exit Value` or :mini:`exit next`.
+If an expression is passed to :mini:`exit`, it is evaluated outside the loop. This allows control of nested loops, for example: :mini:`exit exit Value` or :mini:`exit next`.
 
 A :mini:`while`-expression, :mini:`while Expression`, is equivalent to :mini:`if not Expression then exit end`. Similarly, an :mini:`until`-expression, :mini:`until Expression`, is equivalent to :mini:`if Expression then exit end`. An exit value can be specified using :mini:`while Expression, Value` or :mini:`until Expression, Value`.
 
@@ -415,6 +414,14 @@ If the collection has a key associated with each value, then a second variable c
 
    for Key, Value in {"a" is 1, "b" is 2, "c" is 3} do
       print('{Key} -> {Value}\n')
+   end
+
+For loops can also use destructing assignments to simplify iterating over collections of tuples, lists, etc.
+
+.. code-block:: mini
+
+   for Key, (First, Second) in {"a" is (1, 10), "b" is (2, 20), "c" is (3, 30)} do
+      print('{Key} -> {First}, {Second}\n')
    end
 
 A for loop is also an expression (like most things in *Minilang*), and can return a value using :mini:`exit`, :mini:`while` or :mini:`until`. Unlike a basic loop expression, a for loop can also end when it runs out of values. In this case, the value of the for loop is :mini:`nil`. An optional :mini:`else` clause can be added to the for loop to give a different value in this case.
@@ -540,7 +547,7 @@ can be written as
 Generators
 ..........
 
-*Minilang* functions can be used as generators using suspend expressions, :mini:`susp Key, Value`. If :mini:`Key` is omitted, :mini:`nil` is used as the key. The function should return :mini:`nil` when it has no more values to produce.
+*Minilang* functions can be used as generators using suspend expressions, :mini:`susp Key, Value`. If :mini:`Key` is omitted, :mini:`nil` is used as the key. The function must return :mini:`nil` when it has no more values to produce.
 
 .. code-block:: mini
 
@@ -571,7 +578,7 @@ Generators
 Types
 ~~~~~
 
-Every value in *Minilang* has an associate type. The type of a value can be obtained by calling :mini:`type(Value)`.
+Every value in *Minilang* has an associated type. The type of a value can be obtained by calling :mini:`type(Value)`.
 
 .. code-block:: mini
 

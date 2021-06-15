@@ -14,9 +14,17 @@ extern "C" {
 
 #define ML_ARG_CACHE_SIZE 64
 
+#ifdef ML_THREADSAFE
+
+#define ml_alloc_args(COUNT) anew(ml_value_t *, COUNT)
+
+#else
+
 extern ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
 
 #define ml_alloc_args(COUNT) (((COUNT) <= ML_ARG_CACHE_SIZE) ? MLArgCache : anew(ml_value_t *, COUNT))
+
+#endif
 
 //#define ml_alloc_args(COUNT) anew(ml_value_t *, COUNT)
 
@@ -76,6 +84,21 @@ ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args);
 	ml_simple_call((ml_value_t *)VALUE, COUNT, (ml_value_t **)(void *[]){ARGS}); \
 })
 
+#ifdef ML_THREADSAFE
+
+void ml_runtime_lock();
+void ml_runtime_unlock();
+
+#define ML_RUNTIME_LOCK() ml_runtime_lock()
+#define ML_RUNTIME_UNLOCK() ml_runtime_unlock()
+
+#else
+
+#define ML_RUNTIME_LOCK() {}
+#define ML_RUNTIME_UNLOCK() {}
+
+#endif
+
 void ml_runtime_init();
 
 // References //
@@ -128,6 +151,10 @@ int ml_error_source(const ml_value_t *Value, int Level, ml_source_t *Source);
 ml_value_t *ml_error_trace_add(ml_value_t *Error, ml_source_t Source);
 void ml_error_print(const ml_value_t *Error);
 void ml_error_fprint(FILE *File, const ml_value_t *Error);
+
+const char *ml_error_value_type(const ml_value_t *Value) __attribute__ ((pure));
+const char *ml_error_value_message(const ml_value_t *Value) __attribute__ ((pure));
+int ml_error_value_source(const ml_value_t *Value, int Level, ml_source_t *Source);
 
 ml_value_t *ml_string_fn(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_list_fn(void *Data, int Count, ml_value_t **Args);
@@ -185,6 +212,10 @@ struct ml_schedule_t {
 };
 
 typedef ml_schedule_t (*ml_scheduler_t)(ml_context_t *Context);
+
+// Semaphores
+
+extern ml_type_t MLSemaphoreT[];
 
 // Channels
 

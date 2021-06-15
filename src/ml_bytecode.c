@@ -10,6 +10,12 @@
 #include "ml_bytecode.h"
 #include "ml_debugger.h"
 
+typedef struct {
+	const ml_type_t *Type;
+	ml_value_t *Value;
+	const ml_type_t *VarType;
+} ml_variable_t;
+
 static long ml_variable_hash(ml_variable_t *Variable, ml_hash_chain_t *Chain) {
 	ml_value_t *Value = Variable->Value;
 	return ml_typeof(Value)->hash(Value, Chain);
@@ -26,11 +32,24 @@ static ml_value_t *ml_variable_assign(ml_variable_t *Variable, ml_value_t *Value
 	return (Variable->Value = Value);
 }
 
+static void ml_variable_call(ml_state_t *Caller, ml_variable_t *Variable, int Count, ml_value_t **Args) {
+	return ml_call(Caller, Variable->Value, Count, Args);
+}
+
 ML_TYPE(MLVariableT, (), "variable",
 	.hash = (void *)ml_variable_hash,
 	.deref = (void *)ml_variable_deref,
-	.assign = (void *)ml_variable_assign
+	.assign = (void *)ml_variable_assign,
+	.call = (void *)ml_variable_call
 );
+
+ml_value_t *ml_variable(ml_value_t *Value, ml_value_t *Type) {
+	ml_variable_t *Variable = new(ml_variable_t);
+	Variable->Type = MLVariableT;
+	Variable->Value = Value;
+	Variable->VarType = Type;
+	return (ml_value_t *)Variable;
+}
 
 #endif
 
@@ -70,7 +89,7 @@ struct DEBUG_STRUCT(frame) {
 #ifdef ML_SCHEDULER
 	ml_schedule_t Schedule;
 #endif
-	unsigned int LineNo;
+	unsigned int Line;
 	unsigned int Reentry:1;
 	unsigned int Reuse:1;
 	unsigned int Suspend:1;
@@ -115,7 +134,7 @@ static void ML_TYPED_FN(ml_debugger_step_mode, DEBUG_TYPE(Continuation), DEBUG_S
 }
 
 static ml_source_t ML_TYPED_FN(ml_debugger_source, DEBUG_TYPE(Continuation), DEBUG_STRUCT(frame) *Frame) {
-	return (ml_source_t){Frame->Source, Frame->Inst->LineNo};
+	return (ml_source_t){Frame->Source, Frame->Line};
 }
 
 static ml_decl_t *ML_TYPED_FN(ml_debugger_decls, DEBUG_TYPE(Continuation), DEBUG_STRUCT(frame) *Frame) {
@@ -176,7 +195,7 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller
 }
 
 #define ERROR_CHECK(VALUE) if (ml_is_error(VALUE)) { \
-	ml_error_trace_add(VALUE, (ml_source_t){Frame->Source, Inst->LineNo}); \
+	ml_error_trace_add(VALUE, (ml_source_t){Frame->Source, Inst->Line}); \
 	Result = VALUE; \
 	ERROR(); \
 }
@@ -201,7 +220,7 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller
 #endif
 
 #ifndef DEBUG_VERSION
-void *MLCachedFrame = NULL;
+static void *MLCachedFrame = NULL;
 
 extern ml_value_t *SymbolMethod;
 #endif
@@ -211,13 +230,13 @@ static ML_METHOD_DECL(Append, "append");
 static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
 	if (!Result) {
 		ml_value_t *Error = ml_error("RuntimeError", "NULL value passed to continuation");
-		ml_error_trace_add(Error, (ml_source_t){Frame->Source, Frame->Inst->LineNo});
+		ml_error_trace_add(Error, (ml_source_t){Frame->Source, Frame->Inst->Line});
 		ML_CONTINUE(Frame->Base.Caller, Error);
 	}
 #ifdef ML_SCHEDULER
 	uint64_t Counter = Frame->Schedule.Counter[0];
 #endif
-	static void *Labels[] = {
+	static const void *Labels[] = {
 		[MLI_LINK] = &&DO_LINK,
 		[MLI_RETURN] = &&DO_RETURN,
 		[MLI_SUSPEND] = &&DO_SUSPEND,
@@ -264,7 +283,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_UPVALUE] = &&DO_UPVALUE,
 		[MLI_LOCALX] = &&DO_LOCALX,
 		[MLI_TUPLE_NEW] = &&DO_TUPLE_NEW,
-		[MLI_TUPLE_SET] = &&DO_TUPLE_SET,
+		[MLI_UNPACK] = &&DO_UNPACK,
 		[MLI_LIST_NEW] = &&DO_LIST_NEW,
 		[MLI_LIST_APPEND] = &&DO_LIST_APPEND,
 		[MLI_MAP_NEW] = &&DO_MAP_NEW,
@@ -279,19 +298,21 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_STRING_ADDS] = &&DO_STRING_ADDS,
 		[MLI_STRING_END] = &&DO_STRING_END,
 		[MLI_RESOLVE] = &&DO_RESOLVE,
-		[MLI_IF_DEBUG] = &&DO_IF_DEBUG
+		[MLI_IF_DEBUG] = &&DO_IF_DEBUG,
+		[MLI_ASSIGN_LOCAL] = &&DO_ASSIGN_LOCAL,
+		[MLI_SWITCH] = &&DO_SWITCH
 	};
 	ml_inst_t *Inst = Frame->Inst;
 	ml_value_t **Top = Frame->Top;
 #ifdef DEBUG_VERSION
-	int LineNo = Frame->LineNo;
+	int Line = Frame->Line;
 	if (Frame->Reentry) {
 		Frame->Reentry = 0;
 		goto *Labels[Inst->Opcode];
 	}
 #endif
 	if (ml_is_error(Result)) {
-		ml_error_trace_add(Result, (ml_source_t){Frame->Source, Frame->LineNo});
+		ml_error_trace_add(Result, (ml_source_t){Frame->Source, Frame->Line});
 		ERROR();
 	}
 #ifdef DEBUG_VERSION
@@ -312,16 +333,18 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		if (Frame->Reuse) {
 			//memset(Frame, 0, ML_FRAME_REML_SIZE);
 			while (Top > Frame->Stack) *--Top = NULL;
+			ML_RUNTIME_LOCK();
 			*(ml_frame_t **)Frame = MLCachedFrame;
 			MLCachedFrame = Frame;
+			ML_RUNTIME_UNLOCK();
 		} else {
-			Frame->LineNo = Inst->LineNo;
+			Frame->Line = Inst->Line;
 			Frame->Inst = Inst;
 		}
 		ML_CONTINUE(Caller, Result);
 	}
 	DO_SUSPEND: {
-		Frame->LineNo = Inst->LineNo;
+		Frame->Line = Inst->Line;
 		Frame->Inst = Inst + 1;
 		Frame->Top = Top;
 #ifdef ML_SCHEDULER
@@ -429,7 +452,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_CATCH_TYPE: {
 		if (!ml_is_error(Result)) {
 			Result = ml_error("InternalError", "expected error value, not %s", ml_typeof(Result)->Name);
-			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
+			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
 			ERROR();
 		}
 		const char *Type = ml_error_type(Result);
@@ -444,7 +467,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_CATCH: {
 		if (!ml_is_error(Result)) {
 			Result = ml_error("InternalError", "expected error value, not %s", ml_typeof(Result)->Name);
-			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
+			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
 			ERROR();
 		}
 		Result = ml_error_value(Result);
@@ -473,7 +496,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_variable_t *Variable = (ml_variable_t *)Top[Inst[1].Index];
 		if (Variable->VarType && !ml_is(Result, Variable->VarType)) {
 			Result = ml_error("TypeError", "Cannot assign %s to variable of type %s", ml_typeof(Result)->Name, Variable->VarType->Name);
-			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
+			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
 			ERROR();
 		}
 		Variable->Value = Result;
@@ -483,7 +506,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Result = ml_deref(Result);
 		if (!ml_is(Result, MLTypeT)) {
 			Result = ml_error("TypeError", "expected type, not %s", ml_typeof(Result)->Name);
-			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
+			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
 			ERROR();
 		}
 		ml_variable_t *Local = (ml_variable_t *)Top[Inst[1].Index];
@@ -551,7 +574,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_FOR: {
 		Result = ml_deref(Result);
-		Frame->LineNo = Inst->LineNo;
+		Frame->Line = Inst->Line;
 		Frame->Inst = Inst + 1;
 		Frame->Top = Top;
 #ifdef ML_SCHEDULER
@@ -570,7 +593,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_NEXT: {
 		Result = *--Top;
 		*Top = NULL;
-		Frame->LineNo = Inst->LineNo;
+		Frame->Line = Inst->Line;
 		Frame->Inst = Inst[1].Inst;
 		Frame->Top = Top;
 #ifdef ML_SCHEDULER
@@ -580,7 +603,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_VALUE: {
 		Result = Top[Inst[1].Index];
-		Frame->LineNo = Inst->LineNo;
+		Frame->Line = Inst->Line;
 		Frame->Inst = Inst + 2;
 		Frame->Top = Top;
 #ifdef ML_SCHEDULER
@@ -590,7 +613,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_KEY: {
 		Result = Top[Inst[1].Index];
-		Frame->LineNo = Inst->LineNo;
+		Frame->Line = Inst->Line;
 		Frame->Inst = Inst + 2;
 		Frame->Top = Top;
 #ifdef ML_SCHEDULER
@@ -600,20 +623,22 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_CALL: {
 		int Count = Inst[1].Count;
-		ml_value_t *Function = ml_deref(Top[~Count]);
+		ml_value_t *Function = Top[~Count];
 		ml_value_t **Args = Top - Count;
 		ml_inst_t *Next = Inst + 2;
 #ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
 		if (Next->Opcode == MLI_RETURN) {
+			ML_RUNTIME_LOCK();
 			*(ml_frame_t **)Frame = MLCachedFrame;
 			MLCachedFrame = Frame;
+			ML_RUNTIME_UNLOCK();
 			// ^ safe as long as ml_call never suspends before copying arguments
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		} else {
 			Frame->Inst = Next;
-			Frame->LineNo = Inst->LineNo;
+			Frame->Line = Inst->Line;
 			Frame->Top = Top - (Count + 1);
 			return ml_call(Frame, Function, Count, Args);
 		}
@@ -627,13 +652,15 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Schedule.Counter[0] = Counter;
 #endif
 		if (Next->Opcode == MLI_RETURN) {
+			ML_RUNTIME_LOCK();
 			*(ml_frame_t **)Frame = MLCachedFrame;
 			MLCachedFrame = Frame;
+			ML_RUNTIME_UNLOCK();
 			// ^ safe as long as ml_call never suspends before copying arguments
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		} else {
 			Frame->Inst = Next;
-			Frame->LineNo = Inst->LineNo;
+			Frame->Line = Inst->Line;
 			Frame->Top = Top - Count;
 			return ml_call(Frame, Function, Count, Args);
 		}
@@ -642,13 +669,21 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Result = ml_deref(Result);
 		ml_value_t *Ref = Top[-1];
 		*--Top = NULL;
-		Result = ml_typeof(Ref)->assign(Ref, Result);
+		Result = ml_assign(Ref, Result);
 		ERROR_CHECK(Result);
 		ADVANCE(Inst + 1);
 	}
 	DO_LOCAL: {
 		int Index = Inst[1].Index;
 		Result = Frame->Stack[Index];
+		ADVANCE(Inst + 2);
+	}
+	DO_ASSIGN_LOCAL: {
+		Result = ml_deref(Result);
+		int Index = Inst[1].Index;
+		ml_value_t *Ref = Frame->Stack[Index];
+		Result = ml_assign(Ref, Result);
+		ERROR_CHECK(Result);
 		ADVANCE(Inst + 2);
 	}
 	DO_LOCAL_PUSH: {
@@ -670,21 +705,24 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst + 3);
 	}
 	DO_TUPLE_NEW: {
-		*Top++ = ml_tuple(Inst[1].Count);
-		ADVANCE(Inst + 2);
-	}
-	DO_TUPLE_SET: {
-		int Index = Inst[1].Index;
-		ml_tuple_t *Tuple = (ml_tuple_t *)Top[-1];
+		int Count = Inst[1].Count;
+		Result = ml_tuple(Count);
 #ifdef ML_GENERICS
-		if (Index == Tuple->Size - 1) {
-			ml_tuple_set((ml_value_t *)Tuple, Index + 1, Result);
-		} else {
-#endif
-		Tuple->Values[Index] = Result;
-#ifdef ML_GENERICS
+		for (int I = Count; --I > 0;) {
+			((ml_tuple_t *)Result)->Values[I] = Top[-1];
+			*--Top = NULL;
+		}
+		ml_tuple_set(Result, 1, Top[-1]);
+		*--Top = NULL;
+#else
+		for (int I = Count; --I >= 0;) {
+			((ml_tuple_t *)Result)->Values[I] = Top[-1];
+			*--Top = NULL;
 		}
 #endif
+		ADVANCE(Inst + 2);
+	}
+	DO_UNPACK: {
 		ADVANCE(Inst + 2);
 	}
 	DO_LIST_NEW: {
@@ -731,7 +769,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		// closure <entry> <frame_size> <num_params> <num_upvalues> <upvalue_1> ...
 		if (!ml_is(Result, MLTypeT)) {
 			Result = ml_error("InternalError", "expected type, not %s", ml_typeof(Result)->Name);
-			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
+			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
 			ERROR();
 		}
 		ml_closure_info_t *Info = Inst[1].ClosureInfo;
@@ -752,14 +790,14 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Result = (ml_value_t *)Closure;
 		ADVANCE(Inst + Info->NumUpValues + 2);
 #else
-		goto DO_CLOSURE:
+		goto DO_CLOSURE;
 #endif
 	}
 	DO_PARAM_TYPE: {
 		Result = ml_deref(Result);
 		if (!ml_is(Result, MLTypeT)) {
 			Result = ml_error("TypeError", "expected type, not %s", ml_typeof(Result)->Name);
-			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->LineNo});
+			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
 			ERROR();
 		}
 		ml_closure_t *Closure = (ml_closure_t *)Top[-1];
@@ -791,7 +829,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
-		Frame->LineNo = Inst->LineNo;
+		Frame->Line = Inst->Line;
 		Frame->Inst = Next;
 		Frame->Top = Top - Count;
 		return ml_call(Frame, AppendMethod, Count + 1, Args);
@@ -814,10 +852,21 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
-		Frame->LineNo = Inst->LineNo;
+		Frame->Line = Inst->Line;
 		Frame->Inst = Next;
 		Frame->Top = Top;
 		return ml_call(Frame, SymbolMethod, 2, Args);
+	}
+	DO_SWITCH: {
+		if (!ml_is(Result, MLIntegerT)) {
+			Result = ml_error("TypeError", "expected integer, not %s", ml_typeof(Result)->Name);
+			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
+			ERROR();
+		}
+		int Count = Inst[1].Count;
+		int Index = ml_integer_value_fast(Result) - 1;
+		if (Index < 0 || Index >= Count) Index = Count - 1;
+		ADVANCE(Inst[2].Insts[Index]);
 	}
 	DO_IF_DEBUG: {
 #ifdef DEBUG_VERSION
@@ -829,32 +878,34 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef DEBUG_VERSION
 	DO_DEBUG_ERROR: {
 		ml_debugger_t *Debugger = Frame->Debugger;
-		if (Debugger->BreakOnError) goto DO_BREAKPOINT;
+		if (Debugger->BreakOnError) {
+			Frame->Inst = Inst;
+			Frame->Top = Top;
+			Frame->Reentry = 1;
+			return Debugger->run(Debugger, (ml_state_t *)Frame, Result);
+		}
 	}
 	DO_DEBUG_ADVANCE: {
 		ml_debugger_t *Debugger = Frame->Debugger;
-		if (Inst->LineNo != LineNo) {
+		unsigned int Revision = Debugger->Revision;
+		if (Frame->Revision != Revision) {
+			Frame->Revision = Revision;
+			Frame->Breakpoints = Debugger->breakpoints(Debugger, Frame->Source, 0);
+		}
+		if (Inst->Line != Line) {
 			if (Debugger->StepIn) goto DO_BREAKPOINT;
 			if (Frame->StepOver) goto DO_BREAKPOINT;
 			if (Inst->Opcode == MLI_RETURN && Frame->StepOut) goto DO_BREAKPOINT;
-			size_t *Breakpoints;
-			unsigned int Revision = Debugger->Revision;
-			if (Frame->Revision != Revision) {
-				Frame->Revision = Revision;
-				Breakpoints = Frame->Breakpoints = Debugger->breakpoints(Debugger, Frame->Source, 0);
-			} else {
-				Breakpoints = Frame->Breakpoints;
-			}
-			int LineNo = Inst->LineNo;
-			if (Breakpoints[LineNo / SIZE_BITS] & (1 << LineNo % SIZE_BITS)) goto DO_BREAKPOINT;
+			int Line = Inst->Line;
+			if (Frame->Breakpoints[Line / SIZE_BITS] & (1L << Line % SIZE_BITS)) goto DO_BREAKPOINT;
 		}
 		CHECK_COUNTER
-		LineNo = Inst->LineNo;
+		Line = Inst->Line;
 		goto *Labels[Inst->Opcode];
 	}
 	DO_BREAKPOINT: {
 		ml_debugger_t *Debugger = Frame->Debugger;
-		Frame->LineNo = Inst->LineNo;
+		Frame->Line = Inst->Line;
 		Frame->Inst = Inst;
 		Frame->Top = Top;
 		Frame->Reentry = 1;
@@ -863,7 +914,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #endif
 #ifdef ML_SCHEDULER
 	DO_SWAP: {
-		Frame->LineNo = Inst->LineNo;
+		Frame->Line = Inst->Line;
 		Frame->Inst = Inst;
 		Frame->Top = Top;
 		return Frame->Schedule.swap((ml_state_t *)Frame, Result);
@@ -883,9 +934,12 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	size_t Size = sizeof(DEBUG_STRUCT(frame)) + Info->FrameSize * sizeof(ml_value_t *);
 	DEBUG_STRUCT(frame) *Frame;
 	if (Size <= ML_FRAME_REUSE_SIZE) {
+		ML_RUNTIME_LOCK();
 		if ((Frame = MLCachedFrame)) {
 			MLCachedFrame = *(ml_frame_t **)Frame;
+			ML_RUNTIME_UNLOCK();
 		} else {
+			ML_RUNTIME_UNLOCK();
 			Frame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
 		}
 		Frame->Reuse = 1;
@@ -969,7 +1023,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	Frame->OnError = Info->Return;
 	Frame->UpValues = Closure->UpValues;
 	Frame->Inst = Info->Entry;
-	Frame->LineNo = Info->Entry->LineNo;
+	Frame->Line = Info->Entry->Line - 1;
 #ifdef ML_SCHEDULER
 	ml_scheduler_t scheduler = (ml_scheduler_t)Caller->Context->Values[ML_SCHEDULER_INDEX];
 	Frame->Schedule = scheduler(Caller->Context);
@@ -977,10 +1031,10 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 #ifdef DEBUG_VERSION
 	Frame->Debugger = Debugger;
 	Frame->Revision = Debugger->Revision;
-	size_t *Breakpoints = Frame->Breakpoints = Debugger->breakpoints(Debugger, Frame->Source, Info->End);
+	size_t *Breakpoints = Frame->Breakpoints = Debugger->breakpoints(Debugger, Frame->Source, Info->EndLine);
 	Frame->Decls = Info->Decls;
-	int LineNo = Frame->Inst->LineNo;
-	if (Breakpoints[LineNo / SIZE_BITS] & (1 << LineNo % SIZE_BITS)) {
+	int Line = Frame->Inst->Line;
+	if (Breakpoints[Line / SIZE_BITS] & (1L << Line % SIZE_BITS)) {
 		return Debugger->run(Debugger, (ml_state_t *)Frame, MLNil);
 	}
 #else
@@ -988,7 +1042,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	if (Info->JITStart) {
 		Frame->Base.run = Info->JITStart;
 		Frame->Inst = Info->JITEntry;
-		Frame->LineNo = Info->JITEntry->LineNo;
+		Frame->Line = Info->JITEntry->Line;
 		Frame->OnError = Info->JITReturn;
 	}
 #endif
@@ -1044,7 +1098,7 @@ const char *MLInstNames[] = {
 	"upvalue", // MLI_UPVALUE,
 	"localx", // MLI_LOCALX,
 	"tuple_new", // MLI_TUPLE_NEW,
-	"tuple_set", // MLI_TUPLE_SET,
+	"unpack", // MLI_UNPACK,
 	"list_new", // MLI_LIST_NEW,
 	"list_append", // MLI_LIST_APPEND,
 	"map_new", // MLI_MAP_NEW,
@@ -1059,7 +1113,9 @@ const char *MLInstNames[] = {
 	"string_adds", // MLI_STRING_ADDS,
 	"string_end", // MLI_STRING_END
 	"resolve", // MLI_RESOLVE,
-	"debug", // MLI_DEBUG
+	"debug", // MLI_IF_DEBUG,
+	"assign_local", // MLI_ASSIGN_LOCAL,
+	"switch" // MLI_SWITCH
 };
 
 const ml_inst_type_t MLInstTypes[] = {
@@ -1109,7 +1165,7 @@ const ml_inst_type_t MLInstTypes[] = {
 	MLIT_INDEX, // MLI_UPVALUE,
 	MLIT_INDEX_CHARS, // MLI_LOCALX,
 	MLIT_COUNT, // MLI_TUPLE_NEW,
-	MLIT_INDEX, // MLI_TUPLE_SET,
+	MLIT_INDEX, // MLI_UNPACK,
 	MLIT_NONE, // MLI_LIST_NEW,
 	MLIT_NONE, // MLI_LIST_APPEND,
 	MLIT_NONE, // MLI_MAP_NEW,
@@ -1124,7 +1180,9 @@ const ml_inst_type_t MLInstTypes[] = {
 	MLIT_COUNT_CHARS, // MLI_STRING_ADDS,
 	MLIT_NONE, // MLI_STRING_END
 	MLIT_VALUE, // MLI_RESOLVE,
-	MLIT_INST, // MLI_DEBUG
+	MLIT_INST, // MLI_IF_DEBUG,
+	MLIT_INDEX, // MLI_ASSIGN_LOCAL
+	MLIT_SWITCH // MLI_SWITCH
 };
 
 static int ml_closure_find_labels(ml_inst_t *Inst, unsigned int *Labels) {
@@ -1150,11 +1208,22 @@ static int ml_closure_find_labels(ml_inst_t *Inst, unsigned int *Labels) {
 	case MLIT_COUNT_DECL: return 3;
 	case MLIT_COUNT_COUNT_DECL: return 4;
 	case MLIT_CLOSURE: return 2 + Inst[1].ClosureInfo->NumUpValues;
+	case MLIT_SWITCH: {
+		int Count = Inst[1].Count;
+		ml_inst_t **Insts = Inst[2].Insts;
+		for (int I = 0; I < Count; ++I) {
+			ml_inst_t *Next = Insts[I];
+			if (!Next->Label) Next->Label = ++*Labels;
+		}
+		return 3;
+	}
 	default: return 0;
 	}
 }
 
-void ml_closure_info_finish(ml_closure_info_t *Info) {
+void ml_closure_info_labels(ml_closure_info_t *Info) {
+	if (Info->Labelled) return;
+	Info->Labelled = 1;
 	unsigned int Labels = 0;
 	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
 		if (Inst->Opcode == MLI_LINK) {
@@ -1163,9 +1232,6 @@ void ml_closure_info_finish(ml_closure_info_t *Info) {
 			Inst += ml_closure_find_labels(Inst, &Labels);
 		}
 	}
-#ifdef ML_JIT
-	ml_bytecode_jit(Info);
-#endif
 }
 
 static int ml_inst_hash(ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) {
@@ -1233,9 +1299,11 @@ static int ml_inst_hash(ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) 
 			*(int *)(Info->Hash + I) ^= (Index << N);
 		}
 		return 2 + Inst[1].ClosureInfo->NumUpValues;
+	}
+	case MLIT_SWITCH:
+		return 3;
 	default:
 		return 0;
-	}
 	}
 }
 
@@ -1290,7 +1358,7 @@ ML_TYPE(MLClosureT, (MLFunctionT, MLIteratableT), "closure",
 
 ML_METHOD(MLStringT, MLClosureT) {
 	ml_closure_t *Closure = (ml_closure_t *)Args[0];
-	return ml_string_format("<%s:%d>", Closure->Info->Source, Closure->Info->LineNo);
+	return ml_string_format("<%s:%d>", Closure->Info->Source, Closure->Info->StartLine);
 }
 
 static int ml_closure_parameter_fn(const char *Name, void *Value, ml_value_t *Parameters) {
@@ -1306,9 +1374,39 @@ ML_METHOD("parameters", MLClosureT) {
 	return Parameters;
 }
 
+static void ml_closure_value_list(ml_value_t *Value, ml_stringbuffer_t *Buffer) {
+	if (ml_is(Value, MLStringT)) {
+		ml_stringbuffer_add(Buffer, " \"", 2);
+		int Length = ml_string_length(Value);
+		const char *String = ml_string_value(Value);
+		for (int I = 0; I < Length; ++I) switch (String[I]) {
+			case 0: ml_stringbuffer_add(Buffer, "\\0", 2); break;
+			case '\t': ml_stringbuffer_add(Buffer, "\\t", 2); break;
+			case '\r': ml_stringbuffer_add(Buffer, "\\r", 2); break;
+			case '\n': ml_stringbuffer_add(Buffer, "\\n", 2); break;
+			case '\'': ml_stringbuffer_add(Buffer, "\\\'", 2); break;
+			case '\"': ml_stringbuffer_add(Buffer, "\\\"", 2); break;
+			case '\\': ml_stringbuffer_add(Buffer, "\\\\", 2); break;
+			default: ml_stringbuffer_add(Buffer, String + I, 1); break;
+		}
+		ml_stringbuffer_add(Buffer, "\"", 1);
+	} else if (ml_is(Value, MLNumberT)) {
+		ml_stringbuffer_add(Buffer, " ", 1);
+		ml_stringbuffer_append(Buffer, Value);
+	} else if (ml_typeof(Value) == MLMethodT) {
+		ml_stringbuffer_addf(Buffer, " :%s", ml_method_name(Value));
+	} else if (ml_typeof(Value) == MLTypeT) {
+		ml_stringbuffer_addf(Buffer, " <%s>", ml_type_name(Value));
+	} else {
+		ml_stringbuffer_addf(Buffer, " %s", ml_typeof(Value)->Name);
+	}
+	long Hash = ml_hash(Value);
+	ml_stringbuffer_addf(Buffer, "[%ld]", Hash);
+}
+
 static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 	if (Inst->Label) ml_stringbuffer_addf(Buffer, "L%d:", Inst->Label);
-	ml_stringbuffer_addf(Buffer, "\t%s%3d %s", Inst->PotentialBreakpoint ? "*" : " ", Inst->LineNo, MLInstNames[Inst->Opcode]);
+	ml_stringbuffer_addf(Buffer, "\t%s%3d %s", Inst->PotentialBreakpoint ? "*" : " ", Inst->Line, MLInstNames[Inst->Opcode]);
 	switch (MLInstTypes[Inst->Opcode]) {
 	case MLIT_NONE: return 1;
 	case MLIT_INST:
@@ -1329,81 +1427,13 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 		ml_stringbuffer_addf(Buffer, " %d", Inst[1].Index);
 		return 2;
 	case MLIT_VALUE: {
-		ml_value_t *Value = Inst[1].Value;
-		if (ml_is(Value, MLStringT)) {
-			ml_stringbuffer_add(Buffer, " \"", 2);
-			int Length = ml_string_length(Value);
-			const char *String = ml_string_value(Value);
-			for (int I = 0; I < Length; ++I) switch (String[I]) {
-				case 0: ml_stringbuffer_add(Buffer, "\\0", 2); break;
-				case '\t': ml_stringbuffer_add(Buffer, "\\t", 2); break;
-				case '\r': ml_stringbuffer_add(Buffer, "\\r", 2); break;
-				case '\n': ml_stringbuffer_add(Buffer, "\\n", 2); break;
-				case '\'': ml_stringbuffer_add(Buffer, "\\\'", 2); break;
-				case '\"': ml_stringbuffer_add(Buffer, "\\\"", 2); break;
-				case '\\': ml_stringbuffer_add(Buffer, "\\\\", 2); break;
-				default: ml_stringbuffer_add(Buffer, String + I, 1); break;
-			}
-			ml_stringbuffer_add(Buffer, "\"", 1);
-		} else if (ml_is(Value, MLNumberT)) {
-			ml_stringbuffer_add(Buffer, " ", 1);
-			ml_stringbuffer_append(Buffer, Value);
-		} else if (ml_typeof(Value) == MLMethodT) {
-			ml_stringbuffer_addf(Buffer, " :%s", ml_method_name(Value));
-		} else {
-			ml_stringbuffer_addf(Buffer, " %s", ml_typeof(Value)->Name);
-		}
+		ml_closure_value_list(Inst[1].Value, Buffer);
 		return 2;
 	}
 	case MLIT_VALUE_VALUE: {
-		ml_value_t *Value = Inst[1].Value;
-		if (ml_is(Value, MLStringT)) {
-			ml_stringbuffer_add(Buffer, " \"", 2);
-			int Length = ml_string_length(Value);
-			const char *String = ml_string_value(Value);
-			for (int I = 0; I < Length; ++I) switch (String[I]) {
-				case 0: ml_stringbuffer_add(Buffer, "\\0", 2); break;
-				case '\t': ml_stringbuffer_add(Buffer, "\\t", 2); break;
-				case '\r': ml_stringbuffer_add(Buffer, "\\r", 2); break;
-				case '\n': ml_stringbuffer_add(Buffer, "\\n", 2); break;
-				case '\'': ml_stringbuffer_add(Buffer, "\\\'", 2); break;
-				case '\"': ml_stringbuffer_add(Buffer, "\\\"", 2); break;
-				case '\\': ml_stringbuffer_add(Buffer, "\\\\", 2); break;
-				default: ml_stringbuffer_add(Buffer, String + I, 1); break;
-			}
-			ml_stringbuffer_add(Buffer, "\"", 1);
-		} else if (ml_is(Value, MLNumberT)) {
-			ml_stringbuffer_add(Buffer, " ", 1);
-			ml_stringbuffer_append(Buffer, Value);
-		} else if (ml_typeof(Value) == MLMethodT) {
-			ml_stringbuffer_addf(Buffer, " :%s", ml_method_name(Value));
-		} else {
-			ml_stringbuffer_addf(Buffer, " %s", ml_typeof(Value)->Name);
-		}
-		Value = Inst[2].Value;
-		if (ml_is(Value, MLStringT)) {
-			ml_stringbuffer_add(Buffer, " \"", 2);
-			int Length = ml_string_length(Value);
-			const char *String = ml_string_value(Value);
-			for (int I = 0; I < Length; ++I) switch (String[I]) {
-				case 0: ml_stringbuffer_add(Buffer, "\\0", 2); break;
-				case '\t': ml_stringbuffer_add(Buffer, "\\t", 2); break;
-				case '\r': ml_stringbuffer_add(Buffer, "\\r", 2); break;
-				case '\n': ml_stringbuffer_add(Buffer, "\\n", 2); break;
-				case '\'': ml_stringbuffer_add(Buffer, "\\\'", 2); break;
-				case '\"': ml_stringbuffer_add(Buffer, "\\\"", 2); break;
-				case '\\': ml_stringbuffer_add(Buffer, "\\\\", 2); break;
-				default: ml_stringbuffer_add(Buffer, String + I, 1); break;
-			}
-			ml_stringbuffer_add(Buffer, "\"", 1);
-		} else if (ml_is(Value, MLNumberT)) {
-			ml_stringbuffer_add(Buffer, " ", 1);
-			ml_stringbuffer_append(Buffer, Value);
-		} else if (ml_typeof(Value) == MLMethodT) {
-			ml_stringbuffer_addf(Buffer, " :%s", ml_method_name(Value));
-		} else {
-			ml_stringbuffer_addf(Buffer, " %s", ml_typeof(Value)->Name);
-		}
+		ml_closure_value_list(Inst[1].Value, Buffer);
+		ml_stringbuffer_add(Buffer, ",", 2);
+		ml_closure_value_list(Inst[2].Value, Buffer);
 		return 3;
 	}
 	case MLIT_INDEX_COUNT:
@@ -1413,32 +1443,24 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 		ml_stringbuffer_addf(Buffer, " %d, %s", Inst[1].Index, Inst[2].Ptr);
 		return 3;
 	case MLIT_COUNT_VALUE: {
-		ml_stringbuffer_addf(Buffer, " %d, ", Inst[1].Count);
-		ml_value_t *Value = Inst[2].Value;
-		if (ml_is(Value, MLStringT)) {
-			int Length = ml_string_length(Value);
-			const char *String = ml_string_value(Value);
-			for (int I = 0; I < Length; ++I) switch (String[I]) {
-				case 0: ml_stringbuffer_add(Buffer, "\\0", 2); break;
-				case '\t': ml_stringbuffer_add(Buffer, "\\t", 2); break;
-				case '\r': ml_stringbuffer_add(Buffer, "\\r", 2); break;
-				case '\n': ml_stringbuffer_add(Buffer, "\\n", 2); break;
-				case '\'': ml_stringbuffer_add(Buffer, "\\\'", 2); break;
-				case '\"': ml_stringbuffer_add(Buffer, "\\\"", 2); break;
-				case '\\': ml_stringbuffer_add(Buffer, "\\\\", 2); break;
-				default: ml_stringbuffer_add(Buffer, String + I, 1); break;
-			}
-		} else if (ml_is(Value, MLNumberT)) {
-			ml_stringbuffer_append(Buffer, Value);
-		} else if (ml_typeof(Value) == MLMethodT) {
-			ml_stringbuffer_addf(Buffer, ":%s", ml_method_name(Value));
-		} else {
-			ml_stringbuffer_addf(Buffer, "%s", ml_typeof(Value)->Name);
-		}
+		ml_stringbuffer_addf(Buffer, " %d,", Inst[1].Count);
+		ml_closure_value_list(Inst[2].Value, Buffer);
 		return 3;
 	}
 	case MLIT_COUNT_CHARS:
-		ml_stringbuffer_addf(Buffer, " %d, %s", Inst[1].Count, Inst[2].Ptr);
+		ml_stringbuffer_addf(Buffer, " %d, \"", Inst[1].Count);
+		for (const char *P = Inst[2].Ptr; *P; ++P) switch(*P) {
+			case 0: ml_stringbuffer_add(Buffer, "\\0", 2); break;
+			case '\e': ml_stringbuffer_add(Buffer, "\\e", 2); break;
+			case '\t': ml_stringbuffer_add(Buffer, "\\t", 2); break;
+			case '\r': ml_stringbuffer_add(Buffer, "\\r", 2); break;
+			case '\n': ml_stringbuffer_add(Buffer, "\\n", 2); break;
+			case '\'': ml_stringbuffer_add(Buffer, "\\\'", 2); break;
+			case '\"': ml_stringbuffer_add(Buffer, "\\\"", 2); break;
+			case '\\': ml_stringbuffer_add(Buffer, "\\\\", 2); break;
+			default: ml_stringbuffer_add(Buffer, P, 1); break;
+		}
+		ml_stringbuffer_add(Buffer, "\"", 1);
 		return 3;
 	case MLIT_DECL:
 		if (Inst[1].Decls) {
@@ -1469,12 +1491,23 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 		}
 		return 4;
 	case MLIT_CLOSURE: {
-		ml_stringbuffer_addf(Buffer, " closure");
 		ml_closure_info_t *Info = Inst[1].ClosureInfo;
+		ml_stringbuffer_addf(Buffer, " %s:%d", Info->Source, Info->StartLine);
 		for (int N = 0; N < Info->NumUpValues; ++N) {
 			ml_stringbuffer_addf(Buffer, ", %d", Inst[2 + N].Index);
 		}
 		return 2 + Info->NumUpValues;
+	}
+	case MLIT_SWITCH: {
+		int Count = Inst[1].Count;
+		if (Count) {
+			ml_inst_t **Insts = Inst[2].Insts;
+			ml_stringbuffer_addf(Buffer, " L%d", Insts[0]->Label);
+			for (int I = 1; I < Count; ++I) {
+				ml_stringbuffer_addf(Buffer, ", L%d", Insts[I]->Label);
+			}
+		}
+		return 3;
 	}
 	default: return 0;
 	}
@@ -1485,8 +1518,8 @@ ML_METHOD("info", MLClosureT) {
 	ml_closure_info_t *Info = Closure->Info;
 	ml_value_t *Result = ml_map();
 	ml_map_insert(Result, ml_cstring("Source"), ml_cstring(Info->Source));
-	ml_map_insert(Result, ml_cstring("Start"), ml_integer(Info->LineNo));
-	ml_map_insert(Result, ml_cstring("End"), ml_integer(Info->End));
+	ml_map_insert(Result, ml_cstring("Start"), ml_integer(Info->StartLine));
+	ml_map_insert(Result, ml_cstring("End"), ml_integer(Info->EndLine));
 	ml_map_insert(Result, ml_cstring("Size"), ml_integer(Info->FrameSize));
 	return Result;
 }
@@ -1494,6 +1527,7 @@ ML_METHOD("info", MLClosureT) {
 ML_METHOD("list", MLClosureT) {
 	ml_closure_t *Closure = (ml_closure_t *)Args[0];
 	ml_closure_info_t *Info = Closure->Info;
+	ml_closure_info_labels(Info);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
 		if (Inst->Opcode == MLI_LINK) {
@@ -1506,6 +1540,29 @@ ML_METHOD("list", MLClosureT) {
 	return ml_stringbuffer_value(Buffer);
 }
 
+void ml_closure_list(ml_value_t *Value) {
+	ml_closure_t *Closure = (ml_closure_t *)Value;
+	ml_closure_info_t *Info = Closure->Info;
+	ml_closure_info_labels(Info);
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_stringbuffer_addf(Buffer, "<%s:%d>\n", Info->Source, Info->StartLine);
+	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
+		if (Inst->Opcode == MLI_LINK) {
+			Inst = Inst[1].Inst;
+		} else {
+			Inst += ml_closure_inst_list(Inst, Buffer);
+		}
+		ml_stringbuffer_add(Buffer, "\n", 1);
+	}
+	ml_stringbuffer_add(Buffer, "\n", 1);
+	for (int I = 0; I < Info->NumUpValues; ++I) {
+		ml_value_t *UpValue = Closure->UpValues[I];
+		ml_stringbuffer_addf(Buffer, "Upvalues %d:", I);
+		ml_closure_value_list(UpValue, Buffer);
+		ml_stringbuffer_add(Buffer, "\n", 1);
+	}
+	puts(ml_stringbuffer_get(Buffer));
+}
 
 #ifdef ML_JIT
 
@@ -1651,7 +1708,7 @@ void ml_cbor_write_closure(ml_closure_t *Closure, ml_stringbuffer_t *Buffer) {
 	// TODO: Write Info->Decls
 	ml_cbor_closure_write_int(Info->Params->Size, Buffer);
 	stringmap_foreach(Info->Params, Buffer, ml_cbor_write_closure_param);
-	ml_cbor_closure_write_int(Info->End, Buffer);
+	ml_cbor_closure_write_int(Info->EndLine, Buffer);
 	ml_cbor_closure_write_int(Info->FrameSize, Buffer);
 	ml_cbor_closure_write_int(Info->NumParams, Buffer);
 	ml_cbor_closure_write_int(Info->NumUpValues, Buffer);
@@ -1833,7 +1890,7 @@ ml_value_t *ml_cbor_read_closure(void *Data, int Count, ml_value_t **Args) {
 		intptr_t Index = ml_cbor_closure_read_int(Reader);
 		stringmap_insert(Info->Params, Name, (void *)Index);
 	}
-	Info->End = ml_cbor_closure_read_int(Reader);
+	Info->EndLine = ml_cbor_closure_read_int(Reader);
 	Info->FrameSize = ml_cbor_closure_read_int(Reader);
 	Info->NumParams = ml_cbor_closure_read_int(Reader);
 	Info->NumUpValues = ml_cbor_closure_read_int(Reader);

@@ -71,5 +71,7 @@ types
 
 :mini:`meth :exports(Arg₁: module)`
 
-:mini:`fun mlexchange(Arg₁: any)`
+:mini:`fun exchange(Arg₁: any)`
+
+:mini:`fun replace(Arg₁: any, Arg₂: any)`
 

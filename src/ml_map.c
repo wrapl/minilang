@@ -18,12 +18,17 @@ static ml_value_t *ml_map_node_assign(ml_map_node_t *Node, ml_value_t *Value) {
 	return (Node->Value = Value);
 }
 
+static void ml_map_node_call(ml_state_t *Caller, ml_map_node_t *Node, int Count, ml_value_t **Args) {
+	return ml_call(Caller, Node->Value, Count, Args);
+}
+
 ML_TYPE(MLMapNodeT, (), "map-node",
 // A node in a :mini:`map`.
 // Dereferencing a :mini:`mapnode` returns the corresponding value from the :mini:`map`.
 // Assigning to a :mini:`mapnode` updates the corresponding value in the :mini:`map`.
 	.deref = (void *)ml_map_node_deref,
-	.assign = (void *)ml_map_node_assign
+	.assign = (void *)ml_map_node_assign,
+	.call = (void *)ml_map_node_call
 );
 
 ml_value_t *ml_map() {
@@ -357,10 +362,15 @@ static ml_value_t *ml_map_index_assign(ml_map_node_t *Index, ml_value_t *Value) 
 	return Node->Value = Value;
 }
 
+static void ml_map_index_call(ml_state_t *Caller, ml_map_node_t *Index, int Count, ml_value_t **Args) {
+	return ml_call(Caller, MLNil, Count, Args);
+}
+
 ML_TYPE(MLMapIndexT, (), "map-index",
 //!internal
 	.deref = (void *)ml_map_index_deref,
-	.assign = (void *)ml_map_index_assign
+	.assign = (void *)ml_map_index_assign,
+	.call = (void *)ml_map_index_call
 );
 
 ML_METHOD("[]", MLMapT, MLAnyT) {
@@ -619,10 +629,7 @@ typedef struct {
 } ml_map_sort_state_t;
 
 static void ml_map_sort_state_run(ml_map_sort_state_t *State, ml_value_t *Result) {
-	if (Result) {
-		if (ml_is_error(Result)) ML_CONTINUE(State->Base.Caller, Result);
-		goto resume;
-	}
+	if (Result) goto resume;
 	for (;;) {
 		State->P = State->Head;
 		State->Tail = State->Head = NULL;
@@ -650,7 +657,28 @@ static void ml_map_sort_state_run(ml_map_sort_state_t *State, ml_value_t *Result
 					State->Args[3] = State->Q->Value;
 					return ml_call((ml_state_t *)State, State->Compare, State->Count, State->Args);
 				resume:
-					if (Result == MLNil) {
+					if (ml_is_error(Result)) {
+						ml_map_node_t *Node = State->P, *Next;
+						if (State->Tail) {
+							State->Tail->Next = Node;
+						} else {
+							State->Head = Node;
+						}
+						Node->Prev = State->Tail;
+						for (int Size = State->PSize; --Size > 0;) {
+							Next = Node->Next; Next->Prev = Node; Node = Next;
+						}
+						Next = State->Q;
+						Node->Next = Next;
+						Next->Prev = Node;
+						Node = Next;
+						while (Node->Next) {
+							Next = Node->Next; Next->Prev = Node; Node = Next;
+						}
+						Node->Next = NULL;
+						State->Tail = Node;
+						goto finished;
+					} else if (Result == MLNil) {
 						E = State->Q; State->Q = State->Q->Next; State->QSize--;
 					} else {
 						E = State->P; State->P = State->P->Next; State->PSize--;
@@ -668,14 +696,16 @@ static void ml_map_sort_state_run(ml_map_sort_state_t *State, ml_value_t *Result
 		}
 		State->Tail->Next = 0;
 		if (State->NMerges <= 1) {
-			State->Map->Head = State->Head;
-			State->Map->Tail = State->Tail;
-			State->Map->Size = State->Size;
-			break;
+			Result = (ml_value_t *)State->Map;
+			goto finished;
 		}
 		State->InSize *= 2;
 	}
-	ML_CONTINUE(State->Base.Caller, State->Map);
+finished:
+	State->Map->Head = State->Head;
+	State->Map->Tail = State->Tail;
+	State->Map->Size = State->Size;
+	ML_CONTINUE(State->Base.Caller, Result);
 }
 
 extern ml_value_t *LessMethod;
