@@ -1820,6 +1820,8 @@ static ml_value_t *_value_to_ml(const GValue *Value, GIBaseInfo *Info) {
 	default: {
 		if (G_VALUE_HOLDS(Value, G_TYPE_OBJECT)) {
 			return ml_gir_instance_get(g_value_get_object(Value), Info);
+		} else if (G_VALUE_TYPE(Value) == 0) {
+			return ml_error("TypeError", "Uninitialized value");
 		} else {
 			GIBaseInfo *InterfaceInfo = g_irepository_find_by_gtype(NULL, G_VALUE_TYPE(Value));
 			if (InterfaceInfo) {
