@@ -21,8 +21,11 @@
 #endif
 
 #ifdef ML_GIR
-#include "gtk_console.h"
 #include "ml_gir.h"
+#endif
+
+#ifdef ML_GTK_CONSOLE
+#include "gtk_console.h"
 #endif
 
 #ifdef ML_CBOR
@@ -335,6 +338,8 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_GIR
 	ml_gir_init(Globals);
+#endif
+#ifdef ML_GTK_CONSOLE
 	int GtkConsole = 0;
 #endif
 #ifdef ML_MODULES
@@ -394,7 +399,7 @@ int main(int Argc, const char *Argv[]) {
 			break;
 #endif
 			case 'z': GC_disable(); break;
-#ifdef ML_GIR
+#ifdef ML_GTK_CONSOLE
 			case 'G': GtkConsole = 1; break;
 #endif
 			}
@@ -427,7 +432,7 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_SCHEDULER
 		if (SliceSize) simple_queue_run();
 #endif
-#ifdef ML_GIR
+#ifdef ML_GTK_CONSOLE
 	} else if (GtkConsole) {
 		console_t *Console = console_new(&MLRootContext, (ml_getter_t)stringmap_search, Globals);
 		stringmap_insert(Globals, "print", ml_cfunction(Console, (void *)console_print));

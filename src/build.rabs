@@ -121,13 +121,13 @@ if MINILANG_STATICGC or defined("STATICGC") then
 	let Lib := file("gc/.libs/libgc.a") => fun(Lib) do
 		Dir:rmdir:mkdir:chdir
 		execute("wget https://github.com/ivmai/bdwgc/releases/download/v8.0.4/gc-8.0.4.tar.gz -O- | tar xvzP --strip-components=1")
-		execute('./configure --prefix={PATH} --enable-redirect-malloc --enable-static --disable-shared --disable-parallel-mark --disable-threads --enable-mmap')
+		execute('./configure --prefix={PATH} --enable-redirect-malloc --enable-static --disable-shared --disable-parallel-mark --enable-threads=pthreads --enable-mmap')
 		execute("make clean")
 		execute("make -j4")
 	end
 	PREBUILDS := old + [Lib]
 	CFLAGS := old + ['-I{Dir/"includes"}']
-	LDFLAGS := old + ['-L{Dir/".libs"}']
+	LDFLAGS := old + ['-L{Dir/".libs"}', '-pthread']
 end
 
 if MINILANG_DEFAULTS or defined("DEFAULTS") then
@@ -170,6 +170,8 @@ MINILANG_LIBS := old or defined("LIBS")
 MINILANG_BACKTRACE := old or defined("BACKTRACE")
 MINILANG_JSENCODE := old or defined("JSENCODE")
 MINILANG_SQLITE := old or defined("SQLITE")
+
+MINILANG_GTK_CONSOLE := old or defined("GTK_CONSOLE")
 
 file("config.h") => fun(Target) do
 	let File := Target:open("w")
@@ -230,12 +232,19 @@ if MINILANG_IO then
 	CFLAGS := old + ["-DML_IO"]
 end
 
-if MINILANG_GIR then
-	Objects:put(file("ml_gir.o"), file("gtk_console.o"))
-	CFLAGS := old + ["-DML_GIR", pkgconfig("--cflags gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0")]
-	LDFLAGS := old + [pkgconfig("--libs gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4 gobject-introspection-1.0")]
-	InstallHeaders:put("ml_gir.h")
+if MINILANG_GTK_CONSOLE then
+	MINILANG_GIR := 1
+	Objects:put(file("gtk_console.o"))
+	CFLAGS := old + ["-DML_GTK_CONSOLE", pkgconfig("--cflags gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4")]
+	LDFLAGS := old + [pkgconfig("--libs gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4")]
 	InstallHeaders:put("gtk_console.h")
+end
+
+if MINILANG_GIR then
+	Objects:put(file("ml_gir.o"))
+	CFLAGS := old + ["-DML_GIR", pkgconfig("--cflags gobject-introspection-1.0")]
+	LDFLAGS := old + [pkgconfig("--libs gobject-introspection-1.0")]
+	InstallHeaders:put("ml_gir.h")
 end
 
 if MINILANG_CBOR then
@@ -371,7 +380,9 @@ end
 install(LIBMINILANG, InstallLib/"libminilang.a")
 
 if MINILANG_LIBS and PLATFORM = "Linux" then
-	LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={file("exports.lst")}']
+	let Exports := file("exports.lst")
+	MINILANG[Exports]
+	LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={Exports}']
 	subdir("lib")
 end
 

@@ -28,7 +28,26 @@ fun minilang_lib(Name, Objects, Libraries) do
 	end
 end
 
-CFLAGS := old + ["-fpic", "-I.."]
+CFLAGS := [
+	"-march=native",
+	"-std=gnu11", :>'--save-temps',
+	"-fstrict-aliasing",
+	"-foptimize-sibling-calls",
+	"-Wall", "-Wstrict-aliasing",
+	"-Wno-deprecated-declarations",
+	"-Wno-unused-function",
+	"-Werror=cast-function-type",
+	:>"-Wsuggest-attribute=pure",
+	:>"-Wsuggest-attribute=const",
+	:>"-Wsuggest-attribute=noreturn",
+	:>"-Wsuggest-attribute=malloc",
+	'-I.', "-pthread",
+	"-DGC_THREADS",
+	"-D_GNU_SOURCE",
+	'-D{PLATFORM}',
+	"-fpic", "-I.."
+]
+LDFLAGS := ["-lm", "-ldl", '-Wl,--dynamic-list={file("exports.lst")}']
 
 scope("zlog";) do
 	let Dir := file("zlog")
