@@ -118,7 +118,7 @@ scope("libevent";) do
 	DEFAULT[minilang_lib("libevent.so", [file("ml_libevent.o")])]
 end
 
-subdir("ml_libuv")
+:>subdir("ml_libuv")
 
 scope("onion";) do
 	LDFLAGS := old + ["-lonion"]
