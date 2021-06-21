@@ -637,7 +637,53 @@ ML_FUNCTIONX(MLBreak) {
 	return Debugger->run(Debugger, Caller, MLNil);
 }
 
-// Semaphore
+// Schedulers //
+
+#ifdef ML_SCHEDULER
+
+static struct {
+	ml_queued_state_t *States;
+	int Size, Fill, Write, Read;
+} SchedulerQueue;
+
+void ml_scheduler_queue_init(int Size) {
+	SchedulerQueue.Size = Size;
+	SchedulerQueue.States = anew(ml_queued_state_t, Size);
+}
+
+ml_queued_state_t ml_scheduler_queue_next() {
+	if (SchedulerQueue.Fill) {
+		ml_queued_state_t *States = SchedulerQueue.States;
+		int Read = SchedulerQueue.Read;
+		ml_queued_state_t QueuedState = States[Read];
+		States[Read] = (ml_queued_state_t){NULL, NULL};
+		--SchedulerQueue.Fill;
+		SchedulerQueue.Read = (Read + 1) % SchedulerQueue.Size;
+		return QueuedState;
+	} else {
+		return (ml_queued_state_t){NULL, NULL};
+	}
+}
+
+int ml_scheduler_queue_add(ml_state_t *State, ml_value_t *Value) {
+	if (++SchedulerQueue.Fill > SchedulerQueue.Size) {
+		int NewQueueSize = SchedulerQueue.Size * 2;
+		ml_queued_state_t *NewQueuedStates = anew(ml_queued_state_t, NewQueueSize);
+		memcpy(NewQueuedStates, SchedulerQueue.States, SchedulerQueue.Size * sizeof(ml_queued_state_t));
+		SchedulerQueue.Read = 0;
+		SchedulerQueue.Write = SchedulerQueue.Size;
+		SchedulerQueue.States = NewQueuedStates;
+		SchedulerQueue.Size = NewQueueSize;
+	}
+	int Write = SchedulerQueue.Write;
+	SchedulerQueue.States[Write] = (ml_queued_state_t){State, Value};
+	SchedulerQueue.Write = (Write + 1) % SchedulerQueue.Size;
+	return SchedulerQueue.Fill;
+}
+
+#endif
+
+// Semaphore //
 
 typedef struct {
 	ml_type_t *Type;

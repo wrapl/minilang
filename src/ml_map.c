@@ -713,6 +713,7 @@ extern ml_value_t *LessMethod;
 ML_METHODX("sort", MLMapT) {
 //<Map
 //>Map
+	if (!ml_map_size(Args[0])) ML_RETURN(Args[0]);
 	ml_map_sort_state_t *State = new(ml_map_sort_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
@@ -734,6 +735,7 @@ ML_METHODX("sort", MLMapT, MLFunctionT) {
 //<Map
 //<Compare
 //>Map
+	if (!ml_map_size(Args[0])) ML_RETURN(Args[0]);
 	ml_map_sort_state_t *State = new(ml_map_sort_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
@@ -755,6 +757,7 @@ ML_METHODX("sort2", MLMapT, MLFunctionT) {
 //<Map
 //<Compare
 //>Map
+	if (!ml_map_size(Args[0])) ML_RETURN(Args[0]);
 	ml_map_sort_state_t *State = new(ml_map_sort_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;

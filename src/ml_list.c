@@ -953,6 +953,7 @@ extern ml_value_t *LessMethod;
 ML_METHODX("sort", MLListT) {
 //<List
 //>List
+	if (!ml_list_length(Args[0])) ML_RETURN(Args[0]);
 	ml_list_sort_state_t *State = new(ml_list_sort_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
@@ -975,6 +976,7 @@ ML_METHODX("sort", MLListT, MLFunctionT) {
 //<List
 //<Compare
 //>List
+	if (!ml_list_length(Args[0])) ML_RETURN(Args[0]);
 	ml_list_sort_state_t *State = new(ml_list_sort_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;

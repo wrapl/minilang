@@ -562,42 +562,18 @@ static gboolean console_update_status(console_t *Console) {
 
 #ifdef ML_SCHEDULER
 
-typedef struct {
-	ml_state_t *State;
-	ml_value_t *Value;
-} ml_queued_state_t;
-
-static ml_queued_state_t *QueuedStates;
-static int QueueSize, QueueFill, QueueWrite, QueueRead;
 static unsigned int Counter = 1000;
 
 static gboolean queue_run(void *Data) {
-	if (!QueueFill) return FALSE;
-	ml_queued_state_t QueuedState = QueuedStates[QueueRead];
-	QueuedStates[QueueRead].State = NULL;
-	QueuedStates[QueueRead].Value = NULL;
-	--QueueFill;
-	QueueRead = (QueueRead + 1) % QueueSize;
+	ml_queued_state_t QueuedState = ml_scheduler_queue_next();
+	if (!QueuedState.State) return FALSE;
 	Counter = 1000;
 	QueuedState.State->run(QueuedState.State, QueuedState.Value);
-	return QueueFill;
+	return TRUE;
 }
 
 static void console_swap_state(ml_state_t *State, ml_value_t *Value) {
-	++QueueFill;
-	if (QueueFill > QueueSize) {
-		int NewQueueSize = QueueSize * 2;
-		ml_queued_state_t *NewQueuedStates = anew(ml_queued_state_t, NewQueueSize);
-		memcpy(NewQueuedStates, QueuedStates, QueueSize * sizeof(ml_queued_state_t));
-		QueueRead = 0;
-		QueueWrite = QueueSize;
-		QueuedStates = NewQueuedStates;
-		QueueSize = NewQueueSize;
-	}
-	QueuedStates[QueueWrite].State = State;
-	QueuedStates[QueueWrite].Value = Value;
-	QueueWrite = (QueueWrite + 1) % QueueSize;
-	if (QueueFill == 1) g_idle_add(queue_run, NULL);
+	if (ml_scheduler_queue_add(State, Value) == 1) g_idle_add(queue_run, NULL);
 }
 
 static ml_schedule_t console_scheduler(ml_context_t *Context) {
@@ -644,10 +620,6 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 	Console->Notebook = GTK_NOTEBOOK(gtk_notebook_new());
 
 #ifdef ML_SCHEDULER
-	QueueFill = 0;
-	QueueSize = 4;
-	QueueRead = QueueWrite = 0;
-	QueuedStates = anew(ml_queued_state_t, QueueSize);
 	ml_context_set(Console->Base.Context, ML_SCHEDULER_INDEX, console_scheduler);
 #endif
 

@@ -7,7 +7,7 @@ let SourceTypes := {
 	"cpp" is [c_includes, c_compile]
 }
 
-fun minilang_lib(Name, Objects, Libraries) do
+minilang_lib := fun(Name, Objects, Libraries) do
 	let Library := MODULE_DIR / Name
 	let Sources := []
 	for Object in Objects or [] do
@@ -91,7 +91,7 @@ scope("radb";) do
 		execute("git clone -b dev https://github.com/rajamukherji/radb.git", Dir)
 		Dir:chdir
 		execute("make clean")
-		execute("make libradb.a RADB_MEM=GC")
+		execute("make libradb.a RADB_MEM=GC CFLAGS=-fpic")
 	end
 	PREBUILDS := old + [Lib]
 	generate_init_file(file("ml_radb.c"))
@@ -105,7 +105,7 @@ scope("ravs";) do
 		execute("git clone --recursive -b dev https://github.com/rajamukherji/ravs.git", Dir)
 		Dir:chdir
 		execute("make clean")
-		execute("make libravs.a RADB_MEM=GC")
+		execute("make libravs.a RADB_MEM=GC CFLAGS=-fpic")
 	end
 	PREBUILDS := old + [Lib]
 	generate_init_file(file("ml_ravs.c"))
@@ -118,11 +118,7 @@ scope("libevent";) do
 	DEFAULT[minilang_lib("libevent.so", [file("ml_libevent.o")])]
 end
 
-scope("libuv";) do
-	LDFLAGS := old + ["-luv"]
-	generate_init_file(file("ml_libuv.c"))
-	DEFAULT[minilang_lib("libuv.so", [file("ml_libuv.o")])]
-end
+subdir("ml_libuv")
 
 scope("onion";) do
 	LDFLAGS := old + ["-lonion"]

@@ -4791,7 +4791,7 @@ static void ml_accept_command_decl(mlc_function_t *Function, ml_parser_t *Parser
 
 static void ml_command_evaluate2(mlc_function_t *Function, ml_value_t *Value, void *Data) {
 	ml_state_t *Caller = Function->Base.Caller;
-	ML_RETURN(Value);
+	ML_RETURN(ml_deref(Value));
 }
 
 void ml_command_evaluate(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t *Compiler) {

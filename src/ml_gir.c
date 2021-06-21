@@ -1820,8 +1820,6 @@ static ml_value_t *_value_to_ml(const GValue *Value, GIBaseInfo *Info) {
 	default: {
 		if (G_VALUE_HOLDS(Value, G_TYPE_OBJECT)) {
 			return ml_gir_instance_get(g_value_get_object(Value), Info);
-		} else if (G_VALUE_TYPE(Value) == 0) {
-			return ml_error("TypeError", "Uninitialized value");
 		} else {
 			GIBaseInfo *InterfaceInfo = g_irepository_find_by_gtype(NULL, G_VALUE_TYPE(Value));
 			if (InterfaceInfo) {
@@ -1982,6 +1980,9 @@ typedef struct {
 static ml_value_t *object_property_deref(object_property_t *Property) {
 	GValue Value[1] = {G_VALUE_INIT};
 	g_object_get_property(Property->Object, Property->Name, Value);
+	if (G_VALUE_TYPE(Value) == 0) {
+		return ml_error("PropertyError", "Invalid property %s", Property->Name);
+	}
 	return _value_to_ml(Value, NULL);
 }
 
