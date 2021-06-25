@@ -133,11 +133,11 @@ extern ml_type_t MLInt32T[];
 extern ml_type_t MLInt64T[];
 extern ml_type_t MLDoubleT[];
 
-static inline int ml_tag(const ml_value_t *Value) {
+__attribute__ ((pure)) static inline int ml_tag(const ml_value_t *Value) {
 	return (uint64_t)Value >> 48;
 }
 
-static inline ml_type_t *ml_typeof(const ml_value_t *Value) {
+__attribute__ ((pure)) static inline ml_type_t *ml_typeof(const ml_value_t *Value) {
 	unsigned Tag = ml_tag(Value);
 	if (__builtin_expect(Tag == 0, 1)) {
 		return Value->Type;

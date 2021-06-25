@@ -122,7 +122,7 @@ static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 static inline ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args) {
 	// TODO: Use generation numbers to check Methods->Parent for invalidated definitions
 	// Use alloca here, VLA prevents TCO.
-	ml_type_t **Types = alloca(Count * sizeof(const ml_type_t *));
+	ml_type_t **Types = alloca(Count * sizeof(ml_type_t *));
 	uintptr_t Hash = (uintptr_t)Method;
 	for (int I = Count; --I >= 0;) {
 #ifdef ML_NANBOXING
@@ -352,7 +352,7 @@ ML_METHOD("append", MLStringBufferT, MLMethodT) {
 	ml_method_t *Method = (ml_method_t *)Args[0];
 	for (int I = 1; I < Count; ++I) ML_CHECKX_ARG_TYPE(I, MLTypeT);
 	ml_value_t *Matches = ml_list();
-	const ml_type_t **Types = (const ml_type_t **)Args + 1;
+	ml_type_t **Types = (ml_type_t **)Args + 1;
 	--Count;
 	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
 	do {
@@ -374,6 +374,21 @@ ML_METHOD("append", MLStringBufferT, MLMethodT) {
 
 ML_METHOD_DECL(Range, "..");
 
+static inline void ml_method_set(ml_context_t *Context, int NumTypes, int Variadic, ml_value_t **Args, ml_value_t *Function) {
+	// Use alloca here, VLA prevents TCO.
+	ml_type_t **Types = alloca(NumTypes * sizeof(ml_type_t *));
+	for (int I = 1; I <= NumTypes; ++I) {
+		if (Args[I] == MLNil) {
+			Types[I - 1] = MLNilT;
+		} else {
+			Types[I - 1] = (ml_type_t *)Args[I];
+		}
+	}
+	ml_method_t *Method = (ml_method_t *)Args[0];
+	ml_methods_t *Methods = Context->Values[ML_METHODS_INDEX];
+	ml_method_insert(Methods, Method, Function, NumTypes, Variadic, Types);
+}
+
 ML_FUNCTIONX(MLMethodSet) {
 //!method
 //@method::set
@@ -389,20 +404,14 @@ ML_FUNCTIONX(MLMethodSet) {
 		Variadic = 1;
 		--NumTypes;
 	}
-	ml_type_t *Types[NumTypes];
 	for (int I = 1; I <= NumTypes; ++I) {
-		if (Args[I] == MLNil) {
-			Types[I - 1] = MLNilT;
-		} else {
+		if (Args[I] != MLNil) {
 			ML_CHECKX_ARG_TYPE(I, MLTypeT);
-			Types[I - 1] = (ml_type_t *)Args[I];
 		}
 	}
 	ML_CHECKX_ARG_TYPE(Count - 1, MLFunctionT);
-	ml_method_t *Method = (ml_method_t *)Args[0];
 	ml_value_t *Function = Args[Count - 1];
-	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
-	ml_method_insert(Methods, Method, Function, NumTypes, Variadic, Types);
+	ml_method_set(Caller->Context, NumTypes, Variadic, Args, Function);
 	ML_RETURN(Function);
 }
 

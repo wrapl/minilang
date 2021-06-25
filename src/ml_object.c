@@ -227,6 +227,24 @@ static int setup_field(const char *Name, char *Offset, class_setup_t *Setup) {
 	return 0;
 }
 
+static void setup_fields(ml_state_t *Caller, ml_class_t *Class) {
+	static ml_value_t **FieldFns = NULL;
+	static int NumFieldFns = 0;
+	int NumFields = Class->Fields->Size;
+	if (NumFields > NumFieldFns) {
+		ml_value_t **NewFieldFns = anew(ml_value_t *, NumFields);
+		memcpy(NewFieldFns, FieldFns, NumFieldFns * sizeof(ml_value_t *));
+		for (int I = NumFieldFns; I < NumFields; ++I) {
+			void *Offset = &((ml_object_t *)0)->Fields[I];
+			NewFieldFns[I] = ml_cfunction(Offset, ml_field_fn);
+		}
+		FieldFns = NewFieldFns;
+		NumFieldFns = NumFields;
+	}
+	class_setup_t Setup = {Caller->Context->Values[ML_METHODS_INDEX], FieldFns, Class};
+	stringmap_foreach(Class->Fields, &Setup, (void *)setup_field);
+}
+
 ML_FUNCTIONX(MLClass) {
 //!object
 //@class
@@ -234,8 +252,6 @@ ML_FUNCTIONX(MLClass) {
 //<Parents...:class
 //<Fields...:method
 //<Exports...:named
-	static ml_value_t **FieldFns = NULL;
-	static int NumFieldFns = 0;
 	const char *Name = NULL;
 	int Start = 0;
 	if (Count > 0 && ml_is(Args[0], MLStringT)) {
@@ -352,19 +368,7 @@ ML_FUNCTIONX(MLClass) {
 			}
 		}
 		ml_type_add_parent((ml_type_t *)Class, MLObjectT);
-		int NumFields = Class->Fields->Size;
-		if (NumFields > NumFieldFns) {
-			ml_value_t **NewFieldFns = anew(ml_value_t *, NumFields);
-			memcpy(NewFieldFns, FieldFns, NumFieldFns * sizeof(ml_value_t *));
-			for (int I = NumFieldFns; I < NumFields; ++I) {
-				void *Offset = &((ml_object_t *)0)->Fields[I];
-				NewFieldFns[I] = ml_cfunction(Offset, ml_field_fn);
-			}
-			FieldFns = NewFieldFns;
-			NumFieldFns = NumFields;
-		}
-		class_setup_t Setup = {Caller->Context->Values[ML_METHODS_INDEX], FieldFns, Class};
-		stringmap_foreach(Class->Fields, &Setup, (void *)setup_field);
+		setup_fields(Caller, Class);
 		stringmap_insert(Class->Base.Exports, "new", Constructor);
 		ML_RETURN(Class);
 	}

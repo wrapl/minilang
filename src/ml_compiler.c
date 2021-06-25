@@ -2,7 +2,6 @@
 #include "ml_macros.h"
 #include "ml_compiler2.h"
 #include "stringmap.h"
-#include "sha256.h"
 #include <gc/gc.h>
 #include "ml_runtime.h"
 #include <string.h>
@@ -4306,8 +4305,6 @@ void ml_function_compile(ml_state_t *Caller, mlc_expr_t *Expr, ml_compiler_t *Co
 	Function->Base.run = (ml_state_fn)mlc_function_run;
 	Function->Compiler = Compiler;
 	Function->Source = Expr->Source;
-	SHA256_CTX HashCompiler[1];
-	sha256_init(HashCompiler);
 	ml_closure_info_t *Info = new(ml_closure_info_t);
 	int NumParams = 0;
 	if (Parameters) {
@@ -4478,7 +4475,7 @@ ML_METHOD("var", MLCompilerT, MLStringT, MLTypeT) {
 //>variable
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
-	ml_value_t *Var = ml_variable(MLNil, Args[2]);
+	ml_value_t *Var = ml_variable(MLNil, (ml_type_t *)Args[2]);
 	stringmap_insert(Compiler->Vars, Name, Var);
 	return Var;
 }
@@ -4589,7 +4586,7 @@ ML_METHOD("command_var", MLCompilerT, MLStringT, MLTypeT) {
 	if (!Slot[0] || ml_typeof(Slot[0]) != MLGlobalT) {
 		Slot[0] = ml_global(Name);
 	}
-	return ml_global_set(Slot[0], ml_variable(MLNil, Args[2]));
+	return ml_global_set(Slot[0], ml_variable(MLNil, (ml_type_t *)Args[2]));
 }
 
 ML_METHOD("command_let", MLCompilerT, MLStringT, MLAnyT) {
@@ -4929,13 +4926,15 @@ void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, cons
 	ml_parser_t *Parser = ml_parser(ml_file_read, File);
 	Parser->Source.Name = FileName;
 	const char *Line = ml_file_read(File);
+	if (!Line) ML_RETURN(ml_error("LoadError", "empty file %s", FileName));
 	if (Line[0] == '#' && Line[1] == '!') {
 		Parser->Line = 2;
-		Parser->Next = ml_file_read(File);
+		Line = ml_file_read(File);
+		if (!Line) ML_RETURN(ml_error("LoadError", "empty file %s", FileName));
 	} else {
 		Parser->Line = 1;
-		Parser->Next = Line;
 	}
+	Parser->Next = Line;
 	mlc_expr_t *Expr = ml_accept_file(Parser);
 	if (!Expr) ML_RETURN(Parser->Value);
 	ml_compiler_t *Compiler = ml_compiler(GlobalGet, Globals);

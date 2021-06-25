@@ -13,7 +13,7 @@
 typedef struct {
 	const ml_type_t *Type;
 	ml_value_t *Value;
-	const ml_type_t *VarType;
+	ml_type_t *VarType;
 } ml_variable_t;
 
 static long ml_variable_hash(ml_variable_t *Variable, ml_hash_chain_t *Chain) {
@@ -43,7 +43,7 @@ ML_TYPE(MLVariableT, (), "variable",
 	.call = (void *)ml_variable_call
 );
 
-ml_value_t *ml_variable(ml_value_t *Value, ml_value_t *Type) {
+ml_value_t *ml_variable(ml_value_t *Value, ml_type_t *Type) {
 	ml_variable_t *Variable = new(ml_variable_t);
 	Variable->Type = MLVariableT;
 	Variable->Value = Value;
