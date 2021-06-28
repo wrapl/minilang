@@ -253,7 +253,7 @@ static void simple_queue_run() {
 }
 
 static ml_schedule_t simple_scheduler(ml_context_t *Context) {
-	return (ml_schedule_t){&Counter, ml_scheduler_queue_add};
+	return (ml_schedule_t){&Counter, (void *)ml_scheduler_queue_add};
 }
 
 #endif

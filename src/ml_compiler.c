@@ -184,11 +184,8 @@ static void mlc_expr_call2(mlc_function_t *Function, ml_value_t *Value, mlc_comp
 	Info->EndLine = Expr->EndLine;
 	Info->FrameSize = Function->Size;
 	Info->NumParams = 0;
-	ml_closure_t *Closure = new(ml_closure_t);
-	Closure->Type = MLClosureT;
-	Closure->Info = Info;
 	MLC_POP();
-	ml_call(Caller, (ml_value_t *)Closure, 0, NULL);
+	ml_call(Caller, ml_closure(Info), 0, NULL);
 }
 
 static void mlc_expr_call(mlc_function_t *Parent, mlc_expr_t *Expr) {
@@ -1116,6 +1113,7 @@ static void ml_def_expr_compile2(mlc_function_t *Function, ml_value_t *Value, ml
 	ml_decl_t *Decl = Function->Block->Decls[Local->Index];
 	if (Decl->Value) ml_uninitialized_set(Decl->Value, Value);
 	Decl->Value = Value;
+	ml_value_set_name(Value, Local->Ident);
 	if (Frame->Flags & MLCF_PUSH) {
 		MLC_EMIT(Expr->EndLine, MLI_NIL_PUSH, 0);
 		mlc_inc_top(Function);
@@ -2055,16 +2053,14 @@ static void ml_fun_expr_compile2(mlc_function_t *Function, ml_value_t *Value, ml
 #endif
 	} else {
 		Info->NumUpValues = 0;
-		ml_closure_t *Closure = xnew(ml_closure_t, 0, ml_value_t *);
-		Closure->Type = MLClosureT;
-		Closure->Info = Info;
+		ml_value_t *Closure = ml_closure(Info);
 		if (Frame->Flags & MLCF_PUSH) {
 			ml_inst_t *LoadInst = MLC_EMIT(Expr->StartLine, MLI_LOAD_PUSH, 1);
-			LoadInst[1].Value = (ml_value_t *)Closure;
+			LoadInst[1].Value = Closure;
 			mlc_inc_top(Function);
 		} else {
 			ml_inst_t *LoadInst = MLC_EMIT(Expr->StartLine, MLI_LOAD, 1);
-			LoadInst[1].Value = (ml_value_t *)Closure;
+			LoadInst[1].Value = Closure;
 		}
 		MLC_POP();
 		MLC_RETURN(NULL);
@@ -4290,11 +4286,8 @@ static void ml_function_compile2(mlc_function_t *Function, ml_value_t *Value, ml
 	Info->EndLine = Expr->EndLine;
 	Info->FrameSize = Function->Size;
 	Info->Decls = Function->Decls;
-	ml_closure_t *Closure = new(ml_closure_t);
-	Closure->Info = Info;
-	Closure->Type = MLClosureT;
 	ml_state_t *Caller = Function->Base.Caller;
-	ML_RETURN(Closure);
+	ML_RETURN(ml_closure(Info));
 }
 
 void ml_function_compile(ml_state_t *Caller, mlc_expr_t *Expr, ml_compiler_t *Compiler, const char **Parameters) {
@@ -4721,9 +4714,16 @@ static void ml_command_ident_run(mlc_function_t *Function, ml_value_t *Value, ml
 	}*/
 	ml_global_t *Global = Frame->Global;
 	if (Frame->Type != MLT_REF) Value = ml_deref(Value);
-	if (Frame->Type == MLT_VAR) {
-		//if (VarType) Var->VarType = VarType;
+	switch (Frame->Type) {
+	case MLT_VAR:
 		Value = ml_variable(Value, NULL);
+		break;
+	case MLT_LET:
+	case MLT_DEF:
+		ml_value_set_name(Value, Global->Name);
+		break;
+	default:
+		break;
 	}
 	Global->Value = Value;
 	MLC_POP();

@@ -29,7 +29,7 @@ object
 
 :mini:`meth string(Arg₁: enumvalue)`
 
-:mini:`fun enum(Arg₁: string, Arg₂: list)`
+:mini:`fun enum(Name?: string, Values: list[string])`
 
 :mini:`type enum < type, iteratable`
 
@@ -43,7 +43,7 @@ object
 
 :mini:`meth string(Arg₁: flagsvalue)`
 
-:mini:`fun flags(Arg₁: string, Arg₂: list)`
+:mini:`fun flags(Name?: string, Values: list[string])`
 
 :mini:`type flags < type`
 

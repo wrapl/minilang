@@ -128,9 +128,14 @@ struct ml_param_type_t {
 	int Index;
 };
 
+
+ml_value_t *ml_closure(ml_closure_info_t *Info);
+
+
 struct ml_closure_t {
 	const ml_type_t *Type;
 	ml_closure_info_t *Info;
+	const char *Name;
 	ml_param_type_t *ParamTypes;
 	ml_value_t *UpValues[];
 };

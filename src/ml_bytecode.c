@@ -81,9 +81,10 @@ typedef struct DEBUG_STRUCT(frame) DEBUG_STRUCT(frame);
 
 struct DEBUG_STRUCT(frame) {
 	ml_state_t Base;
-	const char *Source;
-	ml_inst_t *Code, *Inst;
+	ml_inst_t *Inst;
 	ml_value_t **Top;
+	const char *Source;
+	const char *Name;
 	ml_inst_t *OnError;
 	ml_value_t **UpValues;
 #ifdef ML_SCHEDULER
@@ -751,6 +752,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_closure_t *Closure = xnew(ml_closure_t, Info->NumUpValues, ml_value_t *);
 		Closure->Type = MLClosureT;
 		Closure->Info = Info;
+		asprintf((char **)&Closure->Name, "<%s:%d>", Info->Source, Info->StartLine);
 		for (int I = 0; I < Info->NumUpValues; ++I) {
 			int Index = Inst[2 + I].Index;
 			ml_value_t **Slot = (Index < 0) ? &Frame->UpValues[~Index] : &Frame->Stack[Index];
@@ -951,6 +953,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	Frame->Base.run = (void *)DEBUG_FUNC(frame_run);
 	Frame->Base.Context = Caller->Context;
 	Frame->Source = Info->Source;
+	Frame->Name = Closure->Name;
 	int NumParams = Info->NumParams;
 	if (Info->ExtraArgs) --NumParams;
 	if (Info->NamedArgs) --NumParams;
@@ -1356,9 +1359,21 @@ ML_TYPE(MLClosureT, (MLFunctionT, MLIteratableT), "closure",
 	.call = ml_closure_call
 );
 
+ml_value_t *ml_closure(ml_closure_info_t *Info) {
+	ml_closure_t *Closure = xnew(ml_closure_t, Info->NumUpValues, ml_value_t *);
+	Closure->Type = MLClosureT;
+	Closure->Info = Info;
+	asprintf((char **)&Closure->Name, "<%s:%d>", Info->Source, Info->StartLine);
+	return (ml_value_t *)Closure;
+}
+
+static void ML_TYPED_FN(ml_value_set_name, MLClosureT, ml_closure_t *Closure, const char *Name) {
+	Closure->Name = Name;
+}
+
 ML_METHOD(MLStringT, MLClosureT) {
 	ml_closure_t *Closure = (ml_closure_t *)Args[0];
-	return ml_string_format("<%s:%d>", Closure->Info->Source, Closure->Info->StartLine);
+	return ml_cstring(Closure->Name);
 }
 
 static int ml_closure_parameter_fn(const char *Name, void *Value, ml_value_t *Parameters) {
@@ -1571,339 +1586,6 @@ ML_METHOD("jit", MLClosureT) {
 	ml_closure_info_t *Info = ((ml_closure_t *)Args[0])->Info;
 	if (!Info->JITEntry) ml_bytecode_jit(Info);
 	return Args[0];
-}
-
-#endif
-
-#ifdef ML_CBOR_BYTECODE
-
-static void ml_cbor_closure_write_int(int Value0, ml_stringbuffer_t *Buffer) {
-	unsigned int Value = (unsigned int)Value0;
-	uint8_t Bytes[(sizeof(unsigned int) * 8 + 7) / 7];
-	for (int I = 0;; ++I) {
-		if (Value < 0x80) {
-			Bytes[I] = Value;
-			ml_stringbuffer_add(Buffer, Bytes, I + 1);
-			break;
-		} else {
-			Bytes[I] = Value | 0x80;
-			Value >>= 7;
-		}
-	}
-}
-
-static void ml_cbor_closure_write_string(const char *Value, ml_stringbuffer_t *Buffer) {
-	int Length = strlen(Value);
-	ml_cbor_closure_write_int(Length, Buffer);
-	ml_stringbuffer_add(Buffer, (void *)Value, Length);
-}
-
-static void ml_cbor_closure_find_refs(int Process, ml_inst_t *Inst, stringmap_t *Refs) {
-	if (Inst->Processed == Process) {
-		char *InstName = GC_MALLOC_ATOMIC(3 * sizeof(uintptr_t) * CHAR_BIT / 8 + 2);
-		sprintf(InstName, "%" PRIxPTR, (uintptr_t)Inst);
-		char **Slot = (char **)stringmap_slot(Refs, InstName);
-		if (!Slot[0]) Slot[0] = (char *)NULL + Refs->Size;
-		return;
-	}
-	Inst->Processed = Process;
-	if (MLInstTypes[Inst->Opcode] == MLIT_INST) {
-		ml_cbor_closure_find_refs(Process, Inst[1].Inst, Refs);
-	}
-	if (MLInstTypes[Inst->Opcode] != MLIT_NONE) {
-		ml_cbor_closure_find_refs(Process, Inst[0].Inst, Refs);
-	}
-}
-
-#define MLI_REFER 0xFF
-#define MLI_LABEL 0xFE
-
-static void ml_cbor_closure_write_inst(int Process, ml_inst_t *Inst, stringmap_t *Refs, ml_stringbuffer_t *Buffer) {
-	char InstName[3 * sizeof(uintptr_t) * CHAR_BIT / 8 + 2];
-	sprintf(InstName, "%" PRIxPTR, (uintptr_t)Inst);
-	int Index = (char *)stringmap_search(Refs, InstName) - (char *)NULL;
-	if (Inst->Processed == Process) {
-		ml_stringbuffer_add(Buffer, (char[]){MLI_REFER}, 1);
-		ml_cbor_closure_write_int(Index - 1, Buffer);
-		return;
-	}
-	Inst->Processed = Process;
-	if (Index) {
-		ml_stringbuffer_add(Buffer, (char[]){MLI_LABEL}, 1);
-		ml_cbor_closure_write_int(Index - 1, Buffer);
-	}
-	ml_stringbuffer_add(Buffer, (char[]){Inst->Opcode}, 1);
-	switch (MLInstTypes[Inst->Opcode]) {
-	case MLIT_INST:
-		ml_cbor_closure_write_inst(Process, Inst[1].Inst, Refs, Buffer);
-		break;
-	case MLIT_COUNT_COUNT:
-		ml_cbor_closure_write_int(Inst[1].Count, Buffer);
-		ml_cbor_closure_write_int(Inst[2].Count, Buffer);
-		break;
-	case MLIT_COUNT:
-		ml_cbor_closure_write_int(Inst[1].Count, Buffer);
-		break;
-	case MLIT_INDEX:
-		ml_cbor_closure_write_int(Inst[1].Index, Buffer);
-		break;
-	case MLIT_VALUE:
-		ml_cbor_write(Inst[1].Value, Buffer, ml_stringbuffer_add);
-		break;
-	case MLIT_INDEX_COUNT:
-		ml_cbor_closure_write_int(Inst[1].Index, Buffer);
-		ml_cbor_closure_write_int(Inst[2].Count, Buffer);
-		break;
-	case MLIT_COUNT_VALUE:
-		ml_cbor_closure_write_int(Inst[1].Count, Buffer);
-		ml_cbor_write(Inst[2].Value, Buffer, ml_stringbuffer_add);
-		break;
-	case MLIT_CLOSURE: {
-		ml_closure_info_t *Info = Inst[1].ClosureInfo;
-		ml_cbor_closure_write_int(Info->NumUpValues, Buffer);
-		for (int N = 0; N < Info->NumUpValues; ++N) {
-			ml_cbor_closure_write_int(Inst[2 + N].Index, Buffer);
-		}
-		break;
-	default:
-		break;
-	}
-	}
-	if (MLInstTypes[Inst->Opcode] != MLIT_NONE) {
-		ml_cbor_closure_write_inst(Process, Inst[0].Inst, Refs, Buffer);
-	}
-}
-
-/*
-struct ml_closure_info_t {
-	ml_inst_t *Entry, *Return;
-	const char *Source;
-	ml_decl_t *Decls;
-	stringmap_t Params[1];
-	int End, FrameSize;
-	int NumParams, NumUpValues;
-	int ExtraArgs, NamedArgs;
-	unsigned char Hash[SHA256_BLOCK_SIZE];
-};
- */
-
-static int ml_cbor_write_closure_param(const char *Name, void *Value, ml_stringbuffer_t *Buffer) {
-	ml_cbor_closure_write_string(Name, Buffer);
-	ml_cbor_closure_write_int((intptr_t)Value, Buffer);
-	return 0;
-}
-
-void ml_cbor_write_closure(ml_closure_t *Closure, ml_stringbuffer_t *Buffer) {
-	ml_closure_info_t *Info = Closure->Info;
-	stringmap_t Refs[1] = {STRINGMAP_INIT};
-	char *InstName = GC_MALLOC_ATOMIC(3 * sizeof(uintptr_t) * CHAR_BIT / 8 + 2);
-	sprintf(InstName, "%" PRIxPTR, (uintptr_t)Info->Return);
-	char **Slot = (char **)stringmap_slot(Refs, InstName);
-	Slot[0] = (char *)NULL + Refs->Size;
-	Info->Return->Processed = !Info->Entry->Processed;
-	ml_cbor_closure_find_refs(!Info->Entry->Processed, Info->Entry, Refs);
-	ml_cbor_closure_write_int(Refs->Size, Buffer);
-	ml_cbor_closure_write_inst(!Info->Entry->Processed, Info->Entry, Refs, Buffer);
-	ml_cbor_closure_write_string(Info->Source, Buffer);
-	// TODO: Write Info->Decls
-	ml_cbor_closure_write_int(Info->Params->Size, Buffer);
-	stringmap_foreach(Info->Params, Buffer, ml_cbor_write_closure_param);
-	ml_cbor_closure_write_int(Info->EndLine, Buffer);
-	ml_cbor_closure_write_int(Info->FrameSize, Buffer);
-	ml_cbor_closure_write_int(Info->NumParams, Buffer);
-	ml_cbor_closure_write_int(Info->NumUpValues, Buffer);
-	ml_cbor_closure_write_int(Info->ExtraArgs, Buffer);
-	ml_cbor_closure_write_int(Info->NamedArgs, Buffer);
-	ml_cbor_closure_write_int(Closure->PartialCount, Buffer);
-	for (int I = 0; I < Info->NumUpValues; ++I) {
-		ml_value_t *UpValue = Closure->UpValues[I];
-		UpValue = ml_deref(UpValue);
-		ml_cbor_write(UpValue, Buffer, ml_stringbuffer_add);
-	}
-}
-
-ml_value_t *ML_TYPED_FN(ml_cbor_write, MLClosureT, ml_closure_t *Closure, void *Data, ml_cbor_write_fn WriteFn) {
-	ml_cbor_write_tag(Data, WriteFn, 36); // TODO: Pick correct tag
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	ml_cbor_write_closure(Closure, Buffer);
-	ml_cbor_write_bytes(Data, WriteFn, Buffer->Length);
-	ml_stringbuffer_foreach(Buffer, Data, WriteFn);
-	return NULL;
-}
-
-typedef struct {
-	ml_value_t *Error;
-	const uint8_t *Data;
-	ml_inst_t **Refs;
-	size_t Length, NumRefs;
-	jmp_buf OnError;
-} ml_cbor_closure_reader_t;
-
-#define ML_CBOR_CLOSURE_ERROR { \
-	Reader->Error = ml_error("CborError", "Invalid closure data (%d)", __LINE__); \
-	longjmp(Reader->OnError, 1); \
-}
-
-static int ml_cbor_closure_read_int(ml_cbor_closure_reader_t *Reader) {
-	unsigned int Value = 0;
-	int Shift = 0;
-	const uint8_t *Data = Reader->Data;
-	size_t Length = Reader->Length;
-	for (;;) {
-		if (!Length) ML_CBOR_CLOSURE_ERROR;
-		uint8_t Byte = *Data++;
-		--Length;
-		Value += (Byte & 0x7F) << Shift;
-		if (Byte < 0x80) break;
-		Shift += 7;
-	}
-	Reader->Data = Data;
-	Reader->Length = Length;
-	return (int)Value;
-}
-
-static const char *ml_cbor_closure_read_string(ml_cbor_closure_reader_t *Reader) {
-	int Length = ml_cbor_closure_read_int(Reader);
-	if (Reader->Length < Length) ML_CBOR_CLOSURE_ERROR;
-	char *Value = GC_MALLOC_ATOMIC(Length + 1);
-	memcpy(Value, Reader->Data, Length);
-	Value[Length] = 0;
-	Reader->Data += Length;
-	Reader->Length -= Length;
-	return Value;
-}
-
-static ml_value_t *ml_cbor_closure_read_value(ml_cbor_closure_reader_t *Reader) {
-	ml_cbor_t Cbor = {Reader->Data, Reader->Length};
-	ml_cbor_result_t Result = ml_from_cbor_extra(Cbor, NULL, NULL);
-	Reader->Data += (Reader->Length - Result.Extra);
-	Reader->Length = Result.Extra;
-	return Result.Value;
-}
-
-static void ml_cbor_closure_read_inst(ml_cbor_closure_reader_t *Reader, ml_inst_t **Slot) {
-	if (!Reader->Length) ML_CBOR_CLOSURE_ERROR;
-	ml_opcode_t Opcode = *Reader->Data++;
-	--Reader->Length;
-	if (Opcode == MLI_REFER) {
-		int Index = ml_cbor_closure_read_int(Reader);
-		if (Index < 0 || Index >= Reader->NumRefs) ML_CBOR_CLOSURE_ERROR;
-		ml_inst_t *Inst = Reader->Refs[Index];
-		if (!Inst) ML_CBOR_CLOSURE_ERROR;
-		Slot[0] = Inst;
-	} else if (Opcode == MLI_LABEL) {
-		int Index = ml_cbor_closure_read_int(Reader);
-		if (Index < 0 || Index >= Reader->NumRefs) ML_CBOR_CLOSURE_ERROR;
-		if (Reader->Refs[Index]) ML_CBOR_CLOSURE_ERROR;
-		ml_cbor_closure_read_inst(Reader, &Reader->Refs[Index]);
-		Slot[0] = Reader->Refs[Index];
-	} else if ((Opcode >= MLI_RETURN) && (Opcode <= MLI_PARTIAL_SET)) {
-		switch (MLInstTypes[Opcode]) {
-		case MLIT_NONE: {
-			ml_inst_t *Inst = Slot[0] = xnew(ml_inst_t, 0, ml_param_t);
-			Inst->Opcode = Opcode;
-			break;
-		}
-		case MLIT_INST: {
-			ml_inst_t *Inst = Slot[0] = xnew(ml_inst_t, 1, ml_param_t);
-			Inst->Opcode = Opcode;
-			ml_cbor_closure_read_inst(Reader, &Inst[0].Inst);
-			break;
-		}
-		case MLIT_INST: {
-			ml_inst_t *Inst = Slot[0] = xnew(ml_inst_t, 2, ml_param_t);
-			Inst->Opcode = Opcode;
-			ml_cbor_closure_read_inst(Reader, &Inst[1].Inst);
-			ml_cbor_closure_read_inst(Reader, &Inst[0].Inst);
-			break;
-		}
-		case MLIT_COUNT_COUNT: {
-			ml_inst_t *Inst = Slot[0] = xnew(ml_inst_t, 3, ml_param_t);
-			Inst->Opcode = Opcode;
-			Inst[1].Count = ml_cbor_closure_read_int(Reader);
-			Inst[2].Count = ml_cbor_closure_read_int(Reader);
-			ml_cbor_closure_read_inst(Reader, &Inst[0].Inst);
-			break;
-		}
-		case MLIT_COUNT: {
-			ml_inst_t *Inst = Slot[0] = xnew(ml_inst_t, 2, ml_param_t);
-			Inst->Opcode = Opcode;
-			Inst[1].Count = ml_cbor_closure_read_int(Reader);
-			ml_cbor_closure_read_inst(Reader, &Inst[0].Inst);
-			break;
-		}
-		case MLIT_INDEX: {
-			ml_inst_t *Inst = Slot[0] = xnew(ml_inst_t, 2, ml_param_t);
-			Inst->Opcode = Opcode;
-			Inst[1].Index = ml_cbor_closure_read_int(Reader);
-			ml_cbor_closure_read_inst(Reader, &Inst[0].Inst);
-			break;
-		}
-		case MLIT_VALUE: {
-			ml_inst_t *Inst = Slot[0] = xnew(ml_inst_t, 2, ml_param_t);
-			Inst->Opcode = Opcode;
-			Inst[1].Value = ml_cbor_closure_read_value(Reader);
-			ml_cbor_closure_read_inst(Reader, &Inst[0].Inst);
-			break;
-		}
-		case MLIT_INDEX_COUNT: {
-			ml_inst_t *Inst = Slot[0] = xnew(ml_inst_t, 3, ml_param_t);
-			Inst->Opcode = Opcode;
-			Inst[1].Index = ml_cbor_closure_read_int(Reader);
-			Inst[2].Count = ml_cbor_closure_read_int(Reader);
-			ml_cbor_closure_read_inst(Reader, &Inst[0].Inst);
-			break;
-		}
-		case MLIT_COUNT_VALUE: {
-			ml_inst_t *Inst = Slot[0] = xnew(ml_inst_t, 3, ml_param_t);
-			Inst->Opcode = Opcode;
-			Inst[1].Count = ml_cbor_closure_read_int(Reader);
-			Inst[2].Value = ml_cbor_closure_read_value(Reader);
-			ml_cbor_closure_read_inst(Reader, &Inst[0].Inst);
-			break;
-		}
-		case MLIT_CLOSURE:  {
-			ML_CBOR_CLOSURE_ERROR;
-		}
-		}
-	}
-}
-
-ml_value_t *ml_cbor_read_closure(void *Data, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_TYPE(0, MLBufferT);
-	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
-	ml_cbor_closure_reader_t Reader[1];
-	Reader->Data = (uint8_t *)Buffer->Address;
-	Reader->Length = Buffer->Size;
-	if (setjmp(Reader->OnError)) return Reader->Error;
-	Reader->NumRefs = ml_cbor_closure_read_int(Reader);
-	if (Reader->NumRefs < 1) return ml_error("CborError", "Invalid closure data (%d)", __LINE__);
-	Reader->Refs = anew(ml_inst_t *, Reader->NumRefs);
-	ml_closure_info_t *Info = new(ml_closure_info_t);
-	ml_cbor_closure_read_inst(Reader, &Info->Entry);
-	Info->Return = Reader->Refs[0];
-	Info->Source = ml_cbor_closure_read_string(Reader);
-	// TODO: Read Info->Decls
-	int NumParams = ml_cbor_closure_read_int(Reader);
-	for (int I = 0; I < NumParams; ++I) {
-		const char *Name = ml_cbor_closure_read_string(Reader);
-		intptr_t Index = ml_cbor_closure_read_int(Reader);
-		stringmap_insert(Info->Params, Name, (void *)Index);
-	}
-	Info->EndLine = ml_cbor_closure_read_int(Reader);
-	Info->FrameSize = ml_cbor_closure_read_int(Reader);
-	Info->NumParams = ml_cbor_closure_read_int(Reader);
-	Info->NumUpValues = ml_cbor_closure_read_int(Reader);
-	Info->ExtraArgs = ml_cbor_closure_read_int(Reader);
-	Info->NamedArgs = ml_cbor_closure_read_int(Reader);
-	ml_closure_t *Closure = new(ml_closure_t);
-	Closure->Type = MLClosureT;
-	Closure->Info = Info;
-	Closure->PartialCount = ml_cbor_closure_read_int(Reader);
-	for (int I = 0; I < Closure->Info->NumUpValues; ++I) {
-		Closure->UpValues[I] = ml_cbor_closure_read_value(Reader);
-	}
-	return (ml_value_t *)Closure;
 }
 
 #endif

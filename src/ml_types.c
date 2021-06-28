@@ -681,6 +681,11 @@ ML_METHOD(MLStringT, MLAnyT) {
 	return ml_string_format("<%s>", ml_typeof(Args[0])->Name);
 }
 
+void ml_value_set_name(ml_value_t *Value, const char *Name) {
+	typeof(ml_value_set_name) *function = ml_typed_fn_get(ml_typeof(Value), ml_value_set_name);
+	if (function) function(Value, Name);
+}
+
 // Iterators //
 
 void ml_iterate(ml_state_t *Caller, ml_value_t *Value) {

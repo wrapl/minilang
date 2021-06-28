@@ -374,6 +374,10 @@ ML_FUNCTIONX(MLClass) {
 	}
 }
 
+static void ML_TYPED_FN(ml_value_set_name, MLClassT, ml_class_t *Class, const char *Name) {
+	Class->Base.Name = Name;
+}
+
 typedef struct ml_property_t {
 	const ml_type_t *Type;
 	ml_value_t *Get, *Set;
@@ -466,13 +470,28 @@ ML_METHOD(MLStringT, MLEnumValueT) {
 
 ML_FUNCTION(MLEnum) {
 //@enum
-	ML_CHECK_ARG_COUNT(2);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
-	ML_CHECK_ARG_TYPE(1, MLListT);
-	int Size = ml_list_length(Args[1]);
+//<Name?:string
+//<Values:list[string]
+	ML_CHECK_ARG_COUNT(1);
+	const char *Name = NULL;
+	ml_value_t *Values;
+	if (ml_is(Args[0], MLStringT)) {
+		ML_CHECK_ARG_COUNT(2);
+		ML_CHECK_ARG_TYPE(1, MLListT);
+		Name = ml_string_value(Args[0]);
+		Values = Args[1];
+	} else {
+		ML_CHECK_ARG_TYPE(0, MLListT);
+		Values = Args[0];
+	}
+	int Size = ml_list_length(Values);
 	ml_enum_t *Enum = xnew(ml_enum_t, Size, ml_value_t *);
 	Enum->Base.Type = MLEnumT;
-	Enum->Base.Name = ml_string_value(Args[0]);
+	if (Name) {
+		Enum->Base.Name = Name;
+	} else {
+		asprintf((char **)&Enum->Base.Name, "flags:%lx", (uintptr_t)Enum);
+	}
 	Enum->Base.deref = ml_default_deref;
 	Enum->Base.assign = ml_default_assign;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
@@ -481,7 +500,7 @@ ML_FUNCTION(MLEnum) {
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
 	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
 	int Index = 0;
-	ML_LIST_FOREACH(Args[1], Iter) {
+	ML_LIST_FOREACH(Values, Iter) {
 		ml_value_t *Name = Iter->Value;
 		if (!ml_is(Name, MLStringT)) {
 			return ml_error("TypeError", "Enum names must be strings");
@@ -525,6 +544,10 @@ ml_type_t *ml_enum(const char *TypeName, ...) {
 		stringmap_insert(Enum->Base.Exports, String, Value);
 	}
 	return (ml_type_t *)Enum;
+}
+
+static void ML_TYPED_FN(ml_value_set_name, MLEnumT, ml_enum_t *Enum, const char *Name) {
+	Enum->Base.Name = Name;
 }
 
 uint64_t ml_enum_value(ml_value_t *Value) {
@@ -629,13 +652,28 @@ ML_METHOD(MLStringT, MLFlagsValueT) {
 
 ML_FUNCTION(MLFlags) {
 //@flags
-	ML_CHECK_ARG_COUNT(2);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
-	ML_CHECK_ARG_TYPE(1, MLListT);
-	int Size = ml_list_length(Args[1]);
+//<Name?:string
+//<Values:list[string]
+	ML_CHECK_ARG_COUNT(1);
+	const char *Name = NULL;
+	ml_value_t *Values;
+	if (ml_is(Args[0], MLStringT)) {
+		ML_CHECK_ARG_COUNT(2);
+		ML_CHECK_ARG_TYPE(1, MLListT);
+		Name = ml_string_value(Args[0]);
+		Values = Args[1];
+	} else {
+		ML_CHECK_ARG_TYPE(0, MLListT);
+		Values = Args[0];
+	}
+	int Size = ml_list_length(Values);
 	ml_flags_t *Flags = xnew(ml_flags_t, Size, ml_value_t *);
 	Flags->Base.Type = MLFlagsT;
-	Flags->Base.Name = ml_string_value(Args[0]);
+	if (Name) {
+		Flags->Base.Name = Name;
+	} else {
+		asprintf((char **)&Flags->Base.Name, "flags:%lx", (uintptr_t)Flags);
+	}
 	Flags->Base.deref = ml_default_deref;
 	Flags->Base.assign = ml_default_assign;
 	Flags->Base.hash = (void *)ml_flag_value_hash;
@@ -645,7 +683,7 @@ ML_FUNCTION(MLFlags) {
 	Flags->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
 	uint64_t Flag = 1;
 	int Index = 0;
-	ML_LIST_FOREACH(Args[1], Iter) {
+	ML_LIST_FOREACH(Values, Iter) {
 		ml_value_t *Name = Iter->Value;
 		if (!ml_is(Name, MLStringT)) {
 			return ml_error("TypeError", "Flag names must be strings");
@@ -690,6 +728,10 @@ ml_type_t *ml_flags(const char *TypeName, ...) {
 		stringmap_insert(Flags->Base.Exports, String, Value);
 	}
 	return (ml_type_t *)Flags;
+}
+
+static void ML_TYPED_FN(ml_value_set_name, MLFlagsT, ml_flags_t *Flags, const char *Name) {
+	Flags->Base.Name = Name;
 }
 
 uint64_t ml_flags_value(ml_value_t *Value) {
