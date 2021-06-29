@@ -248,19 +248,12 @@ static void setup_fields(ml_state_t *Caller, ml_class_t *Class) {
 ML_FUNCTIONX(MLClass) {
 //!object
 //@class
-//<Name?:string
 //<Parents...:class
 //<Fields...:method
 //<Exports...:named
-	const char *Name = NULL;
-	int Start = 0;
-	if (Count > 0 && ml_is(Args[0], MLStringT)) {
-		Name = ml_string_value(Args[0]);
-		Start = 1;
-	}
 	int Rank = 0;
 	ml_type_t *NativeType = NULL;
-	for (int I = Start; I < Count; ++I) {
+	for (int I = 0; I < Count; ++I) {
 		if (ml_typeof(Args[I]) == MLMethodT) {
 		} else if (ml_is(Args[I], MLClassT)) {
 			ml_class_t *Parent = (ml_class_t *)Args[I];
@@ -292,11 +285,7 @@ ML_FUNCTIONX(MLClass) {
 	if (NativeType) {
 		ml_named_type_t *Class = new(ml_named_type_t);
 		Class->Base.Type = MLNamedTypeT;
-		if (Name) {
-			Class->Base.Name = Name;
-		} else {
-			asprintf((char **)&Class->Base.Name, "named-%s:%lx", NativeType->Name, (uintptr_t)Class);
-		}
+		asprintf((char **)&Class->Base.Name, "named-%s:%lx", NativeType->Name, (uintptr_t)Class);
 		Class->Base.hash = ml_default_hash;
 		Class->Base.call = ml_default_call;
 		Class->Base.deref = ml_default_deref;
@@ -305,7 +294,7 @@ ML_FUNCTIONX(MLClass) {
 		Class->Native = NativeType;
 		ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_named_constructor_fn);
 		Class->Base.Constructor = Constructor;
-		for (int I = Start; I < Count; ++I) {
+		for (int I = 0; I < Count; ++I) {
 			if (ml_is(Args[I], MLTypeT)) {
 				ml_type_t *Parent = (ml_type_t *)Args[I];
 				ml_type_add_parent((ml_type_t *)Class, Parent);
@@ -330,11 +319,7 @@ ML_FUNCTIONX(MLClass) {
 	} else {
 		ml_class_t *Class = new(ml_class_t);
 		Class->Base.Type = MLClassT;
-		if (Name) {
-			Class->Base.Name = Name;
-		} else {
-			asprintf((char **)&Class->Base.Name, "object:%lx", (uintptr_t)Class);
-		}
+		asprintf((char **)&Class->Base.Name, "object:%lx", (uintptr_t)Class);
 		Class->Base.hash = ml_default_hash;
 		Class->Base.call = ml_default_call;
 		Class->Base.deref = ml_default_deref;
@@ -342,7 +327,7 @@ ML_FUNCTIONX(MLClass) {
 		Class->Base.Rank = Rank + 1;
 		ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_object_constructor_fn);
 		Class->Base.Constructor = Constructor;
-		for (int I = Start; I < Count; ++I) {
+		for (int I = 0; I < Count; ++I) {
 			if (ml_typeof(Args[I]) == MLMethodT) {
 				add_field(ml_method_name(Args[I]), NULL, Class);
 			} else if (ml_is(Args[I], MLClassT)) {
@@ -470,28 +455,11 @@ ML_METHOD(MLStringT, MLEnumValueT) {
 
 ML_FUNCTION(MLEnum) {
 //@enum
-//<Name?:string
-//<Values:list[string]
-	ML_CHECK_ARG_COUNT(1);
-	const char *Name = NULL;
-	ml_value_t *Values;
-	if (ml_is(Args[0], MLStringT)) {
-		ML_CHECK_ARG_COUNT(2);
-		ML_CHECK_ARG_TYPE(1, MLListT);
-		Name = ml_string_value(Args[0]);
-		Values = Args[1];
-	} else {
-		ML_CHECK_ARG_TYPE(0, MLListT);
-		Values = Args[0];
-	}
-	int Size = ml_list_length(Values);
-	ml_enum_t *Enum = xnew(ml_enum_t, Size, ml_value_t *);
+//<Values...:string
+	for (int I = 0; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLStringT);
+	ml_enum_t *Enum = xnew(ml_enum_t, Count, ml_value_t *);
 	Enum->Base.Type = MLEnumT;
-	if (Name) {
-		Enum->Base.Name = Name;
-	} else {
-		asprintf((char **)&Enum->Base.Name, "flags:%lx", (uintptr_t)Enum);
-	}
+	asprintf((char **)&Enum->Base.Name, "enum:%lx", (uintptr_t)Enum);
 	Enum->Base.deref = ml_default_deref;
 	Enum->Base.assign = ml_default_assign;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
@@ -499,18 +467,13 @@ ML_FUNCTION(MLEnum) {
 	Enum->Base.Rank = 1;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
 	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
-	int Index = 0;
-	ML_LIST_FOREACH(Values, Iter) {
-		ml_value_t *Name = Iter->Value;
-		if (!ml_is(Name, MLStringT)) {
-			return ml_error("TypeError", "Enum names must be strings");
-		}
+	for (int I = 0; I < Count; ++I) {
 		ml_enum_value_t *Value = new(ml_enum_value_t);
 		Value->Base.Type = (ml_type_t *)Enum;
-		Value->Name = Name;
-		Enum->Values[Index] = (ml_value_t *)Value;
-		Value->Base.Value = ++Index;
-		stringmap_insert(Enum->Base.Exports, ml_string_value(Name), Value);
+		Value->Name = Args[I];
+		Enum->Values[I] = (ml_value_t *)Value;
+		Value->Base.Value = ++I;
+		stringmap_insert(Enum->Base.Exports, ml_string_value(Args[I]), Value);
 	}
 	return (ml_value_t *)Enum;
 }
@@ -652,28 +615,11 @@ ML_METHOD(MLStringT, MLFlagsValueT) {
 
 ML_FUNCTION(MLFlags) {
 //@flags
-//<Name?:string
-//<Values:list[string]
-	ML_CHECK_ARG_COUNT(1);
-	const char *Name = NULL;
-	ml_value_t *Values;
-	if (ml_is(Args[0], MLStringT)) {
-		ML_CHECK_ARG_COUNT(2);
-		ML_CHECK_ARG_TYPE(1, MLListT);
-		Name = ml_string_value(Args[0]);
-		Values = Args[1];
-	} else {
-		ML_CHECK_ARG_TYPE(0, MLListT);
-		Values = Args[0];
-	}
-	int Size = ml_list_length(Values);
-	ml_flags_t *Flags = xnew(ml_flags_t, Size, ml_value_t *);
+//<Values...:string
+	for (int I = 0; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLStringT);
+	ml_flags_t *Flags = xnew(ml_flags_t, Count, ml_value_t *);
 	Flags->Base.Type = MLFlagsT;
-	if (Name) {
-		Flags->Base.Name = Name;
-	} else {
-		asprintf((char **)&Flags->Base.Name, "flags:%lx", (uintptr_t)Flags);
-	}
+	asprintf((char **)&Flags->Base.Name, "flags:%lx", (uintptr_t)Flags);
 	Flags->Base.deref = ml_default_deref;
 	Flags->Base.assign = ml_default_assign;
 	Flags->Base.hash = (void *)ml_flag_value_hash;
@@ -682,18 +628,13 @@ ML_FUNCTION(MLFlags) {
 	ml_type_init((ml_type_t *)Flags, MLFlagsValueT, NULL);
 	Flags->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
 	uint64_t Flag = 1;
-	int Index = 0;
-	ML_LIST_FOREACH(Values, Iter) {
-		ml_value_t *Name = Iter->Value;
-		if (!ml_is(Name, MLStringT)) {
-			return ml_error("TypeError", "Flag names must be strings");
-		}
+	for (int I = 0; I < Count; ++I) {
 		ml_flags_value_t *Value = new(ml_flags_value_t);
 		Value->Type = (ml_type_t *)Flags;
-		Flags->Names[Index++] = Name;
+		Flags->Names[I] = Args[I];
 		Value->Value = Flag;
 		Flag <<= 1;
-		stringmap_insert(Flags->Base.Exports, ml_string_value(Name), Value);
+		stringmap_insert(Flags->Base.Exports, ml_string_value(Args[I]), Value);
 	}
 	return (ml_value_t *)Flags;
 }
