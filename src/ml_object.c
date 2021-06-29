@@ -304,6 +304,7 @@ ML_FUNCTIONX(MLClass) {
 					const char *Name = ml_string_value(Key);
 					ml_value_t *Value = Args[++I];
 					stringmap_insert(Class->Base.Exports, Name, Value);
+					ml_value_set_name(Value, Name);
 					if (!strcmp(Name, "of")) {
 						Class->Base.Constructor = Value;
 					} else if (!strcmp(Name, "init")) {
@@ -343,6 +344,7 @@ ML_FUNCTIONX(MLClass) {
 					const char *Name = ml_string_value(Key);
 					ml_value_t *Value = Args[++I];
 					stringmap_insert(Class->Base.Exports, Name, Value);
+					ml_value_set_name(Value, Name);
 					if (!strcmp(Name, "of")) {
 						Class->Base.Constructor = Value;
 					} else if (!strcmp(Name, "init")) {
