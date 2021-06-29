@@ -99,7 +99,7 @@ union ml_inst_t {
 	ml_value_t *Value;
 	ml_closure_info_t *ClosureInfo;
 	ml_decl_t *Decls;
-	const char *Ptr;
+	const char *Chars;
 	const char **Ptrs;
 };
 
@@ -107,7 +107,7 @@ union ml_inst_t {
 
 struct ml_closure_info_t {
 	ml_inst_t *Entry, *Return, *Halt;
-	const char *Source;
+	const char *Name, *Source;
 	ml_decl_t *Decls;
 #ifdef ML_JIT
 	void *JITStart, *JITEntry, *JITReturn;
@@ -128,14 +128,11 @@ struct ml_param_type_t {
 	int Index;
 };
 
-
 ml_value_t *ml_closure(ml_closure_info_t *Info);
-
 
 struct ml_closure_t {
 	const ml_type_t *Type;
 	ml_closure_info_t *Info;
-	const char *Name;
 	ml_param_type_t *ParamTypes;
 	ml_value_t *UpValues[];
 };
@@ -170,11 +167,6 @@ typedef enum {
 extern const ml_inst_type_t MLInstTypes[];
 
 typedef struct ml_frame_t ml_frame_t;
-
-#define ML_FRAME_REUSE (1 << 0)
-#define ML_FRAME_REENTRY (1 << 1)
-
-#define ML_FRAME_REUSE_SIZE 224
 
 ml_value_t *ml_variable(ml_value_t *Value, ml_type_t *Type);
 

@@ -277,6 +277,7 @@ struct mlc_param_t {
 
 struct mlc_fun_expr_t {
 	MLC_EXPR_FIELDS(fun);
+	const char *Name;
 	mlc_param_t *Params;
 	mlc_expr_t *Body;
 	mlc_expr_t *ReturnType;

@@ -332,7 +332,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #endif
 		ml_state_t *Caller = Frame->Base.Caller;
 		if (Frame->Reuse) {
-			//memset(Frame, 0, ML_FRAME_REML_SIZE);
+			//memset(Frame, 0, ML_FRAME_REUSE_SIZE);
 			while (Top > Frame->Stack) *--Top = NULL;
 			ML_RUNTIME_LOCK();
 			*(ml_frame_t **)Frame = MLCachedFrame;
@@ -529,6 +529,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_LET: {
 		Result = ml_deref(Result);
 		Top[Inst[1].Index] = Result;
+		//ml_value_set_name(Result, Inst[2].Chars);
 		ADVANCE(Inst + 2);
 	}
 	DO_LETI: {
@@ -702,7 +703,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		int Index = Inst[1].Index;
 		ml_value_t **Slot = &Frame->Stack[Index];
 		Result = Slot[0];
-		if (!Result) Result = Slot[0] = ml_uninitialized(Inst[2].Ptr);
+		if (!Result) Result = Slot[0] = ml_uninitialized(Inst[2].Chars);
 		ADVANCE(Inst + 3);
 	}
 	DO_TUPLE_NEW: {
@@ -752,7 +753,6 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_closure_t *Closure = xnew(ml_closure_t, Info->NumUpValues, ml_value_t *);
 		Closure->Type = MLClosureT;
 		Closure->Info = Info;
-		asprintf((char **)&Closure->Name, "<%s:%d>", Info->Source, Info->StartLine);
 		for (int I = 0; I < Info->NumUpValues; ++I) {
 			int Index = Inst[2 + I].Index;
 			ml_value_t **Slot = (Index < 0) ? &Frame->UpValues[~Index] : &Frame->Stack[Index];
@@ -837,7 +837,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		return ml_call(Frame, AppendMethod, Count + 1, Args);
 	}
 	DO_STRING_ADDS: {
-		ml_stringbuffer_add((ml_stringbuffer_t *)Top[-1], Inst[2].Ptr, Inst[1].Count);
+		ml_stringbuffer_add((ml_stringbuffer_t *)Top[-1], Inst[2].Chars, Inst[1].Count);
 		ADVANCE(Inst + 3);
 	}
 	DO_STRING_END: {
@@ -926,6 +926,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 
 static void ml_closure_call_debug(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args);
 
+#define ML_FRAME_REUSE_SIZE 224
+
 static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_closure_t *Closure = (ml_closure_t *)Value;
 	ml_closure_info_t *Info = Closure->Info;
@@ -953,7 +955,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	Frame->Base.run = (void *)DEBUG_FUNC(frame_run);
 	Frame->Base.Context = Caller->Context;
 	Frame->Source = Info->Source;
-	Frame->Name = Closure->Name;
+	Frame->Name = Info->Name;
 	int NumParams = Info->NumParams;
 	if (Info->ExtraArgs) --NumParams;
 	if (Info->NamedArgs) --NumParams;
@@ -1273,7 +1275,7 @@ static int ml_inst_hash(ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) 
 		return 3;
 	case MLIT_INDEX_CHARS:
 		*(int *)(Info->Hash + I) ^= Inst[1].Index;
-		*(long *)(Info->Hash + J) ^= stringmap_hash(Inst[2].Ptr);
+		*(long *)(Info->Hash + J) ^= stringmap_hash(Inst[2].Chars);
 		return 3;
 	case MLIT_COUNT_VALUE:
 		*(int *)(Info->Hash + I) ^= Inst[1].Count;
@@ -1281,7 +1283,7 @@ static int ml_inst_hash(ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) 
 		return 3;
 	case MLIT_COUNT_CHARS:
 		*(int *)(Info->Hash + I) ^= Inst[1].Count;
-		*(long *)(Info->Hash + J) ^= stringmap_hash(Inst[2].Ptr);
+		*(long *)(Info->Hash + J) ^= stringmap_hash(Inst[2].Chars);
 		return 3;
 	case MLIT_DECL: return 2;
 	case MLIT_INDEX_DECL:
@@ -1363,17 +1365,12 @@ ml_value_t *ml_closure(ml_closure_info_t *Info) {
 	ml_closure_t *Closure = xnew(ml_closure_t, Info->NumUpValues, ml_value_t *);
 	Closure->Type = MLClosureT;
 	Closure->Info = Info;
-	asprintf((char **)&Closure->Name, "<%s:%d>", Info->Source, Info->StartLine);
 	return (ml_value_t *)Closure;
-}
-
-static void ML_TYPED_FN(ml_value_set_name, MLClosureT, ml_closure_t *Closure, const char *Name) {
-	Closure->Name = Name;
 }
 
 ML_METHOD(MLStringT, MLClosureT) {
 	ml_closure_t *Closure = (ml_closure_t *)Args[0];
-	return ml_cstring(Closure->Name);
+	return ml_cstring(Closure->Info->Name);
 }
 
 static int ml_closure_parameter_fn(const char *Name, void *Value, ml_value_t *Parameters) {
@@ -1455,7 +1452,7 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 		ml_stringbuffer_addf(Buffer, " %d, %d", Inst[1].Index, Inst[2].Count);
 		return 3;
 	case MLIT_INDEX_CHARS:
-		ml_stringbuffer_addf(Buffer, " %d, %s", Inst[1].Index, Inst[2].Ptr);
+		ml_stringbuffer_addf(Buffer, " %d, %s", Inst[1].Index, Inst[2].Chars);
 		return 3;
 	case MLIT_COUNT_VALUE: {
 		ml_stringbuffer_addf(Buffer, " %d,", Inst[1].Count);
@@ -1464,7 +1461,7 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 	}
 	case MLIT_COUNT_CHARS:
 		ml_stringbuffer_addf(Buffer, " %d, \"", Inst[1].Count);
-		for (const char *P = Inst[2].Ptr; *P; ++P) switch(*P) {
+		for (const char *P = Inst[2].Chars; *P; ++P) switch(*P) {
 			case 0: ml_stringbuffer_add(Buffer, "\\0", 2); break;
 			case '\e': ml_stringbuffer_add(Buffer, "\\e", 2); break;
 			case '\t': ml_stringbuffer_add(Buffer, "\\t", 2); break;

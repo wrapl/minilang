@@ -158,14 +158,14 @@ static int ml_closure_inst_encode(ml_inst_t *Inst, ml_json_encoder_cache_t *Cach
 		return 3;
 	case MLIT_INDEX_CHARS:
 		json_array_append(Json, json_integer(Inst[1].Index));
-		json_array_append(Json, json_string(Inst[2].Ptr));
+		json_array_append(Json, json_string(Inst[2].Chars));
 		return 3;
 	case MLIT_COUNT_VALUE:
 		json_array_append(Json, json_integer(Inst[1].Count));
 		json_array_append(Json, ml_json_encode(Cache, Inst[2].Value));
 		return 3;
 	case MLIT_COUNT_CHARS:
-		json_array_append(Json, json_stringn(Inst[2].Ptr, Inst[1].Count));
+		json_array_append(Json, json_stringn(Inst[2].Chars, Inst[1].Count));
 		return 3;
 	case MLIT_DECL:
 		return 2;
