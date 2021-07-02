@@ -1,13 +1,15 @@
-gobject
-=======
+gir
+===
 
 .. include:: <isonum.txt>
 
-:mini:`type TypelibT < iteratable`
+:mini:`type gir-typelib < iteratable`
    A gobject-introspection typelib.
 
 
 :mini:`type BaseInfoT < type`
+
+:mini:`fun gir(Name: string)` |rarr| :mini:`gir-typelib`
 
 :mini:`type ObjectT < BaseInfoT`
    A gobject-introspection object type.

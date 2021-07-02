@@ -4,7 +4,7 @@
 #include <girffi.h>
 #include <stdio.h>
 
-//!gobject
+//!gir
 
 typedef struct typelib_t {
 	ml_type_t *Type;
@@ -13,6 +13,7 @@ typedef struct typelib_t {
 } typelib_t;
 
 ML_TYPE(TypelibT, (MLIteratableT), "gir-typelib");
+//@gir-typelib
 // A gobject-introspection typelib.
 
 typedef struct typelib_iter_t {
@@ -52,7 +53,10 @@ static void typelib_iter_key(ml_state_t *Caller, typelib_iter_t *Iter) {
 ML_TYPE(TypelibIterT, (), "typelib-iter");
 //!internal
 
-static ml_value_t *ml_gir_require(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(MLGir) {
+//@gir
+//<Name:string
+//>gir-typelib
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	typelib_t *Typelib = new(typelib_t);
@@ -2025,7 +2029,7 @@ void ml_gir_init(stringmap_t *Globals) {
 	ObjectInstanceNil = new(object_instance_t);
 	ObjectInstanceNil->Type = (object_t *)ObjectInstanceT;
 	//ml_typed_fn_set(EnumT, ml_iterate, enum_iterate);
-	stringmap_insert(Globals, "gir", ml_cfunction(NULL, ml_gir_require));
+	stringmap_insert(Globals, "gir", MLGir);
 	ObjectT->call = MLTypeT->call;
 	StructT->call = MLTypeT->call;
 #include "ml_gir_init.c"
