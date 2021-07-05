@@ -8,8 +8,8 @@ static stringmap_t UVProcessOptions[1] = {STRINGMAP_INIT};
 
 static void ml_uv_process_exit_cb(uv_process_t *Request, int64_t Status, int Signal) {
 	ml_state_t *Caller = (ml_state_t *)Request->data;
-	ml_scheduler_queue_add(Caller, ml_integer(Status));
 	uv_close((uv_handle_t *)Request, NULL);
+	ml_scheduler_queue_add(Caller, ml_integer(Status));
 }
 
 ML_METHODX(UVSpawnMethod, MLStringT, MLListT) {

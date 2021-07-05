@@ -118,7 +118,7 @@ scope("libevent";) do
 	DEFAULT[minilang_lib("libevent.so", [file("ml_libevent.o")])]
 end
 
-:>subdir("ml_libuv")
+subdir("ml_libuv")
 
 scope("onion";) do
 	LDFLAGS := old + ["-lonion"]
@@ -127,9 +127,13 @@ scope("onion";) do
 end
 
 scope("sqlite";) do
-	LDFLAGS := old + ["-lsqlite3"]
+	file("sqlite/sqlite3.c") => fun() do
+		file("sqlite"):rmdir:mkdir:chdir
+		execute("wget https://www.sqlite.org/2021/sqlite-autoconf-3360000.tar.gz -O- | tar xvzP --strip-components=1")
+	end
+	CFLAGS := old + ["-I", file("sqlite")]
 	generate_init_file(file("ml_sqlite.c"))
-	DEFAULT[minilang_lib("sqlite.so", [file("ml_sqlite.o")])]
+	DEFAULT[minilang_lib("sqlite.so", [file("ml_sqlite.o"), file("sqlite/sqlite3.o")])]
 end
 
 scope("kiwi";) do

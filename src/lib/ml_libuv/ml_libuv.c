@@ -43,7 +43,6 @@ void ml_free(void *Ptr) {
 }
 
 extern void ml_libuv_file_init(stringmap_t *Globals);
-extern void ml_libuv_fs_init(stringmap_t *Globals);
 extern void ml_libuv_process_init(stringmap_t *Globals);
 
 void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
@@ -52,7 +51,6 @@ void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) 
 	uv_idle_init(Loop, Idle);
 #include "ml_libuv_init.c"
 	ml_libuv_file_init(((ml_module_t *)Module)->Exports);
-	ml_libuv_fs_init(((ml_module_t *)Module)->Exports);
 	ml_libuv_process_init(((ml_module_t *)Module)->Exports);
 	ml_module_export(Module, "run", (ml_value_t *)Run);
 }
