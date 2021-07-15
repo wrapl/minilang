@@ -1511,13 +1511,13 @@ static void parallel_iter_key(ml_state_t *State, ml_value_t *Value) {
 static void parallel_iter_value(ml_state_t *State, ml_value_t *Value) {
 	ml_parallel_t *Parallel = (ml_parallel_t *)((char *)State - offsetof(ml_parallel_t, ValueState));
 	if (Parallel->Error) return;
-	Parallel->Waiting += 1;
 	Parallel->Args[1] = Value;
 	Parallel->Calling = 1;
 	ml_call(Parallel, Parallel->Function, 2, Parallel->Args);
 	Parallel->Calling = 0;
 	if (Parallel->Iter) {
 		if (Parallel->Waiting > Parallel->Limit) return;
+		++Parallel->Waiting;
 		return ml_iter_next(Parallel->NextState, Parallel->Iter);
 	}
 }
@@ -1531,6 +1531,7 @@ static void parallel_continue(ml_parallel_t *Parallel, ml_value_t *Value) {
 	--Parallel->Waiting;
 	if (Parallel->Iter && !Parallel->Calling) {
 		if (Parallel->Waiting > Parallel->Burst) return;
+		++Parallel->Waiting;
 		return ml_iter_next(Parallel->NextState, Parallel->Iter);
 	}
 	if (Parallel->Waiting == 0) ML_CONTINUE(Parallel->Base.Caller, MLNil);
@@ -1581,6 +1582,7 @@ ML_FUNCTIONX(Parallel) {
 		Parallel->Function = Args[1];
 	}
 
+	++Parallel->Waiting;
 	return ml_iterate(Parallel->NextState, Args[0]);
 }
 
