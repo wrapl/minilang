@@ -1492,6 +1492,7 @@ static void parallel_iter_next(ml_state_t *State, ml_value_t *Iter) {
 	if (Parallel->Error) return;
 	if (Iter == MLNil) {
 		Parallel->Iter = NULL;
+		--Parallel->Waiting;
 		ML_CONTINUE(Parallel, MLNil);
 	}
 	if (ml_is_error(Iter)) {
