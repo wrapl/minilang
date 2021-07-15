@@ -1492,10 +1492,12 @@ static void parallel_iter_next(ml_state_t *State, ml_value_t *Iter) {
 	if (Parallel->Error) return;
 	if (Iter == MLNil) {
 		Parallel->Iter = NULL;
+		--Parallel->Waiting;
 		ML_CONTINUE(Parallel, MLNil);
 	}
 	if (ml_is_error(Iter)) {
 		Parallel->Error = Iter;
+		--Parallel->Waiting;
 		ML_CONTINUE(Parallel->Base.Caller, Iter);
 	}
 	return ml_iter_key(Parallel->KeyState, Parallel->Iter = Iter);
@@ -1524,11 +1526,11 @@ static void parallel_iter_value(ml_state_t *State, ml_value_t *Value) {
 
 static void parallel_continue(ml_parallel_t *Parallel, ml_value_t *Value) {
 	if (Parallel->Error) return;
+	--Parallel->Waiting;
 	if (ml_is_error(Value)) {
 		Parallel->Error = Value;
 		ML_CONTINUE(Parallel->Base.Caller, Value);
 	}
-	--Parallel->Waiting;
 	if (Parallel->Iter && !Parallel->Calling) {
 		if (Parallel->Waiting > Parallel->Burst) return;
 		++Parallel->Waiting;
