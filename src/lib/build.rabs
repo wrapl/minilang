@@ -120,11 +120,11 @@ end
 
 subdir("ml_libuv")
 
-scope("onion";) do
+:<scope("onion";) do
 	LDFLAGS := old + ["-lonion"]
 	generate_init_file(file("ml_onion.c"))
 	DEFAULT[minilang_lib("onion.so", [file("ml_onion.o")])]
-end
+end>:
 
 scope("sqlite";) do
 	file("sqlite/sqlite3.c") => fun() do
