@@ -7,6 +7,8 @@
 extern "C" {
 #endif
 
+extern ml_value_t *MLIterCount;
+
 typedef struct ml_iter_state_t {
 	ml_state_t Base;
 	ml_value_t *Iter;

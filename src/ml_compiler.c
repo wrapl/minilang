@@ -3365,8 +3365,8 @@ static void ml_accept_for_decl(ml_parser_t *Parser, mlc_for_expr_t *Expr) {
 	}
 }
 
-static ML_METHOD_DECL(MLIn, "in");
-static ML_METHOD_DECL(MLIs, "=");
+static ML_METHOD_DECL(MLInMethod, "in");
+static ML_METHOD_DECL(MLIsMethod, "=");
 
 static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 	static void *CompileFns[] = {

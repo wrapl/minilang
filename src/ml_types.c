@@ -28,15 +28,16 @@
 #include <pthread.h>
 #endif
 
-ML_METHOD_DECL(Iterate, "iterate");
-ML_METHOD_DECL(Value, "value");
-ML_METHOD_DECL(Key, "key");
-ML_METHOD_DECL(Next, "next");
-ML_METHOD_DECL(Compare, "<>");
-ML_METHOD_DECL(Index, "[]");
-ML_METHOD_DECL(Symbol, "::");
-ML_METHOD_DECL(Less, "<");
-ML_METHOD_DECL(Call, "()");
+ML_METHOD_DECL(IterateMethod, "iterate");
+ML_METHOD_DECL(ValueMethod, "value");
+ML_METHOD_DECL(KeyMethod, "key");
+ML_METHOD_DECL(NextMethod, "next");
+ML_METHOD_DECL(CompareMethod, "<>");
+ML_METHOD_DECL(IndexMethod, "[]");
+ML_METHOD_DECL(SymbolMethod, "::");
+ML_METHOD_DECL(LessMethod, "<");
+ML_METHOD_DECL(CallMethod, "()");
+ML_METHOD_ANON(MLIterCount, "iteratable::count");
 
 static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 	const unsigned int Mask = (CHAR_BIT * sizeof(uintptr_t) - 1);
@@ -2035,6 +2036,18 @@ static void ML_TYPED_FN(ml_iterate, MLIntegerRangeT, ml_state_t *Caller, ml_valu
 ML_TYPE(MLIntegerRangeT, (MLIteratableT), "integer-range");
 //!range
 
+ML_METHOD(MLIterCount, MLIntegerRangeT) {
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
+	int64_t Diff = Range->Limit - Range->Start;
+	if (!Range->Step) {
+		return (ml_value_t *)Zero;
+	} else if (Range->Limit < Range->Start) {
+		return (ml_value_t *)Zero;
+	} else {
+		return ml_integer(Diff / Range->Step + 1);
+	}
+}
+
 ML_METHOD("..", MLIntegerT, MLIntegerT) {
 //!range
 //<Start
@@ -2167,6 +2180,11 @@ static void ML_TYPED_FN(ml_iterate, MLRealRangeT, ml_state_t *Caller, ml_value_t
 
 ML_TYPE(MLRealRangeT, (MLIteratableT), "real-range");
 //!range
+
+ML_METHOD(MLIterCount, MLRealRangeT) {
+	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
+	return ml_integer(Range->Count);
+}
 
 ML_METHOD("..", MLNumberT, MLNumberT) {
 //!range

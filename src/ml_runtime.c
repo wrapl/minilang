@@ -351,7 +351,7 @@ void ml_uninitialized_use(ml_value_t *Uninitialized0, ml_value_t **Value) {
 	Uninitialized->Slots = Slot;
 }
 
-static ML_METHOD_DECL(Symbol, "::");
+static ML_METHOD_DECL(SymbolMethod, "::");
 
 static int ml_uninitialized_resolve(const char *Name, ml_uninitialized_t *Unitialized, ml_value_t *Value) {
 	ml_value_t *Result = ml_simple_inline(SymbolMethod, 2, Value, ml_string(Name, -1));

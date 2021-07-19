@@ -4,14 +4,14 @@
 #include <float.h>
 
 #define MATH_REAL(NAME, CNAME) \
-ML_METHOD_DECL(NAME, NULL); \
+ML_METHOD_DECL(NAME ## Method, NULL); \
 \
 ML_METHOD(NAME ## Method, MLNumberT) { \
 	return ml_real(CNAME(ml_real_value(Args[0]))); \
 }
 
 #define MATH_REAL_REAL(NAME, CNAME) \
-ML_METHOD_DECL(NAME, NULL); \
+ML_METHOD_DECL(NAME ## Method, NULL); \
 \
 ML_METHOD(NAME ## Method, MLNumberT, MLNumberT) { \
 	return ml_real(CNAME(ml_real_value(Args[0]), ml_real_value(Args[1]))); \

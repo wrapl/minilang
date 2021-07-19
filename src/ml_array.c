@@ -589,10 +589,10 @@ typedef struct ml_integer_range_t {
 } ml_integer_range_t;
 
 extern ml_type_t MLIntegerRangeT[1];
-static ML_METHOD_DECL(Range, "..");
-static ML_METHOD_DECL(Symbol, "::");
-static ML_METHOD_DECL(Mul, "*");
-static ML_METHOD_DECL(Add, "+");
+static ML_METHOD_DECL(RangeMethod, "..");
+static ML_METHOD_DECL(SymbolMethod, "::");
+static ML_METHOD_DECL(MulMethod, "*");
+static ML_METHOD_DECL(AddMethod, "+");
 
 static ml_value_t *ml_array_value(ml_array_t *Array, char *Address) {
 	typeof(ml_array_value) *function = ml_typed_fn_get(Array->Base.Type, ml_array_value);

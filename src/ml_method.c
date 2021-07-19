@@ -372,7 +372,7 @@ ML_METHOD("append", MLStringBufferT, MLMethodT) {
 	ML_RETURN(Matches);
 }*/
 
-ML_METHOD_DECL(Range, "..");
+static ML_METHOD_DECL(RangeMethod, "..");
 
 static inline void ml_method_set(ml_context_t *Context, int NumTypes, int Variadic, ml_value_t **Args, ml_value_t *Function) {
 	// Use alloca here, VLA prevents TCO.

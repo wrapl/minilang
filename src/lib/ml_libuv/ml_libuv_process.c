@@ -1,6 +1,6 @@
 #include "ml_libuv.h"
 
-ML_METHOD_ANON(UVSpawn, "uv::spawn");
+static ML_METHOD_ANON(UVSpawnMethod, "uv::spawn");
 
 typedef ml_value_t *(*ml_uv_process_option_fn)(uv_process_options_t *Options, ml_value_t *Value);
 

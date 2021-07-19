@@ -811,8 +811,8 @@ static inline ml_value_t *ml_nop(ml_value_t *Value) {
 	return Value;
 }
 
-#define ML_METHOD_DECL(NAME, METHOD) ml_value_t *NAME ## Method
-#define ML_METHOD_ANON(NAME, METHOD) ml_value_t *NAME ## Method
+#define ML_METHOD_DECL(NAME, METHOD) ml_value_t *NAME
+#define ML_METHOD_ANON(NAME, METHOD) ml_value_t *NAME
 
 #else
 
@@ -838,8 +838,8 @@ static inline ml_value_t *ml_nop(ml_value_t *Value) {
 
 #endif
 
-#define ML_METHOD_DECL(NAME, METHOD) INIT_CODE NAME ## Method = ml_method(METHOD);
-#define ML_METHOD_ANON(NAME, METHOD) INIT_CODE NAME ## Method = ml_method_anon(METHOD);
+#define ML_METHOD_DECL(NAME, METHOD) INIT_CODE NAME = ml_method(METHOD);
+#define ML_METHOD_ANON(NAME, METHOD) INIT_CODE NAME = ml_method_anon(METHOD);
 
 #endif
 

@@ -1,6 +1,7 @@
 #include "ml_string.h"
 #include "minilang.h"
 #include "ml_macros.h"
+#include "ml_iterfns.h"
 #include <string.h>
 #include <ctype.h>
 #include <inttypes.h>
@@ -75,6 +76,10 @@ static long ml_string_hash(ml_string_t *String, ml_hash_chain_t *Chain) {
 ML_TYPE(MLStringT, (MLBufferT, MLIteratableT), "string",
 	.hash = (void *)ml_string_hash
 );
+
+ML_METHOD(MLIterCount, MLStringT) {
+	return ml_integer(ml_string_length(Args[0]));
+}
 
 ML_METHOD(MLStringT, MLBufferT) {
 //!buffer
@@ -529,7 +534,7 @@ int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callbac
 	return callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
 }
 
-static ML_METHOD_DECL(Append, "append");
+static ML_METHOD_DECL(AppendMethod, "append");
 
 ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
 	ml_hash_chain_t *Chain = Buffer->Chain;

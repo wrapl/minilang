@@ -226,7 +226,7 @@ static void *MLCachedFrame = NULL;
 extern ml_value_t *SymbolMethod;
 #endif
 
-static ML_METHOD_DECL(Append, "append");
+static ML_METHOD_DECL(AppendMethod, "append");
 
 static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
 	if (!Result) {

@@ -9,10 +9,10 @@
 
 /****************************** Chained ******************************/
 
-ML_METHOD_DECL(Solo, "->");
-ML_METHOD_DECL(Duo, "=>");
-ML_METHOD_DECL(FilterSolo, "->?");
-ML_METHOD_DECL(FilterDuo, "=>?");
+static ML_METHOD_DECL(SoloMethod, "->");
+static ML_METHOD_DECL(DuoMethod, "=>");
+static ML_METHOD_DECL(FilterSoloMethod, "->?");
+static ML_METHOD_DECL(FilterDuoMethod, "=>?");
 
 typedef struct ml_filter_t {
 	ml_type_t *Type;
@@ -642,12 +642,10 @@ static void count_iterate(ml_count_state_t *State, ml_value_t *Value) {
 	return ml_iter_next((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_FUNCTIONX(Count) {
+ML_METHODX(MLIterCount, MLIteratableT) {
 //<Iteratable
 //>integer
 // Returns the count of the values produced by :mini:`Iteratable`.
-	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
 	ml_count_state_t *State = new(ml_count_state_t);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)count_iterate;
@@ -699,10 +697,10 @@ ML_FUNCTIONX(Count2) {
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
-static ML_METHOD_DECL(Less, "<");
-static ML_METHOD_DECL(Greater, ">");
-static ML_METHOD_DECL(Add, "+");
-static ML_METHOD_DECL(Mul, "*");
+static ML_METHOD_DECL(LessMethod, "<");
+static ML_METHOD_DECL(GreaterMethod, ">");
+static ML_METHOD_DECL(AddMethod, "+");
+static ML_METHOD_DECL(MulMethod, "*");
 
 static void reduce_iter_next(ml_iter_state_t *State, ml_value_t *Value);
 
@@ -2041,7 +2039,7 @@ void ml_iterfns_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "last", Last);
 		stringmap_insert(Globals, "last2", Last2);
 		stringmap_insert(Globals, "all", All);
-		stringmap_insert(Globals, "count", Count);
+		stringmap_insert(Globals, "count", MLIterCount);
 		stringmap_insert(Globals, "count2", Count2);
 		stringmap_insert(Globals, "reduce", Reduce);
 		stringmap_insert(Globals, "min", Min);
