@@ -86,10 +86,12 @@ void ml_module_compile2(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t *
 		Module->Flags = Flags;
 		Slot[0] = (ml_value_t *)Module;
 	}
+	ml_context_t *Context = ml_context_new(Caller->Context);
+	ml_context_set(Context, ML_MODULE_PATH_INDEX, (void *)ml_parser_name(Parser));
 	ml_module_state_t *State = new(ml_module_state_t);
 	State->Base.Type = MLModuleStateT;
 	State->Base.run = (void *)ml_module_init_run;
-	State->Base.Context = Caller->Context;
+	State->Base.Context = Context;
 	State->Base.Caller = Caller;
 	State->Module = (ml_value_t *)Module;
 	State->Args[0] = ml_cfunctionz(Module, (ml_callbackx_t)ml_export);

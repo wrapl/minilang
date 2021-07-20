@@ -16,12 +16,13 @@ ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
 
 #endif
 
-static int MLContextSize = 4;
+static int MLContextSize = 5;
 // Reserved context slots:
 //  0: Method Table
 //  1: Context variables
 //  2: Debugger
 //	3: Scheduler
+//	4: Module Path
 
 static unsigned int DefaultCounter = UINT_MAX;
 
