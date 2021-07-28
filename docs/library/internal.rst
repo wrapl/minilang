@@ -33,6 +33,10 @@ internal
 
 :mini:`type skipped < iteratable`
 
+:mini:`type buffered < iteratable`
+
+:mini:`type bufferedstate`
+
 :mini:`type unique < iteratable`
 
 :mini:`type uniquestate`

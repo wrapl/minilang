@@ -213,6 +213,15 @@ struct ml_schedule_t {
 
 typedef ml_schedule_t (*ml_scheduler_t)(ml_context_t *Context);
 
+typedef struct {
+	ml_state_t *State;
+	ml_value_t *Value;
+} ml_queued_state_t;
+
+void ml_scheduler_queue_init(int Size);
+ml_queued_state_t ml_scheduler_queue_next();
+int ml_scheduler_queue_add(ml_state_t *State, ml_value_t *Value);
+
 // Semaphores
 
 extern ml_type_t MLSemaphoreT[];

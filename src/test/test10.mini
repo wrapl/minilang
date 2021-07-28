@@ -1,4 +1,4 @@
-class: point("point", :X, :Y)
+class: point(:X, :Y)
 
 var A := point(10, 20)
 
@@ -23,7 +23,7 @@ meth *(N: number, A: point) point(N * A:X, N * A:Y)
 print('{A} * 5 = {A * 5}\n')
 print('7.1 * {B} = {7.1 * B}\n')
 
-class: vector("vector", point, :Z)
+class: vector(point, :Z)
 
 var C := vector(1, 2, 3)
 

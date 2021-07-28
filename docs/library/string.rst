@@ -5,6 +5,8 @@ string
 
 :mini:`type string < buffer, iteratable`
 
+:mini:`meth MLIterCount(Arg₁: string)`
+
 :mini:`meth string(Arg₁: nil)`
 
 :mini:`meth string(Arg₁: some)`
@@ -115,7 +117,11 @@ string
 
 :mini:`meth :after(Arg₁: string, Arg₂: string)`
 
+:mini:`meth :after(Arg₁: string, Arg₂: string, Arg₃: integer)`
+
 :mini:`meth :before(Arg₁: string, Arg₂: string)`
+
+:mini:`meth :before(Arg₁: string, Arg₂: string, Arg₃: integer)`
 
 :mini:`meth :replace(Arg₁: string, Arg₂: string, Arg₃: string)`
 

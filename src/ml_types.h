@@ -133,11 +133,11 @@ extern ml_type_t MLInt32T[];
 extern ml_type_t MLInt64T[];
 extern ml_type_t MLDoubleT[];
 
-static inline int ml_tag(const ml_value_t *Value) {
+__attribute__ ((pure)) static inline int ml_tag(const ml_value_t *Value) {
 	return (uint64_t)Value >> 48;
 }
 
-static inline ml_type_t *ml_typeof(const ml_value_t *Value) {
+__attribute__ ((pure)) static inline ml_type_t *ml_typeof(const ml_value_t *Value) {
 	unsigned Tag = ml_tag(Value);
 	if (__builtin_expect(Tag == 0, 1)) {
 		return Value->Type;
@@ -218,6 +218,7 @@ extern ml_type_t MLNilT[];
 extern ml_value_t MLNil[];
 extern ml_value_t MLSome[];
 
+void ml_value_set_name(ml_value_t *Value, const char *Name);
 
 typedef ml_value_t *(*ml_callback_t)(void *Data, int Count, ml_value_t **Args);
 typedef void (*ml_callbackx_t)(ml_state_t *Frame, void *Data, int Count, ml_value_t **Args);
@@ -810,8 +811,8 @@ static inline ml_value_t *ml_nop(ml_value_t *Value) {
 	return Value;
 }
 
-#define ML_METHOD_DECL(NAME, METHOD) ml_value_t *NAME ## Method
-#define ML_METHOD_ANON(NAME, METHOD) ml_value_t *NAME ## Method
+#define ML_METHOD_DECL(NAME, METHOD) ml_value_t *NAME
+#define ML_METHOD_ANON(NAME, METHOD) ml_value_t *NAME
 
 #else
 
@@ -837,8 +838,8 @@ static inline ml_value_t *ml_nop(ml_value_t *Value) {
 
 #endif
 
-#define ML_METHOD_DECL(NAME, METHOD) INIT_CODE NAME ## Method = ml_method(METHOD);
-#define ML_METHOD_ANON(NAME, METHOD) INIT_CODE NAME ## Method = ml_method_anon(METHOD);
+#define ML_METHOD_DECL(NAME, METHOD) INIT_CODE NAME = ml_method(METHOD);
+#define ML_METHOD_ANON(NAME, METHOD) INIT_CODE NAME = ml_method_anon(METHOD);
 
 #endif
 

@@ -7,7 +7,7 @@ let SourceTypes := {
 	"cpp" is [c_includes, c_compile]
 }
 
-fun minilang_lib(Name, Objects, Libraries) do
+minilang_lib := fun(Name, Objects, Libraries) do
 	let Library := MODULE_DIR / Name
 	let Sources := []
 	for Object in Objects or [] do
@@ -28,7 +28,26 @@ fun minilang_lib(Name, Objects, Libraries) do
 	end
 end
 
-CFLAGS := old + ["-fpic", "-I.."]
+CFLAGS := [
+	"-march=native",
+	"-std=gnu11", :>'--save-temps',
+	"-fstrict-aliasing",
+	"-foptimize-sibling-calls",
+	"-Wall", "-Wstrict-aliasing",
+	"-Wno-deprecated-declarations",
+	"-Wno-unused-function",
+	"-Werror=cast-function-type",
+	:>"-Wsuggest-attribute=pure",
+	:>"-Wsuggest-attribute=const",
+	:>"-Wsuggest-attribute=noreturn",
+	:>"-Wsuggest-attribute=malloc",
+	'-I.', "-pthread",
+	"-DGC_THREADS",
+	"-D_GNU_SOURCE",
+	'-D{PLATFORM}',
+	"-fpic", "-I.."
+]
+LDFLAGS := ["-lm", "-ldl", '-Wl,--dynamic-list={file("exports.lst")}']
 
 scope("zlog";) do
 	let Dir := file("zlog")
@@ -72,7 +91,7 @@ scope("radb";) do
 		execute("git clone -b dev https://github.com/rajamukherji/radb.git", Dir)
 		Dir:chdir
 		execute("make clean")
-		execute("make libradb.a RADB_MEM=GC")
+		execute("make libradb.a RADB_MEM=GC CFLAGS=-fpic")
 	end
 	PREBUILDS := old + [Lib]
 	generate_init_file(file("ml_radb.c"))
@@ -86,7 +105,7 @@ scope("ravs";) do
 		execute("git clone --recursive -b dev https://github.com/rajamukherji/ravs.git", Dir)
 		Dir:chdir
 		execute("make clean")
-		execute("make libravs.a RADB_MEM=GC")
+		execute("make libravs.a RADB_MEM=GC CFLAGS=-fpic")
 	end
 	PREBUILDS := old + [Lib]
 	generate_init_file(file("ml_ravs.c"))
@@ -99,22 +118,22 @@ scope("libevent";) do
 	DEFAULT[minilang_lib("libevent.so", [file("ml_libevent.o")])]
 end
 
-scope("libuv";) do
-	LDFLAGS := old + ["-luv"]
-	generate_init_file(file("ml_libuv.c"))
-	DEFAULT[minilang_lib("libuv.so", [file("ml_libuv.o")])]
-end
+subdir("ml_libuv")
 
-scope("onion";) do
+:<scope("onion";) do
 	LDFLAGS := old + ["-lonion"]
 	generate_init_file(file("ml_onion.c"))
 	DEFAULT[minilang_lib("onion.so", [file("ml_onion.o")])]
-end
+end>:
 
 scope("sqlite";) do
-	LDFLAGS := old + ["-lsqlite3"]
+	file("sqlite/sqlite3.c") => fun() do
+		file("sqlite"):rmdir:mkdir:chdir
+		execute("wget https://www.sqlite.org/2021/sqlite-autoconf-3360000.tar.gz -O- | tar xvzP --strip-components=1")
+	end
+	CFLAGS := old + ["-I", file("sqlite")]
 	generate_init_file(file("ml_sqlite.c"))
-	DEFAULT[minilang_lib("sqlite.so", [file("ml_sqlite.o")])]
+	DEFAULT[minilang_lib("sqlite.so", [file("ml_sqlite.o"), file("sqlite/sqlite3.o")])]
 end
 
 scope("kiwi";) do

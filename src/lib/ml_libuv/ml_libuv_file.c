@@ -1,63 +1,6 @@
-#include "../ml_library.h"
-#include "../ml_macros.h"
-#include <gc/gc.h>
-#include <uv.h>
-#include <unistd.h>
-#include <fcntl.h>
+#include "ml_libuv.h"
 
-#define CB(TYPE, BODY) ({ \
-	void anonymous(TYPE *Request) BODY \
-	&anonymous; \
-})
-
-static uv_loop_t *Loop;
-static uv_idle_t Idle[1];
-
-static unsigned int MLUVCounter = 100;
-
-static void ml_uv_resume(uv_idle_t *Idle) {
-	ml_queued_state_t QueuedState = ml_scheduler_queue_next();
-	if (QueuedState.State) {
-		MLUVCounter = 100;
-		QueuedState.State->run(QueuedState.State, QueuedState.Value);
-	} else {
-		uv_idle_stop(Idle);
-	}
-}
-
-static void ml_uv_swap(ml_state_t *State, ml_value_t *Value) {
-	if (ml_scheduler_queue_add(State, Value) == 1) {
-		uv_idle_start(Idle, ml_uv_resume);
-	}
-}
-
-static ml_schedule_t ml_uv_scheduler(ml_context_t *Context) {
-	return (ml_schedule_t){&MLUVCounter, ml_uv_swap};
-}
-
-ML_FUNCTIONX(Run) {
-	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLFunctionT);
-	ml_state_t *State = ml_state_new(Caller);
-	ml_context_set(State->Context, ML_SCHEDULER_INDEX, ml_uv_scheduler);
-	ml_value_t *Function = Args[0];
-	ml_call(State, Function, 0, NULL);
-	uv_run(Loop, UV_RUN_DEFAULT);
-}
-
-typedef struct ml_uv_file_t {
-	const ml_type_t *Type;
-	ssize_t Handle;
-} ml_uv_file_t;
-
-ML_TYPE(MLUVFileT, (), "uv-file");
-
-static ml_value_t *ml_uv_file_new(ssize_t Handle) {
-	ml_uv_file_t *File = new(ml_uv_file_t);
-	File->Type = MLUVFileT;
-	File->Handle = Handle;
-	return (ml_value_t *)File;
-}
+static ml_value_t *ml_uv_file_new(ssize_t Handle);
 
 static void ml_uv_fs_open_cb(uv_fs_t *Request) {
 	ml_state_t *Caller = (ml_state_t *)Request->data;
@@ -67,11 +10,11 @@ static void ml_uv_fs_open_cb(uv_fs_t *Request) {
 	} else {
 		Result = ml_error("OpenError", "error opening file %s", Request->path);
 	}
-	Caller->run(Caller, Result);
 	uv_fs_req_cleanup(Request);
+	ml_scheduler_queue_add(Caller, Result);
 }
 
-ML_FUNCTIONX(FSOpen) {
+ML_FUNCTIONX(UVFileOpen) {
 	const char *Path = ml_string_value(Args[0]);
 	int Flags = 0;
 	for (const char *P = ml_string_value(Args[1]); *P; ++P) {
@@ -88,13 +31,24 @@ ML_FUNCTIONX(FSOpen) {
 	uv_fs_open(Loop, Request, Path, Flags, Mode, ml_uv_fs_open_cb);
 }
 
-static void ml_uv_fs_close_cb(uv_fs_t *Request) {
-	ml_state_t *Caller = (ml_state_t *)Request->data;
-	Caller->run(Caller, MLNil);
-	uv_fs_req_cleanup(Request);
+ML_TYPE(UVFileT, (), "uv-file",
+	.Constructor = (ml_value_t *)UVFileOpen
+);
+
+static ml_value_t *ml_uv_file_new(ssize_t Handle) {
+	ml_uv_file_t *File = new(ml_uv_file_t);
+	File->Type = UVFileT;
+	File->Handle = Handle;
+	return (ml_value_t *)File;
 }
 
-ML_METHODX("close", MLUVFileT) {
+static void ml_uv_fs_close_cb(uv_fs_t *Request) {
+	ml_state_t *Caller = (ml_state_t *)Request->data;
+	uv_fs_req_cleanup(Request);
+	ml_scheduler_queue_add(Caller, MLNil);
+}
+
+ML_METHODX("close", UVFileT) {
 	ml_uv_file_t *File = (ml_uv_file_t *)Args[0];
 	uv_fs_t *Request = new(uv_fs_t);
 	Request->data = Caller;
@@ -114,11 +68,11 @@ static void ml_uv_fs_read_cb(ml_uv_fs_buf_t *Request) {
 	} else {
 		Result = ml_error("ReadError", "error reading from file");
 	}
-	Caller->run(Caller, Result);
 	uv_fs_req_cleanup((uv_fs_t *)Request);
+	ml_scheduler_queue_add(Caller, Result);
 }
 
-ML_METHODX("read", MLUVFileT, MLIntegerT) {
+ML_METHODX("read", UVFileT, MLIntegerT) {
 	ml_uv_file_t *File = (ml_uv_file_t *)Args[0];
 	size_t Length = ml_integer_value(Args[1]);
 	ml_uv_fs_buf_t *Request = xnew(ml_uv_fs_buf_t, 1, uv_buf_t);
@@ -136,11 +90,11 @@ static void ml_uv_fs_write_cb(ml_uv_fs_buf_t *Request) {
 	} else {
 		Result = ml_error("WriteError", "error writing to file");
 	}
-	Caller->run(Caller, Result);
 	uv_fs_req_cleanup((uv_fs_t *)Request);
+	ml_scheduler_queue_add(Caller, Result);
 }
 
-ML_METHODX("write", MLUVFileT, MLStringT) {
+ML_METHODX("write", UVFileT, MLStringT) {
 	ml_uv_file_t *File = (ml_uv_file_t *)Args[0];
 	ml_uv_fs_buf_t *Request = xnew(ml_uv_fs_buf_t, 1, uv_buf_t);
 	Request->Base.data = Caller;
@@ -149,34 +103,39 @@ ML_METHODX("write", MLUVFileT, MLStringT) {
 	uv_fs_write(Loop, (uv_fs_t *)Request, File->Handle, Request->IOV, 1, -1, (uv_fs_cb)ml_uv_fs_write_cb);
 }
 
-static void ml_uv_sleep_cb(uv_timer_t *Timer) {
-	ml_state_t *Caller = (ml_state_t *)Timer->data;
-	Caller->run(Caller, MLNil);
+static void ml_uv_fs_operation_cb(uv_fs_t *Request) {
+	ml_state_t *Caller = (ml_state_t *)Request->data;
+	ml_value_t *Result = MLNil;
+	if (Request->result) {
+		Result = ml_error("FSError", "%s", uv_strerror(Request->result));
+	}
+	uv_fs_req_cleanup(Request);
+	ml_scheduler_queue_add(Caller, Result);
 }
 
-ML_FUNCTIONX(Sleep) {
+ML_FUNCTIONX(UVUnlink) {
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLIntegerT);
-	uv_timer_t *Timer = new(uv_timer_t);
-	uv_timer_init(Loop, Timer);
-	Timer->data = Caller;
-	uv_timer_start(Timer, ml_uv_sleep_cb, ml_integer_value(Args[0]), 0);
+	ML_CHECKX_ARG_TYPE(0, MLStringT);
+	const char *Path = ml_string_value(Args[0]);
+	uv_fs_t *Request = new(uv_fs_t);
+	uv_fs_unlink(Loop, Request, Path, ml_uv_fs_operation_cb);
 }
 
-void *ml_calloc(size_t Count, size_t Size) {
-	return GC_malloc(Count * Size);
+ML_FUNCTIONX(UVCopyFile) {
+	ML_CHECKX_ARG_COUNT(2);
+	ML_CHECKX_ARG_TYPE(0, MLStringT);
+	ML_CHECKX_ARG_TYPE(1, MLStringT);
+	const char *Path = ml_string_value(Args[0]);
+	const char *NewPath = ml_string_value(Args[1]);
+	uv_fs_t *Request = new(uv_fs_t);
+	uv_fs_copyfile(Loop, Request, Path, NewPath, 0, ml_uv_fs_operation_cb);
 }
 
-void ml_free(void *Ptr) {
-}
-
-void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
-	uv_replace_allocator(GC_malloc, GC_realloc, ml_calloc, ml_free);
-	Loop = uv_default_loop();
-	uv_idle_init(Loop, Idle);
-	Idle->data = ml_list();
-#include "ml_libuv_init.c"
-	ml_module_export(Module, "fs_open", (ml_value_t *)FSOpen);
-	ml_module_export(Module, "run", (ml_value_t *)Run);
-	ml_module_export(Module, "sleep", (ml_value_t *)Sleep);
+void ml_libuv_file_init(stringmap_t *Globals) {
+#include "ml_libuv_file_init.c"
+	stringmap_insert(UVFileT->Exports, "unlink", UVUnlink);
+	stringmap_insert(UVFileT->Exports, "copy", UVCopyFile);
+	if (Globals) {
+		stringmap_insert(Globals, "file", UVFileT);
+	}
 }

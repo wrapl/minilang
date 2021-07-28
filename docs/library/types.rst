@@ -3,6 +3,8 @@ types
 
 .. include:: <isonum.txt>
 
+:mini:`meth MLIterCount(Arg₁: "iteratable::count")`
+
 :mini:`type any`
    Base type for all values.
 
@@ -68,6 +70,10 @@ types
 :mini:`meth :re(Arg₁: complex)`
 
 :mini:`meth :im(Arg₁: complex)`
+
+:mini:`meth MLIterCount(Arg₁: integerrange)`
+
+:mini:`meth MLIterCount(Arg₁: realrange)`
 
 :mini:`meth :exports(Arg₁: module)`
 

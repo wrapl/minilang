@@ -4,6 +4,5 @@
 		ML*;
 		stringmap_*;
 		inthash_*;
-		GC_*;
 	};
 };

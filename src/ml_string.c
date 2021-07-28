@@ -1,6 +1,7 @@
 #include "ml_string.h"
 #include "minilang.h"
 #include "ml_macros.h"
+#include "ml_iterfns.h"
 #include <string.h>
 #include <ctype.h>
 #include <inttypes.h>
@@ -75,6 +76,10 @@ static long ml_string_hash(ml_string_t *String, ml_hash_chain_t *Chain) {
 ML_TYPE(MLStringT, (MLBufferT, MLIteratableT), "string",
 	.hash = (void *)ml_string_hash
 );
+
+ML_METHOD(MLIterCount, MLStringT) {
+	return ml_integer(ml_string_length(Args[0]));
+}
 
 ML_METHOD(MLStringT, MLBufferT) {
 //!buffer
@@ -529,7 +534,7 @@ int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callbac
 	return callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
 }
 
-static ML_METHOD_DECL(Append, "append");
+static ML_METHOD_DECL(AppendMethod, "append");
 
 ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
 	ml_hash_chain_t *Chain = Buffer->Chain;
@@ -1382,6 +1387,44 @@ ML_METHOD("after", MLStringT, MLStringT) {
 	}
 }
 
+ML_METHOD("after", MLStringT, MLStringT, MLIntegerT) {
+	const char *Haystack = ml_string_value(Args[0]);
+	size_t HaystackLength = ml_string_length(Args[0]);
+	const char *HaystackEnd = Haystack + HaystackLength;
+	const char *Needle = ml_string_value(Args[1]);
+	size_t NeedleLength = ml_string_length(Args[1]);
+	int Index = ml_integer_value(Args[2]);
+	if (Index > 0) {
+		for (;;) {
+			const char *Match = strstr(Haystack, Needle);
+			if (!Match) return MLNil;
+			if (--Index) {
+				Haystack = Match + NeedleLength;
+			} else {
+				Match += NeedleLength;
+				int Length = HaystackEnd - Match;
+				return ml_string(Match, Length);
+			}
+		}
+	} else if (Index < 0) {
+		for (int I = HaystackLength - NeedleLength; I >= 0; --I) {
+			const char *Match = Haystack + I;
+			if (!memcmp(Match, Needle, NeedleLength)) {
+				if (++Index) {
+					I -= NeedleLength;
+				} else {
+					Match += NeedleLength;
+					int Length = HaystackEnd - Match;
+					return ml_string(Match, Length);
+				}
+			}
+		}
+		return MLNil;
+	} else {
+		return Args[0];
+	}
+}
+
 ML_METHOD("before", MLStringT, MLStringT) {
 	const char *Haystack = ml_string_value(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
@@ -1390,6 +1433,39 @@ ML_METHOD("before", MLStringT, MLStringT) {
 		return ml_string(Haystack, Match - Haystack);
 	} else {
 		return MLNil;
+	}
+}
+
+ML_METHOD("before", MLStringT, MLStringT, MLIntegerT) {
+	const char *Haystack = ml_string_value(Args[0]);
+	size_t HaystackLength = ml_string_length(Args[0]);
+	const char *Needle = ml_string_value(Args[1]);
+	size_t NeedleLength = ml_string_length(Args[1]);
+	int Index = ml_integer_value(Args[2]);
+	if (Index > 0) {
+		for (;;) {
+			const char *Match = strstr(Haystack, Needle);
+			if (!Match) return MLNil;
+			if (--Index) {
+				Haystack = Match + NeedleLength;
+			} else {
+				const char *Haystack = ml_string_value(Args[0]);
+				return ml_string(Haystack, Match - Haystack);
+			}
+		}
+	} else if (Index < 0) {
+		for (int I = HaystackLength - NeedleLength; I >= 0; --I) {
+			if (!memcmp(Haystack + I, Needle, NeedleLength)) {
+				if (++Index) {
+					I -= NeedleLength;
+				} else {
+					return ml_string(Haystack, I);
+				}
+			}
+		}
+		return MLNil;
+	} else {
+		return Args[0];
 	}
 }
 

@@ -17,7 +17,7 @@ object
 
 :mini:`type namedtype < type`
 
-:mini:`fun class(Name?: string, Parents...: class, Fields...: method, Exports...: named)`
+:mini:`fun class(Parents...: class, Fields...: method, Exports...: named)`
 
 :mini:`type property`
 
@@ -29,7 +29,7 @@ object
 
 :mini:`meth string(Arg₁: enumvalue)`
 
-:mini:`fun enum(Arg₁: string, Arg₂: list)`
+:mini:`fun enum(Values...: string)`
 
 :mini:`type enum < type, iteratable`
 
@@ -43,7 +43,7 @@ object
 
 :mini:`meth string(Arg₁: flagsvalue)`
 
-:mini:`fun flags(Arg₁: string, Arg₂: list)`
+:mini:`fun flags(Values...: string)`
 
 :mini:`type flags < type`
 
