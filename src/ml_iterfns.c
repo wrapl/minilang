@@ -1683,6 +1683,10 @@ static void ML_TYPED_FN(ml_iterate, MLBufferedT, ml_state_t *Caller, ml_buffered
 }
 
 ML_FUNCTION(Buffered) {
+//<Size:integer
+//<Iteratable
+//>Iteratable
+// Returns an iteratable that buffers the keys and values from :mini:`Iteratable` in advance, buffering at most :mini:`Size` pairs.
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	ml_buffered_t *Buffered = new(ml_buffered_t);

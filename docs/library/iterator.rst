@@ -61,7 +61,7 @@ iterator
    Returns the last key and value produced by :mini:`Iteratable`.
 
 
-:mini:`fun count(Iteratable: iteratable)` |rarr| :mini:`integer`
+:mini:`meth MLIterCount(Iteratable: iteratable)` |rarr| :mini:`integer`
    Returns the count of the values produced by :mini:`Iteratable`.
 
 
@@ -137,6 +137,10 @@ iterator
 
 :mini:`meth :skip(Iteratable: iteratable, Skip: integer)` |rarr| :mini:`iteratable`
    Returns an iteratable that skips the first :mini:`Skip` values from :mini:`Iteratable` and then produces the rest.
+
+
+:mini:`fun buffered(Size: integer, Iteratable: any)` |rarr| :mini:`Iteratable`
+   Returns an iteratable that buffers the keys and values from :mini:`Iteratable` in advance, buffering at most :mini:`Size` pairs.
 
 
 :mini:`fun unique(Iteratable: any)` |rarr| :mini:`iteratable`
