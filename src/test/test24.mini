@@ -1,0 +1,13 @@
+fun test(N) do
+	switch N: integer
+	case 1 do "One"
+	case 20 do "Twenty"
+	case 3 .. 6 do "Few"
+	case 7, 8 do "Several"
+	else "Other"
+	end
+end
+
+for I in 0 .. 25 do
+	print('{I} -> {test(I)}\n')
+end

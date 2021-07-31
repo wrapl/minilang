@@ -428,6 +428,63 @@ ml_comp_method_regex_regex(">", >)
 ml_comp_method_regex_regex("<=", <=)
 ml_comp_method_regex_regex(">=", >=)
 
+typedef struct {
+	ml_value_t *Index;
+	ml_string_t *String;
+	ml_regex_t *Regex;
+} ml_string_case_t;
+
+static ml_value_t *ml_string_switch(ml_string_case_t *Cases, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	const char *Subject = ml_string_value(Args[0]);
+	size_t Length = ml_string_length(Args[0]);
+	for (int I = 0;; ++I) {
+		if (Cases[I].String) {
+			if (Cases[I].String->Length == Length) {
+				if (!memcmp(Subject, Cases[I].String->Value, Length)) return Cases[I].Index;
+			}
+		} else if (Cases[I].Regex) {
+#ifdef ML_TRE
+			int Length = ml_string_length(Args[0]);
+			if (!regnexec(Cases[I].Regex->Value, Subject, Length, 0, NULL, 0)) {
+
+#else
+			if (!regexec(Cases[I].Regex->Value, Subject, 0, NULL, 0)) {
+#endif
+				return Cases[I].Index;
+			}
+		} else {
+			return Cases[I].Index;
+		}
+	}
+	return MLNil;
+}
+
+ML_FUNCTION(MLStringSwitch) {
+	int Total = 1;
+	for (int I = 0; I < Count; ++I) Total += ml_list_length(Args[I]);
+	ml_string_case_t *Cases = anew(ml_string_case_t, Total);
+	ml_string_case_t *Case = Cases;
+	for (int I = 0; I < Count; ++I) {
+		ML_LIST_FOREACH(Args[I], Iter) {
+			ml_value_t *Value = Iter->Value;
+			if (ml_is(Value, MLStringT)) {
+				Case->String = (ml_string_t *)Value;
+			} else if (ml_is(Value, MLRegexT)) {
+				Case->Regex = (ml_regex_t *)Value;
+			} else {
+				return ml_error("ValueError", "Unsupported value in string case");
+			}
+			Case->Index = ml_integer(I);
+			++Case;
+		}
+	}
+	Case->Index = ml_integer(Count);
+	return ml_cfunction(Cases, (ml_callback_t)ml_string_switch);
+}
+
+
 ml_value_t *ml_stringbuffer() {
 	ml_stringbuffer_t *Buffer = new(ml_stringbuffer_t);
 	Buffer->Type = MLStringBufferT;
@@ -1693,6 +1750,7 @@ void ml_string_init() {
 	regcomp(IntFormat, "^%[-+ #'0]*[.0-9]*[dioxX]$", REG_NOSUB);
 	regcomp(LongFormat, "^%[-+ #'0]*[.0-9]*l[dioxX]$", REG_NOSUB);
 	regcomp(RealFormat, "^%[-+ #'0]*[.0-9]*[aefgAEG]$", REG_NOSUB);
+	stringmap_insert(MLStringT->Exports, "switch", MLStringSwitch);
 #include "ml_string_init.c"
 	ml_method_by_value(MLStringT->Constructor, NULL, ml_identity, MLStringT, NULL);
 }

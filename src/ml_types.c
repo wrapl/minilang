@@ -577,6 +577,42 @@ ML_METHOD("in", MLAnyT, MLTypeT) {
 	return ml_is(Args[0], (ml_type_t *)Args[1]) ? Args[0] : MLNil;
 }
 
+typedef struct {
+	ml_value_t *Index;
+	ml_type_t *Type;
+} ml_type_case_t;
+
+static ml_value_t *ml_type_switch(ml_type_case_t *Cases, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	ml_type_t *Type = ml_typeof(Args[0]);
+	for (int I = 0;; ++I) {
+		if (ml_is_subtype(Type, Cases[I].Type)) return Cases[I].Index;
+	}
+	return MLNil;
+}
+
+ML_FUNCTION(MLTypeSwitch) {
+	int Total = 1;
+	for (int I = 0; I < Count; ++I) Total += ml_list_length(Args[I]);
+	ml_type_case_t *Cases = anew(ml_type_case_t, Total);
+	ml_type_case_t *Case = Cases;
+	for (int I = 0; I < Count; ++I) {
+		ML_LIST_FOREACH(Args[I], Iter) {
+			ml_value_t *Value = Iter->Value;
+			if (ml_is(Value, MLTypeT)) {
+				Case->Type = (ml_type_t *)Value;
+			} else {
+				return ml_error("ValueError", "Unsupported value in type case");
+			}
+			Case->Index = ml_integer(I);
+			++Case;
+		}
+	}
+	Case->Type = MLAnyT;
+	Case->Index = ml_integer(Count);
+	return ml_cfunction(Cases, (ml_callback_t)ml_type_switch);
+}
+
 long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	//Value = ml_deref(Value);
 	for (ml_hash_chain_t *Link = Chain; Link; Link = Link->Previous) {
@@ -2371,6 +2407,106 @@ ML_METHOD("in", MLRealT, MLRealRangeT) {
 	return Args[0];
 }
 
+// Switch Functions //
+
+typedef struct {
+	ml_value_t *Index;
+	int64_t Min, Max;
+} ml_integer_case_t;
+
+static ml_value_t *ml_integer_switch(ml_integer_case_t *Cases, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLNumberT);
+	int Value = ml_integer_value(Args[0]);
+	for (int I = 0;; ++I) {
+		if (Cases[I].Min <= Value && Value <= Cases[I].Max) return Cases[I].Index;
+	}
+	return MLNil;
+}
+
+ML_FUNCTION(MLIntegerSwitch) {
+	int Total = 1;
+	for (int I = 0; I < Count; ++I) Total += ml_list_length(Args[I]);
+	ml_integer_case_t *Cases = anew(ml_integer_case_t, Total);
+	ml_integer_case_t *Case = Cases;
+	for (int I = 0; I < Count; ++I) {
+		ML_LIST_FOREACH(Args[I], Iter) {
+			ml_value_t *Value = Iter->Value;
+			if (ml_is(Value, MLIntegerT)) {
+				Case->Min = Case->Max = ml_integer_value(Value);
+			} else if (ml_is(Value, MLRealT)) {
+				double Real = ml_real_value(Value), Int = floor(Real);
+				if (Real != Int) return ml_error("ValueError", "Non-integer value in integer case");
+				Case->Min = Case->Max = Int;
+			} else if (ml_is(Value, MLIntegerRangeT)) {
+				ml_integer_range_t *Range = (ml_integer_range_t *)Value;
+				Case->Min = Range->Start;
+				Case->Max = Range->Limit;
+			} else if (ml_is(Value, MLRealRangeT)) {
+				ml_real_range_t *Range = (ml_real_range_t *)Value;
+				Case->Min = ceil(Range->Start);
+				Case->Max = floor(Range->Limit);
+			} else {
+				return ml_error("ValueError", "Unsupported value in integer case");
+			}
+			Case->Index = ml_integer(I);
+			++Case;
+		}
+	}
+	Case->Min = LONG_MIN;
+	Case->Max = LONG_MAX;
+	Case->Index = ml_integer(Count);
+	return ml_cfunction(Cases, (ml_callback_t)ml_integer_switch);
+}
+
+typedef struct {
+	ml_value_t *Index;
+	double Min, Max;
+} ml_real_case_t;
+
+static ml_value_t *ml_real_switch(ml_real_case_t *Cases, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLNumberT);
+	double Value = ml_real_value(Args[0]);
+	for (int I = 0;; ++I) {
+		if (Cases[I].Min <= Value && Value <= Cases[I].Max) return Cases[I].Index;
+	}
+	return MLNil;
+}
+
+ML_FUNCTION(MLRealSwitch) {
+	int Total = 1;
+	for (int I = 0; I < Count; ++I) Total += ml_list_length(Args[I]);
+	ml_real_case_t *Cases = anew(ml_real_case_t, Total);
+	ml_real_case_t *Case = Cases;
+	for (int I = 0; I < Count; ++I) {
+		ML_LIST_FOREACH(Args[I], Iter) {
+			ml_value_t *Value = Iter->Value;
+			if (ml_is(Value, MLIntegerT)) {
+				Case->Min = Case->Max = ml_integer_value(Value);
+			} else if (ml_is(Value, MLRealT)) {
+				Case->Min = Case->Max = ml_real_value(Value);
+			} else if (ml_is(Value, MLIntegerRangeT)) {
+				ml_integer_range_t *Range = (ml_integer_range_t *)Value;
+				Case->Min = Range->Start;
+				Case->Max = Range->Limit;
+			} else if (ml_is(Value, MLRealRangeT)) {
+				ml_real_range_t *Range = (ml_real_range_t *)Value;
+				Case->Min = Range->Start;
+				Case->Max = Range->Limit;
+			} else {
+				return ml_error("ValueError", "Unsupported value in real case");
+			}
+			Case->Index = ml_integer(I);
+			++Case;
+		}
+	}
+	Case->Min = -INFINITY;
+	Case->Max = INFINITY;
+	Case->Index = ml_integer(Count);
+	return ml_cfunction(Cases, (ml_callback_t)ml_real_switch);
+}
+
 // Modules //
 
 ML_TYPE(MLModuleT, (), "module");
@@ -2442,6 +2578,10 @@ void ml_init() {
 	GC_set_pages_executable(1);
 #endif
 	GC_INIT();
+	stringmap_insert(MLTypeT->Exports, "switch", MLTypeSwitch);
+	stringmap_insert(MLIntegerT->Exports, "range", MLIntegerRangeT);
+	stringmap_insert(MLIntegerT->Exports, "switch", MLIntegerSwitch);
+	stringmap_insert(MLRealT->Exports, "range", MLRealRangeT);
 #include "ml_types_init.c"
 	ml_method_by_value(MLIntegerT->Constructor, NULL, ml_identity, MLIntegerT, NULL);
 	ml_method_by_value(MLRealT->Constructor, NULL, ml_identity, MLRealT, NULL);

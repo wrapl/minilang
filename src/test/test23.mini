@@ -7,7 +7,7 @@ fun test(N) do
 	end, "\n")
 end
 
-for I in 1 .. 4 do
+for I in 0 .. 3 do
 	test(I)
 on Error do
 	print('Error: {Error:message}\n')
@@ -22,7 +22,7 @@ fun test2(N) do
 	end, "\n")
 end
 
-for I in 1 .. 5 do
+for I in 0 .. 4 do
 	test2(I)
 on Error do
 	print('Error: {Error:message}\n')

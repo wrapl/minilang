@@ -188,6 +188,7 @@
       <keyword>dup</keyword>
       <keyword>tasks</keyword>
       <keyword>parallel</keyword>
+      <keyword>buffered</keyword>
       <keyword>property</keyword>
       <keyword>true</keyword>
       <keyword>false</keyword>

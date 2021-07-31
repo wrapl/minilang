@@ -2245,7 +2245,10 @@ static void ml_inline_expr_compile2(mlc_function_t *Function, ml_value_t *Value,
 	}
 	mlc_parent_expr_t *Expr = Frame->Expr;
 	int Flags = Frame->Flags;
-	if (Flags & MLCF_CONSTANT) MLC_RETURN(Value);
+	if (Flags & MLCF_CONSTANT) {
+		MLC_POP();
+		MLC_RETURN(Value);
+	}
 	ml_inst_t *ValueInst = MLC_EMIT(Expr->StartLine, MLI_LOAD, 1);
 	if (ml_typeof(Value) == MLUninitializedT) {
 		ml_uninitialized_use(Value, &ValueInst[1].Value);
@@ -3471,8 +3474,32 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 	case MLT_SWITCH: {
 		ml_next(Parser);
 		ML_EXPR(CaseExpr, parent, switch);
-		mlc_expr_t *Child = CaseExpr->Child = ml_accept_expression(Parser, EXPR_DEFAULT);
+		mlc_expr_t *Child = ml_accept_expression(Parser, EXPR_DEFAULT);
+		mlc_expr_t *CaseExprs = NULL;
+		if (ml_parse(Parser, MLT_COLON)) {
+			ML_EXPR(CallExpr, parent, call);
+			ML_EXPR(InlineExpr, parent, inline);
+			ML_EXPR(ResolveExpr, parent_value, resolve);
+			ResolveExpr->Value = ml_cstring("switch");
+			ResolveExpr->Child = ml_accept_expression(Parser, EXPR_DEFAULT);
+			ML_EXPR(CasesExpr, parent, call);
+			CasesExpr->Child = CaseExprs = ML_EXPR_END(ResolveExpr);
+			InlineExpr->Child = ML_EXPR_END(CasesExpr);
+			InlineExpr->Next = Child;
+			CallExpr->Child = ML_EXPR_END(InlineExpr);
+			Child = ML_EXPR_END(CallExpr);
+		}
+		CaseExpr->Child = Child;
 		while (ml_parse2(Parser, MLT_CASE)) {
+			if (CaseExprs) {
+				ML_EXPR(ListExpr, parent, list);
+				mlc_expr_t *ListChild = ListExpr->Child = ml_accept_expression(Parser, EXPR_DEFAULT);
+				while (ml_parse(Parser, MLT_COMMA)) {
+					ListChild = ListChild->Next = ml_accept_expression(Parser, EXPR_DEFAULT);
+				}
+				CaseExprs = CaseExprs->Next = ML_EXPR_END(ListExpr);
+				ml_accept(Parser, MLT_DO);
+			}
 			Child = Child->Next = ml_accept_block(Parser);
 		}
 		ml_accept(Parser, MLT_ELSE);
