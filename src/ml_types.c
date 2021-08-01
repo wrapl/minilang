@@ -577,25 +577,51 @@ ML_METHOD("in", MLAnyT, MLTypeT) {
 	return ml_is(Args[0], (ml_type_t *)Args[1]) ? Args[0] : MLNil;
 }
 
+ML_METHOD_ANON(MLCompilerSwitch, "compiler::switch");
+
+ML_METHODVX(MLCompilerSwitch, MLFunctionT) {
+	return ml_call(Caller, Args[0], Count - 1, Args + 1);
+}
+
+ML_METHODVX(MLCompilerSwitch, MLTypeT) {
+	ml_type_t *Type = (ml_type_t *)Args[0];
+	ml_value_t *Switch = (ml_value_t *)stringmap_search(Type->Exports, "switch");
+	if (!Switch) ML_ERROR("SwitchError", "%s does not support switch", Type->Name);
+	return ml_call(Caller, Switch, Count - 1, Args + 1);
+}
+
 typedef struct {
 	ml_value_t *Index;
 	ml_type_t *Type;
 } ml_type_case_t;
 
-static ml_value_t *ml_type_switch(ml_type_case_t *Cases, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_COUNT(1);
+typedef struct {
+	ml_type_t *Type;
+	ml_type_case_t Cases[];
+} ml_type_switch_t;
+
+static void ml_type_switch(ml_state_t *Caller, ml_type_switch_t *Switch, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
 	ml_type_t *Type = ml_typeof(Args[0]);
-	for (int I = 0;; ++I) {
-		if (ml_is_subtype(Type, Cases[I].Type)) return Cases[I].Index;
+	for (ml_type_case_t *Case = Switch->Cases;; ++Case) {
+		if (ml_is_subtype(Type, Case->Type)) ML_RETURN(Case->Index);
 	}
-	return MLNil;
+	ML_RETURN(MLNil);
 }
+
+ML_TYPE(MLTypeSwitchT, (MLFunctionT), "type-switch",
+	.call = (void *)ml_type_switch
+);
 
 ML_FUNCTION(MLTypeSwitch) {
 	int Total = 1;
-	for (int I = 0; I < Count; ++I) Total += ml_list_length(Args[I]);
-	ml_type_case_t *Cases = anew(ml_type_case_t, Total);
-	ml_type_case_t *Case = Cases;
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
+		Total += ml_list_length(Args[I]);
+	}
+	ml_type_switch_t *Switch = xnew(ml_type_switch_t, Total, ml_type_case_t);
+	Switch->Type = MLTypeSwitchT;
+	ml_type_case_t *Case = Switch->Cases;
 	for (int I = 0; I < Count; ++I) {
 		ML_LIST_FOREACH(Args[I], Iter) {
 			ml_value_t *Value = Iter->Value;
@@ -610,7 +636,7 @@ ML_FUNCTION(MLTypeSwitch) {
 	}
 	Case->Type = MLAnyT;
 	Case->Index = ml_integer(Count);
-	return ml_cfunction(Cases, (ml_callback_t)ml_type_switch);
+	return (ml_value_t *)Switch;
 }
 
 long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain) {
@@ -2414,21 +2440,34 @@ typedef struct {
 	int64_t Min, Max;
 } ml_integer_case_t;
 
-static ml_value_t *ml_integer_switch(ml_integer_case_t *Cases, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLNumberT);
-	int Value = ml_integer_value(Args[0]);
-	for (int I = 0;; ++I) {
-		if (Cases[I].Min <= Value && Value <= Cases[I].Max) return Cases[I].Index;
+typedef struct {
+	ml_type_t *Type;
+	ml_integer_case_t Cases[];
+} ml_integer_switch_t;
+
+static void ml_integer_switch(ml_state_t *Caller, ml_integer_switch_t *Switch, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLNumberT);
+	int64_t Value = ml_integer_value(Args[0]);
+	for (ml_integer_case_t *Case = Switch->Cases;; ++Case) {
+		if (Case->Min <= Value && Value <= Case->Max) ML_RETURN(Case->Index);
 	}
-	return MLNil;
+	ML_RETURN(MLNil);
 }
+
+ML_TYPE(MLIntegerSwitchT, (MLFunctionT), "integer-switch",
+	.call = (void *)ml_integer_switch
+);
 
 ML_FUNCTION(MLIntegerSwitch) {
 	int Total = 1;
-	for (int I = 0; I < Count; ++I) Total += ml_list_length(Args[I]);
-	ml_integer_case_t *Cases = anew(ml_integer_case_t, Total);
-	ml_integer_case_t *Case = Cases;
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
+		Total += ml_list_length(Args[I]);
+	}
+	ml_integer_switch_t *Switch = xnew(ml_integer_switch_t, Total, ml_integer_case_t);
+	Switch->Type = MLIntegerSwitchT;
+	ml_integer_case_t *Case = Switch->Cases;
 	for (int I = 0; I < Count; ++I) {
 		ML_LIST_FOREACH(Args[I], Iter) {
 			ml_value_t *Value = Iter->Value;
@@ -2456,7 +2495,7 @@ ML_FUNCTION(MLIntegerSwitch) {
 	Case->Min = LONG_MIN;
 	Case->Max = LONG_MAX;
 	Case->Index = ml_integer(Count);
-	return ml_cfunction(Cases, (ml_callback_t)ml_integer_switch);
+	return (ml_value_t *)Switch;
 }
 
 typedef struct {
@@ -2464,21 +2503,34 @@ typedef struct {
 	double Min, Max;
 } ml_real_case_t;
 
-static ml_value_t *ml_real_switch(ml_real_case_t *Cases, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLNumberT);
+typedef struct {
+	ml_type_t *Type;
+	ml_real_case_t Cases[];
+} ml_real_switch_t;
+
+static void ml_real_switch(ml_state_t *Caller, ml_real_switch_t *Switch, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLNumberT);
 	double Value = ml_real_value(Args[0]);
-	for (int I = 0;; ++I) {
-		if (Cases[I].Min <= Value && Value <= Cases[I].Max) return Cases[I].Index;
+	for (ml_real_case_t *Case = Switch->Cases;; ++Case) {
+		if (Case->Min <= Value && Value <= Case->Max) ML_RETURN(Case->Index);
 	}
-	return MLNil;
+	ML_RETURN(MLNil);
 }
+
+ML_TYPE(MLRealSwitchT, (MLFunctionT), "real-switch",
+	.call = (void *)ml_real_switch
+);
 
 ML_FUNCTION(MLRealSwitch) {
 	int Total = 1;
-	for (int I = 0; I < Count; ++I) Total += ml_list_length(Args[I]);
-	ml_real_case_t *Cases = anew(ml_real_case_t, Total);
-	ml_real_case_t *Case = Cases;
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
+		Total += ml_list_length(Args[I]);
+	}
+	ml_real_switch_t *Switch = xnew(ml_real_switch_t, Total, ml_real_case_t);
+	Switch->Type = MLRealSwitchT;
+	ml_real_case_t *Case = Switch->Cases;
 	for (int I = 0; I < Count; ++I) {
 		ML_LIST_FOREACH(Args[I], Iter) {
 			ml_value_t *Value = Iter->Value;
@@ -2504,7 +2556,7 @@ ML_FUNCTION(MLRealSwitch) {
 	Case->Min = -INFINITY;
 	Case->Max = INFINITY;
 	Case->Index = ml_integer(Count);
-	return ml_cfunction(Cases, (ml_callback_t)ml_real_switch);
+	return (ml_value_t *)Switch;
 }
 
 // Modules //

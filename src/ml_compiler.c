@@ -3479,12 +3479,10 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 		if (ml_parse(Parser, MLT_COLON)) {
 			ML_EXPR(CallExpr, parent, call);
 			ML_EXPR(InlineExpr, parent, inline);
-			ML_EXPR(ResolveExpr, parent_value, resolve);
-			ResolveExpr->Value = ml_cstring("switch");
-			ResolveExpr->Child = ml_accept_expression(Parser, EXPR_DEFAULT);
-			ML_EXPR(CasesExpr, parent, call);
-			CasesExpr->Child = CaseExprs = ML_EXPR_END(ResolveExpr);
-			InlineExpr->Child = ML_EXPR_END(CasesExpr);
+			ML_EXPR(SwitchExpr, parent_value, const_call);
+			SwitchExpr->Value = MLCompilerSwitch;
+			SwitchExpr->Child = CaseExprs = ml_accept_expression(Parser, EXPR_DEFAULT);
+			InlineExpr->Child = ML_EXPR_END(SwitchExpr);
 			InlineExpr->Next = Child;
 			CallExpr->Child = ML_EXPR_END(InlineExpr);
 			Child = ML_EXPR_END(CallExpr);
@@ -3502,8 +3500,14 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 			}
 			Child = Child->Next = ml_accept_block(Parser);
 		}
-		ml_accept(Parser, MLT_ELSE);
-		Child->Next = ml_accept_block(Parser);
+		if (ml_parse2(Parser, MLT_ELSE)) {
+			Child->Next = ml_accept_block(Parser);
+		} else {
+			mlc_expr_t *NilExpr = new(mlc_expr_t);
+			NilExpr->compile = ml_nil_expr_compile;
+			NilExpr->StartLine = NilExpr->EndLine = Parser->Source.Line;
+			Child->Next = NilExpr;
+		}
 		ml_accept(Parser, MLT_END);
 		return ML_EXPR_END(CaseExpr);
 	}
@@ -4987,6 +4991,7 @@ void ml_compiler_init() {
 #include "ml_compiler_init.c"
 	stringmap_insert(MLCompilerT->Exports, "EOI", MLEndOfInput);
 	stringmap_insert(MLCompilerT->Exports, "NotFound", MLNotFound);
+	stringmap_insert(MLCompilerT->Exports, "switch", MLCompilerSwitch);
 	stringmap_insert(StringFns, "r", ml_regex);
 	stringmap_insert(StringFns, "ri", ml_regexi);
 }

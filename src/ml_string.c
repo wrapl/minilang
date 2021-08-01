@@ -434,39 +434,50 @@ typedef struct {
 	ml_regex_t *Regex;
 } ml_string_case_t;
 
-static ml_value_t *ml_string_switch(ml_string_case_t *Cases, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
+typedef struct {
+	ml_type_t *Type;
+	ml_string_case_t Cases[];
+} ml_string_switch_t;
+
+static void ml_string_switch(ml_state_t *Caller, ml_string_switch_t *Switch, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLStringT);
 	const char *Subject = ml_string_value(Args[0]);
 	size_t Length = ml_string_length(Args[0]);
-	for (int I = 0;; ++I) {
-		if (Cases[I].String) {
-			if (Cases[I].String->Length == Length) {
-				if (!memcmp(Subject, Cases[I].String->Value, Length)) return Cases[I].Index;
+	for (ml_string_case_t *Case = Switch->Cases;; ++Case) {
+		if (Case->String) {
+			if (Case->String->Length == Length) {
+				if (!memcmp(Subject, Case->String->Value, Length)) ML_RETURN(Case->Index);
 			}
-		} else if (Cases[I].Regex) {
+		} else if (Case->Regex) {
 #ifdef ML_TRE
 			int Length = ml_string_length(Args[0]);
-			if (!regnexec(Cases[I].Regex->Value, Subject, Length, 0, NULL, 0)) {
+			if (!regnexec(Case->Regex->Value, Subject, Length, 0, NULL, 0)) {
 
 #else
-			if (!regexec(Cases[I].Regex->Value, Subject, 0, NULL, 0)) {
+			if (!regexec(Case->Regex->Value, Subject, 0, NULL, 0)) {
 #endif
-				return Cases[I].Index;
+				ML_RETURN(Case->Index);
 			}
 		} else {
-			return Cases[I].Index;
+			ML_RETURN(Case->Index);
 		}
 	}
-	return MLNil;
+	ML_RETURN(MLNil);
 }
+
+ML_TYPE(MLStringSwitchT, (MLFunctionT), "string-switch",
+	.call = (void *)ml_string_switch
+);
 
 ML_FUNCTION(MLStringSwitch) {
 	int Total = 1;
 	for (int I = 0; I < Count; ++I) Total += ml_list_length(Args[I]);
-	ml_string_case_t *Cases = anew(ml_string_case_t, Total);
-	ml_string_case_t *Case = Cases;
+	ml_string_switch_t *Switch = xnew(ml_string_switch_t, Total, ml_string_case_t);
+	Switch->Type = MLStringSwitchT;
+	ml_string_case_t *Case = Switch->Cases;
 	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
 		ML_LIST_FOREACH(Args[I], Iter) {
 			ml_value_t *Value = Iter->Value;
 			if (ml_is(Value, MLStringT)) {
@@ -481,7 +492,7 @@ ML_FUNCTION(MLStringSwitch) {
 		}
 	}
 	Case->Index = ml_integer(Count);
-	return ml_cfunction(Cases, (ml_callback_t)ml_string_switch);
+	return (ml_value_t *)Switch;
 }
 
 
