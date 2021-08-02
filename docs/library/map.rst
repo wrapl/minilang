@@ -23,8 +23,6 @@ map
 
 :mini:`meth map(Arg₁: names)`
 
-:mini:`meth MLIterCount(Arg₁: map)`
-
 :mini:`meth map(Iteratable: iteratable)` |rarr| :mini:`map`
    Returns a map of all the key and value pairs produced by :mini:`Iteratable`.
 

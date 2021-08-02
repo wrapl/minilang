@@ -390,7 +390,6 @@ static inline void ml_method_set(ml_context_t *Context, int NumTypes, int Variad
 }
 
 ML_FUNCTIONX(MLMethodSet) {
-//!method
 //@method::set
 //<Method
 //<Types...:type
@@ -416,6 +415,8 @@ ML_FUNCTIONX(MLMethodSet) {
 }
 
 ML_FUNCTIONX(MLMethodContext) {
+//@method::context
+//>methods
 	ml_methods_t *Methods = new(ml_methods_t);
 	Methods->Type = MLMethodsT;
 	Methods->Parent = Caller->Context->Values[ML_METHODS_INDEX];

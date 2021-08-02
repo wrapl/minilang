@@ -9,7 +9,7 @@ io
 
 :mini:`type fd < stream`
 
-:mini:`meth MLIORead(Arg₁: fd, Arg₂: buffer)`
+:mini:`meth io::read(Arg₁: fd, Arg₂: buffer)`
 
-:mini:`meth MLIOWrite(Arg₁: fd, Arg₂: buffer)`
+:mini:`meth io::write(Arg₁: fd, Arg₂: buffer)`
 

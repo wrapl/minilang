@@ -76,10 +76,12 @@ static ml_value_t *global_get(void *Data, const char *Name) {
 }
 
 ML_FUNCTION(MLNow) {
+//@now
 	return ml_integer(time(NULL));
 }
 
 ML_FUNCTION(MLClock) {
+//@clock
 	struct timespec Time[1];
 	clock_gettime(CLOCK_REALTIME, Time);
 	return ml_real(Time->tv_sec + Time->tv_nsec / 1000000000.0);
@@ -91,6 +93,7 @@ static int ml_stringbuffer_print(FILE *File, const char *String, size_t Length) 
 }
 
 ML_FUNCTION(MLPrint) {
+//@print
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Result = ml_stringbuffer_append(Buffer, Args[I]);
@@ -102,6 +105,7 @@ ML_FUNCTION(MLPrint) {
 }
 
 ML_FUNCTION(MLHalt) {
+//@halt
 	if (Count > 0) {
 		ML_CHECK_ARG_TYPE(0, MLIntegerT);
 		exit(ml_integer_value_fast(Args[0]));
@@ -111,6 +115,7 @@ ML_FUNCTION(MLHalt) {
 }
 
 ML_FUNCTION(MLCollect) {
+//@collect
 	GC_gcollect();
 	return MLNil;
 }
@@ -127,6 +132,7 @@ static ml_value_t *ml_globals(stringmap_t *Globals, int Count, ml_value_t **Args
 }
 
 ML_FUNCTIONX(MLTest) {
+//!internal
 	ML_CHECKX_ARG_COUNT(2);
 	ML_CHECKX_ARG_TYPE(0, MLStringT);
 	const char *Test = ml_string_value(Args[0]);

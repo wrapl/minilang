@@ -65,6 +65,7 @@ static void ML_TYPED_FN(ml_io_read, MLFdT, ml_state_t *Caller, ml_fd_t *Stream, 
 }
 
 ML_METHOD(MLIORead, MLFdT, MLBufferT) {
+//@io::read
 	ml_fd_t *Stream = (ml_fd_t *)Args[0];
 	ml_buffer_t *Buffer = (ml_buffer_t *)Args[1];
 	ssize_t Actual = read(Stream->Fd, Buffer->Address, Buffer->Size);
@@ -87,6 +88,7 @@ static void ML_TYPED_FN(ml_io_write, MLFdT, ml_state_t *Caller, ml_fd_t *Stream,
 }
 
 ML_METHOD(MLIOWrite, MLFdT, MLBufferT) {
+//@io::write
 	ml_fd_t *Stream = (ml_fd_t *)Args[0];
 	ml_buffer_t *Buffer = (ml_buffer_t *)Args[1];
 	ssize_t Actual = write(Stream->Fd, Buffer->Address, Buffer->Size);

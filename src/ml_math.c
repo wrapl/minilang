@@ -112,6 +112,8 @@ MATH_REAL(Acos, acos);
 MATH_REAL(Asin, asin);
 MATH_REAL(Atan, atan);
 ML_METHOD(AtanMethod, MLNumberT, MLNumberT) {
+//@atan
+//>number
 	return ml_real(atan2(ml_real_value(Args[0]), ml_real_value(Args[1])));
 }
 MATH_REAL(Ceil, ceil);

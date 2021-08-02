@@ -3,6 +3,8 @@ internal
 
 .. include:: <isonum.txt>
 
+:mini:`fun mltest(Arg₁: string, Arg₂: any)`
+
 :mini:`type arrayiterator`
 
 :mini:`type DEBUG_TYPE < Continuation`
@@ -65,9 +67,13 @@ internal
 
 :mini:`type keystate`
 
+:mini:`meth MLIterCount(Arg₁: list)`
+
 :mini:`type listiter`
 
 :mini:`type names`
+
+:mini:`meth MLIterCount(Arg₁: map)`
 
 :mini:`type mapindex`
 

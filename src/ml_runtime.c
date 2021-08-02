@@ -630,6 +630,7 @@ ml_value_t *ml_debugger_local(ml_state_t *State, int Index) {
 }
 
 ML_FUNCTIONX(MLBreak) {
+//@break
 //<Condition?
 // If a debugger present and :mini:`Condition` is omitted or not :mini:`nil` then triggers a breakpoint.
 	ml_debugger_t *Debugger = Caller->Context->Values[ML_DEBUGGER_INDEX];

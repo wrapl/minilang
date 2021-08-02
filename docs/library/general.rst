@@ -7,17 +7,15 @@ general
 
 :mini:`fun mlsleep(Arg₁: number)`
 
-:mini:`fun mlnow()`
+:mini:`fun now()`
 
-:mini:`fun mlclock()`
+:mini:`fun clock()`
 
-:mini:`fun mlprint()`
+:mini:`fun print()`
 
-:mini:`fun mlhalt()`
+:mini:`fun halt()`
 
-:mini:`fun mlcollect()`
-
-:mini:`fun mltest(Arg₁: string, Arg₂: any)`
+:mini:`fun collect()`
 
 :mini:`fun import(Arg₁: string)`
 

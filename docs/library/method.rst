@@ -17,5 +17,5 @@ method
 
 :mini:`fun method::set(Method: any, Types...: type, Function: function)` |rarr| :mini:`Function`
 
-:mini:`fun mlmethodcontext()`
+:mini:`fun method::context()` |rarr| :mini:`methods`
 

@@ -125,6 +125,7 @@ static void list_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 }
 
 ML_METHOD(MLIterCount, MLListT) {
+//!internal
 	return ml_integer(ml_list_length(Args[0]));
 }
 

@@ -27,7 +27,7 @@ math
 
 :mini:`meth atan(Arg₁: number)` |rarr| :mini:`number`
 
-:mini:`meth AtanMethod(Arg₁: number, Arg₂: number)`
+:mini:`meth atan(Arg₁: number, Arg₂: number)` |rarr| :mini:`number`
 
 :mini:`meth ceil(Arg₁: number)` |rarr| :mini:`number`
 
