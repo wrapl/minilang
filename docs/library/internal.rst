@@ -13,6 +13,10 @@ internal
 
 :mini:`type TypelibIterT`
 
+:mini:`type doublediterator < iteratable`
+
+:mini:`type doublediteratorstate < state`
+
 :mini:`type stacked < iteratable`
 
 :mini:`type stackedstate`
@@ -67,6 +71,28 @@ internal
 
 :mini:`type mapindex`
 
+:mini:`type field`
+
+:mini:`type namedtype < type`
+
+:mini:`type enumvalue < int64`
+
+:mini:`type enumvalue < integer`
+
+:mini:`type enumswitch < function`
+
+:mini:`meth MLCompilerSwitch(Arg₁: enum)`
+
+:mini:`type enumiter`
+
+:mini:`type flagsvalue < int64`
+
+:mini:`type flagsvalue < integer`
+
+:mini:`type flagsswitch < function`
+
+:mini:`meth MLCompilerSwitch(Arg₁: flags)`
+
 :mini:`type errorvalue`
 
 :mini:`type stringiterator`
@@ -81,6 +107,14 @@ internal
 
 :mini:`type blank`
 
+:mini:`meth MLCompilerSwitch(Arg₁: function)`
+
+:mini:`meth MLCompilerSwitch(Arg₁: type)`
+
+:mini:`type typeswitch < function`
+
+:mini:`fun mltypeswitch()`
+
 :mini:`type cfunction < function`
 
 :mini:`type cfunctionnoderef < function`
@@ -94,4 +128,16 @@ internal
 :mini:`type int64 < integer`
 
 :mini:`type double < real`
+
+:mini:`meth MLIterCount(Arg₁: integerrange)`
+
+:mini:`meth MLIterCount(Arg₁: realrange)`
+
+:mini:`type integerswitch < function`
+
+:mini:`fun mlintegerswitch()`
+
+:mini:`type realswitch < function`
+
+:mini:`fun mlrealswitch()`
 

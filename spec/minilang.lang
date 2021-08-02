@@ -216,6 +216,8 @@
       <keyword>regex</keyword>
       <keyword>array</keyword>
       <keyword>file</keyword>
+      <keyword>enum</keyword>
+      <keyword>flags</keyword>
     </context>
     <context id="operators" style-ref="operator" extend-parent="false">
       <match>[-.:#~^@;,/$%|\=\+\*\!\?&amp;&lt;&gt;\[\]\\{}\()]</match>

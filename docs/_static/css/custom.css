@@ -1,3 +1,7 @@
+:root {
+	--pst-font-size-base: 17px;
+}
+
 div.folders {
 	margin: 0.4em 1em;
 }

@@ -580,10 +580,12 @@ ML_METHOD("in", MLAnyT, MLTypeT) {
 ML_METHOD_ANON(MLCompilerSwitch, "compiler::switch");
 
 ML_METHODVX(MLCompilerSwitch, MLFunctionT) {
+//!internal
 	return ml_call(Caller, Args[0], Count - 1, Args + 1);
 }
 
 ML_METHODVX(MLCompilerSwitch, MLTypeT) {
+//!internal
 	ml_type_t *Type = (ml_type_t *)Args[0];
 	ml_value_t *Switch = (ml_value_t *)stringmap_search(Type->Exports, "switch");
 	if (!Switch) ML_ERROR("SwitchError", "%s does not support switch", Type->Name);
@@ -610,10 +612,12 @@ static void ml_type_switch(ml_state_t *Caller, ml_type_switch_t *Switch, int Cou
 }
 
 ML_TYPE(MLTypeSwitchT, (MLFunctionT), "type-switch",
+//!internal
 	.call = (void *)ml_type_switch
 );
 
 ML_FUNCTION(MLTypeSwitch) {
+//!internal
 	int Total = 1;
 	for (int I = 0; I < Count; ++I) {
 		ML_CHECK_ARG_TYPE(I, MLListT);
@@ -2099,6 +2103,7 @@ ML_TYPE(MLIntegerRangeT, (MLIteratableT), "integer-range");
 //!range
 
 ML_METHOD(MLIterCount, MLIntegerRangeT) {
+//!internal
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
 	int64_t Diff = Range->Limit - Range->Start;
 	if (!Range->Step) {
@@ -2244,6 +2249,7 @@ ML_TYPE(MLRealRangeT, (MLIteratableT), "real-range");
 //!range
 
 ML_METHOD(MLIterCount, MLRealRangeT) {
+//!internal
 	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
 	return ml_integer(Range->Count);
 }
@@ -2456,10 +2462,12 @@ static void ml_integer_switch(ml_state_t *Caller, ml_integer_switch_t *Switch, i
 }
 
 ML_TYPE(MLIntegerSwitchT, (MLFunctionT), "integer-switch",
+//!internal
 	.call = (void *)ml_integer_switch
 );
 
 ML_FUNCTION(MLIntegerSwitch) {
+//!internal
 	int Total = 1;
 	for (int I = 0; I < Count; ++I) {
 		ML_CHECK_ARG_TYPE(I, MLListT);
@@ -2519,10 +2527,12 @@ static void ml_real_switch(ml_state_t *Caller, ml_real_switch_t *Switch, int Cou
 }
 
 ML_TYPE(MLRealSwitchT, (MLFunctionT), "real-switch",
+//!internal
 	.call = (void *)ml_real_switch
 );
 
 ML_FUNCTION(MLRealSwitch) {
+//!internal
 	int Total = 1;
 	for (int I = 0; I < Count; ++I) {
 		ML_CHECK_ARG_TYPE(I, MLListT);
@@ -2630,11 +2640,12 @@ void ml_init() {
 	GC_set_pages_executable(1);
 #endif
 	GC_INIT();
+#include "ml_types_init.c"
 	stringmap_insert(MLTypeT->Exports, "switch", MLTypeSwitch);
 	stringmap_insert(MLIntegerT->Exports, "range", MLIntegerRangeT);
 	stringmap_insert(MLIntegerT->Exports, "switch", MLIntegerSwitch);
 	stringmap_insert(MLRealT->Exports, "range", MLRealRangeT);
-#include "ml_types_init.c"
+	stringmap_insert(MLIteratableT->Exports, "count", MLIterCount);
 	ml_method_by_value(MLIntegerT->Constructor, NULL, ml_identity, MLIntegerT, NULL);
 	ml_method_by_value(MLRealT->Constructor, NULL, ml_identity, MLRealT, NULL);
 	stringmap_insert(MLRealT->Exports, "infinity", ml_real(INFINITY));

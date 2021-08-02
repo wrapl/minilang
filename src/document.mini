@@ -235,13 +235,13 @@ fun process(FileName) do
 			if Line % r"//!" then
 				DefaultCategory := Line[4, 0]:trim
 			elseif Line % r"^ML_METHOD_DECL" then
-				
+			elseif Line % r"^ML_METHOD_ANON" then
 			elseif Line % r"^ML_METHOD" then
 				let Location := (FileName, LineNo)
 				let I := Line:find("("), J := Line:find(")")
 				let Kind := Line[1, I]
 				let Types := Line[I + 1, J] / ", "
-				let Method := Types:pop
+				var Method := Types:pop
 				var Category := DefaultCategory
 				let Params := []
 				var Return := []
@@ -249,7 +249,9 @@ fun process(FileName) do
 				loop
 					let Line := while File:read
 					LineNo := old + 1
-					if Line % r"^//<" then
+					if Line % r"//@" then
+						Method := Line[4, 0]:trim
+					elseif Line % r"^//<" then
 						if let J := Line:find(":", 4) then
 							let K := Line:find(" ", J + 2) or 0
 							Params:put((
