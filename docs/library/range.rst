@@ -23,7 +23,7 @@ range
 
 :mini:`meth :in(X: integer, Range: integerrange)` |rarr| :mini:`X` or :mini:`nil`
 
-:mini:`meth :in(X: real, Range: integerrange)` |rarr| :mini:`X` or :mini:`nil`
+:mini:`meth :in(X: double, Range: integerrange)` |rarr| :mini:`X` or :mini:`nil`
 
 :mini:`type realiter`
 
@@ -39,19 +39,19 @@ range
 
 :mini:`meth :in(Range: realrange, Count: integer)` |rarr| :mini:`realrange`
 
-:mini:`meth :by(Range: integerrange, Step: real)` |rarr| :mini:`realrange`
+:mini:`meth :by(Range: integerrange, Step: double)` |rarr| :mini:`realrange`
 
 :mini:`meth :bin(Range: integerrange, Value: integer)` |rarr| :mini:`integer` or :mini:`nil`
 
-:mini:`meth :bin(Range: integerrange, Value: real)` |rarr| :mini:`integer` or :mini:`nil`
+:mini:`meth :bin(Range: integerrange, Value: double)` |rarr| :mini:`integer` or :mini:`nil`
 
 :mini:`meth :bin(Range: realrange, Value: integer)` |rarr| :mini:`integer` or :mini:`nil`
 
-:mini:`meth :bin(Range: realrange, Value: real)` |rarr| :mini:`integer` or :mini:`nil`
+:mini:`meth :bin(Range: realrange, Value: double)` |rarr| :mini:`integer` or :mini:`nil`
 
 :mini:`meth :count(X: realrange)` |rarr| :mini:`integer`
 
 :mini:`meth :in(X: integer, Range: realrange)` |rarr| :mini:`X` or :mini:`nil`
 
-:mini:`meth :in(X: real, Range: realrange)` |rarr| :mini:`X` or :mini:`nil`
+:mini:`meth :in(X: double, Range: realrange)` |rarr| :mini:`X` or :mini:`nil`
 

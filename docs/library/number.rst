@@ -7,7 +7,7 @@ number
 
 :mini:`meth string(Arg₁: integer, Arg₂: integer)`
 
-:mini:`meth string(Arg₁: real)`
+:mini:`meth string(Arg₁: double)`
 
 :mini:`meth string(Arg₁: complex)`
 
@@ -15,33 +15,33 @@ number
 
 :mini:`meth integer(Arg₁: string, Arg₂: integer)`
 
-:mini:`meth real(Arg₁: string)`
+:mini:`meth double(Arg₁: string)`
 
-:mini:`meth number(Arg₁: string)`
+:mini:`meth real(Arg₁: string)`
 
 :mini:`type number < function`
    Base type for integers and reals.
 
 
-:mini:`type integer < number`
-
-:mini:`type integer < number`
-
-:mini:`meth integer(Arg₁: real)`
-
 :mini:`type real < number`
 
-:mini:`meth real(Arg₁: int32)`
+:mini:`type integer < real`
 
-:mini:`meth real(Arg₁: int64)`
+:mini:`type integer < real`
 
-:mini:`meth integer(Real: real)` |rarr| :mini:`integer`
+:mini:`meth integer(Arg₁: double)`
+
+:mini:`meth double(Arg₁: int32)`
+
+:mini:`meth double(Arg₁: int64)`
+
+:mini:`meth integer(Real: double)` |rarr| :mini:`integer`
    Converts :mini:`Real` to an integer (using default rounding).
 
 
-:mini:`type real < number`
+:mini:`type double < real`
 
-:mini:`meth real(Arg₁: integer)`
+:mini:`meth double(Arg₁: integer)`
 
 :mini:`type complex < number`
 
@@ -53,11 +53,11 @@ number
    Returns :mini:`Int - 1`
 
 
-:mini:`meth ++(Real: real)` |rarr| :mini:`real`
+:mini:`meth ++(Real: double)` |rarr| :mini:`real`
    Returns :mini:`Real + 1`
 
 
-:mini:`meth --(Real: real)` |rarr| :mini:`real`
+:mini:`meth --(Real: double)` |rarr| :mini:`real`
    Returns :mini:`Real - 1`
 
 
@@ -97,15 +97,15 @@ number
    Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Int₁` is less than, equal to or greater than :mini:`Int₂`.
 
 
-:mini:`meth <>(Real₁: real, Int₂: integer)` |rarr| :mini:`integer`
+:mini:`meth <>(Real₁: double, Int₂: integer)` |rarr| :mini:`integer`
    Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Real₁` is less than, equal to or greater than :mini:`Int₂`.
 
 
-:mini:`meth <>(Int₁: integer, Real₂: real)` |rarr| :mini:`integer`
+:mini:`meth <>(Int₁: integer, Real₂: double)` |rarr| :mini:`integer`
    Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Int₁` is less than, equal to or greater than :mini:`Real₂`.
 
 
-:mini:`meth <>(Real₁: real, Real₂: real)` |rarr| :mini:`integer`
+:mini:`meth <>(Real₁: double, Real₂: double)` |rarr| :mini:`integer`
    Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Real₁` is less than, equal to or greater than :mini:`Real₂`.
 
 

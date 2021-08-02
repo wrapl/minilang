@@ -48,7 +48,7 @@ static void node_append(ml_value_t *List, ml_value_t *Node) {
 		}
 	} else if (ml_is(Node, MLIntegerT)) {
 		ml_list_put(List, ml_string_format("%ld", ml_integer_value_fast(Node)));
-	} else if (ml_is(Node, MLRealT)) {
+	} else if (ml_is(Node, MLDoubleT)) {
 		ml_list_put(List, ml_string_format("%f", ml_real_value(Node)));
 	} else if (ml_is(Node, XENodeT)) {
 		ml_list_put(List, Node);
@@ -373,7 +373,7 @@ static ml_value_t *node_eval(ml_value_t *Value, ml_value_t *Attributes, ml_value
 		return (ml_value_t *)Node2;
 	} else if (ml_is(Value, MLIntegerT)) {
 		return Value;
-	} else if (ml_is(Value, MLRealT)) {
+	} else if (ml_is(Value, MLDoubleT)) {
 		return Value;
 	} else if (ml_is(Value, MLStringT)) {
 		return Value;
@@ -507,7 +507,7 @@ static void compile_inline_value(ml_value_t *Value, ml_stringbuffer_t *Source) {
 		compile_string(Value, Source);
 	} else if (ml_is(Value, MLIntegerT)) {
 		ml_stringbuffer_addf(Source, "%ld", ml_integer_value_fast(Value));
-	} else if (ml_is(Value, MLRealT)) {
+	} else if (ml_is(Value, MLDoubleT)) {
 		ml_stringbuffer_addf(Source, "%f", ml_real_value(Value));
 	} else {
 		printf("Unknown value here: <%s>\n", ml_typeof(Value)->Name);
@@ -556,7 +556,7 @@ static void compile_inline_node(ml_value_t *Value, ml_stringbuffer_t *Source) {
 		compile_string(Value, Source);
 	} else if (ml_is(Value, MLIntegerT)) {
 		ml_stringbuffer_addf(Source, "%ld", ml_integer_value_fast(Value));
-	} else if (ml_is(Value, MLRealT)) {
+	} else if (ml_is(Value, MLDoubleT)) {
 		ml_stringbuffer_addf(Source, "%f", ml_real_value(Value));
 	} else {
 

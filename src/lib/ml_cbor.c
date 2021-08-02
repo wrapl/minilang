@@ -385,8 +385,8 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLMapT, ml_value_t *Arg, void *Dat
 	return NULL;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLRealT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
-	ml_cbor_write_float8(Data, WriteFn, ml_real_value(Arg));
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLDoubleT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+	ml_cbor_write_float8(Data, WriteFn, ml_double_value_fast(Arg));
 	return NULL;
 }
 

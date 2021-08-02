@@ -188,16 +188,16 @@ ML_METHOD(MLStringT, MLIntegerT, MLStringT) {
 	return ml_string(String, Length);
 }
 
-ML_METHOD(MLStringT, MLRealT) {
+ML_METHOD(MLStringT, MLDoubleT) {
 //!number
 	char *String;
-	int Length = asprintf(&String, "%g", ml_real_value_fast(Args[0]));
+	int Length = asprintf(&String, "%g", ml_double_value_fast(Args[0]));
 	return ml_string(String, Length);
 }
 
-ML_METHOD(MLStringT, MLRealT, MLStringT) {
+ML_METHOD(MLStringT, MLDoubleT, MLStringT) {
 	const char *Format = ml_string_value(Args[1]);
-	double Value = ml_real_value_fast(Args[0]);
+	double Value = ml_double_value_fast(Args[0]);
 	char *String;
 	int Length;
 	if (!regexec(IntFormat, Format, 0, NULL, 0)) {
@@ -253,7 +253,7 @@ ML_METHOD(MLIntegerT, MLStringT, MLIntegerT) {
 	}
 }
 
-ML_METHOD(MLRealT, MLStringT) {
+ML_METHOD(MLDoubleT, MLStringT) {
 //!number
 	const char *Start = ml_string_value(Args[0]);
 	char *End;
@@ -265,7 +265,7 @@ ML_METHOD(MLRealT, MLStringT) {
 	}
 }
 
-ML_METHOD(MLNumberT, MLStringT) {
+ML_METHOD(MLRealT, MLStringT) {
 //!number
 	const char *Start = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
@@ -660,9 +660,9 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT) {
 	return MLSome;
 }
 
-ML_METHOD("append", MLStringBufferT, MLRealT) {
+ML_METHOD("append", MLStringBufferT, MLDoubleT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_addf(Buffer, "%g", ml_real_value_fast(Args[1]));
+	ml_stringbuffer_addf(Buffer, "%g", ml_double_value_fast(Args[1]));
 	return MLSome;
 }
 

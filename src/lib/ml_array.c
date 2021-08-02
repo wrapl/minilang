@@ -1035,7 +1035,7 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLArrayT, MLRealT) { \
+ML_METHOD(#OP, MLArrayT, MLDoubleT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	double B = ml_integer_value(Args[1]); \
@@ -1047,7 +1047,7 @@ ML_METHOD(#OP, MLArrayT, MLRealT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLRealT, MLArrayT) { \
+ML_METHOD(#OP, MLDoubleT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	double B = ml_integer_value(Args[0]); \
@@ -1160,7 +1160,7 @@ static ml_array_format_t ml_array_of_type_guess(ml_value_t *Value, ml_array_form
 	} else if (ml_is(Value, MLArrayT)) {
 		ml_array_t *Array = (ml_array_t *)Value;
 		if (Format <= Array->Format) Format = Array->Format;
-	} else if (Value->Type == MLRealT) {
+	} else if (Value->Type == MLDoubleT) {
 		if (Format < ML_ARRAY_FORMAT_F64) Format = ML_ARRAY_FORMAT_F64;
 	} else if (Value->Type == MLIntegerT) {
 		if (Format < ML_ARRAY_FORMAT_I64) Format = ML_ARRAY_FORMAT_I64;

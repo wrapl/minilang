@@ -1,8 +1,10 @@
 #include "ml_array.h"
 #include "ml_macros.h"
+#include "ml_math.h"
 #include <stdint.h>
 #include <string.h>
 #include <stdarg.h>
+#include <math.h>
 
 static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args);
 
@@ -2304,6 +2306,42 @@ ML_METHOD("-", MLArrayT) {
 	return (ml_value_t *)C;
 }
 
+static ml_value_t *array_math_fn(double (*fn)(double), int Count, ml_value_t **Args) {
+	ml_array_t *A = (ml_array_t *)Args[0];
+	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation");
+	int Degree = A->Degree;
+	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_F64, Degree);
+	int DataSize = array_copy(C, A);
+	switch (C->Format) {
+	case ML_ARRAY_FORMAT_F32: {
+		float *Values = (float *)C->Base.Address;
+		for (int I = DataSize / sizeof(float); --I >= 0; ++Values) *Values = fn(*Values);
+		break;
+	}
+	case ML_ARRAY_FORMAT_F64: {
+		double *Values = (double *)C->Base.Address;
+		for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = fn(*Values);
+		break;
+	}
+#ifdef ML_COMPLEX
+	case ML_ARRAY_FORMAT_C32: {
+		complex_float *Values = (complex_float *)C->Base.Address;
+		for (int I = DataSize / sizeof(complex_float); --I >= 0; ++Values) *Values = fn(*Values);
+		break;
+	}
+	case ML_ARRAY_FORMAT_C64: {
+		complex_double *Values = (complex_double *)C->Base.Address;
+		for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = fn(*Values);
+		break;
+	}
+#endif
+	default: {
+		return ml_error("TypeError", "Invalid types for array operation");
+	}
+	}
+	return (ml_value_t *)C;
+}
+
 #define MAX(X, Y) ((X > Y) ? X : Y)
 
 static ml_value_t *array_infix_fn(void *Data, int Count, ml_value_t **Args) {
@@ -2424,10 +2462,10 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLArrayT, MLRealT) { \
+ML_METHOD(#OP, MLArrayT, MLDoubleT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	double B = ml_real_value_fast(Args[1]); \
+	double B = ml_double_value_fast(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(MAX(A->Format, ML_ARRAY_FORMAT_F64), Degree); \
 	int DataSize = array_copy(C, A); \
@@ -2445,10 +2483,10 @@ ML_METHOD(#OP, MLArrayT, MLRealT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLRealT, MLArrayT) { \
+ML_METHOD(#OP, MLDoubleT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	double B = ml_real_value_fast(Args[0]); \
+	double B = ml_double_value_fast(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(MAX(A->Format, ML_ARRAY_FORMAT_F64), Degree); \
 	int DataSize = array_copy(C, A); \
@@ -2547,10 +2585,10 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLArrayT, MLRealT) { \
+ML_METHOD(#OP, MLArrayT, MLDoubleT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	double B = ml_real_value_fast(Args[1]); \
+	double B = ml_double_value_fast(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_I8, Degree); \
 	int DataSize = 1; \
@@ -2566,10 +2604,10 @@ ML_METHOD(#OP, MLArrayT, MLRealT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLRealT, MLArrayT) { \
+ML_METHOD(#OP, MLDoubleT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	double B = ml_real_value_fast(Args[0]); \
+	double B = ml_double_value_fast(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_I8, Degree); \
 	int DataSize = 1; \
@@ -2612,7 +2650,7 @@ ML_METHOD(#OP, MLArrayT, MLComplexT) { \
 ML_METHOD(#OP, MLComplexT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	double B = ml_real_value_fast(Args[0]); \
+	double B = ml_double_value_fast(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_I8, Degree); \
 	int DataSize = 1; \
@@ -2745,7 +2783,7 @@ static __attribute__ ((pure)) ml_array_format_t ml_array_of_type_guess(ml_value_
 	} else if (ml_is(Value, MLComplexT)) {
 		if (Format < ML_ARRAY_FORMAT_C64) Format = ML_ARRAY_FORMAT_C64;
 #endif
-	} else if (ml_is(Value, MLRealT)) {
+	} else if (ml_is(Value, MLDoubleT)) {
 		if (Format < ML_ARRAY_FORMAT_F64) Format = ML_ARRAY_FORMAT_F64;
 	} else if (ml_is(Value, MLIntegerT)) {
 		if (Format < ML_ARRAY_FORMAT_I64) Format = ML_ARRAY_FORMAT_I64;
@@ -3790,6 +3828,34 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_method_by_name(">", 3 + (char *)0, compare_array_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("<=", 4 + (char *)0, compare_array_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name(">=", 5 + (char *)0, compare_array_fn, MLArrayT, MLArrayT, NULL);
+
+	ml_method_by_value(AcosMethod, acos, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(AsinMethod, asin, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(AtanMethod, atan, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(CeilMethod, ceil, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(CosMethod, cos, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(CoshMethod, cosh, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(ExpMethod, exp, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(AbsMethod, abs, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(FloorMethod, floor, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(LogMethod, log, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(Log10Method, log10, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(SinMethod, sin, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(SinhMethod, sinh, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(SqrtMethod, sqrt, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(TanMethod, tan, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(TanhMethod, tanh, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(ErfMethod, erf, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(ErfcMethod, erfc, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(GammaMethod, gamma, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(AcoshMethod, acosh, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(AsinhMethod, asinh, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(AtanhMethod, atanh, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(CbrtMethod, cbrt, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(Expm1Method, expm1, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(Log1pMethod, log1p, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(RoundMethod, round, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+
 	ml_method_define(ml_method("$"), MLArrayT->Constructor, 0, MLListT, NULL);
 	stringmap_insert(MLArrayT->Exports, "new", ml_cfunctionx(NULL, ml_array_new_fnx));
 	stringmap_insert(MLArrayT->Exports, "wrap", ml_cfunction(NULL, ml_array_wrap_fn));

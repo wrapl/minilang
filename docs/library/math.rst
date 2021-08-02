@@ -3,7 +3,7 @@ math
 
 .. include:: <isonum.txt>
 
-:mini:`meth %(Arg₁: number, Arg₂: number)`
+:mini:`meth %(Arg₁: real, Arg₂: real)`
 
 :mini:`meth ^(Arg₁: integer, Arg₂: integer)`
 
@@ -21,39 +21,13 @@ math
 
 :mini:`meth !(Arg₁: integer, Arg₂: integer)`
 
-:mini:`meth acos(Arg₁: number)` |rarr| :mini:`number`
-
-:mini:`meth asin(Arg₁: number)` |rarr| :mini:`number`
-
-:mini:`meth atan(Arg₁: number)` |rarr| :mini:`number`
-
-:mini:`meth atan(Arg₁: number, Arg₂: number)` |rarr| :mini:`number`
+:mini:`meth atan(Arg₁: real, Arg₂: real)` |rarr| :mini:`number`
 
 :mini:`meth ceil(Arg₁: number)` |rarr| :mini:`number`
-
-:mini:`meth cos(Arg₁: number)` |rarr| :mini:`number`
-
-:mini:`meth cosh(Arg₁: number)` |rarr| :mini:`number`
-
-:mini:`meth exp(Arg₁: number)` |rarr| :mini:`number`
 
 :mini:`meth fabs(Arg₁: number)` |rarr| :mini:`number`
 
 :mini:`meth floor(Arg₁: number)` |rarr| :mini:`number`
-
-:mini:`meth log(Arg₁: number)` |rarr| :mini:`number`
-
-:mini:`meth log10(Arg₁: number)` |rarr| :mini:`number`
-
-:mini:`meth sin(Arg₁: number)` |rarr| :mini:`number`
-
-:mini:`meth sinh(Arg₁: number)` |rarr| :mini:`number`
-
-:mini:`meth sqrt(Arg₁: number)` |rarr| :mini:`number`
-
-:mini:`meth tan(Arg₁: number)` |rarr| :mini:`number`
-
-:mini:`meth tanh(Arg₁: number)` |rarr| :mini:`number`
 
 :mini:`meth erf(Arg₁: number)` |rarr| :mini:`number`
 
@@ -62,12 +36,6 @@ math
 :mini:`meth hypot(Arg₁: number, Arg₂: number)` |rarr| :mini:`number`
 
 :mini:`meth lgamma(Arg₁: number)` |rarr| :mini:`number`
-
-:mini:`meth acosh(Arg₁: number)` |rarr| :mini:`number`
-
-:mini:`meth asinh(Arg₁: number)` |rarr| :mini:`number`
-
-:mini:`meth atanh(Arg₁: number)` |rarr| :mini:`number`
 
 :mini:`meth cbrt(Arg₁: number)` |rarr| :mini:`number`
 
@@ -85,9 +53,9 @@ math
    If omitted, :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`2³² - 1`.
 
 
-:mini:`fun integer::random_permutation(Max: number)`
+:mini:`fun integer::random_permutation(Max: integer)`
 
-:mini:`fun integer::random_cycle(Max: number)`
+:mini:`fun integer::random_cycle(Max: integer)`
 
 :mini:`fun real::random(Min?: number, Max?: number)` |rarr| :mini:`real`
    Returns a random real between :mini:`Min` and :mini:`Max`.
