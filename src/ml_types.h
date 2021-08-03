@@ -449,7 +449,7 @@ static inline double ml_double_value_fast(const ml_value_t *Value) {
 
 #else
 
-ml_value_t *ml_integer(const int64_t Value) __attribute__((malloc));
+ml_value_t *ml_integer(int64_t Value) __attribute__((malloc));
 ml_value_t *ml_real(double Value) __attribute__((malloc));
 
 typedef struct {
