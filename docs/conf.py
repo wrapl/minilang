@@ -104,7 +104,7 @@ html_theme_options = {
 	"page_sidebar_items": []
 }
 html_sidebars = {
-    "**": ["search-field", "page-toc", "sidebar-nav-bs", "sidebar-ethical-ads"]
+    "**": ["search-field", "page-toc", "sidebar-nav-bs"]
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
