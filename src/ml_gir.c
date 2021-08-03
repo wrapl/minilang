@@ -881,7 +881,7 @@ static void *list_to_array(ml_value_t *List, GITypeInfo *TypeInfo) {
 	case GI_TYPE_TAG_FLOAT: {
 		gfloat *Ptr = (gfloat *)Array;
 		ML_LIST_FOREACH(List, Iter) {
-			if (ml_is(Iter->Value, MLRealT)) {
+			if (ml_is(Iter->Value, MLDoubleT)) {
 				*Ptr++ = ml_real_value(Iter->Value);
 			}
 		}
@@ -890,7 +890,7 @@ static void *list_to_array(ml_value_t *List, GITypeInfo *TypeInfo) {
 	case GI_TYPE_TAG_DOUBLE: {
 		gdouble *Ptr = (gdouble *)Array;
 		ML_LIST_FOREACH(List, Iter) {
-			if (ml_is(Iter->Value, MLRealT)) {
+			if (ml_is(Iter->Value, MLDoubleT)) {
 				*Ptr++ = ml_real_value(Iter->Value);
 			}
 		}
@@ -1184,7 +1184,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 					ArgsIn[IndexIn].v_size = G_TYPE_INT64;
 				} else if (Arg == (ml_value_t *)MLStringT) {
 					ArgsIn[IndexIn].v_size = G_TYPE_STRING;
-				} else if (Arg == (ml_value_t *)MLRealT) {
+				} else if (Arg == (ml_value_t *)MLDoubleT) {
 					ArgsIn[IndexIn].v_size = G_TYPE_DOUBLE;
 				} else if (Arg == (ml_value_t *)MLBooleanT) {
 					ArgsIn[IndexIn].v_size = G_TYPE_BOOLEAN;
@@ -1901,7 +1901,7 @@ static void _ml_to_value(ml_value_t *Source, GValue *Dest) {
 	} else if (ml_is(Source, MLIntegerT)) {
 		g_value_init(Dest, G_TYPE_LONG);
 		g_value_set_long(Dest, ml_integer_value(Source));
-	} else if (ml_is(Source, MLRealT)) {
+	} else if (ml_is(Source, MLDoubleT)) {
 		g_value_init(Dest, G_TYPE_DOUBLE);
 		g_value_set_double(Dest, ml_real_value(Source));
 	} else if (ml_is(Source, MLStringT)) {
@@ -1941,7 +1941,7 @@ static void __marshal(GClosure *Closure, GValue *Dest, guint NumArgs, const GVal
 			g_value_set_boolean(Dest, ml_boolean_value(Source));
 		} else if (ml_is(Source, MLIntegerT)) {
 			g_value_set_long(Dest, ml_integer_value(Source));
-		} else if (ml_is(Source, MLRealT)) {
+		} else if (ml_is(Source, MLDoubleT)) {
 			g_value_set_double(Dest, ml_real_value(Source));
 		} else if (ml_is(Source, MLStringT)) {
 			g_value_set_string(Dest, ml_string_value(Source));

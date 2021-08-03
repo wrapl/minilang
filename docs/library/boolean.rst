@@ -3,8 +3,6 @@ boolean
 
 .. include:: <isonum.txt>
 
-:mini:`meth string(Arg₁: boolean)`
-
 :mini:`type boolean < function`
 
 :mini:`meth boolean(String: string)` |rarr| :mini:`boolean` or :mini:`error`
@@ -38,4 +36,6 @@ boolean
 
    :mini:`true` is considered greater than :mini:`false`.
 
+
+:mini:`meth string(Arg₁: boolean)`
 

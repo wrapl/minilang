@@ -42,6 +42,7 @@ static void ml_sqlite_finalize(ml_sqlite_t *Sqlite, void *Data) {
 }
 
 ML_FUNCTION(MLSqlite) {
+//@sqlite
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLSqliteOpenFlags);
@@ -94,7 +95,7 @@ static void ml_sqlite_stmt_call(ml_state_t *Caller, ml_sqlite_stmt_t *Stmt, int 
 			Status = sqlite3_bind_int64(Stmt->Handle, I + 1, ml_integer_value(Arg));
 		} else if (ml_is(Arg, MLBooleanT)) {
 			Status = sqlite3_bind_int(Stmt->Handle, I + 1, ml_boolean_value(Arg));
-		} else if (ml_is(Arg, MLRealT)) {
+		} else if (ml_is(Arg, MLDoubleT)) {
 			Status = sqlite3_bind_double(Stmt->Handle, I + 1, ml_real_value(Arg));
 		} else if (ml_is(Arg, MLStringT)) {
 			Status = sqlite3_bind_text(Stmt->Handle, I + 1, ml_string_value(Arg), ml_string_length(Arg), SQLITE_STATIC);
@@ -210,7 +211,7 @@ ML_METHODV("execute", MLSqliteT, MLStringT) {
 			Status = sqlite3_bind_int64(Stmt->Handle, I - 1, ml_integer_value(Arg));
 		} else if (ml_is(Arg, MLBooleanT)) {
 			Status = sqlite3_bind_int(Stmt->Handle, I - 1, ml_boolean_value(Arg));
-		} else if (ml_is(Arg, MLRealT)) {
+		} else if (ml_is(Arg, MLDoubleT)) {
 			Status = sqlite3_bind_double(Stmt->Handle, I - 1, ml_real_value(Arg));
 		} else if (ml_is(Arg, MLStringT)) {
 			Status = sqlite3_bind_text(Stmt->Handle, I - 1, ml_string_value(Arg), ml_string_length(Arg), SQLITE_STATIC);

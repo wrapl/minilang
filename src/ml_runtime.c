@@ -415,7 +415,7 @@ typedef struct {
 typedef struct {
 	ml_type_t *Type;
 	ml_value_t *Value;
-	ml_error_value_t Error[1];
+	ml_error_value_t Error[];
 } ml_error_t;
 
 static ml_value_t *ml_error_assign(ml_value_t *Error, ml_value_t *Value) {
@@ -436,7 +436,7 @@ ML_FUNCTION(MLError) {
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLStringT);
-	ml_error_t *Error = new(ml_error_t);
+	ml_error_t *Error = xnew(ml_error_t, 1, ml_error_value_t);
 	Error->Type = MLErrorT;
 	Error->Error->Type = MLErrorValueT;
 	Error->Error->Error = ml_string_value(Args[0]);
@@ -477,7 +477,7 @@ ML_TYPE(MLErrorValueT, (), "error",
 ml_value_t *ml_errorv(const char *Error, const char *Format, va_list Args) {
 	char *Message;
 	vasprintf(&Message, Format, Args);
-	ml_error_t *Value = new(ml_error_t);
+	ml_error_t *Value = xnew(ml_error_t, 1, ml_error_value_t);
 	Value->Type = MLErrorT;
 	Value->Error->Type = MLErrorValueT;
 	Value->Error->Error = Error;
@@ -630,6 +630,7 @@ ml_value_t *ml_debugger_local(ml_state_t *State, int Index) {
 }
 
 ML_FUNCTIONX(MLBreak) {
+//@break
 //<Condition?
 // If a debugger present and :mini:`Condition` is omitted or not :mini:`nil` then triggers a breakpoint.
 	ml_debugger_t *Debugger = Caller->Context->Values[ML_DEBUGGER_INDEX];
@@ -880,7 +881,7 @@ ML_METHODX("error", MLChannelT, MLStringT, MLStringT) {
 	if (!Receiver) ML_ERROR("ChannelError", "Channel is not open");
 	Channel->Caller = Caller;
 	Channel->Context = Caller->Context;
-	ml_error_t *Error = new(ml_error_t);
+	ml_error_t *Error = xnew(ml_error_t, 1, ml_error_value_t);
 	Error->Type = MLErrorT;
 	Error->Error->Type = MLErrorValueT;
 	Error->Error->Error = ml_string_value(Args[1]);
@@ -895,7 +896,7 @@ ML_METHODX("raise", MLChannelT, MLStringT, MLAnyT) {
 	if (!Receiver) ML_ERROR("ChannelError", "Channel is not open");
 	Channel->Caller = Caller;
 	Channel->Context = Caller->Context;
-	ml_error_t *Error = new(ml_error_t);
+	ml_error_t *Error = xnew(ml_error_t, 1, ml_error_value_t);
 	Error->Type = MLErrorT;
 	Error->Error->Type = MLErrorValueT;
 	Error->Error->Error = ml_string_value(Args[1]);
@@ -910,7 +911,7 @@ ML_METHODX("raise", MLChannelT, MLErrorValueT) {
 	if (!Receiver) ML_ERROR("ChannelError", "Channel is not open");
 	Channel->Caller = Caller;
 	Channel->Context = Caller->Context;
-	ml_error_t *Error = new(ml_error_t);
+	ml_error_t *Error = xnew(ml_error_t, 1, ml_error_value_t);
 	Error->Type = MLErrorT;
 	Error->Error[0] = *(ml_error_value_t *)Args[1];
 	ML_CONTINUE(Receiver, Error);

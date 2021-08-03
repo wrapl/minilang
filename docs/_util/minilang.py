@@ -24,7 +24,8 @@ class MinilangLexer(RegexLexer):
             (words((
                 "class", "method", "any", "type", "function", "number",
                 "integer", "real", "string", "stringbuffer", "list",
-                "map", "tuple", "regex", "array", "file", "boolean"
+                "map", "tuple", "regex", "array", "file", "boolean",
+                "enum", "flags"
 			), suffix = r'\b'), Name.Class),
             (r'-?[0-9]+(\.[0-9]*)?((e|E)-?[0-9]+)?', Number),
             (r'-?\.[0-9]+((e|E)-?[0-9]+)?', Number),

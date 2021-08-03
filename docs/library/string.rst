@@ -13,7 +13,9 @@ string
 
 :mini:`meth string(Arg₁: integer, Arg₂: string)`
 
-:mini:`meth string(Arg₁: real, Arg₂: string)`
+:mini:`meth string(Arg₁: double, Arg₂: string)`
+
+:mini:`meth string(Arg₁: complex, Arg₂: string)`
 
 :mini:`fun regex(String: string)` |rarr| :mini:`regex` or :mini:`error`
    Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
@@ -39,7 +41,7 @@ string
 
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: integer)`
 
-:mini:`meth :append(Arg₁: stringbuffer, Arg₂: real)`
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: double)`
 
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: string)`
 

@@ -2245,7 +2245,10 @@ static void ml_inline_expr_compile2(mlc_function_t *Function, ml_value_t *Value,
 	}
 	mlc_parent_expr_t *Expr = Frame->Expr;
 	int Flags = Frame->Flags;
-	if (Flags & MLCF_CONSTANT) MLC_RETURN(Value);
+	if (Flags & MLCF_CONSTANT) {
+		MLC_POP();
+		MLC_RETURN(Value);
+	}
 	ml_inst_t *ValueInst = MLC_EMIT(Expr->StartLine, MLI_LOAD, 1);
 	if (ml_typeof(Value) == MLUninitializedT) {
 		ml_uninitialized_use(Value, &ValueInst[1].Value);
@@ -3471,12 +3474,40 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 	case MLT_SWITCH: {
 		ml_next(Parser);
 		ML_EXPR(CaseExpr, parent, switch);
-		mlc_expr_t *Child = CaseExpr->Child = ml_accept_expression(Parser, EXPR_DEFAULT);
+		mlc_expr_t *Child = ml_accept_expression(Parser, EXPR_DEFAULT);
+		mlc_expr_t *CaseExprs = NULL;
+		if (ml_parse(Parser, MLT_COLON)) {
+			ML_EXPR(CallExpr, parent, call);
+			ML_EXPR(InlineExpr, parent, inline);
+			ML_EXPR(SwitchExpr, parent_value, const_call);
+			SwitchExpr->Value = MLCompilerSwitch;
+			SwitchExpr->Child = CaseExprs = ml_accept_expression(Parser, EXPR_DEFAULT);
+			InlineExpr->Child = ML_EXPR_END(SwitchExpr);
+			InlineExpr->Next = Child;
+			CallExpr->Child = ML_EXPR_END(InlineExpr);
+			Child = ML_EXPR_END(CallExpr);
+		}
+		CaseExpr->Child = Child;
 		while (ml_parse2(Parser, MLT_CASE)) {
+			if (CaseExprs) {
+				ML_EXPR(ListExpr, parent, list);
+				mlc_expr_t *ListChild = ListExpr->Child = ml_accept_expression(Parser, EXPR_DEFAULT);
+				while (ml_parse(Parser, MLT_COMMA)) {
+					ListChild = ListChild->Next = ml_accept_expression(Parser, EXPR_DEFAULT);
+				}
+				CaseExprs = CaseExprs->Next = ML_EXPR_END(ListExpr);
+				ml_accept(Parser, MLT_DO);
+			}
 			Child = Child->Next = ml_accept_block(Parser);
 		}
-		ml_accept(Parser, MLT_ELSE);
-		Child->Next = ml_accept_block(Parser);
+		if (ml_parse2(Parser, MLT_ELSE)) {
+			Child->Next = ml_accept_block(Parser);
+		} else {
+			mlc_expr_t *NilExpr = new(mlc_expr_t);
+			NilExpr->compile = ml_nil_expr_compile;
+			NilExpr->StartLine = NilExpr->EndLine = Parser->Source.Line;
+			Child->Next = NilExpr;
+		}
 		ml_accept(Parser, MLT_END);
 		return ML_EXPR_END(CaseExpr);
 	}
@@ -4960,6 +4991,7 @@ void ml_compiler_init() {
 #include "ml_compiler_init.c"
 	stringmap_insert(MLCompilerT->Exports, "EOI", MLEndOfInput);
 	stringmap_insert(MLCompilerT->Exports, "NotFound", MLNotFound);
+	stringmap_insert(MLCompilerT->Exports, "switch", MLCompilerSwitch);
 	stringmap_insert(StringFns, "r", ml_regex);
 	stringmap_insert(StringFns, "ri", ml_regexi);
 }

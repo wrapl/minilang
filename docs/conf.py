@@ -88,21 +88,33 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_material"
+#html_theme = "sphinx_material"
+#html_theme_options = {
+#	'color_primary': 'orange',
+#	'color_accent': 'yellow',
+#	'globaltoc_depth': 3
+#}
+#
+#html_sidebars = {
+#    "**": ["logo-text.html", "globaltoc.html", "localtoc.html", "searchbox.html"]
+#}
+html_theme = "pydata_sphinx_theme"
 html_theme_options = {
-	'color_primary': 'orange',
-	'color_accent': 'yellow',
-	'globaltoc_depth': 3
+	"collapse_navigation": True,
+	"page_sidebar_items": []
 }
-
 html_sidebars = {
-    "**": ["logo-text.html", "globaltoc.html", "localtoc.html", "searchbox.html"]
+    "**": ["search-field", "page-toc", "sidebar-nav-bs", "sidebar-ethical-ads"]
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+html_css_files = [
+	'css/custom.css',
+]
 
 cautodoc_root = os.path.abspath('../src')
 
@@ -128,7 +140,7 @@ def setup(sphinx):
 	import sys, os
 	sys.path.insert(0, os.path.abspath('./_util'))
 	from minilang import MinilangLexer, minilangDomain
-	sphinx.add_lexer("mini", MinilangLexer)
+	sphinx.add_lexer("mini", MinilangLexer())
 	lexers.LEXERS['mini'] = ('minilang', 'Minilang', ('mini',), ('*.mini', '*.rabs'), ('text/x-mini',))
 	#sphinx.add_domain(minilangDomain) 
 	sphinx.add_directive('folders', FoldersDirective)

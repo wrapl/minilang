@@ -14,8 +14,8 @@ void ml_io_read(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count)
 	if (function) return function(Caller, Value, Address, Count);
 	ml_buffer_t *Buffer = new(ml_buffer_t);
 	Buffer->Type = MLBufferT;
-	Buffer->Address = Address;
-	Buffer->Size = Count;
+	Buffer->Value = Address;
+	Buffer->Length = Count;
 	ml_value_t **Args = ml_alloc_args(2);
 	Args[0] = Value;
 	Args[1] = (ml_value_t *)Buffer;
@@ -27,8 +27,8 @@ void ml_io_write(ml_state_t *Caller, ml_value_t *Value, const void *Address, int
 	if (function) return function(Caller, Value, Address, Count);
 	ml_buffer_t *Buffer = new(ml_buffer_t);
 	Buffer->Type = MLBufferT;
-	Buffer->Address = (void *)Address;
-	Buffer->Size = Count;
+	Buffer->Value = (void *)Address;
+	Buffer->Length = Count;
 	ml_value_t **Args = ml_alloc_args(3);
 	Args[0] = Value;
 	Args[1] = (ml_value_t *)Buffer;
@@ -65,9 +65,10 @@ static void ML_TYPED_FN(ml_io_read, MLFdT, ml_state_t *Caller, ml_fd_t *Stream, 
 }
 
 ML_METHOD(MLIORead, MLFdT, MLBufferT) {
+//@io::read
 	ml_fd_t *Stream = (ml_fd_t *)Args[0];
 	ml_buffer_t *Buffer = (ml_buffer_t *)Args[1];
-	ssize_t Actual = read(Stream->Fd, Buffer->Address, Buffer->Size);
+	ssize_t Actual = read(Stream->Fd, Buffer->Value, Buffer->Length);
 	if (Actual < 0) {
 		return ml_error("ReadError", strerror(errno));
 	} else {
@@ -87,9 +88,10 @@ static void ML_TYPED_FN(ml_io_write, MLFdT, ml_state_t *Caller, ml_fd_t *Stream,
 }
 
 ML_METHOD(MLIOWrite, MLFdT, MLBufferT) {
+//@io::write
 	ml_fd_t *Stream = (ml_fd_t *)Args[0];
 	ml_buffer_t *Buffer = (ml_buffer_t *)Args[1];
-	ssize_t Actual = write(Stream->Fd, Buffer->Address, Buffer->Size);
+	ssize_t Actual = write(Stream->Fd, Buffer->Value, Buffer->Length);
 	if (Actual < 0) {
 		return ml_error("WriteError", strerror(errno));
 	} else {

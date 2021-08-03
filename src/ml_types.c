@@ -28,6 +28,8 @@
 #include <pthread.h>
 #endif
 
+//!type
+
 ML_METHOD_DECL(IterateMethod, "iterate");
 ML_METHOD_DECL(ValueMethod, "value");
 ML_METHOD_DECL(KeyMethod, "key");
@@ -50,7 +52,7 @@ ML_INTERFACE(MLAnyT, (), "any", .Rank = 0);
 // Base type for all values.
 
 ML_INTERFACE(MLIteratableT, (), "iteratable");
-//!iterator
+//!iteratable
 // The base type for any iteratable value.
 
 ML_INTERFACE(MLFunctionT, (), "function");
@@ -99,6 +101,9 @@ static int ml_type_exports_fn(const char *Name, void *Value, ml_value_t *Exports
 }
 
 ML_METHOD("exports", MLTypeT) {
+//<Type
+//>map
+// Returns a map of all the exports from :mini:`Type`.
 	ml_type_t *Type = (ml_type_t *)Args[0];
 	ml_value_t *Exports = ml_map();
 	stringmap_foreach(Type->Exports, Exports, (void *)ml_type_exports_fn);
@@ -108,6 +113,7 @@ ML_METHOD("exports", MLTypeT) {
 #ifdef ML_GENERICS
 
 ML_TYPE(MLGenericTypeT, (MLTypeT), "generic-type");
+//!internal
 
 struct ml_generic_rule_t {
 	ml_generic_rule_t *Next;
@@ -148,6 +154,7 @@ static void ml_generic_parents(ml_value_t *Parents, int NumArgs, ml_type_t **Arg
 }
 
 ML_METHOD("parents", MLGenericTypeT) {
+//!internal
 	ml_generic_type_t *Type = (ml_generic_type_t *)Args[0];
 	ml_value_t *Parents = ml_list();
 	ml_generic_parents(Parents, Type->NumArgs, Type->Args);
@@ -522,10 +529,18 @@ ml_type_t *ml_type_max(ml_type_t *T, ml_type_t *U) {
 }
 
 ML_METHOD("*", MLTypeT, MLTypeT) {
+//<Type/1
+//<Type/2
+//>type
+// Returns the closest common parent type of :mini:`Type/1` and :mini:`Type/2`.
 	return (ml_value_t *)ml_type_max((ml_type_t *)Args[0], (ml_type_t *)Args[1]);
 }
 
 ML_METHOD("<", MLTypeT, MLTypeT) {
+//<Type/1
+//<Type/2
+//>type or nil
+// Returns :mini:`Type/2` if :mini:`Type/2` is a strict parent of :mini:`Type/1`, otherwise returns :mini:`nil`.
 	ml_type_t *Type1 = (ml_type_t *)Args[0];
 	ml_type_t *Type2 = (ml_type_t *)Args[1];
 	if (Type1 == Type2) return MLNil;
@@ -534,6 +549,10 @@ ML_METHOD("<", MLTypeT, MLTypeT) {
 }
 
 ML_METHOD("<=", MLTypeT, MLTypeT) {
+//<Type/1
+//<Type/2
+//>type or nil
+// Returns :mini:`Type/2` if :mini:`Type/2` is a parent of :mini:`Type/1`, otherwise returns :mini:`nil`.
 	ml_type_t *Type1 = (ml_type_t *)Args[0];
 	ml_type_t *Type2 = (ml_type_t *)Args[1];
 	if (Type1 == Type2) return Args[1];
@@ -542,6 +561,10 @@ ML_METHOD("<=", MLTypeT, MLTypeT) {
 }
 
 ML_METHOD(">", MLTypeT, MLTypeT) {
+//<Type/1
+//<Type/2
+//>type or nil
+// Returns :mini:`Type/2` if :mini:`Type/2` is a strict sub-type of :mini:`Type/1`, otherwise returns :mini:`nil`.
 	ml_type_t *Type1 = (ml_type_t *)Args[0];
 	ml_type_t *Type2 = (ml_type_t *)Args[1];
 	if (Type1 == Type2) return MLNil;
@@ -550,6 +573,10 @@ ML_METHOD(">", MLTypeT, MLTypeT) {
 }
 
 ML_METHOD(">=", MLTypeT, MLTypeT) {
+//<Type/1
+//<Type/2
+//>type or nil
+// Returns :mini:`Type/2` if :mini:`Type/2` is a sub-type of :mini:`Type/1`, otherwise returns :mini:`nil`.
 	ml_type_t *Type1 = (ml_type_t *)Args[0];
 	ml_type_t *Type2 = (ml_type_t *)Args[1];
 	if (Type1 == Type2) return Args[1];
@@ -559,6 +586,10 @@ ML_METHOD(">=", MLTypeT, MLTypeT) {
 
 #ifdef ML_GENERICS
 ML_METHODVX("[]", MLTypeT, MLTypeT) {
+//<Base
+//<Type/1,...,Type/n
+//>type
+// Returns the generic type :mini:`Base[Type/1, ..., Type/n]`.
 	for (int I = 2; I < Count; ++I) ML_CHECKX_ARG_TYPE(I, MLTypeT);
 	ML_RETURN(ml_generic_type(Count, (ml_type_t **)Args));
 }
@@ -575,6 +606,72 @@ ML_METHOD("in", MLAnyT, MLTypeT) {
 // Returns :mini:`Value` if it is an instance of :mini:`Type` or a type that inherits from :mini:`Type`.
 // Returns :mini:`nil` otherwise.
 	return ml_is(Args[0], (ml_type_t *)Args[1]) ? Args[0] : MLNil;
+}
+
+ML_METHOD_ANON(MLCompilerSwitch, "compiler::switch");
+
+ML_METHODVX(MLCompilerSwitch, MLFunctionT) {
+//!internal
+	return ml_call(Caller, Args[0], Count - 1, Args + 1);
+}
+
+ML_METHODVX(MLCompilerSwitch, MLTypeT) {
+//!internal
+	ml_type_t *Type = (ml_type_t *)Args[0];
+	ml_value_t *Switch = (ml_value_t *)stringmap_search(Type->Exports, "switch");
+	if (!Switch) ML_ERROR("SwitchError", "%s does not support switch", Type->Name);
+	return ml_call(Caller, Switch, Count - 1, Args + 1);
+}
+
+typedef struct {
+	ml_value_t *Index;
+	ml_type_t *Type;
+} ml_type_case_t;
+
+typedef struct {
+	ml_type_t *Type;
+	ml_type_case_t Cases[];
+} ml_type_switch_t;
+
+static void ml_type_switch(ml_state_t *Caller, ml_type_switch_t *Switch, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_type_t *Type = ml_typeof(Args[0]);
+	for (ml_type_case_t *Case = Switch->Cases;; ++Case) {
+		if (ml_is_subtype(Type, Case->Type)) ML_RETURN(Case->Index);
+	}
+	ML_RETURN(MLNil);
+}
+
+ML_TYPE(MLTypeSwitchT, (MLFunctionT), "type-switch",
+//!internal
+	.call = (void *)ml_type_switch
+);
+
+ML_FUNCTION(MLTypeSwitch) {
+//!internal
+	int Total = 1;
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
+		Total += ml_list_length(Args[I]);
+	}
+	ml_type_switch_t *Switch = xnew(ml_type_switch_t, Total, ml_type_case_t);
+	Switch->Type = MLTypeSwitchT;
+	ml_type_case_t *Case = Switch->Cases;
+	for (int I = 0; I < Count; ++I) {
+		ML_LIST_FOREACH(Args[I], Iter) {
+			ml_value_t *Value = Iter->Value;
+			if (ml_is(Value, MLTypeT)) {
+				Case->Type = (ml_type_t *)Value;
+			} else {
+				return ml_error("ValueError", "Unsupported value in type case");
+			}
+			Case->Index = ml_integer(I);
+			++Case;
+		}
+	}
+	Case->Type = MLAnyT;
+	Case->Index = ml_integer(Count);
+	return (ml_value_t *)Switch;
 }
 
 long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain) {
@@ -976,11 +1073,13 @@ ml_value_t *ml_partial_function_set(ml_value_t *Partial0, size_t Index, ml_value
 }
 
 ML_METHOD("count", MLPartialFunctionT) {
+//!function
 	ml_partial_function_t *Partial = (ml_partial_function_t *)Args[0];
 	return ml_integer(Partial->Count);
 }
 
 ML_METHOD("set", MLPartialFunctionT) {
+//!function
 	ml_partial_function_t *Partial = (ml_partial_function_t *)Args[0];
 	return ml_integer(Partial->Set);
 }
@@ -1169,6 +1268,7 @@ ML_METHOD(MLStringT, MLTupleT) {
 }
 
 ML_METHOD("append", MLStringBufferT, MLTupleT) {
+//!tuple
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_tuple_t *Value = (ml_tuple_t *)Args[1];
 	ml_stringbuffer_add(Buffer, "(", 1);
@@ -1353,25 +1453,29 @@ ML_METHOD("<op>", MLBooleanT, MLBooleanT) {
 
 // Numbers //
 
-ML_TYPE(MLNumberT, (MLFunctionT), "number");
+ML_TYPE(MLNumberT, (), "number");
 //!number
-// Base type for integers and reals.
+// Base type for numbers.
+
+ML_TYPE(MLRealT, (MLNumberT), "real");
+//!number
+// Base type for real numbers.
 
 #ifdef ML_NANBOXING
 
 static long ml_int32_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
-	return (uint64_t)Value & 0xFFFFFFFF;
+	return (int32_t)(intptr_t)Value;
 }
 
 static void ml_int32_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
-	long Index = (uint64_t)Value & 0xFFFFFFFF;
+	long Index = (int32_t)(intptr_t)Value;
 	if (Index <= 0) Index += Count + 1;
 	if (Index <= 0) ML_RETURN(MLNil);
 	if (Index > Count) ML_RETURN(MLNil);
 	ML_RETURN(Args[Index - 1]);
 }
 
-ML_TYPE(MLIntegerT, (MLNumberT), "integer");
+ML_TYPE(MLIntegerT, (MLRealT, MLFunctionT), "integer");
 //!number
 
 ML_TYPE(MLInt32T, (MLIntegerT), "int32",
@@ -1398,7 +1502,7 @@ ml_value_t *ml_int64(int64_t Integer) {
 	return (ml_value_t *)Value;
 }
 
-long ml_integer_value(const ml_value_t *Value) {
+int64_t ml_integer_value(const ml_value_t *Value) {
 	int Tag = ml_tag(Value);
 	if (Tag == 1) return (int32_t)(intptr_t)Value;
 	if (Tag >= 7) return ml_to_double(Value);
@@ -1408,6 +1512,16 @@ long ml_integer_value(const ml_value_t *Value) {
 		}
 	}
 	return 0;
+}
+
+ML_METHOD(MLRealT, MLInt32T) {
+//!number
+	return ml_real((int32_t)(intptr_t)Args[0]);
+}
+
+ML_METHOD(MLRealT, MLInt64T) {
+//!number
+	return ml_real(((ml_int64_t *)Args[0])->Value);
 }
 
 #else
@@ -1424,7 +1538,7 @@ static void ml_integer_call(ml_state_t *Caller, ml_integer_t *Integer, int Count
 	ML_RETURN(Args[Index - 1]);
 }
 
-ML_TYPE(MLIntegerT, (MLNumberT), "integer",
+ML_TYPE(MLIntegerT, (MLRealT, MLFunctionT), "integer",
 //!number
 	.hash = (void *)ml_integer_hash,
 	.call = (void *)ml_integer_call
@@ -1442,28 +1556,30 @@ extern long ml_integer_value_fast(const ml_value_t *Value);
 long ml_integer_value(const ml_value_t *Value) {
 	if (Value->Type == MLIntegerT) {
 		return ((ml_integer_t *)Value)->Value;
-	} else if (Value->Type == MLRealT) {
-		return ((ml_real_t *)Value)->Value;
+	} else if (Value->Type == MLDoubleT) {
+		return ((ml_double_t *)Value)->Value;
 	} else if (ml_is(Value, MLIntegerT)) {
 		return ((ml_integer_t *)Value)->Value;
-	} else if (ml_is(Value, MLRealT)) {
-		return ((ml_real_t *)Value)->Value;
+	} else if (ml_is(Value, MLDoubleT)) {
+		return ((ml_double_t *)Value)->Value;
 	} else {
 		return 0;
 	}
+}
+
+ML_METHOD(MLRealT, MLIntegerT) {
+//!number
+	return ml_real(((ml_integer_t *)Args[0])->Value);
 }
 
 #endif
 
 #ifdef ML_NANBOXING
 
-ML_METHOD(MLIntegerT, MLRealT) {
+ML_METHOD(MLIntegerT, MLDoubleT) {
 //!number
 	return ml_integer(ml_to_double(Args[0]));
 }
-
-ML_TYPE(MLRealT, (MLNumberT), "real");
-//!number
 
 static long ml_double_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return (long)ml_to_double(Value);
@@ -1477,7 +1593,7 @@ ML_TYPE(MLDoubleT, (MLRealT), "double",
 
 double ml_real_value(const ml_value_t *Value) {
 	int Tag = ml_tag(Value);
-	if (Tag == 1) return (uint64_t)Value & 0xFFFFFFFF;
+	if (Tag == 1) return (int32_t)(intptr_t)Value;
 	if (Tag >= 7) return ml_to_double(Value);
 	if (Tag == 0) {
 		if (Value->Type == MLInt64T) {
@@ -1487,59 +1603,60 @@ double ml_real_value(const ml_value_t *Value) {
 	return 0;
 }
 
-ML_METHOD(MLRealT, MLInt32T) {
+ML_METHOD(MLDoubleT, MLInt32T) {
 //!number
-	return ml_real((uint64_t)Args[0] & 0xFFFFFFFF);
+	return ml_real((int32_t)(intptr_t)Args[0]);
 }
 
-ML_METHOD(MLRealT, MLInt64T) {
+ML_METHOD(MLDoubleT, MLInt64T) {
 //!number
 	return ml_real(((ml_int64_t *)Args[0])->Value);
 }
 
 #else
 
-ML_METHOD(MLIntegerT, MLRealT) {
+ML_METHOD(MLIntegerT, MLDoubleT) {
 //!number
 //<Real
 //>integer
 // Converts :mini:`Real` to an integer (using default rounding).
-	return ml_integer(((ml_real_t *)Args[0])->Value);
+	return ml_integer(((ml_double_t *)Args[0])->Value);
 }
 
-static long ml_real_hash(ml_real_t *Real, ml_hash_chain_t *Chain) {
+static long ml_double_hash(ml_double_t *Real, ml_hash_chain_t *Chain) {
 	return (long)Real->Value;
 }
 
-ML_TYPE(MLRealT, (MLNumberT), "real",
+ML_TYPE(MLDoubleT, (MLRealT), "real",
 //!number
-	.hash = (void *)ml_real_hash
+	.hash = (void *)ml_double_hash,
+	.NoInherit = 1
 );
 
 ml_value_t *ml_real(double Value) {
-	ml_real_t *Real = new(ml_real_t);
-	Real->Type = MLRealT;
+	ml_double_t *Real = new(ml_double_t);
+	Real->Type = MLDoubleT;
 	Real->Value = Value;
 	return (ml_value_t *)Real;
 }
 
-extern double ml_real_value_fast(const ml_value_t *Value);
+extern double ml_double_value_fast(const ml_value_t *Value);
 
 double ml_real_value(const ml_value_t *Value) {
 	if (Value->Type == MLIntegerT) {
 		return ((ml_integer_t *)Value)->Value;
-	} else if (Value->Type == MLRealT) {
-		return ((ml_real_t *)Value)->Value;
+	} else if (Value->Type == MLDoubleT) {
+		return ((ml_double_t *)Value)->Value;
 	} else if (ml_is(Value, MLIntegerT)) {
 		return ((ml_integer_t *)Value)->Value;
-	} else if (ml_is(Value, MLRealT)) {
-		return ((ml_real_t *)Value)->Value;
+	} else if (ml_is(Value, MLDoubleT)) {
+		return ((ml_double_t *)Value)->Value;
 	} else {
 		return 0;
 	}
 }
 
-ML_METHOD(MLRealT, MLIntegerT) {
+ML_METHOD(MLDoubleT, MLIntegerT) {
 //!number
 	return ml_real(((ml_integer_t *)Args[0])->Value);
 }
@@ -1560,29 +1677,29 @@ ML_METHOD(MLRealT, MLIntegerT) {
 	}
 
 #define ml_arith_method_real(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLRealT) { \
-		double RealA = ml_real_value_fast(Args[0]); \
+	ML_METHOD(NAME, MLDoubleT) { \
+		double RealA = ml_double_value_fast(Args[0]); \
 		return ml_real(SYMBOL(RealA)); \
 	}
 
 #define ml_arith_method_real_real(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLRealT, MLRealT) { \
-		double RealA = ml_real_value_fast(Args[0]); \
-		double RealB = ml_real_value_fast(Args[1]); \
+	ML_METHOD(NAME, MLDoubleT, MLDoubleT) { \
+		double RealA = ml_double_value_fast(Args[0]); \
+		double RealB = ml_double_value_fast(Args[1]); \
 		return ml_real(RealA SYMBOL RealB); \
 	}
 
 #define ml_arith_method_real_integer(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLRealT, MLIntegerT) { \
-		double RealA = ml_real_value_fast(Args[0]); \
+	ML_METHOD(NAME, MLDoubleT, MLIntegerT) { \
+		double RealA = ml_double_value_fast(Args[0]); \
 		int64_t IntegerB = ml_integer_value_fast(Args[1]); \
 		return ml_real(RealA SYMBOL IntegerB); \
 	}
 
 #define ml_arith_method_integer_real(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLIntegerT, MLRealT) { \
+	ML_METHOD(NAME, MLIntegerT, MLDoubleT) { \
 		int64_t IntegerA = ml_integer_value_fast(Args[0]); \
-		double RealB = ml_real_value_fast(Args[1]); \
+		double RealB = ml_double_value_fast(Args[1]); \
 		return ml_real(IntegerA SYMBOL RealB); \
 	}
 
@@ -1604,6 +1721,16 @@ ml_value_t *ml_complex(complex double Value) {
 	return (ml_value_t *)Complex;
 }
 
+ML_METHOD(MLComplexT, MLRealT) {
+//!number
+	return ml_complex(ml_real_value(Args[0]));
+}
+
+ML_METHOD(MLRealT, MLComplexT) {
+//!number
+	return ml_real(creal(ml_complex_value(Args[0])));
+}
+
 extern complex double ml_complex_value_fast(const ml_value_t *Value);
 
 complex double ml_complex_value(const ml_value_t *Value) {
@@ -1622,12 +1749,12 @@ complex double ml_complex_value(const ml_value_t *Value) {
 #else
 	if (Value->Type == MLIntegerT) {
 		return ((ml_integer_t *)Value)->Value;
-	} else if (Value->Type == MLRealT) {
-		return ((ml_real_t *)Value)->Value;
+	} else if (Value->Type == MLDoubleT) {
+		return ((ml_double_t *)Value)->Value;
 	} else if (ml_is(Value, MLIntegerT)) {
 		return ((ml_integer_t *)Value)->Value;
-	} else if (ml_is(Value, MLRealT)) {
-		return ((ml_real_t *)Value)->Value;
+	} else if (ml_is(Value, MLDoubleT)) {
+		return ((ml_double_t *)Value)->Value;
 	} else if (ml_is(Value, MLComplexT)) {
 		return ((ml_complex_t *)Value)->Value;
 	} else {
@@ -1684,9 +1811,9 @@ complex double ml_complex_value(const ml_value_t *Value) {
 	}
 
 #define ml_arith_method_complex_real(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLComplexT, MLRealT) { \
+	ML_METHOD(NAME, MLComplexT, MLDoubleT) { \
 		complex double ComplexA = ml_complex_value_fast(Args[0]); \
-		double RealB = ml_real_value_fast(Args[1]); \
+		double RealB = ml_double_value_fast(Args[1]); \
 		complex double ComplexC = ComplexA SYMBOL RealB; \
 		if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
 			return ml_real(creal(ComplexC)); \
@@ -1696,8 +1823,8 @@ complex double ml_complex_value(const ml_value_t *Value) {
 	}
 
 #define ml_arith_method_real_complex(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLRealT, MLComplexT) { \
-		double RealA = ml_real_value_fast(Args[0]); \
+	ML_METHOD(NAME, MLDoubleT, MLComplexT) { \
+		double RealA = ml_double_value_fast(Args[0]); \
 		complex double ComplexB = ml_complex_value_fast(Args[1]); \
 		complex double ComplexC = RealA SYMBOL ComplexB; \
 		if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
@@ -1707,11 +1834,19 @@ complex double ml_complex_value(const ml_value_t *Value) {
 		} \
 	}
 
-ML_METHOD("re", MLComplexT) {
+ML_METHOD("r", MLComplexT) {
+//!number
+//<Z
+//>real
+// Returns the real component of :mini:`Z`.
 	return ml_real(creal(ml_complex_value_fast(Args[0])));
 }
 
-ML_METHOD("im", MLComplexT) {
+ML_METHOD("i", MLComplexT) {
+//!number
+//<Z
+//>real
+// Returns the imaginary component of :mini:`Z`.
 	return ml_real(cimag(ml_complex_value_fast(Args[0])));
 }
 
@@ -1775,20 +1910,20 @@ ML_METHOD("--", MLIntegerT) {
 	return ml_integer(ml_integer_value_fast(Args[0]) - 1);
 }
 
-ML_METHOD("++", MLRealT) {
+ML_METHOD("++", MLDoubleT) {
 //!number
 //<Real
 //>real
 // Returns :mini:`Real + 1`
-	return ml_real(ml_real_value_fast(Args[0]) + 1);
+	return ml_real(ml_double_value_fast(Args[0]) + 1);
 }
 
-ML_METHOD("--", MLRealT) {
+ML_METHOD("--", MLDoubleT) {
 //!number
 //<Real
 //>real
 // Returns :mini:`Real - 1`
-	return ml_real(ml_real_value_fast(Args[0]) - 1);
+	return ml_real(ml_double_value_fast(Args[0]) - 1);
 }
 
 ml_arith_method_real_real("/", /)
@@ -1841,7 +1976,7 @@ ML_METHOD("|", MLIntegerT, MLIntegerT) {
 //<Int/1
 //<Int/2
 //>integer
-// Returns :mini:`Int/2`. if it is divisible by :mini:`Int/1` and :mini:`nil` otherwise.
+// Returns :mini:`Int/2` if it is divisible by :mini:`Int/1` and :mini:`nil` otherwise.
 	int64_t IntegerA = ml_integer_value_fast(Args[0]);
 	int64_t IntegerB = ml_integer_value_fast(Args[1]);
 	return (IntegerB % IntegerA) ? MLNil : Args[1];
@@ -1852,7 +1987,7 @@ ML_METHOD("!|", MLIntegerT, MLIntegerT) {
 //<Int/1
 //<Int/2
 //>integer
-// Returns :mini:`Int/2`. if it is not divisible by :mini:`Int/1` and :mini:`nil` otherwise.
+// Returns :mini:`Int/2` if it is not divisible by :mini:`Int/1` and :mini:`nil` otherwise.
 	int64_t IntegerA = ml_integer_value_fast(Args[0]);
 	int64_t IntegerB = ml_integer_value_fast(Args[1]);
 	return (IntegerB % IntegerA) ? Args[1] : MLNil;
@@ -1902,23 +2037,23 @@ ML_METHOD("mod", MLIntegerT, MLIntegerT) {
 	}
 
 #define ml_comp_method_real_real(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLRealT, MLRealT) { \
-		double RealA = ml_real_value_fast(Args[0]); \
-		double RealB = ml_real_value_fast(Args[1]); \
+	ML_METHOD(NAME, MLDoubleT, MLDoubleT) { \
+		double RealA = ml_double_value_fast(Args[0]); \
+		double RealB = ml_double_value_fast(Args[1]); \
 		return RealA SYMBOL RealB ? Args[1] : MLNil; \
 	}
 
 #define ml_comp_method_real_integer(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLRealT, MLIntegerT) { \
-		double RealA = ml_real_value_fast(Args[0]); \
+	ML_METHOD(NAME, MLDoubleT, MLIntegerT) { \
+		double RealA = ml_double_value_fast(Args[0]); \
 		int64_t IntegerB = ml_integer_value_fast(Args[1]); \
 		return RealA SYMBOL IntegerB ? Args[1] : MLNil; \
 	}
 
 #define ml_comp_method_integer_real(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLIntegerT, MLRealT) { \
+	ML_METHOD(NAME, MLIntegerT, MLDoubleT) { \
 		int64_t IntegerA = ml_integer_value_fast(Args[0]); \
-		double RealB = ml_real_value_fast(Args[1]); \
+		double RealB = ml_double_value_fast(Args[1]); \
 		return IntegerA SYMBOL RealB ? Args[1] : MLNil; \
 	}
 
@@ -1948,40 +2083,40 @@ ML_METHOD("<>", MLIntegerT, MLIntegerT) {
 	return (ml_value_t *)Zero;
 }
 
-ML_METHOD("<>", MLRealT, MLIntegerT) {
+ML_METHOD("<>", MLDoubleT, MLIntegerT) {
 //!number
 //<Real/1
 //<Int/2
 //>integer
 // Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Real/1` is less than, equal to or greater than :mini:`Int/2`.
-	double RealA = ml_real_value_fast(Args[0]);
+	double RealA = ml_double_value_fast(Args[0]);
 	int64_t IntegerB = ml_integer_value_fast(Args[1]);
 	if (RealA < IntegerB) return (ml_value_t *)NegOne;
 	if (RealA > IntegerB) return (ml_value_t *)One;
 	return (ml_value_t *)Zero;
 }
 
-ML_METHOD("<>", MLIntegerT, MLRealT) {
+ML_METHOD("<>", MLIntegerT, MLDoubleT) {
 //!number
 //<Int/1
 //<Real/2
 //>integer
 // Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Int/1` is less than, equal to or greater than :mini:`Real/2`.
 	int64_t IntegerA = ml_integer_value_fast(Args[0]);
-	double RealB = ml_real_value_fast(Args[1]);
+	double RealB = ml_double_value_fast(Args[1]);
 	if (IntegerA < RealB) return (ml_value_t *)NegOne;
 	if (IntegerA > RealB) return (ml_value_t *)One;
 	return (ml_value_t *)Zero;
 }
 
-ML_METHOD("<>", MLRealT, MLRealT) {
+ML_METHOD("<>", MLDoubleT, MLDoubleT) {
 //!number
 //<Real/1
 //<Real/2
 //>integer
 // Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Real/1` is less than, equal to or greater than :mini:`Real/2`.
-	double RealA = ml_real_value_fast(Args[0]);
-	double RealB = ml_real_value_fast(Args[1]);
+	double RealA = ml_double_value_fast(Args[0]);
+	double RealB = ml_double_value_fast(Args[1]);
 	if (RealA < RealB) return (ml_value_t *)NegOne;
 	if (RealA > RealB) return (ml_value_t *)One;
 	return (ml_value_t *)Zero;
@@ -2037,6 +2172,7 @@ ML_TYPE(MLIntegerRangeT, (MLIteratableT), "integer-range");
 //!range
 
 ML_METHOD(MLIterCount, MLIntegerRangeT) {
+//!internal
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
 	int64_t Diff = Range->Limit - Range->Start;
 	if (!Range->Step) {
@@ -2122,12 +2258,12 @@ ML_METHOD("in", MLIntegerT, MLIntegerRangeT) {
 	return Args[0];
 }
 
-ML_METHOD("in", MLRealT, MLIntegerRangeT) {
+ML_METHOD("in", MLDoubleT, MLIntegerRangeT) {
 //!range
 //<X
 //<Range
 //>X | nil
-	double Value = ml_real_value_fast(Args[0]);
+	double Value = ml_double_value_fast(Args[0]);
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
 	if (Value < Range->Start) return MLNil;
 	if (Value > Range->Limit) return MLNil;
@@ -2182,6 +2318,7 @@ ML_TYPE(MLRealRangeT, (MLIteratableT), "real-range");
 //!range
 
 ML_METHOD(MLIterCount, MLRealRangeT) {
+//!internal
 	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
 	return ml_integer(Range->Count);
 }
@@ -2274,7 +2411,7 @@ ML_METHOD("in", MLRealRangeT, MLIntegerT) {
 	return (ml_value_t *)Range;
 }
 
-ML_METHOD("by", MLIntegerRangeT, MLRealT) {
+ML_METHOD("by", MLIntegerRangeT, MLDoubleT) {
 //!range
 //<Range
 //<Step
@@ -2284,7 +2421,7 @@ ML_METHOD("by", MLIntegerRangeT, MLRealT) {
 	Range->Type = MLRealRangeT;
 	double Start = Range->Start = Range0->Start;
 	double Limit = Range->Limit = Range0->Limit;
-	double Step = Range->Step = ml_real_value_fast(Args[1]);
+	double Step = Range->Step = ml_double_value_fast(Args[1]);
 	double C = (Limit - Start) / Step + 1;
 	if (C > LONG_MAX) C = LONG_MAX;
 	Range->Count = C;
@@ -2303,7 +2440,7 @@ ML_METHOD("bin", MLIntegerRangeT, MLIntegerT) {
 	return ml_integer((Value - Range->Start) / Range->Step + 1);
 }
 
-ML_METHOD("bin", MLIntegerRangeT, MLRealT) {
+ML_METHOD("bin", MLIntegerRangeT, MLDoubleT) {
 //!range
 //<Range
 //<Value
@@ -2327,7 +2464,7 @@ ML_METHOD("bin", MLRealRangeT, MLIntegerT) {
 	return ml_integer((Value - Range->Start) / Range->Step + 1);
 }
 
-ML_METHOD("bin", MLRealRangeT, MLRealT) {
+ML_METHOD("bin", MLRealRangeT, MLDoubleT) {
 //!range
 //<Range
 //<Value
@@ -2359,16 +2496,146 @@ ML_METHOD("in", MLIntegerT, MLRealRangeT) {
 	return Args[0];
 }
 
-ML_METHOD("in", MLRealT, MLRealRangeT) {
+ML_METHOD("in", MLDoubleT, MLRealRangeT) {
 //!range
 //<X
 //<Range
 //>X | nil
-	double Value = ml_real_value_fast(Args[0]);
+	double Value = ml_double_value_fast(Args[0]);
 	ml_real_range_t *Range = (ml_real_range_t *)Args[1];
 	if (Value < Range->Start) return MLNil;
 	if (Value > Range->Limit) return MLNil;
 	return Args[0];
+}
+
+// Switch Functions //
+
+typedef struct {
+	ml_value_t *Index;
+	int64_t Min, Max;
+} ml_integer_case_t;
+
+typedef struct {
+	ml_type_t *Type;
+	ml_integer_case_t Cases[];
+} ml_integer_switch_t;
+
+static void ml_integer_switch(ml_state_t *Caller, ml_integer_switch_t *Switch, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLNumberT);
+	int64_t Value = ml_integer_value(Args[0]);
+	for (ml_integer_case_t *Case = Switch->Cases;; ++Case) {
+		if (Case->Min <= Value && Value <= Case->Max) ML_RETURN(Case->Index);
+	}
+	ML_RETURN(MLNil);
+}
+
+ML_TYPE(MLIntegerSwitchT, (MLFunctionT), "integer-switch",
+//!internal
+	.call = (void *)ml_integer_switch
+);
+
+ML_FUNCTION(MLIntegerSwitch) {
+//!internal
+	int Total = 1;
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
+		Total += ml_list_length(Args[I]);
+	}
+	ml_integer_switch_t *Switch = xnew(ml_integer_switch_t, Total, ml_integer_case_t);
+	Switch->Type = MLIntegerSwitchT;
+	ml_integer_case_t *Case = Switch->Cases;
+	for (int I = 0; I < Count; ++I) {
+		ML_LIST_FOREACH(Args[I], Iter) {
+			ml_value_t *Value = Iter->Value;
+			if (ml_is(Value, MLIntegerT)) {
+				Case->Min = Case->Max = ml_integer_value(Value);
+			} else if (ml_is(Value, MLDoubleT)) {
+				double Real = ml_real_value(Value), Int = floor(Real);
+				if (Real != Int) return ml_error("ValueError", "Non-integer value in integer case");
+				Case->Min = Case->Max = Int;
+			} else if (ml_is(Value, MLIntegerRangeT)) {
+				ml_integer_range_t *Range = (ml_integer_range_t *)Value;
+				Case->Min = Range->Start;
+				Case->Max = Range->Limit;
+			} else if (ml_is(Value, MLRealRangeT)) {
+				ml_real_range_t *Range = (ml_real_range_t *)Value;
+				Case->Min = ceil(Range->Start);
+				Case->Max = floor(Range->Limit);
+			} else {
+				return ml_error("ValueError", "Unsupported value in integer case");
+			}
+			Case->Index = ml_integer(I);
+			++Case;
+		}
+	}
+	Case->Min = LONG_MIN;
+	Case->Max = LONG_MAX;
+	Case->Index = ml_integer(Count);
+	return (ml_value_t *)Switch;
+}
+
+typedef struct {
+	ml_value_t *Index;
+	double Min, Max;
+} ml_real_case_t;
+
+typedef struct {
+	ml_type_t *Type;
+	ml_real_case_t Cases[];
+} ml_real_switch_t;
+
+static void ml_real_switch(ml_state_t *Caller, ml_real_switch_t *Switch, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLNumberT);
+	double Value = ml_real_value(Args[0]);
+	for (ml_real_case_t *Case = Switch->Cases;; ++Case) {
+		if (Case->Min <= Value && Value <= Case->Max) ML_RETURN(Case->Index);
+	}
+	ML_RETURN(MLNil);
+}
+
+ML_TYPE(MLRealSwitchT, (MLFunctionT), "real-switch",
+//!internal
+	.call = (void *)ml_real_switch
+);
+
+ML_FUNCTION(MLRealSwitch) {
+//!internal
+	int Total = 1;
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
+		Total += ml_list_length(Args[I]);
+	}
+	ml_real_switch_t *Switch = xnew(ml_real_switch_t, Total, ml_real_case_t);
+	Switch->Type = MLRealSwitchT;
+	ml_real_case_t *Case = Switch->Cases;
+	for (int I = 0; I < Count; ++I) {
+		ML_LIST_FOREACH(Args[I], Iter) {
+			ml_value_t *Value = Iter->Value;
+			if (ml_is(Value, MLIntegerT)) {
+				Case->Min = Case->Max = ml_integer_value(Value);
+			} else if (ml_is(Value, MLDoubleT)) {
+				Case->Min = Case->Max = ml_real_value(Value);
+			} else if (ml_is(Value, MLIntegerRangeT)) {
+				ml_integer_range_t *Range = (ml_integer_range_t *)Value;
+				Case->Min = Range->Start;
+				Case->Max = Range->Limit;
+			} else if (ml_is(Value, MLRealRangeT)) {
+				ml_real_range_t *Range = (ml_real_range_t *)Value;
+				Case->Min = Range->Start;
+				Case->Max = Range->Limit;
+			} else {
+				return ml_error("ValueError", "Unsupported value in real case");
+			}
+			Case->Index = ml_integer(I);
+			++Case;
+		}
+	}
+	Case->Min = -INFINITY;
+	Case->Max = INFINITY;
+	Case->Index = ml_integer(Count);
+	return (ml_value_t *)Switch;
 }
 
 // Modules //
@@ -2443,11 +2710,16 @@ void ml_init() {
 #endif
 	GC_INIT();
 #include "ml_types_init.c"
+	stringmap_insert(MLTypeT->Exports, "switch", MLTypeSwitch);
+	stringmap_insert(MLIntegerT->Exports, "range", MLIntegerRangeT);
+	stringmap_insert(MLIntegerT->Exports, "switch", MLIntegerSwitch);
+	stringmap_insert(MLRealT->Exports, "range", MLRealRangeT);
+	stringmap_insert(MLIteratableT->Exports, "count", MLIterCount);
 	ml_method_by_value(MLIntegerT->Constructor, NULL, ml_identity, MLIntegerT, NULL);
-	ml_method_by_value(MLRealT->Constructor, NULL, ml_identity, MLRealT, NULL);
+	ml_method_by_value(MLDoubleT->Constructor, NULL, ml_identity, MLDoubleT, NULL);
+	ml_method_by_value(MLRealT->Constructor, NULL, ml_identity, MLDoubleT, NULL);
 	stringmap_insert(MLRealT->Exports, "infinity", ml_real(INFINITY));
-	ml_method_by_value(MLNumberT->Constructor, NULL, ml_identity, MLRealT, NULL);
-	ml_method_by_value(MLNumberT->Constructor, NULL, ml_identity, MLIntegerT, NULL);
+	ml_method_by_value(MLNumberT->Constructor, NULL, ml_identity, MLNumberT, NULL);
 	ml_method_by_name("=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
 	ml_method_by_name("!=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
 	ml_method_by_name("<", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
@@ -2507,6 +2779,7 @@ void ml_types_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "number", MLNumberT);
 		stringmap_insert(Globals, "integer", MLIntegerT);
 		stringmap_insert(Globals, "real", MLRealT);
+		stringmap_insert(Globals, "double", MLDoubleT);
 #ifdef ML_COMPLEX
 		stringmap_insert(Globals, "complex", MLComplexT);
 		stringmap_insert(Globals, "i", ml_complex(1i));

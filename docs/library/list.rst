@@ -19,8 +19,6 @@ list
 
 :mini:`meth list(Arg₁: tuple)`
 
-:mini:`meth MLIterCount(Arg₁: list)`
-
 :mini:`meth list(Iteratable: iteratable)` |rarr| :mini:`list`
    Returns a list of all of the values produced by :mini:`Iteratable`.
 

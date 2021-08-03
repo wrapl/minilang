@@ -188,6 +188,7 @@
       <keyword>dup</keyword>
       <keyword>tasks</keyword>
       <keyword>parallel</keyword>
+      <keyword>buffered</keyword>
       <keyword>property</keyword>
       <keyword>true</keyword>
       <keyword>false</keyword>
@@ -206,6 +207,7 @@
       <keyword>number</keyword>
       <keyword>integer</keyword>
       <keyword>real</keyword>
+      <keyword>complex</keyword>
       <keyword>string</keyword>
       <keyword>stringbuffer</keyword>
       <keyword>list</keyword>
@@ -215,6 +217,8 @@
       <keyword>regex</keyword>
       <keyword>array</keyword>
       <keyword>file</keyword>
+      <keyword>enum</keyword>
+      <keyword>flags</keyword>
     </context>
     <context id="operators" style-ref="operator" extend-parent="false">
       <match>[-.:#~^@;,/$%|\=\+\*\!\?&amp;&lt;&gt;\[\]\\{}\()]</match>

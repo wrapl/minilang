@@ -3,15 +3,97 @@ internal
 
 .. include:: <isonum.txt>
 
-:mini:`type arrayiterator`
+:mini:`type generictype < type`
 
-:mini:`type DEBUG_TYPE < Continuation`
+:mini:`meth :parents(Arg₁: generictype)`
 
-:mini:`meth :jit(Arg₁: closure)`
+:mini:`type nil < function, iteratable`
 
-:mini:`fun defaulttagfn()`
+:mini:`type some`
 
-:mini:`type TypelibIterT`
+:mini:`type blank`
+
+:mini:`meth MLCompilerSwitch(Arg₁: function)`
+
+:mini:`meth MLCompilerSwitch(Arg₁: type)`
+
+:mini:`type typeswitch < function`
+
+:mini:`fun mltypeswitch()`
+
+:mini:`type cfunction < function`
+
+:mini:`type cfunctionnoderef < function`
+
+:mini:`type cfunctionx < function`
+
+:mini:`type cfunctionz < function`
+
+:mini:`type int32 < integer`
+
+:mini:`type int64 < integer`
+
+:mini:`type double < real`
+
+:mini:`meth MLIterCount(Arg₁: integerrange)`
+
+:mini:`meth MLIterCount(Arg₁: realrange)`
+
+:mini:`type integerswitch < function`
+
+:mini:`fun mlintegerswitch()`
+
+:mini:`type realswitch < function`
+
+:mini:`fun mlrealswitch()`
+
+:mini:`type tableiter`
+
+:mini:`type tablerowiter`
+
+:mini:`type stringiterator`
+
+:mini:`type stringswitch < function`
+
+:mini:`fun mlstringswitch()`
+
+:mini:`type errorvalue`
+
+:mini:`type field`
+
+:mini:`type namedtype < type`
+
+:mini:`type enumvalue < int64`
+
+:mini:`type enumvalue < integer`
+
+:mini:`type enumswitch < function`
+
+:mini:`meth MLCompilerSwitch(Arg₁: enum)`
+
+:mini:`type enumiter`
+
+:mini:`type flagsvalue < int64`
+
+:mini:`type flagsvalue < integer`
+
+:mini:`type flagsswitch < function`
+
+:mini:`meth MLCompilerSwitch(Arg₁: flags)`
+
+:mini:`meth MLIterCount(Arg₁: map)`
+
+:mini:`type mapindex`
+
+:mini:`meth MLIterCount(Arg₁: list)`
+
+:mini:`type listiter`
+
+:mini:`type names`
+
+:mini:`type doublediterator < iteratable`
+
+:mini:`type doublediteratorstate < state`
 
 :mini:`type stacked < iteratable`
 
@@ -61,37 +143,15 @@ internal
 
 :mini:`type keystate`
 
-:mini:`type listiter`
+:mini:`type TypelibIterT`
 
-:mini:`type names`
+:mini:`fun defaulttagfn()`
 
-:mini:`type mapindex`
+:mini:`type DEBUG_TYPE < Continuation`
 
-:mini:`type errorvalue`
+:mini:`meth :jit(Arg₁: closure)`
 
-:mini:`type stringiterator`
+:mini:`type arrayiterator`
 
-:mini:`type tableiter`
-
-:mini:`type tablerowiter`
-
-:mini:`type nil < function, iteratable`
-
-:mini:`type some`
-
-:mini:`type blank`
-
-:mini:`type cfunction < function`
-
-:mini:`type cfunctionnoderef < function`
-
-:mini:`type cfunctionx < function`
-
-:mini:`type cfunctionz < function`
-
-:mini:`type int32 < integer`
-
-:mini:`type int64 < integer`
-
-:mini:`type double < real`
+:mini:`fun mltest(Arg₁: string, Arg₂: any)`
 

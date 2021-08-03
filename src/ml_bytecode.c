@@ -866,7 +866,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			ERROR();
 		}
 		int Count = Inst[1].Count;
-		int Index = ml_integer_value_fast(Result) - 1;
+		int Index = ml_integer_value_fast(Result);
 		if (Index < 0 || Index >= Count) Index = Count - 1;
 		ADVANCE(Inst[2].Insts[Index]);
 	}

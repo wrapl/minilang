@@ -54,7 +54,7 @@ static json_t *ML_TYPED_FN(ml_json_encode, MLIntegerT, ml_json_encoder_cache_t *
 	return json_integer(ml_integer_value(Value));
 }
 
-static json_t *ML_TYPED_FN(ml_json_encode, MLRealT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
+static json_t *ML_TYPED_FN(ml_json_encode, MLDoubleT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
 	return json_real(ml_real_value(Value));
 }
 

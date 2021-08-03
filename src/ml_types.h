@@ -388,37 +388,12 @@ int ml_boolean_value(const ml_value_t *Value) __attribute__ ((const));
 // Numbers //
 
 extern ml_type_t MLNumberT[];
-extern ml_type_t MLIntegerT[];
 extern ml_type_t MLRealT[];
+extern ml_type_t MLIntegerT[];
+extern ml_type_t MLDoubleT[];
 
-long ml_integer_value(const ml_value_t *Value) __attribute__ ((const));
+int64_t ml_integer_value(const ml_value_t *Value) __attribute__ ((const));
 double ml_real_value(const ml_value_t *Value) __attribute__ ((const));
-
-#ifdef ML_COMPLEX
-
-#ifdef	__cplusplus
-#else
-
-#include <complex.h>
-#undef I
-
-typedef struct {
-	ml_type_t *Type;
-	complex double Value;
-} ml_complex_t;
-
-extern ml_type_t MLComplexT[];
-
-ml_value_t *ml_complex(complex double Value);
-complex double ml_complex_value(const ml_value_t *Value);
-
-inline complex double ml_complex_value_fast(const ml_value_t *Value) {
-	return ((ml_complex_t *)Value)->Value;
-}
-
-#endif
-
-#endif
 
 #ifdef ML_NANBOXING
 
@@ -468,7 +443,7 @@ static inline int64_t ml_integer_value_fast(const ml_value_t *Value) {
 	return ((ml_int64_t *)Value)->Value;
 }
 
-static inline double ml_real_value_fast(const ml_value_t *Value) {
+static inline double ml_double_value_fast(const ml_value_t *Value) {
 	return ml_to_double(Value);
 }
 
@@ -489,11 +464,37 @@ inline int64_t ml_integer_value_fast(const ml_value_t *Value) {
 typedef struct {
 	ml_type_t *Type;
 	double Value;
-} ml_real_t;
+} ml_double_t;
 
-inline double ml_real_value_fast(const ml_value_t *Value) {
-	return ((ml_real_t *)Value)->Value;
+inline double ml_double_value_fast(const ml_value_t *Value) {
+	return ((ml_double_t *)Value)->Value;
 }
+
+#endif
+
+#ifdef ML_COMPLEX
+
+#ifdef	__cplusplus
+#else
+
+#include <complex.h>
+#undef I
+
+typedef struct {
+	ml_type_t *Type;
+	complex double Value;
+} ml_complex_t;
+
+extern ml_type_t MLComplexT[];
+
+ml_value_t *ml_complex(complex double Value);
+complex double ml_complex_value(const ml_value_t *Value);
+
+inline complex double ml_complex_value_fast(const ml_value_t *Value) {
+	return ((ml_complex_t *)Value)->Value;
+}
+
+#endif
 
 #endif
 
@@ -504,8 +505,8 @@ typedef struct ml_string_t ml_string_t;
 
 struct ml_buffer_t {
 	ml_type_t *Type;
-	char *Address;
-	size_t Size;
+	char *Value;
+	size_t Length;
 };
 
 struct ml_string_t {
@@ -521,11 +522,13 @@ extern ml_type_t MLStringT[];
 extern ml_type_t MLRegexT[];
 extern ml_type_t MLStringBufferT[];
 
+ml_value_t *ml_buffer(const char *Value, int Length) __attribute__((malloc));
+const char *ml_buffer_value(const ml_value_t *Value) __attribute__((const));
+size_t ml_buffer_length(const ml_value_t *Value) __attribute__((pure));
+
 ml_value_t *ml_string(const char *Value, int Length) __attribute__((malloc));
 #define ml_cstring(VALUE) ml_string(VALUE, strlen(VALUE))
-
 ml_value_t *ml_string_format(const char *Format, ...) __attribute__((malloc, format(printf, 1, 2)));
-
 const char *ml_string_value(const ml_value_t *Value) __attribute__((const));
 size_t ml_string_length(const ml_value_t *Value) __attribute__((pure));
 

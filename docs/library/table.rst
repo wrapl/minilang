@@ -33,17 +33,29 @@ table
 
 :mini:`meth string(Arg₁: table)`
 
-:mini:`meth (Arg₁: table)[Arg₂: string]`
+:mini:`meth (Table: table)[Name: string]` |rarr| :mini:`array`
+   Returns the column :mini:`Name` from :mini:`Table`.
 
-:mini:`meth ::(Arg₁: table, Arg₂: string)`
+
+:mini:`meth ::(Table: table, Name: string)` |rarr| :mini:`array`
+   Returns the column :mini:`Name` from :mini:`Table`.
+
 
 :mini:`type tablerow < iteratable`
+   A row in a table.
 
-:mini:`meth (Arg₁: table)[Arg₂: integer]`
 
-:mini:`meth (Arg₁: tablerow)[Arg₂: string]`
+:mini:`meth (Table: table)[Row: integer]` |rarr| :mini:`tablerow`
+   Returns the :mini:`Row`-th row of :mini:`Table`.
 
-:mini:`meth ::(Arg₁: tablerow, Arg₂: string)`
+
+:mini:`meth (Row: tablerow)[Name: string]` |rarr| :mini:`any`
+   Returns the value from column :mini:`Name` in :mini:`Row`.
+
+
+:mini:`meth ::(Row: tablerow, Name: string)` |rarr| :mini:`any`
+   Returns the value from column :mini:`Name` in :mini:`Row`.
+
 
 :mini:`meth string(Arg₁: tablerow)`
 

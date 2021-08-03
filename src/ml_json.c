@@ -158,7 +158,7 @@ static ml_value_t *ml_json_encode(yajl_gen Handle, ml_value_t *Value) {
 		yajl_gen_bool(Handle, ml_boolean_value(Value));
 	} else if (ml_is(Value, MLIntegerT)) {
 		yajl_gen_integer(Handle, ml_integer_value(Value));
-	} else if (ml_is(Value, MLRealT)) {
+	} else if (ml_is(Value, MLDoubleT)) {
 		yajl_gen_double(Handle, ml_real_value(Value));
 	} else if (ml_is(Value, MLStringT)) {
 		yajl_gen_string(Handle, (const unsigned char *)ml_string_value(Value), ml_string_length(Value));

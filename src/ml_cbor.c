@@ -153,7 +153,7 @@ void ml_cbor_read_bytes_fn(ml_cbor_reader_t *Reader, int Size) {
 		Collection->Blocks = 0;
 		Reader->Collection = Collection;
 	} else {
-		value_handler(Reader, ml_cstring(""));
+		value_handler(Reader, ml_buffer(NULL, 0));
 	}
 }
 
@@ -170,7 +170,7 @@ void ml_cbor_read_bytes_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, in
 			Buffer -= B->Size;
 			memcpy(Buffer, B->Data, B->Size);
 		}
-		value_handler(Reader, ml_string(Buffer, Total));
+		value_handler(Reader, ml_buffer(Buffer, Total));
 	} else {
 		block_t *Block = xnew(block_t, Size, char);
 		Block->Prev = Collection->Blocks;
@@ -359,8 +359,8 @@ ML_FUNCTION(MLDecode) {
 //<Bytes
 //>any | error
 	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
-	ml_cbor_t Cbor = {{.Data = ml_string_value(Args[0])}, ml_string_length(Args[0])};
+	ML_CHECK_ARG_TYPE(0, MLBufferT);
+	ml_cbor_t Cbor = {{.Data = ml_buffer_value(Args[0])}, ml_buffer_length(Args[0])};
 	return ml_from_cbor(Cbor, Count > 1 ? Args[1] : (ml_value_t *)DefaultTagFn, (void *)ml_value_tag_fn);
 }
 
@@ -372,6 +372,13 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLIntegerT, ml_value_t *Arg, void 
 	} else {
 		ml_cbor_write_positive(Data, WriteFn, Value);
 	}
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLBufferT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+	//printf("%s()\n", __func__);
+	ml_cbor_write_bytes(Data, WriteFn, ml_buffer_length(Arg));
+	WriteFn(Data, (const unsigned char *)ml_buffer_value(Arg), ml_buffer_length(Arg));
 	return NULL;
 }
 
@@ -421,8 +428,8 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLMapT, ml_value_t *Arg, void *Dat
 	return NULL;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLRealT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
-	ml_cbor_write_float8(Data, WriteFn, ml_real_value_fast(Arg));
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLDoubleT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+	ml_cbor_write_float8(Data, WriteFn, ml_double_value_fast(Arg));
 	return NULL;
 }
 
