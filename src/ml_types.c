@@ -1551,9 +1551,9 @@ ml_value_t *ml_integer(long Value) {
 	return (ml_value_t *)Integer;
 }
 
-extern long ml_integer_value_fast(const ml_value_t *Value);
+extern int64_t ml_integer_value_fast(const ml_value_t *Value);
 
-long ml_integer_value(const ml_value_t *Value) {
+int64_t ml_integer_value(const ml_value_t *Value) {
 	if (Value->Type == MLIntegerT) {
 		return ((ml_integer_t *)Value)->Value;
 	} else if (Value->Type == MLDoubleT) {
