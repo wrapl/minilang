@@ -28,8 +28,8 @@ ML_FUNCTION(MLBuffer) {
 	if (Size < 0) return ml_error("ValueError", "Buffer size must be non-negative");
 	ml_buffer_t *Buffer = new(ml_buffer_t);
 	Buffer->Type = MLBufferT;
-	Buffer->Size = Size;
-	Buffer->Address = GC_MALLOC_ATOMIC(Size);
+	Buffer->Length = Size;
+	Buffer->Value = GC_MALLOC_ATOMIC(Size);
 	return (ml_value_t *)Buffer;
 }
 
@@ -38,6 +38,22 @@ ML_TYPE(MLBufferT, (), "buffer",
 	.Constructor = (ml_value_t *)MLBuffer
 );
 
+ml_value_t *ml_buffer(const char *Value, int Length) {
+	ml_string_t *Buffer = new(ml_string_t);
+	Buffer->Type = MLBufferT;
+	Buffer->Value = Value;
+	Buffer->Length = Length;
+	return (ml_value_t *)Buffer;
+}
+
+const char *ml_buffer_value(const ml_value_t *Value) {
+	return ((ml_buffer_t *)Value)->Value;
+}
+
+size_t ml_buffer_length(const ml_value_t *Value) {
+	return ((ml_buffer_t *)Value)->Length;
+}
+
 ML_METHOD("+", MLBufferT, MLIntegerT) {
 //!buffer
 //<Buffer
@@ -45,11 +61,11 @@ ML_METHOD("+", MLBufferT, MLIntegerT) {
 //>buffer
 	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
 	long Offset = ml_integer_value_fast(Args[1]);
-	if (Offset > Buffer->Size) return ml_error("ValueError", "Offset larger than buffer");
+	if (Offset > Buffer->Length) return ml_error("ValueError", "Offset larger than buffer");
 	ml_buffer_t *Buffer2 = new(ml_buffer_t);
 	Buffer2->Type = MLBufferT;
-	Buffer2->Address = Buffer->Address + Offset;
-	Buffer2->Size = Buffer->Size - Offset;
+	Buffer2->Value = Buffer->Value + Offset;
+	Buffer2->Length = Buffer->Length - Offset;
 	return (ml_value_t *)Buffer2;
 }
 
@@ -60,7 +76,7 @@ ML_METHOD("-", MLBufferT, MLBufferT) {
 //>integer
 	ml_buffer_t *Buffer1 = (ml_buffer_t *)Args[0];
 	ml_buffer_t *Buffer2 = (ml_buffer_t *)Args[1];
-	return ml_integer(Buffer1->Address - Buffer2->Address);
+	return ml_integer(Buffer1->Value - Buffer2->Value);
 }
 
 static long ml_string_hash(ml_string_t *String, ml_hash_chain_t *Chain) {
@@ -84,7 +100,7 @@ ML_METHOD(MLIterCount, MLStringT) {
 ML_METHOD(MLStringT, MLBufferT) {
 //!buffer
 	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
-	return ml_string_format("#%" PRIxPTR ":%ld", (uintptr_t)Buffer->Address, Buffer->Size);
+	return ml_string_format("#%" PRIxPTR ":%ld", (uintptr_t)Buffer->Value, Buffer->Length);
 }
 
 ml_value_t *ml_string(const char *Value, int Length) {
