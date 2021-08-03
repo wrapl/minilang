@@ -13,7 +13,9 @@ object
 
 :mini:`meth string(Arg₁: object)`
 
-:mini:`fun class(Parents...: class, Fields...: method, Exports...: named)` |rarr| :mini:`class`
+:mini:`fun class(Parents...: class, Fields...: method, Exports...: names)` |rarr| :mini:`class`
+   Returns a new class inheriting from :mini:`Parents`, with fields :mini:`Fields` and exports :mini:`Exports`. The special exports :mini:`"of"` and :mini:`"init"` can be set to override the default conversion and initialization behaviour. The :mini:`"new"` export will *always* be set to the original constructor for this class.
+
 
 :mini:`type property`
 

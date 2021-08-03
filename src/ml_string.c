@@ -621,10 +621,12 @@ static void ml_string_switch(ml_state_t *Caller, ml_string_switch_t *Switch, int
 }
 
 ML_TYPE(MLStringSwitchT, (MLFunctionT), "string-switch",
+//!internal
 	.call = (void *)ml_string_switch
 );
 
 ML_FUNCTION(MLStringSwitch) {
+//!internal
 	int Total = 1;
 	for (int I = 0; I < Count; ++I) Total += ml_list_length(Args[I]);
 	ml_string_switch_t *Switch = xnew(ml_string_switch_t, Total, ml_string_case_t);

@@ -21,5 +21,5 @@ general
 
 :mini:`type ConsoleT`
 
-:mini:`fun mlsleep(Arg₁: number)`
+:mini:`fun sleep(Arg₁: number)`
 

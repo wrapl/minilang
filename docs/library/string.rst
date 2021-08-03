@@ -25,10 +25,6 @@ string
 
 :mini:`meth <>(Arg₁: regex, Arg₂: regex)`
 
-:mini:`type stringswitch < function`
-
-:mini:`fun mlstringswitch()`
-
 :mini:`fun stringbuffer()`
 
 :mini:`type stringbuffer`

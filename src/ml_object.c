@@ -252,8 +252,9 @@ ML_FUNCTIONX(MLClass) {
 //@class
 //<Parents...:class
 //<Fields...:method
-//<Exports...:named
+//<Exports...:names
 //>class
+// Returns a new class inheriting from :mini:`Parents`, with fields :mini:`Fields` and exports :mini:`Exports`. The special exports :mini:`"of"` and :mini:`"init"` can be set to override the default conversion and initialization behaviour. The :mini:`"new"` export will *always* be set to the original constructor for this class.
 	int Rank = 0;
 	ml_type_t *NativeType = NULL;
 	for (int I = 0; I < Count; ++I) {

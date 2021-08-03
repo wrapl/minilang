@@ -53,6 +53,10 @@ internal
 
 :mini:`type stringiterator`
 
+:mini:`type stringswitch < function`
+
+:mini:`fun mlstringswitch()`
+
 :mini:`type errorvalue`
 
 :mini:`type field`
