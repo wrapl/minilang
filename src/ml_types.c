@@ -28,6 +28,8 @@
 #include <pthread.h>
 #endif
 
+//!type
+
 ML_METHOD_DECL(IterateMethod, "iterate");
 ML_METHOD_DECL(ValueMethod, "value");
 ML_METHOD_DECL(KeyMethod, "key");
@@ -50,7 +52,7 @@ ML_INTERFACE(MLAnyT, (), "any", .Rank = 0);
 // Base type for all values.
 
 ML_INTERFACE(MLIteratableT, (), "iteratable");
-//!iterator
+//!iteratable
 // The base type for any iteratable value.
 
 ML_INTERFACE(MLFunctionT, (), "function");
@@ -99,6 +101,9 @@ static int ml_type_exports_fn(const char *Name, void *Value, ml_value_t *Exports
 }
 
 ML_METHOD("exports", MLTypeT) {
+//<Type
+//>map
+// Returns a map of all the exports from :mini:`Type`.
 	ml_type_t *Type = (ml_type_t *)Args[0];
 	ml_value_t *Exports = ml_map();
 	stringmap_foreach(Type->Exports, Exports, (void *)ml_type_exports_fn);
@@ -108,6 +113,7 @@ ML_METHOD("exports", MLTypeT) {
 #ifdef ML_GENERICS
 
 ML_TYPE(MLGenericTypeT, (MLTypeT), "generic-type");
+//!internal
 
 struct ml_generic_rule_t {
 	ml_generic_rule_t *Next;
@@ -148,6 +154,7 @@ static void ml_generic_parents(ml_value_t *Parents, int NumArgs, ml_type_t **Arg
 }
 
 ML_METHOD("parents", MLGenericTypeT) {
+//!internal
 	ml_generic_type_t *Type = (ml_generic_type_t *)Args[0];
 	ml_value_t *Parents = ml_list();
 	ml_generic_parents(Parents, Type->NumArgs, Type->Args);
@@ -522,10 +529,18 @@ ml_type_t *ml_type_max(ml_type_t *T, ml_type_t *U) {
 }
 
 ML_METHOD("*", MLTypeT, MLTypeT) {
+//<Type/1
+//<Type/2
+//>type
+// Returns the closest common parent type of :mini:`Type/1` and :mini:`Type/2`.
 	return (ml_value_t *)ml_type_max((ml_type_t *)Args[0], (ml_type_t *)Args[1]);
 }
 
 ML_METHOD("<", MLTypeT, MLTypeT) {
+//<Type/1
+//<Type/2
+//>type or nil
+// Returns :mini:`Type/2` if :mini:`Type/2` is a strict parent of :mini:`Type/1`, otherwise returns :mini:`nil`.
 	ml_type_t *Type1 = (ml_type_t *)Args[0];
 	ml_type_t *Type2 = (ml_type_t *)Args[1];
 	if (Type1 == Type2) return MLNil;
@@ -534,6 +549,10 @@ ML_METHOD("<", MLTypeT, MLTypeT) {
 }
 
 ML_METHOD("<=", MLTypeT, MLTypeT) {
+//<Type/1
+//<Type/2
+//>type or nil
+// Returns :mini:`Type/2` if :mini:`Type/2` is a parent of :mini:`Type/1`, otherwise returns :mini:`nil`.
 	ml_type_t *Type1 = (ml_type_t *)Args[0];
 	ml_type_t *Type2 = (ml_type_t *)Args[1];
 	if (Type1 == Type2) return Args[1];
@@ -542,6 +561,10 @@ ML_METHOD("<=", MLTypeT, MLTypeT) {
 }
 
 ML_METHOD(">", MLTypeT, MLTypeT) {
+//<Type/1
+//<Type/2
+//>type or nil
+// Returns :mini:`Type/2` if :mini:`Type/2` is a strict sub-type of :mini:`Type/1`, otherwise returns :mini:`nil`.
 	ml_type_t *Type1 = (ml_type_t *)Args[0];
 	ml_type_t *Type2 = (ml_type_t *)Args[1];
 	if (Type1 == Type2) return MLNil;
@@ -550,6 +573,10 @@ ML_METHOD(">", MLTypeT, MLTypeT) {
 }
 
 ML_METHOD(">=", MLTypeT, MLTypeT) {
+//<Type/1
+//<Type/2
+//>type or nil
+// Returns :mini:`Type/2` if :mini:`Type/2` is a sub-type of :mini:`Type/1`, otherwise returns :mini:`nil`.
 	ml_type_t *Type1 = (ml_type_t *)Args[0];
 	ml_type_t *Type2 = (ml_type_t *)Args[1];
 	if (Type1 == Type2) return Args[1];
@@ -559,6 +586,10 @@ ML_METHOD(">=", MLTypeT, MLTypeT) {
 
 #ifdef ML_GENERICS
 ML_METHODVX("[]", MLTypeT, MLTypeT) {
+//<Base
+//<Type/1,...,Type/n
+//>type
+// Returns the generic type :mini:`Base[Type/1, ..., Type/n]`.
 	for (int I = 2; I < Count; ++I) ML_CHECKX_ARG_TYPE(I, MLTypeT);
 	ML_RETURN(ml_generic_type(Count, (ml_type_t **)Args));
 }
@@ -1042,11 +1073,13 @@ ml_value_t *ml_partial_function_set(ml_value_t *Partial0, size_t Index, ml_value
 }
 
 ML_METHOD("count", MLPartialFunctionT) {
+//!function
 	ml_partial_function_t *Partial = (ml_partial_function_t *)Args[0];
 	return ml_integer(Partial->Count);
 }
 
 ML_METHOD("set", MLPartialFunctionT) {
+//!function
 	ml_partial_function_t *Partial = (ml_partial_function_t *)Args[0];
 	return ml_integer(Partial->Set);
 }
@@ -1235,6 +1268,7 @@ ML_METHOD(MLStringT, MLTupleT) {
 }
 
 ML_METHOD("append", MLStringBufferT, MLTupleT) {
+//!tuple
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_tuple_t *Value = (ml_tuple_t *)Args[1];
 	ml_stringbuffer_add(Buffer, "(", 1);
@@ -1419,12 +1453,13 @@ ML_METHOD("<op>", MLBooleanT, MLBooleanT) {
 
 // Numbers //
 
-ML_TYPE(MLNumberT, (MLFunctionT), "number");
+ML_TYPE(MLNumberT, (), "number");
 //!number
-// Base type for integers and reals.
+// Base type for numbers.
 
 ML_TYPE(MLRealT, (MLNumberT), "real");
 //!number
+// Base type for real numbers.
 
 #ifdef ML_NANBOXING
 
@@ -1440,7 +1475,7 @@ static void ml_int32_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_v
 	ML_RETURN(Args[Index - 1]);
 }
 
-ML_TYPE(MLIntegerT, (MLRealT), "integer");
+ML_TYPE(MLIntegerT, (MLRealT, MLFunctionT), "integer");
 //!number
 
 ML_TYPE(MLInt32T, (MLIntegerT), "int32",
@@ -1479,6 +1514,16 @@ int64_t ml_integer_value(const ml_value_t *Value) {
 	return 0;
 }
 
+ML_METHOD(MLRealT, MLInt32T) {
+//!number
+	return ml_real((int32_t)(intptr_t)Args[0]);
+}
+
+ML_METHOD(MLRealT, MLInt64T) {
+//!number
+	return ml_real(((ml_int64_t *)Args[0])->Value);
+}
+
 #else
 
 static long ml_integer_hash(ml_integer_t *Integer, ml_hash_chain_t *Chain) {
@@ -1493,7 +1538,7 @@ static void ml_integer_call(ml_state_t *Caller, ml_integer_t *Integer, int Count
 	ML_RETURN(Args[Index - 1]);
 }
 
-ML_TYPE(MLIntegerT, (MLRealT), "integer",
+ML_TYPE(MLIntegerT, (MLRealT, MLFunctionT), "integer",
 //!number
 	.hash = (void *)ml_integer_hash,
 	.call = (void *)ml_integer_call
@@ -1520,6 +1565,11 @@ long ml_integer_value(const ml_value_t *Value) {
 	} else {
 		return 0;
 	}
+}
+
+ML_METHOD(MLRealT, MLIntegerT) {
+//!number
+	return ml_real(((ml_integer_t *)Args[0])->Value);
 }
 
 #endif
@@ -1671,6 +1721,16 @@ ml_value_t *ml_complex(complex double Value) {
 	return (ml_value_t *)Complex;
 }
 
+ML_METHOD(MLComplexT, MLRealT) {
+//!number
+	return ml_complex(ml_real_value(Args[0]));
+}
+
+ML_METHOD(MLRealT, MLComplexT) {
+//!number
+	return ml_real(creal(ml_complex_value(Args[0])));
+}
+
 extern complex double ml_complex_value_fast(const ml_value_t *Value);
 
 complex double ml_complex_value(const ml_value_t *Value) {
@@ -1774,11 +1834,19 @@ complex double ml_complex_value(const ml_value_t *Value) {
 		} \
 	}
 
-ML_METHOD("re", MLComplexT) {
+ML_METHOD("r", MLComplexT) {
+//!number
+//<Z
+//>real
+// Returns the real component of :mini:`Z`.
 	return ml_real(creal(ml_complex_value_fast(Args[0])));
 }
 
-ML_METHOD("im", MLComplexT) {
+ML_METHOD("i", MLComplexT) {
+//!number
+//<Z
+//>real
+// Returns the imaginary component of :mini:`Z`.
 	return ml_real(cimag(ml_complex_value_fast(Args[0])));
 }
 
@@ -1908,7 +1976,7 @@ ML_METHOD("|", MLIntegerT, MLIntegerT) {
 //<Int/1
 //<Int/2
 //>integer
-// Returns :mini:`Int/2`. if it is divisible by :mini:`Int/1` and :mini:`nil` otherwise.
+// Returns :mini:`Int/2` if it is divisible by :mini:`Int/1` and :mini:`nil` otherwise.
 	int64_t IntegerA = ml_integer_value_fast(Args[0]);
 	int64_t IntegerB = ml_integer_value_fast(Args[1]);
 	return (IntegerB % IntegerA) ? MLNil : Args[1];
@@ -1919,7 +1987,7 @@ ML_METHOD("!|", MLIntegerT, MLIntegerT) {
 //<Int/1
 //<Int/2
 //>integer
-// Returns :mini:`Int/2`. if it is not divisible by :mini:`Int/1` and :mini:`nil` otherwise.
+// Returns :mini:`Int/2` if it is not divisible by :mini:`Int/1` and :mini:`nil` otherwise.
 	int64_t IntegerA = ml_integer_value_fast(Args[0]);
 	int64_t IntegerB = ml_integer_value_fast(Args[1]);
 	return (IntegerB % IntegerA) ? Args[1] : MLNil;
@@ -2649,7 +2717,7 @@ void ml_init() {
 	stringmap_insert(MLIteratableT->Exports, "count", MLIterCount);
 	ml_method_by_value(MLIntegerT->Constructor, NULL, ml_identity, MLIntegerT, NULL);
 	ml_method_by_value(MLDoubleT->Constructor, NULL, ml_identity, MLDoubleT, NULL);
-	ml_method_by_value(MLRealT->Constructor, NULL, ml_identity, MLRealT, NULL);
+	ml_method_by_value(MLRealT->Constructor, NULL, ml_identity, MLDoubleT, NULL);
 	stringmap_insert(MLRealT->Exports, "infinity", ml_real(INFINITY));
 	ml_method_by_value(MLNumberT->Constructor, NULL, ml_identity, MLNumberT, NULL);
 	ml_method_by_name("=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);

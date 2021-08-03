@@ -3,10 +3,6 @@ general
 
 .. include:: <isonum.txt>
 
-:mini:`type ConsoleT`
-
-:mini:`fun mlsleep(Arg₁: number)`
-
 :mini:`fun now()`
 
 :mini:`fun clock()`
@@ -22,4 +18,8 @@ general
 :mini:`fun library(Arg₁: string)`
 
 :mini:`fun unload(Arg₁: string)`
+
+:mini:`type ConsoleT`
+
+:mini:`fun mlsleep(Arg₁: number)`
 

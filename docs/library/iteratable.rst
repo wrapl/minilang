@@ -1,7 +1,11 @@
-iterator
-========
+iteratable
+==========
 
 .. include:: <isonum.txt>
+
+:mini:`type iteratable`
+   The base type for any iteratable value.
+
 
 :mini:`type filter < function`
 
@@ -165,9 +169,5 @@ iterator
 
 :mini:`fun key(Iteratable: iteratable)`
    Returns a new iteratable which produces the keys of :mini:`Iteratable`.
-
-
-:mini:`type iteratable`
-   The base type for any iteratable value.
 
 

@@ -25,6 +25,8 @@ tuple
    Returns a string representation of :mini:`Tuple`.
 
 
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: tuple)`
+
 :mini:`meth <>(Tuple₁: tuple, Tuple₂: tuple)` |rarr| :mini:`integer`
    Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Tuple₁` is less than, equal to or greater than :mini:`Tuple₂` using lexicographical ordering.
 

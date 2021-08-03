@@ -433,6 +433,12 @@ fun process(FileName) do
 	File:close
 end
 
-for FileName in Args skip 1 do process(FileName) end
+let FileNames := list(Args skip 1)
+FileNames:sort(; A, B) do
+	A = "ml_types.c" and ret A
+	B = "ml_types.c" and ret nil
+end
+	
+for FileName in FileNames do process(FileName) end
 
 for Category, File in Categories do File:close end

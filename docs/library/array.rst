@@ -149,7 +149,13 @@ array
    Return a new array with the same values of :mini:`Array` but not sharing the underlying data.
 
 
-:mini:`meth ^(Arg₁: list)`
+:mini:`meth $(List: list)` |rarr| :mini:`array`
+   Returns an array with the contents of :mini:`List`.
+
+
+:mini:`meth ^(List: list)` |rarr| :mini:`array`
+   Returns an array with the contents of :mini:`List`, transposed.
+
 
 :mini:`meth :copy(Array: array, Function: function)` |rarr| :mini:`array`
    Return a new array with the results of applying :mini:`Function` to each value of :mini:`Array`.

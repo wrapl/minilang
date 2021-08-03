@@ -35,6 +35,10 @@ function
 
 :mini:`type partialfunction < function, iteratable`
 
+:mini:`meth :count(Arg₁: partialfunction)`
+
+:mini:`meth :set(Arg₁: partialfunction)`
+
 :mini:`meth !!(Function: function, List: list)` |rarr| :mini:`partialfunction`
    Returns a function equivalent to :mini:`fun(Args...) Function(List₁, List₂, ..., Args...)`.
 

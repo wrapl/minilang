@@ -3,31 +3,23 @@ number
 
 .. include:: <isonum.txt>
 
-:mini:`meth string(Arg₁: integer)`
-
-:mini:`meth string(Arg₁: integer, Arg₂: integer)`
-
-:mini:`meth string(Arg₁: double)`
-
-:mini:`meth string(Arg₁: complex)`
-
-:mini:`meth integer(Arg₁: string)`
-
-:mini:`meth integer(Arg₁: string, Arg₂: integer)`
-
-:mini:`meth double(Arg₁: string)`
-
-:mini:`meth real(Arg₁: string)`
-
-:mini:`type number < function`
-   Base type for integers and reals.
+:mini:`type number`
+   Base type for numbers.
 
 
 :mini:`type real < number`
+   Base type for real numbers.
 
-:mini:`type integer < real`
 
-:mini:`type integer < real`
+:mini:`type integer < real, function`
+
+:mini:`meth real(Arg₁: int32)`
+
+:mini:`meth real(Arg₁: int64)`
+
+:mini:`type integer < real, function`
+
+:mini:`meth real(Arg₁: integer)`
 
 :mini:`meth integer(Arg₁: double)`
 
@@ -44,6 +36,18 @@ number
 :mini:`meth double(Arg₁: integer)`
 
 :mini:`type complex < number`
+
+:mini:`meth complex(Arg₁: real)`
+
+:mini:`meth real(Arg₁: complex)`
+
+:mini:`meth :r(Z: complex)` |rarr| :mini:`real`
+   Returns the real component of :mini:`Z`.
+
+
+:mini:`meth :i(Z: complex)` |rarr| :mini:`real`
+   Returns the imaginary component of :mini:`Z`.
+
 
 :mini:`meth ++(Int: integer)` |rarr| :mini:`integer`
    Returns :mini:`Int + 1`
@@ -74,11 +78,11 @@ number
 
 
 :mini:`meth |(Int₁: integer, Int₂: integer)` |rarr| :mini:`integer`
-   Returns :mini:`Int₂`. if it is divisible by :mini:`Int₁` and :mini:`nil` otherwise.
+   Returns :mini:`Int₂` if it is divisible by :mini:`Int₁` and :mini:`nil` otherwise.
 
 
 :mini:`meth !|(Int₁: integer, Int₂: integer)` |rarr| :mini:`integer`
-   Returns :mini:`Int₂`. if it is not divisible by :mini:`Int₁` and :mini:`nil` otherwise.
+   Returns :mini:`Int₂` if it is not divisible by :mini:`Int₁` and :mini:`nil` otherwise.
 
 
 :mini:`meth :div(Int₁: integer, Int₂: integer)` |rarr| :mini:`integer`
@@ -108,4 +112,24 @@ number
 :mini:`meth <>(Real₁: double, Real₂: double)` |rarr| :mini:`integer`
    Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Real₁` is less than, equal to or greater than :mini:`Real₂`.
 
+
+:mini:`meth string(Arg₁: integer)`
+
+:mini:`meth string(Arg₁: integer, Arg₂: integer)`
+
+:mini:`meth string(Arg₁: double)`
+
+:mini:`meth string(Arg₁: complex)`
+
+:mini:`meth integer(Arg₁: string)`
+
+:mini:`meth integer(Arg₁: string, Arg₂: integer)`
+
+:mini:`meth double(Arg₁: string)`
+
+:mini:`meth real(Arg₁: string)`
+
+:mini:`meth complex(Arg₁: string)`
+
+:mini:`meth number(Arg₁: string)`
 

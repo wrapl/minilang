@@ -15,6 +15,8 @@ string
 
 :mini:`meth string(Arg₁: double, Arg₂: string)`
 
+:mini:`meth string(Arg₁: complex, Arg₂: string)`
+
 :mini:`fun regex(String: string)` |rarr| :mini:`regex` or :mini:`error`
    Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
 

@@ -29,6 +29,8 @@ math
 
 :mini:`meth floor(Arg₁: number)` |rarr| :mini:`number`
 
+:mini:`meth sqrt(Arg₁: integer)` |rarr| :mini:`number`
+
 :mini:`meth erf(Arg₁: number)` |rarr| :mini:`number`
 
 :mini:`meth erfc(Arg₁: number)` |rarr| :mini:`number`

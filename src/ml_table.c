@@ -207,6 +207,10 @@ ML_METHOD(MLStringT, MLTableT) {
 extern ml_value_t *IndexMethod;
 
 ML_METHODVX("[]", MLTableT, MLStringT) {
+//<Table
+//<Name
+//>array
+// Returns the column :mini:`Name` from :mini:`Table`.
 	ml_table_t *Table = (ml_table_t *)Args[0];
 	ml_value_t *Column = ml_map_search(Table->Columns, Args[1]);
 	if (Column == MLNil) ML_RETURN(Column);
@@ -215,6 +219,10 @@ ML_METHODVX("[]", MLTableT, MLStringT) {
 }
 
 ML_METHODVX("::", MLTableT, MLStringT) {
+//<Table
+//<Name
+//>array
+// Returns the column :mini:`Name` from :mini:`Table`.
 	ml_table_t *Table = (ml_table_t *)Args[0];
 	ml_value_t *Column = ml_map_search(Table->Columns, Args[1]);
 	if (Column == MLNil) ML_RETURN(Column);
@@ -268,6 +276,7 @@ static ml_value_t *table_row_assign(ml_table_row_t *Row, ml_value_t *Value) {
 }
 
 ML_TYPE(MLTableRowT, (MLIteratableT), "table-row",
+// A row in a table.
 	.assign = (void *)table_row_assign
 );
 
@@ -311,6 +320,10 @@ static void ML_TYPED_FN(ml_iter_value, MLTableIterT, ml_state_t *Caller, ml_tabl
 }
 
 ML_METHOD("[]", MLTableT, MLIntegerT) {
+//<Table
+//<Row
+//>tablerow
+// Returns the :mini:`Row`-th row of :mini:`Table`.
 	ml_table_t *Table = (ml_table_t *)Args[0];
 	int Size = Table->Size;
 	if (!Size) return MLNil;
@@ -323,6 +336,10 @@ ML_METHOD("[]", MLTableT, MLIntegerT) {
 }
 
 ML_METHOD("[]", MLTableRowT, MLStringT) {
+//<Row
+//<Name
+//>any
+// Returns the value from column :mini:`Name` in :mini:`Row`.
 	ml_table_row_t *Row = (ml_table_row_t *)Args[0];
 	ml_value_t *Column = ml_map_search(Row->Table->Columns, Args[1]);
 	if (Column == MLNil) return Column;
@@ -330,6 +347,10 @@ ML_METHOD("[]", MLTableRowT, MLStringT) {
 }
 
 ML_METHOD("::", MLTableRowT, MLStringT) {
+//<Row
+//<Name
+//>any
+// Returns the value from column :mini:`Name` in :mini:`Row`.
 	ml_table_row_t *Row = (ml_table_row_t *)Args[0];
 	ml_value_t *Column = ml_map_search(Row->Table->Columns, Args[1]);
 	if (Column == MLNil) return Column;
@@ -339,7 +360,7 @@ ML_METHOD("::", MLTableRowT, MLStringT) {
 ML_METHOD(MLStringT, MLTableRowT) {
 	ml_table_row_t *Row = (ml_table_row_t *)Args[0];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	ml_stringbuffer_add(Buffer, "{", 1);
+	ml_stringbuffer_add(Buffer, "<", 1);
 	int Comma = 0;
 	ML_MAP_FOREACH(Row->Table->Columns, Iter) {
 		if (Comma) ml_stringbuffer_add(Buffer, ", ", 2);
@@ -349,7 +370,7 @@ ML_METHOD(MLStringT, MLTableRowT) {
 		ml_stringbuffer_append(Buffer, Value);
 		Comma = 1;
 	}
-	ml_stringbuffer_add(Buffer, "}", 1);
+	ml_stringbuffer_add(Buffer, ">", 1);
 	return ml_stringbuffer_value(Buffer);
 }
 

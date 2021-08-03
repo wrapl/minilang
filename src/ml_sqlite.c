@@ -42,6 +42,7 @@ static void ml_sqlite_finalize(ml_sqlite_t *Sqlite, void *Data) {
 }
 
 ML_FUNCTION(MLSqlite) {
+//@sqlite
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLSqliteOpenFlags);

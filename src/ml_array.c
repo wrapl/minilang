@@ -2857,7 +2857,18 @@ ML_METHOD("copy", MLArrayT) {
 	return (ml_value_t *)Target;
 }
 
+/*
+ML_METHOD("$", MLListT) {
+//<List
+//>array
+// Returns an array with the contents of :mini:`List`.
+}
+*/
+
 ML_METHOD("^", MLListT) {
+//<List
+//>array
+// Returns an array with the contents of :mini:`List`, transposed.
 	ml_value_t *Source = Args[0];
 	ml_array_format_t Format = ML_ARRAY_FORMAT_NONE;
 	Format = ml_array_of_type_guess(Args[0], ML_ARRAY_FORMAT_NONE);

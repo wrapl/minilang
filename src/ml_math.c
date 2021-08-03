@@ -23,7 +23,12 @@ ML_METHOD(NAME ## Method, MLRealT) { \
 } \
 \
 ML_METHOD(NAME ## Method, MLComplexT) { \
-	return ml_complex(c ## CNAME(ml_complex_value(Args[0]))); \
+	complex double Result = c ## CNAME(ml_complex_value(Args[0])); \
+	if (fabs(cimag(Result)) <= DBL_EPSILON) { \
+		return ml_real(creal(Result)); \
+	} else { \
+		return ml_complex(Result); \
+	} \
 }
 
 #else
@@ -154,6 +159,21 @@ MATH_NUMBER(Log10, log10);
 MATH_NUMBER(Sin, sin);
 MATH_NUMBER(Sinh, sinh);
 MATH_NUMBER(Sqrt, sqrt);
+ML_METHOD(SqrtMethod, MLIntegerT) {
+//@sqrt
+//>number
+	int64_t N = ml_integer_value(Args[0]);
+	if (N < 0) return ml_real(-NAN);
+	if (N <= 1) return Args[0];
+	int64_t X = N >> 1;
+	for (;;) {
+		int64_t X1 = (X + N / X) >> 1;
+		if (X1 >= X) break;
+		X = X1;
+	}
+	if (X * X == N) return ml_integer(X);
+	return ml_real(sqrt(N));
+}
 MATH_NUMBER(Tan, tan);
 MATH_NUMBER(Tanh, tanh);
 MATH_REAL(Erf, erf);

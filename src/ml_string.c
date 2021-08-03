@@ -170,12 +170,6 @@ ML_METHOD(MLStringT, MLIntegerT, MLStringT) {
 	int64_t Value = ml_integer_value_fast(Args[0]);
 	char *String;
 	int Length;
-	int Error = regexec(IntFormat, Format, 0, NULL, 0);
-	if (Error) {
-		char Message[128];
-		regerror(Error, IntFormat, Message, 128);
-		printf("Regex error: %s\n", Message);
-	}
 	if (!regexec(IntFormat, Format, 0, NULL, 0)) {
 		Length = asprintf(&String, Format, (int)Value);
 	} else if (!regexec(LongFormat, Format, 0, NULL, 0)) {
@@ -219,12 +213,52 @@ ML_METHOD(MLStringT, MLComplexT) {
 	complex double Complex = ml_complex_value_fast(Args[0]);
 	char *String;
 	int Length;
-	if (fabs(creal(Complex)) <= DBL_EPSILON) {
-		Length = asprintf(&String, "%gi", cimag(Complex));
+	double Real = creal(Complex);
+	double Imag = cimag(Complex);
+	if (fabs(Real) <= DBL_EPSILON) {
+		if (fabs(Imag - 1) <= DBL_EPSILON) {
+			String = "i";
+			Length = 1;
+		} else if (fabs(Imag) <= DBL_EPSILON) {
+			String = "0";
+			Length = 1;
+		} else {
+			Length = asprintf(&String, "%gi", Imag);
+		}
+	} else if (fabs(Imag) <= DBL_EPSILON) {
+		Length = asprintf(&String, "%g", Real);
+	} else if (Imag < 0) {
+		if (fabs(Imag + 1) <= DBL_EPSILON) {
+			Length = asprintf(&String, "%g - i", Real);
+		} else {
+			Length = asprintf(&String, "%g - %gi", Real, -Imag);
+		}
 	} else {
-		Length = asprintf(&String, "%g + %gi", creal(Complex), cimag(Complex));
+		if (fabs(Imag - 1) <= DBL_EPSILON) {
+			Length = asprintf(&String, "%g + i", Real);
+		} else {
+			Length = asprintf(&String, "%g + %gi", Real, Imag);
+		}
 	}
 	return ml_string(String, Length);
+}
+
+ML_METHOD(MLStringT, MLComplexT, MLStringT) {
+	const char *Format = ml_string_value(Args[1]);
+	if (regexec(RealFormat, Format, 0, NULL, 0)) {
+		return ml_error("FormatError", "Invalid format string");
+	}
+	complex double Complex = ml_complex_value_fast(Args[0]);
+	double Real = creal(Complex);
+	double Imag = cimag(Complex);
+	char *ComplexFormat;
+	if (Imag < 0) {
+		Imag = -Imag;
+		asprintf(&ComplexFormat, "%s - %si", Format, Format);
+	} else {
+		asprintf(&ComplexFormat, "%s + %si", Format, Format);
+	}
+	return ml_string_format(ComplexFormat, Real, Imag);
 }
 
 #endif
@@ -268,12 +302,132 @@ ML_METHOD(MLDoubleT, MLStringT) {
 ML_METHOD(MLRealT, MLStringT) {
 //!number
 	const char *Start = ml_string_value(Args[0]);
-	int Length = ml_string_length(Args[0]);
 	char *End;
+	double Value = strtod(Start, &End);
+	if (End - Start == ml_string_length(Args[0])) {
+		return ml_real(Value);
+	} else {
+		return ml_error("ValueError", "Error parsing real");
+	}
+}
+
+#ifdef ML_COMPLEX
+
+ML_METHOD(MLComplexT, MLStringT) {
+//!number
+	const char *Start = ml_string_value(Args[0]);
+	int Length = ml_string_length(Args[0]);
+	char *End = (char *)Start;
+#ifdef ML_COMPLEX
+	if (End[0] == 'i') {
+		if (++End - Start != Length) return ml_error("ValueError", "Error parsing number");
+		return ml_complex(_Complex_I);
+	}
+#endif
 	long Integer = strtol(Start, &End, 10);
+#ifdef ML_COMPLEX
+	if (End[0] == 'i') {
+		if (++End - Start != Length) return ml_error("ValueError", "Error parsing number");
+		return ml_complex(Integer * _Complex_I);
+	}
+#endif
+	if (End - Start == Length) return ml_complex(Integer);
+	double Real = strtod(Start, &End);
+#ifdef ML_COMPLEX
+	if (End[0] == 'i') {
+		if (++End - Start != Length) return ml_error("ValueError", "Error parsing number");
+		return ml_complex(Real * _Complex_I);
+	}
+#endif
+	if (End - Start == Length) return ml_complex(Real);
+#ifdef ML_COMPLEX
+	if (End[0] == ' ') ++End;
+	if (End[0] == '+') {
+		++End;
+		if (End[0] == ' ') ++End;
+		if (End[0] == 'i') {
+			if (++End - Start != Length) return ml_error("ValueError", "Error parsing number");
+			return ml_complex(Real + _Complex_I);
+		}
+		double Imag = strtod(End, &End);
+		if (End[0] == 'i') {
+			if (++End - Start != Length) return ml_error("ValueError", "Error parsing number");
+			return ml_complex(Real + Imag * _Complex_I);
+		}
+	} else if (End[0] == '-') {
+		++End;
+		if (End[0] == ' ') ++End;
+		if (End[0] == 'i') {
+			if (++End - Start != Length) return ml_error("ValueError", "Error parsing number");
+			return ml_complex(Real - _Complex_I);
+		}
+		double Imag = strtod(End, &End);
+		if (End[0] == 'i') {
+			if (++End - Start != Length) return ml_error("ValueError", "Error parsing number");
+			return ml_complex(Real - Imag * _Complex_I);
+		}
+	}
+#endif
+	return ml_error("ValueError", "Error parsing number");
+}
+
+#endif
+
+ML_METHOD(MLNumberT, MLStringT) {
+//!number
+	const char *Start = ml_string_value(Args[0]);
+	int Length = ml_string_length(Args[0]);
+	char *End = (char *)Start;
+#ifdef ML_COMPLEX
+	if (End[0] == 'i') {
+		if (++End - Start != Length) return ml_error("ValueError", "Error parsing number");
+		return ml_complex(_Complex_I);
+	}
+#endif
+	long Integer = strtol(Start, &End, 10);
+#ifdef ML_COMPLEX
+	if (End[0] == 'i') {
+		if (++End - Start != Length) return ml_error("ValueError", "Error parsing number");
+		return ml_complex(Integer * _Complex_I);
+	}
+#endif
 	if (End - Start == Length) return ml_integer(Integer);
 	double Real = strtod(Start, &End);
+#ifdef ML_COMPLEX
+	if (End[0] == 'i') {
+		if (++End - Start != Length) return ml_error("ValueError", "Error parsing number");
+		return ml_complex(Real * _Complex_I);
+	}
+#endif
 	if (End - Start == Length) return ml_real(Real);
+#ifdef ML_COMPLEX
+	if (End[0] == ' ') ++End;
+	if (End[0] == '+') {
+		++End;
+		if (End[0] == ' ') ++End;
+		if (End[0] == 'i') {
+			if (++End - Start != Length) return ml_error("ValueError", "Error parsing number");
+			return ml_complex(Real + _Complex_I);
+		}
+		double Imag = strtod(End, &End);
+		if (End[0] == 'i') {
+			if (++End - Start != Length) return ml_error("ValueError", "Error parsing number");
+			return ml_complex(Real + Imag * _Complex_I);
+		}
+	} else if (End[0] == '-') {
+		++End;
+		if (End[0] == ' ') ++End;
+		if (End[0] == 'i') {
+			if (++End - Start != Length) return ml_error("ValueError", "Error parsing number");
+			return ml_complex(Real - _Complex_I);
+		}
+		double Imag = strtod(End, &End);
+		if (End[0] == 'i') {
+			if (++End - Start != Length) return ml_error("ValueError", "Error parsing number");
+			return ml_complex(Real - Imag * _Complex_I);
+		}
+	}
+#endif
 	return ml_error("ValueError", "Error parsing number");
 }
 
