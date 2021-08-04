@@ -55,3 +55,44 @@ div.folders ul li:after {
 .highlight-console pre {
 	color: #718c00;
 }
+
+.ansi-bold {
+	font-weight: bold;
+}
+
+.ansi-underscore {
+	text-decoration: underline;
+}
+
+.ansi-black {
+	color: black;
+}
+
+.ansi-red {
+	color: red;
+}
+
+.ansi-green {
+	color: green;
+}
+
+.ansi-yellow {
+	color: orange;
+}
+
+.ansi-blue {
+	color: blue;
+}
+
+.ansi-magenta {
+	color: magenta;
+}
+
+.ansi-cyan {
+	color: cyan;
+}
+
+.ansi-white {
+	color: white;
+}
+
