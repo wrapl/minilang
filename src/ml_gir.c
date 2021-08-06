@@ -1209,7 +1209,12 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 				switch (g_type_info_get_tag(ElementInfo)) {
 				case GI_TYPE_TAG_INT8:
 				case GI_TYPE_TAG_UINT8: {
-					if (ml_is(Arg, MLStringT)) {
+					if (Arg == MLNil) {
+						ArgsIn[IndexIn].v_pointer = 0;
+						if (LengthIndex >= 0) {
+							set_input_length(Info, LengthIndex, ArgsIn, 0);
+						}
+					} else if (ml_is(Arg, MLStringT)) {
 						ArgsIn[IndexIn].v_pointer = (void *)ml_string_value(Arg);
 						if (LengthIndex >= 0) {
 							set_input_length(Info, LengthIndex, ArgsIn, ml_string_length(Arg));
@@ -1225,12 +1230,18 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 					break;
 				}
 				default: {
-					if (!ml_is(Arg, MLListT)) {
+					if (Arg == MLNil) {
+						ArgsIn[IndexIn].v_pointer = 0;
+						if (LengthIndex >= 0) {
+							set_input_length(Info, LengthIndex, ArgsIn, 0);
+						}
+					} else if (ml_is(Arg, MLListT)) {
+						ArgsIn[IndexIn].v_pointer = list_to_array(Arg, ElementInfo);
+						if (LengthIndex >= 0) {
+							set_input_length(Info, LengthIndex, ArgsIn, ml_list_length(Arg));
+						}
+					} else {
 						return ml_error("TypeError", "Expected list for parameter %d", I);
-					}
-					ArgsIn[IndexIn].v_pointer = list_to_array(Arg, ElementInfo);
-					if (LengthIndex >= 0) {
-						set_input_length(Info, LengthIndex, ArgsIn, ml_list_length(Arg));
 					}
 					break;
 				}
