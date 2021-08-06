@@ -194,6 +194,8 @@
       <keyword>false</keyword>
       <keyword>import</keyword>
       <keyword>export</keyword>
+      <keyword>exchange</keyword>
+      <keyword>replace</keyword>
     </context>
     <context id="types" style-ref="type">
       <keyword>class</keyword>

@@ -635,7 +635,7 @@ typedef struct {
 
 static void ml_type_switch(ml_state_t *Caller, ml_type_switch_t *Switch, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
-	ml_type_t *Type = ml_typeof(Args[0]);
+	ml_type_t *Type = ml_typeof(ml_deref(Args[0]));
 	for (ml_type_case_t *Case = Switch->Cases;; ++Case) {
 		if (ml_is_subtype(Type, Case->Type)) ML_RETURN(Case->Index);
 	}
@@ -2522,8 +2522,11 @@ typedef struct {
 
 static void ml_integer_switch(ml_state_t *Caller, ml_integer_switch_t *Switch, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLNumberT);
-	int64_t Value = ml_integer_value(Args[0]);
+	ml_value_t *Arg = ml_deref(Args[0]);
+	if (!ml_is(Arg, MLNumberT)) {
+		ML_ERROR("TypeError", "expected number for argument 1");
+	}
+	int64_t Value = ml_integer_value(Arg);
 	for (ml_integer_case_t *Case = Switch->Cases;; ++Case) {
 		if (Case->Min <= Value && Value <= Case->Max) ML_RETURN(Case->Index);
 	}
@@ -2587,8 +2590,11 @@ typedef struct {
 
 static void ml_real_switch(ml_state_t *Caller, ml_real_switch_t *Switch, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLNumberT);
-	double Value = ml_real_value(Args[0]);
+	ml_value_t *Arg = ml_deref(Args[0]);
+	if (!ml_is(Arg, MLNumberT)) {
+		ML_ERROR("TypeError", "expected number for argument 1");
+	}
+	double Value = ml_real_value(Arg);
 	for (ml_real_case_t *Case = Switch->Cases;; ++Case) {
 		if (Case->Min <= Value && Value <= Case->Max) ML_RETURN(Case->Index);
 	}

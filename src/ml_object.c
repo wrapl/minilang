@@ -481,7 +481,7 @@ ML_FUNCTION(MLEnum) {
 		Value->Base.Type = (ml_type_t *)Enum;
 		Value->Name = Args[I];
 		Enum->Values[I] = (ml_value_t *)Value;
-		Value->Base.Value = I;
+		Value->Base.Value = I + 1;
 		stringmap_insert(Enum->Base.Exports, ml_string_value(Args[I]), Value);
 	}
 	return (ml_value_t *)Enum;
@@ -559,8 +559,11 @@ typedef struct {
 
 static void ml_enum_switch(ml_state_t *Caller, ml_enum_switch_t *Switch, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, ((ml_type_t *)Switch->Enum));
-	uint64_t Value = ml_enum_value(Args[0]);
+	ml_value_t *Arg = ml_deref(Args[0]);
+	if (!ml_is(Arg, (ml_type_t *)Switch->Enum)) {
+		ML_ERROR("TypeError", "expected %s for argument 1", Switch->Enum->Base.Name);
+	}
+	uint64_t Value = ml_enum_value(Arg);
 	for (ml_enum_case_t *Case = Switch->Cases;; ++Case) {
 		if (Case->Value == Value) ML_RETURN(Case->Index);
 		if (Case->Value == UINT64_MAX) ML_RETURN(Case->Index);
@@ -791,8 +794,11 @@ typedef struct {
 
 static void ml_flags_switch(ml_state_t *Caller, ml_flags_switch_t *Switch, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, ((ml_type_t *)Switch->Flags));
-	uint64_t Value = ml_enum_value(Args[0]);
+	ml_value_t *Arg = ml_deref(Args[0]);
+	if (!ml_is(Arg, (ml_type_t *)Switch->Flags)) {
+		ML_ERROR("TypeError", "expected %s for argument 1", Switch->Flags->Base.Name);
+	}
+	uint64_t Value = ml_enum_value(Arg);
 	for (ml_flags_case_t *Case = Switch->Cases;; ++Case) {
 		if ((Case->Value & Value) == Case->Value) ML_RETURN(Case->Index);
 	}

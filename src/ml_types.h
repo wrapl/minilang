@@ -316,12 +316,12 @@ static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Arg
 
 #define ML_CHECKX_ARG_TYPE(N, TYPE) \
 	if (!ml_is(Args[N], TYPE)) { \
-		ML_CONTINUE(Caller, ml_error("TypeError", "expected %s required for argument %d", TYPE->Name, N + 1)); \
+		ML_ERROR("TypeError", "expected %s for argument %d", TYPE->Name, N + 1); \
 	}
 
 #define ML_CHECKX_ARG_COUNT(N) \
 	if (Count < N) { \
-		ML_CONTINUE(Caller, ml_error("CallError", "%d arguments required", N)); \
+		ML_ERROR("CallError", "%d arguments required", N); \
 	}
 
 #define ML_CONTINUE(STATE, VALUE) { \

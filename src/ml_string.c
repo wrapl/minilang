@@ -611,9 +611,12 @@ typedef struct {
 
 static void ml_string_switch(ml_state_t *Caller, ml_string_switch_t *Switch, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLStringT);
-	const char *Subject = ml_string_value(Args[0]);
-	size_t Length = ml_string_length(Args[0]);
+	ml_value_t *Arg = ml_deref(Args[0]);
+	if (!ml_is(Arg, MLStringT)) {
+		ML_ERROR("TypeError", "expected string for argument 1");
+	}
+	const char *Subject = ml_string_value(Arg);
+	size_t Length = ml_string_length(Arg);
 	for (ml_string_case_t *Case = Switch->Cases;; ++Case) {
 		if (Case->String) {
 			if (Case->String->Length == Length) {
