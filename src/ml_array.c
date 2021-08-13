@@ -2555,8 +2555,8 @@ ML_METHOD(#OP, MLComplexT, MLArrayT) { \
 
 #else
 
-#define ML_ARITH_METHOD(BASE, OP) \
-ML_ARITH_METHOD_BASE(BASE, OP)
+#define ML_ARITH_METHOD(BASE) \
+ML_ARITH_METHOD_BASE(BASE)
 
 #endif
 
