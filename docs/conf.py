@@ -140,7 +140,7 @@ def setup(sphinx):
 	import sys, os
 	sys.path.insert(0, os.path.abspath('./_util'))
 	from minilang import MinilangLexer, minilangDomain
-	sphinx.add_lexer("mini", MinilangLexer())
+	sphinx.add_lexer("mini", MinilangLexer)
 	lexers.LEXERS['mini'] = ('minilang', 'Minilang', ('mini',), ('*.mini', '*.rabs'), ('text/x-mini',))
 	#sphinx.add_domain(minilangDomain) 
 	sphinx.add_directive('folders', FoldersDirective)

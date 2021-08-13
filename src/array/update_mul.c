@@ -1,3 +1,5 @@
 #include "update_impl.h"
 
-UPDATE_ROW_OPS_IMPL(mul, *=)
+#define OP_MUL(A, B) A * B
+
+UPDATE_ROW_OPS_IMPL(mul, OP_MUL)

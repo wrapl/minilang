@@ -595,6 +595,8 @@ static ML_METHOD_DECL(RangeMethod, "..");
 static ML_METHOD_DECL(SymbolMethod, "::");
 static ML_METHOD_DECL(MulMethod, "*");
 static ML_METHOD_DECL(AddMethod, "+");
+static ML_METHOD_DECL(SubMethod, "-");
+static ML_METHOD_DECL(DivMethod, "/");
 
 static ml_value_t *ml_array_value(ml_array_t *Array, char *Address) {
 	typeof(ml_array_value) *function = ml_typed_fn_get(Array->Base.Type, ml_array_value);
@@ -992,9 +994,11 @@ typedef void (*update_row_fn_t)(ml_array_dimension_t *TargetDimension, char *Tar
 static update_row_fn_t UpdateRowFns[] = {
 	UPDATE_ROW_OPS_ENTRIES(0, set),
 	UPDATE_ROW_OPS_ENTRIES(1, add),
-	UPDATE_ROW_OPS_ENTRIES(2, sub),
-	UPDATE_ROW_OPS_ENTRIES(3, mul),
-	UPDATE_ROW_OPS_ENTRIES(4, div)
+	UPDATE_ROW_OPS_ENTRIES(2, mul),
+	UPDATE_ROW_OPS_ENTRIES(3, sub),
+	UPDATE_ROW_OPS_ENTRIES(4, rsub),
+	UPDATE_ROW_OPS_ENTRIES(5, div),
+	UPDATE_ROW_OPS_ENTRIES(6, rdiv)
 };
 
 static void update_array(int Op, ml_array_dimension_t *TargetDimension, char *TargetData, int SourceDegree, ml_array_dimension_t *SourceDimension, char *SourceData) {
@@ -2347,10 +2351,26 @@ static ml_value_t *array_math_fn(double (*fn)(double), int Count, ml_value_t **A
 static ml_value_t *array_infix_fn(void *Data, int Count, ml_value_t **Args) {
 	ml_array_t *A = (ml_array_t *)Args[0];
 	ml_array_t *B = (ml_array_t *)Args[1];
+	int Base = ((char *)Data - (char *)0);
+	if (A->Degree < B->Degree) {
+		ml_array_t *T = A;
+		A = B;
+		B = T;
+		if (Base == 3) {
+			Base = 4;
+		} else if (Base == 5) {
+			Base = 6;
+		}
+	}
 	int Degree = A->Degree;
+	for (int D = A->Degree - B->Degree, I = B->Degree; --I >= 0;) {
+		if (A->Dimensions[D + I].Size != B->Dimensions[I].Size) {
+			return ml_error("ShapeError", "Incompatible arrays");
+		}
+	}
 	ml_array_t *C = ml_array_new(MAX(A->Format, B->Format), Degree);
 	array_copy(C, A);
-	int Op2 = ((char *)Data - (char *)0) * MAX_FORMATS * MAX_FORMATS + C->Format * MAX_FORMATS + B->Format;
+	int Op2 = Base * MAX_FORMATS * MAX_FORMATS + C->Format * MAX_FORMATS + B->Format;
 	update_prefix(Op2, C->Degree - B->Degree, C->Dimensions, C->Base.Value, B->Degree, B->Dimensions, B->Base.Value);
 	return (ml_value_t *)C;
 }
@@ -2388,7 +2408,7 @@ static ml_value_t *array_infix_fn(void *Data, int Count, ml_value_t **Args) {
 
 #endif
 
-#define ML_ARITH_METHOD_BASE(BASE, OP) \
+#define ML_ARITH_METHOD_BASE(OP) \
 \
 ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
@@ -2506,8 +2526,8 @@ ML_METHOD(#OP, MLDoubleT, MLArrayT) { \
 
 #ifdef ML_COMPLEX
 
-#define ML_ARITH_METHOD(BASE, OP) \
-ML_ARITH_METHOD_BASE(BASE, OP) \
+#define ML_ARITH_METHOD(OP) \
+ML_ARITH_METHOD_BASE(OP) \
 \
 ML_METHOD(#OP, MLArrayT, MLComplexT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
@@ -2540,10 +2560,10 @@ ML_ARITH_METHOD_BASE(BASE, OP)
 
 #endif
 
-ML_ARITH_METHOD(1, +);
-ML_ARITH_METHOD(2, -);
-ML_ARITH_METHOD(3, *);
-ML_ARITH_METHOD(4, /);
+ML_ARITH_METHOD(+);
+ML_ARITH_METHOD(*);
+ML_ARITH_METHOD(-);
+ML_ARITH_METHOD(/);
 
 #define ML_COMPARE_METHOD_BASE(BASE, BASE2, OP) \
 \
@@ -3419,145 +3439,156 @@ static void ml_array_dot_fill(
 	}
 }
 
-static void ml_array_prod_fill(
-	void *DataA, ml_array_dimension_t *DimA, int FormatA, int DegreeA,
-	void *DataB, ml_array_dimension_t *DimB, int FormatB, int DegreeB,
-	void *DataC, ml_array_dimension_t *DimC, int FormatC, int DegreeC
-) {
-	if (DegreeA > 0) {
-		int StrideA = DimA->Stride;
-		int StrideC = DimC->Stride;
-		if (DimA->Indices) {
-			int *Indices = DimA->Indices;
-			for (int I = 0; I < DimA->Size; ++I) {
-				ml_array_prod_fill(
-					DataA + (Indices[I]) * StrideA, DimA + 1, FormatA, DegreeA - 1,
-					DataB, DimB, FormatB, DegreeB,
-					DataC, DimC + 1, FormatC, DegreeC - 1
-				);
-				DataC += StrideC;
-			}
-		} else {
-			for (int I = DimA->Size; --I >= 0;) {
-				ml_array_prod_fill(
-					DataA, DimA + 1, FormatA, DegreeA - 1,
-					DataB, DimB, FormatB, DegreeB,
-					DataC, DimC + 1, FormatC, DegreeC - 1
-				);
-				DataA += StrideA;
-				DataC += StrideC;
-			}
-		}
-	} else if (DegreeB > 0) {
-		int StrideB = DimB->Stride;
-		int StrideC = (DimC + DegreeC - 1)->Stride;
-		if (DimB->Indices) {
-			int *Indices = DimB->Indices;
-			for (int I = 0; I < DimB->Size; ++I) {
-				ml_array_prod_fill(
-					DataA, DimA, FormatA, DegreeA,
-					DataB + (Indices[I]) * StrideB, DimB - 1, FormatB, DegreeB - 1,
-					DataC, DimC, FormatC, DegreeC - 1
-				);
-				DataC += StrideC;
-			}
-		} else {
-			for (int I = DimB->Size; --I >= 0;) {
-				ml_array_prod_fill(
-					DataA, DimA, FormatA, DegreeA,
-					DataB, DimB - 1, FormatB, DegreeB - 1,
-					DataC, DimC, FormatC, DegreeC - 1
-				);
-				DataB += StrideB;
-				DataC += StrideC;
-			}
-		}
-	} else {
-		switch (FormatC) {
-		case ML_ARRAY_FORMAT_I8: {
-			int8_t ValueA = ml_array_get0_int8_t(DataA, FormatA);
-			int8_t ValueB = ml_array_get0_int8_t(DataB, FormatB);
-			*(int8_t *)DataC = ValueA * ValueB;
-			break;
-		}
-		case ML_ARRAY_FORMAT_U8: {
-			uint8_t ValueA = ml_array_get0_uint8_t(DataA, FormatA);
-			uint8_t ValueB = ml_array_get0_uint8_t(DataB, FormatB);
-			*(uint8_t *)DataC = ValueA * ValueB;
-			break;
-		}
-		case ML_ARRAY_FORMAT_I16: {
-			int16_t ValueA = ml_array_get0_int16_t(DataA, FormatA);
-			int16_t ValueB = ml_array_get0_int16_t(DataB, FormatB);
-			*(int16_t *)DataC = ValueA * ValueB;
-			break;
-		}
-		case ML_ARRAY_FORMAT_U16: {
-			uint16_t ValueA = ml_array_get0_uint16_t(DataA, FormatA);
-			uint16_t ValueB = ml_array_get0_uint16_t(DataB, FormatB);
-			*(uint16_t *)DataC = ValueA * ValueB;
-			break;
-		}
-		case ML_ARRAY_FORMAT_I32: {
-			int32_t ValueA = ml_array_get0_int32_t(DataA, FormatA);
-			int32_t ValueB = ml_array_get0_int32_t(DataB, FormatB);
-			*(int32_t *)DataC = ValueA * ValueB;
-			break;
-		}
-		case ML_ARRAY_FORMAT_U32: {
-			uint32_t ValueA = ml_array_get0_uint32_t(DataA, FormatA);
-			uint32_t ValueB = ml_array_get0_uint32_t(DataB, FormatB);
-			*(uint32_t *)DataC = ValueA * ValueB;
-			break;
-		}
-		case ML_ARRAY_FORMAT_I64: {
-			int64_t ValueA = ml_array_get0_int64_t(DataA, FormatA);
-			int64_t ValueB = ml_array_get0_int64_t(DataB, FormatB);
-			*(int64_t *)DataC = ValueA * ValueB;
-			break;
-		}
-		case ML_ARRAY_FORMAT_U64: {
-			uint64_t ValueA = ml_array_get0_uint64_t(DataA, FormatA);
-			uint64_t ValueB = ml_array_get0_uint64_t(DataB, FormatB);
-			*(uint64_t *)DataC = ValueA * ValueB;
-			break;
-		}
-		case ML_ARRAY_FORMAT_F32: {
-			float ValueA = ml_array_get0_float(DataA, FormatA);
-			float ValueB = ml_array_get0_float(DataB, FormatB);
-			*(float *)DataC = ValueA * ValueB;
-			break;
-		}
-		case ML_ARRAY_FORMAT_F64: {
-			double ValueA = ml_array_get0_double(DataA, FormatA);
-			double ValueB = ml_array_get0_double(DataB, FormatB);
-			*(double *)DataC = ValueA * ValueB;
-			break;
-		}
 #ifdef ML_COMPLEX
-		case ML_ARRAY_FORMAT_C32: {
-			complex_float ValueA = ml_array_get0_complex_float(DataA, FormatA);
-			complex_float ValueB = ml_array_get0_complex_float(DataB, FormatB);
-			*(complex_float *)DataC = ValueA * ValueB;
-			break;
+#define ML_ARRAY_INFIX_FILL_COMPLEX(OP) \
+		case ML_ARRAY_FORMAT_C32: { \
+			complex_float ValueA = ml_array_get0_complex_float(DataA, FormatA); \
+			complex_float ValueB = ml_array_get0_complex_float(DataB, FormatB); \
+			*(complex_float *)DataC = ValueA OP ValueB; \
+			break; \
+		} \
+		case ML_ARRAY_FORMAT_C64: { \
+			complex_double ValueA = ml_array_get0_complex_double(DataA, FormatA); \
+			complex_double ValueB = ml_array_get0_complex_double(DataB, FormatB); \
+			*(complex_double *)DataC = ValueA OP ValueB; \
+			break; \
 		}
-		case ML_ARRAY_FORMAT_C64: {
-			complex_double ValueA = ml_array_get0_complex_double(DataA, FormatA);
-			complex_double ValueB = ml_array_get0_complex_double(DataB, FormatB);
-			*(complex_double *)DataC = ValueA * ValueB;
-			break;
-		}
+#else
+#define ML_ARRAY_INFIX_FILL_COMPLEX(OP)
 #endif
-		case ML_ARRAY_FORMAT_ANY: {
-			ml_value_t *Args[2] = {
-				ml_array_get0_value(DataA, FormatA),
-				ml_array_get0_value(DataB, FormatB)
-			};
-			*(ml_value_t **)DataC = ml_simple_call(MulMethod, 2, Args);
-		}
-		}
-	}
+
+#define ML_ARRAY_INFIX_FILL(NAME, OP, METHOD) \
+static void ml_array_ ## NAME ## _fill( \
+	void *DataA, ml_array_dimension_t *DimA, int FormatA, int DegreeA, \
+	void *DataB, ml_array_dimension_t *DimB, int FormatB, int DegreeB, \
+	void *DataC, ml_array_dimension_t *DimC, int FormatC, int DegreeC \
+) { \
+	if (DegreeA > 0) { \
+		int StrideA = DimA->Stride; \
+		int StrideC = DimC->Stride; \
+		if (DimA->Indices) { \
+			int *Indices = DimA->Indices; \
+			for (int I = 0; I < DimA->Size; ++I) { \
+				ml_array_ ## NAME ## _fill( \
+					DataA + (Indices[I]) * StrideA, DimA + 1, FormatA, DegreeA - 1, \
+					DataB, DimB, FormatB, DegreeB, \
+					DataC, DimC + 1, FormatC, DegreeC - 1 \
+				); \
+				DataC += StrideC; \
+			} \
+		} else { \
+			for (int I = DimA->Size; --I >= 0;) { \
+				ml_array_ ## NAME ## _fill( \
+					DataA, DimA + 1, FormatA, DegreeA - 1, \
+					DataB, DimB, FormatB, DegreeB, \
+					DataC, DimC + 1, FormatC, DegreeC - 1 \
+				); \
+				DataA += StrideA; \
+				DataC += StrideC; \
+			} \
+		} \
+	} else if (DegreeB > 0) { \
+		int StrideB = DimB->Stride; \
+		int StrideC = (DimC + DegreeC - 1)->Stride; \
+		if (DimB->Indices) { \
+			int *Indices = DimB->Indices; \
+			for (int I = 0; I < DimB->Size; ++I) { \
+				ml_array_ ## NAME ## _fill( \
+					DataA, DimA, FormatA, DegreeA, \
+					DataB + (Indices[I]) * StrideB, DimB - 1, FormatB, DegreeB - 1, \
+					DataC, DimC, FormatC, DegreeC - 1 \
+				); \
+				DataC += StrideC; \
+			} \
+		} else { \
+			for (int I = DimB->Size; --I >= 0;) { \
+				ml_array_ ## NAME ## _fill( \
+					DataA, DimA, FormatA, DegreeA, \
+					DataB, DimB - 1, FormatB, DegreeB - 1, \
+					DataC, DimC, FormatC, DegreeC - 1 \
+				); \
+				DataB += StrideB; \
+				DataC += StrideC; \
+			} \
+		} \
+	} else { \
+		switch (FormatC) { \
+		case ML_ARRAY_FORMAT_I8: { \
+			int8_t ValueA = ml_array_get0_int8_t(DataA, FormatA); \
+			int8_t ValueB = ml_array_get0_int8_t(DataB, FormatB); \
+			*(int8_t *)DataC = ValueA OP ValueB; \
+			break; \
+		} \
+		case ML_ARRAY_FORMAT_U8: { \
+			uint8_t ValueA = ml_array_get0_uint8_t(DataA, FormatA); \
+			uint8_t ValueB = ml_array_get0_uint8_t(DataB, FormatB); \
+			*(uint8_t *)DataC = ValueA OP ValueB; \
+			break; \
+		} \
+		case ML_ARRAY_FORMAT_I16: { \
+			int16_t ValueA = ml_array_get0_int16_t(DataA, FormatA); \
+			int16_t ValueB = ml_array_get0_int16_t(DataB, FormatB); \
+			*(int16_t *)DataC = ValueA OP ValueB; \
+			break; \
+		} \
+		case ML_ARRAY_FORMAT_U16: { \
+			uint16_t ValueA = ml_array_get0_uint16_t(DataA, FormatA); \
+			uint16_t ValueB = ml_array_get0_uint16_t(DataB, FormatB); \
+			*(uint16_t *)DataC = ValueA OP ValueB; \
+			break; \
+		} \
+		case ML_ARRAY_FORMAT_I32: { \
+			int32_t ValueA = ml_array_get0_int32_t(DataA, FormatA); \
+			int32_t ValueB = ml_array_get0_int32_t(DataB, FormatB); \
+			*(int32_t *)DataC = ValueA OP ValueB; \
+			break; \
+		} \
+		case ML_ARRAY_FORMAT_U32: { \
+			uint32_t ValueA = ml_array_get0_uint32_t(DataA, FormatA); \
+			uint32_t ValueB = ml_array_get0_uint32_t(DataB, FormatB); \
+			*(uint32_t *)DataC = ValueA OP ValueB; \
+			break; \
+		} \
+		case ML_ARRAY_FORMAT_I64: { \
+			int64_t ValueA = ml_array_get0_int64_t(DataA, FormatA); \
+			int64_t ValueB = ml_array_get0_int64_t(DataB, FormatB); \
+			*(int64_t *)DataC = ValueA OP ValueB; \
+			break; \
+		} \
+		case ML_ARRAY_FORMAT_U64: { \
+			uint64_t ValueA = ml_array_get0_uint64_t(DataA, FormatA); \
+			uint64_t ValueB = ml_array_get0_uint64_t(DataB, FormatB); \
+			*(uint64_t *)DataC = ValueA OP ValueB; \
+			break; \
+		} \
+		case ML_ARRAY_FORMAT_F32: { \
+			float ValueA = ml_array_get0_float(DataA, FormatA); \
+			float ValueB = ml_array_get0_float(DataB, FormatB); \
+			*(float *)DataC = ValueA OP ValueB; \
+			break; \
+		} \
+		case ML_ARRAY_FORMAT_F64: { \
+			double ValueA = ml_array_get0_double(DataA, FormatA); \
+			double ValueB = ml_array_get0_double(DataB, FormatB); \
+			*(double *)DataC = ValueA OP ValueB; \
+			break; \
+		} \
+		ML_ARRAY_INFIX_FILL_COMPLEX(OP) \
+		case ML_ARRAY_FORMAT_ANY: { \
+			ml_value_t *Args[2] = { \
+				ml_array_get0_value(DataA, FormatA), \
+				ml_array_get0_value(DataB, FormatB) \
+			}; \
+			*(ml_value_t **)DataC = ml_simple_call(METHOD, 2, Args); \
+		} \
+		} \
+	} \
 }
+
+ML_ARRAY_INFIX_FILL(add, +, AddMethod);
+ML_ARRAY_INFIX_FILL(mul, *, MulMethod);
+ML_ARRAY_INFIX_FILL(sub, -, SubMethod);
+ML_ARRAY_INFIX_FILL(div, /, DivMethod);
 
 ML_METHOD(".", MLArrayT, MLArrayT) {
 //<A
@@ -3630,7 +3661,7 @@ ML_METHOD(".", MLArrayT, MLArrayT) {
 	C->Base.Value = GC_MALLOC_ATOMIC(DataSize);
 	C->Base.Length = DataSize;
 	if (UseProd) {
-		ml_array_prod_fill(
+		ml_array_mul_fill(
 			A->Base.Value, DimA, A->Format, DegreeA,
 			B->Base.Value, DimB + (DegreeB - 1), B->Format, DegreeB,
 			C->Base.Value, C->Dimensions, C->Format, C->Degree
@@ -3645,11 +3676,7 @@ ML_METHOD(".", MLArrayT, MLArrayT) {
 	return (ml_value_t *)C;
 }
 
-ML_METHOD("**", MLArrayT, MLArrayT) {
-//<A
-//<B
-//>array
-// Returns the pairwise products of the entries of :mini:`A` and :mini:`B`.
+static ml_value_t *ml_array_pairwise_infix(void *Data, int Count, ml_value_t **Args) {
 	ml_array_t *A = (ml_array_t *)Args[0];
 	ml_array_t *B = (ml_array_t *)Args[1];
 	int DegreeA = A->Degree;
@@ -3673,7 +3700,8 @@ ML_METHOD("**", MLArrayT, MLArrayT) {
 	}
 	C->Base.Value = GC_MALLOC_ATOMIC(DataSize);
 	C->Base.Length = DataSize;
-	ml_array_prod_fill(
+	typeof(ml_array_mul_fill) *Fill = (typeof(ml_array_mul_fill) *)Data;
+	Fill(
 		A->Base.Value, DimA, A->Format, DegreeA,
 		B->Base.Value, DimB + (DegreeB - 1), B->Format, DegreeB,
 		C->Base.Value, C->Dimensions, C->Format, C->Degree
@@ -3826,19 +3854,23 @@ void ml_array_init(stringmap_t *Globals) {
 #include "ml_array_init.c"
 	ml_method_by_name("set", 0 + (char *)0, update_array_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("add", 1 + (char *)0, update_array_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("sub", 2 + (char *)0, update_array_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("mul", 3 + (char *)0, update_array_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("div", 4 + (char *)0, update_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("mul", 2 + (char *)0, update_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("sub", 3 + (char *)0, update_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("div", 5 + (char *)0, update_array_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("+", 1 + (char *)0, array_infix_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("-", 2 + (char *)0, array_infix_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("*", 3 + (char *)0, array_infix_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("/", 4 + (char *)0, array_infix_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("*", 2 + (char *)0, array_infix_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("-", 3 + (char *)0, array_infix_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("/", 5 + (char *)0, array_infix_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("=", 0 + (char *)0, compare_array_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("!=", 1 + (char *)0, compare_array_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("<", 2 + (char *)0, compare_array_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name(">", 3 + (char *)0, compare_array_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("<=", 4 + (char *)0, compare_array_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name(">=", 5 + (char *)0, compare_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("++", ml_array_add_fill, ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("**", ml_array_mul_fill, ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("--", ml_array_sub_fill, ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("//", ml_array_div_fill, ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
 
 	ml_method_by_value(AcosMethod, acos, (ml_callback_t)array_math_fn, MLArrayT, NULL);
 	ml_method_by_value(AsinMethod, asin, (ml_callback_t)array_math_fn, MLArrayT, NULL);

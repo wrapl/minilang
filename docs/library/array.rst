@@ -169,7 +169,3 @@ array
    Returns the inner product of :mini:`A` and :mini:`B`. The last dimension of :mini:`A` and the first dimension of :mini:`B` must match, skipping any dimensions of size :mini:`1`.
 
 
-:mini:`meth **(A: array, B: array)` |rarr| :mini:`array`
-   Returns the pairwise products of the entries of :mini:`A` and :mini:`B`.
-
-

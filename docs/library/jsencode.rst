@@ -19,5 +19,5 @@ jsencode
 
 :mini:`type JSDecoderT`
 
-:mini:`meth :decode(Arg₁: JSDecoderT, Arg₂: any)`
+:mini:`meth :decode(Arg₁: JSDecoderT, Arg₂: string)`
 
