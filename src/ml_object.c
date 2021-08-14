@@ -434,7 +434,7 @@ typedef struct {
 } ml_enum_t;
 
 typedef struct {
-#ifdef ML_GENERICS
+#ifdef ML_NANBOXING
 	ml_int64_t Base;
 #else
 	ml_integer_t Base;
@@ -448,7 +448,7 @@ static long ml_enum_value_hash(ml_enum_value_t *Value, ml_hash_chain_t *Chain) {
 	return (long)Value->Base.Type + Value->Base.Value;
 }
 
-#ifdef ML_GENERICS
+#ifdef ML_NANBOXING
 ML_TYPE(MLEnumValueT, (MLInt64T), "enum-value");
 //!internal
 #else
@@ -654,7 +654,7 @@ typedef struct {
 	ml_value_t *Names[];
 } ml_flags_t;
 
-#ifdef ML_GENERICS
+#ifdef ML_NANBOXING
 typedef ml_int64_t ml_flags_value_t;
 #else
 typedef ml_integer_t ml_flags_value_t;
@@ -666,7 +666,7 @@ static long ml_flag_value_hash(ml_flags_value_t *Value, ml_hash_chain_t *Chain) 
 	return (long)Value->Type + Value->Value;
 }
 
-#ifdef ML_GENERICS
+#ifdef ML_NANBOXING
 ML_TYPE(MLFlagsValueT, (MLInt64T), "flag-value");
 //!internal
 #else

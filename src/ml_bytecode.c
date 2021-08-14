@@ -957,8 +957,9 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	Frame->Source = Info->Source;
 	Frame->Name = Info->Name;
 	int NumParams = Info->NumParams;
-	if (Info->ExtraArgs) --NumParams;
-	if (Info->NamedArgs) --NumParams;
+	int Flags = Info->Flags;
+	if (Flags & ML_CLOSURE_EXTRA_ARGS) --NumParams;
+	if (Flags & ML_CLOSURE_NAMED_ARGS) --NumParams;
 	int Min = (Count < NumParams) ? Count : NumParams;
 	int I = 0;
 	ml_decl_t *Decl = Info->Decls;
@@ -967,27 +968,39 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 		if (!(Decl->Flags & MLC_DECL_BYREF)) Arg = ml_deref(Arg);
 		Decl = Decl->Next;
 		if (ml_is_error(Arg)) ML_RETURN(Arg);
-		if (ml_typeof(Arg) == MLNamesT) break;
+#ifdef ML_NANBOXING
+		if (!ml_tag(Value) && Value->Type == MLNamesT) break;
+#else
+		if (Value->Type == MLNamesT) break;
+#endif
 		Frame->Stack[I] = Arg;
 	}
 	for (int J = I; J < NumParams; ++J) {
 		Frame->Stack[J] = MLNil;
 	}
-	if (Info->ExtraArgs) {
+	if (Flags & ML_CLOSURE_EXTRA_ARGS) {
 		ml_value_t *Rest = ml_list();
 		for (; I < Count; ++I) {
 			ml_value_t *Arg = ml_deref(Args[I]);
 			if (ml_is_error(Arg)) ML_RETURN(Arg);
-			if (ml_typeof(Arg) == MLNamesT) break;
+#ifdef ML_NANBOXING
+			if (!ml_tag(Value) && Value->Type == MLNamesT) break;
+#else
+			if (Value->Type == MLNamesT) break;
+#endif
 			ml_list_put(Rest, Arg);
 		}
 		Frame->Stack[NumParams] = Rest;
 		++NumParams;
 	}
-	if (Info->NamedArgs) {
+	if (Flags & ML_CLOSURE_NAMED_ARGS) {
 		ml_value_t *Options = ml_map();
 		for (; I < Count; ++I) {
-			if (ml_typeof(Args[I]) == MLNamesT) {
+#ifdef ML_NANBOXING
+			if (!ml_tag(Value) && Value->Type == MLNamesT) {
+#else
+			if (Value->Type == MLNamesT) {
+#endif
 				ML_NAMES_FOREACH(Args[I], Node) {
 					const char *Name = ml_string_value(Node->Value);
 					int Index = (intptr_t)stringmap_search(Info->Params, Name);
@@ -1004,7 +1017,11 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 		++NumParams;
 	} else {
 		for (; I < Count; ++I) {
-			if (ml_typeof(Args[I]) == MLNamesT) {
+#ifdef ML_NANBOXING
+			if (!ml_tag(Value) && Value->Type == MLNamesT) {
+#else
+			if (Value->Type == MLNamesT) {
+#endif
 				ML_NAMES_FOREACH(Args[I], Node) {
 					const char *Name = ml_string_value(Node->Value);
 					int Index = (intptr_t)stringmap_search(Info->Params, Name);
@@ -1227,8 +1244,8 @@ static int ml_closure_find_labels(ml_inst_t *Inst, unsigned int *Labels) {
 }
 
 void ml_closure_info_labels(ml_closure_info_t *Info) {
-	if (Info->Labelled) return;
-	Info->Labelled = 1;
+	if (Info->Flags & ML_CLOSURE_LABELLED) return;
+	Info->Flags |= ML_CLOSURE_LABELLED;
 	unsigned int Labels = 0;
 	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
 		if (Inst->Opcode == MLI_LINK) {
@@ -1313,8 +1330,8 @@ static int ml_inst_hash(ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) 
 }
 
 static void ml_closure_info_hash(ml_closure_info_t *Info) {
-	if (Info->Hashed) return;
-	Info->Hashed = 1;
+	if (Info->Flags & ML_CLOSURE_HASHED) return;
+	Info->Flags |= ML_CLOSURE_HASHED;
 	int I = 0, J = 0;
 	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
 		if (Inst->Opcode == MLI_LINK) {

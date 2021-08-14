@@ -23,8 +23,6 @@ internal
 
 :mini:`type cfunction < function`
 
-:mini:`type cfunctionnoderef < function`
-
 :mini:`type cfunctionx < function`
 
 :mini:`type cfunctionz < function`

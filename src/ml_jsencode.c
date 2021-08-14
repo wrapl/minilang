@@ -240,8 +240,8 @@ static json_t *ml_closure_info_encode(ml_closure_info_t *Info, ml_json_encoder_c
 	json_array_append(Json, json_integer(Info->FrameSize));
 	json_array_append(Json, json_integer(Info->NumParams));
 	json_array_append(Json, json_integer(Info->NumUpValues));
-	json_array_append(Json, json_integer(Info->ExtraArgs));
-	json_array_append(Json, json_integer(Info->NamedArgs));
+	json_array_append(Json, json_integer(!!(Info->Flags & ML_CLOSURE_EXTRA_ARGS)));
+	json_array_append(Json, json_integer(!!(Info->Flags & ML_CLOSURE_NAMED_ARGS)));
 	json_t *Params = json_array();
 	for (int I = 0; I < Info->Params->Size; ++I) json_array_append(Params, json_null());
 	stringmap_foreach(Info->Params, Params, (void *)ml_closure_info_param_fn);

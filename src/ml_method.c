@@ -35,14 +35,6 @@ ml_methods_t *ml_methods_context_new(ml_context_t *Context) {
 	return Methods;
 }
 
-struct ml_method_cached_t {
-	ml_method_cached_t *Next, *MethodNext;
-	ml_method_t *Method;
-	ml_method_definition_t *Definition;
-	int Count, Score;
-	ml_type_t *Types[];
-};
-
 struct ml_method_definition_t {
 	ml_method_definition_t *Next;
 	ml_value_t *Callback;
@@ -69,19 +61,17 @@ static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_
 	return Score;
 }
 
-static ml_method_cached_t *ml_method_search_entry(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_type_t **Types, uint64_t Hash) {
-	ml_method_cached_t *Cached = inthash_search(Methods->Cache, Hash);
-	while (Cached) {
-		if (Cached->Method != Method) goto next;
-		if (Cached->Count != Count) goto next;
-		for (int I = 0; I < Count; ++I) {
-			if (Cached->Types[I] != Types[I]) goto next;
-		}
-		if (!Cached->Definition) break;
-		return Cached;
-	next:
-		Cached = Cached->Next;
-	}
+struct ml_method_cached_t {
+	ml_method_cached_t *Next, *MethodNext;
+	ml_method_t *Method;
+	ml_method_definition_t *Definition;
+	int Count, Score;
+	ml_type_t *Types[];
+};
+
+static ml_method_cached_t *ml_method_search_entry(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_type_t **Types, uint64_t Hash);
+
+static __attribute__ ((noinline)) ml_method_cached_t *ml_method_search_entry2(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_type_t **Types, uint64_t Hash, ml_method_cached_t *Cached) {
 	unsigned int BestScore = 0;
 	ml_method_definition_t *BestDefinition = NULL;
 	ml_method_definition_t *Definition = inthash_search(Methods->Definitions, (uintptr_t)Method);
@@ -112,6 +102,22 @@ static ml_method_cached_t *ml_method_search_entry(ml_methods_t *Methods, ml_meth
 	Cached->Definition = BestDefinition;
 	Cached->Score = BestScore;
 	return Cached;
+}
+
+static ml_method_cached_t *ml_method_search_entry(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_type_t **Types, uint64_t Hash) {
+	ml_method_cached_t *Cached = inthash_search(Methods->Cache, Hash);
+	while (Cached) {
+		if (Cached->Method != Method) goto next;
+		if (Cached->Count != Count) goto next;
+		for (int I = 0; I < Count; ++I) {
+			if (Cached->Types[I] != Types[I]) goto next;
+		}
+		if (!Cached->Definition) break;
+		return Cached;
+	next:
+		Cached = Cached->Next;
+	}
+	return ml_method_search_entry2(Methods, Method, Count, Types, Hash, Cached);
 }
 
 static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
