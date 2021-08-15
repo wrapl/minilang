@@ -120,7 +120,7 @@ static void ml_object_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int 
 		return ml_call(State, Class->Initializer, Count + 1, State->Args);
 	}
 	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Arg = ml_typeof(Args[I])->deref(Args[I]);
+		ml_value_t *Arg = ml_deref(Args[I]);
 		if (ml_is_error(Arg)) ML_RETURN(Arg);
 		if (ml_is(Arg, MLNamesT)) {
 			ML_NAMES_FOREACH(Args[I], Iter) {

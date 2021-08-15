@@ -26,7 +26,7 @@ This is the preferred method for building the *Minilang* library and interpreter
 
 A number of build options can be defined when invoking *rabs* to enable some additional features:
 
-:-DNANBOXING: Uses nan-boxing techniques to reduce memory usage for numeric values. Provides significant speed improvements but may not be available / fully tested on all platforms. Currently tested on *x64* only.
+:-DNANBOXING: Uses NaN-boxing techniques to reduce memory usage for numeric values. Provides significant speed improvements but may not be available / fully tested on all platforms. Currently tested on *x64* only.
 
 :-DMATH: Adds several maths functions and multiple dimensional numeric arrays to the library. See :doc:`/library/math` and :doc:`/library/array`.
 

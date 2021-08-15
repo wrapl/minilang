@@ -83,7 +83,7 @@ typedef struct ml_array_init_state_t {
 } ml_array_init_state_t;
 
 static void ml_array_init_run(ml_array_init_state_t *State, ml_value_t *Value) {
-	Value = Value->Type->deref(Value);
+	Value = ml_deref(Value);
 	if (Value->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Value);
 	ml_array_t *Array = State->Array;
 	switch (Array->Format) {

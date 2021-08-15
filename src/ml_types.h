@@ -62,7 +62,10 @@ extern ml_type_t MLTypeT[];
 
 long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain);
 void ml_default_call(ml_state_t *Frame, ml_value_t *Value, int Count, ml_value_t **Args);
-ml_value_t *ml_default_deref(ml_value_t *Ref);
+
+//ml_value_t *ml_default_deref(ml_value_t *Ref);
+#define ml_default_deref NULL
+
 ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value);
 
 #ifndef GENERATE_INIT
@@ -137,6 +140,16 @@ __attribute__ ((pure)) static inline int ml_tag(const ml_value_t *Value) {
 	return (uint64_t)Value >> 48;
 }
 
+static inline ml_value_t *ml_deref(ml_value_t *Value) {
+	unsigned Tag = ml_tag(Value);
+	if (__builtin_expect(Tag == 0, 1)) {
+		if (__builtin_expect(Value->Type->deref != ml_default_deref, 0)) {
+			return Value->Type->deref(Value);
+		}
+	}
+	return Value;
+}
+
 __attribute__ ((pure)) static inline ml_type_t *ml_typeof(const ml_value_t *Value) {
 	unsigned Tag = ml_tag(Value);
 	if (__builtin_expect(Tag == 0, 1)) {
@@ -150,12 +163,18 @@ __attribute__ ((pure)) static inline ml_type_t *ml_typeof(const ml_value_t *Valu
 	}
 }
 
-static inline ml_value_t *ml_deref(ml_value_t *Value) {
+__attribute__ ((pure)) static inline ml_type_t *ml_typeof_deref(ml_value_t *Value) {
 	unsigned Tag = ml_tag(Value);
 	if (__builtin_expect(Tag == 0, 1)) {
-		return Value->Type->deref(Value);
+		ml_type_t *Type = Value->Type;
+		if (Type->deref != ml_default_deref) return ml_typeof(Type->deref(Value));
+		return Type;
+	} else if (Tag == 1) {
+		return MLInt32T;
+	/*} else if (Tag < 7) {
+		return NULL;*/
 	} else {
-		return Value;
+		return MLDoubleT;
 	}
 }
 
@@ -166,7 +185,18 @@ static inline ml_type_t *ml_typeof(const ml_value_t *Value) {
 }
 
 static inline ml_value_t *ml_deref(ml_value_t *Value) {
-	return Value->Type->deref(Value);
+	if (__builtin_expect(Value->Type->deref != ml_default_deref, 0)) {
+		return Value->Type->deref(Value);
+	}
+	return Value;
+}
+
+static inline ml_type_t *ml_typeof_deref(ml_value_t *Value) {
+	ml_type_t *Type = Value->Type;
+	if (__builtin_expect(Type->deref != ml_default_deref, 0)) {
+		return ml_typeof(Type->deref(Value));
+	}
+	return Type;
 }
 
 #endif

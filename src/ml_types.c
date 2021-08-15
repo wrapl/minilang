@@ -193,9 +193,9 @@ long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
-ml_value_t *ml_default_deref(ml_value_t *Ref) {
+/*ml_value_t *ml_default_deref(ml_value_t *Ref) {
 	return Ref;
-}
+}*/
 
 ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value) {
 	return ml_error("TypeError", "<%s> is not assignable", ml_typeof(Ref)->Name);
@@ -239,15 +239,7 @@ void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent) {
 	}
 }
 
-inline void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn) {
-#ifdef ML_GENERICS
-	//if (Type->Type == MLGenericTypeT) return ml_typed_fn_get(ml_generic_type_args(Type)[0], TypedFn);
-	while (Type->Type == MLGenericTypeT) Type = ml_generic_type_args(Type)[0];
-#endif
-	ML_RUNTIME_LOCK();
-	inthash_result_t Result = inthash_search2(Type->TypedFns, (uintptr_t)TypedFn);
-	ML_RUNTIME_UNLOCK();
-	if (Result.Present) return Result.Value;
+static void *__attribute__ ((noinline)) ml_typed_fn_get_parent(ml_type_t *Type, void *TypedFn) {
 	void *BestFn = NULL;
 	int BestRank = 0;
 	for (int I = 0; I < Type->Parents->Size; ++I) {
@@ -264,6 +256,18 @@ inline void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn) {
 	inthash_insert(Type->TypedFns, (uintptr_t)TypedFn, BestFn);
 	ML_RUNTIME_UNLOCK();
 	return BestFn;
+}
+
+inline void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn) {
+#ifdef ML_GENERICS
+	//if (Type->Type == MLGenericTypeT) return ml_typed_fn_get(ml_generic_type_args(Type)[0], TypedFn);
+	while (Type->Type == MLGenericTypeT) Type = ml_generic_type_args(Type)[0];
+#endif
+	ML_RUNTIME_LOCK();
+	inthash_result_t Result = inthash_search2(Type->TypedFns, (uintptr_t)TypedFn);
+	ML_RUNTIME_UNLOCK();
+	if (Result.Present) return Result.Value;
+	return ml_typed_fn_get_parent(Type, TypedFn);
 }
 
 void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function) {
@@ -947,19 +951,20 @@ ML_METHODX("!", MLFunctionT, MLListT, MLMapT) {
 	return ml_call(Caller, Function, Count2, Args2);
 }
 
-static __attribute__ ((noinline)) void ml_cfunction_call_deref(ml_state_t *Caller, ml_cfunction_t *Function, int Count, ml_value_t **Args) {
-	for (int I = 0; I < Count; ++I) Args[I] = ml_deref(Args[I]);
+static __attribute__ ((noinline)) void ml_cfunction_call_deref(ml_state_t *Caller, ml_cfunction_t *Function, int Count, ml_value_t **Args, int I) {
+	Args[I] = Args[I]->Type->deref(Args[I]);
+	while (--I >= 0) Args[I] = ml_deref(Args[I]);
 	ML_RETURN((Function->Callback)(Function->Data, Count, Args));
 }
 
 static void ml_cfunction_call(ml_state_t *Caller, ml_cfunction_t *Function, int Count, ml_value_t **Args) {
-	for (int I = 0; I < Count; ++I) {
+	for (int I = Count; --I >= 0;) {
 #ifdef ML_NANBOXING
 		if (!ml_tag(Args[I]) && Args[I]->Type->deref != ml_default_deref) {
 #else
 		if (Args[I]->Type->deref != ml_default_deref) {
 #endif
-			return ml_cfunction_call_deref(Caller, Function, Count, Args);
+			return ml_cfunction_call_deref(Caller, Function, Count, Args, I);
 		}
 	}
 	ML_RETURN((Function->Callback)(Function->Data, Count, Args));
@@ -982,21 +987,23 @@ static void ML_TYPED_FN(ml_iterate, MLCFunctionT, ml_state_t *Caller, ml_cfuncti
 	ML_RETURN((Function->Callback)(Function->Data, 0, NULL));
 }
 
-static __attribute__ ((noinline)) void ml_cfunctionx_call_deref(ml_state_t *Caller, ml_cfunctionx_t *Function, int Count, ml_value_t **Args) {
-	for (int I = 0; I < Count; ++I) Args[I] = ml_deref(Args[I]);
+static __attribute__ ((noinline)) void ml_cfunctionx_call_deref(ml_state_t *Caller, ml_cfunctionx_t *Function, int Count, ml_value_t **Args, int I) {
+	Args[I] = Args[I]->Type->deref(Args[I]);
+	while (--I >= 0) Args[I] = ml_deref(Args[I]);
 	return (Function->Callback)(Caller, Function->Data, Count, Args);
 }
 
 static void ml_cfunctionx_call(ml_state_t *Caller, ml_cfunctionx_t *Function, int Count, ml_value_t **Args) {
-	for (int I = 0; I < Count; ++I) {
+	for (int I = Count; --I >= 0;) {
 #ifdef ML_NANBOXING
 		if (!ml_tag(Args[I]) && Args[I]->Type->deref != ml_default_deref) {
 #else
 		if (Args[I]->Type->deref != ml_default_deref) {
 #endif
-			return ml_cfunctionx_call_deref(Caller, Function, Count, Args);
+			return ml_cfunctionx_call_deref(Caller, Function, Count, Args, I);
 		}
 	}
+	//for (int I = 0; I < Count; ++I) Args[I] = ml_deref(Args[I]);
 	return (Function->Callback)(Caller, Function->Data, Count, Args);
 }
 

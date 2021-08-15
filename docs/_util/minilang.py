@@ -19,7 +19,7 @@ class MinilangLexer(RegexLexer):
                 "until", "exit", "next", "for", "each", "to", "in", "is",
 				"fun", "ret", "susp", "with", "do", "on", "nil", "and",
 				"or", "not", "old", "def", "let", "var", "_", "meth",
-				"when"
+				"when", "switch", "case"
             ), suffix = r'\b'), Keyword),
             (words((
                 "class", "method", "any", "type", "function", "number",

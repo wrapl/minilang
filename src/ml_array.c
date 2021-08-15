@@ -174,7 +174,7 @@ typedef struct ml_array_init_state_t {
 
 static void ml_array_init_run(ml_array_init_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	Value = ml_typeof(Value)->deref(Value);
+	Value = ml_deref(Value);
 	ml_array_t *Array = State->Array;
 	switch (Array->Format) {
 	case ML_ARRAY_FORMAT_NONE:

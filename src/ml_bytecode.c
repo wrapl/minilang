@@ -91,9 +91,10 @@ struct DEBUG_STRUCT(frame) {
 	ml_schedule_t Schedule;
 #endif
 	unsigned int Line;
+	char Continue, Reentry, Suspend;
+	/*unsigned int Continue:1;
 	unsigned int Reentry:1;
-	unsigned int Reuse:1;
-	unsigned int Suspend:1;
+	unsigned int Suspend:1;*/
 #ifdef DEBUG_VERSION
 	unsigned int StepOver:1;
 	unsigned int StepOut:1;
@@ -107,7 +108,7 @@ struct DEBUG_STRUCT(frame) {
 
 static void DEBUG_FUNC(continuation_call)(ml_state_t *Caller, DEBUG_STRUCT(frame) *Frame, int Count, ml_value_t **Args) {
 	if (Frame->Suspend) ML_ERROR("StateError", "Cannot call suspended function");
-	Frame->Reuse = 0;
+	Frame->Continue = 1;
 	Frame->Base.Caller = Caller;
 	Frame->Base.Context = Caller->Context;
 	return Frame->Base.run((ml_state_t *)Frame, Count ? Args[0] : MLNil);
@@ -331,9 +332,10 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Schedule.Counter[0] = Counter;
 #endif
 		ml_state_t *Caller = Frame->Base.Caller;
-		if (Frame->Reuse) {
+		if (!Frame->Continue) {
 			//memset(Frame, 0, ML_FRAME_REUSE_SIZE);
-			while (Top > Frame->Stack) *--Top = NULL;
+			//while (Top > Frame->Stack) *--Top = NULL;
+			memset(Frame, 0, (Top - Frame->Stack) * sizeof(ml_value_t *));
 			ML_RUNTIME_LOCK();
 			*(ml_frame_t **)Frame = MLCachedFrame;
 			MLCachedFrame = Frame;
@@ -631,7 +633,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
-		if (Next->Opcode == MLI_RETURN) {
+		if (Next->Opcode == MLI_RETURN && !Frame->Continue) {
 			ML_RUNTIME_LOCK();
 			*(ml_frame_t **)Frame = MLCachedFrame;
 			MLCachedFrame = Frame;
@@ -653,7 +655,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
-		if (Next->Opcode == MLI_RETURN) {
+		if (Next->Opcode == MLI_RETURN && !Frame->Continue) {
 			ML_RUNTIME_LOCK();
 			*(ml_frame_t **)Frame = MLCachedFrame;
 			MLCachedFrame = Frame;
@@ -946,7 +948,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 			ML_RUNTIME_UNLOCK();
 			Frame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
 		}
-		Frame->Reuse = 1;
+		Frame->Continue = 0;
 	} else {
 		Frame = GC_MALLOC(Size);
 	}

@@ -237,7 +237,7 @@ Note that this shorthand is only for :mini:`let`-declarations, if another type o
 Compound Declarations
 ~~~~~~~~~~~~~~~~~~~~~
 
-*Minilang* provides no language support for modules, classes and probably some other useful features. Instead, *Minilang* allows for these features to be implemented as functions provided by the runtime, with evaluation at load time to remove any additional overhead from function calls. *Minilang* provides some syntax sugar constructs to simplify writing these types of declaration.
+*Minilang* provides no language support for modules, classes and probably some other useful features. Instead, *Minilang* allows for these features to be implemented as functions provided by the runtime, with evaluation at load time to remove any additional overhead from function calls. *Minilang* provides some syntax sugar constructs to simplify writing these types of declaration. More details can be found in :doc:`features/modules`.
 
 Imports, Classes, etc.
 ......................
@@ -374,6 +374,39 @@ Multiple conditions can be included using :mini:`elseif`.
    end
 
 The :mini:`else`-clause is optional, if omitted and every condition evaluates to :mini:`nil` then the :mini:`if`-expression returns :mini:`nil`.
+
+Switch Expressions
+~~~~~~~~~~~~~~~~~~
+
+There are two types of :mini:`switch`-expression in *Minilang*. The basic :mini:`switch`-expression chooses a branch based on an integer value, with cases corresponding to ``0, 1, 2, ...``, etc. 
+   
+.. code-block:: mini
+   
+   switch Expression
+   case
+      Block
+   case
+      Block
+   else
+      Block
+   end
+   
+When evaluated, :mini:`Expression` must evaluate to a non-negative integer, ``n``. The ``n + 1``-th :mini:`case` block is then evaluated if present, otherwise the :mini:`else` block option is evaluated. If no else block is present, then the value :mini:`nil` is used.
+
+The general :mini:`switch`-expression selects a branch corresponding to a value based on a specific *switch provider*.
+
+.. code-block:: mini
+
+   switch Expression: Provider
+   case Expressions do
+      Block
+   case Expressions do
+      Block
+   else
+      Block
+   end
+
+*Minilang* includes switch providers for several basic types including numbers, strings and types. More details can be found in :doc:`/features/switch`.
 
 Loop Expressions
 ~~~~~~~~~~~~~~~~
@@ -615,6 +648,11 @@ For example:
 
 :mini:`stringbuffer()`
    Returns a new stringbuffer.
+
+Generics
+........
+
+*Minilang* can optionally be built with support for generic types such as :mini:`list[integer]`, :mini:`map[string, tuple[string, number]]`, etc. More details can be found in :doc:`/features/generics`.
 
 Classes
 ~~~~~~~

@@ -47,17 +47,13 @@ Details
 =======
 
 .. toctree::
-   :maxdepth: 2
-   
-   /start
-   /embedding
-   /language
-   /types
-   /extending
-   /api
-   /internals
-
-.. toctree::
    :maxdepth: 1
    
+   /start
+   /language
+   /types
    /library
+   /embedding
+   /extending
+   /api
+   /internals   
