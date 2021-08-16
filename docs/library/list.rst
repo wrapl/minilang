@@ -53,6 +53,8 @@ list
 
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: list)`
 
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: list, Arg₃: string)`
+
 :mini:`meth :push(List: list, Values...: any)` |rarr| :mini:`list`
    Pushes :mini:`Values` onto the start of :mini:`List` and returns :mini:`List`.
 
