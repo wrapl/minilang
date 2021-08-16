@@ -463,6 +463,22 @@ ML_METHOD("append", MLStringBufferT, MLListT) {
 	return (ml_value_t *)Buffer;
 }
 
+ML_METHOD("append", MLStringBufferT, MLListT, MLStringT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	const char *Seperator = ml_string_value(Args[2]);
+	size_t SeperatorLength = ml_string_length(Args[2]);
+	ml_list_t *List = (ml_list_t *)Args[1];
+	ml_list_node_t *Node = List->Head;
+	if (Node) {
+		ml_stringbuffer_append(Buffer, Node->Value);
+		while ((Node = Node->Next)) {
+			ml_stringbuffer_add(Buffer, Seperator, SeperatorLength);
+			ml_stringbuffer_append(Buffer, Node->Value);
+		}
+	}
+	return (ml_value_t *)Buffer;
+}
+
 ml_value_t *ML_TYPED_FN(ml_unpack, MLListT, ml_list_t *List, int Index) {
 	return (ml_value_t *)ml_list_index(List, Index) ?: MLNil;
 }

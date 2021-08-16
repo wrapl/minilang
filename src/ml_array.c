@@ -246,45 +246,55 @@ static void ml_array_init_run(ml_array_init_state_t *State, ml_value_t *Value) {
 	ML_CONTINUE(State->Base.Caller, Array);
 }
 
+static int array_copy(ml_array_t *Target, ml_array_t *Source);
+
 static void ml_array_typed_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLListT);
-	ml_array_format_t Format = (intptr_t)Data;
-	ml_array_t *Array;
-	int Degree = ml_list_length(Args[0]);
-	Array = ml_array_new(Format, Degree);
-	int I = 0;
-	ML_LIST_FOREACH(Args[0], Iter) {
-		if (!ml_is(Iter->Value, MLIntegerT)) ML_RETURN(ml_error("TypeError", "Dimension is not an integer"));
-		Array->Dimensions[I++].Size = ml_integer_value(Iter->Value);
-	}
-	int DataSize = MLArraySizes[Format];
-	for (int I = Array->Degree; --I >= 0;) {
-		Array->Dimensions[I].Stride = DataSize;
-		DataSize *= Array->Dimensions[I].Size;
-	}
-	Array->Base.Value = GC_MALLOC_ATOMIC(DataSize);
-	Array->Base.Length = DataSize;
-	if (Count == 1) {
-		if (Format == ML_ARRAY_FORMAT_ANY) {
-			ml_value_t **Values = (ml_value_t **)Array->Base.Value;
-			for (int I = DataSize / sizeof(ml_value_t *); --I >= 0;) {
-				*Values++ = MLNil;
-			}
-		} else {
-			memset(Array->Base.Value, 0, DataSize);
+	if (ml_is(Args[0], MLListT)) {
+		ml_array_format_t Format = (intptr_t)Data;
+		ml_array_t *Array;
+		int Degree = ml_list_length(Args[0]);
+		Array = ml_array_new(Format, Degree);
+		int I = 0;
+		ML_LIST_FOREACH(Args[0], Iter) {
+			if (!ml_is(Iter->Value, MLIntegerT)) ML_RETURN(ml_error("TypeError", "Dimension is not an integer"));
+			Array->Dimensions[I++].Size = ml_integer_value(Iter->Value);
 		}
-		ML_RETURN(Array);
+		int DataSize = MLArraySizes[Format];
+		for (int I = Array->Degree; --I >= 0;) {
+			Array->Dimensions[I].Stride = DataSize;
+			DataSize *= Array->Dimensions[I].Size;
+		}
+		Array->Base.Value = GC_MALLOC_ATOMIC(DataSize);
+		Array->Base.Length = DataSize;
+		if (Count == 1) {
+			if (Format == ML_ARRAY_FORMAT_ANY) {
+				ml_value_t **Values = (ml_value_t **)Array->Base.Value;
+				for (int I = DataSize / sizeof(ml_value_t *); --I >= 0;) {
+					*Values++ = MLNil;
+				}
+			} else {
+				memset(Array->Base.Value, 0, DataSize);
+			}
+			ML_RETURN(Array);
+		}
+		ml_array_init_state_t *State = xnew(ml_array_init_state_t, Array->Degree, ml_value_t *);
+		State->Base.Caller = Caller;
+		State->Base.run = (void *)ml_array_init_run;
+		State->Base.Context = Caller->Context;
+		State->Address = Array->Base.Value;
+		State->Array = Array;
+		ml_value_t *Function = State->Function = Args[1];
+		for (int I = 0; I < Array->Degree; ++I) State->Args[I] = ml_integer(1);
+		return ml_call(State, Function, Array->Degree, State->Args);
+	} else if (ml_is(Args[0], MLArrayT)) {
+		ml_array_t *Source = (ml_array_t *)Args[0];
+		ml_array_t *Target = ml_array_new((intptr_t)Data, Source->Degree);
+		array_copy(Target, Source);
+		ML_RETURN(Target);
+	} else {
+		ML_ERROR("TypeError", "expected list or array for argument 1");
 	}
-	ml_array_init_state_t *State = xnew(ml_array_init_state_t, Array->Degree, ml_value_t *);
-	State->Base.Caller = Caller;
-	State->Base.run = (void *)ml_array_init_run;
-	State->Base.Context = Caller->Context;
-	State->Address = Array->Base.Value;
-	State->Array = Array;
-	ml_value_t *Function = State->Function = Args[1];
-	for (int I = 0; I < Array->Degree; ++I) State->Args[I] = ml_integer(1);
-	return ml_call(State, Function, Array->Degree, State->Args);
 }
 
 static void ml_array_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
