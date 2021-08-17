@@ -2017,7 +2017,7 @@ ML_METHOD("prods", MLArrayT, MLIntegerT) {
 
 ML_METHOD("sum", MLArrayT) {
 //<Array
-//>integer|real
+//>number
 // Returns the sum of the values in :mini:`Array`.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	switch (Source->Format) {
@@ -2130,7 +2130,7 @@ ML_METHOD("sum", MLArrayT, MLIntegerT) {
 
 ML_METHOD("prod", MLArrayT) {
 //<Array
-//>integer|real
+//>number
 // Returns the product of the values in :mini:`Array`.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	switch (Source->Format) {

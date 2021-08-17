@@ -127,7 +127,7 @@ array
    Returns a new array with the partial products of :mini:`Array` in the :mini:`Index`-th dimension.
 
 
-:mini:`meth :sum(Array: array): integer | real`
+:mini:`meth :sum(Array: array): number`
    Returns the sum of the values in :mini:`Array`.
 
 
@@ -135,7 +135,7 @@ array
    Returns a new array with the sums of :mini:`Array` in the :mini:`Index`-th dimension.
 
 
-:mini:`meth :prod(Array: array): integer | real`
+:mini:`meth :prod(Array: array): number`
    Returns the product of the values in :mini:`Array`.
 
 
