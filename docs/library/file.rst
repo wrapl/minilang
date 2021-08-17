@@ -23,7 +23,7 @@ file
 
 :mini:`fun file::unlink(Path: string)`
 
-:mini:`type dir < iteratable`
+:mini:`type dir < sequence`
 
 :mini:`fun dir(Path: string)` |rarr| :mini:`dir`
 

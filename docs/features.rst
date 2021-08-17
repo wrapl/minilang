@@ -1,8 +1,8 @@
-API
-===
+Features
+========
 
 .. toctree::
    :glob:
    :maxdepth: 1
    
-   /api/*
+   /features/*

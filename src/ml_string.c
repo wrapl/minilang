@@ -1,7 +1,6 @@
 #include "ml_string.h"
 #include "minilang.h"
 #include "ml_macros.h"
-#include "ml_iterfns.h"
 #include <string.h>
 #include <ctype.h>
 #include <inttypes.h>
@@ -9,13 +8,13 @@
 #include <float.h>
 #include <printf.h>
 #include <gc/gc_typed.h>
+
+#include "ml_sequence.h"
 #ifdef ML_TRE
 #include <tre/regex.h>
 #else
 #include <regex.h>
 #endif
-
-extern ml_type_t MLSomeT[];
 
 ML_FUNCTION(MLBuffer) {
 //!buffer
@@ -89,11 +88,11 @@ static long ml_string_hash(ml_string_t *String, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
-ML_TYPE(MLStringT, (MLBufferT, MLIteratableT), "string",
+ML_TYPE(MLStringT, (MLBufferT, MLSequenceT), "string",
 	.hash = (void *)ml_string_hash
 );
 
-ML_METHOD(MLIterCount, MLStringT) {
+ML_METHOD(MLSequenceCount, MLStringT) {
 	return ml_integer(ml_string_length(Args[0]));
 }
 
@@ -1663,9 +1662,8 @@ ML_METHOD("after", MLStringT, MLStringT, MLIntegerT) {
 			}
 		}
 		return MLNil;
-	} else {
-		return Args[0];
 	}
+	return Args[0];
 }
 
 ML_METHOD("before", MLStringT, MLStringT) {
@@ -1707,9 +1705,8 @@ ML_METHOD("before", MLStringT, MLStringT, MLIntegerT) {
 			}
 		}
 		return MLNil;
-	} else {
-		return Args[0];
 	}
+	return Args[0];
 }
 
 ML_METHOD("replace", MLStringT, MLStringT, MLStringT) {

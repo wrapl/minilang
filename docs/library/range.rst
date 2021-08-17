@@ -5,7 +5,7 @@ range
 
 :mini:`type integeriter`
 
-:mini:`type integerrange < iteratable`
+:mini:`type integerrange < sequence`
 
 :mini:`meth ..(Start: integer, Limit: integer)` |rarr| :mini:`integerrange`
    Returns a range from :mini:`Start` to :mini:`Limit` (inclusive).
@@ -27,7 +27,7 @@ range
 
 :mini:`type realiter`
 
-:mini:`type realrange < iteratable`
+:mini:`type realrange < sequence`
 
 :mini:`meth ..(Start: number, Limit: number)` |rarr| :mini:`realrange`
 

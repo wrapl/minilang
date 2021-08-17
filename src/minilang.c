@@ -4,12 +4,12 @@
 #include "ml_macros.h"
 #include "ml_file.h"
 #include "ml_object.h"
-#include "ml_iterfns.h"
 #include "stringmap.h"
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <gc.h>
+#include "ml_sequence.h"
 
 #ifdef ML_MATH
 #include "ml_math.h"
@@ -282,7 +282,7 @@ int main(int Argc, const char *Argv[]) {
 	ml_types_init(Globals);
 	ml_file_init(Globals);
 	ml_object_init(Globals);
-	ml_iterfns_init(Globals);
+	ml_sequence_init(Globals);
 	stringmap_insert(Globals, "now", MLNow);
 	stringmap_insert(Globals, "clock", MLClock);
 	stringmap_insert(Globals, "print", MLPrint);

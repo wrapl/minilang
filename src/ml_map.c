@@ -1,10 +1,10 @@
 #include "ml_map.h"
 #include "minilang.h"
 #include "ml_macros.h"
-#include "ml_iterfns.h"
 #include <string.h>
+#include "ml_sequence.h"
 
-ML_TYPE(MLMapT, (MLIteratableT), "map",
+ML_TYPE(MLMapT, (MLSequenceT), "map",
 // A map of key-value pairs.
 // Keys can be of any type supporting hashing and comparison.
 // Insert order is preserved.
@@ -74,15 +74,15 @@ static void map_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_METHOD(MLIterCount, MLMapT) {
+ML_METHOD(MLSequenceCount, MLMapT) {
 //!internal
 	return ml_integer(ml_map_size(Args[0]));
 }
 
-ML_METHODVX(MLMapT, MLIteratableT) {
-//<Iteratable
+ML_METHODVX(MLMapT, MLSequenceT) {
+//<Sequence
 //>map
-// Returns a map of all the key and value pairs produced by :mini:`Iteratable`.
+// Returns a map of all the key and value pairs produced by :mini:`Sequence`.
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 2, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)map_iterate;
@@ -783,6 +783,6 @@ ML_METHODX("sort2", MLMapT, MLFunctionT) {
 void ml_map_init() {
 #include "ml_map_init.c"
 #ifdef ML_GENERICS
-	ml_type_add_rule(MLMapT, MLIteratableT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
+	ml_type_add_rule(MLMapT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 #endif
 }

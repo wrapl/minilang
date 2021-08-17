@@ -3,7 +3,7 @@ array
 
 .. include:: <isonum.txt>
 
-:mini:`type array < buffer, iteratable`
+:mini:`type array < buffer, sequence`
    Base type for multidimensional arrays.
 
 

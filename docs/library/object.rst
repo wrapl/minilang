@@ -25,7 +25,7 @@ object
 
 :mini:`fun enum(Values...: string)` |rarr| :mini:`enum`
 
-:mini:`type enum < type, iteratable`
+:mini:`type enum < type, sequence`
 
 :mini:`meth :count(Enum: enum)` |rarr| :mini:`integer`
 

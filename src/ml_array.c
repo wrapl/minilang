@@ -10,7 +10,7 @@ static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args);
 
 ML_CFUNCTION(MLArray, NULL, ml_array_of_fn);
 
-ML_TYPE(MLArrayT, (MLBufferT, MLIteratableT), "array",
+ML_TYPE(MLArrayT, (MLBufferT, MLSequenceT), "array",
 // Base type for multidimensional arrays.
 	.Constructor = (ml_value_t *)MLArray
 );

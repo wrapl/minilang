@@ -9,7 +9,7 @@ sqlite
 
 :mini:`meth :close(Arg₁: sqlite)`
 
-:mini:`type sqlitestmt < iteratable`
+:mini:`type sqlitestmt < sequence`
 
 :mini:`meth :statement(Arg₁: sqlite, Arg₂: string)`
 

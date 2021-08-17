@@ -5,7 +5,7 @@ queue
 
 :mini:`type queuenode`
 
-:mini:`type queue < iteratable`
+:mini:`type queue < sequence`
    A priority queue with values and associated scores.
 
 

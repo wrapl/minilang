@@ -3,7 +3,7 @@ list
 
 .. include:: <isonum.txt>
 
-:mini:`type list < iteratable`
+:mini:`type list < sequence`
    A list of elements.
 
 
@@ -19,8 +19,8 @@ list
 
 :mini:`meth list(Arg₁: tuple)`
 
-:mini:`meth list(Iteratable: iteratable)` |rarr| :mini:`list`
-   Returns a list of all of the values produced by :mini:`Iteratable`.
+:mini:`meth list(Sequence: sequence)` |rarr| :mini:`list`
+   Returns a list of all of the values produced by :mini:`Sequence`.
 
 
 :mini:`meth :count(List: list)` |rarr| :mini:`integer`

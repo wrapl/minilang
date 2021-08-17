@@ -5,7 +5,7 @@ bytecode
 
 :mini:`type variable`
 
-:mini:`type closure < function, iteratable`
+:mini:`type closure < function, sequence`
 
 :mini:`meth string(Arg₁: closure)`
 

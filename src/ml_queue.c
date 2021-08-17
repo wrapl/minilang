@@ -1,8 +1,8 @@
 #include "ml_queue.h"
 #include "minilang.h"
 #include "ml_macros.h"
-#include "ml_iterfns.h"
 #include <string.h>
+#include "ml_sequence.h"
 
 typedef struct ml_queue_t ml_queue_t;
 typedef struct ml_queue_node_t ml_queue_node_t;
@@ -23,7 +23,7 @@ struct ml_queue_t {
 	int Count, Size;
 };
 
-ML_TYPE(MLQueueT, (MLIteratableT), "queue");
+ML_TYPE(MLQueueT, (MLSequenceT), "queue");
 // A priority queue with values and associated scores.
 
 ML_METHOD(MLQueueT) {

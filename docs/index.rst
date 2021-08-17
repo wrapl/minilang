@@ -51,8 +51,8 @@ Details
    
    /start
    /language
-   /types
    /library
+   /features
    /embedding
    /extending
    /api

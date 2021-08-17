@@ -39,7 +39,7 @@ ML_METHOD_DECL(IndexMethod, "[]");
 ML_METHOD_DECL(SymbolMethod, "::");
 ML_METHOD_DECL(LessMethod, "<");
 ML_METHOD_DECL(CallMethod, "()");
-ML_METHOD_ANON(MLIterCount, "iteratable::count");
+ML_METHOD_ANON(MLSequenceCount, "sequence::count");
 
 static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 	const unsigned int Mask = (CHAR_BIT * sizeof(uintptr_t) - 1);
@@ -51,9 +51,9 @@ static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 ML_INTERFACE(MLAnyT, (), "any", .Rank = 0);
 // Base type for all values.
 
-ML_INTERFACE(MLIteratableT, (), "iteratable");
-//!iteratable
-// The base type for any iteratable value.
+ML_INTERFACE(MLSequenceT, (), "sequence");
+//!sequence
+// The base type for any sequence value.
 
 ML_INTERFACE(MLFunctionT, (), "function");
 //!function
@@ -379,7 +379,7 @@ void ml_type_add_rule(ml_type_t *T, ml_type_t *U, ...) {
 
 // Values //
 
-ML_TYPE(MLNilT, (MLFunctionT, MLIteratableT), "nil");
+ML_TYPE(MLNilT, (MLFunctionT, MLSequenceT), "nil");
 //!internal
 
 ML_TYPE(MLSomeT, (), "some");
@@ -1067,7 +1067,7 @@ static void ml_partial_function_call(ml_state_t *Caller, ml_partial_function_t *
 	return ml_call(Caller, Partial->Function, CombinedCount, CombinedArgs);
 }
 
-ML_TYPE(MLPartialFunctionT, (MLFunctionT, MLIteratableT), "partial-function",
+ML_TYPE(MLPartialFunctionT, (MLFunctionT, MLSequenceT), "partial-function",
 //!function
 	.call = (void *)ml_partial_function_call
 );
@@ -2184,10 +2184,10 @@ static void ML_TYPED_FN(ml_iterate, MLIntegerRangeT, ml_state_t *Caller, ml_valu
 	ML_RETURN(Iter);
 }
 
-ML_TYPE(MLIntegerRangeT, (MLIteratableT), "integer-range");
+ML_TYPE(MLIntegerRangeT, (MLSequenceT), "integer-range");
 //!range
 
-ML_METHOD(MLIterCount, MLIntegerRangeT) {
+ML_METHOD(MLSequenceCount, MLIntegerRangeT) {
 //!internal
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
 	int64_t Diff = Range->Limit - Range->Start;
@@ -2330,10 +2330,10 @@ static void ML_TYPED_FN(ml_iterate, MLRealRangeT, ml_state_t *Caller, ml_value_t
 	ML_RETURN(Iter);
 }
 
-ML_TYPE(MLRealRangeT, (MLIteratableT), "real-range");
+ML_TYPE(MLRealRangeT, (MLSequenceT), "real-range");
 //!range
 
-ML_METHOD(MLIterCount, MLRealRangeT) {
+ML_METHOD(MLSequenceCount, MLRealRangeT) {
 //!internal
 	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
 	return ml_integer(Range->Count);
@@ -2736,7 +2736,7 @@ void ml_init() {
 	stringmap_insert(MLIntegerT->Exports, "range", MLIntegerRangeT);
 	stringmap_insert(MLIntegerT->Exports, "switch", MLIntegerSwitch);
 	stringmap_insert(MLRealT->Exports, "range", MLRealRangeT);
-	stringmap_insert(MLIteratableT->Exports, "count", MLIterCount);
+	stringmap_insert(MLSequenceT->Exports, "count", MLSequenceCount);
 	ml_method_by_value(MLIntegerT->Constructor, NULL, ml_identity, MLIntegerT, NULL);
 	ml_method_by_value(MLDoubleT->Constructor, NULL, ml_identity, MLDoubleT, NULL);
 	ml_method_by_value(MLRealT->Constructor, NULL, ml_identity, MLDoubleT, NULL);
@@ -2794,7 +2794,7 @@ void ml_types_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "any", MLAnyT);
 		stringmap_insert(Globals, "type", MLTypeT);
 		stringmap_insert(Globals, "function", MLFunctionT);
-		stringmap_insert(Globals, "iteratable", MLIteratableT);
+		stringmap_insert(Globals, "sequence", MLSequenceT);
 		stringmap_insert(Globals, "boolean", MLBooleanT);
 		stringmap_insert(Globals, "true", MLTrue);
 		stringmap_insert(Globals, "false", MLFalse);

@@ -3,9 +3,9 @@ string
 
 .. include:: <isonum.txt>
 
-:mini:`type string < buffer, iteratable`
+:mini:`type string < buffer, sequence`
 
-:mini:`meth MLIterCount(Arg₁: string)`
+:mini:`meth MLSequenceCount(Arg₁: string)`
 
 :mini:`meth string(Arg₁: nil)`
 

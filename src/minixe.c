@@ -1,7 +1,6 @@
 #include "minilang.h"
 #include "ml_file.h"
 #include "ml_object.h"
-#include "ml_iterfns.h"
 #include "ml_macros.h"
 #include "ml_console.h"
 #include "linenoise.h"
@@ -9,6 +8,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <gc/gc.h>
+#include "ml_sequence.h"
 
 //!xe
 
@@ -1054,7 +1054,7 @@ int main(int Argc, char **Argv) {
 	ml_types_init(Globals);
 	ml_file_init(Globals);
 	ml_object_init(Globals);
-	ml_iterfns_init(Globals);
+	ml_sequence_init(Globals);
 	stringmap_insert(Globals, "print", ml_cfunction(0, print));
 	stringmap_insert(Globals, "error", ml_cfunction(0, error));
 	stringmap_insert(Globals, "parse_string", XEParseString);

@@ -7,7 +7,7 @@ internal
 
 :mini:`meth :parents(Arg₁: generictype)`
 
-:mini:`type nil < function, iteratable`
+:mini:`type nil < function, sequence`
 
 :mini:`type some`
 
@@ -33,9 +33,9 @@ internal
 
 :mini:`type double < real`
 
-:mini:`meth MLIterCount(Arg₁: integerrange)`
+:mini:`meth MLSequenceCount(Arg₁: integerrange)`
 
-:mini:`meth MLIterCount(Arg₁: realrange)`
+:mini:`meth MLSequenceCount(Arg₁: realrange)`
 
 :mini:`type integerswitch < function`
 
@@ -54,6 +54,58 @@ internal
 :mini:`type stringswitch < function`
 
 :mini:`fun mlstringswitch()`
+
+:mini:`type doublediterator < sequence`
+
+:mini:`type doublediteratorstate < state`
+
+:mini:`type stacked < sequence`
+
+:mini:`type stackedstate`
+
+:mini:`type repeated < sequence`
+
+:mini:`type repeatedstate`
+
+:mini:`type sequenced < sequence`
+
+:mini:`type sequencedstate`
+
+:mini:`type limited < sequence`
+
+:mini:`meth :count(Arg₁: limited)`
+
+:mini:`type limitedstate`
+
+:mini:`type skipped < sequence`
+
+:mini:`type buffered < sequence`
+
+:mini:`type bufferedstate`
+
+:mini:`type unique < sequence`
+
+:mini:`type uniquestate`
+
+:mini:`type zipped < sequence`
+
+:mini:`type zippedstate`
+
+:mini:`type paired < sequence`
+
+:mini:`type pairedstate`
+
+:mini:`type weaved < sequence`
+
+:mini:`type weavedstate`
+
+:mini:`type swapped < sequence`
+
+:mini:`type swappedstate`
+
+:mini:`type key < sequence`
+
+:mini:`type keystate`
 
 :mini:`type errorvalue`
 
@@ -79,67 +131,15 @@ internal
 
 :mini:`meth MLCompilerSwitch(Arg₁: flags)`
 
-:mini:`meth MLIterCount(Arg₁: map)`
+:mini:`meth MLSequenceCount(Arg₁: map)`
 
 :mini:`type mapindex`
 
-:mini:`meth MLIterCount(Arg₁: list)`
+:mini:`meth MLSequenceCount(Arg₁: list)`
 
 :mini:`type listiter`
 
 :mini:`type names`
-
-:mini:`type doublediterator < iteratable`
-
-:mini:`type doublediteratorstate < state`
-
-:mini:`type stacked < iteratable`
-
-:mini:`type stackedstate`
-
-:mini:`type repeated < iteratable`
-
-:mini:`type repeatedstate`
-
-:mini:`type sequenced < iteratable`
-
-:mini:`type sequencedstate`
-
-:mini:`type limited < iteratable`
-
-:mini:`meth :count(Arg₁: limited)`
-
-:mini:`type limitedstate`
-
-:mini:`type skipped < iteratable`
-
-:mini:`type buffered < iteratable`
-
-:mini:`type bufferedstate`
-
-:mini:`type unique < iteratable`
-
-:mini:`type uniquestate`
-
-:mini:`type zipped < iteratable`
-
-:mini:`type zippedstate`
-
-:mini:`type paired < iteratable`
-
-:mini:`type pairedstate`
-
-:mini:`type weaved < iteratable`
-
-:mini:`type weavedstate`
-
-:mini:`type swapped < iteratable`
-
-:mini:`type swappedstate`
-
-:mini:`type key < iteratable`
-
-:mini:`type keystate`
 
 :mini:`type TypelibIterT`
 

@@ -244,9 +244,12 @@ ml_value_t NAME[1] = {{TYPE}}
 
 extern ml_type_t MLAnyT[];
 extern ml_type_t MLNilT[];
+extern ml_type_t MLSomeT[];
+extern ml_type_t MLBlankT[];
 
 extern ml_value_t MLNil[];
 extern ml_value_t MLSome[];
+extern ml_value_t MLBlank[];
 
 void ml_value_set_name(ml_value_t *Value, const char *Name);
 
@@ -255,12 +258,15 @@ typedef void (*ml_callbackx_t)(ml_state_t *Frame, void *Data, int Count, ml_valu
 
 // Iterators //
 
-extern ml_type_t MLIteratableT[];
+extern ml_type_t MLSequenceT[];
+extern ml_value_t *MLSequenceCount;
 
 void ml_iterate(ml_state_t *Caller, ml_value_t *Value);
 void ml_iter_value(ml_state_t *Caller, ml_value_t *Iter);
 void ml_iter_key(ml_state_t *Caller, ml_value_t *Iter);
 void ml_iter_next(ml_state_t *Caller, ml_value_t *Iter);
+
+ml_value_t *ml_chained(int Count, ml_value_t **Functions);
 
 // Functions //
 

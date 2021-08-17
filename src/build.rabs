@@ -84,14 +84,14 @@ let Objects := [
 	file("ml_method.o"),
 	file("ml_list.o"),
 	file("ml_map.o"),
-	file("ml_file.o"),
-	file("ml_iterfns.o"),
+	file("ml_sequence.o"),
 	file("sha256.o"),
 	file("stringmap.o"),
 	file("inthash.o"),
 	file("ml_console.o"),
 	file("ml_debugger.o"),
-	file("ml_object.o")
+	file("ml_object.o"),
+	file("ml_file.o")
 ]
 
 let Libraries := []
@@ -100,8 +100,7 @@ let InstallHeaders := [
 	"minilang.h",
 	"config.h",
 	"ml_console.h",
-	"ml_file.h",
-	"ml_iterfns.h",
+	"ml_sequence.h",
 	"ml_macros.h",
 	"ml_types.h",
 	"ml_object.h",
@@ -109,7 +108,8 @@ let InstallHeaders := [
 	"ml_runtime.h",
 	"ml_bytecode.h",
 	"stringmap.h",
-	"inthash.h"
+	"inthash.h",
+	"ml_file.h"
 ]
 
 fun use_module(Url) do

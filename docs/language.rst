@@ -473,10 +473,10 @@ A for loop is also an expression (like most things in *Minilang*), and can retur
    Index of 6 is
    Index of 6 is not found
    
-Iteratables
+Sequences
 ...........
 
-For loops are not restricted to using lists and maps. Any value can be used in a for loop if it is iteratable, i.e. can generate a sequence of values (or key / value pairs for the two variable version).
+For loops are not restricted to using lists and maps. Any value can be used in a for loop if it is sequence, i.e. can generate a sequence of values (or key / value pairs for the two variable version).
 
 In order to loop over a range of numbers, *Minilang* has a range type, created using the :mini:`..` operator.
 
@@ -509,6 +509,8 @@ The default step size is :mini:`1` but can be changed using the :mini:`:by` meth
    X = 5
    X = 7
    X = 9
+
+*Minilang* provides many other types of sequences as well as functions that construct new sequences from others. More details can be found in :doc:`/features/sequences`.
 
 Functions
 ~~~~~~~~~
@@ -635,7 +637,7 @@ For example:
    Convert :mini:`X` to an integer, real, number (integer or real), string or regular expression respectively.
 
 :mini:`list(X)`, :mini:`map(X)`
-   These expect :mini:`X` to be iteratable and the values (and keys) produced by :mini:`X` into a list or map respectively.
+   These expect :mini:`X` to be sequence and the values (and keys) produced by :mini:`X` into a list or map respectively.
 
 :mini:`tuple(X₁, X₂, ...)`
    Constructs a new tuple with values :mini:`X₁, X₂, ...`.
@@ -654,47 +656,10 @@ Generics
 
 *Minilang* can optionally be built with support for generic types such as :mini:`list[integer]`, :mini:`map[string, tuple[string, number]]`, etc. More details can be found in :doc:`/features/generics`.
 
-Classes
-~~~~~~~
+Classes, Enums and Flags
+........................
 
-If selected when embedding *Minilang*, user defined types can be created using the :mini:`class` type.
-
-:mini:`class(Arg₁, Arg₂, ...)`
-   Creates a new class with additional properties based on the types of :mini:`Arg₁, Arg₂, ...`:
-
-   :mini:`string`
-      Sets the name of the class. If omitted, an anonymous name (of the form :mini:`"object:7f501a8c5f30"`) is used. The name is used for debugging and display purposes only.
-   
-   :mini:`class`
-      Adds a parent class. Multiple parent classes are allowed.
-   
-   :mini:`method`
-      Adds a field. Instances of this class will have space allocated for all fields, fields cannot be added or removed from instances later. Fields are accessed using the associated method.
-      
-   :mini:`Name is Value`
-      Named arguments add shared values to the class. If :mini:`Class` is a class, then :mini:`Class::Name` will return the shared value called *Name*.
-
-Certain shared values have special meaning. If :mini:`c` is a class, then:
-
-* The name :mini:`c::new` is always set to a function equivalent to the following:
-  
-  .. code-block:: mini
-  
-   fun(Arg₁, Arg₂, ...) do
-      let Instance := new instance of c
-      c::init(Instance, Arg₁, Arg₂, ...)
-      ret Instance
-   end
-  
-This cannot be overridden, if *new* is passed as a named argument to :mini:`class()`, it is ignored.
-
-* The value of :mini:`c::init` is used as the initializer and should be a callable value (function, method, etc). This value is called by :mini:`c::new` to initialize a new instance :mini:`c` with the given arguments.
-
-  If *init* is not set, a default initializer is set which assigns positional arguments to the instance fields in order. Any named arguments are assigned to the corresponding field by name. 
-
-* The value of :mini:`c::of` is used as the constructor and should be a callable value (function, method, etc). This value is called when the class is called as a function, i.e. :mini:`c(...)` is equivalent to :mini:`c::of(...)`. 
-
-  If *of* is not set, a default constructor is set which simply calls :mini:`c::new`.
+*Minilang* can optionally be built with support for user-defined types, using the :mini:`class`, :mini:`enum` or :mini:`flags` types. More details can be found in :doc:`/features/classes`.
 
 Methods
 ~~~~~~~
@@ -749,7 +714,219 @@ Methods with only symbol characters or that are valid identifiers can be invoked
    list(1 .. 10 limit 5)
    list(:limit(..(1, 10), 5))
 
-.. warning::
+.. important::
 
    *Minilang* allows any combination of symbol characters (listed above) as well as any identifier to be used as an infix operator. As a result, there is no operator precedence in *Minilang*. Hence, the parentheses in the last example are required; the expression :mini:`A + B * C` will be evaluated as :mini:`(A + B) * C`.
 
+Values
+------
+
+Nil
+~~~
+
+The special built in value :mini:`nil` denotes the absence of any other value. Variables have the value :mini:`nil` before they are assigned any other value. Likewise, function parameters default to :mini:`nil` if a function is called with fewer arguments than parameters.
+
+.. important::
+
+   Although *Minilang* has boolean values, conditional and looping statements treat only :mini:`nil` as false and *any* other value as true.  
+
+.. code-block:: mini
+
+   :> Nil
+   nil
+   
+   if nil then
+      print("This will not be seen!")
+   end
+   
+   if 0 then
+      print("This will be seen!")
+   end
+
+.. _comparisons:
+
+Comparison operators such as :mini:`=`, :mini:`>=`, etc, return the second argument if the comparison is true, and :mini:`nil` if it isn't. Comparisons also return :mini:`nil` if either argument is :mini:`nil`, allowing comparisons to be chained.
+
+.. code-block:: mini
+
+   1 < 2 :> returns 2
+   1 > 2 :> returns nil
+   
+   1 < 2 < 3 :> returns 3
+   1 < 0 < 3 :> return nil
+
+
+Numbers
+~~~~~~~
+
+Numbers in *Minilang* are either integers (whole numbers) or reals (decimals / floating point numbers).
+
+Integers can be written in standard decimal notation. Reals can be written in standard decimal notation, with either ``e`` or ``E`` to denote an exponent in scientific notation. If a number contains either a decimal point ``.`` or an exponent, then it will be read as a real number, otherwise it will be read as an integer.
+
+They support the standard arithmetic operations, comparison operations and conversion to or from strings.
+
+.. code-block:: mini
+
+   :> Integers
+   10
+   127
+   -1
+   
+   :>Reals
+   1.234
+   10.
+   0.78e-12
+
+.. code-block:: mini
+
+   :> Arithmetic
+   1 + 1 :> 2
+   2 - 1.5 :> 0.5
+   2 * 3 :> 6
+   4 / 2 :> 2
+   3 / 2 :> 1.5
+   5 div 2 :> 2
+   5 mod 2 :> 1
+   
+   :> Comparison
+   1 < 2 :> 2
+   1 <= 2 :> 2
+   1 = 1.0 :> 1.0
+   1 > 1 :> nil
+   1 >= 1 :> 1
+   1 != 1 :> nil
+
+   :> Conversion
+   integer("1") :> 1
+   real("2.5") :> 2.5
+   number("1") :> integer 1
+   number("1.1") :> real 1.1
+
+See also :doc:`/library/number`.
+
+Ranges
+......
+
+*Minilang* provides integer and real ranges. The :mini:`Min .. Max` operator returns an inclusive range from :mini:`Min` to :mini:`Max`.
+
+.. code-block:: mini
+
+   :> Construction
+   1 .. 10
+   10 .. 100 by 10
+   1 .. 10 by 0.5
+   1 .. 100 in 9
+
+See also :doc:`/library/range`.
+
+Strings
+~~~~~~~
+
+Strings can be written in two ways:
+
+Regular strings are written between double quotes ``"``, and contain regular characters. Special characters such as line breaks, tabs or ANSI escape sequences can be written using an escape sequence ``\n``, ``\t``, etc.
+
+Complex strings are written between single quotes ``'`` and can contain the same characters and escape sequences as regular strings. In addition, they can contain embedded expressions between braces ``{`` and ``}``. At runtime, the expressions in braces are evaluated and converted to strings. To include a left brace ``{`` in a complex string, escape it  ``\{``.
+
+.. code-block:: mini
+
+   :> Regular strings
+   "Hello world!"
+   "This has a new line\n", "\t"
+   
+   :> Complex strings
+   'The value of x is \'{x}\''
+   'L:length = {L:length}\n'
+   
+   :> Conversion
+   string(1) :> "1"
+   string([1, 2, 3]) :> "[1, 2, 3]"
+   string([1, 2, 3], ":") :> "1:2:3"
+
+:mini:`String[I]`
+   Returns the *I*-th character of *String* as a string of length 1.
+
+:mini:`String[I, J]`
+   Returns the sub-string of *String* starting with the *I*-th character up to but excluding the *J*-th character. Negative indices are taken from the end of *String*. If either *I* or *J* it outside the range of *String*, or *I* > *J* then :mini:`nil` is returned.
+
+See also :doc:`/library/string`.
+
+Regular Expressions
+~~~~~~~~~~~~~~~~~~~
+
+Regular expressions can be written as ``r"expression"``, where *expression* is a POSIX compatible regular expression.
+
+.. code-block:: mini
+
+   :> Regular expressions
+   r"[0-9]+/[0-9]+/[0-9]+"
+
+   :> Conversion
+   regex("[A-Za-z_]*") :> r"[A-Za-z_]*"
+
+See also :doc:`/library/string`.
+
+Lists
+~~~~~
+
+Lists are extendable ordered collections of values, and are created using square brackets, ``[`` and ``]``. A list can contain any value, including other lists, maps, etc.
+
+.. code-block:: mini
+
+   :> Construction
+   let L1 := [1, 2, 3, 4]
+   let L2 := list(1 .. 10)
+   
+   :> Indexing
+   L1[1]
+   L1[2] := 100
+   L1[-1]
+   
+   :> Slicing
+   L1[1, 3]
+   L1[2, 4] := [11, 12]
+   
+   :> Methods
+   L1:put(5, 6)
+   L1:pull
+   L1:push(0, -1)
+   L1:pop
+   L1:length
+   L1 + L2
+   
+   :> Iteration
+   for V in L1 do
+      print('V = {V}\n')
+   end
+   for I, V in L1 do
+      print('I = {I}, V = {V}\n')
+   end
+   for V in L1 do
+      V := old + 1
+   end
+
+See also :doc:`/library/list`.
+
+Maps
+~~~~
+
+Maps are extendable collections of key-value pairs, which can be indexed by its keys. Maps are created using braces ``{`` and ``}``. Keys can be of any immutable type supporting equality testings (typically numbers and strings), and different types of keys can be mixed in the same map. Each key can only be associated with one value, although values can be any type, including lists, other maps, etc.
+
+.. code-block::
+
+   :> Construction
+   let M1 := {"A" is 1, "B" is 2}
+   let M2 := map("banana")
+   
+   :> Indexing
+   M1["A"]
+   M1["C"]
+   M1["C"] := 3
+   print('D -> {M1["D", fun() 4]}\n')
+   
+   :> Methods
+   M1:insert("E", 5)
+   M1:delete("C")
+   M1:size
+ 
+See also :doc:`/library/map`.

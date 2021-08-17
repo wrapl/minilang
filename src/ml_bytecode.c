@@ -114,7 +114,7 @@ static void DEBUG_FUNC(continuation_call)(ml_state_t *Caller, DEBUG_STRUCT(frame
 	return Frame->Base.run((ml_state_t *)Frame, Count ? Args[0] : MLNil);
 }
 
-ML_TYPE(DEBUG_TYPE(Continuation), (MLStateT, MLIteratableT), "continuation",
+ML_TYPE(DEBUG_TYPE(Continuation), (MLStateT, MLSequenceT), "continuation",
 //!internal
 	.call = (void *)DEBUG_FUNC(continuation_call)
 );
@@ -1375,7 +1375,7 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Closure), ml_state_t *Frame, ml_v
 	return ml_closure_call(Frame, Closure, 0, NULL);
 }
 
-ML_TYPE(MLClosureT, (MLFunctionT, MLIteratableT), "closure",
+ML_TYPE(MLClosureT, (MLFunctionT, MLSequenceT), "closure",
 	.hash = ml_closure_hash,
 	.call = ml_closure_call
 );

@@ -3,7 +3,7 @@ table
 
 .. include:: <isonum.txt>
 
-:mini:`type table < iteratable`
+:mini:`type table < sequence`
    A table is a set of named arrays. The arrays must have the same length.
 
 
@@ -41,7 +41,7 @@ table
    Returns the column :mini:`Name` from :mini:`Table`.
 
 
-:mini:`type tablerow < iteratable`
+:mini:`type tablerow < sequence`
    A row in a table.
 
 

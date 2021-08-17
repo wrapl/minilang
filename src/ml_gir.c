@@ -12,7 +12,7 @@ typedef struct typelib_t {
 	const char *Namespace;
 } typelib_t;
 
-ML_TYPE(TypelibT, (MLIteratableT), "gir-typelib");
+ML_TYPE(TypelibT, (MLSequenceT), "gir-typelib");
 //@gir-typelib
 // A gobject-introspection typelib.
 

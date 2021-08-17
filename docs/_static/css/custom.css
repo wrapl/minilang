@@ -96,3 +96,6 @@ div.folders ul li:after {
 	color: white;
 }
 
+.bd-sidebar {
+	overflow-y: auto;
+}

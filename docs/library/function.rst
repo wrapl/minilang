@@ -33,7 +33,7 @@ function
    Returns an error if any of the keys in :mini:`Map` is not a string or method.
 
 
-:mini:`type partialfunction < function, iteratable`
+:mini:`type partialfunction < function, sequence`
 
 :mini:`meth :count(Arg₁: partialfunction)`
 

@@ -6,7 +6,7 @@
 #include <string.h>
 #include <gc/gc.h>
 #include "ml_object.h"
-#include "ml_iterfns.h"
+#include "ml_sequence.h"
 
 static stringmap_t Globals[1] = {STRINGMAP_INIT};
 
@@ -59,6 +59,7 @@ static const char *ml_preprocessor_line_read(ml_preprocessor_t *Preprocessor) {
 			exit(0);
 		}
 	}
+	return NULL;
 }
 
 static ml_value_t *ml_preprocessor_output(ml_preprocessor_t *Preprocessor, int Count, ml_value_t **Args) {
@@ -145,7 +146,7 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 	ml_preprocessor_t Preprocessor[1] = {{Input0, Output0}};
 	ml_file_init(Globals);
 	ml_object_init(Globals);
-	ml_iterfns_init(Globals);
+	ml_sequence_init(Globals);
 	stringmap_insert(Globals, "write", ml_cfunction(Preprocessor, (void *)ml_preprocessor_output));
 	stringmap_insert(Globals, "push", ml_cfunction(Preprocessor, (void *)ml_preprocessor_push));
 	stringmap_insert(Globals, "pop", ml_cfunction(Preprocessor, (void *)ml_preprocessor_pop));

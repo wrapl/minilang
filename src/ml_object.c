@@ -541,7 +541,7 @@ static void ml_enum_call(ml_state_t *Caller, ml_enum_t *Enum, int Count, ml_valu
 	}
 }
 
-ML_TYPE(MLEnumT, (MLTypeT, MLIteratableT), "enum",
+ML_TYPE(MLEnumT, (MLTypeT, MLSequenceT), "enum",
 	.call = (void *)ml_enum_call,
 	.Constructor = (void *)MLEnum
 );

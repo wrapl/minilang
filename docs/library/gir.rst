@@ -3,7 +3,7 @@ gir
 
 .. include:: <isonum.txt>
 
-:mini:`type gir-typelib < iteratable`
+:mini:`type gir-typelib < sequence`
    A gobject-introspection typelib.
 
 
