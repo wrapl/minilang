@@ -39,7 +39,7 @@ ML_METHOD_DECL(IndexMethod, "[]");
 ML_METHOD_DECL(SymbolMethod, "::");
 ML_METHOD_DECL(LessMethod, "<");
 ML_METHOD_DECL(CallMethod, "()");
-ML_METHOD_ANON(MLIterCount, "iteratable::count");
+ML_METHOD_ANON(MLSequenceCount, "sequence::count");
 
 static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 	const unsigned int Mask = (CHAR_BIT * sizeof(uintptr_t) - 1);
@@ -51,9 +51,9 @@ static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 ML_INTERFACE(MLAnyT, (), "any", .Rank = 0);
 // Base type for all values.
 
-ML_INTERFACE(MLIteratableT, (), "iteratable");
-//!iteratable
-// The base type for any iteratable value.
+ML_INTERFACE(MLSequenceT, (), "sequence");
+//!sequence
+// The base type for any sequence value.
 
 ML_INTERFACE(MLFunctionT, (), "function");
 //!function
@@ -193,9 +193,9 @@ long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
-ml_value_t *ml_default_deref(ml_value_t *Ref) {
+/*ml_value_t *ml_default_deref(ml_value_t *Ref) {
 	return Ref;
-}
+}*/
 
 ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value) {
 	return ml_error("TypeError", "<%s> is not assignable", ml_typeof(Ref)->Name);
@@ -239,14 +239,7 @@ void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent) {
 	}
 }
 
-inline void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn) {
-#ifdef ML_GENERICS
-	if (Type->Type == MLGenericTypeT) return ml_typed_fn_get(ml_generic_type_args(Type)[0], TypedFn);
-#endif
-	ML_RUNTIME_LOCK();
-	inthash_result_t Result = inthash_search2(Type->TypedFns, (uintptr_t)TypedFn);
-	ML_RUNTIME_UNLOCK();
-	if (Result.Present) return Result.Value;
+static void *__attribute__ ((noinline)) ml_typed_fn_get_parent(ml_type_t *Type, void *TypedFn) {
 	void *BestFn = NULL;
 	int BestRank = 0;
 	for (int I = 0; I < Type->Parents->Size; ++I) {
@@ -265,9 +258,40 @@ inline void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn) {
 	return BestFn;
 }
 
+inline void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn) {
+#ifdef ML_GENERICS
+	//if (Type->Type == MLGenericTypeT) return ml_typed_fn_get(ml_generic_type_args(Type)[0], TypedFn);
+	while (Type->Type == MLGenericTypeT) Type = ml_generic_type_args(Type)[0];
+#endif
+	ML_RUNTIME_LOCK();
+	inthash_result_t Result = inthash_search2(Type->TypedFns, (uintptr_t)TypedFn);
+	ML_RUNTIME_UNLOCK();
+	if (Result.Present) return Result.Value;
+	return ml_typed_fn_get_parent(Type, TypedFn);
+}
+
 void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function) {
 	inthash_insert(Type->TypedFns, (uintptr_t)TypedFn, Function);
 }
+
+ML_METHOD("|", MLTypeT, MLTypeT) {
+//<Type/1
+//<Type/2
+//>type
+// Returns a union interface of :mini:`Type/1` and :mini:`Type/2`.
+	ml_type_t *Type1 = (ml_type_t *)Args[0];
+	ml_type_t *Type2 = (ml_type_t *)Args[1];
+	ml_type_t *Type = new(ml_type_t);
+	Type->Type = MLTypeT;
+	ml_type_init(Type, Type1, Type2, NULL);
+	asprintf((char **)&Type->Name, "%s | %s", Type1->Name, Type2->Name);
+	Type->hash = ml_default_hash;
+	Type->call = ml_default_call;
+	Type->deref = ml_default_deref;
+	Type->assign = ml_default_assign;
+	return (ml_value_t *)Type;
+}
+
 
 ML_METHOD(MLStringT, MLTypeT) {
 //!type
@@ -374,7 +398,7 @@ void ml_type_add_rule(ml_type_t *T, ml_type_t *U, ...) {
 
 // Values //
 
-ML_TYPE(MLNilT, (MLFunctionT, MLIteratableT), "nil");
+ML_TYPE(MLNilT, (MLFunctionT, MLSequenceT), "nil");
 //!internal
 
 ML_TYPE(MLSomeT, (), "some");
@@ -635,7 +659,7 @@ typedef struct {
 
 static void ml_type_switch(ml_state_t *Caller, ml_type_switch_t *Switch, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
-	ml_type_t *Type = ml_typeof(Args[0]);
+	ml_type_t *Type = ml_typeof(ml_deref(Args[0]));
 	for (ml_type_case_t *Case = Switch->Cases;; ++Case) {
 		if (ml_is_subtype(Type, Case->Type)) ML_RETURN(Case->Index);
 	}
@@ -946,8 +970,22 @@ ML_METHODX("!", MLFunctionT, MLListT, MLMapT) {
 	return ml_call(Caller, Function, Count2, Args2);
 }
 
+static __attribute__ ((noinline)) void ml_cfunction_call_deref(ml_state_t *Caller, ml_cfunction_t *Function, int Count, ml_value_t **Args, int I) {
+	Args[I] = Args[I]->Type->deref(Args[I]);
+	while (--I >= 0) Args[I] = ml_deref(Args[I]);
+	ML_RETURN((Function->Callback)(Function->Data, Count, Args));
+}
+
 static void ml_cfunction_call(ml_state_t *Caller, ml_cfunction_t *Function, int Count, ml_value_t **Args) {
-	for (int I = 0; I < Count; ++I) Args[I] = ml_deref(Args[I]);
+	for (int I = Count; --I >= 0;) {
+#ifdef ML_NANBOXING
+		if (!ml_tag(Args[I]) && Args[I]->Type->deref != ml_default_deref) {
+#else
+		if (Args[I]->Type->deref != ml_default_deref) {
+#endif
+			return ml_cfunction_call_deref(Caller, Function, Count, Args, I);
+		}
+	}
 	ML_RETURN((Function->Callback)(Function->Data, Count, Args));
 }
 
@@ -964,30 +1002,27 @@ ml_value_t *ml_cfunction(void *Data, ml_callback_t Callback) {
 	return (ml_value_t *)Function;
 }
 
-static void ml_cfunction_noderef_call(ml_state_t *Caller, ml_cfunction_t *Function, int Count, ml_value_t **Args) {
-	for (int I = 0; I < Count; ++I) Args[I] = ml_deref(Args[I]);
-	ML_RETURN((Function->Callback)(Function->Data, Count, Args));
-}
-
-ML_TYPE(MLCFunctionNoDerefT, (MLFunctionT), "c-function",
-//!internal
-	.call = (void *)ml_cfunction_noderef_call
-);
-
-ml_value_t *ml_cfunction_noderef(void *Data, ml_callback_t Callback) {
-	ml_cfunction_t *Function = new(ml_cfunction_t);
-	Function->Type = MLCFunctionNoDerefT;
-	Function->Data = Data;
-	Function->Callback = Callback;
-	return (ml_value_t *)Function;
-}
-
 static void ML_TYPED_FN(ml_iterate, MLCFunctionT, ml_state_t *Caller, ml_cfunction_t *Function) {
 	ML_RETURN((Function->Callback)(Function->Data, 0, NULL));
 }
 
+static __attribute__ ((noinline)) void ml_cfunctionx_call_deref(ml_state_t *Caller, ml_cfunctionx_t *Function, int Count, ml_value_t **Args, int I) {
+	Args[I] = Args[I]->Type->deref(Args[I]);
+	while (--I >= 0) Args[I] = ml_deref(Args[I]);
+	return (Function->Callback)(Caller, Function->Data, Count, Args);
+}
+
 static void ml_cfunctionx_call(ml_state_t *Caller, ml_cfunctionx_t *Function, int Count, ml_value_t **Args) {
-	for (int I = 0; I < Count; ++I) Args[I] = ml_deref(Args[I]);
+	for (int I = Count; --I >= 0;) {
+#ifdef ML_NANBOXING
+		if (!ml_tag(Args[I]) && Args[I]->Type->deref != ml_default_deref) {
+#else
+		if (Args[I]->Type->deref != ml_default_deref) {
+#endif
+			return ml_cfunctionx_call_deref(Caller, Function, Count, Args, I);
+		}
+	}
+	//for (int I = 0; I < Count; ++I) Args[I] = ml_deref(Args[I]);
 	return (Function->Callback)(Caller, Function->Data, Count, Args);
 }
 
@@ -1051,7 +1086,7 @@ static void ml_partial_function_call(ml_state_t *Caller, ml_partial_function_t *
 	return ml_call(Caller, Partial->Function, CombinedCount, CombinedArgs);
 }
 
-ML_TYPE(MLPartialFunctionT, (MLFunctionT, MLIteratableT), "partial-function",
+ML_TYPE(MLPartialFunctionT, (MLFunctionT, MLSequenceT), "partial-function",
 //!function
 	.call = (void *)ml_partial_function_call
 );
@@ -1426,11 +1461,11 @@ ML_METHOD("<>", MLBooleanT, MLBooleanT) {
 }
 
 #define ml_comp_method_boolean_boolean(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLBooleanT, MLBooleanT) { \
-		ml_boolean_t *BooleanA = (ml_boolean_t *)Args[0]; \
-		ml_boolean_t *BooleanB = (ml_boolean_t *)Args[1]; \
-		return BooleanA->Value SYMBOL BooleanB->Value ? Args[1] : MLNil; \
-	}
+ML_METHOD(NAME, MLBooleanT, MLBooleanT) { \
+	ml_boolean_t *BooleanA = (ml_boolean_t *)Args[0]; \
+	ml_boolean_t *BooleanB = (ml_boolean_t *)Args[1]; \
+	return BooleanA->Value SYMBOL BooleanB->Value ? Args[1] : MLNil; \
+}
 
 ml_comp_method_boolean_boolean("=", ==);
 ml_comp_method_boolean_boolean("!=", !=);
@@ -1544,16 +1579,16 @@ ML_TYPE(MLIntegerT, (MLRealT, MLFunctionT), "integer",
 	.call = (void *)ml_integer_call
 );
 
-ml_value_t *ml_integer(long Value) {
+ml_value_t *ml_integer(int64_t Value) {
 	ml_integer_t *Integer = new(ml_integer_t);
 	Integer->Type = MLIntegerT;
 	Integer->Value = Value;
 	return (ml_value_t *)Integer;
 }
 
-extern long ml_integer_value_fast(const ml_value_t *Value);
+extern int64_t ml_integer_value_fast(const ml_value_t *Value);
 
-long ml_integer_value(const ml_value_t *Value) {
+int64_t ml_integer_value(const ml_value_t *Value) {
 	if (Value->Type == MLIntegerT) {
 		return ((ml_integer_t *)Value)->Value;
 	} else if (Value->Type == MLDoubleT) {
@@ -1664,44 +1699,44 @@ ML_METHOD(MLDoubleT, MLIntegerT) {
 #endif
 
 #define ml_arith_method_integer(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLIntegerT) { \
-		int64_t IntegerA = ml_integer_value_fast(Args[0]); \
-		return ml_integer(SYMBOL(IntegerA)); \
-	}
+ML_METHOD(NAME, MLIntegerT) { \
+	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
+	return ml_integer(SYMBOL(IntegerA)); \
+}
 
 #define ml_arith_method_integer_integer(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLIntegerT, MLIntegerT) { \
-		int64_t IntegerA = ml_integer_value_fast(Args[0]); \
-		int64_t IntegerB = ml_integer_value_fast(Args[1]); \
-		return ml_integer(IntegerA SYMBOL IntegerB); \
-	}
+ML_METHOD(NAME, MLIntegerT, MLIntegerT) { \
+	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
+	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
+	return ml_integer(IntegerA SYMBOL IntegerB); \
+}
 
 #define ml_arith_method_real(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLDoubleT) { \
-		double RealA = ml_double_value_fast(Args[0]); \
-		return ml_real(SYMBOL(RealA)); \
-	}
+ML_METHOD(NAME, MLDoubleT) { \
+	double RealA = ml_double_value_fast(Args[0]); \
+	return ml_real(SYMBOL(RealA)); \
+}
 
 #define ml_arith_method_real_real(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLDoubleT, MLDoubleT) { \
-		double RealA = ml_double_value_fast(Args[0]); \
-		double RealB = ml_double_value_fast(Args[1]); \
-		return ml_real(RealA SYMBOL RealB); \
-	}
+ML_METHOD(NAME, MLDoubleT, MLDoubleT) { \
+	double RealA = ml_double_value_fast(Args[0]); \
+	double RealB = ml_double_value_fast(Args[1]); \
+	return ml_real(RealA SYMBOL RealB); \
+}
 
 #define ml_arith_method_real_integer(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLDoubleT, MLIntegerT) { \
-		double RealA = ml_double_value_fast(Args[0]); \
-		int64_t IntegerB = ml_integer_value_fast(Args[1]); \
-		return ml_real(RealA SYMBOL IntegerB); \
-	}
+ML_METHOD(NAME, MLDoubleT, MLIntegerT) { \
+	double RealA = ml_double_value_fast(Args[0]); \
+	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
+	return ml_real(RealA SYMBOL IntegerB); \
+}
 
 #define ml_arith_method_integer_real(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLIntegerT, MLDoubleT) { \
-		int64_t IntegerA = ml_integer_value_fast(Args[0]); \
-		double RealB = ml_double_value_fast(Args[1]); \
-		return ml_real(IntegerA SYMBOL RealB); \
-	}
+ML_METHOD(NAME, MLIntegerT, MLDoubleT) { \
+	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
+	double RealB = ml_double_value_fast(Args[1]); \
+	return ml_real(IntegerA SYMBOL RealB); \
+}
 
 #ifdef ML_COMPLEX
 
@@ -1764,75 +1799,75 @@ complex double ml_complex_value(const ml_value_t *Value) {
 }
 
 #define ml_arith_method_complex(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLComplexT) { \
-		complex double ComplexA = ml_complex_value_fast(Args[0]); \
-		complex double ComplexB = SYMBOL(ComplexA); \
-		if (fabs(cimag(ComplexB)) <= DBL_EPSILON) { \
-			return ml_real(creal(ComplexB)); \
-		} else { \
-			return ml_complex(ComplexB); \
-		} \
-	}
+ML_METHOD(NAME, MLComplexT) { \
+	complex double ComplexA = ml_complex_value_fast(Args[0]); \
+	complex double ComplexB = SYMBOL(ComplexA); \
+	if (fabs(cimag(ComplexB)) <= DBL_EPSILON) { \
+		return ml_real(creal(ComplexB)); \
+	} else { \
+		return ml_complex(ComplexB); \
+	} \
+}
 
 #define ml_arith_method_complex_complex(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLComplexT, MLComplexT) { \
-		complex double ComplexA = ml_complex_value_fast(Args[0]); \
-		complex double ComplexB = ml_complex_value_fast(Args[1]); \
-		complex double ComplexC = ComplexA SYMBOL ComplexB; \
-		if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
-			return ml_real(creal(ComplexC)); \
-		} else { \
-			return ml_complex(ComplexC); \
-		} \
-	}
+ML_METHOD(NAME, MLComplexT, MLComplexT) { \
+	complex double ComplexA = ml_complex_value_fast(Args[0]); \
+	complex double ComplexB = ml_complex_value_fast(Args[1]); \
+	complex double ComplexC = ComplexA SYMBOL ComplexB; \
+	if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
+		return ml_real(creal(ComplexC)); \
+	} else { \
+		return ml_complex(ComplexC); \
+	} \
+}
 
 #define ml_arith_method_complex_integer(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLComplexT, MLIntegerT) { \
-		complex double ComplexA = ml_complex_value_fast(Args[0]); \
-		int64_t IntegerB = ml_integer_value_fast(Args[1]); \
-		complex double ComplexC = ComplexA SYMBOL IntegerB; \
-		if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
-			return ml_real(creal(ComplexC)); \
-		} else { \
-			return ml_complex(ComplexC); \
-		} \
-	}
+ML_METHOD(NAME, MLComplexT, MLIntegerT) { \
+	complex double ComplexA = ml_complex_value_fast(Args[0]); \
+	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
+	complex double ComplexC = ComplexA SYMBOL IntegerB; \
+	if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
+		return ml_real(creal(ComplexC)); \
+	} else { \
+		return ml_complex(ComplexC); \
+	} \
+}
 
 #define ml_arith_method_integer_complex(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLIntegerT, MLComplexT) { \
-		int64_t IntegerA = ml_integer_value_fast(Args[0]); \
-		complex double ComplexB = ml_complex_value_fast(Args[1]); \
-		complex double ComplexC = IntegerA SYMBOL ComplexB; \
-		if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
-			return ml_real(creal(ComplexC)); \
-		} else { \
-			return ml_complex(ComplexC); \
-		} \
-	}
+ML_METHOD(NAME, MLIntegerT, MLComplexT) { \
+	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
+	complex double ComplexB = ml_complex_value_fast(Args[1]); \
+	complex double ComplexC = IntegerA SYMBOL ComplexB; \
+	if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
+		return ml_real(creal(ComplexC)); \
+	} else { \
+		return ml_complex(ComplexC); \
+	} \
+}
 
 #define ml_arith_method_complex_real(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLComplexT, MLDoubleT) { \
-		complex double ComplexA = ml_complex_value_fast(Args[0]); \
-		double RealB = ml_double_value_fast(Args[1]); \
-		complex double ComplexC = ComplexA SYMBOL RealB; \
-		if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
-			return ml_real(creal(ComplexC)); \
-		} else { \
-			return ml_complex(ComplexC); \
-		} \
-	}
+ML_METHOD(NAME, MLComplexT, MLDoubleT) { \
+	complex double ComplexA = ml_complex_value_fast(Args[0]); \
+	double RealB = ml_double_value_fast(Args[1]); \
+	complex double ComplexC = ComplexA SYMBOL RealB; \
+	if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
+		return ml_real(creal(ComplexC)); \
+	} else { \
+		return ml_complex(ComplexC); \
+	} \
+}
 
 #define ml_arith_method_real_complex(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLDoubleT, MLComplexT) { \
-		double RealA = ml_double_value_fast(Args[0]); \
-		complex double ComplexB = ml_complex_value_fast(Args[1]); \
-		complex double ComplexC = RealA SYMBOL ComplexB; \
-		if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
-			return ml_real(creal(ComplexC)); \
-		} else { \
-			return ml_complex(ComplexC); \
-		} \
-	}
+ML_METHOD(NAME, MLDoubleT, MLComplexT) { \
+	double RealA = ml_double_value_fast(Args[0]); \
+	complex double ComplexB = ml_complex_value_fast(Args[1]); \
+	complex double ComplexC = RealA SYMBOL ComplexB; \
+	if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
+		return ml_real(creal(ComplexC)); \
+	} else { \
+		return ml_complex(ComplexC); \
+	} \
+}
 
 ML_METHOD("r", MLComplexT) {
 //!number
@@ -1855,32 +1890,32 @@ ML_METHOD("i", MLComplexT) {
 #ifdef ML_COMPLEX
 
 #define ml_arith_method_number(NAME, SYMBOL) \
-	ml_arith_method_integer(NAME, SYMBOL) \
-	ml_arith_method_real(NAME, SYMBOL) \
-	ml_arith_method_complex(NAME, SYMBOL)
+ml_arith_method_integer(NAME, SYMBOL) \
+ml_arith_method_real(NAME, SYMBOL) \
+ml_arith_method_complex(NAME, SYMBOL)
 
 #define ml_arith_method_number_number(NAME, SYMBOL) \
-	ml_arith_method_integer_integer(NAME, SYMBOL) \
-	ml_arith_method_real_real(NAME, SYMBOL) \
-	ml_arith_method_real_integer(NAME, SYMBOL) \
-	ml_arith_method_integer_real(NAME, SYMBOL) \
-	ml_arith_method_complex_complex(NAME, SYMBOL) \
-	ml_arith_method_complex_real(NAME, SYMBOL) \
-	ml_arith_method_complex_integer(NAME, SYMBOL) \
-	ml_arith_method_integer_complex(NAME, SYMBOL) \
-	ml_arith_method_real_complex(NAME, SYMBOL) \
+ml_arith_method_integer_integer(NAME, SYMBOL) \
+ml_arith_method_real_real(NAME, SYMBOL) \
+ml_arith_method_real_integer(NAME, SYMBOL) \
+ml_arith_method_integer_real(NAME, SYMBOL) \
+ml_arith_method_complex_complex(NAME, SYMBOL) \
+ml_arith_method_complex_real(NAME, SYMBOL) \
+ml_arith_method_complex_integer(NAME, SYMBOL) \
+ml_arith_method_integer_complex(NAME, SYMBOL) \
+ml_arith_method_real_complex(NAME, SYMBOL) \
 
 #else
 
 #define ml_arith_method_number(NAME, SYMBOL) \
-	ml_arith_method_integer(NAME, SYMBOL) \
-	ml_arith_method_real(NAME, SYMBOL)
+ml_arith_method_integer(NAME, SYMBOL) \
+ml_arith_method_real(NAME, SYMBOL)
 
 #define ml_arith_method_number_number(NAME, SYMBOL) \
-	ml_arith_method_integer_integer(NAME, SYMBOL) \
-	ml_arith_method_real_real(NAME, SYMBOL) \
-	ml_arith_method_real_integer(NAME, SYMBOL) \
-	ml_arith_method_integer_real(NAME, SYMBOL)
+ml_arith_method_integer_integer(NAME, SYMBOL) \
+ml_arith_method_real_real(NAME, SYMBOL) \
+ml_arith_method_real_integer(NAME, SYMBOL) \
+ml_arith_method_integer_real(NAME, SYMBOL)
 
 #endif
 
@@ -2030,38 +2065,38 @@ ML_METHOD("mod", MLIntegerT, MLIntegerT) {
 }
 
 #define ml_comp_method_integer_integer(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLIntegerT, MLIntegerT) { \
-		int64_t IntegerA = ml_integer_value_fast(Args[0]); \
-		int64_t IntegerB = ml_integer_value_fast(Args[1]); \
-		return IntegerA SYMBOL IntegerB ? Args[1] : MLNil; \
-	}
+ML_METHOD(NAME, MLIntegerT, MLIntegerT) { \
+	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
+	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
+	return IntegerA SYMBOL IntegerB ? Args[1] : MLNil; \
+}
 
 #define ml_comp_method_real_real(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLDoubleT, MLDoubleT) { \
-		double RealA = ml_double_value_fast(Args[0]); \
-		double RealB = ml_double_value_fast(Args[1]); \
-		return RealA SYMBOL RealB ? Args[1] : MLNil; \
-	}
+ML_METHOD(NAME, MLDoubleT, MLDoubleT) { \
+	double RealA = ml_double_value_fast(Args[0]); \
+	double RealB = ml_double_value_fast(Args[1]); \
+	return RealA SYMBOL RealB ? Args[1] : MLNil; \
+}
 
 #define ml_comp_method_real_integer(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLDoubleT, MLIntegerT) { \
-		double RealA = ml_double_value_fast(Args[0]); \
-		int64_t IntegerB = ml_integer_value_fast(Args[1]); \
-		return RealA SYMBOL IntegerB ? Args[1] : MLNil; \
-	}
+ML_METHOD(NAME, MLDoubleT, MLIntegerT) { \
+	double RealA = ml_double_value_fast(Args[0]); \
+	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
+	return RealA SYMBOL IntegerB ? Args[1] : MLNil; \
+}
 
 #define ml_comp_method_integer_real(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLIntegerT, MLDoubleT) { \
-		int64_t IntegerA = ml_integer_value_fast(Args[0]); \
-		double RealB = ml_double_value_fast(Args[1]); \
-		return IntegerA SYMBOL RealB ? Args[1] : MLNil; \
-	}
+ML_METHOD(NAME, MLIntegerT, MLDoubleT) { \
+	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
+	double RealB = ml_double_value_fast(Args[1]); \
+	return IntegerA SYMBOL RealB ? Args[1] : MLNil; \
+}
 
 #define ml_comp_method_number_number(NAME, SYMBOL) \
-	ml_comp_method_integer_integer(NAME, SYMBOL) \
-	ml_comp_method_real_real(NAME, SYMBOL) \
-	ml_comp_method_real_integer(NAME, SYMBOL) \
-	ml_comp_method_integer_real(NAME, SYMBOL)
+ml_comp_method_integer_integer(NAME, SYMBOL) \
+ml_comp_method_real_real(NAME, SYMBOL) \
+ml_comp_method_real_integer(NAME, SYMBOL) \
+ml_comp_method_integer_real(NAME, SYMBOL)
 
 ml_comp_method_number_number("=", ==)
 ml_comp_method_number_number("!=", !=)
@@ -2168,10 +2203,10 @@ static void ML_TYPED_FN(ml_iterate, MLIntegerRangeT, ml_state_t *Caller, ml_valu
 	ML_RETURN(Iter);
 }
 
-ML_TYPE(MLIntegerRangeT, (MLIteratableT), "integer-range");
+ML_TYPE(MLIntegerRangeT, (MLSequenceT), "integer-range");
 //!range
 
-ML_METHOD(MLIterCount, MLIntegerRangeT) {
+ML_METHOD(MLSequenceCount, MLIntegerRangeT) {
 //!internal
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
 	int64_t Diff = Range->Limit - Range->Start;
@@ -2314,10 +2349,10 @@ static void ML_TYPED_FN(ml_iterate, MLRealRangeT, ml_state_t *Caller, ml_value_t
 	ML_RETURN(Iter);
 }
 
-ML_TYPE(MLRealRangeT, (MLIteratableT), "real-range");
+ML_TYPE(MLRealRangeT, (MLSequenceT), "real-range");
 //!range
 
-ML_METHOD(MLIterCount, MLRealRangeT) {
+ML_METHOD(MLSequenceCount, MLRealRangeT) {
 //!internal
 	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
 	return ml_integer(Range->Count);
@@ -2522,8 +2557,11 @@ typedef struct {
 
 static void ml_integer_switch(ml_state_t *Caller, ml_integer_switch_t *Switch, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLNumberT);
-	int64_t Value = ml_integer_value(Args[0]);
+	ml_value_t *Arg = ml_deref(Args[0]);
+	if (!ml_is(Arg, MLNumberT)) {
+		ML_ERROR("TypeError", "expected number for argument 1");
+	}
+	int64_t Value = ml_integer_value(Arg);
 	for (ml_integer_case_t *Case = Switch->Cases;; ++Case) {
 		if (Case->Min <= Value && Value <= Case->Max) ML_RETURN(Case->Index);
 	}
@@ -2587,8 +2625,11 @@ typedef struct {
 
 static void ml_real_switch(ml_state_t *Caller, ml_real_switch_t *Switch, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLNumberT);
-	double Value = ml_real_value(Args[0]);
+	ml_value_t *Arg = ml_deref(Args[0]);
+	if (!ml_is(Arg, MLNumberT)) {
+		ML_ERROR("TypeError", "expected number for argument 1");
+	}
+	double Value = ml_real_value(Arg);
 	for (ml_real_case_t *Case = Switch->Cases;; ++Case) {
 		if (Case->Min <= Value && Value <= Case->Max) ML_RETURN(Case->Index);
 	}
@@ -2714,7 +2755,7 @@ void ml_init() {
 	stringmap_insert(MLIntegerT->Exports, "range", MLIntegerRangeT);
 	stringmap_insert(MLIntegerT->Exports, "switch", MLIntegerSwitch);
 	stringmap_insert(MLRealT->Exports, "range", MLRealRangeT);
-	stringmap_insert(MLIteratableT->Exports, "count", MLIterCount);
+	stringmap_insert(MLSequenceT->Exports, "count", MLSequenceCount);
 	ml_method_by_value(MLIntegerT->Constructor, NULL, ml_identity, MLIntegerT, NULL);
 	ml_method_by_value(MLDoubleT->Constructor, NULL, ml_identity, MLDoubleT, NULL);
 	ml_method_by_value(MLRealT->Constructor, NULL, ml_identity, MLDoubleT, NULL);
@@ -2772,7 +2813,7 @@ void ml_types_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "any", MLAnyT);
 		stringmap_insert(Globals, "type", MLTypeT);
 		stringmap_insert(Globals, "function", MLFunctionT);
-		stringmap_insert(Globals, "iteratable", MLIteratableT);
+		stringmap_insert(Globals, "sequence", MLSequenceT);
 		stringmap_insert(Globals, "boolean", MLBooleanT);
 		stringmap_insert(Globals, "true", MLTrue);
 		stringmap_insert(Globals, "false", MLFalse);

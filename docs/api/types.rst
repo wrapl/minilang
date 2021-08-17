@@ -114,13 +114,13 @@ Types
    The previous index when the value was encountered.
 
 
-.. c:var:: ml_type_t MLIteratableT[]
+.. c:var:: ml_type_t MLSequenceT[]
 
-   An interface for all iteratable types.
+   An interface for all sequence types.
 
 .. c:function:: void ml_iterate(ml_state_t *Caller, ml_value_t *Value)
 
-   Start iterating over :c:`Value`. Resumes :c:`Caller` with an iterator (or :mini:`nil` if :c:`Value` is empty, or an :mini:`error` if :c:`Value` is not iteratable or another error occurs).
+   Start iterating over :c:`Value`. Resumes :c:`Caller` with an iterator (or :mini:`nil` if :c:`Value` is empty, or an :mini:`error` if :c:`Value` is not sequence or another error occurs).
 
 .. c:function::  void ml_iter_value(ml_state_t *Caller, ml_value_t *Iter)
 

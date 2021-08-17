@@ -35,14 +35,6 @@ ml_methods_t *ml_methods_context_new(ml_context_t *Context) {
 	return Methods;
 }
 
-struct ml_method_cached_t {
-	ml_method_cached_t *Next, *MethodNext;
-	ml_method_t *Method;
-	ml_method_definition_t *Definition;
-	int Count, Score;
-	ml_type_t *Types[];
-};
-
 struct ml_method_definition_t {
 	ml_method_definition_t *Next;
 	ml_value_t *Callback;
@@ -69,19 +61,17 @@ static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_
 	return Score;
 }
 
-static ml_method_cached_t *ml_method_search_entry(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_type_t **Types, uint64_t Hash) {
-	ml_method_cached_t *Cached = inthash_search(Methods->Cache, Hash);
-	while (Cached) {
-		if (Cached->Method != Method) goto next;
-		if (Cached->Count != Count) goto next;
-		for (int I = 0; I < Count; ++I) {
-			if (Cached->Types[I] != Types[I]) goto next;
-		}
-		if (!Cached->Definition) break;
-		return Cached;
-	next:
-		Cached = Cached->Next;
-	}
+struct ml_method_cached_t {
+	ml_method_cached_t *Next, *MethodNext;
+	ml_method_t *Method;
+	ml_method_definition_t *Definition;
+	int Count, Score;
+	ml_type_t *Types[];
+};
+
+static ml_method_cached_t *ml_method_search_entry(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_type_t **Types, uint64_t Hash);
+
+static __attribute__ ((noinline)) ml_method_cached_t *ml_method_search_entry2(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_type_t **Types, uint64_t Hash, ml_method_cached_t *Cached) {
 	unsigned int BestScore = 0;
 	ml_method_definition_t *BestDefinition = NULL;
 	ml_method_definition_t *Definition = inthash_search(Methods->Definitions, (uintptr_t)Method);
@@ -114,34 +104,51 @@ static ml_method_cached_t *ml_method_search_entry(ml_methods_t *Methods, ml_meth
 	return Cached;
 }
 
+static ml_method_cached_t *ml_method_search_entry(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_type_t **Types, uint64_t Hash) {
+	ml_method_cached_t *Cached = inthash_search(Methods->Cache, Hash);
+	while (Cached) {
+		if (Cached->Method != Method) goto next;
+		if (Cached->Count != Count) goto next;
+		for (int I = 0; I < Count; ++I) {
+			if (Cached->Types[I] != Types[I]) goto next;
+		}
+		if (!Cached->Definition) break;
+		return Cached;
+	next:
+		Cached = Cached->Next;
+	}
+	return ml_method_search_entry2(Methods, Method, Count, Types, Hash, Cached);
+}
+
 static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 	const unsigned int Mask = (CHAR_BIT * sizeof(uintptr_t) - 1);
 	return (X << (N & Mask)) | (X >> ((-N) & Mask ));
 }
 
-static inline ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args) {
-	// TODO: Use generation numbers to check Methods->Parent for invalidated definitions
+static __attribute__ ((noinline)) ml_value_t *ml_method_search2(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args) {
 	// Use alloca here, VLA prevents TCO.
 	ml_type_t **Types = alloca(Count * sizeof(ml_type_t *));
 	uintptr_t Hash = (uintptr_t)Method;
 	for (int I = Count; --I >= 0;) {
-#ifdef ML_NANBOXING
-		ml_value_t *Value = Args[I];
-		ml_type_t *Type;
-		unsigned Tag = ml_tag(Value);
-		if (__builtin_expect(Tag == 0, 1)) {
-			Type = ml_typeof(Value->Type->deref(Value));
-		} else if (Tag == 1) {
-			Type = MLInt32T;
-		/*} else if (Tag < 7) {
-			Type = NULL;*/
-		} else {
-			Type = MLDoubleT;
-		}
-		Types[I] = Type;
-#else
-		ml_type_t *Type = Types[I] = ml_typeof(ml_deref(Args[I]));
-#endif
+		ml_type_t *Type = Types[I] = ml_typeof_deref(Args[I]);
+		Hash = rotl(Hash, 1) ^ (uintptr_t)Type;
+	}
+	ML_RUNTIME_LOCK();
+	ml_method_cached_t *Cached = ml_method_search_entry(Methods, Method, Count, Types, Hash);
+	ML_RUNTIME_UNLOCK();
+	if (Cached) return Cached->Definition->Callback;
+	return NULL;
+}
+
+#define ML_SMALL_METHOD_COUNT 8
+
+static inline ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args) {
+	// TODO: Use generation numbers to check Methods->Parent for invalidated definitions
+	if (Count > ML_SMALL_METHOD_COUNT) return ml_method_search2(Methods, Method, Count, Args);
+	ml_type_t *Types[ML_SMALL_METHOD_COUNT];
+	uintptr_t Hash = (uintptr_t)Method;
+	for (int I = Count; --I >= 0;) {
+		ml_type_t *Type = Types[I] = ml_typeof_deref(Args[I]);
 		Hash = rotl(Hash, 1) ^ (uintptr_t)Type;
 	}
 	ML_RUNTIME_LOCK();

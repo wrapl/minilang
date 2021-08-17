@@ -1,12 +1,15 @@
+PREBUILDS := old + [LIBUV]
+
 generate_init_file(file("ml_libuv.c"))
 generate_init_file(file("ml_libuv_file.c"))
 generate_init_file(file("ml_libuv_process.c"))
 
-CFLAGS := old + ["-I../.."]
-LDFLAGS := old + ["-luv"]
+CFLAGS := old + ["-I../..", "-I../include"]
 
-DEFAULT[minilang_lib("libuv.so", [
+MLLIBUV := minilang_lib("libuv.so", [
 	file("ml_libuv.o"),
 	file("ml_libuv_file.o"),
 	file("ml_libuv_process.o")
-])]
+], [LIBUV])
+
+DEFAULT[MLLIBUV]

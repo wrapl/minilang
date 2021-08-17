@@ -105,6 +105,11 @@ union ml_inst_t {
 
 #define SHA256_BLOCK_SIZE 32
 
+#define ML_CLOSURE_EXTRA_ARGS 1
+#define ML_CLOSURE_NAMED_ARGS 2
+#define ML_CLOSURE_LABELLED 4
+#define ML_CLOSURE_HASHED 8
+
 struct ml_closure_info_t {
 	ml_inst_t *Entry, *Return, *Halt;
 	const char *Name, *Source;
@@ -115,8 +120,7 @@ struct ml_closure_info_t {
 	stringmap_t Params[1];
 	int StartLine, EndLine, FrameSize;
 	int NumParams, NumUpValues;
-	int ExtraArgs, NamedArgs;
-	int Labelled, Hashed;
+	int Flags;
 	unsigned char Hash[SHA256_BLOCK_SIZE];
 };
 

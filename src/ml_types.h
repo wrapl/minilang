@@ -62,7 +62,10 @@ extern ml_type_t MLTypeT[];
 
 long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain);
 void ml_default_call(ml_state_t *Frame, ml_value_t *Value, int Count, ml_value_t **Args);
-ml_value_t *ml_default_deref(ml_value_t *Ref);
+
+//ml_value_t *ml_default_deref(ml_value_t *Ref);
+#define ml_default_deref NULL
+
 ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value);
 
 #ifndef GENERATE_INIT
@@ -137,6 +140,16 @@ __attribute__ ((pure)) static inline int ml_tag(const ml_value_t *Value) {
 	return (uint64_t)Value >> 48;
 }
 
+static inline ml_value_t *ml_deref(ml_value_t *Value) {
+	unsigned Tag = ml_tag(Value);
+	if (__builtin_expect(Tag == 0, 1)) {
+		if (__builtin_expect(Value->Type->deref != ml_default_deref, 0)) {
+			return Value->Type->deref(Value);
+		}
+	}
+	return Value;
+}
+
 __attribute__ ((pure)) static inline ml_type_t *ml_typeof(const ml_value_t *Value) {
 	unsigned Tag = ml_tag(Value);
 	if (__builtin_expect(Tag == 0, 1)) {
@@ -150,12 +163,18 @@ __attribute__ ((pure)) static inline ml_type_t *ml_typeof(const ml_value_t *Valu
 	}
 }
 
-static inline ml_value_t *ml_deref(ml_value_t *Value) {
+__attribute__ ((pure)) static inline ml_type_t *ml_typeof_deref(ml_value_t *Value) {
 	unsigned Tag = ml_tag(Value);
 	if (__builtin_expect(Tag == 0, 1)) {
-		return Value->Type->deref(Value);
+		ml_type_t *Type = Value->Type;
+		if (Type->deref != ml_default_deref) return ml_typeof(Type->deref(Value));
+		return Type;
+	} else if (Tag == 1) {
+		return MLInt32T;
+	/*} else if (Tag < 7) {
+		return NULL;*/
 	} else {
-		return Value;
+		return MLDoubleT;
 	}
 }
 
@@ -166,7 +185,18 @@ static inline ml_type_t *ml_typeof(const ml_value_t *Value) {
 }
 
 static inline ml_value_t *ml_deref(ml_value_t *Value) {
-	return Value->Type->deref(Value);
+	if (__builtin_expect(Value->Type->deref != ml_default_deref, 0)) {
+		return Value->Type->deref(Value);
+	}
+	return Value;
+}
+
+static inline ml_type_t *ml_typeof_deref(ml_value_t *Value) {
+	ml_type_t *Type = Value->Type;
+	if (__builtin_expect(Type->deref != ml_default_deref, 0)) {
+		return ml_typeof(Type->deref(Value));
+	}
+	return Type;
 }
 
 #endif
@@ -214,9 +244,12 @@ ml_value_t NAME[1] = {{TYPE}}
 
 extern ml_type_t MLAnyT[];
 extern ml_type_t MLNilT[];
+extern ml_type_t MLSomeT[];
+extern ml_type_t MLBlankT[];
 
 extern ml_value_t MLNil[];
 extern ml_value_t MLSome[];
+extern ml_value_t MLBlank[];
 
 void ml_value_set_name(ml_value_t *Value, const char *Name);
 
@@ -225,12 +258,15 @@ typedef void (*ml_callbackx_t)(ml_state_t *Frame, void *Data, int Count, ml_valu
 
 // Iterators //
 
-extern ml_type_t MLIteratableT[];
+extern ml_type_t MLSequenceT[];
+extern ml_value_t *MLSequenceCount;
 
 void ml_iterate(ml_state_t *Caller, ml_value_t *Value);
 void ml_iter_value(ml_state_t *Caller, ml_value_t *Iter);
 void ml_iter_key(ml_state_t *Caller, ml_value_t *Iter);
 void ml_iter_next(ml_state_t *Caller, ml_value_t *Iter);
+
+ml_value_t *ml_chained(int Count, ml_value_t **Functions);
 
 // Functions //
 
@@ -316,12 +352,12 @@ static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Arg
 
 #define ML_CHECKX_ARG_TYPE(N, TYPE) \
 	if (!ml_is(Args[N], TYPE)) { \
-		ML_CONTINUE(Caller, ml_error("TypeError", "expected %s required for argument %d", TYPE->Name, N + 1)); \
+		ML_ERROR("TypeError", "expected %s for argument %d", TYPE->Name, N + 1); \
 	}
 
 #define ML_CHECKX_ARG_COUNT(N) \
 	if (Count < N) { \
-		ML_CONTINUE(Caller, ml_error("CallError", "%d arguments required", N)); \
+		ML_ERROR("CallError", "%d arguments required", N); \
 	}
 
 #define ML_CONTINUE(STATE, VALUE) { \
@@ -449,7 +485,7 @@ static inline double ml_double_value_fast(const ml_value_t *Value) {
 
 #else
 
-ml_value_t *ml_integer(const int64_t Value) __attribute__((malloc));
+ml_value_t *ml_integer(int64_t Value) __attribute__((malloc));
 ml_value_t *ml_real(double Value) __attribute__((malloc));
 
 typedef struct {

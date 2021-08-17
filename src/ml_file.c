@@ -221,7 +221,7 @@ typedef struct {
 
 extern ml_cfunction_t MLDirOpen[];
 
-ML_TYPE(MLDirT, (MLIteratableT), "directory",
+ML_TYPE(MLDirT, (MLSequenceT), "directory",
 	.Constructor = (ml_value_t *)MLDirOpen
 );
 

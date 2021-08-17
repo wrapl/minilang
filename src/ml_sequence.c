@@ -1,11 +1,12 @@
+#include "ml_sequence.h"
+
 #include <gc.h>
 #include "ml_runtime.h"
 #include <string.h>
 #include "minilang.h"
 #include "ml_macros.h"
-#include "ml_iterfns.h"
 
-//!iteratable
+//!sequence
 
 /****************************** Chained ******************************/
 
@@ -92,16 +93,22 @@ static void ml_chained_function_call(ml_state_t *Caller, ml_chained_function_t *
 	return ml_call(State, Chained->Entries[0], Count, Args);
 }
 
-ML_TYPE(MLChainedFunctionT, (MLFunctionT, MLIteratableT), "chained-function",
+ML_TYPE(MLChainedT, (MLFunctionT, MLSequenceT), "chained",
 	.call = (void *)ml_chained_function_call
 );
 
 ml_value_t *ml_chained(int Count, ml_value_t **Functions) {
 	if (Count == 1) return Functions[0];
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, Count + 1, ml_value_t *);
-	Chained->Type = MLChainedFunctionT;
+	Chained->Type = MLChainedT;
 	for (int I = 0; I < Count; ++I) Chained->Entries[I] = *Functions++;
 	return (ml_value_t *)Chained;
+}
+
+ML_FUNCTION(MLChained) {
+//!internal
+	ML_CHECK_ARG_COUNT(1);
+	return ml_chained(Count, Args);
 }
 
 typedef struct ml_chained_iterator_t {
@@ -112,6 +119,7 @@ typedef struct ml_chained_iterator_t {
 } ml_chained_iterator_t;
 
 ML_TYPE(MLChainedStateT, (), "chained-state");
+//!internal
 
 static void ML_TYPED_FN(ml_iter_key, MLChainedStateT, ml_state_t *Caller, ml_chained_iterator_t *State) {
 	ML_RETURN(State->Values[0]);
@@ -215,7 +223,7 @@ static void ML_TYPED_FN(ml_iter_next, MLChainedStateT, ml_state_t *Caller, ml_ch
 	return ml_iter_next((ml_state_t *)State, State->Iterator);
 }
 
-static void ML_TYPED_FN(ml_iterate, MLChainedFunctionT, ml_state_t *Caller, ml_chained_function_t *Chained) {
+static void ML_TYPED_FN(ml_iterate, MLChainedT, ml_state_t *Caller, ml_chained_function_t *Chained) {
 	ml_chained_iterator_t *State = new(ml_chained_iterator_t);
 	State->Base.Type =  MLChainedStateT;
 	State->Base.Caller = Caller;
@@ -226,34 +234,34 @@ static void ML_TYPED_FN(ml_iterate, MLChainedFunctionT, ml_state_t *Caller, ml_c
 }
 
 ML_METHOD("->", MLFunctionT, MLFunctionT) {
-//<Iteratable
+//<Sequence
 //<Function
-//>chainedfunction
+//>chained
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 3, ml_value_t *);
-	Chained->Type = MLChainedFunctionT;
+	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
 	Chained->Entries[1] = Args[1];
 	return (ml_value_t *)Chained;
 }
 
-ML_METHOD("->", MLIteratableT, MLFunctionT) {
-//<Iteratable
+ML_METHOD("->", MLSequenceT, MLFunctionT) {
+//<Sequence
 //<Function
-//>chainedfunction
+//>chained
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 3, ml_value_t *);
-	Chained->Type = MLChainedFunctionT;
+	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
 	Chained->Entries[1] = Args[1];
 	//Chained->Entries[2] = NULL;
 	return (ml_value_t *)Chained;
 }
 
-ML_METHOD("=>", MLIteratableT, MLFunctionT) {
-//<Iteratable
+ML_METHOD("=>", MLSequenceT, MLFunctionT) {
+//<Sequence
 //<Function
-//>chainedfunction
+//>chained
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 5, ml_value_t *);
-	Chained->Type = MLChainedFunctionT;
+	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
 	Chained->Entries[1] = DuoMethod;
 	Chained->Entries[2] = ml_integer(1);
@@ -262,12 +270,12 @@ ML_METHOD("=>", MLIteratableT, MLFunctionT) {
 	return (ml_value_t *)Chained;
 }
 
-ML_METHOD("=>", MLIteratableT, MLFunctionT, MLFunctionT) {
-//<Iteratable
+ML_METHOD("=>", MLSequenceT, MLFunctionT, MLFunctionT) {
+//<Sequence
 //<Function
-//>chainedfunction
+//>chained
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 5, ml_value_t *);
-	Chained->Type = MLChainedFunctionT;
+	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
 	Chained->Entries[1] = DuoMethod;
 	Chained->Entries[2] = Args[1];
@@ -276,29 +284,29 @@ ML_METHOD("=>", MLIteratableT, MLFunctionT, MLFunctionT) {
 	return (ml_value_t *)Chained;
 }
 
-ML_METHOD("->", MLChainedFunctionT, MLFunctionT) {
-//<ChainedFunction
+ML_METHOD("->", MLChainedT, MLFunctionT) {
+//<Chained
 //<Function
-//>chainedfunction
+//>chained
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
 	int N = 0;
 	while (Base->Entries[N]) ++N;
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, N + 2, ml_value_t *);
-	Chained->Type = MLChainedFunctionT;
+	Chained->Type = MLChainedT;
 	for (int I = 0; I < N; ++I) Chained->Entries[I] = Base->Entries[I];
 	Chained->Entries[N] = Args[1];
 	return (ml_value_t *)Chained;
 }
 
-ML_METHOD("=>", MLChainedFunctionT, MLFunctionT) {
-//<ChainedFunction
+ML_METHOD("=>", MLChainedT, MLFunctionT) {
+//<Chained
 //<Function
-//>chainedfunction
+//>chained
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
 	int N = 0;
 	while (Base->Entries[N]) ++N;
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, N + 4, ml_value_t *);
-	Chained->Type = MLChainedFunctionT;
+	Chained->Type = MLChainedT;
 	for (int I = 0; I < N; ++I) Chained->Entries[I] = Base->Entries[I];
 	Chained->Entries[N] = DuoMethod;
 	Chained->Entries[N + 1] = ml_integer(1);
@@ -306,15 +314,15 @@ ML_METHOD("=>", MLChainedFunctionT, MLFunctionT) {
 	return (ml_value_t *)Chained;
 }
 
-ML_METHOD("=>", MLChainedFunctionT, MLFunctionT, MLFunctionT) {
-//<ChainedFunction
+ML_METHOD("=>", MLChainedT, MLFunctionT, MLFunctionT) {
+//<Chained
 //<Function
-//>chainedfunction
+//>chained
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
 	int N = 0;
 	while (Base->Entries[N]) ++N;
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, N + 4, ml_value_t *);
-	Chained->Type = MLChainedFunctionT;
+	Chained->Type = MLChainedT;
 	for (int I = 0; I < N; ++I) Chained->Entries[I] = Base->Entries[I];
 	Chained->Entries[N] = DuoMethod;
 	Chained->Entries[N + 1] = Args[1];
@@ -322,12 +330,12 @@ ML_METHOD("=>", MLChainedFunctionT, MLFunctionT, MLFunctionT) {
 	return (ml_value_t *)Chained;
 }
 
-ML_METHOD("->?", MLIteratableT, MLFunctionT) {
-//<Iteratable
+ML_METHOD("->?", MLSequenceT, MLFunctionT) {
+//<Sequence
 //<Function
-//>chainedfunction
+//>chained
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
-	Chained->Type = MLChainedFunctionT;
+	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
 	Chained->Entries[1] = FilterSoloMethod;
 	Chained->Entries[2] = Args[1];
@@ -335,12 +343,12 @@ ML_METHOD("->?", MLIteratableT, MLFunctionT) {
 	return (ml_value_t *)Chained;
 }
 
-ML_METHOD("=>?", MLIteratableT, MLFunctionT) {
-//<Iteratable
+ML_METHOD("=>?", MLSequenceT, MLFunctionT) {
+//<Sequence
 //<Function
-//>chainedfunction
+//>chained
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
-	Chained->Type = MLChainedFunctionT;
+	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
 	Chained->Entries[1] = FilterDuoMethod;
 	Chained->Entries[2] = Args[1];
@@ -348,30 +356,30 @@ ML_METHOD("=>?", MLIteratableT, MLFunctionT) {
 	return (ml_value_t *)Chained;
 }
 
-ML_METHOD("->?", MLChainedFunctionT, MLFunctionT) {
-//<ChainedFunction
+ML_METHOD("->?", MLChainedT, MLFunctionT) {
+//<Chained
 //<Function
-//>chainedfunction
+//>chained
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
 	int N = 0;
 	while (Base->Entries[N]) ++N;
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, N + 3, ml_value_t *);
-	Chained->Type = MLChainedFunctionT;
+	Chained->Type = MLChainedT;
 	for (int I = 0; I < N; ++I) Chained->Entries[I] = Base->Entries[I];
 	Chained->Entries[N] = FilterSoloMethod;
 	Chained->Entries[N + 1] = Args[1];
 	return (ml_value_t *)Chained;
 }
 
-ML_METHOD("=>?", MLChainedFunctionT, MLFunctionT) {
-//<ChainedFunction
+ML_METHOD("=>?", MLChainedT, MLFunctionT) {
+//<Chained
 //<Function
-//>chainedfunction
+//>chained
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
 	int N = 0;
 	while (Base->Entries[N]) ++N;
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, N + 3, ml_value_t *);
-	Chained->Type = MLChainedFunctionT;
+	Chained->Type = MLChainedT;
 	for (int I = 0; I < N; ++I) Chained->Entries[I] = Base->Entries[I];
 	Chained->Entries[N] = FilterDuoMethod;
 	Chained->Entries[N + 1] = Args[1];
@@ -382,10 +390,10 @@ ML_METHOD("=>?", MLChainedFunctionT, MLFunctionT) {
 
 typedef struct {
 	ml_type_t *Type;
-	ml_value_t *Iteratable, *Function;
+	ml_value_t *Sequence, *Function;
 } ml_doubled_t;
 
-ML_TYPE(MLDoubledIteratorT, (MLIteratableT), "doubled");
+ML_TYPE(MLDoubledIteratorT, (MLSequenceT), "doubled");
 //!internal
 
 typedef struct ml_double_state_t {
@@ -442,7 +450,7 @@ static void ML_TYPED_FN(ml_iterate, MLDoubledIteratorT, ml_state_t *Caller, ml_d
 	State->Base.Context = Caller->Context;
 	State->Base.run = (void *)ml_double_iter0_next;
 	State->Function = Doubled->Function;
-	return ml_iterate((ml_state_t *)State, Doubled->Iteratable);
+	return ml_iterate((ml_state_t *)State, Doubled->Sequence);
 }
 
 static void ML_TYPED_FN(ml_iter_key, MLDoubledIteratorStateT, ml_state_t *Caller, ml_double_state_t *State) {
@@ -460,14 +468,14 @@ static void ML_TYPED_FN(ml_iter_next, MLDoubledIteratorStateT, ml_state_t *Calle
 	return ml_iter_next((ml_state_t *)State, State->Iterator);
 }
 
-ML_METHOD("^", MLIteratableT, MLFunctionT) {
-//<Iteratable
+ML_METHOD("^", MLSequenceT, MLFunctionT) {
+//<Sequence
 //<Function
-//>iteratable
-// Returns a new iteratable that generates the keys and values from :mini:`Function(Value)` for each value generated by :mini:`Iteratable`.
+//>sequence
+// Returns a new sequence that generates the keys and values from :mini:`Function(Value)` for each value generated by :mini:`Sequence`.
 	ml_doubled_t *Doubled = new(ml_doubled_t);
 	Doubled->Type = MLDoubledIteratorT;
-	Doubled->Iteratable = Args[0];
+	Doubled->Sequence = Args[0];
 	Doubled->Function = Args[1];
 	return (ml_value_t *)Doubled;
 }
@@ -493,11 +501,11 @@ static void all_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 }
 
 ML_FUNCTIONX(All) {
-//<Iteratable
+//<Sequence
 //>some | nil
 // Returns :mini:`nil` if :mini:`nil` is produced by :mini:`Iterable`. Otherwise returns :mini:`some`.
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
+	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = new(ml_iter_state_t);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)all_iterate;
@@ -514,11 +522,11 @@ static void first_iterate(ml_state_t *State, ml_value_t *Value) {
 }
 
 ML_FUNCTIONX(First) {
-//<Iteratable
+//<Sequence
 //>any | nil
-// Returns the first value produced by :mini:`Iteratable`.
+// Returns the first value produced by :mini:`Sequence`.
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
+	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_state_t *State = new(ml_state_t);
 	State->Caller = Caller;
 	State->run = first_iterate;
@@ -547,11 +555,11 @@ static void first2_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 }
 
 ML_FUNCTIONX(First2) {
-//<Iteratable
+//<Sequence
 //>tuple(any, any) | nil
-// Returns the first key and value produced by :mini:`Iteratable`.
+// Returns the first key and value produced by :mini:`Sequence`.
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
+	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (ml_state_fn)first2_iterate;
@@ -577,11 +585,11 @@ static void last_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 }
 
 ML_FUNCTIONX(Last) {
-//<Iteratable
+//<Sequence
 //>any | nil
-// Returns the last value produced by :mini:`Iteratable`.
+// Returns the last value produced by :mini:`Sequence`.
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
+	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)last_iterate;
@@ -623,11 +631,11 @@ static void last2_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 }
 
 ML_FUNCTIONX(Last2) {
-//<Iteratable
+//<Sequence
 //>tuple(any, any) | nil
-// Returns the last key and value produced by :mini:`Iteratable`.
+// Returns the last key and value produced by :mini:`Sequence`.
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
+	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)last2_iterate;
@@ -648,11 +656,11 @@ static void count_iterate(ml_count_state_t *State, ml_value_t *Value) {
 	return ml_iter_next((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_METHODX(MLIterCount, MLIteratableT) {
+ML_METHODX(MLSequenceCount, MLSequenceT) {
 //@count
-//<Iteratable
+//<Sequence
 //>integer
-// Returns the count of the values produced by :mini:`Iteratable`.
+// Returns the count of the values produced by :mini:`Sequence`.
 	ml_count_state_t *State = new(ml_count_state_t);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)count_iterate;
@@ -691,11 +699,11 @@ static void count2_iterate(ml_count2_state_t *State, ml_value_t *Value) {
 }
 
 ML_FUNCTIONX(Count2) {
-//<Iteratable
+//<Sequence
 //>map
-// Returns a map of the values produced by :mini:`Iteratable` with associated counts.
+// Returns a map of the values produced by :mini:`Sequence` with associated counts.
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
+	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_count2_state_t *State = new(ml_count2_state_t);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)count2_iterate;
@@ -750,14 +758,14 @@ static void reduce_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 
 ML_FUNCTIONX(Reduce) {
 //<Initial?:any
-//<Iteratable:iteratable
+//<Sequence:sequence
 //<Fn:function
 //>any | nil
-// Returns :mini:`Fn(Fn( ... Fn(Initial, V/1), V/2) ..., V/n)` where :mini:`V/i` are the values produced by :mini:`Iteratable`.
-// If :mini:`Initial` is omitted, first value produced by :mini:`Iteratable` is used.
+// Returns :mini:`Fn(Fn( ... Fn(Initial, V/1), V/2) ..., V/n)` where :mini:`V/i` are the values produced by :mini:`Sequence`.
+// If :mini:`Initial` is omitted, first value produced by :mini:`Sequence` is used.
 	ML_CHECKX_ARG_COUNT(2);
 	if (Count == 2) {
-		ML_CHECKX_ARG_TYPE(0, MLIteratableT);
+		ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 		ML_CHECKX_ARG_TYPE(1, MLFunctionT);
 		ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
 		State->Base.Caller = Caller;
@@ -766,7 +774,7 @@ ML_FUNCTIONX(Reduce) {
 		State->Values[0] = Args[1];
 		return ml_iterate((ml_state_t *)State, Args[0]);
 	} else {
-		ML_CHECKX_ARG_TYPE(1, MLIteratableT);
+		ML_CHECKX_ARG_TYPE(1, MLSequenceT);
 		ML_CHECKX_ARG_TYPE(2, MLFunctionT);
 		ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
 		State->Base.Caller = Caller;
@@ -779,11 +787,11 @@ ML_FUNCTIONX(Reduce) {
 }
 
 ML_FUNCTIONX(Min) {
-//<Iteratable
+//<Sequence
 //>any | nil
-// Returns the smallest value (based on :mini:`<`) produced by :mini:`Iteratable`.
+// Returns the smallest value (based on :mini:`<`) produced by :mini:`Sequence`.
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
+	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)reduce_iterate;
@@ -793,11 +801,11 @@ ML_FUNCTIONX(Min) {
 }
 
 ML_FUNCTIONX(Max) {
-//<Iteratable
+//<Sequence
 //>any | nil
-// Returns the largest value (based on :mini:`>`) produced by :mini:`Iteratable`.
+// Returns the largest value (based on :mini:`>`) produced by :mini:`Sequence`.
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
+	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)reduce_iterate;
@@ -807,11 +815,11 @@ ML_FUNCTIONX(Max) {
 }
 
 ML_FUNCTIONX(Sum) {
-//<Iteratable
+//<Sequence
 //>any | nil
-// Returns the sum of the values (based on :mini:`+`) produced by :mini:`Iteratable`.
+// Returns the sum of the values (based on :mini:`+`) produced by :mini:`Sequence`.
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
+	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)reduce_iterate;
@@ -821,11 +829,11 @@ ML_FUNCTIONX(Sum) {
 }
 
 ML_FUNCTIONX(Prod) {
-//<Iteratable
+//<Sequence
 //>any | nil
-// Returns the product of the values (based on :mini:`*`) produced by :mini:`Iteratable`.
+// Returns the product of the values (based on :mini:`*`) produced by :mini:`Sequence`.
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
+	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)reduce_iterate;
@@ -867,11 +875,11 @@ static void join_first(ml_join_state_t *State, ml_value_t *Value) {
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_METHODVX("join", MLIteratableT, MLStringT) {
-//<Iteratable
+ML_METHODVX("join", MLSequenceT, MLStringT) {
+//<Sequence
 //<Separator
 //>string
-// Joins the elements of :mini:`Iteratable` into a string using :mini:`Separator` between elements.
+// Joins the elements of :mini:`Sequence` into a string using :mini:`Separator` between elements.
 	ml_join_state_t *State = new(ml_join_state_t);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)join_first;
@@ -950,11 +958,11 @@ static void reduce2_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 }
 
 ML_FUNCTIONX(Reduce2) {
-//<Iteratable
+//<Sequence
 //<Fn
 //>any | nil
 	ML_CHECKX_ARG_COUNT(2);
-	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
+	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ML_CHECKX_ARG_TYPE(1, MLFunctionT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 4, ml_value_t *);
 	State->Base.Caller = Caller;
@@ -965,11 +973,11 @@ ML_FUNCTIONX(Reduce2) {
 }
 
 ML_FUNCTIONX(Min2) {
-//<Iteratable
+//<Sequence
 //>any | nil
-// Returns a tuple with the key and value of the smallest value (based on :mini:`<`) produced by :mini:`Iteratable`.
+// Returns a tuple with the key and value of the smallest value (based on :mini:`<`) produced by :mini:`Sequence`.
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
+	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 4, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)reduce2_iterate;
@@ -979,11 +987,11 @@ ML_FUNCTIONX(Min2) {
 }
 
 ML_FUNCTIONX(Max2) {
-//<Iteratable
+//<Sequence
 //>any | nil
-// Returns a tuple with the key and value of the largest value (based on :mini:`>`) produced by :mini:`Iteratable`.
+// Returns a tuple with the key and value of the largest value (based on :mini:`>`) produced by :mini:`Sequence`.
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLIteratableT);
+	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 4, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)reduce2_iterate;
@@ -997,7 +1005,7 @@ typedef struct ml_stacked_t {
 	ml_value_t *Initial, *Value, *ReduceFn;
 } ml_stacked_t;
 
-ML_TYPE(MLStackedT, (MLIteratableT), "stacked");
+ML_TYPE(MLStackedT, (MLSequenceT), "stacked");
 //!internal
 
 ML_TYPE(MLStackedStateT, (), "stacked-state");
@@ -1072,11 +1080,11 @@ static void ML_TYPED_FN(ml_iterate, MLStackedT, ml_state_t *Caller, ml_stacked_t
 	return ml_iterate((ml_state_t *)State, Stacked->Value);
 }
 
-ML_METHOD("//", MLIteratableT, MLFunctionT) {
-//<Iteratable
+ML_METHOD("//", MLSequenceT, MLFunctionT) {
+//<Sequence
 //<Fn
-//>iteratable
-// Returns an iteratable that produces :mini:`V/1`, :mini:`Fn(V/1, V/2)`, :mini:`Fn(Fn(V/1, V/2), V/3)`, ... .
+//>sequence
+// Returns an sequence that produces :mini:`V/1`, :mini:`Fn(V/1, V/2)`, :mini:`Fn(Fn(V/1, V/2), V/3)`, ... .
 	ml_stacked_t *Stacked = new(ml_stacked_t);
 	Stacked->Type = MLStackedT;
 	Stacked->Value = Args[0];
@@ -1084,12 +1092,12 @@ ML_METHOD("//", MLIteratableT, MLFunctionT) {
 	return (ml_value_t *)Stacked;
 }
 
-ML_METHOD("//", MLIteratableT, MLAnyT, MLFunctionT) {
-//<Iteratable
+ML_METHOD("//", MLSequenceT, MLAnyT, MLFunctionT) {
+//<Sequence
 //<Initial
 //<Fn
-//>iteratable
-// Returns an iteratable that produces :mini:`Initial`, :mini:`Fn(Initial, V/1)`, :mini:`Fn(Fn(Initial, V/1), V/2)`, ... .
+//>sequence
+// Returns an sequence that produces :mini:`Initial`, :mini:`Fn(Initial, V/1)`, :mini:`Fn(Fn(Initial, V/1), V/2)`, ... .
 	ml_stacked_t *Stacked = new(ml_stacked_t);
 	Stacked->Type = MLStackedT;
 	Stacked->Value = Args[0];
@@ -1103,7 +1111,7 @@ typedef struct ml_repeated_t {
 	ml_value_t *Value, *Update;
 } ml_repeated_t;
 
-ML_TYPE(MLRepeatedT, (MLIteratableT), "repeated");
+ML_TYPE(MLRepeatedT, (MLSequenceT), "repeated");
 //!internal
 
 typedef struct ml_repeated_state_t {
@@ -1153,8 +1161,8 @@ static void ML_TYPED_FN(ml_iterate, MLRepeatedT, ml_state_t *Caller, ml_repeated
 
 ML_METHOD("@", MLAnyT) {
 //<Value
-//>iteratable
-// Returns an iteratable that repeatedly produces :mini:`Value`.
+//>sequence
+// Returns an sequence that repeatedly produces :mini:`Value`.
 	ML_CHECK_ARG_COUNT(1);
 	ml_repeated_t *Repeated = new(ml_repeated_t);
 	Repeated->Type = MLRepeatedT;
@@ -1165,8 +1173,8 @@ ML_METHOD("@", MLAnyT) {
 ML_METHOD("@", MLAnyT, MLFunctionT) {
 //<Value
 //<Update
-//>iteratable
-// Returns an iteratable that repeatedly produces :mini:`Value`.
+//>sequence
+// Returns an sequence that repeatedly produces :mini:`Value`.
 // :mini:`Value` is replaced with :mini:`Update(Value)` after each iteration.
 	ML_CHECK_ARG_COUNT(1);
 	ml_repeated_t *Repeated = new(ml_repeated_t);
@@ -1181,7 +1189,7 @@ typedef struct ml_sequenced_t {
 	ml_value_t *First, *Second;
 } ml_sequenced_t;
 
-ML_TYPE(MLSequencedT, (MLIteratableT), "sequenced");
+ML_TYPE(MLSequencedT, (MLSequenceT), "sequenced");
 //!internal
 
 typedef struct ml_sequenced_state_t {
@@ -1226,11 +1234,11 @@ static void ML_TYPED_FN(ml_iterate, MLSequencedT, ml_state_t *Caller, ml_sequenc
 	return ml_iterate((ml_state_t *)State, Sequenced->First);
 }
 
-ML_METHOD(">>", MLIteratableT, MLIteratableT) {
-//<Iteratable/1
-//<Iteratable/2
-//>Iteratable
-// Returns an iteratable that produces the values from :mini:`Iteratable/1` followed by those from :mini:`Iteratable/2`.
+ML_METHOD(">>", MLSequenceT, MLSequenceT) {
+//<Sequence/1
+//<Sequence/2
+//>Sequence
+// Returns an sequence that produces the values from :mini:`Sequence/1` followed by those from :mini:`Sequence/2`.
 	ml_sequenced_t *Sequenced = xnew(ml_sequenced_t, 3, ml_value_t *);
 	Sequenced->Type = MLSequencedT;
 	Sequenced->First = Args[0];
@@ -1238,10 +1246,10 @@ ML_METHOD(">>", MLIteratableT, MLIteratableT) {
 	return (ml_value_t *)Sequenced;
 }
 
-ML_METHOD(">>", MLIteratableT) {
-//<Iteratable
-//>Iteratable
-// Returns an iteratable that repeatedly produces the values from :mini:`Iteratable` (for use with :mini:`limit`).
+ML_METHOD(">>", MLSequenceT) {
+//<Sequence
+//>Sequence
+// Returns an sequence that repeatedly produces the values from :mini:`Sequence` (for use with :mini:`limit`).
 	ml_sequenced_t *Sequenced = xnew(ml_sequenced_t, 3, ml_value_t *);
 	Sequenced->Type = MLSequencedT;
 	Sequenced->First = Args[0];
@@ -1255,7 +1263,7 @@ typedef struct ml_limited_t {
 	int Remaining;
 } ml_limited_t;
 
-ML_TYPE(MLLimitedT, (MLIteratableT), "limited");
+ML_TYPE(MLLimitedT, (MLSequenceT), "limited");
 //!internal
 
 ML_METHOD("count", MLLimitedT) {
@@ -1313,11 +1321,11 @@ static void ML_TYPED_FN(ml_iter_next, MLLimitedStateT, ml_state_t *Caller, ml_li
 	}
 }
 
-ML_METHOD("limit", MLIteratableT, MLIntegerT) {
-//<Iteratable
+ML_METHOD("limit", MLSequenceT, MLIntegerT) {
+//<Sequence
 //<Limit
-//>iteratable
-// Returns an iteratable that produces at most :mini:`Limit` values from :mini:`Iteratable`.
+//>sequence
+// Returns an sequence that produces at most :mini:`Limit` values from :mini:`Sequence`.
 	ml_limited_t *Limited = new(ml_limited_t);
 	Limited->Type = MLLimitedT;
 	Limited->Value = Args[0];
@@ -1331,7 +1339,7 @@ typedef struct ml_skipped_t {
 	long Remaining;
 } ml_skipped_t;
 
-ML_TYPE(MLSkippedT, (MLIteratableT), "skipped");
+ML_TYPE(MLSkippedT, (MLSequenceT), "skipped");
 //!internal
 
 typedef struct ml_skipped_state_t {
@@ -1363,11 +1371,11 @@ static void ML_TYPED_FN(ml_iterate, MLSkippedT, ml_state_t *Caller, ml_skipped_t
 	}
 }
 
-ML_METHOD("skip", MLIteratableT, MLIntegerT) {
-//<Iteratable
+ML_METHOD("skip", MLSequenceT, MLIntegerT) {
+//<Sequence
 //<Skip
-//>iteratable
-// Returns an iteratable that skips the first :mini:`Skip` values from :mini:`Iteratable` and then produces the rest.
+//>sequence
+// Returns an sequence that skips the first :mini:`Skip` values from :mini:`Sequence` and then produces the rest.
 	ml_skipped_t *Skipped = new(ml_skipped_t);
 	Skipped->Type = MLSkippedT;
 	Skipped->Value = Args[0];
@@ -1545,14 +1553,14 @@ static void parallel_continue(ml_parallel_t *Parallel, ml_value_t *Value) {
 
 ML_FUNCTIONX(Parallel) {
 //!tasks
-//<Iteratable
+//<Sequence
 //<Max?:integer
 //<Min?:integer
 //<Function:function
 //>nil | error
-// Iterates through :mini:`Iteratable` and calls :mini:`Function(Key, Value)` for each :mini:`Key, Value` pair produced **without** waiting for the call to return.
+// Iterates through :mini:`Sequence` and calls :mini:`Function(Key, Value)` for each :mini:`Key, Value` pair produced **without** waiting for the call to return.
 // The call to :mini:`parallel` returns when all calls to :mini:`Function` return, or an error occurs.
-// If :mini:`Max` is given, at most :mini:`Max` calls to :mini:`Function` will run at a time by pausing iteration through :mini:`Iteratable`.
+// If :mini:`Max` is given, at most :mini:`Max` calls to :mini:`Function` will run at a time by pausing iteration through :mini:`Sequence`.
 // If :mini:`Min` is also given then iteration will be resumed only when the number of calls to :mini:`Function` drops to :mini:`Min`.
 	ML_CHECKX_ARG_COUNT(2);
 
@@ -1598,7 +1606,7 @@ typedef struct {
 	int Total;
 } ml_buffered_t;
 
-ML_TYPE(MLBufferedT, (MLIteratableT), "buffered");
+ML_TYPE(MLBufferedT, (MLSequenceT), "buffered");
 //!internal
 
 typedef struct {
@@ -1691,9 +1699,9 @@ static void ML_TYPED_FN(ml_iterate, MLBufferedT, ml_state_t *Caller, ml_buffered
 
 ML_FUNCTION(Buffered) {
 //<Size:integer
-//<Iteratable
-//>Iteratable
-// Returns an iteratable that buffers the keys and values from :mini:`Iteratable` in advance, buffering at most :mini:`Size` pairs.
+//<Sequence
+//>Sequence
+// Returns an sequence that buffers the keys and values from :mini:`Sequence` in advance, buffering at most :mini:`Size` pairs.
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	ml_buffered_t *Buffered = new(ml_buffered_t);
@@ -1708,7 +1716,7 @@ typedef struct ml_unique_t {
 	ml_value_t *Iter;
 } ml_unique_t;
 
-ML_TYPE(MLUniqueT, (MLIteratableT), "unique");
+ML_TYPE(MLUniqueT, (MLSequenceT), "unique");
 //!internal
 
 typedef struct ml_unique_state_t {
@@ -1769,9 +1777,9 @@ static void ML_TYPED_FN(ml_iter_next, MLUniqueStateT, ml_state_t *Caller, ml_uni
 }
 
 ML_FUNCTION(Unique) {
-//<Iteratable
-//>iteratable
-// Returns an iteratable that returns the unique values produced by :mini:`Iteratable` (based on inserting into a :mini:`map`).
+//<Sequence
+//>sequence
+// Returns an sequence that returns the unique values produced by :mini:`Sequence` (based on inserting into a :mini:`map`).
 	ML_CHECK_ARG_COUNT(1);
 	ml_unique_t *Unique = new(ml_unique_t);
 	Unique->Type = MLUniqueT;
@@ -1786,7 +1794,7 @@ typedef struct ml_zipped_t {
 	ml_value_t *Iters[];
 } ml_zipped_t;
 
-ML_TYPE(MLZippedT, (MLIteratableT), "zipped");
+ML_TYPE(MLZippedT, (MLSequenceT), "zipped");
 //!internal
 
 typedef struct ml_zipped_state_t {
@@ -1860,13 +1868,13 @@ static void ML_TYPED_FN(ml_iter_next, MLZippedStateT, ml_state_t *Caller, ml_zip
 
 ML_FUNCTION(Zip) {
 //@zip
-//<Iteratable/1:iteratable
-//<...:iteratable
-//<Iteratable/n:iteratable
+//<Sequence/1:sequence
+//<...:sequence
+//<Sequence/n:sequence
 //<Function
-//>iteratable
-// Returns a new iteratable that draws values :mini:`V/i` from each of :mini:`Iteratable/i` and then produces :mini:`Functon(V/1, V/2, ..., V/n)`.
-// The iteratable stops produces values when any of the :mini:`Iteratable/i` stops.
+//>sequence
+// Returns a new sequence that draws values :mini:`V/i` from each of :mini:`Sequence/i` and then produces :mini:`Functon(V/1, V/2, ..., V/n)`.
+// The sequence stops produces values when any of the :mini:`Sequence/i` stops.
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(Count - 1, MLFunctionT);
 	ml_zipped_t *Zipped = xnew(ml_zipped_t, Count - 1, ml_value_t *);
@@ -1882,7 +1890,7 @@ typedef struct ml_paired_t {
 	ml_value_t *Keys, *Values;
 } ml_paired_t;
 
-ML_TYPE(MLPairedT, (MLIteratableT), "paired");
+ML_TYPE(MLPairedT, (MLSequenceT), "paired");
 //!internal
 
 typedef struct ml_paired_state_t {
@@ -1949,9 +1957,9 @@ static void ML_TYPED_FN(ml_iter_next, MLPairedStateT, ml_state_t *Caller, ml_pai
 
 ML_FUNCTION(Pair) {
 //@pair
-//<Iteratable/1:iteratable
-//<Iteratable/2:iteratable
-//>iteratable
+//<Sequence/1:sequence
+//<Sequence/2:sequence
+//>sequence
 	ML_CHECK_ARG_COUNT(2);
 	ml_paired_t *Paired = new(ml_paired_t);
 	Paired->Type = MLPairedT;
@@ -1966,7 +1974,7 @@ typedef struct ml_weaved_t {
 	ml_value_t *Iters[];
 } ml_weaved_t;
 
-ML_TYPE(MLWeavedT, (MLIteratableT), "weaved");
+ML_TYPE(MLWeavedT, (MLSequenceT), "weaved");
 //!internal
 
 typedef struct ml_weaved_state_t {
@@ -2017,12 +2025,12 @@ static void ML_TYPED_FN(ml_iter_next, MLWeavedStateT, ml_state_t *Caller, ml_wea
 
 ML_FUNCTION(Weave) {
 //@weave
-//<Iteratable/1:iteratable
-//<...:iteratable
-//<Iteratable/n:iteratable
-//>iteratable
-// Returns a new iteratable that produces interleaved values :mini:`V/i` from each of :mini:`Iteratable/i`.
-// The iteratable stops produces values when any of the :mini:`Iteratable/i` stops.
+//<Sequence/1:sequence
+//<...:sequence
+//<Sequence/n:sequence
+//>sequence
+// Returns a new sequence that produces interleaved values :mini:`V/i` from each of :mini:`Sequence/i`.
+// The sequence stops produces values when any of the :mini:`Sequence/i` stops.
 	ML_CHECK_ARG_COUNT(1);
 	ml_weaved_t *Weaved = xnew(ml_weaved_t, Count, ml_value_t *);
 	Weaved->Type = MLWeavedT;
@@ -2036,7 +2044,7 @@ typedef struct {
 	ml_value_t *Value;
 } ml_swapped_t;
 
-ML_TYPE(MLSwappedT, (MLIteratableT), "swapped");
+ML_TYPE(MLSwappedT, (MLSequenceT), "swapped");
 //!internal
 
 typedef struct {
@@ -2077,10 +2085,10 @@ static void ML_TYPED_FN(ml_iter_next, MLSwappedStateT, ml_state_t *Caller, ml_sw
 
 ML_FUNCTION(Swap) {
 //@swap
-//<Iteratable:iteratable
-// Returns a new iteratable which swaps the keys and values produced by :mini:`Iteratable`.
+//<Sequence:sequence
+// Returns a new sequence which swaps the keys and values produced by :mini:`Sequence`.
 	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLIteratableT);
+	ML_CHECK_ARG_TYPE(0, MLSequenceT);
 	ml_swapped_t *Swapped = new(ml_swapped_t);
 	Swapped->Type = MLSwappedT;
 	Swapped->Value = Args[0];
@@ -2092,7 +2100,7 @@ typedef struct {
 	ml_value_t *Value;
 } ml_key_t;
 
-ML_TYPE(MLKeyT, (MLIteratableT), "key");
+ML_TYPE(MLKeyT, (MLSequenceT), "key");
 //!internal
 
 typedef struct {
@@ -2135,21 +2143,23 @@ static void ML_TYPED_FN(ml_iter_next, MLKeyStateT, ml_state_t *Caller, ml_key_st
 
 ML_FUNCTION(Key) {
 //@key
-//<Iteratable:iteratable
-// Returns a new iteratable which produces the keys of :mini:`Iteratable`.
+//<Sequence:sequence
+// Returns a new sequence which produces the keys of :mini:`Sequence`.
 	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLIteratableT);
+	ML_CHECK_ARG_TYPE(0, MLSequenceT);
 	ml_key_t *Key = new(ml_key_t);
 	Key->Type = MLKeyT;
 	Key->Value = Args[0];
 	return (ml_value_t *)Key;
 }
 
-void ml_iterfns_init(stringmap_t *Globals) {
+void ml_sequence_init(stringmap_t *Globals) {
+	MLFunctionT->Constructor = (ml_value_t *)MLChained;
+	MLSequenceT->Constructor = (ml_value_t *)MLChained;
 	FilterNil = new(ml_filter_t);
 	FilterNil->Type = FilterT;
 	FilterNil->Function = ml_integer(1);
-#include "ml_iterfns_init.c"
+#include "ml_sequence_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "filter", Filter);
 		stringmap_insert(Globals, "first", First);
@@ -2157,7 +2167,7 @@ void ml_iterfns_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "last", Last);
 		stringmap_insert(Globals, "last2", Last2);
 		stringmap_insert(Globals, "all", All);
-		stringmap_insert(Globals, "count", MLIterCount);
+		stringmap_insert(Globals, "count", MLSequenceCount);
 		stringmap_insert(Globals, "count2", Count2);
 		stringmap_insert(Globals, "reduce", Reduce);
 		stringmap_insert(Globals, "min", Min);

@@ -84,14 +84,14 @@ let Objects := [
 	file("ml_method.o"),
 	file("ml_list.o"),
 	file("ml_map.o"),
-	file("ml_file.o"),
-	file("ml_iterfns.o"),
+	file("ml_sequence.o"),
 	file("sha256.o"),
 	file("stringmap.o"),
 	file("inthash.o"),
 	file("ml_console.o"),
 	file("ml_debugger.o"),
-	file("ml_object.o")
+	file("ml_object.o"),
+	file("ml_file.o")
 ]
 
 let Libraries := []
@@ -100,8 +100,7 @@ let InstallHeaders := [
 	"minilang.h",
 	"config.h",
 	"ml_console.h",
-	"ml_file.h",
-	"ml_iterfns.h",
+	"ml_sequence.h",
 	"ml_macros.h",
 	"ml_types.h",
 	"ml_object.h",
@@ -109,7 +108,8 @@ let InstallHeaders := [
 	"ml_runtime.h",
 	"ml_bytecode.h",
 	"stringmap.h",
-	"inthash.h"
+	"inthash.h",
+	"ml_file.h"
 ]
 
 fun use_module(Url) do
@@ -121,7 +121,7 @@ if MINILANG_STATICGC or defined("STATICGC") then
 	let Lib := file("gc/.libs/libgc.a") => fun(Lib) do
 		Dir:rmdir:mkdir:chdir
 		execute("wget https://github.com/ivmai/bdwgc/releases/download/v8.0.4/gc-8.0.4.tar.gz -O- | tar xvzP --strip-components=1")
-		execute('./configure --prefix={PATH} --enable-redirect-malloc --enable-static --disable-shared --disable-parallel-mark --enable-threads=pthreads --enable-mmap')
+		execute('./configure --prefix={PATH} --enable-static --disable-shared --disable-parallel-mark --enable-threads=pthreads --enable-mmap')
 		execute("make clean")
 		execute("make -j4")
 	end
@@ -137,15 +137,15 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	:>MINILANG_GIR := 1
 	MINILANG_CBOR := 1
 	MINILANG_JSON := 1
-	MINILANG_MODULES := 1
-	MINILANG_SCHEDULER := 1
+	MINILANG_MODULES := not defined("NOSCHEDULER")
+	MINILANG_SCHEDULER := not defined("NOSCHEDULER")
 	MINILANG_TRE := 1
-	MINILANG_GENERICS := 1
+	MINILANG_GENERICS := not defined("NOGENERICS")
 	MINILANG_QUEUES := 1
 	MINILANG_TIME := 1
 	MINILANG_UUID := 1
 	if PLATFORM = "Linux" and MACHINE = "x86_64" then
-		MINILANG_NANBOXING := 1
+		MINILANG_NANBOXING := not defined("NONANBOXING")
 	end 
 end
 

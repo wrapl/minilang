@@ -101,6 +101,12 @@ void ml_runtime_unlock();
 
 void ml_runtime_init();
 
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Iter;
+	ml_value_t *Values[];
+} ml_iter_state_t;
+
 // References //
 
 extern ml_type_t MLReferenceT[];

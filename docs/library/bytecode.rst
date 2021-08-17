@@ -1,17 +1,21 @@
 bytecode
 ========
 
-.. include:: <isonum.txt>
-
 :mini:`type variable`
+   *TBD*
 
-:mini:`type closure < function, iteratable`
+:mini:`type closure < function, sequence`
+   *TBD*
 
 :mini:`meth string(Arg₁: closure)`
+   *TBD*
 
 :mini:`meth :parameters(Arg₁: closure)`
+   *TBD*
 
 :mini:`meth :info(Arg₁: closure)`
+   *TBD*
 
 :mini:`meth :list(Arg₁: closure)`
+   *TBD*
 

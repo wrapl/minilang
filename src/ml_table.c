@@ -14,7 +14,7 @@ struct ml_table_t {
 	int Size;
 };
 
-ML_TYPE(MLTableT, (MLIteratableT), "table");
+ML_TYPE(MLTableT, (MLSequenceT), "table");
 // A table is a set of named arrays. The arrays must have the same length.
 
 ml_value_t *ml_table() {
@@ -275,7 +275,7 @@ static ml_value_t *table_row_assign(ml_table_row_t *Row, ml_value_t *Value) {
 	return Value;
 }
 
-ML_TYPE(MLTableRowT, (MLIteratableT), "table-row",
+ML_TYPE(MLTableRowT, (MLSequenceT), "table-row",
 // A row in a table.
 	.assign = (void *)table_row_assign
 );

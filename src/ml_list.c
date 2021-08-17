@@ -1,8 +1,8 @@
 #include "ml_list.h"
 #include "minilang.h"
 #include "ml_macros.h"
-#include "ml_iterfns.h"
 #include <string.h>
+#include "ml_sequence.h"
 
 static ml_list_node_t *ml_list_index(ml_list_t *List, int Index) {
 	int Length = List->Length;
@@ -51,7 +51,7 @@ static ml_list_node_t *ml_list_index(ml_list_t *List, int Index) {
 	return (List->CachedNode = Node);
 }
 
-ML_TYPE(MLListT, (MLIteratableT), "list",
+ML_TYPE(MLListT, (MLSequenceT), "list",
 // A list of elements.
 );
 
@@ -124,15 +124,15 @@ static void list_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_METHOD(MLIterCount, MLListT) {
+ML_METHOD(MLSequenceCount, MLListT) {
 //!internal
 	return ml_integer(ml_list_length(Args[0]));
 }
 
-ML_METHODVX(MLListT, MLIteratableT) {
-//<Iteratable
+ML_METHODVX(MLListT, MLSequenceT) {
+//<Sequence
 //>list
-// Returns a list of all of the values produced by :mini:`Iteratable`.
+// Returns a list of all of the values produced by :mini:`Sequence`.
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)list_iterate;
@@ -460,6 +460,22 @@ ML_METHOD("append", MLStringBufferT, MLListT) {
 		}
 	}
 	ml_stringbuffer_add(Buffer, "]", 1);
+	return (ml_value_t *)Buffer;
+}
+
+ML_METHOD("append", MLStringBufferT, MLListT, MLStringT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	const char *Seperator = ml_string_value(Args[2]);
+	size_t SeperatorLength = ml_string_length(Args[2]);
+	ml_list_t *List = (ml_list_t *)Args[1];
+	ml_list_node_t *Node = List->Head;
+	if (Node) {
+		ml_stringbuffer_append(Buffer, Node->Value);
+		while ((Node = Node->Next)) {
+			ml_stringbuffer_add(Buffer, Seperator, SeperatorLength);
+			ml_stringbuffer_append(Buffer, Node->Value);
+		}
+	}
 	return (ml_value_t *)Buffer;
 }
 
@@ -1028,6 +1044,6 @@ void ml_names_add(ml_value_t *Names, ml_value_t *Value) {
 void ml_list_init() {
 #include "ml_list_init.c"
 #ifdef ML_GENERICS
-	ml_type_add_rule(MLListT, MLIteratableT, MLIntegerT, ML_TYPE_ARG(1), NULL);
+	ml_type_add_rule(MLListT, MLSequenceT, MLIntegerT, ML_TYPE_ARG(1), NULL);
 #endif
 }

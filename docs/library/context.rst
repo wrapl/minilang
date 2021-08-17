@@ -1,9 +1,7 @@
 context
 =======
 
-.. include:: <isonum.txt>
-
-:mini:`fun context()` |rarr| :mini:`context`
+:mini:`fun context(): context`
    Creates a new context specific key.
 
 

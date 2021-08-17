@@ -7,7 +7,7 @@ inthash_t *inthash_new() {
 }
 
 #define INDEX_SHIFT 6
-#define INCR_SHIFT 8
+#define INCR_SHIFT 9
 
 
 #ifndef ASM_INTHASH_SEARCH

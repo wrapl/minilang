@@ -3,7 +3,6 @@
 
 #include "../../ml_library.h"
 #include "../../ml_macros.h"
-#include <gc/gc.h>
 #include <uv.h>
 
 typedef struct ml_uv_file_t {

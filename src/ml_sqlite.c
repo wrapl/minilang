@@ -116,7 +116,7 @@ static void ml_sqlite_stmt_call(ml_state_t *Caller, ml_sqlite_stmt_t *Stmt, int 
 	ML_RETURN(Stmt);
 }
 
-ML_TYPE(MLSqliteStmtT, (MLIteratableT), "sqlite-statement",
+ML_TYPE(MLSqliteStmtT, (MLSequenceT), "sqlite-statement",
 	.call = (void *)ml_sqlite_stmt_call
 );
 

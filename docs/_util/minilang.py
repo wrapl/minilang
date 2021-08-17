@@ -19,13 +19,13 @@ class MinilangLexer(RegexLexer):
                 "until", "exit", "next", "for", "each", "to", "in", "is",
 				"fun", "ret", "susp", "with", "do", "on", "nil", "and",
 				"or", "not", "old", "def", "let", "var", "_", "meth",
-				"when"
+				"when", "switch", "case"
             ), suffix = r'\b'), Keyword),
             (words((
                 "class", "method", "any", "type", "function", "number",
                 "integer", "real", "string", "stringbuffer", "list",
                 "map", "tuple", "regex", "array", "file", "boolean",
-                "enum", "flags"
+                "enum", "flags", "sequence"
 			), suffix = r'\b'), Name.Class),
             (r'-?[0-9]+(\.[0-9]*)?((e|E)-?[0-9]+)?', Number),
             (r'-?\.[0-9]+((e|E)-?[0-9]+)?', Number),

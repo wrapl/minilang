@@ -1,5 +1,10 @@
 #include "../ml_array.h"
 
+#define UPDATE(OP, TARGET, SOURCE) { \
+	typeof(TARGET) Target = TARGET; \
+	*Target = OP(*Target, SOURCE); \
+}
+
 #define UPDATE_ROW_IMPL(NAME, OP, TARGET, SOURCE) \
 \
 void NAME ## _row_ ## TARGET ## _ ## SOURCE(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData) { \
@@ -9,12 +14,12 @@ void NAME ## _row_ ## TARGET ## _ ## SOURCE(ml_array_dimension_t *TargetDimensio
 		if (SourceDimension->Indices) { \
 			int *SourceIndices = SourceDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
-				*(TARGET *)(TargetData + TargetIndices[I] * TargetDimension->Stride) OP *(SOURCE *)(SourceData + SourceIndices[I] * SourceDimension->Stride); \
+				UPDATE(OP, (TARGET *)(TargetData + TargetIndices[I] * TargetDimension->Stride), *(SOURCE *)(SourceData + SourceIndices[I] * SourceDimension->Stride)); \
 			} \
 		} else { \
 			int SourceStride = SourceDimension->Stride; \
 			for (int I = 0; I < Size; ++I) { \
-				*(TARGET *)(TargetData + TargetIndices[I] * TargetDimension->Stride) OP *(SOURCE *)SourceData; \
+				UPDATE(OP, (TARGET *)(TargetData + TargetIndices[I] * TargetDimension->Stride), *(SOURCE *)SourceData); \
 				SourceData += SourceStride; \
 			} \
 		} \
@@ -23,13 +28,13 @@ void NAME ## _row_ ## TARGET ## _ ## SOURCE(ml_array_dimension_t *TargetDimensio
 		if (SourceDimension->Indices) { \
 			int *SourceIndices = SourceDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
-				*(TARGET *)TargetData OP *(SOURCE *)(SourceData + SourceIndices[I] * SourceDimension->Stride); \
+				UPDATE(OP, (TARGET *)TargetData, *(SOURCE *)(SourceData + SourceIndices[I] * SourceDimension->Stride)); \
 				TargetData += TargetStride; \
 			} \
 		} else { \
 			int SourceStride = SourceDimension->Stride; \
 			for (int I = Size; --I >= 0;) { \
-				*(TARGET *)TargetData OP *(SOURCE *)SourceData; \
+				UPDATE(OP, (TARGET *)TargetData, *(SOURCE *)SourceData); \
 				TargetData += TargetStride; \
 				SourceData += SourceStride; \
 			} \
@@ -96,13 +101,13 @@ void NAME ## _row_ ## TARGET ## _value(ml_array_dimension_t *TargetDimension, ch
 			int *SourceIndices = SourceDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				TARGET Source = ml_number_value((TARGET)0, *(ml_value_t **)(SourceData + SourceIndices[I] * SourceDimension->Stride)); \
-				*(TARGET *)(TargetData + TargetIndices[I] * TargetDimension->Stride) OP Source; \
+				UPDATE(OP, (TARGET *)(TargetData + TargetIndices[I] * TargetDimension->Stride), Source); \
 			} \
 		} else { \
 			int SourceStride = SourceDimension->Stride; \
 			for (int I = 0; I < Size; ++I) { \
 				TARGET Source = ml_number_value((TARGET)0, *(ml_value_t **)SourceData); \
-				*(TARGET *)(TargetData + TargetIndices[I] * TargetDimension->Stride) OP Source; \
+				UPDATE(OP, (TARGET *)(TargetData + TargetIndices[I] * TargetDimension->Stride), Source); \
 				SourceData += SourceStride; \
 			} \
 		} \
@@ -112,14 +117,14 @@ void NAME ## _row_ ## TARGET ## _value(ml_array_dimension_t *TargetDimension, ch
 			int *SourceIndices = SourceDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				TARGET Source = ml_number_value((TARGET)0, *(ml_value_t **)(SourceData + SourceIndices[I] * SourceDimension->Stride)); \
-				*(TARGET *)TargetData OP Source; \
+				UPDATE(OP, (TARGET *)TargetData, Source); \
 				TargetData += TargetStride; \
 			} \
 		} else { \
 			int SourceStride = SourceDimension->Stride; \
 			for (int I = Size; --I >= 0;) { \
 				TARGET Source = ml_number_value((TARGET)0, *(ml_value_t **)SourceData); \
-				*(TARGET *)TargetData OP Source; \
+				UPDATE(OP, (TARGET *)TargetData, Source); \
 				TargetData += TargetStride; \
 				SourceData += SourceStride; \
 			} \

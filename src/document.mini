@@ -24,7 +24,6 @@ fun write_category(Category) do
 	File:write(Category, "\n")
 	for I in Category do File:write("=") end
 	File:write("\n\n")
-	File:write(".. include:: <isonum.txt>\n\n")
 	ret File
 end
 
@@ -90,18 +89,20 @@ fun write_method(Category, Kind, Method, Params, Return, Description, Location) 
 		Title:write(Seperator, Param[1], ": ", type_name(Param[2]))
 		Seperator := ", "
 	end
-	Title:write(Terminator, "`")
+	Title:write(Terminator)
 	if Return:length > 0 then
-		Title:write(" |rarr| :mini:`", type_name(Return[1]), "`")
+		Title:write(": ", type_name(Return[1]))
 		for Type in Return skip 1 do
-			Title:write(" or :mini:`", type_name(Type), "`")
+			Title:write(" | ", type_name(Type))
 		end
 	end
+	Title:write("`")
 	let TitleString := Title:get
 	File:write(TitleString, "\n")
 	for Line in Description do
 		File:write("   ", Line, "\n")
 	end
+	Description[1] or File:write("   *TBD*\n")
 	for Param in Params do
 		if Param[3]:length > 0 then
 			File:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")
@@ -128,18 +129,20 @@ fun write_function(Category, Kind, Name, Params, Return, Description, Location) 
 		Title:write(Seperator, Param[1], ": ", type_name(Param[2]))
 		Seperator := ", "
 	end
-	Title:write(")`")
+	Title:write(")")
 	if Return:length > 0 then
-		Title:write(" |rarr| :mini:`", type_name(Return[1]), "`")
+		Title:write(": ", type_name(Return[1]))
 		for Type in Return skip 1 do
-			Title:write(" or :mini:`", type_name(Type), "`")
+			Title:write(" | ", type_name(Type))
 		end
 	end
+	Title:write("`")
 	let TitleString := Title:get
 	File:write(TitleString, "\n")
 	for Line in Description do
 		File:write("   ", Line, "\n")
 	end
+	Description[1] or File:write("   *TBD*\n")
 	for Param in Params do
 		if Param in method then
 		elseif Param[3]:length > 0 then
@@ -167,18 +170,20 @@ fun write_constructor(Category, Kind, Name, Params, Return, Description, Locatio
 		Title:write(Seperator, Param[1], ": ", type_name(Param[2]))
 		Seperator := ", "
 	end
-	Title:write(")`")
+	Title:write(")")
 	if Return:length > 0 then
-		Title:write(" |rarr| :mini:`", type_name(Return[1]), "`")
+		Title:write(": ", type_name(Return[1]))
 		for Type in Return skip 1 do
-			Title:write(" or :mini:`", type_name(Type), "`")
+			Title:write(" | ", type_name(Type))
 		end
 	end
+	Title:write("`")
 	let TitleString := Title:get
 	File:write(TitleString, "\n")
 	for Line in Description do
 		File:write("   ", Line, "\n")
 	end
+	Description[1] or File:write("   *TBD*\n")
 	for Param in Params do
 		if Param in method then
 		elseif Param[3]:length > 0 then
@@ -210,6 +215,7 @@ fun write_type(Category, Name, Parents, Description, Location) do
 	for Line in Description do
 		File:write("   ", Line, "\n")
 	end
+	Description[1] or File:write("   *TBD*\n")
 	:>File:write('   *Defined at line {Location[2]} in {Location[1]}*\n')
 	File:write("\n")
 end
@@ -227,6 +233,8 @@ fun process(FileName) do
 		DefaultCategory := Match[2]
 	end
 	var LineNo := 0
+	let Defines := {}
+	var CurrentDefine
 	loop
 		let Line := while File:read
 		:>print('{LineNo}: {Line}')
@@ -280,7 +288,11 @@ fun process(FileName) do
 				for Type in Types do
 					Params:put(('Arg/{Params:length + 1}':replace(Subscripts), Type, ""))
 				end
-				write_method(Category, Kind, Method, Params, Return, Description, Location)
+				if CurrentDefine then
+					CurrentDefine:put((write_method, Category, Kind, Method, Params, Return, Description, Location))
+				else
+					write_method(Category, Kind, Method, Params, Return, Description, Location)
+				end
 			elseif Line % r"^MATH_REAL" then
 				let Location := (FileName, LineNo)
 				let I := Line:find("("), J := Line:find(")")
@@ -304,7 +316,11 @@ fun process(FileName) do
 					))
 				end
 				Return := ["number"]
-				write_method(Category, Kind, Method, Params, Return, Description, Location)
+				if CurrentDefine then
+					CurrentDefine:put((write_method, Category, Kind, Method, Params, Return, Description, Location))
+				else
+					write_method(Category, Kind, Method, Params, Return, Description, Location)
+				end
 			elseif Line % r"^ML_FUNCTION" then
 				let Location := (FileName, LineNo)
 				let I := Line:find("("), J := Line:find(")")
@@ -353,7 +369,11 @@ fun process(FileName) do
 						exit
 					end
 				end
-				write_function(Category, Kind, Name, Params, Return, Description, Location)
+				if CurrentDefine then
+					CurrentDefine:put((write_function, Category, Kind, Name, Params, Return, Description, Location))
+				else
+					write_function(Category, Kind, Name, Params, Return, Description, Location)
+				end
 			elseif Line % r"^ML_CONSTRUCTOR" then
 				let Location := (FileName, LineNo)
 				let I := Line:find("("), J := Line:find(")")
@@ -391,7 +411,11 @@ fun process(FileName) do
 						exit
 					end
 				end
-				write_constructor(Category, Kind, Name, Params, [Name], Description, Location)
+				if CurrentDefine then
+					CurrentDefine:put((write_constructor, Category, Kind, Name, Params, [Name], Description, Location))
+				else
+					write_constructor(Category, Kind, Name, Params, [Name], Description, Location)
+				end
 			elseif Line % r"^(ML_TYPE|ML_INTERFACE)" then
 				let Location := (FileName, LineNo)
 				let I := Line:find("("), J := Line:find("(", I + 1)
@@ -414,19 +438,32 @@ fun process(FileName) do
 						exit
 					end
 				end
-				write_type(Category, Name, Parents, Description, Location)
-			elseif Line % r"^#define " then
-				loop
-					let Line := while File:read
-					LineNo := old + 1
-					until Line = "\n"
+				if CurrentDefine then
+					CurrentDefine:put((write_type, Category, Name, Parents, Description, Location))
+				else
+					write_type(Category, Name, Parents, Description, Location)
 				end
+			elseif let Match := Line % r"^#define ([A-Za-z0-9_]+)\(" then
+				Defines[Match[2]] := CurrentDefine := []
+			elseif Line = "\n" then
+				CurrentDefine := nil
 			end
 		on Error do
 			print(Line, "\n")
 			print('Error: {Error:message} in {FileName}:{LineNo}\n')
 			for Source in Error:trace do
 				print('\t{Source[1]}:{Source[2]}\n')
+			end
+		end
+	end
+	if count(Defines) > 0 then
+		print(FileName, "\n")
+		for Name, Define in Defines do
+			if count(Define) > 0 then
+				print("\t", Name, "\n")
+				for Item in Define do
+					print("\t\t", Item, "\n")
+				end
 			end
 		end
 	end

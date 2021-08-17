@@ -120,7 +120,7 @@ static void ml_object_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int 
 		return ml_call(State, Class->Initializer, Count + 1, State->Args);
 	}
 	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Arg = ml_typeof(Args[I])->deref(Args[I]);
+		ml_value_t *Arg = ml_deref(Args[I]);
 		if (ml_is_error(Arg)) ML_RETURN(Arg);
 		if (ml_is(Arg, MLNamesT)) {
 			ML_NAMES_FOREACH(Args[I], Iter) {
@@ -434,7 +434,7 @@ typedef struct {
 } ml_enum_t;
 
 typedef struct {
-#ifdef ML_GENERICS
+#ifdef ML_NANBOXING
 	ml_int64_t Base;
 #else
 	ml_integer_t Base;
@@ -448,7 +448,7 @@ static long ml_enum_value_hash(ml_enum_value_t *Value, ml_hash_chain_t *Chain) {
 	return (long)Value->Base.Type + Value->Base.Value;
 }
 
-#ifdef ML_GENERICS
+#ifdef ML_NANBOXING
 ML_TYPE(MLEnumValueT, (MLInt64T), "enum-value");
 //!internal
 #else
@@ -481,7 +481,7 @@ ML_FUNCTION(MLEnum) {
 		Value->Base.Type = (ml_type_t *)Enum;
 		Value->Name = Args[I];
 		Enum->Values[I] = (ml_value_t *)Value;
-		Value->Base.Value = I;
+		Value->Base.Value = I + 1;
 		stringmap_insert(Enum->Base.Exports, ml_string_value(Args[I]), Value);
 	}
 	return (ml_value_t *)Enum;
@@ -541,7 +541,7 @@ static void ml_enum_call(ml_state_t *Caller, ml_enum_t *Enum, int Count, ml_valu
 	}
 }
 
-ML_TYPE(MLEnumT, (MLTypeT, MLIteratableT), "enum",
+ML_TYPE(MLEnumT, (MLTypeT, MLSequenceT), "enum",
 	.call = (void *)ml_enum_call,
 	.Constructor = (void *)MLEnum
 );
@@ -559,8 +559,11 @@ typedef struct {
 
 static void ml_enum_switch(ml_state_t *Caller, ml_enum_switch_t *Switch, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, ((ml_type_t *)Switch->Enum));
-	uint64_t Value = ml_enum_value(Args[0]);
+	ml_value_t *Arg = ml_deref(Args[0]);
+	if (!ml_is(Arg, (ml_type_t *)Switch->Enum)) {
+		ML_ERROR("TypeError", "expected %s for argument 1", Switch->Enum->Base.Name);
+	}
+	uint64_t Value = ml_enum_value(Arg);
 	for (ml_enum_case_t *Case = Switch->Cases;; ++Case) {
 		if (Case->Value == Value) ML_RETURN(Case->Index);
 		if (Case->Value == UINT64_MAX) ML_RETURN(Case->Index);
@@ -651,7 +654,7 @@ typedef struct {
 	ml_value_t *Names[];
 } ml_flags_t;
 
-#ifdef ML_GENERICS
+#ifdef ML_NANBOXING
 typedef ml_int64_t ml_flags_value_t;
 #else
 typedef ml_integer_t ml_flags_value_t;
@@ -663,7 +666,7 @@ static long ml_flag_value_hash(ml_flags_value_t *Value, ml_hash_chain_t *Chain) 
 	return (long)Value->Type + Value->Value;
 }
 
-#ifdef ML_GENERICS
+#ifdef ML_NANBOXING
 ML_TYPE(MLFlagsValueT, (MLInt64T), "flag-value");
 //!internal
 #else
@@ -791,8 +794,11 @@ typedef struct {
 
 static void ml_flags_switch(ml_state_t *Caller, ml_flags_switch_t *Switch, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, ((ml_type_t *)Switch->Flags));
-	uint64_t Value = ml_enum_value(Args[0]);
+	ml_value_t *Arg = ml_deref(Args[0]);
+	if (!ml_is(Arg, (ml_type_t *)Switch->Flags)) {
+		ML_ERROR("TypeError", "expected %s for argument 1", Switch->Flags->Base.Name);
+	}
+	uint64_t Value = ml_enum_value(Arg);
 	for (ml_flags_case_t *Case = Switch->Cases;; ++Case) {
 		if ((Case->Value & Value) == Case->Value) ML_RETURN(Case->Index);
 	}

@@ -45,6 +45,10 @@ void ml_free(void *Ptr) {
 extern void ml_libuv_file_init(stringmap_t *Globals);
 extern void ml_libuv_process_init(stringmap_t *Globals);
 
+uv_loop_t *ml_libuv_loop() {
+	return Loop;
+}
+
 void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
 	uv_replace_allocator(GC_malloc, GC_realloc, ml_calloc, ml_free);
 	Loop = uv_default_loop();

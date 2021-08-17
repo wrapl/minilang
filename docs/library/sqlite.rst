@@ -1,17 +1,21 @@
 sqlite
 ======
 
-.. include:: <isonum.txt>
-
 :mini:`fun sqlite(Arg₁: string, Arg₂: MLSqliteOpenFlags)`
+   *TBD*
 
 :mini:`type sqlite`
+   *TBD*
 
 :mini:`meth :close(Arg₁: sqlite)`
+   *TBD*
 
-:mini:`type sqlitestmt < iteratable`
+:mini:`type sqlitestmt < sequence`
+   *TBD*
 
 :mini:`meth :statement(Arg₁: sqlite, Arg₂: string)`
+   *TBD*
 
 :mini:`meth :execute(Arg₁: sqlite, Arg₂: string)`
+   *TBD*
 

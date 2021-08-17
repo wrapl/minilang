@@ -83,7 +83,7 @@ typedef struct ml_array_init_state_t {
 } ml_array_init_state_t;
 
 static void ml_array_init_run(ml_array_init_state_t *State, ml_value_t *Value) {
-	Value = Value->Type->deref(Value);
+	Value = ml_deref(Value);
 	if (Value->Type == MLErrorT) ML_CONTINUE(State->Base.Caller, Value);
 	ml_array_t *Array = State->Array;
 	switch (Array->Format) {
@@ -898,7 +898,7 @@ static ml_value_t *ml_array_ ## CTYPE ## _assign(ml_array_t *Target, ml_value_t 
 		} else { \
 			update_prefix(Op, Target->Degree - 1, Target->Dimensions, Target->Base.Address, 0, ValueDimension, (char *)&CValue); \
 		} \
-		return Value; \
+		break; \
 	} else if (ml_is(Value, MLArrayT)) { \
 		ml_array_t *Source = (ml_array_t *)Value; \
 		if (Source->Degree > Target->Degree) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__); \
@@ -914,10 +914,11 @@ static ml_value_t *ml_array_ ## CTYPE ## _assign(ml_array_t *Target, ml_value_t 
 			ml_array_dimension_t ValueDimension[1] = {{1, 0, NULL}}; \
 			UpdateRowFns[Op](ValueDimension, Target->Base.Address, ValueDimension, Source->Base.Address); \
 		} \
-		return Value; \
+		break; \
 	} else { \
 		Value = ml_array_of_fn(NULL, 1, &Value); \
 	} \
+	return Value; \
 } \
 \
 ML_TYPE(ATYPE, (MLArrayT), #CTYPE "-array", \

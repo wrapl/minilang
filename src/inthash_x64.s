@@ -5,7 +5,7 @@
 //RDI, RSI, RDX, RCX, R8, R9 (R10)
 
 .set INDEX_SHIFT, 6
-.set INCR_SHIFT, 8
+.set INCR_SHIFT, 9
 
 .text
 inthash_search:

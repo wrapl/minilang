@@ -1,15 +1,15 @@
 gir
 ===
 
-.. include:: <isonum.txt>
-
-:mini:`type gir-typelib < iteratable`
+:mini:`type gir-typelib < sequence`
    A gobject-introspection typelib.
 
 
 :mini:`type BaseInfoT < type`
+   *TBD*
 
-:mini:`fun gir(Name: string)` |rarr| :mini:`gir-typelib`
+:mini:`fun gir(Name: string): gir-typelib`
+   *TBD*
 
 :mini:`type ObjectT < BaseInfoT`
    A gobject-introspection object type.
@@ -19,7 +19,8 @@ gir
    A gobject-introspection object instance.
 
 
-:mini:`meth string(Object: ObjectInstanceT)` |rarr| :mini:`string`
+:mini:`meth string(Object: ObjectInstanceT): string`
+   *TBD*
 
 :mini:`type StructT < BaseInfoT`
    A gobject-introspection struct type.
@@ -29,7 +30,8 @@ gir
    A gobject-introspection struct instance.
 
 
-:mini:`meth string(Struct: StructInstanceT)` |rarr| :mini:`string`
+:mini:`meth string(Struct: StructInstanceT): string`
+   *TBD*
 
 :mini:`type EnumT < BaseInfoT`
    A gobject-instrospection enum type.
@@ -39,21 +41,30 @@ gir
    A gobject-instrospection enum value.
 
 
-:mini:`meth string(Value: EnumValueT)` |rarr| :mini:`string`
+:mini:`meth string(Value: EnumValueT): string`
+   *TBD*
 
-:mini:`meth integer(Value: EnumValueT)` |rarr| :mini:`integer`
+:mini:`meth integer(Value: EnumValueT): integer`
+   *TBD*
 
-:mini:`meth |(Value₁: EnumValueT, Value₂: nil)` |rarr| :mini:`EnumValueT`
+:mini:`meth |(Value₁: EnumValueT, Value₂: nil): EnumValueT`
+   *TBD*
 
-:mini:`meth |(Value₁: nil, Value₂: EnumValueT)` |rarr| :mini:`EnumValueT`
+:mini:`meth |(Value₁: nil, Value₂: EnumValueT): EnumValueT`
+   *TBD*
 
-:mini:`meth |(Value₁: EnumValueT, Value₂: EnumValueT)` |rarr| :mini:`EnumValueT`
+:mini:`meth |(Value₁: EnumValueT, Value₂: EnumValueT): EnumValueT`
+   *TBD*
 
-:mini:`meth ::(Typelib: TypelibT, Name: string)` |rarr| :mini:`any` or :mini:`error`
+:mini:`meth ::(Typelib: TypelibT, Name: string): any | error`
+   *TBD*
 
-:mini:`meth :connect(Object: ObjectInstanceT, Signal: string, Handler: function)` |rarr| :mini:`Object`
+:mini:`meth :connect(Object: ObjectInstanceT, Signal: string, Handler: function): Object`
+   *TBD*
 
 :mini:`type ObjectPropertyT`
+   *TBD*
 
-:mini:`meth ::(Object: ObjectInstanceT, Property: string)` |rarr| :mini:`any`
+:mini:`meth ::(Object: ObjectInstanceT, Property: string): any`
+   *TBD*
 

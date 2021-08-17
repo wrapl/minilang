@@ -1,21 +1,27 @@
 channel
 =======
 
-.. include:: <isonum.txt>
-
 :mini:`fun channel()`
+   *TBD*
 
 :mini:`type channel`
+   *TBD*
 
-:mini:`meth :add(Channel: channel, Function: function)` |rarr| :mini:`any`
+:mini:`meth :add(Channel: channel, Function: function): any`
+   *TBD*
 
-:mini:`meth :open(Channel: channel)` |rarr| :mini:`channel` or :mini:`nil`
+:mini:`meth :open(Channel: channel): channel | nil`
+   *TBD*
 
-:mini:`meth :next(Channel: channel)` |rarr| :mini:`any`
+:mini:`meth :next(Channel: channel): any`
+   *TBD*
 
-:mini:`meth :next(Channel: channel, Reply: any)` |rarr| :mini:`any`
+:mini:`meth :next(Channel: channel, Reply: any): any`
+   *TBD*
 
-:mini:`meth :send(Channel: channel, Message: any)` |rarr| :mini:`any`
+:mini:`meth :send(Channel: channel, Message: any): any`
+   *TBD*
 
 :mini:`meth :close(Channel: channel, Function: function)`
+   *TBD*
 

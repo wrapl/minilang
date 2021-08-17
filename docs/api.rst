@@ -1,5 +1,5 @@
-C API
-=====
+API
+===
 
 .. toctree::
    :glob:

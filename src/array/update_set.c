@@ -1,3 +1,5 @@
 #include "update_impl.h"
 
-UPDATE_ROW_OPS_IMPL(set, =)
+#define OP_SET(A, B) B
+
+UPDATE_ROW_OPS_IMPL(set, OP_SET)

@@ -40,8 +40,6 @@ static json_t *ML_TYPED_FN(ml_json_encode, MLNilT, ml_json_encoder_cache_t *Cach
 	return json_null();
 }
 
-extern ml_type_t MLBlankT[];
-
 static json_t *ML_TYPED_FN(ml_json_encode, MLBlankT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
 	return json_pack("[s]", "blank");
 }
@@ -240,8 +238,8 @@ static json_t *ml_closure_info_encode(ml_closure_info_t *Info, ml_json_encoder_c
 	json_array_append(Json, json_integer(Info->FrameSize));
 	json_array_append(Json, json_integer(Info->NumParams));
 	json_array_append(Json, json_integer(Info->NumUpValues));
-	json_array_append(Json, json_integer(Info->ExtraArgs));
-	json_array_append(Json, json_integer(Info->NamedArgs));
+	json_array_append(Json, json_integer(!!(Info->Flags & ML_CLOSURE_EXTRA_ARGS)));
+	json_array_append(Json, json_integer(!!(Info->Flags & ML_CLOSURE_NAMED_ARGS)));
 	json_t *Params = json_array();
 	for (int I = 0; I < Info->Params->Size; ++I) json_array_append(Params, json_null());
 	stringmap_foreach(Info->Params, Params, (void *)ml_closure_info_param_fn);
@@ -344,7 +342,7 @@ ML_METHOD("encode", JSEncoderT, MLAnyT) {
 	return ml_cstring(String);
 }
 
-struct json_decoder_cache_t {
+struct ml_json_decoder_cache_t {
 	stringmap_t *Globals;
 	inthash_t Cached[1];
 };
@@ -353,6 +351,105 @@ typedef struct {
 	ml_type_t *Type;
 	stringmap_t Globals[1];
 } ml_json_decoder_t;
+
+static stringmap_t Decoders[1] = {STRINGMAP_INIT};
+
+typedef ml_value_t *(*ml_json_decode_fn)(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index);
+
+ml_value_t *ml_json_decode(ml_json_decoder_cache_t *Cache, json_t *Json) {
+	switch (Json->type) {
+	case JSON_OBJECT: return ml_error("JSONError", "Unsupported JSON value");
+	case JSON_ARRAY: {
+		size_t Size = json_array_size(Json);
+		if (!Size) return ml_error("JSONError", "Unsupported JSON value");
+		json_t *First = json_array_get(Json, 0);
+		intptr_t Index = -1;
+		if (First->type == JSON_INTEGER) {
+			Index = json_integer_value(First);
+			if (Size == 1) {
+				return inthash_search(Cache->Cached, Index) ?: ml_error("JSONError", "Unknown cached reference");
+			} else {
+				json_array_remove(Json, 0);
+			}
+			First = json_array_get(Json, 0);
+		}
+		if (First->type == JSON_STRING) {
+			const char *Name = json_string_value(First);
+			ml_json_decode_fn decode = (ml_json_decode_fn)stringmap_search(Decoders, Name);
+			if (!decode) return ml_error("JSONError", "Unsupported JSON decoder: %s", Name);
+			return decode(Cache, Json, Index);
+		} else {
+			 return ml_error("JSONError", "Unsupported JSON value");
+		}
+	}
+	case JSON_STRING: return ml_string(json_string_value(Json), json_string_length(Json));
+	case JSON_INTEGER: return ml_integer(json_integer_value(Json));
+	case JSON_REAL: return ml_real(json_real_value(Json));
+	case JSON_TRUE: return (ml_value_t *)MLTrue;
+	case JSON_FALSE: return (ml_value_t *)MLFalse;
+	case JSON_NULL: return MLNil;
+	default: return MLNil;
+	}
+}
+
+static ml_value_t *ml_json_decode_blank(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+	return MLBlank;
+}
+
+static ml_value_t *ml_json_decode_some(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+	return MLSome;
+}
+
+static ml_value_t *ml_json_decode_list(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+	ml_value_t *List = ml_list();
+	if (Index >= 0) inthash_insert(Cache->Cached, Index, List);
+	for (int I = 1; I < json_array_size(Json); ++I) {
+		ml_list_put(List, ml_json_decode(Cache, json_array_get(Json, I)));
+	}
+	return List;
+}
+
+static ml_value_t *ml_json_decode_names(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+	ml_value_t *Names = ml_names();
+	if (Index >= 0) inthash_insert(Cache->Cached, Index, Names);
+	for (int I = 1; I < json_array_size(Json); ++I) {
+		ml_names_add(Names, ml_json_decode(Cache, json_array_get(Json, I)));
+	}
+	return Names;
+}
+
+static ml_value_t *ml_json_decode_map(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+	int Size = json_array_size(Json);
+	if (Size - 1 % 2) return ml_error("JsonError", "Invalid JSON map");
+	ml_value_t *Map = ml_map();
+	if (Index >= 0) inthash_insert(Cache->Cached, Index, Map);
+	for (int I = 1; I < Size; I += 2) {
+		ml_value_t *Key = ml_json_decode(Cache, json_array_get(Json, I));
+		ml_value_t *Value = ml_json_decode(Cache, json_array_get(Json, I + 1));
+		ml_map_insert(Map, Key, Value);
+	}
+	return Map;
+}
+
+static ml_value_t *ml_json_decode_regex(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+	return MLNil;
+}
+
+static ml_value_t *ml_json_decode_method(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+	return MLNil;
+}
+
+static ml_value_t *ml_json_decode_type(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+	return MLNil;
+}
+
+static ml_value_t *ml_json_decode_variable(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+	return MLNil;
+}
+
+static ml_value_t *ml_json_decode_closure(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+	return MLNil;
+}
 
 extern ml_type_t JSDecoderT[1];
 
@@ -366,11 +463,29 @@ ML_TYPE(JSDecoderT, (), "js-decoder",
 	.Constructor = (ml_value_t *)JSDecoder
 );
 
-ML_METHOD("decode", JSDecoderT, MLAnyT) {
-	ml_json_decoder_t Decoder[1] = {0,};
+ML_METHOD("decode", JSDecoderT, MLStringT) {
+	ml_json_decoder_t *Decoder = (ml_json_decoder_t *)Args[0];
+	ml_json_decoder_cache_t Cache[1] = {0,};
+	Cache->Globals = Decoder->Globals;
+	json_error_t Error;
+	json_t *Json = json_loadb(ml_string_value(Args[1]), ml_string_length(Args[1]), JSON_DECODE_ANY, &Error);
+	if (!Json) {
+		return ml_error("JSONError", "%d: %s", Error.position, Error.text);
+	}
+	return ml_json_decode(Cache, Json);
 }
 
 void ml_jsencode_init(stringmap_t *Globals) {
+	stringmap_insert(Decoders, "blank", ml_json_decode_blank);
+	stringmap_insert(Decoders, "some", ml_json_decode_some);
+	stringmap_insert(Decoders, "list", ml_json_decode_list);
+	stringmap_insert(Decoders, "names", ml_json_decode_names);
+	stringmap_insert(Decoders, "map", ml_json_decode_map);
+	stringmap_insert(Decoders, "type", ml_json_decode_type);
+	stringmap_insert(Decoders, "regex", ml_json_decode_regex);
+	stringmap_insert(Decoders, "method", ml_json_decode_method);
+	stringmap_insert(Decoders, "variable", ml_json_decode_variable);
+	stringmap_insert(Decoders, "closure", ml_json_decode_closure);
 #include "ml_jsencode_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "jsvalue", JSValue);

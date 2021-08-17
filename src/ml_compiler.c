@@ -2103,10 +2103,10 @@ static void ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, 
 		Decl->Index = NumParams++;
 		switch (Param->Flags) {
 		case ML_PARAM_EXTRA:
-			Info->ExtraArgs = 1;
+			Info->Flags |= ML_CLOSURE_EXTRA_ARGS;
 			break;
 		case ML_PARAM_NAMED:
-			Info->NamedArgs = 1;
+			Info->Flags |= ML_CLOSURE_NAMED_ARGS;
 			break;
 		case ML_PARAM_BYREF:
 			Decl->Flags |= MLC_DECL_BYREF;

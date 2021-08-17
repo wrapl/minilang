@@ -1,157 +1,234 @@
 internal
 ========
 
-.. include:: <isonum.txt>
-
 :mini:`type generictype < type`
+   *TBD*
 
 :mini:`meth :parents(Arg₁: generictype)`
+   *TBD*
 
-:mini:`type nil < function, iteratable`
+:mini:`type nil < function, sequence`
+   *TBD*
 
 :mini:`type some`
+   *TBD*
 
 :mini:`type blank`
+   *TBD*
 
 :mini:`meth MLCompilerSwitch(Arg₁: function)`
+   *TBD*
 
 :mini:`meth MLCompilerSwitch(Arg₁: type)`
+   *TBD*
 
 :mini:`type typeswitch < function`
+   *TBD*
 
 :mini:`fun mltypeswitch()`
+   *TBD*
 
 :mini:`type cfunction < function`
-
-:mini:`type cfunctionnoderef < function`
+   *TBD*
 
 :mini:`type cfunctionx < function`
+   *TBD*
 
 :mini:`type cfunctionz < function`
+   *TBD*
 
 :mini:`type int32 < integer`
+   *TBD*
 
 :mini:`type int64 < integer`
+   *TBD*
 
 :mini:`type double < real`
+   *TBD*
 
-:mini:`meth MLIterCount(Arg₁: integerrange)`
+:mini:`meth MLSequenceCount(Arg₁: integerrange)`
+   *TBD*
 
-:mini:`meth MLIterCount(Arg₁: realrange)`
+:mini:`meth MLSequenceCount(Arg₁: realrange)`
+   *TBD*
 
 :mini:`type integerswitch < function`
+   *TBD*
 
 :mini:`fun mlintegerswitch()`
+   *TBD*
 
 :mini:`type realswitch < function`
+   *TBD*
 
 :mini:`fun mlrealswitch()`
+   *TBD*
 
 :mini:`type tableiter`
+   *TBD*
 
 :mini:`type tablerowiter`
+   *TBD*
 
 :mini:`type stringiterator`
+   *TBD*
 
 :mini:`type stringswitch < function`
+   *TBD*
 
 :mini:`fun mlstringswitch()`
+   *TBD*
 
-:mini:`type errorvalue`
+:mini:`fun mlchained(Arg₁: any)`
+   *TBD*
 
-:mini:`type field`
+:mini:`type chainedstate`
+   *TBD*
 
-:mini:`type namedtype < type`
-
-:mini:`type enumvalue < int64`
-
-:mini:`type enumvalue < integer`
-
-:mini:`type enumswitch < function`
-
-:mini:`meth MLCompilerSwitch(Arg₁: enum)`
-
-:mini:`type enumiter`
-
-:mini:`type flagsvalue < int64`
-
-:mini:`type flagsvalue < integer`
-
-:mini:`type flagsswitch < function`
-
-:mini:`meth MLCompilerSwitch(Arg₁: flags)`
-
-:mini:`meth MLIterCount(Arg₁: map)`
-
-:mini:`type mapindex`
-
-:mini:`meth MLIterCount(Arg₁: list)`
-
-:mini:`type listiter`
-
-:mini:`type names`
-
-:mini:`type doublediterator < iteratable`
+:mini:`type doublediterator < sequence`
+   *TBD*
 
 :mini:`type doublediteratorstate < state`
+   *TBD*
 
-:mini:`type stacked < iteratable`
+:mini:`type stacked < sequence`
+   *TBD*
 
 :mini:`type stackedstate`
+   *TBD*
 
-:mini:`type repeated < iteratable`
+:mini:`type repeated < sequence`
+   *TBD*
 
 :mini:`type repeatedstate`
+   *TBD*
 
-:mini:`type sequenced < iteratable`
+:mini:`type sequenced < sequence`
+   *TBD*
 
 :mini:`type sequencedstate`
+   *TBD*
 
-:mini:`type limited < iteratable`
+:mini:`type limited < sequence`
+   *TBD*
 
 :mini:`meth :count(Arg₁: limited)`
+   *TBD*
 
 :mini:`type limitedstate`
+   *TBD*
 
-:mini:`type skipped < iteratable`
+:mini:`type skipped < sequence`
+   *TBD*
 
-:mini:`type buffered < iteratable`
+:mini:`type buffered < sequence`
+   *TBD*
 
 :mini:`type bufferedstate`
+   *TBD*
 
-:mini:`type unique < iteratable`
+:mini:`type unique < sequence`
+   *TBD*
 
 :mini:`type uniquestate`
+   *TBD*
 
-:mini:`type zipped < iteratable`
+:mini:`type zipped < sequence`
+   *TBD*
 
 :mini:`type zippedstate`
+   *TBD*
 
-:mini:`type paired < iteratable`
+:mini:`type paired < sequence`
+   *TBD*
 
 :mini:`type pairedstate`
+   *TBD*
 
-:mini:`type weaved < iteratable`
+:mini:`type weaved < sequence`
+   *TBD*
 
 :mini:`type weavedstate`
+   *TBD*
 
-:mini:`type swapped < iteratable`
+:mini:`type swapped < sequence`
+   *TBD*
 
 :mini:`type swappedstate`
+   *TBD*
 
-:mini:`type key < iteratable`
+:mini:`type key < sequence`
+   *TBD*
 
 :mini:`type keystate`
+   *TBD*
+
+:mini:`type errorvalue`
+   *TBD*
+
+:mini:`type field`
+   *TBD*
+
+:mini:`type namedtype < type`
+   *TBD*
+
+:mini:`type enumvalue < int64`
+   *TBD*
+
+:mini:`type enumvalue < integer`
+   *TBD*
+
+:mini:`type enumswitch < function`
+   *TBD*
+
+:mini:`meth MLCompilerSwitch(Arg₁: enum)`
+   *TBD*
+
+:mini:`type enumiter`
+   *TBD*
+
+:mini:`type flagsvalue < int64`
+   *TBD*
+
+:mini:`type flagsvalue < integer`
+   *TBD*
+
+:mini:`type flagsswitch < function`
+   *TBD*
+
+:mini:`meth MLCompilerSwitch(Arg₁: flags)`
+   *TBD*
+
+:mini:`meth MLSequenceCount(Arg₁: map)`
+   *TBD*
+
+:mini:`type mapindex`
+   *TBD*
+
+:mini:`meth MLSequenceCount(Arg₁: list)`
+   *TBD*
+
+:mini:`type listiter`
+   *TBD*
+
+:mini:`type names`
+   *TBD*
 
 :mini:`type TypelibIterT`
+   *TBD*
 
 :mini:`fun defaulttagfn()`
+   *TBD*
 
 :mini:`type DEBUG_TYPE < Continuation`
+   *TBD*
 
 :mini:`meth :jit(Arg₁: closure)`
+   *TBD*
 
 :mini:`type arrayiterator`
+   *TBD*
 
 :mini:`fun mltest(Arg₁: string, Arg₂: any)`
+   *TBD*
 
