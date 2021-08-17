@@ -274,6 +274,25 @@ void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function) {
 	inthash_insert(Type->TypedFns, (uintptr_t)TypedFn, Function);
 }
 
+ML_METHOD("|", MLTypeT, MLTypeT) {
+//<Type/1
+//<Type/2
+//>type
+// Returns a union interface of :mini:`Type/1` and :mini:`Type/2`.
+	ml_type_t *Type1 = (ml_type_t *)Args[0];
+	ml_type_t *Type2 = (ml_type_t *)Args[1];
+	ml_type_t *Type = new(ml_type_t);
+	Type->Type = MLTypeT;
+	ml_type_init(Type, Type1, Type2, NULL);
+	asprintf((char **)&Type->Name, "%s | %s", Type1->Name, Type2->Name);
+	Type->hash = ml_default_hash;
+	Type->call = ml_default_call;
+	Type->deref = ml_default_deref;
+	Type->assign = ml_default_assign;
+	return (ml_value_t *)Type;
+}
+
+
 ML_METHOD(MLStringT, MLTypeT) {
 //!type
 //<Type

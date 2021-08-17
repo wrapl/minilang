@@ -106,6 +106,7 @@ ml_value_t *ml_chained(int Count, ml_value_t **Functions) {
 }
 
 ML_FUNCTION(MLChained) {
+//!internal
 	ML_CHECK_ARG_COUNT(1);
 	return ml_chained(Count, Args);
 }
@@ -118,6 +119,7 @@ typedef struct ml_chained_iterator_t {
 } ml_chained_iterator_t;
 
 ML_TYPE(MLChainedStateT, (), "chained-state");
+//!internal
 
 static void ML_TYPED_FN(ml_iter_key, MLChainedStateT, ml_state_t *Caller, ml_chained_iterator_t *State) {
 	ML_RETURN(State->Values[0]);
@@ -234,7 +236,7 @@ static void ML_TYPED_FN(ml_iterate, MLChainedT, ml_state_t *Caller, ml_chained_f
 ML_METHOD("->", MLFunctionT, MLFunctionT) {
 //<Sequence
 //<Function
-//>chainedfunction
+//>chained
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 3, ml_value_t *);
 	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
@@ -245,7 +247,7 @@ ML_METHOD("->", MLFunctionT, MLFunctionT) {
 ML_METHOD("->", MLSequenceT, MLFunctionT) {
 //<Sequence
 //<Function
-//>chainedfunction
+//>chained
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 3, ml_value_t *);
 	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
@@ -257,7 +259,7 @@ ML_METHOD("->", MLSequenceT, MLFunctionT) {
 ML_METHOD("=>", MLSequenceT, MLFunctionT) {
 //<Sequence
 //<Function
-//>chainedfunction
+//>chained
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 5, ml_value_t *);
 	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
@@ -271,7 +273,7 @@ ML_METHOD("=>", MLSequenceT, MLFunctionT) {
 ML_METHOD("=>", MLSequenceT, MLFunctionT, MLFunctionT) {
 //<Sequence
 //<Function
-//>chainedfunction
+//>chained
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 5, ml_value_t *);
 	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
@@ -283,9 +285,9 @@ ML_METHOD("=>", MLSequenceT, MLFunctionT, MLFunctionT) {
 }
 
 ML_METHOD("->", MLChainedT, MLFunctionT) {
-//<ChainedFunction
+//<Chained
 //<Function
-//>chainedfunction
+//>chained
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
 	int N = 0;
 	while (Base->Entries[N]) ++N;
@@ -297,9 +299,9 @@ ML_METHOD("->", MLChainedT, MLFunctionT) {
 }
 
 ML_METHOD("=>", MLChainedT, MLFunctionT) {
-//<ChainedFunction
+//<Chained
 //<Function
-//>chainedfunction
+//>chained
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
 	int N = 0;
 	while (Base->Entries[N]) ++N;
@@ -313,9 +315,9 @@ ML_METHOD("=>", MLChainedT, MLFunctionT) {
 }
 
 ML_METHOD("=>", MLChainedT, MLFunctionT, MLFunctionT) {
-//<ChainedFunction
+//<Chained
 //<Function
-//>chainedfunction
+//>chained
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
 	int N = 0;
 	while (Base->Entries[N]) ++N;
@@ -331,7 +333,7 @@ ML_METHOD("=>", MLChainedT, MLFunctionT, MLFunctionT) {
 ML_METHOD("->?", MLSequenceT, MLFunctionT) {
 //<Sequence
 //<Function
-//>chainedfunction
+//>chained
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
 	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
@@ -344,7 +346,7 @@ ML_METHOD("->?", MLSequenceT, MLFunctionT) {
 ML_METHOD("=>?", MLSequenceT, MLFunctionT) {
 //<Sequence
 //<Function
-//>chainedfunction
+//>chained
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
 	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
@@ -355,9 +357,9 @@ ML_METHOD("=>?", MLSequenceT, MLFunctionT) {
 }
 
 ML_METHOD("->?", MLChainedT, MLFunctionT) {
-//<ChainedFunction
+//<Chained
 //<Function
-//>chainedfunction
+//>chained
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
 	int N = 0;
 	while (Base->Entries[N]) ++N;
@@ -370,9 +372,9 @@ ML_METHOD("->?", MLChainedT, MLFunctionT) {
 }
 
 ML_METHOD("=>?", MLChainedT, MLFunctionT) {
-//<ChainedFunction
+//<Chained
 //<Function
-//>chainedfunction
+//>chained
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
 	int N = 0;
 	while (Base->Entries[N]) ++N;
