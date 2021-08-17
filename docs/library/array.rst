@@ -1,13 +1,11 @@
 array
 =====
 
-.. include:: <isonum.txt>
-
 :mini:`type array < buffer, sequence`
    Base type for multidimensional arrays.
 
 
-:mini:`constructor array(List: list)` |rarr| :mini:`array`
+:mini:`constructor array(List: list): array`
    Returns a new array containing the values in :mini:`List`.
 
    The shape and type of the array is determined from the elements in :mini:`List`.
@@ -57,45 +55,48 @@ array
    Arrays of any *Minilang* values.
 
 
-:mini:`meth :degree(Array: array)` |rarr| :mini:`integer`
+:mini:`meth :degree(Array: array): integer`
    Return the degree of :mini:`Array`.
 
 
-:mini:`meth :shape(Array: array)` |rarr| :mini:`list`
+:mini:`meth :shape(Array: array): list`
    Return the shape of :mini:`Array`.
 
 
-:mini:`meth :count(Array: array)` |rarr| :mini:`integer`
+:mini:`meth :count(Array: array): integer`
    Return the number of elements in :mini:`Array`.
 
 
-:mini:`meth ^(Array: array)` |rarr| :mini:`array`
+:mini:`meth ^(Array: array): array`
    Returns the transpose of :mini:`Array`, sharing the underlying data.
 
 
-:mini:`meth :permute(Array: array, Indices: list)` |rarr| :mini:`array`
+:mini:`meth :permute(Array: array, Indices: list): array`
    Returns an array sharing the underlying data with :mini:`Array`, permuting the axes according to :mini:`Indices`.
 
 
 :mini:`meth :swap(Arg₁: array, Arg₂: integer, Arg₃: integer)`
+   *TBD*
 
-:mini:`meth :expand(Array: array, Indices: list)` |rarr| :mini:`array`
+:mini:`meth :expand(Array: array, Indices: list): array`
    Returns an array sharing the underlying data with :mini:`Array` with additional unit-length axes at the specified :mini:`Indices`.
 
 
 :mini:`meth :split(Arg₁: array, Arg₂: integer, Arg₃: list)`
+   *TBD*
 
 :mini:`meth :join(Arg₁: array, Arg₂: integer, Arg₃: integer)`
+   *TBD*
 
-:mini:`meth :strides(Array: array)` |rarr| :mini:`list`
+:mini:`meth :strides(Array: array): list`
    Return the strides of :mini:`Array` in bytes.
 
 
-:mini:`meth :size(Array: array)` |rarr| :mini:`integer`
+:mini:`meth :size(Array: array): integer`
    Return the size of :mini:`Array` in bytes.
 
 
-:mini:`meth (Array: array)[Indices...: any]` |rarr| :mini:`array`
+:mini:`meth (Array: array)[Indices...: any]: array`
    Returns a sub-array of :mini:`Array` sharing the underlying data.
 
    The :mini:`i`-th dimension is indexed by the corresponding :mini:`Indexᵢ`.
@@ -109,63 +110,64 @@ array
    If fewer than :mini:`A:degree` indices are provided then the remaining dimensions are copied unchanged.
 
 
-:mini:`meth (Array: array)[Indices: map]` |rarr| :mini:`array`
+:mini:`meth (Array: array)[Indices: map]: array`
    Returns a sub-array of :mini:`Array` sharing the underlying data.
 
    The :mini:`i`-th dimension is indexed by :mini:`Indices[i]` if present, and :mini:`nil` otherwise.
 
 
 :mini:`meth :reshape(Arg₁: array, Arg₂: list)`
+   *TBD*
 
-:mini:`meth :sums(Array: array, Index: integer)` |rarr| :mini:`array`
+:mini:`meth :sums(Array: array, Index: integer): array`
    Returns a new array with the partial sums of :mini:`Array` in the :mini:`Index`-th dimension.
 
 
-:mini:`meth :prods(Array: array, Index: integer)` |rarr| :mini:`array`
+:mini:`meth :prods(Array: array, Index: integer): array`
    Returns a new array with the partial products of :mini:`Array` in the :mini:`Index`-th dimension.
 
 
-:mini:`meth :sum(Array: array)` |rarr| :mini:`integer` or :mini:`real`
+:mini:`meth :sum(Array: array): integer | real`
    Returns the sum of the values in :mini:`Array`.
 
 
-:mini:`meth :sum(Array: array, Index: integer)` |rarr| :mini:`array`
+:mini:`meth :sum(Array: array, Index: integer): array`
    Returns a new array with the sums of :mini:`Array` in the :mini:`Index`-th dimension.
 
 
-:mini:`meth :prod(Array: array)` |rarr| :mini:`integer` or :mini:`real`
+:mini:`meth :prod(Array: array): integer | real`
    Returns the product of the values in :mini:`Array`.
 
 
-:mini:`meth :prod(Array: array, Index: integer)` |rarr| :mini:`array`
+:mini:`meth :prod(Array: array, Index: integer): array`
    Returns a new array with the products of :mini:`Array` in the :mini:`Index`-th dimension.
 
 
-:mini:`meth -(Array: array)` |rarr| :mini:`array`
+:mini:`meth -(Array: array): array`
    Returns an array with the negated values from :mini:`Array`.
 
 
-:mini:`meth :copy(Array: array)` |rarr| :mini:`array`
+:mini:`meth :copy(Array: array): array`
    Return a new array with the same values of :mini:`Array` but not sharing the underlying data.
 
 
-:mini:`meth $(List: list)` |rarr| :mini:`array`
+:mini:`meth $(List: list): array`
    Returns an array with the contents of :mini:`List`.
 
 
-:mini:`meth ^(List: list)` |rarr| :mini:`array`
+:mini:`meth ^(List: list): array`
    Returns an array with the contents of :mini:`List`, transposed.
 
 
-:mini:`meth :copy(Array: array, Function: function)` |rarr| :mini:`array`
+:mini:`meth :copy(Array: array, Function: function): array`
    Return a new array with the results of applying :mini:`Function` to each value of :mini:`Array`.
 
 
-:mini:`meth :update(Array: array, Function: function)` |rarr| :mini:`array`
+:mini:`meth :update(Array: array, Function: function): array`
    Update the values in :mini:`Array` in place by applying :mini:`Function` to each value.
 
 
-:mini:`meth .(A: array, B: array)` |rarr| :mini:`array`
+:mini:`meth .(A: array, B: array): array`
    Returns the inner product of :mini:`A` and :mini:`B`. The last dimension of :mini:`A` and the first dimension of :mini:`B` must match, skipping any dimensions of size :mini:`1`.
 
 

@@ -1,9 +1,7 @@
 tasks
 =====
 
-.. include:: <isonum.txt>
-
-:mini:`fun tasks(Max?: integer, Min?: integer)` |rarr| :mini:`tasks`
+:mini:`fun tasks(Max?: integer, Min?: integer): tasks`
    Creates a new :mini:`tasks` set.
 
    If specified, at most :mini:`Max` functions will be called in parallel (the default is unlimited).
@@ -21,11 +19,11 @@ tasks
    Adding a task to a completed tasks set returns an error.
 
 
-:mini:`meth :wait(Tasks: tasks)` |rarr| :mini:`nil` or :mini:`error`
+:mini:`meth :wait(Tasks: tasks): nil | error`
    Waits until all of the tasks in a tasks set have returned, or one of the tasks has returned an error (which is then returned from this call).
 
 
-:mini:`fun parallel(Sequence: any, Max?: integer, Min?: integer, Function: function)` |rarr| :mini:`nil` or :mini:`error`
+:mini:`fun parallel(Sequence: any, Max?: integer, Min?: integer, Function: function): nil | error`
    Iterates through :mini:`Sequence` and calls :mini:`Function(Key, Value)` for each :mini:`Key, Value` pair produced **without** waiting for the call to return.
 
    The call to :mini:`parallel` returns when all calls to :mini:`Function` return, or an error occurs.

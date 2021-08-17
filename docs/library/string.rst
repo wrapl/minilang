@@ -1,139 +1,202 @@
 string
 ======
 
-.. include:: <isonum.txt>
-
 :mini:`type string < buffer, sequence`
+   *TBD*
 
 :mini:`meth MLSequenceCount(Arg₁: string)`
+   *TBD*
 
 :mini:`meth string(Arg₁: nil)`
+   *TBD*
 
 :mini:`meth string(Arg₁: some)`
+   *TBD*
 
 :mini:`meth string(Arg₁: integer, Arg₂: string)`
+   *TBD*
 
 :mini:`meth string(Arg₁: double, Arg₂: string)`
+   *TBD*
 
 :mini:`meth string(Arg₁: complex, Arg₂: string)`
+   *TBD*
 
-:mini:`fun regex(String: string)` |rarr| :mini:`regex` or :mini:`error`
+:mini:`fun regex(String: string): regex | error`
    Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
 
 
 :mini:`type regex`
+   *TBD*
 
 :mini:`meth <>(Arg₁: regex, Arg₂: regex)`
+   *TBD*
 
 :mini:`fun stringbuffer()`
+   *TBD*
 
 :mini:`type stringbuffer`
+   *TBD*
 
 :mini:`meth :get(Arg₁: stringbuffer)`
+   *TBD*
 
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: any)`
+   *TBD*
 
 :mini:`meth :write(Arg₁: stringbuffer, Arg₂: any)`
+   *TBD*
 
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: nil)`
+   *TBD*
 
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: some)`
+   *TBD*
 
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: integer)`
+   *TBD*
 
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: double)`
+   *TBD*
 
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: string)`
+   *TBD*
 
 :mini:`meth (Arg₁: string)[Arg₂: integer]`
+   *TBD*
 
 :mini:`meth (Arg₁: string)[Arg₂: integer, Arg₃: integer]`
+   *TBD*
 
 :mini:`meth +(Arg₁: string, Arg₂: string)`
+   *TBD*
 
 :mini:`meth :trim(Arg₁: string)`
+   *TBD*
 
 :mini:`meth :trim(Arg₁: string, Arg₂: string)`
+   *TBD*
 
 :mini:`meth :ltrim(Arg₁: string)`
+   *TBD*
 
 :mini:`meth :ltrim(Arg₁: string, Arg₂: string)`
+   *TBD*
 
 :mini:`meth :rtrim(Arg₁: string)`
+   *TBD*
 
 :mini:`meth :rtrim(Arg₁: string, Arg₂: string)`
+   *TBD*
 
 :mini:`meth :length(Arg₁: string)`
+   *TBD*
 
 :mini:`meth :count(Arg₁: string)`
+   *TBD*
 
 :mini:`meth <>(Arg₁: string, Arg₂: string)`
+   *TBD*
 
 :mini:`meth ~(Arg₁: string, Arg₂: string)`
+   *TBD*
 
 :mini:`meth ~>(Arg₁: string, Arg₂: string)`
+   *TBD*
 
 :mini:`meth /(Arg₁: string, Arg₂: string)`
+   *TBD*
 
 :mini:`meth /(Arg₁: string, Arg₂: regex)`
+   *TBD*
 
 :mini:`meth /(Arg₁: string, Arg₂: regex, Arg₃: integer)`
+   *TBD*
 
 :mini:`meth /*(Arg₁: string, Arg₂: string)`
+   *TBD*
 
 :mini:`meth /*(Arg₁: string, Arg₂: regex)`
+   *TBD*
 
 :mini:`meth */(Arg₁: string, Arg₂: string)`
+   *TBD*
 
 :mini:`meth */(Arg₁: string, Arg₂: regex)`
+   *TBD*
 
 :mini:`meth :lower(Arg₁: string)`
+   *TBD*
 
 :mini:`meth :upper(Arg₁: string)`
+   *TBD*
 
 :mini:`meth :find(Arg₁: string, Arg₂: string)`
+   *TBD*
 
 :mini:`meth :find2(Arg₁: string, Arg₂: string)`
+   *TBD*
 
 :mini:`meth :find(Arg₁: string, Arg₂: string, Arg₃: integer)`
+   *TBD*
 
 :mini:`meth :find2(Arg₁: string, Arg₂: string, Arg₃: integer)`
+   *TBD*
 
 :mini:`meth :find(Arg₁: string, Arg₂: regex)`
+   *TBD*
 
 :mini:`meth :find2(Arg₁: string, Arg₂: regex)`
+   *TBD*
 
 :mini:`meth :find(Arg₁: string, Arg₂: regex, Arg₃: integer)`
+   *TBD*
 
 :mini:`meth :find2(Arg₁: string, Arg₂: regex, Arg₃: integer)`
+   *TBD*
 
 :mini:`meth %(Arg₁: string, Arg₂: regex)`
+   *TBD*
 
 :mini:`meth ?(Arg₁: string, Arg₂: regex)`
+   *TBD*
 
 :mini:`meth :starts(Arg₁: string, Arg₂: string)`
+   *TBD*
 
 :mini:`meth :starts(Arg₁: string, Arg₂: regex)`
+   *TBD*
 
 :mini:`meth :ends(Arg₁: string, Arg₂: string)`
+   *TBD*
 
 :mini:`meth :after(Arg₁: string, Arg₂: string)`
+   *TBD*
 
 :mini:`meth :after(Arg₁: string, Arg₂: string, Arg₃: integer)`
+   *TBD*
 
 :mini:`meth :before(Arg₁: string, Arg₂: string)`
+   *TBD*
 
 :mini:`meth :before(Arg₁: string, Arg₂: string, Arg₃: integer)`
+   *TBD*
 
 :mini:`meth :replace(Arg₁: string, Arg₂: string, Arg₃: string)`
+   *TBD*
 
 :mini:`meth :replace(Arg₁: string, Arg₂: regex, Arg₃: string)`
+   *TBD*
 
 :mini:`meth :replace(Arg₁: string, Arg₂: regex, Arg₃: function)`
+   *TBD*
 
 :mini:`meth :replace(Arg₁: string, Arg₂: map)`
+   *TBD*
 
 :mini:`meth string(Arg₁: regex)`
+   *TBD*
 
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: regex)`
+   *TBD*
 
