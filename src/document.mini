@@ -36,7 +36,7 @@ fun type_name(Type) do
 	end
 end
 
-fun is_symbol(Method) (Method = "\"<op>\"") or (Method:lower = Method:upper)
+fun is_symbol(Method) Method:lower = Method:upper
 
 fun write_method(Category, Kind, Method, Params, Return, Description, Location) do
 	:<print('[{Category}] {Kind}: {Method}\n')
@@ -88,6 +88,9 @@ fun write_method(Category, Kind, Method, Params, Return, Description, Location) 
 	for Param in Params skip Skip do
 		Title:write(Seperator, Param[1], ": ", type_name(Param[2]))
 		Seperator := ", "
+	end
+	if Kind[-1] = "V" then
+		Title:write(", ...")
 	end
 	Title:write(Terminator)
 	if Return:length > 0 then
@@ -226,6 +229,28 @@ def Subscripts := {
 	"/i" is "ᵢ", "/j" is "ⱼ", "/m" is "ₘ", "/n" is "ₙ"
 } 
 
+class: define(:Params, :Items)
+
+meth :put(Define: define, Fn: function, Item: list) Define:Items:put((Fn, Item))
+
+fun replace(X, Args) do
+	switch X: type
+	case string do
+		let Y := X:trim("#"):replace(Args)
+		if let Match := Y % r"([A-Za-z0-9_]+) ## Method" then
+			Match[2]:lower
+		else
+			Y
+		end						
+	case list do
+		list(X, replace(_, Args))
+	case tuple do
+		tuple ! replace(list(X), Args)
+	else
+		X
+	end
+end
+
 fun process(FileName) do
 	let File := file(FileName, 'r')
 	var DefaultCategory := "general"
@@ -240,7 +265,7 @@ fun process(FileName) do
 		:>print('{LineNo}: {Line}')
 		LineNo := old + 1
 		do
-			if Line % r"//!" then
+			if Line % r"^/[/*]!" then
 				DefaultCategory := Line[4, 0]:trim
 			elseif Line % r"^ML_METHOD_DECL" then
 			elseif Line % r"^ML_METHOD_ANON" then
@@ -257,9 +282,9 @@ fun process(FileName) do
 				loop
 					let Line := while File:read
 					LineNo := old + 1
-					if Line % r"//@" then
+					if Line % r"^/[/*]@" then
 						Method := Line[4, 0]:trim
-					elseif Line % r"^//<" then
+					elseif Line % r"^/[/*]<" then
 						if let J := Line:find(":", 4) then
 							let K := Line:find(" ", J + 2) or 0
 							Params:put((
@@ -275,11 +300,11 @@ fun process(FileName) do
 								Line[J, 0]:trim
 							))
 						end
-					elseif Line % r"^//>" then
+					elseif Line % r"^/[/*]>" then
 						Return := list(Line[4, 0] / "|", :trim, :replace(_, Subscripts))
-					elseif Line % r"^//!" then
+					elseif Line % r"^/[/*]!" then
 						Category := Line[4, 0]:trim
-					elseif Line % r"^// " then
+					elseif Line % r"^/[/*] " then
 						Description:put(Line[4, 0]:replace(Subscripts))
 					else
 						exit
@@ -289,11 +314,11 @@ fun process(FileName) do
 					Params:put(('Arg/{Params:length + 1}':replace(Subscripts), Type, ""))
 				end
 				if CurrentDefine then
-					CurrentDefine:put((write_method, Category, Kind, Method, Params, Return, Description, Location))
+					CurrentDefine:put(write_method, [Category, Kind, Method, Params, Return, Description, Location])
 				else
 					write_method(Category, Kind, Method, Params, Return, Description, Location)
 				end
-			elseif Line % r"^MATH_REAL" then
+			:<elseif Line % r"^MATH_REAL" then
 				let Location := (FileName, LineNo)
 				let I := Line:find("("), J := Line:find(")")
 				let Kind := Line[1, I]
@@ -317,10 +342,10 @@ fun process(FileName) do
 				end
 				Return := ["number"]
 				if CurrentDefine then
-					CurrentDefine:put((write_method, Category, Kind, Method, Params, Return, Description, Location))
+					CurrentDefine:put(write_method, [Category, Kind, Method, Params, Return, Description, Location])
 				else
 					write_method(Category, Kind, Method, Params, Return, Description, Location)
-				end
+				end>:
 			elseif Line % r"^ML_FUNCTION" then
 				let Location := (FileName, LineNo)
 				let I := Line:find("("), J := Line:find(")")
@@ -333,9 +358,9 @@ fun process(FileName) do
 				loop
 					let Line := while File:read
 					LineNo := old + 1
-					if Line % r"//@" then
+					if Line % r"^/[/*]@" then
 						Name := Line[4, 0]:trim
-					elseif Line % r"^//<" then
+					elseif Line % r"^/[/*]<" then
 						if let J := Line:find(":", 4) then
 							let K := Line:find(" ", J + 2) or 0
 							Params:put([
@@ -351,11 +376,11 @@ fun process(FileName) do
 								Line[J, 0]:trim
 							])
 						end
-					elseif Line % r"^//>" then
+					elseif Line % r"^/[/*]>" then
 						Return := list(Line[4, 0] / "|", :trim, :replace(_, Subscripts))
-					elseif Line % r"^//!" then
+					elseif Line % r"^/[/*]!" then
 						Category := Line[4, 0]:trim
-					elseif Line % r"^// " then
+					elseif Line % r"^/[/*] " then
 						Description:put(Line[4, 0]:replace(Subscripts))
 					elseif let Match := Line % r"ML_CHECK(X?)_ARG_COUNT\(([0-9]+)\)" then
 						let Count := integer(Match[3])
@@ -370,7 +395,7 @@ fun process(FileName) do
 					end
 				end
 				if CurrentDefine then
-					CurrentDefine:put((write_function, Category, Kind, Name, Params, Return, Description, Location))
+					CurrentDefine:put(write_function, [Category, Kind, Name, Params, Return, Description, Location])
 				else
 					write_function(Category, Kind, Name, Params, Return, Description, Location)
 				end
@@ -385,9 +410,9 @@ fun process(FileName) do
 				loop
 					let Line := while File:read
 					LineNo := old + 1
-					if Line % r"//@" then
+					if Line % r"^/[/*]@" then
 						Name := Line[4, 0]:trim
-					elseif Line % r"^//<" then
+					elseif Line % r"^/[/*]<" then
 						if let J := Line:find(":", 4) then
 							let K := Line:find(" ", J + 2) or 0
 							Params:put([
@@ -403,16 +428,16 @@ fun process(FileName) do
 								Line[J, 0]:trim
 							])
 						end
-					elseif Line % r"^//!" then
+					elseif Line % r"^/[/*]!" then
 						Category := Line[4, 0]:trim
-					elseif Line % r"^// " then
+					elseif Line % r"^/[/*] " then
 						Description:put(Line[4, 0]:replace(Subscripts))
 					else
 						exit
 					end
 				end
 				if CurrentDefine then
-					CurrentDefine:put((write_constructor, Category, Kind, Name, Params, [Name], Description, Location))
+					CurrentDefine:put(write_constructor, [Category, Kind, Name, Params, [Name], Description, Location])
 				else
 					write_constructor(Category, Kind, Name, Params, [Name], Description, Location)
 				end
@@ -428,25 +453,42 @@ fun process(FileName) do
 				loop
 					let Line := while File:read
 					LineNo := old + 1
-					if Line % r"//@" then
+					if Line % r"^/[/*]@" then
 						Name := Line[4, 0]:trim
-					elseif Line % r"^//!" then
+					elseif Line % r"^/[/*]!" then
 						Category := Line[4, 0]:trim
-					elseif Line % r"^// " then
+					elseif Line % r"^/[/*] " then
 						Description:put(Line[4, 0]:replace(Subscripts))
 					else
 						exit
 					end
 				end
 				if CurrentDefine then
-					CurrentDefine:put((write_type, Category, Name, Parents, Description, Location))
+					CurrentDefine:put(write_type, [Category, Name, Parents, Description, Location])
 				else
 					write_type(Category, Name, Parents, Description, Location)
 				end
-			elseif let Match := Line % r"^#define ([A-Za-z0-9_]+)\(" then
-				Defines[Match[2]] := CurrentDefine := []
+			elseif let Match := Line % r"^#define ([A-Za-z0-9_]+)\((.+)\)" then
+				let Params := list(Match[3] / ",", :trim)
+				Defines[Match[2]] := CurrentDefine := define(Params, [])
 			elseif Line = "\n" then
 				CurrentDefine := nil
+			elseif let Match := Line % r"^([A-Za-z0-9_]+)\((.+)\)" then
+				if let Define := Defines[Match[2]] then
+					if count(Define:Items) > 0 then
+						let Args := map(pair(Define:Params, list(Match[3] / ",", :trim)))
+						if CurrentDefine then
+							for Item in Define:Items do
+								CurrentDefine:put(Item[1], replace(Item[2], Args))
+							end
+						else
+							:>print('Expanding {Match[2]}{Args}\n')
+							for Item in Define:Items do
+								Item[1] ! replace(Item[2], Args)
+							end
+						end
+					end
+				end
 			end
 		on Error do
 			print(Line, "\n")
@@ -456,17 +498,17 @@ fun process(FileName) do
 			end
 		end
 	end
-	if count(Defines) > 0 then
+	:<if count(Defines) > 0 then
 		print(FileName, "\n")
 		for Name, Define in Defines do
-			if count(Define) > 0 then
-				print("\t", Name, "\n")
-				for Item in Define do
+			if count(Define:Items) > 0 then
+				print("\t", Name, Define:Params, "\n")
+				for Item in Define:Items do
 					print("\t\t", Item, "\n")
 				end
 			end
 		end
-	end
+	end>:
 	File:close
 end
 

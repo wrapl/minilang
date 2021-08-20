@@ -16,6 +16,6 @@ sqlite
 :mini:`meth :statement(Arg₁: sqlite, Arg₂: string)`
    *TBD*
 
-:mini:`meth :execute(Arg₁: sqlite, Arg₂: string)`
+:mini:`meth :execute(Arg₁: sqlite, Arg₂: string, ...)`
    *TBD*
 

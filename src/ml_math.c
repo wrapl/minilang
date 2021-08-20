@@ -10,25 +10,22 @@
 ML_METHOD_DECL(NAME ## Method, NULL); \
 \
 ML_METHOD(NAME ## Method, MLRealT) { \
+/*>real
+// Returns :mini:`CNAME(Arg/1)`.
+*/\
 	return ml_real(CNAME(ml_real_value(Args[0]))); \
 }
 
-#ifdef ML_COMPLEX
+#ifndef ML_COMPLEX
 
 #define MATH_NUMBER(NAME, CNAME) \
 ML_METHOD_DECL(NAME ## Method, NULL); \
 \
 ML_METHOD(NAME ## Method, MLRealT) { \
+/*>real
+// Returns :mini:`CNAME(Arg/1)`.
+*/\
 	return ml_real(CNAME(ml_real_value(Args[0]))); \
-} \
-\
-ML_METHOD(NAME ## Method, MLComplexT) { \
-	complex double Result = c ## CNAME(ml_complex_value(Args[0])); \
-	if (fabs(cimag(Result)) <= DBL_EPSILON) { \
-		return ml_real(creal(Result)); \
-	} else { \
-		return ml_complex(Result); \
-	} \
 }
 
 #else
@@ -37,7 +34,22 @@ ML_METHOD(NAME ## Method, MLComplexT) { \
 ML_METHOD_DECL(NAME ## Method, NULL); \
 \
 ML_METHOD(NAME ## Method, MLRealT) { \
+/*>real
+// Returns :mini:`CNAME(Arg/1)`.
+*/\
 	return ml_real(CNAME(ml_real_value(Args[0]))); \
+} \
+\
+ML_METHOD(NAME ## Method, MLComplexT) { \
+/*>complex
+// Returns :mini:`CNAME(Arg/1)`.
+*/\
+	complex double Result = c ## CNAME(ml_complex_value(Args[0])); \
+	if (fabs(cimag(Result)) <= DBL_EPSILON) { \
+		return ml_real(creal(Result)); \
+	} else { \
+		return ml_complex(Result); \
+	} \
 }
 
 #endif
@@ -46,6 +58,9 @@ ML_METHOD(NAME ## Method, MLRealT) { \
 ML_METHOD_DECL(NAME ## Method, NULL); \
 \
 ML_METHOD(NAME ## Method, MLRealT, MLRealT) { \
+/*>real
+// Returns :mini:`CNAME(Arg/1, Arg/2)`.
+*/\
 	return ml_real(CNAME(ml_real_value(Args[0]), ml_real_value(Args[1]))); \
 }
 
@@ -145,7 +160,8 @@ MATH_NUMBER(Asin, asin);
 MATH_NUMBER(Atan, atan);
 ML_METHOD(AtanMethod, MLRealT, MLRealT) {
 //@atan
-//>number
+//>real
+// Returns :mini:`atan(Arg/2 / Arg/1)`.
 	return ml_real(atan2(ml_real_value(Args[0]), ml_real_value(Args[1])));
 }
 MATH_REAL(Ceil, ceil);
@@ -161,7 +177,8 @@ MATH_NUMBER(Sinh, sinh);
 MATH_NUMBER(Sqrt, sqrt);
 ML_METHOD(SqrtMethod, MLIntegerT) {
 //@sqrt
-//>number
+//>integer|real
+// Returns the square root of :mini:`Arg/1`.
 	int64_t N = ml_integer_value(Args[0]);
 	if (N < 0) return ml_real(-NAN);
 	if (N <= 1) return Args[0];

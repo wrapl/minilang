@@ -13,7 +13,7 @@ file
 :mini:`meth :read(File: file, Length: integer): string`
    *TBD*
 
-:mini:`meth :write(File: file, String: string): File`
+:mini:`meth :write(File: file, String: string, ...): File`
    *TBD*
 
 :mini:`meth :write(File: file, Buffer: stringbuffer): File`

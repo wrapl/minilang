@@ -32,6 +32,30 @@ string
 :mini:`meth <>(Arg₁: regex, Arg₂: regex)`
    *TBD*
 
+:mini:`meth =(Arg₁: regex, Arg₂: regex): regex | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ == Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth !=(Arg₁: regex, Arg₂: regex): regex | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ != Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth <(Arg₁: regex, Arg₂: regex): regex | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ < Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth >(Arg₁: regex, Arg₂: regex): regex | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ > Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth <=(Arg₁: regex, Arg₂: regex): regex | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ <= Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth >=(Arg₁: regex, Arg₂: regex): regex | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ >= Arg₂` and :mini:`nil` otherwise.
+
+
 :mini:`fun stringbuffer()`
    *TBD*
 
@@ -41,10 +65,10 @@ string
 :mini:`meth :get(Arg₁: stringbuffer)`
    *TBD*
 
-:mini:`meth :append(Arg₁: stringbuffer, Arg₂: any)`
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: any, ...)`
    *TBD*
 
-:mini:`meth :write(Arg₁: stringbuffer, Arg₂: any)`
+:mini:`meth :write(Arg₁: stringbuffer, Arg₂: any, ...)`
    *TBD*
 
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: nil)`
@@ -97,6 +121,30 @@ string
 
 :mini:`meth <>(Arg₁: string, Arg₂: string)`
    *TBD*
+
+:mini:`meth =(Arg₁: string, Arg₂: string): string | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ == Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth !=(Arg₁: string, Arg₂: string): string | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ != Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth <(Arg₁: string, Arg₂: string): string | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ < Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth >(Arg₁: string, Arg₂: string): string | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ > Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth <=(Arg₁: string, Arg₂: string): string | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ <= Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth >=(Arg₁: string, Arg₂: string): string | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ >= Arg₂` and :mini:`nil` otherwise.
+
 
 :mini:`meth ~(Arg₁: string, Arg₂: string)`
    *TBD*

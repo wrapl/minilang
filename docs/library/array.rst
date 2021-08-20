@@ -96,7 +96,7 @@ array
    Return the size of :mini:`Array` in bytes.
 
 
-:mini:`meth (Array: array)[Indices...: any]: array`
+:mini:`meth (Array: array)[Indices...: any, ...]: array`
    Returns a sub-array of :mini:`Array` sharing the underlying data.
 
    The :mini:`i`-th dimension is indexed by the corresponding :mini:`Indexᵢ`.
@@ -115,6 +115,318 @@ array
 
    The :mini:`i`-th dimension is indexed by :mini:`Indices[i]` if present, and :mini:`nil` otherwise.
 
+
+:mini:`meth string(Arg₁: arrayint8)`
+   *TBD*
+
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: arrayint8)`
+   *TBD*
+
+:mini:`meth set(Arg₁: arrayint8, Arg₂: number)`
+   *TBD*
+
+:mini:`meth add(Arg₁: arrayint8, Arg₂: number)`
+   *TBD*
+
+:mini:`meth sub(Arg₁: arrayint8, Arg₂: number)`
+   *TBD*
+
+:mini:`meth mul(Arg₁: arrayint8, Arg₂: number)`
+   *TBD*
+
+:mini:`meth div(Arg₁: arrayint8, Arg₂: number)`
+   *TBD*
+
+:mini:`type arrayint8 < array`
+   *TBD*
+
+:mini:`meth string(Arg₁: arrayuint8)`
+   *TBD*
+
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: arrayuint8)`
+   *TBD*
+
+:mini:`meth set(Arg₁: arrayuint8, Arg₂: number)`
+   *TBD*
+
+:mini:`meth add(Arg₁: arrayuint8, Arg₂: number)`
+   *TBD*
+
+:mini:`meth sub(Arg₁: arrayuint8, Arg₂: number)`
+   *TBD*
+
+:mini:`meth mul(Arg₁: arrayuint8, Arg₂: number)`
+   *TBD*
+
+:mini:`meth div(Arg₁: arrayuint8, Arg₂: number)`
+   *TBD*
+
+:mini:`type arrayuint8 < array`
+   *TBD*
+
+:mini:`meth string(Arg₁: arrayint16)`
+   *TBD*
+
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: arrayint16)`
+   *TBD*
+
+:mini:`meth set(Arg₁: arrayint16, Arg₂: number)`
+   *TBD*
+
+:mini:`meth add(Arg₁: arrayint16, Arg₂: number)`
+   *TBD*
+
+:mini:`meth sub(Arg₁: arrayint16, Arg₂: number)`
+   *TBD*
+
+:mini:`meth mul(Arg₁: arrayint16, Arg₂: number)`
+   *TBD*
+
+:mini:`meth div(Arg₁: arrayint16, Arg₂: number)`
+   *TBD*
+
+:mini:`type arrayint16 < array`
+   *TBD*
+
+:mini:`meth string(Arg₁: arrayuint16)`
+   *TBD*
+
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: arrayuint16)`
+   *TBD*
+
+:mini:`meth set(Arg₁: arrayuint16, Arg₂: number)`
+   *TBD*
+
+:mini:`meth add(Arg₁: arrayuint16, Arg₂: number)`
+   *TBD*
+
+:mini:`meth sub(Arg₁: arrayuint16, Arg₂: number)`
+   *TBD*
+
+:mini:`meth mul(Arg₁: arrayuint16, Arg₂: number)`
+   *TBD*
+
+:mini:`meth div(Arg₁: arrayuint16, Arg₂: number)`
+   *TBD*
+
+:mini:`type arrayuint16 < array`
+   *TBD*
+
+:mini:`meth string(Arg₁: arrayint32)`
+   *TBD*
+
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: arrayint32)`
+   *TBD*
+
+:mini:`meth set(Arg₁: arrayint32, Arg₂: number)`
+   *TBD*
+
+:mini:`meth add(Arg₁: arrayint32, Arg₂: number)`
+   *TBD*
+
+:mini:`meth sub(Arg₁: arrayint32, Arg₂: number)`
+   *TBD*
+
+:mini:`meth mul(Arg₁: arrayint32, Arg₂: number)`
+   *TBD*
+
+:mini:`meth div(Arg₁: arrayint32, Arg₂: number)`
+   *TBD*
+
+:mini:`type arrayint32 < array`
+   *TBD*
+
+:mini:`meth string(Arg₁: arrayuint32)`
+   *TBD*
+
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: arrayuint32)`
+   *TBD*
+
+:mini:`meth set(Arg₁: arrayuint32, Arg₂: number)`
+   *TBD*
+
+:mini:`meth add(Arg₁: arrayuint32, Arg₂: number)`
+   *TBD*
+
+:mini:`meth sub(Arg₁: arrayuint32, Arg₂: number)`
+   *TBD*
+
+:mini:`meth mul(Arg₁: arrayuint32, Arg₂: number)`
+   *TBD*
+
+:mini:`meth div(Arg₁: arrayuint32, Arg₂: number)`
+   *TBD*
+
+:mini:`type arrayuint32 < array`
+   *TBD*
+
+:mini:`meth string(Arg₁: arrayint64)`
+   *TBD*
+
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: arrayint64)`
+   *TBD*
+
+:mini:`meth set(Arg₁: arrayint64, Arg₂: number)`
+   *TBD*
+
+:mini:`meth add(Arg₁: arrayint64, Arg₂: number)`
+   *TBD*
+
+:mini:`meth sub(Arg₁: arrayint64, Arg₂: number)`
+   *TBD*
+
+:mini:`meth mul(Arg₁: arrayint64, Arg₂: number)`
+   *TBD*
+
+:mini:`meth div(Arg₁: arrayint64, Arg₂: number)`
+   *TBD*
+
+:mini:`type arrayint64 < array`
+   *TBD*
+
+:mini:`meth string(Arg₁: arrayuint64)`
+   *TBD*
+
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: arrayuint64)`
+   *TBD*
+
+:mini:`meth set(Arg₁: arrayuint64, Arg₂: number)`
+   *TBD*
+
+:mini:`meth add(Arg₁: arrayuint64, Arg₂: number)`
+   *TBD*
+
+:mini:`meth sub(Arg₁: arrayuint64, Arg₂: number)`
+   *TBD*
+
+:mini:`meth mul(Arg₁: arrayuint64, Arg₂: number)`
+   *TBD*
+
+:mini:`meth div(Arg₁: arrayuint64, Arg₂: number)`
+   *TBD*
+
+:mini:`type arrayuint64 < array`
+   *TBD*
+
+:mini:`meth string(Arg₁: arrayfloat32)`
+   *TBD*
+
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: arrayfloat32)`
+   *TBD*
+
+:mini:`meth set(Arg₁: arrayfloat32, Arg₂: number)`
+   *TBD*
+
+:mini:`meth add(Arg₁: arrayfloat32, Arg₂: number)`
+   *TBD*
+
+:mini:`meth sub(Arg₁: arrayfloat32, Arg₂: number)`
+   *TBD*
+
+:mini:`meth mul(Arg₁: arrayfloat32, Arg₂: number)`
+   *TBD*
+
+:mini:`meth div(Arg₁: arrayfloat32, Arg₂: number)`
+   *TBD*
+
+:mini:`type arrayfloat32 < array`
+   *TBD*
+
+:mini:`meth string(Arg₁: arrayfloat64)`
+   *TBD*
+
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: arrayfloat64)`
+   *TBD*
+
+:mini:`meth set(Arg₁: arrayfloat64, Arg₂: number)`
+   *TBD*
+
+:mini:`meth add(Arg₁: arrayfloat64, Arg₂: number)`
+   *TBD*
+
+:mini:`meth sub(Arg₁: arrayfloat64, Arg₂: number)`
+   *TBD*
+
+:mini:`meth mul(Arg₁: arrayfloat64, Arg₂: number)`
+   *TBD*
+
+:mini:`meth div(Arg₁: arrayfloat64, Arg₂: number)`
+   *TBD*
+
+:mini:`type arrayfloat64 < array`
+   *TBD*
+
+:mini:`meth string(Arg₁: arraycomplex32)`
+   *TBD*
+
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: arraycomplex32)`
+   *TBD*
+
+:mini:`meth set(Arg₁: arraycomplex32, Arg₂: number)`
+   *TBD*
+
+:mini:`meth add(Arg₁: arraycomplex32, Arg₂: number)`
+   *TBD*
+
+:mini:`meth sub(Arg₁: arraycomplex32, Arg₂: number)`
+   *TBD*
+
+:mini:`meth mul(Arg₁: arraycomplex32, Arg₂: number)`
+   *TBD*
+
+:mini:`meth div(Arg₁: arraycomplex32, Arg₂: number)`
+   *TBD*
+
+:mini:`type arraycomplex32 < array`
+   *TBD*
+
+:mini:`meth string(Arg₁: arraycomplex64)`
+   *TBD*
+
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: arraycomplex64)`
+   *TBD*
+
+:mini:`meth set(Arg₁: arraycomplex64, Arg₂: number)`
+   *TBD*
+
+:mini:`meth add(Arg₁: arraycomplex64, Arg₂: number)`
+   *TBD*
+
+:mini:`meth sub(Arg₁: arraycomplex64, Arg₂: number)`
+   *TBD*
+
+:mini:`meth mul(Arg₁: arraycomplex64, Arg₂: number)`
+   *TBD*
+
+:mini:`meth div(Arg₁: arraycomplex64, Arg₂: number)`
+   *TBD*
+
+:mini:`type arraycomplex64 < array`
+   *TBD*
+
+:mini:`meth string(Arg₁: arrayany)`
+   *TBD*
+
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: arrayany)`
+   *TBD*
+
+:mini:`meth set(Arg₁: arrayany, Arg₂: number)`
+   *TBD*
+
+:mini:`meth add(Arg₁: arrayany, Arg₂: number)`
+   *TBD*
+
+:mini:`meth sub(Arg₁: arrayany, Arg₂: number)`
+   *TBD*
+
+:mini:`meth mul(Arg₁: arrayany, Arg₂: number)`
+   *TBD*
+
+:mini:`meth div(Arg₁: arrayany, Arg₂: number)`
+   *TBD*
+
+:mini:`type arrayany < array`
+   *TBD*
 
 :mini:`meth :reshape(Arg₁: array, Arg₂: list)`
    *TBD*
@@ -146,6 +458,126 @@ array
 :mini:`meth -(Array: array): array`
    Returns an array with the negated values from :mini:`Array`.
 
+
+:mini:`meth +(Arg₁: array, Arg₂: integer)`
+   *TBD*
+
+:mini:`meth +(Arg₁: integer, Arg₂: array)`
+   *TBD*
+
+:mini:`meth +(Arg₁: array, Arg₂: double)`
+   *TBD*
+
+:mini:`meth +(Arg₁: double, Arg₂: array)`
+   *TBD*
+
+:mini:`meth *(Arg₁: array, Arg₂: integer)`
+   *TBD*
+
+:mini:`meth *(Arg₁: integer, Arg₂: array)`
+   *TBD*
+
+:mini:`meth *(Arg₁: array, Arg₂: double)`
+   *TBD*
+
+:mini:`meth *(Arg₁: double, Arg₂: array)`
+   *TBD*
+
+:mini:`meth -(Arg₁: array, Arg₂: integer)`
+   *TBD*
+
+:mini:`meth -(Arg₁: integer, Arg₂: array)`
+   *TBD*
+
+:mini:`meth -(Arg₁: array, Arg₂: double)`
+   *TBD*
+
+:mini:`meth -(Arg₁: double, Arg₂: array)`
+   *TBD*
+
+:mini:`meth /(Arg₁: array, Arg₂: integer)`
+   *TBD*
+
+:mini:`meth /(Arg₁: integer, Arg₂: array)`
+   *TBD*
+
+:mini:`meth /(Arg₁: array, Arg₂: double)`
+   *TBD*
+
+:mini:`meth /(Arg₁: double, Arg₂: array)`
+   *TBD*
+
+:mini:`meth =(Arg₁: array, Arg₂: integer)`
+   *TBD*
+
+:mini:`meth =(Arg₁: integer, Arg₂: array)`
+   *TBD*
+
+:mini:`meth =(Arg₁: array, Arg₂: double)`
+   *TBD*
+
+:mini:`meth =(Arg₁: double, Arg₂: array)`
+   *TBD*
+
+:mini:`meth !=(Arg₁: array, Arg₂: integer)`
+   *TBD*
+
+:mini:`meth !=(Arg₁: integer, Arg₂: array)`
+   *TBD*
+
+:mini:`meth !=(Arg₁: array, Arg₂: double)`
+   *TBD*
+
+:mini:`meth !=(Arg₁: double, Arg₂: array)`
+   *TBD*
+
+:mini:`meth <(Arg₁: array, Arg₂: integer)`
+   *TBD*
+
+:mini:`meth <(Arg₁: integer, Arg₂: array)`
+   *TBD*
+
+:mini:`meth <(Arg₁: array, Arg₂: double)`
+   *TBD*
+
+:mini:`meth <(Arg₁: double, Arg₂: array)`
+   *TBD*
+
+:mini:`meth >(Arg₁: array, Arg₂: integer)`
+   *TBD*
+
+:mini:`meth >(Arg₁: integer, Arg₂: array)`
+   *TBD*
+
+:mini:`meth >(Arg₁: array, Arg₂: double)`
+   *TBD*
+
+:mini:`meth >(Arg₁: double, Arg₂: array)`
+   *TBD*
+
+:mini:`meth <=(Arg₁: array, Arg₂: integer)`
+   *TBD*
+
+:mini:`meth <=(Arg₁: integer, Arg₂: array)`
+   *TBD*
+
+:mini:`meth <=(Arg₁: array, Arg₂: double)`
+   *TBD*
+
+:mini:`meth <=(Arg₁: double, Arg₂: array)`
+   *TBD*
+
+:mini:`meth >=(Arg₁: array, Arg₂: integer)`
+   *TBD*
+
+:mini:`meth >=(Arg₁: integer, Arg₂: array)`
+   *TBD*
+
+:mini:`meth >=(Arg₁: array, Arg₂: double)`
+   *TBD*
+
+:mini:`meth >=(Arg₁: double, Arg₂: array)`
+   *TBD*
 
 :mini:`meth :copy(Array: array): array`
    Return a new array with the same values of :mini:`Array` but not sharing the underlying data.

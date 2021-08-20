@@ -70,9 +70,7 @@ type
 
 
 :mini:`meth :in(Value: any, Type: type): Value | nil`
-   Returns :mini:`Value` if it is an instance of :mini:`Type` or a type that inherits from :mini:`Type`.
-
-   Returns :mini:`nil` otherwise.
+   Returns :mini:`Value` if it is an instance of :mini:`Type` or a type that inherits from :mini:`Type` and :mini:`nil` otherwise.
 
 
 :mini:`meth <>(Value₁: any, Value₂: any): integer`
@@ -86,16 +84,30 @@ type
 
 
 :mini:`meth =(Value₁: any, Value₂: any): Value₂ | nil`
-   Returns :mini:`Value2` if :mini:`Value1` and :mini:`Value2` are exactly the same instance.
-
-   Returns :mini:`nil` otherwise.
+   Returns :mini:`Value₂` if :mini:`Value₁` and :mini:`Value₂` are exactly the same instance and :mini:`nil` otherwise.
 
 
 :mini:`meth !=(Value₁: any, Value₂: any): Value₂ | nil`
-   Returns :mini:`Value2` if :mini:`Value1` and :mini:`Value2` are not exactly the same instance.
+   Returns :mini:`Value₂` if :mini:`Value₁` and :mini:`Value₂` are not exactly the same instance and :mini:`nil` otherwise.
 
-   Returns :mini:`nil` otherwise.
 
+:mini:`meth =(Arg₁: any, Arg₂: any, Arg₃: any)`
+   *TBD*
+
+:mini:`meth !=(Arg₁: any, Arg₂: any, Arg₃: any)`
+   *TBD*
+
+:mini:`meth <(Arg₁: any, Arg₂: any, Arg₃: any)`
+   *TBD*
+
+:mini:`meth <=(Arg₁: any, Arg₂: any, Arg₃: any)`
+   *TBD*
+
+:mini:`meth >(Arg₁: any, Arg₂: any, Arg₃: any)`
+   *TBD*
+
+:mini:`meth >=(Arg₁: any, Arg₂: any, Arg₃: any)`
+   *TBD*
 
 :mini:`meth string(Value: any): string`
    Returns a general (type name only) representation of :mini:`Value` as a string.

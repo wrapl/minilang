@@ -44,7 +44,7 @@ function
    Returns a function equivalent to :mini:`fun(Args...) Function(List₁, List₂, ..., Args...)`.
 
 
-:mini:`meth $(Function: function, Values...: any): partialfunction`
+:mini:`meth $(Function: function, Values...: any, ...): partialfunction`
    Returns a function equivalent to :mini:`fun(Args...) Function(Values..., Args...)`.
 
 

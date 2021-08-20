@@ -33,6 +33,42 @@ gir
 :mini:`meth string(Struct: StructInstanceT): string`
    *TBD*
 
+:mini:`type FieldRef ## Boolean ## T`
+   *TBD*
+
+:mini:`type FieldRef ## Int8 ## T`
+   *TBD*
+
+:mini:`type FieldRef ## UInt8 ## T`
+   *TBD*
+
+:mini:`type FieldRef ## Int16 ## T`
+   *TBD*
+
+:mini:`type FieldRef ## UInt16 ## T`
+   *TBD*
+
+:mini:`type FieldRef ## Int32 ## T`
+   *TBD*
+
+:mini:`type FieldRef ## UInt32 ## T`
+   *TBD*
+
+:mini:`type FieldRef ## Int64 ## T`
+   *TBD*
+
+:mini:`type FieldRef ## UInt64 ## T`
+   *TBD*
+
+:mini:`type FieldRef ## Float ## T`
+   *TBD*
+
+:mini:`type FieldRef ## Double ## T`
+   *TBD*
+
+:mini:`type FieldRef ## Utf8 ## T`
+   *TBD*
+
 :mini:`type EnumT < BaseInfoT`
    A gobject-instrospection enum type.
 

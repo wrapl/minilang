@@ -470,13 +470,6 @@ ML_METHOD("delete", MLMapT, MLAnyT) {
 	return ml_map_delete(Map, Key);
 }
 
-ml_value_t *ml_map_fn(void *Data, int Count, ml_value_t **Args) {
-	ml_map_t *Map = new(ml_map_t);
-	Map->Type = MLMapT;
-	for (int I = 0; I < Count; I += 2) ml_map_insert((ml_value_t *)Map, Args[I], Args[I + 1]);
-	return (ml_value_t *)Map;
-}
-
 ML_METHOD("missing", MLMapT, MLAnyT) {
 //<Map
 //<Key

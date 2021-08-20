@@ -627,8 +627,7 @@ ML_METHOD("in", MLAnyT, MLTypeT) {
 //<Value
 //<Type
 //>Value | nil
-// Returns :mini:`Value` if it is an instance of :mini:`Type` or a type that inherits from :mini:`Type`.
-// Returns :mini:`nil` otherwise.
+// Returns :mini:`Value` if it is an instance of :mini:`Type` or a type that inherits from :mini:`Type` and :mini:`nil` otherwise.
 	return ml_is(Args[0], (ml_type_t *)Args[1]) ? Args[0] : MLNil;
 }
 
@@ -744,8 +743,7 @@ ML_METHOD("=", MLAnyT, MLAnyT) {
 //<Value/1
 //<Value/2
 //>Value/2 | nil
-// Returns :mini:`Value2` if :mini:`Value1` and :mini:`Value2` are exactly the same instance.
-// Returns :mini:`nil` otherwise.
+// Returns :mini:`Value/2` if :mini:`Value/1` and :mini:`Value/2` are exactly the same instance and :mini:`nil` otherwise.
 	return (Args[0] == Args[1]) ? Args[1] : MLNil;
 }
 
@@ -753,8 +751,7 @@ ML_METHOD("!=", MLAnyT, MLAnyT) {
 //<Value/1
 //<Value/2
 //>Value/2 | nil
-// Returns :mini:`Value2` if :mini:`Value1` and :mini:`Value2` are not exactly the same instance.
-// Returns :mini:`nil` otherwise.
+// Returns :mini:`Value/2` if :mini:`Value/1` and :mini:`Value/2` are not exactly the same instance and :mini:`nil` otherwise.
 	return (Args[0] != Args[1]) ? Args[1] : MLNil;
 }
 
@@ -1155,6 +1152,7 @@ static void ML_TYPED_FN(ml_iterate, MLPartialFunctionT, ml_state_t *Caller, ml_p
 }
 
 // Tuples //
+//!tuple
 
 static long ml_tuple_hash(ml_tuple_t *Tuple, ml_hash_chain_t *Chain) {
 	long Hash = 739;
@@ -1275,14 +1273,6 @@ ML_METHOD("[]", MLTupleT, MLIntegerT) {
 	return Tuple->Values[Index];
 }
 
-ml_value_t *ml_tuple_fn(void *Data, int Count, ml_value_t **Args) {
-	ml_tuple_t *Tuple = xnew(ml_tuple_t, Count, ml_value_t *);
-	Tuple->Type = MLTupleT;
-	Tuple->Size = Count;
-	memcpy(Tuple->Values, Args, Count * sizeof(ml_value_t *));
-	return (ml_value_t *)Tuple;
-}
-
 ML_METHOD(MLStringT, MLTupleT) {
 //!tuple
 //<Tuple
@@ -1372,18 +1362,8 @@ ml_comp_tuple_tuple("<=", Args[1], Args[1], MLNil);
 ml_comp_tuple_tuple(">", MLNil, MLNil, Args[1]);
 ml_comp_tuple_tuple(">=", MLNil, Args[1], Args[1]);
 
-#if 0
-ML_METHOD("<op>", MLTupleT, MLTupleT) {
-//!tuple
-//<Tuple/1
-//<Tuple/2
-//>Tuple/2 | nil
-// :mini:`<op>` is :mini:`=`, :mini:`!=`, :mini:`<`, :mini:`<=`, :mini:`>` or :mini:`>=`
-// Returns :mini:`Tuple/2` if :mini:`Tuple/2 <op> Tuple/1` is true, otherwise returns :mini:`nil`.
-}
-#endif
-
 // Boolean //
+//!boolean
 
 static long ml_boolean_hash(ml_boolean_t *Boolean, ml_hash_chain_t *Chain) {
 	return (long)Boolean;
@@ -1431,22 +1411,26 @@ ML_METHOD("-", MLBooleanT) {
 	return MLBooleans[1 - ml_boolean_value(Args[0])];
 }
 
-ML_METHOD("/\\", MLBooleanT, MLBooleanT) {
+ML_METHODV("/\\", MLBooleanT, MLBooleanT) {
 //!boolean
 //<Bool/1
 //<Bool/2
 //>boolean
 // Returns the logical and of :mini:`Bool/1` and :mini:`Bool/2`.
-	return MLBooleans[ml_boolean_value(Args[0]) & ml_boolean_value(Args[1])];
+	int Result = ml_boolean_value(Args[0]);
+	for (int I = 1; I < Count; ++I) Result &= ml_boolean_value(Args[I]);
+	return MLBooleans[Result];
 }
 
-ML_METHOD("\\/", MLBooleanT, MLBooleanT) {
+ML_METHODV("\\/", MLBooleanT, MLBooleanT) {
 //!boolean
 //<Bool/1
 //<Bool/2
 //>boolean
 // Returns the logical or of :mini:`Bool/1` and :mini:`Bool/2`.
-	return MLBooleans[ml_boolean_value(Args[0]) | ml_boolean_value(Args[1])];
+	int Result = ml_boolean_value(Args[0]);
+	for (int I = 1; I < Count; ++I) Result |= ml_boolean_value(Args[I]);
+	return MLBooleans[Result];
 }
 
 ML_METHOD("<>", MLBooleanT, MLBooleanT) {
@@ -1474,19 +1458,8 @@ ml_comp_method_boolean_boolean(">", >);
 ml_comp_method_boolean_boolean("<=", <=);
 ml_comp_method_boolean_boolean(">=", >=);
 
-#if 0
-ML_METHOD("<op>", MLBooleanT, MLBooleanT) {
-//!boolean
-//<Bool/1
-//<Bool/2
-//>Bool/2 | nil
-// :mini:`<op>` is :mini:`=`, :mini:`!=`, :mini:`<`, :mini:`<=`, :mini:`>` or :mini:`>=`
-// Returns :mini:`Bool/2` if :mini:`Bool/2 <op> Bool/1` is true, otherwise returns :mini:`nil`.
-// :mini:`true` is considered greater than :mini:`false`.
-}
-#endif
-
 // Numbers //
+//!number
 
 ML_TYPE(MLNumberT, (), "number");
 //!number
@@ -2544,6 +2517,7 @@ ML_METHOD("in", MLDoubleT, MLRealRangeT) {
 }
 
 // Switch Functions //
+//!type
 
 typedef struct {
 	ml_value_t *Index;

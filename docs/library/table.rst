@@ -21,7 +21,7 @@ table
    Insert the column :mini:`Name` with values :mini:`Value` into :mini:`Table`.
 
 
-:mini:`meth :insert(Table: table, Names: names, Value₁, ..., Valueₙ: array): table`
+:mini:`meth :insert(Table: table, Names: names, Value₁, ..., Valueₙ: array, ...): table`
    Insert columns with names from :mini:`Names` and values :mini:`Value₁`, ..., :mini:`Valueₙ` into :mini:`Table`.
 
 

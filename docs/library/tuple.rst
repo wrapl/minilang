@@ -30,9 +30,21 @@ tuple
    Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Tuple₁` is less than, equal to or greater than :mini:`Tuple₂` using lexicographical ordering.
 
 
-:mini:`meth <op>(Tuple₁: tuple, Tuple₂: tuple): Tuple₂ | nil`
-   :mini:`<op>` is :mini:`=`, :mini:`!=`, :mini:`<`, :mini:`<=`, :mini:`>` or :mini:`>=`
+:mini:`meth =(Arg₁: tuple, Arg₂: tuple)`
+   *TBD*
 
-   Returns :mini:`Tuple₂` if :mini:`Tuple₂ <op> Tuple₁` is true, otherwise returns :mini:`nil`.
+:mini:`meth !=(Arg₁: tuple, Arg₂: tuple)`
+   *TBD*
 
+:mini:`meth <(Arg₁: tuple, Arg₂: tuple)`
+   *TBD*
+
+:mini:`meth <=(Arg₁: tuple, Arg₂: tuple)`
+   *TBD*
+
+:mini:`meth >(Arg₁: tuple, Arg₂: tuple)`
+   *TBD*
+
+:mini:`meth >=(Arg₁: tuple, Arg₂: tuple)`
+   *TBD*
 

@@ -163,9 +163,6 @@ internal
 :mini:`type keystate`
    *TBD*
 
-:mini:`type errorvalue`
-   *TBD*
-
 :mini:`type field`
    *TBD*
 
