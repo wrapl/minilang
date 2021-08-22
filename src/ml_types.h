@@ -46,10 +46,6 @@ struct ml_type_t {
 	void (*call)(ml_state_t *, ml_value_t *, int, ml_value_t **);
 	ml_value_t *(*deref)(ml_value_t *);
 	ml_value_t *(*assign)(ml_value_t *, ml_value_t *);
-	void (*iterate)(ml_state_t *, ml_value_t *);
-	void (*iter_next)(ml_state_t *, ml_value_t *);
-	void (*iter_key)(ml_state_t *, ml_value_t *);
-	void (*iter_value)(ml_state_t *, ml_value_t *);
 	ml_value_t *Constructor;
 #ifdef ML_GENERICS
 	ml_generic_rule_t *Rules;
@@ -65,17 +61,12 @@ struct ml_type_t {
 extern ml_type_t MLTypeT[];
 
 long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain);
-void ml_default_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args);
+void ml_default_call(ml_state_t *Frame, ml_value_t *Value, int Count, ml_value_t **Args);
 
 //ml_value_t *ml_default_deref(ml_value_t *Ref);
 #define ml_default_deref NULL
 
 ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value);
-
-void ml_default_iterate(ml_state_t *Caller, ml_value_t *Value);
-void ml_default_iter_next(ml_state_t *Caller, ml_value_t *Value);
-void ml_default_iter_key(ml_state_t *Caller, ml_value_t *Value);
-void ml_default_iter_value(ml_state_t *Caller, ml_value_t *Value);
 
 #ifndef GENERATE_INIT
 
@@ -89,10 +80,6 @@ ml_type_t TYPE[1] = {{ \
 	.call = ml_default_call, \
 	.deref = ml_default_deref, \
 	.assign = ml_default_assign, \
-	.iterate = ml_default_iterate, \
-	.iter_next = ml_default_iter_next, \
-	.iter_key = ml_default_iter_key, \
-	.iter_value = ml_default_iter_value, \
 	.Constructor = (ml_value_t *)CONCAT2(TYPE, Of), \
 	.TypedFns = {INTHASH_INIT}, \
 	.Exports = {STRINGMAP_INIT}, \
@@ -239,11 +226,6 @@ static inline ml_value_t *ml_assign(ml_value_t *Value, ml_value_t *Value2) {
 	ml_call(STATE, VALUE, COUNT, (ml_value_t **)(void *[]){ARGS}); \
 })
 
-#define ml_iterate(CALLER, VALUE) ml_typeof(VALUE)->iterate(CALLER, VALUE)
-#define ml_iter_next(CALLER, VALUE) ml_typeof(VALUE)->iter_next(CALLER, VALUE)
-#define ml_iter_key(CALLER, VALUE) ml_typeof(VALUE)->iter_key(CALLER, VALUE)
-#define ml_iter_value(CALLER, VALUE) ml_typeof(VALUE)->iter_value(CALLER, VALUE)
-
 void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn);
 void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function);
 
@@ -278,6 +260,11 @@ typedef void (*ml_callbackx_t)(ml_state_t *Frame, void *Data, int Count, ml_valu
 
 extern ml_type_t MLSequenceT[];
 extern ml_value_t *MLSequenceCount;
+
+void ml_iterate(ml_state_t *Caller, ml_value_t *Value);
+void ml_iter_value(ml_state_t *Caller, ml_value_t *Iter);
+void ml_iter_key(ml_state_t *Caller, ml_value_t *Iter);
+void ml_iter_next(ml_state_t *Caller, ml_value_t *Iter);
 
 ml_value_t *ml_chained(int Count, ml_value_t **Functions);
 

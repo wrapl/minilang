@@ -219,45 +219,9 @@ typedef struct {
 	int Index;
 } ml_dir_t;
 
-static void ml_dir_iterate(ml_state_t *Caller, ml_dir_t *Dir) {
-	struct dirent *Entry = readdir(Dir->Handle);
-	if (!Entry) {
-		closedir(Dir->Handle);
-		Dir->Handle = NULL;
-		ML_RETURN(MLNil);
-	}
-	Dir->Index = 1;
-	Dir->Entry = ml_string(GC_strdup(Entry->d_name), -1);
-	ML_RETURN(Dir);
-}
-
-static void ml_dir_key(ml_state_t *Caller, ml_dir_t *Dir) {
-	ML_RETURN(ml_integer(Dir->Index));
-}
-
-static void ml_dir_value(ml_state_t *Caller, ml_dir_t *Dir) {
-	ML_RETURN(Dir->Entry);
-}
-
-static void ml_dir_next(ml_state_t *Caller, ml_dir_t *Dir) {
-	struct dirent *Entry = readdir(Dir->Handle);
-	if (!Entry) {
-		closedir(Dir->Handle);
-		Dir->Handle = NULL;
-		ML_RETURN(MLNil);
-	}
-	++Dir->Index;
-	Dir->Entry = ml_string(GC_strdup(Entry->d_name), -1);
-	ML_RETURN(Dir);
-}
-
 extern ml_cfunction_t MLDirOpen[];
 
 ML_TYPE(MLDirT, (MLSequenceT), "directory",
-	.iterate = (void *)ml_dir_iterate,
-	.iter_next = (void *)ml_dir_next,
-	.iter_key = (void *)ml_dir_key,
-	.iter_value = (void *)ml_dir_value,
 	.Constructor = (ml_value_t *)MLDirOpen
 );
 
@@ -291,6 +255,38 @@ ML_METHOD("read", MLDirT) {
 	struct dirent *Entry = readdir(Dir->Handle);
 	if (!Entry) return MLNil;
 	return ml_string(GC_strdup(Entry->d_name), -1);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLDirT, ml_state_t *Caller, ml_dir_t *Dir) {
+	ML_RETURN(ml_integer(Dir->Index));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLDirT, ml_state_t *Caller, ml_dir_t *Dir) {
+	ML_RETURN(Dir->Entry);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLDirT, ml_state_t *Caller, ml_dir_t *Dir) {
+	struct dirent *Entry = readdir(Dir->Handle);
+	if (!Entry) {
+		closedir(Dir->Handle);
+		Dir->Handle = NULL;
+		ML_RETURN(MLNil);
+	}
+	++Dir->Index;
+	Dir->Entry = ml_string(GC_strdup(Entry->d_name), -1);
+	ML_RETURN(Dir);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLDirT, ml_state_t *Caller, ml_dir_t *Dir) {
+	struct dirent *Entry = readdir(Dir->Handle);
+	if (!Entry) {
+		closedir(Dir->Handle);
+		Dir->Handle = NULL;
+		ML_RETURN(MLNil);
+	}
+	Dir->Index = 1;
+	Dir->Entry = ml_string(GC_strdup(Entry->d_name), -1);
+	ML_RETURN(Dir);
 }
 
 void ml_file_init(stringmap_t *Globals) {

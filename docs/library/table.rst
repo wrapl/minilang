@@ -1,10 +1,6 @@
 table
 =====
 
-:mini:`type tablerow < sequence`
-   A row in a table.
-
-
 :mini:`type table < sequence`
    A table is a set of named arrays. The arrays must have the same length.
 
@@ -42,6 +38,10 @@ table
 
 :mini:`meth ::(Table: table, Name: string): array`
    Returns the column :mini:`Name` from :mini:`Table`.
+
+
+:mini:`type tablerow < sequence`
+   A row in a table.
 
 
 :mini:`meth (Table: table)[Row: integer]: tablerow`

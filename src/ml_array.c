@@ -803,9 +803,12 @@ typedef struct {
 	ml_array_iter_val_t ToVal;
 	int Degree;
 	ml_array_iter_dim_t Dimensions[];
-} ml_array_iter_t;
+} ml_array_iterator_t;
 
-static void ml_array_iter_next(ml_state_t *Caller, ml_array_iter_t *Iterator) {
+ML_TYPE(MLArrayIteratorT, (), "array-iterator");
+//!internal
+
+static void ML_TYPED_FN(ml_iter_next, MLArrayIteratorT, ml_state_t *Caller, ml_array_iterator_t *Iterator) {
 	int I = Iterator->Degree;
 	ml_array_iter_dim_t *Dimensions = Iterator->Dimensions;
 	for (;;) {
@@ -827,11 +830,11 @@ static void ml_array_iter_next(ml_state_t *Caller, ml_array_iter_t *Iterator) {
 	}
 }
 
-static void ml_array_iter_value(ml_state_t *Caller, ml_array_iter_t *Iterator) {
+static void ML_TYPED_FN(ml_iter_value, MLArrayIteratorT, ml_state_t *Caller, ml_array_iterator_t *Iterator) {
 	ML_RETURN(Iterator->ToVal(Iterator->Address));
 }
 
-static void ml_array_iter_key(ml_state_t *Caller, ml_array_iter_t *Iterator) {
+static void ML_TYPED_FN(ml_iter_key, MLArrayIteratorT, ml_state_t *Caller, ml_array_iterator_t *Iterator) {
 	ml_value_t *Tuple = ml_tuple(Iterator->Degree);
 	for (int I = 0; I < Iterator->Degree; ++I) {
 		ml_tuple_set(Tuple, I + 1, ml_integer(Iterator->Dimensions[I].Index + 1));
@@ -839,16 +842,9 @@ static void ml_array_iter_key(ml_state_t *Caller, ml_array_iter_t *Iterator) {
 	ML_RETURN(Tuple);
 }
 
-ML_TYPE(MLArrayIterT, (), "array-iterator",
-//!internal
-	.iter_next = (void *)ml_array_iter_next,
-	.iter_key = (void *)ml_array_iter_key,
-	.iter_value = (void *)ml_array_iter_value
-);
-
-static void ml_array_iterate(ml_state_t *Caller, ml_array_t *Array) {
-	ml_array_iter_t *Iterator = xnew(ml_array_iter_t, Array->Degree, ml_array_iter_dim_t);
-	Iterator->Type = MLArrayIterT;
+static void ML_TYPED_FN(ml_iterate, MLArrayT, ml_state_t *Caller, ml_array_t *Array) {
+	ml_array_iterator_t *Iterator = xnew(ml_array_iterator_t, Array->Degree, ml_array_iter_dim_t);
+	Iterator->Type = MLArrayIteratorT;
 	Iterator->Address = Array->Base.Value;
 	Iterator->Degree = Array->Degree;
 	switch (Array->Format) {
@@ -1531,7 +1527,6 @@ ML_TYPE(ATYPE, (MLArrayT), PREFIX "-array", \
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
 	.deref = (void *)ml_array_ ## CTYPE ## _deref, \
 	.assign = (void *)ml_array_ ## CTYPE ## _assign, \
-	.iterate = (void *)ml_array_iterate, \
 	.Constructor = (ml_value_t *)ATYPE ## New \
 );
 

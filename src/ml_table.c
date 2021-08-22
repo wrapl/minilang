@@ -14,141 +14,8 @@ struct ml_table_t {
 	int Size;
 };
 
-typedef struct {
-	ml_type_t *Type;
-	ml_table_t *Table;
-	ml_value_t *Index;
-} ml_table_iter_t;
-
-static void ml_table_iter_next(ml_state_t *Caller, ml_table_iter_t *Iter) {
-	int Index = ml_integer_value_fast(Iter->Index) + 1;
-	if (Index > Iter->Table->Size) ML_RETURN(MLNil);
-	Iter->Index = ml_integer(Index);
-	ML_RETURN(Iter);
-}
-
-static void ml_table_iter_key(ml_state_t *Caller, ml_table_iter_t *Iter) {
-	ML_RETURN(Iter->Index);
-}
-
-struct ml_table_row_t {
-	ml_type_t *Type;
-	ml_table_t *Table;
-	int Count;
-	ml_value_t *Indices[];
-};
-
-static ml_value_t *table_row_assign(ml_table_row_t *Row, ml_value_t *Value) {
-	ml_table_t *Table = Row->Table;
-	if (ml_is(Value, MLMapT)) {
-		ML_MAP_FOREACH(Value, Iter) {
-			if (!ml_is(Iter->Key, MLStringT)) return ml_error("TypeError", "Column names must be strings");
-			ml_value_t *Column = ml_map_search(Table->Columns, Iter->Key);
-			if (Column == MLNil) return ml_error("NameError", "Column %s not in table", ml_string_value(Iter->Key));
-			ml_value_t *Slot = ml_array_index((ml_array_t *)Column, Row->Count, Row->Indices);
-			ml_value_t *Result = ml_assign(Slot, Iter->Value);
-			if (ml_is_error(Result)) return Result;
-		}
-	} else if (ml_is(Value, MLListT)) {
-		ml_map_node_t *Node = ((ml_map_t *)Table->Columns)->Head;
-		ML_LIST_FOREACH(Value, Iter) {
-			if (!Node) return ml_error("ValueError", "Too many columns in assignment");
-			ml_value_t *Column = Node->Value;
-			ml_value_t *Slot = ml_array_index((ml_array_t *)Column, Row->Count, Row->Indices);
-			ml_value_t *Result = ml_assign(Slot, Iter->Value);
-			if (ml_is_error(Result)) return Result;
-			Node = Node->Next;
-		}
-	} else if (ml_is(Value, MLTupleT)) {
-		ml_map_node_t *Node = ((ml_map_t *)Table->Columns)->Head;
-		int Size = ml_tuple_size(Value);
-		for (int Index = 1; Index <= Size; ++Index) {
-			if (!Node) return ml_error("ValueError", "Too many columns in assignment");
-			ml_value_t *Column = Node->Value;
-			ml_value_t *Slot = ml_array_index((ml_array_t *)Column, Row->Count, Row->Indices);
-			ml_value_t *Result = ml_assign(Slot, ml_tuple_get(Value, Index));
-			if (ml_is_error(Result)) return Result;
-			Node = Node->Next;
-		}
-	} else {
-		return ml_error("TypeError", "Cannot assign %s to table row", ml_typeof(Value)->Name);
-	}
-	return Value;
-}
-
-typedef struct {
-	ml_type_t *Type;
-	ml_map_node_t *Node;
-	ml_table_row_t *Row;
-} ml_table_row_iter_t;
-
-static void table_row_iter_next(ml_state_t *Caller, ml_table_row_iter_t *Iter) {
-	ml_map_node_t *Node = Iter->Node->Next;
-	if (!Node) ML_RETURN(MLNil);
-	Iter->Node = Node;
-	ML_RETURN(Iter);
-}
-
-static void table_row_iter_key(ml_state_t *Caller, ml_table_row_iter_t *Iter) {
-	ML_RETURN(Iter->Node->Key);
-}
-
-static void table_row_iter_value(ml_state_t *Caller, ml_table_row_iter_t *Iter) {
-	ML_RETURN(ml_array_index((ml_array_t *)Iter->Node->Value, Iter->Row->Count, Iter->Row->Indices));
-}
-
-ML_TYPE(MLTableRowIterT, (), "table-row-iter",
-//!internal
-	.iter_next = (void *)table_row_iter_next,
-	.iter_key = (void *)table_row_iter_key,
-	.iter_value = (void *)table_row_iter_value
-);
-
-static void table_row_iterate(ml_state_t *Caller, ml_table_row_t *Row) {
-	ml_map_node_t *Node = ((ml_map_t *)Row->Table->Columns)->Head;
-	if (!Node) ML_RETURN(MLNil);
-	ml_table_row_iter_t *Iter = new(ml_table_row_iter_t);
-	Iter->Type = MLTableRowIterT;
-	Iter->Row = Row;
-	Iter->Node = Node;
-	ML_RETURN(Iter);
-}
-
-ML_TYPE(MLTableRowT, (MLSequenceT), "table-row",
-// A row in a table.
-	.assign = (void *)table_row_assign,
-	.iterate = (void *)table_row_iterate
-);
-
-static void ml_table_iter_value(ml_state_t *Caller, ml_table_iter_t *Iter) {
-	ml_table_row_t *Row = xnew(ml_table_row_t, 1, ml_value_t *);
-	Row->Type = MLTableRowT;
-	Row->Table = Iter->Table;
-	Row->Count = 1;
-	Row->Indices[0] = Iter->Index;
-	ML_RETURN(Row);
-}
-
-ML_TYPE(MLTableIterT, (), "table-row-iter",
-//!internal
-	.iter_next = (void *)ml_table_iter_next,
-	.iter_key = (void *)ml_table_iter_key,
-	.iter_value = (void *)ml_table_iter_value
-);
-
-static void ml_table_iterate(ml_state_t *Caller, ml_table_t *Table) {
-	if (!Table->Size) ML_RETURN(MLNil);
-	ml_table_iter_t *Iter = new(ml_table_iter_t);
-	Iter->Type = MLTableIterT;
-	Iter->Table = Table;
-	Iter->Index = ml_integer(1);
-	ML_RETURN(Iter);
-}
-
-ML_TYPE(MLTableT, (MLSequenceT), "table",
+ML_TYPE(MLTableT, (MLSequenceT), "table");
 // A table is a set of named arrays. The arrays must have the same length.
-	.iterate = (void *)ml_table_iterate
-);
 
 ml_value_t *ml_table() {
 	ml_table_t *Table = new(ml_table_t);
@@ -363,6 +230,95 @@ ML_METHODVX("::", MLTableT, MLStringT) {
 	return ml_call(Caller, IndexMethod, Count - 1, Args + 1);
 }
 
+struct ml_table_row_t {
+	ml_type_t *Type;
+	ml_table_t *Table;
+	int Count;
+	ml_value_t *Indices[];
+};
+
+static ml_value_t *table_row_assign(ml_table_row_t *Row, ml_value_t *Value) {
+	ml_table_t *Table = Row->Table;
+	if (ml_is(Value, MLMapT)) {
+		ML_MAP_FOREACH(Value, Iter) {
+			if (!ml_is(Iter->Key, MLStringT)) return ml_error("TypeError", "Column names must be strings");
+			ml_value_t *Column = ml_map_search(Table->Columns, Iter->Key);
+			if (Column == MLNil) return ml_error("NameError", "Column %s not in table", ml_string_value(Iter->Key));
+			ml_value_t *Slot = ml_array_index((ml_array_t *)Column, Row->Count, Row->Indices);
+			ml_value_t *Result = ml_assign(Slot, Iter->Value);
+			if (ml_is_error(Result)) return Result;
+		}
+	} else if (ml_is(Value, MLListT)) {
+		ml_map_node_t *Node = ((ml_map_t *)Table->Columns)->Head;
+		ML_LIST_FOREACH(Value, Iter) {
+			if (!Node) return ml_error("ValueError", "Too many columns in assignment");
+			ml_value_t *Column = Node->Value;
+			ml_value_t *Slot = ml_array_index((ml_array_t *)Column, Row->Count, Row->Indices);
+			ml_value_t *Result = ml_assign(Slot, Iter->Value);
+			if (ml_is_error(Result)) return Result;
+			Node = Node->Next;
+		}
+	} else if (ml_is(Value, MLTupleT)) {
+		ml_map_node_t *Node = ((ml_map_t *)Table->Columns)->Head;
+		int Size = ml_tuple_size(Value);
+		for (int Index = 1; Index <= Size; ++Index) {
+			if (!Node) return ml_error("ValueError", "Too many columns in assignment");
+			ml_value_t *Column = Node->Value;
+			ml_value_t *Slot = ml_array_index((ml_array_t *)Column, Row->Count, Row->Indices);
+			ml_value_t *Result = ml_assign(Slot, ml_tuple_get(Value, Index));
+			if (ml_is_error(Result)) return Result;
+			Node = Node->Next;
+		}
+	} else {
+		return ml_error("TypeError", "Cannot assign %s to table row", ml_typeof(Value)->Name);
+	}
+	return Value;
+}
+
+ML_TYPE(MLTableRowT, (MLSequenceT), "table-row",
+// A row in a table.
+	.assign = (void *)table_row_assign
+);
+
+typedef struct {
+	ml_type_t *Type;
+	ml_table_t *Table;
+	ml_value_t *Index;
+} ml_table_iter_t;
+
+ML_TYPE(MLTableIterT, (), "table-row-iter"
+//!internal
+);
+
+static void ML_TYPED_FN(ml_iterate, MLTableT, ml_state_t *Caller, ml_table_t *Table) {
+	if (!Table->Size) ML_RETURN(MLNil);
+	ml_table_iter_t *Iter = new(ml_table_iter_t);
+	Iter->Type = MLTableIterT;
+	Iter->Table = Table;
+	Iter->Index = ml_integer(1);
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLTableIterT, ml_state_t *Caller, ml_table_iter_t *Iter) {
+	int Index = ml_integer_value_fast(Iter->Index) + 1;
+	if (Index > Iter->Table->Size) ML_RETURN(MLNil);
+	Iter->Index = ml_integer(Index);
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLTableIterT, ml_state_t *Caller, ml_table_iter_t *Iter) {
+	ML_RETURN(Iter->Index);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLTableIterT, ml_state_t *Caller, ml_table_iter_t *Iter) {
+	ml_table_row_t *Row = xnew(ml_table_row_t, 1, ml_value_t *);
+	Row->Type = MLTableRowT;
+	Row->Table = Iter->Table;
+	Row->Count = 1;
+	Row->Indices[0] = Iter->Index;
+	ML_RETURN(Row);
+}
+
 ML_METHOD("[]", MLTableT, MLIntegerT) {
 //<Table
 //<Row
@@ -416,6 +372,41 @@ ML_METHOD(MLStringT, MLTableRowT) {
 	}
 	ml_stringbuffer_add(Buffer, ">", 1);
 	return ml_stringbuffer_value(Buffer);
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_map_node_t *Node;
+	ml_table_row_t *Row;
+} ml_table_row_iter_t;
+
+ML_TYPE(MLTableRowIterT, (), "table-row-iter"
+//!internal
+);
+
+static void ML_TYPED_FN(ml_iterate, MLTableRowT, ml_state_t *Caller, ml_table_row_t *Row) {
+	ml_map_node_t *Node = ((ml_map_t *)Row->Table->Columns)->Head;
+	if (!Node) ML_RETURN(MLNil);
+	ml_table_row_iter_t *Iter = new(ml_table_row_iter_t);
+	Iter->Type = MLTableRowIterT;
+	Iter->Row = Row;
+	Iter->Node = Node;
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLTableRowIterT, ml_state_t *Caller, ml_table_row_iter_t *Iter) {
+	ml_map_node_t *Node = Iter->Node->Next;
+	if (!Node) ML_RETURN(MLNil);
+	Iter->Node = Node;
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLTableRowIterT, ml_state_t *Caller, ml_table_row_iter_t *Iter) {
+	ML_RETURN(Iter->Node->Key);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLTableRowIterT, ml_state_t *Caller, ml_table_row_iter_t *Iter) {
+	ML_RETURN(ml_array_index((ml_array_t *)Iter->Node->Value, Iter->Row->Count, Iter->Row->Indices));
 }
 
 #ifdef ML_CBOR

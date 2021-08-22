@@ -114,37 +114,9 @@ static void DEBUG_FUNC(continuation_call)(ml_state_t *Caller, DEBUG_STRUCT(frame
 	return Frame->Base.run((ml_state_t *)Frame, Count ? Args[0] : MLNil);
 }
 
-static void DEBUG_FUNC(continuation_value)(ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
-	if (!Suspension->Suspend) ML_ERROR("StateError", "Function did not suspend");
-	ML_RETURN(Suspension->Top[-1]);
-}
-
-static void DEBUG_FUNC(continuation_key)(ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
-	if (!Suspension->Suspend) ML_ERROR("StateError", "Function did not suspend");
-	ML_RETURN(Suspension->Top[-2]);
-}
-
-static void DEBUG_FUNC(continuation_next)(ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
-	if (!Suspension->Suspend) ML_CONTINUE(Caller, MLNil);
-	//Suspension->Top[-2] = Suspension->Top[-1];
-	//--Suspension->Top;
-	Suspension->Base.Caller = Caller;
-	Suspension->Base.Context = Caller->Context;
-	ML_CONTINUE(Suspension, MLNil);
-}
-
-static void DEBUG_FUNC(continuation_iterate)(ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
-	if (!Suspension->Suspend) ML_ERROR("StateError", "Function did not suspend");
-	ML_RETURN(Suspension);
-}
-
 ML_TYPE(DEBUG_TYPE(Continuation), (MLStateT, MLSequenceT), "continuation",
 //!internal
-	.call = (void *)DEBUG_FUNC(continuation_call),
-	.iterate = (void *)DEBUG_FUNC(continuation_iterate),
-	.iter_next = (void *)DEBUG_FUNC(continuation_next),
-	.iter_key = (void *)DEBUG_FUNC(continuation_key),
-	.iter_value = (void *)DEBUG_FUNC(continuation_value)
+	.call = (void *)DEBUG_FUNC(continuation_call)
 );
 
 static int ML_TYPED_FN(ml_debugger_check, DEBUG_TYPE(Continuation), DEBUG_STRUCT(frame) *Frame) {
@@ -178,6 +150,30 @@ static ml_decl_t *ML_TYPED_FN(ml_debugger_decls, DEBUG_TYPE(Continuation), DEBUG
 static ml_value_t *ML_TYPED_FN(ml_debugger_local, DEBUG_TYPE(Continuation), DEBUG_STRUCT(frame) *Frame, int Index) {
 	if (Index < 0) return Frame->UpValues[~Index];
 	return Frame->Stack[Index];
+}
+
+static void ML_TYPED_FN(ml_iter_value, DEBUG_TYPE(Continuation), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+	if (!Suspension->Suspend) ML_ERROR("StateError", "Function did not suspend");
+	ML_RETURN(Suspension->Top[-1]);
+}
+
+static void ML_TYPED_FN(ml_iter_key, DEBUG_TYPE(Continuation), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+	if (!Suspension->Suspend) ML_ERROR("StateError", "Function did not suspend");
+	ML_RETURN(Suspension->Top[-2]);
+}
+
+static void ML_TYPED_FN(ml_iter_next, DEBUG_TYPE(Continuation), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+	if (!Suspension->Suspend) ML_CONTINUE(Caller, MLNil);
+	//Suspension->Top[-2] = Suspension->Top[-1];
+	//--Suspension->Top;
+	Suspension->Base.Caller = Caller;
+	Suspension->Base.Context = Caller->Context;
+	ML_CONTINUE(Suspension, MLNil);
+}
+
+static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller, DEBUG_STRUCT(frame) *Suspension) {
+	if (!Suspension->Suspend) ML_ERROR("StateError", "Function did not suspend");
+	ML_RETURN(Suspension);
 }
 
 #ifndef DEBUG_VERSION
@@ -1375,14 +1371,13 @@ static long ml_closure_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
-static void ml_closure_iterate(ml_state_t *Frame, ml_value_t *Closure) {
+static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Closure), ml_state_t *Frame, ml_value_t *Closure) {
 	return ml_closure_call(Frame, Closure, 0, NULL);
 }
 
 ML_TYPE(MLClosureT, (MLFunctionT, MLSequenceT), "closure",
 	.hash = ml_closure_hash,
-	.call = ml_closure_call,
-	.iterate = ml_closure_iterate
+	.call = ml_closure_call
 );
 
 ml_value_t *ml_closure(ml_closure_info_t *Info) {

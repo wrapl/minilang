@@ -201,30 +201,6 @@ ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value) {
 	return ml_error("TypeError", "<%s> is not assignable", ml_typeof(Ref)->Name);
 }
 
-void ml_default_iterate(ml_state_t *Caller, ml_value_t *Value) {
-	ml_value_t **Args = ml_alloc_args(1);
-	Args[0] = Value;
-	return ml_call(Caller, IterateMethod, 1, Args);
-}
-
-void ml_default_iter_next(ml_state_t *Caller, ml_value_t *Value) {
-	ml_value_t **Args = ml_alloc_args(1);
-	Args[0] = Value;
-	return ml_call(Caller, NextMethod, 1, Args);
-}
-
-void ml_default_iter_key(ml_state_t *Caller, ml_value_t *Value) {
-	ml_value_t **Args = ml_alloc_args(1);
-	Args[0] = Value;
-	return ml_call(Caller, KeyMethod, 1, Args);
-}
-
-void ml_default_iter_value(ml_state_t *Caller, ml_value_t *Value) {
-	ml_value_t **Args = ml_alloc_args(1);
-	Args[0] = Value;
-	return ml_call(Caller, ValueMethod, 1, Args);
-}
-
 void ml_type_init(ml_type_t *Type, ...) {
 	int Rank = 0;
 	va_list Args;
@@ -248,10 +224,6 @@ ml_type_t *ml_type(ml_type_t *Parent, const char *Name) {
 	Type->call = Parent->call;
 	Type->deref = Parent->deref;
 	Type->assign = Parent->assign;
-	Type->iterate = Parent->iterate;
-	Type->iter_next = Parent->iter_next;
-	Type->iter_key = Parent->iter_key;
-	Type->iter_value = Parent->iter_value;
 	return Type;
 }
 
@@ -317,10 +289,6 @@ ML_METHOD("|", MLTypeT, MLTypeT) {
 	Type->call = ml_default_call;
 	Type->deref = ml_default_deref;
 	Type->assign = ml_default_assign;
-	Type->iterate = ml_default_iterate;
-	Type->iter_next = ml_default_iter_next;
-	Type->iter_key = ml_default_iter_key;
-	Type->iter_value = ml_default_iter_value;
 	return (ml_value_t *)Type;
 }
 
@@ -394,10 +362,6 @@ ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
 	Type->Base.call = Base->call;
 	Type->Base.deref = Base->deref;
 	Type->Base.assign = Base->assign;
-	Type->Base.iterate = Base->iterate;
-	Type->Base.iter_next = Base->iter_next;
-	Type->Base.iter_key = Base->iter_key;
-	Type->Base.iter_value = Base->iter_value;
 	Type->Base.Rank = Base->Rank + 1;
 	Type->NumArgs = NumArgs;
 	for (int I = 0; I < NumArgs; ++I) Type->Args[I] = Args[I];
@@ -434,14 +398,8 @@ void ml_type_add_rule(ml_type_t *T, ml_type_t *U, ...) {
 
 // Values //
 
-static void ml_nil_iterate(ml_state_t *Caller, ml_value_t *Value) {
-	ML_RETURN(Value);
-}
-
-ML_TYPE(MLNilT, (MLFunctionT, MLSequenceT), "nil",
+ML_TYPE(MLNilT, (MLFunctionT, MLSequenceT), "nil");
 //!internal
-	.iterate = (void *)ml_nil_iterate
-);
 
 ML_TYPE(MLSomeT, (), "some");
 //!internal
@@ -661,6 +619,10 @@ ML_METHODVX("[]", MLTypeT, MLTypeT) {
 }
 #endif
 
+static void ML_TYPED_FN(ml_iterate, MLNilT, ml_state_t *Caller, ml_value_t *Value) {
+	ML_RETURN(Value);
+}
+
 ML_METHOD("in", MLAnyT, MLTypeT) {
 //<Value
 //<Type
@@ -843,6 +805,48 @@ void ml_value_set_name(ml_value_t *Value, const char *Name) {
 	if (function) function(Value, Name);
 }
 
+// Iterators //
+
+void ml_iterate(ml_state_t *Caller, ml_value_t *Value) {
+	typeof(ml_iterate) *function = ml_typed_fn_get(ml_typeof(Value), ml_iterate);
+	if (!function) {
+		ml_value_t **Args = ml_alloc_args(1);
+		Args[0] = Value;
+		return ml_call(Caller, IterateMethod, 1, Args);
+	}
+	return function(Caller, Value);
+}
+
+void ml_iter_value(ml_state_t *Caller, ml_value_t *Iter) {
+	typeof(ml_iter_value) *function = ml_typed_fn_get(ml_typeof(Iter), ml_iter_value);
+	if (!function) {
+		ml_value_t **Args = ml_alloc_args(1);
+		Args[0] = Iter;
+		return ml_call(Caller, ValueMethod, 1, Args);
+	}
+	return function(Caller, Iter);
+}
+
+void ml_iter_key(ml_state_t *Caller, ml_value_t *Iter) {
+	typeof(ml_iter_key) *function = ml_typed_fn_get(ml_typeof(Iter), ml_iter_key);
+	if (!function) {
+		ml_value_t **Args = ml_alloc_args(1);
+		Args[0] = Iter;
+		return ml_call(Caller, KeyMethod, 1, Args);
+	}
+	return function(Caller, Iter);
+}
+
+void ml_iter_next(ml_state_t *Caller, ml_value_t *Iter) {
+	typeof(ml_iter_next) *function = ml_typed_fn_get(ml_typeof(Iter), ml_iter_next);
+	if (!function) {
+		ml_value_t **Args = ml_alloc_args(1);
+		Args[0] = Iter;
+		return ml_call(Caller, NextMethod, 1, Args);
+	}
+	return function(Caller, Iter);
+}
+
 // Functions //
 
 ML_METHODX("!", MLFunctionT, MLTupleT) {
@@ -982,14 +986,9 @@ static void ml_cfunction_call(ml_state_t *Caller, ml_cfunction_t *Function, int 
 	ML_RETURN((Function->Callback)(Function->Data, Count, Args));
 }
 
-static void ml_cfunction_iterate(ml_state_t *Caller, ml_cfunction_t *Function) {
-	ML_RETURN((Function->Callback)(Function->Data, 0, NULL));
-}
-
 ML_TYPE(MLCFunctionT, (MLFunctionT), "c-function",
 //!internal
-	.call = (void *)ml_cfunction_call,
-	.iterate = (void *)ml_cfunction_iterate
+	.call = (void *)ml_cfunction_call
 );
 
 ml_value_t *ml_cfunction(void *Data, ml_callback_t Callback) {
@@ -998,6 +997,10 @@ ml_value_t *ml_cfunction(void *Data, ml_callback_t Callback) {
 	Function->Data = Data;
 	Function->Callback = Callback;
 	return (ml_value_t *)Function;
+}
+
+static void ML_TYPED_FN(ml_iterate, MLCFunctionT, ml_state_t *Caller, ml_cfunction_t *Function) {
+	ML_RETURN((Function->Callback)(Function->Data, 0, NULL));
 }
 
 static __attribute__ ((noinline)) void ml_cfunctionx_call_deref(ml_state_t *Caller, ml_cfunctionx_t *Function, int Count, ml_value_t **Args, int I) {
@@ -1080,15 +1083,9 @@ static void ml_partial_function_call(ml_state_t *Caller, ml_partial_function_t *
 	return ml_call(Caller, Partial->Function, CombinedCount, CombinedArgs);
 }
 
-static void ml_partial_function_iterate(ml_state_t *Caller, ml_partial_function_t *Partial) {
-	if (Partial->Set != Partial->Count) ML_ERROR("CallError", "Partial function used with missing arguments");
-	return ml_call(Caller, Partial->Function, Partial->Count, Partial->Args);
-}
-
 ML_TYPE(MLPartialFunctionT, (MLFunctionT, MLSequenceT), "partial-function",
 //!function
-	.call = (void *)ml_partial_function_call,
-	.iterate = (void *)ml_partial_function_iterate
+	.call = (void *)ml_partial_function_call
 );
 
 ml_value_t *ml_partial_function_new(ml_value_t *Function, int Count) {
@@ -1147,6 +1144,11 @@ ML_METHODV("$", MLFunctionT, MLAnyT) {
 	Partial->Count = Partial->Set = Count - 1;
 	for (int I = 1; I < Count; ++I) Partial->Args[I - 1] = Args[I];
 	return (ml_value_t *)Partial;
+}
+
+static void ML_TYPED_FN(ml_iterate, MLPartialFunctionT, ml_state_t *Caller, ml_partial_function_t *Partial) {
+	if (Partial->Set != Partial->Count) ML_ERROR("CallError", "Partial function used with missing arguments");
+	return ml_call(Caller, Partial->Function, Partial->Count, Partial->Args);
 }
 
 // Tuples //
@@ -2134,11 +2136,11 @@ typedef struct ml_integer_iter_t {
 	long Index;
 } ml_integer_iter_t;
 
-static void ml_integer_iter_value(ml_state_t *Caller, ml_integer_iter_t *Iter) {
+static void ML_TYPED_FN(ml_iter_value, MLIntegerIterT, ml_state_t *Caller, ml_integer_iter_t *Iter) {
 	ML_RETURN(ml_integer(Iter->Current));
 }
 
-static void ml_integer_iter_next(ml_state_t *Caller, ml_integer_iter_t *Iter) {
+static void ML_TYPED_FN(ml_iter_next, MLIntegerIterT, ml_state_t *Caller, ml_integer_iter_t *Iter) {
 	Iter->Current += Iter->Step;
 	if (Iter->Step > 0) {
 		if (Iter->Current > Iter->Limit) ML_RETURN(MLNil);
@@ -2149,23 +2151,19 @@ static void ml_integer_iter_next(ml_state_t *Caller, ml_integer_iter_t *Iter) {
 	ML_RETURN(Iter);
 }
 
-static void ml_integer_iter_key(ml_state_t *Caller, ml_integer_iter_t *Iter) {
+static void ML_TYPED_FN(ml_iter_key, MLIntegerIterT, ml_state_t *Caller, ml_integer_iter_t *Iter) {
 	ML_RETURN(ml_integer(Iter->Index));
 }
 
-ML_TYPE(MLIntegerIterT, (), "integer-iter",
+ML_TYPE(MLIntegerIterT, (), "integer-iter");
 //!range
-	.iter_next = (void *)ml_integer_iter_next,
-	.iter_key = (void *)ml_integer_iter_key,
-	.iter_value = (void *)ml_integer_iter_value
-);
 
 typedef struct ml_integer_range_t {
 	const ml_type_t *Type;
 	long Start, Limit, Step;
 } ml_integer_range_t;
 
-static void ml_integer_range_iterate(ml_state_t *Caller, ml_value_t *Value) {
+static void ML_TYPED_FN(ml_iterate, MLIntegerRangeT, ml_state_t *Caller, ml_value_t *Value) {
 	ml_integer_range_t *Range = (ml_integer_range_t *)Value;
 	if (Range->Step > 0 && Range->Start > Range->Limit) ML_RETURN(MLNil);
 	if (Range->Step < 0 && Range->Start < Range->Limit) ML_RETURN(MLNil);
@@ -2178,10 +2176,8 @@ static void ml_integer_range_iterate(ml_state_t *Caller, ml_value_t *Value) {
 	ML_RETURN(Iter);
 }
 
-ML_TYPE(MLIntegerRangeT, (MLSequenceT), "integer-range",
+ML_TYPE(MLIntegerRangeT, (MLSequenceT), "integer-range");
 //!range
-	.iterate = (void *)ml_integer_range_iterate
-);
 
 ML_METHOD(MLSequenceCount, MLIntegerRangeT) {
 //!internal
@@ -2288,27 +2284,23 @@ typedef struct ml_real_iter_t {
 	long Index, Remaining;
 } ml_real_iter_t;
 
-static void ml_real_range_iter_value(ml_state_t *Caller, ml_real_iter_t *Iter) {
+static void ML_TYPED_FN(ml_iter_value, MLRealIterT, ml_state_t *Caller, ml_real_iter_t *Iter) {
 	ML_RETURN(ml_real(Iter->Current));
 }
 
-static void ml_real_range_iter_next(ml_state_t *Caller, ml_real_iter_t *Iter) {
+static void ML_TYPED_FN(ml_iter_next, MLRealIterT, ml_state_t *Caller, ml_real_iter_t *Iter) {
 	Iter->Current += Iter->Step;
 	if (--Iter->Remaining <= 0) ML_RETURN(MLNil);
 	++Iter->Index;
 	ML_RETURN(Iter);
 }
 
-static void ml_real_range_iter_key(ml_state_t *Caller, ml_real_iter_t *Iter) {
+static void ML_TYPED_FN(ml_iter_key, MLRealIterT, ml_state_t *Caller, ml_real_iter_t *Iter) {
 	ML_RETURN(ml_integer(Iter->Index));
 }
 
-ML_TYPE(MLRealIterT, (), "real-iter",
+ML_TYPE(MLRealIterT, (), "real-iter");
 //!range
-	.iter_next = (void *)ml_real_range_iter_next,
-	.iter_key = (void *)ml_real_range_iter_key,
-	.iter_value = (void *)ml_real_range_iter_value
-);
 
 typedef struct ml_real_range_t {
 	const ml_type_t *Type;
@@ -2316,7 +2308,7 @@ typedef struct ml_real_range_t {
 	long Count;
 } ml_real_range_t;
 
-static void ml_real_range_iterate(ml_state_t *Caller, ml_value_t *Value) {
+static void ML_TYPED_FN(ml_iterate, MLRealRangeT, ml_state_t *Caller, ml_value_t *Value) {
 	ml_real_range_t *Range = (ml_real_range_t *)Value;
 	if (Range->Step > 0 && Range->Start > Range->Limit) ML_RETURN(MLNil);
 	if (Range->Step < 0 && Range->Start < Range->Limit) ML_RETURN(MLNil);
@@ -2330,10 +2322,8 @@ static void ml_real_range_iterate(ml_state_t *Caller, ml_value_t *Value) {
 	ML_RETURN(Iter);
 }
 
-ML_TYPE(MLRealRangeT, (MLSequenceT), "real-range",
+ML_TYPE(MLRealRangeT, (MLSequenceT), "real-range");
 //!range
-	.iterate = (void *)ml_real_range_iterate
-);
 
 ML_METHOD(MLSequenceCount, MLRealRangeT) {
 //!internal

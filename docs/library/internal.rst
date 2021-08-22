@@ -64,13 +64,13 @@ internal
 :mini:`fun mlrealswitch()`
    *TBD*
 
-:mini:`type tablerowiter`
-   *TBD*
-
 :mini:`type tableiter`
    *TBD*
 
-:mini:`type stringiter`
+:mini:`type tablerowiter`
+   *TBD*
+
+:mini:`type stringiterator`
    *TBD*
 
 :mini:`type stringswitch < function`
@@ -79,37 +79,34 @@ internal
 :mini:`fun mlstringswitch()`
    *TBD*
 
-:mini:`type chainedstate`
-   *TBD*
-
 :mini:`fun mlchained(Arg₁: any)`
    *TBD*
 
-:mini:`type doublediteratorstate < state`
+:mini:`type chainedstate`
    *TBD*
 
 :mini:`type doublediterator < sequence`
    *TBD*
 
-:mini:`type stackedstate`
+:mini:`type doublediteratorstate < state`
    *TBD*
 
 :mini:`type stacked < sequence`
    *TBD*
 
-:mini:`type repeatedstate`
+:mini:`type stackedstate`
    *TBD*
 
 :mini:`type repeated < sequence`
    *TBD*
 
-:mini:`type sequencedstate`
+:mini:`type repeatedstate`
    *TBD*
 
 :mini:`type sequenced < sequence`
    *TBD*
 
-:mini:`type limitedstate`
+:mini:`type sequencedstate`
    *TBD*
 
 :mini:`type limited < sequence`
@@ -118,49 +115,52 @@ internal
 :mini:`meth :count(Arg₁: limited)`
    *TBD*
 
-:mini:`type skipped < sequence`
+:mini:`type limitedstate`
    *TBD*
 
-:mini:`type bufferedstate`
+:mini:`type skipped < sequence`
    *TBD*
 
 :mini:`type buffered < sequence`
    *TBD*
 
-:mini:`type uniquestate`
+:mini:`type bufferedstate`
    *TBD*
 
 :mini:`type unique < sequence`
    *TBD*
 
-:mini:`type zippedstate`
+:mini:`type uniquestate`
    *TBD*
 
 :mini:`type zipped < sequence`
    *TBD*
 
-:mini:`type pairedstate`
+:mini:`type zippedstate`
    *TBD*
 
 :mini:`type paired < sequence`
    *TBD*
 
-:mini:`type weavedstate`
+:mini:`type pairedstate`
    *TBD*
 
 :mini:`type weaved < sequence`
    *TBD*
 
-:mini:`type swappedstate`
+:mini:`type weavedstate`
    *TBD*
 
 :mini:`type swapped < sequence`
    *TBD*
 
-:mini:`type keystate`
+:mini:`type swappedstate`
    *TBD*
 
 :mini:`type key < sequence`
+   *TBD*
+
+:mini:`type keystate`
    *TBD*
 
 :mini:`type field`
@@ -175,13 +175,13 @@ internal
 :mini:`type enumvalue < integer`
    *TBD*
 
-:mini:`type enumiter`
-   *TBD*
-
 :mini:`type enumswitch < function`
    *TBD*
 
 :mini:`meth MLCompilerSwitch(Arg₁: enum)`
+   *TBD*
+
+:mini:`type enumiter`
    *TBD*
 
 :mini:`type flagsvalue < int64`
@@ -223,7 +223,7 @@ internal
 :mini:`meth :jit(Arg₁: closure)`
    *TBD*
 
-:mini:`type arrayiter`
+:mini:`type arrayiterator`
    *TBD*
 
 :mini:`fun mltest(Arg₁: string, Arg₂: any)`

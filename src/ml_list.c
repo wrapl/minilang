@@ -51,29 +51,8 @@ static ml_list_node_t *ml_list_index(ml_list_t *List, int Index) {
 	return (List->CachedNode = Node);
 }
 
-static void ml_list_iterate(ml_state_t *Caller, ml_list_t *List) {
-	if (List->Length) {
-		if (!List->ValidIndices) {
-			int I = 0;
-			for (ml_list_node_t *Node = List->Head; Node; Node = Node->Next) {
-				Node->Index = ++I;
-			}
-			List->ValidIndices = 1;
-		}
-		ML_RETURN(List->Head);
-		/*ml_list_iterator_t *Iter = new(ml_list_iterator_t);
-		Iter->Type = MLListIterT;
-		Iter->Node = List->Head;
-		Iter->Index = 1;
-		ML_RETURN(Iter);*/
-	} else {
-		ML_RETURN(MLNil);
-	}
-}
-
 ML_TYPE(MLListT, (MLSequenceT), "list",
 // A list of elements.
-	.iterate = (void *)ml_list_iterate
 );
 
 static ml_value_t *ml_list_node_deref(ml_list_node_t *Node) {
@@ -88,29 +67,26 @@ static void ml_list_node_call(ml_state_t *Caller, ml_list_node_t *Node, int Coun
 	return ml_call(Caller, Node->Value, Count, Args);
 }
 
-static void ml_list_node_next(ml_state_t *Caller, ml_list_node_t *Node) {
-	ML_RETURN((ml_value_t *)Node->Next ?: MLNil);
-}
-
-static void ml_list_node_key(ml_state_t *Caller, ml_list_node_t *Node) {
-	ML_RETURN(ml_integer(Node->Index));
-}
-
-static void ml_list_node_value(ml_state_t *Caller, ml_list_node_t *Node) {
-	ML_RETURN(Node);
-}
-
 ML_TYPE(MLListNodeT, (), "list-node",
 // A node in a :mini:`list`.
 // Dereferencing a :mini:`listnode` returns the corresponding value from the :mini:`list`.
 // Assigning to a :mini:`listnode` updates the corresponding value in the :mini:`list`.
 	.deref = (void *)ml_list_node_deref,
 	.assign = (void *)ml_list_node_assign,
-	.call = (void *)ml_list_node_call,
-	.iter_next = (void *)ml_list_node_next,
-	.iter_key = (void *)ml_list_node_key,
-	.iter_value = (void *)ml_list_node_value
+	.call = (void *)ml_list_node_call
 );
+
+static void ML_TYPED_FN(ml_iter_next, MLListNodeT, ml_state_t *Caller, ml_list_node_t *Node) {
+	ML_RETURN((ml_value_t *)Node->Next ?: MLNil);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLListNodeT, ml_state_t *Caller, ml_list_node_t *Node) {
+	ML_RETURN(ml_integer(Node->Index));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLListNodeT, ml_state_t *Caller, ml_list_node_t *Node) {
+	ML_RETURN(Node);
+}
 
 ml_value_t *ml_list() {
 	ml_list_t *List = new(ml_list_t);
@@ -533,6 +509,26 @@ static void ML_TYPED_FN(ml_iter_key, MLListIterT, ml_state_t *Caller, ml_list_it
 ML_TYPE(MLListIterT, (), "list-iterator");
 //!internal
 */
+
+static void ML_TYPED_FN(ml_iterate, MLListT, ml_state_t *Caller, ml_list_t *List) {
+	if (List->Length) {
+		if (!List->ValidIndices) {
+			int I = 0;
+			for (ml_list_node_t *Node = List->Head; Node; Node = Node->Next) {
+				Node->Index = ++I;
+			}
+			List->ValidIndices = 1;
+		}
+		ML_RETURN(List->Head);
+		/*ml_list_iterator_t *Iter = new(ml_list_iterator_t);
+		Iter->Type = MLListIterT;
+		Iter->Node = List->Head;
+		Iter->Index = 1;
+		ML_RETURN(Iter);*/
+	} else {
+		ML_RETURN(MLNil);
+	}
+}
 
 ML_METHODV("push", MLListT) {
 //<List
