@@ -88,8 +88,48 @@ static long ml_string_hash(ml_string_t *String, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
+typedef struct {
+	ml_type_t *Type;
+	const char *Value;
+	int Index, Length;
+} ml_string_iter_t;
+
+static void ml_string_iter_next(ml_state_t *Caller, ml_string_iter_t *Iter) {
+	if (++Iter->Index > Iter->Length) ML_RETURN(MLNil);
+	++Iter->Value;
+	ML_RETURN(Iter);
+}
+
+static void ml_string_iter_value(ml_state_t *Caller, ml_string_iter_t *Iter) {
+	ML_RETURN(ml_string(Iter->Value, 1));
+}
+
+static void ml_string_iter_key(ml_state_t *Caller, ml_string_iter_t *Iter) {
+	ML_RETURN(ml_integer(Iter->Index));
+}
+
+
+ML_TYPE(MLStringIterT, (), "string-iterator",
+//!internal
+	.iter_next = (void *)ml_string_iter_next,
+	.iter_key = (void *)ml_string_iter_key,
+	.iter_value = (void *)ml_string_iter_value
+);
+
+static void ml_string_iterate(ml_state_t *Caller, ml_value_t *String) {
+	int Length = ml_string_length(String);
+	if (!Length) ML_RETURN(MLNil);
+	ml_string_iter_t *Iter = new(ml_string_iter_t);
+	Iter->Type = MLStringIterT;
+	Iter->Index = 1;
+	Iter->Length = Length;
+	Iter->Value = ml_string_value(String);
+	ML_RETURN(Iter);
+}
+
 ML_TYPE(MLStringT, (MLBufferT, MLSequenceT), "string",
-	.hash = (void *)ml_string_hash
+	.hash = (void *)ml_string_hash,
+	.iterate = (void *)ml_string_iterate
 );
 
 ML_METHOD(MLSequenceCount, MLStringT) {
@@ -444,40 +484,6 @@ ML_METHOD(MLNumberT, MLStringT) {
 	}
 #endif
 	return ml_error("ValueError", "Error parsing number");
-}
-
-typedef struct {
-	ml_type_t *Type;
-	const char *Value;
-	int Index, Length;
-} ml_string_iterator_t;
-
-ML_TYPE(MLStringIteratorT, (), "string-iterator");
-//!internal
-
-static void ML_TYPED_FN(ml_iter_next, MLStringIteratorT, ml_state_t *Caller, ml_string_iterator_t *Iter) {
-	if (++Iter->Index > Iter->Length) ML_RETURN(MLNil);
-	++Iter->Value;
-	ML_RETURN(Iter);
-}
-
-static void ML_TYPED_FN(ml_iter_value, MLStringIteratorT, ml_state_t *Caller, ml_string_iterator_t *Iter) {
-	ML_RETURN(ml_string(Iter->Value, 1));
-}
-
-static void ML_TYPED_FN(ml_iter_key, MLStringIteratorT, ml_state_t *Caller, ml_string_iterator_t *Iter) {
-	ML_RETURN(ml_integer(Iter->Index));
-}
-
-static void ML_TYPED_FN(ml_iterate, MLStringT, ml_state_t *Caller, ml_value_t *String) {
-	int Length = ml_string_length(String);
-	if (!Length) ML_RETURN(MLNil);
-	ml_string_iterator_t *Iter = new(ml_string_iterator_t);
-	Iter->Type = MLStringIteratorT;
-	Iter->Index = 1;
-	Iter->Length = Length;
-	Iter->Value = ml_string_value(String);
-	ML_RETURN(Iter);
 }
 
 typedef struct ml_regex_t ml_regex_t;

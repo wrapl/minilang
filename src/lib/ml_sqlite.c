@@ -115,20 +115,12 @@ static void ml_sqlite_stmt_call(ml_state_t *Caller, ml_sqlite_stmt_t *Stmt, int 
 	ML_RETURN(Stmt);
 }
 
-ML_TYPE(MLSqliteStmtT, (MLSequenceT), "sqlite-statement",
-	.call = (void *)ml_sqlite_stmt_call
-);
-
-static void ml_sqlite_stat_finalize(ml_sqlite_stmt_t *Stmt, void *Data) {
-	sqlite3_finalize(Stmt->Handle);
-}
-
-static void ML_TYPED_FN(ml_iterate, MLSqliteStmtT, ml_state_t *Caller, ml_sqlite_stmt_t *Stmt) {
+static void ml_sqlite_stmt_iterate(ml_state_t *Caller, ml_sqlite_stmt_t *Stmt) {
 	if (Stmt->Status == SQLITE_ROW) ML_RETURN(Stmt);
 	ML_RETURN(MLNil);
 }
 
-static void ML_TYPED_FN(ml_iter_next, MLSqliteStmtT, ml_state_t *Caller, ml_sqlite_stmt_t *Stmt) {
+static void ml_sqlite_stmt_next(ml_state_t *Caller, ml_sqlite_stmt_t *Stmt) {
 	Stmt->Status = sqlite3_step(Stmt->Handle);
 	if (Stmt->Status == SQLITE_ERROR) {
 		ML_ERROR("SqliteError", "Error executing statement: %s", sqlite3_errmsg(Stmt->Sqlite));
@@ -139,11 +131,11 @@ static void ML_TYPED_FN(ml_iter_next, MLSqliteStmtT, ml_state_t *Caller, ml_sqli
 	ML_RETURN(MLNil);
 }
 
-static void ML_TYPED_FN(ml_iter_key, MLSqliteStmtT, ml_state_t *Caller, ml_sqlite_stmt_t *Stmt) {
+static void ml_sqlite_stmt_key(ml_state_t *Caller, ml_sqlite_stmt_t *Stmt) {
 	ML_RETURN(ml_integer(Stmt->Index));
 }
 
-static void ML_TYPED_FN(ml_iter_value, MLSqliteStmtT, ml_state_t *Caller, ml_sqlite_stmt_t *Stmt) {
+static void ml_sqlite_stmt_value(ml_state_t *Caller, ml_sqlite_stmt_t *Stmt) {
 	int Count = sqlite3_column_count(Stmt->Handle);
 	ml_value_t *Tuple = ml_tuple(Count);
 	for (int I = 0; I < Count; ++I) {
@@ -176,6 +168,18 @@ static void ML_TYPED_FN(ml_iter_value, MLSqliteStmtT, ml_state_t *Caller, ml_sql
 		}
 	}
 	ML_RETURN(Tuple);
+}
+
+ML_TYPE(MLSqliteStmtT, (MLSequenceT), "sqlite-statement",
+	.call = (void *)ml_sqlite_stmt_call,
+	.iterate = (void *)ml_sqlite_stmt_iterate,
+	.iter_next = (void *)ml_sqlite_stmt_next,
+	.iter_key = (void *)ml_sqlite_stmt_key,
+	.iter_value = (void *)ml_sqlite_stmt_value
+);
+
+static void ml_sqlite_stat_finalize(ml_sqlite_stmt_t *Stmt, void *Data) {
+	sqlite3_finalize(Stmt->Handle);
 }
 
 ML_METHOD("statement", MLSqliteT, MLStringT) {

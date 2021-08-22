@@ -4,10 +4,15 @@
 #include <string.h>
 #include "ml_sequence.h"
 
+static void ml_map_iterate(ml_state_t *Caller, ml_map_t *Map) {
+	ML_RETURN((ml_value_t *)Map->Head ?: MLNil);
+}
+
 ML_TYPE(MLMapT, (MLSequenceT), "map",
 // A map of key-value pairs.
 // Keys can be of any type supporting hashing and comparison.
 // Insert order is preserved.
+	.iterate = (void *)ml_map_iterate
 );
 
 static ml_value_t *ml_map_node_deref(ml_map_node_t *Node) {
@@ -22,13 +27,28 @@ static void ml_map_node_call(ml_state_t *Caller, ml_map_node_t *Node, int Count,
 	return ml_call(Caller, Node->Value, Count, Args);
 }
 
+static void ml_map_node_next(ml_state_t *Caller, ml_map_node_t *Node) {
+	ML_RETURN((ml_value_t *)Node->Next ?: MLNil);
+}
+
+static void ml_map_node_key(ml_state_t *Caller, ml_map_node_t *Node) {
+	ML_RETURN(Node->Key);
+}
+
+static void ml_map_node_value(ml_state_t *Caller, ml_map_node_t *Node) {
+	ML_RETURN(Node);
+}
+
 ML_TYPE(MLMapNodeT, (), "map-node",
 // A node in a :mini:`map`.
 // Dereferencing a :mini:`mapnode` returns the corresponding value from the :mini:`map`.
 // Assigning to a :mini:`mapnode` updates the corresponding value in the :mini:`map`.
 	.deref = (void *)ml_map_node_deref,
 	.assign = (void *)ml_map_node_assign,
-	.call = (void *)ml_map_node_call
+	.call = (void *)ml_map_node_call,
+	.iter_next = (void *)ml_map_node_next,
+	.iter_key = (void *)ml_map_node_key,
+	.iter_value = (void *)ml_map_node_value
 );
 
 ml_value_t *ml_map() {
@@ -505,22 +525,6 @@ ML_METHOD("append", MLStringBufferT, MLMapT) {
 	}
 	ml_stringbuffer_add(Buffer, "}", 1);
 	return (ml_value_t *)Buffer;
-}
-
-static void ML_TYPED_FN(ml_iter_next, MLMapNodeT, ml_state_t *Caller, ml_map_node_t *Node) {
-	ML_RETURN((ml_value_t *)Node->Next ?: MLNil);
-}
-
-static void ML_TYPED_FN(ml_iter_key, MLMapNodeT, ml_state_t *Caller, ml_map_node_t *Node) {
-	ML_RETURN(Node->Key);
-}
-
-static void ML_TYPED_FN(ml_iter_value, MLMapNodeT, ml_state_t *Caller, ml_map_node_t *Node) {
-	ML_RETURN(Node);
-}
-
-static void ML_TYPED_FN(ml_iterate, MLMapT, ml_state_t *Caller, ml_map_t *Map) {
-	ML_RETURN((ml_value_t *)Map->Head ?: MLNil);
 }
 
 ML_METHOD("+", MLMapT, MLMapT) {

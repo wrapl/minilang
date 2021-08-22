@@ -4,6 +4,9 @@ queue
 :mini:`type queuenode`
    *TBD*
 
+:mini:`type queueiter`
+   *TBD*
+
 :mini:`type queue < sequence`
    A priority queue with values and associated scores.
 
@@ -33,8 +36,5 @@ queue
    *TBD*
 
 :mini:`meth :score(Arg₁: queuenode)`
-   *TBD*
-
-:mini:`type queueiter`
    *TBD*
 

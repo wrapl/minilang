@@ -23,8 +23,45 @@ struct ml_queue_t {
 	int Count, Size;
 };
 
-ML_TYPE(MLQueueT, (MLSequenceT), "queue");
+typedef struct {
+	ml_type_t *Type;
+	ml_queue_node_t **Nodes;
+	int Index, Count;
+} ml_queue_iter_t;
+
+static void ml_queue_iter_next(ml_state_t *Caller, ml_queue_iter_t *Iter) {
+	if (++Iter->Index == Iter->Count) ML_RETURN(MLNil);
+	ML_RETURN(Iter);
+}
+
+static void ml_queue_iter_key(ml_state_t *Caller, ml_queue_iter_t *Iter) {
+	ML_RETURN(ml_integer(Iter->Index + 1));
+}
+
+static void ml_queue_iter_value(ml_state_t *Caller, ml_queue_iter_t *Iter) {
+	ML_RETURN(Iter->Nodes[Iter->Index]);
+}
+
+ML_TYPE(MLQueueIterT, (), "queue-iter",
+	.iter_next = (void *)ml_queue_iter_next,
+	.iter_key = (void *)ml_queue_iter_key,
+	.iter_value = (void *)ml_queue_iter_value
+);
+
+static void ml_queue_iterate(ml_state_t *Caller, ml_queue_t *Queue) {
+	if (!Queue->Count) ML_RETURN(MLNil);
+	ml_queue_iter_t *Iter = new(ml_queue_iter_t);
+	Iter->Type = MLQueueIterT;
+	Iter->Nodes = Queue->Nodes;
+	Iter->Count = Queue->Count;
+	Iter->Index = 0;
+	ML_RETURN(Iter);
+}
+
+ML_TYPE(MLQueueT, (MLSequenceT), "queue",
 // A priority queue with values and associated scores.
+	.iterate = (void *)ml_queue_iterate
+);
 
 ML_METHOD(MLQueueT) {
 	ml_queue_t *Queue = new(ml_queue_t);
@@ -172,37 +209,6 @@ ml_value_t *ML_TYPED_FN(ml_unpack, MLQueueNodeT, ml_queue_node_t *Node, int Inde
 	if (Index == 1) return Node->Value;
 	if (Index == 2) return ml_real(Node->Score);
 	return MLNil;
-}
-
-typedef struct {
-	ml_type_t *Type;
-	ml_queue_node_t **Nodes;
-	int Index, Count;
-} ml_queue_iter_t;
-
-ML_TYPE(MLQueueIterT, (), "queue-iter");
-
-static void ML_TYPED_FN(ml_iterate, MLQueueT, ml_state_t *Caller, ml_queue_t *Queue) {
-	if (!Queue->Count) ML_RETURN(MLNil);
-	ml_queue_iter_t *Iter = new(ml_queue_iter_t);
-	Iter->Type = MLQueueIterT;
-	Iter->Nodes = Queue->Nodes;
-	Iter->Count = Queue->Count;
-	Iter->Index = 0;
-	ML_RETURN(Iter);
-}
-
-static void ML_TYPED_FN(ml_iter_next, MLQueueIterT, ml_state_t *Caller, ml_queue_iter_t *Iter) {
-	if (++Iter->Index == Iter->Count) ML_RETURN(MLNil);
-	ML_RETURN(Iter);
-}
-
-static void ML_TYPED_FN(ml_iter_key, MLQueueIterT, ml_state_t *Caller, ml_queue_iter_t *Iter) {
-	ML_RETURN(ml_integer(Iter->Index + 1));
-}
-
-static void ML_TYPED_FN(ml_iter_value, MLQueueIterT, ml_state_t *Caller, ml_queue_iter_t *Iter) {
-	ML_RETURN(Iter->Nodes[Iter->Index]);
 }
 
 void ml_queue_init(stringmap_t *Globals) {

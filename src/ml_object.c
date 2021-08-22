@@ -294,6 +294,10 @@ ML_FUNCTIONX(MLClass) {
 		Class->Base.call = ml_default_call;
 		Class->Base.deref = ml_default_deref;
 		Class->Base.assign = ml_default_assign;
+		Class->Base.iterate = ml_default_iterate;
+		Class->Base.iter_next = ml_default_iter_next;
+		Class->Base.iter_key = ml_default_iter_key;
+		Class->Base.iter_value = ml_default_iter_value;
 		Class->Base.Rank = Rank + 1;
 		Class->Native = NativeType;
 		ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_named_constructor_fn);
@@ -329,6 +333,10 @@ ML_FUNCTIONX(MLClass) {
 		Class->Base.call = ml_default_call;
 		Class->Base.deref = ml_default_deref;
 		Class->Base.assign = ml_default_assign;
+		Class->Base.iterate = ml_default_iterate;
+		Class->Base.iter_next = ml_default_iter_next;
+		Class->Base.iter_key = ml_default_iter_key;
+		Class->Base.iter_value = ml_default_iter_value;
 		Class->Base.Rank = Rank + 1;
 		ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_object_constructor_fn);
 		Class->Base.Constructor = Constructor;
@@ -461,6 +469,43 @@ ML_METHOD(MLStringT, MLEnumValueT) {
 	return Value->Name;
 }
 
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t **Values;
+	int Index, Size;
+} ml_enum_iter_t;
+
+static void ml_enum_iter_next(ml_state_t *Caller, ml_enum_iter_t *Iter) {
+	if (++Iter->Index == Iter->Size) ML_RETURN(MLNil);
+	ML_RETURN(Iter);
+}
+
+static void ml_enum_iter_key(ml_state_t *Caller, ml_enum_iter_t *Iter) {
+	ML_RETURN(ml_integer(Iter->Index + 1));
+}
+
+static void ml_enum_iter_value(ml_state_t *Caller, ml_enum_iter_t *Iter) {
+	ML_RETURN(Iter->Values[Iter->Index]);
+}
+
+ML_TYPE(MLEnumIterT, (), "enum-iter",
+//!internal
+	.iter_next = (void *)ml_enum_iter_next,
+	.iter_key = (void *)ml_enum_iter_key,
+	.iter_value = (void *)ml_enum_iter_value
+);
+
+static void ml_enum_iterate(ml_state_t *Caller, ml_enum_t *Enum) {
+	int Size = Enum->Base.Exports->Size;
+	if (!Size) ML_RETURN(MLNil);
+	ml_enum_iter_t *Iter = new(ml_enum_iter_t);
+	Iter->Type = MLEnumIterT;
+	Iter->Values = Enum->Values;
+	Iter->Index = 0;
+	Iter->Size = Size;
+	ML_RETURN(Iter);
+}
+
 ML_FUNCTION(MLEnum) {
 //@enum
 //<Values...:string
@@ -473,6 +518,7 @@ ML_FUNCTION(MLEnum) {
 	Enum->Base.assign = ml_default_assign;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
 	Enum->Base.call = ml_default_call;
+	Enum->Base.iterate = (void *)ml_enum_iterate;
 	Enum->Base.Rank = 1;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
 	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
@@ -500,6 +546,7 @@ ml_type_t *ml_enum(const char *TypeName, ...) {
 	Enum->Base.assign = ml_default_assign;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
 	Enum->Base.call = ml_default_call;
+	Enum->Base.iterate = (void *)ml_enum_iterate;
 	Enum->Base.Rank = 1;
 	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
 	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
@@ -614,39 +661,6 @@ ML_METHOD("count", MLEnumT) {
 //>integer
 	ml_enum_t *Enum = (ml_enum_t *)Args[0];
 	return ml_integer(Enum->Base.Exports->Size);
-}
-
-typedef struct {
-	ml_type_t *Type;
-	ml_value_t **Values;
-	int Index, Size;
-} ml_enum_iter_t;
-
-ML_TYPE(MLEnumIterT, (), "enum-iter");
-//!internal
-
-static void ML_TYPED_FN(ml_iterate, MLEnumT, ml_state_t *Caller, ml_enum_t *Enum) {
-	int Size = Enum->Base.Exports->Size;
-	if (!Size) ML_RETURN(MLNil);
-	ml_enum_iter_t *Iter = new(ml_enum_iter_t);
-	Iter->Type = MLEnumIterT;
-	Iter->Values = Enum->Values;
-	Iter->Index = 0;
-	Iter->Size = Size;
-	ML_RETURN(Iter);
-}
-
-static void ML_TYPED_FN(ml_iter_next, MLEnumIterT, ml_state_t *Caller, ml_enum_iter_t *Iter) {
-	if (++Iter->Index == Iter->Size) ML_RETURN(MLNil);
-	ML_RETURN(Iter);
-}
-
-static void ML_TYPED_FN(ml_iter_key, MLEnumIterT, ml_state_t *Caller, ml_enum_iter_t *Iter) {
-	ML_RETURN(ml_integer(Iter->Index + 1));
-}
-
-static void ML_TYPED_FN(ml_iter_value, MLEnumIterT, ml_state_t *Caller, ml_enum_iter_t *Iter) {
-	ML_RETURN(Iter->Values[Iter->Index]);
 }
 
 typedef struct {

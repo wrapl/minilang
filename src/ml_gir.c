@@ -12,10 +12,6 @@ typedef struct typelib_t {
 	const char *Namespace;
 } typelib_t;
 
-ML_TYPE(TypelibT, (MLSequenceT), "gir-typelib");
-//@gir-typelib
-// A gobject-introspection typelib.
-
 typedef struct typelib_iter_t {
 	ml_type_t *Type;
 	GITypelib *Handle;
@@ -23,17 +19,6 @@ typedef struct typelib_iter_t {
 	GIBaseInfo *Current;
 	int Index, Total;
 } typelib_iter_t;
-
-typedef struct {
-	ml_type_t *Type;
-	GIBaseInfo *Info;
-} baseinfo_t;
-
-ML_TYPE(BaseInfoT, (MLTypeT), "gir-base-info");
-
-static ml_value_t *baseinfo_to_value(GIBaseInfo *Info);
-static void _ml_to_value(ml_value_t *Source, GValue *Dest);
-static ml_value_t *_value_to_ml(const GValue *Value, GIBaseInfo *Info);
 
 static void typelib_iter_value(ml_state_t *Caller, typelib_iter_t *Iter) {
 	const char *Type = g_info_type_to_string(g_base_info_get_type(Iter->Current));
@@ -50,8 +35,40 @@ static void typelib_iter_key(ml_state_t *Caller, typelib_iter_t *Iter) {
 	ML_CONTINUE(Caller, ml_string(g_base_info_get_name(Iter->Current), -1));
 }
 
-ML_TYPE(TypelibIterT, (), "typelib-iter");
+ML_TYPE(TypelibIterT, (), "typelib-iter",
 //!internal
+	.iter_next = (void *)typelib_iter_next,
+	.iter_value = (void *)typelib_iter_value,
+	.iter_key = (void *)typelib_iter_key
+);
+
+static void typelib_iterate(ml_state_t *Caller, typelib_t *Typelib) {
+	typelib_iter_t *Iter = new(typelib_iter_t);
+	Iter->Type = TypelibIterT;
+	Iter->Namespace = Typelib->Namespace;
+	Iter->Handle = Typelib->Handle;
+	Iter->Index = 0;
+	Iter->Total = g_irepository_get_n_infos(NULL, Iter->Namespace);
+	Iter->Current = g_irepository_get_info(NULL, Iter->Namespace, 0);
+	ML_CONTINUE(Caller, Iter);
+}
+
+ML_TYPE(TypelibT, (MLSequenceT), "gir-typelib",
+//@gir-typelib
+// A gobject-introspection typelib.
+	.iterate = (void *)typelib_iterate
+);
+
+typedef struct {
+	ml_type_t *Type;
+	GIBaseInfo *Info;
+} baseinfo_t;
+
+ML_TYPE(BaseInfoT, (MLTypeT), "gir-base-info");
+
+static ml_value_t *baseinfo_to_value(GIBaseInfo *Info);
+static void _ml_to_value(ml_value_t *Source, GValue *Dest);
+static ml_value_t *_value_to_ml(const GValue *Value, GIBaseInfo *Info);
 
 ML_FUNCTION(MLGir) {
 //@gir
@@ -1800,17 +1817,6 @@ ML_METHOD("::", TypelibT, MLStringT) {
 	}
 }
 
-static void typelib_iterate(ml_state_t *Caller, typelib_t *Typelib) {
-	typelib_iter_t *Iter = new(typelib_iter_t);
-	Iter->Type = TypelibIterT;
-	Iter->Namespace = Typelib->Namespace;
-	Iter->Handle = Typelib->Handle;
-	Iter->Index = 0;
-	Iter->Total = g_irepository_get_n_infos(NULL, Iter->Namespace);
-	Iter->Current = g_irepository_get_info(NULL, Iter->Namespace, 0);
-	ML_CONTINUE(Caller, Iter);
-}
-
 static ml_value_t *_value_to_ml(const GValue *Value, GIBaseInfo *Info) {
 	switch (G_VALUE_TYPE(Value)) {
 	case G_TYPE_NONE: return MLNil;
@@ -2032,10 +2038,6 @@ void ml_gir_init(stringmap_t *Globals) {
 	g_irepository_require(NULL, "GObject", NULL, 0, &Error);
 	DestroyNotifyInfo = g_irepository_find_by_name(NULL, "GLib", "DestroyNotify");
 	GValueInfo = g_irepository_find_by_name(NULL, "GObject", "Value");
-	ml_typed_fn_set(TypelibT, ml_iterate, typelib_iterate);
-	ml_typed_fn_set(TypelibIterT, ml_iter_next, typelib_iter_next);
-	ml_typed_fn_set(TypelibIterT, ml_iter_value, typelib_iter_value);
-	ml_typed_fn_set(TypelibIterT, ml_iter_key, typelib_iter_key);
 	MLQuark = g_quark_from_static_string("<<minilang>>");
 	ObjectInstanceNil = new(object_instance_t);
 	ObjectInstanceNil->Type = (object_t *)ObjectInstanceT;
