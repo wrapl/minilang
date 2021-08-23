@@ -26,7 +26,7 @@ type
 :mini:`meth :parents(Type: type): list`
    *TBD*
 
-:mini:`meth |(Type₁: type, Type₂: type): type`
+:mini:`meth (Type₁: type) | (Type₂: type): type`
    Returns a union interface of :mini:`Type₁` and :mini:`Type₂`.
 
 
@@ -37,7 +37,7 @@ type
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: type)`
    *TBD*
 
-:mini:`meth ::(Type: type, Name: string): any | error`
+:mini:`meth (Type: type) :: (Name: string): any | error`
    Returns the value of :mini:`Name` exported from :mini:`Type`.
 
    Returns an error if :mini:`Name` is not present.
@@ -45,23 +45,23 @@ type
    This allows types to behave as modules.
 
 
-:mini:`meth *(Type₁: type, Type₂: type): type`
+:mini:`meth (Type₁: type) * (Type₂: type): type`
    Returns the closest common parent type of :mini:`Type₁` and :mini:`Type₂`.
 
 
-:mini:`meth <(Type₁: type, Type₂: type): type or nil`
+:mini:`meth (Type₁: type) < (Type₂: type): type or nil`
    Returns :mini:`Type₂` if :mini:`Type₂` is a strict parent of :mini:`Type₁`, otherwise returns :mini:`nil`.
 
 
-:mini:`meth <=(Type₁: type, Type₂: type): type or nil`
+:mini:`meth (Type₁: type) <= (Type₂: type): type or nil`
    Returns :mini:`Type₂` if :mini:`Type₂` is a parent of :mini:`Type₁`, otherwise returns :mini:`nil`.
 
 
-:mini:`meth >(Type₁: type, Type₂: type): type or nil`
+:mini:`meth (Type₁: type) > (Type₂: type): type or nil`
    Returns :mini:`Type₂` if :mini:`Type₂` is a strict sub-type of :mini:`Type₁`, otherwise returns :mini:`nil`.
 
 
-:mini:`meth >=(Type₁: type, Type₂: type): type or nil`
+:mini:`meth (Type₁: type) >= (Type₂: type): type or nil`
    Returns :mini:`Type₂` if :mini:`Type₂` is a sub-type of :mini:`Type₁`, otherwise returns :mini:`nil`.
 
 
@@ -76,7 +76,7 @@ type
 :mini:`meth :trace(Arg₁: any)`
    *TBD*
 
-:mini:`meth <>(Value₁: any, Value₂: any): integer`
+:mini:`meth (Value₁: any) <> (Value₂: any): integer`
    Compares :mini:`Value₁` and :mini:`Value₂` and returns :mini:`-1`, :mini:`0` or :mini:`1`.
 
    This comparison is based on the internal addresses of :mini:`Value₁` and :mini:`Value₂` and thus only has no persistent meaning.
@@ -86,31 +86,37 @@ type
    Returns a hash for :mini:`Value` for use in lookup tables, etc.
 
 
-:mini:`meth =(Value₁: any, Value₂: any): Value₂ | nil`
+:mini:`meth (Value₁: any) = (Value₂: any): Value₂ | nil`
    Returns :mini:`Value₂` if :mini:`Value₁` and :mini:`Value₂` are exactly the same instance and :mini:`nil` otherwise.
 
 
-:mini:`meth !=(Value₁: any, Value₂: any): Value₂ | nil`
+:mini:`meth (Value₁: any) != (Value₂: any): Value₂ | nil`
    Returns :mini:`Value₂` if :mini:`Value₁` and :mini:`Value₂` are not exactly the same instance and :mini:`nil` otherwise.
 
 
-:mini:`meth =(Arg₁: any, Arg₂: any, Arg₃: any)`
-   *TBD*
+:mini:`meth (Arg₁: any) = (Arg₂: any, Arg₃: any): any | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
 
-:mini:`meth !=(Arg₁: any, Arg₂: any, Arg₃: any)`
-   *TBD*
 
-:mini:`meth <(Arg₁: any, Arg₂: any, Arg₃: any)`
-   *TBD*
+:mini:`meth (Arg₁: any) != (Arg₂: any, Arg₃: any): any | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
 
-:mini:`meth <=(Arg₁: any, Arg₂: any, Arg₃: any)`
-   *TBD*
 
-:mini:`meth >(Arg₁: any, Arg₂: any, Arg₃: any)`
-   *TBD*
+:mini:`meth (Arg₁: any) < (Arg₂: any, Arg₃: any): any | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
 
-:mini:`meth >=(Arg₁: any, Arg₂: any, Arg₃: any)`
-   *TBD*
+
+:mini:`meth (Arg₁: any) <= (Arg₂: any, Arg₃: any): any | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth (Arg₁: any) > (Arg₂: any, Arg₃: any): any | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth (Arg₁: any) >= (Arg₂: any, Arg₃: any): any | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+
 
 :mini:`meth string(Value: any): string`
    Returns a general (type name only) representation of :mini:`Value` as a string.

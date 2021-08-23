@@ -16,10 +16,10 @@ internal
 :mini:`type blank`
    *TBD*
 
-:mini:`meth MLCompilerSwitch(Arg₁: function)`
+:mini:`meth :MLCompilerSwitch(Arg₁: function)`
    *TBD*
 
-:mini:`meth MLCompilerSwitch(Arg₁: type)`
+:mini:`meth :MLCompilerSwitch(Arg₁: type)`
    *TBD*
 
 :mini:`type typeswitch < function`
@@ -46,10 +46,10 @@ internal
 :mini:`type double < real`
    *TBD*
 
-:mini:`meth MLSequenceCount(Arg₁: integerrange)`
+:mini:`meth :MLSequenceCount(Arg₁: integerrange)`
    *TBD*
 
-:mini:`meth MLSequenceCount(Arg₁: realrange)`
+:mini:`meth :MLSequenceCount(Arg₁: realrange)`
    *TBD*
 
 :mini:`type integerswitch < function`
@@ -68,6 +68,9 @@ internal
    *TBD*
 
 :mini:`type tablerowiter`
+   *TBD*
+
+:mini:`meth :MLSequenceCount(Arg₁: string)`
    *TBD*
 
 :mini:`type stringiterator`
@@ -178,7 +181,7 @@ internal
 :mini:`type enumswitch < function`
    *TBD*
 
-:mini:`meth MLCompilerSwitch(Arg₁: enum)`
+:mini:`meth :MLCompilerSwitch(Arg₁: enum)`
    *TBD*
 
 :mini:`type enumiter`
@@ -193,16 +196,16 @@ internal
 :mini:`type flagsswitch < function`
    *TBD*
 
-:mini:`meth MLCompilerSwitch(Arg₁: flags)`
+:mini:`meth :MLCompilerSwitch(Arg₁: flags)`
    *TBD*
 
-:mini:`meth MLSequenceCount(Arg₁: map)`
+:mini:`meth :MLSequenceCount(Arg₁: map)`
    *TBD*
 
 :mini:`type mapindex`
    *TBD*
 
-:mini:`meth MLSequenceCount(Arg₁: list)`
+:mini:`meth :MLSequenceCount(Arg₁: list)`
    *TBD*
 
 :mini:`type listiter`

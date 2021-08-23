@@ -83,16 +83,16 @@ gir
 :mini:`meth integer(Value: EnumValueT): integer`
    *TBD*
 
-:mini:`meth |(Value₁: EnumValueT, Value₂: nil): EnumValueT`
+:mini:`meth (Value₁: EnumValueT) | (Value₂: nil): EnumValueT`
    *TBD*
 
-:mini:`meth |(Value₁: nil, Value₂: EnumValueT): EnumValueT`
+:mini:`meth (Value₁: nil) | (Value₂: EnumValueT): EnumValueT`
    *TBD*
 
-:mini:`meth |(Value₁: EnumValueT, Value₂: EnumValueT): EnumValueT`
+:mini:`meth (Value₁: EnumValueT) | (Value₂: EnumValueT): EnumValueT`
    *TBD*
 
-:mini:`meth ::(Typelib: TypelibT, Name: string): any | error`
+:mini:`meth (Typelib: TypelibT) :: (Name: string): any | error`
    *TBD*
 
 :mini:`meth :connect(Object: ObjectInstanceT, Signal: string, Handler: function): Object`
@@ -101,6 +101,6 @@ gir
 :mini:`type ObjectPropertyT`
    *TBD*
 
-:mini:`meth ::(Object: ObjectInstanceT, Property: string): any`
+:mini:`meth (Object: ObjectInstanceT) :: (Property: string): any`
    *TBD*
 

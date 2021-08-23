@@ -7,7 +7,7 @@ range
 :mini:`type integerrange < sequence`
    *TBD*
 
-:mini:`meth ..(Start: integer, Limit: integer): integerrange`
+:mini:`meth (Start: integer) .. (Limit: integer): integerrange`
    Returns a range from :mini:`Start` to :mini:`Limit` (inclusive).
 
 
@@ -34,7 +34,7 @@ range
 :mini:`type realrange < sequence`
    *TBD*
 
-:mini:`meth ..(Start: number, Limit: number): realrange`
+:mini:`meth (Start: number) .. (Limit: number): realrange`
    *TBD*
 
 :mini:`meth :by(Start: number, Step: number): realrange`

@@ -93,6 +93,7 @@ ML_TYPE(MLStringT, (MLBufferT, MLSequenceT), "string",
 );
 
 ML_METHOD(MLSequenceCount, MLStringT) {
+//!internal
 	return ml_integer(ml_string_length(Args[0]));
 }
 

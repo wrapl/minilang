@@ -43,7 +43,7 @@ map
    Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then :mini:`Default(Key)` is called and the result inserted into :mini:`Map`.
 
 
-:mini:`meth ::(Map: map, Key: string): mapnode`
+:mini:`meth (Map: map) :: (Key: string): mapnode`
    Same as :mini:`Map[Key]`. This method allows maps to be used as modules.
 
 
@@ -66,17 +66,17 @@ map
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: map)`
    *TBD*
 
-:mini:`meth +(Map₁: map, Map₂: map): map`
+:mini:`meth (Map₁: map) + (Map₂: map): map`
    Returns a new map combining the entries of :mini:`Map₁` and :mini:`Map₂`.
 
    If the same key is in both :mini:`Map₁` and :mini:`Map₂` then the corresponding value from :mini:`Map₂` is chosen.
 
 
-:mini:`meth *(Map₁: map, Map₂: map): map`
+:mini:`meth (Map₁: map) * (Map₂: map): map`
    Returns a new map containing the entries of :mini:`Map₁` which are also in :mini:`Map₂`. The values are chosen from :mini:`Map₁`.
 
 
-:mini:`meth /(Map₁: map, Map₂: map): map`
+:mini:`meth (Map₁: map) / (Map₂: map): map`
    Returns a new map containing the entries of :mini:`Map₁` which are not in :mini:`Map₂`.
 
 

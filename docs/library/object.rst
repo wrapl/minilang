@@ -43,21 +43,21 @@ object
 :mini:`type flags < type`
    *TBD*
 
-:mini:`meth +(Arg₁: flagsvalue, Arg₂: flagsvalue)`
+:mini:`meth (Arg₁: flagsvalue) + (Arg₂: flagsvalue)`
    *TBD*
 
-:mini:`meth -(Arg₁: flagsvalue, Arg₂: flagsvalue)`
+:mini:`meth (Arg₁: flagsvalue) - (Arg₂: flagsvalue)`
    *TBD*
 
-:mini:`meth <(Arg₁: flagsvalue, Arg₂: flagsvalue)`
+:mini:`meth (Arg₁: flagsvalue) < (Arg₂: flagsvalue)`
    *TBD*
 
-:mini:`meth <=(Arg₁: flagsvalue, Arg₂: flagsvalue)`
+:mini:`meth (Arg₁: flagsvalue) <= (Arg₂: flagsvalue)`
    *TBD*
 
-:mini:`meth >(Arg₁: flagsvalue, Arg₂: flagsvalue)`
+:mini:`meth (Arg₁: flagsvalue) > (Arg₂: flagsvalue)`
    *TBD*
 
-:mini:`meth >=(Arg₁: flagsvalue, Arg₂: flagsvalue)`
+:mini:`meth (Arg₁: flagsvalue) >= (Arg₂: flagsvalue)`
    *TBD*
 

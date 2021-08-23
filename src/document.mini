@@ -38,7 +38,7 @@ end
 
 fun is_symbol(Method) Method:lower = Method:upper
 
-fun write_method(Category, Kind, Method, Params, Return, Description, Location) do
+fun write_method(Category, Kind, Method0, Params, Return, Description, Location) do
 	:<print('[{Category}] {Kind}: {Method}\n')
 	print("Params:\n")
 	for Param in Params do print('\t{Param}\n') end
@@ -51,36 +51,33 @@ fun write_method(Category, Kind, Method, Params, Return, Description, Location) 
 	var Terminator := ""
 	var Skip := 1
 	Title:write(':mini:`meth ')
-	if Method = "\"[]\"" then
+	let Method := if let Match := Method0 % r"ML(\w+)T" then
+		Match[2]:lower
+	elseif Method0[1] = "\"" then
+		if is_symbol(Method0) or Method0:find("::") then
+			Method0[2, -1]
+		else
+			':{Method0[2, -1]}'
+		end
+	else
+		if is_symbol(Method0) or Method0:find("::") then
+			Method0
+		else
+			':{Method0}'
+		end
+	end
+	if Method = "[]" then
 		Title:write("(", Params[1][1], ": ", type_name(Params[1][2]), ")[")
 		Terminator := "]"
-	:<elseif Method[1] = "\"" then
-		if Params:length = 1 and is_symbol(Method) then
-			Title:write('{Method[2, -1]}(', Params[1][1], ": ", type_name(Params[1][2]), ")")
+	elseif is_symbol(Method) then
+		if Params:length = 1 then
+			Title:write('{Method}(', Params[1][1], ": ", type_name(Params[1][2]), ")")
 		else
-			Title:write("(", Params[1][1], ": ", type_name(Params[1][2]), ")")
-			if is_symbol(Method) then
-				Title:write(' {Method[2, -1]} ')
-			else
-				Title:write(':{Method[2, -1]}')
-				if Params:length > 1 then
-					Title:write("(")
-					Terminator := ")"
-				end
-			end
-		end>:
-	else
-		if let Match := Method % r"ML(\w+)T" then
-			Title:write('{Match[2]:lower}(')
-		elseif Method[1] = "\"" then
-			if is_symbol(Method) then
-				Title:write('{Method[2, -1]}(')
-			else
-				Title:write(':{Method[2, -1]}(')
-			end
-		else
-			Title:write('{Method}(')
+			Title:write('({Params[1][1]}: {type_name(Params[1][2])}) {Method} (')
+			Terminator := ")"
 		end
+	else
+		Title:write('{Method}(')
 		Skip := 0
 		Terminator := ")"
 	end

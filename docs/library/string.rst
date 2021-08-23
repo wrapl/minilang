@@ -4,9 +4,6 @@ string
 :mini:`type string < buffer, sequence`
    *TBD*
 
-:mini:`meth MLSequenceCount(Arg₁: string)`
-   *TBD*
-
 :mini:`meth string(Arg₁: nil)`
    *TBD*
 
@@ -29,30 +26,30 @@ string
 :mini:`type regex`
    *TBD*
 
-:mini:`meth <>(Arg₁: regex, Arg₂: regex)`
+:mini:`meth (Arg₁: regex) <> (Arg₂: regex)`
    *TBD*
 
-:mini:`meth =(Arg₁: regex, Arg₂: regex): regex | nil`
+:mini:`meth (Arg₁: regex) = (Arg₂: regex): regex | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ == Arg₂` and :mini:`nil` otherwise.
 
 
-:mini:`meth !=(Arg₁: regex, Arg₂: regex): regex | nil`
+:mini:`meth (Arg₁: regex) != (Arg₂: regex): regex | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ != Arg₂` and :mini:`nil` otherwise.
 
 
-:mini:`meth <(Arg₁: regex, Arg₂: regex): regex | nil`
+:mini:`meth (Arg₁: regex) < (Arg₂: regex): regex | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ < Arg₂` and :mini:`nil` otherwise.
 
 
-:mini:`meth >(Arg₁: regex, Arg₂: regex): regex | nil`
+:mini:`meth (Arg₁: regex) > (Arg₂: regex): regex | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ > Arg₂` and :mini:`nil` otherwise.
 
 
-:mini:`meth <=(Arg₁: regex, Arg₂: regex): regex | nil`
+:mini:`meth (Arg₁: regex) <= (Arg₂: regex): regex | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ <= Arg₂` and :mini:`nil` otherwise.
 
 
-:mini:`meth >=(Arg₁: regex, Arg₂: regex): regex | nil`
+:mini:`meth (Arg₁: regex) >= (Arg₂: regex): regex | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ >= Arg₂` and :mini:`nil` otherwise.
 
 
@@ -92,7 +89,7 @@ string
 :mini:`meth (Arg₁: string)[Arg₂: integer, Arg₃: integer]`
    *TBD*
 
-:mini:`meth +(Arg₁: string, Arg₂: string)`
+:mini:`meth (Arg₁: string) + (Arg₂: string)`
    *TBD*
 
 :mini:`meth :trim(Arg₁: string)`
@@ -119,58 +116,58 @@ string
 :mini:`meth :count(Arg₁: string)`
    *TBD*
 
-:mini:`meth <>(Arg₁: string, Arg₂: string)`
+:mini:`meth (Arg₁: string) <> (Arg₂: string)`
    *TBD*
 
-:mini:`meth =(Arg₁: string, Arg₂: string): string | nil`
+:mini:`meth (Arg₁: string) = (Arg₂: string): string | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ == Arg₂` and :mini:`nil` otherwise.
 
 
-:mini:`meth !=(Arg₁: string, Arg₂: string): string | nil`
+:mini:`meth (Arg₁: string) != (Arg₂: string): string | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ != Arg₂` and :mini:`nil` otherwise.
 
 
-:mini:`meth <(Arg₁: string, Arg₂: string): string | nil`
+:mini:`meth (Arg₁: string) < (Arg₂: string): string | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ < Arg₂` and :mini:`nil` otherwise.
 
 
-:mini:`meth >(Arg₁: string, Arg₂: string): string | nil`
+:mini:`meth (Arg₁: string) > (Arg₂: string): string | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ > Arg₂` and :mini:`nil` otherwise.
 
 
-:mini:`meth <=(Arg₁: string, Arg₂: string): string | nil`
+:mini:`meth (Arg₁: string) <= (Arg₂: string): string | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ <= Arg₂` and :mini:`nil` otherwise.
 
 
-:mini:`meth >=(Arg₁: string, Arg₂: string): string | nil`
+:mini:`meth (Arg₁: string) >= (Arg₂: string): string | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ >= Arg₂` and :mini:`nil` otherwise.
 
 
-:mini:`meth ~(Arg₁: string, Arg₂: string)`
+:mini:`meth (Arg₁: string) ~ (Arg₂: string)`
    *TBD*
 
-:mini:`meth ~>(Arg₁: string, Arg₂: string)`
+:mini:`meth (Arg₁: string) ~> (Arg₂: string)`
    *TBD*
 
-:mini:`meth /(Arg₁: string, Arg₂: string)`
+:mini:`meth (Arg₁: string) / (Arg₂: string)`
    *TBD*
 
-:mini:`meth /(Arg₁: string, Arg₂: regex)`
+:mini:`meth (Arg₁: string) / (Arg₂: regex)`
    *TBD*
 
-:mini:`meth /(Arg₁: string, Arg₂: regex, Arg₃: integer)`
+:mini:`meth (Arg₁: string) / (Arg₂: regex, Arg₃: integer)`
    *TBD*
 
-:mini:`meth /*(Arg₁: string, Arg₂: string)`
+:mini:`meth (Arg₁: string) /* (Arg₂: string)`
    *TBD*
 
-:mini:`meth /*(Arg₁: string, Arg₂: regex)`
+:mini:`meth (Arg₁: string) /* (Arg₂: regex)`
    *TBD*
 
-:mini:`meth */(Arg₁: string, Arg₂: string)`
+:mini:`meth (Arg₁: string) */ (Arg₂: string)`
    *TBD*
 
-:mini:`meth */(Arg₁: string, Arg₂: regex)`
+:mini:`meth (Arg₁: string) */ (Arg₂: regex)`
    *TBD*
 
 :mini:`meth :lower(Arg₁: string)`
@@ -203,10 +200,10 @@ string
 :mini:`meth :find2(Arg₁: string, Arg₂: regex, Arg₃: integer)`
    *TBD*
 
-:mini:`meth %(Arg₁: string, Arg₂: regex)`
+:mini:`meth (Arg₁: string) % (Arg₂: regex)`
    *TBD*
 
-:mini:`meth ?(Arg₁: string, Arg₂: regex)`
+:mini:`meth (Arg₁: string) ? (Arg₂: regex)`
    *TBD*
 
 :mini:`meth :starts(Arg₁: string, Arg₂: string)`

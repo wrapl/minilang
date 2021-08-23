@@ -804,6 +804,9 @@ static void ml_compare_state_run(ml_compare_state_t *State, ml_value_t *Result) 
 
 #define ml_comp_any_any_any(NAME) \
 ML_METHODVX(NAME, MLAnyT, MLAnyT, MLAnyT) { \
+/*>any|nil
+// Returns :mini:`Arg/2` if :mini:`Arg/1 SYMBOL Arg/2` and :mini:`nil` otherwise.
+*/\
 	ml_compare_state_t *State = xnew(ml_compare_state_t, Count - 1, ml_value_t *); \
 	State->Base.Caller = Caller; \
 	State->Base.Context = Caller->Context; \
@@ -1377,6 +1380,9 @@ ML_METHOD("<>", MLTupleT, MLTupleT) {
 
 #define ml_comp_tuple_tuple(NAME, NEG, ZERO, POS) \
 ML_METHOD(NAME, MLTupleT, MLTupleT) { \
+/*>tuple|nil
+// Returns :mini:`Arg/2` if :mini:`Arg/1 SYMBOL Arg/2` and :mini:`nil` otherwise.
+*/\
 	ml_value_t *Result = ml_tuple_compare((ml_tuple_t *)Args[0], (ml_tuple_t *)Args[1]); \
 	if (Result == (ml_value_t *)NegOne) return NEG; \
 	if (Result == (ml_value_t *)Zero) return ZERO; \
@@ -1475,6 +1481,9 @@ ML_METHOD("<>", MLBooleanT, MLBooleanT) {
 
 #define ml_comp_method_boolean_boolean(NAME, SYMBOL) \
 ML_METHOD(NAME, MLBooleanT, MLBooleanT) { \
+/*>boolean|nil
+// Returns :mini:`Arg/2` if :mini:`Arg/1 SYMBOL Arg/2` and :mini:`nil` otherwise.
+*/\
 	ml_boolean_t *BooleanA = (ml_boolean_t *)Args[0]; \
 	ml_boolean_t *BooleanB = (ml_boolean_t *)Args[1]; \
 	return BooleanA->Value SYMBOL BooleanB->Value ? Args[1] : MLNil; \

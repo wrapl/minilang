@@ -36,7 +36,7 @@ table
    Returns the column :mini:`Name` from :mini:`Table`.
 
 
-:mini:`meth ::(Table: table, Name: string): array`
+:mini:`meth (Table: table) :: (Name: string): array`
    Returns the column :mini:`Name` from :mini:`Table`.
 
 
@@ -52,7 +52,7 @@ table
    Returns the value from column :mini:`Name` in :mini:`Row`.
 
 
-:mini:`meth ::(Row: tablerow, Name: string): any`
+:mini:`meth (Row: tablerow) :: (Name: string): any`
    Returns the value from column :mini:`Name` in :mini:`Row`.
 
 

@@ -77,7 +77,7 @@ list
    Returns a (shallow) copy of :mini:`List`.
 
 
-:mini:`meth +(List₁: list, List₂: list): list`
+:mini:`meth (List₁: list) + (List₂: list): list`
    Returns a new list with the elements of :mini:`List₁` followed by the elements of :mini:`List₂`.
 
 

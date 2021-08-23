@@ -1,9 +1,9 @@
 json
 ====
 
-:mini:`fun jsondecode(Arg₁: string)`
+:mini:`fun json::decode(Arg₁: string)`
    *TBD*
 
-:mini:`fun jsonencode(Arg₁: any)`
+:mini:`fun json::encode(Arg₁: any)`
    *TBD*
 
