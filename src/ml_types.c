@@ -720,6 +720,35 @@ static ml_integer_t Zero[1] = {{MLIntegerT, 0}};
 
 #endif
 
+static ml_value_t *ml_trace(void *Ptr, inthash_t *Cache) {
+	void **Base = (void **)GC_base(Ptr);
+	if (Base) {
+		ml_value_t *Label = inthash_search(Cache, (uintptr_t)Base);
+		if (Label) return Label;
+		Label = ml_string_format("V%d", Cache->Size - Cache->Space);
+		inthash_insert(Cache, (uintptr_t)Base, Label);
+		ml_value_t *Trace = ml_list();
+		size_t Size = (GC_size(Base) + sizeof(void *) - 1) / sizeof(void *);
+		ml_list_put(Trace, Label);
+		ml_list_put(Trace, ml_integer(Size));
+		ml_value_t *Fields = ml_map();
+		ml_list_put(Trace, Fields);
+		for (int I = 0; I < Size; ++I) {
+			ml_value_t *Field = ml_trace(Base[I], Cache);
+			if (Field) ml_map_insert(Fields, ml_integer(I), Field);
+		}
+		return Trace;
+	} else {
+		return NULL;
+	}
+}
+
+ML_METHOD("trace", MLAnyT) {
+	ml_value_t *Value = Args[0];
+	inthash_t Cache[1] = {INTHASH_INIT};
+	return ml_trace(Value, Cache) ?: MLNil;
+}
+
 ML_METHOD("<>", MLAnyT, MLAnyT) {
 //<Value/1
 //<Value/2
@@ -2654,19 +2683,63 @@ ML_FUNCTION(MLRealSwitch) {
 }
 
 // Modules //
-
-ML_TYPE(MLModuleT, (), "module");
 //!module
+
+ML_FUNCTION(MLModule) {
+//@module
+//<Path:string
+//<Lookup:function
+//>module
+// Returns a generic module which calls resolves :mini:`Module::Import` by calling :mini:`Lookup(Module, Import)`, caching results for future use.
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ML_CHECK_ARG_TYPE(1, MLFunctionT);
+	ml_module_t *Module = new(ml_module_t);
+	Module->Type = MLModuleT;
+	Module->Path = ml_string_value(Args[0]);
+	Module->Lookup = Args[1];
+	return (ml_value_t *)Module;
+}
+
+ML_TYPE(MLModuleT, (), "module",
+	.Constructor = (ml_value_t *)MLModule
+);
+
+typedef struct {
+	ml_state_t Base;
+	ml_module_t *Module;
+	const char *Name;
+} ml_module_lookup_state_t;
+
+static void ml_module_lookup_run(ml_module_lookup_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (!ml_is_error(Value)) {
+		stringmap_insert(State->Module->Exports, State->Name, Value);
+	}
+	ML_RETURN(Value);
+}
 
 ML_METHODX("::", MLModuleT, MLStringT) {
-//!module
 //<Module
 //<Name
 //>MLAnyT
 // Imports a symbol from a module.
 	ml_module_t *Module = (ml_module_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
-	ml_value_t *Value = stringmap_search(Module->Exports, Name) ?: ml_error("ModuleError", "Symbol %s not exported from module %s", Name, Module->Path);
+	ml_value_t *Value = stringmap_search(Module->Exports, Name);
+	if (!Value) {
+		if (Module->Lookup) {
+			ml_module_lookup_state_t *State = new(ml_module_lookup_state_t);
+			State->Base.Caller = Caller;
+			State->Base.Context = Caller->Context;
+			State->Base.run = (ml_state_fn)ml_module_lookup_run;
+			State->Module = Module;
+			State->Name = Name;
+			return ml_call(State, Module->Lookup, 2, Args);
+		} else {
+			ML_ERROR("ModuleError", "Symbol %s not exported from module %s", Name, Module->Path);
+		}
+	}
 	ML_RETURN(Value);
 }
 
@@ -2700,7 +2773,6 @@ ml_value_t *ml_module_export(ml_value_t *Module0, const char *Name, ml_value_t *
 }
 
 ML_METHOD(MLStringT, MLModuleT) {
-//!module
 	ml_module_t *Module = (ml_module_t *)Args[0];
 	return ml_string_format("module(%s)", Module->Path);
 }
@@ -2708,6 +2780,11 @@ ML_METHOD(MLStringT, MLModuleT) {
 static int ml_module_exports_fn(const char *Name, void *Value, ml_value_t *Exports) {
 	ml_map_insert(Exports, ml_cstring(Name), Value);
 	return 0;
+}
+
+ML_METHOD("path", MLModuleT) {
+	ml_module_t *Module = (ml_module_t *)Args[0];
+	return ml_cstring(Module->Path);
 }
 
 ML_METHOD("exports", MLModuleT) {
@@ -2718,6 +2795,7 @@ ML_METHOD("exports", MLModuleT) {
 }
 
 // Init //
+//!general
 
 void ml_init() {
 #ifdef ML_JIT
@@ -2808,6 +2886,7 @@ void ml_types_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "list", MLListT);
 		stringmap_insert(Globals, "names", MLNamesT);
 		stringmap_insert(Globals, "map", MLMapT);
+		stringmap_insert(Globals, "module", MLModuleT);
 		stringmap_insert(Globals, "exchange", MLExchange);
 		stringmap_insert(Globals, "replace", MLReplace);
 	}

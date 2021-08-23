@@ -73,6 +73,9 @@ type
    Returns :mini:`Value` if it is an instance of :mini:`Type` or a type that inherits from :mini:`Type` and :mini:`nil` otherwise.
 
 
+:mini:`meth :trace(Arg₁: any)`
+   *TBD*
+
 :mini:`meth <>(Value₁: any, Value₂: any): integer`
    Compares :mini:`Value₁` and :mini:`Value₂` and returns :mini:`-1`, :mini:`0` or :mini:`1`.
 
@@ -112,13 +115,4 @@ type
 :mini:`meth string(Value: any): string`
    Returns a general (type name only) representation of :mini:`Value` as a string.
 
-
-:mini:`meth :exports(Arg₁: module)`
-   *TBD*
-
-:mini:`fun exchange(Arg₁: any)`
-   *TBD*
-
-:mini:`fun replace(Arg₁: any, Arg₂: any)`
-   *TBD*
 

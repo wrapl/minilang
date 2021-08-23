@@ -1,6 +1,12 @@
 general
 =======
 
+:mini:`fun exchange(Arg₁: any)`
+   *TBD*
+
+:mini:`fun replace(Arg₁: any, Arg₂: any)`
+   *TBD*
+
 :mini:`fun now()`
    *TBD*
 
