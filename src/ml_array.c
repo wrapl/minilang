@@ -10,19 +10,19 @@ static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args);
 
 ML_CFUNCTION(MLArray, NULL, ml_array_of_fn);
 
+/*
+ML_FUNCTION(MLArray);
+//@array
+//<List:list
+//>array
+// Returns a new array containing the values in :mini:`List`.
+// The shape and type of the array is determined from the elements in :mini:`List`.
+*/
+
 ML_TYPE(MLArrayT, (MLBufferT, MLSequenceT), "array",
 // Base type for multidimensional arrays.
 	.Constructor = (ml_value_t *)MLArray
 );
-
-/*
-
-ML_CONSTRUCTOR(array);
-//<List:list
-// Returns a new array containing the values in :mini:`List`.
-// The shape and type of the array is determined from the elements in :mini:`List`.
-
-*/
 
 extern ml_type_t MLArrayInt8T[];
 extern ml_type_t MLArrayUInt8T[];
@@ -43,54 +43,6 @@ extern ml_type_t MLArrayComplex64T[];
 #endif
 
 extern ml_type_t MLArrayAnyT[];
-
-/*
-
-ML_TYPE(MLArrayInt8T, (MLArrayT), "int8-array");
-//@array::int8
-// Arrays of signed 8 bit integers.
-
-ML_TYPE(MLArrayUInt8T, (MLArrayT), "uint8-array");
-//@array::uint8
-// Arrays of unsigned 8 bit integers.
-
-ML_TYPE(MLArrayInt16T, (MLArrayT), "int16-array");
-//@array::int16
-// Arrays of signed 16 bit integers.
-
-ML_TYPE(MLArrayUInt16T, (MLArrayT), "uint16-array");
-//@array::uint16
-// Arrays of unsigned 16 bit integers.
-
-ML_TYPE(MLArrayInt32T, (MLArrayT), "int32-array");
-//@array::int32
-// Arrays of signed 32 bit integers.
-
-ML_TYPE(MLArrayUInt32T, (MLArrayT), "uint32-array");
-//@array::uint32
-// Arrays of unsigned 32 bit integers.
-
-ML_TYPE(MLArrayInt64T, (MLArrayT), "int64-array");
-//@array::int64
-// Arrays of signed 64 bit integers.
-
-ML_TYPE(MLArrayUInt64T, (MLArrayT), "uint64-array");
-//@array::uint64
-// Arrays of unsigned 64 bit integers.
-
-ML_TYPE(MLArrayFloat32T, (MLArrayT), "float32-array");
-//@array::float32
-// Arrays of 32 bit reals.
-
-ML_TYPE(MLArrayFloat64T, (MLArrayT), "float64-array");
-//@array::float64
-// Arrays of 64 bit reals.
-
-ML_TYPE(MLArrayAnyT, (MLArrayT), "value-array");
-//@array::any
-// Arrays of any *Minilang* values.
-
-*/
 
 size_t MLArraySizes[] = {
 	[ML_ARRAY_FORMAT_NONE] = sizeof(ml_value_t *),
@@ -1091,7 +1043,7 @@ static ml_value_t *update_array_fn(void *Data, int Count, ml_value_t **Args) {
 
 #define UPDATE_METHOD(NAME, BASE, ATYPE, CTYPE, FROM_VAL, FORMAT) \
 \
-ML_METHOD(#NAME, ATYPE, MLNumberT) { \
+ ML_METHOD(#NAME, ATYPE, MLNumberT) { \
 	ml_array_t *Array = (ml_array_t *)Args[0]; \
 	CTYPE Value = FROM_VAL(Args[1]); \
 	ml_array_dimension_t ValueDimension[1] = {{1, 0, NULL}}; \
@@ -1357,7 +1309,7 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 	ml_stringbuffer_add(Buffer, ">", 1); \
 } \
 \
-ML_METHOD(MLStringT, ATYPE) { \
+ ML_METHOD(MLStringT, ATYPE) { \
 	ml_array_t *Array = (ml_array_t *)Args[0]; \
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT}; \
 	if (Array->Degree == 0) { \
@@ -1368,7 +1320,7 @@ ML_METHOD(MLStringT, ATYPE) { \
 	return ml_stringbuffer_value(Buffer); \
 } \
 \
-ML_METHOD("append", MLStringBufferT, ATYPE) { \
+ ML_METHOD("append", MLStringBufferT, ATYPE) { \
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0]; \
 	ml_array_t *Array = (ml_array_t *)Args[1]; \
 	if (Array->Degree == 0) { \
@@ -1523,7 +1475,10 @@ static ml_value_t *ml_array_ ## CTYPE ## _assign(ml_array_t *Target, ml_value_t 
 \
 ML_CFUNCTIONX(ATYPE ## New, (void *)FORMAT, ml_array_typed_new_fnx); \
 \
-ML_TYPE(ATYPE, (MLArrayT), PREFIX "-array", \
+ML_TYPE(ATYPE, (MLArrayT), #PREFIX "-array", \
+/*@array::PREFIX
+// An array of PREFIX values.
+*/\
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
 	.deref = (void *)ml_array_ ## CTYPE ## _deref, \
 	.assign = (void *)ml_array_ ## CTYPE ## _assign, \
@@ -1534,25 +1489,25 @@ typedef ml_value_t *value;
 
 #define NOP_VAL(T, X) X
 
-ARRAY_DECL("int8", MLArrayInt8T, int8_t, ml_stringbuffer_addf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I8, (long));
-ARRAY_DECL("uint8", MLArrayUInt8T, uint8_t, ml_stringbuffer_addf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U8, (long));
-ARRAY_DECL("int16", MLArrayInt16T, int16_t, ml_stringbuffer_addf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I16, (long));
-ARRAY_DECL("uint16", MLArrayUInt16T, uint16_t, ml_stringbuffer_addf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U16, (long));
-ARRAY_DECL("int32", MLArrayInt32T, int32_t, ml_stringbuffer_addf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I32, (long));
-ARRAY_DECL("uint32", MLArrayUInt32T, uint32_t, ml_stringbuffer_addf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U32, (long));
-ARRAY_DECL("int64", MLArrayInt64T, int64_t, ml_stringbuffer_addf, "%ld", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I64, (long));
-ARRAY_DECL("uint64", MLArrayUInt64T, uint64_t, ml_stringbuffer_addf, "%lud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U64, (long));
-ARRAY_DECL("float32", MLArrayFloat32T, float, ml_stringbuffer_addf, "%g", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F32, (long));
-ARRAY_DECL("float64", MLArrayFloat64T, double, ml_stringbuffer_addf, "%g", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F64, (long));
+ARRAY_DECL(int8, MLArrayInt8T, int8_t, ml_stringbuffer_addf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I8, (long));
+ARRAY_DECL(uint8, MLArrayUInt8T, uint8_t, ml_stringbuffer_addf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U8, (long));
+ARRAY_DECL(int16, MLArrayInt16T, int16_t, ml_stringbuffer_addf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I16, (long));
+ARRAY_DECL(uint16, MLArrayUInt16T, uint16_t, ml_stringbuffer_addf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U16, (long));
+ARRAY_DECL(int32, MLArrayInt32T, int32_t, ml_stringbuffer_addf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I32, (long));
+ARRAY_DECL(uint32, MLArrayUInt32T, uint32_t, ml_stringbuffer_addf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U32, (long));
+ARRAY_DECL(int64, MLArrayInt64T, int64_t, ml_stringbuffer_addf, "%ld", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I64, (long));
+ARRAY_DECL(uint64, MLArrayUInt64T, uint64_t, ml_stringbuffer_addf, "%lud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U64, (long));
+ARRAY_DECL(float32, MLArrayFloat32T, float, ml_stringbuffer_addf, "%g", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F32, (long));
+ARRAY_DECL(float64, MLArrayFloat64T, double, ml_stringbuffer_addf, "%g", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F64, (long));
 
 #ifdef ML_COMPLEX
 
-ARRAY_DECL("complex32", MLArrayComplex32T, complex_float, COMPLEX_APPEND, "%g + %gi", ml_complex_value, ml_complex, , NOP_VAL, ML_ARRAY_FORMAT_C32, (long));
-ARRAY_DECL("complex64", MLArrayComplex64T, complex_double, COMPLEX_APPEND, "%g + %gi", ml_complex_value, ml_complex, , NOP_VAL, ML_ARRAY_FORMAT_C64, (long));
+ARRAY_DECL(complex32, MLArrayComplex32T, complex_float, COMPLEX_APPEND, "%g + %gi", ml_complex_value, ml_complex, , NOP_VAL, ML_ARRAY_FORMAT_C32, (long));
+ARRAY_DECL(complex64, MLArrayComplex64T, complex_double, COMPLEX_APPEND, "%g + %gi", ml_complex_value, ml_complex, , NOP_VAL, ML_ARRAY_FORMAT_C64, (long));
 
 #endif
 
-ARRAY_DECL("value", MLArrayAnyT, value, BUFFER_APPEND, "?", ml_nop, ml_nop, ml_number, ml_number_value, ML_ARRAY_FORMAT_ANY, ml_hash);
+ARRAY_DECL(value, MLArrayAnyT, value, BUFFER_APPEND, "?", ml_nop, ml_nop, ml_number, ml_number_value, ML_ARRAY_FORMAT_ANY, ml_hash);
 
 #define PARTIAL_FUNCTIONS(CTYPE) \
 \

@@ -451,7 +451,7 @@ ML_FUNCTION(MLRaise) {
 //<Type
 //<Value
 //>error
-// Creates an exception with type :mini:`Type` and value :mini:`Value`. Since this creates an exception, it will trigger the current exception handler.
+// Creates a general exception with type :mini:`Type` and value :mini:`Value`. Since this creates an exception, it will trigger the current exception handler.
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ml_error_t *Error = new(ml_error_t);
@@ -465,12 +465,14 @@ ML_FUNCTION(MLRaise) {
 
 ML_TYPE(MLErrorT, (), "error",
 //!error
+// An error. Values of this type are not accessible from Minilang code since they are caught by the runtime. Each error contains an *error value* which contains the details of the error.
 	.assign = ml_error_assign,
 	.call = ml_error_call
 );
 
 ML_TYPE(MLErrorValueT, (), "error",
-//!internal
+//!error
+// An error value. Error values contain the details of an error but are not themselves errors (since errors are caught by the runtime).
 	.Constructor = (ml_value_t *)MLError
 );
 
@@ -557,16 +559,25 @@ int ml_error_value_source(const ml_value_t *Value, int Level, ml_source_t *Sourc
 
 ML_METHOD("type", MLErrorValueT) {
 //!error
+//<Error
+//>string
+// Returns the type of :mini:`Error`.
 	return ml_string(((ml_error_value_t *)Args[0])->Error, -1);
 }
 
 ML_METHOD("message", MLErrorValueT) {
 //!error
+//<Error
+//>string
+// Returns the message of :mini:`Error`.
 	return ml_string(((ml_error_value_t *)Args[0])->Message, -1);
 }
 
 ML_METHOD("trace", MLErrorValueT) {
 //!error
+//<Error
+//>list
+// Returns the stack trace of :mini:`Error` as a list of tuples.
 	ml_error_value_t *Value = (ml_error_value_t *)Args[0];
 	ml_value_t *Trace = ml_list();
 	ml_source_t *Source = Value->Trace;
@@ -577,6 +588,22 @@ ML_METHOD("trace", MLErrorValueT) {
 		ml_list_put(Trace, Tuple);
 	}
 	return Trace;
+}
+
+ML_METHOD("raise", MLErrorValueT) {
+//!error
+//<Error
+//>error
+// Returns :mini:`Error` as an error (i.e. rethrows the error).
+	ml_error_t *Error = xnew(ml_error_t, 1, ml_error_value_t);
+	Error->Type = MLErrorT;
+	Error->Error->Type = MLErrorValueT;
+	Error->Error->Error = ml_error_value_type(Args[0]);
+	Error->Error->Message = ml_error_value_message(Args[0]);
+	int Level = 0;
+	while (ml_error_value_source(Args[0], Level, Error->Error->Trace + Level)) ++Level;
+	Error->Value = (ml_value_t *)Error->Error;
+	return (ml_value_t *)Error;
 }
 
 ML_METHOD("append", MLStringBufferT, MLErrorValueT) {

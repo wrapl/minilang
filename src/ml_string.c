@@ -93,6 +93,7 @@ ML_TYPE(MLStringT, (MLBufferT, MLSequenceT), "string",
 );
 
 ML_METHOD(MLSequenceCount, MLStringT) {
+//!internal
 	return ml_integer(ml_string_length(Args[0]));
 }
 
@@ -583,12 +584,15 @@ ML_METHOD("<>", MLRegexT, MLRegexT) {
 }
 
 #define ml_comp_method_regex_regex(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLRegexT, MLRegexT) { \
-		const char *PatternA = ml_regex_pattern(Args[0]); \
-		const char *PatternB = ml_regex_pattern(Args[1]); \
-		int Compare = strcmp(PatternA, PatternB); \
-		return Compare SYMBOL 0 ? Args[1] : MLNil; \
-	}
+ML_METHOD(NAME, MLRegexT, MLRegexT) { \
+/*>regex|nil
+// Returns :mini:`Arg/2` if :mini:`Arg/1 SYMBOL Arg/2` and :mini:`nil` otherwise.
+*/\
+	const char *PatternA = ml_regex_pattern(Args[0]); \
+	const char *PatternB = ml_regex_pattern(Args[1]); \
+	int Compare = strcmp(PatternA, PatternB); \
+	return Compare SYMBOL 0 ? Args[1] : MLNil; \
+}
 
 ml_comp_method_regex_regex("=", ==)
 ml_comp_method_regex_regex("!=", !=)
@@ -975,21 +979,24 @@ ML_METHOD("<>", MLStringT, MLStringT) {
 }
 
 #define ml_comp_method_string_string(NAME, SYMBOL) \
-	ML_METHOD(NAME, MLStringT, MLStringT) { \
-		const char *StringA = ml_string_value(Args[0]); \
-		const char *StringB = ml_string_value(Args[1]); \
-		int LengthA = ml_string_length(Args[0]); \
-		int LengthB = ml_string_length(Args[1]); \
-		int Compare; \
-		if (LengthA < LengthB) { \
-			Compare = memcmp(StringA, StringB, LengthA) ?: -1; \
-		} else if (LengthA > LengthB) { \
-			Compare = memcmp(StringA, StringB, LengthB) ?: 1; \
-		} else { \
-			Compare = memcmp(StringA, StringB, LengthA); \
-		} \
-		return Compare SYMBOL 0 ? Args[1] : MLNil; \
-	}
+ML_METHOD(NAME, MLStringT, MLStringT) { \
+/*>string|nil
+// Returns :mini:`Arg/2` if :mini:`Arg/1 SYMBOL Arg/2` and :mini:`nil` otherwise.
+*/\
+	const char *StringA = ml_string_value(Args[0]); \
+	const char *StringB = ml_string_value(Args[1]); \
+	int LengthA = ml_string_length(Args[0]); \
+	int LengthB = ml_string_length(Args[1]); \
+	int Compare; \
+	if (LengthA < LengthB) { \
+		Compare = memcmp(StringA, StringB, LengthA) ?: -1; \
+	} else if (LengthA > LengthB) { \
+		Compare = memcmp(StringA, StringB, LengthB) ?: 1; \
+	} else { \
+		Compare = memcmp(StringA, StringB, LengthA); \
+	} \
+	return Compare SYMBOL 0 ? Args[1] : MLNil; \
+}
 
 ml_comp_method_string_string("=", ==)
 ml_comp_method_string_string("!=", !=)

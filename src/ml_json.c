@@ -135,6 +135,7 @@ static void ml_free(void *Ctx, void *Ptr) {
 static yajl_alloc_funcs AllocFuncs = {ml_alloc, ml_realloc, ml_free, NULL};
 
 ML_FUNCTION(JsonDecode) {
+//@json::decode
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ml_json_decoder_t Decoder = {0,};
@@ -185,6 +186,7 @@ static ml_value_t *ml_json_encode(yajl_gen Handle, ml_value_t *Value) {
 }
 
 ML_FUNCTION(JsonEncode) {
+//@json::encode
 	ML_CHECK_ARG_COUNT(1);
 	yajl_gen Handle = yajl_gen_alloc(&AllocFuncs);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};

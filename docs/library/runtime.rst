@@ -25,7 +25,7 @@ runtime
 :mini:`type uninitialized`
    *TBD*
 
-:mini:`meth ::(Arg₁: uninitialized, Arg₂: string)`
+:mini:`meth (Arg₁: uninitialized) :: (Arg₂: string)`
    *TBD*
 
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: errorvalue)`

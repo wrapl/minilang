@@ -2,6 +2,8 @@ PLATFORM := defined("PLATFORM") or shell("uname"):trim
 MACHINE := defined("MACHINE") or shell("uname -m"):trim
 DEBUG := defined("DEBUG")
 
+CC := defined("CC") or "cc"
+AS := defined("AS") or CC
 CFLAGS := ["-pipe"]
 LDFLAGS := []
 PREBUILDS := []
@@ -11,11 +13,11 @@ pkgconfig := fun(Args) do
 end
 
 c_compile := fun(Source, Object) do
-	execute('cc -c {CFLAGS} -o{Object} {Source}')
+	execute(CC, '-c', CFLAGS, '-o', Object, Source)
 end
 
 c_includes := fun(Target) do
-	var Lines := shell('cc -c {CFLAGS} -M -MG {Target:source}')
+	var Lines := shell(CC, '-c', CFLAGS, '-M -MG', Target:source)
 	Lines := Lines:replace("\\\n ", "")
 	Lines := Lines[Lines:find(": ") + 2, 0]:trim
 	var Files := Lines / r"[^\\]( +)"
@@ -27,7 +29,7 @@ c_includes := fun(Target) do
 end
 
 as_compile := fun(Source, Object) do
-	execute('cc -c {CFLAGS} -o{Object} {Source}')
+	execute(AS, '-c', CFLAGS, '-o', Object, Source)
 end
 
 as_includes := fun(Target) do
@@ -54,7 +56,7 @@ c_program := fun(Executable, Objects, Libraries) do
 		end
 	end
 	Executable[Objects, Libraries] => fun(Executable) do
-		execute('cc', '-o', Executable, Objects, Libraries, LDFLAGS)
+		execute(CC, '-o', Executable, Objects, Libraries, LDFLAGS)
 	end
 end
 

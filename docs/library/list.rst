@@ -57,11 +57,11 @@ list
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: list, Arg₃: string)`
    *TBD*
 
-:mini:`meth :push(List: list, Values...: any): list`
+:mini:`meth :push(List: list, Values...: any, ...): list`
    Pushes :mini:`Values` onto the start of :mini:`List` and returns :mini:`List`.
 
 
-:mini:`meth :put(List: list, Values...: any): list`
+:mini:`meth :put(List: list, Values...: any, ...): list`
    Pushes :mini:`Values` onto the end of :mini:`List` and returns :mini:`List`.
 
 
@@ -77,7 +77,7 @@ list
    Returns a (shallow) copy of :mini:`List`.
 
 
-:mini:`meth +(List₁: list, List₂: list): list`
+:mini:`meth (List₁: list) + (List₂: list): list`
    Returns a new list with the elements of :mini:`List₁` followed by the elements of :mini:`List₂`.
 
 

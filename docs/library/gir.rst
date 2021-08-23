@@ -33,6 +33,42 @@ gir
 :mini:`meth string(Struct: StructInstanceT): string`
    *TBD*
 
+:mini:`type FieldRef ## Boolean ## T`
+   *TBD*
+
+:mini:`type FieldRef ## Int8 ## T`
+   *TBD*
+
+:mini:`type FieldRef ## UInt8 ## T`
+   *TBD*
+
+:mini:`type FieldRef ## Int16 ## T`
+   *TBD*
+
+:mini:`type FieldRef ## UInt16 ## T`
+   *TBD*
+
+:mini:`type FieldRef ## Int32 ## T`
+   *TBD*
+
+:mini:`type FieldRef ## UInt32 ## T`
+   *TBD*
+
+:mini:`type FieldRef ## Int64 ## T`
+   *TBD*
+
+:mini:`type FieldRef ## UInt64 ## T`
+   *TBD*
+
+:mini:`type FieldRef ## Float ## T`
+   *TBD*
+
+:mini:`type FieldRef ## Double ## T`
+   *TBD*
+
+:mini:`type FieldRef ## Utf8 ## T`
+   *TBD*
+
 :mini:`type EnumT < BaseInfoT`
    A gobject-instrospection enum type.
 
@@ -47,16 +83,16 @@ gir
 :mini:`meth integer(Value: EnumValueT): integer`
    *TBD*
 
-:mini:`meth |(Value₁: EnumValueT, Value₂: nil): EnumValueT`
+:mini:`meth (Value₁: EnumValueT) | (Value₂: nil): EnumValueT`
    *TBD*
 
-:mini:`meth |(Value₁: nil, Value₂: EnumValueT): EnumValueT`
+:mini:`meth (Value₁: nil) | (Value₂: EnumValueT): EnumValueT`
    *TBD*
 
-:mini:`meth |(Value₁: EnumValueT, Value₂: EnumValueT): EnumValueT`
+:mini:`meth (Value₁: EnumValueT) | (Value₂: EnumValueT): EnumValueT`
    *TBD*
 
-:mini:`meth ::(Typelib: TypelibT, Name: string): any | error`
+:mini:`meth (Typelib: TypelibT) :: (Name: string): any | error`
    *TBD*
 
 :mini:`meth :connect(Object: ObjectInstanceT, Signal: string, Handler: function): Object`
@@ -65,6 +101,6 @@ gir
 :mini:`type ObjectPropertyT`
    *TBD*
 
-:mini:`meth ::(Object: ObjectInstanceT, Property: string): any`
+:mini:`meth (Object: ObjectInstanceT) :: (Property: string): any`
    *TBD*
 

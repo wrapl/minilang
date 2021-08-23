@@ -230,14 +230,6 @@ extern ml_value_t *SymbolMethod;
 static ML_METHOD_DECL(AppendMethod, "append");
 
 static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
-	if (!Result) {
-		ml_value_t *Error = ml_error("RuntimeError", "NULL value passed to continuation");
-		ml_error_trace_add(Error, (ml_source_t){Frame->Source, Frame->Inst->Line});
-		ML_CONTINUE(Frame->Base.Caller, Error);
-	}
-#ifdef ML_SCHEDULER
-	uint64_t Counter = Frame->Schedule.Counter[0];
-#endif
 	static const void *Labels[] = {
 		[MLI_LINK] = &&DO_LINK,
 		[MLI_RETURN] = &&DO_RETURN,
@@ -304,6 +296,14 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_ASSIGN_LOCAL] = &&DO_ASSIGN_LOCAL,
 		[MLI_SWITCH] = &&DO_SWITCH
 	};
+	if (!Result) {
+		ml_value_t *Error = ml_error("RuntimeError", "NULL value passed to continuation");
+		ml_error_trace_add(Error, (ml_source_t){Frame->Source, Frame->Inst->Line});
+		ML_CONTINUE(Frame->Base.Caller, Error);
+	}
+#ifdef ML_SCHEDULER
+	uint64_t Counter = Frame->Schedule.Counter[0];
+#endif
 	ml_inst_t *Inst = Frame->Inst;
 	ml_value_t **Top = Frame->Top;
 #ifdef DEBUG_VERSION

@@ -21,7 +21,7 @@ table
    Insert the column :mini:`Name` with values :mini:`Value` into :mini:`Table`.
 
 
-:mini:`meth :insert(Table: table, Names: names, Value₁, ..., Valueₙ: array): table`
+:mini:`meth :insert(Table: table, Names: names, Value₁, ..., Valueₙ: array, ...): table`
    Insert columns with names from :mini:`Names` and values :mini:`Value₁`, ..., :mini:`Valueₙ` into :mini:`Table`.
 
 
@@ -36,7 +36,7 @@ table
    Returns the column :mini:`Name` from :mini:`Table`.
 
 
-:mini:`meth ::(Table: table, Name: string): array`
+:mini:`meth (Table: table) :: (Name: string): array`
    Returns the column :mini:`Name` from :mini:`Table`.
 
 
@@ -52,7 +52,7 @@ table
    Returns the value from column :mini:`Name` in :mini:`Row`.
 
 
-:mini:`meth ::(Row: tablerow, Name: string): any`
+:mini:`meth (Row: tablerow) :: (Name: string): any`
    Returns the value from column :mini:`Name` in :mini:`Row`.
 
 

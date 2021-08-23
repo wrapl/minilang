@@ -1,58 +1,14 @@
 array
 =====
 
-:mini:`type array < buffer, sequence`
-   Base type for multidimensional arrays.
-
-
-:mini:`constructor array(List: list): array`
+:mini:`fun array(List: list): array`
    Returns a new array containing the values in :mini:`List`.
 
    The shape and type of the array is determined from the elements in :mini:`List`.
 
 
-:mini:`type array::int8 < array`
-   Arrays of signed 8 bit integers.
-
-
-:mini:`type array::uint8 < array`
-   Arrays of unsigned 8 bit integers.
-
-
-:mini:`type array::int16 < array`
-   Arrays of signed 16 bit integers.
-
-
-:mini:`type array::uint16 < array`
-   Arrays of unsigned 16 bit integers.
-
-
-:mini:`type array::int32 < array`
-   Arrays of signed 32 bit integers.
-
-
-:mini:`type array::uint32 < array`
-   Arrays of unsigned 32 bit integers.
-
-
-:mini:`type array::int64 < array`
-   Arrays of signed 64 bit integers.
-
-
-:mini:`type array::uint64 < array`
-   Arrays of unsigned 64 bit integers.
-
-
-:mini:`type array::float32 < array`
-   Arrays of 32 bit reals.
-
-
-:mini:`type array::float64 < array`
-   Arrays of 64 bit reals.
-
-
-:mini:`type array::any < array`
-   Arrays of any *Minilang* values.
+:mini:`type array < buffer, sequence`
+   Base type for multidimensional arrays.
 
 
 :mini:`meth :degree(Array: array): integer`
@@ -96,7 +52,7 @@ array
    Return the size of :mini:`Array` in bytes.
 
 
-:mini:`meth (Array: array)[Indices...: any]: array`
+:mini:`meth (Array: array)[Indices...: any, ...]: array`
    Returns a sub-array of :mini:`Array` sharing the underlying data.
 
    The :mini:`i`-th dimension is indexed by the corresponding :mini:`Indexᵢ`.
@@ -114,6 +70,58 @@ array
    Returns a sub-array of :mini:`Array` sharing the underlying data.
 
    The :mini:`i`-th dimension is indexed by :mini:`Indices[i]` if present, and :mini:`nil` otherwise.
+
+
+:mini:`type array::int8 < array`
+   An array of int8 values.
+
+
+:mini:`type array::uint8 < array`
+   An array of uint8 values.
+
+
+:mini:`type array::int16 < array`
+   An array of int16 values.
+
+
+:mini:`type array::uint16 < array`
+   An array of uint16 values.
+
+
+:mini:`type array::int32 < array`
+   An array of int32 values.
+
+
+:mini:`type array::uint32 < array`
+   An array of uint32 values.
+
+
+:mini:`type array::int64 < array`
+   An array of int64 values.
+
+
+:mini:`type array::uint64 < array`
+   An array of uint64 values.
+
+
+:mini:`type array::float32 < array`
+   An array of float32 values.
+
+
+:mini:`type array::float64 < array`
+   An array of float64 values.
+
+
+:mini:`type array::complex32 < array`
+   An array of complex32 values.
+
+
+:mini:`type array::complex64 < array`
+   An array of complex64 values.
+
+
+:mini:`type array::value < array`
+   An array of value values.
 
 
 :mini:`meth :reshape(Arg₁: array, Arg₂: list)`
@@ -147,6 +155,126 @@ array
    Returns an array with the negated values from :mini:`Array`.
 
 
+:mini:`meth (Arg₁: array) + (Arg₂: integer)`
+   *TBD*
+
+:mini:`meth (Arg₁: integer) + (Arg₂: array)`
+   *TBD*
+
+:mini:`meth (Arg₁: array) + (Arg₂: double)`
+   *TBD*
+
+:mini:`meth (Arg₁: double) + (Arg₂: array)`
+   *TBD*
+
+:mini:`meth (Arg₁: array) * (Arg₂: integer)`
+   *TBD*
+
+:mini:`meth (Arg₁: integer) * (Arg₂: array)`
+   *TBD*
+
+:mini:`meth (Arg₁: array) * (Arg₂: double)`
+   *TBD*
+
+:mini:`meth (Arg₁: double) * (Arg₂: array)`
+   *TBD*
+
+:mini:`meth (Arg₁: array) - (Arg₂: integer)`
+   *TBD*
+
+:mini:`meth (Arg₁: integer) - (Arg₂: array)`
+   *TBD*
+
+:mini:`meth (Arg₁: array) - (Arg₂: double)`
+   *TBD*
+
+:mini:`meth (Arg₁: double) - (Arg₂: array)`
+   *TBD*
+
+:mini:`meth (Arg₁: array) / (Arg₂: integer)`
+   *TBD*
+
+:mini:`meth (Arg₁: integer) / (Arg₂: array)`
+   *TBD*
+
+:mini:`meth (Arg₁: array) / (Arg₂: double)`
+   *TBD*
+
+:mini:`meth (Arg₁: double) / (Arg₂: array)`
+   *TBD*
+
+:mini:`meth (Arg₁: array) = (Arg₂: integer)`
+   *TBD*
+
+:mini:`meth (Arg₁: integer) = (Arg₂: array)`
+   *TBD*
+
+:mini:`meth (Arg₁: array) = (Arg₂: double)`
+   *TBD*
+
+:mini:`meth (Arg₁: double) = (Arg₂: array)`
+   *TBD*
+
+:mini:`meth (Arg₁: array) != (Arg₂: integer)`
+   *TBD*
+
+:mini:`meth (Arg₁: integer) != (Arg₂: array)`
+   *TBD*
+
+:mini:`meth (Arg₁: array) != (Arg₂: double)`
+   *TBD*
+
+:mini:`meth (Arg₁: double) != (Arg₂: array)`
+   *TBD*
+
+:mini:`meth (Arg₁: array) < (Arg₂: integer)`
+   *TBD*
+
+:mini:`meth (Arg₁: integer) < (Arg₂: array)`
+   *TBD*
+
+:mini:`meth (Arg₁: array) < (Arg₂: double)`
+   *TBD*
+
+:mini:`meth (Arg₁: double) < (Arg₂: array)`
+   *TBD*
+
+:mini:`meth (Arg₁: array) > (Arg₂: integer)`
+   *TBD*
+
+:mini:`meth (Arg₁: integer) > (Arg₂: array)`
+   *TBD*
+
+:mini:`meth (Arg₁: array) > (Arg₂: double)`
+   *TBD*
+
+:mini:`meth (Arg₁: double) > (Arg₂: array)`
+   *TBD*
+
+:mini:`meth (Arg₁: array) <= (Arg₂: integer)`
+   *TBD*
+
+:mini:`meth (Arg₁: integer) <= (Arg₂: array)`
+   *TBD*
+
+:mini:`meth (Arg₁: array) <= (Arg₂: double)`
+   *TBD*
+
+:mini:`meth (Arg₁: double) <= (Arg₂: array)`
+   *TBD*
+
+:mini:`meth (Arg₁: array) >= (Arg₂: integer)`
+   *TBD*
+
+:mini:`meth (Arg₁: integer) >= (Arg₂: array)`
+   *TBD*
+
+:mini:`meth (Arg₁: array) >= (Arg₂: double)`
+   *TBD*
+
+:mini:`meth (Arg₁: double) >= (Arg₂: array)`
+   *TBD*
+
 :mini:`meth :copy(Array: array): array`
    Return a new array with the same values of :mini:`Array` but not sharing the underlying data.
 
@@ -167,7 +295,7 @@ array
    Update the values in :mini:`Array` in place by applying :mini:`Function` to each value.
 
 
-:mini:`meth .(A: array, B: array): array`
+:mini:`meth (A: array) . (B: array): array`
    Returns the inner product of :mini:`A` and :mini:`B`. The last dimension of :mini:`A` and the first dimension of :mini:`B` must match, skipping any dimensions of size :mini:`1`.
 
 

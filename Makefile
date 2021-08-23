@@ -46,7 +46,7 @@ obj/ml_map.o: obj/ml_map_init.c
 obj/ml_object.o: obj/ml_object_init.c
 obj/ml_math.o: obj/ml_math_init.c
 obj/ml_file.o: obj/ml_file_init.c
-obj/ml_iterfns.o: obj/ml_iterfns_init.c
+obj/ml_sequence.o: obj/ml_sequence_init.c
 obj/ml_bytecode.o: obj/ml_bytecode_init.c
 obj/ml_runtime.o: obj/ml_runtime_init.c
 obj/ml_compiler.o: obj/ml_compiler_init.c
@@ -61,7 +61,7 @@ common_objects = \
 	obj/ml_list.o \
 	obj/ml_map.o \
 	obj/ml_file.o \
-	obj/ml_iterfns.o \
+	obj/ml_sequence.o \
 	obj/sha256.o \
 	obj/stringmap.o \
 	obj/inthash.o \
@@ -122,7 +122,7 @@ install_h = \
 	$(install_include)/minilang.h \
 	$(install_include)/ml_console.h \
 	$(install_include)/ml_file.h \
-	$(install_include)/ml_iterfns.h \
+	$(install_include)/ml_sequence.h \
 	$(install_include)/ml_macros.h \
 	$(install_include)/ml_types.h \
 	$(install_include)/ml_object.h \

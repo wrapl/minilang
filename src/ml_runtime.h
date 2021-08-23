@@ -162,12 +162,6 @@ const char *ml_error_value_type(const ml_value_t *Value) __attribute__ ((pure));
 const char *ml_error_value_message(const ml_value_t *Value) __attribute__ ((pure));
 int ml_error_value_source(const ml_value_t *Value, int Level, ml_source_t *Source);
 
-ml_value_t *ml_string_fn(void *Data, int Count, ml_value_t **Args);
-ml_value_t *ml_list_fn(void *Data, int Count, ml_value_t **Args);
-ml_value_t *ml_tuple_fn(void *Data, int Count, ml_value_t **Args);
-ml_value_t *ml_map_fn(void *Data, int Count, ml_value_t **Args);
-ml_value_t *ml_stringifier_fn(void *Data, int Count, ml_value_t **Args);
-
 // Debugging //
 
 #define SIZE_BITS (CHAR_BIT * sizeof(size_t))

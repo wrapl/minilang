@@ -26,13 +26,31 @@ tuple
 :mini:`meth :append(Arg₁: stringbuffer, Arg₂: tuple)`
    *TBD*
 
-:mini:`meth <>(Tuple₁: tuple, Tuple₂: tuple): integer`
+:mini:`meth (Tuple₁: tuple) <> (Tuple₂: tuple): integer`
    Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Tuple₁` is less than, equal to or greater than :mini:`Tuple₂` using lexicographical ordering.
 
 
-:mini:`meth <op>(Tuple₁: tuple, Tuple₂: tuple): Tuple₂ | nil`
-   :mini:`<op>` is :mini:`=`, :mini:`!=`, :mini:`<`, :mini:`<=`, :mini:`>` or :mini:`>=`
+:mini:`meth (Arg₁: tuple) = (Arg₂: tuple): tuple | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
 
-   Returns :mini:`Tuple₂` if :mini:`Tuple₂ <op> Tuple₁` is true, otherwise returns :mini:`nil`.
+
+:mini:`meth (Arg₁: tuple) != (Arg₂: tuple): tuple | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth (Arg₁: tuple) < (Arg₂: tuple): tuple | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth (Arg₁: tuple) <= (Arg₂: tuple): tuple | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth (Arg₁: tuple) > (Arg₂: tuple): tuple | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth (Arg₁: tuple) >= (Arg₂: tuple): tuple | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
 
 

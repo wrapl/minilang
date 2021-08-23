@@ -41,15 +41,15 @@ time
    Formats :mini:`Time` as a UTC time according to the specified format.
 
 
-:mini:`meth <>(Arg₁: time, Arg₂: time)`
+:mini:`meth (Arg₁: time) <> (Arg₂: time)`
    *TBD*
 
-:mini:`meth -(Arg₁: time, Arg₂: time)`
+:mini:`meth (Arg₁: time) - (Arg₂: time)`
    *TBD*
 
-:mini:`meth +(Arg₁: time, Arg₂: number)`
+:mini:`meth (Arg₁: time) + (Arg₂: number)`
    *TBD*
 
-:mini:`meth -(Arg₁: time, Arg₂: number)`
+:mini:`meth (Arg₁: time) - (Arg₂: number)`
    *TBD*
 
