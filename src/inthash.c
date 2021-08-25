@@ -9,7 +9,6 @@ inthash_t *inthash_new() {
 #define INDEX_SHIFT 6
 #define INCR_SHIFT 9
 
-
 #ifndef ASM_INTHASH_SEARCH
 void *inthash_search(const inthash_t *Map, uintptr_t Key) {
 	if (!Map->Size) return NULL;

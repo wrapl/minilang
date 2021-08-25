@@ -3,6 +3,15 @@
 #include "ml_macros.h"
 #include <string.h>
 
+#ifdef ML_THREADSAFE
+#include <pthread.h>
+
+typedef struct {
+	inthash_t Cache[1];
+	size_t Version;
+} ml_thread_methods_t;
+#endif
+
 typedef struct ml_method_cached_t ml_method_cached_t;
 typedef struct ml_method_definition_t ml_method_definition_t;
 
@@ -12,6 +21,11 @@ struct ml_methods_t {
 	inthash_t Cache[1];
 	inthash_t Definitions[1];
 	inthash_t Methods[1];
+#ifdef ML_THREADSAFE
+	pthread_key_t ThreadKey;
+	pthread_rwlock_t Lock[1];
+	size_t Version;
+#endif
 };
 
 static void ml_methods_call(ml_state_t *Caller, ml_methods_t *Methods, int Count, ml_value_t **Args) {
@@ -25,12 +39,28 @@ ML_TYPE(MLMethodsT, (), "methods",
 	.call = (void *)ml_methods_call
 );
 
-static ml_methods_t MLRootMethods[1] = {{NULL, NULL, {INTHASH_INIT}, {INTHASH_INIT}}};
+static ml_methods_t MLRootMethods[1] = {{
+	NULL, NULL,
+	{INTHASH_INIT},
+	{INTHASH_INIT},
+	{INTHASH_INIT}
+}};
+
+#ifdef ML_THREADSAFE
+static void ml_methods_clean(ml_methods_t *Methods, void *Data) {
+	pthread_key_delete(Methods->ThreadKey);
+}
+#endif
 
 ml_methods_t *ml_methods_context_new(ml_context_t *Context) {
 	ml_methods_t *Methods = new(ml_methods_t);
 	Methods->Type = MLMethodsT;
 	Methods->Parent = Context->Values[ML_METHODS_INDEX];
+#ifdef ML_THREADSAFE
+	pthread_key_create(&Methods->ThreadKey, GC_free);
+	pthread_rwlock_init(Methods->Lock, NULL);
+	GC_register_finalizer(Methods, (GC_finalization_proc)ml_methods_clean, NULL, NULL, NULL);
+#endif
 	Context->Values[ML_METHODS_INDEX] = Methods;
 	return Methods;
 }
@@ -51,7 +81,7 @@ static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_
 	} else if (!Definition->Variadic) {
 		Score = 2;
 	}
-	for (int I = 0; I < Count; ++I) {
+	for (ssize_t I = Count; --I >= 0;) {
 		ml_type_t *Type = Definition->Types[I];
 		if (ml_is_subtype(Types[I], Type)) goto found;
 		return 0;
@@ -72,6 +102,9 @@ struct ml_method_cached_t {
 static ml_method_cached_t *ml_method_search_entry(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_type_t **Types, uint64_t Hash);
 
 static __attribute__ ((noinline)) ml_method_cached_t *ml_method_search_entry2(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_type_t **Types, uint64_t Hash, ml_method_cached_t *Cached) {
+#ifdef ML_THREADSAFE
+	pthread_rwlock_wrlock(Methods->Lock);
+#endif
 	unsigned int BestScore = 0;
 	ml_method_definition_t *BestDefinition = NULL;
 	ml_method_definition_t *Definition = inthash_search(Methods->Definitions, (uintptr_t)Method);
@@ -90,22 +123,67 @@ static __attribute__ ((noinline)) ml_method_cached_t *ml_method_search_entry2(ml
 			BestDefinition = Cached2->Definition;
 		}
 	}
-	if (!BestDefinition) return NULL;
+	if (!BestDefinition) {
+#ifdef ML_THREADSAFE
+		pthread_rwlock_unlock(Methods->Lock);
+#endif
+		return NULL;
+	}
 	if (!Cached) {
 		Cached = xnew(ml_method_cached_t, Count, ml_type_t *);
 		Cached->Method = Method;
-		Cached->Next = inthash_insert(Methods->Cache, Hash, Cached);
-		Cached->MethodNext = inthash_insert(Methods->Methods, (uintptr_t)Method, Cached);
 		Cached->Count = Count;
 		for (int I = 0; I < Count; ++I) Cached->Types[I] = Types[I];
+		Cached->Next = inthash_insert(Methods->Cache, Hash, Cached);
+		Cached->MethodNext = inthash_insert(Methods->Methods, (uintptr_t)Method, Cached);
+#ifdef ML_THREADSAFE
+		++Methods->Version;
+#endif
 	}
 	Cached->Definition = BestDefinition;
 	Cached->Score = BestScore;
+#ifdef ML_THREADSAFE
+	pthread_rwlock_unlock(Methods->Lock);
+#endif
 	return Cached;
 }
 
-static ml_method_cached_t *ml_method_search_entry(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_type_t **Types, uint64_t Hash) {
-	ml_method_cached_t *Cached = inthash_search(Methods->Cache, Hash);
+#ifdef ML_THREADSAFE
+
+static __attribute__ ((noinline)) void ml_thread_methods_copy(ml_thread_methods_t *ThreadMethods, ml_methods_t *Methods) {
+	pthread_rwlock_rdlock(Methods->Lock);
+	inthash_t *Source = Methods->Cache;
+	inthash_t *Target = ThreadMethods->Cache;
+	int Size = Source->Size;
+	if (Target->Size != Size) {
+		Target->Size = Size;
+		Target->Keys = anew(uintptr_t, Size);
+		Target->Values = anew(void *, Size);
+	}
+	memcpy(Target->Keys, Source->Keys, Size * sizeof(uintptr_t));
+	memcpy(Target->Values, Source->Values, Size * sizeof(void *));
+	Target->Space = Source->Space;
+	ThreadMethods->Version = Methods->Version;
+	pthread_rwlock_unlock(Methods->Lock);
+}
+
+#endif
+
+static inline ml_method_cached_t *ml_method_search_entry(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_type_t **Types, uint64_t Hash) {
+#ifdef ML_THREADSAFE
+	ml_thread_methods_t *ThreadMethods = pthread_getspecific(Methods->ThreadKey);
+	if (!ThreadMethods) {
+		ThreadMethods = GC_malloc_uncollectable(sizeof(ml_thread_methods_t));
+		pthread_setspecific(Methods->ThreadKey, ThreadMethods);
+		ml_thread_methods_copy(ThreadMethods, Methods);
+	} else if (ThreadMethods->Version != Methods->Version) {
+		ml_thread_methods_copy(ThreadMethods, Methods);
+	}
+	inthash_t *Cache = ThreadMethods->Cache;
+#else
+	inthash_t *Cache = Methods->Cache;
+#endif
+	ml_method_cached_t *Cached = inthash_search(Cache, Hash);
 	while (Cached) {
 		if (Cached->Method != Method) goto next;
 		if (Cached->Count != Count) goto next;
@@ -125,35 +203,33 @@ static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 	return (X << (N & Mask)) | (X >> ((-N) & Mask ));
 }
 
-static __attribute__ ((noinline)) ml_value_t *ml_method_search2(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args) {
+static __attribute__ ((noinline)) ml_value_t *ml_method_search2(ml_state_t *Caller, ml_method_t *Method, int Count, ml_value_t **Args) {
 	// Use alloca here, VLA prevents TCO.
 	ml_type_t **Types = alloca(Count * sizeof(ml_type_t *));
 	uintptr_t Hash = (uintptr_t)Method;
-	for (int I = Count; --I >= 0;) {
+	for (ssize_t I = Count; --I >= 0;) {
 		ml_type_t *Type = Types[I] = ml_typeof_deref(Args[I]);
 		Hash = rotl(Hash, 1) ^ (uintptr_t)Type;
 	}
-	ML_RUNTIME_LOCK();
+	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
 	ml_method_cached_t *Cached = ml_method_search_entry(Methods, Method, Count, Types, Hash);
-	ML_RUNTIME_UNLOCK();
 	if (Cached) return Cached->Definition->Callback;
 	return NULL;
 }
 
 #define ML_SMALL_METHOD_COUNT 8
 
-static inline ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args) {
+static inline ml_value_t *ml_method_search(ml_state_t *Caller, ml_method_t *Method, int Count, ml_value_t **Args) {
 	// TODO: Use generation numbers to check Methods->Parent for invalidated definitions
-	if (Count > ML_SMALL_METHOD_COUNT) return ml_method_search2(Methods, Method, Count, Args);
+	if (Count > ML_SMALL_METHOD_COUNT) return ml_method_search2(Caller, Method, Count, Args);
 	ml_type_t *Types[ML_SMALL_METHOD_COUNT];
 	uintptr_t Hash = (uintptr_t)Method;
-	for (int I = Count; --I >= 0;) {
+	for (ssize_t I = Count; --I >= 0;) {
 		ml_type_t *Type = Types[I] = ml_typeof_deref(Args[I]);
 		Hash = rotl(Hash, 1) ^ (uintptr_t)Type;
 	}
-	ML_RUNTIME_LOCK();
+	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
 	ml_method_cached_t *Cached = ml_method_search_entry(Methods, Method, Count, Types, Hash);
-	ML_RUNTIME_UNLOCK();
 	if (Cached) return Cached->Definition->Callback;
 	return NULL;
 }
@@ -164,12 +240,18 @@ void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Ca
 	Definition->Count = Count;
 	Definition->Variadic = Variadic;
 	memcpy(Definition->Types, Types, Count * sizeof(ml_type_t *));
-	ML_RUNTIME_LOCK();
+#ifdef ML_THREADSAFE
+	pthread_rwlock_wrlock(Methods->Lock);
+#endif
 	Definition->Next = inthash_insert(Methods->Definitions, (uintptr_t)Method, Definition);
-	for (ml_method_cached_t *Cached = inthash_search(Methods->Methods, (uintptr_t)Method); Cached; Cached = Cached->MethodNext) {
+	ml_method_cached_t *Cached = inthash_search(Methods->Methods, (uintptr_t)Method);
+#ifdef ML_THREADSAFE
+	pthread_rwlock_unlock(Methods->Lock);
+#endif
+	while (Cached) {
 		Cached->Definition = NULL;
+		Cached = Cached->MethodNext;
 	}
-	ML_RUNTIME_UNLOCK();
 }
 
 void ml_method_define(ml_value_t *Method, ml_value_t *Function, int Variadic, ...) {
@@ -199,34 +281,37 @@ static long ml_method_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
+static void __attribute__ ((noinline)) ml_method_not_found(ml_state_t *Caller, ml_method_t *Method, int Count, ml_value_t **Args) {
+	int Length = 4;
+	for (int I = 0; I < Count; ++I) Length += strlen(ml_typeof(Args[I])->Name) + 2;
+	char *Types = snew(Length);
+	Types[0] = 0;
+	char *P = Types;
+#ifdef __MINGW32__
+	for (int I = 0; I < Count; ++I) {
+		strcpy(P, Args[I]->Type->Path);
+		P += strlen(Args[I]->Type->Path);
+		strcpy(P, ", ");
+		P += 2;
+	}
+#else
+	for (int I = 0; I < Count; ++I) {
+		ml_value_t *Arg = ml_deref(Args[I]);
+		P = stpcpy(stpcpy(P, ml_typeof(Arg)->Name), ", ");
+	}
+#endif
+	P[-2] = 0;
+	ML_RETURN(ml_error("MethodError", "no method found for %s(%s)", Method->Name, Types));
+}
+
 static void ml_method_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_method_t *Method = (ml_method_t *)Value;
-	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
-	ml_value_t *Callback = ml_method_search(Methods, Method, Count, Args);
+	ml_value_t *Callback = ml_method_search(Caller, Method, Count, Args);
 
-	if (Callback) {
+	if (__builtin_expect(!!Callback, 1)) {
 		return ml_call(Caller, Callback, Count, Args);
 	} else {
-		int Length = 4;
-		for (int I = 0; I < Count; ++I) Length += strlen(ml_typeof(Args[I])->Name) + 2;
-		char *Types = snew(Length);
-		Types[0] = 0;
-		char *P = Types;
-#ifdef __MINGW32__
-		for (int I = 0; I < Count; ++I) {
-			strcpy(P, Args[I]->Type->Path);
-			P += strlen(Args[I]->Type->Path);
-			strcpy(P, ", ");
-			P += 2;
-		}
-#else
-		for (int I = 0; I < Count; ++I) {
-			ml_value_t *Arg = ml_deref(Args[I]);
-			P = stpcpy(stpcpy(P, ml_typeof(Arg)->Name), ", ");
-		}
-#endif
-		P[-2] = 0;
-		ML_RETURN(ml_error("MethodError", "no method found for %s(%s)", Method->Name, Types));
+		return ml_method_not_found(Caller, Method, Count, Args);
 	}
 }
 
@@ -431,6 +516,10 @@ ML_FUNCTIONX(MLMethodContext) {
 }
 
 void ml_method_init() {
+#ifdef ML_THREADSAFE
+	pthread_key_create(&MLRootMethods->ThreadKey, GC_free);
+	pthread_rwlock_init(MLRootMethods->Lock, NULL);
+#endif
 	ml_context_set(&MLRootContext, ML_METHODS_INDEX, MLRootMethods);
 #include "ml_method_init.c"
 	MLRootMethods->Type = MLMethodsT;
