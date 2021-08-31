@@ -219,7 +219,7 @@ static __attribute__ ((noinline)) ml_value_t *ml_method_search2(ml_state_t *Call
 
 #define ML_SMALL_METHOD_COUNT 8
 
-static inline ml_value_t *ml_method_search(ml_state_t *Caller, ml_method_t *Method, int Count, ml_value_t **Args) {
+static __attribute__ ((noinline)) ml_value_t *ml_method_search(ml_state_t *Caller, ml_method_t *Method, int Count, ml_value_t **Args) {
 	// TODO: Use generation numbers to check Methods->Parent for invalidated definitions
 	if (Count > ML_SMALL_METHOD_COUNT) return ml_method_search2(Caller, Method, Count, Args);
 	ml_type_t *Types[ML_SMALL_METHOD_COUNT];
@@ -308,7 +308,7 @@ static void ml_method_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_
 	ml_method_t *Method = (ml_method_t *)Value;
 	ml_value_t *Callback = ml_method_search(Caller, Method, Count, Args);
 
-	if (__builtin_expect(!!Callback, 1)) {
+	if (__builtin_expect(Callback != NULL, 1)) {
 		return ml_call(Caller, Callback, Count, Args);
 	} else {
 		return ml_method_not_found(Caller, Method, Count, Args);
