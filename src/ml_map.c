@@ -91,6 +91,19 @@ ML_METHODVX(MLMapT, MLSequenceT) {
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
+ML_METHODVX("grow", MLMapT, MLSequenceT) {
+//<Map
+//<Sequence
+//>map
+// Adds of all the key and value pairs produced by :mini:`Sequence` to :mini:`Map` and returns :mini:`Map`.
+	ml_iter_state_t *State = xnew(ml_iter_state_t, 2, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)map_iterate;
+	State->Base.Context = Caller->Context;
+	State->Values[0] = Args[0];
+	return ml_iterate((ml_state_t *)State, ml_chained(Count - 1, Args + 1));
+}
+
 extern ml_value_t *CompareMethod;
 
 static ml_map_node_t *ml_map_find_node(ml_map_t *Map, ml_value_t *Key) {
