@@ -185,7 +185,6 @@
       <keyword>weave</keyword>
       <keyword>swap</keyword>
       <keyword>key</keyword>
-      <keyword>dup</keyword>
       <keyword>tasks</keyword>
       <keyword>parallel</keyword>
       <keyword>buffered</keyword>
@@ -196,6 +195,8 @@
       <keyword>export</keyword>
       <keyword>exchange</keyword>
       <keyword>replace</keyword>
+      <keyword>skip</keyword>
+      <keyword>limit</keyword>
     </context>
     <context id="types" style-ref="type">
       <keyword>class</keyword>

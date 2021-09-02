@@ -1645,6 +1645,7 @@ static int ml_scope_macro_fn(const char *Name, ml_value_t *Value, mlc_function_t
 	Decl->Ident = Name;
 	Decl->Hash = ml_ident_hash(Name);
 	Decl->Value = Value;
+	Decl->Flags = MLC_DECL_CONSTANT;
 	Decl->Next = Function->Decls;
 	Function->Decls = Decl;
 	return 0;
@@ -1673,6 +1674,17 @@ ml_scope_macro_t *ml_scope_macro_new() {
 
 void ml_scope_macro_define(ml_scope_macro_t *Macro, const char *Name, ml_value_t *Value) {
 	stringmap_insert(Macro->Names, Name, Value);
+}
+
+ML_FUNCTION(MLScopeMacro) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLNamesT);
+	ml_scope_macro_t *Macro = ml_scope_macro_new();
+	int I = 1;
+	ML_NAMES_FOREACH(Args[0], Iter) {
+		ml_scope_macro_define(Macro, ml_string_value(Iter->Value), Args[I++]);
+	}
+	return (ml_value_t *)Macro;
 }
 
 static void ml_stringify_macro_apply(mlc_function_t *Function, ml_macro_t *Macro, mlc_expr_t *Expr, mlc_expr_t *Child, int Flags) {
@@ -4992,6 +5004,8 @@ void ml_compiler_init() {
 	stringmap_insert(MLCompilerT->Exports, "EOI", MLEndOfInput);
 	stringmap_insert(MLCompilerT->Exports, "NotFound", MLNotFound);
 	stringmap_insert(MLCompilerT->Exports, "switch", MLCompilerSwitch);
+	stringmap_insert(MLCompilerT->Exports, "macro", MLMacroT);
+	stringmap_insert(MLMacroT->Exports, "scope", MLScopeMacro);
 	stringmap_insert(StringFns, "r", ml_regex);
 	stringmap_insert(StringFns, "ri", ml_regexi);
 }
