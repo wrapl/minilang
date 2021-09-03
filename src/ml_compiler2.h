@@ -61,6 +61,7 @@ typedef enum ml_token_t {
 	MLT_EXPR,
 	MLT_INLINE,
 	MLT_EXPAND,
+	MLT_EXPR_VALUE,
 	MLT_OPERATOR,
 	MLT_METHOD
 } ml_token_t;
