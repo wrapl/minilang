@@ -295,7 +295,7 @@ typedef struct ml_macro_t ml_macro_t;
 
 struct ml_macro_t {
 	ml_type_t *Type;
-	void (*apply)(mlc_function_t *, ml_macro_t *, mlc_expr_t *, mlc_expr_t *, int);
+	ml_value_t *Function;
 };
 
 #define MLCF_PUSH 1

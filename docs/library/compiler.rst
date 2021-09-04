@@ -1,13 +1,7 @@
 compiler
 ========
 
-:mini:`type macro`
-   *TBD*
-
 :mini:`type compilerfunction < state`
-   *TBD*
-
-:mini:`fun mlscopemacro(Arg₁: names)`
    *TBD*
 
 :mini:`fun compiler(Global: function|map, ?Read: function): compiler`
