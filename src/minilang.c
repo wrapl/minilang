@@ -300,6 +300,7 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "context", MLContextKeyT);
 	stringmap_insert(Globals, "parser", MLParserT);
 	stringmap_insert(Globals, "compiler", MLCompilerT);
+	stringmap_insert(Globals, "macro", MLMacroT);
 	stringmap_insert(Globals, "global", ml_stringmap_globals(Globals));
 	stringmap_insert(Globals, "globals", ml_cfunction(Globals, (void *)ml_globals));
 	stringmap_insert(Globals, "test", MLTest);

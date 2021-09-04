@@ -1603,8 +1603,6 @@ static void ml_map_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Exp
 	MLC_RETURN(NULL);
 }
 
-ML_TYPE(MLMacroT, (), "macro");
-
 typedef struct {
 	ml_macro_t Base;
 	ml_decl_t *Params;
@@ -1805,6 +1803,10 @@ ML_FUNCTION(MLCodeMacro) {
 	Macro->Function = Args[0];
 	return (ml_value_t *)Macro;
 }
+
+ML_TYPE(MLMacroT, (), "macro",
+	.Constructor = (ml_value_t *)MLCodeMacro
+);
 
 static void ml_expr_macro_apply(mlc_function_t *Function, ml_macro_t *Macro, mlc_expr_t *Expr, mlc_expr_t *Child, int Flags) {
 	if (!Child) MLC_EXPR_ERROR(Expr, ml_error("MacroError", "Insufficient arguments to macro"));
@@ -3787,10 +3789,6 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 			return ML_EXPR_END(FunExpr);
 		}
 	}
-	case MLT_MACRO: {
-		ml_next(Parser);
-		return ml_accept_macro_expr(Parser);
-	}
 	case MLT_METH: {
 		ml_next(Parser);
 		return ml_accept_meth_expr(Parser);
@@ -3840,11 +3838,19 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 	}
 	case MLT_EXPR_VALUE: {
 		ml_next(Parser);
-		mlc_expr_t *Expr = ml_accept_expression(Parser, EXPR_DEFAULT);
-		ml_accept(Parser, MLT_RIGHT_BRACE);
 		ML_EXPR(ValueExpr, value, value);
-		ValueExpr->Value = ml_expr_value(Expr);
-		return ML_EXPR_END(ValueExpr);
+		ValueExpr->Value = ml_expr_value(ml_accept_expression(Parser, EXPR_DEFAULT));
+		mlc_expr_t *Expr = ML_EXPR_END(ValueExpr);
+		if (ml_parse(Parser, MLT_COMMA)) {
+			ML_EXPR(CallExpr, parent_value, const_call);
+			CallExpr->Value = ml_method("subst");
+			CallExpr->Child = ValueExpr;
+			ml_accept_arguments(Parser, MLT_RIGHT_BRACE, &ValueExpr->Next);
+			Expr = ML_EXPR_END(CallExpr);
+		} else {
+			ml_accept(Parser, MLT_RIGHT_BRACE);
+		}
+		return Expr;
 	}
 	case MLT_LEFT_PAREN: {
 		ml_next(Parser);
@@ -4437,11 +4443,6 @@ static mlc_block_expr_t *ml_accept_block_body(ml_parser_t *Parser) {
 			ml_accept_block_fun(Parser, Accept);
 			break;
 		}
-		case MLT_MACRO: {
-			ml_next(Parser);
-			ml_accept_block_macro(Parser, Accept);
-			break;
-		}
 		default: {
 			mlc_expr_t *Expr = ml_parse_block_expr(Parser, Accept);
 			if (!Expr) goto finish;
@@ -4958,9 +4959,6 @@ static void ml_command_ident_run(mlc_function_t *Function, ml_value_t *Value, ml
 	case MLT_DEF:
 		ml_value_set_name(Value, Global->Name);
 		break;
-	case MLT_MACRO:
-		stringmap_insert(Function->Compiler->Vars, Global->Name, Value);
-		break;
 	default:
 		break;
 	}
@@ -5077,37 +5075,6 @@ void ml_command_evaluate(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t 
 			ml_parse(Parser, MLT_SEMICOLON);
 			return mlc_expr_call(Function, Expr);
 		}
-	} else if (ml_parse(Parser, MLT_MACRO)) {
-		if (ml_parse(Parser, MLT_IDENT)) {
-			MLC_FRAME(ml_command_macro_frame_t, ml_command_macro_run);
-			Frame->Name = Parser->Ident;
-			mlc_expr_t *Expr = ml_accept_macro_expr(Parser);
-			ml_parse(Parser, MLT_SEMICOLON);
-			return mlc_expr_call(Function, Expr);
-			/*ml_accept(Parser, MLT_LEFT_PAREN);
-			ml_template_macro_t *Macro = new(ml_template_macro_t);
-			Macro->Base.Type = MLMacroT;
-			Macro->Base.apply = (void *)ml_template_macro_apply;
-			ml_decl_t **ParamSlot = &Macro->Params;
-			if (!ml_parse2(Parser, MLT_RIGHT_PAREN)) {
-				do {
-					ml_accept(Parser, MLT_IDENT);
-					ml_decl_t *Param = ParamSlot[0] = new(ml_decl_t);
-					Param->Ident = Parser->Ident;
-					Param->Hash = ml_ident_hash(Parser->Ident);
-					ParamSlot = &Param->Next;
-				} while (ml_parse2(Parser, MLT_COMMA));
-				ml_accept(Parser, MLT_RIGHT_PAREN);
-			}
-			Macro->Expr = ml_accept_expression(Parser, EXPR_DEFAULT);
-			ml_parse(Parser, MLT_SEMICOLON);
-			stringmap_insert(Compiler->Vars, Name, Macro);
-			MLC_RETURN((ml_value_t *)Macro);*/
-		} else {
-			mlc_expr_t *Expr = ml_accept_macro_expr(Parser);
-			ml_parse(Parser, MLT_SEMICOLON);
-			return mlc_expr_call(Function, Expr);
-		}
 	} else {
 		mlc_expr_t *Expr = ml_accept_expression(Parser, EXPR_DEFAULT);
 		if (ml_parse(Parser, MLT_COLON)) {
@@ -5204,13 +5171,9 @@ void ml_compiler_init() {
 	stringmap_insert(MLCompilerT->Exports, "EOI", MLEndOfInput);
 	stringmap_insert(MLCompilerT->Exports, "NotFound", MLNotFound);
 	stringmap_insert(MLCompilerT->Exports, "switch", MLCompilerSwitch);
-	stringmap_insert(MLCompilerT->Exports, "macro", MLMacroT);
 	stringmap_insert(MLMacroT->Exports, "scope", MLScopeMacro);
-	stringmap_insert(MLMacroT->Exports, "code", MLCodeMacro);
-	stringmap_insert(MLCompilerT->Exports, "expr", ml_module("compiler::expr",
-		"ident", MLIdentExpr,
-		"value", MLValueExpr,
-	NULL));
+	stringmap_insert(MLMacroT->Exports, "ident", MLIdentExpr);
+	stringmap_insert(MLMacroT->Exports, "value", MLValueExpr);
 	ml_macro_t *ExprMacro = new(ml_macro_t);
 	ExprMacro->Type = MLMacroT;
 	ExprMacro->apply = ml_expr_macro_apply;

@@ -151,7 +151,6 @@
       <keyword>on</keyword>
       <keyword>when</keyword>
       <keyword>debug</keyword>
-      <keyword>macro</keyword>
       <keyword>switch</keyword>
       <keyword>case</keyword>
     </context>
@@ -223,6 +222,7 @@
       <keyword>file</keyword>
       <keyword>enum</keyword>
       <keyword>flags</keyword>
+      <keyword>macro</keyword>
     </context>
     <context id="operators" style-ref="operator" extend-parent="false">
       <match>[-.:#~^@;,/$%|\=\+\*\!\?&amp;&lt;&gt;\[\]\\{}\()]</match>

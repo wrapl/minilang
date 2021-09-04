@@ -14,6 +14,7 @@ extern ml_value_t MLEndOfInput[];
 extern ml_value_t MLNotFound[];
 extern ml_value_t *MLCompilerSwitch;
 extern ml_type_t MLCompilerT[];
+extern ml_type_t MLMacroT[];
 extern ml_type_t MLParserT[];
 extern ml_type_t MLGlobalT[];
 

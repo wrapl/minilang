@@ -19,7 +19,6 @@ when, MLT_WHEN
 switch, MLT_SWITCH
 case, MLT_CASE
 fun, MLT_FUN
-macro, MLT_MACRO
 ret, MLT_RET
 susp, MLT_SUSP
 debug, MLT_DEBUG
