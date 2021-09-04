@@ -1603,34 +1603,6 @@ static void ml_map_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Exp
 	MLC_RETURN(NULL);
 }
 
-typedef struct {
-	ml_macro_t Base;
-	ml_decl_t *Params;
-	mlc_expr_t *Expr;
-} ml_template_macro_t;
-
-static void ml_template_macro_apply2(mlc_function_t *Function, ml_value_t *Value, mlc_define_t **Frame) {
-	Function->Defines = Frame[0];
-	MLC_POP();
-	MLC_RETURN(NULL);
-}
-
-static void ml_template_macro_apply(mlc_function_t *Function, ml_template_macro_t *Macro, mlc_expr_t *Expr, mlc_expr_t *Child, int Flags) {
-	MLC_FRAME(mlc_define_t *, ml_template_macro_apply2);
-	Frame[0] = Function->Defines;
-	for (ml_decl_t *Param = Macro->Params; Param; Param = Param->Next) {
-		if (!Child) MLC_EXPR_ERROR(Expr, ml_error("MacroError", "Insufficient arguments to macro"));
-		mlc_define_t *Define = new(mlc_define_t);
-		Define->Ident = Param->Ident;
-		Define->Hash = Param->Hash;
-		Define->Expr = Child;
-		Define->Next = Function->Defines;
-		Function->Defines = Define;
-		Child = Child->Next;
-	}
-	return mlc_compile(Function, Macro->Expr, Flags);
-}
-
 struct ml_scope_macro_t {
 	ml_macro_t Base;
 	stringmap_t Names[1];
@@ -1807,19 +1779,6 @@ ML_FUNCTION(MLCodeMacro) {
 ML_TYPE(MLMacroT, (), "macro",
 	.Constructor = (ml_value_t *)MLCodeMacro
 );
-
-static void ml_expr_macro_apply(mlc_function_t *Function, ml_macro_t *Macro, mlc_expr_t *Expr, mlc_expr_t *Child, int Flags) {
-	if (!Child) MLC_EXPR_ERROR(Expr, ml_error("MacroError", "Insufficient arguments to macro"));
-	ml_value_t *Value = ml_expr_value(Child);
-	if (Flags & MLCF_CONSTANT) MLC_RETURN(Value);
-	ml_inst_t *Inst = MLC_EMIT(Expr->StartLine, MLI_LOAD, 1);
-	Inst[1].Value = Value;
-	if (Flags & MLCF_PUSH) {
-		Inst->Opcode = MLI_LOAD_PUSH;
-		mlc_inc_top(Function);
-	}
-	MLC_RETURN(NULL);
-}
 
 typedef struct {
 	mlc_expr_t *Expr;
@@ -5174,10 +5133,6 @@ void ml_compiler_init() {
 	stringmap_insert(MLMacroT->Exports, "scope", MLScopeMacro);
 	stringmap_insert(MLMacroT->Exports, "ident", MLIdentExpr);
 	stringmap_insert(MLMacroT->Exports, "value", MLValueExpr);
-	ml_macro_t *ExprMacro = new(ml_macro_t);
-	ExprMacro->Type = MLMacroT;
-	ExprMacro->apply = ml_expr_macro_apply;
-	stringmap_insert(MLMacroT->Exports, "expr", ExprMacro);
 	stringmap_insert(StringFns, "r", ml_regex);
 	stringmap_insert(StringFns, "ri", ml_regexi);
 }

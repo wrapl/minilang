@@ -102,7 +102,6 @@ struct mlc_define_t {
 	const char *Ident;
 	mlc_expr_t *Expr;
 	long Hash;
-	ml_source_t Source;
 };
 
 typedef enum {
