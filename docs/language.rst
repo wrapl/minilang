@@ -679,7 +679,7 @@ Methods behave as *atoms*, that is two methods with the same characters internal
    +
    <>
 
-Methods provide type-dependant function calls. Each method is effectively a mapping from lists of types to functions. When called with arguments, a method looks through its entries for the best match based on the types of *all* of the arguments and calls the corresponding function.
+Methods provide type-dependant function calls. Each method is effectively a mapping from lists of types to functions. When called with arguments, a method looks through its entries for the best match based on the types of *all* of the arguments and calls the corresponding function. More information on how methods work can be found in :doc:`/features/methods`.
 
 .. code-block:: mini
 
@@ -717,6 +717,11 @@ Methods with only symbol characters or that are valid identifiers can be invoked
 .. important::
 
    *Minilang* allows any combination of symbol characters (listed above) as well as any identifier to be used as an infix operator. As a result, there is no operator precedence in *Minilang*. Hence, the parentheses in the last example are required; the expression :mini:`A + B * C` will be evaluated as :mini:`(A + B) * C`.
+
+Macros
+~~~~~~
+
+*Minilang* has optional support for *macros*, which allow code to be generated or modified during compilation. See :doc:`/features/macros` for more information.
 
 Values
 ------

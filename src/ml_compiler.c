@@ -1610,12 +1610,27 @@ typedef struct {
 
 ML_TYPE(MLExprT, (), "expr");
 //!macro
+// An expression value used by the compiler to implement macros.
 
 static ml_value_t *ml_expr_value(mlc_expr_t *Expr) {
 	ml_expr_value_t *Value = new(ml_expr_value_t);
 	Value->Type = MLExprT;
 	Value->Expr = Expr;
 	return (ml_value_t *)Value;
+}
+
+static void ml_delegate_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
+	return mlc_compile(Function, Expr->Child, Flags);
+}
+
+static mlc_expr_t *ml_delegate_expr(mlc_expr_t *Child) {
+	mlc_parent_expr_t *Expr = new(mlc_parent_expr_t);
+	Expr->compile = ml_delegate_expr_compile;
+	Expr->Source = Child->Source;
+	Expr->StartLine = Child->StartLine;
+	Expr->EndLine = Child->EndLine;
+	Expr->Child = Child;
+	return (mlc_expr_t *)Expr;
 }
 
 typedef struct mlc_scoped_expr_t mlc_scoped_expr_t;
@@ -1652,16 +1667,43 @@ static void ml_scoped_expr_compile(mlc_function_t *Function, mlc_scoped_expr_t *
 
 ML_METHODV("scoped", MLExprT, MLNamesT) {
 //!macro
+//<Expr
+//<Names
+//<Values:any
+//>expr
+// Returns a new expression which wraps :mini:`Expr` with the constant definitions from :mini:`Names` and :mini:`Values`.
 	mlc_expr_t *Child = ((ml_expr_value_t *)Args[0])->Expr;
 	mlc_scoped_expr_t *Expr = new(mlc_scoped_expr_t);
 	Expr->Source = Child->Source;
 	Expr->StartLine = Child->StartLine;
 	Expr->EndLine = Child->EndLine;
-	Expr->compile = (void *)ml_scoped_expr_compile;
+	Expr->compile = ml_scoped_expr_compile;
 	Expr->Child = Child;
 	int I = 2;
 	ML_NAMES_FOREACH(Args[1], Iter) {
 		stringmap_insert(Expr->Names, ml_string_value(Iter->Value), Args[I++]);
+	}
+	return ml_expr_value((mlc_expr_t *)Expr);
+}
+
+ML_METHOD("scoped", MLExprT, MLMapT) {
+//!macro
+//<Expr
+//<Definitions
+//>expr
+// Returns a new expression which wraps :mini:`Expr` with the constant definitions from :mini:`Definitions`.
+	mlc_expr_t *Child = ((ml_expr_value_t *)Args[0])->Expr;
+	mlc_scoped_expr_t *Expr = new(mlc_scoped_expr_t);
+	Expr->Source = Child->Source;
+	Expr->StartLine = Child->StartLine;
+	Expr->EndLine = Child->EndLine;
+	Expr->compile = ml_scoped_expr_compile;
+	Expr->Child = Child;
+	ML_MAP_FOREACH(Args[1], Iter) {
+		if (!ml_is(Iter->Key, MLStringT) || !ml_is(Iter->Value, MLExprT)) {
+			return ml_error("MacroError", "Invalid definition");
+		}
+		stringmap_insert(Expr->Names, ml_string_value(Iter->Key), Iter->Value);
 	}
 	return ml_expr_value((mlc_expr_t *)Expr);
 }
@@ -1699,12 +1741,17 @@ static void ml_subst_expr_compile(mlc_function_t *Function, mlc_subst_expr_t *Ex
 
 ML_METHODV("subst", MLExprT, MLNamesT) {
 //!macro
+//<Expr
+//<Names
+//<Exprs:expr
+//>expr
+// Returns a new expression which wraps substitutes macro references (e.g. :mini:`:$Name`) with expressions from :mini:`Names` and :mini:`Exprs`.
 	mlc_subst_expr_t *Expr = new(mlc_subst_expr_t);
 	mlc_expr_t *Child = ((ml_expr_value_t *)Args[0])->Expr;
 	Expr->Source = Child->Source;
 	Expr->StartLine = Child->StartLine;
 	Expr->EndLine = Child->EndLine;
-	Expr->compile = (void *)ml_subst_expr_compile;
+	Expr->compile = ml_subst_expr_compile;
 	Expr->Child = Child;
 	int I = 2;
 	ML_NAMES_FOREACH(Args[1], Iter) {
@@ -1717,13 +1764,18 @@ ML_METHODV("subst", MLExprT, MLNamesT) {
 
 ML_METHOD("subst", MLExprT, MLListT, MLListT) {
 //!macro
+//<Expr
+//<Names
+//<Exprs
+//>expr
+// Returns a new expression which wraps substitutes macro references (e.g. :mini:`:$Name`) with expressions from :mini:`Names` and :mini:`Exprs`.
 	if (ml_list_length(Args[2]) < ml_list_length(Args[1])) return ml_error("MacroError", "Insufficient arguments to macro");
 	mlc_subst_expr_t *Expr = new(mlc_subst_expr_t);
 	mlc_expr_t *Child = ((ml_expr_value_t *)Args[0])->Expr;
 	Expr->Source = Child->Source;
 	Expr->StartLine = Child->StartLine;
 	Expr->EndLine = Child->EndLine;
-	Expr->compile = (void *)ml_subst_expr_compile;
+	Expr->compile = ml_subst_expr_compile;
 	Expr->Child = Child;
 	ml_list_node_t *Node = ((ml_list_t *)Args[2])->Head;
 	ML_LIST_FOREACH(Args[1], Iter) {
@@ -1740,6 +1792,8 @@ ML_FUNCTION(MLMacro) {
 //@macro
 //<Function:function
 //>macro
+// Returns a new macro which applies :mini:`Function` when compiled.
+// :mini:`Function` should have the following signature: :mini:`Function(Expr/1: expr, Expr/2: expr, ...): expr`.
 	ML_CHECK_ARG_COUNT(1);
 	ml_macro_t *Macro = new(ml_macro_t);
 	Macro->Type = MLMacroT;
@@ -1749,6 +1803,7 @@ ML_FUNCTION(MLMacro) {
 
 ML_TYPE(MLMacroT, (), "macro",
 //!macro
+// A macro.
 	.Constructor = (ml_value_t *)MLMacro
 );
 
@@ -2323,13 +2378,14 @@ ML_FUNCTION(MLIdentExpr) {
 //@macro::ident
 //<Name:string
 //>expr
+// Returns a new identifier expression.
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	mlc_ident_expr_t *Expr = new(mlc_ident_expr_t);
+	Expr->compile = ml_ident_expr_compile;
 	Expr->Source = "<macro>";
 	Expr->StartLine = 1;
 	Expr->EndLine = 1;
-	Expr->compile = (void *)ml_ident_expr_compile;
 	Expr->Ident = ml_string_value(Args[0]);
 	return ml_expr_value((mlc_expr_t *)Expr);
 }
@@ -2339,23 +2395,161 @@ ML_FUNCTION(MLValueExpr) {
 //@macro::value
 //<Value:any
 //>expr
+// Returns a new value expression.
 	ML_CHECK_ARG_COUNT(1);
 	if (Args[0] == MLNil) {
 		mlc_expr_t *Expr = new(mlc_expr_t);
+		Expr->compile = ml_nil_expr_compile;
 		Expr->Source = "<macro>";
 		Expr->StartLine = 1;
 		Expr->EndLine = 1;
-		Expr->compile = (void *)ml_nil_expr_compile;
 		return ml_expr_value(Expr);
 	} else {
 		mlc_value_expr_t *Expr = new(mlc_value_expr_t);
+		Expr->compile = ml_value_expr_compile;
 		Expr->Source = "<macro>";
 		Expr->StartLine = 1;
 		Expr->EndLine = 1;
-		Expr->compile = (void *)ml_value_expr_compile;
 		Expr->Value = Args[0];
 		return ml_expr_value((mlc_expr_t *)Expr);
 	}
+}
+
+typedef struct {
+	ml_type_t *Type;
+	mlc_block_expr_t *Expr;
+	mlc_expr_t **ExprSlot;
+	mlc_local_t **VarsSlot;
+	mlc_local_t **LetsSlot;
+	mlc_local_t **DefsSlot;
+} mlc_block_builder_t;
+
+ML_TYPE(MLBlockBuilderT, (), "block-builder");
+//!macro
+// Utility object for building a block expression.
+
+ML_METHOD("var", MLBlockBuilderT, MLStringT) {
+//!macro
+//<Builder
+//<Name
+//>blockbuilder
+// Adds a :mini:`var`-declaration to a block.
+	mlc_block_builder_t *Builder = (mlc_block_builder_t *)Args[0];
+	mlc_local_t *Local = Builder->VarsSlot[0] = new(mlc_local_t);
+	Local->Line = 1;
+	Local->Ident = ml_string_value(Args[1]);
+	Builder->VarsSlot = &Local->Next;
+	//TODO: add support for types
+	return Args[0];
+}
+
+ML_METHOD("var", MLBlockBuilderT, MLStringT, MLExprT) {
+//!macro
+//<Builder
+//<Name
+//<Expr
+//>blockbuilder
+// Adds a :mini:`var`-declaration to a block with initializer :mini:`Expr`.
+	mlc_block_builder_t *Builder = (mlc_block_builder_t *)Args[0];
+	mlc_local_t *Local = Builder->VarsSlot[0] = new(mlc_local_t);
+	Local->Line = 1;
+	Local->Ident = ml_string_value(Args[1]);
+	Builder->VarsSlot = &Local->Next;
+	//TODO: add support for types
+	mlc_local_expr_t *LocalExpr = new(mlc_local_expr_t);
+	LocalExpr->compile = ml_var_expr_compile;
+	LocalExpr->Source = "<macro>";
+	LocalExpr->StartLine = 1;
+	LocalExpr->EndLine = 1;
+	LocalExpr->Local = Local;
+	LocalExpr->Child = ml_delegate_expr(((ml_expr_value_t *)Args[2])->Expr);
+	Builder->ExprSlot[0] = (mlc_expr_t *)LocalExpr;
+	Builder->ExprSlot = &LocalExpr->Next;
+	return Args[0];
+}
+
+ML_METHOD("let", MLBlockBuilderT, MLStringT, MLExprT) {
+//!macro
+//<Builder
+//<Name
+//<Expr
+//>blockbuilder
+// Adds a :mini:`let`-declaration to a block with initializer :mini:`Expr`.
+	mlc_block_builder_t *Builder = (mlc_block_builder_t *)Args[0];
+	mlc_local_t *Local = Builder->LetsSlot[0] = new(mlc_local_t);
+	Local->Line = 1;
+	Local->Ident = ml_string_value(Args[1]);
+	Builder->LetsSlot = &Local->Next;
+	//TODO: add support for types
+	mlc_local_expr_t *LocalExpr = new(mlc_local_expr_t);
+	LocalExpr->compile = ml_let_expr_compile;
+	LocalExpr->Source = "<macro>";
+	LocalExpr->StartLine = 1;
+	LocalExpr->EndLine = 1;
+	LocalExpr->Local = Local;
+	LocalExpr->Child = ml_delegate_expr(((ml_expr_value_t *)Args[2])->Expr);
+	Builder->ExprSlot[0] = (mlc_expr_t *)LocalExpr;
+	Builder->ExprSlot = &LocalExpr->Next;
+	return Args[0];
+}
+
+ML_METHOD("do", MLBlockBuilderT, MLExprT) {
+//!macro
+//<Builder
+//<Expr
+//>blockbuilder
+// Adds the expression :mini:`Expr` to a block.
+	mlc_block_builder_t *Builder = (mlc_block_builder_t *)Args[0];
+	ml_expr_value_t *Expr = (ml_expr_value_t *)Args[1];
+	mlc_expr_t *Delegate = ml_delegate_expr(Expr->Expr);
+	Builder->ExprSlot[0] = Delegate;
+	Builder->ExprSlot = &Delegate->Next;
+	return Args[0];
+}
+
+ML_METHOD("expr", MLBlockBuilderT) {
+//!macro
+//<Builder
+//>expr
+// Finishes a block and returns it as an expression.
+	mlc_block_builder_t *Builder = (mlc_block_builder_t *)Args[0];
+	mlc_block_expr_t *Expr = Builder->Expr;
+	int Index = 0, First = 0;
+	for (mlc_local_t *Local = Expr->Vars; Local; Local = Local->Next) {
+		Local->Index = Index++;
+	}
+	Expr->NumVars = Index;
+	First = Index;
+	for (mlc_local_t *Local = Expr->Lets; Local; Local = Local->Next) {
+		Local->Index = Index++;
+	}
+	Expr->NumLets = Index - First;
+	First = Index;
+	for (mlc_local_t *Local = Expr->Defs; Local; Local = Local->Next) {
+		Local->Index = Index++;
+	}
+	Expr->NumDefs = Index - First;
+	return ml_expr_value((mlc_expr_t *)Expr);
+}
+
+ML_FUNCTION(MLBlockBuilder) {
+//!macro
+//@macro::block
+//>blockbuilder
+// Returns a new block builder.
+	mlc_block_expr_t *Expr = new(mlc_block_expr_t);
+	Expr->compile = ml_block_expr_compile;
+	Expr->Source = "<macro>";
+	Expr->StartLine = 1;
+	Expr->EndLine = 1;
+	mlc_block_builder_t *Builder = new(mlc_block_builder_t);
+	Builder->Type = MLBlockBuilderT;
+	Builder->Expr = Expr;
+	Builder->ExprSlot = &Expr->Child;
+	Builder->VarsSlot = &Expr->Vars;
+	Builder->LetsSlot = &Expr->Lets;
+	Builder->DefsSlot = &Expr->Defs;
+	return (ml_value_t *)Builder;
 }
 
 static void ml_define_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Expr, int Flags) {
@@ -3786,8 +3980,8 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 		if (ml_parse(Parser, MLT_COMMA)) {
 			ML_EXPR(CallExpr, parent_value, const_call);
 			CallExpr->Value = ml_method("subst");
-			CallExpr->Child = ValueExpr;
-			ml_accept_arguments(Parser, MLT_RIGHT_BRACE, &ValueExpr->Next);
+			CallExpr->Child = Expr;
+			ml_accept_arguments(Parser, MLT_RIGHT_BRACE, &Expr->Next);
 			Expr = ML_EXPR_END(CallExpr);
 		} else {
 			ml_accept(Parser, MLT_RIGHT_BRACE);
@@ -5115,6 +5309,7 @@ void ml_compiler_init() {
 	stringmap_insert(MLCompilerT->Exports, "switch", MLCompilerSwitch);
 	stringmap_insert(MLMacroT->Exports, "ident", MLIdentExpr);
 	stringmap_insert(MLMacroT->Exports, "value", MLValueExpr);
+	stringmap_insert(MLMacroT->Exports, "block", MLBlockBuilder);
 	stringmap_insert(StringFns, "r", ml_regex);
 	stringmap_insert(StringFns, "ri", ml_regexi);
 }
