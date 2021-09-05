@@ -721,7 +721,33 @@ Methods with only symbol characters or that are valid identifiers can be invoked
 Macros
 ~~~~~~
 
-*Minilang* has optional support for *macros*, which allow code to be generated or modified during compilation. See :doc:`/features/macros` for more information.
+*Minilang* has optional support for *macros*, which allow code to be generated or modified during compilation.
+
+When the compiler encounters any function call in code :mini:`Func(Arg₁, Arg₂, ...)` (here :mini:`Func` and :mini:`Argᵢ` are expressions), it checks if :mini:`Func` can be evaluated to a constant. If :mini:`Func` can be evaluated to a constant, and that constant is a *macro* then it applies the macro to :mini:`Arg₁, Arg₂, ...` as expression values. The macro must return another expression value which the compiler then compiles in place of the original function call.
+
+Expression values can be constructed using the syntax :mini:`:{Expr, Name₁ is Expr₁, Name₂ is Expr₂, ...}`. The optional :mini:`Nameᵢ is Exprᵢ` pairs define named expressions which can be referenced in :mini:`Expr` as :mini:`:$Nameᵢ`.
+
+Macros can be created using the :mini:`macro` constructor, the example below uses the compound declaration form described above. Note that :mini:`macro` expects a function, hence the :mini:`;` in the definition of :mini:`test`.
+
+.. code-block:: mini
+
+   macro: test(; Expr) :{do
+      let X := 10
+      let Y := "Hello world"
+      :$Expr
+   end, Expr is Expr}
+   
+   test(print('X = {X}, Y = {Y}\n'))
+   
+   :> expands to
+  
+   do
+      let X := 10
+      let Y := "Hello world"
+      print('X = {X}, Y = {Y}\n')
+   end
+
+See :doc:`/features/macros` for more information.
 
 Values
 ------
