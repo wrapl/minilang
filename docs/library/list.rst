@@ -23,6 +23,10 @@ list
    Returns a list of all of the values produced by :mini:`Sequence`.
 
 
+:mini:`meth :grow(List: list, Sequence: sequence): list`
+   Pushes of all of the values produced by :mini:`Sequence` onto :mini:`List` and returns :mini:`List`.
+
+
 :mini:`meth :count(List: list): integer`
    Returns the length of :mini:`List`
 

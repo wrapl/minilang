@@ -1,9 +1,6 @@
 compiler
 ========
 
-:mini:`type macro`
-   *TBD*
-
 :mini:`type compilerfunction < state`
    *TBD*
 

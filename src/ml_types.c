@@ -24,10 +24,6 @@
 #include <regex.h>
 #endif
 
-#ifdef ML_THREADSAFE
-#include <pthread.h>
-#endif
-
 //!type
 
 ML_METHOD_DECL(IterateMethod, "iterate");
@@ -239,6 +235,23 @@ void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent) {
 	}
 }
 
+#ifdef ML_THREADSAFE
+
+#include <stdatomic.h>
+
+static volatile atomic_flag MLTypedFnLock = ATOMIC_FLAG_INIT;
+
+#define ML_TYPED_FN_LOCK() while (atomic_flag_test_and_set(&MLTypedFnLock))
+
+#define ML_TYPED_FN_UNLOCK() atomic_flag_clear(&MLTypedFnLock)
+
+#else
+
+#define ML_TYPED_FN_LOCK() {}
+#define ML_TYPED_FN_UNLOCK() {}
+
+#endif
+
 static void *__attribute__ ((noinline)) ml_typed_fn_get_parent(ml_type_t *Type, void *TypedFn) {
 	void *BestFn = NULL;
 	int BestRank = 0;
@@ -252,20 +265,19 @@ static void *__attribute__ ((noinline)) ml_typed_fn_get_parent(ml_type_t *Type, 
 			}
 		}
 	}
-	ML_RUNTIME_LOCK();
+	ML_TYPED_FN_LOCK();
 	inthash_insert(Type->TypedFns, (uintptr_t)TypedFn, BestFn);
-	ML_RUNTIME_UNLOCK();
+	ML_TYPED_FN_UNLOCK();
 	return BestFn;
 }
 
 inline void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn) {
 #ifdef ML_GENERICS
-	//if (Type->Type == MLGenericTypeT) return ml_typed_fn_get(ml_generic_type_args(Type)[0], TypedFn);
 	while (Type->Type == MLGenericTypeT) Type = ml_generic_type_args(Type)[0];
 #endif
-	ML_RUNTIME_LOCK();
+	ML_TYPED_FN_LOCK();
 	inthash_result_t Result = inthash_search2(Type->TypedFns, (uintptr_t)TypedFn);
-	ML_RUNTIME_UNLOCK();
+	ML_TYPED_FN_UNLOCK();
 	if (Result.Present) return Result.Value;
 	return ml_typed_fn_get_parent(Type, TypedFn);
 }

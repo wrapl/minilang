@@ -151,7 +151,6 @@
       <keyword>on</keyword>
       <keyword>when</keyword>
       <keyword>debug</keyword>
-      <keyword>macro</keyword>
       <keyword>switch</keyword>
       <keyword>case</keyword>
     </context>
@@ -185,7 +184,6 @@
       <keyword>weave</keyword>
       <keyword>swap</keyword>
       <keyword>key</keyword>
-      <keyword>dup</keyword>
       <keyword>tasks</keyword>
       <keyword>parallel</keyword>
       <keyword>buffered</keyword>
@@ -196,6 +194,8 @@
       <keyword>export</keyword>
       <keyword>exchange</keyword>
       <keyword>replace</keyword>
+      <keyword>skip</keyword>
+      <keyword>limit</keyword>
     </context>
     <context id="types" style-ref="type">
       <keyword>class</keyword>
@@ -222,6 +222,7 @@
       <keyword>file</keyword>
       <keyword>enum</keyword>
       <keyword>flags</keyword>
+      <keyword>macro</keyword>
     </context>
     <context id="operators" style-ref="operator" extend-parent="false">
       <match>[-.:#~^@;,/$%|\=\+\*\!\?&amp;&lt;&gt;\[\]\\{}\()]</match>

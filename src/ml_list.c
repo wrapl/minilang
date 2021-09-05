@@ -141,6 +141,19 @@ ML_METHODVX(MLListT, MLSequenceT) {
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
+ML_METHODVX("grow", MLListT, MLSequenceT) {
+//<List
+//<Sequence
+//>list
+// Pushes of all of the values produced by :mini:`Sequence` onto :mini:`List` and returns :mini:`List`.
+	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)list_iterate;
+	State->Base.Context = Caller->Context;
+	State->Values[0] = Args[0];
+	return ml_iterate((ml_state_t *)State, ml_chained(Count - 1, Args + 1));
+}
+
 ml_value_t *ml_list_from_array(ml_value_t **Values, int Length) {
 	ml_value_t *List = ml_list();
 	for (int I = 0; I < Length; ++I) ml_list_put(List, Values[I]);

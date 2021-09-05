@@ -27,7 +27,6 @@ typedef enum ml_token_t {
 	MLT_SWITCH,
 	MLT_CASE,
 	MLT_FUN,
-	MLT_MACRO,
 	MLT_RET,
 	MLT_SUSP,
 	MLT_DEBUG,
@@ -61,6 +60,7 @@ typedef enum ml_token_t {
 	MLT_EXPR,
 	MLT_INLINE,
 	MLT_EXPAND,
+	MLT_EXPR_VALUE,
 	MLT_OPERATOR,
 	MLT_METHOD
 } ml_token_t;
@@ -102,7 +102,6 @@ struct mlc_define_t {
 	const char *Ident;
 	mlc_expr_t *Expr;
 	long Hash;
-	ml_source_t Source;
 };
 
 typedef enum {
@@ -296,10 +295,8 @@ typedef struct ml_macro_t ml_macro_t;
 
 struct ml_macro_t {
 	ml_type_t *Type;
-	void (*apply)(mlc_function_t *, ml_macro_t *, mlc_expr_t *, mlc_expr_t *, int);
+	ml_value_t *Function;
 };
-
-extern ml_type_t MLMacroT[];
 
 #define MLCF_PUSH 1
 #define MLCF_LOCAL 2

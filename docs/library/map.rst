@@ -27,6 +27,10 @@ map
    Returns a map of all the key and value pairs produced by :mini:`Sequence`.
 
 
+:mini:`meth :grow(Map: map, Sequence: sequence): map`
+   Adds of all the key and value pairs produced by :mini:`Sequence` to :mini:`Map` and returns :mini:`Map`.
+
+
 :mini:`meth :size(Map: map): integer`
    Returns the number of entries in :mini:`Map`.
 

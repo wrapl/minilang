@@ -679,7 +679,7 @@ Methods behave as *atoms*, that is two methods with the same characters internal
    +
    <>
 
-Methods provide type-dependant function calls. Each method is effectively a mapping from lists of types to functions. When called with arguments, a method looks through its entries for the best match based on the types of *all* of the arguments and calls the corresponding function.
+Methods provide type-dependant function calls. Each method is effectively a mapping from lists of types to functions. When called with arguments, a method looks through its entries for the best match based on the types of *all* of the arguments and calls the corresponding function. More information on how methods work can be found in :doc:`/features/methods`.
 
 .. code-block:: mini
 
@@ -717,6 +717,37 @@ Methods with only symbol characters or that are valid identifiers can be invoked
 .. important::
 
    *Minilang* allows any combination of symbol characters (listed above) as well as any identifier to be used as an infix operator. As a result, there is no operator precedence in *Minilang*. Hence, the parentheses in the last example are required; the expression :mini:`A + B * C` will be evaluated as :mini:`(A + B) * C`.
+
+Macros
+~~~~~~
+
+*Minilang* has optional support for *macros*, which allow code to be generated or modified during compilation.
+
+When the compiler encounters any function call in code :mini:`Func(Arg₁, Arg₂, ...)` (here :mini:`Func` and :mini:`Argᵢ` are expressions), it checks if :mini:`Func` can be evaluated to a constant. If :mini:`Func` can be evaluated to a constant, and that constant is a *macro* then it applies the macro to :mini:`Arg₁, Arg₂, ...` as expression values. The macro must return another expression value which the compiler then compiles in place of the original function call.
+
+Expression values can be constructed using the syntax :mini:`:{Expr, Name₁ is Expr₁, Name₂ is Expr₂, ...}`. The optional :mini:`Nameᵢ is Exprᵢ` pairs define named expressions which can be referenced in :mini:`Expr` as :mini:`:$Nameᵢ`.
+
+Macros can be created using the :mini:`macro` constructor, the example below uses the compound declaration form described above. Note that :mini:`macro` expects a function, hence the :mini:`;` in the definition of :mini:`test`.
+
+.. code-block:: mini
+
+   macro: test(; Expr) :{do
+      let X := 10
+      let Y := "Hello world"
+      :$Expr
+   end, Expr is Expr}
+   
+   test(print('X = {X}, Y = {Y}\n'))
+   
+   :> expands to
+  
+   do
+      let X := 10
+      let Y := "Hello world"
+      print('X = {X}, Y = {Y}\n')
+   end
+
+See :doc:`/features/macros` for more information.
 
 Values
 ------
