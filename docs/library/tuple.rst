@@ -5,7 +5,7 @@ tuple
    Returns a tuple of values :mini:`Value₁, ..., Valueₙ`.
 
 
-:mini:`type tuple`
+:mini:`type tuple < sequence`
    An immutable tuple of values.
 
 
@@ -18,6 +18,9 @@ tuple
 
    Indexing starts at :mini:`1`. Negative indices count from the end, with :mini:`-1` returning the last element.
 
+
+:mini:`type tupleiter`
+   *TBD*
 
 :mini:`meth string(Tuple: tuple): string`
    Returns a string representation of :mini:`Tuple`.

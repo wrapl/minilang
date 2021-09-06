@@ -1253,7 +1253,7 @@ ML_FUNCTION(MLTuple) {
 	return Tuple;
 }
 
-ML_TYPE(MLTupleT, (), "tuple",
+ML_TYPE(MLTupleT, (MLSequenceT), "tuple",
 //!tuple
 // An immutable tuple of values.
 	.hash = (void *)ml_tuple_hash,
@@ -1315,6 +1315,38 @@ ML_METHOD("[]", MLTupleT, MLIntegerT) {
 	if (--Index < 0) Index += Tuple->Size + 1;
 	if (Index < 0 || Index >= Tuple->Size) return ml_error("RangeError", "Tuple index out of bounds");
 	return Tuple->Values[Index];
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t **Values;
+	int Size, Index;
+} ml_tuple_iter_t;
+
+ML_TYPE(MLTupleIterT, (), "tuple-iter");
+
+static void ML_TYPED_FN(ml_iter_next, MLTupleIterT, ml_state_t *Caller, ml_tuple_iter_t *Iter) {
+	if (Iter->Index == Iter->Size) ML_RETURN(MLNil);
+	++Iter->Index;
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLTupleIterT, ml_state_t *Caller, ml_tuple_iter_t *Iter) {
+	ML_RETURN(ml_integer(Iter->Index));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLTupleIterT, ml_state_t *Caller, ml_tuple_iter_t *Iter) {
+	ML_RETURN(Iter->Values[Iter->Index - 1]);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLTupleT, ml_state_t *Caller, ml_tuple_t *Tuple) {
+	if (!Tuple->Size) ML_RETURN(MLNil);
+	ml_tuple_iter_t *Iter = new(ml_tuple_iter_t);
+	Iter->Type = MLTupleIterT;
+	Iter->Size = Tuple->Size;
+	Iter->Index = 1;
+	Iter->Values = Tuple->Values;
+	ML_RETURN(Iter);
 }
 
 ML_METHOD(MLStringT, MLTupleT) {
@@ -2824,6 +2856,9 @@ void ml_init() {
 #endif
 	GC_INIT();
 #include "ml_types_init.c"
+#ifdef ML_GENERICS
+	ml_type_add_rule(MLTupleT, MLSequenceT, MLIntegerT, MLAnyT, NULL);
+#endif
 	stringmap_insert(MLTypeT->Exports, "switch", MLTypeSwitch);
 	stringmap_insert(MLIntegerT->Exports, "range", MLIntegerRangeT);
 	stringmap_insert(MLIntegerT->Exports, "switch", MLIntegerSwitch);

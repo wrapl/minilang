@@ -182,8 +182,11 @@
       <keyword>zip</keyword>
       <keyword>pair</keyword>
       <keyword>weave</keyword>
+      <keyword>fold</keyword>
+      <keyword>unfold</keyword>
       <keyword>swap</keyword>
       <keyword>key</keyword>
+      <keyword>batch</keyword>
       <keyword>tasks</keyword>
       <keyword>parallel</keyword>
       <keyword>buffered</keyword>

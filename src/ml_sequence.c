@@ -2039,6 +2039,154 @@ ML_FUNCTION(Weave) {
 	return (ml_value_t *)Weaved;
 }
 
+typedef struct ml_folded_t {
+	ml_type_t *Type;
+	ml_value_t *Iter;
+} ml_folded_t;
+
+ML_TYPE(MLFoldedT, (MLSequenceT), "folded");
+//!internal
+
+typedef struct ml_folded_state_t {
+	ml_state_t Base;
+	ml_value_t *Iter;
+	ml_value_t *Key;
+	ml_value_t *Value;
+} ml_folded_state_t;
+
+ML_TYPE(MLFoldedStateT, (), "folded-state");
+//!internal
+
+static void folded_value(ml_folded_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Value = Value;
+	ml_state_t *Caller = State->Base.Caller;
+	ML_RETURN(State);
+}
+
+static void folded_iterate_value(ml_folded_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (void *)folded_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+static void folded_key(ml_folded_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Key = Value;
+	State->Base.run = (void *)folded_iterate_value;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void folded_iterate_key(ml_folded_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (void *)folded_key;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLFoldedT, ml_state_t *Caller, ml_folded_t *Folded) {
+	ml_folded_state_t *State = new(ml_folded_state_t);
+	State->Base.Type = MLFoldedStateT;
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)folded_iterate_key;
+	State->Base.Context = Caller->Context;
+	return ml_iterate((ml_state_t *)State, Folded->Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLFoldedStateT, ml_state_t *Caller, ml_folded_state_t *State) {
+	ML_RETURN(State->Key);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLFoldedStateT, ml_state_t *Caller, ml_folded_state_t *State) {
+	ML_RETURN(State->Value);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLFoldedStateT, ml_state_t *Caller, ml_folded_state_t *State) {
+	State->Base.run = (void *)folded_iterate_key;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+ML_FUNCTION(Fold) {
+//@fold
+//<Sequence:sequence
+//>sequence
+// Returns a new sequence that treats alternating values produced by :mini:`Sequence` as keys and values respectively.
+	ML_CHECK_ARG_COUNT(1);
+	ml_folded_t *Folded = new(ml_folded_t);
+	Folded->Type = MLFoldedT;
+	Folded->Iter = ml_chained(Count, Args);
+	return (ml_value_t *)Folded;
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Iter;
+} ml_unfolded_t;
+
+ML_TYPE(MLUnfoldedT, (MLSequenceT), "unfolded");
+//!internal
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Iter;
+	int Index;
+} ml_unfolded_state_t;
+
+ML_TYPE(MLUnfoldedStateT, (), "unfolded-state");
+//!internal
+
+static void unfolded_iterate(ml_unfolded_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Iter = Value;
+	ML_CONTINUE(State->Base.Caller, State);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLUnfoldedT, ml_state_t *Caller, ml_unfolded_t *Unfolded) {
+	ml_unfolded_state_t *State = new(ml_unfolded_state_t);
+	State->Base.Type = MLUnfoldedStateT;
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)unfolded_iterate;
+	State->Base.Context = Caller->Context;
+	++State->Index;
+	return ml_iterate((ml_state_t *)State, Unfolded->Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLUnfoldedStateT, ml_state_t *Caller, ml_unfolded_state_t *State) {
+	ML_RETURN(ml_integer(State->Index));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLUnfoldedStateT, ml_state_t *Caller, ml_unfolded_state_t *State) {
+	if (State->Index % 2) {
+		return ml_iter_key(Caller, State->Iter);
+	} else {
+		return ml_iter_value(Caller, State->Iter);
+	}
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLUnfoldedStateT, ml_state_t *Caller, ml_unfolded_state_t *State) {
+	int Index = ++State->Index;
+	if (Index % 2) {
+		return ml_iter_next((ml_state_t *)State, State->Iter);
+	} else {
+		ML_RETURN(State);
+	}
+}
+
+ML_FUNCTION(Unfold) {
+//@unfold
+//<Sequence:sequence
+//>sequence
+// Returns a new sequence that treats produces alternatively the keys and values produced by :mini:`Sequence`.
+	ML_CHECK_ARG_COUNT(1);
+	ml_unfolded_t *Unfolded = new(ml_unfolded_t);
+	Unfolded->Type = MLUnfoldedT;
+	Unfolded->Iter = ml_chained(Count, Args);
+	return (ml_value_t *)Unfolded;
+}
+
+
 typedef struct {
 	ml_type_t *Type;
 	ml_value_t *Value;
@@ -2153,6 +2301,93 @@ ML_FUNCTION(Key) {
 	return (ml_value_t *)Key;
 }
 
+typedef struct ml_batched_t {
+	ml_type_t *Type;
+	ml_value_t *Iter, *Function;
+	int Size;
+} ml_batched_t;
+
+ML_TYPE(MLBatchedT, (MLSequenceT), "batched");
+//!internal
+
+typedef struct ml_batched_state_t {
+	ml_state_t Base;
+	ml_value_t *Iter, *Function, *Value;
+	int Size, Index, Iteration;
+	ml_value_t *Args[];
+} ml_batched_state_t;
+
+ML_TYPE(MLBatchedStateT, (), "batched-state");
+//!internal
+
+static void batched_iterate(ml_batched_state_t *State, ml_value_t *Value);
+
+static void batched_iter_value(ml_batched_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Args[State->Index] = Value;
+	if (++State->Index == State->Size) {
+		ml_state_t *Caller = State->Base.Caller;
+		ML_RETURN(State);
+	} else {
+		State->Base.run = (void *)batched_iterate;
+		return ml_iter_next((ml_state_t *)State, State->Iter);
+	}
+}
+
+static void batched_iterate(ml_batched_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) {
+		if (State->Index) ML_CONTINUE(State->Base.Caller, State);
+		ML_CONTINUE(State->Base.Caller, MLNil);
+	}
+	State->Base.run = (void *)batched_iter_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLBatchedT, ml_state_t *Caller, ml_batched_t *Batched) {
+	ml_batched_state_t *State = xnew(ml_batched_state_t, Batched->Size, ml_value_t *);
+	State->Base.Type = MLBatchedStateT;
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)batched_iterate;
+	State->Base.Context = Caller->Context;
+	State->Function = Batched->Function;
+	State->Size = Batched->Size;
+	State->Iteration = 1;
+	return ml_iterate((ml_state_t *)State, Batched->Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLBatchedStateT, ml_state_t *Caller, ml_batched_state_t *State) {
+	ML_RETURN(ml_integer(State->Iteration));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLBatchedStateT, ml_state_t *Caller, ml_batched_state_t *State) {
+	return ml_call(Caller, State->Function, State->Index, State->Args);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLBatchedStateT, ml_state_t *Caller, ml_batched_state_t *State) {
+	State->Base.Caller = Caller;
+	if (State->Index != State->Size) ML_RETURN(MLNil);
+	State->Index = 0;
+	State->Base.run = (void *)batched_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+ML_FUNCTION(Batch) {
+//@batch
+//<Sequence:sequence
+//<Size:integer
+//<Function:function
+//>sequence
+// Returns a new sequence that calls :mini:`Function` with each batch of :mini:`Size` values produced by :mini:`Sequence` and produces the results.
+	ML_CHECK_ARG_COUNT(3);
+	ml_batched_t *Batched = new(ml_batched_t);
+	Batched->Type = MLBatchedT;
+	Batched->Iter = Args[0];
+	Batched->Size = ml_integer_value(Args[1]);
+	Batched->Function = Args[2];
+	return (ml_value_t *)Batched;
+}
+
 void ml_sequence_init(stringmap_t *Globals) {
 	MLFunctionT->Constructor = (ml_value_t *)MLChained;
 	MLSequenceT->Constructor = (ml_value_t *)MLChained;
@@ -2184,7 +2419,10 @@ void ml_sequence_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "zip", Zip);
 		stringmap_insert(Globals, "pair", Pair);
 		stringmap_insert(Globals, "weave", Weave);
+		stringmap_insert(Globals, "fold", Fold);
+		stringmap_insert(Globals, "unfold", Unfold);
 		stringmap_insert(Globals, "swap", Swap);
 		stringmap_insert(Globals, "key", Key);
+		stringmap_insert(Globals, "batch", Batch);
 	}
 }

@@ -154,6 +154,18 @@ internal
 :mini:`type weavedstate`
    *TBD*
 
+:mini:`type folded < sequence`
+   *TBD*
+
+:mini:`type foldedstate`
+   *TBD*
+
+:mini:`type unfolded < sequence`
+   *TBD*
+
+:mini:`type unfoldedstate`
+   *TBD*
+
 :mini:`type swapped < sequence`
    *TBD*
 
@@ -164,6 +176,12 @@ internal
    *TBD*
 
 :mini:`type keystate`
+   *TBD*
+
+:mini:`type batched < sequence`
+   *TBD*
+
+:mini:`type batchedstate`
    *TBD*
 
 :mini:`type field`
