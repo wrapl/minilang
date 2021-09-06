@@ -174,11 +174,23 @@ sequence
    The sequence stops produces values when any of the :mini:`Sequenceᵢ` stops.
 
 
+:mini:`fun fold(Sequence: sequence): sequence`
+   Returns a new sequence that treats alternating values produced by :mini:`Sequence` as keys and values respectively.
+
+
+:mini:`fun unfold(Sequence: sequence): sequence`
+   Returns a new sequence that treats produces alternatively the keys and values produced by :mini:`Sequence`.
+
+
 :mini:`fun swap(Sequence: sequence)`
    Returns a new sequence which swaps the keys and values produced by :mini:`Sequence`.
 
 
 :mini:`fun key(Sequence: sequence)`
    Returns a new sequence which produces the keys of :mini:`Sequence`.
+
+
+:mini:`fun batch(Sequence: sequence, Size: integer, Function: function): sequence`
+   Returns a new sequence that calls :mini:`Function` with each batch of :mini:`Size` values produced by :mini:`Sequence` and produces the results.
 
 
