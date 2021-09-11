@@ -103,6 +103,17 @@ ML_METHOD(MLStringT, MLBufferT) {
 	return ml_string_format("#%" PRIxPTR ":%ld", (uintptr_t)Buffer->Value, Buffer->Length);
 }
 
+ML_METHOD(MLStringT, MLBufferT, MLIntegerT) {
+//!buffer
+	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
+	size_t Length = ml_integer_value(Args[1]);
+	if (Length > Buffer->Length) return ml_error("ValueError", "Length larger than buffer");
+	char *String = snew(Length + 1);
+	memcpy(String, Buffer->Value, Length);
+	String[Length] = 0;
+	return ml_string(String, Length);
+}
+
 ml_value_t *ml_string(const char *Value, int Length) {
 	ml_string_t *String = new(ml_string_t);
 	String->Type = MLStringT;

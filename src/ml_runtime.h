@@ -201,6 +201,7 @@ ml_decl_t *ml_debugger_decls(ml_state_t *State);
 ml_value_t *ml_debugger_local(ml_state_t *State, int Index);
 
 extern ml_cfunctionx_t MLBreak[];
+extern ml_cfunction_t MLDebugger[];
 
 // Preemption //
 

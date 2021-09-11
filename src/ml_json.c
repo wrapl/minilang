@@ -6,21 +6,23 @@
 
 #define ML_JSON_STACK_SIZE 10
 
-typedef struct ml_json_stack_t ml_json_stack_t;
+typedef struct json_stack_t json_stack_t;
 
-struct ml_json_stack_t {
+struct json_stack_t {
 	ml_value_t *Values[ML_JSON_STACK_SIZE];
-	ml_json_stack_t *Prev;
+	json_stack_t *Prev;
 	int Index;
 };
 
 typedef struct {
+	void (*Callback)(void *Data, ml_value_t *Value);
+	void *Data;
 	ml_value_t *Key, *Value;
-	ml_json_stack_t *Stack;
-	ml_json_stack_t Stack0;
-} ml_json_decoder_t;
+	json_stack_t *Stack;
+	json_stack_t Stack0;
+} json_decoder_t;
 
-static int value_handler(ml_json_decoder_t *Decoder, ml_value_t *Value) {
+static int value_handler(json_decoder_t *Decoder, ml_value_t *Value) {
 	if (Decoder->Value) {
 		if (Decoder->Key) {
 			ml_map_insert(Decoder->Value, Decoder->Key, Value);
@@ -29,32 +31,32 @@ static int value_handler(ml_json_decoder_t *Decoder, ml_value_t *Value) {
 			ml_list_put(Decoder->Value, Value);
 		}
 	} else {
-		Decoder->Value = Value;
+		Decoder->Callback(Decoder->Data, Value);
 	}
 	return 1;
 }
 
-static int null_handler(ml_json_decoder_t *Decoder) {
+static int null_handler(json_decoder_t *Decoder) {
 	return value_handler(Decoder, MLNil);
 }
 
-static int boolean_handler(ml_json_decoder_t *Decoder, int Value) {
+static int boolean_handler(json_decoder_t *Decoder, int Value) {
 	return value_handler(Decoder, ml_boolean(Value));
 }
 
-static int integer_handler(ml_json_decoder_t *Decoder, long long Value) {
+static int integer_handler(json_decoder_t *Decoder, long long Value) {
 	return value_handler(Decoder, ml_integer(Value));
 }
 
-static int real_handler(ml_json_decoder_t *Decoder, double Value) {
+static int real_handler(json_decoder_t *Decoder, double Value) {
 	return value_handler(Decoder, ml_real(Value));
 }
 
-static int string_handler(ml_json_decoder_t *Decoder, const char *Value, size_t Length) {
+static int string_handler(json_decoder_t *Decoder, const char *Value, size_t Length) {
 	return value_handler(Decoder, ml_string(Value, Length));
 }
 
-static int push_value(ml_json_decoder_t *Decoder, ml_value_t *Value) {
+static int push_value(json_decoder_t *Decoder, ml_value_t *Value) {
 	if (Decoder->Value) {
 		if (Decoder->Key) {
 			ml_map_insert(Decoder->Value, Decoder->Key, Value);
@@ -62,48 +64,53 @@ static int push_value(ml_json_decoder_t *Decoder, ml_value_t *Value) {
 		} else {
 			ml_list_put(Decoder->Value, Value);
 		}
-		ml_json_stack_t *Stack = Decoder->Stack;
-		if (Stack->Index == ML_JSON_STACK_SIZE) {
-			ml_json_stack_t *NewStack = new(ml_json_stack_t);
-			NewStack->Prev = Stack;
-			Stack = Decoder->Stack = NewStack;
-		}
-		Stack->Values[Stack->Index++] = Decoder->Value;
 	}
+	json_stack_t *Stack = Decoder->Stack;
+	if (Stack->Index == ML_JSON_STACK_SIZE) {
+		json_stack_t *NewStack = new(json_stack_t);
+		NewStack->Prev = Stack;
+		Stack = Decoder->Stack = NewStack;
+	}
+	Stack->Values[Stack->Index] = Decoder->Value;
+	++Stack->Index;
 	Decoder->Value = Value;
 	return 1;
 }
 
-static int pop_value(ml_json_decoder_t *Decoder) {
-	ml_json_stack_t *Stack = Decoder->Stack;
+static int pop_value(json_decoder_t *Decoder) {
+	json_stack_t *Stack = Decoder->Stack;
 	if (Stack->Index == 0) {
 		if (!Stack->Prev) return 1;
 		Stack = Decoder->Stack = Stack->Prev;
 	}
+	ml_value_t *Value = Decoder->Value;
+	--Stack->Index;
 	Decoder->Value = Stack->Values[Stack->Index];
 	Stack->Values[Stack->Index] = NULL;
-	--Stack->Index;
+	if (!Decoder->Value) {
+		Decoder->Callback(Decoder->Data, Value);
+	}
 	return 1;
 }
 
-static int start_map_handler(ml_json_decoder_t *Decoder) {
+static int start_map_handler(json_decoder_t *Decoder) {
 	return push_value(Decoder, ml_map());
 }
 
-static int map_key_handler(ml_json_decoder_t *Decoder, const char *Key, size_t Length) {
+static int map_key_handler(json_decoder_t *Decoder, const char *Key, size_t Length) {
 	Decoder->Key = ml_string(Key, Length);
 	return 1;
 }
 
-static int end_map_handler(ml_json_decoder_t *Decoder) {
+static int end_map_handler(json_decoder_t *Decoder) {
 	return pop_value(Decoder);
 }
 
-static int start_array_handler(ml_json_decoder_t *Decoder) {
+static int start_array_handler(json_decoder_t *Decoder) {
 	return push_value(Decoder, ml_list());
 }
 
-static int end_array_handler(ml_json_decoder_t *Decoder) {
+static int end_array_handler(json_decoder_t *Decoder) {
 	return pop_value(Decoder);
 }
 
@@ -134,22 +141,92 @@ static void ml_free(void *Ctx, void *Ptr) {
 
 static yajl_alloc_funcs AllocFuncs = {ml_alloc, ml_realloc, ml_free, NULL};
 
+static void json_decode_callback(ml_value_t **Result, ml_value_t *Value) {
+	Result[0] = Value;
+}
+
 ML_FUNCTION(JsonDecode) {
 //@json::decode
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
-	ml_json_decoder_t Decoder = {0,};
+	ml_value_t *Result = NULL;
+	json_decoder_t Decoder = {0,};
+	Decoder.Callback = (void *)json_decode_callback;
+	Decoder.Data = &Result;
 	Decoder.Stack = &Decoder.Stack0;
 	yajl_handle Handle = yajl_alloc(&Callbacks, &AllocFuncs, &Decoder);
 	const unsigned char *Text = (const unsigned char *)ml_string_value(Args[0]);
 	size_t Length = ml_string_length(Args[0]);
 	if (yajl_parse(Handle, Text, Length) == yajl_status_error) {
-		const unsigned char *Error = yajl_get_error(Handle, 0, Text, Length);
+		const unsigned char *Error = yajl_get_error(Handle, 0, NULL, 0);
 		size_t Position = yajl_get_bytes_consumed(Handle);
 		return ml_error("JSONError", "@%ld: %s", Position, Error);
 	}
-	yajl_complete_parse(Handle);
-	return Decoder.Value;
+	if (yajl_complete_parse(Handle) == yajl_status_error) {
+		const unsigned char *Error = yajl_get_error(Handle, 0, NULL, 0);
+		size_t Position = yajl_get_bytes_consumed(Handle);
+		return ml_error("JSONError", "@%ld: %s", Position, Error);
+	}
+	return Result ?: ml_error("JSONError", "Incomplete JSON");
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Callback;
+	ml_value_t *Args[1];
+	yajl_handle Handle;
+	json_decoder_t Decoder[1];
+} ml_json_decoder_t;
+
+extern ml_type_t JsonDecoderT[];
+
+static void ml_json_decode_callback(ml_json_decoder_t *Decoder, ml_value_t *Value) {
+	Decoder->Args[0] = Value;
+	ml_call((ml_state_t *)Decoder, Decoder->Callback, 1, Decoder->Args);
+}
+
+static void ml_json_decoder_run(ml_state_t *State, ml_value_t *Value) {
+}
+
+ML_FUNCTIONX(JsonDecoder) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_json_decoder_t *Decoder = new(ml_json_decoder_t);
+	Decoder->Base.Type = JsonDecoderT;
+	Decoder->Base.Context = Caller->Context;
+	Decoder->Base.run = ml_json_decoder_run;
+	Decoder->Callback = Args[0];
+	Decoder->Decoder->Callback = (void *)ml_json_decode_callback;
+	Decoder->Decoder->Data = Decoder;
+	Decoder->Decoder->Stack = &Decoder->Decoder->Stack0;
+	Decoder->Handle = yajl_alloc(&Callbacks, &AllocFuncs, &Decoder->Decoder);
+	yajl_config(Decoder->Handle, yajl_allow_multiple_values, 1);
+	ML_RETURN(Decoder);
+}
+
+ML_TYPE(JsonDecoderT, (), "json-decoder",
+	.Constructor = (ml_value_t *)JsonDecoder
+);
+
+ML_METHOD("write", JsonDecoderT, MLStringT) {
+	ml_json_decoder_t *Decoder = (ml_json_decoder_t *)Args[0];
+	const unsigned char *Text = (const unsigned char *)ml_string_value(Args[1]);
+	size_t Length = ml_string_length(Args[1]);
+	if (yajl_parse(Decoder->Handle, Text, Length) == yajl_status_error) {
+		const unsigned char *Error = yajl_get_error(Decoder->Handle, 0, NULL, 0);
+		size_t Position = yajl_get_bytes_consumed(Decoder->Handle);
+		return ml_error("JSONError", "@%ld: %s", Position, Error);
+	}
+	return Args[0];
+}
+
+ML_METHOD("finish", JsonDecoderT) {
+	ml_json_decoder_t *Decoder = (ml_json_decoder_t *)Args[0];
+	if (yajl_complete_parse(Decoder->Handle) == yajl_status_error) {
+		const unsigned char *Error = yajl_get_error(Decoder->Handle, 0, NULL, 0);
+		size_t Position = yajl_get_bytes_consumed(Decoder->Handle);
+		return ml_error("JSONError", "@%ld: %s", Position, Error);
+	}
+	return Args[0];
 }
 
 static ml_value_t *ml_json_encode(yajl_gen Handle, ml_value_t *Value) {
@@ -200,6 +277,7 @@ void ml_json_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "json", ml_module("json",
 			"encode", JsonEncode,
 			"decode", JsonDecode,
+			"decoder", JsonDecoderT,
 		NULL));
 	}
 }
