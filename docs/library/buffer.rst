@@ -16,3 +16,6 @@ buffer
 :mini:`meth string(Arg₁: buffer)`
    *TBD*
 
+:mini:`meth string(Arg₁: buffer, Arg₂: integer)`
+   *TBD*
+
