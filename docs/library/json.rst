@@ -1,24 +1,24 @@
 json
 ====
 
-:mini:`fun json::decode(Arg₁: string)`
+:mini:`fun json::decode(Json: string): any`
    *TBD*
 
-:mini:`fun jsondecoder(Arg₁: any)`
+:mini:`fun json::decoder(Callback: any): json::decoder`
    *TBD*
 
-:mini:`type JsonDecoderT`
+:mini:`type json::decoder`
    *TBD*
 
-:mini:`meth :decode(Arg₁: JsonDecoderT, Arg₂: address)`
+:mini:`meth :decode(Decoder: jsondecoder, Json: address): Decoder`
    *TBD*
 
-:mini:`meth :decode(Arg₁: JsonDecoderT, Arg₂: address, Arg₃: integer)`
+:mini:`meth :decode(Decoder: jsondecoder, Json: address, Size: integer): Decoder`
    *TBD*
 
-:mini:`meth :finish(Arg₁: JsonDecoderT)`
+:mini:`meth :finish(Decoder: jsondecoder): Decoder`
    *TBD*
 
-:mini:`fun json::encode(Arg₁: any)`
+:mini:`fun json::encode(Value: any): string`
    *TBD*
 

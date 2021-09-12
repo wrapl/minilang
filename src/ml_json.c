@@ -147,6 +147,8 @@ static void json_decode_callback(ml_value_t **Result, ml_value_t *Value) {
 
 ML_FUNCTION(JsonDecode) {
 //@json::decode
+//<Json
+//>any
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ml_value_t *Result = NULL;
@@ -178,7 +180,7 @@ typedef struct {
 	json_decoder_t Decoder[1];
 } ml_json_decoder_t;
 
-extern ml_type_t JsonDecoderT[];
+extern ml_type_t MLJsonDecoderT[];
 
 static void ml_json_decode_callback(ml_json_decoder_t *Decoder, ml_value_t *Value) {
 	Decoder->Args[0] = Value;
@@ -189,9 +191,12 @@ static void ml_json_decoder_run(ml_state_t *State, ml_value_t *Value) {
 }
 
 ML_FUNCTIONX(JsonDecoder) {
+//@json::decoder
+//<Callback
+//>json::decoder
 	ML_CHECKX_ARG_COUNT(1);
 	ml_json_decoder_t *Decoder = new(ml_json_decoder_t);
-	Decoder->Base.Type = JsonDecoderT;
+	Decoder->Base.Type = MLJsonDecoderT;
 	Decoder->Base.Context = Caller->Context;
 	Decoder->Base.run = ml_json_decoder_run;
 	Decoder->Callback = Args[0];
@@ -203,11 +208,15 @@ ML_FUNCTIONX(JsonDecoder) {
 	ML_RETURN(Decoder);
 }
 
-ML_TYPE(JsonDecoderT, (), "json-decoder",
+ML_TYPE(MLJsonDecoderT, (), "json-decoder",
+//@json::decoder
 	.Constructor = (ml_value_t *)JsonDecoder
 );
 
-ML_METHOD("decode", JsonDecoderT, MLAddressT) {
+ML_METHOD("decode", MLJsonDecoderT, MLAddressT) {
+//<Decoder
+//<Json
+//>Decoder
 	ml_json_decoder_t *Decoder = (ml_json_decoder_t *)Args[0];
 	const unsigned char *Text = (const unsigned char *)ml_address_value(Args[1]);
 	size_t Length = ml_address_length(Args[1]);
@@ -219,7 +228,11 @@ ML_METHOD("decode", JsonDecoderT, MLAddressT) {
 	return Args[0];
 }
 
-ML_METHOD("decode", JsonDecoderT, MLAddressT, MLIntegerT) {
+ML_METHOD("decode", MLJsonDecoderT, MLAddressT, MLIntegerT) {
+//<Decoder
+//<Json
+//<Size
+//>Decoder
 	ml_json_decoder_t *Decoder = (ml_json_decoder_t *)Args[0];
 	const unsigned char *Text = (const unsigned char *)ml_address_value(Args[1]);
 	size_t Length = ml_integer_value(Args[2]);
@@ -234,7 +247,9 @@ ML_METHOD("decode", JsonDecoderT, MLAddressT, MLIntegerT) {
 	return Args[0];
 }
 
-ML_METHOD("finish", JsonDecoderT) {
+ML_METHOD("finish", MLJsonDecoderT) {
+//<Decoder
+//>Decoder
 	ml_json_decoder_t *Decoder = (ml_json_decoder_t *)Args[0];
 	if (yajl_complete_parse(Decoder->Handle) == yajl_status_error) {
 		const unsigned char *Error = yajl_get_error(Decoder->Handle, 0, NULL, 0);
@@ -279,6 +294,8 @@ static ml_value_t *ml_json_encode(yajl_gen Handle, ml_value_t *Value) {
 
 ML_FUNCTION(JsonEncode) {
 //@json::encode
+//<Value
+//>string
 	ML_CHECK_ARG_COUNT(1);
 	yajl_gen Handle = yajl_gen_alloc(&AllocFuncs);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
@@ -292,7 +309,7 @@ void ml_json_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "json", ml_module("json",
 			"encode", JsonEncode,
 			"decode", JsonDecode,
-			"decoder", JsonDecoderT,
+			"decoder", MLJsonDecoderT,
 		NULL));
 	}
 }

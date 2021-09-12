@@ -70,7 +70,9 @@ ML_METHOD("-", MLAddressT, MLAddressT) {
 //>integer
 	ml_address_t *Address1 = (ml_address_t *)Args[0];
 	ml_address_t *Address2 = (ml_address_t *)Args[1];
-	return ml_integer(Address1->Value - Address2->Value);
+	int64_t Offset = Address1->Value - Address2->Value;
+	if (Offset < 0 || Offset > Address2->Length) return ml_error("ValueError", "Addresses are not from same base");
+	return ml_integer(Offset);
 }
 
 ML_METHOD("get8", MLAddressT) {
@@ -125,6 +127,32 @@ ML_METHOD("getf64", MLAddressT) {
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	if (Address->Length < 8) return ml_error("ValueError", "Buffer too small");
 	return ml_real(*(double *)Address->Value);
+}
+
+ML_METHOD("gets", MLAddressT) {
+//!address
+//<Address
+//>string
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	size_t Length = ml_address_length(Args[0]);
+	char *String = snew(Length + 1);
+	memcpy(String, Address->Value, Length);
+	String[Length] = 0;
+	return ml_string(String, Length);
+}
+
+ML_METHOD("gets", MLAddressT, MLIntegerT) {
+//!address
+//<Address
+//<Size
+//>string
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	size_t Length = ml_integer_value(Args[1]);
+	if (Length > Address->Length) return ml_error("ValueError", "Length larger than buffer");
+	char *String = snew(Length + 1);
+	memcpy(String, Address->Value, Length);
+	String[Length] = 0;
+	return ml_string(String, Length);
 }
 
 ML_FUNCTION(MLBuffer) {
@@ -275,17 +303,6 @@ ML_METHOD(MLStringT, MLAddressT) {
 //!address
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	return ml_string_format("#%" PRIxPTR ":%ld", (uintptr_t)Address->Value, Address->Length);
-}
-
-ML_METHOD(MLStringT, MLAddressT, MLIntegerT) {
-//!address
-	ml_address_t *Address = (ml_address_t *)Args[0];
-	size_t Length = ml_integer_value(Args[1]);
-	if (Length > Address->Length) return ml_error("ValueError", "Length larger than buffer");
-	char *String = snew(Length + 1);
-	memcpy(String, Address->Value, Length);
-	String[Length] = 0;
-	return ml_string(String, Length);
 }
 
 ml_value_t *ml_string(const char *Value, int Length) {

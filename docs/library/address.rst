@@ -31,9 +31,12 @@ address
 :mini:`meth :getf64(Address: address): real`
    *TBD*
 
-:mini:`meth string(Arg₁: address)`
+:mini:`meth :gets(Address: address): string`
    *TBD*
 
-:mini:`meth string(Arg₁: address, Arg₂: integer)`
+:mini:`meth :gets(Address: address, Size: integer): string`
+   *TBD*
+
+:mini:`meth string(Arg₁: address)`
    *TBD*
 
