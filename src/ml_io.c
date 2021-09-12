@@ -12,8 +12,8 @@ ML_METHOD_DECL(MLIOWrite, "io::write");
 void ml_io_read(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count) {
 	typeof(ml_io_read) *function = ml_typed_fn_get(ml_typeof(Value), ml_io_read);
 	if (function) return function(Caller, Value, Address, Count);
-	ml_buffer_t *Buffer = new(ml_buffer_t);
-	Buffer->Type = MLBufferT;
+	ml_address_t *Buffer = new(ml_address_t);
+	Buffer->Type = MLAddressT;
 	Buffer->Value = Address;
 	Buffer->Length = Count;
 	ml_value_t **Args = ml_alloc_args(2);
@@ -25,8 +25,8 @@ void ml_io_read(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count)
 void ml_io_write(ml_state_t *Caller, ml_value_t *Value, const void *Address, int Count) {
 	typeof(ml_io_write) *function = ml_typed_fn_get(ml_typeof(Value), ml_io_write);
 	if (function) return function(Caller, Value, Address, Count);
-	ml_buffer_t *Buffer = new(ml_buffer_t);
-	Buffer->Type = MLBufferT;
+	ml_address_t *Buffer = new(ml_address_t);
+	Buffer->Type = MLAddressT;
 	Buffer->Value = (void *)Address;
 	Buffer->Length = Count;
 	ml_value_t **Args = ml_alloc_args(3);
@@ -64,10 +64,10 @@ static void ML_TYPED_FN(ml_io_read, MLFdT, ml_state_t *Caller, ml_fd_t *Stream, 
 	ML_CONTINUE(Caller, Result);
 }
 
-ML_METHOD(MLIORead, MLFdT, MLBufferT) {
+ML_METHOD(MLIORead, MLFdT, MLAddressT) {
 //@io::read
 	ml_fd_t *Stream = (ml_fd_t *)Args[0];
-	ml_buffer_t *Buffer = (ml_buffer_t *)Args[1];
+	ml_address_t *Buffer = (ml_address_t *)Args[1];
 	ssize_t Actual = read(Stream->Fd, Buffer->Value, Buffer->Length);
 	if (Actual < 0) {
 		return ml_error("ReadError", strerror(errno));
@@ -87,10 +87,10 @@ static void ML_TYPED_FN(ml_io_write, MLFdT, ml_state_t *Caller, ml_fd_t *Stream,
 	ML_RETURN(Result);
 }
 
-ML_METHOD(MLIOWrite, MLFdT, MLBufferT) {
+ML_METHOD(MLIOWrite, MLFdT, MLAddressT) {
 //@io::write
 	ml_fd_t *Stream = (ml_fd_t *)Args[0];
-	ml_buffer_t *Buffer = (ml_buffer_t *)Args[1];
+	ml_address_t *Buffer = (ml_address_t *)Args[1];
 	ssize_t Actual = write(Stream->Fd, Buffer->Value, Buffer->Length);
 	if (Actual < 0) {
 		return ml_error("WriteError", strerror(errno));

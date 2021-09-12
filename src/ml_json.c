@@ -207,10 +207,25 @@ ML_TYPE(JsonDecoderT, (), "json-decoder",
 	.Constructor = (ml_value_t *)JsonDecoder
 );
 
-ML_METHOD("write", JsonDecoderT, MLStringT) {
+ML_METHOD("decode", JsonDecoderT, MLAddressT) {
 	ml_json_decoder_t *Decoder = (ml_json_decoder_t *)Args[0];
-	const unsigned char *Text = (const unsigned char *)ml_string_value(Args[1]);
-	size_t Length = ml_string_length(Args[1]);
+	const unsigned char *Text = (const unsigned char *)ml_address_value(Args[1]);
+	size_t Length = ml_address_length(Args[1]);
+	if (yajl_parse(Decoder->Handle, Text, Length) == yajl_status_error) {
+		const unsigned char *Error = yajl_get_error(Decoder->Handle, 0, NULL, 0);
+		size_t Position = yajl_get_bytes_consumed(Decoder->Handle);
+		return ml_error("JSONError", "@%ld: %s", Position, Error);
+	}
+	return Args[0];
+}
+
+ML_METHOD("decode", JsonDecoderT, MLAddressT, MLIntegerT) {
+	ml_json_decoder_t *Decoder = (ml_json_decoder_t *)Args[0];
+	const unsigned char *Text = (const unsigned char *)ml_address_value(Args[1]);
+	size_t Length = ml_integer_value(Args[2]);
+	if (Length > ml_address_length(Args[1])) {
+		return ml_error("ValueError", "Length larger than buffer");
+	}
 	if (yajl_parse(Decoder->Handle, Text, Length) == yajl_status_error) {
 		const unsigned char *Error = yajl_get_error(Decoder->Handle, 0, NULL, 0);
 		size_t Position = yajl_get_bytes_consumed(Decoder->Handle);

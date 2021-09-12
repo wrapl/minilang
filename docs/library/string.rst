@@ -1,7 +1,7 @@
 string
 ======
 
-:mini:`type string < buffer, sequence`
+:mini:`type string < address, sequence`
    *TBD*
 
 :mini:`meth string(Arg₁: nil)`

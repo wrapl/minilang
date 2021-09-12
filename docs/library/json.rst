@@ -10,7 +10,10 @@ json
 :mini:`type JsonDecoderT`
    *TBD*
 
-:mini:`meth :write(Arg₁: JsonDecoderT, Arg₂: string)`
+:mini:`meth :decode(Arg₁: JsonDecoderT, Arg₂: address)`
+   *TBD*
+
+:mini:`meth :decode(Arg₁: JsonDecoderT, Arg₂: address, Arg₃: integer)`
    *TBD*
 
 :mini:`meth :finish(Arg₁: JsonDecoderT)`

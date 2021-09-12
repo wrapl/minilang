@@ -28,7 +28,7 @@ typedef enum {
 extern size_t MLArraySizes[];
 
 typedef struct {
-	ml_buffer_t Base;
+	ml_address_t Base;
 	int Degree;
 	ml_array_format_t Format;
 	ml_array_dimension_t Dimensions[];

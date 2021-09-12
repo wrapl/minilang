@@ -1214,10 +1214,10 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 						if (LengthIndex >= 0) {
 							set_input_length(Info, LengthIndex, ArgsIn, 0);
 						}
-					} else if (ml_is(Arg, MLStringT)) {
-						ArgsIn[IndexIn].v_pointer = (void *)ml_string_value(Arg);
+					} else if (ml_is(Arg, MLAddressT)) {
+						ArgsIn[IndexIn].v_pointer = (void *)ml_address_value(Arg);
 						if (LengthIndex >= 0) {
-							set_input_length(Info, LengthIndex, ArgsIn, ml_string_length(Arg));
+							set_input_length(Info, LengthIndex, ArgsIn, ml_address_length(Arg));
 						}
 					} else if (ml_is(Arg, MLListT)) {
 						ArgsIn[IndexIn].v_pointer = list_to_array(Arg, ElementInfo);
@@ -1399,9 +1399,9 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 								set_input_length(Info, LengthIndex, ArgsIn, 0);
 							}
 						} else if (ml_is(Arg, MLBufferT)) {
-							ArgsOut[IndexOut].v_pointer = (char *)ml_buffer_value(Arg);
+							ArgsOut[IndexOut].v_pointer = (char *)ml_address_value(Arg);
 							if (LengthIndex >= 0) {
-								set_input_length(Info, LengthIndex, ArgsIn, ml_buffer_length(Arg));
+								set_input_length(Info, LengthIndex, ArgsIn, ml_address_length(Arg));
 							}
 						} else {
 							return ml_error("TypeError", "Expected buffer for parameter %d", I);

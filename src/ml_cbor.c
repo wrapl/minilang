@@ -153,7 +153,7 @@ void ml_cbor_read_bytes_fn(ml_cbor_reader_t *Reader, int Size) {
 		Collection->Blocks = 0;
 		Reader->Collection = Collection;
 	} else {
-		value_handler(Reader, ml_buffer(NULL, 0));
+		value_handler(Reader, ml_address(NULL, 0));
 	}
 }
 
@@ -170,7 +170,7 @@ void ml_cbor_read_bytes_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, in
 			Buffer -= B->Size;
 			memcpy(Buffer, B->Data, B->Size);
 		}
-		value_handler(Reader, ml_buffer(Buffer, Total));
+		value_handler(Reader, ml_address(Buffer, Total));
 	} else {
 		block_t *Block = xnew(block_t, Size, char);
 		Block->Prev = Collection->Blocks;
@@ -359,8 +359,8 @@ ML_FUNCTION(MLDecode) {
 //<Bytes
 //>any | error
 	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLBufferT);
-	ml_cbor_t Cbor = {{.Data = ml_buffer_value(Args[0])}, ml_buffer_length(Args[0])};
+	ML_CHECK_ARG_TYPE(0, MLAddressT);
+	ml_cbor_t Cbor = {{.Data = ml_address_value(Args[0])}, ml_address_length(Args[0])};
 	return ml_from_cbor(Cbor, Count > 1 ? Args[1] : (ml_value_t *)DefaultTagFn, (void *)ml_value_tag_fn);
 }
 
@@ -375,10 +375,10 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLIntegerT, ml_value_t *Arg, void 
 	return NULL;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLBufferT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLAddressT, ml_value_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	//printf("%s()\n", __func__);
-	ml_cbor_write_bytes(Data, WriteFn, ml_buffer_length(Arg));
-	WriteFn(Data, (const unsigned char *)ml_buffer_value(Arg), ml_buffer_length(Arg));
+	ml_cbor_write_bytes(Data, WriteFn, ml_address_length(Arg));
+	WriteFn(Data, (const unsigned char *)ml_address_value(Arg), ml_address_length(Arg));
 	return NULL;
 }
 

@@ -113,12 +113,12 @@ static void ml_uv_write_cb(ml_uv_write_t *Request, int Status) {
 	ml_scheduler_queue_add(Caller, Result);
 }
 
-ML_METHODX("write", UVStreamT, MLBufferT) {
+ML_METHODX("write", UVStreamT, MLAddressT) {
 	ml_uv_handle_t *S = (ml_uv_handle_t *)Args[0];
 	ml_uv_write_t *Request = xnew(ml_uv_write_t, 1, uv_buf_t);
 	Request->Base.data = Caller;
-	Request->IOV[0].base = (char *)ml_buffer_value(Args[1]);
-	Request->IOV[1].len = ml_buffer_length(Args[1]);
+	Request->IOV[0].base = (char *)ml_address_value(Args[1]);
+	Request->IOV[1].len = ml_address_length(Args[1]);
 	uv_write((uv_write_t *)Request, &S->Handle.stream, Request->IOV, 1, (uv_write_cb)ml_uv_write_cb);
 }
 
