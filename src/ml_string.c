@@ -20,9 +20,9 @@ ML_TYPE(MLAddressT, (), "address");
 //!address
 
 ml_value_t *ml_address(const char *Value, int Length) {
-	ml_string_t *Address = new(ml_string_t);
+	ml_address_t *Address = new(ml_address_t);
 	Address->Type = MLAddressT;
-	Address->Value = Value;
+	Address->Value = (char *)Value;
 	Address->Length = Length;
 	return (ml_value_t *)Address;
 }
@@ -175,6 +175,14 @@ ML_TYPE(MLBufferT, (MLAddressT), "buffer",
 //!buffer
 	.Constructor = (ml_value_t *)MLBuffer
 );
+
+ml_value_t *ml_buffer(char *Value, int Length) {
+	ml_address_t *Buffer = new(ml_address_t);
+	Buffer->Type = MLBufferT;
+	Buffer->Value = Value;
+	Buffer->Length = Length;
+	return (ml_value_t *)Buffer;
+}
 
 ML_METHOD("@", MLBufferT, MLIntegerT) {
 //!buffer
