@@ -656,7 +656,7 @@ static void count_iterate(ml_count_state_t *State, ml_value_t *Value) {
 	return ml_iter_next((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_METHODX(MLSequenceCount, MLSequenceT) {
+ML_METHODVX(MLSequenceCount, MLSequenceT) {
 //@count
 //<Sequence
 //>integer
