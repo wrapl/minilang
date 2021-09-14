@@ -182,6 +182,7 @@ struct ml_decl_t {
 #define MLC_DECL_FORWARD 2
 #define MLC_DECL_BACKFILL 4
 #define MLC_DECL_BYREF 8
+#define MLC_DECL_ASVAR 16
 
 struct ml_debugger_t {
 	size_t Revision;

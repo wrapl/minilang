@@ -172,6 +172,9 @@
       <keyword>unique</keyword>
       <keyword>count</keyword>
       <keyword>count2</keyword>
+      <keyword>reduce</keyword>
+      <keyword>reduce2</keyword>
+      <keyword>extremum</keyword>
       <keyword>min</keyword>
       <keyword>min2</keyword>
       <keyword>max</keyword>

@@ -964,8 +964,9 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	for (; I < Min; ++I) {
 		ml_value_t *Arg = Args[I];
 		if (!(Decl->Flags & MLC_DECL_BYREF)) Arg = ml_deref(Arg);
-		Decl = Decl->Next;
 		if (ml_is_error(Arg)) ML_RETURN(Arg);
+		if (Decl->Flags & MLC_DECL_ASVAR) Arg = ml_variable(Arg, NULL);
+		Decl = Decl->Next;
 #ifdef ML_NANBOXING
 		if (!ml_tag(Value) && Value->Type == MLNamesT) break;
 #else
