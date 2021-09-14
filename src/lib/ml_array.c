@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdarg.h>
 
-ML_TYPE(MLArrayT, (MLBufferT), "array");
+ML_TYPE(MLArrayT, (MLAddressT), "array");
 ML_TYPE(MLArrayAnyT, (MLArrayT), "value-array");
 
 extern ml_type_t MLArrayInt8T[];
@@ -212,7 +212,7 @@ static void ml_array_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value
 
 ml_value_t *ml_array_wrap_fn(void *Data, int Count, ml_value_t **Args) {
 	ML_CHECK_ARG_COUNT(3);
-	ML_CHECK_ARG_TYPE(1, MLBufferT);
+	ML_CHECK_ARG_TYPE(1, MLAddressT);
 	ML_CHECK_ARG_TYPE(2, MLListT);
 	ML_CHECK_ARG_TYPE(3, MLListT);
 	ml_array_format_t Format;
@@ -252,8 +252,8 @@ ml_value_t *ml_array_wrap_fn(void *Data, int Count, ml_value_t **Args) {
 		Array->Dimensions[I].Size = ml_integer_value(Size);
 		Array->Dimensions[I].Stride = ml_integer_value(Stride);
 	}
-	Array->Base.Value = ((ml_buffer_t *)Args[1])->Value;
-	Array->Base.Length = ((ml_buffer_t *)Args[1])->Length;
+	Array->Base.Value = ((ml_address_t *)Args[1])->Value;
+	Array->Base.Length = ((ml_address_t *)Args[1])->Length;
 	return (ml_value_t *)Array;
 }
 
@@ -1314,8 +1314,8 @@ static ml_value_t *ml_cbor_read_multi_array_fn(void *Data, int Count, ml_value_t
 }
 
 static ml_value_t *ml_cbor_read_typed_array_fn(void *Data, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_TYPE(0, MLBufferT);
-	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
+	ML_CHECK_ARG_TYPE(0, MLAddressT);
+	ml_address_t *Buffer = (ml_address_t *)Args[0];
 	ml_array_format_t Format = (intptr_t)Data;
 	int ItemSize = MLArraySizes[Format];
 	ml_array_t *Array = ml_array_new(Format, 1);

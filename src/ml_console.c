@@ -123,7 +123,7 @@ void ml_console(ml_context_t *Context, ml_getter_t GlobalGet, void *Globals, con
 	Console->Debugger = NULL;
 	ml_parser_t *Parser = ml_parser((void *)ml_console_line_read, Console);
 	ml_compiler_t *Compiler = ml_compiler(GlobalGet, Globals);
-	ml_compiler_define(Compiler, "debugger", interactive_debugger(
+	ml_compiler_define(Compiler, "idebug", interactive_debugger(
 		(void *)ml_console_debug_enter,
 		(void *)ml_console_debug_exit,
 		ml_console_log,

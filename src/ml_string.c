@@ -16,6 +16,145 @@
 #include <regex.h>
 #endif
 
+ML_TYPE(MLAddressT, (), "address");
+//!address
+
+ml_value_t *ml_address(const char *Value, int Length) {
+	ml_address_t *Address = new(ml_address_t);
+	Address->Type = MLAddressT;
+	Address->Value = (char *)Value;
+	Address->Length = Length;
+	return (ml_value_t *)Address;
+}
+
+ML_METHOD(MLSequenceCount, MLAddressT) {
+//!internal
+	return ml_integer(ml_address_length(Args[0]));
+}
+
+ML_METHOD("@", MLAddressT, MLIntegerT) {
+//!address
+//<Address
+//<Length
+//>address
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	long Length = ml_integer_value_fast(Args[1]);
+	if (Length > Address->Length) return ml_error("ValueError", "Size larger than buffer");
+	if (Length < 0) return ml_error("ValueError", "Address size must be non-negative");
+	ml_address_t *Address2 = new(ml_address_t);
+	Address2->Type = MLAddressT;
+	Address2->Value = Address->Value;
+	Address2->Length = Length;
+	return (ml_value_t *)Address2;
+}
+
+ML_METHOD("+", MLAddressT, MLIntegerT) {
+//!address
+//<Address
+//<Offset
+//>address
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	long Offset = ml_integer_value_fast(Args[1]);
+	if (Offset > Address->Length) return ml_error("ValueError", "Offset larger than buffer");
+	ml_address_t *Address2 = new(ml_address_t);
+	Address2->Type = MLAddressT;
+	Address2->Value = Address->Value + Offset;
+	Address2->Length = Address->Length - Offset;
+	return (ml_value_t *)Address2;
+}
+
+ML_METHOD("-", MLAddressT, MLAddressT) {
+//!address
+//<Address/1
+//<Address/2
+//>integer
+	ml_address_t *Address1 = (ml_address_t *)Args[0];
+	ml_address_t *Address2 = (ml_address_t *)Args[1];
+	int64_t Offset = Address1->Value - Address2->Value;
+	if (Offset < 0 || Offset > Address2->Length) return ml_error("ValueError", "Addresses are not from same base");
+	return ml_integer(Offset);
+}
+
+ML_METHOD("get8", MLAddressT) {
+//!address
+//<Address
+//>integer
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	if (Address->Length < 1) return ml_error("ValueError", "Buffer too small");
+	return ml_integer(*(int8_t *)Address->Value);
+}
+
+ML_METHOD("get16", MLAddressT) {
+//!address
+//<Address
+//>integer
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	if (Address->Length < 2) return ml_error("ValueError", "Buffer too small");
+	return ml_integer(*(int16_t *)Address->Value);
+}
+
+ML_METHOD("get32", MLAddressT) {
+//!address
+//<Address
+//>integer
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	if (Address->Length < 4) return ml_error("ValueError", "Buffer too small");
+	return ml_integer(*(int32_t *)Address->Value);
+}
+
+ML_METHOD("get64", MLAddressT) {
+//!address
+//<Address
+//>integer
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	if (Address->Length < 8) return ml_error("ValueError", "Buffer too small");
+	return ml_integer(*(int64_t *)Address->Value);
+}
+
+ML_METHOD("getf32", MLAddressT) {
+//!address
+//<Address
+//>real
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	if (Address->Length < 4) return ml_error("ValueError", "Buffer too small");
+	return ml_real(*(float *)Address->Value);
+}
+
+ML_METHOD("getf64", MLAddressT) {
+//!address
+//<Address
+//>real
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	if (Address->Length < 8) return ml_error("ValueError", "Buffer too small");
+	return ml_real(*(double *)Address->Value);
+}
+
+ML_METHOD("gets", MLAddressT) {
+//!address
+//<Address
+//>string
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	size_t Length = ml_address_length(Args[0]);
+	char *String = snew(Length + 1);
+	memcpy(String, Address->Value, Length);
+	String[Length] = 0;
+	return ml_string(String, Length);
+}
+
+ML_METHOD("gets", MLAddressT, MLIntegerT) {
+//!address
+//<Address
+//<Size
+//>string
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	size_t Length = ml_integer_value(Args[1]);
+	if (Length > Address->Length) return ml_error("ValueError", "Length larger than buffer");
+	char *String = snew(Length + 1);
+	memcpy(String, Address->Value, Length);
+	String[Length] = 0;
+	return ml_string(String, Length);
+}
+
 ML_FUNCTION(MLBuffer) {
 //!buffer
 //@buffer
@@ -25,32 +164,40 @@ ML_FUNCTION(MLBuffer) {
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	long Size = ml_integer_value_fast(Args[0]);
 	if (Size < 0) return ml_error("ValueError", "Buffer size must be non-negative");
-	ml_buffer_t *Buffer = new(ml_buffer_t);
+	ml_address_t *Buffer = new(ml_address_t);
 	Buffer->Type = MLBufferT;
 	Buffer->Length = Size;
 	Buffer->Value = GC_MALLOC_ATOMIC(Size);
 	return (ml_value_t *)Buffer;
 }
 
-ML_TYPE(MLBufferT, (), "buffer",
+ML_TYPE(MLBufferT, (MLAddressT), "buffer",
 //!buffer
 	.Constructor = (ml_value_t *)MLBuffer
 );
 
-ml_value_t *ml_buffer(const char *Value, int Length) {
-	ml_string_t *Buffer = new(ml_string_t);
+ml_value_t *ml_buffer(char *Value, int Length) {
+	ml_address_t *Buffer = new(ml_address_t);
 	Buffer->Type = MLBufferT;
 	Buffer->Value = Value;
 	Buffer->Length = Length;
 	return (ml_value_t *)Buffer;
 }
 
-const char *ml_buffer_value(const ml_value_t *Value) {
-	return ((ml_buffer_t *)Value)->Value;
-}
-
-size_t ml_buffer_length(const ml_value_t *Value) {
-	return ((ml_buffer_t *)Value)->Length;
+ML_METHOD("@", MLBufferT, MLIntegerT) {
+//!buffer
+//<Buffer
+//<Length
+//>buffer
+	ml_address_t *Buffer = (ml_address_t *)Args[0];
+	long Length = ml_integer_value_fast(Args[1]);
+	if (Length > Buffer->Length) return ml_error("ValueError", "Size larger than buffer");
+	if (Length < 0) return ml_error("ValueError", "Buffer size must be non-negative");
+	ml_address_t *Buffer2 = new(ml_address_t);
+	Buffer2->Type = MLBufferT;
+	Buffer2->Value = Buffer->Value;
+	Buffer2->Length = Length;
+	return (ml_value_t *)Buffer2;
 }
 
 ML_METHOD("+", MLBufferT, MLIntegerT) {
@@ -58,24 +205,92 @@ ML_METHOD("+", MLBufferT, MLIntegerT) {
 //<Buffer
 //<Offset
 //>buffer
-	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
+	ml_address_t *Buffer = (ml_address_t *)Args[0];
 	long Offset = ml_integer_value_fast(Args[1]);
 	if (Offset > Buffer->Length) return ml_error("ValueError", "Offset larger than buffer");
-	ml_buffer_t *Buffer2 = new(ml_buffer_t);
+	ml_address_t *Buffer2 = new(ml_address_t);
 	Buffer2->Type = MLBufferT;
 	Buffer2->Value = Buffer->Value + Offset;
 	Buffer2->Length = Buffer->Length - Offset;
 	return (ml_value_t *)Buffer2;
 }
 
-ML_METHOD("-", MLBufferT, MLBufferT) {
+ML_METHOD("put8", MLBufferT, MLIntegerT) {
 //!buffer
-//<Buffer/1
-//<Buffer/2
-//>integer
-	ml_buffer_t *Buffer1 = (ml_buffer_t *)Args[0];
-	ml_buffer_t *Buffer2 = (ml_buffer_t *)Args[1];
-	return ml_integer(Buffer1->Value - Buffer2->Value);
+//<Buffer
+//<Value
+//>buffer
+	ml_address_t *Buffer = (ml_address_t *)Args[0];
+	if (Buffer->Length < 1) return ml_error("ValueError", "Buffer too small");
+	*(int8_t *)Buffer->Value = ml_integer_value(Args[1]);
+	return Args[0];
+}
+
+ML_METHOD("put16", MLBufferT, MLIntegerT) {
+//!buffer
+//<Buffer
+//<Value
+//>buffer
+	ml_address_t *Buffer = (ml_address_t *)Args[0];
+	if (Buffer->Length < 2) return ml_error("ValueError", "Buffer too small");
+	*(int16_t *)Buffer->Value = ml_integer_value(Args[1]);
+	return Args[0];
+}
+
+ML_METHOD("put32", MLBufferT, MLIntegerT) {
+//!buffer
+//<Buffer
+//<Value
+//>buffer
+	ml_address_t *Buffer = (ml_address_t *)Args[0];
+	if (Buffer->Length < 4) return ml_error("ValueError", "Buffer too small");
+	*(int32_t *)Buffer->Value = ml_integer_value(Args[1]);
+	return Args[0];
+}
+
+ML_METHOD("put64", MLBufferT, MLIntegerT) {
+//!buffer
+//<Buffer
+//<Value
+//>buffer
+	ml_address_t *Buffer = (ml_address_t *)Args[0];
+	if (Buffer->Length < 8) return ml_error("ValueError", "Buffer too small");
+	*(int64_t *)Buffer->Value = ml_integer_value(Args[1]);
+	return Args[0];
+}
+
+ML_METHOD("putf32", MLBufferT, MLRealT) {
+//!buffer
+//<Buffer
+//<Value
+//>buffer
+	ml_address_t *Buffer = (ml_address_t *)Args[0];
+	if (Buffer->Length < 4) return ml_error("ValueError", "Buffer too small");
+	*(float *)Buffer->Value = ml_real_value(Args[1]);
+	return Args[0];
+}
+
+ML_METHOD("putf64", MLBufferT, MLRealT) {
+//!buffer
+//<Buffer
+//<Value
+//>buffer
+	ml_address_t *Buffer = (ml_address_t *)Args[0];
+	if (Buffer->Length < 8) return ml_error("ValueError", "Buffer too small");
+	*(double *)Buffer->Value = ml_real_value(Args[1]);
+	return Args[0];
+}
+
+ML_METHOD("put", MLBufferT, MLAddressT) {
+//!buffer
+//<Buffer
+//<Value
+//>buffer
+	ml_address_t *Buffer = (ml_address_t *)Args[0];
+	ml_address_t *Source = (ml_address_t *)Args[1];
+	if (Buffer->Length < Source->Length) return ml_error("ValueError", "Buffer too small");
+	memcpy(Buffer->Value, Source->Value, Source->Length);
+	return Args[0];
 }
 
 static long ml_string_hash(ml_string_t *String, ml_hash_chain_t *Chain) {
@@ -88,19 +303,14 @@ static long ml_string_hash(ml_string_t *String, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
-ML_TYPE(MLStringT, (MLBufferT, MLSequenceT), "string",
+ML_TYPE(MLStringT, (MLAddressT, MLSequenceT), "string",
 	.hash = (void *)ml_string_hash
 );
 
-ML_METHOD(MLSequenceCount, MLStringT) {
-//!internal
-	return ml_integer(ml_string_length(Args[0]));
-}
-
-ML_METHOD(MLStringT, MLBufferT) {
-//!buffer
-	ml_buffer_t *Buffer = (ml_buffer_t *)Args[0];
-	return ml_string_format("#%" PRIxPTR ":%ld", (uintptr_t)Buffer->Value, Buffer->Length);
+ML_METHOD(MLStringT, MLAddressT) {
+//!address
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	return ml_string_format("#%" PRIxPTR ":%ld", (uintptr_t)Address->Value, Address->Length);
 }
 
 ml_value_t *ml_string(const char *Value, int Length) {
@@ -119,14 +329,6 @@ ml_value_t *ml_string(const char *Value, int Length) {
 	String->Value = Value;
 	String->Length = Length;
 	return (ml_value_t *)String;
-}
-
-const char *ml_string_value(const ml_value_t *Value) {
-	return ((ml_string_t *)Value)->Value;
-}
-
-size_t ml_string_length(const ml_value_t *Value) {
-	return ((ml_string_t *)Value)->Length;
 }
 
 ml_value_t *ml_string_format(const char *Format, ...) {

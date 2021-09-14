@@ -44,6 +44,10 @@ void ml_free(void *Ptr) {
 
 extern void ml_libuv_file_init(stringmap_t *Globals);
 extern void ml_libuv_process_init(stringmap_t *Globals);
+extern void ml_libuv_handle_init(stringmap_t *Globals);
+extern void ml_libuv_stream_init(stringmap_t *Globals);
+extern void ml_libuv_pipe_init(stringmap_t *Globals);
+extern void ml_libuv_tcp_init(stringmap_t *Globals);
 
 uv_loop_t *ml_libuv_loop() {
 	return Loop;
@@ -56,6 +60,10 @@ void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) 
 #include "ml_libuv_init.c"
 	ml_libuv_file_init(((ml_module_t *)Module)->Exports);
 	ml_libuv_process_init(((ml_module_t *)Module)->Exports);
+	ml_libuv_handle_init(((ml_module_t *)Module)->Exports);
+	ml_libuv_stream_init(((ml_module_t *)Module)->Exports);
+	ml_libuv_pipe_init(((ml_module_t *)Module)->Exports);
+	ml_libuv_tcp_init(((ml_module_t *)Module)->Exports);
 	ml_module_export(Module, "run", (ml_value_t *)Run);
 }
 

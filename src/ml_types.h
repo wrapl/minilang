@@ -536,10 +536,10 @@ inline complex double ml_complex_value_fast(const ml_value_t *Value) {
 
 // Strings //
 
-typedef struct ml_buffer_t ml_buffer_t;
+typedef struct ml_address_t ml_address_t;
 typedef struct ml_string_t ml_string_t;
 
-struct ml_buffer_t {
+struct ml_address_t {
 	ml_type_t *Type;
 	char *Value;
 	size_t Length;
@@ -552,21 +552,32 @@ struct ml_string_t {
 	long Hash;
 };
 
+extern ml_type_t MLAddressT[];
 extern ml_type_t MLBufferT[];
 extern ml_type_t MLStringT[];
 
 extern ml_type_t MLRegexT[];
 extern ml_type_t MLStringBufferT[];
 
-ml_value_t *ml_buffer(const char *Value, int Length) __attribute__((malloc));
-const char *ml_buffer_value(const ml_value_t *Value) __attribute__((const));
-size_t ml_buffer_length(const ml_value_t *Value) __attribute__((pure));
+ml_value_t *ml_address(const char *Value, int Length) __attribute__((malloc));
+
+static inline const char *ml_address_value(const ml_value_t *Value) {
+	return ((ml_address_t *)Value)->Value;
+}
+
+static inline size_t ml_address_length(const ml_value_t *Value) {
+	return ((ml_address_t *)Value)->Length;
+}
+
+ml_value_t *ml_buffer(char *Value, int Length) __attribute__((malloc));
+#define ml_buffer_value ml_address_value
+#define ml_buffer_length ml_address_length
 
 ml_value_t *ml_string(const char *Value, int Length) __attribute__((malloc));
 #define ml_cstring(VALUE) ml_string(VALUE, strlen(VALUE))
 ml_value_t *ml_string_format(const char *Format, ...) __attribute__((malloc, format(printf, 1, 2)));
-const char *ml_string_value(const ml_value_t *Value) __attribute__((const));
-size_t ml_string_length(const ml_value_t *Value) __attribute__((pure));
+#define ml_string_value ml_address_value
+#define ml_string_length ml_address_length
 
 ml_value_t *ml_regex(const char *Value, int Length) __attribute__((malloc));
 ml_value_t *ml_regexi(const char *Value, int Length) __attribute__((malloc));

@@ -7,7 +7,7 @@ array
    The shape and type of the array is determined from the elements in :mini:`List`.
 
 
-:mini:`type array < buffer, sequence`
+:mini:`type array < address, sequence`
    Base type for multidimensional arrays.
 
 

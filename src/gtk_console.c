@@ -831,7 +831,7 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 	ml_compiler_define(Console->Compiler, "Console", ml_gir_instance_get(Console->Window, NULL));
 	ml_compiler_define(Console->Compiler, "InputView", ml_gir_instance_get(Console->InputView, NULL));
 	ml_compiler_define(Console->Compiler, "LogView", ml_gir_instance_get(Console->LogView, NULL));
-	ml_compiler_define(Console->Compiler, "debugger", interactive_debugger(
+	ml_compiler_define(Console->Compiler, "idebug", interactive_debugger(
 		(void *)console_debug_enter,
 		(void *)console_debug_exit,
 		(void *)console_log,

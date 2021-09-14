@@ -2107,6 +2107,7 @@ static void ml_string_expr_compile(mlc_function_t *Function, mlc_string_expr_t *
 #define ML_PARAM_EXTRA 1
 #define ML_PARAM_NAMED 2
 #define ML_PARAM_BYREF 3
+#define ML_PARAM_ASVAR 4
 
 typedef struct {
 	mlc_fun_expr_t *Expr;
@@ -2265,7 +2266,12 @@ static void ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, 
 			break;
 		case ML_PARAM_BYREF:
 			Decl->Flags |= MLC_DECL_BYREF;
-			/* no break */
+			stringmap_insert(Info->Params, Param->Ident, (void *)(intptr_t)NumParams);
+			break;
+		case ML_PARAM_ASVAR:
+			Decl->Flags |= MLC_DECL_ASVAR;
+			stringmap_insert(Info->Params, Param->Ident, (void *)(intptr_t)NumParams);
+			break;
 		default:
 			stringmap_insert(Info->Params, Param->Ident, (void *)(intptr_t)NumParams);
 			break;
@@ -3434,7 +3440,11 @@ static mlc_expr_t *ml_accept_fun_expr(ml_parser_t *Parser, const char *Name, ml_
 				if (ml_parse2(Parser, MLT_BLANK)) {
 					Param->Ident = "_";
 				} else {
-					if (ml_parse2(Parser, MLT_REF)) Param->Flags = ML_PARAM_BYREF;
+					if (ml_parse2(Parser, MLT_REF)) {
+						Param->Flags = ML_PARAM_BYREF;
+					} else if (ml_parse2(Parser, MLT_VAR)) {
+						Param->Flags = ML_PARAM_ASVAR;
+					}
 					ml_accept(Parser, MLT_IDENT);
 					Param->Ident = Parser->Ident;
 				}
@@ -3525,7 +3535,11 @@ static mlc_expr_t *ml_accept_meth_expr(ml_parser_t *Parser) {
 				if (ml_parse2(Parser, MLT_BLANK)) {
 					Param->Ident = "_";
 				} else {
-					if (ml_parse2(Parser, MLT_REF)) Param->Flags = ML_PARAM_BYREF;
+					if (ml_parse2(Parser, MLT_REF)) {
+						Param->Flags = ML_PARAM_BYREF;
+					} else if (ml_parse2(Parser, MLT_VAR)) {
+						Param->Flags = ML_PARAM_ASVAR;
+					}
 					ml_accept(Parser, MLT_IDENT);
 					Param->Ident = Parser->Ident;
 				}

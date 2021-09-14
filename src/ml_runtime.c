@@ -659,11 +659,171 @@ ml_value_t *ml_debugger_local(ml_state_t *State, int Index) {
 ML_FUNCTIONX(MLBreak) {
 //@break
 //<Condition?
-// If a debugger present and :mini:`Condition` is omitted or not :mini:`nil` then triggers a breakpoint.
+// If a debugger is present and :mini:`Condition` is omitted or not :mini:`nil` then triggers a breakpoint.
 	ml_debugger_t *Debugger = Caller->Context->Values[ML_DEBUGGER_INDEX];
 	if (!Debugger) ML_RETURN(MLNil);
 	if (Count && Args[0] == MLNil) ML_RETURN(MLNil);
 	return Debugger->run(Debugger, Caller, MLNil);
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_debugger_t Base;
+	ml_value_t *Run;
+	stringmap_t Modules[1];
+} ml_mini_debugger_t;
+
+static void ml_mini_debugger_call(ml_state_t *Caller, ml_mini_debugger_t *Debugger, int Count, ml_value_t **Args) {
+	ml_state_t *State = ml_state_new(Caller);
+	ml_context_set(State->Context, ML_DEBUGGER_INDEX, &Debugger->Base);
+	ml_value_t *Function = Args[0];
+	return ml_call(State, Function, Count - 1, Args + 1);
+}
+
+ML_TYPE(MLMiniDebuggerT, (), "mini-debugger",
+	.call = (void *)ml_mini_debugger_call
+);
+
+static void mini_debugger_run(ml_debugger_t *Base, ml_state_t *State, ml_value_t *Value) {
+	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)((void *)Base - offsetof(ml_mini_debugger_t, Base));
+	ml_value_t **Args = ml_alloc_args(2);
+	if (State->Type == NULL) State->Type = MLStateT;
+	Args[0] = (ml_value_t *)State;
+	Args[1] = Value;
+	static ml_result_state_t Caller = {{MLStateT, NULL, (void *)ml_result_state_run, &MLRootContext}, MLNil};
+	return ml_call(&Caller, Debugger->Run, 2, Args);
+}
+
+typedef struct {
+	size_t Count;
+	size_t Bits[];
+} breakpoints_t;
+
+static size_t *mini_debugger_breakpoints(ml_debugger_t *Base, const char *Source, int Max) {
+	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)((void *)Base - offsetof(ml_mini_debugger_t, Base));
+	breakpoints_t **Slot = (breakpoints_t **)stringmap_slot(Debugger->Modules, Source);
+	size_t Count = (Max + SIZE_BITS) / SIZE_BITS;
+	if (!Slot[0]) {
+		breakpoints_t *New = (breakpoints_t *)GC_MALLOC_ATOMIC(sizeof(breakpoints_t) + Count * sizeof(size_t));
+		memset(New->Bits, 0, Count * sizeof(size_t));
+		New->Count = Count;
+		Slot[0] = New;
+	} else if (Count > Slot[0]->Count) {
+		breakpoints_t *Old = Slot[0];
+		breakpoints_t *New = (breakpoints_t *)GC_MALLOC_ATOMIC(sizeof(breakpoints_t) + Count * sizeof(size_t));
+		memset(New->Bits, 0, Count * sizeof(size_t));
+		memcpy(New->Bits, Old->Bits, Old->Count * sizeof(size_t));
+		New->Count = Count;
+		Slot[0] = New;
+	}
+	return Slot[0]->Bits;
+}
+
+ML_FUNCTION(MLDebugger) {
+	ML_CHECK_ARG_COUNT(1);
+	ml_mini_debugger_t *Debugger = new(ml_mini_debugger_t);
+	Debugger->Type = MLMiniDebuggerT;
+	Debugger->Base.run = mini_debugger_run;
+	Debugger->Base.breakpoints = mini_debugger_breakpoints;
+	Debugger->Base.StepIn = 1;
+	Debugger->Base.BreakOnError = 1;
+	Debugger->Run = Args[0];
+	return (ml_value_t *)Debugger;
+}
+
+ML_METHOD("breakpoint_set", MLMiniDebuggerT, MLStringT, MLIntegerT) {
+	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
+	const char *Source = ml_string_value(Args[1]);
+	int LineNo = ml_integer_value(Args[2]);
+	size_t *Breakpoints = mini_debugger_breakpoints(&Debugger->Base, Source, LineNo);
+	Breakpoints[LineNo / SIZE_BITS] |= 1L << (LineNo % SIZE_BITS);
+	++Debugger->Base.Revision;
+	return Args[0];
+}
+
+ML_METHOD("breakpoint_clear", MLMiniDebuggerT, MLStringT, MLIntegerT) {
+	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
+	const char *Source = ml_string_value(Args[1]);
+	int LineNo = ml_integer_value(Args[2]);
+	size_t *Breakpoints = mini_debugger_breakpoints(&Debugger->Base, Source, LineNo);
+	Breakpoints[LineNo / SIZE_BITS] &= ~(1L << (LineNo % SIZE_BITS));
+	++Debugger->Base.Revision;
+	return Args[0];
+}
+
+ML_METHOD("error_mode", MLMiniDebuggerT, MLAnyT) {
+	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
+	Debugger->Base.BreakOnError = Args[1] != MLNil;
+	return Args[0];
+}
+
+ML_METHOD("step_mode", MLMiniDebuggerT, MLAnyT) {
+	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
+	Debugger->Base.StepIn = Args[1] != MLNil;
+	return Args[0];
+}
+
+ML_METHODX("step_in", MLMiniDebuggerT, MLStateT, MLAnyT) {
+	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
+	ml_state_t *State = (ml_state_t *)Args[1];
+	Debugger->Base.StepIn = 1;
+	ml_debugger_step_mode(State, 0, 0);
+	return State->run(State, Args[2]);
+}
+
+ML_METHODX("step_over", MLMiniDebuggerT, MLStateT, MLAnyT) {
+	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
+	ml_state_t *State = (ml_state_t *)Args[1];
+	Debugger->Base.StepIn = 0;
+	ml_debugger_step_mode(State, 1, 0);
+	return State->run(State, Args[2]);
+}
+
+ML_METHODX("step_out", MLMiniDebuggerT, MLStateT, MLAnyT) {
+	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
+	ml_state_t *State = (ml_state_t *)Args[1];
+	Debugger->Base.StepIn = 0;
+	ml_debugger_step_mode(State, 0, 1);
+	return State->run(State, Args[2]);
+}
+
+ML_METHODX("continue", MLMiniDebuggerT, MLStateT, MLAnyT) {
+	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
+	ml_state_t *State = (ml_state_t *)Args[1];
+	Debugger->Base.StepIn = 0;
+	ml_debugger_step_mode(State, 0, 0);
+	return State->run(State, Args[2]);
+}
+
+ML_METHOD("locals", MLStateT) {
+	ml_state_t *State = (ml_state_t *)Args[0];
+	ml_value_t *Locals = ml_list();
+	for (ml_decl_t *Decl = ml_debugger_decls(State); Decl; Decl = Decl->Next) {
+		ml_list_put(Locals, ml_string(Decl->Ident, -1));
+	}
+	return Locals;
+}
+
+ML_METHOD("trace", MLStateT) {
+	ml_state_t *State = (ml_state_t *)Args[0];
+	ml_value_t *Trace = ml_list();
+	while (State) {
+		if (ml_debugger_check(State)) {
+			if (State->Type == NULL) State->Type = MLStateT;
+			ml_list_put(Trace, (ml_value_t *)State);
+		}
+		State = State->Caller;
+	}
+	return Trace;
+}
+
+ML_METHOD("source", MLStateT) {
+	ml_state_t *State = (ml_state_t *)Args[0];
+	ml_source_t Source = ml_debugger_source(State);
+	ml_value_t *Location = ml_tuple(2);
+	ml_tuple_set(Location, 1, ml_string(Source.Name, -1));
+	ml_tuple_set(Location, 2, ml_integer(Source.Line));
+	return Location;
 }
 
 // Schedulers //

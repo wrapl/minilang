@@ -10,9 +10,9 @@ io
 :mini:`type fd < stream`
    *TBD*
 
-:mini:`meth io::read(Arg₁: fd, Arg₂: buffer)`
+:mini:`meth io::read(Arg₁: fd, Arg₂: address)`
    *TBD*
 
-:mini:`meth io::write(Arg₁: fd, Arg₂: buffer)`
+:mini:`meth io::write(Arg₁: fd, Arg₂: address)`
    *TBD*
 

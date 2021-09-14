@@ -503,7 +503,7 @@ static void all_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 ML_FUNCTIONX(All) {
 //<Sequence
 //>some | nil
-// Returns :mini:`nil` if :mini:`nil` is produced by :mini:`Iterable`. Otherwise returns :mini:`some`.
+// Returns :mini:`nil` if :mini:`nil` is produced by :mini:`Sequence`. Otherwise returns :mini:`some`.
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = new(ml_iter_state_t);
@@ -656,7 +656,7 @@ static void count_iterate(ml_count_state_t *State, ml_value_t *Value) {
 	return ml_iter_next((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_METHODX(MLSequenceCount, MLSequenceT) {
+ML_METHODVX(MLSequenceCount, MLSequenceT) {
 //@count
 //<Sequence
 //>integer
@@ -729,10 +729,10 @@ static void reduce_call(ml_iter_state_t *State, ml_value_t *Value) {
 
 static void reduce_next_value(ml_iter_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	ml_value_t *Compare = State->Values[0];
+	ml_value_t *Function = State->Values[0];
 	State->Values[2] = Value;
 	State->Base.run = (void *)reduce_call;
-	return ml_call(State, Compare, 2, State->Values + 1);
+	return ml_call(State, Function, 2, State->Values + 1);
 }
 
 static void reduce_iter_next(ml_iter_state_t *State, ml_value_t *Value) {
@@ -786,10 +786,67 @@ ML_FUNCTIONX(Reduce) {
 	}
 }
 
+static void reduce2_iter_next(ml_iter_state_t *State, ml_value_t *Value);
+
+static void reduce2_call(ml_iter_state_t *State, ml_value_t *Value) {
+	Value = ml_deref(Value);
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value != MLNil) State->Values[1] = Value;
+	State->Base.run = (void *)reduce2_iter_next;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void reduce2_next_value(ml_iter_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_value_t *Function = State->Values[0];
+	State->Values[3] = Value;
+	State->Base.run = (void *)reduce2_call;
+	return ml_call(State, Function, 3, State->Values + 1);
+}
+
+static void reduce2_next_key(ml_iter_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Values[2] = Value;
+	State->Base.run = (void *)reduce2_next_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter);
+}
+
+static void reduce2_iter_next(ml_iter_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Values[1] ?: MLNil);
+	State->Base.run = (void *)reduce2_next_key;
+	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
+}
+
+static void reduce2_iterate(ml_iter_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, MLNil);
+	State->Base.run = (void *)reduce2_next_key;
+	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
+}
+
+ML_FUNCTIONX(Reduce2) {
+//<Initial:any
+//<Sequence:sequence
+//<Fn:function
+//>any | nil
+// Returns :mini:`Fn(Fn( ... Fn(Initial, K/1, V/1), K/2, V/2) ..., K/n, V/n)` where :mini:`K/i` and :mini:`V/i` are the keys and values produced by :mini:`Sequence`.
+	ML_CHECKX_ARG_COUNT(3);
+	ML_CHECKX_ARG_TYPE(1, MLSequenceT);
+	ML_CHECKX_ARG_TYPE(2, MLFunctionT);
+	ml_iter_state_t *State = xnew(ml_iter_state_t, 4, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)reduce2_iterate;
+	State->Base.Context = Caller->Context;
+	State->Values[0] = Args[2];
+	State->Values[1] = Args[0];
+	return ml_iterate((ml_state_t *)State, Args[1]);
+}
+
 ML_FUNCTIONX(Min) {
 //<Sequence
 //>any | nil
-// Returns the smallest value (based on :mini:`<`) produced by :mini:`Sequence`.
+// Returns the smallest value (using :mini:`<`) produced by :mini:`Sequence`.
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
@@ -803,7 +860,7 @@ ML_FUNCTIONX(Min) {
 ML_FUNCTIONX(Max) {
 //<Sequence
 //>any | nil
-// Returns the largest value (based on :mini:`>`) produced by :mini:`Sequence`.
+// Returns the largest value (using :mini:`>`) produced by :mini:`Sequence`.
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
@@ -817,7 +874,7 @@ ML_FUNCTIONX(Max) {
 ML_FUNCTIONX(Sum) {
 //<Sequence
 //>any | nil
-// Returns the sum of the values (based on :mini:`+`) produced by :mini:`Sequence`.
+// Returns the sum of the values (using :mini:`+`) produced by :mini:`Sequence`.
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
@@ -831,7 +888,7 @@ ML_FUNCTIONX(Sum) {
 ML_FUNCTIONX(Prod) {
 //<Sequence
 //>any | nil
-// Returns the product of the values (based on :mini:`*`) produced by :mini:`Sequence`.
+// Returns the product of the values (using :mini:`*`) produced by :mini:`Sequence`.
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
@@ -890,37 +947,37 @@ ML_METHODVX("join", MLSequenceT, MLStringT) {
 	return ml_iterate((ml_state_t *)State, Args[0]);
 }
 
-static void reduce2_iter_next(ml_iter_state_t *State, ml_value_t *Value);
+static void extremum_iter_next(ml_iter_state_t *State, ml_value_t *Value);
 
-static void reduce2_next_key(ml_iter_state_t *State, ml_value_t *Value) {
+static void extremum_next_key(ml_iter_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	State->Values[1] = Value;
-	State->Base.run = (void *)reduce2_iter_next;
+	State->Base.run = (void *)extremum_iter_next;
 	return ml_iter_next((ml_state_t *)State, State->Iter);
 }
 
-static void reduce2_call(ml_iter_state_t *State, ml_value_t *Value) {
+static void extremum_call(ml_iter_state_t *State, ml_value_t *Value) {
 	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value != MLNil) {
 		State->Values[2] = Value;
-		State->Base.run = (void *)reduce2_next_key;
+		State->Base.run = (void *)extremum_next_key;
 		return ml_iter_key((ml_state_t *)State, State->Iter);
 	} else {
-		State->Base.run = (void *)reduce2_iter_next;
+		State->Base.run = (void *)extremum_iter_next;
 		return ml_iter_next((ml_state_t *)State, State->Iter);
 	}
 }
 
-static void reduce2_next_value(ml_iter_state_t *State, ml_value_t *Value) {
+static void extremum_next_value(ml_iter_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	ml_value_t *Function = State->Values[0];
 	State->Values[3] = Value;
-	State->Base.run = (void *)reduce2_call;
+	State->Base.run = (void *)extremum_call;
 	return ml_call(State, Function, 2, State->Values + 2);
 }
 
-static void reduce2_iter_next(ml_iter_state_t *State, ml_value_t *Value) {
+static void extremum_iter_next(ml_iter_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value == MLNil) {
 		if (State->Values[1]) {
@@ -932,41 +989,41 @@ static void reduce2_iter_next(ml_iter_state_t *State, ml_value_t *Value) {
 			ML_CONTINUE(State->Base.Caller, MLNil);
 		}
 	}
-	State->Base.run = (void *)reduce2_next_value;
+	State->Base.run = (void *)extremum_next_value;
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
 
-static void reduce2_first_value(ml_iter_state_t *State, ml_value_t *Value) {
+static void extremum_first_value(ml_iter_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	State->Values[2] = Value;
-	State->Base.run = (void *)reduce2_iter_next;
+	State->Base.run = (void *)extremum_iter_next;
 	return ml_iter_next((ml_state_t *)State, State->Iter);
 }
 
-static void reduce2_first_key(ml_iter_state_t *State, ml_value_t *Value) {
+static void extremum_first_key(ml_iter_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	State->Values[1] = Value;
-	State->Base.run = (void *)reduce2_first_value;
+	State->Base.run = (void *)extremum_first_value;
 	return ml_iter_value((ml_state_t *)State, State->Iter);
 }
 
-static void reduce2_iterate(ml_iter_state_t *State, ml_value_t *Value) {
+static void extremum_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, MLNil);
-	State->Base.run = (void *)reduce2_first_key;
+	State->Base.run = (void *)extremum_first_key;
 	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_FUNCTIONX(Reduce2) {
+ML_FUNCTIONX(Extremum) {
 //<Sequence
 //<Fn
-//>any | nil
+//>tuple | nil
 	ML_CHECKX_ARG_COUNT(2);
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ML_CHECKX_ARG_TYPE(1, MLFunctionT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 4, ml_value_t *);
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)reduce2_iterate;
+	State->Base.run = (void *)extremum_iterate;
 	State->Base.Context = Caller->Context;
 	State->Values[0] = Args[1];
 	return ml_iterate((ml_state_t *)State, Args[0]);
@@ -974,13 +1031,13 @@ ML_FUNCTIONX(Reduce2) {
 
 ML_FUNCTIONX(Min2) {
 //<Sequence
-//>any | nil
-// Returns a tuple with the key and value of the smallest value (based on :mini:`<`) produced by :mini:`Sequence`.
+//>tuple | nil
+// Returns a tuple with the key and value of the smallest value (using :mini:`<`) produced by :mini:`Sequence`.
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 4, ml_value_t *);
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)reduce2_iterate;
+	State->Base.run = (void *)extremum_iterate;
 	State->Base.Context = Caller->Context;
 	State->Values[0] = GreaterMethod;
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
@@ -988,13 +1045,13 @@ ML_FUNCTIONX(Min2) {
 
 ML_FUNCTIONX(Max2) {
 //<Sequence
-//>any | nil
-// Returns a tuple with the key and value of the largest value (based on :mini:`>`) produced by :mini:`Sequence`.
+//>tuple | nil
+// Returns a tuple with the key and value of the largest value (using :mini:`>`) produced by :mini:`Sequence`.
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 4, ml_value_t *);
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)reduce2_iterate;
+	State->Base.run = (void *)extremum_iterate;
 	State->Base.Context = Caller->Context;
 	State->Values[0] = LessMethod;
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
@@ -1779,7 +1836,7 @@ static void ML_TYPED_FN(ml_iter_next, MLUniqueStateT, ml_state_t *Caller, ml_uni
 ML_FUNCTION(Unique) {
 //<Sequence
 //>sequence
-// Returns an sequence that returns the unique values produced by :mini:`Sequence` (based on inserting into a :mini:`map`).
+// Returns an sequence that returns the unique values produced by :mini:`Sequence`. Uniqueness is determined by using a :mini:`map`.
 	ML_CHECK_ARG_COUNT(1);
 	ml_unique_t *Unique = new(ml_unique_t);
 	Unique->Type = MLUniqueT;
@@ -1960,6 +2017,7 @@ ML_FUNCTION(Pair) {
 //<Sequence/1:sequence
 //<Sequence/2:sequence
 //>sequence
+// Returns a new sequence that produces the values from :mini:`Sequence/1` as keys and the values from :mini:`Sequence/2` as values.
 	ML_CHECK_ARG_COUNT(2);
 	ml_paired_t *Paired = new(ml_paired_t);
 	Paired->Type = MLPairedT;
@@ -2405,11 +2463,12 @@ void ml_sequence_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "count", MLSequenceCount);
 		stringmap_insert(Globals, "count2", Count2);
 		stringmap_insert(Globals, "reduce", Reduce);
+		stringmap_insert(Globals, "reduce2", Reduce2);
 		stringmap_insert(Globals, "min", Min);
 		stringmap_insert(Globals, "max", Max);
 		stringmap_insert(Globals, "sum", Sum);
 		stringmap_insert(Globals, "prod", Prod);
-		stringmap_insert(Globals, "reduce2", Reduce2);
+		stringmap_insert(Globals, "extremum", Extremum);
 		stringmap_insert(Globals, "min2", Min2);
 		stringmap_insert(Globals, "max2", Max2);
 		stringmap_insert(Globals, "parallel", Parallel);

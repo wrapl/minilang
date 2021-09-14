@@ -1,11 +1,6 @@
 #include "ml_uuid.h"
 #include "ml_macros.h"
 
-typedef struct {
-	const ml_type_t *Type;
-	uuid_t Value;
-} ml_uuid_t;
-
 static long ml_uuid_hash(ml_uuid_t *UUID, ml_hash_chain_t *Chain) {
 	return *(long *)UUID->Value;
 }

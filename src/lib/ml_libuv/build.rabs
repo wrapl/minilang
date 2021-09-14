@@ -1,15 +1,20 @@
 PREBUILDS := old + [LIBUV]
 
-generate_init_file(file("ml_libuv.c"))
-generate_init_file(file("ml_libuv_file.c"))
-generate_init_file(file("ml_libuv_process.c"))
+for Source in PATH:ls(".*\\.c") do
+	Source:basename:find("_init") and next
+	generate_init_file(Source)
+end
 
 CFLAGS := old + ["-I../..", "-I../include"]
 
 MLLIBUV := minilang_lib("libuv.so", [
 	file("ml_libuv.o"),
+	file("ml_libuv_handle.o"),
+	file("ml_libuv_stream.o"),
 	file("ml_libuv_file.o"),
-	file("ml_libuv_process.o")
+	file("ml_libuv_process.o"),
+	file("ml_libuv_pipe.o"),
+	file("ml_libuv_tcp.o")
 ], [LIBUV])
 
 DEFAULT[MLLIBUV]

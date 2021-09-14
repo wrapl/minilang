@@ -70,7 +70,7 @@ internal
 :mini:`type tablerowiter`
    *TBD*
 
-:mini:`meth :MLSequenceCount(Arg₁: string)`
+:mini:`meth :MLSequenceCount(Arg₁: address)`
    *TBD*
 
 :mini:`type stringiterator`

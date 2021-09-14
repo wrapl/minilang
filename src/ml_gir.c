@@ -1214,10 +1214,10 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 						if (LengthIndex >= 0) {
 							set_input_length(Info, LengthIndex, ArgsIn, 0);
 						}
-					} else if (ml_is(Arg, MLStringT)) {
-						ArgsIn[IndexIn].v_pointer = (void *)ml_string_value(Arg);
+					} else if (ml_is(Arg, MLAddressT)) {
+						ArgsIn[IndexIn].v_pointer = (void *)ml_address_value(Arg);
 						if (LengthIndex >= 0) {
-							set_input_length(Info, LengthIndex, ArgsIn, ml_string_length(Arg));
+							set_input_length(Info, LengthIndex, ArgsIn, ml_address_length(Arg));
 						}
 					} else if (ml_is(Arg, MLListT)) {
 						ArgsIn[IndexIn].v_pointer = list_to_array(Arg, ElementInfo);
@@ -1380,9 +1380,41 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 			case GI_TYPE_TAG_DOUBLE:
 			case GI_TYPE_TAG_GTYPE:
 			case GI_TYPE_TAG_UTF8:
-			case GI_TYPE_TAG_FILENAME:
-			case GI_TYPE_TAG_ARRAY: {
+			case GI_TYPE_TAG_FILENAME: {
 				ArgsOut[IndexOut].v_pointer = &ResultsOut[IndexResult++];
+				break;
+			}
+			case GI_TYPE_TAG_ARRAY: {
+				if (g_arg_info_is_caller_allocates(ArgInfo)) {
+					if (N >= Count) return ml_error("InvokeError", "Not enough arguments");
+					ml_value_t *Arg = Args[N++];
+					GITypeInfo *ElementInfo = g_type_info_get_param_type(TypeInfo, 0);
+					int LengthIndex = g_type_info_get_array_length(TypeInfo);
+					switch (g_type_info_get_tag(ElementInfo)) {
+					case GI_TYPE_TAG_INT8:
+					case GI_TYPE_TAG_UINT8: {
+						if (Arg == MLNil) {
+							ArgsOut[IndexOut].v_pointer = 0;
+							if (LengthIndex >= 0) {
+								set_input_length(Info, LengthIndex, ArgsIn, 0);
+							}
+						} else if (ml_is(Arg, MLBufferT)) {
+							ArgsOut[IndexOut].v_pointer = (char *)ml_address_value(Arg);
+							if (LengthIndex >= 0) {
+								set_input_length(Info, LengthIndex, ArgsIn, ml_address_length(Arg));
+							}
+						} else {
+							return ml_error("TypeError", "Expected buffer for parameter %d", I);
+						}
+						break;
+					}
+					default: {
+						return ml_error("NotImplemented", "Not able to marshal out-arrays yet at %d", __LINE__);
+					}
+					}
+				} else {
+					ArgsOut[IndexOut].v_pointer = &ResultsOut[IndexResult++];
+				}
 				break;
 			}
 			case GI_TYPE_TAG_INTERFACE: {

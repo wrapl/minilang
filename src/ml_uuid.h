@@ -8,6 +8,11 @@
 #define UUID_STR_LEN 37
 #endif
 
+typedef struct {
+	const ml_type_t *Type;
+	uuid_t Value;
+} ml_uuid_t;
+
 extern ml_type_t MLUUIDT[];
 
 void ml_uuid_init(stringmap_t *Globals);

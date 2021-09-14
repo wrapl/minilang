@@ -182,6 +182,7 @@ struct ml_decl_t {
 #define MLC_DECL_FORWARD 2
 #define MLC_DECL_BACKFILL 4
 #define MLC_DECL_BYREF 8
+#define MLC_DECL_ASVAR 16
 
 struct ml_debugger_t {
 	size_t Revision;
@@ -201,6 +202,7 @@ ml_decl_t *ml_debugger_decls(ml_state_t *State);
 ml_value_t *ml_debugger_local(ml_state_t *State, int Index);
 
 extern ml_cfunctionx_t MLBreak[];
+extern ml_cfunction_t MLDebugger[];
 
 // Preemption //
 
