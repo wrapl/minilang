@@ -79,9 +79,6 @@ internal
 :mini:`type stringswitch < function`
    *TBD*
 
-:mini:`fun mlstringswitch()`
-   *TBD*
-
 :mini:`fun mlchained(Arg₁: any)`
    *TBD*
 

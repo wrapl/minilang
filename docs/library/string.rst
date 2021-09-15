@@ -53,6 +53,10 @@ string
    Returns :mini:`Arg₂` if :mini:`Arg₁ >= Arg₂` and :mini:`nil` otherwise.
 
 
+:mini:`fun string::switch(Cases...: string|regex)`
+   Implements :mini:`switch` for string values. Case values must be strings or regular expressions.
+
+
 :mini:`fun stringbuffer()`
    *TBD*
 
