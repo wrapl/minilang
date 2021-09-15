@@ -850,7 +850,9 @@ ML_TYPE(MLStringSwitchT, (MLFunctionT), "string-switch",
 );
 
 ML_FUNCTION(MLStringSwitch) {
-//!internal
+//@string::switch
+//<Cases...:string|regex
+// Implements :mini:`switch` for string values. Case values must be strings or regular expressions.
 	int Total = 1;
 	for (int I = 0; I < Count; ++I) Total += ml_list_length(Args[I]);
 	ml_string_switch_t *Switch = xnew(ml_string_switch_t, Total, ml_string_case_t);
