@@ -81,6 +81,7 @@ typedef struct DEBUG_STRUCT(frame) DEBUG_STRUCT(frame);
 
 struct DEBUG_STRUCT(frame) {
 	ml_state_t Base;
+	void *Next;
 	ml_inst_t *Inst;
 	ml_value_t **Top;
 	const char *Source;
@@ -224,9 +225,9 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller
 #ifndef DEBUG_VERSION
 
 #ifdef ML_THREADSAFE
-static __thread void *MLCachedFrame = NULL;
+static __thread ml_frame_t *MLCachedFrame = NULL;
 #else
-static void *MLCachedFrame = NULL;
+static ml_frame_t *MLCachedFrame = NULL;
 #endif
 
 extern ml_value_t *SymbolMethod;
@@ -340,16 +341,16 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Schedule.Counter[0] = Counter;
 #endif
 		ml_state_t *Caller = Frame->Base.Caller;
-		if (!Frame->Continue) {
+		/*if (!Frame->Continue) {
 			//memset(Frame, 0, ML_FRAME_REUSE_SIZE);
 			//while (Top > Frame->Stack) *--Top = NULL;
-			memset(Frame, 0, (Top - Frame->Stack) * sizeof(ml_value_t *));
-			*(ml_frame_t **)Frame = MLCachedFrame;
-			MLCachedFrame = Frame;
-		} else {
+			memset(Frame->Stack, 0, (Top - Frame->Stack) * sizeof(ml_value_t *));
+			Frame->Next = MLCachedFrame;
+			MLCachedFrame = (ml_frame_t *)Frame;
+		} else {*/
 			Frame->Line = Inst->Line;
 			Frame->Inst = Inst;
-		}
+		//}
 		ML_CONTINUE(Caller, Result);
 	}
 	DO_SUSPEND: {
@@ -639,19 +640,19 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
-		if (Next->Opcode == MLI_RETURN && !Frame->Continue) {
+		/*if (Next->Opcode == MLI_RETURN && !Frame->Continue) {
 			if (!MLCachedFrame) {
 				MLCachedFrame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
 			}
-			*(ml_frame_t **)Frame = *(ml_frame_t **)MLCachedFrame;
-			*(ml_frame_t **)MLCachedFrame = (ml_frame_t *)Frame;
+			Frame->Next = MLCachedFrame->Next;
+			MLCachedFrame->Next = Frame;
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
-		} else {
+		} else {*/
 			Frame->Inst = Next;
 			Frame->Line = Inst->Line;
 			Frame->Top = Top - (Count + 1);
 			return ml_call(Frame, Function, Count, Args);
-		}
+		//}
 	}
 	DO_CONST_CALL: {
 		int Count = Inst[1].Count;
@@ -661,19 +662,19 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
-		if (Next->Opcode == MLI_RETURN && !Frame->Continue) {
+		/*if (Next->Opcode == MLI_RETURN && !Frame->Continue) {
 			if (!MLCachedFrame) {
 				MLCachedFrame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
 			}
-			*(ml_frame_t **)Frame = *(ml_frame_t **)MLCachedFrame;
-			*(ml_frame_t **)MLCachedFrame = (ml_frame_t *)Frame;
+			Frame->Next = MLCachedFrame->Next;
+			MLCachedFrame->Next = Frame;
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
-		} else {
+		} else {*/
 			Frame->Inst = Next;
 			Frame->Line = Inst->Line;
 			Frame->Top = Top - Count;
 			return ml_call(Frame, Function, Count, Args);
-		}
+		//}
 	}
 	DO_ASSIGN: {
 		Result = ml_deref(Result);
@@ -942,16 +943,16 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 #endif
 	size_t Size = sizeof(DEBUG_STRUCT(frame)) + Info->FrameSize * sizeof(ml_value_t *);
 	DEBUG_STRUCT(frame) *Frame;
-	if (Size <= ML_FRAME_REUSE_SIZE) {
-		if ((Frame = MLCachedFrame)) {
-			MLCachedFrame = *(ml_frame_t **)Frame;
+	/*if (Size <= ML_FRAME_REUSE_SIZE) {
+		if ((Frame = (DEBUG_STRUCT(frame) *)MLCachedFrame)) {
+			MLCachedFrame = Frame->Next;
 		} else {
 			Frame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
 		}
 		Frame->Continue = 0;
-	} else {
+	} else {*/
 		Frame = GC_MALLOC(Size);
-	}
+	//}
 	Frame->Base.Type = DEBUG_TYPE(Continuation);
 	Frame->Base.Caller = Caller;
 	Frame->Base.run = (void *)DEBUG_FUNC(frame_run);
@@ -1033,7 +1034,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 					const char *Name = ml_string_value(Node->Value);
 					int Index = (intptr_t)stringmap_search(Info->Params, Name);
 					if (Index) {
-						Frame->Stack[Index - 1] = Args[++I];
+						Frame->Stack[Index - 1] = ml_deref(Args[++I]);
 					} else {
 						ML_RETURN(ml_error("NameError", "Unknown named parameters %s", Name));
 					}
