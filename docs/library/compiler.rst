@@ -4,6 +4,15 @@ compiler
 :mini:`type compilerfunction < state`
    *TBD*
 
+:mini:`meth :source(Arg₁: expr)`
+   *TBD*
+
+:mini:`meth :start(Arg₁: expr)`
+   *TBD*
+
+:mini:`meth :end(Arg₁: expr)`
+   *TBD*
+
 :mini:`fun compiler(Global: function|map, ?Read: function): compiler`
    *TBD*
 
