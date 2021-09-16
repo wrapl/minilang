@@ -341,16 +341,16 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Schedule.Counter[0] = Counter;
 #endif
 		ml_state_t *Caller = Frame->Base.Caller;
-		/*if (!Frame->Continue) {
+		if (!Frame->Continue) {
 			//memset(Frame, 0, ML_FRAME_REUSE_SIZE);
 			//while (Top > Frame->Stack) *--Top = NULL;
 			memset(Frame->Stack, 0, (Top - Frame->Stack) * sizeof(ml_value_t *));
-			Frame->Next = MLCachedFrame;
-			MLCachedFrame = (ml_frame_t *)Frame;
-		} else {*/
+			//Frame->Next = MLCachedFrame;
+			//MLCachedFrame = (ml_frame_t *)Frame;
+		} else {
 			Frame->Line = Inst->Line;
 			Frame->Inst = Inst;
-		//}
+		}
 		ML_CONTINUE(Caller, Result);
 	}
 	DO_SUSPEND: {
