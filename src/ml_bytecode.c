@@ -81,6 +81,7 @@ typedef struct DEBUG_STRUCT(frame) DEBUG_STRUCT(frame);
 
 struct DEBUG_STRUCT(frame) {
 	ml_state_t Base;
+	void *Next;
 	ml_inst_t *Inst;
 	ml_value_t **Top;
 	const char *Source;
@@ -224,12 +225,15 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller
 #ifndef DEBUG_VERSION
 
 #ifdef ML_THREADSAFE
-static __thread void *MLCachedFrame = NULL;
+static __thread ml_frame_t *MLCachedFrame = NULL;
 #else
-static void *MLCachedFrame = NULL;
+static ml_frame_t *MLCachedFrame = NULL;
 #endif
 
 extern ml_value_t *SymbolMethod;
+
+#define ML_FRAME_REUSE_SIZE 224
+
 #endif
 
 static ML_METHOD_DECL(AppendMethod, "append");
@@ -340,9 +344,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		if (!Frame->Continue) {
 			//memset(Frame, 0, ML_FRAME_REUSE_SIZE);
 			//while (Top > Frame->Stack) *--Top = NULL;
-			memset(Frame, 0, (Top - Frame->Stack) * sizeof(ml_value_t *));
-			*(ml_frame_t **)Frame = MLCachedFrame;
-			MLCachedFrame = Frame;
+			memset(Frame->Stack, 0, (Top - Frame->Stack) * sizeof(ml_value_t *));
+			Frame->Next = MLCachedFrame;
+			MLCachedFrame = (ml_frame_t *)Frame;
 		} else {
 			Frame->Line = Inst->Line;
 			Frame->Inst = Inst;
@@ -637,9 +641,11 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Schedule.Counter[0] = Counter;
 #endif
 		if (Next->Opcode == MLI_RETURN && !Frame->Continue) {
-			*(ml_frame_t **)Frame = MLCachedFrame;
-			MLCachedFrame = Frame;
-			// ^ safe as long as ml_call never suspends before copying arguments
+			if (!MLCachedFrame) {
+				MLCachedFrame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
+			}
+			Frame->Next = MLCachedFrame->Next;
+			MLCachedFrame->Next = Frame;
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		} else {
 			Frame->Inst = Next;
@@ -657,9 +663,11 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Schedule.Counter[0] = Counter;
 #endif
 		if (Next->Opcode == MLI_RETURN && !Frame->Continue) {
-			*(ml_frame_t **)Frame = MLCachedFrame;
-			MLCachedFrame = Frame;
-			// ^ safe as long as ml_call never suspends before copying arguments
+			if (!MLCachedFrame) {
+				MLCachedFrame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
+			}
+			Frame->Next = MLCachedFrame->Next;
+			MLCachedFrame->Next = Frame;
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		} else {
 			Frame->Inst = Next;
@@ -925,22 +933,19 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #endif
 }
 
-static void ml_closure_call_debug(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args);
+static void ml_closure_call_debug(ml_state_t *Caller, ml_closure_t *Closure, int Count, ml_value_t **Args);
 
-#define ML_FRAME_REUSE_SIZE 224
-
-static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
-	ml_closure_t *Closure = (ml_closure_t *)Value;
+static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, int Count, ml_value_t **Args) {
 	ml_closure_info_t *Info = Closure->Info;
 	ml_debugger_t *Debugger = (ml_debugger_t *)Caller->Context->Values[ML_DEBUGGER_INDEX];
 #ifndef DEBUG_VERSION
-	if (Debugger) return ml_closure_call_debug(Caller, Value, Count, Args);
+	if (Debugger) return ml_closure_call_debug(Caller, Closure, Count, Args);
 #endif
 	size_t Size = sizeof(DEBUG_STRUCT(frame)) + Info->FrameSize * sizeof(ml_value_t *);
 	DEBUG_STRUCT(frame) *Frame;
 	if (Size <= ML_FRAME_REUSE_SIZE) {
-		if ((Frame = MLCachedFrame)) {
-			MLCachedFrame = *(ml_frame_t **)Frame;
+		if ((Frame = (DEBUG_STRUCT(frame) *)MLCachedFrame)) {
+			MLCachedFrame = Frame->Next;
 		} else {
 			Frame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
 		}
@@ -965,13 +970,13 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 		ml_value_t *Arg = Args[I];
 		if (!(Decl->Flags & MLC_DECL_BYREF)) Arg = ml_deref(Arg);
 		if (ml_is_error(Arg)) ML_RETURN(Arg);
+#ifdef ML_NANBOXING
+		if (!ml_tag(Arg) && Arg->Type == MLNamesT) break;
+#else
+		if (Arg->Type == MLNamesT) break;
+#endif
 		if (Decl->Flags & MLC_DECL_ASVAR) Arg = ml_variable(Arg, NULL);
 		Decl = Decl->Next;
-#ifdef ML_NANBOXING
-		if (!ml_tag(Value) && Value->Type == MLNamesT) break;
-#else
-		if (Value->Type == MLNamesT) break;
-#endif
 		Frame->Stack[I] = Arg;
 	}
 	for (int J = I; J < NumParams; ++J) {
@@ -983,9 +988,9 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 			ml_value_t *Arg = ml_deref(Args[I]);
 			if (ml_is_error(Arg)) ML_RETURN(Arg);
 #ifdef ML_NANBOXING
-			if (!ml_tag(Value) && Value->Type == MLNamesT) break;
+			if (!ml_tag(Arg) && Arg->Type == MLNamesT) break;
 #else
-			if (Value->Type == MLNamesT) break;
+			if (Arg->Type == MLNamesT) break;
 #endif
 			ml_list_put(Rest, Arg);
 		}
@@ -995,12 +1000,14 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 	if (Flags & ML_CLOSURE_NAMED_ARGS) {
 		ml_value_t *Options = ml_map();
 		for (; I < Count; ++I) {
+			ml_value_t *Arg = Args[I];
+			if (ml_is_error(Arg)) ML_RETURN(Arg);
 #ifdef ML_NANBOXING
-			if (!ml_tag(Value) && Value->Type == MLNamesT) {
+			if (!ml_tag(Arg) && Arg->Type == MLNamesT) {
 #else
-			if (Value->Type == MLNamesT) {
+			if (Arg->Type == MLNamesT) {
 #endif
-				ML_NAMES_FOREACH(Args[I], Node) {
+				ML_NAMES_FOREACH(Arg, Node) {
 					const char *Name = ml_string_value(Node->Value);
 					int Index = (intptr_t)stringmap_search(Info->Params, Name);
 					if (Index) {
@@ -1016,16 +1023,18 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_value_t *Value, int 
 		++NumParams;
 	} else {
 		for (; I < Count; ++I) {
+			ml_value_t *Arg = Args[I];
+			if (ml_is_error(Arg)) ML_RETURN(Arg);
 #ifdef ML_NANBOXING
-			if (!ml_tag(Value) && Value->Type == MLNamesT) {
+			if (!ml_tag(Arg) && Arg->Type == MLNamesT) {
 #else
-			if (Value->Type == MLNamesT) {
+			if (Arg->Type == MLNamesT) {
 #endif
-				ML_NAMES_FOREACH(Args[I], Node) {
+				ML_NAMES_FOREACH(Arg, Node) {
 					const char *Name = ml_string_value(Node->Value);
 					int Index = (intptr_t)stringmap_search(Info->Params, Name);
 					if (Index) {
-						Frame->Stack[Index - 1] = Args[++I];
+						Frame->Stack[Index - 1] = ml_deref(Args[++I]);
 					} else {
 						ML_RETURN(ml_error("NameError", "Unknown named parameters %s", Name));
 					}
@@ -1368,13 +1377,13 @@ static long ml_closure_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
-static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Closure), ml_state_t *Frame, ml_value_t *Closure) {
+static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Closure), ml_state_t *Frame, ml_closure_t *Closure) {
 	return ml_closure_call(Frame, Closure, 0, NULL);
 }
 
 ML_TYPE(MLClosureT, (MLFunctionT, MLSequenceT), "closure",
 	.hash = ml_closure_hash,
-	.call = ml_closure_call
+	.call = (void *)ml_closure_call
 );
 
 ml_value_t *ml_closure(ml_closure_info_t *Info) {
@@ -1549,6 +1558,7 @@ ML_METHOD("info", MLClosureT) {
 	ml_map_insert(Result, ml_cstring("Start"), ml_integer(Info->StartLine));
 	ml_map_insert(Result, ml_cstring("End"), ml_integer(Info->EndLine));
 	ml_map_insert(Result, ml_cstring("Size"), ml_integer(Info->FrameSize));
+	ml_map_insert(Result, ml_cstring("Flags"), ml_integer(Info->Flags));
 	return Result;
 }
 

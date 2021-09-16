@@ -1787,6 +1787,21 @@ ML_METHOD("subst", MLExprT, MLListT, MLListT) {
 	return ml_expr_value((mlc_expr_t *)Expr);
 }
 
+ML_METHOD("source", MLExprT) {
+	mlc_expr_t *Child = ((ml_expr_value_t *)Args[0])->Expr;
+	return ml_cstring(Child->Source);
+}
+
+ML_METHOD("start", MLExprT) {
+	mlc_expr_t *Child = ((ml_expr_value_t *)Args[0])->Expr;
+	return ml_integer(Child->StartLine);
+}
+
+ML_METHOD("end", MLExprT) {
+	mlc_expr_t *Child = ((ml_expr_value_t *)Args[0])->Expr;
+	return ml_integer(Child->EndLine);
+}
+
 ML_FUNCTION(MLMacro) {
 //!macro
 //@macro
@@ -1806,6 +1821,13 @@ ML_TYPE(MLMacroT, (), "macro",
 // A macro.
 	.Constructor = (ml_value_t *)MLMacro
 );
+
+static ml_value_t *ml_macro(ml_value_t *Function) {
+	ml_macro_t *Macro = new(ml_macro_t);
+	Macro->Type = MLMacroT;
+	Macro->Function = Function;
+	return (ml_value_t *)Macro;
+}
 
 typedef struct {
 	mlc_expr_t *Expr;
@@ -5321,6 +5343,7 @@ void ml_compiler_init() {
 	stringmap_insert(MLCompilerT->Exports, "EOI", MLEndOfInput);
 	stringmap_insert(MLCompilerT->Exports, "NotFound", MLNotFound);
 	stringmap_insert(MLCompilerT->Exports, "switch", MLCompilerSwitch);
+	stringmap_insert(MLMacroT->Exports, "expr", ml_macro((ml_value_t *)MLValueExpr));
 	stringmap_insert(MLMacroT->Exports, "ident", MLIdentExpr);
 	stringmap_insert(MLMacroT->Exports, "value", MLValueExpr);
 	stringmap_insert(MLMacroT->Exports, "block", MLBlockBuilder);

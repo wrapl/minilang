@@ -710,7 +710,7 @@ static ml_value_t *argument_to_ml(GIArgument *Argument, GITypeInfo *TypeInfo, GI
 			return Enum->ByIndex[Argument->v_int];
 		}
 		case GI_INFO_TYPE_FLAGS: {
-			break;
+			return ml_integer(Argument->v_int);
 		}
 		case GI_INFO_TYPE_OBJECT:
 		case GI_INFO_TYPE_INTERFACE: {
