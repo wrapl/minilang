@@ -345,8 +345,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			//memset(Frame, 0, ML_FRAME_REUSE_SIZE);
 			//while (Top > Frame->Stack) *--Top = NULL;
 			memset(Frame->Stack, 0, (Top - Frame->Stack) * sizeof(ml_value_t *));
-			//Frame->Next = MLCachedFrame;
-			//MLCachedFrame = (ml_frame_t *)Frame;
+			Frame->Next = MLCachedFrame;
+			MLCachedFrame = (ml_frame_t *)Frame;
 		} else {
 			Frame->Line = Inst->Line;
 			Frame->Inst = Inst;
@@ -640,19 +640,19 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
-		/*if (Next->Opcode == MLI_RETURN && !Frame->Continue) {
+		if (Next->Opcode == MLI_RETURN && !Frame->Continue) {
 			if (!MLCachedFrame) {
 				MLCachedFrame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
 			}
 			Frame->Next = MLCachedFrame->Next;
 			MLCachedFrame->Next = Frame;
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
-		} else {*/
+		} else {
 			Frame->Inst = Next;
 			Frame->Line = Inst->Line;
 			Frame->Top = Top - (Count + 1);
 			return ml_call(Frame, Function, Count, Args);
-		//}
+		}
 	}
 	DO_CONST_CALL: {
 		int Count = Inst[1].Count;
@@ -662,19 +662,19 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
-		/*if (Next->Opcode == MLI_RETURN && !Frame->Continue) {
+		if (Next->Opcode == MLI_RETURN && !Frame->Continue) {
 			if (!MLCachedFrame) {
 				MLCachedFrame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
 			}
 			Frame->Next = MLCachedFrame->Next;
 			MLCachedFrame->Next = Frame;
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
-		} else {*/
+		} else {
 			Frame->Inst = Next;
 			Frame->Line = Inst->Line;
 			Frame->Top = Top - Count;
 			return ml_call(Frame, Function, Count, Args);
-		//}
+		}
 	}
 	DO_ASSIGN: {
 		Result = ml_deref(Result);
@@ -943,16 +943,16 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 #endif
 	size_t Size = sizeof(DEBUG_STRUCT(frame)) + Info->FrameSize * sizeof(ml_value_t *);
 	DEBUG_STRUCT(frame) *Frame;
-	/*if (Size <= ML_FRAME_REUSE_SIZE) {
+	if (Size <= ML_FRAME_REUSE_SIZE) {
 		if ((Frame = (DEBUG_STRUCT(frame) *)MLCachedFrame)) {
 			MLCachedFrame = Frame->Next;
 		} else {
 			Frame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
 		}
 		Frame->Continue = 0;
-	} else {*/
+	} else {
 		Frame = GC_MALLOC(Size);
-	//}
+	}
 	Frame->Base.Type = DEBUG_TYPE(Continuation);
 	Frame->Base.Caller = Caller;
 	Frame->Base.run = (void *)DEBUG_FUNC(frame_run);
