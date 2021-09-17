@@ -1,5 +1,10 @@
 #include "../ml_array.h"
 
+#ifdef ML_COMPLEX
+#include <complex.h>
+#undef I
+#endif
+
 #define COMPARE_ROW_IMPL(NAME, OP, LEFT, RIGHT, LCONV, RCONV) \
 \
 void NAME ## _row_ ## LEFT ## _ ## RIGHT(char *Target, ml_array_dimension_t *LeftDimension, char *LeftData, ml_array_dimension_t *RightDimension, char *RightData) { \

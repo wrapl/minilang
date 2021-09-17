@@ -2,8 +2,10 @@
 #include "ml_macros.h"
 #include <math.h>
 #include <float.h>
+
 #ifdef ML_COMPLEX
 #include <complex.h>
+#undef I
 #endif
 
 #define MATH_REAL(NAME, CNAME) \
