@@ -641,6 +641,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Schedule.Counter[0] = Counter;
 #endif
 		if (Next->Opcode == MLI_RETURN && !Frame->Continue) {
+			// Ensure at least one other cached frame is available to prevent this frame being used immediately which may result in arguments being overwritten.
 			if (!MLCachedFrame) {
 				MLCachedFrame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
 			}
@@ -663,6 +664,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Schedule.Counter[0] = Counter;
 #endif
 		if (Next->Opcode == MLI_RETURN && !Frame->Continue) {
+			// Ensure at least one other cached frame is available to prevent this frame being used immediately which may result in arguments being overwritten.
 			if (!MLCachedFrame) {
 				MLCachedFrame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
 			}

@@ -985,7 +985,7 @@ ML_TYPE(MLChannelT, (), "channel",
 	.Constructor = (ml_value_t *)MLChannel
 );
 
-ML_METHODVX("add", MLChannelT, MLFunctionT) {
+ML_METHODVX("start", MLChannelT, MLFunctionT) {
 //!channel
 //<Channel
 //<Function
