@@ -281,17 +281,20 @@ static ml_value_t *struct_field_ref(GIFieldInfo *Info, int Count, ml_value_t **A
 	return (ml_value_t *)Ref;
 }
 
-typedef struct enum_t {
+typedef struct enum_t enum_t;
+typedef struct enum_value_t enum_value_t;
+
+struct enum_t {
 	ml_type_t Base;
 	GIEnumInfo *Info;
-	ml_value_t *ByIndex[];
-} enum_t;
+	enum_value_t *ByIndex[];
+};
 
-typedef struct enum_value_t {
+struct enum_value_t {
 	const enum_t *Type;
 	ml_value_t *Name;
 	gint64 Value;
-} enum_value_t;
+};
 
 ML_TYPE(EnumT, (BaseInfoT), "gir-enum-type");
 // A gobject-instrospection enum type.
@@ -347,6 +350,27 @@ ML_METHOD("|", EnumValueT, EnumValueT) {
 	C->Name = ml_string(Name, Length);
 	C->Value = A->Value | B->Value;
 	return (ml_value_t *)C;
+}
+
+static ml_value_t *gir_enum_value(enum_t *Type, int64_t Value) {
+	for (enum_value_t **Ptr = Type->ByIndex; Value && *Ptr; ++Ptr) {
+		if (Ptr[0]->Value == Value) return (ml_value_t *)Ptr[0];
+	}
+	enum_value_t *Enum = new(enum_value_t);
+	Enum->Type = Type;
+	Enum->Value = Value;
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	for (enum_value_t **Ptr = Type->ByIndex; Value && *Ptr; ++Ptr) {
+		if ((Ptr[0]->Value & Value) == Ptr[0]->Value) {
+			Value &= ~Ptr[0]->Value;
+			if (Buffer->Length) ml_stringbuffer_add(Buffer, "|", 1);
+			const char *Name = ml_string_value(Ptr[0]->Name);
+			size_t Length = ml_string_length(Ptr[0]->Name);
+			ml_stringbuffer_add(Buffer, Name, Length);
+		}
+	}
+	Enum->Name = ml_stringbuffer_value(Buffer);
+	return (ml_value_t *)Enum;
 }
 
 static size_t array_element_size(GITypeInfo *Info) {
@@ -707,10 +731,11 @@ static ml_value_t *argument_to_ml(GIArgument *Argument, GITypeInfo *TypeInfo, GI
 		}
 		case GI_INFO_TYPE_ENUM: {
 			enum_t *Enum = (enum_t *)enum_info_lookup((GIEnumInfo *)InterfaceInfo);
-			return Enum->ByIndex[Argument->v_int];
+			return (ml_value_t *)Enum->ByIndex[Argument->v_int];
 		}
 		case GI_INFO_TYPE_FLAGS: {
-			return ml_integer(Argument->v_int);
+			enum_t *Enum = (enum_t *)enum_info_lookup((GIEnumInfo *)InterfaceInfo);
+			return gir_enum_value(Enum, Argument->v_int);
 		}
 		case GI_INFO_TYPE_OBJECT:
 		case GI_INFO_TYPE_INTERFACE: {
@@ -1716,7 +1741,7 @@ static ml_type_t *enum_info_lookup(GIEnumInfo *Info) {
 	ml_type_t **Slot = (ml_type_t **)stringmap_slot(TypeMap, TypeName);
 	if (!Slot[0]) {
 		int NumValues = g_enum_info_get_n_values(Info);
-		enum_t *Enum = xnew(enum_t, NumValues, ml_value_t *);
+		enum_t *Enum = xnew(enum_t, NumValues + 1, ml_value_t *);
 		Enum->Base.Type = EnumT;
 		Enum->Base.Name = TypeName;
 		Enum->Base.hash = ml_default_hash;
@@ -1733,7 +1758,7 @@ static ml_type_t *enum_info_lookup(GIEnumInfo *Info) {
 			Value->Name = ml_cstring(ValueName);
 			Value->Value = g_value_info_get_value(ValueInfo);
 			stringmap_insert(Enum->Base.Exports, ValueName, (ml_value_t *)Value);
-			Enum->ByIndex[I] = (ml_value_t *)Value;
+			Enum->ByIndex[I] = Value;
 		}
 		Enum->Info = Info;
 		Slot[0] = (ml_type_t *)Enum;
@@ -1857,9 +1882,14 @@ static ml_value_t *_value_to_ml(const GValue *Value, GIBaseInfo *Info) {
 		GType Type = G_VALUE_TYPE(Value);
 		GIBaseInfo *Info = g_irepository_find_by_gtype(NULL, Type);
 		enum_t *Enum = (enum_t *)enum_info_lookup((GIEnumInfo *)Info);
-		return Enum->ByIndex[g_value_get_enum(Value)];
+		return (ml_value_t *)Enum->ByIndex[g_value_get_enum(Value)];
 	}
-	case G_TYPE_FLAGS: return ml_integer(g_value_get_flags(Value));
+	case G_TYPE_FLAGS:  {
+		GType Type = G_VALUE_TYPE(Value);
+		GIBaseInfo *Info = g_irepository_find_by_gtype(NULL, Type);
+		enum_t *Enum = (enum_t *)enum_info_lookup((GIEnumInfo *)Info);
+		return gir_enum_value(Enum, g_value_get_enum(Value));
+	}
 	case G_TYPE_FLOAT: return ml_real(g_value_get_float(Value));
 	case G_TYPE_DOUBLE: return ml_real(g_value_get_double(Value));
 	case G_TYPE_STRING: return ml_string(g_value_get_string(Value), -1);
@@ -1886,10 +1916,11 @@ static ml_value_t *_value_to_ml(const GValue *Value, GIBaseInfo *Info) {
 				}
 				case GI_INFO_TYPE_ENUM: {
 					enum_t *Enum = (enum_t *)enum_info_lookup((GIEnumInfo *)InterfaceInfo);
-					return Enum->ByIndex[g_value_get_uint(Value)];
+					return (ml_value_t *)Enum->ByIndex[g_value_get_uint(Value)];
 				}
 				case GI_INFO_TYPE_FLAGS: {
-					break;
+					enum_t *Enum = (enum_t *)enum_info_lookup((GIEnumInfo *)InterfaceInfo);
+					return gir_enum_value(Enum, g_value_get_uint(Value));
 				}
 				case GI_INFO_TYPE_OBJECT:
 				case GI_INFO_TYPE_INTERFACE: {
@@ -2059,6 +2090,7 @@ ML_METHOD("::", ObjectInstanceT, MLStringT) {
 }
 
 void ml_gir_init(stringmap_t *Globals) {
+	g_setenv("G_SLICE", "always-malloc", 1);
 	GError *Error = 0;
 	g_irepository_require(NULL, "GLib", NULL, 0, &Error);
 	g_irepository_require(NULL, "GObject", NULL, 0, &Error);

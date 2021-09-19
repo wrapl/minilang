@@ -18,10 +18,16 @@
 #include "ml_method.h"
 #include "ml_list.h"
 #include "ml_map.h"
+
 #ifdef ML_TRE
 #include <tre/regex.h>
 #else
 #include <regex.h>
+#endif
+
+#ifdef ML_COMPLEX
+#include <complex.h>
+#undef I
 #endif
 
 //!type
@@ -2869,6 +2875,9 @@ void ml_init() {
 	ml_method_by_value(MLRealT->Constructor, NULL, ml_identity, MLDoubleT, NULL);
 	stringmap_insert(MLRealT->Exports, "infinity", ml_real(INFINITY));
 	ml_method_by_value(MLNumberT->Constructor, NULL, ml_identity, MLNumberT, NULL);
+#ifdef ML_COMPLEX
+	stringmap_insert(MLCompilerT->Exports, "i", ml_complex(1i));
+#endif
 	ml_method_by_name("=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
 	ml_method_by_name("!=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
 	ml_method_by_name("<", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);

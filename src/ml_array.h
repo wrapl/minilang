@@ -61,9 +61,6 @@ ML_ARRAY_ACCESSORS(double);
 
 #ifdef ML_COMPLEX
 
-typedef complex float complex_float;
-typedef complex double complex_double;
-
 ML_ARRAY_ACCESSORS(complex_float);
 ML_ARRAY_ACCESSORS(complex_double);
 

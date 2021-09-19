@@ -7,7 +7,7 @@ channel
 :mini:`type channel`
    *TBD*
 
-:mini:`meth :add(Channel: channel, Function: function): any`
+:mini:`meth :start(Channel: channel, Function: function): any`
    *TBD*
 
 :mini:`meth :open(Channel: channel): channel | nil`

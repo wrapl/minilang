@@ -6,6 +6,11 @@
 #include <stdarg.h>
 #include <math.h>
 
+#ifdef ML_COMPLEX
+#include <complex.h>
+#undef I
+#endif
+
 static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args);
 
 ML_CFUNCTION(MLArray, NULL, ml_array_of_fn);

@@ -3,6 +3,14 @@
 #include "ml_bytecode.h"
 #include <string.h>
 
+#ifdef ML_UUID
+#include "ml_uuid.h"
+#endif
+
+#ifdef ML_TIME
+#include "ml_time.h"
+#endif
+
 struct ml_json_encoder_cache_t {
 	inthash_t *Globals;
 	inthash_t Cached[1];
@@ -113,6 +121,40 @@ static json_t *ML_TYPED_FN(ml_json_encode, MLVariableT, ml_json_encoder_cache_t 
 	inthash_insert(Cache->Cached, (uintptr_t)Value, Json);
 	return Json;
 }
+
+#ifdef ML_UUID
+
+static json_t *ML_TYPED_FN(ml_json_encode, MLUUIDT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
+	char IdString[UUID_STR_LEN];
+	uuid_unparse_lower(ml_uuid_value(Value), IdString);
+	return json_pack("[ss]", "uuid", IdString);
+}
+
+#endif
+
+#ifdef ML_TIME
+
+static json_t *ML_TYPED_FN(ml_json_encode, MLTimeT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
+	struct timespec Time[1];
+	ml_time_value(Value, Time);
+	struct tm TM = {0,};
+	gmtime_r(&Time->tv_sec, &TM);
+	char Buffer[60];
+	char *End = Buffer + strftime(Buffer, 50, "%FT%T", &TM);
+	unsigned long NSec = Time->tv_nsec;
+	*End++ = '.';
+	*End++ = '0' + (NSec / 100000000) % 10;
+	*End++ = '0' + (NSec / 10000000) % 10;
+	*End++ = '0' + (NSec / 1000000) % 10;
+	*End++ = '0' + (NSec / 100000) % 10;
+	*End++ = '0' + (NSec / 10000) % 10;
+	*End++ = '0' + (NSec / 1000) % 10;
+	*End++ = 'Z';
+	*End = 0;
+	return json_pack("[ss]", "time", Buffer);
+}
+
+#endif
 
 static json_t *ml_closure_info_encode(ml_closure_info_t *Info, ml_json_encoder_cache_t *Cache);
 
@@ -486,6 +528,26 @@ static ml_value_t *ml_json_decode_type(ml_json_decoder_cache_t *Cache, json_t *J
 	return MLNil;
 }
 
+#ifdef ML_UUID
+
+static ml_value_t *ml_json_decode_uuid(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+	json_t *Value = json_array_get(Json, 0);
+	if (!json_is_string(Value)) return ml_error("TypeError", "UUID requires strings");
+	return ml_uuid_parse(json_string_value(Value), json_string_length(Value));
+}
+
+#endif
+
+#ifdef ML_TIME
+
+static ml_value_t *ml_json_decode_time(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+	json_t *Value = json_array_get(Json, 0);
+	if (!json_is_string(Value)) return ml_error("TypeError", "Time requires strings");
+	return ml_time_parse(json_string_value(Value), json_string_length(Value));
+}
+
+#endif
+
 static ml_value_t *ml_json_decode_variable(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
 	return ml_variable(MLNil, NULL);
 }
@@ -714,6 +776,12 @@ void ml_jsencode_init(stringmap_t *Globals) {
 	stringmap_insert(Decoders, "method", ml_json_decode_method);
 	stringmap_insert(Decoders, "variable", ml_json_decode_variable);
 	stringmap_insert(Decoders, "closure", ml_json_decode_closure);
+#ifdef ML_TIME
+	stringmap_insert(Decoders, "time", ml_json_decode_time);
+#endif
+#ifdef ML_UUID
+	stringmap_insert(Decoders, "uuid", ml_json_decode_uuid);
+#endif
 #include "ml_jsencode_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "jsvalue", JSValue);

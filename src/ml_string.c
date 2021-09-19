@@ -16,6 +16,11 @@
 #include <regex.h>
 #endif
 
+#ifdef ML_COMPLEX
+#include <complex.h>
+#undef I
+#endif
+
 ML_TYPE(MLAddressT, (), "address");
 //!address
 

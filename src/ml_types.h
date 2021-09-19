@@ -510,27 +510,22 @@ inline double ml_double_value_fast(const ml_value_t *Value) {
 
 #ifdef ML_COMPLEX
 
-#ifdef	__cplusplus
-#else
-
-#include <complex.h>
-#undef I
+typedef _Complex float complex_float;
+typedef _Complex double complex_double;
 
 typedef struct {
 	ml_type_t *Type;
-	complex double Value;
+	complex_double Value;
 } ml_complex_t;
 
 extern ml_type_t MLComplexT[];
 
-ml_value_t *ml_complex(complex double Value);
-complex double ml_complex_value(const ml_value_t *Value);
+ml_value_t *ml_complex(complex_double Value);
+complex_double ml_complex_value(const ml_value_t *Value);
 
-inline complex double ml_complex_value_fast(const ml_value_t *Value) {
+inline complex_double ml_complex_value_fast(const ml_value_t *Value) {
 	return ((ml_complex_t *)Value)->Value;
 }
-
-#endif
 
 #endif
 
