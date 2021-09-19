@@ -4,6 +4,9 @@ compiler
 :mini:`type compilerfunction < state`
    *TBD*
 
+:mini:`meth :value(Arg₁: expr)`
+   *TBD*
+
 :mini:`meth :source(Arg₁: expr)`
    *TBD*
 

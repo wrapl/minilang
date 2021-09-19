@@ -55,7 +55,7 @@ macro
    Adds a :mini:`let`-declaration to a block with initializer :mini:`Expr`.
 
 
-:mini:`meth :do(Builder: blockbuilder, Expr: expr): blockbuilder`
+:mini:`meth :do(Builder: blockbuilder, Expr...: expr, ...): blockbuilder`
    Adds the expression :mini:`Expr` to a block.
 
 
@@ -65,5 +65,29 @@ macro
 
 :mini:`fun macro::block(): blockbuilder`
    Returns a new block builder.
+
+
+:mini:`type exprbuilder`
+   Utility object for building a block expression.
+
+
+:mini:`fun macro::list(): exprbuilder`
+   Returns a new list builder.
+
+
+:mini:`fun macro::list(): exprbuilder`
+   Returns a new list builder.
+
+
+:mini:`fun macro::list(): exprbuilder`
+   Returns a new list builder.
+
+
+:mini:`meth :add(Builder: exprbuilder, Expr...: expr, ...): blockbuilder`
+   Adds the expression :mini:`Expr` to a block.
+
+
+:mini:`meth :expr(Builder: exprbuilder): expr`
+   Finishes a block and returns it as an expression.
 
 
