@@ -81,11 +81,12 @@ typedef struct DEBUG_STRUCT(frame) DEBUG_STRUCT(frame);
 
 struct DEBUG_STRUCT(frame) {
 	ml_state_t Base;
-	void *Next;
-	ml_inst_t *Inst;
+	union {
+		void *Next;
+		ml_inst_t *Inst;
+	};
 	ml_value_t **Top;
 	const char *Source;
-	const char *Name;
 	ml_inst_t *OnError;
 	ml_value_t **UpValues;
 #ifdef ML_SCHEDULER
@@ -232,7 +233,7 @@ static ml_frame_t *MLCachedFrame = NULL;
 
 extern ml_value_t *SymbolMethod;
 
-#define ML_FRAME_REUSE_SIZE 224
+#define ML_FRAME_REUSE_SIZE 384
 
 #endif
 
@@ -960,7 +961,6 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 	Frame->Base.run = (void *)DEBUG_FUNC(frame_run);
 	Frame->Base.Context = Caller->Context;
 	Frame->Source = Info->Source;
-	Frame->Name = Info->Name;
 	int NumParams = Info->NumParams;
 	int Flags = Info->Flags;
 	if (Flags & ML_CLOSURE_EXTRA_ARGS) --NumParams;
