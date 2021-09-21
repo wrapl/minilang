@@ -126,7 +126,8 @@ typedef struct {
 
 static void xml_start_element(xml_decoder_t *Decoder, const XML_Char *Name, const XML_Char **Attrs) {
 	if (Decoder->Buffer->Length) {
-		ml_list_put(Decoder->Node->Children, ml_stringbuffer_value(Decoder->Buffer));
+		ml_value_t *Text = ml_stringbuffer_value(Decoder->Buffer);
+		if (Decoder->Node) ml_list_put(Decoder->Node->Children, Text);
 	}
 	xml_stack_t *Stack = Decoder->Stack;
 	if (Stack->Index == ML_XML_STACK_SIZE) {

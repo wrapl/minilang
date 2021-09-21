@@ -214,6 +214,12 @@ internal
 :mini:`meth :MLCompilerSwitch(Arg₁: flags)`
    *TBD*
 
+:mini:`type methodswitch < function`
+   *TBD*
+
+:mini:`fun mlmethodswitch()`
+   *TBD*
+
 :mini:`meth :MLSequenceCount(Arg₁: map)`
    *TBD*
 
