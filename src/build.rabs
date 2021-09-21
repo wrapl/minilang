@@ -133,6 +133,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	:>MINILANG_GIR := 1
 	MINILANG_CBOR := 1
 	MINILANG_JSON := 1
+	MINILANG_XML := 1
 	MINILANG_MODULES := not defined("NOSCHEDULER")
 	MINILANG_SCHEDULER := not defined("NOSCHEDULER")
 	MINILANG_TRE := 1
@@ -152,6 +153,7 @@ MINILANG_IO := old or defined("IO")
 MINILANG_GIR := old or defined("GIR")
 MINILANG_CBOR := old or defined("CBOR")
 MINILANG_JSON := old or defined("JSON")
+MINILANG_XML := old or defined("XML")
 MINILANG_MODULES := old or defined("MODULES")
 MINILANG_SCHEDULER := MINILANG_MODULES or old or defined("SCHEDULER")
 MINILANG_THREADSAFE := old or defined("THREADSAFE")
@@ -265,6 +267,13 @@ if MINILANG_JSON then
 	LDFLAGS := old + ["-lyajl"]
 	Objects:put(file("ml_json.o"))
 	InstallHeaders:put("ml_json.h")
+end
+
+if MINILANG_XML then
+	CFLAGS := old + ['-DML_XML']
+	LDFLAGS := old + ["-lexpat"]
+	Objects:put(file("ml_xml.o"))
+	InstallHeaders:put("ml_xml.h")
 end
 
 if MINILANG_BACKTRACE then

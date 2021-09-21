@@ -36,6 +36,10 @@
 #include "ml_json.h"
 #endif
 
+#ifdef ML_XML
+#include "ml_xml.h"
+#endif
+
 #ifdef ML_MODULES
 #include "ml_module.h"
 #include "ml_library.h"
@@ -310,6 +314,9 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_JSON
 	ml_json_init(Globals);
+#endif
+#ifdef ML_XML
+	ml_xml_init(Globals);
 #endif
 #ifdef ML_MATH
 	ml_math_init(Globals);
