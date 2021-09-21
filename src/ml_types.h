@@ -806,6 +806,7 @@ extern ml_type_t MLNamesT[];
 
 ml_value_t *ml_names();
 void ml_names_add(ml_value_t *Names, ml_value_t *Value);
+#define ml_names_length ml_list_length
 
 #define ML_NAMES_FOREACH(LIST, ITER) ML_LIST_FOREACH(LIST, ITER)
 

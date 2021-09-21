@@ -470,6 +470,47 @@ ML_METHOD("append", MLStringBufferT, MLMethodT) {
 	ML_RETURN(Matches);
 }*/
 
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Default;
+	inthash_t Cases[1];
+} ml_method_switch_t;
+
+static void ml_method_switch(ml_state_t *Caller, ml_method_switch_t *Switch, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_value_t *Arg = ml_deref(Args[0]);
+	ml_value_t *Index = inthash_search(Switch->Cases, (uintptr_t)Arg);
+	ML_RETURN(Index ?: Switch->Default);
+}
+
+ML_TYPE(MLMethodSwitchT, (MLFunctionT), "method-switch",
+//!internal
+	.call = (void *)ml_method_switch
+);
+
+ML_FUNCTION(MLMethodSwitch) {
+//!internal
+	int Total = 1;
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
+		Total += ml_list_length(Args[I]);
+	}
+	ml_method_switch_t *Switch = new(ml_method_switch_t);
+	Switch->Type = MLMethodSwitchT;
+	for (int I = 0; I < Count; ++I) {
+		ML_LIST_FOREACH(Args[I], Iter) {
+			ml_value_t *Value = Iter->Value;
+			if (ml_is(Value, MLMethodT)) {
+				inthash_insert(Switch->Cases, (uintptr_t)Iter->Value, ml_integer(I));
+			} else {
+				return ml_error("ValueError", "Unsupported value in method case");
+			}
+		}
+	}
+	Switch->Default = ml_integer(Count);
+	return (ml_value_t *)Switch;
+}
+
 static ML_METHOD_DECL(RangeMethod, "..");
 
 static inline void ml_method_set(ml_context_t *Context, int NumTypes, int Variadic, ml_value_t **Args, ml_value_t *Function) {
@@ -529,6 +570,7 @@ void ml_method_init() {
 	ml_context_set(&MLRootContext, ML_METHODS_INDEX, MLRootMethods);
 #include "ml_method_init.c"
 	MLRootMethods->Type = MLMethodsT;
+	stringmap_insert(MLMethodT->Exports, "switch", MLMethodSwitch);
 	stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
 	stringmap_insert(MLMethodT->Exports, "context", MLMethodContext);
 	ml_method_by_value(MLMethodT->Constructor, NULL, ml_identity, MLMethodT, NULL);
