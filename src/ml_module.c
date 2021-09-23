@@ -37,7 +37,7 @@ static void ml_export(ml_state_t *Caller, ml_mini_module_t *Module, int Count, m
 					ml_uninitialized_set(Slot[0], Global);
 					Slot[0] = Global;
 				} else {
-					ML_RETURN(ml_error("ExportError", "Duplicate export %s", Name));
+					ML_ERROR("ExportError", "Duplicate export %s", Name);
 				}
 			} else {
 				Slot[0] = ml_global(Name);
@@ -46,7 +46,7 @@ static void ml_export(ml_state_t *Caller, ml_mini_module_t *Module, int Count, m
 		} else {
 			if (Slot[0]) {
 				if (ml_typeof(Slot[0]) != MLUninitializedT) {
-					ML_RETURN(ml_error("ExportError", "Duplicate export %s", Name));
+					ML_ERROR("ExportError", "Duplicate export %s", Name);
 				}
 				ml_uninitialized_set(Slot[0], Value);
 			}

@@ -225,10 +225,22 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller
 
 #ifndef DEBUG_VERSION
 
-#ifdef ML_THREADSAFE
-static __thread ml_frame_t *MLCachedFrame = NULL;
-#else
 static ml_frame_t *MLCachedFrame = NULL;
+
+#ifdef ML_THREADSAFE
+
+#include <stdatomic.h>
+
+static volatile atomic_flag MLCachedFrameLock[1] = {ATOMIC_FLAG_INIT};
+
+#define ML_CACHED_FRAME_LOCK() while (atomic_flag_test_and_set(MLCachedFrameLock))
+#define ML_CACHED_FRAME_UNLOCK() atomic_flag_clear(MLCachedFrameLock)
+
+#else
+
+#define ML_CACHED_FRAME_LOCK() {}
+#define ML_CACHED_FRAME_UNLOCK() {}
+
 #endif
 
 extern ml_value_t *SymbolMethod;
@@ -346,8 +358,10 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			//memset(Frame, 0, ML_FRAME_REUSE_SIZE);
 			//while (Top > Frame->Stack) *--Top = NULL;
 			memset(Frame->Stack, 0, (Top - Frame->Stack) * sizeof(ml_value_t *));
+			ML_CACHED_FRAME_LOCK();
 			Frame->Next = MLCachedFrame;
 			MLCachedFrame = (ml_frame_t *)Frame;
+			ML_CACHED_FRAME_UNLOCK();
 		} else {
 			Frame->Line = Inst->Line;
 			Frame->Inst = Inst;
@@ -643,11 +657,13 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #endif
 		if (Next->Opcode == MLI_RETURN && !Frame->Continue) {
 			// Ensure at least one other cached frame is available to prevent this frame being used immediately which may result in arguments being overwritten.
+			ML_CACHED_FRAME_LOCK();
 			if (!MLCachedFrame) {
 				MLCachedFrame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
 			}
 			Frame->Next = MLCachedFrame->Next;
 			MLCachedFrame->Next = Frame;
+			ML_CACHED_FRAME_UNLOCK();
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		} else {
 			Frame->Inst = Next;
@@ -666,11 +682,13 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #endif
 		if (Next->Opcode == MLI_RETURN && !Frame->Continue) {
 			// Ensure at least one other cached frame is available to prevent this frame being used immediately which may result in arguments being overwritten.
+			ML_CACHED_FRAME_LOCK();
 			if (!MLCachedFrame) {
 				MLCachedFrame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
 			}
 			Frame->Next = MLCachedFrame->Next;
 			MLCachedFrame->Next = Frame;
+			ML_CACHED_FRAME_UNLOCK();
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		} else {
 			Frame->Inst = Next;
@@ -947,9 +965,12 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 	size_t Size = sizeof(DEBUG_STRUCT(frame)) + Info->FrameSize * sizeof(ml_value_t *);
 	DEBUG_STRUCT(frame) *Frame;
 	if (Size <= ML_FRAME_REUSE_SIZE) {
+		ML_CACHED_FRAME_LOCK();
 		if ((Frame = (DEBUG_STRUCT(frame) *)MLCachedFrame)) {
 			MLCachedFrame = Frame->Next;
+			ML_CACHED_FRAME_UNLOCK();
 		} else {
+			ML_CACHED_FRAME_UNLOCK();
 			Frame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
 		}
 		Frame->Continue = 0;
@@ -1038,7 +1059,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 					if (Index) {
 						Frame->Stack[Index - 1] = ml_deref(Args[++I]);
 					} else {
-						ML_RETURN(ml_error("NameError", "Unknown named parameters %s", Name));
+						ML_ERROR("NameError", "Unknown named parameters %s", Name);
 					}
 				}
 				break;
@@ -1048,7 +1069,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 	for (ml_param_type_t *Type = Closure->ParamTypes; Type; Type = Type->Next) {
 		ml_value_t *Value = Frame->Stack[Type->Index];
 		if (!ml_is(Value, Type->Type)) {
-			ML_RETURN(ml_error("TypeError", "Expected %s not %s", Type->Type->Name, ml_typeof(Value)->Name));
+			ML_ERROR("TypeError", "Expected %s not %s for argument %d", Type->Type->Name, ml_typeof(Value)->Name, Type->Index);
 		}
 	}
 	Frame->Top = Frame->Stack + NumParams;

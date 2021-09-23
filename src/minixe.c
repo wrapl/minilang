@@ -635,7 +635,7 @@ ML_FUNCTIONX(XEFunction) {
 	if (ml_is_error(Macro)) ML_RETURN(Macro);
 	ml_value_t *Name = ml_map_search(Attributes, ml_integer(1));
 	if (Name == MLNil) ML_RETURN(Macro);
-	if (!ml_is(Name, MLStringT)) ML_RETURN(ml_error("MacroError", "name attribute must be a string"));
+	if (!ml_is(Name, MLStringT)) ML_ERROR("MacroError", "name attribute must be a string");
 	if (ml_string_length(Name) == 0) ML_RETURN(Macro);
 	stringmap_insert(Scope->Symbols, ml_string_value(Name), Macro);
 	ML_RETURN(MLNil);
