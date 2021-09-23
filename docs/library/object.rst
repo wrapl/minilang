@@ -25,6 +25,9 @@ object
 :mini:`meth string(Arg₁: enumvalue)`
    *TBD*
 
+:mini:`meth :append(Arg₁: stringbuffer, Arg₂: enumvalue)`
+   *TBD*
+
 :mini:`fun enum(Values...: string): enum`
    *TBD*
 
@@ -32,6 +35,15 @@ object
    *TBD*
 
 :mini:`meth :count(Enum: enum): integer`
+   *TBD*
+
+:mini:`type enumrangeiter`
+   *TBD*
+
+:mini:`type enumrange < sequence`
+   *TBD*
+
+:mini:`meth (Arg₁: enumvalue) .. (Arg₂: enumvalue)`
    *TBD*
 
 :mini:`meth string(Arg₁: flagsvalue)`

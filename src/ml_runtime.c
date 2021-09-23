@@ -81,7 +81,7 @@ static void ml_context_key_call(ml_state_t *Caller, ml_context_key_t *Key, int C
 		}
 		ML_RETURN(MLNil);
 	} else if (Count == 1) {
-		ML_RETURN(ml_error("CallError", "Context key requires exactly 0 or >2 arguments"));
+		ML_ERROR("CallError", "Context key requires exactly 0 or >2 arguments");
 	} else {
 		ml_context_value_t *Value = new(ml_context_value_t);
 		Value->Prev = Values;
@@ -252,7 +252,7 @@ ML_FUNCTIONX(MLCallDC) {
 	ml_state_t *State = (ml_state_t *)Args[0];
 	ml_state_t *Last = Caller;
 	while (Last && Last->Caller != State) Last = Last->Caller;
-	if (!Last) ML_RETURN(ml_error("StateError", "State not in current call chain"));
+	if (!Last) ML_ERROR("StateError", "State not in current call chain");
 	Last->Caller = NULL;
 	ml_resumable_state_t *Resumable = new(ml_resumable_state_t);
 	Resumable->Base.Type = MLResumableStateT;
@@ -1104,22 +1104,6 @@ ML_METHODX("raise", MLChannelT, MLErrorValueT) {
 	ML_CONTINUE(Receiver, Error);
 }
 */
-
-#ifdef ML_THREADSAFE
-
-#include <pthread.h>
-
-static pthread_mutex_t RuntimeLock[1] = {PTHREAD_MUTEX_INITIALIZER};
-
-void ml_runtime_lock() {
-	pthread_mutex_lock(RuntimeLock);
-}
-
-void ml_runtime_unlock() {
-	pthread_mutex_unlock(RuntimeLock);
-}
-
-#endif
 
 void ml_runtime_init() {
 #include "ml_runtime_init.c"

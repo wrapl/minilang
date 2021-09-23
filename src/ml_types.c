@@ -182,7 +182,7 @@ ML_METHOD("parents", MLTypeT) {
 }
 
 void ml_default_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
-	//ML_RETURN(ml_error("TypeError", "<%s> is not callable", ml_typeof(Value)->Name));
+	//ML_ERROR("TypeError", "<%s> is not callable", ml_typeof(Value)->Name);
 	ml_value_t **Args2 = ml_alloc_args(Count + 1);
 	Args2[0] = Value;
 	for (int I = 0; I < Count; ++I) Args2[I + 1] = Args[I];
@@ -245,11 +245,11 @@ void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent) {
 
 #include <stdatomic.h>
 
-static volatile atomic_flag MLTypedFnLock = ATOMIC_FLAG_INIT;
+static volatile atomic_flag MLTypedFnLock[1] = {ATOMIC_FLAG_INIT};
 
-#define ML_TYPED_FN_LOCK() while (atomic_flag_test_and_set(&MLTypedFnLock))
+#define ML_TYPED_FN_LOCK() while (atomic_flag_test_and_set(MLTypedFnLock))
 
-#define ML_TYPED_FN_UNLOCK() atomic_flag_clear(&MLTypedFnLock)
+#define ML_TYPED_FN_UNLOCK() atomic_flag_clear(MLTypedFnLock)
 
 #else
 
@@ -343,18 +343,33 @@ ML_METHOD("::", MLTypeT, MLStringT) {
 
 #ifdef ML_GENERICS
 
+#ifdef ML_THREADSAFE
+
+static volatile atomic_flag MLGenericsLock[1] = {ATOMIC_FLAG_INIT};
+
+#define ML_GENERICS_LOCK() while (atomic_flag_test_and_set(MLGenericsLock))
+
+#define ML_GENERICS_UNLOCK() atomic_flag_clear(MLGenericsLock)
+
+#else
+
+#define ML_GENERICS_LOCK() {}
+#define ML_GENERICS_UNLOCK() {}
+
+#endif
+
 ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
 	static inthash_t GenericTypeCache[1] = {INTHASH_INIT};
 	uintptr_t Hash = (uintptr_t)3541;
 	for (int I = NumArgs; --I >= 0;) Hash = rotl(Hash, 1) ^ (uintptr_t)Args[I];
-	ML_RUNTIME_LOCK();
+	ML_GENERICS_LOCK();
 	ml_generic_type_t *Type = (ml_generic_type_t *)inthash_search(GenericTypeCache, Hash);
 	while (Type) {
 		if (Type->NumArgs != NumArgs) goto next;
 		for (int I = 0; I < NumArgs; ++I) {
 			if (Args[I] != Type->Args[I]) goto next;
 		}
-		ML_RUNTIME_UNLOCK();
+		ML_GENERICS_UNLOCK();
 		return (ml_type_t *)Type;
 	next:
 		Type = Type->NextGeneric;
@@ -384,7 +399,7 @@ ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
 	Type->NumArgs = NumArgs;
 	for (int I = 0; I < NumArgs; ++I) Type->Args[I] = Args[I];
 	Type->NextGeneric = (ml_generic_type_t *)inthash_insert(GenericTypeCache, Hash, Type);
-	ML_RUNTIME_UNLOCK();
+	ML_GENERICS_UNLOCK();
 	return (ml_type_t *)Type;
 }
 
@@ -945,7 +960,7 @@ ML_METHODX("!", MLFunctionT, MLMapT) {
 		} else if (ml_is(Name, MLStringT)) {
 			ml_names_add(Names, ml_method(ml_string_value(Name)));
 		} else {
-			ML_RETURN(ml_error("TypeError", "Parameter names must be strings or methods"));
+			ML_ERROR("TypeError", "Parameter names must be strings or methods");
 		}
 		*(Arg++) = Node->Value;
 	}
@@ -978,7 +993,7 @@ ML_METHODX("!", MLFunctionT, MLTupleT, MLMapT) {
 		} else if (ml_is(Name, MLStringT)) {
 			ml_names_add(Names, ml_method(ml_string_value(Name)));
 		} else {
-			ML_RETURN(ml_error("TypeError", "Parameter names must be strings or methods"));
+			ML_ERROR("TypeError", "Parameter names must be strings or methods");
 		}
 		*(Arg++) = Node->Value;
 	}
@@ -1010,7 +1025,7 @@ ML_METHODX("!", MLFunctionT, MLListT, MLMapT) {
 		} else if (ml_is(Name, MLStringT)) {
 			ml_names_add(Names, ml_method(ml_string_value(Name)));
 		} else {
-			ML_RETURN(ml_error("TypeError", "Parameter names must be strings or methods"));
+			ML_ERROR("TypeError", "Parameter names must be strings or methods");
 		}
 		*(Arg++) = Node->Value;
 	}

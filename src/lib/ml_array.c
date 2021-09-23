@@ -172,7 +172,7 @@ static void ml_array_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value
 	} else if (Args[0] == (ml_value_t *)MLArrayFloat64T) {
 		Format = ML_ARRAY_FORMAT_F64;
 	} else {
-		ML_RETURN(ml_error("TypeError", "Unknown type for array"));
+		ML_ERROR("TypeError", "Unknown type for array");
 	}
 	ml_array_t *Array;
 	if (Args[1]->Type == MLListT) {
@@ -180,7 +180,7 @@ static void ml_array_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value
 		Array = ml_array_new(Format, Degree);
 		int I = 0;
 		ML_LIST_FOREACH(Args[1], Iter) {
-			if (Iter->Value->Type != MLIntegerT) ML_RETURN(ml_error("TypeError", "Dimension is not an integer"));
+			if (Iter->Value->Type != MLIntegerT) ML_ERROR("TypeError", "Dimension is not an integer");
 			Array->Dimensions[I++].Size = ml_integer_value(Iter->Value);
 		}
 	} else {

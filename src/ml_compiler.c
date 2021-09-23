@@ -5438,15 +5438,15 @@ void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, cons
 	static const char *DefaultParameters[] = {"Args", NULL};
 	if (!Parameters) Parameters = DefaultParameters;
 	FILE *File = fopen(FileName, "r");
-	if (!File) ML_RETURN(ml_error("LoadError", "error opening %s", FileName));
+	if (!File) ML_ERROR("LoadError", "error opening %s", FileName);
 	ml_parser_t *Parser = ml_parser(ml_file_read, File);
 	Parser->Source.Name = FileName;
 	const char *Line = ml_file_read(File);
-	if (!Line) ML_RETURN(ml_error("LoadError", "empty file %s", FileName));
+	if (!Line) ML_ERROR("LoadError", "empty file %s", FileName);
 	if (Line[0] == '#' && Line[1] == '!') {
 		Parser->Line = 2;
 		Line = ml_file_read(File);
-		if (!Line) ML_RETURN(ml_error("LoadError", "empty file %s", FileName));
+		if (!Line) ML_ERROR("LoadError", "empty file %s", FileName);
 	} else {
 		Parser->Line = 1;
 	}

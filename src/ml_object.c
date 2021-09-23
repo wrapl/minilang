@@ -461,6 +461,13 @@ ML_METHOD(MLStringT, MLEnumValueT) {
 	return Value->Name;
 }
 
+ML_METHOD("append", MLStringBufferT, MLEnumValueT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_enum_value_t *Value = (ml_enum_value_t *)Args[1];
+	ml_stringbuffer_add(Buffer, ml_string_value(Value->Name), ml_string_length(Value->Name));
+	return Args[0];
+}
+
 ML_FUNCTION(MLEnum) {
 //@enum
 //<Values...:string
@@ -647,6 +654,70 @@ static void ML_TYPED_FN(ml_iter_key, MLEnumIterT, ml_state_t *Caller, ml_enum_it
 
 static void ML_TYPED_FN(ml_iter_value, MLEnumIterT, ml_state_t *Caller, ml_enum_iter_t *Iter) {
 	ML_RETURN(Iter->Values[Iter->Index]);
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t **Current, **Base, **Limit;
+	int Index, Count;
+} ml_enum_range_iter_t;
+
+ML_TYPE(MLEnumRangeIterT, (), "enum-range-iter");
+
+typedef struct {
+	ml_type_t *Type;
+	ml_enum_t *Enum;
+	int Min, Max;
+} ml_enum_range_t;
+
+ML_TYPE(MLEnumRangeT, (MLSequenceT), "enum-range");
+
+ML_METHOD("..", MLEnumValueT, MLEnumValueT) {
+	ml_enum_value_t *ValueA = (ml_enum_value_t *)Args[0];
+	ml_enum_value_t *ValueB = (ml_enum_value_t *)Args[1];
+	if (ValueA->Base.Type != ValueB->Base.Type) {
+		return ml_error("TypeError", "Enum types do not match");
+	}
+	ml_enum_range_t *Range = new(ml_enum_range_t);
+	Range->Type = MLEnumRangeT;
+	Range->Enum = (ml_enum_t *)ValueA->Base.Type;
+	Range->Min = ValueA->Base.Value - 1;
+	Range->Max = ValueB->Base.Value - 1;
+	return (ml_value_t *)Range;
+}
+
+static void ML_TYPED_FN(ml_iterate, MLEnumRangeT, ml_state_t *Caller, ml_enum_range_t *Range) {
+	int Count = Range->Max - Range->Min;
+	if (Count == 0) ML_RETURN(MLNil);
+	int Size = Range->Enum->Base.Exports->Size;
+	if (Count < 0) Count += Size;
+	ml_enum_range_iter_t *Iter = new(ml_enum_range_iter_t);
+	Iter->Type = MLEnumRangeIterT;
+	Iter->Index = 1;
+	Iter->Count = Count + 1;
+	ml_value_t **Base = Iter->Base = Range->Enum->Values;
+	Iter->Current = Base + Range->Min;
+	Iter->Limit = Base + Size;
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLEnumRangeIterT, ml_state_t *Caller, ml_enum_range_iter_t *Iter) {
+	if (--Iter->Count) {
+		++Iter->Current;
+		if (Iter->Current == Iter->Limit) Iter->Current = Iter->Base;
+		++Iter->Index;
+		ML_RETURN(Iter);
+	} else {
+		ML_RETURN(MLNil);
+	}
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLEnumRangeIterT, ml_state_t *Caller, ml_enum_range_iter_t *Iter) {
+	ML_RETURN(ml_integer(Iter->Index));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLEnumRangeIterT, ml_state_t *Caller, ml_enum_range_iter_t *Iter) {
+	ML_RETURN(Iter->Current[0]);
 }
 
 typedef struct {

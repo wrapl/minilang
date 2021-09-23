@@ -156,17 +156,17 @@ ML_FUNCTIONX(Import) {
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLStringT);
 	const char *FileName = realpath(ml_string_value(Args[0]), NULL);
-	if (!FileName) ML_RETURN(ml_error("ModuleError", "File %s not found", ml_string_value(Args[0])));
+	if (!FileName) ML_ERROR("ModuleError", "File %s not found", ml_string_value(Args[0]));
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Modules, FileName);
 	if (!Slot[0]) {
 		const char *Extension = strrchr(FileName, '.');
-		if (!Extension) ML_RETURN(ml_error("ModuleError", "Unknown module type: %s", FileName));
+		if (!Extension) ML_ERROR("ModuleError", "Unknown module type: %s", FileName);
 		if (!strcmp(Extension, ".so")) {
 			return ml_library_load_file(Caller, FileName, (ml_getter_t)stringmap_search, Globals, Slot);
 		} else if (!strcmp(Extension, ".mini")) {
 			return ml_module_load_file(Caller, FileName, (ml_getter_t)stringmap_search, Globals, Slot);
 		} else {
-			ML_RETURN(ml_error("ModuleError", "Unknown module type: %s", FileName));
+			ML_ERROR("ModuleError", "Unknown module type: %s", FileName);
 		}
 	}
 	ML_RETURN(Slot[0]);
