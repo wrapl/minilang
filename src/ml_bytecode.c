@@ -1,4 +1,3 @@
-#ifndef DEBUG_VERSION
 #include "ml_macros.h"
 #include "stringmap.h"
 #include <gc/gc.h>
@@ -9,6 +8,8 @@
 #include <inttypes.h>
 #include "ml_bytecode.h"
 #include "ml_debugger.h"
+
+#ifndef DEBUG_VERSION
 
 typedef struct {
 	const ml_type_t *Type;
