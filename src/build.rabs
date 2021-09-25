@@ -232,7 +232,7 @@ end
 
 if MINILANG_GTK_CONSOLE then
 	MINILANG_GIR := 1
-	Objects:put(file("gtk_console.o"))
+	Objects:put(file("gtk_console.o"), file("gtk_console_completion.o"))
 	CFLAGS := old + ["-DML_GTK_CONSOLE", pkgconfig("--cflags gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4")]
 	LDFLAGS := old + [pkgconfig("--libs gtk+-3.0 gdk-pixbuf-2.0 gtksourceview-4")]
 	InstallHeaders:put("gtk_console.h")

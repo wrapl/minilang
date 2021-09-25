@@ -19,6 +19,7 @@
 #include "ml_runtime.h"
 #include "ml_bytecode.h"
 #include "ml_debugger.h"
+#include "gtk_console_completion.h"
 
 #define MAX_HISTORY 128
 
@@ -280,12 +281,12 @@ static void toggle_layout(GtkWidget *Button, console_t *Console) {
 	}
 }
 
-static void console_style_changed(GtkComboBoxText *Widget, console_t *Console) {
-	const char *StyleId = gtk_combo_box_text_get_active_text(Widget);
-	GtkSourceStyleSchemeManager *StyleManager = gtk_source_style_scheme_manager_get_default();
-	Console->StyleScheme = gtk_source_style_scheme_manager_get_scheme(StyleManager, StyleId);
+static void console_style_changed(GtkSourceStyleSchemeChooser *Widget, GParamSpec *Spec, console_t *Console) {
+	Console->StyleScheme = gtk_source_style_scheme_chooser_get_style_scheme(Widget);
 	gtk_source_buffer_set_style_scheme(GTK_SOURCE_BUFFER(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView))), Console->StyleScheme);
 	gtk_source_buffer_set_style_scheme(GTK_SOURCE_BUFFER(gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView))), Console->StyleScheme);
+
+	const char *StyleId = gtk_source_style_scheme_get_id(Console->StyleScheme);
 
 	g_key_file_set_string(Console->Config, "gtk-console", "style", StyleId);
 	g_key_file_save_to_file(Console->Config, Console->ConfigPath, NULL);
@@ -633,6 +634,9 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 
 	GtkSourceBuffer *InputBuffer = gtk_source_buffer_new_with_language(Console->Language);
 	Console->InputView = gtk_source_view_new_with_buffer(InputBuffer);
+	GtkSourceCompletion *Completion = gtk_source_view_get_completion(GTK_SOURCE_VIEW(Console->InputView));
+	GtkSourceCompletionProvider *Provider = console_completion_provider_new(Console->Compiler);
+	gtk_source_completion_add_provider(Completion, Provider, NULL);
 	GtkTextTagTable *TagTable = gtk_text_buffer_get_tag_table(GTK_TEXT_BUFFER(InputBuffer));
 	Console->OutputTag = gtk_text_tag_new("log-output");
 	Console->ResultTag = gtk_text_tag_new("log-result");
@@ -698,12 +702,9 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 	gtk_box_pack_start(GTK_BOX(InputPanel), SubmitButton, FALSE, FALSE, 2);
 	gtk_box_pack_start(GTK_BOX(InputPanel), ClearButton, FALSE, FALSE, 2);
 
-	GtkWidget *StyleCombo = gtk_combo_box_text_new();
-	for (const gchar * const * StyleId = gtk_source_style_scheme_manager_get_scheme_ids(StyleManager); StyleId[0]; ++StyleId) {
-		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(StyleCombo), StyleId[0], StyleId[0]);
-	}
+	GtkWidget *StyleCombo = gtk_source_style_scheme_chooser_button_new();
 
-	g_signal_connect(G_OBJECT(StyleCombo), "changed", G_CALLBACK(console_style_changed), Console);
+	g_signal_connect(G_OBJECT(StyleCombo), "notify::style-scheme", G_CALLBACK(console_style_changed), Console);
 
 	GtkWidget *FontButton = gtk_font_button_new();
 	g_signal_connect(G_OBJECT(FontButton), "font-set", G_CALLBACK(console_font_changed), Console);
@@ -793,7 +794,7 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 		gtk_source_buffer_set_style_scheme(InputBuffer, Console->StyleScheme);
 		gtk_source_buffer_set_style_scheme(LogBuffer, Console->StyleScheme);
 		gtk_source_buffer_set_style_scheme(Console->SourceBuffer, Console->StyleScheme);
-		gtk_combo_box_set_active_id(GTK_COMBO_BOX(StyleCombo), StyleId);
+		gtk_source_style_scheme_chooser_set_style_scheme(GTK_SOURCE_STYLE_SCHEME_CHOOSER(StyleCombo), Console->StyleScheme);
 	}
 
 	gtk_text_view_set_top_margin(GTK_TEXT_VIEW(Console->LogView), 4);

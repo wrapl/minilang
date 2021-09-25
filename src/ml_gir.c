@@ -6,7 +6,7 @@
 
 //!gir
 
-typedef struct typelib_t {
+typedef struct {
 	ml_type_t *Type;
 	GITypelib *Handle;
 	const char *Namespace;
@@ -16,7 +16,15 @@ ML_TYPE(TypelibT, (MLSequenceT), "gir-typelib");
 //@gir-typelib
 // A gobject-introspection typelib.
 
-typedef struct typelib_iter_t {
+GITypelib *ml_gir_get_typelib(ml_value_t *Value) {
+	return ((typelib_t *)Value)->Handle;
+}
+
+const char *ml_gir_get_namespace(ml_value_t *Value) {
+	return ((typelib_t *)Value)->Namespace;
+}
+
+typedef struct {
 	ml_type_t *Type;
 	GITypelib *Handle;
 	const char *Namespace;
@@ -1843,18 +1851,22 @@ static ml_value_t *baseinfo_to_value(GIBaseInfo *Info) {
 	return MLNil;
 }
 
+ml_value_t *ml_gir_import(ml_value_t *Typelib, const char *Name) {
+	const char *Namespace = ml_gir_get_namespace(Typelib);
+	GIBaseInfo *Info = g_irepository_find_by_name(NULL, Namespace, Name);
+	if (!Info) {
+		return ml_error("NameError", "Symbol %s not found in %s", Name, Namespace);
+	} else {
+		return baseinfo_to_value(Info);
+	}
+}
+
 ML_METHOD("::", TypelibT, MLStringT) {
 //<Typelib
 //<Name
 //>any | error
-	typelib_t *Typelib = (typelib_t *)Args[0];
-	const char *Name = ml_string_value(Args[1]);
-	GIBaseInfo *Info = g_irepository_find_by_name(NULL, Typelib->Namespace, Name);
-	if (!Info) {
-		return ml_error("NameError", "Symbol %s not found in %s", Name, Typelib->Namespace);
-	} else {
-		return baseinfo_to_value(Info);
-	}
+	return ml_gir_import(Args[0], ml_string_value(Args[1]));
+
 }
 
 static void typelib_iterate(ml_state_t *Caller, typelib_t *Typelib) {
