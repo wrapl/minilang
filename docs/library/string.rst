@@ -13,6 +13,12 @@ string
 :mini:`meth string(Arg₁: integer, Arg₂: string)`
    *TBD*
 
+:mini:`meth :ord(Arg₁: string)`
+   *TBD*
+
+:mini:`meth :chr(Arg₁: integer)`
+   *TBD*
+
 :mini:`meth string(Arg₁: double, Arg₂: string)`
    *TBD*
 
