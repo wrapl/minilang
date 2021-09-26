@@ -5,6 +5,10 @@ object
    Parent type of all object classes.
 
 
+:mini:`meth (Object: object) :: (Field: string): field`
+   Retrieves the field :mini:`Field` from :mini:`Object`. Mainly intended for unpacking objects.
+
+
 :mini:`type class < type`
    Type of all object classes.
 
