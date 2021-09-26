@@ -545,6 +545,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_value_t **Base = Top + Inst[1].Index;
 		for (int I = 0; I < Count; ++I) {
 			Result = ml_unpack(Packed, I + 1);
+			ERROR_CHECK(Result);
 			Result = ml_deref(Result);
 			ml_variable_t *Local = (ml_variable_t *)Base[I];
 			Local->Value = Result;
@@ -570,6 +571,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_value_t **Base = Top + Inst[1].Index;
 		for (int I = 0; I < Count; ++I) {
 			Result = ml_unpack(Packed, I + 1);
+			ERROR_CHECK(Result);
 			Result = ml_deref(Result);
 			ml_value_t *Uninitialized = Base[I];
 			Base[I] = Result;
@@ -593,6 +595,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_value_t **Base = Top + Inst[1].Index;
 		for (int I = 0; I < Count; ++I) {
 			Result = ml_unpack(Packed, I + 1);
+			ERROR_CHECK(Result);
 			ml_value_t *Uninitialized = Base[I];
 			Base[I] = Result;
 			if (Uninitialized) ml_uninitialized_set(Uninitialized, Result);

@@ -13,6 +13,14 @@ string
 :mini:`meth string(Arg₁: integer, Arg₂: string)`
    *TBD*
 
+:mini:`meth :ord(String: string): integer`
+   Returns the unicode codepoint of the first character of :mini:`String`.
+
+
+:mini:`meth :chr(Codepoint: integer): string`
+   Returns a string containing the character with unicode codepoint :mini:`Codepoint`.
+
+
 :mini:`meth string(Arg₁: double, Arg₂: string)`
    *TBD*
 

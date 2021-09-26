@@ -405,6 +405,41 @@ ML_METHOD(MLStringT, MLIntegerT, MLStringT) {
 	return ml_string(String, Length);
 }
 
+ML_METHOD("ord", MLStringT) {
+//<String
+//>integer
+// Returns the unicode codepoint of the first character of :mini:`String`.
+	const char *S = ml_string_value(Args[0]);
+	uint32_t K = S[0] ? __builtin_clz(~(S[0] << 24)) : 0;
+	uint32_t Mask = (1 << (8 - K)) - 1;
+	uint32_t Value = S[0] & Mask;
+	for (++S, --K; K > 0 && S[0]; --K, ++S) {
+		Value <<= 6;
+		Value += S[0] & 0x3F;
+	}
+	return ml_integer(Value);
+}
+
+ML_METHOD("chr", MLIntegerT) {
+//<Codepoint
+//>string
+// Returns a string containing the character with unicode codepoint :mini:`Codepoint`.
+	uint32_t Code = ml_integer_value(Args[0]);
+	char Val[8];
+	uint32_t LeadByteMax = 0x7F;
+	int I = 0;
+	while (Code > LeadByteMax) {
+		Val[I++] = (Code & 0x3F) | 0x80;
+		Code >>= 6;
+		LeadByteMax >>= (I == 1 ? 2 : 1);
+	}
+	Val[I++] = (Code & LeadByteMax) | (~LeadByteMax << 1);
+	char *S = snew(I + 1), *P = S;
+	while (I--) *P++ = Val[I];
+	*P = 0;
+	return ml_string(S, I);
+}
+
 ML_METHOD(MLStringT, MLDoubleT) {
 //!number
 	char *String;

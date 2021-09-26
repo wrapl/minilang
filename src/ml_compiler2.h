@@ -163,6 +163,14 @@ struct mlc_value_expr_t {
 	ml_value_t *Value;
 };
 
+typedef struct mlc_local_t mlc_local_t;
+
+struct mlc_local_t {
+	mlc_local_t *Next;
+	const char *Ident;
+	int Line, Index;
+};
+
 typedef struct mlc_if_expr_t mlc_if_expr_t;
 typedef struct mlc_if_case_t mlc_if_case_t;
 
@@ -170,8 +178,7 @@ struct mlc_if_case_t {
 	mlc_if_case_t *Next;
 	mlc_expr_t *Condition;
 	mlc_expr_t *Body;
-	const char *Ident;
-	int Line;
+	mlc_local_t Local[1];
 	ml_token_t Token;
 };
 
@@ -189,13 +196,6 @@ struct mlc_parent_expr_t {
 };
 
 typedef struct mlc_local_expr_t mlc_local_expr_t;
-typedef struct mlc_local_t mlc_local_t;
-
-struct mlc_local_t {
-	mlc_local_t *Next;
-	const char *Ident;
-	int Line, Index;
-};
 
 struct mlc_local_expr_t {
 	MLC_EXPR_FIELDS(local);

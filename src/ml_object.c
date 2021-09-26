@@ -38,12 +38,24 @@ ML_TYPE(MLFieldT, (), "field",
 );
 
 struct ml_object_t {
-	const ml_type_t *Type;
+	ml_class_t *Type;
 	ml_field_t Fields[];
 };
 
 ML_INTERFACE(MLObjectT, (), "object");
 // Parent type of all object classes.
+
+ML_METHOD("::", MLObjectT, MLStringT) {
+//<Object
+//<Field
+//>field
+// Retrieves the field :mini:`Field` from :mini:`Object`. Mainly intended for unpacking objects.
+	ml_object_t *Object = (ml_object_t *)Args[0];
+	const char *Name = ml_string_value(Args[1]);
+	uintptr_t Offset = (uintptr_t)stringmap_search(Object->Type->Fields, Name);
+	if (!Offset) return ml_error("NameError", "Type %s has no field %s", Object->Type->Base.Name, Name);
+	return (ml_value_t *)((char *)Object + Offset);
+}
 
 static void ml_class_call(ml_state_t *Caller, ml_type_t *Class, int Count, ml_value_t **Args) {
 	ml_value_t *Constructor = Class->Constructor;
@@ -75,10 +87,9 @@ static int field_string(const char *Name, void *Offset, ml_object_stringer_t *St
 
 ML_METHOD(MLStringT, MLObjectT) {
 	ml_object_t *Object = (ml_object_t *)Args[0];
-	ml_class_t *Class = (ml_class_t *)Object->Type;
 	ml_object_stringer_t Stringer = {Object, {ML_STRINGBUFFER_INIT}, 0};
-	ml_stringbuffer_addf(Stringer.Buffer, "%s(", Class->Base.Name);
-	stringmap_foreach(Class->Fields, &Stringer, (void *)field_string);
+	ml_stringbuffer_addf(Stringer.Buffer, "%s(", Object->Type->Base.Name);
+	stringmap_foreach(Object->Type->Fields, &Stringer, (void *)field_string);
 	ml_stringbuffer_add(Stringer.Buffer, ")", 1);
 	return ml_stringbuffer_value(Stringer.Buffer);
 }
@@ -103,7 +114,7 @@ static void ml_init_state_run(ml_init_state_t *State, ml_value_t *Result) {
 static void ml_object_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int Count, ml_value_t **Args) {
 	int NumFields = Class->Fields->Size;
 	ml_object_t *Object = xnew(ml_object_t, NumFields, ml_field_t);
-	Object->Type = (ml_type_t *)Class;
+	Object->Type = Class;
 	ml_field_t *Slot = Object->Fields;
 	for (int I = NumFields; --I >= 0; ++Slot) {
 		Slot->Type = MLFieldT;
