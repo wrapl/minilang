@@ -3127,6 +3127,7 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 			case '\'': ml_stringbuffer_add(Buffer, "\'", 1); break;
 			case '\"': ml_stringbuffer_add(Buffer, "\"", 1); break;
 			case '\\': ml_stringbuffer_add(Buffer, "\\", 1); break;
+			case '0': ml_stringbuffer_add(Buffer, "\0", 1); break;
 			case '{': ml_stringbuffer_add(Buffer, "{", 1); break;
 			case '\n': break;
 			case 0: ml_parse_error(Parser, "ParseError", "end of line while parsing string");
