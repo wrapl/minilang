@@ -2389,6 +2389,32 @@ static void ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, 
 	mlc_compile(SubFunction, Expr->Body, 0);
 }
 
+typedef struct {
+	mlc_default_expr_t *Expr;
+	ml_inst_t *AndInst;
+	int Flags;
+} mlc_default_expr_frame_t;
+
+static void ml_default_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_default_expr_frame_t *Frame) {
+	mlc_default_expr_t *Expr = Frame->Expr;
+	int Flags = Frame->Flags;
+	ml_inst_t *AssignInst = MLC_EMIT(Expr->StartLine, Expr->Flags & ML_PARAM_ASVAR ? MLI_VAR : MLI_LET, 1);
+	AssignInst[1].Index = Expr->Index - Function->Top;
+	Frame->AndInst[1].Inst = Function->Next;
+	MLC_POP();
+	return mlc_compile(Function, Expr->Next, Flags);
+}
+
+static void ml_default_expr_compile(mlc_function_t *Function, mlc_default_expr_t *Expr, int Flags) {
+	MLC_FRAME(mlc_default_expr_frame_t, ml_default_expr_compile2);
+	Frame->Expr = Expr;
+	Frame->Flags = Flags;
+	ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCAL, 1);
+	LocalInst[1].Index = Expr->Index;
+	Frame->AndInst = MLC_EMIT(Expr->StartLine, MLI_OR, 1);
+	return mlc_compile(Function, Expr->Child, 0);
+}
+
 static int ml_upvalue_find(mlc_function_t *Function, ml_decl_t *Decl, mlc_function_t *Origin) {
 	if (Function == Origin) return Decl->Index;
 	mlc_upvalue_t **UpValueSlot = &Function->UpValues;
@@ -3590,8 +3616,10 @@ static mlc_expr_t *ml_accept_fun_expr(ml_parser_t *Parser, const char *Name, ml_
 	ML_EXPR(FunExpr, fun, fun);
 	FunExpr->Name = Name;
 	FunExpr->Source = Parser->Source.Name;
+	mlc_expr_t **BodySlot = &FunExpr->Body;
 	if (!ml_parse2(Parser, EndToken)) {
 		mlc_param_t **ParamSlot = &FunExpr->Params;
+		int Index = 0;
 		do {
 			mlc_param_t *Param = ParamSlot[0] = new(mlc_param_t);
 			Param->Line = Parser->Source.Line;
@@ -3630,17 +3658,25 @@ static mlc_expr_t *ml_accept_fun_expr(ml_parser_t *Parser, const char *Name, ml_
 					Param->Ident = Parser->Ident;
 				}
 				if (ml_parse2(Parser, MLT_COLON)) {
-					Param->Type = ml_accept_term(Parser);
+					Param->Type = ml_accept_expression(Parser, EXPR_DEFAULT);
+				} else if (ml_parse2(Parser, MLT_ASSIGN)) {
+					ML_EXPR(DefaultExpr, default, default);
+					DefaultExpr->Child = ml_accept_expression(Parser, EXPR_DEFAULT);
+					DefaultExpr->Index = Index;
+					DefaultExpr->Flags = Param->Flags;
+					BodySlot[0] = ML_EXPR_END(DefaultExpr);
+					BodySlot = &DefaultExpr->Next;
 				}
 			}
+			++Index;
 		} while (ml_parse2(Parser, MLT_COMMA));
 		ml_accept(Parser, EndToken);
 	}
 	if (ml_parse2(Parser, MLT_COLON)) {
 		FunExpr->ReturnType = ml_parse_term(Parser, 0);
 	}
-	FunExpr->Body = ml_accept_expression(Parser, EXPR_DEFAULT);
-	FunExpr->StartLine = FunExpr->Body->StartLine;
+	mlc_expr_t *Body = BodySlot[0] = ml_accept_expression(Parser, EXPR_DEFAULT);
+	FunExpr->StartLine = Body->StartLine;
 	return ML_EXPR_END(FunExpr);
 }
 

@@ -265,6 +265,7 @@ struct mlc_string_part_t {
 };
 
 typedef struct mlc_fun_expr_t mlc_fun_expr_t;
+typedef struct mlc_default_expr_t mlc_default_expr_t;
 typedef struct mlc_param_t mlc_param_t;
 
 struct mlc_param_t {
@@ -272,6 +273,12 @@ struct mlc_param_t {
 	const char *Ident;
 	mlc_expr_t *Type;
 	int Line, Flags;
+};
+
+struct mlc_default_expr_t {
+	MLC_EXPR_FIELDS(default);
+	mlc_expr_t *Child;
+	int Index, Flags;
 };
 
 struct mlc_fun_expr_t {
