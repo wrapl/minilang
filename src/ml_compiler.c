@@ -5125,6 +5125,7 @@ static ml_value_t *ml_global_assign(ml_global_t *Global, ml_value_t *Value) {
 }
 
 static void ml_global_call(ml_state_t *Caller, ml_global_t *Global, int Count, ml_value_t **Args) {
+	if (!Global->Value) ML_ERROR("NameError", "identifier %s not declared", Global->Name);
 	return ml_call(Caller, Global->Value, Count, Args);
 }
 
