@@ -74,7 +74,7 @@ static void map_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_METHOD(MLSequenceCount, MLMapT) {
+ML_METHOD("count", MLMapT) {
 //!internal
 	return ml_integer(ml_map_size(Args[0]));
 }

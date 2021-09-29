@@ -178,7 +178,6 @@ static __attribute__ ((noinline)) ml_value_t *ml_method_search2(ml_state_t *Call
 
 #define ML_SMALL_METHOD_COUNT 8
 
-static
 #ifdef ML_NANBOXING
 	inline
 #else

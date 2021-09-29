@@ -72,7 +72,19 @@ sequence
    Returns the last key and value produced by :mini:`Sequence`.
 
 
-:mini:`meth :count(Sequence: sequence): integer`
+:mini:`fun name(Arg₁: any)`
+   *TBD*
+
+:mini:`fun name(Arg₁: any)`
+   *TBD*
+
+:mini:`fun name(Arg₁: any)`
+   *TBD*
+
+:mini:`fun name(Arg₁: any)`
+   *TBD*
+
+:mini:`fun count(Sequence: any): integer`
    Returns the count of the values produced by :mini:`Sequence`.
 
 

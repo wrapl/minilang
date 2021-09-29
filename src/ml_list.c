@@ -124,7 +124,7 @@ static void list_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_METHOD(MLSequenceCount, MLListT) {
+ML_METHOD("count", MLListT) {
 //!internal
 	return ml_integer(ml_list_length(Args[0]));
 }
@@ -271,7 +271,7 @@ ml_value_t *ml_list_pull(ml_value_t *List0) {
 			List->Head = NULL;
 		}
 		List->CachedNode = List->Tail;
-		List->CachedIndex = -List->Length;
+		List->CachedIndex = --List->Length;
 		return Node->Value;
 	} else {
 		return MLNil;

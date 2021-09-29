@@ -254,13 +254,13 @@ extern ml_value_t MLBlank[];
 void ml_value_set_name(ml_value_t *Value, const char *Name);
 
 typedef ml_value_t *(*ml_callback_t)(void *Data, int Count, ml_value_t **Args);
-typedef void (*ml_callbackx_t)(ml_state_t *Frame, void *Data, int Count, ml_value_t **Args);
+typedef void (*ml_callbackx_t)(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args);
 
 // Iterators //
 
 extern ml_type_t MLSequenceT[];
-extern ml_value_t *MLSequenceCount;
 
+void ml_count(ml_state_t *Caller, ml_value_t *Value);
 void ml_iterate(ml_state_t *Caller, ml_value_t *Value);
 void ml_iter_value(ml_state_t *Caller, ml_value_t *Iter);
 void ml_iter_key(ml_state_t *Caller, ml_value_t *Iter);
@@ -838,6 +838,8 @@ void ml_method_define(ml_value_t *Method, ml_value_t *Function, int Variadic, ..
 void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Callback, int Count, int Variadic, ml_type_t **Types);
 
 void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_type_t **Types);
+
+ml_value_t *ml_method_search(ml_state_t *Caller, ml_method_t *Method, int Count, ml_value_t **Args);
 
 #ifndef GENERATE_INIT
 

@@ -32,7 +32,7 @@ ml_value_t *ml_address(const char *Value, int Length) {
 	return (ml_value_t *)Address;
 }
 
-ML_METHOD(MLSequenceCount, MLAddressT) {
+ML_METHOD("count", MLAddressT) {
 //!internal
 	return ml_integer(ml_address_length(Args[0]));
 }

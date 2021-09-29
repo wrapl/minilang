@@ -46,10 +46,10 @@ internal
 :mini:`type double < real`
    *TBD*
 
-:mini:`meth :MLSequenceCount(Arg₁: integerrange)`
+:mini:`meth :count(Arg₁: integerrange)`
    *TBD*
 
-:mini:`meth :MLSequenceCount(Arg₁: realrange)`
+:mini:`meth :count(Arg₁: realrange)`
    *TBD*
 
 :mini:`type integerswitch < function`
@@ -70,7 +70,7 @@ internal
 :mini:`type tablerowiter`
    *TBD*
 
-:mini:`meth :MLSequenceCount(Arg₁: address)`
+:mini:`meth :count(Arg₁: address)`
    *TBD*
 
 :mini:`type stringiterator`
@@ -220,13 +220,13 @@ internal
 :mini:`fun mlmethodswitch()`
    *TBD*
 
-:mini:`meth :MLSequenceCount(Arg₁: map)`
+:mini:`meth :count(Arg₁: map)`
    *TBD*
 
 :mini:`type mapindex`
    *TBD*
 
-:mini:`meth :MLSequenceCount(Arg₁: list)`
+:mini:`meth :count(Arg₁: list)`
    *TBD*
 
 :mini:`type listiter`
