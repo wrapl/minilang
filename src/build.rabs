@@ -177,6 +177,7 @@ MINILANG_LIBS := old or defined("LIBS")
 MINILANG_BACKTRACE := old or defined("BACKTRACE")
 MINILANG_JSENCODE := old or defined("JSENCODE")
 MINILANG_SQLITE := old or defined("SQLITE")
+MINILANG_RAPC := old or defined("RAPC")
 
 MINILANG_GTK_CONSOLE := old or defined("GTK_CONSOLE")
 
@@ -357,6 +358,34 @@ if MINILANG_SQLITE then
 	CFLAGS := old + ["-DML_SQLITE"]
 	LDFLAGS := old + ["-lsqlite3"]
 	InstallHeaders:put("ml_sqlite.h")
+end
+
+if MINILANG_RAPC then
+	let Source := file("rapc.mini")
+	fun build(Target) do
+		let Input := Source:open("r")
+		let Output := Target:open("w")
+		Output:write("const char RapcSource[] = {\n\t")
+		var N := 0
+		loop
+			let Line := while Input:read
+			for Char in Line do
+				Output:write('0x{Char:ord, 16},')
+				N := N + 1
+				if 16 | N then
+					Output:write("\n\t")
+				end
+			end
+		end
+		Input:close
+		Output:write("0\n};\n")
+		Output:close
+	end
+	print(build:list)
+	file("rapc_mini.c")[Source] => build
+	Objects:put(file("ml_rapc.o"), file("rapc_mini.o"))
+	CFLAGS := old + ["-DML_RAPC"]
+	InstallHeaders:put("ml_rapc.h")
 end
 
 if PLATFORM = "Linux" then

@@ -1,0 +1,169 @@
+export: fun any(Chars) do
+	let M := map(swap(Chars))
+	fun(S, I) do
+		let C := S[I]
+		M[C] and (I + 1, C, 0)
+	end
+end
+
+export: fun many(Chars, Min, Max) do
+	ret call(rep(any(Chars), Min, Max), sum)
+end
+
+export: fun none(Chars) do
+	let M := map(swap(Chars))
+	fun(S, I) do
+		let C := S[I]
+		(not M[C]) and (I + 1, C, 0)
+	end
+end
+
+export: fun skip(Chars, Min, Max) do
+	ret call(rep(none(Chars), Min, Max), sum)
+end
+
+export: fun match(Pattern) do
+	let L := Pattern:length
+	fun(S, I) do
+		let J := I + L
+		S[I, J] = Pattern and (J, Pattern, 0)
+	end
+end
+
+export: fun fail() fun(S, I) nil
+
+export: fun rep(P, Min := 0, Max := nil) do
+	fun(S, I) do
+		var J := I
+		let Results := []
+		
+		fun resume() do
+			let Resume := Results:pull or ret nil
+			var J := if let R := Results[-1] then R[1] else I end
+			if let Next := Resume[3]() then
+				Results:put(Next)
+				J := Next[1]
+				loop
+					until Results:length = Max
+					if let Next := P(S, J) then
+						Results:put(Next)
+						J := Next[1]
+					else
+						exit
+					end
+				end
+			end
+			if Results:length < Min then
+				ret resume(Results, S, I)
+			end
+			ret (J, list(Results, _[2]), resume)
+		end
+		
+		loop
+			until Results:length = Max
+			if let Next := P(S, J) then
+				Results:put(Next)
+				J := Next[1]
+			else
+				exit
+			end
+		end
+		if Results:length < Min then
+			ret resume()
+		end
+		ret (J, list(Results, _[2]), resume)
+	end
+end
+		
+export: fun alt([Ps]) do
+	fun resume(var Index, Resume, S, I) do
+		if Resume then
+			if let Next := Resume() then
+				ret (Next[1], Next[2], resume(Index, Next[3], S, I, _))
+			end
+			Index := old + 1
+		end
+		loop
+			let P := while Ps[Index]
+			if let Next := P(S, I) then
+				ret (Next[1], Next[2], resume(Index, Next[3], S, I, _))
+			end
+			Index := old + 1
+		end
+		ret nil
+	end
+	ret resume(1, nil, _, _)
+end
+
+export: fun seq([Ps]) do
+	fun(S, var I) do
+		let Results := []
+		
+		fun resume() do
+			loop
+				let Result := Results:pull or ret nil
+				if let Next := Result[3]() then
+					Results:put(Next)
+					I := Next[1]
+					exit
+				end
+			end
+			loop
+				let Index := Results:length + 1
+				let P := while Ps[Index]
+				if let Next := P(S, I) then
+					Results:put(Next)
+					I := Next[1]
+				else
+					let Next := loop
+						let Result := Results:pull or ret nil
+						until Result[3]()
+					end
+					Results:put(Next)
+					I := Next[1]
+				end
+			end
+			ret (I, list(Results, _[2]), resume)
+		end
+		
+		loop
+			let Index := Results:length + 1
+			let P := while Ps[Index]
+			if let Next := P(S, I) then
+				Results:put(Next)
+				I := Next[1]
+			else
+				let Next := loop
+					let Result := Results:pull or ret nil
+					until Result[3]()
+				end
+				Results:put(Next)
+				I := Next[1]
+			end
+		end
+		ret (I, list(Results, _[2]), resume)
+	end
+end
+
+export: fun call(P, Fn) do
+	fun resume(Result, S, I) do
+		if let Next := Result[3]() then
+			if let Value := Fn(Next[2]) then
+				ret (Next[1], Value, resume(Next, S, I, _))
+			end
+			ret resume(Next, S, I)
+		end
+		ret nil
+	end
+
+	fun(S, I) do
+		if let Result := P(S, I) then
+			if let Value := Fn(Result[2]) then
+				ret (Result[1], Value, resume(Result, S, I, _))
+			end
+			ret resume(Result, S, I)
+		end
+		ret nil
+	end
+end
+

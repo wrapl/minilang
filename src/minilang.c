@@ -69,6 +69,10 @@
 #include "ml_sqlite.h"
 #endif
 
+#ifdef ML_RAPC
+#include "ml_rapc.h"
+#endif
+
 #ifdef ML_BACKTRACE
 #include <backtrace.h>
 #endif
@@ -357,6 +361,9 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_SQLITE
 	ml_sqlite_init(Globals);
+#endif
+#ifdef ML_RAPC
+	ml_rapc_init(Globals);
 #endif
 	ml_value_t *Args = ml_list();
 	const char *FileName = 0;
