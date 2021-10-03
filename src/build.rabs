@@ -381,7 +381,6 @@ if MINILANG_RAPC then
 		Output:write("0\n};\n")
 		Output:close
 	end
-	print(build:list)
 	file("rapc_mini.c")[Source] => build
 	Objects:put(file("ml_rapc.o"), file("rapc_mini.o"))
 	CFLAGS := old + ["-DML_RAPC"]
