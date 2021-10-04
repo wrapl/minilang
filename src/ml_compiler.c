@@ -3146,6 +3146,9 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 			Parser->Next = End;
 			mlc_string_part_t *Part = new(mlc_string_part_t);
 			ml_accept_arguments(Parser, MLT_RIGHT_BRACE, &Part->Child);
+			if (!Part->Child) {
+				ml_parse_error(Parser, "ParserError", "empty string expression");
+			}
 			Part->Line = Parser->Source.Line;
 			End = Parser->Next;
 			Slot[0] = Part;
