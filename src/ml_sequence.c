@@ -656,11 +656,29 @@ static void count_iterate(ml_count_state_t *State, ml_value_t *Value) {
 	return ml_iter_next((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_METHODVX(MLSequenceCount, MLSequenceT) {
+#define ML_SEQUENCE_FUNCTION(NAME, FN) \
+ML_FUNCTIONX(NAME) { \
+	ML_CHECKX_ARG_COUNT(1); \
+	return ml_ ## FN(Caller, Args[0]); \
+}
+
+ML_SEQUENCE_FUNCTION(Iterate, iterate);
+ML_SEQUENCE_FUNCTION(IterNext, iter_next);
+ML_SEQUENCE_FUNCTION(IterValue, iter_value);
+ML_SEQUENCE_FUNCTION(IterKey, iter_key);
+
+ML_METHOD_DECL(CountMethod, "count");
+
+ML_FUNCTIONX(Count) {
 //@count
 //<Sequence
 //>integer
 // Returns the count of the values produced by :mini:`Sequence`.
+	ML_CHECKX_ARG_COUNT(1);
+	if (Count == 1) {
+		ml_value_t *Method = ml_method_search(Caller, (ml_method_t *)CountMethod, 1, Args);
+		if (Method) return ml_call(Caller, Method, 1, Args);
+	}
 	ml_count_state_t *State = new(ml_count_state_t);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)count_iterate;
@@ -2460,7 +2478,11 @@ void ml_sequence_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "last", Last);
 		stringmap_insert(Globals, "last2", Last2);
 		stringmap_insert(Globals, "all", All);
-		stringmap_insert(Globals, "count", MLSequenceCount);
+		stringmap_insert(Globals, "iterate", Iterate);
+		stringmap_insert(Globals, "iter_next", IterNext);
+		stringmap_insert(Globals, "iter_key", IterKey);
+		stringmap_insert(Globals, "iter_value", IterValue);
+		stringmap_insert(Globals, "count", Count);
 		stringmap_insert(Globals, "count2", Count2);
 		stringmap_insert(Globals, "reduce", Reduce);
 		stringmap_insert(Globals, "reduce2", Reduce2);

@@ -41,7 +41,6 @@ ML_METHOD_DECL(IndexMethod, "[]");
 ML_METHOD_DECL(SymbolMethod, "::");
 ML_METHOD_DECL(LessMethod, "<");
 ML_METHOD_DECL(CallMethod, "()");
-ML_METHOD_ANON(MLSequenceCount, "sequence::count");
 
 static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 	const unsigned int Mask = (CHAR_BIT * sizeof(uintptr_t) - 1);
@@ -226,6 +225,7 @@ ml_type_t *ml_type(ml_type_t *Parent, const char *Name) {
 	Type->call = Parent->call;
 	Type->deref = Parent->deref;
 	Type->assign = Parent->assign;
+	Type->Constructor = ml_method(NULL);
 	return Type;
 }
 
@@ -2282,7 +2282,7 @@ static void ML_TYPED_FN(ml_iterate, MLIntegerRangeT, ml_state_t *Caller, ml_valu
 ML_TYPE(MLIntegerRangeT, (MLSequenceT), "integer-range");
 //!range
 
-ML_METHOD(MLSequenceCount, MLIntegerRangeT) {
+ML_METHOD("count", MLIntegerRangeT) {
 //!internal
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
 	int64_t Diff = Range->Limit - Range->Start;
@@ -2428,7 +2428,7 @@ static void ML_TYPED_FN(ml_iterate, MLRealRangeT, ml_state_t *Caller, ml_value_t
 ML_TYPE(MLRealRangeT, (MLSequenceT), "real-range");
 //!range
 
-ML_METHOD(MLSequenceCount, MLRealRangeT) {
+ML_METHOD("count", MLRealRangeT) {
 //!internal
 	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
 	return ml_integer(Range->Count);
@@ -2884,7 +2884,6 @@ void ml_init() {
 	stringmap_insert(MLIntegerT->Exports, "range", MLIntegerRangeT);
 	stringmap_insert(MLIntegerT->Exports, "switch", MLIntegerSwitch);
 	stringmap_insert(MLRealT->Exports, "range", MLRealRangeT);
-	stringmap_insert(MLSequenceT->Exports, "count", MLSequenceCount);
 	ml_method_by_value(MLIntegerT->Constructor, NULL, ml_identity, MLIntegerT, NULL);
 	ml_method_by_value(MLDoubleT->Constructor, NULL, ml_identity, MLDoubleT, NULL);
 	ml_method_by_value(MLRealT->Constructor, NULL, ml_identity, MLDoubleT, NULL);
