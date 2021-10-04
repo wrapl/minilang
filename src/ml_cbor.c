@@ -469,15 +469,15 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLIntegerRangeT, ml_integer_range_
 	ml_cbor_write_tag(Data, WriteFn, 27);
 	if (Arg->Step != 1) {
 		ml_cbor_write_array(Data, WriteFn, 4);
-		ml_cbor_write_string(Data, WriteFn, 2);
-		WriteFn(Data, (unsigned const char *)"..", 2);
+		ml_cbor_write_string(Data, WriteFn, 5);
+		WriteFn(Data, (unsigned const char *)"range", 5);
 		ml_cbor_write_integer(Data, WriteFn, Arg->Start);
 		ml_cbor_write_integer(Data, WriteFn, Arg->Limit);
 		ml_cbor_write_integer(Data, WriteFn, Arg->Step);
 	} else {
 		ml_cbor_write_array(Data, WriteFn, 3);
-		ml_cbor_write_string(Data, WriteFn, 2);
-		WriteFn(Data, (unsigned const char *)"..", 2);
+		ml_cbor_write_string(Data, WriteFn, 5);
+		WriteFn(Data, (unsigned const char *)"range", 5);
 		ml_cbor_write_integer(Data, WriteFn, Arg->Start);
 		ml_cbor_write_integer(Data, WriteFn, Arg->Limit);
 	}
@@ -487,8 +487,8 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLIntegerRangeT, ml_integer_range_
 static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLRealRangeT, ml_real_range_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
 	ml_cbor_write_tag(Data, WriteFn, 27);
 	ml_cbor_write_array(Data, WriteFn, 4);
-	ml_cbor_write_string(Data, WriteFn, 2);
-	WriteFn(Data, (unsigned const char *)"..", 2);
+	ml_cbor_write_string(Data, WriteFn, 5);
+	WriteFn(Data, (unsigned const char *)"range", 5);
 	ml_cbor_write_float8(Data, WriteFn, Arg->Start);
 	ml_cbor_write_float8(Data, WriteFn, Arg->Limit);
 	ml_cbor_write_float8(Data, WriteFn, Arg->Step);
@@ -538,7 +538,7 @@ extern ml_value_t *RangeMethod;
 void ml_cbor_init(stringmap_t *Globals) {
 	if (!CborDefaultTags) CborDefaultTags = ml_map();
 	if (!CborObjects) CborObjects = ml_map();
-	ml_map_insert(CborObjects, ml_cstring(".."), RangeMethod);
+	ml_map_insert(CborObjects, ml_cstring("range"), RangeMethod);
 	ml_cbor_default_tag(35, NULL, ml_cbor_read_regex);
 	ml_cbor_default_tag(39, NULL, ml_cbor_read_method);
 	ml_cbor_default_tag(27, NULL, ml_cbor_read_object);
