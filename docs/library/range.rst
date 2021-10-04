@@ -11,6 +11,10 @@ range
    Returns a range from :mini:`Start` to :mini:`Limit` (inclusive).
 
 
+:mini:`meth (Start: integer) .. (Limit: integer, Step: integer): integerrange`
+   Returns a range from :mini:`Start` to :mini:`Limit` (inclusive).
+
+
 :mini:`meth :by(Start: integer, Step: integer): integerrange`
    Returns a unlimited range from :mini:`Start` in steps of :mini:`Step`.
 
@@ -35,6 +39,9 @@ range
    *TBD*
 
 :mini:`meth (Start: number) .. (Limit: number): realrange`
+   *TBD*
+
+:mini:`meth (Start: number) .. (Limit: number, Arg₃: number): realrange`
    *TBD*
 
 :mini:`meth :by(Start: number, Step: number): realrange`

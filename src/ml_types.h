@@ -529,6 +529,21 @@ inline complex_double ml_complex_value_fast(const ml_value_t *Value) {
 
 #endif
 
+extern ml_type_t MLIntegerRangeT[];
+
+typedef struct {
+	const ml_type_t *Type;
+	long Start, Limit, Step;
+} ml_integer_range_t;
+
+extern ml_type_t MLRealRangeT[];
+
+typedef struct {
+	const ml_type_t *Type;
+	double Start, Limit, Step;
+	long Count;
+} ml_real_range_t;
+
 // Strings //
 
 typedef struct ml_address_t ml_address_t;

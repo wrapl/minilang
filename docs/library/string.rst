@@ -13,6 +13,12 @@ string
 :mini:`meth string(Arg₁: integer, Arg₂: string)`
    *TBD*
 
+:mini:`meth string(Arg₁: integerrange)`
+   *TBD*
+
+:mini:`meth string(Arg₁: realrange)`
+   *TBD*
+
 :mini:`meth :ord(String: string): integer`
    Returns the unicode codepoint of the first character of :mini:`String`.
 

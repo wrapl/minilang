@@ -659,6 +659,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
+#ifndef ML_DEBUGGER
 		if (Next->Opcode == MLI_RETURN && !Frame->Continue) {
 			// Ensure at least one other cached frame is available to prevent this frame being used immediately which may result in arguments being overwritten.
 			ML_CACHED_FRAME_LOCK();
@@ -670,11 +671,14 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			ML_CACHED_FRAME_UNLOCK();
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		} else {
+#endif
 			Frame->Inst = Next;
 			Frame->Line = Inst->Line;
 			Frame->Top = Top - (Count + 1);
 			return ml_call(Frame, Function, Count, Args);
+#ifndef ML_DEBUGGER
 		}
+#endif
 	}
 	DO_CONST_CALL: {
 		int Count = Inst[1].Count;
@@ -684,6 +688,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 #ifdef ML_SCHEDULER
 		Frame->Schedule.Counter[0] = Counter;
 #endif
+#ifndef ML_DEBUGGER
 		if (Next->Opcode == MLI_RETURN && !Frame->Continue) {
 			// Ensure at least one other cached frame is available to prevent this frame being used immediately which may result in arguments being overwritten.
 			ML_CACHED_FRAME_LOCK();
@@ -695,11 +700,14 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			ML_CACHED_FRAME_UNLOCK();
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		} else {
+#endif
 			Frame->Inst = Next;
 			Frame->Line = Inst->Line;
 			Frame->Top = Top - Count;
 			return ml_call(Frame, Function, Count, Args);
+#ifndef ML_DEBUGGER
 		}
+#endif
 	}
 	DO_ASSIGN: {
 		Result = ml_deref(Result);

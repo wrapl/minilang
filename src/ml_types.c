@@ -2261,11 +2261,6 @@ static void ML_TYPED_FN(ml_iter_key, MLIntegerIterT, ml_state_t *Caller, ml_inte
 ML_TYPE(MLIntegerIterT, (), "integer-iter");
 //!range
 
-typedef struct ml_integer_range_t {
-	const ml_type_t *Type;
-	long Start, Limit, Step;
-} ml_integer_range_t;
-
 static void ML_TYPED_FN(ml_iterate, MLIntegerRangeT, ml_state_t *Caller, ml_value_t *Value) {
 	ml_integer_range_t *Range = (ml_integer_range_t *)Value;
 	if (Range->Step > 0 && Range->Start > Range->Limit) ML_RETURN(MLNil);
@@ -2288,7 +2283,9 @@ ML_METHOD("count", MLIntegerRangeT) {
 	int64_t Diff = Range->Limit - Range->Start;
 	if (!Range->Step) {
 		return (ml_value_t *)Zero;
-	} else if (Range->Limit < Range->Start) {
+	} else if (Diff < 0 && Range->Step > 0) {
+		return (ml_value_t *)Zero;
+	} else if (Diff > 0 && Range->Step < 0) {
 		return (ml_value_t *)Zero;
 	} else {
 		return ml_integer(Diff / Range->Step + 1);
@@ -2301,13 +2298,26 @@ ML_METHOD("..", MLIntegerT, MLIntegerT) {
 //<Limit
 //>integerrange
 // Returns a range from :mini:`Start` to :mini:`Limit` (inclusive).
-	int64_t IntegerA = ml_integer_value_fast(Args[0]);
-	int64_t IntegerB = ml_integer_value_fast(Args[1]);
 	ml_integer_range_t *Range = new(ml_integer_range_t);
 	Range->Type = MLIntegerRangeT;
-	Range->Start = IntegerA;
-	Range->Limit = IntegerB;
+	Range->Start = ml_integer_value_fast(Args[0]);
+	Range->Limit = ml_integer_value_fast(Args[1]);
 	Range->Step = 1;
+	return (ml_value_t *)Range;
+}
+
+ML_METHOD("..", MLIntegerT, MLIntegerT, MLIntegerT) {
+//!range
+//<Start
+//<Limit
+//<Step
+//>integerrange
+// Returns a range from :mini:`Start` to :mini:`Limit` (inclusive).
+	ml_integer_range_t *Range = new(ml_integer_range_t);
+	Range->Type = MLIntegerRangeT;
+	Range->Start = ml_integer_value_fast(Args[0]);
+	Range->Limit = ml_integer_value_fast(Args[1]);
+	Range->Step = ml_integer_value_fast(Args[2]);
 	return (ml_value_t *)Range;
 }
 
@@ -2317,13 +2327,17 @@ ML_METHOD("by", MLIntegerT, MLIntegerT) {
 //<Step
 //>integerrange
 // Returns a unlimited range from :mini:`Start` in steps of :mini:`Step`.
-	int64_t IntegerA = ml_integer_value_fast(Args[0]);
-	int64_t IntegerB = ml_integer_value_fast(Args[1]);
 	ml_integer_range_t *Range = new(ml_integer_range_t);
 	Range->Type = MLIntegerRangeT;
-	Range->Start = IntegerA;
-	Range->Step = IntegerB;
-	Range->Limit = Range->Step > 0 ? LONG_MAX : LONG_MIN;
+	Range->Start = ml_integer_value_fast(Args[0]);
+	Range->Step = ml_integer_value_fast(Args[1]);
+	if (Range->Step < 0) {
+		Range->Limit = LONG_MIN;
+	} else if (Range->Step > 0) {
+		Range->Limit = LONG_MAX;
+	} else {
+		Range->Limit = Range->Start;
+	}
 	return (ml_value_t *)Range;
 }
 
@@ -2393,7 +2407,7 @@ static void ML_TYPED_FN(ml_iter_value, MLRealIterT, ml_state_t *Caller, ml_real_
 
 static void ML_TYPED_FN(ml_iter_next, MLRealIterT, ml_state_t *Caller, ml_real_iter_t *Iter) {
 	Iter->Current += Iter->Step;
-	if (--Iter->Remaining <= 0) ML_RETURN(MLNil);
+	if (--Iter->Remaining == 0) ML_RETURN(MLNil);
 	++Iter->Index;
 	ML_RETURN(Iter);
 }
@@ -2404,12 +2418,6 @@ static void ML_TYPED_FN(ml_iter_key, MLRealIterT, ml_state_t *Caller, ml_real_it
 
 ML_TYPE(MLRealIterT, (), "real-iter");
 //!range
-
-typedef struct ml_real_range_t {
-	const ml_type_t *Type;
-	double Start, Limit, Step;
-	long Count;
-} ml_real_range_t;
 
 static void ML_TYPED_FN(ml_iterate, MLRealRangeT, ml_state_t *Caller, ml_value_t *Value) {
 	ml_real_range_t *Range = (ml_real_range_t *)Value;
@@ -2448,6 +2456,22 @@ ML_METHOD("..", MLNumberT, MLNumberT) {
 	return (ml_value_t *)Range;
 }
 
+ML_METHOD("..", MLNumberT, MLNumberT, MLNumberT) {
+//!range
+//<Start
+//<Limit
+//>realrange
+	ml_real_range_t *Range = new(ml_real_range_t);
+	Range->Type = MLRealRangeT;
+	Range->Start = ml_real_value(Args[0]);
+	Range->Limit = ml_real_value(Args[1]);
+	double Step = Range->Step = ml_real_value(Args[2]);
+	double C = (Range->Limit - Range->Start) / Step + 1;
+	if (C > LONG_MAX) C = 0;
+	Range->Count = C;
+	return (ml_value_t *)Range;
+}
+
 ML_METHOD("by", MLNumberT, MLNumberT) {
 //!range
 //<Start
@@ -2458,7 +2482,7 @@ ML_METHOD("by", MLNumberT, MLNumberT) {
 	Range->Start = ml_real_value(Args[0]);
 	Range->Step = ml_real_value(Args[1]);
 	Range->Limit = Range->Step > 0.0 ? INFINITY : -INFINITY;
-	Range->Count = LONG_MAX;
+	Range->Count = 0;
 	return (ml_value_t *)Range;
 }
 
@@ -2474,7 +2498,7 @@ ML_METHOD("by", MLRealRangeT, MLNumberT) {
 	double Limit = Range->Limit = Range0->Limit;
 	Range->Step = ml_real_value(Args[1]);
 	double C = (Limit - Start) / Range->Step + 1;
-	if (C > LONG_MAX) C = LONG_MAX;
+	if (C > LONG_MAX) C = 0;
 	Range->Count = C;
 	return (ml_value_t *)Range;
 }
@@ -2534,7 +2558,7 @@ ML_METHOD("by", MLIntegerRangeT, MLDoubleT) {
 	double Limit = Range->Limit = Range0->Limit;
 	double Step = Range->Step = ml_double_value_fast(Args[1]);
 	double C = (Limit - Start) / Step + 1;
-	if (C > LONG_MAX) C = LONG_MAX;
+	if (C > LONG_MAX) C = 0;
 	Range->Count = C;
 	return (ml_value_t *)Range;
 }

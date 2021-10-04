@@ -480,7 +480,7 @@ ML_FUNCTION(MLMethodSwitch) {
 	return (ml_value_t *)Switch;
 }
 
-static ML_METHOD_DECL(RangeMethod, "..");
+ML_METHOD_DECL(RangeMethod, "..");
 
 static inline void ml_method_set(ml_context_t *Context, int NumTypes, int Variadic, ml_value_t **Args, ml_value_t *Function) {
 	// Use alloca here, VLA prevents TCO.

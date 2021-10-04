@@ -552,13 +552,7 @@ ML_METHOD("size", MLArrayT) {
 	return MLNil;
 }
 
-typedef struct ml_integer_range_t {
-	ml_type_t *Type;
-	long Start, Limit, Step;
-} ml_integer_range_t;
-
-extern ml_type_t MLIntegerRangeT[1];
-static ML_METHOD_DECL(RangeMethod, "..");
+extern ml_value_t *RangeMethod;
 static ML_METHOD_DECL(SymbolMethod, "::");
 static ML_METHOD_DECL(MulMethod, "*");
 static ML_METHOD_DECL(AddMethod, "+");

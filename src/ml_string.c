@@ -405,6 +405,20 @@ ML_METHOD(MLStringT, MLIntegerT, MLStringT) {
 	return ml_string(String, Length);
 }
 
+ML_METHOD(MLStringT, MLIntegerRangeT) {
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_stringbuffer_addf(Buffer, "%ld .. %ld by %ld", Range->Start, Range->Limit, Range->Step);
+	return ml_stringbuffer_value(Buffer);
+}
+
+ML_METHOD(MLStringT, MLRealRangeT) {
+	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_stringbuffer_addf(Buffer, "%g .. %g by %g", Range->Start, Range->Limit, Range->Step);
+	return ml_stringbuffer_value(Buffer);
+}
+
 ML_METHOD("ord", MLStringT) {
 //<String
 //>integer
