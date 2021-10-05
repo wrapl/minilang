@@ -5424,16 +5424,6 @@ static void ml_accept_command_expr(mlc_function_t *Function, ml_parser_t *Parser
 	}
 }
 
-typedef struct {
-	const char *Name;
-} ml_command_macro_frame_t;
-
-static void ml_command_macro_run(mlc_function_t *Function, ml_value_t *Value, ml_command_macro_frame_t *Frame) {
-	stringmap_insert(Function->Compiler->Vars, Frame->Name, Value);
-	MLC_POP();
-	MLC_RETURN(Value);
-}
-
 static void ml_command_evaluate2(mlc_function_t *Function, ml_value_t *Value, void *Data) {
 	ml_state_t *Caller = Function->Base.Caller;
 	ML_RETURN(ml_deref(Value));

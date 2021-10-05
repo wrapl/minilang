@@ -56,7 +56,10 @@ int ml_context_index_new() {
 
 void ml_context_set(ml_context_t *Context, int Index, void *Value) {
 	if (Context->Size <= Index) return;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
 	Context->Values[Index] = Value;
+#pragma GCC diagnostic pop
 }
 
 #define ML_VARIABLES_INDEX 1
