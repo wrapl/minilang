@@ -1133,17 +1133,32 @@ typedef struct ml_partial_function_t {
 	ml_value_t *Args[];
 } ml_partial_function_t;
 
+static void __attribute__ ((noinline)) ml_partial_function_copy_args(ml_partial_function_t *Partial, int CombinedCount, ml_value_t **CombinedArgs, int Count, ml_value_t **Args) {
+	ml_value_t *Copy[Count];
+	memcpy(Copy, Args, Count * sizeof(ml_value_t *));
+	int I = 0, J = 0;
+	for (; I < Partial->Count; ++I) {
+		CombinedArgs[I] = Partial->Args[I] ?: (J < Count) ? Copy[J++] : MLNil;
+	}
+	for (; I < CombinedCount; ++I) {
+		CombinedArgs[I] = (J < Count) ? Copy[J++] : MLNil;
+	}
+}
+
 static void ml_partial_function_call(ml_state_t *Caller, ml_partial_function_t *Partial, int Count, ml_value_t **Args) {
 	int CombinedCount = Count + Partial->Set;
 	if (CombinedCount < Partial->Count) CombinedCount = Partial->Count;
 	ml_value_t **CombinedArgs = ml_alloc_args(CombinedCount);
-	if (CombinedArgs == Args) CombinedArgs = anew(ml_value_t *, CombinedCount);
-	int I = 0, J = 0;
-	for (; I < Partial->Count; ++I) {
-		CombinedArgs[I] = Partial->Args[I] ?: (J < Count) ? Args[J++] : MLNil;
-	}
-	for (; I < CombinedCount; ++I) {
-		CombinedArgs[I] = (J < Count) ? Args[J++] : MLNil;
+	if (CombinedArgs == Args) {
+		ml_partial_function_copy_args(Partial, CombinedCount, CombinedArgs, Count, Args);
+	} else {
+		int I = 0, J = 0;
+		for (; I < Partial->Count; ++I) {
+			CombinedArgs[I] = Partial->Args[I] ?: (J < Count) ? Args[J++] : MLNil;
+		}
+		for (; I < CombinedCount; ++I) {
+			CombinedArgs[I] = (J < Count) ? Args[J++] : MLNil;
+		}
 	}
 	return ml_call(Caller, Partial->Function, CombinedCount, CombinedArgs);
 }

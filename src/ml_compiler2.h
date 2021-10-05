@@ -318,8 +318,6 @@ struct mlc_frame_t {
 	void *Data[];
 };
 
-void *mlc_frame_alloc(mlc_function_t *Function, size_t Size, mlc_frame_fn run);
-
 void mlc_expr_error(mlc_function_t *Function, mlc_expr_t *Expr, ml_value_t *Error);
 
 #define MLC_EXPR_ERROR(EXPR, ERROR) return mlc_expr_error(Function, (mlc_expr_t *)(EXPR), ERROR)

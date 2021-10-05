@@ -10,6 +10,7 @@ typedef struct ml_object_t ml_object_t;
 struct ml_class_t {
 	ml_type_t Base;
 	ml_value_t *Initializer;
+	ml_value_t *Call;
 	stringmap_t Fields[1];
 };
 
@@ -109,6 +110,13 @@ static void ml_init_state_run(ml_init_state_t *State, ml_value_t *Result) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Result)) ML_RETURN(Result);
 	ML_RETURN(State->Object);
+}
+
+static void ml_object_call(ml_state_t *Caller, ml_object_t *Object, int Count, ml_value_t **Args) {
+	ml_value_t **Args2 = ml_alloc_args(Count + 1);
+	memmove(Args2 + 1, Args, Count * sizeof(ml_value_t *));
+	Args2[0] = (ml_value_t *)Object;
+	return ml_call(Caller, Object->Type->Call, Count + 1, Args2);
 }
 
 static void ml_object_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int Count, ml_value_t **Args) {
@@ -258,6 +266,8 @@ static void setup_fields(ml_state_t *Caller, ml_class_t *Class) {
 	stringmap_foreach(Class->Fields, &Setup, (void *)setup_field);
 }
 
+extern ml_value_t *CallMethod;
+
 ML_FUNCTIONX(MLClass) {
 //!object
 //@class
@@ -301,10 +311,10 @@ ML_FUNCTIONX(MLClass) {
 		ml_named_type_t *Class = new(ml_named_type_t);
 		Class->Base.Type = MLNamedTypeT;
 		asprintf((char **)&Class->Base.Name, "named-%s:%lx", NativeType->Name, (uintptr_t)Class);
-		Class->Base.hash = ml_default_hash;
-		Class->Base.call = ml_default_call;
-		Class->Base.deref = ml_default_deref;
-		Class->Base.assign = ml_default_assign;
+		Class->Base.hash = NativeType->hash;
+		Class->Base.call = NativeType->call;
+		Class->Base.deref = NativeType->deref;
+		Class->Base.assign = NativeType->assign;
 		Class->Base.Rank = Rank + 1;
 		Class->Native = NativeType;
 		ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_named_constructor_fn);
@@ -337,12 +347,13 @@ ML_FUNCTIONX(MLClass) {
 		Class->Base.Type = MLClassT;
 		asprintf((char **)&Class->Base.Name, "object:%lx", (uintptr_t)Class);
 		Class->Base.hash = ml_default_hash;
-		Class->Base.call = ml_default_call;
+		Class->Base.call = (void *)ml_object_call;
 		Class->Base.deref = ml_default_deref;
 		Class->Base.assign = ml_default_assign;
 		Class->Base.Rank = Rank + 1;
 		ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_object_constructor_fn);
 		Class->Base.Constructor = Constructor;
+		Class->Call = CallMethod;
 		for (int I = 0; I < Count; ++I) {
 			if (ml_typeof(Args[I]) == MLMethodT) {
 				add_field(ml_method_name(Args[I]), NULL, Class);
@@ -364,6 +375,8 @@ ML_FUNCTIONX(MLClass) {
 						Class->Base.Constructor = Value;
 					} else if (!strcmp(Name, "init")) {
 						Class->Initializer = Value;
+					} else if (!strcmp(Name, "call")) {
+						Class->Call = Value;
 					}
 				}
 				break;

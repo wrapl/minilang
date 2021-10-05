@@ -1416,9 +1416,23 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Closure), ml_state_t *Frame, ml_c
 	return ml_closure_call(Frame, Closure, 0, NULL);
 }
 
+ML_FUNCTION(MLClosure) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLClosureT);
+	ml_closure_t *Original = (ml_closure_t *)Args[0];
+	ml_closure_info_t *Info = Original->Info;
+	ml_closure_t *Closure = xnew(ml_closure_t, Info->NumUpValues, ml_value_t *);
+	Closure->Type = MLClosureT;
+	Closure->Info = Info;
+	Closure->ParamTypes = Original->ParamTypes;
+	memcpy(Closure->UpValues, Original->UpValues, Info->NumUpValues * sizeof(ml_value_t *));
+	return (ml_value_t *)Closure;
+}
+
 ML_TYPE(MLClosureT, (MLFunctionT, MLSequenceT), "closure",
 	.hash = ml_closure_hash,
-	.call = (void *)ml_closure_call
+	.call = (void *)ml_closure_call,
+	.Constructor = (ml_value_t *)MLClosure
 );
 
 ml_value_t *ml_closure(ml_closure_info_t *Info) {

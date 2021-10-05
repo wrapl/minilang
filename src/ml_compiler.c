@@ -124,12 +124,12 @@ static void mlc_link_frame_run(mlc_function_t *Function, ml_value_t *Value, void
 	Function->Frame->run(Function, Value, Function->Frame->Data);
 }
 
-void *mlc_frame_alloc(mlc_function_t *Function, size_t Size, mlc_frame_fn run) {
+static __attribute__ ((noinline)) void *mlc_frame_alloc(mlc_function_t *Function, size_t Size, mlc_frame_fn run) {
 	size_t FrameSize = sizeof(mlc_frame_t) + Size;
 	FrameSize = (FrameSize + 7) & ~7;
 	mlc_frame_t *Frame = (mlc_frame_t *)((void *)Function->Frame - FrameSize);
 	if (!Function->Limit || (void *)Frame < Function->Limit) {
-		size_t BlockSize = Size + sizeof(mlc_frame_t) + sizeof(void *);
+		size_t BlockSize = FrameSize + sizeof(void *);
 		if (BlockSize < FRAME_BLOCK_SIZE) BlockSize = FRAME_BLOCK_SIZE;
 		void *Limit = GC_malloc(BlockSize);
 		size_t LinkFrameSize = sizeof(mlc_frame_t) + sizeof(void *);
@@ -5383,6 +5383,47 @@ static void ml_accept_command_decl(mlc_function_t *Function, ml_parser_t *Parser
 	return ml_accept_command_decl2(Function, Parser, Type);
 }
 
+static void ml_accept_command_fun(mlc_function_t *Function, ml_parser_t *Parser) {
+	ml_compiler_t *Compiler = Function->Compiler;
+	if (ml_parse(Parser, MLT_IDENT)) {
+		MLC_FRAME(ml_command_ident_frame_t, ml_command_ident_run);
+		Frame->Global = ml_command_global(Compiler->Vars, Parser->Ident);
+		Frame->VarType = NULL;
+		Frame->Type = MLT_LET;
+		ml_accept(Parser, MLT_LEFT_PAREN);
+		mlc_expr_t *Expr = ml_accept_fun_expr(Parser, Frame->Global->Name, MLT_RIGHT_PAREN);
+		ml_parse(Parser, MLT_SEMICOLON);
+		return mlc_expr_call(Function, Expr);
+	} else {
+		ml_accept(Parser, MLT_LEFT_PAREN);
+		mlc_expr_t *Expr = ml_accept_fun_expr(Parser, NULL, MLT_RIGHT_PAREN);
+		ml_parse(Parser, MLT_SEMICOLON);
+		return mlc_expr_call(Function, Expr);
+	}
+}
+
+static void ml_accept_command_expr(mlc_function_t *Function, ml_parser_t *Parser) {
+	ml_compiler_t *Compiler = Function->Compiler;
+	mlc_expr_t *Expr = ml_accept_expression(Parser, EXPR_DEFAULT);
+	if (ml_parse(Parser, MLT_COLON)) {
+		ml_accept(Parser, MLT_IDENT);
+		const char *Ident = Parser->Ident;
+		ML_EXPR(CallExpr, parent, call);
+		CallExpr->Child = Expr;
+		ml_accept(Parser, MLT_LEFT_PAREN);
+		ml_accept_arguments(Parser, MLT_RIGHT_PAREN, &Expr->Next);
+		ml_parse(Parser, MLT_SEMICOLON);
+		MLC_FRAME(ml_command_ident_frame_t, ml_command_ident_run);
+		Frame->Global = ml_command_global(Compiler->Vars, Ident);
+		Frame->VarType = NULL;
+		Frame->Type = MLT_LET;
+		return mlc_expr_call(Function, ML_EXPR_END(CallExpr));
+	} else {
+		ml_parse(Parser, MLT_SEMICOLON);
+		return mlc_expr_call(Function, Expr);
+	}
+}
+
 typedef struct {
 	const char *Name;
 } ml_command_macro_frame_t;
@@ -5410,8 +5451,9 @@ void ml_command_evaluate(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t 
 	__attribute__((unused)) MLC_FRAME(void, ml_command_evaluate2);
 	if (setjmp(Parser->OnError)) MLC_RETURN(Parser->Value);
 	ml_skip_eol(Parser);
-	if (ml_parse(Parser, MLT_EOI)) MLC_RETURN(MLEndOfInput);
-	if (ml_parse(Parser, MLT_VAR)) {
+	if (ml_parse(Parser, MLT_EOI)) {
+		MLC_RETURN(MLEndOfInput);
+	} else if (ml_parse(Parser, MLT_VAR)) {
 		return ml_accept_command_decl(Function, Parser, MLT_VAR);
 	} else if (ml_parse(Parser, MLT_LET)) {
 		return ml_accept_command_decl(Function, Parser, MLT_LET);
@@ -5420,40 +5462,9 @@ void ml_command_evaluate(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t 
 	} else if (ml_parse(Parser, MLT_DEF)) {
 		return ml_accept_command_decl(Function, Parser, MLT_DEF);
 	} else if (ml_parse(Parser, MLT_FUN)) {
-		if (ml_parse(Parser, MLT_IDENT)) {
-			MLC_FRAME(ml_command_ident_frame_t, ml_command_ident_run);
-			Frame->Global = ml_command_global(Compiler->Vars, Parser->Ident);
-			Frame->VarType = NULL;
-			Frame->Type = MLT_LET;
-			ml_accept(Parser, MLT_LEFT_PAREN);
-			mlc_expr_t *Expr = ml_accept_fun_expr(Parser, Frame->Global->Name, MLT_RIGHT_PAREN);
-			ml_parse(Parser, MLT_SEMICOLON);
-			return mlc_expr_call(Function, Expr);
-		} else {
-			ml_accept(Parser, MLT_LEFT_PAREN);
-			mlc_expr_t *Expr = ml_accept_fun_expr(Parser, NULL, MLT_RIGHT_PAREN);
-			ml_parse(Parser, MLT_SEMICOLON);
-			return mlc_expr_call(Function, Expr);
-		}
+		return ml_accept_command_fun(Function, Parser);
 	} else {
-		mlc_expr_t *Expr = ml_accept_expression(Parser, EXPR_DEFAULT);
-		if (ml_parse(Parser, MLT_COLON)) {
-			ml_accept(Parser, MLT_IDENT);
-			const char *Ident = Parser->Ident;
-			ML_EXPR(CallExpr, parent, call);
-			CallExpr->Child = Expr;
-			ml_accept(Parser, MLT_LEFT_PAREN);
-			ml_accept_arguments(Parser, MLT_RIGHT_PAREN, &Expr->Next);
-			ml_parse(Parser, MLT_SEMICOLON);
-			MLC_FRAME(ml_command_ident_frame_t, ml_command_ident_run);
-			Frame->Global = ml_command_global(Compiler->Vars, Ident);
-			Frame->VarType = NULL;
-			Frame->Type = MLT_LET;
-			return mlc_expr_call(Function, ML_EXPR_END(CallExpr));
-		} else {
-			ml_parse(Parser, MLT_SEMICOLON);
-			return mlc_expr_call(Function, Expr);
-		}
+		return ml_accept_command_expr(Function, Parser);
 	}
 }
 
