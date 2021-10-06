@@ -34,7 +34,7 @@ type
    Returns a string representing :mini:`Type`.
 
 
-:mini:`meth :append(Arg₁: stringbuffer, Arg₂: type)`
+:mini:`meth :append(Arg₁: string::buffer, Arg₂: type)`
    *TBD*
 
 :mini:`meth (Type: type) :: (Name: string): any | error`

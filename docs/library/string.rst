@@ -13,10 +13,10 @@ string
 :mini:`meth string(Arg₁: integer, Arg₂: string)`
    *TBD*
 
-:mini:`meth string(Arg₁: integerrange)`
+:mini:`meth string(Arg₁: integer::range)`
    *TBD*
 
-:mini:`meth string(Arg₁: realrange)`
+:mini:`meth string(Arg₁: real::range)`
    *TBD*
 
 :mini:`meth :ord(String: string): integer`
@@ -71,34 +71,34 @@ string
    Implements :mini:`switch` for string values. Case values must be strings or regular expressions.
 
 
-:mini:`fun stringbuffer()`
+:mini:`fun string::buffer()`
    *TBD*
 
-:mini:`type stringbuffer`
+:mini:`type string::buffer`
    *TBD*
 
-:mini:`meth :get(Arg₁: stringbuffer)`
+:mini:`meth :get(Arg₁: string::buffer)`
    *TBD*
 
-:mini:`meth :append(Arg₁: stringbuffer, Arg₂: any, ...)`
+:mini:`meth :append(Arg₁: string::buffer, Arg₂: any, ...)`
    *TBD*
 
-:mini:`meth :write(Arg₁: stringbuffer, Arg₂: any, ...)`
+:mini:`meth :write(Arg₁: string::buffer, Arg₂: any, ...)`
    *TBD*
 
-:mini:`meth :append(Arg₁: stringbuffer, Arg₂: nil)`
+:mini:`meth :append(Arg₁: string::buffer, Arg₂: nil)`
    *TBD*
 
-:mini:`meth :append(Arg₁: stringbuffer, Arg₂: some)`
+:mini:`meth :append(Arg₁: string::buffer, Arg₂: some)`
    *TBD*
 
-:mini:`meth :append(Arg₁: stringbuffer, Arg₂: integer)`
+:mini:`meth :append(Arg₁: string::buffer, Arg₂: integer)`
    *TBD*
 
-:mini:`meth :append(Arg₁: stringbuffer, Arg₂: double)`
+:mini:`meth :append(Arg₁: string::buffer, Arg₂: double)`
    *TBD*
 
-:mini:`meth :append(Arg₁: stringbuffer, Arg₂: string)`
+:mini:`meth :append(Arg₁: string::buffer, Arg₂: string)`
    *TBD*
 
 :mini:`meth (Arg₁: string)[Arg₂: integer]`
@@ -260,6 +260,6 @@ string
 :mini:`meth string(Arg₁: regex)`
    *TBD*
 
-:mini:`meth :append(Arg₁: stringbuffer, Arg₂: regex)`
+:mini:`meth :append(Arg₁: string::buffer, Arg₂: regex)`
    *TBD*
 

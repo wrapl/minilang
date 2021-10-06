@@ -2311,7 +2311,7 @@ ML_METHOD("..", MLIntegerT, MLIntegerT) {
 //!range
 //<Start
 //<Limit
-//>integerrange
+//>integer::range
 // Returns a range from :mini:`Start` to :mini:`Limit` (inclusive).
 	ml_integer_range_t *Range = new(ml_integer_range_t);
 	Range->Type = MLIntegerRangeT;
@@ -2326,7 +2326,7 @@ ML_METHOD("..", MLIntegerT, MLIntegerT, MLIntegerT) {
 //<Start
 //<Limit
 //<Step
-//>integerrange
+//>integer::range
 // Returns a range from :mini:`Start` to :mini:`Limit` (inclusive).
 	ml_integer_range_t *Range = new(ml_integer_range_t);
 	Range->Type = MLIntegerRangeT;
@@ -2340,7 +2340,7 @@ ML_METHOD("by", MLIntegerT, MLIntegerT) {
 //!range
 //<Start
 //<Step
-//>integerrange
+//>integer::range
 // Returns a unlimited range from :mini:`Start` in steps of :mini:`Step`.
 	ml_integer_range_t *Range = new(ml_integer_range_t);
 	Range->Type = MLIntegerRangeT;
@@ -2360,7 +2360,7 @@ ML_METHOD("by", MLIntegerRangeT, MLIntegerT) {
 //!range
 //<Range
 //<Step
-//>integerrange
+//>integer::range
 // Returns a range with the same limits as :mini:`Range` but with step :mini:`Step`.
 	ml_integer_range_t *Range0 = (ml_integer_range_t *)Args[0];
 	ml_integer_range_t *Range = new(ml_integer_range_t);
@@ -2461,7 +2461,7 @@ ML_METHOD("..", MLNumberT, MLNumberT) {
 //!range
 //<Start
 //<Limit
-//>realrange
+//>real::range
 	ml_real_range_t *Range = new(ml_real_range_t);
 	Range->Type = MLRealRangeT;
 	Range->Start = ml_real_value(Args[0]);
@@ -2475,7 +2475,7 @@ ML_METHOD("..", MLNumberT, MLNumberT, MLNumberT) {
 //!range
 //<Start
 //<Limit
-//>realrange
+//>real::range
 	ml_real_range_t *Range = new(ml_real_range_t);
 	Range->Type = MLRealRangeT;
 	Range->Start = ml_real_value(Args[0]);
@@ -2491,7 +2491,7 @@ ML_METHOD("by", MLNumberT, MLNumberT) {
 //!range
 //<Start
 //<Step
-//>realrange
+//>real::range
 	ml_real_range_t *Range = new(ml_real_range_t);
 	Range->Type = MLRealRangeT;
 	Range->Start = ml_real_value(Args[0]);
@@ -2505,7 +2505,7 @@ ML_METHOD("by", MLRealRangeT, MLNumberT) {
 //!range
 //<Range
 //<Step
-//>realrange
+//>real::range
 	ml_real_range_t *Range0 = (ml_real_range_t *)Args[0];
 	ml_real_range_t *Range = new(ml_real_range_t);
 	Range->Type = MLRealRangeT;
@@ -2522,7 +2522,7 @@ ML_METHOD("in", MLIntegerRangeT, MLIntegerT) {
 //!range
 //<Range
 //<Count
-//>realrange
+//>real::range
 	ml_integer_range_t *Range0 = (ml_integer_range_t *)Args[0];
 	long C = ml_integer_value_fast(Args[1]);
 	if (C <= 0) return ml_error("RangeError", "Invalid step count");
@@ -2548,7 +2548,7 @@ ML_METHOD("in", MLRealRangeT, MLIntegerT) {
 //!range
 //<Range
 //<Count
-//>realrange
+//>real::range
 	ml_real_range_t *Range0 = (ml_real_range_t *)Args[0];
 	long C = ml_integer_value_fast(Args[1]);
 	if (C <= 0) return ml_error("RangeError", "Invalid step count");
@@ -2565,7 +2565,7 @@ ML_METHOD("by", MLIntegerRangeT, MLDoubleT) {
 //!range
 //<Range
 //<Step
-//>realrange
+//>real::range
 	ml_integer_range_t *Range0 = (ml_integer_range_t *)Args[0];
 	ml_real_range_t *Range = new(ml_real_range_t);
 	Range->Type = MLRealRangeT;
@@ -2998,7 +2998,7 @@ void ml_types_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "method", MLMethodT);
 		stringmap_insert(Globals, "buffer", MLBufferT);
 		stringmap_insert(Globals, "string", MLStringT);
-		stringmap_insert(Globals, "stringbuffer", MLStringBufferT);
+		//stringmap_insert(Globals, "stringbuffer", MLStringBufferT);
 		stringmap_insert(Globals, "regex", MLRegexT);
 		stringmap_insert(Globals, "tuple", MLTupleT);
 		stringmap_insert(Globals, "list", MLListT);

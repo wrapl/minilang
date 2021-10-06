@@ -1,7 +1,7 @@
 compiler
 ========
 
-:mini:`type compilerfunction < state`
+:mini:`type compiler::function < state`
    *TBD*
 
 :mini:`meth $(Arg₁: expr)`

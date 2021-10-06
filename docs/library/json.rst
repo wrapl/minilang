@@ -10,13 +10,13 @@ json
 :mini:`type json::decoder`
    *TBD*
 
-:mini:`meth :decode(Decoder: jsondecoder, Json: address): Decoder`
+:mini:`meth :decode(Decoder: json::decoder, Json: address): Decoder`
    *TBD*
 
-:mini:`meth :decode(Decoder: jsondecoder, Json: address, Size: integer): Decoder`
+:mini:`meth :decode(Decoder: json::decoder, Json: address, Size: integer): Decoder`
    *TBD*
 
-:mini:`meth :finish(Decoder: jsondecoder): Decoder`
+:mini:`meth :finish(Decoder: json::decoder): Decoder`
    *TBD*
 
 :mini:`fun json::encode(Value: any): string`

@@ -97,13 +97,21 @@ ml_value_t *ml_list() {
 }
 
 ML_METHOD(MLListT) {
+//>list
+// Returns an empty list.
 	return ml_list();
 }
 
 ML_METHOD(MLListT, MLTupleT) {
+//<Tuple
+//>list
+// Returns a list containing the values in :mini:`Tuple`.
 	ml_value_t *List = ml_list();
 	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
-	for (int I = 0; I < Tuple->Size; ++I) ml_list_put(List, Tuple->Values[I]);
+	for (int I = 0; I < Tuple->Size; ++I) {
+		ml_value_t *Value = Tuple->Values[I];
+		ml_list_put(List, ml_deref(Value));
+	}
 	return List;
 }
 
@@ -125,7 +133,9 @@ static void list_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 }
 
 ML_METHOD("count", MLListT) {
-//!internal
+//<List
+//>integer
+// Returns the number of elements in :mini:`List`.
 	return ml_integer(ml_list_length(Args[0]));
 }
 
@@ -869,6 +879,9 @@ ML_METHOD(MLStringT, MLListT, MLStringT) {
 }
 
 ML_METHOD("reverse", MLListT) {
+//<List
+//>list
+// Reverses :mini:`List` in-place and returns it.
 	ml_list_t *List = (ml_list_t *)Args[0];
 	ml_list_node_t *Prev = List->Head;
 	if (!Prev) return (ml_value_t *)List;
@@ -987,6 +1000,7 @@ extern ml_value_t *LessMethod;
 ML_METHODX("sort", MLListT) {
 //<List
 //>List
+// Sorts :mini:`List` in-place using :mini:`<` and returns it.
 	if (!ml_list_length(Args[0])) ML_RETURN(Args[0]);
 	ml_list_sort_state_t *State = new(ml_list_sort_state_t);
 	State->Base.Caller = Caller;
@@ -1010,6 +1024,7 @@ ML_METHODX("sort", MLListT, MLFunctionT) {
 //<List
 //<Compare
 //>List
+// Sorts :mini:`List` in-place using :mini:`Compare` and returns it.
 	if (!ml_list_length(Args[0])) ML_RETURN(Args[0]);
 	ml_list_sort_state_t *State = new(ml_list_sort_state_t);
 	State->Base.Caller = Caller;

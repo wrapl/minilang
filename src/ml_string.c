@@ -23,6 +23,7 @@
 
 ML_TYPE(MLAddressT, (), "address");
 //!address
+// An address represents a bounded section of memory.
 
 ml_value_t *ml_address(const char *Value, int Length) {
 	ml_address_t *Address = new(ml_address_t);
@@ -33,7 +34,10 @@ ml_value_t *ml_address(const char *Value, int Length) {
 }
 
 ML_METHOD("count", MLAddressT) {
-//!internal
+//!address
+//<Address
+//>integer
+// Returns the number bytes visible at :mini:`Address`.
 	return ml_integer(ml_address_length(Args[0]));
 }
 
@@ -42,6 +46,7 @@ ML_METHOD("@", MLAddressT, MLIntegerT) {
 //<Address
 //<Length
 //>address
+// Returns the same address as :mini:`Address`, limited to :mini:`Length` bytes.
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	long Length = ml_integer_value_fast(Args[1]);
 	if (Length > Address->Length) return ml_error("ValueError", "Size larger than buffer");
@@ -58,6 +63,7 @@ ML_METHOD("+", MLAddressT, MLIntegerT) {
 //<Address
 //<Offset
 //>address
+// Returns the address at offset :mini:`Offset` from :mini:`Address`.
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	long Offset = ml_integer_value_fast(Args[1]);
 	if (Offset > Address->Length) return ml_error("ValueError", "Offset larger than buffer");
@@ -73,6 +79,7 @@ ML_METHOD("-", MLAddressT, MLAddressT) {
 //<Address/1
 //<Address/2
 //>integer
+// Returns the offset from :mini:`Address/2` to :mini:`Address/1`, provided :mini:`Address/2` is visible to :mini:`Address/1`.
 	ml_address_t *Address1 = (ml_address_t *)Args[0];
 	ml_address_t *Address2 = (ml_address_t *)Args[1];
 	int64_t Offset = Address1->Value - Address2->Value;
@@ -939,7 +946,7 @@ ml_value_t *ml_stringbuffer() {
 }
 
 ML_FUNCTION(MLStringBuffer) {
-//@stringbuffer
+//@string::buffer
 	return ml_stringbuffer();
 }
 
@@ -2195,6 +2202,7 @@ ML_METHOD("append", MLStringBufferT, MLRegexT) {
 void ml_string_init() {
 	GC_word StringBufferLayout[] = {1};
 	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
+	stringmap_insert(MLStringT->Exports, "buffer", MLStringBufferT);
 	regcomp(IntFormat, "^%[-+ #'0]*[.0-9]*[dioxX]$", REG_NOSUB);
 	regcomp(LongFormat, "^%[-+ #'0]*[.0-9]*l[dioxX]$", REG_NOSUB);
 	regcomp(RealFormat, "^%[-+ #'0]*[.0-9]*[aefgAEG]$", REG_NOSUB);

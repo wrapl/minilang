@@ -2,16 +2,24 @@ address
 =======
 
 :mini:`type address`
-   *TBD*
+   An address represents a bounded section of memory.
+
+
+:mini:`meth :count(Address: address): integer`
+   Returns the number bytes visible at :mini:`Address`.
+
 
 :mini:`meth (Address: address) @ (Length: integer): address`
-   *TBD*
+   Returns the same address as :mini:`Address`, limited to :mini:`Length` bytes.
+
 
 :mini:`meth (Address: address) + (Offset: integer): address`
-   *TBD*
+   Returns the address at offset :mini:`Offset` from :mini:`Address`.
+
 
 :mini:`meth (Address₁: address) - (Address₂: address): integer`
-   *TBD*
+   Returns the offset from :mini:`Address₂` to :mini:`Address₁`, provided :mini:`Address₂` is visible to :mini:`Address₁`.
+
 
 :mini:`meth :get8(Address: address): integer`
    *TBD*

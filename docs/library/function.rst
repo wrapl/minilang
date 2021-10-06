@@ -31,13 +31,13 @@ function
    Returns an error if any of the keys in :mini:`Map` is not a string or method.
 
 
-:mini:`type partialfunction < function, sequence`
+:mini:`type partial::function < function, sequence`
    *TBD*
 
-:mini:`meth :count(Arg₁: partialfunction)`
+:mini:`meth :count(Arg₁: partial::function)`
    *TBD*
 
-:mini:`meth :set(Arg₁: partialfunction)`
+:mini:`meth :set(Arg₁: partial::function)`
    *TBD*
 
 :mini:`meth (Function: function) !! (List: list): partialfunction`

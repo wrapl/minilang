@@ -5,7 +5,7 @@ list
    A list of elements.
 
 
-:mini:`type listnode`
+:mini:`type list::node`
    A node in a :mini:`list`.
 
    Dereferencing a :mini:`listnode` returns the corresponding value from the :mini:`list`.
@@ -13,11 +13,17 @@ list
    Assigning to a :mini:`listnode` updates the corresponding value in the :mini:`list`.
 
 
-:mini:`meth list()`
-   *TBD*
+:mini:`meth list(): list`
+   Returns an empty list.
 
-:mini:`meth list(Arg₁: tuple)`
-   *TBD*
+
+:mini:`meth list(Tuple: tuple): list`
+   Returns a list containing the values in :mini:`Tuple`.
+
+
+:mini:`meth :count(List: list): integer`
+   Returns the number of elements in :mini:`List`.
+
 
 :mini:`meth list(Sequence: sequence): list`
    Returns a list of all of the values produced by :mini:`Sequence`.
@@ -45,7 +51,7 @@ list
    Indexing starts at :mini:`1`. Negative indices are counted from the end of the list, with :mini:`-1` returning the last node.
 
 
-:mini:`type listslice`
+:mini:`type list::slice`
    A slice of a list.
 
 
@@ -55,10 +61,10 @@ list
    Indexing starts at :mini:`1`. Negative indices are counted from the end of the list, with :mini:`-1` returning the last node.
 
 
-:mini:`meth :append(Arg₁: stringbuffer, Arg₂: list)`
+:mini:`meth :append(Arg₁: string::buffer, Arg₂: list)`
    *TBD*
 
-:mini:`meth :append(Arg₁: stringbuffer, Arg₂: list, Arg₃: string)`
+:mini:`meth :append(Arg₁: string::buffer, Arg₂: list, Arg₃: string)`
    *TBD*
 
 :mini:`meth :push(List: list, Values...: any, ...): list`
@@ -105,12 +111,15 @@ list
    Returns a string containing the elements of :mini:`List` seperated by :mini:`Seperator`.
 
 
-:mini:`meth :reverse(Arg₁: list)`
-   *TBD*
+:mini:`meth :reverse(List: list): list`
+   Reverses :mini:`List` in-place and returns it.
+
 
 :mini:`meth :sort(List: list): List`
-   *TBD*
+   Sorts :mini:`List` in-place using :mini:`<` and returns it.
+
 
 :mini:`meth :sort(List: list, Compare: function): List`
-   *TBD*
+   Sorts :mini:`List` in-place using :mini:`Compare` and returns it.
+
 

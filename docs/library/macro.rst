@@ -39,27 +39,27 @@ macro
    Returns a new value expression.
 
 
-:mini:`type blockbuilder`
+:mini:`type block::builder`
    Utility object for building a block expression.
 
 
-:mini:`meth :var(Builder: blockbuilder, Name: string): blockbuilder`
+:mini:`meth :var(Builder: block::builder, Name: string): blockbuilder`
    Adds a :mini:`var`-declaration to a block.
 
 
-:mini:`meth :var(Builder: blockbuilder, Name: string, Expr: expr): blockbuilder`
+:mini:`meth :var(Builder: block::builder, Name: string, Expr: expr): blockbuilder`
    Adds a :mini:`var`-declaration to a block with initializer :mini:`Expr`.
 
 
-:mini:`meth :let(Builder: blockbuilder, Name: string, Expr: expr): blockbuilder`
+:mini:`meth :let(Builder: block::builder, Name: string, Expr: expr): blockbuilder`
    Adds a :mini:`let`-declaration to a block with initializer :mini:`Expr`.
 
 
-:mini:`meth :do(Builder: blockbuilder, Expr...: expr, ...): blockbuilder`
+:mini:`meth :do(Builder: block::builder, Expr...: expr, ...): blockbuilder`
    Adds the expression :mini:`Expr` to a block.
 
 
-:mini:`meth :expr(Builder: blockbuilder): expr`
+:mini:`meth :expr(Builder: block::builder): expr`
    Finishes a block and returns it as an expression.
 
 
@@ -67,7 +67,7 @@ macro
    Returns a new block builder.
 
 
-:mini:`type exprbuilder`
+:mini:`type expr::builder`
    Utility object for building a block expression.
 
 
@@ -83,11 +83,11 @@ macro
    Returns a new list builder.
 
 
-:mini:`meth :add(Builder: exprbuilder, Expr...: expr, ...): blockbuilder`
+:mini:`meth :add(Builder: expr::builder, Expr...: expr, ...): blockbuilder`
    Adds the expression :mini:`Expr` to a block.
 
 
-:mini:`meth :expr(Builder: exprbuilder): expr`
+:mini:`meth :expr(Builder: expr::builder): expr`
    Finishes a block and returns it as an expression.
 
 

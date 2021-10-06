@@ -1,10 +1,10 @@
 internal
 ========
 
-:mini:`type generictype < type`
+:mini:`type generic::type < type`
    *TBD*
 
-:mini:`meth :parents(Arg₁: generictype)`
+:mini:`meth :parents(Arg₁: generic::type)`
    *TBD*
 
 :mini:`type nil < function, sequence`
@@ -22,7 +22,7 @@ internal
 :mini:`meth :MLCompilerSwitch(Arg₁: type)`
    *TBD*
 
-:mini:`type typeswitch < function`
+:mini:`type type::switch < function`
    *TBD*
 
 :mini:`fun mltypeswitch()`
@@ -46,67 +46,64 @@ internal
 :mini:`type double < real`
    *TBD*
 
-:mini:`meth :count(Arg₁: integerrange)`
+:mini:`meth :count(Arg₁: integer::range)`
    *TBD*
 
-:mini:`meth :count(Arg₁: realrange)`
+:mini:`meth :count(Arg₁: real::range)`
    *TBD*
 
-:mini:`type integerswitch < function`
+:mini:`type integer::switch < function`
    *TBD*
 
 :mini:`fun mlintegerswitch()`
    *TBD*
 
-:mini:`type realswitch < function`
+:mini:`type real::switch < function`
    *TBD*
 
 :mini:`fun mlrealswitch()`
    *TBD*
 
-:mini:`type tableiter`
+:mini:`type table::iter`
    *TBD*
 
-:mini:`type tablerowiter`
+:mini:`type table::row`
    *TBD*
 
-:mini:`meth :count(Arg₁: address)`
+:mini:`type string::iterator`
    *TBD*
 
-:mini:`type stringiterator`
-   *TBD*
-
-:mini:`type stringswitch < function`
+:mini:`type string::switch < function`
    *TBD*
 
 :mini:`fun mlchained(Arg₁: any)`
    *TBD*
 
-:mini:`type chainedstate`
+:mini:`type chained::state`
    *TBD*
 
-:mini:`type doublediterator < sequence`
+:mini:`type doubled::iterator < sequence`
    *TBD*
 
-:mini:`type doublediteratorstate < state`
+:mini:`type doubled::iterator < state`
    *TBD*
 
 :mini:`type stacked < sequence`
    *TBD*
 
-:mini:`type stackedstate`
+:mini:`type stacked::state`
    *TBD*
 
 :mini:`type repeated < sequence`
    *TBD*
 
-:mini:`type repeatedstate`
+:mini:`type repeated::state`
    *TBD*
 
 :mini:`type sequenced < sequence`
    *TBD*
 
-:mini:`type sequencedstate`
+:mini:`type sequenced::state`
    *TBD*
 
 :mini:`type limited < sequence`
@@ -115,7 +112,7 @@ internal
 :mini:`meth :count(Arg₁: limited)`
    *TBD*
 
-:mini:`type limitedstate`
+:mini:`type limited::state`
    *TBD*
 
 :mini:`type skipped < sequence`
@@ -124,97 +121,97 @@ internal
 :mini:`type buffered < sequence`
    *TBD*
 
-:mini:`type bufferedstate`
+:mini:`type buffered::state`
    *TBD*
 
 :mini:`type unique < sequence`
    *TBD*
 
-:mini:`type uniquestate`
+:mini:`type unique::state`
    *TBD*
 
 :mini:`type zipped < sequence`
    *TBD*
 
-:mini:`type zippedstate`
+:mini:`type zipped::state`
    *TBD*
 
 :mini:`type paired < sequence`
    *TBD*
 
-:mini:`type pairedstate`
+:mini:`type paired::state`
    *TBD*
 
 :mini:`type weaved < sequence`
    *TBD*
 
-:mini:`type weavedstate`
+:mini:`type weaved::state`
    *TBD*
 
 :mini:`type folded < sequence`
    *TBD*
 
-:mini:`type foldedstate`
+:mini:`type folded::state`
    *TBD*
 
 :mini:`type unfolded < sequence`
    *TBD*
 
-:mini:`type unfoldedstate`
+:mini:`type unfolded::state`
    *TBD*
 
 :mini:`type swapped < sequence`
    *TBD*
 
-:mini:`type swappedstate`
+:mini:`type swapped::state`
    *TBD*
 
 :mini:`type key < sequence`
    *TBD*
 
-:mini:`type keystate`
+:mini:`type key::state`
    *TBD*
 
 :mini:`type batched < sequence`
    *TBD*
 
-:mini:`type batchedstate`
+:mini:`type batched::state`
    *TBD*
 
 :mini:`type field`
    *TBD*
 
-:mini:`type namedtype < type`
+:mini:`type named::type < type`
    *TBD*
 
-:mini:`type enumvalue < int64`
+:mini:`type enum::value < int64`
    *TBD*
 
-:mini:`type enumvalue < integer`
+:mini:`type enum::value < integer`
    *TBD*
 
-:mini:`type enumswitch < function`
+:mini:`type enum::switch < function`
    *TBD*
 
 :mini:`meth :MLCompilerSwitch(Arg₁: enum)`
    *TBD*
 
-:mini:`type enumiter`
+:mini:`type enum::iter`
    *TBD*
 
-:mini:`type flagsvalue < int64`
+:mini:`type flags::value < int64`
    *TBD*
 
-:mini:`type flagsvalue < integer`
+:mini:`type flags::value < integer`
    *TBD*
 
-:mini:`type flagsswitch < function`
+:mini:`type flags::switch < function`
    *TBD*
 
 :mini:`meth :MLCompilerSwitch(Arg₁: flags)`
    *TBD*
 
-:mini:`type methodswitch < function`
+:mini:`type method::switch < function`
    *TBD*
 
 :mini:`fun mlmethodswitch()`
@@ -223,13 +220,10 @@ internal
 :mini:`meth :count(Arg₁: map)`
    *TBD*
 
-:mini:`type mapindex`
+:mini:`type map::index`
    *TBD*
 
-:mini:`meth :count(Arg₁: list)`
-   *TBD*
-
-:mini:`type listiter`
+:mini:`type list::iter`
    *TBD*
 
 :mini:`type names`
@@ -247,7 +241,7 @@ internal
 :mini:`meth :jit(Arg₁: closure)`
    *TBD*
 
-:mini:`type arrayiterator`
+:mini:`type array::iterator`
    *TBD*
 
 :mini:`fun mltest(Arg₁: string, Arg₂: any)`

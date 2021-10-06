@@ -16,7 +16,7 @@ file
 :mini:`meth :write(File: file, String: string, ...): File`
    *TBD*
 
-:mini:`meth :write(File: file, Buffer: stringbuffer): File`
+:mini:`meth :write(File: file, Buffer: string::buffer): File`
    *TBD*
 
 :mini:`meth :eof(File: file): File | nil`

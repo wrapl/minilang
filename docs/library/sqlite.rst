@@ -10,7 +10,7 @@ sqlite
 :mini:`meth :close(Arg₁: sqlite)`
    *TBD*
 
-:mini:`type sqlitestmt < sequence`
+:mini:`type sqlite::stmt < sequence`
    *TBD*
 
 :mini:`meth :statement(Arg₁: sqlite, Arg₂: string)`
