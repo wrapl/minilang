@@ -2090,6 +2090,7 @@ ML_METHOD("|", MLIntegerT, MLIntegerT) {
 // Returns :mini:`Int/2` if it is divisible by :mini:`Int/1` and :mini:`nil` otherwise.
 	int64_t IntegerA = ml_integer_value_fast(Args[0]);
 	int64_t IntegerB = ml_integer_value_fast(Args[1]);
+	if (!IntegerA) return ml_error("ValueError", "Division by 0");
 	return (IntegerB % IntegerA) ? MLNil : Args[1];
 }
 
@@ -2101,6 +2102,7 @@ ML_METHOD("!|", MLIntegerT, MLIntegerT) {
 // Returns :mini:`Int/2` if it is not divisible by :mini:`Int/1` and :mini:`nil` otherwise.
 	int64_t IntegerA = ml_integer_value_fast(Args[0]);
 	int64_t IntegerB = ml_integer_value_fast(Args[1]);
+	if (!IntegerA) return ml_error("ValueError", "Division by 0");
 	return (IntegerB % IntegerA) ? Args[1] : MLNil;
 }
 
