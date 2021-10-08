@@ -7,6 +7,9 @@
 #include <stdatomic.h>
 #endif
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "method"
+
 typedef struct ml_method_cached_t ml_method_cached_t;
 typedef struct ml_method_definition_t ml_method_definition_t;
 
@@ -520,6 +523,29 @@ ML_FUNCTIONX(MLMethodSet) {
 	ml_value_t *Function = Args[Count - 1];
 	ml_method_set(Caller->Context, NumTypes, Variadic, Args, Function);
 	ML_RETURN(Function);
+}
+
+ML_METHODX("list", MLMethodT) {
+	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
+	ml_value_t *Results = ml_list();
+	for (ml_method_definition_t *Definition = (ml_method_definition_t *)inthash_search(Methods->Definitions, (uintptr_t)Args[0]); Definition; Definition = Definition->Next) {
+		ml_value_t *Result = ml_list();
+		const char *Source;
+		int Line;
+		if (ml_function_source(Definition->Callback, &Source, &Line)) {
+			ml_list_put(Result, ml_cstring(Source));
+			ml_list_put(Result, ml_integer(Line));
+		} else {
+			ml_list_put(Result, MLNil);
+			ml_list_put(Result, MLNil);
+		}
+		for (int I = 0; I < Definition->Count; ++I) {
+			ml_list_put(Result, (ml_value_t *)Definition->Types[I]);
+		}
+		if (Definition->Variadic) ml_list_put(Result, RangeMethod);
+		ml_list_put(Results, Result);
+	}
+	ML_RETURN(Results);
 }
 
 ML_FUNCTIONX(MLMethodContext) {

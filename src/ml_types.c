@@ -30,7 +30,8 @@
 #undef I
 #endif
 
-//!type
+#undef ML_CATEGORY
+#define ML_CATEGORY "type"
 
 ML_METHOD_DECL(IterateMethod, "iterate");
 ML_METHOD_DECL(ValueMethod, "value");
@@ -59,6 +60,12 @@ ML_INTERFACE(MLSequenceT, (), "sequence");
 ML_INTERFACE(MLFunctionT, (), "function");
 //!function
 // The base type of all functions.
+
+int ml_function_source(ml_value_t *Value, const char **Source, int *Line) {
+	typeof(ml_function_source) *function = ml_typed_fn_get(ml_typeof(Value), ml_function_source);
+	if (function) return function(Value, Source, Line);
+	return 0;
+}
 
 ML_FUNCTION(MLTypeOf) {
 //!type
@@ -1064,6 +1071,26 @@ ml_value_t *ml_cfunction(void *Data, ml_callback_t Callback) {
 	return (ml_value_t *)Function;
 }
 
+ml_value_t *ml_cfunction2(void *Data, ml_callback_t Callback, const char *Source, int Line) {
+	ml_cfunction_t *Function = new(ml_cfunction_t);
+	Function->Type = MLCFunctionT;
+	Function->Data = Data;
+	Function->Callback = Callback;
+	Function->Source = Source;
+	Function->Line = Line;
+	return (ml_value_t *)Function;
+}
+
+static int ML_TYPED_FN(ml_function_source, MLCFunctionT, ml_cfunction_t *Function, const char **Source, int *Line) {
+	if (Function->Source) {
+		*Source = Function->Source;
+		*Line = Function->Line;
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
 static void ML_TYPED_FN(ml_iterate, MLCFunctionT, ml_state_t *Caller, ml_cfunction_t *Function) {
 	ML_RETURN((Function->Callback)(Function->Data, 0, NULL));
 }
@@ -1099,6 +1126,26 @@ ml_value_t *ml_cfunctionx(void *Data, ml_callbackx_t Callback) {
 	Function->Data = Data;
 	Function->Callback = Callback;
 	return (ml_value_t *)Function;
+}
+
+ml_value_t *ml_cfunctionx2(void *Data, ml_callbackx_t Callback, const char *Source, int Line) {
+	ml_cfunctionx_t *Function = new(ml_cfunctionx_t);
+	Function->Type = MLCFunctionXT;
+	Function->Data = Data;
+	Function->Callback = Callback;
+	Function->Source = Source;
+	Function->Line = Line;
+	return (ml_value_t *)Function;
+}
+
+static int ML_TYPED_FN(ml_function_source, MLCFunctionXT, ml_cfunctionx_t *Function, const char **Source, int *Line) {
+	if (Function->Source) {
+		*Source = Function->Source;
+		*Line = Function->Line;
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 static void ml_cfunctionz_call(ml_state_t *Caller, ml_cfunctionx_t *Function, int Count, ml_value_t **Args) {
@@ -2294,21 +2341,6 @@ static void ML_TYPED_FN(ml_iterate, MLIntegerRangeT, ml_state_t *Caller, ml_valu
 ML_TYPE(MLIntegerRangeT, (MLSequenceT), "integer-range");
 //!range
 
-ML_METHOD("count", MLIntegerRangeT) {
-//!internal
-	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
-	int64_t Diff = Range->Limit - Range->Start;
-	if (!Range->Step) {
-		return (ml_value_t *)Zero;
-	} else if (Diff < 0 && Range->Step > 0) {
-		return (ml_value_t *)Zero;
-	} else if (Diff > 0 && Range->Step < 0) {
-		return (ml_value_t *)Zero;
-	} else {
-		return ml_integer(Diff / Range->Step + 1);
-	}
-}
-
 ML_METHOD("..", MLIntegerT, MLIntegerT) {
 //!range
 //<Start
@@ -2381,7 +2413,9 @@ ML_METHOD("count", MLIntegerRangeT) {
 	int64_t Diff = Range->Limit - Range->Start;
 	if (!Range->Step) {
 		return (ml_value_t *)Zero;
-	} else if (Range->Limit < Range->Start) {
+	} else if (Diff < 0 && Range->Step > 0) {
+		return (ml_value_t *)Zero;
+	} else if (Diff > 0 && Range->Step < 0) {
 		return (ml_value_t *)Zero;
 	} else {
 		return ml_integer(Diff / Range->Step + 1);
@@ -2452,12 +2486,6 @@ static void ML_TYPED_FN(ml_iterate, MLRealRangeT, ml_state_t *Caller, ml_value_t
 
 ML_TYPE(MLRealRangeT, (MLSequenceT), "real-range");
 //!range
-
-ML_METHOD("count", MLRealRangeT) {
-//!internal
-	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
-	return ml_integer(Range->Count);
-}
 
 ML_METHOD("..", MLNumberT, MLNumberT) {
 //!range

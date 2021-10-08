@@ -6,7 +6,8 @@
 #include "minilang.h"
 #include "ml_macros.h"
 
-//!sequence
+#undef ML_CATEGORY
+#define ML_CATEGORY "sequence"
 
 /****************************** Chained ******************************/
 

@@ -7,10 +7,8 @@
 #include "ml_file.h"
 #include "ml_macros.h"
 
-#define new(T) ((T *)GC_MALLOC(sizeof(T)))
-#define anew(T, N) ((T *)GC_MALLOC((N) * sizeof(T)))
-#define snew(N) ((char *)GC_MALLOC_ATOMIC(N))
-#define xnew(T, N, U) ((T *)GC_MALLOC(sizeof(T) + (N) * sizeof(U)))
+#undef ML_CATEGORY
+#define ML_CATEGORY "file"
 
 typedef struct ml_file_t {
 	ml_type_t *Type;

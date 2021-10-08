@@ -4,6 +4,9 @@
 #include <string.h>
 #include "ml_sequence.h"
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "list"
+
 static ml_list_node_t *ml_list_index(ml_list_t *List, int Index) {
 	int Length = List->Length;
 	if (Index <= 0) Index += Length + 1;
@@ -130,13 +133,6 @@ static void list_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	State->Base.run = (void *)list_iter_value;
 	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Values[0]);
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
-}
-
-ML_METHOD("count", MLListT) {
-//<List
-//>integer
-// Returns the number of elements in :mini:`List`.
-	return ml_integer(ml_list_length(Args[0]));
 }
 
 ML_METHODVX(MLListT, MLSequenceT) {

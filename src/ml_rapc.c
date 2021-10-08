@@ -2,6 +2,9 @@
 #include "ml_module.h"
 #include "ml_macros.h"
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "rapc"
+
 extern const char RapcSource[];
 
 static const char *ml_binary_read(const char **Source) {

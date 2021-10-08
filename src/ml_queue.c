@@ -4,6 +4,9 @@
 #include <string.h>
 #include "ml_sequence.h"
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "queue"
+
 typedef struct ml_queue_t ml_queue_t;
 typedef struct ml_queue_node_t ml_queue_node_t;
 

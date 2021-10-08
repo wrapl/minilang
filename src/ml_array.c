@@ -11,6 +11,9 @@
 #undef I
 #endif
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "array"
+
 static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args);
 
 ML_CFUNCTION(MLArray, NULL, ml_array_of_fn);

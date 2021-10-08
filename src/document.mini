@@ -267,6 +267,8 @@ fun process(FileName) do
 		do
 			if Line % r"^/[/*]!" then
 				DefaultCategory := Line[4, 0]:trim
+			elseif Line % r"^#define ML_CATEGORY" then
+				DefaultCategory := Line[22, -2]
 			elseif Line % r"^ML_METHOD_DECL" then
 			elseif Line % r"^ML_METHOD_ANON" then
 			elseif Line % r"^ML_METHOD" then

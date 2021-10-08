@@ -21,10 +21,6 @@ list
    Returns a list containing the values in :mini:`Tuple`.
 
 
-:mini:`meth :count(List: list): integer`
-   Returns the number of elements in :mini:`List`.
-
-
 :mini:`meth list(Sequence: sequence): list`
    Returns a list of all of the values produced by :mini:`Sequence`.
 

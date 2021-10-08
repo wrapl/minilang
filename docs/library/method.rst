@@ -22,6 +22,9 @@ method
 :mini:`fun method::set(Method: any, Types...: type, Function: function): Function`
    *TBD*
 
+:mini:`meth :list(Arg₁: method)`
+   *TBD*
+
 :mini:`fun method::context(): methods`
    *TBD*
 

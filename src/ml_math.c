@@ -8,6 +8,9 @@
 #undef I
 #endif
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "math"
+
 #define MATH_REAL(NAME, CNAME) \
 ML_METHOD_DECL(NAME ## Method, NULL); \
 \

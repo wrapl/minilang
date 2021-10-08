@@ -21,6 +21,9 @@
 #undef I
 #endif
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "string"
+
 ML_TYPE(MLAddressT, (), "address");
 //!address
 // An address represents a bounded section of memory.

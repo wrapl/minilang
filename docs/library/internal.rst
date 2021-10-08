@@ -46,12 +46,6 @@ internal
 :mini:`type double < real`
    *TBD*
 
-:mini:`meth :count(Arg₁: integer::range)`
-   *TBD*
-
-:mini:`meth :count(Arg₁: real::range)`
-   *TBD*
-
 :mini:`type integer::switch < function`
    *TBD*
 
@@ -215,9 +209,6 @@ internal
    *TBD*
 
 :mini:`fun mlmethodswitch()`
-   *TBD*
-
-:mini:`meth :count(Arg₁: map)`
    *TBD*
 
 :mini:`type map::index`

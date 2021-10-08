@@ -8,6 +8,9 @@
 #include <inttypes.h>
 #include "ml_types.h"
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "runtime"
+
 // Runtime //
 
 #ifndef ML_THREADSAFE

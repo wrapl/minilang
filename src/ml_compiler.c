@@ -10,6 +10,9 @@
 #include <limits.h>
 #include "ml_compiler2.h"
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "compiler"
+
 struct mlc_upvalue_t {
 	mlc_upvalue_t *Next;
 	ml_decl_t *Decl;

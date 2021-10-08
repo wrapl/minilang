@@ -41,10 +41,11 @@ else
 end
 
 PREBUILDS := old + [file("config.h")]
+INIT_HEADERS := [file("ml_types.h")]
 
 fun generate_init_file(Source) do
 	let InitFile := Source:basename:replace(".c", "_init.c")
-	let Target := file(InitFile)[Source, PREBUILDS] => fun() do
+	let Target := file(InitFile)[Source, PREBUILDS, INIT_HEADERS] => fun() do
 		Target:open("w"):close
 		let Init := shell(CC, CFLAGS, "-E -P -DGENERATE_INIT", Source)
 		let Out := Target:open("w")

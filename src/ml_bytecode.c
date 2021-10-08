@@ -11,6 +11,9 @@
 
 #ifndef DEBUG_VERSION
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "bytecode"
+
 typedef struct {
 	const ml_type_t *Type;
 	ml_value_t *Value;
@@ -1597,6 +1600,12 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 	}
 	default: return 0;
 	}
+}
+
+static int ML_TYPED_FN(ml_function_source, MLClosureT, ml_closure_t *Closure, const char **Source, int *Line) {
+	*Source = Closure->Info->Source;
+	*Line = Closure->Info->StartLine;
+	return 1;
 }
 
 ML_METHOD("info", MLClosureT) {

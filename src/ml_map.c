@@ -4,6 +4,9 @@
 #include <string.h>
 #include "ml_sequence.h"
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "map"
+
 ML_TYPE(MLMapT, (MLSequenceT), "map",
 // A map of key-value pairs.
 // Keys can be of any type supporting hashing and comparison.
@@ -72,11 +75,6 @@ static void map_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Values[0]);
 	State->Base.run = (void *)map_iter_key;
 	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
-}
-
-ML_METHOD("count", MLMapT) {
-//!internal
-	return ml_integer(ml_map_size(Args[0]));
 }
 
 ML_METHODVX(MLMapT, MLSequenceT) {

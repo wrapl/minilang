@@ -5,6 +5,9 @@
 #include <string.h>
 #include <stdarg.h>
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "table"
+
 typedef struct ml_table_t ml_table_t;
 typedef struct ml_table_row_t ml_table_row_t;
 

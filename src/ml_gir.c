@@ -4,7 +4,8 @@
 #include <girffi.h>
 #include <stdio.h>
 
-//!gir
+#undef ML_CATEGORY
+#define ML_CATEGORY "gir"
 
 typedef struct {
 	ml_type_t *Type;

@@ -7,8 +7,10 @@
 #include <gc/gc.h>
 #include <string.h>
 #include "ml_object.h"
-
 #include "minicbor/minicbor.h"
+
+#undef ML_CATEGORY
+#define ML_CATEGORY "cbor"
 
 ml_value_t *ml_cbor_write(ml_value_t *Value, void *Data, ml_cbor_write_fn WriteFn) {
 	typeof(ml_cbor_write) *function = ml_typed_fn_get(ml_typeof(Value), ml_cbor_write);

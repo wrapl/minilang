@@ -4,6 +4,9 @@
 #include "ml_macros.h"
 #include "ml_object.h"
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "object"
+
 typedef struct ml_class_t ml_class_t;
 typedef struct ml_object_t ml_object_t;
 

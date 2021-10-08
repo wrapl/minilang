@@ -6,6 +6,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "debugger"
+
 typedef struct interactive_debugger_info_t interactive_debugger_info_t;
 
 struct interactive_debugger_info_t {

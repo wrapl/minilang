@@ -4,6 +4,9 @@
 #include <sqlite3.h>
 #include <string.h>
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "sqlite"
+
 typedef struct {
 	ml_type_t *Type;
 	sqlite3 *Handle;

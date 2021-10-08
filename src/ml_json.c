@@ -4,6 +4,9 @@
 #include <yajl/yajl_parse.h>
 #include <yajl/yajl_gen.h>
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "json"
+
 #define ML_JSON_STACK_SIZE 10
 
 typedef struct json_stack_t json_stack_t;

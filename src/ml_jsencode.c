@@ -11,6 +11,9 @@
 #include "ml_time.h"
 #endif
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "jsencode"
+
 struct ml_json_encoder_cache_t {
 	inthash_t *Globals;
 	inthash_t Cached[1];
