@@ -256,9 +256,9 @@ static int ml_closure_inst_encode(ml_inst_t *Inst, ml_json_encoder_cache_t *Cach
 	}
 	case MLIT_SWITCH: {
 		json_t *Insts = json_array();
-		json_array_append_new(Insts, json_string("list"));
+		json_array_append_new(Insts, json_string("l"));
 		for (int N = 0; N < Inst[1].Count; ++N) {
-			json_array_append_new(Insts, json_integer(Inst[2].Insts[N]->Label));
+			json_array_append_new(Insts, json_integer((uintptr_t)inthash_search(Labels, Inst[2].Insts[N]->Label)));
 		}
 		json_array_append_new(Json, Insts);
 		return 3;
