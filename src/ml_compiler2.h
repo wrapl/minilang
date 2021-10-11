@@ -296,8 +296,6 @@ struct mlc_ident_expr_t {
 	const char *Ident;
 };
 
-const char *ml_ident(const char *Name, size_t Length);
-
 typedef struct ml_macro_t ml_macro_t;
 
 struct ml_macro_t {

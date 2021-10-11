@@ -3344,6 +3344,26 @@ static int ml_scan_raw_string(ml_parser_t *Parser) {
 	return Length;
 }
 
+static const char *ml_ident(const char *Next, int Length) {
+	int Shift = 8 - Length;
+	if (Shift < 0) {
+		char *Ident = snew(Length + 1);
+		memcpy(Ident, Next, Length);
+		Ident[Length] = 0;
+		return Ident;
+	}
+	static inthash_t Idents[1] = {INTHASH_INIT};
+	uintptr_t Key = *(uintptr_t *)Next;
+	Key &= (uintptr_t)-1 >> (8 * Shift);
+	char *Ident = inthash_search(Idents, Key);
+	if (Ident) return Ident;
+	Ident = snew(Length + 1);
+	memcpy(Ident, Next, Length);
+	Ident[Length] = 0;
+	inthash_insert(Idents, Key, Ident);
+	return Ident;
+}
+
 static ml_token_t ml_scan(ml_parser_t *Parser) {
 	const char *Next = Parser->Next;
 	for (;;) {
@@ -3387,9 +3407,10 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 				Parser->Next = End;
 				return Parser->Token;
 			}
-			char *Ident = snew(Length + 1);
-			memcpy(Ident, Next, Length);
-			Ident[Length] = 0;
+			const char *Ident = ml_ident(Next, Length);
+			//char *Ident = snew(Length + 1);
+			//memcpy(Ident, Next, Length);
+			//Ident[Length] = 0;
 			if (End[0] == '\"') {
 				string_fn_t StringFn = stringmap_search(StringFns, Ident);
 				if (!StringFn) ml_parse_error(Parser, "ParseError", "Unknown string prefix: %s", Ident);
@@ -3458,10 +3479,11 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 					const char *End = Next + 1;
 					while (ml_isidchar(*End)) ++End;
 					int Length = End - Next;
-					char *Ident = snew(Length + 1);
-					memcpy(Ident, Next, Length);
-					Ident[Length] = 0;
-					Parser->Ident = Ident;
+					//char *Ident = snew(Length + 1);
+					//memcpy(Ident, Next, Length);
+					//Ident[Length] = 0;
+					//Parser->Ident = Ident;
+					Parser->Ident = ml_ident(Next, Length);
 					Parser->Next = End;
 				} else if (Char == '\"') {
 					Parser->Next = Next + 1;
@@ -3470,10 +3492,11 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 					const char *End = Next + 1;
 					while (ml_isoperator(*End)) ++End;
 					int Length = End - Next;
-					char *Operator = snew(Length + 1);
-					memcpy(Operator, Next, Length);
-					Operator[Length] = 0;
-					Parser->Ident = Operator;
+					//char *Operator = snew(Length + 1);
+					//memcpy(Operator, Next, Length);
+					//Operator[Length] = 0;
+					//Parser->Ident = Operator;
+					Parser->Ident = ml_ident(Next, Length);
 					Parser->Next = End;
 				} else {
 					Parser->Next = Next;
@@ -3485,10 +3508,11 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 				const char *End = Next + 1;
 				while (ml_isidchar(*End)) ++End;
 				int Length = End - Next;
-				char *Ident = snew(Length + 1);
-				memcpy(Ident, Next, Length);
-				Ident[Length] = 0;
-				Parser->Ident = Ident;
+				//char *Ident = snew(Length + 1);
+				//memcpy(Ident, Next, Length);
+				//Ident[Length] = 0;
+				//Parser->Ident = Ident;
+				Parser->Ident = ml_ident(Next, Length);
 				Parser->Token = MLT_METHOD;
 				Parser->Next = End;
 				return Parser->Token;
@@ -3561,10 +3585,11 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 			const char *End = Next + 1;
 			while (ml_isoperator(*End)) ++End;
 			int Length = End - Next;
-			char *Operator = snew(Length + 1);
-			memcpy(Operator, Next, Length);
-			Operator[Length] = 0;
-			Parser->Ident = Operator;
+			//char *Operator = snew(Length + 1);
+			//memcpy(Operator, Next, Length);
+			//Operator[Length] = 0;
+			//Parser->Ident = Operator;
+			Parser->Ident = ml_ident(Next, Length);
 			Parser->Token = MLT_OPERATOR;
 			Parser->Next = End;
 			return Parser->Token;
