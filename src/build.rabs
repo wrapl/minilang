@@ -78,6 +78,7 @@ generate_init_files()
 
 let Objects := [
 	file("ml_compiler.o"),
+	file("ml_opcodes.o"),
 	file("ml_bytecode.o"),
 	file("ml_runtime.o"),
 	file("ml_types.o"),
@@ -107,6 +108,7 @@ let InstallHeaders := [
 	"ml_object.h",
 	"ml_compiler.h",
 	"ml_runtime.h",
+	"ml_opcodes.h",
 	"ml_bytecode.h",
 	"stringmap.h",
 	"inthash.h",
