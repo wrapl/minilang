@@ -32,11 +32,15 @@ if defined("LTO") then
 	LDFLAGS:put("-flto")
 end
 
+if PLATFORM = "Linux" then
+	CFLAGS:put("-fno-tree-loop-distribute-patterns")
+end
+
 if DEBUG then
 	CFLAGS := old + ["-O1", "-g", "-DGC_DEBUG", "-DDEBUG"]
 	LDFLAGS := old + ["-g"]
 else
-	CFLAGS := old + ["-O3", "-march=native", "-fexpensive-optimizations", "-g"]
+	CFLAGS := old + ["-O3", "-fexpensive-optimizations", "-g"]
 	LDFLAGS := old + ["-g"]
 end
 

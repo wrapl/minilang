@@ -83,7 +83,7 @@ static ml_source_t ML_TYPED_FN(ml_debugger_source, MLCompilerFunctionT, mlc_func
 	return (ml_source_t){Function->Source, 0};
 }
 
-#define FRAME_BLOCK_SIZE 384
+#define FRAME_BLOCK_SIZE 2000
 
 inline void mlc_return(mlc_function_t *Function, ml_value_t *Value) {
 	mlc_frame_t *Frame = Function->Frame;

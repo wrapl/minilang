@@ -6,7 +6,6 @@
 #include <inttypes.h>
 #include <math.h>
 #include <float.h>
-#include <printf.h>
 #include <gc/gc_typed.h>
 
 #include "ml_sequence.h"

@@ -4,6 +4,8 @@
 #include <string.h>
 #include "ml_sequence.h"
 
+#pragma GCC optimize ("no-tree-loop-distribute-patterns")
+
 #undef ML_CATEGORY
 #define ML_CATEGORY "queue"
 

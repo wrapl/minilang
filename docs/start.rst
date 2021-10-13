@@ -26,6 +26,8 @@ This is the preferred method for building the *Minilang* library and interpreter
 
 A number of build options can be defined when invoking *rabs* to enable some additional features:
 
+:-DDEFAULTS: Sets a number of typical build options based on the currently detected platform and architecture. This is the recommended build option.
+
 :-DNANBOXING: Uses NaN-boxing techniques to reduce memory usage for numeric values. Provides significant speed improvements but may not be available / fully tested on all platforms. Currently tested on *x64* only.
 
 :-DMATH: Adds several maths functions and multiple dimensional numeric arrays to the library. See :doc:`/library/math` and :doc:`/library/array`.
@@ -40,9 +42,9 @@ A number of build options can be defined when invoking *rabs* to enable some add
 
 :-DCBOR: Adds *CBOR* encoding and decoding functions to the library. See :doc:`/library/cbor` and :doc:`/api/cbor`.
 
-:-DCBOR: Adds *JSON* encoding and decoding functions to the library. See :doc:`/library/json`.
+:-DJSON: Adds *JSON* encoding and decoding functions to the library. See :doc:`/library/json`.
 
-:-DSCHEDULER: Adds support for green threads, i.e. running *Minilang* code can be suspended and resumed automatically to simulate parallel execution. 
+:-DSCHEDULER: Adds support for preemptive multitasking by suspending code after a defined number of instructions, configurable at runtime.
 
 :-DMODULES: Adds support for loading modules at runtime. On *Linux*, this includes support for shared object (:file:`.so`) files. Enables ``-DSCHEDULER``.
 

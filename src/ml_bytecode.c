@@ -535,8 +535,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst + 1);
 	}
 	DO_NIL_PUSH: {
-		Result = MLNil;
-		*Top++ = Result;
+		Result = *Top = MLNil;
+		++Top;
 		ADVANCE(Inst + 1);
 	}
 	DO_AND: {
@@ -550,11 +550,13 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst + 1);
 	}
 	DO_PUSH: {
-		*Top++ = Result;
+		*Top = Result;
+		++Top;
 		ADVANCE(Inst + 1);
 	}
 	DO_WITH: {
-		*Top++ = Result;
+		*Top = Result;
+		++Top;
 #ifdef DEBUG_VERSION
 		Frame->Decls = Inst[1].Decls;
 #endif
@@ -565,7 +567,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		int Count = Inst[1].Count;
 		for (int I = 0; I < Count; ++I) {
 			Result = ml_unpack(Packed, I + 1);
-			*Top++ = Result;
+			*Top = Result;
+			++Top;
 		}
 #ifdef DEBUG_VERSION
 		Frame->Decls = Inst[2].Decls;
@@ -582,10 +585,12 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			ml_variable_t *Local = new(ml_variable_t);
 			Local->Type = MLVariableT;
 			Local->Value = MLNil;
-			*Top++ = (ml_value_t *)Local;
+			*Top = (ml_value_t *)Local;
+			++Top;
 		}
 		for (int I = Inst[2].Count; --I >= 0;) {
-			*Top++ = NULL;
+			*Top = NULL;
+			++Top;
 		}
 #ifdef DEBUG_VERSION
 		Frame->Decls = Inst[3].Decls;
@@ -630,7 +635,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Result = ml_error_value(Result);
 		ml_value_t **Old = Frame->Stack + Inst[1].Count;
 		while (Top > Old) *--Top = NULL;
-		*Top++ = Result;
+		*Top = Result;
+		++Top;
 #ifdef DEBUG_VERSION
 		Frame->Decls = Inst[2].Decls;
 #endif
@@ -644,8 +650,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst + 2);
 	}
 	DO_LOAD_PUSH: {
-		Result = Inst[1].Value;
-		*Top++ = Result;
+		Result = *Top = Inst[1].Value;
+		++Top;
 		ADVANCE(Inst + 2);
 	}
 	DO_LOAD_VAR: {
@@ -757,7 +763,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		if (Result == MLNil) {
 			ADVANCE(Inst[1].Inst);
 		} else {
-			*Top++ = Result;
+			*Top = Result;
+			++Top;
 			ADVANCE(Inst + 2);
 		}
 	}
@@ -954,8 +961,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_LOCAL_PUSH: {
 		//int Index = Inst[1].Index;
 		//Result = Frame->Stack[Index];
-		Result = Top[Inst[1].Count];
-		*Top++ = Result;
+		Result = *Top = Top[Inst[1].Count];
+		++Top;
 		ADVANCE(Inst + 2);
 	}
 	DO_UPVALUE: {
@@ -990,7 +997,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst + 2);
 	}
 	DO_LIST_NEW: {
-		*Top++ = ml_list();
+		*Top = ml_list();
+		++Top;
 		ADVANCE(Inst + 1);
 	}
 	DO_LIST_APPEND: {
@@ -999,7 +1007,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst + 1);
 	}
 	DO_MAP_NEW: {
-		*Top++ = ml_map();
+		*Top = ml_map();
+		++Top;
 		ADVANCE(Inst + 1);
 	}
 	DO_MAP_INSERT: {
@@ -1074,7 +1083,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_PARTIAL_NEW: {
 		Result = ml_deref(Result);
-		*Top++ = ml_partial_function_new(Result, Inst[1].Count);
+		*Top = ml_partial_function_new(Result, Inst[1].Count);
+		++Top;
 		ADVANCE(Inst + 2);
 	}
 	DO_PARTIAL_SET: {
@@ -1083,7 +1093,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst + 2);
 	}
 	DO_STRING_NEW: {
-		*Top++ = ml_stringbuffer();
+		*Top = ml_stringbuffer();
+		++Top;
 		ADVANCE(Inst + 1);
 	}
 	DO_STRING_ADD: {
