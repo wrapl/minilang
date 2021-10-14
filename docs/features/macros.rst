@@ -4,7 +4,7 @@ Macros
 *Minilang* provides some support for meta-programming using macros. During compilation, function calls which meet certain criteria are treated as macro expansions:
 
 #. The function being called must evaluate to a constant value at the *compilation* stage, and
-#. The constant value must be a :mini:`macro` value.
+#. The constant value is a :mini:`macro` value.
 
 In this situation, the compiler applies the macro with the specified arguments passed as *expression* values. The macro must then return another *expression* value which the compiler then compiles in place of the original function call.
 

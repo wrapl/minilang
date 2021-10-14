@@ -1358,12 +1358,10 @@ ml_value_t *ml_tuple_set(ml_value_t *Tuple0, int Index, ml_value_t *Value) {
 	ml_tuple_t *Tuple = (ml_tuple_t *)Tuple0;
 	Tuple->Values[Index - 1] = Value;
 	if (Tuple->Type == MLTupleT) {
+		for (int I = 0; I < Tuple->Size; ++I) if (!Tuple->Values[I]) return Value;
 		ml_type_t *Types[Tuple->Size + 1];
 		Types[0] = MLTupleT;
-		for (int I = 0; I < Tuple->Size; ++I) {
-			if (!Tuple->Values[I]) return Value;
-			Types[I + 1] = ml_typeof(Tuple->Values[I]);
-		}
+		for (int I = 0; I < Tuple->Size; ++I) Types[I + 1] = ml_typeof(Tuple->Values[I]);
 		Tuple->Type = ml_generic_type(Tuple->Size + 1, Types);
 	}
 	return Value;

@@ -2163,8 +2163,12 @@ static void ml_string_expr_compile2(mlc_function_t *Function, ml_value_t *Value,
 		return mlc_compile(Function, Child, MLCF_PUSH);
 	}
 	mlc_string_part_t *Part = Frame->Part;
-	ml_inst_t *AddInst = MLC_EMIT(Part->Line, MLI_STRING_ADD, 1);
-	AddInst[1].Count = Frame->NumArgs;
+	if (Frame->NumArgs > 1) {
+		ml_inst_t *AddInst = MLC_EMIT(Part->Line, MLI_STRING_ADD, 1);
+		AddInst[1].Count = Frame->NumArgs;
+	} else {
+		MLC_EMIT(Part->Line, MLI_STRING_ADD_1, 0);
+	}
 	Function->Top -= Frame->NumArgs;
 	while ((Part = Part->Next)) {
 		if (Part->Length) {
@@ -2180,10 +2184,10 @@ static void ml_string_expr_compile2(mlc_function_t *Function, ml_value_t *Value,
 		}
 	}
 	mlc_string_expr_t *Expr = Frame->Expr;
-	MLC_EMIT(Expr->StartLine, MLI_STRING_END, 0);
 	if (Frame->Flags & MLCF_PUSH) {
-		MLC_EMIT(Expr->EndLine, MLI_PUSH, 0);
+		MLC_EMIT(Expr->EndLine, MLI_STRING_END, 0);
 	} else {
+		MLC_EMIT(Expr->EndLine, MLI_STRING_POP, 0);
 		--Function->Top;
 	}
 	MLC_POP();
@@ -2209,10 +2213,10 @@ static void ml_string_expr_compile(mlc_function_t *Function, mlc_string_expr_t *
 			return mlc_compile(Function, Child, MLCF_PUSH);
 		}
 	}
-	MLC_EMIT(Expr->EndLine, MLI_STRING_END, 0);
 	if (Flags & MLCF_PUSH) {
-		MLC_EMIT(Expr->EndLine, MLI_PUSH, 0);
+		MLC_EMIT(Expr->EndLine, MLI_STRING_END, 0);
 	} else {
+		MLC_EMIT(Expr->EndLine, MLI_STRING_POP, 0);
 		--Function->Top;
 	}
 	MLC_RETURN(NULL);

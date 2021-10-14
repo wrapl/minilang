@@ -379,70 +379,14 @@ static ML_METHOD_DECL(AppendMethod, "append");
 
 static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
 	static const void *Labels[] = {
-		[MLI_LINK] = &&DO_LINK,
-		[MLI_RETURN] = &&DO_RETURN,
-		[MLI_SUSPEND] = &&DO_SUSPEND,
-		[MLI_RESUME] = &&DO_RESUME,
-		[MLI_NIL] = &&DO_NIL,
-		[MLI_NIL_PUSH] = &&DO_NIL_PUSH,
-		[MLI_METHOD_CALL] = &&DO_METHOD_CALL,
 		[MLI_AND] = &&DO_AND,
-		[MLI_OR] = &&DO_OR,
-		[MLI_NOT] = &&DO_NOT,
-		[MLI_PUSH] = &&DO_PUSH,
-		[MLI_WITH] = &&DO_WITH,
-		[MLI_LOAD_VAR] = &&DO_LOAD_VAR,
-		[MLI_WITHX] = &&DO_WITHX,
-		[MLI_POP] = &&DO_POP,
-		[MLI_ENTER] = &&DO_ENTER,
-		[MLI_EXIT] = &&DO_EXIT,
-		[MLI_GOTO] = &&DO_GOTO,
-		[MLI_TRY] = &&DO_TRY,
-		[MLI_CATCH_TYPE] = &&DO_CATCH_TYPE,
-		[MLI_CATCH] = &&DO_CATCH,
-		[MLI_RETRY] = &&DO_RETRY,
-		[MLI_LOAD] = &&DO_LOAD,
-		[MLI_LOAD_PUSH] = &&DO_LOAD_PUSH,
-		[MLI_VAR] = &&DO_VAR,
-		[MLI_VAR_TYPE] = &&DO_VAR_TYPE,
-		[MLI_VARX] = &&DO_VARX,
-		[MLI_LET] = &&DO_LET,
-		[MLI_LETI] = &&DO_LETI,
-		[MLI_LETX] = &&DO_LETX,
-		[MLI_REF] = &&DO_REF,
-		[MLI_REFI] = &&DO_REFI,
-		[MLI_REFX] = &&DO_REFX,
-		[MLI_FOR] = &&DO_FOR,
-		[MLI_ITER] = &&DO_ITER,
-		[MLI_NEXT] = &&DO_NEXT,
-		[MLI_VALUE_1] = &&DO_VALUE_1,
-		[MLI_KEY] = &&DO_KEY,
-		[MLI_CALL] = &&DO_CALL,
-		[MLI_CONST_CALL] = &&DO_CONST_CALL,
 		[MLI_ASSIGN] = &&DO_ASSIGN,
-		[MLI_LOCAL] = &&DO_LOCAL,
-		[MLI_LOCAL_PUSH] = &&DO_LOCAL_PUSH,
-		[MLI_UPVALUE] = &&DO_UPVALUE,
-		[MLI_LOCALI] = &&DO_LOCALI,
-		[MLI_TUPLE_NEW] = &&DO_TUPLE_NEW,
-		[MLI_VALUE_2] = &&DO_VALUE_2,
-		[MLI_LIST_NEW] = &&DO_LIST_NEW,
-		[MLI_LIST_APPEND] = &&DO_LIST_APPEND,
-		[MLI_MAP_NEW] = &&DO_MAP_NEW,
-		[MLI_MAP_INSERT] = &&DO_MAP_INSERT,
+		[MLI_ASSIGN_LOCAL] = &&DO_ASSIGN_LOCAL,
+		[MLI_CALL] = &&DO_CALL,
+		[MLI_CATCH] = &&DO_CATCH,
+		[MLI_CATCH_TYPE] = &&DO_CATCH_TYPE,
 		[MLI_CLOSURE] = &&DO_CLOSURE,
 		[MLI_CLOSURE_TYPED] = &&DO_CLOSURE_TYPED,
-		[MLI_PARAM_TYPE] = &&DO_PARAM_TYPE,
-		[MLI_PARTIAL_NEW] = &&DO_PARTIAL_NEW,
-		[MLI_PARTIAL_SET] = &&DO_PARTIAL_SET,
-		[MLI_STRING_NEW] = &&DO_STRING_NEW,
-		[MLI_STRING_ADD] = &&DO_STRING_ADD,
-		[MLI_STRING_ADDS] = &&DO_STRING_ADDS,
-		[MLI_STRING_END] = &&DO_STRING_END,
-		[MLI_RESOLVE] = &&DO_RESOLVE,
-		[MLI_IF_DEBUG] = &&DO_IF_DEBUG,
-		[MLI_ASSIGN_LOCAL] = &&DO_ASSIGN_LOCAL,
-		[MLI_SWITCH] = &&DO_SWITCH,
 		[MLI_CONST_CALL_0] = &&DO_CONST_CALL_0,
 		[MLI_CONST_CALL_1] = &&DO_CONST_CALL_1,
 		[MLI_CONST_CALL_2] = &&DO_CONST_CALL_2,
@@ -453,6 +397,28 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_CONST_CALL_7] = &&DO_CONST_CALL_7,
 		[MLI_CONST_CALL_8] = &&DO_CONST_CALL_8,
 		[MLI_CONST_CALL_9] = &&DO_CONST_CALL_9,
+		[MLI_CONST_CALL] = &&DO_CONST_CALL,
+		[MLI_ENTER] = &&DO_ENTER,
+		[MLI_EXIT] = &&DO_EXIT,
+		[MLI_FOR] = &&DO_FOR,
+		[MLI_GOTO] = &&DO_GOTO,
+		[MLI_IF_DEBUG] = &&DO_IF_DEBUG,
+		[MLI_ITER] = &&DO_ITER,
+		[MLI_KEY] = &&DO_KEY,
+		[MLI_LET] = &&DO_LET,
+		[MLI_LETI] = &&DO_LETI,
+		[MLI_LETX] = &&DO_LETX,
+		[MLI_LINK] = &&DO_LINK,
+		[MLI_LIST_APPEND] = &&DO_LIST_APPEND,
+		[MLI_LIST_NEW] = &&DO_LIST_NEW,
+		[MLI_LOAD] = &&DO_LOAD,
+		[MLI_LOAD_PUSH] = &&DO_LOAD_PUSH,
+		[MLI_LOAD_VAR] = &&DO_LOAD_VAR,
+		[MLI_LOCAL] = &&DO_LOCAL,
+		[MLI_LOCALI] = &&DO_LOCALI,
+		[MLI_LOCAL_PUSH] = &&DO_LOCAL_PUSH,
+		[MLI_MAP_INSERT] = &&DO_MAP_INSERT,
+		[MLI_MAP_NEW] = &&DO_MAP_NEW,
 		[MLI_METHOD_CALL_0] = &&DO_METHOD_CALL_0,
 		[MLI_METHOD_CALL_1] = &&DO_METHOD_CALL_1,
 		[MLI_METHOD_CALL_2] = &&DO_METHOD_CALL_2,
@@ -462,7 +428,43 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_METHOD_CALL_6] = &&DO_METHOD_CALL_6,
 		[MLI_METHOD_CALL_7] = &&DO_METHOD_CALL_7,
 		[MLI_METHOD_CALL_8] = &&DO_METHOD_CALL_8,
-		[MLI_METHOD_CALL_9] = &&DO_METHOD_CALL_9
+		[MLI_METHOD_CALL_9] = &&DO_METHOD_CALL_9,
+		[MLI_METHOD_CALL] = &&DO_METHOD_CALL,
+		[MLI_NEXT] = &&DO_NEXT,
+		[MLI_NIL] = &&DO_NIL,
+		[MLI_NIL_PUSH] = &&DO_NIL_PUSH,
+		[MLI_NOT] = &&DO_NOT,
+		[MLI_OR] = &&DO_OR,
+		[MLI_PARAM_TYPE] = &&DO_PARAM_TYPE,
+		[MLI_PARTIAL_NEW] = &&DO_PARTIAL_NEW,
+		[MLI_PARTIAL_SET] = &&DO_PARTIAL_SET,
+		[MLI_POP] = &&DO_POP,
+		[MLI_PUSH] = &&DO_PUSH,
+		[MLI_REF] = &&DO_REF,
+		[MLI_REFI] = &&DO_REFI,
+		[MLI_REFX] = &&DO_REFX,
+		[MLI_RESOLVE] = &&DO_RESOLVE,
+		[MLI_RESUME] = &&DO_RESUME,
+		[MLI_RETRY] = &&DO_RETRY,
+		[MLI_RETURN] = &&DO_RETURN,
+		[MLI_STRING_ADD] = &&DO_STRING_ADD,
+		[MLI_STRING_ADD_1] = &&DO_STRING_ADD_1,
+		[MLI_STRING_ADDS] = &&DO_STRING_ADDS,
+		[MLI_STRING_POP] = &&DO_STRING_POP,
+		[MLI_STRING_END] = &&DO_STRING_END,
+		[MLI_STRING_NEW] = &&DO_STRING_NEW,
+		[MLI_SUSPEND] = &&DO_SUSPEND,
+		[MLI_SWITCH] = &&DO_SWITCH,
+		[MLI_TRY] = &&DO_TRY,
+		[MLI_TUPLE_NEW] = &&DO_TUPLE_NEW,
+		[MLI_UPVALUE] = &&DO_UPVALUE,
+		[MLI_VALUE_1] = &&DO_VALUE_1,
+		[MLI_VALUE_2] = &&DO_VALUE_2,
+		[MLI_VAR] = &&DO_VAR,
+		[MLI_VAR_TYPE] = &&DO_VAR_TYPE,
+		[MLI_VARX] = &&DO_VARX,
+		[MLI_WITH] = &&DO_WITH,
+		[MLI_WITHX] = &&DO_WITHX,
 	};
 	if (!Result) {
 		ml_value_t *Error = ml_error("RuntimeError", "NULL value passed to continuation");
@@ -1109,14 +1111,31 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Top = Top - Count;
 		return ml_call(Frame, AppendMethod, Count + 1, Args);
 	}
+	DO_STRING_ADD_1: {
+		ml_value_t **Args = Top - 2;
+		ml_inst_t *Next = Inst + 1;
+#ifdef ML_SCHEDULER
+		Frame->Schedule.Counter[0] = Counter;
+#endif
+		Frame->Line = Inst->Line;
+		Frame->Inst = Next;
+		Frame->Top = Top - 1;
+		return ml_call(Frame, AppendMethod, 2, Args);
+	}
 	DO_STRING_ADDS: {
 		ml_stringbuffer_add((ml_stringbuffer_t *)Top[-1], Inst[2].Chars, Inst[1].Count);
 		ADVANCE(Inst + 3);
 	}
-	DO_STRING_END: {
+	DO_STRING_POP: {
 		Result = *--Top;
 		*Top = NULL;
 		Result = ml_stringbuffer_value((ml_stringbuffer_t *)Result);
+		ADVANCE(Inst + 1);
+	}
+	DO_STRING_END: {
+		Result = Top[-1];
+		Result = ml_stringbuffer_value((ml_stringbuffer_t *)Result);
+		Top[-1] = Result;
 		ADVANCE(Inst + 1);
 	}
 	DO_RESOLVE: {
