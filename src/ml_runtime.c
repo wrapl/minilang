@@ -27,7 +27,7 @@ static int MLContextSize = 5;
 //	3: Scheduler
 //	4: Module Path
 
-static unsigned int DefaultCounter = UINT_MAX;
+static uint64_t DefaultCounter = UINT_MAX;
 
 static void default_swap(ml_state_t *State, ml_value_t *Value) {
 	DefaultCounter = UINT_MAX;

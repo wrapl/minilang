@@ -567,7 +567,7 @@ static gboolean console_update_status(console_t *Console) {
 
 #ifdef ML_SCHEDULER
 
-static unsigned int Counter = 1000;
+static uint64_t Counter = 1000;
 
 static gboolean queue_run(void *Data) {
 	ml_queued_state_t QueuedState = ml_scheduler_queue_next();

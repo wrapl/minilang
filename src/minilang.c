@@ -254,7 +254,8 @@ ML_FUNCTION(Unload) {
 
 #ifdef ML_SCHEDULER
 
-static unsigned int SliceSize = 0, Counter;
+static unsigned int SliceSize = 0;
+static uint64_t Counter;
 
 static void simple_queue_run() {
 	ml_queued_state_t QueuedState;
