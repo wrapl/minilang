@@ -205,8 +205,8 @@ long ml_default_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return Ref;
 }*/
 
-ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value) {
-	return ml_error("TypeError", "<%s> is not assignable", ml_typeof(Ref)->Name);
+void ml_default_assign(ml_state_t *Caller, ml_value_t *Ref, ml_value_t *Value) {
+	ML_ERROR("TypeError", "<%s> is not assignable", ml_typeof(Ref)->Name);
 }
 
 void ml_type_init(ml_type_t *Type, ...) {
@@ -444,8 +444,8 @@ ML_TYPE(MLNilT, (MLFunctionT, MLSequenceT), "nil");
 ML_TYPE(MLSomeT, (), "some");
 //!internal
 
-static ml_value_t *ml_blank_assign(ml_value_t *Blank, ml_value_t *Value) {
-	return Value;
+static void ml_blank_assign(ml_state_t *Caller, ml_value_t *Blank, ml_value_t *Value) {
+	ML_RETURN(Value);
 }
 
 ML_TYPE(MLBlankT, (), "blank",
@@ -1309,14 +1309,35 @@ static ml_value_t *ml_tuple_deref(ml_tuple_t *Ref) {
 	return (ml_value_t *)Ref;
 }
 
-static ml_value_t *ml_tuple_assign(ml_tuple_t *Ref, ml_value_t *Values) {
-	int Count = Ref->Size;
-	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Value = ml_deref(ml_unpack(Values, I + 1));
-		ml_value_t *Result = ml_assign(Ref->Values[I], Value);
-		if (ml_is_error(Result)) return Result;
-	}
-	return Values;
+typedef struct {
+	ml_state_t Base;
+	ml_tuple_t *Ref;
+	ml_value_t *Values;
+	int Index;
+} ml_tuple_assign_t;
+
+static void ml_tuple_assign_run(ml_tuple_assign_t *State, ml_value_t *Result) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Result)) ML_RETURN(Result);
+	ml_tuple_t *Ref = State->Ref;
+	ml_value_t *Values = State->Values;
+	int Index = State->Index;
+	if (Index == Ref->Size) ML_RETURN(Values);
+	State->Index = Index + 1;
+	ml_value_t *Value = ml_deref(ml_unpack(Values, Index + 1));
+	return ml_assign(State, Ref->Values[Index], Value);
+}
+
+static void ml_tuple_assign(ml_state_t *Caller, ml_tuple_t *Ref, ml_value_t *Values) {
+	ml_tuple_assign_t *State = new(ml_tuple_assign_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)ml_tuple_assign_run;
+	State->Ref = Ref;
+	State->Values = Values;
+	State->Index = 1;
+	ml_value_t *Value = ml_deref(ml_unpack(Values, 1));
+	return ml_assign(State, Ref->Values[0], Value);
 }
 
 ML_FUNCTION(MLTuple) {
@@ -2980,31 +3001,47 @@ void ml_init() {
 	ml_bytecode_init();
 }
 
+typedef struct {
+	ml_state_t Base;
+	int Index;
+	ml_value_t *New;
+	ml_value_t *Args[];
+} ml_exchange_t;
+
+static void ml_exchange_run(ml_exchange_t *State, ml_value_t *Result) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Result)) ML_RETURN(Result);
+	if (!State->Index) ML_RETURN(State->New);
+	int I = --State->Index;
+	ml_value_t *New = State->New;
+	State->New = ml_deref(State->Args[I]);
+	return ml_assign(State, State->Args[I], New);
+}
+
 ML_FUNCTIONZ(MLExchange) {
 //@exchange
 	ML_CHECKX_ARG_COUNT(1);
-	ml_value_t *New = ml_deref(Args[0]);
-	for (int I = Count; --I >= 0;) {
-		ml_value_t *Old = ml_deref(Args[I]);
-		ml_value_t *Error = ml_assign(Args[I], New);
-		if (ml_is_error(Error)) ML_RETURN(Error);
-		New = Old;
-	}
-	ML_RETURN(New);
+	ml_exchange_t *State = xnew(ml_exchange_t, Count, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)ml_exchange_run;
+	memcpy(State->Args, Args, Count * sizeof(ml_value_t *));
+	State->New = ml_deref(Args[0]);
+	State->Index = Count;
+	return ml_exchange_run(State, MLNil);
 }
 
 ML_FUNCTIONZ(MLReplace) {
 //@replace
 	ML_CHECKX_ARG_COUNT(2);
-	ml_value_t *New = ml_deref(Args[Count - 1]);
-	for (int I = Count - 1; --I >= 0;) {
-		ml_value_t *Old = ml_deref(Args[I]);
-		ml_value_t *Error = ml_assign(Args[I], New);
-		if (ml_is_error(Error)) ML_RETURN(Error);
-		New = Old;
-	}
-	ML_RETURN(New);
-}
+	ml_exchange_t *State = xnew(ml_exchange_t, Count - 1, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)ml_exchange_run;
+	memcpy(State->Args, Args, (Count - 1) * sizeof(ml_value_t *));
+	State->New = ml_deref(Args[Count - 1]);
+	State->Index = Count - 1;
+	return ml_exchange_run(State, MLNil);}
 
 void ml_types_init(stringmap_t *Globals) {
 	if (Globals) {

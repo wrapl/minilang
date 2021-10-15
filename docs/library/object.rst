@@ -23,7 +23,7 @@ object
 :mini:`type property`
    *TBD*
 
-:mini:`fun property(Arg₁: function, Arg₂: function)`
+:mini:`fun property(Arg₁: any, Arg₂: any)`
    *TBD*
 
 :mini:`meth string(Arg₁: enum::value)`

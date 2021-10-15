@@ -79,6 +79,7 @@ typedef struct {
 ml_call_state_t *ml_call_state_new(ml_state_t *Caller, int Count) __attribute__ ((malloc));
 
 ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args);
+ml_value_t *ml_simple_assign(ml_value_t *Value, ml_value_t *Value2);
 
 #define ml_simple_inline(VALUE, COUNT, ARGS ...) ({ \
 	ml_simple_call((ml_value_t *)VALUE, COUNT, (ml_value_t **)(void *[]){ARGS}); \

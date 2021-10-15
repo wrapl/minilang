@@ -17,8 +17,9 @@ static ml_value_t *ml_map_node_deref(ml_map_node_t *Node) {
 	return Node->Value;
 }
 
-static ml_value_t *ml_map_node_assign(ml_map_node_t *Node, ml_value_t *Value) {
-	return (Node->Value = Value);
+static void ml_map_node_assign(ml_state_t *Caller, ml_map_node_t *Node, ml_value_t *Value) {
+	Node->Value = Value;
+	ML_RETURN(Value);
 }
 
 static void ml_map_node_call(ml_state_t *Caller, ml_map_node_t *Node, int Count, ml_value_t **Args) {
@@ -372,10 +373,11 @@ static ml_map_node_t *ml_map_insert_node(ml_map_t *Map, ml_map_node_t **Slot, lo
 	}
 }
 
-static ml_value_t *ml_map_index_assign(ml_map_node_t *Index, ml_value_t *Value) {
+static void ml_map_index_assign(ml_state_t *Caller, ml_map_node_t *Index, ml_value_t *Value) {
 	ml_map_t *Map = (ml_map_t *)Index->Value;
 	ml_map_node_t *Node = ml_map_insert_node(Map, &Map->Root, ml_typeof(Index->Key)->hash(Index->Key, NULL), Index);
-	return Node->Value = Value;
+	Node->Value = Value;
+	ML_RETURN(Value);
 }
 
 static void ml_map_index_call(ml_state_t *Caller, ml_map_node_t *Index, int Count, ml_value_t **Args) {

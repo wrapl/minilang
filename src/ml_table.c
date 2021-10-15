@@ -240,42 +240,42 @@ struct ml_table_row_t {
 	ml_value_t *Indices[];
 };
 
-static ml_value_t *table_row_assign(ml_table_row_t *Row, ml_value_t *Value) {
+static void table_row_assign(ml_state_t *Caller, ml_table_row_t *Row, ml_value_t *Value) {
 	ml_table_t *Table = Row->Table;
 	if (ml_is(Value, MLMapT)) {
 		ML_MAP_FOREACH(Value, Iter) {
-			if (!ml_is(Iter->Key, MLStringT)) return ml_error("TypeError", "Column names must be strings");
+			if (!ml_is(Iter->Key, MLStringT)) ML_ERROR("TypeError", "Column names must be strings");
 			ml_value_t *Column = ml_map_search(Table->Columns, Iter->Key);
-			if (Column == MLNil) return ml_error("NameError", "Column %s not in table", ml_string_value(Iter->Key));
+			if (Column == MLNil) ML_ERROR("NameError", "Column %s not in table", ml_string_value(Iter->Key));
 			ml_value_t *Slot = ml_array_index((ml_array_t *)Column, Row->Count, Row->Indices);
-			ml_value_t *Result = ml_assign(Slot, Iter->Value);
-			if (ml_is_error(Result)) return Result;
+			ml_value_t *Result = ml_simple_assign(Slot, Iter->Value);
+			if (ml_is_error(Result)) ML_RETURN(Result);
 		}
 	} else if (ml_is(Value, MLListT)) {
 		ml_map_node_t *Node = ((ml_map_t *)Table->Columns)->Head;
 		ML_LIST_FOREACH(Value, Iter) {
-			if (!Node) return ml_error("ValueError", "Too many columns in assignment");
+			if (!Node) ML_ERROR("ValueError", "Too many columns in assignment");
 			ml_value_t *Column = Node->Value;
 			ml_value_t *Slot = ml_array_index((ml_array_t *)Column, Row->Count, Row->Indices);
-			ml_value_t *Result = ml_assign(Slot, Iter->Value);
-			if (ml_is_error(Result)) return Result;
+			ml_value_t *Result = ml_simple_assign(Slot, Iter->Value);
+			if (ml_is_error(Result)) ML_RETURN(Result);
 			Node = Node->Next;
 		}
 	} else if (ml_is(Value, MLTupleT)) {
 		ml_map_node_t *Node = ((ml_map_t *)Table->Columns)->Head;
 		int Size = ml_tuple_size(Value);
 		for (int Index = 1; Index <= Size; ++Index) {
-			if (!Node) return ml_error("ValueError", "Too many columns in assignment");
+			if (!Node) ML_ERROR("ValueError", "Too many columns in assignment");
 			ml_value_t *Column = Node->Value;
 			ml_value_t *Slot = ml_array_index((ml_array_t *)Column, Row->Count, Row->Indices);
-			ml_value_t *Result = ml_assign(Slot, ml_tuple_get(Value, Index));
-			if (ml_is_error(Result)) return Result;
+			ml_value_t *Result = ml_simple_assign(Slot, ml_tuple_get(Value, Index));
+			if (ml_is_error(Result)) ML_RETURN(Result);
 			Node = Node->Next;
 		}
 	} else {
-		return ml_error("TypeError", "Cannot assign %s to table row", ml_typeof(Value)->Name);
+		ML_ERROR("TypeError", "Cannot assign %s to table row", ml_typeof(Value)->Name);
 	}
-	return Value;
+	ML_RETURN(Value);
 }
 
 ML_TYPE(MLTableRowT, (MLSequenceT), "table-row",

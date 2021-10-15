@@ -209,10 +209,10 @@ static ml_value_t *field_ref_ ## LNAME ## _deref(field_ref_t *Ref) { \
 	return GETTER; \
 } \
 \
-static ml_value_t *field_ref_ ## LNAME ## _assign(field_ref_t *Ref, ml_value_t *Value) { \
+static void field_ref_ ## LNAME ## _assign(ml_state_t *Caller, field_ref_t *Ref, ml_value_t *Value) { \
 	GTYPE *Address = (GTYPE *)Ref->Address; \
 	*Address = SETTER; \
-	return Value; \
+	ML_RETURN(Value); \
 } \
 \
 ML_TYPE(FieldRef ## UNAME ## T, (), "field-ref-" #LNAME, \
@@ -2077,12 +2077,12 @@ static ml_value_t *object_property_deref(object_property_t *Property) {
 	return _value_to_ml(Value, NULL);
 }
 
-static ml_value_t *object_property_assign(object_property_t *Property, ml_value_t *Value0) {
+static void object_property_assign(ml_state_t *Caller, object_property_t *Property, ml_value_t *Value0) {
 	GValue Value[1];
 	memset(Value, 0, sizeof(GValue));
 	_ml_to_value(Value0, Value);
 	g_object_set_property(Property->Object, Property->Name, Value);
-	return Value0;
+	ML_RETURN(Value0);
 }
 
 ML_TYPE(ObjectPropertyT, (), "gir-object-property",

@@ -26,8 +26,9 @@ static ml_value_t *ml_field_deref(ml_field_t *Field) {
 	return Field->Value;
 }
 
-static ml_value_t *ml_field_assign(ml_field_t *Field, ml_value_t *Value) {
-	return Field->Value = Value;
+static void ml_field_assign(ml_state_t *Caller, ml_field_t *Field, ml_value_t *Value) {
+	Field->Value = Value;
+	ML_RETURN(Value);
 }
 
 static void ml_field_call(ml_state_t *Caller, ml_field_t *Field, int Count, ml_value_t **Args) {
@@ -398,26 +399,19 @@ static void ML_TYPED_FN(ml_value_set_name, MLClassT, ml_class_t *Class, const ch
 
 typedef struct ml_property_t {
 	const ml_type_t *Type;
-	ml_value_t *Get, *Set;
-	ml_result_state_t State[1];
+	ml_value_t *Value, *Setter;
 } ml_property_t;
 
 static ml_value_t *ml_property_deref(ml_property_t *Property) {
-	Property->State->Value = NULL;
-	ml_call(Property->State, Property->Get, 0, NULL);
-	return Property->State->Value ?: ml_error("StateError", "Property functions must not suspend");
+	return Property->Value;
 }
 
-static ml_value_t *ml_property_assign(ml_property_t *Property, ml_value_t *Value) {
-	Property->State->Value = NULL;
-	ml_call(Property->State, Property->Set, 1, &Value);
-	return Property->State->Value ?: ml_error("StateError", "Property functions must not suspend");
+static void ml_property_assign(ml_state_t *Caller, ml_property_t *Property, ml_value_t *Value) {
+	return ml_call(Caller, Property->Setter, 1, &Value);
 }
 
 static void ml_property_call(ml_state_t *Caller, ml_property_t *Property, int Count, ml_value_t **Args) {
-	Property->State->Value = NULL;
-	ml_call(Property->State, Property->Get, 0, NULL);
-	return ml_call(Caller, Property->State->Value ?: MLNil, Count, Args);
+	return ml_call(Caller, Property->Value, Count, Args);
 }
 
 extern ml_cfunctionx_t MLProperty[];
@@ -432,14 +426,10 @@ ML_TYPE(MLPropertyT, (), "property",
 ML_FUNCTIONX(MLProperty) {
 //@property
 	ML_CHECKX_ARG_COUNT(2);
-	ML_CHECKX_ARG_TYPE(0, MLFunctionT);
-	ML_CHECKX_ARG_TYPE(1, MLFunctionT);
 	ml_property_t *Property = new(ml_property_t);
 	Property->Type = MLPropertyT;
-	Property->Get = Args[0];
-	Property->Set = Args[1];
-	Property->State->Base.run = (ml_state_fn)ml_result_state_run;
-	Property->State->Base.Context = Caller->Context;
+	Property->Value = Args[0];
+	Property->Setter = Args[1];
 	ML_RETURN(Property);
 }
 

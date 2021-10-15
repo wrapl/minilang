@@ -30,11 +30,12 @@ static ml_value_t *ml_variable_deref(ml_variable_t *Variable) {
 	return Variable->Value;
 }
 
-static ml_value_t *ml_variable_assign(ml_variable_t *Variable, ml_value_t *Value) {
+static void ml_variable_assign(ml_state_t *Caller, ml_variable_t *Variable, ml_value_t *Value) {
 	if (Variable->VarType && !ml_is(Value, Variable->VarType)) {
-		return ml_error("TypeError", "Cannot assign %s to variable of type %s", ml_typeof(Value)->Name, Variable->VarType->Name);
+		ML_ERROR("TypeError", "Cannot assign %s to variable of type %s", ml_typeof(Value)->Name, Variable->VarType->Name);
 	}
-	return (Variable->Value = Value);
+	Variable->Value = Value;
+	ML_RETURN(Value);
 }
 
 static void ml_variable_call(ml_state_t *Caller, ml_variable_t *Variable, int Count, ml_value_t **Args) {
@@ -941,28 +942,24 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Result = ml_deref(Result);
 		ml_value_t *Ref = Top[-1];
 		*--Top = NULL;
-		Result = ml_assign(Ref, Result);
-		ERROR_CHECK(Result);
-		ADVANCE(Inst + 1);
+		Frame->Inst = Inst + 1;
+		Frame->Line = Inst->Line;
+		Frame->Top = Top;
+		return ml_assign((ml_state_t *)Frame, Ref, Result);
 	}
 	DO_LOCAL: {
-		//int Index = Inst[1].Index;
-		//Result = Frame->Stack[Index];
 		Result = Top[Inst[1].Count];
 		ADVANCE(Inst + 2);
 	}
 	DO_ASSIGN_LOCAL: {
 		Result = ml_deref(Result);
-		//int Index = Inst[1].Index;
-		//ml_value_t *Ref = Frame->Stack[Index];
 		ml_value_t *Ref = Top[Inst[1].Count];
-		Result = ml_assign(Ref, Result);
-		ERROR_CHECK(Result);
-		ADVANCE(Inst + 2);
+		Frame->Inst = Inst + 2;
+		Frame->Line = Inst->Line;
+		Frame->Top = Top;
+		return ml_assign((ml_state_t *)Frame, Ref, Result);
 	}
 	DO_LOCAL_PUSH: {
-		//int Index = Inst[1].Index;
-		//Result = Frame->Stack[Index];
 		Result = *Top = Top[Inst[1].Count];
 		++Top;
 		ADVANCE(Inst + 2);
@@ -973,8 +970,6 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst + 2);
 	}
 	DO_LOCALI: {
-		//int Index = Inst[1].Index;
-		//ml_value_t **Slot = &Frame->Stack[Index];
 		ml_value_t **Slot = &Top[Inst[1].Count];
 		Result = Slot[0];
 		if (!Result) Result = Slot[0] = ml_uninitialized(Inst[2].Chars);
@@ -1041,7 +1036,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_CLOSURE_TYPED: {
 #ifdef ML_GENERICS
-		// closure <entry> <frame_size> <num_params> <num_upvalues> <upvalue_1> ...
+		// closure <info> <upvalue_1> ...
 		if (!ml_is(Result, MLTypeT)) {
 			Result = ml_error("InternalError", "expected type, not %s", ml_typeof(Result)->Name);
 			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
@@ -1049,7 +1044,6 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		}
 		ml_closure_info_t *Info = Inst[1].ClosureInfo;
 		ml_closure_t *Closure = xnew(ml_closure_t, Info->NumUpValues, ml_value_t *);
-		// A new block is necessary here to allow GCC to perform TCO in this function
 		Closure->Type = ({ml_generic_type(2, (ml_type_t *[]){MLClosureT, (ml_type_t *)Result});});
 		Closure->Info = Info;
 		for (int I = 0; I < Info->NumUpValues; ++I) {

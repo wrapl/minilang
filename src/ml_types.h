@@ -45,7 +45,7 @@ struct ml_type_t {
 	long (*hash)(ml_value_t *, ml_hash_chain_t *);
 	void (*call)(ml_state_t *, ml_value_t *, int, ml_value_t **);
 	ml_value_t *(*deref)(ml_value_t *);
-	ml_value_t *(*assign)(ml_value_t *, ml_value_t *);
+	void (*assign)(ml_state_t *, ml_value_t *, ml_value_t *);
 	ml_value_t *Constructor;
 #ifdef ML_GENERICS
 	ml_generic_rule_t *Rules;
@@ -66,7 +66,7 @@ void ml_default_call(ml_state_t *Frame, ml_value_t *Value, int Count, ml_value_t
 //ml_value_t *ml_default_deref(ml_value_t *Ref);
 #define ml_default_deref NULL
 
-ml_value_t *ml_default_assign(ml_value_t *Ref, ml_value_t *Value);
+void ml_default_assign(ml_state_t *Caller, ml_value_t *Ref, ml_value_t *Value);
 
 #ifndef GENERATE_INIT
 
@@ -216,15 +216,13 @@ static inline long ml_hash(ml_value_t *Value) {
 	return ml_hash_chain(Value, NULL);
 }
 
-static inline ml_value_t *ml_assign(ml_value_t *Value, ml_value_t *Value2) {
-	return ml_typeof(Value)->assign(Value, Value2);
-}
-
 #define ml_call(CALLER, VALUE, COUNT, ARGS) ml_typeof(VALUE)->call((ml_state_t *)CALLER, VALUE, COUNT, ARGS)
 
 #define ml_inline(STATE, VALUE, COUNT, ARGS ...) ({ \
 	ml_call(STATE, VALUE, COUNT, (ml_value_t **)(void *[]){ARGS}); \
 })
+
+#define ml_assign(CALLER, VALUE, VALUE2) ml_typeof(VALUE)->assign((ml_state_t *)CALLER, VALUE, VALUE2)
 
 void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn);
 void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function);

@@ -190,6 +190,14 @@ ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 	return Result;
 }
 
+ml_value_t *ml_simple_assign(ml_value_t *Value, ml_value_t *Value2) {
+	static ml_result_state_t State = {{MLStateT, NULL, (void *)ml_result_state_run, &MLRootContext}, MLNil};
+	ml_assign(&State, Value, Value2);
+	ml_value_t *Result = State.Value;
+	State.Value = MLNil;
+	return Result;
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_context_t Context[1];
@@ -289,8 +297,9 @@ static ml_value_t *ml_reference_deref(ml_reference_t *Reference) {
 	return Reference->Address[0];
 }
 
-static ml_value_t *ml_reference_assign(ml_reference_t *Reference, ml_value_t *Value) {
-	return Reference->Address[0] = Value;
+static void ml_reference_assign(ml_state_t *Caller, ml_reference_t *Reference, ml_value_t *Value) {
+	Reference->Address[0] = Value;
+	ML_RETURN(Value);
 }
 
 static void ml_reference_call(ml_state_t *Caller, ml_reference_t *Reference, int Count, ml_value_t **Args) {
@@ -330,8 +339,8 @@ static void ml_uninitialized_call(ml_state_t *Caller, ml_uninitialized_t *Uninit
 	ML_ERROR("ValueError", "%s is uninitialized", Uninitialized->Name);
 }
 
-static ml_value_t *ml_unitialized_assign(ml_uninitialized_t *Uninitialized, ml_value_t *Value) {
-	return ml_error("ValueError", "%s is uninitialized", Uninitialized->Name);
+static void ml_unitialized_assign(ml_state_t *Caller, ml_uninitialized_t *Uninitialized, ml_value_t *Value) {
+	ML_ERROR("ValueError", "%s is uninitialized", Uninitialized->Name);
 }
 
 ML_TYPE(MLUninitializedT, (), "uninitialized",
@@ -424,8 +433,8 @@ typedef struct {
 	ml_error_value_t Error[];
 } ml_error_t;
 
-static ml_value_t *ml_error_assign(ml_value_t *Error, ml_value_t *Value) {
-	return Error;
+static void ml_error_assign(ml_state_t *Caller, ml_value_t *Error, ml_value_t *Value) {
+	ML_RETURN(Error);
 }
 
 static void ml_error_call(ml_state_t *Caller, ml_value_t *Error, int Count, ml_value_t **Args) {
