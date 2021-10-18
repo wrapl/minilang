@@ -27,6 +27,9 @@ sequence
 :mini:`meth (Sequence: sequence) => (Function: function, Arg₃: function): chained`
    *TBD*
 
+:mini:`meth (Sequence: sequence) !> (Function: function): chained`
+   *TBD*
+
 :mini:`meth (Chained: chained) -> (Function: function): chained`
    *TBD*
 
@@ -36,16 +39,25 @@ sequence
 :mini:`meth (Chained: chained) => (Function: function, Arg₃: function): chained`
    *TBD*
 
+:mini:`meth (Chained: chained) !> (Function: function): chained`
+   *TBD*
+
 :mini:`meth (Sequence: sequence) ->? (Function: function): chained`
    *TBD*
 
 :mini:`meth (Sequence: sequence) =>? (Function: function): chained`
    *TBD*
 
+:mini:`meth (Sequence: sequence) !>? (Function: function): chained`
+   *TBD*
+
 :mini:`meth (Chained: chained) ->? (Function: function): chained`
    *TBD*
 
 :mini:`meth (Chained: chained) =>? (Function: function): chained`
+   *TBD*
+
+:mini:`meth (Chained: chained) !>? (Function: function): chained`
    *TBD*
 
 :mini:`meth (Sequence: sequence) ^ (Function: function): sequence`
@@ -176,9 +188,13 @@ sequence
 
 
 :mini:`fun zip(Sequence₁: sequence, ...: sequence, Sequenceₙ: sequence, Function: any): sequence`
-   Returns a new sequence that draws values :mini:`Vᵢ` from each of :mini:`Sequenceᵢ` and then produces :mini:`Functon(V₁, V₂, ..., Vₙ)`.
+   Returns a new sequence that produces :mini:`Function(V₁₁, ..., Vₙ₁), Function(V₁₂, ..., Vₙ₂), ...` where :mini:`Vᵢⱼ` is the :mini:`j`-th value produced by :mini:`Sequenceᵢ`.
 
    The sequence stops produces values when any of the :mini:`Sequenceᵢ` stops.
+
+
+:mini:`fun cart(Sequence₁: sequence, ...: sequence, Sequenceₙ: sequence, Function: any): sequence`
+   Returns a new sequence that produces :mini:`Function(V₁, V₂, ..., Vₙ)` for all possible combinations of :mini:`V₁, ..., Vₙ`, where :mini:`Vᵢ` are the values produced by :mini:`Sequenceᵢ`.
 
 
 :mini:`fun pair(Sequence₁: sequence, Sequence₂: sequence): sequence`
