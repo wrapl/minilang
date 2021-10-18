@@ -3367,11 +3367,13 @@ static const char *ml_ident(const char *Next, int Length) {
 	uintptr_t Key = *(uintptr_t *)Next;
 	Key &= (uintptr_t)-1 >> (8 * Shift);
 	char *Ident = inthash_search_inline(Idents, Key);
-	if (Ident) return Ident;
-	Ident = snew(Length + 1);
-	memcpy(Ident, Next, Length);
-	Ident[Length] = 0;
-	inthash_insert(Idents, Key, Ident);
+	if (!Ident) {
+		Ident = snew(Length + 1);
+		memcpy(Ident, Next, Length);
+		Ident[Length] = 0;
+		inthash_insert(Idents, Key, Ident);
+	}
+	//fprintf(stderr, "%s -> 0x%lx\n", Ident, Ident);
 	return Ident;
 }
 

@@ -1325,7 +1325,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 	for (ml_param_type_t *Type = Closure->ParamTypes; Type; Type = Type->Next) {
 		ml_value_t *Value = Frame->Stack[Type->Index];
 		if (!ml_is(Value, Type->Type)) {
-			ML_ERROR("TypeError", "Expected %s not %s for argument %d", Type->Type->Name, ml_typeof(Value)->Name, Type->Index);
+			ML_ERROR("TypeError", "Expected %s not %s for argument %d", Type->Type->Name, ml_typeof(Value)->Name, Type->Index + 1);
 		}
 	}
 	Frame->Top = Frame->Stack + NumParams;

@@ -289,7 +289,7 @@ inline void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn) {
 	while (Type->Type == MLGenericTypeT) Type = ml_generic_type_args(Type)[0];
 #endif
 	ML_TYPED_FN_LOCK();
-	inthash_result_t Result = inthash_search2(Type->TypedFns, (uintptr_t)TypedFn);
+	inthash_result_t Result = inthash_search2_inline(Type->TypedFns, (uintptr_t)TypedFn);
 	ML_TYPED_FN_UNLOCK();
 	if (Result.Present) return Result.Value;
 	return ml_typed_fn_get_parent(Type, TypedFn);
@@ -2080,11 +2080,46 @@ ml_arith_method_number("-", -)
 ml_arith_method_number_number("+", +)
 ml_arith_method_number_number("-", -)
 ml_arith_method_number_number("*", *)
-ml_arith_method_integer_integer("shl", <<);
-ml_arith_method_integer_integer("shr", >>);
-ml_arith_method_integer_integer("and", &);
-ml_arith_method_integer_integer("or", |);
-ml_arith_method_integer_integer("xor", ^);
+ml_arith_method_integer("~", ~);
+ml_arith_method_integer_integer("&", &);
+ml_arith_method_integer_integer("|", |);
+ml_arith_method_integer_integer("^", ^);
+
+ML_METHOD("<<", MLIntegerT, MLIntegerT) {
+	int64_t IntegerA = ml_integer_value_fast(Args[0]);
+	int64_t IntegerB = ml_integer_value_fast(Args[1]);
+	int64_t IntegerC;
+	if (IntegerB > 0) {
+		IntegerC = IntegerA << IntegerB;
+	} else if (IntegerB < 0) {
+		if (IntegerA < 0) {
+			IntegerC = -(-IntegerA >> -IntegerB);
+		} else {
+			IntegerC = IntegerA >> -IntegerB;
+		}
+	} else {
+		IntegerC = IntegerA;
+	}
+	return ml_integer(IntegerC);
+}
+
+ML_METHOD(">>", MLIntegerT, MLIntegerT) {
+	int64_t IntegerA = ml_integer_value_fast(Args[0]);
+	int64_t IntegerB = ml_integer_value_fast(Args[1]);
+	int64_t IntegerC;
+	if (IntegerB > 0) {
+		if (IntegerA < 0) {
+			IntegerC = -(-IntegerA >> IntegerB);
+		} else {
+			IntegerC = IntegerA >> IntegerB;
+		}
+	} else if (IntegerB < 0) {
+		IntegerC = IntegerA << -IntegerB;
+	} else {
+		IntegerC = IntegerA;
+	}
+	return ml_integer(IntegerC);
+}
 
 ML_METHOD("++", MLIntegerT) {
 //!number

@@ -19,7 +19,7 @@ struct inthash_t {
 #define INTHASH_INDEX_SHIFT 6
 #define INTHASH_INCR_SHIFT 9
 
-#define INTHASH_INIT {NULL, 0, 0}
+#define INTHASH_INIT {NULL, NULL, 0, 0}
 
 inthash_t *inthash_new() __attribute__ ((malloc));
 
