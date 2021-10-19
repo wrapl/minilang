@@ -25,7 +25,7 @@
 
 ML_TYPE(MLAddressT, (), "address");
 //!address
-// An address represents a bounded section of memory.
+// An address represents a read-only bounded section of memory.
 
 ml_value_t *ml_address(const char *Value, int Length) {
 	ml_address_t *Address = new(ml_address_t);
@@ -174,6 +174,7 @@ ML_FUNCTION(MLBuffer) {
 //@buffer
 //<Length
 //>buffer
+// Allocates a new buffer with :mini:`Length` bytes.
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	long Size = ml_integer_value_fast(Args[0]);
@@ -187,6 +188,7 @@ ML_FUNCTION(MLBuffer) {
 
 ML_TYPE(MLBufferT, (MLAddressT), "buffer",
 //!buffer
+// A buffer represents a writable bounded section of memory.
 	.Constructor = (ml_value_t *)MLBuffer
 );
 

@@ -2037,28 +2037,28 @@ ML_FUNCTION(Zip) {
 	return (ml_value_t *)Zipped;
 }
 
-typedef struct ml_cartesian_t {
+typedef struct ml_grid_t {
 	ml_type_t *Type;
 	ml_value_t *Function;
 	int Count;
 	ml_value_t *Values[];
-} ml_cartesian_t;
+} ml_grid_t;
 
-ML_TYPE(MLCartesianT, (MLSequenceT), "cartesian");
+ML_TYPE(MLGridT, (MLSequenceT), "grid");
 //!internal
 
-typedef struct ml_cartesian_state_t {
+typedef struct ml_grid_state_t {
 	ml_state_t Base;
 	ml_value_t *Function;
 	ml_value_t **Values, **Iters;
 	int Count, Index, Iteration;
 	ml_value_t *Args[];
-} ml_cartesian_state_t;
+} ml_grid_state_t;
 
-ML_TYPE(MLCartesianStateT, (), "cartesian-state");
+ML_TYPE(MLGridStateT, (), "grid-state");
 //!internal
 
-static void cartesian_iterate(ml_cartesian_state_t *State, ml_value_t *Value) {
+static void grid_iterate(ml_grid_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	int Index = State->Index;
 	if (Value == MLNil) {
@@ -2072,26 +2072,26 @@ static void cartesian_iterate(ml_cartesian_state_t *State, ml_value_t *Value) {
 	return ml_iterate((ml_state_t *)State, State->Values[Index]);
 }
 
-static void ML_TYPED_FN(ml_iterate, MLCartesianT, ml_state_t *Caller, ml_cartesian_t *Cartesian) {
-	ml_cartesian_state_t *State = xnew(ml_cartesian_state_t, 2 * Cartesian->Count, ml_value_t *);
-	State->Base.Type = MLCartesianStateT;
+static void ML_TYPED_FN(ml_iterate, MLGridT, ml_state_t *Caller, ml_grid_t *Grid) {
+	ml_grid_state_t *State = xnew(ml_grid_state_t, 2 * Grid->Count, ml_value_t *);
+	State->Base.Type = MLGridStateT;
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)cartesian_iterate;
+	State->Base.run = (void *)grid_iterate;
 	State->Base.Context = Caller->Context;
-	State->Function = Cartesian->Function;
-	State->Iters = State->Args + Cartesian->Count;
-	State->Values = Cartesian->Values;
-	State->Count = Cartesian->Count;
+	State->Function = Grid->Function;
+	State->Iters = State->Args + Grid->Count;
+	State->Values = Grid->Values;
+	State->Count = Grid->Count;
 	State->Index = 0;
 	State->Iteration = 1;
 	return ml_iterate((ml_state_t *)State, State->Values[0]);
 }
 
-static void ML_TYPED_FN(ml_iter_key, MLCartesianStateT, ml_state_t *Caller, ml_cartesian_state_t *State) {
+static void ML_TYPED_FN(ml_iter_key, MLGridStateT, ml_state_t *Caller, ml_grid_state_t *State) {
 	ML_RETURN(ml_integer(State->Iteration));
 }
 
-static void ml_cartesian_fnx_value(ml_cartesian_state_t *State, ml_value_t *Value) {
+static void ml_grid_fnx_value(ml_grid_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	State->Args[State->Index] = Value;
 	if (++State->Index ==  State->Count) {
@@ -2100,22 +2100,22 @@ static void ml_cartesian_fnx_value(ml_cartesian_state_t *State, ml_value_t *Valu
 	return ml_iter_value((ml_state_t *)State, State->Iters[State->Index]);
 }
 
-static void ML_TYPED_FN(ml_iter_value, MLCartesianStateT, ml_state_t *Caller, ml_cartesian_state_t *State) {
+static void ML_TYPED_FN(ml_iter_value, MLGridStateT, ml_state_t *Caller, ml_grid_state_t *State) {
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)ml_cartesian_fnx_value;
+	State->Base.run = (void *)ml_grid_fnx_value;
 	State->Index = 0;
 	return ml_iter_value((ml_state_t *)State, State->Iters[0]);
 }
 
-static void ML_TYPED_FN(ml_iter_next, MLCartesianStateT, ml_state_t *Caller, ml_cartesian_state_t *State) {
+static void ML_TYPED_FN(ml_iter_next, MLGridStateT, ml_state_t *Caller, ml_grid_state_t *State) {
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)cartesian_iterate;
+	State->Base.run = (void *)grid_iterate;
 	++State->Iteration;
 	int Index = State->Index = State->Count - 1;
 	return ml_iter_next((ml_state_t *)State, State->Iters[Index]);
 }
 
-ML_FUNCTION(Cartesian) {
+ML_FUNCTION(Grid) {
 //@cart
 //<Sequence/1:sequence
 //<...:sequence
@@ -2125,12 +2125,12 @@ ML_FUNCTION(Cartesian) {
 // Returns a new sequence that produces :mini:`Function(V/1, V/2, ..., V/n)` for all possible combinations of :mini:`V/1, ..., V/n`, where :mini:`V/i` are the values produced by :mini:`Sequence/i`.
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(Count - 1, MLFunctionT);
-	ml_cartesian_t *Cartesian = xnew(ml_cartesian_t, Count - 1, ml_value_t *);
-	Cartesian->Type = MLCartesianT;
-	Cartesian->Count = Count - 1;
-	Cartesian->Function = Args[Count - 1];
-	for (int I = 0; I < Count - 1; ++I) Cartesian->Values[I] = Args[I];
-	return (ml_value_t *)Cartesian;
+	ml_grid_t *Grid = xnew(ml_grid_t, Count - 1, ml_value_t *);
+	Grid->Type = MLGridT;
+	Grid->Count = Count - 1;
+	Grid->Function = Args[Count - 1];
+	for (int I = 0; I < Count - 1; ++I) Grid->Values[I] = Args[I];
+	return (ml_value_t *)Grid;
 }
 
 typedef struct ml_paired_t {
@@ -2671,7 +2671,7 @@ void ml_sequence_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "unique", Unique);
 		stringmap_insert(Globals, "tasks", MLTasksT);
 		stringmap_insert(Globals, "zip", Zip);
-		stringmap_insert(Globals, "cart", Cartesian);
+		stringmap_insert(Globals, "grid", Grid);
 		stringmap_insert(Globals, "pair", Pair);
 		stringmap_insert(Globals, "weave", Weave);
 		stringmap_insert(Globals, "fold", Fold);

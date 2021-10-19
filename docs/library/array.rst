@@ -155,125 +155,165 @@ array
    Returns an array with the negated values from :mini:`Array`.
 
 
-:mini:`meth (Arg₁: array) + (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: array) + (B: integer): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := Aᵥ + B`.
 
-:mini:`meth (Arg₁: integer) + (Arg₂: array)`
-   *TBD*
 
-:mini:`meth (Arg₁: array) + (Arg₂: double)`
-   *TBD*
+:mini:`meth (A: integer) + (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := A + Bᵥ`.
 
-:mini:`meth (Arg₁: double) + (Arg₂: array)`
-   *TBD*
 
-:mini:`meth (Arg₁: array) * (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: array) + (B: double): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := Aᵥ + B`.
 
-:mini:`meth (Arg₁: integer) * (Arg₂: array)`
-   *TBD*
 
-:mini:`meth (Arg₁: array) * (Arg₂: double)`
-   *TBD*
+:mini:`meth (A: double) + (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := A + Bᵥ`.
 
-:mini:`meth (Arg₁: double) * (Arg₂: array)`
-   *TBD*
 
-:mini:`meth (Arg₁: array) - (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: array) * (B: integer): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := Aᵥ * B`.
 
-:mini:`meth (Arg₁: integer) - (Arg₂: array)`
-   *TBD*
 
-:mini:`meth (Arg₁: array) - (Arg₂: double)`
-   *TBD*
+:mini:`meth (A: integer) * (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := A * Bᵥ`.
 
-:mini:`meth (Arg₁: double) - (Arg₂: array)`
-   *TBD*
 
-:mini:`meth (Arg₁: array) / (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: array) * (B: double): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := Aᵥ * B`.
 
-:mini:`meth (Arg₁: integer) / (Arg₂: array)`
-   *TBD*
 
-:mini:`meth (Arg₁: array) / (Arg₂: double)`
-   *TBD*
+:mini:`meth (A: double) * (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := A * Bᵥ`.
 
-:mini:`meth (Arg₁: double) / (Arg₂: array)`
-   *TBD*
 
-:mini:`meth (Arg₁: array) = (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: array) - (B: integer): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := Aᵥ - B`.
 
-:mini:`meth (Arg₁: integer) = (Arg₂: array)`
-   *TBD*
 
-:mini:`meth (Arg₁: array) = (Arg₂: double)`
-   *TBD*
+:mini:`meth (A: integer) - (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := A - Bᵥ`.
 
-:mini:`meth (Arg₁: double) = (Arg₂: array)`
-   *TBD*
 
-:mini:`meth (Arg₁: array) != (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: array) - (B: double): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := Aᵥ - B`.
 
-:mini:`meth (Arg₁: integer) != (Arg₂: array)`
-   *TBD*
 
-:mini:`meth (Arg₁: array) != (Arg₂: double)`
-   *TBD*
+:mini:`meth (A: double) - (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := A - Bᵥ`.
 
-:mini:`meth (Arg₁: double) != (Arg₂: array)`
-   *TBD*
 
-:mini:`meth (Arg₁: array) < (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: array) / (B: integer): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := Aᵥ / B`.
 
-:mini:`meth (Arg₁: integer) < (Arg₂: array)`
-   *TBD*
 
-:mini:`meth (Arg₁: array) < (Arg₂: double)`
-   *TBD*
+:mini:`meth (A: integer) / (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := A / Bᵥ`.
 
-:mini:`meth (Arg₁: double) < (Arg₂: array)`
-   *TBD*
 
-:mini:`meth (Arg₁: array) > (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: array) / (B: double): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := Aᵥ / B`.
 
-:mini:`meth (Arg₁: integer) > (Arg₂: array)`
-   *TBD*
 
-:mini:`meth (Arg₁: array) > (Arg₂: double)`
-   *TBD*
+:mini:`meth (A: double) / (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := A / Bᵥ`.
 
-:mini:`meth (Arg₁: double) > (Arg₂: array)`
-   *TBD*
 
-:mini:`meth (Arg₁: array) <= (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: array) = (B: integer): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
 
-:mini:`meth (Arg₁: integer) <= (Arg₂: array)`
-   *TBD*
 
-:mini:`meth (Arg₁: array) <= (Arg₂: double)`
-   *TBD*
+:mini:`meth (A: integer) = (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if A = Bᵥ then 1 else 0 end`.
 
-:mini:`meth (Arg₁: double) <= (Arg₂: array)`
-   *TBD*
 
-:mini:`meth (Arg₁: array) >= (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: array) = (B: double): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
 
-:mini:`meth (Arg₁: integer) >= (Arg₂: array)`
-   *TBD*
 
-:mini:`meth (Arg₁: array) >= (Arg₂: double)`
-   *TBD*
+:mini:`meth (A: double) = (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if A = Bᵥ then 1 else 0 end`.
 
-:mini:`meth (Arg₁: double) >= (Arg₂: array)`
-   *TBD*
+
+:mini:`meth (A: array) != (B: integer): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
+
+
+:mini:`meth (A: integer) != (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
+
+
+:mini:`meth (A: array) != (B: double): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
+
+
+:mini:`meth (A: double) != (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
+
+
+:mini:`meth (A: array) < (B: integer): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if Aᵥ < B then 1 else 0 end`.
+
+
+:mini:`meth (A: integer) < (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if A < Bᵥ then 1 else 0 end`.
+
+
+:mini:`meth (A: array) < (B: double): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if Aᵥ < B then 1 else 0 end`.
+
+
+:mini:`meth (A: double) < (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if A < Bᵥ then 1 else 0 end`.
+
+
+:mini:`meth (A: array) > (B: integer): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if Aᵥ > B then 1 else 0 end`.
+
+
+:mini:`meth (A: integer) > (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if A > Bᵥ then 1 else 0 end`.
+
+
+:mini:`meth (A: array) > (B: double): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if Aᵥ > B then 1 else 0 end`.
+
+
+:mini:`meth (A: double) > (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if A > Bᵥ then 1 else 0 end`.
+
+
+:mini:`meth (A: array) <= (B: integer): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if Aᵥ <= B then 1 else 0 end`.
+
+
+:mini:`meth (A: integer) <= (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if A <= Bᵥ then 1 else 0 end`.
+
+
+:mini:`meth (A: array) <= (B: double): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if Aᵥ <= B then 1 else 0 end`.
+
+
+:mini:`meth (A: double) <= (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if A <= Bᵥ then 1 else 0 end`.
+
+
+:mini:`meth (A: array) >= (B: integer): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if Aᵥ >= B then 1 else 0 end`.
+
+
+:mini:`meth (A: integer) >= (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if A >= Bᵥ then 1 else 0 end`.
+
+
+:mini:`meth (A: array) >= (B: double): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if Aᵥ >= B then 1 else 0 end`.
+
+
+:mini:`meth (A: double) >= (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if A >= Bᵥ then 1 else 0 end`.
+
 
 :mini:`meth :copy(Array: array): array`
    Return a new array with the same values of :mini:`Array` but not sharing the underlying data.

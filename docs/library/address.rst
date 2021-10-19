@@ -2,7 +2,7 @@ address
 =======
 
 :mini:`type address`
-   An address represents a bounded section of memory.
+   An address represents a read-only bounded section of memory.
 
 
 :mini:`meth :count(Address: address): integer`

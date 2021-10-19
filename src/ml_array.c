@@ -2383,6 +2383,11 @@ static ml_value_t *array_infix_fn(void *Data, int Count, ml_value_t **Args) {
 #define ML_ARITH_METHOD_BASE(OP) \
 \
 ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where :mini:`C/v := A/v OP B`.
+*/ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	int64_t B = ml_integer_value_fast(Args[1]); \
@@ -2419,6 +2424,11 @@ ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 } \
 \
 ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where :mini:`C/v := A OP B/v`.
+*/ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	int64_t B = ml_integer_value_fast(Args[0]); \
@@ -2455,6 +2465,11 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 } \
 \
 ML_METHOD(#OP, MLArrayT, MLDoubleT) { \
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where :mini:`C/v := A/v OP B`.
+*/ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	double B = ml_double_value_fast(Args[1]); \
@@ -2476,6 +2491,11 @@ ML_METHOD(#OP, MLArrayT, MLDoubleT) { \
 } \
 \
 ML_METHOD(#OP, MLDoubleT, MLArrayT) { \
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where :mini:`C/v := A OP B/v`.
+*/ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	double B = ml_double_value_fast(Args[0]); \
@@ -2502,6 +2522,11 @@ ML_METHOD(#OP, MLDoubleT, MLArrayT) { \
 ML_ARITH_METHOD_BASE(OP) \
 \
 ML_METHOD(#OP, MLArrayT, MLComplexT) { \
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where :mini:`C/v := A/v OP B`.
+*/ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	double B = ml_complex_value_fast(Args[1]); \
@@ -2514,6 +2539,11 @@ ML_METHOD(#OP, MLArrayT, MLComplexT) { \
 } \
 \
 ML_METHOD(#OP, MLComplexT, MLArrayT) { \
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where :mini:`C/v := A OP B/v`.
+*/ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	double B = ml_complex_value_fast(Args[0]); \
@@ -2540,6 +2570,11 @@ ML_ARITH_METHOD(/);
 #define ML_COMPARE_METHOD_BASE(BASE, BASE2, OP) \
 \
 ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where :mini:`C/v := if A/v OP B then 1 else 0 end`.
+*/ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	int64_t B = ml_integer_value_fast(Args[1]); \
@@ -2559,6 +2594,11 @@ ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 } \
 \
 ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where :mini:`C/v := if A OP B/v then 1 else 0 end`.
+*/ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	int64_t B = ml_integer_value_fast(Args[0]); \
@@ -2578,6 +2618,11 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 } \
 \
 ML_METHOD(#OP, MLArrayT, MLDoubleT) { \
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where :mini:`C/v := if A/v OP B then 1 else 0 end`.
+*/ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	double B = ml_double_value_fast(Args[1]); \
@@ -2597,6 +2642,11 @@ ML_METHOD(#OP, MLArrayT, MLDoubleT) { \
 } \
 \
 ML_METHOD(#OP, MLDoubleT, MLArrayT) { \
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where :mini:`C/v := if A OP B/v then 1 else 0 end`.
+*/ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	double B = ml_double_value_fast(Args[0]); \
@@ -2621,6 +2671,11 @@ ML_METHOD(#OP, MLDoubleT, MLArrayT) { \
 ML_COMPARE_METHOD_BASE(BASE, BASE2, OP) \
 \
 ML_METHOD(#OP, MLArrayT, MLComplexT) { \
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where :mini:`C/v := if A/v OP B then 1 else 0 end`.
+*/ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	double B = ml_complex_value_fast(Args[1]); \
@@ -2640,6 +2695,11 @@ ML_METHOD(#OP, MLArrayT, MLComplexT) { \
 } \
 \
 ML_METHOD(#OP, MLComplexT, MLArrayT) { \
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where :mini:`C/v := if A OP B/v then 1 else 0 end`.
+*/ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	double B = ml_double_value_fast(Args[0]); \

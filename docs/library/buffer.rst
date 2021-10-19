@@ -2,10 +2,12 @@ buffer
 ======
 
 :mini:`fun buffer(Length: integer): buffer`
-   *TBD*
+   Allocates a new buffer with :mini:`Length` bytes.
+
 
 :mini:`type buffer < address`
-   *TBD*
+   A buffer represents a writable bounded section of memory.
+
 
 :mini:`meth (Buffer: buffer) @ (Length: integer): buffer`
    *TBD*

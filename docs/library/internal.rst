@@ -130,10 +130,10 @@ internal
 :mini:`type zipped::state`
    *TBD*
 
-:mini:`type cartesian < sequence`
+:mini:`type grid < sequence`
    *TBD*
 
-:mini:`type cartesian::state`
+:mini:`type grid::state`
    *TBD*
 
 :mini:`type paired < sequence`

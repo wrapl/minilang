@@ -1210,14 +1210,14 @@ static void ml_partial_function_call(ml_state_t *Caller, ml_partial_function_t *
 	return ml_call(Caller, Partial->Function, CombinedCount, CombinedArgs);
 }
 
-ML_TYPE(MLPartialFunctionT, (MLFunctionT, MLSequenceT), "partial-function",
+ML_TYPE(MLFunctionPartialT, (MLFunctionT, MLSequenceT), "partial-function",
 //!function
 	.call = (void *)ml_partial_function_call
 );
 
 ml_value_t *ml_partial_function_new(ml_value_t *Function, int Count) {
 	ml_partial_function_t *Partial = xnew(ml_partial_function_t, Count, ml_value_t *);
-	Partial->Type = MLPartialFunctionT;
+	Partial->Type = MLFunctionPartialT;
 	Partial->Function = Function;
 	Partial->Count = 0;
 	Partial->Set = 0;
@@ -1231,13 +1231,13 @@ ml_value_t *ml_partial_function_set(ml_value_t *Partial0, size_t Index, ml_value
 	return Partial->Args[Index] = Value;
 }
 
-ML_METHOD("count", MLPartialFunctionT) {
+ML_METHOD("count", MLFunctionPartialT) {
 //!function
 	ml_partial_function_t *Partial = (ml_partial_function_t *)Args[0];
 	return ml_integer(Partial->Count);
 }
 
-ML_METHOD("set", MLPartialFunctionT) {
+ML_METHOD("set", MLFunctionPartialT) {
 //!function
 	ml_partial_function_t *Partial = (ml_partial_function_t *)Args[0];
 	return ml_integer(Partial->Set);
@@ -1251,7 +1251,7 @@ ML_METHOD("!!", MLFunctionT, MLListT) {
 // Returns a function equivalent to :mini:`fun(Args...) Function(List/1, List/2, ..., Args...)`.
 	ml_list_t *ArgsList = (ml_list_t *)Args[1];
 	ml_partial_function_t *Partial = xnew(ml_partial_function_t, ArgsList->Length, ml_value_t *);
-	Partial->Type = MLPartialFunctionT;
+	Partial->Type = MLFunctionPartialT;
 	Partial->Function = Args[0];
 	Partial->Count = Partial->Set = ArgsList->Length;
 	ml_value_t **Arg = Partial->Args;
@@ -1266,16 +1266,45 @@ ML_METHODV("$", MLFunctionT, MLAnyT) {
 //>partialfunction
 // Returns a function equivalent to :mini:`fun(Args...) Function(Values..., Args...)`.
 	ml_partial_function_t *Partial = xnew(ml_partial_function_t, Count - 1, ml_value_t *);
-	Partial->Type = MLPartialFunctionT;
+	Partial->Type = MLFunctionPartialT;
 	Partial->Function = Args[0];
 	Partial->Count = Partial->Set = Count - 1;
 	for (int I = 1; I < Count; ++I) Partial->Args[I - 1] = Args[I];
 	return (ml_value_t *)Partial;
 }
 
-static void ML_TYPED_FN(ml_iterate, MLPartialFunctionT, ml_state_t *Caller, ml_partial_function_t *Partial) {
+static void ML_TYPED_FN(ml_iterate, MLFunctionPartialT, ml_state_t *Caller, ml_partial_function_t *Partial) {
 	if (Partial->Set != Partial->Count) ML_ERROR("CallError", "Partial function used with missing arguments");
 	return ml_call(Caller, Partial->Function, Partial->Count, Partial->Args);
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Function;
+} ml_argless_function_t;
+
+static void ml_argless_function_call(ml_state_t *Caller, ml_argless_function_t *Argless, int Count, ml_value_t **Args) {
+	return ml_call(Caller, Argless->Function, 0, NULL);
+}
+
+ML_TYPE(MLFunctionArglessT, (MLFunctionT, MLSequenceT), "argless-function",
+//!function
+	.call = (void *)ml_argless_function_call
+);
+
+ML_METHOD("/", MLFunctionT) {
+//!function
+//<Function
+//>arglessfunction
+// Returns a function equivalent to :mini:`fun(Args...) Function()`.
+	ml_argless_function_t *Argless = new(ml_argless_function_t);
+	Argless->Type = MLFunctionArglessT;
+	Argless->Function = Args[0];
+	return (ml_value_t *)Argless;
+}
+
+static void ML_TYPED_FN(ml_iterate, MLFunctionArglessT, ml_state_t *Caller, ml_argless_function_t *Argless) {
+	return ml_call(Caller, Argless->Function, 0, NULL);
 }
 
 // Tuples //
@@ -1329,6 +1358,7 @@ static void ml_tuple_assign_run(ml_tuple_assign_t *State, ml_value_t *Result) {
 }
 
 static void ml_tuple_assign(ml_state_t *Caller, ml_tuple_t *Ref, ml_value_t *Values) {
+	if (!Ref->Size) ML_RETURN(Values);
 	ml_tuple_assign_t *State = new(ml_tuple_assign_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
@@ -1338,6 +1368,39 @@ static void ml_tuple_assign(ml_state_t *Caller, ml_tuple_t *Ref, ml_value_t *Val
 	State->Index = 1;
 	ml_value_t *Value = ml_deref(ml_unpack(Values, 1));
 	return ml_assign(State, Ref->Values[0], Value);
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_tuple_t *Functions;
+	ml_value_t *Result;
+	int Index, Count;
+	ml_value_t *Args[];
+} ml_tuple_call_t;
+
+static void ml_tuple_call_run(ml_tuple_call_t *State, ml_value_t *Result) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Result)) ML_RETURN(Result);
+	ml_tuple_t *Functions = State->Functions;
+	int Index = State->Index;
+	ml_tuple_set(State->Result, Index, Result);
+	if (Index == Functions->Size) ML_RETURN(State->Result);
+	State->Index = Index + 1;
+	return ml_call(State, Functions->Values[Index], State->Count, State->Args);
+}
+
+static void ml_tuple_call(ml_state_t *Caller, ml_tuple_t *Functions, int Count, ml_value_t **Args) {
+	if (!Functions->Size) ML_RETURN(ml_tuple(0));
+	ml_tuple_call_t *State = xnew(ml_tuple_call_t, Count, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)ml_tuple_call_run;
+	State->Functions = Functions;
+	State->Result = ml_tuple(Functions->Size);
+	State->Index = 1;
+	State->Count = Count;
+	memcpy(State->Args, Args, Count * sizeof(ml_value_t *));
+	return ml_call(State, Functions->Values[0], Count, Args);
 }
 
 ML_FUNCTION(MLTuple) {
@@ -1363,6 +1426,7 @@ ML_TYPE(MLTupleT, (MLSequenceT), "tuple",
 	.hash = (void *)ml_tuple_hash,
 	.deref = (void *)ml_tuple_deref,
 	.assign = (void *)ml_tuple_assign,
+	.call = (void *)ml_tuple_call,
 	.Constructor = (ml_value_t *)MLTuple
 );
 
