@@ -453,6 +453,13 @@ ml_value_t *ml_json_decode(ml_json_decoder_cache_t *Cache, json_t *Json) {
 	}
 }
 
+static ml_value_t *ml_json_decode_global(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+	json_t *Value = json_array_get(Json, 0);
+	if (!json_is_string(Value)) return ml_error("TypeError", "Global requires string name");
+	const char *Name = json_string_value(Value);
+	return stringmap_search(Cache->Globals, Name) ?: ml_error("NameError", "Unknown global %s", Name);
+}
+
 static ml_value_t *ml_json_decode_blank(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
 	return MLBlank;
 }
@@ -729,6 +736,12 @@ ML_TYPE(JSDecoderT, (), "js-decoder",
 	.Constructor = (ml_value_t *)JSDecoder
 );
 
+ML_METHOD("add", JSDecoderT, MLStringT, MLAnyT) {
+	ml_json_decoder_t *Decoder = (ml_json_decoder_t *)Args[0];
+	stringmap_insert(Decoder->Globals, ml_string_value(Args[1]), Args[2]);
+	return Args[0];
+}
+
 ML_METHOD("decode", JSDecoderT, MLStringT) {
 	ml_json_decoder_t *Decoder = (ml_json_decoder_t *)Args[0];
 	ml_json_decoder_cache_t Cache[1] = {0,};
@@ -742,6 +755,7 @@ ML_METHOD("decode", JSDecoderT, MLStringT) {
 }
 
 void ml_jsencode_init(stringmap_t *Globals) {
+	stringmap_insert(Decoders, "^", ml_json_decode_global);
 	stringmap_insert(Decoders, "blank", ml_json_decode_blank);
 	stringmap_insert(Decoders, "_", ml_json_decode_blank);
 	stringmap_insert(Decoders, "some", ml_json_decode_some);

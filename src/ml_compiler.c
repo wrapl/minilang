@@ -107,7 +107,7 @@ static __attribute__ ((noinline)) void *mlc_frame_alloc(mlc_function_t *Function
 	if (!Function->Limit || (void *)Frame < Function->Limit) {
 		size_t BlockSize = FrameSize + sizeof(void *);
 		if (BlockSize < FRAME_BLOCK_SIZE) BlockSize = FRAME_BLOCK_SIZE;
-		void *Limit = GC_malloc(BlockSize);
+		void *Limit = bnew(BlockSize);
 		size_t LinkFrameSize = sizeof(mlc_frame_t) + sizeof(void *);
 		mlc_frame_t *LinkFrame = (mlc_frame_t *)((Limit + BlockSize) - LinkFrameSize);
 		LinkFrame->Next = Function->Frame;
@@ -5531,7 +5531,7 @@ static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
 		memcpy(*Result + Offset, Buffer, 128);
 		return Total;
 	} else {
-		*Result = GC_MALLOC_ATOMIC(Offset + Length + 1);
+		*Result = snew(Offset + Length + 1);
 		strcpy(*Result + Offset, Buffer);
 		return Offset + Length;
 	}

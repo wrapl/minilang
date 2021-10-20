@@ -109,7 +109,7 @@ ml_array_t *ml_array(ml_array_format_t Format, int Degree, ...) {
 		DataSize *= Size;
 	}
 	va_end(Sizes);
-	Array->Base.Value = GC_MALLOC_ATOMIC(DataSize);
+	Array->Base.Value = snew(DataSize);
 	Array->Base.Length = DataSize;
 	return Array;
 }
@@ -225,7 +225,7 @@ static void ml_array_typed_new_fnx(ml_state_t *Caller, void *Data, int Count, ml
 			Array->Dimensions[I].Stride = DataSize;
 			DataSize *= Array->Dimensions[I].Size;
 		}
-		Array->Base.Value = GC_MALLOC_ATOMIC(DataSize);
+		Array->Base.Value = snew(DataSize);
 		Array->Base.Length = DataSize;
 		if (Count == 1) {
 			if (Format == ML_ARRAY_FORMAT_ANY) {
@@ -597,7 +597,7 @@ ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **Indices) 
 		} else if (ml_is(Index, MLListT)) {
 			int Size = TargetDimension->Size = ml_list_length(Index);
 			if (!Size) return ml_error("IndexError", "Empty dimension");
-			int *Indices = TargetDimension->Indices = (int *)GC_MALLOC_ATOMIC(Size * sizeof(int));
+			int *Indices = TargetDimension->Indices = (int *)snew(Size * sizeof(int));
 			int *IndexPtr = Indices;
 			ML_LIST_FOREACH(Index, Iter) {
 				int IndexValue = ml_integer_value(Iter->Value);
@@ -616,7 +616,7 @@ ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **Indices) 
 			if (IndexArray->Degree != 1) return ml_error("IndexError", "Index array must have degree 1");
 			int Size = TargetDimension->Size = IndexArray->Dimensions[0].Size;
 			if (!Size) return ml_error("IndexError", "Empty dimension");
-			int *Indices = TargetDimension->Indices = (int *)GC_MALLOC_ATOMIC(Size * sizeof(int));
+			int *Indices = TargetDimension->Indices = (int *)snew(Size * sizeof(int));
 			int *IndexPtr = Indices;
 			for (int I = 0; I < Size; ++I) {
 				int IndexValue = ml_array_get_int32_t(IndexArray, I);
@@ -1222,7 +1222,7 @@ static ml_value_t *compare_array_fn(void *Data, int Count, ml_value_t **Args) {
 		int Size = Target->Dimensions[I].Size = Left->Dimensions[I].Size;
 		DataSize *= Size;
 	}
-	Target->Base.Value = GC_MALLOC_ATOMIC(DataSize);
+	Target->Base.Value = snew(DataSize);
 	int Op = ((char *)Data - (char *)0) * MAX_FORMATS * MAX_FORMATS + Left->Format * MAX_FORMATS + Right->Format;
 	if (!CompareRowFns[Op]) return ml_error("ArrayError", "Unsupported array format pair (%s, %s)", Left->Base.Type->Name, Right->Base.Type->Name);
 	if (Degree) {
@@ -1823,7 +1823,7 @@ static char *array_flatten(ml_array_t *Source) {
 		Size *= Source->Dimensions[I].Size;
 	}
 	FlatDegree = Source->Degree - FlatDegree;
-	char *Data = GC_malloc_atomic(Size);
+	char *Data = snew(Size);
 	array_flatten_to(Data, MLArraySizes[Source->Format], Source->Degree, FlatDegree, Source->Dimensions, Source->Base.Value);
 	return Data;
 }
@@ -1840,7 +1840,7 @@ static int array_copy(ml_array_t *Target, ml_array_t *Source) {
 	if (Target->Format == Source->Format) {
 		Target->Base.Value = array_flatten(Source);
 	} else {
-		Target->Base.Value = GC_MALLOC_ATOMIC(DataSize);
+		Target->Base.Value = snew(DataSize);
 		int Op = Target->Format * MAX_FORMATS + Source->Format;
 		update_array(Op, Target->Dimensions, Target->Base.Value, Degree, Source->Dimensions, Source->Base.Value);
 	}
@@ -2085,7 +2085,7 @@ ML_METHOD("sum", MLArrayT, MLIntegerT) {
 		int Size = Target->Dimensions[I].Size = Source->Dimensions[I].Size;
 		DataSize *= Size;
 	}
-	Target->Base.Value = GC_MALLOC_ATOMIC(DataSize);
+	Target->Base.Value = snew(DataSize);
 	fill_sums(Target->Degree, Target->Dimensions, Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value);
 	return (ml_value_t *)Target;
 }
@@ -2198,7 +2198,7 @@ ML_METHOD("prod", MLArrayT, MLIntegerT) {
 		int Size = Target->Dimensions[I].Size = Source->Dimensions[I].Size;
 		DataSize *= Size;
 	}
-	Target->Base.Value = GC_MALLOC_ATOMIC(DataSize);
+	Target->Base.Value = snew(DataSize);
 	fill_prods(Target->Degree, Target->Dimensions, Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value);
 	return (ml_value_t *)Target;
 }
@@ -2586,7 +2586,7 @@ ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 		int Size = C->Dimensions[I].Size = A->Dimensions[I].Size; \
 		DataSize *= Size; \
 	} \
-	C->Base.Value = GC_MALLOC_ATOMIC(DataSize); \
+	C->Base.Value = snew(DataSize); \
 	int Op = BASE * MAX_FORMATS * MAX_FORMATS + A->Format * MAX_FORMATS + ML_ARRAY_FORMAT_I64; \
 	if (!CompareRowFns[Op]) return ml_error("ArrayError", "Unsupported array format pair (%s, integer)", A->Base.Type->Name); \
 	compare_prefix(Op, C->Dimensions, C->Base.Value, Degree - 1, A->Dimensions, A->Base.Value, 0, NULL, (char *)&B); \
@@ -2610,7 +2610,7 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 		int Size = C->Dimensions[I].Size = A->Dimensions[I].Size; \
 		DataSize *= Size; \
 	} \
-	C->Base.Value = GC_MALLOC_ATOMIC(DataSize); \
+	C->Base.Value = snew(DataSize); \
 	int Op = BASE2 * MAX_FORMATS * MAX_FORMATS + A->Format * MAX_FORMATS + ML_ARRAY_FORMAT_I64; \
 	if (!CompareRowFns[Op]) return ml_error("ArrayError", "Unsupported array format pair (integer, %s)", A->Base.Type->Name); \
 	compare_prefix(Op, C->Dimensions, C->Base.Value, Degree - 1, A->Dimensions, A->Base.Value, 0, NULL, (char *)&B); \
@@ -2634,7 +2634,7 @@ ML_METHOD(#OP, MLArrayT, MLDoubleT) { \
 		int Size = C->Dimensions[I].Size = A->Dimensions[I].Size; \
 		DataSize *= Size; \
 	} \
-	C->Base.Value = GC_MALLOC_ATOMIC(DataSize); \
+	C->Base.Value = snew(DataSize); \
 	int Op = BASE * MAX_FORMATS * MAX_FORMATS + A->Format * MAX_FORMATS + ML_ARRAY_FORMAT_F64; \
 	if (!CompareRowFns[Op]) return ml_error("ArrayError", "Unsupported array format pair (%s, integer)", A->Base.Type->Name); \
 	compare_prefix(Op, C->Dimensions, C->Base.Value, Degree - 1, A->Dimensions, A->Base.Value, 0, NULL, (char *)&B); \
@@ -2658,7 +2658,7 @@ ML_METHOD(#OP, MLDoubleT, MLArrayT) { \
 		int Size = C->Dimensions[I].Size = A->Dimensions[I].Size; \
 		DataSize *= Size; \
 	} \
-	C->Base.Value = GC_MALLOC_ATOMIC(DataSize); \
+	C->Base.Value = snew(DataSize); \
 	int Op = BASE2 * MAX_FORMATS * MAX_FORMATS + A->Format * MAX_FORMATS + ML_ARRAY_FORMAT_F64; \
 	if (!CompareRowFns[Op]) return ml_error("ArrayError", "Unsupported array format pair (%s, integer)", A->Base.Type->Name); \
 	compare_prefix(Op, C->Dimensions, C->Base.Value, Degree - 1, A->Dimensions, A->Base.Value, 0, NULL, (char *)&B); \
@@ -2687,7 +2687,7 @@ ML_METHOD(#OP, MLArrayT, MLComplexT) { \
 		int Size = C->Dimensions[I].Size = A->Dimensions[I].Size; \
 		DataSize *= Size; \
 	} \
-	C->Base.Value = GC_MALLOC_ATOMIC(DataSize); \
+	C->Base.Value = snew(DataSize); \
 	int Op = BASE * MAX_FORMATS * MAX_FORMATS + A->Format * MAX_FORMATS + ML_ARRAY_FORMAT_C64; \
 	if (!CompareRowFns[Op]) return ml_error("ArrayError", "Unsupported array format pair (%s, integer)", A->Base.Type->Name); \
 	compare_prefix(Op, C->Dimensions, C->Base.Value, Degree - 1, A->Dimensions, A->Base.Value, 0, NULL, (char *)&B); \
@@ -2711,7 +2711,7 @@ ML_METHOD(#OP, MLComplexT, MLArrayT) { \
 		int Size = C->Dimensions[I].Size = A->Dimensions[I].Size; \
 		DataSize *= Size; \
 	} \
-	C->Base.Value = GC_MALLOC_ATOMIC(DataSize); \
+	C->Base.Value = snew(DataSize); \
 	int Op = BASE2 * MAX_FORMATS * MAX_FORMATS + A->Format * MAX_FORMATS + ML_ARRAY_FORMAT_C64; \
 	if (!CompareRowFns[Op]) return ml_error("ArrayError", "Unsupported array format pair (%s, integer)", A->Base.Type->Name); \
 	compare_prefix(Op, C->Dimensions, C->Base.Value, Degree - 1, A->Dimensions, A->Base.Value, 0, NULL, (char *)&B); \
@@ -2894,7 +2894,7 @@ static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args) {
 		Dimension->Stride = Size;
 		Size *= Dimension->Size;
 	}
-	char *Address = Array->Base.Value = GC_MALLOC_ATOMIC(Size);
+	char *Address = Array->Base.Value = snew(Size);
 	ml_value_t *Error = ml_array_of_fill(Array->Format, Array->Dimensions, Address, Array->Degree, Source);
 	return Error ?: (ml_value_t *)Array;
 }
@@ -2933,7 +2933,7 @@ ML_METHOD("^", MLListT) {
 		Dimension->Stride = Size;
 		Size *= Dimension->Size;
 	}
-	char *Address = Array->Base.Value = GC_MALLOC_ATOMIC(Size);
+	char *Address = Array->Base.Value = snew(Size);
 	ml_value_t *Error = ml_array_of_fill(Array->Format, Array->Dimensions + 1, Address, Array->Degree - 1, Source);
 	for (int I = 0; I < Array->Degree - 1; ++I) Array->Dimensions[I] = Array->Dimensions[I + 1];
 	Array->Dimensions[Array->Degree - 1].Size = 1;
@@ -3690,7 +3690,7 @@ ML_METHOD(".", MLArrayT, MLArrayT) {
 			DataSize *= Size;
 		}
 	}
-	C->Base.Value = GC_MALLOC_ATOMIC(DataSize);
+	C->Base.Value = snew(DataSize);
 	C->Base.Length = DataSize;
 	if (UseProd) {
 		ml_array_mul_fill(
@@ -3730,7 +3730,7 @@ static ml_value_t *ml_array_pairwise_infix(void *Data, int Count, ml_value_t **A
 		int Size = C->Dimensions[I].Size = DimA[I].Size;
 		DataSize *= Size;
 	}
-	C->Base.Value = GC_MALLOC_ATOMIC(DataSize);
+	C->Base.Value = snew(DataSize);
 	C->Base.Length = DataSize;
 	typeof(ml_array_mul_fill) *Fill = (typeof(ml_array_mul_fill) *)Data;
 	Fill(

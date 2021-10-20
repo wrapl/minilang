@@ -1312,7 +1312,7 @@ static void ML_TYPED_FN(ml_iterate, MLFunctionArglessT, ml_state_t *Caller, ml_a
 
 static long ml_tuple_hash(ml_tuple_t *Tuple, ml_hash_chain_t *Chain) {
 	long Hash = 739;
-	for (int I = 0; I < Tuple->Size; ++I) Hash = ((Hash << 3) + Hash) + ml_hash(Tuple->Values[I]);
+	for (int I = 0; I < Tuple->Size; ++I) Hash = ((Hash << 3) + Hash) + ml_hash_chain(Tuple->Values[I], Chain);
 	return Hash;
 }
 

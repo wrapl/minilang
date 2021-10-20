@@ -316,7 +316,7 @@ extern ml_value_t *SymbolMethod;
 		if (Next->Opcode == MLI_RETURN && !Frame->Continue) { \
 			ML_CACHED_FRAME_LOCK(); \
 			if (!MLCachedFrame) { \
-				MLCachedFrame = GC_MALLOC(ML_FRAME_REUSE_SIZE); \
+				MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE); \
 			} \
 			Frame->Next = MLCachedFrame->Next; \
 			MLCachedFrame->Next = Frame; \
@@ -358,7 +358,7 @@ extern ml_value_t *SymbolMethod;
 		if (Next->Opcode == MLI_RETURN && !Frame->Continue) { \
 			ML_CACHED_FRAME_LOCK(); \
 			if (!MLCachedFrame) { \
-				MLCachedFrame = GC_MALLOC(ML_FRAME_REUSE_SIZE); \
+				MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE); \
 			} \
 			Frame->Next = MLCachedFrame->Next; \
 			MLCachedFrame->Next = Frame; \
@@ -825,7 +825,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			// Ensure at least one other cached frame is available to prevent this frame being used immediately which may result in arguments being overwritten.
 			ML_CACHED_FRAME_LOCK();
 			if (!MLCachedFrame) {
-				MLCachedFrame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
+				MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE);
 			}
 			Frame->Next = MLCachedFrame->Next;
 			MLCachedFrame->Next = Frame;
@@ -854,7 +854,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			// Ensure at least one other cached frame is available to prevent this frame being used immediately which may result in arguments being overwritten.
 			ML_CACHED_FRAME_LOCK();
 			if (!MLCachedFrame) {
-				MLCachedFrame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
+				MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE);
 			}
 			Frame->Next = MLCachedFrame->Next;
 			MLCachedFrame->Next = Frame;
@@ -912,7 +912,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			// Ensure at least one other cached frame is available to prevent this frame being used immediately which may result in arguments being overwritten.
 			ML_CACHED_FRAME_LOCK();
 			if (!MLCachedFrame) {
-				MLCachedFrame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
+				MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE);
 			}
 			Frame->Next = MLCachedFrame->Next;
 			MLCachedFrame->Next = Frame;
@@ -1227,11 +1227,11 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 			ML_CACHED_FRAME_UNLOCK();
 		} else {
 			ML_CACHED_FRAME_UNLOCK();
-			Frame = GC_MALLOC(ML_FRAME_REUSE_SIZE);
+			Frame = bnew(ML_FRAME_REUSE_SIZE);
 		}
 		Frame->Continue = 0;
 	} else {
-		Frame = GC_MALLOC(Size);
+		Frame = bnew(Size);
 	}
 	Frame->Base.Type = DEBUG_TYPE(Continuation);
 	Frame->Base.Caller = Caller;

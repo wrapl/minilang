@@ -719,13 +719,13 @@ static size_t *mini_debugger_breakpoints(ml_debugger_t *Base, const char *Source
 	breakpoints_t **Slot = (breakpoints_t **)stringmap_slot(Debugger->Modules, Source);
 	size_t Count = (Max + SIZE_BITS) / SIZE_BITS;
 	if (!Slot[0]) {
-		breakpoints_t *New = (breakpoints_t *)GC_MALLOC_ATOMIC(sizeof(breakpoints_t) + Count * sizeof(size_t));
+		breakpoints_t *New = (breakpoints_t *)snew(sizeof(breakpoints_t) + Count * sizeof(size_t));
 		memset(New->Bits, 0, Count * sizeof(size_t));
 		New->Count = Count;
 		Slot[0] = New;
 	} else if (Count > Slot[0]->Count) {
 		breakpoints_t *Old = Slot[0];
-		breakpoints_t *New = (breakpoints_t *)GC_MALLOC_ATOMIC(sizeof(breakpoints_t) + Count * sizeof(size_t));
+		breakpoints_t *New = (breakpoints_t *)snew(sizeof(breakpoints_t) + Count * sizeof(size_t));
 		memset(New->Bits, 0, Count * sizeof(size_t));
 		memcpy(New->Bits, Old->Bits, Old->Count * sizeof(size_t));
 		New->Count = Count;

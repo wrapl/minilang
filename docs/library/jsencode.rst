@@ -25,6 +25,9 @@ jsencode
 :mini:`type JSDecoderT`
    *TBD*
 
+:mini:`meth :add(Arg₁: JSDecoderT, Arg₂: string, Arg₃: any)`
+   *TBD*
+
 :mini:`meth :decode(Arg₁: JSDecoderT, Arg₂: string)`
    *TBD*
 

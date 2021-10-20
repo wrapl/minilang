@@ -62,7 +62,7 @@ static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
 		memcpy(*Result + Offset, Buffer, 128);
 		return Total;
 	} else {
-		*Result = GC_MALLOC_ATOMIC(Offset + Length + 1);
+		*Result = snew(Offset + Length + 1);
 		strcpy(*Result + Offset, Buffer);
 		return Offset + Length;
 	}

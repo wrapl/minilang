@@ -182,7 +182,7 @@ ML_FUNCTION(MLBuffer) {
 	ml_address_t *Buffer = new(ml_address_t);
 	Buffer->Type = MLBufferT;
 	Buffer->Length = Size;
-	Buffer->Value = GC_MALLOC_ATOMIC(Size);
+	Buffer->Value = snew(Size);
 	return (ml_value_t *)Buffer;
 }
 
@@ -384,7 +384,7 @@ ML_METHOD(MLStringT, MLIntegerT, MLIntegerT) {
 	int Base = ml_integer_value_fast(Args[1]);
 	if (Base < 2 || Base > 36) return ml_error("RangeError", "Invalid base");
 	int Max = 65;
-	char *P = GC_MALLOC_ATOMIC(Max + 1) + Max, *Q = P;
+	char *P = snew(Max + 1) + Max, *Q = P;
 	*P = '\0';
 	int64_t Neg = Value < 0 ? Value : -Value;
 	do {
@@ -1152,7 +1152,7 @@ ML_METHOD("+", MLStringT, MLStringT) {
 	int Length1 = ml_string_length(Args[0]);
 	int Length2 = ml_string_length(Args[1]);
 	int Length = Length1 + Length2;
-	char *Chars = GC_MALLOC_ATOMIC(Length + 1);
+	char *Chars = snew(Length + 1);
 	memcpy(Chars, ml_string_value(Args[0]), Length1);
 	memcpy(Chars + Length1, ml_string_value(Args[1]), Length2);
 	Chars[Length] = 0;

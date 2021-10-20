@@ -34,7 +34,7 @@ ml_cbor_t ml_to_cbor(ml_value_t *Value) {
 	size_t Size = 0;
 	ml_value_t *Error = ml_cbor_write(Value, &Size, (void *)ml_cbor_size_fn);
 	if (Error) return (ml_cbor_t){{.Error = Error}, 0};
-	unsigned char *Bytes = GC_MALLOC_ATOMIC(Size), *End = Bytes;
+	unsigned char *Bytes = (unsigned char *)snew(Size), *End = Bytes;
 	ml_cbor_write(Value, &End, (void *)ml_cbor_bytes_fn);
 	return (ml_cbor_t){{.Data = Bytes}, Size};
 }
@@ -165,7 +165,7 @@ void ml_cbor_read_bytes_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, in
 		Reader->Collection = Collection->Prev;
 		Reader->Tags = Collection->Tags;
 		int Total = Collection->Remaining + Size;
-		char *Buffer = GC_MALLOC_ATOMIC(Total);
+		char *Buffer = snew(Total);
 		Buffer += Collection->Remaining;
 		memcpy(Buffer, Bytes, Size);
 		for (block_t *B = Collection->Blocks; B; B = B->Prev) {
@@ -204,7 +204,7 @@ void ml_cbor_read_string_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, i
 		Reader->Collection = Collection->Prev;
 		Reader->Tags = Collection->Tags;
 		int Total = Collection->Remaining + Size;
-		char *Buffer = GC_MALLOC_ATOMIC(Total);
+		char *Buffer = snew(Total);
 		Buffer += Collection->Remaining;
 		memcpy(Buffer, Bytes, Size);
 		for (block_t *B = Collection->Blocks; B; B = B->Prev) {
