@@ -4,7 +4,7 @@ bytecode
 :mini:`type variable`
    *TBD*
 
-:mini:`fun mlclosure(Arg₁: closure)`
+:mini:`fun closure(Arg₁: closure)`
    *TBD*
 
 :mini:`type closure < function, sequence`

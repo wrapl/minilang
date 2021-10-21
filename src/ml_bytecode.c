@@ -1514,6 +1514,7 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Closure), ml_state_t *Frame, ml_c
 }
 
 ML_FUNCTION(MLClosure) {
+//@closure
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLClosureT);
 	ml_closure_t *Original = (ml_closure_t *)Args[0];

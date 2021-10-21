@@ -111,7 +111,7 @@ ML_FUNCTION(MLContextKey) {
 	return (ml_value_t *)Key;
 }
 
-ML_TYPE(MLContextKeyT, (MLCFunctionT), "context",
+ML_TYPE(MLContextKeyT, (MLFunctionT), "context",
 //!context
 //@context
 // A context key can be used to create context specific values.

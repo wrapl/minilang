@@ -120,7 +120,7 @@ ML_METHOD("exports", MLTypeT) {
 
 #ifdef ML_GENERICS
 
-ML_TYPE(MLGenericTypeT, (MLTypeT), "generic-type");
+ML_TYPE(MLTypeGenericT, (MLTypeT), "generic-type");
 //!internal
 
 struct ml_generic_rule_t {
@@ -161,7 +161,7 @@ static void ml_generic_parents(ml_value_t *Parents, int NumArgs, ml_type_t **Arg
 	}
 }
 
-ML_METHOD("parents", MLGenericTypeT) {
+ML_METHOD("parents", MLTypeGenericT) {
 //!internal
 	ml_generic_type_t *Type = (ml_generic_type_t *)Args[0];
 	ml_value_t *Parents = ml_list();
@@ -286,7 +286,7 @@ static void *__attribute__ ((noinline)) ml_typed_fn_get_parent(ml_type_t *Type, 
 
 inline void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn) {
 #ifdef ML_GENERICS
-	while (Type->Type == MLGenericTypeT) Type = ml_generic_type_args(Type)[0];
+	while (Type->Type == MLTypeGenericT) Type = ml_generic_type_args(Type)[0];
 #endif
 	ML_TYPED_FN_LOCK();
 	inthash_result_t Result = inthash_search2_inline(Type->TypedFns, (uintptr_t)TypedFn);
@@ -396,7 +396,7 @@ ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
 		ml_stringbuffer_add(Buffer, "]", 1);
 		Name = ml_stringbuffer_get(Buffer);
 	}
-	Type->Base.Type = MLGenericTypeT;
+	Type->Base.Type = MLTypeGenericT;
 	Type->Base.Name = Name;
 	Type->Base.hash = Base->hash;
 	Type->Base.call = Base->call;
@@ -489,9 +489,9 @@ int ml_is_subtype(ml_type_t *T, ml_type_t *U) {
 	if (T == U) return 1;
 	if (U == MLAnyT) return 1;
 #ifdef ML_GENERICS
-	if (T->Type == MLGenericTypeT) {
+	if (T->Type == MLTypeGenericT) {
 		ml_generic_type_t *GenericT = (ml_generic_type_t *)T;
-		if (U->Type == MLGenericTypeT) {
+		if (U->Type == MLTypeGenericT) {
 			ml_generic_type_t *GenericU = (ml_generic_type_t *)U;
 			return ml_is_generic_subtype(GenericT->NumArgs, GenericT->Args, GenericU->NumArgs, GenericU->Args);
 		} else {
@@ -499,7 +499,7 @@ int ml_is_subtype(ml_type_t *T, ml_type_t *U) {
 			return ml_is_generic_subtype(GenericT->NumArgs, GenericT->Args, 1, &U);
 		}
 	} else {
-		if (U->Type == MLGenericTypeT) {
+		if (U->Type == MLTypeGenericT) {
 			ml_generic_type_t *GenericU = (ml_generic_type_t *)U;
 			if (ml_is_generic_subtype(1, &T, GenericU->NumArgs, GenericU->Args)) return 1;
 		} else {
@@ -571,9 +571,9 @@ ml_type_t *ml_type_max(ml_type_t *T, ml_type_t *U) {
 		}
 	}
 #ifdef ML_GENERICS
-	if (T->Type == MLGenericTypeT) {
+	if (T->Type == MLTypeGenericT) {
 		ml_generic_type_t *GenericT = (ml_generic_type_t *)T;
-		if (U->Type == MLGenericTypeT) {
+		if (U->Type == MLTypeGenericT) {
 			ml_generic_type_t *GenericU = (ml_generic_type_t *)U;
 			Max = ml_generic_type_max(Max, GenericT->NumArgs, GenericT->Args, GenericU->NumArgs, GenericU->Args);
 		} else {
@@ -581,7 +581,7 @@ ml_type_t *ml_type_max(ml_type_t *T, ml_type_t *U) {
 			Max = ml_generic_type_max(Max, GenericT->NumArgs, GenericT->Args, 1, &U);
 		}
 	} else {
-		if (U->Type == MLGenericTypeT) {
+		if (U->Type == MLTypeGenericT) {
 			ml_generic_type_t *GenericU = (ml_generic_type_t *)U;
 			Max = ml_generic_type_max(Max, 1, &T, GenericU->NumArgs, GenericU->Args);
 		} else {
@@ -1614,7 +1614,7 @@ static long ml_boolean_hash(ml_boolean_t *Boolean, ml_hash_chain_t *Chain) {
 	return (long)Boolean;
 }
 
-ML_TYPE(MLBooleanT, (MLFunctionT), "boolean",
+ML_TYPE(MLBooleanT, (), "boolean",
 //!boolean
 	.hash = (void *)ml_boolean_hash
 );

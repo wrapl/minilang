@@ -192,7 +192,7 @@ static void ml_named_init_state_run(ml_named_init_state_t *State, ml_value_t *Re
 	if (Old == State->Old) {
 		Result->Type = State->New;
 #ifdef ML_GENERICS
-	} else if (Old->Type == MLGenericTypeT && ml_generic_type_args(Old)[0] == State->Old) {
+	} else if (Old->Type == MLTypeGenericT && ml_generic_type_args(Old)[0] == State->Old) {
 		Result->Type = State->New;
 #endif
 	} else {
@@ -417,6 +417,7 @@ static void ml_property_call(ml_state_t *Caller, ml_property_t *Property, int Co
 extern ml_cfunctionx_t MLProperty[];
 
 ML_TYPE(MLPropertyT, (), "property",
+// A value with an associated setter function.
 	.deref = (void *)ml_property_deref,
 	.assign = (void *)ml_property_assign,
 	.call = (void *)ml_property_call,
@@ -425,6 +426,10 @@ ML_TYPE(MLPropertyT, (), "property",
 
 ML_FUNCTIONX(MLProperty) {
 //@property
+//<Value
+//<set
+//>property
+// Returns a new property which dereferences to :mini:`Value`. Assigning to the property will call :mini:`set(NewValue)`.
 	ML_CHECKX_ARG_COUNT(2);
 	ml_property_t *Property = new(ml_property_t);
 	Property->Type = MLPropertyT;

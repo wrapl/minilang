@@ -1,7 +1,7 @@
 boolean
 =======
 
-:mini:`type boolean < function`
+:mini:`type boolean`
    *TBD*
 
 :mini:`meth boolean(String: string): boolean | error`

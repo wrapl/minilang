@@ -21,10 +21,12 @@ object
 
 
 :mini:`type property`
-   *TBD*
+   A value with an associated setter function.
 
-:mini:`fun property(Arg₁: any, Arg₂: any)`
-   *TBD*
+
+:mini:`fun property(Value: any, set: any): property`
+   Returns a new property which dereferences to :mini:`Value`. Assigning to the property will call :mini:`set(NewValue)`.
+
 
 :mini:`meth string(Arg₁: enum::value)`
    *TBD*

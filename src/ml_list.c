@@ -190,7 +190,7 @@ void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
 	if ((Node->Next = List->Head)) {
 		List->Head->Prev = Node;
 #ifdef ML_GENERICS
-		if (List->Type->Type == MLGenericTypeT) {
+		if (List->Type->Type == MLTypeGenericT) {
 			ml_type_t *Type = ml_generic_type_args(List->Type)[1];
 			if (Type != ml_typeof(Value)) {
 				ml_type_t *Type2 = ml_type_max(Type, ml_typeof(Value));
@@ -224,7 +224,7 @@ void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 	if ((Node->Prev = List->Tail)) {
 		List->Tail->Next = Node;
 #ifdef ML_GENERICS
-		if (List->Type->Type == MLGenericTypeT) {
+		if (List->Type->Type == MLTypeGenericT) {
 			ml_type_t *Type = ml_generic_type_args(List->Type)[1];
 			if (Type != ml_typeof(Value)) {
 				ml_type_t *Type2 = ml_type_max(Type, ml_typeof(Value));

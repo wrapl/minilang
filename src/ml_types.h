@@ -115,7 +115,7 @@ struct ml_generic_type_t {
 	ml_type_t *Args[];
 };
 
-extern ml_type_t MLGenericTypeT[];
+extern ml_type_t MLTypeGenericT[];
 
 ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]);
 
@@ -204,7 +204,7 @@ static inline ml_type_t *ml_typeof_deref(ml_value_t *Value) {
 static inline int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
 	const ml_type_t *Type = ml_typeof(Value);
 #ifdef ML_GENERICS
-	if (Type->Type == MLGenericTypeT) Type = ml_generic_type_args(Type)[0];
+	if (Type->Type == MLTypeGenericT) Type = ml_generic_type_args(Type)[0];
 #endif
 	if (Type == Expected) return 1;
 	return (uintptr_t)inthash_search(Type->Parents, (uintptr_t)Expected);

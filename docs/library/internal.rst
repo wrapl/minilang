@@ -1,10 +1,10 @@
 internal
 ========
 
-:mini:`type generic::type < type`
+:mini:`type type::generic < type`
    *TBD*
 
-:mini:`meth :parents(Arg₁: generic::type)`
+:mini:`meth :parents(Arg₁: type::generic)`
    *TBD*
 
 :mini:`type nil < function, sequence`
