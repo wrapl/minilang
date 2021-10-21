@@ -1,6 +1,9 @@
 #include "ml_uuid.h"
 #include "ml_macros.h"
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "uuid"
+
 static long ml_uuid_hash(ml_uuid_t *UUID, ml_hash_chain_t *Chain) {
 	return *(long *)UUID->Value;
 }

@@ -8,6 +8,10 @@ CFLAGS := ["-pipe"]
 LDFLAGS := []
 PREBUILDS := []
 
+if defined("CFLAGS") then
+	CFLAGS:grow(defined("CFLAGS") / " ")
+end
+
 pkgconfig := fun(Args) do
 	expr('pkg-config {Args}') => fun() shell('pkg-config', Args):trim
 end

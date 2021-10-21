@@ -4,6 +4,11 @@
 #include <sqlite3.h>
 #include <string.h>
 
+#pragma GCC optimize ("no-tree-loop-distribute-patterns")
+
+#undef ML_CATEGORY
+#define ML_CATEGORY "sqlite"
+
 typedef struct {
 	ml_type_t *Type;
 	sqlite3 *Handle;

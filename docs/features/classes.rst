@@ -1,6 +1,8 @@
 Classes
 =======
 
+User defined classes can be created using the :mini:`class()` constructor.
+
 :mini:`class(Arg₁, Arg₂, ...)`
    Creates a new class with additional properties based on the types of :mini:`Arg₁, Arg₂, ...`:
 
@@ -34,3 +36,37 @@ This cannot be overridden, if *new* is passed as a named argument to :mini:`clas
 * The value of :mini:`c::of` is used as the constructor and should be a callable value (function, method, etc). This value is called when the class is called as a function, i.e. :mini:`c(...)` is equivalent to :mini:`c::of(...)`. 
 
   If *of* is not set, a default constructor is set which simply calls :mini:`c::new`.
+
+Methods
+-------
+
+Like all types in *Minilang*, classes can be used to define :doc:`/features/methods`.
+
+Examples
+--------
+
+.. code-block:: mini
+
+   class: account(:Balance,
+      init is fun(Account, Balance) do
+         Account:Balance := Balance
+      end
+   )
+   
+   meth :deposit(Account: account, Amount: real) do
+      Account:Balance := old + Amount
+   end
+   
+   meth :withdraw(Account: account, Amount: real) do
+      Account:Balance := old - Amount
+   end
+   
+   let Account := account(100)
+   Account:deposit(200)
+   Account:withdraw(150)
+   print('Balance = {Account:Balance}\n')
+
+.. code-block:: console
+
+   Balance = 150
+

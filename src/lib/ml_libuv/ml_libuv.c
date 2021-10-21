@@ -3,7 +3,7 @@
 uv_loop_t *Loop;
 static uv_idle_t Idle[1];
 
-static unsigned int MLUVCounter = 100;
+static uint64_t MLUVCounter = 100;
 
 static void ml_uv_resume(uv_idle_t *Idle) {
 	ml_queued_state_t QueuedState = ml_scheduler_queue_next();

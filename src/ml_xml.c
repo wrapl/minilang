@@ -3,6 +3,9 @@
 #include <string.h>
 #include <expat.h>
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "xml"
+
 #define ML_XML_STACK_SIZE 10
 
 typedef struct {

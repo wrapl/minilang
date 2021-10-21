@@ -183,7 +183,7 @@ static ml_value_t *LibraryPath;
 
 static void add_library_path(void) {
 	int ExecutablePathLength = wai_getExecutablePath(NULL, 0, NULL);
-	char *ExecutablePath = GC_MALLOC_ATOMIC(ExecutablePathLength + 1);
+	char *ExecutablePath = snew(ExecutablePathLength + 1);
 	wai_getExecutablePath(ExecutablePath, ExecutablePathLength + 1, &ExecutablePathLength);
 	ExecutablePath[ExecutablePathLength] = 0;
 	for (int I = ExecutablePathLength - 1; I > 0; --I) {
@@ -194,7 +194,7 @@ static void add_library_path(void) {
 		}
 	}
 	int LibPathLength = ExecutablePathLength + strlen("/lib/minilang");
-	char *LibPath = GC_MALLOC_ATOMIC(LibPathLength + 1);
+	char *LibPath = snew(LibPathLength + 1);
 	memcpy(LibPath, ExecutablePath, ExecutablePathLength);
 	strcpy(LibPath + ExecutablePathLength, "/lib/minilang");
 	//printf("Looking for library path at %s\n", LibPath);
@@ -254,7 +254,8 @@ ML_FUNCTION(Unload) {
 
 #ifdef ML_SCHEDULER
 
-static unsigned int SliceSize = 0, Counter;
+static unsigned int SliceSize = 0;
+static uint64_t Counter;
 
 static void simple_queue_run() {
 	ml_queued_state_t QueuedState;

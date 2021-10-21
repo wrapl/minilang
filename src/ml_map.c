@@ -4,6 +4,9 @@
 #include <string.h>
 #include "ml_sequence.h"
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "map"
+
 ML_TYPE(MLMapT, (MLSequenceT), "map",
 // A map of key-value pairs.
 // Keys can be of any type supporting hashing and comparison.
@@ -14,8 +17,9 @@ static ml_value_t *ml_map_node_deref(ml_map_node_t *Node) {
 	return Node->Value;
 }
 
-static ml_value_t *ml_map_node_assign(ml_map_node_t *Node, ml_value_t *Value) {
-	return (Node->Value = Value);
+static void ml_map_node_assign(ml_state_t *Caller, ml_map_node_t *Node, ml_value_t *Value) {
+	Node->Value = Value;
+	ML_RETURN(Value);
 }
 
 static void ml_map_node_call(ml_state_t *Caller, ml_map_node_t *Node, int Count, ml_value_t **Args) {
@@ -72,11 +76,6 @@ static void map_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Values[0]);
 	State->Base.run = (void *)map_iter_key;
 	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
-}
-
-ML_METHOD("count", MLMapT) {
-//!internal
-	return ml_integer(ml_map_size(Args[0]));
 }
 
 ML_METHODVX(MLMapT, MLSequenceT) {
@@ -235,7 +234,7 @@ ml_value_t *ml_map_insert(ml_value_t *Map0, ml_value_t *Key, ml_value_t *Value) 
 	if (Map->Size == 1 && Map->Type == MLMapT) {
 		ml_type_t *Types[] = {MLMapT, ml_typeof(Key), ml_typeof(Value)};
 		Map->Type = ml_generic_type(3, Types);
-	} else if (Map->Type->Type == MLGenericTypeT) {
+	} else if (Map->Type->Type == MLTypeGenericT) {
 		ml_type_t *KeyType = ml_generic_type_args(Map->Type)[1];
 		ml_type_t *ValueType = ml_generic_type_args(Map->Type)[2];
 		if (KeyType != ml_typeof(Key) || ValueType != ml_typeof(Value)) {
@@ -374,10 +373,11 @@ static ml_map_node_t *ml_map_insert_node(ml_map_t *Map, ml_map_node_t **Slot, lo
 	}
 }
 
-static ml_value_t *ml_map_index_assign(ml_map_node_t *Index, ml_value_t *Value) {
+static void ml_map_index_assign(ml_state_t *Caller, ml_map_node_t *Index, ml_value_t *Value) {
 	ml_map_t *Map = (ml_map_t *)Index->Value;
 	ml_map_node_t *Node = ml_map_insert_node(Map, &Map->Root, ml_typeof(Index->Key)->hash(Index->Key, NULL), Index);
-	return Node->Value = Value;
+	Node->Value = Value;
+	ML_RETURN(Value);
 }
 
 static void ml_map_index_call(ml_state_t *Caller, ml_map_node_t *Index, int Count, ml_value_t **Args) {

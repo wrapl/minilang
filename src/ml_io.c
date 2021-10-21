@@ -5,6 +5,9 @@
 #include <errno.h>
 #include <string.h>
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "io"
+
 ML_TYPE(MLStreamT, (MLAnyT), "stream");
 ML_METHOD_DECL(MLIORead, "io::read");
 ML_METHOD_DECL(MLIOWrite, "io::write");

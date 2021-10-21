@@ -119,16 +119,20 @@ void console_log(console_t *Console, ml_value_t *Value) {
 
 ML_TYPE(ConsoleT, (), "console");
 
+static __attribute__ ((noinline)) void console_new_line(console_t *Console) {
+	GtkTextIter End[1];
+	GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
+	gtk_text_buffer_get_end_iter(LogBuffer, End);
+	gtk_text_buffer_insert(LogBuffer, End, "\n", 1);
+}
+
 static void ml_console_repl_run(console_t *Console, ml_value_t *Result) {
 	if (Result == MLEndOfInput) {
 		gtk_widget_grab_focus(Console->InputView);
 		return;
 	}
 	console_log(Console, Result);
-	GtkTextIter End[1];
-	GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
-	gtk_text_buffer_get_end_iter(LogBuffer, End);
-	gtk_text_buffer_insert(LogBuffer, End, "\n", 1);
+	console_new_line(Console);
 	if (ml_is_error(Result)) {
 		gtk_widget_grab_focus(Console->InputView);
 		return;
@@ -563,7 +567,7 @@ static gboolean console_update_status(console_t *Console) {
 
 #ifdef ML_SCHEDULER
 
-static unsigned int Counter = 1000;
+static uint64_t Counter = 1000;
 
 static gboolean queue_run(void *Data) {
 	ml_queued_state_t QueuedState = ml_scheduler_queue_next();

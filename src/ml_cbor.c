@@ -7,8 +7,10 @@
 #include <gc/gc.h>
 #include <string.h>
 #include "ml_object.h"
-
 #include "minicbor/minicbor.h"
+
+#undef ML_CATEGORY
+#define ML_CATEGORY "cbor"
 
 ml_value_t *ml_cbor_write(ml_value_t *Value, void *Data, ml_cbor_write_fn WriteFn) {
 	typeof(ml_cbor_write) *function = ml_typed_fn_get(ml_typeof(Value), ml_cbor_write);
@@ -32,7 +34,7 @@ ml_cbor_t ml_to_cbor(ml_value_t *Value) {
 	size_t Size = 0;
 	ml_value_t *Error = ml_cbor_write(Value, &Size, (void *)ml_cbor_size_fn);
 	if (Error) return (ml_cbor_t){{.Error = Error}, 0};
-	unsigned char *Bytes = GC_MALLOC_ATOMIC(Size), *End = Bytes;
+	unsigned char *Bytes = (unsigned char *)snew(Size), *End = Bytes;
 	ml_cbor_write(Value, &End, (void *)ml_cbor_bytes_fn);
 	return (ml_cbor_t){{.Data = Bytes}, Size};
 }
@@ -163,7 +165,7 @@ void ml_cbor_read_bytes_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, in
 		Reader->Collection = Collection->Prev;
 		Reader->Tags = Collection->Tags;
 		int Total = Collection->Remaining + Size;
-		char *Buffer = GC_MALLOC_ATOMIC(Total);
+		char *Buffer = snew(Total);
 		Buffer += Collection->Remaining;
 		memcpy(Buffer, Bytes, Size);
 		for (block_t *B = Collection->Blocks; B; B = B->Prev) {
@@ -202,7 +204,7 @@ void ml_cbor_read_string_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, i
 		Reader->Collection = Collection->Prev;
 		Reader->Tags = Collection->Tags;
 		int Total = Collection->Remaining + Size;
-		char *Buffer = GC_MALLOC_ATOMIC(Total);
+		char *Buffer = snew(Total);
 		Buffer += Collection->Remaining;
 		memcpy(Buffer, Bytes, Size);
 		for (block_t *B = Collection->Blocks; B; B = B->Prev) {
@@ -465,6 +467,36 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLObjectT, ml_value_t *Arg, void *
 	return NULL;
 }
 
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLIntegerRangeT, ml_integer_range_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+	ml_cbor_write_tag(Data, WriteFn, 27);
+	if (Arg->Step != 1) {
+		ml_cbor_write_array(Data, WriteFn, 4);
+		ml_cbor_write_string(Data, WriteFn, 5);
+		WriteFn(Data, (unsigned const char *)"range", 5);
+		ml_cbor_write_integer(Data, WriteFn, Arg->Start);
+		ml_cbor_write_integer(Data, WriteFn, Arg->Limit);
+		ml_cbor_write_integer(Data, WriteFn, Arg->Step);
+	} else {
+		ml_cbor_write_array(Data, WriteFn, 3);
+		ml_cbor_write_string(Data, WriteFn, 5);
+		WriteFn(Data, (unsigned const char *)"range", 5);
+		ml_cbor_write_integer(Data, WriteFn, Arg->Start);
+		ml_cbor_write_integer(Data, WriteFn, Arg->Limit);
+	}
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLRealRangeT, ml_real_range_t *Arg, void *Data, ml_cbor_write_fn WriteFn) {
+	ml_cbor_write_tag(Data, WriteFn, 27);
+	ml_cbor_write_array(Data, WriteFn, 4);
+	ml_cbor_write_string(Data, WriteFn, 5);
+	WriteFn(Data, (unsigned const char *)"range", 5);
+	ml_cbor_write_float8(Data, WriteFn, Arg->Start);
+	ml_cbor_write_float8(Data, WriteFn, Arg->Limit);
+	ml_cbor_write_float8(Data, WriteFn, Arg->Step);
+	return NULL;
+}
+
 #ifdef ML_TABLES
 #include "ml_table.h"
 
@@ -503,9 +535,12 @@ ml_value_t *ml_cbor_read_object(void *Data, int Count, ml_value_t **Args) {
 	return ml_simple_call(Constructor, Count2, Args2);
 }
 
+extern ml_value_t *RangeMethod;
+
 void ml_cbor_init(stringmap_t *Globals) {
 	if (!CborDefaultTags) CborDefaultTags = ml_map();
 	if (!CborObjects) CborObjects = ml_map();
+	ml_map_insert(CborObjects, ml_cstring("range"), RangeMethod);
 	ml_cbor_default_tag(35, NULL, ml_cbor_read_regex);
 	ml_cbor_default_tag(39, NULL, ml_cbor_read_method);
 	ml_cbor_default_tag(27, NULL, ml_cbor_read_object);

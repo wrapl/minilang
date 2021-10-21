@@ -35,7 +35,7 @@ static void node_append(ml_value_t *List, ml_value_t *Node) {
 			if (ml_is(Tail, MLStringT)) {
 				int Length1 = ml_string_length(Tail);
 				int Length2 = ml_string_length(Node);
-				char *Concat = GC_malloc_atomic(Length1 + Length2 + 1);
+				char *Concat = snew(Length1 + Length2 + 1);
 				memcpy(Concat, ml_string_value(Tail), Length1);
 				memcpy(Concat + Length1, ml_string_value(Node), Length2);
 				Concat[Length1 + Length2] = 0;
@@ -206,7 +206,7 @@ static ml_value_t *parse_node(xe_stream_t *Stream) {
 	int TagLength = Next - Stream->Next;
 	if (Stream->Next[0] == '$') {
 		--TagLength;
-		char *Name = GC_malloc_atomic(TagLength + 1);
+		char *Name = snew(TagLength + 1);
 		memcpy(Name, Stream->Next + 1, TagLength);
 		Name[TagLength] = 0;
 		SKIP_WHITESPACE;
@@ -568,7 +568,7 @@ static const char *string_read(xe_stream_t *Stream) {
 	if (!Next) return 0;
 	while (End[0] >= ' ') ++End;
 	int Length = (End - Next) + 1;
-	char *Line = GC_malloc_atomic(Length + 1);
+	char *Line = snew(Length + 1);
 	memcpy(Line, Next, Length);
 	Line[Length] = 0;
 	if (End[0]) {

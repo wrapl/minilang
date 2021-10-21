@@ -19,14 +19,14 @@ tuple
    Indexing starts at :mini:`1`. Negative indices count from the end, with :mini:`-1` returning the last element.
 
 
-:mini:`type tupleiter`
+:mini:`type tuple::iter`
    *TBD*
 
 :mini:`meth string(Tuple: tuple): string`
    Returns a string representation of :mini:`Tuple`.
 
 
-:mini:`meth :append(Arg₁: stringbuffer, Arg₂: tuple)`
+:mini:`meth :append(Arg₁: string::buffer, Arg₂: tuple)`
    *TBD*
 
 :mini:`meth (Tuple₁: tuple) <> (Tuple₂: tuple): integer`

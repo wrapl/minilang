@@ -3,6 +3,7 @@
 
 #include "ml_types.h"
 #include "ml_runtime.h"
+#include "ml_opcodes.h"
 
 #ifdef	__cplusplus
 extern "C" {
@@ -12,73 +13,6 @@ typedef struct ml_closure_t ml_closure_t;
 typedef struct ml_closure_info_t ml_closure_info_t;
 
 extern ml_type_t MLClosureT[];
-
-typedef enum {
-	MLI_LINK,
-	MLI_RETURN,
-	MLI_SUSPEND,
-	MLI_RESUME,
-	MLI_NIL,
-	MLI_NIL_PUSH,
-	MLI_SOME,
-	MLI_AND,
-	MLI_OR,
-	MLI_NOT,
-	MLI_PUSH,
-	MLI_WITH,
-	MLI_WITH_VAR,
-	MLI_WITHX,
-	MLI_POP,
-	MLI_ENTER,
-	MLI_EXIT,
-	MLI_GOTO,
-	MLI_TRY,
-	MLI_CATCH_TYPE,
-	MLI_CATCH,
-	MLI_RETRY,
-	MLI_LOAD,
-	MLI_LOAD_PUSH,
-	MLI_VAR,
-	MLI_VAR_TYPE,
-	MLI_VARX,
-	MLI_LET,
-	MLI_LETI,
-	MLI_LETX,
-	MLI_REF,
-	MLI_REFI,
-	MLI_REFX,
-	MLI_FOR,
-	MLI_ITER,
-	MLI_NEXT,
-	MLI_VALUE,
-	MLI_KEY,
-	MLI_CALL,
-	MLI_CONST_CALL,
-	MLI_ASSIGN,
-	MLI_LOCAL,
-	MLI_LOCAL_PUSH,
-	MLI_UPVALUE,
-	MLI_LOCALX,
-	MLI_TUPLE_NEW,
-	MLI_UNPACK,
-	MLI_LIST_NEW,
-	MLI_LIST_APPEND,
-	MLI_MAP_NEW,
-	MLI_MAP_INSERT,
-	MLI_CLOSURE,
-	MLI_CLOSURE_TYPED,
-	MLI_PARAM_TYPE,
-	MLI_PARTIAL_NEW,
-	MLI_PARTIAL_SET,
-	MLI_STRING_NEW,
-	MLI_STRING_ADD,
-	MLI_STRING_ADDS,
-	MLI_STRING_END,
-	MLI_RESOLVE,
-	MLI_IF_DEBUG,
-	MLI_ASSIGN_LOCAL,
-	MLI_SWITCH
-} ml_opcode_t;
 
 typedef union ml_inst_t ml_inst_t;
 
@@ -94,13 +28,13 @@ union ml_inst_t {
 	};
 	ml_inst_t *Inst;
 	ml_inst_t **Insts;
-	int Index;
 	int Count;
 	ml_value_t *Value;
 	ml_closure_info_t *ClosureInfo;
 	ml_decl_t *Decls;
 	const char *Chars;
 	const char **Ptrs;
+	void *Data;
 };
 
 #define SHA256_BLOCK_SIZE 32
@@ -144,31 +78,6 @@ struct ml_closure_t {
 static inline stringmap_t *ml_closure_params(ml_value_t *Closure) {
 	return ((ml_closure_t *)Closure)->Info->Params;
 }
-
-extern const char *MLInstNames[];
-
-typedef enum {
-	MLIT_NONE,
-	MLIT_INST,
-	MLIT_INST_TYPES,
-	MLIT_DECL,
-	MLIT_INDEX,
-	MLIT_INDEX_DECL,
-	MLIT_INDEX_COUNT,
-	MLIT_INDEX_CHARS,
-	MLIT_COUNT,
-	MLIT_COUNT_DECL,
-	MLIT_COUNT_COUNT,
-	MLIT_COUNT_COUNT_DECL,
-	MLIT_COUNT_VALUE,
-	MLIT_COUNT_CHARS,
-	MLIT_VALUE,
-	MLIT_VALUE_VALUE,
-	MLIT_CLOSURE,
-	MLIT_SWITCH
-} ml_inst_type_t;
-
-extern const ml_inst_type_t MLInstTypes[];
 
 typedef struct ml_frame_t ml_frame_t;
 

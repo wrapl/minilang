@@ -6,7 +6,6 @@
 #include <inttypes.h>
 #include <math.h>
 #include <float.h>
-#include <printf.h>
 #include <gc/gc_typed.h>
 
 #include "ml_sequence.h"
@@ -21,8 +20,12 @@
 #undef I
 #endif
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "string"
+
 ML_TYPE(MLAddressT, (), "address");
 //!address
+// An address represents a read-only bounded section of memory.
 
 ml_value_t *ml_address(const char *Value, int Length) {
 	ml_address_t *Address = new(ml_address_t);
@@ -33,7 +36,10 @@ ml_value_t *ml_address(const char *Value, int Length) {
 }
 
 ML_METHOD("count", MLAddressT) {
-//!internal
+//!address
+//<Address
+//>integer
+// Returns the number bytes visible at :mini:`Address`.
 	return ml_integer(ml_address_length(Args[0]));
 }
 
@@ -42,6 +48,7 @@ ML_METHOD("@", MLAddressT, MLIntegerT) {
 //<Address
 //<Length
 //>address
+// Returns the same address as :mini:`Address`, limited to :mini:`Length` bytes.
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	long Length = ml_integer_value_fast(Args[1]);
 	if (Length > Address->Length) return ml_error("ValueError", "Size larger than buffer");
@@ -58,6 +65,7 @@ ML_METHOD("+", MLAddressT, MLIntegerT) {
 //<Address
 //<Offset
 //>address
+// Returns the address at offset :mini:`Offset` from :mini:`Address`.
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	long Offset = ml_integer_value_fast(Args[1]);
 	if (Offset > Address->Length) return ml_error("ValueError", "Offset larger than buffer");
@@ -73,6 +81,7 @@ ML_METHOD("-", MLAddressT, MLAddressT) {
 //<Address/1
 //<Address/2
 //>integer
+// Returns the offset from :mini:`Address/2` to :mini:`Address/1`, provided :mini:`Address/2` is visible to :mini:`Address/1`.
 	ml_address_t *Address1 = (ml_address_t *)Args[0];
 	ml_address_t *Address2 = (ml_address_t *)Args[1];
 	int64_t Offset = Address1->Value - Address2->Value;
@@ -165,6 +174,7 @@ ML_FUNCTION(MLBuffer) {
 //@buffer
 //<Length
 //>buffer
+// Allocates a new buffer with :mini:`Length` bytes.
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	long Size = ml_integer_value_fast(Args[0]);
@@ -172,12 +182,13 @@ ML_FUNCTION(MLBuffer) {
 	ml_address_t *Buffer = new(ml_address_t);
 	Buffer->Type = MLBufferT;
 	Buffer->Length = Size;
-	Buffer->Value = GC_MALLOC_ATOMIC(Size);
+	Buffer->Value = snew(Size);
 	return (ml_value_t *)Buffer;
 }
 
 ML_TYPE(MLBufferT, (MLAddressT), "buffer",
 //!buffer
+// A buffer represents a writable bounded section of memory.
 	.Constructor = (ml_value_t *)MLBuffer
 );
 
@@ -373,7 +384,7 @@ ML_METHOD(MLStringT, MLIntegerT, MLIntegerT) {
 	int Base = ml_integer_value_fast(Args[1]);
 	if (Base < 2 || Base > 36) return ml_error("RangeError", "Invalid base");
 	int Max = 65;
-	char *P = GC_MALLOC_ATOMIC(Max + 1) + Max, *Q = P;
+	char *P = snew(Max + 1) + Max, *Q = P;
 	*P = '\0';
 	int64_t Neg = Value < 0 ? Value : -Value;
 	do {
@@ -403,6 +414,20 @@ ML_METHOD(MLStringT, MLIntegerT, MLStringT) {
 		return ml_error("FormatError", "Invalid format string");
 	}
 	return ml_string(String, Length);
+}
+
+ML_METHOD(MLStringT, MLIntegerRangeT) {
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_stringbuffer_addf(Buffer, "%ld .. %ld by %ld", Range->Start, Range->Limit, Range->Step);
+	return ml_stringbuffer_value(Buffer);
+}
+
+ML_METHOD(MLStringT, MLRealRangeT) {
+	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_stringbuffer_addf(Buffer, "%g .. %g by %g", Range->Start, Range->Limit, Range->Step);
+	return ml_stringbuffer_value(Buffer);
 }
 
 ML_METHOD("ord", MLStringT) {
@@ -925,7 +950,7 @@ ml_value_t *ml_stringbuffer() {
 }
 
 ML_FUNCTION(MLStringBuffer) {
-//@stringbuffer
+//@string::buffer
 	return ml_stringbuffer();
 }
 
@@ -1127,7 +1152,7 @@ ML_METHOD("+", MLStringT, MLStringT) {
 	int Length1 = ml_string_length(Args[0]);
 	int Length2 = ml_string_length(Args[1]);
 	int Length = Length1 + Length2;
-	char *Chars = GC_MALLOC_ATOMIC(Length + 1);
+	char *Chars = snew(Length + 1);
 	memcpy(Chars, ml_string_value(Args[0]), Length1);
 	memcpy(Chars + Length1, ml_string_value(Args[1]), Length2);
 	Chars[Length] = 0;
@@ -2181,6 +2206,7 @@ ML_METHOD("append", MLStringBufferT, MLRegexT) {
 void ml_string_init() {
 	GC_word StringBufferLayout[] = {1};
 	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
+	stringmap_insert(MLStringT->Exports, "buffer", MLStringBufferT);
 	regcomp(IntFormat, "^%[-+ #'0]*[.0-9]*[dioxX]$", REG_NOSUB);
 	regcomp(LongFormat, "^%[-+ #'0]*[.0-9]*l[dioxX]$", REG_NOSUB);
 	regcomp(RealFormat, "^%[-+ #'0]*[.0-9]*[aefgAEG]$", REG_NOSUB);

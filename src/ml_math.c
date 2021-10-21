@@ -8,6 +8,9 @@
 #undef I
 #endif
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "math"
+
 #define MATH_REAL(NAME, CNAME) \
 ML_METHOD_DECL(NAME ## Method, NULL); \
 \
@@ -42,7 +45,12 @@ ML_METHOD(NAME ## Method, MLRealT) { \
 //>real
 // Returns :mini:`CNAME(Arg/1)`.
 */\
-	return ml_real(CNAME(ml_real_value(Args[0]))); \
+	complex double Result = c ## CNAME(ml_real_value(Args[0])); \
+	if (fabs(cimag(Result)) <= DBL_EPSILON) { \
+		return ml_real(creal(Result)); \
+	} else { \
+		return ml_complex(Result); \
+	} \
 } \
 \
 ML_METHOD(NAME ## Method, MLComplexT) { \
@@ -152,7 +160,6 @@ ML_METHOD("!", MLIntegerT) {
 ML_METHOD("!", MLIntegerT, MLIntegerT) {
 	int N = ml_integer_value(Args[0]);
 	int K = ml_integer_value(Args[1]);
-	if (K > 20) return ml_error("RangeError", "Factorials over 20 are not supported yet");
 	int64_t C = 1;
 	if (K > N - K) K = N - K;
 	for (int I = 0; I < K; ++I) {
@@ -187,7 +194,13 @@ ML_METHOD(SqrtMethod, MLIntegerT) {
 //>integer|real
 // Returns the square root of :mini:`Arg/1`.
 	int64_t N = ml_integer_value(Args[0]);
-	if (N < 0) return ml_real(-NAN);
+	if (N < 0) {
+#ifdef ML_COMPLEX
+		return ml_complex(csqrt(N));
+#else
+		return ml_real(-NAN);
+#endif
+	}
 	if (N <= 1) return Args[0];
 	int64_t X = N >> 1;
 	for (;;) {

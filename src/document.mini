@@ -30,6 +30,9 @@ end
 fun type_name(Type) do
 	Type or ret "any"
 	if let Match := Type % r"^ML(.*)T$" then
+		if let Match2 := Match[2] % r"([A-Z][a-z]+)([A-Z][a-z]+)" then
+			ret '{Match2[2]:lower}::{Match2[3]:lower}'
+		end
 		ret Match[2]:lower
 	else
 		ret Type
@@ -46,7 +49,7 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 	print('Description: {Description}\n\n')>:
 
 	let File := Categories[Category, write_category]
-	let Title := stringbuffer()
+	let Title := string::buffer()
 	
 	var Terminator := ""
 	var Skip := 1
@@ -120,7 +123,7 @@ fun write_function(Category, Kind, Name, Params, Return, Description, Location) 
 	print('Description: {Description}\n')>:
 	
 	let File := Categories[Category, write_category]
-	let Title := stringbuffer()
+	let Title := string::buffer()
 	
 	var Terminator := ""
 	Title:write(':mini:`fun ', Name, "(")
@@ -161,7 +164,7 @@ fun write_constructor(Category, Kind, Name, Params, Return, Description, Locatio
 	print('Description: {Description}\n')>:
 	
 	let File := Categories[Category, write_category]
-	let Title := stringbuffer()
+	let Title := string::buffer()
 	
 	var Terminator := ""
 	Title:write(':mini:`constructor ', Name, "(")
@@ -199,7 +202,7 @@ fun write_type(Category, Name, Parents, Description, Location) do
 	print('Description: {Description}\n')>:
 	
 	let File := Categories[Category, write_category]
-	let Title := stringbuffer()
+	let Title := string::buffer()
 	
 	Title:write(':mini:`type {type_name(Name)}')
 	if Parents:length > 0 then
@@ -223,7 +226,7 @@ end
 def Subscripts := {
 	"/0" is "₀", "/1" is "₁", "/2" is "₂", "/3" is "₃", "/4" is "₄",
 	"/5" is "₅", "/6" is "₆", "/7" is "₇", "/8" is "₈", "/9" is "₉",
-	"/i" is "ᵢ", "/j" is "ⱼ", "/m" is "ₘ", "/n" is "ₙ"
+	"/i" is "ᵢ", "/j" is "ⱼ", "/m" is "ₘ", "/n" is "ₙ", "/v" is "ᵥ"
 } 
 
 class: define(:Params, :Items)
@@ -264,6 +267,8 @@ fun process(FileName) do
 		do
 			if Line % r"^/[/*]!" then
 				DefaultCategory := Line[4, 0]:trim
+			elseif Line % r"^#define ML_CATEGORY" then
+				DefaultCategory := Line[22, -2]
 			elseif Line % r"^ML_METHOD_DECL" then
 			elseif Line % r"^ML_METHOD_ANON" then
 			elseif Line % r"^ML_METHOD" then

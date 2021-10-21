@@ -296,8 +296,6 @@ struct mlc_ident_expr_t {
 	const char *Ident;
 };
 
-const char *ml_ident(const char *Name, size_t Length);
-
 typedef struct ml_macro_t ml_macro_t;
 
 struct ml_macro_t {
@@ -317,8 +315,6 @@ struct mlc_frame_t {
 	int AllowErrors, Line;
 	void *Data[];
 };
-
-void *mlc_frame_alloc(mlc_function_t *Function, size_t Size, mlc_frame_fn run);
 
 void mlc_expr_error(mlc_function_t *Function, mlc_expr_t *Expr, ml_value_t *Error);
 

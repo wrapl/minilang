@@ -54,6 +54,7 @@ obj/ml_compiler.o: obj/ml_compiler_init.c
 common_objects = \
 	obj/ml_compiler.o \
 	obj/ml_runtime.o \
+	obj/ml_opcodes.o \
 	obj/ml_bytecode.o \
 	obj/ml_types.o \
 	obj/ml_string.o \
@@ -128,6 +129,7 @@ install_h = \
 	$(install_include)/ml_object.h \
 	$(install_include)/ml_compiler.h \
 	$(install_include)/ml_runtime.h \
+	$(install_include)/ml_opcodes.h \
 	$(install_include)/ml_bytecode.h \
 	$(install_include)/sha256.h \
 	$(install_include)/stringmap.h

@@ -4,7 +4,8 @@
 #include <girffi.h>
 #include <stdio.h>
 
-//!gir
+#undef ML_CATEGORY
+#define ML_CATEGORY "gir"
 
 typedef struct {
 	ml_type_t *Type;
@@ -208,10 +209,10 @@ static ml_value_t *field_ref_ ## LNAME ## _deref(field_ref_t *Ref) { \
 	return GETTER; \
 } \
 \
-static ml_value_t *field_ref_ ## LNAME ## _assign(field_ref_t *Ref, ml_value_t *Value) { \
+static void field_ref_ ## LNAME ## _assign(ml_state_t *Caller, field_ref_t *Ref, ml_value_t *Value) { \
 	GTYPE *Address = (GTYPE *)Ref->Address; \
 	*Address = SETTER; \
-	return Value; \
+	ML_RETURN(Value); \
 } \
 \
 ML_TYPE(FieldRef ## UNAME ## T, (), "field-ref-" #LNAME, \
@@ -350,7 +351,7 @@ ML_METHOD("|", EnumValueT, EnumValueT) {
 	size_t LengthA = ml_string_length(A->Name);
 	size_t LengthB = ml_string_length(B->Name);
 	size_t Length = LengthA + LengthB + 1;
-	char *Name = GC_MALLOC_ATOMIC(Length + 1);
+	char *Name = snew(Length + 1);
 	memcpy(Name, ml_string_value(A->Name), LengthA);
 	Name[LengthA] = '|';
 	memcpy(Name + LengthA + 1, ml_string_value(B->Name), LengthB);
@@ -535,7 +536,7 @@ static void callback_invoke(ffi_cif *Cif, void *Return, void **Params, ml_gir_ca
 		}
 		GITypeInfo *ElementInfo = g_type_info_get_param_type(ReturnInfo, 0);
 		size_t ElementSize = array_element_size(ElementInfo);
-		char *Array = GC_MALLOC_ATOMIC((ml_list_length(Result) + 1) * ElementSize);
+		char *Array = snew((ml_list_length(Result) + 1) * ElementSize);
 		// TODO: fill array
 		*(void **)Result = Array;
 		break;
@@ -827,7 +828,7 @@ static ml_value_t *argument_to_ml(GIArgument *Argument, GITypeInfo *TypeInfo, GI
 static void *list_to_array(ml_value_t *List, GITypeInfo *TypeInfo) {
 	size_t ElementSize = array_element_size(TypeInfo);
 	size_t Length = ml_list_length(List);
-	char *Array = GC_MALLOC_ATOMIC((Length + 1) * ElementSize);
+	char *Array = snew((Length + 1) * ElementSize);
 	memset(Array, 0, (Length + 1) * ElementSize);
 	switch (g_type_info_get_tag(TypeInfo)) {
 	case GI_TYPE_TAG_BOOLEAN: {
@@ -2076,12 +2077,12 @@ static ml_value_t *object_property_deref(object_property_t *Property) {
 	return _value_to_ml(Value, NULL);
 }
 
-static ml_value_t *object_property_assign(object_property_t *Property, ml_value_t *Value0) {
+static void object_property_assign(ml_state_t *Caller, object_property_t *Property, ml_value_t *Value0) {
 	GValue Value[1];
 	memset(Value, 0, sizeof(GValue));
 	_ml_to_value(Value0, Value);
 	g_object_set_property(Property->Object, Property->Name, Value);
-	return Value0;
+	ML_RETURN(Value0);
 }
 
 ML_TYPE(ObjectPropertyT, (), "gir-object-property",

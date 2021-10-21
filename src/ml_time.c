@@ -8,6 +8,9 @@
 #include "ml_cbor.h"
 #endif
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "time"
+
 typedef struct {
 	const ml_type_t *Type;
 	struct timespec Value[1];

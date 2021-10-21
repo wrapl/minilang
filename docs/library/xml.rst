@@ -13,7 +13,7 @@ xml
 :mini:`meth :children(Xml: xml): list`
    *TBD*
 
-:mini:`meth :append(Arg₁: stringbuffer, Arg₂: xml)`
+:mini:`meth :append(Arg₁: string::buffer, Arg₂: xml)`
    *TBD*
 
 :mini:`meth string(Arg₁: xml)`
@@ -31,12 +31,12 @@ xml
 :mini:`type xml::decoder`
    *TBD*
 
-:mini:`meth :decode(Decoder: xmldecoder, Xml: address): Decoder`
+:mini:`meth :decode(Decoder: xml::decoder, Xml: address): Decoder`
    *TBD*
 
-:mini:`meth :decode(Decoder: xmldecoder, Xml: address, Size: integer): Decoder`
+:mini:`meth :decode(Decoder: xml::decoder, Xml: address, Size: integer): Decoder`
    *TBD*
 
-:mini:`meth :finish(Decoder: xmldecoder): Decoder`
+:mini:`meth :finish(Decoder: xml::decoder): Decoder`
    *TBD*
 

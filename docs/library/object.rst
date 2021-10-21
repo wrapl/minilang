@@ -21,15 +21,17 @@ object
 
 
 :mini:`type property`
+   A value with an associated setter function.
+
+
+:mini:`fun property(Value: any, set: any): property`
+   Returns a new property which dereferences to :mini:`Value`. Assigning to the property will call :mini:`set(NewValue)`.
+
+
+:mini:`meth string(Arg₁: enum::value)`
    *TBD*
 
-:mini:`fun property(Arg₁: function, Arg₂: function)`
-   *TBD*
-
-:mini:`meth string(Arg₁: enumvalue)`
-   *TBD*
-
-:mini:`meth :append(Arg₁: stringbuffer, Arg₂: enumvalue)`
+:mini:`meth :append(Arg₁: string::buffer, Arg₂: enum::value)`
    *TBD*
 
 :mini:`fun enum(Values...: string): enum`
@@ -41,16 +43,16 @@ object
 :mini:`meth :count(Enum: enum): integer`
    *TBD*
 
-:mini:`type enumrangeiter`
+:mini:`type enum::range`
    *TBD*
 
-:mini:`type enumrange < sequence`
+:mini:`type enum::range < sequence`
    *TBD*
 
-:mini:`meth (Arg₁: enumvalue) .. (Arg₂: enumvalue)`
+:mini:`meth (Arg₁: enum::value) .. (Arg₂: enum::value)`
    *TBD*
 
-:mini:`meth string(Arg₁: flagsvalue)`
+:mini:`meth string(Arg₁: flags::value)`
    *TBD*
 
 :mini:`fun flags(Values...: string): flags`
@@ -59,21 +61,21 @@ object
 :mini:`type flags < type`
    *TBD*
 
-:mini:`meth (Arg₁: flagsvalue) + (Arg₂: flagsvalue)`
+:mini:`meth (Arg₁: flags::value) + (Arg₂: flags::value)`
    *TBD*
 
-:mini:`meth (Arg₁: flagsvalue) - (Arg₂: flagsvalue)`
+:mini:`meth (Arg₁: flags::value) - (Arg₂: flags::value)`
    *TBD*
 
-:mini:`meth (Arg₁: flagsvalue) < (Arg₂: flagsvalue)`
+:mini:`meth (Arg₁: flags::value) < (Arg₂: flags::value)`
    *TBD*
 
-:mini:`meth (Arg₁: flagsvalue) <= (Arg₂: flagsvalue)`
+:mini:`meth (Arg₁: flags::value) <= (Arg₂: flags::value)`
    *TBD*
 
-:mini:`meth (Arg₁: flagsvalue) > (Arg₂: flagsvalue)`
+:mini:`meth (Arg₁: flags::value) > (Arg₂: flags::value)`
    *TBD*
 
-:mini:`meth (Arg₁: flagsvalue) >= (Arg₂: flagsvalue)`
+:mini:`meth (Arg₁: flags::value) >= (Arg₂: flags::value)`
    *TBD*
 

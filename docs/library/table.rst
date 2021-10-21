@@ -40,7 +40,7 @@ table
    Returns the column :mini:`Name` from :mini:`Table`.
 
 
-:mini:`type tablerow < sequence`
+:mini:`type table::row < sequence`
    A row in a table.
 
 
@@ -48,14 +48,14 @@ table
    Returns the :mini:`Row`-th row of :mini:`Table`.
 
 
-:mini:`meth (Row: tablerow)[Name: string]: any`
+:mini:`meth (Row: table::row)[Name: string]: any`
    Returns the value from column :mini:`Name` in :mini:`Row`.
 
 
-:mini:`meth (Row: tablerow) :: (Name: string): any`
+:mini:`meth (Row: table::row) :: (Name: string): any`
    Returns the value from column :mini:`Name` in :mini:`Row`.
 
 
-:mini:`meth string(Arg₁: tablerow)`
+:mini:`meth string(Arg₁: table::row)`
    *TBD*
 

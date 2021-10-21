@@ -5,30 +5,31 @@ Introduction
 ------------
 
 *Minilang* is a small imperative language, designed to be embedded into programs
-written in *C*. It has the following goals / features:
+written in *C*. Although initially developed for *Rabs* `<https://rabs.readthedocs.io>`_ to specify build functions and dependencies, it has evolved into a comprehensive embeddable scripting language. It has the following goals / features:
 
 **Minimal dependencies**
-   *Minilang* has no dependencies other than the Hans Boehm garbage
+   *Minilang* has no mandatory dependencies other than the Hans Boehm garbage
    collector and standard *C* libraries.
 
 **Minimal language**
-   *Minilang* is a fairly simple language with no built-in class declarations or module system. This allows it to be embedded in applications with strict control on available features. There is no loss in expression though as the syntax allows classes and modules to be added seamlessly.
+   *Minilang* is a fairly simple language with no syntax for classes, modules, etc. This allows it to be embedded in applications with strict control on available features. There is no loss in expression though as the syntax allows classes and modules to be added seamlessly.
 
-**Flexible runtime**
-   All functions in *Minilang* can be suspended if necessary (using a limited form of continuations). This allows asynchronous functions and preemptive multitasking to be added if required, without imposing them when they are not needed.
+**Expression based**
+  Other than declarations, everything else in *Minilang* is an expression, avoiding the need for temporary variables for intermediate values resulting in concise code. Of course, variables can be defined for clarity as required.
 
-**Full closures**
-   Functions in *Minilang* automatically capture their environment, creating
-   closures at runtime. Closures can be passed around as first-class values,
-   which are used to build targets in *Rabs*. 
+**One-shot Continuations**
+   All function calls in *Minilang* are implemented using one-shot continuations. This allows asynchronous functions and preemptive multitasking to be added if required, without imposing them when they are not needed.
 
-**Dynamic scoping**
-   The *Minilang* interpreter provides a callback for identifier resolution,
-   allowing programs to provide dynamic scoping. This is used within *Rabs* to
-   provide dynamic symbol resolution.
+**Flexible API**
+   The *Minilang* compiler API uses callbacks where possible giving applications complete flexibility on how to use *Minilang*.
 
 **Easy to embed & extend**
    *Minilang* provides a comprehensive embedding API to support a wider range of use cases. It is easy to create new functions in *C* to use in *Minilang*.
+
+**Full closures**
+   Functions in *Minilang* automatically capture their environment, creating
+   closures at runtime. Closures can be passed around as first-class values.
+
 
 Sample
 ------

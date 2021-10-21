@@ -102,19 +102,22 @@ number
 :mini:`meth (Arg₁: integer) * (Arg₂: double)`
    *TBD*
 
-:mini:`meth :shl(Arg₁: integer, Arg₂: integer)`
+:mini:`meth ~(Arg₁: integer)`
    *TBD*
 
-:mini:`meth :shr(Arg₁: integer, Arg₂: integer)`
+:mini:`meth (Arg₁: integer) & (Arg₂: integer)`
    *TBD*
 
-:mini:`meth :and(Arg₁: integer, Arg₂: integer)`
+:mini:`meth (Arg₁: integer) | (Arg₂: integer)`
    *TBD*
 
-:mini:`meth :or(Arg₁: integer, Arg₂: integer)`
+:mini:`meth (Arg₁: integer) ^ (Arg₂: integer)`
    *TBD*
 
-:mini:`meth :xor(Arg₁: integer, Arg₂: integer)`
+:mini:`meth (Arg₁: integer) << (Arg₂: integer)`
+   *TBD*
+
+:mini:`meth (Arg₁: integer) >> (Arg₂: integer)`
    *TBD*
 
 :mini:`meth ++(Int: integer): integer`

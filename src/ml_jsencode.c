@@ -11,6 +11,9 @@
 #include "ml_time.h"
 #endif
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "jsencode"
+
 struct ml_json_encoder_cache_t {
 	inthash_t *Globals;
 	inthash_t Cached[1];
@@ -49,7 +52,7 @@ static json_t *ML_TYPED_FN(ml_json_encode, MLNilT, ml_json_encoder_cache_t *Cach
 }
 
 static json_t *ML_TYPED_FN(ml_json_encode, MLBlankT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
-	return json_pack("[s]", "blank");
+	return json_pack("[s]", "_");
 }
 
 static json_t *ML_TYPED_FN(ml_json_encode, MLBooleanT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
@@ -69,16 +72,16 @@ static json_t *ML_TYPED_FN(ml_json_encode, MLStringT, ml_json_encoder_cache_t *C
 }
 
 static json_t *ML_TYPED_FN(ml_json_encode, MLRegexT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
-	return json_pack("[ss]", "regex", ml_regex_pattern(Value));
+	return json_pack("[ss]", "r", ml_regex_pattern(Value));
 }
 
 static json_t *ML_TYPED_FN(ml_json_encode, MLMethodT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
-	return json_pack("[ss]", "method", ml_method_name(Value));
+	return json_pack("[ss]", ":", ml_method_name(Value));
 }
 
 static json_t *ML_TYPED_FN(ml_json_encode, MLListT, ml_json_encoder_cache_t *Cache, ml_list_t *Value) {
 	json_t *Json = json_array();
-	json_array_append_new(Json, json_string("list"));
+	json_array_append_new(Json, json_string("l"));
 	inthash_insert(Cache->Cached, (uintptr_t)Value, Json);
 	ML_LIST_FOREACH(Value, Iter) {
 		json_array_append_new(Json, ml_json_encode(Cache, Iter->Value));
@@ -88,7 +91,7 @@ static json_t *ML_TYPED_FN(ml_json_encode, MLListT, ml_json_encoder_cache_t *Cac
 
 static json_t *ML_TYPED_FN(ml_json_encode, MLNamesT, ml_json_encoder_cache_t *Cache, ml_list_t *Value) {
 	json_t *Json = json_array();
-	json_array_append_new(Json, json_string("names"));
+	json_array_append_new(Json, json_string("n"));
 	inthash_insert(Cache->Cached, (uintptr_t)Value, Json);
 	ML_LIST_FOREACH(Value, Iter) {
 		json_array_append_new(Json, ml_json_encode(Cache, Iter->Value));
@@ -98,7 +101,7 @@ static json_t *ML_TYPED_FN(ml_json_encode, MLNamesT, ml_json_encoder_cache_t *Ca
 
 static json_t *ML_TYPED_FN(ml_json_encode, MLMapT, ml_json_encoder_cache_t *Cache, ml_map_t *Value) {
 	json_t *Json = json_array();
-	json_array_append_new(Json, json_string("map"));
+	json_array_append_new(Json, json_string("m"));
 	inthash_insert(Cache->Cached, (uintptr_t)Value, Json);
 	ML_MAP_FOREACH(Value, Iter) {
 		json_array_append_new(Json, ml_json_encode(Cache, Iter->Key));
@@ -108,7 +111,7 @@ static json_t *ML_TYPED_FN(ml_json_encode, MLMapT, ml_json_encoder_cache_t *Cach
 }
 
 static json_t *ML_TYPED_FN(ml_json_encode, MLTypeT, ml_json_encoder_cache_t *Cache, ml_type_t *Value) {
-	return json_pack("[ss]", "type", Value->Name);
+	return json_pack("[ss]", "t", Value->Name);
 }
 
 static json_t *ML_TYPED_FN(ml_json_encode, MLGlobalT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
@@ -117,7 +120,7 @@ static json_t *ML_TYPED_FN(ml_json_encode, MLGlobalT, ml_json_encoder_cache_t *C
 
 static json_t *ML_TYPED_FN(ml_json_encode, MLVariableT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
 	json_t *Json = json_array();
-	json_array_append_new(Json, json_string("variable"));
+	json_array_append_new(Json, json_string("v"));
 	inthash_insert(Cache->Cached, (uintptr_t)Value, Json);
 	return Json;
 }
@@ -169,9 +172,9 @@ static json_t *ml_closure_decl_encode(ml_decl_t *Decl, ml_decls_json_t *Decls) {
 	if (Index) return Index;
 	json_t *Next = ml_closure_decl_encode(Decl->Next, Decls);
 	Index = json_integer(json_array_size(Decls->Json));
-	json_array_append_new(Decls->Json, json_pack("[Ossiii]",
+	json_array_append_new(Decls->Json, json_pack("[Osiii]",
 		Next, Decl->Ident,
-		Decl->Source.Name, Decl->Source.Line,
+		Decl->Source.Line,
 		Decl->Index, Decl->Flags
 	));
 	inthash_insert(Decls->Cache, (uintptr_t)Decl, Index);
@@ -202,38 +205,26 @@ static int ml_closure_inst_encode(ml_inst_t *Inst, ml_json_encoder_cache_t *Cach
 	case MLIT_COUNT:
 		json_array_append_new(Json, json_integer(Inst[1].Count));
 		return 2;
-	case MLIT_INDEX:
-		json_array_append_new(Json, json_integer(Inst[1].Index));
-		return 2;
 	case MLIT_VALUE:
 		json_array_append_new(Json, ml_json_encode(Cache, Inst[1].Value));
 		return 2;
-	case MLIT_VALUE_VALUE:
+	case MLIT_VALUE_DATA:
 		json_array_append_new(Json, ml_json_encode(Cache, Inst[1].Value));
-		json_array_append_new(Json, ml_json_encode(Cache, Inst[2].Value));
 		return 3;
-	case MLIT_INDEX_COUNT:
-		json_array_append_new(Json, json_integer(Inst[1].Index));
+	case MLIT_VALUE_COUNT:
+		json_array_append_new(Json, ml_json_encode(Cache, Inst[1].Value));
 		json_array_append_new(Json, json_integer(Inst[2].Count));
 		return 3;
-	case MLIT_INDEX_CHARS:
-		json_array_append_new(Json, json_integer(Inst[1].Index));
-		json_array_append_new(Json, json_string(Inst[2].Chars));
-		return 3;
-	case MLIT_COUNT_VALUE:
-		json_array_append_new(Json, json_integer(Inst[1].Count));
-		json_array_append_new(Json, ml_json_encode(Cache, Inst[2].Value));
-		return 3;
+	case MLIT_VALUE_COUNT_DATA:
+		json_array_append_new(Json, ml_json_encode(Cache, Inst[1].Value));
+		json_array_append_new(Json, json_integer(Inst[2].Count));
+		return 4;
 	case MLIT_COUNT_CHARS:
 		json_array_append_new(Json, json_stringn(Inst[2].Chars, Inst[1].Count));
 		return 3;
 	case MLIT_DECL:
 		json_array_append(Json, ml_closure_decl_encode(Inst[1].Decls, Decls));
 		return 2;
-	case MLIT_INDEX_DECL:
-		json_array_append_new(Json, json_integer(Inst[1].Index));
-		json_array_append(Json, ml_closure_decl_encode(Inst[2].Decls, Decls));
-		return 3;
 	case MLIT_COUNT_DECL:
 		json_array_append_new(Json, json_integer(Inst[1].Count));
 		json_array_append(Json, ml_closure_decl_encode(Inst[2].Decls, Decls));
@@ -247,15 +238,15 @@ static int ml_closure_inst_encode(ml_inst_t *Inst, ml_json_encoder_cache_t *Cach
 		ml_closure_info_t *Info = Inst[1].ClosureInfo;
 		json_array_append_new(Json, ml_closure_info_encode(Info, Cache));
 		for (int N = 0; N < Info->NumUpValues; ++N) {
-			json_array_append_new(Json, json_integer(Inst[2 + N].Index));
+			json_array_append_new(Json, json_integer(Inst[2 + N].Count));
 		}
 		return 2 + Inst[1].ClosureInfo->NumUpValues;
 	}
 	case MLIT_SWITCH: {
 		json_t *Insts = json_array();
-		json_array_append_new(Insts, json_string("list"));
+		json_array_append_new(Insts, json_string("l"));
 		for (int N = 0; N < Inst[1].Count; ++N) {
-			json_array_append_new(Insts, json_integer(Inst[2].Insts[N]->Label));
+			json_array_append_new(Insts, json_integer((uintptr_t)inthash_search(Labels, Inst[2].Insts[N]->Label)));
 		}
 		json_array_append_new(Json, Insts);
 		return 3;
@@ -276,15 +267,12 @@ static int ml_closure_find_labels(ml_inst_t *Inst, uintptr_t *Offset) {
 	case MLIT_INST_TYPES: *Offset += 4; return 3;
 	case MLIT_COUNT_COUNT: *Offset += 4; return 3;
 	case MLIT_COUNT: *Offset += 3; return 2;
-	case MLIT_INDEX: *Offset += 3; return 2;
 	case MLIT_VALUE: *Offset += 3; return 2;
-	case MLIT_VALUE_VALUE: *Offset += 4; return 3;
-	case MLIT_INDEX_COUNT: *Offset += 4; return 3;
-	case MLIT_INDEX_CHARS: *Offset += 4; return 3;
-	case MLIT_COUNT_VALUE: *Offset += 4; return 3;
+	case MLIT_VALUE_DATA: *Offset += 3; return 3;
+	case MLIT_VALUE_COUNT: *Offset += 4; return 3;
+	case MLIT_VALUE_COUNT_DATA: *Offset += 4; return 4;
 	case MLIT_COUNT_CHARS: *Offset += 3; return 3;
 	case MLIT_DECL: *Offset += 3; return 2;
-	case MLIT_INDEX_DECL: *Offset += 4; return 3;
 	case MLIT_COUNT_DECL: *Offset += 4; return 3;
 	case MLIT_COUNT_COUNT_DECL: *Offset += 5; return 4;
 	case MLIT_CLOSURE:
@@ -292,8 +280,8 @@ static int ml_closure_find_labels(ml_inst_t *Inst, uintptr_t *Offset) {
 		return 2 + Inst[1].ClosureInfo->NumUpValues;
 	case MLIT_SWITCH:
 		return 3;
-	default: return 0;
 	}
+	return 0;
 }
 
 static json_t *ml_closure_info_encode(ml_closure_info_t *Info, ml_json_encoder_cache_t *Cache) {
@@ -343,7 +331,7 @@ static json_t *ml_closure_info_encode(ml_closure_info_t *Info, ml_json_encoder_c
 
 static json_t *ML_TYPED_FN(ml_json_encode, MLClosureT, ml_json_encoder_cache_t *Cache, ml_closure_t *Value) {
 	json_t *Json = json_array();
-	json_array_append_new(Json, json_string("closure"));
+	json_array_append_new(Json, json_string("z"));
 	inthash_insert(Cache->Cached, (uintptr_t)Value, Json);
 	ml_closure_info_t *Info = Value->Info;
 	json_array_append_new(Json, ml_closure_info_encode(Info, Cache));
@@ -424,7 +412,7 @@ typedef struct {
 
 static stringmap_t Decoders[1] = {STRINGMAP_INIT};
 
-typedef ml_value_t *(*ml_json_decode_fn)(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index);
+typedef ml_value_t *(*ml_json_decode_fn)(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Count);
 
 ml_value_t *ml_json_decode(ml_json_decoder_cache_t *Cache, json_t *Json) {
 	switch (Json->type) {
@@ -463,6 +451,13 @@ ml_value_t *ml_json_decode(ml_json_decoder_cache_t *Cache, json_t *Json) {
 	case JSON_NULL: return MLNil;
 	default: return MLNil;
 	}
+}
+
+static ml_value_t *ml_json_decode_global(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+	json_t *Value = json_array_get(Json, 0);
+	if (!json_is_string(Value)) return ml_error("TypeError", "Global requires string name");
+	const char *Name = json_string_value(Value);
+	return stringmap_search(Cache->Globals, Name) ?: ml_error("NameError", "Unknown global %s", Name);
 }
 
 static ml_value_t *ml_json_decode_blank(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
@@ -530,7 +525,7 @@ static ml_value_t *ml_json_decode_type(ml_json_decoder_cache_t *Cache, json_t *J
 
 #ifdef ML_UUID
 
-static ml_value_t *ml_json_decode_uuid(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+static ml_value_t *ml_json_decode_uuid(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Count) {
 	json_t *Value = json_array_get(Json, 0);
 	if (!json_is_string(Value)) return ml_error("TypeError", "UUID requires strings");
 	return ml_uuid_parse(json_string_value(Value), json_string_length(Value));
@@ -540,7 +535,7 @@ static ml_value_t *ml_json_decode_uuid(ml_json_decoder_cache_t *Cache, json_t *J
 
 #ifdef ML_TIME
 
-static ml_value_t *ml_json_decode_time(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+static ml_value_t *ml_json_decode_time(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Count) {
 	json_t *Value = json_array_get(Json, 0);
 	if (!json_is_string(Value)) return ml_error("TypeError", "Time requires strings");
 	return ml_time_parse(json_string_value(Value), json_string_length(Value));
@@ -590,21 +585,20 @@ static ml_closure_info_t *ml_json_decode_closure_info(ml_json_decoder_cache_t *C
 			I += 2; Offset += 1; break;
 		case MLIT_INST:
 		case MLIT_COUNT:
-		case MLIT_INDEX:
 		case MLIT_VALUE:
 			I += 3; Offset += 2; break;
+		case MLIT_VALUE_DATA:
+			I += 3; Offset += 3; break;
 		case MLIT_INST_TYPES:
 		case MLIT_COUNT_COUNT:
-		case MLIT_VALUE_VALUE:
-		case MLIT_INDEX_COUNT:
-		case MLIT_INDEX_CHARS:
-		case MLIT_COUNT_VALUE:
+		case MLIT_VALUE_COUNT:
 			I += 4; Offset += 3; break;
+		case MLIT_VALUE_COUNT_DATA:
+			I += 4; Offset += 4; break;
 		case MLIT_COUNT_CHARS:
 			I += 3; Offset += 3; break;
 		case MLIT_DECL:
 			I += 3; Offset += 2; break;
-		case MLIT_INDEX_DECL:
 		case MLIT_COUNT_DECL:
 			I += 4; Offset += 3; break;
 		case MLIT_COUNT_COUNT_DECL:
@@ -623,9 +617,10 @@ static ml_closure_info_t *ml_json_decode_closure_info(ml_json_decoder_cache_t *C
 	for (int I = 0; I < json_array_size(DeclsJson); ++I) {
 		int Next;
 		ml_decl_t *Decl = Decls[I] = new(ml_decl_t);
-		json_unpack(json_array_get(DeclsJson, I), "[issiii]",
+		Decl->Source.Name = Info->Source;
+		json_unpack(json_array_get(DeclsJson, I), "[isiii]",
 			&Next, &Decl->Ident,
-			&Decl->Source.Name, &Decl->Source.Line,
+			&Decl->Source.Line,
 			&Decl->Index, &Decl->Flags
 		);
 		if (Next >= 0) Decl->Next = Decls[Next];
@@ -647,12 +642,12 @@ static ml_closure_info_t *ml_json_decode_closure_info(ml_json_decoder_cache_t *C
 		case MLIT_COUNT:
 			Inst[1].Count = json_integer_value(json_array_get(Instructions, I++));
 			Inst += 2; break;
-		case MLIT_INDEX:
-			Inst[1].Index = json_integer_value(json_array_get(Instructions, I++));
-			Inst += 2; break;
 		case MLIT_VALUE:
 			Inst[1].Value = ml_json_decode(Cache, json_array_get(Instructions, I++));
 			Inst += 2; break;
+		case MLIT_VALUE_DATA:
+			Inst[1].Value = ml_json_decode(Cache, json_array_get(Instructions, I++));
+			Inst += 3; break;
 		case MLIT_INST_TYPES: {
 			Inst[1].Inst = Code + Offsets[json_integer_value(json_array_get(Instructions, I++))];
 			json_t *Types = json_array_get(Instructions, I++);
@@ -666,22 +661,14 @@ static ml_closure_info_t *ml_json_decode_closure_info(ml_json_decoder_cache_t *C
 			Inst[1].Count = json_integer_value(json_array_get(Instructions, I++));
 			Inst[2].Count = json_integer_value(json_array_get(Instructions, I++));
 			Inst += 3; break;
-		case MLIT_VALUE_VALUE:
+		case MLIT_VALUE_COUNT:
 			Inst[1].Value = ml_json_decode(Cache, json_array_get(Instructions, I++));
-			Inst[2].Value = ml_json_decode(Cache, json_array_get(Instructions, I++));
-			Inst += 3; break;
-		case MLIT_INDEX_COUNT:
-			Inst[1].Index = json_integer_value(json_array_get(Instructions, I++));
 			Inst[2].Count = json_integer_value(json_array_get(Instructions, I++));
 			Inst += 3; break;
-		case MLIT_INDEX_CHARS:
-			Inst[1].Index = json_integer_value(json_array_get(Instructions, I++));
-			Inst[2].Chars = json_string_value(json_array_get(Instructions, I++));
-			Inst += 3; break;
-		case MLIT_COUNT_VALUE:
-			Inst[1].Count = json_integer_value(json_array_get(Instructions, I++));
-			Inst[2].Value = ml_json_decode(Cache, json_array_get(Instructions, I++));
-			Inst += 3; break;
+		case MLIT_VALUE_COUNT_DATA:
+			Inst[1].Value = ml_json_decode(Cache, json_array_get(Instructions, I++));
+			Inst[2].Count = json_integer_value(json_array_get(Instructions, I++));
+			Inst += 4; break;
 		case MLIT_COUNT_CHARS: {
 			json_t *Chars = json_array_get(Instructions, I++);
 			Inst[1].Count = json_string_length(Chars);
@@ -691,10 +678,6 @@ static ml_closure_info_t *ml_json_decode_closure_info(ml_json_decoder_cache_t *C
 		case MLIT_DECL:
 			Inst[1].Decls = Decls[json_integer_value(json_array_get(Instructions, I++))];
 			Inst += 2; break;
-		case MLIT_INDEX_DECL:
-			Inst[1].Index = json_integer_value(json_array_get(Instructions, I++));
-			Inst[2].Decls = Decls[json_integer_value(json_array_get(Instructions, I++))];
-			Inst += 3; break;
 		case MLIT_COUNT_DECL:
 			Inst[1].Count = json_integer_value(json_array_get(Instructions, I++));
 			Inst[2].Decls = Decls[json_integer_value(json_array_get(Instructions, I++))];
@@ -707,7 +690,7 @@ static ml_closure_info_t *ml_json_decode_closure_info(ml_json_decoder_cache_t *C
 		case MLIT_CLOSURE:
 			Inst[1].ClosureInfo = ml_json_decode_closure_info(Cache, json_array_get(Instructions, I++));
 			for (int J = 0; J < Inst[1].ClosureInfo->NumUpValues; ++J) {
-				Inst[J + 2].Index = json_integer_value(json_array_get(Instructions, I++));
+				Inst[J + 2].Count = json_integer_value(json_array_get(Instructions, I++));
 			}
 			Inst += 2 + Inst[1].ClosureInfo->NumUpValues;
 			break;
@@ -753,6 +736,12 @@ ML_TYPE(JSDecoderT, (), "js-decoder",
 	.Constructor = (ml_value_t *)JSDecoder
 );
 
+ML_METHOD("add", JSDecoderT, MLStringT, MLAnyT) {
+	ml_json_decoder_t *Decoder = (ml_json_decoder_t *)Args[0];
+	stringmap_insert(Decoder->Globals, ml_string_value(Args[1]), Args[2]);
+	return Args[0];
+}
+
 ML_METHOD("decode", JSDecoderT, MLStringT) {
 	ml_json_decoder_t *Decoder = (ml_json_decoder_t *)Args[0];
 	ml_json_decoder_cache_t Cache[1] = {0,};
@@ -766,16 +755,26 @@ ML_METHOD("decode", JSDecoderT, MLStringT) {
 }
 
 void ml_jsencode_init(stringmap_t *Globals) {
+	stringmap_insert(Decoders, "^", ml_json_decode_global);
 	stringmap_insert(Decoders, "blank", ml_json_decode_blank);
+	stringmap_insert(Decoders, "_", ml_json_decode_blank);
 	stringmap_insert(Decoders, "some", ml_json_decode_some);
 	stringmap_insert(Decoders, "list", ml_json_decode_list);
+	stringmap_insert(Decoders, "l", ml_json_decode_list);
 	stringmap_insert(Decoders, "names", ml_json_decode_names);
+	stringmap_insert(Decoders, "n", ml_json_decode_names);
 	stringmap_insert(Decoders, "map", ml_json_decode_map);
+	stringmap_insert(Decoders, "m", ml_json_decode_map);
 	stringmap_insert(Decoders, "type", ml_json_decode_type);
+	stringmap_insert(Decoders, "t", ml_json_decode_type);
 	stringmap_insert(Decoders, "regex", ml_json_decode_regex);
+	stringmap_insert(Decoders, "r", ml_json_decode_regex);
 	stringmap_insert(Decoders, "method", ml_json_decode_method);
+	stringmap_insert(Decoders, ":", ml_json_decode_method);
 	stringmap_insert(Decoders, "variable", ml_json_decode_variable);
+	stringmap_insert(Decoders, "v", ml_json_decode_variable);
 	stringmap_insert(Decoders, "closure", ml_json_decode_closure);
+	stringmap_insert(Decoders, "z", ml_json_decode_closure);
 #ifdef ML_TIME
 	stringmap_insert(Decoders, "time", ml_json_decode_time);
 #endif

@@ -5,6 +5,9 @@
 #include <stdio.h>
 #include "ml_runtime.h"
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "module"
+
 typedef struct {
 	ml_module_t Base;
 	int Flags;

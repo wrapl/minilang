@@ -4,6 +4,9 @@
 #include <dlfcn.h>
 #endif
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "library"
+
 void ml_library_load_file(ml_state_t *Caller, const char *FileName, ml_getter_t GlobalGet, void *Globals, ml_value_t **Slot) {
 #if defined(Linux)
 	void *Handle = dlopen(FileName, RTLD_GLOBAL | RTLD_LAZY);

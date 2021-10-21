@@ -1,7 +1,7 @@
 queue
 =====
 
-:mini:`type queuenode`
+:mini:`type queue::node`
    *TBD*
 
 :mini:`type queue < sequence`
@@ -23,18 +23,18 @@ queue
 :mini:`meth :size(Arg₁: queue)`
    *TBD*
 
-:mini:`meth :update(Arg₁: queuenode, Arg₂: number)`
+:mini:`meth :update(Arg₁: queue::node, Arg₂: number)`
    *TBD*
 
-:mini:`meth :remove(Arg₁: queuenode)`
+:mini:`meth :remove(Arg₁: queue::node)`
    *TBD*
 
-:mini:`meth :value(Arg₁: queuenode)`
+:mini:`meth :value(Arg₁: queue::node)`
    *TBD*
 
-:mini:`meth :score(Arg₁: queuenode)`
+:mini:`meth :score(Arg₁: queue::node)`
    *TBD*
 
-:mini:`type queueiter`
+:mini:`type queue::iter`
    *TBD*
 

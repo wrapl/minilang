@@ -4,12 +4,16 @@
 #include "ml_macros.h"
 #include "ml_object.h"
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "object"
+
 typedef struct ml_class_t ml_class_t;
 typedef struct ml_object_t ml_object_t;
 
 struct ml_class_t {
 	ml_type_t Base;
 	ml_value_t *Initializer;
+	ml_value_t *Call;
 	stringmap_t Fields[1];
 };
 
@@ -22,8 +26,9 @@ static ml_value_t *ml_field_deref(ml_field_t *Field) {
 	return Field->Value;
 }
 
-static ml_value_t *ml_field_assign(ml_field_t *Field, ml_value_t *Value) {
-	return Field->Value = Value;
+static void ml_field_assign(ml_state_t *Caller, ml_field_t *Field, ml_value_t *Value) {
+	Field->Value = Value;
+	ML_RETURN(Value);
 }
 
 static void ml_field_call(ml_state_t *Caller, ml_field_t *Field, int Count, ml_value_t **Args) {
@@ -111,6 +116,13 @@ static void ml_init_state_run(ml_init_state_t *State, ml_value_t *Result) {
 	ML_RETURN(State->Object);
 }
 
+static void ml_object_call(ml_state_t *Caller, ml_object_t *Object, int Count, ml_value_t **Args) {
+	ml_value_t **Args2 = ml_alloc_args(Count + 1);
+	memmove(Args2 + 1, Args, Count * sizeof(ml_value_t *));
+	Args2[0] = (ml_value_t *)Object;
+	return ml_call(Caller, Object->Type->Call, Count + 1, Args2);
+}
+
 static void ml_object_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int Count, ml_value_t **Args) {
 	int NumFields = Class->Fields->Size;
 	ml_object_t *Object = xnew(ml_object_t, NumFields, ml_field_t);
@@ -180,7 +192,7 @@ static void ml_named_init_state_run(ml_named_init_state_t *State, ml_value_t *Re
 	if (Old == State->Old) {
 		Result->Type = State->New;
 #ifdef ML_GENERICS
-	} else if (Old->Type == MLGenericTypeT && ml_generic_type_args(Old)[0] == State->Old) {
+	} else if (Old->Type == MLTypeGenericT && ml_generic_type_args(Old)[0] == State->Old) {
 		Result->Type = State->New;
 #endif
 	} else {
@@ -258,6 +270,8 @@ static void setup_fields(ml_state_t *Caller, ml_class_t *Class) {
 	stringmap_foreach(Class->Fields, &Setup, (void *)setup_field);
 }
 
+extern ml_value_t *CallMethod;
+
 ML_FUNCTIONX(MLClass) {
 //!object
 //@class
@@ -301,10 +315,10 @@ ML_FUNCTIONX(MLClass) {
 		ml_named_type_t *Class = new(ml_named_type_t);
 		Class->Base.Type = MLNamedTypeT;
 		asprintf((char **)&Class->Base.Name, "named-%s:%lx", NativeType->Name, (uintptr_t)Class);
-		Class->Base.hash = ml_default_hash;
-		Class->Base.call = ml_default_call;
-		Class->Base.deref = ml_default_deref;
-		Class->Base.assign = ml_default_assign;
+		Class->Base.hash = NativeType->hash;
+		Class->Base.call = NativeType->call;
+		Class->Base.deref = NativeType->deref;
+		Class->Base.assign = NativeType->assign;
 		Class->Base.Rank = Rank + 1;
 		Class->Native = NativeType;
 		ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_named_constructor_fn);
@@ -337,12 +351,13 @@ ML_FUNCTIONX(MLClass) {
 		Class->Base.Type = MLClassT;
 		asprintf((char **)&Class->Base.Name, "object:%lx", (uintptr_t)Class);
 		Class->Base.hash = ml_default_hash;
-		Class->Base.call = ml_default_call;
+		Class->Base.call = (void *)ml_object_call;
 		Class->Base.deref = ml_default_deref;
 		Class->Base.assign = ml_default_assign;
 		Class->Base.Rank = Rank + 1;
 		ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_object_constructor_fn);
 		Class->Base.Constructor = Constructor;
+		Class->Call = CallMethod;
 		for (int I = 0; I < Count; ++I) {
 			if (ml_typeof(Args[I]) == MLMethodT) {
 				add_field(ml_method_name(Args[I]), NULL, Class);
@@ -364,6 +379,8 @@ ML_FUNCTIONX(MLClass) {
 						Class->Base.Constructor = Value;
 					} else if (!strcmp(Name, "init")) {
 						Class->Initializer = Value;
+					} else if (!strcmp(Name, "call")) {
+						Class->Call = Value;
 					}
 				}
 				break;
@@ -382,31 +399,25 @@ static void ML_TYPED_FN(ml_value_set_name, MLClassT, ml_class_t *Class, const ch
 
 typedef struct ml_property_t {
 	const ml_type_t *Type;
-	ml_value_t *Get, *Set;
-	ml_result_state_t State[1];
+	ml_value_t *Value, *Setter;
 } ml_property_t;
 
 static ml_value_t *ml_property_deref(ml_property_t *Property) {
-	Property->State->Value = NULL;
-	ml_call(Property->State, Property->Get, 0, NULL);
-	return Property->State->Value ?: ml_error("StateError", "Property functions must not suspend");
+	return Property->Value;
 }
 
-static ml_value_t *ml_property_assign(ml_property_t *Property, ml_value_t *Value) {
-	Property->State->Value = NULL;
-	ml_call(Property->State, Property->Set, 1, &Value);
-	return Property->State->Value ?: ml_error("StateError", "Property functions must not suspend");
+static void ml_property_assign(ml_state_t *Caller, ml_property_t *Property, ml_value_t *Value) {
+	return ml_call(Caller, Property->Setter, 1, &Value);
 }
 
 static void ml_property_call(ml_state_t *Caller, ml_property_t *Property, int Count, ml_value_t **Args) {
-	Property->State->Value = NULL;
-	ml_call(Property->State, Property->Get, 0, NULL);
-	return ml_call(Caller, Property->State->Value ?: MLNil, Count, Args);
+	return ml_call(Caller, Property->Value, Count, Args);
 }
 
 extern ml_cfunctionx_t MLProperty[];
 
 ML_TYPE(MLPropertyT, (), "property",
+// A value with an associated setter function.
 	.deref = (void *)ml_property_deref,
 	.assign = (void *)ml_property_assign,
 	.call = (void *)ml_property_call,
@@ -415,15 +426,15 @@ ML_TYPE(MLPropertyT, (), "property",
 
 ML_FUNCTIONX(MLProperty) {
 //@property
+//<Value
+//<set
+//>property
+// Returns a new property which dereferences to :mini:`Value`. Assigning to the property will call :mini:`set(NewValue)`.
 	ML_CHECKX_ARG_COUNT(2);
-	ML_CHECKX_ARG_TYPE(0, MLFunctionT);
-	ML_CHECKX_ARG_TYPE(1, MLFunctionT);
 	ml_property_t *Property = new(ml_property_t);
 	Property->Type = MLPropertyT;
-	Property->Get = Args[0];
-	Property->Set = Args[1];
-	Property->State->Base.run = (ml_state_fn)ml_result_state_run;
-	Property->State->Base.Context = Caller->Context;
+	Property->Value = Args[0];
+	Property->Setter = Args[1];
 	ML_RETURN(Property);
 }
 

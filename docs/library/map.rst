@@ -9,7 +9,7 @@ map
    Insert order is preserved.
 
 
-:mini:`type mapnode`
+:mini:`type map::node`
    A node in a :mini:`map`.
 
    Dereferencing a :mini:`mapnode` returns the corresponding value from the :mini:`map`.
@@ -67,7 +67,7 @@ map
    Returns the previous value associated with :mini:`Key` if any, otherwise :mini:`nil`.
 
 
-:mini:`meth :append(Arg₁: stringbuffer, Arg₂: map)`
+:mini:`meth :append(Arg₁: string::buffer, Arg₂: map)`
    *TBD*
 
 :mini:`meth (Map₁: map) + (Map₂: map): map`

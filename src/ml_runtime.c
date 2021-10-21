@@ -8,6 +8,9 @@
 #include <inttypes.h>
 #include "ml_types.h"
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "runtime"
+
 // Runtime //
 
 #ifndef ML_THREADSAFE
@@ -24,7 +27,7 @@ static int MLContextSize = 5;
 //	3: Scheduler
 //	4: Module Path
 
-static unsigned int DefaultCounter = UINT_MAX;
+static uint64_t DefaultCounter = UINT_MAX;
 
 static void default_swap(ml_state_t *State, ml_value_t *Value) {
 	DefaultCounter = UINT_MAX;
@@ -56,7 +59,10 @@ int ml_context_index_new() {
 
 void ml_context_set(ml_context_t *Context, int Index, void *Value) {
 	if (Context->Size <= Index) return;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
 	Context->Values[Index] = Value;
+#pragma GCC diagnostic pop
 }
 
 #define ML_VARIABLES_INDEX 1
@@ -105,7 +111,7 @@ ML_FUNCTION(MLContextKey) {
 	return (ml_value_t *)Key;
 }
 
-ML_TYPE(MLContextKeyT, (MLCFunctionT), "context",
+ML_TYPE(MLContextKeyT, (MLFunctionT), "context",
 //!context
 //@context
 // A context key can be used to create context specific values.
@@ -179,6 +185,14 @@ ml_result_state_t *ml_result_state_new(ml_context_t *Context) {
 ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args) {
 	static ml_result_state_t State = {{MLStateT, NULL, (void *)ml_result_state_run, &MLRootContext}, MLNil};
 	ml_call(&State, Value, Count, Args);
+	ml_value_t *Result = State.Value;
+	State.Value = MLNil;
+	return Result;
+}
+
+ml_value_t *ml_simple_assign(ml_value_t *Value, ml_value_t *Value2) {
+	static ml_result_state_t State = {{MLStateT, NULL, (void *)ml_result_state_run, &MLRootContext}, MLNil};
+	ml_assign(&State, Value, Value2);
 	ml_value_t *Result = State.Value;
 	State.Value = MLNil;
 	return Result;
@@ -283,8 +297,9 @@ static ml_value_t *ml_reference_deref(ml_reference_t *Reference) {
 	return Reference->Address[0];
 }
 
-static ml_value_t *ml_reference_assign(ml_reference_t *Reference, ml_value_t *Value) {
-	return Reference->Address[0] = Value;
+static void ml_reference_assign(ml_state_t *Caller, ml_reference_t *Reference, ml_value_t *Value) {
+	Reference->Address[0] = Value;
+	ML_RETURN(Value);
 }
 
 static void ml_reference_call(ml_state_t *Caller, ml_reference_t *Reference, int Count, ml_value_t **Args) {
@@ -324,8 +339,8 @@ static void ml_uninitialized_call(ml_state_t *Caller, ml_uninitialized_t *Uninit
 	ML_ERROR("ValueError", "%s is uninitialized", Uninitialized->Name);
 }
 
-static ml_value_t *ml_unitialized_assign(ml_uninitialized_t *Uninitialized, ml_value_t *Value) {
-	return ml_error("ValueError", "%s is uninitialized", Uninitialized->Name);
+static void ml_unitialized_assign(ml_state_t *Caller, ml_uninitialized_t *Uninitialized, ml_value_t *Value) {
+	ML_ERROR("ValueError", "%s is uninitialized", Uninitialized->Name);
 }
 
 ML_TYPE(MLUninitializedT, (), "uninitialized",
@@ -418,8 +433,8 @@ typedef struct {
 	ml_error_value_t Error[];
 } ml_error_t;
 
-static ml_value_t *ml_error_assign(ml_value_t *Error, ml_value_t *Value) {
-	return Error;
+static void ml_error_assign(ml_state_t *Caller, ml_value_t *Error, ml_value_t *Value) {
+	ML_RETURN(Error);
 }
 
 static void ml_error_call(ml_state_t *Caller, ml_value_t *Error, int Count, ml_value_t **Args) {
@@ -704,13 +719,13 @@ static size_t *mini_debugger_breakpoints(ml_debugger_t *Base, const char *Source
 	breakpoints_t **Slot = (breakpoints_t **)stringmap_slot(Debugger->Modules, Source);
 	size_t Count = (Max + SIZE_BITS) / SIZE_BITS;
 	if (!Slot[0]) {
-		breakpoints_t *New = (breakpoints_t *)GC_MALLOC_ATOMIC(sizeof(breakpoints_t) + Count * sizeof(size_t));
+		breakpoints_t *New = (breakpoints_t *)snew(sizeof(breakpoints_t) + Count * sizeof(size_t));
 		memset(New->Bits, 0, Count * sizeof(size_t));
 		New->Count = Count;
 		Slot[0] = New;
 	} else if (Count > Slot[0]->Count) {
 		breakpoints_t *Old = Slot[0];
-		breakpoints_t *New = (breakpoints_t *)GC_MALLOC_ATOMIC(sizeof(breakpoints_t) + Count * sizeof(size_t));
+		breakpoints_t *New = (breakpoints_t *)snew(sizeof(breakpoints_t) + Count * sizeof(size_t));
 		memset(New->Bits, 0, Count * sizeof(size_t));
 		memcpy(New->Bits, Old->Bits, Old->Count * sizeof(size_t));
 		New->Count = Count;

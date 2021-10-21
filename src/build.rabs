@@ -32,19 +32,24 @@ if defined("LTO") then
 	LDFLAGS:put("-flto")
 end
 
+if PLATFORM = "Linux" then
+	CFLAGS:put("-fno-tree-loop-distribute-patterns")
+end
+
 if DEBUG then
 	CFLAGS := old + ["-O1", "-g", "-DGC_DEBUG", "-DDEBUG"]
 	LDFLAGS := old + ["-g"]
 else
-	CFLAGS := old + ["-O3", "-march=native", "-fexpensive-optimizations", "-g"]
+	CFLAGS := old + ["-O3", "-fexpensive-optimizations", "-g"]
 	LDFLAGS := old + ["-g"]
 end
 
 PREBUILDS := old + [file("config.h")]
+INIT_HEADERS := [file("ml_types.h")]
 
 fun generate_init_file(Source) do
 	let InitFile := Source:basename:replace(".c", "_init.c")
-	let Target := file(InitFile)[Source, PREBUILDS] => fun() do
+	let Target := file(InitFile)[Source, PREBUILDS, INIT_HEADERS] => fun() do
 		Target:open("w"):close
 		let Init := shell(CC, CFLAGS, "-E -P -DGENERATE_INIT", Source)
 		let Out := Target:open("w")
@@ -77,6 +82,7 @@ generate_init_files()
 
 let Objects := [
 	file("ml_compiler.o"),
+	file("ml_opcodes.o"),
 	file("ml_bytecode.o"),
 	file("ml_runtime.o"),
 	file("ml_types.o"),
@@ -106,6 +112,7 @@ let InstallHeaders := [
 	"ml_object.h",
 	"ml_compiler.h",
 	"ml_runtime.h",
+	"ml_opcodes.h",
 	"ml_bytecode.h",
 	"stringmap.h",
 	"inthash.h",
@@ -116,7 +123,7 @@ if MINILANG_STATICGC or defined("STATICGC") then
 	let Dir := file("gc")
 	let Lib := file("gc/.libs/libgc.a") => fun(Lib) do
 		Dir:rmdir:mkdir:chdir
-		execute("wget https://github.com/ivmai/bdwgc/releases/download/v8.0.4/gc-8.0.4.tar.gz -O- | tar xvzP --strip-components=1")
+		execute("wget https://github.com/ivmai/bdwgc/releases/download/v8.2.0/gc-8.2.0.tar.gz -O- | tar xvzP --strip-components=1")
 		execute('CC={CC} ./configure', {
 			"--prefix" is PATH,
 			"--enable-static",

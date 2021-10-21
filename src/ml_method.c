@@ -7,8 +7,17 @@
 #include <stdatomic.h>
 #endif
 
-typedef struct ml_method_cached_t ml_method_cached_t;
+#undef ML_CATEGORY
+#define ML_CATEGORY "method"
+
 typedef struct ml_method_definition_t ml_method_definition_t;
+
+struct ml_method_definition_t {
+	ml_method_definition_t *Next;
+	ml_value_t *Callback;
+	int Count, Variadic;
+	ml_type_t *Types[];
+};
 
 struct ml_methods_t {
 	ml_type_t *Type;
@@ -65,13 +74,6 @@ static inline void ml_methods_unlock(ml_methods_t *Methods) {
 #endif
 }
 
-struct ml_method_definition_t {
-	ml_method_definition_t *Next;
-	ml_value_t *Callback;
-	int Count, Variadic;
-	ml_type_t *Types[];
-};
-
 static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_definition_t *Definition, int Count, ml_type_t **Types) {
 	unsigned int Score = 1;
 	if (Definition->Count > Count) return 0;
@@ -91,25 +93,17 @@ static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_
 	return Score;
 }
 
-struct ml_method_cached_t {
-	ml_method_cached_t *Next, *MethodNext;
-	ml_method_t *Method;
-	ml_method_definition_t *Definition;
-	int Count, Score;
-	ml_type_t *Types[];
-};
-
 static ml_method_cached_t *ml_method_search_entry(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_type_t **Types, uint64_t Hash);
 
 static __attribute__ ((noinline)) ml_method_cached_t *ml_method_search_entry2(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_type_t **Types, uint64_t Hash, ml_method_cached_t *Cached) {
 	unsigned int BestScore = 0;
-	ml_method_definition_t *BestDefinition = NULL;
+	ml_value_t *BestCallback = NULL;
 	ml_method_definition_t *Definition = inthash_search(Methods->Definitions, (uintptr_t)Method);
 	while (Definition) {
 		unsigned int Score = ml_method_definition_score(Definition, Count, Types);
 		if (Score > BestScore) {
 			BestScore = Score;
-			BestDefinition = Definition;
+			BestCallback = Definition->Callback;
 		}
 		Definition = Definition->Next;
 	}
@@ -117,10 +111,10 @@ static __attribute__ ((noinline)) ml_method_cached_t *ml_method_search_entry2(ml
 		ml_method_cached_t *Cached2 = ml_method_search_entry(Methods->Parent, Method, Count, Types, Hash);
 		if (Cached2 && Cached2->Score > BestScore) {
 			BestScore = Cached2->Score;
-			BestDefinition = Cached2->Definition;
+			BestCallback = Cached2->Callback;
 		}
 	}
-	if (!BestDefinition) {
+	if (!BestCallback) {
 		ml_methods_unlock(Methods);
 		return NULL;
 	}
@@ -132,7 +126,7 @@ static __attribute__ ((noinline)) ml_method_cached_t *ml_method_search_entry2(ml
 		Cached->Next = inthash_insert(Methods->Cache, Hash, Cached);
 		Cached->MethodNext = inthash_insert(Methods->Methods, (uintptr_t)Method, Cached);
 	}
-	Cached->Definition = BestDefinition;
+	Cached->Callback = BestCallback;
 	Cached->Score = BestScore;
 	ml_methods_unlock(Methods);
 	return Cached;
@@ -141,14 +135,14 @@ static __attribute__ ((noinline)) ml_method_cached_t *ml_method_search_entry2(ml
 static inline ml_method_cached_t *ml_method_search_entry(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_type_t **Types, uint64_t Hash) {
 	ml_methods_lock(Methods);
 	inthash_t *Cache = Methods->Cache;
-	ml_method_cached_t *Cached = inthash_search(Cache, Hash);
+	ml_method_cached_t *Cached = inthash_search_inline(Cache, Hash);
 	while (Cached) {
 		if (Cached->Method != Method) goto next;
 		if (Cached->Count != Count) goto next;
 		for (int I = 0; I < Count; ++I) {
 			if (Cached->Types[I] != Types[I]) goto next;
 		}
-		if (!Cached->Definition) break;
+		if (!Cached->Callback) break;
 		ml_methods_unlock(Methods);
 		return Cached;
 	next:
@@ -163,8 +157,7 @@ static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 }
 
 static __attribute__ ((noinline)) ml_value_t *ml_method_search2(ml_state_t *Caller, ml_method_t *Method, int Count, ml_value_t **Args) {
-	// Use alloca here, VLA prevents TCO.
-	ml_type_t **Types = alloca(Count * sizeof(ml_type_t *));
+	ml_type_t *Types[Count];
 	uintptr_t Hash = (uintptr_t)Method;
 	for (ssize_t I = Count; --I >= 0;) {
 		ml_type_t *Type = Types[I] = ml_typeof_deref(Args[I]);
@@ -172,7 +165,7 @@ static __attribute__ ((noinline)) ml_value_t *ml_method_search2(ml_state_t *Call
 	}
 	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
 	ml_method_cached_t *Cached = ml_method_search_entry(Methods, Method, Count, Types, Hash);
-	if (Cached) return Cached->Definition->Callback;
+	if (Cached) return Cached->Callback;
 	return NULL;
 }
 
@@ -194,8 +187,32 @@ static __attribute__ ((noinline)) ml_value_t *ml_method_search2(ml_state_t *Call
 	}
 	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
 	ml_method_cached_t *Cached = ml_method_search_entry(Methods, Method, Count, Types, Hash);
-	if (Cached) return Cached->Definition->Callback;
+	if (Cached) return Cached->Callback;
 	return NULL;
+}
+
+static __attribute__ ((noinline)) ml_method_cached_t *ml_method_search_cached2(ml_state_t *Caller, ml_method_t *Method, int Count, ml_value_t **Args) {
+	ml_type_t *Types[Count];
+	uintptr_t Hash = (uintptr_t)Method;
+	for (ssize_t I = Count; --I >= 0;) {
+		ml_type_t *Type = Types[I] = ml_typeof_deref(Args[I]);
+		Hash = rotl(Hash, 1) ^ (uintptr_t)Type;
+	}
+	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
+	return ml_method_search_entry(Methods, Method, Count, Types, Hash);
+}
+
+ml_method_cached_t *ml_method_search_cached(ml_state_t *Caller, ml_method_t *Method, int Count, ml_value_t **Args) {
+	// TODO: Use generation numbers to check Methods->Parent for invalidated definitions
+	if (Count > ML_SMALL_METHOD_COUNT) return ml_method_search_cached2(Caller, Method, Count, Args);
+	ml_type_t *Types[ML_SMALL_METHOD_COUNT];
+	uintptr_t Hash = (uintptr_t)Method;
+	for (ssize_t I = Count; --I >= 0;) {
+		ml_type_t *Type = Types[I] = ml_typeof_deref(Args[I]);
+		Hash = rotl(Hash, 1) ^ (uintptr_t)Type;
+	}
+	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
+	return ml_method_search_entry(Methods, Method, Count, Types, Hash);
 }
 
 void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Callback, int Count, int Variadic, ml_type_t **Types) {
@@ -209,7 +226,7 @@ void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Ca
 	ml_method_cached_t *Cached = inthash_search(Methods->Methods, (uintptr_t)Method);
 	ml_methods_unlock(Methods);
 	while (Cached) {
-		Cached->Definition = NULL;
+		Cached->Callback = NULL;
 		Cached = Cached->MethodNext;
 	}
 }
@@ -241,7 +258,7 @@ static long ml_method_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
-static void __attribute__ ((noinline)) ml_method_not_found(ml_state_t *Caller, ml_method_t *Method, int Count, ml_value_t **Args) {
+__attribute__ ((noinline)) ml_value_t *ml_no_method_error(ml_method_t *Method, int Count, ml_value_t **Args) {
 	int Length = 4;
 	for (int I = 0; I < Count; ++I) Length += strlen(ml_typeof(Args[I])->Name) + 2;
 	char *Types = snew(Length);
@@ -261,7 +278,7 @@ static void __attribute__ ((noinline)) ml_method_not_found(ml_state_t *Caller, m
 	}
 #endif
 	P[-2] = 0;
-	ML_ERROR("MethodError", "no method found for %s(%s)", Method->Name, Types);
+	return ml_error("MethodError", "no method found for %s(%s)", Method->Name, Types);
 }
 
 static void ml_method_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
@@ -271,7 +288,7 @@ static void ml_method_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_
 	if (__builtin_expect(Callback != NULL, 1)) {
 		return ml_call(Caller, Callback, Count, Args);
 	} else {
-		return ml_method_not_found(Caller, Method, Count, Args);
+		ML_RETURN(ml_no_method_error(Method, Count, Args));
 	}
 }
 
@@ -480,7 +497,7 @@ ML_FUNCTION(MLMethodSwitch) {
 	return (ml_value_t *)Switch;
 }
 
-static ML_METHOD_DECL(RangeMethod, "..");
+ML_METHOD_DECL(RangeMethod, "..");
 
 static inline void ml_method_set(ml_context_t *Context, int NumTypes, int Variadic, ml_value_t **Args, ml_value_t *Function) {
 	// Use alloca here, VLA prevents TCO.
@@ -520,6 +537,29 @@ ML_FUNCTIONX(MLMethodSet) {
 	ml_value_t *Function = Args[Count - 1];
 	ml_method_set(Caller->Context, NumTypes, Variadic, Args, Function);
 	ML_RETURN(Function);
+}
+
+ML_METHODX("list", MLMethodT) {
+	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
+	ml_value_t *Results = ml_list();
+	for (ml_method_definition_t *Definition = (ml_method_definition_t *)inthash_search(Methods->Definitions, (uintptr_t)Args[0]); Definition; Definition = Definition->Next) {
+		ml_value_t *Result = ml_list();
+		const char *Source;
+		int Line;
+		if (ml_function_source(Definition->Callback, &Source, &Line)) {
+			ml_list_put(Result, ml_cstring(Source));
+			ml_list_put(Result, ml_integer(Line));
+		} else {
+			ml_list_put(Result, MLNil);
+			ml_list_put(Result, MLNil);
+		}
+		for (int I = 0; I < Definition->Count; ++I) {
+			ml_list_put(Result, (ml_value_t *)Definition->Types[I]);
+		}
+		if (Definition->Variadic) ml_list_put(Result, RangeMethod);
+		ml_list_put(Results, Result);
+	}
+	ML_RETURN(Results);
 }
 
 ML_FUNCTIONX(MLMethodContext) {

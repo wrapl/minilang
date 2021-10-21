@@ -4,6 +4,9 @@
 #include <string.h>
 #include "ml_sequence.h"
 
+#undef ML_CATEGORY
+#define ML_CATEGORY "list"
+
 static ml_list_node_t *ml_list_index(ml_list_t *List, int Index) {
 	int Length = List->Length;
 	if (Index <= 0) Index += Length + 1;
@@ -59,8 +62,9 @@ static ml_value_t *ml_list_node_deref(ml_list_node_t *Node) {
 	return Node->Value;
 }
 
-static ml_value_t *ml_list_node_assign(ml_list_node_t *Node, ml_value_t *Value) {
-	return (Node->Value = Value);
+static void ml_list_node_assign(ml_state_t *Caller, ml_list_node_t *Node, ml_value_t *Value) {
+	Node->Value = Value;
+	ML_RETURN(Value);
 }
 
 static void ml_list_node_call(ml_state_t *Caller, ml_list_node_t *Node, int Count, ml_value_t **Args) {
@@ -97,13 +101,21 @@ ml_value_t *ml_list() {
 }
 
 ML_METHOD(MLListT) {
+//>list
+// Returns an empty list.
 	return ml_list();
 }
 
 ML_METHOD(MLListT, MLTupleT) {
+//<Tuple
+//>list
+// Returns a list containing the values in :mini:`Tuple`.
 	ml_value_t *List = ml_list();
 	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
-	for (int I = 0; I < Tuple->Size; ++I) ml_list_put(List, Tuple->Values[I]);
+	for (int I = 0; I < Tuple->Size; ++I) {
+		ml_value_t *Value = Tuple->Values[I];
+		ml_list_put(List, ml_deref(Value));
+	}
 	return List;
 }
 
@@ -122,11 +134,6 @@ static void list_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	State->Base.run = (void *)list_iter_value;
 	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Values[0]);
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
-}
-
-ML_METHOD("count", MLListT) {
-//!internal
-	return ml_integer(ml_list_length(Args[0]));
 }
 
 ML_METHODVX(MLListT, MLSequenceT) {
@@ -183,7 +190,7 @@ void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
 	if ((Node->Next = List->Head)) {
 		List->Head->Prev = Node;
 #ifdef ML_GENERICS
-		if (List->Type->Type == MLGenericTypeT) {
+		if (List->Type->Type == MLTypeGenericT) {
 			ml_type_t *Type = ml_generic_type_args(List->Type)[1];
 			if (Type != ml_typeof(Value)) {
 				ml_type_t *Type2 = ml_type_max(Type, ml_typeof(Value));
@@ -217,7 +224,7 @@ void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 	if ((Node->Prev = List->Tail)) {
 		List->Tail->Next = Node;
 #ifdef ML_GENERICS
-		if (List->Type->Type == MLGenericTypeT) {
+		if (List->Type->Type == MLTypeGenericT) {
 			ml_type_t *Type = ml_generic_type_args(List->Type)[1];
 			if (Type != ml_typeof(Value)) {
 				ml_type_t *Type2 = ml_type_max(Type, ml_typeof(Value));
@@ -420,7 +427,7 @@ static ml_value_t *ml_list_slice_deref(ml_list_slice_t *Slice) {
 	return List;
 }
 
-static ml_value_t *ml_list_slice_assign(ml_list_slice_t *Slice, ml_value_t *Packed) {
+static void ml_list_slice_assign(ml_state_t *Caller, ml_list_slice_t *Slice, ml_value_t *Packed) {
 	ml_list_node_t *Node = Slice->Head;
 	int Length = Slice->Length;
 	int Index = 0;
@@ -431,7 +438,7 @@ static ml_value_t *ml_list_slice_assign(ml_list_slice_t *Slice, ml_value_t *Pack
 		Node = Node->Next;
 		--Length;
 	}
-	return Packed;
+	ML_RETURN(Packed);
 }
 
 ML_TYPE(MLListSliceT, (), "list-slice",
@@ -869,6 +876,9 @@ ML_METHOD(MLStringT, MLListT, MLStringT) {
 }
 
 ML_METHOD("reverse", MLListT) {
+//<List
+//>list
+// Reverses :mini:`List` in-place and returns it.
 	ml_list_t *List = (ml_list_t *)Args[0];
 	ml_list_node_t *Prev = List->Head;
 	if (!Prev) return (ml_value_t *)List;
@@ -987,6 +997,7 @@ extern ml_value_t *LessMethod;
 ML_METHODX("sort", MLListT) {
 //<List
 //>List
+// Sorts :mini:`List` in-place using :mini:`<` and returns it.
 	if (!ml_list_length(Args[0])) ML_RETURN(Args[0]);
 	ml_list_sort_state_t *State = new(ml_list_sort_state_t);
 	State->Base.Caller = Caller;
@@ -1010,6 +1021,7 @@ ML_METHODX("sort", MLListT, MLFunctionT) {
 //<List
 //<Compare
 //>List
+// Sorts :mini:`List` in-place using :mini:`Compare` and returns it.
 	if (!ml_list_length(Args[0])) ML_RETURN(Args[0]);
 	ml_list_sort_state_t *State = new(ml_list_sort_state_t);
 	State->Base.Caller = Caller;

@@ -21,12 +21,12 @@ module
 :mini:`meth :exports(Arg₁: module)`
    *TBD*
 
-:mini:`type minimodule < module`
+:mini:`type mini::module < module`
    *TBD*
 
-:mini:`meth (Arg₁: minimodule) :: (Arg₂: string)`
+:mini:`meth (Arg₁: mini::module) :: (Arg₂: string)`
    *TBD*
 
-:mini:`type modulestate`
+:mini:`type module::state`
    *TBD*
 

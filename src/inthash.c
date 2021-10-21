@@ -6,18 +6,15 @@ inthash_t *inthash_new() {
 	return new(inthash_t);
 }
 
-#define INDEX_SHIFT 6
-#define INCR_SHIFT 9
-
 #ifndef ASM_INTHASH_SEARCH
 void *inthash_search(const inthash_t *Map, uintptr_t Key) {
 	if (!Map->Size) return NULL;
 	uintptr_t *Keys = Map->Keys;
 	size_t Mask = Map->Size - 1;
-	size_t Index = (Key >> INDEX_SHIFT) & Mask;
+	size_t Index = (Key >> INTHASH_INDEX_SHIFT) & Mask;
 	if (Keys[Index] == Key) return Map->Values[Index];
 	if (Keys[Index] < Key) return NULL;
-	size_t Incr = (Key >> INCR_SHIFT) | 1;
+	size_t Incr = (Key >> INTHASH_INCR_SHIFT) | 1;
 	do {
 		Index = (Index + Incr) & Mask;
 		if (Keys[Index] == Key) return Map->Values[Index];
@@ -29,10 +26,10 @@ inthash_result_t inthash_search2(const inthash_t *Map, uintptr_t Key) {
 	if (!Map->Size) return (inthash_result_t){NULL, 0};
 	uintptr_t *Keys = Map->Keys;
 	size_t Mask = Map->Size - 1;
-	size_t Index = (Key >> INDEX_SHIFT) & Mask;
+	size_t Index = (Key >> INTHASH_INDEX_SHIFT) & Mask;
 	if (Keys[Index] == Key) return (inthash_result_t){Map->Values[Index], 1};
 	if (Keys[Index] < Key) return (inthash_result_t){NULL, 0};
-	size_t Incr = (Key >> INCR_SHIFT) | 1;
+	size_t Incr = (Key >> INTHASH_INCR_SHIFT) | 1;
 	do {
 		Index = (Index + Incr) & Mask;
 		if (Keys[Index] == Key) return (inthash_result_t){Map->Values[Index], 1};
@@ -81,14 +78,14 @@ void *inthash_insert(inthash_t *Map, uintptr_t Key, void *Value) {
 		Values = Map->Values = anew(void *, INITIAL_SIZE);
 		Map->Size = INITIAL_SIZE;
 		Map->Space = INITIAL_SIZE - 1;
-		size_t Index =  (Key >> INDEX_SHIFT) & (INITIAL_SIZE - 1);
+		size_t Index =  (Key >> INTHASH_INDEX_SHIFT) & (INITIAL_SIZE - 1);
 		Keys[Index] = Key;
 		Values[Index] = Value;
 		return NULL;
 	}
 	size_t Mask = Map->Size - 1;
-	size_t Index = (Key >> INDEX_SHIFT) & Mask;
-	size_t Incr = (Key >> INCR_SHIFT) | 1;
+	size_t Index = (Key >> INTHASH_INDEX_SHIFT) & Mask;
+	size_t Incr = (Key >> INTHASH_INCR_SHIFT) | 1;
 	for (;;) {
 		if (Keys[Index] == Key) {
 			void *Old = Values[Index];
@@ -104,7 +101,7 @@ void *inthash_insert(inthash_t *Map, uintptr_t Key, void *Value) {
 		Keys[Index] = Key;
 		Values[Index] = Value;
 		while (Key1) {
-			Incr = (Key1 >> INCR_SHIFT) | 1;
+			Incr = (Key1 >> INTHASH_INCR_SHIFT) | 1;
 			while (Keys[Index] > Key1) Index = (Index + Incr) & Mask;
 			uintptr_t Key2 = Keys[Index];
 			void *Value2 = Values[Index];
@@ -125,8 +122,8 @@ void *inthash_insert(inthash_t *Map, uintptr_t Key, void *Value) {
 		for (int I = 0; Keys[I]; ++I) {
 			uintptr_t Key2 = Keys[I];
 			void *Value2 = Values[I];
-			size_t Index2 = (Key2 >> INDEX_SHIFT) & Mask;
-			size_t Incr2 = (Key2 >> INCR_SHIFT) | 1;
+			size_t Index2 = (Key2 >> INTHASH_INDEX_SHIFT) & Mask;
+			size_t Incr2 = (Key2 >> INTHASH_INCR_SHIFT) | 1;
 			while (Keys2[Index2]) Index2 = (Index2 + Incr2) & Mask;
 			Keys2[Index2] = Key2;
 			Values2[Index2] = Value2;

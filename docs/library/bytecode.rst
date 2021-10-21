@@ -4,6 +4,9 @@ bytecode
 :mini:`type variable`
    *TBD*
 
+:mini:`fun closure(Arg₁: closure)`
+   *TBD*
+
 :mini:`type closure < function, sequence`
    *TBD*
 
