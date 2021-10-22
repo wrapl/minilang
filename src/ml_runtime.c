@@ -11,6 +11,8 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "runtime"
 
+//!internal
+
 // Runtime //
 
 #ifndef ML_THREADSAFE
@@ -234,6 +236,7 @@ static void ml_resumable_state_run(ml_resumable_state_t *State, ml_value_t *Valu
 }
 
 ML_FUNCTIONX(MLCallCC) {
+//!runtime
 //@callcc
 	if (!Caller->Type) Caller->Type = MLStateT;
 	ML_CHECKX_ARG_COUNT(1);
@@ -246,6 +249,7 @@ ML_FUNCTIONX(MLCallCC) {
 }
 
 ML_FUNCTIONX(MLMarkCC) {
+//!runtime
 //@markcc
 	ML_CHECKX_ARG_COUNT(1);
 	ml_state_t *State = new(ml_state_t);
@@ -259,6 +263,7 @@ ML_FUNCTIONX(MLMarkCC) {
 }
 
 ML_FUNCTIONX(MLCallDC) {
+//!runtime
 //@calldc
 	if (!Caller->Type) Caller->Type = MLStateT;
 	ML_CHECKX_ARG_COUNT(2);
@@ -280,6 +285,7 @@ ML_FUNCTIONX(MLCallDC) {
 }
 
 ML_FUNCTIONX(MLSwapCC) {
+//!runtime
 //@swapcc
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLStateT);
@@ -307,6 +313,7 @@ static void ml_reference_call(ml_state_t *Caller, ml_reference_t *Reference, int
 }
 
 ML_TYPE(MLReferenceT, (), "reference",
+//!runtime
 	.hash = (void *)ml_reference_hash,
 	.deref = (void *)ml_reference_deref,
 	.assign = (void *)ml_reference_assign,
@@ -672,6 +679,7 @@ ml_value_t *ml_debugger_local(ml_state_t *State, int Index) {
 }
 
 ML_FUNCTIONX(MLBreak) {
+//!runtime
 //@break
 //<Condition?
 // If a debugger is present and :mini:`Condition` is omitted or not :mini:`nil` then triggers a breakpoint.

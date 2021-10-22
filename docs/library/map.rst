@@ -20,22 +20,22 @@ map
 :mini:`meth map()`
    *TBD*
 
-:mini:`meth map(Arg₁: names, ...)`
+:mini:`meth map(Arg₁: names), ...`
    *TBD*
 
 :mini:`meth map(Sequence: sequence): map`
    Returns a map of all the key and value pairs produced by :mini:`Sequence`.
 
 
-:mini:`meth :grow(Map: map, Sequence: sequence): map`
+:mini:`meth (Map: map):grow(Sequence: sequence): map`
    Adds of all the key and value pairs produced by :mini:`Sequence` to :mini:`Map` and returns :mini:`Map`.
 
 
-:mini:`meth :size(Map: map): integer`
+:mini:`meth (Map: map):size: integer`
    Returns the number of entries in :mini:`Map`.
 
 
-:mini:`meth :count(Map: map): integer`
+:mini:`meth (Map: map):count: integer`
    Returns the number of entries in :mini:`Map`.
 
 
@@ -51,23 +51,21 @@ map
    Same as :mini:`Map[Key]`. This method allows maps to be used as modules.
 
 
-:mini:`meth :insert(Map: map, Key: any, Value: any): any | nil`
+:mini:`meth (Map: map):insert(Key: any, Value: any): any | nil`
    Inserts :mini:`Key` into :mini:`Map` with corresponding value :mini:`Value`.
 
    Returns the previous value associated with :mini:`Key` if any, otherwise :mini:`nil`.
 
 
-:mini:`meth :delete(Map: map, Key: any): any | nil`
+:mini:`meth (Map: map):delete(Key: any): any | nil`
    Removes :mini:`Key` from :mini:`Map` and returns the corresponding value if any, otherwise :mini:`nil`.
 
 
-:mini:`meth :missing(Map: map, Key: any): any | nil`
-   Inserts :mini:`Key` into :mini:`Map` with corresponding value :mini:`Value`.
-
-   Returns the previous value associated with :mini:`Key` if any, otherwise :mini:`nil`.
+:mini:`meth (Map: map):missing(Key: any): some | nil`
+   If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`some` and returns :mini:`some`.
 
 
-:mini:`meth :append(Arg₁: string::buffer, Arg₂: map)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: map)`
    *TBD*
 
 :mini:`meth (Map₁: map) + (Map₂: map): map`
@@ -92,12 +90,12 @@ map
    Returns a string containing the entries of :mini:`Map` with :mini:`Connector` between keys and values and :mini:`Seperator` between entries.
 
 
-:mini:`meth :sort(Map: map): Map`
+:mini:`meth (Map: map):sort: Map`
    *TBD*
 
-:mini:`meth :sort(Map: map, Compare: function): Map`
+:mini:`meth (Map: map):sort(Compare: function): Map`
    *TBD*
 
-:mini:`meth :sort2(Map: map, Compare: function): Map`
+:mini:`meth (Map: map):sort2(Compare: function): Map`
    *TBD*
 

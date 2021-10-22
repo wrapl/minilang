@@ -130,7 +130,7 @@ sequence
    Returns the product of the values (using :mini:`*`) produced by :mini:`Sequence`.
 
 
-:mini:`meth :join(Sequence: sequence, Separator: string): string`
+:mini:`meth (Sequence: sequence):join(Separator: string): string`
    Joins the elements of :mini:`Sequence` into a string using :mini:`Separator` between elements.
 
 
@@ -171,11 +171,11 @@ sequence
    Returns an sequence that repeatedly produces the values from :mini:`Sequence` (for use with :mini:`limit`).
 
 
-:mini:`meth :limit(Sequence: sequence, Limit: integer): sequence`
+:mini:`meth (Sequence: sequence):limit(Limit: integer): sequence`
    Returns an sequence that produces at most :mini:`Limit` values from :mini:`Sequence`.
 
 
-:mini:`meth :skip(Sequence: sequence, Skip: integer): sequence`
+:mini:`meth (Sequence: sequence):skip(Skip: integer): sequence`
    Returns an sequence that skips the first :mini:`Skip` values from :mini:`Sequence` and then produces the rest.
 
 
@@ -193,7 +193,7 @@ sequence
    The sequence stops produces values when any of the :mini:`Sequenceᵢ` stops.
 
 
-:mini:`fun cart(Sequence₁: sequence, ...: sequence, Sequenceₙ: sequence, Function: any): sequence`
+:mini:`fun grid(Sequence₁: sequence, ...: sequence, Sequenceₙ: sequence, Function: any): sequence`
    Returns a new sequence that produces :mini:`Function(V₁, V₂, ..., Vₙ)` for all possible combinations of :mini:`V₁, ..., Vₙ`, where :mini:`Vᵢ` are the values produced by :mini:`Sequenceᵢ`.
 
 

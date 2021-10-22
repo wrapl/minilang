@@ -31,9 +31,6 @@ general
 :mini:`fun unload(Arg₁: string)`
    *TBD*
 
-:mini:`type ConsoleT`
-   *TBD*
-
 :mini:`fun sleep(Arg₁: number)`
    *TBD*
 

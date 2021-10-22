@@ -34,10 +34,10 @@ function
 :mini:`type function::partial < function, sequence`
    *TBD*
 
-:mini:`meth :count(Arg₁: function::partial)`
+:mini:`meth (Arg₁: function::partial):arity`
    *TBD*
 
-:mini:`meth :set(Arg₁: function::partial)`
+:mini:`meth (Arg₁: function::partial):set`
    *TBD*
 
 :mini:`meth (Function: function) !! (List: list): partialfunction`

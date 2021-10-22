@@ -17,15 +17,15 @@ table
    Returns a table using :mini:`Names` for column names and :mini:`Values` as column values, converted to arrays using :mini:`array()` if necessary.
 
 
-:mini:`meth :insert(Table: table, Name: string, Value: array): table`
+:mini:`meth (Table: table):insert(Name: string, Value: array): table`
    Insert the column :mini:`Name` with values :mini:`Value` into :mini:`Table`.
 
 
-:mini:`meth :insert(Table: table, Names: names, Value₁, ..., Valueₙ: array, ...): table`
+:mini:`meth (Table: table):insert(Names: names, Value₁, ..., Valueₙ: array, ...): table`
    Insert columns with names from :mini:`Names` and values :mini:`Value₁`, ..., :mini:`Valueₙ` into :mini:`Table`.
 
 
-:mini:`meth :delete(Table: table, Name: string): array`
+:mini:`meth (Table: table):delete(Name: string): array`
    Remove the column :mini:`Name` from :mini:`Table` and return the value array.
 
 

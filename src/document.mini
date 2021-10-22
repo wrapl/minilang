@@ -1,4 +1,3 @@
-let Categories := {}
 let OutputDirectory := Args[1]
 
 for FileName in dir(OutputDirectory) do
@@ -17,6 +16,13 @@ fun category_name(Type) do
 		ret Type
 	end
 end
+
+class: internal()
+
+meth :write(Internal: internal, ..) nil
+meth :close(Internal: internal) nil
+
+let Categories := {"internal" is internal()}
 
 fun write_category(Category) do
 	print('Creating Category: {Category}\n')
@@ -73,16 +79,35 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 		Title:write("(", Params[1][1], ": ", type_name(Params[1][2]), ")[")
 		Terminator := "]"
 	elseif is_symbol(Method) then
-		if Params:length = 1 then
-			Title:write('{Method}(', Params[1][1], ": ", type_name(Params[1][2]), ")")
+		if Params:length = 0 then
+			Title:write('{Method}()')
+		elseif Params:length = 1 then
+			Title:write('{Method}({Params[1][1]}: {type_name(Params[1][2])})')
 		else
 			Title:write('({Params[1][1]}: {type_name(Params[1][2])}) {Method} (')
 			Terminator := ")"
 		end
+	elseif Method[1] != ":" then
+		if Params:length = 0 then
+			Title:write('{Method}()')
+		elseif Params:length = 1 then
+			Title:write('{Method}({Params[1][1]}: {type_name(Params[1][2])})')
+		else
+			Title:write('{Method}({Params[1][1]}: {type_name(Params[1][2])}, ')
+			Terminator := ")"
+		end
 	else
-		Title:write('{Method}(')
+		:<Title:write('{Method}(')
 		Skip := 0
-		Terminator := ")"
+		Terminator := ")">:
+		if Params:length = 0 then
+			Title:write('{Method}()')
+		elseif Params:length = 1 then
+			Title:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}')
+		else
+			Title:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}(')
+			Terminator := ")"
+		end
 	end
 	var Seperator := ""
 	for Param in Params skip Skip do

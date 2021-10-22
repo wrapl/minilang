@@ -95,7 +95,7 @@ gir
 :mini:`meth (Typelib: TypelibT) :: (Name: string): any | error`
    *TBD*
 
-:mini:`meth :connect(Object: ObjectInstanceT, Signal: string, Handler: function): Object`
+:mini:`meth (Object: ObjectInstanceT):connect(Signal: string, Handler: function): Object`
    *TBD*
 
 :mini:`type ObjectPropertyT`

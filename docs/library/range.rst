@@ -15,21 +15,21 @@ range
    Returns a range from :mini:`Start` to :mini:`Limit` (inclusive).
 
 
-:mini:`meth :by(Start: integer, Step: integer): integer::range`
+:mini:`meth (Start: integer):by(Step: integer): integer::range`
    Returns a unlimited range from :mini:`Start` in steps of :mini:`Step`.
 
 
-:mini:`meth :by(Range: integer::range, Step: integer): integer::range`
+:mini:`meth (Range: integer::range):by(Step: integer): integer::range`
    Returns a range with the same limits as :mini:`Range` but with step :mini:`Step`.
 
 
-:mini:`meth :count(X: integer::range): integer`
+:mini:`meth (X: integer::range):count: integer`
    *TBD*
 
-:mini:`meth :in(X: integer, Range: integer::range): X | nil`
+:mini:`meth (X: integer):in(Range: integer::range): X | nil`
    *TBD*
 
-:mini:`meth :in(X: double, Range: integer::range): X | nil`
+:mini:`meth (X: double):in(Range: integer::range): X | nil`
    *TBD*
 
 :mini:`type real::iter`
@@ -44,39 +44,39 @@ range
 :mini:`meth (Start: number) .. (Limit: number, Arg₃: number): real::range`
    *TBD*
 
-:mini:`meth :by(Start: number, Step: number): real::range`
+:mini:`meth (Start: number):by(Step: number): real::range`
    *TBD*
 
-:mini:`meth :by(Range: real::range, Step: number): real::range`
+:mini:`meth (Range: real::range):by(Step: number): real::range`
    *TBD*
 
-:mini:`meth :in(Range: integer::range, Count: integer): real::range`
+:mini:`meth (Range: integer::range):in(Count: integer): real::range`
    *TBD*
 
-:mini:`meth :in(Range: real::range, Count: integer): real::range`
+:mini:`meth (Range: real::range):in(Count: integer): real::range`
    *TBD*
 
-:mini:`meth :by(Range: integer::range, Step: double): real::range`
+:mini:`meth (Range: integer::range):by(Step: double): real::range`
    *TBD*
 
-:mini:`meth :bin(Range: integer::range, Value: integer): integer | nil`
+:mini:`meth (Range: integer::range):bin(Value: integer): integer | nil`
    *TBD*
 
-:mini:`meth :bin(Range: integer::range, Value: double): integer | nil`
+:mini:`meth (Range: integer::range):bin(Value: double): integer | nil`
    *TBD*
 
-:mini:`meth :bin(Range: real::range, Value: integer): integer | nil`
+:mini:`meth (Range: real::range):bin(Value: integer): integer | nil`
    *TBD*
 
-:mini:`meth :bin(Range: real::range, Value: double): integer | nil`
+:mini:`meth (Range: real::range):bin(Value: double): integer | nil`
    *TBD*
 
-:mini:`meth :count(X: real::range): integer`
+:mini:`meth (X: real::range):count: integer`
    *TBD*
 
-:mini:`meth :in(X: integer, Range: real::range): X | nil`
+:mini:`meth (X: integer):in(Range: real::range): X | nil`
    *TBD*
 
-:mini:`meth :in(X: double, Range: real::range): X | nil`
+:mini:`meth (X: double):in(Range: real::range): X | nil`
    *TBD*
 

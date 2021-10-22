@@ -19,11 +19,11 @@ string
 :mini:`meth string(Arg₁: real::range)`
    *TBD*
 
-:mini:`meth :ord(String: string): integer`
+:mini:`meth (String: string):ord: integer`
    Returns the unicode codepoint of the first character of :mini:`String`.
 
 
-:mini:`meth :chr(Codepoint: integer): string`
+:mini:`meth (Codepoint: integer):chr: string`
    Returns a string containing the character with unicode codepoint :mini:`Codepoint`.
 
 
@@ -77,28 +77,28 @@ string
 :mini:`type string::buffer`
    *TBD*
 
-:mini:`meth :get(Arg₁: string::buffer)`
+:mini:`meth (Arg₁: string::buffer):get`
    *TBD*
 
-:mini:`meth :append(Arg₁: string::buffer, Arg₂: any, ...)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: any, ...)`
    *TBD*
 
-:mini:`meth :write(Arg₁: string::buffer, Arg₂: any, ...)`
+:mini:`meth (Arg₁: string::buffer):write(Arg₂: any, ...)`
    *TBD*
 
-:mini:`meth :append(Arg₁: string::buffer, Arg₂: nil)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: nil)`
    *TBD*
 
-:mini:`meth :append(Arg₁: string::buffer, Arg₂: some)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: some)`
    *TBD*
 
-:mini:`meth :append(Arg₁: string::buffer, Arg₂: integer)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: integer)`
    *TBD*
 
-:mini:`meth :append(Arg₁: string::buffer, Arg₂: double)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: double)`
    *TBD*
 
-:mini:`meth :append(Arg₁: string::buffer, Arg₂: string)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: string)`
    *TBD*
 
 :mini:`meth (Arg₁: string)[Arg₂: integer]`
@@ -110,28 +110,28 @@ string
 :mini:`meth (Arg₁: string) + (Arg₂: string)`
    *TBD*
 
-:mini:`meth :trim(Arg₁: string)`
+:mini:`meth (Arg₁: string):trim`
    *TBD*
 
-:mini:`meth :trim(Arg₁: string, Arg₂: string)`
+:mini:`meth (Arg₁: string):trim(Arg₂: string)`
    *TBD*
 
-:mini:`meth :ltrim(Arg₁: string)`
+:mini:`meth (Arg₁: string):ltrim`
    *TBD*
 
-:mini:`meth :ltrim(Arg₁: string, Arg₂: string)`
+:mini:`meth (Arg₁: string):ltrim(Arg₂: string)`
    *TBD*
 
-:mini:`meth :rtrim(Arg₁: string)`
+:mini:`meth (Arg₁: string):rtrim`
    *TBD*
 
-:mini:`meth :rtrim(Arg₁: string, Arg₂: string)`
+:mini:`meth (Arg₁: string):rtrim(Arg₂: string)`
    *TBD*
 
-:mini:`meth :length(Arg₁: string)`
+:mini:`meth (Arg₁: string):length`
    *TBD*
 
-:mini:`meth :count(Arg₁: string)`
+:mini:`meth (Arg₁: string):count`
    *TBD*
 
 :mini:`meth (Arg₁: string) <> (Arg₂: string)`
@@ -188,34 +188,34 @@ string
 :mini:`meth (Arg₁: string) */ (Arg₂: regex)`
    *TBD*
 
-:mini:`meth :lower(Arg₁: string)`
+:mini:`meth (Arg₁: string):lower`
    *TBD*
 
-:mini:`meth :upper(Arg₁: string)`
+:mini:`meth (Arg₁: string):upper`
    *TBD*
 
-:mini:`meth :find(Arg₁: string, Arg₂: string)`
+:mini:`meth (Arg₁: string):find(Arg₂: string)`
    *TBD*
 
-:mini:`meth :find2(Arg₁: string, Arg₂: string)`
+:mini:`meth (Arg₁: string):find2(Arg₂: string)`
    *TBD*
 
-:mini:`meth :find(Arg₁: string, Arg₂: string, Arg₃: integer)`
+:mini:`meth (Arg₁: string):find(Arg₂: string, Arg₃: integer)`
    *TBD*
 
-:mini:`meth :find2(Arg₁: string, Arg₂: string, Arg₃: integer)`
+:mini:`meth (Arg₁: string):find2(Arg₂: string, Arg₃: integer)`
    *TBD*
 
-:mini:`meth :find(Arg₁: string, Arg₂: regex)`
+:mini:`meth (Arg₁: string):find(Arg₂: regex)`
    *TBD*
 
-:mini:`meth :find2(Arg₁: string, Arg₂: regex)`
+:mini:`meth (Arg₁: string):find2(Arg₂: regex)`
    *TBD*
 
-:mini:`meth :find(Arg₁: string, Arg₂: regex, Arg₃: integer)`
+:mini:`meth (Arg₁: string):find(Arg₂: regex, Arg₃: integer)`
    *TBD*
 
-:mini:`meth :find2(Arg₁: string, Arg₂: regex, Arg₃: integer)`
+:mini:`meth (Arg₁: string):find2(Arg₂: regex, Arg₃: integer)`
    *TBD*
 
 :mini:`meth (Arg₁: string) % (Arg₂: regex)`
@@ -224,42 +224,42 @@ string
 :mini:`meth (Arg₁: string) ? (Arg₂: regex)`
    *TBD*
 
-:mini:`meth :starts(Arg₁: string, Arg₂: string)`
+:mini:`meth (Arg₁: string):starts(Arg₂: string)`
    *TBD*
 
-:mini:`meth :starts(Arg₁: string, Arg₂: regex)`
+:mini:`meth (Arg₁: string):starts(Arg₂: regex)`
    *TBD*
 
-:mini:`meth :ends(Arg₁: string, Arg₂: string)`
+:mini:`meth (Arg₁: string):ends(Arg₂: string)`
    *TBD*
 
-:mini:`meth :after(Arg₁: string, Arg₂: string)`
+:mini:`meth (Arg₁: string):after(Arg₂: string)`
    *TBD*
 
-:mini:`meth :after(Arg₁: string, Arg₂: string, Arg₃: integer)`
+:mini:`meth (Arg₁: string):after(Arg₂: string, Arg₃: integer)`
    *TBD*
 
-:mini:`meth :before(Arg₁: string, Arg₂: string)`
+:mini:`meth (Arg₁: string):before(Arg₂: string)`
    *TBD*
 
-:mini:`meth :before(Arg₁: string, Arg₂: string, Arg₃: integer)`
+:mini:`meth (Arg₁: string):before(Arg₂: string, Arg₃: integer)`
    *TBD*
 
-:mini:`meth :replace(Arg₁: string, Arg₂: string, Arg₃: string)`
+:mini:`meth (Arg₁: string):replace(Arg₂: string, Arg₃: string)`
    *TBD*
 
-:mini:`meth :replace(Arg₁: string, Arg₂: regex, Arg₃: string)`
+:mini:`meth (Arg₁: string):replace(Arg₂: regex, Arg₃: string)`
    *TBD*
 
-:mini:`meth :replace(Arg₁: string, Arg₂: regex, Arg₃: function)`
+:mini:`meth (Arg₁: string):replace(Arg₂: regex, Arg₃: function)`
    *TBD*
 
-:mini:`meth :replace(Arg₁: string, Arg₂: map)`
+:mini:`meth (Arg₁: string):replace(Arg₂: map)`
    *TBD*
 
 :mini:`meth string(Arg₁: regex)`
    *TBD*
 
-:mini:`meth :append(Arg₁: string::buffer, Arg₂: regex)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: regex)`
    *TBD*
 

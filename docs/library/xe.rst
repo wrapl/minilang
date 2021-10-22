@@ -34,13 +34,13 @@ xe
 :mini:`fun xeattr()`
    *TBD*
 
-:mini:`meth :append(Arg₁: string::buffer, Arg₂: XENodeT)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: XENodeT)`
    *TBD*
 
 :mini:`meth string(Arg₁: XENodeT)`
    *TBD*
 
-:mini:`meth :append(Arg₁: string::buffer, Arg₂: XEVarT)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: XEVarT)`
    *TBD*
 
 :mini:`meth string(Arg₁: XEVarT)`
@@ -67,12 +67,12 @@ xe
 :mini:`fun xeappend(Arg₁: list, Arg₂: any)`
    *TBD*
 
-:mini:`meth :tag(Arg₁: XENodeT)`
+:mini:`meth (Arg₁: XENodeT):tag`
    *TBD*
 
-:mini:`meth :attributes(Arg₁: XENodeT)`
+:mini:`meth (Arg₁: XENodeT):attributes`
    *TBD*
 
-:mini:`meth :content(Arg₁: XENodeT)`
+:mini:`meth (Arg₁: XENodeT):content`
    *TBD*
 

@@ -21,7 +21,7 @@ time
    Parses the :mini:`String` as a time according to specified format. The time is assumed to be in local time unless UTC is :mini:`true`.
 
 
-:mini:`meth :nsec(Time: time): integer`
+:mini:`meth (Time: time):nsec: integer`
    Returns the nanoseconds component of :mini:`Time`.
 
 

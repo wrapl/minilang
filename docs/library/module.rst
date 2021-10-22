@@ -2,7 +2,7 @@ module
 ======
 
 :mini:`fun module(Path: string, Lookup: function): module`
-   Returns a generic module which calls resolves :mini:`Module::Import` by calling :mini:`Lookup(Module, Import)`, caching results for future use.
+   Returns a generic module which calls resolves :mini:`Module::Import` by calling :mini:`Lookup(Import)`, caching results for future use.
 
 
 :mini:`type module`
@@ -15,18 +15,9 @@ module
 :mini:`meth string(Arg₁: module)`
    *TBD*
 
-:mini:`meth :path(Arg₁: module)`
+:mini:`meth (Arg₁: module):path`
    *TBD*
 
-:mini:`meth :exports(Arg₁: module)`
-   *TBD*
-
-:mini:`type mini::module < module`
-   *TBD*
-
-:mini:`meth (Arg₁: mini::module) :: (Arg₂: string)`
-   *TBD*
-
-:mini:`type module::state`
+:mini:`meth (Arg₁: module):exports`
    *TBD*
 

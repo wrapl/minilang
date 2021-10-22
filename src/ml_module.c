@@ -7,6 +7,7 @@
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "module"
+//!internal
 
 typedef struct {
 	ml_module_t Base;

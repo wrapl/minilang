@@ -11,28 +11,28 @@ queue
 :mini:`meth queue()`
    *TBD*
 
-:mini:`meth :insert(Arg₁: queue, Arg₂: any, Arg₃: number)`
+:mini:`meth (Arg₁: queue):insert(Arg₂: any, Arg₃: number)`
    *TBD*
 
-:mini:`meth :next(Arg₁: queue)`
+:mini:`meth (Arg₁: queue):next`
    *TBD*
 
-:mini:`meth :count(Arg₁: queue)`
+:mini:`meth (Arg₁: queue):count`
    *TBD*
 
-:mini:`meth :size(Arg₁: queue)`
+:mini:`meth (Arg₁: queue):size`
    *TBD*
 
-:mini:`meth :update(Arg₁: queue::node, Arg₂: number)`
+:mini:`meth (Arg₁: queue::node):update(Arg₂: number)`
    *TBD*
 
-:mini:`meth :remove(Arg₁: queue::node)`
+:mini:`meth (Arg₁: queue::node):remove`
    *TBD*
 
-:mini:`meth :value(Arg₁: queue::node)`
+:mini:`meth (Arg₁: queue::node):value`
    *TBD*
 
-:mini:`meth :score(Arg₁: queue::node)`
+:mini:`meth (Arg₁: queue::node):score`
    *TBD*
 
 :mini:`type queue::iter`

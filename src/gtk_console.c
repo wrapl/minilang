@@ -118,6 +118,7 @@ void console_log(console_t *Console, ml_value_t *Value) {
 }
 
 ML_TYPE(ConsoleT, (), "console");
+//!internal
 
 static __attribute__ ((noinline)) void console_new_line(console_t *Console) {
 	GtkTextIter End[1];

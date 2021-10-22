@@ -13,12 +13,12 @@ bytecode
 :mini:`meth string(Arg₁: closure)`
    *TBD*
 
-:mini:`meth :parameters(Arg₁: closure)`
+:mini:`meth (Arg₁: closure):parameters`
    *TBD*
 
-:mini:`meth :info(Arg₁: closure)`
+:mini:`meth (Arg₁: closure):info`
    *TBD*
 
-:mini:`meth :list(Arg₁: closure)`
+:mini:`meth (Arg₁: closure):list`
    *TBD*
 

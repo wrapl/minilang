@@ -52,11 +52,11 @@ number
 :mini:`meth real(Arg₁: complex)`
    *TBD*
 
-:mini:`meth :r(Z: complex): real`
+:mini:`meth (Z: complex):r: real`
    Returns the real component of :mini:`Z`.
 
 
-:mini:`meth :i(Z: complex): real`
+:mini:`meth (Z: complex):i: real`
    Returns the imaginary component of :mini:`Z`.
 
 
@@ -183,13 +183,13 @@ number
    Returns :mini:`Int₂` if it is not divisible by :mini:`Int₁` and :mini:`nil` otherwise.
 
 
-:mini:`meth :div(Int₁: integer, Int₂: integer): integer`
+:mini:`meth (Int₁: integer):div(Int₂: integer): integer`
    Returns the quotient of :mini:`Int₁` divided by :mini:`Int₂`.
 
    The result is calculated by rounding down in all cases.
 
 
-:mini:`meth :mod(Int₁: integer, Int₂: integer): integer`
+:mini:`meth (Int₁: integer):mod(Int₂: integer): integer`
    Returns the remainder of :mini:`Int₁` divided by :mini:`Int₂`.
 
    Note: the result is calculated by rounding down in all cases. In particular, the result is always nonnegative.

@@ -31,7 +31,7 @@ object
 :mini:`meth string(Arg₁: enum::value)`
    *TBD*
 
-:mini:`meth :append(Arg₁: string::buffer, Arg₂: enum::value)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: enum::value)`
    *TBD*
 
 :mini:`fun enum(Values...: string): enum`
@@ -40,7 +40,7 @@ object
 :mini:`type enum < type, sequence`
    *TBD*
 
-:mini:`meth :count(Enum: enum): integer`
+:mini:`meth (Enum: enum):count: integer`
    *TBD*
 
 :mini:`type enum::range`

@@ -486,9 +486,8 @@ ML_METHOD("delete", MLMapT, MLAnyT) {
 ML_METHOD("missing", MLMapT, MLAnyT) {
 //<Map
 //<Key
-//>any | nil
-// Inserts :mini:`Key` into :mini:`Map` with corresponding value :mini:`Value`.
-// Returns the previous value associated with :mini:`Key` if any, otherwise :mini:`nil`.
+//>some | nil
+// If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`some` and returns :mini:`some`.
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_value_t *Key = Args[1];
 	ml_map_node_t *Node = ml_map_node(Map, &Map->Root, ml_typeof(Key)->hash(Key, NULL), Key);

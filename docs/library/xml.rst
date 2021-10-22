@@ -4,25 +4,25 @@ xml
 :mini:`type xml`
    *TBD*
 
-:mini:`meth :tag(Xml: xml): method`
+:mini:`meth (Xml: xml):tag: method`
    *TBD*
 
-:mini:`meth :attributes(Xml: xml): map`
+:mini:`meth (Xml: xml):attributes: map`
    *TBD*
 
-:mini:`meth :children(Xml: xml): list`
+:mini:`meth (Xml: xml):children: list`
    *TBD*
 
-:mini:`meth :append(Arg₁: string::buffer, Arg₂: xml)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: xml)`
    *TBD*
 
 :mini:`meth string(Arg₁: xml)`
    *TBD*
 
-:mini:`meth :xml(Tag: method, Children...: string|xml, Attributes?: names|map, ...): xml`
+:mini:`meth (Tag: method):xml(Children...: string|xml, Attributes?: names|map, ...): xml`
    *TBD*
 
-:mini:`meth :xml(Xml: string): xml`
+:mini:`meth (Xml: string):xml: xml`
    *TBD*
 
 :mini:`fun xml::decoder(Callback: any): xml::decoder`
@@ -31,12 +31,12 @@ xml
 :mini:`type xml::decoder`
    *TBD*
 
-:mini:`meth :decode(Decoder: xml::decoder, Xml: address): Decoder`
+:mini:`meth (Decoder: xml::decoder):decode(Xml: address): Decoder`
    *TBD*
 
-:mini:`meth :decode(Decoder: xml::decoder, Xml: address, Size: integer): Decoder`
+:mini:`meth (Decoder: xml::decoder):decode(Xml: address, Size: integer): Decoder`
    *TBD*
 
-:mini:`meth :finish(Decoder: xml::decoder): Decoder`
+:mini:`meth (Decoder: xml::decoder):finish: Decoder`
    *TBD*
 

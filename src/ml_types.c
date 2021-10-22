@@ -1231,7 +1231,7 @@ ml_value_t *ml_partial_function_set(ml_value_t *Partial0, size_t Index, ml_value
 	return Partial->Args[Index] = Value;
 }
 
-ML_METHOD("count", MLFunctionPartialT) {
+ML_METHOD("arity", MLFunctionPartialT) {
 //!function
 	ml_partial_function_t *Partial = (ml_partial_function_t *)Args[0];
 	return ml_integer(Partial->Count);
@@ -2951,7 +2951,7 @@ ML_FUNCTION(MLModule) {
 //<Path:string
 //<Lookup:function
 //>module
-// Returns a generic module which calls resolves :mini:`Module::Import` by calling :mini:`Lookup(Module, Import)`, caching results for future use.
+// Returns a generic module which calls resolves :mini:`Module::Import` by calling :mini:`Lookup(Import)`, caching results for future use.
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLFunctionT);
@@ -2996,7 +2996,7 @@ ML_METHODX("::", MLModuleT, MLStringT) {
 			State->Base.run = (ml_state_fn)ml_module_lookup_run;
 			State->Module = Module;
 			State->Name = Name;
-			return ml_call(State, Module->Lookup, 2, Args);
+			return ml_call(State, Module->Lookup, 1, Args + 1);
 		} else {
 			ML_ERROR("ModuleError", "Symbol %s not exported from module %s", Name, Module->Path);
 		}
