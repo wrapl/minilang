@@ -42,6 +42,11 @@ fun type_name(Type) do
 			ret '{Match2[2]:lower}::{Match2[3]:lower}'
 		end
 		ret Match[2]:lower
+	elseif let Match := Type % r"^(.*)T$" then
+		if let Match2 := Match[2] % r"([A-Z][a-z]+)([A-Z][a-z]+)" then
+			ret '{Match2[2]:lower}::{Match2[3]:lower}'
+		end
+		ret Match[2]:lower
 	else
 		ret Type
 	end
