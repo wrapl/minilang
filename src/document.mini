@@ -12,6 +12,8 @@ fun category_name(Type) do
 		ret "internal"
 	elseif let Match := Type % r"^ML(.*)T$" then
 		ret Match[2]:lower
+	elseif let Match := Type % r"^(.*)T$" then
+		ret Match[2]:lower
 	else
 		ret Type
 	end
