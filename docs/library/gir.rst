@@ -5,102 +5,102 @@ gir
    A gobject-introspection typelib.
 
 
-:mini:`type BaseInfoT < type`
+:mini:`type baseinfo < type`
    *TBD*
 
 :mini:`fun gir(Name: string): gir-typelib`
    *TBD*
 
-:mini:`type ObjectT < BaseInfoT`
+:mini:`type object < baseinfo`
    A gobject-introspection object type.
 
 
-:mini:`type ObjectInstanceT`
+:mini:`type objectinstance`
    A gobject-introspection object instance.
 
 
-:mini:`meth string(Object: ObjectInstanceT): string`
+:mini:`meth string(Object: objectinstance): string`
    *TBD*
 
-:mini:`type StructT < BaseInfoT`
+:mini:`type struct < baseinfo`
    A gobject-introspection struct type.
 
 
-:mini:`type StructInstanceT`
+:mini:`type structinstance`
    A gobject-introspection struct instance.
 
 
-:mini:`meth string(Struct: StructInstanceT): string`
+:mini:`meth string(Struct: structinstance): string`
    *TBD*
 
-:mini:`type FieldRef ## Boolean ## T`
+:mini:`type fieldref::boolean`
    *TBD*
 
-:mini:`type FieldRef ## Int8 ## T`
+:mini:`type fieldref::int8`
    *TBD*
 
-:mini:`type FieldRef ## UInt8 ## T`
+:mini:`type fieldref::uint8`
    *TBD*
 
-:mini:`type FieldRef ## Int16 ## T`
+:mini:`type fieldref::int16`
    *TBD*
 
-:mini:`type FieldRef ## UInt16 ## T`
+:mini:`type fieldref::uint16`
    *TBD*
 
-:mini:`type FieldRef ## Int32 ## T`
+:mini:`type fieldref::int32`
    *TBD*
 
-:mini:`type FieldRef ## UInt32 ## T`
+:mini:`type fieldref::uint32`
    *TBD*
 
-:mini:`type FieldRef ## Int64 ## T`
+:mini:`type fieldref::int64`
    *TBD*
 
-:mini:`type FieldRef ## UInt64 ## T`
+:mini:`type fieldref::uint64`
    *TBD*
 
-:mini:`type FieldRef ## Float ## T`
+:mini:`type fieldref::float`
    *TBD*
 
-:mini:`type FieldRef ## Double ## T`
+:mini:`type fieldref::double`
    *TBD*
 
-:mini:`type FieldRef ## Utf8 ## T`
+:mini:`type fieldref::utf8`
    *TBD*
 
-:mini:`type EnumT < BaseInfoT`
+:mini:`type enum < baseinfo`
    A gobject-instrospection enum type.
 
 
-:mini:`type EnumValueT`
+:mini:`type enumvalue`
    A gobject-instrospection enum value.
 
 
-:mini:`meth string(Value: EnumValueT): string`
+:mini:`meth string(Value: enumvalue): string`
    *TBD*
 
-:mini:`meth integer(Value: EnumValueT): integer`
+:mini:`meth integer(Value: enumvalue): integer`
    *TBD*
 
-:mini:`meth (Value₁: EnumValueT) | (Value₂: nil): EnumValueT`
+:mini:`meth (Value₁: enumvalue) | (Value₂: nil): enumvalue`
    *TBD*
 
-:mini:`meth (Value₁: nil) | (Value₂: EnumValueT): EnumValueT`
+:mini:`meth (Value₁: nil) | (Value₂: enumvalue): enumvalue`
    *TBD*
 
-:mini:`meth (Value₁: EnumValueT) | (Value₂: EnumValueT): EnumValueT`
+:mini:`meth (Value₁: enumvalue) | (Value₂: enumvalue): enumvalue`
    *TBD*
 
-:mini:`meth (Typelib: TypelibT) :: (Name: string): any | error`
+:mini:`meth (Typelib: typelib) :: (Name: string): any | error`
    *TBD*
 
-:mini:`meth (Object: ObjectInstanceT):connect(Signal: string, Handler: function): Object`
+:mini:`meth (Object: objectinstance):connect(Signal: string, Handler: function): Object`
    *TBD*
 
-:mini:`type ObjectPropertyT`
+:mini:`type objectproperty`
    *TBD*
 
-:mini:`meth (Object: ObjectInstanceT) :: (Property: string): any`
+:mini:`meth (Object: objectinstance) :: (Property: string): any`
    *TBD*
 

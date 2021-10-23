@@ -1,10 +1,10 @@
 xe
 ==
 
-:mini:`type XENodeT`
+:mini:`type xenode`
    *TBD*
 
-:mini:`type XEScopeT`
+:mini:`type xescope`
    *TBD*
 
 :mini:`fun xefunction()`
@@ -34,16 +34,16 @@ xe
 :mini:`fun xeattr()`
    *TBD*
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: XENodeT)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: xenode)`
    *TBD*
 
-:mini:`meth string(Arg₁: XENodeT)`
+:mini:`meth string(Arg₁: xenode)`
    *TBD*
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: XEVarT)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: xevar)`
    *TBD*
 
-:mini:`meth string(Arg₁: XEVarT)`
+:mini:`meth string(Arg₁: xevar)`
    *TBD*
 
 :mini:`fun xeparsestring(Arg₁: string)`
@@ -67,12 +67,12 @@ xe
 :mini:`fun xeappend(Arg₁: list, Arg₂: any)`
    *TBD*
 
-:mini:`meth (Arg₁: XENodeT):tag`
+:mini:`meth (Arg₁: xenode):tag`
    *TBD*
 
-:mini:`meth (Arg₁: XENodeT):attributes`
+:mini:`meth (Arg₁: xenode):attributes`
    *TBD*
 
-:mini:`meth (Arg₁: XENodeT):content`
+:mini:`meth (Arg₁: xenode):content`
    *TBD*
 

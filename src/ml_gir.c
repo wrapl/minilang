@@ -216,6 +216,8 @@ static void field_ref_ ## LNAME ## _assign(ml_state_t *Caller, field_ref_t *Ref,
 } \
 \
 ML_TYPE(FieldRef ## UNAME ## T, (), "field-ref-" #LNAME, \
+/*@fieldref::LNAME
+*/ \
 	.deref = (void *)field_ref_ ## LNAME ## _deref, \
 	.assign = (void *)field_ref_ ## LNAME ## _assign \
 );
