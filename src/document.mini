@@ -94,7 +94,7 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 	elseif Method[1] != ":" then
 		if Params:length = 0 then
 			Title:write('{Method}()')
-		elseif Params:length = 1 then
+		elseif Params:length = 1 and Kind[-1] != "V" then
 			Title:write('{Method}({Params[1][1]}: {type_name(Params[1][2])})')
 		else
 			Title:write('{Method}({Params[1][1]}: {type_name(Params[1][2])}, ')
@@ -106,7 +106,7 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 		Terminator := ")">:
 		if Params:length = 0 then
 			Title:write('{Method}()')
-		elseif Params:length = 1 then
+		elseif Params:length = 1 and Kind[-1] != "V" then
 			Title:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}')
 		else
 			Title:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}(')
@@ -119,7 +119,7 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 		Seperator := ", "
 	end
 	if Kind[-1] = "V" then
-		Title:write(", ...")
+		Title:write(Seperator, "...")
 	end
 	Title:write(Terminator)
 	if Return:length > 0 then
