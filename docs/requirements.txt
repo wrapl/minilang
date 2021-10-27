@@ -1,3 +1,4 @@
+sphinx >= 4.0.0
 sphinxcontrib-domaintools
 sphinxcontrib-fulltoc
 pydata-sphinx-theme
