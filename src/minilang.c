@@ -139,20 +139,6 @@ static ml_value_t *ml_globals(stringmap_t *Globals, int Count, ml_value_t **Args
 	return Result;
 }
 
-ML_FUNCTIONX(MLTest) {
-//!internal
-	ML_CHECKX_ARG_COUNT(2);
-	ML_CHECKX_ARG_TYPE(0, MLStringT);
-	const char *Test = ml_string_value(Args[0]);
-	if (!strcmp(Test, "methods")) {
-		ml_state_t *State = ml_state_new(Caller);
-		ml_methods_context_new(State->Context);
-		ml_value_t *Function = Args[1];
-		return ml_call(State, Function, Count - 2, Args + 2);
-	}
-	ML_ERROR("ValueError", "Unknown test %s", Test);
-}
-
 #ifdef ML_MODULES
 static stringmap_t Modules[1] = {STRINGMAP_INIT};
 
@@ -313,7 +299,6 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "macro", MLMacroT);
 	stringmap_insert(Globals, "global", ml_stringmap_globals(Globals));
 	stringmap_insert(Globals, "globals", ml_cfunction(Globals, (void *)ml_globals));
-	stringmap_insert(Globals, "test", MLTest);
 #ifdef ML_CBOR
 	ml_cbor_init(Globals);
 #endif

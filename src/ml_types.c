@@ -299,6 +299,15 @@ void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function) {
 	inthash_insert(Type->TypedFns, (uintptr_t)TypedFn, Function);
 }
 
+typedef struct {
+	ml_type_t Base;
+	int NumTypes;
+	ml_type_t *Types[];
+} ml_union_type_t;
+
+ML_TYPE(MLTypeUnionT, (MLTypeT), "union-type");
+//!internal
+
 ML_METHOD("|", MLTypeT, MLTypeT) {
 //<Type/1
 //<Type/2
@@ -306,17 +315,42 @@ ML_METHOD("|", MLTypeT, MLTypeT) {
 // Returns a union interface of :mini:`Type/1` and :mini:`Type/2`.
 	ml_type_t *Type1 = (ml_type_t *)Args[0];
 	ml_type_t *Type2 = (ml_type_t *)Args[1];
-	ml_type_t *Type = new(ml_type_t);
-	Type->Type = MLTypeT;
-	ml_type_init(Type, Type1, Type2, NULL);
-	asprintf((char **)&Type->Name, "%s | %s", Type1->Name, Type2->Name);
-	Type->hash = ml_default_hash;
-	Type->call = ml_default_call;
-	Type->deref = ml_default_deref;
-	Type->assign = ml_default_assign;
+	ml_union_type_t *Type = xnew(ml_union_type_t, 2, ml_type_t *);
+	Type->Base.Type = MLTypeUnionT;
+	asprintf((char **)&Type->Base.Name, "%s | %s", Type1->Name, Type2->Name);
+	Type->Base.hash = ml_default_hash;
+	Type->Base.call = ml_default_call;
+	Type->Base.deref = ml_default_deref;
+	Type->Base.assign = ml_default_assign;
+	if (Type1->Rank > Type2->Rank) {
+		Type->Base.Rank = Type1->Rank + 1;
+	} else {
+		Type->Base.Rank = Type2->Rank + 1;
+	}
+	Type->NumTypes = 2;
+	Type->Types[0] = Type1;
+	Type->Types[1] = Type2;
 	return (ml_value_t *)Type;
 }
 
+ML_METHOD("?", MLTypeT) {
+//<Type
+//>type
+// Returns a union interface of :mini:`Type` and :mini:`type(nil)`.
+	ml_type_t *Type1 = (ml_type_t *)Args[0];
+	ml_union_type_t *Type = xnew(ml_union_type_t, 2, ml_type_t *);
+	Type->Base.Type = MLTypeUnionT;
+	asprintf((char **)&Type->Base.Name, "%s | nil", Type1->Name);
+	Type->Base.hash = ml_default_hash;
+	Type->Base.call = ml_default_call;
+	Type->Base.deref = ml_default_deref;
+	Type->Base.assign = ml_default_assign;
+	Type->Base.Rank = Type1->Rank + 1;
+	Type->NumTypes = 2;
+	Type->Types[0] = Type1;
+	Type->Types[1] = MLNilT;
+	return (ml_value_t *)Type;
+}
 
 ML_METHOD(MLStringT, MLTypeT) {
 //!type
@@ -488,6 +522,13 @@ different:
 int ml_is_subtype(ml_type_t *T, ml_type_t *U) {
 	if (T == U) return 1;
 	if (U == MLAnyT) return 1;
+	if (U->Type == MLTypeUnionT) {
+		ml_union_type_t *Union = (ml_union_type_t *)U;
+		for (int I = 0; I < Union->NumTypes; ++I) {
+			if (ml_is_subtype(T, Union->Types[I])) return 1;
+		}
+		return 0;
+	}
 #ifdef ML_GENERICS
 	if (T->Type == MLTypeGenericT) {
 		ml_generic_type_t *GenericT = (ml_generic_type_t *)T;
@@ -668,7 +709,7 @@ ML_METHOD("in", MLAnyT, MLTypeT) {
 //<Type
 //>Value | nil
 // Returns :mini:`Value` if it is an instance of :mini:`Type` or a type that inherits from :mini:`Type` and :mini:`nil` otherwise.
-	return ml_is(Args[0], (ml_type_t *)Args[1]) ? Args[0] : MLNil;
+	return ml_is_subtype(ml_typeof(Args[0]), (ml_type_t *)Args[1]) ? Args[0] : MLNil;
 }
 
 ML_METHOD_ANON(MLCompilerSwitch, "compiler::switch");

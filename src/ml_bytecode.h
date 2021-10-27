@@ -62,8 +62,8 @@ typedef struct ml_param_type_t ml_param_type_t;
 
 struct ml_param_type_t {
 	ml_param_type_t *Next;
-	const ml_type_t *Type;
-	int Index;
+	ml_type_t *Type;
+	int Index, HasDefault;
 };
 
 ml_value_t *ml_closure(ml_closure_info_t *Info);

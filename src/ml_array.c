@@ -1439,7 +1439,7 @@ static long ml_array_ ## CTYPE ## _hash(ml_array_t *Array) { \
 	} \
 } \
 \
-static ml_value_t *ml_array_ ## CTYPE ## _deref(ml_array_t *Target, ml_value_t *Value) { \
+static ml_value_t *ml_array_ ## CTYPE ## _deref(ml_array_t *Target) { \
 	if (Target->Degree == 0)  return TO_VAL(*(CTYPE *)Target->Base.Value); \
 	return (ml_value_t *)Target; \
 } \

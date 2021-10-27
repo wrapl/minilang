@@ -337,7 +337,7 @@ extern ml_value_t *SymbolMethod;
 		ml_method_cached_t *Cached = Inst[2].Data; \
 		if (Cached && Cached->Callback) { \
 			for (int I = 0; I < COUNT; ++I) { \
-				if (Cached->Types[I] != ml_typeof(Args[I])) { \
+				if (Cached->Types[I] != ml_typeof_deref(Args[I])) { \
 					Cached = NULL; \
 					break; \
 				} \
@@ -887,7 +887,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_method_cached_t *Cached = Inst[3].Data;
 		if (Cached && Cached->Callback) {
 			for (int I = 0; I < Count; ++I) {
-				if (Cached->Types[I] != ml_typeof(Args[I])) {
+				if (Cached->Types[I] != ml_typeof_deref(Args[I])) {
 					Cached = NULL;
 					break;
 				}
@@ -1322,10 +1322,11 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 			}
 		}
 	}
-	for (ml_param_type_t *Type = Closure->ParamTypes; Type; Type = Type->Next) {
-		ml_value_t *Value = Frame->Stack[Type->Index];
-		if (!ml_is(Value, Type->Type)) {
-			ML_ERROR("TypeError", "Expected %s not %s for argument %d", Type->Type->Name, ml_typeof(Value)->Name, Type->Index + 1);
+	for (ml_param_type_t *Param = Closure->ParamTypes; Param; Param = Param->Next) {
+		ml_value_t *Value = Frame->Stack[Param->Index];
+		ml_type_t *Type = ml_typeof(Value);
+		if (!ml_is_subtype(Type, Param->Type)) {
+			ML_ERROR("TypeError", "Expected %s not %s for argument %d", Param->Type->Name, Type->Name, Param->Index + 1);
 		}
 	}
 	Frame->Top = Frame->Stack + NumParams;

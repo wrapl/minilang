@@ -156,27 +156,12 @@ __attribute__ ((pure)) static inline ml_type_t *ml_typeof(const ml_value_t *Valu
 		return Value->Type;
 	} else if (Tag == 1) {
 		return MLInt32T;
-	/*} else if (Tag < 7) {
-		return NULL;*/
 	} else {
 		return MLDoubleT;
 	}
 }
 
-__attribute__ ((pure)) static inline ml_type_t *ml_typeof_deref(ml_value_t *Value) {
-	unsigned Tag = ml_tag(Value);
-	if (__builtin_expect(Tag == 0, 1)) {
-		ml_type_t *Type = Value->Type;
-		if (Type->deref != ml_default_deref) return ml_typeof(Type->deref(Value));
-		return Type;
-	} else if (Tag == 1) {
-		return MLInt32T;
-	/*} else if (Tag < 7) {
-		return NULL;*/
-	} else {
-		return MLDoubleT;
-	}
-}
+#define ml_typeof_deref(VALUE) ml_typeof(ml_deref(VALUE))
 
 #else
 

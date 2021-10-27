@@ -30,6 +30,10 @@ type
    Returns a union interface of :mini:`Type₁` and :mini:`Type₂`.
 
 
+:mini:`meth ?(Type: type): type`
+   Returns a union interface of :mini:`Type` and :mini:`type(nil)`.
+
+
 :mini:`meth string(Type: type): string`
    Returns a string representing :mini:`Type`.
 
