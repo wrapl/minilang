@@ -323,10 +323,12 @@ ML_TYPE(MLStringT, (MLAddressT, MLSequenceT), "string",
 	.hash = (void *)ml_string_hash
 );
 
-ML_METHOD(MLStringT, MLAddressT) {
+ML_METHOD("append", MLStringBufferT, MLAddressT) {
 //!address
-	ml_address_t *Address = (ml_address_t *)Args[0];
-	return ml_string_format("#%" PRIxPTR ":%ld", (uintptr_t)Address->Value, Address->Length);
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_address_t *Address = (ml_address_t *)Args[1];
+	ml_stringbuffer_addf(Buffer, "#%" PRIxPTR ":%ld", (uintptr_t)Address->Value, Address->Length);
+	return MLSome;
 }
 
 ml_value_t *ml_string(const char *Value, int Length) {
@@ -357,34 +359,45 @@ ml_value_t *ml_string_format(const char *Format, ...) {
 }
 
 
-ML_METHOD(MLStringT, MLNilT) {
-	return ml_cstring("nil");
+ML_METHOD("append", MLStringBufferT, MLNilT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_stringbuffer_add(Buffer, "nil", 3);
+	return MLSome;
 }
 
-ML_METHOD(MLStringT, MLSomeT) {
-	return ml_cstring("some");
+ML_METHOD("append", MLStringBufferT, MLSomeT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_stringbuffer_add(Buffer, "some", 4);
+	return MLSome;
 }
 
-ML_METHOD(MLStringT, MLBooleanT) {
+ML_METHOD("append", MLStringBufferT, MLBooleanT) {
 //!boolean
-	ml_boolean_t *Boolean = (ml_boolean_t *)Args[0];
-	return ml_string(Boolean->Name, -1);
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_boolean_t *Boolean = (ml_boolean_t *)Args[1];
+	if (Boolean->Value) {
+		ml_stringbuffer_add(Buffer, "true", 4);
+	} else {
+		ml_stringbuffer_add(Buffer, "false", 5);
+	}
+	return MLSome;
 }
 
-ML_METHOD(MLStringT, MLIntegerT) {
+ML_METHOD("append", MLStringBufferT, MLIntegerT) {
 //!number
-	char *Value;
-	int Length = asprintf(&Value, "%ld", ml_integer_value_fast(Args[0]));
-	return ml_string(Value, Length);
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_stringbuffer_addf(Buffer, "%ld", ml_integer_value_fast(Args[1]));
+	return MLSome;
 }
 
-ML_METHOD(MLStringT, MLIntegerT, MLIntegerT) {
+ML_METHOD("append", MLStringBufferT, MLIntegerT, MLIntegerT) {
 //!number
-	int64_t Value = ml_integer_value_fast(Args[0]);
-	int Base = ml_integer_value_fast(Args[1]);
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	int64_t Value = ml_integer_value_fast(Args[1]);
+	int Base = ml_integer_value_fast(Args[2]);
 	if (Base < 2 || Base > 36) return ml_error("RangeError", "Invalid base");
 	int Max = 65;
-	char *P = snew(Max + 1) + Max, *Q = P;
+	char Temp[Max + 1], *P = Temp + Max, *Q = P;
 	*P = '\0';
 	int64_t Neg = Value < 0 ? Value : -Value;
 	do {
@@ -392,42 +405,42 @@ ML_METHOD(MLStringT, MLIntegerT, MLIntegerT) {
 		Neg /= Base;
 	} while (Neg);
 	if (Value < 0) *--P = '-';
-	return ml_string(P, Q - P);
+	ml_stringbuffer_add(Buffer, P, Q - P);
+	return MLSome;
 }
 
 static regex_t IntFormat[1];
 static regex_t LongFormat[1];
 static regex_t RealFormat[1];
 
-ML_METHOD(MLStringT, MLIntegerT, MLStringT) {
-	const char *Format = ml_string_value(Args[1]);
-	int64_t Value = ml_integer_value_fast(Args[0]);
-	char *String;
-	int Length;
+ML_METHOD("append", MLStringBufferT, MLIntegerT, MLStringT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	const char *Format = ml_string_value(Args[2]);
+	int64_t Value = ml_integer_value_fast(Args[1]);
 	if (!regexec(IntFormat, Format, 0, NULL, 0)) {
-		Length = asprintf(&String, Format, (int)Value);
+		ml_stringbuffer_addf(Buffer, Format, (int)Value);
 	} else if (!regexec(LongFormat, Format, 0, NULL, 0)) {
-		Length = asprintf(&String, Format, (long)Value);
+		ml_stringbuffer_addf(Buffer, Format, (long)Value);
 	} else if (!regexec(RealFormat, Format, 0, NULL, 0)) {
-		Length = asprintf(&String, Format, (double)Value);
+		ml_stringbuffer_addf(Buffer, Format, (double)Value);
 	} else {
 		return ml_error("FormatError", "Invalid format string");
 	}
-	return ml_string(String, Length);
+	return MLSome;
 }
 
-ML_METHOD(MLStringT, MLIntegerRangeT) {
-	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+ML_METHOD("append", MLStringBufferT, MLIntegerRangeT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
 	ml_stringbuffer_addf(Buffer, "%ld .. %ld by %ld", Range->Start, Range->Limit, Range->Step);
-	return ml_stringbuffer_value(Buffer);
+	return MLSome;
 }
 
-ML_METHOD(MLStringT, MLRealRangeT) {
-	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+ML_METHOD("append", MLStringBufferT, MLRealRangeT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_real_range_t *Range = (ml_real_range_t *)Args[1];
 	ml_stringbuffer_addf(Buffer, "%g .. %g by %g", Range->Start, Range->Limit, Range->Step);
-	return ml_stringbuffer_value(Buffer);
+	return MLSome;
 }
 
 ML_METHOD("ord", MLStringT) {
@@ -465,68 +478,65 @@ ML_METHOD("chr", MLIntegerT) {
 	return ml_string(S, I);
 }
 
-ML_METHOD(MLStringT, MLDoubleT) {
+ML_METHOD("append", MLStringBufferT, MLDoubleT) {
 //!number
-	char *String;
-	int Length = asprintf(&String, "%g", ml_double_value_fast(Args[0]));
-	return ml_string(String, Length);
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_stringbuffer_addf(Buffer, "%g", ml_double_value_fast(Args[1]));
+	return MLSome;
 }
 
-ML_METHOD(MLStringT, MLDoubleT, MLStringT) {
-	const char *Format = ml_string_value(Args[1]);
-	double Value = ml_double_value_fast(Args[0]);
-	char *String;
-	int Length;
+ML_METHOD("append", MLStringBufferT, MLDoubleT, MLStringT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	const char *Format = ml_string_value(Args[2]);
+	double Value = ml_double_value_fast(Args[1]);
 	if (!regexec(IntFormat, Format, 0, NULL, 0)) {
-		Length = asprintf(&String, Format, (int)Value);
+		ml_stringbuffer_addf(Buffer, Format, (int)Value);
 	} else if (!regexec(LongFormat, Format, 0, NULL, 0)) {
-		Length = asprintf(&String, Format, (long)Value);
+		ml_stringbuffer_addf(Buffer, Format, (long)Value);
 	} else if (!regexec(RealFormat, Format, 0, NULL, 0)) {
-		Length = asprintf(&String, Format, (double)Value);
+		ml_stringbuffer_addf(Buffer, Format, (double)Value);
 	} else {
 		return ml_error("FormatError", "Invalid format string");
 	}
-	return ml_string(String, Length);
+	return MLSome;
 }
 
 #ifdef ML_COMPLEX
 
-ML_METHOD(MLStringT, MLComplexT) {
+ML_METHOD("append", MLStringBufferT, MLComplexT) {
 //!number
-	complex double Complex = ml_complex_value_fast(Args[0]);
-	char *String;
-	int Length;
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	complex double Complex = ml_complex_value_fast(Args[1]);
 	double Real = creal(Complex);
 	double Imag = cimag(Complex);
 	if (fabs(Real) <= DBL_EPSILON) {
 		if (fabs(Imag - 1) <= DBL_EPSILON) {
-			String = "i";
-			Length = 1;
+			ml_stringbuffer_add(Buffer, "i", 1);
 		} else if (fabs(Imag) <= DBL_EPSILON) {
-			String = "0";
-			Length = 1;
+			ml_stringbuffer_add(Buffer, "0", 1);
 		} else {
-			Length = asprintf(&String, "%gi", Imag);
+			ml_stringbuffer_addf(Buffer, "%gi", Imag);
 		}
 	} else if (fabs(Imag) <= DBL_EPSILON) {
-		Length = asprintf(&String, "%g", Real);
+		ml_stringbuffer_addf(Buffer, "%g", Real);
 	} else if (Imag < 0) {
 		if (fabs(Imag + 1) <= DBL_EPSILON) {
-			Length = asprintf(&String, "%g - i", Real);
+			ml_stringbuffer_addf(Buffer, "%g - i", Real);
 		} else {
-			Length = asprintf(&String, "%g - %gi", Real, -Imag);
+			ml_stringbuffer_addf(Buffer, "%g - %gi", Real, -Imag);
 		}
 	} else {
 		if (fabs(Imag - 1) <= DBL_EPSILON) {
-			Length = asprintf(&String, "%g + i", Real);
+			ml_stringbuffer_addf(Buffer, "%g + i", Real);
 		} else {
-			Length = asprintf(&String, "%g + %gi", Real, Imag);
+			ml_stringbuffer_addf(Buffer, "%g + %gi", Real, Imag);
 		}
 	}
-	return ml_string(String, Length);
+	return MLSome;
 }
 
-ML_METHOD(MLStringT, MLComplexT, MLStringT) {
+ML_METHOD("append", MLStringBufferT, MLComplexT, MLStringT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	const char *Format = ml_string_value(Args[1]);
 	if (regexec(RealFormat, Format, 0, NULL, 0)) {
 		return ml_error("FormatError", "Invalid format string");
@@ -534,14 +544,17 @@ ML_METHOD(MLStringT, MLComplexT, MLStringT) {
 	complex double Complex = ml_complex_value_fast(Args[0]);
 	double Real = creal(Complex);
 	double Imag = cimag(Complex);
-	char *ComplexFormat;
 	if (Imag < 0) {
 		Imag = -Imag;
-		asprintf(&ComplexFormat, "%s - %si", Format, Format);
+		ml_stringbuffer_addf(Buffer, Format, Real);
+		ml_stringbuffer_add(Buffer, "-", 1);
+		ml_stringbuffer_addf(Buffer, Format, Imag);
 	} else {
-		asprintf(&ComplexFormat, "%s + %si", Format, Format);
+		ml_stringbuffer_addf(Buffer, Format, Real);
+		ml_stringbuffer_add(Buffer, "+", 1);
+		ml_stringbuffer_addf(Buffer, Format, Imag);
 	}
-	return ml_string_format(ComplexFormat, Real, Imag);
+	return MLSome;
 }
 
 #endif
@@ -1055,13 +1068,15 @@ ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value)
 	ml_hash_chain_t *Chain = Buffer->Chain;
 	for (ml_hash_chain_t *Link = Chain; Link; Link = Link->Previous) {
 		if (Link->Value == Value) {
-			ml_stringbuffer_addf(Buffer, "<%s@%ld>", ml_typeof(Value)->Name, Link->Index);
+			Link->Used = 1;
+			ml_stringbuffer_addf(Buffer, "^%d", Link->Index);
 			return (ml_value_t *)Buffer;
 		}
 	}
 	ml_hash_chain_t NewChain[1] = {{Chain, Value, Chain ? Chain->Index + 1 : 1}};
 	Buffer->Chain = NewChain;
 	ml_value_t *Result = ml_simple_inline(AppendMethod, 2, Buffer, Value);
+	if (NewChain->Used) ml_stringbuffer_addf(Buffer, "@%d", NewChain->Index);
 	Buffer->Chain = Chain;
 	return Result;
 }
@@ -2191,10 +2206,6 @@ ML_METHOD("replace", MLStringT, MLMapT) {
 	}
 	if (SubjectLength) ml_stringbuffer_add(Buffer, Subject, SubjectLength);
 	return ml_stringbuffer_value(Buffer);
-}
-
-ML_METHOD(MLStringT, MLRegexT) {
-	return ml_string_format("/%s/", ml_regex_pattern(Args[0]));
 }
 
 ML_METHOD("append", MLStringBufferT, MLRegexT) {

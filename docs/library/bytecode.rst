@@ -10,7 +10,7 @@ bytecode
 :mini:`type closure < function, sequence`
    *TBD*
 
-:mini:`meth string(Arg₁: closure)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: closure)`
    *TBD*
 
 :mini:`meth (Arg₁: closure):parameters`

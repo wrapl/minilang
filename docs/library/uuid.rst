@@ -10,9 +10,6 @@ uuid
 :mini:`meth uuid(Arg₁: string)`
    *TBD*
 
-:mini:`meth string(Arg₁: uuid)`
-   *TBD*
-
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: uuid)`
    *TBD*
 

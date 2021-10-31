@@ -13,7 +13,7 @@ object
    Type of all object classes.
 
 
-:mini:`meth string(Arg₁: object)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: object)`
    *TBD*
 
 :mini:`fun class(Parents...: class, Fields...: method, Exports...: names): class`
@@ -27,9 +27,6 @@ object
 :mini:`fun property(Value: any, set: any): property`
    Returns a new property which dereferences to :mini:`Value`. Assigning to the property will call :mini:`set(NewValue)`.
 
-
-:mini:`meth string(Arg₁: enum::value)`
-   *TBD*
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: enum::value)`
    *TBD*
@@ -52,7 +49,7 @@ object
 :mini:`meth (Arg₁: enum::value) .. (Arg₂: enum::value)`
    *TBD*
 
-:mini:`meth string(Arg₁: flags::value)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: flags::value)`
    *TBD*
 
 :mini:`fun flags(Values...: string): flags`

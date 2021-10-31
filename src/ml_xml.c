@@ -103,11 +103,11 @@ ML_METHOD("append", MLStringBufferT, MLXmlT) {
 	return Error ?: Args[0];
 }
 
-ML_METHOD(MLStringT, MLXmlT) {
-	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+ML_METHOD("append", MLStringBufferT, MLXmlT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[1];
 	ml_value_t *Error = ml_xml_node_append(Buffer, Node);
-	return Error ?: ml_stringbuffer_value(Buffer);
+	return Error ?: MLSome;
 }
 
 typedef struct xml_stack_t xml_stack_t;

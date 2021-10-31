@@ -99,14 +99,6 @@ list
    Inserts the elements from :mini:`Source` into :mini:`List` starting at :mini:`Index`, leaving :mini:`Source` empty.
 
 
-:mini:`meth string(List: list): string`
-   Returns a string containing the elements of :mini:`List` surrounded by :mini:`"["`, :mini:`"]"` and seperated by :mini:`", "`.
-
-
-:mini:`meth string(List: list, Seperator: string): string`
-   Returns a string containing the elements of :mini:`List` seperated by :mini:`Seperator`.
-
-
 :mini:`meth (List: list):reverse: list`
    Reverses :mini:`List` in-place and returns it.
 

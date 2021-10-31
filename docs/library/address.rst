@@ -45,6 +45,6 @@ address
 :mini:`meth (Address: address):gets(Size: integer): string`
    *TBD*
 
-:mini:`meth string(Arg₁: address)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: address)`
    *TBD*
 

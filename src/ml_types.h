@@ -34,7 +34,7 @@ typedef struct ml_hash_chain_t ml_hash_chain_t;
 struct ml_hash_chain_t {
 	ml_hash_chain_t *Previous;
 	ml_value_t *Value;
-	long Index;
+	int Index, Used;
 };
 
 typedef struct ml_generic_rule_t ml_generic_rule_t;

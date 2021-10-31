@@ -193,9 +193,9 @@ ML_METHOD("delete", MLTableT, MLStringT) {
 	return ml_map_delete(Args[0], Args[1]);
 }
 
-ML_METHOD(MLStringT, MLTableT) {
-	ml_table_t *Table = (ml_table_t *)Args[0];
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+ML_METHOD("append", MLStringBufferT, MLTableT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_table_t *Table = (ml_table_t *)Args[1];
 	ml_stringbuffer_add(Buffer, "table(", 6);
 	int Comma = 0;
 	ML_MAP_FOREACH(Table->Columns, Iter) {
@@ -204,7 +204,7 @@ ML_METHOD(MLStringT, MLTableT) {
 		Comma = 1;
 	}
 	ml_stringbuffer_add(Buffer, ")", 1);
-	return ml_stringbuffer_value(Buffer);
+	return MLSome;
 }
 
 extern ml_value_t *IndexMethod;
@@ -360,9 +360,9 @@ ML_METHOD("::", MLTableRowT, MLStringT) {
 	return ml_array_index((ml_array_t *)Column, Row->Count, Row->Indices);
 }
 
-ML_METHOD(MLStringT, MLTableRowT) {
-	ml_table_row_t *Row = (ml_table_row_t *)Args[0];
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+ML_METHOD("append", MLStringBufferT, MLTableRowT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_table_row_t *Row = (ml_table_row_t *)Args[1];
 	ml_stringbuffer_add(Buffer, "<", 1);
 	int Comma = 0;
 	ML_MAP_FOREACH(Row->Table->Columns, Iter) {
@@ -374,7 +374,7 @@ ML_METHOD(MLStringT, MLTableRowT) {
 		Comma = 1;
 	}
 	ml_stringbuffer_add(Buffer, ">", 1);
-	return ml_stringbuffer_value(Buffer);
+	return MLSome;
 }
 
 typedef struct {

@@ -19,7 +19,7 @@ gir
    A gobject-introspection object instance.
 
 
-:mini:`meth string(Object: objectinstance): string`
+:mini:`meth (Object: string::buffer):append(Arg₂: objectinstance): string`
    *TBD*
 
 :mini:`type struct < baseinfo`

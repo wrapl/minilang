@@ -516,7 +516,44 @@ ML_METHOD("append", MLStringBufferT, MLMapT) {
 		}
 	}
 	ml_stringbuffer_add(Buffer, "}", 1);
-	return (ml_value_t *)Buffer;
+	return MLSome;
+}
+
+typedef struct ml_map_stringer_t {
+	const char *Seperator, *Equals;
+	ml_stringbuffer_t *Buffer;
+	int SeperatorLength, EqualsLength, First;
+	ml_value_t *Error;
+} ml_map_stringer_t;
+
+static int ml_map_stringer(ml_value_t *Key, ml_value_t *Value, ml_map_stringer_t *Stringer) {
+	if (!Stringer->First) {
+		ml_stringbuffer_add(Stringer->Buffer, Stringer->Seperator, Stringer->SeperatorLength);
+	} else {
+		Stringer->First = 0;
+	}
+	Stringer->Error = ml_stringbuffer_append(Stringer->Buffer, Key);
+	if (ml_is_error(Stringer->Error)) return 1;
+	ml_stringbuffer_add(Stringer->Buffer, Stringer->Equals, Stringer->EqualsLength);
+	Stringer->Error = ml_stringbuffer_append(Stringer->Buffer, Value);
+	if (ml_is_error(Stringer->Error)) return 1;
+	return 0;
+}
+
+ML_METHOD("append", MLStringBufferT, MLMapT, MLStringT, MLStringT) {
+//<Map
+//<Seperator
+//<Connector
+//>string
+// Returns a string containing the entries of :mini:`Map` with :mini:`Connector` between keys and values and :mini:`Seperator` between entries.
+	ml_map_stringer_t Stringer[1] = {{
+		ml_string_value(Args[1]), ml_string_value(Args[2]),
+		(ml_stringbuffer_t *)Args[0],
+		ml_string_length(Args[1]), ml_string_length(Args[2]),
+		1
+	}};
+	if (ml_map_foreach(Args[0], Stringer, (void *)ml_map_stringer)) return Stringer->Error;
+	return MLSome;
 }
 
 static void ML_TYPED_FN(ml_iter_next, MLMapNodeT, ml_state_t *Caller, ml_map_node_t *Node) {
@@ -569,61 +606,6 @@ ML_METHOD("/", MLMapT, MLMapT) {
 		if (!ml_map_search0(Args[1], Node->Key)) ml_map_insert(Map, Node->Key, Node->Value);
 	}
 	return Map;
-}
-
-typedef struct ml_map_stringer_t {
-	const char *Seperator, *Equals;
-	ml_stringbuffer_t Buffer[1];
-	int SeperatorLength, EqualsLength, First;
-	ml_value_t *Error;
-} ml_map_stringer_t;
-
-static int ml_map_stringer(ml_value_t *Key, ml_value_t *Value, ml_map_stringer_t *Stringer) {
-	if (!Stringer->First) {
-		ml_stringbuffer_add(Stringer->Buffer, Stringer->Seperator, Stringer->SeperatorLength);
-	} else {
-		Stringer->First = 0;
-	}
-	Stringer->Error = ml_stringbuffer_append(Stringer->Buffer, Key);
-	if (ml_is_error(Stringer->Error)) return 1;
-	ml_stringbuffer_add(Stringer->Buffer, Stringer->Equals, Stringer->EqualsLength);
-	Stringer->Error = ml_stringbuffer_append(Stringer->Buffer, Value);
-	if (ml_is_error(Stringer->Error)) return 1;
-	return 0;
-}
-
-ML_METHOD(MLStringT, MLMapT) {
-//<Map
-//>string
-// Returns a string containing the entries of :mini:`Map` surrounded by :mini:`"{"`, :mini:`"}"` with :mini:`" is "` between keys and values and :mini:`", "` between entries.
-	ml_map_stringer_t Stringer[1] = {{
-		", ", " is ",
-		{ML_STRINGBUFFER_INIT},
-		2, 4,
-		1
-	}};
-	ml_stringbuffer_add(Stringer->Buffer, "{", 1);
-	if (ml_map_foreach(Args[0], Stringer, (void *)ml_map_stringer)) {
-		return Stringer->Error;
-	}
-	ml_stringbuffer_add(Stringer->Buffer, "}", 1);
-	return ml_string(ml_stringbuffer_get(Stringer->Buffer), -1);
-}
-
-ML_METHOD(MLStringT, MLMapT, MLStringT, MLStringT) {
-//<Map
-//<Seperator
-//<Connector
-//>string
-// Returns a string containing the entries of :mini:`Map` with :mini:`Connector` between keys and values and :mini:`Seperator` between entries.
-	ml_map_stringer_t Stringer[1] = {{
-		ml_string_value(Args[1]), ml_string_value(Args[2]),
-		{ML_STRINGBUFFER_INIT},
-		ml_string_length(Args[1]), ml_string_length(Args[2]),
-		1
-	}};
-	if (ml_map_foreach(Args[0], Stringer, (void *)ml_map_stringer)) return Stringer->Error;
-	return ml_stringbuffer_value(Stringer->Buffer);
 }
 
 typedef struct {

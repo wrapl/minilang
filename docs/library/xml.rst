@@ -16,7 +16,7 @@ xml
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: xml)`
    *TBD*
 
-:mini:`meth string(Arg₁: xml)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: xml)`
    *TBD*
 
 :mini:`meth (Tag: method):xml(Children...: string|xml, Attributes?: names|map, ...): xml`

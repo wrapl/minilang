@@ -102,6 +102,9 @@ static int ml_stringbuffer_print(FILE *File, const char *String, size_t Length) 
 
 ML_FUNCTION(MLPrint) {
 //@print
+//<Values..:any
+//>nil
+// Prints :mini:`Values` to standard output, converting to strings if necessary.
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Result = ml_stringbuffer_append(Buffer, Args[I]);
@@ -114,6 +117,8 @@ ML_FUNCTION(MLPrint) {
 
 ML_FUNCTION(MLHalt) {
 //@halt
+//<Code?:integer
+//
 	if (Count > 0) {
 		ML_CHECK_ARG_TYPE(0, MLIntegerT);
 		exit(ml_integer_value_fast(Args[0]));
@@ -143,6 +148,8 @@ static ml_value_t *ml_globals(stringmap_t *Globals, int Count, ml_value_t **Args
 static stringmap_t Modules[1] = {STRINGMAP_INIT};
 
 ML_FUNCTIONX(Import) {
+//<Path
+//>module
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLStringT);
 	const char *FileName = realpath(ml_string_value(Args[0]), NULL);
@@ -191,6 +198,8 @@ static void add_library_path(void) {
 }
 
 ML_FUNCTIONX(Library) {
+//<Name
+//>module
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLStringT);
 	const char *Name = ml_string_value(Args[0]);
@@ -228,6 +237,8 @@ ML_FUNCTIONX(Library) {
 }
 
 ML_FUNCTION(Unload) {
+//<Path
+//>nil
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	const char *FileName = realpath(ml_string_value(Args[0]), NULL);

@@ -417,13 +417,6 @@ void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_t
 	ml_method_insert(MLRootMethods, Method, Function, Count, 1, Types);
 }
 
-ML_METHOD(MLStringT, MLMethodT) {
-//!method
-//>string
-	ml_method_t *Method = (ml_method_t *)Args[0];
-	return ml_string_format(":%s", Method->Name);
-}
-
 ML_METHOD("append", MLStringBufferT, MLMethodT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_method_t *Method = (ml_method_t *)Args[1];

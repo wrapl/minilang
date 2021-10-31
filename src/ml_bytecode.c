@@ -1541,9 +1541,11 @@ ml_value_t *ml_closure(ml_closure_info_t *Info) {
 	return (ml_value_t *)Closure;
 }
 
-ML_METHOD(MLStringT, MLClosureT) {
-	ml_closure_t *Closure = (ml_closure_t *)Args[0];
-	return ml_cstring(Closure->Info->Name);
+ML_METHOD("append", MLStringBufferT, MLClosureT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_closure_t *Closure = (ml_closure_t *)Args[1];
+	ml_stringbuffer_add(Buffer, Closure->Info->Name, strlen(Closure->Info->Name));
+	return MLSome;
 }
 
 static int ml_closure_parameter_fn(const char *Name, void *Value, ml_value_t *Parameters) {

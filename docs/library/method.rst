@@ -13,9 +13,6 @@ method
 :mini:`meth method(Name: string): method`
    *TBD*
 
-:mini:`meth string(Arg₁: method): string`
-   *TBD*
-
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: method)`
    *TBD*
 

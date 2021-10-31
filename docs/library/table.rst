@@ -29,7 +29,7 @@ table
    Remove the column :mini:`Name` from :mini:`Table` and return the value array.
 
 
-:mini:`meth string(Arg₁: table)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: table)`
    *TBD*
 
 :mini:`meth (Table: table)[Name: string]: array`
@@ -56,6 +56,6 @@ table
    Returns the value from column :mini:`Name` in :mini:`Row`.
 
 
-:mini:`meth string(Arg₁: table::row)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: table::row)`
    *TBD*
 

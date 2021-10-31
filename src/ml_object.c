@@ -78,7 +78,7 @@ ML_TYPE(MLClassT, (MLTypeT), "class",
 
 typedef struct {
 	ml_object_t *Object;
-	ml_stringbuffer_t Buffer[1];
+	ml_stringbuffer_t *Buffer;
 	int Comma;
 } ml_object_stringer_t;
 
@@ -90,13 +90,13 @@ static int field_string(const char *Name, void *Offset, ml_object_stringer_t *St
 	return 0;
 }
 
-ML_METHOD(MLStringT, MLObjectT) {
-	ml_object_t *Object = (ml_object_t *)Args[0];
-	ml_object_stringer_t Stringer = {Object, {ML_STRINGBUFFER_INIT}, 0};
+ML_METHOD("append", MLStringBufferT, MLObjectT) {
+	ml_object_t *Object = (ml_object_t *)Args[1];
+	ml_object_stringer_t Stringer = {Object, (ml_stringbuffer_t *)Args[0], 0};
 	ml_stringbuffer_addf(Stringer.Buffer, "%s(", Object->Type->Base.Name);
 	stringmap_foreach(Object->Type->Fields, &Stringer, (void *)field_string);
 	ml_stringbuffer_add(Stringer.Buffer, ")", 1);
-	return ml_stringbuffer_value(Stringer.Buffer);
+	return MLSome;
 }
 
 ml_value_t *ml_field_fn(void *Data, int Count, ml_value_t **Args) {
@@ -478,11 +478,6 @@ ML_TYPE(MLEnumValueT, (MLIntegerT), "enum-value");
 //!internal
 #endif
 
-ML_METHOD(MLStringT, MLEnumValueT) {
-	ml_enum_value_t *Value = (ml_enum_value_t *)Args[0];
-	return Value->Name;
-}
-
 ML_METHOD("append", MLStringBufferT, MLEnumValueT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_enum_value_t *Value = (ml_enum_value_t *)Args[1];
@@ -767,9 +762,9 @@ ML_TYPE(MLFlagsValueT, (MLIntegerT), "flag-value");
 //!internal
 #endif
 
-ML_METHOD(MLStringT, MLFlagsValueT) {
-	ml_flags_value_t *Value = (ml_flags_value_t *)Args[0];
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+ML_METHOD("append", MLStringBufferT, MLFlagsValueT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_flags_value_t *Value = (ml_flags_value_t *)Args[1];
 	uint64_t Flags = Value->Value;
 	ml_value_t **Names = ((ml_flags_t *)Value->Type)->Names;
 	while (Flags) {
@@ -780,7 +775,7 @@ ML_METHOD(MLStringT, MLFlagsValueT) {
 		++Names;
 		Flags >>= 1;
 	}
-	return ml_stringbuffer_value(Buffer);
+	return MLSome;
 }
 
 ML_FUNCTION(MLFlags) {

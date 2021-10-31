@@ -283,16 +283,16 @@ number
    Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Real₁` is less than, equal to or greater than :mini:`Real₂`.
 
 
-:mini:`meth string(Arg₁: integer)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: integer)`
    *TBD*
 
-:mini:`meth string(Arg₁: integer, Arg₂: integer)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: integer, Arg₃: integer)`
    *TBD*
 
-:mini:`meth string(Arg₁: double)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: double)`
    *TBD*
 
-:mini:`meth string(Arg₁: complex)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: complex)`
    *TBD*
 
 :mini:`meth integer(Arg₁: string)`

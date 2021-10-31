@@ -12,7 +12,7 @@ module
    Imports a symbol from a module.
 
 
-:mini:`meth string(Arg₁: module)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: module)`
    *TBD*
 
 :mini:`meth (Arg₁: module):path`

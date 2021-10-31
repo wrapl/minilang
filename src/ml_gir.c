@@ -157,15 +157,17 @@ ml_value_t *ml_gir_instance_get(void *Handle, GIBaseInfo *Fallback) {
 	return (ml_value_t *)Instance;
 }
 
-ML_METHOD(MLStringT, ObjectInstanceT) {
+ML_METHOD("append", MLStringBufferT, ObjectInstanceT) {
 //<Object
 //>string
-	object_instance_t *Instance = (object_instance_t *)Args[0];
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	object_instance_t *Instance = (object_instance_t *)Args[1];
 	if (Instance == ObjectInstanceNil) {
-		return ml_cstring("(null)");
+		ml_stringbuffer_add(Buffer, "(null)", 6);
 	} else {
-		return ml_string_format("<%s>", g_base_info_get_name((GIBaseInfo *)Instance->Type->Info));
+		ml_stringbuffer_addf(Buffer, "<%s>", g_base_info_get_name((GIBaseInfo *)Instance->Type->Info));
 	}
+	return MLSome;
 }
 
 typedef struct struct_t {

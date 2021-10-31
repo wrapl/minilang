@@ -352,15 +352,6 @@ ML_METHOD("?", MLTypeT) {
 	return (ml_value_t *)Type;
 }
 
-ML_METHOD(MLStringT, MLTypeT) {
-//!type
-//<Type
-//>string
-// Returns a string representing :mini:`Type`.
-	ml_type_t *Type = (ml_type_t *)Args[0];
-	return ml_string_format("<<%s>>", Type->Name);
-}
-
 ML_METHOD("append", MLStringBufferT, MLTypeT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_type_t *Type = (ml_type_t *)Args[1];
@@ -910,7 +901,15 @@ ML_METHOD(MLStringT, MLAnyT) {
 //<Value
 //>string
 // Returns a general (type name only) representation of :mini:`Value` as a string.
-	return ml_string_format("<%s>", ml_typeof(Args[0])->Name);
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_stringbuffer_append(Buffer, Args[1]);
+	return ml_stringbuffer_value(Buffer);
+}
+
+ML_METHOD("append", MLStringBufferT, MLAnyT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_stringbuffer_addf(Buffer, "<%s>", ml_typeof(Args[1])->Name);
+	return MLSome;
 }
 
 void ml_value_set_name(ml_value_t *Value, const char *Name) {
@@ -1554,25 +1553,6 @@ static void ML_TYPED_FN(ml_iterate, MLTupleT, ml_state_t *Caller, ml_tuple_t *Tu
 	Iter->Index = 1;
 	Iter->Values = Tuple->Values;
 	ML_RETURN(Iter);
-}
-
-ML_METHOD(MLStringT, MLTupleT) {
-//!tuple
-//<Tuple
-//>string
-// Returns a string representation of :mini:`Tuple`.
-	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	ml_stringbuffer_add(Buffer, "(", 1);
-	if (Tuple->Size) {
-		ml_stringbuffer_append(Buffer, Tuple->Values[0]);
-		for (int I = 1; I < Tuple->Size; ++I) {
-			ml_stringbuffer_add(Buffer, ", ", 2);
-			ml_stringbuffer_append(Buffer, Tuple->Values[I]);
-		}
-	}
-	ml_stringbuffer_add(Buffer, ")", 1);
-	return ml_stringbuffer_value(Buffer);
 }
 
 ML_METHOD("append", MLStringBufferT, MLTupleT) {
@@ -3074,9 +3054,11 @@ ml_value_t *ml_module_export(ml_value_t *Module0, const char *Name, ml_value_t *
 	return Value;
 }
 
-ML_METHOD(MLStringT, MLModuleT) {
-	ml_module_t *Module = (ml_module_t *)Args[0];
-	return ml_string_format("module(%s)", Module->Path);
+ML_METHOD("append", MLStringBufferT, MLModuleT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_module_t *Module = (ml_module_t *)Args[1];
+	ml_stringbuffer_addf(Buffer, "module(%s)", Module->Path);
+	return MLSome;
 }
 
 static int ml_module_exports_fn(const char *Name, void *Value, ml_value_t *Exports) {

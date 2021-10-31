@@ -4,19 +4,19 @@ string
 :mini:`type string < address, sequence`
    *TBD*
 
-:mini:`meth string(Arg₁: nil)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: nil)`
    *TBD*
 
-:mini:`meth string(Arg₁: some)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: some)`
    *TBD*
 
-:mini:`meth string(Arg₁: integer, Arg₂: string)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: integer, Arg₃: string)`
    *TBD*
 
-:mini:`meth string(Arg₁: integer::range)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: integer::range)`
    *TBD*
 
-:mini:`meth string(Arg₁: real::range)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: real::range)`
    *TBD*
 
 :mini:`meth (String: string):ord: integer`
@@ -27,10 +27,10 @@ string
    Returns a string containing the character with unicode codepoint :mini:`Codepoint`.
 
 
-:mini:`meth string(Arg₁: double, Arg₂: string)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: double, Arg₃: string)`
    *TBD*
 
-:mini:`meth string(Arg₁: complex, Arg₂: string)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: complex, Arg₃: string)`
    *TBD*
 
 :mini:`fun regex(String: string): regex | error`
@@ -255,9 +255,6 @@ string
    *TBD*
 
 :mini:`meth (Arg₁: string):replace(Arg₂: map)`
-   *TBD*
-
-:mini:`meth string(Arg₁: regex)`
    *TBD*
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: regex)`

@@ -52,6 +52,6 @@ boolean
    Returns :mini:`Arg₂` if :mini:`Arg₁ >= Arg₂` and :mini:`nil` otherwise.
 
 
-:mini:`meth string(Arg₁: boolean)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: boolean)`
    *TBD*
 

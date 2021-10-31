@@ -22,10 +22,6 @@ tuple
 :mini:`type tuple::iter`
    *TBD*
 
-:mini:`meth string(Tuple: tuple): string`
-   Returns a string representation of :mini:`Tuple`.
-
-
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: tuple)`
    *TBD*
 

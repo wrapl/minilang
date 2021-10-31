@@ -68,6 +68,10 @@ map
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: map)`
    *TBD*
 
+:mini:`meth (Map: string::buffer):append(Seperator: map, Connector: string, Arg₄: string): string`
+   Returns a string containing the entries of :mini:`Map` with :mini:`Connector` between keys and values and :mini:`Seperator` between entries.
+
+
 :mini:`meth (Map₁: map) + (Map₂: map): map`
    Returns a new map combining the entries of :mini:`Map₁` and :mini:`Map₂`.
 
@@ -80,14 +84,6 @@ map
 
 :mini:`meth (Map₁: map) / (Map₂: map): map`
    Returns a new map containing the entries of :mini:`Map₁` which are not in :mini:`Map₂`.
-
-
-:mini:`meth string(Map: map): string`
-   Returns a string containing the entries of :mini:`Map` surrounded by :mini:`"{"`, :mini:`"}"` with :mini:`" is "` between keys and values and :mini:`", "` between entries.
-
-
-:mini:`meth string(Map: map, Seperator: string, Connector: string): string`
-   Returns a string containing the entries of :mini:`Map` with :mini:`Connector` between keys and values and :mini:`Seperator` between entries.
 
 
 :mini:`meth (Map: map):sort: Map`
