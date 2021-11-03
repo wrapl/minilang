@@ -768,7 +768,7 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 
 	gtk_container_add(GTK_CONTAINER(Console->Window), Container);
 	gtk_window_set_default_size(GTK_WINDOW(Console->Window), 640, 480);
-	g_signal_connect(G_OBJECT(Console->Window), "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), Console);
+	g_signal_connect(G_OBJECT(Console->Window), "delete-event", G_CALLBACK(gtk_main_quit), Console);
 
 	ml_compiler_define(Console->Compiler, "set_font", ml_cfunction(Console, (ml_callback_t)console_set_font));
 	ml_compiler_define(Console->Compiler, "set_style", ml_cfunction(Console, (ml_callback_t)console_set_style));

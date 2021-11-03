@@ -193,11 +193,13 @@ static ml_value_t *struct_instance_new(struct_t *Struct, int Count, ml_value_t *
 	return (ml_value_t *)Instance;
 }
 
-ML_METHOD(MLStringT, StructInstanceT) {
+ML_METHOD("append", MLStringBufferT, StructInstanceT) {
 //<Struct
 //>string
-	struct_instance_t *Instance = (struct_instance_t *)Args[0];
-	return ml_string_format("<%s>", g_base_info_get_name((GIBaseInfo *)Instance->Type->Info));
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	struct_instance_t *Instance = (struct_instance_t *)Args[1];
+	ml_stringbuffer_addf(Buffer, "<%s>", g_base_info_get_name((GIBaseInfo *)Instance->Type->Info));
+	return MLSome;
 }
 
 typedef struct field_ref_t {
@@ -315,11 +317,13 @@ ML_TYPE(EnumT, (BaseInfoT), "gir-enum-type");
 ML_TYPE(EnumValueT, (), "gir-enum");
 // A gobject-instrospection enum value.
 
-ML_METHOD(MLStringT, EnumValueT) {
+ML_METHOD("append", MLStringT, EnumValueT) {
 //<Value
 //>string
-	enum_value_t *Value = (enum_value_t *)Args[0];
-	return Value->Name;
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	enum_value_t *Value = (enum_value_t *)Args[1];
+	ml_stringbuffer_add(Buffer, ml_string_value(Value->Name), ml_string_length(Value->Name));
+	return MLSome;
 }
 
 ML_METHOD(MLIntegerT, EnumValueT) {

@@ -118,10 +118,6 @@ type
    Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
 
 
-:mini:`meth string(Value: any): string`
-   Returns a general (type name only) representation of :mini:`Value` as a string.
-
-
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: any)`
    *TBD*
 

@@ -216,6 +216,10 @@ ml_method_cached_t *ml_method_search_cached(ml_state_t *Caller, ml_method_t *Met
 }
 
 void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Callback, int Count, int Variadic, ml_type_t **Types) {
+	if (Method->Type != MLMethodT) {
+		fprintf(stderr, "Internal error: attempting to define method for non-method value\n");
+		exit(-1);
+	}
 	ml_method_definition_t *Definition = xnew(ml_method_definition_t, Count, ml_type_t *);
 	Definition->Callback = Callback;
 	Definition->Count = Count;

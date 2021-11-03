@@ -37,13 +37,7 @@ xe
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: xenode)`
    *TBD*
 
-:mini:`meth string(Arg₁: xenode)`
-   *TBD*
-
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: xevar)`
-   *TBD*
-
-:mini:`meth string(Arg₁: xevar)`
    *TBD*
 
 :mini:`fun xeparsestring(Arg₁: string)`

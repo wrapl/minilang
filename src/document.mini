@@ -68,7 +68,7 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 		Match[2]:lower
 	elseif Method0[1] = "\"" then
 		if is_symbol(Method0) or Method0:find("::") then
-			Method0[2, -1]
+			Method0[2, -1]:replace("\\\\",  "\\")
 		else
 			':{Method0[2, -1]}'
 		end

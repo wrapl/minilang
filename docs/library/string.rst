@@ -1,6 +1,10 @@
 string
 ======
 
+:mini:`fun mlstring(Value: any): string`
+   Returns a general (type name only) representation of :mini:`Value` as a string.
+
+
 :mini:`type string < address, sequence`
    *TBD*
 

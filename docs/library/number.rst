@@ -105,13 +105,13 @@ number
 :mini:`meth ~(Arg₁: integer)`
    *TBD*
 
-:mini:`meth (Arg₁: integer) & (Arg₂: integer)`
+:mini:`meth (Arg₁: integer) /\ (Arg₂: integer)`
    *TBD*
 
-:mini:`meth (Arg₁: integer) | (Arg₂: integer)`
+:mini:`meth (Arg₁: integer) \/ (Arg₂: integer)`
    *TBD*
 
-:mini:`meth (Arg₁: integer) ^ (Arg₂: integer)`
+:mini:`meth (Arg₁: integer) >< (Arg₂: integer)`
    *TBD*
 
 :mini:`meth (Arg₁: integer) << (Arg₂: integer)`

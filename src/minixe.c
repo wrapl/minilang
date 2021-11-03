@@ -837,25 +837,7 @@ ML_METHOD("append", MLStringBufferT, XENodeT) {
 		}
 	}
 	ml_stringbuffer_add(Buffer, ">", 1);
-	return Args[0];
-}
-
-ML_METHOD(MLStringT, XENodeT) {
-	xe_node_t *Node = (xe_node_t *)Args[0];
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	ml_stringbuffer_add(Buffer, "<", 1);
-	ml_stringbuffer_add(Buffer, ml_string_value(Node->Tag), ml_string_length(Node->Tag));
-	if (ml_map_size(Node->Attributes)) {
-		ml_map_foreach(Node->Attributes, Buffer, (void *)xe_attribute_to_string);
-	}
-	if (ml_list_length(Node->Content)) {
-		ml_stringbuffer_add(Buffer, ":", 1);
-		ML_LIST_FOREACH(Node->Content, Iter) {
-			ml_stringbuffer_append(Buffer, Iter->Value);
-		}
-	}
-	ml_stringbuffer_add(Buffer, ">", 1);
-	return ml_stringbuffer_value(Buffer);
+	return MLSome;
 }
 
 ML_METHOD("append", MLStringBufferT, XEVarT) {
@@ -864,16 +846,7 @@ ML_METHOD("append", MLStringBufferT, XEVarT) {
 	ml_stringbuffer_add(Buffer, "<$", 2);
 	ml_stringbuffer_append(Buffer, Var->Name);
 	ml_stringbuffer_add(Buffer, ">", 1);
-	return Args[0];
-}
-
-ML_METHOD(MLStringT, XEVarT) {
-	xe_var_t *Var = (xe_var_t *)Args[0];
-	if (ml_is(Var->Name, MLIntegerT)) {
-		return ml_string_format("<$%ld>", ml_integer_value_fast(Var->Name));
-	} else {
-		return ml_string_format("<$%s>", ml_string_value(Var->Name));
-	}
+	return MLSome;
 }
 
 ML_FUNCTION(XEParseString) {

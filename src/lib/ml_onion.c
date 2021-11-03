@@ -185,9 +185,11 @@ typedef struct ml_onion_connection_status_t {
 
 static ml_type_t *OnionConnectionStatusT;
 
-ML_METHOD(MLStringT, OnionConnectionStatusT) {
-	ml_onion_connection_status_t *Status = (ml_onion_connection_status_t *)Args[0];
-	return ml_string(Status->Name, -1);
+ML_METHOD("append", MLStringBufferT, OnionConnectionStatusT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_onion_connection_status_t *Status = (ml_onion_connection_status_t *)Args[1];
+	ml_stringbuffer_add(Buffer, Status->Name, strlen(Status->Name));
+	return MLSome;
 }
 
 static ml_value_t *ml_onion_connection_status(const char *Name, onion_connection_status Value) {

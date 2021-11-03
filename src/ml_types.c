@@ -897,15 +897,6 @@ ml_comp_any_any_any("<=");
 ml_comp_any_any_any(">");
 ml_comp_any_any_any(">=");
 
-ML_METHOD(MLStringT, MLAnyT) {
-//<Value
-//>string
-// Returns a general (type name only) representation of :mini:`Value` as a string.
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	ml_stringbuffer_append(Buffer, Args[1]);
-	return ml_stringbuffer_value(Buffer);
-}
-
 ML_METHOD("append", MLStringBufferT, MLAnyT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_addf(Buffer, "<%s>", ml_typeof(Args[1])->Name);
@@ -2166,9 +2157,9 @@ ml_arith_method_number_number("+", +)
 ml_arith_method_number_number("-", -)
 ml_arith_method_number_number("*", *)
 ml_arith_method_integer("~", ~);
-ml_arith_method_integer_integer("&", &);
-ml_arith_method_integer_integer("|", |);
-ml_arith_method_integer_integer("^", ^);
+ml_arith_method_integer_integer("/\\", &);
+ml_arith_method_integer_integer("\\/", |);
+ml_arith_method_integer_integer("><", ^);
 
 ML_METHOD("<<", MLIntegerT, MLIntegerT) {
 	int64_t IntegerA = ml_integer_value_fast(Args[0]);

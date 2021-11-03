@@ -30,7 +30,7 @@ gir
    A gobject-introspection struct instance.
 
 
-:mini:`meth string(Struct: structinstance): string`
+:mini:`meth (Struct: string::buffer):append(Arg₂: structinstance): string`
    *TBD*
 
 :mini:`type fieldref::boolean`
@@ -77,7 +77,7 @@ gir
    A gobject-instrospection enum value.
 
 
-:mini:`meth string(Value: enumvalue): string`
+:mini:`meth (Value: string):append(Arg₂: enumvalue): string`
    *TBD*
 
 :mini:`meth integer(Value: enumvalue): integer`

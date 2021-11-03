@@ -319,8 +319,31 @@ static long ml_string_hash(ml_string_t *String, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
+static ML_METHOD_DECL(AppendMethod, "append");
+
+ML_FUNCTION(MLString) {
+//<Value:any
+//>string
+// Returns a general (type name only) representation of :mini:`Value` as a string.
+	ML_CHECK_ARG_COUNT(1);
+	if (ml_is(Args[0], MLStringT)) return Args[0];
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_value_t *Error;
+	if (Count == 1) {
+		Error = ml_stringbuffer_append(Buffer, Args[0]);
+	} else {
+		ml_value_t **Args2 = ml_alloc_args(Count + 1);
+		memmove(Args2 + 1, Args, Count * sizeof(ml_value_t *));
+		Args2[0] = (ml_value_t *)Buffer;
+		Error = ml_simple_call(AppendMethod, Count + 1, Args2);
+	}
+	if (ml_is_error(Error)) return Error;
+	return ml_stringbuffer_value(Buffer);
+}
+
 ML_TYPE(MLStringT, (MLAddressT, MLSequenceT), "string",
-	.hash = (void *)ml_string_hash
+	.hash = (void *)ml_string_hash,
+	.Constructor = (ml_value_t *)MLString
 );
 
 ML_METHOD("append", MLStringBufferT, MLAddressT) {
@@ -1062,21 +1085,20 @@ int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callbac
 	return callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
 }
 
-static ML_METHOD_DECL(AppendMethod, "append");
-
 ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
 	ml_hash_chain_t *Chain = Buffer->Chain;
 	for (ml_hash_chain_t *Link = Chain; Link; Link = Link->Previous) {
 		if (Link->Value == Value) {
-			Link->Used = 1;
-			ml_stringbuffer_addf(Buffer, "^%d", Link->Index);
+			int Index = Link->Index;
+			if (!Index) Index = Link->Index = ++Buffer->Index;
+			ml_stringbuffer_addf(Buffer, "^%d", Index);
 			return (ml_value_t *)Buffer;
 		}
 	}
-	ml_hash_chain_t NewChain[1] = {{Chain, Value, Chain ? Chain->Index + 1 : 1}};
+	ml_hash_chain_t NewChain[1] = {{Chain, Value, 0}};
 	Buffer->Chain = NewChain;
 	ml_value_t *Result = ml_simple_inline(AppendMethod, 2, Buffer, Value);
-	if (NewChain->Used) ml_stringbuffer_addf(Buffer, "@%d", NewChain->Index);
+	if (NewChain->Index) ml_stringbuffer_addf(Buffer, "@%d", NewChain->Index);
 	Buffer->Chain = Chain;
 	return Result;
 }
@@ -2223,5 +2245,4 @@ void ml_string_init() {
 	regcomp(RealFormat, "^%[-+ #'0]*[.0-9]*[aefgAEG]$", REG_NOSUB);
 	stringmap_insert(MLStringT->Exports, "switch", MLStringSwitch);
 #include "ml_string_init.c"
-	ml_method_by_value(MLStringT->Constructor, NULL, ml_identity, MLStringT, NULL);
 }

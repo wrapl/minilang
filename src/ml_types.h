@@ -34,7 +34,7 @@ typedef struct ml_hash_chain_t ml_hash_chain_t;
 struct ml_hash_chain_t {
 	ml_hash_chain_t *Previous;
 	ml_value_t *Value;
-	int Index, Used;
+	int Index;
 };
 
 typedef struct ml_generic_rule_t ml_generic_rule_t;
@@ -595,7 +595,7 @@ struct ml_stringbuffer_t {
 	ml_type_t *Type;
 	ml_stringbuffer_node_t *Head, *Tail;
 	ml_hash_chain_t *Chain;
-	int Space, Length;
+	int Space, Length, Index;
 };
 
 #define ML_STRINGBUFFER_NODE_SIZE 248
