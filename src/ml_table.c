@@ -196,14 +196,14 @@ ML_METHOD("delete", MLTableT, MLStringT) {
 ML_METHOD("append", MLStringBufferT, MLTableT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_table_t *Table = (ml_table_t *)Args[1];
-	ml_stringbuffer_add(Buffer, "table(", 6);
+	ml_stringbuffer_write(Buffer, "table(", 6);
 	int Comma = 0;
 	ML_MAP_FOREACH(Table->Columns, Iter) {
-		if (Comma) ml_stringbuffer_add(Buffer, ", ", 2);
+		if (Comma) ml_stringbuffer_write(Buffer, ", ", 2);
 		ml_stringbuffer_append(Buffer, Iter->Key);
 		Comma = 1;
 	}
-	ml_stringbuffer_add(Buffer, ")", 1);
+	ml_stringbuffer_write(Buffer, ")", 1);
 	return MLSome;
 }
 
@@ -363,17 +363,17 @@ ML_METHOD("::", MLTableRowT, MLStringT) {
 ML_METHOD("append", MLStringBufferT, MLTableRowT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_table_row_t *Row = (ml_table_row_t *)Args[1];
-	ml_stringbuffer_add(Buffer, "<", 1);
+	ml_stringbuffer_write(Buffer, "<", 1);
 	int Comma = 0;
 	ML_MAP_FOREACH(Row->Table->Columns, Iter) {
-		if (Comma) ml_stringbuffer_add(Buffer, ", ", 2);
+		if (Comma) ml_stringbuffer_write(Buffer, ", ", 2);
 		ml_stringbuffer_append(Buffer, Iter->Key);
-		ml_stringbuffer_add(Buffer, " is ", 4);
+		ml_stringbuffer_write(Buffer, " is ", 4);
 		ml_value_t *Value = ml_array_index((ml_array_t *)Iter->Value, Row->Count, Row->Indices);
 		ml_stringbuffer_append(Buffer, Value);
 		Comma = 1;
 	}
-	ml_stringbuffer_add(Buffer, ">", 1);
+	ml_stringbuffer_write(Buffer, ">", 1);
 	return MLSome;
 }
 

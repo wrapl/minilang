@@ -302,8 +302,8 @@ ML_FUNCTION(JsonEncode) {
 	ML_CHECK_ARG_COUNT(1);
 	yajl_gen Handle = yajl_gen_alloc(&AllocFuncs);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	yajl_gen_config(Handle, yajl_gen_print_callback, ml_stringbuffer_add, Buffer);
-	return ml_json_encode(Handle, Args[0]) ?: ml_stringbuffer_value(Buffer);
+	yajl_gen_config(Handle, yajl_gen_print_callback, ml_stringbuffer_write, Buffer);
+	return ml_json_encode(Handle, Args[0]) ?: ml_stringbuffer_get_value(Buffer);
 }
 
 void ml_json_init(stringmap_t *Globals) {

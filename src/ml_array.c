@@ -1243,7 +1243,7 @@ static long srotl(long X, unsigned int N) {
 
 #ifdef ML_COMPLEX
 
-#define COMPLEX_APPEND(BUFFER, PRINTF, VALUE) ml_stringbuffer_addf(BUFFER, PRINTF, creal(VALUE), cimag(VALUE))
+#define COMPLEX_APPEND(BUFFER, PRINTF, VALUE) ml_stringbuffer_printf(BUFFER, PRINTF, creal(VALUE), cimag(VALUE))
 
 #endif
 
@@ -1275,7 +1275,7 @@ static ml_value_t *ML_TYPED_FN(ml_array_value, ATYPE, ml_array_t *Array, char *A
 } \
 \
 static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_array_dimension_t *Dimension, char *Address) { \
-	ml_stringbuffer_add(Buffer, "<", 1); \
+	ml_stringbuffer_write(Buffer, "<", 1); \
 	int Stride = Dimension->Stride; \
 	if (Dimension->Indices) { \
 		int *Indices = Dimension->Indices; \
@@ -1283,13 +1283,13 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 			if (Degree == 1) { \
 				APPEND(Buffer, PRINTF, *(CTYPE *)(Address + (Indices[0]) * Dimension->Stride)); \
 				for (int I = 1; I < Dimension->Size; ++I) { \
-					ml_stringbuffer_add(Buffer, " ", 1); \
+					ml_stringbuffer_write(Buffer, " ", 1); \
 					APPEND(Buffer, PRINTF, *(CTYPE *)(Address + (Indices[I]) * Stride)); \
 				} \
 			} else { \
 				append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address + (Indices[0]) * Dimension->Stride); \
 				for (int I = 1; I < Dimension->Size; ++I) { \
-					ml_stringbuffer_add(Buffer, " ", 1); \
+					ml_stringbuffer_write(Buffer, " ", 1); \
 					append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address + (Indices[I]) * Dimension->Stride); \
 				} \
 			} \
@@ -1299,7 +1299,7 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 			APPEND(Buffer, PRINTF, *(CTYPE *)Address); \
 			Address += Stride; \
 			for (int I = Dimension->Size; --I > 0;) { \
-				ml_stringbuffer_add(Buffer, " ", 1); \
+				ml_stringbuffer_write(Buffer, " ", 1); \
 				APPEND(Buffer, PRINTF, *(CTYPE *)Address); \
 				Address += Stride; \
 			} \
@@ -1307,13 +1307,13 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 			append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address); \
 			Address += Stride; \
 			for (int I = Dimension->Size; --I > 0;) { \
-				ml_stringbuffer_add(Buffer, " ", 1); \
+				ml_stringbuffer_write(Buffer, " ", 1); \
 				append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address); \
 				Address += Stride; \
 			} \
 		} \
 	} \
-	ml_stringbuffer_add(Buffer, ">", 1); \
+	ml_stringbuffer_write(Buffer, ">", 1); \
 } \
 \
  ML_METHOD("append", MLStringBufferT, ATYPE) { \
@@ -1485,16 +1485,16 @@ typedef ml_value_t *value;
 
 #define NOP_VAL(T, X) X
 
-ARRAY_DECL(int8, MLArrayInt8T, int8_t, ml_stringbuffer_addf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I8, (long));
-ARRAY_DECL(uint8, MLArrayUInt8T, uint8_t, ml_stringbuffer_addf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U8, (long));
-ARRAY_DECL(int16, MLArrayInt16T, int16_t, ml_stringbuffer_addf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I16, (long));
-ARRAY_DECL(uint16, MLArrayUInt16T, uint16_t, ml_stringbuffer_addf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U16, (long));
-ARRAY_DECL(int32, MLArrayInt32T, int32_t, ml_stringbuffer_addf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I32, (long));
-ARRAY_DECL(uint32, MLArrayUInt32T, uint32_t, ml_stringbuffer_addf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U32, (long));
-ARRAY_DECL(int64, MLArrayInt64T, int64_t, ml_stringbuffer_addf, "%ld", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I64, (long));
-ARRAY_DECL(uint64, MLArrayUInt64T, uint64_t, ml_stringbuffer_addf, "%lud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U64, (long));
-ARRAY_DECL(float32, MLArrayFloat32T, float, ml_stringbuffer_addf, "%g", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F32, (long));
-ARRAY_DECL(float64, MLArrayFloat64T, double, ml_stringbuffer_addf, "%g", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F64, (long));
+ARRAY_DECL(int8, MLArrayInt8T, int8_t, ml_stringbuffer_printf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I8, (long));
+ARRAY_DECL(uint8, MLArrayUInt8T, uint8_t, ml_stringbuffer_printf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U8, (long));
+ARRAY_DECL(int16, MLArrayInt16T, int16_t, ml_stringbuffer_printf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I16, (long));
+ARRAY_DECL(uint16, MLArrayUInt16T, uint16_t, ml_stringbuffer_printf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U16, (long));
+ARRAY_DECL(int32, MLArrayInt32T, int32_t, ml_stringbuffer_printf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I32, (long));
+ARRAY_DECL(uint32, MLArrayUInt32T, uint32_t, ml_stringbuffer_printf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U32, (long));
+ARRAY_DECL(int64, MLArrayInt64T, int64_t, ml_stringbuffer_printf, "%ld", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I64, (long));
+ARRAY_DECL(uint64, MLArrayUInt64T, uint64_t, ml_stringbuffer_printf, "%lud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U64, (long));
+ARRAY_DECL(float32, MLArrayFloat32T, float, ml_stringbuffer_printf, "%g", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F32, (long));
+ARRAY_DECL(float64, MLArrayFloat64T, double, ml_stringbuffer_printf, "%g", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F64, (long));
 
 #ifdef ML_COMPLEX
 

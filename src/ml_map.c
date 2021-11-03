@@ -497,25 +497,25 @@ ML_METHOD("missing", MLMapT, MLAnyT) {
 
 ML_METHOD("append", MLStringBufferT, MLMapT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_add(Buffer, "{", 1);
+	ml_stringbuffer_write(Buffer, "{", 1);
 	ml_map_t *Map = (ml_map_t *)Args[1];
 	ml_map_node_t *Node = Map->Head;
 	if (Node) {
 		ml_stringbuffer_append(Buffer, Node->Key);
 		if (Node->Value != MLSome) {
-			ml_stringbuffer_add(Buffer, " is ", 4);
+			ml_stringbuffer_write(Buffer, " is ", 4);
 			ml_stringbuffer_append(Buffer, Node->Value);
 		}
 		while ((Node = Node->Next)) {
-			ml_stringbuffer_add(Buffer, ", ", 2);
+			ml_stringbuffer_write(Buffer, ", ", 2);
 			ml_stringbuffer_append(Buffer, Node->Key);
 			if (Node->Value != MLSome) {
-				ml_stringbuffer_add(Buffer, " is ", 4);
+				ml_stringbuffer_write(Buffer, " is ", 4);
 				ml_stringbuffer_append(Buffer, Node->Value);
 			}
 		}
 	}
-	ml_stringbuffer_add(Buffer, "}", 1);
+	ml_stringbuffer_write(Buffer, "}", 1);
 	return MLSome;
 }
 
@@ -528,13 +528,13 @@ typedef struct ml_map_stringer_t {
 
 static int ml_map_stringer(ml_value_t *Key, ml_value_t *Value, ml_map_stringer_t *Stringer) {
 	if (!Stringer->First) {
-		ml_stringbuffer_add(Stringer->Buffer, Stringer->Seperator, Stringer->SeperatorLength);
+		ml_stringbuffer_write(Stringer->Buffer, Stringer->Seperator, Stringer->SeperatorLength);
 	} else {
 		Stringer->First = 0;
 	}
 	Stringer->Error = ml_stringbuffer_append(Stringer->Buffer, Key);
 	if (ml_is_error(Stringer->Error)) return 1;
-	ml_stringbuffer_add(Stringer->Buffer, Stringer->Equals, Stringer->EqualsLength);
+	ml_stringbuffer_write(Stringer->Buffer, Stringer->Equals, Stringer->EqualsLength);
 	Stringer->Error = ml_stringbuffer_append(Stringer->Buffer, Value);
 	if (ml_is_error(Stringer->Error)) return 1;
 	return 0;

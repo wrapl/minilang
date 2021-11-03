@@ -149,7 +149,7 @@ ML_METHOD("append", MLStringBufferT, MLTimeT) {
 	localtime_r(&Time->Value->tv_sec, &TM);
 	char Temp[30];
 	size_t Length = strftime(Temp, 30, "%F %T", &TM);
-	ml_stringbuffer_add(Buffer, Temp, Length);
+	ml_stringbuffer_write(Buffer, Temp, Length);
 	return MLSome;
 }
 
@@ -176,7 +176,7 @@ ML_METHOD("append", MLStringBufferT, MLTimeT, MLNilT) {
 	} else {
 		Length = strftime(Temp, 60, "%FT%TZ", &TM);
 	}
-	ml_stringbuffer_add(Buffer, Temp, Length);
+	ml_stringbuffer_write(Buffer, Temp, Length);
 	return MLSome;
 }
 
@@ -192,7 +192,7 @@ ML_METHOD("append", MLStringBufferT, MLTimeT, MLStringT) {
 	localtime_r(&Time->Value->tv_sec, &TM);
 	char Temp[120];
 	size_t Length = strftime(Temp, 120, Format, &TM);
-	ml_stringbuffer_add(Buffer, Temp, Length);
+	ml_stringbuffer_write(Buffer, Temp, Length);
 	return MLSome;
 }
 
@@ -213,7 +213,7 @@ ML_METHOD("append", MLStringBufferT, MLTimeT, MLStringT, MLNilT) {
 	}
 	char Temp[120];
 	size_t Length = strftime(Temp, 120, Format, &TM);
-	ml_stringbuffer_add(Buffer, Temp, Length);
+	ml_stringbuffer_write(Buffer, Temp, Length);
 	return MLSome;
 }
 

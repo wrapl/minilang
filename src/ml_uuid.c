@@ -44,7 +44,7 @@ ML_METHOD("append", MLStringBufferT, MLUUIDT) {
 	ml_uuid_t *UUID = (ml_uuid_t *)Args[1];
 	char String[UUID_STR_LEN];
 	uuid_unparse_lower(UUID->Value, String);
-	ml_stringbuffer_add(Buffer, String, UUID_STR_LEN - 1);
+	ml_stringbuffer_write(Buffer, String, UUID_STR_LEN - 1);
 	return Args[0];
 }
 

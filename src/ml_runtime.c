@@ -631,12 +631,12 @@ ML_METHOD("raise", MLErrorValueT) {
 ML_METHOD("append", MLStringBufferT, MLErrorValueT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_error_value_t *Value = (ml_error_value_t *)Args[1];
-	ml_stringbuffer_add(Buffer, Value->Error, strlen(Value->Error));
-	ml_stringbuffer_add(Buffer, ": ", 2);
-	ml_stringbuffer_add(Buffer, Value->Message, strlen(Value->Message));
+	ml_stringbuffer_write(Buffer, Value->Error, strlen(Value->Error));
+	ml_stringbuffer_write(Buffer, ": ", 2);
+	ml_stringbuffer_write(Buffer, Value->Message, strlen(Value->Message));
 	ml_source_t *Source = Value->Trace;
 	for (int I = MAX_TRACE; --I >= 0 && Source->Name; ++Source) {
-		ml_stringbuffer_addf(Buffer, "\n\t%s:%d", Source->Name, Source->Line);
+		ml_stringbuffer_printf(Buffer, "\n\t%s:%d", Source->Name, Source->Line);
 	}
 	return Args[0];
 }

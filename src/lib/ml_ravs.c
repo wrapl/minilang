@@ -70,9 +70,9 @@ ML_METHOD("add", VersionStoreT, MLAnyT) {
 	ml_version_store_t *Store = (ml_version_store_t *)Args[0];
 	CHECK_HANDLE(Store);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	ml_cbor_write(Args[1], Buffer, (void *)ml_stringbuffer_add);
+	ml_cbor_write(Args[1], Buffer, (void *)ml_stringbuffer_write);
 	int Length = Buffer->Length;
-	size_t Index = version_store_value_create(Store->Handle, ml_stringbuffer_get(Buffer), Length);
+	size_t Index = version_store_value_create(Store->Handle, ml_stringbuffer_get_string(Buffer), Length);
 	return ml_integer(Index);
 }
 
@@ -81,9 +81,9 @@ ML_METHOD("set", VersionStoreT, MLIntegerT, MLAnyT) {
 	CHECK_HANDLE(Store);
 	size_t Index = ml_integer_value_fast(Args[1]);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	ml_cbor_write(Args[2], Buffer, (void *)ml_stringbuffer_add);
+	ml_cbor_write(Args[2], Buffer, (void *)ml_stringbuffer_write);
 	int Length = Buffer->Length;
-	version_store_value_update(Store->Handle, Index, ml_stringbuffer_get(Buffer), Length);
+	version_store_value_update(Store->Handle, Index, ml_stringbuffer_get_string(Buffer), Length);
 	return MLNil;
 }
 

@@ -18,7 +18,7 @@ static void ml_logger_call(ml_state_t *Caller, ml_logger_t *Logger, int Count, m
 			ml_stringbuffer_append(Buffer, Args[I]);
 		}
 		ml_source_t Source = ml_debugger_source(Caller);
-		zlog(Logger->Category, Source.Name, strlen(Source.Name), "", 0, Source.Line, Logger->Level, "%s", ml_stringbuffer_get(Buffer));
+		zlog(Logger->Category, Source.Name, strlen(Source.Name), "", 0, Source.Line, Logger->Level, "%s", ml_stringbuffer_get_string(Buffer));
 	}
 	ML_RETURN(MLNil);
 }

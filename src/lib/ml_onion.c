@@ -188,7 +188,7 @@ static ml_type_t *OnionConnectionStatusT;
 ML_METHOD("append", MLStringBufferT, OnionConnectionStatusT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_onion_connection_status_t *Status = (ml_onion_connection_status_t *)Args[1];
-	ml_stringbuffer_add(Buffer, Status->Name, strlen(Status->Name));
+	ml_stringbuffer_write(Buffer, Status->Name, strlen(Status->Name));
 	return MLSome;
 }
 
@@ -350,7 +350,7 @@ static onion_connection_status ml_onion_websocket_callback(ml_onion_websocket_t 
 				Result = ml_error("ReadError", "Error reading from websocket: %s", strerror(errno));
 				goto done;
 			}
-			ml_stringbuffer_add(Websocket->Buffer, Buffer, Size);
+			ml_stringbuffer_write(Websocket->Buffer, Buffer, Size);
 			DataReadyLength -= Size;
 		}
 		while (DataReadyLength > 0) {
@@ -359,7 +359,7 @@ static onion_connection_status ml_onion_websocket_callback(ml_onion_websocket_t 
 				Result = ml_error("ReadError", "Error reading from websocket: %s", strerror(errno));
 				goto done;
 			}
-			ml_stringbuffer_add(Websocket->Buffer, Buffer, Size);
+			ml_stringbuffer_write(Websocket->Buffer, Buffer, Size);
 			DataReadyLength -= Size;
 		}
 	done:

@@ -26,8 +26,8 @@ ML_METHOD("value", KiwiVariableT) {
 ML_METHOD(MLStringT, KiwiVariableT) {
 	kiwi_variable_t *V = (kiwi_variable_t *)Args[0];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	ml_stringbuffer_addf(Buffer, "?%s", V->Value.name().c_str());
-	return ml_stringbuffer_value(Buffer);
+	ml_stringbuffer_printf(Buffer, "?%s", V->Value.name().c_str());
+	return ml_stringbuffer_get_value(Buffer);
 }
 
 ML_TYPE(KiwiExpressionT, (), "kiwi-expression");
@@ -42,16 +42,16 @@ struct kiwi_expression_t : public gc {
 ML_METHOD(MLStringT, KiwiExpressionT) {
 	kiwi_expression_t *E = (kiwi_expression_t *)Args[0];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	ml_stringbuffer_addf(Buffer, "%g", E->Value.constant());
+	ml_stringbuffer_printf(Buffer, "%g", E->Value.constant());
 	for (auto Term : E->Value.terms()) {
 		if (Term.coefficient() < 0.0) {
-			ml_stringbuffer_addf(Buffer, " - %g", -Term.coefficient());
+			ml_stringbuffer_printf(Buffer, " - %g", -Term.coefficient());
 		} else {
-			ml_stringbuffer_addf(Buffer, " + %g", Term.coefficient());
+			ml_stringbuffer_printf(Buffer, " + %g", Term.coefficient());
 		}
-		ml_stringbuffer_addf(Buffer, "%s", Term.variable().name().c_str());
+		ml_stringbuffer_printf(Buffer, "%s", Term.variable().name().c_str());
 	}
-	return ml_stringbuffer_value(Buffer);
+	return ml_stringbuffer_get_value(Buffer);
 }
 
 ML_TYPE(KiwiConstraintT, (), "kiwi-constraint");
@@ -66,28 +66,28 @@ struct kiwi_constraint_t : public gc {
 ML_METHOD(MLStringT, KiwiConstraintT) {
 	kiwi_constraint_t *C = (kiwi_constraint_t *)Args[0];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	ml_stringbuffer_addf(Buffer, "%g", C->Value.expression().constant());
+	ml_stringbuffer_printf(Buffer, "%g", C->Value.expression().constant());
 	for (auto Term : C->Value.expression().terms()) {
 		if (Term.coefficient() < 0.0) {
-			ml_stringbuffer_addf(Buffer, " - %g", -Term.coefficient());
+			ml_stringbuffer_printf(Buffer, " - %g", -Term.coefficient());
 		} else {
-			ml_stringbuffer_addf(Buffer, " + %g", Term.coefficient());
+			ml_stringbuffer_printf(Buffer, " + %g", Term.coefficient());
 		}
-		ml_stringbuffer_addf(Buffer, "%s", Term.variable().name().c_str());
+		ml_stringbuffer_printf(Buffer, "%s", Term.variable().name().c_str());
 	}
 	switch (C->Value.op()) {
 	case kiwi::RelationalOperator::OP_LE:
-		ml_stringbuffer_add(Buffer, " <= 0", 5);
+		ml_stringbuffer_write(Buffer, " <= 0", 5);
 		break;
 	case kiwi::RelationalOperator::OP_GE:
-		ml_stringbuffer_add(Buffer, " >= 0", 5);
+		ml_stringbuffer_write(Buffer, " >= 0", 5);
 		break;
 	case kiwi::RelationalOperator::OP_EQ:
-		ml_stringbuffer_add(Buffer, " == 0", 5);
+		ml_stringbuffer_write(Buffer, " == 0", 5);
 		break;
 	}
-	ml_stringbuffer_addf(Buffer, " @ %f", C->Value.strength());
-	return ml_stringbuffer_value(Buffer);
+	ml_stringbuffer_printf(Buffer, " @ %f", C->Value.strength());
+	return ml_stringbuffer_get_value(Buffer);
 }
 
 ML_METHOD("-", KiwiVariableT) {

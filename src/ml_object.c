@@ -83,9 +83,9 @@ typedef struct {
 } ml_object_stringer_t;
 
 static int field_string(const char *Name, void *Offset, ml_object_stringer_t *Stringer) {
-	if (Stringer->Comma++) ml_stringbuffer_add(Stringer->Buffer, ", ", 2);
-	ml_stringbuffer_add(Stringer->Buffer, Name, strlen(Name));
-	ml_stringbuffer_add(Stringer->Buffer, " is ", 4);
+	if (Stringer->Comma++) ml_stringbuffer_write(Stringer->Buffer, ", ", 2);
+	ml_stringbuffer_write(Stringer->Buffer, Name, strlen(Name));
+	ml_stringbuffer_write(Stringer->Buffer, " is ", 4);
 	ml_stringbuffer_append(Stringer->Buffer, ((ml_field_t *)((char *)Stringer->Object + (uintptr_t)Offset))->Value);
 	return 0;
 }
@@ -93,9 +93,9 @@ static int field_string(const char *Name, void *Offset, ml_object_stringer_t *St
 ML_METHOD("append", MLStringBufferT, MLObjectT) {
 	ml_object_t *Object = (ml_object_t *)Args[1];
 	ml_object_stringer_t Stringer = {Object, (ml_stringbuffer_t *)Args[0], 0};
-	ml_stringbuffer_addf(Stringer.Buffer, "%s(", Object->Type->Base.Name);
+	ml_stringbuffer_printf(Stringer.Buffer, "%s(", Object->Type->Base.Name);
 	stringmap_foreach(Object->Type->Fields, &Stringer, (void *)field_string);
-	ml_stringbuffer_add(Stringer.Buffer, ")", 1);
+	ml_stringbuffer_write(Stringer.Buffer, ")", 1);
 	return MLSome;
 }
 
@@ -481,7 +481,7 @@ ML_TYPE(MLEnumValueT, (MLIntegerT), "enum-value");
 ML_METHOD("append", MLStringBufferT, MLEnumValueT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_enum_value_t *Value = (ml_enum_value_t *)Args[1];
-	ml_stringbuffer_add(Buffer, ml_string_value(Value->Name), ml_string_length(Value->Name));
+	ml_stringbuffer_write(Buffer, ml_string_value(Value->Name), ml_string_length(Value->Name));
 	return Args[0];
 }
 
@@ -769,8 +769,8 @@ ML_METHOD("append", MLStringBufferT, MLFlagsValueT) {
 	ml_value_t **Names = ((ml_flags_t *)Value->Type)->Names;
 	while (Flags) {
 		if (Flags & 1) {
-			if (Buffer->Length) ml_stringbuffer_add(Buffer, "|", 1);
-			ml_stringbuffer_add(Buffer, ml_string_value(Names[0]), ml_string_length(Names[0]));
+			if (Buffer->Length) ml_stringbuffer_write(Buffer, "|", 1);
+			ml_stringbuffer_write(Buffer, ml_string_value(Names[0]), ml_string_length(Names[0]));
 		}
 		++Names;
 		Flags >>= 1;

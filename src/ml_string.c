@@ -6,6 +6,7 @@
 #include <inttypes.h>
 #include <math.h>
 #include <float.h>
+#include <stdatomic.h>
 #include <gc/gc_typed.h>
 
 #include "ml_sequence.h"
@@ -338,7 +339,7 @@ ML_FUNCTION(MLString) {
 		Error = ml_simple_call(AppendMethod, Count + 1, Args2);
 	}
 	if (ml_is_error(Error)) return Error;
-	return ml_stringbuffer_value(Buffer);
+	return ml_stringbuffer_get_value(Buffer);
 }
 
 ML_TYPE(MLStringT, (MLAddressT, MLSequenceT), "string",
@@ -350,7 +351,7 @@ ML_METHOD("append", MLStringBufferT, MLAddressT) {
 //!address
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_address_t *Address = (ml_address_t *)Args[1];
-	ml_stringbuffer_addf(Buffer, "#%" PRIxPTR ":%ld", (uintptr_t)Address->Value, Address->Length);
+	ml_stringbuffer_printf(Buffer, "#%" PRIxPTR ":%ld", (uintptr_t)Address->Value, Address->Length);
 	return MLSome;
 }
 
@@ -384,13 +385,13 @@ ml_value_t *ml_string_format(const char *Format, ...) {
 
 ML_METHOD("append", MLStringBufferT, MLNilT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_add(Buffer, "nil", 3);
+	ml_stringbuffer_write(Buffer, "nil", 3);
 	return MLSome;
 }
 
 ML_METHOD("append", MLStringBufferT, MLSomeT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_add(Buffer, "some", 4);
+	ml_stringbuffer_write(Buffer, "some", 4);
 	return MLSome;
 }
 
@@ -399,9 +400,9 @@ ML_METHOD("append", MLStringBufferT, MLBooleanT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_boolean_t *Boolean = (ml_boolean_t *)Args[1];
 	if (Boolean->Value) {
-		ml_stringbuffer_add(Buffer, "true", 4);
+		ml_stringbuffer_write(Buffer, "true", 4);
 	} else {
-		ml_stringbuffer_add(Buffer, "false", 5);
+		ml_stringbuffer_write(Buffer, "false", 5);
 	}
 	return MLSome;
 }
@@ -409,7 +410,7 @@ ML_METHOD("append", MLStringBufferT, MLBooleanT) {
 ML_METHOD("append", MLStringBufferT, MLIntegerT) {
 //!number
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_addf(Buffer, "%ld", ml_integer_value_fast(Args[1]));
+	ml_stringbuffer_printf(Buffer, "%ld", ml_integer_value_fast(Args[1]));
 	return MLSome;
 }
 
@@ -428,7 +429,7 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT, MLIntegerT) {
 		Neg /= Base;
 	} while (Neg);
 	if (Value < 0) *--P = '-';
-	ml_stringbuffer_add(Buffer, P, Q - P);
+	ml_stringbuffer_write(Buffer, P, Q - P);
 	return MLSome;
 }
 
@@ -441,11 +442,11 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT, MLStringT) {
 	const char *Format = ml_string_value(Args[2]);
 	int64_t Value = ml_integer_value_fast(Args[1]);
 	if (!regexec(IntFormat, Format, 0, NULL, 0)) {
-		ml_stringbuffer_addf(Buffer, Format, (int)Value);
+		ml_stringbuffer_printf(Buffer, Format, (int)Value);
 	} else if (!regexec(LongFormat, Format, 0, NULL, 0)) {
-		ml_stringbuffer_addf(Buffer, Format, (long)Value);
+		ml_stringbuffer_printf(Buffer, Format, (long)Value);
 	} else if (!regexec(RealFormat, Format, 0, NULL, 0)) {
-		ml_stringbuffer_addf(Buffer, Format, (double)Value);
+		ml_stringbuffer_printf(Buffer, Format, (double)Value);
 	} else {
 		return ml_error("FormatError", "Invalid format string");
 	}
@@ -455,14 +456,14 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT, MLStringT) {
 ML_METHOD("append", MLStringBufferT, MLIntegerRangeT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
-	ml_stringbuffer_addf(Buffer, "%ld .. %ld by %ld", Range->Start, Range->Limit, Range->Step);
+	ml_stringbuffer_printf(Buffer, "%ld .. %ld by %ld", Range->Start, Range->Limit, Range->Step);
 	return MLSome;
 }
 
 ML_METHOD("append", MLStringBufferT, MLRealRangeT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_real_range_t *Range = (ml_real_range_t *)Args[1];
-	ml_stringbuffer_addf(Buffer, "%g .. %g by %g", Range->Start, Range->Limit, Range->Step);
+	ml_stringbuffer_printf(Buffer, "%g .. %g by %g", Range->Start, Range->Limit, Range->Step);
 	return MLSome;
 }
 
@@ -504,7 +505,7 @@ ML_METHOD("chr", MLIntegerT) {
 ML_METHOD("append", MLStringBufferT, MLDoubleT) {
 //!number
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_addf(Buffer, "%g", ml_double_value_fast(Args[1]));
+	ml_stringbuffer_printf(Buffer, "%g", ml_double_value_fast(Args[1]));
 	return MLSome;
 }
 
@@ -513,11 +514,11 @@ ML_METHOD("append", MLStringBufferT, MLDoubleT, MLStringT) {
 	const char *Format = ml_string_value(Args[2]);
 	double Value = ml_double_value_fast(Args[1]);
 	if (!regexec(IntFormat, Format, 0, NULL, 0)) {
-		ml_stringbuffer_addf(Buffer, Format, (int)Value);
+		ml_stringbuffer_printf(Buffer, Format, (int)Value);
 	} else if (!regexec(LongFormat, Format, 0, NULL, 0)) {
-		ml_stringbuffer_addf(Buffer, Format, (long)Value);
+		ml_stringbuffer_printf(Buffer, Format, (long)Value);
 	} else if (!regexec(RealFormat, Format, 0, NULL, 0)) {
-		ml_stringbuffer_addf(Buffer, Format, (double)Value);
+		ml_stringbuffer_printf(Buffer, Format, (double)Value);
 	} else {
 		return ml_error("FormatError", "Invalid format string");
 	}
@@ -534,25 +535,25 @@ ML_METHOD("append", MLStringBufferT, MLComplexT) {
 	double Imag = cimag(Complex);
 	if (fabs(Real) <= DBL_EPSILON) {
 		if (fabs(Imag - 1) <= DBL_EPSILON) {
-			ml_stringbuffer_add(Buffer, "i", 1);
+			ml_stringbuffer_write(Buffer, "i", 1);
 		} else if (fabs(Imag) <= DBL_EPSILON) {
-			ml_stringbuffer_add(Buffer, "0", 1);
+			ml_stringbuffer_write(Buffer, "0", 1);
 		} else {
-			ml_stringbuffer_addf(Buffer, "%gi", Imag);
+			ml_stringbuffer_printf(Buffer, "%gi", Imag);
 		}
 	} else if (fabs(Imag) <= DBL_EPSILON) {
-		ml_stringbuffer_addf(Buffer, "%g", Real);
+		ml_stringbuffer_printf(Buffer, "%g", Real);
 	} else if (Imag < 0) {
 		if (fabs(Imag + 1) <= DBL_EPSILON) {
-			ml_stringbuffer_addf(Buffer, "%g - i", Real);
+			ml_stringbuffer_printf(Buffer, "%g - i", Real);
 		} else {
-			ml_stringbuffer_addf(Buffer, "%g - %gi", Real, -Imag);
+			ml_stringbuffer_printf(Buffer, "%g - %gi", Real, -Imag);
 		}
 	} else {
 		if (fabs(Imag - 1) <= DBL_EPSILON) {
-			ml_stringbuffer_addf(Buffer, "%g + i", Real);
+			ml_stringbuffer_printf(Buffer, "%g + i", Real);
 		} else {
-			ml_stringbuffer_addf(Buffer, "%g + %gi", Real, Imag);
+			ml_stringbuffer_printf(Buffer, "%g + %gi", Real, Imag);
 		}
 	}
 	return MLSome;
@@ -569,13 +570,13 @@ ML_METHOD("append", MLStringBufferT, MLComplexT, MLStringT) {
 	double Imag = cimag(Complex);
 	if (Imag < 0) {
 		Imag = -Imag;
-		ml_stringbuffer_addf(Buffer, Format, Real);
-		ml_stringbuffer_add(Buffer, "-", 1);
-		ml_stringbuffer_addf(Buffer, Format, Imag);
+		ml_stringbuffer_printf(Buffer, Format, Real);
+		ml_stringbuffer_write(Buffer, "-", 1);
+		ml_stringbuffer_printf(Buffer, Format, Imag);
 	} else {
-		ml_stringbuffer_addf(Buffer, Format, Real);
-		ml_stringbuffer_add(Buffer, "+", 1);
-		ml_stringbuffer_addf(Buffer, Format, Imag);
+		ml_stringbuffer_printf(Buffer, Format, Real);
+		ml_stringbuffer_write(Buffer, "+", 1);
+		ml_stringbuffer_printf(Buffer, Format, Imag);
 	}
 	return MLSome;
 }
@@ -1000,16 +1001,25 @@ struct ml_stringbuffer_node_t {
 };
 
 static GC_descr StringBufferDesc = 0;
+static ml_stringbuffer_node_t *StringBufferNodeCache = NULL;
 
-ssize_t ml_stringbuffer_add(ml_stringbuffer_t *Buffer, const char *String, size_t Length) {
+ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, size_t Length) {
+	//fprintf(stderr, "ml_stringbuffer_add(%s, %ld)\n", String, Length);
 	size_t Remaining = Length;
 	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
 	while (Buffer->Space < Remaining) {
 		memcpy(Node->Chars + ML_STRINGBUFFER_NODE_SIZE - Buffer->Space, String, Buffer->Space);
 		String += Buffer->Space;
 		Remaining -= Buffer->Space;
-		ml_stringbuffer_node_t *Next = (ml_stringbuffer_node_t *)GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
-			//printf("Allocating stringbuffer: %d in total\n", ++NumStringBuffers);
+		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
+		do {
+			if (!Next) {
+				Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+				break;
+			}
+			CacheNext = Next->Next;
+		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &Next, CacheNext));
+		Next->Next = NULL;
 		Node->Next = Next;
 		Node = Next;
 		Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
@@ -1021,13 +1031,19 @@ ssize_t ml_stringbuffer_add(ml_stringbuffer_t *Buffer, const char *String, size_
 	return Length;
 }
 
-ssize_t ml_stringbuffer_addf(ml_stringbuffer_t *Buffer, const char *Format, ...) {
-	char *String;
+ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ...) {
+	static cookie_io_functions_t CookieFns = {0,
+		.write = (cookie_write_function_t *)ml_stringbuffer_write
+	};
+	if (!Buffer->File) {
+		Buffer->File = fopencookie(Buffer, "w", CookieFns);
+		setvbuf(Buffer->File, NULL, _IONBF, 0);
+	}
 	va_list Args;
 	va_start(Args, Format);
-	size_t Length = vasprintf(&String, Format, Args);
+	size_t Length = vfprintf(Buffer->File, Format, Args);
 	va_end(Args);
-	return ml_stringbuffer_add(Buffer, String, Length);
+	return Length;
 }
 
 static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
@@ -1041,11 +1057,22 @@ static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
 	memcpy(P, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
 	P += ML_STRINGBUFFER_NODE_SIZE - Buffer->Space;
 	*P++ = 0;
+
+	ml_stringbuffer_node_t *Head = Buffer->Head, *Tail = Buffer->Tail;
+	ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
+	do {
+		Tail->Next = CacheNext;
+	} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &CacheNext, Head));
+
+	if (Buffer->File) {
+		fclose(Buffer->File);
+		Buffer->File = NULL;
+	}
 	Buffer->Head = Buffer->Tail = NULL;
 	Buffer->Length = Buffer->Space = 0;
 }
 
-char *ml_stringbuffer_get(ml_stringbuffer_t *Buffer) {
+char *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) {
 	if (Buffer->Length == 0) return "";
 	char *String = snew(Buffer->Length + 1);
 	ml_stringbuffer_finish(Buffer, String);
@@ -1059,7 +1086,7 @@ char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer) {
 	return String;
 }
 
-ml_value_t *ml_stringbuffer_value(ml_stringbuffer_t *Buffer) {
+ml_value_t *ml_stringbuffer_get_value(ml_stringbuffer_t *Buffer) {
 	size_t Length = Buffer->Length;
 	if (Length == 0) {
 		return ml_cstring("");
@@ -1072,7 +1099,7 @@ ml_value_t *ml_stringbuffer_value(ml_stringbuffer_t *Buffer) {
 
 ML_METHOD("get", MLStringBufferT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	return ml_stringbuffer_value(Buffer);
+	return ml_stringbuffer_get_value(Buffer);
 }
 
 int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t)) {
@@ -1091,14 +1118,14 @@ ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value)
 		if (Link->Value == Value) {
 			int Index = Link->Index;
 			if (!Index) Index = Link->Index = ++Buffer->Index;
-			ml_stringbuffer_addf(Buffer, "^%d", Index);
+			ml_stringbuffer_printf(Buffer, "^%d", Index);
 			return (ml_value_t *)Buffer;
 		}
 	}
 	ml_hash_chain_t NewChain[1] = {{Chain, Value, 0}};
 	Buffer->Chain = NewChain;
 	ml_value_t *Result = ml_simple_inline(AppendMethod, 2, Buffer, Value);
-	if (NewChain->Index) ml_stringbuffer_addf(Buffer, "@%d", NewChain->Index);
+	if (NewChain->Index) ml_stringbuffer_printf(Buffer, "@%d", NewChain->Index);
 	Buffer->Chain = Chain;
 	return Result;
 }
@@ -1110,7 +1137,7 @@ ML_METHODV("append", MLStringBufferT, MLAnyT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	int Length = ml_string_length(String);
 	if (Length) {
-		ml_stringbuffer_add(Buffer, ml_string_value(String), Length);
+		ml_stringbuffer_write(Buffer, ml_string_value(String), Length);
 		return MLSome;
 	} else {
 		return MLNil;
@@ -1128,25 +1155,25 @@ ML_METHODV("write", MLStringBufferT, MLAnyT) {
 
 ML_METHOD("append", MLStringBufferT, MLNilT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_add(Buffer, "nil", 3);
+	ml_stringbuffer_write(Buffer, "nil", 3);
 	return MLSome;
 }
 
 ML_METHOD("append", MLStringBufferT, MLSomeT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_add(Buffer, "some", 4);
+	ml_stringbuffer_write(Buffer, "some", 4);
 	return MLSome;
 }
 
 ML_METHOD("append", MLStringBufferT, MLIntegerT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_addf(Buffer, "%ld", ml_integer_value_fast(Args[1]));
+	ml_stringbuffer_printf(Buffer, "%ld", ml_integer_value_fast(Args[1]));
 	return MLSome;
 }
 
 ML_METHOD("append", MLStringBufferT, MLDoubleT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_addf(Buffer, "%g", ml_double_value_fast(Args[1]));
+	ml_stringbuffer_printf(Buffer, "%g", ml_double_value_fast(Args[1]));
 	return MLSome;
 }
 
@@ -1154,7 +1181,7 @@ ML_METHOD("append", MLStringBufferT, MLStringT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	int Length = ml_string_length(Args[1]);
 	if (Length) {
-		ml_stringbuffer_add(Buffer, ml_string_value(Args[1]), Length);
+		ml_stringbuffer_write(Buffer, ml_string_value(Args[1]), Length);
 		return MLSome;
 	} else {
 		return MLNil;
@@ -2032,15 +2059,15 @@ ML_METHOD("replace", MLStringT, MLStringT, MLStringT) {
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	const char *Find = strstr(Subject, Pattern);
 	while (Find) {
-		if (Find > Subject) ml_stringbuffer_add(Buffer, Subject, Find - Subject);
-		ml_stringbuffer_add(Buffer, Replace, ReplaceLength);
+		if (Find > Subject) ml_stringbuffer_write(Buffer, Subject, Find - Subject);
+		ml_stringbuffer_write(Buffer, Replace, ReplaceLength);
 		Subject = Find + PatternLength;
 		Find = strstr(Subject, Pattern);
 	}
 	if (SubjectEnd > Subject) {
-		ml_stringbuffer_add(Buffer, Subject, SubjectEnd - Subject);
+		ml_stringbuffer_write(Buffer, Subject, SubjectEnd - Subject);
 	}
-	return ml_stringbuffer_value(Buffer);
+	return ml_stringbuffer_get_value(Buffer);
 }
 
 ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
@@ -2059,8 +2086,8 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
 		switch (regexec(Regex, Subject, 1, Matches, 0)) {
 #endif
 		case REG_NOMATCH:
-			if (SubjectLength) ml_stringbuffer_add(Buffer, Subject, SubjectLength);
-			return ml_stringbuffer_value(Buffer);
+			if (SubjectLength) ml_stringbuffer_write(Buffer, Subject, SubjectLength);
+			return ml_stringbuffer_get_value(Buffer);
 		case REG_ESPACE: {
 			size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 			char *ErrorMessage = snew(ErrorSize + 1);
@@ -2069,8 +2096,8 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
 		}
 		default: {
 			regoff_t Start = Matches[0].rm_so;
-			if (Start > 0) ml_stringbuffer_add(Buffer, Subject, Start);
-			ml_stringbuffer_add(Buffer, Replace, ReplaceLength);
+			if (Start > 0) ml_stringbuffer_write(Buffer, Subject, Start);
+			ml_stringbuffer_write(Buffer, Replace, ReplaceLength);
 			Subject += Matches[0].rm_eo;
 			SubjectLength -= Matches[0].rm_eo;
 		}
@@ -2096,8 +2123,8 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLFunctionT) {
 		switch (regexec(Regex, Subject, NumSub, Matches, 0)) {
 #endif
 		case REG_NOMATCH:
-			if (SubjectLength) ml_stringbuffer_add(Buffer, Subject, SubjectLength);
-			return ml_stringbuffer_value(Buffer);
+			if (SubjectLength) ml_stringbuffer_write(Buffer, Subject, SubjectLength);
+			return ml_stringbuffer_get_value(Buffer);
 		case REG_ESPACE: {
 			size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 			char *ErrorMessage = snew(ErrorSize + 1);
@@ -2106,14 +2133,14 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLFunctionT) {
 		}
 		default: {
 			regoff_t Start = Matches[0].rm_so;
-			if (Start > 0) ml_stringbuffer_add(Buffer, Subject, Start);
+			if (Start > 0) ml_stringbuffer_write(Buffer, Subject, Start);
 			for (int I = 0; I < NumSub; ++I) {
 				SubArgs[I] = ml_string(Subject + Matches[I].rm_so, Matches[I].rm_eo - Matches[I].rm_so);
 			}
 			ml_value_t *Replace = ml_simple_call(Replacer, NumSub, SubArgs);
 			if (ml_is_error(Replace)) return Replace;
 			if (!ml_is(Replace, MLStringT)) return ml_error("TypeError", "expected string, not %s", ml_typeof(Replace)->Name);
-			ml_stringbuffer_add(Buffer, ml_string_value(Replace), ml_string_length(Replace));
+			ml_stringbuffer_write(Buffer, ml_string_value(Replace), ml_string_length(Replace));
 			Subject += Matches[0].rm_eo;
 			SubjectLength -= Matches[0].rm_eo;
 		}
@@ -2214,25 +2241,25 @@ ML_METHOD("replace", MLStringT, MLMapT) {
 			}
 		}
 		if (!Match) break;
-		if (MatchStart) ml_stringbuffer_add(Buffer, Subject, MatchStart);
+		if (MatchStart) ml_stringbuffer_write(Buffer, Subject, MatchStart);
 		if (Match->ReplacementLength < 0) {
 			ml_value_t *Replace = ml_simple_call(Match->Replacement.Function, SubCount, SubArgs);
 			if (ml_is_error(Replace)) return Replace;
 			if (!ml_is(Replace, MLStringT)) return ml_error("TypeError", "expected string, not %s", ml_typeof(Replace)->Name);
-			ml_stringbuffer_add(Buffer, ml_string_value(Replace), ml_string_length(Replace));
+			ml_stringbuffer_write(Buffer, ml_string_value(Replace), ml_string_length(Replace));
 		} else {
-			ml_stringbuffer_add(Buffer, Match->Replacement.String, Match->ReplacementLength);
+			ml_stringbuffer_write(Buffer, Match->Replacement.String, Match->ReplacementLength);
 		}
 		Subject += MatchEnd;
 		SubjectLength -= MatchEnd;
 	}
-	if (SubjectLength) ml_stringbuffer_add(Buffer, Subject, SubjectLength);
-	return ml_stringbuffer_value(Buffer);
+	if (SubjectLength) ml_stringbuffer_write(Buffer, Subject, SubjectLength);
+	return ml_stringbuffer_get_value(Buffer);
 }
 
 ML_METHOD("append", MLStringBufferT, MLRegexT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_addf(Buffer, "/%s/", ml_regex_pattern(Args[1]));
+	ml_stringbuffer_printf(Buffer, "/%s/", ml_regex_pattern(Args[1]));
 	return MLSome;
 }
 

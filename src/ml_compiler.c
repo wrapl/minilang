@@ -3150,7 +3150,7 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 			if (Buffer->Length) {
 				mlc_string_part_t *Part = new(mlc_string_part_t);
 				Part->Length = Buffer->Length;
-				Part->Chars = ml_stringbuffer_get(Buffer);
+				Part->Chars = ml_stringbuffer_get_string(Buffer);
 				Part->Line = Parser->Source.Line;
 				Slot[0] = Part;
 				Slot = &Part->Next;
@@ -3168,30 +3168,30 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 		} else if (C == '\\') {
 			C = *End++;
 			switch (C) {
-			case 'r': ml_stringbuffer_add(Buffer, "\r", 1); break;
-			case 'n': ml_stringbuffer_add(Buffer, "\n", 1); break;
-			case 't': ml_stringbuffer_add(Buffer, "\t", 1); break;
-			case 'e': ml_stringbuffer_add(Buffer, "\e", 1); break;
-			case '\'': ml_stringbuffer_add(Buffer, "\'", 1); break;
-			case '\"': ml_stringbuffer_add(Buffer, "\"", 1); break;
-			case '\\': ml_stringbuffer_add(Buffer, "\\", 1); break;
-			case '0': ml_stringbuffer_add(Buffer, "\0", 1); break;
-			case '{': ml_stringbuffer_add(Buffer, "{", 1); break;
+			case 'r': ml_stringbuffer_write(Buffer, "\r", 1); break;
+			case 'n': ml_stringbuffer_write(Buffer, "\n", 1); break;
+			case 't': ml_stringbuffer_write(Buffer, "\t", 1); break;
+			case 'e': ml_stringbuffer_write(Buffer, "\e", 1); break;
+			case '\'': ml_stringbuffer_write(Buffer, "\'", 1); break;
+			case '\"': ml_stringbuffer_write(Buffer, "\"", 1); break;
+			case '\\': ml_stringbuffer_write(Buffer, "\\", 1); break;
+			case '0': ml_stringbuffer_write(Buffer, "\0", 1); break;
+			case '{': ml_stringbuffer_write(Buffer, "{", 1); break;
 			case '\n': break;
 			case 0: ml_parse_error(Parser, "ParseError", "end of line while parsing string");
 			}
 		} else {
-			ml_stringbuffer_add(Buffer, End - 1, 1);
+			ml_stringbuffer_write(Buffer, End - 1, 1);
 		}
 	}
 	if (!Parts) {
-		Parser->Value = ml_stringbuffer_value(Buffer);
+		Parser->Value = ml_stringbuffer_get_value(Buffer);
 		return (Parser->Token = MLT_VALUE);
 	} else {
 		if (Buffer->Length) {
 			mlc_string_part_t *Part = new(mlc_string_part_t);
 			Part->Length = Buffer->Length;
-			Part->Chars = ml_stringbuffer_get(Buffer);
+			Part->Chars = ml_stringbuffer_get_string(Buffer);
 			Part->Line = Parser->Source.Line;
 			Slot[0] = Part;
 		}

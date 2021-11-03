@@ -163,9 +163,9 @@ ML_METHOD("append", MLStringBufferT, ObjectInstanceT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	object_instance_t *Instance = (object_instance_t *)Args[1];
 	if (Instance == ObjectInstanceNil) {
-		ml_stringbuffer_add(Buffer, "(null)", 6);
+		ml_stringbuffer_write(Buffer, "(null)", 6);
 	} else {
-		ml_stringbuffer_addf(Buffer, "<%s>", g_base_info_get_name((GIBaseInfo *)Instance->Type->Info));
+		ml_stringbuffer_printf(Buffer, "<%s>", g_base_info_get_name((GIBaseInfo *)Instance->Type->Info));
 	}
 	return MLSome;
 }
@@ -198,7 +198,7 @@ ML_METHOD("append", MLStringBufferT, StructInstanceT) {
 //>string
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	struct_instance_t *Instance = (struct_instance_t *)Args[1];
-	ml_stringbuffer_addf(Buffer, "<%s>", g_base_info_get_name((GIBaseInfo *)Instance->Type->Info));
+	ml_stringbuffer_printf(Buffer, "<%s>", g_base_info_get_name((GIBaseInfo *)Instance->Type->Info));
 	return MLSome;
 }
 
@@ -322,7 +322,7 @@ ML_METHOD("append", MLStringT, EnumValueT) {
 //>string
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	enum_value_t *Value = (enum_value_t *)Args[1];
-	ml_stringbuffer_add(Buffer, ml_string_value(Value->Name), ml_string_length(Value->Name));
+	ml_stringbuffer_write(Buffer, ml_string_value(Value->Name), ml_string_length(Value->Name));
 	return MLSome;
 }
 
@@ -380,13 +380,13 @@ static ml_value_t *gir_enum_value(enum_t *Type, int64_t Value) {
 	for (enum_value_t **Ptr = Type->ByIndex; Value && *Ptr; ++Ptr) {
 		if ((Ptr[0]->Value & Value) == Ptr[0]->Value) {
 			Value &= ~Ptr[0]->Value;
-			if (Buffer->Length) ml_stringbuffer_add(Buffer, "|", 1);
+			if (Buffer->Length) ml_stringbuffer_write(Buffer, "|", 1);
 			const char *Name = ml_string_value(Ptr[0]->Name);
 			size_t Length = ml_string_length(Ptr[0]->Name);
-			ml_stringbuffer_add(Buffer, Name, Length);
+			ml_stringbuffer_write(Buffer, Name, Length);
 		}
 	}
-	Enum->Name = ml_stringbuffer_value(Buffer);
+	Enum->Name = ml_stringbuffer_get_value(Buffer);
 	return (ml_value_t *)Enum;
 }
 
