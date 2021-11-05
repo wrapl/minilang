@@ -12,13 +12,13 @@
 
 //!xe
 
-typedef struct xe_node_t {
+typedef struct {
 	const ml_type_t *Type;
 	ml_value_t *Tag, *Attributes, *Content;
 	ml_source_t Source;
 } xe_node_t;
 
-typedef struct xe_var_t {
+typedef struct {
 	const ml_type_t *Type;
 	ml_value_t *Name;
 } xe_var_t;

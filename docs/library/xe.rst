@@ -1,6 +1,48 @@
 xe
 ==
 
+:mini:`fun xenode(Arg₁: string, Arg₂: map, Arg₃: list)`
+   *TBD*
+
+:mini:`type xenode`
+   *TBD*
+
+:mini:`fun xevar(Arg₁: string)`
+   *TBD*
+
+:mini:`type xevar`
+   *TBD*
+
+:mini:`meth (Arg₁: xenode):tag`
+   *TBD*
+
+:mini:`meth (Arg₁: xenode):attributes`
+   *TBD*
+
+:mini:`meth (Arg₁: xenode)[Arg₂: nil]`
+   *TBD*
+
+:mini:`meth (Arg₁: xenode)[Arg₂: string]`
+   *TBD*
+
+:mini:`meth (Arg₁: xenode)[Arg₂: integer]`
+   *TBD*
+
+:mini:`meth (Arg₁: xenode):content`
+   *TBD*
+
+:mini:`meth (Arg₁: xevar):name`
+   *TBD*
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: xenode)`
+   *TBD*
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: xevar)`
+   *TBD*
+
+:mini:`fun xeparse(Arg₁: string)`
+   *TBD*
+
 :mini:`type xenode`
    *TBD*
 

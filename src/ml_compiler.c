@@ -3003,7 +3003,6 @@ static ml_value_t *ml_map_global_get(ml_value_t *Map, const char *Name) {
 ML_FUNCTION(MLCompiler) {
 //@compiler
 //<Global:function|map
-//<?Read:function
 //>compiler
 	ML_CHECK_ARG_COUNT(1);
 	ml_getter_t GlobalGet = (ml_getter_t)ml_function_global_get;
@@ -3046,6 +3045,7 @@ static const char *ml_function_read(ml_value_t *Function) {
 
 ML_FUNCTION(MLParser) {
 //@compiler
+//<?Read:function
 	void *Input = NULL;
 	ml_reader_t Reader = ml_parser_no_input;
 	if (Count > 0) {

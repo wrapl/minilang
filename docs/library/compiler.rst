@@ -16,13 +16,13 @@ compiler
 :mini:`meth (Arg₁: expr):end`
    *TBD*
 
-:mini:`fun compiler(Global: function|map, ?Read: function): compiler`
+:mini:`fun compiler(Global: function|map): compiler`
    *TBD*
 
 :mini:`type compiler < state`
    *TBD*
 
-:mini:`fun compiler()`
+:mini:`fun compiler(?Read: function)`
    *TBD*
 
 :mini:`type parser`

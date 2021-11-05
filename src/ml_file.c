@@ -112,6 +112,21 @@ ML_METHOD("read", MLFileT, MLIntegerT) {
 	return ml_stringbuffer_get_value(Final);
 }
 
+ML_METHOD("rest", MLFileT) {
+	ml_file_t *File = (ml_file_t *)Args[0];
+	if (!File->Handle) return ml_error("FileError", "file closed");
+	if (feof(File->Handle)) return MLNil;
+	ml_stringbuffer_t Final[1] = {ML_STRINGBUFFER_INIT};
+	char Buffer[ML_STRINGBUFFER_NODE_SIZE];
+	for (;;) {
+		ssize_t Actual = fread(Buffer, 1, ML_STRINGBUFFER_NODE_SIZE, File->Handle);
+		if (Actual < 0) return ml_error("FileError", "error reading from file: %s", strerror(errno));
+		if (Actual == 0) return ml_stringbuffer_get_value(Final);
+		ml_stringbuffer_write(Final, Buffer, Actual);
+	}
+	return ml_stringbuffer_get_value(Final);
+}
+
 ML_METHODV("write", MLFileT, MLStringT) {
 //<File
 //<String

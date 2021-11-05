@@ -170,6 +170,7 @@ MINILANG_GIR := old or defined("GIR")
 MINILANG_CBOR := old or defined("CBOR")
 MINILANG_JSON := old or defined("JSON")
 MINILANG_XML := old or defined("XML")
+MINILANG_XE := old or defined("XE")
 MINILANG_MODULES := old or defined("MODULES")
 MINILANG_SCHEDULER := MINILANG_MODULES or old or defined("SCHEDULER")
 MINILANG_THREADSAFE := old or defined("THREADSAFE")
@@ -291,6 +292,12 @@ if MINILANG_XML then
 	LDFLAGS := old + ["-lexpat"]
 	Objects:put(file("ml_xml.o"))
 	InstallHeaders:put("ml_xml.h")
+end
+
+if MINILANG_XE then
+	CFLAGS := old + ['-DML_XE']
+	Objects:put(file("ml_xe.o"))
+	InstallHeaders:put("ml_xe.h")
 end
 
 if MINILANG_BACKTRACE then
