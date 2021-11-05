@@ -22,7 +22,7 @@ compiler
 :mini:`type compiler < state`
    *TBD*
 
-:mini:`fun compiler(?Read: function)`
+:mini:`fun parser(?Read: function): parser`
    *TBD*
 
 :mini:`type parser`
