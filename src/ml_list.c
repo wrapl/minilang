@@ -469,17 +469,17 @@ ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
 
 ML_METHOD("append", MLStringBufferT, MLListT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_add(Buffer, "[", 1);
+	ml_stringbuffer_write(Buffer, "[", 1);
 	ml_list_t *List = (ml_list_t *)Args[1];
 	ml_list_node_t *Node = List->Head;
 	if (Node) {
 		ml_stringbuffer_append(Buffer, Node->Value);
 		while ((Node = Node->Next)) {
-			ml_stringbuffer_add(Buffer, ", ", 2);
+			ml_stringbuffer_write(Buffer, ", ", 2);
 			ml_stringbuffer_append(Buffer, Node->Value);
 		}
 	}
-	ml_stringbuffer_add(Buffer, "]", 1);
+	ml_stringbuffer_write(Buffer, "]", 1);
 	return (ml_value_t *)Buffer;
 }
 
@@ -492,7 +492,7 @@ ML_METHOD("append", MLStringBufferT, MLListT, MLStringT) {
 	if (Node) {
 		ml_stringbuffer_append(Buffer, Node->Value);
 		while ((Node = Node->Next)) {
-			ml_stringbuffer_add(Buffer, Seperator, SeperatorLength);
+			ml_stringbuffer_write(Buffer, Seperator, SeperatorLength);
 			ml_stringbuffer_append(Buffer, Node->Value);
 		}
 	}
@@ -831,48 +831,6 @@ ML_METHOD("splice", MLListT, MLIntegerT, MLListT) {
 	Source->Head = Source->Tail = NULL;
 	Source->Length = 0;
 	return MLNil;
-}
-
-ML_METHOD(MLStringT, MLListT) {
-//<List
-//>string
-// Returns a string containing the elements of :mini:`List` surrounded by :mini:`"["`, :mini:`"]"` and seperated by :mini:`", "`.
-	ml_list_t *List = (ml_list_t *)Args[0];
-	if (!List->Length) return ml_cstring("[]");
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	const char *Seperator = "[";
-	int SeperatorLength = 1;
-	ML_LIST_FOREACH(List, Node) {
-		ml_stringbuffer_add(Buffer, Seperator, SeperatorLength);
-		ml_value_t *Result = ml_stringbuffer_append(Buffer, Node->Value);
-		if (ml_is_error(Result)) return Result;
-		Seperator = ", ";
-		SeperatorLength = 2;
-	}
-	ml_stringbuffer_add(Buffer, "]", 1);
-	return ml_stringbuffer_value(Buffer);
-}
-
-ML_METHOD(MLStringT, MLListT, MLStringT) {
-//<List
-//<Seperator
-//>string
-// Returns a string containing the elements of :mini:`List` seperated by :mini:`Seperator`.
-	ml_list_t *List = (ml_list_t *)Args[0];
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	const char *Seperator = ml_string_value(Args[1]);
-	size_t SeperatorLength = ml_string_length(Args[1]);
-	ml_list_node_t *Node = List->Head;
-	if (Node) {
-		ml_value_t *Result = ml_stringbuffer_append(Buffer, Node->Value);
-		if (ml_is_error(Result)) return Result;
-		while ((Node = Node->Next)) {
-			ml_stringbuffer_add(Buffer, Seperator, SeperatorLength);
-			ml_value_t *Result = ml_stringbuffer_append(Buffer, Node->Value);
-			if (ml_is_error(Result)) return Result;
-		}
-	}
-	return ml_stringbuffer_value(Buffer);
 }
 
 ML_METHOD("reverse", MLListT) {

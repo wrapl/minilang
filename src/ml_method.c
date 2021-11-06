@@ -216,6 +216,10 @@ ml_method_cached_t *ml_method_search_cached(ml_state_t *Caller, ml_method_t *Met
 }
 
 void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Callback, int Count, int Variadic, ml_type_t **Types) {
+	if (Method->Type != MLMethodT) {
+		fprintf(stderr, "Internal error: attempting to define method for non-method value\n");
+		exit(-1);
+	}
 	ml_method_definition_t *Definition = xnew(ml_method_definition_t, Count, ml_type_t *);
 	Definition->Callback = Callback;
 	Definition->Count = Count;
@@ -417,18 +421,11 @@ void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_t
 	ml_method_insert(MLRootMethods, Method, Function, Count, 1, Types);
 }
 
-ML_METHOD(MLStringT, MLMethodT) {
-//!method
-//>string
-	ml_method_t *Method = (ml_method_t *)Args[0];
-	return ml_string_format(":%s", Method->Name);
-}
-
 ML_METHOD("append", MLStringBufferT, MLMethodT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_method_t *Method = (ml_method_t *)Args[1];
-	ml_stringbuffer_add(Buffer, ":", 1);
-	ml_stringbuffer_add(Buffer, Method->Name, strlen(Method->Name));
+	ml_stringbuffer_write(Buffer, ":", 1);
+	ml_stringbuffer_write(Buffer, Method->Name, strlen(Method->Name));
 	return MLSome;
 }
 
@@ -540,25 +537,31 @@ ML_FUNCTIONX(MLMethodSet) {
 }
 
 ML_METHODX("list", MLMethodT) {
+	ml_value_t *Results = ml_map();
 	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
-	ml_value_t *Results = ml_list();
-	for (ml_method_definition_t *Definition = (ml_method_definition_t *)inthash_search(Methods->Definitions, (uintptr_t)Args[0]); Definition; Definition = Definition->Next) {
-		ml_value_t *Result = ml_list();
-		const char *Source;
-		int Line;
-		if (ml_function_source(Definition->Callback, &Source, &Line)) {
-			ml_list_put(Result, ml_cstring(Source));
-			ml_list_put(Result, ml_integer(Line));
-		} else {
-			ml_list_put(Result, MLNil);
-			ml_list_put(Result, MLNil);
+	do {
+		for (ml_method_definition_t *Definition = (ml_method_definition_t *)inthash_search(Methods->Definitions, (uintptr_t)Args[0]); Definition; Definition = Definition->Next) {
+			ml_value_t *Signature = ml_tuple(Definition->Count + Definition->Variadic);
+			for (int I = 0; I < Definition->Count; ++I) {
+				ml_tuple_set(Signature, I + 1, (ml_value_t *)Definition->Types[I]);
+			}
+			if (Definition->Variadic) ml_tuple_set(Signature, Definition->Count + 1, RangeMethod);
+			ml_map_node_t *Node = ml_map_slot(Results, Signature);
+			if (!Node->Value) {
+				const char *Source;
+				int Line;
+				if (ml_function_source(Definition->Callback, &Source, &Line)) {
+					ml_value_t *Location = ml_tuple(2);
+					ml_tuple_set(Location, 1, ml_cstring(Source));
+					ml_tuple_set(Location, 2, ml_integer(Line));
+					Node->Value = Location;
+				} else {
+					Node->Value = MLNil;
+				}
+			}
 		}
-		for (int I = 0; I < Definition->Count; ++I) {
-			ml_list_put(Result, (ml_value_t *)Definition->Types[I]);
-		}
-		if (Definition->Variadic) ml_list_put(Result, RangeMethod);
-		ml_list_put(Results, Result);
-	}
+		Methods = Methods->Parent;
+	} while (Methods);
 	ML_RETURN(Results);
 }
 
@@ -571,6 +574,20 @@ ML_FUNCTIONX(MLMethodContext) {
 	ML_RETURN(Methods);
 }
 
+static int ml_method_list_fn(const char *Name, ml_value_t *Method, ml_value_t *Result) {
+	ml_list_put(Result, Method);
+	return 0;
+}
+
+ML_FUNCTION(MLMethodList) {
+//@method::list
+//>list[method]
+	ml_value_t *Result = ml_list();
+	stringmap_foreach(Methods, Result, (void *)ml_method_list_fn);
+	return Result;
+
+}
+
 void ml_method_init() {
 	ml_context_set(&MLRootContext, ML_METHODS_INDEX, MLRootMethods);
 #include "ml_method_init.c"
@@ -578,5 +595,6 @@ void ml_method_init() {
 	stringmap_insert(MLMethodT->Exports, "switch", MLMethodSwitch);
 	stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
 	stringmap_insert(MLMethodT->Exports, "context", MLMethodContext);
+	stringmap_insert(MLMethodT->Exports, "list", MLMethodList);
 	ml_method_by_value(MLMethodT->Constructor, NULL, ml_identity, MLMethodT, NULL);
 }

@@ -1,6 +1,7 @@
 #ifndef ML_TYPES_H
 #define ML_TYPES_H
 
+#include <stdio.h>
 #include <unistd.h>
 #include "stringmap.h"
 #include "inthash.h"
@@ -34,7 +35,7 @@ typedef struct ml_hash_chain_t ml_hash_chain_t;
 struct ml_hash_chain_t {
 	ml_hash_chain_t *Previous;
 	ml_value_t *Value;
-	long Index;
+	int Index;
 };
 
 typedef struct ml_generic_rule_t ml_generic_rule_t;
@@ -156,27 +157,12 @@ __attribute__ ((pure)) static inline ml_type_t *ml_typeof(const ml_value_t *Valu
 		return Value->Type;
 	} else if (Tag == 1) {
 		return MLInt32T;
-	/*} else if (Tag < 7) {
-		return NULL;*/
 	} else {
 		return MLDoubleT;
 	}
 }
 
-__attribute__ ((pure)) static inline ml_type_t *ml_typeof_deref(ml_value_t *Value) {
-	unsigned Tag = ml_tag(Value);
-	if (__builtin_expect(Tag == 0, 1)) {
-		ml_type_t *Type = Value->Type;
-		if (Type->deref != ml_default_deref) return ml_typeof(Type->deref(Value));
-		return Type;
-	} else if (Tag == 1) {
-		return MLInt32T;
-	/*} else if (Tag < 7) {
-		return NULL;*/
-	} else {
-		return MLDoubleT;
-	}
-}
+#define ml_typeof_deref(VALUE) ml_typeof(ml_deref(VALUE))
 
 #else
 
@@ -610,20 +596,31 @@ struct ml_stringbuffer_t {
 	ml_type_t *Type;
 	ml_stringbuffer_node_t *Head, *Tail;
 	ml_hash_chain_t *Chain;
-	int Space, Length;
+	FILE *File;
+	int Space, Length, Index;
 };
 
 #define ML_STRINGBUFFER_NODE_SIZE 248
 #define ML_STRINGBUFFER_INIT (ml_stringbuffer_t){MLStringBufferT, 0,}
 
 ml_value_t *ml_stringbuffer();
-ssize_t ml_stringbuffer_add(ml_stringbuffer_t *Buffer, const char *String, size_t Length);
-ssize_t ml_stringbuffer_addf(ml_stringbuffer_t *Buffer, const char *Format, ...) __attribute__ ((format(printf, 2, 3)));
-char *ml_stringbuffer_get(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
-char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
-ml_value_t *ml_stringbuffer_value(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
-int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t));
+ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, size_t Length);
+ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ...) __attribute__ ((format(printf, 2, 3)));
 ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value);
+
+char *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
+char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
+ml_value_t *ml_stringbuffer_get_value(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
+
+int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t));
+
+// Defines for old function names
+
+#define ml_stringbuffer_add ml_stringbuffer_write
+#define ml_stringbuffer_addf ml_stringbuffer_printf
+#define ml_stringbuffer_string ml_stringbuffer_get_string
+#define ml_stringbuffer_uncollectable ml_stringbuffer_get_uncollectable
+#define ml_stringbuffer_value ml_stringbuffer_get_value
 
 // Lists //
 

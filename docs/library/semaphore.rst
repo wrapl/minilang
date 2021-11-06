@@ -7,12 +7,12 @@ semaphore
 :mini:`type semaphore`
    *TBD*
 
-:mini:`meth :wait(Semaphore: semaphore)`
+:mini:`meth (Semaphore: semaphore):wait`
    *TBD*
 
-:mini:`meth :signal(Semaphore: semaphore)`
+:mini:`meth (Semaphore: semaphore):signal`
    *TBD*
 
-:mini:`meth :value(Semaphore: semaphore)`
+:mini:`meth (Semaphore: semaphore):value`
    *TBD*
 

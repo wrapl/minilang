@@ -7,22 +7,25 @@ file
 :mini:`fun file(Path: string, Mode: string): file`
    *TBD*
 
-:mini:`meth :read(File: file): string`
+:mini:`meth (File: file):read: string`
    *TBD*
 
-:mini:`meth :read(File: file, Length: integer): string`
+:mini:`meth (File: file):read(Length: integer): string`
    *TBD*
 
-:mini:`meth :write(File: file, String: string, ...): File`
+:mini:`meth (Arg₁: file):rest`
    *TBD*
 
-:mini:`meth :write(File: file, Buffer: string::buffer): File`
+:mini:`meth (File: file):write(String: string, ...): File`
    *TBD*
 
-:mini:`meth :eof(File: file): File | nil`
+:mini:`meth (File: file):write(Buffer: string::buffer): File`
    *TBD*
 
-:mini:`meth :close(File: file): nil`
+:mini:`meth (File: file):eof: File | nil`
+   *TBD*
+
+:mini:`meth (File: file):close: nil`
    *TBD*
 
 :mini:`fun file::rename(Old: string, New: string): nil`
@@ -37,6 +40,6 @@ file
 :mini:`fun dir(Path: string): dir`
    *TBD*
 
-:mini:`meth :read(Dir: dir): string`
+:mini:`meth (Dir: dir):read: string`
    *TBD*
 

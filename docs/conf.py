@@ -46,7 +46,7 @@ class FoldersDirective(Directive):
 #
 # This file only contains a selection of the most common options. For a full
 # list see the documentation:
-# http://www.sphinx-doc.org/en/master/config
+# https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 # -- Path setup --------------------------------------------------------------
 
@@ -71,9 +71,7 @@ author = 'Raja Mukherji'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-
-extensions = ['sphinx.ext.graphviz']
-
+extensions = []
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -89,16 +87,6 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-#html_theme = "sphinx_material"
-#html_theme_options = {
-#	'color_primary': 'orange',
-#	'color_accent': 'yellow',
-#	'globaltoc_depth': 3
-#}
-#
-#html_sidebars = {
-#    "**": ["logo-text.html", "globaltoc.html", "localtoc.html", "searchbox.html"]
-#}
 html_theme = "pydata_sphinx_theme"
 html_theme_options = {
 	"collapse_navigation": True,

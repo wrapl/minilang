@@ -139,27 +139,30 @@ ML_METHOD("nsec", MLTimeT) {
 	return ml_integer(Time->Value->tv_nsec);
 }
 
-ML_METHOD(MLStringT, MLTimeT) {
+ML_METHOD("append", MLStringBufferT, MLTimeT) {
 //<Time
 //>string
 // Formats :mini:`Time` as a local time.
-	ml_time_t *Time = (ml_time_t *)Args[0];
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_time_t *Time = (ml_time_t *)Args[1];
 	struct tm TM = {0,};
 	localtime_r(&Time->Value->tv_sec, &TM);
-	char Buffer[30];
-	size_t Length = strftime(Buffer, 30, "%F %T", &TM);
-	return ml_string(GC_strdup(Buffer), Length);
+	char Temp[30];
+	size_t Length = strftime(Temp, 30, "%F %T", &TM);
+	ml_stringbuffer_write(Buffer, Temp, Length);
+	return MLSome;
 }
 
-ML_METHOD(MLStringT, MLTimeT, MLNilT) {
+ML_METHOD("append", MLStringBufferT, MLTimeT, MLNilT) {
 //<Time
 //<TimeZone
 //>string
 // Formats :mini:`Time` as a UTC time according to ISO 8601.
-	ml_time_t *Time = (ml_time_t *)Args[0];
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_time_t *Time = (ml_time_t *)Args[1];
 	struct tm TM = {0,};
 	gmtime_r(&Time->Value->tv_sec, &TM);
-	char Buffer[50];
+	char Temp[50];
 	size_t Length;
 	unsigned long NSec = Time->Value->tv_nsec;
 	if (NSec) {
@@ -168,45 +171,50 @@ ML_METHOD(MLStringT, MLTimeT, MLNilT) {
 			--Width;
 			NSec /= 10;
 		}
-		Length = strftime(Buffer, 40, "%FT%T", &TM);
-		Length += sprintf(Buffer + Length, ".%0*luZ", Width, NSec);
+		Length = strftime(Temp, 40, "%FT%T", &TM);
+		Length += sprintf(Temp + Length, ".%0*luZ", Width, NSec);
 	} else {
-		Length = strftime(Buffer, 60, "%FT%TZ", &TM);
+		Length = strftime(Temp, 60, "%FT%TZ", &TM);
 	}
-	return ml_string(GC_strdup(Buffer), Length);
+	ml_stringbuffer_write(Buffer, Temp, Length);
+	return MLSome;
 }
 
-ML_METHOD(MLStringT, MLTimeT, MLStringT) {
+ML_METHOD("append", MLStringBufferT, MLTimeT, MLStringT) {
 //<Time
 //<Format
 //>string
 // Formats :mini:`Time` as a local time according to the specified format.
-	ml_time_t *Time = (ml_time_t *)Args[0];
-	const char *Format = ml_string_value(Args[1]);
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_time_t *Time = (ml_time_t *)Args[1];
+	const char *Format = ml_string_value(Args[2]);
 	struct tm TM = {0,};
 	localtime_r(&Time->Value->tv_sec, &TM);
-	char Buffer[120];
-	size_t Length = strftime(Buffer, 120, Format, &TM);
-	return ml_string(GC_strdup(Buffer), Length);
+	char Temp[120];
+	size_t Length = strftime(Temp, 120, Format, &TM);
+	ml_stringbuffer_write(Buffer, Temp, Length);
+	return MLSome;
 }
 
-ML_METHOD(MLStringT, MLTimeT, MLStringT, MLNilT) {
+ML_METHOD("append", MLStringBufferT, MLTimeT, MLStringT, MLNilT) {
 //<Time
 //<Format
 //<TimeZone
 //>string
 // Formats :mini:`Time` as a UTC time according to the specified format.
-	ml_time_t *Time = (ml_time_t *)Args[0];
-	const char *Format = ml_string_value(Args[1]);
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_time_t *Time = (ml_time_t *)Args[1];
+	const char *Format = ml_string_value(Args[2]);
 	struct tm TM = {0,};
-	if (ml_boolean_value(Args[2])) {
+	if (ml_boolean_value(Args[3])) {
 		gmtime_r(&Time->Value->tv_sec, &TM);
 	} else {
 		localtime_r(&Time->Value->tv_sec, &TM);
 	}
-	char Buffer[120];
-	size_t Length = strftime(Buffer, 120, Format, &TM);
-	return ml_string(GC_strdup(Buffer), Length);
+	char Temp[120];
+	size_t Length = strftime(Temp, 120, Format, &TM);
+	ml_stringbuffer_write(Buffer, Temp, Length);
+	return MLSome;
 }
 
 static int ml_time_compare(ml_time_t *TimeA, ml_time_t *TimeB) {

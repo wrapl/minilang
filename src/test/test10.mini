@@ -7,7 +7,7 @@ print('A = {A}\n')
 
 A:Y := 200
 
-meth string(P: point) 'point({P:X}, {P:Y})'
+meth :append(B: string::buffer, P: point) B:write('point({P:X}, {P:Y})')
 
 print('A = {A}\n')
 
@@ -29,7 +29,7 @@ var C := vector(1, 2, 3)
 
 print('C = {C}\n')
 
-meth string(V: vector) 'vector({V:X}, {V:Y}, {V:Z})'
+meth :append(B: string::buffer, V: vector) B:write('vector({V:X}, {V:Y}, {V:Z})')
 
 print('C = {C}\n')
 

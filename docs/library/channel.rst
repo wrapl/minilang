@@ -7,21 +7,21 @@ channel
 :mini:`type channel`
    *TBD*
 
-:mini:`meth :start(Channel: channel, Function: function): any`
+:mini:`meth (Channel: channel):start(Function: function): any`
    *TBD*
 
-:mini:`meth :open(Channel: channel): channel | nil`
+:mini:`meth (Channel: channel):open: channel | nil`
    *TBD*
 
-:mini:`meth :next(Channel: channel): any`
+:mini:`meth (Channel: channel):next: any`
    *TBD*
 
-:mini:`meth :next(Channel: channel, Reply: any): any`
+:mini:`meth (Channel: channel):next(Reply: any): any`
    *TBD*
 
-:mini:`meth :send(Channel: channel, Message: any): any`
+:mini:`meth (Channel: channel):send(Message: any): any`
    *TBD*
 
-:mini:`meth :close(Channel: channel, Function: function)`
+:mini:`meth (Channel: channel):close(Function: function)`
    *TBD*
 

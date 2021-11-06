@@ -4,7 +4,7 @@ io
 :mini:`type stream < any`
    *TBD*
 
-:mini:`meth :write(Arg₁: stream, Arg₂: string)`
+:mini:`meth (Arg₁: stream):write(Arg₂: string)`
    *TBD*
 
 :mini:`type fd < stream`

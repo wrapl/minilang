@@ -268,11 +268,19 @@ typedef struct mlc_fun_expr_t mlc_fun_expr_t;
 typedef struct mlc_default_expr_t mlc_default_expr_t;
 typedef struct mlc_param_t mlc_param_t;
 
+typedef enum {
+	ML_PARAM_DEFAULT,
+	ML_PARAM_EXTRA,
+	ML_PARAM_NAMED,
+	ML_PARAM_BYREF,
+	ML_PARAM_ASVAR
+} ml_param_kind_t;
+
 struct mlc_param_t {
 	mlc_param_t *Next;
 	const char *Ident;
 	mlc_expr_t *Type;
-	int Line, Flags;
+	int Line, Kind;
 };
 
 struct mlc_default_expr_t {

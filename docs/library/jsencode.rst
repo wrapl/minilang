@@ -4,30 +4,30 @@ jsencode
 :mini:`fun jsvalue(Arg₁: string)`
    *TBD*
 
-:mini:`type JSValueT`
+:mini:`type jsvalue`
    *TBD*
 
 :mini:`fun jsencoder()`
    *TBD*
 
-:mini:`type JSEncoderT`
+:mini:`type jsencoder`
    *TBD*
 
-:mini:`meth :add(Arg₁: JSEncoderT, Arg₂: any, Arg₃: string)`
+:mini:`meth (Arg₁: jsencoder):add(Arg₂: any, Arg₃: string)`
    *TBD*
 
-:mini:`meth :encode(Arg₁: JSEncoderT, Arg₂: any)`
+:mini:`meth (Arg₁: jsencoder):encode(Arg₂: any)`
    *TBD*
 
 :mini:`fun jsdecoder()`
    *TBD*
 
-:mini:`type JSDecoderT`
+:mini:`type jsdecoder`
    *TBD*
 
-:mini:`meth :add(Arg₁: JSDecoderT, Arg₂: string, Arg₃: any)`
+:mini:`meth (Arg₁: jsdecoder):add(Arg₂: string, Arg₃: any)`
    *TBD*
 
-:mini:`meth :decode(Arg₁: JSDecoderT, Arg₂: string)`
+:mini:`meth (Arg₁: jsdecoder):decode(Arg₂: string)`
    *TBD*
 

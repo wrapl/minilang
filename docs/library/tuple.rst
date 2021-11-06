@@ -9,7 +9,7 @@ tuple
    An immutable tuple of values.
 
 
-:mini:`meth :size(Tuple: tuple): integer`
+:mini:`meth (Tuple: tuple):size: integer`
    Returns the number of elements in :mini:`Tuple`.
 
 
@@ -22,11 +22,7 @@ tuple
 :mini:`type tuple::iter`
    *TBD*
 
-:mini:`meth string(Tuple: tuple): string`
-   Returns a string representation of :mini:`Tuple`.
-
-
-:mini:`meth :append(Arg₁: string::buffer, Arg₂: tuple)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: tuple)`
    *TBD*
 
 :mini:`meth (Tuple₁: tuple) <> (Tuple₂: tuple): integer`

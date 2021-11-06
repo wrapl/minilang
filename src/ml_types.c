@@ -299,6 +299,15 @@ void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function) {
 	inthash_insert(Type->TypedFns, (uintptr_t)TypedFn, Function);
 }
 
+typedef struct {
+	ml_type_t Base;
+	int NumTypes;
+	ml_type_t *Types[];
+} ml_union_type_t;
+
+ML_TYPE(MLTypeUnionT, (MLTypeT), "union-type");
+//!internal
+
 ML_METHOD("|", MLTypeT, MLTypeT) {
 //<Type/1
 //<Type/2
@@ -306,31 +315,47 @@ ML_METHOD("|", MLTypeT, MLTypeT) {
 // Returns a union interface of :mini:`Type/1` and :mini:`Type/2`.
 	ml_type_t *Type1 = (ml_type_t *)Args[0];
 	ml_type_t *Type2 = (ml_type_t *)Args[1];
-	ml_type_t *Type = new(ml_type_t);
-	Type->Type = MLTypeT;
-	ml_type_init(Type, Type1, Type2, NULL);
-	asprintf((char **)&Type->Name, "%s | %s", Type1->Name, Type2->Name);
-	Type->hash = ml_default_hash;
-	Type->call = ml_default_call;
-	Type->deref = ml_default_deref;
-	Type->assign = ml_default_assign;
+	ml_union_type_t *Type = xnew(ml_union_type_t, 2, ml_type_t *);
+	Type->Base.Type = MLTypeUnionT;
+	asprintf((char **)&Type->Base.Name, "%s | %s", Type1->Name, Type2->Name);
+	Type->Base.hash = ml_default_hash;
+	Type->Base.call = ml_default_call;
+	Type->Base.deref = ml_default_deref;
+	Type->Base.assign = ml_default_assign;
+	if (Type1->Rank > Type2->Rank) {
+		Type->Base.Rank = Type1->Rank + 1;
+	} else {
+		Type->Base.Rank = Type2->Rank + 1;
+	}
+	Type->NumTypes = 2;
+	Type->Types[0] = Type1;
+	Type->Types[1] = Type2;
 	return (ml_value_t *)Type;
 }
 
-
-ML_METHOD(MLStringT, MLTypeT) {
-//!type
+ML_METHOD("?", MLTypeT) {
 //<Type
-//>string
-// Returns a string representing :mini:`Type`.
-	ml_type_t *Type = (ml_type_t *)Args[0];
-	return ml_string_format("<<%s>>", Type->Name);
+//>type
+// Returns a union interface of :mini:`Type` and :mini:`type(nil)`.
+	ml_type_t *Type1 = (ml_type_t *)Args[0];
+	ml_union_type_t *Type = xnew(ml_union_type_t, 2, ml_type_t *);
+	Type->Base.Type = MLTypeUnionT;
+	asprintf((char **)&Type->Base.Name, "%s | nil", Type1->Name);
+	Type->Base.hash = ml_default_hash;
+	Type->Base.call = ml_default_call;
+	Type->Base.deref = ml_default_deref;
+	Type->Base.assign = ml_default_assign;
+	Type->Base.Rank = Type1->Rank + 1;
+	Type->NumTypes = 2;
+	Type->Types[0] = Type1;
+	Type->Types[1] = MLNilT;
+	return (ml_value_t *)Type;
 }
 
 ML_METHOD("append", MLStringBufferT, MLTypeT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_type_t *Type = (ml_type_t *)Args[1];
-	ml_stringbuffer_addf(Buffer, "<<%s>>", Type->Name);
+	ml_stringbuffer_printf(Buffer, "<<%s>>", Type->Name);
 	return MLSome;
 }
 
@@ -386,15 +411,15 @@ ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
 	const char *Name = Base->Name;
 	if (NumArgs > 1) {
 		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-		ml_stringbuffer_add(Buffer, Base->Name, strlen(Base->Name));
-		ml_stringbuffer_add(Buffer, "[", 1);
-		ml_stringbuffer_add(Buffer, Args[1]->Name, strlen(Args[1]->Name));
+		ml_stringbuffer_write(Buffer, Base->Name, strlen(Base->Name));
+		ml_stringbuffer_write(Buffer, "[", 1);
+		ml_stringbuffer_write(Buffer, Args[1]->Name, strlen(Args[1]->Name));
 		for (int I = 2; I < NumArgs; ++I) {
-			ml_stringbuffer_add(Buffer, ",", 1);
-			ml_stringbuffer_add(Buffer, Args[I]->Name, strlen(Args[I]->Name));
+			ml_stringbuffer_write(Buffer, ",", 1);
+			ml_stringbuffer_write(Buffer, Args[I]->Name, strlen(Args[I]->Name));
 		}
-		ml_stringbuffer_add(Buffer, "]", 1);
-		Name = ml_stringbuffer_get(Buffer);
+		ml_stringbuffer_write(Buffer, "]", 1);
+		Name = ml_stringbuffer_get_string(Buffer);
 	}
 	Type->Base.Type = MLTypeGenericT;
 	Type->Base.Name = Name;
@@ -488,6 +513,13 @@ different:
 int ml_is_subtype(ml_type_t *T, ml_type_t *U) {
 	if (T == U) return 1;
 	if (U == MLAnyT) return 1;
+	if (U->Type == MLTypeUnionT) {
+		ml_union_type_t *Union = (ml_union_type_t *)U;
+		for (int I = 0; I < Union->NumTypes; ++I) {
+			if (ml_is_subtype(T, Union->Types[I])) return 1;
+		}
+		return 0;
+	}
 #ifdef ML_GENERICS
 	if (T->Type == MLTypeGenericT) {
 		ml_generic_type_t *GenericT = (ml_generic_type_t *)T;
@@ -668,7 +700,7 @@ ML_METHOD("in", MLAnyT, MLTypeT) {
 //<Type
 //>Value | nil
 // Returns :mini:`Value` if it is an instance of :mini:`Type` or a type that inherits from :mini:`Type` and :mini:`nil` otherwise.
-	return ml_is(Args[0], (ml_type_t *)Args[1]) ? Args[0] : MLNil;
+	return ml_is_subtype(ml_typeof(Args[0]), (ml_type_t *)Args[1]) ? Args[0] : MLNil;
 }
 
 ML_METHOD_ANON(MLCompilerSwitch, "compiler::switch");
@@ -865,11 +897,10 @@ ml_comp_any_any_any("<=");
 ml_comp_any_any_any(">");
 ml_comp_any_any_any(">=");
 
-ML_METHOD(MLStringT, MLAnyT) {
-//<Value
-//>string
-// Returns a general (type name only) representation of :mini:`Value` as a string.
-	return ml_string_format("<%s>", ml_typeof(Args[0])->Name);
+ML_METHOD("append", MLStringBufferT, MLAnyT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_stringbuffer_printf(Buffer, "<%s>", ml_typeof(Args[1])->Name);
+	return MLSome;
 }
 
 void ml_value_set_name(ml_value_t *Value, const char *Name) {
@@ -1231,7 +1262,7 @@ ml_value_t *ml_partial_function_set(ml_value_t *Partial0, size_t Index, ml_value
 	return Partial->Args[Index] = Value;
 }
 
-ML_METHOD("count", MLFunctionPartialT) {
+ML_METHOD("arity", MLFunctionPartialT) {
 //!function
 	ml_partial_function_t *Partial = (ml_partial_function_t *)Args[0];
 	return ml_integer(Partial->Count);
@@ -1515,38 +1546,19 @@ static void ML_TYPED_FN(ml_iterate, MLTupleT, ml_state_t *Caller, ml_tuple_t *Tu
 	ML_RETURN(Iter);
 }
 
-ML_METHOD(MLStringT, MLTupleT) {
-//!tuple
-//<Tuple
-//>string
-// Returns a string representation of :mini:`Tuple`.
-	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	ml_stringbuffer_add(Buffer, "(", 1);
-	if (Tuple->Size) {
-		ml_stringbuffer_append(Buffer, Tuple->Values[0]);
-		for (int I = 1; I < Tuple->Size; ++I) {
-			ml_stringbuffer_add(Buffer, ", ", 2);
-			ml_stringbuffer_append(Buffer, Tuple->Values[I]);
-		}
-	}
-	ml_stringbuffer_add(Buffer, ")", 1);
-	return ml_stringbuffer_value(Buffer);
-}
-
 ML_METHOD("append", MLStringBufferT, MLTupleT) {
 //!tuple
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_tuple_t *Value = (ml_tuple_t *)Args[1];
-	ml_stringbuffer_add(Buffer, "(", 1);
+	ml_stringbuffer_write(Buffer, "(", 1);
 	if (Value->Size) {
 		ml_stringbuffer_append(Buffer, Value->Values[0]);
 		for (int I = 1; I < Value->Size; ++I) {
-			ml_stringbuffer_add(Buffer, ", ", 2);
+			ml_stringbuffer_write(Buffer, ", ", 2);
 			ml_stringbuffer_append(Buffer, Value->Values[I]);
 		}
 	}
-	ml_stringbuffer_add(Buffer, ")", 1);
+	ml_stringbuffer_write(Buffer, ")", 1);
 	return MLSome;
 }
 
@@ -2145,9 +2157,9 @@ ml_arith_method_number_number("+", +)
 ml_arith_method_number_number("-", -)
 ml_arith_method_number_number("*", *)
 ml_arith_method_integer("~", ~);
-ml_arith_method_integer_integer("&", &);
-ml_arith_method_integer_integer("|", |);
-ml_arith_method_integer_integer("^", ^);
+ml_arith_method_integer_integer("/\\", &);
+ml_arith_method_integer_integer("\\/", |);
+ml_arith_method_integer_integer("><", ^);
 
 ML_METHOD("<<", MLIntegerT, MLIntegerT) {
 	int64_t IntegerA = ml_integer_value_fast(Args[0]);
@@ -2951,7 +2963,7 @@ ML_FUNCTION(MLModule) {
 //<Path:string
 //<Lookup:function
 //>module
-// Returns a generic module which calls resolves :mini:`Module::Import` by calling :mini:`Lookup(Module, Import)`, caching results for future use.
+// Returns a generic module which calls resolves :mini:`Module::Import` by calling :mini:`Lookup(Import)`, caching results for future use.
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLFunctionT);
@@ -2996,7 +3008,7 @@ ML_METHODX("::", MLModuleT, MLStringT) {
 			State->Base.run = (ml_state_fn)ml_module_lookup_run;
 			State->Module = Module;
 			State->Name = Name;
-			return ml_call(State, Module->Lookup, 2, Args);
+			return ml_call(State, Module->Lookup, 1, Args + 1);
 		} else {
 			ML_ERROR("ModuleError", "Symbol %s not exported from module %s", Name, Module->Path);
 		}
@@ -3033,9 +3045,11 @@ ml_value_t *ml_module_export(ml_value_t *Module0, const char *Name, ml_value_t *
 	return Value;
 }
 
-ML_METHOD(MLStringT, MLModuleT) {
-	ml_module_t *Module = (ml_module_t *)Args[0];
-	return ml_string_format("module(%s)", Module->Path);
+ML_METHOD("append", MLStringBufferT, MLModuleT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_module_t *Module = (ml_module_t *)Args[1];
+	ml_stringbuffer_printf(Buffer, "module(%s)", Module->Path);
+	return MLSome;
 }
 
 static int ml_module_exports_fn(const char *Name, void *Value, ml_value_t *Exports) {

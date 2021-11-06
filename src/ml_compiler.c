@@ -2222,11 +2222,6 @@ static void ml_string_expr_compile(mlc_function_t *Function, mlc_string_expr_t *
 	MLC_RETURN(NULL);
 }
 
-#define ML_PARAM_EXTRA 1
-#define ML_PARAM_NAMED 2
-#define ML_PARAM_BYREF 3
-#define ML_PARAM_ASVAR 4
-
 typedef struct {
 	mlc_fun_expr_t *Expr;
 	ml_closure_info_t *Info;
@@ -2348,7 +2343,6 @@ static void ml_subfunction_run(mlc_function_t *SubFunction, ml_value_t *Value, v
 }
 
 static void ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, int Flags) {
-	// closure <entry> <frame_size> <num_params> <num_upvalues> <upvalue_1> ...
 	mlc_function_t *SubFunction = new(mlc_function_t);
 	SubFunction->Base.Type = MLCompilerFunctionT;
 	SubFunction->Base.Caller = (ml_state_t *)Function;
@@ -2375,7 +2369,7 @@ static void ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, 
 		Decl->Ident = Param->Ident;
 		Decl->Hash = ml_ident_hash(Param->Ident);
 		Decl->Index = NumParams++;
-		switch (Param->Flags) {
+		switch (Param->Kind) {
 		case ML_PARAM_EXTRA:
 			Info->Flags |= ML_CLOSURE_EXTRA_ARGS;
 			break;
@@ -3009,7 +3003,6 @@ static ml_value_t *ml_map_global_get(ml_value_t *Map, const char *Name) {
 ML_FUNCTION(MLCompiler) {
 //@compiler
 //<Global:function|map
-//<?Read:function
 //>compiler
 	ML_CHECK_ARG_COUNT(1);
 	ml_getter_t GlobalGet = (ml_getter_t)ml_function_global_get;
@@ -3051,7 +3044,9 @@ static const char *ml_function_read(ml_value_t *Function) {
 }
 
 ML_FUNCTION(MLParser) {
-//@compiler
+//@parser
+//<?Read:function
+//>parser
 	void *Input = NULL;
 	ml_reader_t Reader = ml_parser_no_input;
 	if (Count > 0) {
@@ -3156,7 +3151,7 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 			if (Buffer->Length) {
 				mlc_string_part_t *Part = new(mlc_string_part_t);
 				Part->Length = Buffer->Length;
-				Part->Chars = ml_stringbuffer_get(Buffer);
+				Part->Chars = ml_stringbuffer_get_string(Buffer);
 				Part->Line = Parser->Source.Line;
 				Slot[0] = Part;
 				Slot = &Part->Next;
@@ -3174,30 +3169,30 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 		} else if (C == '\\') {
 			C = *End++;
 			switch (C) {
-			case 'r': ml_stringbuffer_add(Buffer, "\r", 1); break;
-			case 'n': ml_stringbuffer_add(Buffer, "\n", 1); break;
-			case 't': ml_stringbuffer_add(Buffer, "\t", 1); break;
-			case 'e': ml_stringbuffer_add(Buffer, "\e", 1); break;
-			case '\'': ml_stringbuffer_add(Buffer, "\'", 1); break;
-			case '\"': ml_stringbuffer_add(Buffer, "\"", 1); break;
-			case '\\': ml_stringbuffer_add(Buffer, "\\", 1); break;
-			case '0': ml_stringbuffer_add(Buffer, "\0", 1); break;
-			case '{': ml_stringbuffer_add(Buffer, "{", 1); break;
+			case 'r': ml_stringbuffer_write(Buffer, "\r", 1); break;
+			case 'n': ml_stringbuffer_write(Buffer, "\n", 1); break;
+			case 't': ml_stringbuffer_write(Buffer, "\t", 1); break;
+			case 'e': ml_stringbuffer_write(Buffer, "\e", 1); break;
+			case '\'': ml_stringbuffer_write(Buffer, "\'", 1); break;
+			case '\"': ml_stringbuffer_write(Buffer, "\"", 1); break;
+			case '\\': ml_stringbuffer_write(Buffer, "\\", 1); break;
+			case '0': ml_stringbuffer_write(Buffer, "\0", 1); break;
+			case '{': ml_stringbuffer_write(Buffer, "{", 1); break;
 			case '\n': break;
 			case 0: ml_parse_error(Parser, "ParseError", "end of line while parsing string");
 			}
 		} else {
-			ml_stringbuffer_add(Buffer, End - 1, 1);
+			ml_stringbuffer_write(Buffer, End - 1, 1);
 		}
 	}
 	if (!Parts) {
-		Parser->Value = ml_stringbuffer_value(Buffer);
+		Parser->Value = ml_stringbuffer_get_value(Buffer);
 		return (Parser->Token = MLT_VALUE);
 	} else {
 		if (Buffer->Length) {
 			mlc_string_part_t *Part = new(mlc_string_part_t);
 			Part->Length = Buffer->Length;
-			Part->Chars = ml_stringbuffer_get(Buffer);
+			Part->Chars = ml_stringbuffer_get_string(Buffer);
 			Part->Line = Parser->Source.Line;
 			Slot[0] = Part;
 		}
@@ -3683,7 +3678,7 @@ static mlc_expr_t *ml_accept_fun_expr(ml_parser_t *Parser, const char *Name, ml_
 			if (ml_parse2(Parser, MLT_LEFT_SQUARE)) {
 				ml_accept(Parser, MLT_IDENT);
 				Param->Ident = Parser->Ident;
-				Param->Flags = ML_PARAM_EXTRA;
+				Param->Kind = ML_PARAM_EXTRA;
 				ml_accept(Parser, MLT_RIGHT_SQUARE);
 				if (ml_parse2(Parser, MLT_COMMA)) {
 					ml_accept(Parser, MLT_LEFT_BRACE);
@@ -3691,14 +3686,14 @@ static mlc_expr_t *ml_accept_fun_expr(ml_parser_t *Parser, const char *Name, ml_
 					Param->Line = Parser->Source.Line;
 					ml_accept(Parser, MLT_IDENT);
 					Param->Ident = Parser->Ident;
-					Param->Flags = ML_PARAM_NAMED;
+					Param->Kind = ML_PARAM_NAMED;
 					ml_accept(Parser, MLT_RIGHT_BRACE);
 				}
 				break;
 			} else if (ml_parse2(Parser, MLT_LEFT_BRACE)) {
 				ml_accept(Parser, MLT_IDENT);
 				Param->Ident = Parser->Ident;
-				Param->Flags = ML_PARAM_NAMED;
+				Param->Kind = ML_PARAM_NAMED;
 				ml_accept(Parser, MLT_RIGHT_BRACE);
 				break;
 			} else {
@@ -3706,20 +3701,19 @@ static mlc_expr_t *ml_accept_fun_expr(ml_parser_t *Parser, const char *Name, ml_
 					Param->Ident = "_";
 				} else {
 					if (ml_parse2(Parser, MLT_REF)) {
-						Param->Flags = ML_PARAM_BYREF;
+						Param->Kind = ML_PARAM_BYREF;
 					} else if (ml_parse2(Parser, MLT_VAR)) {
-						Param->Flags = ML_PARAM_ASVAR;
+						Param->Kind = ML_PARAM_ASVAR;
 					}
 					ml_accept(Parser, MLT_IDENT);
 					Param->Ident = Parser->Ident;
 				}
-				if (ml_parse2(Parser, MLT_COLON)) {
-					Param->Type = ml_accept_expression(Parser, EXPR_DEFAULT);
-				} else if (ml_parse2(Parser, MLT_ASSIGN)) {
+				if (ml_parse2(Parser, MLT_COLON)) Param->Type = ml_parse_term(Parser, 0);
+				if (ml_parse2(Parser, MLT_ASSIGN)) {
 					ML_EXPR(DefaultExpr, default, default);
 					DefaultExpr->Child = ml_accept_expression(Parser, EXPR_DEFAULT);
 					DefaultExpr->Index = Index;
-					DefaultExpr->Flags = Param->Flags;
+					DefaultExpr->Flags = Param->Kind;
 					BodySlot[0] = ML_EXPR_END(DefaultExpr);
 					BodySlot = &DefaultExpr->Next;
 				}
@@ -3768,7 +3762,7 @@ static mlc_expr_t *ml_accept_meth_expr(ml_parser_t *Parser) {
 			if (ml_parse2(Parser, MLT_LEFT_SQUARE)) {
 				ml_accept(Parser, MLT_IDENT);
 				Param->Ident = Parser->Ident;
-				Param->Flags = ML_PARAM_EXTRA;
+				Param->Kind = ML_PARAM_EXTRA;
 				ml_accept(Parser, MLT_RIGHT_SQUARE);
 				if (ml_parse2(Parser, MLT_COMMA)) {
 					ml_accept(Parser, MLT_LEFT_BRACE);
@@ -3776,7 +3770,7 @@ static mlc_expr_t *ml_accept_meth_expr(ml_parser_t *Parser) {
 					Param->Line = Parser->Source.Line;
 					ml_accept(Parser, MLT_IDENT);
 					Param->Ident = Parser->Ident;
-					Param->Flags = ML_PARAM_NAMED;
+					Param->Kind = ML_PARAM_NAMED;
 					ml_accept(Parser, MLT_RIGHT_BRACE);
 				}
 				ML_EXPR(ValueExpr, value, value);
@@ -3787,7 +3781,7 @@ static mlc_expr_t *ml_accept_meth_expr(ml_parser_t *Parser) {
 			} else if (ml_parse2(Parser, MLT_LEFT_BRACE)) {
 				ml_accept(Parser, MLT_IDENT);
 				Param->Ident = Parser->Ident;
-				Param->Flags = ML_PARAM_NAMED;
+				Param->Kind = ML_PARAM_NAMED;
 				ml_accept(Parser, MLT_RIGHT_BRACE);
 				ML_EXPR(ValueExpr, value, value);
 				ValueExpr->Value = ml_method("..");
@@ -3799,9 +3793,9 @@ static mlc_expr_t *ml_accept_meth_expr(ml_parser_t *Parser) {
 					Param->Ident = "_";
 				} else {
 					if (ml_parse2(Parser, MLT_REF)) {
-						Param->Flags = ML_PARAM_BYREF;
+						Param->Kind = ML_PARAM_BYREF;
 					} else if (ml_parse2(Parser, MLT_VAR)) {
-						Param->Flags = ML_PARAM_ASVAR;
+						Param->Kind = ML_PARAM_ASVAR;
 					}
 					ml_accept(Parser, MLT_IDENT);
 					Param->Ident = Parser->Ident;

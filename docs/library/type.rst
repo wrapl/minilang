@@ -15,26 +15,26 @@ type
    Every type contains a set of named exports, which allows them to be used as modules.
 
 
-:mini:`meth :rank(Type: type): integer`
+:mini:`meth (Type: type):rank: integer`
    Returns the rank of :mini:`Type`, i.e. the depth of its inheritence tree.
 
 
-:mini:`meth :exports(Type: type): map`
+:mini:`meth (Type: type):exports: map`
    Returns a map of all the exports from :mini:`Type`.
 
 
-:mini:`meth :parents(Type: type): list`
+:mini:`meth (Type: type):parents: list`
    *TBD*
 
 :mini:`meth (Type₁: type) | (Type₂: type): type`
    Returns a union interface of :mini:`Type₁` and :mini:`Type₂`.
 
 
-:mini:`meth string(Type: type): string`
-   Returns a string representing :mini:`Type`.
+:mini:`meth ?(Type: type): type`
+   Returns a union interface of :mini:`Type` and :mini:`type(nil)`.
 
 
-:mini:`meth :append(Arg₁: string::buffer, Arg₂: type)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: type)`
    *TBD*
 
 :mini:`meth (Type: type) :: (Name: string): any | error`
@@ -69,11 +69,11 @@ type
    Returns the generic type :mini:`Base[Type₁, ..., Typeₙ]`.
 
 
-:mini:`meth :in(Value: any, Type: type): Value | nil`
+:mini:`meth (Value: any):in(Type: type): Value | nil`
    Returns :mini:`Value` if it is an instance of :mini:`Type` or a type that inherits from :mini:`Type` and :mini:`nil` otherwise.
 
 
-:mini:`meth :trace(Arg₁: any)`
+:mini:`meth (Arg₁: any):trace`
    *TBD*
 
 :mini:`meth (Value₁: any) <> (Value₂: any): integer`
@@ -118,7 +118,6 @@ type
    Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
 
 
-:mini:`meth string(Value: any): string`
-   Returns a general (type name only) representation of :mini:`Value` as a string.
-
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: any)`
+   *TBD*
 

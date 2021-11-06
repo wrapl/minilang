@@ -1,0 +1,17 @@
+let Count := integer(Args[1] or error("ArgError", "Count required"))
+
+fun fact(N) do
+	var F := 1
+	for I in 1 .. N do
+		F := old * I
+	end
+	ret F
+end
+
+print('20! = {fact(20)}\n')
+
+let Start := clock()
+for I in 1 .. Count do
+	fact(20)
+end
+print('Time taken = {clock() - Start}\n')

@@ -39,19 +39,12 @@ ML_METHOD(MLUUIDT, MLStringT) {
 	return ml_uuid_parse(ml_string_value(Args[0]), ml_string_length(Args[0]));
 }
 
-ML_METHOD(MLStringT, MLUUIDT) {
-	ml_uuid_t *UUID = (ml_uuid_t *)Args[0];
-	char *String = snew(UUID_STR_LEN);
-	uuid_unparse_lower(UUID->Value, String);
-	return ml_string(String, UUID_STR_LEN - 1);
-}
-
 ML_METHOD("append", MLStringBufferT, MLUUIDT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_uuid_t *UUID = (ml_uuid_t *)Args[1];
 	char String[UUID_STR_LEN];
 	uuid_unparse_lower(UUID->Value, String);
-	ml_stringbuffer_add(Buffer, String, UUID_STR_LEN - 1);
+	ml_stringbuffer_write(Buffer, String, UUID_STR_LEN - 1);
 	return Args[0];
 }
 

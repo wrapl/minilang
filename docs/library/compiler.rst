@@ -7,81 +7,81 @@ compiler
 :mini:`meth $(Arg₁: expr)`
    *TBD*
 
-:mini:`meth :source(Arg₁: expr)`
+:mini:`meth (Arg₁: expr):source`
    *TBD*
 
-:mini:`meth :start(Arg₁: expr)`
+:mini:`meth (Arg₁: expr):start`
    *TBD*
 
-:mini:`meth :end(Arg₁: expr)`
+:mini:`meth (Arg₁: expr):end`
    *TBD*
 
-:mini:`fun compiler(Global: function|map, ?Read: function): compiler`
+:mini:`fun compiler(Global: function|map): compiler`
    *TBD*
 
 :mini:`type compiler < state`
    *TBD*
 
-:mini:`fun compiler()`
+:mini:`fun parser(?Read: function): parser`
    *TBD*
 
 :mini:`type parser`
    *TBD*
 
-:mini:`meth :compile(Parser: parser, Compiler: compiler): any`
+:mini:`meth (Parser: parser):compile(Compiler: compiler): any`
    *TBD*
 
-:mini:`meth :compile(Parser: parser, Compiler: compiler, Parameters: list): any`
+:mini:`meth (Parser: parser):compile(Compiler: compiler, Parameters: list): any`
    *TBD*
 
-:mini:`meth :source(Parser: parser, Source: string, Line: integer): tuple`
+:mini:`meth (Parser: parser):source(Source: string, Line: integer): tuple`
    *TBD*
 
-:mini:`meth :reset(Parser: parser): parser`
+:mini:`meth (Parser: parser):reset: parser`
    *TBD*
 
-:mini:`meth :input(Parser: parser, String: string): compiler`
+:mini:`meth (Parser: parser):input(String: string): compiler`
    *TBD*
 
-:mini:`meth :clear(Parser: parser): string`
+:mini:`meth (Parser: parser):clear: string`
    *TBD*
 
-:mini:`meth :evaluate(Parser: parser, Compiler: compiler): any`
+:mini:`meth (Parser: parser):evaluate(Compiler: compiler): any`
    *TBD*
 
-:mini:`meth :run(Compiler: parser, Arg₂: compiler): any`
+:mini:`meth (Compiler: parser):run(Arg₂: compiler): any`
    *TBD*
 
 :mini:`meth (Compiler: compiler)[Name: string]: any`
    *TBD*
 
-:mini:`meth :var(Compiler: compiler, Name: string): variable`
+:mini:`meth (Compiler: compiler):var(Name: string): variable`
    *TBD*
 
-:mini:`meth :var(Compiler: compiler, Name: string, Type: type): variable`
+:mini:`meth (Compiler: compiler):var(Name: string, Type: type): variable`
    *TBD*
 
-:mini:`meth :let(Compiler: compiler, Name: string, Value: any): any`
+:mini:`meth (Compiler: compiler):let(Name: string, Value: any): any`
    *TBD*
 
-:mini:`meth :def(Compiler: compiler, Name: string, Value: any): any`
+:mini:`meth (Compiler: compiler):def(Name: string, Value: any): any`
    *TBD*
 
-:mini:`meth :vars(Compiler: compiler): map`
+:mini:`meth (Compiler: compiler):vars: map`
    *TBD*
 
 :mini:`type global`
    *TBD*
 
-:mini:`meth :command_var(Compiler: compiler, Name: string): variable`
+:mini:`meth (Compiler: compiler):command_var(Name: string): variable`
    *TBD*
 
-:mini:`meth :command_var(Compiler: compiler, Name: string, Type: type): variable`
+:mini:`meth (Compiler: compiler):command_var(Name: string, Type: type): variable`
    *TBD*
 
-:mini:`meth :command_let(Compiler: compiler, Name: string, Value: any): any`
+:mini:`meth (Compiler: compiler):command_let(Name: string, Value: any): any`
    *TBD*
 
-:mini:`meth :command_def(Compiler: compiler, Name: string, Value: any): any`
+:mini:`meth (Compiler: compiler):command_def(Name: string, Value: any): any`
    *TBD*
 

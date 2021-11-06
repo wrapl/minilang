@@ -13,13 +13,13 @@ tasks
    A dynamic set of tasks (function calls). Multiple tasks can run in parallel (depending on the availability of a scheduler and/or asynchronous function calls).
 
 
-:mini:`meth :add(Tasks: tasks, Args...: any, Function: any)`
+:mini:`meth (Tasks: tasks):add(Args...: any, Function: any)`
    Adds the function call :mini:`Function(Args...)` to a set of tasks.
 
    Adding a task to a completed tasks set returns an error.
 
 
-:mini:`meth :wait(Tasks: tasks): nil | error`
+:mini:`meth (Tasks: tasks):wait: nil | error`
    Waits until all of the tasks in a tasks set have returned, or one of the tasks has returned an error (which is then returned from this call).
 
 

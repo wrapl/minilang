@@ -7,15 +7,15 @@ sqlite
 :mini:`type sqlite`
    *TBD*
 
-:mini:`meth :close(Arg₁: sqlite)`
+:mini:`meth (Arg₁: sqlite):close`
    *TBD*
 
 :mini:`type sqlite::stmt < sequence`
    *TBD*
 
-:mini:`meth :statement(Arg₁: sqlite, Arg₂: string)`
+:mini:`meth (Arg₁: sqlite):statement(Arg₂: string)`
    *TBD*
 
-:mini:`meth :execute(Arg₁: sqlite, Arg₂: string, ...)`
+:mini:`meth (Arg₁: sqlite):execute(Arg₂: string, ...)`
    *TBD*
 

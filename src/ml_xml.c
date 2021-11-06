@@ -43,29 +43,29 @@ static void ml_xml_escape_string(ml_stringbuffer_t *Buffer, const char *String) 
 	for (; *String; String++) {
 		switch (*String) {
 		case '<':
-			ml_stringbuffer_add(Buffer, "&lt;", 4);
+			ml_stringbuffer_write(Buffer, "&lt;", 4);
 			break;
 		case '>':
-			ml_stringbuffer_add(Buffer, "&gt;", 4);
+			ml_stringbuffer_write(Buffer, "&gt;", 4);
 			break;
 		case '&':
-			ml_stringbuffer_add(Buffer, "&amp;", 5);
+			ml_stringbuffer_write(Buffer, "&amp;", 5);
 			break;
 		case '\"':
-			ml_stringbuffer_add(Buffer, "&quot;", 6);
+			ml_stringbuffer_write(Buffer, "&quot;", 6);
 			break;
 		case '\'':
-			ml_stringbuffer_add(Buffer, "&apos;", 6);
+			ml_stringbuffer_write(Buffer, "&apos;", 6);
 			break;
 		default:
-			ml_stringbuffer_add(Buffer, String, 1);
+			ml_stringbuffer_write(Buffer, String, 1);
 			break;
 		}
 	}
 }
 
 static ml_value_t *ml_xml_node_append(ml_stringbuffer_t *Buffer, ml_xml_node_t *Node) {
-	ml_stringbuffer_addf(Buffer, "<%s", ml_method_name(Node->Tag));
+	ml_stringbuffer_printf(Buffer, "<%s", ml_method_name(Node->Tag));
 	ML_MAP_FOREACH(Node->Attributes, Iter) {
 		if (!ml_is(Iter->Key, MLStringT)) {
 			return ml_error("XMLError", "Attribute keys must be strings");
@@ -73,12 +73,12 @@ static ml_value_t *ml_xml_node_append(ml_stringbuffer_t *Buffer, ml_xml_node_t *
 		if (!ml_is(Iter->Value, MLStringT)) {
 			return ml_error("XMLError", "Attribute values must be strings");
 		}
-		ml_stringbuffer_addf(Buffer, " %s=\"", ml_string_value(Iter->Key));
+		ml_stringbuffer_printf(Buffer, " %s=\"", ml_string_value(Iter->Key));
 		ml_xml_escape_string(Buffer, ml_string_value(Iter->Value));
-		ml_stringbuffer_add(Buffer, "\"", 1);
+		ml_stringbuffer_write(Buffer, "\"", 1);
 	}
 	if (ml_list_length(Node->Children)) {
-		ml_stringbuffer_add(Buffer, ">", 1);
+		ml_stringbuffer_write(Buffer, ">", 1);
 		ML_LIST_FOREACH(Node->Children, Iter) {
 			if (ml_is(Iter->Value, MLStringT)) {
 				ml_xml_escape_string(Buffer, ml_string_value(Iter->Value));
@@ -89,9 +89,9 @@ static ml_value_t *ml_xml_node_append(ml_stringbuffer_t *Buffer, ml_xml_node_t *
 				return ml_error("XMLError", "Children must be strings or nodes");
 			}
 		}
-		ml_stringbuffer_addf(Buffer, "</%s>", ml_string_value(Node->Tag));
+		ml_stringbuffer_printf(Buffer, "</%s>", ml_string_value(Node->Tag));
 	} else {
-		ml_stringbuffer_add(Buffer, "/>", 2);
+		ml_stringbuffer_write(Buffer, "/>", 2);
 	}
 	return NULL;
 }
@@ -103,11 +103,11 @@ ML_METHOD("append", MLStringBufferT, MLXmlT) {
 	return Error ?: Args[0];
 }
 
-ML_METHOD(MLStringT, MLXmlT) {
-	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+ML_METHOD("append", MLStringBufferT, MLXmlT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[1];
 	ml_value_t *Error = ml_xml_node_append(Buffer, Node);
-	return Error ?: ml_stringbuffer_value(Buffer);
+	return Error ?: MLSome;
 }
 
 typedef struct xml_stack_t xml_stack_t;
@@ -129,7 +129,7 @@ typedef struct {
 
 static void xml_start_element(xml_decoder_t *Decoder, const XML_Char *Name, const XML_Char **Attrs) {
 	if (Decoder->Buffer->Length) {
-		ml_value_t *Text = ml_stringbuffer_value(Decoder->Buffer);
+		ml_value_t *Text = ml_stringbuffer_get_value(Decoder->Buffer);
 		if (Decoder->Node) ml_list_put(Decoder->Node->Children, Text);
 	}
 	xml_stack_t *Stack = Decoder->Stack;
@@ -153,7 +153,7 @@ static void xml_start_element(xml_decoder_t *Decoder, const XML_Char *Name, cons
 
 static void xml_end_element(xml_decoder_t *Decoder, const XML_Char *Name) {
 	if (Decoder->Buffer->Length) {
-		ml_list_put(Decoder->Node->Children, ml_stringbuffer_value(Decoder->Buffer));
+		ml_list_put(Decoder->Node->Children, ml_stringbuffer_get_value(Decoder->Buffer));
 	}
 	xml_stack_t *Stack = Decoder->Stack;
 	if (Stack->Index == 0) {
@@ -171,15 +171,15 @@ static void xml_end_element(xml_decoder_t *Decoder, const XML_Char *Name) {
 }
 
 static void xml_character_data(xml_decoder_t *Decoder, const XML_Char *String, int Length) {
-	ml_stringbuffer_add(Decoder->Buffer, String, Length);
+	ml_stringbuffer_write(Decoder->Buffer, String, Length);
 }
 
 static void xml_skipped_entity(xml_decoder_t *Decoder, const XML_Char *EntityName, int IsParameterEntity) {
-	ml_stringbuffer_add(Decoder->Buffer, EntityName, strlen(EntityName));
+	ml_stringbuffer_write(Decoder->Buffer, EntityName, strlen(EntityName));
 }
 
 static void xml_default(xml_decoder_t *Decoder, const XML_Char *String, int Length) {
-	ml_stringbuffer_add(Decoder->Buffer, String, Length);
+	ml_stringbuffer_write(Decoder->Buffer, String, Length);
 }
 
 static void ml_free(void *Ptr) {

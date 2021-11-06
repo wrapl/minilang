@@ -882,7 +882,7 @@ void ml_array_set_ ## CTYPE(CTYPE Value, ml_array_t *Array, ...) { \
 	} \
 } \
 \
-static ml_value_t *ml_array_ ## CTYPE ## _deref(ml_array_t *Target, ml_value_t *Value) { \
+static ml_value_t *ml_array_ ## CTYPE ## _deref(ml_array_t *Target) { \
 	if (Target->Degree == 0)  return RNEW(*(CTYPE *)Target->Base.Address); \
 	return (ml_value_t *)Target; \
 } \

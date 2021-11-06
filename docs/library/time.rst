@@ -21,23 +21,23 @@ time
    Parses the :mini:`String` as a time according to specified format. The time is assumed to be in local time unless UTC is :mini:`true`.
 
 
-:mini:`meth :nsec(Time: time): integer`
+:mini:`meth (Time: time):nsec: integer`
    Returns the nanoseconds component of :mini:`Time`.
 
 
-:mini:`meth string(Time: time): string`
+:mini:`meth (Time: string::buffer):append(Arg₂: time): string`
    Formats :mini:`Time` as a local time.
 
 
-:mini:`meth string(Time: time, TimeZone: nil): string`
+:mini:`meth (Time: string::buffer):append(TimeZone: time, Arg₃: nil): string`
    Formats :mini:`Time` as a UTC time according to ISO 8601.
 
 
-:mini:`meth string(Time: time, Format: string): string`
+:mini:`meth (Time: string::buffer):append(Format: time, Arg₃: string): string`
    Formats :mini:`Time` as a local time according to the specified format.
 
 
-:mini:`meth string(Time: time, Format: string, TimeZone: nil): string`
+:mini:`meth (Time: string::buffer):append(Format: time, TimeZone: string, Arg₄: nil): string`
    Formats :mini:`Time` as a UTC time according to the specified format.
 
 

@@ -40,6 +40,10 @@
 #include "ml_xml.h"
 #endif
 
+#ifdef ML_XE
+#include "ml_xe.h"
+#endif
+
 #ifdef ML_MODULES
 #include "ml_module.h"
 #include "ml_library.h"
@@ -102,6 +106,9 @@ static int ml_stringbuffer_print(FILE *File, const char *String, size_t Length) 
 
 ML_FUNCTION(MLPrint) {
 //@print
+//<Values..:any
+//>nil
+// Prints :mini:`Values` to standard output, converting to strings if necessary.
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Result = ml_stringbuffer_append(Buffer, Args[I]);
@@ -114,6 +121,8 @@ ML_FUNCTION(MLPrint) {
 
 ML_FUNCTION(MLHalt) {
 //@halt
+//<Code?:integer
+//
 	if (Count > 0) {
 		ML_CHECK_ARG_TYPE(0, MLIntegerT);
 		exit(ml_integer_value_fast(Args[0]));
@@ -139,24 +148,12 @@ static ml_value_t *ml_globals(stringmap_t *Globals, int Count, ml_value_t **Args
 	return Result;
 }
 
-ML_FUNCTIONX(MLTest) {
-//!internal
-	ML_CHECKX_ARG_COUNT(2);
-	ML_CHECKX_ARG_TYPE(0, MLStringT);
-	const char *Test = ml_string_value(Args[0]);
-	if (!strcmp(Test, "methods")) {
-		ml_state_t *State = ml_state_new(Caller);
-		ml_methods_context_new(State->Context);
-		ml_value_t *Function = Args[1];
-		return ml_call(State, Function, Count - 2, Args + 2);
-	}
-	ML_ERROR("ValueError", "Unknown test %s", Test);
-}
-
 #ifdef ML_MODULES
 static stringmap_t Modules[1] = {STRINGMAP_INIT};
 
 ML_FUNCTIONX(Import) {
+//<Path
+//>module
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLStringT);
 	const char *FileName = realpath(ml_string_value(Args[0]), NULL);
@@ -205,6 +202,8 @@ static void add_library_path(void) {
 }
 
 ML_FUNCTIONX(Library) {
+//<Name
+//>module
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLStringT);
 	const char *Name = ml_string_value(Args[0]);
@@ -242,6 +241,8 @@ ML_FUNCTIONX(Library) {
 }
 
 ML_FUNCTION(Unload) {
+//<Path
+//>nil
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	const char *FileName = realpath(ml_string_value(Args[0]), NULL);
@@ -313,7 +314,6 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "macro", MLMacroT);
 	stringmap_insert(Globals, "global", ml_stringmap_globals(Globals));
 	stringmap_insert(Globals, "globals", ml_cfunction(Globals, (void *)ml_globals));
-	stringmap_insert(Globals, "test", MLTest);
 #ifdef ML_CBOR
 	ml_cbor_init(Globals);
 #endif
@@ -322,6 +322,9 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_XML
 	ml_xml_init(Globals);
+#endif
+#ifdef ML_XE
+	ml_xe_init(Globals);
 #endif
 #ifdef ML_MATH
 	ml_math_init(Globals);

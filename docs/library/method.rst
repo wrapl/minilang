@@ -13,18 +13,18 @@ method
 :mini:`meth method(Name: string): method`
    *TBD*
 
-:mini:`meth string(Arg₁: method): string`
-   *TBD*
-
-:mini:`meth :append(Arg₁: string::buffer, Arg₂: method)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: method)`
    *TBD*
 
 :mini:`fun method::set(Method: any, Types...: type, Function: function): Function`
    *TBD*
 
-:mini:`meth :list(Arg₁: method)`
+:mini:`meth (Arg₁: method):list`
    *TBD*
 
 :mini:`fun method::context(): methods`
+   *TBD*
+
+:mini:`fun method::list(): list[method]`
    *TBD*
 

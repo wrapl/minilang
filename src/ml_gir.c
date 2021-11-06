@@ -157,15 +157,17 @@ ml_value_t *ml_gir_instance_get(void *Handle, GIBaseInfo *Fallback) {
 	return (ml_value_t *)Instance;
 }
 
-ML_METHOD(MLStringT, ObjectInstanceT) {
+ML_METHOD("append", MLStringBufferT, ObjectInstanceT) {
 //<Object
 //>string
-	object_instance_t *Instance = (object_instance_t *)Args[0];
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	object_instance_t *Instance = (object_instance_t *)Args[1];
 	if (Instance == ObjectInstanceNil) {
-		return ml_cstring("(null)");
+		ml_stringbuffer_write(Buffer, "(null)", 6);
 	} else {
-		return ml_string_format("<%s>", g_base_info_get_name((GIBaseInfo *)Instance->Type->Info));
+		ml_stringbuffer_printf(Buffer, "<%s>", g_base_info_get_name((GIBaseInfo *)Instance->Type->Info));
 	}
+	return MLSome;
 }
 
 typedef struct struct_t {
@@ -191,11 +193,13 @@ static ml_value_t *struct_instance_new(struct_t *Struct, int Count, ml_value_t *
 	return (ml_value_t *)Instance;
 }
 
-ML_METHOD(MLStringT, StructInstanceT) {
+ML_METHOD("append", MLStringBufferT, StructInstanceT) {
 //<Struct
 //>string
-	struct_instance_t *Instance = (struct_instance_t *)Args[0];
-	return ml_string_format("<%s>", g_base_info_get_name((GIBaseInfo *)Instance->Type->Info));
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	struct_instance_t *Instance = (struct_instance_t *)Args[1];
+	ml_stringbuffer_printf(Buffer, "<%s>", g_base_info_get_name((GIBaseInfo *)Instance->Type->Info));
+	return MLSome;
 }
 
 typedef struct field_ref_t {
@@ -216,6 +220,8 @@ static void field_ref_ ## LNAME ## _assign(ml_state_t *Caller, field_ref_t *Ref,
 } \
 \
 ML_TYPE(FieldRef ## UNAME ## T, (), "field-ref-" #LNAME, \
+/*@fieldref::LNAME
+*/ \
 	.deref = (void *)field_ref_ ## LNAME ## _deref, \
 	.assign = (void *)field_ref_ ## LNAME ## _assign \
 );
@@ -311,11 +317,13 @@ ML_TYPE(EnumT, (BaseInfoT), "gir-enum-type");
 ML_TYPE(EnumValueT, (), "gir-enum");
 // A gobject-instrospection enum value.
 
-ML_METHOD(MLStringT, EnumValueT) {
+ML_METHOD("append", MLStringT, EnumValueT) {
 //<Value
 //>string
-	enum_value_t *Value = (enum_value_t *)Args[0];
-	return Value->Name;
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	enum_value_t *Value = (enum_value_t *)Args[1];
+	ml_stringbuffer_write(Buffer, ml_string_value(Value->Name), ml_string_length(Value->Name));
+	return MLSome;
 }
 
 ML_METHOD(MLIntegerT, EnumValueT) {
@@ -372,13 +380,13 @@ static ml_value_t *gir_enum_value(enum_t *Type, int64_t Value) {
 	for (enum_value_t **Ptr = Type->ByIndex; Value && *Ptr; ++Ptr) {
 		if ((Ptr[0]->Value & Value) == Ptr[0]->Value) {
 			Value &= ~Ptr[0]->Value;
-			if (Buffer->Length) ml_stringbuffer_add(Buffer, "|", 1);
+			if (Buffer->Length) ml_stringbuffer_write(Buffer, "|", 1);
 			const char *Name = ml_string_value(Ptr[0]->Name);
 			size_t Length = ml_string_length(Ptr[0]->Name);
-			ml_stringbuffer_add(Buffer, Name, Length);
+			ml_stringbuffer_write(Buffer, Name, Length);
 		}
 	}
-	Enum->Name = ml_stringbuffer_value(Buffer);
+	Enum->Name = ml_stringbuffer_get_value(Buffer);
 	return (ml_value_t *)Enum;
 }
 

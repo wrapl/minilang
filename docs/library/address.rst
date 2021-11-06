@@ -5,7 +5,7 @@ address
    An address represents a read-only bounded section of memory.
 
 
-:mini:`meth :count(Address: address): integer`
+:mini:`meth (Address: address):count: integer`
    Returns the number bytes visible at :mini:`Address`.
 
 
@@ -21,30 +21,30 @@ address
    Returns the offset from :mini:`Address₂` to :mini:`Address₁`, provided :mini:`Address₂` is visible to :mini:`Address₁`.
 
 
-:mini:`meth :get8(Address: address): integer`
+:mini:`meth (Address: address):get8: integer`
    *TBD*
 
-:mini:`meth :get16(Address: address): integer`
+:mini:`meth (Address: address):get16: integer`
    *TBD*
 
-:mini:`meth :get32(Address: address): integer`
+:mini:`meth (Address: address):get32: integer`
    *TBD*
 
-:mini:`meth :get64(Address: address): integer`
+:mini:`meth (Address: address):get64: integer`
    *TBD*
 
-:mini:`meth :getf32(Address: address): real`
+:mini:`meth (Address: address):getf32: real`
    *TBD*
 
-:mini:`meth :getf64(Address: address): real`
+:mini:`meth (Address: address):getf64: real`
    *TBD*
 
-:mini:`meth :gets(Address: address): string`
+:mini:`meth (Address: address):gets: string`
    *TBD*
 
-:mini:`meth :gets(Address: address, Size: integer): string`
+:mini:`meth (Address: address):gets(Size: integer): string`
    *TBD*
 
-:mini:`meth string(Arg₁: address)`
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: address)`
    *TBD*
 

@@ -1007,8 +1007,8 @@ static void join_append(ml_join_state_t *State, ml_value_t *Value);
 static void join_next(ml_join_state_t *State, ml_value_t *Value) {
 	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, ml_stringbuffer_value(State->Buffer));
-	ml_stringbuffer_add(State->Buffer, State->Separator, State->SeparatorLength);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, ml_stringbuffer_get_value(State->Buffer));
+	ml_stringbuffer_write(State->Buffer, State->Separator, State->SeparatorLength);
 	State->Base.run = (void *)join_append;
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
@@ -1022,7 +1022,7 @@ static void join_append(ml_join_state_t *State, ml_value_t *Value) {
 
 static void join_first(ml_join_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, ml_stringbuffer_value(State->Buffer));
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, ml_stringbuffer_get_value(State->Buffer));
 	State->Base.run = (void *)join_append;
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
@@ -2116,7 +2116,7 @@ static void ML_TYPED_FN(ml_iter_next, MLGridStateT, ml_state_t *Caller, ml_grid_
 }
 
 ML_FUNCTION(Grid) {
-//@cart
+//@grid
 //<Sequence/1:sequence
 //<...:sequence
 //<Sequence/n:sequence
