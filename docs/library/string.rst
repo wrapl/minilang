@@ -198,6 +198,9 @@ string
 :mini:`meth (Arg₁: string):upper`
    *TBD*
 
+:mini:`meth (Arg₁: string):escape`
+   *TBD*
+
 :mini:`meth (Arg₁: string):find(Arg₂: string)`
    *TBD*
 

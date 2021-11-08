@@ -225,13 +225,14 @@ static ml_value_t *parse_string(xe_stream_t *Stream) {
 static ml_value_t *parse_value(xe_stream_t *Stream) {
 	const char *Next = Stream->Next;
 	SKIP_WHITESPACE;
-	if (Next[0] == '<') {
+	switch (*Next) {
+	case '<':
 		Stream->Next = Next + 1;
 		return parse_node(Stream);
-	} else if (Next[0] == '\"') {
+	case '\"':
 		Stream->Next = Next + 1;
 		return parse_string(Stream);
-	} else if (Next[0] == '-' || ('0' <= Next[0] && Next[0] <= '9') || Next[0] == '.') {
+	case '-': case '0' ... '9': case '.': {
 		char *End;
 		long Value = strtol(Next, &End, 10);
 		if (End[0] == '.' || End[0] == 'e' || End[0] == 'E') {
@@ -242,7 +243,34 @@ static ml_value_t *parse_value(xe_stream_t *Stream) {
 			Stream->Next = End;
 			return ml_integer(Value);
 		}
-	} else {
+	}
+	case '$': {
+		++Next;
+		for (;;) {
+			char Delim = *Next;
+			if (Delim <= ' ') break;
+			if (Delim == ':') break;
+			if (Delim == '|') break;
+			if (Delim == '>') break;
+			++Next;
+		}
+		int NameLength = (Next - Stream->Next) - 1;
+		char *Name = snew(NameLength + 1);
+		memcpy(Name, Stream->Next + 1, NameLength);
+		Name[NameLength] = 0;
+		Stream->Next = Next;
+		xe_var_t *Var = new(xe_var_t);
+		Var->Type = XEVarT;
+		if (!NameLength) {
+			Var->Name = MLNil;
+		} else if (isalpha(Name[0])) {
+			Var->Name = ml_string(Name, NameLength);
+		} else {
+			Var->Name = ml_integer(atoi(Name));
+		}
+		return (ml_value_t *)Var;
+	}
+	default:
 		return ml_error("ParseError", "Invalid value syntax at line %d in %s", Stream->LineNo, Stream->Source);
 	}
 }
@@ -295,10 +323,9 @@ static ml_value_t *parse_node(xe_stream_t *Stream) {
 					if (!isalpha(*Next)) break;
 					++Next;
 				}
-				int NameLength = Next - Start;
 				ml_value_t *Name;
-				if (NameLength) {
-					Name = ml_string(Start, NameLength);
+				if (Next != Start) {
+					Name = ml_string(Start, Next - Start);
 					SKIP_WHITESPACE;
 					if (Next[0] != '=') return ml_error("ParseError", "Expected = at line %d in %s", Stream->LineNo, Stream->Source);
 					++Next;
