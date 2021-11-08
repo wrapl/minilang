@@ -1001,7 +1001,12 @@ struct ml_stringbuffer_node_t {
 };
 
 static GC_descr StringBufferDesc = 0;
+
+#ifdef ML_THREADSAFE
+static ml_stringbuffer_node_t * _Atomic StringBufferNodeCache = NULL;
+#else
 static ml_stringbuffer_node_t *StringBufferNodeCache = NULL;
+#endif
 
 ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, size_t Length) {
 	//fprintf(stderr, "ml_stringbuffer_add(%s, %ld)\n", String, Length);
@@ -1011,6 +1016,7 @@ ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, siz
 		memcpy(Node->Chars + ML_STRINGBUFFER_NODE_SIZE - Buffer->Space, String, Buffer->Space);
 		String += Buffer->Space;
 		Remaining -= Buffer->Space;
+#ifdef ML_THREADSAFE
 		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
 		do {
 			if (!Next) {
@@ -1019,6 +1025,14 @@ ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, siz
 			}
 			CacheNext = Next->Next;
 		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &Next, CacheNext));
+#else
+		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
+		if (!Next) {
+			Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+		} else {
+			StringBufferNodeCache = Next->Next;
+		}
+#endif
 		Next->Next = NULL;
 		Node->Next = Next;
 		Node = Next;
@@ -1059,10 +1073,15 @@ static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
 	*P++ = 0;
 
 	ml_stringbuffer_node_t *Head = Buffer->Head, *Tail = Buffer->Tail;
+#ifdef ML_THREADSAFE
 	ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
 	do {
 		Tail->Next = CacheNext;
 	} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &CacheNext, Head));
+#else
+	Tail->Next = StringBufferNodeCache;
+	StringBufferNodeCache = Head;
+#endif
 
 	if (Buffer->File) {
 		fclose(Buffer->File);
@@ -1637,6 +1656,61 @@ ML_METHOD("upper", MLStringT) {
 	char *Target = snew(Length + 1);
 	for (int I = 0; I < Length; ++I) Target[I] = toupper(Source[I]);
 	return ml_string(Target, Length);
+}
+
+ML_METHOD("escape", MLStringT) {
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	const char *Start = ml_string_value(Args[0]);
+	int N = ml_string_length(Args[0]);
+	const char *End = Start;
+	for (; --N >= 0; ++End) {
+		switch (*End) {
+		case '\r':
+			ml_stringbuffer_write(Buffer, Start, End - Start);
+			ml_stringbuffer_write(Buffer, "\\r", 2);
+			Start = End + 1;
+			break;
+		case '\n':
+			ml_stringbuffer_write(Buffer, Start, End - Start);
+			ml_stringbuffer_write(Buffer, "\\n", 2);
+			Start = End + 1;
+			break;
+		case '\t':
+			ml_stringbuffer_write(Buffer, Start, End - Start);
+			ml_stringbuffer_write(Buffer, "\\t", 2);
+			Start = End + 1;
+			break;
+		case '\e':
+			ml_stringbuffer_write(Buffer, Start, End - Start);
+			ml_stringbuffer_write(Buffer, "\\e", 2);
+			Start = End + 1;
+			break;
+		case '\'':
+			ml_stringbuffer_write(Buffer, Start, End - Start);
+			ml_stringbuffer_write(Buffer, "\\\'", 2);
+			Start = End + 1;
+			break;
+		case '\"':
+			ml_stringbuffer_write(Buffer, Start, End - Start);
+			ml_stringbuffer_write(Buffer, "\\\"", 2);
+			Start = End + 1;
+			break;
+		case '\\':
+			ml_stringbuffer_write(Buffer, Start, End - Start);
+			ml_stringbuffer_write(Buffer, "\\\\", 2);
+			Start = End + 1;
+			break;
+		case '\0':
+			ml_stringbuffer_write(Buffer, Start, End - Start);
+			ml_stringbuffer_write(Buffer, "\\0", 2);
+			Start = End + 1;
+			break;
+		default:
+			break;
+		}
+	}
+	ml_stringbuffer_write(Buffer, Start, End - Start);
+	return ml_stringbuffer_get_value(Buffer);
 }
 
 ML_METHOD("find", MLStringT, MLStringT) {

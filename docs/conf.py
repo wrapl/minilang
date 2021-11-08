@@ -90,7 +90,12 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 html_theme = "pydata_sphinx_theme"
 html_theme_options = {
 	"collapse_navigation": True,
-	"page_sidebar_items": []
+	"page_sidebar_items": [],
+	"icon_links": [{
+		"name": "GitHub",
+		"url": "https://github.com/wrapl/minilang",
+		"icon": "fab fa-github-square",
+	}]
 }
 html_sidebars = {
     "**": ["search-field", "page-toc", "sidebar-nav-bs"]
