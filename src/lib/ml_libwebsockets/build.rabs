@@ -6,6 +6,6 @@ generate_init_file(file("ml_libwebsockets.c"))
 
 CFLAGS := old + ["-I../..", "-I../include"]
 
-DEFAULT[minilang_lib("libwebsockets.so", [
+DEFAULT[so_module("libwebsockets.so", [
 	file("ml_libwebsockets.o")
 ], [LIBWEBSOCKETS, MLLIBUV])]

@@ -149,7 +149,130 @@ static ml_value_t *ml_globals(stringmap_t *Globals, int Count, ml_value_t **Args
 }
 
 #ifdef ML_MODULES
+static ml_value_t *LibraryPath;
+static int MaxLibraryPathLength = 0;
 static stringmap_t Modules[1] = {STRINGMAP_INIT};
+
+typedef struct ml_library_loader_t ml_library_loader_t;
+
+struct ml_library_loader_t {
+	ml_library_loader_t *Next;
+	const char *Extension;
+	int (*test)(const char *FileName);
+	void (*load)(ml_state_t *Caller, const char *FileName, ml_value_t **Slot);
+	ml_value_t *(*load0)(const char *FileName, ml_value_t **Slot);
+};
+
+static ml_library_loader_t *Loaders = NULL;
+static int MaxLibraryExtensionLength = 2;
+
+typedef struct {
+	ml_library_loader_t *Loader;
+	const char *FileName;
+} ml_library_info_t;
+
+static ml_library_info_t ml_library_find(const char *Path, const char *Name) {
+	char *FileName;
+	ml_library_loader_t *Loader = NULL;
+	if (Path) {
+		const char *BasePath = realpath(Path, NULL);
+		FileName = snew(strlen(BasePath) + strlen(Name) + MaxLibraryExtensionLength);
+		char *End = stpcpy(FileName, BasePath);
+		*End++ = '/';
+		End = stpcpy(End, Name);
+		Loader = Loaders;
+		while (Loader) {
+			strcpy(End, Loader->Extension);
+			if (Loader->test(FileName)) return (ml_library_info_t){Loader, FileName};
+			Loader = Loader->Next;
+		}
+	} else {
+		FileName = snew(MaxLibraryPathLength + strlen(Name) + MaxLibraryExtensionLength);
+		ML_LIST_FOREACH(LibraryPath, Iter) {
+			char *End = stpcpy(FileName, ml_string_value(Iter->Value));
+			*End++ = '/';
+			End = stpcpy(End, Name);
+			Loader = Loaders;
+			while (Loader) {
+				strcpy(End, Loader->Extension);
+				if (Loader->test(FileName)) return (ml_library_info_t){Loader, FileName};
+				Loader = Loader->Next;
+			}
+		}
+	}
+	return (ml_library_info_t){NULL, NULL};
+}
+
+void ml_library_load(ml_state_t *Caller, const char *Path, const char *Name) {
+	ml_library_info_t Info = ml_library_find(Path, Name);
+	if (!Info.Loader) ML_ERROR("ModuleError", "Library %s/%s not found", Path, Name);
+	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Modules, Info.FileName);
+	if (!Slot[0]) return Info.Loader->load(Caller, Info.FileName, Slot);
+	ML_RETURN(Slot[0]);
+}
+
+ml_value_t *ml_library_load0(const char *Path, const char *Name) {
+	ml_library_info_t Info = ml_library_find(Path, Name);
+	if (!Info.Loader) return ml_error("ModuleError", "Library %s/%s not found", Path, Name);
+	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Modules, Info.FileName);
+	if (!Slot[0]) return Info.Loader->load0(Info.FileName, Slot);
+	return Slot[0];
+}
+
+#include <sys/stat.h>
+
+static int ml_library_test_file(const char *FileName) {
+	struct stat Stat[1];
+	return !lstat(FileName, Stat);
+}
+
+static ml_value_t *ml_library_default_load0(const char *FileName, ml_value_t **Slot) {
+	return ml_error("ModuleError", "Module %s loaded incorrectly", FileName);
+}
+
+static void ml_library_mini_load(ml_state_t *Caller, const char *FileName, ml_value_t **Slot) {
+	return ml_module_load_file(Caller, FileName, (ml_getter_t)stringmap_search, Globals, Slot);
+}
+
+static void ml_library_so_load(ml_state_t *Caller, const char *FileName, ml_value_t **Slot) {
+	void *Handle = dlopen(FileName, RTLD_GLOBAL | RTLD_LAZY);
+	if (Handle) {
+		int (*init0)(ml_value_t *, ml_getter_t, void *) = dlsym(Handle, "ml_library_entry0");
+		if (init0) {
+			ml_value_t *Library = Slot[0] = ml_module(FileName, NULL);
+			init0(Library, (ml_getter_t)stringmap_search, Globals);
+			ML_RETURN(Library);
+		}
+		int (*init)(ml_state_t *, ml_value_t *, ml_getter_t, void *) = dlsym(Handle, "ml_library_entry");
+		if (init) {
+			ml_value_t *Library = Slot[0] = ml_module(FileName, NULL);
+			init(Caller, Library, (ml_getter_t)stringmap_search, Globals);
+			ML_RETURN(Library);
+		}
+		dlclose(Handle);
+		ML_ERROR("LibraryError", "init function missing from %s", FileName);
+	} else {
+		ML_ERROR("LibraryError", "Failed to load %s: %s", FileName, dlerror());
+	}
+}
+
+static ml_value_t *ml_library_so_load0(const char *FileName, ml_value_t **Slot) {
+	void *Handle = dlopen(FileName, RTLD_GLOBAL | RTLD_LAZY);
+	if (Handle) {
+		int (*init0)(ml_value_t *, ml_getter_t, void *) = dlsym(Handle, "ml_library_entry0");
+		if (init0) {
+			ml_value_t *Library = Slot[0] = ml_module(FileName, NULL);
+			init0(Library, (ml_getter_t)stringmap_search, Globals);
+			return Library;
+		}
+		int (*init)(ml_state_t *, ml_value_t *, ml_getter_t, void *) = dlsym(Handle, "ml_library_entry");
+		if (init) return ml_library_default_load0(FileName, Slot);
+		dlclose(Handle);
+		return ml_error("LibraryError", "init function missing from %s", FileName);
+	} else {
+		return ml_error("LibraryError", "Failed to load %s: %s", FileName, dlerror());
+	}
+}
 
 ML_FUNCTIONX(Import) {
 //<Path
@@ -173,12 +296,9 @@ ML_FUNCTIONX(Import) {
 	ML_RETURN(Slot[0]);
 }
 
-static ml_value_t *LibraryPath;
-
 #include "whereami.h"
-#include <sys/stat.h>
 
-static void add_library_path(void) {
+static void ml_library_path_add_default(void) {
 	int ExecutablePathLength = wai_getExecutablePath(NULL, 0, NULL);
 	char *ExecutablePath = snew(ExecutablePathLength + 1);
 	wai_getExecutablePath(ExecutablePath, ExecutablePathLength + 1, &ExecutablePathLength);
@@ -198,7 +318,22 @@ static void add_library_path(void) {
 	struct stat Stat[1];
 	if (!lstat(LibPath, Stat) && S_ISDIR(Stat->st_mode)) {
 		ml_list_put(LibraryPath, ml_string(LibPath, LibPathLength));
+		if (MaxLibraryPathLength < LibPathLength) MaxLibraryPathLength = LibPathLength;
 	}
+}
+
+static void ml_library_loader_add(
+	const char *Extension, int (*Test)(const char *),
+	void (*Load)(ml_state_t *, const char *, ml_value_t **),
+	ml_value_t *(*Load0)(const char *, ml_value_t **)
+) {
+	ml_library_loader_t *Loader = new(ml_library_loader_t);
+	Loader->Next = Loaders;
+	Loaders = Loader;
+	Loader->Extension = Extension;
+	Loader->test = Test ?: ml_library_test_file;
+	Loader->load = Load;
+	Loader->load0 = Load0 ?: ml_library_default_load0;
 }
 
 ML_FUNCTIONX(Library) {
@@ -206,38 +341,8 @@ ML_FUNCTIONX(Library) {
 //>module
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLStringT);
-	const char *Name = ml_string_value(Args[0]);
-	int NameLength = ml_string_length(Args[0]);
-	int MaxLength = 0;
-	ML_LIST_FOREACH(LibraryPath, Iter) {
-		if (!ml_is(Iter->Value, MLStringT)) ML_ERROR("TypeError", "Invalid entry in library path");
-		int FullLength = ml_string_length(Iter->Value) + NameLength + 10;
-		if (MaxLength < FullLength) MaxLength = FullLength;
-	}
-	char *FileName = snew(MaxLength);
-	struct stat Stat[1];
-	ML_LIST_FOREACH(LibraryPath, Iter) {
-		char *End = stpcpy(FileName, ml_string_value(Iter->Value));
-		*End++ = '/';
-		End = stpcpy(End, Name);
-		strcpy(End, ".mini");
-		if (!lstat(FileName, Stat) && S_ISREG(Stat->st_mode)) {
-			ml_value_t **Slot = (ml_value_t **)stringmap_slot(Modules, FileName);
-			if (!Slot[0]) {
-				return ml_module_load_file(Caller, FileName, (ml_getter_t)stringmap_search, Globals, Slot);
-			}
-			ML_RETURN(Slot[0]);
-		}
-		strcpy(End, ".so");
-		if (!lstat(FileName, Stat) && S_ISREG(Stat->st_mode)) {
-			ml_value_t **Slot = (ml_value_t **)stringmap_slot(Modules, FileName);
-			if (!Slot[0]) {
-				return ml_library_load_file(Caller, FileName, (ml_getter_t)stringmap_search, Globals, Slot);
-			}
-			ML_RETURN(Slot[0]);
-		}
-	}
-	ML_ERROR("ModuleError", "Library %s not found", Name);
+	// TODO: Allow relative library loading
+	return ml_library_load(Caller, NULL, ml_string_value(Args[0]));
 }
 
 ML_FUNCTION(Unload) {
@@ -341,12 +446,13 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_MODULES
 	ml_module_init(Globals);
-	ml_library_init(Globals);
+	LibraryPath = ml_list();
+	ml_library_path_add_default();
+	ml_library_loader_add(".mini", NULL, ml_library_mini_load, NULL);
+	ml_library_loader_add(".so", NULL, ml_library_so_load, ml_library_so_load0);
 	stringmap_insert(Globals, "import", Import);
 	stringmap_insert(Globals, "unload", Unload);
 	stringmap_insert(Globals, "library", Library);
-	LibraryPath = ml_list();
-	add_library_path();
 #endif
 #ifdef ML_TABLES
 	ml_table_init(Globals);

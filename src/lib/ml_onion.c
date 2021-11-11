@@ -447,7 +447,7 @@ void *GC_calloc(size_t N, size_t Size) {
 	return GC_malloc(N * Size);
 }
 
-void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
+void ml_library_entry0(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
 	onion_low_initialize_memory_allocation(
 		GC_malloc, GC_malloc_atomic, GC_calloc,
 		GC_realloc, GC_strdup, GC_free,

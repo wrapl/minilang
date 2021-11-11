@@ -7,7 +7,7 @@ end
 
 CFLAGS := old + ["-I../..", "-I../include"]
 
-MLLIBUV := minilang_lib("libuv.so", [
+MLLIBUV := so_module("libuv.so", [
 	file("ml_libuv.o"),
 	file("ml_libuv_handle.o"),
 	file("ml_libuv_stream.o"),

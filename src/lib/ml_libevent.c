@@ -60,7 +60,7 @@ ML_METHOD("http", EventBaseT) {
 	return (ml_value_t *)Http;
 }
 
-void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
+void ml_library_entry0(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
 #include "ml_libevent_init.c"
 	ml_module_export(Module, "new", (ml_value_t *)EventBaseNew);
 	ml_module_export(Module, "sleep", (ml_value_t *)EventSleep);

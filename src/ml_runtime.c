@@ -40,11 +40,12 @@ static ml_schedule_t default_scheduler(ml_context_t *Context) {
 	return (ml_schedule_t){&DefaultCounter, default_swap};
 }
 
-ml_context_t MLRootContext = {&MLRootContext, 4, {
+ml_context_t MLRootContext = {&MLRootContext, 5, {
 	NULL,
 	NULL,
 	NULL,
-	default_scheduler
+	default_scheduler,
+	NULL
 }};
 
 ml_context_t *ml_context_new(ml_context_t *Parent) {
