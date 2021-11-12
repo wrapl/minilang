@@ -23,15 +23,6 @@ general
 :mini:`fun collect()`
    *TBD*
 
-:mini:`fun import(Path: string): module`
-   *TBD*
-
-:mini:`fun library(Name: string): module`
-   *TBD*
-
-:mini:`fun unload(Path: string): nil`
-   *TBD*
-
 :mini:`fun sleep(Arg₁: number)`
    *TBD*
 
