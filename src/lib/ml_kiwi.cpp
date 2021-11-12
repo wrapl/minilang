@@ -344,7 +344,7 @@ ML_METHOD("reset", KiwiSolverT) {
 	return Args[0];
 }
 
-void ml_library_entry0(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
+void ml_library_entry0(ml_value_t *Module) {
 #include "ml_kiwi_init.cpp"
 	stringmap_insert(KiwiVariableT->Exports, "of", KiwiVariable);
 	ml_module_export(Module, "variable", (ml_value_t *)KiwiVariableT);

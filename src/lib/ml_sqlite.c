@@ -231,7 +231,7 @@ ML_METHODV("execute", MLSqliteT, MLStringT) {
 	return (ml_value_t *)Stmt;
 }
 
-void ml_library_entry0(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
+void ml_library_entry0(ml_value_t *Module) {
 #include "ml_sqlite_init.c"
 	stringmap_insert(MLSqliteT->Exports, "open", MLSqliteOpenFlags);
 	ml_module_export(Module, "sqlite", (ml_value_t *)MLSqliteT);

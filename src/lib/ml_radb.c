@@ -326,7 +326,7 @@ ML_METHOD("get", CborIndexT, MLIntegerT) {
 	return ml_from_cbor(Cbor, MLNil, (void *)ml_value_tag_fn);
 }
 
-void ml_library_entry0(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
+void ml_library_entry0(ml_value_t *Module) {
 	//const char *Dir = dirname(GC_strdup(ml_module_path(Module)));
 	//ml_value_t *Import = GlobalGet(Globals, "import");
 	//ml_simple_inline(Import, 1, ml_string_format("%s/ml_cbor.so", Dir));

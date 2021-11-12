@@ -74,7 +74,7 @@ ML_METHOD("::", MLCategoryT, MLStringT) {
 	return (ml_value_t *)Logger;
 }
 
-void ml_library_entry0(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
+void ml_library_entry0(ml_value_t *Module) {
 #include "ml_zlog_init.c"
 	if (zlog_init("zlog.conf")) {
 		printf("Failed to load zlog config\n");

@@ -5,7 +5,7 @@
 
 #define MLMF_USE_GLOBALS 1
 
-#define ML_MODULE_PATH_INDEX 4
+#define ML_MODULE_INDEX 4
 
 void ml_module_init(stringmap_t *Globals);
 

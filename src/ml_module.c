@@ -63,6 +63,9 @@ static void ml_export(ml_state_t *Caller, ml_mini_module_t *Module, int Count, m
 typedef struct ml_module_state_t {
 	ml_state_t Base;
 	ml_value_t *Module;
+	ml_value_t *Import;
+	ml_getter_t GlobalGet;
+	void *Globals;
 	ml_value_t *Args[1];
 } ml_module_state_t;
 
@@ -90,12 +93,10 @@ void ml_module_compile2(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t *
 		Module->Flags = Flags;
 		Slot[0] = (ml_value_t *)Module;
 	}
-	ml_context_t *Context = ml_context_new(Caller->Context);
-	ml_context_set(Context, ML_MODULE_PATH_INDEX, (void *)ml_parser_name(Parser));
 	ml_module_state_t *State = new(ml_module_state_t);
 	State->Base.Type = MLModuleStateT;
 	State->Base.run = (void *)ml_module_init_run;
-	State->Base.Context = Context;
+	State->Base.Context = Caller->Context;
 	State->Base.Caller = Caller;
 	State->Module = (ml_value_t *)Module;
 	State->Args[0] = ml_cfunctionz(Module, (ml_callbackx_t)ml_export);
@@ -125,6 +126,66 @@ void ml_module_load_file(ml_state_t *Caller, const char *FileName, ml_getter_t G
 	return ml_load_file((ml_state_t *)State, GlobalGet, Globals, FileName, Parameters);
 }
 
+typedef struct {
+	ml_module_t Base;
+	ml_value_t *Lookup;
+} ml_fn_module_t;
+
+extern ml_type_t MLFnModuleT[];
+
+ML_FUNCTION(MLFnModule) {
+//@module
+//<Path:string
+//<Lookup:function
+//>module
+// Returns a generic module which calls resolves :mini:`Module::Import` by calling :mini:`Lookup(Import)`, caching results for future use.
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ML_CHECK_ARG_TYPE(1, MLFunctionT);
+	ml_fn_module_t *Module = new(ml_fn_module_t);
+	Module->Base.Type = MLFnModuleT;
+	Module->Base.Path = ml_string_value(Args[0]);
+	Module->Lookup = Args[1];
+	return (ml_value_t *)Module;
+}
+
+ML_TYPE(MLFnModuleT, (), "module");
+
+typedef struct {
+	ml_state_t Base;
+	ml_fn_module_t *Module;
+	const char *Name;
+} ml_module_lookup_state_t;
+
+static void ml_module_lookup_run(ml_module_lookup_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (!ml_is_error(Value)) {
+		stringmap_insert(State->Module->Base.Exports, State->Name, Value);
+	}
+	ML_RETURN(Value);
+}
+
+ML_METHODX("::", MLFnModuleT, MLStringT) {
+//<Module
+//<Name
+//>MLAnyT
+// Imports a symbol from a module.
+	ml_fn_module_t *Module = (ml_fn_module_t *)Args[0];
+	const char *Name = ml_string_value(Args[1]);
+	ml_value_t *Value = stringmap_search(Module->Base.Exports, Name);
+	if (!Value) {
+		ml_module_lookup_state_t *State = new(ml_module_lookup_state_t);
+		State->Base.Caller = Caller;
+		State->Base.Context = Caller->Context;
+		State->Base.run = (ml_state_fn)ml_module_lookup_run;
+		State->Module = Module;
+		State->Name = Name;
+		return ml_call(State, Module->Lookup, 1, Args + 1);
+	}
+	ML_RETURN(Value);
+}
+
 void ml_module_init(stringmap_t *_Globals) {
 #include "ml_module_init.c"
+	MLModuleT->Constructor = (ml_value_t *)MLFnModule;
 }

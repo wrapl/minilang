@@ -34,8 +34,7 @@ ML_METHOD(LWSContextT, MLNamesT) {
 	return (ml_value_t *)Context;
 }
 
-void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
-
+void ml_library_entry0(ml_value_t *Module) {
 #include "ml_libwebsockets_init.c"
 	ml_module_export(Module, "context", (ml_value_t *)LWSContextT);
 }

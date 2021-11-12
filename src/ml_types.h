@@ -922,7 +922,6 @@ extern ml_type_t MLModuleT[];
 typedef struct {
 	const ml_type_t *Type;
 	const char *Path;
-	ml_value_t *Lookup;
 	stringmap_t Exports[1];
 } ml_module_t;
 

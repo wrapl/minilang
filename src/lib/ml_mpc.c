@@ -477,7 +477,7 @@ static ml_value_t *ml_mpc_string(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)Parser;
 }
 
-void ml_library_entry0(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
+void ml_library_entry0(ml_value_t *Module) {
 #include "ml_mpc_init.c"
 	ml_module_export(Module, "seq", ml_cfunction(NULL, ml_mpc_seq));
 	ml_module_export(Module, "new", ml_cfunction(NULL, ml_mpc_new));

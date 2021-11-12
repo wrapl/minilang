@@ -115,7 +115,7 @@ static ml_value_t *csv_open(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)Csv;
 }
 
-void ml_library_entry0(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
+void ml_library_entry0(ml_value_t *Module) {
 #include "ml_csv_init.c"
 	ml_module_export(Module, "open", ml_cfunction(0, csv_open));
 }

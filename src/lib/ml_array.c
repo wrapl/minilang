@@ -1329,7 +1329,7 @@ static ml_value_t *ml_cbor_read_typed_array_fn(void *Data, int Count, ml_value_t
 void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
 	const char *Dir = dirname(GC_strdup(ml_module_path(Module)));
 	ml_value_t *Import = GlobalGet(Globals, "import");
-	ml_value_t *Cbor = ml_inline(Import, 1, ml_string_format("%s/ml_cbor.so", Dir));
+	ml_value_t *Cbor = ml_inline(Import, 1, ml_string_format("%s/cbor.so", Dir));
 
 #include "ml_array_init.c"
 	ml_method_by_name("set", 0 + (char *)0, update_array_fn, MLArrayT, MLArrayT, NULL);

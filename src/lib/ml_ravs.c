@@ -139,7 +139,7 @@ ML_METHOD("get", VersionStoreT, MLIntegerT, MLIntegerT) {
 	return ml_cbor_reader_get(Cbor);
 }
 
-void ml_library_entry0(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
+void ml_library_entry0(ml_value_t *Module) {
 	ml_module_export(Module, "create", (ml_value_t *)VersionStoreCreate);
 	ml_module_export(Module, "open", (ml_value_t *)VersionStoreOpen);
 #include "ml_ravs_init.c"

@@ -53,7 +53,7 @@ uv_loop_t *ml_libuv_loop() {
 	return Loop;
 }
 
-void ml_library_entry(ml_value_t *Module, ml_getter_t GlobalGet, void *Globals) {
+void ml_library_entry0(ml_value_t *Module) {
 	uv_replace_allocator(GC_malloc, GC_realloc, ml_calloc, ml_free);
 	Loop = uv_default_loop();
 	uv_idle_init(Loop, Idle);
