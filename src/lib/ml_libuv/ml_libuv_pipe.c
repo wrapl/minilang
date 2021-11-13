@@ -34,7 +34,7 @@ ML_METHOD("bind", UVPipeT, MLStringT) {
 
 static void ml_uv_pipe_connect_cb(uv_connect_t *Request, int Status) {
 	ml_state_t *Caller = (ml_state_t *)Request->data;
-	ml_scheduler_queue_add(Caller, MLNil);
+	ml_default_queue_add(Caller, MLNil);
 }
 
 ML_METHODX("connect", UVPipeT, MLStringT) {

@@ -173,7 +173,8 @@ MINILANG_XML := old or defined("XML")
 MINILANG_XE := old or defined("XE")
 MINILANG_MODULES := old or defined("MODULES")
 MINILANG_SCHEDULER := MINILANG_MODULES or old or defined("SCHEDULER")
-MINILANG_THREADSAFE := old or defined("THREADSAFE")
+MINILANG_THREADS := old or defined("THREADS")
+MINILANG_THREADSAFE := MINILANG_THREADS or old or defined("THREADSAFE")
 MINILANG_JIT := old or defined("JIT")
 MINILANG_NANBOXING := old or defined("NANBOXING")
 MINILANG_TRE := old or defined("TRE")
@@ -319,6 +320,13 @@ if MINILANG_MODULES then
 	LDFLAGS := old + ["-ldl"]
 	Objects:put(file("ml_module.o"), file("ml_library.o"), file("whereami.o"))
 	InstallHeaders:put("ml_module.h")
+end
+
+if MINILANG_THREADS then
+	CFLAGS := old + ['-DML_THREADS']
+	LDFLAGS := old + ["-pthread"]
+	Objects:put(file("ml_thread.o"))
+	InstallHeaders:put("ml_thread.h")
 end
 
 if MINILANG_JIT then

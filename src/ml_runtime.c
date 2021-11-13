@@ -854,44 +854,53 @@ ML_METHOD("source", MLStateT) {
 
 #ifdef ML_SCHEDULER
 
-static struct {
-	ml_queued_state_t *States;
-	int Size, Fill, Write, Read;
-} SchedulerQueue;
+static ml_scheduler_queue_t DefaultQueue;
 
-void ml_scheduler_queue_init(int Size) {
-	SchedulerQueue.Size = Size;
-	SchedulerQueue.States = anew(ml_queued_state_t, Size);
+void ml_scheduler_queue_init(ml_scheduler_queue_t *Queue, int Size) {
+	Queue->Size = Size;
+	Queue->States = anew(ml_queued_state_t, Size);
 }
 
-ml_queued_state_t ml_scheduler_queue_next() {
-	if (SchedulerQueue.Fill) {
-		ml_queued_state_t *States = SchedulerQueue.States;
-		int Read = SchedulerQueue.Read;
+ml_queued_state_t ml_scheduler_queue_next(ml_scheduler_queue_t *Queue) {
+	if (Queue->Fill) {
+		ml_queued_state_t *States = Queue->States;
+		int Read = Queue->Read;
 		ml_queued_state_t QueuedState = States[Read];
 		States[Read] = (ml_queued_state_t){NULL, NULL};
-		--SchedulerQueue.Fill;
-		SchedulerQueue.Read = (Read + 1) % SchedulerQueue.Size;
+		--Queue->Fill;
+		Queue->Read = (Read + 1) % Queue->Size;
 		return QueuedState;
 	} else {
 		return (ml_queued_state_t){NULL, NULL};
 	}
 }
 
-int ml_scheduler_queue_add(ml_state_t *State, ml_value_t *Value) {
-	if (++SchedulerQueue.Fill > SchedulerQueue.Size) {
-		int NewQueueSize = SchedulerQueue.Size * 2;
+int ml_scheduler_queue_add(ml_scheduler_queue_t *Queue, ml_state_t *State, ml_value_t *Value) {
+	if (++Queue->Fill > Queue->Size) {
+		int NewQueueSize = Queue->Size * 2;
 		ml_queued_state_t *NewQueuedStates = anew(ml_queued_state_t, NewQueueSize);
-		memcpy(NewQueuedStates, SchedulerQueue.States, SchedulerQueue.Size * sizeof(ml_queued_state_t));
-		SchedulerQueue.Read = 0;
-		SchedulerQueue.Write = SchedulerQueue.Size;
-		SchedulerQueue.States = NewQueuedStates;
-		SchedulerQueue.Size = NewQueueSize;
+		memcpy(NewQueuedStates, Queue->States, Queue->Size * sizeof(ml_queued_state_t));
+		Queue->Read = 0;
+		Queue->Write = Queue->Size;
+		Queue->States = NewQueuedStates;
+		Queue->Size = NewQueueSize;
 	}
-	int Write = SchedulerQueue.Write;
-	SchedulerQueue.States[Write] = (ml_queued_state_t){State, Value};
-	SchedulerQueue.Write = (Write + 1) % SchedulerQueue.Size;
-	return SchedulerQueue.Fill;
+	int Write = Queue->Write;
+	Queue->States[Write] = (ml_queued_state_t){State, Value};
+	Queue->Write = (Write + 1) % Queue->Size;
+	return Queue->Fill;
+}
+
+void ml_default_queue_init(int Size) {
+	return ml_scheduler_queue_init(&DefaultQueue, Size);
+}
+
+ml_queued_state_t ml_default_queue_next() {
+	return ml_scheduler_queue_next(&DefaultQueue);
+}
+
+int ml_default_queue_add(ml_state_t *State, ml_value_t *Value) {
+	return ml_scheduler_queue_add(&DefaultQueue, State, Value);
 }
 
 #endif

@@ -110,7 +110,7 @@ static void ml_uv_write_cb(ml_uv_write_t *Request, int Status) {
 	} else {
 		Result = MLNil;
 	}
-	ml_scheduler_queue_add(Caller, Result);
+	ml_default_queue_add(Caller, Result);
 }
 
 ML_METHODX("write", UVStreamT, MLAddressT) {

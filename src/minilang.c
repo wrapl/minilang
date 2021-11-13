@@ -49,6 +49,10 @@
 #include "ml_library.h"
 #endif
 
+#ifdef ML_THREADS
+#include "ml_thread.h"
+#endif
+
 #ifdef ML_TABLES
 #include "ml_table.h"
 #endif
@@ -154,9 +158,8 @@ static unsigned int SliceSize = 0;
 static uint64_t Counter;
 
 static void simple_queue_run() {
-	ml_queued_state_t QueuedState;
 	for (;;) {
-		QueuedState = ml_scheduler_queue_next();
+		ml_queued_state_t QueuedState = ml_default_queue_next();
 		if (!QueuedState.State) break;
 		Counter = SliceSize;
 		QueuedState.State->run(QueuedState.State, QueuedState.Value);
@@ -164,7 +167,7 @@ static void simple_queue_run() {
 }
 
 static ml_schedule_t simple_scheduler(ml_context_t *Context) {
-	return (ml_schedule_t){&Counter, (void *)ml_scheduler_queue_add};
+	return (ml_schedule_t){&Counter, (void *)ml_default_queue_add};
 }
 
 #endif
@@ -237,6 +240,9 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_MODULES
 	ml_module_init(Globals);
 	ml_library_init(Globals);
+#endif
+#ifdef ML_THREADS
+	ml_thread_init(Globals);
 #endif
 #ifdef ML_TABLES
 	ml_table_init(Globals);
@@ -322,7 +328,7 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_SCHEDULER
 	if (SliceSize) {
 		Counter = SliceSize;
-		ml_scheduler_queue_init(4);
+		ml_default_queue_init(4);
 		ml_context_set(&MLRootContext, ML_SCHEDULER_INDEX, simple_scheduler);
 	}
 #endif

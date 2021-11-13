@@ -206,9 +206,18 @@ typedef struct {
 	ml_value_t *Value;
 } ml_queued_state_t;
 
-void ml_scheduler_queue_init(int Size);
-ml_queued_state_t ml_scheduler_queue_next();
-int ml_scheduler_queue_add(ml_state_t *State, ml_value_t *Value);
+typedef struct {
+	ml_queued_state_t *States;
+	int Size, Fill, Write, Read;
+} ml_scheduler_queue_t;
+
+void ml_scheduler_queue_init(ml_scheduler_queue_t *Queue, int Size);
+ml_queued_state_t ml_scheduler_queue_next(ml_scheduler_queue_t *Queue);
+int ml_scheduler_queue_add(ml_scheduler_queue_t *Queue, ml_state_t *State, ml_value_t *Value);
+
+void ml_default_queue_init(int Size);
+ml_queued_state_t ml_default_queue_next();
+int ml_default_queue_add(ml_state_t *State, ml_value_t *Value);
 
 // Semaphores
 
