@@ -16,7 +16,7 @@
 struct mlc_upvalue_t {
 	mlc_upvalue_t *Next;
 	ml_decl_t *Decl;
-	int Index;
+	int Index, Line;
 };
 
 struct mlc_try_t {
@@ -2299,7 +2299,7 @@ static void ml_fun_expr_compile2(mlc_function_t *Function, ml_value_t *Value, ml
 	for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next, ++Index) {
 		ml_decl_t *Decl = new(ml_decl_t);
 		Decl->Source.Name = Function->Source;
-		Decl->Source.Line = Expr->StartLine;
+		Decl->Source.Line = UpValue->Line;
 		Decl->Ident = UpValue->Decl->Ident;
 		Decl->Hash = UpValue->Decl->Hash;
 		Decl->Value = UpValue->Decl->Value;
@@ -2434,7 +2434,7 @@ static void ml_default_expr_compile(mlc_function_t *Function, mlc_default_expr_t
 	return mlc_compile(Function, Expr->Child, 0);
 }
 
-static int ml_upvalue_find(mlc_function_t *Function, ml_decl_t *Decl, mlc_function_t *Origin) {
+static int ml_upvalue_find(mlc_function_t *Function, ml_decl_t *Decl, mlc_function_t *Origin, int Line) {
 	if (Function == Origin) return Decl->Index;
 	mlc_upvalue_t **UpValueSlot = &Function->UpValues;
 	int Index = 0;
@@ -2445,7 +2445,8 @@ static int ml_upvalue_find(mlc_function_t *Function, ml_decl_t *Decl, mlc_functi
 	}
 	mlc_upvalue_t *UpValue = new(mlc_upvalue_t);
 	UpValue->Decl = Decl;
-	UpValue->Index = ml_upvalue_find(Function->Up, Decl, Origin);
+	UpValue->Index = ml_upvalue_find(Function->Up, Decl, Origin, Line);
+	UpValue->Line = Line;
 	UpValueSlot[0] = UpValue;
 	return ~Index;
 }
@@ -2476,7 +2477,7 @@ static void ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Ex
 						if (!Decl->Value) Decl->Value = ml_uninitialized(Decl->Ident);
 						return ml_ident_expr_finish(Function, Expr, Decl->Value, Flags);
 					} else {
-						int Index = ml_upvalue_find(Function, Decl, UpFunction);
+						int Index = ml_upvalue_find(Function, Decl, UpFunction, Expr->StartLine);
 						if (Decl->Flags & MLC_DECL_FORWARD) Decl->Flags |= MLC_DECL_BACKFILL;
 						if ((Index >= 0) && (Decl->Flags & MLC_DECL_FORWARD)) {
 							ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCALI, 2);

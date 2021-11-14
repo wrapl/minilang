@@ -36,7 +36,7 @@ static ml_schedule_t ml_thread_scheduler(ml_context_t *Context) {
 ml_value_t *ml_is_threadsafe(ml_value_t *Value) {
 	typeof(ml_is_threadsafe) *function = ml_typed_fn_get(ml_typeof(Value), ml_is_threadsafe);
 	if (function) return function(Value);
-	return Value;
+	return ml_error("ThreadError", "%s is not safe to pass to another thread", ml_typeof(Value)->Name);
 }
 
 static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLNilT, ml_value_t *Value) {
@@ -75,26 +75,38 @@ static ml_value_t *ml_is_closure_threadsafe(ml_closure_info_t *Info) {
 			case MLIT_COUNT_COUNT: Inst += 3; break;
 			case MLIT_COUNT: Inst += 2; break;
 			case MLIT_VALUE: {
-				ml_value_t *Value = ml_is_threadsafe(Inst[1].Value);
-				if (Value) return Value;
+				ml_value_t *Error = ml_is_threadsafe(Inst[1].Value);
+				if (Error) {
+					ml_error_trace_add(Error, (ml_source_t){Info->Source, Inst->Line});
+					return Error;
+				}
 				Inst += 2;
 				break;
 			}
 			case MLIT_VALUE_DATA: {
-				ml_value_t *Value = ml_is_threadsafe(Inst[1].Value);
-				if (Value) return Value;
+				ml_value_t *Error = ml_is_threadsafe(Inst[1].Value);
+				if (Error) {
+					ml_error_trace_add(Error, (ml_source_t){Info->Source, Inst->Line});
+					return Error;
+				}
 				Inst += 3;
 				break;
 			}
 			case MLIT_VALUE_COUNT: {
-				ml_value_t *Value = ml_is_threadsafe(Inst[1].Value);
-				if (Value) return Value;
+				ml_value_t *Error = ml_is_threadsafe(Inst[1].Value);
+				if (Error) {
+					ml_error_trace_add(Error, (ml_source_t){Info->Source, Inst->Line});
+					return Error;
+				}
 				Inst += 3;
 				break;
 			}
 			case MLIT_VALUE_COUNT_DATA: {
-				ml_value_t *Value = ml_is_threadsafe(Inst[1].Value);
-				if (Value) return Value;
+				ml_value_t *Error = ml_is_threadsafe(Inst[1].Value);
+				if (Error) {
+					ml_error_trace_add(Error, (ml_source_t){Info->Source, Inst->Line});
+					return Error;
+				}
 				Inst += 4;
 				break;
 			}
@@ -103,8 +115,11 @@ static ml_value_t *ml_is_closure_threadsafe(ml_closure_info_t *Info) {
 			case MLIT_COUNT_DECL: Inst += 3; break;
 			case MLIT_COUNT_COUNT_DECL: Inst += 4; break;
 			case MLIT_CLOSURE: {
-				ml_value_t *Value = ml_is_closure_threadsafe(Inst[1].ClosureInfo);
-				if (Value) return Value;
+				ml_value_t *Error = ml_is_closure_threadsafe(Inst[1].ClosureInfo);
+				if (Error) {
+					ml_error_trace_add(Error, (ml_source_t){Info->Source, Inst->Line});
+					return Error;
+				}
 				Inst += 2 + Inst[1].ClosureInfo->NumUpValues;
 				break;
 			}
@@ -118,8 +133,14 @@ static ml_value_t *ml_is_closure_threadsafe(ml_closure_info_t *Info) {
 static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLClosureT, ml_closure_t *Closure) {
 	ml_closure_info_t *Info = Closure->Info;
 	for (int I = 0; I < Info->NumUpValues; ++I) {
-		ml_value_t *Value = ml_is_threadsafe(Closure->UpValues[I]);
-		if (Value) return Value;
+		ml_value_t *Error = ml_is_threadsafe(Closure->UpValues[I]);
+		if (Error) {
+			int Index = ~I;
+			for (ml_decl_t *Decl = Info->Decls; Decl; Decl = Decl->Next) {
+				if (Decl->Index == Index) ml_error_trace_add(Error, Decl->Source);
+			}
+			return Error;
+		}
 	}
 	return ml_is_closure_threadsafe(Info);
 }
@@ -166,8 +187,8 @@ static void ml_thread_run(ml_thread_t *Thread, ml_value_t *Result) {
 ML_FUNCTIONX(MLThread) {
 	ml_value_t **Args2 = anew(ml_value_t *, Count);
 	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Value = ml_is_threadsafe(Args[I]);
-		if (Value) ML_ERROR("ThreadError", "%s is not thread safe", ml_typeof(Value)->Name);
+		ml_value_t *Error = ml_is_threadsafe(Args[I]);
+		if (Error) ML_RETURN(Error);
 		Args2[I] = Args[I];
 	}
 	ml_thread_t *Thread = new(ml_thread_t);
@@ -204,10 +225,82 @@ ML_FUNCTION(MLThreadSleep) {
 	return MLNil;
 }
 
+typedef struct {
+	ml_type_t *Type;
+	int Size, Fill, Write, Read;
+	ml_value_t *Messages[];
+} ml_thread_channel_t;
+
+extern ml_type_t MLThreadChannelT[];
+
+ML_FUNCTION(MLThreadChannel) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLIntegerT);
+	int Size = ml_integer_value(Args[0]);
+	ml_thread_channel_t *Channel = xnew(ml_thread_channel_t, Size, ml_value_t *);
+	Channel->Type = MLThreadChannelT;
+	Channel->Size = Size;
+	return (ml_value_t *)Channel;
+}
+
+ML_TYPE(MLThreadChannelT, (), "thread-channel",
+	.Constructor = (ml_value_t *)MLThreadChannel
+);
+
+static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLThreadChannelT, ml_value_t *Value) {
+	return NULL;
+}
+
+static pthread_mutex_t MLThreadChannelLock[1] = {PTHREAD_MUTEX_INITIALIZER};
+static pthread_cond_t MLThreadChannelWait[1] = {PTHREAD_COND_INITIALIZER};
+
+ML_METHOD("send", MLThreadChannelT, MLAnyT) {
+	ml_thread_channel_t *Channel = (ml_thread_channel_t *)Args[0];
+	ml_value_t *Message = Args[1];
+	ml_value_t *Error = ml_is_threadsafe(Message);
+	if (Error) return Error;
+	pthread_mutex_lock(MLThreadChannelLock);
+	while (Channel->Fill == Channel->Size) pthread_cond_wait(MLThreadChannelWait, MLThreadChannelLock);
+	++Channel->Fill;
+	int Write = Channel->Write;
+	Channel->Messages[Write] = Message;
+	Channel->Write = (Write + 1) % Channel->Size;
+	pthread_cond_broadcast(MLThreadChannelWait);
+	pthread_mutex_unlock(MLThreadChannelLock);
+	return (ml_value_t *)Channel;
+}
+
+ML_METHODV("recv", MLThreadChannelT) {
+	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLThreadChannelT);
+	ml_value_t *Result = ml_tuple(2);
+	pthread_mutex_lock(MLThreadChannelLock);
+	for (;;) {
+		for (int I = 0; I < Count; ++I) {
+			ml_thread_channel_t *Channel = (ml_thread_channel_t *)Args[I];
+			if (Channel->Fill) {
+				ml_value_t **Messages = Channel->Messages;
+				int Read = Channel->Read;
+				ml_value_t *Message = Messages[Read];
+				Messages[Read] = NULL;
+				--Channel->Fill;
+				Channel->Read = (Read + 1) % Channel->Size;
+				ml_tuple_set(Result, 1, ml_integer(I));
+				ml_tuple_set(Result, 2, Message);
+				goto done;
+			}
+		}
+		pthread_cond_wait(MLThreadChannelWait, MLThreadChannelLock);
+	}
+done:
+	pthread_mutex_unlock(MLThreadChannelLock);
+	return Result;
+}
+
 void ml_thread_init(stringmap_t *Globals) {
 	ML_THREAD_INDEX = ml_context_index_new();
 #include "ml_thread_init.c"
 	stringmap_insert(MLThreadT->Exports, "sleep", MLThreadSleep);
+	stringmap_insert(MLThreadT->Exports, "channel", MLThreadChannel);
 	if (Globals) {
 		stringmap_insert(Globals, "thread", MLThreadT);
 	}

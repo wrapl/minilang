@@ -15,11 +15,10 @@
 
 // Runtime //
 
-#ifndef ML_THREADSAFE
-
-ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
-
+#ifdef ML_THREADSAFE
+__thread
 #endif
+ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
 
 static int MLContextSize = 5;
 // Reserved context slots:
