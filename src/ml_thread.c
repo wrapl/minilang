@@ -185,6 +185,12 @@ static void ml_thread_run(ml_thread_t *Thread, ml_value_t *Result) {
 }
 
 ML_FUNCTIONX(MLThread) {
+//@thread
+//<Args...:any
+//<Fn:function
+//>thread
+// Creates a new thread and calls :mini:`Fn(Args...)` in the new thread.
+// All arguments must be thread-safe.
 	ml_value_t **Args2 = anew(ml_value_t *, Count);
 	for (int I = 0; I < Count; ++I) {
 		ml_value_t *Error = ml_is_threadsafe(Args[I]);
@@ -208,10 +214,14 @@ ML_FUNCTIONX(MLThread) {
 }
 
 ML_TYPE(MLThreadT, (), "thread",
+// A thread.
 	.Constructor = (ml_value_t *)MLThread
 );
 
 ML_METHOD("join", MLThreadT) {
+//<Thread
+//>any
+// Waits until the thread :mini:`Thread` completes and returns its result.
 	ml_thread_t *Thread = (ml_thread_t *)Args[0];
 	ml_value_t *Result;
 	pthread_join(Thread->Handle, (void **)&Result);
@@ -219,6 +229,10 @@ ML_METHOD("join", MLThreadT) {
 }
 
 ML_FUNCTION(MLThreadSleep) {
+//@thread::sleep
+//<Duration
+//>nil
+// Causes the current thread to sleep for :mini:`Duration` microseconds.
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLNumberT);
 	usleep(ml_real_value(Args[0]) * 1000000);
@@ -234,6 +248,10 @@ typedef struct {
 extern ml_type_t MLThreadChannelT[];
 
 ML_FUNCTION(MLThreadChannel) {
+//@thread::channel
+//<Capacity
+//>thread::channel
+// Creates a new channel with capacity :mini:`Capacity`.
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	int Size = ml_integer_value(Args[0]);
@@ -244,6 +262,7 @@ ML_FUNCTION(MLThreadChannel) {
 }
 
 ML_TYPE(MLThreadChannelT, (), "thread-channel",
+// A channel for thread communication.
 	.Constructor = (ml_value_t *)MLThreadChannel
 );
 
@@ -255,6 +274,11 @@ static pthread_mutex_t MLThreadChannelLock[1] = {PTHREAD_MUTEX_INITIALIZER};
 static pthread_cond_t MLThreadChannelWait[1] = {PTHREAD_COND_INITIALIZER};
 
 ML_METHOD("send", MLThreadChannelT, MLAnyT) {
+//<Channel
+//<Message
+//>thread::channel
+// Adds :mini:`Message` to :mini:`Channel`. :mini:`Message` must be thread-safe.
+// Blocks if :mini:`Channel` is currently full.
 	ml_thread_channel_t *Channel = (ml_thread_channel_t *)Args[0];
 	ml_value_t *Message = Args[1];
 	ml_value_t *Error = ml_is_threadsafe(Message);
@@ -271,6 +295,9 @@ ML_METHOD("send", MLThreadChannelT, MLAnyT) {
 }
 
 ML_METHODV("recv", MLThreadChannelT) {
+//<Channel/1
+//>tuple[integer,any]
+// Gets the next available message on any of :mini:`Channel/1, ..., Channel/n`, blocking if :mini:`Channel` is empty. Returns :mini:`(Index, Message)` where :mini:`Index = 1, ..., n`.
 	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLThreadChannelT);
 	ml_value_t *Result = ml_tuple(2);
 	pthread_mutex_lock(MLThreadChannelLock);
@@ -284,7 +311,7 @@ ML_METHODV("recv", MLThreadChannelT) {
 				Messages[Read] = NULL;
 				--Channel->Fill;
 				Channel->Read = (Read + 1) % Channel->Size;
-				ml_tuple_set(Result, 1, ml_integer(I));
+				ml_tuple_set(Result, 1, ml_integer(I + 1));
 				ml_tuple_set(Result, 2, Message);
 				goto done;
 			}
@@ -296,11 +323,112 @@ done:
 	return Result;
 }
 
+typedef struct {
+	ml_type_t *Type;
+	pthread_mutex_t Handle[1];
+} ml_thread_mutex_t;
+
+extern ml_type_t MLThreadMutexT[];
+
+ML_FUNCTION(MLThreadMutex) {
+//@thread::mutex
+//>thread::mutex
+// Creates a new mutex.
+	ml_thread_mutex_t *Mutex = new(ml_thread_mutex_t);
+	Mutex->Type = MLThreadMutexT;
+	pthread_mutex_init(Mutex->Handle, NULL);
+	return (ml_value_t *)Mutex;
+}
+
+ML_TYPE(MLThreadMutexT, (), "thread-mutex",
+// A mutex.
+	.Constructor = (ml_value_t *)MLThreadMutex
+);
+
+ML_METHOD("lock", MLThreadMutexT) {
+//<Mutex
+//>thread::mutex
+// Locks :mini:`Mutex`.
+	ml_thread_mutex_t *Mutex = (ml_thread_mutex_t *)Args[0];
+	pthread_mutex_lock(Mutex->Handle);
+	return (ml_value_t *)Mutex;
+}
+
+ML_METHOD("unlock", MLThreadMutexT) {
+//<Mutex
+//>thread::mutex
+// Unlocks :mini:`Mutex`.
+	ml_thread_mutex_t *Mutex = (ml_thread_mutex_t *)Args[0];
+	pthread_mutex_unlock(Mutex->Handle);
+	return (ml_value_t *)Mutex;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLThreadMutexT, ml_value_t *Value) {
+	return NULL;
+}
+
+typedef struct {
+	ml_type_t *Type;
+	pthread_cond_t Handle[1];
+} ml_thread_condition_t;
+
+extern ml_type_t MLThreadConditionT[];
+
+ML_FUNCTION(MLThreadCondition) {
+//@thread::condition
+//>thread::condition
+// Creates a new condition.
+	ml_thread_condition_t *Condition = new(ml_thread_condition_t);
+	Condition->Type = MLThreadConditionT;
+	pthread_cond_init(Condition->Handle, NULL);
+	return (ml_value_t *)Condition;
+}
+
+ML_TYPE(MLThreadConditionT, (), "thread-condition",
+// A condition.
+	.Constructor = (ml_value_t *)MLThreadCondition
+);
+
+ML_METHOD("wait", MLThreadConditionT, MLThreadMutexT) {
+//<Condition
+//<Mutex
+//>thread::condition
+// Waits for a signal on :mini:`Condition`, using :mini:`Mutex` for synchronization.
+	ml_thread_condition_t *Condition = (ml_thread_condition_t *)Args[0];
+	ml_thread_mutex_t *Mutex = (ml_thread_mutex_t *)Args[1];
+	pthread_cond_wait(Condition->Handle, Mutex->Handle);
+	return (ml_value_t *)Condition;
+}
+
+ML_METHOD("signal", MLThreadConditionT) {
+//<Condition
+//>thread::condition
+// Signals a single thread waiting on :mini:`Condition`.
+	ml_thread_condition_t *Condition = (ml_thread_condition_t *)Args[0];
+	pthread_cond_signal(Condition->Handle);
+	return (ml_value_t *)Condition;
+}
+
+ML_METHOD("broadcast", MLThreadConditionT) {
+//<Condition
+//>thread::condition
+// Signals all threads waiting on :mini:`Condition`.
+	ml_thread_condition_t *Condition = (ml_thread_condition_t *)Args[0];
+	pthread_cond_broadcast(Condition->Handle);
+	return (ml_value_t *)Condition;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLThreadConditionT, ml_value_t *Value) {
+	return NULL;
+}
+
 void ml_thread_init(stringmap_t *Globals) {
 	ML_THREAD_INDEX = ml_context_index_new();
 #include "ml_thread_init.c"
 	stringmap_insert(MLThreadT->Exports, "sleep", MLThreadSleep);
-	stringmap_insert(MLThreadT->Exports, "channel", MLThreadChannel);
+	stringmap_insert(MLThreadT->Exports, "channel", MLThreadChannelT);
+	stringmap_insert(MLThreadT->Exports, "mutex", MLThreadMutexT);
+	stringmap_insert(MLThreadT->Exports, "condition", MLThreadConditionT);
 	if (Globals) {
 		stringmap_insert(Globals, "thread", MLThreadT);
 	}
