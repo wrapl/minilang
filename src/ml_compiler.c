@@ -527,6 +527,34 @@ static void ml_switch_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *
 	return mlc_compile(Function, Child, 0);
 }
 
+typedef struct {
+	mlc_parent_expr_t *Expr;
+	int Flags;
+} mlc_switch_provider_expr_frame_t;
+
+static void ml_switch_provider_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_switch_expr_frame_t *Frame) {
+	if (Value) {
+		if (ml_is(Value, MLTypeT)) {
+			ml_type_t *Type = (ml_type_t *)Value;
+			ml_value_t *Switch = stringmap_search(Type->Exports, "switch");
+			if (!Switch) MLC_EXPR_ERROR(Frame->Expr, ml_error("SwitchError", "Type %s has no switch implementation", Type->Name));
+			Value = Switch;
+		}
+		MLC_POP();
+		MLC_RETURN(Value);
+	} else {
+		MLC_POP();
+		MLC_RETURN(NULL);
+	}
+}
+
+static void ml_switch_provider_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
+	MLC_FRAME(mlc_switch_provider_expr_frame_t, ml_switch_provider_expr_compile2);
+	Frame->Expr = Expr;
+	Frame->Flags = Flags;
+	return mlc_compile(Function, Expr->Child, MLCF_CONSTANT | MLCF_PUSH);
+}
+
 struct mlc_loop_t {
 	mlc_loop_t *Up;
 	mlc_try_t *Try;
@@ -2711,9 +2739,9 @@ ML_TYPE(MLExprBuilderT, (), "expr-builder");
 
 ML_FUNCTION(MLTupleBuilder) {
 //!macro
-//@macro::list
+//@macro::builder
 //>exprbuilder
-// Returns a new list builder.
+// Returns a new tuple builder.
 	mlc_parent_expr_t *Expr = new(mlc_parent_expr_t);
 	Expr->compile = ml_tuple_expr_compile;
 	Expr->Source = "<macro>";
@@ -2728,7 +2756,7 @@ ML_FUNCTION(MLTupleBuilder) {
 
 ML_FUNCTION(MLListBuilder) {
 //!macro
-//@macro::list
+//@macro::builder
 //>exprbuilder
 // Returns a new list builder.
 	mlc_parent_expr_t *Expr = new(mlc_parent_expr_t);
@@ -2745,11 +2773,28 @@ ML_FUNCTION(MLListBuilder) {
 
 ML_FUNCTION(MLMapBuilder) {
 //!macro
-//@macro::list
+//@macro::builder
 //>exprbuilder
-// Returns a new list builder.
+// Returns a new map builder.
 	mlc_parent_expr_t *Expr = new(mlc_parent_expr_t);
 	Expr->compile = ml_map_expr_compile;
+	Expr->Source = "<macro>";
+	Expr->StartLine = 1;
+	Expr->EndLine = 1;
+	mlc_expr_builder_t *Builder = new(mlc_expr_builder_t);
+	Builder->Type = MLExprBuilderT;
+	Builder->Expr = Expr;
+	Builder->ExprSlot = &Expr->Child;
+	return (ml_value_t *)Builder;
+}
+
+ML_FUNCTION(MLCallBuilder) {
+//!macro
+//@macro::builder
+//>exprbuilder
+// Returns a new call builder.
+	mlc_parent_expr_t *Expr = new(mlc_parent_expr_t);
+	Expr->compile = ml_call_expr_compile;
 	Expr->Source = "<macro>";
 	Expr->StartLine = 1;
 	Expr->EndLine = 1;
@@ -4097,14 +4142,11 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 		mlc_expr_t *Child = ml_accept_expression(Parser, EXPR_DEFAULT);
 		mlc_expr_t *CaseExprs = NULL;
 		if (ml_parse(Parser, MLT_COLON)) {
+			ML_EXPR(SwitchProvider, parent, switch_provider);
+			SwitchProvider->Child = ml_accept_expression(Parser, EXPR_DEFAULT);
 			ML_EXPR(CallExpr, parent, call);
-			ML_EXPR(InlineExpr, parent, inline);
-			ML_EXPR(SwitchExpr, parent_value, const_call);
-			SwitchExpr->Value = MLCompilerSwitch;
-			SwitchExpr->Child = CaseExprs = ml_accept_expression(Parser, EXPR_DEFAULT);
-			InlineExpr->Child = ML_EXPR_END(SwitchExpr);
-			InlineExpr->Next = Child;
-			CallExpr->Child = ML_EXPR_END(InlineExpr);
+			CallExpr->Child = ML_EXPR_END(SwitchProvider);
+			SwitchProvider->Next = CaseExprs = Child;
 			Child = ML_EXPR_END(CallExpr);
 		}
 		CaseExpr->Child = Child;
@@ -5597,6 +5639,7 @@ void ml_compiler_init() {
 	stringmap_insert(MLMacroT->Exports, "tuple", MLTupleBuilder);
 	stringmap_insert(MLMacroT->Exports, "list", MLListBuilder);
 	stringmap_insert(MLMacroT->Exports, "map", MLMapBuilder);
+	stringmap_insert(MLMacroT->Exports, "call", MLCallBuilder);
 	stringmap_insert(StringFns, "r", ml_regex);
 	stringmap_insert(StringFns, "ri", ml_regexi);
 }
