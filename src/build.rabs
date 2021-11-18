@@ -97,7 +97,8 @@ let Objects := [
 	file("ml_console.o"),
 	file("ml_debugger.o"),
 	file("ml_object.o"),
-	file("ml_file.o")
+	file("ml_file.o"),
+	file("ml_stream.o")
 ]
 
 let Libraries := []
@@ -116,7 +117,8 @@ let InstallHeaders := [
 	"ml_bytecode.h",
 	"stringmap.h",
 	"inthash.h",
-	"ml_file.h"
+	"ml_file.h",
+	"ml_stream.h"
 ]
 
 if MINILANG_STATICGC or defined("STATICGC") then
@@ -150,7 +152,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_CBOR := 1
 	MINILANG_JSON := 1
 	MINILANG_XML := 1
-	MINILANG_MODULES := not defined("NOSCHEDULER")
+	MINILANG_LIBRARY := not defined("NOSCHEDULER")
 	MINILANG_SCHEDULER := not defined("NOSCHEDULER")
 	MINILANG_TRE := 1
 	MINILANG_GENERICS := not defined("NOGENERICS")
@@ -165,13 +167,13 @@ end
 MINILANG_TABLES := old or defined("TABLES")
 MINILANG_MATH := MINILANG_TABLES or old or defined("MATH")
 MINILANG_COMPLEX := old or defined("COMPLEX")
-MINILANG_IO := old or defined("IO")
 MINILANG_GIR := old or defined("GIR")
 MINILANG_CBOR := old or defined("CBOR")
 MINILANG_JSON := old or defined("JSON")
 MINILANG_XML := old or defined("XML")
 MINILANG_XE := old or defined("XE")
-MINILANG_MODULES := old or defined("MODULES")
+MINILANG_LIBRARY := old or defined("LIBRARY")
+MINILANG_MODULES := MINILANG_LIBRARY or old or defined("MODULES")
 MINILANG_SCHEDULER := MINILANG_MODULES or old or defined("SCHEDULER")
 MINILANG_THREADS := old or defined("THREADS")
 MINILANG_THREADSAFE := MINILANG_THREADS or old or defined("THREADSAFE")
@@ -244,11 +246,6 @@ if MINILANG_MATH then
 	InstallHeaders:put("ml_math.h")
 end
 
-if MINILANG_IO then
-	Objects:put(file("ml_io.o"))
-	CFLAGS := old + ["-DML_IO"]
-end
-
 if MINILANG_GTK_CONSOLE then
 	MINILANG_GIR := 1
 	Objects:put(file("gtk_console.o"), file("gtk_console_completion.o"))
@@ -316,9 +313,15 @@ if MINILANG_BACKTRACE then
 	LDFLAGS := old + [Lib]
 end
 
+if MINILANG_LIBRARY then
+	CFLAGS := old + ['-DML_LIBRARY']
+	Objects:put(file("ml_library.o"), file("whereami.o"))
+	InstallHeaders:put("ml_library.h")	
+end
+
 if MINILANG_MODULES then
 	LDFLAGS := old + ["-ldl"]
-	Objects:put(file("ml_module.o"), file("ml_library.o"), file("whereami.o"))
+	Objects:put(file("ml_module.o"))
 	InstallHeaders:put("ml_module.h")
 end
 
@@ -427,6 +430,12 @@ MINILANG := c_program(BIN_DIR/"minilang", [file("minilang.o")], [LIBMINILANG])
 MINIPP := c_program(BIN_DIR/"minipp", [file("minipp.o")], [LIBMINILANG])
 MINIXE := c_program(BIN_DIR/"minixe", [file("minixe.o")], [LIBMINILANG])
 
+if PLATFORM = "Linux" then
+	let Exports := file("exports.lst")
+	MINILANG[Exports]
+	LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={Exports}']
+end
+
 DEFAULT[LIBMINILANG, MINILANG, MINIPP, MINIXE]
 
 PARENT."LIBMINILANG" := LIBMINILANG
@@ -443,10 +452,7 @@ end
 
 install(LIBMINILANG, InstallLib/"libminilang.a")
 
-if MINILANG_LIBS and PLATFORM = "Linux" then
-	let Exports := file("exports.lst")
-	MINILANG[Exports]
-	LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={Exports}']
+if MINILANG_LIBS then
 	subdir("lib")
 end
 

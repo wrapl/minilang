@@ -2125,8 +2125,8 @@ void ml_gir_init(stringmap_t *Globals) {
 	ObjectInstanceNil = new(object_instance_t);
 	ObjectInstanceNil->Type = (object_t *)ObjectInstanceT;
 	//ml_typed_fn_set(EnumT, ml_iterate, enum_iterate);
-	stringmap_insert(Globals, "gir", MLGir);
 	ObjectT->call = MLTypeT->call;
 	StructT->call = MLTypeT->call;
 #include "ml_gir_init.c"
+	stringmap_insert(Globals, "gir", MLGir);
 }

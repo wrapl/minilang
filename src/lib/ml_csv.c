@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <gc.h>
 
-ML_TYPE(CsvT, (), "csv");
+extern ml_type_t CsvT[];
 
 typedef struct csv_row_t csv_row_t;
 
@@ -90,7 +90,7 @@ static void csv_finalize(csv_t *Csv, void *Data) {
 	}
 }
 
-static ml_value_t *csv_open(void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTION(Csv) {
 	ML_CHECK_ARG_COUNT(2);
 	ml_value_t *FileName = Args[0];
 	if (FileName->Type != MLStringT) {
@@ -115,11 +115,11 @@ static ml_value_t *csv_open(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)Csv;
 }
 
-void ml_library_entry0(ml_value_t *Module) {
+ML_TYPE(CsvT, (), "csv",
+	.Constructor = (ml_value_t *)Csv
+);
+
+void ml_library_entry0(ml_value_t **Slot) {
 #include "ml_csv_init.c"
-	ml_module_export(Module, "open", ml_cfunction(0, csv_open));
-}
-
-void ml_csv_init(ml_state_t *Caller, ml_value_t *Module) {
-
+	Slot[0] = (ml_value_t *)CsvT;
 }

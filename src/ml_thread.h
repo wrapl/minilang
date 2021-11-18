@@ -2,6 +2,7 @@
 #define ML_THREAD_H
 
 #include "minilang.h"
+#include <pthread.h>
 
 #ifdef	__cplusplus
 extern "C" {

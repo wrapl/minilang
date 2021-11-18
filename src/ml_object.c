@@ -535,10 +535,46 @@ ml_type_t *ml_enum(const char *TypeName, ...) {
 		ml_enum_value_t *Value = new(ml_enum_value_t);
 		Value->Base.Type = (ml_type_t *)Enum;
 		Value->Name = Name;
-		Enum->Values[Index] = (ml_value_t *)Value;
-		Value->Base.Value = ++Index;
+		Enum->Values[Index++] = (ml_value_t *)Value;
+		Value->Base.Value = Index;
 		stringmap_insert(Enum->Base.Exports, String, Value);
 	}
+	va_end(Args);
+	return (ml_type_t *)Enum;
+}
+
+ml_type_t *ml_enum2(const char *TypeName, ...) {
+	va_list Args;
+	int Size = 0;
+	va_start(Args, TypeName);
+	while (va_arg(Args, const char *)) {
+		++Size;
+		va_arg(Args, int);
+	}
+	va_end(Args);
+	ml_enum_t *Enum = xnew(ml_enum_t, Size, ml_value_t *);
+	Enum->Base.Type = MLEnumT;
+	Enum->Base.Name = TypeName;
+	Enum->Base.deref = ml_default_deref;
+	Enum->Base.assign = ml_default_assign;
+	Enum->Base.hash = (void *)ml_enum_value_hash;
+	Enum->Base.call = ml_default_call;
+	Enum->Base.Rank = 1;
+	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
+	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
+	int Index = 0;
+	va_start(Args, TypeName);
+	const char *String;
+	while ((String = va_arg(Args, const char *))) {
+		ml_value_t *Name = ml_cstring(String);
+		ml_enum_value_t *Value = new(ml_enum_value_t);
+		Value->Base.Type = (ml_type_t *)Enum;
+		Value->Name = Name;
+		Enum->Values[Index++] = (ml_value_t *)Value;
+		Value->Base.Value = va_arg(Args, int);
+		stringmap_insert(Enum->Base.Exports, String, Value);
+	}
+	va_end(Args);
 	return (ml_type_t *)Enum;
 }
 
@@ -834,6 +870,41 @@ ml_type_t *ml_flags(const char *TypeName, ...) {
 		Flag <<= 1;
 		stringmap_insert(Flags->Base.Exports, String, Value);
 	}
+	va_end(Args);
+	return (ml_type_t *)Flags;
+}
+
+ml_type_t *ml_flags2(const char *TypeName, ...) {
+	va_list Args;
+	int Size = 0;
+	va_start(Args, TypeName);
+	while (va_arg(Args, const char *)) {
+		++Size;
+		va_arg(Args, int);
+	}
+	va_end(Args);
+	ml_flags_t *Flags = xnew(ml_flags_t, Size, ml_value_t *);
+	Flags->Base.Type = MLFlagsT;
+	Flags->Base.Name = TypeName;
+	Flags->Base.deref = ml_default_deref;
+	Flags->Base.assign = ml_default_assign;
+	Flags->Base.hash = (void *)ml_flag_value_hash;
+	Flags->Base.call = ml_default_call;
+	Flags->Base.Rank = 1;
+	ml_type_init((ml_type_t *)Flags, MLFlagsValueT, NULL);
+	Flags->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
+	int Index = 0;
+	va_start(Args, TypeName);
+	const char *String;
+	while ((String = va_arg(Args, const char *))) {
+		ml_value_t *Name = ml_cstring(String);
+		ml_flags_value_t *Value = new(ml_flags_value_t);
+		Value->Type = (ml_type_t *)Flags;
+		Flags->Names[Index++] = Name;
+		Value->Value = va_arg(Args, int);
+		stringmap_insert(Flags->Base.Exports, String, Value);
+	}
+	va_end(Args);
 	return (ml_type_t *)Flags;
 }
 

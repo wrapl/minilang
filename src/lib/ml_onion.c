@@ -447,7 +447,7 @@ void *GC_calloc(size_t N, size_t Size) {
 	return GC_malloc(N * Size);
 }
 
-void ml_library_entry0(ml_value_t *Module) {
+void ml_library_entry0(ml_value_t **Slot) {
 	onion_low_initialize_memory_allocation(
 		GC_malloc, GC_malloc_atomic, GC_calloc,
 		GC_realloc, GC_strdup, GC_free,
@@ -458,7 +458,6 @@ void ml_library_entry0(ml_value_t *Module) {
 		GC_pthread_cancel, GC_pthread_detach,
 		GC_pthread_exit, GC_pthread_sigmask
 	);
-
 	OnionT = ml_type(MLAnyT, "onion");
 	OnionHandlerT = ml_type(MLAnyT, "onion-handler");
 	OnionUrlT = ml_type(MLAnyT, "onion-url");
@@ -467,29 +466,31 @@ void ml_library_entry0(ml_value_t *Module) {
 	OnionStateT = ml_type(MLStateT, "onion-state");
 	OnionWebsocketT = ml_type(MLAnyT, "onion-websocket");
 #include "ml_onion_init.c"
-	ml_module_export(Module, "new", ml_cfunction(NULL, ml_onion_new_fn));
-	ml_module_export(Module, "handler", ml_cfunction(NULL, ml_onion_handler_new_fn));
-	ml_module_export(Module, "local", ml_cfunction(NULL, ml_onion_export_local_fn));
-	ml_module_export(Module, "static", ml_cfunction(NULL, ml_onion_handler_static_fn));
-	ml_module_export(Module, "websocket", ml_cfunction(NULL, ml_websocket_new_fn));
-	ml_module_export(Module, "connection_status", ml_module("connection_status",
-		"NotProcessed", ml_onion_connection_status("NotProcessed", OCS_NOT_PROCESSED),
-		"NeedMoreData", ml_onion_connection_status("NeedMoreData", OCS_NEED_MORE_DATA),
-		"Processed", ml_onion_connection_status("Processed", OCS_PROCESSED),
-		"CloseConnection", ml_onion_connection_status("CloseConnection", OCS_CLOSE_CONNECTION),
-		"KeepAlive", ml_onion_connection_status("KeepAlive", OCS_KEEP_ALIVE),
-		"Websocket", ml_onion_connection_status("Websocket", OCS_WEBSOCKET),
-		"RequestReady", ml_onion_connection_status("RequestReady", OCS_REQUEST_READY),
-		"InternalError", ml_onion_connection_status("InternalError", OCS_INTERNAL_ERROR),
-		"NotImplemented", ml_onion_connection_status("NotImplemented", OCS_NOT_IMPLEMENTED),
-		"Forbidden", ml_onion_connection_status("Forbidden", OCS_FORBIDDEN),
-		"Yield", ml_onion_connection_status("Yield", OCS_YIELD),
-	NULL));
-	ml_module_export(Module, "websocket_opcode", ml_module("websocket_opcode",
-		"Text", ml_onion_websocket_opcode("Text", OWS_TEXT),
-		"Binary", ml_onion_websocket_opcode("Text", OWS_BINARY),
-		"ConnectionClose", ml_onion_websocket_opcode("Text", OWS_CONNECTION_CLOSE),
-		"Ping", ml_onion_websocket_opcode("Text", OWS_PING),
-		"Pong", ml_onion_websocket_opcode("Text", OWS_PONG),
-	NULL));
+	Slot[0] = ml_module("onion",
+		"new", ml_cfunction(NULL, ml_onion_new_fn),
+		"handler", ml_cfunction(NULL, ml_onion_handler_new_fn),
+		"local", ml_cfunction(NULL, ml_onion_export_local_fn),
+		"static", ml_cfunction(NULL, ml_onion_handler_static_fn),
+		"websocket", ml_cfunction(NULL, ml_websocket_new_fn),
+		"connection_status", ml_module("connection_status",
+			"NotProcessed", ml_onion_connection_status("NotProcessed", OCS_NOT_PROCESSED),
+			"NeedMoreData", ml_onion_connection_status("NeedMoreData", OCS_NEED_MORE_DATA),
+			"Processed", ml_onion_connection_status("Processed", OCS_PROCESSED),
+			"CloseConnection", ml_onion_connection_status("CloseConnection", OCS_CLOSE_CONNECTION),
+			"KeepAlive", ml_onion_connection_status("KeepAlive", OCS_KEEP_ALIVE),
+			"Websocket", ml_onion_connection_status("Websocket", OCS_WEBSOCKET),
+			"RequestReady", ml_onion_connection_status("RequestReady", OCS_REQUEST_READY),
+			"InternalError", ml_onion_connection_status("InternalError", OCS_INTERNAL_ERROR),
+			"NotImplemented", ml_onion_connection_status("NotImplemented", OCS_NOT_IMPLEMENTED),
+			"Forbidden", ml_onion_connection_status("Forbidden", OCS_FORBIDDEN),
+			"Yield", ml_onion_connection_status("Yield", OCS_YIELD),
+		NULL),
+		"websocket_opcode", ml_module("websocket_opcode",
+			"Text", ml_onion_websocket_opcode("Text", OWS_TEXT),
+			"Binary", ml_onion_websocket_opcode("Text", OWS_BINARY),
+			"ConnectionClose", ml_onion_websocket_opcode("Text", OWS_CONNECTION_CLOSE),
+			"Ping", ml_onion_websocket_opcode("Text", OWS_PING),
+			"Pong", ml_onion_websocket_opcode("Text", OWS_PONG),
+		NULL),
+	NULL);
 }

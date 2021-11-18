@@ -60,8 +60,10 @@ ML_METHOD("http", EventBaseT) {
 	return (ml_value_t *)Http;
 }
 
-void ml_library_entry0(ml_value_t *Module) {
+void ml_library_entry0(ml_value_t **Slot) {
 #include "ml_libevent_init.c"
-	ml_module_export(Module, "new", (ml_value_t *)EventBaseNew);
-	ml_module_export(Module, "sleep", (ml_value_t *)EventSleep);
+	Slot[0] = ml_module("libevent",
+		"new", EventBaseNew,
+		"sleep", EventSleep,
+	NULL);
 }

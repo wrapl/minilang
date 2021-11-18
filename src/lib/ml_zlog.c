@@ -74,10 +74,10 @@ ML_METHOD("::", MLCategoryT, MLStringT) {
 	return (ml_value_t *)Logger;
 }
 
-void ml_library_entry0(ml_value_t *Module) {
+void ml_library_entry0(ml_value_t **Slot) {
 #include "ml_zlog_init.c"
 	if (zlog_init("zlog.conf")) {
 		printf("Failed to load zlog config\n");
 	}
-	ml_module_export(Module, "logger", (ml_value_t *)MLCategoryT);
+	Slot[0] = (ml_value_t *)MLCategoryT;
 }

@@ -53,17 +53,17 @@ uv_loop_t *ml_libuv_loop() {
 	return Loop;
 }
 
-void ml_library_entry0(ml_value_t *Module) {
+void ml_library_entry0(ml_value_t **Slot) {
 	uv_replace_allocator(GC_malloc, GC_realloc, ml_calloc, ml_free);
 	Loop = uv_default_loop();
 	uv_idle_init(Loop, Idle);
 #include "ml_libuv_init.c"
+	ml_value_t *Module = Slot[0] = ml_module("libuv", "run", Run, NULL);
 	ml_libuv_file_init(((ml_module_t *)Module)->Exports);
 	ml_libuv_process_init(((ml_module_t *)Module)->Exports);
 	ml_libuv_handle_init(((ml_module_t *)Module)->Exports);
 	ml_libuv_stream_init(((ml_module_t *)Module)->Exports);
 	ml_libuv_pipe_init(((ml_module_t *)Module)->Exports);
 	ml_libuv_tcp_init(((ml_module_t *)Module)->Exports);
-	ml_module_export(Module, "run", (ml_value_t *)Run);
 }
 

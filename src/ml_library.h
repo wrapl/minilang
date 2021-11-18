@@ -9,8 +9,6 @@ extern "C" {
 
 void ml_library_init(stringmap_t *Globals);
 
-void ml_library_load_file(ml_state_t *Caller, const char *FileName, ml_getter_t GlobalGet, void *Globals, ml_value_t **Slot);
-
 void ml_library_path_add(const char *Path);
 void ml_library_loader_add(
 	const char *Extension, int (*Test)(const char *),
@@ -21,8 +19,10 @@ void ml_library_loader_add(
 void ml_library_load(ml_state_t *Caller, const char *Path, const char *Name);
 ml_value_t *ml_library_load0(const char *Path, const char *Name);
 
-void ml_library_entry(ml_state_t *Caller, ml_value_t *Module);
-void ml_library_entry0(ml_value_t *Module);
+ml_module_t *ml_library_internal(const char *Name);
+
+void ml_library_entry(ml_state_t *Caller, ml_value_t **Slot);
+void ml_library_entry0(ml_value_t **Slot);
 
 #ifdef	__cplusplus
 }

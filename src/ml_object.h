@@ -25,20 +25,26 @@ size_t ml_object_size(const ml_value_t *Value) __attribute__ ((pure));
 ml_value_t *ml_object_field(const ml_value_t *Value, size_t Field) __attribute__ ((pure));
 
 ml_type_t *ml_enum(const char *Name, ...);
-ml_type_t *ml_flags(const char *Name, ...);
-
+ml_type_t *ml_enum2(const char *Name, ...);
 uint64_t ml_enum_value(ml_value_t *Value);
+
+ml_type_t *ml_flags(const char *Name, ...);
+ml_type_t *ml_flags2(const char *Name, ...);
 uint64_t ml_flags_value(ml_value_t *Value);
 
 #ifndef GENERATE_INIT
 
 #define ML_ENUM(TYPE, NAME, VALUES...) ml_type_t *TYPE
 #define ML_FLAGS(TYPE, NAME, VALUES...) ml_type_t *TYPE
+#define ML_ENUM2(TYPE, NAME, VALUES...) ml_type_t *TYPE
+#define ML_FLAGS2(TYPE, NAME, VALUES...) ml_type_t *TYPE
 
 #else
 
 #define ML_ENUM(TYPE, NAME, VALUES...) INIT_CODE TYPE = ml_enum(NAME, VALUES, NULL)
 #define ML_FLAGS(TYPE, NAME, VALUES...) INIT_CODE TYPE = ml_flags(NAME, VALUES, NULL)
+#define ML_ENUM2(TYPE, NAME, VALUES...) INIT_CODE TYPE = ml_enum2(NAME, VALUES, NULL)
+#define ML_FLAGS2(TYPE, NAME, VALUES...) INIT_CODE TYPE = ml_flags2(NAME, VALUES, NULL)
 
 #endif
 

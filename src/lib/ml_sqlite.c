@@ -231,8 +231,8 @@ ML_METHODV("execute", MLSqliteT, MLStringT) {
 	return (ml_value_t *)Stmt;
 }
 
-void ml_library_entry0(ml_value_t *Module) {
+void ml_library_entry0(ml_value_t **Slot) {
 #include "ml_sqlite_init.c"
 	stringmap_insert(MLSqliteT->Exports, "open", MLSqliteOpenFlags);
-	ml_module_export(Module, "sqlite", (ml_value_t *)MLSqliteT);
+	Slot[0] = (ml_value_t *)MLSqliteT;
 }

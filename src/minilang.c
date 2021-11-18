@@ -10,14 +10,11 @@
 #include <time.h>
 #include <gc.h>
 #include "ml_sequence.h"
+#include "ml_stream.h"
 
 #ifdef ML_MATH
 #include "ml_math.h"
 #include "ml_array.h"
-#endif
-
-#ifdef ML_IO
-#include "ml_io.h"
 #endif
 
 #ifdef ML_GIR
@@ -186,8 +183,8 @@ int main(int Argc, const char *Argv[]) {
 	BacktraceState = backtrace_create_state(Argv[0], 0, NULL, NULL);
 	signal(SIGSEGV, error_handler);
 #endif
-	ml_init();
-	ml_types_init(Globals);
+
+	ml_init(Globals);
 	ml_file_init(Globals);
 	ml_object_init(Globals);
 	ml_sequence_init(Globals);
@@ -212,24 +209,44 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "macro", MLMacroT);
 	stringmap_insert(Globals, "global", ml_stringmap_globals(Globals));
 	stringmap_insert(Globals, "globals", ml_cfunction(Globals, (void *)ml_globals));
+
+#ifdef ML_LIBRARY
+
+	ml_library_init(Globals);
+	ml_module_t *Sys = ml_library_internal("sys");
+	ml_module_t *Std = ml_library_internal("std");
+	ml_module_t *Fmt = ml_library_internal("fmt");
+	ml_module_t *IO = ml_library_internal("io");
+#define SYS_EXPORTS Sys->Exports
+#define STD_EXPORTS Std->Exports
+#define FMT_EXPORTS Fmt->Exports
+#define IO_EXPORTS IO->Exports
+
+#else
+
+#define SYS_EXPORTS Globals
+#define STD_EXPORTS Globals
+#define FMT_EXPORTS Globals
+#define IO_EXPORTS Globals
+
+#endif
+
+	ml_stream_init(IO_EXPORTS);
 #ifdef ML_CBOR
-	ml_cbor_init(Globals);
+	ml_cbor_init(FMT_EXPORTS);
 #endif
 #ifdef ML_JSON
-	ml_json_init(Globals);
+	ml_json_init(FMT_EXPORTS);
 #endif
 #ifdef ML_XML
-	ml_xml_init(Globals);
+	ml_xml_init(FMT_EXPORTS);
 #endif
 #ifdef ML_XE
-	ml_xe_init(Globals);
+	ml_xe_init(FMT_EXPORTS);
 #endif
 #ifdef ML_MATH
 	ml_math_init(Globals);
 	ml_array_init(Globals);
-#endif
-#ifdef ML_IO
-	ml_io_init(Globals);
 #endif
 #ifdef ML_GIR
 	ml_gir_init(Globals);
@@ -239,10 +256,6 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_MODULES
 	ml_module_init(Globals);
-	ml_library_init(Globals);
-#endif
-#ifdef ML_THREADS
-	ml_thread_init(Globals);
 #endif
 #ifdef ML_TABLES
 	ml_table_init(Globals);
@@ -251,10 +264,10 @@ int main(int Argc, const char *Argv[]) {
 	ml_queue_init(Globals);
 #endif
 #ifdef ML_TIME
-	ml_time_init(Globals);
+	ml_time_init(STD_EXPORTS);
 #endif
 #ifdef ML_UUID
-	ml_uuid_init(Globals);
+	ml_uuid_init(STD_EXPORTS);
 #endif
 #ifdef ML_JSENCODE
 	ml_jsencode_init(Globals);
@@ -264,6 +277,9 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_RAPC
 	ml_rapc_init(Globals);
+#endif
+#ifdef ML_THREADS
+	ml_thread_init(SYS_EXPORTS);
 #endif
 	ml_value_t *Args = ml_list();
 	const char *FileName = 0;

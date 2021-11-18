@@ -3030,48 +3030,6 @@ ML_METHOD("exports", MLModuleT) {
 // Init //
 //!general
 
-void ml_init() {
-#ifdef ML_JIT
-	GC_set_pages_executable(1);
-#endif
-	GC_INIT();
-#include "ml_types_init.c"
-#ifdef ML_GENERICS
-	ml_type_add_rule(MLTupleT, MLSequenceT, MLIntegerT, MLAnyT, NULL);
-#endif
-	stringmap_insert(MLTypeT->Exports, "switch", MLTypeSwitch);
-	stringmap_insert(MLIntegerT->Exports, "range", MLIntegerRangeT);
-	stringmap_insert(MLIntegerT->Exports, "switch", MLIntegerSwitch);
-	stringmap_insert(MLRealT->Exports, "range", MLRealRangeT);
-	ml_method_by_value(MLIntegerT->Constructor, NULL, ml_identity, MLIntegerT, NULL);
-	ml_method_by_value(MLDoubleT->Constructor, NULL, ml_identity, MLDoubleT, NULL);
-	ml_method_by_value(MLRealT->Constructor, NULL, ml_identity, MLDoubleT, NULL);
-	stringmap_insert(MLRealT->Exports, "infinity", ml_real(INFINITY));
-	ml_method_by_value(MLNumberT->Constructor, NULL, ml_identity, MLNumberT, NULL);
-#ifdef ML_COMPLEX
-	stringmap_insert(MLCompilerT->Exports, "i", ml_complex(1i));
-#endif
-	ml_method_by_name("=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
-	ml_method_by_name("!=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
-	ml_method_by_name("<", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
-	ml_method_by_name(">", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
-	ml_method_by_name("<=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
-	ml_method_by_name(">=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
-	ml_method_by_name("=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
-	ml_method_by_name("!=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
-	ml_method_by_name("<", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
-	ml_method_by_name(">", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
-	ml_method_by_name("<=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
-	ml_method_by_name(">=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
-	ml_string_init();
-	ml_method_init();
-	ml_list_init();
-	ml_map_init();
-	ml_compiler_init();
-	ml_runtime_init();
-	ml_bytecode_init();
-}
-
 typedef struct {
 	ml_state_t Base;
 	int Index;
@@ -3112,9 +3070,49 @@ ML_FUNCTIONZ(MLReplace) {
 	memcpy(State->Args, Args, (Count - 1) * sizeof(ml_value_t *));
 	State->New = ml_deref(Args[Count - 1]);
 	State->Index = Count - 1;
-	return ml_exchange_run(State, MLNil);}
+	return ml_exchange_run(State, MLNil);
+}
 
-void ml_types_init(stringmap_t *Globals) {
+void ml_init(stringmap_t *Globals) {
+#ifdef ML_JIT
+	GC_set_pages_executable(1);
+#endif
+	GC_INIT();
+#include "ml_types_init.c"
+#ifdef ML_GENERICS
+	ml_type_add_rule(MLTupleT, MLSequenceT, MLIntegerT, MLAnyT, NULL);
+#endif
+	stringmap_insert(MLTypeT->Exports, "switch", MLTypeSwitch);
+	stringmap_insert(MLIntegerT->Exports, "range", MLIntegerRangeT);
+	stringmap_insert(MLIntegerT->Exports, "switch", MLIntegerSwitch);
+	stringmap_insert(MLRealT->Exports, "range", MLRealRangeT);
+	ml_method_by_value(MLIntegerT->Constructor, NULL, ml_identity, MLIntegerT, NULL);
+	ml_method_by_value(MLDoubleT->Constructor, NULL, ml_identity, MLDoubleT, NULL);
+	ml_method_by_value(MLRealT->Constructor, NULL, ml_identity, MLDoubleT, NULL);
+	stringmap_insert(MLRealT->Exports, "infinity", ml_real(INFINITY));
+	ml_method_by_value(MLNumberT->Constructor, NULL, ml_identity, MLNumberT, NULL);
+#ifdef ML_COMPLEX
+	stringmap_insert(MLCompilerT->Exports, "i", ml_complex(1i));
+#endif
+	ml_method_by_name("=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
+	ml_method_by_name("!=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
+	ml_method_by_name("<", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
+	ml_method_by_name(">", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
+	ml_method_by_name("<=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
+	ml_method_by_name(">=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
+	ml_method_by_name("=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
+	ml_method_by_name("!=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
+	ml_method_by_name("<", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
+	ml_method_by_name(">", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
+	ml_method_by_name("<=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
+	ml_method_by_name(">=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
+	ml_string_init();
+	ml_method_init();
+	ml_list_init();
+	ml_map_init();
+	ml_compiler_init();
+	ml_runtime_init();
+	ml_bytecode_init();
 	if (Globals) {
 		stringmap_insert(Globals, "any", MLAnyT);
 		stringmap_insert(Globals, "type", MLTypeT);

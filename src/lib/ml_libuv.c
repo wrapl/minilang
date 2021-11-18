@@ -170,13 +170,15 @@ void *ml_calloc(size_t Count, size_t Size) {
 void ml_free(void *Ptr) {
 }
 
-void ml_library_entry0(ml_value_t *Module) {
+void ml_library_entry0(ml_value_t **Slot) {
 	uv_replace_allocator(GC_malloc, GC_realloc, ml_calloc, ml_free);
 	Loop = uv_default_loop();
 	uv_idle_init(Loop, Idle);
 	Idle->data = ml_list();
 #include "ml_libuv_init.c"
-	ml_module_export(Module, "fs_open", (ml_value_t *)FSOpen);
-	ml_module_export(Module, "run", (ml_value_t *)Run);
-	ml_module_export(Module, "sleep", (ml_value_t *)Sleep);
+	Slot[0] = ml_module("libuv",
+		"fs_open", FSOpen,
+		"run", Run,
+		"sleep", Sleep,
+	NULL);
 }

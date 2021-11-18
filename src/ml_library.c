@@ -15,6 +15,12 @@ static int MaxLibraryPathLength = 0;
 static stringmap_t Modules[1] = {STRINGMAP_INIT};
 static stringmap_t *Globals;
 
+ml_module_t *ml_library_internal(const char *Name) {
+	ml_module_t *Module = (ml_module_t *)ml_module(Name, NULL);
+	stringmap_insert(Modules, Name, Module);
+	return Module;
+}
+
 typedef struct ml_library_loader_t ml_library_loader_t;
 
 struct ml_library_loader_t {
@@ -33,6 +39,18 @@ typedef struct {
 	const char *FileName;
 } ml_library_info_t;
 
+static void internal_load(ml_state_t *Caller, const char *FileName, ml_value_t **Slot) {
+}
+
+static ml_value_t *internal_load0(const char *FileName, ml_value_t **Slot) {
+	return Slot[0];
+}
+
+static ml_library_loader_t InternalLoader = {
+	.load = internal_load,
+	.load0 = internal_load0
+};
+
 static ml_library_info_t ml_library_find(const char *Path, const char *Name) {
 	char *FileName;
 	ml_library_loader_t *Loader = NULL;
@@ -49,6 +67,8 @@ static ml_library_info_t ml_library_find(const char *Path, const char *Name) {
 			if (Loader->test(FileName)) return (ml_library_info_t){Loader, FileName};
 			Loader = Loader->Next;
 		}
+		*End = 0;
+		Name = FileName;
 	} else {
 		FileName = snew(MaxLibraryPathLength + strlen(Name) + MaxLibraryExtensionLength);
 		ML_LIST_FOREACH(LibraryPath, Iter) {
@@ -62,13 +82,45 @@ static ml_library_info_t ml_library_find(const char *Path, const char *Name) {
 				Loader = Loader->Next;
 			}
 		}
+		ml_value_t *Internal = stringmap_search(Modules, Name);
+		if (Internal) return (ml_library_info_t){&InternalLoader, Name};
 	}
 	return (ml_library_info_t){NULL, NULL};
 }
 
+typedef struct {
+	ml_state_t Base;
+	const char *Path, *Name;
+	char *Import;
+} ml_parent_state_t;
+
+static void ml_parent_state_run(ml_parent_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	*State->Import = '/';
+	if (ml_is(Value, MLModuleT)) {
+		ml_value_t *Import = ml_module_import(Value, State->Import + 1);
+		if (Import) ML_RETURN(Import);
+	}
+	ML_ERROR("ModuleError", "Module %s not found in %s", State->Name, State->Path ?: "<library>");
+}
+
 void ml_library_load(ml_state_t *Caller, const char *Path, const char *Name) {
 	ml_library_info_t Info = ml_library_find(Path, Name);
-	if (!Info.Loader) ML_ERROR("ModuleError", "Module %s not found in %s", Name, Path ?: "<library>");
+	if (!Info.Loader) {
+		char *Import = strrchr(Name, '/');
+		if (Import) {
+			ml_parent_state_t *State = new(ml_parent_state_t);
+			State->Base.Caller = Caller;
+			State->Base.Context = Caller->Context;
+			State->Base.run = (ml_state_fn)ml_parent_state_run;
+			State->Path = Path;
+			State->Name = Name;
+			State->Import = Import;
+			*Import = 0;
+			return ml_library_load((ml_state_t *)State, Path, Name);
+		}
+		ML_ERROR("ModuleError", "Module %s not found in %s", Name, Path ?: "<library>");
+	}
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Modules, Info.FileName);
 	if (!Slot[0]) return Info.Loader->load(Caller, Info.FileName, Slot);
 	ML_RETURN(Slot[0]);
@@ -76,7 +128,20 @@ void ml_library_load(ml_state_t *Caller, const char *Path, const char *Name) {
 
 ml_value_t *ml_library_load0(const char *Path, const char *Name) {
 	ml_library_info_t Info = ml_library_find(Path, Name);
-	if (!Info.Loader) return ml_error("ModuleError", "Module %s not found in %s", Name, Path ?: "<library>");
+	if (!Info.Loader) {
+		char *Import = strrchr(Name, '/');
+		if (Import) {
+			*Import = 0;
+			ml_value_t *Parent = ml_library_load0(Path, Name);
+			*Import = '/';
+			if (ml_is_error(Parent)) return Parent;
+			if (ml_is(Parent, MLModuleT)) {
+				ml_value_t *Value = ml_module_import(Parent, Import + 1);
+				if (Value) return Value;
+			}
+		}
+		return ml_error("ModuleError", "Module %s not found in %s", Name, Path ?: "<library>");
+	}
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Modules, Info.FileName);
 	if (!Slot[0]) return Info.Loader->load0(Info.FileName, Slot);
 	return Slot[0];
@@ -114,15 +179,15 @@ static void ml_library_so_load(ml_state_t *Caller, const char *FileName, ml_valu
 	if (Handle) {
 		typeof(ml_library_entry0) *init0 = dlsym(Handle, "ml_library_entry0");
 		if (init0) {
-			ml_value_t *Library = Slot[0] = ml_module(FileName, NULL);
-			init0(Library);
-			ML_RETURN(Library);
+			Slot[0] = ml_error("ModuleError", "Library %s loaded recursively", FileName);
+			init0(Slot);
+			ML_RETURN(Slot[0]);
 		}
 		typeof(ml_library_entry) *init = dlsym(Handle, "ml_library_entry");
 		if (init) {
-			ml_value_t *Library = Slot[0] = ml_module(FileName, NULL);
-			init(Caller, Library);
-			ML_RETURN(Library);
+			Slot[0] = ml_error("ModuleError", "Library %s loaded recursively", FileName);
+			init(Caller, Slot);
+			ML_RETURN(Slot[0]);
 		}
 		dlclose(Handle);
 		ML_ERROR("LibraryError", "init function missing from %s", FileName);
@@ -136,9 +201,9 @@ static ml_value_t *ml_library_so_load0(const char *FileName, ml_value_t **Slot) 
 	if (Handle) {
 		typeof(ml_library_entry0) *init0 = dlsym(Handle, "ml_library_entry0");
 		if (init0) {
-			ml_value_t *Library = Slot[0] = ml_module(FileName, NULL);
-			init0(Library);
-			return Library;
+			Slot[0] = ml_error("ModuleError", "Library %s loaded recursively", FileName);
+			init0(Slot);
+			return Slot[0];
 		}
 		typeof(ml_library_entry) *init = dlsym(Handle, "ml_library_entry");
 		if (init) return ml_library_default_load0(FileName, Slot);
@@ -160,6 +225,13 @@ void ml_library_path_add(const char *Path) {
 	int PathLength = strlen(RealPath);
 	ml_list_push(LibraryPath, ml_string(RealPath, PathLength));
 	if (MaxLibraryPathLength < PathLength) MaxLibraryPathLength = PathLength;
+}
+
+ML_FUNCTION(AddPath) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ml_library_path_add(ml_string_value(Args[0]));
+	return MLNil;
 }
 
 static void ml_library_path_add_default(void) {
@@ -217,5 +289,9 @@ void ml_library_init(stringmap_t *_Globals) {
 	ml_library_loader_add(".mini", NULL, ml_library_mini_load, NULL);
 	ml_library_loader_add(".so", NULL, ml_library_so_load, ml_library_so_load0);
 #include "ml_library_init.c"
-	stringmap_insert(Globals, "unload", Unload);
+	stringmap_insert(Globals, "import", ml_cfunctionx(NULL, (ml_callbackx_t)ml_library_import));
+	stringmap_insert(Globals, "library",  ml_module("library",
+		"unload", Unload,
+		"add_path", AddPath,
+	NULL));
 }

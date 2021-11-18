@@ -1023,8 +1023,7 @@ static ml_state_t MLLoadedState[1] = {{
 
 int main(int Argc, char **Argv) {
 	static const char *Parameters[] = {"Args", NULL};
-	ml_init();
-	ml_types_init(Globals);
+	ml_init(Globals);
 	ml_file_init(Globals);
 	ml_object_init(Globals);
 	ml_sequence_init(Globals);

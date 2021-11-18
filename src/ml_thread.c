@@ -1,7 +1,6 @@
 #include "ml_thread.h"
 #include "ml_macros.h"
 #include "ml_compiler2.h"
-#include <pthread.h>
 
 typedef struct {
 	ml_state_t Base;
@@ -17,18 +16,16 @@ typedef struct {
 	int Count;
 } ml_thread_t;
 
-static int ML_THREAD_INDEX;
+__thread ml_thread_t *CurrentThread;
 
 #ifdef ML_SCHEDULER
 
 static void ml_thread_scheduler_queue_add(ml_state_t *State, ml_value_t *Value) {
-	ml_thread_t *Thread = ml_context_get(State->Context, ML_THREAD_INDEX);
-	ml_scheduler_queue_add(&Thread->Queue, State, Value);
+	ml_scheduler_queue_add(&CurrentThread->Queue, State, Value);
 }
 
 static ml_schedule_t ml_thread_scheduler(ml_context_t *Context) {
-	ml_thread_t *Thread = ml_context_get(Context, ML_THREAD_INDEX);
-	return (ml_schedule_t){&Thread->Counter, (void *)ml_thread_scheduler_queue_add};
+	return (ml_schedule_t){&CurrentThread->Counter, (void *)ml_thread_scheduler_queue_add};
 }
 
 #endif
@@ -60,6 +57,14 @@ static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLMethodT, ml_value_t *Value) {
 }
 
 static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLFunctionT, ml_value_t *Value) {
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLTupleT, ml_tuple_t *Tuple) {
+	for (int I = 0; I < Tuple->Size; ++I) {
+		ml_value_t *Error = ml_is_threadsafe(Tuple->Values[I]);
+		if (Error) return Error;
+	}
 	return NULL;
 }
 
@@ -166,6 +171,7 @@ static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLUUIDT, ml_value_t *Value) {
 #endif
 
 static void *ml_thread_fn(ml_thread_t *Thread) {
+	CurrentThread = Thread;
 	ml_value_t **Args = Thread->Args;
 	int Count = Thread->Count;
 	Thread->Args = NULL;
@@ -200,7 +206,6 @@ ML_FUNCTIONX(MLThread) {
 	ml_thread_t *Thread = new(ml_thread_t);
 	Thread->Base.Type = MLThreadT;
 	ml_context_t *Context = Thread->Base.Context = ml_context_new(Caller->Context);
-	ml_context_set(Context, ML_THREAD_INDEX, Thread);
 	Thread->Base.run = (ml_state_fn)ml_thread_run;
 	Thread->Count = Count;
 	Thread->Args = Args2;
@@ -423,7 +428,6 @@ static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLThreadConditionT, ml_value_t 
 }
 
 void ml_thread_init(stringmap_t *Globals) {
-	ML_THREAD_INDEX = ml_context_index_new();
 #include "ml_thread_init.c"
 	stringmap_insert(MLThreadT->Exports, "sleep", MLThreadSleep);
 	stringmap_insert(MLThreadT->Exports, "channel", MLThreadChannelT);

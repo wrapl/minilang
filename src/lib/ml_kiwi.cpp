@@ -344,10 +344,11 @@ ML_METHOD("reset", KiwiSolverT) {
 	return Args[0];
 }
 
-void ml_library_entry0(ml_value_t *Module) {
+void ml_library_entry0(ml_value_t **Slot) {
+	KiwiSolverT->Constructor = (ml_value_t *)KiwiSolver;
+	KiwiVariableT->Constructor = (ml_value_t *)KiwiVariable;
 #include "ml_kiwi_init.cpp"
-	stringmap_insert(KiwiVariableT->Exports, "of", KiwiVariable);
-	ml_module_export(Module, "variable", (ml_value_t *)KiwiVariableT);
-	stringmap_insert(KiwiSolverT->Exports, "of", KiwiSolver);
-	ml_module_export(Module, "solver", (ml_value_t *)KiwiSolverT);
+	stringmap_insert(KiwiSolverT->Exports, "variable", KiwiVariableT);
+	Slot[0] = (ml_value_t *)KiwiSolverT;
+
 }

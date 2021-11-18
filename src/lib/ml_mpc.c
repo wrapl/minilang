@@ -477,47 +477,49 @@ static ml_value_t *ml_mpc_string(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)Parser;
 }
 
-void ml_library_entry0(ml_value_t *Module) {
+void ml_library_entry0(ml_value_t **Slot) {
 #include "ml_mpc_init.c"
-	ml_module_export(Module, "seq", ml_cfunction(NULL, ml_mpc_seq));
-	ml_module_export(Module, "new", ml_cfunction(NULL, ml_mpc_new));
-	ml_module_export(Module, "re", ml_cfunction(NULL, ml_mpc_re));
-	ml_module_export(Module, "any", ml_cfunction(NULL, ml_mpc_any));
-	ml_module_export(Module, "char", ml_cfunction(NULL, ml_mpc_char));
-	ml_module_export(Module, "range", ml_cfunction(NULL, ml_mpc_range));
-	ml_module_export(Module, "oneof", ml_cfunction(NULL, ml_mpc_oneof));
-	ml_module_export(Module, "noneof", ml_cfunction(NULL, ml_mpc_noneof));
-	ml_module_export(Module, "string", ml_cfunction(NULL, ml_mpc_string));
-	ml_module_export(Module, "Any", ml_mpc_string_parser(mpc_any()));
-	ml_module_export(Module, "EOI", ml_mpc_string_parser(mpc_eoi()));
-	ml_module_export(Module, "SOI", ml_mpc_string_parser(mpc_soi()));
-	ml_module_export(Module, "Boundary", ml_mpc_string_parser(mpc_boundary()));
-	ml_module_export(Module, "BoundaryNewLine", ml_mpc_string_parser(mpc_boundary_newline()));
-	ml_module_export(Module, "WhiteSpace", ml_mpc_string_parser(mpc_whitespace()));
-	ml_module_export(Module, "WhiteSpaces", ml_mpc_string_parser(mpc_whitespaces()));
-	ml_module_export(Module, "Blank", ml_mpc_string_parser(mpc_blank()));
-	ml_module_export(Module, "NewLine", ml_mpc_string_parser(mpc_newline()));
-	ml_module_export(Module, "Tab", ml_mpc_string_parser(mpc_tab()));
-	ml_module_export(Module, "Escape", ml_mpc_string_parser(mpc_escape()));
-	ml_module_export(Module, "Digit", ml_mpc_string_parser(mpc_digit()));
-	ml_module_export(Module, "HexDigit", ml_mpc_string_parser(mpc_hexdigit()));
-	ml_module_export(Module, "OctDigit", ml_mpc_string_parser(mpc_octdigit()));
-	ml_module_export(Module, "Digits", ml_mpc_string_parser(mpc_digits()));
-	ml_module_export(Module, "HexDigits", ml_mpc_string_parser(mpc_hexdigits()));
-	ml_module_export(Module, "OctDigits", ml_mpc_string_parser(mpc_octdigits()));
-	ml_module_export(Module, "Lower", ml_mpc_string_parser(mpc_lower()));
-	ml_module_export(Module, "Upper", ml_mpc_string_parser(mpc_upper()));
-	ml_module_export(Module, "Alpha", ml_mpc_string_parser(mpc_alpha()));
-	ml_module_export(Module, "Underscore", ml_mpc_string_parser(mpc_underscore()));
-	ml_module_export(Module, "AlphaNum", ml_mpc_string_parser(mpc_alphanum()));
-	ml_module_export(Module, "Int", ml_mpc_string_parser(mpc_int()));
-	ml_module_export(Module, "Hex", ml_mpc_string_parser(mpc_hex()));
-	ml_module_export(Module, "Oct", ml_mpc_string_parser(mpc_oct()));
-	ml_module_export(Module, "Number", ml_mpc_string_parser(mpc_number()));
-	ml_module_export(Module, "Real", ml_mpc_string_parser(mpc_real()));
-	ml_module_export(Module, "Float", ml_mpc_string_parser(mpc_float()));
-	ml_module_export(Module, "CharLit", ml_mpc_string_parser(mpc_char_lit()));
-	ml_module_export(Module, "StringLit", ml_mpc_string_parser(mpc_string_lit()));
-	ml_module_export(Module, "RegexLit", ml_mpc_string_parser(mpc_regex_lit()));
-	ml_module_export(Module, "Ident", ml_mpc_string_parser(mpc_ident()));
+	Slot[0] = ml_module(
+		"seq", ml_cfunction(NULL, ml_mpc_seq),
+		"new", ml_cfunction(NULL, ml_mpc_new),
+		"re", ml_cfunction(NULL, ml_mpc_re),
+		"any", ml_cfunction(NULL, ml_mpc_any),
+		"char", ml_cfunction(NULL, ml_mpc_char),
+		"range", ml_cfunction(NULL, ml_mpc_range),
+		"oneof", ml_cfunction(NULL, ml_mpc_oneof),
+		"noneof", ml_cfunction(NULL, ml_mpc_noneof),
+		"string", ml_cfunction(NULL, ml_mpc_string),
+		"Any", ml_mpc_string_parser(mpc_any()),
+		"EOI", ml_mpc_string_parser(mpc_eoi()),
+		"SOI", ml_mpc_string_parser(mpc_soi()),
+		"Boundary", ml_mpc_string_parser(mpc_boundary()),
+		"BoundaryNewLine", ml_mpc_string_parser(mpc_boundary_newline()),
+		"WhiteSpace", ml_mpc_string_parser(mpc_whitespace()),
+		"WhiteSpaces", ml_mpc_string_parser(mpc_whitespaces()),
+		"Blank", ml_mpc_string_parser(mpc_blank()),
+		"NewLine", ml_mpc_string_parser(mpc_newline()),
+		"Tab", ml_mpc_string_parser(mpc_tab()),
+		"Escape", ml_mpc_string_parser(mpc_escape()),
+		"Digit", ml_mpc_string_parser(mpc_digit()),
+		"HexDigit", ml_mpc_string_parser(mpc_hexdigit()),
+		"OctDigit", ml_mpc_string_parser(mpc_octdigit()),
+		"Digits", ml_mpc_string_parser(mpc_digits()),
+		"HexDigits", ml_mpc_string_parser(mpc_hexdigits()),
+		"OctDigits", ml_mpc_string_parser(mpc_octdigits()),
+		"Lower", ml_mpc_string_parser(mpc_lower()),
+		"Upper", ml_mpc_string_parser(mpc_upper()),
+		"Alpha", ml_mpc_string_parser(mpc_alpha()),
+		"Underscore", ml_mpc_string_parser(mpc_underscore()),
+		"AlphaNum", ml_mpc_string_parser(mpc_alphanum()),
+		"Int", ml_mpc_string_parser(mpc_int()),
+		"Hex", ml_mpc_string_parser(mpc_hex()),
+		"Oct", ml_mpc_string_parser(mpc_oct()),
+		"Number", ml_mpc_string_parser(mpc_number()),
+		"Real", ml_mpc_string_parser(mpc_real()),
+		"Float", ml_mpc_string_parser(mpc_float()),
+		"CharLit", ml_mpc_string_parser(mpc_char_lit()),
+		"StringLit", ml_mpc_string_parser(mpc_string_lit()),
+		"RegexLit", ml_mpc_string_parser(mpc_regex_lit()),
+		"Ident", ml_mpc_string_parser(mpc_ident()),
+	NULL);
 }

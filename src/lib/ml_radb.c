@@ -326,17 +326,16 @@ ML_METHOD("get", CborIndexT, MLIntegerT) {
 	return ml_from_cbor(Cbor, MLNil, (void *)ml_value_tag_fn);
 }
 
-void ml_library_entry0(ml_value_t *Module) {
-	//const char *Dir = dirname(GC_strdup(ml_module_path(Module)));
-	//ml_value_t *Import = GlobalGet(Globals, "import");
-	//ml_simple_inline(Import, 1, ml_string_format("%s/ml_cbor.so", Dir));
-	ml_module_export(Module, "string_store_create", (ml_value_t *)StringStoreCreate);
-	ml_module_export(Module, "string_store_open", (ml_value_t *)StringStoreOpen);
-	ml_module_export(Module, "cbor_store_create", (ml_value_t *)CborStoreCreate);
-	ml_module_export(Module, "cbor_store_open", (ml_value_t *)CborStoreOpen);
-	ml_module_export(Module, "string_index_create", (ml_value_t *)StringIndexCreate);
-	ml_module_export(Module, "string_index_open", (ml_value_t *)StringIndexOpen);
-	ml_module_export(Module, "cbor_index_create", (ml_value_t *)CborIndexCreate);
-	ml_module_export(Module, "cbor_index_open", (ml_value_t *)CborIndexOpen);
+void ml_library_entry0(ml_value_t **Slot) {
 #include "ml_radb_init.c"
+	Slot[0] = ml_module("radb",
+		"string_store_create", StringStoreCreate,
+		"string_store_open", StringStoreOpen,
+		"cbor_store_create", CborStoreCreate,
+		"cbor_store_open", CborStoreOpen,
+		"string_index_create", StringIndexCreate,
+		"string_index_open", StringIndexOpen,
+		"cbor_index_create", CborIndexCreate,
+		"cbor_index_open", CborIndexOpen,
+	NULL);
 }
