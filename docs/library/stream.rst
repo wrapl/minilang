@@ -2,7 +2,7 @@ stream
 ======
 
 :mini:`type stream < any`
-   Base type of all byte streams.
+   Base type of readable and writable byte streams.
 
 
 :mini:`type stream::fd < stream`

@@ -71,7 +71,7 @@ macro
    Utility object for building a block expression.
 
 
-:mini:`fun macro::list(): exprbuilder`
+:mini:`fun macro::tuple(): exprbuilder`
    Returns a new list builder.
 
 
@@ -79,8 +79,12 @@ macro
    Returns a new list builder.
 
 
-:mini:`fun macro::list(): exprbuilder`
+:mini:`fun macro::map(): exprbuilder`
    Returns a new list builder.
+
+
+:mini:`fun macro::call(): exprbuilder`
+   Returns a new call builder.
 
 
 :mini:`meth (Builder: expr::builder):add(Expr...: expr, ...): blockbuilder`

@@ -70,14 +70,6 @@
 #include "ml_jsencode.h"
 #endif
 
-#ifdef ML_SQLITE
-#include "ml_sqlite.h"
-#endif
-
-#ifdef ML_RAPC
-#include "ml_rapc.h"
-#endif
-
 #ifdef ML_BACKTRACE
 #include <backtrace.h>
 #endif
@@ -211,7 +203,6 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "globals", ml_cfunction(Globals, (void *)ml_globals));
 
 #ifdef ML_LIBRARY
-
 	ml_library_init(Globals);
 	ml_module_t *Sys = ml_library_internal("sys");
 	ml_module_t *Std = ml_library_internal("std");
@@ -221,14 +212,11 @@ int main(int Argc, const char *Argv[]) {
 #define STD_EXPORTS Std->Exports
 #define FMT_EXPORTS Fmt->Exports
 #define IO_EXPORTS IO->Exports
-
 #else
-
 #define SYS_EXPORTS Globals
 #define STD_EXPORTS Globals
 #define FMT_EXPORTS Globals
 #define IO_EXPORTS Globals
-
 #endif
 
 	ml_stream_init(IO_EXPORTS);
@@ -271,12 +259,6 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_JSENCODE
 	ml_jsencode_init(Globals);
-#endif
-#ifdef ML_SQLITE
-	ml_sqlite_init(Globals);
-#endif
-#ifdef ML_RAPC
-	ml_rapc_init(Globals);
 #endif
 #ifdef ML_THREADS
 	ml_thread_init(SYS_EXPORTS);

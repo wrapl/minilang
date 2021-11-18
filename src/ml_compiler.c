@@ -2711,7 +2711,7 @@ ML_TYPE(MLExprBuilderT, (), "expr-builder");
 
 ML_FUNCTION(MLTupleBuilder) {
 //!macro
-//@macro::list
+//@macro::tuple
 //>exprbuilder
 // Returns a new list builder.
 	mlc_parent_expr_t *Expr = new(mlc_parent_expr_t);
@@ -2745,11 +2745,28 @@ ML_FUNCTION(MLListBuilder) {
 
 ML_FUNCTION(MLMapBuilder) {
 //!macro
-//@macro::list
+//@macro::map
 //>exprbuilder
 // Returns a new list builder.
 	mlc_parent_expr_t *Expr = new(mlc_parent_expr_t);
 	Expr->compile = ml_map_expr_compile;
+	Expr->Source = "<macro>";
+	Expr->StartLine = 1;
+	Expr->EndLine = 1;
+	mlc_expr_builder_t *Builder = new(mlc_expr_builder_t);
+	Builder->Type = MLExprBuilderT;
+	Builder->Expr = Expr;
+	Builder->ExprSlot = &Expr->Child;
+	return (ml_value_t *)Builder;
+}
+
+ML_FUNCTION(MLCallBuilder) {
+//!macro
+//@macro::call
+//>exprbuilder
+// Returns a new call builder.
+	mlc_parent_expr_t *Expr = new(mlc_parent_expr_t);
+	Expr->compile = ml_call_expr_compile;
 	Expr->Source = "<macro>";
 	Expr->StartLine = 1;
 	Expr->EndLine = 1;
@@ -5597,6 +5614,7 @@ void ml_compiler_init() {
 	stringmap_insert(MLMacroT->Exports, "tuple", MLTupleBuilder);
 	stringmap_insert(MLMacroT->Exports, "list", MLListBuilder);
 	stringmap_insert(MLMacroT->Exports, "map", MLMapBuilder);
+	stringmap_insert(MLMacroT->Exports, "call", MLCallBuilder);
 	stringmap_insert(StringFns, "r", ml_regex);
 	stringmap_insert(StringFns, "ri", ml_regexi);
 }
