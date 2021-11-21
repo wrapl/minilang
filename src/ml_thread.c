@@ -173,6 +173,7 @@ static void *ml_thread_fn(ml_thread_t *Thread) {
 	Thread->Counter = 256;
 	ml_context_set(Context, ML_SCHEDULER_INDEX, ml_thread_scheduler);
 #endif
+	ml_context_set(Context, ML_THREAD_INDEX, Thread);
 	ml_value_t **Args = Thread->Args;
 	int Count = Thread->Count;
 	Thread->Args = NULL;
