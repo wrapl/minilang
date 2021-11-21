@@ -9,7 +9,6 @@ typedef struct {
 		ml_value_t *Result;
 	};
 #ifdef ML_SCHEDULER
-	ml_scheduler_queue_t Queue;
 	uint64_t Counter;
 #endif
 	pthread_t Handle;
@@ -20,12 +19,8 @@ __thread ml_thread_t *CurrentThread;
 
 #ifdef ML_SCHEDULER
 
-static void ml_thread_scheduler_queue_add(ml_state_t *State, ml_value_t *Value) {
-	ml_scheduler_queue_add(&CurrentThread->Queue, State, Value);
-}
-
 static ml_schedule_t ml_thread_scheduler(ml_context_t *Context) {
-	return (ml_schedule_t){&CurrentThread->Counter, (void *)ml_thread_scheduler_queue_add};
+	return (ml_schedule_t){&CurrentThread->Counter, (void *)ml_scheduler_queue_add};
 }
 
 #endif
@@ -172,14 +167,19 @@ static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLUUIDT, ml_value_t *Value) {
 
 static void *ml_thread_fn(ml_thread_t *Thread) {
 	CurrentThread = Thread;
+	ml_context_t *Context = Thread->Base.Context;
+#ifdef ML_SCHEDULER
+	ml_scheduler_queue_init(8);
+	Thread->Counter = 256;
+	ml_context_set(Context, ML_SCHEDULER_INDEX, ml_thread_scheduler);
+#endif
 	ml_value_t **Args = Thread->Args;
 	int Count = Thread->Count;
 	Thread->Args = NULL;
 	Thread->Count = 0;
 	ml_call((ml_state_t *)Thread, Args[Count - 1], Count - 1, Args);
 	while (!Thread->Result) {
-		ml_queued_state_t QueuedState = ml_scheduler_queue_next(&Thread->Queue);
-		if (!QueuedState.State) break;
+		ml_queued_state_t QueuedState = ml_scheduler_queue_next_wait();
 		Thread->Counter = 256;
 		QueuedState.State->run(QueuedState.State, QueuedState.Value);
 	}
@@ -205,15 +205,10 @@ ML_FUNCTIONX(MLThread) {
 	}
 	ml_thread_t *Thread = new(ml_thread_t);
 	Thread->Base.Type = MLThreadT;
-	ml_context_t *Context = Thread->Base.Context = ml_context_new(Caller->Context);
+	Thread->Base.Context = ml_context_new(Caller->Context);
 	Thread->Base.run = (ml_state_fn)ml_thread_run;
 	Thread->Count = Count;
 	Thread->Args = Args2;
-#ifdef ML_SCHEDULER
-	ml_scheduler_queue_init(&Thread->Queue, 8);
-	Thread->Counter = 256;
-	ml_context_set(Context, ML_SCHEDULER_INDEX, ml_thread_scheduler);
-#endif
 	pthread_create(&Thread->Handle, NULL, (void *)ml_thread_fn, Thread);
 	ML_RETURN(Thread);
 }

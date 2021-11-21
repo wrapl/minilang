@@ -8,7 +8,7 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "stream"
 
-ML_TYPE(MLStreamT, (MLAnyT), "stream");
+ML_INTERFACE(MLStreamT, (MLAnyT), "stream");
 // Base type of readable and writable byte streams.
 
 ML_METHOD_DECL(ReadMethod, "read");

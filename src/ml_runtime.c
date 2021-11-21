@@ -139,20 +139,6 @@ void ml_default_state_run(ml_state_t *State, ml_value_t *Value) {
 	ML_CONTINUE(State->Caller, Value);
 }
 
-static void ml_main_state_run(ml_state_t *State, ml_value_t *Result) {
-	if (ml_is_error(Result)) {
-		printf("%s: %s\n", ml_error_type(Result), ml_error_message(Result));
-		ml_source_t Source;
-		int Level = 0;
-		while (ml_error_source(Result, Level++, &Source)) {
-			printf("\t%s:%d\n", Source.Name, Source.Line);
-		}
-		exit(1);
-	}
-}
-
-ml_state_t MLMain[1] = {{MLStateT, NULL, ml_main_state_run, &MLRootContext}};
-
 static void ml_call_state_run(ml_call_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
 		ML_CONTINUE(State->Base.Caller, Value);
@@ -207,7 +193,7 @@ typedef struct {
 
 ml_state_t *ml_state_new(ml_state_t *Caller) {
 	ml_context_state_t *State = xnew(ml_context_state_t, MLContextSize, void *);
-	ml_context_t *Parent = Caller->Context;
+	ml_context_t *Parent = Caller ? Caller->Context : &MLRootContext;
 	State->Context->Parent = Parent;
 	State->Context->Size = MLContextSize;
 	for (int I = 0; I < Parent->Size; ++I) State->Context->Values[I] = Parent->Values[I];
@@ -853,14 +839,33 @@ ML_METHOD("source", MLStateT) {
 
 #ifdef ML_SCHEDULER
 
-static ml_scheduler_queue_t DefaultQueue;
+typedef struct {
+	ml_queued_state_t *States;
+#ifdef ML_THREADS
+	pthread_mutex_t Lock[1];
+	pthread_cond_t Available[1];
+#endif
+	int Size, Fill, Write, Read;
+} ml_scheduler_queue_t;
 
-void ml_scheduler_queue_init(ml_scheduler_queue_t *Queue, int Size) {
+static
+
+#ifdef ML_THREADS
+__thread
+#endif
+
+ml_scheduler_queue_t Queue[1];
+
+void ml_scheduler_queue_init(int Size) {
 	Queue->Size = Size;
 	Queue->States = anew(ml_queued_state_t, Size);
+#ifdef ML_THREADS
+	pthread_mutex_init(Queue->Lock, NULL);
+	pthread_cond_init(Queue->Available, NULL);
+#endif
 }
 
-ml_queued_state_t ml_scheduler_queue_next(ml_scheduler_queue_t *Queue) {
+ml_queued_state_t ml_scheduler_queue_next() {
 	if (Queue->Fill) {
 		ml_queued_state_t *States = Queue->States;
 		int Read = Queue->Read;
@@ -874,7 +879,10 @@ ml_queued_state_t ml_scheduler_queue_next(ml_scheduler_queue_t *Queue) {
 	}
 }
 
-int ml_scheduler_queue_add(ml_scheduler_queue_t *Queue, ml_state_t *State, ml_value_t *Value) {
+int ml_scheduler_queue_add(ml_state_t *State, ml_value_t *Value) {
+#ifdef ML_THREADS
+	pthread_mutex_lock(Queue->Lock);
+#endif
 	if (++Queue->Fill > Queue->Size) {
 		int NewQueueSize = Queue->Size * 2;
 		ml_queued_state_t *NewQueuedStates = anew(ml_queued_state_t, NewQueueSize);
@@ -887,20 +895,35 @@ int ml_scheduler_queue_add(ml_scheduler_queue_t *Queue, ml_state_t *State, ml_va
 	int Write = Queue->Write;
 	Queue->States[Write] = (ml_queued_state_t){State, Value};
 	Queue->Write = (Write + 1) % Queue->Size;
-	return Queue->Fill;
+	int Fill = Queue->Fill;
+#ifdef ML_THREADS
+	pthread_mutex_unlock(Queue->Lock);
+#endif
+	return Fill;
 }
 
-void ml_default_queue_init(int Size) {
-	return ml_scheduler_queue_init(&DefaultQueue, Size);
+#ifdef ML_THREADS
+
+ml_queued_state_t ml_scheduler_queue_next_wait() {
+	pthread_mutex_lock(Queue->Lock);
+	while (!Queue->Fill) pthread_cond_wait(Queue->Available, Queue->Lock);
+	ml_queued_state_t *States = Queue->States;
+	int Read = Queue->Read;
+	ml_queued_state_t QueuedState = States[Read];
+	States[Read] = (ml_queued_state_t){NULL, NULL};
+	--Queue->Fill;
+	Queue->Read = (Read + 1) % Queue->Size;
+	pthread_mutex_unlock(Queue->Lock);
+	return QueuedState;
 }
 
-ml_queued_state_t ml_default_queue_next() {
-	return ml_scheduler_queue_next(&DefaultQueue);
+int ml_scheduler_queue_add_signal(ml_state_t *State, ml_value_t *Value) {
+	int Fill = ml_scheduler_queue_add(State, Value);
+	if (Fill == 1) pthread_cond_signal(Queue->Available);
+	return Fill;
 }
 
-int ml_default_queue_add(ml_state_t *State, ml_value_t *Value) {
-	return ml_scheduler_queue_add(&DefaultQueue, State, Value);
-}
+#endif
 
 #endif
 

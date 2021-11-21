@@ -143,20 +143,20 @@ static ml_value_t *ml_globals(stringmap_t *Globals, int Count, ml_value_t **Args
 
 #ifdef ML_SCHEDULER
 
-static unsigned int SliceSize = 0;
+static unsigned int SliceSize = 256;
 static uint64_t Counter;
+static ml_value_t *MainResult = NULL;
 
 static void simple_queue_run() {
-	for (;;) {
-		ml_queued_state_t QueuedState = ml_default_queue_next();
-		if (!QueuedState.State) break;
+	while (!MainResult) {
+		ml_queued_state_t QueuedState = ml_scheduler_queue_next_wait();
 		Counter = SliceSize;
 		QueuedState.State->run(QueuedState.State, QueuedState.Value);
 	}
 }
 
 static ml_schedule_t simple_scheduler(ml_context_t *Context) {
-	return (ml_schedule_t){&Counter, (void *)ml_default_queue_add};
+	return (ml_schedule_t){&Counter, (void *)ml_scheduler_queue_add_signal};
 }
 
 #endif
@@ -169,6 +169,19 @@ static void error_handler(int Signal) {
 	exit(0);
 }
 #endif
+
+static void ml_main_state_run(ml_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) {
+		printf("%s: %s\n", ml_error_type(Value), ml_error_message(Value));
+		ml_source_t Source;
+		int Level = 0;
+		while (ml_error_source(Value, Level++, &Source)) {
+			printf("\t%s:%d\n", Source.Name, Source.Line);
+		}
+		exit(1);
+	}
+	MainResult = Value;
+}
 
 int main(int Argc, const char *Argv[]) {
 #ifdef ML_BACKTRACE
@@ -323,20 +336,22 @@ int main(int Argc, const char *Argv[]) {
 			FileName = Argv[I];
 		}
 	}
+	ml_state_t *Main = ml_state_new(NULL);
+	Main->run = ml_main_state_run;
 #ifdef ML_SCHEDULER
 	if (SliceSize) {
 		Counter = SliceSize;
-		ml_default_queue_init(4);
-		ml_context_set(&MLRootContext, ML_SCHEDULER_INDEX, simple_scheduler);
+		ml_scheduler_queue_init(8);
+		ml_context_set(Main->Context, ML_SCHEDULER_INDEX, simple_scheduler);
 	}
 #endif
 	if (FileName) {
 #ifdef ML_MODULES
 		if (LoadModule) {
-			ml_library_load(MLMain, NULL, FileName);
+			ml_library_load(Main, NULL, FileName);
 		} else {
 #endif
-		ml_call_state_t *State = ml_call_state_new(MLMain, 1);
+		ml_call_state_t *State = ml_call_state_new(Main, 1);
 		State->Args[0] = Args;
 		ml_load_file((ml_state_t *)State, global_get, NULL, FileName, NULL);
 #ifdef ML_MODULES

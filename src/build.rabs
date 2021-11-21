@@ -212,6 +212,9 @@ file("config.h") => fun(Target) do
 	if MINILANG_THREADSAFE then
 		File:write("\n#define ML_THREADSAFE\n")
 	end
+	if MINILANG_THREADS then
+		File:write("\n#define ML_THREADS\n")
+	end
 	File:write("\n#endif")
 	File:close
 end
@@ -324,7 +327,6 @@ if MINILANG_MODULES then
 end
 
 if MINILANG_THREADS then
-	CFLAGS := old + ['-DML_THREADS']
 	LDFLAGS := old + ["-pthread"]
 	Objects:put(file("ml_thread.o"))
 	InstallHeaders:put("ml_thread.h")

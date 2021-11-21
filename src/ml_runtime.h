@@ -51,11 +51,9 @@ struct ml_state_t {
 
 extern ml_type_t MLStateT[];
 
-ml_state_t *ml_state_new(ml_state_t *Caller);
+ml_state_t *ml_state_new(ml_state_t *Caller) __attribute__ ((malloc));
 
 void ml_default_state_run(ml_state_t *State, ml_value_t *Value);
-
-extern ml_state_t MLMain[];
 
 typedef struct {
 	ml_state_t Base;
@@ -202,18 +200,17 @@ typedef struct {
 	ml_value_t *Value;
 } ml_queued_state_t;
 
-typedef struct {
-	ml_queued_state_t *States;
-	int Size, Fill, Write, Read;
-} ml_scheduler_queue_t;
+void ml_scheduler_queue_init(int Size);
+ml_queued_state_t ml_scheduler_queue_next();
+int ml_scheduler_queue_add(ml_state_t *State, ml_value_t *Value);
 
-void ml_scheduler_queue_init(ml_scheduler_queue_t *Queue, int Size);
-ml_queued_state_t ml_scheduler_queue_next(ml_scheduler_queue_t *Queue);
-int ml_scheduler_queue_add(ml_scheduler_queue_t *Queue, ml_state_t *State, ml_value_t *Value);
-
-void ml_default_queue_init(int Size);
-ml_queued_state_t ml_default_queue_next();
-int ml_default_queue_add(ml_state_t *State, ml_value_t *Value);
+#ifdef ML_THREADS
+ml_queued_state_t ml_scheduler_queue_next_wait();
+int ml_scheduler_queue_add_signal(ml_state_t *State, ml_value_t *Value);
+#else
+#define ml_scheduler_queue_next_wait ml_scheduler_queue_next
+#define ml_scheduler_queue_add_signal ml_scheduler_queue_add
+#endif
 
 // Semaphores
 

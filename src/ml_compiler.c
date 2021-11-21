@@ -2654,7 +2654,7 @@ ML_METHODV("do", MLBlockBuilderT, MLExprT) {
 	return Args[0];
 }
 
-ML_METHOD("expr", MLBlockBuilderT) {
+ML_METHOD("end", MLBlockBuilderT) {
 //!macro
 //<Builder
 //>expr
@@ -2793,7 +2793,7 @@ ML_METHODV("add", MLExprBuilderT, MLExprT) {
 	return Args[0];
 }
 
-ML_METHOD("expr", MLExprBuilderT) {
+ML_METHOD("end", MLExprBuilderT) {
 //!macro
 //<Builder
 //>expr

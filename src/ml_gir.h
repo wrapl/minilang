@@ -14,4 +14,7 @@ void ml_gir_init(stringmap_t *Globals);
 
 ml_value_t *ml_gir_instance_get(void *Handle, GIBaseInfo *Info);
 
+void ml_gir_queue_add(ml_state_t *State, ml_value_t *Value);
+ml_schedule_t ml_gir_scheduler(ml_context_t *Context);
+
 #endif

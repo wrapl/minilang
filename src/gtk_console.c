@@ -568,34 +568,8 @@ static gboolean console_update_status(console_t *Console) {
 
 #ifdef ML_SCHEDULER
 
-static uint64_t Counter = 1000;
-
-static gboolean queue_run(void *Data) {
-	ml_queued_state_t QueuedState = ml_default_queue_next();
-	if (!QueuedState.State) return FALSE;
-	Counter = 1000;
-	QueuedState.State->run(QueuedState.State, QueuedState.Value);
-	return TRUE;
-}
-
-static void console_swap_state(ml_state_t *State, ml_value_t *Value) {
-	if (ml_default_queue_add(State, Value) == 1) g_idle_add(queue_run, NULL);
-}
-
-static ml_schedule_t console_scheduler(ml_context_t *Context) {
-	return (ml_schedule_t){&Counter, console_swap_state};
-}
-
-static void console_schedule(ml_state_t *Caller, console_t *Console, int Count, ml_value_t **Args) {
-	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLFunctionT);
-	ml_state_t *State = ml_state_new(Caller);
-	ml_context_set(State->Context, ML_SCHEDULER_INDEX, console_scheduler);
-	return ml_call(State, Args[0], Count - 1, Args + 1);
-}
-
 static gboolean sleep_run(void *Data) {
-	console_swap_state((ml_state_t *)Data, MLNil);
+	ml_gir_queue_add((ml_state_t *)Data, MLNil);
 	return FALSE;
 }
 
@@ -627,7 +601,7 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 	Console->Notebook = GTK_NOTEBOOK(gtk_notebook_new());
 
 #ifdef ML_SCHEDULER
-	ml_context_set(Console->Base.Context, ML_SCHEDULER_INDEX, console_scheduler);
+	ml_context_set(Console->Base.Context, ML_SCHEDULER_INDEX, ml_gir_scheduler);
 #endif
 
 	asprintf((char **)&Console->ConfigPath, "%s/%s", g_get_user_config_dir(), "minilang.conf");
@@ -777,7 +751,6 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 	ml_compiler_define(Console->Compiler, "include", ml_cfunctionx(Console, (ml_callbackx_t)console_include_fnx));
 
 #ifdef ML_SCHEDULER
-	ml_compiler_define(Console->Compiler, "schedule", ml_cfunctionx(Console, (ml_callbackx_t)console_schedule));
 	ml_compiler_define(Console->Compiler, "sleep", (ml_value_t *)MLSleep);
 #endif
 

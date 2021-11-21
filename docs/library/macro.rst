@@ -59,7 +59,7 @@ macro
    Adds the expression :mini:`Expr` to a block.
 
 
-:mini:`meth (Builder: block::builder):expr: expr`
+:mini:`meth (Builder: block::builder):end: expr`
    Finishes a block and returns it as an expression.
 
 
@@ -91,7 +91,7 @@ macro
    Adds the expression :mini:`Expr` to a block.
 
 
-:mini:`meth (Builder: expr::builder):expr: expr`
+:mini:`meth (Builder: expr::builder):end: expr`
    Finishes a block and returns it as an expression.
 
 
