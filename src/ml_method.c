@@ -182,6 +182,8 @@ static __attribute__ ((noinline)) ml_value_t *ml_method_search2(ml_state_t *Call
 	ml_type_t *Types[ML_SMALL_METHOD_COUNT];
 	uintptr_t Hash = (uintptr_t)Method;
 	for (ssize_t I = Count; --I >= 0;) {
+		if (!Args[I]) asm("int3");
+		if (!ml_typeof(Args[I])) asm("int3");
 		ml_type_t *Type = Types[I] = ml_typeof_deref(Args[I]);
 		Hash = rotl(Hash, 1) ^ (uintptr_t)Type;
 	}

@@ -601,7 +601,7 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 	Console->Notebook = GTK_NOTEBOOK(gtk_notebook_new());
 
 #ifdef ML_SCHEDULER
-	ml_context_set(Console->Base.Context, ML_SCHEDULER_INDEX, ml_gir_scheduler);
+	ml_context_set(Console->Base.Context, ML_SCHEDULER_INDEX, GirSchedule);
 #endif
 
 	asprintf((char **)&Console->ConfigPath, "%s/%s", g_get_user_config_dir(), "minilang.conf");

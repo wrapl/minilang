@@ -2114,12 +2114,14 @@ ML_METHOD("::", ObjectInstanceT, MLStringT) {
 
 #ifdef ML_SCHEDULER
 
-static uint64_t Counter = 256;
+void ml_gir_queue_add(ml_state_t *State, ml_value_t *Value);
+
+ml_schedule_t GirSchedule[1] = {{256, ml_gir_queue_add}};
 
 static gboolean ml_gir_queue_run(void *Data) {
 	ml_queued_state_t QueuedState = ml_scheduler_queue_next();
 	if (!QueuedState.State) return FALSE;
-	Counter = 256;
+	GirSchedule->Counter = 256;
 	QueuedState.State->run(QueuedState.State, QueuedState.Value);
 	return TRUE;
 }
@@ -2128,16 +2130,13 @@ void ml_gir_queue_add(ml_state_t *State, ml_value_t *Value) {
 	if (ml_scheduler_queue_add(State, Value) == 1) g_idle_add(ml_gir_queue_run, NULL);
 }
 
-ml_schedule_t ml_gir_scheduler(ml_context_t *Context) {
-	return (ml_schedule_t){&Counter, ml_gir_queue_add};
-}
-
 #endif
 
 ML_FUNCTIONX(MLGirRun) {
 	ML_CHECKX_ARG_COUNT(1);
 	ml_state_t *State = ml_state_new(Caller);
-	ml_context_set(State->Context, ML_SCHEDULER_INDEX, ml_gir_scheduler);
+	ml_context_set(State->Context, ML_SCHEDULER_INDEX, GirSchedule);
+	return ml_call(State, Args[0], 0, NULL);
 }
 
 #endif

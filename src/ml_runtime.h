@@ -186,14 +186,10 @@ extern ml_cfunction_t MLDebugger[];
 
 // Preemption //
 
-typedef struct ml_schedule_t ml_schedule_t;
-
-struct ml_schedule_t {
-	uint64_t *Counter;
+typedef struct {
+	uint64_t Counter;
 	void (*swap)(ml_state_t *State, ml_value_t *Value);
-};
-
-typedef ml_schedule_t (*ml_scheduler_t)(ml_context_t *Context);
+} ml_schedule_t;
 
 typedef struct {
 	ml_state_t *State;

@@ -96,7 +96,7 @@ struct DEBUG_STRUCT(frame) {
 	ml_inst_t *OnError;
 	ml_value_t **UpValues;
 #ifdef ML_SCHEDULER
-	ml_schedule_t Schedule;
+	ml_schedule_t *Schedule;
 #endif
 	unsigned int Line;
 	char Continue, Reentry, Suspend;
@@ -254,7 +254,7 @@ extern ml_value_t *SymbolMethod;
 #define ML_FRAME_REUSE_SIZE 384
 
 #ifdef ML_SCHEDULER
-#define ML_STORE_COUNTER() Frame->Schedule.Counter[0] = Counter
+#define ML_STORE_COUNTER() Frame->Schedule->Counter = Counter
 #else
 #define ML_STORE_COUNTER() {}
 
@@ -473,7 +473,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ML_CONTINUE(Frame->Base.Caller, Error);
 	}
 #ifdef ML_SCHEDULER
-	uint64_t Counter = Frame->Schedule.Counter[0];
+	uint64_t Counter = Frame->Schedule->Counter;
 #endif
 	ml_inst_t *Inst = Frame->Inst;
 	ml_value_t **Top = Frame->Top;
@@ -499,9 +499,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		goto *Labels[Inst->Opcode];
 	}
 	DO_RETURN: {
-#ifdef ML_SCHEDULER
-		Frame->Schedule.Counter[0] = Counter;
-#endif
+		ML_STORE_COUNTER();
 		ml_state_t *Caller = Frame->Base.Caller;
 		if (!Frame->Continue) {
 			//memset(Frame, 0, ML_FRAME_REUSE_SIZE);
@@ -521,9 +519,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Line = Inst->Line;
 		Frame->Inst = Inst + 1;
 		Frame->Top = Top;
-#ifdef ML_SCHEDULER
-		Frame->Schedule.Counter[0] = Counter;
-#endif
+		ML_STORE_COUNTER();
 		Frame->Suspend = 1;
 		ML_CONTINUE(Frame->Base.Caller, (ml_value_t *)Frame);
 	}
@@ -757,9 +753,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Line = Inst->Line;
 		Frame->Inst = Inst + 1;
 		Frame->Top = Top;
-#ifdef ML_SCHEDULER
-		Frame->Schedule.Counter[0] = Counter;
-#endif
+		ML_STORE_COUNTER();
 		return ml_iterate((ml_state_t *)Frame, Result);
 	}
 	DO_ITER: {
@@ -777,9 +771,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Line = Inst->Line;
 		Frame->Inst = Inst[1].Inst;
 		Frame->Top = Top;
-#ifdef ML_SCHEDULER
-		Frame->Schedule.Counter[0] = Counter;
-#endif
+		ML_STORE_COUNTER();
 		return ml_iter_next((ml_state_t *)Frame, Result);
 	}
 	DO_VALUE_1: {
@@ -787,9 +779,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Line = Inst->Line;
 		Frame->Inst = Inst + 1;
 		Frame->Top = Top;
-#ifdef ML_SCHEDULER
-		Frame->Schedule.Counter[0] = Counter;
-#endif
+		ML_STORE_COUNTER();
 		return ml_iter_value((ml_state_t *)Frame, Result);
 	}
 	DO_VALUE_2: {
@@ -797,9 +787,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Line = Inst->Line;
 		Frame->Inst = Inst + 1;
 		Frame->Top = Top;
-#ifdef ML_SCHEDULER
-		Frame->Schedule.Counter[0] = Counter;
-#endif
+		ML_STORE_COUNTER();
 		return ml_iter_value((ml_state_t *)Frame, Result);
 	}
 	DO_KEY: {
@@ -807,9 +795,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Line = Inst->Line;
 		Frame->Inst = Inst + 1;
 		Frame->Top = Top;
-#ifdef ML_SCHEDULER
-		Frame->Schedule.Counter[0] = Counter;
-#endif
+		ML_STORE_COUNTER();
 		return ml_iter_key((ml_state_t *)Frame, Result);
 	}
 	DO_CALL: {
@@ -817,9 +803,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_value_t *Function = Top[~Count];
 		ml_value_t **Args = Top - Count;
 		ml_inst_t *Next = Inst + 2;
-#ifdef ML_SCHEDULER
-		Frame->Schedule.Counter[0] = Counter;
-#endif
+		ML_STORE_COUNTER();
 #ifndef ML_DEBUGGER
 		if (Next->Opcode == MLI_RETURN && !Frame->Continue) {
 			// Ensure at least one other cached frame is available to prevent this frame being used immediately which may result in arguments being overwritten.
@@ -846,9 +830,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		int Count = Inst[2].Count;
 		ml_value_t **Args = Top - Count;
 		ml_inst_t *Next = Inst + 3;
-#ifdef ML_SCHEDULER
-		Frame->Schedule.Counter[0] = Counter;
-#endif
+		ML_STORE_COUNTER();
 #ifndef ML_DEBUGGER
 		if (Next->Opcode == MLI_RETURN && !Frame->Continue) {
 			// Ensure at least one other cached frame is available to prevent this frame being used immediately which may result in arguments being overwritten.
@@ -904,9 +886,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		}
 		ml_value_t *Function = Cached->Callback;
 		ml_inst_t *Next = Inst + 4;
-#ifdef ML_SCHEDULER
-		Frame->Schedule.Counter[0] = Counter;
-#endif
+		ML_STORE_COUNTER();
 #ifndef ML_DEBUGGER
 		if (Next->Opcode == MLI_RETURN && !Frame->Continue) {
 			// Ensure at least one other cached frame is available to prevent this frame being used immediately which may result in arguments being overwritten.
@@ -1097,9 +1077,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		int Count = Inst[1].Count;
 		ml_value_t **Args = Top - (Count + 1);
 		ml_inst_t *Next = Inst + 2;
-#ifdef ML_SCHEDULER
-		Frame->Schedule.Counter[0] = Counter;
-#endif
+		ML_STORE_COUNTER();
 		Frame->Line = Inst->Line;
 		Frame->Inst = Next;
 		Frame->Top = Top - Count;
@@ -1108,9 +1086,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_STRING_ADD_1: {
 		ml_value_t **Args = Top - 2;
 		ml_inst_t *Next = Inst + 1;
-#ifdef ML_SCHEDULER
-		Frame->Schedule.Counter[0] = Counter;
-#endif
+		ML_STORE_COUNTER();
 		Frame->Line = Inst->Line;
 		Frame->Inst = Next;
 		Frame->Top = Top - 1;
@@ -1137,9 +1113,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Args[0] = Result;
 		Args[1] = Inst[1].Value;
 		ml_inst_t *Next = Inst + 2;
-#ifdef ML_SCHEDULER
-		Frame->Schedule.Counter[0] = Counter;
-#endif
+		ML_STORE_COUNTER();
 		Frame->Line = Inst->Line;
 		Frame->Inst = Next;
 		Frame->Top = Top;
@@ -1205,7 +1179,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Line = Inst->Line;
 		Frame->Inst = Inst;
 		Frame->Top = Top;
-		return Frame->Schedule.swap((ml_state_t *)Frame, Result);
+		return Frame->Schedule->swap((ml_state_t *)Frame, Result);
 	}
 #endif
 }
@@ -1335,8 +1309,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 	Frame->Inst = Info->Entry;
 	Frame->Line = Info->Entry->Line - 1;
 #ifdef ML_SCHEDULER
-	ml_scheduler_t scheduler = (ml_scheduler_t)Caller->Context->Values[ML_SCHEDULER_INDEX];
-	Frame->Schedule = scheduler(Caller->Context);
+	Frame->Schedule = (ml_schedule_t *)Caller->Context->Values[ML_SCHEDULER_INDEX];
 #endif
 #ifdef DEBUG_VERSION
 	Frame->Debugger = Debugger;

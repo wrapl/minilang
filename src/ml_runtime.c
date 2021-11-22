@@ -29,22 +29,20 @@ static int MLContextSize = 6;
 //	4: Module Path
 //	5: Current Thread
 
-static uint64_t DefaultCounter = UINT_MAX;
+static void default_swap(ml_state_t *State, ml_value_t *Value);
+
+static ml_schedule_t DefaultSchedule = {UINT_MAX, default_swap};
 
 static void default_swap(ml_state_t *State, ml_value_t *Value) {
-	DefaultCounter = UINT_MAX;
+	DefaultSchedule.Counter = UINT_MAX;
 	return State->run(State, Value);
-}
-
-static ml_schedule_t default_scheduler(ml_context_t *Context) {
-	return (ml_schedule_t){&DefaultCounter, default_swap};
 }
 
 ml_context_t MLRootContext = {&MLRootContext, 5, {
 	NULL,
 	NULL,
 	NULL,
-	default_scheduler,
+	&DefaultSchedule,
 	NULL
 }};
 

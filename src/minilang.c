@@ -144,19 +144,15 @@ static ml_value_t *ml_globals(stringmap_t *Globals, int Count, ml_value_t **Args
 #ifdef ML_SCHEDULER
 
 static unsigned int SliceSize = 256;
-static uint64_t Counter;
 static ml_value_t *MainResult = NULL;
+static ml_schedule_t MainSchedule = {256, (void *)ml_scheduler_queue_add_signal};
 
 static void simple_queue_run() {
 	while (!MainResult) {
 		ml_queued_state_t QueuedState = ml_scheduler_queue_next_wait();
-		Counter = SliceSize;
+		MainSchedule.Counter = SliceSize;
 		QueuedState.State->run(QueuedState.State, QueuedState.Value);
 	}
-}
-
-static ml_schedule_t simple_scheduler(ml_context_t *Context) {
-	return (ml_schedule_t){&Counter, (void *)ml_scheduler_queue_add_signal};
 }
 
 #endif
@@ -340,9 +336,9 @@ int main(int Argc, const char *Argv[]) {
 	Main->run = ml_main_state_run;
 #ifdef ML_SCHEDULER
 	if (SliceSize) {
-		Counter = SliceSize;
+		MainSchedule.Counter = SliceSize;
 		ml_scheduler_queue_init(8);
-		ml_context_set(Main->Context, ML_SCHEDULER_INDEX, simple_scheduler);
+		ml_context_set(Main->Context, ML_SCHEDULER_INDEX, &MainSchedule);
 	}
 #endif
 	if (FileName) {
