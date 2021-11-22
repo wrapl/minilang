@@ -20,7 +20,7 @@ __thread ml_thread_t *CurrentThread;
 #ifdef ML_SCHEDULER
 
 static ml_schedule_t ml_thread_scheduler(ml_context_t *Context) {
-	return (ml_schedule_t){&CurrentThread->Counter, (void *)ml_scheduler_queue_add};
+	return (ml_schedule_t){&CurrentThread->Counter, (void *)ml_scheduler_queue_add_signal};
 }
 
 #endif
