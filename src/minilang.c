@@ -295,6 +295,8 @@ int main(int Argc, const char *Argv[]) {
 					exit(-1);
 				}
 			break;
+#endif
+#ifdef ML_LIBRARY
 			case 'L':
 				if (Argv[I][2]) {
 					ml_library_path_add(Argv[I] + 2);
