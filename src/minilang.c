@@ -342,7 +342,7 @@ int main(int Argc, const char *Argv[]) {
 	}
 #endif
 	if (FileName) {
-#ifdef ML_MODULES
+#ifdef ML_LIBRARY
 		if (LoadModule) {
 			ml_library_load(Main, NULL, FileName);
 		} else {
