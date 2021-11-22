@@ -1649,7 +1649,6 @@ typedef struct {
 	ml_value_t *Iter, *Function, *Error;
 	ml_value_t *Args[2];
 	size_t Waiting, Limit, Burst;
-	int Calling;
 } ml_parallel_t;
 
 static void parallel_iter_next(ml_state_t *State, ml_value_t *Iter) {
@@ -1657,7 +1656,6 @@ static void parallel_iter_next(ml_state_t *State, ml_value_t *Iter) {
 	if (Parallel->Error) return;
 	if (Iter == MLNil) {
 		Parallel->Iter = NULL;
-		--Parallel->Waiting;
 		ML_CONTINUE(Parallel, MLNil);
 	}
 	if (ml_is_error(Iter)) {
@@ -1678,9 +1676,7 @@ static void parallel_iter_value(ml_state_t *State, ml_value_t *Value) {
 	ml_parallel_t *Parallel = (ml_parallel_t *)((char *)State - offsetof(ml_parallel_t, ValueState));
 	if (Parallel->Error) return;
 	Parallel->Args[1] = Value;
-	Parallel->Calling = 1;
 	ml_call(Parallel, Parallel->Function, 2, Parallel->Args);
-	Parallel->Calling = 0;
 	if (Parallel->Iter) {
 		if (Parallel->Waiting > Parallel->Limit) return;
 		++Parallel->Waiting;
@@ -1695,7 +1691,7 @@ static void parallel_continue(ml_parallel_t *Parallel, ml_value_t *Value) {
 		ML_CONTINUE(Parallel->Base.Caller, Value);
 	}
 	--Parallel->Waiting;
-	if (Parallel->Iter && !Parallel->Calling) {
+	if (Parallel->Iter) {
 		if (Parallel->Waiting > Parallel->Burst) return;
 		++Parallel->Waiting;
 		return ml_iter_next(Parallel->NextState, Parallel->Iter);
@@ -1748,7 +1744,6 @@ ML_FUNCTIONX(Parallel) {
 		Parallel->Function = Args[1];
 	}
 
-	++Parallel->Waiting;
 	return ml_iterate(Parallel->NextState, Args[0]);
 }
 
