@@ -350,7 +350,7 @@ int main(int Argc, const char *Argv[]) {
 		ml_call_state_t *State = ml_call_state_new(Main, 1);
 		State->Args[0] = Args;
 		ml_load_file((ml_state_t *)State, global_get, NULL, FileName, NULL);
-#ifdef ML_MODULES
+#ifdef ML_LIBRARY
 		}
 #endif
 #ifdef ML_SCHEDULER
