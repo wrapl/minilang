@@ -290,6 +290,7 @@ ML_METHOD("send", MLThreadChannelT, MLAnyT) {
 
 ML_METHODV("recv", MLThreadChannelT) {
 //<Channel/1
+//<...,Channel/n:thread::channel
 //>tuple[integer,any]
 // Gets the next available message on any of :mini:`Channel/1, ..., Channel/n`, blocking if :mini:`Channel` is empty. Returns :mini:`(Index, Message)` where :mini:`Index = 1, ..., n`.
 	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLThreadChannelT);
@@ -359,6 +360,68 @@ ML_METHOD("unlock", MLThreadMutexT) {
 
 static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLThreadMutexT, ml_value_t *Value) {
 	return NULL;
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_thread_mutex_t *Mutex;
+	ml_value_t *Value;
+} ml_thread_protected_t;
+
+ML_TYPE(MLThreadProtectedT, (), "thread-protected");
+// A thread-safe (protected) wrapper for another value.
+
+ML_METHOD("protect", MLThreadMutexT, MLAnyT) {
+//<Mutex
+//<Value
+//>thread::protected
+// Creates a thread-safe (protected) wrapper for :mini:`Value`.
+	ml_thread_protected_t *Protected = new(ml_thread_protected_t);
+	Protected->Type = MLThreadProtectedT;
+	Protected->Mutex = (ml_thread_mutex_t *)Args[0];
+	Protected->Value = Args[1];
+	return (ml_value_t *)Protected;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLThreadProtectedT, ml_value_t *Value) {
+	return NULL;
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_thread_mutex_t *Mutex;
+	ml_value_t *Args[];
+} ml_thread_protect_state_t;
+
+static void ml_thread_protect_state_run(ml_thread_protect_state_t *State, ml_value_t *Value) {
+	pthread_mutex_unlock(State->Mutex->Handle);
+	ml_state_t *Caller = State->Base.Caller;
+	ml_value_t *Error = ml_is_threadsafe(Value);
+	ML_RETURN(Error ?: Value);
+}
+
+ML_METHODVX("use", MLThreadProtectedT) {
+//<Protected/1
+//<...,Protected/n:thread::protected
+//<Function:function
+//>any
+// Locks :mini:`Protected/1:mutex`, then calls :mini:`Function(Value/1, ..., Value/n)` where :mini:`Value/i` is the value protected by :mini:`Protected/i`. All :mini:`Protected/i` must be protected by the same :mini:`thread::mutex`.
+	ml_thread_protect_state_t *State = xnew(ml_thread_protect_state_t, Count - 1, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_thread_protect_state_run;
+	ml_thread_protected_t *Protected = (ml_thread_protected_t *)Args[0];
+	ml_thread_mutex_t *Mutex = State->Mutex = Protected->Mutex;
+	State->Args[0] = Protected->Value;
+	for (int I = 1; I < Count - 1; ++I) {
+		ML_CHECKX_ARG_TYPE(I, MLThreadProtectedT);
+		Protected = (ml_thread_protected_t *)Args[I];
+		if (Protected->Mutex != Mutex) ML_ERROR("ThreadError", "Protected values do not have same mutex");
+		State->Args[I] = Protected->Value;
+	}
+	ml_value_t *Function = Args[Count - 1];
+	pthread_mutex_lock(Mutex->Handle);
+	return ml_call(State, Function, Count - 1, State->Args);
 }
 
 typedef struct {

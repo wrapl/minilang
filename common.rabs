@@ -54,12 +54,12 @@ c_program := fun(Executable, Objects, Libraries) do
 			if Source:exists then
 				Sources:put(Source)
 				var Scan := Source:scan("INCLUDES")[PREBUILDS] => Functions[1]
-				Object[Source, Scan] => (Functions[2] !! [Source])
+				Object[Source, Scan, PREBUILDS] => (Functions[2] !! [Source])
 				exit
 			end
 		end
 	end
-	Executable[Objects, Libraries] => fun(Executable) do
+	Executable[Objects, Libraries, PREBUILDS] => fun(Executable) do
 		execute(CC, '-o', Executable, Objects, Libraries, LDFLAGS)
 	end
 end
@@ -72,12 +72,12 @@ c_library := fun(Library, Objects, Libraries) do
 			if Source:exists then
 				Sources:put(Source)
 				var Scan := Source:scan("INCLUDES")[PREBUILDS] => Functions[1]
-				Object[Source, Scan] => (Functions[2] !! [Source])
+				Object[Source, Scan, PREBUILDS] => (Functions[2] !! [Source])
 				exit
 			end
 		end
 	end
-	Library[Objects, Libraries] => fun(Executable) do
+	Library[Objects, Libraries, PREBUILDS] => fun(Executable) do
 		execute('ar', 'rcs', Library, Objects, Libraries)
 	end
 end

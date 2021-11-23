@@ -60,7 +60,7 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 
 	let File := Categories[Category, write_category]
 	let Title := string::buffer()
-	
+	let Variadic := Kind = "ML_METHODV" or Kind = "ML_METHODVX"
 	var Terminator := ""
 	var Skip := 1
 	Title:write(':mini:`meth ')
@@ -85,7 +85,7 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 	elseif is_symbol(Method) then
 		if Params:length = 0 then
 			Title:write('{Method}()')
-		elseif Params:length = 1 then
+		elseif Params:length = 1 and not Variadic then
 			Title:write('{Method}({Params[1][1]}: {type_name(Params[1][2])})')
 		else
 			Title:write('({Params[1][1]}: {type_name(Params[1][2])}) {Method} (')
@@ -94,7 +94,7 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 	elseif Method[1] != ":" then
 		if Params:length = 0 then
 			Title:write('{Method}()')
-		elseif Params:length = 1 and Kind[-1] != "V" then
+		elseif Params:length = 1 and not Variadic then
 			Title:write('{Method}({Params[1][1]}: {type_name(Params[1][2])})')
 		else
 			Title:write('{Method}({Params[1][1]}: {type_name(Params[1][2])}, ')
@@ -106,7 +106,7 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 		Terminator := ")">:
 		if Params:length = 0 then
 			Title:write('{Method}()')
-		elseif Params:length = 1 and Kind[-1] != "V" then
+		elseif Params:length = 1 and not Variadic then
 			Title:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}')
 		else
 			Title:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}(')
@@ -118,8 +118,8 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 		Title:write(Seperator, Param[1], ": ", type_name(Param[2]))
 		Seperator := ", "
 	end
-	if Kind[-1] = "V" then
-		Title:write(Seperator, "...")
+	if Variadic then
+		first(Params -> _[1] ->? :find(_, "...")) or Title:write(Seperator, "...")
 	end
 	Title:write(Terminator)
 	if Return:length > 0 then
@@ -255,7 +255,8 @@ end
 def Subscripts := {
 	"/0" is "₀", "/1" is "₁", "/2" is "₂", "/3" is "₃", "/4" is "₄",
 	"/5" is "₅", "/6" is "₆", "/7" is "₇", "/8" is "₈", "/9" is "₉",
-	"/i" is "ᵢ", "/j" is "ⱼ", "/m" is "ₘ", "/n" is "ₙ", "/v" is "ᵥ"
+	"/i" is "ᵢ", "/j" is "ⱼ", "/m" is "ₘ", "/n" is "ₙ", "/v" is "ᵥ",
+	"," is ", "
 } 
 
 class: define(:Params, :Items)
