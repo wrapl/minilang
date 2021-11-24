@@ -10,7 +10,7 @@ address
 
 
 :mini:`meth (Address: address) @ (Length: integer): address`
-   Returns the same address as :mini:`Address`, limited to :mini:`Length` bytes.
+   Returns the same address as :mini:`Address`,  limited to :mini:`Length` bytes.
 
 
 :mini:`meth (Address: address) + (Offset: integer): address`
@@ -18,7 +18,7 @@ address
 
 
 :mini:`meth (Address₁: address) - (Address₂: address): integer`
-   Returns the offset from :mini:`Address₂` to :mini:`Address₁`, provided :mini:`Address₂` is visible to :mini:`Address₁`.
+   Returns the offset from :mini:`Address₂` to :mini:`Address₁`,  provided :mini:`Address₂` is visible to :mini:`Address₁`.
 
 
 :mini:`meth (Address: address):get8: integer`

@@ -24,11 +24,11 @@ array
 
 
 :mini:`meth ^(Array: array): array`
-   Returns the transpose of :mini:`Array`, sharing the underlying data.
+   Returns the transpose of :mini:`Array`,  sharing the underlying data.
 
 
 :mini:`meth (Array: array):permute(Indices: list): array`
-   Returns an array sharing the underlying data with :mini:`Array`, permuting the axes according to :mini:`Indices`.
+   Returns an array sharing the underlying data with :mini:`Array`,  permuting the axes according to :mini:`Indices`.
 
 
 :mini:`meth (Arg₁: array):swap(Arg₂: integer, Arg₃: integer)`
@@ -52,7 +52,7 @@ array
    Return the size of :mini:`Array` in bytes.
 
 
-:mini:`meth (Array: array)[Indices...: any, ...]: array`
+:mini:`meth (Array: array)[Indices...: any]: array`
    Returns a sub-array of :mini:`Array` sharing the underlying data.
 
    The :mini:`i`-th dimension is indexed by the corresponding :mini:`Indexᵢ`.
@@ -69,7 +69,7 @@ array
 :mini:`meth (Array: array)[Indices: map]: array`
    Returns a sub-array of :mini:`Array` sharing the underlying data.
 
-   The :mini:`i`-th dimension is indexed by :mini:`Indices[i]` if present, and :mini:`nil` otherwise.
+   The :mini:`i`-th dimension is indexed by :mini:`Indices[i]` if present,  and :mini:`nil` otherwise.
 
 
 :mini:`type array::int8 < array`
@@ -324,7 +324,7 @@ array
 
 
 :mini:`meth ^(List: list): array`
-   Returns an array with the contents of :mini:`List`, transposed.
+   Returns an array with the contents of :mini:`List`,  transposed.
 
 
 :mini:`meth (Array: array):copy(Function: function): array`
@@ -336,6 +336,6 @@ array
 
 
 :mini:`meth (A: array) . (B: array): array`
-   Returns the inner product of :mini:`A` and :mini:`B`. The last dimension of :mini:`A` and the first dimension of :mini:`B` must match, skipping any dimensions of size :mini:`1`.
+   Returns the inner product of :mini:`A` and :mini:`B`. The last dimension of :mini:`A` and the first dimension of :mini:`B` must match,  skipping any dimensions of size :mini:`1`.
 
 

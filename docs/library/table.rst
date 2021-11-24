@@ -10,19 +10,19 @@ table
 
 
 :mini:`meth table(Columns: map): table`
-   Returns a table with the entries from :mini:`Columns`. The keys of :mini:`Columns` must be strings, the values of :mini:`Columns` are converted to arrays using :mini:`array()` if necessary.
+   Returns a table with the entries from :mini:`Columns`. The keys of :mini:`Columns` must be strings,  the values of :mini:`Columns` are converted to arrays using :mini:`array()` if necessary.
 
 
-:mini:`meth table(Names: names, Value₁, ..., Valueₙ: any): table`
-   Returns a table using :mini:`Names` for column names and :mini:`Values` as column values, converted to arrays using :mini:`array()` if necessary.
+:mini:`meth table(Names: names, Value₁,  ...,  Valueₙ: any): table`
+   Returns a table using :mini:`Names` for column names and :mini:`Values` as column values,  converted to arrays using :mini:`array()` if necessary.
 
 
 :mini:`meth (Table: table):insert(Name: string, Value: array): table`
    Insert the column :mini:`Name` with values :mini:`Value` into :mini:`Table`.
 
 
-:mini:`meth (Table: table):insert(Names: names, Value₁, ..., Valueₙ: array, ...): table`
-   Insert columns with names from :mini:`Names` and values :mini:`Value₁`, ..., :mini:`Valueₙ` into :mini:`Table`.
+:mini:`meth (Table: table):insert(Names: names, Value₁,  ...,  Valueₙ: array): table`
+   Insert columns with names from :mini:`Names` and values :mini:`Value₁`,  ...,  :mini:`Valueₙ` into :mini:`Table`.
 
 
 :mini:`meth (Table: table):delete(Name: string): array`
@@ -32,11 +32,11 @@ table
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: table)`
    *TBD*
 
-:mini:`meth (Table: table)[Name: string]: array`
+:mini:`meth (Table: table)[Name: string, ...]: array`
    Returns the column :mini:`Name` from :mini:`Table`.
 
 
-:mini:`meth (Table: table) :: (Name: string): array`
+:mini:`meth (Table: table) :: (Name: string, ...): array`
    Returns the column :mini:`Name` from :mini:`Table`.
 
 

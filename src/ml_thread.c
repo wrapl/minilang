@@ -23,6 +23,14 @@ ml_value_t *ml_is_threadsafe(ml_value_t *Value) {
 	return ml_error("ThreadError", "%s is not safe to pass to another thread", ml_typeof(Value)->Name);
 }
 
+static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLErrorT, ml_value_t *Value) {
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLErrorValueT, ml_value_t *Value) {
+	return NULL;
+}
+
 static ml_value_t *ML_TYPED_FN(ml_is_threadsafe, MLNilT, ml_value_t *Value) {
 	return NULL;
 }

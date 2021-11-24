@@ -35,13 +35,13 @@ typedef struct {
 
 typedef struct {ml_value_t *Value; int Extra;} ml_cbor_result_t;
 
-ml_cbor_t ml_to_cbor(ml_value_t *Value);
+ml_cbor_t ml_to_cbor(ml_value_t *Value, void *TagFnData);
 ml_value_t *ml_from_cbor(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*TagFn)(uint64_t, void *, void **));
 ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, void *TagFnData, ml_tag_t (*TagFn)(uint64_t, void *, void **));
 
 typedef void (*ml_cbor_write_fn)(void *Data, const unsigned char *Bytes, unsigned Size);
 
-ml_value_t *ml_cbor_write(ml_value_t *Value, void *Data, ml_cbor_write_fn WriteFn);
+ml_value_t *ml_cbor_write(ml_value_t *Value, void *Data, ml_cbor_write_fn WriteFn, void *TagFnData);
 
 void ml_cbor_write_integer(void *Data, ml_cbor_write_fn WriteFn, int64_t Number);
 void ml_cbor_write_positive(void *Data, ml_cbor_write_fn WriteFn, uint64_t Number);

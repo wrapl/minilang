@@ -72,7 +72,7 @@ sequence
    Returns the first value produced by :mini:`Sequence`.
 
 
-:mini:`fun first2(Sequence: sequence): tuple(any, any) | nil`
+:mini:`fun first2(Sequence: sequence): tuple(any,  any) | nil`
    Returns the first key and value produced by :mini:`Sequence`.
 
 
@@ -80,7 +80,7 @@ sequence
    Returns the last value produced by :mini:`Sequence`.
 
 
-:mini:`fun last2(Sequence: sequence): tuple(any, any) | nil`
+:mini:`fun last2(Sequence: sequence): tuple(any,  any) | nil`
    Returns the last key and value produced by :mini:`Sequence`.
 
 
@@ -105,13 +105,13 @@ sequence
 
 
 :mini:`fun reduce(Initial?: any, Sequence: sequence, Fn: function): any | nil`
-   Returns :mini:`Fn(Fn( ... Fn(Initial, V₁), V₂) ..., Vₙ)` where :mini:`Vᵢ` are the values produced by :mini:`Sequence`.
+   Returns :mini:`Fn(Fn( ... Fn(Initial,  V₁),  V₂) ...,  Vₙ)` where :mini:`Vᵢ` are the values produced by :mini:`Sequence`.
 
-   If :mini:`Initial` is omitted, first value produced by :mini:`Sequence` is used.
+   If :mini:`Initial` is omitted,  first value produced by :mini:`Sequence` is used.
 
 
 :mini:`fun reduce2(Initial: any, Sequence: sequence, Fn: function): any | nil`
-   Returns :mini:`Fn(Fn( ... Fn(Initial, K₁, V₁), K₂, V₂) ..., Kₙ, Vₙ)` where :mini:`Kᵢ` and :mini:`Vᵢ` are the keys and values produced by :mini:`Sequence`.
+   Returns :mini:`Fn(Fn( ... Fn(Initial,  K₁,  V₁),  K₂,  V₂) ...,  Kₙ,  Vₙ)` where :mini:`Kᵢ` and :mini:`Vᵢ` are the keys and values produced by :mini:`Sequence`.
 
 
 :mini:`fun min(Sequence: sequence): any | nil`
@@ -130,7 +130,7 @@ sequence
    Returns the product of the values (using :mini:`*`) produced by :mini:`Sequence`.
 
 
-:mini:`meth (Sequence: sequence):join(Separator: string): string`
+:mini:`meth (Sequence: sequence):join(Separator: string, ...): string`
    Joins the elements of :mini:`Sequence` into a string using :mini:`Separator` between elements.
 
 
@@ -146,11 +146,11 @@ sequence
 
 
 :mini:`meth (Sequence: sequence) // (Fn: function): sequence`
-   Returns an sequence that produces :mini:`V₁`, :mini:`Fn(V₁, V₂)`, :mini:`Fn(Fn(V₁, V₂), V₃)`, ... .
+   Returns an sequence that produces :mini:`V₁`,  :mini:`Fn(V₁,  V₂)`,  :mini:`Fn(Fn(V₁,  V₂),  V₃)`,  ... .
 
 
 :mini:`meth (Sequence: sequence) // (Initial: any, Fn: function): sequence`
-   Returns an sequence that produces :mini:`Initial`, :mini:`Fn(Initial, V₁)`, :mini:`Fn(Fn(Initial, V₁), V₂)`, ... .
+   Returns an sequence that produces :mini:`Initial`,  :mini:`Fn(Initial,  V₁)`,  :mini:`Fn(Fn(Initial,  V₁),  V₂)`,  ... .
 
 
 :mini:`meth @(Value: any): sequence`
@@ -180,7 +180,7 @@ sequence
 
 
 :mini:`fun buffered(Size: integer, Sequence: any): Sequence`
-   Returns an sequence that buffers the keys and values from :mini:`Sequence` in advance, buffering at most :mini:`Size` pairs.
+   Returns an sequence that buffers the keys and values from :mini:`Sequence` in advance,  buffering at most :mini:`Size` pairs.
 
 
 :mini:`fun unique(Sequence: any): sequence`
@@ -188,13 +188,13 @@ sequence
 
 
 :mini:`fun zip(Sequence₁: sequence, ...: sequence, Sequenceₙ: sequence, Function: any): sequence`
-   Returns a new sequence that produces :mini:`Function(V₁₁, ..., Vₙ₁), Function(V₁₂, ..., Vₙ₂), ...` where :mini:`Vᵢⱼ` is the :mini:`j`-th value produced by :mini:`Sequenceᵢ`.
+   Returns a new sequence that produces :mini:`Function(V₁₁,  ...,  Vₙ₁),  Function(V₁₂,  ...,  Vₙ₂),  ...` where :mini:`Vᵢⱼ` is the :mini:`j`-th value produced by :mini:`Sequenceᵢ`.
 
    The sequence stops produces values when any of the :mini:`Sequenceᵢ` stops.
 
 
 :mini:`fun grid(Sequence₁: sequence, ...: sequence, Sequenceₙ: sequence, Function: any): sequence`
-   Returns a new sequence that produces :mini:`Function(V₁, V₂, ..., Vₙ)` for all possible combinations of :mini:`V₁, ..., Vₙ`, where :mini:`Vᵢ` are the values produced by :mini:`Sequenceᵢ`.
+   Returns a new sequence that produces :mini:`Function(V₁,  V₂,  ...,  Vₙ)` for all possible combinations of :mini:`V₁,  ...,  Vₙ`,  where :mini:`Vᵢ` are the values produced by :mini:`Sequenceᵢ`.
 
 
 :mini:`fun pair(Sequence₁: sequence, Sequence₂: sequence): sequence`

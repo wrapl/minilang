@@ -164,15 +164,15 @@ number
    *TBD*
 
 :mini:`meth (Int₁: integer) / (Int₂: integer): integer | real`
-   Returns :mini:`Int₁ / Int₂` as an integer if the division is exact, otherwise as a real.
+   Returns :mini:`Int₁ / Int₂` as an integer if the division is exact,  otherwise as a real.
 
 
 :mini:`meth (Int₁: integer) % (Int₂: integer): integer`
    Returns the remainder of :mini:`Int₁` divided by :mini:`Int₂`.
 
-   Note: the result is calculated by rounding towards 0. In particular, if :mini:`Int₁` is negative, the result will be negative.
+   Note: the result is calculated by rounding towards 0. In particular,  if :mini:`Int₁` is negative,  the result will be negative.
 
-   For a nonnegative remainder, use :mini:`Int₁ mod Int₂`.
+   For a nonnegative remainder,  use :mini:`Int₁ mod Int₂`.
 
 
 :mini:`meth (Int₁: integer) | (Int₂: integer): integer`
@@ -192,7 +192,7 @@ number
 :mini:`meth (Int₁: integer):mod(Int₂: integer): integer`
    Returns the remainder of :mini:`Int₁` divided by :mini:`Int₂`.
 
-   Note: the result is calculated by rounding down in all cases. In particular, the result is always nonnegative.
+   Note: the result is calculated by rounding down in all cases. In particular,  the result is always nonnegative.
 
 
 :mini:`meth (Arg₁: integer) = (Arg₂: integer)`
@@ -268,19 +268,19 @@ number
    *TBD*
 
 :mini:`meth (Int₁: integer) <> (Int₂: integer): integer`
-   Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Int₁` is less than, equal to or greater than :mini:`Int₂`.
+   Returns :mini:`-1`,  :mini:`0` or :mini:`1` depending on whether :mini:`Int₁` is less than,  equal to or greater than :mini:`Int₂`.
 
 
 :mini:`meth (Real₁: double) <> (Int₂: integer): integer`
-   Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Real₁` is less than, equal to or greater than :mini:`Int₂`.
+   Returns :mini:`-1`,  :mini:`0` or :mini:`1` depending on whether :mini:`Real₁` is less than,  equal to or greater than :mini:`Int₂`.
 
 
 :mini:`meth (Int₁: integer) <> (Real₂: double): integer`
-   Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Int₁` is less than, equal to or greater than :mini:`Real₂`.
+   Returns :mini:`-1`,  :mini:`0` or :mini:`1` depending on whether :mini:`Int₁` is less than,  equal to or greater than :mini:`Real₂`.
 
 
 :mini:`meth (Real₁: double) <> (Real₂: double): integer`
-   Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Real₁` is less than, equal to or greater than :mini:`Real₂`.
+   Returns :mini:`-1`,  :mini:`0` or :mini:`1` depending on whether :mini:`Real₁` is less than,  equal to or greater than :mini:`Real₂`.
 
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: integer)`

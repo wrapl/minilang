@@ -3753,26 +3753,26 @@ static void ml_cbor_write_array_typed(int Degree, size_t FlatSize, ml_array_dime
 	}
 }
 
-static void ml_cbor_write_array_any(int Degree, ml_array_dimension_t *Dimension, char *Address, char *Data, ml_cbor_write_fn WriteFn) {
+static void ml_cbor_write_array_any(int Degree, ml_array_dimension_t *Dimension, char *Address, char *Data, ml_cbor_write_fn WriteFn, void *TagFnData) {
 	if (Degree == 0) {
-		ml_cbor_write(*(ml_value_t **)Address, Data, WriteFn);
+		ml_cbor_write(*(ml_value_t **)Address, Data, WriteFn, TagFnData);
 	} else {
 		int Stride = Dimension->Stride;
 		if (Dimension->Indices) {
 			int *Indices = Dimension->Indices;
 			for (int I = 0; I < Dimension->Size; ++I) {
-				ml_cbor_write_array_any(Degree - 1, Dimension + 1, Address + Indices[I] * Stride, Data, WriteFn);
+				ml_cbor_write_array_any(Degree - 1, Dimension + 1, Address + Indices[I] * Stride, Data, WriteFn, TagFnData);
 			}
 		} else {
 			for (int I = Dimension->Size; --I >= 0;) {
-				ml_cbor_write_array_any(Degree - 1, Dimension + 1, Address, Data, WriteFn);
+				ml_cbor_write_array_any(Degree - 1, Dimension + 1, Address, Data, WriteFn, TagFnData);
 				Address += Stride;
 			}
 		}
 	}
 }
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char *Data, ml_cbor_write_fn WriteFn) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char *Data, ml_cbor_write_fn WriteFn, void *TagFnData) {
 	static uint64_t Tags[] = {
 		[ML_ARRAY_FORMAT_I8] = 72,
 		[ML_ARRAY_FORMAT_U8] = 64,
@@ -3796,7 +3796,7 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char 
 		}
 		ml_cbor_write_tag(Data, WriteFn, 41);
 		ml_cbor_write_array(Data, WriteFn, Size);
-		ml_cbor_write_array_any(Array->Degree, Array->Dimensions, Array->Base.Value, Data, WriteFn);
+		ml_cbor_write_array_any(Array->Degree, Array->Dimensions, Array->Base.Value, Data, WriteFn, TagFnData);
 	} else {
 		for (int I = 0; I < Array->Degree; ++I) ml_cbor_write_integer(Data, WriteFn, Array->Dimensions[I].Size);
 		size_t Size = MLArraySizes[Array->Format];

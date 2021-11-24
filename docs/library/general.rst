@@ -14,7 +14,7 @@ general
    *TBD*
 
 :mini:`fun print(Values..: any): nil`
-   Prints :mini:`Values` to standard output, converting to strings if necessary.
+   Prints :mini:`Values` to standard output,  converting to strings if necessary.
 
 
 :mini:`fun halt(Code?: integer)`

@@ -24,7 +24,7 @@ macro
 :mini:`fun macro(Function: function): macro`
    Returns a new macro which applies :mini:`Function` when compiled.
 
-   :mini:`Function` should have the following signature: :mini:`Function(Expr₁: expr, Expr₂: expr, ...): expr`.
+   :mini:`Function` should have the following signature: :mini:`Function(Expr₁: expr,  Expr₂: expr,  ...): expr`.
 
 
 :mini:`type macro`
@@ -55,7 +55,7 @@ macro
    Adds a :mini:`let`-declaration to a block with initializer :mini:`Expr`.
 
 
-:mini:`meth (Builder: block::builder):do(Expr...: expr, ...): blockbuilder`
+:mini:`meth (Builder: block::builder):do(Expr...: expr): blockbuilder`
    Adds the expression :mini:`Expr` to a block.
 
 
@@ -87,7 +87,7 @@ macro
    Returns a new call builder.
 
 
-:mini:`meth (Builder: expr::builder):add(Expr...: expr, ...): blockbuilder`
+:mini:`meth (Builder: expr::builder):add(Expr...: expr): blockbuilder`
    Adds the expression :mini:`Expr` to a block.
 
 

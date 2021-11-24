@@ -19,7 +19,7 @@ xml
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: xml)`
    *TBD*
 
-:mini:`meth (Tag: method):xml(Children...: string|xml, Attributes?: names|map, ...): xml`
+:mini:`meth (Tag: method):xml(Children...: string|xml, Attributes?: names|map): xml`
    *TBD*
 
 :mini:`meth (Xml: string):xml: xml`

@@ -25,7 +25,7 @@ boolean
 
 
 :mini:`meth (Bool₁: boolean) <> (Bool₂: boolean): integer`
-   Returns :mini:`-1`, :mini:`0` or :mini:`1` depending on whether :mini:`Bool₁` is less than, equal to or greater than :mini:`Bool₂`. :mini:`true` is considered greater than :mini:`false`.
+   Returns :mini:`-1`,  :mini:`0` or :mini:`1` depending on whether :mini:`Bool₁` is less than,  equal to or greater than :mini:`Bool₂`. :mini:`true` is considered greater than :mini:`false`.
 
 
 :mini:`meth (Arg₁: boolean) = (Arg₂: boolean): boolean | nil`

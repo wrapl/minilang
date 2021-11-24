@@ -416,9 +416,9 @@ static void ML_TYPED_FN(ml_iter_value, MLTableRowIterT, ml_state_t *Caller, ml_t
 
 #include "ml_cbor.h"
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTableT, ml_value_t *Table, char *Data, ml_cbor_write_fn WriteFn) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTableT, ml_value_t *Table, char *Data, ml_cbor_write_fn WriteFn, void *TagFnData) {
 	ml_cbor_write_tag(Data, WriteFn, 60);
-	ml_cbor_write(ml_table_columns(Table), Data, WriteFn);
+	ml_cbor_write(ml_table_columns(Table), Data, WriteFn, TagFnData);
 	return NULL;
 }
 

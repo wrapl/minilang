@@ -72,7 +72,7 @@ ml_comp_method_time_time(">=", >=);
 
 #include "ml_cbor.h"
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLUUIDT, ml_uuid_t *UUID, void *Data, ml_cbor_write_fn WriteFn) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLUUIDT, ml_uuid_t *UUID, void *Data, ml_cbor_write_fn WriteFn, void *TagFnData) {
 	ml_cbor_write_tag(Data, WriteFn, 37);
 	ml_cbor_write_bytes(Data, WriteFn, 16);
 	WriteFn(Data, UUID->Value, 16);

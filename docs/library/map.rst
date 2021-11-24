@@ -23,11 +23,11 @@ map
 :mini:`meth map(Arg₁: names, ...)`
    *TBD*
 
-:mini:`meth map(Sequence: sequence): map`
+:mini:`meth map(Sequence: sequence, ...): map`
    Returns a map of all the key and value pairs produced by :mini:`Sequence`.
 
 
-:mini:`meth (Map: map):grow(Sequence: sequence): map`
+:mini:`meth (Map: map):grow(Sequence: sequence, ...): map`
    Adds of all the key and value pairs produced by :mini:`Sequence` to :mini:`Map` and returns :mini:`Map`.
 
 
@@ -54,11 +54,11 @@ map
 :mini:`meth (Map: map):insert(Key: any, Value: any): any | nil`
    Inserts :mini:`Key` into :mini:`Map` with corresponding value :mini:`Value`.
 
-   Returns the previous value associated with :mini:`Key` if any, otherwise :mini:`nil`.
+   Returns the previous value associated with :mini:`Key` if any,  otherwise :mini:`nil`.
 
 
 :mini:`meth (Map: map):delete(Key: any): any | nil`
-   Removes :mini:`Key` from :mini:`Map` and returns the corresponding value if any, otherwise :mini:`nil`.
+   Removes :mini:`Key` from :mini:`Map` and returns the corresponding value if any,  otherwise :mini:`nil`.
 
 
 :mini:`meth (Map: map):missing(Key: any): some | nil`
