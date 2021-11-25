@@ -218,6 +218,66 @@ static ml_value_t *parse_string(xe_stream_t *Stream) {
 		} \
 	}
 
+static ml_value_t *parse_value(xe_stream_t *Stream);
+
+static ml_value_t *parse_list(xe_stream_t *Stream) {
+	ml_value_t *List = ml_list();
+	const char *Next = Stream->Next;
+	SKIP_WHITESPACE;
+	if (*Next == ']') {
+		Stream->Next = Next + 1;
+		return List;
+	}
+	--Next;
+	do {
+		Stream->Next = Next + 1;
+		ml_value_t *Value = parse_value(Stream);
+		if (ml_is_error(Value)) return Value;
+		Next = Stream->Next;
+		SKIP_WHITESPACE;
+		ml_list_put(List, Value);
+	} while (*Next == ',');
+	if (*Next == ']') {
+		Stream->Next = Next + 1;
+	} else {
+		List = ml_error("ParseError", "Invalid value syntax at line %d in %s", Stream->LineNo, Stream->Source);
+	}
+	return List;
+}
+
+static ml_value_t *parse_map(xe_stream_t *Stream) {
+	ml_value_t *Map = ml_map();
+	const char *Next = Stream->Next;
+	SKIP_WHITESPACE;
+	if (*Next == '}') {
+		Stream->Next = Next + 1;
+		return Map;
+	}
+	--Next;
+	do {
+		Stream->Next = Next + 1;
+		ml_value_t *Key = parse_value(Stream);
+		if (ml_is_error(Key)) return Key;
+		Next = Stream->Next;
+		SKIP_WHITESPACE;
+		if (*Next != '=') {
+			Map = ml_error("ParseError", "Invalid value syntax at line %d in %s", Stream->LineNo, Stream->Source);
+			break;
+		}
+		Stream->Next = Next + 1;
+		ml_value_t *Value = parse_value(Stream);
+		Next = Stream->Next;
+		SKIP_WHITESPACE;
+		ml_map_insert(Map, Key, Value);
+	} while (*Next == ',');
+	if (*Next == '}') {
+		Stream->Next = Next + 1;
+	} else {
+		Map = ml_error("ParseError", "Invalid value syntax at line %d in %s", Stream->LineNo, Stream->Source);
+	}
+	return Map;
+}
+
 static ml_value_t *parse_value(xe_stream_t *Stream) {
 	const char *Next = Stream->Next;
 	SKIP_WHITESPACE;
@@ -266,6 +326,12 @@ static ml_value_t *parse_value(xe_stream_t *Stream) {
 		}
 		return (ml_value_t *)Var;
 	}
+	case '[':
+		Stream->Next = Next + 1;
+		return parse_list(Stream);
+	case '{':
+		Stream->Next = Next + 1;
+		return parse_map(Stream);
 	default:
 		if (!strncmp(Next, "true", 4)) {
 			Stream->Next = Next + 4;
