@@ -96,11 +96,7 @@ static int xe_attribute_to_string(ml_value_t *Key, ml_value_t *Value, ml_stringb
 	ml_stringbuffer_write(Buffer, " ", 1);
 	ml_stringbuffer_append(Buffer, Key);
 	ml_stringbuffer_write(Buffer, "=", 1);
-	if (ml_is(Value, XENodeT)) {
-		ml_stringbuffer_append(Buffer, Value);
-	} else {
-		ml_stringbuffer_write(Buffer, ml_string_value(Value), ml_string_length(Value));
-	}
+	ml_stringbuffer_append(Buffer, Value);
 	return 0;
 }
 
@@ -271,7 +267,18 @@ static ml_value_t *parse_value(xe_stream_t *Stream) {
 		return (ml_value_t *)Var;
 	}
 	default:
-		return ml_error("ParseError", "Invalid value syntax at line %d in %s", Stream->LineNo, Stream->Source);
+		if (!strncmp(Next, "true", 4)) {
+			Stream->Next = Next + 4;
+			return (ml_value_t *)MLTrue;
+		} else if (!strncmp(Next, "false", 5)) {
+			Stream->Next = Next + 5;
+			return (ml_value_t *)MLFalse;
+		} else if (!strncmp(Next, "nil", 3)) {
+			Stream->Next = Next + 3;
+			return MLNil;
+		} else {
+			return ml_error("ParseError", "Invalid value syntax at line %d in %s", Stream->LineNo, Stream->Source);
+		}
 	}
 }
 

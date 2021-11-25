@@ -280,7 +280,6 @@ struct ml_cfunctionx_t {
 extern ml_type_t MLCFunctionT[];
 extern ml_type_t MLCFunctionXT[];
 extern ml_type_t MLCFunctionZT[];
-extern ml_type_t MLPartialFunctionT[];
 
 #define ML_CFUNCTION(NAME, DATA, CALLBACK) static ml_cfunction_t NAME[1] = {{MLCFunctionT, CALLBACK, DATA, __FILE__, __LINE__}}
 
