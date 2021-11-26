@@ -5,6 +5,12 @@ stream
    Base type of readable and writable byte streams.
 
 
+:mini:`meth (Arg₁: stream):readx(Arg₂: integer, Arg₃: string)`
+   *TBD*
+
+:mini:`meth (Arg₁: stream):readi(Arg₂: integer, Arg₃: string)`
+   *TBD*
+
 :mini:`type stream::fd < stream`
    A file-descriptor based stream.
 

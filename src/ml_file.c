@@ -6,6 +6,7 @@
 #include <dirent.h>
 #include "ml_file.h"
 #include "ml_macros.h"
+#include "ml_stream.h"
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "file"
@@ -17,7 +18,7 @@ typedef struct ml_file_t {
 
 extern ml_cfunction_t MLFileOpen[];
 
-ML_TYPE(MLFileT, (), "file",
+ML_TYPE(MLFileT, (MLStreamT), "file",
 	.Constructor = (ml_value_t *)MLFileOpen
 );
 
@@ -68,6 +69,18 @@ static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
 	}
 }
 #endif
+
+static void ML_TYPED_FN(ml_stream_read, MLFileT, ml_state_t *Caller, ml_file_t *File, void *Address, int Count) {
+	ssize_t Result = fread(Address, 1, Count, File->Handle);
+	if (Result < 0) ML_ERROR("FileError", "error reading from file: %s", strerror(errno));
+	ML_RETURN(ml_integer(Result));
+}
+
+static void ML_TYPED_FN(ml_stream_write, MLFileT, ml_state_t *Caller, ml_file_t *File, const void *Address, int Count) {
+	ssize_t Result = fwrite(Address, 1, Count, File->Handle);
+	if (Result < 0) ML_ERROR("FileError", "error writing to file: %s", strerror(errno));
+	ML_RETURN(ml_integer(Result));
+}
 
 ML_METHOD("read", MLFileT) {
 //<File

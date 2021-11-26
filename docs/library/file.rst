@@ -1,7 +1,7 @@
 file
 ====
 
-:mini:`type file`
+:mini:`type file < stream`
    *TBD*
 
 :mini:`fun file(Path: string, Mode: string): file`

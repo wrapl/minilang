@@ -1,7 +1,7 @@
 xe
 ==
 
-:mini:`fun xenode(Arg₁: string, Arg₂: map, Arg₃: list)`
+:mini:`fun xenode(Arg₁: any)`
    *TBD*
 
 :mini:`type xenode`
