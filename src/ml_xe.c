@@ -15,16 +15,31 @@ typedef struct {
 
 extern ml_type_t XENodeT[];
 
+static void xe_node_build(xe_node_t *Node, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
+	if (ml_is(Value, MLStringT)) {
+		ml_stringbuffer_write(Buffer, ml_string_value(Value), ml_string_length(Value));
+	} else if (ml_is(Value, XENodeT)) {
+		if (Buffer->Length) ml_list_put(Node->Content, ml_stringbuffer_get_value(Buffer));
+		ml_list_put(Node->Content, Value);
+	} else if (ml_is(Value, MLListT)) {
+		ML_LIST_FOREACH(Value, Iter) xe_node_build(Node, Buffer, Iter->Value);
+	} else if (ml_is(Value, MLMapT)) {
+		ML_MAP_FOREACH(Value, Iter) {
+			ml_map_insert(Node->Attributes, Iter->Key, Iter->Value);
+		}
+	}
+}
+
 ML_FUNCTIONX(XENode) {
-	ML_CHECKX_ARG_COUNT(3);
-	ML_CHECKX_ARG_TYPE(0, MLStringT);
-	ML_CHECKX_ARG_TYPE(1, MLMapT);
-	ML_CHECKX_ARG_TYPE(2, MLListT);
+	ML_CHECKX_ARG_COUNT(1);
 	xe_node_t *Node = new(xe_node_t);
 	Node->Type = XENodeT;
 	Node->Tag = Args[0];
-	Node->Attributes = Args[1];
-	Node->Content = Args[2];
+	Node->Attributes = ml_map();
+	Node->Content = ml_list();
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	for (int I = 1; I < Count; ++I) xe_node_build(Node, Buffer, Args[I]);
+	if (Buffer->Length) ml_list_put(Node->Content, ml_stringbuffer_get_value(Buffer));
 	Node->Source = ml_debugger_source(Caller);
 	ML_RETURN(Node);
 }
