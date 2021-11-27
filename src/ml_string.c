@@ -995,11 +995,6 @@ ML_TYPE(MLStringBufferT, (), "stringbuffer",
 	.Constructor = (ml_value_t *)MLStringBuffer
 );
 
-struct ml_stringbuffer_node_t {
-	ml_stringbuffer_node_t *Next;
-	char Chars[ML_STRINGBUFFER_NODE_SIZE];
-};
-
 static GC_descr StringBufferDesc = 0;
 
 #ifdef ML_THREADSAFE
@@ -1007,6 +1002,37 @@ static ml_stringbuffer_node_t * _Atomic StringBufferNodeCache = NULL;
 #else
 static ml_stringbuffer_node_t *StringBufferNodeCache = NULL;
 #endif
+
+char *ml_stringbuffer_advance(ml_stringbuffer_t *Buffer, size_t Length) {
+	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
+	Buffer->Length += Length;
+	Buffer->Space -= Length;
+	if (!Buffer->Space) {
+#ifdef ML_THREADSAFE
+		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
+		do {
+			if (!Next) {
+				Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+				break;
+			}
+			CacheNext = Next->Next;
+		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &Next, CacheNext));
+#else
+		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
+		if (!Next) {
+			Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+		} else {
+			StringBufferNodeCache = Next->Next;
+		}
+#endif
+		Next->Next = NULL;
+		Node->Next = Next;
+		Node = Next;
+		Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
+		Buffer->Tail = Node;
+	}
+	return Node->Chars + ML_STRINGBUFFER_NODE_SIZE - Buffer->Space;
+}
 
 ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, size_t Length) {
 	//fprintf(stderr, "ml_stringbuffer_add(%s, %ld)\n", String, Length);

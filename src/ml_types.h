@@ -600,9 +600,16 @@ struct ml_stringbuffer_t {
 };
 
 #define ML_STRINGBUFFER_NODE_SIZE 248
+
+struct ml_stringbuffer_node_t {
+	ml_stringbuffer_node_t *Next;
+	char Chars[ML_STRINGBUFFER_NODE_SIZE];
+};
+
 #define ML_STRINGBUFFER_INIT (ml_stringbuffer_t){MLStringBufferT, 0,}
 
 ml_value_t *ml_stringbuffer();
+char *ml_stringbuffer_advance(ml_stringbuffer_t *Buffer, size_t Length);
 ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, size_t Length);
 ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ...) __attribute__ ((format(printf, 2, 3)));
 ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value);

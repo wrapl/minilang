@@ -54,18 +54,56 @@ typedef struct {
 		typeof(ml_stream_write) *write;
 	};
 	ml_stringbuffer_t Buffer[1];
-	size_t Max;
+	size_t Remaining;
 	unsigned char Chars[];
 } ml_read_state_t;
+
+static void ml_stream_read_run(ml_read_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	size_t Length = ml_integer_value(Value);
+	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_get_value(State->Buffer) : MLNil);
+	char *Space = ml_stringbuffer_advance(State->Buffer, Length);
+	size_t Remaining = State->Remaining - Length;
+	if (!Remaining) ML_RETURN(ml_stringbuffer_get_value(State->Buffer));
+	State->Remaining = Remaining;
+	ml_value_t *Stream = State->Stream;
+	if (State->Buffer->Space < Remaining) {
+		return State->read((ml_state_t *)State, Stream, Space, Remaining);
+	} else {
+		return State->read((ml_state_t *)State, Stream, Space, State->Buffer->Space);
+	}
+}
+
+ML_METHODX("read", MLStreamT, MLIntegerT) {
+	ml_value_t *Stream = Args[0];
+	ml_read_state_t *State = xnew(ml_read_state_t, 0, char);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_stream_read_run;
+	State->Stream = Stream;
+	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
+	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
+	size_t Remaining = State->Remaining = ml_integer_value(Args[1]);
+	char *Space = ml_stringbuffer_advance(State->Buffer, 0);
+	if (State->Buffer->Space < Remaining) {
+		return State->read((ml_state_t *)State, Stream, Space, Remaining);
+	} else {
+		return State->read((ml_state_t *)State, Stream, Space, State->Buffer->Space);
+	}
+}
 
 static void ml_stream_readx_run(ml_read_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
-	if (!ml_integer_value(Value)) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_get_value(State->Buffer) : MLNil);
+	size_t Length = ml_integer_value(Value);
+	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_get_value(State->Buffer) : MLNil);
 	unsigned char Char = State->Chars[64];
 	if (State->Chars[Char / 8] & (1 << (Char % 8))) ML_RETURN(ml_stringbuffer_get_value(State->Buffer));
 	ml_stringbuffer_write(State->Buffer, (void *)&State->Chars[64], 1);
-	if (State->Buffer->Length == State->Max) ML_RETURN(ml_stringbuffer_get_value(State->Buffer));
+	size_t Remaining = State->Remaining - Length;
+	if (!Remaining) ML_RETURN(ml_stringbuffer_get_value(State->Buffer));
+	State->Remaining = Remaining;
 	ml_value_t *Stream = State->Stream;
 	return State->read((ml_state_t *)State, Stream, &State->Chars[64], 1);
 }
@@ -79,7 +117,7 @@ ML_METHODX("readx", MLStreamT, MLIntegerT, MLStringT) {
 	State->Stream = Stream;
 	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
 	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
-	State->Max = ml_integer_value(Args[1]);
+	State->Remaining = ml_integer_value(Args[1]);
 	const unsigned char *Terms = (const unsigned char *)ml_string_value(Args[2]);
 	int TermsLength = ml_string_length(Args[2]);
 	for (int I = 0; I < TermsLength; ++I) {
@@ -92,11 +130,14 @@ ML_METHODX("readx", MLStreamT, MLIntegerT, MLStringT) {
 static void ml_stream_readi_run(ml_read_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
-	if (!ml_integer_value(Value)) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_get_value(State->Buffer) : MLNil);
-	unsigned char Char = State->Chars[64];
+	size_t Length = ml_integer_value(Value);
+	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_get_value(State->Buffer) : MLNil);
 	ml_stringbuffer_write(State->Buffer, (void *)&State->Chars[64], 1);
+	unsigned char Char = State->Chars[64];
 	if (State->Chars[Char / 8] & (1 << (Char % 8))) ML_RETURN(ml_stringbuffer_get_value(State->Buffer));
-	if (State->Buffer->Length == State->Max) ML_RETURN(ml_stringbuffer_get_value(State->Buffer));
+	size_t Remaining = State->Remaining - Length;
+	if (!Remaining) ML_RETURN(ml_stringbuffer_get_value(State->Buffer));
+	State->Remaining = Remaining;
 	ml_value_t *Stream = State->Stream;
 	return State->read((ml_state_t *)State, Stream, &State->Chars[64], 1);
 }
@@ -106,11 +147,11 @@ ML_METHODX("readi", MLStreamT, MLIntegerT, MLStringT) {
 	ml_read_state_t *State = xnew(ml_read_state_t, 65, char);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_stream_readx_run;
+	State->Base.run = (ml_state_fn)ml_stream_readi_run;
 	State->Stream = Stream;
 	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
 	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
-	State->Max = ml_integer_value(Args[1]);
+	State->Remaining = ml_integer_value(Args[1]);
 	const unsigned char *Terms = (const unsigned char *)ml_string_value(Args[2]);
 	int TermsLength = ml_string_length(Args[2]);
 	for (int I = 0; I < TermsLength; ++I) {
@@ -118,6 +159,43 @@ ML_METHODX("readi", MLStreamT, MLIntegerT, MLStringT) {
 		State->Chars[Char / 8] |= 1 << (Char % 8);
 	}
 	return State->read((ml_state_t *)State, Stream, (void *)&State->Chars[64], 1);
+}
+
+ML_METHODX("read", MLStreamT) {
+	ml_value_t *Stream = Args[0];
+	ml_read_state_t *State = xnew(ml_read_state_t, 65, char);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_stream_readi_run;
+	State->Stream = Stream;
+	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
+	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
+	State->Remaining = SIZE_MAX;
+	State->Chars['\n' / 8] |= 1 << ('\n' % 8);
+	return State->read((ml_state_t *)State, Stream, (void *)&State->Chars[64], 1);
+}
+
+static void ml_stream_rest_run(ml_read_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	size_t Length = ml_integer_value(Value);
+	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_get_value(State->Buffer) : MLNil);
+	char *Space = ml_stringbuffer_advance(State->Buffer, Length);
+	ml_value_t *Stream = State->Stream;
+	return State->read((ml_state_t *)State, Stream, Space, State->Buffer->Space);
+}
+
+ML_METHODX("rest", MLStreamT) {
+	ml_value_t *Stream = Args[0];
+	ml_read_state_t *State = xnew(ml_read_state_t, 0, char);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_stream_rest_run;
+	State->Stream = Stream;
+	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
+	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
+	char *Space = ml_stringbuffer_advance(State->Buffer, 0);
+	return State->read((ml_state_t *)State, Stream, Space, State->Buffer->Space);
 }
 
 typedef struct ml_fd_t {

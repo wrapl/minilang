@@ -82,64 +82,6 @@ static void ML_TYPED_FN(ml_stream_write, MLFileT, ml_state_t *Caller, ml_file_t 
 	ML_RETURN(ml_integer(Result));
 }
 
-ML_METHOD("read", MLFileT) {
-//<File
-//>string
-	ml_file_t *File = (ml_file_t *)Args[0];
-	if (!File->Handle) return ml_error("FileError", "file closed");
-	char *Line = 0;
-	size_t Length = 0;
-#ifdef __MINGW32__
-	ssize_t Read = ml_read_line(File->Handle, 0, &Line);
-#else
-	ssize_t Read = getline(&Line, &Length, File->Handle);
-#endif
-	if (Read < 0) return feof(File->Handle) ? MLNil : ml_error("FileError", "error reading from file: %s", strerror(errno));
-	return ml_string(Line, Read);
-}
-
-ML_METHOD("read", MLFileT, MLIntegerT) {
-//<File
-//<Length
-//>string
-	ml_file_t *File = (ml_file_t *)Args[0];
-	if (!File->Handle) return ml_error("FileError", "file closed");
-	if (feof(File->Handle)) return MLNil;
-	ssize_t Requested = ml_integer_value_fast(Args[1]);
-	ml_stringbuffer_t Final[1] = {ML_STRINGBUFFER_INIT};
-	char Buffer[ML_STRINGBUFFER_NODE_SIZE];
-	while (Requested >= ML_STRINGBUFFER_NODE_SIZE) {
-		ssize_t Actual = fread(Buffer, 1, ML_STRINGBUFFER_NODE_SIZE, File->Handle);
-		if (Actual < 0) return ml_error("FileError", "error reading from file: %s", strerror(errno));
-		if (Actual == 0) return ml_stringbuffer_get_value(Final);
-		ml_stringbuffer_write(Final, Buffer, Actual);
-		Requested -= Actual;
-	}
-	while (Requested > 0) {
-		ssize_t Actual = fread(Buffer, 1, Requested, File->Handle);
-		if (Actual < 0) return ml_error("FileError", "error reading from file: %s", strerror(errno));
-		if (Actual == 0) return ml_stringbuffer_get_value(Final);
-		ml_stringbuffer_write(Final, Buffer, Actual);
-		Requested -= Actual;
-	}
-	return ml_stringbuffer_get_value(Final);
-}
-
-ML_METHOD("rest", MLFileT) {
-	ml_file_t *File = (ml_file_t *)Args[0];
-	if (!File->Handle) return ml_error("FileError", "file closed");
-	if (feof(File->Handle)) return MLNil;
-	ml_stringbuffer_t Final[1] = {ML_STRINGBUFFER_INIT};
-	char Buffer[ML_STRINGBUFFER_NODE_SIZE];
-	for (;;) {
-		ssize_t Actual = fread(Buffer, 1, ML_STRINGBUFFER_NODE_SIZE, File->Handle);
-		if (Actual < 0) return ml_error("FileError", "error reading from file: %s", strerror(errno));
-		if (Actual == 0) return ml_stringbuffer_get_value(Final);
-		ml_stringbuffer_write(Final, Buffer, Actual);
-	}
-	return ml_stringbuffer_get_value(Final);
-}
-
 ML_METHODV("write", MLFileT, MLStringT) {
 //<File
 //<String
