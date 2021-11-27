@@ -5,10 +5,19 @@ stream
    Base type of readable and writable byte streams.
 
 
+:mini:`meth (Arg₁: stream):read(Arg₂: integer)`
+   *TBD*
+
 :mini:`meth (Arg₁: stream):readx(Arg₂: integer, Arg₃: string)`
    *TBD*
 
 :mini:`meth (Arg₁: stream):readi(Arg₂: integer, Arg₃: string)`
+   *TBD*
+
+:mini:`meth (Arg₁: stream):read`
+   *TBD*
+
+:mini:`meth (Arg₁: stream):rest`
    *TBD*
 
 :mini:`type stream::fd < stream`

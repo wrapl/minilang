@@ -7,15 +7,6 @@ file
 :mini:`fun file(Path: string, Mode: string): file`
    *TBD*
 
-:mini:`meth (File: file):read: string`
-   *TBD*
-
-:mini:`meth (File: file):read(Length: integer): string`
-   *TBD*
-
-:mini:`meth (Arg₁: file):rest`
-   *TBD*
-
 :mini:`meth (File: file):write(String: string, ...): File`
    *TBD*
 
