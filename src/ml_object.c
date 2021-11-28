@@ -86,7 +86,7 @@ static int field_string(const char *Name, void *Offset, ml_object_stringer_t *St
 	if (Stringer->Comma++) ml_stringbuffer_write(Stringer->Buffer, ", ", 2);
 	ml_stringbuffer_write(Stringer->Buffer, Name, strlen(Name));
 	ml_stringbuffer_write(Stringer->Buffer, " is ", 4);
-	ml_stringbuffer_append(Stringer->Buffer, ((ml_field_t *)((char *)Stringer->Object + (uintptr_t)Offset))->Value);
+	ml_stringbuffer_simple_append(Stringer->Buffer, ((ml_field_t *)((char *)Stringer->Object + (uintptr_t)Offset))->Value);
 	return 0;
 }
 

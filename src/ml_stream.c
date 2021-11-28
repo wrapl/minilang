@@ -49,51 +49,50 @@ void ml_stream_write(ml_state_t *Caller, ml_value_t *Value, const void *Address,
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Stream;
-	union {
-		typeof(ml_stream_read) *read;
-		typeof(ml_stream_write) *write;
-	};
-	ml_stringbuffer_t Buffer[1];
+	typeof(ml_stream_read) *read;
+	char *String, *End;
 	size_t Remaining;
-	unsigned char Chars[];
 } ml_read_state_t;
 
 static void ml_stream_read_run(ml_read_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
-	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_get_value(State->Buffer) : MLNil);
-	char *Space = ml_stringbuffer_advance(State->Buffer, Length);
+	if (!Length) {
+		Length = State->End - State->String;
+		ML_RETURN(Length ? ml_string(State->String, Length) : MLNil);
+	}
+	State->End += Length;
 	size_t Remaining = State->Remaining - Length;
-	if (!Remaining) ML_RETURN(ml_stringbuffer_get_value(State->Buffer));
+	if (!Remaining) ML_RETURN(ml_string(State->String, State->End - State->String));
 	State->Remaining = Remaining;
 	ml_value_t *Stream = State->Stream;
-	if (State->Buffer->Space < Remaining) {
-		return State->read((ml_state_t *)State, Stream, Space, Remaining);
-	} else {
-		return State->read((ml_state_t *)State, Stream, Space, State->Buffer->Space);
-	}
+	return State->read((ml_state_t *)State, Stream, State->End, Remaining);
 }
 
 ML_METHODX("read", MLStreamT, MLIntegerT) {
 	ml_value_t *Stream = Args[0];
-	ml_read_state_t *State = xnew(ml_read_state_t, 0, char);
+	ml_read_state_t *State = new(ml_read_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_stream_read_run;
 	State->Stream = Stream;
 	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
-	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
 	size_t Remaining = State->Remaining = ml_integer_value(Args[1]);
-	char *Space = ml_stringbuffer_advance(State->Buffer, 0);
-	if (State->Buffer->Space < Remaining) {
-		return State->read((ml_state_t *)State, Stream, Space, Remaining);
-	} else {
-		return State->read((ml_state_t *)State, Stream, Space, State->Buffer->Space);
-	}
+	State->End = State->String = snew(Remaining + 1);
+	return State->read((ml_state_t *)State, Stream, State->End, Remaining);
 }
 
-static void ml_stream_readx_run(ml_read_state_t *State, ml_value_t *Value) {
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Stream;
+	typeof(ml_stream_read) *read;
+	ml_stringbuffer_t Buffer[1];
+	size_t Remaining;
+	unsigned char Chars[];
+} ml_readu_state_t;
+
+static void ml_stream_readx_run(ml_readu_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
@@ -110,7 +109,7 @@ static void ml_stream_readx_run(ml_read_state_t *State, ml_value_t *Value) {
 
 ML_METHODX("readx", MLStreamT, MLIntegerT, MLStringT) {
 	ml_value_t *Stream = Args[0];
-	ml_read_state_t *State = xnew(ml_read_state_t, 65, char);
+	ml_readu_state_t *State = xnew(ml_readu_state_t, 65, char);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_stream_readx_run;
@@ -127,7 +126,7 @@ ML_METHODX("readx", MLStreamT, MLIntegerT, MLStringT) {
 	return State->read((ml_state_t *)State, Stream, (void *)&State->Chars[64], 1);
 }
 
-static void ml_stream_readi_run(ml_read_state_t *State, ml_value_t *Value) {
+static void ml_stream_readi_run(ml_readu_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
@@ -144,7 +143,7 @@ static void ml_stream_readi_run(ml_read_state_t *State, ml_value_t *Value) {
 
 ML_METHODX("readi", MLStreamT, MLIntegerT, MLStringT) {
 	ml_value_t *Stream = Args[0];
-	ml_read_state_t *State = xnew(ml_read_state_t, 65, char);
+	ml_readu_state_t *State = xnew(ml_readu_state_t, 65, char);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_stream_readi_run;
@@ -163,7 +162,7 @@ ML_METHODX("readi", MLStreamT, MLIntegerT, MLStringT) {
 
 ML_METHODX("read", MLStreamT) {
 	ml_value_t *Stream = Args[0];
-	ml_read_state_t *State = xnew(ml_read_state_t, 65, char);
+	ml_readu_state_t *State = xnew(ml_readu_state_t, 65, char);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_stream_readi_run;
@@ -175,27 +174,117 @@ ML_METHODX("read", MLStreamT) {
 	return State->read((ml_state_t *)State, Stream, (void *)&State->Chars[64], 1);
 }
 
-static void ml_stream_rest_run(ml_read_state_t *State, ml_value_t *Value) {
+static void ml_stream_rest_run(ml_readu_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
 	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_get_value(State->Buffer) : MLNil);
-	char *Space = ml_stringbuffer_advance(State->Buffer, Length);
+	char *Space = ml_stringbuffer_writer(State->Buffer, Length);
 	ml_value_t *Stream = State->Stream;
 	return State->read((ml_state_t *)State, Stream, Space, State->Buffer->Space);
 }
 
 ML_METHODX("rest", MLStreamT) {
 	ml_value_t *Stream = Args[0];
-	ml_read_state_t *State = xnew(ml_read_state_t, 0, char);
+	ml_readu_state_t *State = xnew(ml_readu_state_t, 0, char);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_stream_rest_run;
 	State->Stream = Stream;
 	State->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
 	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
-	char *Space = ml_stringbuffer_advance(State->Buffer, 0);
+	char *Space = ml_stringbuffer_writer(State->Buffer, 0);
 	return State->read((ml_state_t *)State, Stream, Space, State->Buffer->Space);
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Stream;
+	typeof(ml_stream_write) *write;
+	ml_stringbuffer_t Buffer[1];
+	int Index, Count;
+	size_t Length;
+	ml_value_t *Args[];
+} ml_write_state_t;
+
+static void ml_stream_write_run(ml_write_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_stringbuffer_t *Buffer = State->Buffer;
+	size_t Length = ml_integer_value(Value);
+	State->Length += Length;
+	Length = ml_stringbuffer_reader(Buffer, Length);
+	if (!Length) ML_CONTINUE(State->Base.Caller, ml_integer(State->Length));
+	return State->write((ml_state_t *)State, State->Stream, Buffer->Head->Chars + Buffer->Start, Length);
+}
+
+static void ml_stream_write_append_run(ml_write_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_stringbuffer_t *Buffer = State->Buffer;
+	if (++State->Index < State->Count) return ml_stringbuffer_append((ml_state_t *)State, Buffer, State->Args[State->Index]);
+	State->Base.run = (ml_state_fn)ml_stream_write_run;
+	size_t Length = ml_stringbuffer_reader(Buffer, 0);
+	if (!Length) ML_CONTINUE(State->Base.Caller, ml_integer(0));
+	return State->write((ml_state_t *)State, State->Stream, Buffer->Head->Chars + Buffer->Start, Length);
+}
+
+ML_METHODVX("write", MLStreamT, MLAnyT) {
+	ml_value_t *Stream = Args[0];
+	ml_write_state_t *State = xnew(ml_write_state_t, Count - 1, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_stream_write_append_run;
+	State->Stream = Stream;
+	State->write = ml_typed_fn_get(ml_typeof(Stream), ml_stream_write) ?: ml_stream_write_method;
+	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
+	State->Index = 0;
+	State->Count = Count - 1;
+	for (int I = 1; I < Count; ++I) State->Args[I - 1] = Args[I];
+	return ml_stringbuffer_append((ml_state_t *)State, State->Buffer, State->Args[0]);
+}
+
+static void ML_TYPED_FN(ml_stream_read, MLStringBufferT, ml_state_t *Caller, ml_stringbuffer_t *Stream, void *Address, int Count) {
+	size_t Total = 0, Length = ml_stringbuffer_reader(Stream, 0);
+	while (Count) {
+		if (!Length) break;
+		if (Length >= Count) {
+			memcpy(Address, Stream->Head->Chars + Stream->Start, Count);
+			ml_stringbuffer_reader(Stream, Count);
+			Total += Count;
+			break;
+		}
+		memcpy(Address, Stream->Head->Chars + Stream->Start, Length);
+		Total += Length;
+		Count -= Length;
+		Address += Length;
+		Length = ml_stringbuffer_reader(Stream, Length);
+	}
+	ML_RETURN(ml_integer(Total));
+}
+
+ML_METHOD("read", MLStringBufferT, MLBufferT) {
+	ml_stringbuffer_t *Stream = (ml_stringbuffer_t *)Args[0];
+	void *Address = ml_buffer_value(Args[1]);
+	Count = ml_buffer_length(Args[1]);
+	size_t Length = 0, Total = 0;
+	while (Count) {
+		Length = ml_stringbuffer_reader(Stream, Length);
+		if (!Length) break;
+		if (Length > Count) {
+			memcpy(Address, Stream->Head->Chars + Stream->Start, Count);
+			ml_stringbuffer_reader(Stream, Count);
+			Total += Count;
+			break;
+		}
+		memcpy(Address, Stream->Head->Chars + Stream->Start, Length);
+		Total += Length;
+		Count -= Length;
+		Address += Length;
+	}
+	return ml_integer(Total);
+}
+
+static void ML_TYPED_FN(ml_stream_write, MLStringBufferT, ml_state_t *Caller, ml_stringbuffer_t *Buffer, void *Address, int Count) {
+	ML_RETURN(ml_integer(ml_stringbuffer_write(Buffer, Address, Count)));
 }
 
 typedef struct ml_fd_t {
@@ -267,6 +356,7 @@ ML_METHOD("write", MLStreamFdT, MLAddressT) {
 
 void ml_stream_init(stringmap_t *Globals) {
 #include "ml_stream_init.c"
+	ml_type_add_parent(MLStringBufferT, MLStreamT);
 	stringmap_insert(MLStreamT->Exports, "fd", MLStreamFdT);
 	if (Globals) {
 		stringmap_insert(Globals, "stream", MLStreamT);

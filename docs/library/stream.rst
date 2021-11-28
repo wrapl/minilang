@@ -20,6 +20,12 @@ stream
 :mini:`meth (Arg₁: stream):rest`
    *TBD*
 
+:mini:`meth (Arg₁: stream):write(Arg₂: any, ...)`
+   *TBD*
+
+:mini:`meth (Arg₁: string::buffer):read(Arg₂: buffer)`
+   *TBD*
+
 :mini:`type stream::fd < stream`
    A file-descriptor based stream.
 

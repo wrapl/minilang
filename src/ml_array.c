@@ -1239,7 +1239,7 @@ static long srotl(long X, unsigned int N) {
 	return (X << (N & Mask)) | (X >> ((-N) & Mask ));
 }
 
-#define BUFFER_APPEND(BUFFER, PRINTF, VALUE) ml_stringbuffer_append(BUFFER, VALUE)
+#define BUFFER_APPEND(BUFFER, PRINTF, VALUE) ml_stringbuffer_simple_append(BUFFER, VALUE)
 
 #ifdef ML_COMPLEX
 

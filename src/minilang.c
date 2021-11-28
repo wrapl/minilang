@@ -104,7 +104,7 @@ ML_FUNCTION(MLPrint) {
 // Prints :mini:`Values` to standard output, converting to strings if necessary.
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Result = ml_stringbuffer_append(Buffer, Args[I]);
+		ml_value_t *Result = ml_stringbuffer_simple_append(Buffer, Args[I]);
 		if (ml_is_error(Result)) return Result;
 	}
 	ml_stringbuffer_foreach(Buffer, stdout, (void *)ml_stringbuffer_print);

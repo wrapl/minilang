@@ -1015,7 +1015,7 @@ static void join_next(ml_join_state_t *State, ml_value_t *Value) {
 
 static void join_append(ml_join_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	ml_stringbuffer_append(State->Buffer, Value);
+	ml_stringbuffer_simple_append(State->Buffer, Value);
 	State->Base.run = (void *)join_next;
 	return ml_iter_next((ml_state_t *)State, State->Iter);
 }

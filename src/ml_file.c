@@ -82,25 +82,6 @@ static void ML_TYPED_FN(ml_stream_write, MLFileT, ml_state_t *Caller, ml_file_t 
 	ML_RETURN(ml_integer(Result));
 }
 
-ML_METHODV("write", MLFileT, MLStringT) {
-//<File
-//<String
-//>File
-	ml_file_t *File = (ml_file_t *)Args[0];
-	if (!File->Handle) return ml_error("FileError", "file closed");
-	for (int I = 1; I < Count; ++I) {
-		const char *Chars = ml_string_value(Args[I]);
-		ssize_t Remaining = ml_string_length(Args[I]);
-		while (Remaining > 0) {
-			ssize_t Actual = fwrite(Chars, 1, Remaining, File->Handle);
-			if (Actual < 0) return ml_error("FileError", "error writing to file: %s", strerror(errno));
-			Chars += Actual;
-			Remaining -= Actual;
-		}
-	}
-	return Args[0];
-}
-
 static int ml_file_write_buffer_chars(ml_file_t *File, const char *Chars, size_t Remaining) {
 	while (Remaining > 0) {
 		ssize_t Actual = fwrite(Chars, 1, Remaining, File->Handle);

@@ -573,8 +573,14 @@ static inline size_t ml_address_length(const ml_value_t *Value) {
 }
 
 ml_value_t *ml_buffer(char *Value, int Length) __attribute__((malloc));
-#define ml_buffer_value ml_address_value
-#define ml_buffer_length ml_address_length
+
+static inline char *ml_buffer_value(const ml_value_t *Value) {
+	return ((ml_address_t *)Value)->Value;
+}
+
+static inline size_t ml_buffer_length(const ml_value_t *Value) {
+	return ((ml_address_t *)Value)->Length;
+}
 
 ml_value_t *ml_string(const char *Value, int Length) __attribute__((malloc));
 #define ml_cstring(VALUE) ml_string(VALUE, strlen(VALUE))
@@ -596,7 +602,7 @@ struct ml_stringbuffer_t {
 	ml_stringbuffer_node_t *Head, *Tail;
 	ml_hash_chain_t *Chain;
 	FILE *File;
-	int Space, Length, Index;
+	int Space, Length, Start, Index;
 };
 
 #define ML_STRINGBUFFER_NODE_SIZE 248
@@ -609,14 +615,18 @@ struct ml_stringbuffer_node_t {
 #define ML_STRINGBUFFER_INIT (ml_stringbuffer_t){MLStringBufferT, 0,}
 
 ml_value_t *ml_stringbuffer();
-char *ml_stringbuffer_advance(ml_stringbuffer_t *Buffer, size_t Length);
+char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Length);
 ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, size_t Length);
 ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ...) __attribute__ ((format(printf, 2, 3)));
-ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value);
+void ml_stringbuffer_append(ml_state_t *Caller, ml_stringbuffer_t *Buffer, ml_value_t *Value);
+
+ml_value_t *ml_stringbuffer_simple_append(ml_stringbuffer_t *Buffer, ml_value_t *Value);
 
 char *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
 char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
 ml_value_t *ml_stringbuffer_get_value(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
+
+size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length);
 
 int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t));
 

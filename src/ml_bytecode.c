@@ -1552,7 +1552,7 @@ static void ml_closure_value_list(ml_value_t *Value, ml_stringbuffer_t *Buffer) 
 		ml_stringbuffer_write(Buffer, "\"", 1);
 	} else if (ml_is(Value, MLNumberT)) {
 		ml_stringbuffer_write(Buffer, " ", 1);
-		ml_stringbuffer_append(Buffer, Value);
+		ml_stringbuffer_simple_append(Buffer, Value);
 	} else if (ml_typeof(Value) == MLMethodT) {
 		ml_stringbuffer_printf(Buffer, " :%s", ml_method_name(Value));
 	} else if (ml_typeof(Value) == MLTypeT) {

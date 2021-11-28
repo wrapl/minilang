@@ -331,7 +331,7 @@ ML_FUNCTION(MLString) {
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_value_t *Error;
 	if (Count == 1) {
-		Error = ml_stringbuffer_append(Buffer, Args[0]);
+		Error = ml_stringbuffer_simple_append(Buffer, Args[0]);
 	} else {
 		ml_value_t **Args2 = ml_alloc_args(Count + 1);
 		memmove(Args2 + 1, Args, Count * sizeof(ml_value_t *));
@@ -1003,7 +1003,37 @@ static ml_stringbuffer_node_t * _Atomic StringBufferNodeCache = NULL;
 static ml_stringbuffer_node_t *StringBufferNodeCache = NULL;
 #endif
 
-char *ml_stringbuffer_advance(ml_stringbuffer_t *Buffer, size_t Length) {
+size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length) {
+	ml_stringbuffer_node_t *Node = Buffer->Head;
+	Buffer->Length -= Length;
+	Buffer->Start += Length;
+	while (Node) {
+		size_t Limit = ML_STRINGBUFFER_NODE_SIZE;
+		if (Node == Buffer->Tail) Limit -= Buffer->Space;
+		if (Buffer->Start < Limit) return Limit - Buffer->Start;
+		ml_stringbuffer_node_t *Next = Node->Next;
+#ifdef ML_THREADSAFE
+		ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
+		do {
+			Node->Next = CacheNext;
+		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &CacheNext, Node));
+#else
+		Node->Next = StringBufferNodeCache;
+		StringBufferNodeCache = Node;
+#endif
+		Buffer->Start = 0;
+		if (Next) {
+			Node = Buffer->Head = Next;
+		} else {
+			Buffer->Head = Buffer->Tail = NULL;
+			Buffer->Space = 0;
+			break;
+		}
+	}
+	return 0;
+}
+
+char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Length) {
 	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
 	Buffer->Length += Length;
 	Buffer->Space -= Length;
@@ -1157,7 +1187,7 @@ int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callbac
 	return callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
 }
 
-ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
+ml_value_t *ml_stringbuffer_simple_append(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
 	ml_hash_chain_t *Chain = Buffer->Chain;
 	for (ml_hash_chain_t *Link = Chain; Link; Link = Link->Previous) {
 		if (Link->Value == Value) {
@@ -1173,6 +1203,43 @@ ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value)
 	if (NewChain->Index) ml_stringbuffer_printf(Buffer, "@%d", NewChain->Index);
 	Buffer->Chain = Chain;
 	return Result;
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_hash_chain_t Chain[1];
+	ml_value_t *Args[2];
+} ml_stringbuffer_append_state_t;
+
+static void ml_stringbuffer_append_run(ml_stringbuffer_append_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)State->Args[0];
+	if (State->Chain->Index) ml_stringbuffer_printf(Buffer, "@%d", State->Chain->Index);
+	Buffer->Chain = State->Chain->Previous;
+	ML_RETURN(Buffer);
+}
+
+void ml_stringbuffer_append(ml_state_t *Caller, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
+	for (ml_hash_chain_t *Link = Buffer->Chain; Link; Link = Link->Previous) {
+		if (Link->Value == Value) {
+			int Index = Link->Index;
+			if (!Index) Index = Link->Index = ++Buffer->Index;
+			ml_stringbuffer_printf(Buffer, "^%d", Index);
+			ML_RETURN(Buffer);
+		}
+	}
+	ml_stringbuffer_append_state_t *State = new(ml_stringbuffer_append_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_stringbuffer_append_run;
+	State->Chain->Previous = Buffer->Chain;
+	State->Chain->Value = Value;
+	Buffer->Chain = State->Chain;
+	State->Args[0] = (ml_value_t *)Buffer;
+	State->Args[1] = Value;
+	return ml_call(State, AppendMethod, 2, State->Args);
+
 }
 
 ML_METHODV("append", MLStringBufferT, MLAnyT) {
@@ -1192,7 +1259,7 @@ ML_METHODV("append", MLStringBufferT, MLAnyT) {
 ML_METHODV("write", MLStringBufferT, MLAnyT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	for (int I = 1; I < Count; ++I) {
-		ml_value_t *Result = ml_stringbuffer_append(Buffer, Args[I]);
+		ml_value_t *Result = ml_stringbuffer_simple_append(Buffer, Args[I]);
 		if (ml_is_error(Result)) return Result;
 	}
 	return Args[0];

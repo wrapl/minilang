@@ -246,6 +246,7 @@ void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent) {
 		ml_type_t *Parent2 = (ml_type_t *)Parent->Parents->Keys[I];
 		if (Parent2) ml_type_add_parent(Type, Parent2);
 	}
+	if (Type->Rank <= Parent->Rank) Type->Rank = Parent->Rank + 1;
 }
 
 #ifdef ML_THREADSAFE
@@ -1552,10 +1553,10 @@ ML_METHOD("append", MLStringBufferT, MLTupleT) {
 	ml_tuple_t *Value = (ml_tuple_t *)Args[1];
 	ml_stringbuffer_write(Buffer, "(", 1);
 	if (Value->Size) {
-		ml_stringbuffer_append(Buffer, Value->Values[0]);
+		ml_stringbuffer_simple_append(Buffer, Value->Values[0]);
 		for (int I = 1; I < Value->Size; ++I) {
 			ml_stringbuffer_write(Buffer, ", ", 2);
-			ml_stringbuffer_append(Buffer, Value->Values[I]);
+			ml_stringbuffer_simple_append(Buffer, Value->Values[I]);
 		}
 	}
 	ml_stringbuffer_write(Buffer, ")", 1);

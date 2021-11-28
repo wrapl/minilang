@@ -7,9 +7,6 @@ file
 :mini:`fun file(Path: string, Mode: string): file`
    *TBD*
 
-:mini:`meth (File: file):write(String: string, ...): File`
-   *TBD*
-
 :mini:`meth (File: file):write(Buffer: string::buffer): File`
    *TBD*
 

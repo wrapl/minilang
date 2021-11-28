@@ -73,7 +73,7 @@ static void ml_console_log(void *Data, ml_value_t *Value) {
 		}
 	} else {
 		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-		Value = ml_stringbuffer_append(Buffer, Value);
+		Value = ml_stringbuffer_simple_append(Buffer, Value);
 		if (ml_is_error(Value)) goto error;
 		ml_stringbuffer_foreach(Buffer, stdout, (void *)ml_stringbuffer_print);
 		puts("");
