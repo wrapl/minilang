@@ -23,6 +23,12 @@ stream
 :mini:`meth (Arg₁: stream):write(Arg₂: any, ...)`
    *TBD*
 
+:mini:`meth (Arg₁: stream):copy(Arg₂: stream)`
+   *TBD*
+
+:mini:`meth (Arg₁: stream):copy(Arg₂: stream, Arg₃: integer)`
+   *TBD*
+
 :mini:`meth (Arg₁: string::buffer):read(Arg₂: buffer)`
    *TBD*
 

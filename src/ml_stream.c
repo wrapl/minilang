@@ -242,6 +242,70 @@ ML_METHODVX("write", MLStreamT, MLAnyT) {
 	return ml_stringbuffer_append((ml_state_t *)State, State->Buffer, State->Args[0]);
 }
 
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Source, *Destination;
+	typeof(ml_stream_read) *read;
+	typeof(ml_stream_write) *write;
+	size_t Length, Start, Total, Remaining;
+	char Buffer[ML_STRINGBUFFER_NODE_SIZE];
+} ml_stream_copy_state_t;
+
+static void ml_stream_copy_read_run(ml_stream_copy_state_t *State, ml_value_t *Value);
+
+static void ml_stream_copy_write_run(ml_stream_copy_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	size_t Length = ml_integer_value(Value);
+	State->Total += Length;
+	State->Length -= Length;
+	State->Remaining -= Length;
+	if (!State->Length) {
+		if (!State->Remaining) ML_CONTINUE(State->Base.Caller, ml_integer(State->Total));
+		State->Base.run = (ml_state_fn)ml_stream_copy_read_run;
+		size_t Read = State->Remaining < ML_STRINGBUFFER_NODE_SIZE ? State->Remaining : ML_STRINGBUFFER_NODE_SIZE;
+		return State->read((ml_state_t *)State, State->Source, State->Buffer, Read);
+	}
+	State->Start += Length;
+	return State->write((ml_state_t *)State, State->Destination, State->Buffer + State->Start, State->Length);
+}
+
+static void ml_stream_copy_read_run(ml_stream_copy_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	size_t Length = ml_integer_value(Value);
+	if (!Length) ML_CONTINUE(State->Base.Caller, ml_integer(State->Total));
+	State->Base.run = (ml_state_fn)ml_stream_copy_write_run;
+	State->Length = Length;
+	State->Start = 0;
+	return State->write((ml_state_t *)State, State->Destination, State->Buffer, Length);
+}
+
+ML_METHODX("copy", MLStreamT, MLStreamT) {
+	ml_stream_copy_state_t *State = new(ml_stream_copy_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	ml_value_t *Source = State->Source = Args[0];
+	ml_value_t *Destination = State->Destination = Args[1];
+	State->read = ml_typed_fn_get(ml_typeof(Source), ml_stream_read) ?: ml_stream_read_method;
+	State->write = ml_typed_fn_get(ml_typeof(Destination), ml_stream_write) ?: ml_stream_write_method;
+	State->Base.run = (ml_state_fn)ml_stream_copy_read_run;
+	State->Remaining = SIZE_MAX;
+	return State->read((ml_state_t *)State, Source, State->Buffer, ML_STRINGBUFFER_NODE_SIZE);
+}
+
+ML_METHODX("copy", MLStreamT, MLStreamT, MLIntegerT) {
+	ml_stream_copy_state_t *State = new(ml_stream_copy_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	ml_value_t *Source = State->Source = Args[0];
+	ml_value_t *Destination = State->Destination = Args[1];
+	State->read = ml_typed_fn_get(ml_typeof(Source), ml_stream_read) ?: ml_stream_read_method;
+	State->write = ml_typed_fn_get(ml_typeof(Destination), ml_stream_write) ?: ml_stream_write_method;
+	State->Base.run = (ml_state_fn)ml_stream_copy_read_run;
+	State->Remaining = ml_integer_value(Args[2]);
+	size_t Read = State->Remaining < ML_STRINGBUFFER_NODE_SIZE ? State->Remaining : ML_STRINGBUFFER_NODE_SIZE;
+	return State->read((ml_state_t *)State, Source, State->Buffer, Read);
+}
+
 static void ML_TYPED_FN(ml_stream_read, MLStringBufferT, ml_state_t *Caller, ml_stringbuffer_t *Stream, void *Address, int Count) {
 	size_t Total = 0, Length = ml_stringbuffer_reader(Stream, 0);
 	while (Count) {
