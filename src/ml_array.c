@@ -599,12 +599,22 @@ ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **Indices) 
 			if (!Size) return ml_error("IndexError", "Empty dimension");
 			int *Indices = TargetDimension->Indices = (int *)snew(Size * sizeof(int));
 			int *IndexPtr = Indices;
-			ML_LIST_FOREACH(Index, Iter) {
-				int IndexValue = ml_integer_value(Iter->Value);
-				if (IndexValue <= 0) IndexValue += SourceDimension->Size + 1;
-				if (--IndexValue < 0) return MLNil;
-				if (IndexValue >= SourceDimension->Size) return MLNil;
-				*IndexPtr++ = IndexValue;
+			if (Source->Dimensions->Indices) {
+				ML_LIST_FOREACH(Index, Iter) {
+					int IndexValue = ml_integer_value(Iter->Value);
+					if (IndexValue <= 0) IndexValue += SourceDimension->Size + 1;
+					if (--IndexValue < 0) return MLNil;
+					if (IndexValue >= SourceDimension->Size) return MLNil;
+					*IndexPtr++ = SourceDimension->Indices[IndexValue];
+				}
+			} else {
+				ML_LIST_FOREACH(Index, Iter) {
+					int IndexValue = ml_integer_value(Iter->Value);
+					if (IndexValue <= 0) IndexValue += SourceDimension->Size + 1;
+					if (--IndexValue < 0) return MLNil;
+					if (IndexValue >= SourceDimension->Size) return MLNil;
+					*IndexPtr++ = IndexValue;
+				}
 			}
 			int First = Indices[0];
 			for (int I = 0; I < Size; ++I) Indices[I] -= First;
@@ -618,12 +628,22 @@ ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **Indices) 
 			if (!Size) return ml_error("IndexError", "Empty dimension");
 			int *Indices = TargetDimension->Indices = (int *)snew(Size * sizeof(int));
 			int *IndexPtr = Indices;
-			for (int I = 0; I < Size; ++I) {
-				int IndexValue = ml_array_get_int32_t(IndexArray, I);
-				if (IndexValue <= 0) IndexValue += SourceDimension->Size + 1;
-				if (--IndexValue < 0) return MLNil;
-				if (IndexValue >= SourceDimension->Size) return MLNil;
-				*IndexPtr++ = IndexValue;
+			if (SourceDimension->Indices) {
+				for (int I = 0; I < Size; ++I) {
+					int IndexValue = ml_array_get_int32_t(IndexArray, I);
+					if (IndexValue <= 0) IndexValue += SourceDimension->Size + 1;
+					if (--IndexValue < 0) return MLNil;
+					if (IndexValue >= SourceDimension->Size) return MLNil;
+					*IndexPtr++ = SourceDimension->Indices[IndexValue];
+				}
+			} else {
+				for (int I = 0; I < Size; ++I) {
+					int IndexValue = ml_array_get_int32_t(IndexArray, I);
+					if (IndexValue <= 0) IndexValue += SourceDimension->Size + 1;
+					if (--IndexValue < 0) return MLNil;
+					if (IndexValue >= SourceDimension->Size) return MLNil;
+					*IndexPtr++ = IndexValue;
+				}
 			}
 			int First = Indices[0];
 			for (int I = 0; I < Size; ++I) Indices[I] -= First;
@@ -644,9 +664,18 @@ ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **Indices) 
 			if (Step == 0) return MLNil;
 			int Size = TargetDimension->Size = (Max - Min) / Step + 1;
 			if (Size < 0) return MLNil;
-			TargetDimension->Indices = 0;
-			TargetDimension->Stride = SourceDimension->Stride * Step;
-			Address += SourceDimension->Stride * Min;
+			if (SourceDimension->Indices) {
+				int *Indices = TargetDimension->Indices = (int *)snew(Size * sizeof(int));
+				int *IndexPtr = Indices;
+				for (int I = Min; I <= Max; I += Step) {
+					*IndexPtr++ = SourceDimension->Indices[I];
+				}
+				TargetDimension->Stride = SourceDimension->Stride;
+			} else {
+				TargetDimension->Indices = 0;
+				Address += SourceDimension->Stride * Min;
+				TargetDimension->Stride = SourceDimension->Stride * Step;
+			}
 			++TargetDimension;
 		} else if (Index == MLNil) {
 			*TargetDimension = *SourceDimension;
