@@ -2905,15 +2905,11 @@ static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args) {
 	}
 	ml_array_t *Array = ml_array_of_create(Source, 0, Format);
 	if (Array->Base.Type == MLErrorT) return (ml_value_t *)Array;
-	size_t Size = MLArraySizes[Array->Format];
-	ml_array_dimension_t *Dimension = Array->Dimensions + Array->Degree;
-	for (int I = Array->Degree; --I >= 0;) {
-		--Dimension;
-		Dimension->Stride = Size;
-		Size *= Dimension->Size;
-	}
+	int Degree = Array->Degree;
+	ml_array_dimension_t *Dimensions = Array->Dimensions;
+	size_t Size = Dimensions->Size * Dimensions->Stride;
 	char *Address = Array->Base.Value = snew(Size);
-	ml_value_t *Error = ml_array_of_fill(Array->Format, Array->Dimensions, Address, Array->Degree, Source);
+	ml_value_t *Error = ml_array_of_fill(Array->Format, Dimensions, Address, Degree, Source);
 	return Error ?: (ml_value_t *)Array;
 }
 
@@ -2944,17 +2940,13 @@ ML_METHOD("^", MLListT) {
 	Format = ml_array_of_type_guess(Args[0], ML_ARRAY_FORMAT_NONE);
 	ml_array_t *Array = ml_array_of_create(Source, 1, Format);
 	if (Array->Base.Type == MLErrorT) return (ml_value_t *)Array;
-	size_t Size = MLArraySizes[Array->Format];
-	ml_array_dimension_t *Dimension = Array->Dimensions + Array->Degree;
-	for (int I = Array->Degree; --I >= 0;) {
-		--Dimension;
-		Dimension->Stride = Size;
-		Size *= Dimension->Size;
-	}
+	int Degree = Array->Degree;
+	ml_array_dimension_t *Dimensions = Array->Dimensions;
+	for (int I = 1; I < Array->Degree; ++I) Dimensions[I - 1] = Dimensions[I];
+	size_t Size = Dimensions->Size * Dimensions->Stride;
 	char *Address = Array->Base.Value = snew(Size);
-	ml_value_t *Error = ml_array_of_fill(Array->Format, Array->Dimensions + 1, Address, Array->Degree - 1, Source);
-	for (int I = 0; I < Array->Degree - 1; ++I) Array->Dimensions[I] = Array->Dimensions[I + 1];
-	Array->Dimensions[Array->Degree - 1].Size = 1;
+	ml_value_t *Error = ml_array_of_fill(Array->Format, Dimensions, Address, Degree - 1, Source);
+	Array->Dimensions[Degree - 1].Size = 1;
 	return Error ?: (ml_value_t *)Array;
 }
 
