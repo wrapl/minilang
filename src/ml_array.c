@@ -610,7 +610,7 @@ ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **Indices) 
 					if (IndexValue <= 0) IndexValue += SourceDimension->Size + 1;
 					if (--IndexValue < 0) return MLNil;
 					if (IndexValue >= SourceDimension->Size) return MLNil;
-					*IndexPtr++ = SourceDimension->Indices[IndexValue - 1];
+					*IndexPtr++ = SourceDimension->Indices[IndexValue];
 				}
 			} else {
 				ML_LIST_FOREACH(Index, Iter) {
@@ -639,7 +639,7 @@ ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **Indices) 
 					if (IndexValue <= 0) IndexValue += SourceDimension->Size + 1;
 					if (--IndexValue < 0) return MLNil;
 					if (IndexValue >= SourceDimension->Size) return MLNil;
-					*IndexPtr++ = SourceDimension->Indices[IndexValue - 1];
+					*IndexPtr++ = SourceDimension->Indices[IndexValue];
 				}
 			} else {
 				for (int I = 0; I < Size; ++I) {
@@ -673,7 +673,7 @@ ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **Indices) 
 				int *Indices = TargetDimension->Indices = (int *)snew(Size * sizeof(int));
 				int *IndexPtr = Indices;
 				for (int I = Min; I <= Max; I += Step) {
-					*IndexPtr++ = SourceDimension->Indices[I - 1];
+					*IndexPtr++ = SourceDimension->Indices[I];
 				}
 				TargetDimension->Stride = SourceDimension->Stride;
 			} else {
