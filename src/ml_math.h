@@ -29,6 +29,8 @@ extern ml_value_t *CbrtMethod;
 extern ml_value_t *Expm1Method;
 extern ml_value_t *Log1pMethod;
 extern ml_value_t *RoundMethod;
+extern ml_value_t *ArgMethod;
+extern ml_value_t *ConjMethod;
 
 void ml_math_init(stringmap_t *Globals);
 

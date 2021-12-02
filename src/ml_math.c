@@ -226,6 +226,34 @@ MATH_REAL(Log1p, log1p);
 MATH_REAL_REAL(Rem, remainder);
 MATH_REAL(Round, round);
 
+ML_METHOD_DECL(ArgMethod, "arg");
+
+ML_METHOD(ArgMethod, MLRealT) {
+	return ml_real(0.0);
+}
+
+ML_METHOD_DECL(ConjMethod, "conj");
+
+ML_METHOD(ConjMethod, MLRealT) {
+	return Args[0];
+}
+
+#ifdef ML_COMPLEX
+
+ML_METHOD(AbsMethod, MLComplexT) {
+	return ml_real(cabs(ml_complex_value(Args[0])));
+}
+
+ML_METHOD(ArgMethod, MLComplexT) {
+	return ml_real(carg(ml_complex_value(Args[0])));
+}
+
+ML_METHOD(ConjMethod, MLComplexT) {
+	return ml_complex(conj(ml_complex_value(Args[0])));
+}
+
+#endif
+
 ML_FUNCTION(IntegerRandom) {
 //@integer::random
 //<Min?:number
@@ -364,6 +392,8 @@ void ml_math_init(stringmap_t *Globals) {
 			"log1p", Log1pMethod,
 			"rem", RemMethod,
 			"round", RoundMethod,
+			"arg", ArgMethod,
+			"conj", ConjMethod,
 			"pi", ml_real(M_PI),
 			"π", ml_real(M_PI),
 			"e", ml_real(M_E),

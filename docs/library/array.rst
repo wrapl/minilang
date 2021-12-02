@@ -11,6 +11,12 @@ array
    Base type for multidimensional arrays.
 
 
+:mini:`type array::integer < array`
+   *TBD*
+
+:mini:`type array::complex < array`
+   *TBD*
+
 :mini:`meth (Array: array):degree: integer`
    Return the degree of :mini:`Array`.
 
@@ -72,51 +78,54 @@ array
    The :mini:`i`-th dimension is indexed by :mini:`Indices[i]` if present,  and :mini:`nil` otherwise.
 
 
-:mini:`type array::int8 < array`
+:mini:`meth (Arg₁: array)[Arg₂: tuple]`
+   *TBD*
+
+:mini:`type array::int8 < array::integer`
    An array of int8 values.
 
 
-:mini:`type array::uint8 < array`
+:mini:`type array::uint8 < array::integer`
    An array of uint8 values.
 
 
-:mini:`type array::int16 < array`
+:mini:`type array::int16 < array::integer`
    An array of int16 values.
 
 
-:mini:`type array::uint16 < array`
+:mini:`type array::uint16 < array::integer`
    An array of uint16 values.
 
 
-:mini:`type array::int32 < array`
+:mini:`type array::int32 < array::integer`
    An array of int32 values.
 
 
-:mini:`type array::uint32 < array`
+:mini:`type array::uint32 < array::integer`
    An array of uint32 values.
 
 
-:mini:`type array::int64 < array`
+:mini:`type array::int64 < array::integer`
    An array of int64 values.
 
 
-:mini:`type array::uint64 < array`
+:mini:`type array::uint64 < array::integer`
    An array of uint64 values.
 
 
-:mini:`type array::float32 < array`
+:mini:`type array::float32 < array::real`
    An array of float32 values.
 
 
-:mini:`type array::float64 < array`
+:mini:`type array::float64 < array::real`
    An array of float64 values.
 
 
-:mini:`type array::complex32 < array`
+:mini:`type array::complex32 < array::complex`
    An array of complex32 values.
 
 
-:mini:`type array::complex64 < array`
+:mini:`type array::complex64 < array::complex`
    An array of complex64 values.
 
 
@@ -333,6 +342,14 @@ array
 
 :mini:`meth (Array: array):update(Function: function): array`
    Update the values in :mini:`Array` in place by applying :mini:`Function` to each value.
+
+
+:mini:`meth (Array: array):where(Function: function): array`
+   Update the values in :mini:`Array` in place by applying :mini:`Function` to each value.
+
+
+:mini:`meth (Array: array):where: list`
+   Returns a list of non-zero indices of :mini:`Array`.
 
 
 :mini:`meth (A: array) . (B: array): array`

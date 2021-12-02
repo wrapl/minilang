@@ -212,6 +212,21 @@ math
    Returns :mini:`round(Arg₁)`.
 
 
+:mini:`meth (Arg₁: real):ArgMethod`
+   *TBD*
+
+:mini:`meth (Arg₁: real):ConjMethod`
+   *TBD*
+
+:mini:`meth (Arg₁: complex):AbsMethod`
+   *TBD*
+
+:mini:`meth (Arg₁: complex):ArgMethod`
+   *TBD*
+
+:mini:`meth (Arg₁: complex):ConjMethod`
+   *TBD*
+
 :mini:`fun integer::random(Min?: number, Max?: number): integer`
    Returns a random integer between :mini:`Min` and :mini:`Max` (where :mini:`Max <= 2³² - 1`.
 

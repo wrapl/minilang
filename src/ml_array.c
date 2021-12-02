@@ -32,6 +32,9 @@ ML_TYPE(MLArrayT, (MLAddressT, MLSequenceT), "array",
 	.Constructor = (ml_value_t *)MLArray
 );
 
+ML_TYPE(MLArrayIntegerT, (MLArrayT), "integer-array");
+ML_TYPE(MLArrayRealT, (MLArrayT), "real-array");
+
 extern ml_type_t MLArrayInt8T[];
 extern ml_type_t MLArrayUInt8T[];
 extern ml_type_t MLArrayInt16T[];
@@ -44,6 +47,8 @@ extern ml_type_t MLArrayFloat32T[];
 extern ml_type_t MLArrayFloat64T[];
 
 #ifdef ML_COMPLEX
+
+ML_TYPE(MLArrayComplexT, (MLArrayT), "complex-array");
 
 extern ml_type_t MLArrayComplex32T[];
 extern ml_type_t MLArrayComplex64T[];
@@ -730,6 +735,12 @@ ML_METHOD("[]", MLArrayT, MLMapT) {
 	return ml_array_index(Source, Degree, Indices);
 }
 
+ML_METHOD("[]", MLArrayT, MLTupleT) {
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	ml_tuple_t *Tuple = (ml_tuple_t *)Args[1];
+	return ml_array_index(Source, Tuple->Size, Tuple->Values);
+}
+
 static char *ml_array_indexv(ml_array_t *Array, va_list Indices) {
 	ml_array_dimension_t *Dimension = Array->Dimensions;
 	char *Address = Array->Base.Value;
@@ -823,6 +834,7 @@ static void ML_TYPED_FN(ml_iter_value, MLArrayIteratorT, ml_state_t *Caller, ml_
 }
 
 static void ML_TYPED_FN(ml_iter_key, MLArrayIteratorT, ml_state_t *Caller, ml_array_iterator_t *Iterator) {
+	if (Iterator->Degree == 1) ML_RETURN(ml_integer(Iterator->Dimensions[0].Index + 1));
 	ml_value_t *Tuple = ml_tuple(Iterator->Degree);
 	for (int I = 0; I < Iterator->Degree; ++I) {
 		ml_tuple_set(Tuple, I + 1, ml_integer(Iterator->Dimensions[I].Index + 1));
@@ -1297,7 +1309,7 @@ static long srotl(long X, unsigned int N) {
 
 #endif
 
-#define ARRAY_DECL(PREFIX, ATYPE, CTYPE, APPEND, PRINTF, FROM_VAL, TO_VAL, FROM_NUM, TO_NUM, FORMAT, HASH) \
+#define ARRAY_DECL(PARENT, PREFIX, ATYPE, CTYPE, APPEND, PRINTF, FROM_VAL, TO_VAL, FROM_NUM, TO_NUM, FORMAT, HASH) \
 \
 static ml_value_t *ML_TYPED_FN(ml_array_value, ATYPE, ml_array_t *Array, char *Address) { \
 	return TO_VAL(*(CTYPE *)Array->Base.Value); \
@@ -1500,7 +1512,7 @@ static void ml_array_ ## CTYPE ## _assign(ml_state_t *Caller, ml_array_t *Target
 \
 ML_CFUNCTIONX(ATYPE ## New, (void *)FORMAT, ml_array_typed_new_fnx); \
 \
-ML_TYPE(ATYPE, (MLArrayT), #PREFIX "-array", \
+ML_TYPE(ATYPE, (PARENT), #PREFIX "-array", \
 /*@array::PREFIX
 // An array of PREFIX values.
 */\
@@ -1514,25 +1526,25 @@ typedef ml_value_t *value;
 
 #define NOP_VAL(T, X) X
 
-ARRAY_DECL(int8, MLArrayInt8T, int8_t, ml_stringbuffer_printf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I8, (long));
-ARRAY_DECL(uint8, MLArrayUInt8T, uint8_t, ml_stringbuffer_printf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U8, (long));
-ARRAY_DECL(int16, MLArrayInt16T, int16_t, ml_stringbuffer_printf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I16, (long));
-ARRAY_DECL(uint16, MLArrayUInt16T, uint16_t, ml_stringbuffer_printf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U16, (long));
-ARRAY_DECL(int32, MLArrayInt32T, int32_t, ml_stringbuffer_printf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I32, (long));
-ARRAY_DECL(uint32, MLArrayUInt32T, uint32_t, ml_stringbuffer_printf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U32, (long));
-ARRAY_DECL(int64, MLArrayInt64T, int64_t, ml_stringbuffer_printf, "%ld", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I64, (long));
-ARRAY_DECL(uint64, MLArrayUInt64T, uint64_t, ml_stringbuffer_printf, "%lud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U64, (long));
-ARRAY_DECL(float32, MLArrayFloat32T, float, ml_stringbuffer_printf, "%g", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F32, (long));
-ARRAY_DECL(float64, MLArrayFloat64T, double, ml_stringbuffer_printf, "%g", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F64, (long));
+ARRAY_DECL(MLArrayIntegerT, int8, MLArrayInt8T, int8_t, ml_stringbuffer_printf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I8, (long));
+ARRAY_DECL(MLArrayIntegerT, uint8, MLArrayUInt8T, uint8_t, ml_stringbuffer_printf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U8, (long));
+ARRAY_DECL(MLArrayIntegerT, int16, MLArrayInt16T, int16_t, ml_stringbuffer_printf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I16, (long));
+ARRAY_DECL(MLArrayIntegerT, uint16, MLArrayUInt16T, uint16_t, ml_stringbuffer_printf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U16, (long));
+ARRAY_DECL(MLArrayIntegerT, int32, MLArrayInt32T, int32_t, ml_stringbuffer_printf, "%d", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I32, (long));
+ARRAY_DECL(MLArrayIntegerT, uint32, MLArrayUInt32T, uint32_t, ml_stringbuffer_printf, "%ud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U32, (long));
+ARRAY_DECL(MLArrayIntegerT, int64, MLArrayInt64T, int64_t, ml_stringbuffer_printf, "%ld", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_I64, (long));
+ARRAY_DECL(MLArrayIntegerT, uint64, MLArrayUInt64T, uint64_t, ml_stringbuffer_printf, "%lud", ml_integer_value, ml_integer, , NOP_VAL, ML_ARRAY_FORMAT_U64, (long));
+ARRAY_DECL(MLArrayRealT, float32, MLArrayFloat32T, float, ml_stringbuffer_printf, "%g", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F32, (long));
+ARRAY_DECL(MLArrayRealT, float64, MLArrayFloat64T, double, ml_stringbuffer_printf, "%g", ml_real_value, ml_real, , NOP_VAL, ML_ARRAY_FORMAT_F64, (long));
 
 #ifdef ML_COMPLEX
 
-ARRAY_DECL(complex32, MLArrayComplex32T, complex_float, COMPLEX_APPEND, "%g + %gi", ml_complex_value, ml_complex, , NOP_VAL, ML_ARRAY_FORMAT_C32, (long));
-ARRAY_DECL(complex64, MLArrayComplex64T, complex_double, COMPLEX_APPEND, "%g + %gi", ml_complex_value, ml_complex, , NOP_VAL, ML_ARRAY_FORMAT_C64, (long));
+ARRAY_DECL(MLArrayComplexT, complex32, MLArrayComplex32T, complex_float, COMPLEX_APPEND, "%g + %gi", ml_complex_value, ml_complex, , NOP_VAL, ML_ARRAY_FORMAT_C32, (long));
+ARRAY_DECL(MLArrayComplexT, complex64, MLArrayComplex64T, complex_double, COMPLEX_APPEND, "%g + %gi", ml_complex_value, ml_complex, , NOP_VAL, ML_ARRAY_FORMAT_C64, (long));
 
 #endif
 
-ARRAY_DECL(value, MLArrayAnyT, value, BUFFER_APPEND, "?", ml_nop, ml_nop, ml_number, ml_number_value, ML_ARRAY_FORMAT_ANY, ml_hash);
+ARRAY_DECL(MLArrayT, value, MLArrayAnyT, value, BUFFER_APPEND, "?", ml_nop, ml_nop, ml_number, ml_number_value, ML_ARRAY_FORMAT_ANY, ml_hash);
 
 #define PARTIAL_FUNCTIONS(CTYPE) \
 \
@@ -2300,7 +2312,7 @@ ML_METHOD("-", MLArrayT) {
 	return (ml_value_t *)C;
 }
 
-static ml_value_t *array_math_fn(double (*fn)(double), int Count, ml_value_t **Args) {
+static ml_value_t *array_math_real_fn(double (*fn)(double), int Count, ml_value_t **Args) {
 	ml_array_t *A = (ml_array_t *)Args[0];
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation");
 	int Degree = A->Degree;
@@ -2317,24 +2329,38 @@ static ml_value_t *array_math_fn(double (*fn)(double), int Count, ml_value_t **A
 		for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = fn(*Values);
 		break;
 	}
-#ifdef ML_COMPLEX
-	case ML_ARRAY_FORMAT_C32: {
-		complex_float *Values = (complex_float *)C->Base.Value;
-		for (int I = DataSize / sizeof(complex_float); --I >= 0; ++Values) *Values = fn(*Values);
-		break;
-	}
-	case ML_ARRAY_FORMAT_C64: {
-		complex_double *Values = (complex_double *)C->Base.Value;
-		for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = fn(*Values);
-		break;
-	}
-#endif
 	default: {
 		return ml_error("TypeError", "Invalid types for array operation");
 	}
 	}
 	return (ml_value_t *)C;
 }
+
+#ifdef ML_COMPLEX
+static ml_value_t *array_math_complex_fn(complex_double (*fn)(complex_double), int Count, ml_value_t **Args) {
+	ml_array_t *A = (ml_array_t *)Args[0];
+	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation");
+	int Degree = A->Degree;
+	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_C64, Degree);
+	int DataSize = array_copy(C, A);
+	complex_double *Values = (complex_double *)C->Base.Value;
+	for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = fn(*Values);
+	return (ml_value_t *)C;
+}
+
+static ml_value_t *array_math_complex_real_fn(double (*fn)(complex_double), int Count, ml_value_t **Args) {
+	ml_array_t *A = (ml_array_t *)Args[0];
+	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation");
+	int Degree = A->Degree;
+	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_C64, Degree);
+	int DataSize = array_copy(C, A);
+	complex_double *Values = (complex_double *)C->Base.Value;
+	for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = fn(*Values);
+	ml_array_t *D = ml_array_new(ML_ARRAY_FORMAT_F64, Degree);
+	array_copy(D, C);
+	return (ml_value_t *)D;
+}
+#endif
 
 #define MAX(X, Y) ((X > Y) ? X : Y)
 
@@ -2547,7 +2573,7 @@ ML_METHOD(#OP, MLArrayT, MLComplexT) { \
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	double B = ml_complex_value_fast(Args[1]); \
+	complex_double B = ml_complex_value_fast(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_C64, Degree); \
 	int DataSize = array_copy(C, A); \
@@ -2564,7 +2590,7 @@ ML_METHOD(#OP, MLComplexT, MLArrayT) { \
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	double B = ml_complex_value_fast(Args[0]); \
+	complex_double B = ml_complex_value_fast(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_C64, Degree); \
 	int DataSize = array_copy(C, A); \
@@ -3251,6 +3277,397 @@ ML_METHODX("update", MLArrayT, MLFunctionT) {
 	return ml_call(State, Function, 1, State->Args);
 }
 
+typedef struct {
+	ml_state_t Base;
+	char *Address;
+	ml_value_t *Function;
+	ml_array_t *Array;
+	ml_value_t *Args[1];
+	ml_value_t *Result;
+	int Degree;
+	int Indices[];
+} ml_array_where_state_t;
+
+#define ARRAY_WHERE(CTYPE, TO_VAL, TO_NUM) \
+static void ml_array_where_ ## CTYPE(ml_array_where_state_t *State, ml_value_t *Value) { \
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value); \
+	if (Value != MLNil) { \
+		int Degree = State->Array->Degree; \
+		if (Degree > 1) { \
+			ml_value_t *Index = ml_tuple(Degree); \
+			for (int J = 1; J < Degree; ++J) { \
+				((ml_tuple_t *)Index)->Values[J] = ml_integer(State->Indices[J] + 1); \
+			} \
+			ml_tuple_set(Index, 1, ml_integer(State->Indices[0] + 1)); \
+			ml_list_put(State->Result, Index); \
+		} else { \
+			ml_list_put(State->Result, ml_integer(State->Indices[0] + 1)); \
+		} \
+	} \
+	int *Indices = State->Indices; \
+	for (int I = State->Degree; --I >= 0;) { \
+		ml_array_dimension_t *Dimension = State->Array->Dimensions + I; \
+		int Index = Indices[I]; \
+		if (Index + 1 < Dimension->Size) { \
+			if (Dimension->Indices) { \
+				State->Address += (Dimension->Indices[Index + 1] - Dimension->Indices[Index]) * Dimension->Stride; \
+			} else { \
+				State->Address += Dimension->Stride; \
+			} \
+			State->Indices[I] = Index + 1; \
+			State->Args[0] = TO_VAL(*(CTYPE *)State->Address); \
+			return ml_call(State, State->Function, 1, State->Args); \
+		} else { \
+			if (Dimension->Indices) { \
+				State->Address -= (Dimension->Indices[Index] - Dimension->Indices[0]) * Dimension->Stride; \
+			} else { \
+				State->Address -= Index * Dimension->Stride; \
+			} \
+			State->Indices[I] = 0; \
+		} \
+	} \
+	ML_CONTINUE(State->Base.Caller, State->Result); \
+}
+
+ARRAY_WHERE(int8_t, ml_integer, ml_integer_value);
+ARRAY_WHERE(uint8_t, ml_integer, ml_integer_value);
+ARRAY_WHERE(int16_t, ml_integer, ml_integer_value);
+ARRAY_WHERE(uint16_t, ml_integer, ml_integer_value);
+ARRAY_WHERE(int32_t, ml_integer, ml_integer_value);
+ARRAY_WHERE(uint32_t, ml_integer, ml_integer_value);
+ARRAY_WHERE(int64_t, ml_integer, ml_integer_value);
+ARRAY_WHERE(uint64_t, ml_integer, ml_integer_value);
+ARRAY_WHERE(float, ml_real, ml_real_value);
+ARRAY_WHERE(double, ml_real, ml_real_value);
+
+#ifdef ML_COMPLEX
+
+ARRAY_WHERE(complex_float, ml_complex, ml_complex_value);
+ARRAY_WHERE(complex_double, ml_complex, ml_complex_value);
+
+#endif
+
+ARRAY_WHERE(value, , );
+
+ML_METHODX("where", MLArrayT, MLFunctionT) {
+//<Array
+//<Function
+//>array
+// Update the values in :mini:`Array` in place by applying :mini:`Function` to each value.
+	ml_array_t *A = (ml_array_t *)Args[0];
+	int Degree = A->Degree;
+	ml_array_where_state_t *State = xnew(ml_array_where_state_t, Degree, int);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	ml_value_t *Function = State->Function = Args[1];
+	State->Result = ml_list();
+	State->Array = A;
+	State->Degree = Degree;
+	char *Address = A->Base.Value;
+	ml_array_dimension_t *Dimension = A->Dimensions;
+	for (int I = 0; I < Degree; ++I, ++Dimension) {
+		if (Dimension->Indices) {
+			Address += Dimension->Indices[0] * Dimension->Stride;
+		}
+	}
+	State->Address = Address;
+	switch (A->Format) {
+	case ML_ARRAY_FORMAT_I8: {
+		State->Base.run = (void *)ml_array_where_int8_t;
+		State->Args[0] = ml_integer(*(int8_t *)Address);
+		break;
+	}
+	case ML_ARRAY_FORMAT_U8: {
+		State->Base.run = (void *)ml_array_where_uint8_t;
+		State->Args[0] = ml_integer(*(uint8_t *)Address);
+		break;
+	}
+	case ML_ARRAY_FORMAT_I16: {
+		State->Base.run = (void *)ml_array_where_int16_t;
+		State->Args[0] = ml_integer(*(int16_t *)Address);
+		break;
+	}
+	case ML_ARRAY_FORMAT_U16: {
+		State->Base.run = (void *)ml_array_where_uint16_t;
+		State->Args[0] = ml_integer(*(uint16_t *)Address);
+		break;
+	}
+	case ML_ARRAY_FORMAT_I32: {
+		State->Base.run = (void *)ml_array_where_int32_t;
+		State->Args[0] = ml_integer(*(int32_t *)Address);
+		break;
+	}
+	case ML_ARRAY_FORMAT_U32: {
+		State->Base.run = (void *)ml_array_where_uint32_t;
+		State->Args[0] = ml_integer(*(uint32_t *)Address);
+		break;
+	}
+	case ML_ARRAY_FORMAT_I64: {
+		State->Base.run = (void *)ml_array_where_int64_t;
+		State->Args[0] = ml_integer(*(int64_t *)Address);
+		break;
+	}
+	case ML_ARRAY_FORMAT_U64: {
+		State->Base.run = (void *)ml_array_where_uint64_t;
+		State->Args[0] = ml_integer(*(uint64_t *)Address);
+		break;
+	}
+	case ML_ARRAY_FORMAT_F32: {
+		State->Base.run = (void *)ml_array_where_float;
+		State->Args[0] = ml_real(*(float *)Address);
+		break;
+	}
+	case ML_ARRAY_FORMAT_F64: {
+		State->Base.run = (void *)ml_array_where_double;
+		State->Args[0] = ml_real(*(double *)Address);
+		break;
+	}
+#ifdef ML_COMPLEX
+	case ML_ARRAY_FORMAT_C32: {
+		State->Base.run = (void *)ml_array_where_complex_float;
+		State->Args[0] = ml_complex(*(complex_float *)Address);
+		break;
+	}
+	case ML_ARRAY_FORMAT_C64: {
+		State->Base.run = (void *)ml_array_where_complex_double;
+		State->Args[0] = ml_complex(*(complex_double *)Address);
+		break;
+	}
+#endif
+	case ML_ARRAY_FORMAT_ANY: {
+		State->Base.run = (void *)ml_array_where_value;
+		State->Args[0] = *(ml_value_t **)Address;
+		break;
+	}
+	default: ML_ERROR("ArrayError", "Unsupported format");
+	}
+	return ml_call(State, Function, 1, State->Args);
+}
+
+typedef struct {
+	ml_value_t *Result;
+	ml_value_t **Indices;
+	int Degree;
+} ml_array_where_nonzero_t;
+
+#define ARRAY_WHERE_NONZERO(CTYPE, ZERO) \
+static void ml_array_where_nonzero_ ## CTYPE(ml_array_where_nonzero_t *Where, void *Address, int Degree, ml_array_dimension_t *Dimension) { \
+	if (Degree == Where->Degree) { \
+		int Size = Dimension->Size; \
+		int Stride = Dimension->Stride; \
+		if (Dimension->Indices) { \
+			int *Indices = Dimension->Indices; \
+			for (int I = 0; I < Size; ++I) { \
+				if (*(CTYPE *)(Address + Indices[I] * Stride) != ZERO) { \
+					ml_value_t *Index = ml_tuple(Where->Degree); \
+					for (int J = 0; J < Where->Degree - 1; ++J) { \
+						((ml_tuple_t *)Index)->Values[J] = Where->Indices[J]; \
+					} \
+					ml_tuple_set(Index, Where->Degree, ml_integer(I + 1)); \
+					ml_list_put(Where->Result, Index); \
+				} \
+			} \
+		} else { \
+			for (int I = 0; I < Size; ++I) { \
+				if (*(CTYPE *)(Address + I * Stride) != ZERO) { \
+					ml_value_t *Index = ml_tuple(Where->Degree); \
+					for (int J = 0; J < Where->Degree - 1; ++J) { \
+						((ml_tuple_t *)Index)->Values[J] = Where->Indices[J]; \
+					} \
+					ml_tuple_set(Index, Where->Degree, ml_integer(I + 1)); \
+					ml_list_put(Where->Result, Index); \
+				} \
+			} \
+		} \
+	} else { \
+		int Size = Dimension->Size; \
+		int Stride = Dimension->Stride; \
+		if (Dimension->Indices) { \
+			int *Indices = Dimension->Indices;\
+			for (int I = 0; I < Size; ++I) { \
+				Where->Indices[Degree - 1] = ml_integer(I + 1); \
+				ml_array_where_nonzero_ ## CTYPE(Where, Address + Indices[I] * Stride, Degree + 1, Dimension + 1); \
+			} \
+		} else { \
+			for (int I = 0; I < Size; ++I) { \
+				Where->Indices[Degree - 1] = ml_integer(I + 1); \
+				ml_array_where_nonzero_ ## CTYPE(Where, Address + I * Stride, Degree + 1, Dimension + 1); \
+			} \
+		} \
+	} \
+} \
+\
+static void ml_array_where_nonzero1_ ## CTYPE(ml_value_t *Result, void *Address, ml_array_dimension_t *Dimension) { \
+	int Size = Dimension->Size; \
+	int Stride = Dimension->Stride; \
+	if (Dimension->Indices) { \
+		int *Indices = Dimension->Indices; \
+		for (int I = 0; I < Size; ++I) { \
+			if (*(CTYPE *)(Address + Indices[I] * Stride) != ZERO) { \
+				ml_list_put(Result, ml_integer(I + 1)); \
+			} \
+		} \
+	} else { \
+		for (int I = 0; I < Size; ++I) { \
+			if (*(CTYPE *)(Address + I * Stride) != ZERO) { \
+				ml_list_put(Result, ml_integer(I + 1)); \
+			} \
+		} \
+	} \
+}
+
+ARRAY_WHERE_NONZERO(int8_t, 0);
+ARRAY_WHERE_NONZERO(uint8_t, 0);
+ARRAY_WHERE_NONZERO(int16_t, 0);
+ARRAY_WHERE_NONZERO(uint16_t, 0);
+ARRAY_WHERE_NONZERO(int32_t, 0);
+ARRAY_WHERE_NONZERO(uint32_t, 0);
+ARRAY_WHERE_NONZERO(int64_t, 0);
+ARRAY_WHERE_NONZERO(uint64_t, 0);
+ARRAY_WHERE_NONZERO(float, 0);
+ARRAY_WHERE_NONZERO(double, 0);
+
+#ifdef ML_COMPLEX
+
+ARRAY_WHERE_NONZERO(complex_float, 0);
+ARRAY_WHERE_NONZERO(complex_double, 0);
+
+#endif
+
+ARRAY_WHERE_NONZERO(value, MLNil);
+
+ML_METHOD("where", MLArrayT) {
+//<Array
+//>list
+// Returns a list of non-zero indices of :mini:`Array`.
+	ml_array_t *A = (ml_array_t *)Args[0];
+	if (A->Degree == 1) {
+		ml_value_t *Result = ml_list();
+		switch (A->Format) {
+		case ML_ARRAY_FORMAT_I8: {
+			ml_array_where_nonzero1_int8_t(Result, A->Base.Value, A->Dimensions);
+			break;
+		}
+		case ML_ARRAY_FORMAT_U8: {
+			ml_array_where_nonzero1_uint8_t(Result, A->Base.Value, A->Dimensions);
+			break;
+		}
+		case ML_ARRAY_FORMAT_I16: {
+			ml_array_where_nonzero1_int16_t(Result, A->Base.Value, A->Dimensions);
+			break;
+		}
+		case ML_ARRAY_FORMAT_U16: {
+			ml_array_where_nonzero1_uint16_t(Result, A->Base.Value, A->Dimensions);
+			break;
+		}
+		case ML_ARRAY_FORMAT_I32: {
+			ml_array_where_nonzero1_int32_t(Result, A->Base.Value, A->Dimensions);
+			break;
+		}
+		case ML_ARRAY_FORMAT_U32: {
+			ml_array_where_nonzero1_uint32_t(Result, A->Base.Value, A->Dimensions);
+			break;
+		}
+		case ML_ARRAY_FORMAT_I64: {
+			ml_array_where_nonzero1_int64_t(Result, A->Base.Value, A->Dimensions);
+			break;
+		}
+		case ML_ARRAY_FORMAT_U64: {
+			ml_array_where_nonzero1_uint64_t(Result, A->Base.Value, A->Dimensions);
+			break;
+		}
+		case ML_ARRAY_FORMAT_F32: {
+			ml_array_where_nonzero1_float(Result, A->Base.Value, A->Dimensions);
+			break;
+		}
+		case ML_ARRAY_FORMAT_F64: {
+			ml_array_where_nonzero1_double(Result, A->Base.Value, A->Dimensions);
+			break;
+		}
+	#ifdef ML_COMPLEX
+		case ML_ARRAY_FORMAT_C32: {
+			ml_array_where_nonzero1_complex_float(Result, A->Base.Value, A->Dimensions);
+			break;
+		}
+		case ML_ARRAY_FORMAT_C64: {
+			ml_array_where_nonzero1_complex_double(Result, A->Base.Value, A->Dimensions);
+			break;
+		}
+	#endif
+		case ML_ARRAY_FORMAT_ANY: {
+			ml_array_where_nonzero1_value(Result, A->Base.Value, A->Dimensions);
+			break;
+		}
+		default: return ml_error("ArrayError", "Unsupported format");
+		}
+		return Result;
+	} else {
+		ml_array_where_nonzero_t Where[1];
+		int Degree = Where->Degree = A->Degree;
+		ml_value_t *Indices[Degree];
+		Where->Indices = Indices;
+		Where->Result = ml_list();
+		switch (A->Format) {
+		case ML_ARRAY_FORMAT_I8: {
+			ml_array_where_nonzero_int8_t(Where, A->Base.Value, 1, A->Dimensions);
+			break;
+		}
+		case ML_ARRAY_FORMAT_U8: {
+			ml_array_where_nonzero_uint8_t(Where, A->Base.Value, 1, A->Dimensions);
+			break;
+		}
+		case ML_ARRAY_FORMAT_I16: {
+			ml_array_where_nonzero_int16_t(Where, A->Base.Value, 1, A->Dimensions);
+			break;
+		}
+		case ML_ARRAY_FORMAT_U16: {
+			ml_array_where_nonzero_uint16_t(Where, A->Base.Value, 1, A->Dimensions);
+			break;
+		}
+		case ML_ARRAY_FORMAT_I32: {
+			ml_array_where_nonzero_int32_t(Where, A->Base.Value, 1, A->Dimensions);
+			break;
+		}
+		case ML_ARRAY_FORMAT_U32: {
+			ml_array_where_nonzero_uint32_t(Where, A->Base.Value, 1, A->Dimensions);
+			break;
+		}
+		case ML_ARRAY_FORMAT_I64: {
+			ml_array_where_nonzero_int64_t(Where, A->Base.Value, 1, A->Dimensions);
+			break;
+		}
+		case ML_ARRAY_FORMAT_U64: {
+			ml_array_where_nonzero_uint64_t(Where, A->Base.Value, 1, A->Dimensions);
+			break;
+		}
+		case ML_ARRAY_FORMAT_F32: {
+			ml_array_where_nonzero_float(Where, A->Base.Value, 1, A->Dimensions);
+			break;
+		}
+		case ML_ARRAY_FORMAT_F64: {
+			ml_array_where_nonzero_double(Where, A->Base.Value, 1, A->Dimensions);
+			break;
+		}
+	#ifdef ML_COMPLEX
+		case ML_ARRAY_FORMAT_C32: {
+			ml_array_where_nonzero_complex_float(Where, A->Base.Value, 1, A->Dimensions);
+			break;
+		}
+		case ML_ARRAY_FORMAT_C64: {
+			ml_array_where_nonzero_complex_double(Where, A->Base.Value, 1, A->Dimensions);
+			break;
+		}
+	#endif
+		case ML_ARRAY_FORMAT_ANY: {
+			ml_array_where_nonzero_value(Where, A->Base.Value, 1, A->Dimensions);
+			break;
+		}
+		default: return ml_error("ArrayError", "Unsupported format");
+		}
+		return Where->Result;
+	}
+}
+
 #define ML_ARRAY_DOT(CTYPE) \
 static CTYPE ml_array_dot_ ## CTYPE( \
 	void *DataA, ml_array_dimension_t *DimA, int FormatA, \
@@ -3914,32 +4331,55 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_method_by_name("--", ml_array_sub_fill, ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("//", ml_array_div_fill, ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
 
-	ml_method_by_value(AcosMethod, acos, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(AsinMethod, asin, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(AtanMethod, atan, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(CeilMethod, ceil, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(CosMethod, cos, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(CoshMethod, cosh, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(ExpMethod, exp, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(AbsMethod, abs, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(FloorMethod, floor, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(LogMethod, log, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(Log10Method, log10, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(SinMethod, sin, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(SinhMethod, sinh, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(SqrtMethod, sqrt, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(TanMethod, tan, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(TanhMethod, tanh, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(ErfMethod, erf, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(ErfcMethod, erfc, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(GammaMethod, gamma, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(AcoshMethod, acosh, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(AsinhMethod, asinh, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(AtanhMethod, atanh, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(CbrtMethod, cbrt, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(Expm1Method, expm1, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(Log1pMethod, log1p, (ml_callback_t)array_math_fn, MLArrayT, NULL);
-	ml_method_by_value(RoundMethod, round, (ml_callback_t)array_math_fn, MLArrayT, NULL);
+	ml_method_by_value(AcosMethod, acos, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(AsinMethod, asin, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(AtanMethod, atan, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(CeilMethod, ceil, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(CosMethod, cos, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(CoshMethod, cosh, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(ExpMethod, exp, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(AbsMethod, abs, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(FloorMethod, floor, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(LogMethod, log, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(Log10Method, log10, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(SinMethod, sin, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(SinhMethod, sinh, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(SqrtMethod, sqrt, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(TanMethod, tan, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(TanhMethod, tanh, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(ErfMethod, erf, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(ErfcMethod, erfc, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(GammaMethod, gamma, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(AcoshMethod, acosh, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(AsinhMethod, asinh, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(AtanhMethod, atanh, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(CbrtMethod, cbrt, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(Expm1Method, expm1, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(Log1pMethod, log1p, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(RoundMethod, round, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+
+#ifdef ML_COMPLEX
+	ml_method_by_value(AcosMethod, cacos, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
+	ml_method_by_value(AsinMethod, casin, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
+	ml_method_by_value(AtanMethod, catan, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
+	ml_method_by_value(CosMethod, ccos, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
+	ml_method_by_value(CoshMethod, ccosh, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
+	ml_method_by_value(ExpMethod, cexp, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
+	ml_method_by_value(AbsMethod, cabs, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
+	ml_method_by_value(LogMethod, clog, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
+	ml_method_by_value(Log10Method, clog10, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
+	ml_method_by_value(SinMethod, csin, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
+	ml_method_by_value(SinhMethod, csinh, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
+	ml_method_by_value(SqrtMethod, csqrt, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
+	ml_method_by_value(TanMethod, ctan, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
+	ml_method_by_value(TanhMethod, ctanh, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
+	ml_method_by_value(AcoshMethod, cacosh, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
+	ml_method_by_value(AsinhMethod, casinh, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
+	ml_method_by_value(AtanhMethod, catanh, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
+	ml_method_by_value(ConjMethod, conj, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
+	ml_method_by_value(AbsMethod, cabs, (ml_callback_t)array_math_complex_real_fn, MLArrayComplexT, NULL);
+	ml_method_by_value(ArgMethod, carg, (ml_callback_t)array_math_complex_real_fn, MLArrayComplexT, NULL);
+#endif
 
 	ml_method_define(ml_method("$"), MLArrayT->Constructor, 0, MLListT, NULL);
 	stringmap_insert(MLArrayT->Exports, "new", ml_cfunctionx(NULL, ml_array_new_fnx));
