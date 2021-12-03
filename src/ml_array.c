@@ -32,8 +32,8 @@ ML_TYPE(MLArrayT, (MLAddressT, MLSequenceT), "array",
 	.Constructor = (ml_value_t *)MLArray
 );
 
-ML_TYPE(MLArrayIntegerT, (MLArrayT), "integer-array");
 ML_TYPE(MLArrayRealT, (MLArrayT), "real-array");
+ML_TYPE(MLArrayIntegerT, (MLArrayRealT), "integer-array");
 
 extern ml_type_t MLArrayInt8T[];
 extern ml_type_t MLArrayUInt8T[];
