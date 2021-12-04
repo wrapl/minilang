@@ -35,6 +35,8 @@ ML_METHOD(NAME ## Method, MLRealT) { \
 	return ml_real(CNAME(ml_real_value(Args[0]))); \
 }
 
+#define MATH_NUMBER_KEEP_REAL(NAME, CNAME) MATH_NUMBER(NAME, CNAME)
+
 #else
 
 #define MATH_NUMBER(NAME, CNAME) \
@@ -51,6 +53,30 @@ ML_METHOD(NAME ## Method, MLRealT) { \
 	} else { \
 		return ml_complex(Result); \
 	} \
+} \
+\
+ML_METHOD(NAME ## Method, MLComplexT) { \
+/*@math::CNAME
+//>complex
+// Returns :mini:`CNAME(Arg/1)`.
+*/\
+	complex double Result = c ## CNAME(ml_complex_value(Args[0])); \
+	if (fabs(cimag(Result)) <= DBL_EPSILON) { \
+		return ml_real(creal(Result)); \
+	} else { \
+		return ml_complex(Result); \
+	} \
+}
+
+#define MATH_NUMBER_KEEP_REAL(NAME, CNAME) \
+ML_METHOD_DECL(NAME ## Method, NULL); \
+\
+ML_METHOD(NAME ## Method, MLRealT) { \
+/*@math::CNAME
+//>real
+// Returns :mini:`CNAME(Arg/1)`.
+*/\
+	return ml_real(CNAME(ml_real_value(Args[0]))); \
 } \
 \
 ML_METHOD(NAME ## Method, MLComplexT) { \
@@ -169,9 +195,9 @@ ML_METHOD("!", MLIntegerT, MLIntegerT) {
 	return ml_integer(C);
 }
 
-MATH_NUMBER(Acos, acos);
-MATH_NUMBER(Asin, asin);
-MATH_NUMBER(Atan, atan);
+MATH_NUMBER_KEEP_REAL(Acos, acos);
+MATH_NUMBER_KEEP_REAL(Asin, asin);
+MATH_NUMBER_KEEP_REAL(Atan, atan);
 ML_METHOD(AtanMethod, MLRealT, MLRealT) {
 //@math::atan
 //>real
@@ -179,15 +205,15 @@ ML_METHOD(AtanMethod, MLRealT, MLRealT) {
 	return ml_real(atan2(ml_real_value(Args[0]), ml_real_value(Args[1])));
 }
 MATH_REAL(Ceil, ceil);
-MATH_NUMBER(Cos, cos);
-MATH_NUMBER(Cosh, cosh);
-MATH_NUMBER(Exp, exp);
+MATH_NUMBER_KEEP_REAL(Cos, cos);
+MATH_NUMBER_KEEP_REAL(Cosh, cosh);
+MATH_NUMBER_KEEP_REAL(Exp, exp);
 MATH_REAL(Abs, fabs);
 MATH_REAL(Floor, floor);
 MATH_NUMBER(Log, log);
 MATH_NUMBER(Log10, log10);
-MATH_NUMBER(Sin, sin);
-MATH_NUMBER(Sinh, sinh);
+MATH_NUMBER_KEEP_REAL(Sin, sin);
+MATH_NUMBER_KEEP_REAL(Sinh, sinh);
 MATH_NUMBER(Sqrt, sqrt);
 ML_METHOD(SqrtMethod, MLIntegerT) {
 //@math::sqrt
@@ -211,15 +237,15 @@ ML_METHOD(SqrtMethod, MLIntegerT) {
 	if (X * X == N) return ml_integer(X);
 	return ml_real(sqrt(N));
 }
-MATH_NUMBER(Tan, tan);
-MATH_NUMBER(Tanh, tanh);
+MATH_NUMBER_KEEP_REAL(Tan, tan);
+MATH_NUMBER_KEEP_REAL(Tanh, tanh);
 MATH_REAL(Erf, erf);
 MATH_REAL(Erfc, erfc);
 MATH_REAL_REAL(Hypot, hypot);
 MATH_REAL(Gamma, lgamma);
-MATH_NUMBER(Acosh, acosh);
-MATH_NUMBER(Asinh, asinh);
-MATH_NUMBER(Atanh, atanh);
+MATH_NUMBER_KEEP_REAL(Acosh, acosh);
+MATH_NUMBER_KEEP_REAL(Asinh, asinh);
+MATH_NUMBER_KEEP_REAL(Atanh, atanh);
 MATH_REAL(Cbrt, cbrt);
 MATH_REAL(Expm1, expm1);
 MATH_REAL(Log1p, log1p);

@@ -216,7 +216,7 @@ ml_method_cached_t *ml_method_search_cached(ml_state_t *Caller, ml_method_t *Met
 }
 
 void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Callback, int Count, int Variadic, ml_type_t **Types) {
-	if (Method->Type != MLMethodT) {
+	if (!ml_is((ml_value_t *)Method, MLMethodT)) {
 		fprintf(stderr, "Internal error: attempting to define method for non-method value\n");
 		exit(-1);
 	}
@@ -371,7 +371,7 @@ void ml_method_by_name(const char *Name, void *Data, ml_callback_t Callback, ...
 	ml_method_insert(MLRootMethods, Method, ml_cfunction(Data, Callback), Count, 1, Types);
 }
 
-void ml_method_by_value(ml_value_t *Value, void *Data, ml_callback_t Callback, ...) {
+void ml_method_by_value(void *Value, void *Data, ml_callback_t Callback, ...) {
 	ml_method_t *Method = (ml_method_t *)Value;
 	int Count = 0;
 	va_list Args;
@@ -401,7 +401,7 @@ void ml_methodx_by_name(const char *Name, void *Data, ml_callbackx_t Callback, .
 	ml_method_insert(MLRootMethods, Method, ml_cfunctionx(Data, Callback), Count, 1, Types);
 }
 
-void ml_methodx_by_value(ml_value_t *Value, void *Data, ml_callbackx_t Callback, ...) {
+void ml_methodx_by_value(void *Value, void *Data, ml_callbackx_t Callback, ...) {
 	ml_method_t *Method = (ml_method_t *)Value;
 	int Count = 0;
 	va_list Args;

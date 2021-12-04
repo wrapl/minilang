@@ -11,10 +11,37 @@ array
    Base type for multidimensional arrays.
 
 
-:mini:`type array::integer < array`
+:mini:`type vector < array`
+   *TBD*
+
+:mini:`type matrix < array`
+   *TBD*
+
+:mini:`type array::real < array`
+   *TBD*
+
+:mini:`type array::integer < array::real`
+   *TBD*
+
+:mini:`type vector::real < array::real, vector`
+   *TBD*
+
+:mini:`type vector::integer < vector::real`
+   *TBD*
+
+:mini:`type matrix::real < array::real, matrix`
+   *TBD*
+
+:mini:`type matrix::integer < matrix::real`
    *TBD*
 
 :mini:`type array::complex < array`
+   *TBD*
+
+:mini:`type vector::complex < array::complex, vector`
+   *TBD*
+
+:mini:`type matrix::complex < array::complex, matrix`
    *TBD*
 
 :mini:`meth (Array: array):degree: integer`
@@ -85,53 +112,131 @@ array
    An array of int8 values.
 
 
+:mini:`type vector::int8 < vector::integer, array::int8`
+   *TBD*
+
+:mini:`type matrix::int8 < matrix::integer, array::int8`
+   *TBD*
+
 :mini:`type array::uint8 < array::integer`
    An array of uint8 values.
 
+
+:mini:`type vector::uint8 < vector::integer, array::uint8`
+   *TBD*
+
+:mini:`type matrix::uint8 < matrix::integer, array::uint8`
+   *TBD*
 
 :mini:`type array::int16 < array::integer`
    An array of int16 values.
 
 
+:mini:`type vector::int16 < vector::integer, array::int16`
+   *TBD*
+
+:mini:`type matrix::int16 < matrix::integer, array::int16`
+   *TBD*
+
 :mini:`type array::uint16 < array::integer`
    An array of uint16 values.
 
+
+:mini:`type vector::uint16 < vector::integer, array::uint16`
+   *TBD*
+
+:mini:`type matrix::uint16 < matrix::integer, array::uint16`
+   *TBD*
 
 :mini:`type array::int32 < array::integer`
    An array of int32 values.
 
 
+:mini:`type vector::int32 < vector::integer, array::int32`
+   *TBD*
+
+:mini:`type matrix::int32 < matrix::integer, array::int32`
+   *TBD*
+
 :mini:`type array::uint32 < array::integer`
    An array of uint32 values.
 
+
+:mini:`type vector::uint32 < vector::integer, array::uint32`
+   *TBD*
+
+:mini:`type matrix::uint32 < matrix::integer, array::uint32`
+   *TBD*
 
 :mini:`type array::int64 < array::integer`
    An array of int64 values.
 
 
+:mini:`type vector::int64 < vector::integer, array::int64`
+   *TBD*
+
+:mini:`type matrix::int64 < matrix::integer, array::int64`
+   *TBD*
+
 :mini:`type array::uint64 < array::integer`
    An array of uint64 values.
 
+
+:mini:`type vector::uint64 < vector::integer, array::uint64`
+   *TBD*
+
+:mini:`type matrix::uint64 < matrix::integer, array::uint64`
+   *TBD*
 
 :mini:`type array::float32 < array::real`
    An array of float32 values.
 
 
+:mini:`type vector::float32 < vector::real, array::float32`
+   *TBD*
+
+:mini:`type matrix::float32 < matrix::real, array::float32`
+   *TBD*
+
 :mini:`type array::float64 < array::real`
    An array of float64 values.
 
+
+:mini:`type vector::float64 < vector::real, array::float64`
+   *TBD*
+
+:mini:`type matrix::float64 < matrix::real, array::float64`
+   *TBD*
 
 :mini:`type array::complex32 < array::complex`
    An array of complex32 values.
 
 
+:mini:`type vector::complex32 < vector::complex, array::complex32`
+   *TBD*
+
+:mini:`type matrix::complex32 < matrix::complex, array::complex32`
+   *TBD*
+
 :mini:`type array::complex64 < array::complex`
    An array of complex64 values.
 
 
-:mini:`type array::value < array`
-   An array of value values.
+:mini:`type vector::complex64 < vector::complex, array::complex64`
+   *TBD*
 
+:mini:`type matrix::complex64 < matrix::complex, array::complex64`
+   *TBD*
+
+:mini:`type array::any < array`
+   An array of any values.
+
+
+:mini:`type vector::any < vector, array::any`
+   *TBD*
+
+:mini:`type matrix::any < matrix, array::any`
+   *TBD*
 
 :mini:`meth (Arg₁: array):reshape(Arg₂: list)`
    *TBD*
