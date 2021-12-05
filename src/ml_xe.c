@@ -50,7 +50,7 @@ ML_TYPE(XENodeT, (), "xe-node",
 
 typedef struct {
 	const ml_type_t *Type;
-	ml_value_t *Name;
+	ml_value_t *Name, *Indices;
 } xe_var_t;
 
 extern ml_type_t XEVarT[];
@@ -61,6 +61,7 @@ ML_FUNCTIONX(XEVar) {
 	xe_var_t *Var = new(xe_var_t);
 	Var->Type = XEVarT;
 	Var->Name = Args[0];
+	for (int I = 1; I < Count; ++I) ml_list_put(Var->Indices, Args[I]);
 	ML_RETURN(Var);
 }
 
@@ -107,6 +108,11 @@ ML_METHOD("name", XEVarT) {
 	return Var->Name;
 }
 
+ML_METHOD("indices", XEVarT) {
+	xe_var_t *Var = (xe_var_t *)Args[0];
+	return Var->Indices;
+}
+
 static int xe_attribute_to_string(ml_value_t *Key, ml_value_t *Value, ml_stringbuffer_t *Buffer) {
 	ml_stringbuffer_write(Buffer, " ", 1);
 	ml_stringbuffer_simple_append(Buffer, Key);
@@ -138,6 +144,10 @@ ML_METHOD("append", MLStringBufferT, XEVarT) {
 	xe_var_t *Var = (xe_var_t *)Args[1];
 	ml_stringbuffer_write(Buffer, "<$", 2);
 	ml_stringbuffer_simple_append(Buffer, Var->Name);
+	ML_LIST_FOREACH(Var->Indices, Iter) {
+		ml_stringbuffer_write(Buffer, ":", 1);
+		ml_stringbuffer_simple_append(Buffer, Iter->Value);
+	}
 	ml_stringbuffer_write(Buffer, ">", 1);
 	return MLSome;
 }
@@ -339,6 +349,7 @@ static ml_value_t *parse_value(xe_stream_t *Stream) {
 		} else {
 			Var->Name = ml_integer(atoi(Name));
 		}
+		Var->Indices = ml_list();
 		return (ml_value_t *)Var;
 	}
 	case '[':
@@ -375,13 +386,11 @@ static ml_value_t *parse_node(xe_stream_t *Stream) {
 		++Next;
 	}
 	int TagLength = Next - Stream->Next;
-	if (Stream->Next[0] == '$') {
+	if (TagLength > 0 && Stream->Next[0] == '$') {
 		--TagLength;
 		char *Name = snew(TagLength + 1);
 		memcpy(Name, Stream->Next + 1, TagLength);
 		Name[TagLength] = 0;
-		SKIP_WHITESPACE;
-		Stream->Next = Next + 1;
 		xe_var_t *Var = new(xe_var_t);
 		Var->Type = XEVarT;
 		if (!TagLength) {
@@ -391,6 +400,18 @@ static ml_value_t *parse_node(xe_stream_t *Stream) {
 		} else {
 			Var->Name = ml_integer(atoi(Name));
 		}
+		ml_value_t *Indices = Var->Indices = ml_list();
+		while (*Next != '>') {
+			Stream->Next = Next + 1;
+			ml_value_t *Index = parse_value(Stream);
+			if (ml_is_error(Index)) return Index;
+			ml_list_put(Indices, Index);
+			Next = Stream->Next;
+		}
+		if (*Next != '>') {
+			return ml_error("ParseError", "Expected > at line %d in %s", Stream->LineNo, Stream->Source);
+		}
+		Stream->Next = Next + 1;
 		return (ml_value_t *)Var;
 	} else {
 		ml_value_t *Tag;
@@ -411,21 +432,36 @@ static ml_value_t *parse_node(xe_stream_t *Stream) {
 					if (!isalpha(*Next)) break;
 					++Next;
 				}
-				ml_value_t *Name;
+				ml_value_t *Name, *Value;
 				if (Next != Start) {
-					Name = ml_string(Start, Next - Start);
+					const char *End = Next;
 					SKIP_WHITESPACE;
-					if (Next[0] != '=') return ml_error("ParseError", "Expected = at line %d in %s", Stream->LineNo, Stream->Source);
-					++Next;
-					SKIP_WHITESPACE;
+					if (Next[0] == '=') {
+						Name = ml_string(Start, End - Start);
+						Stream->Next = Next + 1;
+						Value = parse_value(Stream);
+						if (ml_is_error(Value)) return Value;
+						Next = Stream->Next;
+					} else {
+						Name = ml_integer(Index++);
+						if (!strncmp(Start, "true", 4)) {
+							Value = (ml_value_t *)MLTrue;
+						} else if (!strncmp(Start, "false", 5)) {
+							Value = (ml_value_t *)MLFalse;
+						} else if (!strncmp(Start, "nil", 3)) {
+							Value = MLNil;
+						} else {
+							return ml_error("ParseError", "Expected = at line %d in %s", Stream->LineNo, Stream->Source);
+						}
+					}
 				} else {
 					Name = ml_integer(Index++);
+					Stream->Next = Next;
+					Value = parse_value(Stream);
+					if (ml_is_error(Value)) return Value;
+					Next = Stream->Next;
 				}
-				Stream->Next = Next;
-				ml_value_t *Value = parse_value(Stream);
-				if (ml_is_error(Value)) return Value;
 				ml_map_insert(Attributes, Name, Value);
-				Next = Stream->Next;
 			} else {
 				break;
 			}
