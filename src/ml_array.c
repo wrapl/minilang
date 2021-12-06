@@ -1653,9 +1653,25 @@ ML_TYPE(MLArray ## SUFFIX, (MLArray ## PARENT), "array::" #PREFIX, \
 	.Constructor = (ml_value_t *)MLArray ## SUFFIX ## New \
 ); \
 \
-ML_TYPE(MLVector ## SUFFIX, (MLVector ## PARENT, MLArray ## SUFFIX), "vector::" #PREFIX); \
+ML_TYPE(MLVector ## SUFFIX, (MLVector ## PARENT, MLArray ## SUFFIX), "vector::" #PREFIX, \
+/*@vector::PREFIX
+// A vector of PREFIX values.
+*/\
+	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
+	.deref = (void *)ml_array_ ## CTYPE ## _deref, \
+	.assign = (void *)ml_array_ ## CTYPE ## _assign, \
+	.Constructor = (ml_value_t *)MLArray ## SUFFIX ## New \
+); \
 \
-ML_TYPE(MLMatrix ## SUFFIX, (MLMatrix ## PARENT, MLArray ## SUFFIX), "matrix::" #PREFIX);
+ML_TYPE(MLMatrix ## SUFFIX, (MLMatrix ## PARENT, MLArray ## SUFFIX), "matrix::" #PREFIX, \
+/*@matrix::PREFIX
+// A matrix of PREFIX values.
+*/\
+	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
+	.deref = (void *)ml_array_ ## CTYPE ## _deref, \
+	.assign = (void *)ml_array_ ## CTYPE ## _assign, \
+	.Constructor = (ml_value_t *)MLArray ## SUFFIX ## New \
+);
 
 typedef ml_value_t *any;
 
