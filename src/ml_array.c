@@ -2951,7 +2951,13 @@ static ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, ml_array_fo
 	} else if (ml_is(Value, MLArrayT)) {
 		ml_array_t *Nested = (ml_array_t *)Value;
 		ml_array_t *Array = ml_array_new(Format, Degree + Nested->Degree);
-		memcpy(Array->Dimensions + Degree, Nested->Dimensions, Nested->Degree * sizeof(ml_array_dimension_t));
+		ml_array_dimension_t *Dimensions = Array->Dimensions + Degree;
+		size_t Stride = MLArraySizes[Format];
+		for (int I = Nested->Degree; --I >= 0;) {
+			Dimensions[I].Stride = Stride;
+			size_t Size = Dimensions[I].Size = Nested->Dimensions[I].Size;
+			Stride *= Size;
+		}
 		return Array;
 	} else {
 		ml_array_t *Array = ml_array_new(Format, Degree);
