@@ -2262,6 +2262,7 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
 			return ml_error("RegexError", "regex error: %s", ErrorMessage);
 		}
 		default: {
+			if (Matches[0].rm_eo == Matches[0].rm_so) return ml_error("RegexError", "empty regular expression used in replace");
 			regoff_t Start = Matches[0].rm_so;
 			if (Start > 0) ml_stringbuffer_write(Buffer, Subject, Start);
 			ml_stringbuffer_write(Buffer, Replace, ReplaceLength);

@@ -34,6 +34,9 @@ xe
 :mini:`meth (Arg₁: xevar):name`
    *TBD*
 
+:mini:`meth (Arg₁: xevar):indices`
+   *TBD*
+
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: xenode)`
    *TBD*
 

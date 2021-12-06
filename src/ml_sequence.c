@@ -30,6 +30,7 @@ static void ml_chained_filter_call(ml_state_t *Caller, ml_filter_t *Filter, int 
 
 ML_TYPE(FilterT, (MLFunctionT), "chained-filter",
 //@filter
+// A function marked as a filter when used in a chained function or sequence.
 	.call = (void *)ml_chained_filter_call
 );
 
@@ -39,7 +40,7 @@ ML_FUNCTION(Filter) {
 //@filter
 //<Function?
 //>filter
-// Returns a filter for use in chained functions and iterators.
+// Returns a filter for use in chained functions and sequences.
 	if (Count == 0) return (ml_value_t *)FilterNil;
 	ml_filter_t *Filter = new(ml_filter_t);
 	Filter->Type = FilterT;
@@ -63,8 +64,11 @@ static void ml_chained_state_filter(ml_chained_state_t *State, ml_value_t *Value
 	if (!Entry[0]) ML_CONTINUE(State->Base.Caller, State->Value);
 	State->Current = Entry + 1;
 	ml_value_t *Function = Entry[0];
-	if (ml_typeof(Function) != FilterT) {
-		State->Base.run = (void *)ml_chained_state_value;
+	if (Function == FilterSoloMethod) {
+		Function = Entry[1];
+		if (!Function) ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Missing value function for chain"));
+		State->Current = Entry + 2;
+		State->Base.run = (void *)ml_chained_state_filter;
 	}
 	return ml_call(State, Function, 1, &State->Value);
 }
@@ -77,7 +81,10 @@ static void ml_chained_state_value(ml_chained_state_t *State, ml_value_t *Value)
 	State->Current = Entry + 1;
 	State->Value = Value;
 	ml_value_t *Function = Entry[0];
-	if (ml_typeof(Function) == FilterT) {
+	if (Function == FilterSoloMethod) {
+		Function = Entry[1];
+		if (!Function) ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Missing value function for chain"));
+		State->Current = Entry + 2;
 		State->Base.run = (void *)ml_chained_state_filter;
 	}
 	return ml_call(State, Function, 1, &State->Value);
@@ -97,8 +104,24 @@ static void ml_chained_function_call(ml_state_t *Caller, ml_chained_function_t *
 	return ml_call(State, Chained->Entries[0], Count, Args);
 }
 
+ml_value_t *ml_chained(int Count, ml_value_t **Functions);
+
+ML_FUNCTION(MLChained) {
+//@chained
+//<Base
+//<Fn/1,...,Fn/n:function
+//>chained
+// Returns a new chained function or sequence with base :mini:`Base` and additional functions or filters :mini:`Fn/1, ..., Fn/n`.
+	ML_CHECK_ARG_COUNT(1);
+	return ml_chained(Count, Args);
+}
+
 ML_TYPE(MLChainedT, (MLFunctionT, MLSequenceT), "chained",
-	.call = (void *)ml_chained_function_call
+// A chained function or sequence, consisting of a base function or sequence and any number of additional functions or filters.
+// When used as a function or sequence, the base is used to produce an initial result, then the additional functions are applied in turn to the result.
+// Filters do not affect the result but will shortcut a function call or skip an iteration if :mini:`nil` is returned. I.e. filters remove values from a sequence that fail a condition without affecting the values that pass.
+	.call = (void *)ml_chained_function_call,
+	.Constructor = (ml_value_t *)MLChained
 );
 
 ml_value_t *ml_chained(int Count, ml_value_t **Functions) {
@@ -107,12 +130,6 @@ ml_value_t *ml_chained(int Count, ml_value_t **Functions) {
 	Chained->Type = MLChainedT;
 	for (int I = 0; I < Count; ++I) Chained->Entries[I] = *Functions++;
 	return (ml_value_t *)Chained;
-}
-
-ML_FUNCTION(MLChained) {
-//!internal
-	ML_CHECK_ARG_COUNT(1);
-	return ml_chained(Count, Args);
 }
 
 typedef struct ml_chained_iterator_t {
@@ -277,6 +294,20 @@ ML_METHOD("->", MLSequenceT, MLFunctionT) {
 	return (ml_value_t *)Chained;
 }
 
+ML_METHOD("->", MLChainedT, MLFunctionT) {
+//<Chained
+//<Function
+//>chained
+	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
+	int N = 0;
+	while (Base->Entries[N]) ++N;
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, N + 2, ml_value_t *);
+	Chained->Type = MLChainedT;
+	for (int I = 0; I < N; ++I) Chained->Entries[I] = Base->Entries[I];
+	Chained->Entries[N] = Args[1];
+	return (ml_value_t *)Chained;
+}
+
 ML_METHOD("=>", MLSequenceT, MLFunctionT) {
 //<Sequence
 //<Function
@@ -302,33 +333,6 @@ ML_METHOD("=>", MLSequenceT, MLFunctionT, MLFunctionT) {
 	Chained->Entries[2] = Args[1];
 	Chained->Entries[3] = Args[2];
 	//Chained->Entries[4] = NULL;
-	return (ml_value_t *)Chained;
-}
-
-ML_METHOD("!>", MLSequenceT, MLFunctionT) {
-//<Sequence
-//<Function
-//>chained
-	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
-	Chained->Type = MLChainedT;
-	Chained->Entries[0] = Args[0];
-	Chained->Entries[1] = SoloApplyMethod;
-	Chained->Entries[2] = Args[1];
-	//Chained->Entries[3] = NULL;
-	return (ml_value_t *)Chained;
-}
-
-ML_METHOD("->", MLChainedT, MLFunctionT) {
-//<Chained
-//<Function
-//>chained
-	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
-	int N = 0;
-	while (Base->Entries[N]) ++N;
-	ml_chained_function_t *Chained = xnew(ml_chained_function_t, N + 2, ml_value_t *);
-	Chained->Type = MLChainedT;
-	for (int I = 0; I < N; ++I) Chained->Entries[I] = Base->Entries[I];
-	Chained->Entries[N] = Args[1];
 	return (ml_value_t *)Chained;
 }
 
@@ -364,6 +368,19 @@ ML_METHOD("=>", MLChainedT, MLFunctionT, MLFunctionT) {
 	return (ml_value_t *)Chained;
 }
 
+ML_METHOD("!>", MLSequenceT, MLFunctionT) {
+//<Sequence
+//<Function
+//>chained
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
+	Chained->Type = MLChainedT;
+	Chained->Entries[0] = Args[0];
+	Chained->Entries[1] = SoloApplyMethod;
+	Chained->Entries[2] = Args[1];
+	//Chained->Entries[3] = NULL;
+	return (ml_value_t *)Chained;
+}
+
 ML_METHOD("!>", MLChainedT, MLFunctionT) {
 //<Chained
 //<Function
@@ -392,32 +409,6 @@ ML_METHOD("->?", MLSequenceT, MLFunctionT) {
 	return (ml_value_t *)Chained;
 }
 
-ML_METHOD("=>?", MLSequenceT, MLFunctionT) {
-//<Sequence
-//<Function
-//>chained
-	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
-	Chained->Type = MLChainedT;
-	Chained->Entries[0] = Args[0];
-	Chained->Entries[1] = FilterDuoMethod;
-	Chained->Entries[2] = Args[1];
-	//Chained->Entries[3] = NULL;
-	return (ml_value_t *)Chained;
-}
-
-ML_METHOD("!>?", MLSequenceT, MLFunctionT) {
-//<Sequence
-//<Function
-//>chained
-	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
-	Chained->Type = MLChainedT;
-	Chained->Entries[0] = Args[0];
-	Chained->Entries[1] = FilterSoloApplyMethod;
-	Chained->Entries[2] = Args[1];
-	//Chained->Entries[3] = NULL;
-	return (ml_value_t *)Chained;
-}
-
 ML_METHOD("->?", MLChainedT, MLFunctionT) {
 //<Chained
 //<Function
@@ -433,6 +424,19 @@ ML_METHOD("->?", MLChainedT, MLFunctionT) {
 	return (ml_value_t *)Chained;
 }
 
+ML_METHOD("=>?", MLSequenceT, MLFunctionT) {
+//<Sequence
+//<Function
+//>chained
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
+	Chained->Type = MLChainedT;
+	Chained->Entries[0] = Args[0];
+	Chained->Entries[1] = FilterDuoMethod;
+	Chained->Entries[2] = Args[1];
+	//Chained->Entries[3] = NULL;
+	return (ml_value_t *)Chained;
+}
+
 ML_METHOD("=>?", MLChainedT, MLFunctionT) {
 //<Chained
 //<Function
@@ -445,6 +449,19 @@ ML_METHOD("=>?", MLChainedT, MLFunctionT) {
 	for (int I = 0; I < N; ++I) Chained->Entries[I] = Base->Entries[I];
 	Chained->Entries[N] = FilterDuoMethod;
 	Chained->Entries[N + 1] = Args[1];
+	return (ml_value_t *)Chained;
+}
+
+ML_METHOD("!>?", MLSequenceT, MLFunctionT) {
+//<Sequence
+//<Function
+//>chained
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
+	Chained->Type = MLChainedT;
+	Chained->Entries[0] = Args[0];
+	Chained->Entries[1] = FilterSoloApplyMethod;
+	Chained->Entries[2] = Args[1];
+	//Chained->Entries[3] = NULL;
 	return (ml_value_t *)Chained;
 }
 
@@ -735,6 +752,11 @@ static void count_iterate(ml_count_state_t *State, ml_value_t *Value) {
 
 #define ML_SEQUENCE_FUNCTION(NAME, FN) \
 ML_FUNCTIONX(NAME) { \
+/*@FN
+//<Value:any
+//>any|nil
+// Used for iterating over a sequence.
+*/ \
 	ML_CHECKX_ARG_COUNT(1); \
 	return ml_ ## FN(Caller, Args[0]); \
 }
@@ -1027,7 +1049,7 @@ static void join_first(ml_join_state_t *State, ml_value_t *Value) {
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_METHODVX("join", MLSequenceT, MLStringT) {
+ML_METHODX("join", MLSequenceT, MLStringT) {
 //<Sequence
 //<Separator
 //>string
@@ -2015,9 +2037,7 @@ static void ML_TYPED_FN(ml_iter_next, MLZippedStateT, ml_state_t *Caller, ml_zip
 
 ML_FUNCTION(Zip) {
 //@zip
-//<Sequence/1:sequence
-//<...:sequence
-//<Sequence/n:sequence
+//<Sequence/1,...,Sequence/n:sequence
 //<Function
 //>sequence
 // Returns a new sequence that produces :mini:`Function(V/1/1, ..., V/n/1), Function(V/1/2, ..., V/n/2), ...` where :mini:`V/i/j` is the :mini:`j`-th value produced by :mini:`Sequence/i`.
@@ -2112,9 +2132,7 @@ static void ML_TYPED_FN(ml_iter_next, MLGridStateT, ml_state_t *Caller, ml_grid_
 
 ML_FUNCTION(Grid) {
 //@grid
-//<Sequence/1:sequence
-//<...:sequence
-//<Sequence/n:sequence
+//<Sequence/1,...,Sequence/n:sequence
 //<Function
 //>sequence
 // Returns a new sequence that produces :mini:`Function(V/1, V/2, ..., V/n)` for all possible combinations of :mini:`V/1, ..., V/n`, where :mini:`V/i` are the values produced by :mini:`Sequence/i`.
@@ -2269,9 +2287,7 @@ static void ML_TYPED_FN(ml_iter_next, MLWeavedStateT, ml_state_t *Caller, ml_wea
 
 ML_FUNCTION(Weave) {
 //@weave
-//<Sequence/1:sequence
-//<...:sequence
-//<Sequence/n:sequence
+//<Sequence/1,...,Sequence/n:sequence
 //>sequence
 // Returns a new sequence that produces interleaved values :mini:`V/i` from each of :mini:`Sequence/i`.
 // The sequence stops produces values when any of the :mini:`Sequence/i` stops.
@@ -2548,7 +2564,7 @@ ML_FUNCTION(Key) {
 typedef struct ml_batched_t {
 	ml_type_t *Type;
 	ml_value_t *Iter, *Function;
-	int Size;
+	int Size, Shift;
 } ml_batched_t;
 
 ML_TYPE(MLBatchedT, (MLSequenceT), "batched");
@@ -2557,7 +2573,7 @@ ML_TYPE(MLBatchedT, (MLSequenceT), "batched");
 typedef struct ml_batched_state_t {
 	ml_state_t Base;
 	ml_value_t *Iter, *Function, *Value;
-	int Size, Index, Iteration;
+	int Size, Shift, Index, Iteration;
 	ml_value_t *Args[];
 } ml_batched_state_t;
 
@@ -2570,6 +2586,7 @@ static void batched_iter_value(ml_batched_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	State->Args[State->Index] = Value;
 	if (++State->Index == State->Size) {
+		++State->Iteration;
 		ml_state_t *Caller = State->Base.Caller;
 		ML_RETURN(State);
 	} else {
@@ -2581,7 +2598,11 @@ static void batched_iter_value(ml_batched_state_t *State, ml_value_t *Value) {
 static void batched_iterate(ml_batched_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value == MLNil) {
-		if (State->Index) ML_CONTINUE(State->Base.Caller, State);
+		State->Iter = NULL;
+		if (State->Index > (State->Size - State->Shift)) {
+			++State->Iteration;
+			ML_CONTINUE(State->Base.Caller, State);
+		}
 		ML_CONTINUE(State->Base.Caller, MLNil);
 	}
 	State->Base.run = (void *)batched_iter_value;
@@ -2596,7 +2617,8 @@ static void ML_TYPED_FN(ml_iterate, MLBatchedT, ml_state_t *Caller, ml_batched_t
 	State->Base.Context = Caller->Context;
 	State->Function = Batched->Function;
 	State->Size = Batched->Size;
-	State->Iteration = 1;
+	State->Shift = Batched->Shift;
+	State->Iteration = 0;
 	return ml_iterate((ml_state_t *)State, Batched->Iter);
 }
 
@@ -2610,8 +2632,14 @@ static void ML_TYPED_FN(ml_iter_value, MLBatchedStateT, ml_state_t *Caller, ml_b
 
 static void ML_TYPED_FN(ml_iter_next, MLBatchedStateT, ml_state_t *Caller, ml_batched_state_t *State) {
 	State->Base.Caller = Caller;
-	if (State->Index != State->Size) ML_RETURN(MLNil);
-	State->Index = 0;
+	if (!State->Iter) ML_RETURN(MLNil);
+	int Size = State->Size, Shift = State->Shift;
+	if (Shift < Size) {
+		for (int I = Shift; I < Size; ++I) State->Args[I - Shift] = State->Args[I];
+		State->Index = Size - Shift;
+	} else {
+		State->Index = 0;
+	}
 	State->Base.run = (void *)batched_iterate;
 	return ml_iter_next((ml_state_t *)State, State->Iter);
 }
@@ -2620,6 +2648,7 @@ ML_FUNCTION(Batch) {
 //@batch
 //<Sequence:sequence
 //<Size:integer
+//<Shift?:integer
 //<Function:function
 //>sequence
 // Returns a new sequence that calls :mini:`Function` with each batch of :mini:`Size` values produced by :mini:`Sequence` and produces the results.
@@ -2628,7 +2657,17 @@ ML_FUNCTION(Batch) {
 	Batched->Type = MLBatchedT;
 	Batched->Iter = Args[0];
 	Batched->Size = ml_integer_value(Args[1]);
-	Batched->Function = Args[2];
+	if (Count > 3) {
+		ML_CHECK_ARG_TYPE(2, MLIntegerT);
+		Batched->Shift = ml_integer_value(Args[2]);
+		if (Batched->Shift <= 0 || Batched->Shift > Batched->Size) {
+			return ml_error("RangeError", "Invalid shift value");
+		}
+		Batched->Function = Args[3];
+	} else {
+		Batched->Shift = Batched->Size;
+		Batched->Function = Args[2];
+	}
 	return (ml_value_t *)Batched;
 }
 
@@ -2640,6 +2679,7 @@ void ml_sequence_init(stringmap_t *Globals) {
 	FilterNil->Function = ml_integer(1);
 #include "ml_sequence_init.c"
 	if (Globals) {
+		stringmap_insert(Globals, "chained", MLChainedT);
 		stringmap_insert(Globals, "filter", Filter);
 		stringmap_insert(Globals, "first", First);
 		stringmap_insert(Globals, "first2", First2);

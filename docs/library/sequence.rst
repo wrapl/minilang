@@ -6,19 +6,32 @@ sequence
 
 
 :mini:`type filter < function`
-   *TBD*
+   A function marked as a filter when used in a chained function or sequence.
+
 
 :mini:`fun filter(Function?: any): filter`
-   Returns a filter for use in chained functions and iterators.
+   Returns a filter for use in chained functions and sequences.
+
+
+:mini:`fun chained(Base: any, Fn₁, ..., Fnₙ: function): chained`
+   Returns a new chained function or sequence with base :mini:`Base` and additional functions or filters :mini:`Fn₁,  ...,  Fnₙ`.
 
 
 :mini:`type chained < function, sequence`
-   *TBD*
+   A chained function or sequence,  consisting of a base function or sequence and any number of additional functions or filters.
+
+   When used as a function or sequence,  the base is used to produce an initial result,  then the additional functions are applied in turn to the result.
+
+   Filters do not affect the result but will shortcut a function call or skip an iteration if :mini:`nil` is returned. I.e. filters remove values from a sequence that fail a condition without affecting the values that pass.
+
 
 :mini:`meth (Sequence: function) -> (Function: function): chained`
    *TBD*
 
 :mini:`meth (Sequence: sequence) -> (Function: function): chained`
+   *TBD*
+
+:mini:`meth (Chained: chained) -> (Function: function): chained`
    *TBD*
 
 :mini:`meth (Sequence: sequence) => (Function: function): chained`
@@ -27,16 +40,13 @@ sequence
 :mini:`meth (Sequence: sequence) => (Function: function, Arg₃: function): chained`
    *TBD*
 
-:mini:`meth (Sequence: sequence) !> (Function: function): chained`
-   *TBD*
-
-:mini:`meth (Chained: chained) -> (Function: function): chained`
-   *TBD*
-
 :mini:`meth (Chained: chained) => (Function: function): chained`
    *TBD*
 
 :mini:`meth (Chained: chained) => (Function: function, Arg₃: function): chained`
+   *TBD*
+
+:mini:`meth (Sequence: sequence) !> (Function: function): chained`
    *TBD*
 
 :mini:`meth (Chained: chained) !> (Function: function): chained`
@@ -45,16 +55,16 @@ sequence
 :mini:`meth (Sequence: sequence) ->? (Function: function): chained`
    *TBD*
 
-:mini:`meth (Sequence: sequence) =>? (Function: function): chained`
-   *TBD*
-
-:mini:`meth (Sequence: sequence) !>? (Function: function): chained`
-   *TBD*
-
 :mini:`meth (Chained: chained) ->? (Function: function): chained`
    *TBD*
 
+:mini:`meth (Sequence: sequence) =>? (Function: function): chained`
+   *TBD*
+
 :mini:`meth (Chained: chained) =>? (Function: function): chained`
+   *TBD*
+
+:mini:`meth (Sequence: sequence) !>? (Function: function): chained`
    *TBD*
 
 :mini:`meth (Chained: chained) !>? (Function: function): chained`
@@ -84,17 +94,21 @@ sequence
    Returns the last key and value produced by :mini:`Sequence`.
 
 
-:mini:`fun name(Arg₁: any)`
-   *TBD*
+:mini:`fun iterate(Value: any): any | nil`
+   Used for iterating over a sequence.
 
-:mini:`fun name(Arg₁: any)`
-   *TBD*
 
-:mini:`fun name(Arg₁: any)`
-   *TBD*
+:mini:`fun iter_next(Value: any): any | nil`
+   Used for iterating over a sequence.
 
-:mini:`fun name(Arg₁: any)`
-   *TBD*
+
+:mini:`fun iter_value(Value: any): any | nil`
+   Used for iterating over a sequence.
+
+
+:mini:`fun iter_key(Value: any): any | nil`
+   Used for iterating over a sequence.
+
 
 :mini:`fun count(Sequence: any): integer`
    Returns the count of the values produced by :mini:`Sequence`.
@@ -130,7 +144,7 @@ sequence
    Returns the product of the values (using :mini:`*`) produced by :mini:`Sequence`.
 
 
-:mini:`meth (Sequence: sequence):join(Separator: string, ...): string`
+:mini:`meth (Sequence: sequence):join(Separator: string): string`
    Joins the elements of :mini:`Sequence` into a string using :mini:`Separator` between elements.
 
 
@@ -187,13 +201,13 @@ sequence
    Returns an sequence that returns the unique values produced by :mini:`Sequence`. Uniqueness is determined by using a :mini:`map`.
 
 
-:mini:`fun zip(Sequence₁: sequence, ...: sequence, Sequenceₙ: sequence, Function: any): sequence`
+:mini:`fun zip(Sequence₁, ..., Sequenceₙ: sequence, Function: any): sequence`
    Returns a new sequence that produces :mini:`Function(V₁₁,  ...,  Vₙ₁),  Function(V₁₂,  ...,  Vₙ₂),  ...` where :mini:`Vᵢⱼ` is the :mini:`j`-th value produced by :mini:`Sequenceᵢ`.
 
    The sequence stops produces values when any of the :mini:`Sequenceᵢ` stops.
 
 
-:mini:`fun grid(Sequence₁: sequence, ...: sequence, Sequenceₙ: sequence, Function: any): sequence`
+:mini:`fun grid(Sequence₁, ..., Sequenceₙ: sequence, Function: any): sequence`
    Returns a new sequence that produces :mini:`Function(V₁,  V₂,  ...,  Vₙ)` for all possible combinations of :mini:`V₁,  ...,  Vₙ`,  where :mini:`Vᵢ` are the values produced by :mini:`Sequenceᵢ`.
 
 
@@ -201,7 +215,7 @@ sequence
    Returns a new sequence that produces the values from :mini:`Sequence₁` as keys and the values from :mini:`Sequence₂` as values.
 
 
-:mini:`fun weave(Sequence₁: sequence, ...: sequence, Sequenceₙ: sequence): sequence`
+:mini:`fun weave(Sequence₁, ..., Sequenceₙ: sequence): sequence`
    Returns a new sequence that produces interleaved values :mini:`Vᵢ` from each of :mini:`Sequenceᵢ`.
 
    The sequence stops produces values when any of the :mini:`Sequenceᵢ` stops.
@@ -223,7 +237,7 @@ sequence
    Returns a new sequence which produces the keys of :mini:`Sequence`.
 
 
-:mini:`fun batch(Sequence: sequence, Size: integer, Function: function): sequence`
+:mini:`fun batch(Sequence: sequence, Size: integer, Shift?: integer, Function: function): sequence`
    Returns a new sequence that calls :mini:`Function` with each batch of :mini:`Size` values produced by :mini:`Sequence` and produces the results.
 
 
