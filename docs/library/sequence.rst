@@ -75,7 +75,7 @@ sequence
 
 
 :mini:`fun all(Sequence: sequence): some | nil`
-   Returns :mini:`nil` if :mini:`nil` is produced by :mini:`Sequence`. Otherwise returns :mini:`some`.
+   Returns :mini:`nil` if :mini:`nil` is produced by :mini:`Sequence`. Otherwise returns :mini:`some`. If :mini:`Sequence` is empty,  then :mini:`some` is returned.
 
 
 :mini:`fun first(Sequence: sequence): any | nil`

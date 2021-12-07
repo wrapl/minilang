@@ -15,6 +15,10 @@ range
    Returns a range from :mini:`Start` to :mini:`Limit` (inclusive).
 
 
+:mini:`meth (Start: integer):up(Count: integer): integer::range`
+   Returns a range from :mini:`Start` to :mini:`Start + Count - 1` (inclusive).
+
+
 :mini:`meth (Start: integer):by(Step: integer): integer::range`
    Returns a unlimited range from :mini:`Start` in steps of :mini:`Step`.
 

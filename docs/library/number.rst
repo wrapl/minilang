@@ -1,13 +1,40 @@
 number
 ======
 
+:mini:`meth (Arg₁: any) + (Arg₂: any, Arg₃: any, ...): any`
+   Returns :mini:`Arg₁ + ... + Argₙ`.
+
+
+:mini:`meth (Arg₁: any) * (Arg₂: any, Arg₃: any, ...): any`
+   Returns :mini:`Arg₁ * ... * Argₙ`.
+
+
 :mini:`type number`
    Base type for numbers.
 
 
-:mini:`type real < number`
-   Base type for real numbers.
+:mini:`type complex < number`
+   *TBD*
 
+:mini:`meth complex(Arg₁: real)`
+   *TBD*
+
+:mini:`meth real(Arg₁: complex)`
+   *TBD*
+
+:mini:`meth (Z: complex):r: real`
+   Returns the real component of :mini:`Z`.
+
+
+:mini:`meth (Z: complex):i: real`
+   Returns the imaginary component of :mini:`Z`.
+
+
+:mini:`type real < complex`
+   *TBD*
+
+:mini:`type real < number`
+   *TBD*
 
 :mini:`type integer < real, function`
    *TBD*
@@ -42,23 +69,6 @@ number
 
 :mini:`meth double(Arg₁: integer)`
    *TBD*
-
-:mini:`type complex < number`
-   *TBD*
-
-:mini:`meth complex(Arg₁: real)`
-   *TBD*
-
-:mini:`meth real(Arg₁: complex)`
-   *TBD*
-
-:mini:`meth (Z: complex):r: real`
-   Returns the real component of :mini:`Z`.
-
-
-:mini:`meth (Z: complex):i: real`
-   Returns the imaginary component of :mini:`Z`.
-
 
 :mini:`meth -(Arg₁: integer)`
    *TBD*

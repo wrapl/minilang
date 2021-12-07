@@ -597,7 +597,7 @@ static void all_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 ML_FUNCTIONX(All) {
 //<Sequence
 //>some | nil
-// Returns :mini:`nil` if :mini:`nil` is produced by :mini:`Sequence`. Otherwise returns :mini:`some`.
+// Returns :mini:`nil` if :mini:`nil` is produced by :mini:`Sequence`. Otherwise returns :mini:`some`. If :mini:`Sequence` is empty, then :mini:`some` is returned.
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = new(ml_iter_state_t);
