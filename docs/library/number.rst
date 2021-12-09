@@ -1,14 +1,6 @@
 number
 ======
 
-:mini:`meth (Arg₁: any) + (Arg₂: any, Arg₃: any, ...): any`
-   Returns :mini:`Arg₁ + ... + Argₙ`.
-
-
-:mini:`meth (Arg₁: any) * (Arg₂: any, Arg₃: any, ...): any`
-   Returns :mini:`Arg₁ * ... * Argₙ`.
-
-
 :mini:`type number`
    Base type for numbers.
 

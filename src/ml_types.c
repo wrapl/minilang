@@ -1739,36 +1739,21 @@ static void ml_infix_run(ml_infix_state_t *State, ml_value_t *Value) {
 	return ml_call(State, State->Function, 2, State->Args + Index);
 }
 
-ML_METHOD_DECL(AddMethod, "+");
-
-ML_METHODVX("+", MLAnyT, MLAnyT, MLAnyT) {
-//>any
-// Returns :mini:`Arg/1 + ... + Arg/n`.
+static void ml_infix_many_fn(ml_state_t *Caller, void *Infix, int Count, ml_value_t **Args) {
 	ml_infix_state_t *State = xnew(ml_infix_state_t, Count, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_infix_run;
-	State->Function = AddMethod;
+	State->Function = (ml_value_t *)Infix;
 	State->Count = Count;
 	State->Index = 1;
 	for (int I = 0; I < Count; ++I) State->Args[I] = Args[I];
-	return ml_call(State, AddMethod, 2, State->Args);
+	return ml_call(State, Infix, 2, State->Args);
 }
 
-ML_METHOD_DECL(MulMethod, "*");
-
-ML_METHODVX("*", MLAnyT, MLAnyT, MLAnyT) {
-//>any
-// Returns :mini:`Arg/1 * ... * Arg/n`.
-	ml_infix_state_t *State = xnew(ml_infix_state_t, Count, ml_value_t *);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_infix_run;
-	State->Function = MulMethod;
-	State->Count = Count;
-	State->Index = 1;
-	for (int I = 0; I < Count; ++I) State->Args[I] = Args[I];
-	return ml_call(State, MulMethod, 2, State->Args);
+static void ml_infix_many(const char *Name) {
+	ml_value_t *Method = ml_method(Name);
+	ml_method_define(Method, ml_cfunctionx(Method, ml_infix_many_fn), 1, MLAnyT, MLAnyT, MLAnyT, NULL);
 }
 
 ML_TYPE(MLNumberT, (), "number");
@@ -3174,6 +3159,10 @@ void ml_init(stringmap_t *Globals) {
 	ml_method_by_name(">", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
 	ml_method_by_name("<=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
 	ml_method_by_name(">=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
+	ml_infix_many("+");
+	ml_infix_many("*");
+	ml_infix_many("/\\");
+	ml_infix_many("\\/");
 	ml_string_init();
 	ml_method_init();
 	ml_list_init();

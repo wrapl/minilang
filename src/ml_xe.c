@@ -328,11 +328,7 @@ static ml_value_t *parse_value(xe_stream_t *Stream) {
 	case '$': {
 		++Next;
 		for (;;) {
-			char Delim = *Next;
-			if (Delim <= ' ') break;
-			if (Delim == ':') break;
-			if (Delim == '|') break;
-			if (Delim == '>') break;
+			if (!isalnum(*Next)) break;
 			++Next;
 		}
 		int NameLength = (Next - Stream->Next) - 1;

@@ -168,11 +168,11 @@ static void error_handler(int Signal) {
 
 static void ml_main_state_run(ml_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
-		printf("%s: %s\n", ml_error_type(Value), ml_error_message(Value));
+		fprintf(stderr, "%s: %s\n", ml_error_type(Value), ml_error_message(Value));
 		ml_source_t Source;
 		int Level = 0;
 		while (ml_error_source(Value, Level++, &Source)) {
-			printf("\t%s:%d\n", Source.Name, Source.Line);
+			fprintf(stderr, "\t%s:%d\n", Source.Name, Source.Line);
 		}
 		exit(1);
 	}

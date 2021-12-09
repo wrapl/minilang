@@ -57,6 +57,12 @@ list
    Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
 
 
+:mini:`meth (List: list)[From: integer::range, To: any]: listslice`
+   Returns a slice of :mini:`List` starting at :mini:`From` (inclusive) and ending at :mini:`To` (exclusive).
+
+   Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
+
+
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: list)`
    *TBD*
 

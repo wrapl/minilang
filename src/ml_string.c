@@ -1324,6 +1324,21 @@ ML_METHOD("[]", MLStringT, MLIntegerT, MLIntegerT) {
 	return ml_string(Chars + Lo - 1, Length2);
 }
 
+ML_METHOD("[]", MLStringT, MLIntegerRangeT) {
+	const char *Chars = ml_string_value(Args[0]);
+	int Length = ml_string_length(Args[0]);
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
+	int Lo = Range->Start, Hi = Range->Limit + 1, Step = Range->Step;
+	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
+	if (Lo <= 0) Lo += Length + 1;
+	if (Hi <= 0) Hi += Length + 1;
+	if (Lo <= 0) return MLNil;
+	if (Hi > Length + 1) return MLNil;
+	if (Hi < Lo) return MLNil;
+	int Length2 = Hi - Lo;
+	return ml_string(Chars + Lo - 1, Length2);
+}
+
 ML_METHOD("+", MLStringT, MLStringT) {
 	int Length1 = ml_string_length(Args[0]);
 	int Length2 = ml_string_length(Args[1]);

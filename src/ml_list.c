@@ -467,6 +467,27 @@ ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
 	return (ml_value_t *)Slice;
 }
 
+ML_METHOD("[]", MLListT, MLIntegerRangeT) {
+//<List
+//<From
+//<To
+//>listslice
+// Returns a slice of :mini:`List` starting at :mini:`From` (inclusive) and ending at :mini:`To` (exclusive).
+// Indexing starts at :mini:`1`. Negative indices are counted from the end of the list, with :mini:`-1` returning the last node.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
+	int Start = Range->Start, End = Range->Limit + 1, Step = Range->Step;
+	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
+	if (Start <= 0) Start += List->Length + 1;
+	if (End <= 0) End += List->Length + 1;
+	if (Start <= 0 || End < Start || End > List->Length + 1) return MLNil;
+	ml_list_slice_t *Slice = new(ml_list_slice_t);
+	Slice->Type = MLListSliceT;
+	Slice->Head = ml_list_index(List, Start);
+	Slice->Length = End - Start;
+	return (ml_value_t *)Slice;
+}
+
 ML_METHOD("append", MLStringBufferT, MLListT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_write(Buffer, "[", 1);

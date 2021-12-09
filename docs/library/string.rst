@@ -111,6 +111,9 @@ string
 :mini:`meth (Arg₁: string)[Arg₂: integer, Arg₃: integer]`
    *TBD*
 
+:mini:`meth (Arg₁: string)[Arg₂: integer::range]`
+   *TBD*
+
 :mini:`meth (Arg₁: string) + (Arg₂: string)`
    *TBD*
 
