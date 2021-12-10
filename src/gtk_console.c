@@ -813,6 +813,7 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 	GError *Error = 0;
 	g_irepository_require(NULL, "Gtk", "3.0", 0, &Error);
 	g_irepository_require(NULL, "GtkSource", "4", 0, &Error);
+	stringmap_insert(Console->Globals, "print", ml_cfunction(Console, (void *)console_print));
 	stringmap_insert(Console->Globals, "Console", ml_gir_instance_get(Console->Window, NULL));
 	stringmap_insert(Console->Globals, "InputView", ml_gir_instance_get(Console->InputView, NULL));
 	stringmap_insert(Console->Globals, "LogView", ml_gir_instance_get(Console->LogView, NULL));

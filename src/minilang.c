@@ -348,7 +348,8 @@ int main(int Argc, const char *Argv[]) {
 	ml_state_t *Main = ml_state_new(NULL);
 	Main->run = ml_main_state_run;
 #ifdef ML_SCHEDULER
-	if (SliceSize) {		MainSchedule.Counter = SliceSize;
+	if (SliceSize) {
+		MainSchedule.Counter = SliceSize;
 		ml_scheduler_queue_init(8);
 		ml_context_set(Main->Context, ML_SCHEDULER_INDEX, &MainSchedule);
 	}
@@ -356,7 +357,6 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_GTK_CONSOLE
 	if (GtkConsole) {
 		console_t *Console = console_new(&MLRootContext, (ml_getter_t)stringmap_search, Globals);
-		stringmap_insert(Globals, "print", ml_cfunction(Console, (void *)console_print));
 		console_show(Console, NULL);
 		if (FileName) console_load_file(Console, FileName, Args);
 		if (Command) console_evaluate(Console, Command);
