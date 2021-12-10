@@ -195,6 +195,27 @@ ML_METHOD("!", MLIntegerT, MLIntegerT) {
 	return ml_integer(C);
 }
 
+ML_METHOD_DECL(GCDMethod, "gcd");
+
+ML_METHOD(GCDMethod, MLIntegerT, MLIntegerT) {
+	long A = labs(ml_integer_value(Args[0]));
+	long B = labs(ml_integer_value(Args[1]));
+	if (A == 0) return Args[1];
+	if (B == 0) return Args[0];
+	int Shift = __builtin_ctzl(A | B);
+	A >>= __builtin_ctz(A);
+	do {
+		B >>= __builtin_ctz(B);
+		if (A > B) {
+			unsigned int C = B;
+			B = A;
+			A = C;
+		}
+		B = B - A;
+	} while (B != 0);
+	return ml_integer(A << Shift);
+}
+
 MATH_NUMBER_KEEP_REAL(Acos, acos);
 MATH_NUMBER_KEEP_REAL(Asin, asin);
 MATH_NUMBER_KEEP_REAL(Atan, atan);
@@ -388,6 +409,7 @@ void ml_math_init(stringmap_t *Globals) {
 	stringmap_insert(MLRealT->Exports, "random", RealRandom);
 	if (Globals) {
 		stringmap_insert(Globals, "math", ml_module("math",
+			"gcd", GCDMethod,
 			"acos", AcosMethod,
 			"asin", AsinMethod,
 			"atan", AtanMethod,

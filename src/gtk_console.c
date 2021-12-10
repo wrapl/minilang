@@ -46,6 +46,7 @@ struct console_t {
 	ml_compiler_t *Compiler;
 	char *History[MAX_HISTORY];
 	int HistoryIndex, HistoryEnd;
+	stringmap_t Globals[1];
 	stringmap_t SourceViews[1];
 	stringmap_t Cycles[1];
 	stringmap_t Combos[1];
@@ -67,6 +68,8 @@ static ml_value_t *console_global_get(console_t *Console, const char *Name) {
 		ml_value_t *Value = interactive_debugger_get(Console->Debugger, Name);
 		if (Value) return Value;
 	}
+	ml_value_t *Value = stringmap_search(Console->Globals, Name);
+	if (Value) return Value;
 	return (Console->ParentGetter)(Console->ParentGlobals, Name);
 }
 
@@ -173,6 +176,14 @@ static void console_continue(GtkWidget *Button, console_t *Console) {
 	ml_command_evaluate((ml_state_t *)Console, Parser, Compiler);
 }
 
+void console_evaluate(console_t *Console, const char *Text) {
+	ml_parser_t *Parser = Console->Parser;
+	ml_compiler_t *Compiler = Console->Compiler;
+	ml_parser_reset(Parser);
+	ml_parser_input(Parser, Text);
+	ml_command_evaluate((ml_state_t *)Console, Parser, Compiler);
+}
+
 static void console_submit(GtkWidget *Button, console_t *Console) {
 	GtkTextBuffer *InputBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->InputView));
 	GtkTextIter InputStart[1], InputEnd[1];
@@ -204,12 +215,7 @@ gtk_source_buffer_set_highlight_matching_brackets(GTK_SOURCE_BUFFER(InputBuffer)
 	//GtkTextBuffer *LogBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(Console->LogView));
 	gtk_text_buffer_get_end_iter(LogBuffer, End);
 	gtk_text_buffer_insert(LogBuffer, End, "\n", 1);
-
-	ml_parser_t *Parser = Console->Parser;
-	ml_compiler_t *Compiler = Console->Compiler;
-	ml_parser_reset(Parser);
-	ml_parser_input(Parser, Text);
-	ml_command_evaluate((ml_state_t *)Console, Parser, Compiler);
+	console_evaluate(Console, Text);
 }
 
 static void console_debug_enter(console_t *Console, interactive_debugger_t *Debugger, ml_source_t Source, int Index) {
@@ -744,14 +750,14 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 	gtk_window_set_default_size(GTK_WINDOW(Console->Window), 640, 480);
 	g_signal_connect(G_OBJECT(Console->Window), "delete-event", G_CALLBACK(gtk_main_quit), Console);
 
-	ml_compiler_define(Console->Compiler, "set_font", ml_cfunction(Console, (ml_callback_t)console_set_font));
-	ml_compiler_define(Console->Compiler, "set_style", ml_cfunction(Console, (ml_callback_t)console_set_style));
-	ml_compiler_define(Console->Compiler, "add_cycle", ml_cfunction(Console, (ml_callback_t)console_add_cycle));
-	ml_compiler_define(Console->Compiler, "add_combo", ml_cfunction(Console, (ml_callback_t)console_add_combo));
-	ml_compiler_define(Console->Compiler, "include", ml_cfunctionx(Console, (ml_callbackx_t)console_include_fnx));
+	stringmap_insert(Console->Globals, "set_font", ml_cfunction(Console, (ml_callback_t)console_set_font));
+	stringmap_insert(Console->Globals, "set_style", ml_cfunction(Console, (ml_callback_t)console_set_style));
+	stringmap_insert(Console->Globals, "add_cycle", ml_cfunction(Console, (ml_callback_t)console_add_cycle));
+	stringmap_insert(Console->Globals, "add_combo", ml_cfunction(Console, (ml_callback_t)console_add_combo));
+	stringmap_insert(Console->Globals, "include", ml_cfunctionx(Console, (ml_callbackx_t)console_include_fnx));
 
 #ifdef ML_SCHEDULER
-	ml_compiler_define(Console->Compiler, "sleep", (ml_value_t *)MLSleep);
+	stringmap_insert(Console->Globals, "sleep", (ml_value_t *)MLSleep);
 #endif
 
 	if (g_key_file_has_key(Console->Config, "gtk-console", "font", NULL)) {
@@ -807,10 +813,10 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 	GError *Error = 0;
 	g_irepository_require(NULL, "Gtk", "3.0", 0, &Error);
 	g_irepository_require(NULL, "GtkSource", "4", 0, &Error);
-	ml_compiler_define(Console->Compiler, "Console", ml_gir_instance_get(Console->Window, NULL));
-	ml_compiler_define(Console->Compiler, "InputView", ml_gir_instance_get(Console->InputView, NULL));
-	ml_compiler_define(Console->Compiler, "LogView", ml_gir_instance_get(Console->LogView, NULL));
-	ml_compiler_define(Console->Compiler, "idebug", interactive_debugger(
+	stringmap_insert(Console->Globals, "Console", ml_gir_instance_get(Console->Window, NULL));
+	stringmap_insert(Console->Globals, "InputView", ml_gir_instance_get(Console->InputView, NULL));
+	stringmap_insert(Console->Globals, "LogView", ml_gir_instance_get(Console->LogView, NULL));
+	stringmap_insert(Console->Globals, "idebug", interactive_debugger(
 		(void *)console_debug_enter,
 		(void *)console_debug_exit,
 		(void *)console_log,
@@ -820,4 +826,10 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 	));
 
 	return Console;
+}
+
+void console_load_file(console_t *Console, const char *FileName, ml_value_t *Args) {
+	ml_call_state_t *State = ml_call_state_new((ml_state_t *)Console, 1);
+	State->Args[0] = Args;
+	ml_load_file((ml_state_t *)State, (void *)console_global_get, Console, FileName, NULL);
 }

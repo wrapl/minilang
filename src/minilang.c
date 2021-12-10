@@ -273,15 +273,26 @@ int main(int Argc, const char *Argv[]) {
 	ml_thread_init(SYS_EXPORTS);
 #endif
 	ml_value_t *Args = ml_list();
-	const char *FileName = 0;
+	const char *FileName = NULL;
 #ifdef ML_MODULES
 	int LoadModule = 0;
 #endif
+	const char *Command = NULL;
 	for (int I = 1; I < Argc; ++I) {
 		if (FileName) {
 			ml_list_append(Args, ml_cstring(Argv[I]));
 		} else if (Argv[I][0] == '-') {
 			switch (Argv[I][1]) {
+			case 'E':
+				if (Argv[I][2]) {
+					Command = Argv[I] + 2;
+				} else if (++I < Argc) {
+					Command = Argv[I];
+				} else {
+					fprintf(stderr, "Error: command required\n");
+					exit(-1);
+				}
+				break;
 #ifdef ML_MODULES
 			case 'm':
 				if (Argv[I][2]) {
@@ -291,10 +302,10 @@ int main(int Argc, const char *Argv[]) {
 					FileName = Argv[I];
 					LoadModule = 1;
 				} else {
-					printf("Error: module name required\n");
+					fprintf(stderr, "Error: module name required\n");
 					exit(-1);
 				}
-			break;
+				break;
 #endif
 #ifdef ML_LIBRARY
 			case 'L':
@@ -303,10 +314,10 @@ int main(int Argc, const char *Argv[]) {
 				} else if (++I < Argc) {
 					ml_library_path_add(Argv[I]);
 				} else {
-					printf("Error: library path required\n");
+					fprintf(stderr, "Error: library path required\n");
 					exit(-1);
 				}
-			break;
+				break;
 #endif
 #ifdef ML_SCHEDULER
 			case 's':
@@ -315,10 +326,10 @@ int main(int Argc, const char *Argv[]) {
 				} else if (++I < Argc) {
 					SliceSize = atoi(Argv[I]);
 				} else {
-					printf("Error: slice size required\n");
+					fprintf(stderr, "Error: slice size required\n");
 					exit(-1);
 				}
-			break;
+				break;
 #endif
 			case 'z': GC_disable(); break;
 #ifdef ML_GTK_CONSOLE
@@ -337,10 +348,20 @@ int main(int Argc, const char *Argv[]) {
 	ml_state_t *Main = ml_state_new(NULL);
 	Main->run = ml_main_state_run;
 #ifdef ML_SCHEDULER
-	if (SliceSize) {
-		MainSchedule.Counter = SliceSize;
+	if (SliceSize) {		MainSchedule.Counter = SliceSize;
 		ml_scheduler_queue_init(8);
 		ml_context_set(Main->Context, ML_SCHEDULER_INDEX, &MainSchedule);
+	}
+#endif
+#ifdef ML_GTK_CONSOLE
+	if (GtkConsole) {
+		console_t *Console = console_new(&MLRootContext, (ml_getter_t)stringmap_search, Globals);
+		stringmap_insert(Globals, "print", ml_cfunction(Console, (void *)console_print));
+		console_show(Console, NULL);
+		if (FileName) console_load_file(Console, FileName, Args);
+		if (Command) console_evaluate(Console, Command);
+		gtk_main();
+		return 0;
 	}
 #endif
 	if (FileName) {
@@ -358,13 +379,11 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_SCHEDULER
 		if (SliceSize) simple_queue_run();
 #endif
-#ifdef ML_GTK_CONSOLE
-	} else if (GtkConsole) {
-		console_t *Console = console_new(&MLRootContext, (ml_getter_t)stringmap_search, Globals);
-		stringmap_insert(Globals, "print", ml_cfunction(Console, (void *)console_print));
-		console_show(Console, NULL);
-		gtk_main();
-#endif
+	} else if (Command) {
+		ml_parser_t *Parser = ml_parser(NULL, NULL);
+		ml_compiler_t *Compiler = ml_compiler(global_get, NULL);
+		ml_parser_input(Parser, Command);
+		ml_command_evaluate(Main, Parser, Compiler);
 	} else {
 		ml_console(&MLRootContext, (ml_getter_t)stringmap_search, Globals, "--> ", "... ");
 	}

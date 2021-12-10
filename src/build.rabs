@@ -393,6 +393,10 @@ end
 
 LIBMINILANG := c_library(LIB_DIR/"libminilang.a", Objects, Libraries)
 MINILANG := c_program(BIN_DIR/"minilang", [file("minilang.o")], [LIBMINILANG])
+MINIDBG := (BIN_DIR/"minidbg")[file("minidbg")] => fun(Target) do
+	file("minidbg"):copy(Target)
+	execute("chmod", "+x", Target)
+end
 MINIPP := c_program(BIN_DIR/"minipp", [file("minipp.o")], [LIBMINILANG])
 MINIXE := c_program(BIN_DIR/"minixe", [file("minixe.o")], [LIBMINILANG])
 
@@ -402,7 +406,7 @@ if PLATFORM = "Linux" then
 	LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={Exports}']
 end
 
-DEFAULT[LIBMINILANG, MINILANG, MINIPP, MINIXE]
+DEFAULT[LIBMINILANG, MINILANG, MINIDBG, MINIPP, MINIXE]
 
 PARENT."LIBMINILANG" := LIBMINILANG
 
@@ -411,6 +415,7 @@ let InstallInclude := PREFIX/"include/minilang"
 let InstallLib := PREFIX/"lib"
 
 install(MINILANG, InstallBin/"minilang", "+x")
+install(MINIDBG, InstallBin/"minidbg", "+x")
 
 for Header in InstallHeaders do
 	install(file(Header), InstallInclude / Header)
