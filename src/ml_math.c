@@ -230,7 +230,14 @@ MATH_NUMBER_KEEP_REAL(Cos, cos);
 MATH_NUMBER_KEEP_REAL(Cosh, cosh);
 MATH_NUMBER_KEEP_REAL(Exp, exp);
 MATH_REAL(Abs, fabs);
+ML_METHOD(AbsMethod, MLIntegerT) {
+	return ml_integer(labs(ml_integer_value(Args[0])));
+}
+
 MATH_REAL(Floor, floor);
+ML_METHOD(FloorMethod, MLIntegerT) {
+	return Args[0];
+}
 MATH_NUMBER(Log, log);
 MATH_NUMBER(Log10, log10);
 MATH_NUMBER_KEEP_REAL(Sin, sin);

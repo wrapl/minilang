@@ -1020,6 +1020,45 @@ ML_METHODX("sort", MLListT, MLFunctionT) {
 	return ml_list_sort_state_run(State, NULL);
 }
 
+typedef struct {
+	ml_state_t Base;
+	ml_list_node_t *Node;
+	ml_value_t *Args[2];
+	int Index;
+} ml_list_find_state_t;
+
+ML_METHOD_DECL(EqualMethod, "=");
+
+static void ml_list_find_state_run(ml_list_find_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Caller);
+	if (Value != MLNil) ML_RETURN(ml_integer(State->Index));
+	ml_list_node_t *Node = State->Node->Next;
+	if (!Node) ML_RETURN(MLNil);
+	State->Node = Node;
+	State->Args[1] = Node->Value;
+	++State->Index;
+	return ml_call(State, EqualMethod, 2, State->Args);
+}
+
+ML_METHODX("find", MLListT, MLAnyT) {
+//<List
+//<Value
+//>integer|nil
+// Returns the first position where :mini:`List[Position] = Value`.
+	ml_list_node_t *Node = ((ml_list_t *)Args[0])->Head;
+	if (!Node) ML_RETURN(MLNil);
+	ml_list_find_state_t *State = new(ml_list_find_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_list_find_state_run;
+	State->Args[0] = Args[1];
+	State->Node = Node;
+	State->Args[1] = Node->Value;
+	State->Index = 1;
+	return ml_call(State, EqualMethod, 2, State->Args);
+}
+
 ML_TYPE(MLNamesT, (), "names",
 //!internal
 );

@@ -28,6 +28,9 @@ math
 :mini:`meth (Arg₁: integer) ! (Arg₂: integer)`
    *TBD*
 
+:mini:`meth (Arg₁: integer):GCDMethod(Arg₂: integer)`
+   *TBD*
+
 :mini:`meth math::acos(Arg₁: real): real`
    Returns :mini:`acos(Arg₁)`.
 
@@ -88,9 +91,15 @@ math
    Returns :mini:`fabs(Arg₁)`.
 
 
+:mini:`meth (Arg₁: integer):AbsMethod`
+   *TBD*
+
 :mini:`meth math::floor(Arg₁: real): real`
    Returns :mini:`floor(Arg₁)`.
 
+
+:mini:`meth (Arg₁: integer):FloorMethod`
+   *TBD*
 
 :mini:`meth math::log(Arg₁: real): real`
    Returns :mini:`log(Arg₁)`.

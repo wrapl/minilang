@@ -49,13 +49,16 @@ object
 :mini:`meth (Arg₁: enum::value) .. (Arg₂: enum::value)`
    *TBD*
 
+:mini:`type flags < type`
+   *TBD*
+
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: flags::value)`
    *TBD*
 
-:mini:`fun flags(Values...: string): flags`
+:mini:`meth (Values...: string):flags(): flags`
    *TBD*
 
-:mini:`type flags < type`
+:mini:`meth (Values...: names):flags(): flags`
    *TBD*
 
 :mini:`meth (Arg₁: flags::value) + (Arg₂: flags::value)`
@@ -74,5 +77,8 @@ object
    *TBD*
 
 :mini:`meth (Arg₁: flags::value) >= (Arg₂: flags::value)`
+   *TBD*
+
+:mini:`meth list(Arg₁: flags::value)`
    *TBD*
 

@@ -3063,14 +3063,14 @@ static __attribute__ ((pure)) ml_array_format_t ml_array_of_type_guess(ml_value_
 	} else if (ml_is(Value, MLArrayT)) {
 		ml_array_t *Array = (ml_array_t *)Value;
 		if (Format <= Array->Format) Format = Array->Format;
+	} else if (ml_is(Value, MLIntegerT)) {
+		if (Format < ML_ARRAY_FORMAT_I64) Format = ML_ARRAY_FORMAT_I64;
+	} else if (ml_is(Value, MLRealT)) {
+		if (Format < ML_ARRAY_FORMAT_F64) Format = ML_ARRAY_FORMAT_F64;
 #ifdef ML_COMPLEX
 	} else if (ml_is(Value, MLComplexT)) {
 		if (Format < ML_ARRAY_FORMAT_C64) Format = ML_ARRAY_FORMAT_C64;
 #endif
-	} else if (ml_is(Value, MLDoubleT)) {
-		if (Format < ML_ARRAY_FORMAT_F64) Format = ML_ARRAY_FORMAT_F64;
-	} else if (ml_is(Value, MLIntegerT)) {
-		if (Format < ML_ARRAY_FORMAT_I64) Format = ML_ARRAY_FORMAT_I64;
 	} else {
 		Format = ML_ARRAY_FORMAT_ANY;
 	}

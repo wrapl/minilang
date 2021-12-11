@@ -117,3 +117,7 @@ list
    Sorts :mini:`List` in-place using :mini:`Compare` and returns it.
 
 
+:mini:`meth (List: list):find(Value: any): integer | nil`
+   Returns the first position where :mini:`List[Position] = Value`.
+
+
