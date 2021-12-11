@@ -1409,6 +1409,15 @@ ML_METHOD("rtrim", MLStringT, MLStringT) {
 	return ml_string((const char *)Start, Length);
 }
 
+ML_METHOD("reverse", MLStringT) {
+	int Length = ml_string_length(Args[0]);
+	char *Reversed = snew(Length + 1);
+	const char *End = ml_string_value(Args[0]) + Length;
+	for (int I = 0; I < Length; ++I) Reversed[I] = *--End;
+	Reversed[Length] = 0;
+	return ml_string(Reversed, Length);
+}
+
 ML_METHOD("length", MLStringT) {
 	return ml_integer(ml_string_length(Args[0]));
 }

@@ -135,6 +135,9 @@ string
 :mini:`meth (Arg₁: string):rtrim(Arg₂: string)`
    *TBD*
 
+:mini:`meth (Arg₁: string):reverse`
+   *TBD*
+
 :mini:`meth (Arg₁: string):length`
    *TBD*
 

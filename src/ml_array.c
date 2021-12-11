@@ -357,8 +357,8 @@ static void ml_array_typed_new_fnx(ml_state_t *Caller, void *Data, int Count, ml
 		}
 		int DataSize = MLArraySizes[Format];
 		for (int I = Array->Degree; --I >= 0;) {
-			size_t Size = Array->Dimensions[I].Stride = DataSize;
-			DataSize *= Size;
+			Array->Dimensions[I].Stride = DataSize;
+			DataSize *= Array->Dimensions[I].Size;
 		}
 		Array->Base.Value = snew(DataSize);
 		Array->Base.Length = DataSize;

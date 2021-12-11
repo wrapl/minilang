@@ -608,7 +608,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_TRY: {
 		Frame->OnError = Inst[1].Inst;
-		ADVANCE(Inst + 2);
+		// Prevent scheduling since error will be rehandled in wrong handler.
+		Inst += 2;
+		goto *Labels[Inst->Opcode];
 	}
 	DO_CATCH_TYPE: {
 		if (!ml_is_error(Result)) {
