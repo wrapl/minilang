@@ -608,9 +608,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_TRY: {
 		Frame->OnError = Inst[1].Inst;
-		// Prevent scheduling since error will be rehandled in wrong handler.
-		Inst += 2;
-		goto *Labels[Inst->Opcode];
+		ADVANCE(Inst + 2);
 	}
 	DO_CATCH_TYPE: {
 		if (!ml_is_error(Result)) {
@@ -628,20 +626,21 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst + 3);
 	}
 	DO_CATCH: {
+		Frame->OnError = Inst[1].Inst;
 		if (!ml_is_error(Result)) {
 			Result = ml_error("InternalError", "expected error value, not %s", ml_typeof(Result)->Name);
 			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
 			ERROR();
 		}
 		Result = ml_error_value(Result);
-		ml_value_t **Old = Frame->Stack + Inst[1].Count;
+		ml_value_t **Old = Frame->Stack + Inst[2].Count;
 		while (Top > Old) *--Top = NULL;
 		*Top = Result;
 		++Top;
 #ifdef DEBUG_VERSION
-		Frame->Decls = Inst[2].Decls;
+		Frame->Decls = Inst[3].Decls;
 #endif
-		ADVANCE(Inst + 3);
+		ADVANCE(Inst + 4);
 	}
 	DO_RETRY: {
 		ERROR();
@@ -1343,6 +1342,9 @@ static int ml_closure_find_labels(ml_inst_t *Inst, unsigned int *Labels) {
 	case MLIT_INST:
 		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
 		return 2;
+	case MLIT_INST_COUNT_DECL:
+		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
+		return 4;
 	case MLIT_INST_TYPES:
 		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
 		return 3;
@@ -1366,8 +1368,8 @@ static int ml_closure_find_labels(ml_inst_t *Inst, unsigned int *Labels) {
 		}
 		return 3;
 	}
-	default: return 0;
 	}
+	__builtin_unreachable();
 }
 
 void ml_closure_info_labels(ml_closure_info_t *Info) {
@@ -1391,6 +1393,10 @@ static int ml_inst_hash(ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) 
 	case MLIT_INST:
 		*(int *)(Info->Hash + I) ^= Inst[1].Inst->Label;
 		return 2;
+	case MLIT_INST_COUNT_DECL:
+		*(int *)(Info->Hash + I) ^= Inst[1].Inst->Label;
+		*(int *)(Info->Hash + J) ^= Inst[2].Count;
+		return 4;
 	case MLIT_INST_TYPES:
 		for (const char **Ptr = Inst[2].Ptrs; *Ptr; ++Ptr) {
 			*(long *)(Info->Hash + J) ^= stringmap_hash(*Ptr);
@@ -1440,9 +1446,8 @@ static int ml_inst_hash(ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) 
 	}
 	case MLIT_SWITCH:
 		return 3;
-	default:
-		return 0;
 	}
+	__builtin_unreachable();
 }
 
 static void ml_closure_info_hash(ml_closure_info_t *Info) {
@@ -1574,6 +1579,16 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 	case MLIT_INST:
 		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
 		return 2;
+	case MLIT_INST_COUNT_DECL: {
+		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
+		ml_stringbuffer_printf(Buffer, ", %d", Inst[2].Count);
+		if (Inst[3].Decls) {
+			ml_stringbuffer_printf(Buffer, " <%s>", Inst[3].Decls->Ident);
+		} else {
+			ml_stringbuffer_printf(Buffer, " -");
+		}
+		return 4;
+	}
 	case MLIT_INST_TYPES: {
 		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
 		for (const char **Ptr = Inst[2].Ptrs; *Ptr; ++Ptr) ml_stringbuffer_printf(Buffer, " %s", *Ptr);
@@ -1654,8 +1669,8 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 		}
 		return 3;
 	}
-	default: return 0;
 	}
+	__builtin_unreachable();
 }
 
 static int ML_TYPED_FN(ml_function_source, MLClosureT, ml_closure_t *Closure, const char **Source, int *Line) {

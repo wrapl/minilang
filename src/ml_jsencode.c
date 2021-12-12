@@ -190,6 +190,11 @@ static int ml_closure_inst_encode(ml_inst_t *Inst, ml_json_encoder_cache_t *Cach
 	case MLIT_INST:
 		json_array_append_new(Json, json_integer((uintptr_t)inthash_search(Labels, Inst[1].Inst->Label)));
 		return 2;
+	case MLIT_INST_COUNT_DECL:
+		json_array_append_new(Json, json_integer((uintptr_t)inthash_search(Labels, Inst[1].Inst->Label)));
+		json_array_append_new(Json, json_integer(Inst[2].Count));
+		json_array_append(Json, ml_closure_decl_encode(Inst[3].Decls, Decls));
+		return 4;
 	case MLIT_INST_TYPES: {
 		json_array_append_new(Json, json_integer((uintptr_t)inthash_search(Labels, Inst[1].Inst->Label)));
 		json_t *Types = json_array();
@@ -251,8 +256,8 @@ static int ml_closure_inst_encode(ml_inst_t *Inst, ml_json_encoder_cache_t *Cach
 		json_array_append_new(Json, Insts);
 		return 3;
 	}
-	default: return 0;
 	}
+	__builtin_unreachable();
 }
 
 static int ml_closure_info_param_fn(const char *Name, void *Index, json_t *Params) {
@@ -264,6 +269,7 @@ static int ml_closure_find_labels(ml_inst_t *Inst, uintptr_t *Offset) {
 	switch (MLInstTypes[Inst->Opcode]) {
 	case MLIT_NONE: *Offset += 2; return 1;
 	case MLIT_INST: *Offset += 3; return 2;
+	case MLIT_INST_COUNT_DECL: *Offset += 5; return 4;
 	case MLIT_INST_TYPES: *Offset += 4; return 3;
 	case MLIT_COUNT_COUNT: *Offset += 4; return 3;
 	case MLIT_COUNT: *Offset += 3; return 2;
@@ -281,7 +287,7 @@ static int ml_closure_find_labels(ml_inst_t *Inst, uintptr_t *Offset) {
 	case MLIT_SWITCH:
 		return 3;
 	}
-	return 0;
+	__builtin_unreachable();
 }
 
 static json_t *ml_closure_info_encode(ml_closure_info_t *Info, ml_json_encoder_cache_t *Cache) {
@@ -601,6 +607,7 @@ static ml_closure_info_t *ml_json_decode_closure_info(ml_json_decoder_cache_t *C
 			I += 3; Offset += 2; break;
 		case MLIT_COUNT_DECL:
 			I += 4; Offset += 3; break;
+		case MLIT_INST_COUNT_DECL:
 		case MLIT_COUNT_COUNT_DECL:
 			I += 5; Offset += 4; break;
 		case MLIT_CLOSURE: {
@@ -639,6 +646,11 @@ static ml_closure_info_t *ml_json_decode_closure_info(ml_json_decoder_cache_t *C
 		case MLIT_INST:
 			Inst[1].Inst = Code + Offsets[json_integer_value(json_array_get(Instructions, I++))];
 			Inst += 2; break;
+		case MLIT_INST_COUNT_DECL:
+			Inst[1].Inst = Code + Offsets[json_integer_value(json_array_get(Instructions, I++))];
+			Inst[2].Count = json_integer_value(json_array_get(Instructions, I++));
+			Inst[3].Decls = Decls[json_integer_value(json_array_get(Instructions, I++))];
+			Inst += 4; break;
 		case MLIT_COUNT:
 			Inst[1].Count = json_integer_value(json_array_get(Instructions, I++));
 			Inst += 2; break;
