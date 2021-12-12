@@ -84,9 +84,6 @@ string
 :mini:`meth (Arg₁: string::buffer):get`
    *TBD*
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: any, ...)`
-   *TBD*
-
 :mini:`meth (Arg₁: string::buffer):write(Arg₂: any, ...)`
    *TBD*
 

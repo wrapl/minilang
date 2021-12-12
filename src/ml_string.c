@@ -1242,20 +1242,6 @@ void ml_stringbuffer_append(ml_state_t *Caller, ml_stringbuffer_t *Buffer, ml_va
 
 }
 
-ML_METHODV("append", MLStringBufferT, MLAnyT) {
-	ml_value_t *String = ml_simple_call((ml_value_t *)MLStringT, Count - 1, Args + 1);
-	if (ml_is_error(String)) return String;
-	if (!ml_is(String, MLStringT)) return ml_error("TypeError", "String expected, not %s", ml_typeof(String)->Name);
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	int Length = ml_string_length(String);
-	if (Length) {
-		ml_stringbuffer_write(Buffer, ml_string_value(String), Length);
-		return MLSome;
-	} else {
-		return MLNil;
-	}
-}
-
 ML_METHODV("write", MLStringBufferT, MLAnyT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	for (int I = 1; I < Count; ++I) {

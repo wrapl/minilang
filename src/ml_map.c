@@ -527,10 +527,10 @@ typedef struct ml_map_stringer_t {
 } ml_map_stringer_t;
 
 static int ml_map_stringer(ml_value_t *Key, ml_value_t *Value, ml_map_stringer_t *Stringer) {
-	if (!Stringer->First) {
-		ml_stringbuffer_write(Stringer->Buffer, Stringer->Seperator, Stringer->SeperatorLength);
-	} else {
+	if (Stringer->First) {
 		Stringer->First = 0;
+	} else {
+		ml_stringbuffer_write(Stringer->Buffer, Stringer->Seperator, Stringer->SeperatorLength);
 	}
 	Stringer->Error = ml_stringbuffer_simple_append(Stringer->Buffer, Key);
 	if (ml_is_error(Stringer->Error)) return 1;
@@ -547,12 +547,12 @@ ML_METHOD("append", MLStringBufferT, MLMapT, MLStringT, MLStringT) {
 //>string
 // Returns a string containing the entries of :mini:`Map` with :mini:`Connector` between keys and values and :mini:`Seperator` between entries.
 	ml_map_stringer_t Stringer[1] = {{
-		ml_string_value(Args[1]), ml_string_value(Args[2]),
+		ml_string_value(Args[2]), ml_string_value(Args[3]),
 		(ml_stringbuffer_t *)Args[0],
-		ml_string_length(Args[1]), ml_string_length(Args[2]),
+		ml_string_length(Args[2]), ml_string_length(Args[3]),
 		1
 	}};
-	if (ml_map_foreach(Args[0], Stringer, (void *)ml_map_stringer)) return Stringer->Error;
+	if (ml_map_foreach(Args[1], Stringer, (void *)ml_map_stringer)) return Stringer->Error;
 	return MLSome;
 }
 
