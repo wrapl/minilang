@@ -16,7 +16,7 @@
 struct mlc_upvalue_t {
 	mlc_upvalue_t *Next;
 	ml_decl_t *Decl;
-	int Index;
+	int Index, Line;
 };
 
 struct mlc_try_t {
@@ -920,7 +920,7 @@ struct mlc_block_t {
 	mlc_block_expr_t *Expr;
 	mlc_expr_t *Child;
 	mlc_catch_expr_t *CatchExpr;
-	ml_inst_t *TryInst, *CatchInst, *Exits;
+	ml_inst_t *CatchInst, *Exits;
 	inthash_t DeclHashes;
 	mlc_try_t Try;
 	int Flags, Size, Top;
@@ -1281,9 +1281,16 @@ static void ml_block_expr_compile3(mlc_function_t *Function, ml_value_t *Value, 
 		Decl->Next = Function->Decls;
 		Function->Decls = Decl;
 		mlc_inc_top(Function);
-		ml_inst_t *CatchInst = MLC_EMIT(CatchExpr->Line, MLI_CATCH, 2);
-		CatchInst[1].Count = Frame->Top;
-		CatchInst[2].Decls = Function->Decls;
+		ml_inst_t *CatchInst = MLC_EMIT(CatchExpr->Line, MLI_CATCH, 3);
+		if (Function->Try) {
+			CatchInst[1].Inst = Function->Try->Retries;
+			Function->Try->Retries = CatchInst + 1;
+		} else {
+			CatchInst[1].Inst = Function->Returns;
+			Function->Returns = CatchInst + 1;
+		}
+		CatchInst[2].Count = Frame->Top;
+		CatchInst[3].Decls = Function->Decls;
 		return mlc_compile(Function, CatchExpr->Body, 0);
 	}
 	mlc_block_expr_t *Expr = Frame->Expr;
@@ -1329,16 +1336,8 @@ static void ml_block_expr_compile2(mlc_function_t *Function, ml_value_t *Value, 
 		ml_inst_t *GotoInst = MLC_EMIT(Expr->EndLine, MLI_GOTO, 1);
 		GotoInst[1].Inst = Frame->Exits;
 		Frame->Exits = GotoInst + 1;
-		TryInst = MLC_EMIT(Expr->Catches->Line, MLI_TRY, 1);
-		MLC_LINK(Frame->Try.Retries, TryInst);
-		if (Function->Try) {
-			TryInst[1].Inst = Function->Try->Retries;
-			Function->Try->Retries = TryInst + 1;
-		} else {
-			TryInst[1].Inst = Function->Returns;
-			Function->Returns = TryInst + 1;
-		}
-		Frame->TryInst[1].Inst = TryInst;
+		MLC_LINK(Frame->Try.Retries, Function->Next);
+
 		mlc_catch_expr_t *CatchExpr = Frame->CatchExpr = Expr->Catches;
 		Function->Frame->run = (mlc_frame_fn)ml_block_expr_compile3;
 		if (CatchExpr->Types) {
@@ -1357,9 +1356,16 @@ static void ml_block_expr_compile2(mlc_function_t *Function, ml_value_t *Value, 
 		Decl->Next = Function->Decls;
 		Function->Decls = Decl;
 		mlc_inc_top(Function);
-		ml_inst_t *CatchInst = MLC_EMIT(CatchExpr->Line, MLI_CATCH, 2);
-		CatchInst[1].Count = Frame->Top;
-		CatchInst[2].Decls = Function->Decls;
+		ml_inst_t *CatchInst = MLC_EMIT(CatchExpr->Line, MLI_CATCH, 3);
+		if (Function->Try) {
+			CatchInst[1].Inst = Function->Try->Retries;
+			Function->Try->Retries = CatchInst + 1;
+		} else {
+			CatchInst[1].Inst = Function->Returns;
+			Function->Returns = CatchInst + 1;
+		}
+		CatchInst[2].Count = Frame->Top;
+		CatchInst[3].Decls = Function->Decls;
 		return mlc_compile(Function, CatchExpr->Body, 0);
 	}
 	if (Frame->Flags & MLCF_PUSH) {
@@ -1379,9 +1385,10 @@ static void ml_block_expr_compile(mlc_function_t *Function, mlc_block_expr_t *Ex
 	Frame->OldDecls = Function->Decls;
 	Frame->CatchInst = NULL;
 	if (Expr->Catches) {
-		Frame->TryInst = MLC_EMIT(Expr->StartLine, MLI_TRY, 1);
+		ml_inst_t *TryInst = MLC_EMIT(Expr->StartLine, MLI_TRY, 1);
+		TryInst[1].Inst = NULL;
 		Frame->Try.Up = Function->Try;
-		Frame->Try.Retries = NULL;
+		Frame->Try.Retries = TryInst + 1;
 		Frame->Try.Top = Function->Top;
 		Function->Try = &Frame->Try;
 	}
@@ -2299,7 +2306,7 @@ static void ml_fun_expr_compile2(mlc_function_t *Function, ml_value_t *Value, ml
 	for (mlc_upvalue_t *UpValue = SubFunction->UpValues; UpValue; UpValue = UpValue->Next, ++Index) {
 		ml_decl_t *Decl = new(ml_decl_t);
 		Decl->Source.Name = Function->Source;
-		Decl->Source.Line = Expr->StartLine;
+		Decl->Source.Line = UpValue->Line;
 		Decl->Ident = UpValue->Decl->Ident;
 		Decl->Hash = UpValue->Decl->Hash;
 		Decl->Value = UpValue->Decl->Value;
@@ -2434,7 +2441,7 @@ static void ml_default_expr_compile(mlc_function_t *Function, mlc_default_expr_t
 	return mlc_compile(Function, Expr->Child, 0);
 }
 
-static int ml_upvalue_find(mlc_function_t *Function, ml_decl_t *Decl, mlc_function_t *Origin) {
+static int ml_upvalue_find(mlc_function_t *Function, ml_decl_t *Decl, mlc_function_t *Origin, int Line) {
 	if (Function == Origin) return Decl->Index;
 	mlc_upvalue_t **UpValueSlot = &Function->UpValues;
 	int Index = 0;
@@ -2445,7 +2452,8 @@ static int ml_upvalue_find(mlc_function_t *Function, ml_decl_t *Decl, mlc_functi
 	}
 	mlc_upvalue_t *UpValue = new(mlc_upvalue_t);
 	UpValue->Decl = Decl;
-	UpValue->Index = ml_upvalue_find(Function->Up, Decl, Origin);
+	UpValue->Index = ml_upvalue_find(Function->Up, Decl, Origin, Line);
+	UpValue->Line = Line;
 	UpValueSlot[0] = UpValue;
 	return ~Index;
 }
@@ -2476,7 +2484,7 @@ static void ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Ex
 						if (!Decl->Value) Decl->Value = ml_uninitialized(Decl->Ident);
 						return ml_ident_expr_finish(Function, Expr, Decl->Value, Flags);
 					} else {
-						int Index = ml_upvalue_find(Function, Decl, UpFunction);
+						int Index = ml_upvalue_find(Function, Decl, UpFunction, Expr->StartLine);
 						if (Decl->Flags & MLC_DECL_FORWARD) Decl->Flags |= MLC_DECL_BACKFILL;
 						if ((Index >= 0) && (Decl->Flags & MLC_DECL_FORWARD)) {
 							ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCALI, 2);
@@ -2653,7 +2661,7 @@ ML_METHODV("do", MLBlockBuilderT, MLExprT) {
 	return Args[0];
 }
 
-ML_METHOD("expr", MLBlockBuilderT) {
+ML_METHOD("end", MLBlockBuilderT) {
 //!macro
 //<Builder
 //>expr
@@ -2710,7 +2718,7 @@ ML_TYPE(MLExprBuilderT, (), "expr-builder");
 
 ML_FUNCTION(MLTupleBuilder) {
 //!macro
-//@macro::list
+//@macro::tuple
 //>exprbuilder
 // Returns a new list builder.
 	mlc_parent_expr_t *Expr = new(mlc_parent_expr_t);
@@ -2744,11 +2752,28 @@ ML_FUNCTION(MLListBuilder) {
 
 ML_FUNCTION(MLMapBuilder) {
 //!macro
-//@macro::list
+//@macro::map
 //>exprbuilder
 // Returns a new list builder.
 	mlc_parent_expr_t *Expr = new(mlc_parent_expr_t);
 	Expr->compile = ml_map_expr_compile;
+	Expr->Source = "<macro>";
+	Expr->StartLine = 1;
+	Expr->EndLine = 1;
+	mlc_expr_builder_t *Builder = new(mlc_expr_builder_t);
+	Builder->Type = MLExprBuilderT;
+	Builder->Expr = Expr;
+	Builder->ExprSlot = &Expr->Child;
+	return (ml_value_t *)Builder;
+}
+
+ML_FUNCTION(MLCallBuilder) {
+//!macro
+//@macro::call
+//>exprbuilder
+// Returns a new call builder.
+	mlc_parent_expr_t *Expr = new(mlc_parent_expr_t);
+	Expr->compile = ml_call_expr_compile;
 	Expr->Source = "<macro>";
 	Expr->StartLine = 1;
 	Expr->EndLine = 1;
@@ -2775,7 +2800,7 @@ ML_METHODV("add", MLExprBuilderT, MLExprT) {
 	return Args[0];
 }
 
-ML_METHOD("expr", MLExprBuilderT) {
+ML_METHOD("end", MLExprBuilderT) {
 //!macro
 //<Builder
 //>expr
@@ -5596,6 +5621,7 @@ void ml_compiler_init() {
 	stringmap_insert(MLMacroT->Exports, "tuple", MLTupleBuilder);
 	stringmap_insert(MLMacroT->Exports, "list", MLListBuilder);
 	stringmap_insert(MLMacroT->Exports, "map", MLMapBuilder);
+	stringmap_insert(MLMacroT->Exports, "call", MLCallBuilder);
 	stringmap_insert(StringFns, "r", ml_regex);
 	stringmap_insert(StringFns, "ri", ml_regexi);
 }

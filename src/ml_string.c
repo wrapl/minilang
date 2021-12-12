@@ -331,7 +331,7 @@ ML_FUNCTION(MLString) {
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_value_t *Error;
 	if (Count == 1) {
-		Error = ml_stringbuffer_append(Buffer, Args[0]);
+		Error = ml_stringbuffer_simple_append(Buffer, Args[0]);
 	} else {
 		ml_value_t **Args2 = ml_alloc_args(Count + 1);
 		memmove(Args2 + 1, Args, Count * sizeof(ml_value_t *));
@@ -995,11 +995,6 @@ ML_TYPE(MLStringBufferT, (), "stringbuffer",
 	.Constructor = (ml_value_t *)MLStringBuffer
 );
 
-struct ml_stringbuffer_node_t {
-	ml_stringbuffer_node_t *Next;
-	char Chars[ML_STRINGBUFFER_NODE_SIZE];
-};
-
 static GC_descr StringBufferDesc = 0;
 
 #ifdef ML_THREADSAFE
@@ -1007,6 +1002,67 @@ static ml_stringbuffer_node_t * _Atomic StringBufferNodeCache = NULL;
 #else
 static ml_stringbuffer_node_t *StringBufferNodeCache = NULL;
 #endif
+
+size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length) {
+	ml_stringbuffer_node_t *Node = Buffer->Head;
+	Buffer->Length -= Length;
+	Buffer->Start += Length;
+	while (Node) {
+		size_t Limit = ML_STRINGBUFFER_NODE_SIZE;
+		if (Node == Buffer->Tail) Limit -= Buffer->Space;
+		if (Buffer->Start < Limit) return Limit - Buffer->Start;
+		ml_stringbuffer_node_t *Next = Node->Next;
+#ifdef ML_THREADSAFE
+		ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
+		do {
+			Node->Next = CacheNext;
+		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &CacheNext, Node));
+#else
+		Node->Next = StringBufferNodeCache;
+		StringBufferNodeCache = Node;
+#endif
+		Buffer->Start = 0;
+		if (Next) {
+			Node = Buffer->Head = Next;
+		} else {
+			Buffer->Head = Buffer->Tail = NULL;
+			Buffer->Space = 0;
+			break;
+		}
+	}
+	return 0;
+}
+
+char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Length) {
+	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
+	Buffer->Length += Length;
+	Buffer->Space -= Length;
+	if (!Buffer->Space) {
+#ifdef ML_THREADSAFE
+		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
+		do {
+			if (!Next) {
+				Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+				break;
+			}
+			CacheNext = Next->Next;
+		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &Next, CacheNext));
+#else
+		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
+		if (!Next) {
+			Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+		} else {
+			StringBufferNodeCache = Next->Next;
+		}
+#endif
+		Next->Next = NULL;
+		Node->Next = Next;
+		Node = Next;
+		Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
+		Buffer->Tail = Node;
+	}
+	return Node->Chars + ML_STRINGBUFFER_NODE_SIZE - Buffer->Space;
+}
 
 ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, size_t Length) {
 	//fprintf(stderr, "ml_stringbuffer_add(%s, %ld)\n", String, Length);
@@ -1131,7 +1187,7 @@ int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callbac
 	return callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
 }
 
-ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
+ml_value_t *ml_stringbuffer_simple_append(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
 	ml_hash_chain_t *Chain = Buffer->Chain;
 	for (ml_hash_chain_t *Link = Chain; Link; Link = Link->Previous) {
 		if (Link->Value == Value) {
@@ -1149,24 +1205,47 @@ ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value)
 	return Result;
 }
 
-ML_METHODV("append", MLStringBufferT, MLAnyT) {
-	ml_value_t *String = ml_simple_call((ml_value_t *)MLStringT, Count - 1, Args + 1);
-	if (ml_is_error(String)) return String;
-	if (!ml_is(String, MLStringT)) return ml_error("TypeError", "String expected, not %s", ml_typeof(String)->Name);
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	int Length = ml_string_length(String);
-	if (Length) {
-		ml_stringbuffer_write(Buffer, ml_string_value(String), Length);
-		return MLSome;
-	} else {
-		return MLNil;
+typedef struct {
+	ml_state_t Base;
+	ml_hash_chain_t Chain[1];
+	ml_value_t *Args[2];
+} ml_stringbuffer_append_state_t;
+
+static void ml_stringbuffer_append_run(ml_stringbuffer_append_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)State->Args[0];
+	if (State->Chain->Index) ml_stringbuffer_printf(Buffer, "@%d", State->Chain->Index);
+	Buffer->Chain = State->Chain->Previous;
+	ML_RETURN(Buffer);
+}
+
+void ml_stringbuffer_append(ml_state_t *Caller, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
+	for (ml_hash_chain_t *Link = Buffer->Chain; Link; Link = Link->Previous) {
+		if (Link->Value == Value) {
+			int Index = Link->Index;
+			if (!Index) Index = Link->Index = ++Buffer->Index;
+			ml_stringbuffer_printf(Buffer, "^%d", Index);
+			ML_RETURN(Buffer);
+		}
 	}
+	ml_stringbuffer_append_state_t *State = new(ml_stringbuffer_append_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_stringbuffer_append_run;
+	State->Chain->Previous = Buffer->Chain;
+	State->Chain->Value = Value;
+	Buffer->Chain = State->Chain;
+	State->Args[0] = (ml_value_t *)Buffer;
+	State->Args[1] = Value;
+	return ml_call(State, AppendMethod, 2, State->Args);
+
 }
 
 ML_METHODV("write", MLStringBufferT, MLAnyT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	for (int I = 1; I < Count; ++I) {
-		ml_value_t *Result = ml_stringbuffer_append(Buffer, Args[I]);
+		ml_value_t *Result = ml_stringbuffer_simple_append(Buffer, Args[I]);
 		if (ml_is_error(Result)) return Result;
 	}
 	return Args[0];
@@ -1222,6 +1301,21 @@ ML_METHOD("[]", MLStringT, MLIntegerT, MLIntegerT) {
 	int Length = ml_string_length(Args[0]);
 	int Lo = ml_integer_value_fast(Args[1]);
 	int Hi = ml_integer_value_fast(Args[2]);
+	if (Lo <= 0) Lo += Length + 1;
+	if (Hi <= 0) Hi += Length + 1;
+	if (Lo <= 0) return MLNil;
+	if (Hi > Length + 1) return MLNil;
+	if (Hi < Lo) return MLNil;
+	int Length2 = Hi - Lo;
+	return ml_string(Chars + Lo - 1, Length2);
+}
+
+ML_METHOD("[]", MLStringT, MLIntegerRangeT) {
+	const char *Chars = ml_string_value(Args[0]);
+	int Length = ml_string_length(Args[0]);
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
+	int Lo = Range->Start, Hi = Range->Limit + 1, Step = Range->Step;
+	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
 	if (Lo <= 0) Lo += Length + 1;
 	if (Hi <= 0) Hi += Length + 1;
 	if (Lo <= 0) return MLNil;
@@ -1299,6 +1393,15 @@ ML_METHOD("rtrim", MLStringT, MLStringT) {
 	while (Start < End && Trim[End[-1]]) --End;
 	int Length = End - Start;
 	return ml_string((const char *)Start, Length);
+}
+
+ML_METHOD("reverse", MLStringT) {
+	int Length = ml_string_length(Args[0]);
+	char *Reversed = snew(Length + 1);
+	const char *End = ml_string_value(Args[0]) + Length;
+	for (int I = 0; I < Length; ++I) Reversed[I] = *--End;
+	Reversed[Length] = 0;
+	return ml_string(Reversed, Length);
 }
 
 ML_METHOD("length", MLStringT) {
@@ -2169,6 +2272,7 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
 			return ml_error("RegexError", "regex error: %s", ErrorMessage);
 		}
 		default: {
+			if (Matches[0].rm_eo == Matches[0].rm_so) return ml_error("RegexError", "empty regular expression used in replace");
 			regoff_t Start = Matches[0].rm_so;
 			if (Start > 0) ml_stringbuffer_write(Buffer, Subject, Start);
 			ml_stringbuffer_write(Buffer, Replace, ReplaceLength);

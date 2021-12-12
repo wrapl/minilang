@@ -467,16 +467,37 @@ ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
 	return (ml_value_t *)Slice;
 }
 
+ML_METHOD("[]", MLListT, MLIntegerRangeT) {
+//<List
+//<From
+//<To
+//>listslice
+// Returns a slice of :mini:`List` starting at :mini:`From` (inclusive) and ending at :mini:`To` (exclusive).
+// Indexing starts at :mini:`1`. Negative indices are counted from the end of the list, with :mini:`-1` returning the last node.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
+	int Start = Range->Start, End = Range->Limit + 1, Step = Range->Step;
+	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
+	if (Start <= 0) Start += List->Length + 1;
+	if (End <= 0) End += List->Length + 1;
+	if (Start <= 0 || End < Start || End > List->Length + 1) return MLNil;
+	ml_list_slice_t *Slice = new(ml_list_slice_t);
+	Slice->Type = MLListSliceT;
+	Slice->Head = ml_list_index(List, Start);
+	Slice->Length = End - Start;
+	return (ml_value_t *)Slice;
+}
+
 ML_METHOD("append", MLStringBufferT, MLListT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_write(Buffer, "[", 1);
 	ml_list_t *List = (ml_list_t *)Args[1];
 	ml_list_node_t *Node = List->Head;
 	if (Node) {
-		ml_stringbuffer_append(Buffer, Node->Value);
+		ml_stringbuffer_simple_append(Buffer, Node->Value);
 		while ((Node = Node->Next)) {
 			ml_stringbuffer_write(Buffer, ", ", 2);
-			ml_stringbuffer_append(Buffer, Node->Value);
+			ml_stringbuffer_simple_append(Buffer, Node->Value);
 		}
 	}
 	ml_stringbuffer_write(Buffer, "]", 1);
@@ -490,10 +511,10 @@ ML_METHOD("append", MLStringBufferT, MLListT, MLStringT) {
 	ml_list_t *List = (ml_list_t *)Args[1];
 	ml_list_node_t *Node = List->Head;
 	if (Node) {
-		ml_stringbuffer_append(Buffer, Node->Value);
+		ml_stringbuffer_simple_append(Buffer, Node->Value);
 		while ((Node = Node->Next)) {
 			ml_stringbuffer_write(Buffer, Seperator, SeperatorLength);
-			ml_stringbuffer_append(Buffer, Node->Value);
+			ml_stringbuffer_simple_append(Buffer, Node->Value);
 		}
 	}
 	return (ml_value_t *)Buffer;
@@ -997,6 +1018,45 @@ ML_METHODX("sort", MLListT, MLFunctionT) {
 	List->Head = List->Tail = NULL;
 	List->Length = 0;
 	return ml_list_sort_state_run(State, NULL);
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_list_node_t *Node;
+	ml_value_t *Args[2];
+	int Index;
+} ml_list_find_state_t;
+
+ML_METHOD_DECL(EqualMethod, "=");
+
+static void ml_list_find_state_run(ml_list_find_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Caller);
+	if (Value != MLNil) ML_RETURN(ml_integer(State->Index));
+	ml_list_node_t *Node = State->Node->Next;
+	if (!Node) ML_RETURN(MLNil);
+	State->Node = Node;
+	State->Args[1] = Node->Value;
+	++State->Index;
+	return ml_call(State, EqualMethod, 2, State->Args);
+}
+
+ML_METHODX("find", MLListT, MLAnyT) {
+//<List
+//<Value
+//>integer|nil
+// Returns the first position where :mini:`List[Position] = Value`.
+	ml_list_node_t *Node = ((ml_list_t *)Args[0])->Head;
+	if (!Node) ML_RETURN(MLNil);
+	ml_list_find_state_t *State = new(ml_list_find_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_list_find_state_run;
+	State->Args[0] = Args[1];
+	State->Node = Node;
+	State->Args[1] = Node->Value;
+	State->Index = 1;
+	return ml_call(State, EqualMethod, 2, State->Args);
 }
 
 ML_TYPE(MLNamesT, (), "names",

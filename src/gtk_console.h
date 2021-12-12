@@ -12,5 +12,7 @@ void console_log(console_t *Console, ml_value_t *Value);
 int console_append(console_t *Console, const char *Buffer, int Length);
 ml_value_t *console_print(console_t *Console, int Count, ml_value_t **Args);
 void console_printf(console_t *Console, const char *Format, ...);
+void console_load_file(console_t *Console, const char *FileName, ml_value_t *Args);
+void console_evaluate(console_t *Console, const char *Text);
 
 #endif

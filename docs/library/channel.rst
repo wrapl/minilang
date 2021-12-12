@@ -7,7 +7,7 @@ channel
 :mini:`type channel`
    *TBD*
 
-:mini:`meth (Channel: channel):start(Function: function): any`
+:mini:`meth (Channel: channel):start(Function: function, ...): any`
    *TBD*
 
 :mini:`meth (Channel: channel):open: channel | nil`
@@ -22,6 +22,6 @@ channel
 :mini:`meth (Channel: channel):send(Message: any): any`
    *TBD*
 
-:mini:`meth (Channel: channel):close(Function: function)`
+:mini:`meth (Channel: channel):close(Function: function, ...)`
    *TBD*
 

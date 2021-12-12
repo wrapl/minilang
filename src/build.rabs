@@ -97,7 +97,8 @@ let Objects := [
 	file("ml_console.o"),
 	file("ml_debugger.o"),
 	file("ml_object.o"),
-	file("ml_file.o")
+	file("ml_file.o"),
+	file("ml_stream.o")
 ]
 
 let Libraries := []
@@ -116,7 +117,8 @@ let InstallHeaders := [
 	"ml_bytecode.h",
 	"stringmap.h",
 	"inthash.h",
-	"ml_file.h"
+	"ml_file.h",
+	"ml_stream.h"
 ]
 
 if MINILANG_STATICGC or defined("STATICGC") then
@@ -150,7 +152,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_CBOR := 1
 	MINILANG_JSON := 1
 	MINILANG_XML := 1
-	MINILANG_MODULES := not defined("NOSCHEDULER")
+	MINILANG_LIBRARY := not defined("NOSCHEDULER")
 	MINILANG_SCHEDULER := not defined("NOSCHEDULER")
 	MINILANG_TRE := 1
 	MINILANG_GENERICS := not defined("NOGENERICS")
@@ -165,15 +167,16 @@ end
 MINILANG_TABLES := old or defined("TABLES")
 MINILANG_MATH := MINILANG_TABLES or old or defined("MATH")
 MINILANG_COMPLEX := old or defined("COMPLEX")
-MINILANG_IO := old or defined("IO")
 MINILANG_GIR := old or defined("GIR")
 MINILANG_CBOR := old or defined("CBOR")
 MINILANG_JSON := old or defined("JSON")
 MINILANG_XML := old or defined("XML")
 MINILANG_XE := old or defined("XE")
-MINILANG_MODULES := old or defined("MODULES")
+MINILANG_LIBRARY := old or defined("LIBRARY")
+MINILANG_MODULES := MINILANG_LIBRARY or old or defined("MODULES")
 MINILANG_SCHEDULER := MINILANG_MODULES or old or defined("SCHEDULER")
-MINILANG_THREADSAFE := old or defined("THREADSAFE")
+MINILANG_THREADS := old or defined("THREADS")
+MINILANG_THREADSAFE := MINILANG_THREADS or old or defined("THREADSAFE")
 MINILANG_JIT := old or defined("JIT")
 MINILANG_NANBOXING := old or defined("NANBOXING")
 MINILANG_TRE := old or defined("TRE")
@@ -184,8 +187,6 @@ MINILANG_UUID := old or defined("UUID")
 MINILANG_LIBS := old or defined("LIBS")
 MINILANG_BACKTRACE := old or defined("BACKTRACE")
 MINILANG_JSENCODE := old or defined("JSENCODE")
-MINILANG_SQLITE := old or defined("SQLITE")
-MINILANG_RAPC := old or defined("RAPC")
 
 MINILANG_GTK_CONSOLE := old or defined("GTK_CONSOLE")
 
@@ -210,6 +211,9 @@ file("config.h") => fun(Target) do
 	end
 	if MINILANG_THREADSAFE then
 		File:write("\n#define ML_THREADSAFE\n")
+	end
+	if MINILANG_THREADS then
+		File:write("\n#define ML_THREADS\n")
 	end
 	File:write("\n#endif")
 	File:close
@@ -241,11 +245,6 @@ if MINILANG_MATH then
 	CFLAGS := old + ["-DML_MATH"]
 	InstallHeaders:put("ml_array.h")
 	InstallHeaders:put("ml_math.h")
-end
-
-if MINILANG_IO then
-	Objects:put(file("ml_io.o"))
-	CFLAGS := old + ["-DML_IO"]
 end
 
 if MINILANG_GTK_CONSOLE then
@@ -315,10 +314,22 @@ if MINILANG_BACKTRACE then
 	LDFLAGS := old + [Lib]
 end
 
+if MINILANG_LIBRARY then
+	CFLAGS := old + ['-DML_LIBRARY']
+	Objects:put(file("ml_library.o"), file("whereami.o"))
+	InstallHeaders:put("ml_library.h")	
+end
+
 if MINILANG_MODULES then
 	LDFLAGS := old + ["-ldl"]
-	Objects:put(file("ml_module.o"), file("ml_library.o"), file("whereami.o"))
+	Objects:put(file("ml_module.o"))
 	InstallHeaders:put("ml_module.h")
+end
+
+if MINILANG_THREADS then
+	LDFLAGS := old + ["-pthread"]
+	Objects:put(file("ml_thread.o"))
+	InstallHeaders:put("ml_thread.h")
 end
 
 if MINILANG_JIT then
@@ -367,40 +378,6 @@ if MINILANG_JSENCODE then
 	InstallHeaders:put("ml_jsencode.h")
 end
 
-if MINILANG_SQLITE then
-	Objects:put(file("ml_sqlite.o"))
-	CFLAGS := old + ["-DML_SQLITE"]
-	LDFLAGS := old + ["-lsqlite3"]
-	InstallHeaders:put("ml_sqlite.h")
-end
-
-if MINILANG_RAPC then
-	let Source := file("rapc.mini")
-	fun build(Target) do
-		let Input := Source:open("r")
-		let Output := Target:open("w")
-		Output:write("const char RapcSource[] = {\n\t")
-		var N := 0
-		loop
-			let Line := while Input:read
-			for Char in Line do
-				Output:write('0x{Char:ord, 16},')
-				N := N + 1
-				if 16 | N then
-					Output:write("\n\t")
-				end
-			end
-		end
-		Input:close
-		Output:write("0\n};\n")
-		Output:close
-	end
-	file("rapc_mini.c")[Source] => build
-	Objects:put(file("ml_rapc.o"), file("rapc_mini.o"))
-	CFLAGS := old + ["-DML_RAPC"]
-	InstallHeaders:put("ml_rapc.h")
-end
-
 if PLATFORM = "Linux" then
 	Objects:put(file("linenoise.o"))
 	LDFLAGS := old + ["-lgc"]
@@ -416,10 +393,20 @@ end
 
 LIBMINILANG := c_library(LIB_DIR/"libminilang.a", Objects, Libraries)
 MINILANG := c_program(BIN_DIR/"minilang", [file("minilang.o")], [LIBMINILANG])
+MINIDBG := (BIN_DIR/"minidbg")[file("minidbg")] => fun(Target) do
+	file("minidbg"):copy(Target)
+	execute("chmod", "+x", Target)
+end
 MINIPP := c_program(BIN_DIR/"minipp", [file("minipp.o")], [LIBMINILANG])
 MINIXE := c_program(BIN_DIR/"minixe", [file("minixe.o")], [LIBMINILANG])
 
-DEFAULT[LIBMINILANG, MINILANG, MINIPP, MINIXE]
+if PLATFORM = "Linux" then
+	let Exports := file("exports.lst")
+	MINILANG[Exports]
+	LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={Exports}']
+end
+
+DEFAULT[LIBMINILANG, MINILANG, MINIDBG, MINIPP, MINIXE]
 
 PARENT."LIBMINILANG" := LIBMINILANG
 
@@ -428,18 +415,12 @@ let InstallInclude := PREFIX/"include/minilang"
 let InstallLib := PREFIX/"lib"
 
 install(MINILANG, InstallBin/"minilang", "+x")
+install(MINIDBG, InstallBin/"minidbg", "+x")
 
 for Header in InstallHeaders do
 	install(file(Header), InstallInclude / Header)
 end
 
 install(LIBMINILANG, InstallLib/"libminilang.a")
-
-if MINILANG_LIBS and PLATFORM = "Linux" then
-	let Exports := file("exports.lst")
-	MINILANG[Exports]
-	LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={Exports}']
-	subdir("lib")
-end
 
 subdir("test")

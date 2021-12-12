@@ -84,9 +84,6 @@ string
 :mini:`meth (Arg₁: string::buffer):get`
    *TBD*
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: any, ...)`
-   *TBD*
-
 :mini:`meth (Arg₁: string::buffer):write(Arg₂: any, ...)`
    *TBD*
 
@@ -111,6 +108,9 @@ string
 :mini:`meth (Arg₁: string)[Arg₂: integer, Arg₃: integer]`
    *TBD*
 
+:mini:`meth (Arg₁: string)[Arg₂: integer::range]`
+   *TBD*
+
 :mini:`meth (Arg₁: string) + (Arg₂: string)`
    *TBD*
 
@@ -130,6 +130,9 @@ string
    *TBD*
 
 :mini:`meth (Arg₁: string):rtrim(Arg₂: string)`
+   *TBD*
+
+:mini:`meth (Arg₁: string):reverse`
    *TBD*
 
 :mini:`meth (Arg₁: string):length`

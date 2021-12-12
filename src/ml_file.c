@@ -6,6 +6,7 @@
 #include <dirent.h>
 #include "ml_file.h"
 #include "ml_macros.h"
+#include "ml_stream.h"
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "file"
@@ -17,7 +18,7 @@ typedef struct ml_file_t {
 
 extern ml_cfunction_t MLFileOpen[];
 
-ML_TYPE(MLFileT, (), "file",
+ML_TYPE(MLFileT, (MLStreamT), "file",
 	.Constructor = (ml_value_t *)MLFileOpen
 );
 
@@ -69,102 +70,16 @@ static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
 }
 #endif
 
-ML_METHOD("read", MLFileT) {
-//<File
-//>string
-	ml_file_t *File = (ml_file_t *)Args[0];
-	if (!File->Handle) return ml_error("FileError", "file closed");
-	char *Line = 0;
-	size_t Length = 0;
-#ifdef __MINGW32__
-	ssize_t Read = ml_read_line(File->Handle, 0, &Line);
-#else
-	ssize_t Read = getline(&Line, &Length, File->Handle);
-#endif
-	if (Read < 0) return feof(File->Handle) ? MLNil : ml_error("FileError", "error reading from file: %s", strerror(errno));
-	return ml_string(Line, Read);
+static void ML_TYPED_FN(ml_stream_read, MLFileT, ml_state_t *Caller, ml_file_t *File, void *Address, int Count) {
+	ssize_t Result = fread(Address, 1, Count, File->Handle);
+	if (Result < 0) ML_ERROR("FileError", "error reading from file: %s", strerror(errno));
+	ML_RETURN(ml_integer(Result));
 }
 
-ML_METHOD("read", MLFileT, MLIntegerT) {
-//<File
-//<Length
-//>string
-	ml_file_t *File = (ml_file_t *)Args[0];
-	if (!File->Handle) return ml_error("FileError", "file closed");
-	if (feof(File->Handle)) return MLNil;
-	ssize_t Requested = ml_integer_value_fast(Args[1]);
-	ml_stringbuffer_t Final[1] = {ML_STRINGBUFFER_INIT};
-	char Buffer[ML_STRINGBUFFER_NODE_SIZE];
-	while (Requested >= ML_STRINGBUFFER_NODE_SIZE) {
-		ssize_t Actual = fread(Buffer, 1, ML_STRINGBUFFER_NODE_SIZE, File->Handle);
-		if (Actual < 0) return ml_error("FileError", "error reading from file: %s", strerror(errno));
-		if (Actual == 0) return ml_stringbuffer_get_value(Final);
-		ml_stringbuffer_write(Final, Buffer, Actual);
-		Requested -= Actual;
-	}
-	while (Requested > 0) {
-		ssize_t Actual = fread(Buffer, 1, Requested, File->Handle);
-		if (Actual < 0) return ml_error("FileError", "error reading from file: %s", strerror(errno));
-		if (Actual == 0) return ml_stringbuffer_get_value(Final);
-		ml_stringbuffer_write(Final, Buffer, Actual);
-		Requested -= Actual;
-	}
-	return ml_stringbuffer_get_value(Final);
-}
-
-ML_METHOD("rest", MLFileT) {
-	ml_file_t *File = (ml_file_t *)Args[0];
-	if (!File->Handle) return ml_error("FileError", "file closed");
-	if (feof(File->Handle)) return MLNil;
-	ml_stringbuffer_t Final[1] = {ML_STRINGBUFFER_INIT};
-	char Buffer[ML_STRINGBUFFER_NODE_SIZE];
-	for (;;) {
-		ssize_t Actual = fread(Buffer, 1, ML_STRINGBUFFER_NODE_SIZE, File->Handle);
-		if (Actual < 0) return ml_error("FileError", "error reading from file: %s", strerror(errno));
-		if (Actual == 0) return ml_stringbuffer_get_value(Final);
-		ml_stringbuffer_write(Final, Buffer, Actual);
-	}
-	return ml_stringbuffer_get_value(Final);
-}
-
-ML_METHODV("write", MLFileT, MLStringT) {
-//<File
-//<String
-//>File
-	ml_file_t *File = (ml_file_t *)Args[0];
-	if (!File->Handle) return ml_error("FileError", "file closed");
-	for (int I = 1; I < Count; ++I) {
-		const char *Chars = ml_string_value(Args[I]);
-		ssize_t Remaining = ml_string_length(Args[I]);
-		while (Remaining > 0) {
-			ssize_t Actual = fwrite(Chars, 1, Remaining, File->Handle);
-			if (Actual < 0) return ml_error("FileError", "error writing to file: %s", strerror(errno));
-			Chars += Actual;
-			Remaining -= Actual;
-		}
-	}
-	return Args[0];
-}
-
-static int ml_file_write_buffer_chars(ml_file_t *File, const char *Chars, size_t Remaining) {
-	while (Remaining > 0) {
-		ssize_t Actual = fwrite(Chars, 1, Remaining, File->Handle);
-		if (Actual < 0) return 1;
-		Chars += Actual;
-		Remaining -= Actual;
-	}
-	return 0;
-}
-
-ML_METHOD("write", MLFileT, MLStringBufferT) {
-//<File
-//<Buffer
-//>File
-	ml_file_t *File = (ml_file_t *)Args[0];
-	if (!File->Handle) return ml_error("FileError", "file closed");
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[1];
-	if (ml_stringbuffer_foreach(Buffer, File, (void *)ml_file_write_buffer_chars)) return ml_error("FileError", "error writing to file: %s", strerror(errno));
-	return Args[0];
+static void ML_TYPED_FN(ml_stream_write, MLFileT, ml_state_t *Caller, ml_file_t *File, const void *Address, int Count) {
+	ssize_t Result = fwrite(Address, 1, Count, File->Handle);
+	if (Result < 0) ML_ERROR("FileError", "error writing to file: %s", strerror(errno));
+	ML_RETURN(ml_integer(Result));
 }
 
 ML_METHOD("eof", MLFileT) {

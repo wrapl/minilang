@@ -10,14 +10,11 @@
 #include <time.h>
 #include <gc.h>
 #include "ml_sequence.h"
+#include "ml_stream.h"
 
 #ifdef ML_MATH
 #include "ml_math.h"
 #include "ml_array.h"
-#endif
-
-#ifdef ML_IO
-#include "ml_io.h"
 #endif
 
 #ifdef ML_GIR
@@ -49,6 +46,10 @@
 #include "ml_library.h"
 #endif
 
+#ifdef ML_THREADS
+#include "ml_thread.h"
+#endif
+
 #ifdef ML_TABLES
 #include "ml_table.h"
 #endif
@@ -67,14 +68,6 @@
 
 #ifdef ML_JSENCODE
 #include "ml_jsencode.h"
-#endif
-
-#ifdef ML_SQLITE
-#include "ml_sqlite.h"
-#endif
-
-#ifdef ML_RAPC
-#include "ml_rapc.h"
 #endif
 
 #ifdef ML_BACKTRACE
@@ -111,7 +104,7 @@ ML_FUNCTION(MLPrint) {
 // Prints :mini:`Values` to standard output, converting to strings if necessary.
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (int I = 0; I < Count; ++I) {
-		ml_value_t *Result = ml_stringbuffer_append(Buffer, Args[I]);
+		ml_value_t *Result = ml_stringbuffer_simple_append(Buffer, Args[I]);
 		if (ml_is_error(Result)) return Result;
 	}
 	ml_stringbuffer_foreach(Buffer, stdout, (void *)ml_stringbuffer_print);
@@ -148,128 +141,18 @@ static ml_value_t *ml_globals(stringmap_t *Globals, int Count, ml_value_t **Args
 	return Result;
 }
 
-#ifdef ML_MODULES
-static stringmap_t Modules[1] = {STRINGMAP_INIT};
-
-ML_FUNCTIONX(Import) {
-//<Path
-//>module
-	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLStringT);
-	const char *FileName = realpath(ml_string_value(Args[0]), NULL);
-	if (!FileName) ML_ERROR("ModuleError", "File %s not found", ml_string_value(Args[0]));
-	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Modules, FileName);
-	if (!Slot[0]) {
-		const char *Extension = strrchr(FileName, '.');
-		if (!Extension) ML_ERROR("ModuleError", "Unknown module type: %s", FileName);
-		if (!strcmp(Extension, ".so")) {
-			return ml_library_load_file(Caller, FileName, (ml_getter_t)stringmap_search, Globals, Slot);
-		} else if (!strcmp(Extension, ".mini")) {
-			return ml_module_load_file(Caller, FileName, (ml_getter_t)stringmap_search, Globals, Slot);
-		} else {
-			ML_ERROR("ModuleError", "Unknown module type: %s", FileName);
-		}
-	}
-	ML_RETURN(Slot[0]);
-}
-
-static ml_value_t *LibraryPath;
-
-#include "whereami.h"
-#include <sys/stat.h>
-
-static void add_library_path(void) {
-	int ExecutablePathLength = wai_getExecutablePath(NULL, 0, NULL);
-	char *ExecutablePath = snew(ExecutablePathLength + 1);
-	wai_getExecutablePath(ExecutablePath, ExecutablePathLength + 1, &ExecutablePathLength);
-	ExecutablePath[ExecutablePathLength] = 0;
-	for (int I = ExecutablePathLength - 1; I > 0; --I) {
-		if (ExecutablePath[I] == '/') {
-			ExecutablePath[I] = 0;
-			ExecutablePathLength = I;
-			break;
-		}
-	}
-	int LibPathLength = ExecutablePathLength + strlen("/lib/minilang");
-	char *LibPath = snew(LibPathLength + 1);
-	memcpy(LibPath, ExecutablePath, ExecutablePathLength);
-	strcpy(LibPath + ExecutablePathLength, "/lib/minilang");
-	//printf("Looking for library path at %s\n", LibPath);
-	struct stat Stat[1];
-	if (!lstat(LibPath, Stat) && S_ISDIR(Stat->st_mode)) {
-		ml_list_put(LibraryPath, ml_string(LibPath, LibPathLength));
-	}
-}
-
-ML_FUNCTIONX(Library) {
-//<Name
-//>module
-	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLStringT);
-	const char *Name = ml_string_value(Args[0]);
-	int NameLength = ml_string_length(Args[0]);
-	int MaxLength = 0;
-	ML_LIST_FOREACH(LibraryPath, Iter) {
-		if (!ml_is(Iter->Value, MLStringT)) ML_ERROR("TypeError", "Invalid entry in library path");
-		int FullLength = ml_string_length(Iter->Value) + NameLength + 10;
-		if (MaxLength < FullLength) MaxLength = FullLength;
-	}
-	char *FileName = snew(MaxLength);
-	struct stat Stat[1];
-	ML_LIST_FOREACH(LibraryPath, Iter) {
-		char *End = stpcpy(FileName, ml_string_value(Iter->Value));
-		*End++ = '/';
-		End = stpcpy(End, Name);
-		strcpy(End, ".mini");
-		if (!lstat(FileName, Stat) && S_ISREG(Stat->st_mode)) {
-			ml_value_t **Slot = (ml_value_t **)stringmap_slot(Modules, FileName);
-			if (!Slot[0]) {
-				return ml_module_load_file(Caller, FileName, (ml_getter_t)stringmap_search, Globals, Slot);
-			}
-			ML_RETURN(Slot[0]);
-		}
-		strcpy(End, ".so");
-		if (!lstat(FileName, Stat) && S_ISREG(Stat->st_mode)) {
-			ml_value_t **Slot = (ml_value_t **)stringmap_slot(Modules, FileName);
-			if (!Slot[0]) {
-				return ml_library_load_file(Caller, FileName, (ml_getter_t)stringmap_search, Globals, Slot);
-			}
-			ML_RETURN(Slot[0]);
-		}
-	}
-	ML_ERROR("ModuleError", "Library %s not found", Name);
-}
-
-ML_FUNCTION(Unload) {
-//<Path
-//>nil
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
-	const char *FileName = realpath(ml_string_value(Args[0]), NULL);
-	if (!FileName) return ml_error("ModuleError", "File %s not found", ml_string_value(Args[0]));
-	stringmap_remove(Modules, FileName);
-	return MLNil;
-}
-
-#endif
-
 #ifdef ML_SCHEDULER
 
-static unsigned int SliceSize = 0;
-static uint64_t Counter;
+static unsigned int SliceSize = 256;
+static ml_value_t *MainResult = NULL;
+static ml_schedule_t MainSchedule = {256, (void *)ml_scheduler_queue_add_signal};
 
 static void simple_queue_run() {
-	ml_queued_state_t QueuedState;
-	for (;;) {
-		QueuedState = ml_scheduler_queue_next();
-		if (!QueuedState.State) break;
-		Counter = SliceSize;
+	while (!MainResult) {
+		ml_queued_state_t QueuedState = ml_scheduler_queue_next_wait();
+		MainSchedule.Counter = SliceSize;
 		QueuedState.State->run(QueuedState.State, QueuedState.Value);
 	}
-}
-
-static ml_schedule_t simple_scheduler(ml_context_t *Context) {
-	return (ml_schedule_t){&Counter, (void *)ml_scheduler_queue_add};
 }
 
 #endif
@@ -283,13 +166,26 @@ static void error_handler(int Signal) {
 }
 #endif
 
+static void ml_main_state_run(ml_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) {
+		fprintf(stderr, "%s: %s\n", ml_error_type(Value), ml_error_message(Value));
+		ml_source_t Source;
+		int Level = 0;
+		while (ml_error_source(Value, Level++, &Source)) {
+			fprintf(stderr, "\t%s:%d\n", Source.Name, Source.Line);
+		}
+		exit(1);
+	}
+	MainResult = Value;
+}
+
 int main(int Argc, const char *Argv[]) {
 #ifdef ML_BACKTRACE
 	BacktraceState = backtrace_create_state(Argv[0], 0, NULL, NULL);
 	signal(SIGSEGV, error_handler);
 #endif
-	ml_init();
-	ml_types_init(Globals);
+
+	ml_init(Globals);
 	ml_file_init(Globals);
 	ml_object_init(Globals);
 	ml_sequence_init(Globals);
@@ -314,24 +210,40 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "macro", MLMacroT);
 	stringmap_insert(Globals, "global", ml_stringmap_globals(Globals));
 	stringmap_insert(Globals, "globals", ml_cfunction(Globals, (void *)ml_globals));
+
+#ifdef ML_LIBRARY
+	ml_library_init(Globals);
+	ml_module_t *Sys = ml_library_internal("sys");
+	ml_module_t *Std = ml_library_internal("std");
+	ml_module_t *Fmt = ml_library_internal("fmt");
+	ml_module_t *IO = ml_library_internal("io");
+#define SYS_EXPORTS Sys->Exports
+#define STD_EXPORTS Std->Exports
+#define FMT_EXPORTS Fmt->Exports
+#define IO_EXPORTS IO->Exports
+#else
+#define SYS_EXPORTS Globals
+#define STD_EXPORTS Globals
+#define FMT_EXPORTS Globals
+#define IO_EXPORTS Globals
+#endif
+
+	ml_stream_init(IO_EXPORTS);
 #ifdef ML_CBOR
-	ml_cbor_init(Globals);
+	ml_cbor_init(FMT_EXPORTS);
 #endif
 #ifdef ML_JSON
-	ml_json_init(Globals);
+	ml_json_init(FMT_EXPORTS);
 #endif
 #ifdef ML_XML
-	ml_xml_init(Globals);
+	ml_xml_init(FMT_EXPORTS);
 #endif
 #ifdef ML_XE
-	ml_xe_init(Globals);
+	ml_xe_init(FMT_EXPORTS);
 #endif
 #ifdef ML_MATH
 	ml_math_init(Globals);
 	ml_array_init(Globals);
-#endif
-#ifdef ML_IO
-	ml_io_init(Globals);
 #endif
 #ifdef ML_GIR
 	ml_gir_init(Globals);
@@ -341,12 +253,6 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_MODULES
 	ml_module_init(Globals);
-	ml_library_init(Globals);
-	stringmap_insert(Globals, "import", Import);
-	stringmap_insert(Globals, "unload", Unload);
-	stringmap_insert(Globals, "library", Library);
-	LibraryPath = ml_list();
-	add_library_path();
 #endif
 #ifdef ML_TABLES
 	ml_table_init(Globals);
@@ -355,48 +261,75 @@ int main(int Argc, const char *Argv[]) {
 	ml_queue_init(Globals);
 #endif
 #ifdef ML_TIME
-	ml_time_init(Globals);
+	ml_time_init(STD_EXPORTS);
 #endif
 #ifdef ML_UUID
-	ml_uuid_init(Globals);
+	ml_uuid_init(STD_EXPORTS);
 #endif
 #ifdef ML_JSENCODE
 	ml_jsencode_init(Globals);
 #endif
-#ifdef ML_SQLITE
-	ml_sqlite_init(Globals);
-#endif
-#ifdef ML_RAPC
-	ml_rapc_init(Globals);
+#ifdef ML_THREADS
+	ml_thread_init(SYS_EXPORTS);
 #endif
 	ml_value_t *Args = ml_list();
-	const char *FileName = 0;
+	const char *FileName = NULL;
 #ifdef ML_MODULES
 	int LoadModule = 0;
 #endif
+	const char *Command = NULL;
 	for (int I = 1; I < Argc; ++I) {
 		if (FileName) {
 			ml_list_append(Args, ml_cstring(Argv[I]));
 		} else if (Argv[I][0] == '-') {
 			switch (Argv[I][1]) {
-#ifdef ML_MODULES
-			case 'm':
-				if (++I >= Argc) {
-					printf("Error: module name required\n");
+			case 'E':
+				if (Argv[I][2]) {
+					Command = Argv[I] + 2;
+				} else if (++I < Argc) {
+					Command = Argv[I];
+				} else {
+					fprintf(stderr, "Error: command required\n");
 					exit(-1);
 				}
-				FileName = Argv[I];
-				LoadModule = 1;
-			break;
+				break;
+#ifdef ML_MODULES
+			case 'm':
+				if (Argv[I][2]) {
+					FileName = Argv[I] + 2;
+					LoadModule = 1;
+				} else if (++I < Argc) {
+					FileName = Argv[I];
+					LoadModule = 1;
+				} else {
+					fprintf(stderr, "Error: module name required\n");
+					exit(-1);
+				}
+				break;
+#endif
+#ifdef ML_LIBRARY
+			case 'L':
+				if (Argv[I][2]) {
+					ml_library_path_add(Argv[I] + 2);
+				} else if (++I < Argc) {
+					ml_library_path_add(Argv[I]);
+				} else {
+					fprintf(stderr, "Error: library path required\n");
+					exit(-1);
+				}
+				break;
 #endif
 #ifdef ML_SCHEDULER
 			case 's':
-				if (++I >= Argc) {
-					printf("Error: slice size required\n");
+				if (Argv[I][2]) {
+					SliceSize = atoi(Argv[I] + 2);
+				} else if (++I < Argc) {
+					SliceSize = atoi(Argv[I]);
+				} else {
+					fprintf(stderr, "Error: slice size required\n");
 					exit(-1);
 				}
-				SliceSize = atoi(Argv[I]);
-			break;
+				break;
 #endif
 			case 'z': GC_disable(); break;
 #ifdef ML_GTK_CONSOLE
@@ -412,35 +345,45 @@ int main(int Argc, const char *Argv[]) {
 			FileName = Argv[I];
 		}
 	}
+	ml_state_t *Main = ml_state_new(NULL);
+	Main->run = ml_main_state_run;
 #ifdef ML_SCHEDULER
 	if (SliceSize) {
-		Counter = SliceSize;
-		ml_scheduler_queue_init(4);
-		ml_context_set(&MLRootContext, ML_SCHEDULER_INDEX, simple_scheduler);
+		MainSchedule.Counter = SliceSize;
+		ml_scheduler_queue_init(8);
+		ml_context_set(Main->Context, ML_SCHEDULER_INDEX, &MainSchedule);
+	}
+#endif
+#ifdef ML_GTK_CONSOLE
+	if (GtkConsole) {
+		console_t *Console = console_new(&MLRootContext, (ml_getter_t)stringmap_search, Globals);
+		console_show(Console, NULL);
+		if (FileName) console_load_file(Console, FileName, Args);
+		if (Command) console_evaluate(Console, Command);
+		gtk_main();
+		return 0;
 	}
 #endif
 	if (FileName) {
-#ifdef ML_MODULES
+#ifdef ML_LIBRARY
 		if (LoadModule) {
-			ml_inline(MLMain, (ml_value_t *)Import, 1, ml_string(FileName, -1));
+			ml_library_load(Main, NULL, FileName);
 		} else {
 #endif
-		ml_call_state_t *State = ml_call_state_new(MLMain, 1);
+		ml_call_state_t *State = ml_call_state_new(Main, 1);
 		State->Args[0] = Args;
 		ml_load_file((ml_state_t *)State, global_get, NULL, FileName, NULL);
-#ifdef ML_MODULES
+#ifdef ML_LIBRARY
 		}
 #endif
 #ifdef ML_SCHEDULER
 		if (SliceSize) simple_queue_run();
 #endif
-#ifdef ML_GTK_CONSOLE
-	} else if (GtkConsole) {
-		console_t *Console = console_new(&MLRootContext, (ml_getter_t)stringmap_search, Globals);
-		stringmap_insert(Globals, "print", ml_cfunction(Console, (void *)console_print));
-		console_show(Console, NULL);
-		gtk_main();
-#endif
+	} else if (Command) {
+		ml_parser_t *Parser = ml_parser(NULL, NULL);
+		ml_compiler_t *Compiler = ml_compiler(global_get, NULL);
+		ml_parser_input(Parser, Command);
+		ml_command_evaluate(Main, Parser, Compiler);
 	} else {
 		ml_console(&MLRootContext, (ml_getter_t)stringmap_search, Globals, "--> ", "... ");
 	}

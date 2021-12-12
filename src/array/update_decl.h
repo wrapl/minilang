@@ -4,15 +4,15 @@ extern void NAME ## _row_ ## TARGET ## _ ## SOURCE(ml_array_dimension_t *TargetD
 
 #define UPDATE_ROW_VALUE_DECL(NAME, SOURCE) \
 \
-extern void NAME ## _row_value_ ## SOURCE(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData);
+extern void NAME ## _row_any_ ## SOURCE(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData);
 
 #define UPDATE_ROW_DECL_VALUE(NAME, TARGET) \
 \
-extern void NAME ## _row_ ## TARGET ## _value(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData);
+extern void NAME ## _row_ ## TARGET ## _any(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData);
 
 #define UPDATE_ROW_VALUE_DECL_VALUE(NAME) \
 \
-extern void NAME ## _row_value_value(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData);
+extern void NAME ## _row_any_any(ml_array_dimension_t *TargetDimension, char *TargetData, ml_array_dimension_t *SourceDimension, char *SourceData);
 
 #define UPDATE_ROW_TARGET_DECL_BASE(NAME, TARGET) \
 UPDATE_ROW_DECL(NAME, TARGET, int8_t) \

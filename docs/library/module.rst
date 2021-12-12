@@ -1,10 +1,6 @@
 module
 ======
 
-:mini:`fun module(Path: string, Lookup: function): module`
-   Returns a generic module which calls resolves :mini:`Module::Import` by calling :mini:`Lookup(Import)`, caching results for future use.
-
-
 :mini:`type module`
    *TBD*
 

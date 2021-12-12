@@ -28,6 +28,9 @@ math
 :mini:`meth (Arg₁: integer) ! (Arg₂: integer)`
    *TBD*
 
+:mini:`meth (Arg₁: integer):GCDMethod(Arg₂: integer)`
+   *TBD*
+
 :mini:`meth math::acos(Arg₁: real): real`
    Returns :mini:`acos(Arg₁)`.
 
@@ -88,9 +91,15 @@ math
    Returns :mini:`fabs(Arg₁)`.
 
 
+:mini:`meth (Arg₁: integer):AbsMethod`
+   *TBD*
+
 :mini:`meth math::floor(Arg₁: real): real`
    Returns :mini:`floor(Arg₁)`.
 
+
+:mini:`meth (Arg₁: integer):FloorMethod`
+   *TBD*
 
 :mini:`meth math::log(Arg₁: real): real`
    Returns :mini:`log(Arg₁)`.
@@ -161,7 +170,7 @@ math
 
 
 :mini:`meth math::hypot(Arg₁: real, Arg₂: real): real`
-   Returns :mini:`hypot(Arg₁, Arg₂)`.
+   Returns :mini:`hypot(Arg₁,  Arg₂)`.
 
 
 :mini:`meth math::lgamma(Arg₁: real): real`
@@ -205,17 +214,32 @@ math
 
 
 :mini:`meth math::remainder(Arg₁: real, Arg₂: real): real`
-   Returns :mini:`remainder(Arg₁, Arg₂)`.
+   Returns :mini:`remainder(Arg₁,  Arg₂)`.
 
 
 :mini:`meth math::round(Arg₁: real): real`
    Returns :mini:`round(Arg₁)`.
 
 
+:mini:`meth (Arg₁: real):ArgMethod`
+   *TBD*
+
+:mini:`meth (Arg₁: real):ConjMethod`
+   *TBD*
+
+:mini:`meth (Arg₁: complex):AbsMethod`
+   *TBD*
+
+:mini:`meth (Arg₁: complex):ArgMethod`
+   *TBD*
+
+:mini:`meth (Arg₁: complex):ConjMethod`
+   *TBD*
+
 :mini:`fun integer::random(Min?: number, Max?: number): integer`
    Returns a random integer between :mini:`Min` and :mini:`Max` (where :mini:`Max <= 2³² - 1`.
 
-   If omitted, :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`2³² - 1`.
+   If omitted,  :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`2³² - 1`.
 
 
 :mini:`fun integer::random_permutation(Max: integer)`
@@ -227,6 +251,6 @@ math
 :mini:`fun real::random(Min?: number, Max?: number): real`
    Returns a random real between :mini:`Min` and :mini:`Max`.
 
-   If omitted, :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`1`.
+   If omitted,  :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`1`.
 
 

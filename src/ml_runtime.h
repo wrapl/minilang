@@ -14,17 +14,13 @@ extern "C" {
 
 #define ML_ARG_CACHE_SIZE 64
 
+extern
 #ifdef ML_THREADSAFE
-
-#define ml_alloc_args(COUNT) anew(ml_value_t *, COUNT)
-
-#else
-
-extern ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
+__thread
+#endif
+ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
 
 #define ml_alloc_args(COUNT) (((COUNT) <= ML_ARG_CACHE_SIZE) ? MLArgCache : anew(ml_value_t *, COUNT))
-
-#endif
 
 //#define ml_alloc_args(COUNT) anew(ml_value_t *, COUNT)
 
@@ -55,11 +51,9 @@ struct ml_state_t {
 
 extern ml_type_t MLStateT[];
 
-ml_state_t *ml_state_new(ml_state_t *Caller);
+ml_state_t *ml_state_new(ml_state_t *Caller) __attribute__ ((malloc));
 
 void ml_default_state_run(ml_state_t *State, ml_value_t *Value);
-
-extern ml_state_t MLMain[];
 
 typedef struct {
 	ml_state_t Base;
@@ -192,14 +186,10 @@ extern ml_cfunction_t MLDebugger[];
 
 // Preemption //
 
-typedef struct ml_schedule_t ml_schedule_t;
-
-struct ml_schedule_t {
-	uint64_t *Counter;
+typedef struct {
+	uint64_t Counter;
 	void (*swap)(ml_state_t *State, ml_value_t *Value);
-};
-
-typedef ml_schedule_t (*ml_scheduler_t)(ml_context_t *Context);
+} ml_schedule_t;
 
 typedef struct {
 	ml_state_t *State;
@@ -209,6 +199,14 @@ typedef struct {
 void ml_scheduler_queue_init(int Size);
 ml_queued_state_t ml_scheduler_queue_next();
 int ml_scheduler_queue_add(ml_state_t *State, ml_value_t *Value);
+
+#ifdef ML_THREADS
+ml_queued_state_t ml_scheduler_queue_next_wait();
+int ml_scheduler_queue_add_signal(ml_state_t *State, ml_value_t *Value);
+#else
+#define ml_scheduler_queue_next_wait ml_scheduler_queue_next
+#define ml_scheduler_queue_add_signal ml_scheduler_queue_add
+#endif
 
 // Semaphores
 

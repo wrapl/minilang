@@ -2110,6 +2110,37 @@ ML_METHOD("::", ObjectInstanceT, MLStringT) {
 	return (ml_value_t *)Property;
 }
 
+#ifdef ML_SCHEDULER
+
+#ifdef ML_SCHEDULER
+
+void ml_gir_queue_add(ml_state_t *State, ml_value_t *Value);
+
+ml_schedule_t GirSchedule[1] = {{256, ml_gir_queue_add}};
+
+static gboolean ml_gir_queue_run(void *Data) {
+	ml_queued_state_t QueuedState = ml_scheduler_queue_next();
+	if (!QueuedState.State) return FALSE;
+	GirSchedule->Counter = 256;
+	QueuedState.State->run(QueuedState.State, QueuedState.Value);
+	return TRUE;
+}
+
+void ml_gir_queue_add(ml_state_t *State, ml_value_t *Value) {
+	if (ml_scheduler_queue_add(State, Value) == 1) g_idle_add(ml_gir_queue_run, NULL);
+}
+
+#endif
+
+ML_FUNCTIONX(MLGirRun) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_state_t *State = ml_state_new(Caller);
+	ml_context_set(State->Context, ML_SCHEDULER_INDEX, GirSchedule);
+	return ml_call(State, Args[0], 0, NULL);
+}
+
+#endif
+
 void ml_gir_init(stringmap_t *Globals) {
 	g_setenv("G_SLICE", "always-malloc", 1);
 	GError *Error = 0;
@@ -2125,8 +2156,11 @@ void ml_gir_init(stringmap_t *Globals) {
 	ObjectInstanceNil = new(object_instance_t);
 	ObjectInstanceNil->Type = (object_t *)ObjectInstanceT;
 	//ml_typed_fn_set(EnumT, ml_iterate, enum_iterate);
-	stringmap_insert(Globals, "gir", MLGir);
 	ObjectT->call = MLTypeT->call;
 	StructT->call = MLTypeT->call;
 #include "ml_gir_init.c"
+	stringmap_insert(Globals, "gir", MLGir);
+#ifdef ML_SCHEDULER
+	stringmap_insert(Globals, "gir_run", MLGirRun);
+#endif
 }

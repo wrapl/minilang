@@ -41,11 +41,11 @@ function
    *TBD*
 
 :mini:`meth (Function: function) !! (List: list): partialfunction`
-   Returns a function equivalent to :mini:`fun(Args...) Function(List₁, List₂, ..., Args...)`.
+   Returns a function equivalent to :mini:`fun(Args...) Function(List₁,  List₂,  ...,  Args...)`.
 
 
-:mini:`meth (Function: function) $ (Values...: any, ...): partialfunction`
-   Returns a function equivalent to :mini:`fun(Args...) Function(Values..., Args...)`.
+:mini:`meth (Function: function) $ (Values...: any): partialfunction`
+   Returns a function equivalent to :mini:`fun(Args...) Function(Values...,  Args...)`.
 
 
 :mini:`type function::argless < function, sequence`

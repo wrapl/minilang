@@ -14,22 +14,13 @@ general
    *TBD*
 
 :mini:`fun print(Values..: any): nil`
-   Prints :mini:`Values` to standard output, converting to strings if necessary.
+   Prints :mini:`Values` to standard output,  converting to strings if necessary.
 
 
 :mini:`fun halt(Code?: integer)`
    *TBD*
 
 :mini:`fun collect()`
-   *TBD*
-
-:mini:`fun import(Path: string): module`
-   *TBD*
-
-:mini:`fun library(Name: string): module`
-   *TBD*
-
-:mini:`fun unload(Path: string): nil`
    *TBD*
 
 :mini:`fun sleep(Arg₁: number)`

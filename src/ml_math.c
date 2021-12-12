@@ -35,6 +35,8 @@ ML_METHOD(NAME ## Method, MLRealT) { \
 	return ml_real(CNAME(ml_real_value(Args[0]))); \
 }
 
+#define MATH_NUMBER_KEEP_REAL(NAME, CNAME) MATH_NUMBER(NAME, CNAME)
+
 #else
 
 #define MATH_NUMBER(NAME, CNAME) \
@@ -51,6 +53,30 @@ ML_METHOD(NAME ## Method, MLRealT) { \
 	} else { \
 		return ml_complex(Result); \
 	} \
+} \
+\
+ML_METHOD(NAME ## Method, MLComplexT) { \
+/*@math::CNAME
+//>complex
+// Returns :mini:`CNAME(Arg/1)`.
+*/\
+	complex double Result = c ## CNAME(ml_complex_value(Args[0])); \
+	if (fabs(cimag(Result)) <= DBL_EPSILON) { \
+		return ml_real(creal(Result)); \
+	} else { \
+		return ml_complex(Result); \
+	} \
+}
+
+#define MATH_NUMBER_KEEP_REAL(NAME, CNAME) \
+ML_METHOD_DECL(NAME ## Method, NULL); \
+\
+ML_METHOD(NAME ## Method, MLRealT) { \
+/*@math::CNAME
+//>real
+// Returns :mini:`CNAME(Arg/1)`.
+*/\
+	return ml_real(CNAME(ml_real_value(Args[0]))); \
 } \
 \
 ML_METHOD(NAME ## Method, MLComplexT) { \
@@ -169,9 +195,30 @@ ML_METHOD("!", MLIntegerT, MLIntegerT) {
 	return ml_integer(C);
 }
 
-MATH_NUMBER(Acos, acos);
-MATH_NUMBER(Asin, asin);
-MATH_NUMBER(Atan, atan);
+ML_METHOD_DECL(GCDMethod, "gcd");
+
+ML_METHOD(GCDMethod, MLIntegerT, MLIntegerT) {
+	long A = labs(ml_integer_value(Args[0]));
+	long B = labs(ml_integer_value(Args[1]));
+	if (A == 0) return Args[1];
+	if (B == 0) return Args[0];
+	int Shift = __builtin_ctzl(A | B);
+	A >>= __builtin_ctz(A);
+	do {
+		B >>= __builtin_ctz(B);
+		if (A > B) {
+			unsigned int C = B;
+			B = A;
+			A = C;
+		}
+		B = B - A;
+	} while (B != 0);
+	return ml_integer(A << Shift);
+}
+
+MATH_NUMBER_KEEP_REAL(Acos, acos);
+MATH_NUMBER_KEEP_REAL(Asin, asin);
+MATH_NUMBER_KEEP_REAL(Atan, atan);
 ML_METHOD(AtanMethod, MLRealT, MLRealT) {
 //@math::atan
 //>real
@@ -179,15 +226,22 @@ ML_METHOD(AtanMethod, MLRealT, MLRealT) {
 	return ml_real(atan2(ml_real_value(Args[0]), ml_real_value(Args[1])));
 }
 MATH_REAL(Ceil, ceil);
-MATH_NUMBER(Cos, cos);
-MATH_NUMBER(Cosh, cosh);
-MATH_NUMBER(Exp, exp);
+MATH_NUMBER_KEEP_REAL(Cos, cos);
+MATH_NUMBER_KEEP_REAL(Cosh, cosh);
+MATH_NUMBER_KEEP_REAL(Exp, exp);
 MATH_REAL(Abs, fabs);
+ML_METHOD(AbsMethod, MLIntegerT) {
+	return ml_integer(labs(ml_integer_value(Args[0])));
+}
+
 MATH_REAL(Floor, floor);
+ML_METHOD(FloorMethod, MLIntegerT) {
+	return Args[0];
+}
 MATH_NUMBER(Log, log);
 MATH_NUMBER(Log10, log10);
-MATH_NUMBER(Sin, sin);
-MATH_NUMBER(Sinh, sinh);
+MATH_NUMBER_KEEP_REAL(Sin, sin);
+MATH_NUMBER_KEEP_REAL(Sinh, sinh);
 MATH_NUMBER(Sqrt, sqrt);
 ML_METHOD(SqrtMethod, MLIntegerT) {
 //@math::sqrt
@@ -211,20 +265,48 @@ ML_METHOD(SqrtMethod, MLIntegerT) {
 	if (X * X == N) return ml_integer(X);
 	return ml_real(sqrt(N));
 }
-MATH_NUMBER(Tan, tan);
-MATH_NUMBER(Tanh, tanh);
+MATH_NUMBER_KEEP_REAL(Tan, tan);
+MATH_NUMBER_KEEP_REAL(Tanh, tanh);
 MATH_REAL(Erf, erf);
 MATH_REAL(Erfc, erfc);
 MATH_REAL_REAL(Hypot, hypot);
 MATH_REAL(Gamma, lgamma);
-MATH_NUMBER(Acosh, acosh);
-MATH_NUMBER(Asinh, asinh);
-MATH_NUMBER(Atanh, atanh);
+MATH_NUMBER_KEEP_REAL(Acosh, acosh);
+MATH_NUMBER_KEEP_REAL(Asinh, asinh);
+MATH_NUMBER_KEEP_REAL(Atanh, atanh);
 MATH_REAL(Cbrt, cbrt);
 MATH_REAL(Expm1, expm1);
 MATH_REAL(Log1p, log1p);
 MATH_REAL_REAL(Rem, remainder);
 MATH_REAL(Round, round);
+
+ML_METHOD_DECL(ArgMethod, "arg");
+
+ML_METHOD(ArgMethod, MLRealT) {
+	return ml_real(0.0);
+}
+
+ML_METHOD_DECL(ConjMethod, "conj");
+
+ML_METHOD(ConjMethod, MLRealT) {
+	return Args[0];
+}
+
+#ifdef ML_COMPLEX
+
+ML_METHOD(AbsMethod, MLComplexT) {
+	return ml_real(cabs(ml_complex_value(Args[0])));
+}
+
+ML_METHOD(ArgMethod, MLComplexT) {
+	return ml_real(carg(ml_complex_value(Args[0])));
+}
+
+ML_METHOD(ConjMethod, MLComplexT) {
+	return ml_complex(conj(ml_complex_value(Args[0])));
+}
+
+#endif
 
 ML_FUNCTION(IntegerRandom) {
 //@integer::random
@@ -334,6 +416,7 @@ void ml_math_init(stringmap_t *Globals) {
 	stringmap_insert(MLRealT->Exports, "random", RealRandom);
 	if (Globals) {
 		stringmap_insert(Globals, "math", ml_module("math",
+			"gcd", GCDMethod,
 			"acos", AcosMethod,
 			"asin", AsinMethod,
 			"atan", AtanMethod,
@@ -364,6 +447,8 @@ void ml_math_init(stringmap_t *Globals) {
 			"log1p", Log1pMethod,
 			"rem", RemMethod,
 			"round", RoundMethod,
+			"arg", ArgMethod,
+			"conj", ConjMethod,
 			"pi", ml_real(M_PI),
 			"π", ml_real(M_PI),
 			"e", ml_real(M_E),

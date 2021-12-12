@@ -144,9 +144,6 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 	ml_preprocessor_input_t Input0[1] = {{0, Reader}};
 	ml_preprocessor_output_t Output0[1] = {{0, Writer}};
 	ml_preprocessor_t Preprocessor[1] = {{Input0, Output0}};
-	ml_file_init(Globals);
-	ml_object_init(Globals);
-	ml_sequence_init(Globals);
 	stringmap_insert(Globals, "write", ml_cfunction(Preprocessor, (void *)ml_preprocessor_output));
 	stringmap_insert(Globals, "push", ml_cfunction(Preprocessor, (void *)ml_preprocessor_push));
 	stringmap_insert(Globals, "pop", ml_cfunction(Preprocessor, (void *)ml_preprocessor_pop));
@@ -203,7 +200,10 @@ void ml_preprocess(const char *InputName, ml_value_t *Reader, ml_value_t *Writer
 }
 
 int main(int Argc, const char **Argv) {
-	ml_init();
+	ml_init(Globals);
+	ml_file_init(Globals);
+	ml_object_init(Globals);
+	ml_sequence_init(Globals);
 	const char *InputName = "stdin";
 	FILE *Input = stdin;
 	FILE *Output = stdout;

@@ -15,36 +15,35 @@
 
 // Runtime //
 
-#ifndef ML_THREADSAFE
-
+#ifdef ML_THREADSAFE
+__thread
+#endif
 ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
 
-#endif
-
-static int MLContextSize = 5;
+static int MLContextSize = 6;
 // Reserved context slots:
 //  0: Method Table
 //  1: Context variables
 //  2: Debugger
 //	3: Scheduler
 //	4: Module Path
+//	5: Current Thread
 
-static uint64_t DefaultCounter = UINT_MAX;
+static void default_swap(ml_state_t *State, ml_value_t *Value);
+
+static ml_schedule_t DefaultSchedule = {UINT_MAX, default_swap};
 
 static void default_swap(ml_state_t *State, ml_value_t *Value) {
-	DefaultCounter = UINT_MAX;
+	DefaultSchedule.Counter = UINT_MAX;
 	return State->run(State, Value);
 }
 
-static ml_schedule_t default_scheduler(ml_context_t *Context) {
-	return (ml_schedule_t){&DefaultCounter, default_swap};
-}
-
-ml_context_t MLRootContext = {&MLRootContext, 4, {
+ml_context_t MLRootContext = {&MLRootContext, 5, {
 	NULL,
 	NULL,
 	NULL,
-	default_scheduler
+	&DefaultSchedule,
+	NULL
 }};
 
 ml_context_t *ml_context_new(ml_context_t *Parent) {
@@ -139,20 +138,6 @@ void ml_default_state_run(ml_state_t *State, ml_value_t *Value) {
 	ML_CONTINUE(State->Caller, Value);
 }
 
-static void ml_main_state_run(ml_state_t *State, ml_value_t *Result) {
-	if (ml_is_error(Result)) {
-		printf("%s: %s\n", ml_error_type(Result), ml_error_message(Result));
-		ml_source_t Source;
-		int Level = 0;
-		while (ml_error_source(Result, Level++, &Source)) {
-			printf("\t%s:%d\n", Source.Name, Source.Line);
-		}
-		exit(1);
-	}
-}
-
-ml_state_t MLMain[1] = {{MLStateT, NULL, ml_main_state_run, &MLRootContext}};
-
 static void ml_call_state_run(ml_call_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
 		ML_CONTINUE(State->Base.Caller, Value);
@@ -207,7 +192,7 @@ typedef struct {
 
 ml_state_t *ml_state_new(ml_state_t *Caller) {
 	ml_context_state_t *State = xnew(ml_context_state_t, MLContextSize, void *);
-	ml_context_t *Parent = Caller->Context;
+	ml_context_t *Parent = Caller ? Caller->Context : &MLRootContext;
 	State->Context->Parent = Parent;
 	State->Context->Size = MLContextSize;
 	for (int I = 0; I < Parent->Size; ++I) State->Context->Values[I] = Parent->Values[I];
@@ -853,24 +838,40 @@ ML_METHOD("source", MLStateT) {
 
 #ifdef ML_SCHEDULER
 
-static struct {
+typedef struct {
 	ml_queued_state_t *States;
+#ifdef ML_THREADS
+	pthread_mutex_t Lock[1];
+	pthread_cond_t Available[1];
+#endif
 	int Size, Fill, Write, Read;
-} SchedulerQueue;
+} ml_scheduler_queue_t;
+
+static
+
+#ifdef ML_THREADS
+__thread
+#endif
+
+ml_scheduler_queue_t Queue[1];
 
 void ml_scheduler_queue_init(int Size) {
-	SchedulerQueue.Size = Size;
-	SchedulerQueue.States = anew(ml_queued_state_t, Size);
+	Queue->Size = Size;
+	Queue->States = anew(ml_queued_state_t, Size);
+#ifdef ML_THREADS
+	pthread_mutex_init(Queue->Lock, NULL);
+	pthread_cond_init(Queue->Available, NULL);
+#endif
 }
 
 ml_queued_state_t ml_scheduler_queue_next() {
-	if (SchedulerQueue.Fill) {
-		ml_queued_state_t *States = SchedulerQueue.States;
-		int Read = SchedulerQueue.Read;
+	if (Queue->Fill) {
+		ml_queued_state_t *States = Queue->States;
+		int Read = Queue->Read;
 		ml_queued_state_t QueuedState = States[Read];
 		States[Read] = (ml_queued_state_t){NULL, NULL};
-		--SchedulerQueue.Fill;
-		SchedulerQueue.Read = (Read + 1) % SchedulerQueue.Size;
+		--Queue->Fill;
+		Queue->Read = (Read + 1) % Queue->Size;
 		return QueuedState;
 	} else {
 		return (ml_queued_state_t){NULL, NULL};
@@ -878,20 +879,50 @@ ml_queued_state_t ml_scheduler_queue_next() {
 }
 
 int ml_scheduler_queue_add(ml_state_t *State, ml_value_t *Value) {
-	if (++SchedulerQueue.Fill > SchedulerQueue.Size) {
-		int NewQueueSize = SchedulerQueue.Size * 2;
+#ifdef ML_THREADS
+	pthread_mutex_lock(Queue->Lock);
+#endif
+	if (++Queue->Fill > Queue->Size) {
+		int NewQueueSize = Queue->Size * 2;
 		ml_queued_state_t *NewQueuedStates = anew(ml_queued_state_t, NewQueueSize);
-		memcpy(NewQueuedStates, SchedulerQueue.States, SchedulerQueue.Size * sizeof(ml_queued_state_t));
-		SchedulerQueue.Read = 0;
-		SchedulerQueue.Write = SchedulerQueue.Size;
-		SchedulerQueue.States = NewQueuedStates;
-		SchedulerQueue.Size = NewQueueSize;
+		memcpy(NewQueuedStates, Queue->States, Queue->Size * sizeof(ml_queued_state_t));
+		Queue->Read = 0;
+		Queue->Write = Queue->Size;
+		Queue->States = NewQueuedStates;
+		Queue->Size = NewQueueSize;
 	}
-	int Write = SchedulerQueue.Write;
-	SchedulerQueue.States[Write] = (ml_queued_state_t){State, Value};
-	SchedulerQueue.Write = (Write + 1) % SchedulerQueue.Size;
-	return SchedulerQueue.Fill;
+	int Write = Queue->Write;
+	Queue->States[Write] = (ml_queued_state_t){State, Value};
+	Queue->Write = (Write + 1) % Queue->Size;
+	int Fill = Queue->Fill;
+#ifdef ML_THREADS
+	pthread_mutex_unlock(Queue->Lock);
+#endif
+	return Fill;
 }
+
+#ifdef ML_THREADS
+
+ml_queued_state_t ml_scheduler_queue_next_wait() {
+	pthread_mutex_lock(Queue->Lock);
+	while (!Queue->Fill) pthread_cond_wait(Queue->Available, Queue->Lock);
+	ml_queued_state_t *States = Queue->States;
+	int Read = Queue->Read;
+	ml_queued_state_t QueuedState = States[Read];
+	States[Read] = (ml_queued_state_t){NULL, NULL};
+	--Queue->Fill;
+	Queue->Read = (Read + 1) % Queue->Size;
+	pthread_mutex_unlock(Queue->Lock);
+	return QueuedState;
+}
+
+int ml_scheduler_queue_add_signal(ml_state_t *State, ml_value_t *Value) {
+	int Fill = ml_scheduler_queue_add(State, Value);
+	if (Fill == 1) pthread_cond_signal(Queue->Available);
+	return Fill;
+}
+
+#endif
 
 #endif
 

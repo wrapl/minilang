@@ -24,7 +24,7 @@ macro
 :mini:`fun macro(Function: function): macro`
    Returns a new macro which applies :mini:`Function` when compiled.
 
-   :mini:`Function` should have the following signature: :mini:`Function(Expr₁: expr, Expr₂: expr, ...): expr`.
+   :mini:`Function` should have the following signature: :mini:`Function(Expr₁: expr,  Expr₂: expr,  ...): expr`.
 
 
 :mini:`type macro`
@@ -55,11 +55,11 @@ macro
    Adds a :mini:`let`-declaration to a block with initializer :mini:`Expr`.
 
 
-:mini:`meth (Builder: block::builder):do(Expr...: expr, ...): blockbuilder`
+:mini:`meth (Builder: block::builder):do(Expr...: expr): blockbuilder`
    Adds the expression :mini:`Expr` to a block.
 
 
-:mini:`meth (Builder: block::builder):expr: expr`
+:mini:`meth (Builder: block::builder):end: expr`
    Finishes a block and returns it as an expression.
 
 
@@ -71,7 +71,7 @@ macro
    Utility object for building a block expression.
 
 
-:mini:`fun macro::list(): exprbuilder`
+:mini:`fun macro::tuple(): exprbuilder`
    Returns a new list builder.
 
 
@@ -79,15 +79,19 @@ macro
    Returns a new list builder.
 
 
-:mini:`fun macro::list(): exprbuilder`
+:mini:`fun macro::map(): exprbuilder`
    Returns a new list builder.
 
 
-:mini:`meth (Builder: expr::builder):add(Expr...: expr, ...): blockbuilder`
+:mini:`fun macro::call(): exprbuilder`
+   Returns a new call builder.
+
+
+:mini:`meth (Builder: expr::builder):add(Expr...: expr): blockbuilder`
    Adds the expression :mini:`Expr` to a block.
 
 
-:mini:`meth (Builder: expr::builder):expr: expr`
+:mini:`meth (Builder: expr::builder):end: expr`
    Finishes a block and returns it as an expression.
 
 

@@ -1,7 +1,7 @@
 xe
 ==
 
-:mini:`fun xenode(Arg₁: string, Arg₂: map, Arg₃: list)`
+:mini:`fun xenode(Arg₁: any)`
    *TBD*
 
 :mini:`type xenode`
@@ -32,6 +32,9 @@ xe
    *TBD*
 
 :mini:`meth (Arg₁: xevar):name`
+   *TBD*
+
+:mini:`meth (Arg₁: xevar):indices`
    *TBD*
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: xenode)`

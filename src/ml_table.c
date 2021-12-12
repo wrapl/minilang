@@ -200,7 +200,7 @@ ML_METHOD("append", MLStringBufferT, MLTableT) {
 	int Comma = 0;
 	ML_MAP_FOREACH(Table->Columns, Iter) {
 		if (Comma) ml_stringbuffer_write(Buffer, ", ", 2);
-		ml_stringbuffer_append(Buffer, Iter->Key);
+		ml_stringbuffer_simple_append(Buffer, Iter->Key);
 		Comma = 1;
 	}
 	ml_stringbuffer_write(Buffer, ")", 1);
@@ -367,10 +367,10 @@ ML_METHOD("append", MLStringBufferT, MLTableRowT) {
 	int Comma = 0;
 	ML_MAP_FOREACH(Row->Table->Columns, Iter) {
 		if (Comma) ml_stringbuffer_write(Buffer, ", ", 2);
-		ml_stringbuffer_append(Buffer, Iter->Key);
+		ml_stringbuffer_simple_append(Buffer, Iter->Key);
 		ml_stringbuffer_write(Buffer, " is ", 4);
 		ml_value_t *Value = ml_array_index((ml_array_t *)Iter->Value, Row->Count, Row->Indices);
-		ml_stringbuffer_append(Buffer, Value);
+		ml_stringbuffer_simple_append(Buffer, Value);
 		Comma = 1;
 	}
 	ml_stringbuffer_write(Buffer, ">", 1);
@@ -416,9 +416,9 @@ static void ML_TYPED_FN(ml_iter_value, MLTableRowIterT, ml_state_t *Caller, ml_t
 
 #include "ml_cbor.h"
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTableT, ml_value_t *Table, char *Data, ml_cbor_write_fn WriteFn) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTableT, ml_value_t *Table, char *Data, ml_cbor_write_fn WriteFn, void *TagFnData) {
 	ml_cbor_write_tag(Data, WriteFn, 60);
-	ml_cbor_write(ml_table_columns(Table), Data, WriteFn);
+	ml_cbor_write(ml_table_columns(Table), Data, WriteFn, TagFnData);
 	return NULL;
 }
 

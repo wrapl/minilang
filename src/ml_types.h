@@ -280,7 +280,6 @@ struct ml_cfunctionx_t {
 extern ml_type_t MLCFunctionT[];
 extern ml_type_t MLCFunctionXT[];
 extern ml_type_t MLCFunctionZT[];
-extern ml_type_t MLPartialFunctionT[];
 
 #define ML_CFUNCTION(NAME, DATA, CALLBACK) static ml_cfunction_t NAME[1] = {{MLCFunctionT, CALLBACK, DATA, __FILE__, __LINE__}}
 
@@ -574,8 +573,14 @@ static inline size_t ml_address_length(const ml_value_t *Value) {
 }
 
 ml_value_t *ml_buffer(char *Value, int Length) __attribute__((malloc));
-#define ml_buffer_value ml_address_value
-#define ml_buffer_length ml_address_length
+
+static inline char *ml_buffer_value(const ml_value_t *Value) {
+	return ((ml_address_t *)Value)->Value;
+}
+
+static inline size_t ml_buffer_length(const ml_value_t *Value) {
+	return ((ml_address_t *)Value)->Length;
+}
 
 ml_value_t *ml_string(const char *Value, int Length) __attribute__((malloc));
 #define ml_cstring(VALUE) ml_string(VALUE, strlen(VALUE))
@@ -597,20 +602,31 @@ struct ml_stringbuffer_t {
 	ml_stringbuffer_node_t *Head, *Tail;
 	ml_hash_chain_t *Chain;
 	FILE *File;
-	int Space, Length, Index;
+	int Space, Length, Start, Index;
 };
 
 #define ML_STRINGBUFFER_NODE_SIZE 248
+
+struct ml_stringbuffer_node_t {
+	ml_stringbuffer_node_t *Next;
+	char Chars[ML_STRINGBUFFER_NODE_SIZE];
+};
+
 #define ML_STRINGBUFFER_INIT (ml_stringbuffer_t){MLStringBufferT, 0,}
 
 ml_value_t *ml_stringbuffer();
+char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Length);
 ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, size_t Length);
 ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ...) __attribute__ ((format(printf, 2, 3)));
-ml_value_t *ml_stringbuffer_append(ml_stringbuffer_t *Buffer, ml_value_t *Value);
+void ml_stringbuffer_append(ml_state_t *Caller, ml_stringbuffer_t *Buffer, ml_value_t *Value);
+
+ml_value_t *ml_stringbuffer_simple_append(ml_stringbuffer_t *Buffer, ml_value_t *Value);
 
 char *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
 char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
 ml_value_t *ml_stringbuffer_get_value(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
+
+size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length);
 
 int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t));
 
@@ -849,10 +865,10 @@ ml_value_t *ml_method_anon(const char *Name);
 const char *ml_method_name(const ml_value_t *Value) __attribute__((pure));
 
 void ml_method_by_name(const char *Method, void *Data, ml_callback_t Function, ...) __attribute__ ((sentinel));
-void ml_method_by_value(ml_value_t *Method, void *Data, ml_callback_t Function, ...) __attribute__ ((sentinel));
+void ml_method_by_value(void *Method, void *Data, ml_callback_t Function, ...) __attribute__ ((sentinel));
 
 void ml_methodx_by_name(const char *Method, void *Data, ml_callbackx_t Function, ...) __attribute__ ((sentinel));
-void ml_methodx_by_value(ml_value_t *Method, void *Data, ml_callbackx_t Function, ...) __attribute__ ((sentinel));
+void ml_methodx_by_value(void *Method, void *Data, ml_callbackx_t Function, ...) __attribute__ ((sentinel));
 
 void ml_method_define(ml_value_t *Method, ml_value_t *Function, int Variadic, ...);
 void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Callback, int Count, int Variadic, ml_type_t **Types);
@@ -877,8 +893,8 @@ static inline ml_value_t *ml_type_constructor(ml_type_t *Type) {
 
 #define ML_METHODVX(METHOD, TYPES ...) static void CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args)
 
-static inline ml_value_t *ml_nop(ml_value_t *Value) {
-	return Value;
+static inline ml_value_t *ml_nop(void *Value) {
+	return (ml_value_t *)Value;
 }
 
 #define ML_METHOD_DECL(NAME, METHOD) ml_value_t *NAME
@@ -888,13 +904,13 @@ static inline ml_value_t *ml_nop(ml_value_t *Value) {
 
 #ifndef __cplusplus
 
-#define ML_METHOD(METHOD, TYPES ...) INIT_CODE ml_method_define(_Generic(METHOD, char *: ml_method, ml_value_t *: ml_nop, ml_type_t *: ml_type_constructor)(METHOD), ml_cfunction2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), 0, ##TYPES, NULL);
+#define ML_METHOD(METHOD, TYPES ...) INIT_CODE ml_method_define(_Generic(METHOD, char *: ml_method, ml_type_t *: ml_type_constructor, default: ml_nop)(METHOD), ml_cfunction2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), 0, ##TYPES, NULL);
 
-#define ML_METHODX(METHOD, TYPES ...) INIT_CODE ml_method_define(_Generic(METHOD, char *: ml_method, ml_value_t *: ml_nop, ml_type_t *: ml_type_constructor)(METHOD), ml_cfunctionx2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), 0, ##TYPES, NULL);
+#define ML_METHODX(METHOD, TYPES ...) INIT_CODE ml_method_define(_Generic(METHOD, char *: ml_method, ml_type_t *: ml_type_constructor, default: ml_nop)(METHOD), ml_cfunctionx2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), 0, ##TYPES, NULL);
 
-#define ML_METHODV(METHOD, TYPES ...) INIT_CODE ml_method_define(_Generic(METHOD, char *: ml_method, ml_value_t *: ml_nop, ml_type_t *: ml_type_constructor)(METHOD), ml_cfunction2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), 1, ##TYPES, NULL);
+#define ML_METHODV(METHOD, TYPES ...) INIT_CODE ml_method_define(_Generic(METHOD, char *: ml_method, ml_type_t *: ml_type_constructor, default: ml_nop)(METHOD), ml_cfunction2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), 1, ##TYPES, NULL);
 
-#define ML_METHODVX(METHOD, TYPES ...) INIT_CODE ml_method_define(_Generic(METHOD, char *: ml_method, ml_value_t *: ml_nop, ml_type_t *: ml_type_constructor)(METHOD), ml_cfunctionx2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), 1, ##TYPES, NULL);
+#define ML_METHODVX(METHOD, TYPES ...) INIT_CODE ml_method_define(_Generic(METHOD, char *: ml_method, ml_type_t *: ml_type_constructor, default: ml_nop)(METHOD), ml_cfunctionx2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), 1, ##TYPES, NULL);
 
 #else
 
@@ -922,7 +938,6 @@ extern ml_type_t MLModuleT[];
 typedef struct {
 	const ml_type_t *Type;
 	const char *Path;
-	ml_value_t *Lookup;
 	stringmap_t Exports[1];
 } ml_module_t;
 
