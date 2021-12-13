@@ -271,9 +271,10 @@ static void ML_TYPED_FN(ml_iterate, MLChainedT, ml_state_t *Caller, ml_chained_f
 }
 
 ML_METHOD("->", MLFunctionT, MLFunctionT) {
-//<Sequence
+//<Base
 //<Function
 //>chained
+// Returns a chained function equivalent to :mini:`Function(Base(...))`.
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 3, ml_value_t *);
 	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
@@ -283,9 +284,10 @@ ML_METHOD("->", MLFunctionT, MLFunctionT) {
 }
 
 ML_METHOD("->", MLSequenceT, MLFunctionT) {
-//<Sequence
+//<Base
 //<Function
 //>chained
+// Returns a chained sequence equivalent to :mini:`Function(V/1), ..., Function(V/n)` where :mini:`V/i` are the values produced by :mini:`Base`.
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 3, ml_value_t *);
 	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
@@ -309,7 +311,7 @@ ML_METHOD("->", MLChainedT, MLFunctionT) {
 }
 
 ML_METHOD("=>", MLSequenceT, MLFunctionT) {
-//<Sequence
+//<Base
 //<Function
 //>chained
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 5, ml_value_t *);
@@ -323,7 +325,7 @@ ML_METHOD("=>", MLSequenceT, MLFunctionT) {
 }
 
 ML_METHOD("=>", MLSequenceT, MLFunctionT, MLFunctionT) {
-//<Sequence
+//<Base
 //<Function
 //>chained
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 5, ml_value_t *);
@@ -369,7 +371,7 @@ ML_METHOD("=>", MLChainedT, MLFunctionT, MLFunctionT) {
 }
 
 ML_METHOD("!>", MLSequenceT, MLFunctionT) {
-//<Sequence
+//<Base
 //<Function
 //>chained
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
@@ -397,7 +399,7 @@ ML_METHOD("!>", MLChainedT, MLFunctionT) {
 }
 
 ML_METHOD("->?", MLSequenceT, MLFunctionT) {
-//<Sequence
+//<Base
 //<Function
 //>chained
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
@@ -425,7 +427,7 @@ ML_METHOD("->?", MLChainedT, MLFunctionT) {
 }
 
 ML_METHOD("=>?", MLSequenceT, MLFunctionT) {
-//<Sequence
+//<Base
 //<Function
 //>chained
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
@@ -453,7 +455,7 @@ ML_METHOD("=>?", MLChainedT, MLFunctionT) {
 }
 
 ML_METHOD("!>?", MLSequenceT, MLFunctionT) {
-//<Sequence
+//<Base
 //<Function
 //>chained
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);

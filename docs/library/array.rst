@@ -12,9 +12,23 @@ array
 
 
 :mini:`type vector < array`
-   *TBD*
+   Arrays with exactly 1 dimension.
+
 
 :mini:`type matrix < array`
+   Arrays with exactly 2 dimensions.
+
+
+:mini:`type array::complex < array`
+   *TBD*
+
+:mini:`type vector::complex < array::complex, vector`
+   *TBD*
+
+:mini:`type matrix::complex < array::complex, matrix`
+   *TBD*
+
+:mini:`type array::real < array::complex`
    *TBD*
 
 :mini:`type array::real < array`
@@ -33,15 +47,6 @@ array
    *TBD*
 
 :mini:`type matrix::integer < matrix::real`
-   *TBD*
-
-:mini:`type array::complex < array`
-   *TBD*
-
-:mini:`type vector::complex < array::complex, vector`
-   *TBD*
-
-:mini:`type matrix::complex < array::complex, matrix`
    *TBD*
 
 :mini:`meth (Array: array):degree: integer`
@@ -108,6 +113,9 @@ array
 :mini:`meth (Arg₁: array)[Arg₂: tuple]`
    *TBD*
 
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
+
 :mini:`type array::int8 < array::integer`
    An array of int8 values.
 
@@ -119,6 +127,9 @@ array
 :mini:`type matrix::int8 < matrix::integer, array::int8`
    A matrix of int8 values.
 
+
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
 
 :mini:`type array::uint8 < array::integer`
    An array of uint8 values.
@@ -132,6 +143,9 @@ array
    A matrix of uint8 values.
 
 
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
+
 :mini:`type array::int16 < array::integer`
    An array of int16 values.
 
@@ -143,6 +157,9 @@ array
 :mini:`type matrix::int16 < matrix::integer, array::int16`
    A matrix of int16 values.
 
+
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
 
 :mini:`type array::uint16 < array::integer`
    An array of uint16 values.
@@ -156,6 +173,9 @@ array
    A matrix of uint16 values.
 
 
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
+
 :mini:`type array::int32 < array::integer`
    An array of int32 values.
 
@@ -167,6 +187,9 @@ array
 :mini:`type matrix::int32 < matrix::integer, array::int32`
    A matrix of int32 values.
 
+
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
 
 :mini:`type array::uint32 < array::integer`
    An array of uint32 values.
@@ -180,6 +203,9 @@ array
    A matrix of uint32 values.
 
 
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
+
 :mini:`type array::int64 < array::integer`
    An array of int64 values.
 
@@ -191,6 +217,9 @@ array
 :mini:`type matrix::int64 < matrix::integer, array::int64`
    A matrix of int64 values.
 
+
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
 
 :mini:`type array::uint64 < array::integer`
    An array of uint64 values.
@@ -204,6 +233,9 @@ array
    A matrix of uint64 values.
 
 
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
+
 :mini:`type array::float32 < array::real`
    An array of float32 values.
 
@@ -215,6 +247,9 @@ array
 :mini:`type matrix::float32 < matrix::real, array::float32`
    A matrix of float32 values.
 
+
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
 
 :mini:`type array::float64 < array::real`
    An array of float64 values.
@@ -228,6 +263,9 @@ array
    A matrix of float64 values.
 
 
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
+
 :mini:`type array::complex32 < array::complex`
    An array of complex32 values.
 
@@ -240,6 +278,9 @@ array
    A matrix of complex32 values.
 
 
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
+
 :mini:`type array::complex64 < array::complex`
    An array of complex64 values.
 
@@ -251,6 +292,9 @@ array
 :mini:`type matrix::complex64 < matrix::complex, array::complex64`
    A matrix of complex64 values.
 
+
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
 
 :mini:`type array::any < array`
    An array of any values.

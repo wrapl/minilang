@@ -25,19 +25,21 @@ sequence
    Filters do not affect the result but will shortcut a function call or skip an iteration if :mini:`nil` is returned. I.e. filters remove values from a sequence that fail a condition without affecting the values that pass.
 
 
-:mini:`meth (Sequence: function) -> (Function: function): chained`
-   *TBD*
+:mini:`meth (Base: function) -> (Function: function): chained`
+   Returns a chained function equivalent to :mini:`Function(Base(...))`.
 
-:mini:`meth (Sequence: sequence) -> (Function: function): chained`
-   *TBD*
+
+:mini:`meth (Base: sequence) -> (Function: function): chained`
+   Returns a chained sequence equivalent to :mini:`Function(V₁),  ...,  Function(Vₙ)` where :mini:`Vᵢ` are the values produced by :mini:`Base`.
+
 
 :mini:`meth (Chained: chained) -> (Function: function): chained`
    *TBD*
 
-:mini:`meth (Sequence: sequence) => (Function: function): chained`
+:mini:`meth (Base: sequence) => (Function: function): chained`
    *TBD*
 
-:mini:`meth (Sequence: sequence) => (Function: function, Arg₃: function): chained`
+:mini:`meth (Base: sequence) => (Function: function, Arg₃: function): chained`
    *TBD*
 
 :mini:`meth (Chained: chained) => (Function: function): chained`
@@ -46,25 +48,25 @@ sequence
 :mini:`meth (Chained: chained) => (Function: function, Arg₃: function): chained`
    *TBD*
 
-:mini:`meth (Sequence: sequence) !> (Function: function): chained`
+:mini:`meth (Base: sequence) !> (Function: function): chained`
    *TBD*
 
 :mini:`meth (Chained: chained) !> (Function: function): chained`
    *TBD*
 
-:mini:`meth (Sequence: sequence) ->? (Function: function): chained`
+:mini:`meth (Base: sequence) ->? (Function: function): chained`
    *TBD*
 
 :mini:`meth (Chained: chained) ->? (Function: function): chained`
    *TBD*
 
-:mini:`meth (Sequence: sequence) =>? (Function: function): chained`
+:mini:`meth (Base: sequence) =>? (Function: function): chained`
    *TBD*
 
 :mini:`meth (Chained: chained) =>? (Function: function): chained`
    *TBD*
 
-:mini:`meth (Sequence: sequence) !>? (Function: function): chained`
+:mini:`meth (Base: sequence) !>? (Function: function): chained`
    *TBD*
 
 :mini:`meth (Chained: chained) !>? (Function: function): chained`
