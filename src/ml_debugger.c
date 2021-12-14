@@ -176,9 +176,20 @@ static void debugger_step_out(ml_state_t *Caller, interactive_debugger_t *Debugg
 static ml_value_t *debugger_locals(interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
 	debug_thread_t *Thread = Debugger->ActiveThread;
 	if (!Thread) return ml_error("DebugError", "No active thread");
-	ml_value_t *Locals = ml_list();
-	for (ml_decl_t *Decl = ml_debugger_decls(Thread->Active); Decl; Decl = Decl->Next) {
-		ml_list_put(Locals, ml_string(Decl->Ident, -1));
+	ml_state_t *Frame = Thread->Active;
+	if (Count > 0) {
+		ML_CHECK_ARG_TYPE(0, MLIntegerT);
+		int Depth = ml_integer_value(Args[0]);
+		while (--Depth >= 0) {
+			do {
+				Frame = Frame->Caller;
+				if (!Frame) return ml_error("DebugError", "Invalid frame depth");
+			} while (!ml_debugger_check(Frame));
+		}
+	}
+	ml_value_t *Locals = ml_map();
+	for (ml_decl_t *Decl = ml_debugger_decls(Frame); Decl; Decl = Decl->Next) {
+		ml_map_insert(Locals, ml_string(Decl->Ident, -1), ml_debugger_local(Frame, Decl->Index));
 	}
 	return Locals;
 }

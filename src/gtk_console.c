@@ -26,8 +26,10 @@
 struct console_t {
 	ml_state_t Base;
 	const char *Name;
-	GtkWidget *Window, *LogScrolled, *LogView, *InputView, *SourceView;
-	GtkWidget *DebugButtons, *Paned;
+	GtkWidget *Window, *LogScrolled, *LogView, *InputView;
+	GtkWidget *DebugButtons, *SourceView, *FrameView, *ThreadView, *Paned;
+	GtkListStore *ThreadStore;
+	GtkTreeStore *FrameStore;
 	GtkNotebook *Notebook;
 	GtkSourceLanguage *Language;
 	GtkSourceStyleScheme *StyleScheme;
@@ -47,7 +49,7 @@ struct console_t {
 	char *History[MAX_HISTORY];
 	int HistoryIndex, HistoryEnd;
 	stringmap_t Globals[1];
-	stringmap_t SourceViews[1];
+	stringmap_t OpenFiles[1];
 	stringmap_t Cycles[1];
 	stringmap_t Combos[1];
 	char Chars[32];
@@ -218,58 +220,184 @@ gtk_source_buffer_set_highlight_matching_brackets(GTK_SOURCE_BUFFER(InputBuffer)
 	console_evaluate(Console, Text);
 }
 
+typedef struct {
+	console_t *Console;
+	ml_value_t *Name;
+	GtkWidget *View;
+} console_open_file_t;
+
+static void console_breakpoint_toggle(GtkSourceView *View, GtkTextIter *Iter, GdkEvent *Event, console_open_file_t *OpenFile) {
+	GtkTextBuffer *Buffer = gtk_text_iter_get_buffer(Iter);
+	GSList *Marks = gtk_source_buffer_get_source_marks_at_iter(GTK_SOURCE_BUFFER(Buffer), Iter, "breakpoint");
+	interactive_debugger_t *Debugger = OpenFile->Console->Debugger;
+	ml_value_t *BreakpointFn = NULL;
+	if (Marks) {
+		GtkTextMark *Mark = GTK_TEXT_MARK(Marks->data);
+		gtk_text_buffer_delete_mark(Buffer, Mark);
+		if (Debugger) BreakpointFn = interactive_debugger_get(Debugger, "breakpoint_clear");
+		g_slist_free(Marks);
+	} else {
+		gtk_source_buffer_create_source_mark(GTK_SOURCE_BUFFER(Buffer), NULL, "breakpoint", Iter);
+		if (Debugger) BreakpointFn = interactive_debugger_get(Debugger, "breakpoint_set");
+	}
+	if (BreakpointFn) {
+		ml_value_t **Args = ml_alloc_args(2);
+		Args[0] = OpenFile->Name;
+		Args[1] = ml_integer(gtk_text_iter_get_line(Iter) + 1);
+		ml_simple_call(BreakpointFn, 2, Args);
+	}
+}
+
+static GtkWidget *console_open_source(console_t *Console, const char *SourceName) {
+	console_open_file_t **Slot = (console_open_file_t **)stringmap_slot(Console->OpenFiles, SourceName);
+	if (!Slot[0]) {
+		console_open_file_t *OpenFile = Slot[0] = new(console_open_file_t);
+		OpenFile->Console = Console;
+		OpenFile->Name = ml_cstring(SourceName);
+		GtkSourceBuffer *Buffer = gtk_source_buffer_new_with_language(Console->Language);
+		gtk_source_buffer_set_style_scheme(Buffer, Console->StyleScheme);
+		GtkTextIter End[1];
+		gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(Buffer), End);
+		FILE *File = fopen(SourceName, "r");
+		if (File) {
+			char Text[128];
+			size_t Length;
+			do {
+			 Length = fread(Text, 1, 128, File);
+			 gtk_text_buffer_insert(GTK_TEXT_BUFFER(Buffer), End, Text, Length);
+			} while (Length == 128);
+			fclose(File);
+		}
+		GtkWidget *View = gtk_source_view_new_with_buffer(Buffer);
+		OpenFile->View = View;
+		GtkWidget *Scrolled = gtk_scrolled_window_new(NULL, NULL);
+		gtk_container_add(GTK_CONTAINER(Scrolled), View);
+		gtk_text_view_set_monospace(GTK_TEXT_VIEW(View), TRUE);
+		gtk_widget_override_font(View, Console->FontDescription);
+		gtk_source_view_set_tab_width(GTK_SOURCE_VIEW(View), 4);
+		gtk_source_view_set_highlight_current_line(GTK_SOURCE_VIEW(View), TRUE);
+		gtk_source_view_set_show_line_numbers(GTK_SOURCE_VIEW(View), TRUE);
+		gtk_source_view_set_show_line_marks(GTK_SOURCE_VIEW(View), TRUE);
+
+		static GtkSourceMarkAttributes *BreakpointMarkAttributes = NULL;
+		if (!BreakpointMarkAttributes) {
+			BreakpointMarkAttributes = gtk_source_mark_attributes_new();
+			gtk_source_mark_attributes_set_icon_name(BreakpointMarkAttributes, "media-record");
+		}
+		gtk_source_view_set_mark_attributes(GTK_SOURCE_VIEW(View), "breakpoint", BreakpointMarkAttributes, 0);
+
+		g_signal_connect(G_OBJECT(View), "line-mark-activated", G_CALLBACK(console_breakpoint_toggle), OpenFile);
+
+		gtk_notebook_append_page(Console->Notebook, Scrolled, gtk_label_new(SourceName));
+		gtk_widget_show_all(GTK_WIDGET(Console->Notebook));
+	}
+	return Slot[0]->View;
+}
+
+static int console_debug_set_breakpoints(const char *SourceName, console_open_file_t *OpenFile, ml_value_t *BreakpointSet) {
+	ml_value_t **Args = ml_alloc_args(2);
+	Args[0] = OpenFile->Name;
+	GtkTextBuffer *Buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(OpenFile->View));
+	GtkTextIter Iter[1];
+	gtk_text_buffer_get_start_iter(Buffer, Iter);
+	while (gtk_source_buffer_forward_iter_to_source_mark(GTK_SOURCE_BUFFER(Buffer), Iter, "breakpoint")) {
+		Args[1] = ml_integer(gtk_text_iter_get_line(Iter) + 1);
+		ml_simple_call(BreakpointSet, 2, Args);
+	}
+	return 0;
+}
+
+static void console_show_thread(console_t *Console, const char *SourceName, int Line) {
+	GtkWidget *SourceView;
+	if (SourceName == Console->Name) {
+		SourceView = Console->SourceView;
+	} else {
+		SourceView = console_open_source(Console, SourceName);
+	}
+	ml_value_t *BreakpointSet = interactive_debugger_get(Console->Debugger, "breakpoint_set");
+	stringmap_foreach(Console->OpenFiles, BreakpointSet, (void *)console_debug_set_breakpoints);
+	int PageNum = gtk_notebook_page_num(Console->Notebook, gtk_widget_get_parent(SourceView));
+	gtk_notebook_set_current_page(Console->Notebook, PageNum);
+	GtkTextBuffer *Buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(SourceView));
+	GtkTextIter LineBeg[1], LineEnd[1];
+	gtk_text_buffer_get_iter_at_line(Buffer, LineBeg, Line - 1);
+	gtk_text_buffer_get_iter_at_line(Buffer, LineEnd, Line);
+	//gtk_text_buffer_apply_tag(Buffer, PausedTag, LineBeg, LineEnd);
+	gtk_text_buffer_place_cursor(Buffer, LineBeg);
+	gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(SourceView), LineBeg, 0.0, FALSE, 0.0, 0.0);
+	gtk_tree_store_clear(Console->FrameStore);
+	ml_value_t *FramesGet = interactive_debugger_get(Console->Debugger, "frames");
+	ml_value_t *LocalsGet = interactive_debugger_get(Console->Debugger, "locals");
+	ml_value_t *Frames = ml_simple_call(FramesGet, 0, NULL);
+	ml_value_t **Args = ml_alloc_args(1);
+	int Depth = 0;
+	ML_LIST_FOREACH(Frames, Iter1) {
+		const char *Source = ml_string_value(ml_tuple_get(Iter1->Value, 1));
+		int Line = ml_integer_value(ml_tuple_get(Iter1->Value, 2));
+		GtkTreeIter TreeIter[1];
+		gtk_tree_store_insert_with_values(Console->FrameStore, TreeIter, NULL, -1, 0, Source, 1, Line, -1);
+		Args[0] = ml_integer(Depth++);
+		ml_value_t *Locals = ml_simple_call(LocalsGet, 1, Args);
+		ML_MAP_FOREACH(Locals, Iter2) {
+			ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+			ml_stringbuffer_simple_append(Buffer, Iter2->Value);
+			char *Value;
+			if (Buffer->Length < 64) {
+				Value = ml_stringbuffer_get_string(Buffer);
+			} else {
+				Value = snew(68);
+				memcpy(Value, Buffer->Head->Chars, 64);
+				strcpy(Value + 64, "...");
+			}
+			gtk_tree_store_insert_with_values(Console->FrameStore, NULL, TreeIter, -1, 2, ml_string_value(Iter2->Key), 3, Value, -1);
+		}
+	}
+	gtk_tree_view_expand_all(GTK_TREE_VIEW(Console->FrameView));
+}
+
+static void console_thread_activated(GtkTreeView *ThreadView, GtkTreePath *Path, GtkTreeViewColumn *Column, console_t *Console) {
+	const char *SourceName;
+	int Index, Line;
+	GtkTreeIter Iter[1];
+	gtk_tree_model_get_iter(GTK_TREE_MODEL(Console->ThreadStore), Iter, Path);
+	gtk_tree_model_get(GTK_TREE_MODEL(Console->ThreadStore), Iter, 0, &Index, 1, &SourceName, 2, &Line, -1);
+	ml_value_t *ThreadSet = interactive_debugger_get(Console->Debugger, "thread");
+	ml_value_t **Args = ml_alloc_args(1);
+	Args[0] = ml_integer(Index);
+	ml_simple_call(ThreadSet, 1, Args);
+	console_show_thread(Console, SourceName, Line);
+}
+
 static void console_debug_enter(console_t *Console, interactive_debugger_t *Debugger, ml_source_t Source, int Index) {
 	gtk_widget_show(Console->DebugButtons);
 	Console->Debugger = Debugger;
 	console_printf(Console, "Debug break [%d]: %s:%d\n", Index, Source.Name, Source.Line);
-	GtkWidget *SourceView;
-	if (Source.Name == Console->Name) {
-		SourceView = Console->SourceView;
-	} else {
-		GtkWidget **Slot = (GtkWidget **)stringmap_slot(Console->SourceViews, Source.Name);
-		if (!Slot[0]) {
-			GtkSourceBuffer *Buffer = gtk_source_buffer_new_with_language(Console->Language);
-			gtk_source_buffer_set_style_scheme(Buffer, Console->StyleScheme);
-			GtkTextIter End[1];
-			gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(Buffer), End);
-			FILE *File = fopen(Source.Name, "r");
-			if (File) {
-				char Text[128];
-				size_t Length;
-				do {
-				 Length = fread(Text, 1, 128, File);
-				 gtk_text_buffer_insert(GTK_TEXT_BUFFER(Buffer), End, Text, Length);
-				} while (Length == 128);
-				fclose(File);
-			}
-			GtkWidget *View = gtk_source_view_new_with_buffer(Buffer);
-			GtkWidget *Scrolled = gtk_scrolled_window_new(NULL, NULL);
-			gtk_container_add(GTK_CONTAINER(Scrolled), View);
-			gtk_text_view_set_monospace(GTK_TEXT_VIEW(View), TRUE);
-			gtk_widget_override_font(View, Console->FontDescription);
-			gtk_source_view_set_tab_width(GTK_SOURCE_VIEW(View), 4);
-			gtk_source_view_set_highlight_current_line(GTK_SOURCE_VIEW(View), TRUE);
-			gtk_source_view_set_show_line_numbers(GTK_SOURCE_VIEW(View), TRUE);
-			gtk_notebook_append_page(Console->Notebook, Scrolled, gtk_label_new(Source.Name));
-			gtk_widget_show_all(GTK_WIDGET(Console->Notebook));
-			Slot[0] = View;
-		}
-		SourceView = Slot[0];
-	}
-	int PageNum = gtk_notebook_page_num(Console->Notebook, gtk_widget_get_parent(SourceView));
-	gtk_notebook_set_current_page(Console->Notebook, PageNum);
-
-	GtkTextBuffer *Buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(SourceView));
-	GtkTextIter LineBeg[1], LineEnd[1];
-	gtk_text_buffer_get_iter_at_line(Buffer, LineBeg, Source.Line - 1);
-	gtk_text_buffer_get_iter_at_line(Buffer, LineEnd, Source.Line);
-	//gtk_text_buffer_apply_tag(Buffer, PausedTag, LineBeg, LineEnd);
-	gtk_text_buffer_place_cursor(Buffer, LineBeg);
-	gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(SourceView), LineBeg, 0.0, FALSE, 0.0, 0.0);
+	GtkTreeIter Iter[1];
+	gtk_list_store_insert_with_values(Console->ThreadStore, Iter, -1, 0, Index, 1, Source.Name, 2, Source.Line, -1);
+	GtkTreeSelection *Selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(Console->ThreadView));
+	gtk_tree_selection_select_iter(Selection, Iter);
+	console_show_thread(Console, Source.Name, Source.Line);
 }
 
 static void console_debug_exit(console_t *Console, interactive_debugger_t *Debugger, ml_state_t *Caller, int Index) {
-	gtk_widget_hide(Console->DebugButtons);
+	GtkTreeIter Iter[1];
+	GtkTreeModel *Model = GTK_TREE_MODEL(Console->ThreadStore);
+	if (gtk_tree_model_get_iter_first(Model, Iter)) do {
+		int Index0;
+		gtk_tree_model_get(Model, Iter, 0, &Index0, -1);
+		if (Index0 == Index) {
+			gtk_list_store_remove(Console->ThreadStore, Iter);
+			break;
+		}
+	} while (gtk_tree_model_iter_next(Model, Iter));
+	gtk_tree_store_clear(Console->FrameStore);
+	if (!gtk_tree_model_iter_n_children(Model, NULL)) {
+		gtk_widget_hide(Console->DebugButtons);
+	} else {
+		// TODO: Select another thread
+		GtkTreeSelection *Selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(Console->ThreadView));
+		gtk_tree_selection_unselect_all(Selection);
+	}
 	return interactive_debugger_resume(Debugger);
 }
 
@@ -654,10 +782,40 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 	GtkSourceStyleSchemeManager *StyleManager = gtk_source_style_scheme_manager_get_default();
 	Console->SourceBuffer = gtk_source_buffer_new_with_language(Console->Language);
 
+	Console->LogScrolled = gtk_scrolled_window_new(NULL, NULL);
+	gtk_container_add(GTK_CONTAINER(Console->LogScrolled), Console->LogView);
 
+	GtkWidget *Notebook = gtk_notebook_new();
+	gtk_notebook_append_page(GTK_NOTEBOOK(Notebook), Console->LogScrolled, gtk_label_new("Output"));
+
+
+	Console->ThreadStore = gtk_list_store_new(3, G_TYPE_INT, G_TYPE_STRING, G_TYPE_INT);
+	gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(Console->ThreadStore), 0, GTK_SORT_ASCENDING);
+	Console->FrameStore = gtk_tree_store_new(4, G_TYPE_STRING, G_TYPE_INT, G_TYPE_STRING, G_TYPE_STRING);
+	GtkWidget *ThreadView = Console->ThreadView = gtk_tree_view_new_with_model(GTK_TREE_MODEL(Console->ThreadStore));
+	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(ThreadView), -1, "Thread", gtk_cell_renderer_text_new(), "text", 0, NULL);
+	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(ThreadView), -1, "Source", gtk_cell_renderer_text_new(), "text", 1, NULL);
+	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(ThreadView), -1, "Line", gtk_cell_renderer_text_new(), "text", 2, NULL);
+	gtk_tree_view_set_activate_on_single_click(GTK_TREE_VIEW(ThreadView), TRUE);
+	g_signal_connect(G_OBJECT(ThreadView), "row-activated", G_CALLBACK(console_thread_activated), Console);
+	GtkWidget *FrameView = Console->FrameView = gtk_tree_view_new_with_model(GTK_TREE_MODEL(Console->FrameStore));
+	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(FrameView), -1, "Source", gtk_cell_renderer_text_new(), "text", 0, NULL);
+	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(FrameView), -1, "Line", gtk_cell_renderer_text_new(), "text", 1, NULL);
+	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(FrameView), -1, "Name", gtk_cell_renderer_text_new(), "text", 2, NULL);
+	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(FrameView), -1, "Value", gtk_cell_renderer_text_new(), "text", 3, NULL);
+	gtk_tree_view_set_activate_on_single_click(GTK_TREE_VIEW(FrameView), TRUE);
+	GtkWidget *Debugging = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
+	gtk_paned_add1(GTK_PANED(Debugging), ThreadView);
+	gtk_paned_add2(GTK_PANED(Debugging), FrameView);
+	gtk_paned_set_position(GTK_PANED(Debugging), 200);
+	gtk_notebook_append_page(GTK_NOTEBOOK(Notebook), Debugging, gtk_label_new("Debug"));
+
+	Console->Paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
+	gtk_paned_add1(GTK_PANED(Console->Paned), Notebook);
+	gtk_paned_add2(GTK_PANED(Console->Paned), GTK_WIDGET(Console->Notebook));
+	gtk_paned_set_position(GTK_PANED(Console->Paned), 500);
 
 	GtkWidget *InputPanel = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2);
-
 	GtkWidget *DebugButtons = Console->DebugButtons = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2);
 	GtkWidget *StepInButton = gtk_button_new();
 	gtk_button_set_label(GTK_BUTTON(StepInButton), "In");
@@ -676,13 +834,10 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 	g_signal_connect(G_OBJECT(StepOutButton), "clicked", G_CALLBACK(console_step_out), Console);
 	g_signal_connect(G_OBJECT(ContinueButton), "clicked", G_CALLBACK(console_continue), Console);
 	gtk_box_pack_start(GTK_BOX(InputPanel), DebugButtons, FALSE, FALSE, 2);
-
 	GtkWidget *SubmitButton = gtk_button_new();
 	gtk_button_set_image(GTK_BUTTON(SubmitButton), gtk_image_new_from_icon_name("go-jump-symbolic", GTK_ICON_SIZE_BUTTON));
 	GtkWidget *ClearButton = gtk_button_new();
 	gtk_button_set_image(GTK_BUTTON(ClearButton), gtk_image_new_from_icon_name("edit-delete-symbolic", GTK_ICON_SIZE_BUTTON));
-	Console->LogScrolled = gtk_scrolled_window_new(NULL, NULL);
-	gtk_container_add(GTK_CONTAINER(Console->LogScrolled), Console->LogView);
 	gtk_box_pack_start(GTK_BOX(InputPanel), Console->InputView, TRUE, TRUE, 2);
 	gtk_box_pack_start(GTK_BOX(InputPanel), SubmitButton, FALSE, FALSE, 2);
 	gtk_box_pack_start(GTK_BOX(InputPanel), ClearButton, FALSE, FALSE, 2);
@@ -693,11 +848,6 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 
 	GtkWidget *FontButton = gtk_font_button_new();
 	g_signal_connect(G_OBJECT(FontButton), "font-set", G_CALLBACK(console_font_changed), Console);
-
-	Console->Paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
-	gtk_paned_add1(GTK_PANED(Console->Paned), Console->LogScrolled);
-	gtk_paned_add2(GTK_PANED(Console->Paned), GTK_WIDGET(Console->Notebook));
-	gtk_paned_set_position(GTK_PANED(Console->Paned), 500);
 
 	GtkWidget *SourceView = Console->SourceView = gtk_source_view_new_with_buffer(Console->SourceBuffer);
 	gtk_text_view_set_monospace(GTK_TEXT_VIEW(SourceView), TRUE);
