@@ -772,7 +772,7 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLIntegerT, ml_value_t *Index
 
 static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLListT, ml_value_t *Index, ml_array_indexer_t *Indexer) {
 	int Count = Indexer->Target->Size = ml_list_length(Index);
-	if (!Count) return ml_error("IndexError", "Empty dimension");
+	if (!Count) return MLNil;
 	int *Indices = Indexer->Target->Indices = (int *)snew(Count * sizeof(int));
 	int *IndexPtr = Indices;
 	ml_value_t *Index0 = ((ml_list_t *)Index)->Head->Value;
@@ -873,7 +873,6 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLTupleT, ml_value_t *Index, 
 		Indexer->Address += Indexer->Source->Stride * IndexValue;
 		++Indexer->Source;
 	}
-	++Indexer->Target;
 	return NULL;
 }
 
@@ -1042,7 +1041,7 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayT, ml_value_t *Index, 
 		}
 	}
 	int Count = Indexer->Target->Size = ml_array_count_nonzero(Array);
-	if (!Count) return ml_error("ShapeError", "Empty dimension");
+	if (!Count) return MLNil;
 	int *Indices = Indexer->Target->Indices = (int *)snew(Count * sizeof(int));
 	ml_array_offsets_nonzero(Array, Indices, Indexer->Source);
 	int First = Indices[0];
@@ -1119,12 +1118,6 @@ ML_METHOD("[]", MLArrayT, MLMapT) {
 		Indices[Index] = Iter->Value;
 	}
 	return ml_array_index(Source, Degree, Indices);
-}
-
-ML_METHOD("[]", MLArrayT, MLTupleT) {
-	ml_array_t *Source = (ml_array_t *)Args[0];
-	ml_tuple_t *Tuple = (ml_tuple_t *)Args[1];
-	return ml_array_index(Source, Tuple->Size, Tuple->Values);
 }
 
 static char *ml_array_indexv(ml_array_t *Array, va_list Indices) {
