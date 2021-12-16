@@ -424,10 +424,5 @@ void ml_stream_init(stringmap_t *Globals) {
 	stringmap_insert(MLStreamT->Exports, "fd", MLStreamFdT);
 	if (Globals) {
 		stringmap_insert(Globals, "stream", MLStreamT);
-		stringmap_insert(Globals, "terminal", ml_module("terminal",
-			"stdin", ml_fd_new(STDIN_FILENO),
-			"stdout", ml_fd_new(STDOUT_FILENO),
-			"stderr", ml_fd_new(STDERR_FILENO),
-		NULL));
 	}
 }

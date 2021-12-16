@@ -231,6 +231,11 @@ int main(int Argc, const char *Argv[]) {
 #endif
 
 	ml_stream_init(IO_EXPORTS);
+	stringmap_insert(IO_EXPORTS, "terminal", ml_module("terminal",
+		"stdin", ml_fd_new(STDIN_FILENO),
+		"stdout", ml_fd_new(STDOUT_FILENO),
+		"stderr", ml_fd_new(STDERR_FILENO),
+	NULL));
 #ifdef ML_CBOR
 	ml_cbor_init(FMT_EXPORTS);
 #endif

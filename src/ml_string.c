@@ -1184,6 +1184,11 @@ ML_METHOD("get", MLStringBufferT) {
 	return ml_stringbuffer_get_value(Buffer);
 }
 
+ML_METHOD("length", MLStringBufferT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	return ml_integer(Buffer->Length);
+}
+
 int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t)) {
 	ml_stringbuffer_node_t *Node = Buffer->Head;
 	if (!Node) return 0;
