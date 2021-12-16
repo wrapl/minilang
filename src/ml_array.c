@@ -762,8 +762,8 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLNilT, ml_value_t *Index, ml
 static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLIntegerT, ml_value_t *Index, ml_array_indexer_t *Indexer) {
 	int IndexValue = ml_integer_value(Index);
 	if (IndexValue <= 0) IndexValue += Indexer->Source->Size + 1;
-	if (--IndexValue < 0) return MLNil;
-	if (IndexValue >= Indexer->Source->Size) return MLNil;
+	if (--IndexValue < 0) return MLNilAssignable;
+	if (IndexValue >= Indexer->Source->Size) return MLNilAssignable;
 	if (Indexer->Source->Indices) IndexValue = Indexer->Source->Indices[IndexValue];
 	Indexer->Address += Indexer->Source->Stride * IndexValue;
 	++Indexer->Source;
@@ -772,7 +772,7 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLIntegerT, ml_value_t *Index
 
 static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLListT, ml_value_t *Index, ml_array_indexer_t *Indexer) {
 	int Count = Indexer->Target->Size = ml_list_length(Index);
-	if (!Count) return MLNil;
+	if (!Count) return MLNilAssignable;
 	int *Indices = Indexer->Target->Indices = (int *)snew(Count * sizeof(int));
 	int *IndexPtr = Indices;
 	ml_value_t *Index0 = ((ml_list_t *)Index)->Head->Value;
@@ -787,8 +787,8 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLListT, ml_value_t *Index, m
 			for (int I = 0; I < Size; ++I) {
 				int IndexValue = ml_integer_value(Values[I]);
 				if (IndexValue <= 0) IndexValue += Source->Size + 1;
-				if (--IndexValue < 0) return MLNil;
-				if (IndexValue >= Indexer->Source->Size) return MLNil;
+				if (--IndexValue < 0) return MLNilAssignable;
+				if (IndexValue >= Indexer->Source->Size) return MLNilAssignable;
 				if (Source->Indices) IndexValue = Source->Indices[IndexValue];
 				Address += IndexValue * Source->Stride;
 				++Source;
@@ -805,16 +805,16 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLListT, ml_value_t *Index, m
 			ML_LIST_FOREACH(Index, Iter) {
 				int IndexValue = ml_integer_value(Iter->Value);
 				if (IndexValue <= 0) IndexValue += Indexer->Source->Size + 1;
-				if (--IndexValue < 0) return MLNil;
-				if (IndexValue >= Indexer->Source->Size) return MLNil;
+				if (--IndexValue < 0) return MLNilAssignable;
+				if (IndexValue >= Indexer->Source->Size) return MLNilAssignable;
 				*IndexPtr++ = Indexer->Source->Indices[IndexValue];
 			}
 		} else {
 			ML_LIST_FOREACH(Index, Iter) {
 				int IndexValue = ml_integer_value(Iter->Value);
 				if (IndexValue <= 0) IndexValue += Indexer->Source->Size + 1;
-				if (--IndexValue < 0) return MLNil;
-				if (IndexValue >= Indexer->Source->Size) return MLNil;
+				if (--IndexValue < 0) return MLNilAssignable;
+				if (IndexValue >= Indexer->Source->Size) return MLNilAssignable;
 				*IndexPtr++ = IndexValue;
 			}
 		}
@@ -835,13 +835,13 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLIntegerRangeT, ml_value_t *
 	int Step = IndexValue->Step;
 	if (Min < 1) Min += Indexer->Source->Size + 1;
 	if (Max < 1) Max += Indexer->Source->Size + 1;
-	if (--Min < 0) return MLNil;
-	if (Min >= Indexer->Source->Size) return MLNil;
-	if (--Max < 0) return MLNil;
-	if (Max >= Indexer->Source->Size) return MLNil;
-	if (Step == 0) return MLNil;
+	if (--Min < 0) return MLNilAssignable;
+	if (Min >= Indexer->Source->Size) return MLNilAssignable;
+	if (--Max < 0) return MLNilAssignable;
+	if (Max >= Indexer->Source->Size) return MLNilAssignable;
+	if (Step == 0) return MLNilAssignable;
 	int Size = Indexer->Target->Size = (Max - Min) / Step + 1;
-	if (Size < 0) return MLNil;
+	if (Size < 0) return MLNilAssignable;
 	if (Indexer->Source->Indices) {
 		int *Indices = Indexer->Target->Indices = (int *)snew(Size * sizeof(int));
 		int *IndexPtr = Indices;
@@ -867,8 +867,8 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLTupleT, ml_value_t *Index, 
 		if (!ml_is(TupleValues[I], MLIntegerT)) return ml_error("TypeError", "Expected integer in tuple index");
 		int IndexValue = ml_integer_value(TupleValues[I]);
 		if (IndexValue <= 0) IndexValue += Indexer->Source->Size + 1;
-		if (--IndexValue < 0) return MLNil;
-		if (IndexValue >= Indexer->Source->Size) return MLNil;
+		if (--IndexValue < 0) return MLNilAssignable;
+		if (IndexValue >= Indexer->Source->Size) return MLNilAssignable;
 		if (Indexer->Source->Indices) IndexValue = Indexer->Source->Indices[IndexValue];
 		Indexer->Address += Indexer->Source->Stride * IndexValue;
 		++Indexer->Source;
@@ -1041,7 +1041,7 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayT, ml_value_t *Index, 
 		}
 	}
 	int Count = Indexer->Target->Size = ml_array_count_nonzero(Array);
-	if (!Count) return MLNil;
+	if (!Count) return MLNilAssignable;
 	int *Indices = Indexer->Target->Indices = (int *)snew(Count * sizeof(int));
 	ml_array_offsets_nonzero(Array, Indices, Indexer->Source);
 	int First = Indices[0];

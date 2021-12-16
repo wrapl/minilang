@@ -479,9 +479,24 @@ ML_TYPE(MLBlankT, (), "blank",
 	.assign = ml_blank_assign
 );
 
+static ml_value_t *ml_nil_assignable_deref(ml_value_t *Value) {
+	return MLNil;
+}
+
+static void ml_nil_assignable_assign(ml_state_t *Caller, ml_value_t *Ref, ml_value_t *Value) {
+	ML_RETURN(Value);
+}
+
+ML_TYPE(MLNilAssignableT, (), "nil-assignable",
+//!internal
+	.deref = (void *)ml_nil_assignable_deref,
+	.assign = (void *)ml_nil_assignable_assign
+);
+
 ML_VALUE(MLNil, MLNilT);
 ML_VALUE(MLSome, MLSomeT);
 ML_VALUE(MLBlank, MLBlankT);
+ML_VALUE(MLNilAssignable, MLNilAssignableT);
 
 #ifdef ML_GENERICS
 

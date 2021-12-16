@@ -234,6 +234,7 @@ extern ml_type_t MLBlankT[];
 extern ml_value_t MLNil[];
 extern ml_value_t MLSome[];
 extern ml_value_t MLBlank[];
+extern ml_value_t MLNilAssignable[];
 
 void ml_value_set_name(ml_value_t *Value, const char *Name);
 
