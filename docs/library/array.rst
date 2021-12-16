@@ -90,6 +90,9 @@ array
    Return the size of :mini:`Array` in bytes.
 
 
+:mini:`type array::nil < array`
+   *TBD*
+
 :mini:`meth (Array: array)[Indices...: any]: array`
    Returns a sub-array of :mini:`Array` sharing the underlying data.
 
@@ -101,6 +104,12 @@ array
 
    * If :mini:`Indexᵢ` is a list of integers then the :mini:`i`-th dimension is copied as a sparse dimension with the respective entries.
 
+   * If :mini:`Indexᵢ` is a tuple of integers then each dimension is indexed by the corresponding integer in turn (i.e. :mini:`A[(I,  J,  K)]` gives the same result as :mini:`A[I,  J,  K]`).
+
+   * If :mini:`Indexᵢ` is a list of tuples of integers then a sparse dimension is added with the corresponding entries.
+
+   * If :mini:`Indexᵢ` is another array with dimensions that matches the corresponding dimensions of :mini:`A` then a sparse dimension is added with entries corresponding to the non-zero values in :mini:`Indexᵢ` (i.e. :mini:`A[B]` is equivalent to :mini:`A[B:where]`).
+
    If fewer than :mini:`A:degree` indices are provided then the remaining dimensions are copied unchanged.
 
 
@@ -109,9 +118,6 @@ array
 
    The :mini:`i`-th dimension is indexed by :mini:`Indices[i]` if present,  and :mini:`nil` otherwise.
 
-
-:mini:`meth (Arg₁: array)[Arg₂: tuple]`
-   *TBD*
 
 :mini:`fun mlarray ## suffix ## new()`
    *TBD*
@@ -519,8 +525,8 @@ array
    Update the values in :mini:`Array` in place by applying :mini:`Function` to each value.
 
 
-:mini:`meth (Array: array):where(Function: function): array`
-   Update the values in :mini:`Array` in place by applying :mini:`Function` to each value.
+:mini:`meth (Array: array):where(Function: function): list[tuple]`
+   Returns list of indices :mini:`Array` where :mini:`Function(Arrayᵢ)` returns a non-nil value.
 
 
 :mini:`meth (Array: array):where: list`

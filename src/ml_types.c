@@ -479,24 +479,9 @@ ML_TYPE(MLBlankT, (), "blank",
 	.assign = ml_blank_assign
 );
 
-static ml_value_t *ml_nil_assignable_deref(ml_value_t *Value) {
-	return MLNil;
-}
-
-static void ml_nil_assignable_assign(ml_state_t *Caller, ml_value_t *Ref, ml_value_t *Value) {
-	ML_RETURN(Value);
-}
-
-ML_TYPE(MLNilAssignableT, (), "nil-assignable",
-//!internal
-	.deref = (void *)ml_nil_assignable_deref,
-	.assign = (void *)ml_nil_assignable_assign
-);
-
 ML_VALUE(MLNil, MLNilT);
 ML_VALUE(MLSome, MLSomeT);
 ML_VALUE(MLBlank, MLBlankT);
-ML_VALUE(MLNilAssignable, MLNilAssignableT);
 
 #ifdef ML_GENERICS
 
@@ -2605,8 +2590,9 @@ ML_METHOD("by", MLIntegerRangeT, MLIntegerT) {
 
 ML_METHOD("count", MLIntegerRangeT) {
 //!range
-//<X
+//<Range
 //>integer
+// Returns the number of values in :mini:`Range`.
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
 	int64_t Diff = Range->Limit - Range->Start;
 	if (!Range->Step) {
@@ -2618,6 +2604,33 @@ ML_METHOD("count", MLIntegerRangeT) {
 	} else {
 		return ml_integer(Diff / Range->Step + 1);
 	}
+}
+
+ML_METHOD("start", MLIntegerRangeT) {
+//!range
+//<Range
+//>integer
+// Returns the start of :mini:`Range`.
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
+	return ml_integer(Range->Start);
+}
+
+ML_METHOD("limit", MLIntegerRangeT) {
+//!range
+//<Range
+//>integer
+// Returns the limit of :mini:`Range`.
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
+	return ml_integer(Range->Limit);
+}
+
+ML_METHOD("step", MLIntegerRangeT) {
+//!range
+//<Range
+//>integer
+// Returns the limit of :mini:`Range`.
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
+	return ml_integer(Range->Step);
 }
 
 ML_METHOD("in", MLIntegerT, MLIntegerRangeT) {
@@ -2856,10 +2869,38 @@ ML_METHOD("bin", MLRealRangeT, MLDoubleT) {
 
 ML_METHOD("count", MLRealRangeT) {
 //!range
-//<X
+//<Range
 //>integer
+// Returns the number of values in :mini:`Range`.
 	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
 	return ml_integer(Range->Count);
+}
+
+ML_METHOD("start", MLRealRangeT) {
+//!range
+//<Range
+//>real
+// Returns the start of :mini:`Range`.
+	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
+	return ml_real(Range->Start);
+}
+
+ML_METHOD("limit", MLRealRangeT) {
+//!range
+//<Range
+//>real
+// Returns the limit of :mini:`Range`.
+	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
+	return ml_real(Range->Limit);
+}
+
+ML_METHOD("step", MLRealRangeT) {
+//!range
+//<Range
+//>real
+// Returns the step of :mini:`Range`.
+	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
+	return ml_real(Range->Step);
 }
 
 ML_METHOD("in", MLIntegerT, MLRealRangeT) {

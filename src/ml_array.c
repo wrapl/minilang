@@ -759,11 +759,28 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLNilT, ml_value_t *Index, ml
 	return NULL;
 }
 
+static ml_value_t *ml_array_nil_deref(ml_value_t *Array) {
+	return Array;
+}
+
+static void ml_array_nil_assign(ml_state_t *Caller, ml_value_t *Array, ml_value_t *Value) {
+	ML_RETURN(Value);
+}
+
+ML_TYPE(MLArrayNilT, (MLArrayT), "array::nil",
+	.deref = (void *)ml_array_nil_deref,
+	.assign = (void *)ml_array_nil_assign
+);
+
+static ml_array_t MLArrayNil[1] = {{
+	{MLArrayNilT, NULL, 0}, -1, ML_ARRAY_FORMAT_NONE
+}};
+
 static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLIntegerT, ml_value_t *Index, ml_array_indexer_t *Indexer) {
 	int IndexValue = ml_integer_value(Index);
 	if (IndexValue <= 0) IndexValue += Indexer->Source->Size + 1;
-	if (--IndexValue < 0) return MLNilAssignable;
-	if (IndexValue >= Indexer->Source->Size) return MLNilAssignable;
+	if (--IndexValue < 0) return (ml_value_t *)MLArrayNil;
+	if (IndexValue >= Indexer->Source->Size) return (ml_value_t *)MLArrayNil;
 	if (Indexer->Source->Indices) IndexValue = Indexer->Source->Indices[IndexValue];
 	Indexer->Address += Indexer->Source->Stride * IndexValue;
 	++Indexer->Source;
@@ -772,7 +789,7 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLIntegerT, ml_value_t *Index
 
 static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLListT, ml_value_t *Index, ml_array_indexer_t *Indexer) {
 	int Count = Indexer->Target->Size = ml_list_length(Index);
-	if (!Count) return MLNilAssignable;
+	if (!Count) return (ml_value_t *)MLArrayNil;
 	int *Indices = Indexer->Target->Indices = (int *)snew(Count * sizeof(int));
 	int *IndexPtr = Indices;
 	ml_value_t *Index0 = ((ml_list_t *)Index)->Head->Value;
@@ -787,8 +804,8 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLListT, ml_value_t *Index, m
 			for (int I = 0; I < Size; ++I) {
 				int IndexValue = ml_integer_value(Values[I]);
 				if (IndexValue <= 0) IndexValue += Source->Size + 1;
-				if (--IndexValue < 0) return MLNilAssignable;
-				if (IndexValue >= Indexer->Source->Size) return MLNilAssignable;
+				if (--IndexValue < 0) return (ml_value_t *)MLArrayNil;
+				if (IndexValue >= Indexer->Source->Size) return (ml_value_t *)MLArrayNil;
 				if (Source->Indices) IndexValue = Source->Indices[IndexValue];
 				Address += IndexValue * Source->Stride;
 				++Source;
@@ -805,16 +822,16 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLListT, ml_value_t *Index, m
 			ML_LIST_FOREACH(Index, Iter) {
 				int IndexValue = ml_integer_value(Iter->Value);
 				if (IndexValue <= 0) IndexValue += Indexer->Source->Size + 1;
-				if (--IndexValue < 0) return MLNilAssignable;
-				if (IndexValue >= Indexer->Source->Size) return MLNilAssignable;
+				if (--IndexValue < 0) return (ml_value_t *)MLArrayNil;
+				if (IndexValue >= Indexer->Source->Size) return (ml_value_t *)MLArrayNil;
 				*IndexPtr++ = Indexer->Source->Indices[IndexValue];
 			}
 		} else {
 			ML_LIST_FOREACH(Index, Iter) {
 				int IndexValue = ml_integer_value(Iter->Value);
 				if (IndexValue <= 0) IndexValue += Indexer->Source->Size + 1;
-				if (--IndexValue < 0) return MLNilAssignable;
-				if (IndexValue >= Indexer->Source->Size) return MLNilAssignable;
+				if (--IndexValue < 0) return (ml_value_t *)MLArrayNil;
+				if (IndexValue >= Indexer->Source->Size) return (ml_value_t *)MLArrayNil;
 				*IndexPtr++ = IndexValue;
 			}
 		}
@@ -835,13 +852,13 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLIntegerRangeT, ml_value_t *
 	int Step = IndexValue->Step;
 	if (Min < 1) Min += Indexer->Source->Size + 1;
 	if (Max < 1) Max += Indexer->Source->Size + 1;
-	if (--Min < 0) return MLNilAssignable;
-	if (Min >= Indexer->Source->Size) return MLNilAssignable;
-	if (--Max < 0) return MLNilAssignable;
-	if (Max >= Indexer->Source->Size) return MLNilAssignable;
-	if (Step == 0) return MLNilAssignable;
+	if (--Min < 0) return (ml_value_t *)MLArrayNil;
+	if (Min >= Indexer->Source->Size) return (ml_value_t *)MLArrayNil;
+	if (--Max < 0) return (ml_value_t *)MLArrayNil;
+	if (Max >= Indexer->Source->Size) return (ml_value_t *)MLArrayNil;
+	if (Step == 0) return (ml_value_t *)MLArrayNil;
 	int Size = Indexer->Target->Size = (Max - Min) / Step + 1;
-	if (Size < 0) return MLNilAssignable;
+	if (Size < 0) return (ml_value_t *)MLArrayNil;
 	if (Indexer->Source->Indices) {
 		int *Indices = Indexer->Target->Indices = (int *)snew(Size * sizeof(int));
 		int *IndexPtr = Indices;
@@ -867,8 +884,8 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLTupleT, ml_value_t *Index, 
 		if (!ml_is(TupleValues[I], MLIntegerT)) return ml_error("TypeError", "Expected integer in tuple index");
 		int IndexValue = ml_integer_value(TupleValues[I]);
 		if (IndexValue <= 0) IndexValue += Indexer->Source->Size + 1;
-		if (--IndexValue < 0) return MLNilAssignable;
-		if (IndexValue >= Indexer->Source->Size) return MLNilAssignable;
+		if (--IndexValue < 0) return (ml_value_t *)MLArrayNil;
+		if (IndexValue >= Indexer->Source->Size) return (ml_value_t *)MLArrayNil;
 		if (Indexer->Source->Indices) IndexValue = Indexer->Source->Indices[IndexValue];
 		Indexer->Address += Indexer->Source->Stride * IndexValue;
 		++Indexer->Source;
@@ -1041,7 +1058,7 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayT, ml_value_t *Index, 
 		}
 	}
 	int Count = Indexer->Target->Size = ml_array_count_nonzero(Array);
-	if (!Count) return MLNilAssignable;
+	if (!Count) return (ml_value_t *)MLArrayNil;
 	int *Indices = Indexer->Target->Indices = (int *)snew(Count * sizeof(int));
 	ml_array_offsets_nonzero(Array, Indices, Indexer->Source);
 	int First = Indices[0];
@@ -1096,6 +1113,9 @@ ML_METHODV("[]", MLArrayT) {
 // * If :mini:`Index/i` is :mini:`nil` then the :mini:`i`-th dimension is copied unchanged.
 // * If :mini:`Index/i` is an integer then the :mini:`Index/i`-th value is selected and the :mini:`i`-th dimension is dropped from the result.
 // * If :mini:`Index/i` is a list of integers then the :mini:`i`-th dimension is copied as a sparse dimension with the respective entries.
+// * If :mini:`Index/i` is a tuple of integers then each dimension is indexed by the corresponding integer in turn (i.e. :mini:`A[(I, J, K)]` gives the same result as :mini:`A[I, J, K]`).
+// * If :mini:`Index/i` is a list of tuples of integers then a sparse dimension is added with the corresponding entries.
+// * If :mini:`Index/i` is another array with dimensions that matches the corresponding dimensions of :mini:`A` then a sparse dimension is added with entries corresponding to the non-zero values in :mini:`Index/i` (i.e. :mini:`A[B]` is equivalent to :mini:`A[B:where]`).
 // If fewer than :mini:`A:degree` indices are provided then the remaining dimensions are copied unchanged.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	return ml_array_index(Source, Count - 1, Args + 1);
@@ -1451,7 +1471,9 @@ static void update_prefix(int Op, int PrefixDegree, ml_array_dimension_t *Target
 
 static ml_value_t *update_array_fn(void *Data, int Count, ml_value_t **Args) {
 	ml_array_t *Target = (ml_array_t *)Args[0];
+	if (Target->Degree == -1) return (ml_value_t *)Target;
 	ml_array_t *Source = (ml_array_t *)Args[1];
+	if (Source->Degree == -1) return (ml_value_t *)Target;
 	if (Source->Degree > Target->Degree) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__);
 	int PrefixDegree = Target->Degree - Source->Degree;
 	for (int I = 0; I < Source->Degree; ++I) {
@@ -2711,31 +2733,20 @@ ML_METHOD("-", MLArrayT) {
 
 static ml_value_t *array_math_real_fn(double (*fn)(double), int Count, ml_value_t **Args) {
 	ml_array_t *A = (ml_array_t *)Args[0];
+	if (A->Degree == -1) return (ml_value_t *)A;
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation");
 	int Degree = A->Degree;
 	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_F64, Degree);
 	int DataSize = array_copy(C, A);
-	switch (C->Format) {
-	case ML_ARRAY_FORMAT_F32: {
-		float *Values = (float *)C->Base.Value;
-		for (int I = DataSize / sizeof(float); --I >= 0; ++Values) *Values = fn(*Values);
-		break;
-	}
-	case ML_ARRAY_FORMAT_F64: {
-		double *Values = (double *)C->Base.Value;
-		for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = fn(*Values);
-		break;
-	}
-	default: {
-		return ml_error("TypeError", "Invalid types for array operation");
-	}
-	}
+	double *Values = (double *)C->Base.Value;
+	for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = fn(*Values);
 	return (ml_value_t *)C;
 }
 
 #ifdef ML_COMPLEX
 static ml_value_t *array_math_complex_fn(complex_double (*fn)(complex_double), int Count, ml_value_t **Args) {
 	ml_array_t *A = (ml_array_t *)Args[0];
+	if (A->Degree == -1) return (ml_value_t *)A;
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation");
 	int Degree = A->Degree;
 	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_C64, Degree);
@@ -2747,6 +2758,7 @@ static ml_value_t *array_math_complex_fn(complex_double (*fn)(complex_double), i
 
 static ml_value_t *array_math_complex_real_fn(double (*fn)(complex_double), int Count, ml_value_t **Args) {
 	ml_array_t *A = (ml_array_t *)Args[0];
+	if (A->Degree == -1) return (ml_value_t *)A;
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation");
 	int Degree = A->Degree;
 	ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_C64, Degree);
@@ -2763,7 +2775,9 @@ static ml_value_t *array_math_complex_real_fn(double (*fn)(complex_double), int 
 
 static ml_value_t *array_infix_fn(void *Data, int Count, ml_value_t **Args) {
 	ml_array_t *A = (ml_array_t *)Args[0];
+	if (A->Degree == -1) return (ml_value_t *)A;
 	ml_array_t *B = (ml_array_t *)Args[1];
+	if (B->Degree == -1) return (ml_value_t *)B;
 	int Base = ((char *)Data - (char *)0);
 	if (A->Degree < B->Degree) {
 		ml_array_t *T = A;
@@ -2830,6 +2844,7 @@ ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 // Returns an array :mini:`C` where :mini:`C/v := A/v OP B`.
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
+	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	int64_t B = ml_integer_value_fast(Args[1]); \
 	int Degree = A->Degree; \
@@ -2871,6 +2886,7 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 // Returns an array :mini:`C` where :mini:`C/v := A OP B/v`.
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
+	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	int64_t B = ml_integer_value_fast(Args[0]); \
 	int Degree = A->Degree; \
@@ -2912,6 +2928,7 @@ ML_METHOD(#OP, MLArrayT, MLDoubleT) { \
 // Returns an array :mini:`C` where :mini:`C/v := A/v OP B`.
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
+	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	double B = ml_double_value_fast(Args[1]); \
 	int Degree = A->Degree; \
@@ -2938,6 +2955,7 @@ ML_METHOD(#OP, MLDoubleT, MLArrayT) { \
 // Returns an array :mini:`C` where :mini:`C/v := A OP B/v`.
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
+	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	double B = ml_double_value_fast(Args[0]); \
 	int Degree = A->Degree; \
@@ -2969,6 +2987,7 @@ ML_METHOD(#OP, MLArrayT, MLComplexT) { \
 // Returns an array :mini:`C` where :mini:`C/v := A/v OP B`.
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
+	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	complex_double B = ml_complex_value_fast(Args[1]); \
 	int Degree = A->Degree; \
@@ -2986,6 +3005,7 @@ ML_METHOD(#OP, MLComplexT, MLArrayT) { \
 // Returns an array :mini:`C` where :mini:`C/v := A OP B/v`.
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
+	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	complex_double B = ml_complex_value_fast(Args[0]); \
 	int Degree = A->Degree; \
@@ -3017,6 +3037,7 @@ ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 // Returns an array :mini:`C` where :mini:`C/v := if A/v OP B then 1 else 0 end`.
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
+	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	int64_t B = ml_integer_value_fast(Args[1]); \
 	int Degree = A->Degree; \
@@ -3041,6 +3062,7 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 // Returns an array :mini:`C` where :mini:`C/v := if A OP B/v then 1 else 0 end`.
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
+	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	int64_t B = ml_integer_value_fast(Args[0]); \
 	int Degree = A->Degree; \
@@ -3065,6 +3087,7 @@ ML_METHOD(#OP, MLArrayT, MLDoubleT) { \
 // Returns an array :mini:`C` where :mini:`C/v := if A/v OP B then 1 else 0 end`.
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
+	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	double B = ml_double_value_fast(Args[1]); \
 	int Degree = A->Degree; \
@@ -3089,6 +3112,7 @@ ML_METHOD(#OP, MLDoubleT, MLArrayT) { \
 // Returns an array :mini:`C` where :mini:`C/v := if A OP B/v then 1 else 0 end`.
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
+	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	double B = ml_double_value_fast(Args[0]); \
 	int Degree = A->Degree; \
@@ -3118,6 +3142,7 @@ ML_METHOD(#OP, MLArrayT, MLComplexT) { \
 // Returns an array :mini:`C` where :mini:`C/v := if A/v OP B then 1 else 0 end`.
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
+	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	double B = ml_complex_value_fast(Args[1]); \
 	int Degree = A->Degree; \
@@ -3142,6 +3167,7 @@ ML_METHOD(#OP, MLComplexT, MLArrayT) { \
 // Returns an array :mini:`C` where :mini:`C/v := if A OP B/v then 1 else 0 end`.
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
+	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	double B = ml_double_value_fast(Args[0]); \
 	int Degree = A->Degree; \
@@ -3347,6 +3373,7 @@ ML_METHOD("copy", MLArrayT) {
 //>array
 // Return a new array with the same values of :mini:`Array` but not sharing the underlying data.
 	ml_array_t *Source = (ml_array_t *)Args[0];
+	if (Source->Degree == -1) return (ml_value_t *)Source; \
 	ml_array_t *Target = ml_array_new(Source->Format, Source->Degree);
 	array_copy(Target, Source);
 	return (ml_value_t *)Target;
@@ -3444,6 +3471,7 @@ ML_METHODX("copy", MLArrayT, MLFunctionT) {
 // Return a new array with the results of applying :mini:`Function` to each value of :mini:`Array`.
 	ml_array_t *A = (ml_array_t *)Args[0];
 	int Degree = A->Degree;
+	if (Degree == -1) ML_RETURN(A);
 	ml_array_t *C = ml_array_new(A->Format, Degree);
 	int Remaining = array_copy(C, A) / MLArraySizes[C->Format];
 	if (Remaining == 0) ML_RETURN(C);
@@ -3593,6 +3621,7 @@ ML_METHODX("update", MLArrayT, MLFunctionT) {
 // Update the values in :mini:`Array` in place by applying :mini:`Function` to each value.
 	ml_array_t *A = (ml_array_t *)Args[0];
 	int Degree = A->Degree;
+	if (Degree == -1) ML_RETURN(A);
 	ml_array_update_state_t *State = xnew(ml_array_update_state_t, Degree, int);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
@@ -3755,10 +3784,11 @@ ARRAY_WHERE(any, , );
 ML_METHODX("where", MLArrayT, MLFunctionT) {
 //<Array
 //<Function
-//>array
-// Update the values in :mini:`Array` in place by applying :mini:`Function` to each value.
+//>list[tuple]
+// Returns list of indices :mini:`Array` where :mini:`Function(Array/i)` returns a non-nil value.
 	ml_array_t *A = (ml_array_t *)Args[0];
 	int Degree = A->Degree;
+	if (Degree == -1) ML_RETURN(ml_list());
 	ml_array_where_state_t *State = xnew(ml_array_where_state_t, Degree, int);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
@@ -3944,6 +3974,7 @@ ML_METHOD("where", MLArrayT) {
 //>list
 // Returns a list of non-zero indices of :mini:`Array`.
 	ml_array_t *A = (ml_array_t *)Args[0];
+	if (A->Degree == -1) return ml_list();
 	if (A->Degree == 1) {
 		ml_value_t *Result = ml_list();
 		switch (A->Format) {
@@ -4458,7 +4489,9 @@ ML_METHOD(".", MLArrayT, MLArrayT) {
 //>array
 // Returns the inner product of :mini:`A` and :mini:`B`. The last dimension of :mini:`A` and the first dimension of :mini:`B` must match, skipping any dimensions of size :mini:`1`.
 	ml_array_t *A = (ml_array_t *)Args[0];
+	if (A->Degree == -1) return (ml_value_t *)A;
 	ml_array_t *B = (ml_array_t *)Args[1];
+	if (B->Degree == -1) return (ml_value_t *)B;
 	int DegreeA = A->Degree;
 	int DegreeB = B->Degree;
 	if (!DegreeA || !DegreeB) return ml_error("ShapeError", "Empty array");
@@ -4540,7 +4573,9 @@ ML_METHOD(".", MLArrayT, MLArrayT) {
 
 static ml_value_t *ml_array_pairwise_infix(void *Data, int Count, ml_value_t **Args) {
 	ml_array_t *A = (ml_array_t *)Args[0];
+	if (A->Degree == -1) return (ml_value_t *)A;
 	ml_array_t *B = (ml_array_t *)Args[1];
+	if (B->Degree == -1) return (ml_value_t *)B;
 	int DegreeA = A->Degree;
 	int DegreeB = B->Degree;
 	if (!DegreeA || !DegreeB) return ml_error("ShapeError", "Empty array");
@@ -4787,6 +4822,7 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_method_define(ml_method("$"), MLArrayT->Constructor, 0, MLListT, NULL);
 	stringmap_insert(MLArrayT->Exports, "new", ml_cfunctionx(NULL, ml_array_new_fnx));
 	stringmap_insert(MLArrayT->Exports, "wrap", ml_cfunction(NULL, ml_array_wrap_fn));
+	stringmap_insert(MLArrayT->Exports, "nil", MLArrayNil);
 	stringmap_insert(MLArrayT->Exports, "any", MLArrayAnyT);
 	stringmap_insert(MLArrayT->Exports, "int8", MLArrayInt8T);
 	stringmap_insert(MLArrayT->Exports, "uint8", MLArrayUInt8T);

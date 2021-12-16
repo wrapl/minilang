@@ -451,7 +451,7 @@ ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
 //<List
 //<From
 //<To
-//>listslice
+//>list::slice
 // Returns a slice of :mini:`List` starting at :mini:`From` (inclusive) and ending at :mini:`To` (exclusive).
 // Indexing starts at :mini:`1`. Negative indices are counted from the end of the list, with :mini:`-1` returning the last node.
 	ml_list_t *List = (ml_list_t *)Args[0];
@@ -469,10 +469,9 @@ ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
 
 ML_METHOD("[]", MLListT, MLIntegerRangeT) {
 //<List
-//<From
-//<To
-//>listslice
-// Returns a slice of :mini:`List` starting at :mini:`From` (inclusive) and ending at :mini:`To` (exclusive).
+//<Range
+//>list::slice
+// Returns a slice of :mini:`List` starting at :mini:`Range:start` and ending at :mini:`Range:limit`, both inclusive.
 // Indexing starts at :mini:`1`. Negative indices are counted from the end of the list, with :mini:`-1` returning the last node.
 	ml_list_t *List = (ml_list_t *)Args[0];
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
