@@ -78,7 +78,7 @@ ML_FUNCTION(MLGir) {
 		Version = ml_string_value(Args[1]);
 	}
 	Typelib->Handle = g_irepository_require(NULL, Typelib->Namespace, Version, 0, &Error);
-	if (!Typelib->Handle) return ml_error("GirError", Error->message);
+	if (!Typelib->Handle) return ml_error("GirError", "%s", Error->message);
 	return (ml_value_t *)Typelib;
 }
 

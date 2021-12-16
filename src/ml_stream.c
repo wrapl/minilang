@@ -370,7 +370,7 @@ static void ML_TYPED_FN(ml_stream_read, MLStreamFdT, ml_state_t *Caller, ml_fd_t
 	ssize_t Actual = read(Stream->Fd, Address, Count);
 	ml_value_t *Result;
 	if (Actual < 0) {
-		Result = ml_error("ReadError", strerror(errno));
+		Result = ml_error("ReadError", "%s", strerror(errno));
 	} else {
 		Result = ml_integer(Actual);
 	}
@@ -386,7 +386,7 @@ ML_METHOD("read", MLStreamFdT, MLBufferT) {
 	ml_address_t *Buffer = (ml_address_t *)Args[1];
 	ssize_t Actual = read(Stream->Fd, Buffer->Value, Buffer->Length);
 	if (Actual < 0) {
-		return ml_error("ReadError", strerror(errno));
+		return ml_error("ReadError", "%s", strerror(errno));
 	} else {
 		return ml_integer(Actual);
 	}
@@ -396,7 +396,7 @@ static void ML_TYPED_FN(ml_stream_write, MLStreamFdT, ml_state_t *Caller, ml_fd_
 	ssize_t Actual = write(Stream->Fd, Address, Count);
 	ml_value_t *Result;
 	if (Actual < 0) {
-		Result = ml_error("WriteError", strerror(errno));
+		Result = ml_error("WriteError", "%s", strerror(errno));
 	} else {
 		Result = ml_integer(Actual);
 	}
@@ -412,7 +412,7 @@ ML_METHOD("write", MLStreamFdT, MLAddressT) {
 	ml_address_t *Buffer = (ml_address_t *)Args[1];
 	ssize_t Actual = write(Stream->Fd, Buffer->Value, Buffer->Length);
 	if (Actual < 0) {
-		return ml_error("WriteError", strerror(errno));
+		return ml_error("WriteError", "%s", strerror(errno));
 	} else {
 		return ml_integer(Actual);
 	}

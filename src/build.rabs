@@ -12,6 +12,7 @@ CFLAGS := old + [
 	"-Wno-deprecated-declarations",
 	"-Wno-unused-function",
 	"-Werror=cast-function-type",
+	"-Werror=format-security",
 	:>"-Wsuggest-attribute=pure",
 	:>"-Wsuggest-attribute=const",
 	:>"-Wsuggest-attribute=noreturn",

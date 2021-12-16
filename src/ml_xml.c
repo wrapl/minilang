@@ -249,7 +249,7 @@ ML_METHOD(MLXmlT, MLStringT) {
 	size_t Length = ml_string_length(Args[0]);
 	if (XML_Parse(Handle, Text, Length, 1) == XML_STATUS_ERROR) {
 		enum XML_Error Error = XML_GetErrorCode(Handle);
-		return ml_error("XMLError", XML_ErrorString(Error));
+		return ml_error("XMLError", "%s", XML_ErrorString(Error));
 	}
 	return Result ?: ml_error("XMLError", "Incomplete XML");
 }
@@ -309,7 +309,7 @@ ML_METHOD("decode", MLXmlDecoderT, MLAddressT) {
 	size_t Length = ml_address_length(Args[1]);
 	if (XML_Parse(Decoder->Handle, Text, Length, 0) == XML_STATUS_ERROR) {
 		enum XML_Error Error = XML_GetErrorCode(Decoder->Handle);
-		return ml_error("XMLError", XML_ErrorString(Error));
+		return ml_error("XMLError", "%s", XML_ErrorString(Error));
 	}
 	return Args[0];
 }
@@ -327,7 +327,7 @@ ML_METHOD("decode", MLXmlDecoderT, MLAddressT, MLIntegerT) {
 	}
 	if (XML_Parse(Decoder->Handle, Text, Length, 0) == XML_STATUS_ERROR) {
 		enum XML_Error Error = XML_GetErrorCode(Decoder->Handle);
-		return ml_error("XMLError", XML_ErrorString(Error));
+		return ml_error("XMLError", "%s", XML_ErrorString(Error));
 	}
 	return Args[0];
 }
@@ -338,7 +338,7 @@ ML_METHOD("finish", MLXmlDecoderT) {
 	ml_xml_decoder_t *Decoder = (ml_xml_decoder_t *)Args[0];
 	if (XML_Parse(Decoder->Handle, "", 0, 0) == XML_STATUS_ERROR) {
 		enum XML_Error Error = XML_GetErrorCode(Decoder->Handle);
-		return ml_error("XMLError", XML_ErrorString(Error));
+		return ml_error("XMLError", "%s", XML_ErrorString(Error));
 	}
 	return Args[0];
 }
