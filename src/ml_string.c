@@ -1102,6 +1102,7 @@ ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, siz
 }
 
 ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ...) {
+#ifdef Linux
 	static cookie_io_functions_t CookieFns = {0,
 		.write = (cookie_write_function_t *)ml_stringbuffer_write
 	};
@@ -1109,6 +1110,12 @@ ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ..
 		Buffer->File = fopencookie(Buffer, "w", CookieFns);
 		setvbuf(Buffer->File, NULL, _IONBF, 0);
 	}
+#else
+	if (!Buffer->File) {
+		Buffer->File = fwopen(Buffer, (void *)ml_stringbuffer_write);
+		setvbuf(Buffer->File, NULL, _IONBF, 0);
+	}
+#endif
 	va_list Args;
 	va_start(Args, Format);
 	size_t Length = vfprintf(Buffer->File, Format, Args);
