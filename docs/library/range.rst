@@ -27,8 +27,21 @@ range
    Returns a range with the same limits as :mini:`Range` but with step :mini:`Step`.
 
 
-:mini:`meth (X: integer::range):count: integer`
-   *TBD*
+:mini:`meth (Range: integer::range):count: integer`
+   Returns the number of values in :mini:`Range`.
+
+
+:mini:`meth (Range: integer::range):start: integer`
+   Returns the start of :mini:`Range`.
+
+
+:mini:`meth (Range: integer::range):limit: integer`
+   Returns the limit of :mini:`Range`.
+
+
+:mini:`meth (Range: integer::range):step: integer`
+   Returns the limit of :mini:`Range`.
+
 
 :mini:`meth (X: integer):in(Range: integer::range): X | nil`
    *TBD*
@@ -75,8 +88,21 @@ range
 :mini:`meth (Range: real::range):bin(Value: double): integer | nil`
    *TBD*
 
-:mini:`meth (X: real::range):count: integer`
-   *TBD*
+:mini:`meth (Range: real::range):count: integer`
+   Returns the number of values in :mini:`Range`.
+
+
+:mini:`meth (Range: real::range):start: real`
+   Returns the start of :mini:`Range`.
+
+
+:mini:`meth (Range: real::range):limit: real`
+   Returns the limit of :mini:`Range`.
+
+
+:mini:`meth (Range: real::range):step: real`
+   Returns the step of :mini:`Range`.
+
 
 :mini:`meth (X: integer):in(Range: real::range): X | nil`
    *TBD*

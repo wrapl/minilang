@@ -51,14 +51,14 @@ list
    A slice of a list.
 
 
-:mini:`meth (List: list)[From: integer, To: integer]: listslice`
+:mini:`meth (List: list)[From: integer, To: integer]: list::slice`
    Returns a slice of :mini:`List` starting at :mini:`From` (inclusive) and ending at :mini:`To` (exclusive).
 
    Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
 
 
-:mini:`meth (List: list)[From: integer::range, To: any]: listslice`
-   Returns a slice of :mini:`List` starting at :mini:`From` (inclusive) and ending at :mini:`To` (exclusive).
+:mini:`meth (List: list)[Range: integer::range]: list::slice`
+   Returns a slice of :mini:`List` starting at :mini:`Range:start` and ending at :mini:`Range:limit`,  both inclusive.
 
    Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
 
