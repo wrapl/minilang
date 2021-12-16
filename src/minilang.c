@@ -176,7 +176,9 @@ static void ml_main_state_run(ml_state_t *State, ml_value_t *Value) {
 		}
 		exit(1);
 	}
+#ifdef ML_SCHEDULER
 	MainResult = Value;
+#endif
 }
 
 int main(int Argc, const char *Argv[]) {
