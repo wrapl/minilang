@@ -293,6 +293,7 @@ static int ml_closure_find_labels(ml_inst_t *Inst, uintptr_t *Offset) {
 static json_t *ml_closure_info_encode(ml_closure_info_t *Info, ml_json_encoder_cache_t *Cache) {
 	json_t *Json = json_array();
 	json_array_append_new(Json, json_string("!"));
+	json_array_append_new(Json, json_integer(ML_BYTECODE_VERSION));
 	json_array_append_new(Json, json_string(Info->Source ?: ""));
 	json_array_append_new(Json, json_integer(Info->StartLine));
 	json_array_append_new(Json, json_integer(Info->FrameSize));
@@ -557,11 +558,12 @@ static ml_closure_info_t *ml_json_decode_closure_info(ml_json_decoder_cache_t *C
 	ml_closure_info_t *Info = new(ml_closure_info_t);
 	Info->Name = "<js-closure>";
 	const char *Exclaimation;
-	int ExtraArgs, NamedArgs, InitDecl;
+	int Version = -1, ExtraArgs, NamedArgs, InitDecl;
 	json_t *Params, *Instructions, *DeclsJson;
 	int Entry, Return;
-	json_unpack(Json, "[ssiiiiiioiiioo]",
+	json_unpack(Json, "[sisiiiiiioiiioo]",
 		&Exclaimation,
+		&Version,
 		&Info->Source,
 		&Info->StartLine,
 		&Info->FrameSize,
@@ -576,6 +578,7 @@ static ml_closure_info_t *ml_json_decode_closure_info(ml_json_decoder_cache_t *C
 		&Instructions,
 		&DeclsJson
 	);
+	if (Version != ML_BYTECODE_VERSION) return NULL;
 	if (ExtraArgs) Info->Flags |= ML_CLOSURE_EXTRA_ARGS;
 	if (NamedArgs) Info->Flags |= ML_CLOSURE_NAMED_ARGS;
 	for (int I = 0; I < json_array_size(Params); ++I) {
@@ -730,6 +733,7 @@ static ml_value_t *ml_json_decode_closure(ml_json_decoder_cache_t *Cache, json_t
 	Closure->Type = MLClosureT;
 	if (Index >= 0) inthash_insert(Cache->Cached, Index, Closure);
 	Closure->Info = ml_json_decode_closure_info(Cache, InfoJson);
+	if (!Closure->Info) return ml_error("VersionError", "Bytecode version mismatch");
 	for (int I = 0; I < NumUpValues; ++I) {
 		Closure->UpValues[I] = ml_json_decode(Cache, json_array_get(Json, I + 1));
 	}

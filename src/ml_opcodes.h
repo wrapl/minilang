@@ -1,6 +1,8 @@
 #ifndef ML_OPCODES_H
 #define ML_OPCODES_H
 
+#define ML_BYTECODE_VERSION 1
+
 typedef enum {
 	MLI_AND,
 	MLI_ASSIGN_LOCAL,

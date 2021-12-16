@@ -1,15 +1,19 @@
 let Opcodes := []
 
-with Input := file("opcodes.txt", "r") do
+let Version := with Input := file("opcodes.txt", "r") do
+	let Version := Input:read:trim
 	loop
 		let Line := while Input:read
 		Opcodes:put(Line:trim / ",")
 	end
 	Input:close
+	Version
 end
 
 with Output := file("ml_opcodes.h", "w") do
-	Output:write("#ifndef ML_OPCODES_H\n#define ML_OPCODES_H\n\ntypedef enum {\n")
+	Output:write("#ifndef ML_OPCODES_H\n#define ML_OPCODES_H\n")
+	Output:write('\n#define ML_BYTECODE_VERSION {Version}\n')
+	Output:write("\ntypedef enum {\n")
 	for (Name, Type) in Opcodes do
 		Output:write('\tMLI_{Name},\n')
 	end
