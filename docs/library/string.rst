@@ -35,6 +35,10 @@ string
    Returns a string containing the single byte :mini:`Char`.
 
 
+:mini:`meth (String: string):ord: integer`
+   Returns the first byte of :mini:`String`.
+
+
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: double, Arg₃: string)`
    *TBD*
 

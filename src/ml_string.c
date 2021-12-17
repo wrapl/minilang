@@ -555,6 +555,14 @@ ML_METHOD("chr", MLIntegerT) {
 	return (ml_value_t *)&MLChars[Code];
 }
 
+ML_METHOD("ord", MLStringT) {
+//<String
+//>integer
+// Returns the first byte of :mini:`String`.
+	const unsigned char *S = (const unsigned char *)ml_string_value(Args[0]);
+	return ml_integer(S[0]);
+}
+
 ML_METHOD("append", MLStringBufferT, MLDoubleT) {
 //!number
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
