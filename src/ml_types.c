@@ -2539,6 +2539,20 @@ ML_METHOD("..", MLIntegerT, MLIntegerT, MLIntegerT) {
 	return (ml_value_t *)Range;
 }
 
+ML_METHOD("up", MLIntegerT) {
+//!range
+//<Start
+//<Count
+//>integer::range
+// Returns an unlimited range from :mini:`Start`.
+	ml_integer_range_t *Range = new(ml_integer_range_t);
+	Range->Type = MLIntegerRangeT;
+	Range->Start = ml_integer_value_fast(Args[0]);
+	Range->Limit = LONG_MAX;
+	Range->Step = 1;
+	return (ml_value_t *)Range;
+}
+
 ML_METHOD("up", MLIntegerT, MLIntegerT) {
 //!range
 //<Start

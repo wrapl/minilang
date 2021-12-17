@@ -189,7 +189,9 @@ static ml_value_t *debugger_locals(interactive_debugger_t *Debugger, int Count, 
 	}
 	ml_value_t *Locals = ml_map();
 	for (ml_decl_t *Decl = ml_debugger_decls(Frame); Decl; Decl = Decl->Next) {
-		ml_map_insert(Locals, ml_string(Decl->Ident, -1), ml_debugger_local(Frame, Decl->Index));
+		ml_value_t *Value = ml_debugger_local(Frame, Decl->Index);
+		if (!Value) continue;
+		ml_map_insert(Locals, ml_string(Decl->Ident, -1), Value);
 	}
 	return Locals;
 }
