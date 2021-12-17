@@ -33,6 +33,18 @@ address
 :mini:`meth (Address: address):get64: integer`
    *TBD*
 
+:mini:`meth (Address: address):getu8: integer`
+   *TBD*
+
+:mini:`meth (Address: address):getu16: integer`
+   *TBD*
+
+:mini:`meth (Address: address):getu32: integer`
+   *TBD*
+
+:mini:`meth (Address: address):getu64: integer`
+   *TBD*
+
 :mini:`meth (Address: address):getf32: real`
    *TBD*
 

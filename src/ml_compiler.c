@@ -3198,6 +3198,37 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 			case 'n': ml_stringbuffer_write(Buffer, "\n", 1); break;
 			case 't': ml_stringbuffer_write(Buffer, "\t", 1); break;
 			case 'e': ml_stringbuffer_write(Buffer, "\e", 1); break;
+			case 'x': {
+				char Char;
+				switch ((C = *End++)) {
+				case '0' ... '9':
+					Char = (C - '0') << 4;
+					break;
+				case 'A' ... 'F':
+					Char = (C + 10 - 'A') << 4;
+					break;
+				case 'a' ... 'f':
+					Char = (C + 10 - 'a') << 4;
+					break;
+				default:
+					ml_parse_error(Parser, "ParseError", "invalid character in escape sequence");
+				}
+				switch ((C = *End++)) {
+				case '0' ... '9':
+					Char += (C - '0');
+					break;
+				case 'A' ... 'F':
+					Char += (C + 10 - 'A');
+					break;
+				case 'a' ... 'f':
+					Char += (C + 10 - 'a');
+					break;
+				default:
+					ml_parse_error(Parser, "ParseError", "invalid character in escape sequence");
+				}
+				ml_stringbuffer_write(Buffer, &Char, 1);
+				break;
+			}
 			case '\'': ml_stringbuffer_write(Buffer, "\'", 1); break;
 			case '\"': ml_stringbuffer_write(Buffer, "\"", 1); break;
 			case '\\': ml_stringbuffer_write(Buffer, "\\", 1); break;
@@ -3335,12 +3366,42 @@ static int ml_scan_string(ml_parser_t *Parser) {
 	char *Quoted = snew(Length + 1), *D = Quoted;
 	for (const char *S = Parser->Next; S < End; ++S) {
 		if (*S == '\\') {
-			++S;
-			switch (*S) {
+			switch (*++S) {
 			case 'r': *D++ = '\r'; break;
 			case 'n': *D++ = '\n'; break;
 			case 't': *D++ = '\t'; break;
 			case 'e': *D++ = '\e'; break;
+			case 'x': {
+				char C, Char;
+				switch ((C = *++S)) {
+				case '0' ... '9':
+					Char = (C - '0') << 4;
+					break;
+				case 'A' ... 'F':
+					Char = (C + 10 - 'A') << 4;
+					break;
+				case 'a' ... 'f':
+					Char = (C + 10 - 'a') << 4;
+					break;
+				default:
+					ml_parse_error(Parser, "ParseError", "invalid character in escape sequence");
+				}
+				switch ((C = *++S)) {
+				case '0' ... '9':
+					Char += (C - '0');
+					break;
+				case 'A' ... 'F':
+					Char += (C + 10 - 'A');
+					break;
+				case 'a' ... 'f':
+					Char += (C + 10 - 'a');
+					break;
+				default:
+					ml_parse_error(Parser, "ParseError", "invalid character in escape sequence");
+				}
+				*D++ = Char;
+				break;
+			}
 			case '\'': *D++ = '\''; break;
 			case '\"': *D++ = '\"'; break;
 			case '\\': *D++ = '\\'; break;
