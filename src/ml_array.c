@@ -4609,6 +4609,7 @@ static ml_value_t *ml_array_pairwise_infix(void *Data, int Count, ml_value_t **A
 #ifdef ML_CBOR
 
 #include "ml_cbor.h"
+#include "minicbor/minicbor.h"
 
 static void ml_cbor_write_array_typed(int Degree, size_t FlatSize, ml_array_dimension_t *Dimension, char *Address, char *Data, ml_cbor_write_fn WriteFn) {
 	if (Degree < 0) {
@@ -4661,6 +4662,10 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char 
 		[ML_ARRAY_FORMAT_F32] = 85,
 		[ML_ARRAY_FORMAT_F64] = 86
 	};
+	if (Array->Degree == -1) {
+		ml_cbor_write_simple(Data, WriteFn, CBOR_SIMPLE_NULL);
+		return NULL;
+	}
 	ml_cbor_write_tag(Data, WriteFn, 40);
 	ml_cbor_write_array(Data, WriteFn, 2);
 	ml_cbor_write_array(Data, WriteFn, Array->Degree);
