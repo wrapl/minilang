@@ -688,6 +688,7 @@ ML_METHOD("splice", MLListT, MLIntegerT, MLIntegerT) {
 			}
 		}
 	}
+	List->ValidIndices = 0;
 	return (ml_value_t *)Removed;
 }
 
@@ -805,6 +806,7 @@ ML_METHOD("splice", MLListT, MLIntegerT, MLIntegerT, MLListT) {
 	List->Length += Source->Length;
 	Source->Head = Source->Tail = NULL;
 	Source->Length = 0;
+	List->ValidIndices = 0;
 	return (ml_value_t *)Removed;
 }
 
@@ -850,6 +852,7 @@ ML_METHOD("splice", MLListT, MLIntegerT, MLListT) {
 	List->Length += Source->Length;
 	Source->Head = Source->Tail = NULL;
 	Source->Length = 0;
+	List->ValidIndices = 0;
 	return MLNil;
 }
 
