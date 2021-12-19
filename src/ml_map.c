@@ -3,6 +3,7 @@
 #include "ml_macros.h"
 #include <string.h>
 #include "ml_sequence.h"
+#include "ml_method.h"
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "map"
@@ -105,9 +106,27 @@ ML_METHODVX("grow", MLMapT, MLSequenceT) {
 
 extern ml_value_t *CompareMethod;
 
+static inline ml_value_t *ml_map_compare(ml_map_t *Map, ml_value_t **Args) {
+	ml_method_cached_t *Cached = Map->Cached;
+	if (Cached) {
+		if (Cached->Types[0] != ml_typeof(Args[0])) Cached = NULL;
+		if (Cached->Types[1] != ml_typeof(Args[1])) Cached = NULL;
+	}
+	if (!Cached || !Cached->Callback) {
+		Cached = ml_method_search_cached(NULL, (ml_method_t *)CompareMethod, 2, Args);
+		if (!Cached) return ml_no_method_error((ml_method_t *)CompareMethod, 2, Args);
+		Map->Cached = Cached;
+	}
+	return ml_simple_call(Cached->Callback, 2, Args);
+}
+
 static ml_map_node_t *ml_map_find_node(ml_map_t *Map, ml_value_t *Key) {
 	ml_map_node_t *Node = Map->Root;
 	long Hash = ml_typeof(Key)->hash(Key, NULL);
+	ml_method_cached_t *Cached = Map->Cached;
+	if (Cached && Cached->Callback) {
+		if (Cached->Types[0] != ml_typeof(Key)) Cached = NULL;
+	}
 	while (Node) {
 		int Compare;
 		if (Hash < Node->Hash) {
@@ -116,7 +135,7 @@ static ml_map_node_t *ml_map_find_node(ml_map_t *Map, ml_value_t *Key) {
 			Compare = 1;
 		} else {
 			ml_value_t *Args[2] = {Key, Node->Key};
-			ml_value_t *Result = ml_simple_call(CompareMethod, 2, Args);
+			ml_value_t *Result = ml_map_compare(Map, Args);
 			if (ml_is_error(Result)) return NULL;
 			Compare = ml_integer_value(Result);
 		}
@@ -207,7 +226,7 @@ static ml_map_node_t *ml_map_node(ml_map_t *Map, ml_map_node_t **Slot, long Hash
 		Compare = 1;
 	} else {
 		ml_value_t *Args[2] = {Key, Slot[0]->Key};
-		ml_value_t *Result = ml_simple_call(CompareMethod, 2, Args);
+		ml_value_t *Result = ml_map_compare(Map, Args);
 		Compare = ml_integer_value(Result);
 	}
 	if (!Compare) {
@@ -267,7 +286,7 @@ static ml_value_t *ml_map_remove_internal(ml_map_t *Map, ml_map_node_t **Slot, l
 		Compare = 1;
 	} else {
 		ml_value_t *Args[2] = {Key, Node->Key};
-		ml_value_t *Result = ml_simple_call(CompareMethod, 2, Args);
+		ml_value_t *Result = ml_map_compare(Map, Args);
 		Compare = ml_integer_value(Result);
 	}
 	ml_value_t *Removed = MLNil;
@@ -360,7 +379,7 @@ static ml_map_node_t *ml_map_insert_node(ml_map_t *Map, ml_map_node_t **Slot, lo
 		Compare = 1;
 	} else {
 		ml_value_t *Args[2] = {Index->Key, Slot[0]->Key};
-		ml_value_t *Result = ml_simple_call(CompareMethod, 2, Args);
+		ml_value_t *Result = ml_map_compare(Map, Args);
 		Compare = ml_integer_value(Result);
 	}
 	if (!Compare) {

@@ -279,7 +279,7 @@ extern ml_value_t *SymbolMethod;
 		ml_method_t *Method = (ml_method_t *)Inst[1].Value; \
 		ml_value_t **Args = Top - COUNT; \
 		ml_method_cached_t *Cached = Inst[2].Data; \
-		if (Cached && Cached->Callback) { \
+		if (Cached) { \
 			for (int I = 0; I < COUNT; ++I) { \
 				if (Cached->Types[I] != ml_typeof(Args[I])) { \
 					Cached = NULL; \
@@ -287,8 +287,9 @@ extern ml_value_t *SymbolMethod;
 				} \
 			} \
 		} \
-		if (!Cached) { \
-			Cached = ml_method_search_cached((ml_state_t *)Frame, Method, COUNT, Args); \
+		if (!Cached || !Cached->Callback) { \
+			ml_methods_t *Methods = Frame->Base.Context->Values[ML_METHODS_INDEX]; \
+			Cached = ml_method_search_cached(Methods, Method, COUNT, Args); \
 			if (!Cached) { \
 				Result = ml_no_method_error(Method, COUNT, Args); \
 				ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line}); \
@@ -335,7 +336,7 @@ extern ml_value_t *SymbolMethod;
 		ml_method_t *Method = (ml_method_t *)Inst[1].Value; \
 		ml_value_t **Args = Top - COUNT; \
 		ml_method_cached_t *Cached = Inst[2].Data; \
-		if (Cached && Cached->Callback) { \
+		if (Cached) { \
 			for (int I = 0; I < COUNT; ++I) { \
 				if (Cached->Types[I] != ml_typeof_deref(Args[I])) { \
 					Cached = NULL; \
@@ -343,8 +344,9 @@ extern ml_value_t *SymbolMethod;
 				} \
 			} \
 		} \
-		if (!Cached) { \
-			Cached = ml_method_search_cached((ml_state_t *)Frame, Method, COUNT, Args); \
+		if (!Cached || !Cached->Callback) { \
+			ml_methods_t *Methods = Frame->Base.Context->Values[ML_METHODS_INDEX]; \
+			Cached = ml_method_search_cached(Methods, Method, COUNT, Args); \
 			if (!Cached) { \
 				Result = ml_no_method_error(Method, COUNT, Args); \
 				ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line}); \
@@ -868,7 +870,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		int Count = Inst[2].Count;
 		ml_value_t **Args = Top - Count;
 		ml_method_cached_t *Cached = Inst[3].Data;
-		if (Cached && Cached->Callback) {
+		if (Cached) {
 			for (int I = 0; I < Count; ++I) {
 				if (Cached->Types[I] != ml_typeof_deref(Args[I])) {
 					Cached = NULL;
@@ -876,8 +878,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 				}
 			}
 		}
-		if (!Cached) {
-			Cached = ml_method_search_cached((ml_state_t *)Frame, Method, Count, Args);
+		if (!Cached || !Cached->Callback) {
+			ml_methods_t *Methods = Frame->Base.Context->Values[ML_METHODS_INDEX];
+			Cached = ml_method_search_cached(Methods, Method, Count, Args);
 			if (!Cached) {
 				Result = ml_no_method_error(Method, Count, Args);
 				ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
