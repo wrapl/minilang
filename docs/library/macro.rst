@@ -39,6 +39,10 @@ macro
    Returns a new value expression.
 
 
+:mini:`fun macro::fun(Params: list, Arg₂: expr): expr`
+   Returns a new function expression.
+
+
 :mini:`type block::builder`
    Utility object for building a block expression.
 

@@ -81,7 +81,10 @@ ML_TYPE(MLListNodeT, (), "list-node",
 );
 
 static void ML_TYPED_FN(ml_iter_next, MLListNodeT, ml_state_t *Caller, ml_list_node_t *Node) {
-	ML_RETURN((ml_value_t *)Node->Next ?: MLNil);
+	ml_list_node_t *Next = Node->Next;
+	if (!Next) ML_RETURN(MLNil);
+	Next->Index = Node->Index + 1;
+	ML_RETURN(Next);
 }
 
 static void ML_TYPED_FN(ml_iter_key, MLListNodeT, ml_state_t *Caller, ml_list_node_t *Node) {
@@ -186,7 +189,6 @@ void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
 	ml_list_node_t *Node = new(ml_list_node_t);
 	Node->Type = MLListNodeT;
 	Node->Value = Value;
-	List->ValidIndices = 0;
 	if ((Node->Next = List->Head)) {
 		List->Head->Prev = Node;
 #ifdef ML_GENERICS
@@ -220,7 +222,6 @@ void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 	ml_list_node_t *Node = new(ml_list_node_t);
 	Node->Type = MLListNodeT;
 	Node->Value = Value;
-	List->ValidIndices = 0;
 	if ((Node->Prev = List->Tail)) {
 		List->Tail->Next = Node;
 #ifdef ML_GENERICS
@@ -251,7 +252,6 @@ void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 ml_value_t *ml_list_pop(ml_value_t *List0) {
 	ml_list_t *List = (ml_list_t *)List0;
 	ml_list_node_t *Node = List->Head;
-	List->ValidIndices = 0;
 	if (Node) {
 		if ((List->Head = Node->Next)) {
 			List->Head->Prev = NULL;
@@ -270,7 +270,6 @@ ml_value_t *ml_list_pop(ml_value_t *List0) {
 ml_value_t *ml_list_pull(ml_value_t *List0) {
 	ml_list_t *List = (ml_list_t *)List0;
 	ml_list_node_t *Node = List->Tail;
-	List->ValidIndices = 0;
 	if (Node) {
 		if ((List->Tail = Node->Prev)) {
 			List->Tail->Next = NULL;
@@ -370,7 +369,6 @@ static void ml_list_filter_state_run(ml_list_filter_state_t *State, ml_value_t *
 	State->List->Length = State->Length;
 	State->List->CachedIndex = State->Length;
 	State->List->CachedNode = State->KeepTail;
-	State->List->ValidIndices = 0;
 	ML_CONTINUE(State->Base.Caller, State->Drop);
 }
 
@@ -552,19 +550,8 @@ ML_TYPE(MLListIterT, (), "list-iterator");
 
 static void ML_TYPED_FN(ml_iterate, MLListT, ml_state_t *Caller, ml_list_t *List) {
 	if (List->Length) {
-		if (!List->ValidIndices) {
-			int I = 0;
-			for (ml_list_node_t *Node = List->Head; Node; Node = Node->Next) {
-				Node->Index = ++I;
-			}
-			List->ValidIndices = 1;
-		}
+		List->Head->Index = 1;
 		ML_RETURN(List->Head);
-		/*ml_list_iterator_t *Iter = new(ml_list_iterator_t);
-		Iter->Type = MLListIterT;
-		Iter->Node = List->Head;
-		Iter->Index = 1;
-		ML_RETURN(Iter);*/
 	} else {
 		ML_RETURN(MLNil);
 	}
@@ -688,7 +675,6 @@ ML_METHOD("splice", MLListT, MLIntegerT, MLIntegerT) {
 			}
 		}
 	}
-	List->ValidIndices = 0;
 	return (ml_value_t *)Removed;
 }
 
@@ -806,7 +792,6 @@ ML_METHOD("splice", MLListT, MLIntegerT, MLIntegerT, MLListT) {
 	List->Length += Source->Length;
 	Source->Head = Source->Tail = NULL;
 	Source->Length = 0;
-	List->ValidIndices = 0;
 	return (ml_value_t *)Removed;
 }
 
@@ -852,7 +837,6 @@ ML_METHOD("splice", MLListT, MLIntegerT, MLListT) {
 	List->Length += Source->Length;
 	Source->Head = Source->Tail = NULL;
 	Source->Length = 0;
-	List->ValidIndices = 0;
 	return MLNil;
 }
 
@@ -877,7 +861,6 @@ ML_METHOD("reverse", MLListT) {
 	List->Head = Prev;
 	List->CachedIndex = 1;
 	List->CachedNode = Prev;
-	List->ValidIndices = 0;
 	return (ml_value_t *)List;
 }
 
@@ -991,7 +974,6 @@ ML_METHODX("sort", MLListT) {
 	State->Length = List->Length;
 	State->InSize = 1;
 	// TODO: Improve ml_list_sort_state_run so that List is still valid during sort
-	List->ValidIndices = 0;
 	List->CachedNode = NULL;
 	List->Head = List->Tail = NULL;
 	List->Length = 0;
@@ -1015,7 +997,6 @@ ML_METHODX("sort", MLListT, MLFunctionT) {
 	State->Length = List->Length;
 	State->InSize = 1;
 	// TODO: Improve ml_list_sort_state_run so that List is still valid during sort
-	List->ValidIndices = 0;
 	List->CachedNode = NULL;
 	List->Head = List->Tail = NULL;
 	List->Length = 0;
@@ -1076,7 +1057,6 @@ void ml_names_add(ml_value_t *Names, ml_value_t *Value) {
 	ml_list_node_t *Node = new(ml_list_node_t);
 	Node->Type = MLListNodeT;
 	Node->Value = Value;
-	List->ValidIndices = 0;
 	if ((Node->Prev = List->Tail)) {
 		List->Tail->Next = Node;
 	} else {

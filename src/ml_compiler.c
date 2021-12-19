@@ -1693,7 +1693,8 @@ static void ml_delegate_expr_compile(mlc_function_t *Function, mlc_parent_expr_t
 	return mlc_compile(Function, Expr->Child, Flags);
 }
 
-static mlc_expr_t *ml_delegate_expr(mlc_expr_t *Child) {
+static mlc_expr_t *ml_delegate_expr(ml_value_t *Value) {
+	mlc_expr_t *Child = ((ml_expr_value_t *)Value)->Expr;
 	mlc_parent_expr_t *Expr = new(mlc_parent_expr_t);
 	Expr->compile = ml_delegate_expr_compile;
 	Expr->Source = Child->Source;
@@ -2567,6 +2568,34 @@ ML_FUNCTION(MLValueExpr) {
 	}
 }
 
+ML_FUNCTION(MLFunExpr) {
+//!macro
+//@macro::fun
+//<Params:list[any]
+//>expr
+// Returns a new function expression.
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLListT);
+	ML_CHECK_ARG_TYPE(1, MLExprT);
+	mlc_param_t *Params = NULL, **Slot = &Params;
+	ML_LIST_FOREACH(Args[0], Iter) {
+		mlc_param_t *Param = Slot[0] = new(mlc_param_t);
+		Slot = &Param->Next;
+		if (ml_is(Iter->Value, MLStringT)) {
+			Param->Ident = ml_string_value(Iter->Value);
+			Param->Kind;
+		}
+	}
+	mlc_fun_expr_t *Expr = new(mlc_fun_expr_t);
+	Expr->compile = ml_fun_expr_compile;
+	Expr->Source = "<macro>";
+	Expr->StartLine = 1;
+	Expr->EndLine = 1;
+	Expr->Params = Params;
+	Expr->Body = ml_delegate_expr(Args[1]);
+	return ml_expr_value((mlc_expr_t *)Expr, NULL);
+}
+
 typedef struct {
 	ml_type_t *Type;
 	mlc_block_expr_t *Expr;
@@ -2614,7 +2643,7 @@ ML_METHOD("var", MLBlockBuilderT, MLStringT, MLExprT) {
 	LocalExpr->StartLine = 1;
 	LocalExpr->EndLine = 1;
 	LocalExpr->Local = Local;
-	LocalExpr->Child = ml_delegate_expr(((ml_expr_value_t *)Args[2])->Expr);
+	LocalExpr->Child = ml_delegate_expr(Args[2]);
 	Builder->ExprSlot[0] = (mlc_expr_t *)LocalExpr;
 	Builder->ExprSlot = &LocalExpr->Next;
 	return Args[0];
@@ -2639,7 +2668,7 @@ ML_METHOD("let", MLBlockBuilderT, MLStringT, MLExprT) {
 	LocalExpr->StartLine = 1;
 	LocalExpr->EndLine = 1;
 	LocalExpr->Local = Local;
-	LocalExpr->Child = ml_delegate_expr(((ml_expr_value_t *)Args[2])->Expr);
+	LocalExpr->Child = ml_delegate_expr(Args[2]);
 	Builder->ExprSlot[0] = (mlc_expr_t *)LocalExpr;
 	Builder->ExprSlot = &LocalExpr->Next;
 	return Args[0];
@@ -2653,8 +2682,7 @@ ML_METHODV("do", MLBlockBuilderT, MLExprT) {
 // Adds the expression :mini:`Expr` to a block.
 	mlc_block_builder_t *Builder = (mlc_block_builder_t *)Args[0];
 	for (int I = 1; I < Count; ++I) {
-		ml_expr_value_t *Expr = (ml_expr_value_t *)Args[I];
-		mlc_expr_t *Delegate = ml_delegate_expr(Expr->Expr);
+		mlc_expr_t *Delegate = ml_delegate_expr(Args[I]);
 		Builder->ExprSlot[0] = Delegate;
 		Builder->ExprSlot = &Delegate->Next;
 	}
@@ -2792,8 +2820,7 @@ ML_METHODV("add", MLExprBuilderT, MLExprT) {
 // Adds the expression :mini:`Expr` to a block.
 	mlc_block_builder_t *Builder = (mlc_block_builder_t *)Args[0];
 	for (int I = 1; I < Count; ++I) {
-		ml_expr_value_t *Expr = (ml_expr_value_t *)Args[I];
-		mlc_expr_t *Delegate = ml_delegate_expr(Expr->Expr);
+		mlc_expr_t *Delegate = ml_delegate_expr(Args[I]);
 		Builder->ExprSlot[0] = Delegate;
 		Builder->ExprSlot = &Delegate->Next;
 	}

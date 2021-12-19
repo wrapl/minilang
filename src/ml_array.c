@@ -1315,8 +1315,6 @@ static void ML_TYPED_FN(ml_iterate, MLArrayT, ml_state_t *Caller, ml_array_t *Ar
 #define UPDATE_ROW_VALUE_ENTRY_VALUE(INDEX, NAME) \
 	[INDEX] = NAME ## _row_any_any
 
-#define MAX_FORMATS 16
-
 #define UPDATE_ROW_TARGET_ENTRIES_BASE(INDEX, NAME, TARGET) \
 UPDATE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_I8, NAME, TARGET, int8_t), \
 UPDATE_ROW_ENTRY(MAX_FORMATS * (INDEX) + ML_ARRAY_FORMAT_U8, NAME, TARGET, uint8_t), \
@@ -1676,6 +1674,14 @@ static ml_value_t *compare_array_fn(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)Target;
 }
 
+extern int ml_array_compare(ml_array_t *A, ml_array_t *B);
+
+ML_METHOD("<>", MLArrayT, MLArrayT) {
+	ml_array_t *A = (ml_array_t *)Args[0];
+	ml_array_t *B = (ml_array_t *)Args[1];
+	return ml_integer(ml_array_compare(A, B));
+}
+
 static long srotl(long X, unsigned int N) {
 	const unsigned int Mask = (CHAR_BIT * sizeof(long) - 1);
 	return (X << (N & Mask)) | (X >> ((-N) & Mask ));
@@ -1717,7 +1723,7 @@ static ml_value_t *ML_TYPED_FN(ml_array_value, MLArray ## SUFFIX, ml_array_t *Ar
 } \
 \
 static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_array_dimension_t *Dimension, char *Address) { \
-	ml_stringbuffer_write(Buffer, "<", 1); \
+	ml_stringbuffer_write(Buffer, "< ", 2); \
 	int Stride = Dimension->Stride; \
 	if (Dimension->Indices) { \
 		int *Indices = Dimension->Indices; \
@@ -1755,7 +1761,7 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 			} \
 		} \
 	} \
-	ml_stringbuffer_write(Buffer, ">", 1); \
+	ml_stringbuffer_write(Buffer, " >", 2); \
 } \
 \
  ML_METHOD("append", MLStringBufferT, MLArray ## SUFFIX) { \

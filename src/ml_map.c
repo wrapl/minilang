@@ -495,6 +495,19 @@ ML_METHOD("missing", MLMapT, MLAnyT) {
 	return MLNil;
 }
 
+ML_METHOD("missing", MLMapT, MLAnyT, MLAnyT) {
+//<Map
+//<Key
+//<Value
+//>any | nil
+// If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Value` and returns :mini:`some`.
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_value_t *Key = Args[1];
+	ml_map_node_t *Node = ml_map_node(Map, &Map->Root, ml_typeof(Key)->hash(Key, NULL), Key);
+	if (!Node->Value) return Node->Value = Args[2];
+	return MLNil;
+}
+
 ML_METHOD("append", MLStringBufferT, MLMapT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_write(Buffer, "{", 1);

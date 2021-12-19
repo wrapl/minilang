@@ -241,7 +241,8 @@ if MINILANG_MATH then
 		file("array/compare_lt.o"),
 		file("array/compare_gt.o"),
 		file("array/compare_le.o"),
-		file("array/compare_ge.o")
+		file("array/compare_ge.o"),
+		file("array/compare_cmp.o")
 	)
 	CFLAGS := old + ["-DML_MATH"]
 	InstallHeaders:put("ml_array.h")

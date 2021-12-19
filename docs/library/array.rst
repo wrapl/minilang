@@ -119,6 +119,9 @@ array
    The :mini:`i`-th dimension is indexed by :mini:`Indices[i]` if present,  and :mini:`nil` otherwise.
 
 
+:mini:`meth (Arg₁: array) <> (Arg₂: array)`
+   *TBD*
+
 :mini:`fun mlarray ## suffix ## new()`
    *TBD*
 

@@ -657,7 +657,6 @@ struct ml_list_t {
 	ml_list_node_t *Head, *Tail;
 	ml_list_node_t *CachedNode;
 	int Length, CachedIndex;
-	int ValidIndices;
 };
 
 ml_value_t *ml_list() __attribute__((malloc));
