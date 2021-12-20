@@ -107,7 +107,7 @@ ML_METHODVX("grow", MLMapT, MLSequenceT) {
 extern ml_value_t *CompareMethod;
 
 static inline ml_value_t *ml_map_compare(ml_map_t *Map, ml_value_t **Args) {
-	ml_method_cached_t *Cached = Map->Cached;
+	/*ml_method_cached_t *Cached = Map->Cached;
 	if (Cached) {
 		if (Cached->Types[0] != ml_typeof(Args[0])) Cached = NULL;
 		if (Cached->Types[1] != ml_typeof(Args[1])) Cached = NULL;
@@ -117,7 +117,8 @@ static inline ml_value_t *ml_map_compare(ml_map_t *Map, ml_value_t **Args) {
 		if (!Cached) return ml_no_method_error((ml_method_t *)CompareMethod, 2, Args);
 		Map->Cached = Cached;
 	}
-	return ml_simple_call(Cached->Callback, 2, Args);
+	return ml_simple_call(Cached->Callback, 2, Args);*/
+	return ml_simple_call(CompareMethod, 2, Args);
 }
 
 static ml_map_node_t *ml_map_find_node(ml_map_t *Map, ml_value_t *Key) {

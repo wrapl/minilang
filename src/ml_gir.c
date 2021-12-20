@@ -62,24 +62,29 @@ static void typelib_iter_key(ml_state_t *Caller, typelib_iter_t *Iter) {
 ML_TYPE(TypelibIterT, (), "typelib-iter");
 //!internal
 
+
+ml_value_t *ml_gir_typelib(const char *Name, const char *Version) {
+	typelib_t *Typelib = new(typelib_t);
+	Typelib->Type = TypelibT;
+	Typelib->Namespace = Name;
+	GError *Error = 0;
+	Typelib->Handle = g_irepository_require(NULL, Typelib->Namespace, Version, 0, &Error);
+	if (!Typelib->Handle) return ml_error("GirError", "%s", Error->message);
+	return (ml_value_t *)Typelib;
+}
+
 ML_FUNCTION(MLGir) {
 //@gir
 //<Name:string
 //>gir-typelib
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
-	typelib_t *Typelib = new(typelib_t);
-	Typelib->Type = TypelibT;
-	GError *Error = 0;
-	Typelib->Namespace = ml_string_value(Args[0]);
 	const char *Version = NULL;
 	if (Count > 1) {
 		ML_CHECK_ARG_TYPE(1, MLStringT);
 		Version = ml_string_value(Args[1]);
 	}
-	Typelib->Handle = g_irepository_require(NULL, Typelib->Namespace, Version, 0, &Error);
-	if (!Typelib->Handle) return ml_error("GirError", "%s", Error->message);
-	return (ml_value_t *)Typelib;
+	return ml_gir_typelib(ml_string_value(Args[0]), Version);
 }
 
 typedef struct object_t {
@@ -170,12 +175,12 @@ ML_METHOD("append", MLStringBufferT, ObjectInstanceT) {
 	return MLSome;
 }
 
-typedef struct struct_t {
+typedef struct {
 	ml_type_t Base;
 	GIStructInfo *Info;
 } struct_t;
 
-typedef struct struct_instance_t {
+typedef struct {
 	const struct_t *Type;
 	void *Value;
 } struct_instance_t;
@@ -185,6 +190,17 @@ ML_TYPE(StructT, (BaseInfoT), "gir-struct-type");
 
 ML_TYPE(StructInstanceT, (), "gir-struct");
 // A gobject-introspection struct instance.
+
+ml_value_t *ml_gir_struct_instance(ml_value_t *Struct, void *Value) {
+	struct_instance_t *Instance = new(struct_instance_t);
+	Instance->Type = (struct_t *)Struct;
+	Instance->Value = Value;
+	return (ml_value_t *)Instance;
+}
+
+void *ml_gir_struct_instance_value(ml_value_t *Value) {
+	return ((struct_instance_t *)Value)->Value;
+}
 
 static ml_value_t *struct_instance_new(struct_t *Struct, int Count, ml_value_t **Args) {
 	struct_instance_t *Instance = new(struct_instance_t);
@@ -317,6 +333,10 @@ ML_TYPE(EnumT, (BaseInfoT), "gir-enum-type");
 ML_TYPE(EnumValueT, (), "gir-enum");
 // A gobject-instrospection enum value.
 
+gint64 ml_gir_enum_value_value(ml_value_t *Value) {
+	return ((enum_value_t *)Value)->Value;
+}
+
 ML_METHOD("append", MLStringT, EnumValueT) {
 //<Value
 //>string
@@ -388,6 +408,10 @@ static ml_value_t *gir_enum_value(enum_t *Type, int64_t Value) {
 	}
 	Enum->Name = ml_stringbuffer_get_value(Buffer);
 	return (ml_value_t *)Enum;
+}
+
+ml_value_t *ml_gir_enum_value(ml_value_t *Enum, gint64 Value) {
+	return gir_enum_value((enum_t *)Enum, Value);
 }
 
 static size_t array_element_size(GITypeInfo *Info) {
