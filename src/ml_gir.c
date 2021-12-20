@@ -2154,6 +2154,19 @@ void ml_gir_queue_add(ml_state_t *State, ml_value_t *Value) {
 	if (ml_scheduler_queue_add(State, Value) == 1) g_idle_add(ml_gir_queue_run, NULL);
 }
 
+static gboolean sleep_run(void *Data) {
+	ml_gir_queue_add((ml_state_t *)Data, MLNil);
+	return FALSE;
+}
+
+ML_FUNCTIONX(MLSleep) {
+//@sleep
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLNumberT);
+	guint Interval = ml_real_value(Args[0]) * 1000;
+	g_timeout_add(Interval, sleep_run, Caller);
+}
+
 #endif
 
 ML_FUNCTIONX(MLGirRun) {
@@ -2185,6 +2198,7 @@ void ml_gir_init(stringmap_t *Globals) {
 #include "ml_gir_init.c"
 	stringmap_insert(Globals, "gir", MLGir);
 #ifdef ML_SCHEDULER
+	stringmap_insert(Globals, "sleep", (ml_value_t *)MLSleep);
 	stringmap_insert(Globals, "gir_run", MLGirRun);
 #endif
 }

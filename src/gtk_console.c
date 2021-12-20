@@ -749,30 +749,13 @@ static gboolean console_update_status(console_t *Console) {
 	return G_SOURCE_CONTINUE;
 }
 
-#ifdef ML_SCHEDULER
-
-static gboolean sleep_run(void *Data) {
-	ml_gir_queue_add((ml_state_t *)Data, MLNil);
-	return FALSE;
-}
-
-ML_FUNCTIONX(MLSleep) {
-//@sleep
-	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLNumberT);
-	guint Interval = ml_real_value(Args[0]) * 1000;
-	g_timeout_add(Interval, sleep_run, Caller);
-}
-
-#endif
-
 console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globals) {
 	g_setenv("G_SLICE", "always-malloc", 1);
 	gtk_init(0, 0);
 	console_t *Console = new(console_t);
 	Console->Base.Type = ConsoleT;
 	Console->Base.run = (ml_state_fn)ml_console_repl_run;
-	Console->Base.Context = Context;
+	Console->Base.Context = ml_context_new(Context);
 	Console->Name = strdup("<console>");
 	Console->ParentGetter = GlobalGet;
 	Console->ParentGlobals = Globals;
@@ -960,10 +943,6 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 	stringmap_insert(Console->Globals, "add_cycle", ml_cfunction(Console, (ml_callback_t)console_add_cycle));
 	stringmap_insert(Console->Globals, "add_combo", ml_cfunction(Console, (ml_callback_t)console_add_combo));
 	stringmap_insert(Console->Globals, "include", ml_cfunctionx(Console, (ml_callbackx_t)console_include_fnx));
-
-#ifdef ML_SCHEDULER
-	stringmap_insert(Console->Globals, "sleep", (ml_value_t *)MLSleep);
-#endif
 
 	if (g_key_file_has_key(Console->Config, "gtk-console", "font", NULL)) {
 		Console->FontName = g_key_file_get_string(Console->Config, "gtk-console", "font", NULL);

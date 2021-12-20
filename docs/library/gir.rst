@@ -104,6 +104,9 @@ gir
 :mini:`meth (Object: objectinstance) :: (Property: string): any`
    *TBD*
 
+:mini:`fun sleep(Arg₁: number)`
+   *TBD*
+
 :mini:`fun mlgirrun(Arg₁: any)`
    *TBD*
 

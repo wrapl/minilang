@@ -23,6 +23,3 @@ general
 :mini:`fun collect()`
    *TBD*
 
-:mini:`fun sleep(Arg₁: number)`
-   *TBD*
-
