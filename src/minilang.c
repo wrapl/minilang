@@ -257,6 +257,7 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_GTK_CONSOLE
 	int GtkConsole = 0;
+	console_init();
 #endif
 #ifdef ML_MODULES
 	ml_module_init(Globals);

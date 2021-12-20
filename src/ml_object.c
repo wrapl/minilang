@@ -442,6 +442,23 @@ size_t ml_class_size(const ml_value_t *Value) {
 	return ((ml_class_t *)Value)->Fields->Size;
 }
 
+static int ml_class_field_fn(const char *Name, void *Index, const void **Data) {
+	if (*Data == Index) {
+		*Data = Name;
+		return 1;
+	}
+	return 0;
+}
+
+const char *ml_class_field_name(const ml_value_t *Value, size_t Field) {
+	void *Name = &((ml_object_t *)0)->Fields[Field];
+	if (stringmap_foreach(((ml_class_t *)Value)->Fields, &Name, (void *)ml_class_field_fn)) {
+		return (const char *)Name;
+	} else {
+		return NULL;
+	}
+}
+
 size_t ml_object_size(const ml_value_t *Value) {
 	return ((ml_class_t *)ml_typeof(Value))->Fields->Size;
 }

@@ -19,6 +19,7 @@
 #include "ml_runtime.h"
 #include "ml_bytecode.h"
 #include "ml_debugger.h"
+#include "ml_object.h"
 #include "gtk_console_completion.h"
 
 #define MAX_HISTORY 128
@@ -307,6 +308,61 @@ static int console_debug_set_breakpoints(const char *SourceName, console_open_fi
 	return 0;
 }
 
+static void console_show_value(GtkTreeStore *Store, GtkTreeIter *Iter, const char *Name, ml_value_t *Value) {
+	typeof(console_show_value) *function = ml_typed_fn_get(ml_typeof(Value), console_show_value);
+	if (function) return function(Store, Iter, Name, Value);
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_stringbuffer_simple_append(Buffer, Value);
+	char *Display;
+	if (Buffer->Length < 64) {
+		Display = ml_stringbuffer_get_string(Buffer);
+	} else {
+		Display = snew(68);
+		memcpy(Display, Buffer->Head->Chars, 64);
+		strcpy(Display + 64, "...");
+	}
+	gtk_tree_store_insert_with_values(Store, NULL, Iter, -1, 0, Name, 1, Display, -1);
+}
+
+static void ML_TYPED_FN(console_show_value, MLListT, GtkTreeStore *Store, GtkTreeIter *Iter, const char *Name, ml_value_t *Value) {
+	GtkTreeIter Child[1];
+	char *Display;
+	asprintf(&Display, "list[%d]", ml_list_length(Value));
+	gtk_tree_store_insert_with_values(Store, Child, Iter, -1, 0, Name, 1, Display, -1);
+	int Index = 0;
+	ML_LIST_FOREACH(Value, Iter) {
+		if (++Index > 20) break;
+		asprintf(&Display, "[%d]", Index);
+		console_show_value(Store, Child, Display, Iter->Value);
+	}
+}
+
+static void ML_TYPED_FN(console_show_value, MLMapT, GtkTreeStore *Store, GtkTreeIter *Iter, const char *Name, ml_value_t *Value) {
+	GtkTreeIter Child[1];
+	char *Display;
+	asprintf(&Display, "map[%d]", ml_map_size(Value));
+	gtk_tree_store_insert_with_values(Store, Child, Iter, -1, 0, Name, 1, Display, -1);
+	int Index = 0;
+	ML_MAP_FOREACH(Value, Iter) {
+		if (++Index > 20) break;
+		asprintf(&Display, "[%d]", Index);
+		GtkTreeIter Child2[1];
+		gtk_tree_store_insert_with_values(Store, Child2, Child, -1, 0, Display, -1);
+		console_show_value(Store, Child2, "key", Iter->Key);
+		console_show_value(Store, Child2, "value", Iter->Value);
+	}
+}
+
+static void ML_TYPED_FN(console_show_value, MLObjectT, GtkTreeStore *Store, GtkTreeIter *Iter, const char *Name, ml_value_t *Value) {
+	GtkTreeIter Child[1];
+	gtk_tree_store_insert_with_values(Store, Child, Iter, -1, 0, Name, -1);
+	ml_value_t *Class = (ml_value_t *)ml_typeof(Value);
+	int Count = ml_class_size(Class);
+	for (int I = 0; I < Count; ++I) {
+		console_show_value(Store, Child, ml_class_field_name(Class, I), ml_object_field(Value, I));
+	}
+}
+
 static void console_show_thread(console_t *Console, const char *SourceName, int Line) {
 	GtkWidget *SourceView;
 	if (SourceName == Console->Name) {
@@ -332,24 +388,17 @@ static void console_show_thread(console_t *Console, const char *SourceName, int 
 	ml_value_t **Args = ml_alloc_args(1);
 	int Depth = 0;
 	ML_LIST_FOREACH(Frames, Iter1) {
-		const char *Source = ml_string_value(ml_tuple_get(Iter1->Value, 1));
-		int Line = ml_integer_value(ml_tuple_get(Iter1->Value, 2));
+		char *Source;
+		asprintf(&Source, "%s:%ld",
+			ml_string_value(ml_tuple_get(Iter1->Value, 1)),
+			ml_integer_value(ml_tuple_get(Iter1->Value, 2))
+		);
 		GtkTreeIter TreeIter[1];
-		gtk_tree_store_insert_with_values(Console->FrameStore, TreeIter, NULL, -1, 0, Source, 1, Line, -1);
+		gtk_tree_store_insert_with_values(Console->FrameStore, TreeIter, NULL, -1, 0, Source, -1);
 		Args[0] = ml_integer(Depth++);
 		ml_value_t *Locals = ml_simple_call(LocalsGet, 1, Args);
 		ML_MAP_FOREACH(Locals, Iter2) {
-			ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-			ml_stringbuffer_simple_append(Buffer, Iter2->Value);
-			char *Value;
-			if (Buffer->Length < 64) {
-				Value = ml_stringbuffer_get_string(Buffer);
-			} else {
-				Value = snew(68);
-				memcpy(Value, Buffer->Head->Chars, 64);
-				strcpy(Value + 64, "...");
-			}
-			gtk_tree_store_insert_with_values(Console->FrameStore, NULL, TreeIter, -1, 2, ml_string_value(Iter2->Key), 3, Value, -1);
+			console_show_value(Console->FrameStore, TreeIter, ml_string_value(Iter2->Key), ml_deref(Iter2->Value));
 		}
 	}
 	gtk_tree_view_expand_all(GTK_TREE_VIEW(Console->FrameView));
@@ -785,33 +834,39 @@ console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globa
 	Console->LogScrolled = gtk_scrolled_window_new(NULL, NULL);
 	gtk_container_add(GTK_CONTAINER(Console->LogScrolled), Console->LogView);
 
-	GtkWidget *Notebook = gtk_notebook_new();
-	gtk_notebook_append_page(GTK_NOTEBOOK(Notebook), Console->LogScrolled, gtk_label_new("Output"));
-
-
 	Console->ThreadStore = gtk_list_store_new(3, G_TYPE_INT, G_TYPE_STRING, G_TYPE_INT);
 	gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(Console->ThreadStore), 0, GTK_SORT_ASCENDING);
-	Console->FrameStore = gtk_tree_store_new(4, G_TYPE_STRING, G_TYPE_INT, G_TYPE_STRING, G_TYPE_STRING);
 	GtkWidget *ThreadView = Console->ThreadView = gtk_tree_view_new_with_model(GTK_TREE_MODEL(Console->ThreadStore));
 	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(ThreadView), -1, "Thread", gtk_cell_renderer_text_new(), "text", 0, NULL);
 	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(ThreadView), -1, "Source", gtk_cell_renderer_text_new(), "text", 1, NULL);
 	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(ThreadView), -1, "Line", gtk_cell_renderer_text_new(), "text", 2, NULL);
 	gtk_tree_view_set_activate_on_single_click(GTK_TREE_VIEW(ThreadView), TRUE);
 	g_signal_connect(G_OBJECT(ThreadView), "row-activated", G_CALLBACK(console_thread_activated), Console);
+
+	Console->FrameStore = gtk_tree_store_new(2, G_TYPE_STRING, G_TYPE_STRING);
 	GtkWidget *FrameView = Console->FrameView = gtk_tree_view_new_with_model(GTK_TREE_MODEL(Console->FrameStore));
-	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(FrameView), -1, "Source", gtk_cell_renderer_text_new(), "text", 0, NULL);
-	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(FrameView), -1, "Line", gtk_cell_renderer_text_new(), "text", 1, NULL);
-	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(FrameView), -1, "Name", gtk_cell_renderer_text_new(), "text", 2, NULL);
-	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(FrameView), -1, "Value", gtk_cell_renderer_text_new(), "text", 3, NULL);
+	//gtk_tree_view_set_level_indentation(GTK_TREE_VIEW(FrameView), 20);
+	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(FrameView), -1, "Name", gtk_cell_renderer_text_new(), "text", 0, NULL);
+	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(FrameView), -1, "Value", gtk_cell_renderer_text_new(), "text", 1, NULL);
 	gtk_tree_view_set_activate_on_single_click(GTK_TREE_VIEW(FrameView), TRUE);
+
 	GtkWidget *Debugging = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
-	gtk_paned_add1(GTK_PANED(Debugging), ThreadView);
-	gtk_paned_add2(GTK_PANED(Debugging), FrameView);
-	gtk_paned_set_position(GTK_PANED(Debugging), 200);
-	gtk_notebook_append_page(GTK_NOTEBOOK(Notebook), Debugging, gtk_label_new("Debug"));
+	GtkWidget *Scrolled = gtk_scrolled_window_new(NULL, NULL);
+	gtk_container_add(GTK_CONTAINER(Scrolled), ThreadView);
+	gtk_paned_add1(GTK_PANED(Debugging), Scrolled);
+	Scrolled = gtk_scrolled_window_new(NULL, NULL);
+	gtk_container_add(GTK_CONTAINER(Scrolled), FrameView);
+	gtk_paned_add2(GTK_PANED(Debugging), Scrolled);
+
+	gtk_paned_set_position(GTK_PANED(Debugging), 100);
+
+	GtkWidget *OutputPane = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
+	gtk_paned_pack1(GTK_PANED(OutputPane), Debugging, TRUE, TRUE);
+	gtk_paned_pack2(GTK_PANED(OutputPane), Console->LogScrolled, TRUE, TRUE);
+	gtk_paned_set_position(GTK_PANED(OutputPane), 200);
 
 	Console->Paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
-	gtk_paned_add1(GTK_PANED(Console->Paned), Notebook);
+	gtk_paned_add1(GTK_PANED(Console->Paned), OutputPane);
 	gtk_paned_add2(GTK_PANED(Console->Paned), GTK_WIDGET(Console->Notebook));
 	gtk_paned_set_position(GTK_PANED(Console->Paned), 500);
 
@@ -983,4 +1038,8 @@ void console_load_file(console_t *Console, const char *FileName, ml_value_t *Arg
 	ml_call_state_t *State = ml_call_state_new((ml_state_t *)Console, 1);
 	State->Args[0] = Args;
 	ml_load_file((ml_state_t *)State, (void *)console_global_get, Console, FileName, NULL);
+}
+
+void console_init() {
+#include "gtk_console_init.c"
 }
