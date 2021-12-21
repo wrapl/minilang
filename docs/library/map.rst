@@ -69,6 +69,10 @@ map
    If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Value` and returns :mini:`some`.
 
 
+:mini:`meth (Map: map):missing(Key: any, Function: function): any | nil`
+   If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Function()` and returns :mini:`some`.
+
+
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: map)`
    *TBD*
 

@@ -8,6 +8,47 @@
 #define ML_CATEGORY "gir"
 
 typedef struct {
+	void **Ptrs;
+	int Size;
+} ptrset_t;
+
+#define PTRSET_INIT {NULL, 0}
+#define PTRSET_INITIAL_SIZE 4
+
+static void ptrset_insert(ptrset_t *Set, void *Ptr) {
+	if (!Set->Size) {
+		void **Ptrs = anew(void *, PTRSET_INITIAL_SIZE);
+		Ptrs[PTRSET_INITIAL_SIZE - 1] = Ptr;
+		Set->Ptrs = Ptrs;
+		Set->Size = PTRSET_INITIAL_SIZE;
+		return;
+	}
+	void **Slot = Set->Ptrs, **Space = NULL;
+	for (int I = Set->Size; --I >= 0; ++Slot) {
+		if (*Slot == Ptr) return;
+		if (!*Slot) Space = Slot;
+	}
+	if (Space) {
+		*Space = Ptr;
+		return;
+	}
+	int Size = Set->Size + PTRSET_INITIAL_SIZE;
+	void **Ptrs = anew(void *, Size);
+	memcpy(Ptrs, Set->Ptrs, Set->Size * sizeof(void *));
+	Ptrs[Set->Size] = Ptr;
+	Set->Ptrs = Ptrs;
+	Set->Size = Size;
+}
+
+static void ptrset_remove(ptrset_t *Set, void *Ptr) {
+	void **Slot = Set->Ptrs;
+	for (int I = Set->Size; --I >= 0; ++Slot) if (*Slot == Ptr) {
+		*Slot = NULL;
+		return;
+	}
+}
+
+typedef struct {
 	ml_type_t *Type;
 	GITypelib *Handle;
 	const char *Namespace;
@@ -87,15 +128,16 @@ ML_FUNCTION(MLGir) {
 	return ml_gir_typelib(ml_string_value(Args[0]), Version);
 }
 
-typedef struct object_t {
+typedef struct {
 	ml_type_t Base;
 	GIObjectInfo *Info;
 	stringmap_t Signals[1];
 } object_t;
 
-typedef struct object_instance_t {
+typedef struct {
 	const object_t *Type;
 	void *Handle;
+	ptrset_t Handlers[1];
 } object_instance_t;
 
 ML_TYPE(ObjectT, (BaseInfoT), "gir-object-type");
@@ -2088,8 +2130,10 @@ ML_METHOD("connect", ObjectInstanceT, MLStringT, MLFunctionT) {
 	const char *Signal = ml_string_value(Args[1]);
 	GISignalInfo *SignalInfo = (GISignalInfo *)stringmap_search(Instance->Type->Signals, Signal);
 	if (!SignalInfo) return ml_error("NameError", "Signal %s not found", Signal);
+	// TODO: use a closure structure and a finalizer
 	GClosure *Closure = g_closure_new_simple(sizeof(GClosure), SignalInfo);
 	g_closure_set_meta_marshal(Closure, Args[2], (GClosureMarshal)__marshal);
+	ptrset_insert(Instance->Handlers, Args[2]);
 	g_signal_connect_closure(Instance->Handle, Signal, Closure, Count > 3 && Args[3] != MLNil);
 	return Args[0];
 }
@@ -2140,12 +2184,12 @@ ML_METHOD("::", ObjectInstanceT, MLStringT) {
 
 void ml_gir_queue_add(ml_state_t *State, ml_value_t *Value);
 
-ml_schedule_t GirSchedule[1] = {{256, ml_gir_queue_add}};
+ml_schedule_t GirSchedule[1] = {{32, ml_gir_queue_add}};
 
 static gboolean ml_gir_queue_run(void *Data) {
 	ml_queued_state_t QueuedState = ml_scheduler_queue_next();
 	if (!QueuedState.State) return FALSE;
-	GirSchedule->Counter = 256;
+	GirSchedule->Counter = 32;
 	QueuedState.State->run(QueuedState.State, QueuedState.Value);
 	return TRUE;
 }
@@ -2154,7 +2198,10 @@ void ml_gir_queue_add(ml_state_t *State, ml_value_t *Value) {
 	if (ml_scheduler_queue_add(State, Value) == 1) g_idle_add(ml_gir_queue_run, NULL);
 }
 
+static ptrset_t SleepSet[1] = {PTRSET_INIT};
+
 static gboolean sleep_run(void *Data) {
+	ptrset_remove(SleepSet, Data);
 	ml_gir_queue_add((ml_state_t *)Data, MLNil);
 	return FALSE;
 }
@@ -2164,6 +2211,7 @@ ML_FUNCTIONX(MLSleep) {
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLNumberT);
 	guint Interval = ml_real_value(Args[0]) * 1000;
+	ptrset_insert(SleepSet, Caller);
 	g_timeout_add(Interval, sleep_run, Caller);
 }
 

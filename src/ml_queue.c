@@ -15,8 +15,7 @@ typedef struct ml_queue_node_t ml_queue_node_t;
 struct ml_queue_node_t {
 	ml_type_t *Type;
 	ml_queue_t *Queue;
-	ml_value_t *Value;
-	double Score;
+	ml_value_t *Value, *Score;
 	int Index;
 };
 
@@ -39,13 +38,22 @@ ML_METHOD(MLQueueT) {
 	return (ml_value_t *)Queue;
 }
 
+extern ml_value_t *CompareMethod;
+
+static inline int ml_queue_compare(ml_value_t *A, ml_value_t *B) {
+	ml_value_t *Args[2] = {A, B};
+	ml_value_t *Result = ml_simple_call(CompareMethod, 2, Args);
+	return ml_integer_value(Result);
+}
+
 static void ml_queue_up(ml_queue_t *Queue, ml_queue_node_t *Node) {
 	ml_queue_node_t **Nodes = Queue->Nodes;
 	int Index = Node->Index;
 	while (Index > 0) {
 		int ParentIndex = (Index - 1) / 2;
 		ml_queue_node_t *Parent = Nodes[ParentIndex];
-		if (Parent->Score >= Node->Score) {
+		// if (Parent->Score >= Node->Score) {
+		if (ml_queue_compare(Parent->Score, Node->Score) >= 0) {
 			Node->Index = Index;
 			return;
 		}
@@ -66,11 +74,13 @@ static void ml_queue_down(ml_queue_t *Queue, ml_queue_node_t *Node) {
 		int Right = 2 * Index + 2;
 		int Largest = Index;
 		Nodes[Index] = Node;
-		if (Left < Count && Nodes[Left] && Nodes[Left]->Score > Nodes[Largest]->Score) {
-			Largest = Left;
+		if (Left < Count && Nodes[Left]) {
+			int Compare = ml_queue_compare(Nodes[Left]->Score, Nodes[Largest]->Score);
+			if (Compare > 0) Largest = Left;
 		}
-		if (Right < Count && Nodes[Right] && Nodes[Right]->Score > Nodes[Largest]->Score) {
-			Largest = Right;
+		if (Right < Count && Nodes[Right]) {
+			int Compare = ml_queue_compare(Nodes[Right]->Score, Nodes[Largest]->Score);
+			if (Compare > 0) Largest = Right;
 		}
 		if (Largest != Index) {
 			ml_queue_node_t *Parent = Nodes[Largest];
@@ -102,7 +112,7 @@ ML_METHOD("insert", MLQueueT, MLAnyT, MLNumberT) {
 	Node->Type = MLQueueNodeT;
 	Node->Queue = Queue;
 	Node->Value = Args[1];
-	Node->Score = ml_real_value(Args[2]);
+	Node->Score = Args[2];
 	ml_queue_insert(Queue, Node);
 	return (ml_value_t *)Node;
 }
@@ -132,17 +142,19 @@ ML_METHOD("size", MLQueueT) {
 
 ML_METHOD("update", MLQueueNodeT, MLNumberT) {
 	ml_queue_node_t *Node = (ml_queue_node_t *)Args[0];
-	double Score = ml_real_value(Args[1]);
+	ml_value_t *Score = Args[1];
 	ml_queue_t *Queue = Node->Queue;
 	if (Node->Index == INT_MAX) {
 		Node->Score = Score;
 		ml_queue_insert(Queue, Node);
-	} else if (Score < Node->Score) {
+	} else {
+		int Compare = ml_queue_compare(Score, Node->Score);
 		Node->Score = Score;
-		ml_queue_down(Queue, Node);
-	} else if (Score > Node->Score) {
-		Node->Score = Score;
-		ml_queue_up(Queue, Node);
+		if (Compare < 0) {
+			ml_queue_down(Queue, Node);
+		} else if (Compare > 0) {
+			ml_queue_up(Queue, Node);
+		}
 	}
 	return Args[0];
 }
@@ -155,9 +167,10 @@ ML_METHOD("remove", MLQueueNodeT) {
 	Queue->Nodes[Queue->Count] = NULL;
 	int Index = Next->Index = Node->Index;
 	Queue->Nodes[Index] = Next;
-	if (Node->Score < Next->Score) {
+	int Compare = ml_queue_compare(Node->Score, Next->Score);
+	if (Compare < 0) {
 		ml_queue_down(Queue, Next);
-	} else if (Node->Score > Next->Score) {
+	} else if (Compare > 0) {
 		ml_queue_up(Queue, Next);
 	}
 	return Args[0];
@@ -170,12 +183,12 @@ ML_METHOD("value", MLQueueNodeT) {
 
 ML_METHOD("score", MLQueueNodeT) {
 	ml_queue_node_t *Node = (ml_queue_node_t *)Args[0];
-	return ml_real(Node->Score);
+	return Node->Score;
 }
 
 ml_value_t *ML_TYPED_FN(ml_unpack, MLQueueNodeT, ml_queue_node_t *Node, int Index) {
 	if (Index == 1) return Node->Value;
-	if (Index == 2) return ml_real(Node->Score);
+	if (Index == 2) return Node->Score;
 	return MLNil;
 }
 

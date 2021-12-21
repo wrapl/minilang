@@ -913,42 +913,34 @@ void ml_value_set_name(ml_value_t *Value, const char *Name) {
 
 void ml_iterate(ml_state_t *Caller, ml_value_t *Value) {
 	typeof(ml_iterate) *function = ml_typed_fn_get(ml_typeof(Value), ml_iterate);
-	if (!function) {
-		ml_value_t **Args = ml_alloc_args(1);
-		Args[0] = Value;
-		return ml_call(Caller, IterateMethod, 1, Args);
-	}
-	return function(Caller, Value);
+	if (function) return function(Caller, Value);
+	ml_value_t **Args = ml_alloc_args(1);
+	Args[0] = Value;
+	return ml_call(Caller, IterateMethod, 1, Args);
 }
 
 void ml_iter_value(ml_state_t *Caller, ml_value_t *Iter) {
 	typeof(ml_iter_value) *function = ml_typed_fn_get(ml_typeof(Iter), ml_iter_value);
-	if (!function) {
-		ml_value_t **Args = ml_alloc_args(1);
-		Args[0] = Iter;
-		return ml_call(Caller, ValueMethod, 1, Args);
-	}
-	return function(Caller, Iter);
+	if (function) return function(Caller, Iter);
+	ml_value_t **Args = ml_alloc_args(1);
+	Args[0] = Iter;
+	return ml_call(Caller, ValueMethod, 1, Args);
 }
 
 void ml_iter_key(ml_state_t *Caller, ml_value_t *Iter) {
 	typeof(ml_iter_key) *function = ml_typed_fn_get(ml_typeof(Iter), ml_iter_key);
-	if (!function) {
-		ml_value_t **Args = ml_alloc_args(1);
-		Args[0] = Iter;
-		return ml_call(Caller, KeyMethod, 1, Args);
-	}
-	return function(Caller, Iter);
+	if (function) return function(Caller, Iter);
+	ml_value_t **Args = ml_alloc_args(1);
+	Args[0] = Iter;
+	return ml_call(Caller, KeyMethod, 1, Args);
 }
 
 void ml_iter_next(ml_state_t *Caller, ml_value_t *Iter) {
 	typeof(ml_iter_next) *function = ml_typed_fn_get(ml_typeof(Iter), ml_iter_next);
-	if (!function) {
-		ml_value_t **Args = ml_alloc_args(1);
-		Args[0] = Iter;
-		return ml_call(Caller, NextMethod, 1, Args);
-	}
-	return function(Caller, Iter);
+	if (function) return function(Caller, Iter);
+	ml_value_t **Args = ml_alloc_args(1);
+	Args[0] = Iter;
+	return ml_call(Caller, NextMethod, 1, Args);
 }
 
 // Functions //

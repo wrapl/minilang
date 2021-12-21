@@ -515,6 +515,7 @@ ML_METHOD("missing", MLMapT, MLAnyT) {
 	return MLNil;
 }
 
+/*
 ML_METHOD("missing", MLMapT, MLAnyT, MLAnyT) {
 //<Map
 //<Key
@@ -526,6 +527,40 @@ ML_METHOD("missing", MLMapT, MLAnyT, MLAnyT) {
 	ml_map_node_t *Node = ml_map_node(Map, &Map->Root, ml_typeof(Key)->hash(Key, NULL), Key);
 	if (!Node->Value) return Node->Value = Args[2];
 	return MLNil;
+}
+*/
+
+static void ml_missing_state_run(ml_ref_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) {
+		ML_CONTINUE(State->Base.Caller, Value);
+	} else {
+		State->Node->Value = Value;
+		ML_CONTINUE(State->Base.Caller, MLSome);
+	}
+}
+
+ML_METHODX("missing", MLMapT, MLAnyT, MLFunctionT) {
+//<Map
+//<Key
+//<Function
+//>any | nil
+// If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Function()` and returns :mini:`some`.
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_value_t *Key = Args[1];
+	ml_map_node_t *Node = ml_map_node(Map, &Map->Root, ml_typeof(Key)->hash(Key, NULL), Key);
+	if (!Node->Value) {
+		Node->Value = MLNil;
+		ml_ref_state_t *State = new(ml_ref_state_t);
+		State->Base.Caller = Caller;
+		State->Base.Context = Caller->Context;
+		State->Base.run = (void *)ml_missing_state_run;
+		State->Key = Key;
+		State->Node = Node;
+		ml_value_t *Function = Args[2];
+		return ml_call(State, Function, 1, &State->Key);
+	} else {
+		ML_RETURN(MLNil);
+	}
 }
 
 ML_METHOD("append", MLStringBufferT, MLMapT) {
