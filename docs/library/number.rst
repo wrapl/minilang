@@ -62,65 +62,85 @@ number
 :mini:`meth double(Arg₁: integer)`
    *TBD*
 
-:mini:`meth -(Arg₁: integer)`
-   *TBD*
+:mini:`meth -(A: integer): integer`
+   Returns :mini:`-A`.
 
-:mini:`meth -(Arg₁: double)`
-   *TBD*
 
-:mini:`meth (Arg₁: integer) + (Arg₂: integer)`
-   *TBD*
+:mini:`meth -(A: double): real`
+   Returns :mini:`-A`.
 
-:mini:`meth (Arg₁: double) + (Arg₂: double)`
-   *TBD*
 
-:mini:`meth (Arg₁: double) + (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: integer) + (B: integer): integer`
+   Returns :mini:`A + B`.
 
-:mini:`meth (Arg₁: integer) + (Arg₂: double)`
-   *TBD*
 
-:mini:`meth (Arg₁: integer) - (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: double) + (B: double): real`
+   Returns :mini:`A + B`.
 
-:mini:`meth (Arg₁: double) - (Arg₂: double)`
-   *TBD*
 
-:mini:`meth (Arg₁: double) - (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: double) + (B: integer): real`
+   Returns :mini:`A + B`.
 
-:mini:`meth (Arg₁: integer) - (Arg₂: double)`
-   *TBD*
 
-:mini:`meth (Arg₁: integer) * (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: integer) + (B: double): real`
+   Returns :mini:`A + B`.
 
-:mini:`meth (Arg₁: double) * (Arg₂: double)`
-   *TBD*
 
-:mini:`meth (Arg₁: double) * (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: integer) - (B: integer): integer`
+   Returns :mini:`A - B`.
 
-:mini:`meth (Arg₁: integer) * (Arg₂: double)`
-   *TBD*
 
-:mini:`meth ~(Arg₁: integer)`
-   *TBD*
+:mini:`meth (A: double) - (B: double): real`
+   Returns :mini:`A - B`.
 
-:mini:`meth (Arg₁: integer) /\ (Arg₂: integer)`
-   *TBD*
 
-:mini:`meth (Arg₁: integer) \/ (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: double) - (B: integer): real`
+   Returns :mini:`A - B`.
 
-:mini:`meth (Arg₁: integer) >< (Arg₂: integer)`
-   *TBD*
 
-:mini:`meth (Arg₁: integer) << (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: integer) - (B: double): real`
+   Returns :mini:`A - B`.
 
-:mini:`meth (Arg₁: integer) >> (Arg₂: integer)`
-   *TBD*
+
+:mini:`meth (A: integer) * (B: integer): integer`
+   Returns :mini:`A * B`.
+
+
+:mini:`meth (A: double) * (B: double): real`
+   Returns :mini:`A * B`.
+
+
+:mini:`meth (A: double) * (B: integer): real`
+   Returns :mini:`A * B`.
+
+
+:mini:`meth (A: integer) * (B: double): real`
+   Returns :mini:`A * B`.
+
+
+:mini:`meth ~(A: integer): integer`
+   Returns :mini:`~A`.
+
+
+:mini:`meth (A: integer) /\ (B: integer): integer`
+   Returns :mini:`A & B`.
+
+
+:mini:`meth (A: integer) \/ (B: integer): integer`
+   Returns :mini:`A | B`.
+
+
+:mini:`meth (A: integer) >< (B: integer): integer`
+   Returns :mini:`A ^ B`.
+
+
+:mini:`meth (A: integer) << (B: integer): integer`
+   Returns :mini:`A << B`.
+
+
+:mini:`meth (A: integer) >> (B: integer): integer`
+   Returns :mini:`A >> B`.
+
 
 :mini:`meth ++(Int: integer): integer`
    Returns :mini:`Int + 1`
@@ -138,32 +158,41 @@ number
    Returns :mini:`Real - 1`
 
 
-:mini:`meth (Arg₁: double) / (Arg₂: double)`
-   *TBD*
+:mini:`meth (A: double) / (B: double): real`
+   Returns :mini:`A / B`.
 
-:mini:`meth (Arg₁: double) / (Arg₂: integer)`
-   *TBD*
 
-:mini:`meth (Arg₁: integer) / (Arg₂: double)`
-   *TBD*
+:mini:`meth (A: double) / (B: integer): real`
+   Returns :mini:`A / B`.
 
-:mini:`meth (Arg₁: complex) / (Arg₂: complex)`
-   *TBD*
 
-:mini:`meth (Arg₁: complex) / (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: integer) / (B: double): real`
+   Returns :mini:`A / B`.
 
-:mini:`meth (Arg₁: integer) / (Arg₂: complex)`
-   *TBD*
 
-:mini:`meth (Arg₁: complex) / (Arg₂: double)`
-   *TBD*
+:mini:`meth (A: complex) / (B: complex): real`
+   complex :mini:`A / B`.
 
-:mini:`meth (Arg₁: double) / (Arg₂: complex)`
-   *TBD*
 
-:mini:`meth ~(Arg₁: complex)`
-   *TBD*
+:mini:`meth (A: complex) / (B: integer): complex`
+   Returns :mini:`A / B`.
+
+
+:mini:`meth (A: integer) / (B: complex): complex`
+   Returns :mini:`A / B`.
+
+
+:mini:`meth (A: complex) / (B: double): complex`
+   Returns :mini:`A / B`.
+
+
+:mini:`meth (A: double) / (B: complex): complex`
+   Returns :mini:`A / B`.
+
+
+:mini:`meth ~(A: complex): complex`
+   Returns :mini:`~A`.
+
 
 :mini:`meth (Int₁: integer) / (Int₂: integer): integer | real`
    Returns :mini:`Int₁ / Int₂` as an integer if the division is exact,  otherwise as a real.
@@ -197,77 +226,101 @@ number
    Note: the result is calculated by rounding down in all cases. In particular,  the result is always nonnegative.
 
 
-:mini:`meth (Arg₁: integer) = (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: integer) = (B: integer): integer`
+   Returns :mini:`B` if :mini:`A == B`,  otherwise returns :mini:`nil`.
 
-:mini:`meth (Arg₁: double) = (Arg₂: double)`
-   *TBD*
 
-:mini:`meth (Arg₁: double) = (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: double) = (B: double): real`
+   Returns :mini:`B` if :mini:`A == B`,  otherwise returns :mini:`nil`.
 
-:mini:`meth (Arg₁: integer) = (Arg₂: double)`
-   *TBD*
 
-:mini:`meth (Arg₁: integer) != (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: double) = (B: integer): real`
+   Returns :mini:`B` if :mini:`A == B`,  otherwise returns :mini:`nil`.
 
-:mini:`meth (Arg₁: double) != (Arg₂: double)`
-   *TBD*
 
-:mini:`meth (Arg₁: double) != (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: integer) = (B: double): real`
+   Returns :mini:`B` if :mini:`A == B`,  otherwise returns :mini:`nil`.
 
-:mini:`meth (Arg₁: integer) != (Arg₂: double)`
-   *TBD*
 
-:mini:`meth (Arg₁: integer) < (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: integer) != (B: integer): integer`
+   Returns :mini:`B` if :mini:`A != B`,  otherwise returns :mini:`nil`.
 
-:mini:`meth (Arg₁: double) < (Arg₂: double)`
-   *TBD*
 
-:mini:`meth (Arg₁: double) < (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: double) != (B: double): real`
+   Returns :mini:`B` if :mini:`A != B`,  otherwise returns :mini:`nil`.
 
-:mini:`meth (Arg₁: integer) < (Arg₂: double)`
-   *TBD*
 
-:mini:`meth (Arg₁: integer) > (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: double) != (B: integer): real`
+   Returns :mini:`B` if :mini:`A != B`,  otherwise returns :mini:`nil`.
 
-:mini:`meth (Arg₁: double) > (Arg₂: double)`
-   *TBD*
 
-:mini:`meth (Arg₁: double) > (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: integer) != (B: double): real`
+   Returns :mini:`B` if :mini:`A != B`,  otherwise returns :mini:`nil`.
 
-:mini:`meth (Arg₁: integer) > (Arg₂: double)`
-   *TBD*
 
-:mini:`meth (Arg₁: integer) <= (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: integer) < (B: integer): integer`
+   Returns :mini:`B` if :mini:`A < B`,  otherwise returns :mini:`nil`.
 
-:mini:`meth (Arg₁: double) <= (Arg₂: double)`
-   *TBD*
 
-:mini:`meth (Arg₁: double) <= (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: double) < (B: double): real`
+   Returns :mini:`B` if :mini:`A < B`,  otherwise returns :mini:`nil`.
 
-:mini:`meth (Arg₁: integer) <= (Arg₂: double)`
-   *TBD*
 
-:mini:`meth (Arg₁: integer) >= (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: double) < (B: integer): real`
+   Returns :mini:`B` if :mini:`A < B`,  otherwise returns :mini:`nil`.
 
-:mini:`meth (Arg₁: double) >= (Arg₂: double)`
-   *TBD*
 
-:mini:`meth (Arg₁: double) >= (Arg₂: integer)`
-   *TBD*
+:mini:`meth (A: integer) < (B: double): real`
+   Returns :mini:`B` if :mini:`A < B`,  otherwise returns :mini:`nil`.
 
-:mini:`meth (Arg₁: integer) >= (Arg₂: double)`
-   *TBD*
+
+:mini:`meth (A: integer) > (B: integer): integer`
+   Returns :mini:`B` if :mini:`A > B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: double) > (B: double): real`
+   Returns :mini:`B` if :mini:`A > B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: double) > (B: integer): real`
+   Returns :mini:`B` if :mini:`A > B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: integer) > (B: double): real`
+   Returns :mini:`B` if :mini:`A > B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: integer) <= (B: integer): integer`
+   Returns :mini:`B` if :mini:`A <= B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: double) <= (B: double): real`
+   Returns :mini:`B` if :mini:`A <= B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: double) <= (B: integer): real`
+   Returns :mini:`B` if :mini:`A <= B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: integer) <= (B: double): real`
+   Returns :mini:`B` if :mini:`A <= B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: integer) >= (B: integer): integer`
+   Returns :mini:`B` if :mini:`A >= B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: double) >= (B: double): real`
+   Returns :mini:`B` if :mini:`A >= B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: double) >= (B: integer): real`
+   Returns :mini:`B` if :mini:`A >= B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: integer) >= (B: double): real`
+   Returns :mini:`B` if :mini:`A >= B`,  otherwise returns :mini:`nil`.
+
 
 :mini:`meth (Int₁: integer) <> (Int₂: integer): integer`
    Returns :mini:`-1`,  :mini:`0` or :mini:`1` depending on whether :mini:`Int₁` is less than,  equal to or greater than :mini:`Int₂`.

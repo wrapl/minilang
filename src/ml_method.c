@@ -345,6 +345,7 @@ ml_value_t *ml_method_anon(const char *Name) {
 ML_METHOD(MLMethodT) {
 //!method
 //>method
+// Returns a new anonymous method.
 	return ml_method(NULL);
 }
 
@@ -352,6 +353,7 @@ ML_METHOD(MLMethodT, MLStringT) {
 //!method
 //<Name
 //>method
+// Returns the method with name :mini:`Name`.
 	return ml_method(ml_string_value(Args[0]));
 }
 
