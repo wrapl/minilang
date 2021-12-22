@@ -899,6 +899,7 @@ static void ml_each_expr_compile2(mlc_function_t *Function, ml_value_t *Value, m
 	ml_inst_t *NextInst = MLC_EMIT(Expr->StartLine, MLI_NEXT, 1);
 	NextInst[1].Inst = AndInst;
 	AndInst[1].Inst = Function->Next;
+	--Function->Top;
 	if (Frame->Flags & MLCF_PUSH) {
 		MLC_EMIT(Expr->EndLine, MLI_PUSH, 0);
 		mlc_inc_top(Function);
@@ -3923,6 +3924,9 @@ static mlc_expr_t *ml_accept_meth_expr(ml_parser_t *Parser) {
 	if (ml_parse2(Parser, MLT_ASSIGN)) {
 		ArgsSlot[0] = ml_accept_expression(Parser, EXPR_DEFAULT);
 	} else {
+		if (ml_parse2(Parser, MLT_COLON)) {
+			FunExpr->ReturnType = ml_parse_term(Parser, 0);
+		}
 		FunExpr->Body = ml_accept_expression(Parser, EXPR_DEFAULT);
 		ArgsSlot[0] = ML_EXPR_END(FunExpr);
 	}

@@ -93,6 +93,10 @@ list
    Returns a new list with the elements of :mini:`List₁` followed by the elements of :mini:`List₂`.
 
 
+:mini:`meth (List: list):splice: list | nil`
+   Removes all elements from :mini:`List`. Returns the removed elements as a new list.
+
+
 :mini:`meth (List: list):splice(Index: integer, Count: integer): list | nil`
    Removes :mini:`Count` elements from :mini:`List` starting at :mini:`Index`. Returns the removed elements as a new list.
 
