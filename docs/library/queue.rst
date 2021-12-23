@@ -41,3 +41,7 @@ queue
    Returns the priority associated with :mini:`Entry`.
 
 
+:mini:`meth (Entry: queue::entry):queued: queue::entry | nil`
+   Returns :mini:`Entry` if it is currently in the queue,  otherwise returns :mini:`nil`.
+
+

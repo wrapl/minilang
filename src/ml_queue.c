@@ -169,7 +169,7 @@ ML_METHOD("update", MLQueueEntryT, MLAnyT) {
 			ml_queue_up(Queue, Entry);
 		}
 	}
-	return Args[0];
+	return (ml_value_t *)Entry;
 }
 
 ML_METHOD("remove", MLQueueEntryT) {
@@ -189,7 +189,8 @@ ML_METHOD("remove", MLQueueEntryT) {
 	} else if (Compare > 0) {
 		ml_queue_up(Queue, Next);
 	}
-	return Args[0];
+	Entry->Index = INT_MAX;
+	return (ml_value_t *)Entry;
 }
 
 ML_METHOD("value", MLQueueEntryT) {
@@ -206,6 +207,15 @@ ML_METHOD("priority", MLQueueEntryT) {
 // Returns the priority associated with :mini:`Entry`.
 	ml_queue_entry_t *Entry = (ml_queue_entry_t *)Args[0];
 	return Entry->Priority;
+}
+
+ML_METHOD("queued", MLQueueEntryT) {
+//<Entry
+//>queue::entry|nil
+// Returns :mini:`Entry` if it is currently in the queue, otherwise returns :mini:`nil`.
+	ml_queue_entry_t *Entry = (ml_queue_entry_t *)Args[0];
+	if (Entry->Index == INT_MAX) return MLNil;
+	return (ml_value_t *)Entry;
 }
 
 ml_value_t *ML_TYPED_FN(ml_unpack, MLQueueEntryT, ml_queue_entry_t *Entry, int Index) {
