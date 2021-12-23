@@ -25,8 +25,20 @@ queue
    Returns the number of entries in :mini:`Queue`.
 
 
-:mini:`meth (Entry: queue::entry):update(Priority: any): queue::entry`
-   Changes the priority of :mini:`Entry`.
+:mini:`meth (Entry: queue::entry):requeue: queue::entry`
+   Adds :mini:`Entry` back into its queue if it is not currently in the queue.
+
+
+:mini:`meth (Entry: queue::entry):adjust(Priority: any): queue::entry`
+   Changes the priority of :mini:`Entry` to :mini:`Priority`.
+
+
+:mini:`meth (Entry: queue::entry):raise(Priority: any): queue::entry`
+   Changes the priority of :mini:`Entry` to :mini:`Priority` only if its current priority is less than :mini:`Priority`.
+
+
+:mini:`meth (Entry: queue::entry):lower(Priority: any): queue::entry`
+   Changes the priority of :mini:`Entry` to :mini:`Priority` only if its current priority is greater than :mini:`Priority`.
 
 
 :mini:`meth (Entry: queue::entry):remove: queue::entry`

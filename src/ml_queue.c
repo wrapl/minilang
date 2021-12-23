@@ -149,25 +149,64 @@ ML_METHOD("count", MLQueueT) {
 	return ml_integer(Queue->Count);
 }
 
-ML_METHOD("update", MLQueueEntryT, MLAnyT) {
+ML_METHOD("requeue", MLQueueEntryT) {
+//<Entry
+//>queue::entry
+// Adds :mini:`Entry` back into its queue if it is not currently in the queue.
+	ml_queue_entry_t *Entry = (ml_queue_entry_t *)Args[0];
+	ml_queue_t *Queue = Entry->Queue;
+	if (Entry->Index == INT_MAX) ml_queue_insert(Queue, Entry);
+	return (ml_value_t *)Entry;
+}
+
+ML_METHOD("adjust", MLQueueEntryT, MLAnyT) {
 //<Entry
 //<Priority
 //>queue::entry
-// Changes the priority of :mini:`Entry`.
+// Changes the priority of :mini:`Entry` to :mini:`Priority`.
 	ml_queue_entry_t *Entry = (ml_queue_entry_t *)Args[0];
 	ml_value_t *Priority = Args[1];
 	ml_queue_t *Queue = Entry->Queue;
+	int Compare = ml_queue_compare(Priority, Entry->Priority);
+	Entry->Priority = Priority;
 	if (Entry->Index == INT_MAX) {
-		Entry->Priority = Priority;
-		ml_queue_insert(Queue, Entry);
-	} else {
-		int Compare = ml_queue_compare(Priority, Entry->Priority);
-		Entry->Priority = Priority;
 		if (Compare < 0) {
 			ml_queue_down(Queue, Entry);
 		} else if (Compare > 0) {
 			ml_queue_up(Queue, Entry);
 		}
+	}
+	return (ml_value_t *)Entry;
+}
+
+ML_METHOD("raise", MLQueueEntryT, MLAnyT) {
+//<Entry
+//<Priority
+//>queue::entry
+// Changes the priority of :mini:`Entry` to :mini:`Priority` only if its current priority is less than :mini:`Priority`.
+	ml_queue_entry_t *Entry = (ml_queue_entry_t *)Args[0];
+	ml_value_t *Priority = Args[1];
+	ml_queue_t *Queue = Entry->Queue;
+	int Compare = ml_queue_compare(Priority, Entry->Priority);
+	if (Compare > 0) {
+		Entry->Priority = Priority;
+		if (Entry->Index != INT_MAX) ml_queue_up(Queue, Entry);
+	}
+	return (ml_value_t *)Entry;
+}
+
+ML_METHOD("lower", MLQueueEntryT, MLAnyT) {
+//<Entry
+//<Priority
+//>queue::entry
+// Changes the priority of :mini:`Entry` to :mini:`Priority` only if its current priority is greater than :mini:`Priority`.
+	ml_queue_entry_t *Entry = (ml_queue_entry_t *)Args[0];
+	ml_value_t *Priority = Args[1];
+	ml_queue_t *Queue = Entry->Queue;
+	int Compare = ml_queue_compare(Priority, Entry->Priority);
+	if (Compare < 0) {
+		Entry->Priority = Priority;
+		if (Entry->Index != INT_MAX) ml_queue_down(Queue, Entry);
 	}
 	return (ml_value_t *)Entry;
 }
