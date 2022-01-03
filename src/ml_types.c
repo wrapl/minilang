@@ -909,6 +909,11 @@ void ml_value_set_name(ml_value_t *Value, const char *Name) {
 	if (function) function(Value, Name);
 }
 
+void ml_value_find_refs(ml_value_t *Value, void *Data, ml_value_ref_fn CycleFn) {
+	typeof(ml_value_find_refs) *function = ml_typed_fn_get(ml_typeof(Value), ml_value_find_refs);
+	if (function) function(Value, Data, CycleFn);
+}
+
 // Iterators //
 
 void ml_iterate(ml_state_t *Caller, ml_value_t *Value) {

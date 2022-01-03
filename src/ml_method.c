@@ -343,18 +343,24 @@ ml_value_t *ml_method_anon(const char *Name) {
 }
 
 ML_METHOD(MLMethodT) {
-//!method
 //>method
 // Returns a new anonymous method.
 	return ml_method(NULL);
 }
 
 ML_METHOD(MLMethodT, MLStringT) {
-//!method
 //<Name
 //>method
 // Returns the method with name :mini:`Name`.
 	return ml_method(ml_string_value(Args[0]));
+}
+
+ML_METHOD("name", MLMethodT) {
+//<Method
+//>string
+// Returns the name of :mini:`Method`.
+	ml_method_t *Method = (ml_method_t *)Args[0];
+	return ml_cstring(Method->Name);
 }
 
 void ml_method_by_name(const char *Name, void *Data, ml_callback_t Callback, ...) {

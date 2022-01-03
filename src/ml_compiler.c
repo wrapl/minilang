@@ -5303,6 +5303,11 @@ ML_TYPE(MLGlobalT, (), "global",
 	.call = (void *)ml_global_call
 );
 
+static void ML_TYPED_FN(ml_value_find_refs, MLGlobalT, ml_global_t *Global, void *Data, ml_value_ref_fn RefFn) {
+	if (!RefFn(Data, (ml_value_t *)Global)) return;
+	ml_value_find_refs(Global->Value, Data, RefFn);
+}
+
 ml_value_t *ml_global(const char *Name) {
 	ml_global_t *Global = new(ml_global_t);
 	Global->Type =  MLGlobalT;

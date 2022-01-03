@@ -288,7 +288,7 @@ int main(int Argc, const char *Argv[]) {
 	const char *Command = NULL;
 	for (int I = 1; I < Argc; ++I) {
 		if (FileName) {
-			ml_list_append(Args, ml_cstring(Argv[I]));
+			ml_list_put(Args, ml_cstring(Argv[I]));
 		} else if (Argv[I][0] == '-') {
 			switch (Argv[I][1]) {
 			case 'E':

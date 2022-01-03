@@ -568,6 +568,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		int Count = Inst[1].Count;
 		for (int I = 0; I < Count; ++I) {
 			Result = ml_unpack(Packed, I + 1);
+			ERROR_CHECK(Result);
 			*Top = Result;
 			++Top;
 		}
@@ -1516,6 +1517,87 @@ ML_TYPE(MLClosureT, (MLFunctionT, MLSequenceT), "closure",
 	.call = (void *)ml_closure_call,
 	.Constructor = (ml_value_t *)MLClosure
 );
+
+static void ML_TYPED_FN(ml_value_find_refs, MLClosureT, ml_closure_t *Closure, void *Data, ml_value_ref_fn RefFn) {
+	if (!RefFn(Data, (ml_value_t *)Closure)) return;
+	ml_closure_info_t *Info = Closure->Info;
+	Info->Type = MLClosureInfoT;
+	ml_value_find_refs((ml_value_t *)Info, Data, RefFn);
+	for (int I = 0; I < Info->NumUpValues; ++I) ml_value_find_refs(Closure->UpValues[I], Data, RefFn);
+}
+
+ML_TYPE(MLClosureInfoT, (), "closure::info");
+
+static void ML_TYPED_FN(ml_value_find_refs, MLClosureInfoT, ml_closure_info_t *Info, void *Data, ml_value_ref_fn RefFn) {
+	if (!RefFn(Data, (ml_value_t *)Info)) return;
+	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
+		if (Inst->Opcode == MLI_LINK) {
+			Inst = Inst[1].Inst;
+			continue;
+		}
+		switch (MLInstTypes[Inst->Opcode]) {
+		case MLIT_NONE:
+			Inst += 1;
+			break;
+		case MLIT_INST:
+			Inst += 2;
+			break;
+		case MLIT_INST_COUNT_DECL:
+			Inst += 4;
+			break;
+		case MLIT_INST_TYPES: {
+			Inst += 3;
+			break;
+		}
+		case MLIT_COUNT_COUNT:
+			Inst += 3;
+			break;
+		case MLIT_COUNT:
+			Inst += 2;
+			break;
+		case MLIT_VALUE:
+			ml_value_find_refs(Inst[1].Value, Data, RefFn);
+			Inst += 2;
+			break;
+		case MLIT_VALUE_DATA:
+			ml_value_find_refs(Inst[1].Value, Data, RefFn);
+			Inst += 3;
+			break;
+		case MLIT_VALUE_COUNT:
+			ml_value_find_refs(Inst[1].Value, Data, RefFn);
+			Inst += 3;
+			break;
+		case MLIT_VALUE_COUNT_DATA:
+			ml_value_find_refs(Inst[1].Value, Data, RefFn);
+			Inst += 4;
+			break;
+		case MLIT_COUNT_CHARS:
+			Inst += 3;
+			break;
+		case MLIT_DECL:
+			Inst += 2;
+			break;
+		case MLIT_COUNT_DECL:
+			Inst += 3;
+			break;
+		case MLIT_COUNT_COUNT_DECL:
+			Inst += 4;
+			break;
+		case MLIT_CLOSURE: {
+			ml_closure_info_t *Info = Inst[1].ClosureInfo;
+			if (!Info->Type) Info->Type = MLClosureInfoT;
+			ml_value_find_refs((ml_value_t *)Info, Data, RefFn);
+			Inst += 2 + Info->NumUpValues;
+			break;
+		}
+		case MLIT_SWITCH: {
+			Inst += 3;
+			break;
+		}
+		default: __builtin_unreachable();
+		}
+	}
+}
 
 ml_value_t *ml_closure(ml_closure_info_t *Info) {
 	ml_closure_t *Closure = xnew(ml_closure_t, Info->NumUpValues, ml_value_t *);

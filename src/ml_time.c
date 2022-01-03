@@ -286,7 +286,7 @@ ML_METHOD("-", MLTimeT, MLNumberT) {
 
 #include "ml_cbor.h"
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTimeT, ml_time_t *Time, void *Data, ml_cbor_write_fn WriteFn, void *TagFnData) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTimeT, ml_time_t *Time, void *Data, ml_cbor_write_fn WriteFn) {
 	struct tm TM = {0,};
 	gmtime_r(&Time->Value->tv_sec, &TM);
 	char Buffer[60];
@@ -308,19 +308,19 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTimeT, ml_time_t *Time, void *Da
 	return NULL;
 }
 
-static ml_value_t *ml_cbor_read_time_fn(void *Data, int Count, ml_value_t **Args) {
-	if (ml_is(Args[0], MLNumberT)) {
+static ml_value_t *ml_cbor_read_time_fn(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+	if (ml_is(Value, MLNumberT)) {
 		ml_time_t *Time = new(ml_time_t);
 		Time->Type = MLTimeT;
-		Time->Value->tv_sec = ml_integer_value(Args[0]);
+		Time->Value->tv_sec = ml_integer_value(Value);
 		return (ml_value_t *)Time;
-	} else if (ml_is(Args[0], MLStringT)) {
-		const char *Value = ml_string_value(Args[0]);
+	} else if (ml_is(Value, MLStringT)) {
+		const char *String = ml_string_value(Value);
 		ml_time_t *Time = new(ml_time_t);
 		Time->Type = MLTimeT;
 		struct tm TM = {0,};
 		int Offset = 0;
-		const char *Rest = strptime(Value, "%FT%T", &TM);
+		const char *Rest = strptime(String, "%FT%T", &TM);
 		if (!Rest) return ml_error("TimeError", "Error parsing time");
 		if (Rest[0] == '.') {
 			++Rest;
@@ -361,7 +361,7 @@ void ml_time_init(stringmap_t *Globals) {
 	if (Globals) stringmap_insert(Globals, "time", MLTimeT);
 	ml_string_fn_register("T", ml_time_parse);
 #ifdef ML_CBOR
-	ml_cbor_default_tag(0, NULL, ml_cbor_read_time_fn);
-	ml_cbor_default_tag(1, NULL, ml_cbor_read_time_fn);
+	ml_cbor_default_tag(0, ml_cbor_read_time_fn);
+	ml_cbor_default_tag(1, ml_cbor_read_time_fn);
 #endif
 }

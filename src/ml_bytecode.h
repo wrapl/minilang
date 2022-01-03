@@ -13,6 +13,7 @@ typedef struct ml_closure_t ml_closure_t;
 typedef struct ml_closure_info_t ml_closure_info_t;
 
 extern ml_type_t MLClosureT[];
+extern ml_type_t MLClosureInfoT[];
 
 typedef union ml_inst_t ml_inst_t;
 
@@ -45,6 +46,7 @@ union ml_inst_t {
 #define ML_CLOSURE_HASHED 8
 
 struct ml_closure_info_t {
+	ml_type_t *Type;
 	ml_inst_t *Entry, *Return, *Halt;
 	const char *Name, *Source;
 	ml_decl_t *Decls;

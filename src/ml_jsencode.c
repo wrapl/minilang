@@ -181,6 +181,35 @@ static json_t *ml_closure_decl_encode(ml_decl_t *Decl, ml_decls_json_t *Decls) {
 	return Index;
 }
 
+static int ml_closure_info_param_fn(const char *Name, void *Index, json_t *Params) {
+	json_array_set(Params, (intptr_t)Index - 1, json_string(Name));
+	return 0;
+}
+
+static int ml_closure_find_labels(ml_inst_t *Inst, uintptr_t *Offset) {
+	switch (MLInstTypes[Inst->Opcode]) {
+	case MLIT_NONE: *Offset += 2; return 1;
+	case MLIT_INST: *Offset += 3; return 2;
+	case MLIT_INST_COUNT_DECL: *Offset += 5; return 4;
+	case MLIT_INST_TYPES: *Offset += 4; return 3;
+	case MLIT_COUNT_COUNT: *Offset += 4; return 3;
+	case MLIT_COUNT: *Offset += 3; return 2;
+	case MLIT_VALUE: *Offset += 3; return 2;
+	case MLIT_VALUE_DATA: *Offset += 3; return 3;
+	case MLIT_VALUE_COUNT: *Offset += 4; return 3;
+	case MLIT_VALUE_COUNT_DATA: *Offset += 4; return 4;
+	case MLIT_COUNT_CHARS: *Offset += 3; return 3;
+	case MLIT_DECL: *Offset += 3; return 2;
+	case MLIT_COUNT_DECL: *Offset += 4; return 3;
+	case MLIT_COUNT_COUNT_DECL: *Offset += 5; return 4;
+	case MLIT_CLOSURE:
+		*Offset += 3 + Inst[1].ClosureInfo->NumUpValues;
+		return 2 + Inst[1].ClosureInfo->NumUpValues;
+	case MLIT_SWITCH: *Offset += 3; return 3;
+	default: __builtin_unreachable();
+	}
+}
+
 static int ml_closure_inst_encode(ml_inst_t *Inst, ml_json_encoder_cache_t *Cache, json_t *Json, inthash_t *Labels, ml_decls_json_t *Decls) {
 	json_array_append_new(Json, json_integer(Inst->Opcode));
 	json_array_append_new(Json, json_integer(Inst->Line));
@@ -198,7 +227,7 @@ static int ml_closure_inst_encode(ml_inst_t *Inst, ml_json_encoder_cache_t *Cach
 	case MLIT_INST_TYPES: {
 		json_array_append_new(Json, json_integer((uintptr_t)inthash_search(Labels, Inst[1].Inst->Label)));
 		json_t *Types = json_array();
-		for (const char **Ptr= Inst[2].Ptrs; *Ptr; ++Ptr) {
+		for (const char **Ptr = Inst[2].Ptrs; *Ptr; ++Ptr) {
 			json_array_append_new(Types, json_string(*Ptr));
 		}
 		return 3;
@@ -245,7 +274,7 @@ static int ml_closure_inst_encode(ml_inst_t *Inst, ml_json_encoder_cache_t *Cach
 		for (int N = 0; N < Info->NumUpValues; ++N) {
 			json_array_append_new(Json, json_integer(Inst[2 + N].Count));
 		}
-		return 2 + Inst[1].ClosureInfo->NumUpValues;
+		return 2 + Info->NumUpValues;
 	}
 	case MLIT_SWITCH: {
 		json_t *Insts = json_array();
@@ -256,38 +285,8 @@ static int ml_closure_inst_encode(ml_inst_t *Inst, ml_json_encoder_cache_t *Cach
 		json_array_append_new(Json, Insts);
 		return 3;
 	}
+	default: __builtin_unreachable();
 	}
-	__builtin_unreachable();
-}
-
-static int ml_closure_info_param_fn(const char *Name, void *Index, json_t *Params) {
-	json_array_set(Params, (intptr_t)Index - 1, json_string(Name));
-	return 0;
-}
-
-static int ml_closure_find_labels(ml_inst_t *Inst, uintptr_t *Offset) {
-	switch (MLInstTypes[Inst->Opcode]) {
-	case MLIT_NONE: *Offset += 2; return 1;
-	case MLIT_INST: *Offset += 3; return 2;
-	case MLIT_INST_COUNT_DECL: *Offset += 5; return 4;
-	case MLIT_INST_TYPES: *Offset += 4; return 3;
-	case MLIT_COUNT_COUNT: *Offset += 4; return 3;
-	case MLIT_COUNT: *Offset += 3; return 2;
-	case MLIT_VALUE: *Offset += 3; return 2;
-	case MLIT_VALUE_DATA: *Offset += 3; return 3;
-	case MLIT_VALUE_COUNT: *Offset += 4; return 3;
-	case MLIT_VALUE_COUNT_DATA: *Offset += 4; return 4;
-	case MLIT_COUNT_CHARS: *Offset += 3; return 3;
-	case MLIT_DECL: *Offset += 3; return 2;
-	case MLIT_COUNT_DECL: *Offset += 4; return 3;
-	case MLIT_COUNT_COUNT_DECL: *Offset += 5; return 4;
-	case MLIT_CLOSURE:
-		*Offset += 3 + Inst[1].ClosureInfo->NumUpValues;
-		return 2 + Inst[1].ClosureInfo->NumUpValues;
-	case MLIT_SWITCH:
-		return 3;
-	}
-	__builtin_unreachable();
 }
 
 static json_t *ml_closure_info_encode(ml_closure_info_t *Info, ml_json_encoder_cache_t *Cache) {
@@ -728,7 +727,7 @@ static ml_closure_info_t *ml_json_decode_closure_info(ml_json_decoder_cache_t *C
 
 static ml_value_t *ml_json_decode_closure(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
 	json_t *InfoJson = json_array_get(Json, 0);
-	int NumUpValues = json_integer_value(json_array_get(InfoJson, 5));
+	int NumUpValues = json_integer_value(json_array_get(InfoJson, 6));
 	ml_closure_t *Closure = xnew(ml_closure_t, NumUpValues, ml_value_t *);
 	Closure->Type = MLClosureT;
 	if (Index >= 0) inthash_insert(Cache->Cached, Index, Closure);

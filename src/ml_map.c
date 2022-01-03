@@ -14,6 +14,14 @@ ML_TYPE(MLMapT, (MLSequenceT), "map",
 // Insert order is preserved.
 );
 
+static void ML_TYPED_FN(ml_value_find_refs, MLMapT, ml_value_t *Value, void *Data, ml_value_ref_fn RefFn) {
+	if (!RefFn(Data, Value)) return;
+	ML_MAP_FOREACH(Value, Iter) {
+		ml_value_find_refs(Iter->Key, Data, RefFn);
+		ml_value_find_refs(Iter->Value, Data, RefFn);
+	}
+}
+
 static ml_value_t *ml_map_node_deref(ml_map_node_t *Node) {
 	return Node->Value;
 }
@@ -514,21 +522,6 @@ ML_METHOD("missing", MLMapT, MLAnyT) {
 	if (!Node->Value) return Node->Value = MLSome;
 	return MLNil;
 }
-
-/*
-ML_METHOD("missing", MLMapT, MLAnyT, MLAnyT) {
-//<Map
-//<Key
-//<Value
-//>any | nil
-// If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Value` and returns :mini:`some`.
-	ml_map_t *Map = (ml_map_t *)Args[0];
-	ml_value_t *Key = Args[1];
-	ml_map_node_t *Node = ml_map_node(Map, &Map->Root, ml_typeof(Key)->hash(Key, NULL), Key);
-	if (!Node->Value) return Node->Value = Args[2];
-	return MLNil;
-}
-*/
 
 static void ml_missing_state_run(ml_ref_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) {

@@ -131,7 +131,7 @@ if MINILANG_STATICGC or defined("STATICGC") then
 			"--prefix" is PATH,
 			"--enable-static",
 			"--disable-shared",
-			"--disable-parallel-mark",
+			:>"--disable-parallel-mark",
 			"--enable-threads=pthreads",
 			"--enable-mmap",
 			:>"--enable-redirect-malloc",
