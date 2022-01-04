@@ -62,14 +62,16 @@ typedef struct {
 } ml_cbor_t;
 
 typedef struct {
-	ml_stringbuffer_t Buffer[1];
+	void *Data;
+	ml_cbor_write_fn WriteFn;
 	inthash_t References[1];
 	inthash_t Reused[1];
 	int Index;
 } ml_cbor_writer_t;
 
-static inline void ml_cbor_writer_init(ml_cbor_writer_t *Writer) {
-	Writer->Buffer[0] = ML_STRINGBUFFER_INIT;
+static inline void ml_cbor_writer_init(ml_cbor_writer_t *Writer, void *Data, ml_cbor_write_fn WriteFn) {
+	Writer->Data = Data;
+	Writer->WriteFn = WriteFn;
 	Writer->References[0] = INTHASH_INIT;
 	Writer->Reused[0] = INTHASH_INIT;
 	Writer->Index = 0;

@@ -465,18 +465,18 @@ ml_value_t *ml_cbor_writer_write(ml_cbor_writer_t *Writer, ml_value_t *Value) {
 	if (Result.Present) {
 		if (Result.Value) {
 			int Index = (uintptr_t)Result.Value - 1;
-			ml_cbor_write_tag(Writer->Buffer, (void *)ml_stringbuffer_write, 29);
-			ml_cbor_write_integer(Writer->Buffer, (void *)ml_stringbuffer_write, Index);
+			ml_cbor_write_tag(Writer->Data, Writer->WriteFn, 29);
+			ml_cbor_write_integer(Writer->Data, Writer->WriteFn, Index);
 			return NULL;
 		}
 		int Index = ++Writer->Index;
 		inthash_insert(Writer->Reused, (uintptr_t)Value, (void *)(uintptr_t)Index);
-		ml_cbor_write_tag(Writer->Buffer, (void *)ml_stringbuffer_write, 28);
+		ml_cbor_write_tag(Writer->Data, Writer->WriteFn, 28);
 	}
 	typeof(ml_cbor_writer_write) *function = ml_typed_fn_get(ml_typeof(Value), ml_cbor_writer_write);
 	if (function) return function(Writer, Value);
 	typeof(ml_cbor_write) *function2 = ml_typed_fn_get(ml_typeof(Value), ml_cbor_write);
-	if (function2) return function2(Value, Writer->Buffer, (void *)ml_stringbuffer_write);
+	if (function2) return function2(Value, Writer->Data, Writer->WriteFn);
 	return ml_error("CBORError", "No method to encode %s to CBOR", ml_typeof(Value)->Name);
 }
 
@@ -489,17 +489,18 @@ static int ml_cbor_writer_ref_fn(ml_cbor_writer_t *Writer, ml_value_t *Value) {
 }
 
 ml_cbor_t ml_cbor_writer_encode(ml_value_t *Value) {
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_cbor_writer_t Writer[1];
-	ml_cbor_writer_init(Writer);
+	ml_cbor_writer_init(Writer, Buffer, (void *)ml_stringbuffer_write);
 	ml_value_find_refs(Value, Writer, (ml_value_ref_fn)ml_cbor_writer_ref_fn);
 	ml_value_t *Error = ml_cbor_writer_write(Writer, Value);
 	if (Error) return (ml_cbor_t){{.Error = Error}, 0};
-	size_t Size = Writer->Buffer->Length;
-	return (ml_cbor_t){{.Data = ml_stringbuffer_get_string(Writer->Buffer)}, Size};
+	size_t Size = Buffer->Length;
+	return (ml_cbor_t){{.Data = ml_stringbuffer_get_string(Buffer)}, Size};
 }
 
 static ml_value_t *ML_TYPED_FN(ml_cbor_writer_write, MLListT, ml_cbor_writer_t *Writer, ml_value_t *Value) {
-	ml_cbor_write_array(Writer->Buffer, (void *)ml_stringbuffer_write, ml_list_length(Value));
+	ml_cbor_write_array(Writer->Data, Writer->WriteFn, ml_list_length(Value));
 	ML_LIST_FOREACH(Value, Iter) {
 		ml_value_t *Error = ml_cbor_writer_write(Writer, Iter->Value);
 		if (Error) return Error;
@@ -508,7 +509,7 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_writer_write, MLListT, ml_cbor_writer_t *
 }
 
 static ml_value_t *ML_TYPED_FN(ml_cbor_writer_write, MLMapT, ml_cbor_writer_t *Writer, ml_value_t *Value) {
-	ml_cbor_write_map(Writer->Buffer, (void *)ml_stringbuffer_write, ml_map_size(Value));
+	ml_cbor_write_map(Writer->Data, Writer->WriteFn, ml_map_size(Value));
 	ML_MAP_FOREACH(Value, Iter) {
 		ml_value_t *Error = ml_cbor_writer_write(Writer, Iter->Key);
 		if (Error) return Error;
@@ -519,12 +520,12 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_writer_write, MLMapT, ml_cbor_writer_t *W
 }
 
 static ml_value_t *ML_TYPED_FN(ml_cbor_writer_write, MLObjectT, ml_cbor_writer_t *Writer, ml_value_t *Value) {
-	ml_cbor_write_tag(Writer->Buffer, (void *)ml_stringbuffer_write, 27);
+	ml_cbor_write_tag(Writer->Data, Writer->WriteFn, 27);
 	int Size = ml_object_size(Value);
-	ml_cbor_write_array(Writer->Buffer, (void *)ml_stringbuffer_write, 1 + Size);
+	ml_cbor_write_array(Writer->Data, Writer->WriteFn, 1 + Size);
 	const char *Name = ml_typeof(Value)->Name;
-	ml_cbor_write_string(Writer->Buffer, (void *)ml_stringbuffer_write, strlen(Name));
-	ml_stringbuffer_write(Writer->Buffer, Name, strlen(Name));
+	ml_cbor_write_string(Writer->Data, Writer->WriteFn, strlen(Name));
+	Writer->WriteFn(Writer->Data, (unsigned char *)Name, strlen(Name));
 	for (int I = 0; I < Size; ++I) {
 		ml_value_t *Error = ml_cbor_writer_write(Writer, ml_object_field(Value, I));
 		if (Error) return Error;
@@ -590,6 +591,11 @@ static int ml_closure_find_decl(ml_stringbuffer_t *Buffer, inthash_t *Decls, ml_
 
 static int ml_stringbuffer_copy(ml_stringbuffer_t *Buffer, const char *String, size_t Length) {
 	ml_stringbuffer_write(Buffer, String, Length);
+	return 0;
+}
+
+static int ml_stringbuffer_to_cbor(ml_cbor_writer_t *Writer, const char *String, size_t Length) {
+	Writer->WriteFn(Writer->Data, (unsigned char *)String, Length);
 	return 0;
 }
 
@@ -785,22 +791,22 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_writer_write, MLClosureInfoT, ml_cbor_wri
 		default: __builtin_unreachable();
 		}
 	}
-	ml_cbor_write_tag(Writer->Buffer, (void *)ml_stringbuffer_write, 27);
-	ml_cbor_write_array(Writer->Buffer, (void *)ml_stringbuffer_write, ml_list_length(Values) + 2);
-	ml_cbor_write_string(Writer->Buffer, (void *)ml_stringbuffer_write, 1);
-	ml_stringbuffer_write(Writer->Buffer, "!", 1);
-	ml_cbor_write_bytes(Writer->Buffer, (void *)ml_stringbuffer_write, Buffer->Length);
-	ml_stringbuffer_foreach(Buffer, Writer->Buffer, (void *)ml_stringbuffer_copy);
+	ml_cbor_write_tag(Writer->Data, Writer->WriteFn, 27);
+	ml_cbor_write_array(Writer->Data, Writer->WriteFn, ml_list_length(Values) + 2);
+	ml_cbor_write_string(Writer->Data, Writer->WriteFn, 1);
+	Writer->WriteFn(Writer->Data, (unsigned char *)"!", 1);
+	ml_cbor_write_bytes(Writer->Data, Writer->WriteFn, Buffer->Length);
+	ml_stringbuffer_foreach(Buffer, Writer, (void *)ml_stringbuffer_to_cbor);
 	ML_LIST_FOREACH(Values, Iter) ml_cbor_writer_write(Writer, Iter->Value);
 	return NULL;
 }
 
 static ml_value_t *ML_TYPED_FN(ml_cbor_writer_write, MLClosureT, ml_cbor_writer_t *Writer, ml_closure_t *Closure) {
-	ml_cbor_write_tag(Writer->Buffer, (void *)ml_stringbuffer_write, 27);
+	ml_cbor_write_tag(Writer->Data, Writer->WriteFn, 27);
 	ml_closure_info_t *Info = Closure->Info;
-	ml_cbor_write_array(Writer->Buffer, (void *)ml_stringbuffer_write, 2 + Info->NumUpValues);
-	ml_cbor_write_string(Writer->Buffer, (void *)ml_stringbuffer_write, 7);
-	ml_stringbuffer_write(Writer->Buffer, "closure", 7);
+	ml_cbor_write_array(Writer->Data, Writer->WriteFn, 2 + Info->NumUpValues);
+	ml_cbor_write_string(Writer->Data, Writer->WriteFn, 7);
+	Writer->WriteFn(Writer->Data, (unsigned char *)"closure", 7);
 	ml_cbor_writer_write(Writer, (ml_value_t *)Info);
 	for (int I = 0; I < Info->NumUpValues; ++I) {
 		ml_value_t *Error = ml_cbor_writer_write(Writer, Closure->UpValues[I]);
