@@ -417,6 +417,7 @@ static ml_cbor_tag_fn ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void *
 
 ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 	ml_cbor_reader_t Reader[1];
+	Reader->Data = NULL;
 	Reader->TagFns = TagFns ?: DefaultTagFns;
 	Reader->Reused = NULL;
 	Reader->NumReused = Reader->MaxReused = 0;
@@ -433,6 +434,7 @@ ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 
 ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 	ml_cbor_reader_t Reader[1];
+	Reader->Data = NULL;
 	Reader->TagFns = TagFns ?: DefaultTagFns;
 	Reader->Reused = NULL;
 	Reader->NumReused = Reader->MaxReused = 0;
