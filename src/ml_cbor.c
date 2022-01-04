@@ -70,11 +70,11 @@ void ml_cbor_tag_fn_set(ml_cbor_tag_fns_t *TagFns, uint64_t Tag, ml_cbor_tag_fn 
 	++TagFns->Count;
 }
 
-ml_cbor_tag_fns_t *ml_tag_fns_copy(ml_cbor_tag_fns_t *TagFns) {
+ml_cbor_tag_fns_t *ml_cbor_tag_fns_copy(ml_cbor_tag_fns_t *TagFns) {
 	ml_cbor_tag_fns_t *Copy = new(ml_cbor_tag_fns_t);
 	int Count = Copy->Count = TagFns->Count;
-	Copy->Space = TagFns->Space;
-	int Size = Count + TagFns->Space;
+	int Space = Copy->Space = TagFns->Space;
+	int Size = Count + Space;
 	uint64_t *Tags = Copy->Tags = anew(uint64_t, Size);
 	memcpy(Tags, TagFns->Tags, Count * sizeof(uint64_t));
 	ml_cbor_tag_fn *Fns = Copy->Fns = anew(ml_cbor_tag_fn, Size);
@@ -89,16 +89,11 @@ void ml_cbor_default_tag(uint64_t Tag, ml_cbor_tag_fn TagFn) {
 }
 
 ml_cbor_tag_fns_t *ml_cbor_tag_fns_new(int Default) {
-	ml_cbor_tag_fns_t *Copy = new(ml_cbor_tag_fns_t);
 	if (Default) {
-		int Count = Copy->Count = DefaultTagFns->Count;
-		int Space = Copy->Space = DefaultTagFns->Space;
-		uint64_t *Tags = Copy->Tags = anew(uint64_t, Count + Space);
-		memcpy(Tags, DefaultTagFns->Tags, Count * sizeof(uint64_t));
-		ml_cbor_tag_fn *Fns = Copy->Fns = anew(ml_cbor_tag_fn, Count + Space);
-		memcpy(Fns, DefaultTagFns->Fns, Count * sizeof(ml_cbor_tag_fn));
+		return ml_cbor_tag_fns_copy(DefaultTagFns);
+	} else {
+		return new(ml_cbor_tag_fns_t);
 	}
-	return Copy;
 }
 
 typedef struct block_t {

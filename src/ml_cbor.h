@@ -18,6 +18,7 @@ typedef ml_value_t *(*ml_cbor_tag_fn)(ml_cbor_reader_t *Reader, ml_value_t *Valu
 typedef struct ml_cbor_tag_fns_t ml_cbor_tag_fns_t;
 
 ml_cbor_tag_fns_t *ml_cbor_tag_fns_new(int Default);
+ml_cbor_tag_fns_t *ml_cbor_tag_fns_copy(ml_cbor_tag_fns_t *TagFns);
 ml_cbor_tag_fn ml_cbor_tag_fn_get(ml_cbor_tag_fns_t *TagFns, uint64_t Tag);
 void ml_cbor_tag_fn_set(ml_cbor_tag_fns_t *TagFns, uint64_t Tag, ml_cbor_tag_fn Fn);
 
