@@ -118,13 +118,13 @@ typedef struct tag_t {
 } tag_t;
 
 struct ml_cbor_reader_t {
-	void *Data;
 	collection_t *Collection;
 	tag_t *Tags;
 	ml_value_t *Value;
 	ml_cbor_tag_fns_t *TagFns;
 	ml_value_t **Reused;
 	minicbor_reader_t Reader[1];
+	inthash_t Settings[1];
 	int NumReused, MaxReused;
 };
 
@@ -138,21 +138,20 @@ inthash_t *ml_cbor_default_tags() {
 	return TagFns;
 }
 
-ml_cbor_reader_t *ml_cbor_reader_new(ml_cbor_tag_fns_t *TagFns, void *Data) {
+ml_cbor_reader_t *ml_cbor_reader_new(ml_cbor_tag_fns_t *TagFns) {
 	ml_cbor_reader_t *Reader = new(ml_cbor_reader_t);
 	Reader->TagFns = TagFns ?: DefaultTagFns;
-	Reader->Data = Data;
 	ml_cbor_reader_init(Reader->Reader);
 	Reader->Reader->UserData = Reader;
 	return Reader;
 }
 
-void ml_cbor_reader_set_data(ml_cbor_reader_t *Reader, void *Data) {
-	Reader->Data = Data;
+void ml_cbor_reader_set_setting(ml_cbor_reader_t *Reader, uintptr_t Key, void *Value) {
+	inthash_insert(Reader->Settings, Key, Value);
 }
 
-void *ml_cbor_reader_get_data(ml_cbor_reader_t *Reader) {
-	return Reader->Data;
+void *ml_cbor_reader_get_setting(ml_cbor_reader_t *Reader, uintptr_t Key) {
+	return inthash_search(Reader->Settings, Key);
 }
 
 static int ml_cbor_reader_next_index(ml_cbor_reader_t *Reader) {
@@ -417,9 +416,9 @@ static ml_cbor_tag_fn ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void *
 
 ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 	ml_cbor_reader_t Reader[1];
-	Reader->Data = NULL;
 	Reader->TagFns = TagFns ?: DefaultTagFns;
 	Reader->Reused = NULL;
+	Reader->Settings[0] = INTHASH_INIT;
 	Reader->NumReused = Reader->MaxReused = 0;
 	ml_cbor_reader_init(Reader->Reader);
 	Reader->Reader->UserData = Reader;
@@ -434,9 +433,9 @@ ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 
 ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 	ml_cbor_reader_t Reader[1];
-	Reader->Data = NULL;
 	Reader->TagFns = TagFns ?: DefaultTagFns;
 	Reader->Reused = NULL;
+	Reader->Settings[0] = INTHASH_INIT;
 	Reader->NumReused = Reader->MaxReused = 0;
 	ml_cbor_reader_init(Reader->Reader);
 	Reader->Reader->UserData = Reader;
