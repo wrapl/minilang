@@ -14,13 +14,17 @@ void ml_cbor_init(stringmap_t *Globals);
 
 typedef struct ml_cbor_reader_t ml_cbor_reader_t;
 
-typedef ml_value_t *(*ml_tag_fn)(ml_cbor_reader_t *Reader, ml_value_t *Value);
-typedef struct ml_tag_fns_t ml_tag_fns_t;
+typedef ml_value_t *(*ml_cbor_tag_fn)(ml_cbor_reader_t *Reader, ml_value_t *Value);
+typedef struct ml_cbor_tag_fns_t ml_cbor_tag_fns_t;
 
-void ml_cbor_default_tag(long Tag, ml_tag_fn TagFn);
+ml_cbor_tag_fns_t *ml_cbor_tag_fns_new(int Default);
+ml_cbor_tag_fn ml_cbor_tag_fn_get(ml_cbor_tag_fns_t *TagFns, uint64_t Tag);
+void ml_cbor_tag_fn_set(ml_cbor_tag_fns_t *TagFns, uint64_t Tag, ml_cbor_tag_fn Fn);
+
+void ml_cbor_default_tag(uint64_t Tag, ml_cbor_tag_fn TagFn);
 inthash_t *ml_cbor_default_tags();
 
-ml_cbor_reader_t *ml_cbor_reader_new(ml_tag_fns_t *TagFns, void *Data);
+ml_cbor_reader_t *ml_cbor_reader_new(ml_cbor_tag_fns_t *TagFns, void *Data);
 void ml_cbor_reader_set_data(ml_cbor_reader_t *Reader, void *Data);
 void *ml_cbor_reader_get_data(ml_cbor_reader_t *Reader);
 void ml_cbor_reader_read(ml_cbor_reader_t *Reader, unsigned char *Bytes, int Size);
@@ -75,11 +79,11 @@ ml_value_t *ml_cbor_writer_write(ml_cbor_writer_t *Writer, ml_value_t *Value);
 ml_cbor_t ml_cbor_writer_encode(ml_value_t *Value);
 
 ml_cbor_t ml_to_cbor(ml_value_t *Value);
-ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_tag_fns_t *TagFns);
+ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns);
 
 typedef struct {ml_value_t *Value; int Extra;} ml_cbor_result_t;
 
-ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_tag_fns_t *TagFns);
+ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns);
 
 #ifdef	__cplusplus
 }
