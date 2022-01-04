@@ -13,6 +13,75 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "cbor"
 
+struct ml_tag_fns_t {
+	uint64_t *Tags;
+	ml_tag_fn *Fns;
+	int Count, Space;
+};
+
+ml_tag_fn ml_tag_fn_get(ml_tag_fns_t *TagFns, uint64_t Tag) {
+	uint64_t *Tags = TagFns->Tags;
+	int Lo = 0, Hi = TagFns->Count - 1;
+	while (Lo <= Hi) {
+		int Mid = (Lo + Hi) / 2;
+		if (Tag < Tags[Mid]) {
+			Hi = Mid - 1;
+		} else if (Tag > Tags[Mid]) {
+			Lo = Mid + 1;
+		} else {
+			return TagFns->Fns[Mid];
+		}
+	}
+	return NULL;
+}
+
+void ml_tag_fn_set(ml_tag_fns_t *TagFns, uint64_t Tag, ml_tag_fn Fn) {
+	uint64_t *Tags = TagFns->Tags;
+	int Lo = 0, Hi = TagFns->Count - 1;
+	while (Lo <= Hi) {
+		int Mid = (Lo + Hi) / 2;
+		if (Tag < Tags[Mid]) {
+			Hi = Mid - 1;
+		} else if (Tag > Tags[Mid]) {
+			Lo = Mid + 1;
+		} else {
+			TagFns->Fns[Mid] = Fn;
+			return;
+		}
+	}
+	ml_tag_fn *Fns = TagFns->Fns;
+	int Move = TagFns->Count - Lo;
+	if (--TagFns->Space >= 0) {
+		memmove(Tags + Lo + 1, Tags + Lo, Move * sizeof(uint64_t));
+		Tags[Lo] = Tag;
+		memmove(Fns + Lo + 1, Fns + Lo, Move * sizeof(ml_tag_fn));
+		Fns[Lo] = Fn;
+	} else {
+		uint64_t *Tags2 = TagFns->Tags = anew(uint64_t, TagFns->Count + 8);
+		memcpy(Tags2, Tags, Lo * sizeof(uint64_t));
+		memcpy(Tags2 + Lo + 1, Tags + Lo, Move * sizeof(uint64_t));
+		Tags2[Lo] = Tag;
+		ml_tag_fn *Fns2 = TagFns->Fns = anew(ml_tag_fn, TagFns->Count + 8);
+		memcpy(Fns2, Fns, Lo * sizeof(ml_tag_fn));
+		memcpy(Fns2 + Lo + 1, Fns + Lo, Move * sizeof(ml_tag_fn));
+		Fns2[Lo] = Fn;
+		TagFns->Space += 8;
+	}
+	++TagFns->Count;
+}
+
+ml_tag_fns_t *ml_tag_fns_copy(ml_tag_fns_t *TagFns) {
+	ml_tag_fns_t *Copy = new(ml_tag_fns_t);
+	int Count = Copy->Count = TagFns->Count;
+	Copy->Space = TagFns->Space;
+	int Size = Count + TagFns->Space;
+	uint64_t *Tags = Copy->Tags = anew(uint64_t, Size);
+	memcpy(Tags, TagFns->Tags, Count * sizeof(uint64_t));
+	ml_tag_fn *Fns = Copy->Fns = anew(ml_tag_fn, Size);
+	memcpy(Fns, TagFns->Fns, Count * sizeof(ml_tag_fn));
+	return Copy;
+}
+
 typedef struct block_t {
 	struct block_t *Prev;
 	int Size;
@@ -30,7 +99,7 @@ typedef struct collection_t {
 
 typedef struct tag_t {
 	struct tag_t *Prev;
-	ml_tag_t Handler;
+	ml_tag_fn Handler;
 	int Index;
 } tag_t;
 
@@ -39,21 +108,31 @@ struct ml_cbor_reader_t {
 	collection_t *Collection;
 	tag_t *Tags;
 	ml_value_t *Value;
-	inthash_t *TagFns;
+	ml_tag_fns_t *TagFns;
 	ml_value_t **Reused;
 	minicbor_reader_t Reader[1];
 	int NumReused, MaxReused;
 };
 
-static inthash_t DefaultTagFns[1] = {INTHASH_INIT};
+static ml_tag_fns_t DefaultTagFns[1] = {{NULL, NULL, 0, 0}};
 
-void ml_cbor_default_tag(long Tag, ml_tag_t TagFn) {
-	inthash_insert(DefaultTagFns, Tag, TagFn);
+void ml_cbor_default_tag(long Tag, ml_tag_fn TagFn) {
+	ml_tag_fn_set(DefaultTagFns, Tag, TagFn);
 }
 
-ml_cbor_reader_t *ml_cbor_reader_new(void *Data) {
+static int ml_cbor_default_tag_fn(uintptr_t Tag, void *Fn, inthash_t *TagFns) {
+	return 0;
+}
+
+inthash_t *ml_cbor_default_tags() {
+	inthash_t *TagFns = inthash_new();
+	//inthash_foreach(DefaultTagFns, TagFns, (void *)ml_cbor_default_tag_fn);
+	return TagFns;
+}
+
+ml_cbor_reader_t *ml_cbor_reader_new(ml_tag_fns_t *TagFns, void *Data) {
 	ml_cbor_reader_t *Reader = new(ml_cbor_reader_t);
-	Reader->TagFns = DefaultTagFns;
+	Reader->TagFns = TagFns ?: DefaultTagFns;
 	Reader->Data = Data;
 	ml_cbor_reader_init(Reader->Reader);
 	Reader->Reader->UserData = Reader;
@@ -276,7 +355,7 @@ void ml_cbor_read_map_fn(ml_cbor_reader_t *Reader, int Size) {
 }
 
 void ml_cbor_read_tag_fn(ml_cbor_reader_t *Reader, uint64_t Value) {
-	ml_tag_t Handler = inthash_search(Reader->TagFns, Value);
+	ml_tag_fn Handler = ml_tag_fn_get(Reader->TagFns, Value);
 	if (Handler) {
 		tag_t *Tag = new(tag_t);
 		Tag->Prev = Reader->Tags;
@@ -323,14 +402,14 @@ static ml_value_t *ml_value_fn(ml_value_t *Callback, ml_value_t *Value) {
 	return ml_simple_inline(Callback, 1, Value);
 }
 
-static ml_tag_t ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void **Data) {
+static ml_tag_fn ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void **Data) {
 	Data[0] = ml_simple_inline(Callback, 1, ml_integer(Tag));
-	return (ml_tag_t)ml_value_fn;
+	return (ml_tag_fn)ml_value_fn;
 }
 
-ml_value_t *ml_from_cbor(ml_cbor_t Cbor) {
+ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_tag_fns_t *TagFns) {
 	ml_cbor_reader_t Reader[1];
-	Reader->TagFns = DefaultTagFns;
+	Reader->TagFns = TagFns ?: DefaultTagFns;
 	Reader->Reused = NULL;
 	Reader->NumReused = Reader->MaxReused = 0;
 	ml_cbor_reader_init(Reader->Reader);
@@ -344,9 +423,9 @@ ml_value_t *ml_from_cbor(ml_cbor_t Cbor) {
 	return ml_cbor_reader_get(Reader);
 }
 
-ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor) {
+ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_tag_fns_t *TagFns) {
 	ml_cbor_reader_t Reader[1];
-	Reader->TagFns = DefaultTagFns;
+	Reader->TagFns = TagFns ?: DefaultTagFns;
 	Reader->Reused = NULL;
 	Reader->NumReused = Reader->MaxReused = 0;
 	ml_cbor_reader_init(Reader->Reader);
@@ -365,7 +444,7 @@ ML_FUNCTION(MLDecode) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLAddressT);
 	ml_cbor_t Cbor = {{.Data = ml_address_value(Args[0])}, ml_address_length(Args[0])};
-	return ml_from_cbor(Cbor);
+	return ml_from_cbor(Cbor, NULL);
 }
 
 ml_value_t *ml_cbor_writer_write(ml_cbor_writer_t *Writer, ml_value_t *Value) {

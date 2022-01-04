@@ -41,8 +41,6 @@ static inline void *inthash_search_inline(const inthash_t *Map, uintptr_t Key) {
 	return NULL;
 }
 
-int inthash_foreach(inthash_t *Map, void *Data, int (*callback)(uintptr_t, void *, void *));
-
 typedef struct {void *Value; int Present;} inthash_result_t;
 
 inthash_result_t inthash_search2(const inthash_t *Map, uintptr_t Key) __attribute__ ((pure));
