@@ -18,7 +18,9 @@ typedef ml_value_t *(*ml_tag_t)(ml_cbor_reader_t *Reader, ml_value_t *Value);
 
 void ml_cbor_default_tag(long Tag, ml_tag_t TagFn);
 
-ml_cbor_reader_t *ml_cbor_reader_new();
+ml_cbor_reader_t *ml_cbor_reader_new(void *Data);
+void ml_cbor_reader_set_data(ml_cbor_reader_t *Reader, void *Data);
+void *ml_cbor_reader_get_data(ml_cbor_reader_t *Reader);
 void ml_cbor_reader_read(ml_cbor_reader_t *Reader, unsigned char *Bytes, int Size);
 ml_value_t *ml_cbor_reader_get(ml_cbor_reader_t *Reader);
 int ml_cbor_reader_extra(ml_cbor_reader_t *Reader);
@@ -53,10 +55,20 @@ typedef struct {
 	size_t Length;
 } ml_cbor_t;
 
-typedef struct ml_cbor_writer_t ml_cbor_writer_t;
+typedef struct {
+	ml_stringbuffer_t Buffer[1];
+	inthash_t References[1];
+	inthash_t Reused[1];
+	int Index;
+} ml_cbor_writer_t;
 
-void ml_cbor_writer_set(ml_cbor_writer_t *Writer, void *Key, void *Value);
-void *ml_cbor_writer_get(ml_cbor_writer_t *Writer, void *Key);
+static inline void ml_cbor_writer_init(ml_cbor_writer_t *Writer) {
+	Writer->Buffer[0] = ML_STRINGBUFFER_INIT;
+	Writer->References[0] = INTHASH_INIT;
+	Writer->Reused[0] = INTHASH_INIT;
+	Writer->Index = 0;
+}
+
 ml_value_t *ml_cbor_writer_write(ml_cbor_writer_t *Writer, ml_value_t *Value);
 ml_cbor_t ml_cbor_writer_encode(ml_value_t *Value);
 

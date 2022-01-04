@@ -34,22 +34,38 @@ typedef struct tag_t {
 	int Index;
 } tag_t;
 
-typedef struct ml_cbor_reader_t {
+struct ml_cbor_reader_t {
+	void *Data;
 	collection_t *Collection;
 	tag_t *Tags;
 	ml_value_t *Value;
 	inthash_t *TagFns;
 	ml_value_t **Reused;
 	minicbor_reader_t Reader[1];
-	inthash_t Settings[1];
 	int NumReused, MaxReused;
-} ml_cbor_reader_t;
+};
 
-ml_cbor_reader_t *ml_cbor_reader_new() {
+static inthash_t DefaultTagFns[1] = {INTHASH_INIT};
+
+void ml_cbor_default_tag(long Tag, ml_tag_t TagFn) {
+	inthash_insert(DefaultTagFns, Tag, TagFn);
+}
+
+ml_cbor_reader_t *ml_cbor_reader_new(void *Data) {
 	ml_cbor_reader_t *Reader = new(ml_cbor_reader_t);
+	Reader->TagFns = DefaultTagFns;
+	Reader->Data = Data;
 	ml_cbor_reader_init(Reader->Reader);
 	Reader->Reader->UserData = Reader;
 	return Reader;
+}
+
+void ml_cbor_reader_set_data(ml_cbor_reader_t *Reader, void *Data) {
+	Reader->Data = Data;
+}
+
+void *ml_cbor_reader_get_data(ml_cbor_reader_t *Reader) {
+	return Reader->Data;
 }
 
 static int ml_cbor_reader_next_index(ml_cbor_reader_t *Reader) {
@@ -312,16 +328,9 @@ static ml_tag_t ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void **Data)
 	return (ml_tag_t)ml_value_fn;
 }
 
-static inthash_t DefaultTagFns[1] = {INTHASH_INIT};
-
-void ml_cbor_default_tag(long Tag, ml_tag_t TagFn) {
-	inthash_insert(DefaultTagFns, Tag, TagFn);
-}
-
 ml_value_t *ml_from_cbor(ml_cbor_t Cbor) {
 	ml_cbor_reader_t Reader[1];
 	Reader->TagFns = DefaultTagFns;
-	Reader->Settings[0] = INTHASH_INIT;
 	Reader->Reused = NULL;
 	Reader->NumReused = Reader->MaxReused = 0;
 	ml_cbor_reader_init(Reader->Reader);
@@ -338,7 +347,6 @@ ml_value_t *ml_from_cbor(ml_cbor_t Cbor) {
 ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor) {
 	ml_cbor_reader_t Reader[1];
 	Reader->TagFns = DefaultTagFns;
-	Reader->Settings[0] = INTHASH_INIT;
 	Reader->Reused = NULL;
 	Reader->NumReused = Reader->MaxReused = 0;
 	ml_cbor_reader_init(Reader->Reader);
@@ -358,22 +366,6 @@ ML_FUNCTION(MLDecode) {
 	ML_CHECK_ARG_TYPE(0, MLAddressT);
 	ml_cbor_t Cbor = {{.Data = ml_address_value(Args[0])}, ml_address_length(Args[0])};
 	return ml_from_cbor(Cbor);
-}
-
-struct ml_cbor_writer_t {
-	ml_stringbuffer_t *Buffer;
-	inthash_t Settings[1];
-	inthash_t References[1];
-	inthash_t Reused[1];
-	int Index;
-};
-
-void ml_cbor_writer_set(ml_cbor_writer_t *Writer, void *Key, void *Value) {
-	inthash_insert(Writer->Settings, (uintptr_t)Key, Value);
-}
-
-void *ml_cbor_writer_get(ml_cbor_writer_t *Writer, void *Key) {
-	return inthash_search(Writer->Settings, (uintptr_t)Key);
 }
 
 ml_value_t *ml_cbor_writer_write(ml_cbor_writer_t *Writer, ml_value_t *Value) {
@@ -405,18 +397,13 @@ static int ml_cbor_writer_ref_fn(ml_cbor_writer_t *Writer, ml_value_t *Value) {
 }
 
 ml_cbor_t ml_cbor_writer_encode(ml_value_t *Value) {
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_cbor_writer_t Writer[1];
-	Writer->Buffer = Buffer;
-	Writer->Settings[0] = INTHASH_INIT;
-	Writer->References[0] = INTHASH_INIT;
-	Writer->Reused[0] = INTHASH_INIT;
-	Writer->Index = 0;
+	ml_cbor_writer_init(Writer);
 	ml_value_find_refs(Value, Writer, (ml_value_ref_fn)ml_cbor_writer_ref_fn);
 	ml_value_t *Error = ml_cbor_writer_write(Writer, Value);
 	if (Error) return (ml_cbor_t){{.Error = Error}, 0};
-	size_t Size = Buffer->Length;
-	return (ml_cbor_t){{.Data = ml_stringbuffer_get_string(Buffer)}, Size};
+	size_t Size = Writer->Buffer->Length;
+	return (ml_cbor_t){{.Data = ml_stringbuffer_get_string(Writer->Buffer)}, Size};
 }
 
 static ml_value_t *ML_TYPED_FN(ml_cbor_writer_write, MLListT, ml_cbor_writer_t *Writer, ml_value_t *Value) {
