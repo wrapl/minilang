@@ -30,6 +30,7 @@ void ml_cbor_default_tag(uint64_t Tag, ml_cbor_tag_fn TagFn);
 inthash_t *ml_cbor_default_tags();
 
 ml_cbor_reader_t *ml_cbor_reader_new(ml_cbor_tag_fns_t *TagFns);
+void ml_cbor_reader_reset(ml_cbor_reader_t *Reader);
 void ml_cbor_reader_set_setting(ml_cbor_reader_t *Reader, int Key, void *Value);
 void *ml_cbor_reader_get_setting(ml_cbor_reader_t *Reader, int Key);
 void ml_cbor_reader_read(ml_cbor_reader_t *Reader, unsigned char *Bytes, int Size);

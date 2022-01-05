@@ -2182,14 +2182,19 @@ ML_METHOD("::", ObjectInstanceT, MLStringT) {
 
 #ifdef ML_SCHEDULER
 
-void ml_gir_queue_add(ml_state_t *State, ml_value_t *Value);
+void ml_gir_queue_resume(ml_state_t *State, ml_value_t *Value);
 
-ml_schedule_t GirSchedule[1] = {{32, ml_gir_queue_add}};
+ml_schedule_t GirSchedule[1] = {{UINT64_MAX, ml_gir_queue_resume}};
+
+void ml_gir_queue_resume(ml_state_t *State, ml_value_t *Value) {
+	GirSchedule->Counter = UINT64_MAX;
+	State->run(State, Value);
+}
 
 static gboolean ml_gir_queue_run(void *Data) {
 	ml_queued_state_t QueuedState = ml_scheduler_queue_next();
 	if (!QueuedState.State) return FALSE;
-	GirSchedule->Counter = 32;
+	GirSchedule->Counter = UINT64_MAX;
 	QueuedState.State->run(QueuedState.State, QueuedState.Value);
 	return TRUE;
 }
