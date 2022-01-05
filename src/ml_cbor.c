@@ -149,9 +149,15 @@ ml_cbor_reader_t *ml_cbor_reader_new(ml_cbor_tag_fns_t *TagFns) {
 	ml_cbor_reader_t *Reader = xnew(ml_cbor_reader_t, NumCborSettings, void *);
 	Reader->TagFns = TagFns ?: DefaultTagFns;
 	Reader->NumSettings = NumCborSettings;
+	Reader->NumReused = Reader->MaxReused = 0;
 	minicbor_reader_init(Reader->Reader);
 	Reader->Reader->UserData = Reader;
 	return Reader;
+}
+
+void ml_cbor_reader_reset(ml_cbor_reader_t *Reader) {
+	Reader->NumReused = Reader->MaxReused = 0;
+	minicbor_reader_init(Reader->Reader);
 }
 
 void ml_cbor_reader_set_setting(ml_cbor_reader_t *Reader, int Setting, void *Value) {
@@ -554,6 +560,13 @@ ml_cbor_writer_t *ml_cbor_writer_new(void *Data, ml_cbor_write_fn WriteFn) {
 	Writer->Index = 0;
 	Writer->NumSettings = NumCborSettings;
 	return Writer;
+}
+
+void ml_cbor_writer_reset(ml_cbor_writer_t *Writer, void *Data) {
+	Writer->Data = Data;
+	Writer->References[0] = INTHASH_INIT;
+	Writer->Reused[0] = INTHASH_INIT;
+	Writer->Index = 0;
 }
 
 void ml_cbor_writer_set_setting(ml_cbor_writer_t *Writer, int Setting, void *Value) {

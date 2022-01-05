@@ -48,6 +48,7 @@ typedef void (*ml_cbor_write_fn)(void *Data, const unsigned char *Bytes, unsigne
 typedef struct ml_cbor_writer_t ml_cbor_writer_t;
 
 ml_cbor_writer_t *ml_cbor_writer_new(void *Data, ml_cbor_write_fn WriteFn);
+void ml_cbor_writer_reset(ml_cbor_writer_t *Writer, void *Data);
 void ml_cbor_writer_set_setting(ml_cbor_writer_t *Writer, int Setting, void *Value);
 void *ml_cbor_writer_get_setting(ml_cbor_writer_t *Writer, int Setting);
 void ml_cbor_writer_find_refs(ml_cbor_writer_t *Writer, ml_value_t *Value);
