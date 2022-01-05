@@ -268,7 +268,7 @@ if MINILANG_CBOR then
 	let Dir := PATH/"minicbor"
 	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git", Dir)
 	CFLAGS := old + [
-		'-DMINICBOR_PREFIX=ml_cbor_',
+		:>'-DMINICBOR_PREFIX=ml_cbor_',
 		'-DMINICBOR_READ_FN_PREFIX=ml_cbor_read_',
 		'-DMINICBOR_READDATA_TYPE=\"struct ml_cbor_reader_t *\"',
 		 "-DML_CBOR"

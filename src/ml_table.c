@@ -416,9 +416,12 @@ static void ML_TYPED_FN(ml_iter_value, MLTableRowIterT, ml_state_t *Caller, ml_t
 
 #include "ml_cbor.h"
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTableT, ml_value_t *Table, char *Data, ml_cbor_write_fn WriteFn) {
-	ml_cbor_write_tag(Data, WriteFn, 60);
-	ml_cbor_write(ml_table_columns(Table), Data, WriteFn);
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTableT, ml_cbor_writer_t *Writer, ml_value_t *Table) {
+	ml_cbor_write_tag(Writer, 27);
+	ml_cbor_write_array(Writer, 2);
+	ml_cbor_write_string(Writer, 5);
+	ml_cbor_write_raw(Writer, (const unsigned char *)"table", 5);
+	ml_cbor_write(Writer, ml_table_columns(Table));
 	return NULL;
 }
 
@@ -440,6 +443,6 @@ void ml_table_init(stringmap_t *Globals) {
 #include "ml_table_init.c"
 	stringmap_insert(Globals, "table", MLTableT);
 #ifdef ML_CBOR
-	ml_cbor_default_tag(60, ml_cbor_read_table_fn);
+	ml_cbor_default_object("table", (ml_value_t *)MLTableT);
 #endif
 }

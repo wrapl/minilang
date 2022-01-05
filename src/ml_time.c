@@ -286,7 +286,7 @@ ML_METHOD("-", MLTimeT, MLNumberT) {
 
 #include "ml_cbor.h"
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTimeT, ml_time_t *Time, void *Data, ml_cbor_write_fn WriteFn) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTimeT, ml_cbor_writer_t *Writer, ml_time_t *Time) {
 	struct tm TM = {0,};
 	gmtime_r(&Time->Value->tv_sec, &TM);
 	char Buffer[60];
@@ -301,10 +301,10 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTimeT, ml_time_t *Time, void *Da
 	*End++ = '0' + (NSec / 1000) % 10;
 	*End++ = 'Z';
 	*End = 0;
-	ml_cbor_write_tag(Data, WriteFn, 0);
+	ml_cbor_write_tag(Writer, 0);
 	size_t Length = End - Buffer;
-	ml_cbor_write_string(Data, WriteFn, Length);
-	WriteFn(Data, (const unsigned char *)Buffer, Length);
+	ml_cbor_write_string(Writer, Length);
+	ml_cbor_write_raw(Writer, (const unsigned char *)Buffer, Length);
 	return NULL;
 }
 

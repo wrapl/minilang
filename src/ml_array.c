@@ -4763,45 +4763,45 @@ static ml_value_t *ml_array_pairwise_infix(ml_array_infix_set_fn *InfixSetFns, i
 #include "ml_cbor.h"
 #include "minicbor/minicbor.h"
 
-static void ml_cbor_write_array_typed(int Degree, size_t FlatSize, ml_array_dimension_t *Dimension, char *Address, char *Data, ml_cbor_write_fn WriteFn) {
+static void ml_cbor_write_array_typed(int Degree, size_t FlatSize, ml_array_dimension_t *Dimension, char *Address, ml_cbor_writer_t *Writer) {
 	if (Degree < 0) {
-		WriteFn(Data, (unsigned char *)Address, FlatSize);
+		ml_cbor_write_raw(Writer, (unsigned char *)Address, FlatSize);
 	} else {
 		int Stride = Dimension->Stride;
 		if (Dimension->Indices) {
 			int *Indices = Dimension->Indices;
 			for (int I = 0; I < Dimension->Size; ++I) {
-				ml_cbor_write_array_typed(Degree - 1, FlatSize, Dimension + 1, Address + Indices[I] * Stride, Data, WriteFn);
+				ml_cbor_write_array_typed(Degree - 1, FlatSize, Dimension + 1, Address + Indices[I] * Stride, Writer);
 			}
 		} else {
 			for (int I = Dimension->Size; --I >= 0;) {
-				ml_cbor_write_array_typed(Degree - 1, FlatSize, Dimension + 1, Address, Data, WriteFn);
+				ml_cbor_write_array_typed(Degree - 1, FlatSize, Dimension + 1, Address, Writer);
 				Address += Stride;
 			}
 		}
 	}
 }
 
-static void ml_cbor_write_array_any(int Degree, ml_array_dimension_t *Dimension, char *Address, char *Data, ml_cbor_write_fn WriteFn) {
+static void ml_cbor_write_array_any(int Degree, ml_array_dimension_t *Dimension, char *Address, ml_cbor_writer_t *Writer) {
 	if (Degree == 0) {
-		ml_cbor_write(*(ml_value_t **)Address, Data, WriteFn);
+		ml_cbor_write(Writer, *(ml_value_t **)Address);
 	} else {
 		int Stride = Dimension->Stride;
 		if (Dimension->Indices) {
 			int *Indices = Dimension->Indices;
 			for (int I = 0; I < Dimension->Size; ++I) {
-				ml_cbor_write_array_any(Degree - 1, Dimension + 1, Address + Indices[I] * Stride, Data, WriteFn);
+				ml_cbor_write_array_any(Degree - 1, Dimension + 1, Address + Indices[I] * Stride, Writer);
 			}
 		} else {
 			for (int I = Dimension->Size; --I >= 0;) {
-				ml_cbor_write_array_any(Degree - 1, Dimension + 1, Address, Data, WriteFn);
+				ml_cbor_write_array_any(Degree - 1, Dimension + 1, Address, Writer);
 				Address += Stride;
 			}
 		}
 	}
 }
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char *Data, ml_cbor_write_fn WriteFn) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_cbor_writer_t *Writer, ml_array_t *Array) {
 	static uint64_t Tags[] = {
 		[ML_ARRAY_FORMAT_I8] = 72,
 		[ML_ARRAY_FORMAT_U8] = 64,
@@ -4815,23 +4815,23 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char 
 		[ML_ARRAY_FORMAT_F64] = 86
 	};
 	if (Array->Degree == -1) {
-		ml_cbor_write_simple(Data, WriteFn, CBOR_SIMPLE_NULL);
+		ml_cbor_write_simple(Writer, CBOR_SIMPLE_NULL);
 		return NULL;
 	}
-	ml_cbor_write_tag(Data, WriteFn, 40);
-	ml_cbor_write_array(Data, WriteFn, 2);
-	ml_cbor_write_array(Data, WriteFn, Array->Degree);
+	ml_cbor_write_tag(Writer, 40);
+	ml_cbor_write_array(Writer, 2);
+	ml_cbor_write_array(Writer, Array->Degree);
 	if (Array->Format == ML_ARRAY_FORMAT_ANY) {
 		size_t Size = 1;
 		for (int I = 0; I < Array->Degree; ++I) {
 			Size *= Array->Dimensions[I].Size;
-			ml_cbor_write_integer(Data, WriteFn, Array->Dimensions[I].Size);
+			ml_cbor_write_integer(Writer, Array->Dimensions[I].Size);
 		}
-		ml_cbor_write_tag(Data, WriteFn, 41);
-		ml_cbor_write_array(Data, WriteFn, Size);
-		ml_cbor_write_array_any(Array->Degree, Array->Dimensions, Array->Base.Value, Data, WriteFn);
+		ml_cbor_write_tag(Writer, 41);
+		ml_cbor_write_array(Writer, Size);
+		ml_cbor_write_array_any(Array->Degree, Array->Dimensions, Array->Base.Value, Writer);
 	} else {
-		for (int I = 0; I < Array->Degree; ++I) ml_cbor_write_integer(Data, WriteFn, Array->Dimensions[I].Size);
+		for (int I = 0; I < Array->Degree; ++I) ml_cbor_write_integer(Writer, Array->Dimensions[I].Size);
 		size_t Size = MLArraySizes[Array->Format];
 		int FlatDegree = -1;
 		size_t FlatSize = Size;
@@ -4847,9 +4847,9 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_array_t *Array, char 
 			}
 			Size *= Array->Dimensions[I].Size;
 		}
-		ml_cbor_write_tag(Data, WriteFn, Tags[Array->Format]);
-		ml_cbor_write_bytes(Data, WriteFn, Size);
-		ml_cbor_write_array_typed(FlatDegree, FlatSize, Array->Dimensions, Array->Base.Value, Data, WriteFn);
+		ml_cbor_write_tag(Writer, Tags[Array->Format]);
+		ml_cbor_write_bytes(Writer, Size);
+		ml_cbor_write_array_typed(FlatDegree, FlatSize, Array->Dimensions, Array->Base.Value, Writer);
 	}
 	return NULL;
 }
