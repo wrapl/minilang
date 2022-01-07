@@ -122,6 +122,7 @@ struct ml_cbor_reader_t {
 	tag_t *Tags;
 	ml_value_t *Value;
 	ml_cbor_tag_fns_t *TagFns;
+	stringmap_t *Globals;
 	ml_value_t **Reused;
 	minicbor_reader_t Reader[1];
 	int NumReused, MaxReused;
@@ -129,25 +130,17 @@ struct ml_cbor_reader_t {
 	void *Settings[];
 };
 
-static int ml_cbor_default_tag_fn(uintptr_t Tag, void *Fn, inthash_t *TagFns) {
-	return 0;
-}
-
-inthash_t *ml_cbor_default_tags() {
-	inthash_t *TagFns = inthash_new();
-	//inthash_foreach(DefaultTagFns, TagFns, (void *)ml_cbor_default_tag_fn);
-	return TagFns;
-}
-
 static int NumCborSettings = 0;
+static stringmap_t DefaultReadGlobals[1] = {STRINGMAP_INIT};
 
 int ml_cbor_setting_new() {
 	return NumCborSettings++;
 }
 
-ml_cbor_reader_t *ml_cbor_reader_new(ml_cbor_tag_fns_t *TagFns) {
+ml_cbor_reader_t *ml_cbor_reader_new(ml_cbor_tag_fns_t *TagFns, stringmap_t *Globals) {
 	ml_cbor_reader_t *Reader = xnew(ml_cbor_reader_t, NumCborSettings, void *);
 	Reader->TagFns = TagFns ?: DefaultTagFns;
+	Reader->Globals = Globals ?: DefaultReadGlobals;
 	Reader->NumSettings = NumCborSettings;
 	Reader->NumReused = Reader->MaxReused = 0;
 	minicbor_reader_init(Reader->Reader);
@@ -199,7 +192,23 @@ ml_value_t *ml_cbor_mark_reused(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 }
 
 ml_value_t *ml_cbor_use_previous(ml_cbor_reader_t *Reader, ml_value_t *Value) {
-	return ml_error("CBORError", "Use previous should not be called");
+	if (ml_is(Value, MLIntegerT)) {
+		int Index = ml_integer_value(Value);
+		if (Index < 0 || Index >= Reader->NumReused) {
+			return ml_error("CBORError", "Invalid previous index");
+		} else {
+			Value = Reader->Reused[Index];
+			if (!Value) Value = Reader->Reused[Index] = ml_uninitialized("CBOR");
+			return Value;
+		}
+	} else if (ml_is(Value, MLStringT)) {
+		const char *Name = ml_string_value(Value);
+		Value = stringmap_search(Reader->Globals, Name);
+		if (!Value) return ml_error("CBORError", "Unknown global %s", Name);
+		return Value;
+	} else {
+		return ml_error("CBORError", "Invalid previous index");
+	}
 }
 
 static void value_handler(ml_cbor_reader_t *Reader, ml_value_t *Value) {
@@ -209,14 +218,6 @@ static void value_handler(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 				ml_value_t *Uninitialized = Reader->Reused[Tag->Index];
 				if (Uninitialized) ml_uninitialized_set(Uninitialized, Value);
 				Reader->Reused[Tag->Index] = Value;
-			} else if (Tag->Handler == ml_cbor_use_previous) {
-				int Index = ml_integer_value(Value);
-				if (Index < 0 || Index >= Reader->NumReused) {
-					Value = ml_error("CBORError", "Invalid previous index");
-				} else {
-					Value = Reader->Reused[Index];
-					if (!Value) Value = Reader->Reused[Index] = ml_uninitialized("CBOR");
-				}
 			} else {
 				Value = Tag->Handler(Reader, Value);
 			}
@@ -431,6 +432,7 @@ static ml_cbor_tag_fn ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void *
 ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 	ml_cbor_reader_t Reader[1];
 	Reader->TagFns = TagFns ?: DefaultTagFns;
+	Reader->Globals = DefaultReadGlobals;
 	Reader->Reused = NULL;
 	Reader->NumReused = Reader->MaxReused = 0;
 	Reader->NumSettings = 0;
@@ -448,6 +450,7 @@ ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 	ml_cbor_reader_t Reader[1];
 	Reader->TagFns = TagFns ?: DefaultTagFns;
+	Reader->Globals = DefaultReadGlobals;
 	Reader->Reused = NULL;
 	Reader->NumReused = Reader->MaxReused = 0;
 	Reader->NumSettings = 0;
@@ -473,6 +476,7 @@ ML_FUNCTION(MLDecode) {
 struct ml_cbor_writer_t {
 	void *Data;
 	ml_cbor_write_fn WriteFn;
+	inthash_t *Globals;
 	inthash_t References[1];
 	inthash_t Reused[1];
 	int Index, NumSettings;
@@ -551,10 +555,13 @@ void ml_cbor_write_raw(ml_cbor_writer_t *Writer, const unsigned char *Bytes, siz
 	Writer->WriteFn(Writer->Data, Bytes, Length);
 }
 
-ml_cbor_writer_t *ml_cbor_writer_new(void *Data, ml_cbor_write_fn WriteFn) {
+static inthash_t DefaultWriteGlobals[1] = {INTHASH_INIT};
+
+ml_cbor_writer_t *ml_cbor_writer_new(void *Data, ml_cbor_write_fn WriteFn, inthash_t *Globals) {
 	ml_cbor_writer_t *Writer = xnew(ml_cbor_writer_t, NumCborSettings, void *);
 	Writer->Data = Data;
 	Writer->WriteFn = WriteFn;
+	Writer->Globals = Globals ?: DefaultWriteGlobals;
 	Writer->References[0] = INTHASH_INIT;
 	Writer->Reused[0] = INTHASH_INIT;
 	Writer->Index = 0;
@@ -604,8 +611,14 @@ ml_value_t *ml_cbor_write(ml_cbor_writer_t *Writer, ml_value_t *Value) {
 	}
 	typeof(ml_cbor_write) *function = ml_typed_fn_get(ml_typeof(Value), ml_cbor_write);
 	if (function) return function(Writer, Value);
-	//typeof(ml_cbor_write) *function2 = ml_typed_fn_get(ml_typeof(Value), ml_cbor_write);
-	//if (function2) return function2(Value, Writer->Data, Writer->WriteFn);
+	const char *Name = (const char *)inthash_search(Writer->Globals, (uintptr_t)Value);
+	if (Name) {
+		minicbor_write_tag(Writer->Data, Writer->WriteFn, 29);
+		size_t Length = strlen(Name);
+		minicbor_write_string(Writer->Data, Writer->WriteFn, Length);
+		Writer->WriteFn(Writer->Data, (const unsigned char *)Name, Length);
+		return NULL;
+	}
 	return ml_error("CBORError", "No method to encode %s to CBOR", ml_typeof(Value)->Name);
 }
 
@@ -614,6 +627,7 @@ ml_cbor_t ml_cbor_writer_encode(ml_value_t *Value) {
 	ml_cbor_writer_t Writer[1];
 	Writer->Data = Buffer;
 	Writer->WriteFn = (void *)ml_stringbuffer_write;
+	Writer->Globals = DefaultWriteGlobals;
 	Writer->References[0] = INTHASH_INIT;
 	Writer->Reused[0] = INTHASH_INIT;
 	Writer->Index = 0;
@@ -1325,6 +1339,11 @@ void ml_cbor_default_object(const char *Name, ml_value_t *Constructor) {
 	ml_map_insert(CborObjects, ml_cstring(Name), Constructor);
 }
 
+static void ml_cbor_default_global(const char *Name, void *Value) {
+	stringmap_insert(DefaultReadGlobals, Name, Value);
+	inthash_insert(DefaultWriteGlobals, (uintptr_t)Value, (void *)Name);
+}
+
 void ml_cbor_init(stringmap_t *Globals) {
 	if (!CborObjects) CborObjects = ml_map();
 	ml_cbor_default_object("range", RangeMethod);
@@ -1335,6 +1354,14 @@ void ml_cbor_init(stringmap_t *Globals) {
 	ml_cbor_default_tag(27, ml_cbor_read_object);
 	ml_cbor_default_tag(28, ml_cbor_mark_reused);
 	ml_cbor_default_tag(29, ml_cbor_use_previous);
+	ml_cbor_default_global("type", MLTypeT);
+	ml_cbor_default_global("any", MLAnyT);
+	ml_cbor_default_global("integer", MLIntegerT);
+	ml_cbor_default_global("real", MLRealT);
+	ml_cbor_default_global("number", MLNumberT);
+	ml_cbor_default_global("string", MLStringT);
+	ml_cbor_default_global("list", MLListT);
+	ml_cbor_default_global("map", MLMapT);
 #include "ml_cbor_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "cbor", ml_module("cbor",
