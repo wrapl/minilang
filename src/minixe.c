@@ -630,7 +630,7 @@ ML_FUNCTIONX(XEFunction) {
 	ml_parser_source(Parser, ml_debugger_source(Caller));
 	ml_result_state_t *State = ml_result_state_new(Caller->Context);
 	ml_command_evaluate((ml_state_t *)State, Parser, Compiler);
-	ml_value_t *Macro = State->Value;
+	ml_value_t *Macro = State->Value ?: MLNil;
 	if (Macro == MLEndOfInput) Macro = ml_error("ParseError", "Empty body");
 	if (ml_is_error(Macro)) ML_RETURN(Macro);
 	ml_value_t *Name = ml_map_search(Attributes, ml_integer(1));
@@ -705,6 +705,7 @@ ML_FUNCTIONX(XEDo) {
 	ml_result_state_t *State = ml_result_state_new(Caller->Context);
 	for (;;) {
 		ml_command_evaluate((ml_state_t *)State, Parser, Compiler);
+		if (!State->Value) break;
 		if (State->Value == MLEndOfInput) break;
 		if (ml_is_error(State->Value)) {
 			Result = State->Value;
@@ -738,6 +739,7 @@ ML_FUNCTIONX(XEDo2) {
 	ml_result_state_t *State = ml_result_state_new(Caller->Context);
 	for (;;) {
 		ml_command_evaluate((ml_state_t *)State, Parser, Compiler);
+		if (!State->Value) break;
 		if (State->Value == MLEndOfInput) break;
 		if (ml_is_error(State->Value)) {
 			Result = State->Value;

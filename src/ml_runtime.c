@@ -163,7 +163,7 @@ void ml_result_state_run(ml_result_state_t *State, ml_value_t *Value) {
 ml_result_state_t *ml_result_state_new(ml_context_t *Context) {
 	ml_result_state_t *State = new(ml_result_state_t);
 	State->Base.Context = Context ?: &MLRootContext;
-	State->Value = MLNil;
+	//State->Value = MLNil;
 	State->Base.Type = MLStateT;
 	State->Base.run = (ml_state_fn)ml_result_state_run;
 	return State;

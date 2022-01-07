@@ -258,19 +258,22 @@ ml_value_t *ml_map_insert(ml_value_t *Map0, ml_value_t *Key, ml_value_t *Value) 
 	ml_map_node_t *Node = ml_map_node(Map, &Map->Root, ml_typeof(Key)->hash(Key, NULL), Key);
 	ml_value_t *Old = Node->Value ?: MLNil;
 	Node->Value = Value;
+	ml_type_t *ValueType0 = ml_typeof(Value);
+	if (ValueType0 == MLUninitializedT) {
+		ml_uninitialized_use(Value, &Node->Value);
+		ValueType0 = MLAnyT;
+	}
 #ifdef ML_GENERICS
 	if (Map->Size == 1 && Map->Type == MLMapT) {
-		ml_type_t *Types[] = {MLMapT, ml_typeof(Key), ml_typeof(Value)};
-		Map->Type = ml_generic_type(3, Types);
+		Map->Type = ml_generic_type3(MLMapT, ml_typeof(Key), ValueType0);
 	} else if (Map->Type->Type == MLTypeGenericT) {
 		ml_type_t *KeyType = ml_generic_type_args(Map->Type)[1];
 		ml_type_t *ValueType = ml_generic_type_args(Map->Type)[2];
-		if (KeyType != ml_typeof(Key) || ValueType != ml_typeof(Value)) {
+		if (KeyType != ml_typeof(Key) || ValueType != ValueType0) {
 			ml_type_t *KeyType2 = ml_type_max(KeyType, ml_typeof(Key));
-			ml_type_t *ValueType2 = ml_type_max(ValueType, ml_typeof(Value));
+			ml_type_t *ValueType2 = ml_type_max(ValueType, ValueType0);
 			if (KeyType != KeyType2 || ValueType != ValueType2) {
-				ml_type_t *Types[] = {MLMapT, KeyType2, ValueType2};
-				Map->Type = ml_generic_type(3, Types);
+				Map->Type = ml_generic_type3(MLMapT, KeyType2, ValueType2);
 			}
 		}
 	}

@@ -391,8 +391,9 @@ static volatile atomic_flag MLGenericsLock[1] = {ATOMIC_FLAG_INIT};
 
 #endif
 
+static inthash_t GenericTypeCache[1] = {INTHASH_INIT};
+
 ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
-	static inthash_t GenericTypeCache[1] = {INTHASH_INIT};
 	uintptr_t Hash = (uintptr_t)3541;
 	for (int I = NumArgs; --I >= 0;) Hash = rotl(Hash, 1) ^ (uintptr_t)Args[I];
 	ML_GENERICS_LOCK();
@@ -431,6 +432,89 @@ ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
 	Type->Base.Rank = Base->Rank + 1;
 	Type->NumArgs = NumArgs;
 	for (int I = 0; I < NumArgs; ++I) Type->Args[I] = Args[I];
+	Type->NextGeneric = (ml_generic_type_t *)inthash_insert(GenericTypeCache, Hash, Type);
+	ML_GENERICS_UNLOCK();
+	return (ml_type_t *)Type;
+}
+
+ml_type_t *ml_generic_type2(ml_type_t *Arg0, ml_type_t *Arg1) {
+	uintptr_t Hash = (uintptr_t)3541;
+	Hash = rotl(Hash, 1) ^ (uintptr_t)Arg0;
+	Hash = rotl(Hash, 1) ^ (uintptr_t)Arg1;
+	ML_GENERICS_LOCK();
+	ml_generic_type_t *Type = (ml_generic_type_t *)inthash_search(GenericTypeCache, Hash);
+	while (Type) {
+		if (Type->NumArgs != 2) goto next;
+		if (Arg0 != Type->Args[0]) goto next;
+		if (Arg1 != Type->Args[1]) goto next;
+		ML_GENERICS_UNLOCK();
+		return (ml_type_t *)Type;
+	next:
+		Type = Type->NextGeneric;
+	}
+	Type = xnew(ml_generic_type_t, 2, ml_type_t *);
+	const ml_type_t *Base = Arg0;
+	const char *Name = Base->Name;
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_stringbuffer_write(Buffer, Base->Name, strlen(Base->Name));
+	ml_stringbuffer_write(Buffer, "[", 1);
+	ml_stringbuffer_write(Buffer, Arg1->Name, strlen(Arg1->Name));
+	ml_stringbuffer_write(Buffer, "]", 1);
+	Name = ml_stringbuffer_get_string(Buffer);
+	Type->Base.Type = MLTypeGenericT;
+	Type->Base.Name = Name;
+	Type->Base.hash = Base->hash;
+	Type->Base.call = Base->call;
+	Type->Base.deref = Base->deref;
+	Type->Base.assign = Base->assign;
+	Type->Base.Rank = Base->Rank + 1;
+	Type->NumArgs = 2;
+	Type->Args[0] = Arg0;
+	Type->Args[1] = Arg1;
+	Type->NextGeneric = (ml_generic_type_t *)inthash_insert(GenericTypeCache, Hash, Type);
+	ML_GENERICS_UNLOCK();
+	return (ml_type_t *)Type;
+}
+
+ml_type_t *ml_generic_type3(ml_type_t *Arg0, ml_type_t *Arg1, ml_type_t *Arg2) {
+	uintptr_t Hash = (uintptr_t)3541;
+	Hash = rotl(Hash, 1) ^ (uintptr_t)Arg0;
+	Hash = rotl(Hash, 1) ^ (uintptr_t)Arg1;
+	Hash = rotl(Hash, 1) ^ (uintptr_t)Arg2;
+	ML_GENERICS_LOCK();
+	ml_generic_type_t *Type = (ml_generic_type_t *)inthash_search(GenericTypeCache, Hash);
+	while (Type) {
+		if (Type->NumArgs != 3) goto next;
+		if (Arg0 != Type->Args[0]) goto next;
+		if (Arg1 != Type->Args[1]) goto next;
+		if (Arg2 != Type->Args[2]) goto next;
+		ML_GENERICS_UNLOCK();
+		return (ml_type_t *)Type;
+	next:
+		Type = Type->NextGeneric;
+	}
+	Type = xnew(ml_generic_type_t, 3, ml_type_t *);
+	const ml_type_t *Base = Arg0;
+	const char *Name = Base->Name;
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_stringbuffer_write(Buffer, Base->Name, strlen(Base->Name));
+	ml_stringbuffer_write(Buffer, "[", 1);
+	ml_stringbuffer_write(Buffer, Arg1->Name, strlen(Arg1->Name));
+	ml_stringbuffer_write(Buffer, ",", 1);
+	ml_stringbuffer_write(Buffer, Arg2->Name, strlen(Arg2->Name));
+	ml_stringbuffer_write(Buffer, "]", 1);
+	Name = ml_stringbuffer_get_string(Buffer);
+	Type->Base.Type = MLTypeGenericT;
+	Type->Base.Name = Name;
+	Type->Base.hash = Base->hash;
+	Type->Base.call = Base->call;
+	Type->Base.deref = Base->deref;
+	Type->Base.assign = Base->assign;
+	Type->Base.Rank = Base->Rank + 1;
+	Type->NumArgs = 3;
+	Type->Args[0] = Arg0;
+	Type->Args[1] = Arg1;
+	Type->Args[2] = Arg2;
 	Type->NextGeneric = (ml_generic_type_t *)inthash_insert(GenericTypeCache, Hash, Type);
 	ML_GENERICS_UNLOCK();
 	return (ml_type_t *)Type;

@@ -202,8 +202,7 @@ void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
 			if (Type != ml_typeof(Value)) {
 				ml_type_t *Type2 = ml_type_max(Type, ml_typeof(Value));
 				if (Type != Type2) {
-					ml_type_t *Types[] = {MLListT, Type2};
-					List->Type = ml_generic_type(2, Types);
+					List->Type = ml_generic_type2(MLListT, Type2);
 				}
 			}
 		}
@@ -212,8 +211,7 @@ void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
 		List->Tail = Node;
 #ifdef ML_GENERICS
 		if (List->Type == MLListT) {
-			ml_type_t *Types[] = {MLListT, ml_typeof(Value)};
-			List->Type = ml_generic_type(2, Types);
+			List->Type = ml_generic_type2(MLListT, ml_typeof(Value));
 		}
 #endif
 	}
@@ -227,16 +225,20 @@ void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 	ml_list_node_t *Node = new(ml_list_node_t);
 	Node->Type = MLListNodeT;
 	Node->Value = Value;
+	ml_type_t *Type0 = ml_typeof(Value);
+	if (Type0 == MLUninitializedT) {
+		ml_uninitialized_use(Value, &Node->Value);
+		Type0 = MLAnyT;
+	}
 	if ((Node->Prev = List->Tail)) {
 		List->Tail->Next = Node;
 #ifdef ML_GENERICS
 		if (List->Type->Type == MLTypeGenericT) {
 			ml_type_t *Type = ml_generic_type_args(List->Type)[1];
-			if (Type != ml_typeof(Value)) {
-				ml_type_t *Type2 = ml_type_max(Type, ml_typeof(Value));
+			if (Type != Type0) {
+				ml_type_t *Type2 = ml_type_max(Type, Type0);
 				if (Type != Type2) {
-					ml_type_t *Types[] = {MLListT, Type2};
-					List->Type = ml_generic_type(2, Types);
+					List->Type = ml_generic_type2(MLListT, Type2);
 				}
 			}
 		}
@@ -245,8 +247,7 @@ void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 		List->Head = Node;
 #ifdef ML_GENERICS
 		if (List->Type == MLListT) {
-			ml_type_t *Types[] = {MLListT, ml_typeof(Value)};
-			List->Type = ml_generic_type(2, Types);
+			List->Type = ml_generic_type2(MLListT, ml_typeof(Value));
 		}
 #endif
 	}

@@ -119,6 +119,8 @@ struct ml_generic_type_t {
 extern ml_type_t MLTypeGenericT[];
 
 ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]);
+ml_type_t *ml_generic_type2(ml_type_t *Arg0, ml_type_t *Arg1);
+ml_type_t *ml_generic_type3(ml_type_t *Arg0, ml_type_t *Arg1, ml_type_t *Arg2);
 
 #define ml_generic_type_num_args(TYPE) ((ml_generic_type_t *)TYPE)->NumArgs
 #define ml_generic_type_args(TYPE) ((ml_generic_type_t *)TYPE)->Args
