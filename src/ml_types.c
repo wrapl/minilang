@@ -414,13 +414,13 @@ ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
 	if (NumArgs > 1) {
 		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 		ml_stringbuffer_write(Buffer, Base->Name, strlen(Base->Name));
-		ml_stringbuffer_write(Buffer, "[", 1);
+		ml_stringbuffer_put(Buffer, '[');
 		ml_stringbuffer_write(Buffer, Args[1]->Name, strlen(Args[1]->Name));
 		for (int I = 2; I < NumArgs; ++I) {
-			ml_stringbuffer_write(Buffer, ",", 1);
+			ml_stringbuffer_put(Buffer, ',');
 			ml_stringbuffer_write(Buffer, Args[I]->Name, strlen(Args[I]->Name));
 		}
-		ml_stringbuffer_write(Buffer, "]", 1);
+		ml_stringbuffer_put(Buffer, ']');
 		Name = ml_stringbuffer_get_string(Buffer);
 	}
 	Type->Base.Type = MLTypeGenericT;
@@ -457,9 +457,9 @@ ml_type_t *ml_generic_type2(ml_type_t *Arg0, ml_type_t *Arg1) {
 	const char *Name = Base->Name;
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_stringbuffer_write(Buffer, Base->Name, strlen(Base->Name));
-	ml_stringbuffer_write(Buffer, "[", 1);
+	ml_stringbuffer_put(Buffer, '[');
 	ml_stringbuffer_write(Buffer, Arg1->Name, strlen(Arg1->Name));
-	ml_stringbuffer_write(Buffer, "]", 1);
+	ml_stringbuffer_put(Buffer, ']');
 	Name = ml_stringbuffer_get_string(Buffer);
 	Type->Base.Type = MLTypeGenericT;
 	Type->Base.Name = Name;
@@ -498,11 +498,11 @@ ml_type_t *ml_generic_type3(ml_type_t *Arg0, ml_type_t *Arg1, ml_type_t *Arg2) {
 	const char *Name = Base->Name;
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_stringbuffer_write(Buffer, Base->Name, strlen(Base->Name));
-	ml_stringbuffer_write(Buffer, "[", 1);
+	ml_stringbuffer_put(Buffer, '[');
 	ml_stringbuffer_write(Buffer, Arg1->Name, strlen(Arg1->Name));
-	ml_stringbuffer_write(Buffer, ",", 1);
+	ml_stringbuffer_put(Buffer, ',');
 	ml_stringbuffer_write(Buffer, Arg2->Name, strlen(Arg2->Name));
-	ml_stringbuffer_write(Buffer, "]", 1);
+	ml_stringbuffer_put(Buffer, ']');
 	Name = ml_stringbuffer_get_string(Buffer);
 	Type->Base.Type = MLTypeGenericT;
 	Type->Base.Name = Name;
@@ -1632,7 +1632,7 @@ ML_METHOD("append", MLStringBufferT, MLTupleT) {
 //!tuple
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_tuple_t *Value = (ml_tuple_t *)Args[1];
-	ml_stringbuffer_write(Buffer, "(", 1);
+	ml_stringbuffer_put(Buffer, '(');
 	if (Value->Size) {
 		ml_stringbuffer_simple_append(Buffer, Value->Values[0]);
 		for (int I = 1; I < Value->Size; ++I) {
@@ -1640,7 +1640,7 @@ ML_METHOD("append", MLStringBufferT, MLTupleT) {
 			ml_stringbuffer_simple_append(Buffer, Value->Values[I]);
 		}
 	}
-	ml_stringbuffer_write(Buffer, ")", 1);
+	ml_stringbuffer_put(Buffer, ')');
 	return MLSome;
 }
 

@@ -8,14 +8,17 @@
 
 #define ML_XML_STACK_SIZE 10
 
-typedef struct {
+typedef struct ml_xml_node_t ml_xml_node_t;
+
+struct ml_xml_node_t {
 	ml_type_t *Type;
+	ml_value_t *Parent;
 	ml_value_t *Tag;
 	ml_value_t *Attributes;
 	ml_value_t *Children;
-} ml_xml_node_t;
+};
 
-ML_TYPE(MLXmlT, (), "xml");
+ML_TYPE(MLXmlT, (MLSequenceT), "xml");
 //@xml
 
 ML_METHOD("tag", MLXmlT) {
@@ -32,11 +35,49 @@ ML_METHOD("attributes", MLXmlT) {
 	return Node->Attributes;
 }
 
-ML_METHOD("children", MLXmlT) {
+ML_METHOD("parent", MLXmlT) {
 //<Xml
-//>list
+//>xml|nil
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
-	return Node->Children;
+	return Node->Parent ?: MLNil;
+}
+
+ML_METHOD("put", MLXmlT, MLStringT) {
+//<Parent
+//<String
+//>xml
+	ml_xml_node_t *Parent = (ml_xml_node_t *)Args[0];
+	ml_list_put(Parent->Children, Args[1]);
+	return (ml_value_t *)Parent;
+}
+
+ML_METHOD("put", MLXmlT, MLXmlT) {
+//<Parent
+//<Child
+//>xml
+	ml_xml_node_t *Parent = (ml_xml_node_t *)Args[0];
+	ml_xml_node_t *Child = (ml_xml_node_t *)Args[1];
+	ml_list_put(Parent->Children, (ml_value_t *)Child);
+	Child->Parent = (ml_value_t *)Parent;
+	return (ml_value_t *)Parent;
+}
+
+static void ML_TYPED_FN(ml_iterate, MLXmlT, ml_state_t *Caller, ml_xml_node_t *Node) {
+	return ml_iterate(Caller, Node->Children);
+}
+
+extern ml_value_t *IndexMethod;
+
+ML_METHODX("[]", MLXmlT, MLIntegerT) {
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	Args[0] = Node->Children;
+	return ml_call(Caller, IndexMethod, 2, Args);
+}
+
+ML_METHODX("[]", MLXmlT, MLStringT) {
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	Args[0] = Node->Attributes;
+	return ml_call(Caller, IndexMethod, 2, Args);
 }
 
 static void ml_xml_escape_string(ml_stringbuffer_t *Buffer, const char *String) {
@@ -58,7 +99,7 @@ static void ml_xml_escape_string(ml_stringbuffer_t *Buffer, const char *String) 
 			ml_stringbuffer_write(Buffer, "&apos;", 6);
 			break;
 		default:
-			ml_stringbuffer_write(Buffer, String, 1);
+			ml_stringbuffer_put(Buffer, *String);
 			break;
 		}
 	}
@@ -75,10 +116,10 @@ static ml_value_t *ml_xml_node_append(ml_stringbuffer_t *Buffer, ml_xml_node_t *
 		}
 		ml_stringbuffer_printf(Buffer, " %s=\"", ml_string_value(Iter->Key));
 		ml_xml_escape_string(Buffer, ml_string_value(Iter->Value));
-		ml_stringbuffer_write(Buffer, "\"", 1);
+		ml_stringbuffer_put(Buffer, '\"');
 	}
 	if (ml_list_length(Node->Children)) {
-		ml_stringbuffer_write(Buffer, ">", 1);
+		ml_stringbuffer_put(Buffer, '>');
 		ML_LIST_FOREACH(Node->Children, Iter) {
 			if (ml_is(Iter->Value, MLStringT)) {
 				ml_xml_escape_string(Buffer, ml_string_value(Iter->Value));
@@ -94,13 +135,6 @@ static ml_value_t *ml_xml_node_append(ml_stringbuffer_t *Buffer, ml_xml_node_t *
 		ml_stringbuffer_write(Buffer, "/>", 2);
 	}
 	return NULL;
-}
-
-ML_METHOD("append", MLStringBufferT, MLXmlT) {
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_xml_node_t *Node = (ml_xml_node_t *)Args[1];
-	ml_value_t *Error = ml_xml_node_append(Buffer, Node);
-	return Error ?: Args[0];
 }
 
 ML_METHOD("append", MLStringBufferT, MLXmlT) {
@@ -138,10 +172,11 @@ static void xml_start_element(xml_decoder_t *Decoder, const XML_Char *Name, cons
 		NewStack->Prev = Stack;
 		Stack = Decoder->Stack = NewStack;
 	}
-	Stack->Nodes[Stack->Index] = Decoder->Node;
+	ml_xml_node_t *Parent = Stack->Nodes[Stack->Index] = Decoder->Node;
 	++Stack->Index;
 	ml_xml_node_t *Node = Decoder->Node = new(ml_xml_node_t);
 	Node->Type = MLXmlT;
+	Node->Parent = (ml_value_t *)Parent;
 	Node->Tag = ml_method(GC_strdup(Name));
 	Node->Children = ml_list();
 	Node->Attributes = ml_map();

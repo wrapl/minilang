@@ -101,7 +101,7 @@ ML_METHOD("append", MLStringBufferT, MLObjectT) {
 	ml_object_stringer_t Stringer = {Object, (ml_stringbuffer_t *)Args[0], 0};
 	ml_stringbuffer_printf(Stringer.Buffer, "%s(", Object->Type->Base.Name);
 	stringmap_foreach(Object->Type->Fields, &Stringer, (void *)field_string);
-	ml_stringbuffer_write(Stringer.Buffer, ")", 1);
+	ml_stringbuffer_put(Stringer.Buffer, ')');
 	return MLSome;
 }
 
@@ -854,7 +854,7 @@ typedef struct {
 static int ml_flags_value_append(const char *Name, ml_flags_value_t *Flags, ml_flags_value_append_t *Append) {
 	if ((Append->Value & Flags->Value) == Flags->Value) {
 		ml_stringbuffer_t *Buffer = Append->Buffer;
-		if (Buffer->Length > Append->Length) ml_stringbuffer_write(Buffer, "|", 1);
+		if (Buffer->Length > Append->Length) ml_stringbuffer_put(Buffer, '|');
 		ml_stringbuffer_write(Buffer, Name, strlen(Name));
 	}
 	return 0;

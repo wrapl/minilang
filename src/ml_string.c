@@ -596,9 +596,9 @@ ML_METHOD("append", MLStringBufferT, MLComplexT) {
 	double Imag = cimag(Complex);
 	if (fabs(Real) <= DBL_EPSILON) {
 		if (fabs(Imag - 1) <= DBL_EPSILON) {
-			ml_stringbuffer_write(Buffer, "i", 1);
+			ml_stringbuffer_put(Buffer, 'i');
 		} else if (fabs(Imag) <= DBL_EPSILON) {
-			ml_stringbuffer_write(Buffer, "0", 1);
+			ml_stringbuffer_put(Buffer, '0');
 		} else {
 			ml_stringbuffer_printf(Buffer, "%gi", Imag);
 		}
@@ -632,11 +632,11 @@ ML_METHOD("append", MLStringBufferT, MLComplexT, MLStringT) {
 	if (Imag < 0) {
 		Imag = -Imag;
 		ml_stringbuffer_printf(Buffer, Format, Real);
-		ml_stringbuffer_write(Buffer, "-", 1);
+		ml_stringbuffer_put(Buffer, '-');
 		ml_stringbuffer_printf(Buffer, Format, Imag);
 	} else {
 		ml_stringbuffer_printf(Buffer, Format, Real);
-		ml_stringbuffer_write(Buffer, "+", 1);
+		ml_stringbuffer_put(Buffer, '+');
 		ml_stringbuffer_printf(Buffer, Format, Imag);
 	}
 	return MLSome;
@@ -1182,6 +1182,37 @@ ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ..
 	size_t Length = vfprintf(Buffer->File, Format, Args);
 	va_end(Args);
 	return Length;
+}
+
+void ml_stringbuffer_put(ml_stringbuffer_t *Buffer, char Char) {
+	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
+	if (!Buffer->Space) {
+#ifdef ML_THREADSAFE
+		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
+		do {
+			if (!Next) {
+				Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+				break;
+			}
+			CacheNext = Next->Next;
+		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &Next, CacheNext));
+#else
+		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
+		if (!Next) {
+			Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+		} else {
+			StringBufferNodeCache = Next->Next;
+		}
+#endif
+		Next->Next = NULL;
+		Node->Next = Next;
+		Node = Next;
+		Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
+	}
+	Node->Chars[ML_STRINGBUFFER_NODE_SIZE - Buffer->Space] = Char;
+	Buffer->Space -= 1;
+	Buffer->Length += 1;
+	Buffer->Tail = Node;
 }
 
 static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {

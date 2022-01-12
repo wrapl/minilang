@@ -1731,13 +1731,13 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 			if (Degree == 1) { \
 				APPEND(Buffer, PRINTF, *(CTYPE *)(Address + (Indices[0]) * Dimension->Stride)); \
 				for (int I = 1; I < Dimension->Size; ++I) { \
-					ml_stringbuffer_write(Buffer, " ", 1); \
+					ml_stringbuffer_put(Buffer, ' '); \
 					APPEND(Buffer, PRINTF, *(CTYPE *)(Address + (Indices[I]) * Stride)); \
 				} \
 			} else { \
 				append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address + (Indices[0]) * Dimension->Stride); \
 				for (int I = 1; I < Dimension->Size; ++I) { \
-					ml_stringbuffer_write(Buffer, " ", 1); \
+					ml_stringbuffer_put(Buffer, ' '); \
 					append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address + (Indices[I]) * Dimension->Stride); \
 				} \
 			} \
@@ -1747,7 +1747,7 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 			APPEND(Buffer, PRINTF, *(CTYPE *)Address); \
 			Address += Stride; \
 			for (int I = Dimension->Size; --I > 0;) { \
-				ml_stringbuffer_write(Buffer, " ", 1); \
+				ml_stringbuffer_put(Buffer, ' '); \
 				APPEND(Buffer, PRINTF, *(CTYPE *)Address); \
 				Address += Stride; \
 			} \
@@ -1755,7 +1755,7 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 			append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address); \
 			Address += Stride; \
 			for (int I = Dimension->Size; --I > 0;) { \
-				ml_stringbuffer_write(Buffer, " ", 1); \
+				ml_stringbuffer_put(Buffer, ' '); \
 				append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address); \
 				Address += Stride; \
 			} \

@@ -3222,10 +3222,10 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 		} else if (C == '\\') {
 			C = *End++;
 			switch (C) {
-			case 'r': ml_stringbuffer_write(Buffer, "\r", 1); break;
-			case 'n': ml_stringbuffer_write(Buffer, "\n", 1); break;
-			case 't': ml_stringbuffer_write(Buffer, "\t", 1); break;
-			case 'e': ml_stringbuffer_write(Buffer, "\e", 1); break;
+			case 'r': ml_stringbuffer_put(Buffer, '\r'); break;
+			case 'n': ml_stringbuffer_put(Buffer, '\n'); break;
+			case 't': ml_stringbuffer_put(Buffer, '\t'); break;
+			case 'e': ml_stringbuffer_put(Buffer, '\e'); break;
 			case 'x': {
 				char Char;
 				switch ((C = *End++)) {
@@ -3257,11 +3257,11 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 				ml_stringbuffer_write(Buffer, &Char, 1);
 				break;
 			}
-			case '\'': ml_stringbuffer_write(Buffer, "\'", 1); break;
-			case '\"': ml_stringbuffer_write(Buffer, "\"", 1); break;
-			case '\\': ml_stringbuffer_write(Buffer, "\\", 1); break;
-			case '0': ml_stringbuffer_write(Buffer, "\0", 1); break;
-			case '{': ml_stringbuffer_write(Buffer, "{", 1); break;
+			case '\'': ml_stringbuffer_put(Buffer, '\''); break;
+			case '\"': ml_stringbuffer_put(Buffer, '\"'); break;
+			case '\\': ml_stringbuffer_put(Buffer, '\\'); break;
+			case '0': ml_stringbuffer_put(Buffer, '\0'); break;
+			case '{': ml_stringbuffer_put(Buffer, '{'); break;
 			case '\n': break;
 			case 0: ml_parse_error(Parser, "ParseError", "end of line while parsing string");
 			}

@@ -493,7 +493,7 @@ ML_METHOD("[]", MLListT, MLIntegerRangeT) {
 
 ML_METHOD("append", MLStringBufferT, MLListT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_write(Buffer, "[", 1);
+	ml_stringbuffer_put(Buffer, '[');
 	ml_list_t *List = (ml_list_t *)Args[1];
 	ml_list_node_t *Node = List->Head;
 	if (Node) {
@@ -503,7 +503,7 @@ ML_METHOD("append", MLStringBufferT, MLListT) {
 			ml_stringbuffer_simple_append(Buffer, Node->Value);
 		}
 	}
-	ml_stringbuffer_write(Buffer, "]", 1);
+	ml_stringbuffer_put(Buffer, ']');
 	return (ml_value_t *)Buffer;
 }
 

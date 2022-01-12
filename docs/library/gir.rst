@@ -8,6 +8,9 @@ gir
 :mini:`type baseinfo < type`
    *TBD*
 
+:mini:`type gir < function`
+   *TBD*
+
 :mini:`fun gir(Name: string): gir-typelib`
    *TBD*
 

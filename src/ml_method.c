@@ -431,7 +431,7 @@ void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_t
 ML_METHOD("append", MLStringBufferT, MLMethodT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_method_t *Method = (ml_method_t *)Args[1];
-	ml_stringbuffer_write(Buffer, ":", 1);
+	ml_stringbuffer_put(Buffer, ':');
 	ml_stringbuffer_write(Buffer, Method->Name, strlen(Method->Name));
 	return MLSome;
 }

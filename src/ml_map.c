@@ -561,7 +561,7 @@ ML_METHODX("missing", MLMapT, MLAnyT, MLFunctionT) {
 
 ML_METHOD("append", MLStringBufferT, MLMapT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_write(Buffer, "{", 1);
+	ml_stringbuffer_put(Buffer, '{');
 	ml_map_t *Map = (ml_map_t *)Args[1];
 	ml_map_node_t *Node = Map->Head;
 	if (Node) {
@@ -579,7 +579,7 @@ ML_METHOD("append", MLStringBufferT, MLMapT) {
 			}
 		}
 	}
-	ml_stringbuffer_write(Buffer, "}", 1);
+	ml_stringbuffer_put(Buffer, '}');
 	return MLSome;
 }
 

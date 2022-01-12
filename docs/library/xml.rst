@@ -1,7 +1,7 @@
 xml
 ===
 
-:mini:`type xml`
+:mini:`type xml < sequence`
    *TBD*
 
 :mini:`meth (Xml: xml):tag: method`
@@ -10,10 +10,19 @@ xml
 :mini:`meth (Xml: xml):attributes: map`
    *TBD*
 
-:mini:`meth (Xml: xml):children: list`
+:mini:`meth (Xml: xml):parent: xml | nil`
    *TBD*
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: xml)`
+:mini:`meth (Parent: xml):put(String: string): xml`
+   *TBD*
+
+:mini:`meth (Parent: xml):put(Child: xml): xml`
+   *TBD*
+
+:mini:`meth (Arg₁: xml)[Arg₂: integer]`
+   *TBD*
+
+:mini:`meth (Arg₁: xml)[Arg₂: string]`
    *TBD*
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: xml)`

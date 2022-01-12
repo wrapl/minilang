@@ -44,7 +44,7 @@ ML_FUNCTIONX(XENode) {
 	ML_RETURN(Node);
 }
 
-ML_TYPE(XENodeT, (), "xe-node",
+ML_TYPE(XENodeT, (MLSequenceT), "xe-node",
 	.Constructor = (ml_value_t *)XENode
 );
 
@@ -77,6 +77,10 @@ ML_METHOD("tag", XENodeT) {
 ML_METHOD("attributes", XENodeT) {
 	xe_node_t *Node = (xe_node_t *)Args[0];
 	return Node->Attributes;
+}
+
+static void ML_TYPED_FN(ml_iterate, XENodeT, ml_state_t *Caller, xe_node_t *Node) {
+	return ml_iterate(Caller, Node->Content);
 }
 
 ML_METHOD_DECL(Index, "[]");
@@ -114,9 +118,9 @@ ML_METHOD("indices", XEVarT) {
 }
 
 static int xe_attribute_to_string(ml_value_t *Key, ml_value_t *Value, ml_stringbuffer_t *Buffer) {
-	ml_stringbuffer_write(Buffer, " ", 1);
+	ml_stringbuffer_put(Buffer, ' ');
 	ml_stringbuffer_simple_append(Buffer, Key);
-	ml_stringbuffer_write(Buffer, "=", 1);
+	ml_stringbuffer_put(Buffer, '=');
 	ml_stringbuffer_simple_append(Buffer, Value);
 	return 0;
 }
@@ -124,18 +128,18 @@ static int xe_attribute_to_string(ml_value_t *Key, ml_value_t *Value, ml_stringb
 ML_METHOD("append", MLStringBufferT, XENodeT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	xe_node_t *Node = (xe_node_t *)Args[1];
-	ml_stringbuffer_write(Buffer, "<", 1);
+	ml_stringbuffer_put(Buffer, '<');
 	ml_stringbuffer_write(Buffer, ml_string_value(Node->Tag), ml_string_length(Node->Tag));
 	if (ml_map_size(Node->Attributes)) {
 		ml_map_foreach(Node->Attributes, Buffer, (void *)xe_attribute_to_string);
 	}
 	if (ml_list_length(Node->Content)) {
-		ml_stringbuffer_write(Buffer, ":", 1);
+		ml_stringbuffer_put(Buffer, ':');
 		ML_LIST_FOREACH(Node->Content, Iter) {
 			ml_stringbuffer_simple_append(Buffer, Iter->Value);
 		}
 	}
-	ml_stringbuffer_write(Buffer, ">", 1);
+	ml_stringbuffer_put(Buffer, '>');
 	return MLSome;
 }
 
@@ -145,10 +149,10 @@ ML_METHOD("append", MLStringBufferT, XEVarT) {
 	ml_stringbuffer_write(Buffer, "<$", 2);
 	ml_stringbuffer_simple_append(Buffer, Var->Name);
 	ML_LIST_FOREACH(Var->Indices, Iter) {
-		ml_stringbuffer_write(Buffer, ":", 1);
+		ml_stringbuffer_put(Buffer, ':');
 		ml_stringbuffer_simple_append(Buffer, Iter->Value);
 	}
-	ml_stringbuffer_write(Buffer, ">", 1);
+	ml_stringbuffer_put(Buffer, '>');
 	return MLSome;
 }
 
@@ -167,25 +171,25 @@ static ml_value_t *parse_node(xe_stream_t *Stream);
 static const char *parse_escape(const char *P, ml_stringbuffer_t *Buffer) {
 	switch (P[1]) {
 	case '\\':
-		ml_stringbuffer_write(Buffer, "\\", 1);
+		ml_stringbuffer_put(Buffer, '\\');
 		break;
 	case 't':
-		ml_stringbuffer_write(Buffer, "\t", 1);
+		ml_stringbuffer_put(Buffer, '\t');
 		break;
 	case 'r':
-		ml_stringbuffer_write(Buffer, "\r", 1);
+		ml_stringbuffer_put(Buffer, '\r');
 		break;
 	case 'n':
-		ml_stringbuffer_write(Buffer, "\n", 1);
+		ml_stringbuffer_put(Buffer, '\n');
 		break;
 	case '\"':
-		ml_stringbuffer_write(Buffer, "\"", 1);
+		ml_stringbuffer_put(Buffer, '\"');
 		break;
 	case '<':
-		ml_stringbuffer_write(Buffer, "<", 1);
+		ml_stringbuffer_put(Buffer, '<');
 		break;
 	case '>':
-		ml_stringbuffer_write(Buffer, ">", 1);
+		ml_stringbuffer_put(Buffer, '>');
 		break;
 	case 'x': {
 		unsigned char C;

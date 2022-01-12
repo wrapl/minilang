@@ -114,6 +114,21 @@ ml_value_t *ml_gir_typelib(const char *Name, const char *Version) {
 	return (ml_value_t *)Typelib;
 }
 
+static void ml_gir_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLStringT);
+	const char *Version = NULL;
+	if (Count > 1) {
+		ML_CHECKX_ARG_TYPE(1, MLStringT);
+		Version = ml_string_value(Args[1]);
+	}
+	ML_RETURN(ml_gir_typelib(ml_string_value(Args[0]), Version));
+}
+
+ML_TYPE(MLGirT, (MLFunctionT), "gir",
+	.call = (void *)ml_gir_call
+);
+
 ML_FUNCTION(MLGir) {
 //@gir
 //<Name:string
@@ -442,7 +457,7 @@ static ml_value_t *gir_enum_value(enum_t *Type, int64_t Value) {
 	for (enum_value_t **Ptr = Type->ByIndex; Value && *Ptr; ++Ptr) {
 		if ((Ptr[0]->Value & Value) == Ptr[0]->Value) {
 			Value &= ~Ptr[0]->Value;
-			if (Buffer->Length) ml_stringbuffer_write(Buffer, "|", 1);
+			if (Buffer->Length) ml_stringbuffer_put(Buffer, '|');
 			const char *Name = ml_string_value(Ptr[0]->Name);
 			size_t Length = ml_string_length(Ptr[0]->Name);
 			ml_stringbuffer_write(Buffer, Name, Length);

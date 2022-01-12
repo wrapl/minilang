@@ -750,7 +750,6 @@ static gboolean console_update_status(console_t *Console) {
 }
 
 console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globals) {
-	g_setenv("G_SLICE", "always-malloc", 1);
 	gtk_init(0, 0);
 	console_t *Console = new(console_t);
 	Console->Base.Type = ConsoleT;

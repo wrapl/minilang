@@ -1641,9 +1641,9 @@ static void ml_closure_value_list(ml_value_t *Value, ml_stringbuffer_t *Buffer) 
 			case '\\': ml_stringbuffer_write(Buffer, "\\\\", 2); break;
 			default: ml_stringbuffer_write(Buffer, String + I, 1); break;
 		}
-		ml_stringbuffer_write(Buffer, "\"", 1);
+		ml_stringbuffer_put(Buffer, '\"');
 	} else if (ml_is(Value, MLNumberT)) {
-		ml_stringbuffer_write(Buffer, " ", 1);
+		ml_stringbuffer_put(Buffer, ' ');
 		ml_stringbuffer_simple_append(Buffer, Value);
 	} else if (ml_typeof(Value) == MLMethodT) {
 		ml_stringbuffer_printf(Buffer, " :%s", ml_method_name(Value));
@@ -1712,7 +1712,7 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 			case '\\': ml_stringbuffer_write(Buffer, "\\\\", 2); break;
 			default: ml_stringbuffer_write(Buffer, P, 1); break;
 		}
-		ml_stringbuffer_write(Buffer, "\"", 1);
+		ml_stringbuffer_put(Buffer, '\"');
 		return 3;
 	case MLIT_DECL:
 		if (Inst[1].Decls) {
@@ -1787,7 +1787,7 @@ ML_METHOD("list", MLClosureT) {
 		} else {
 			Inst += ml_closure_inst_list(Inst, Buffer);
 		}
-		ml_stringbuffer_write(Buffer, "\n", 1);
+		ml_stringbuffer_put(Buffer, '\n');
 	}
 	return ml_stringbuffer_get_value(Buffer);
 }
@@ -1804,14 +1804,14 @@ void ml_closure_list(ml_value_t *Value) {
 		} else {
 			Inst += ml_closure_inst_list(Inst, Buffer);
 		}
-		ml_stringbuffer_write(Buffer, "\n", 1);
+		ml_stringbuffer_put(Buffer, '\n');
 	}
-	ml_stringbuffer_write(Buffer, "\n", 1);
+	ml_stringbuffer_put(Buffer, '\n');
 	for (int I = 0; I < Info->NumUpValues; ++I) {
 		ml_value_t *UpValue = Closure->UpValues[I];
 		ml_stringbuffer_printf(Buffer, "Upvalues %d:", I);
 		ml_closure_value_list(UpValue, Buffer);
-		ml_stringbuffer_write(Buffer, "\n", 1);
+		ml_stringbuffer_put(Buffer, '\n');
 	}
 	puts(ml_stringbuffer_get_string(Buffer));
 }
