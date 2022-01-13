@@ -4813,6 +4813,30 @@ static void ml_accept_block_def(ml_parser_t *Parser, ml_accept_block_t *Accept) 
 				Accept->ExprSlot[0] = ML_EXPR_END(LocalExpr);
 				Accept->ExprSlot = &LocalExpr->Next;
 			}
+		} else if (ml_parse2(Parser, MLT_VAR)) {
+			ml_accept(Parser, MLT_IDENT);
+			mlc_local_t *Local = Accept->DefsSlot[0] = new(mlc_local_t);
+			Local->Line = Parser->Source.Line;
+			Local->Ident = Parser->Ident;
+			Accept->DefsSlot = &Local->Next;
+			ML_EXPR(LocalExpr, local, def);
+			ML_EXPR(CallExpr, parent_value, const_call);
+			CallExpr->Value = (ml_value_t *)MLVariableT;
+			mlc_expr_t *TypeExpr = ml_parse(Parser, MLT_COLON) ? ml_accept_term(Parser) : NULL;
+			if (ml_parse(Parser, MLT_ASSIGN)) {
+				CallExpr->Child = ml_accept_expression(Parser, EXPR_DEFAULT);
+			} else {
+				mlc_expr_t *NilExpr = new(mlc_expr_t);
+				NilExpr->compile = ml_nil_expr_compile;
+				NilExpr->Source = Parser->Source.Name;
+				NilExpr->StartLine = NilExpr->EndLine = Parser->Source.Line;
+				CallExpr->Child = NilExpr;
+			}
+			CallExpr->Child->Next = TypeExpr;
+			LocalExpr->Child = ML_EXPR_END(CallExpr);
+			LocalExpr->Local = Local;
+			Accept->ExprSlot[0] = ML_EXPR_END(LocalExpr);
+			Accept->ExprSlot = &LocalExpr->Next;
 		} else {
 			ml_accept(Parser, MLT_IDENT);
 			mlc_local_t *Local = Accept->DefsSlot[0] = new(mlc_local_t);
@@ -5373,6 +5397,7 @@ ML_METHOD("command_def", MLCompilerT, MLStringT, MLAnyT) {
 //<Name
 //<Value
 //>any
+	// TODO: Use a non-deref method to preserve reference values.
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(Compiler->Vars, Name);
@@ -5410,7 +5435,7 @@ static void ml_command_idents_in2(mlc_function_t *Function, ml_value_t *Value, m
 		ML_RETURN(Value);
 	}
 	ml_global_t *Global = Frame->Globals[Frame->Index];
-	if (Frame->Type != MLT_REF) Value = ml_deref(Value);
+	if (Frame->Type == MLT_LET || Frame->Type == MLT_VAR) Value = ml_deref(Value);
 	if (Frame->Type == MLT_VAR) {
 		Value = ml_variable(Value, NULL);
 	}
@@ -5440,7 +5465,7 @@ static void ml_command_idents_unpack(mlc_function_t *Function, ml_value_t *Packe
 			MLC_RETURN(Value);
 		}
 		ml_global_t *Global = Frame->Globals[Index];
-		if (Frame->Type != MLT_REF) Value = ml_deref(Value);
+		if (Frame->Type == MLT_LET || Frame->Type == MLT_VAR) Value = ml_deref(Value);
 		if (Frame->Type == MLT_VAR) {
 			Value = ml_variable(Value, NULL);
 		}
@@ -5489,7 +5514,7 @@ static void ml_command_ident_run(mlc_function_t *Function, ml_value_t *Value, ml
 		ml_parse_error(Compiler, "TypeError", "Expected <type> not <%s>", ml_typeof(VarType)->Name);
 	}*/
 	ml_global_t *Global = Frame->Global;
-	if (Frame->Type != MLT_REF) Value = ml_deref(Value);
+	if (Frame->Type == MLT_LET || Frame->Type == MLT_VAR) Value = ml_deref(Value);
 	switch (Frame->Type) {
 	case MLT_VAR:
 		Value = ml_variable(Value, NULL);
@@ -5565,10 +5590,18 @@ static void ml_accept_command_decl(mlc_function_t *Function, ml_parser_t *Parser
 static void ml_accept_command_fun(mlc_function_t *Function, ml_parser_t *Parser) {
 	ml_compiler_t *Compiler = Function->Compiler;
 	if (ml_parse(Parser, MLT_IDENT)) {
+		while (ml_parse(Parser, MLT_COMMA)) {
+			ml_command_global(Function->Compiler->Vars, Parser->Ident);
+			ml_accept(Parser, MLT_IDENT);
+		}
+		if (ml_parse(Parser, MLT_SEMICOLON)) {
+			ml_command_global(Function->Compiler->Vars, Parser->Ident);
+			ML_CONTINUE(Function, MLNil);
+		}
 		MLC_FRAME(ml_command_ident_frame_t, ml_command_ident_run);
 		Frame->Global = ml_command_global(Compiler->Vars, Parser->Ident);
 		Frame->VarType = NULL;
-		Frame->Type = MLT_LET;
+		Frame->Type = MLT_DEF;
 		ml_accept(Parser, MLT_LEFT_PAREN);
 		mlc_expr_t *Expr = ml_accept_fun_expr(Parser, Frame->Global->Name, MLT_RIGHT_PAREN);
 		ml_parse(Parser, MLT_SEMICOLON);
@@ -5595,7 +5628,7 @@ static void ml_accept_command_expr(mlc_function_t *Function, ml_parser_t *Parser
 		MLC_FRAME(ml_command_ident_frame_t, ml_command_ident_run);
 		Frame->Global = ml_command_global(Compiler->Vars, Ident);
 		Frame->VarType = NULL;
-		Frame->Type = MLT_LET;
+		Frame->Type = MLT_DEF;
 		return mlc_expr_call(Function, ML_EXPR_END(CallExpr));
 	} else {
 		ml_parse(Parser, MLT_SEMICOLON);

@@ -1,6 +1,7 @@
 #include "minilang.h"
 #include "ml_console.h"
 #include "ml_compiler.h"
+#include "ml_bytecode.h"
 #include "ml_macros.h"
 #include "ml_file.h"
 #include "ml_object.h"
@@ -210,6 +211,7 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "parser", MLParserT);
 	stringmap_insert(Globals, "compiler", MLCompilerT);
 	stringmap_insert(Globals, "macro", MLMacroT);
+	stringmap_insert(Globals, "variable", MLVariableT);
 	stringmap_insert(Globals, "global", ml_stringmap_globals(Globals));
 	stringmap_insert(Globals, "globals", ml_cfunction(Globals, (void *)ml_globals));
 

@@ -57,6 +57,18 @@ ml_value_t *ml_variable(ml_value_t *Value, ml_type_t *Type) {
 	return (ml_value_t *)Variable;
 }
 
+ML_METHOD(MLVariableT) {
+	return ml_variable(MLNil, NULL);
+}
+
+ML_METHOD(MLVariableT, MLAnyT) {
+	return ml_variable(Args[0], NULL);
+}
+
+ML_METHOD(MLVariableT, MLAnyT, MLTypeT) {
+	return ml_variable(Args[0], (ml_type_t *)Args[1]);
+}
+
 #endif
 
 #ifdef ML_JIT
