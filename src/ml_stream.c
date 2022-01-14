@@ -17,7 +17,7 @@ ML_METHOD_DECL(FlushMethod, "flush");
 
 static void ml_stream_read_method(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count) {
 	ml_address_t *Buffer = new(ml_address_t);
-	Buffer->Type = MLAddressT;
+	Buffer->Type = MLBufferT;
 	Buffer->Value = Address;
 	Buffer->Length = Count;
 	ml_value_t **Args = ml_alloc_args(2);
