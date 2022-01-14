@@ -15,6 +15,10 @@ void ml_stream_read(ml_state_t *Caller, ml_value_t *Value, void *Address, int Co
 void ml_stream_write(ml_state_t *Caller, ml_value_t *Value, const void *Address, int Count);
 void ml_stream_flush(ml_state_t *Caller, ml_value_t *Value);
 
+void ml_stream_read_method(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count);
+void ml_stream_write_method(ml_state_t *Caller, ml_value_t *Value, const void *Address, int Count);
+void ml_stream_flush_method(ml_state_t *Caller, ml_value_t *Value);
+
 ml_value_t *ml_stream_buffered(ml_value_t *Stream, size_t Size);
 
 extern ml_type_t MLFdT[];

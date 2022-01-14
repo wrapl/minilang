@@ -15,7 +15,7 @@ ML_METHOD_DECL(ReadMethod, "read");
 ML_METHOD_DECL(WriteMethod, "write");
 ML_METHOD_DECL(FlushMethod, "flush");
 
-static void ml_stream_read_method(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count) {
+void ml_stream_read_method(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count) {
 	ml_address_t *Buffer = new(ml_address_t);
 	Buffer->Type = MLBufferT;
 	Buffer->Value = Address;
@@ -31,7 +31,7 @@ void ml_stream_read(ml_state_t *Caller, ml_value_t *Value, void *Address, int Co
 	return function(Caller, Value, Address, Count);
 }
 
-static void ml_stream_write_method(ml_state_t *Caller, ml_value_t *Value, const void *Address, int Count) {
+void ml_stream_write_method(ml_state_t *Caller, ml_value_t *Value, const void *Address, int Count) {
 	ml_address_t *Buffer = new(ml_address_t);
 	Buffer->Type = MLAddressT;
 	Buffer->Value = (void *)Address;
@@ -47,7 +47,7 @@ void ml_stream_write(ml_state_t *Caller, ml_value_t *Value, const void *Address,
 	return function(Caller, Value, Address, Count);
 }
 
-static void ml_stream_flush_method(ml_state_t *Caller, ml_value_t *Value) {
+void ml_stream_flush_method(ml_state_t *Caller, ml_value_t *Value) {
 	ml_value_t **Args = ml_alloc_args(1);
 	Args[0] = Value;
 	return ml_call(Caller, FlushMethod, 1, Args);
@@ -460,13 +460,13 @@ ml_value_t *ml_stream_buffered(ml_value_t *Stream, size_t Size) {
 	Buffered->Type = MLStreamBufferedT;
 	ml_buffered_reader_t *Reader = xnew(ml_buffered_reader_t, Size, char);
 	Reader->Stream = Stream;
-	Reader->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read);
+	Reader->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read) ?: ml_stream_read_method;
 	Reader->Size = Size;
 	Buffered->Reader = Reader;
 	ml_buffered_writer_t *Writer = xnew(ml_buffered_writer_t, Size, char);
 	Writer->Base.run = (ml_state_fn)ml_buffered_writer_run;
 	Writer->Stream = Stream;
-	Writer->write = ml_typed_fn_get(ml_typeof(Stream), ml_stream_write);
+	Writer->write = ml_typed_fn_get(ml_typeof(Stream), ml_stream_write) ?: ml_stream_write_method;
 	Writer->Size = Writer->Space = Size;
 	Writer->Next = Writer->Chars;
 	Buffered->Writer = Writer;
