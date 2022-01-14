@@ -327,6 +327,7 @@ ML_METHODX(MLXmlT, MLStreamT) {
 	State->Stream = Args[0];
 	State->read = ml_typed_fn_get(ml_typeof(Args[0]), ml_stream_read) ?: ml_stream_read_method;
 	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_xml_stream_state_run;
 	return State->read((ml_state_t *)State, State->Stream, State->Text, ML_STRINGBUFFER_NODE_SIZE);
 }

@@ -378,6 +378,7 @@ static void ml_buffered_reader_read(ml_state_t *Caller, ml_buffered_reader_t *Re
 		Total += Reader->Available;
 	}
 	Reader->Base.Caller = Caller;
+	Reader->Base.Context = Caller->Context;
 	Reader->Request.Total = Total;
 	if (Count >= Reader->Size) {
 		Reader->Base.run = (ml_state_fn)ml_buffered_reader_run0;
@@ -439,6 +440,7 @@ static void ml_buffered_writer_write(ml_state_t *Caller, ml_buffered_writer_t *W
 		ML_RETURN(ml_integer(Count));
 	} else if (Writer->Fill) {
 		Writer->Base.Caller = Caller;
+		Writer->Base.Context = Caller->Context;
 		Writer->Request.Address = Address;
 		Writer->Request.Count = Count;
 		return Writer->write((ml_state_t *)Writer, Writer->Stream, Writer->Next - Writer->Fill, Writer->Fill);
@@ -503,6 +505,7 @@ static void ML_TYPED_FN(ml_stream_flush, MLStreamBufferedT, ml_state_t *Caller, 
 	ml_buffered_writer_t *Writer = Stream->Writer;
 	if (Writer->Base.Caller) ML_ERROR("StreamError", "Attempting to write from stream before previous write complete");
 	Writer->Base.Caller = Caller;
+	Writer->Base.Context = Caller->Context;
 	Writer->Request.Address = NULL;
 	Writer->Request.Count = 0;
 	return Writer->write((ml_state_t *)Writer, Writer->Stream, Writer->Next - Writer->Fill, Writer->Fill);
@@ -513,6 +516,7 @@ ML_METHODX("flush", MLStreamBufferedT) {
 	ml_buffered_writer_t *Writer = Stream->Writer;
 	if (Writer->Base.Caller) ML_ERROR("StreamError", "Attempting to write from stream before previous write complete");
 	Writer->Base.Caller = Caller;
+	Writer->Base.Context = Caller->Context;
 	Writer->Request.Address = NULL;
 	Writer->Request.Count = 0;
 	return Writer->write((ml_state_t *)Writer, Writer->Stream, Writer->Next - Writer->Fill, Writer->Fill);
