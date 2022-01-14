@@ -439,19 +439,9 @@ typedef struct {
 
 ML_TYPE(MLStreamBufferedT, (MLStreamT), "stream::buffered");
 
-static void ML_TYPED_FN(ml_stream_read, MLStreamBufferedT, ml_state_t *Caller, ml_buffered_stream_t *Stream, void *Address, int Count) {
-	return ml_buffered_reader_read(Caller, Stream->Reader, Address, Count);
-}
-
-static void ML_TYPED_FN(ml_stream_write, MLStreamBufferedT, ml_state_t *Caller, ml_buffered_stream_t *Stream, const void *Address, int Count) {
-	return ml_buffered_writer_write(Caller, Stream->Writer, Address, Count);
-}
-
-ML_METHOD(MLStreamBufferedT, MLStreamT, MLIntegerT) {
-	ml_value_t *Stream = Args[0];
+ml_value_t *ml_stream_buffered(ml_value_t *Stream, size_t Size) {
 	ml_buffered_stream_t *Buffered = new(ml_buffered_stream_t);
 	Buffered->Type = MLStreamBufferedT;
-	size_t Size = ml_integer_value(Args[1]);
 	ml_buffered_reader_t *Reader = xnew(ml_buffered_reader_t, Size, char);
 	Reader->Stream = Stream;
 	Reader->read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read);
@@ -465,6 +455,18 @@ ML_METHOD(MLStreamBufferedT, MLStreamT, MLIntegerT) {
 	Writer->Next = Writer->Chars;
 	Buffered->Writer = Writer;
 	return (ml_value_t *)Buffered;
+}
+
+static void ML_TYPED_FN(ml_stream_read, MLStreamBufferedT, ml_state_t *Caller, ml_buffered_stream_t *Stream, void *Address, int Count) {
+	return ml_buffered_reader_read(Caller, Stream->Reader, Address, Count);
+}
+
+static void ML_TYPED_FN(ml_stream_write, MLStreamBufferedT, ml_state_t *Caller, ml_buffered_stream_t *Stream, const void *Address, int Count) {
+	return ml_buffered_writer_write(Caller, Stream->Writer, Address, Count);
+}
+
+ML_METHOD(MLStreamBufferedT, MLStreamT, MLIntegerT) {
+	return ml_stream_buffered(Args[0], ml_integer_value(Args[1]));
 }
 
 ML_METHODX("flush", MLStreamBufferedT) {
