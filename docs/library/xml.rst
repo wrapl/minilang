@@ -34,6 +34,9 @@ xml
 :mini:`meth (Xml: string):xml: xml`
    *TBD*
 
+:mini:`meth xml(Arg₁: stream)`
+   *TBD*
+
 :mini:`fun xml::decoder(Callback: any): xml::decoder`
    *TBD*
 

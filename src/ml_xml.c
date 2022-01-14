@@ -1,5 +1,6 @@
 #include "ml_xml.h"
 #include "ml_macros.h"
+#include "ml_stream.h"
 #include <string.h>
 #include <expat.h>
 
@@ -287,6 +288,47 @@ ML_METHOD(MLXmlT, MLStringT) {
 		return ml_error("XMLError", "%s", XML_ErrorString(Error));
 	}
 	return Result ?: ml_error("XMLError", "Incomplete XML");
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Stream;
+	typeof(ml_stream_read) *read;
+	XML_Parser Handle;
+	ml_value_t *Result;
+	xml_decoder_t Decoder;
+	char Text[ML_STRINGBUFFER_NODE_SIZE];
+} ml_xml_stream_state_t;
+
+static void ml_xml_stream_state_run(ml_xml_stream_state_t *State, ml_value_t *Result) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Result)) ML_RETURN(Result);
+	size_t Length = ml_integer_value(Result);
+	if (XML_Parse(State->Handle, State->Text, Length, 0) == XML_STATUS_ERROR) {
+		enum XML_Error Error = XML_GetErrorCode(State->Handle);
+		ML_ERROR("XMLError", "%s", XML_ErrorString(Error));
+	}
+	if (!Length) ML_RETURN(State->Result ?: ml_error("XMLError", "Incomplete XML"));
+	return State->read((ml_state_t *)State, State->Stream, State->Text, ML_STRINGBUFFER_NODE_SIZE);
+}
+
+ML_METHODX(MLXmlT, MLStreamT) {
+	ml_xml_stream_state_t *State = new(ml_xml_stream_state_t);
+	State->Decoder.Callback = (void *)xml_decode_callback;
+	State->Decoder.Data = &State->Result;
+	State->Decoder.Stack = &State->Decoder.Stack0;
+	XML_Memory_Handling_Suite Suite = {GC_malloc, GC_realloc, ml_free};
+	XML_Parser Handle = State->Handle = XML_ParserCreate_MM(NULL, &Suite, NULL);
+	XML_SetUserData(Handle, &State->Decoder);
+	XML_SetElementHandler(Handle, (void *)xml_start_element, (void *)xml_end_element);
+	XML_SetCharacterDataHandler(Handle, (void *)xml_character_data);
+	XML_SetSkippedEntityHandler(Handle, (void *)xml_skipped_entity);
+	XML_SetDefaultHandler(Handle, (void *)xml_default);
+	State->Stream = Args[0];
+	State->read = ml_typed_fn_get(ml_typeof(Args[0]), ml_stream_read);
+	State->Base.Caller = Caller;
+	State->Base.run = (ml_state_fn)ml_xml_stream_state_run;
+	return State->read((ml_state_t *)State, State->Stream, State->Text, ML_STRINGBUFFER_NODE_SIZE);
 }
 
 typedef struct {
