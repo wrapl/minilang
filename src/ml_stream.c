@@ -13,6 +13,7 @@ ML_INTERFACE(MLStreamT, (MLAnyT), "stream");
 
 ML_METHOD_DECL(ReadMethod, "read");
 ML_METHOD_DECL(WriteMethod, "write");
+ML_METHOD_DECL(FlushMethod, "flush");
 
 static void ml_stream_read_method(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count) {
 	ml_address_t *Buffer = new(ml_address_t);
@@ -35,7 +36,7 @@ static void ml_stream_write_method(ml_state_t *Caller, ml_value_t *Value, const 
 	Buffer->Type = MLAddressT;
 	Buffer->Value = (void *)Address;
 	Buffer->Length = Count;
-	ml_value_t **Args = ml_alloc_args(3);
+	ml_value_t **Args = ml_alloc_args(2);
 	Args[0] = Value;
 	Args[1] = (ml_value_t *)Buffer;
 	return ml_call(Caller, WriteMethod, 2, Args);
@@ -44,6 +45,17 @@ static void ml_stream_write_method(ml_state_t *Caller, ml_value_t *Value, const 
 void ml_stream_write(ml_state_t *Caller, ml_value_t *Value, const void *Address, int Count) {
 	typeof(ml_stream_write) *function = ml_typed_fn_get(ml_typeof(Value), ml_stream_write) ?: ml_stream_write_method;
 	return function(Caller, Value, Address, Count);
+}
+
+static void ml_stream_flush_method(ml_state_t *Caller, ml_value_t *Value) {
+	ml_value_t **Args = ml_alloc_args(1);
+	Args[0] = Value;
+	return ml_call(Caller, FlushMethod, 1, Args);
+}
+
+void ml_stream_flush(ml_state_t *Caller, ml_value_t *Value) {
+	typeof(ml_stream_flush) *function = ml_typed_fn_get(ml_typeof(Value), ml_stream_flush) ?: ml_stream_flush_method;
+	return function(Caller, Value);
 }
 
 typedef struct {
@@ -306,6 +318,10 @@ ML_METHODX("copy", MLStreamT, MLStreamT, MLIntegerT) {
 	return State->read((ml_state_t *)State, Source, State->Buffer, Read);
 }
 
+ML_METHOD("flush", MLStreamT) {
+	return Args[0];
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Stream;
@@ -457,7 +473,18 @@ ml_value_t *ml_stream_buffered(ml_value_t *Stream, size_t Size) {
 	return (ml_value_t *)Buffered;
 }
 
+ML_METHOD(MLStreamBufferedT, MLStreamT, MLIntegerT) {
+	return ml_stream_buffered(Args[0], ml_integer_value(Args[1]));
+}
+
 static void ML_TYPED_FN(ml_stream_read, MLStreamBufferedT, ml_state_t *Caller, ml_buffered_stream_t *Stream, void *Address, int Count) {
+	return ml_buffered_reader_read(Caller, Stream->Reader, Address, Count);
+}
+
+ML_METHODX("read", MLStreamBufferedT, MLBufferT) {
+	ml_buffered_stream_t *Stream = (ml_buffered_stream_t *)Args[0];
+	void *Address = ml_buffer_value(Args[1]);
+	Count = ml_buffer_length(Args[1]);
 	return ml_buffered_reader_read(Caller, Stream->Reader, Address, Count);
 }
 
@@ -465,13 +492,25 @@ static void ML_TYPED_FN(ml_stream_write, MLStreamBufferedT, ml_state_t *Caller, 
 	return ml_buffered_writer_write(Caller, Stream->Writer, Address, Count);
 }
 
-ML_METHOD(MLStreamBufferedT, MLStreamT, MLIntegerT) {
-	return ml_stream_buffered(Args[0], ml_integer_value(Args[1]));
+ML_METHODX("read", MLStreamBufferedT, MLAddressT) {
+	ml_buffered_stream_t *Stream = (ml_buffered_stream_t *)Args[0];
+	const void *Address = ml_address_value(Args[1]);
+	Count = ml_address_length(Args[1]);
+	return ml_buffered_writer_write(Caller, Stream->Writer, Address, Count);
+}
+
+static void ML_TYPED_FN(ml_stream_flush, MLStreamBufferedT, ml_state_t *Caller, ml_buffered_stream_t *Stream) {
+	ml_buffered_writer_t *Writer = Stream->Writer;
+	if (Writer->Base.Caller) ML_ERROR("StreamError", "Attempting to write from stream before previous write complete");
+	Writer->Base.Caller = Caller;
+	Writer->Request.Address = NULL;
+	Writer->Request.Count = 0;
+	return Writer->write((ml_state_t *)Writer, Writer->Stream, Writer->Next - Writer->Fill, Writer->Fill);
 }
 
 ML_METHODX("flush", MLStreamBufferedT) {
-	ml_buffered_stream_t *Buffered = (ml_buffered_stream_t *)Args[0];
-	ml_buffered_writer_t *Writer = Buffered->Writer;
+	ml_buffered_stream_t *Stream = (ml_buffered_stream_t *)Args[0];
+	ml_buffered_writer_t *Writer = Stream->Writer;
 	if (Writer->Base.Caller) ML_ERROR("StreamError", "Attempting to write from stream before previous write complete");
 	Writer->Base.Caller = Caller;
 	Writer->Request.Address = NULL;
