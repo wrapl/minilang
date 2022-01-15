@@ -1,31 +1,70 @@
 xml
 ===
 
-:mini:`type xml < sequence`
+:mini:`type xml`
    *TBD*
 
-:mini:`meth (Xml: xml):tag: method`
+:mini:`meth ^(Xml: xml): xml | nil`
    *TBD*
 
-:mini:`meth (Xml: xml):attributes: map`
+:mini:`meth <(Arg₁: xml)`
    *TBD*
 
-:mini:`meth (Xml: xml):parent: xml | nil`
+:mini:`meth >(Arg₁: xml)`
    *TBD*
 
-:mini:`meth (Parent: xml):put(String: string): xml`
+:mini:`type xml::text < xml, string`
    *TBD*
 
-:mini:`meth (Parent: xml):put(Child: xml): xml`
+:mini:`type xml::element < xml, sequence`
    *TBD*
 
-:mini:`meth (Arg₁: xml)[Arg₂: integer]`
+:mini:`meth (Xml: xml::element):tag: method`
    *TBD*
 
-:mini:`meth (Arg₁: xml)[Arg₂: string]`
+:mini:`meth (Xml: xml::element):attributes: map`
    *TBD*
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: xml)`
+:mini:`meth (Parent: xml::element):put(String: string): xml`
+   *TBD*
+
+:mini:`meth (Parent: xml::element):put(Child: xml): xml`
+   *TBD*
+
+:mini:`meth (Arg₁: xml::element)[Arg₂: integer]`
+   *TBD*
+
+:mini:`meth (Arg₁: xml::element)[Arg₂: string]`
+   *TBD*
+
+:mini:`meth (Arg₁: xml) < (Arg₂: method)`
+   *TBD*
+
+:mini:`meth (Arg₁: xml) < (Arg₂: method)`
+   *TBD*
+
+:mini:`meth (Arg₁: xml) > (Arg₂: method)`
+   *TBD*
+
+:mini:`type xml::children < sequence`
+   *TBD*
+
+:mini:`meth /(Arg₁: xml::element)`
+   *TBD*
+
+:mini:`meth (Arg₁: xml) / (Arg₂: method)`
+   *TBD*
+
+:mini:`type xml::recursive < sequence`
+   *TBD*
+
+:mini:`meth //(Arg₁: xml::element)`
+   *TBD*
+
+:mini:`meth (Arg₁: xml) // (Arg₂: method)`
+   *TBD*
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: xml::element)`
    *TBD*
 
 :mini:`meth (Tag: method):xml(Children...: string|xml, Attributes?: names|map): xml`
