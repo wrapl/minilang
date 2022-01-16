@@ -203,6 +203,10 @@ sequence
    Returns an sequence that skips the first :mini:`Skip` values from :mini:`Sequence` and then produces the rest.
 
 
+:mini:`meth (Sequence: sequence):limit(Fn: function): sequence`
+   Returns an sequence that stops when :mini:`Fn(Value)` is non-:mini:`nil`.
+
+
 :mini:`fun buffered(Size: integer, Sequence: any): Sequence`
    Returns an sequence that buffers the keys and values from :mini:`Sequence` in advance,  buffering at most :mini:`Size` pairs.
 

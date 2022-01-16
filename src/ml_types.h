@@ -256,6 +256,7 @@ void ml_iter_key(ml_state_t *Caller, ml_value_t *Iter);
 void ml_iter_next(ml_state_t *Caller, ml_value_t *Iter);
 
 ml_value_t *ml_chained(int Count, ml_value_t **Functions);
+ml_value_t *ml_chainedv(int Count, ...);
 
 // Functions //
 

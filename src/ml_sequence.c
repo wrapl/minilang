@@ -132,6 +132,16 @@ ml_value_t *ml_chained(int Count, ml_value_t **Functions) {
 	return (ml_value_t *)Chained;
 }
 
+ml_value_t *ml_chainedv(int Count, ...) {
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, Count + 1, ml_value_t *);
+	Chained->Type = MLChainedT;
+	va_list Args;
+	va_start(Args, Count);
+	for (int I = 0; I < Count; ++I) Chained->Entries[I] = va_arg(Args, ml_value_t *);
+	va_end(Args);
+	return (ml_value_t *)Chained;
+}
+
 typedef struct ml_chained_iterator_t {
 	ml_state_t Base;
 	ml_value_t *Iterator;
@@ -1652,6 +1662,82 @@ ML_METHOD("skip", MLSequenceT, MLIntegerT) {
 	Skipped->Value = Args[0];
 	Skipped->Remaining = ml_integer_value_fast(Args[1]);
 	return (ml_value_t *)Skipped;
+}
+
+typedef struct ml_until_t {
+	ml_type_t *Type;
+	ml_value_t *Value, *Fn;
+	int Remaining;
+} ml_until_t;
+
+ML_TYPE(MLUntilT, (MLSequenceT), "until");
+//!internal
+
+typedef struct ml_until_state_t {
+	ml_state_t Base;
+	ml_value_t *Iter, *Fn;
+	ml_value_t *Args[1];
+} ml_until_state_t;
+
+ML_TYPE(MLUntilStateT, (), "until-state");
+//!internal
+
+static void until_check(ml_until_state_t *State, ml_value_t *Value);
+
+static void until_iterate(ml_until_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	ML_CONTINUE(State->Base.Caller, State);
+}
+
+static void until_value(ml_until_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (ml_state_fn)until_iterate;
+	State->Args[0] = Value;
+	return ml_call(State, State->Fn, 1, State->Args);
+}
+
+static void until_check(ml_until_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (ml_state_fn)until_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLUntilT, ml_state_t *Caller, ml_until_t *Until) {
+	ml_until_state_t *State = new(ml_until_state_t);
+	State->Base.Type = MLUntilStateT;
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)until_check;
+	State->Fn = Until->Fn;
+	return ml_iterate((ml_state_t *)State, Until->Value);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLUntilStateT, ml_state_t *Caller, ml_until_state_t *State) {
+	return ml_iter_key(Caller, State->Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLUntilStateT, ml_state_t *Caller, ml_until_state_t *State) {
+	ML_RETURN(State->Args[0]);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLUntilStateT, ml_state_t *Caller, ml_until_state_t *State) {
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)until_check;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+ML_METHOD("limit", MLSequenceT, MLFunctionT) {
+//<Sequence
+//<Fn
+//>sequence
+// Returns an sequence that stops when :mini:`Fn(Value)` is non-:mini:`nil`.
+	ml_until_t *Until = new(ml_until_t);
+	Until->Type = MLUntilT;
+	Until->Value = Args[0];
+	Until->Fn = Args[1];
+	return (ml_value_t *)Until;
 }
 
 typedef struct {
