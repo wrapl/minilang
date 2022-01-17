@@ -66,8 +66,18 @@ xml
 
 
 :mini:`meth (Xml: xml) > (Tag: string): xml | nil`
-   Returns the next sibling of :mini:`Xml` with tag :mini:`Tag`,  otherwise :mini:`nil`.
+   Returns the previous sibling of :mini:`Xml` with tag :mini:`Tag`,  otherwise :mini:`nil`.
 
+
+:mini:`type xml::filter < function`
+   An XML filter.
+
+
+:mini:`meth xml::filter(Arg₁: names, ...): xml::filter`
+   *TBD*
+
+:mini:`meth xml::filter(Arg₁: string, Arg₂: names, ...): xml::filter`
+   *TBD*
 
 :mini:`meth /(Xml: xml::element): sequence`
    Returns a sequence of the children of :mini:`Xml`.
@@ -81,6 +91,12 @@ xml
    Returns a sequence of the children of :mini:`Xml` for which :mini:`Fn(Child)` is non-nil.
 
 
+:mini:`meth (Arg₁: xml) / (Arg₂: names, ...)`
+   *TBD*
+
+:mini:`meth (Arg₁: xml) / (Arg₂: string, Arg₃: names, ...)`
+   *TBD*
+
 :mini:`meth //(Xml: xml::element): sequence`
    Returns a sequence of the recursive children of :mini:`Xml`,  including :mini:`Xml`.
 
@@ -92,16 +108,6 @@ xml
 :mini:`meth (Xml: xml) // (Fn: function): sequence`
    Returns a sequence of the recursive children of :mini:`Xml` for which :mini:`Fn(Child)` is non-nil.
 
-
-:mini:`type xml::filter < function`
-   An XML filter.
-
-
-:mini:`meth xml::filter(Arg₁: names, ...): xml::filter`
-   *TBD*
-
-:mini:`meth xml::filter(Arg₁: string, Arg₂: names, ...): xml::filter`
-   *TBD*
 
 :mini:`meth (Arg₁: xml) // (Arg₂: names, ...)`
    *TBD*

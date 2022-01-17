@@ -188,12 +188,13 @@ ML_METHOD("^", MLXmlT, MLStringT) {
 //>xml|nil
 // Returns the parent of :mini:`Xml` if it has tag :mini:`Tag`, otherwise :mini:`nil`.
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
-	ml_xml_node_t *Parent = Node->Parent;
-	if (!Parent) return MLNil;
-	if (Parent->Base.Type != MLXmlElementT) return MLNil;
 	const char *Tag = stringmap_search(MLXmlTags, ml_string_value(Args[1]));
-	if (Parent->Base.Value != Tag) return MLNil;
-	return (ml_value_t *)Parent;
+	while ((Node = Node->Parent)) {
+		if (Node->Base.Type != MLXmlElementT) continue;
+		if (Node->Base.Value != Tag) continue;
+		return (ml_value_t *)Node;
+	}
+	return MLNil;
 }
 
 ML_METHOD("<", MLXmlT, MLStringT) {
@@ -202,26 +203,28 @@ ML_METHOD("<", MLXmlT, MLStringT) {
 //>xml|nil
 // Returns the previous sibling of :mini:`Xml` with tag :mini:`Tag`, otherwise :mini:`nil`.
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
-	ml_xml_node_t *Prev = Node->Prev;
-	if (!Prev) return MLNil;
-	if (Prev->Base.Type != MLXmlElementT) return MLNil;
 	const char *Tag = stringmap_search(MLXmlTags, ml_string_value(Args[1]));
-	if (Prev->Base.Value != Tag) return MLNil;
-	return (ml_value_t *)Prev;
+	while ((Node = Node->Prev)) {
+		if (Node->Base.Type != MLXmlElementT) continue;
+		if (Node->Base.Value != Tag) continue;
+		return (ml_value_t *)Node;
+	}
+	return MLNil;
 }
 
 ML_METHOD(">", MLXmlT, MLStringT) {
 //<Xml
 //<Tag
 //>xml|nil
-// Returns the next sibling of :mini:`Xml` with tag :mini:`Tag`, otherwise :mini:`nil`.
+// Returns the previous sibling of :mini:`Xml` with tag :mini:`Tag`, otherwise :mini:`nil`.
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
-	ml_xml_node_t *Next = Node->Next;
-	if (!Next) return MLNil;
-	if (Next->Base.Type != MLXmlElementT) return MLNil;
 	const char *Tag = stringmap_search(MLXmlTags, ml_string_value(Args[1]));
-	if (Next->Base.Value != Tag) return MLNil;
-	return (ml_value_t *)Next;
+	while ((Node = Node->Next)) {
+		if (Node->Base.Type != MLXmlElementT) continue;
+		if (Node->Base.Value != Tag) continue;
+		return (ml_value_t *)Node;
+	}
+	return MLNil;
 }
 
 #ifdef ML_GENERICS
@@ -239,6 +242,61 @@ ML_GENERIC_TYPE(MLXmlChainedT, MLChainedT, MLIntegerT, MLXmlT);
 #define MLXmlSequenceT MLSequenceT
 
 #endif
+
+typedef struct {
+	ml_type_t *Type;
+	const char *Tag;
+	ml_value_t *Attributes;
+} ml_xml_filter_t;
+
+static void ml_xml_filter_call(ml_state_t *Caller, ml_xml_filter_t *Filter, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLXmlElementT);
+	ml_xml_element_t *Element = (ml_xml_element_t *)Args[0];
+	if (Filter->Tag && Filter->Tag != Element->Base.Base.Value) ML_RETURN(MLNil);
+	if (Filter->Attributes) ML_MAP_FOREACH(Filter->Attributes, Iter) {
+		ml_value_t *Value = ml_map_search(Element->Attributes, Iter->Key);
+		if (Value == MLNil) ML_RETURN(MLNil);
+		if (strcmp(ml_string_value(Iter->Value), ml_string_value(Value))) ML_RETURN(MLNil);
+	}
+	ML_RETURN(Element);
+}
+
+ML_TYPE(MLXmlFilterT, (MLFunctionT), "xml::filter",
+// An XML filter.
+	.call = (void *)ml_xml_filter_call
+);
+
+ML_METHODV(MLXmlFilterT, MLNamesT) {
+//@xml::filter
+//>xml::filter
+	ml_xml_filter_t *Filter = new(ml_xml_filter_t);
+	Filter->Type = MLXmlFilterT;
+	ml_value_t *Attributes = Filter->Attributes = ml_map();
+	int I = 1;
+	ML_NAMES_FOREACH(Args[0], Iter) {
+		ML_CHECK_ARG_TYPE(I, MLStringT);
+		ml_map_insert(Attributes, Iter->Value, Args[I++]);
+	}
+	return (ml_value_t *)Filter;
+}
+
+ML_METHODV(MLXmlFilterT, MLStringT, MLNamesT) {
+//@xml::filter
+//>xml::filter
+	ml_xml_filter_t *Filter = new(ml_xml_filter_t);
+	Filter->Type = MLXmlFilterT;
+	ml_value_t **Slot = (ml_value_t **)stringmap_slot(MLXmlTags, ml_string_value(Args[0]));
+	if (!Slot[0]) Slot[0] = Args[0];
+	Filter->Tag = (const char *)Slot[0];
+	ml_value_t *Attributes = Filter->Attributes = ml_map();
+	int I = 2;
+	ML_NAMES_FOREACH(Args[1], Iter) {
+		ML_CHECK_ARG_TYPE(I, MLStringT);
+		ml_map_insert(Attributes, Iter->Value, Args[I++]);
+	}
+	return (ml_value_t *)Filter;
+}
 
 typedef struct {
 	ml_type_t *Type;
@@ -321,6 +379,49 @@ ML_METHOD("/", MLXmlT, MLFunctionT) {
 	Children->Type = MLXmlChildrenT;
 	Children->Node = Element->Head;
 	ml_value_t *Chained = ml_chainedv(3, Children, FilterSoloMethod, Args[1]);
+#ifdef ML_GENERICS
+	Chained->Type = (ml_type_t *)MLXmlChainedT;
+#endif
+	return Chained;
+}
+
+ML_METHODV("/", MLXmlT, MLNamesT) {
+	ml_xml_filter_t *Filter = new(ml_xml_filter_t);
+	Filter->Type = MLXmlFilterT;
+	ml_value_t *Attributes = Filter->Attributes = ml_map();
+	int I = 2;
+	ML_NAMES_FOREACH(Args[1], Iter) {
+		ML_CHECK_ARG_TYPE(I, MLStringT);
+		ml_map_insert(Attributes, Iter->Value, Args[I++]);
+	}
+	ml_xml_element_t *Element = (ml_xml_element_t *)Args[0];
+	ml_xml_children_t *Children = new(ml_xml_children_t);
+	Children->Type = MLXmlChildrenT;
+	Children->Node = Element->Head;
+	ml_value_t *Chained = ml_chainedv(3, Children, FilterSoloMethod, Filter);
+#ifdef ML_GENERICS
+	Chained->Type = (ml_type_t *)MLXmlChainedT;
+#endif
+	return Chained;
+}
+
+ML_METHODV("/", MLXmlT, MLStringT, MLNamesT) {
+	ml_xml_filter_t *Filter = new(ml_xml_filter_t);
+	Filter->Type = MLXmlFilterT;
+	ml_value_t **Slot = (ml_value_t **)stringmap_slot(MLXmlTags, ml_string_value(Args[1]));
+	if (!Slot[0]) Slot[0] = Args[1];
+	Filter->Tag = (const char *)Slot[0];
+	ml_value_t *Attributes = Filter->Attributes = ml_map();
+	int I = 3;
+	ML_NAMES_FOREACH(Args[2], Iter) {
+		ML_CHECK_ARG_TYPE(I, MLStringT);
+		ml_map_insert(Attributes, Iter->Value, Args[I++]);
+	}
+	ml_xml_element_t *Element = (ml_xml_element_t *)Args[0];
+	ml_xml_children_t *Children = new(ml_xml_children_t);
+	Children->Type = MLXmlChildrenT;
+	Children->Node = Element->Head;
+	ml_value_t *Chained = ml_chainedv(3, Children, FilterSoloMethod, Filter);
 #ifdef ML_GENERICS
 	Chained->Type = (ml_type_t *)MLXmlChainedT;
 #endif
@@ -437,61 +538,6 @@ ML_METHOD("//", MLXmlT, MLFunctionT) {
 	Chained->Type = (ml_type_t *)MLXmlChainedT;
 #endif
 	return Chained;
-}
-
-typedef struct {
-	ml_type_t *Type;
-	const char *Tag;
-	ml_value_t *Attributes;
-} ml_xml_filter_t;
-
-static void ml_xml_filter_call(ml_state_t *Caller, ml_xml_filter_t *Filter, int Count, ml_value_t **Args) {
-	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLXmlElementT);
-	ml_xml_element_t *Element = (ml_xml_element_t *)Args[0];
-	if (Filter->Tag && Filter->Tag != Element->Base.Base.Value) ML_RETURN(MLNil);
-	if (Filter->Attributes) ML_MAP_FOREACH(Filter->Attributes, Iter) {
-		ml_value_t *Value = ml_map_search(Element->Attributes, Iter->Key);
-		if (Value == MLNil) ML_RETURN(MLNil);
-		if (strcmp(ml_string_value(Iter->Value), ml_string_value(Value))) ML_RETURN(MLNil);
-	}
-	ML_RETURN(Element);
-}
-
-ML_TYPE(MLXmlFilterT, (MLFunctionT), "xml::filter",
-// An XML filter.
-	.call = (void *)ml_xml_filter_call
-);
-
-ML_METHODV(MLXmlFilterT, MLNamesT) {
-//@xml::filter
-//>xml::filter
-	ml_xml_filter_t *Filter = new(ml_xml_filter_t);
-	Filter->Type = MLXmlFilterT;
-	ml_value_t *Attributes = Filter->Attributes = ml_map();
-	int I = 1;
-	ML_NAMES_FOREACH(Args[0], Iter) {
-		ML_CHECK_ARG_TYPE(I, MLStringT);
-		ml_map_insert(Attributes, Iter->Value, Args[I++]);
-	}
-	return (ml_value_t *)Filter;
-}
-
-ML_METHODV(MLXmlFilterT, MLStringT, MLNamesT) {
-//@xml::filter
-//>xml::filter
-	ml_xml_filter_t *Filter = new(ml_xml_filter_t);
-	Filter->Type = MLXmlFilterT;
-	ml_value_t **Slot = (ml_value_t **)stringmap_slot(MLXmlTags, ml_string_value(Args[0]));
-	if (!Slot[0]) Slot[0] = Args[0];
-	Filter->Tag = (const char *)Slot[0];
-	ml_value_t *Attributes = Filter->Attributes = ml_map();
-	int I = 2;
-	ML_NAMES_FOREACH(Args[1], Iter) {
-		ML_CHECK_ARG_TYPE(I, MLStringT);
-		ml_map_insert(Attributes, Iter->Value, Args[I++]);
-	}
-	return (ml_value_t *)Filter;
 }
 
 ML_METHODV("//", MLXmlT, MLNamesT) {
