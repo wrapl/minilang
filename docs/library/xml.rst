@@ -109,6 +109,12 @@ xml
 :mini:`meth (Arg₁: xml) // (Arg₂: string, Arg₃: names, ...)`
    *TBD*
 
+:mini:`meth (Arg₁: xml::sequence) / (...)`
+   *TBD*
+
+:mini:`meth (Arg₁: xml::sequence) // (...)`
+   *TBD*
+
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: xml::element)`
    *TBD*
 

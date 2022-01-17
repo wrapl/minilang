@@ -224,13 +224,32 @@ ML_METHOD(">", MLXmlT, MLStringT) {
 	return (ml_value_t *)Next;
 }
 
+#ifdef ML_GENERICS
+
+ML_GENERIC_TYPE(MLXmlSequenceT, MLSequenceT, MLIntegerT, MLXmlT);
+
+extern ml_type_t MLDoubledT[];
+extern ml_type_t MLChainedT[];
+
+ML_TYPE(MLXmlDoubledT, (MLXmlSequenceT, MLDoubledT), "xml::doubled");
+//!internal
+
+ML_TYPE(MLXmlChainedT, (MLXmlSequenceT, MLChainedT), "xml::chained");
+//!internal
+
+#else
+
+#define MLXmlSequenceT MLSequenceT
+
+#endif
+
 typedef struct {
 	ml_type_t *Type;
 	ml_xml_node_t *Node;
 	const char *Tag;
 } ml_xml_children_t;
 
-ML_TYPE(MLXmlChildrenT, (MLSequenceT), "xml::children");
+ML_TYPE(MLXmlChildrenT, (MLXmlSequenceT), "xml::children");
 //!internal
 
 static void ML_TYPED_FN(ml_iterate, MLXmlChildrenT, ml_state_t *Caller, ml_xml_children_t *Children) {
@@ -304,7 +323,11 @@ ML_METHOD("/", MLXmlT, MLFunctionT) {
 	ml_xml_children_t *Children = new(ml_xml_children_t);
 	Children->Type = MLXmlChildrenT;
 	Children->Node = Element->Head;
-	return ml_chainedv(3, Children, FilterSoloMethod, Args[1]);
+	ml_value_t *Chained = ml_chainedv(3, Children, FilterSoloMethod, Args[1]);
+#ifdef ML_GENERICS
+	Chained->Type = MLXmlChainedT;
+#endif
+	return Chained;
 }
 
 typedef struct {
@@ -313,7 +336,7 @@ typedef struct {
 	const char *Tag;
 } ml_xml_recursive_t;
 
-ML_TYPE(MLXmlRecursiveT, (MLSequenceT), "xml::recursive");
+ML_TYPE(MLXmlRecursiveT, (MLXmlSequenceT), "xml::recursive");
 //!internal
 
 static ml_xml_element_t *ml_xml_recursive_find(ml_xml_element_t *Element, const char *Tag) {
@@ -412,7 +435,11 @@ ML_METHOD("//", MLXmlT, MLFunctionT) {
 	ml_xml_recursive_t *Recursive = new(ml_xml_recursive_t);
 	Recursive->Type = MLXmlRecursiveT;
 	Recursive->Element = Recursive->Root = Element;
-	return ml_chainedv(3, Recursive, FilterSoloMethod, Args[1]);
+	ml_value_t *Chained = ml_chainedv(3, Recursive, FilterSoloMethod, Args[1]);
+#ifdef ML_GENERICS
+	Chained->Type = MLXmlChainedT;
+#endif
+	return Chained;
 }
 
 typedef struct {
@@ -483,7 +510,11 @@ ML_METHODV("//", MLXmlT, MLNamesT) {
 	ml_xml_recursive_t *Recursive = new(ml_xml_recursive_t);
 	Recursive->Type = MLXmlRecursiveT;
 	Recursive->Element = Recursive->Root = Element;
-	return ml_chainedv(3, Recursive, FilterSoloMethod, Filter);
+	ml_value_t *Chained = ml_chainedv(3, Recursive, FilterSoloMethod, Filter);
+#ifdef ML_GENERICS
+	Chained->Type = MLXmlChainedT;
+#endif
+	return Chained;
 }
 
 ML_METHODV("//", MLXmlT, MLStringT, MLNamesT) {
@@ -502,8 +533,36 @@ ML_METHODV("//", MLXmlT, MLStringT, MLNamesT) {
 	ml_xml_recursive_t *Recursive = new(ml_xml_recursive_t);
 	Recursive->Type = MLXmlRecursiveT;
 	Recursive->Element = Recursive->Root = Element;
-	return ml_chainedv(3, Recursive, FilterSoloMethod, Filter);
+	ml_value_t *Chained = ml_chainedv(3, Recursive, FilterSoloMethod, Filter);
+#ifdef ML_GENERICS
+	Chained->Type = MLXmlChainedT;
+#endif
+	return Chained;
 }
+
+#ifdef ML_GENERICS
+
+ML_METHOD_DECL(ChildrenMethod, "/");
+
+ML_METHODV("/", MLXmlSequenceT) {
+	ml_value_t *Partial = ml_partial_function_new(ChildrenMethod, Count);
+	for (int I = 1; I < Count; ++I) ml_partial_function_set(Partial, I, Args[I]);
+	ml_value_t *Doubled = ml_doubled(Args[0], Partial);
+	Doubled->Type = MLXmlDoubledT;
+	return Doubled;
+}
+
+ML_METHOD_DECL(RecursiveMethod, "//");
+
+ML_METHODV("//", MLXmlSequenceT) {
+	ml_value_t *Partial = ml_partial_function_new(RecursiveMethod, Count);
+	for (int I = 1; I < Count; ++I) ml_partial_function_set(Partial, I, Args[I]);
+	ml_value_t *Doubled = ml_doubled(Args[0], Partial);
+	Doubled->Type = MLXmlDoubledT;
+	return Doubled;
+}
+
+#endif
 
 static void ml_xml_escape_string(ml_stringbuffer_t *Buffer, const char *String, int Count) {
 	while (--Count >= 0) {
@@ -868,6 +927,10 @@ void ml_xml_init(stringmap_t *Globals) {
 	stringmap_insert(MLXmlT->Exports, "text", MLXmlTextT);
 	stringmap_insert(MLXmlT->Exports, "element", MLXmlElementT);
 	stringmap_insert(MLXmlT->Exports, "decoder", MLXmlDecoderT);
+#ifdef ML_GENERICS
+	stringmap_insert(MLXmlT->Exports, "sequence", MLXmlSequenceT);
+	//ml_type_add_rule(MLXmlSequenceT, MLSequenceT, MLIntegerT, MLXmlT, NULL);
+#endif
 	if (Globals) {
 		stringmap_insert(Globals, "xml", MLXmlT);
 	}

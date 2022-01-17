@@ -119,11 +119,22 @@ struct ml_generic_type_t {
 extern ml_type_t MLTypeGenericT[];
 
 ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]);
-ml_type_t *ml_generic_type2(ml_type_t *Arg0, ml_type_t *Arg1);
-ml_type_t *ml_generic_type3(ml_type_t *Arg0, ml_type_t *Arg1, ml_type_t *Arg2);
 
 #define ml_generic_type_num_args(TYPE) ((ml_generic_type_t *)TYPE)->NumArgs
 #define ml_generic_type_args(TYPE) ((ml_generic_type_t *)TYPE)->Args
+
+int ml_find_generic_parent(ml_type_t *T, ml_type_t *U, int Max, ml_type_t **Args);
+
+#ifndef GENERATE_INIT
+
+#define ML_GENERIC_TYPE(TYPE, PARENT, ...) ml_value_t *TYPE
+
+#else
+
+#define ML_GENERIC_TYPE(TYPE, ...) \
+INIT_CODE TYPE = (ml_value_t *)ml_generic_type(PP_NARG(__VA_ARGS__), (ml_type_t *[]){__VA_ARGS__})
+
+#endif
 
 #endif
 
@@ -257,6 +268,7 @@ void ml_iter_next(ml_state_t *Caller, ml_value_t *Iter);
 
 ml_value_t *ml_chained(int Count, ml_value_t **Functions);
 ml_value_t *ml_chainedv(int Count, ...);
+ml_value_t *ml_doubled(ml_value_t *Sequence, ml_value_t *Function);
 
 // Functions //
 

@@ -265,7 +265,7 @@ ml_value_t *ml_map_insert(ml_value_t *Map0, ml_value_t *Key, ml_value_t *Value) 
 	}
 #ifdef ML_GENERICS
 	if (Map->Size == 1 && Map->Type == MLMapT) {
-		Map->Type = ml_generic_type3(MLMapT, ml_typeof(Key), ValueType0);
+		Map->Type = ml_generic_type(3, (ml_type_t *[]){MLMapT, ml_typeof(Key), ValueType0});
 	} else if (Map->Type->Type == MLTypeGenericT) {
 		ml_type_t *KeyType = ml_generic_type_args(Map->Type)[1];
 		ml_type_t *ValueType = ml_generic_type_args(Map->Type)[2];
@@ -273,7 +273,7 @@ ml_value_t *ml_map_insert(ml_value_t *Map0, ml_value_t *Key, ml_value_t *Value) 
 			ml_type_t *KeyType2 = ml_type_max(KeyType, ml_typeof(Key));
 			ml_type_t *ValueType2 = ml_type_max(ValueType, ValueType0);
 			if (KeyType != KeyType2 || ValueType != ValueType2) {
-				Map->Type = ml_generic_type3(MLMapT, KeyType2, ValueType2);
+				Map->Type = ml_generic_type(3, (ml_type_t *[]){MLMapT, KeyType2, ValueType2});
 			}
 		}
 	}
