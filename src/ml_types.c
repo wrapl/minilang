@@ -514,12 +514,16 @@ int ml_find_generic_parent(ml_type_t *T, ml_type_t *U, int Max, ml_type_t **Args
 		if (Find >= 0) return Find;
 		for (int I = 0; I < T->Parents->Size; ++I) {
 			ml_type_t *Parent = (ml_type_t *)T->Parents->Keys[I];
-			if (Parent) {
-				int Find = ml_find_generic_parent(Parent, U, Max, Args);
-				if (Find >= 0) return Find;
+			int Rank = 0;
+			if (Parent && (Parent->Rank > Rank)) {
+				int Find2 = ml_find_generic_parent(Parent, U, Max, Args);
+				if (Find2 >= 0) {
+					Rank = Parent->Rank;
+					Find = Find2;
+				}
 			}
 		}
-		return -1;
+		return Find;
 	}
 }
 

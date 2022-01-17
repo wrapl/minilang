@@ -231,11 +231,8 @@ ML_GENERIC_TYPE(MLXmlSequenceT, MLSequenceT, MLIntegerT, MLXmlT);
 extern ml_type_t MLDoubledT[];
 extern ml_type_t MLChainedT[];
 
-ML_TYPE(MLXmlDoubledT, (MLXmlSequenceT, MLDoubledT), "xml::doubled");
-//!internal
-
-ML_TYPE(MLXmlChainedT, (MLXmlSequenceT, MLChainedT), "xml::chained");
-//!internal
+ML_GENERIC_TYPE(MLXmlDoubledT, MLDoubledT, MLIntegerT, MLXmlT);
+ML_GENERIC_TYPE(MLXmlChainedT, MLChainedT, MLIntegerT, MLXmlT);
 
 #else
 
@@ -325,7 +322,7 @@ ML_METHOD("/", MLXmlT, MLFunctionT) {
 	Children->Node = Element->Head;
 	ml_value_t *Chained = ml_chainedv(3, Children, FilterSoloMethod, Args[1]);
 #ifdef ML_GENERICS
-	Chained->Type = MLXmlChainedT;
+	Chained->Type = (ml_type_t *)MLXmlChainedT;
 #endif
 	return Chained;
 }
@@ -437,7 +434,7 @@ ML_METHOD("//", MLXmlT, MLFunctionT) {
 	Recursive->Element = Recursive->Root = Element;
 	ml_value_t *Chained = ml_chainedv(3, Recursive, FilterSoloMethod, Args[1]);
 #ifdef ML_GENERICS
-	Chained->Type = MLXmlChainedT;
+	Chained->Type = (ml_type_t *)MLXmlChainedT;
 #endif
 	return Chained;
 }
@@ -512,7 +509,7 @@ ML_METHODV("//", MLXmlT, MLNamesT) {
 	Recursive->Element = Recursive->Root = Element;
 	ml_value_t *Chained = ml_chainedv(3, Recursive, FilterSoloMethod, Filter);
 #ifdef ML_GENERICS
-	Chained->Type = MLXmlChainedT;
+	Chained->Type = (ml_type_t *)MLXmlChainedT;
 #endif
 	return Chained;
 }
@@ -535,7 +532,7 @@ ML_METHODV("//", MLXmlT, MLStringT, MLNamesT) {
 	Recursive->Element = Recursive->Root = Element;
 	ml_value_t *Chained = ml_chainedv(3, Recursive, FilterSoloMethod, Filter);
 #ifdef ML_GENERICS
-	Chained->Type = MLXmlChainedT;
+	Chained->Type = (ml_type_t *)MLXmlChainedT;
 #endif
 	return Chained;
 }
@@ -548,7 +545,7 @@ ML_METHODV("/", MLXmlSequenceT) {
 	ml_value_t *Partial = ml_partial_function_new(ChildrenMethod, Count);
 	for (int I = 1; I < Count; ++I) ml_partial_function_set(Partial, I, Args[I]);
 	ml_value_t *Doubled = ml_doubled(Args[0], Partial);
-	Doubled->Type = MLXmlDoubledT;
+	Doubled->Type = (ml_type_t *)MLXmlDoubledT;
 	return Doubled;
 }
 
@@ -558,7 +555,7 @@ ML_METHODV("//", MLXmlSequenceT) {
 	ml_value_t *Partial = ml_partial_function_new(RecursiveMethod, Count);
 	for (int I = 1; I < Count; ++I) ml_partial_function_set(Partial, I, Args[I]);
 	ml_value_t *Doubled = ml_doubled(Args[0], Partial);
-	Doubled->Type = MLXmlDoubledT;
+	Doubled->Type = (ml_type_t *)MLXmlDoubledT;
 	return Doubled;
 }
 
