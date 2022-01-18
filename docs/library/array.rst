@@ -12,9 +12,23 @@ array
 
 
 :mini:`type vector < array`
-   *TBD*
+   Arrays with exactly 1 dimension.
+
 
 :mini:`type matrix < array`
+   Arrays with exactly 2 dimensions.
+
+
+:mini:`type array::complex < array`
+   *TBD*
+
+:mini:`type vector::complex < array::complex, vector`
+   *TBD*
+
+:mini:`type matrix::complex < array::complex, matrix`
+   *TBD*
+
+:mini:`type array::real < array::complex`
    *TBD*
 
 :mini:`type array::real < array`
@@ -33,15 +47,6 @@ array
    *TBD*
 
 :mini:`type matrix::integer < matrix::real`
-   *TBD*
-
-:mini:`type array::complex < array`
-   *TBD*
-
-:mini:`type vector::complex < array::complex, vector`
-   *TBD*
-
-:mini:`type matrix::complex < array::complex, matrix`
    *TBD*
 
 :mini:`meth (Array: array):degree: integer`
@@ -85,6 +90,9 @@ array
    Return the size of :mini:`Array` in bytes.
 
 
+:mini:`type array::nil < array`
+   *TBD*
+
 :mini:`meth (Array: array)[Indices...: any]: array`
    Returns a sub-array of :mini:`Array` sharing the underlying data.
 
@@ -96,6 +104,12 @@ array
 
    * If :mini:`Indexᵢ` is a list of integers then the :mini:`i`-th dimension is copied as a sparse dimension with the respective entries.
 
+   * If :mini:`Indexᵢ` is a tuple of integers then each dimension is indexed by the corresponding integer in turn (i.e. :mini:`A[(I,  J,  K)]` gives the same result as :mini:`A[I,  J,  K]`).
+
+   * If :mini:`Indexᵢ` is a list of tuples of integers then a sparse dimension is added with the corresponding entries.
+
+   * If :mini:`Indexᵢ` is another array with dimensions that matches the corresponding dimensions of :mini:`A` then a sparse dimension is added with entries corresponding to the non-zero values in :mini:`Indexᵢ` (i.e. :mini:`A[B]` is equivalent to :mini:`A[B:where]`).
+
    If fewer than :mini:`A:degree` indices are provided then the remaining dimensions are copied unchanged.
 
 
@@ -105,7 +119,10 @@ array
    The :mini:`i`-th dimension is indexed by :mini:`Indices[i]` if present,  and :mini:`nil` otherwise.
 
 
-:mini:`meth (Arg₁: array)[Arg₂: tuple]`
+:mini:`meth (Arg₁: array) <> (Arg₂: array)`
+   *TBD*
+
+:mini:`fun mlarray ## suffix ## new()`
    *TBD*
 
 :mini:`type array::int8 < array::integer`
@@ -120,6 +137,9 @@ array
    A matrix of int8 values.
 
 
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
+
 :mini:`type array::uint8 < array::integer`
    An array of uint8 values.
 
@@ -131,6 +151,9 @@ array
 :mini:`type matrix::uint8 < matrix::integer, array::uint8`
    A matrix of uint8 values.
 
+
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
 
 :mini:`type array::int16 < array::integer`
    An array of int16 values.
@@ -144,6 +167,9 @@ array
    A matrix of int16 values.
 
 
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
+
 :mini:`type array::uint16 < array::integer`
    An array of uint16 values.
 
@@ -155,6 +181,9 @@ array
 :mini:`type matrix::uint16 < matrix::integer, array::uint16`
    A matrix of uint16 values.
 
+
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
 
 :mini:`type array::int32 < array::integer`
    An array of int32 values.
@@ -168,6 +197,9 @@ array
    A matrix of int32 values.
 
 
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
+
 :mini:`type array::uint32 < array::integer`
    An array of uint32 values.
 
@@ -179,6 +211,9 @@ array
 :mini:`type matrix::uint32 < matrix::integer, array::uint32`
    A matrix of uint32 values.
 
+
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
 
 :mini:`type array::int64 < array::integer`
    An array of int64 values.
@@ -192,6 +227,9 @@ array
    A matrix of int64 values.
 
 
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
+
 :mini:`type array::uint64 < array::integer`
    An array of uint64 values.
 
@@ -203,6 +241,9 @@ array
 :mini:`type matrix::uint64 < matrix::integer, array::uint64`
    A matrix of uint64 values.
 
+
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
 
 :mini:`type array::float32 < array::real`
    An array of float32 values.
@@ -216,6 +257,9 @@ array
    A matrix of float32 values.
 
 
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
+
 :mini:`type array::float64 < array::real`
    An array of float64 values.
 
@@ -227,6 +271,9 @@ array
 :mini:`type matrix::float64 < matrix::real, array::float64`
    A matrix of float64 values.
 
+
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
 
 :mini:`type array::complex32 < array::complex`
    An array of complex32 values.
@@ -240,6 +287,9 @@ array
    A matrix of complex32 values.
 
 
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
+
 :mini:`type array::complex64 < array::complex`
    An array of complex64 values.
 
@@ -251,6 +301,9 @@ array
 :mini:`type matrix::complex64 < matrix::complex, array::complex64`
    A matrix of complex64 values.
 
+
+:mini:`fun mlarray ## suffix ## new()`
+   *TBD*
 
 :mini:`type array::any < array`
    An array of any values.
@@ -475,8 +528,8 @@ array
    Update the values in :mini:`Array` in place by applying :mini:`Function` to each value.
 
 
-:mini:`meth (Array: array):where(Function: function): array`
-   Update the values in :mini:`Array` in place by applying :mini:`Function` to each value.
+:mini:`meth (Array: array):where(Function: function): list[tuple]`
+   Returns list of indices :mini:`Array` where :mini:`Function(Arrayᵢ)` returns a non-nil value.
 
 
 :mini:`meth (Array: array):where: list`

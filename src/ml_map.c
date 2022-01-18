@@ -3,6 +3,7 @@
 #include "ml_macros.h"
 #include <string.h>
 #include "ml_sequence.h"
+#include "ml_method.h"
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "map"
@@ -12,6 +13,14 @@ ML_TYPE(MLMapT, (MLSequenceT), "map",
 // Keys can be of any type supporting hashing and comparison.
 // Insert order is preserved.
 );
+
+static void ML_TYPED_FN(ml_value_find_refs, MLMapT, ml_value_t *Value, void *Data, ml_value_ref_fn RefFn) {
+	if (!RefFn(Data, Value)) return;
+	ML_MAP_FOREACH(Value, Iter) {
+		ml_value_find_refs(Iter->Key, Data, RefFn);
+		ml_value_find_refs(Iter->Value, Data, RefFn);
+	}
+}
 
 static ml_value_t *ml_map_node_deref(ml_map_node_t *Node) {
 	return Node->Value;
@@ -105,9 +114,28 @@ ML_METHODVX("grow", MLMapT, MLSequenceT) {
 
 extern ml_value_t *CompareMethod;
 
+static inline ml_value_t *ml_map_compare(ml_map_t *Map, ml_value_t **Args) {
+	/*ml_method_cached_t *Cached = Map->Cached;
+	if (Cached) {
+		if (Cached->Types[0] != ml_typeof(Args[0])) Cached = NULL;
+		if (Cached->Types[1] != ml_typeof(Args[1])) Cached = NULL;
+	}
+	if (!Cached || !Cached->Callback) {
+		Cached = ml_method_search_cached(NULL, (ml_method_t *)CompareMethod, 2, Args);
+		if (!Cached) return ml_no_method_error((ml_method_t *)CompareMethod, 2, Args);
+		Map->Cached = Cached;
+	}
+	return ml_simple_call(Cached->Callback, 2, Args);*/
+	return ml_simple_call(CompareMethod, 2, Args);
+}
+
 static ml_map_node_t *ml_map_find_node(ml_map_t *Map, ml_value_t *Key) {
 	ml_map_node_t *Node = Map->Root;
 	long Hash = ml_typeof(Key)->hash(Key, NULL);
+	ml_method_cached_t *Cached = Map->Cached;
+	if (Cached && Cached->Callback) {
+		if (Cached->Types[0] != ml_typeof(Key)) Cached = NULL;
+	}
 	while (Node) {
 		int Compare;
 		if (Hash < Node->Hash) {
@@ -116,7 +144,7 @@ static ml_map_node_t *ml_map_find_node(ml_map_t *Map, ml_value_t *Key) {
 			Compare = 1;
 		} else {
 			ml_value_t *Args[2] = {Key, Node->Key};
-			ml_value_t *Result = ml_simple_call(CompareMethod, 2, Args);
+			ml_value_t *Result = ml_map_compare(Map, Args);
 			if (ml_is_error(Result)) return NULL;
 			Compare = ml_integer_value(Result);
 		}
@@ -207,7 +235,7 @@ static ml_map_node_t *ml_map_node(ml_map_t *Map, ml_map_node_t **Slot, long Hash
 		Compare = 1;
 	} else {
 		ml_value_t *Args[2] = {Key, Slot[0]->Key};
-		ml_value_t *Result = ml_simple_call(CompareMethod, 2, Args);
+		ml_value_t *Result = ml_map_compare(Map, Args);
 		Compare = ml_integer_value(Result);
 	}
 	if (!Compare) {
@@ -230,19 +258,22 @@ ml_value_t *ml_map_insert(ml_value_t *Map0, ml_value_t *Key, ml_value_t *Value) 
 	ml_map_node_t *Node = ml_map_node(Map, &Map->Root, ml_typeof(Key)->hash(Key, NULL), Key);
 	ml_value_t *Old = Node->Value ?: MLNil;
 	Node->Value = Value;
+	ml_type_t *ValueType0 = ml_typeof(Value);
+	if (ValueType0 == MLUninitializedT) {
+		ml_uninitialized_use(Value, &Node->Value);
+		ValueType0 = MLAnyT;
+	}
 #ifdef ML_GENERICS
 	if (Map->Size == 1 && Map->Type == MLMapT) {
-		ml_type_t *Types[] = {MLMapT, ml_typeof(Key), ml_typeof(Value)};
-		Map->Type = ml_generic_type(3, Types);
+		Map->Type = ml_generic_type(3, (ml_type_t *[]){MLMapT, ml_typeof(Key), ValueType0});
 	} else if (Map->Type->Type == MLTypeGenericT) {
 		ml_type_t *KeyType = ml_generic_type_args(Map->Type)[1];
 		ml_type_t *ValueType = ml_generic_type_args(Map->Type)[2];
-		if (KeyType != ml_typeof(Key) || ValueType != ml_typeof(Value)) {
+		if (KeyType != ml_typeof(Key) || ValueType != ValueType0) {
 			ml_type_t *KeyType2 = ml_type_max(KeyType, ml_typeof(Key));
-			ml_type_t *ValueType2 = ml_type_max(ValueType, ml_typeof(Value));
+			ml_type_t *ValueType2 = ml_type_max(ValueType, ValueType0);
 			if (KeyType != KeyType2 || ValueType != ValueType2) {
-				ml_type_t *Types[] = {MLMapT, KeyType2, ValueType2};
-				Map->Type = ml_generic_type(3, Types);
+				Map->Type = ml_generic_type(3, (ml_type_t *[]){MLMapT, KeyType2, ValueType2});
 			}
 		}
 	}
@@ -267,7 +298,7 @@ static ml_value_t *ml_map_remove_internal(ml_map_t *Map, ml_map_node_t **Slot, l
 		Compare = 1;
 	} else {
 		ml_value_t *Args[2] = {Key, Node->Key};
-		ml_value_t *Result = ml_simple_call(CompareMethod, 2, Args);
+		ml_value_t *Result = ml_map_compare(Map, Args);
 		Compare = ml_integer_value(Result);
 	}
 	ml_value_t *Removed = MLNil;
@@ -360,7 +391,7 @@ static ml_map_node_t *ml_map_insert_node(ml_map_t *Map, ml_map_node_t **Slot, lo
 		Compare = 1;
 	} else {
 		ml_value_t *Args[2] = {Index->Key, Slot[0]->Key};
-		ml_value_t *Result = ml_simple_call(CompareMethod, 2, Args);
+		ml_value_t *Result = ml_map_compare(Map, Args);
 		Compare = ml_integer_value(Result);
 	}
 	if (!Compare) {
@@ -495,9 +526,42 @@ ML_METHOD("missing", MLMapT, MLAnyT) {
 	return MLNil;
 }
 
+static void ml_missing_state_run(ml_ref_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) {
+		ML_CONTINUE(State->Base.Caller, Value);
+	} else {
+		State->Node->Value = Value;
+		ML_CONTINUE(State->Base.Caller, MLSome);
+	}
+}
+
+ML_METHODX("missing", MLMapT, MLAnyT, MLFunctionT) {
+//<Map
+//<Key
+//<Function
+//>any | nil
+// If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Function()` and returns :mini:`some`.
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_value_t *Key = Args[1];
+	ml_map_node_t *Node = ml_map_node(Map, &Map->Root, ml_typeof(Key)->hash(Key, NULL), Key);
+	if (!Node->Value) {
+		Node->Value = MLNil;
+		ml_ref_state_t *State = new(ml_ref_state_t);
+		State->Base.Caller = Caller;
+		State->Base.Context = Caller->Context;
+		State->Base.run = (void *)ml_missing_state_run;
+		State->Key = Key;
+		State->Node = Node;
+		ml_value_t *Function = Args[2];
+		return ml_call(State, Function, 1, &State->Key);
+	} else {
+		ML_RETURN(MLNil);
+	}
+}
+
 ML_METHOD("append", MLStringBufferT, MLMapT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_write(Buffer, "{", 1);
+	ml_stringbuffer_put(Buffer, '{');
 	ml_map_t *Map = (ml_map_t *)Args[1];
 	ml_map_node_t *Node = Map->Head;
 	if (Node) {
@@ -515,7 +579,7 @@ ML_METHOD("append", MLStringBufferT, MLMapT) {
 			}
 		}
 	}
-	ml_stringbuffer_write(Buffer, "}", 1);
+	ml_stringbuffer_put(Buffer, '}');
 	return MLSome;
 }
 

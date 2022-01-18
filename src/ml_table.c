@@ -203,7 +203,7 @@ ML_METHOD("append", MLStringBufferT, MLTableT) {
 		ml_stringbuffer_simple_append(Buffer, Iter->Key);
 		Comma = 1;
 	}
-	ml_stringbuffer_write(Buffer, ")", 1);
+	ml_stringbuffer_put(Buffer, ')');
 	return MLSome;
 }
 
@@ -363,7 +363,7 @@ ML_METHOD("::", MLTableRowT, MLStringT) {
 ML_METHOD("append", MLStringBufferT, MLTableRowT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_table_row_t *Row = (ml_table_row_t *)Args[1];
-	ml_stringbuffer_write(Buffer, "<", 1);
+	ml_stringbuffer_put(Buffer, '<');
 	int Comma = 0;
 	ML_MAP_FOREACH(Row->Table->Columns, Iter) {
 		if (Comma) ml_stringbuffer_write(Buffer, ", ", 2);
@@ -373,7 +373,7 @@ ML_METHOD("append", MLStringBufferT, MLTableRowT) {
 		ml_stringbuffer_simple_append(Buffer, Value);
 		Comma = 1;
 	}
-	ml_stringbuffer_write(Buffer, ">", 1);
+	ml_stringbuffer_put(Buffer, '>');
 	return MLSome;
 }
 
@@ -416,16 +416,19 @@ static void ML_TYPED_FN(ml_iter_value, MLTableRowIterT, ml_state_t *Caller, ml_t
 
 #include "ml_cbor.h"
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTableT, ml_value_t *Table, char *Data, ml_cbor_write_fn WriteFn, void *TagFnData) {
-	ml_cbor_write_tag(Data, WriteFn, 60);
-	ml_cbor_write(ml_table_columns(Table), Data, WriteFn, TagFnData);
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTableT, ml_cbor_writer_t *Writer, ml_value_t *Table) {
+	ml_cbor_write_tag(Writer, 27);
+	ml_cbor_write_array(Writer, 2);
+	ml_cbor_write_string(Writer, 5);
+	ml_cbor_write_raw(Writer, (const unsigned char *)"table", 5);
+	ml_cbor_write(Writer, ml_table_columns(Table));
 	return NULL;
 }
 
-static ml_value_t *ml_cbor_read_table_fn(void *Data, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_TYPE(0, MLMapT);
+static ml_value_t *ml_cbor_read_table_fn(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+	if (!ml_is(Value, MLStringT)) return ml_error("TagError", "Table requires map");
 	ml_value_t *Table = ml_table();
-	ML_MAP_FOREACH(Args[0], Iter) {
+	ML_MAP_FOREACH(Value, Iter) {
 		if (!ml_is(Iter->Key, MLStringT)) return ml_error("CborError", "Invalid table");
 		if (!ml_is(Iter->Value, MLArrayT)) return ml_error("CborError", "Invalid table");
 		ml_value_t *Result = ml_table_insert(Table, Iter->Key, Iter->Value);
@@ -440,6 +443,6 @@ void ml_table_init(stringmap_t *Globals) {
 #include "ml_table_init.c"
 	stringmap_insert(Globals, "table", MLTableT);
 #ifdef ML_CBOR
-	ml_cbor_default_tag(60, NULL, ml_cbor_read_table_fn);
+	ml_cbor_default_object("table", (ml_value_t *)MLTableT);
 #endif
 }

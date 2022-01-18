@@ -106,10 +106,18 @@ ML_METHOD(NAME ## Method, MLRealT, MLRealT) { \
 }
 
 ML_METHOD("%", MLRealT, MLRealT) {
+//<X
+//<Y
+//>real
+// Returns the remainder of :mini:`X` on division by :mini:`Y`.
 	return ml_real(fmod(ml_real_value(Args[0]), ml_real_value(Args[1])));
 }
 
 ML_METHOD("^", MLIntegerT, MLIntegerT) {
+//<X
+//<Y
+//>number
+// Returns :mini:`X` raised to the power of :mini:`Y`.
 	int64_t Base = ml_integer_value_fast(Args[0]);
 	int64_t Exponent = ml_integer_value_fast(Args[1]);
 	if (Exponent >= 0) {
@@ -126,16 +134,28 @@ ML_METHOD("^", MLIntegerT, MLIntegerT) {
 }
 
 ML_METHOD("^", MLRealT, MLIntegerT) {
+//<X
+//<Y
+//>number
+// Returns :mini:`X` raised to the power of :mini:`Y`.
 	return ml_real(pow(ml_double_value_fast(Args[0]), ml_integer_value_fast(Args[1])));
 }
 
 ML_METHOD("^", MLRealT, MLRealT) {
+//<X
+//<Y
+//>number
+// Returns :mini:`X` raised to the power of :mini:`Y`.
 	return ml_real(pow(ml_double_value_fast(Args[0]), ml_double_value_fast(Args[1])));
 }
 
 #ifdef ML_COMPLEX
 
 ML_METHOD("^", MLComplexT, MLIntegerT) {
+//<X
+//<Y
+//>number
+// Returns :mini:`X` raised to the power of :mini:`Y`.
 	complex double Base = ml_complex_value_fast(Args[0]);
 	int64_t Power = ml_integer_value_fast(Args[1]);
 	if (Power == 0) return ml_real(0);
@@ -154,6 +174,10 @@ ML_METHOD("^", MLComplexT, MLIntegerT) {
 }
 
 ML_METHOD("^", MLComplexT, MLNumberT) {
+//<X
+//<Y
+//>number
+// Returns :mini:`X` raised to the power of :mini:`Y`.
 	complex double V = cpow(ml_complex_value_fast(Args[0]), ml_complex_value(Args[1]));
 	if (fabs(cimag(V)) <= DBL_EPSILON) {
 		return ml_real(creal(V));
@@ -163,6 +187,10 @@ ML_METHOD("^", MLComplexT, MLNumberT) {
 }
 
 ML_METHOD("^", MLNumberT, MLComplexT) {
+//<X
+//<Y
+//>number
+// Returns :mini:`X` raised to the power of :mini:`Y`.
 	complex double V = cpow(ml_complex_value(Args[0]), ml_complex_value_fast(Args[1]));
 	if (fabs(cimag(V)) < DBL_EPSILON) {
 		return ml_real(creal(V));
@@ -174,6 +202,9 @@ ML_METHOD("^", MLNumberT, MLComplexT) {
 #endif
 
 ML_METHOD("!", MLIntegerT) {
+//<N
+//>integer
+// Returns the factorial of :mini:`N`.
 	int N = ml_integer_value(Args[0]);
 	if (N > 20) return ml_error("RangeError", "Factorials over 20 are not supported yet");
 	int64_t F = N;
@@ -184,6 +215,10 @@ ML_METHOD("!", MLIntegerT) {
 #define MIN(X, Y) (X < Y) ? X : Y
 
 ML_METHOD("!", MLIntegerT, MLIntegerT) {
+//<N
+//<R
+//>integer
+// Returns the number of ways of choosing :mini:`R` elements from :mini:`N`.
 	int N = ml_integer_value(Args[0]);
 	int K = ml_integer_value(Args[1]);
 	int64_t C = 1;
@@ -198,6 +233,11 @@ ML_METHOD("!", MLIntegerT, MLIntegerT) {
 ML_METHOD_DECL(GCDMethod, "gcd");
 
 ML_METHOD(GCDMethod, MLIntegerT, MLIntegerT) {
+//@gcd
+//<A
+//<B
+//>integer
+// Returns the greatest common divisor of :mini:`A` and :mini:`B`.
 	long A = labs(ml_integer_value(Args[0]));
 	long B = labs(ml_integer_value(Args[1]));
 	if (A == 0) return Args[1];
@@ -231,11 +271,19 @@ MATH_NUMBER_KEEP_REAL(Cosh, cosh);
 MATH_NUMBER_KEEP_REAL(Exp, exp);
 MATH_REAL(Abs, fabs);
 ML_METHOD(AbsMethod, MLIntegerT) {
+//@abs
+//<N
+//>integer
+// Returns the absolute value of :mini:`N`.
 	return ml_integer(labs(ml_integer_value(Args[0])));
 }
 
 MATH_REAL(Floor, floor);
 ML_METHOD(FloorMethod, MLIntegerT) {
+//@floor
+//<N
+//>integer
+// Returns the floor of :mini:`N` (:mini:`= N` for an integer).
 	return Args[0];
 }
 MATH_NUMBER(Log, log);
@@ -283,26 +331,46 @@ MATH_REAL(Round, round);
 ML_METHOD_DECL(ArgMethod, "arg");
 
 ML_METHOD(ArgMethod, MLRealT) {
+//@arg
+//<R
+//>real
+// Returns the complex argument of :mini:`R` (:mini:`= 0` for a real number).
 	return ml_real(0.0);
 }
 
 ML_METHOD_DECL(ConjMethod, "conj");
 
 ML_METHOD(ConjMethod, MLRealT) {
+//@conj
+//<R
+//>real
+// Returns the complex conjugate of :mini:`R` (:mini:`= R` for a real number).
 	return Args[0];
 }
 
 #ifdef ML_COMPLEX
 
 ML_METHOD(AbsMethod, MLComplexT) {
+//@abs
+//<Z
+//>real
+// Returns the absolute value (magnitude) of :mini:`Z`.
 	return ml_real(cabs(ml_complex_value(Args[0])));
 }
 
 ML_METHOD(ArgMethod, MLComplexT) {
+//@arg
+//<Z
+//>real
+// Returns the complex argument of :mini:`Z`.
 	return ml_real(carg(ml_complex_value(Args[0])));
 }
 
 ML_METHOD(ConjMethod, MLComplexT) {
+//@conj
+//<Z
+//>real
+// Returns the complex conjugate of :mini:`Z`.
 	return ml_complex(conj(ml_complex_value(Args[0])));
 }
 
@@ -341,6 +409,8 @@ ML_FUNCTION(IntegerRandom) {
 ML_FUNCTION(IntegerRandomPermutation) {
 //@integer::random_permutation
 //<Max:number
+//>list
+// Returns a random permutation of :mini:`1, ..., Max`.
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	int Limit = ml_integer_value(Args[0]);
 	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
@@ -364,6 +434,8 @@ ML_FUNCTION(IntegerRandomPermutation) {
 ML_FUNCTION(IntegerRandomCycle) {
 //@integer::random_cycle
 //<Max:number
+//>list
+// Returns a random cyclic permutation (no sub-cycles) of :mini:`1, ..., Max`.
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	int Limit = ml_integer_value(Args[0]);
 	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");

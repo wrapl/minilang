@@ -57,6 +57,18 @@ ml_value_t *ml_variable(ml_value_t *Value, ml_type_t *Type) {
 	return (ml_value_t *)Variable;
 }
 
+ML_METHOD(MLVariableT) {
+	return ml_variable(MLNil, NULL);
+}
+
+ML_METHOD(MLVariableT, MLAnyT) {
+	return ml_variable(Args[0], NULL);
+}
+
+ML_METHOD(MLVariableT, MLAnyT, MLTypeT) {
+	return ml_variable(Args[0], (ml_type_t *)Args[1]);
+}
+
 #endif
 
 #ifdef ML_JIT
@@ -87,10 +99,10 @@ typedef struct DEBUG_STRUCT(frame) DEBUG_STRUCT(frame);
 
 struct DEBUG_STRUCT(frame) {
 	ml_state_t Base;
-	union {
+	//union {
 		void *Next;
 		ml_inst_t *Inst;
-	};
+	//};
 	ml_value_t **Top;
 	const char *Source;
 	ml_inst_t *OnError;
@@ -279,7 +291,7 @@ extern ml_value_t *SymbolMethod;
 		ml_method_t *Method = (ml_method_t *)Inst[1].Value; \
 		ml_value_t **Args = Top - COUNT; \
 		ml_method_cached_t *Cached = Inst[2].Data; \
-		if (Cached && Cached->Callback) { \
+		if (Cached) { \
 			for (int I = 0; I < COUNT; ++I) { \
 				if (Cached->Types[I] != ml_typeof(Args[I])) { \
 					Cached = NULL; \
@@ -287,8 +299,9 @@ extern ml_value_t *SymbolMethod;
 				} \
 			} \
 		} \
-		if (!Cached) { \
-			Cached = ml_method_search_cached((ml_state_t *)Frame, Method, COUNT, Args); \
+		if (!Cached || !Cached->Callback) { \
+			ml_methods_t *Methods = Frame->Base.Context->Values[ML_METHODS_INDEX]; \
+			Cached = ml_method_search_cached(Methods, Method, COUNT, Args); \
 			if (!Cached) { \
 				Result = ml_no_method_error(Method, COUNT, Args); \
 				ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line}); \
@@ -335,7 +348,7 @@ extern ml_value_t *SymbolMethod;
 		ml_method_t *Method = (ml_method_t *)Inst[1].Value; \
 		ml_value_t **Args = Top - COUNT; \
 		ml_method_cached_t *Cached = Inst[2].Data; \
-		if (Cached && Cached->Callback) { \
+		if (Cached) { \
 			for (int I = 0; I < COUNT; ++I) { \
 				if (Cached->Types[I] != ml_typeof_deref(Args[I])) { \
 					Cached = NULL; \
@@ -343,8 +356,9 @@ extern ml_value_t *SymbolMethod;
 				} \
 			} \
 		} \
-		if (!Cached) { \
-			Cached = ml_method_search_cached((ml_state_t *)Frame, Method, COUNT, Args); \
+		if (!Cached || !Cached->Callback) { \
+			ml_methods_t *Methods = Frame->Base.Context->Values[ML_METHODS_INDEX]; \
+			Cached = ml_method_search_cached(Methods, Method, COUNT, Args); \
 			if (!Cached) { \
 				Result = ml_no_method_error(Method, COUNT, Args); \
 				ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line}); \
@@ -566,6 +580,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		int Count = Inst[1].Count;
 		for (int I = 0; I < Count; ++I) {
 			Result = ml_unpack(Packed, I + 1);
+			ERROR_CHECK(Result);
 			*Top = Result;
 			++Top;
 		}
@@ -868,7 +883,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		int Count = Inst[2].Count;
 		ml_value_t **Args = Top - Count;
 		ml_method_cached_t *Cached = Inst[3].Data;
-		if (Cached && Cached->Callback) {
+		if (Cached) {
 			for (int I = 0; I < Count; ++I) {
 				if (Cached->Types[I] != ml_typeof_deref(Args[I])) {
 					Cached = NULL;
@@ -876,8 +891,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 				}
 			}
 		}
-		if (!Cached) {
-			Cached = ml_method_search_cached((ml_state_t *)Frame, Method, Count, Args);
+		if (!Cached || !Cached->Callback) {
+			ml_methods_t *Methods = Frame->Base.Context->Values[ML_METHODS_INDEX];
+			Cached = ml_method_search_cached(Methods, Method, Count, Args);
 			if (!Cached) {
 				Result = ml_no_method_error(Method, Count, Args);
 				ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
@@ -1514,6 +1530,87 @@ ML_TYPE(MLClosureT, (MLFunctionT, MLSequenceT), "closure",
 	.Constructor = (ml_value_t *)MLClosure
 );
 
+static void ML_TYPED_FN(ml_value_find_refs, MLClosureT, ml_closure_t *Closure, void *Data, ml_value_ref_fn RefFn) {
+	if (!RefFn(Data, (ml_value_t *)Closure)) return;
+	ml_closure_info_t *Info = Closure->Info;
+	Info->Type = MLClosureInfoT;
+	ml_value_find_refs((ml_value_t *)Info, Data, RefFn);
+	for (int I = 0; I < Info->NumUpValues; ++I) ml_value_find_refs(Closure->UpValues[I], Data, RefFn);
+}
+
+ML_TYPE(MLClosureInfoT, (), "closure::info");
+
+static void ML_TYPED_FN(ml_value_find_refs, MLClosureInfoT, ml_closure_info_t *Info, void *Data, ml_value_ref_fn RefFn) {
+	if (!RefFn(Data, (ml_value_t *)Info)) return;
+	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
+		if (Inst->Opcode == MLI_LINK) {
+			Inst = Inst[1].Inst;
+			continue;
+		}
+		switch (MLInstTypes[Inst->Opcode]) {
+		case MLIT_NONE:
+			Inst += 1;
+			break;
+		case MLIT_INST:
+			Inst += 2;
+			break;
+		case MLIT_INST_COUNT_DECL:
+			Inst += 4;
+			break;
+		case MLIT_INST_TYPES: {
+			Inst += 3;
+			break;
+		}
+		case MLIT_COUNT_COUNT:
+			Inst += 3;
+			break;
+		case MLIT_COUNT:
+			Inst += 2;
+			break;
+		case MLIT_VALUE:
+			ml_value_find_refs(Inst[1].Value, Data, RefFn);
+			Inst += 2;
+			break;
+		case MLIT_VALUE_DATA:
+			ml_value_find_refs(Inst[1].Value, Data, RefFn);
+			Inst += 3;
+			break;
+		case MLIT_VALUE_COUNT:
+			ml_value_find_refs(Inst[1].Value, Data, RefFn);
+			Inst += 3;
+			break;
+		case MLIT_VALUE_COUNT_DATA:
+			ml_value_find_refs(Inst[1].Value, Data, RefFn);
+			Inst += 4;
+			break;
+		case MLIT_COUNT_CHARS:
+			Inst += 3;
+			break;
+		case MLIT_DECL:
+			Inst += 2;
+			break;
+		case MLIT_COUNT_DECL:
+			Inst += 3;
+			break;
+		case MLIT_COUNT_COUNT_DECL:
+			Inst += 4;
+			break;
+		case MLIT_CLOSURE: {
+			ml_closure_info_t *Info = Inst[1].ClosureInfo;
+			if (!Info->Type) Info->Type = MLClosureInfoT;
+			ml_value_find_refs((ml_value_t *)Info, Data, RefFn);
+			Inst += 2 + Info->NumUpValues;
+			break;
+		}
+		case MLIT_SWITCH: {
+			Inst += 3;
+			break;
+		}
+		default: __builtin_unreachable();
+		}
+	}
+}
+
 ml_value_t *ml_closure(ml_closure_info_t *Info) {
 	ml_closure_t *Closure = xnew(ml_closure_t, Info->NumUpValues, ml_value_t *);
 	Closure->Type = MLClosureT;
@@ -1556,9 +1653,9 @@ static void ml_closure_value_list(ml_value_t *Value, ml_stringbuffer_t *Buffer) 
 			case '\\': ml_stringbuffer_write(Buffer, "\\\\", 2); break;
 			default: ml_stringbuffer_write(Buffer, String + I, 1); break;
 		}
-		ml_stringbuffer_write(Buffer, "\"", 1);
+		ml_stringbuffer_put(Buffer, '\"');
 	} else if (ml_is(Value, MLNumberT)) {
-		ml_stringbuffer_write(Buffer, " ", 1);
+		ml_stringbuffer_put(Buffer, ' ');
 		ml_stringbuffer_simple_append(Buffer, Value);
 	} else if (ml_typeof(Value) == MLMethodT) {
 		ml_stringbuffer_printf(Buffer, " :%s", ml_method_name(Value));
@@ -1627,7 +1724,7 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 			case '\\': ml_stringbuffer_write(Buffer, "\\\\", 2); break;
 			default: ml_stringbuffer_write(Buffer, P, 1); break;
 		}
-		ml_stringbuffer_write(Buffer, "\"", 1);
+		ml_stringbuffer_put(Buffer, '\"');
 		return 3;
 	case MLIT_DECL:
 		if (Inst[1].Decls) {
@@ -1702,7 +1799,7 @@ ML_METHOD("list", MLClosureT) {
 		} else {
 			Inst += ml_closure_inst_list(Inst, Buffer);
 		}
-		ml_stringbuffer_write(Buffer, "\n", 1);
+		ml_stringbuffer_put(Buffer, '\n');
 	}
 	return ml_stringbuffer_get_value(Buffer);
 }
@@ -1719,14 +1816,14 @@ void ml_closure_list(ml_value_t *Value) {
 		} else {
 			Inst += ml_closure_inst_list(Inst, Buffer);
 		}
-		ml_stringbuffer_write(Buffer, "\n", 1);
+		ml_stringbuffer_put(Buffer, '\n');
 	}
-	ml_stringbuffer_write(Buffer, "\n", 1);
+	ml_stringbuffer_put(Buffer, '\n');
 	for (int I = 0; I < Info->NumUpValues; ++I) {
 		ml_value_t *UpValue = Closure->UpValues[I];
 		ml_stringbuffer_printf(Buffer, "Upvalues %d:", I);
 		ml_closure_value_list(UpValue, Buffer);
-		ml_stringbuffer_write(Buffer, "\n", 1);
+		ml_stringbuffer_put(Buffer, '\n');
 	}
 	puts(ml_stringbuffer_get_string(Buffer));
 }

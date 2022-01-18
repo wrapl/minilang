@@ -8,6 +8,9 @@ gir
 :mini:`type baseinfo < type`
    *TBD*
 
+:mini:`type gir < function`
+   *TBD*
+
 :mini:`fun gir(Name: string): gir-typelib`
    *TBD*
 
@@ -102,6 +105,9 @@ gir
    *TBD*
 
 :mini:`meth (Object: objectinstance) :: (Property: string): any`
+   *TBD*
+
+:mini:`fun sleep(Arg₁: number)`
    *TBD*
 
 :mini:`fun mlgirrun(Arg₁: any)`

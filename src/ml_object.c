@@ -50,6 +50,12 @@ struct ml_object_t {
 ML_INTERFACE(MLObjectT, (), "object");
 // Parent type of all object classes.
 
+static void ML_TYPED_FN(ml_value_find_refs, MLObjectT, ml_object_t *Value, void *Data, ml_value_ref_fn RefFn) {
+	if (!RefFn(Data, (ml_value_t *)Value)) return;
+	int Size = Value->Type->Fields->Size;
+	for (int I = 0; I < Size; ++I) ml_value_find_refs(Value->Fields[I].Value, Data, RefFn);
+}
+
 ML_METHOD("::", MLObjectT, MLStringT) {
 //<Object
 //<Field
@@ -95,7 +101,7 @@ ML_METHOD("append", MLStringBufferT, MLObjectT) {
 	ml_object_stringer_t Stringer = {Object, (ml_stringbuffer_t *)Args[0], 0};
 	ml_stringbuffer_printf(Stringer.Buffer, "%s(", Object->Type->Base.Name);
 	stringmap_foreach(Object->Type->Fields, &Stringer, (void *)field_string);
-	ml_stringbuffer_write(Stringer.Buffer, ")", 1);
+	ml_stringbuffer_put(Stringer.Buffer, ')');
 	return MLSome;
 }
 
@@ -440,6 +446,23 @@ ML_FUNCTIONX(MLProperty) {
 
 size_t ml_class_size(const ml_value_t *Value) {
 	return ((ml_class_t *)Value)->Fields->Size;
+}
+
+static int ml_class_field_fn(const char *Name, void *Index, const void **Data) {
+	if (*Data == Index) {
+		*Data = Name;
+		return 1;
+	}
+	return 0;
+}
+
+const char *ml_class_field_name(const ml_value_t *Value, size_t Field) {
+	void *Name = &((ml_object_t *)0)->Fields[Field];
+	if (stringmap_foreach(((ml_class_t *)Value)->Fields, &Name, (void *)ml_class_field_fn)) {
+		return (const char *)Name;
+	} else {
+		return NULL;
+	}
 }
 
 size_t ml_object_size(const ml_value_t *Value) {
@@ -831,7 +854,7 @@ typedef struct {
 static int ml_flags_value_append(const char *Name, ml_flags_value_t *Flags, ml_flags_value_append_t *Append) {
 	if ((Append->Value & Flags->Value) == Flags->Value) {
 		ml_stringbuffer_t *Buffer = Append->Buffer;
-		if (Buffer->Length > Append->Length) ml_stringbuffer_write(Buffer, "|", 1);
+		if (Buffer->Length > Append->Length) ml_stringbuffer_put(Buffer, '|');
 		ml_stringbuffer_write(Buffer, Name, strlen(Name));
 	}
 	return 0;

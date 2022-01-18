@@ -5,7 +5,7 @@ macro
    An expression value used by the compiler to implement macros.
 
 
-:mini:`meth (Expr: expr):scoped(Names: names, Values: any, ...): expr`
+:mini:`meth (Expr: expr):scoped(Names₁ is Value₁, Values: any, ...): expr`
    Returns a new expression which wraps :mini:`Expr` with the constant definitions from :mini:`Names` and :mini:`Values`.
 
 
@@ -13,7 +13,7 @@ macro
    Returns a new expression which wraps :mini:`Expr` with the constant definitions from :mini:`Definitions`.
 
 
-:mini:`meth (Expr: expr):subst(Names: names, Exprs: expr, ...): expr`
+:mini:`meth (Expr: expr):subst(Names₁ is Value₁, Exprs: expr, ...): expr`
    Returns a new expression which wraps substitutes macro references (e.g. :mini:`:$Name`) with expressions from :mini:`Names` and :mini:`Exprs`.
 
 
@@ -37,6 +37,10 @@ macro
 
 :mini:`fun macro::value(Value: any): expr`
    Returns a new value expression.
+
+
+:mini:`fun macro::fun(Params: list, Arg₂: expr): expr`
+   Returns a new function expression.
 
 
 :mini:`type block::builder`

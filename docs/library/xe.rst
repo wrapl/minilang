@@ -4,7 +4,7 @@ xe
 :mini:`fun xenode(Arg₁: any)`
    *TBD*
 
-:mini:`type xenode`
+:mini:`type xenode < sequence`
    *TBD*
 
 :mini:`fun xevar(Arg₁: string)`

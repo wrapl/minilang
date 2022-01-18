@@ -8,6 +8,47 @@
 #define ML_CATEGORY "gir"
 
 typedef struct {
+	void **Ptrs;
+	int Size;
+} ptrset_t;
+
+#define PTRSET_INIT {NULL, 0}
+#define PTRSET_INITIAL_SIZE 4
+
+static void ptrset_insert(ptrset_t *Set, void *Ptr) {
+	if (!Set->Size) {
+		void **Ptrs = anew(void *, PTRSET_INITIAL_SIZE);
+		Ptrs[PTRSET_INITIAL_SIZE - 1] = Ptr;
+		Set->Ptrs = Ptrs;
+		Set->Size = PTRSET_INITIAL_SIZE;
+		return;
+	}
+	void **Slot = Set->Ptrs, **Space = NULL;
+	for (int I = Set->Size; --I >= 0; ++Slot) {
+		if (*Slot == Ptr) return;
+		if (!*Slot) Space = Slot;
+	}
+	if (Space) {
+		*Space = Ptr;
+		return;
+	}
+	int Size = Set->Size + PTRSET_INITIAL_SIZE;
+	void **Ptrs = anew(void *, Size);
+	memcpy(Ptrs, Set->Ptrs, Set->Size * sizeof(void *));
+	Ptrs[Set->Size] = Ptr;
+	Set->Ptrs = Ptrs;
+	Set->Size = Size;
+}
+
+static void ptrset_remove(ptrset_t *Set, void *Ptr) {
+	void **Slot = Set->Ptrs;
+	for (int I = Set->Size; --I >= 0; ++Slot) if (*Slot == Ptr) {
+		*Slot = NULL;
+		return;
+	}
+}
+
+typedef struct {
 	ml_type_t *Type;
 	GITypelib *Handle;
 	const char *Namespace;
@@ -62,35 +103,56 @@ static void typelib_iter_key(ml_state_t *Caller, typelib_iter_t *Iter) {
 ML_TYPE(TypelibIterT, (), "typelib-iter");
 //!internal
 
+
+ml_value_t *ml_gir_typelib(const char *Name, const char *Version) {
+	typelib_t *Typelib = new(typelib_t);
+	Typelib->Type = TypelibT;
+	Typelib->Namespace = Name;
+	GError *Error = 0;
+	Typelib->Handle = g_irepository_require(NULL, Typelib->Namespace, Version, 0, &Error);
+	if (!Typelib->Handle) return ml_error("GirError", "%s", Error->message);
+	return (ml_value_t *)Typelib;
+}
+
+static void ml_gir_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLStringT);
+	const char *Version = NULL;
+	if (Count > 1) {
+		ML_CHECKX_ARG_TYPE(1, MLStringT);
+		Version = ml_string_value(Args[1]);
+	}
+	ML_RETURN(ml_gir_typelib(ml_string_value(Args[0]), Version));
+}
+
+ML_TYPE(MLGirT, (MLFunctionT), "gir",
+	.call = (void *)ml_gir_call
+);
+
 ML_FUNCTION(MLGir) {
 //@gir
 //<Name:string
 //>gir-typelib
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
-	typelib_t *Typelib = new(typelib_t);
-	Typelib->Type = TypelibT;
-	GError *Error = 0;
-	Typelib->Namespace = ml_string_value(Args[0]);
 	const char *Version = NULL;
 	if (Count > 1) {
 		ML_CHECK_ARG_TYPE(1, MLStringT);
 		Version = ml_string_value(Args[1]);
 	}
-	Typelib->Handle = g_irepository_require(NULL, Typelib->Namespace, Version, 0, &Error);
-	if (!Typelib->Handle) return ml_error("GirError", Error->message);
-	return (ml_value_t *)Typelib;
+	return ml_gir_typelib(ml_string_value(Args[0]), Version);
 }
 
-typedef struct object_t {
+typedef struct {
 	ml_type_t Base;
 	GIObjectInfo *Info;
 	stringmap_t Signals[1];
 } object_t;
 
-typedef struct object_instance_t {
+typedef struct {
 	const object_t *Type;
 	void *Handle;
+	ptrset_t Handlers[1];
 } object_instance_t;
 
 ML_TYPE(ObjectT, (BaseInfoT), "gir-object-type");
@@ -170,12 +232,12 @@ ML_METHOD("append", MLStringBufferT, ObjectInstanceT) {
 	return MLSome;
 }
 
-typedef struct struct_t {
+typedef struct {
 	ml_type_t Base;
 	GIStructInfo *Info;
 } struct_t;
 
-typedef struct struct_instance_t {
+typedef struct {
 	const struct_t *Type;
 	void *Value;
 } struct_instance_t;
@@ -185,6 +247,17 @@ ML_TYPE(StructT, (BaseInfoT), "gir-struct-type");
 
 ML_TYPE(StructInstanceT, (), "gir-struct");
 // A gobject-introspection struct instance.
+
+ml_value_t *ml_gir_struct_instance(ml_value_t *Struct, void *Value) {
+	struct_instance_t *Instance = new(struct_instance_t);
+	Instance->Type = (struct_t *)Struct;
+	Instance->Value = Value;
+	return (ml_value_t *)Instance;
+}
+
+void *ml_gir_struct_instance_value(ml_value_t *Value) {
+	return ((struct_instance_t *)Value)->Value;
+}
 
 static ml_value_t *struct_instance_new(struct_t *Struct, int Count, ml_value_t **Args) {
 	struct_instance_t *Instance = new(struct_instance_t);
@@ -317,6 +390,10 @@ ML_TYPE(EnumT, (BaseInfoT), "gir-enum-type");
 ML_TYPE(EnumValueT, (), "gir-enum");
 // A gobject-instrospection enum value.
 
+gint64 ml_gir_enum_value_value(ml_value_t *Value) {
+	return ((enum_value_t *)Value)->Value;
+}
+
 ML_METHOD("append", MLStringT, EnumValueT) {
 //<Value
 //>string
@@ -380,7 +457,7 @@ static ml_value_t *gir_enum_value(enum_t *Type, int64_t Value) {
 	for (enum_value_t **Ptr = Type->ByIndex; Value && *Ptr; ++Ptr) {
 		if ((Ptr[0]->Value & Value) == Ptr[0]->Value) {
 			Value &= ~Ptr[0]->Value;
-			if (Buffer->Length) ml_stringbuffer_write(Buffer, "|", 1);
+			if (Buffer->Length) ml_stringbuffer_put(Buffer, '|');
 			const char *Name = ml_string_value(Ptr[0]->Name);
 			size_t Length = ml_string_length(Ptr[0]->Name);
 			ml_stringbuffer_write(Buffer, Name, Length);
@@ -388,6 +465,10 @@ static ml_value_t *gir_enum_value(enum_t *Type, int64_t Value) {
 	}
 	Enum->Name = ml_stringbuffer_get_value(Buffer);
 	return (ml_value_t *)Enum;
+}
+
+ml_value_t *ml_gir_enum_value(ml_value_t *Enum, gint64 Value) {
+	return gir_enum_value((enum_t *)Enum, Value);
 }
 
 static size_t array_element_size(GITypeInfo *Info) {
@@ -2020,8 +2101,15 @@ static void _ml_to_value(ml_value_t *Source, GValue *Dest) {
 	}
 }
 
-static void __marshal(GClosure *Closure, GValue *Dest, guint NumArgs, const GValue *Args, gpointer Hint, ml_value_t *Function) {
-	GICallableInfo *SignalInfo = (GICallableInfo *)Closure->data;
+typedef struct {
+	GClosure Base;
+	GISignalInfo *SignalInfo;
+	ml_context_t *Context;
+	ml_value_t *Function;
+} gir_closure_t;
+
+static void gir_closure_marshal(gir_closure_t *Closure, GValue *Dest, guint NumArgs, const GValue *Args, gpointer Hint, void *Data) {
+	GICallableInfo *SignalInfo = (GICallableInfo *)Closure->SignalInfo;
 	ml_value_t *MLArgs[NumArgs];
 	MLArgs[0] = _value_to_ml(Args, NULL);
 	for (guint I = 1; I < NumArgs; ++I) {
@@ -2030,7 +2118,11 @@ static void __marshal(GClosure *Closure, GValue *Dest, guint NumArgs, const GVal
 		g_arg_info_load_type(ArgInfo, TypeInfo);
 		MLArgs[I] = _value_to_ml(Args + I, g_type_info_get_interface(TypeInfo));
 	}
-	ml_value_t *Source = ml_simple_call(Function, NumArgs, MLArgs);
+	ml_result_state_t *State = ml_result_state_new(Closure->Context);
+	ml_call(State, Closure->Function, NumArgs, MLArgs);
+	GMainContext *MainContext = g_main_context_default();
+	while (!State->Value) g_main_context_iteration(MainContext, FALSE);
+	ml_value_t *Source = State->Value;
 	if (Dest) {
 		if (ml_is(Source, MLBooleanT)) {
 			g_value_set_boolean(Dest, ml_boolean_value(Source));
@@ -2055,7 +2147,11 @@ static void __marshal(GClosure *Closure, GValue *Dest, guint NumArgs, const GVal
 	}
 }
 
-ML_METHOD("connect", ObjectInstanceT, MLStringT, MLFunctionT) {
+static void gir_closure_finalize(object_instance_t *Instance, gir_closure_t *Closure) {
+	ptrset_remove(Instance->Handlers, Closure->Function);
+}
+
+ML_METHODX("connect", ObjectInstanceT, MLStringT, MLFunctionT) {
 //<Object
 //<Signal
 //<Handler
@@ -2063,11 +2159,16 @@ ML_METHOD("connect", ObjectInstanceT, MLStringT, MLFunctionT) {
 	object_instance_t *Instance = (object_instance_t *)Args[0];
 	const char *Signal = ml_string_value(Args[1]);
 	GISignalInfo *SignalInfo = (GISignalInfo *)stringmap_search(Instance->Type->Signals, Signal);
-	if (!SignalInfo) return ml_error("NameError", "Signal %s not found", Signal);
-	GClosure *Closure = g_closure_new_simple(sizeof(GClosure), SignalInfo);
-	g_closure_set_meta_marshal(Closure, Args[2], (GClosureMarshal)__marshal);
-	g_signal_connect_closure(Instance->Handle, Signal, Closure, Count > 3 && Args[3] != MLNil);
-	return Args[0];
+	if (!SignalInfo) ML_ERROR("NameError", "Signal %s not found", Signal);
+	ptrset_insert(Instance->Handlers, Args[2]);
+	gir_closure_t *Closure = (gir_closure_t *)g_closure_new_simple(sizeof(gir_closure_t), SignalInfo);
+	Closure->Context = Caller->Context;
+	Closure->Function = Args[2];
+	Closure->SignalInfo = SignalInfo;
+	g_closure_set_marshal((GClosure *)Closure, (GClosureMarshal)gir_closure_marshal);
+	g_closure_add_finalize_notifier((GClosure *)Closure, Instance, (void *)gir_closure_finalize);
+	g_signal_connect_closure(Instance->Handle, Signal, (GClosure *)Closure, Count > 3 && Args[3] != MLNil);
+	ML_RETURN(Instance);
 }
 
 typedef struct {
@@ -2130,6 +2231,23 @@ void ml_gir_queue_add(ml_state_t *State, ml_value_t *Value) {
 	if (ml_scheduler_queue_add(State, Value) == 1) g_idle_add(ml_gir_queue_run, NULL);
 }
 
+static ptrset_t SleepSet[1] = {PTRSET_INIT};
+
+static gboolean sleep_run(void *Data) {
+	ptrset_remove(SleepSet, Data);
+	ml_gir_queue_add((ml_state_t *)Data, MLNil);
+	return FALSE;
+}
+
+ML_FUNCTIONX(MLSleep) {
+//@sleep
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLNumberT);
+	guint Interval = ml_real_value(Args[0]) * 1000;
+	ptrset_insert(SleepSet, Caller);
+	g_timeout_add(Interval, sleep_run, Caller);
+}
+
 #endif
 
 ML_FUNCTIONX(MLGirRun) {
@@ -2161,6 +2279,7 @@ void ml_gir_init(stringmap_t *Globals) {
 #include "ml_gir_init.c"
 	stringmap_insert(Globals, "gir", MLGir);
 #ifdef ML_SCHEDULER
+	stringmap_insert(Globals, "sleep", (ml_value_t *)MLSleep);
 	stringmap_insert(Globals, "gir_run", MLGirRun);
 #endif
 }

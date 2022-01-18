@@ -1,6 +1,7 @@
 #include "minilang.h"
 #include "ml_console.h"
 #include "ml_compiler.h"
+#include "ml_bytecode.h"
 #include "ml_macros.h"
 #include "ml_file.h"
 #include "ml_object.h"
@@ -176,7 +177,9 @@ static void ml_main_state_run(ml_state_t *State, ml_value_t *Value) {
 		}
 		exit(1);
 	}
+#ifdef ML_SCHEDULER
 	MainResult = Value;
+#endif
 }
 
 int main(int Argc, const char *Argv[]) {
@@ -208,6 +211,7 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "parser", MLParserT);
 	stringmap_insert(Globals, "compiler", MLCompilerT);
 	stringmap_insert(Globals, "macro", MLMacroT);
+	stringmap_insert(Globals, "variable", MLVariableT);
 	stringmap_insert(Globals, "global", ml_stringmap_globals(Globals));
 	stringmap_insert(Globals, "globals", ml_cfunction(Globals, (void *)ml_globals));
 
@@ -229,6 +233,11 @@ int main(int Argc, const char *Argv[]) {
 #endif
 
 	ml_stream_init(IO_EXPORTS);
+	stringmap_insert(IO_EXPORTS, "terminal", ml_module("terminal",
+		"stdin", ml_fd_new(STDIN_FILENO),
+		"stdout", ml_fd_new(STDOUT_FILENO),
+		"stderr", ml_fd_new(STDERR_FILENO),
+	NULL));
 #ifdef ML_CBOR
 	ml_cbor_init(FMT_EXPORTS);
 #endif
@@ -250,6 +259,7 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_GTK_CONSOLE
 	int GtkConsole = 0;
+	console_init();
 #endif
 #ifdef ML_MODULES
 	ml_module_init(Globals);
@@ -280,7 +290,7 @@ int main(int Argc, const char *Argv[]) {
 	const char *Command = NULL;
 	for (int I = 1; I < Argc; ++I) {
 		if (FileName) {
-			ml_list_append(Args, ml_cstring(Argv[I]));
+			ml_list_put(Args, ml_cstring(Argv[I]));
 		} else if (Argv[I][0] == '-') {
 			switch (Argv[I][1]) {
 			case 'E':

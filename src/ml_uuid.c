@@ -72,17 +72,17 @@ ml_comp_method_time_time(">=", >=);
 
 #include "ml_cbor.h"
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLUUIDT, ml_uuid_t *UUID, void *Data, ml_cbor_write_fn WriteFn, void *TagFnData) {
-	ml_cbor_write_tag(Data, WriteFn, 37);
-	ml_cbor_write_bytes(Data, WriteFn, 16);
-	WriteFn(Data, UUID->Value, 16);
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLUUIDT, ml_cbor_writer_t *Writer, ml_uuid_t *UUID) {
+	ml_cbor_write_tag(Writer, 37);
+	ml_cbor_write_bytes(Writer, 16);
+	ml_cbor_write_raw(Writer, UUID->Value, 16);
 	return NULL;
 }
 
-static ml_value_t *ml_cbor_read_uuid_fn(void *Data, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_TYPE(0, MLStringT);
-	if (ml_string_length(Args[0]) != 16) return ml_error("TagError", "UUID requires 16 bytes");
-	return ml_uuid((unsigned char *)ml_string_value(Args[0]));
+static ml_value_t *ml_cbor_read_uuid_fn(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+	if (!ml_is(Value, MLStringT)) return ml_error("TagError", "UUID requires string");
+	if (ml_string_length(Value) != 16) return ml_error("TagError", "UUID requires 16 bytes");
+	return ml_uuid((unsigned char *)ml_string_value(Value));
 }
 
 #endif
@@ -92,6 +92,6 @@ void ml_uuid_init(stringmap_t *Globals) {
 	if (Globals) stringmap_insert(Globals, "uuid", MLUUIDT);
 	ml_string_fn_register("U", ml_uuid_parse);
 #ifdef ML_CBOR
-	ml_cbor_default_tag(37, NULL, ml_cbor_read_uuid_fn);
+	ml_cbor_default_tag(37, ml_cbor_read_uuid_fn);
 #endif
 }

@@ -191,27 +191,26 @@ static __attribute__ ((noinline)) ml_value_t *ml_method_search2(ml_state_t *Call
 	return NULL;
 }
 
-static __attribute__ ((noinline)) ml_method_cached_t *ml_method_search_cached2(ml_state_t *Caller, ml_method_t *Method, int Count, ml_value_t **Args) {
+static __attribute__ ((noinline)) ml_method_cached_t *ml_method_search_cached2(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args) {
 	ml_type_t *Types[Count];
 	uintptr_t Hash = (uintptr_t)Method;
 	for (ssize_t I = Count; --I >= 0;) {
 		ml_type_t *Type = Types[I] = ml_typeof_deref(Args[I]);
 		Hash = rotl(Hash, 1) ^ (uintptr_t)Type;
 	}
-	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
 	return ml_method_search_entry(Methods, Method, Count, Types, Hash);
 }
 
-ml_method_cached_t *ml_method_search_cached(ml_state_t *Caller, ml_method_t *Method, int Count, ml_value_t **Args) {
+ml_method_cached_t *ml_method_search_cached(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args) {
 	// TODO: Use generation numbers to check Methods->Parent for invalidated definitions
-	if (Count > ML_SMALL_METHOD_COUNT) return ml_method_search_cached2(Caller, Method, Count, Args);
+	Methods = Methods ?: MLRootMethods;
+	if (Count > ML_SMALL_METHOD_COUNT) return ml_method_search_cached2(Methods, Method, Count, Args);
 	ml_type_t *Types[ML_SMALL_METHOD_COUNT];
 	uintptr_t Hash = (uintptr_t)Method;
 	for (ssize_t I = Count; --I >= 0;) {
 		ml_type_t *Type = Types[I] = ml_typeof_deref(Args[I]);
 		Hash = rotl(Hash, 1) ^ (uintptr_t)Type;
 	}
-	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
 	return ml_method_search_entry(Methods, Method, Count, Types, Hash);
 }
 
@@ -344,16 +343,24 @@ ml_value_t *ml_method_anon(const char *Name) {
 }
 
 ML_METHOD(MLMethodT) {
-//!method
 //>method
+// Returns a new anonymous method.
 	return ml_method(NULL);
 }
 
 ML_METHOD(MLMethodT, MLStringT) {
-//!method
 //<Name
 //>method
+// Returns the method with name :mini:`Name`.
 	return ml_method(ml_string_value(Args[0]));
+}
+
+ML_METHOD("name", MLMethodT) {
+//<Method
+//>string
+// Returns the name of :mini:`Method`.
+	ml_method_t *Method = (ml_method_t *)Args[0];
+	return ml_cstring(Method->Name);
 }
 
 void ml_method_by_name(const char *Name, void *Data, ml_callback_t Callback, ...) {
@@ -424,7 +431,7 @@ void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_t
 ML_METHOD("append", MLStringBufferT, MLMethodT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_method_t *Method = (ml_method_t *)Args[1];
-	ml_stringbuffer_write(Buffer, ":", 1);
+	ml_stringbuffer_put(Buffer, ':');
 	ml_stringbuffer_write(Buffer, Method->Name, strlen(Method->Name));
 	return MLSome;
 }

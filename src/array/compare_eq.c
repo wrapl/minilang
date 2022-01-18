@@ -1,3 +1,5 @@
 #include "compare_impl.h"
 
-COMPARE_ROW_OPS_IMPL(eq, ==)
+#define EQ(A, B) A == B
+
+COMPARE_ROW_OPS_IMPL(eq, EQ)

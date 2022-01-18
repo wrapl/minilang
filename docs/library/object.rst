@@ -58,7 +58,7 @@ object
 :mini:`meth (Values...: string):flags(): flags`
    *TBD*
 
-:mini:`meth (Values...: names):flags(): flags`
+:mini:`meth :flags(Values...₁ is Value₁,): flags`
    *TBD*
 
 :mini:`meth (Arg₁: flags::value) + (Arg₂: flags::value)`

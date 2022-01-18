@@ -8,10 +8,16 @@ method
    *TBD*
 
 :mini:`meth method(): method`
-   *TBD*
+   Returns a new anonymous method.
+
 
 :mini:`meth method(Name: string): method`
-   *TBD*
+   Returns the method with name :mini:`Name`.
+
+
+:mini:`meth (Method: method):name: string`
+   Returns the name of :mini:`Method`.
+
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: method)`
    *TBD*

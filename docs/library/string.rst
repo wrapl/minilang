@@ -1,7 +1,7 @@
 string
 ======
 
-:mini:`fun mlstring(Value: any): string`
+:mini:`fun string(Value: any): string`
    Returns a general (type name only) representation of :mini:`Value` as a string.
 
 
@@ -23,12 +23,20 @@ string
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: real::range)`
    *TBD*
 
+:mini:`meth (String: string):code: integer`
+   Returns the unicode codepoint of the first UTF-8 character of :mini:`String`.
+
+
+:mini:`meth (Codepoint: integer):utf8: string`
+   Returns a UTF-8 string containing the character with unicode codepoint :mini:`Codepoint`.
+
+
+:mini:`meth (Char: integer):chr: string`
+   Returns a string containing the single byte :mini:`Char`.
+
+
 :mini:`meth (String: string):ord: integer`
-   Returns the unicode codepoint of the first character of :mini:`String`.
-
-
-:mini:`meth (Codepoint: integer):chr: string`
-   Returns a string containing the character with unicode codepoint :mini:`Codepoint`.
+   Returns the first byte of :mini:`String`.
 
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: double, Arg₃: string)`
@@ -82,6 +90,9 @@ string
    *TBD*
 
 :mini:`meth (Arg₁: string::buffer):get`
+   *TBD*
+
+:mini:`meth (Arg₁: string::buffer):length`
    *TBD*
 
 :mini:`meth (Arg₁: string::buffer):write(Arg₂: any, ...)`

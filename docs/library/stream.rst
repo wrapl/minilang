@@ -29,6 +29,24 @@ stream
 :mini:`meth (Arg₁: stream):copy(Arg₂: stream, Arg₃: integer)`
    *TBD*
 
+:mini:`meth (Arg₁: stream):flush`
+   *TBD*
+
+:mini:`type stream::buffered < stream`
+   *TBD*
+
+:mini:`meth streambuffered(Arg₁: stream, Arg₂: integer)`
+   *TBD*
+
+:mini:`meth (Arg₁: stream::buffered):read(Arg₂: buffer)`
+   *TBD*
+
+:mini:`meth (Arg₁: stream::buffered):read(Arg₂: address)`
+   *TBD*
+
+:mini:`meth (Arg₁: stream::buffered):flush`
+   *TBD*
+
 :mini:`meth (Arg₁: string::buffer):read(Arg₂: buffer)`
    *TBD*
 

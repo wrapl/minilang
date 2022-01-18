@@ -15,4 +15,6 @@ void console_printf(console_t *Console, const char *Format, ...);
 void console_load_file(console_t *Console, const char *FileName, ml_value_t *Args);
 void console_evaluate(console_t *Console, const char *Text);
 
+void console_init();
+
 #endif

@@ -15,7 +15,7 @@ $(SUBDIRS):
 CFLAGS += \
 	-std=gnu99 -fstrict-aliasing -foptimize-sibling-calls \
 	-Wstrict-aliasing -Wall \
-	-Iobj -Isrc -pthread -DGC_THREADS -D_GNU_SOURCE
+	-Iobj -Isrc -pthread -DGC_THREADS -D_GNU_SOURCE -D$(PLATFORM)
 LDFLAGS += -lm
 
 ifdef DEBUG
@@ -45,6 +45,7 @@ obj/ml_list.o: obj/ml_list_init.c
 obj/ml_map.o: obj/ml_map_init.c
 obj/ml_object.o: obj/ml_object_init.c
 obj/ml_math.o: obj/ml_math_init.c
+obj/ml_stream.o: obj/ml_stream_init.c
 obj/ml_file.o: obj/ml_file_init.c
 obj/ml_sequence.o: obj/ml_sequence_init.c
 obj/ml_bytecode.o: obj/ml_bytecode_init.c
@@ -61,6 +62,7 @@ common_objects = \
 	obj/ml_method.o \
 	obj/ml_list.o \
 	obj/ml_map.o \
+	obj/ml_stream.o \
 	obj/ml_file.o \
 	obj/ml_sequence.o \
 	obj/sha256.o \

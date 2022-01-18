@@ -61,6 +61,9 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 
 	let File := Categories[Category, write_category]
 	let Title := string::buffer()
+	if Method0 = "\"<<\"" then
+		print(Kind, " ", Method0, " ", Params, " ", Return, "\n")
+	end
 	let Variadic := Kind = "ML_METHODV" or Kind = "ML_METHODVX"
 	var Terminator := ""
 	var Skip := 1
@@ -97,6 +100,9 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 			Title:write('{Method}()')
 		elseif Params:length = 1 and not Variadic then
 			Title:write('{Method}({Params[1][1]}: {type_name(Params[1][2])})')
+		elseif Params[1][2] = "MLNamesT" then
+			Title:write('{Method}({Params[1][1]}₁ is Value₁, ')
+			Terminator := ")"
 		else
 			Title:write('{Method}({Params[1][1]}: {type_name(Params[1][2])}, ')
 			Terminator := ")"
@@ -109,6 +115,9 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 			Title:write('{Method}()')
 		elseif Params:length = 1 and not Variadic then
 			Title:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}')
+		elseif Params[1][2] = "MLNamesT" then
+			Title:write('{Method}({Params[1][1]}₁ is Value₁,')
+			Terminator := ")"
 		else
 			Title:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}(')
 			Terminator := ")"
@@ -116,7 +125,11 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 	end
 	var Seperator := ""
 	for Param in Params skip Skip do
-		Title:write(Seperator, Param[1], ": ", type_name(Param[2]))
+		if Param[2] = "MLNamesT" then
+			Title:write(Seperator, '{Param[1]}₁ is Value₁')
+		else
+			Title:write(Seperator, '{Param[1]}: {type_name(Param[2])}')
+		end
 		Seperator := ", "
 	end
 	if Variadic then
@@ -382,6 +395,59 @@ fun process(FileName) do
 			elseif Line % r"^ML_FUNCTION" then
 				let Location := (FileName, LineNo)
 				let I := Line:find("("), J := Line:find(")")
+				let Kind := Line[1, I]
+				var Name := Line[I + 1, J]:lower
+				var Category := DefaultCategory
+				let Params := []
+				var Return := []
+				let Description := []
+				loop
+					let Line := while File:read
+					LineNo := old + 1
+					if Line % r"^/[/*]@" then
+						Name := Line[4, 0]:trim
+					elseif Line % r"^/[/*]<" then
+						if let J := Line:find(":", 4) then
+							let K := Line:find(" ", J + 2) or 0
+							Params:put([
+								Line[4, J]:trim:replace(Subscripts),
+								Line[J + 1, K]:trim,
+								Line[K, 0]:trim
+							])
+						else
+							let J := Line:find(" ", 4) or 0
+							Params:put([
+								Line[4, J]:trim:replace(Subscripts),
+								"MLAnyT",
+								Line[J, 0]:trim
+							])
+						end
+					elseif Line % r"^/[/*]>" then
+						Return := list(Line[4, 0] / "|", :trim, :replace(_, Subscripts))
+					elseif Line % r"^/[/*]!" then
+						Category := Line[4, 0]:trim
+					elseif Line % r"^/[/*] " then
+						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif let Match := Line % r"ML_CHECK(X?)_ARG_COUNT\(([0-9]+)\)" then
+						let Count := integer(Match[3])
+						for I in (Params:length + 1) .. Count do
+							Params:put(['Arg/{I}':replace(Subscripts), "any", ""])
+						end
+					elseif let Match := Line % r"ML_CHECK(X?)_ARG_TYPE\(([0-9]+), (\w+)\)" then
+						let Index := integer(Match[3]) + 1
+						Params[Index][2] := type_name(Match[4])
+					else
+						exit
+					end
+				end
+				if CurrentDefine then
+					CurrentDefine:put(write_function, [Category, Kind, Name, Params, Return, Description, Location])
+				else
+					write_function(Category, Kind, Name, Params, Return, Description, Location)
+				end
+			elseif Line % r"^ML_CFUNCTION" then
+				let Location := (FileName, LineNo)
+				let I := Line:find("("), J := Line:find(",")
 				let Kind := Line[1, I]
 				var Name := Line[I + 1, J]:lower
 				var Category := DefaultCategory

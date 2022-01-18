@@ -1,35 +1,45 @@
 math
 ====
 
-:mini:`meth (Arg₁: real) % (Arg₂: real)`
-   *TBD*
+:mini:`meth (X: real) % (Y: real): real`
+   Returns the remainder of :mini:`X` on division by :mini:`Y`.
 
-:mini:`meth (Arg₁: integer) ^ (Arg₂: integer)`
-   *TBD*
 
-:mini:`meth (Arg₁: real) ^ (Arg₂: integer)`
-   *TBD*
+:mini:`meth (X: integer) ^ (Y: integer): number`
+   Returns :mini:`X` raised to the power of :mini:`Y`.
 
-:mini:`meth (Arg₁: real) ^ (Arg₂: real)`
-   *TBD*
 
-:mini:`meth (Arg₁: complex) ^ (Arg₂: integer)`
-   *TBD*
+:mini:`meth (X: real) ^ (Y: integer): number`
+   Returns :mini:`X` raised to the power of :mini:`Y`.
 
-:mini:`meth (Arg₁: complex) ^ (Arg₂: number)`
-   *TBD*
 
-:mini:`meth (Arg₁: number) ^ (Arg₂: complex)`
-   *TBD*
+:mini:`meth (X: real) ^ (Y: real): number`
+   Returns :mini:`X` raised to the power of :mini:`Y`.
 
-:mini:`meth !(Arg₁: integer)`
-   *TBD*
 
-:mini:`meth (Arg₁: integer) ! (Arg₂: integer)`
-   *TBD*
+:mini:`meth (X: complex) ^ (Y: integer): number`
+   Returns :mini:`X` raised to the power of :mini:`Y`.
 
-:mini:`meth (Arg₁: integer):GCDMethod(Arg₂: integer)`
-   *TBD*
+
+:mini:`meth (X: complex) ^ (Y: number): number`
+   Returns :mini:`X` raised to the power of :mini:`Y`.
+
+
+:mini:`meth (X: number) ^ (Y: complex): number`
+   Returns :mini:`X` raised to the power of :mini:`Y`.
+
+
+:mini:`meth !(N: integer): integer`
+   Returns the factorial of :mini:`N`.
+
+
+:mini:`meth (N: integer) ! (R: integer): integer`
+   Returns the number of ways of choosing :mini:`R` elements from :mini:`N`.
+
+
+:mini:`meth (A: integer):gcd(B: integer): integer`
+   Returns the greatest common divisor of :mini:`A` and :mini:`B`.
+
 
 :mini:`meth math::acos(Arg₁: real): real`
    Returns :mini:`acos(Arg₁)`.
@@ -91,15 +101,17 @@ math
    Returns :mini:`fabs(Arg₁)`.
 
 
-:mini:`meth (Arg₁: integer):AbsMethod`
-   *TBD*
+:mini:`meth (N: integer):abs: integer`
+   Returns the absolute value of :mini:`N`.
+
 
 :mini:`meth math::floor(Arg₁: real): real`
    Returns :mini:`floor(Arg₁)`.
 
 
-:mini:`meth (Arg₁: integer):FloorMethod`
-   *TBD*
+:mini:`meth (N: integer):floor: integer`
+   Returns the floor of :mini:`N` (:mini:`= N` for an integer).
+
 
 :mini:`meth math::log(Arg₁: real): real`
    Returns :mini:`log(Arg₁)`.
@@ -221,20 +233,25 @@ math
    Returns :mini:`round(Arg₁)`.
 
 
-:mini:`meth (Arg₁: real):ArgMethod`
-   *TBD*
+:mini:`meth (R: real):arg: real`
+   Returns the complex argument of :mini:`R` (:mini:`= 0` for a real number).
 
-:mini:`meth (Arg₁: real):ConjMethod`
-   *TBD*
 
-:mini:`meth (Arg₁: complex):AbsMethod`
-   *TBD*
+:mini:`meth (R: real):conj: real`
+   Returns the complex conjugate of :mini:`R` (:mini:`= R` for a real number).
 
-:mini:`meth (Arg₁: complex):ArgMethod`
-   *TBD*
 
-:mini:`meth (Arg₁: complex):ConjMethod`
-   *TBD*
+:mini:`meth (Z: complex):abs: real`
+   Returns the absolute value (magnitude) of :mini:`Z`.
+
+
+:mini:`meth (Z: complex):arg: real`
+   Returns the complex argument of :mini:`Z`.
+
+
+:mini:`meth (Z: complex):conj: real`
+   Returns the complex conjugate of :mini:`Z`.
+
 
 :mini:`fun integer::random(Min?: number, Max?: number): integer`
    Returns a random integer between :mini:`Min` and :mini:`Max` (where :mini:`Max <= 2³² - 1`.
@@ -242,11 +259,13 @@ math
    If omitted,  :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`2³² - 1`.
 
 
-:mini:`fun integer::random_permutation(Max: integer)`
-   *TBD*
+:mini:`fun integer::random_permutation(Max: integer): list`
+   Returns a random permutation of :mini:`1,  ...,  Max`.
 
-:mini:`fun integer::random_cycle(Max: integer)`
-   *TBD*
+
+:mini:`fun integer::random_cycle(Max: integer): list`
+   Returns a random cyclic permutation (no sub-cycles) of :mini:`1,  ...,  Max`.
+
 
 :mini:`fun real::random(Min?: number, Max?: number): real`
    Returns a random real between :mini:`Min` and :mini:`Max`.

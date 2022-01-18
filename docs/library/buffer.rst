@@ -27,10 +27,10 @@ buffer
 :mini:`meth (Buffer: buffer):put64(Value: integer): buffer`
    *TBD*
 
-:mini:`meth (Buffer: buffer):putf32(Value: real): buffer`
+:mini:`meth (Buffer: buffer):put32f(Value: real): buffer`
    *TBD*
 
-:mini:`meth (Buffer: buffer):putf64(Value: real): buffer`
+:mini:`meth (Buffer: buffer):put64f(Value: real): buffer`
    *TBD*
 
 :mini:`meth (Buffer: buffer):put(Value: address): buffer`

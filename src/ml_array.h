@@ -25,6 +25,8 @@ typedef enum {
 	ML_ARRAY_FORMAT_ANY
 } ml_array_format_t;
 
+#define MAX_FORMATS 16
+
 extern size_t MLArraySizes[];
 
 typedef struct {

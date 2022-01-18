@@ -12,6 +12,7 @@ CFLAGS := old + [
 	"-Wno-deprecated-declarations",
 	"-Wno-unused-function",
 	"-Werror=cast-function-type",
+	"-Werror=format-security",
 	:>"-Wsuggest-attribute=pure",
 	:>"-Wsuggest-attribute=const",
 	:>"-Wsuggest-attribute=noreturn",
@@ -130,7 +131,7 @@ if MINILANG_STATICGC or defined("STATICGC") then
 			"--prefix" is PATH,
 			"--enable-static",
 			"--disable-shared",
-			"--disable-parallel-mark",
+			:>"--disable-parallel-mark",
 			"--enable-threads=pthreads",
 			"--enable-mmap",
 			:>"--enable-redirect-malloc",
@@ -147,7 +148,7 @@ end
 if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_TABLES := 1
 	MINILANG_MATH := 1
-	MINILANG_COMPLEX := 1
+	MINILANG_COMPLEX := not defined("NOCOMPLEX")
 	:>MINILANG_GIR := 1
 	MINILANG_CBOR := 1
 	MINILANG_JSON := 1
@@ -240,7 +241,8 @@ if MINILANG_MATH then
 		file("array/compare_lt.o"),
 		file("array/compare_gt.o"),
 		file("array/compare_le.o"),
-		file("array/compare_ge.o")
+		file("array/compare_ge.o"),
+		file("array/compare_cmp.o")
 	)
 	CFLAGS := old + ["-DML_MATH"]
 	InstallHeaders:put("ml_array.h")
@@ -266,7 +268,7 @@ if MINILANG_CBOR then
 	let Dir := PATH/"minicbor"
 	Dir:exists or execute("git clone -b dev https://github.com/rajamukherji/minicbor.git", Dir)
 	CFLAGS := old + [
-		'-DMINICBOR_PREFIX=ml_cbor_',
+		:>'-DMINICBOR_PREFIX=ml_cbor_',
 		'-DMINICBOR_READ_FN_PREFIX=ml_cbor_read_',
 		'-DMINICBOR_READDATA_TYPE=\"struct ml_cbor_reader_t *\"',
 		 "-DML_CBOR"

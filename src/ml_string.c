@@ -126,6 +126,42 @@ ML_METHOD("get64", MLAddressT) {
 	return ml_integer(*(int64_t *)Address->Value);
 }
 
+ML_METHOD("getu8", MLAddressT) {
+//!address
+//<Address
+//>integer
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	if (Address->Length < 1) return ml_error("ValueError", "Buffer too small");
+	return ml_integer(*(uint8_t *)Address->Value);
+}
+
+ML_METHOD("getu16", MLAddressT) {
+//!address
+//<Address
+//>integer
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	if (Address->Length < 2) return ml_error("ValueError", "Buffer too small");
+	return ml_integer(*(uint16_t *)Address->Value);
+}
+
+ML_METHOD("getu32", MLAddressT) {
+//!address
+//<Address
+//>integer
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	if (Address->Length < 4) return ml_error("ValueError", "Buffer too small");
+	return ml_integer(*(uint32_t *)Address->Value);
+}
+
+ML_METHOD("getu64", MLAddressT) {
+//!address
+//<Address
+//>integer
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	if (Address->Length < 8) return ml_error("ValueError", "Buffer too small");
+	return ml_integer(*(uint64_t *)Address->Value);
+}
+
 ML_METHOD("getf32", MLAddressT) {
 //!address
 //<Address
@@ -276,7 +312,7 @@ ML_METHOD("put64", MLBufferT, MLIntegerT) {
 	return Args[0];
 }
 
-ML_METHOD("putf32", MLBufferT, MLRealT) {
+ML_METHOD("put32f", MLBufferT, MLRealT) {
 //!buffer
 //<Buffer
 //<Value
@@ -287,7 +323,7 @@ ML_METHOD("putf32", MLBufferT, MLRealT) {
 	return Args[0];
 }
 
-ML_METHOD("putf64", MLBufferT, MLRealT) {
+ML_METHOD("put64f", MLBufferT, MLRealT) {
 //!buffer
 //<Buffer
 //<Value
@@ -323,6 +359,7 @@ static long ml_string_hash(ml_string_t *String, ml_hash_chain_t *Chain) {
 static ML_METHOD_DECL(AppendMethod, "append");
 
 ML_FUNCTION(MLString) {
+//@string
 //<Value:any
 //>string
 // Returns a general (type name only) representation of :mini:`Value` as a string.
@@ -467,10 +504,10 @@ ML_METHOD("append", MLStringBufferT, MLRealRangeT) {
 	return MLSome;
 }
 
-ML_METHOD("ord", MLStringT) {
+ML_METHOD("code", MLStringT) {
 //<String
 //>integer
-// Returns the unicode codepoint of the first character of :mini:`String`.
+// Returns the unicode codepoint of the first UTF-8 character of :mini:`String`.
 	const char *S = ml_string_value(Args[0]);
 	uint32_t K = S[0] ? __builtin_clz(~(S[0] << 24)) : 0;
 	uint32_t Mask = (1 << (8 - K)) - 1;
@@ -482,10 +519,10 @@ ML_METHOD("ord", MLStringT) {
 	return ml_integer(Value);
 }
 
-ML_METHOD("chr", MLIntegerT) {
+ML_METHOD("utf8", MLIntegerT) {
 //<Codepoint
 //>string
-// Returns a string containing the character with unicode codepoint :mini:`Codepoint`.
+// Returns a UTF-8 string containing the character with unicode codepoint :mini:`Codepoint`.
 	uint32_t Code = ml_integer_value(Args[0]);
 	char Val[8];
 	uint32_t LeadByteMax = 0x7F;
@@ -500,6 +537,30 @@ ML_METHOD("chr", MLIntegerT) {
 	while (I--) *P++ = Val[I];
 	*P = 0;
 	return ml_string(S, I);
+}
+
+static struct ml_string_t MLChars[256];
+
+ml_value_t *ml_char(char Char) {
+	return (ml_value_t *)&MLChars[(unsigned char)Char];
+}
+
+ML_METHOD("chr", MLIntegerT) {
+//<Char
+//>string
+// Returns a string containing the single byte :mini:`Char`.
+	int Code = ml_integer_value(Args[0]);
+	if (Code < 0) Code = 128 - Code;
+	if (Code < 0 || Code > 255) return ml_error("RangeError", "Invalid byte");
+	return (ml_value_t *)&MLChars[Code];
+}
+
+ML_METHOD("ord", MLStringT) {
+//<String
+//>integer
+// Returns the first byte of :mini:`String`.
+	const unsigned char *S = (const unsigned char *)ml_string_value(Args[0]);
+	return ml_integer(S[0]);
 }
 
 ML_METHOD("append", MLStringBufferT, MLDoubleT) {
@@ -535,9 +596,9 @@ ML_METHOD("append", MLStringBufferT, MLComplexT) {
 	double Imag = cimag(Complex);
 	if (fabs(Real) <= DBL_EPSILON) {
 		if (fabs(Imag - 1) <= DBL_EPSILON) {
-			ml_stringbuffer_write(Buffer, "i", 1);
+			ml_stringbuffer_put(Buffer, 'i');
 		} else if (fabs(Imag) <= DBL_EPSILON) {
-			ml_stringbuffer_write(Buffer, "0", 1);
+			ml_stringbuffer_put(Buffer, '0');
 		} else {
 			ml_stringbuffer_printf(Buffer, "%gi", Imag);
 		}
@@ -571,11 +632,11 @@ ML_METHOD("append", MLStringBufferT, MLComplexT, MLStringT) {
 	if (Imag < 0) {
 		Imag = -Imag;
 		ml_stringbuffer_printf(Buffer, Format, Real);
-		ml_stringbuffer_write(Buffer, "-", 1);
+		ml_stringbuffer_put(Buffer, '-');
 		ml_stringbuffer_printf(Buffer, Format, Imag);
 	} else {
 		ml_stringbuffer_printf(Buffer, Format, Real);
-		ml_stringbuffer_write(Buffer, "+", 1);
+		ml_stringbuffer_put(Buffer, '+');
 		ml_stringbuffer_printf(Buffer, Format, Imag);
 	}
 	return MLSome;
@@ -1102,6 +1163,7 @@ ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, siz
 }
 
 ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ...) {
+#ifdef Linux
 	static cookie_io_functions_t CookieFns = {0,
 		.write = (cookie_write_function_t *)ml_stringbuffer_write
 	};
@@ -1109,11 +1171,48 @@ ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ..
 		Buffer->File = fopencookie(Buffer, "w", CookieFns);
 		setvbuf(Buffer->File, NULL, _IONBF, 0);
 	}
+#else
+	if (!Buffer->File) {
+		Buffer->File = fwopen(Buffer, (void *)ml_stringbuffer_write);
+		setvbuf(Buffer->File, NULL, _IONBF, 0);
+	}
+#endif
 	va_list Args;
 	va_start(Args, Format);
 	size_t Length = vfprintf(Buffer->File, Format, Args);
 	va_end(Args);
 	return Length;
+}
+
+void ml_stringbuffer_put(ml_stringbuffer_t *Buffer, char Char) {
+	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
+	if (!Buffer->Space) {
+#ifdef ML_THREADSAFE
+		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
+		do {
+			if (!Next) {
+				Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+				break;
+			}
+			CacheNext = Next->Next;
+		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &Next, CacheNext));
+#else
+		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
+		if (!Next) {
+			Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+		} else {
+			StringBufferNodeCache = Next->Next;
+		}
+#endif
+		Next->Next = NULL;
+		Node->Next = Next;
+		Node = Next;
+		Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
+	}
+	Node->Chars[ML_STRINGBUFFER_NODE_SIZE - Buffer->Space] = Char;
+	Buffer->Space -= 1;
+	Buffer->Length += 1;
+	Buffer->Tail = Node;
 }
 
 static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
@@ -1175,6 +1274,11 @@ ml_value_t *ml_stringbuffer_get_value(ml_stringbuffer_t *Buffer) {
 ML_METHOD("get", MLStringBufferT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	return ml_stringbuffer_get_value(Buffer);
+}
+
+ML_METHOD("length", MLStringBufferT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	return ml_integer(Buffer->Length);
 }
 
 int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t)) {
@@ -1293,7 +1397,7 @@ ML_METHOD("[]", MLStringT, MLIntegerT) {
 	if (Index <= 0) Index += Length + 1;
 	if (Index <= 0) return MLNil;
 	if (Index > Length) return MLNil;
-	return ml_string(Chars + (Index - 1), 1);
+	return ml_char(Chars[Index - 1]);
 }
 
 ML_METHOD("[]", MLStringT, MLIntegerT, MLIntegerT) {
@@ -2442,6 +2546,18 @@ ML_METHOD("append", MLStringBufferT, MLRegexT) {
 }
 
 void ml_string_init() {
+	unsigned char *Chars = (unsigned char *)snew(256 * 2);
+	for (int I = 0; I < 256; ++I) {
+		Chars[0] = (unsigned char)I;
+		Chars[1] = 0;
+		MLChars[I].Type = MLStringT;
+		MLChars[I].Value = (char *)Chars;
+		MLChars[I].Length = 1;
+		long Hash = 5381;
+		Hash = ((Hash << 5) + Hash) + I;
+		MLChars[I].Hash = Hash;
+		Chars += 2;
+	}
 	GC_word StringBufferLayout[] = {1};
 	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
 	stringmap_insert(MLStringT->Exports, "buffer", MLStringBufferT);

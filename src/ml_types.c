@@ -67,7 +67,7 @@ int ml_function_source(ml_value_t *Value, const char **Source, int *Line) {
 	return 0;
 }
 
-ML_FUNCTION(MLTypeOf) {
+ML_FUNCTION(MLType) {
 //!type
 //@type
 //<Value
@@ -91,7 +91,7 @@ ML_TYPE(MLTypeT, (MLFunctionT), "type",
 // Every type contains a set of named exports, which allows them to be used as modules.
 	.hash = (void *)ml_type_hash,
 	.call = (void *)ml_type_call,
-	.Constructor = (ml_value_t *)MLTypeOf
+	.Constructor = (ml_value_t *)MLType
 );
 
 ML_METHOD("rank", MLTypeT) {
@@ -247,6 +247,9 @@ void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent) {
 		if (Parent2) ml_type_add_parent(Type, Parent2);
 	}
 	if (Type->Rank <= Parent->Rank) Type->Rank = Parent->Rank + 1;
+#ifdef ML_GENERICS
+	if (Parent->Type == MLTypeGenericT) ml_type_add_parent(Type, ml_generic_type_args(Parent)[0]);
+#endif
 }
 
 #ifdef ML_THREADSAFE
@@ -391,8 +394,9 @@ static volatile atomic_flag MLGenericsLock[1] = {ATOMIC_FLAG_INIT};
 
 #endif
 
+static inthash_t GenericTypeCache[1] = {INTHASH_INIT};
+
 ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
-	static inthash_t GenericTypeCache[1] = {INTHASH_INIT};
 	uintptr_t Hash = (uintptr_t)3541;
 	for (int I = NumArgs; --I >= 0;) Hash = rotl(Hash, 1) ^ (uintptr_t)Args[I];
 	ML_GENERICS_LOCK();
@@ -413,13 +417,13 @@ ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
 	if (NumArgs > 1) {
 		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 		ml_stringbuffer_write(Buffer, Base->Name, strlen(Base->Name));
-		ml_stringbuffer_write(Buffer, "[", 1);
+		ml_stringbuffer_put(Buffer, '[');
 		ml_stringbuffer_write(Buffer, Args[1]->Name, strlen(Args[1]->Name));
 		for (int I = 2; I < NumArgs; ++I) {
-			ml_stringbuffer_write(Buffer, ",", 1);
+			ml_stringbuffer_put(Buffer, ',');
 			ml_stringbuffer_write(Buffer, Args[I]->Name, strlen(Args[I]->Name));
 		}
-		ml_stringbuffer_write(Buffer, "]", 1);
+		ml_stringbuffer_put(Buffer, ']');
 		Name = ml_stringbuffer_get_string(Buffer);
 	}
 	Type->Base.Type = MLTypeGenericT;
@@ -484,6 +488,44 @@ ML_VALUE(MLSome, MLSomeT);
 ML_VALUE(MLBlank, MLBlankT);
 
 #ifdef ML_GENERICS
+
+int ml_find_generic_parent0(int TNumArgs, ml_type_t **TArgs, ml_type_t *U, int Max, ml_type_t **Args) {
+	if (TArgs[0] == U) {
+		if (Max > TNumArgs) Max = TNumArgs;
+		for (int I = 0; I < Max; ++I) Args[I] = TArgs[I];
+		return Max;
+	}
+	for (ml_generic_rule_t *Rule = TArgs[0]->Rules; Rule; Rule = Rule->Next) {
+		int TNumArgs2 = Rule->NumArgs;
+		ml_type_t *TArgs2[TNumArgs2];
+		ml_generic_fill(Rule, TArgs2, TNumArgs, TArgs);
+		int Find = ml_find_generic_parent0(TNumArgs2, TArgs2, U, Max, Args);
+		if (Find >= 0) return Find;
+	}
+	return -1;
+}
+
+int ml_find_generic_parent(ml_type_t *T, ml_type_t *U, int Max, ml_type_t **Args) {
+	if (T->Type == MLTypeGenericT) {
+		ml_generic_type_t *GenericT = (ml_generic_type_t *)T;
+		return ml_find_generic_parent0(GenericT->NumArgs, GenericT->Args, U, Max, Args);
+	} else {
+		int Find = ml_find_generic_parent0(1, &T, U, Max, Args);
+		if (Find >= 0) return Find;
+		for (int I = 0; I < T->Parents->Size; ++I) {
+			ml_type_t *Parent = (ml_type_t *)T->Parents->Keys[I];
+			int Rank = 0;
+			if (Parent && (Parent->Rank > Rank)) {
+				int Find2 = ml_find_generic_parent(Parent, U, Max, Args);
+				if (Find2 >= 0) {
+					Rank = Parent->Rank;
+					Find = Find2;
+				}
+			}
+		}
+		return Find;
+	}
+}
 
 static int ml_is_generic_subtype(int TNumArgs, ml_type_t **TArgs, int UNumArgs, ml_type_t **UArgs) {
 	if (TArgs[0] == UArgs[0]) {
@@ -909,46 +951,43 @@ void ml_value_set_name(ml_value_t *Value, const char *Name) {
 	if (function) function(Value, Name);
 }
 
+void ml_value_find_refs(ml_value_t *Value, void *Data, ml_value_ref_fn CycleFn) {
+	typeof(ml_value_find_refs) *function = ml_typed_fn_get(ml_typeof(Value), ml_value_find_refs);
+	if (function) function(Value, Data, CycleFn);
+}
+
 // Iterators //
 
 void ml_iterate(ml_state_t *Caller, ml_value_t *Value) {
 	typeof(ml_iterate) *function = ml_typed_fn_get(ml_typeof(Value), ml_iterate);
-	if (!function) {
-		ml_value_t **Args = ml_alloc_args(1);
-		Args[0] = Value;
-		return ml_call(Caller, IterateMethod, 1, Args);
-	}
-	return function(Caller, Value);
+	if (function) return function(Caller, Value);
+	ml_value_t **Args = ml_alloc_args(1);
+	Args[0] = Value;
+	return ml_call(Caller, IterateMethod, 1, Args);
 }
 
 void ml_iter_value(ml_state_t *Caller, ml_value_t *Iter) {
 	typeof(ml_iter_value) *function = ml_typed_fn_get(ml_typeof(Iter), ml_iter_value);
-	if (!function) {
-		ml_value_t **Args = ml_alloc_args(1);
-		Args[0] = Iter;
-		return ml_call(Caller, ValueMethod, 1, Args);
-	}
-	return function(Caller, Iter);
+	if (function) return function(Caller, Iter);
+	ml_value_t **Args = ml_alloc_args(1);
+	Args[0] = Iter;
+	return ml_call(Caller, ValueMethod, 1, Args);
 }
 
 void ml_iter_key(ml_state_t *Caller, ml_value_t *Iter) {
 	typeof(ml_iter_key) *function = ml_typed_fn_get(ml_typeof(Iter), ml_iter_key);
-	if (!function) {
-		ml_value_t **Args = ml_alloc_args(1);
-		Args[0] = Iter;
-		return ml_call(Caller, KeyMethod, 1, Args);
-	}
-	return function(Caller, Iter);
+	if (function) return function(Caller, Iter);
+	ml_value_t **Args = ml_alloc_args(1);
+	Args[0] = Iter;
+	return ml_call(Caller, KeyMethod, 1, Args);
 }
 
 void ml_iter_next(ml_state_t *Caller, ml_value_t *Iter) {
 	typeof(ml_iter_next) *function = ml_typed_fn_get(ml_typeof(Iter), ml_iter_next);
-	if (!function) {
-		ml_value_t **Args = ml_alloc_args(1);
-		Args[0] = Iter;
-		return ml_call(Caller, NextMethod, 1, Args);
-	}
-	return function(Caller, Iter);
+	if (function) return function(Caller, Iter);
+	ml_value_t **Args = ml_alloc_args(1);
+	Args[0] = Iter;
+	return ml_call(Caller, NextMethod, 1, Args);
 }
 
 // Functions //
@@ -1551,7 +1590,7 @@ ML_METHOD("append", MLStringBufferT, MLTupleT) {
 //!tuple
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_tuple_t *Value = (ml_tuple_t *)Args[1];
-	ml_stringbuffer_write(Buffer, "(", 1);
+	ml_stringbuffer_put(Buffer, '(');
 	if (Value->Size) {
 		ml_stringbuffer_simple_append(Buffer, Value->Values[0]);
 		for (int I = 1; I < Value->Size; ++I) {
@@ -1559,7 +1598,7 @@ ML_METHOD("append", MLStringBufferT, MLTupleT) {
 			ml_stringbuffer_simple_append(Buffer, Value->Values[I]);
 		}
 	}
-	ml_stringbuffer_write(Buffer, ")", 1);
+	ml_stringbuffer_put(Buffer, ')');
 	return MLSome;
 }
 
@@ -1822,6 +1861,10 @@ complex double ml_complex_value(const ml_value_t *Value) {
 
 #define ml_arith_method_complex(NAME, SYMBOL) \
 ML_METHOD(NAME, MLComplexT) { \
+/*<A
+//>complex
+// Returns :mini:`SYMBOLA`.
+*/\
 	complex double ComplexA = ml_complex_value_fast(Args[0]); \
 	complex double ComplexB = SYMBOL(ComplexA); \
 	if (fabs(cimag(ComplexB)) <= DBL_EPSILON) { \
@@ -1833,6 +1876,11 @@ ML_METHOD(NAME, MLComplexT) { \
 
 #define ml_arith_method_complex_complex(NAME, SYMBOL) \
 ML_METHOD(NAME, MLComplexT, MLComplexT) { \
+/*<A
+//<B
+//>real
+// complex :mini:`A SYMBOL B`.
+*/\
 	complex double ComplexA = ml_complex_value_fast(Args[0]); \
 	complex double ComplexB = ml_complex_value_fast(Args[1]); \
 	complex double ComplexC = ComplexA SYMBOL ComplexB; \
@@ -1845,6 +1893,11 @@ ML_METHOD(NAME, MLComplexT, MLComplexT) { \
 
 #define ml_arith_method_complex_integer(NAME, SYMBOL) \
 ML_METHOD(NAME, MLComplexT, MLIntegerT) { \
+/*<A
+//<B
+//>complex
+// Returns :mini:`A SYMBOL B`.
+*/\
 	complex double ComplexA = ml_complex_value_fast(Args[0]); \
 	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
 	complex double ComplexC = ComplexA SYMBOL IntegerB; \
@@ -1857,6 +1910,11 @@ ML_METHOD(NAME, MLComplexT, MLIntegerT) { \
 
 #define ml_arith_method_integer_complex(NAME, SYMBOL) \
 ML_METHOD(NAME, MLIntegerT, MLComplexT) { \
+/*<A
+//<B
+//>complex
+// Returns :mini:`A SYMBOL B`.
+*/\
 	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
 	complex double ComplexB = ml_complex_value_fast(Args[1]); \
 	complex double ComplexC = IntegerA SYMBOL ComplexB; \
@@ -1869,6 +1927,11 @@ ML_METHOD(NAME, MLIntegerT, MLComplexT) { \
 
 #define ml_arith_method_complex_real(NAME, SYMBOL) \
 ML_METHOD(NAME, MLComplexT, MLDoubleT) { \
+/*<A
+//<B
+//>complex
+// Returns :mini:`A SYMBOL B`.
+*/\
 	complex double ComplexA = ml_complex_value_fast(Args[0]); \
 	double RealB = ml_double_value_fast(Args[1]); \
 	complex double ComplexC = ComplexA SYMBOL RealB; \
@@ -1881,6 +1944,11 @@ ML_METHOD(NAME, MLComplexT, MLDoubleT) { \
 
 #define ml_arith_method_real_complex(NAME, SYMBOL) \
 ML_METHOD(NAME, MLDoubleT, MLComplexT) { \
+/*<A
+//<B
+//>complex
+// Returns :mini:`A SYMBOL B`.
+*/\
 	double RealA = ml_double_value_fast(Args[0]); \
 	complex double ComplexB = ml_complex_value_fast(Args[1]); \
 	complex double ComplexC = RealA SYMBOL ComplexB; \
@@ -2121,12 +2189,21 @@ ML_METHOD(MLDoubleT, MLIntegerT) {
 
 #define ml_arith_method_integer(NAME, SYMBOL) \
 ML_METHOD(NAME, MLIntegerT) { \
+/*<A
+//>integer
+// Returns :mini:`SYMBOLA`.
+*/\
 	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
 	return ml_integer(SYMBOL(IntegerA)); \
 }
 
 #define ml_arith_method_integer_integer(NAME, SYMBOL) \
 ML_METHOD(NAME, MLIntegerT, MLIntegerT) { \
+/*<A
+//<B
+//>integer
+// Returns :mini:`A SYMBOL B`.
+*/\
 	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
 	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
 	return ml_integer(IntegerA SYMBOL IntegerB); \
@@ -2134,12 +2211,21 @@ ML_METHOD(NAME, MLIntegerT, MLIntegerT) { \
 
 #define ml_arith_method_real(NAME, SYMBOL) \
 ML_METHOD(NAME, MLDoubleT) { \
+/*<A
+//>real
+// Returns :mini:`SYMBOLA`.
+*/\
 	double RealA = ml_double_value_fast(Args[0]); \
 	return ml_real(SYMBOL(RealA)); \
 }
 
 #define ml_arith_method_real_real(NAME, SYMBOL) \
 ML_METHOD(NAME, MLDoubleT, MLDoubleT) { \
+/*<A
+//<B
+//>real
+// Returns :mini:`A SYMBOL B`.
+*/\
 	double RealA = ml_double_value_fast(Args[0]); \
 	double RealB = ml_double_value_fast(Args[1]); \
 	return ml_real(RealA SYMBOL RealB); \
@@ -2147,6 +2233,11 @@ ML_METHOD(NAME, MLDoubleT, MLDoubleT) { \
 
 #define ml_arith_method_real_integer(NAME, SYMBOL) \
 ML_METHOD(NAME, MLDoubleT, MLIntegerT) { \
+/*<A
+//<B
+//>real
+// Returns :mini:`A SYMBOL B`.
+*/\
 	double RealA = ml_double_value_fast(Args[0]); \
 	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
 	return ml_real(RealA SYMBOL IntegerB); \
@@ -2154,6 +2245,11 @@ ML_METHOD(NAME, MLDoubleT, MLIntegerT) { \
 
 #define ml_arith_method_integer_real(NAME, SYMBOL) \
 ML_METHOD(NAME, MLIntegerT, MLDoubleT) { \
+/*<A
+//<B
+//>real
+// Returns :mini:`A SYMBOL B`.
+*/\
 	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
 	double RealB = ml_double_value_fast(Args[1]); \
 	return ml_real(IntegerA SYMBOL RealB); \
@@ -2201,6 +2297,10 @@ ml_arith_method_integer_integer("\\/", |);
 ml_arith_method_integer_integer("><", ^);
 
 ML_METHOD("<<", MLIntegerT, MLIntegerT) {
+//<A
+//<B
+//>integer
+// Returns :mini:`A << B`.
 	int64_t IntegerA = ml_integer_value_fast(Args[0]);
 	int64_t IntegerB = ml_integer_value_fast(Args[1]);
 	int64_t IntegerC;
@@ -2219,6 +2319,10 @@ ML_METHOD("<<", MLIntegerT, MLIntegerT) {
 }
 
 ML_METHOD(">>", MLIntegerT, MLIntegerT) {
+//<A
+//<B
+//>integer
+// Returns :mini:`A >> B`.
 	int64_t IntegerA = ml_integer_value_fast(Args[0]);
 	int64_t IntegerB = ml_integer_value_fast(Args[1]);
 	int64_t IntegerC;
@@ -2375,6 +2479,11 @@ ML_METHOD("mod", MLIntegerT, MLIntegerT) {
 
 #define ml_comp_method_integer_integer(NAME, SYMBOL) \
 ML_METHOD(NAME, MLIntegerT, MLIntegerT) { \
+/*<A
+//<B
+//>integer
+// Returns :mini:`B` if :mini:`A SYMBOL B`, otherwise returns :mini:`nil`.
+*/\
 	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
 	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
 	return IntegerA SYMBOL IntegerB ? Args[1] : MLNil; \
@@ -2382,6 +2491,11 @@ ML_METHOD(NAME, MLIntegerT, MLIntegerT) { \
 
 #define ml_comp_method_real_real(NAME, SYMBOL) \
 ML_METHOD(NAME, MLDoubleT, MLDoubleT) { \
+/*<A
+//<B
+//>real
+// Returns :mini:`B` if :mini:`A SYMBOL B`, otherwise returns :mini:`nil`.
+*/\
 	double RealA = ml_double_value_fast(Args[0]); \
 	double RealB = ml_double_value_fast(Args[1]); \
 	return RealA SYMBOL RealB ? Args[1] : MLNil; \
@@ -2389,6 +2503,11 @@ ML_METHOD(NAME, MLDoubleT, MLDoubleT) { \
 
 #define ml_comp_method_real_integer(NAME, SYMBOL) \
 ML_METHOD(NAME, MLDoubleT, MLIntegerT) { \
+/*<A
+//<B
+//>real
+// Returns :mini:`B` if :mini:`A SYMBOL B`, otherwise returns :mini:`nil`.
+*/\
 	double RealA = ml_double_value_fast(Args[0]); \
 	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
 	return RealA SYMBOL IntegerB ? Args[1] : MLNil; \
@@ -2396,6 +2515,11 @@ ML_METHOD(NAME, MLDoubleT, MLIntegerT) { \
 
 #define ml_comp_method_integer_real(NAME, SYMBOL) \
 ML_METHOD(NAME, MLIntegerT, MLDoubleT) { \
+/*<A
+//<B
+//>real
+// Returns :mini:`B` if :mini:`A SYMBOL B`, otherwise returns :mini:`nil`.
+*/\
 	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
 	double RealB = ml_double_value_fast(Args[1]); \
 	return IntegerA SYMBOL RealB ? Args[1] : MLNil; \
@@ -2539,6 +2663,20 @@ ML_METHOD("..", MLIntegerT, MLIntegerT, MLIntegerT) {
 	return (ml_value_t *)Range;
 }
 
+ML_METHOD("up", MLIntegerT) {
+//!range
+//<Start
+//<Count
+//>integer::range
+// Returns an unlimited range from :mini:`Start`.
+	ml_integer_range_t *Range = new(ml_integer_range_t);
+	Range->Type = MLIntegerRangeT;
+	Range->Start = ml_integer_value_fast(Args[0]);
+	Range->Limit = LONG_MAX;
+	Range->Step = 1;
+	return (ml_value_t *)Range;
+}
+
 ML_METHOD("up", MLIntegerT, MLIntegerT) {
 //!range
 //<Start
@@ -2590,8 +2728,9 @@ ML_METHOD("by", MLIntegerRangeT, MLIntegerT) {
 
 ML_METHOD("count", MLIntegerRangeT) {
 //!range
-//<X
+//<Range
 //>integer
+// Returns the number of values in :mini:`Range`.
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
 	int64_t Diff = Range->Limit - Range->Start;
 	if (!Range->Step) {
@@ -2603,6 +2742,33 @@ ML_METHOD("count", MLIntegerRangeT) {
 	} else {
 		return ml_integer(Diff / Range->Step + 1);
 	}
+}
+
+ML_METHOD("start", MLIntegerRangeT) {
+//!range
+//<Range
+//>integer
+// Returns the start of :mini:`Range`.
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
+	return ml_integer(Range->Start);
+}
+
+ML_METHOD("limit", MLIntegerRangeT) {
+//!range
+//<Range
+//>integer
+// Returns the limit of :mini:`Range`.
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
+	return ml_integer(Range->Limit);
+}
+
+ML_METHOD("step", MLIntegerRangeT) {
+//!range
+//<Range
+//>integer
+// Returns the limit of :mini:`Range`.
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
+	return ml_integer(Range->Step);
 }
 
 ML_METHOD("in", MLIntegerT, MLIntegerRangeT) {
@@ -2841,10 +3007,38 @@ ML_METHOD("bin", MLRealRangeT, MLDoubleT) {
 
 ML_METHOD("count", MLRealRangeT) {
 //!range
-//<X
+//<Range
 //>integer
+// Returns the number of values in :mini:`Range`.
 	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
 	return ml_integer(Range->Count);
+}
+
+ML_METHOD("start", MLRealRangeT) {
+//!range
+//<Range
+//>real
+// Returns the start of :mini:`Range`.
+	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
+	return ml_real(Range->Start);
+}
+
+ML_METHOD("limit", MLRealRangeT) {
+//!range
+//<Range
+//>real
+// Returns the limit of :mini:`Range`.
+	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
+	return ml_real(Range->Limit);
+}
+
+ML_METHOD("step", MLRealRangeT) {
+//!range
+//<Range
+//>real
+// Returns the step of :mini:`Range`.
+	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
+	return ml_real(Range->Step);
 }
 
 ML_METHOD("in", MLIntegerT, MLRealRangeT) {
