@@ -155,6 +155,15 @@ xml
 :mini:`meth (Arg₁: xml::sequence) // (...)`
    *TBD*
 
+:mini:`meth (Arg₁: xml::sequence):contains(Arg₂: string)`
+   *TBD*
+
+:mini:`meth (Arg₁: xml::sequence):contains(Arg₂: regex)`
+   *TBD*
+
+:mini:`meth (Arg₁: xml::sequence):has(Arg₂: function)`
+   *TBD*
+
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: xml::element)`
    *TBD*
 

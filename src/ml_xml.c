@@ -3,6 +3,11 @@
 #include "ml_stream.h"
 #include <string.h>
 #include <expat.h>
+#ifdef ML_TRE
+#include <tre/regex.h>
+#else
+#include <regex.h>
+#endif
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "xml"
@@ -627,6 +632,78 @@ ML_METHODV("//", MLXmlSequenceT) {
 }
 
 #endif
+
+static void ml_xml_contains_text(ml_state_t *Caller, const char *Text, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLXmlT);
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	if (Node->Base.Type == MLXmlTextT) {
+		if (strstr(Node->Base.Value, Text)) ML_RETURN(Node);
+	} else if (Node->Base.Type == MLXmlElementT) {
+		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+		ml_xml_element_text((ml_xml_element_t *)Node, Buffer);
+		const char *Value = ml_stringbuffer_get_string(Buffer);
+		if (strstr(Value, Text)) ML_RETURN(Node);
+	}
+	ML_RETURN(MLNil);
+}
+
+ML_METHOD("contains", MLXmlSequenceT, MLStringT) {
+	ml_value_t *Contains = ml_cfunctionx((void *)ml_string_value(Args[1]), (ml_callbackx_t)ml_xml_contains_text);
+	ml_value_t *Chained = ml_chainedv(3, Args[0], FilterSoloMethod, Contains);
+#ifdef ML_GENERICS
+	Chained->Type = (ml_type_t *)MLXmlChainedT;
+#endif
+	return Chained;
+}
+
+static int regex_test(const char *Subject, regex_t *Regex) {
+	regmatch_t Matches[Regex->re_nsub + 1];
+#ifdef ML_TRE
+	int Length = strlen(Subject);
+	return !regnexec(Regex, Subject, Length, Regex->re_nsub + 1, Matches, 0);
+
+#else
+	return !regexec(Regex, Subject, Regex->re_nsub + 1, Matches, 0);
+#endif
+}
+
+static void ml_xml_contains_regex(ml_state_t *Caller, regex_t *Regex, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLXmlT);
+	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
+	if (Node->Base.Type == MLXmlTextT) {
+		if (regex_test(Node->Base.Value, Regex)) ML_RETURN(Node);
+	} else if (Node->Base.Type == MLXmlElementT) {
+		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+		ml_xml_element_text((ml_xml_element_t *)Node, Buffer);
+		const char *Value = ml_stringbuffer_get_string(Buffer);
+		if (regex_test(Value, Regex)) ML_RETURN(Node);
+	}
+	ML_RETURN(MLNil);
+}
+
+extern regex_t *ml_regex_value(const ml_value_t *Value);
+
+ML_METHOD("contains", MLXmlSequenceT, MLRegexT) {
+	ml_value_t *Contains = ml_cfunctionx(ml_regex_value(Args[1]), (ml_callbackx_t)ml_xml_contains_regex);
+	ml_value_t *Chained = ml_chainedv(3, Args[0], FilterSoloMethod, Contains);
+#ifdef ML_GENERICS
+	Chained->Type = (ml_type_t *)MLXmlChainedT;
+#endif
+	return Chained;
+}
+
+extern ml_cfunctionx_t First[];
+
+ML_METHOD("has", MLXmlSequenceT, MLFunctionT) {
+	ml_value_t *Filter = ml_chainedv(2, Args[1], First);
+	ml_value_t *Chained = ml_chainedv(3, Args[0], FilterSoloMethod, Filter);
+#ifdef ML_GENERICS
+	Chained->Type = (ml_type_t *)MLXmlChainedT;
+#endif
+	return Chained;
+}
 
 static void ml_xml_escape_string(ml_stringbuffer_t *Buffer, const char *String, int Count) {
 	while (--Count >= 0) {
