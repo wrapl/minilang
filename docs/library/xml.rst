@@ -65,10 +65,10 @@ xml
    An XML filter.
 
 
-:mini:`meth xml::filter(Arg₁: names, ...): xml::filter`
+:mini:`meth xml::filter(Arg₁₁ is Value₁, ...): xml::filter`
    *TBD*
 
-:mini:`meth xml::filter(Arg₁: string, Arg₂: names, ...): xml::filter`
+:mini:`meth xml::filter(Arg₁: string, Arg₂₁ is Value₁, ...): xml::filter`
    *TBD*
 
 :mini:`meth /(Xml: xml::element): sequence`
@@ -79,15 +79,17 @@ xml
    Returns a sequence of the children of :mini:`Xml` with tag :mini:`Tag`.
 
 
+:mini:`meth (Xml: xml) / (Attribute₁ is Value₁, ...): sequence`
+   Returns a sequence of the children of :mini:`Xml` with :mini:`Attribute₁ = Value₁`,  etc.
+
+
+:mini:`meth (Xml: xml) / (Tag: string, Attribute₁ is Value₁, ...): sequence`
+   Returns a sequence of the children of :mini:`Xml` with tag :mini:`Tag` and :mini:`Attribute₁ = Value₁`,  etc.
+
+
 :mini:`meth (Xml: xml) / (Fn: function): sequence`
    Returns a sequence of the children of :mini:`Xml` for which :mini:`Fn(Child)` is non-nil.
 
-
-:mini:`meth (Arg₁: xml) / (Arg₂: names)`
-   *TBD*
-
-:mini:`meth (Arg₁: xml) / (Arg₂: string, Arg₃: names)`
-   *TBD*
 
 :mini:`meth >>(Xml: xml::element): sequence`
    Returns a sequence of the next siblings of :mini:`Xml`.
@@ -97,15 +99,17 @@ xml
    Returns a sequence of the next siblings of :mini:`Xml` with tag :mini:`Tag`.
 
 
+:mini:`meth (Xml: xml) >> (Attribute₁ is Value₁, ...): sequence`
+   Returns a sequence of the next siblings of :mini:`Xml` with :mini:`Attribute₁ = Value₁`,  etc.
+
+
+:mini:`meth (Xml: xml) >> (Tag: string, Attribute₁ is Value₁, ...): sequence`
+   Returns a sequence of the next siblings of :mini:`Xml` with tag :mini:`Tag` and :mini:`Attribute₁ = Value₁`,  etc.
+
+
 :mini:`meth (Xml: xml) >> (Fn: function): sequence`
    Returns a sequence of the next siblings of :mini:`Xml` for which :mini:`Fn(Child)` is non-nil.
 
-
-:mini:`meth (Arg₁: xml) >> (Arg₂: names)`
-   *TBD*
-
-:mini:`meth (Arg₁: xml) >> (Arg₂: string, Arg₃: names)`
-   *TBD*
 
 :mini:`meth <<(Xml: xml::element): sequence`
    Returns a sequence of the previous siblings of :mini:`Xml`.
@@ -115,15 +119,17 @@ xml
    Returns a sequence of the previous siblings of :mini:`Xml` with tag :mini:`Tag`.
 
 
+:mini:`meth (Xml: xml) << (Attribute₁ is Value₁, ...): sequence`
+   Returns a sequence of the previous siblings of :mini:`Xml` with :mini:`Attribute₁ = Value₁`,  etc.
+
+
+:mini:`meth (Xml: xml) << (Tag: string, Attribute₁ is Value₁, ...): sequence`
+   Returns a sequence of the previous siblings of :mini:`Xml` with tag :mini:`Tag` and :mini:`Attribute₁ = Value₁`,  etc.
+
+
 :mini:`meth (Xml: xml) << (Fn: function): sequence`
    Returns a sequence of the previous siblings of :mini:`Xml` for which :mini:`Fn(Child)` is non-nil.
 
-
-:mini:`meth (Arg₁: xml) << (Arg₂: names)`
-   *TBD*
-
-:mini:`meth (Arg₁: xml) << (Arg₂: string, Arg₃: names)`
-   *TBD*
 
 :mini:`meth //(Xml: xml::element): sequence`
    Returns a sequence of the recursive children of :mini:`Xml`,  including :mini:`Xml`.
@@ -137,10 +143,10 @@ xml
    Returns a sequence of the recursive children of :mini:`Xml` for which :mini:`Fn(Child)` is non-nil.
 
 
-:mini:`meth (Arg₁: xml) // (Arg₂: names, ...)`
+:mini:`meth (Arg₁: xml) // (Arg₂₁ is Value₁, ...)`
    *TBD*
 
-:mini:`meth (Arg₁: xml) // (Arg₂: string, Arg₃: names, ...)`
+:mini:`meth (Arg₁: xml) // (Arg₂: string, Arg₃₁ is Value₁, ...)`
    *TBD*
 
 :mini:`meth (Arg₁: xml::sequence) / (...)`

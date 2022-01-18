@@ -351,8 +351,8 @@ static void ML_TYPED_FN(ml_iter_value, MLXmlReverseT, ml_state_t *Caller, ml_xml
 	ML_RETURN(Iterator->Node);
 }
 
-#define ML_XML_ITERATOR(METHOD, TYPE, FIELD, DOC) \
-ML_METHOD(METHOD, MLXmlElementT) { \
+#define ML_XML_ITERATOR(NAME, TYPE, FIELD, DOC) \
+ML_METHOD(NAME, MLXmlElementT) { \
 /*<Xml
 //>sequence
 // Returns a sequence of the DOC of :mini:`Xml`.
@@ -364,7 +364,7 @@ ML_METHOD(METHOD, MLXmlElementT) { \
 	return (ml_value_t *)Iterator; \
 } \
 \
-ML_METHOD(METHOD, MLXmlT, MLStringT) { \
+ML_METHOD(NAME, MLXmlT, MLStringT) { \
 /*<Xml
 //<Tag
 //>sequence
@@ -380,22 +380,12 @@ ML_METHOD(METHOD, MLXmlT, MLStringT) { \
 	return (ml_value_t *)Iterator; \
 } \
 \
-ML_METHOD(METHOD, MLXmlT, MLFunctionT) { \
+ML_METHODV(NAME, MLXmlT, MLNamesT) { \
 /*<Xml
-//<Fn
+//<Attribute
 //>sequence
-// Returns a sequence of the DOC of :mini:`Xml` for which :mini:`Fn(Child)` is non-nil.
+// Returns a sequence of the DOC of :mini:`Xml` with :mini:`Attribute/1 = Value/1`, etc.
 */ \
-	ml_xml_element_t *Element = (ml_xml_element_t *)Args[0]; \
-	ml_xml_iterator_t *Iterator = new(ml_xml_iterator_t); \
-	Iterator->Type = MLXml ## TYPE ## T; \
-	Iterator->Node = Element->FIELD; \
-	ml_value_t *Chained = ml_chainedv(3, Iterator, FilterSoloMethod, Args[1]); \
-	Chained->Type = (ml_type_t *)MLXmlChainedT; \
-	return Chained; \
-} \
-\
-ML_METHODV(METHOD, MLXmlT, MLNamesT) { \
 	ml_xml_filter_t *Filter = new(ml_xml_filter_t); \
 	Filter->Type = MLXmlFilterT; \
 	ml_value_t *Attributes = Filter->Attributes = ml_map(); \
@@ -413,7 +403,13 @@ ML_METHODV(METHOD, MLXmlT, MLNamesT) { \
 	return Chained; \
 } \
 \
-ML_METHODV(METHOD, MLXmlT, MLStringT, MLNamesT) { \
+ML_METHODV(NAME, MLXmlT, MLStringT, MLNamesT) { \
+/*<Xml
+//<Tag
+//<Attribute
+//>sequence
+// Returns a sequence of the DOC of :mini:`Xml` with tag :mini:`Tag` and :mini:`Attribute/1 = Value/1`, etc.
+*/ \
 	ml_xml_filter_t *Filter = new(ml_xml_filter_t); \
 	Filter->Type = MLXmlFilterT; \
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(MLXmlTags, ml_string_value(Args[1])); \
@@ -430,6 +426,21 @@ ML_METHODV(METHOD, MLXmlT, MLStringT, MLNamesT) { \
 	Iterator->Type = MLXml ## TYPE ## T; \
 	Iterator->Node = Element->FIELD; \
 	ml_value_t *Chained = ml_chainedv(3, Iterator, FilterSoloMethod, Filter); \
+	Chained->Type = (ml_type_t *)MLXmlChainedT; \
+	return Chained; \
+} \
+\
+ML_METHOD(NAME, MLXmlT, MLFunctionT) { \
+/*<Xml
+//<Fn
+//>sequence
+// Returns a sequence of the DOC of :mini:`Xml` for which :mini:`Fn(Child)` is non-nil.
+*/ \
+	ml_xml_element_t *Element = (ml_xml_element_t *)Args[0]; \
+	ml_xml_iterator_t *Iterator = new(ml_xml_iterator_t); \
+	Iterator->Type = MLXml ## TYPE ## T; \
+	Iterator->Node = Element->FIELD; \
+	ml_value_t *Chained = ml_chainedv(3, Iterator, FilterSoloMethod, Args[1]); \
 	Chained->Type = (ml_type_t *)MLXmlChainedT; \
 	return Chained; \
 }

@@ -20,7 +20,7 @@ map
 :mini:`meth map()`
    *TBD*
 
-:mini:`meth map(Arg₁: names, ...)`
+:mini:`meth map(Arg₁₁ is Value₁, ...)`
    *TBD*
 
 :mini:`meth map(Sequence: sequence, ...): map`

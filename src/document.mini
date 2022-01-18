@@ -61,6 +61,9 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 
 	let File := Categories[Category, write_category]
 	let Title := string::buffer()
+	if Method0 = "\"<<\"" then
+		print(Kind, " ", Method0, " ", Params, " ", Return, "\n")
+	end
 	let Variadic := Kind = "ML_METHODV" or Kind = "ML_METHODVX"
 	var Terminator := ""
 	var Skip := 1
@@ -97,6 +100,9 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 			Title:write('{Method}()')
 		elseif Params:length = 1 and not Variadic then
 			Title:write('{Method}({Params[1][1]}: {type_name(Params[1][2])})')
+		elseif Params[1][2] = "MLNamesT" then
+			Title:write('{Method}({Params[1][1]}₁ is Value₁, ')
+			Terminator := ")"
 		else
 			Title:write('{Method}({Params[1][1]}: {type_name(Params[1][2])}, ')
 			Terminator := ")"
@@ -109,6 +115,9 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 			Title:write('{Method}()')
 		elseif Params:length = 1 and not Variadic then
 			Title:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}')
+		elseif Params[1][2] = "MLNamesT" then
+			Title:write('{Method}({Params[1][1]}₁ is Value₁,')
+			Terminator := ")"
 		else
 			Title:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}(')
 			Terminator := ")"
@@ -116,7 +125,11 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 	end
 	var Seperator := ""
 	for Param in Params skip Skip do
-		Title:write(Seperator, Param[1], ": ", type_name(Param[2]))
+		if Param[2] = "MLNamesT" then
+			Title:write(Seperator, '{Param[1]}₁ is Value₁')
+		else
+			Title:write(Seperator, '{Param[1]}: {type_name(Param[2])}')
+		end
 		Seperator := ", "
 	end
 	if Variadic then

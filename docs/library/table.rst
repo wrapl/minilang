@@ -13,7 +13,7 @@ table
    Returns a table with the entries from :mini:`Columns`. The keys of :mini:`Columns` must be strings,  the values of :mini:`Columns` are converted to arrays using :mini:`array()` if necessary.
 
 
-:mini:`meth table(Names: names, Value₁,  ...,  Valueₙ: any): table`
+:mini:`meth table(Names₁ is Value₁, Value₁,  ...,  Valueₙ: any): table`
    Returns a table using :mini:`Names` for column names and :mini:`Values` as column values,  converted to arrays using :mini:`array()` if necessary.
 
 
@@ -21,7 +21,7 @@ table
    Insert the column :mini:`Name` with values :mini:`Value` into :mini:`Table`.
 
 
-:mini:`meth (Table: table):insert(Names: names, Value₁,  ...,  Valueₙ: array): table`
+:mini:`meth (Table: table):insert(Names₁ is Value₁, Value₁,  ...,  Valueₙ: array): table`
    Insert columns with names from :mini:`Names` and values :mini:`Value₁`,  ...,  :mini:`Valueₙ` into :mini:`Table`.
 
 
