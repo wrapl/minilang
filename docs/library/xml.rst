@@ -9,11 +9,11 @@ xml
    Returnst the parent of :mini:`Xml` or :mini:`nil`.
 
 
-:mini:`meth <(Xml: xml): xml | nil`
+:mini:`meth (Xml: xml):next: xml | nil`
    Returnst the previous sibling of :mini:`Xml` or :mini:`nil`.
 
 
-:mini:`meth >(Xml: xml): xml | nil`
+:mini:`meth (Xml: xml):prev: xml | nil`
    Returnst the next sibling of :mini:`Xml` or :mini:`nil`.
 
 
@@ -61,14 +61,6 @@ xml
    Returns the parent of :mini:`Xml` if it has tag :mini:`Tag`,  otherwise :mini:`nil`.
 
 
-:mini:`meth (Xml: xml) < (Tag: string): xml | nil`
-   Returns the previous sibling of :mini:`Xml` with tag :mini:`Tag`,  otherwise :mini:`nil`.
-
-
-:mini:`meth (Xml: xml) > (Tag: string): xml | nil`
-   Returns the previous sibling of :mini:`Xml` with tag :mini:`Tag`,  otherwise :mini:`nil`.
-
-
 :mini:`type xml::filter < function`
    An XML filter.
 
@@ -91,10 +83,46 @@ xml
    Returns a sequence of the children of :mini:`Xml` for which :mini:`Fn(Child)` is non-nil.
 
 
-:mini:`meth (Arg₁: xml) / (Arg₂: names, ...)`
+:mini:`meth (Arg₁: xml) / (Arg₂: names)`
    *TBD*
 
-:mini:`meth (Arg₁: xml) / (Arg₂: string, Arg₃: names, ...)`
+:mini:`meth (Arg₁: xml) / (Arg₂: string, Arg₃: names)`
+   *TBD*
+
+:mini:`meth >>(Xml: xml::element): sequence`
+   Returns a sequence of the next siblings of :mini:`Xml`.
+
+
+:mini:`meth (Xml: xml) >> (Tag: string): sequence`
+   Returns a sequence of the next siblings of :mini:`Xml` with tag :mini:`Tag`.
+
+
+:mini:`meth (Xml: xml) >> (Fn: function): sequence`
+   Returns a sequence of the next siblings of :mini:`Xml` for which :mini:`Fn(Child)` is non-nil.
+
+
+:mini:`meth (Arg₁: xml) >> (Arg₂: names)`
+   *TBD*
+
+:mini:`meth (Arg₁: xml) >> (Arg₂: string, Arg₃: names)`
+   *TBD*
+
+:mini:`meth <<(Xml: xml::element): sequence`
+   Returns a sequence of the previous siblings of :mini:`Xml`.
+
+
+:mini:`meth (Xml: xml) << (Tag: string): sequence`
+   Returns a sequence of the previous siblings of :mini:`Xml` with tag :mini:`Tag`.
+
+
+:mini:`meth (Xml: xml) << (Fn: function): sequence`
+   Returns a sequence of the previous siblings of :mini:`Xml` for which :mini:`Fn(Child)` is non-nil.
+
+
+:mini:`meth (Arg₁: xml) << (Arg₂: names)`
+   *TBD*
+
+:mini:`meth (Arg₁: xml) << (Arg₂: string, Arg₃: names)`
    *TBD*
 
 :mini:`meth //(Xml: xml::element): sequence`
