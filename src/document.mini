@@ -61,9 +61,6 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 
 	let File := Categories[Category, write_category]
 	let Title := string::buffer()
-	if Method0 = "\"<<\"" then
-		print(Kind, " ", Method0, " ", Params, " ", Return, "\n")
-	end
 	let Variadic := Kind = "ML_METHODV" or Kind = "ML_METHODVX"
 	var Terminator := ""
 	var Skip := 1
