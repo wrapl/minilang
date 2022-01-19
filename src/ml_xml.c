@@ -25,6 +25,18 @@ struct ml_xml_node_t {
 ML_TYPE(MLXmlT, (), "xml");
 // An XML node.
 
+ml_value_t *ml_xml_node_parent(ml_value_t *Value) {
+	return (ml_value_t *)((ml_xml_node_t *)Value)->Parent;
+}
+
+ml_value_t *ml_xml_node_next(ml_value_t *Value) {
+	return (ml_value_t *)((ml_xml_node_t *)Value)->Next;
+}
+
+ml_value_t *ml_xml_node_prev(ml_value_t *Value) {
+	return (ml_value_t *)((ml_xml_node_t *)Value)->Prev;
+}
+
 ML_METHOD("parent", MLXmlT) {
 //<Xml
 //>xml|nil
@@ -82,6 +94,22 @@ typedef struct {
 
 ML_TYPE(MLXmlElementT, (MLXmlT, MLSequenceT), "xml::element");
 // An XML element node.
+
+ml_value_t *ml_xml_element_tag(ml_value_t *Value) {
+	return (ml_value_t *)((ml_xml_element_t *)Value)->Base.Base.Value;
+}
+
+ml_value_t *ml_xml_element_attributes(ml_value_t *Value) {
+	return ((ml_xml_element_t *)Value)->Attributes;
+}
+
+size_t ml_xml_element_length(ml_value_t *Value) {
+	return ((ml_xml_element_t *)Value)->Base.Base.Length;
+}
+
+ml_value_t *ml_xml_element_head(ml_value_t *Value) {
+	return (ml_value_t *)((ml_xml_element_t *)Value)->Head;
+}
 
 static void ml_xml_element_put(ml_xml_element_t *Parent, ml_xml_node_t *Child) {
 	Child->Index = ++Parent->Base.Base.Length;
