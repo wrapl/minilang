@@ -9,11 +9,11 @@ xml
    Returnst the parent of :mini:`Xml` or :mini:`nil`.
 
 
-:mini:`meth (Xml: xml):next: xml | nil`
+:mini:`meth (Xml: xml):prev: xml | nil`
    Returnst the previous sibling of :mini:`Xml` or :mini:`nil`.
 
 
-:mini:`meth (Xml: xml):prev: xml | nil`
+:mini:`meth (Xml: xml):next: xml | nil`
    Returnst the next sibling of :mini:`Xml` or :mini:`nil`.
 
 

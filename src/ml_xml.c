@@ -45,7 +45,7 @@ ML_METHOD("parent", MLXmlT) {
 	return (ml_value_t *)Node->Parent ?: MLNil;
 }
 
-ML_METHOD("next", MLXmlT) {
+ML_METHOD("prev", MLXmlT) {
 //<Xml
 //>xml|nil
 // Returnst the previous sibling of :mini:`Xml` or :mini:`nil`.
@@ -53,7 +53,7 @@ ML_METHOD("next", MLXmlT) {
 	return (ml_value_t *)Node->Prev ?: MLNil;
 }
 
-ML_METHOD("prev", MLXmlT) {
+ML_METHOD("next", MLXmlT) {
 //<Xml
 //>xml|nil
 // Returnst the next sibling of :mini:`Xml` or :mini:`nil`.
