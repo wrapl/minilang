@@ -432,7 +432,7 @@ fun process(FileName) do
 						end
 					elseif let Match := Line % r"ML_CHECK(X?)_ARG_TYPE\(([0-9]+), (\w+)\)" then
 						let Index := integer(Match[3]) + 1
-						Params[Index][2] := type_name(Match[4])
+						Params[Index][2] := Match[4]
 					else
 						exit
 					end

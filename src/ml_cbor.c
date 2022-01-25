@@ -279,7 +279,7 @@ void ml_cbor_read_bytes_fn(ml_cbor_reader_t *Reader, int Size) {
 		Collection->Blocks = 0;
 		Reader->Collection = Collection;
 	} else {
-		value_handler(Reader, ml_buffer(NULL, 0));
+		value_handler(Reader, ml_address(NULL, 0));
 	}
 }
 
@@ -296,7 +296,7 @@ void ml_cbor_read_bytes_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, in
 			Buffer -= B->Size;
 			memcpy(Buffer, B->Data, B->Size);
 		}
-		value_handler(Reader, ml_buffer(Buffer, Total));
+		value_handler(Reader, ml_address(Buffer, Total));
 	} else {
 		block_t *Block = xnew(block_t, Size, char);
 		Block->Prev = Collection->Blocks;

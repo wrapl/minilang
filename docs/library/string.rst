@@ -146,12 +146,6 @@ string
 :mini:`meth (Arg₁: string):reverse`
    *TBD*
 
-:mini:`meth (Arg₁: string):length`
-   *TBD*
-
-:mini:`meth (Arg₁: string):count`
-   *TBD*
-
 :mini:`meth (Arg₁: string) <> (Arg₂: string)`
    *TBD*
 

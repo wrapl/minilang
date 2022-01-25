@@ -44,6 +44,14 @@ ML_METHOD("count", MLAddressT) {
 	return ml_integer(ml_address_length(Args[0]));
 }
 
+ML_METHOD("length", MLAddressT) {
+//!address
+//<Address
+//>integer
+// Returns the length of :mini:`Address`.
+	return ml_integer(ml_address_length(Args[0]));
+}
+
 ML_METHOD("@", MLAddressT, MLIntegerT) {
 //!address
 //<Address
@@ -1506,14 +1514,6 @@ ML_METHOD("reverse", MLStringT) {
 	for (int I = 0; I < Length; ++I) Reversed[I] = *--End;
 	Reversed[Length] = 0;
 	return ml_string(Reversed, Length);
-}
-
-ML_METHOD("length", MLStringT) {
-	return ml_integer(ml_string_length(Args[0]));
-}
-
-ML_METHOD("count", MLStringT) {
-	return ml_integer(ml_string_length(Args[0]));
 }
 
 ML_METHOD("<>", MLStringT, MLStringT) {

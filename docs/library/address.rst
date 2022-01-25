@@ -9,6 +9,10 @@ address
    Returns the number bytes visible at :mini:`Address`.
 
 
+:mini:`meth (Address: address):length: integer`
+   Returns the length of :mini:`Address`.
+
+
 :mini:`meth (Address: address) @ (Length: integer): address`
    Returns the same address as :mini:`Address`,  limited to :mini:`Length` bytes.
 
