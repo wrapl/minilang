@@ -1101,7 +1101,7 @@ ML_FUNCTION(MLEncode) {
 	ML_CHECK_ARG_COUNT(1);
 	ml_cbor_t Cbor = ml_cbor_writer_encode(Args[0]);
 	if (!Cbor.Length) return Cbor.Error;
-	if (Cbor.Data) return ml_string(Cbor.Data, Cbor.Length);
+	if (Cbor.Data) return ml_address(Cbor.Data, Cbor.Length);
 	return ml_error("CborError", "Error encoding to cbor");
 }
 
