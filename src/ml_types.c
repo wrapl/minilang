@@ -2068,6 +2068,8 @@ ML_TYPE(MLIntegerT, (MLRealT, MLFunctionT), "integer",
 	.call = (void *)ml_integer_call
 );
 
+#define MLInt64T MLIntegerT
+
 ml_value_t *ml_integer(int64_t Value) {
 	ml_integer_t *Integer = new(ml_integer_t);
 	Integer->Type = MLIntegerT;

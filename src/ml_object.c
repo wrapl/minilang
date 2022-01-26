@@ -493,13 +493,8 @@ static long ml_enum_value_hash(ml_enum_value_t *Value, ml_hash_chain_t *Chain) {
 	return (long)Value->Base.Type + Value->Base.Value;
 }
 
-#ifdef ML_NANBOXING
 ML_TYPE(MLEnumValueT, (MLInt64T), "enum-value");
 //!internal
-#else
-ML_TYPE(MLEnumValueT, (MLIntegerT), "enum-value");
-//!internal
-#endif
 
 ML_METHOD("append", MLStringBufferT, MLEnumValueT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
@@ -837,13 +832,8 @@ static long ml_flag_value_hash(ml_flags_value_t *Value, ml_hash_chain_t *Chain) 
 	return (long)Value->Type + Value->Value;
 }
 
-#ifdef ML_NANBOXING
 ML_TYPE(MLFlagsValueT, (MLInt64T), "flag-value");
 //!internal
-#else
-ML_TYPE(MLFlagsValueT, (MLIntegerT), "flag-value");
-//!internal
-#endif
 
 typedef struct {
 	ml_stringbuffer_t *Buffer;
