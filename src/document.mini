@@ -43,6 +43,11 @@ fun type_name(var Type) do
 			ret '{Match2[2]:lower}::{Match2[3]:lower}'
 		end
 		ret Match[2]:lower:trim(":")
+	elseif let Match := Type % r"^(Gir.*)T$" then
+		if let Match2 := Match[2] % r"([A-Z][a-z]+)([A-Z][a-z]+)" then
+			ret '{Match2[2]:lower}::{Match2[3]:lower}'
+		end
+		ret Match[2]:lower:trim(":")
 	elseif let Match := Type % r"^(.*)T$" then
 		ret Match[2]:lower:trim(":")
 	else
@@ -255,6 +260,8 @@ fun write_type(Category, Name, Parents, Description, Location) do
 			Title:write(Seperator, type_name(Parent))
 			Seperator := ", "
 		end
+	else
+		TypesGraph:write('      \"any\" -> \"{type_name(Name)}\";\n')
 	end
 	Title:write("`\n")
 	File:write(Title:get)

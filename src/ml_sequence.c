@@ -520,7 +520,7 @@ typedef struct ml_double_state_t {
 	ml_value_t *Args[];
 } ml_double_state_t;
 
-ML_TYPE(MLDoubledIteratorStateT, (MLStateT), "doubled-state");
+ML_TYPE(MLDoubledIteratorStateT, (), "doubled-state");
 //!internal
 
 static void ml_double_iter0_next(ml_double_state_t *State, ml_value_t *Value);
@@ -609,7 +609,7 @@ ML_METHOD("->>", MLSequenceT, MLFunctionT) {
 ML_TYPE(MLDoubled2T, (MLSequenceT), "doubled");
 //!internal
 
-ML_TYPE(MLDoubled2StateT, (MLStateT), "doubled-state");
+ML_TYPE(MLDoubled2StateT, (), "doubled-state");
 //!internal
 
 static void ml_double2_iter0_next(ml_double_state_t *State, ml_value_t *Value);

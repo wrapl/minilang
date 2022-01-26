@@ -4,7 +4,7 @@
 #include "minilang.h"
 #include <girepository.h>
 
-extern ml_type_t TypelibT[];
+extern ml_type_t GirTypelibT[];
 
 ml_value_t *ml_gir_typelib(const char *Name, const char *Version);
 
