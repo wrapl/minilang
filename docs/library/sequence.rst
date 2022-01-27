@@ -13,7 +13,7 @@ sequence
    Returns a filter for use in chained functions and sequences.
 
 
-:mini:`fun chained(Base: any, Fn₁, ..., Fnₙ: function): chained`
+:mini:`fun chained(Base: any, Fn₁, : function, ...): chained`
    Returns a new chained function or sequence with base :mini:`Base` and additional functions or filters :mini:`Fn₁,  ...,  Fnₙ`.
 
 
@@ -215,13 +215,13 @@ sequence
    Returns an sequence that returns the unique values produced by :mini:`Sequence`. Uniqueness is determined by using a :mini:`map`.
 
 
-:mini:`fun zip(Sequence₁, ..., Sequenceₙ: sequence, Function: any): sequence`
+:mini:`fun zip(Sequence₁, : sequence, ..., Function: any): sequence`
    Returns a new sequence that produces :mini:`Function(V₁₁,  ...,  Vₙ₁),  Function(V₁₂,  ...,  Vₙ₂),  ...` where :mini:`Vᵢⱼ` is the :mini:`j`-th value produced by :mini:`Sequenceᵢ`.
 
    The sequence stops produces values when any of the :mini:`Sequenceᵢ` stops.
 
 
-:mini:`fun grid(Sequence₁, ..., Sequenceₙ: sequence, Function: any): sequence`
+:mini:`fun grid(Sequence₁, : sequence, ..., Function: any): sequence`
    Returns a new sequence that produces :mini:`Function(V₁,  V₂,  ...,  Vₙ)` for all possible combinations of :mini:`V₁,  ...,  Vₙ`,  where :mini:`Vᵢ` are the values produced by :mini:`Sequenceᵢ`.
 
 
@@ -229,7 +229,7 @@ sequence
    Returns a new sequence that produces the values from :mini:`Sequence₁` as keys and the values from :mini:`Sequence₂` as values.
 
 
-:mini:`fun weave(Sequence₁, ..., Sequenceₙ: sequence): sequence`
+:mini:`fun weave(Sequence₁, : sequence, ...): sequence`
    Returns a new sequence that produces interleaved values :mini:`Vᵢ` from each of :mini:`Sequenceᵢ`.
 
    The sequence stops produces values when any of the :mini:`Sequenceᵢ` stops.

@@ -16,8 +16,8 @@ object
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: object)`
    *TBD*
 
-:mini:`fun class(Parents...: class, Fields...: method, Exports...: names): class`
-   Returns a new class inheriting from :mini:`Parents`,  with fields :mini:`Fields` and exports :mini:`Exports`. The special exports :mini:`"of"` and :mini:`"init"` can be set to override the default conversion and initialization behaviour. The :mini:`"new"` export will *always* be set to the original constructor for this class.
+:mini:`fun class(Parents: class, ..., Fields: method, ..., Exports: names, ...): class`
+   Returns a new class inheriting from :mini:`Parents`,  with fields :mini:`Fields` and exports :mini:`Exports`. The special exports :mini:`::of` and :mini:`::init` can be set to override the default conversion and initialization behaviour. The :mini:`::new` export will *always* be set to the original constructor for this class.
 
 
 :mini:`type property`
@@ -31,7 +31,7 @@ object
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: enum::value)`
    *TBD*
 
-:mini:`fun enum(Values...: string): enum`
+:mini:`fun enum(Values: string, ...): enum`
    *TBD*
 
 :mini:`type enum < type, sequence`
@@ -55,10 +55,10 @@ object
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: flags::value)`
    *TBD*
 
-:mini:`meth (Values...: string):flags(): flags`
+:mini:`meth flags(Name₁: string, ...): flags`
    *TBD*
 
-:mini:`meth :flags(Values...₁ is Value₁,): flags`
+:mini:`meth flags(Name₁ is  Value₁, ...): flags`
    *TBD*
 
 :mini:`meth (Arg₁: flags::value) + (Arg₂: flags::value)`

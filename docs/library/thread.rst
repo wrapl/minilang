@@ -1,7 +1,7 @@
 thread
 ======
 
-:mini:`fun thread(Args...: any, Fn: function): thread`
+:mini:`fun thread(Args: any, ..., Fn: function): thread`
    Creates a new thread and calls :mini:`Fn(Args...)` in the new thread.
 
    All arguments must be thread-safe.

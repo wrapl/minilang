@@ -103,7 +103,8 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 		elseif Params:length = 1 and not Variadic then
 			Title:write('{Method}({Params[1][1]}: {type_name(Params[1][2])})')
 		elseif Params[1][2] = "MLNamesT" then
-			Title:write('{Method}({Params[1][1]}₁ is Value₁, ')
+			let (Name, Value) := Params[1][1] / ","
+			Title:write('{Method}({Name}₁ is {Value or "Value"}₁, ')
 			Terminator := ")"
 		else
 			Title:write('{Method}({Params[1][1]}: {type_name(Params[1][2])}, ')
@@ -118,7 +119,8 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 		elseif Params:length = 1 and not Variadic then
 			Title:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}')
 		elseif Params[1][2] = "MLNamesT" then
-			Title:write('{Method}({Params[1][1]}₁ is Value₁,')
+			let (Name, Value) := Params[1][1] / ","
+			Title:write('{Method}({Name}₁ is {Value or "Value"}₁,')
 			Terminator := ")"
 		else
 			Title:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}(')
@@ -128,7 +130,8 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 	var Seperator := ""
 	for Param in Params skip Skip do
 		if Param[2] = "MLNamesT" then
-			Title:write(Seperator, '{Param[1]}₁ is Value₁')
+			let (Name, Value) := Param[1] / ","
+			Title:write(Seperator, '{Name}₁ is {Value or "Value"}₁')
 		else
 			Title:write(Seperator, '{Param[1]}: {type_name(Param[2])}')
 		end
@@ -174,7 +177,11 @@ fun write_function(Category, Kind, Name, Params, Return, Description, Location) 
 	Title:write(':mini:`fun ', Name, "(")
 	var Seperator := ""
 	for Param in Params do
-		Title:write(Seperator, Param[1], ": ", type_name(Param[2]))
+		if let Match := Param[1] % r"(.*)\.\.\." then
+			Title:write(Seperator, Match[2], ": ", type_name(Param[2]), ", ...")
+		else
+			Title:write(Seperator, Param[1], ": ", type_name(Param[2]))
+		end
 		Seperator := ", "
 	end
 	Title:write(")")
