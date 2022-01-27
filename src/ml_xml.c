@@ -1131,11 +1131,10 @@ static void xml_start_element(xml_decoder_t *Decoder, const XML_Char *Name, cons
 		NewStack->Prev = Stack;
 		Stack = Decoder->Stack = NewStack;
 	}
-	ml_xml_element_t *Parent = Stack->Nodes[Stack->Index] = Decoder->Element;
+	Stack->Nodes[Stack->Index] = Decoder->Element;
 	++Stack->Index;
 	ml_xml_element_t *Element = Decoder->Element = new(ml_xml_element_t);
 	Element->Base.Base.Type = MLXmlElementT;
-	Element->Base.Parent = Parent;
 	ml_value_t *Tag = (ml_value_t *)stringmap_search(MLXmlTags, Name);
 	if (!Tag) {
 		Name = GC_strdup(Name);
@@ -1164,10 +1163,10 @@ static void xml_end_element(xml_decoder_t *Decoder, const XML_Char *Name) {
 	}
 	ml_xml_node_t *Element = (ml_xml_node_t *)Decoder->Element;
 	--Stack->Index;
-	Decoder->Element = Stack->Nodes[Stack->Index];
+	ml_xml_element_t *Parent = Decoder->Element = Stack->Nodes[Stack->Index];
 	Stack->Nodes[Stack->Index] = NULL;
-	if (Decoder->Element) {
-		ml_xml_element_put(Decoder->Element, Element);
+	if (Parent) {
+		ml_xml_element_put(Parent, Element);
 	} else {
 		Decoder->Callback(Decoder->Data, (ml_value_t *)Element);
 	}
