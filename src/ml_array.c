@@ -4700,7 +4700,7 @@ ML_METHOD(".", MLArrayT, MLArrayT) {
 	C->Base.Length = DataSize;
 	if (UseProd) {
 		void *GetterA = MLArrayGetters[C->Format][A->Format];
-		void *GetterB = MLArrayGetters[C->Format][A->Format];
+		void *GetterB = MLArrayGetters[C->Format][B->Format];
 		ml_array_infix_set_fn InfixSetFn = MLArrayInfixMulFns[C->Format];
 		ml_array_infix_fill(
 			A->Base.Value, DimA, GetterA, DegreeA,
@@ -4709,7 +4709,7 @@ ML_METHOD(".", MLArrayT, MLArrayT) {
 		);
 	} else {
 		void *GetterA = MLArrayGetters[C->Format][A->Format];
-		void *GetterB = MLArrayGetters[C->Format][A->Format];
+		void *GetterB = MLArrayGetters[C->Format][B->Format];
 		ml_array_dot_fn DotFn = MLArrayDotFns[C->Format];
 		ml_array_dot_fill(
 			A->Base.Value, DimA, GetterA, DegreeA,
@@ -4748,7 +4748,7 @@ static ml_value_t *ml_array_pairwise_infix(ml_array_infix_set_fn *InfixSetFns, i
 	C->Base.Length = DataSize;
 
 	void *GetterA = MLArrayGetters[C->Format][A->Format];
-	void *GetterB = MLArrayGetters[C->Format][A->Format];
+	void *GetterB = MLArrayGetters[C->Format][B->Format];
 	ml_array_infix_set_fn InfixSetFn = InfixSetFns[C->Format];
 	ml_array_infix_fill(
 		A->Base.Value, DimA, GetterA, DegreeA,
