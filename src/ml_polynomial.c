@@ -1,4 +1,4 @@
-#include "ml_poly.h"
+#include "ml_polynomial.h"
 #include "minilang.h"
 #include "ml_macros.h"
 #include <string.h>
@@ -633,8 +633,8 @@ ML_METHOD("append", MLStringBufferT, MLPolynomialT) {
 	return MLSome;
 }
 
-void ml_poly_init(stringmap_t *Globals) {
-#include "ml_poly_init.c"
+void ml_polynomial_init(stringmap_t *Globals) {
+#include "ml_polynomial_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "polynomial", MLPolynomialT);
 	}

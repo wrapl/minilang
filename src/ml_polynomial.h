@@ -3,6 +3,6 @@
 
 #include "stringmap.h"
 
-void ml_poly_init(stringmap_t *Globals);
+void ml_polynomial_init(stringmap_t *Globals);
 
 #endif

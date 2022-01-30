@@ -16,7 +16,7 @@
 #ifdef ML_MATH
 #include "ml_math.h"
 #include "ml_array.h"
-#include "ml_poly.h"
+#include "ml_polynomial.h"
 #endif
 
 #ifdef ML_GIR
@@ -254,7 +254,7 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_MATH
 	ml_math_init(Globals);
 	ml_array_init(Globals);
-	ml_poly_init(Globals);
+	ml_polynomial_init(Globals);
 #endif
 #ifdef ML_GIR
 	ml_gir_init(Globals);

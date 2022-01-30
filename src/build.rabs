@@ -230,7 +230,7 @@ if MINILANG_MATH then
 	file("array"):mkdir
 	Objects:put(
 		file("ml_math.o"),
-		file("ml_poly.o"),
+		file("ml_polynomial.o"),
 		file("ml_array.o"),
 		file("array/update_set.o"),
 		file("array/update_add.o"),

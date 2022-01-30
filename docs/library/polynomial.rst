@@ -1,5 +1,5 @@
-poly
-====
+polynomial
+==========
 
 :mini:`type polynomial`
    *TBD*
