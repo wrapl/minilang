@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <math.h>
+#include <float.h>
 
 #ifdef ML_COMPLEX
 #include <complex.h>
@@ -731,10 +732,10 @@ ML_METHOD("size", MLArrayT) {
 }
 
 extern ml_value_t *RangeMethod;
-static ML_METHOD_DECL(MulMethod, "*");
-static ML_METHOD_DECL(AddMethod, "+");
-static ML_METHOD_DECL(SubMethod, "-");
-static ML_METHOD_DECL(DivMethod, "/");
+ML_METHOD_DECL(MulMethod, "*");
+ML_METHOD_DECL(AddMethod, "+");
+ML_METHOD_DECL(SubMethod, "-");
+ML_METHOD_DECL(DivMethod, "/");
 
 static ml_value_t *ml_array_value(ml_array_t *Array, char *Address) {
 	typeof(ml_array_value) *function = ml_typed_fn_get(Array->Base.Type, ml_array_value);
@@ -4330,7 +4331,6 @@ static void ml_array_dot_any(
 		int *IndicesA = DimA->Indices;
 		if (DimB->Indices) {
 			int *IndicesB = DimB->Indices;
-
 			Args[0] = GetterA(DataA + IndicesA[0] * StrideA);
 			Args[1] = GetterB(DataB + IndicesB[0] * StrideB);
 			Args[0] = ml_simple_call(MulMethod, 2, Args);
@@ -4345,11 +4345,11 @@ static void ml_array_dot_any(
 			Args[1] = GetterB(DataB);
 			Args[0] = ml_simple_call(MulMethod, 2, Args);
 			for (int I = 1; I < Size; ++I) {
+				DataB += StrideB;
 				Args[1] = GetterA(DataA + IndicesA[I] * StrideA);
 				Args[2] = GetterB(DataB);
 				Args[1] = ml_simple_call(MulMethod, 2, Args + 1);
 				Args[0] = ml_simple_call(AddMethod, 2, Args);
-				DataB += StrideB;
 			}
 		}
 	} else {
@@ -4359,23 +4359,23 @@ static void ml_array_dot_any(
 			Args[1] = GetterB(DataB + IndicesB[0] * StrideB);
 			Args[0] = ml_simple_call(MulMethod, 2, Args);
 			for (int I = 1; I < Size; ++I) {
+				DataA += StrideA;
 				Args[1] = GetterA(DataA);
 				Args[2] = GetterB(DataB + IndicesB[I] * StrideB);
 				Args[1] = ml_simple_call(MulMethod, 2, Args + 1);
 				Args[0] = ml_simple_call(AddMethod, 2, Args);
-				DataA += StrideA;
 			}
 		} else {
 			Args[0] = GetterA(DataA);
 			Args[1] = GetterB(DataB);
 			Args[0] = ml_simple_call(MulMethod, 2, Args);
 			for (int I = 1; I < Size; ++I) {
+				DataA += StrideA;
+				DataB += StrideB;
 				Args[1] = GetterA(DataA);
 				Args[2] = GetterB(DataB);
 				Args[1] = ml_simple_call(MulMethod, 2, Args + 1);
 				Args[0] = ml_simple_call(AddMethod, 2, Args);
-				DataA += StrideA;
-				DataB += StrideB;
 			}
 		}
 	}
@@ -4524,7 +4524,7 @@ static void ml_array_infix_fill(
 				);
 				DataC += StrideC;
 			}
-		} else { \
+		} else {
 			for (int I = DimA->Size; --I >= 0;) {
 				ml_array_infix_fill(
 					DataA, DimA + 1, GetterA, DegreeA - 1,
@@ -4641,16 +4641,54 @@ ML_METHOD(".", MLArrayT, MLArrayT) {
 	ml_array_dimension_t *DimB = B->Dimensions;
 	int SizeA = DimA[DegreeA - 1].Size;
 	int SizeB = DimB[0].Size;
-	if (DegreeA == 1 && DegreeB == 1) {
-		if (SizeA != SizeB) return ml_error("ShapeError", "Incompatible arrays");
-		// TODO: Remove ml_array_get_double to speed this up
-		double Sum = 0;
-		for (int I = 0; I < SizeA; ++I) {
-			Sum += ml_array_get_double(A, I) * ml_array_get_double(B, I);
-		}
-		return ml_real(Sum);
-	}
 	int Degree = DegreeA + DegreeB - 2;
+	if (!Degree) {
+		if (SizeA != SizeB) return ml_error("ShapeError", "Incompatible arrays");
+		if (
+			A->Format == ML_ARRAY_FORMAT_ANY ||
+			B->Format == ML_ARRAY_FORMAT_ANY
+		) {
+			void *GetterA = MLArrayGetters[ML_ARRAY_FORMAT_ANY][A->Format];
+			void *GetterB = MLArrayGetters[ML_ARRAY_FORMAT_ANY][B->Format];
+			ml_array_dot_fn DotFn = MLArrayDotFns[ML_ARRAY_FORMAT_ANY];
+			ml_value_t *Dot;
+			DotFn(
+				A->Base.Value, DimA, GetterA,
+				B->Base.Value, DimB + (DegreeB - 1), GetterB,
+				&Dot
+			);
+			return Dot;
+#ifdef ML_COMPLEX
+		} else if (
+			A->Format == ML_ARRAY_FORMAT_C32 ||
+			A->Format == ML_ARRAY_FORMAT_C64 ||
+			B->Format == ML_ARRAY_FORMAT_C32 ||
+			B->Format == ML_ARRAY_FORMAT_C64
+		) {
+			void *GetterA = MLArrayGetters[ML_ARRAY_FORMAT_C64][A->Format];
+			void *GetterB = MLArrayGetters[ML_ARRAY_FORMAT_C64][B->Format];
+			ml_array_dot_fn DotFn = MLArrayDotFns[ML_ARRAY_FORMAT_C64];
+			complex_double Dot;
+			DotFn(
+				A->Base.Value, DimA, GetterA,
+				B->Base.Value, DimB + (DegreeB - 1), GetterB,
+				&Dot
+			);
+			return ml_complex(Dot);
+#endif
+		} else {
+			void *GetterA = MLArrayGetters[ML_ARRAY_FORMAT_F64][A->Format];
+			void *GetterB = MLArrayGetters[ML_ARRAY_FORMAT_F64][B->Format];
+			ml_array_dot_fn DotFn = MLArrayDotFns[ML_ARRAY_FORMAT_F64];
+			double Dot;
+			DotFn(
+				A->Base.Value, DimA, GetterA,
+				B->Base.Value, DimB + (DegreeB - 1), GetterB,
+				&Dot
+			);
+			return ml_real(Dot);
+		}
+	}
 	int UseProd = 0;
 	if (SizeA == 1) {
 		UseProd = 1;
@@ -4756,6 +4794,313 @@ static ml_value_t *ml_array_pairwise_infix(ml_array_infix_set_fn *InfixSetFns, i
 		C->Base.Value, C->Dimensions, InfixSetFn, C->Degree
 	);
 	return (ml_value_t *)C;
+}
+
+static int ml_lu_decomp_real(double **A, int *P, int N) {
+	for (int I = 0; I <= N; ++I) P[I] = I;
+	for (int I = 0; I < N; ++I) {
+		double MaxA = 0;
+		int IMax = I;
+		for (int K = I; K < N; ++K) {
+			double AbsA = fabs(A[K][I]);
+			if (AbsA > MaxA) {
+				MaxA = AbsA;
+				IMax = K;
+			}
+		}
+		if (MaxA < DBL_EPSILON) return 0;
+		if (IMax != I) {
+			int J = P[I];
+			P[I] = P[IMax];
+			P[IMax] = J;
+			double *B = A[I];
+			A[I] = A[IMax];
+			A[IMax] = B;
+			P[N]++;
+		}
+		for (int J = I + 1; J < N; ++J) {
+			A[J][I] /= A[I][I];
+			for (int K = I + 1; K < N; ++K) {
+				A[J][K] -= A[J][I] * A[I][K];
+			}
+		}
+	}
+	return 1;
+}
+
+#ifdef ML_COMPLEX
+
+static int ml_lu_decomp_complex(complex double **A, int *P, int N) {
+	for (int I = 0; I <= N; ++I) P[I] = I;
+	for (int I = 0; I < N; ++I) {
+		double MaxA = 0;
+		int IMax = I;
+		for (int K = I; K < N; ++K) {
+			double AbsA = cabs(A[K][I]);
+			if (AbsA > MaxA) {
+				MaxA = AbsA;
+				IMax = K;
+			}
+		}
+		if (MaxA < DBL_EPSILON) return 0;
+		if (IMax != I) {
+			int J = P[I];
+			P[I] = P[IMax];
+			P[IMax] = J;
+			complex double *B = A[I];
+			A[I] = A[IMax];
+			A[IMax] = B;
+			P[N]++;
+		}
+		for (int J = I + 1; J < N; ++J) {
+			A[J][I] /= A[I][I];
+			for (int K = I + 1; K < N; ++K) {
+				A[J][K] -= A[J][I] * A[I][K];
+			}
+		}
+	}
+	return 1;
+}
+
+#endif
+
+ML_METHOD("\\", MLMatrixT) {
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	if (Source->Format <= ML_ARRAY_FORMAT_F64) {
+		ml_array_t *Inv = ml_array_new(ML_ARRAY_FORMAT_F64, 2);
+		array_copy(Inv, Source);
+		int N = Inv->Dimensions->Size;
+		int Stride = Inv->Dimensions->Stride;
+		double *A[N];
+		char *Data = Inv->Base.Value;
+		for (int I = 0; I < N; ++I) {
+			A[I] = (double *)Data;
+			Data += Stride;
+		}
+		int *P = anew(int, N + 1);
+		if (!ml_lu_decomp_real(A, P, N)) return ml_error("ArrayError", "Matrix is degenerate");
+		double *IA[N];
+		double *InvData = IA[0] = anew(double, N * N);
+		for (int I = 1; I < N; ++I) IA[I] = IA[I - 1] + N;
+		for (int J = 0; J < N; ++J) {
+			for (int I = 0; I < N; ++I) {
+				IA[I][J] = P[I] == J;
+				for (int K = 0; K < I; ++K) {
+					IA[I][J] -= A[I][K] * IA[K][J];
+				}
+			}
+			for (int I = N - 1; I >= 0; --I) {
+				for (int K = I + 1; K < N; ++K) {
+					IA[I][J] -= A[I][K] * IA[K][J];
+				}
+				IA[I][J] /= A[I][I];
+			}
+		}
+		Inv->Base.Value = (char *)InvData;
+		return (ml_value_t *)Inv;
+#ifdef ML_COMPLEX
+	} else if (Source->Format <= ML_ARRAY_FORMAT_C64) {
+		ml_array_t *Inv = ml_array_new(ML_ARRAY_FORMAT_C64, 2);
+		array_copy(Inv, Source);
+		int N = Inv->Dimensions->Size;
+		int Stride = Inv->Dimensions->Stride;
+		complex double *A[N];
+		char *Data = Inv->Base.Value;
+		for (int I = 0; I < N; ++I) {
+			A[I] = (complex double *)Data;
+			Data += Stride;
+		}
+		int *P = anew(int, N + 1);
+		if (!ml_lu_decomp_complex(A, P, N)) return ml_error("ArrayError", "Matrix is degenerate");
+		complex double *IA[N];
+		complex double *InvData = IA[0] = anew(complex double, N * N);
+		for (int I = 1; I < N; ++I) IA[I] = IA[I - 1] + N;
+		for (int J = 0; J < N; ++J) {
+			for (int I = 0; I < N; ++I) {
+				IA[I][J] = P[I] == J;
+				for (int K = 0; K < I; ++K) {
+					IA[I][J] -= A[I][K] * IA[K][J];
+				}
+			}
+			for (int I = N - 1; I >= 0; --I) {
+				for (int K = I + 1; K < N; ++K) {
+					IA[I][J] -= A[I][K] * IA[K][J];
+				}
+				IA[I][J] /= A[I][I];
+			}
+		}
+		Inv->Base.Value = (char *)InvData;
+		return (ml_value_t *)Inv;
+#endif
+	} else {
+		return ml_error("ArrayError", "Invalid array type for operation");
+	}
+}
+
+ML_METHOD("\\", MLMatrixT, MLVectorT) {
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	int N = Source->Dimensions->Size;
+	ml_array_t *B = (ml_array_t *)Args[1];
+	if (B->Dimensions->Size != N) return ml_error("ArrayError", "Matrix and vector sizes do not match");
+	if (Source->Format <= ML_ARRAY_FORMAT_F64) {
+		ml_array_t *Tmp = ml_array_new(ML_ARRAY_FORMAT_F64, 2);
+		array_copy(Tmp, Source);
+		int Stride = Tmp->Dimensions->Stride;
+		double *A[N];
+		char *Data = Tmp->Base.Value;
+		for (int I = 0; I < N; ++I) {
+			A[I] = (double *)Data;
+			Data += Stride;
+		}
+		int *P = anew(int, N + 1);
+		if (!ml_lu_decomp_real(A, P, N)) return ml_error("ArrayError", "Matrix is degenerate");
+		ml_array_t *Sol = ml_array_new(ML_ARRAY_FORMAT_F64, 1);
+		array_copy(Sol, B);
+		double X[N], *SolData = (double *)Sol->Base.Value;
+		for (int I = 0; I < N; ++I) {
+			X[I] = SolData[P[I]];
+			for (int K = 0; K < I; ++K) {
+				X[I] -= A[I][K] * X[K];
+			}
+		}
+		for (int I = N - 1; I >= 0; --I) {
+			for (int K = I + 1; K < N; ++K) {
+				X[I] -= A[I][K] * X[K];
+			}
+			X[I] /= A[I][I];
+		}
+		memcpy(Sol->Base.Value, X, N * sizeof(double));
+		return (ml_value_t *)Sol;
+#ifdef ML_COMPLEX
+	} else if (Source->Format <= ML_ARRAY_FORMAT_C64) {
+		ml_array_t *Tmp = ml_array_new(ML_ARRAY_FORMAT_C64, 2);
+		array_copy(Tmp, Source);
+		int Stride = Tmp->Dimensions->Stride;
+		complex double *A[N];
+		char *Data = Tmp->Base.Value;
+		for (int I = 0; I < N; ++I) {
+			A[I] = (complex double *)Data;
+			Data += Stride;
+		}
+		int *P = anew(int, N + 1);
+		if (!ml_lu_decomp_complex(A, P, N)) return ml_error("ArrayError", "Matrix is degenerate");
+		ml_array_t *Sol = ml_array_new(ML_ARRAY_FORMAT_C64, 1);
+		array_copy(Sol, B);
+		complex double X[N], *SolData = (complex double *)Sol->Base.Value;
+		for (int I = 0; I < N; ++I) {
+			X[I] = SolData[P[I]];
+			for (int K = 0; K < I; ++K) {
+				X[I] -= A[I][K] * X[K];
+			}
+		}
+		for (int I = N - 1; I >= 0; --I) {
+			for (int K = I + 1; K < N; ++K) {
+				X[I] -= A[I][K] * X[K];
+			}
+			X[I] /= A[I][I];
+		}
+		memcpy(Sol->Base.Value, X, N * sizeof(complex double));
+		return (ml_value_t *)Sol;
+#endif
+	} else {
+		return ml_error("ArrayError", "Invalid array type for operation");
+	}
+}
+
+static ml_value_t *determinant2(ml_array_t *M, int N, int *Rows, int *Cols) {
+	char *Row = M->Base.Value;
+	if (M->Dimensions[0].Indices) {
+		Row += M->Dimensions[0].Indices[Rows[0]] * M->Dimensions[0].Stride;
+	} else {
+		Row += Rows[0] * M->Dimensions[0].Stride;
+	}
+	++Rows;
+	if (--N == 0) {
+		if (M->Dimensions[1].Indices) {
+			return *(ml_value_t **)(Row + M->Dimensions[1].Indices[Cols[0]] * M->Dimensions[1].Stride);
+		} else {
+			return *(ml_value_t **)(Row + Cols[0] * M->Dimensions[1].Stride);
+		}
+	}
+	int Cols2[N];
+	for (int I = 0; I < N; ++I) Cols2[I] = Cols[I + 1];
+	ml_value_t *Args[3];
+	if (M->Dimensions[1].Indices) {
+		Args[0] = *(ml_value_t **)(Row + M->Dimensions[1].Indices[Cols[0]] * M->Dimensions[1].Stride);
+		Args[1] = determinant2(M, N, Rows, Cols2);
+		Args[0] = ml_simple_call(MulMethod, 2, Args);
+		for (int I = 0; I < N; ++I) {
+			Cols2[I] = Cols[I];
+			Args[1] = *(ml_value_t **)(Row + M->Dimensions[1].Indices[Cols[I + 1]] * M->Dimensions[1].Stride);
+			Args[2] = determinant2(M, N, Rows, Cols2);
+			Args[1] = ml_simple_call(MulMethod, 2, Args + 1);
+			Args[0] = ml_simple_call(I % 2 ? AddMethod : SubMethod, 2, Args);
+		}
+	} else {
+		Args[0] = *(ml_value_t **)(Row + Cols[0] * M->Dimensions[1].Stride);
+		Args[1] = determinant2(M, N, Rows, Cols2);
+		Args[0] = ml_simple_call(MulMethod, 2, Args);
+		for (int I = 0; I < N; ++I) {
+			Cols2[I] = Cols[I];
+			Args[1] = *(ml_value_t **)(Row + Cols[I + 1] * M->Dimensions[1].Stride);
+			Args[2] = determinant2(M, N, Rows, Cols2);
+			Args[1] = ml_simple_call(MulMethod, 2, Args + 1);
+			Args[0] = ml_simple_call(I % 2 ? AddMethod : SubMethod, 2, Args);
+		}
+	}
+	return Args[0];
+}
+
+ML_METHOD("det", MLMatrixT) {
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	int N = Source->Dimensions->Size;
+	if (Source->Format <= ML_ARRAY_FORMAT_F64) {
+		ml_array_t *Tmp = ml_array_new(ML_ARRAY_FORMAT_F64, 2);
+		array_copy(Tmp, Source);
+		int Stride = Tmp->Dimensions->Stride;
+		double *A[N];
+		char *Data = Tmp->Base.Value;
+		for (int I = 0; I < N; ++I) {
+			A[I] = (double *)Data;
+			Data += Stride;
+		}
+		int *P = anew(int, N + 1);
+		if (!ml_lu_decomp_real(A, P, N)) return ml_real(0);
+		double Det = A[0][0];
+		for (int I = 1; I < N; ++I) Det *= A[I][I];
+		if ((P[N] - N) % 2) {
+			return ml_real(-Det);
+		} else {
+			return ml_real(Det);
+		}
+#ifdef ML_COMPLEX
+	} else if (Source->Format <= ML_ARRAY_FORMAT_C64) {
+		ml_array_t *Tmp = ml_array_new(ML_ARRAY_FORMAT_C64, 2);
+		array_copy(Tmp, Source);
+		int Stride = Tmp->Dimensions->Stride;
+		complex double *A[N];
+		char *Data = Tmp->Base.Value;
+		for (int I = 0; I < N; ++I) {
+			A[I] = (complex double *)Data;
+			Data += Stride;
+		}
+		int *P = anew(int, N + 1);
+		if (!ml_lu_decomp_complex(A, P, N)) return ml_real(0);
+		complex double Det = A[0][0];
+		for (int I = 1; I < N; ++I) Det *= A[I][I];
+		if ((P[N] - N) % 2) {
+			return ml_complex(-Det);
+		} else {
+			return ml_complex(Det);
+		}
+#endif
+	} else if (Source->Format == ML_ARRAY_FORMAT_ANY) {
+		int Rows[N], Cols[N];
+		for (int I = 0; I < N; ++I) Rows[I] = Cols[I] = I;
+		return determinant2(Source, N, Rows, Cols);
+	} else {
+		return ml_error("ArrayError", "Invalid array type for operation");
+	}
 }
 
 #ifdef ML_CBOR

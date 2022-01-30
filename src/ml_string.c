@@ -1448,6 +1448,15 @@ ML_METHOD("+", MLStringT, MLStringT) {
 	return ml_string(Chars, Length);
 }
 
+ML_METHOD("*", MLIntegerT, MLStringT) {
+	int N = ml_integer_value(Args[0]);
+	const char *Chars = ml_string_value(Args[1]);
+	int Length = ml_string_length(Args[1]);
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	for (int I = 0; I < N; ++I) ml_stringbuffer_write(Buffer, Chars, Length);
+	return ml_stringbuffer_get_value(Buffer);
+}
+
 ML_METHOD("trim", MLStringT) {
 	const unsigned char *Start = (const unsigned char *)ml_string_value(Args[0]);
 	const unsigned char *End = Start + ml_string_length(Args[0]);

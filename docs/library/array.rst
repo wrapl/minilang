@@ -540,3 +540,12 @@ array
    Returns the inner product of :mini:`A` and :mini:`B`. The last dimension of :mini:`A` and the first dimension of :mini:`B` must match,  skipping any dimensions of size :mini:`1`.
 
 
+:mini:`meth \(Arg₁: matrix)`
+   *TBD*
+
+:mini:`meth (Arg₁: matrix) \ (Arg₂: vector)`
+   *TBD*
+
+:mini:`meth (Arg₁: matrix):det`
+   *TBD*
+

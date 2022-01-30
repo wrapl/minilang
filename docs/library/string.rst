@@ -125,6 +125,9 @@ string
 :mini:`meth (Arg₁: string) + (Arg₂: string)`
    *TBD*
 
+:mini:`meth (Arg₁: integer) * (Arg₂: string)`
+   *TBD*
+
 :mini:`meth (Arg₁: string):trim`
    *TBD*
 
