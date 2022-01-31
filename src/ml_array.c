@@ -44,29 +44,35 @@ ML_TYPE(MLMatrixT, (MLArrayT), "matrix",
 #ifdef ML_COMPLEX
 
 ML_TYPE(MLArrayComplexT, (MLArrayT), "array::complex");
+// Base type for arrays of complex numbers.
 
 extern ml_type_t MLArrayComplex32T[];
 extern ml_type_t MLArrayComplex64T[];
 
 ML_TYPE(MLVectorComplexT, (MLArrayComplexT, MLVectorT), "vector::complex");
+// Base type for vectors of complex numbers.
 
 extern ml_type_t MLVectorComplex32T[];
 extern ml_type_t MLVectorComplex64T[];
 
 ML_TYPE(MLMatrixComplexT, (MLArrayComplexT, MLMatrixT), "matrix::complex");
+// Base type for matrices of complex numbers.
 
 extern ml_type_t MLMatrixComplex32T[];
 extern ml_type_t MLMatrixComplex64T[];
 
 ML_TYPE(MLArrayRealT, (MLArrayComplexT), "array::real");
+// Base type for arrays of real numbers.
 
 #else
 
 ML_TYPE(MLArrayRealT, (MLArrayT), "array::real");
+// Base type for arrays of real numbers.
 
 #endif
 
 ML_TYPE(MLArrayIntegerT, (MLArrayRealT), "array::integer");
+// Base type for arrays of integers.
 
 extern ml_type_t MLArrayInt8T[];
 extern ml_type_t MLArrayUInt8T[];
@@ -80,8 +86,10 @@ extern ml_type_t MLArrayFloat32T[];
 extern ml_type_t MLArrayFloat64T[];
 
 ML_TYPE(MLVectorRealT, (MLArrayRealT, MLVectorT), "vector::real");
+// Base type for vectors of real numbers.
 
 ML_TYPE(MLVectorIntegerT, (MLVectorRealT), "vector::integer");
+// Base type for vectors of integers.
 
 extern ml_type_t MLVectorInt8T[];
 extern ml_type_t MLVectorUInt8T[];
@@ -95,8 +103,10 @@ extern ml_type_t MLVectorFloat32T[];
 extern ml_type_t MLVectorFloat64T[];
 
 ML_TYPE(MLMatrixRealT, (MLArrayRealT, MLMatrixT), "matrix::real");
+// Base type for matrices of real numbers.
 
 ML_TYPE(MLMatrixIntegerT, (MLMatrixRealT), "matrix::integer");
+// Base type for matrices of integers.
 
 extern ml_type_t MLMatrixInt8T[];
 extern ml_type_t MLMatrixUInt8T[];
@@ -596,6 +606,11 @@ ML_METHOD("permute", MLArrayT, MLListT) {
 }
 
 ML_METHOD("swap", MLArrayT, MLIntegerT, MLIntegerT) {
+//<Array
+//<Index/1
+//<Index/2
+//>array
+// Returns an array sharing the underlying data with :mini:`Array` with dimensions :mini:`Index/1` and :mini:`Index/2` swapped.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Degree = Source->Degree;
 	int IndexA = ml_integer_value_fast(Args[1]);
@@ -648,6 +663,11 @@ ML_METHOD("expand", MLArrayT, MLListT) {
 }
 
 ML_METHOD("split", MLArrayT, MLIntegerT, MLListT) {
+//<Array
+//<Index
+//<Sizes
+//>array
+// Returns an array sharing the underlying data with :mini:`Array` replacing the dimension at :mini:`Index` with new dimensions with sizes :mini:`Sizes`. The total count :mini:`Sizes/1 * Sizes/2 * ... * Sizes/n` must equal the original size.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Degree = Source->Degree;
 	int Expand = ml_integer_value_fast(Args[1]);
@@ -680,6 +700,11 @@ ML_METHOD("split", MLArrayT, MLIntegerT, MLListT) {
 }
 
 ML_METHOD("join", MLArrayT, MLIntegerT, MLIntegerT) {
+//<Array
+//<Start
+//<Count
+//>array
+// Returns an array sharing the underlying data with :mini:`Array` replacing the dimensions at :mini:`Start .. (Start + Count)` with a single dimension with the same overall size.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Degree = Source->Degree;
 	int Start = ml_integer_value_fast(Args[1]);
@@ -769,6 +794,7 @@ static void ml_array_nil_assign(ml_state_t *Caller, ml_value_t *Array, ml_value_
 }
 
 ML_TYPE(MLArrayNilT, (MLArrayT), "array::nil",
+//!internal
 	.deref = (void *)ml_array_nil_deref,
 	.assign = (void *)ml_array_nil_assign
 );
@@ -1107,16 +1133,17 @@ ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **Indices) 
 
 ML_METHODV("[]", MLArrayT) {
 //<Array
-//<Indices...:any
+//<Index/1
 //>array
-// Returns a sub-array of :mini:`Array` sharing the underlying data.
-// The :mini:`i`-th dimension is indexed by the corresponding :mini:`Index/i`.
-// * If :mini:`Index/i` is :mini:`nil` then the :mini:`i`-th dimension is copied unchanged.
-// * If :mini:`Index/i` is an integer then the :mini:`Index/i`-th value is selected and the :mini:`i`-th dimension is dropped from the result.
-// * If :mini:`Index/i` is a list of integers then the :mini:`i`-th dimension is copied as a sparse dimension with the respective entries.
-// * If :mini:`Index/i` is a tuple of integers then each dimension is indexed by the corresponding integer in turn (i.e. :mini:`A[(I, J, K)]` gives the same result as :mini:`A[I, J, K]`).
-// * If :mini:`Index/i` is a list of tuples of integers then a sparse dimension is added with the corresponding entries.
-// * If :mini:`Index/i` is another array with dimensions that matches the corresponding dimensions of :mini:`A` then a sparse dimension is added with entries corresponding to the non-zero values in :mini:`Index/i` (i.e. :mini:`A[B]` is equivalent to :mini:`A[B:where]`).
+// Returns a sub-array of :mini:`Array` sharing the underlying data, indexed by :mini:`Index/i`.
+// Dimensions are copied to the output array, applying the indices as follows:
+// * If :mini:`Index/i` is :mini:`nil` then the next dimension is copied unchanged.
+// * If :mini:`Index/i` is an :mini:`integer` then the :mini:`Index/i`-th value of the next dimension is selected and the dimension is dropped from the output.
+// * If :mini:`Index/i` is an :mini:`integer::range` then the corresponding slice of the next dimension is copied to the output.
+// * If :mini:`Index/i` is a :mini:`tuple[integer, ...]` then the next dimensions are indexed by the corresponding integer in turn (i.e. :mini:`A[(I, J, K)]` gives the same result as :mini:`A[I, J, K]`).
+// * If :mini:`Index/i` is a :mini:`list[integer]` then the next dimension is copied as a sparse dimension with the respective entries.
+// * If :mini:`Index/i` is a :mini:`list[tuple[integer, ...]]` then the appropriate dimensions are dropped and a single sparse dimension is added with the corresponding entries.
+// * If :mini:`Index/i` is an :mini:`array` with dimensions that matches the corresponding dimensions of :mini:`A` then a sparse dimension is added with entries corresponding to the non-zero values in :mini:`Index/i` (i.e. :mini:`A[B]` is equivalent to :mini:`A[B:where]`).
 // If fewer than :mini:`A:degree` indices are provided then the remaining dimensions are copied unchanged.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	return ml_array_index(Source, Count - 1, Args + 1);
@@ -1155,11 +1182,6 @@ static char *ml_array_indexv(ml_array_t *Array, va_list Indices) {
 		++Dimension;
 	}
 	return Address;
-}
-
-ml_value_t *ml_array_assign(ml_array_t *Array, ml_value_t *Value) {
-	// TODO: Implement this
-	return Value;
 }
 
 typedef struct {
@@ -1678,6 +1700,10 @@ static ml_value_t *compare_array_fn(void *Data, int Count, ml_value_t **Args) {
 extern int ml_array_compare(ml_array_t *A, ml_array_t *B);
 
 ML_METHOD("<>", MLArrayT, MLArrayT) {
+//<A
+//<B
+//>integer
+// Compare the degrees, dimensions and entries of  :mini:`A` and :mini:`B` and returns :mini:`-1`, :mini:`0` or :mini:`1`. This method is only intending for sorting arrays or using them as keys in a map.
 	ml_array_t *A = (ml_array_t *)Args[0];
 	ml_array_t *B = (ml_array_t *)Args[1];
 	return ml_integer(ml_array_compare(A, B));
@@ -1919,6 +1945,11 @@ static void ml_array_ ## CTYPE ## _assign(ml_state_t *Caller, ml_array_t *Target
 } \
 \
 ML_CFUNCTIONX(MLArray ## SUFFIX ## New, (void *)FORMAT, ml_array_typed_new_fnx); \
+/*@array::PREFIX
+//<Sizes:list[integer]
+//>array::PREFIX
+//  Returns a new array of PREFIX values with the specified dimensions.
+*/\
 \
 ML_TYPE(MLArray ## SUFFIX, (MLArray ## PARENT), "array::" #PREFIX, \
 /*@array::PREFIX
@@ -2304,6 +2335,12 @@ static int array_copy(ml_array_t *Target, ml_array_t *Source) {
 }
 
 ML_METHOD("reshape", MLArrayT, MLListT) {
+//<Array
+//<Sizes
+//>array
+// Returns a copy of :mini:`Array` with dimensions specified by :mini:`Sizes`.
+// .. note::
+//    Currently this method always makes a copy of the data so that changes to the returned array do not affect the original.
 	int TargetDegree = ml_list_length(Args[1]);
 	size_t TargetCount = 1;
 	ML_LIST_FOREACH(Args[1], Iter) {
@@ -4865,6 +4902,9 @@ static int ml_lu_decomp_complex(complex double **A, int *P, int N) {
 #endif
 
 ML_METHOD("\\", MLMatrixT) {
+//<A
+//>matrix
+// Returns the inverse of :mini:`A`.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	if (Source->Format <= ML_ARRAY_FORMAT_F64) {
 		ml_array_t *Inv = ml_array_new(ML_ARRAY_FORMAT_F64, 2);
@@ -4938,6 +4978,10 @@ ML_METHOD("\\", MLMatrixT) {
 }
 
 ML_METHOD("\\", MLMatrixT, MLVectorT) {
+//<A
+//<B
+//>vector
+// Returns the solution :mini:`X` of :mini:`A . X = B`.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int N = Source->Dimensions->Size;
 	ml_array_t *B = (ml_array_t *)Args[1];
@@ -5052,6 +5096,9 @@ static ml_value_t *determinant2(ml_array_t *M, int N, int *Rows, int *Cols) {
 }
 
 ML_METHOD("det", MLMatrixT) {
+//<A
+//>any
+// Returns the determinant of :mini:`A`.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int N = Source->Dimensions->Size;
 	if (Source->Format <= ML_ARRAY_FORMAT_F64) {
@@ -5098,6 +5145,113 @@ ML_METHOD("det", MLMatrixT) {
 		int Rows[N], Cols[N];
 		for (int I = 0; I < N; ++I) Rows[I] = Cols[I] = I;
 		return determinant2(Source, N, Rows, Cols);
+	} else {
+		return ml_error("ArrayError", "Invalid array type for operation");
+	}
+}
+
+ML_METHOD("tr", MLMatrixT) {
+//<A
+//>any
+// Returns the trace of :mini:`A`.
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	int N = Source->Dimensions->Size;
+	if (Source->Format <= ML_ARRAY_FORMAT_F64) {
+		double Trace = 0;
+		char *Data = Source->Base.Value;
+		ml_array_getter_double get = MLArrayGettersFloat64[Source->Format];
+		int Stride0 = Source->Dimensions[0].Stride;
+		int Stride1 = Source->Dimensions[1].Stride;
+		if (Source->Dimensions[0].Indices) {
+			int *Indices0 = Source->Dimensions[0].Indices;
+			if (Source->Dimensions[1].Indices) {
+				int *Indices1 = Source->Dimensions[1].Indices;
+				for (int I = 0; I < N; ++I) {
+					Trace += get(Data + (Indices0[I] * Stride0) + (Indices1[I] * Stride1));
+				}
+			} else {
+				for (int I = 0; I < N; ++I) {
+					Trace += get(Data + (Indices0[I] * Stride0) + (I * Stride1));
+				}
+			}
+		} else if (Source->Dimensions[1].Indices) {
+			int *Indices1 = Source->Dimensions[1].Indices;
+			for (int I = 0; I < N; ++I) {
+				Trace += get(Data + (I * Stride0) + (Indices1[I] * Stride1));
+			}
+		} else {
+			for (int I = 0; I < N; ++I) {
+				Trace += get(Data + (I * Stride0) + (I * Stride1));
+			}
+		}
+		return ml_real(Trace);
+#ifdef ML_COMPLEX
+	} else if (Source->Format <= ML_ARRAY_FORMAT_C64) {
+		complex double Trace = 0;
+		char *Data = Source->Base.Value;
+		ml_array_getter_complex_double get = MLArrayGettersComplex64[Source->Format];
+		int Stride0 = Source->Dimensions[0].Stride;
+		int Stride1 = Source->Dimensions[1].Stride;
+		if (Source->Dimensions[0].Indices) {
+			int *Indices0 = Source->Dimensions[0].Indices;
+			if (Source->Dimensions[1].Indices) {
+				int *Indices1 = Source->Dimensions[1].Indices;
+				for (int I = 0; I < N; ++I) {
+					Trace += get(Data + (Indices0[I] * Stride0) + (Indices1[I] * Stride1));
+				}
+			} else {
+				for (int I = 0; I < N; ++I) {
+					Trace += get(Data + (Indices0[I] * Stride0) + (I * Stride1));
+				}
+			}
+		} else if (Source->Dimensions[1].Indices) {
+			int *Indices1 = Source->Dimensions[1].Indices;
+			for (int I = 0; I < N; ++I) {
+				Trace += get(Data + (I * Stride0) + (Indices1[I] * Stride1));
+			}
+		} else {
+			for (int I = 0; I < N; ++I) {
+				Trace += get(Data + (I * Stride0) + (I * Stride1));
+			}
+		}
+		return ml_complex(Trace);
+#endif
+	} else if (Source->Format == ML_ARRAY_FORMAT_ANY) {
+		ml_value_t *Args2[2];
+		char *Data = Source->Base.Value;
+		int Stride0 = Source->Dimensions[0].Stride;
+		int Stride1 = Source->Dimensions[1].Stride;
+		if (Source->Dimensions[0].Indices) {
+			int *Indices0 = Source->Dimensions[0].Indices;
+			if (Source->Dimensions[1].Indices) {
+				int *Indices1 = Source->Dimensions[1].Indices;
+				Args2[0] = *(ml_value_t **)(Data + (Indices0[0] * Stride0) + (Indices1[0] * Stride1));
+				for (int I = 1; I < N; ++I) {
+					Args2[1] = *(ml_value_t **)(Data + (Indices0[I] * Stride0) + (Indices1[I] * Stride1));
+					Args2[0] = ml_simple_call(AddMethod, 2, Args2);
+				}
+			} else {
+				Args2[0] = *(ml_value_t **)(Data + (Indices0[0] * Stride0) + (0 * Stride1));
+				for (int I = 1; I < N; ++I) {
+					Args2[1] = *(ml_value_t **)(Data + (Indices0[I] * Stride0) + (I * Stride1));
+					Args2[0] = ml_simple_call(AddMethod, 2, Args2);
+				}
+			}
+		} else if (Source->Dimensions[1].Indices) {
+			int *Indices1 = Source->Dimensions[1].Indices;
+			Args2[0] = *(ml_value_t **)(Data + (0 * Stride0) + (Indices1[0] * Stride1));
+			for (int I = 1; I < N; ++I) {
+				Args2[1] = *(ml_value_t **)(Data + (I * Stride0) + (Indices1[I] * Stride1));
+				Args2[0] = ml_simple_call(AddMethod, 2, Args2);
+			}
+		} else {
+			Args2[0] = *(ml_value_t **)(Data + (0 * Stride0) + (0 * Stride1));
+			for (int I = 1; I < N; ++I) {
+				Args2[1] = *(ml_value_t **)(Data + (I * Stride0) + (I * Stride1));
+				Args2[0] = ml_simple_call(AddMethod, 2, Args2);
+			}
+		}
+		return Args2[0];
 	} else {
 		return ml_error("ArrayError", "Invalid array type for operation");
 	}

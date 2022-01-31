@@ -426,6 +426,8 @@ ML_METHOD("+", MLPolynomialT, MLPolynomialT) {
 	ml_polynomial_write(Buffer, C);
 	puts(ml_stringbuffer_get_string(Buffer));
 #endif
+	if (!C->Count) return ml_real(0);
+	if (C->Count == 1 && C->Terms->Factors == Constant) return ml_real(C->Terms->Coeff);
 	return (ml_value_t *)C;
 }
 
@@ -562,6 +564,8 @@ ML_METHOD("-", MLPolynomialT, MLPolynomialT) {
 	ml_polynomial_write(Buffer, C);
 	puts(ml_stringbuffer_get_string(Buffer));
 #endif
+	if (!C->Count) return ml_real(0);
+	if (C->Count == 1 && C->Terms->Factors == Constant) return ml_real(C->Terms->Coeff);
 	return (ml_value_t *)C;
 }
 
@@ -624,6 +628,35 @@ ML_METHOD("*", MLPolynomialT, MLPolynomialT) {
 	puts(ml_stringbuffer_get_string(Buffer));
 #endif
 	return (ml_value_t *)C;
+}
+
+ML_METHOD("^", MLPolynomialT, MLIntegerT) {
+	ml_polynomial_t *A = (ml_polynomial_t *)Args[0];
+	int N = ml_integer_value(Args[1]);
+	if (N < 0) return ml_error("RangeError", "Negative powers not implemented yet");
+	if (N == 0) return ml_real(1);
+	if (A->Count == 1) {
+		int C = A->Terms->Factors->Count;
+		const ml_factors_t *FA = A->Terms->Factors;
+		ml_factors_t *FB = xnew(ml_factors_t, C, ml_factor_t);
+		FB->Count = C;
+		FB->Degree = FA->Degree * N;
+		memcpy(FB->Factors, FA->Factors, C * sizeof(ml_factor_t));
+		for (int I = 0; I < C; ++I) FB->Factors[I].Degree *= N;
+		ml_polynomial_t *B = xnew(ml_polynomial_t, 1, ml_term_t);
+		B->Type = MLPolynomialT;
+		B->Count = 1;
+		B->Terms->Coeff = pow(A->Terms->Coeff, N);
+		B->Terms->Factors = FB;
+		return (ml_value_t *)B;
+	}
+	ml_polynomial_t *S = A, *B = NULL;
+	while (N) {
+		if (N % 2) B = B ? ml_polynomial_mul(B, S) : S;
+		N /= 2;
+		S = ml_polynomial_mul(S, S);
+	}
+	return (ml_value_t *)B;
 }
 
 ML_METHOD("append", MLStringBufferT, MLPolynomialT) {

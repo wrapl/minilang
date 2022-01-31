@@ -63,6 +63,10 @@ list
    Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
 
 
+:mini:`meth (List: list)[Indices: list]: list`
+   Returns a list containing the :mini:`List[Indices[1]]`,  :mini:`List[Indices[2]]`,  etc.
+
+
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: list)`
    *TBD*
 

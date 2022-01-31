@@ -34,6 +34,9 @@ polynomial
 :mini:`meth (Arg₁: polynomial) * (Arg₂: polynomial)`
    *TBD*
 
+:mini:`meth (Arg₁: polynomial) ^ (Arg₂: integer)`
+   *TBD*
+
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: polynomial)`
    *TBD*
 

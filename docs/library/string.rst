@@ -113,44 +113,57 @@ string
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: string)`
    *TBD*
 
-:mini:`meth (Arg₁: string)[Arg₂: integer]`
-   *TBD*
+:mini:`meth (String: string)[Index: integer]: string`
+   Returns the substring of :mini:`String` of length 1 at :mini:`Index`.
 
-:mini:`meth (Arg₁: string)[Arg₂: integer, Arg₃: integer]`
-   *TBD*
 
-:mini:`meth (Arg₁: string)[Arg₂: integer::range]`
-   *TBD*
+:mini:`meth (String: string)[Start: integer, End: integer]: string`
+   Returns the substring of :mini:`String` from :mini:`Start` to :mini:`End - 1` inclusively.
 
-:mini:`meth (Arg₁: string) + (Arg₂: string)`
-   *TBD*
 
-:mini:`meth (Arg₁: integer) * (Arg₂: string)`
-   *TBD*
+:mini:`meth (String: string)[Range: integer::range]: string`
+   Returns the substring of :mini:`String` corresponding to :mini:`Range` inclusively.
 
-:mini:`meth (Arg₁: string):trim`
-   *TBD*
 
-:mini:`meth (Arg₁: string):trim(Arg₂: string)`
-   *TBD*
+:mini:`meth (A: string) + (B: string): string`
+   Returns :mini:`A` and :mini:`B` concatentated.
 
-:mini:`meth (Arg₁: string):ltrim`
-   *TBD*
 
-:mini:`meth (Arg₁: string):ltrim(Arg₂: string)`
-   *TBD*
+:mini:`meth (N: integer) * (String: string): string`
+   Returns :mini:`String` concatentated :mini:`N` times.
 
-:mini:`meth (Arg₁: string):rtrim`
-   *TBD*
 
-:mini:`meth (Arg₁: string):rtrim(Arg₂: string)`
-   *TBD*
+:mini:`meth (String: string):trim: string`
+   Returns a copy of :mini:`String` with whitespace removed from both ends.
 
-:mini:`meth (Arg₁: string):reverse`
-   *TBD*
 
-:mini:`meth (Arg₁: string) <> (Arg₂: string)`
-   *TBD*
+:mini:`meth (String: string):trim(Chars: string): string`
+   Returns a copy of :mini:`String` with characters in :mini:`Chars` removed from both ends.
+
+
+:mini:`meth (String: string):ltrim: string`
+   Returns a copy of :mini:`String` with characters in :mini:`Chars` removed from the start.
+
+
+:mini:`meth (String: string):ltrim(Chars: string): string`
+   Returns a copy of :mini:`String` with characters in :mini:`Chars` removed from the start.
+
+
+:mini:`meth (String: string):rtrim: string`
+   Returns a copy of :mini:`String` with characters in :mini:`Chars` removed from the end.
+
+
+:mini:`meth (String: string):rtrim(Chars: string): string`
+   Returns a copy of :mini:`String` with characters in :mini:`Chars` removed from the end.
+
+
+:mini:`meth (String: string):reverse: string`
+   Returns a string with the characters in :mini:`String` reversed.
+
+
+:mini:`meth (A: string) <> (B: string): integer`
+   Compares :mini:`A` and :mini:`B` lexicographically and returns :mini:`-1`,  :mini:`0` or :mini:`1` respectively.
+
 
 :mini:`meth (Arg₁: string) = (Arg₂: string): string | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ == Arg₂` and :mini:`nil` otherwise.
@@ -176,32 +189,45 @@ string
    Returns :mini:`Arg₂` if :mini:`Arg₁ >= Arg₂` and :mini:`nil` otherwise.
 
 
-:mini:`meth (Arg₁: string) ~ (Arg₂: string)`
-   *TBD*
+:mini:`meth (A: string) ~ (B: string): integer`
+   Returns the edit distance between :mini:`A` and :mini:`B`.
 
-:mini:`meth (Arg₁: string) ~> (Arg₂: string)`
-   *TBD*
 
-:mini:`meth (Arg₁: string) / (Arg₂: string)`
-   *TBD*
+:mini:`meth (A: string) ~> (B: string): integer`
+   Returns an asymmetric edit distance from :mini:`A` to :mini:`B`.
 
-:mini:`meth (Arg₁: string) / (Arg₂: regex)`
-   *TBD*
 
-:mini:`meth (Arg₁: string) / (Arg₂: regex, Arg₃: integer)`
-   *TBD*
+:mini:`meth (String: string) / (Pattern: string): list`
+   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
 
-:mini:`meth (Arg₁: string) /* (Arg₂: string)`
-   *TBD*
 
-:mini:`meth (Arg₁: string) /* (Arg₂: regex)`
-   *TBD*
+:mini:`meth (String: string) / (Pattern: regex): list`
+   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
 
-:mini:`meth (Arg₁: string) */ (Arg₂: string)`
-   *TBD*
+   If :mini:`Pattern` contains a subgroup then only the subgroup matches are removed from the output substrings.
 
-:mini:`meth (Arg₁: string) */ (Arg₂: regex)`
-   *TBD*
+
+:mini:`meth (String: string) / (Pattern: regex, Index: integer): list`
+   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
+
+   Only the :mini:`Index` subgroup matches are removed from the output substrings.
+
+
+:mini:`meth (String: string) /* (Pattern: string): tuple[string,  string]`
+   Splits :mini:`String` at the first occurence of :mini:`Pattern` and returns the two substrings in a tuple.
+
+
+:mini:`meth (String: string) /* (Pattern: regex): tuple[string,  string]`
+   Splits :mini:`String` at the first occurence of :mini:`Pattern` and returns the two substrings in a tuple.
+
+
+:mini:`meth (String: string) */ (Pattern: string): tuple[string,  string]`
+   Splits :mini:`String` at the last occurence of :mini:`Pattern` and returns the two substrings in a tuple.
+
+
+:mini:`meth (String: string) */ (Pattern: regex): tuple[string,  string]`
+   Splits :mini:`String` at the last occurence of :mini:`Pattern` and returns the two substrings in a tuple.
+
 
 :mini:`meth (Arg₁: string):lower`
    *TBD*
