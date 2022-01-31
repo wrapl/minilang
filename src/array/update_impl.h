@@ -55,14 +55,14 @@ void NAME ## _row_any_ ## SOURCE(ml_array_dimension_t *TargetDimension, char *Ta
 			for (int I = 0; I < Size; ++I) { \
 				ml_value_t **Target = (ml_value_t **)(TargetData + TargetIndices[I] * TargetDimension->Stride); \
 				ml_value_t *Source = ml_number(*(SOURCE *)(SourceData + SourceIndices[I] * SourceDimension->Stride)); \
-				*Target = Source; \
+				*Target = OP(*Target, Source); \
 			} \
 		} else { \
 			int SourceStride = SourceDimension->Stride; \
 			for (int I = 0; I < Size; ++I) { \
 				ml_value_t **Target = (ml_value_t **)(TargetData + TargetIndices[I] * TargetDimension->Stride); \
 				ml_value_t *Source = ml_number(*(SOURCE *)SourceData); \
-				*Target = Source; \
+				*Target = OP(*Target, Source); \
 				SourceData += SourceStride; \
 			} \
 		} \
@@ -73,7 +73,7 @@ void NAME ## _row_any_ ## SOURCE(ml_array_dimension_t *TargetDimension, char *Ta
 			for (int I = 0; I < Size; ++I) { \
 				ml_value_t **Target = (ml_value_t **)TargetData; \
 				ml_value_t *Source = ml_number(*(SOURCE *)(SourceData + SourceIndices[I] * SourceDimension->Stride)); \
-				*Target = Source; \
+				*Target = OP(*Target, Source); \
 				TargetData += TargetStride; \
 			} \
 		} else { \
@@ -81,7 +81,7 @@ void NAME ## _row_any_ ## SOURCE(ml_array_dimension_t *TargetDimension, char *Ta
 			for (int I = Size; --I >= 0;) { \
 				ml_value_t **Target = (ml_value_t **)TargetData; \
 				ml_value_t *Source = ml_number(*(SOURCE *)SourceData); \
-				*Target = Source; \
+				*Target = OP(*Target, Source); \
 				TargetData += TargetStride; \
 				SourceData += SourceStride; \
 			} \
@@ -142,13 +142,15 @@ void NAME ## _row_any_any(ml_array_dimension_t *TargetDimension, char *TargetDat
 			int *SourceIndices = SourceDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				ml_value_t *Source = *(ml_value_t **)(SourceData + SourceIndices[I] * SourceDimension->Stride); \
-				*(ml_value_t **)(TargetData + TargetIndices[I] * TargetDimension->Stride) = Source; \
+				ml_value_t **Target = (ml_value_t **)(TargetData + TargetIndices[I] * TargetDimension->Stride); \
+				*Target = OP(*Target, Source); \
 			} \
 		} else { \
 			int SourceStride = SourceDimension->Stride; \
 			for (int I = 0; I < Size; ++I) { \
 				ml_value_t *Source = *(ml_value_t **)SourceData; \
-				*(ml_value_t **)(TargetData + TargetIndices[I] * TargetDimension->Stride) = Source; \
+				ml_value_t **Target = (ml_value_t **)(TargetData + TargetIndices[I] * TargetDimension->Stride); \
+				*Target = OP(*Target, Source); \
 				SourceData += SourceStride; \
 			} \
 		} \
@@ -158,14 +160,16 @@ void NAME ## _row_any_any(ml_array_dimension_t *TargetDimension, char *TargetDat
 			int *SourceIndices = SourceDimension->Indices; \
 			for (int I = 0; I < Size; ++I) { \
 				ml_value_t *Source = *(ml_value_t **)(SourceData + SourceIndices[I] * SourceDimension->Stride); \
-				*(ml_value_t **)TargetData = Source; \
+				ml_value_t **Target = (ml_value_t **)TargetData; \
+				*Target = OP(*Target, Source); \
 				TargetData += TargetStride; \
 			} \
 		} else { \
 			int SourceStride = SourceDimension->Stride; \
 			for (int I = Size; --I >= 0;) { \
 				ml_value_t *Source = *(ml_value_t **)SourceData; \
-				*(ml_value_t **)TargetData = Source; \
+				ml_value_t **Target = (ml_value_t **)TargetData; \
+				*Target = OP(*Target, Source); \
 				TargetData += TargetStride; \
 				SourceData += SourceStride; \
 			} \
@@ -227,7 +231,7 @@ UPDATE_ROW_TARGET_VALUE_IMPL_BASE(NAME, OP)
 
 #endif
 
-#define UPDATE_ROW_OPS_IMPL_BASE(NAME, OP) \
+#define UPDATE_ROW_OPS_IMPL_BASE(NAME, OP, OP2) \
 UPDATE_ROW_TARGET_IMPL(NAME, OP, int8_t) \
 UPDATE_ROW_TARGET_IMPL(NAME, OP, uint8_t) \
 UPDATE_ROW_TARGET_IMPL(NAME, OP, int16_t) \
@@ -238,19 +242,19 @@ UPDATE_ROW_TARGET_IMPL(NAME, OP, int64_t) \
 UPDATE_ROW_TARGET_IMPL(NAME, OP, uint64_t) \
 UPDATE_ROW_TARGET_IMPL(NAME, OP, float) \
 UPDATE_ROW_TARGET_IMPL(NAME, OP, double) \
-UPDATE_ROW_TARGET_VALUE_IMPL(NAME, OP)
+UPDATE_ROW_TARGET_VALUE_IMPL(NAME, OP2)
 
 #ifdef ML_COMPLEX
 
-#define UPDATE_ROW_OPS_IMPL(NAME, OP) \
-UPDATE_ROW_OPS_IMPL_BASE(NAME, OP) \
+#define UPDATE_ROW_OPS_IMPL(NAME, OP, OP2) \
+UPDATE_ROW_OPS_IMPL_BASE(NAME, OP, OP2) \
 UPDATE_ROW_TARGET_IMPL(NAME, OP, complex_float) \
 UPDATE_ROW_TARGET_IMPL(NAME, OP, complex_double)
 
 #else
 
-#define UPDATE_ROW_OPS_IMPL(NAME, OP) \
-UPDATE_ROW_OPS_IMPL_BASE(NAME, OP)
+#define UPDATE_ROW_OPS_IMPL(NAME, OP, OP2) \
+UPDATE_ROW_OPS_IMPL_BASE(NAME, OP, OP2)
 
 #endif
 

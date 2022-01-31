@@ -5,7 +5,7 @@ macro
    An expression value used by the compiler to implement macros.
 
 
-:mini:`meth (Expr: expr):scoped(Names₁ is Value₁, Values: any, ...): expr`
+:mini:`meth (Expr: expr):scoped(Name₁ is  Value₁, ...): expr`
    Returns a new expression which wraps :mini:`Expr` with the constant definitions from :mini:`Names` and :mini:`Values`.
 
 
@@ -13,12 +13,12 @@ macro
    Returns a new expression which wraps :mini:`Expr` with the constant definitions from :mini:`Definitions`.
 
 
-:mini:`meth (Expr: expr):subst(Names₁ is Value₁, Exprs: expr, ...): expr`
-   Returns a new expression which wraps substitutes macro references (e.g. :mini:`:$Name`) with expressions from :mini:`Names` and :mini:`Exprs`.
+:mini:`meth (Expr: expr):subst(Name₁ is  Sub₁, ...): expr`
+   Returns a new expression which substitutes macro references to :mini:`:$Nameᵢ` with the corresponding expression :mini:`Subᵢ`.
 
 
-:mini:`meth (Expr: expr):subst(Names: list, Exprs: list): expr`
-   Returns a new expression which wraps substitutes macro references (e.g. :mini:`:$Name`) with expressions from :mini:`Names` and :mini:`Exprs`.
+:mini:`meth (Expr: expr):subst(Names: list, Subs: list): expr`
+   Returns a new expression which substitutes macro references to :mini:`:$Nameᵢ` with the corresponding expressions :mini:`Subᵢ`.
 
 
 :mini:`fun macro(Function: function): macro`
@@ -39,7 +39,7 @@ macro
    Returns a new value expression.
 
 
-:mini:`fun macro::fun(Params: list, Arg₂: expr): expr`
+:mini:`fun macro::fun(Params: map, Arg₂: expr): expr`
    Returns a new function expression.
 
 

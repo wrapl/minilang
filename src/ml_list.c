@@ -491,6 +491,21 @@ ML_METHOD("[]", MLListT, MLIntegerRangeT) {
 	return (ml_value_t *)Slice;
 }
 
+ML_METHOD("[]", MLListT, MLListT) {
+//<List
+//<Indices
+//>list
+// Returns a list containing the :mini:`List[Indices[1]]`, :mini:`List[Indices[2]]`, etc.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	ml_value_t *Result = ml_list();
+	ML_LIST_FOREACH(Args[1], Iter) {
+		int Index = ml_integer_value(Iter->Value);
+		ml_list_node_t *Node = ml_list_index(List, Index);
+		ml_list_put(Result, Node ? Node->Value : MLNil);
+	}
+	return Result;
+}
+
 ML_METHOD("append", MLStringBufferT, MLListT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_put(Buffer, '[');

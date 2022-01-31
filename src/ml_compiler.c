@@ -1742,8 +1742,7 @@ static void ml_scoped_expr_compile(mlc_function_t *Function, mlc_scoped_expr_t *
 ML_METHODV("scoped", MLExprT, MLNamesT) {
 //!macro
 //<Expr
-//<Names
-//<Values:any
+//<Name,Value
 //>expr
 // Returns a new expression which wraps :mini:`Expr` with the constant definitions from :mini:`Names` and :mini:`Values`.
 	ml_expr_value_t *Value = (ml_expr_value_t *)Args[0];
@@ -1824,10 +1823,9 @@ static void ml_subst_expr_compile(mlc_function_t *Function, mlc_subst_expr_t *Ex
 ML_METHODV("subst", MLExprT, MLNamesT) {
 //!macro
 //<Expr
-//<Names
-//<Exprs:expr
+//<Name,Sub
 //>expr
-// Returns a new expression which wraps substitutes macro references (e.g. :mini:`:$Name`) with expressions from :mini:`Names` and :mini:`Exprs`.
+// Returns a new expression which substitutes macro references to :mini:`:$Name/i` with the corresponding expression :mini:`Sub/i`.
 	mlc_subst_expr_t *Expr = new(mlc_subst_expr_t);
 	ml_expr_value_t *Value = (ml_expr_value_t *)Args[0];
 	mlc_expr_t *Child = Value->Expr;
@@ -1849,9 +1847,9 @@ ML_METHOD("subst", MLExprT, MLListT, MLListT) {
 //!macro
 //<Expr
 //<Names
-//<Exprs
+//<Subs
 //>expr
-// Returns a new expression which wraps substitutes macro references (e.g. :mini:`:$Name`) with expressions from :mini:`Names` and :mini:`Exprs`.
+// Returns a new expression which substitutes macro references to :mini:`:$Name/i` with the corresponding expressions :mini:`Sub/i`.
 	if (ml_list_length(Args[2]) < ml_list_length(Args[1])) return ml_error("MacroError", "Insufficient arguments to macro");
 	mlc_subst_expr_t *Expr = new(mlc_subst_expr_t);
 	ml_expr_value_t *Value = (ml_expr_value_t *)Args[0];
@@ -2569,22 +2567,33 @@ ML_FUNCTION(MLValueExpr) {
 	}
 }
 
+ML_METHOD_DECL(VarMethod, "var");
+ML_METHOD_DECL(RefMethod, "ref");
+ML_METHOD_DECL(LetMethod, "let");
+
 ML_FUNCTION(MLFunExpr) {
 //!macro
 //@macro::fun
-//<Params:list[any]
+//<Params:map[string,method|nil]
 //>expr
 // Returns a new function expression.
 	ML_CHECK_ARG_COUNT(2);
-	ML_CHECK_ARG_TYPE(0, MLListT);
+	ML_CHECK_ARG_TYPE(0, MLMapT);
 	ML_CHECK_ARG_TYPE(1, MLExprT);
 	mlc_param_t *Params = NULL, **Slot = &Params;
-	ML_LIST_FOREACH(Args[0], Iter) {
+	ML_MAP_FOREACH(Args[0], Iter) {
 		mlc_param_t *Param = Slot[0] = new(mlc_param_t);
 		Slot = &Param->Next;
-		if (ml_is(Iter->Value, MLStringT)) {
-			Param->Ident = ml_string_value(Iter->Value);
-			Param->Kind;
+		if (!ml_is(Iter->Key, MLStringT)) return ml_error("TypeError", "Parameter name must be a string");
+		Param->Ident = ml_string_value(Iter->Key);
+		if (Iter->Value == (ml_value_t *)MLListT) {
+			Param->Kind = ML_PARAM_EXTRA;
+		} else if (Iter->Value == (ml_value_t *)MLMapT) {
+			Param->Kind = ML_PARAM_NAMED;
+		} else if (Iter->Value == RefMethod) {
+			Param->Kind = ML_PARAM_BYREF;
+		} else if (Iter->Value == VarMethod) {
+			Param->Kind = ML_PARAM_ASVAR;
 		}
 	}
 	mlc_fun_expr_t *Expr = new(mlc_fun_expr_t);
@@ -5747,6 +5756,7 @@ void ml_compiler_init() {
 	stringmap_insert(MLMacroT->Exports, "expr", ml_macro((ml_value_t *)MLValueExpr));
 	stringmap_insert(MLMacroT->Exports, "ident", MLIdentExpr);
 	stringmap_insert(MLMacroT->Exports, "value", MLValueExpr);
+	stringmap_insert(MLMacroT->Exports, "fun", MLFunExpr);
 	stringmap_insert(MLMacroT->Exports, "block", MLBlockBuilder);
 	stringmap_insert(MLMacroT->Exports, "tuple", MLTupleBuilder);
 	stringmap_insert(MLMacroT->Exports, "list", MLListBuilder);

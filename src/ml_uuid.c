@@ -80,7 +80,7 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLUUIDT, ml_cbor_writer_t *Writer,
 }
 
 static ml_value_t *ml_cbor_read_uuid_fn(ml_cbor_reader_t *Reader, ml_value_t *Value) {
-	if (!ml_is(Value, MLStringT)) return ml_error("TagError", "UUID requires string");
+	if (!ml_is(Value, MLAddressT)) return ml_error("TagError", "UUID requires string");
 	if (ml_string_length(Value) != 16) return ml_error("TagError", "UUID requires 16 bytes");
 	return ml_uuid((unsigned char *)ml_string_value(Value));
 }

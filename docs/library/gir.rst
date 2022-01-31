@@ -5,7 +5,7 @@ gir
    A gobject-introspection typelib.
 
 
-:mini:`type baseinfo < type`
+:mini:`type gir::base < type`
    *TBD*
 
 :mini:`type gir < function`
@@ -14,26 +14,26 @@ gir
 :mini:`fun gir(Name: string): gir-typelib`
    *TBD*
 
-:mini:`type object < baseinfo`
+:mini:`type gir::object < gir::base`
    A gobject-introspection object type.
 
 
-:mini:`type objectinstance`
+:mini:`type gir::object`
    A gobject-introspection object instance.
 
 
-:mini:`meth (Object: string::buffer):append(Arg₂: objectinstance): string`
+:mini:`meth (Object: string::buffer):append(Arg₂: gir::object): string`
    *TBD*
 
-:mini:`type struct < baseinfo`
+:mini:`type gir::struct < gir::base`
    A gobject-introspection struct type.
 
 
-:mini:`type structinstance`
+:mini:`type gir::struct`
    A gobject-introspection struct instance.
 
 
-:mini:`meth (Struct: string::buffer):append(Arg₂: structinstance): string`
+:mini:`meth (Struct: string::buffer):append(Arg₂: gir::struct): string`
    *TBD*
 
 :mini:`type fieldref::boolean`
@@ -72,39 +72,39 @@ gir
 :mini:`type fieldref::utf8`
    *TBD*
 
-:mini:`type enum < baseinfo`
+:mini:`type gir::enum < gir::base`
    A gobject-instrospection enum type.
 
 
-:mini:`type enumvalue`
+:mini:`type gir::enum`
    A gobject-instrospection enum value.
 
 
-:mini:`meth (Value: string):append(Arg₂: enumvalue): string`
+:mini:`meth (Value: string):append(Arg₂: gir::enum): string`
    *TBD*
 
-:mini:`meth integer(Value: enumvalue): integer`
+:mini:`meth integer(Value: gir::enum): integer`
    *TBD*
 
-:mini:`meth (Value₁: enumvalue) | (Value₂: nil): enumvalue`
+:mini:`meth (Value₁: gir::enum) | (Value₂: nil): enumvalue`
    *TBD*
 
-:mini:`meth (Value₁: nil) | (Value₂: enumvalue): enumvalue`
+:mini:`meth (Value₁: nil) | (Value₂: gir::enum): enumvalue`
    *TBD*
 
-:mini:`meth (Value₁: enumvalue) | (Value₂: enumvalue): enumvalue`
+:mini:`meth (Value₁: gir::enum) | (Value₂: gir::enum): enumvalue`
    *TBD*
 
-:mini:`meth (Typelib: typelib) :: (Name: string): any | error`
+:mini:`meth (Typelib: gir::typelib) :: (Name: string): any | error`
    *TBD*
 
-:mini:`meth (Object: objectinstance):connect(Signal: string, Handler: function): Object`
+:mini:`meth (Object: gir::object):connect(Signal: string, Handler: function): Object`
    *TBD*
 
-:mini:`type objectproperty`
+:mini:`type gir::object`
    *TBD*
 
-:mini:`meth (Object: objectinstance) :: (Property: string): any`
+:mini:`meth (Object: gir::object) :: (Property: string): any`
    *TBD*
 
 :mini:`fun sleep(Arg₁: number)`

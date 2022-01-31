@@ -1,7 +1,7 @@
 stream
 ======
 
-:mini:`type stream < any`
+:mini:`type stream`
    Base type of readable and writable byte streams.
 
 

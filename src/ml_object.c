@@ -285,7 +285,7 @@ ML_FUNCTIONX(MLClass) {
 //<Fields...:method
 //<Exports...:names
 //>class
-// Returns a new class inheriting from :mini:`Parents`, with fields :mini:`Fields` and exports :mini:`Exports`. The special exports :mini:`"of"` and :mini:`"init"` can be set to override the default conversion and initialization behaviour. The :mini:`"new"` export will *always* be set to the original constructor for this class.
+// Returns a new class inheriting from :mini:`Parents`, with fields :mini:`Fields` and exports :mini:`Exports`. The special exports :mini:`::of` and :mini:`::init` can be set to override the default conversion and initialization behaviour. The :mini:`::new` export will *always* be set to the original constructor for this class.
 	int Rank = 0;
 	ml_type_t *NativeType = NULL;
 	for (int I = 0; I < Count; ++I) {
@@ -493,13 +493,8 @@ static long ml_enum_value_hash(ml_enum_value_t *Value, ml_hash_chain_t *Chain) {
 	return (long)Value->Base.Type + Value->Base.Value;
 }
 
-#ifdef ML_NANBOXING
 ML_TYPE(MLEnumValueT, (MLInt64T), "enum-value");
 //!internal
-#else
-ML_TYPE(MLEnumValueT, (MLIntegerT), "enum-value");
-//!internal
-#endif
 
 ML_METHOD("append", MLStringBufferT, MLEnumValueT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
@@ -830,20 +825,12 @@ ML_TYPE(MLFlagsT, (MLTypeT), "flags",
 	.call = (void *)ml_flags_call
 );
 
-
-extern ml_type_t MLFlagsT[];
-
 static long ml_flag_value_hash(ml_flags_value_t *Value, ml_hash_chain_t *Chain) {
 	return (long)Value->Type + Value->Value;
 }
 
-#ifdef ML_NANBOXING
 ML_TYPE(MLFlagsValueT, (MLInt64T), "flag-value");
 //!internal
-#else
-ML_TYPE(MLFlagsValueT, (MLIntegerT), "flag-value");
-//!internal
-#endif
 
 typedef struct {
 	ml_stringbuffer_t *Buffer;
@@ -869,8 +856,7 @@ ML_METHOD("append", MLStringBufferT, MLFlagsValueT) {
 }
 
 ML_METHODV(MLFlagsT, MLStringT) {
-//@flags
-//<Values...
+//<Name/1
 //>flags
 	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLStringT);
 	ml_flags_t *Flags = xnew(ml_flags_t, Count, ml_value_t *);
@@ -896,8 +882,7 @@ ML_METHODV(MLFlagsT, MLStringT) {
 }
 
 ML_METHODV(MLFlagsT, MLNamesT) {
-//@flags
-//<Values...
+//<Name,Value
 //>flags
 	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLIntegerT);
 	ml_flags_t *Flags = xnew(ml_flags_t, Count - 1, ml_value_t *);

@@ -43,6 +43,11 @@ fun type_name(var Type) do
 			ret '{Match2[2]:lower}::{Match2[3]:lower}'
 		end
 		ret Match[2]:lower:trim(":")
+	elseif let Match := Type % r"^(Gir.*)T$" then
+		if let Match2 := Match[2] % r"([A-Z][a-z]+)([A-Z][a-z]+)" then
+			ret '{Match2[2]:lower}::{Match2[3]:lower}'
+		end
+		ret Match[2]:lower:trim(":")
 	elseif let Match := Type % r"^(.*)T$" then
 		ret Match[2]:lower:trim(":")
 	else
@@ -98,7 +103,8 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 		elseif Params:length = 1 and not Variadic then
 			Title:write('{Method}({Params[1][1]}: {type_name(Params[1][2])})')
 		elseif Params[1][2] = "MLNamesT" then
-			Title:write('{Method}({Params[1][1]}₁ is Value₁, ')
+			let (Name, Value) := Params[1][1] / ","
+			Title:write('{Method}({Name}₁ is {Value or "Value"}₁, ')
 			Terminator := ")"
 		else
 			Title:write('{Method}({Params[1][1]}: {type_name(Params[1][2])}, ')
@@ -113,7 +119,8 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 		elseif Params:length = 1 and not Variadic then
 			Title:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}')
 		elseif Params[1][2] = "MLNamesT" then
-			Title:write('{Method}({Params[1][1]}₁ is Value₁,')
+			let (Name, Value) := Params[1][1] / ","
+			Title:write('{Method}({Name}₁ is {Value or "Value"}₁,')
 			Terminator := ")"
 		else
 			Title:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}(')
@@ -123,7 +130,8 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 	var Seperator := ""
 	for Param in Params skip Skip do
 		if Param[2] = "MLNamesT" then
-			Title:write(Seperator, '{Param[1]}₁ is Value₁')
+			let (Name, Value) := Param[1] / ","
+			Title:write(Seperator, '{Name}₁ is {Value or "Value"}₁')
 		else
 			Title:write(Seperator, '{Param[1]}: {type_name(Param[2])}')
 		end
@@ -169,7 +177,11 @@ fun write_function(Category, Kind, Name, Params, Return, Description, Location) 
 	Title:write(':mini:`fun ', Name, "(")
 	var Seperator := ""
 	for Param in Params do
-		Title:write(Seperator, Param[1], ": ", type_name(Param[2]))
+		if let Match := Param[1] % r"(.*)\.\.\." then
+			Title:write(Seperator, Match[2], ": ", type_name(Param[2]), ", ...")
+		else
+			Title:write(Seperator, Param[1], ": ", type_name(Param[2]))
+		end
 		Seperator := ", "
 	end
 	Title:write(")")
@@ -237,6 +249,8 @@ fun write_constructor(Category, Kind, Name, Params, Return, Description, Locatio
 	File:write("\n")
 end
 
+let TypesGraph := string::buffer()
+
 fun write_type(Category, Name, Parents, Description, Location) do
 	:<print('[{Category}] ML_TYPE: {Name} [{Parents}]\n')
 	print('Description: {Description}\n')>:
@@ -248,9 +262,16 @@ fun write_type(Category, Name, Parents, Description, Location) do
 	if Parents:length > 0 then
 		Title:write(" < ")
 		var Seperator := ""
-		for Parent in Parents do
-			Title:write(Seperator, type_name(Parent))
-			Seperator := ", "
+		if Category != "internal" then
+			for Parent in Parents do
+				TypesGraph:write('      \"{type_name(Parent)}\":e -> \"{type_name(Name)}\":w;\n')
+				Title:write(Seperator, type_name(Parent))
+				Seperator := ", "
+			end
+		end
+	else
+		if Category != "internal" then
+			TypesGraph:write('      \"any\":e -> \"{type_name(Name)}\":w;\n')
 		end
 	end
 	Title:write("`\n")
@@ -361,34 +382,6 @@ fun process(FileName) do
 				else
 					write_method(Category, Kind, Method, Params, Return, Description, Location)
 				end
-			:<elseif Line % r"^MATH_REAL" then
-				let Location := (FileName, LineNo)
-				let I := Line:find("("), J := Line:find(")")
-				let Kind := Line[1, I]
-				let Types := ["number"]
-				let Method := (Line[I + 1, J] / ", ")[2]
-				var Category := "math"
-				let Params := []
-				var Return := []
-				let Description := []
-				Params:put((
-					"Arg/1":trim:replace(Subscripts),
-					"number",
-					""
-				))
-				if Kind = "MATH_REAL_REAL" then
-					Params:put((
-						"Arg/2":trim:replace(Subscripts),
-						"number",
-						""
-					))
-				end
-				Return := ["number"]
-				if CurrentDefine then
-					CurrentDefine:put(write_method, [Category, Kind, Method, Params, Return, Description, Location])
-				else
-					write_method(Category, Kind, Method, Params, Return, Description, Location)
-				end>:
 			elseif Line % r"^ML_FUNCTION" then
 				let Location := (FileName, LineNo)
 				let I := Line:find("("), J := Line:find(")")
@@ -432,7 +425,7 @@ fun process(FileName) do
 						end
 					elseif let Match := Line % r"ML_CHECK(X?)_ARG_TYPE\(([0-9]+), (\w+)\)" then
 						let Index := integer(Match[3]) + 1
-						Params[Index][2] := type_name(Match[4])
+						Params[Index][2] := Match[4]
 					else
 						exit
 					end
@@ -594,17 +587,6 @@ fun process(FileName) do
 			end
 		end
 	end
-	:<if count(Defines) > 0 then
-		print(FileName, "\n")
-		for Name, Define in Defines do
-			if count(Define:Items) > 0 then
-				print("\t", Name, Define:Params, "\n")
-				for Item in Define:Items do
-					print("\t\t", Item, "\n")
-				end
-			end
-		end
-	end>:
 	File:close
 end
 
@@ -617,3 +599,25 @@ end
 for FileName in FileNames do process(FileName) end
 
 for Category, File in Categories do File:close end
+
+with TypesFile := write_category("hierarchy") do
+	TypesFile:write('
+.. graphviz::
+
+   digraph hierarchy \{
+      size="180,120";
+      rankdir="LR";
+      fontsize="40pt"
+      concentrate=true;
+      overlap=false;
+      packMode="node";
+      outputorder="edgesfirst";
+      node [shape=box,fontsize=24];
+')
+	TypesFile:write(TypesGraph:rest)
+	TypesFile:write('   }
+
+')
+	TypesFile:close
+end
+

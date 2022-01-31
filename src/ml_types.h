@@ -179,6 +179,8 @@ __attribute__ ((pure)) static inline ml_type_t *ml_typeof(const ml_value_t *Valu
 
 #else
 
+#define MLInt64T MLIntegerT
+
 static inline ml_type_t *ml_typeof(const ml_value_t *Value) {
 	return Value->Type;
 }

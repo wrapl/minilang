@@ -149,7 +149,7 @@ typedef struct ml_chained_iterator_t {
 	ml_value_t *Values[3];
 } ml_chained_iterator_t;
 
-ML_TYPE(MLChainedStateT, (), "chained-state");
+ML_TYPE(MLChainedStateT, (MLStateT), "chained-state");
 //!internal
 
 static void ML_TYPED_FN(ml_iter_key, MLChainedStateT, ml_state_t *Caller, ml_chained_iterator_t *State) {
@@ -510,7 +510,6 @@ typedef struct {
 } ml_doubled_t;
 
 ML_TYPE(MLDoubledT, (MLSequenceT), "doubled");
-//!internal
 
 typedef struct ml_double_state_t {
 	ml_state_t Base;
@@ -607,7 +606,6 @@ ML_METHOD("->>", MLSequenceT, MLFunctionT) {
 }
 
 ML_TYPE(MLDoubled2T, (MLSequenceT), "doubled");
-//!internal
 
 ML_TYPE(MLDoubled2StateT, (MLStateT), "doubled-state");
 //!internal
@@ -1297,9 +1295,8 @@ typedef struct ml_stacked_t {
 } ml_stacked_t;
 
 ML_TYPE(MLStackedT, (MLSequenceT), "stacked");
-//!internal
 
-ML_TYPE(MLStackedStateT, (), "stacked-state");
+ML_TYPE(MLStackedStateT, (MLStateT), "stacked-state");
 //!internal
 
 static void stacked_iter_next(ml_iter_state_t *State, ml_value_t *Value);
@@ -1403,7 +1400,6 @@ typedef struct ml_repeated_t {
 } ml_repeated_t;
 
 ML_TYPE(MLRepeatedT, (MLSequenceT), "repeated");
-//!internal
 
 typedef struct ml_repeated_state_t {
 	ml_state_t Base;
@@ -1411,7 +1407,7 @@ typedef struct ml_repeated_state_t {
 	int Iteration;
 } ml_repeated_state_t;
 
-ML_TYPE(MLRepeatedStateT, (), "repeated-state");
+ML_TYPE(MLRepeatedStateT, (MLStateT), "repeated-state");
 //!internal
 
 static void repeated_update(ml_repeated_state_t *State, ml_value_t *Value) {
@@ -1481,14 +1477,13 @@ typedef struct ml_sequenced_t {
 } ml_sequenced_t;
 
 ML_TYPE(MLSequencedT, (MLSequenceT), "sequenced");
-//!internal
 
 typedef struct ml_sequenced_state_t {
 	ml_state_t Base;
 	ml_value_t *Iter, *Next;
 } ml_sequenced_state_t;
 
-ML_TYPE(MLSequencedStateT, (), "sequenced-state");
+ML_TYPE(MLSequencedStateT, (MLStateT), "sequenced-state");
 //!internal
 
 static void ml_sequenced_fnx_iterate(ml_sequenced_state_t *State, ml_value_t *Value);
@@ -1555,10 +1550,8 @@ typedef struct ml_limited_t {
 } ml_limited_t;
 
 ML_TYPE(MLLimitedT, (MLSequenceT), "limited");
-//!internal
 
 ML_METHOD("count", MLLimitedT) {
-//!internal
 	ml_limited_t *Limited = (ml_limited_t *)Args[0];
 	return ml_integer(Limited->Remaining);
 }
@@ -1569,7 +1562,7 @@ typedef struct ml_limited_state_t {
 	int Remaining;
 } ml_limited_state_t;
 
-ML_TYPE(MLLimitedStateT, (), "limited-state");
+ML_TYPE(MLLimitedStateT, (MLStateT), "limited-state");
 //!internal
 
 static void limited_iterate(ml_limited_state_t *State, ml_value_t *Value) {
@@ -1631,7 +1624,6 @@ typedef struct ml_skipped_t {
 } ml_skipped_t;
 
 ML_TYPE(MLSkippedT, (MLSequenceT), "skipped");
-//!internal
 
 typedef struct ml_skipped_state_t {
 	ml_state_t Base;
@@ -1681,7 +1673,6 @@ typedef struct ml_until_t {
 } ml_until_t;
 
 ML_TYPE(MLUntilT, (MLSequenceT), "until");
-//!internal
 
 typedef struct ml_until_state_t {
 	ml_state_t Base;
@@ -1689,7 +1680,7 @@ typedef struct ml_until_state_t {
 	ml_value_t *Args[1];
 } ml_until_state_t;
 
-ML_TYPE(MLUntilStateT, (), "until-state");
+ML_TYPE(MLUntilStateT, (MLStateT), "until-state");
 //!internal
 
 static void until_check(ml_until_state_t *State, ml_value_t *Value);
@@ -1969,7 +1960,6 @@ typedef struct {
 } ml_buffered_t;
 
 ML_TYPE(MLBufferedT, (MLSequenceT), "buffered");
-//!internal
 
 typedef struct {
 	ml_value_t *Key, *Value;
@@ -1982,7 +1972,7 @@ typedef struct {
 	ml_buffered_key_value_t KeyValues[];
 } ml_buffered_state_t;
 
-ML_TYPE(MLBufferedStateT, (), "buffered-state");
+ML_TYPE(MLBufferedStateT, (MLStateT), "buffered-state");
 //!internal
 
 static void ml_buffered_iterate(ml_buffered_state_t *State, ml_value_t *Value);
@@ -2079,7 +2069,6 @@ typedef struct ml_unique_t {
 } ml_unique_t;
 
 ML_TYPE(MLUniqueT, (MLSequenceT), "unique");
-//!internal
 
 typedef struct ml_unique_state_t {
 	ml_state_t Base;
@@ -2089,7 +2078,7 @@ typedef struct ml_unique_state_t {
 	int Iteration;
 } ml_unique_state_t;
 
-ML_TYPE(MLUniqueStateT, (), "unique-state");
+ML_TYPE(MLUniqueStateT, (MLStateT), "unique-state");
 //!internal
 
 static void ml_unique_fnx_iterate(ml_unique_state_t *State, ml_value_t *Value);
@@ -2157,7 +2146,6 @@ typedef struct ml_zipped_t {
 } ml_zipped_t;
 
 ML_TYPE(MLZippedT, (MLSequenceT), "zipped");
-//!internal
 
 typedef struct ml_zipped_state_t {
 	ml_state_t Base;
@@ -2167,7 +2155,7 @@ typedef struct ml_zipped_state_t {
 	ml_value_t *Args[];
 } ml_zipped_state_t;
 
-ML_TYPE(MLZippedStateT, (), "zipped-state");
+ML_TYPE(MLZippedStateT, (MLStateT), "zipped-state");
 //!internal
 
 static void zipped_iterate(ml_zipped_state_t *State, ml_value_t *Value) {
@@ -2253,7 +2241,6 @@ typedef struct ml_grid_t {
 } ml_grid_t;
 
 ML_TYPE(MLGridT, (MLSequenceT), "grid");
-//!internal
 
 typedef struct ml_grid_state_t {
 	ml_state_t Base;
@@ -2263,7 +2250,7 @@ typedef struct ml_grid_state_t {
 	ml_value_t *Args[];
 } ml_grid_state_t;
 
-ML_TYPE(MLGridStateT, (), "grid-state");
+ML_TYPE(MLGridStateT, (MLStateT), "grid-state");
 //!internal
 
 static void grid_iterate(ml_grid_state_t *State, ml_value_t *Value) {
@@ -2345,14 +2332,13 @@ typedef struct ml_paired_t {
 } ml_paired_t;
 
 ML_TYPE(MLPairedT, (MLSequenceT), "paired");
-//!internal
 
 typedef struct ml_paired_state_t {
 	ml_state_t Base;
 	ml_value_t *Keys, *Values;
 } ml_paired_state_t;
 
-ML_TYPE(MLPairedStateT, (), "paired-state");
+ML_TYPE(MLPairedStateT, (MLStateT), "paired-state");
 //!internal
 
 static void paired_value_iterate(ml_paired_state_t *State, ml_value_t *Value) {
@@ -2430,7 +2416,6 @@ typedef struct ml_weaved_t {
 } ml_weaved_t;
 
 ML_TYPE(MLWeavedT, (MLSequenceT), "weaved");
-//!internal
 
 typedef struct ml_weaved_state_t {
 	ml_state_t Base;
@@ -2438,7 +2423,7 @@ typedef struct ml_weaved_state_t {
 	ml_value_t *Iters[];
 } ml_weaved_state_t;
 
-ML_TYPE(MLWeavedStateT, (), "weaved-state");
+ML_TYPE(MLWeavedStateT, (MLStateT), "weaved-state");
 //!internal
 
 static void weaved_iterate(ml_weaved_state_t *State, ml_value_t *Value) {
@@ -2498,7 +2483,6 @@ typedef struct ml_folded_t {
 } ml_folded_t;
 
 ML_TYPE(MLFoldedT, (MLSequenceT), "folded");
-//!internal
 
 typedef struct ml_folded_state_t {
 	ml_state_t Base;
@@ -2507,7 +2491,7 @@ typedef struct ml_folded_state_t {
 	ml_value_t *Value;
 } ml_folded_state_t;
 
-ML_TYPE(MLFoldedStateT, (), "folded-state");
+ML_TYPE(MLFoldedStateT, (MLStateT), "folded-state");
 //!internal
 
 static void folded_value(ml_folded_state_t *State, ml_value_t *Value) {
@@ -2578,7 +2562,6 @@ typedef struct {
 } ml_unfolded_t;
 
 ML_TYPE(MLUnfoldedT, (MLSequenceT), "unfolded");
-//!internal
 
 typedef struct {
 	ml_state_t Base;
@@ -2586,7 +2569,7 @@ typedef struct {
 	int Index;
 } ml_unfolded_state_t;
 
-ML_TYPE(MLUnfoldedStateT, (), "unfolded-state");
+ML_TYPE(MLUnfoldedStateT, (MLStateT), "unfolded-state");
 //!internal
 
 static void unfolded_iterate(ml_unfolded_state_t *State, ml_value_t *Value) {
@@ -2646,14 +2629,13 @@ typedef struct {
 } ml_swapped_t;
 
 ML_TYPE(MLSwappedT, (MLSequenceT), "swapped");
-//!internal
 
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Iter;
 } ml_swapped_state_t;
 
-ML_TYPE(MLSwappedStateT, (), "swapped-state");
+ML_TYPE(MLSwappedStateT, (MLStateT), "swapped-state");
 //!internal
 
 static void swapped_iterate(ml_swapped_state_t *State, ml_value_t *Value) {
@@ -2702,7 +2684,6 @@ typedef struct {
 } ml_key_t;
 
 ML_TYPE(MLKeyT, (MLSequenceT), "key");
-//!internal
 
 typedef struct {
 	ml_state_t Base;
@@ -2710,7 +2691,7 @@ typedef struct {
 	int Iteration;
 } ml_key_state_t;
 
-ML_TYPE(MLKeyStateT, (), "keys-state");
+ML_TYPE(MLKeyStateT, (MLStateT), "keys-state");
 //!internal
 
 static void key_iterate(ml_key_state_t *State, ml_value_t *Value) {
@@ -2761,7 +2742,6 @@ typedef struct ml_batched_t {
 } ml_batched_t;
 
 ML_TYPE(MLBatchedT, (MLSequenceT), "batched");
-//!internal
 
 typedef struct ml_batched_state_t {
 	ml_state_t Base;
@@ -2770,7 +2750,7 @@ typedef struct ml_batched_state_t {
 	ml_value_t *Args[];
 } ml_batched_state_t;
 
-ML_TYPE(MLBatchedStateT, (), "batched-state");
+ML_TYPE(MLBatchedStateT, (MLStateT), "batched-state");
 //!internal
 
 static void batched_iterate(ml_batched_state_t *State, ml_value_t *Value);

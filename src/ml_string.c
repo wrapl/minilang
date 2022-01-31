@@ -44,6 +44,14 @@ ML_METHOD("count", MLAddressT) {
 	return ml_integer(ml_address_length(Args[0]));
 }
 
+ML_METHOD("length", MLAddressT) {
+//!address
+//<Address
+//>integer
+// Returns the length of :mini:`Address`.
+	return ml_integer(ml_address_length(Args[0]));
+}
+
 ML_METHOD("@", MLAddressT, MLIntegerT) {
 //!address
 //<Address
@@ -1391,6 +1399,10 @@ ML_METHOD("append", MLStringBufferT, MLStringT) {
 }
 
 ML_METHOD("[]", MLStringT, MLIntegerT) {
+//<String
+//<Index
+//>string
+// Returns the substring of :mini:`String` of length 1 at :mini:`Index`.
 	const char *Chars = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	int Index = ml_integer_value_fast(Args[1]);
@@ -1401,6 +1413,11 @@ ML_METHOD("[]", MLStringT, MLIntegerT) {
 }
 
 ML_METHOD("[]", MLStringT, MLIntegerT, MLIntegerT) {
+//<String
+//<Start
+//<End
+//>string
+// Returns the substring of :mini:`String` from :mini:`Start` to :mini:`End - 1` inclusively.
 	const char *Chars = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	int Lo = ml_integer_value_fast(Args[1]);
@@ -1415,6 +1432,10 @@ ML_METHOD("[]", MLStringT, MLIntegerT, MLIntegerT) {
 }
 
 ML_METHOD("[]", MLStringT, MLIntegerRangeT) {
+//<String
+//<Range
+//>string
+// Returns the substring of :mini:`String` corresponding to :mini:`Range` inclusively.
 	const char *Chars = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
@@ -1430,6 +1451,10 @@ ML_METHOD("[]", MLStringT, MLIntegerRangeT) {
 }
 
 ML_METHOD("+", MLStringT, MLStringT) {
+//<A
+//<B
+//>string
+// Returns :mini:`A` and :mini:`B` concatentated.
 	int Length1 = ml_string_length(Args[0]);
 	int Length2 = ml_string_length(Args[1]);
 	int Length = Length1 + Length2;
@@ -1440,7 +1465,23 @@ ML_METHOD("+", MLStringT, MLStringT) {
 	return ml_string(Chars, Length);
 }
 
+ML_METHOD("*", MLIntegerT, MLStringT) {
+//<N
+//<String
+//>string
+// Returns :mini:`String` concatentated :mini:`N` times.
+	int N = ml_integer_value(Args[0]);
+	const char *Chars = ml_string_value(Args[1]);
+	int Length = ml_string_length(Args[1]);
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	for (int I = 0; I < N; ++I) ml_stringbuffer_write(Buffer, Chars, Length);
+	return ml_stringbuffer_get_value(Buffer);
+}
+
 ML_METHOD("trim", MLStringT) {
+//<String
+//>string
+// Returns a copy of :mini:`String` with whitespace removed from both ends.
 	const unsigned char *Start = (const unsigned char *)ml_string_value(Args[0]);
 	const unsigned char *End = Start + ml_string_length(Args[0]);
 	while (Start < End && Start[0] <= ' ') ++Start;
@@ -1450,6 +1491,10 @@ ML_METHOD("trim", MLStringT) {
 }
 
 ML_METHOD("trim", MLStringT, MLStringT) {
+//<String
+//<Chars
+//>string
+// Returns a copy of :mini:`String` with characters in :mini:`Chars` removed from both ends.
 	char Trim[256] = {0,};
 	const unsigned char *P = (const unsigned char *)ml_string_value(Args[1]);
 	for (int Length = ml_string_length(Args[1]); --Length >= 0; ++P) Trim[*P] = 1;
@@ -1462,6 +1507,9 @@ ML_METHOD("trim", MLStringT, MLStringT) {
 }
 
 ML_METHOD("ltrim", MLStringT) {
+//<String
+//>string
+// Returns a copy of :mini:`String` with characters in :mini:`Chars` removed from the start.
 	const unsigned char *Start = (const unsigned char *)ml_string_value(Args[0]);
 	const unsigned char *End = Start + ml_string_length(Args[0]);
 	while (Start < End && Start[0] <= ' ') ++Start;
@@ -1470,6 +1518,10 @@ ML_METHOD("ltrim", MLStringT) {
 }
 
 ML_METHOD("ltrim", MLStringT, MLStringT) {
+//<String
+//<Chars
+//>string
+// Returns a copy of :mini:`String` with characters in :mini:`Chars` removed from the start.
 	char Trim[256] = {0,};
 	const unsigned char *P = (const unsigned char *)ml_string_value(Args[1]);
 	for (int Length = ml_string_length(Args[1]); --Length >= 0; ++P) Trim[*P] = 1;
@@ -1481,6 +1533,9 @@ ML_METHOD("ltrim", MLStringT, MLStringT) {
 }
 
 ML_METHOD("rtrim", MLStringT) {
+//<String
+//>string
+// Returns a copy of :mini:`String` with characters in :mini:`Chars` removed from the end.
 	const unsigned char *Start = (const unsigned char *)ml_string_value(Args[0]);
 	const unsigned char *End = Start + ml_string_length(Args[0]);
 	while (Start < End && End[-1] <= ' ') --End;
@@ -1489,6 +1544,10 @@ ML_METHOD("rtrim", MLStringT) {
 }
 
 ML_METHOD("rtrim", MLStringT, MLStringT) {
+//<String
+//<Chars
+//>string
+// Returns a copy of :mini:`String` with characters in :mini:`Chars` removed from the end.
 	char Trim[256] = {0,};
 	const unsigned char *P = (const unsigned char *)ml_string_value(Args[1]);
 	for (int Length = ml_string_length(Args[1]); --Length >= 0; ++P) Trim[*P] = 1;
@@ -1500,6 +1559,9 @@ ML_METHOD("rtrim", MLStringT, MLStringT) {
 }
 
 ML_METHOD("reverse", MLStringT) {
+//<String
+//>string
+// Returns a string with the characters in :mini:`String` reversed.
 	int Length = ml_string_length(Args[0]);
 	char *Reversed = snew(Length + 1);
 	const char *End = ml_string_value(Args[0]) + Length;
@@ -1508,15 +1570,11 @@ ML_METHOD("reverse", MLStringT) {
 	return ml_string(Reversed, Length);
 }
 
-ML_METHOD("length", MLStringT) {
-	return ml_integer(ml_string_length(Args[0]));
-}
-
-ML_METHOD("count", MLStringT) {
-	return ml_integer(ml_string_length(Args[0]));
-}
-
 ML_METHOD("<>", MLStringT, MLStringT) {
+//<A
+//<B
+//>integer
+// Compares :mini:`A` and :mini:`B` lexicographically and returns :mini:`-1`, :mini:`0` or :mini:`1` respectively.
 	const char *StringA = ml_string_value(Args[0]);
 	const char *StringB = ml_string_value(Args[1]);
 	int LengthA = ml_string_length(Args[0]);
@@ -1571,6 +1629,10 @@ ml_comp_method_string_string(">=", >=)
 }
 
 ML_METHOD("~", MLStringT, MLStringT) {
+//<A
+//<B
+//>integer
+// Returns the edit distance between :mini:`A` and :mini:`B`.
 	const char *CharsA, *CharsB;
 	int LenA = ml_string_length(Args[0]);
 	int LenB = ml_string_length(Args[1]);
@@ -1610,6 +1672,10 @@ ML_METHOD("~", MLStringT, MLStringT) {
 }
 
 ML_METHOD("~>", MLStringT, MLStringT) {
+//<A
+//<B
+//>integer
+// Returns an asymmetric edit distance from :mini:`A` to :mini:`B`.
 	int LenA = ml_string_length(Args[0]);
 	int LenB = ml_string_length(Args[1]);
 	const char *CharsA = ml_string_value(Args[0]);
@@ -1645,6 +1711,10 @@ ML_METHOD("~>", MLStringT, MLStringT) {
 }
 
 ML_METHOD("/", MLStringT, MLStringT) {
+//<String
+//<Pattern
+//>list
+// Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
 	ml_value_t *Results = ml_list();
 	const char *Subject = ml_string_value(Args[0]);
 	const char *Pattern = ml_string_value(Args[1]);
@@ -1672,6 +1742,11 @@ ML_METHOD("/", MLStringT, MLStringT) {
 }
 
 ML_METHOD("/", MLStringT, MLRegexT) {
+//<String
+//<Pattern
+//>list
+// Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
+// If :mini:`Pattern` contains a subgroup then only the subgroup matches are removed from the output substrings.
 	ml_value_t *Results = ml_list();
 	const char *Subject = ml_string_value(Args[0]);
 	int SubjectLength = ml_string_length(Args[0]);
@@ -1707,15 +1782,21 @@ ML_METHOD("/", MLStringT, MLRegexT) {
 }
 
 ML_METHOD("/", MLStringT, MLRegexT, MLIntegerT) {
+//<String
+//<Pattern
+//<Index
+//>list
+// Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
+// Only the :mini:`Index` subgroup matches are removed from the output substrings.
 	ml_value_t *Results = ml_list();
 	const char *Subject = ml_string_value(Args[0]);
 	int SubjectLength = ml_string_length(Args[0]);
 	const char *SubjectEnd = Subject + SubjectLength;
 	ml_regex_t *Pattern = (ml_regex_t *)Args[1];
 	int Index = ml_integer_value(Args[2]);
-	if (Index < 0 || Index >= Pattern->Value->re_nsub) return ml_error("RegexError", "Invalid regex group");
+	if (Index < 0 || Index > Pattern->Value->re_nsub) return ml_error("RegexError", "Invalid regex group");
 
-	regmatch_t Matches[2];
+	regmatch_t Matches[Index + 1];
 	for (;;) {
 #ifdef ML_TRE
 		switch (regnexec(Pattern->Value, Subject, SubjectLength, Index + 1, Matches, 0)) {
@@ -1744,6 +1825,10 @@ ML_METHOD("/", MLStringT, MLRegexT, MLIntegerT) {
 }
 
 ML_METHOD("/*", MLStringT, MLStringT) {
+//<String
+//<Pattern
+//>tuple[string, string]
+// Splits :mini:`String` at the first occurence of :mini:`Pattern` and returns the two substrings in a tuple.
 	const char *Subject = ml_string_value(Args[0]);
 	const char *End = Subject + ml_string_length(Args[0]);
 	const char *Pattern = ml_string_value(Args[1]);
@@ -1762,6 +1847,10 @@ ML_METHOD("/*", MLStringT, MLStringT) {
 }
 
 ML_METHOD("/*", MLStringT, MLRegexT) {
+//<String
+//<Pattern
+//>tuple[string, string]
+// Splits :mini:`String` at the first occurence of :mini:`Pattern` and returns the two substrings in a tuple.
 	const char *Subject = ml_string_value(Args[0]);
 	int SubjectLength = ml_string_length(Args[0]);
 	ml_regex_t *Pattern = (ml_regex_t *)Args[1];
@@ -1792,6 +1881,10 @@ ML_METHOD("/*", MLStringT, MLRegexT) {
 }
 
 ML_METHOD("*/", MLStringT, MLStringT) {
+//<String
+//<Pattern
+//>tuple[string, string]
+// Splits :mini:`String` at the last occurence of :mini:`Pattern` and returns the two substrings in a tuple.
 	const char *Subject = ml_string_value(Args[0]);
 	const char *End = Subject + ml_string_length(Args[0]);
 	const char *Pattern = ml_string_value(Args[1]);
@@ -1813,6 +1906,10 @@ ML_METHOD("*/", MLStringT, MLStringT) {
 }
 
 ML_METHOD("*/", MLStringT, MLRegexT) {
+//<String
+//<Pattern
+//>tuple[string, string]
+// Splits :mini:`String` at the last occurence of :mini:`Pattern` and returns the two substrings in a tuple.
 	const char *Subject = ml_string_value(Args[0]);
 	const char *End = Subject + ml_string_length(Args[0]);
 	ml_regex_t *Pattern = (ml_regex_t *)Args[1];
