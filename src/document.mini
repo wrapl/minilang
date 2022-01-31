@@ -264,14 +264,14 @@ fun write_type(Category, Name, Parents, Description, Location) do
 		var Seperator := ""
 		if Category != "internal" then
 			for Parent in Parents do
-				TypesGraph:write('      \"{type_name(Parent)}\" -> \"{type_name(Name)}\";\n')
+				TypesGraph:write('      \"{type_name(Parent)}\":e -> \"{type_name(Name)}\":w;\n')
 				Title:write(Seperator, type_name(Parent))
 				Seperator := ", "
 			end
 		end
 	else
 		if Category != "internal" then
-			TypesGraph:write('      \"any\" -> \"{type_name(Name)}\";\n')
+			TypesGraph:write('      \"any\":e -> \"{type_name(Name)}\":w;\n')
 		end
 	end
 	Title:write("`\n")
