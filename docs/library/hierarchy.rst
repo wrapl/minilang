@@ -1,3 +1,5 @@
+.. include:: <isonum.txt>
+
 hierarchy
 =========
 
@@ -97,6 +99,7 @@ hierarchy
       "any":e -> "queue::entry":w;
       "sequence":e -> "queue":w;
       "any":e -> "polynomial":w;
+      "any":e -> "polynomial::rational":w;
       "any":e -> "object":w;
       "type":e -> "class":w;
       "any":e -> "property":w;

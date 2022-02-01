@@ -1,3 +1,5 @@
+.. include:: <isonum.txt>
+
 array
 =====
 
@@ -569,6 +571,10 @@ array
 
 :mini:`meth (A: array) . (B: array): array`
    Returns the inner product of :mini:`A` and :mini:`B`. The last dimension of :mini:`A` and the first dimension of :mini:`B` must match,  skipping any dimensions of size :mini:`1`.
+
+
+:mini:`meth (T: matrix) @ (X: vector): vector`
+   Returns :mini:`X` transformed by :mini:`T`. :mini:`T` must be a :mini:`N` |times| :mini:`N` matrix and :mini:`X` a vector of size :mini:`N - 1`.
 
 
 :mini:`meth \(A: matrix): matrix`

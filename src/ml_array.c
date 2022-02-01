@@ -4497,7 +4497,7 @@ static void ml_array_dot_fill(
 			}
 		}
 	} else {
-		DotFn(DataA, DimA, GetterA, DataB, DimB + (DegreeB - 1), GetterB, DataC);
+		DotFn(DataA, DimA, GetterA, DataB, DimB, GetterB, DataC);
 	}
 }
 
@@ -4679,29 +4679,22 @@ ML_METHOD(".", MLArrayT, MLArrayT) {
 	int SizeA = DimA[DegreeA - 1].Size;
 	int SizeB = DimB[0].Size;
 	int Degree = DegreeA + DegreeB - 2;
+	ml_array_format_t Format = MAX(A->Format, B->Format);
 	if (!Degree) {
 		if (SizeA != SizeB) return ml_error("ShapeError", "Incompatible arrays");
-		if (
-			A->Format == ML_ARRAY_FORMAT_ANY ||
-			B->Format == ML_ARRAY_FORMAT_ANY
-		) {
-			void *GetterA = MLArrayGetters[ML_ARRAY_FORMAT_ANY][A->Format];
-			void *GetterB = MLArrayGetters[ML_ARRAY_FORMAT_ANY][B->Format];
-			ml_array_dot_fn DotFn = MLArrayDotFns[ML_ARRAY_FORMAT_ANY];
-			ml_value_t *Dot;
+		if (Format <= ML_ARRAY_FORMAT_F64) {
+			void *GetterA = MLArrayGetters[ML_ARRAY_FORMAT_F64][A->Format];
+			void *GetterB = MLArrayGetters[ML_ARRAY_FORMAT_F64][B->Format];
+			ml_array_dot_fn DotFn = MLArrayDotFns[ML_ARRAY_FORMAT_F64];
+			double Dot;
 			DotFn(
 				A->Base.Value, DimA, GetterA,
 				B->Base.Value, DimB + (DegreeB - 1), GetterB,
 				&Dot
 			);
-			return Dot;
+			return ml_real(Dot);
 #ifdef ML_COMPLEX
-		} else if (
-			A->Format == ML_ARRAY_FORMAT_C32 ||
-			A->Format == ML_ARRAY_FORMAT_C64 ||
-			B->Format == ML_ARRAY_FORMAT_C32 ||
-			B->Format == ML_ARRAY_FORMAT_C64
-		) {
+		} else if (Format <= ML_ARRAY_FORMAT_C64) {
 			void *GetterA = MLArrayGetters[ML_ARRAY_FORMAT_C64][A->Format];
 			void *GetterB = MLArrayGetters[ML_ARRAY_FORMAT_C64][B->Format];
 			ml_array_dot_fn DotFn = MLArrayDotFns[ML_ARRAY_FORMAT_C64];
@@ -4714,16 +4707,16 @@ ML_METHOD(".", MLArrayT, MLArrayT) {
 			return ml_complex(Dot);
 #endif
 		} else {
-			void *GetterA = MLArrayGetters[ML_ARRAY_FORMAT_F64][A->Format];
-			void *GetterB = MLArrayGetters[ML_ARRAY_FORMAT_F64][B->Format];
-			ml_array_dot_fn DotFn = MLArrayDotFns[ML_ARRAY_FORMAT_F64];
-			double Dot;
+			void *GetterA = MLArrayGetters[ML_ARRAY_FORMAT_ANY][A->Format];
+			void *GetterB = MLArrayGetters[ML_ARRAY_FORMAT_ANY][B->Format];
+			ml_array_dot_fn DotFn = MLArrayDotFns[ML_ARRAY_FORMAT_ANY];
+			ml_value_t *Dot;
 			DotFn(
 				A->Base.Value, DimA, GetterA,
 				B->Base.Value, DimB + (DegreeB - 1), GetterB,
 				&Dot
 			);
-			return ml_real(Dot);
+			return Dot;
 		}
 	}
 	int UseProd = 0;
@@ -4744,7 +4737,7 @@ ML_METHOD(".", MLArrayT, MLArrayT) {
 	} else if (SizeA != SizeB) {
 		return ml_error("ShapeError", "Incompatible arrays");
 	}
-	ml_array_t *C = ml_array_new(MAX(A->Format, B->Format), Degree);
+	ml_array_t *C = ml_array_new(Format, Degree);
 	int DataSize = MLArraySizes[C->Format];
 	if (UseProd) {
 		int Base = DegreeA;
@@ -4793,6 +4786,103 @@ ML_METHOD(".", MLArrayT, MLArrayT) {
 		);
 	}
 	return (ml_value_t *)C;
+}
+
+ML_METHOD("@", MLMatrixT, MLVectorT) {
+//<T
+//<X
+//>vector
+// Returns :mini:`X` transformed by :mini:`T`. :mini:`T` must be a :mini:`N` |times| :mini:`N` matrix and :mini:`X` a vector of size :mini:`N - 1`.
+	ml_array_t *A = (ml_array_t *)Args[0];
+	ml_array_t *B = (ml_array_t *)Args[1];
+	int N = A->Dimensions[0].Size;
+	if (N != A->Dimensions[1].Size) return ml_error("ShapeError", "Square matrix required");
+	if (N != B->Dimensions->Size + 1) return ml_error("ShapeError", "Invalid vector size for transformation");
+	ml_array_format_t Format = MAX(A->Format, B->Format);
+	if (Format <= ML_ARRAY_FORMAT_F64) {
+		double Projection[N], *Result = anew(double, N);
+		ml_array_getter_double GetterB = MLArrayGetters[ML_ARRAY_FORMAT_F64][B->Format];
+		char *BData = B->Base.Value;
+		int Stride = B->Dimensions->Stride, *Indices = B->Dimensions->Indices;
+		if (Indices) {
+			for (int I = 0; I < N - 1; ++I) Projection[I] = GetterB(BData + Stride * Indices[I]);
+		} else {
+			for (int I = 0; I < N - 1; ++I) Projection[I] = GetterB(BData + Stride * I);
+		}
+		Projection[N - 1] = 1;
+		void *GetterA = MLArrayGetters[ML_ARRAY_FORMAT_F64][A->Format];
+		ml_array_dot_fn DotFn = MLArrayDotFns[ML_ARRAY_FORMAT_F64];
+		ml_array_dimension_t Dimension = {N, sizeof(double), NULL};
+		ml_array_dot_fill(
+			A->Base.Value, A->Dimensions, GetterA, 2,
+			Projection, &Dimension, ml_array_getter_double_double, 1,
+			Result, &Dimension, DotFn, 1
+		);
+		double Scale = Result[N - 1];
+		for (int I = 0; I < N - 1; ++I) Result[I] /= Scale;
+		ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_F64, 1);
+		C->Base.Value = (char *)Result;
+		C->Dimensions->Size = N - 1;
+		C->Dimensions->Stride = sizeof(double);
+		return (ml_value_t *)C;
+#ifdef ML_COMPLEX
+	} else if (Format <= ML_ARRAY_FORMAT_C64) {
+		complex double Projection[N], *Result = anew(complex double, N);
+		ml_array_getter_complex_double GetterB = MLArrayGetters[ML_ARRAY_FORMAT_C64][B->Format];
+		char *BData = B->Base.Value;
+		int Stride = B->Dimensions->Stride, *Indices = B->Dimensions->Indices;
+		if (Indices) {
+			for (int I = 0; I < N - 1; ++I) Projection[I] = GetterB(BData + Stride * Indices[I]);
+		} else {
+			for (int I = 0; I < N - 1; ++I) Projection[I] = GetterB(BData + Stride * I);
+		}
+		Projection[N - 1] = 1;
+		void *GetterA = MLArrayGetters[ML_ARRAY_FORMAT_C64][A->Format];
+		ml_array_dot_fn DotFn = MLArrayDotFns[ML_ARRAY_FORMAT_C64];
+		ml_array_dimension_t Dimension = {N, sizeof(complex double), NULL};
+		ml_array_dot_fill(
+			A->Base.Value, A->Dimensions, GetterA, 2,
+			Projection, &Dimension, ml_array_getter_complex_double_complex_double, 1,
+			Result, &Dimension, DotFn, 1
+		);
+		complex double Scale = Result[N - 1];
+		for (int I = 0; I < N - 1; ++I) Result[I] /= Scale;
+		ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_C64, 1);
+		C->Base.Value = (char *)Result;
+		C->Dimensions->Size = N - 1;
+		C->Dimensions->Stride = sizeof(complex double);
+		return (ml_value_t *)C;
+#endif
+	} else {
+		ml_value_t *Projection[N], **Result = anew(ml_value_t *, N);
+		ml_array_getter_any GetterB = MLArrayGetters[ML_ARRAY_FORMAT_ANY][B->Format];
+		char *BData = B->Base.Value;
+		int Stride = B->Dimensions->Stride, *Indices = B->Dimensions->Indices;
+		if (Indices) {
+			for (int I = 0; I < N - 1; ++I) Projection[I] = GetterB(BData + Stride * Indices[I]);
+		} else {
+			for (int I = 0; I < N - 1; ++I) Projection[I] = GetterB(BData + Stride * I);
+		}
+		Projection[N - 1] = ml_real(1);
+		void *GetterA = MLArrayGetters[ML_ARRAY_FORMAT_ANY][A->Format];
+		ml_array_dot_fn DotFn = MLArrayDotFns[ML_ARRAY_FORMAT_ANY];
+		ml_array_dimension_t Dimension = {N, sizeof(ml_value_t *), NULL};
+		ml_array_dot_fill(
+			A->Base.Value, A->Dimensions, GetterA, 2,
+			Projection, &Dimension, ml_array_getter_any_any, 1,
+			Result, &Dimension, DotFn, 1
+		);
+		ml_value_t *Scale = Result[N - 1];
+		for (int I = 0; I < N - 1; ++I) {
+			ml_value_t *Args2[2] = {Result[I], Scale};
+			Result[I] = ml_simple_call(DivMethod, 2, Args2);
+		}
+		ml_array_t *C = ml_array_new(ML_ARRAY_FORMAT_ANY, 1);
+		C->Base.Value = (char *)Result;
+		C->Dimensions->Size = N - 1;
+		C->Dimensions->Stride = sizeof(ml_value_t *);
+		return (ml_value_t *)C;
+	}
 }
 
 static ml_value_t *ml_array_pairwise_infix(ml_array_infix_set_fn *InfixSetFns, int Count, ml_value_t **Args) {
@@ -4906,10 +4996,11 @@ ML_METHOD("\\", MLMatrixT) {
 //>matrix
 // Returns the inverse of :mini:`A`.
 	ml_array_t *Source = (ml_array_t *)Args[0];
+	int N = Source->Dimensions[0].Size;
+	if (N != Source->Dimensions[1].Size) return ml_error("ShapeError", "Square matrix required");
 	if (Source->Format <= ML_ARRAY_FORMAT_F64) {
 		ml_array_t *Inv = ml_array_new(ML_ARRAY_FORMAT_F64, 2);
 		array_copy(Inv, Source);
-		int N = Inv->Dimensions->Size;
 		int Stride = Inv->Dimensions->Stride;
 		double *A[N];
 		char *Data = Inv->Base.Value;
@@ -4983,10 +5074,12 @@ ML_METHOD("\\", MLMatrixT, MLVectorT) {
 //>vector
 // Returns the solution :mini:`X` of :mini:`A . X = B`.
 	ml_array_t *Source = (ml_array_t *)Args[0];
-	int N = Source->Dimensions->Size;
+	int N = Source->Dimensions[0].Size;
+	if (N != Source->Dimensions[1].Size) return ml_error("ShapeError", "Square matrix required");
 	ml_array_t *B = (ml_array_t *)Args[1];
 	if (B->Dimensions->Size != N) return ml_error("ArrayError", "Matrix and vector sizes do not match");
-	if (Source->Format <= ML_ARRAY_FORMAT_F64) {
+	ml_array_format_t Format = MAX(Source->Format, B->Format);
+	if (Format <= ML_ARRAY_FORMAT_F64) {
 		ml_array_t *Tmp = ml_array_new(ML_ARRAY_FORMAT_F64, 2);
 		array_copy(Tmp, Source);
 		int Stride = Tmp->Dimensions->Stride;
@@ -5016,7 +5109,7 @@ ML_METHOD("\\", MLMatrixT, MLVectorT) {
 		memcpy(Sol->Base.Value, X, N * sizeof(double));
 		return (ml_value_t *)Sol;
 #ifdef ML_COMPLEX
-	} else if (Source->Format <= ML_ARRAY_FORMAT_C64) {
+	} else if (Format <= ML_ARRAY_FORMAT_C64) {
 		ml_array_t *Tmp = ml_array_new(ML_ARRAY_FORMAT_C64, 2);
 		array_copy(Tmp, Source);
 		int Stride = Tmp->Dimensions->Stride;
@@ -5100,7 +5193,8 @@ ML_METHOD("det", MLMatrixT) {
 //>any
 // Returns the determinant of :mini:`A`.
 	ml_array_t *Source = (ml_array_t *)Args[0];
-	int N = Source->Dimensions->Size;
+	int N = Source->Dimensions[0].Size;
+	if (N != Source->Dimensions[1].Size) return ml_error("ShapeError", "Square matrix required");
 	if (Source->Format <= ML_ARRAY_FORMAT_F64) {
 		ml_array_t *Tmp = ml_array_new(ML_ARRAY_FORMAT_F64, 2);
 		array_copy(Tmp, Source);
@@ -5155,7 +5249,8 @@ ML_METHOD("tr", MLMatrixT) {
 //>any
 // Returns the trace of :mini:`A`.
 	ml_array_t *Source = (ml_array_t *)Args[0];
-	int N = Source->Dimensions->Size;
+	int N = Source->Dimensions[0].Size;
+	if (N != Source->Dimensions[1].Size) return ml_error("ShapeError", "Square matrix required");
 	if (Source->Format <= ML_ARRAY_FORMAT_F64) {
 		double Trace = 0;
 		char *Data = Source->Base.Value;
