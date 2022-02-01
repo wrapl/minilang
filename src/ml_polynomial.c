@@ -348,61 +348,45 @@ static ml_quotient_t ml_polynomial_quotient(ml_polynomial_t *A, ml_polynomial_t 
 	ml_polynomial_t *D = xnew(ml_polynomial_t, 1, ml_term_t);
 	D->Type = MLPolynomialT;
 	D->Count = 1;
-	ml_polynomial_t *Q = NULL, *R = NULL;
-	while (A->Count) {
-	next:
-		for (int I = 0; I < A->Count; ++I) {
+	ml_polynomial_t *Q = NULL;
+	for (int I = 0; I < A->Count;) {
 #ifdef ML_POLY_DEBUG
-			ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-			ml_stringbuffer_printf(Buffer, "A = (");
-			ml_polynomial_write(Buffer, A);
-			ml_stringbuffer_printf(Buffer, ")\nB = (");
-			ml_polynomial_write(Buffer, B);
-			ml_stringbuffer_printf(Buffer, ")\nQ = (");
-			if (Q) ml_polynomial_write(Buffer, Q);
-			ml_stringbuffer_printf(Buffer, ")\nR = (");
-			if (R) ml_polynomial_write(Buffer, R);
-			ml_stringbuffer_printf(Buffer, ")");
-			puts(ml_stringbuffer_get_string(Buffer));
+		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+		ml_stringbuffer_printf(Buffer, "A = (");
+		ml_polynomial_write(Buffer, A);
+		ml_stringbuffer_printf(Buffer, "), B = (");
+		ml_polynomial_write(Buffer, B);
+		ml_stringbuffer_printf(Buffer, "), Q = (");
+		if (Q) ml_polynomial_write(Buffer, Q);
+		ml_stringbuffer_printf(Buffer, ")");
+		puts(ml_stringbuffer_get_string(Buffer));
 #endif
-			if (ml_term_div(A->Terms + I, B->Terms, D->Terms)) {
-				if (Q) {
-					Q = ml_polynomial_add(Q, D);
-				} else {
-					Q = xnew(ml_polynomial_t, 1, ml_term_t);
-					Q->Type = MLPolynomialT;
-					Q->Count = 1;
-					Q->Terms[0] = D->Terms[0];
-				}
-				A = ml_polynomial_sub(A, ml_polynomial_mul(B, D));
-				goto next;
+		if (ml_term_div(A->Terms + I, B->Terms, D->Terms)) {
+			if (Q) {
+				Q = ml_polynomial_add(Q, D);
+			} else {
+				Q = xnew(ml_polynomial_t, 1, ml_term_t);
+				Q->Type = MLPolynomialT;
+				Q->Count = 1;
+				Q->Terms[0] = D->Terms[0];
 			}
-		}
-		D->Terms[0] = A->Terms[0];
-		if (R) {
-			R = ml_polynomial_add(R, D);
+			A = ml_polynomial_sub(A, ml_polynomial_mul(B, D));
 		} else {
-			R = xnew(ml_polynomial_t, 1, ml_term_t);
-			R->Type = MLPolynomialT;
-			R->Count = 1;
-			R->Terms[0] = D->Terms[0];
+			++I;
 		}
-		A = ml_polynomial_sub(A, D);
 	}
 #ifdef ML_POLY_DEBUG
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_stringbuffer_printf(Buffer, "A = (");
 	ml_polynomial_write(Buffer, A);
-	ml_stringbuffer_printf(Buffer, ")\nB = (");
+	ml_stringbuffer_printf(Buffer, "), B = (");
 	ml_polynomial_write(Buffer, B);
-	ml_stringbuffer_printf(Buffer, ")\nQ = (");
+	ml_stringbuffer_printf(Buffer, "), Q = (");
 	if (Q) ml_polynomial_write(Buffer, Q);
-	ml_stringbuffer_printf(Buffer, ")\nR = (");
-	if (R) ml_polynomial_write(Buffer, R);
 	ml_stringbuffer_printf(Buffer, ")");
 	puts(ml_stringbuffer_get_string(Buffer));
 #endif
-	return (ml_quotient_t){Q, R};
+	return (ml_quotient_t){Q, A->Count ? A : NULL};
 }
 
 ML_METHOD(MLPolynomialT, MLStringT) {
@@ -829,7 +813,7 @@ static ml_value_t *ml_polynomial_div(ml_polynomial_t *A, ml_polynomial_t *B) {
 		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 		ml_stringbuffer_printf(Buffer, "T = (");
 		ml_polynomial_write(Buffer, T);
-		ml_stringbuffer_printf(Buffer, ")\nG = (");
+		ml_stringbuffer_printf(Buffer, "), G = (");
 		ml_polynomial_write(Buffer, G);
 		ml_stringbuffer_printf(Buffer, ")");
 		puts(ml_stringbuffer_get_string(Buffer));
@@ -859,9 +843,9 @@ static ml_value_t *ml_polynomial_div(ml_polynomial_t *A, ml_polynomial_t *B) {
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_stringbuffer_printf(Buffer, "A = (");
 	ml_polynomial_write(Buffer, A);
-	ml_stringbuffer_printf(Buffer, ")\nB = (");
+	ml_stringbuffer_printf(Buffer, "), B = (");
 	ml_polynomial_write(Buffer, B);
-	ml_stringbuffer_printf(Buffer, ")\nG = (");
+	ml_stringbuffer_printf(Buffer, "), G = (");
 	ml_polynomial_write(Buffer, G);
 	ml_stringbuffer_printf(Buffer, ")");
 	puts(ml_stringbuffer_get_string(Buffer));
