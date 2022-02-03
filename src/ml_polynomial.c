@@ -108,7 +108,7 @@ typedef struct {
 
 static ml_value_t *ml_polynomial_value(ml_polynomial_t *P) {
 	if (P->Count == 0) return ml_real(0);
-	if (P->Count == 1 && P->Terms->Factors == Constant) return ml_real(P->Terms->Coeff);
+	if (P->Count == 1 && P->Terms->Factors->Count == 0) return ml_real(P->Terms->Coeff);
 	return (ml_value_t *)P;
 }
 
@@ -116,7 +116,7 @@ static void ml_polynomial_write(ml_stringbuffer_t *Buffer, ml_polynomial_t *Poly
 const ml_term_t *Terms = Poly->Terms;
 	for (int I = 0; I < Poly->Count; ++I) {
 		const ml_term_t *Term = Terms + I;
-		if (Term->Factors == Constant) {
+		if (Term->Factors->Count == 0) {
 			if (I && Term->Coeff < 0) {
 				ml_stringbuffer_printf(Buffer, " - %g", -Term->Coeff);
 			} else if (I) {
@@ -389,6 +389,125 @@ static ml_quotient_t ml_polynomial_quotient(ml_polynomial_t *A, ml_polynomial_t 
 	return (ml_quotient_t){Q, A->Count ? A : NULL};
 }
 
+static ml_polynomial_t *ml_polynomial_spol(ml_polynomial_t *A, ml_polynomial_t *B) {
+	int CA = A->Terms[0].Factors->Count;
+	int CB = B->Terms[0].Factors->Count;
+	const ml_factor_t *FA = A->Terms[0].Factors->Factors;
+	const ml_factor_t *FB = B->Terms[0].Factors->Factors;
+	ml_factors_t *MA = xnew(ml_factors_t, CB, ml_factor_t);
+	ml_factors_t *MB = xnew(ml_factors_t, CA, ml_factor_t);
+	ml_factor_t *MFA = MA->Factors, *MFB = MB->Factors;
+	while (CA && CB) {
+		if (FA->Variable < FB->Variable) {
+			MB->Degree += FA->Degree;
+			*MFB++ = *FA++;
+			--CA;
+		} else if (FA->Variable > FB->Variable) {
+			MA->Degree += FB->Degree;
+			*MFA++ = *FB++;
+			--CB;
+		} else if (FA->Degree > FB->Degree) {
+			MFB->Variable = FA->Variable;
+			MFB->Degree = FA->Degree - FB->Degree;
+			MB->Degree += MFB->Degree;
+			++MFB;
+			++FA; ++FB;
+			--CA; --CB;
+		} else if (FA->Degree < FB->Degree) {
+			MFA->Variable = FB->Variable;
+			MFA->Degree = FB->Degree - FA->Degree;
+			MA->Degree += MFA->Degree;
+			++MFA;
+			++FA; ++FB;
+			--CA; --CB;
+		} else {
+			++FA; ++FB;
+			--CA; --CB;
+		}
+	}
+	while (CA) {
+		MB->Degree += FA->Degree;
+		*MFB++ = *FA++;
+		--CA;
+	}
+	while (CB) {
+		MA->Degree += FB->Degree;
+		*MFA++ = *FB++;
+		--CB;
+	}
+	MA->Count = MFA - MA->Factors;
+	MB->Count = MFB - MB->Factors;
+	double X = B->Terms[0].Coeff / A->Terms[0].Coeff;
+	ml_polynomial_t *XA = xnew(ml_polynomial_t, A->Count, ml_term_t);
+	XA->Type = MLPolynomialT;
+	XA->Count = A->Count;
+	for (int I = 0; I < A->Count; ++I) {
+		XA->Terms[I].Coeff = A->Terms[I].Coeff * X;
+		XA->Terms[I].Factors = ml_factors_mul(A->Terms[I].Factors, MA);
+	}
+	ml_terms_sort(XA->Terms, XA->Terms + XA->Count - 1);
+	ml_polynomial_t *XB = xnew(ml_polynomial_t, B->Count, ml_term_t);
+	XB->Type = MLPolynomialT;
+	XB->Count = B->Count;
+	for (int I = 0; I < B->Count; ++I) {
+		XB->Terms[I].Coeff = B->Terms[I].Coeff;
+		XB->Terms[I].Factors = ml_factors_mul(B->Terms[I].Factors, MB);
+	}
+	ml_terms_sort(XB->Terms, XB->Terms + XB->Count - 1);
+	return ml_polynomial_sub(XA, XB);
+}
+
+static ml_polynomial_t *ml_polynomial_reduce(ml_polynomial_t *A, ml_polynomial_t *B) {
+	for (int I = 0; I < A->Count; ++I) {
+		int CA = A->Terms[I].Factors->Count;
+		int CB = B->Terms[0].Factors->Count;
+		const ml_factor_t *FA = A->Terms[I].Factors->Factors;
+		const ml_factor_t *FB = B->Terms[0].Factors->Factors;
+		ml_factors_t *MB = xnew(ml_factors_t, CA, ml_factor_t);
+		ml_factor_t *MFB = MB->Factors;
+		while (CA && CB) {
+			if (FA->Variable < FB->Variable) {
+				MB->Degree += FA->Degree;
+				*MFB++ = *FA++;
+				--CA;
+			} else if (FA->Variable > FB->Variable) {
+				goto next;
+			} else if (FA->Degree > FB->Degree) {
+				MFB->Variable = FA->Variable;
+				MFB->Degree = FA->Degree - FB->Degree;
+				MB->Degree += MFB->Degree;
+				++MFB;
+				++FA; ++FB;
+				--CA; --CB;
+			} else if (FA->Degree < FB->Degree) {
+				goto next;
+			} else {
+				++FA; ++FB;
+				--CA; --CB;
+			}
+		}
+		if (CB) goto next;
+		while (CA) {
+			MB->Degree += FA->Degree;
+			*MFB++ = *FA++;
+			--CA;
+		}
+		MB->Count = MFB - MB->Factors;
+		ml_polynomial_t *XB = xnew(ml_polynomial_t, B->Count, ml_term_t);
+		XB->Type = MLPolynomialT;
+		XB->Count = B->Count;
+		double X = A->Terms[I].Coeff / B->Terms[0].Coeff;
+		for (int I = 0; I < B->Count; ++I) {
+			XB->Terms[I].Coeff = X * B->Terms[I].Coeff;
+			XB->Terms[I].Factors = ml_factors_mul(B->Terms[I].Factors, MB);
+		}
+		ml_terms_sort(XB->Terms, XB->Terms + XB->Count - 1);
+		return ml_polynomial_sub(A, XB);
+	next:;
+	}
+	return NULL;
+}
+
 ML_METHOD(MLPolynomialT, MLStringT) {
 	const char *Name = ml_string_value(Args[0]);
 	int *Slot = (int *)stringmap_slot(Variables, Name);
@@ -414,7 +533,7 @@ ML_METHOD("+", MLPolynomialT, MLNumberT) {
 	ml_polynomial_t *A = (ml_polynomial_t *)Args[0];
 	double N = ml_real_value(Args[1]);
 	int CA = A->Count;
-	if (A->Terms[CA - 1].Factors == Constant) {
+	if (A->Terms[CA - 1].Factors->Count == 0) {
 		double Sum = A->Terms[CA - 1].Coeff + N;
 		if (fabs(Sum) > DBL_EPSILON) {
 			ml_polynomial_t *B = xnew(ml_polynomial_t, CA, ml_term_t);
@@ -469,7 +588,7 @@ ML_METHOD("+", MLNumberT, MLPolynomialT) {
 	ml_polynomial_t *A = (ml_polynomial_t *)Args[1];
 	double N = ml_real_value(Args[0]);
 	int CA = A->Count;
-	if (A->Terms[CA - 1].Factors == Constant) {
+	if (A->Terms[CA - 1].Factors->Count == 0) {
 		double Sum = A->Terms[CA - 1].Coeff + N;
 		if (fabs(Sum) > DBL_EPSILON) {
 			ml_polynomial_t *B = xnew(ml_polynomial_t, CA, ml_term_t);
@@ -535,7 +654,7 @@ ML_METHOD("+", MLPolynomialT, MLPolynomialT) {
 	puts(ml_stringbuffer_get_string(Buffer));
 #endif
 	if (!C->Count) return ml_real(0);
-	if (C->Count == 1 && C->Terms->Factors == Constant) return ml_real(C->Terms->Coeff);
+	if (C->Count == 1 && C->Terms->Factors->Count == 0) return ml_real(C->Terms->Coeff);
 	return (ml_value_t *)C;
 }
 
@@ -543,7 +662,7 @@ ML_METHOD("-", MLPolynomialT, MLNumberT) {
 	ml_polynomial_t *A = (ml_polynomial_t *)Args[0];
 	double N = ml_real_value(Args[1]);
 	int CA = A->Count;
-	if (A->Terms[CA - 1].Factors == Constant) {
+	if (A->Terms[CA - 1].Factors->Count == 0) {
 		double Sum = A->Terms[CA - 1].Coeff - N;
 		if (fabs(Sum) > DBL_EPSILON) {
 			ml_polynomial_t *B = xnew(ml_polynomial_t, CA, ml_term_t);
@@ -598,7 +717,7 @@ ML_METHOD("-", MLNumberT, MLPolynomialT) {
 	ml_polynomial_t *A = (ml_polynomial_t *)Args[1];
 	double N = ml_real_value(Args[0]);
 	int CA = A->Count;
-	if (A->Terms[CA - 1].Factors == Constant) {
+	if (A->Terms[CA - 1].Factors->Count == 0) {
 		double Sum = N - A->Terms[CA - 1].Coeff;
 		if (fabs(Sum) > DBL_EPSILON) {
 			ml_polynomial_t *B = xnew(ml_polynomial_t, CA, ml_term_t);
@@ -673,7 +792,7 @@ ML_METHOD("-", MLPolynomialT, MLPolynomialT) {
 	puts(ml_stringbuffer_get_string(Buffer));
 #endif
 	if (!C->Count) return ml_real(0);
-	if (C->Count == 1 && C->Terms->Factors == Constant) return ml_real(C->Terms->Coeff);
+	if (C->Count == 1 && C->Terms->Factors->Count == 0) return ml_real(C->Terms->Coeff);
 	return (ml_value_t *)C;
 }
 
@@ -821,7 +940,7 @@ static ml_value_t *ml_polynomial_div(ml_polynomial_t *A, ml_polynomial_t *B) {
 		ml_quotient_t D = ml_polynomial_quotient(T, G);
 		if (!D.R) {
 			if (G == B) {
-				if (D.Q->Count == 1 && D.Q->Terms->Factors == Constant) {
+				if (D.Q->Count == 1 && D.Q->Terms->Factors->Count == 0) {
 					return ml_real(D.Q->Terms->Coeff);
 				} else {
 					return (ml_value_t *)D.Q;
@@ -852,7 +971,7 @@ static ml_value_t *ml_polynomial_div(ml_polynomial_t *A, ml_polynomial_t *B) {
 #endif
 	ml_rational_t *C = new(ml_rational_t);
 	C->Type = MLPolynomialRationalT;
-	if (G->Count == 1 && G->Terms->Factors == Constant) {
+	if (G->Count == 1 && G->Terms->Factors->Count == 0) {
 		C->A = A;
 		C->B = B;
 	} else {
@@ -872,6 +991,18 @@ ML_METHOD("/", MLPolynomialT, MLPolynomialT) {
 	ml_polynomial_t *A = (ml_polynomial_t *)Args[0];
 	ml_polynomial_t *B = (ml_polynomial_t *)Args[1];
 	return ml_polynomial_div(A, B);
+}
+
+ML_METHOD("spol", MLPolynomialT, MLPolynomialT) {
+	ml_polynomial_t *A = (ml_polynomial_t *)Args[0];
+	ml_polynomial_t *B = (ml_polynomial_t *)Args[1];
+	return (ml_value_t *)ml_polynomial_spol(A, B);
+}
+
+ML_METHOD("red", MLPolynomialT, MLPolynomialT) {
+	ml_polynomial_t *A = (ml_polynomial_t *)Args[0];
+	ml_polynomial_t *B = (ml_polynomial_t *)Args[1];
+	return (ml_value_t *)ml_polynomial_reduce(A, B) ?: MLNil;
 }
 
 ML_METHOD("+", MLNumberT, MLPolynomialRationalT) {

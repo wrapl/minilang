@@ -54,6 +54,12 @@ polynomial
 :mini:`meth (Arg₁: polynomial) / (Arg₂: polynomial)`
    *TBD*
 
+:mini:`meth (Arg₁: polynomial):spol(Arg₂: polynomial)`
+   *TBD*
+
+:mini:`meth (Arg₁: polynomial):red(Arg₂: polynomial)`
+   *TBD*
+
 :mini:`meth (Arg₁: number) + (Arg₂: polynomial::rational)`
    *TBD*
 
