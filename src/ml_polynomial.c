@@ -11,14 +11,10 @@
 static stringmap_t Variables[1] = {STRINGMAP_INIT};
 static const char **Names = 0;
 
-typedef struct {
-	int Variable, Degree;
-} ml_factor_t;
-
-typedef struct {
-	int Degree, Count;
-	ml_factor_t Factors[];
-} ml_factors_t;
+const char *ml_polynomial_name(int Index) {
+	if (Index < 0 || Index >= Variables->Size) return NULL;
+	return Names[Index];
+}
 
 static ml_factors_t Constant[1] = {{0, 0}};
 
@@ -94,17 +90,6 @@ static const ml_factors_t *ml_factors_mul(const ml_factors_t *A, const ml_factor
 	C->Degree = Degree;
 	return C;
 }
-
-typedef struct {
-	const ml_factors_t *Factors;
-	double Coeff;
-} ml_term_t;
-
-typedef struct {
-	ml_type_t *Type;
-	int Count;
-	ml_term_t Terms[];
-} ml_polynomial_t;
 
 static ml_value_t *ml_polynomial_value(ml_polynomial_t *P) {
 	if (P->Count == 0) return ml_real(0);
