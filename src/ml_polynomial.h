@@ -39,6 +39,8 @@ extern ml_type_t MLPolynomialRationalT[];
 
 const char *ml_polynomial_name(int Index);
 
+void ml_polynomial_write(ml_stringbuffer_t *Buffer, ml_polynomial_t *Poly);
+
 void ml_polynomial_init(stringmap_t *Globals);
 
 #ifdef	__cplusplus

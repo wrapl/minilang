@@ -97,7 +97,7 @@ static ml_value_t *ml_polynomial_value(ml_polynomial_t *P) {
 	return (ml_value_t *)P;
 }
 
-static void ml_polynomial_write(ml_stringbuffer_t *Buffer, ml_polynomial_t *Poly) {
+void ml_polynomial_write(ml_stringbuffer_t *Buffer, ml_polynomial_t *Poly) {
 const ml_term_t *Terms = Poly->Terms;
 	for (int I = 0; I < Poly->Count; ++I) {
 		const ml_term_t *Term = Terms + I;
