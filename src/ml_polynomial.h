@@ -28,6 +28,15 @@ typedef struct {
 	ml_term_t Terms[];
 } ml_polynomial_t;
 
+extern ml_type_t MLPolynomialT[];
+
+typedef struct {
+	ml_type_t *Type;
+	ml_polynomial_t *A, *B;
+} ml_polynomial_rational_t;
+
+extern ml_type_t MLPolynomialRationalT[];
+
 const char *ml_polynomial_name(int Index);
 
 void ml_polynomial_init(stringmap_t *Globals);

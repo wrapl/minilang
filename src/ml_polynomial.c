@@ -902,11 +902,6 @@ ML_METHOD("/", MLPolynomialT, MLNumberT) {
 	return (ml_value_t *)B;
 }
 
-typedef struct {
-	ml_type_t *Type;
-	ml_polynomial_t *A, *B;
-} ml_rational_t;
-
 ML_TYPE(MLPolynomialRationalT, (), "polynomial::rational");
 
 static ml_value_t *ml_polynomial_div(ml_polynomial_t *A, ml_polynomial_t *B) {
@@ -954,7 +949,7 @@ static ml_value_t *ml_polynomial_div(ml_polynomial_t *A, ml_polynomial_t *B) {
 	ml_stringbuffer_printf(Buffer, ")");
 	puts(ml_stringbuffer_get_string(Buffer));
 #endif
-	ml_rational_t *C = new(ml_rational_t);
+	ml_polynomial_rational_t *C = new(ml_polynomial_rational_t);
 	C->Type = MLPolynomialRationalT;
 	if (G->Count == 1 && G->Terms->Factors->Count == 0) {
 		C->A = A;
@@ -992,31 +987,31 @@ ML_METHOD("red", MLPolynomialT, MLPolynomialT) {
 
 ML_METHOD("+", MLNumberT, MLPolynomialRationalT) {
 	ml_polynomial_t *A = ml_polynomial_const(ml_real_value(Args[0]));
-	ml_rational_t *B = (ml_rational_t *)Args[1];
+	ml_polynomial_rational_t *B = (ml_polynomial_rational_t *)Args[1];
 	return ml_polynomial_div(ml_polynomial_add(ml_polynomial_mul(A, B->B), B->A), B->B);
 }
 
 ML_METHOD("+", MLPolynomialRationalT, MLNumberT) {
-	ml_rational_t *A = (ml_rational_t *)Args[0];
+	ml_polynomial_rational_t *A = (ml_polynomial_rational_t *)Args[0];
 	ml_polynomial_t *B = ml_polynomial_const(ml_real_value(Args[1]));
 	return ml_polynomial_div(ml_polynomial_add(A->A, ml_polynomial_mul(A->B, B)), A->B);
 }
 
 ML_METHOD("+", MLPolynomialT, MLPolynomialRationalT) {
 	ml_polynomial_t *A = (ml_polynomial_t *)Args[0];
-	ml_rational_t *B = (ml_rational_t *)Args[1];
+	ml_polynomial_rational_t *B = (ml_polynomial_rational_t *)Args[1];
 	return ml_polynomial_div(ml_polynomial_add(ml_polynomial_mul(A, B->B), B->A), B->B);
 }
 
 ML_METHOD("+", MLPolynomialRationalT, MLPolynomialT) {
-	ml_rational_t *A = (ml_rational_t *)Args[0];
+	ml_polynomial_rational_t *A = (ml_polynomial_rational_t *)Args[0];
 	ml_polynomial_t *B = (ml_polynomial_t *)Args[1];
 	return ml_polynomial_div(ml_polynomial_add(A->A, ml_polynomial_mul(A->B, B)), A->B);
 }
 
 ML_METHOD("+", MLPolynomialRationalT, MLPolynomialRationalT) {
-	ml_rational_t *A = (ml_rational_t *)Args[0];
-	ml_rational_t *B = (ml_rational_t *)Args[1];
+	ml_polynomial_rational_t *A = (ml_polynomial_rational_t *)Args[0];
+	ml_polynomial_rational_t *B = (ml_polynomial_rational_t *)Args[1];
 	return ml_polynomial_div(
 		ml_polynomial_add(ml_polynomial_mul(A->A, B->B), ml_polynomial_mul(A->B, B->A)),
 		ml_polynomial_mul(A->B, B->B)
@@ -1025,31 +1020,31 @@ ML_METHOD("+", MLPolynomialRationalT, MLPolynomialRationalT) {
 
 ML_METHOD("-", MLNumberT, MLPolynomialRationalT) {
 	ml_polynomial_t *A = ml_polynomial_const(ml_real_value(Args[0]));
-	ml_rational_t *B = (ml_rational_t *)Args[1];
+	ml_polynomial_rational_t *B = (ml_polynomial_rational_t *)Args[1];
 	return ml_polynomial_div(ml_polynomial_sub(ml_polynomial_mul(A, B->B), B->A), B->B);
 }
 
 ML_METHOD("-", MLPolynomialRationalT, MLNumberT) {
-	ml_rational_t *A = (ml_rational_t *)Args[0];
+	ml_polynomial_rational_t *A = (ml_polynomial_rational_t *)Args[0];
 	ml_polynomial_t *B = ml_polynomial_const(ml_real_value(Args[1]));
 	return ml_polynomial_div(ml_polynomial_sub(A->A, ml_polynomial_mul(A->B, B)), A->B);
 }
 
 ML_METHOD("-", MLPolynomialT, MLPolynomialRationalT) {
 	ml_polynomial_t *A = (ml_polynomial_t *)Args[0];
-	ml_rational_t *B = (ml_rational_t *)Args[1];
+	ml_polynomial_rational_t *B = (ml_polynomial_rational_t *)Args[1];
 	return ml_polynomial_div(ml_polynomial_sub(ml_polynomial_mul(A, B->B), B->A), B->B);
 }
 
 ML_METHOD("-", MLPolynomialRationalT, MLPolynomialT) {
-	ml_rational_t *A = (ml_rational_t *)Args[0];
+	ml_polynomial_rational_t *A = (ml_polynomial_rational_t *)Args[0];
 	ml_polynomial_t *B = (ml_polynomial_t *)Args[1];
 	return ml_polynomial_div(ml_polynomial_sub(A->A, ml_polynomial_mul(A->B, B)), A->B);
 }
 
 ML_METHOD("-", MLPolynomialRationalT, MLPolynomialRationalT) {
-	ml_rational_t *A = (ml_rational_t *)Args[0];
-	ml_rational_t *B = (ml_rational_t *)Args[1];
+	ml_polynomial_rational_t *A = (ml_polynomial_rational_t *)Args[0];
+	ml_polynomial_rational_t *B = (ml_polynomial_rational_t *)Args[1];
 	return ml_polynomial_div(
 		ml_polynomial_sub(ml_polynomial_mul(A->A, B->B), ml_polynomial_mul(A->B, B->A)),
 		ml_polynomial_mul(A->B, B->B)
@@ -1058,31 +1053,31 @@ ML_METHOD("-", MLPolynomialRationalT, MLPolynomialRationalT) {
 
 ML_METHOD("*", MLNumberT, MLPolynomialRationalT) {
 	ml_polynomial_t *A = ml_polynomial_const(ml_real_value(Args[0]));
-	ml_rational_t *B = (ml_rational_t *)Args[1];
+	ml_polynomial_rational_t *B = (ml_polynomial_rational_t *)Args[1];
 	return ml_polynomial_div(ml_polynomial_mul(A, B->A), B->B);
 }
 
 ML_METHOD("*", MLPolynomialRationalT, MLNumberT) {
-	ml_rational_t *A = (ml_rational_t *)Args[0];
+	ml_polynomial_rational_t *A = (ml_polynomial_rational_t *)Args[0];
 	ml_polynomial_t *B = ml_polynomial_const(ml_real_value(Args[1]));
 	return ml_polynomial_div(ml_polynomial_mul(A->A, B), A->B);
 }
 
 ML_METHOD("*", MLPolynomialT, MLPolynomialRationalT) {
 	ml_polynomial_t *A = (ml_polynomial_t *)Args[0];
-	ml_rational_t *B = (ml_rational_t *)Args[1];
+	ml_polynomial_rational_t *B = (ml_polynomial_rational_t *)Args[1];
 	return ml_polynomial_div(ml_polynomial_mul(A, B->A), B->B);
 }
 
 ML_METHOD("*", MLPolynomialRationalT, MLPolynomialT) {
-	ml_rational_t *A = (ml_rational_t *)Args[0];
+	ml_polynomial_rational_t *A = (ml_polynomial_rational_t *)Args[0];
 	ml_polynomial_t *B = (ml_polynomial_t *)Args[1];
 	return ml_polynomial_div(ml_polynomial_mul(A->A, B), A->B);
 }
 
 ML_METHOD("*", MLPolynomialRationalT, MLPolynomialRationalT) {
-	ml_rational_t *A = (ml_rational_t *)Args[0];
-	ml_rational_t *B = (ml_rational_t *)Args[1];
+	ml_polynomial_rational_t *A = (ml_polynomial_rational_t *)Args[0];
+	ml_polynomial_rational_t *B = (ml_polynomial_rational_t *)Args[1];
 	return ml_polynomial_div(
 		ml_polynomial_mul(A->A, B->A),
 		ml_polynomial_mul(A->B, B->B)
@@ -1091,31 +1086,31 @@ ML_METHOD("*", MLPolynomialRationalT, MLPolynomialRationalT) {
 
 ML_METHOD("/", MLNumberT, MLPolynomialRationalT) {
 	ml_polynomial_t *A = ml_polynomial_const(ml_real_value(Args[0]));
-	ml_rational_t *B = (ml_rational_t *)Args[1];
+	ml_polynomial_rational_t *B = (ml_polynomial_rational_t *)Args[1];
 	return ml_polynomial_div(ml_polynomial_mul(A, B->B), B->A);
 }
 
 ML_METHOD("/", MLPolynomialRationalT, MLNumberT) {
-	ml_rational_t *A = (ml_rational_t *)Args[0];
+	ml_polynomial_rational_t *A = (ml_polynomial_rational_t *)Args[0];
 	ml_polynomial_t *B = ml_polynomial_const(ml_real_value(Args[1]));
 	return ml_polynomial_div(A->A, ml_polynomial_mul(A->B, B));
 }
 
 ML_METHOD("/", MLPolynomialT, MLPolynomialRationalT) {
 	ml_polynomial_t *A = (ml_polynomial_t *)Args[0];
-	ml_rational_t *B = (ml_rational_t *)Args[1];
+	ml_polynomial_rational_t *B = (ml_polynomial_rational_t *)Args[1];
 	return ml_polynomial_div(ml_polynomial_mul(A, B->B), B->A);
 }
 
 ML_METHOD("/", MLPolynomialRationalT, MLPolynomialT) {
-	ml_rational_t *A = (ml_rational_t *)Args[0];
+	ml_polynomial_rational_t *A = (ml_polynomial_rational_t *)Args[0];
 	ml_polynomial_t *B = (ml_polynomial_t *)Args[1];
 	return ml_polynomial_div(A->A, ml_polynomial_mul(A->B, B));
 }
 
 ML_METHOD("/", MLPolynomialRationalT, MLPolynomialRationalT) {
-	ml_rational_t *A = (ml_rational_t *)Args[0];
-	ml_rational_t *B = (ml_rational_t *)Args[1];
+	ml_polynomial_rational_t *A = (ml_polynomial_rational_t *)Args[0];
+	ml_polynomial_rational_t *B = (ml_polynomial_rational_t *)Args[1];
 	return ml_polynomial_div(
 		ml_polynomial_mul(A->A, B->B),
 		ml_polynomial_mul(A->B, B->A)
@@ -1124,7 +1119,7 @@ ML_METHOD("/", MLPolynomialRationalT, MLPolynomialRationalT) {
 
 ML_METHOD("append", MLStringBufferT, MLPolynomialRationalT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_rational_t *Rat = (ml_rational_t *)Args[1];
+	ml_polynomial_rational_t *Rat = (ml_polynomial_rational_t *)Args[1];
 	ml_stringbuffer_write(Buffer, "[", 1);
 	ml_polynomial_write(Buffer, Rat->A);
 	ml_stringbuffer_write(Buffer, " / ", 3);
