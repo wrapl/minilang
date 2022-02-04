@@ -58,6 +58,17 @@ void ml_stream_flush(ml_state_t *Caller, ml_value_t *Value) {
 	return function(Caller, Value);
 }
 
+ML_METHODX("read", MLStreamT, MLBufferT) {
+//<Stream
+//<Buffer
+//>integer
+// Reads bytes from :mini:`Stream` into :mini:`Buffer` to :mini:`Stream`. This method should be overridden for streams defined in Minilang.
+	ml_value_t *Stream = Args[0];
+	typeof(ml_stream_read) *read = ml_typed_fn_get(ml_typeof(Stream), ml_stream_read);
+	if (!read) ML_ERROR("StreamError", "No read method defined for %s", ml_typeof(Args[0])->Name);
+	return read(Caller, Stream, ml_buffer_value(Args[1]), ml_buffer_length(Args[1]));
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Stream;
@@ -83,6 +94,10 @@ static void ml_stream_read_run(ml_read_state_t *State, ml_value_t *Value) {
 }
 
 ML_METHODX("read", MLStreamT, MLIntegerT) {
+//<Stream
+//<Delimiters
+//>string|nil
+// Returns the next text from :mini:`Stream`, upto :mini:`Count` characters, whichever comes first. Returns :mini:`nil` if :mini:`Stream` is empty.
 	ml_value_t *Stream = Args[0];
 	ml_read_state_t *State = new(ml_read_state_t);
 	State->Base.Caller = Caller;
@@ -120,6 +135,11 @@ static void ml_stream_readx_run(ml_readu_state_t *State, ml_value_t *Value) {
 }
 
 ML_METHODX("readx", MLStreamT, MLIntegerT, MLStringT) {
+//<Stream
+//<Count
+//<Delimiters
+//>string|nil
+// Returns the next text from :mini:`Stream`, upto but excluding any character in :mini:`Delimiters` or :mini:`Count` characters, whichever comes first. Returns :mini:`nil` if :mini:`Stream` is empty.
 	ml_value_t *Stream = Args[0];
 	ml_readu_state_t *State = xnew(ml_readu_state_t, 65, char);
 	State->Base.Caller = Caller;
@@ -154,6 +174,11 @@ static void ml_stream_readi_run(ml_readu_state_t *State, ml_value_t *Value) {
 }
 
 ML_METHODX("readi", MLStreamT, MLIntegerT, MLStringT) {
+//<Stream
+//<Count
+//<Delimiters
+//>string|nil
+// Returns the next text from :mini:`Stream`, upto and including any character in :mini:`Delimiters` or :mini:`Count` characters, whichever comes first. Returns :mini:`nil` if :mini:`Stream` is empty.
 	ml_value_t *Stream = Args[0];
 	ml_readu_state_t *State = xnew(ml_readu_state_t, 65, char);
 	State->Base.Caller = Caller;
@@ -173,6 +198,9 @@ ML_METHODX("readi", MLStreamT, MLIntegerT, MLStringT) {
 }
 
 ML_METHODX("read", MLStreamT) {
+//<Stream
+//>string|nil
+// Equivalent to :mini:`Stream:readi(SIZE_MAX, '\n')`.
 	ml_value_t *Stream = Args[0];
 	ml_readu_state_t *State = xnew(ml_readu_state_t, 65, char);
 	State->Base.Caller = Caller;
@@ -197,6 +225,9 @@ static void ml_stream_rest_run(ml_readu_state_t *State, ml_value_t *Value) {
 }
 
 ML_METHODX("rest", MLStreamT) {
+//<Stream
+//>string|nil
+// Returns the remainder of :mini:`Stream` or :mini:`nil` if :mini:`Stream` is empty.
 	ml_value_t *Stream = Args[0];
 	ml_readu_state_t *State = xnew(ml_readu_state_t, 0, char);
 	State->Base.Caller = Caller;
@@ -207,6 +238,17 @@ ML_METHODX("rest", MLStreamT) {
 	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
 	char *Space = ml_stringbuffer_writer(State->Buffer, 0);
 	return State->read((ml_state_t *)State, Stream, Space, State->Buffer->Space);
+}
+
+ML_METHODX("write", MLStreamT, MLAddressT) {
+//<Stream
+//<Address
+//>integer
+// Writes the bytes at :mini:`Address` to :mini:`Stream`. This method should be overridden for streams defined in Minilang.
+	ml_value_t *Stream = Args[0];
+	typeof(ml_stream_write) *write = ml_typed_fn_get(ml_typeof(Stream), ml_stream_write);
+	if (!write) ML_ERROR("StreamError", "No write method defined for %s", ml_typeof(Args[0])->Name);
+	return write(Caller, Stream, ml_address_value(Args[1]), ml_address_length(Args[1]));
 }
 
 typedef struct {
@@ -240,6 +282,10 @@ static void ml_stream_write_append_run(ml_write_state_t *State, ml_value_t *Valu
 }
 
 ML_METHODVX("write", MLStreamT, MLAnyT) {
+//<Stream
+//<Value/1,...,Value/n
+//>integer
+// Writes each :mini:`Value/i` in turn to :mini:`Stream`.
 	ml_value_t *Stream = Args[0];
 	ml_write_state_t *State = xnew(ml_write_state_t, Count - 1, ml_value_t *);
 	State->Base.Caller = Caller;
@@ -292,6 +338,10 @@ static void ml_stream_copy_read_run(ml_stream_copy_state_t *State, ml_value_t *V
 }
 
 ML_METHODX("copy", MLStreamT, MLStreamT) {
+//<Source
+//<Destination
+//>integer
+// Copies the remaining bytes from :mini:`Source` to :mini:`Destination`.
 	ml_stream_copy_state_t *State = new(ml_stream_copy_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
@@ -305,6 +355,11 @@ ML_METHODX("copy", MLStreamT, MLStreamT) {
 }
 
 ML_METHODX("copy", MLStreamT, MLStreamT, MLIntegerT) {
+//<Source
+//<Destination
+//<Count
+//>integer
+// Copies upto :mini:`Count` bytes from :mini:`Source` to :mini:`Destination`.
 	ml_stream_copy_state_t *State = new(ml_stream_copy_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
@@ -318,8 +373,13 @@ ML_METHODX("copy", MLStreamT, MLStreamT, MLIntegerT) {
 	return State->read((ml_state_t *)State, Source, State->Buffer, Read);
 }
 
-ML_METHOD("flush", MLStreamT) {
-	return Args[0];
+ML_METHODX("flush", MLStreamT) {
+//<Stream
+// Flushes :mini:`Stream`. This method should be overridden for streams defined in Minilang.
+	ml_value_t *Stream = Args[0];
+	typeof(ml_stream_flush) *flush = ml_typed_fn_get(ml_typeof(Stream), ml_stream_flush);
+	if (!flush) ML_RETURN(Stream);
+	return flush(Caller, Stream);
 }
 
 typedef struct {
@@ -494,7 +554,7 @@ static void ML_TYPED_FN(ml_stream_write, MLStreamBufferedT, ml_state_t *Caller, 
 	return ml_buffered_writer_write(Caller, Stream->Writer, Address, Count);
 }
 
-ML_METHODX("read", MLStreamBufferedT, MLAddressT) {
+ML_METHODX("write", MLStreamBufferedT, MLAddressT) {
 	ml_buffered_stream_t *Stream = (ml_buffered_stream_t *)Args[0];
 	const void *Address = ml_address_value(Args[1]);
 	Count = ml_address_length(Args[1]);

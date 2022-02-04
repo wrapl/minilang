@@ -115,7 +115,7 @@ hierarchy
       "sequence":e -> "list":w;
       "any":e -> "list::node":w;
       "any":e -> "list::slice":w;
-      "any":e -> "json::decoder":w;
+      "stream":e -> "json::decoder":w;
       "any":e -> "jsvalue":w;
       "any":e -> "jsencoder":w;
       "any":e -> "jsdecoder":w;

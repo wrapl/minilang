@@ -1,5 +1,6 @@
 #include "ml_json.h"
 #include "ml_macros.h"
+#include "ml_stream.h"
 #include <yajl/yajl_common.h>
 #include <yajl/yajl_parse.h>
 #include <yajl/yajl_gen.h>
@@ -211,46 +212,21 @@ ML_FUNCTIONX(JsonDecoder) {
 	ML_RETURN(Decoder);
 }
 
-ML_TYPE(MLJsonDecoderT, (), "json-decoder",
+ML_TYPE(MLJsonDecoderT, (MLStreamT), "json-decoder",
 //@json::decoder
 	.Constructor = (ml_value_t *)JsonDecoder
 );
 
-ML_METHOD("decode", MLJsonDecoderT, MLAddressT) {
-//<Decoder
-//<Json
-//>Decoder
-	ml_json_decoder_t *Decoder = (ml_json_decoder_t *)Args[0];
-	const unsigned char *Text = (const unsigned char *)ml_address_value(Args[1]);
-	size_t Length = ml_address_length(Args[1]);
-	if (yajl_parse(Decoder->Handle, Text, Length) == yajl_status_error) {
+static void ML_TYPED_FN(ml_stream_write, MLJsonDecoderT, ml_state_t *Caller, ml_json_decoder_t *Decoder, const void *Address, int Count) {
+	if (yajl_parse(Decoder->Handle, Address, Count) == yajl_status_error) {
 		const unsigned char *Error = yajl_get_error(Decoder->Handle, 0, NULL, 0);
 		size_t Position = yajl_get_bytes_consumed(Decoder->Handle);
-		return ml_error("JSONError", "@%ld: %s", Position, Error);
+		ML_ERROR("JSONError", "@%ld: %s", Position, Error);
 	}
-	return Args[0];
+	ML_RETURN(ml_integer(Count));
 }
 
-ML_METHOD("decode", MLJsonDecoderT, MLAddressT, MLIntegerT) {
-//<Decoder
-//<Json
-//<Size
-//>Decoder
-	ml_json_decoder_t *Decoder = (ml_json_decoder_t *)Args[0];
-	const unsigned char *Text = (const unsigned char *)ml_address_value(Args[1]);
-	size_t Length = ml_integer_value(Args[2]);
-	if (Length > ml_address_length(Args[1])) {
-		return ml_error("ValueError", "Length larger than buffer");
-	}
-	if (yajl_parse(Decoder->Handle, Text, Length) == yajl_status_error) {
-		const unsigned char *Error = yajl_get_error(Decoder->Handle, 0, NULL, 0);
-		size_t Position = yajl_get_bytes_consumed(Decoder->Handle);
-		return ml_error("JSONError", "@%ld: %s", Position, Error);
-	}
-	return Args[0];
-}
-
-ML_METHOD("finish", MLJsonDecoderT) {
+ML_METHOD("flush", MLJsonDecoderT) {
 //<Decoder
 //>Decoder
 	ml_json_decoder_t *Decoder = (ml_json_decoder_t *)Args[0];

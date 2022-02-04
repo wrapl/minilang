@@ -7,32 +7,49 @@ stream
    Base type of readable and writable byte streams.
 
 
-:mini:`meth (Arg₁: stream):read(Arg₂: integer)`
-   *TBD*
+:mini:`meth (Stream: stream):read(Buffer: buffer): integer`
+   Reads bytes from :mini:`Stream` into :mini:`Buffer` to :mini:`Stream`. This method should be overridden for streams defined in Minilang.
 
-:mini:`meth (Arg₁: stream):readx(Arg₂: integer, Arg₃: string)`
-   *TBD*
 
-:mini:`meth (Arg₁: stream):readi(Arg₂: integer, Arg₃: string)`
-   *TBD*
+:mini:`meth (Stream: stream):read(Delimiters: integer): string | nil`
+   Returns the next text from :mini:`Stream`,  upto :mini:`Count` characters,  whichever comes first. Returns :mini:`nil` if :mini:`Stream` is empty.
 
-:mini:`meth (Arg₁: stream):read`
-   *TBD*
 
-:mini:`meth (Arg₁: stream):rest`
-   *TBD*
+:mini:`meth (Stream: stream):readx(Count: integer, Delimiters: string): string | nil`
+   Returns the next text from :mini:`Stream`,  upto but excluding any character in :mini:`Delimiters` or :mini:`Count` characters,  whichever comes first. Returns :mini:`nil` if :mini:`Stream` is empty.
 
-:mini:`meth (Arg₁: stream):write(Arg₂: any, ...)`
-   *TBD*
 
-:mini:`meth (Arg₁: stream):copy(Arg₂: stream)`
-   *TBD*
+:mini:`meth (Stream: stream):readi(Count: integer, Delimiters: string): string | nil`
+   Returns the next text from :mini:`Stream`,  upto and including any character in :mini:`Delimiters` or :mini:`Count` characters,  whichever comes first. Returns :mini:`nil` if :mini:`Stream` is empty.
 
-:mini:`meth (Arg₁: stream):copy(Arg₂: stream, Arg₃: integer)`
-   *TBD*
 
-:mini:`meth (Arg₁: stream):flush`
-   *TBD*
+:mini:`meth (Stream: stream):read: string | nil`
+   Equivalent to :mini:`Stream:readi(SIZE_MAX,  '\n')`.
+
+
+:mini:`meth (Stream: stream):rest: string | nil`
+   Returns the remainder of :mini:`Stream` or :mini:`nil` if :mini:`Stream` is empty.
+
+
+:mini:`meth (Stream: stream):write(Address: address): integer`
+   Writes the bytes at :mini:`Address` to :mini:`Stream`. This method should be overridden for streams defined in Minilang.
+
+
+:mini:`meth (Stream: stream):write(Value₁, ..., Valueₙ: any): integer`
+   Writes each :mini:`Valueᵢ` in turn to :mini:`Stream`.
+
+
+:mini:`meth (Source: stream):copy(Destination: stream): integer`
+   Copies the remaining bytes from :mini:`Source` to :mini:`Destination`.
+
+
+:mini:`meth (Source: stream):copy(Destination: stream, Count: integer): integer`
+   Copies upto :mini:`Count` bytes from :mini:`Source` to :mini:`Destination`.
+
+
+:mini:`meth (Stream: stream):flush`
+   Flushes :mini:`Stream`. This method should be overridden for streams defined in Minilang.
+
 
 :mini:`type stream::buffered < stream`
    *TBD*
@@ -43,7 +60,7 @@ stream
 :mini:`meth (Arg₁: stream::buffered):read(Arg₂: buffer)`
    *TBD*
 
-:mini:`meth (Arg₁: stream::buffered):read(Arg₂: address)`
+:mini:`meth (Arg₁: stream::buffered):write(Arg₂: address)`
    *TBD*
 
 :mini:`meth (Arg₁: stream::buffered):flush`
