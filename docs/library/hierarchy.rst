@@ -21,7 +21,7 @@ hierarchy
       "xml":e -> "xml::element":w;
       "sequence":e -> "xml::element":w;
       "function":e -> "xml::filter":w;
-      "any":e -> "xml::decoder":w;
+      "stream":e -> "xml::decoder":w;
       "sequence":e -> "xenode":w;
       "any":e -> "xevar":w;
       "any":e -> "uuid":w;

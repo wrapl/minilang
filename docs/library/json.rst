@@ -12,9 +12,6 @@ json
 :mini:`type json::decoder < stream`
    *TBD*
 
-:mini:`meth (Decoder: json::decoder):flush: Decoder`
-   *TBD*
-
 :mini:`fun json::encode(Value: any): string`
    *TBD*
 

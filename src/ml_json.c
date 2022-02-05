@@ -226,16 +226,13 @@ static void ML_TYPED_FN(ml_stream_write, MLJsonDecoderT, ml_state_t *Caller, ml_
 	ML_RETURN(ml_integer(Count));
 }
 
-ML_METHOD("flush", MLJsonDecoderT) {
-//<Decoder
-//>Decoder
-	ml_json_decoder_t *Decoder = (ml_json_decoder_t *)Args[0];
+static void ML_TYPED_FN(ml_stream_flush, MLJsonDecoderT, ml_state_t *Caller, ml_json_decoder_t *Decoder) {
 	if (yajl_complete_parse(Decoder->Handle) == yajl_status_error) {
 		const unsigned char *Error = yajl_get_error(Decoder->Handle, 0, NULL, 0);
 		size_t Position = yajl_get_bytes_consumed(Decoder->Handle);
-		return ml_error("JSONError", "@%ld: %s", Position, Error);
+		ML_ERROR("JSONError", "@%ld: %s", Position, Error);
 	}
-	return Args[0];
+	ML_RETURN(Decoder);
 }
 
 static ml_value_t *ml_json_encode(yajl_gen Handle, ml_value_t *Value) {

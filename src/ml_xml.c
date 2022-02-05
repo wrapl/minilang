@@ -216,12 +216,13 @@ ML_METHOD("attributes", MLXmlElementT) {
 	return Element->Attributes;
 }
 
-static void ml_xml_element_text(ml_xml_element_t *Element, ml_stringbuffer_t *Buffer) {
+static void ml_xml_element_text(ml_xml_element_t *Element, ml_stringbuffer_t *Buffer, const char *Sep, int SepLen) {
 	for (ml_xml_node_t *Node = Element->Head; Node; Node = Node->Next) {
 		if (Node->Base.Type == MLXmlTextT) {
+			if (Buffer->Length && SepLen) ml_stringbuffer_write(Buffer, Sep, SepLen);
 			ml_stringbuffer_write(Buffer, Node->Base.Value, Node->Base.Length);
 		} else if (Node->Base.Type == MLXmlElementT) {
-			ml_xml_element_text((ml_xml_element_t *)Node, Buffer);
+			ml_xml_element_text((ml_xml_element_t *)Node, Buffer, Sep, SepLen);
 		}
 	}
 }
@@ -232,7 +233,17 @@ ML_METHOD("text", MLXmlElementT) {
 // Returns the (recursive) text content of :mini:`Xml`.
 	ml_xml_element_t *Element = (ml_xml_element_t *)Args[0];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	ml_xml_element_text(Element, Buffer);
+	ml_xml_element_text(Element, Buffer, "", 0);
+	return ml_stringbuffer_get_value(Buffer);
+}
+
+ML_METHOD("text", MLXmlElementT, MLStringT) {
+//<Xml
+//>string
+// Returns the (recursive) text content of :mini:`Xml`.
+	ml_xml_element_t *Element = (ml_xml_element_t *)Args[0];
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_xml_element_text(Element, Buffer, ml_string_value(Args[1]), ml_string_length(Args[1]));
 	return ml_stringbuffer_get_value(Buffer);
 }
 
@@ -959,7 +970,7 @@ static void ml_xml_contains_text(ml_state_t *Caller, const char *Text, int Count
 		if (strstr(Node->Base.Value, Text)) ML_RETURN(Node);
 	} else if (Node->Base.Type == MLXmlElementT) {
 		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-		ml_xml_element_text((ml_xml_element_t *)Node, Buffer);
+		ml_xml_element_text((ml_xml_element_t *)Node, Buffer, "", 0);
 		const char *Value = ml_stringbuffer_get_string(Buffer);
 		if (strstr(Value, Text)) ML_RETURN(Node);
 	}
@@ -998,7 +1009,7 @@ static void ml_xml_contains_regex(ml_state_t *Caller, regex_t *Regex, int Count,
 		if (regex_test(Node->Base.Value, Regex)) ML_RETURN(Node);
 	} else if (Node->Base.Type == MLXmlElementT) {
 		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-		ml_xml_element_text((ml_xml_element_t *)Node, Buffer);
+		ml_xml_element_text((ml_xml_element_t *)Node, Buffer, "", 0);
 		const char *Value = ml_stringbuffer_get_string(Buffer);
 		if (regex_test(Value, Regex)) ML_RETURN(Node);
 	}
@@ -1299,52 +1310,25 @@ ML_FUNCTIONX(XmlDecoder) {
 	ML_RETURN(Decoder);
 }
 
-ML_TYPE(MLXmlDecoderT, (), "xml-decoder",
+ML_TYPE(MLXmlDecoderT, (MLStreamT), "xml::decoder",
 //@xml::decoder
 	.Constructor = (ml_value_t *)XmlDecoder
 );
 
-ML_METHOD("decode", MLXmlDecoderT, MLAddressT) {
-//<Decoder
-//<Xml
-//>Decoder
-	ml_xml_decoder_t *Decoder = (ml_xml_decoder_t *)Args[0];
-	const char *Text = ml_address_value(Args[1]);
-	size_t Length = ml_address_length(Args[1]);
-	if (XML_Parse(Decoder->Handle, Text, Length, 0) == XML_STATUS_ERROR) {
+static void ML_TYPED_FN(ml_stream_write, MLXmlDecoderT, ml_state_t *Caller, ml_xml_decoder_t *Decoder, const void *Address, int Count) {
+	if (XML_Parse(Decoder->Handle, Address, Count, 0) == XML_STATUS_ERROR) {
 		enum XML_Error Error = XML_GetErrorCode(Decoder->Handle);
-		return ml_error("XMLError", "%s", XML_ErrorString(Error));
+		ML_ERROR("XMLError", "%s", XML_ErrorString(Error));
 	}
-	return Args[0];
+	ML_RETURN(ml_integer(Count));
 }
 
-ML_METHOD("decode", MLXmlDecoderT, MLAddressT, MLIntegerT) {
-//<Decoder
-//<Xml
-//<Size
-//>Decoder
-	ml_xml_decoder_t *Decoder = (ml_xml_decoder_t *)Args[0];
-	const char *Text = ml_address_value(Args[1]);
-	size_t Length = ml_integer_value(Args[2]);
-	if (Length > ml_address_length(Args[1])) {
-		return ml_error("ValueError", "Length larger than buffer");
-	}
-	if (XML_Parse(Decoder->Handle, Text, Length, 0) == XML_STATUS_ERROR) {
-		enum XML_Error Error = XML_GetErrorCode(Decoder->Handle);
-		return ml_error("XMLError", "%s", XML_ErrorString(Error));
-	}
-	return Args[0];
-}
-
-ML_METHOD("finish", MLXmlDecoderT) {
-//<Decoder
-//>Decoder
-	ml_xml_decoder_t *Decoder = (ml_xml_decoder_t *)Args[0];
+static void ML_TYPED_FN(ml_stream_flush, MLXmlDecoderT, ml_state_t *Caller, ml_xml_decoder_t *Decoder) {
 	if (XML_Parse(Decoder->Handle, "", 0, 0) == XML_STATUS_ERROR) {
 		enum XML_Error Error = XML_GetErrorCode(Decoder->Handle);
-		return ml_error("XMLError", "%s", XML_ErrorString(Error));
+		ML_ERROR("XMLError", "%s", XML_ErrorString(Error));
 	}
-	return Args[0];
+	ML_RETURN(Decoder);
 }
 
 void ml_xml_init(stringmap_t *Globals) {

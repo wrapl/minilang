@@ -536,6 +536,7 @@ ml_value_t *ml_stream_buffered(ml_value_t *Stream, size_t Size) {
 }
 
 ML_METHOD(MLStreamBufferedT, MLStreamT, MLIntegerT) {
+//@stream::buffered
 	return ml_stream_buffered(Args[0], ml_integer_value(Args[1]));
 }
 

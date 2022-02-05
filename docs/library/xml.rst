@@ -46,6 +46,10 @@ xml
    Returns the (recursive) text content of :mini:`Xml`.
 
 
+:mini:`meth (Xml: xml::element):text(Arg₂: string): string`
+   Returns the (recursive) text content of :mini:`Xml`.
+
+
 :mini:`meth (Parent: xml::element):put(String: string): xml`
    Adds a new text node containing :mini:`String` to :mini:`Parent`.
 
@@ -220,15 +224,6 @@ xml
 :mini:`fun xml::decoder(Callback: any): xml::decoder`
    *TBD*
 
-:mini:`type xml::decoder`
-   *TBD*
-
-:mini:`meth (Decoder: xml::decoder):decode(Xml: address): Decoder`
-   *TBD*
-
-:mini:`meth (Decoder: xml::decoder):decode(Xml: address, Size: integer): Decoder`
-   *TBD*
-
-:mini:`meth (Decoder: xml::decoder):finish: Decoder`
+:mini:`type xml::decoder < stream`
    *TBD*
 

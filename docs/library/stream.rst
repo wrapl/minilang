@@ -54,7 +54,7 @@ stream
 :mini:`type stream::buffered < stream`
    *TBD*
 
-:mini:`meth streambuffered(Arg₁: stream, Arg₂: integer)`
+:mini:`meth stream::buffered(Arg₁: stream, Arg₂: integer)`
    *TBD*
 
 :mini:`meth (Arg₁: stream::buffered):read(Arg₂: buffer)`
