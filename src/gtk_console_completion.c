@@ -85,6 +85,7 @@ static void console_completion_provider_populate(ConsoleCompletionProvider *Prov
 			if (!Value0) break;
 			if (ml_is(Value0, MLGlobalT)) Value0 = ml_global_get(Value0);
 			if (ml_is(Value0, GirTypelibT)) Value = ml_gir_import(Value0, Name);
+			if (ml_is(Value0, MLTypeT)) Value = stringmap_search(((ml_type_t *)Value0)->Exports, Name);
 		} while (0);
 	}
 	g_free(Name);
