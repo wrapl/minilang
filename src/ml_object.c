@@ -487,8 +487,6 @@ typedef struct {
 	ml_value_t *Name;
 } ml_enum_value_t;
 
-extern ml_type_t MLEnumT[];
-
 static long ml_enum_value_hash(ml_enum_value_t *Value, ml_hash_chain_t *Chain) {
 	return (long)Value->Base.Type + Value->Base.Value;
 }
@@ -602,6 +600,10 @@ static void ML_TYPED_FN(ml_value_set_name, MLEnumT, ml_enum_t *Enum, const char 
 
 uint64_t ml_enum_value(ml_value_t *Value) {
 	return (uint64_t)((ml_enum_value_t *)Value)->Base.Value;
+}
+
+const char *ml_enum_name(ml_value_t *Value) {
+	return ml_string_value(((ml_enum_value_t *)Value)->Name);
 }
 
 static void ml_enum_call(ml_state_t *Caller, ml_enum_t *Enum, int Count, ml_value_t **Args) {
@@ -979,6 +981,13 @@ static void ML_TYPED_FN(ml_value_set_name, MLFlagsT, ml_flags_t *Flags, const ch
 
 uint64_t ml_flags_value(ml_value_t *Value) {
 	return (uint64_t)((ml_flags_value_t *)Value)->Value;
+}
+
+const char *ml_flags_name(ml_value_t *Value) {
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_flags_value_append_t Append[1] = {{Buffer, ml_flags_value(Value), Buffer->Length}};
+	stringmap_foreach(Value->Type->Exports, Append, (void *)ml_flags_value_append);
+	return ml_stringbuffer_get_string(Buffer);
 }
 
 typedef struct {
