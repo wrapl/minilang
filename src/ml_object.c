@@ -598,11 +598,17 @@ static void ML_TYPED_FN(ml_value_set_name, MLEnumT, ml_enum_t *Enum, const char 
 	Enum->Base.Name = Name;
 }
 
-uint64_t ml_enum_value(ml_value_t *Value) {
+ml_value_t *ml_enum_value(ml_type_t *Type, uint64_t Index) {
+	ml_enum_t *Enum = (ml_enum_t *)Type;
+	if (Index <= 0 || Index > Enum->Base.Exports->Size) return ml_error("EnumError", "Invalid enum index");
+	return Enum->Values[Index - 1];
+}
+
+uint64_t ml_enum_value_value(ml_value_t *Value) {
 	return (uint64_t)((ml_enum_value_t *)Value)->Base.Value;
 }
 
-const char *ml_enum_name(ml_value_t *Value) {
+const char *ml_enum_value_name(ml_value_t *Value) {
 	return ml_string_value(((ml_enum_value_t *)Value)->Name);
 }
 
@@ -643,7 +649,7 @@ static void ml_enum_switch(ml_state_t *Caller, ml_enum_switch_t *Switch, int Cou
 	if (!ml_is(Arg, (ml_type_t *)Switch->Enum)) {
 		ML_ERROR("TypeError", "expected %s for argument 1", Switch->Enum->Base.Name);
 	}
-	uint64_t Value = ml_enum_value(Arg);
+	uint64_t Value = ml_enum_value_value(Arg);
 	for (ml_enum_case_t *Case = Switch->Cases;; ++Case) {
 		if (Case->Value == Value) ML_RETURN(Case->Index);
 		if (Case->Value == UINT64_MAX) ML_RETURN(Case->Index);
@@ -672,11 +678,11 @@ ML_METHODVX(MLCompilerSwitch, MLEnumT) {
 		ML_LIST_FOREACH(Args[I], Iter) {
 			ml_value_t *Value = Iter->Value;
 			if (ml_is(Value, (ml_type_t *)Enum)) {
-				Case->Value = ml_enum_value(Value);
+				Case->Value = ml_enum_value_value(Value);
 			} else if (ml_is(Value, MLStringT)) {
 				ml_value_t *EnumValue = stringmap_search(Enum->Base.Exports, ml_string_value(Value));
 				if (!EnumValue) ML_ERROR("EnumError", "Invalid enum name");
-				Case->Value = ml_enum_value(EnumValue);
+				Case->Value = ml_enum_value_value(EnumValue);
 			} else {
 				ML_ERROR("ValueError", "Unsupported value in enum case");
 			}
@@ -811,7 +817,7 @@ static void ml_flags_call(ml_state_t *Caller, ml_flags_t *Flags, int Count, ml_v
 		if (ml_is(Args[I], MLStringT)) {
 			ml_value_t *Flag = stringmap_search(Flags->Base.Exports, ml_string_value(Args[I]));
 			if (!Flag) ML_ERROR("FlagError", "Invalid flag name");
-			Value->Value |= ml_flags_value(Flag);
+			Value->Value |= ml_flags_value_value(Flag);
 		} else if (ml_is(Args[I], MLIntegerT)) {
 			uint64_t Flag = ml_integer_value_fast(Args[I]);
 			if (Flag >= (1L << Flags->Base.Exports->Size)) ML_ERROR("FlagError", "Invalid flags value");
@@ -979,13 +985,20 @@ static void ML_TYPED_FN(ml_value_set_name, MLFlagsT, ml_flags_t *Flags, const ch
 	Flags->Base.Name = Name;
 }
 
-uint64_t ml_flags_value(ml_value_t *Value) {
+ml_value_t *ml_flags_value(ml_type_t *Type, uint64_t Flags) {
+	ml_flags_value_t *Value = new(ml_flags_value_t);
+	Value->Type = Type;
+	Value->Value = (int64_t)Flags;
+	return (ml_value_t *)Value;
+}
+
+uint64_t ml_flags_value_value(ml_value_t *Value) {
 	return (uint64_t)((ml_flags_value_t *)Value)->Value;
 }
 
-const char *ml_flags_name(ml_value_t *Value) {
+const char *ml_flags_value_name(ml_value_t *Value) {
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	ml_flags_value_append_t Append[1] = {{Buffer, ml_flags_value(Value), Buffer->Length}};
+	ml_flags_value_append_t Append[1] = {{Buffer, ml_flags_value_value(Value), Buffer->Length}};
 	stringmap_foreach(Value->Type->Exports, Append, (void *)ml_flags_value_append);
 	return ml_stringbuffer_get_string(Buffer);
 }
@@ -1007,7 +1020,7 @@ static void ml_flags_switch(ml_state_t *Caller, ml_flags_switch_t *Switch, int C
 	if (!ml_is(Arg, (ml_type_t *)Switch->Flags)) {
 		ML_ERROR("TypeError", "expected %s for argument 1", Switch->Flags->Base.Name);
 	}
-	uint64_t Value = ml_enum_value(Arg);
+	uint64_t Value = ml_enum_value_value(Arg);
 	for (ml_flags_case_t *Case = Switch->Cases;; ++Case) {
 		if ((Case->Value & Value) == Case->Value) ML_RETURN(Case->Index);
 	}
@@ -1035,11 +1048,11 @@ ML_METHODVX(MLCompilerSwitch, MLFlagsT) {
 		ML_LIST_FOREACH(Args[I], Iter) {
 			ml_value_t *Value = Iter->Value;
 			if (ml_is(Value, (ml_type_t *)Flags)) {
-				Case->Value = ml_flags_value(Value);
+				Case->Value = ml_flags_value_value(Value);
 			} else if (ml_is(Value, MLStringT)) {
 				ml_value_t *FlagsValue = stringmap_search(Flags->Base.Exports, ml_string_value(Value));
 				if (!FlagsValue) ML_ERROR("FlagsError", "Invalid flags name");
-				Case->Value = ml_flags_value(FlagsValue);
+				Case->Value = ml_flags_value_value(FlagsValue);
 			} else if (ml_is(Value, MLTupleT)) {
 				ml_tuple_t *Tuple = (ml_tuple_t *)Value;
 				for (int J = 0; J < Tuple->Size; ++J) {
@@ -1047,7 +1060,7 @@ ML_METHODVX(MLCompilerSwitch, MLFlagsT) {
 					if (!ml_is(Value, MLStringT)) ML_ERROR("ValueError", "Unsupported value in flags case");
 					ml_value_t *FlagsValue = stringmap_search(Flags->Base.Exports, ml_string_value(Tuple->Values[J]));
 					if (!FlagsValue) ML_ERROR("FlagsError", "Invalid flags name");
-					Case->Value |= ml_flags_value(FlagsValue);
+					Case->Value |= ml_flags_value_value(FlagsValue);
 				}
 			} else {
 				ML_ERROR("ValueError", "Unsupported value in flags case");
@@ -1136,7 +1149,7 @@ static int ml_flags_value_list(const char *Name, ml_flags_value_t *Flags, ml_fla
 }
 
 ML_METHOD(MLListT, MLFlagsValueT) {
-	ml_flags_value_list_t List[1] = {{ml_list(), ml_flags_value(Args[0])}};
+	ml_flags_value_list_t List[1] = {{ml_list(), ml_flags_value_value(Args[0])}};
 	stringmap_foreach(Args[0]->Type->Exports, &List, (void *)ml_flags_value_list);
 	return List->Values;
 }
