@@ -204,9 +204,7 @@ static ml_value_t *debugger_frames(interactive_debugger_t *Debugger, int Count, 
 	while (Frame) {
 		if (ml_debugger_check(Frame)) {
 			ml_source_t Source = ml_debugger_source(Frame);
-			ml_value_t *Location = ml_tuple(2);
-			ml_tuple_set(Location, 1, ml_string(Source.Name, -1));
-			ml_tuple_set(Location, 2, ml_integer(Source.Line));
+			ml_value_t *Location = ml_tuplev(2, ml_string(Source.Name, -1), ml_integer(Source.Line));
 			ml_list_put(Backtrace, Location);
 		}
 		Frame = Frame->Caller;
@@ -224,10 +222,7 @@ static ml_value_t *debugger_frame_up(interactive_debugger_t *Debugger, int Count
 	if (Frame) {
 		Thread->Active = Frame;
 		ml_source_t Source = ml_debugger_source(Frame);
-		ml_value_t *Location = ml_tuple(2);
-		ml_tuple_set(Location, 1, ml_string(Source.Name, -1));
-		ml_tuple_set(Location, 2, ml_integer(Source.Line));
-		return Location;
+		return ml_tuplev(2, ml_string(Source.Name, -1), ml_integer(Source.Line));
 	} else {
 		return ml_error("TraceError", "Reached top of debugging stack");
 	}
@@ -248,10 +243,7 @@ static ml_value_t *debugger_frame_down(interactive_debugger_t *Debugger, int Cou
 	if (Frame) {
 		Thread->Active = Frame;
 		ml_source_t Source = ml_debugger_source(Frame);
-		ml_value_t *Location = ml_tuple(2);
-		ml_tuple_set(Location, 1, ml_string(Source.Name, -1));
-		ml_tuple_set(Location, 2, ml_integer(Source.Line));
-		return Location;
+		return ml_tuplev(2, ml_string(Source.Name, -1), ml_integer(Source.Line));
 	} else {
 		return ml_error("TraceError", "Reached bottom of debugging stack");
 	}
@@ -263,10 +255,7 @@ static ml_value_t *debugger_threads(interactive_debugger_t *Debugger, int Count,
 	for (int I = 0; I < Debugger->MaxThreads; ++I, ++Thread) {
 		if (Thread->State) {
 			ml_source_t Source = ml_debugger_source(Thread->Active);
-			ml_value_t *Location = ml_tuple(3);
-			ml_tuple_set(Location, 1, ml_integer(I));
-			ml_tuple_set(Location, 2, ml_string(Source.Name, -1));
-			ml_tuple_set(Location, 3, ml_integer(Source.Line));
+			ml_value_t *Location = ml_tuplev(3, ml_integer(I), ml_string(Source.Name, -1), ml_integer(Source.Line));
 			ml_list_put(Threads, Location);
 		}
 	}
@@ -282,10 +271,7 @@ static ml_value_t *debugger_thread(interactive_debugger_t *Debugger, int Count, 
 	if (!Thread->State) return ml_error("IndexError", "Invalid thread number");
 	Debugger->ActiveThread = Thread;
 	ml_source_t Source = ml_debugger_source(Thread->Active);
-	ml_value_t *Location = ml_tuple(2);
-	ml_tuple_set(Location, 1, ml_string(Source.Name, -1));
-	ml_tuple_set(Location, 2, ml_integer(Source.Line));
-	return Location;
+	return ml_tuplev(2, ml_string(Source.Name, -1), ml_integer(Source.Line));
 }
 
 static void debugger_run(interactive_debugger_t *Debugger, ml_state_t *State, ml_value_t *Value) {

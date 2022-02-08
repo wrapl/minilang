@@ -558,10 +558,7 @@ ML_METHODX("list", MLMethodT) {
 				const char *Source;
 				int Line;
 				if (ml_function_source(Definition->Callback, &Source, &Line)) {
-					ml_value_t *Location = ml_tuple(2);
-					ml_tuple_set(Location, 1, ml_cstring(Source));
-					ml_tuple_set(Location, 2, ml_integer(Line));
-					Node->Value = Location;
+					Node->Value = ml_tuplev(2, ml_cstring(Source), ml_integer(Line));
 				} else {
 					Node->Value = MLNil;
 				}

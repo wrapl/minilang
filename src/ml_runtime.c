@@ -589,9 +589,7 @@ ML_METHOD("trace", MLErrorValueT) {
 	ml_value_t *Trace = ml_list();
 	ml_source_t *Source = Value->Trace;
 	for (int I = MAX_TRACE; --I >= 0 && Source->Name; ++Source) {
-		ml_value_t *Tuple = ml_tuple(2);
-		ml_tuple_set(Tuple, 1, ml_string(Source->Name, -1));
-		ml_tuple_set(Tuple, 2, ml_integer(Source->Line));
+		ml_value_t *Tuple = ml_tuplev(2, ml_cstring(Source->Name), ml_integer(Source->Line));
 		ml_list_put(Trace, Tuple);
 	}
 	return Trace;
@@ -828,10 +826,7 @@ ML_METHOD("trace", MLStateT) {
 ML_METHOD("source", MLStateT) {
 	ml_state_t *State = (ml_state_t *)Args[0];
 	ml_source_t Source = ml_debugger_source(State);
-	ml_value_t *Location = ml_tuple(2);
-	ml_tuple_set(Location, 1, ml_string(Source.Name, -1));
-	ml_tuple_set(Location, 2, ml_integer(Source.Line));
-	return Location;
+	return ml_tuplev(2, ml_string(Source.Name, -1), ml_integer(Source.Line));
 }
 
 // Schedulers //

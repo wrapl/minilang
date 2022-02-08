@@ -974,20 +974,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_TUPLE_NEW: {
 		int Count = Inst[1].Count;
-		Result = ml_tuple(Count);
-#ifdef ML_GENERICS
-		for (int I = Count; --I > 0;) {
-			((ml_tuple_t *)Result)->Values[I] = Top[-1];
-			*--Top = NULL;
-		}
-		ml_tuple_set(Result, 1, Top[-1]);
-		*--Top = NULL;
-#else
-		for (int I = Count; --I >= 0;) {
-			((ml_tuple_t *)Result)->Values[I] = Top[-1];
-			*--Top = NULL;
-		}
-#endif
+		Result = ml_tuplen(Count, Top - Count);
+		for (int I = Count; --I >= 0;) *--Top = NULL;
 		ADVANCE(Inst + 2);
 	}
 	DO_LIST_NEW: {

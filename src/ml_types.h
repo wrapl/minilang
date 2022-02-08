@@ -395,6 +395,8 @@ struct ml_tuple_t {
 };
 
 ml_value_t *ml_tuple(size_t Size) __attribute__((malloc));
+ml_value_t *ml_tuplen(size_t Size, ml_value_t **Values) __attribute__((malloc));
+ml_value_t *ml_tuplev(size_t Size, ...) __attribute__((malloc));
 
 static inline int ml_tuple_size(ml_value_t *Tuple) {
 	return ((ml_tuple_t *)Tuple)->Size;

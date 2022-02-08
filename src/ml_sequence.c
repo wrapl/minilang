@@ -745,13 +745,13 @@ ML_FUNCTIONX(First) {
 
 static void first2_iter_value(ml_iter_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	ml_tuple_set(State->Values[0], 2, Value);
-	ML_CONTINUE(State->Base.Caller, State->Values[0]);
+	ml_value_t *Tuple = ml_tuplev(2, State->Values[0], Value);
+	ML_CONTINUE(State->Base.Caller, Tuple);
 }
 
 static void first2_iter_key(ml_iter_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	ml_tuple_set(State->Values[0], 1, Value);
+	State->Values[0] = Value;
 	State->Base.run = (ml_state_fn)first2_iter_value;
 	return ml_iter_value((ml_state_t *)State, State->Iter);
 }
@@ -773,7 +773,6 @@ ML_FUNCTIONX(First2) {
 	State->Base.Caller = Caller;
 	State->Base.run = (ml_state_fn)first2_iterate;
 	State->Base.Context = Caller->Context;
-	State->Values[0] = ml_tuple(2);
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
@@ -827,10 +826,7 @@ static void last2_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value == MLNil) {
 		if (State->Values[0]) {
-			ml_value_t *Tuple = ml_tuple(2);
-			ml_tuple_set(Tuple, 1, State->Values[0]);
-			ml_tuple_set(Tuple, 2, State->Values[1]);
-			ML_CONTINUE(State->Base.Caller, Tuple);
+			ML_CONTINUE(State->Base.Caller, ml_tuplen(2, State->Values));
 		} else {
 			ML_CONTINUE(State->Base.Caller, MLNil);
 		}
@@ -1213,10 +1209,7 @@ static void extremum_iter_next(ml_iter_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value == MLNil) {
 		if (State->Values[1]) {
-			ml_value_t *Tuple = ml_tuple(2);
-			ml_tuple_set(Tuple, 1, State->Values[1]);
-			ml_tuple_set(Tuple, 2, State->Values[2]);
-			ML_CONTINUE(State->Base.Caller, Tuple);
+			ML_CONTINUE(State->Base.Caller, ml_tuplen(2, State->Values + 1));
 		} else {
 			ML_CONTINUE(State->Base.Caller, MLNil);
 		}

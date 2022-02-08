@@ -1523,6 +1523,64 @@ ml_value_t *ml_tuple_set(ml_value_t *Tuple0, int Index, ml_value_t *Value) {
 	return Value;
 }
 
+ml_value_t *ml_tuplen(size_t Size, ml_value_t **Values) {
+	ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
+	Tuple->Size = Size;
+	ml_type_t *Types[Size + 1];
+	Types[0] = MLTupleT;
+	for (int I = 0; I < Size; ++I) {
+		Tuple->Values[I] = Values[I];
+		Types[I + 1] = ml_typeof(Values[I]);
+	}
+	Tuple->Type = ml_generic_type(Size + 1, Types);
+	return (ml_value_t *)Tuple;
+}
+
+ml_value_t *ml_tuplev(size_t Size, ...) {
+	ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
+	Tuple->Size = Size;
+	ml_type_t *Types[Size + 1];
+	Types[0] = MLTupleT;
+	va_list Args;
+	va_start(Args, Size);
+	for (int I = 0; I < Size; ++I) {
+		ml_value_t *Value = va_arg(Args, ml_value_t *);
+		Tuple->Values[I] = Value;
+		Types[I + 1] = ml_typeof(Value);
+	}
+	va_end(Args);
+	Tuple->Type = ml_generic_type(Size + 1, Types);
+	return (ml_value_t *)Tuple;
+}
+
+#else
+
+ml_value_t *ml_tuplen(size_t Size, ml_value_t **Values) {
+	ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
+	Tuple->Type = MLTupleT;
+	Tuple->Size = Size;
+	va_list Args;
+	va_start(Args, Size);
+	for (int I = 0; I < Size; ++I) {
+		Tuple->Values[I] = va_arg(Args, ml_value_t *);
+	}
+	va_end(Args);
+	return (ml_value_t *)Tuple;
+}
+
+ml_value_t *ml_tuplev(size_t Size, ...) {
+	ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
+	Tuple->Type = MLTupleT;
+	Tuple->Size = Size;
+	va_list Args;
+	va_start(Args, Size);
+	for (int I = 0; I < Size; ++I) {
+		Tuple->Values[I] = va_arg(Args, ml_value_t *);
+	}
+	va_end(Args);
+	return (ml_value_t *)Tuple;
+}
+
 #endif
 
 ml_value_t *ml_unpack(ml_value_t *Value, int Index) {
