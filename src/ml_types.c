@@ -2648,6 +2648,18 @@ ML_METHOD("<>", MLDoubleT, MLDoubleT) {
 	return (ml_value_t *)Zero;
 }
 
+ML_METHOD("isfinite", MLDoubleT) {
+	double X = ml_double_value_fast(Args[0]);
+	if (!isfinite(X)) return MLNil;
+	return Args[0];
+}
+
+ML_METHOD("isnan", MLDoubleT) {
+	double X = ml_double_value_fast(Args[0]);
+	if (!isnan(X)) return MLNil;
+	return Args[0];
+}
+
 typedef struct ml_integer_iter_t {
 	const ml_type_t *Type;
 	long Current, Step, Limit;
@@ -3392,9 +3404,12 @@ void ml_init(stringmap_t *Globals) {
 	stringmap_insert(MLIntegerT->Exports, "switch", MLIntegerSwitch);
 	stringmap_insert(MLRealT->Exports, "range", MLRealRangeT);
 	ml_method_by_value(MLIntegerT->Constructor, NULL, ml_identity, MLIntegerT, NULL);
+	ml_method_by_name("isfinite", NULL, ml_identity, MLIntegerT, NULL);
+	ml_method_by_name("isnan", NULL, ml_return_nil, MLIntegerT, NULL);
 	ml_method_by_value(MLDoubleT->Constructor, NULL, ml_identity, MLDoubleT, NULL);
 	ml_method_by_value(MLRealT->Constructor, NULL, ml_identity, MLDoubleT, NULL);
-	stringmap_insert(MLRealT->Exports, "infinity", ml_real(INFINITY));
+	stringmap_insert(MLRealT->Exports, "inf", ml_real(INFINITY));
+	stringmap_insert(MLRealT->Exports, "nan", ml_real(NAN));
 	ml_method_by_value(MLNumberT->Constructor, NULL, ml_identity, MLNumberT, NULL);
 #ifdef ML_COMPLEX
 	stringmap_insert(MLCompilerT->Exports, "i", ml_complex(1i));
