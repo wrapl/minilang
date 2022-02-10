@@ -33,14 +33,6 @@ string
    Returns a UTF-8 string containing the character with unicode codepoint :mini:`Codepoint`.
 
 
-:mini:`meth (Char: integer):chr: string`
-   Returns a string containing the single byte :mini:`Char`.
-
-
-:mini:`meth (String: string):ord: integer`
-   Returns the first byte of :mini:`String`.
-
-
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: double, Arg₃: string)`
    *TBD*
 
@@ -114,6 +106,14 @@ string
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: string)`
    *TBD*
+
+:mini:`meth (String: string):length: integer`
+   Returns the number of UTF-8 characters in :mini:`String`.
+
+
+:mini:`meth (String: string):count: integer`
+   Returns the number of UTF-8 characters in :mini:`String`.
+
 
 :mini:`meth (String: string)[Index: integer]: string`
    Returns the substring of :mini:`String` of length 1 at :mini:`Index`.

@@ -7,12 +7,12 @@ address
    An address represents a read-only bounded section of memory.
 
 
-:mini:`meth (Address: address):count: integer`
-   Returns the number bytes visible at :mini:`Address`.
+:mini:`meth (Address: address):size: integer`
+   Returns the number of bytes visible at :mini:`Address`.
 
 
 :mini:`meth (Address: address):length: integer`
-   Returns the length of :mini:`Address`.
+   Returns the number of bytes visible at :mini:`Address`.
 
 
 :mini:`meth (Address: address) @ (Length: integer): address`
