@@ -88,7 +88,7 @@ void ml_cbor_default_tag(uint64_t Tag, ml_cbor_tag_fn TagFn) {
 	ml_cbor_tag_fn_set(DefaultTagFns, Tag, TagFn);
 }
 
-ml_cbor_tag_fns_t *ml_cbor_tag_fns_new(int Default) {
+ml_cbor_tag_fns_t *ml_cbor_tag_fns(int Default) {
 	if (Default) {
 		return ml_cbor_tag_fns_copy(DefaultTagFns);
 	} else {
@@ -133,11 +133,11 @@ struct ml_cbor_reader_t {
 static int NumCborSettings = 0;
 static stringmap_t DefaultReadGlobals[1] = {STRINGMAP_INIT};
 
-int ml_cbor_setting_new() {
+int ml_cbor_setting() {
 	return NumCborSettings++;
 }
 
-ml_cbor_reader_t *ml_cbor_reader_new(ml_cbor_tag_fns_t *TagFns, stringmap_t *Globals) {
+ml_cbor_reader_t *ml_cbor_reader(ml_cbor_tag_fns_t *TagFns, stringmap_t *Globals) {
 	ml_cbor_reader_t *Reader = xnew(ml_cbor_reader_t, NumCborSettings, void *);
 	Reader->TagFns = TagFns ?: DefaultTagFns;
 	Reader->Globals = Globals ?: DefaultReadGlobals;
@@ -557,7 +557,7 @@ void ml_cbor_write_raw(ml_cbor_writer_t *Writer, const unsigned char *Bytes, siz
 
 static inthash_t DefaultWriteGlobals[1] = {INTHASH_INIT};
 
-ml_cbor_writer_t *ml_cbor_writer_new(void *Data, ml_cbor_write_fn WriteFn, inthash_t *Globals) {
+ml_cbor_writer_t *ml_cbor_writer(void *Data, ml_cbor_write_fn WriteFn, inthash_t *Globals) {
 	ml_cbor_writer_t *Writer = xnew(ml_cbor_writer_t, NumCborSettings, void *);
 	Writer->Data = Data;
 	Writer->WriteFn = WriteFn;

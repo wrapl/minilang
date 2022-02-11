@@ -1286,7 +1286,7 @@ ML_TYPE(MLFunctionPartialT, (MLFunctionT, MLSequenceT), "partial-function",
 	.call = (void *)ml_partial_function_call
 );
 
-ml_value_t *ml_partial_function_new(ml_value_t *Function, int Count) {
+ml_value_t *ml_partial_function(ml_value_t *Function, int Count) {
 	ml_partial_function_t *Partial = xnew(ml_partial_function_t, Count, ml_value_t *);
 	Partial->Type = MLFunctionPartialT;
 	Partial->Function = Function;

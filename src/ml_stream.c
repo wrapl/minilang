@@ -636,7 +636,7 @@ typedef struct ml_fd_t {
 ML_TYPE(MLStreamFdT, (MLStreamT), "fd");
 // A file-descriptor based stream.
 
-ml_value_t *ml_fd_new(int Fd) {
+ml_value_t *ml_fd_stream(int Fd) {
 	ml_fd_t *Stream = new(ml_fd_t);
 	Stream->Type = MLStreamFdT;
 	Stream->Fd = Fd;

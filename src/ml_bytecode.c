@@ -1064,7 +1064,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_PARTIAL_NEW: {
 		Result = ml_deref(Result);
-		*Top = ml_partial_function_new(Result, Inst[1].Count);
+		*Top = ml_partial_function(Result, Inst[1].Count);
 		++Top;
 		ADVANCE(Inst + 2);
 	}

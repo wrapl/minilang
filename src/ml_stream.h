@@ -21,9 +21,9 @@ void ml_stream_flush_method(ml_state_t *Caller, ml_value_t *Value);
 
 ml_value_t *ml_stream_buffered(ml_value_t *Stream, size_t Size);
 
-extern ml_type_t MLFdT[];
+extern ml_type_t MLStreamFdT[];
 
-ml_value_t *ml_fd_new(int Fd);
+ml_value_t *ml_fd_stream(int Fd);
 
 #ifdef	__cplusplus
 }

@@ -326,7 +326,7 @@ ml_value_t *ml_cfunctionz2(void *Data, ml_callbackx_t Function, const char *Sour
 ml_value_t *ml_return_nil(void *Data, int Count, ml_value_t **Args);
 ml_value_t *ml_identity(void *Data, int Count, ml_value_t **Args);
 
-ml_value_t *ml_partial_function_new(ml_value_t *Function, int Count) __attribute__((malloc));
+ml_value_t *ml_partial_function(ml_value_t *Function, int Count) __attribute__((malloc));
 ml_value_t *ml_partial_function_set(ml_value_t *Partial, size_t Index, ml_value_t *Value);
 
 #define ML_FUNCTION2(NAME, FUNCTION) static ml_value_t *FUNCTION(void *Data, int Count, ml_value_t **Args); \
@@ -857,7 +857,7 @@ static inline ml_value_t *ml_nop(void *Value) {
 
 #endif
 
-ml_methods_t *ml_methods_context_new(ml_context_t *Context);
+ml_methods_t *ml_methods_context(ml_context_t *Context);
 
 // Maps //
 

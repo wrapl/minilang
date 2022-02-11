@@ -102,7 +102,7 @@ ML_METHOD("close", MLFileT) {
 	return MLNil;
 }
 
-ml_value_t *ml_file_new(FILE *Handle) {
+ml_value_t *ml_file(FILE *Handle) {
 	ml_file_t *File = new(ml_file_t);
 	File->Type = MLFileT;
 	File->Handle = Handle;

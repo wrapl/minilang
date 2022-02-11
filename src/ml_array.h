@@ -40,7 +40,7 @@ extern ml_type_t MLArrayT[];
 
 void ml_array_init(stringmap_t *Globals);
 
-ml_array_t *ml_array_new(ml_array_format_t Format, int Degree);
+ml_array_t *ml_array_alloc(ml_array_format_t Format, int Degree);
 ml_array_t *ml_array(ml_array_format_t Format, int Degree, ...);
 int ml_array_degree(ml_value_t *Array);
 int ml_array_size(ml_value_t *Array, int Dim);

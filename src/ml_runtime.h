@@ -32,9 +32,9 @@ struct ml_context_t {
 
 extern ml_context_t MLRootContext;
 
-ml_context_t *ml_context_new(ml_context_t *Parent) __attribute__((malloc));
+ml_context_t *ml_context(ml_context_t *Parent) __attribute__((malloc));
 
-int ml_context_index_new();
+int ml_context_index();
 
 #define ml_context_get(CONTEXT, INDEX) ((CONTEXT)->Size <= (INDEX) ? NULL : (CONTEXT)->Values[(INDEX)])
 
@@ -51,7 +51,7 @@ struct ml_state_t {
 
 extern ml_type_t MLStateT[];
 
-ml_state_t *ml_state_new(ml_state_t *Caller) __attribute__ ((malloc));
+ml_state_t *ml_state(ml_state_t *Caller) __attribute__ ((malloc));
 
 void ml_default_state_run(ml_state_t *State, ml_value_t *Value);
 
@@ -61,7 +61,7 @@ typedef struct {
 } ml_result_state_t;
 
 void ml_result_state_run(ml_result_state_t *State, ml_value_t *Value);
-ml_result_state_t *ml_result_state_new(ml_context_t *Context) __attribute__ ((malloc));
+ml_result_state_t *ml_result_state(ml_context_t *Context) __attribute__ ((malloc));
 
 
 typedef struct {
@@ -70,7 +70,7 @@ typedef struct {
 	ml_value_t *Args[];
 } ml_call_state_t;
 
-ml_call_state_t *ml_call_state_new(ml_state_t *Caller, int Count) __attribute__ ((malloc));
+ml_call_state_t *ml_call_state(ml_state_t *Caller, int Count) __attribute__ ((malloc));
 
 ml_value_t *ml_simple_call(ml_value_t *Value, int Count, ml_value_t **Args);
 ml_value_t *ml_simple_assign(ml_value_t *Value, ml_value_t *Value2);

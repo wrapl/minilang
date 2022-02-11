@@ -31,7 +31,7 @@ struct ml_methods_t {
 };
 
 static void ml_methods_call(ml_state_t *Caller, ml_methods_t *Methods, int Count, ml_value_t **Args) {
-	ml_state_t *State = ml_state_new(Caller);
+	ml_state_t *State = ml_state(Caller);
 	State->Context->Values[ML_METHODS_INDEX] = Methods;
 	ml_value_t *Function = Args[0];
 	return ml_call(State, Function, Count - 1, Args + 1);
@@ -51,7 +51,7 @@ static ml_methods_t MLRootMethods[1] = {{
 #endif
 }};
 
-ml_methods_t *ml_methods_context_new(ml_context_t *Context) {
+ml_methods_t *ml_methods_context(ml_context_t *Context) {
 	ml_methods_t *Methods = new(ml_methods_t);
 	Methods->Type = MLMethodsT;
 	Methods->Parent = Context->Values[ML_METHODS_INDEX];
