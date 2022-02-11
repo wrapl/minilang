@@ -1559,12 +1559,7 @@ ml_value_t *ml_tuplen(size_t Size, ml_value_t **Values) {
 	ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
 	Tuple->Type = MLTupleT;
 	Tuple->Size = Size;
-	va_list Args;
-	va_start(Args, Size);
-	for (int I = 0; I < Size; ++I) {
-		Tuple->Values[I] = va_arg(Args, ml_value_t *);
-	}
-	va_end(Args);
+	for (int I = 0; I < Size; ++I) Tuple->Values[I] = Values[I];
 	return (ml_value_t *)Tuple;
 }
 
