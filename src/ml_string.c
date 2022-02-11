@@ -809,15 +809,6 @@ static int utf8_is_continuation(char C) {
 	return (C & 0xC0) == 0x80;
 }
 
-static size_t utf8_strlen(const char *P) {
-	size_t N = 0;
-	while (*P) {
-		if (!utf8_is_continuation(*P)) ++N;
-		++P;
-	}
-	return N;
-}
-
 static size_t utf8_position(const char *P, const char *Q) {
 	size_t N = 0;
 	while (P != Q) {
@@ -825,6 +816,11 @@ static size_t utf8_position(const char *P, const char *Q) {
 		++P;
 	}
 	return N;
+}
+
+static size_t utf8_strlen(ml_value_t *S) {
+	const char *P = ml_string_value(S);
+	return utf8_position(P, P + ml_string_length(S));
 }
 
 static void ML_TYPED_FN(ml_iter_next, MLStringIteratorT, ml_state_t *Caller, ml_string_iterator_t *Iter) {
@@ -1407,14 +1403,14 @@ ML_METHOD("length", MLStringT) {
 //<String
 //>integer
 // Returns the number of UTF-8 characters in :mini:`String`.
-	return ml_integer(utf8_strlen(ml_string_value(Args[0])));
+	return ml_integer(utf8_strlen(Args[0]));
 }
 
 ML_METHOD("count", MLStringT) {
 //<String
 //>integer
 // Returns the number of UTF-8 characters in :mini:`String`.
-	return ml_integer(utf8_strlen(ml_string_value(Args[0])));
+	return ml_integer(utf8_strlen(Args[0]));
 }
 
 ML_METHOD("[]", MLStringT, MLIntegerT) {
@@ -1423,7 +1419,7 @@ ML_METHOD("[]", MLStringT, MLIntegerT) {
 //>string
 // Returns the substring of :mini:`String` of length 1 at :mini:`Index`.
 	const char *Start = ml_string_value(Args[0]);
-	int Length = utf8_strlen(Start);
+	int Length = utf8_strlen(Args[0]);
 	int N = ml_integer_value_fast(Args[1]);
 	if (N <= 0) N += Length + 1;
 	if (N <= 0) return MLNil;
@@ -1444,7 +1440,7 @@ ML_METHOD("[]", MLStringT, MLIntegerT, MLIntegerT) {
 //>string
 // Returns the substring of :mini:`String` from :mini:`Start` to :mini:`End - 1` inclusively.
 	const char *Start = ml_string_value(Args[0]);
-	int Length = utf8_strlen(Start);
+	int Length = utf8_strlen(Args[0]);
 	int Lo = ml_integer_value_fast(Args[1]);
 	int Hi = ml_integer_value_fast(Args[2]);
 	if (Lo <= 0) Lo += Length + 1;
@@ -1471,7 +1467,7 @@ ML_METHOD("[]", MLStringT, MLIntegerRangeT) {
 //>string
 // Returns the substring of :mini:`String` corresponding to :mini:`Range` inclusively.
 	const char *Start = ml_string_value(Args[0]);
-	int Length = utf8_strlen(Start);
+	int Length = utf8_strlen(Args[0]);
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
 	int Lo = Range->Start, Hi = Range->Limit + 1, Step = Range->Step;
 	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
@@ -1606,9 +1602,16 @@ ML_METHOD("reverse", MLStringT) {
 //>string
 // Returns a string with the characters in :mini:`String` reversed.
 	int Length = ml_string_length(Args[0]);
-	char *Reversed = snew(Length + 1);
-	const char *End = ml_string_value(Args[0]) + Length;
-	for (int I = 0; I < Length; ++I) Reversed[I] = *--End;
+	char *Reversed = snew(Length + 1), *End = Reversed + Length;
+	const char *S = ml_string_value(Args[0]), *T = S, *U = S + Length;
+	while (++T < U) {
+		--End;
+		if (!utf8_is_continuation(*T)) {
+			memcpy(End, S, T - S);
+			S = T;
+		}
+	}
+	memcpy(End - 1, S, T - S);
 	Reversed[Length] = 0;
 	return ml_string(Reversed, Length);
 }
@@ -1676,6 +1679,7 @@ ML_METHOD("~", MLStringT, MLStringT) {
 //<B
 //>integer
 // Returns the edit distance between :mini:`A` and :mini:`B`.
+	// TODO: use UTF-8 characters
 	const char *CharsA, *CharsB;
 	int LenA = ml_string_length(Args[0]);
 	int LenB = ml_string_length(Args[1]);
@@ -1719,6 +1723,7 @@ ML_METHOD("~>", MLStringT, MLStringT) {
 //<B
 //>integer
 // Returns an asymmetric edit distance from :mini:`A` to :mini:`B`.
+	// TODO: use UTF-8 characters
 	int LenA = ml_string_length(Args[0]);
 	int LenB = ml_string_length(Args[1]);
 	const char *CharsA = ml_string_value(Args[0]);
@@ -2095,7 +2100,7 @@ static const char *utf8_skip(const char *S, int P) {
 
 ML_METHOD("find", MLStringT, MLStringT, MLIntegerT) {
 	const char *Haystack = ml_string_value(Args[0]);
-	size_t HaystackLength = utf8_strlen(Haystack);
+	size_t HaystackLength = utf8_strlen(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
 	int Start = ml_integer_value_fast(Args[2]);
 	if (Start <= 0) Start += HaystackLength + 1;
