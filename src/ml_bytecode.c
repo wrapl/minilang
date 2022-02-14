@@ -390,7 +390,7 @@ extern ml_value_t *SymbolMethod;
 
 #endif
 
-static ML_METHOD_DECL(AppendMethod, "append");
+extern ml_value_t *AppendMethod;
 
 static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
 	static const void *Labels[] = {

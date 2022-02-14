@@ -127,6 +127,14 @@ string
    Returns the substring of :mini:`String` corresponding to :mini:`Range` inclusively.
 
 
+:mini:`meth (String: string):limit(Length: integer): string`
+   Returns the prefix of :mini:`String` limited to :mini:`Length`.
+
+
+:mini:`meth (String: string):offset(Index: integer): integer`
+   Returns the byte position of the :mini:`Index`-th character of :mini:`String`.
+
+
 :mini:`meth (A: string) + (B: string): string`
    Returns :mini:`A` and :mini:`B` concatentated.
 
@@ -297,10 +305,25 @@ string
 :mini:`meth (Arg₁: string):replace(Arg₂: regex, Arg₃: string)`
    *TBD*
 
+:mini:`meth (String: string):replace(Replacements: map): string`
+   Each key in :mini:`Replacements` can be either a string or a regex. Each value in :mini:`Replacements` can be either a string or a function.
+
+   Returns a copy of :mini:`String` with each matching string or regex from :mini:`Replacements` replaced with the corresponding value. Functions are called with the matched string or regex subpatterns.
+
+
 :mini:`meth (Arg₁: string):replace(Arg₂: regex, Arg₃: function)`
    *TBD*
 
-:mini:`meth (Arg₁: string):replace(Arg₂: map)`
+:mini:`meth (Arg₁: string):replace(Arg₂: integer, Arg₃: string)`
+   *TBD*
+
+:mini:`meth (Arg₁: string):replace(Arg₂: integer, Arg₃: integer, Arg₄: string)`
+   *TBD*
+
+:mini:`meth (Arg₁: string):replace(Arg₂: integer, Arg₃: function)`
+   *TBD*
+
+:mini:`meth (Arg₁: string):replace(Arg₂: integer, Arg₃: integer, Arg₄: function)`
    *TBD*
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: regex)`

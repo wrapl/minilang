@@ -166,6 +166,10 @@ sequence
    Joins the elements of :mini:`Sequence` into a string using :mini:`Separator` between elements.
 
 
+:mini:`meth (Sequence: sequence):join: string`
+   Joins the elements of :mini:`Sequence` into a string.
+
+
 :mini:`fun extremum(Sequence: sequence, Fn: function): tuple | nil`
    *TBD*
 
