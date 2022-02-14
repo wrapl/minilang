@@ -745,13 +745,13 @@ ML_FUNCTIONX(First) {
 
 static void first2_iter_value(ml_iter_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	ml_tuple_set(State->Values[0], 2, Value);
-	ML_CONTINUE(State->Base.Caller, State->Values[0]);
+	ml_value_t *Tuple = ml_tuplev(2, State->Values[0], Value);
+	ML_CONTINUE(State->Base.Caller, Tuple);
 }
 
 static void first2_iter_key(ml_iter_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	ml_tuple_set(State->Values[0], 1, Value);
+	State->Values[0] = Value;
 	State->Base.run = (ml_state_fn)first2_iter_value;
 	return ml_iter_value((ml_state_t *)State, State->Iter);
 }
@@ -773,7 +773,6 @@ ML_FUNCTIONX(First2) {
 	State->Base.Caller = Caller;
 	State->Base.run = (ml_state_fn)first2_iterate;
 	State->Base.Context = Caller->Context;
-	State->Values[0] = ml_tuple(2);
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
@@ -827,10 +826,7 @@ static void last2_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value == MLNil) {
 		if (State->Values[0]) {
-			ml_value_t *Tuple = ml_tuple(2);
-			ml_tuple_set(Tuple, 1, State->Values[0]);
-			ml_tuple_set(Tuple, 2, State->Values[1]);
-			ML_CONTINUE(State->Base.Caller, Tuple);
+			ML_CONTINUE(State->Base.Caller, ml_tuplen(2, State->Values));
 		} else {
 			ML_CONTINUE(State->Base.Caller, MLNil);
 		}
@@ -969,7 +965,7 @@ static void reduce_next_value(ml_iter_state_t *State, ml_value_t *Value) {
 
 static void reduce_iter_next(ml_iter_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Values[1] ?: MLNil);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Values[1]);
 	State->Base.run = (void *)reduce_next_value;
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
@@ -984,7 +980,7 @@ static void reduce_first_value(ml_iter_state_t *State, ml_value_t *Value) {
 static void reduce_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, MLNil);
-	State->Base.run = State->Values[1] ? (void *)reduce_next_value : (void *)reduce_first_value;
+	State->Base.run = (void *)reduce_first_value;
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
 
@@ -1010,7 +1006,7 @@ ML_FUNCTIONX(Reduce) {
 		ML_CHECKX_ARG_TYPE(2, MLFunctionT);
 		ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
 		State->Base.Caller = Caller;
-		State->Base.run = (void *)reduce_iterate;
+		State->Base.run = (void *)reduce_iter_next;
 		State->Base.Context = Caller->Context;
 		State->Values[0] = Args[2];
 		State->Values[1] = Args[0];
@@ -1137,30 +1133,38 @@ typedef struct ml_join_state_t {
 	ml_value_t *Iter;
 	ml_stringbuffer_t Buffer[1];
 	size_t SeparatorLength;
+	ml_value_t *Args[2];
 } ml_join_state_t;
 
-static void join_append(ml_join_state_t *State, ml_value_t *Value);
+static void join_value(ml_join_state_t *State, ml_value_t *Value);
 
 static void join_next(ml_join_state_t *State, ml_value_t *Value) {
-	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, ml_stringbuffer_get_value(State->Buffer));
 	ml_stringbuffer_write(State->Buffer, State->Separator, State->SeparatorLength);
-	State->Base.run = (void *)join_append;
+	State->Base.run = (void *)join_value;
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
 
 static void join_append(ml_join_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	ml_stringbuffer_simple_append(State->Buffer, Value);
 	State->Base.run = (void *)join_next;
 	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+extern ml_value_t *AppendMethod;
+
+static void join_value(ml_join_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Args[1] = Value;
+	State->Base.run = (void *)join_append;
+	return ml_call((ml_state_t *)State, AppendMethod, 2, State->Args);
 }
 
 static void join_first(ml_join_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, ml_stringbuffer_get_value(State->Buffer));
-	State->Base.run = (void *)join_append;
+	State->Base.run = (void *)join_value;
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
 
@@ -1176,6 +1180,22 @@ ML_METHODX("join", MLSequenceT, MLStringT) {
 	State->Separator = ml_string_value(Args[1]);
 	State->SeparatorLength = ml_string_length(Args[1]);
 	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
+	State->Args[0] = (ml_value_t *)State->Buffer;
+	return ml_iterate((ml_state_t *)State, Args[0]);
+}
+
+ML_METHODX("join", MLSequenceT) {
+//<Sequence
+//>string
+// Joins the elements of :mini:`Sequence` into a string.
+	ml_join_state_t *State = new(ml_join_state_t);
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)join_first;
+	State->Base.Context = Caller->Context;
+	State->Separator = "";
+	State->SeparatorLength = 0;
+	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
+	State->Args[0] = (ml_value_t *)State->Buffer;
 	return ml_iterate((ml_state_t *)State, Args[0]);
 }
 
@@ -1213,10 +1233,7 @@ static void extremum_iter_next(ml_iter_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value == MLNil) {
 		if (State->Values[1]) {
-			ml_value_t *Tuple = ml_tuple(2);
-			ml_tuple_set(Tuple, 1, State->Values[1]);
-			ml_tuple_set(Tuple, 2, State->Values[2]);
-			ML_CONTINUE(State->Base.Caller, Tuple);
+			ML_CONTINUE(State->Base.Caller, ml_tuplen(2, State->Values + 1));
 		} else {
 			ML_CONTINUE(State->Base.Caller, MLNil);
 		}

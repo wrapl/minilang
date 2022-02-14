@@ -628,7 +628,7 @@ ML_FUNCTIONX(XEFunction) {
 	ml_parser_t *Parser = ml_parser((void *)string_read, Stream);
 	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)attribute_get, Attributes);
 	ml_parser_source(Parser, ml_debugger_source(Caller));
-	ml_result_state_t *State = ml_result_state_new(Caller->Context);
+	ml_result_state_t *State = ml_result_state(Caller->Context);
 	ml_command_evaluate((ml_state_t *)State, Parser, Compiler);
 	ml_value_t *Macro = State->Value ?: MLNil;
 	if (Macro == MLEndOfInput) Macro = ml_error("ParseError", "Empty body");
@@ -702,7 +702,7 @@ ML_FUNCTIONX(XEDo) {
 	ml_parser_t *Parser = ml_parser((void *)string_read, Stream);
 	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)attribute_get, Attributes);
 	ml_parser_source(Parser, ml_debugger_source(Caller));
-	ml_result_state_t *State = ml_result_state_new(Caller->Context);
+	ml_result_state_t *State = ml_result_state(Caller->Context);
 	for (;;) {
 		ml_command_evaluate((ml_state_t *)State, Parser, Compiler);
 		if (!State->Value) break;
@@ -736,7 +736,7 @@ ML_FUNCTIONX(XEDo2) {
 	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)attribute_get, Attributes);
 	ml_parser_source(Parser, ml_debugger_source(Caller));
 	ml_value_t *Result = MLNil;
-	ml_result_state_t *State = ml_result_state_new(Caller->Context);
+	ml_result_state_t *State = ml_result_state(Caller->Context);
 	for (;;) {
 		ml_command_evaluate((ml_state_t *)State, Parser, Compiler);
 		if (!State->Value) break;

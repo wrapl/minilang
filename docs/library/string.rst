@@ -1,3 +1,5 @@
+.. include:: <isonum.txt>
+
 string
 ======
 
@@ -29,14 +31,6 @@ string
 
 :mini:`meth (Codepoint: integer):utf8: string`
    Returns a UTF-8 string containing the character with unicode codepoint :mini:`Codepoint`.
-
-
-:mini:`meth (Char: integer):chr: string`
-   Returns a string containing the single byte :mini:`Char`.
-
-
-:mini:`meth (String: string):ord: integer`
-   Returns the first byte of :mini:`String`.
 
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: double, Arg₃: string)`
@@ -113,6 +107,14 @@ string
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: string)`
    *TBD*
 
+:mini:`meth (String: string):length: integer`
+   Returns the number of UTF-8 characters in :mini:`String`.
+
+
+:mini:`meth (String: string):count: integer`
+   Returns the number of UTF-8 characters in :mini:`String`.
+
+
 :mini:`meth (String: string)[Index: integer]: string`
    Returns the substring of :mini:`String` of length 1 at :mini:`Index`.
 
@@ -123,6 +125,14 @@ string
 
 :mini:`meth (String: string)[Range: integer::range]: string`
    Returns the substring of :mini:`String` corresponding to :mini:`Range` inclusively.
+
+
+:mini:`meth (String: string):limit(Length: integer): string`
+   Returns the prefix of :mini:`String` limited to :mini:`Length`.
+
+
+:mini:`meth (String: string):offset(Index: integer): integer`
+   Returns the byte position of the :mini:`Index`-th character of :mini:`String`.
 
 
 :mini:`meth (A: string) + (B: string): string`
@@ -295,10 +305,25 @@ string
 :mini:`meth (Arg₁: string):replace(Arg₂: regex, Arg₃: string)`
    *TBD*
 
+:mini:`meth (String: string):replace(Replacements: map): string`
+   Each key in :mini:`Replacements` can be either a string or a regex. Each value in :mini:`Replacements` can be either a string or a function.
+
+   Returns a copy of :mini:`String` with each matching string or regex from :mini:`Replacements` replaced with the corresponding value. Functions are called with the matched string or regex subpatterns.
+
+
 :mini:`meth (Arg₁: string):replace(Arg₂: regex, Arg₃: function)`
    *TBD*
 
-:mini:`meth (Arg₁: string):replace(Arg₂: map)`
+:mini:`meth (Arg₁: string):replace(Arg₂: integer, Arg₃: string)`
+   *TBD*
+
+:mini:`meth (Arg₁: string):replace(Arg₂: integer, Arg₃: integer, Arg₄: string)`
+   *TBD*
+
+:mini:`meth (Arg₁: string):replace(Arg₂: integer, Arg₃: function)`
+   *TBD*
+
+:mini:`meth (Arg₁: string):replace(Arg₂: integer, Arg₃: integer, Arg₄: function)`
    *TBD*
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: regex)`

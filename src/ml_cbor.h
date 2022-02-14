@@ -14,21 +14,21 @@ void ml_cbor_init(stringmap_t *Globals);
 
 void ml_cbor_default_object(const char *Name, ml_value_t *Constructor);
 
-int ml_cbor_setting_new();
+int ml_cbor_setting();
 
 typedef struct ml_cbor_reader_t ml_cbor_reader_t;
 
 typedef ml_value_t *(*ml_cbor_tag_fn)(ml_cbor_reader_t *Reader, ml_value_t *Value);
 typedef struct ml_cbor_tag_fns_t ml_cbor_tag_fns_t;
 
-ml_cbor_tag_fns_t *ml_cbor_tag_fns_new(int Default);
+ml_cbor_tag_fns_t *ml_cbor_tag_fns(int Default);
 ml_cbor_tag_fns_t *ml_cbor_tag_fns_copy(ml_cbor_tag_fns_t *TagFns);
 ml_cbor_tag_fn ml_cbor_tag_fn_get(ml_cbor_tag_fns_t *TagFns, uint64_t Tag);
 void ml_cbor_tag_fn_set(ml_cbor_tag_fns_t *TagFns, uint64_t Tag, ml_cbor_tag_fn Fn);
 
 void ml_cbor_default_tag(uint64_t Tag, ml_cbor_tag_fn TagFn);
 
-ml_cbor_reader_t *ml_cbor_reader_new(ml_cbor_tag_fns_t *TagFns, stringmap_t *Globals);
+ml_cbor_reader_t *ml_cbor_reader(ml_cbor_tag_fns_t *TagFns, stringmap_t *Globals);
 void ml_cbor_reader_reset(ml_cbor_reader_t *Reader);
 void ml_cbor_reader_set_setting(ml_cbor_reader_t *Reader, int Key, void *Value);
 void *ml_cbor_reader_get_setting(ml_cbor_reader_t *Reader, int Key);
@@ -47,7 +47,7 @@ typedef struct {
 typedef void (*ml_cbor_write_fn)(void *Data, const unsigned char *Bytes, unsigned Size);
 typedef struct ml_cbor_writer_t ml_cbor_writer_t;
 
-ml_cbor_writer_t *ml_cbor_writer_new(void *Data, ml_cbor_write_fn WriteFn, inthash_t *Globals);
+ml_cbor_writer_t *ml_cbor_writer(void *Data, ml_cbor_write_fn WriteFn, inthash_t *Globals);
 void ml_cbor_writer_reset(ml_cbor_writer_t *Writer, void *Data);
 void ml_cbor_writer_set_setting(ml_cbor_writer_t *Writer, int Setting, void *Value);
 void *ml_cbor_writer_get_setting(ml_cbor_writer_t *Writer, int Setting);

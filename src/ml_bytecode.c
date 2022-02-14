@@ -390,7 +390,7 @@ extern ml_value_t *SymbolMethod;
 
 #endif
 
-static ML_METHOD_DECL(AppendMethod, "append");
+extern ml_value_t *AppendMethod;
 
 static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result) {
 	static const void *Labels[] = {
@@ -974,20 +974,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_TUPLE_NEW: {
 		int Count = Inst[1].Count;
-		Result = ml_tuple(Count);
-#ifdef ML_GENERICS
-		for (int I = Count; --I > 0;) {
-			((ml_tuple_t *)Result)->Values[I] = Top[-1];
-			*--Top = NULL;
-		}
-		ml_tuple_set(Result, 1, Top[-1]);
-		*--Top = NULL;
-#else
-		for (int I = Count; --I >= 0;) {
-			((ml_tuple_t *)Result)->Values[I] = Top[-1];
-			*--Top = NULL;
-		}
-#endif
+		Result = ml_tuplen(Count, Top - Count);
+		for (int I = Count; --I >= 0;) *--Top = NULL;
 		ADVANCE(Inst + 2);
 	}
 	DO_LIST_NEW: {
@@ -1076,7 +1064,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_PARTIAL_NEW: {
 		Result = ml_deref(Result);
-		*Top = ml_partial_function_new(Result, Inst[1].Count);
+		*Top = ml_partial_function(Result, Inst[1].Count);
 		++Top;
 		ADVANCE(Inst + 2);
 	}
@@ -1670,7 +1658,7 @@ static void ml_closure_value_list(ml_value_t *Value, ml_stringbuffer_t *Buffer) 
 
 static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 	if (Inst->Label) ml_stringbuffer_printf(Buffer, "L%d:", Inst->Label);
-	ml_stringbuffer_printf(Buffer, "\t%s%3d %s", Inst->PotentialBreakpoint ? "*" : " ", Inst->Line, MLInstNames[Inst->Opcode]);
+	ml_stringbuffer_printf(Buffer, "\t %3d %s", Inst->Line, MLInstNames[Inst->Opcode]);
 	switch (MLInstTypes[Inst->Opcode]) {
 	case MLIT_NONE: return 1;
 	case MLIT_INST:

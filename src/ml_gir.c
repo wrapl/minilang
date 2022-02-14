@@ -259,7 +259,7 @@ void *ml_gir_struct_instance_value(ml_value_t *Value) {
 	return ((struct_instance_t *)Value)->Value;
 }
 
-static ml_value_t *struct_instance_new(struct_t *Struct, int Count, ml_value_t **Args) {
+static ml_value_t *struct_instance(struct_t *Struct, int Count, ml_value_t **Args) {
 	struct_instance_t *Instance = new(struct_instance_t);
 	Instance->Type = Struct;
 	Instance->Value = GC_MALLOC(g_struct_info_get_size(Struct->Info));
@@ -1727,7 +1727,7 @@ static void object_add_methods(object_t *Object, GIObjectInfo *Info) {
 
 static stringmap_t TypeMap[1] = {STRINGMAP_INIT};
 
-static ml_value_t *object_instance_new(object_t *Object, int Count, ml_value_t **Args) {
+static ml_value_t *object_instance(object_t *Object, int Count, ml_value_t **Args) {
 	object_instance_t *Instance = new(object_instance_t);
 	Instance->Type = Object;
 	GType Type = g_registered_type_info_get_g_type((GIRegisteredTypeInfo *)Object->Info);
@@ -1765,7 +1765,7 @@ static ml_type_t *object_info_lookup(GIObjectInfo *Info) {
 		Object->Base.assign = ml_default_assign;
 		Object->Info = Info;
 		ml_type_init((ml_type_t *)Object, GirObjectInstanceT, NULL);
-		Object->Base.Constructor = ml_cfunction(Object, (ml_callback_t)object_instance_new);
+		Object->Base.Constructor = ml_cfunction(Object, (ml_callback_t)object_instance);
 		object_add_methods(Object, Info);
 		Slot[0] = (ml_type_t *)Object;
 	}
@@ -1785,7 +1785,7 @@ static ml_type_t *interface_info_lookup(GIInterfaceInfo *Info) {
 		Object->Base.assign = ml_default_assign;
 		Object->Info = Info;
 		ml_type_init((ml_type_t *)Object, GirObjectInstanceT, NULL);
-		Object->Base.Constructor = ml_cfunction(Object, (ml_callback_t)object_instance_new);
+		Object->Base.Constructor = ml_cfunction(Object, (ml_callback_t)object_instance);
 		interface_add_methods(Object, Info);
 		Slot[0] = (ml_type_t *)Object;
 	}
@@ -1805,7 +1805,7 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 		Struct->Base.assign = ml_default_assign;
 		Struct->Info = Info;
 		ml_type_init((ml_type_t *)Struct, GirStructInstanceT, NULL);
-		Struct->Base.Constructor = ml_cfunction(Struct, (void *)struct_instance_new);
+		Struct->Base.Constructor = ml_cfunction(Struct, (void *)struct_instance);
 		Slot[0] = (ml_type_t *)Struct;
 		int NumFields = g_struct_info_get_n_fields(Info);
 		for (int I = 0; I < NumFields; ++I) {
@@ -2118,7 +2118,7 @@ static void gir_closure_marshal(gir_closure_t *Closure, GValue *Dest, guint NumA
 		g_arg_info_load_type(ArgInfo, TypeInfo);
 		MLArgs[I] = _value_to_ml(Args + I, g_type_info_get_interface(TypeInfo));
 	}
-	ml_result_state_t *State = ml_result_state_new(Closure->Context);
+	ml_result_state_t *State = ml_result_state(Closure->Context);
 	ml_call(State, Closure->Function, NumArgs, MLArgs);
 	GMainContext *MainContext = g_main_context_default();
 	while (!State->Value) g_main_context_iteration(MainContext, FALSE);
@@ -2252,7 +2252,7 @@ ML_FUNCTIONX(MLSleep) {
 
 ML_FUNCTIONX(MLGirRun) {
 	ML_CHECKX_ARG_COUNT(1);
-	ml_state_t *State = ml_state_new(Caller);
+	ml_state_t *State = ml_state(Caller);
 	ml_context_set(State->Context, ML_SCHEDULER_INDEX, GirSchedule);
 	return ml_call(State, Args[0], 0, NULL);
 }

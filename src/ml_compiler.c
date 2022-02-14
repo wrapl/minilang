@@ -5163,10 +5163,7 @@ ML_METHOD("source", MLParserT, MLStringT, MLIntegerT) {
 	ml_parser_t *Parser = (ml_parser_t *)Args[0];
 	ml_source_t Source = {ml_string_value(Args[1]), ml_integer_value(Args[2])};
 	Source = ml_parser_source(Parser, Source);
-	ml_value_t *Tuple = ml_tuple(2);
-	ml_tuple_set(Tuple, 1, ml_cstring(Source.Name));
-	ml_tuple_set(Tuple, 2, ml_integer(Source.Line));
-	return Tuple;
+	return ml_tuplev(2, ml_cstring(Source.Name), ml_integer(Source.Line));
 }
 
 ML_METHOD("reset", MLParserT) {

@@ -1,3 +1,5 @@
+.. include:: <isonum.txt>
+
 hierarchy
 =========
 
@@ -19,7 +21,7 @@ hierarchy
       "xml":e -> "xml::element":w;
       "sequence":e -> "xml::element":w;
       "function":e -> "xml::filter":w;
-      "any":e -> "xml::decoder":w;
+      "stream":e -> "xml::decoder":w;
       "sequence":e -> "xenode":w;
       "any":e -> "xevar":w;
       "any":e -> "uuid":w;
@@ -97,6 +99,7 @@ hierarchy
       "any":e -> "queue::entry":w;
       "sequence":e -> "queue":w;
       "any":e -> "polynomial":w;
+      "any":e -> "polynomial::rational":w;
       "any":e -> "object":w;
       "type":e -> "class":w;
       "any":e -> "property":w;
@@ -112,7 +115,7 @@ hierarchy
       "sequence":e -> "list":w;
       "any":e -> "list::node":w;
       "any":e -> "list::slice":w;
-      "any":e -> "json::decoder":w;
+      "stream":e -> "json::decoder":w;
       "any":e -> "jsvalue":w;
       "any":e -> "jsencoder":w;
       "any":e -> "jsdecoder":w;

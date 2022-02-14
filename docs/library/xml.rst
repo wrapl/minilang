@@ -1,3 +1,5 @@
+.. include:: <isonum.txt>
+
 xml
 ===
 
@@ -41,6 +43,10 @@ xml
 
 
 :mini:`meth (Xml: xml::element):text: string`
+   Returns the (recursive) text content of :mini:`Xml`.
+
+
+:mini:`meth (Xml: xml::element):text(Arg₂: string): string`
    Returns the (recursive) text content of :mini:`Xml`.
 
 
@@ -218,15 +224,6 @@ xml
 :mini:`fun xml::decoder(Callback: any): xml::decoder`
    *TBD*
 
-:mini:`type xml::decoder`
-   *TBD*
-
-:mini:`meth (Decoder: xml::decoder):decode(Xml: address): Decoder`
-   *TBD*
-
-:mini:`meth (Decoder: xml::decoder):decode(Xml: address, Size: integer): Decoder`
-   *TBD*
-
-:mini:`meth (Decoder: xml::decoder):finish: Decoder`
+:mini:`type xml::decoder < stream`
    *TBD*
 

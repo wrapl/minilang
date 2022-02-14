@@ -248,6 +248,7 @@ if MINILANG_MATH then
 	CFLAGS := old + ["-DML_MATH"]
 	InstallHeaders:put("ml_array.h")
 	InstallHeaders:put("ml_math.h")
+	InstallHeaders:put("ml_polynomial.h")
 end
 
 if MINILANG_GTK_CONSOLE then

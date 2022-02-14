@@ -46,7 +46,7 @@ ml_context_t MLRootContext = {&MLRootContext, 5, {
 	NULL
 }};
 
-ml_context_t *ml_context_new(ml_context_t *Parent) {
+ml_context_t *ml_context(ml_context_t *Parent) {
 	ml_context_t *Context = xnew(ml_context_t, MLContextSize, void *);
 	Context->Parent = Parent;
 	Context->Size = MLContextSize;
@@ -54,7 +54,7 @@ ml_context_t *ml_context_new(ml_context_t *Parent) {
 	return Context;
 }
 
-int ml_context_index_new() {
+int ml_context_index() {
 	return MLContextSize++;
 }
 
@@ -94,7 +94,7 @@ static void ml_context_key_call(ml_state_t *Caller, ml_context_key_t *Key, int C
 		Value->Prev = Values;
 		Value->Key = Key;
 		Value->Value = Args[0];
-		ml_state_t *State = ml_state_new(Caller);
+		ml_state_t *State = ml_state(Caller);
 		ml_context_set(State->Context, ML_VARIABLES_INDEX, Value);
 		ml_value_t *Function = Args[1];
 		Function = ml_deref(Function);
@@ -146,7 +146,7 @@ static void ml_call_state_run(ml_call_state_t *State, ml_value_t *Value) {
 	}
 }
 
-ml_call_state_t *ml_call_state_new(ml_state_t *Caller, int Count) {
+ml_call_state_t *ml_call_state(ml_state_t *Caller, int Count) {
 	ml_call_state_t *State = xnew(ml_call_state_t, Count, ml_value_t *);
 	State->Base.Type = MLStateT;
 	State->Base.run = (ml_state_fn)ml_call_state_run;
@@ -160,7 +160,7 @@ void ml_result_state_run(ml_result_state_t *State, ml_value_t *Value) {
 	State->Value = ml_deref(Value);
 }
 
-ml_result_state_t *ml_result_state_new(ml_context_t *Context) {
+ml_result_state_t *ml_result_state(ml_context_t *Context) {
 	ml_result_state_t *State = new(ml_result_state_t);
 	State->Base.Context = Context ?: &MLRootContext;
 	//State->Value = MLNil;
@@ -190,7 +190,7 @@ typedef struct {
 	ml_context_t Context[1];
 } ml_context_state_t;
 
-ml_state_t *ml_state_new(ml_state_t *Caller) {
+ml_state_t *ml_state(ml_state_t *Caller) {
 	ml_context_state_t *State = xnew(ml_context_state_t, MLContextSize, void *);
 	ml_context_t *Parent = Caller ? Caller->Context : &MLRootContext;
 	State->Context->Parent = Parent;
@@ -589,9 +589,7 @@ ML_METHOD("trace", MLErrorValueT) {
 	ml_value_t *Trace = ml_list();
 	ml_source_t *Source = Value->Trace;
 	for (int I = MAX_TRACE; --I >= 0 && Source->Name; ++Source) {
-		ml_value_t *Tuple = ml_tuple(2);
-		ml_tuple_set(Tuple, 1, ml_string(Source->Name, -1));
-		ml_tuple_set(Tuple, 2, ml_integer(Source->Line));
+		ml_value_t *Tuple = ml_tuplev(2, ml_cstring(Source->Name), ml_integer(Source->Line));
 		ml_list_put(Trace, Tuple);
 	}
 	return Trace;
@@ -682,7 +680,7 @@ typedef struct {
 } ml_mini_debugger_t;
 
 static void ml_mini_debugger_call(ml_state_t *Caller, ml_mini_debugger_t *Debugger, int Count, ml_value_t **Args) {
-	ml_state_t *State = ml_state_new(Caller);
+	ml_state_t *State = ml_state(Caller);
 	ml_context_set(State->Context, ML_DEBUGGER_INDEX, &Debugger->Base);
 	ml_value_t *Function = Args[0];
 	return ml_call(State, Function, Count - 1, Args + 1);
@@ -828,10 +826,7 @@ ML_METHOD("trace", MLStateT) {
 ML_METHOD("source", MLStateT) {
 	ml_state_t *State = (ml_state_t *)Args[0];
 	ml_source_t Source = ml_debugger_source(State);
-	ml_value_t *Location = ml_tuple(2);
-	ml_tuple_set(Location, 1, ml_string(Source.Name, -1));
-	ml_tuple_set(Location, 2, ml_integer(Source.Line));
-	return Location;
+	return ml_tuplev(2, ml_string(Source.Name, -1), ml_integer(Source.Line));
 }
 
 // Schedulers //

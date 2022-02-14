@@ -29,6 +29,7 @@ let Categories := {"internal" is internal()}
 fun write_category(Category) do
 	print('Creating Category: {Category}\n')
 	let File := file('{OutputDirectory}/{Category:lower}.rst', "w")
+	File:write(".. include:: <isonum.txt>\n\n")
 	File:write(Category, "\n")
 	for I in Category do File:write("=") end
 	File:write("\n\n")

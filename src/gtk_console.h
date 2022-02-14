@@ -4,17 +4,17 @@
 #include <gtk/gtk.h>
 #include "minilang.h"
 
-typedef struct console_t console_t;
+typedef struct gtk_console_t gtk_console_t;
 
-console_t *console_new(ml_context_t *Context, ml_getter_t GlobalGet, void *Globals);
-void console_show(console_t *Console, GtkWindow *Parent);
-void console_log(console_t *Console, ml_value_t *Value);
-int console_append(console_t *Console, const char *Buffer, int Length);
-ml_value_t *console_print(console_t *Console, int Count, ml_value_t **Args);
-void console_printf(console_t *Console, const char *Format, ...);
-void console_load_file(console_t *Console, const char *FileName, ml_value_t *Args);
-void console_evaluate(console_t *Console, const char *Text);
+gtk_console_t *gtk_console(ml_context_t *Context, ml_getter_t GlobalGet, void *Globals);
+void gtk_console_show(gtk_console_t *Console, GtkWindow *Parent);
+void gtk_console_log(gtk_console_t *Console, ml_value_t *Value);
+int gtk_console_append(gtk_console_t *Console, const char *Buffer, int Length);
+ml_value_t *gtk_console_print(gtk_console_t *Console, int Count, ml_value_t **Args);
+void gtk_console_printf(gtk_console_t *Console, const char *Format, ...);
+void gtk_console_load_file(gtk_console_t *Console, const char *FileName, ml_value_t *Args);
+void gtk_console_evaluate(gtk_console_t *Console, const char *Text);
 
-void console_init();
+void gtk_console_init();
 
 #endif

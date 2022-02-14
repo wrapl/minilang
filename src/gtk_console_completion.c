@@ -6,17 +6,17 @@ struct _ConsoleCompletionProvider {
 	ml_compiler_t *Compiler;
 };
 
-static void console_completion_provider_interface_init(GtkSourceCompletionProviderIface *Interface);
+static void gtk_console_completion_provider_interface_init(GtkSourceCompletionProviderIface *Interface);
 
-G_DEFINE_TYPE_WITH_CODE(ConsoleCompletionProvider, console_completion_provider, G_TYPE_OBJECT, G_IMPLEMENT_INTERFACE(GTK_SOURCE_TYPE_COMPLETION_PROVIDER, console_completion_provider_interface_init))
+G_DEFINE_TYPE_WITH_CODE(ConsoleCompletionProvider, gtk_console_completion_provider, G_TYPE_OBJECT, G_IMPLEMENT_INTERFACE(GTK_SOURCE_TYPE_COMPLETION_PROVIDER, gtk_console_completion_provider_interface_init))
 
-static void console_completion_provider_class_init(ConsoleCompletionProviderClass *klass) {
+static void gtk_console_completion_provider_class_init(ConsoleCompletionProviderClass *klass) {
 }
 
-static void console_completion_provider_init(ConsoleCompletionProvider *Provider) {
+static void gtk_console_completion_provider_init(ConsoleCompletionProvider *Provider) {
 }
 
-static gchar *console_completion_provider_get_name(ConsoleCompletionProvider *Provider) {
+static gchar *gtk_console_completion_provider_get_name(ConsoleCompletionProvider *Provider) {
 	return g_strdup("console-completion");
 }
 
@@ -54,7 +54,7 @@ static int populate_fn(const char *Name, void *Value, populate_info_t *Info) {
 	return 0;
 }
 
-static void console_completion_provider_populate(ConsoleCompletionProvider *Provider, GtkSourceCompletionContext *Context) {
+static void gtk_console_completion_provider_populate(ConsoleCompletionProvider *Provider, GtkSourceCompletionContext *Context) {
 	GtkTextIter Start;
 	gtk_source_completion_context_get_iter(Context, &Start);
 	populate_info_t Info[1];
@@ -85,6 +85,7 @@ static void console_completion_provider_populate(ConsoleCompletionProvider *Prov
 			if (!Value0) break;
 			if (ml_is(Value0, MLGlobalT)) Value0 = ml_global_get(Value0);
 			if (ml_is(Value0, GirTypelibT)) Value = ml_gir_import(Value0, Name);
+			if (ml_is(Value0, MLTypeT)) Value = stringmap_search(((ml_type_t *)Value0)->Exports, Name);
 		} while (0);
 	}
 	g_free(Name);
@@ -117,7 +118,7 @@ static void console_completion_provider_populate(ConsoleCompletionProvider *Prov
 	gtk_source_completion_context_add_proposals(Context, GTK_SOURCE_COMPLETION_PROVIDER(Provider), Info->Proposals, TRUE);
 }
 
-static gboolean console_completion_provider_match(ConsoleCompletionProvider *Provider, GtkSourceCompletionContext *Context) {
+static gboolean gtk_console_completion_provider_match(ConsoleCompletionProvider *Provider, GtkSourceCompletionContext *Context) {
 	GtkTextIter Iter;
 	gtk_source_completion_context_get_iter(Context, &Iter);
 	if (gtk_text_iter_ends_word(&Iter)) {
@@ -131,44 +132,44 @@ static gboolean console_completion_provider_match(ConsoleCompletionProvider *Pro
 }
 
 /*
-static GtkSourceCompletionActivation console_completion_provider_get_activation(ConsoleCompletionProvider *Provider) {
+static GtkSourceCompletionActivation gtk_console_completion_provider_get_activation(ConsoleCompletionProvider *Provider) {
 	printf("%s()\n", __FUNCTION__);
 
 }
 
-static GtkWidget *console_completion_provider_get_info_widget(ConsoleCompletionProvider *Provider, GtkSourceCompletionProposal *Proposal) {
+static GtkWidget *gtk_console_completion_provider_get_info_widget(ConsoleCompletionProvider *Provider, GtkSourceCompletionProposal *Proposal) {
 	printf("%s()\n", __FUNCTION__);
 
 }
 
-static void console_completion_provider_update_info(ConsoleCompletionProvider *Provider, GtkSourceCompletionProposal *Proposal, GtkSourceCompletionInfo *Info) {
+static void gtk_console_completion_provider_update_info(ConsoleCompletionProvider *Provider, GtkSourceCompletionProposal *Proposal, GtkSourceCompletionInfo *Info) {
 	printf("%s()\n", __FUNCTION__);
 }
 
-static gboolean	console_completion_provider_get_start_iter(ConsoleCompletionProvider *Provider, GtkSourceCompletionContext *Context, GtkSourceCompletionProposal *Proposal, GtkTextIter *Iter) {
+static gboolean	gtk_console_completion_provider_get_start_iter(ConsoleCompletionProvider *Provider, GtkSourceCompletionContext *Context, GtkSourceCompletionProposal *Proposal, GtkTextIter *Iter) {
 	printf("%s()\n", __FUNCTION__);
 }
 
-static gboolean	console_completion_provider_activate_proposal(ConsoleCompletionProvider *Provider, GtkSourceCompletionProposal *Proposal, GtkTextIter *Iter) {
+static gboolean	gtk_console_completion_provider_activate_proposal(ConsoleCompletionProvider *Provider, GtkSourceCompletionProposal *Proposal, GtkTextIter *Iter) {
 	printf("%s()\n", __FUNCTION__);
 }
 
-static gint console_completion_provider_get_interactive_delay(ConsoleCompletionProvider *Provider) {
+static gint gtk_console_completion_provider_get_interactive_delay(ConsoleCompletionProvider *Provider) {
 	printf("%s()\n", __FUNCTION__);
 }
 
-static gint console_completion_provider_get_priority(ConsoleCompletionProvider *Provider) {
+static gint gtk_console_completion_provider_get_priority(ConsoleCompletionProvider *Provider) {
 	printf("%s()\n", __FUNCTION__);
 }
 */
 
-static void console_completion_provider_interface_init(GtkSourceCompletionProviderIface *Interface) {
-	Interface->get_name = (void *)console_completion_provider_get_name;
+static void gtk_console_completion_provider_interface_init(GtkSourceCompletionProviderIface *Interface) {
+	Interface->get_name = (void *)gtk_console_completion_provider_get_name;
 	//Interface->get_icon = (void *)console_completion_provider_get_icon;
 	//Interface->get_icon_name = (void *)console_completion_provider_get_icon_name;
 	//Interface->get_gicon = (void *)console_completion_provider_get_gicon;
-	Interface->populate = (void *)console_completion_provider_populate;
-	Interface->match = (void *)console_completion_provider_match;
+	Interface->populate = (void *)gtk_console_completion_provider_populate;
+	Interface->match = (void *)gtk_console_completion_provider_match;
 	//Interface->get_activation = (void *)console_completion_provider_get_activation;
 	//Interface->get_info_widget = (void *)console_completion_provider_get_info_widget;
 	//Interface->update_info = (void *)console_completion_provider_update_info;
@@ -178,7 +179,7 @@ static void console_completion_provider_interface_init(GtkSourceCompletionProvid
 	//Interface->get_priority = (void *)console_completion_provider_get_priority;
 }
 
-GtkSourceCompletionProvider *console_completion_provider_new(ml_compiler_t *Compiler) {
+GtkSourceCompletionProvider *gtk_console_completion_provider(ml_compiler_t *Compiler) {
 	ConsoleCompletionProvider *Provider = g_object_new(CONSOLE_TYPE_COMPLETION_PROVIDER, NULL);
 	Provider->Compiler = Compiler;
 	return GTK_SOURCE_COMPLETION_PROVIDER(Provider);

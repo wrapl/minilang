@@ -1286,7 +1286,7 @@ ML_TYPE(MLFunctionPartialT, (MLFunctionT, MLSequenceT), "partial-function",
 	.call = (void *)ml_partial_function_call
 );
 
-ml_value_t *ml_partial_function_new(ml_value_t *Function, int Count) {
+ml_value_t *ml_partial_function(ml_value_t *Function, int Count) {
 	ml_partial_function_t *Partial = xnew(ml_partial_function_t, Count, ml_value_t *);
 	Partial->Type = MLFunctionPartialT;
 	Partial->Function = Function;
@@ -1521,6 +1521,59 @@ ml_value_t *ml_tuple_set(ml_value_t *Tuple0, int Index, ml_value_t *Value) {
 		Tuple->Type = ml_generic_type(Tuple->Size + 1, Types);
 	}
 	return Value;
+}
+
+ml_value_t *ml_tuplen(size_t Size, ml_value_t **Values) {
+	ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
+	Tuple->Size = Size;
+	ml_type_t *Types[Size + 1];
+	Types[0] = MLTupleT;
+	for (int I = 0; I < Size; ++I) {
+		Tuple->Values[I] = Values[I];
+		Types[I + 1] = ml_typeof(Values[I]);
+	}
+	Tuple->Type = ml_generic_type(Size + 1, Types);
+	return (ml_value_t *)Tuple;
+}
+
+ml_value_t *ml_tuplev(size_t Size, ...) {
+	ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
+	Tuple->Size = Size;
+	ml_type_t *Types[Size + 1];
+	Types[0] = MLTupleT;
+	va_list Args;
+	va_start(Args, Size);
+	for (int I = 0; I < Size; ++I) {
+		ml_value_t *Value = va_arg(Args, ml_value_t *);
+		Tuple->Values[I] = Value;
+		Types[I + 1] = ml_typeof(Value);
+	}
+	va_end(Args);
+	Tuple->Type = ml_generic_type(Size + 1, Types);
+	return (ml_value_t *)Tuple;
+}
+
+#else
+
+ml_value_t *ml_tuplen(size_t Size, ml_value_t **Values) {
+	ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
+	Tuple->Type = MLTupleT;
+	Tuple->Size = Size;
+	for (int I = 0; I < Size; ++I) Tuple->Values[I] = Values[I];
+	return (ml_value_t *)Tuple;
+}
+
+ml_value_t *ml_tuplev(size_t Size, ...) {
+	ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
+	Tuple->Type = MLTupleT;
+	Tuple->Size = Size;
+	va_list Args;
+	va_start(Args, Size);
+	for (int I = 0; I < Size; ++I) {
+		Tuple->Values[I] = va_arg(Args, ml_value_t *);
+	}
+	va_end(Args);
+	return (ml_value_t *)Tuple;
 }
 
 #endif
@@ -2590,6 +2643,18 @@ ML_METHOD("<>", MLDoubleT, MLDoubleT) {
 	return (ml_value_t *)Zero;
 }
 
+ML_METHOD("isfinite", MLDoubleT) {
+	double X = ml_double_value_fast(Args[0]);
+	if (!isfinite(X)) return MLNil;
+	return Args[0];
+}
+
+ML_METHOD("isnan", MLDoubleT) {
+	double X = ml_double_value_fast(Args[0]);
+	if (!isnan(X)) return MLNil;
+	return Args[0];
+}
+
 typedef struct ml_integer_iter_t {
 	const ml_type_t *Type;
 	long Current, Step, Limit;
@@ -3334,9 +3399,12 @@ void ml_init(stringmap_t *Globals) {
 	stringmap_insert(MLIntegerT->Exports, "switch", MLIntegerSwitch);
 	stringmap_insert(MLRealT->Exports, "range", MLRealRangeT);
 	ml_method_by_value(MLIntegerT->Constructor, NULL, ml_identity, MLIntegerT, NULL);
+	ml_method_by_name("isfinite", NULL, ml_identity, MLIntegerT, NULL);
+	ml_method_by_name("isnan", NULL, ml_return_nil, MLIntegerT, NULL);
 	ml_method_by_value(MLDoubleT->Constructor, NULL, ml_identity, MLDoubleT, NULL);
 	ml_method_by_value(MLRealT->Constructor, NULL, ml_identity, MLDoubleT, NULL);
-	stringmap_insert(MLRealT->Exports, "infinity", ml_real(INFINITY));
+	stringmap_insert(MLRealT->Exports, "inf", ml_real(INFINITY));
+	stringmap_insert(MLRealT->Exports, "nan", ml_real(NAN));
 	ml_method_by_value(MLNumberT->Constructor, NULL, ml_identity, MLNumberT, NULL);
 #ifdef ML_COMPLEX
 	stringmap_insert(MLCompilerT->Exports, "i", ml_complex(1i));

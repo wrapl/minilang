@@ -235,9 +235,9 @@ int main(int Argc, const char *Argv[]) {
 
 	ml_stream_init(IO_EXPORTS);
 	stringmap_insert(IO_EXPORTS, "terminal", ml_module("terminal",
-		"stdin", ml_fd_new(STDIN_FILENO),
-		"stdout", ml_fd_new(STDOUT_FILENO),
-		"stderr", ml_fd_new(STDERR_FILENO),
+		"stdin", ml_fd_stream(STDIN_FILENO),
+		"stdout", ml_fd_stream(STDOUT_FILENO),
+		"stderr", ml_fd_stream(STDERR_FILENO),
 	NULL));
 #ifdef ML_CBOR
 	ml_cbor_init(FMT_EXPORTS);
@@ -261,7 +261,7 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_GTK_CONSOLE
 	int GtkConsole = 0;
-	console_init();
+	gtk_console_init();
 #endif
 #ifdef ML_MODULES
 	ml_module_init(Globals);
@@ -357,7 +357,7 @@ int main(int Argc, const char *Argv[]) {
 			FileName = Argv[I];
 		}
 	}
-	ml_state_t *Main = ml_state_new(NULL);
+	ml_state_t *Main = ml_state(NULL);
 	Main->run = ml_main_state_run;
 #ifdef ML_SCHEDULER
 	if (SliceSize) {
@@ -368,10 +368,10 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_GTK_CONSOLE
 	if (GtkConsole) {
-		console_t *Console = console_new(&MLRootContext, (ml_getter_t)stringmap_search, Globals);
-		console_show(Console, NULL);
-		if (FileName) console_load_file(Console, FileName, Args);
-		if (Command) console_evaluate(Console, Command);
+		gtk_console_t *Console = gtk_console(&MLRootContext, (ml_getter_t)stringmap_search, Globals);
+		gtk_console_show(Console, NULL);
+		if (FileName) gtk_console_load_file(Console, FileName, Args);
+		if (Command) gtk_console_evaluate(Console, Command);
 		gtk_main();
 		return 0;
 	}
@@ -382,7 +382,7 @@ int main(int Argc, const char *Argv[]) {
 			ml_library_load(Main, NULL, FileName);
 		} else {
 #endif
-		ml_call_state_t *State = ml_call_state_new(Main, 1);
+		ml_call_state_t *State = ml_call_state(Main, 1);
 		State->Args[0] = Args;
 		ml_load_file((ml_state_t *)State, global_get, NULL, FileName, NULL);
 #ifdef ML_LIBRARY

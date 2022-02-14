@@ -24,13 +24,25 @@ ml_value_t *ml_object_class(const ml_value_t *Value) __attribute__ ((pure));
 size_t ml_object_size(const ml_value_t *Value) __attribute__ ((pure));
 ml_value_t *ml_object_field(const ml_value_t *Value, size_t Field) __attribute__ ((pure));
 
+extern ml_type_t MLEnumT[];
+extern ml_type_t MLEnumValueT[];
+
 ml_type_t *ml_enum(const char *Name, ...);
 ml_type_t *ml_enum2(const char *Name, ...);
-uint64_t ml_enum_value(ml_value_t *Value);
+
+ml_value_t *ml_enum_value(ml_type_t *Type, uint64_t Enum);
+uint64_t ml_enum_value_value(ml_value_t *Value);
+const char *ml_enum_value_name(ml_value_t *Value);
+
+extern ml_type_t MLFlagsT[];
+extern ml_type_t MLFlagsValueT[];
 
 ml_type_t *ml_flags(const char *Name, ...);
 ml_type_t *ml_flags2(const char *Name, ...);
-uint64_t ml_flags_value(ml_value_t *Value);
+
+ml_value_t *ml_flags_value(ml_type_t *Type, uint64_t Flags);
+uint64_t ml_flags_value_value(ml_value_t *Value);
+const char *ml_flags_value_name(ml_value_t *Value);
 
 #ifndef GENERATE_INIT
 

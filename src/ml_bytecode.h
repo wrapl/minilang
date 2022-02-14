@@ -20,10 +20,7 @@ typedef union ml_inst_t ml_inst_t;
 union ml_inst_t {
 	struct {
 		ml_opcode_t Opcode:8;
-		unsigned int PotentialBreakpoint:1;
-		unsigned int Processed:1;
-		unsigned int Hashed:1;
-		unsigned int Reserved:5;
+		unsigned int Reserved:8;
 		unsigned int Label:16;
 		unsigned int Line:32;
 	};

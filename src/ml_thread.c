@@ -207,7 +207,7 @@ ML_FUNCTIONX(MLThread) {
 	}
 	ml_thread_t *Thread = new(ml_thread_t);
 	Thread->Base.Type = MLThreadT;
-	Thread->Base.Context = ml_context_new(Caller->Context);
+	Thread->Base.Context = ml_context(Caller->Context);
 	Thread->Base.run = (ml_state_fn)ml_thread_run;
 	Thread->Count = Count;
 	Thread->Args = Args2;

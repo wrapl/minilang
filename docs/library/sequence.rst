@@ -1,3 +1,5 @@
+.. include:: <isonum.txt>
+
 sequence
 ========
 
@@ -162,6 +164,10 @@ sequence
 
 :mini:`meth (Sequence: sequence):join(Separator: string): string`
    Joins the elements of :mini:`Sequence` into a string using :mini:`Separator` between elements.
+
+
+:mini:`meth (Sequence: sequence):join: string`
+   Joins the elements of :mini:`Sequence` into a string.
 
 
 :mini:`fun extremum(Sequence: sequence, Fn: function): tuple | nil`
