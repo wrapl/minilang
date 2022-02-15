@@ -3,6 +3,8 @@
 xml
 ===
 
+.. _type-xml:
+
 :mini:`type xml`
    An XML node.
 
@@ -19,6 +21,8 @@ xml
    Returnst the next sibling of :mini:`Xml` or :mini:`nil`.
 
 
+.. _type-xml-text:
+
 :mini:`type xml::text < xml, string`
    A XML text node.
 
@@ -26,6 +30,8 @@ xml
 :mini:`meth (Xml: xml::text):text: string`
    Returns the text content of :mini:`Xml`.
 
+
+.. _type-xml-element:
 
 :mini:`type xml::element < xml, sequence`
    An XML element node.
@@ -68,6 +74,8 @@ xml
 :mini:`meth (Parent: xml::element)[Attribute: string]: string | nil`
    Returns the value of the :mini:`Attribute` attribute of :mini:`Parent`.
 
+
+.. _type-xml-filter:
 
 :mini:`type xml::filter < function`
    An XML filter.
@@ -221,8 +229,12 @@ xml
 :mini:`meth xml(Arg₁: stream)`
    *TBD*
 
+.. _fun-xml-decoder:
+
 :mini:`fun xml::decoder(Callback: any): xml::decoder`
    *TBD*
+
+.. _type-xml-decoder:
 
 :mini:`type xml::decoder < stream`
    *TBD*

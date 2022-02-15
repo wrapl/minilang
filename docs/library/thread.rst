@@ -3,11 +3,15 @@
 thread
 ======
 
+.. _fun-thread:
+
 :mini:`fun thread(Args: any, ..., Fn: function): thread`
    Creates a new thread and calls :mini:`Fn(Args...)` in the new thread.
 
    All arguments must be thread-safe.
 
+
+.. _type-thread:
 
 :mini:`type thread`
    A thread.
@@ -17,13 +21,19 @@ thread
    Waits until the thread :mini:`Thread` completes and returns its result.
 
 
+.. _fun-thread-sleep:
+
 :mini:`fun thread::sleep(Duration: number): nil`
    Causes the current thread to sleep for :mini:`Duration` microseconds.
 
 
+.. _fun-thread-channel:
+
 :mini:`fun thread::channel(Capacity: integer): thread::channel`
    Creates a new channel with capacity :mini:`Capacity`.
 
+
+.. _type-thread-channel:
 
 :mini:`type thread::channel`
    A channel for thread communication.
@@ -39,9 +49,13 @@ thread
    Gets the next available message on any of :mini:`Channel₁,  ...,  Channelₙ`,  blocking if :mini:`Channel` is empty. Returns :mini:`(Index,  Message)` where :mini:`Index = 1,  ...,  n`.
 
 
+.. _fun-thread-mutex:
+
 :mini:`fun thread::mutex(): thread::mutex`
    Creates a new mutex.
 
+
+.. _type-thread-mutex:
 
 :mini:`type thread::mutex`
    A mutex.
@@ -55,6 +69,8 @@ thread
    Unlocks :mini:`Mutex`.
 
 
+.. _type-thread-protected:
+
 :mini:`type thread::protected`
    A thread-safe (protected) wrapper for another value.
 
@@ -67,9 +83,13 @@ thread
    Locks :mini:`Protected₁:mutex`,  then calls :mini:`Function(Value₁,  ...,  Valueₙ)` where :mini:`Valueᵢ` is the value protected by :mini:`Protectedᵢ`. All :mini:`Protectedᵢ` must be protected by the same :mini:`thread::mutex`.
 
 
+.. _fun-thread-condition:
+
 :mini:`fun thread::condition(): thread::condition`
    Creates a new condition.
 
+
+.. _type-thread-condition:
 
 :mini:`type thread::condition`
    A condition.

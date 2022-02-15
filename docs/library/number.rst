@@ -3,9 +3,13 @@
 number
 ======
 
+.. _type-number:
+
 :mini:`type number`
    Base type for numbers.
 
+
+.. _type-complex:
 
 :mini:`type complex < number`
    *TBD*
@@ -24,11 +28,17 @@ number
    Returns the imaginary component of :mini:`Z`.
 
 
+.. _type-real:
+
 :mini:`type real < complex`
    *TBD*
 
+.. _type-real:
+
 :mini:`type real < number`
    *TBD*
+
+.. _type-integer:
 
 :mini:`type integer < real, function`
    *TBD*
@@ -38,6 +48,8 @@ number
 
 :mini:`meth real(Arg₁: int64)`
    *TBD*
+
+.. _type-integer:
 
 :mini:`type integer < real, function`
    *TBD*
@@ -57,6 +69,8 @@ number
 :mini:`meth integer(Real: double): integer`
    Converts :mini:`Real` to an integer (using default rounding).
 
+
+.. _type-double:
 
 :mini:`type double < real`
    *TBD*

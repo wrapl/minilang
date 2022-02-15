@@ -3,9 +3,13 @@
 buffer
 ======
 
+.. _fun-buffer:
+
 :mini:`fun buffer(Length: integer): buffer`
    Allocates a new buffer with :mini:`Length` bytes.
 
+
+.. _type-buffer:
 
 :mini:`type buffer < address`
    A buffer represents a writable bounded section of memory.

@@ -1779,13 +1779,58 @@ ML_METHOD("scoped", MLExprT, MLMapT) {
 	Expr->Child = Child;
 	mlc_scoped_decl_t *Decl = Expr->Decls;
 	ML_MAP_FOREACH(Args[1], Iter) {
-		if (!ml_is(Iter->Key, MLStringT) || !ml_is(Iter->Value, MLExprT)) {
-			return ml_error("MacroError", "Invalid definition");
-		}
+		if (!ml_is(Iter->Key, MLStringT)) return ml_error("MacroError", "Invalid definition");
 		Decl->Name = ml_string_value(Iter->Key);
 		Decl->Value = Iter->Value;
 		++Decl;
 	}
+	return ml_expr_value((mlc_expr_t *)Expr, Value->Function);
+}
+
+static int ml_scoped_decl_add(const char *Name, ml_value_t *Value, mlc_scoped_decl_t **Decls) {
+	Decls[0]->Name = Name;
+	Decls[0]->Value = Value;
+	++Decls[0];
+	return 0;
+}
+
+ML_METHOD("scoped", MLExprT, MLModuleT) {
+//!macro
+//<Expr
+//<Module
+//>expr
+// Returns a new expression which wraps :mini:`Expr` with the exports from :mini:`Module`.
+	ml_expr_value_t *Value = (ml_expr_value_t *)Args[0];
+	ml_module_t *Module = (ml_module_t *)Args[1];
+	mlc_expr_t *Child = Value->Expr;
+	mlc_scoped_expr_t *Expr = xnew(mlc_scoped_expr_t, Module->Exports->Size + 1, mlc_scoped_decl_t);
+	Expr->Source = Child->Source;
+	Expr->StartLine = Child->StartLine;
+	Expr->EndLine = Child->EndLine;
+	Expr->compile = ml_scoped_expr_compile;
+	Expr->Child = Child;
+	mlc_scoped_decl_t *Decl = Expr->Decls;
+	stringmap_foreach(Module->Exports, &Decl, (void *)ml_scoped_decl_add);
+	return ml_expr_value((mlc_expr_t *)Expr, Value->Function);
+}
+
+ML_METHOD("scoped", MLExprT, MLTypeT) {
+//!macro
+//<Expr
+//<Module
+//>expr
+// Returns a new expression which wraps :mini:`Expr` with the exports from :mini:`Module`.
+	ml_expr_value_t *Value = (ml_expr_value_t *)Args[0];
+	ml_type_t *Type = (ml_type_t *)Args[1];
+	mlc_expr_t *Child = Value->Expr;
+	mlc_scoped_expr_t *Expr = xnew(mlc_scoped_expr_t, Type->Exports->Size + 1, mlc_scoped_decl_t);
+	Expr->Source = Child->Source;
+	Expr->StartLine = Child->StartLine;
+	Expr->EndLine = Child->EndLine;
+	Expr->compile = ml_scoped_expr_compile;
+	Expr->Child = Child;
+	mlc_scoped_decl_t *Decl = Expr->Decls;
+	stringmap_foreach(Type->Exports, &Decl, (void *)ml_scoped_decl_add);
 	return ml_expr_value((mlc_expr_t *)Expr, Value->Function);
 }
 

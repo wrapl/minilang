@@ -3,6 +3,8 @@
 boolean
 =======
 
+.. _type-boolean:
+
 :mini:`type boolean`
    *TBD*
 

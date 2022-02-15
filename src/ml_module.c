@@ -131,24 +131,6 @@ typedef struct {
 	ml_value_t *Lookup;
 } ml_fn_module_t;
 
-extern ml_type_t MLFnModuleT[];
-
-ML_FUNCTION(MLFnModule) {
-//@module
-//<Path:string
-//<Lookup:function
-//>module
-// Returns a generic module which calls resolves :mini:`Module::Import` by calling :mini:`Lookup(Import)`, caching results for future use.
-	ML_CHECK_ARG_COUNT(2);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
-	ML_CHECK_ARG_TYPE(1, MLFunctionT);
-	ml_fn_module_t *Module = new(ml_fn_module_t);
-	Module->Base.Type = MLFnModuleT;
-	Module->Base.Path = ml_string_value(Args[0]);
-	Module->Lookup = Args[1];
-	return (ml_value_t *)Module;
-}
-
 ML_TYPE(MLFnModuleT, (), "module");
 
 typedef struct {
@@ -185,7 +167,19 @@ ML_METHODX("::", MLFnModuleT, MLStringT) {
 	ML_RETURN(Value);
 }
 
+ML_METHOD(MLModuleT, MLStringT, MLFunctionT) {
+//@module
+//<Path:string
+//<Lookup:function
+//>module
+// Returns a generic module which calls resolves :mini:`Module::Import` by calling :mini:`Lookup(Import)`, caching results for future use.
+	ml_fn_module_t *Module = new(ml_fn_module_t);
+	Module->Base.Type = MLFnModuleT;
+	Module->Base.Path = ml_string_value(Args[0]);
+	Module->Lookup = Args[1];
+	return (ml_value_t *)Module;
+}
+
 void ml_module_init(stringmap_t *_Globals) {
 #include "ml_module_init.c"
-	MLModuleT->Constructor = (ml_value_t *)MLFnModule;
 }

@@ -10,8 +10,7 @@ Download the *Minilang* source code from
 Building
 --------
 
-There are two ways to build the *Minilang* library (:file:`lib/libminilang.a`)
-and interpreter (:file:`bin/minilang`).
+There are two ways to build the *Minilang* library (:file:`lib/libminilang.a`) and interpreter (:file:`bin/minilang`).
 
 Using *Rabs*
 ~~~~~~~~~~~~
@@ -24,7 +23,7 @@ This is the preferred method for building the *Minilang* library and interpreter
    $ cd minilang
    $ rabs -D<build option 1> -D<build option 2> ...
 
-A number of build options can be defined when invoking *rabs* to enable some additional features:
+A number of build options can be defined when invoking :command:`rabs` to enable some additional features:
 
 :-DDEFAULTS: Sets a number of typical build options based on the currently detected platform and architecture. This is the recommended build option.
 
@@ -59,6 +58,8 @@ A number of build options can be defined when invoking *rabs* to enable some add
 Using *Make*
 ~~~~~~~~~~~~
 
+Since *Minilang* is used within *Rabs*, it can also be built with :command:`make`. This enables only a subset of the available features and is intended just for building *Rabs*.
+
 .. code-block:: console
 
    $ git clone https://github.com/wrapl/minilang
@@ -69,7 +70,7 @@ Using *Make*
 Running
 -------
 
-Building *Minilang* with either *Rabs* or *Make* will produce an executable interpreter :file:`bin/minilang`. Running :file:`bin/minilang` without arguments will open a *Minilang* REPL where you can test the language. Type :kbd:`Ctrl` + :kbd:`C` to exit the REPL.
+Building *Minilang* with either *Rabs* or *Make* will produce an executable interpreter in :file:`bin/minilang`. Running :command:`minilang` without arguments will open a *Minilang* REPL where you can test the language. Type :kbd:`Ctrl` + :kbd:`C` to exit the REPL.
 
 .. code-block:: console
 
@@ -82,7 +83,7 @@ Building *Minilang* with either *Rabs* or *Make* will produce an executable inte
    --> <Ctrl+C>
    $
 
-Additional arguments can be passed to :file:`bin/minilang`:
+Additional arguments can be passed to :command:`minilang`:
 
 :<file> [<arg₁> <arg₂> ...]: Runs the code in ``<file>`` as a script. 
 :-G: Opens a GTK+ console if enabled.

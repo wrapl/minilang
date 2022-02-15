@@ -3,6 +3,8 @@
 tasks
 =====
 
+.. _fun-tasks:
+
 :mini:`fun tasks(Max?: integer, Min?: integer): tasks`
    Creates a new :mini:`tasks` set.
 
@@ -10,6 +12,8 @@ tasks
 
    If :mini:`Min` is also specified then the number of running tasks must drop below :mini:`Min` before more tasks are launched.
 
+
+.. _type-tasks:
 
 :mini:`type tasks < function`
    A dynamic set of tasks (function calls). Multiple tasks can run in parallel (depending on the availability of a scheduler and/or asynchronous function calls).
@@ -24,6 +28,8 @@ tasks
 :mini:`meth (Tasks: tasks):wait: nil | error`
    Waits until all of the tasks in a tasks set have returned,  or one of the tasks has returned an error (which is then returned from this call).
 
+
+.. _fun-parallel:
 
 :mini:`fun parallel(Sequence: any, Max?: integer, Min?: integer, Function: function): nil | error`
    Iterates through :mini:`Sequence` and calls :mini:`Function(Key,  Value)` for each :mini:`Key,  Value` pair produced **without** waiting for the call to return.

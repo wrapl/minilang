@@ -3,9 +3,13 @@
 string
 ======
 
+.. _fun-string:
+
 :mini:`fun string(Value: any): string`
    Returns a general (type name only) representation of :mini:`Value` as a string.
 
+
+.. _type-string:
 
 :mini:`type string < address, sequence`
    *TBD*
@@ -39,9 +43,13 @@ string
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: complex, Arg₃: string)`
    *TBD*
 
+.. _fun-regex:
+
 :mini:`fun regex(String: string): regex | error`
    Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
 
+
+.. _type-regex:
 
 :mini:`type regex`
    *TBD*
@@ -73,12 +81,18 @@ string
    Returns :mini:`Arg₂` if :mini:`Arg₁ >= Arg₂` and :mini:`nil` otherwise.
 
 
+.. _fun-string-switch:
+
 :mini:`fun string::switch(Cases: string|regex, ...)`
    Implements :mini:`switch` for string values. Case values must be strings or regular expressions.
 
 
+.. _fun-string-buffer:
+
 :mini:`fun string::buffer()`
    *TBD*
+
+.. _type-string-buffer:
 
 :mini:`type string::buffer`
    *TBD*

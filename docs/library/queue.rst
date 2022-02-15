@@ -3,9 +3,13 @@
 queue
 =====
 
+.. _type-queue-entry:
+
 :mini:`type queue::entry`
    A entry in a priority queue.
 
+
+.. _type-queue:
 
 :mini:`type queue < sequence`
    A priority queue with values and associated priorities.

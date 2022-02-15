@@ -3,6 +3,8 @@
 object
 ======
 
+.. _type-object:
+
 :mini:`type object`
    Parent type of all object classes.
 
@@ -11,6 +13,8 @@ object
    Retrieves the field :mini:`Field` from :mini:`Object`. Mainly intended for unpacking objects.
 
 
+.. _type-class:
+
 :mini:`type class < type`
    Type of all object classes.
 
@@ -18,13 +22,19 @@ object
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: object)`
    *TBD*
 
+.. _fun-class:
+
 :mini:`fun class(Parents: class, ..., Fields: method, ..., Exports: names, ...): class`
    Returns a new class inheriting from :mini:`Parents`,  with fields :mini:`Fields` and exports :mini:`Exports`. The special exports :mini:`::of` and :mini:`::init` can be set to override the default conversion and initialization behaviour. The :mini:`::new` export will *always* be set to the original constructor for this class.
 
 
+.. _type-property:
+
 :mini:`type property`
    A value with an associated setter function.
 
+
+.. _fun-property:
 
 :mini:`fun property(Value: any, set: any): property`
    Returns a new property which dereferences to :mini:`Value`. Assigning to the property will call :mini:`set(NewValue)`.
@@ -33,8 +43,12 @@ object
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: enum::value)`
    *TBD*
 
+.. _fun-enum:
+
 :mini:`fun enum(Values: string, ...): enum`
    *TBD*
+
+.. _type-enum:
 
 :mini:`type enum < type, sequence`
    *TBD*
@@ -42,14 +56,20 @@ object
 :mini:`meth (Enum: enum):count: integer`
    *TBD*
 
+.. _type-enum-range:
+
 :mini:`type enum::range`
    *TBD*
+
+.. _type-enum-range:
 
 :mini:`type enum::range < sequence`
    *TBD*
 
 :mini:`meth (Arg₁: enum::value) .. (Arg₂: enum::value)`
    *TBD*
+
+.. _type-flags:
 
 :mini:`type flags < type`
    *TBD*

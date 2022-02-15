@@ -3,6 +3,8 @@
 table
 =====
 
+.. _type-table:
+
 :mini:`type table < sequence`
    A table is a set of named arrays. The arrays must have the same length.
 
@@ -41,6 +43,8 @@ table
 :mini:`meth (Table: table) :: (Name: string, ...): array`
    Returns the column :mini:`Name` from :mini:`Table`.
 
+
+.. _type-table-row:
 
 :mini:`type table::row < sequence`
    A row in a table.

@@ -3,6 +3,8 @@
 module
 ======
 
+.. _type-module:
+
 :mini:`type module`
    *TBD*
 

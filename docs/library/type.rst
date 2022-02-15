@@ -3,13 +3,19 @@
 type
 ====
 
+.. _type-any:
+
 :mini:`type any`
    Base type for all values.
 
 
+.. _fun-type:
+
 :mini:`fun type(Value: any): type`
    Returns the type of :mini:`Value`.
 
+
+.. _type-type:
 
 :mini:`type type < function`
    Type of all types.

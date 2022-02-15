@@ -3,6 +3,8 @@
 bytecode
 ========
 
+.. _type-variable:
+
 :mini:`type variable`
    *TBD*
 
@@ -15,11 +17,17 @@ bytecode
 :mini:`meth variable(Arg₁: any, Arg₂: type)`
    *TBD*
 
+.. _fun-closure:
+
 :mini:`fun closure(Arg₁: closure)`
    *TBD*
 
+.. _type-closure:
+
 :mini:`type closure < function, sequence`
    *TBD*
+
+.. _type-closure-info:
 
 :mini:`type closure::info`
    *TBD*

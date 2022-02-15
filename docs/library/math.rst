@@ -255,19 +255,27 @@ math
    Returns the complex conjugate of :mini:`Z`.
 
 
+.. _fun-integer-random:
+
 :mini:`fun integer::random(Min?: number, Max?: number): integer`
    Returns a random integer between :mini:`Min` and :mini:`Max` (where :mini:`Max <= 2³² - 1`.
 
    If omitted,  :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`2³² - 1`.
 
 
+.. _fun-integer-random_permutation:
+
 :mini:`fun integer::random_permutation(Max: integer): list`
    Returns a random permutation of :mini:`1,  ...,  Max`.
 
 
+.. _fun-integer-random_cycle:
+
 :mini:`fun integer::random_cycle(Max: integer): list`
    Returns a random cyclic permutation (no sub-cycles) of :mini:`1,  ...,  Max`.
 
+
+.. _fun-real-random:
 
 :mini:`fun real::random(Min?: number, Max?: number): real`
    Returns a random real between :mini:`Min` and :mini:`Max`.

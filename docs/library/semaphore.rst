@@ -3,8 +3,12 @@
 semaphore
 =========
 
+.. _fun-semaphore:
+
 :mini:`fun semaphore(Initial?: integer)`
    *TBD*
+
+.. _type-semaphore:
 
 :mini:`type semaphore`
    *TBD*

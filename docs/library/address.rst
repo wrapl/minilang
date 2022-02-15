@@ -3,6 +3,8 @@
 address
 =======
 
+.. _type-address:
+
 :mini:`type address`
    An address represents a read-only bounded section of memory.
 

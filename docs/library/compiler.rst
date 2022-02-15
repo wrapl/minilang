@@ -3,6 +3,8 @@
 compiler
 ========
 
+.. _type-compiler-function:
+
 :mini:`type compiler::function < state`
    *TBD*
 
@@ -18,14 +20,22 @@ compiler
 :mini:`meth (Arg₁: expr):end`
    *TBD*
 
+.. _fun-compiler:
+
 :mini:`fun compiler(Global: function|map): compiler`
    *TBD*
+
+.. _type-compiler:
 
 :mini:`type compiler < state`
    *TBD*
 
+.. _fun-parser:
+
 :mini:`fun parser(?Read: function): parser`
    *TBD*
+
+.. _type-parser:
 
 :mini:`type parser`
    *TBD*
@@ -71,6 +81,8 @@ compiler
 
 :mini:`meth (Compiler: compiler):vars: map`
    *TBD*
+
+.. _type-global:
 
 :mini:`type global`
    *TBD*

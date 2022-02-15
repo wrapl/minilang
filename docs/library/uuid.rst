@@ -3,6 +3,8 @@
 uuid
 ====
 
+.. _type-uuid:
+
 :mini:`type uuid`
    *TBD*
 
