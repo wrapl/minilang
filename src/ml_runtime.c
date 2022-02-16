@@ -860,17 +860,22 @@ void ml_scheduler_queue_init(int Size) {
 }
 
 ml_queued_state_t ml_scheduler_queue_next() {
+	ml_queued_state_t Next = {NULL, NULL};
+#ifdef ML_THREADS
+	pthread_mutex_lock(Queue->Lock);
+#endif
 	if (Queue->Fill) {
 		ml_queued_state_t *States = Queue->States;
 		int Read = Queue->Read;
-		ml_queued_state_t QueuedState = States[Read];
+		Next = States[Read];
 		States[Read] = (ml_queued_state_t){NULL, NULL};
 		--Queue->Fill;
 		Queue->Read = (Read + 1) % Queue->Size;
-		return QueuedState;
-	} else {
-		return (ml_queued_state_t){NULL, NULL};
 	}
+#ifdef ML_THREADS
+	pthread_mutex_unlock(Queue->Lock);
+#endif
+	return Next;
 }
 
 int ml_scheduler_queue_add(ml_state_t *State, ml_value_t *Value) {

@@ -71,6 +71,7 @@ static ml_value_t *ml_is_closure_threadsafe(ml_closure_info_t *Info) {
 			switch (MLInstTypes[Inst->Opcode]) {
 			case MLIT_NONE: Inst += 1; break;
 			case MLIT_INST: Inst += 2; break;
+			case MLIT_INST_COUNT_DECL: Inst += 4; break;
 			case MLIT_INST_TYPES: Inst += 3; break;
 			case MLIT_COUNT_COUNT: Inst += 3; break;
 			case MLIT_COUNT: Inst += 2; break;
@@ -179,7 +180,7 @@ static void *ml_thread_fn(ml_thread_t *Thread) {
 	int Count = Thread->Count;
 	Thread->Args = NULL;
 	Thread->Count = 0;
-	ml_call((ml_state_t *)Thread, Args[Count - 1], Count - 1, Args);
+	ml_call((ml_state_t *)Thread, Args[0], Count - 1, Args + 1);
 	while (!Thread->Result) {
 		ml_queued_state_t QueuedState = ml_scheduler_queue_next_wait();
 		Thread->Schedule.Counter = 256;
