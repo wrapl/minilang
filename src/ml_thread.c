@@ -180,7 +180,7 @@ static void *ml_thread_fn(ml_thread_t *Thread) {
 	int Count = Thread->Count;
 	Thread->Args = NULL;
 	Thread->Count = 0;
-	ml_call((ml_state_t *)Thread, Args[0], Count - 1, Args + 1);
+	ml_call((ml_state_t *)Thread, Args[Count - 1], Count - 1, Args);
 	while (!Thread->Result) {
 		ml_queued_state_t QueuedState = ml_scheduler_queue_next_wait();
 		Thread->Schedule.Counter = 256;
