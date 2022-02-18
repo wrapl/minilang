@@ -757,8 +757,8 @@ ML_METHOD("size", MLArrayT) {
 }
 
 extern ml_value_t *RangeMethod;
-ML_METHOD_DECL(MulMethod, "*");
-ML_METHOD_DECL(AddMethod, "+");
+extern ml_value_t *MulMethod;
+extern ml_value_t *AddMethod;
 ML_METHOD_DECL(SubMethod, "-");
 ML_METHOD_DECL(DivMethod, "/");
 

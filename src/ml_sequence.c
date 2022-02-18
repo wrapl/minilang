@@ -940,10 +940,10 @@ ML_FUNCTIONX(Count2) {
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
-static ML_METHOD_DECL(LessMethod, "<");
-static ML_METHOD_DECL(GreaterMethod, ">");
-static ML_METHOD_DECL(AddMethod, "+");
-static ML_METHOD_DECL(MulMethod, "*");
+extern ml_value_t *LessMethod;
+extern ml_value_t *GreaterMethod;
+extern ml_value_t *AddMethod;
+extern ml_value_t *MulMethod;
 
 static void reduce_iter_next(ml_iter_state_t *State, ml_value_t *Value);
 

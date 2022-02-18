@@ -16,11 +16,19 @@ queue
 
 
 :mini:`meth queue(): queue`
-   Returns a new queue using :mini:`<>` to compare priorities.
+   Returns a new queue using :mini:`>` to compare priorities.
+
+
+:mini:`meth queue(Greater: function): queue`
+   Returns a new queue using :mini:`Greater` to compare priorities.
 
 
 :mini:`meth (Queue: queue):insert(Value: any, Priority: any): queue::entry`
    Creates and returns a new entry in :mini:`Queue` with value :mini:`Value` and priority :mini:`Priority`.
+
+
+:mini:`meth (Queue: queue):peek: queue::entry | nil`
+   Returns the next entry in :mini:`Queue` without removing it,  or :mini:`nil` if :mini:`Queue` is empty.
 
 
 :mini:`meth (Queue: queue):next: queue::entry | nil`
