@@ -44,8 +44,9 @@ struct ml_parser_t {
 		const char *Ident;
 	};
 	ml_source_t Source;
-	int Line;
 	ml_token_t Token;
+	int Line;
+	int Permissive;
 	jmp_buf OnError;
 };
 
@@ -209,6 +210,10 @@ static void mlc_expr_call(mlc_function_t *Parent, mlc_expr_t *Expr) {
 	Frame->Info = new(ml_closure_info_t);
 	Frame->Info->Entry = Function->Next;
 	mlc_compile(Function, Expr, 0);
+}
+
+static void ml_unknown_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags) {
+	MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "unknown expression cannot be compiled"));
 }
 
 static void ml_register_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags) {
@@ -3726,8 +3731,10 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 			Parser->Next = End;
 			return Parser->Token;
 		}
-		DO_CHAR_OTHER:
-			ml_parse_error(Parser, "ParseError", "unexpected character <%c>", Char);
+		DO_CHAR_OTHER: {
+			if (!Parser->Permissive) ml_parse_error(Parser, "ParseError", "unexpected character <%c>", Char);
+			++Next;
+		}
 	}
 	return Parser->Token;
 }
@@ -3772,10 +3779,14 @@ static inline int ml_parse2(ml_parser_t *Parser, ml_token_t Token) {
 
 static void ml_accept(ml_parser_t *Parser, ml_token_t Token) {
 	if (ml_parse2(Parser, Token)) return;
-	if (Parser->Token == MLT_IDENT) {
-		ml_parse_error(Parser, "ParseError", "expected %s not %s (%s)", MLTokens[Token], MLTokens[Parser->Token], Parser->Ident);
+	if (!Parser->Permissive) {
+		if (Parser->Token == MLT_IDENT) {
+			ml_parse_error(Parser, "ParseError", "expected %s not %s (%s)", MLTokens[Token], MLTokens[Parser->Token], Parser->Ident);
+		} else {
+			ml_parse_error(Parser, "ParseError", "expected %s not %s", MLTokens[Token], MLTokens[Parser->Token]);
+		}
 	} else {
-		ml_parse_error(Parser, "ParseError", "expected %s not %s", MLTokens[Token], MLTokens[Parser->Token]);
+		if (Token == MLT_IDENT) Parser->Ident = "?";
 	}
 }
 
@@ -4557,7 +4568,13 @@ static mlc_expr_t *ml_parse_term(ml_parser_t *Parser, int MethDecl) {
 static mlc_expr_t *ml_accept_term(ml_parser_t *Parser) {
 	ml_skip_eol(Parser);
 	mlc_expr_t *Expr = ml_parse_term(Parser, 0);
-	if (!Expr) ml_parse_error(Parser, "ParseError", "expected <expression> not %s", MLTokens[Parser->Token]);
+	if (!Expr) {
+		if (!Parser->Permissive) ml_parse_error(Parser, "ParseError", "expected <expression> not %s", MLTokens[Parser->Token]);
+		Expr = new(mlc_expr_t);
+		Expr->Source = Parser->Source.Name;
+		Expr->StartLine = Expr->EndLine = Parser->Source.Line;
+		Expr->compile = ml_unknown_expr_compile;
+	}
 	return Expr;
 }
 
@@ -4655,7 +4672,13 @@ done:
 static mlc_expr_t *ml_accept_expression(ml_parser_t *Parser, ml_expr_level_t Level) {
 	ml_skip_eol(Parser);
 	mlc_expr_t *Expr = ml_parse_expression(Parser, Level);
-	if (!Expr) ml_parse_error(Parser, "ParseError", "expected <expression> not %s", MLTokens[Parser->Token]);
+	if (!Expr) {
+		if (!Parser->Permissive) ml_parse_error(Parser, "ParseError", "expected <expression> not %s", MLTokens[Parser->Token]);
+		Expr = new(mlc_expr_t);
+		Expr->Source = Parser->Source.Name;
+		Expr->StartLine = Expr->EndLine = Parser->Source.Line;
+		Expr->compile = ml_unknown_expr_compile;
+	}
 	return Expr;
 }
 
@@ -5117,6 +5140,34 @@ void ml_function_compile(ml_state_t *Caller, mlc_expr_t *Expr, ml_compiler_t *Co
 	Frame->Info = Info;
 	Frame->Expr = Expr;
 	mlc_compile(Function, Expr, 0);
+}
+
+ML_METHOD("permissive", MLParserT, MLBooleanT) {
+//<Parser
+//<Permissive
+//>parser
+	ml_parser_t *Parser = (ml_parser_t *)Args[0];
+	Parser->Permissive = ml_boolean_value(Args[1]);
+	return (ml_value_t *)Parser;
+}
+
+ML_METHOD("parse", MLParserT) {
+//<Parser
+//>expr
+	ml_parser_t *Parser = (ml_parser_t *)Args[0];
+	mlc_expr_t *Expr = ml_accept_file(Parser);
+	if (!Expr) return Parser->Value;
+	return ml_expr_value(Expr, NULL);
+}
+
+ML_METHOD("parse", MLParserT, MLStringT) {
+//<Parser
+//>expr
+	ml_parser_t *Parser = (ml_parser_t *)Args[0];
+	ml_parser_input(Parser, ml_string_value(Args[1]));
+	mlc_expr_t *Expr = ml_accept_file(Parser);
+	if (!Expr) return Parser->Value;
+	return ml_expr_value(Expr, NULL);
 }
 
 ML_METHODX("compile", MLParserT, MLCompilerT) {

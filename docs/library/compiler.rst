@@ -40,6 +40,15 @@ compiler
 :mini:`type parser`
    *TBD*
 
+:mini:`meth (Parser: parser):permissive(Permissive: boolean): parser`
+   *TBD*
+
+:mini:`meth (Parser: parser):parse: expr`
+   *TBD*
+
+:mini:`meth (Parser: parser):parse(Arg₂: string): expr`
+   *TBD*
+
 :mini:`meth (Parser: parser):compile(Compiler: compiler): any`
    *TBD*
 
