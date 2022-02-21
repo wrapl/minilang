@@ -589,7 +589,7 @@ ML_METHOD("trace", MLErrorValueT) {
 	ml_value_t *Trace = ml_list();
 	ml_source_t *Source = Value->Trace;
 	for (int I = MAX_TRACE; --I >= 0 && Source->Name; ++Source) {
-		ml_value_t *Tuple = ml_tuplev(2, ml_cstring(Source->Name), ml_integer(Source->Line));
+		ml_value_t *Tuple = ml_tuplev(2, ml_string(Source->Name, -1), ml_integer(Source->Line));
 		ml_list_put(Trace, Tuple);
 	}
 	return Trace;

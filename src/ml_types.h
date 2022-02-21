@@ -7,7 +7,7 @@
 #include "inthash.h"
 #include "config.h"
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -605,10 +605,15 @@ static inline size_t ml_buffer_length(const ml_value_t *Value) {
 }
 
 ml_value_t *ml_string(const char *Value, int Length) __attribute__((malloc));
-#define ml_cstring(VALUE) ml_string(VALUE, strlen(VALUE))
 ml_value_t *ml_string_format(const char *Format, ...) __attribute__((malloc, format(printf, 1, 2)));
 #define ml_string_value ml_address_value
 #define ml_string_length ml_address_length
+
+//#define ml_cstring(VALUE) ml_string(VALUE, strlen(VALUE))
+#define ml_cstring(VALUE) ({ \
+	static ml_string_t String ## __COUNTER__ = {MLStringT, VALUE, strlen(VALUE), 0}; \
+	(ml_value_t *)&String ## __COUNTER__; \
+})
 
 ml_value_t *ml_regex(const char *Value, int Length) __attribute__((malloc));
 ml_value_t *ml_regexi(const char *Value, int Length) __attribute__((malloc));
@@ -987,7 +992,7 @@ ml_value_t *ml_module_export(ml_value_t *Module, const char *Name, ml_value_t *V
 
 void ml_types_init(stringmap_t *Globals);
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 
 template <typename... args> void ml_method_by_auto(const char *Cached, void *Data, ml_callback_t Function, args... Args) {

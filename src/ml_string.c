@@ -2901,7 +2901,7 @@ void ml_string_init() {
 	}
 	const char *Version;
 	if (!tre_config(TRE_CONFIG_VERSION, &Version)) {
-		ml_map_insert(Features, ml_cstring("version"), ml_cstring(Version));
+		ml_map_insert(Features, ml_cstring("version"), ml_string(Version, -1));
 	}
 #endif
 }

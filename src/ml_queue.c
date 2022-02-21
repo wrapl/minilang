@@ -34,29 +34,28 @@ struct ml_queue_t {
 ML_TYPE(MLQueueT, (MLSequenceT), "queue");
 // A priority queue with values and associated priorities.
 
+ml_value_t *ml_queue(ml_value_t *Compare) {
+	ml_queue_t *Queue = new(ml_queue_t);
+	Queue->Base.Type = MLQueueT;
+	Queue->Compare = Compare;
+	Queue->Size = 16;
+	Queue->Entries = anew(ml_queue_entry_t *, Queue->Size);
+	return (ml_value_t *)Queue;
+}
+
 extern ml_value_t *GreaterMethod;
 
 ML_METHOD(MLQueueT) {
 //>queue
 // Returns a new queue using :mini:`>` to compare priorities.
-	ml_queue_t *Queue = new(ml_queue_t);
-	Queue->Base.Type = MLQueueT;
-	Queue->Compare = GreaterMethod;
-	Queue->Size = 16;
-	Queue->Entries = anew(ml_queue_entry_t *, Queue->Size);
-	return (ml_value_t *)Queue;
+	return ml_queue(GreaterMethod);
 }
 
 ML_METHOD(MLQueueT, MLFunctionT) {
 //<Greater
 //>queue
 // Returns a new queue using :mini:`Greater` to compare priorities.
-	ml_queue_t *Queue = new(ml_queue_t);
-	Queue->Base.Type = MLQueueT;
-	Queue->Compare = Args[0];
-	Queue->Size = 16;
-	Queue->Entries = anew(ml_queue_entry_t *, Queue->Size);
-	return (ml_value_t *)Queue;
+	return ml_queue(Args[0]);
 }
 
 static inline int priority_higher(ml_value_t *Compare, ml_value_t *A, ml_value_t *B) {

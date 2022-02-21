@@ -108,7 +108,7 @@ ML_METHOD("rank", MLTypeT) {
 }
 
 static int ml_type_exports_fn(const char *Name, void *Value, ml_value_t *Exports) {
-	ml_map_insert(Exports, ml_cstring(Name), Value);
+	ml_map_insert(Exports, ml_string(Name, -1), Value);
 	return 0;
 }
 
@@ -3327,13 +3327,13 @@ ML_METHOD("append", MLStringBufferT, MLModuleT) {
 }
 
 static int ml_module_exports_fn(const char *Name, void *Value, ml_value_t *Exports) {
-	ml_map_insert(Exports, ml_cstring(Name), Value);
+	ml_map_insert(Exports, ml_string(Name, -1), Value);
 	return 0;
 }
 
 ML_METHOD("path", MLModuleT) {
 	ml_module_t *Module = (ml_module_t *)Args[0];
-	return ml_cstring(Module->Path);
+	return ml_string(Module->Path, -1);
 }
 
 ML_METHOD("exports", MLModuleT) {

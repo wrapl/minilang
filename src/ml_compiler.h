@@ -6,7 +6,7 @@
 #include "ml_runtime.h"
 #include "stringmap.h"
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -59,7 +59,7 @@ ml_value_t *ml_global(const char *Name);
 ml_value_t *ml_global_get(ml_value_t *Global);
 ml_value_t *ml_global_set(ml_value_t *Global, ml_value_t *Value);
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 

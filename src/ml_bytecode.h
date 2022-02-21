@@ -5,7 +5,7 @@
 #include "ml_runtime.h"
 #include "ml_opcodes.h"
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -103,7 +103,7 @@ ml_value_t *ml_cbor_read_closure(void *Data, int Count, ml_value_t **Args);
 
 void ml_bytecode_init();
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 

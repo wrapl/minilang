@@ -1336,7 +1336,7 @@ ML_FUNCTION(DecodeClosure) {
 extern ml_value_t *RangeMethod;
 
 void ml_cbor_default_object(const char *Name, ml_value_t *Constructor) {
-	ml_map_insert(CborObjects, ml_cstring(Name), Constructor);
+	ml_map_insert(CborObjects, ml_string(Name, -1), Constructor);
 }
 
 static void ml_cbor_default_global(const char *Name, void *Value) {

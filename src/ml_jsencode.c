@@ -403,7 +403,7 @@ ML_METHOD("encode", JSEncoderT, MLAnyT) {
 	Cache->Globals = Encoder->Globals;
 	json_t *Json = ml_json_encode(Cache, Args[1]);
 	const char *String = json_dumps(Json, JSON_ENCODE_ANY | JSON_COMPACT);
-	return ml_cstring(String);
+	return ml_string(String, -1);
 }
 
 struct ml_json_decoder_cache_t {

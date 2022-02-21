@@ -990,7 +990,7 @@ static void ml_var_in_expr_compile2(mlc_function_t *Function, ml_value_t *Value,
 		PushInst[1].Count = -1;
 		mlc_inc_top(Function);
 		ml_inst_t *ValueInst = MLC_EMIT(Expr->EndLine, MLI_LOAD_PUSH, 1);
-		ValueInst[1].Value = ml_cstring(Local->Ident);
+		ValueInst[1].Value = ml_string(Local->Ident, -1);
 		mlc_inc_top(Function);
 		ml_inst_t *CallInst = MLC_EMIT(Expr->EndLine, MLI_CONST_CALL_2, 1);
 		CallInst[1].Value = SymbolMethod;
@@ -1080,7 +1080,7 @@ static void ml_let_in_expr_compile2(mlc_function_t *Function, ml_value_t *Value,
 		PushInst[1].Count = -1;
 		mlc_inc_top(Function);
 		ml_inst_t *ValueInst = MLC_EMIT(Expr->EndLine, MLI_LOAD_PUSH, 1);
-		ValueInst[1].Value = ml_cstring(Local->Ident);
+		ValueInst[1].Value = ml_string(Local->Ident, -1);
 		mlc_inc_top(Function);
 		ml_inst_t *CallInst = MLC_EMIT(Expr->EndLine, MLI_CONST_CALL_2, 1);
 		CallInst[1].Value = SymbolMethod;
@@ -1189,7 +1189,7 @@ static void ml_def_in_expr_compile3(mlc_function_t *Function, ml_value_t *Value,
 	if (++Index < Expr->Count) {
 		Frame->Index = Index;
 		Local = Frame->Local = Local->Next;
-		Frame->Args[1] = ml_cstring(Local->Ident);
+		Frame->Args[1] = ml_string(Local->Ident, -1);
 		return ml_call(Function, SymbolMethod, 2, Frame->Args);
 	}
 	if (Frame->Flags & MLCF_PUSH) {
@@ -1210,7 +1210,7 @@ static void ml_def_in_expr_compile2(mlc_function_t *Function, ml_value_t *Value,
 	mlc_local_t *Local = Frame->Local = Expr->Local;
 	Frame->Index = 0;
 	Frame->Decls = Function->Block->Decls + Local->Index;
-	Frame->Args[1] = ml_cstring(Local->Ident);
+	Frame->Args[1] = ml_string(Local->Ident, -1);
 	Function->Frame->run = (mlc_frame_fn)ml_def_in_expr_compile3;
 	return ml_call(Function, SymbolMethod, 2, Frame->Args);
 }
@@ -1649,12 +1649,6 @@ static void ml_map_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Exp
 	MLC_RETURN(NULL);
 }
 
-typedef struct {
-	ml_type_t *Type;
-	mlc_expr_t *Expr;
-	mlc_function_t *Function;
-} ml_expr_value_t;
-
 ML_TYPE(MLExprT, (), "expr");
 //!macro
 // An expression value used by the compiler to implement macros.
@@ -1916,7 +1910,7 @@ ML_METHOD("subst", MLExprT, MLListT, MLListT) {
 
 ML_METHOD("source", MLExprT) {
 	mlc_expr_t *Child = ((ml_expr_value_t *)Args[0])->Expr;
-	return ml_cstring(Child->Source);
+	return ml_string(Child->Source, -1);
 }
 
 ML_METHOD("start", MLExprT) {
@@ -2943,91 +2937,53 @@ static void ml_inline_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *
 }
 
 ml_expr_type_t mlc_expr_type(mlc_expr_t *Expr) {
-	if (Expr->compile == (void *)ml_register_expr_compile) {
-		return ML_EXPR_REGISTER;
-	} else if (Expr->compile == (void *)ml_blank_expr_compile) {
-		return ML_EXPR_BLANK;
-	} else if (Expr->compile == (void *)ml_nil_expr_compile) {
-		return ML_EXPR_NIL;
-	} else if (Expr->compile == (void *)ml_value_expr_compile) {
-		return ML_EXPR_VALUE;
-	} else if (Expr->compile == (void *)ml_if_expr_compile) {
-		return ML_EXPR_IF;
-	} else if (Expr->compile == (void *)ml_or_expr_compile) {
-		return ML_EXPR_OR;
-	} else if (Expr->compile == (void *)ml_and_expr_compile) {
-		return ML_EXPR_AND;
-	} else if (Expr->compile == (void *)ml_debug_expr_compile) {
-		return ML_EXPR_DEBUG;
-	} else if (Expr->compile == (void *)ml_not_expr_compile) {
-		return ML_EXPR_NOT;
-	} else if (Expr->compile == (void *)ml_loop_expr_compile) {
-		return ML_EXPR_LOOP;
-	} else if (Expr->compile == (void *)ml_next_expr_compile) {
-		return ML_EXPR_NEXT;
-	} else if (Expr->compile == (void *)ml_exit_expr_compile) {
-		return ML_EXPR_EXIT;
-	} else if (Expr->compile == (void *)ml_return_expr_compile) {
-		return ML_EXPR_RETURN;
-	} else if (Expr->compile == (void *)ml_suspend_expr_compile) {
-		return ML_EXPR_SUSPEND;
-	} else if (Expr->compile == (void *)ml_with_expr_compile) {
-		return ML_EXPR_WITH;
-	} else if (Expr->compile == (void *)ml_for_expr_compile) {
-		return ML_EXPR_FOR;
-	} else if (Expr->compile == (void *)ml_each_expr_compile) {
-		return ML_EXPR_EACH;
-	} else if (Expr->compile == (void *)ml_var_expr_compile) {
-		return ML_EXPR_VAR;
-	} else if (Expr->compile == (void *)ml_var_type_expr_compile) {
-		return ML_EXPR_VAR_TYPE;
-	} else if (Expr->compile == (void *)ml_var_in_expr_compile) {
-		return ML_EXPR_VAR_IN;
-	} else if (Expr->compile == (void *)ml_var_unpack_expr_compile) {
-		return ML_EXPR_VAR_UNPACK;
-	} else if (Expr->compile == (void *)ml_let_expr_compile) {
-		return ML_EXPR_LET;
-	} else if (Expr->compile == (void *)ml_let_in_expr_compile) {
-		return ML_EXPR_LET_IN;
-	} else if (Expr->compile == (void *)ml_let_unpack_expr_compile) {
-		return ML_EXPR_LET_UNPACK;
-	} else if (Expr->compile == (void *)ml_def_expr_compile) {
-		return ML_EXPR_DEF;
-	} else if (Expr->compile == (void *)ml_def_in_expr_compile) {
-		return ML_EXPR_DEF_IN;
-	} else if (Expr->compile == (void *)ml_def_unpack_expr_compile) {
-		return ML_EXPR_DEF_UNPACK;
-	} else if (Expr->compile == (void *)ml_block_expr_compile) {
-		return ML_EXPR_BLOCK;
-	} else if (Expr->compile == (void *)ml_assign_expr_compile) {
-		return ML_EXPR_ASSIGN;
-	} else if (Expr->compile == (void *)ml_old_expr_compile) {
-		return ML_EXPR_OLD;
-	} else if (Expr->compile == (void *)ml_tuple_expr_compile) {
-		return ML_EXPR_TUPLE;
-	} else if (Expr->compile == (void *)ml_list_expr_compile) {
-		return ML_EXPR_LIST;
-	} else if (Expr->compile == (void *)ml_map_expr_compile) {
-		return ML_EXPR_MAP;
-	} else if (Expr->compile == (void *)ml_call_expr_compile) {
-		return ML_EXPR_CALL;
-	} else if (Expr->compile == (void *)ml_const_call_expr_compile) {
-		return ML_EXPR_CONST_CALL;
-	} else if (Expr->compile == (void *)ml_resolve_expr_compile) {
-		return ML_EXPR_RESOLVE;
-	} else if (Expr->compile == (void *)ml_string_expr_compile) {
-		return ML_EXPR_STRING;
-	} else if (Expr->compile == (void *)ml_fun_expr_compile) {
-		return ML_EXPR_FUN;
-	} else if (Expr->compile == (void *)ml_ident_expr_compile) {
-		return ML_EXPR_IDENT;
-	} else if (Expr->compile == (void *)ml_define_expr_compile) {
-		return ML_EXPR_DEFINE;
-	} else if (Expr->compile == (void *)ml_inline_expr_compile) {
-		return ML_EXPR_INLINE;
-	} else {
-		return 0;
-	}
+	if (Expr->compile == (void *)ml_block_expr_compile) return ML_EXPR_BLOCK;
+	if (Expr->compile == (void *)ml_default_expr_compile) return ML_EXPR_DEFAULT;
+	if (Expr->compile == (void *)ml_blank_expr_compile) return ML_EXPR_BLANK;
+	if (Expr->compile == (void *)ml_next_expr_compile) return ML_EXPR_NEXT;
+	if (Expr->compile == (void *)ml_nil_expr_compile) return ML_EXPR_NIL;
+	if (Expr->compile == (void *)ml_old_expr_compile) return ML_EXPR_OLD;
+	if (Expr->compile == (void *)ml_register_expr_compile) return ML_EXPR_REGISTER;
+	if (Expr->compile == (void *)ml_for_expr_compile) return ML_EXPR_FOR;
+	if (Expr->compile == (void *)ml_fun_expr_compile) return ML_EXPR_FUN;
+	if (Expr->compile == (void *)ml_define_expr_compile) return ML_EXPR_DEFINE;
+	if (Expr->compile == (void *)ml_ident_expr_compile) return ML_EXPR_IDENT;
+	if (Expr->compile == (void *)ml_if_expr_compile) return ML_EXPR_IF;
+	if (Expr->compile == (void *)ml_def_expr_compile) return ML_EXPR_DEF;
+	if (Expr->compile == (void *)ml_def_in_expr_compile) return ML_EXPR_DEF_IN;
+	if (Expr->compile == (void *)ml_def_unpack_expr_compile) return ML_EXPR_DEF_UNPACK;
+	if (Expr->compile == (void *)ml_let_expr_compile) return ML_EXPR_LET;
+	if (Expr->compile == (void *)ml_let_in_expr_compile) return ML_EXPR_LET_IN;
+	if (Expr->compile == (void *)ml_let_unpack_expr_compile) return ML_EXPR_LET_UNPACK;
+	if (Expr->compile == (void *)ml_var_expr_compile) return ML_EXPR_VAR;
+	if (Expr->compile == (void *)ml_var_in_expr_compile) return ML_EXPR_VAR_IN;
+	if (Expr->compile == (void *)ml_var_type_expr_compile) return ML_EXPR_VAR_TYPE;
+	if (Expr->compile == (void *)ml_var_unpack_expr_compile) return ML_EXPR_VAR_UNPACK;
+	if (Expr->compile == (void *)ml_with_expr_compile) return ML_EXPR_WITH;
+	if (Expr->compile == (void *)ml_and_expr_compile) return ML_EXPR_AND;
+	if (Expr->compile == (void *)ml_assign_expr_compile) return ML_EXPR_ASSIGN;
+	if (Expr->compile == (void *)ml_call_expr_compile) return ML_EXPR_CALL;
+	if (Expr->compile == (void *)ml_debug_expr_compile) return ML_EXPR_DEBUG;
+	if (Expr->compile == (void *)ml_delegate_expr_compile) return ML_EXPR_DELEGATE;
+	if (Expr->compile == (void *)ml_each_expr_compile) return ML_EXPR_EACH;
+	if (Expr->compile == (void *)ml_exit_expr_compile) return ML_EXPR_EXIT;
+	if (Expr->compile == (void *)ml_inline_expr_compile) return ML_EXPR_INLINE;
+	if (Expr->compile == (void *)ml_list_expr_compile) return ML_EXPR_LIST;
+	if (Expr->compile == (void *)ml_loop_expr_compile) return ML_EXPR_LOOP;
+	if (Expr->compile == (void *)ml_map_expr_compile) return ML_EXPR_MAP;
+	if (Expr->compile == (void *)ml_not_expr_compile) return ML_EXPR_NOT;
+	if (Expr->compile == (void *)ml_or_expr_compile) return ML_EXPR_OR;
+	if (Expr->compile == (void *)ml_return_expr_compile) return ML_EXPR_RETURN;
+	if (Expr->compile == (void *)ml_suspend_expr_compile) return ML_EXPR_SUSPEND;
+	if (Expr->compile == (void *)ml_switch_expr_compile) return ML_EXPR_SWITCH;
+	if (Expr->compile == (void *)ml_tuple_expr_compile) return ML_EXPR_TUPLE;
+	if (Expr->compile == (void *)ml_const_call_expr_compile) return ML_EXPR_CONST_CALL;
+	if (Expr->compile == (void *)ml_resolve_expr_compile) return ML_EXPR_RESOLVE;
+	if (Expr->compile == (void *)ml_scoped_expr_compile) return ML_EXPR_SCOPED;
+	if (Expr->compile == (void *)ml_string_expr_compile) return ML_EXPR_STRING;
+	if (Expr->compile == (void *)ml_subst_expr_compile) return ML_EXPR_SUBST;
+	if (Expr->compile == (void *)ml_value_expr_compile) return ML_EXPR_VALUE;
+	return ML_EXPR_UNKNOWN;
 }
 
 #define MLT_DELIM_FIRST MLT_LEFT_PAREN
@@ -3099,12 +3055,12 @@ static void ml_compiler_call(ml_state_t *Caller, ml_compiler_t *Compiler, int Co
 }
 
 static ml_value_t *ml_function_global_get(ml_value_t *Function, const char *Name) {
-	ml_value_t *Value = ml_simple_inline(Function, 1, ml_cstring(Name));
+	ml_value_t *Value = ml_simple_inline(Function, 1, ml_string(Name, -1));
 	return (Value != MLNotFound) ? Value : NULL;
 }
 
 static ml_value_t *ml_map_global_get(ml_value_t *Map, const char *Name) {
-	return ml_map_search0(Map, ml_cstring(Name));
+	return ml_map_search0(Map, ml_string(Name, -1));
 }
 
 ML_FUNCTION(MLCompiler) {
@@ -3999,7 +3955,7 @@ static void ml_accept_named_arguments(ml_parser_t *Parser, ml_token_t EndToken, 
 	ArgsSlot = &Arg->Next;
 	while (ml_parse2(Parser, MLT_COMMA)) {
 		if (ml_parse2(Parser, MLT_IDENT)) {
-			ml_names_add(Names, ml_cstring(Parser->Ident));
+			ml_names_add(Names, ml_string(Parser->Ident, -1));
 		} else if (ml_parse2(Parser, MLT_VALUE)) {
 			if (ml_typeof(Parser->Value) != MLStringT) {
 				ml_parse_error(Parser, "ParseError", "Argument names must be identifiers or string");
@@ -4034,7 +3990,7 @@ static void ml_accept_arguments(ml_parser_t *Parser, ml_token_t EndToken, mlc_ex
 			if (ml_parse2(Parser, MLT_IS)) {
 				ml_value_t *Names = ml_names();
 				if (Arg->compile == (void *)ml_ident_expr_compile) {
-					ml_names_add(Names, ml_cstring(((mlc_ident_expr_t *)Arg)->Ident));
+					ml_names_add(Names, ml_string(((mlc_ident_expr_t *)Arg)->Ident, -1));
 				} else if (Arg->compile == (void *)ml_value_expr_compile) {
 					ml_value_t *Name = ((mlc_value_expr_t *)Arg)->Value;
 					if (ml_typeof(Name) != MLStringT) {
@@ -4240,6 +4196,7 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 		mlc_expr_t *Expr = new(mlc_expr_t);
 		Expr->compile = CompileFns[Parser->Token];
 		ml_next(Parser);
+		Expr->Source = Parser->Source.Name;
 		Expr->StartLine = Expr->EndLine = Parser->Source.Line;
 		return Expr;
 	}
@@ -4608,7 +4565,7 @@ static mlc_expr_t *ml_parse_expression(ml_parser_t *Parser, ml_expr_level_t Leve
 	mlc_expr_t *Expr = ml_parse_term(Parser, 0);
 	if (!Expr) return NULL;
 	for (;;) switch (ml_current(Parser)) {
-	case MLT_OPERATOR: case MLT_IDENT: {
+	case MLT_OPERATOR: case MLT_IDENT: case MLT_IN: {
 		ml_next(Parser);
 		ML_EXPR(CallExpr, parent_value, const_call);
 		CallExpr->Value = ml_method(Parser->Ident);
@@ -4627,15 +4584,6 @@ static mlc_expr_t *ml_parse_expression(ml_parser_t *Parser, ml_expr_level_t Leve
 		AssignExpr->Child = Expr;
 		Expr->Next = ml_accept_expression(Parser, EXPR_DEFAULT);
 		Expr = ML_EXPR_END(AssignExpr);
-		break;
-	}
-	case MLT_IN: {
-		ml_next(Parser);
-		ML_EXPR(CallExpr, parent_value, const_call);
-		CallExpr->Value = MLInMethod;
-		CallExpr->Child = Expr;
-		Expr->Next = ml_accept_expression(Parser, EXPR_SIMPLE);
-		Expr = ML_EXPR_END(CallExpr);
 		break;
 	}
 	default: goto done;
@@ -4940,7 +4888,7 @@ static mlc_expr_t *ml_accept_block_export(ml_parser_t *Parser, mlc_expr_t *Expr,
 	Expr->Next = ML_EXPR_END(NamesExpr);
 	mlc_expr_t **ArgsSlot = &NamesExpr->Next;
 	while (Export) {
-		ml_names_add(Names, ml_cstring(Export->Ident));
+		ml_names_add(Names, ml_string(Export->Ident, -1));
 		ML_EXPR(IdentExpr, ident, ident);
 		IdentExpr->Ident = Export->Ident;
 		ArgsSlot[0] = ML_EXPR_END(IdentExpr);
@@ -5208,7 +5156,7 @@ ML_METHOD("source", MLParserT, MLStringT, MLIntegerT) {
 	ml_parser_t *Parser = (ml_parser_t *)Args[0];
 	ml_source_t Source = {ml_string_value(Args[1]), ml_integer_value(Args[2])};
 	Source = ml_parser_source(Parser, Source);
-	return ml_tuplev(2, ml_cstring(Source.Name), ml_integer(Source.Line));
+	return ml_tuplev(2, ml_string(Source.Name, -1), ml_integer(Source.Line));
 }
 
 ML_METHOD("reset", MLParserT) {
@@ -5232,7 +5180,7 @@ ML_METHOD("clear", MLParserT) {
 //<Parser
 //>string
 	ml_parser_t *Parser = (ml_parser_t *)Args[0];
-	return ml_cstring(ml_parser_clear(Parser));
+	return ml_string(ml_parser_clear(Parser), -1);
 }
 
 ML_METHODX("evaluate", MLParserT, MLCompilerT) {
@@ -5337,7 +5285,7 @@ ML_METHOD("def", MLCompilerT, MLStringT, MLAnyT) {
 }
 
 static int ml_compiler_var_fn(const char *Name, ml_value_t *Value, ml_value_t *Vars) {
-	ml_map_insert(Vars, ml_cstring(Name), ml_deref(Value));
+	ml_map_insert(Vars, ml_string(Name, -1), ml_deref(Value));
 	return 0;
 }
 
@@ -5493,7 +5441,7 @@ static void ml_command_idents_in2(mlc_function_t *Function, ml_value_t *Value, m
 	Global->Value = Value;
 	if (Frame->Index) {
 		int Index = --Frame->Index;
-		Frame->Args[1] = ml_cstring(Frame->Globals[Index]->Name);
+		Frame->Args[1] = ml_string(Frame->Globals[Index]->Name, -1);
 		return ml_call(Function, SymbolMethod, 2, Frame->Args);
 	} else {
 		MLC_POP();
@@ -5503,7 +5451,7 @@ static void ml_command_idents_in2(mlc_function_t *Function, ml_value_t *Value, m
 
 static void ml_command_idents_in(mlc_function_t *Function, ml_value_t *Value, ml_command_idents_frame_t *Frame) {
 	Frame->Args[0] = Value;
-	Frame->Args[1] = ml_cstring(Frame->Globals[Frame->Index]->Name);
+	Frame->Args[1] = ml_string(Frame->Globals[Frame->Index]->Name, -1);
 	Function->Frame->run = (mlc_frame_fn)ml_command_idents_in2;
 	return ml_call(Function, SymbolMethod, 2, Frame->Args);
 }

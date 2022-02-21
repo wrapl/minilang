@@ -778,7 +778,7 @@ static ml_value_t *argument_to_ml(GIArgument *Argument, GITypeInfo *TypeInfo, GI
 		return ml_real(Argument->v_double);
 	}
 	case GI_TYPE_TAG_GTYPE: {
-		return ml_cstring(g_type_name(Argument->v_size));
+		return ml_string(g_type_name(Argument->v_size), -1);
 	}
 	case GI_TYPE_TAG_UTF8:
 	case GI_TYPE_TAG_FILENAME: {
@@ -790,7 +790,7 @@ static ml_value_t *argument_to_ml(GIArgument *Argument, GITypeInfo *TypeInfo, GI
 		case GI_TYPE_TAG_INT8:
 		case GI_TYPE_TAG_UINT8: {
 			if (g_type_info_is_zero_terminated(TypeInfo)) {
-				return ml_cstring(Argument->v_string);
+				return ml_string(Argument->v_string, -1);
 			} else {
 				size_t Length;
 				int LengthIndex = g_type_info_get_array_length(TypeInfo);
@@ -1853,7 +1853,7 @@ static ml_type_t *enum_info_lookup(GIEnumInfo *Info) {
 			const char *ValueName = GC_strdup(g_base_info_get_name((GIBaseInfo *)ValueInfo));
 			enum_value_t *Value = new(enum_value_t);
 			Value->Type = Enum;
-			Value->Name = ml_cstring(ValueName);
+			Value->Name = ml_string(ValueName, -1);
 			Value->Value = g_value_info_get_value(ValueInfo);
 			stringmap_insert(Enum->Base.Exports, ValueName, (ml_value_t *)Value);
 			Enum->ByIndex[I] = Value;

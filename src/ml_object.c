@@ -547,7 +547,7 @@ ml_type_t *ml_enum(const char *TypeName, ...) {
 	va_start(Args, TypeName);
 	const char *String;
 	while ((String = va_arg(Args, const char *))) {
-		ml_value_t *Name = ml_cstring(String);
+		ml_value_t *Name = ml_string(String, -1);
 		ml_enum_value_t *Value = new(ml_enum_value_t);
 		Value->Base.Type = (ml_type_t *)Enum;
 		Value->Name = Name;
@@ -582,7 +582,7 @@ ml_type_t *ml_enum2(const char *TypeName, ...) {
 	va_start(Args, TypeName);
 	const char *String;
 	while ((String = va_arg(Args, const char *))) {
-		ml_value_t *Name = ml_cstring(String);
+		ml_value_t *Name = ml_string(String, -1);
 		ml_enum_value_t *Value = new(ml_enum_value_t);
 		Value->Base.Type = (ml_type_t *)Enum;
 		Value->Name = Name;
@@ -935,7 +935,7 @@ ml_type_t *ml_flags(const char *TypeName, ...) {
 	va_start(Args, TypeName);
 	const char *String;
 	while ((String = va_arg(Args, const char *))) {
-		ml_value_t *Name = ml_cstring(String);
+		ml_value_t *Name = ml_string(String, -1);
 		ml_flags_value_t *Value = new(ml_flags_value_t);
 		Value->Type = (ml_type_t *)Flags;
 		Flags->Names[Index++] = Name;
@@ -970,7 +970,7 @@ ml_type_t *ml_flags2(const char *TypeName, ...) {
 	va_start(Args, TypeName);
 	const char *String;
 	while ((String = va_arg(Args, const char *))) {
-		ml_value_t *Name = ml_cstring(String);
+		ml_value_t *Name = ml_string(String, -1);
 		ml_flags_value_t *Value = new(ml_flags_value_t);
 		Value->Type = (ml_type_t *)Flags;
 		Flags->Names[Index++] = Name;

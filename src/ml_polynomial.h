@@ -4,7 +4,7 @@
 #include "stringmap.h"
 #include "ml_types.h"
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -43,7 +43,7 @@ void ml_polynomial_write(ml_stringbuffer_t *Buffer, ml_polynomial_t *Poly);
 
 void ml_polynomial_init(stringmap_t *Globals);
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 

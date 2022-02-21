@@ -1768,7 +1768,7 @@ ML_METHOD("info", MLClosureT) {
 	ml_closure_t *Closure = (ml_closure_t *)Args[0];
 	ml_closure_info_t *Info = Closure->Info;
 	ml_value_t *Result = ml_map();
-	ml_map_insert(Result, ml_cstring("Source"), ml_cstring(Info->Source));
+	ml_map_insert(Result, ml_cstring("Source"), ml_string(Info->Source, -1));
 	ml_map_insert(Result, ml_cstring("Start"), ml_integer(Info->StartLine));
 	ml_map_insert(Result, ml_cstring("End"), ml_integer(Info->EndLine));
 	ml_map_insert(Result, ml_cstring("Size"), ml_integer(Info->FrameSize));

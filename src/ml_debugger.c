@@ -103,7 +103,7 @@ static int debugger_breakpoints_fn(const char *Module, breakpoints_t *Breakpoint
 			Bits >>= 1;
 		}
 	}
-	ml_map_insert(Result, ml_cstring(Module), Lines);
+	ml_map_insert(Result, ml_string(Module, -1), Lines);
 	return 0;
 }
 
