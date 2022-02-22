@@ -599,9 +599,12 @@ static void ML_TYPED_FN(ml_value_set_name, MLEnumT, ml_enum_t *Enum, const char 
 }
 
 ml_value_t *ml_enum_value(ml_type_t *Type, uint64_t Index) {
-	ml_enum_t *Enum = (ml_enum_t *)Type;
-	if (Index <= 0 || Index > Enum->Base.Exports->Size) return ml_error("EnumError", "Invalid enum index");
-	return Enum->Values[Index - 1];
+	const ml_enum_t *Enum = (ml_enum_t *)Type;
+	ml_enum_value_t **Values = (ml_enum_value_t **)Enum->Values;
+	for (int I = 0; I < Enum->Base.Exports->Size; ++I) {
+		if (Values[I]->Base.Value == Index) return (ml_value_t *)Values[I];
+	}
+	return ml_error("EnumError", "Invalid enum index");
 }
 
 uint64_t ml_enum_value_value(ml_value_t *Value) {

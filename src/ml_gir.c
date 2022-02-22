@@ -103,7 +103,6 @@ static void typelib_iter_key(ml_state_t *Caller, typelib_iter_t *Iter) {
 ML_TYPE(TypelibIterT, (), "typelib-iter");
 //!internal
 
-
 ml_value_t *ml_gir_typelib(const char *Name, const char *Version) {
 	typelib_t *Typelib = new(typelib_t);
 	Typelib->Type = GirTypelibT;
@@ -114,33 +113,12 @@ ml_value_t *ml_gir_typelib(const char *Name, const char *Version) {
 	return (ml_value_t *)Typelib;
 }
 
-static void ml_gir_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
-	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLStringT);
-	const char *Version = NULL;
-	if (Count > 1) {
-		ML_CHECKX_ARG_TYPE(1, MLStringT);
-		Version = ml_string_value(Args[1]);
-	}
-	ML_RETURN(ml_gir_typelib(ml_string_value(Args[0]), Version));
+ML_METHOD(GirTypelibT, MLStringT) {
+	return ml_gir_typelib(ml_string_value(Args[0]), NULL);
 }
 
-ML_TYPE(GirT, (MLFunctionT), "gir",
-	.call = (void *)ml_gir_call
-);
-
-ML_FUNCTION(MLGir) {
-//@gir
-//<Name:string
-//>gir-typelib
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
-	const char *Version = NULL;
-	if (Count > 1) {
-		ML_CHECK_ARG_TYPE(1, MLStringT);
-		Version = ml_string_value(Args[1]);
-	}
-	return ml_gir_typelib(ml_string_value(Args[0]), Version);
+ML_METHOD(GirTypelibT, MLStringT, MLStringT) {
+	return ml_gir_typelib(ml_string_value(Args[0]), ml_string_value(Args[1]));
 }
 
 typedef struct {
@@ -2121,7 +2099,7 @@ static void gir_closure_marshal(gir_closure_t *Closure, GValue *Dest, guint NumA
 	ml_result_state_t *State = ml_result_state(Closure->Context);
 	ml_call(State, Closure->Function, NumArgs, MLArgs);
 	GMainContext *MainContext = g_main_context_default();
-	while (!State->Value) g_main_context_iteration(MainContext, FALSE);
+	while (!State->Value) g_main_context_iteration(MainContext, TRUE);
 	ml_value_t *Source = State->Value;
 	if (Dest) {
 		if (ml_is(Source, MLBooleanT)) {
@@ -2213,8 +2191,6 @@ ML_METHOD("::", GirObjectInstanceT, MLStringT) {
 
 #ifdef ML_SCHEDULER
 
-#ifdef ML_SCHEDULER
-
 void ml_gir_queue_add(ml_state_t *State, ml_value_t *Value);
 
 ml_schedule_t GirSchedule[1] = {{256, ml_gir_queue_add}};
@@ -2248,9 +2224,7 @@ ML_FUNCTIONX(MLSleep) {
 	g_timeout_add(Interval, sleep_run, Caller);
 }
 
-#endif
-
-ML_FUNCTIONX(MLGirRun) {
+ML_FUNCTIONX(GirRun) {
 	ML_CHECKX_ARG_COUNT(1);
 	ml_state_t *State = ml_state(Caller);
 	ml_context_set(State->Context, ML_SCHEDULER_INDEX, GirSchedule);
@@ -2277,9 +2251,9 @@ void ml_gir_init(stringmap_t *Globals) {
 	GirObjectT->call = MLTypeT->call;
 	GirStructT->call = MLTypeT->call;
 #include "ml_gir_init.c"
-	stringmap_insert(Globals, "gir", MLGir);
 #ifdef ML_SCHEDULER
 	stringmap_insert(Globals, "sleep", (ml_value_t *)MLSleep);
-	stringmap_insert(Globals, "gir_run", MLGirRun);
+	stringmap_insert(GirTypelibT->Exports, "run", GirRun);
 #endif
+	stringmap_insert(Globals, "gir", GirTypelibT);
 }

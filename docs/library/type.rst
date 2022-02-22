@@ -126,6 +126,14 @@ type
    Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
 
 
+:mini:`meth (A: any):min(B: any): any`
+   Returns :mini:`A` if :mini:`A <> B < 0` and :mini:`B` otherwise.
+
+
+:mini:`meth (A: any):max(B: any): any`
+   Returns :mini:`A` if :mini:`A <> B > 0` and :mini:`B` otherwise.
+
+
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: any)`
    *TBD*
 

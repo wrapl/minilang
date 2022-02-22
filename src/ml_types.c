@@ -944,6 +944,53 @@ ml_comp_any_any_any("<=");
 ml_comp_any_any_any(">");
 ml_comp_any_any_any(">=");
 
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Args[2];
+} ml_comp_state_t;
+
+static void ml_min_state_run(ml_comp_state_t *State, ml_value_t *Result) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Result)) ML_RETURN(Result);
+	if (ml_integer_value(Result) < 0) ML_RETURN(State->Args[0]);
+	ML_RETURN(State->Args[1]);
+}
+
+ML_METHODX("min", MLAnyT, MLAnyT) {
+//<A
+//<B
+//>any
+// Returns :mini:`A` if :mini:`A <> B < 0` and :mini:`B` otherwise.
+	ml_comp_state_t *State = new(ml_comp_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_min_state_run;
+	State->Args[0] = Args[0];
+	State->Args[1] = Args[1];
+	return ml_call(State, CompareMethod, 2, State->Args);
+}
+
+static void ml_max_state_run(ml_comp_state_t *State, ml_value_t *Result) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Result)) ML_RETURN(Result);
+	if (ml_integer_value(Result) > 0) ML_RETURN(State->Args[0]);
+	ML_RETURN(State->Args[1]);
+}
+
+ML_METHODX("max", MLAnyT, MLAnyT) {
+//<A
+//<B
+//>any
+// Returns :mini:`A` if :mini:`A <> B > 0` and :mini:`B` otherwise.
+	ml_comp_state_t *State = new(ml_comp_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_max_state_run;
+	State->Args[0] = Args[0];
+	State->Args[1] = Args[1];
+	return ml_call(State, CompareMethod, 2, State->Args);
+}
+
 ML_METHOD("append", MLStringBufferT, MLAnyT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_printf(Buffer, "<%s>", ml_typeof(Args[1])->Name);

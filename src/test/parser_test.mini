@@ -1,0 +1,79 @@
+gir: gtk("Gtk", "3.0")
+gir: gtksource("GtkSource", "4")
+
+gtk::init(nil, nil)
+
+gir::run(;) do
+	let Window := gtk::Window::new(gtk::WindowType::toplevel)
+	let HPaned := gtk::Paned::new(gtk::Orientation::horizontal)
+
+	let Editor := gtksource::View::new()
+	let EditorScrolled := gtk::ScrolledWindow::new(nil, nil)
+	EditorScrolled:add(Editor)
+	HPaned:add(EditorScrolled)
+
+	let Output := gtk::TextView::new()
+	Output:set_editable(false)
+	Output:set_cursor_visible(false)
+	let OutputScrolled := gtk::ScrolledWindow::new(nil, nil)
+	OutputScrolled:add(Output)
+	HPaned:add(OutputScrolled)
+
+	HPaned:set_position(300)
+	Window:add(HPaned)
+	Window:set_default_size(600, 600)
+	Window:show_all
+
+	Editor:grab_focus
+
+	let EditBuffer := Editor:get_buffer
+	let OutputBuffer := Output:get_buffer
+
+	fun describe(Buffer, Indent, Expr) do
+		print('Expr = {Expr}\n')
+		Buffer:write(Expr[3], Indent, Expr[1], "\n")
+		if Expr[1] = "string" then
+			for Part in Expr[5] do
+				if Part in list[tuple] then
+					Buffer:write(Indent, "\t{}\n")
+					for Child in Part do
+						describe(Buffer, Indent + "\t\t", Child)
+					end
+				else
+					Buffer:write(Indent, "\t", Part, "\n")
+				end
+			end
+		else
+			for Field in Expr skip 4 do
+				switch Field: type
+				case tuple do
+					describe(Buffer, Indent + "\t", Field)
+				case list[tuple] do
+					for Child in Field do
+						describe(Buffer, Indent + "\t", Child)
+					end
+				else
+					Buffer:write(Indent, "\t", Field, "\n")
+				end
+			end
+		end
+	end
+
+	EditBuffer:connect("changed"; Buffer) do
+		let Start := gtk::TextIter()
+		let End := gtk::TextIter()
+		Buffer:get_bounds(Start, End)
+		let Text := Buffer:get_text(Start, End, false)
+		let P := parser()
+		P:permissive(true)
+		P:source("test", 0)
+		P:input(Text)
+		let Desc := string::buffer()
+		describe(Desc, "", P:parse:describe)
+		OutputBuffer:set_text(Desc:rest, -1)
+	on Error do
+		OutputBuffer:set_text(string(Error), -1)
+	end
+
+	gtk::main()
+end

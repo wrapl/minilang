@@ -14,14 +14,10 @@ gir
 :mini:`type gir::base < type`
    *TBD*
 
-.. _type-gir:
-
-:mini:`type gir < function`
+:mini:`meth (Arg₁: string):GirTypelibT`
    *TBD*
 
-.. _fun-gir:
-
-:mini:`fun gir(Name: string): gir-typelib`
+:mini:`meth (Arg₁: string):GirTypelibT(Arg₂: string)`
    *TBD*
 
 .. _type-gir-object:
@@ -160,8 +156,8 @@ gir
 :mini:`fun sleep(Arg₁: number)`
    *TBD*
 
-.. _fun-mlgirrun:
+.. _fun-girrun:
 
-:mini:`fun mlgirrun(Arg₁: any)`
+:mini:`fun girrun(Arg₁: any)`
    *TBD*
 

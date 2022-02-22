@@ -121,7 +121,6 @@ hierarchy
       "any":e -> "jsdecoder":w;
       "sequence":e -> "gir-typelib":w;
       "type":e -> "gir::base":w;
-      "function":e -> "gir":w;
       "gir::base":e -> "gir::object":w;
       "any":e -> "gir::object":w;
       "gir::base":e -> "gir::struct":w;

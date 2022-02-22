@@ -1,4 +1,5 @@
 #include "ml_compiler2.h"
+#include "ml_object.h"
 #include <string.h>
 
 ml_expr_type_t mlc_expr_type(mlc_expr_t *Expr);
@@ -8,22 +9,38 @@ static ml_value_t *ExprNames[ML_EXPR_WITH + 1];
 ml_value_t *mlc_expr_describe(mlc_expr_t *Expr);
 
 static ml_value_t *mlc_exprs_describe(mlc_expr_t *Expr) {
-	ml_value_t *List = ml_list();
+	ml_value_t *Exprs = ml_list();
 	while (Expr) {
-		ml_list_put(List, mlc_expr_describe(Expr));
+		ml_list_put(Exprs, mlc_expr_describe(Expr));
 		Expr = Expr->Next;
 	}
-	return List;
+	return Exprs;
 }
 
 static ml_value_t *mlc_locals_describe(mlc_local_t *Local) {
-	ml_value_t *List = ml_list();
+	ml_value_t *Locals = ml_map();
 	while (Local) {
-		ml_list_put(List, ml_tuplev(3, ml_string(Local->Ident, -1), ml_integer(Local->Line), ml_integer(Local->Index)));
+		ml_map_insert(Locals, ml_string(Local->Ident, -1), ml_tuplev(2, ml_integer(Local->Line), ml_integer(Local->Index)));
 		Local = Local->Next;
 	}
-	return List;
+	return Locals;
 }
+
+ML_FLAGS2(DeclFlagsT, "decl-flags",
+	"Constant", MLC_DECL_CONSTANT,
+	"Forward", MLC_DECL_FORWARD,
+	"Backfill", MLC_DECL_BACKFILL,
+	"ByRef", MLC_DECL_BYREF,
+	"AsVar", MLC_DECL_ASVAR
+);
+
+ML_ENUM2(ParamKindT, "param-kind",
+	"Default", ML_PARAM_DEFAULT,
+	"Extra", ML_PARAM_EXTRA,
+	"Named", ML_PARAM_NAMED,
+	"ByRef", ML_PARAM_BYREF,
+	"AsVar", ML_PARAM_ASVAR
+);
 
 ml_value_t *mlc_expr_describe(mlc_expr_t *Expr) {
 	if (!Expr) return MLNil;
@@ -92,7 +109,7 @@ ml_value_t *mlc_expr_describe(mlc_expr_t *Expr) {
 	case ML_EXPR_VAR_UNPACK:
 	case ML_EXPR_WITH: {
 		mlc_local_expr_t *LocalExpr = (mlc_local_expr_t *)Expr;
-		return ml_tuplev(7, ExprName, Source, Start, End, mlc_locals_describe(LocalExpr->Local), mlc_exprs_describe(LocalExpr->Child), ml_integer(LocalExpr->Flags));
+		return ml_tuplev(7, ExprName, Source, Start, End, mlc_locals_describe(LocalExpr->Local), mlc_exprs_describe(LocalExpr->Child), ml_flags_value(DeclFlagsT, LocalExpr->Flags));
 		break;
 	}
 	case ML_EXPR_IF: {
@@ -128,12 +145,13 @@ ml_value_t *mlc_expr_describe(mlc_expr_t *Expr) {
 	}
 	case ML_EXPR_FUN: {
 		mlc_fun_expr_t *FunExpr = (mlc_fun_expr_t *)Expr;
-		ml_value_t *Params = ml_list();
+		ml_value_t *Params = ml_map();
 		for (mlc_param_t *Param = FunExpr->Params; Param; Param = Param->Next) {
 			ml_value_t *Type = Param->Type ? mlc_expr_describe(Param->Type) : MLNil;
-			ml_list_put(Params, ml_tuplev(4, ml_string(Param->Ident, -1), ml_integer(Param->Kind), ml_integer(Param->Line), Type));
+			ml_map_insert(Params, ml_string(Param->Ident, -1), ml_tuplev(3, ml_enum_value(ParamKindT, Param->Kind), ml_integer(Param->Line), Type));
 		}
-		return ml_tuplev(6, ExprName, Source, Start, End,
+		return ml_tuplev(7, ExprName, Source, Start, End,
+			ml_string(FunExpr->Name ?: "", -1),
 			Params,
 			mlc_expr_describe(FunExpr->Body)
 		);
