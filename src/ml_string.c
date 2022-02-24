@@ -2884,7 +2884,7 @@ void ml_string_init() {
 	regcomp(IntFormat, "^%[-+ #'0]*[.0-9]*[dioxX]$", REG_NOSUB);
 	regcomp(LongFormat, "^%[-+ #'0]*[.0-9]*l[dioxX]$", REG_NOSUB);
 	regcomp(RealFormat, "^%[-+ #'0]*[.0-9]*[aefgAEG]$", REG_NOSUB);
-	stringmap_insert(MLStringT->Exports, "switch", ml_inline_call_macro(MLStringSwitch));
+	stringmap_insert(MLStringT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLStringSwitch));
 #include "ml_string_init.c"
 #ifdef ML_TRE
 	ml_value_t *Features = ml_map();

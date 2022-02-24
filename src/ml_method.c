@@ -596,7 +596,7 @@ void ml_method_init() {
 	ml_context_set(&MLRootContext, ML_METHODS_INDEX, MLRootMethods);
 #include "ml_method_init.c"
 	MLRootMethods->Type = MLMethodsT;
-	stringmap_insert(MLMethodT->Exports, "switch", ml_inline_call_macro(MLMethodSwitch));
+	stringmap_insert(MLMethodT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLMethodSwitch));
 	stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
 	stringmap_insert(MLMethodT->Exports, "context", MLMethodContext);
 	stringmap_insert(MLMethodT->Exports, "list", MLMethodList);
