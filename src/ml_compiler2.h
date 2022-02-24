@@ -137,6 +137,9 @@ typedef enum {
 	ML_EXPR_NOT,
 	ML_EXPR_OLD,
 	ML_EXPR_OR,
+	ML_EXPR_REF,
+	ML_EXPR_REF_IN,
+	ML_EXPR_REF_UNPACK,
 	ML_EXPR_REGISTER,
 	ML_EXPR_RESOLVE,
 	ML_EXPR_RETURN,
@@ -207,7 +210,7 @@ struct mlc_local_expr_t {
 	MLC_EXPR_FIELDS(local);
 	mlc_local_t *Local;
 	mlc_expr_t *Child;
-	int Count, Flags;
+	int Count;
 };
 
 typedef struct mlc_for_expr_t mlc_for_expr_t;

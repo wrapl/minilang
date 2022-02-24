@@ -752,17 +752,17 @@ ML_METHOD("in", MLAnyT, MLTypeT) {
 
 ML_METHOD_ANON(MLCompilerSwitch, "compiler::switch");
 
-ML_METHODVX(MLCompilerSwitch, MLFunctionT) {
+ML_METHOD(MLCompilerSwitch, MLFunctionT) {
 //!internal
-	return ml_call(Caller, Args[0], Count - 1, Args + 1);
+	return Args[0];
 }
 
-ML_METHODVX(MLCompilerSwitch, MLTypeT) {
+ML_METHOD(MLCompilerSwitch, MLTypeT) {
 //!internal
 	ml_type_t *Type = (ml_type_t *)Args[0];
 	ml_value_t *Switch = (ml_value_t *)stringmap_search(Type->Exports, "switch");
-	if (!Switch) ML_ERROR("SwitchError", "%s does not support switch", Type->Name);
-	return ml_call(Caller, Switch, Count - 1, Args + 1);
+	if (!Switch) return ml_error("SwitchError", "%s does not support switch", Type->Name);
+	return Switch;
 }
 
 typedef struct {
@@ -3198,7 +3198,7 @@ static void ml_integer_switch(ml_state_t *Caller, ml_integer_switch_t *Switch, i
 	ML_CHECKX_ARG_COUNT(1);
 	ml_value_t *Arg = ml_deref(Args[0]);
 	if (!ml_is(Arg, MLNumberT)) {
-		ML_ERROR("TypeError", "expected number for argument 1");
+		ML_ERROR("TypeError", "Expected number for argument 1");
 	}
 	int64_t Value = ml_integer_value(Arg);
 	for (ml_integer_case_t *Case = Switch->Cases;; ++Case) {
@@ -3266,7 +3266,7 @@ static void ml_real_switch(ml_state_t *Caller, ml_real_switch_t *Switch, int Cou
 	ML_CHECKX_ARG_COUNT(1);
 	ml_value_t *Arg = ml_deref(Args[0]);
 	if (!ml_is(Arg, MLNumberT)) {
-		ML_ERROR("TypeError", "expected number for argument 1");
+		ML_ERROR("TypeError", "Expected number for argument 1");
 	}
 	double Value = ml_real_value(Arg);
 	for (ml_real_case_t *Case = Switch->Cases;; ++Case) {
@@ -3445,10 +3445,11 @@ void ml_init(stringmap_t *Globals) {
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLTupleT, MLSequenceT, MLIntegerT, MLAnyT, NULL);
 #endif
-	stringmap_insert(MLTypeT->Exports, "switch", MLTypeSwitch);
+	stringmap_insert(MLTypeT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLTypeSwitch));
 	stringmap_insert(MLIntegerT->Exports, "range", MLIntegerRangeT);
-	stringmap_insert(MLIntegerT->Exports, "switch", MLIntegerSwitch);
+	stringmap_insert(MLIntegerT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLIntegerSwitch));
 	stringmap_insert(MLRealT->Exports, "range", MLRealRangeT);
+	stringmap_insert(MLRealT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLRealSwitch));
 	ml_method_by_value(MLIntegerT->Constructor, NULL, ml_identity, MLIntegerT, NULL);
 	ml_method_by_name("isfinite", NULL, ml_identity, MLIntegerT, NULL);
 	ml_method_by_name("isnan", NULL, ml_return_nil, MLIntegerT, NULL);

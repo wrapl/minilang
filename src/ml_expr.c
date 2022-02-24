@@ -17,10 +17,13 @@ static ml_value_t *mlc_exprs_describe(mlc_expr_t *Expr) {
 	return Exprs;
 }
 
-static ml_value_t *mlc_locals_describe(mlc_local_t *Local) {
+static ml_value_t *mlc_locals_describe(mlc_local_t *Local, int Count) {
 	ml_value_t *Locals = ml_map();
-	while (Local) {
-		ml_map_insert(Locals, ml_string(Local->Ident, -1), ml_tuplev(2, ml_integer(Local->Line), ml_integer(Local->Index)));
+	while ((--Count >= 0) && Local) {
+		ml_map_insert(Locals,
+			ml_string(Local->Ident, -1),
+			ml_tuplev(2, ml_integer(Local->Line), ml_integer(Local->Index))
+		);
 		Local = Local->Next;
 	}
 	return Locals;
@@ -41,6 +44,8 @@ ML_ENUM2(ParamKindT, "param-kind",
 	"ByRef", ML_PARAM_BYREF,
 	"AsVar", ML_PARAM_ASVAR
 );
+
+extern const char *MLTokens[];
 
 ml_value_t *mlc_expr_describe(mlc_expr_t *Expr) {
 	if (!Expr) return MLNil;
@@ -103,32 +108,44 @@ ml_value_t *mlc_expr_describe(mlc_expr_t *Expr) {
 	case ML_EXPR_LET:
 	case ML_EXPR_LET_IN:
 	case ML_EXPR_LET_UNPACK:
+	case ML_EXPR_REF:
+	case ML_EXPR_REF_IN:
+	case ML_EXPR_REF_UNPACK:
 	case ML_EXPR_VAR:
 	case ML_EXPR_VAR_TYPE:
 	case ML_EXPR_VAR_IN:
-	case ML_EXPR_VAR_UNPACK:
+	case ML_EXPR_VAR_UNPACK: {
+		mlc_local_expr_t *LocalExpr = (mlc_local_expr_t *)Expr;
+		return ml_tuplev(6, ExprName, Source, Start, End,
+			mlc_locals_describe(LocalExpr->Local, LocalExpr->Count ?: 1),
+			mlc_exprs_describe(LocalExpr->Child)
+		);
+		break;
+	}
 	case ML_EXPR_WITH: {
 		mlc_local_expr_t *LocalExpr = (mlc_local_expr_t *)Expr;
-		return ml_tuplev(7, ExprName, Source, Start, End, mlc_locals_describe(LocalExpr->Local), mlc_exprs_describe(LocalExpr->Child), ml_flags_value(DeclFlagsT, LocalExpr->Flags));
+		return ml_tuplev(6, ExprName, Source, Start, End,
+			mlc_locals_describe(LocalExpr->Local, INT_MAX),
+			mlc_exprs_describe(LocalExpr->Child)
+		);
 		break;
 	}
 	case ML_EXPR_IF: {
 		mlc_if_expr_t *IfExpr = (mlc_if_expr_t *)Expr;
 		ml_value_t *Cases = ml_list();
 		for (mlc_if_case_t *Case = IfExpr->Cases; Case; Case = Case->Next) {
-			ml_value_t *CaseMap = ml_map();
-			ml_map_insert(CaseMap, ml_cstring("condition"), mlc_expr_describe(Case->Condition));
-			ml_map_insert(CaseMap, ml_cstring("body"), mlc_expr_describe(Case->Body));
-			ml_value_t *DeclType = NULL;
+			ml_value_t *DeclType = MLNil;
 			if (Case->Token == MLT_VAR) {
 				DeclType = ml_cstring("var");
 			} else if (Case->Token == MLT_LET) {
 				DeclType = ml_cstring("let");
 			}
-			if (DeclType) {
-				ml_map_insert(CaseMap, DeclType, mlc_locals_describe(Case->Local));
-			}
-			ml_list_put(Cases, CaseMap);
+			ml_list_put(Cases, ml_tuplev(4,
+				DeclType,
+				mlc_locals_describe(Case->Local, Case->Local->Index),
+				mlc_expr_describe(Case->Condition),
+				mlc_expr_describe(Case->Body)
+			));
 		}
 		ml_value_t *Else = IfExpr->Else ? mlc_expr_describe(IfExpr->Else) : MLNil;
 		return ml_tuplev(6, ExprName, Source, Start, End, Cases, Else);
@@ -138,9 +155,8 @@ ml_value_t *mlc_expr_describe(mlc_expr_t *Expr) {
 		mlc_for_expr_t *ForExpr = (mlc_for_expr_t *)Expr;
 		return ml_tuplev(8, ExprName, Source, Start, End,
 			ForExpr->Key ? ml_string(ForExpr->Key, -1) : MLNil,
-			mlc_locals_describe(ForExpr->Local),
-			mlc_expr_describe(ForExpr->Child),
-			ForExpr->Child->Next ? mlc_expr_describe(ForExpr->Child->Next) : MLNil
+			mlc_locals_describe(ForExpr->Local, INT_MAX),
+			mlc_exprs_describe(ForExpr->Child)
 		);
 	}
 	case ML_EXPR_FUN: {
@@ -160,9 +176,9 @@ ml_value_t *mlc_expr_describe(mlc_expr_t *Expr) {
 		mlc_block_expr_t *BlockExpr = (mlc_block_expr_t *)Expr;
 		// TODO: Add catches
 		return ml_tuplev(8, ExprName, Source, Start, End,
-			mlc_locals_describe(BlockExpr->Vars),
-			mlc_locals_describe(BlockExpr->Lets),
-			mlc_locals_describe(BlockExpr->Defs),
+			mlc_locals_describe(BlockExpr->Vars, INT_MAX),
+			mlc_locals_describe(BlockExpr->Lets, INT_MAX),
+			mlc_locals_describe(BlockExpr->Defs, INT_MAX),
 			mlc_exprs_describe(BlockExpr->Child)
 		);
 	}
@@ -190,8 +206,6 @@ ml_value_t *mlc_expr_describe(mlc_expr_t *Expr) {
 	default: __builtin_unreachable();
 	}
 }
-
-extern ml_type_t MLExprT[];
 
 ML_METHOD("describe", MLExprT) {
 //<Expr
@@ -233,6 +247,9 @@ void ml_expr_init() {
 	ExprNames[ML_EXPR_NOT] = ml_cstring("not");
 	ExprNames[ML_EXPR_OLD] = ml_cstring("old");
 	ExprNames[ML_EXPR_OR] = ml_cstring("or");
+	ExprNames[ML_EXPR_REF] = ml_cstring("ref");
+	ExprNames[ML_EXPR_REF_IN] = ml_cstring("ref_in");
+	ExprNames[ML_EXPR_REF_UNPACK] = ml_cstring("ref_unpack");
 	ExprNames[ML_EXPR_REGISTER] = ml_cstring("register");
 	ExprNames[ML_EXPR_RESOLVE] = ml_cstring("resolve");
 	ExprNames[ML_EXPR_RETURN] = ml_cstring("return");

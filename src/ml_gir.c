@@ -1697,7 +1697,8 @@ static void object_add_methods(object_t *Object, GIObjectInfo *Info) {
 		GIFunctionInfoFlags Flags = g_function_info_get_flags(MethodInfo);
 		if (Flags & GI_FUNCTION_IS_METHOD) {
 			ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Object, NULL);
-		} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
+		//} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
+		} else {
 			stringmap_insert(Object->Base.Exports, MethodName, ml_cfunction(MethodInfo, (void *)constructor_invoke));
 		}
 	}
