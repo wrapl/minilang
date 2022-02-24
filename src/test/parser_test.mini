@@ -78,8 +78,14 @@ gir::run(;) do
 						describe(Buffer, Indent + "| | ", Child)
 					end
 				else
-					Buffer:write(Indent, "| ", Part, "\n")
+					Buffer:write(Indent, "| \"", Part:escape, "\"\n")
 				end
+			end
+		case "value" do
+			if Expr[5] in string then
+				Buffer:write(Indent, "| \"", Expr[5]:escape, "\"\n")
+			else
+				Buffer:write(Indent, "| ", Expr[5], "\n")
 			end
 		else
 			for Field in Expr skip 4 do

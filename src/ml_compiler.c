@@ -3311,7 +3311,7 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 			Parser->Next = End;
 			mlc_string_part_t *Part = new(mlc_string_part_t);
 			ml_accept_arguments(Parser, MLT_RIGHT_BRACE, &Part->Child);
-			if (!Part->Child) {
+			if (!Part->Child && !Parser->Permissive) {
 				ml_parse_error(Parser, "ParserError", "empty string expression");
 			}
 			Part->Line = Parser->Source.Line;
@@ -3362,7 +3362,10 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 			case '0': ml_stringbuffer_put(Buffer, '\0'); break;
 			case '{': ml_stringbuffer_put(Buffer, '{'); break;
 			case '\n': break;
-			case 0: ml_parse_error(Parser, "ParseError", "end of line while parsing string");
+			case 0:
+				if (!Parser->Permissive) ml_parse_error(Parser, "ParseError", "end of line while parsing string");
+				Parser->Next = "";
+				goto eoi;
 			}
 		} else {
 			ml_stringbuffer_write(Buffer, End - 1, 1);
@@ -3535,12 +3538,14 @@ static int ml_scan_string(ml_parser_t *Parser) {
 			case '\"': *D++ = '\"'; break;
 			case '\\': *D++ = '\\'; break;
 			case '0': *D++ = '\0'; break;
+			case 0: goto eoi;
 			default: *D++ = '\\'; *D++ = *S; break;
 			}
 		} else {
 			*D++ = *S;
 		}
 	}
+eoi:
 	*D = 0;
 	Parser->Ident = Quoted;
 	Parser->Next = End + 1;
