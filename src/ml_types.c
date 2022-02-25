@@ -179,6 +179,7 @@ ML_METHOD("parents", MLTypeT) {
 //!type
 //<Type
 //>list
+// Returns a list of the parent types of :mini:`Type`.
 	ml_type_t *Type = (ml_type_t *)Args[0];
 	ml_value_t *Parents = ml_list();
 #ifdef ML_GENERICS
@@ -361,6 +362,9 @@ ML_METHOD("?", MLTypeT) {
 }
 
 ML_METHOD("append", MLStringBufferT, MLTypeT) {
+//<Buffer
+//<Value
+// Appends a representation of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_type_t *Type = (ml_type_t *)Args[1];
 	ml_stringbuffer_printf(Buffer, "<<%s>>", Type->Name);
@@ -863,6 +867,10 @@ static ml_value_t *ml_trace(void *Ptr, inthash_t *Cache) {
 }
 
 ML_METHOD("trace", MLAnyT) {
+//!internal
+//<Value
+//>list[map]
+// Returns information about the blocks of memory referenced by :mini:`Value`.
 	ml_value_t *Value = Args[0];
 	inthash_t Cache[1] = {INTHASH_INIT};
 	return ml_trace(Value, Cache) ?: MLNil;
@@ -992,6 +1000,9 @@ ML_METHODX("max", MLAnyT, MLAnyT) {
 }
 
 ML_METHOD("append", MLStringBufferT, MLAnyT) {
+//<Buffer
+//<Value
+// Appends a representation of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_printf(Buffer, "<%s>", ml_typeof(Args[1])->Name);
 	return MLSome;
@@ -1692,6 +1703,9 @@ static void ML_TYPED_FN(ml_iterate, MLTupleT, ml_state_t *Caller, ml_tuple_t *Tu
 
 ML_METHOD("append", MLStringBufferT, MLTupleT) {
 //!tuple
+//<Buffer
+//<Value
+// Appends a representation of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_tuple_t *Value = (ml_tuple_t *)Args[1];
 	ml_stringbuffer_put(Buffer, '(');
@@ -1772,6 +1786,7 @@ static long ml_boolean_hash(ml_boolean_t *Boolean, ml_hash_chain_t *Chain) {
 
 ML_TYPE(MLBooleanT, (), "boolean",
 //!boolean
+// A boolean value (either :mini:`true` or :mini:`false`).
 	.hash = (void *)ml_boolean_hash
 );
 
@@ -3367,6 +3382,10 @@ ml_value_t *ml_module_export(ml_value_t *Module0, const char *Name, ml_value_t *
 }
 
 ML_METHOD("append", MLStringBufferT, MLModuleT) {
+//!module
+//<Buffer
+//<Value
+// Appends a representation of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_module_t *Module = (ml_module_t *)Args[1];
 	ml_stringbuffer_printf(Buffer, "module(%s)", Module->Path);

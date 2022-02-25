@@ -283,7 +283,7 @@ static void ML_TYPED_FN(ml_iterate, MLChainedT, ml_state_t *Caller, ml_chained_f
 ML_METHOD("->", MLFunctionT, MLFunctionT) {
 //<Base
 //<Function
-//>chained
+//>sequence
 // Returns a chained function equivalent to :mini:`Function(Base(...))`.
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 3, ml_value_t *);
 	Chained->Type = MLChainedT;
@@ -295,9 +295,9 @@ ML_METHOD("->", MLFunctionT, MLFunctionT) {
 
 ML_METHOD("->", MLSequenceT, MLFunctionT) {
 //<Base
-//<Function
-//>chained
-// Returns a chained sequence equivalent to :mini:`Function(V/1), ..., Function(V/n)` where :mini:`V/i` are the values produced by :mini:`Base`.
+//<F
+//>sequence
+// Returns a chained sequence equivalent to :mini:`(K/1, F(V/1)), ..., (K/n, F(V/n))` where :mini:`K/i` and :mini:`V/i` are the keys and values produced by :mini:`Base`.
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 3, ml_value_t *);
 	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
@@ -307,9 +307,7 @@ ML_METHOD("->", MLSequenceT, MLFunctionT) {
 }
 
 ML_METHOD("->", MLChainedT, MLFunctionT) {
-//<Chained
-//<Function
-//>chained
+//!internal
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
 	int N = 0;
 	while (Base->Entries[N]) ++N;
@@ -322,8 +320,9 @@ ML_METHOD("->", MLChainedT, MLFunctionT) {
 
 ML_METHOD("=>", MLSequenceT, MLFunctionT) {
 //<Base
-//<Function
-//>chained
+//<F
+//>sequence
+// Returns a chained sequence equivalent to :mini:`(K/1, F(K/1, V/1)), ..., (K/n, F(K/n, V/n))` where :mini:`K/i` and :mini:`V/i` are the keys and values produced by :mini:`Base`.
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 5, ml_value_t *);
 	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
@@ -336,8 +335,10 @@ ML_METHOD("=>", MLSequenceT, MLFunctionT) {
 
 ML_METHOD("=>", MLSequenceT, MLFunctionT, MLFunctionT) {
 //<Base
-//<Function
-//>chained
+//<F/1
+//<F/2
+//>sequence
+// Returns a chained sequence equivalent to :mini:`(F/1(K/1, V/1), F/2(K/1, V/1)), ..., (F/1(K/n, V/n), F/2(K/n, V/n))` where :mini:`K/i` and :mini:`V/i` are the keys and values produced by :mini:`Base`.
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 5, ml_value_t *);
 	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
@@ -349,9 +350,7 @@ ML_METHOD("=>", MLSequenceT, MLFunctionT, MLFunctionT) {
 }
 
 ML_METHOD("=>", MLChainedT, MLFunctionT) {
-//<Chained
-//<Function
-//>chained
+//!internal
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
 	int N = 0;
 	while (Base->Entries[N]) ++N;
@@ -365,9 +364,7 @@ ML_METHOD("=>", MLChainedT, MLFunctionT) {
 }
 
 ML_METHOD("=>", MLChainedT, MLFunctionT, MLFunctionT) {
-//<Chained
-//<Function
-//>chained
+//!internal
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
 	int N = 0;
 	while (Base->Entries[N]) ++N;
@@ -382,8 +379,9 @@ ML_METHOD("=>", MLChainedT, MLFunctionT, MLFunctionT) {
 
 ML_METHOD("!>", MLSequenceT, MLFunctionT) {
 //<Base
-//<Function
-//>chained
+//<F
+//>sequence
+// Returns a chained sequence equivalent to :mini:`(K/1, F ! V/1), ..., (K/n, F ! V/n)` where :mini:`K/i` and :mini:`V/i` are the keys and values produced by :mini:`Base`.
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
 	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
@@ -394,9 +392,7 @@ ML_METHOD("!>", MLSequenceT, MLFunctionT) {
 }
 
 ML_METHOD("!>", MLChainedT, MLFunctionT) {
-//<Chained
-//<Function
-//>chained
+//!internal
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
 	int N = 0;
 	while (Base->Entries[N]) ++N;
@@ -410,8 +406,9 @@ ML_METHOD("!>", MLChainedT, MLFunctionT) {
 
 ML_METHOD("->?", MLSequenceT, MLFunctionT) {
 //<Base
-//<Function
-//>chained
+//<F
+//>sequence
+// Returns a chained sequence equivalent to :mini:`(K/j, V/j), ...` where :mini:`K/i` and :mini:`V/i` are the keys and values produced by :mini:`Base` and :mini:`F(V/j)` returns non-:mini:`nil`.
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
 #ifdef ML_GENERICS
 	ml_type_t *TArgs[3];
@@ -432,9 +429,7 @@ ML_METHOD("->?", MLSequenceT, MLFunctionT) {
 }
 
 ML_METHOD("->?", MLChainedT, MLFunctionT) {
-//<Chained
-//<Function
-//>chained
+//!internal
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
 	int N = 0;
 	while (Base->Entries[N]) ++N;
@@ -448,8 +443,9 @@ ML_METHOD("->?", MLChainedT, MLFunctionT) {
 
 ML_METHOD("=>?", MLSequenceT, MLFunctionT) {
 //<Base
-//<Function
-//>chained
+//<F
+//>sequence
+// Returns a chained sequence equivalent to :mini:`(K/j, V/j), ...` where :mini:`K/i` and :mini:`V/i` are the keys and values produced by :mini:`Base` and :mini:`F(K/j, V/j)` returns non-:mini:`nil`.
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
 	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
@@ -460,9 +456,7 @@ ML_METHOD("=>?", MLSequenceT, MLFunctionT) {
 }
 
 ML_METHOD("=>?", MLChainedT, MLFunctionT) {
-//<Chained
-//<Function
-//>chained
+//!internal
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
 	int N = 0;
 	while (Base->Entries[N]) ++N;
@@ -476,8 +470,9 @@ ML_METHOD("=>?", MLChainedT, MLFunctionT) {
 
 ML_METHOD("!>?", MLSequenceT, MLFunctionT) {
 //<Base
-//<Function
-//>chained
+//<F
+//>sequence
+// Returns a chained sequence equivalent to :mini:`(K/j, V/j), ...` where :mini:`K/i` and :mini:`V/i` are the keys and values produced by :mini:`Base` and :mini:`F ! V/j` returns non-:mini:`nil`.
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
 	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
@@ -488,9 +483,7 @@ ML_METHOD("!>?", MLSequenceT, MLFunctionT) {
 }
 
 ML_METHOD("!>?", MLChainedT, MLFunctionT) {
-//<Chained
-//<Function
-//>chained
+//!internal
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
 	int N = 0;
 	while (Base->Entries[N]) ++N;
@@ -510,6 +503,7 @@ typedef struct {
 } ml_doubled_t;
 
 ML_TYPE(MLDoubledT, (MLSequenceT), "doubled");
+//!internal
 
 typedef struct ml_double_state_t {
 	ml_state_t Base;
@@ -589,14 +583,6 @@ ml_value_t *ml_doubled(ml_value_t *Sequence, ml_value_t *Function) {
 	return (ml_value_t *)Doubled;
 }
 
-ML_METHOD("^", MLSequenceT, MLFunctionT) {
-//<Sequence
-//<Function
-//>sequence
-// Returns a new sequence that generates the keys and values from :mini:`Function(Value)` for each value generated by :mini:`Sequence`.
-	return ml_doubled(Args[0], Args[1]);
-}
-
 ML_METHOD("->>", MLSequenceT, MLFunctionT) {
 //<Sequence
 //<Function
@@ -605,7 +591,18 @@ ML_METHOD("->>", MLSequenceT, MLFunctionT) {
 	return ml_doubled(Args[0], Args[1]);
 }
 
+ML_METHOD("^", MLSequenceT, MLFunctionT) {
+//<Sequence
+//<Function
+//>sequence
+// Returns a new sequence that generates the keys and values from :mini:`Function(Value)` for each value generated by :mini:`Sequence`.
+// .. deprecated:: 2.5.0
+//    Use :mini:`->>` instead.
+	return ml_doubled(Args[0], Args[1]);
+}
+
 ML_TYPE(MLDoubled2T, (MLSequenceT), "doubled");
+//!internal
 
 ML_TYPE(MLDoubled2StateT, (MLStateT), "doubled-state");
 //!internal
@@ -1312,6 +1309,7 @@ typedef struct ml_stacked_t {
 } ml_stacked_t;
 
 ML_TYPE(MLStackedT, (MLSequenceT), "stacked");
+//!internal
 
 ML_TYPE(MLStackedStateT, (MLStateT), "stacked-state");
 //!internal
@@ -1417,6 +1415,7 @@ typedef struct ml_repeated_t {
 } ml_repeated_t;
 
 ML_TYPE(MLRepeatedT, (MLSequenceT), "repeated");
+//!internal
 
 typedef struct ml_repeated_state_t {
 	ml_state_t Base;
@@ -1494,6 +1493,7 @@ typedef struct ml_sequenced_t {
 } ml_sequenced_t;
 
 ML_TYPE(MLSequencedT, (MLSequenceT), "sequenced");
+//!internal
 
 typedef struct ml_sequenced_state_t {
 	ml_state_t Base;
@@ -1567,8 +1567,10 @@ typedef struct ml_limited_t {
 } ml_limited_t;
 
 ML_TYPE(MLLimitedT, (MLSequenceT), "limited");
+//!internal
 
 ML_METHOD("count", MLLimitedT) {
+//!internal
 	ml_limited_t *Limited = (ml_limited_t *)Args[0];
 	return ml_integer(Limited->Remaining);
 }
@@ -1641,6 +1643,7 @@ typedef struct ml_skipped_t {
 } ml_skipped_t;
 
 ML_TYPE(MLSkippedT, (MLSequenceT), "skipped");
+//!internal
 
 typedef struct ml_skipped_state_t {
 	ml_state_t Base;
@@ -1690,6 +1693,7 @@ typedef struct ml_until_t {
 } ml_until_t;
 
 ML_TYPE(MLUntilT, (MLSequenceT), "until");
+//!internal
 
 typedef struct ml_until_state_t {
 	ml_state_t Base;
@@ -1977,6 +1981,7 @@ typedef struct {
 } ml_buffered_t;
 
 ML_TYPE(MLBufferedT, (MLSequenceT), "buffered");
+//!internal
 
 typedef struct {
 	ml_value_t *Key, *Value;
@@ -2069,7 +2074,7 @@ static void ML_TYPED_FN(ml_iterate, MLBufferedT, ml_state_t *Caller, ml_buffered
 ML_FUNCTION(Buffered) {
 //<Size:integer
 //<Sequence
-//>Sequence
+//>sequence
 // Returns an sequence that buffers the keys and values from :mini:`Sequence` in advance, buffering at most :mini:`Size` pairs.
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
@@ -2086,6 +2091,7 @@ typedef struct ml_unique_t {
 } ml_unique_t;
 
 ML_TYPE(MLUniqueT, (MLSequenceT), "unique");
+//!internal
 
 typedef struct ml_unique_state_t {
 	ml_state_t Base;
@@ -2163,6 +2169,7 @@ typedef struct ml_zipped_t {
 } ml_zipped_t;
 
 ML_TYPE(MLZippedT, (MLSequenceT), "zipped");
+//!internal
 
 typedef struct ml_zipped_state_t {
 	ml_state_t Base;
@@ -2258,6 +2265,7 @@ typedef struct ml_grid_t {
 } ml_grid_t;
 
 ML_TYPE(MLGridT, (MLSequenceT), "grid");
+//!internal
 
 typedef struct ml_grid_state_t {
 	ml_state_t Base;
@@ -2349,6 +2357,7 @@ typedef struct ml_paired_t {
 } ml_paired_t;
 
 ML_TYPE(MLPairedT, (MLSequenceT), "paired");
+//!internal
 
 typedef struct ml_paired_state_t {
 	ml_state_t Base;
@@ -2433,6 +2442,7 @@ typedef struct ml_weaved_t {
 } ml_weaved_t;
 
 ML_TYPE(MLWeavedT, (MLSequenceT), "weaved");
+//!internal
 
 typedef struct ml_weaved_state_t {
 	ml_state_t Base;
@@ -2500,6 +2510,7 @@ typedef struct ml_folded_t {
 } ml_folded_t;
 
 ML_TYPE(MLFoldedT, (MLSequenceT), "folded");
+//!internal
 
 typedef struct ml_folded_state_t {
 	ml_state_t Base;
@@ -2579,6 +2590,7 @@ typedef struct {
 } ml_unfolded_t;
 
 ML_TYPE(MLUnfoldedT, (MLSequenceT), "unfolded");
+//!internal
 
 typedef struct {
 	ml_state_t Base;
@@ -2646,6 +2658,7 @@ typedef struct {
 } ml_swapped_t;
 
 ML_TYPE(MLSwappedT, (MLSequenceT), "swapped");
+//!internal
 
 typedef struct {
 	ml_state_t Base;
@@ -2701,6 +2714,7 @@ typedef struct {
 } ml_key_t;
 
 ML_TYPE(MLKeyT, (MLSequenceT), "key");
+//!internal
 
 typedef struct {
 	ml_state_t Base;
@@ -2759,6 +2773,7 @@ typedef struct ml_batched_t {
 } ml_batched_t;
 
 ML_TYPE(MLBatchedT, (MLSequenceT), "batched");
+//!internal
 
 typedef struct ml_batched_state_t {
 	ml_state_t Base;

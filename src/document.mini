@@ -298,6 +298,18 @@ fun write_type(Category, Name, Parents, Description, Location) do
 	File:write("\n")
 end
 
+fun write_value(Category, Name, Type, Description, Location) do
+	let File := Categories[Category, write_category]
+	File:write('.. _value-{Name:replace("::", "-")}:\n\n')
+	File:write(':mini:`let {Name}: {type_name(Type)}`\n')
+	for Line in Description do
+		File:write("   ", Line, "\n")
+	end
+	Description[1] or File:write("   *TBD*\n")
+	:>File:write('   *Defined at line {Location[2]} in {Location[1]}*\n')
+	File:write("\n")
+end
+
 def Subscripts := {
 	"/0" is "₀", "/1" is "₁", "/2" is "₂", "/3" is "₃", "/4" is "₄",
 	"/5" is "₅", "/6" is "₆", "/7" is "₇", "/8" is "₈", "/9" is "₉",
@@ -584,6 +596,34 @@ fun process(FileName) do
 					CurrentDefine:put(write_type, [Category, Name, Parents, Description, Location])
 				else
 					write_type(Category, Name, Parents, Description, Location)
+				end
+			elseif Line % r"^ML_LET" then
+				let Location := (FileName, LineNo)
+				let I := Line:find("(")
+				let J := Line:find(")", I + 1)
+				var Name := Line[I + 1, J]
+				var Category := DefaultCategory
+				var Type := "MLAnyT"
+				let Description := []
+				loop
+					let Line := while File:read
+					LineNo := old + 1
+					if Line % r"^/[/*]@" then
+						Name := Line[4, 0]:trim
+					elseif Line % r"^/[/*]!" then
+						Category := Line[4, 0]:trim
+					elseif Line % r"^/[/*]>" then
+						Type := Line[4, 0]:trim
+					elseif Line % r"^/[/*] " then
+						Description:put(Line[4, 0]:replace(Subscripts))
+					else
+						exit
+					end
+				end
+				if CurrentDefine then
+					CurrentDefine:put(write_value, [Category, Name, Type, Description, Location])
+				else
+					write_value(Category, Name, Type, Description, Location)
 				end
 			elseif let Match := Line % r"^#define ([A-Za-z0-9_]+)\((.+)\)" then
 				let Params := list(Match[3] / ",", :trim)

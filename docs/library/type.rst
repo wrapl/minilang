@@ -34,7 +34,8 @@ type
 
 
 :mini:`meth (Type: type):parents: list`
-   *TBD*
+   Returns a list of the parent types of :mini:`Type`.
+
 
 :mini:`meth (Type₁: type) | (Type₂: type): type`
    Returns a union interface of :mini:`Type₁` and :mini:`Type₂`.
@@ -44,8 +45,9 @@ type
    Returns a union interface of :mini:`Type` and :mini:`type(nil)`.
 
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: type)`
-   *TBD*
+:mini:`meth (Buffer: string::buffer):append(Value: type)`
+   Appends a representation of :mini:`Value` to :mini:`Buffer`.
+
 
 :mini:`meth (Type: type) :: (Name: string): any | error`
    Returns the value of :mini:`Name` exported from :mini:`Type`.
@@ -82,9 +84,6 @@ type
 :mini:`meth (Value: any):in(Type: type): Value | nil`
    Returns :mini:`Value` if it is an instance of :mini:`Type` or a type that inherits from :mini:`Type` and :mini:`nil` otherwise.
 
-
-:mini:`meth (Arg₁: any):trace`
-   *TBD*
 
 :mini:`meth (Value₁: any) <> (Value₂: any): integer`
    Compares :mini:`Value₁` and :mini:`Value₂` and returns :mini:`-1`,  :mini:`0` or :mini:`1`.
@@ -136,8 +135,9 @@ type
    Returns :mini:`A` if :mini:`A <> B > 0` and :mini:`B` otherwise.
 
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: any)`
-   *TBD*
+:mini:`meth (Buffer: string::buffer):append(Value: any)`
+   Appends a representation of :mini:`Value` to :mini:`Buffer`.
+
 
 :mini:`meth (Buffer: string::buffer):append(Value: nil)`
    Appends :mini:`"nil"` to :mini:`Buffer`.

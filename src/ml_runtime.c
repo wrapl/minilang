@@ -1160,5 +1160,8 @@ ML_METHODX("raise", MLChannelT, MLErrorValueT) {
 */
 
 void ml_runtime_init() {
+#ifdef ML_THREADS
+	GC_add_roots(Queue, Queue + 1);
+#endif
 #include "ml_runtime_init.c"
 }

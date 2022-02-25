@@ -32,8 +32,9 @@ tuple
 :mini:`type tuple::iter`
    *TBD*
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: tuple)`
-   *TBD*
+:mini:`meth (Buffer: string::buffer):append(Value: tuple)`
+   Appends a representation of :mini:`Value` to :mini:`Buffer`.
+
 
 :mini:`meth (Tuple₁: tuple) <> (Tuple₂: tuple): integer`
    Returns :mini:`-1`,  :mini:`0` or :mini:`1` depending on whether :mini:`Tuple₁` is less than,  equal to or greater than :mini:`Tuple₂` using lexicographical ordering.

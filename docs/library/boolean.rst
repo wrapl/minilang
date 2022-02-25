@@ -8,7 +8,8 @@ boolean
 .. _type-boolean:
 
 :mini:`type boolean`
-   *TBD*
+   A boolean value (either :mini:`true` or :mini:`false`).
+
 
 :mini:`meth boolean(String: string): boolean | error`
    Returns :mini:`true` if :mini:`String` equals :mini:`"true"` (ignoring case).

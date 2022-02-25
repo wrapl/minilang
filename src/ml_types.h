@@ -30,6 +30,8 @@ struct ml_value_t {
 	ml_type_t *Type;
 };
 
+#define ML_LET(NAME) ml_value_t *NAME = NULL
+
 typedef struct ml_hash_chain_t ml_hash_chain_t;
 
 struct ml_hash_chain_t {
