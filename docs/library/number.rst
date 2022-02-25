@@ -1,5 +1,7 @@
 .. include:: <isonum.txt>
 
+.. include:: <isoamsa.txt>
+
 number
 ======
 
@@ -360,33 +362,59 @@ number
 :mini:`meth (Arg₁: double):isnan`
    *TBD*
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: integer)`
-   *TBD*
+:mini:`meth (Buffer: string::buffer):append(Value: integer)`
+   Appends :mini:`Value` to :mini:`Buffer` in base :mini:`10`.
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: integer, Arg₃: integer)`
-   *TBD*
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: double)`
-   *TBD*
+:mini:`meth (Buffer: string::buffer):append(Value: integer, Base: integer)`
+   Appends :mini:`Value` to :mini:`Buffer` in base :mini:`Base`.
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: complex)`
-   *TBD*
 
-:mini:`meth integer(Arg₁: string)`
-   *TBD*
+:mini:`meth (Buffer: string::buffer):append(Value: integer, Format: string)`
+   Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string.
 
-:mini:`meth integer(Arg₁: string, Arg₂: integer)`
-   *TBD*
 
-:mini:`meth double(Arg₁: string)`
-   *TBD*
+:mini:`meth (Buffer: string::buffer):append(Value: integer::range)`
+   Appends a representation of :mini:`Value` to :mini:`Buffer`.
 
-:mini:`meth real(Arg₁: string)`
-   *TBD*
 
-:mini:`meth complex(Arg₁: string)`
-   *TBD*
+:mini:`meth (Buffer: string::buffer):append(Value: real::range)`
+   Appends a representation of :mini:`Value` to :mini:`Buffer`.
 
-:mini:`meth number(Arg₁: string)`
-   *TBD*
+
+:mini:`meth (Buffer: string::buffer):append(Value: double)`
+   Appends :mini:`Value` to :mini:`Buffer`.
+
+
+:mini:`meth (Buffer: string::buffer):append(Value: double, Format: string)`
+   Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string.
+
+
+:mini:`meth (Buffer: string::buffer):append(Value: complex)`
+   Appends :mini:`Value` to :mini:`Buffer`.
+
+
+:mini:`meth (Buffer: string::buffer):append(Value: complex, Format: string)`
+   Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string for the real and imaginary components.
+
+
+:mini:`meth integer(String: string): integer | error`
+   Returns the base :mini:`10` integer in :mini:`String` or an error if :mini:`String` does not contain a valid integer.
+
+
+:mini:`meth integer(String: string, Base: integer): integer | error`
+   Returns the base :mini:`Base` integer in :mini:`String` or an error if :mini:`String` does not contain a valid integer.
+
+
+:mini:`meth real(String: string): real | error`
+   Returns the real number in :mini:`String` or an error if :mini:`String` does not contain a valid real number.
+
+
+:mini:`meth complex(String: string): complex | error`
+   Returns the complex number in :mini:`String` or an error if :mini:`String` does not contain a valid complex number.
+
+
+:mini:`meth number(String: string): integer | real | complex | error`
+   Returns the number in :mini:`String` or an error if :mini:`String` does not contain a valid number.
+
 

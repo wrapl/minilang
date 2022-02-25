@@ -1,5 +1,7 @@
 .. include:: <isonum.txt>
 
+.. include:: <isoamsa.txt>
+
 time
 ====
 

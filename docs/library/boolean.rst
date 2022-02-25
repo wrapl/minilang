@@ -1,5 +1,7 @@
 .. include:: <isonum.txt>
 
+.. include:: <isoamsa.txt>
+
 boolean
 =======
 
@@ -56,6 +58,7 @@ boolean
    Returns :mini:`Arg₂` if :mini:`Arg₁ >= Arg₂` and :mini:`nil` otherwise.
 
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: boolean)`
-   *TBD*
+:mini:`meth (Buffer: string::buffer):append(Value: boolean)`
+   Appends :mini`"true"` or :mini:`"false`" to :mini:`Buffer`.
+
 

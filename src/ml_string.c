@@ -60,7 +60,7 @@ ML_METHOD("@", MLAddressT, MLIntegerT) {
 // Returns the same address as :mini:`Address`, limited to :mini:`Length` bytes.
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	long Length = ml_integer_value_fast(Args[1]);
-	if (Length > Address->Length) return ml_error("ValueError", "Size larger than buffer");
+	if (Length > Address->Length) return ml_error("SizeError", "Size larger than buffer");
 	if (Length < 0) return ml_error("ValueError", "Address size must be non-negative");
 	ml_address_t *Address2 = new(ml_address_t);
 	Address2->Type = MLAddressT;
@@ -77,7 +77,7 @@ ML_METHOD("+", MLAddressT, MLIntegerT) {
 // Returns the address at offset :mini:`Offset` from :mini:`Address`.
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	long Offset = ml_integer_value_fast(Args[1]);
-	if (Offset > Address->Length) return ml_error("ValueError", "Offset larger than buffer");
+	if (Offset > Address->Length) return ml_error("SizeError", "Offset larger than buffer");
 	ml_address_t *Address2 = new(ml_address_t);
 	Address2->Type = MLAddressT;
 	Address2->Value = Address->Value + Offset;
@@ -102,8 +102,9 @@ ML_METHOD("get8", MLAddressT) {
 //!address
 //<Address
 //>integer
+// Returns the signed 8-bit value at :mini:`Address`.
 	ml_address_t *Address = (ml_address_t *)Args[0];
-	if (Address->Length < 1) return ml_error("ValueError", "Buffer too small");
+	if (Address->Length < 1) return ml_error("SizeError", "Not enough bytes to read");
 	return ml_integer(*(int8_t *)Address->Value);
 }
 
@@ -111,8 +112,9 @@ ML_METHOD("get16", MLAddressT) {
 //!address
 //<Address
 //>integer
+// Returns the signed 16-bit value at :mini:`Address`. Currently follows the platform endiness.
 	ml_address_t *Address = (ml_address_t *)Args[0];
-	if (Address->Length < 2) return ml_error("ValueError", "Buffer too small");
+	if (Address->Length < 2) return ml_error("SizeError", "Not enough bytes to read");
 	return ml_integer(*(int16_t *)Address->Value);
 }
 
@@ -120,8 +122,9 @@ ML_METHOD("get32", MLAddressT) {
 //!address
 //<Address
 //>integer
+// Returns the signed 32-bit value at :mini:`Address`. Currently follows the platform endiness.
 	ml_address_t *Address = (ml_address_t *)Args[0];
-	if (Address->Length < 4) return ml_error("ValueError", "Buffer too small");
+	if (Address->Length < 4) return ml_error("SizeError", "Not enough bytes to read");
 	return ml_integer(*(int32_t *)Address->Value);
 }
 
@@ -129,8 +132,9 @@ ML_METHOD("get64", MLAddressT) {
 //!address
 //<Address
 //>integer
+// Returns the signed 64-bit value at :mini:`Address`. Currently follows the platform endiness.
 	ml_address_t *Address = (ml_address_t *)Args[0];
-	if (Address->Length < 8) return ml_error("ValueError", "Buffer too small");
+	if (Address->Length < 8) return ml_error("SizeError", "Not enough bytes to read");
 	return ml_integer(*(int64_t *)Address->Value);
 }
 
@@ -138,8 +142,9 @@ ML_METHOD("getu8", MLAddressT) {
 //!address
 //<Address
 //>integer
+// Returns the unsigned 8-bit value at :mini:`Address`.
 	ml_address_t *Address = (ml_address_t *)Args[0];
-	if (Address->Length < 1) return ml_error("ValueError", "Buffer too small");
+	if (Address->Length < 1) return ml_error("SizeError", "Not enough bytes to read");
 	return ml_integer(*(uint8_t *)Address->Value);
 }
 
@@ -147,8 +152,9 @@ ML_METHOD("getu16", MLAddressT) {
 //!address
 //<Address
 //>integer
+// Returns the unsigned 16-bit value at :mini:`Address`. Currently follows the platform endiness.
 	ml_address_t *Address = (ml_address_t *)Args[0];
-	if (Address->Length < 2) return ml_error("ValueError", "Buffer too small");
+	if (Address->Length < 2) return ml_error("SizeError", "Not enough bytes to read");
 	return ml_integer(*(uint16_t *)Address->Value);
 }
 
@@ -156,8 +162,9 @@ ML_METHOD("getu32", MLAddressT) {
 //!address
 //<Address
 //>integer
+// Returns the unsigned 32-bit value at :mini:`Address`. Currently follows the platform endiness.
 	ml_address_t *Address = (ml_address_t *)Args[0];
-	if (Address->Length < 4) return ml_error("ValueError", "Buffer too small");
+	if (Address->Length < 4) return ml_error("SizeError", "Not enough bytes to read");
 	return ml_integer(*(uint32_t *)Address->Value);
 }
 
@@ -165,8 +172,11 @@ ML_METHOD("getu64", MLAddressT) {
 //!address
 //<Address
 //>integer
+// Returns the unsigned 64-bit value at :mini:`Address`. Currently follows the platform endiness.
+// .. warning::
+//    Minilang currently uses signed 64-bit integers so this method will produce incorrect results if the actual value is too large to fit. This may change in future implementations or if arbitrary precision integers are added to the runtime.
 	ml_address_t *Address = (ml_address_t *)Args[0];
-	if (Address->Length < 8) return ml_error("ValueError", "Buffer too small");
+	if (Address->Length < 8) return ml_error("SizeError", "Not enough bytes to read");
 	return ml_integer(*(uint64_t *)Address->Value);
 }
 
@@ -174,8 +184,9 @@ ML_METHOD("getf32", MLAddressT) {
 //!address
 //<Address
 //>real
+// Returns the single precision floating point value at :mini:`Address`. Currently follows the platform endiness.
 	ml_address_t *Address = (ml_address_t *)Args[0];
-	if (Address->Length < 4) return ml_error("ValueError", "Buffer too small");
+	if (Address->Length < 4) return ml_error("SizeError", "Not enough bytes to read");
 	return ml_real(*(float *)Address->Value);
 }
 
@@ -183,8 +194,9 @@ ML_METHOD("getf64", MLAddressT) {
 //!address
 //<Address
 //>real
+// Returns the double precision floating point value at :mini:`Address`. Currently follows the platform endiness.
 	ml_address_t *Address = (ml_address_t *)Args[0];
-	if (Address->Length < 8) return ml_error("ValueError", "Buffer too small");
+	if (Address->Length < 8) return ml_error("SizeError", "Not enough bytes to read");
 	return ml_real(*(double *)Address->Value);
 }
 
@@ -192,6 +204,7 @@ ML_METHOD("gets", MLAddressT) {
 //!address
 //<Address
 //>string
+// Returns the string consisting of the bytes at :mini:`Address`.
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	size_t Length = ml_address_length(Args[0]);
 	char *String = snew(Length + 1);
@@ -205,9 +218,10 @@ ML_METHOD("gets", MLAddressT, MLIntegerT) {
 //<Address
 //<Size
 //>string
+// Returns the string consisting of the first :mini:`Size` bytes at :mini:`Address`.
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	size_t Length = ml_integer_value(Args[1]);
-	if (Length > Address->Length) return ml_error("ValueError", "Length larger than buffer");
+	if (Length > Address->Length) return ml_error("SizeError", "Not enough bytes to read");
 	char *String = snew(Length + 1);
 	memcpy(String, Address->Value, Length);
 	String[Length] = 0;
@@ -250,9 +264,10 @@ ML_METHOD("@", MLBufferT, MLIntegerT) {
 //<Buffer
 //<Length
 //>buffer
+// Returns the same buffer as :mini:`Buffer`, limited to :mini:`Length` bytes.
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
 	long Length = ml_integer_value_fast(Args[1]);
-	if (Length > Buffer->Length) return ml_error("ValueError", "Size larger than buffer");
+	if (Length > Buffer->Length) return ml_error("SizeError", "Size larger than buffer");
 	if (Length < 0) return ml_error("ValueError", "Buffer size must be non-negative");
 	ml_address_t *Buffer2 = new(ml_address_t);
 	Buffer2->Type = MLBufferT;
@@ -266,9 +281,10 @@ ML_METHOD("+", MLBufferT, MLIntegerT) {
 //<Buffer
 //<Offset
 //>buffer
+// Returns the buffer at offset :mini:`Offset` from :mini:`Address`.
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
 	long Offset = ml_integer_value_fast(Args[1]);
-	if (Offset > Buffer->Length) return ml_error("ValueError", "Offset larger than buffer");
+	if (Offset > Buffer->Length) return ml_error("SizeError", "Offset larger than buffer");
 	ml_address_t *Buffer2 = new(ml_address_t);
 	Buffer2->Type = MLBufferT;
 	Buffer2->Value = Buffer->Value + Offset;
@@ -281,8 +297,9 @@ ML_METHOD("put8", MLBufferT, MLIntegerT) {
 //<Buffer
 //<Value
 //>buffer
+// Puts :mini:`Value` in :mini:`Buffer` as an 8-bit signed value.
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
-	if (Buffer->Length < 1) return ml_error("ValueError", "Buffer too small");
+	if (Buffer->Length < 1) return ml_error("SizeError", "Not enough space");
 	*(int8_t *)Buffer->Value = ml_integer_value(Args[1]);
 	return Args[0];
 }
@@ -292,8 +309,9 @@ ML_METHOD("put16", MLBufferT, MLIntegerT) {
 //<Buffer
 //<Value
 //>buffer
+// Puts :mini:`Value` in :mini:`Buffer` as an 16-bit signed value. Currently follows the platform endiness.
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
-	if (Buffer->Length < 2) return ml_error("ValueError", "Buffer too small");
+	if (Buffer->Length < 2) return ml_error("SizeError", "Not enough space");
 	*(int16_t *)Buffer->Value = ml_integer_value(Args[1]);
 	return Args[0];
 }
@@ -303,8 +321,9 @@ ML_METHOD("put32", MLBufferT, MLIntegerT) {
 //<Buffer
 //<Value
 //>buffer
+// Puts :mini:`Value` in :mini:`Buffer` as an 32-bit signed value. Currently follows the platform endiness.
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
-	if (Buffer->Length < 4) return ml_error("ValueError", "Buffer too small");
+	if (Buffer->Length < 4) return ml_error("SizeError", "Not enough space");
 	*(int32_t *)Buffer->Value = ml_integer_value(Args[1]);
 	return Args[0];
 }
@@ -314,8 +333,9 @@ ML_METHOD("put64", MLBufferT, MLIntegerT) {
 //<Buffer
 //<Value
 //>buffer
+// Puts :mini:`Value` in :mini:`Buffer` as an 64-bit signed value. Currently follows the platform endiness.
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
-	if (Buffer->Length < 8) return ml_error("ValueError", "Buffer too small");
+	if (Buffer->Length < 8) return ml_error("SizeError", "Not enough space");
 	*(int64_t *)Buffer->Value = ml_integer_value(Args[1]);
 	return Args[0];
 }
@@ -325,8 +345,9 @@ ML_METHOD("put32f", MLBufferT, MLRealT) {
 //<Buffer
 //<Value
 //>buffer
+// Puts :mini:`Value` in :mini:`Buffer` as a single precision floating point value. Currently follows the platform endiness.
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
-	if (Buffer->Length < 4) return ml_error("ValueError", "Buffer too small");
+	if (Buffer->Length < 4) return ml_error("SizeError", "Not enough space");
 	*(float *)Buffer->Value = ml_real_value(Args[1]);
 	return Args[0];
 }
@@ -336,8 +357,9 @@ ML_METHOD("put64f", MLBufferT, MLRealT) {
 //<Buffer
 //<Value
 //>buffer
+// Puts :mini:`Value` in :mini:`Buffer` as a double precision floating point value. Currently follows the platform endiness.
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
-	if (Buffer->Length < 8) return ml_error("ValueError", "Buffer too small");
+	if (Buffer->Length < 8) return ml_error("SizeError", "Not enough space");
 	*(double *)Buffer->Value = ml_real_value(Args[1]);
 	return Args[0];
 }
@@ -347,9 +369,10 @@ ML_METHOD("put", MLBufferT, MLAddressT) {
 //<Buffer
 //<Value
 //>buffer
+// Puts the bytes of :mini:`Value` in :mini:`Buffer`.
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
 	ml_address_t *Source = (ml_address_t *)Args[1];
-	if (Buffer->Length < Source->Length) return ml_error("ValueError", "Buffer too small");
+	if (Buffer->Length < Source->Length) return ml_error("SizeError", "Not enough space");
 	memcpy(Buffer->Value, Source->Value, Source->Length);
 	return Args[0];
 }
@@ -388,12 +411,16 @@ ML_FUNCTION(MLString) {
 }
 
 ML_TYPE(MLStringT, (MLAddressT, MLSequenceT), "string",
+// A string of characters in UTF-8 encoding.
 	.hash = (void *)ml_string_hash,
 	.Constructor = (ml_value_t *)MLString
 );
 
 ML_METHOD("append", MLStringBufferT, MLAddressT) {
 //!address
+//<Buffer
+//<Value
+// Appends a string representation of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_address_t *Address = (ml_address_t *)Args[1];
 	ml_stringbuffer_printf(Buffer, "#%" PRIxPTR ":%ld", (uintptr_t)Address->Value, Address->Length);
@@ -429,12 +456,20 @@ ml_value_t *ml_string_format(const char *Format, ...) {
 
 
 ML_METHOD("append", MLStringBufferT, MLNilT) {
+//!type
+//<Buffer
+//<Value
+// Appends :mini:`"nil"` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_write(Buffer, "nil", 3);
 	return MLSome;
 }
 
 ML_METHOD("append", MLStringBufferT, MLSomeT) {
+//!type
+//<Buffer
+//<Value
+// Appends :mini:`"some"` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_write(Buffer, "some", 4);
 	return MLSome;
@@ -442,6 +477,9 @@ ML_METHOD("append", MLStringBufferT, MLSomeT) {
 
 ML_METHOD("append", MLStringBufferT, MLBooleanT) {
 //!boolean
+//<Buffer
+//<Value
+// Appends :mini`"true"` or :mini:`"false`" to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_boolean_t *Boolean = (ml_boolean_t *)Args[1];
 	if (Boolean->Value) {
@@ -454,6 +492,9 @@ ML_METHOD("append", MLStringBufferT, MLBooleanT) {
 
 ML_METHOD("append", MLStringBufferT, MLIntegerT) {
 //!number
+//<Buffer
+//<Value
+// Appends :mini:`Value` to :mini:`Buffer` in base :mini:`10`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_printf(Buffer, "%ld", ml_integer_value_fast(Args[1]));
 	return MLSome;
@@ -461,6 +502,10 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT) {
 
 ML_METHOD("append", MLStringBufferT, MLIntegerT, MLIntegerT) {
 //!number
+//<Buffer
+//<Value
+//<Base
+// Appends :mini:`Value` to :mini:`Buffer` in base :mini:`Base`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	int64_t Value = ml_integer_value_fast(Args[1]);
 	int Base = ml_integer_value_fast(Args[2]);
@@ -483,6 +528,11 @@ static regex_t LongFormat[1];
 static regex_t RealFormat[1];
 
 ML_METHOD("append", MLStringBufferT, MLIntegerT, MLStringT) {
+//!number
+//<Buffer
+//<Value
+//<Format
+// Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	const char *Format = ml_string_value(Args[2]);
 	int64_t Value = ml_integer_value_fast(Args[1]);
@@ -499,62 +549,47 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT, MLStringT) {
 }
 
 ML_METHOD("append", MLStringBufferT, MLIntegerRangeT) {
+//!number
+//<Buffer
+//<Value
+// Appends a representation of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
-	ml_stringbuffer_printf(Buffer, "%ld .. %ld by %ld", Range->Start, Range->Limit, Range->Step);
+	if (Range->Step != 1) {
+		ml_stringbuffer_printf(Buffer, "%ld .. %ld by %ld", Range->Start, Range->Limit, Range->Step);
+	} else {
+		ml_stringbuffer_printf(Buffer, "%ld .. %ld", Range->Start, Range->Limit);
+	}
 	return MLSome;
 }
 
 ML_METHOD("append", MLStringBufferT, MLRealRangeT) {
+//!number
+//<Buffer
+//<Value
+// Appends a representation of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_real_range_t *Range = (ml_real_range_t *)Args[1];
 	ml_stringbuffer_printf(Buffer, "%g .. %g by %g", Range->Start, Range->Limit, Range->Step);
 	return MLSome;
 }
 
-ML_METHOD("code", MLStringT) {
-//<String
-//>integer
-// Returns the unicode codepoint of the first UTF-8 character of :mini:`String`.
-	const char *S = ml_string_value(Args[0]);
-	uint32_t K = S[0] ? __builtin_clz(~(S[0] << 24)) : 0;
-	uint32_t Mask = (1 << (8 - K)) - 1;
-	uint32_t Value = S[0] & Mask;
-	for (++S, --K; K > 0 && S[0]; --K, ++S) {
-		Value <<= 6;
-		Value += S[0] & 0x3F;
-	}
-	return ml_integer(Value);
-}
-
-ML_METHOD("utf8", MLIntegerT) {
-//<Codepoint
-//>string
-// Returns a UTF-8 string containing the character with unicode codepoint :mini:`Codepoint`.
-	uint32_t Code = ml_integer_value(Args[0]);
-	char Val[8];
-	uint32_t LeadByteMax = 0x7F;
-	int I = 0;
-	while (Code > LeadByteMax) {
-		Val[I++] = (Code & 0x3F) | 0x80;
-		Code >>= 6;
-		LeadByteMax >>= (I == 1 ? 2 : 1);
-	}
-	Val[I++] = (Code & LeadByteMax) | (~LeadByteMax << 1);
-	char *S = snew(I + 1), *P = S;
-	while (I--) *P++ = Val[I];
-	*P = 0;
-	return ml_string(S, I);
-}
-
 ML_METHOD("append", MLStringBufferT, MLDoubleT) {
 //!number
+//<Buffer
+//<Value
+// Appends :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_printf(Buffer, "%g", ml_double_value_fast(Args[1]));
 	return MLSome;
 }
 
 ML_METHOD("append", MLStringBufferT, MLDoubleT, MLStringT) {
+//!number
+//<Buffer
+//<Value
+//<Format
+// Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	const char *Format = ml_string_value(Args[2]);
 	double Value = ml_double_value_fast(Args[1]);
@@ -574,6 +609,9 @@ ML_METHOD("append", MLStringBufferT, MLDoubleT, MLStringT) {
 
 ML_METHOD("append", MLStringBufferT, MLComplexT) {
 //!number
+//<Buffer
+//<Value
+// Appends :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	complex double Complex = ml_complex_value_fast(Args[1]);
 	double Real = creal(Complex);
@@ -605,6 +643,11 @@ ML_METHOD("append", MLStringBufferT, MLComplexT) {
 }
 
 ML_METHOD("append", MLStringBufferT, MLComplexT, MLStringT) {
+//!number
+//<Buffer
+//<Value
+//<Format
+// Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string for the real and imaginary components.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	const char *Format = ml_string_value(Args[1]);
 	if (regexec(RealFormat, Format, 0, NULL, 0)) {
@@ -630,6 +673,9 @@ ML_METHOD("append", MLStringBufferT, MLComplexT, MLStringT) {
 
 ML_METHOD(MLIntegerT, MLStringT) {
 //!number
+//<String
+//>integer|error
+// Returns the base :mini:`10` integer in :mini:`String` or an error if :mini:`String` does not contain a valid integer.
 	const char *Start = ml_string_value(Args[0]);
 	char *End;
 	long Value = strtol(Start, &End, 10);
@@ -642,6 +688,10 @@ ML_METHOD(MLIntegerT, MLStringT) {
 
 ML_METHOD(MLIntegerT, MLStringT, MLIntegerT) {
 //!number
+//<String
+//<Base
+//>integer|error
+// Returns the base :mini:`Base` integer in :mini:`String` or an error if :mini:`String` does not contain a valid integer.
 	const char *Start = ml_string_value(Args[0]);
 	char *End;
 	long Value = strtol(Start, &End, ml_integer_value_fast(Args[1]));
@@ -653,7 +703,7 @@ ML_METHOD(MLIntegerT, MLStringT, MLIntegerT) {
 }
 
 ML_METHOD(MLDoubleT, MLStringT) {
-//!number
+//!internal
 	const char *Start = ml_string_value(Args[0]);
 	char *End;
 	double Value = strtod(Start, &End);
@@ -666,6 +716,9 @@ ML_METHOD(MLDoubleT, MLStringT) {
 
 ML_METHOD(MLRealT, MLStringT) {
 //!number
+//<String
+//>real|error
+// Returns the real number in :mini:`String` or an error if :mini:`String` does not contain a valid real number.
 	const char *Start = ml_string_value(Args[0]);
 	char *End;
 	double Value = strtod(Start, &End);
@@ -680,6 +733,9 @@ ML_METHOD(MLRealT, MLStringT) {
 
 ML_METHOD(MLComplexT, MLStringT) {
 //!number
+//<String
+//>complex|error
+// Returns the complex number in :mini:`String` or an error if :mini:`String` does not contain a valid complex number.
 	const char *Start = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	char *End = (char *)Start;
@@ -740,6 +796,9 @@ ML_METHOD(MLComplexT, MLStringT) {
 
 ML_METHOD(MLNumberT, MLStringT) {
 //!number
+//<String
+//>integer|real|complex|error
+// Returns the number in :mini:`String` or an error if :mini:`String` does not contain a valid number.
 	const char *Start = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	char *End = (char *)Start;
@@ -863,532 +922,15 @@ typedef struct ml_regex_t {
 	regex_t Value[1];
 } ml_regex_t;
 
-static long ml_regex_hash(ml_regex_t *Regex, ml_hash_chain_t *Chain) {
-	long Hash = 5381;
-	const char *Pattern = Regex->Pattern;
-	while (*Pattern) Hash = ((Hash << 5) + Hash) + *(Pattern++);
-	return Hash;
-}
-
-ML_FUNCTION(MLRegex) {
-//@regex
-//<String
-//>regex | error
-// Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
-	const char *Pattern = ml_string_value(Args[0]);
-	int Length = ml_string_length(Args[0]);
-	if (Pattern[Length]) return ml_error("ValueError", "Regex pattern must be proper string");
-	return ml_regex(Pattern, Length);
-}
-
-ML_TYPE(MLRegexT, (), "regex",
-	.hash = (void *)ml_regex_hash,
-	.Constructor = (ml_value_t *)MLRegex
-);
-
-ml_value_t *ml_regex(const char *Pattern, int Length) {
-	ml_regex_t *Regex = new(ml_regex_t);
-	Regex->Type = MLRegexT;
-	Regex->Pattern = Pattern;
-#ifdef ML_TRE
-	int Error = regncomp(Regex->Value, Pattern, Length, REG_EXTENDED);
-#else
-	int Error = regcomp(Regex->Value, Pattern, REG_EXTENDED);
-#endif
-	if (Error) {
-		size_t ErrorSize = regerror(Error, Regex->Value, NULL, 0);
-		char *ErrorMessage = snew(ErrorSize + 1);
-		regerror(Error, Regex->Value, ErrorMessage, ErrorSize);
-		return ml_error("RegexError", "regex error: %s", ErrorMessage);
-	}
-	return (ml_value_t *)Regex;
-}
-
-ml_value_t *ml_regexi(const char *Pattern, int Length) {
-	ml_regex_t *Regex = new(ml_regex_t);
-	Regex->Type = MLRegexT;
-	Regex->Pattern = Pattern;
-#ifdef ML_TRE
-	int Error = regncomp(Regex->Value, Pattern, Length, REG_EXTENDED | REG_ICASE);
-#else
-	int Error = regcomp(Regex->Value, Pattern, REG_EXTENDED | REG_ICASE);
-#endif
-	if (Error) {
-		size_t ErrorSize = regerror(Error, Regex->Value, NULL, 0);
-		char *ErrorMessage = snew(ErrorSize + 1);
-		regerror(Error, Regex->Value, ErrorMessage, ErrorSize);
-		return ml_error("RegexError", "regex error: %s", ErrorMessage);
-	}
-	return (ml_value_t *)Regex;
-}
-
 regex_t *ml_regex_value(const ml_value_t *Value) {
 	ml_regex_t *Regex = (ml_regex_t *)Value;
 	return Regex->Value;
 }
 
-const char *ml_regex_pattern(const ml_value_t *Value) {
-	ml_regex_t *Regex = (ml_regex_t *)Value;
-	return Regex->Pattern;
-}
-
-#ifdef ML_NANBOXING
-
-#define NegOne ml_int32(-1)
-#define One ml_int32(1)
-#define Zero ml_int32(0)
-
-#else
-
-static ml_integer_t One[1] = {{MLIntegerT, 1}};
-static ml_integer_t NegOne[1] = {{MLIntegerT, -1}};
-static ml_integer_t Zero[1] = {{MLIntegerT, 0}};
-
-#endif
-
-ML_METHOD("<>", MLRegexT, MLRegexT) {
-	const char *PatternA = ml_regex_pattern(Args[0]);
-	const char *PatternB = ml_regex_pattern(Args[1]);
-	int Compare = strcmp(PatternA, PatternB);
-	if (Compare < 0) return (ml_value_t *)NegOne;
-	if (Compare > 0) return (ml_value_t *)One;
-	return (ml_value_t *)Zero;
-}
-
-#define ml_comp_method_regex_regex(NAME, SYMBOL) \
-ML_METHOD(NAME, MLRegexT, MLRegexT) { \
-/*>regex|nil
-// Returns :mini:`Arg/2` if :mini:`Arg/1 SYMBOL Arg/2` and :mini:`nil` otherwise.
-*/\
-	const char *PatternA = ml_regex_pattern(Args[0]); \
-	const char *PatternB = ml_regex_pattern(Args[1]); \
-	int Compare = strcmp(PatternA, PatternB); \
-	return Compare SYMBOL 0 ? Args[1] : MLNil; \
-}
-
-ml_comp_method_regex_regex("=", ==)
-ml_comp_method_regex_regex("!=", !=)
-ml_comp_method_regex_regex("<", <)
-ml_comp_method_regex_regex(">", >)
-ml_comp_method_regex_regex("<=", <=)
-ml_comp_method_regex_regex(">=", >=)
-
-typedef struct {
-	ml_value_t *Index;
-	ml_string_t *String;
-	ml_regex_t *Regex;
-} ml_string_case_t;
-
-typedef struct {
-	ml_type_t *Type;
-	ml_string_case_t Cases[];
-} ml_string_switch_t;
-
-static void ml_string_switch(ml_state_t *Caller, ml_string_switch_t *Switch, int Count, ml_value_t **Args) {
-	ML_CHECKX_ARG_COUNT(1);
-	ml_value_t *Arg = ml_deref(Args[0]);
-	if (!ml_is(Arg, MLStringT)) {
-		ML_ERROR("TypeError", "expected string for argument 1");
-	}
-	const char *Subject = ml_string_value(Arg);
-	size_t Length = ml_string_length(Arg);
-	for (ml_string_case_t *Case = Switch->Cases;; ++Case) {
-		if (Case->String) {
-			if (Case->String->Length == Length) {
-				if (!memcmp(Subject, Case->String->Value, Length)) ML_RETURN(Case->Index);
-			}
-		} else if (Case->Regex) {
-#ifdef ML_TRE
-			int Length = ml_string_length(Args[0]);
-			if (!regnexec(Case->Regex->Value, Subject, Length, 0, NULL, 0)) {
-
-#else
-			if (!regexec(Case->Regex->Value, Subject, 0, NULL, 0)) {
-#endif
-				ML_RETURN(Case->Index);
-			}
-		} else {
-			ML_RETURN(Case->Index);
-		}
-	}
-	ML_RETURN(MLNil);
-}
-
-ML_TYPE(MLStringSwitchT, (MLFunctionT), "string-switch",
-//!internal
-	.call = (void *)ml_string_switch
-);
-
-ML_FUNCTION(MLStringSwitch) {
-//@string::switch
-//<Cases...:string|regex
-// Implements :mini:`switch` for string values. Case values must be strings or regular expressions.
-	int Total = 1;
-	for (int I = 0; I < Count; ++I) Total += ml_list_length(Args[I]);
-	ml_string_switch_t *Switch = xnew(ml_string_switch_t, Total, ml_string_case_t);
-	Switch->Type = MLStringSwitchT;
-	ml_string_case_t *Case = Switch->Cases;
-	for (int I = 0; I < Count; ++I) {
-		ML_CHECK_ARG_TYPE(I, MLListT);
-		ML_LIST_FOREACH(Args[I], Iter) {
-			ml_value_t *Value = Iter->Value;
-			if (ml_is(Value, MLStringT)) {
-				Case->String = (ml_string_t *)Value;
-			} else if (ml_is(Value, MLRegexT)) {
-				Case->Regex = (ml_regex_t *)Value;
-			} else {
-				return ml_error("ValueError", "Unsupported value in string case");
-			}
-			Case->Index = ml_integer(I);
-			++Case;
-		}
-	}
-	Case->Index = ml_integer(Count);
-	return (ml_value_t *)Switch;
-}
-
-
-ml_value_t *ml_stringbuffer() {
-	ml_stringbuffer_t *Buffer = new(ml_stringbuffer_t);
-	Buffer->Type = MLStringBufferT;
-	return (ml_value_t *)Buffer;
-}
-
-ML_FUNCTION(MLStringBuffer) {
-//@string::buffer
-	return ml_stringbuffer();
-}
-
-ML_TYPE(MLStringBufferT, (), "stringbuffer",
-	.Constructor = (ml_value_t *)MLStringBuffer
-);
-
-static GC_descr StringBufferDesc = 0;
-
-#ifdef ML_THREADSAFE
-static ml_stringbuffer_node_t * _Atomic StringBufferNodeCache = NULL;
-#else
-static ml_stringbuffer_node_t *StringBufferNodeCache = NULL;
-#endif
-
-size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length) {
-	ml_stringbuffer_node_t *Node = Buffer->Head;
-	Buffer->Length -= Length;
-	Buffer->Start += Length;
-	while (Node) {
-		size_t Limit = ML_STRINGBUFFER_NODE_SIZE;
-		if (Node == Buffer->Tail) Limit -= Buffer->Space;
-		if (Buffer->Start < Limit) return Limit - Buffer->Start;
-		ml_stringbuffer_node_t *Next = Node->Next;
-#ifdef ML_THREADSAFE
-		ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
-		do {
-			Node->Next = CacheNext;
-		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &CacheNext, Node));
-#else
-		Node->Next = StringBufferNodeCache;
-		StringBufferNodeCache = Node;
-#endif
-		Buffer->Start = 0;
-		if (Next) {
-			Node = Buffer->Head = Next;
-		} else {
-			Buffer->Head = Buffer->Tail = NULL;
-			Buffer->Space = 0;
-			break;
-		}
-	}
-	return 0;
-}
-
-char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Length) {
-	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
-	Buffer->Length += Length;
-	Buffer->Space -= Length;
-	if (!Buffer->Space) {
-#ifdef ML_THREADSAFE
-		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
-		do {
-			if (!Next) {
-				Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
-				break;
-			}
-			CacheNext = Next->Next;
-		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &Next, CacheNext));
-#else
-		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
-		if (!Next) {
-			Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
-		} else {
-			StringBufferNodeCache = Next->Next;
-		}
-#endif
-		Next->Next = NULL;
-		Node->Next = Next;
-		Node = Next;
-		Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
-		Buffer->Tail = Node;
-	}
-	return Node->Chars + ML_STRINGBUFFER_NODE_SIZE - Buffer->Space;
-}
-
-ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, size_t Length) {
-	//fprintf(stderr, "ml_stringbuffer_add(%s, %ld)\n", String, Length);
-	size_t Remaining = Length;
-	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
-	while (Buffer->Space < Remaining) {
-		memcpy(Node->Chars + ML_STRINGBUFFER_NODE_SIZE - Buffer->Space, String, Buffer->Space);
-		String += Buffer->Space;
-		Remaining -= Buffer->Space;
-#ifdef ML_THREADSAFE
-		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
-		do {
-			if (!Next) {
-				Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
-				break;
-			}
-			CacheNext = Next->Next;
-		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &Next, CacheNext));
-#else
-		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
-		if (!Next) {
-			Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
-		} else {
-			StringBufferNodeCache = Next->Next;
-		}
-#endif
-		Next->Next = NULL;
-		Node->Next = Next;
-		Node = Next;
-		Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
-	}
-	memcpy(Node->Chars + ML_STRINGBUFFER_NODE_SIZE - Buffer->Space, String, Remaining);
-	Buffer->Space -= Remaining;
-	Buffer->Length += Length;
-	Buffer->Tail = Node;
-	return Length;
-}
-
-ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ...) {
-#ifdef Linux
-	static cookie_io_functions_t CookieFns = {0,
-		.write = (cookie_write_function_t *)ml_stringbuffer_write
-	};
-	if (!Buffer->File) {
-		Buffer->File = fopencookie(Buffer, "w", CookieFns);
-		setvbuf(Buffer->File, NULL, _IONBF, 0);
-	}
-#else
-	if (!Buffer->File) {
-		Buffer->File = fwopen(Buffer, (void *)ml_stringbuffer_write);
-		setvbuf(Buffer->File, NULL, _IONBF, 0);
-	}
-#endif
-	va_list Args;
-	va_start(Args, Format);
-	size_t Length = vfprintf(Buffer->File, Format, Args);
-	va_end(Args);
-	return Length;
-}
-
-void ml_stringbuffer_put(ml_stringbuffer_t *Buffer, char Char) {
-	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
-	if (!Buffer->Space) {
-#ifdef ML_THREADSAFE
-		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
-		do {
-			if (!Next) {
-				Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
-				break;
-			}
-			CacheNext = Next->Next;
-		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &Next, CacheNext));
-#else
-		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
-		if (!Next) {
-			Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
-		} else {
-			StringBufferNodeCache = Next->Next;
-		}
-#endif
-		Next->Next = NULL;
-		Node->Next = Next;
-		Node = Next;
-		Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
-	}
-	Node->Chars[ML_STRINGBUFFER_NODE_SIZE - Buffer->Space] = Char;
-	Buffer->Space -= 1;
-	Buffer->Length += 1;
-	Buffer->Tail = Node;
-}
-
-static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
-	char *P = String;
-	ml_stringbuffer_node_t *Node = Buffer->Head;
-	while (Node->Next) {
-		memcpy(P, Node->Chars, ML_STRINGBUFFER_NODE_SIZE);
-		P += ML_STRINGBUFFER_NODE_SIZE;
-		Node = Node->Next;
-	}
-	memcpy(P, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
-	P += ML_STRINGBUFFER_NODE_SIZE - Buffer->Space;
-	*P++ = 0;
-
-	ml_stringbuffer_node_t *Head = Buffer->Head, *Tail = Buffer->Tail;
-#ifdef ML_THREADSAFE
-	ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
-	do {
-		Tail->Next = CacheNext;
-	} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &CacheNext, Head));
-#else
-	Tail->Next = StringBufferNodeCache;
-	StringBufferNodeCache = Head;
-#endif
-
-	if (Buffer->File) {
-		fclose(Buffer->File);
-		Buffer->File = NULL;
-	}
-	Buffer->Head = Buffer->Tail = NULL;
-	Buffer->Length = Buffer->Space = 0;
-}
-
-char *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) {
-	if (Buffer->Length == 0) return "";
-	char *String = snew(Buffer->Length + 1);
-	ml_stringbuffer_finish(Buffer, String);
-	return String;
-}
-
-char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer) {
-	if (Buffer->Length == 0) return "";
-	char *String = GC_MALLOC_ATOMIC_UNCOLLECTABLE(Buffer->Length + 1);
-	ml_stringbuffer_finish(Buffer, String);
-	return String;
-}
-
-ml_value_t *ml_stringbuffer_get_value(ml_stringbuffer_t *Buffer) {
-	size_t Length = Buffer->Length;
-	if (Length == 0) {
-		return ml_cstring("");
-	} else {
-		char *Chars = snew(Length + 1);
-		ml_stringbuffer_finish(Buffer, Chars);
-		return ml_string(Chars, Length);
-	}
-}
-
-ML_METHOD("get", MLStringBufferT) {
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	return ml_stringbuffer_get_value(Buffer);
-}
-
-ML_METHOD("length", MLStringBufferT) {
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	return ml_integer(Buffer->Length);
-}
-
-int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t)) {
-	ml_stringbuffer_node_t *Node = Buffer->Head;
-	if (!Node) return 0;
-	while (Node->Next) {
-		if (callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE)) return 1;
-		Node = Node->Next;
-	}
-	return callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
-}
-
-ml_value_t *ml_stringbuffer_simple_append(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
-	ml_hash_chain_t *Chain = Buffer->Chain;
-	for (ml_hash_chain_t *Link = Chain; Link; Link = Link->Previous) {
-		if (Link->Value == Value) {
-			int Index = Link->Index;
-			if (!Index) Index = Link->Index = ++Buffer->Index;
-			ml_stringbuffer_printf(Buffer, "^%d", Index);
-			return (ml_value_t *)Buffer;
-		}
-	}
-	ml_hash_chain_t NewChain[1] = {{Chain, Value, 0}};
-	Buffer->Chain = NewChain;
-	ml_value_t *Result = ml_simple_inline(AppendMethod, 2, Buffer, Value);
-	if (NewChain->Index) ml_stringbuffer_printf(Buffer, "@%d", NewChain->Index);
-	Buffer->Chain = Chain;
-	return Result;
-}
-
-typedef struct {
-	ml_state_t Base;
-	ml_hash_chain_t Chain[1];
-	ml_value_t *Args[2];
-} ml_stringbuffer_append_state_t;
-
-static void ml_stringbuffer_append_run(ml_stringbuffer_append_state_t *State, ml_value_t *Value) {
-	ml_state_t *Caller = State->Base.Caller;
-	if (ml_is_error(Value)) ML_RETURN(Value);
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)State->Args[0];
-	if (State->Chain->Index) ml_stringbuffer_printf(Buffer, "@%d", State->Chain->Index);
-	Buffer->Chain = State->Chain->Previous;
-	ML_RETURN(Buffer);
-}
-
-void ml_stringbuffer_append(ml_state_t *Caller, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
-	for (ml_hash_chain_t *Link = Buffer->Chain; Link; Link = Link->Previous) {
-		if (Link->Value == Value) {
-			int Index = Link->Index;
-			if (!Index) Index = Link->Index = ++Buffer->Index;
-			ml_stringbuffer_printf(Buffer, "^%d", Index);
-			ML_RETURN(Buffer);
-		}
-	}
-	ml_stringbuffer_append_state_t *State = new(ml_stringbuffer_append_state_t);
-	State->Base.Caller = Caller;
-	State->Base.Context = Caller->Context;
-	State->Base.run = (ml_state_fn)ml_stringbuffer_append_run;
-	State->Chain->Previous = Buffer->Chain;
-	State->Chain->Value = Value;
-	Buffer->Chain = State->Chain;
-	State->Args[0] = (ml_value_t *)Buffer;
-	State->Args[1] = Value;
-	return ml_call(State, AppendMethod, 2, State->Args);
-
-}
-
-ML_METHODV("write", MLStringBufferT, MLAnyT) {
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	for (int I = 1; I < Count; ++I) {
-		ml_value_t *Result = ml_stringbuffer_simple_append(Buffer, Args[I]);
-		if (ml_is_error(Result)) return Result;
-	}
-	return Args[0];
-}
-
-ML_METHOD("append", MLStringBufferT, MLNilT) {
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_write(Buffer, "nil", 3);
-	return MLSome;
-}
-
-ML_METHOD("append", MLStringBufferT, MLSomeT) {
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_write(Buffer, "some", 4);
-	return MLSome;
-}
-
-ML_METHOD("append", MLStringBufferT, MLIntegerT) {
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_printf(Buffer, "%ld", ml_integer_value_fast(Args[1]));
-	return MLSome;
-}
-
-ML_METHOD("append", MLStringBufferT, MLDoubleT) {
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_printf(Buffer, "%g", ml_double_value_fast(Args[1]));
-	return MLSome;
-}
-
 ML_METHOD("append", MLStringBufferT, MLStringT) {
+//<Buffer
+//<Value
+// Appends :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	int Length = ml_string_length(Args[1]);
 	if (Length) {
@@ -1411,6 +953,41 @@ ML_METHOD("count", MLStringT) {
 //>integer
 // Returns the number of UTF-8 characters in :mini:`String`.
 	return ml_integer(utf8_strlen(Args[0]));
+}
+
+ML_METHOD("code", MLStringT) {
+//<String
+//>integer
+// Returns the unicode codepoint of the first UTF-8 character of :mini:`String`.
+	const char *S = ml_string_value(Args[0]);
+	uint32_t K = S[0] ? __builtin_clz(~(S[0] << 24)) : 0;
+	uint32_t Mask = (1 << (8 - K)) - 1;
+	uint32_t Value = S[0] & Mask;
+	for (++S, --K; K > 0 && S[0]; --K, ++S) {
+		Value <<= 6;
+		Value += S[0] & 0x3F;
+	}
+	return ml_integer(Value);
+}
+
+ML_METHOD("utf8", MLIntegerT) {
+//<Codepoint
+//>string
+// Returns a UTF-8 string containing the character with unicode codepoint :mini:`Codepoint`.
+	uint32_t Code = ml_integer_value(Args[0]);
+	char Val[8];
+	uint32_t LeadByteMax = 0x7F;
+	int I = 0;
+	while (Code > LeadByteMax) {
+		Val[I++] = (Code & 0x3F) | 0x80;
+		Code >>= 6;
+		LeadByteMax >>= (I == 1 ? 2 : 1);
+	}
+	Val[I++] = (Code & LeadByteMax) | (~LeadByteMax << 1);
+	char *S = snew(I + 1), *P = S;
+	while (I--) *P++ = Val[I];
+	*P = 0;
+	return ml_string(S, I);
 }
 
 ML_METHOD("[]", MLStringT, MLIntegerT) {
@@ -1652,6 +1229,20 @@ ML_METHOD("reverse", MLStringT) {
 	Reversed[Length] = 0;
 	return ml_string(Reversed, Length);
 }
+
+#ifdef ML_NANBOXING
+
+#define NegOne ml_int32(-1)
+#define One ml_int32(1)
+#define Zero ml_int32(0)
+
+#else
+
+static ml_integer_t One[1] = {{MLIntegerT, 1}};
+static ml_integer_t NegOne[1] = {{MLIntegerT, -1}};
+static ml_integer_t Zero[1] = {{MLIntegerT, 0}};
+
+#endif
 
 ML_METHOD("<>", MLStringT, MLStringT) {
 //<A
@@ -2032,6 +1623,9 @@ ML_METHOD("*/", MLStringT, MLRegexT) {
 }
 
 ML_METHOD("lower", MLStringT) {
+//<String
+//>string
+// Returns :mini:`String` with each character converted to lower case.
 	const char *Source = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	char *Target = snew(Length + 1);
@@ -2040,6 +1634,9 @@ ML_METHOD("lower", MLStringT) {
 }
 
 ML_METHOD("upper", MLStringT) {
+//<String
+//>string
+// Returns :mini:`String` with each character converted to upper case.
 	const char *Source = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	char *Target = snew(Length + 1);
@@ -2048,6 +1645,9 @@ ML_METHOD("upper", MLStringT) {
 }
 
 ML_METHOD("escape", MLStringT) {
+//<String
+//>string
+// Returns :mini:`String` with white space, quotes and backslashes replaced by escape sequences.
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	const char *Start = ml_string_value(Args[0]);
 	int N = ml_string_length(Args[0]);
@@ -2105,6 +1705,10 @@ ML_METHOD("escape", MLStringT) {
 
 
 ML_METHOD("find", MLStringT, MLStringT) {
+//<Haystack
+//<Needle
+//>integer|nil
+// Returns the index of the first occurence of :mini:`Needle` in :mini:`Haystack`, or :mini:`nil` if no occurence is found.
 	const char *Haystack = ml_string_value(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
 	const char *Match = strstr(Haystack, Needle);
@@ -2116,6 +1720,10 @@ ML_METHOD("find", MLStringT, MLStringT) {
 }
 
 ML_METHOD("find2", MLStringT, MLStringT) {
+//<Haystack
+//<Needle
+//>tuple[integer,string]|nil
+// Returns :mini:`(Index, Needle)` where :mini:`Index` is the first occurence of :mini:`Needle` in :mini:`Haystack`, or :mini:`nil` if no occurence is found.
 	const char *Haystack = ml_string_value(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
 	const char *Match = strstr(Haystack, Needle);
@@ -2136,6 +1744,11 @@ static const char *utf8_skip(const char *S, int P) {
 }
 
 ML_METHOD("find", MLStringT, MLStringT, MLIntegerT) {
+//<Haystack
+//<Needle
+//<Start
+//>integer|nil
+// Returns the index of the first occurence of :mini:`Needle` in :mini:`Haystack` at or after :mini:`Start`, or :mini:`nil` if no occurence is found.
 	const char *Haystack = ml_string_value(Args[0]);
 	size_t HaystackLength = utf8_strlen(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
@@ -2153,6 +1766,11 @@ ML_METHOD("find", MLStringT, MLStringT, MLIntegerT) {
 }
 
 ML_METHOD("find2", MLStringT, MLStringT, MLIntegerT) {
+//<Haystack
+//<Needle
+//<Start
+//>tuple[integer,string]|nil
+// Returns :mini:`(Index, Needle)` where :mini:`Index` is the first occurence of :mini:`Needle` in :mini:`Haystack` at or after :mini:`Start`, or :mini:`nil` if no occurence is found.
 	const char *Haystack = ml_string_value(Args[0]);
 	size_t HaystackLength = ml_string_length(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
@@ -2170,6 +1788,10 @@ ML_METHOD("find2", MLStringT, MLStringT, MLIntegerT) {
 }
 
 ML_METHOD("find", MLStringT, MLRegexT) {
+//<Haystack
+//<Pattern
+//>integer|nil
+// Returns the index of the first occurence of :mini:`Pattern` in :mini:`Haystack`, or :mini:`nil` if no occurence is found.
 	const char *Haystack = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[1];
@@ -2192,6 +1814,10 @@ ML_METHOD("find", MLStringT, MLRegexT) {
 }
 
 ML_METHOD("find2", MLStringT, MLRegexT) {
+//<Haystack
+//<Pattern
+//>tuple[integer,string]|nil
+// Returns :mini:`(Index, Match)` where :mini:`Index` is the first occurence of :mini:`Pattern` in :mini:`Haystack`, or :mini:`nil` if no occurence is found.
 	const char *Haystack = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
@@ -2225,6 +1851,11 @@ ML_METHOD("find2", MLStringT, MLRegexT) {
 }
 
 ML_METHOD("find", MLStringT, MLRegexT, MLIntegerT) {
+//<Haystack
+//<Pattern
+//<Start
+//>integer|nil
+// Returns the index of the first occurence of :mini:`Pattern` in :mini:`Haystack` at or after :mini:`Start`, or :mini:`nil` if no occurence is found.
 	const char *Haystack = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
@@ -2253,6 +1884,11 @@ ML_METHOD("find", MLStringT, MLRegexT, MLIntegerT) {
 }
 
 ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
+//<Haystack
+//<Pattern
+//<Start
+//>tuple[integer,string]|nil
+// Returns :mini:`(Index, Match)` where :mini:`Index` is the first occurence of :mini:`Pattern` in :mini:`Haystack` at or after :mini:`Start`, or :mini:`nil` if no occurence is found.
 	const char *Haystack = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
@@ -2283,7 +1919,7 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
 		regoff_t Start = Matches[I].rm_so;
 		if (Start >= 0) {
 			size_t Length = Matches[I].rm_eo - Start;
-			ml_tuple_set(Result, I + 2, ml_string(Haystack + Start, Length));
+			ml_tuple_set(Result, I + 2, ml_string(Haystack2 + Start, Length));
 		} else {
 			ml_tuple_set(Result, I + 2, MLNil);
 		}
@@ -2292,6 +1928,10 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
 }
 
 ML_METHOD("%", MLStringT, MLRegexT) {
+//<String
+//<Pattern
+//>tuple[string]|nil
+// Matches :mini:`String` with :mini:`Pattern` returning a tuple of the matched components, or :mini:`nil` if the pattern does not match.
 	const char *Subject = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
@@ -2340,6 +1980,10 @@ int ml_regex_match(ml_value_t *Value, const char *Subject, int Length) {
 }
 
 ML_METHOD("?", MLStringT, MLRegexT) {
+//<String
+//<Pattern
+//>string|nil
+// Returns :mini:`String` if it matches :mini:`Pattern` and :mini:`nil` otherwise.
 	const char *Subject = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
@@ -2371,15 +2015,23 @@ ML_METHOD("?", MLStringT, MLRegexT) {
 }
 
 ML_METHOD("starts", MLStringT, MLStringT) {
+//<String
+//<Prefix
+//>string|nil
+// Returns :mini:`String` if it starts with :mini:`Prefix` and :mini:`nil` otherwise.
 	const char *Subject = ml_string_value(Args[0]);
 	const char *Prefix = ml_string_value(Args[1]);
 	int Length = ml_string_length(Args[1]);
 	if (Length > ml_string_length(Args[0])) return MLNil;
 	if (memcmp(Subject, Prefix, Length)) return MLNil;
-	return Args[1];
+	return Args[0];
 }
 
 ML_METHOD("starts", MLStringT, MLRegexT) {
+//<String
+//<Pattern
+//>string|nil
+// Returns :mini:`String` if it starts with :mini:`Pattern` and :mini:`nil` otherwise.
 	const char *Subject = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
@@ -2400,27 +2052,31 @@ ML_METHOD("starts", MLStringT, MLRegexT) {
 	}
 	default: {
 		regoff_t Start = Matches[0].rm_so;
-		if (Start == 0) {
-			size_t Length = Matches[0].rm_eo - Start;
-			return ml_string(Subject + Start, Length);
-		} else {
-			return MLNil;
-		}
+		if (Start != 0) return MLNil;
+		return Args[0];
 	}
 	}
 }
 
 ML_METHOD("ends", MLStringT, MLStringT) {
+//<String
+//<Suffix
+//>string|nil
+// Returns :mini:`String` if it ends with :mini:`Suffix` and :mini:`nil` otherwise.
 	const char *Subject = ml_string_value(Args[0]);
 	const char *Suffix = ml_string_value(Args[1]);
 	int Length = ml_string_length(Args[1]);
 	int Length0 = ml_string_length(Args[0]);
 	if (Length > Length0) return MLNil;
 	if (memcmp(Subject + Length0 - Length, Suffix, Length)) return MLNil;
-	return Args[1];
+	return Args[0];
 }
 
 ML_METHOD("after", MLStringT, MLStringT) {
+//<String
+//<Delimiter
+//>string|nil
+// Returns the portion of :mini:`String` after the 1st occurence of :mini:`Delimiter`, or :mini:`nil` if no occurence if found.
 	const char *Haystack = ml_string_value(Args[0]);
 	size_t HaystackLength = ml_string_length(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
@@ -2436,6 +2092,12 @@ ML_METHOD("after", MLStringT, MLStringT) {
 }
 
 ML_METHOD("after", MLStringT, MLStringT, MLIntegerT) {
+//<String
+//<Delimiter
+//<N
+//>string|nil
+// Returns the portion of :mini:`String` after the :mini:`N`-th occurence of :mini:`Delimiter`, or :mini:`nil` if no :mini:`N`-th occurence if found.
+// If :mini:`N < 0` then occurences are counted from the end of :mini:`String`.
 	const char *Haystack = ml_string_value(Args[0]);
 	size_t HaystackLength = ml_string_length(Args[0]);
 	const char *HaystackEnd = Haystack + HaystackLength;
@@ -2473,6 +2135,10 @@ ML_METHOD("after", MLStringT, MLStringT, MLIntegerT) {
 }
 
 ML_METHOD("before", MLStringT, MLStringT) {
+//<String
+//<Delimiter
+//>string|nil
+// Returns the portion of :mini:`String` before the 1st occurence of :mini:`Delimiter`, or :mini:`nil` if no occurence if found.
 	const char *Haystack = ml_string_value(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
 	const char *Match = strstr(Haystack, Needle);
@@ -2484,6 +2150,12 @@ ML_METHOD("before", MLStringT, MLStringT) {
 }
 
 ML_METHOD("before", MLStringT, MLStringT, MLIntegerT) {
+//<String
+//<Delimiter
+//<N
+//>string|nil
+// Returns the portion of :mini:`String` before the :mini:`N`-th occurence of :mini:`Delimiter`, or :mini:`nil` if no :mini:`N`-th occurence if found.
+// If :mini:`N < 0` then occurences are counted from the end of :mini:`String`.
 	const char *Haystack = ml_string_value(Args[0]);
 	size_t HaystackLength = ml_string_length(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
@@ -2516,6 +2188,11 @@ ML_METHOD("before", MLStringT, MLStringT, MLIntegerT) {
 }
 
 ML_METHOD("replace", MLStringT, MLStringT, MLStringT) {
+//<String
+//<Pattern
+//<Replacement
+//>string
+// Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Replacement`.
 	const char *Subject = ml_string_value(Args[0]);
 	const char *SubjectEnd = Subject + ml_string_length(Args[0]);
 	const char *Pattern = ml_string_value(Args[1]);
@@ -2537,6 +2214,11 @@ ML_METHOD("replace", MLStringT, MLStringT, MLStringT) {
 }
 
 ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
+//<String
+//<Pattern
+//<Replacement
+//>string
+// Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Replacement`.
 	const char *Subject = ml_string_value(Args[0]);
 	int SubjectLength = ml_string_length(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
@@ -2719,6 +2401,11 @@ ML_METHODX("replace", MLStringT, MLMapT) {
 }
 
 ML_METHODX("replace", MLStringT, MLRegexT, MLFunctionT) {
+//<String
+//<Pattern
+//<Function
+//>string
+// Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Function(Match)` where :mini:`Match` is the actual matched text.
 	ml_str_replacement_state_t *State = xnew(ml_str_replacement_state_t, 1, ml_str_replacement_t);
 	ml_str_replacement_t *Replacement = State->Replacements;
 	Replacement->Pattern.Regex = ml_regex_value(Args[1]);
@@ -2735,6 +2422,11 @@ ML_METHODX("replace", MLStringT, MLRegexT, MLFunctionT) {
 }
 
 ML_METHOD("replace", MLStringT, MLIntegerT, MLStringT) {
+//<String
+//<I
+//<Replacement
+//>string
+// Returns a copy of :mini:`String` with the :mini:`String[I]` is replaced by :mini:`Replacement`.
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
 	const char *End = Start + Length;
@@ -2757,6 +2449,12 @@ ML_METHOD("replace", MLStringT, MLIntegerT, MLStringT) {
 }
 
 ML_METHOD("replace", MLStringT, MLIntegerT, MLIntegerT, MLStringT) {
+//<String
+//<I
+//<J
+//<Replacement
+//>string
+// Returns a copy of :mini:`String` with the :mini:`String[I, J]` is replaced by :mini:`Replacement`.
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
 	const char *End = Start + Length;
@@ -2809,6 +2507,11 @@ static void ml_fn_replace_func(ml_fn_replace_state_t *State, ml_value_t *Value) 
 }
 
 ML_METHODX("replace", MLStringT, MLIntegerT, MLFunctionT) {
+//<String
+//<I
+//<Function
+//>string
+// Returns a copy of :mini:`String` with the :mini:`String[I]` is replaced by :mini:`Function(String[I])`.
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
 	const char *End = Start + Length;
@@ -2837,6 +2540,11 @@ ML_METHODX("replace", MLStringT, MLIntegerT, MLFunctionT) {
 }
 
 ML_METHODX("replace", MLStringT, MLIntegerT, MLIntegerT, MLFunctionT) {
+//<String
+//<I
+//<Function
+//>string
+// Returns a copy of :mini:`String` with the :mini:`String[I, J]` is replaced by :mini:`Function(String[I, J])`.
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
 	const char *End = Start + Length;
@@ -2871,10 +2579,536 @@ ML_METHODX("replace", MLStringT, MLIntegerT, MLIntegerT, MLFunctionT) {
 	return ml_call(State, Args[3], 1, Args2);
 }
 
+static long ml_regex_hash(ml_regex_t *Regex, ml_hash_chain_t *Chain) {
+	long Hash = 5381;
+	const char *Pattern = Regex->Pattern;
+	while (*Pattern) Hash = ((Hash << 5) + Hash) + *(Pattern++);
+	return Hash;
+}
+
+ML_FUNCTION(MLRegex) {
+//@regex
+//<String
+//>regex | error
+// Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	const char *Pattern = ml_string_value(Args[0]);
+	int Length = ml_string_length(Args[0]);
+	if (Pattern[Length]) return ml_error("ValueError", "Regex pattern must be proper string");
+	return ml_regex(Pattern, Length);
+}
+
+ML_TYPE(MLRegexT, (), "regex",
+// A regular expression.
+	.hash = (void *)ml_regex_hash,
+	.Constructor = (ml_value_t *)MLRegex
+);
+
+ml_value_t *ml_regex(const char *Pattern, int Length) {
+	ml_regex_t *Regex = new(ml_regex_t);
+	Regex->Type = MLRegexT;
+	Regex->Pattern = Pattern;
+#ifdef ML_TRE
+	int Error = regncomp(Regex->Value, Pattern, Length, REG_EXTENDED);
+#else
+	int Error = regcomp(Regex->Value, Pattern, REG_EXTENDED);
+#endif
+	if (Error) {
+		size_t ErrorSize = regerror(Error, Regex->Value, NULL, 0);
+		char *ErrorMessage = snew(ErrorSize + 1);
+		regerror(Error, Regex->Value, ErrorMessage, ErrorSize);
+		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+	}
+	return (ml_value_t *)Regex;
+}
+
+ml_value_t *ml_regexi(const char *Pattern, int Length) {
+	ml_regex_t *Regex = new(ml_regex_t);
+	Regex->Type = MLRegexT;
+	Regex->Pattern = Pattern;
+#ifdef ML_TRE
+	int Error = regncomp(Regex->Value, Pattern, Length, REG_EXTENDED | REG_ICASE);
+#else
+	int Error = regcomp(Regex->Value, Pattern, REG_EXTENDED | REG_ICASE);
+#endif
+	if (Error) {
+		size_t ErrorSize = regerror(Error, Regex->Value, NULL, 0);
+		char *ErrorMessage = snew(ErrorSize + 1);
+		regerror(Error, Regex->Value, ErrorMessage, ErrorSize);
+		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+	}
+	return (ml_value_t *)Regex;
+}
+
+const char *ml_regex_pattern(const ml_value_t *Value) {
+	ml_regex_t *Regex = (ml_regex_t *)Value;
+	return Regex->Pattern;
+}
+
+ML_METHOD("<>", MLRegexT, MLRegexT) {
+//<A
+//<B
+//>integer
+// Compares :mini:`A` and :mini:`B` lexicographically and returns :mini:`-1`, :mini:`0` or :mini:`1` respectively.
+	const char *PatternA = ml_regex_pattern(Args[0]);
+	const char *PatternB = ml_regex_pattern(Args[1]);
+	int Compare = strcmp(PatternA, PatternB);
+	if (Compare < 0) return (ml_value_t *)NegOne;
+	if (Compare > 0) return (ml_value_t *)One;
+	return (ml_value_t *)Zero;
+}
+
+#define ml_comp_method_regex_regex(NAME, SYMBOL) \
+ML_METHOD(NAME, MLRegexT, MLRegexT) { \
+/*>regex|nil
+// Returns :mini:`Arg/2` if :mini:`Arg/1 SYMBOL Arg/2` and :mini:`nil` otherwise.
+*/\
+	const char *PatternA = ml_regex_pattern(Args[0]); \
+	const char *PatternB = ml_regex_pattern(Args[1]); \
+	int Compare = strcmp(PatternA, PatternB); \
+	return Compare SYMBOL 0 ? Args[1] : MLNil; \
+}
+
+ml_comp_method_regex_regex("=", ==)
+ml_comp_method_regex_regex("!=", !=)
+ml_comp_method_regex_regex("<", <)
+ml_comp_method_regex_regex(">", >)
+ml_comp_method_regex_regex("<=", <=)
+ml_comp_method_regex_regex(">=", >=)
+
 ML_METHOD("append", MLStringBufferT, MLRegexT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_printf(Buffer, "/%s/", ml_regex_pattern(Args[1]));
 	return MLSome;
+}
+
+typedef struct {
+	ml_value_t *Index;
+	ml_string_t *String;
+	ml_regex_t *Regex;
+} ml_string_case_t;
+
+typedef struct {
+	ml_type_t *Type;
+	ml_string_case_t Cases[];
+} ml_string_switch_t;
+
+static void ml_string_switch(ml_state_t *Caller, ml_string_switch_t *Switch, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_value_t *Arg = ml_deref(Args[0]);
+	if (!ml_is(Arg, MLStringT)) {
+		ML_ERROR("TypeError", "expected string for argument 1");
+	}
+	const char *Subject = ml_string_value(Arg);
+	size_t Length = ml_string_length(Arg);
+	for (ml_string_case_t *Case = Switch->Cases;; ++Case) {
+		if (Case->String) {
+			if (Case->String->Length == Length) {
+				if (!memcmp(Subject, Case->String->Value, Length)) ML_RETURN(Case->Index);
+			}
+		} else if (Case->Regex) {
+#ifdef ML_TRE
+			int Length = ml_string_length(Args[0]);
+			if (!regnexec(Case->Regex->Value, Subject, Length, 0, NULL, 0)) {
+
+#else
+			if (!regexec(Case->Regex->Value, Subject, 0, NULL, 0)) {
+#endif
+				ML_RETURN(Case->Index);
+			}
+		} else {
+			ML_RETURN(Case->Index);
+		}
+	}
+	ML_RETURN(MLNil);
+}
+
+ML_TYPE(MLStringSwitchT, (MLFunctionT), "string-switch",
+//!internal
+	.call = (void *)ml_string_switch
+);
+
+ML_FUNCTION(MLStringSwitch) {
+//@string::switch
+//<Cases...:string|regex
+// Implements :mini:`switch` for string values. Case values must be strings or regular expressions.
+	int Total = 1;
+	for (int I = 0; I < Count; ++I) Total += ml_list_length(Args[I]);
+	ml_string_switch_t *Switch = xnew(ml_string_switch_t, Total, ml_string_case_t);
+	Switch->Type = MLStringSwitchT;
+	ml_string_case_t *Case = Switch->Cases;
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
+		ML_LIST_FOREACH(Args[I], Iter) {
+			ml_value_t *Value = Iter->Value;
+			if (ml_is(Value, MLStringT)) {
+				Case->String = (ml_string_t *)Value;
+			} else if (ml_is(Value, MLRegexT)) {
+				Case->Regex = (ml_regex_t *)Value;
+			} else {
+				return ml_error("ValueError", "Unsupported value in string case");
+			}
+			Case->Index = ml_integer(I);
+			++Case;
+		}
+	}
+	Case->Index = ml_integer(Count);
+	return (ml_value_t *)Switch;
+}
+
+ml_value_t *ml_stringbuffer() {
+	ml_stringbuffer_t *Buffer = new(ml_stringbuffer_t);
+	Buffer->Type = MLStringBufferT;
+	return (ml_value_t *)Buffer;
+}
+
+ML_FUNCTION(MLStringBuffer) {
+//@string::buffer
+//>string::buffer
+// Returns a new :mini:`string::buffer`
+	return ml_stringbuffer();
+}
+
+ML_TYPE(MLStringBufferT, (), "stringbuffer",
+// A string buffer that automatically grows and shrinks as required.
+	.Constructor = (ml_value_t *)MLStringBuffer
+);
+
+static GC_descr StringBufferDesc = 0;
+
+#ifdef ML_THREADSAFE
+static ml_stringbuffer_node_t * _Atomic StringBufferNodeCache = NULL;
+#else
+static ml_stringbuffer_node_t *StringBufferNodeCache = NULL;
+#endif
+
+size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length) {
+	ml_stringbuffer_node_t *Node = Buffer->Head;
+	Buffer->Length -= Length;
+	Buffer->Start += Length;
+	while (Node) {
+		size_t Limit = ML_STRINGBUFFER_NODE_SIZE;
+		if (Node == Buffer->Tail) Limit -= Buffer->Space;
+		if (Buffer->Start < Limit) return Limit - Buffer->Start;
+		ml_stringbuffer_node_t *Next = Node->Next;
+#ifdef ML_THREADSAFE
+		ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
+		do {
+			Node->Next = CacheNext;
+		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &CacheNext, Node));
+#else
+		Node->Next = StringBufferNodeCache;
+		StringBufferNodeCache = Node;
+#endif
+		Buffer->Start = 0;
+		if (Next) {
+			Node = Buffer->Head = Next;
+		} else {
+			Buffer->Head = Buffer->Tail = NULL;
+			Buffer->Space = 0;
+			break;
+		}
+	}
+	return 0;
+}
+
+char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Length) {
+	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
+	Buffer->Length += Length;
+	Buffer->Space -= Length;
+	if (!Buffer->Space) {
+#ifdef ML_THREADSAFE
+		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
+		do {
+			if (!Next) {
+				Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+				break;
+			}
+			CacheNext = Next->Next;
+		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &Next, CacheNext));
+#else
+		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
+		if (!Next) {
+			Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+		} else {
+			StringBufferNodeCache = Next->Next;
+		}
+#endif
+		Next->Next = NULL;
+		Node->Next = Next;
+		Node = Next;
+		Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
+		Buffer->Tail = Node;
+	}
+	return Node->Chars + ML_STRINGBUFFER_NODE_SIZE - Buffer->Space;
+}
+
+ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, size_t Length) {
+	//fprintf(stderr, "ml_stringbuffer_add(%s, %ld)\n", String, Length);
+	size_t Remaining = Length;
+	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
+	while (Buffer->Space < Remaining) {
+		memcpy(Node->Chars + ML_STRINGBUFFER_NODE_SIZE - Buffer->Space, String, Buffer->Space);
+		String += Buffer->Space;
+		Remaining -= Buffer->Space;
+#ifdef ML_THREADSAFE
+		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
+		do {
+			if (!Next) {
+				Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+				break;
+			}
+			CacheNext = Next->Next;
+		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &Next, CacheNext));
+#else
+		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
+		if (!Next) {
+			Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+		} else {
+			StringBufferNodeCache = Next->Next;
+		}
+#endif
+		Next->Next = NULL;
+		Node->Next = Next;
+		Node = Next;
+		Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
+	}
+	memcpy(Node->Chars + ML_STRINGBUFFER_NODE_SIZE - Buffer->Space, String, Remaining);
+	Buffer->Space -= Remaining;
+	Buffer->Length += Length;
+	Buffer->Tail = Node;
+	return Length;
+}
+
+ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ...) {
+#ifdef Linux
+	static cookie_io_functions_t CookieFns = {0,
+		.write = (cookie_write_function_t *)ml_stringbuffer_write
+	};
+	if (!Buffer->File) {
+		Buffer->File = fopencookie(Buffer, "w", CookieFns);
+		setvbuf(Buffer->File, NULL, _IONBF, 0);
+	}
+#else
+	if (!Buffer->File) {
+		Buffer->File = fwopen(Buffer, (void *)ml_stringbuffer_write);
+		setvbuf(Buffer->File, NULL, _IONBF, 0);
+	}
+#endif
+	va_list Args;
+	va_start(Args, Format);
+	size_t Length = vfprintf(Buffer->File, Format, Args);
+	va_end(Args);
+	return Length;
+}
+
+void ml_stringbuffer_put(ml_stringbuffer_t *Buffer, char Char) {
+	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
+	if (!Buffer->Space) {
+#ifdef ML_THREADSAFE
+		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
+		do {
+			if (!Next) {
+				Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+				break;
+			}
+			CacheNext = Next->Next;
+		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &Next, CacheNext));
+#else
+		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
+		if (!Next) {
+			Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+		} else {
+			StringBufferNodeCache = Next->Next;
+		}
+#endif
+		Next->Next = NULL;
+		Node->Next = Next;
+		Node = Next;
+		Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
+	}
+	Node->Chars[ML_STRINGBUFFER_NODE_SIZE - Buffer->Space] = Char;
+	Buffer->Space -= 1;
+	Buffer->Length += 1;
+	Buffer->Tail = Node;
+}
+
+static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
+	char *P = String;
+	ml_stringbuffer_node_t *Node = Buffer->Head;
+	while (Node->Next) {
+		memcpy(P, Node->Chars, ML_STRINGBUFFER_NODE_SIZE);
+		P += ML_STRINGBUFFER_NODE_SIZE;
+		Node = Node->Next;
+	}
+	memcpy(P, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
+	P += ML_STRINGBUFFER_NODE_SIZE - Buffer->Space;
+	*P++ = 0;
+
+	ml_stringbuffer_node_t *Head = Buffer->Head, *Tail = Buffer->Tail;
+#ifdef ML_THREADSAFE
+	ml_stringbuffer_node_t *CacheNext = StringBufferNodeCache;
+	do {
+		Tail->Next = CacheNext;
+	} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &CacheNext, Head));
+#else
+	Tail->Next = StringBufferNodeCache;
+	StringBufferNodeCache = Head;
+#endif
+
+	if (Buffer->File) {
+		fclose(Buffer->File);
+		Buffer->File = NULL;
+	}
+	Buffer->Head = Buffer->Tail = NULL;
+	Buffer->Length = Buffer->Space = 0;
+}
+
+char *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) {
+	if (Buffer->Length == 0) return "";
+	char *String = snew(Buffer->Length + 1);
+	ml_stringbuffer_finish(Buffer, String);
+	return String;
+}
+
+char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer) {
+	if (Buffer->Length == 0) return "";
+	char *String = GC_MALLOC_ATOMIC_UNCOLLECTABLE(Buffer->Length + 1);
+	ml_stringbuffer_finish(Buffer, String);
+	return String;
+}
+
+ml_value_t *ml_stringbuffer_get_value(ml_stringbuffer_t *Buffer) {
+	size_t Length = Buffer->Length;
+	if (Length == 0) {
+		return ml_cstring("");
+	} else {
+		char *Chars = snew(Length + 1);
+		ml_stringbuffer_finish(Buffer, Chars);
+		return ml_string(Chars, Length);
+	}
+}
+
+ML_METHOD("rest", MLStringBufferT) {
+//<Buffer
+//>string
+// Returns the contents of :mini:`Buffer` as a string.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	return ml_stringbuffer_get_value(Buffer);
+}
+
+ML_METHOD("get", MLStringBufferT) {
+//<Buffer
+//>string
+// Returns the contents of :mini:`Buffer` as a string.
+// .. deprecated:: 2.5.0
+//    Use :mini:`Buffer:rest` instead.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	return ml_stringbuffer_get_value(Buffer);
+}
+
+ML_METHOD("length", MLStringBufferT) {
+//<Buffer
+//>integer
+// Returns the number of bytes currently available in :mini:`Buffer`.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	return ml_integer(Buffer->Length);
+}
+
+int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t)) {
+	ml_stringbuffer_node_t *Node = Buffer->Head;
+	if (!Node) return 0;
+	while (Node->Next) {
+		if (callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE)) return 1;
+		Node = Node->Next;
+	}
+	return callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
+}
+
+ml_value_t *ml_stringbuffer_simple_append(ml_stringbuffer_t *Buffer, ml_value_t *Value) {
+	ml_hash_chain_t *Chain = Buffer->Chain;
+	for (ml_hash_chain_t *Link = Chain; Link; Link = Link->Previous) {
+		if (Link->Value == Value) {
+			int Index = Link->Index;
+			if (!Index) Index = Link->Index = ++Buffer->Index;
+			ml_stringbuffer_printf(Buffer, "^%d", Index);
+			return (ml_value_t *)Buffer;
+		}
+	}
+	ml_hash_chain_t NewChain[1] = {{Chain, Value, 0}};
+	Buffer->Chain = NewChain;
+	ml_value_t *Result = ml_simple_inline(AppendMethod, 2, Buffer, Value);
+	if (NewChain->Index) ml_stringbuffer_printf(Buffer, "@%d", NewChain->Index);
+	Buffer->Chain = Chain;
+	return Result;
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_hash_chain_t Chain[1];
+	ml_value_t *Args[2];
+} ml_stringbuffer_append_state_t;
+
+static void ml_stringbuffer_append_run(ml_stringbuffer_append_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)State->Args[0];
+	if (State->Chain->Index) ml_stringbuffer_printf(Buffer, "@%d", State->Chain->Index);
+	Buffer->Chain = State->Chain->Previous;
+	ML_RETURN(Buffer);
+}
+
+void ml_stringbuffer_append(ml_state_t *Caller, ml_stringbuffer_t *Buffer, ml_value_t *Value) {
+	for (ml_hash_chain_t *Link = Buffer->Chain; Link; Link = Link->Previous) {
+		if (Link->Value == Value) {
+			int Index = Link->Index;
+			if (!Index) Index = Link->Index = ++Buffer->Index;
+			ml_stringbuffer_printf(Buffer, "^%d", Index);
+			ML_RETURN(Buffer);
+		}
+	}
+	ml_stringbuffer_append_state_t *State = new(ml_stringbuffer_append_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_stringbuffer_append_run;
+	State->Chain->Previous = Buffer->Chain;
+	State->Chain->Value = Value;
+	Buffer->Chain = State->Chain;
+	State->Args[0] = (ml_value_t *)Buffer;
+	State->Args[1] = Value;
+	return ml_call(State, AppendMethod, 2, State->Args);
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_stringbuffer_t *Buffer;
+	int Index, Count, Initial;
+	ml_value_t *Args[];
+} ml_write_state_t;
+
+static void ml_string_buffer_write_run(ml_write_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_stringbuffer_t *Buffer = State->Buffer;
+	if (++State->Index < State->Count) return ml_stringbuffer_append((ml_state_t *)State, Buffer, State->Args[State->Index]);
+	ML_CONTINUE(State->Base.Caller, ml_integer(State->Buffer->Length - State->Initial));
+}
+
+ML_METHODVX("write", MLStringBufferT, MLAnyT) {
+//<Buffer
+//<Value/1,...,Value/n
+//>integer
+// Writes each :mini:`Value/i` in turn to :mini:`Buffer`.
+	ml_write_state_t *State = xnew(ml_write_state_t, Count - 1, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_string_buffer_write_run;
+	State->Buffer = (ml_stringbuffer_t *)Args[0];
+	State->Initial = State->Buffer->Length;
+	State->Index = 0;
+	State->Count = Count - 1;
+	for (int I = 1; I < Count; ++I) State->Args[I - 1] = Args[I];
+	return ml_stringbuffer_append((ml_state_t *)State, State->Buffer, State->Args[0]);
 }
 
 void ml_string_init() {

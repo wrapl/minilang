@@ -1,5 +1,7 @@
 .. include:: <isonum.txt>
 
+.. include:: <isoamsa.txt>
+
 type
 ====
 
@@ -136,4 +138,12 @@ type
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: any)`
    *TBD*
+
+:mini:`meth (Buffer: string::buffer):append(Value: nil)`
+   Appends :mini:`"nil"` to :mini:`Buffer`.
+
+
+:mini:`meth (Buffer: string::buffer):append(Value: some)`
+   Appends :mini:`"some"` to :mini:`Buffer`.
+
 

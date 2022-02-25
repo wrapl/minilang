@@ -1,5 +1,7 @@
 .. include:: <isonum.txt>
 
+.. include:: <isoamsa.txt>
+
 buffer
 ======
 
@@ -16,29 +18,38 @@ buffer
 
 
 :mini:`meth (Buffer: buffer) @ (Length: integer): buffer`
-   *TBD*
+   Returns the same buffer as :mini:`Buffer`,  limited to :mini:`Length` bytes.
+
 
 :mini:`meth (Buffer: buffer) + (Offset: integer): buffer`
-   *TBD*
+   Returns the buffer at offset :mini:`Offset` from :mini:`Address`.
+
 
 :mini:`meth (Buffer: buffer):put8(Value: integer): buffer`
-   *TBD*
+   Puts :mini:`Value` in :mini:`Buffer` as an 8-bit signed value.
+
 
 :mini:`meth (Buffer: buffer):put16(Value: integer): buffer`
-   *TBD*
+   Puts :mini:`Value` in :mini:`Buffer` as an 16-bit signed value. Currently follows the platform endiness.
+
 
 :mini:`meth (Buffer: buffer):put32(Value: integer): buffer`
-   *TBD*
+   Puts :mini:`Value` in :mini:`Buffer` as an 32-bit signed value. Currently follows the platform endiness.
+
 
 :mini:`meth (Buffer: buffer):put64(Value: integer): buffer`
-   *TBD*
+   Puts :mini:`Value` in :mini:`Buffer` as an 64-bit signed value. Currently follows the platform endiness.
+
 
 :mini:`meth (Buffer: buffer):put32f(Value: real): buffer`
-   *TBD*
+   Puts :mini:`Value` in :mini:`Buffer` as a single precision floating point value. Currently follows the platform endiness.
+
 
 :mini:`meth (Buffer: buffer):put64f(Value: real): buffer`
-   *TBD*
+   Puts :mini:`Value` in :mini:`Buffer` as a double precision floating point value. Currently follows the platform endiness.
+
 
 :mini:`meth (Buffer: buffer):put(Value: address): buffer`
-   *TBD*
+   Puts the bytes of :mini:`Value` in :mini:`Buffer`.
+
 

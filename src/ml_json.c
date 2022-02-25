@@ -8,6 +8,18 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "json"
 
+// Overview
+// JSON values are mapped to Minilang as follows:
+//
+// * :json:`null` |harr| :mini:`nil`
+// * :json:`true` |harr| :mini:`true`
+// * :json:`false` |harr| :mini:`false`
+// * *integer* |harr| :mini:`integer`
+// * *real* |harr| :mini:`real`
+// * *string* |harr| :mini:`string`
+// * *array* |harr| :mini:`list`
+// * *object* |harr| :mini:`map`
+
 #define ML_JSON_STACK_SIZE 10
 
 typedef struct json_stack_t json_stack_t;
@@ -153,6 +165,7 @@ ML_FUNCTION(JsonDecode) {
 //@json::decode
 //<Json
 //>any
+// Decodes :mini:`Json` into a Minilang value.
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ml_value_t *Result = NULL;
@@ -198,6 +211,7 @@ ML_FUNCTIONX(JsonDecoder) {
 //@json::decoder
 //<Callback
 //>json::decoder
+// Returns a new JSON decoder that calls :mini:`Callback(Value)` whenever a complete JSON value is written to the decoder.
 	ML_CHECKX_ARG_COUNT(1);
 	ml_json_decoder_t *Decoder = new(ml_json_decoder_t);
 	Decoder->Base.Type = MLJsonDecoderT;
@@ -214,6 +228,7 @@ ML_FUNCTIONX(JsonDecoder) {
 
 ML_TYPE(MLJsonDecoderT, (MLStreamT), "json-decoder",
 //@json::decoder
+// A JSON decoder that can be written to as a stream and calls a user-supplied callback whenever a complete value is parsed.
 	.Constructor = (ml_value_t *)JsonDecoder
 );
 
@@ -271,7 +286,8 @@ static ml_value_t *ml_json_encode(yajl_gen Handle, ml_value_t *Value) {
 ML_FUNCTION(JsonEncode) {
 //@json::encode
 //<Value
-//>string
+//>string|error
+// Encodes :mini:`Value` into JSON, raising an error if :mini:`Value` cannot be represented as JSON.
 	ML_CHECK_ARG_COUNT(1);
 	yajl_gen Handle = yajl_gen_alloc(&AllocFuncs);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
