@@ -113,10 +113,10 @@ typedef struct DEBUG_STRUCT(frame) DEBUG_STRUCT(frame);
 
 struct DEBUG_STRUCT(frame) {
 	ml_state_t Base;
-	union {
+	//union {
 		void *Next;
 		ml_inst_t *Inst;
-	};
+	//};
 	ml_value_t **Top;
 	const char *Source;
 	ml_inst_t *OnError;
