@@ -6,7 +6,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -216,7 +216,7 @@ extern ml_type_t MLSemaphoreT[];
 
 extern ml_type_t MLChannelT[];
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 

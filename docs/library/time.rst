@@ -1,7 +1,11 @@
 .. include:: <isonum.txt>
 
+.. include:: <isoamsa.txt>
+
 time
 ====
+
+.. _type-time:
 
 :mini:`type time`
    A time in UTC with nanosecond resolution.

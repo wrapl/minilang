@@ -466,7 +466,8 @@ ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 ML_FUNCTION(MLDecode) {
 //@cbor::decode
 //<Bytes
-//>any | error
+//>any|error
+// Decode :mini:`Bytes` into a Minilang value, or return an error if :mini:`Bytes` contains invalid CBOR or cannot be decoded into a Minilang value.
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLAddressT);
 	ml_cbor_t Cbor = {{.Data = ml_address_value(Args[0])}, ml_address_length(Args[0])};
@@ -1097,7 +1098,8 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLRealRangeT, ml_cbor_writer_t *Wr
 ML_FUNCTION(MLEncode) {
 //@cbor::encode
 //<Value
-//>string | error
+//>address|error
+// Encode :mini:`Value` into CBOR or return an error if :mini:`Value` cannot be encoded.
 	ML_CHECK_ARG_COUNT(1);
 	ml_cbor_t Cbor = ml_cbor_writer_encode(Args[0]);
 	if (!Cbor.Length) return Cbor.Error;
@@ -1122,7 +1124,10 @@ ml_value_t *ml_cbor_read_method(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	return ml_method(ml_string_value(Value));
 }
 
-ml_value_t *CborObjects = NULL;
+ML_LET(CborObjects);
+//@cbor::Objects
+//>map[string,function]
+// Constructors to call for tag 27 (objects).
 
 ml_value_t *ml_cbor_read_object(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	if (!ml_is(Value, MLListT)) return ml_error("TagError", "Object requires list");
@@ -1198,6 +1203,7 @@ static vlq_result_t vlq64_decode(const unsigned char *Bytes) {
 }
 
 ML_FUNCTION(DecodeClosureInfo) {
+//!internal
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLAddressT);
 	const unsigned char *Bytes = (const unsigned char *)ml_address_value(Args[0]);
@@ -1324,6 +1330,7 @@ ML_FUNCTION(DecodeClosureInfo) {
 }
 
 ML_FUNCTION(DecodeClosure) {
+//!internal
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLClosureInfoT);
 	ml_closure_info_t *Info = (ml_closure_info_t *)Args[0];
@@ -1336,7 +1343,7 @@ ML_FUNCTION(DecodeClosure) {
 extern ml_value_t *RangeMethod;
 
 void ml_cbor_default_object(const char *Name, ml_value_t *Constructor) {
-	ml_map_insert(CborObjects, ml_cstring(Name), Constructor);
+	ml_map_insert(CborObjects, ml_string(Name, -1), Constructor);
 }
 
 static void ml_cbor_default_global(const char *Name, void *Value) {

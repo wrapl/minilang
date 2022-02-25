@@ -23,30 +23,51 @@ ML_TYPE(MLQueueEntryT, (), "queue::entry");
 // A entry in a priority queue.
 
 struct ml_queue_t {
-	ml_type_t *Type;
+	ml_state_t Base;
+	ml_value_t *Compare;
 	ml_queue_entry_t **Entries;
-	int Count, Size;
+	ml_queue_entry_t *Entry;
+	ml_value_t *Args[2];
+	int Count, Size, Index;
 };
 
 ML_TYPE(MLQueueT, (MLSequenceT), "queue");
 // A priority queue with values and associated priorities.
 
-ML_METHOD(MLQueueT) {
-//>queue
-// Returns a new queue using :mini:`<>` to compare priorities.
+ml_value_t *ml_queue(ml_value_t *Compare) {
 	ml_queue_t *Queue = new(ml_queue_t);
-	Queue->Type = MLQueueT;
+	Queue->Base.Type = MLQueueT;
+	Queue->Compare = Compare;
 	Queue->Size = 16;
 	Queue->Entries = anew(ml_queue_entry_t *, Queue->Size);
 	return (ml_value_t *)Queue;
 }
 
-extern ml_value_t *CompareMethod;
+extern ml_value_t *GreaterMethod;
 
-static inline int ml_queue_compare(ml_value_t *A, ml_value_t *B) {
+ML_METHOD(MLQueueT) {
+//>queue
+// Returns a new queue using :mini:`>` to compare priorities.
+	return ml_queue(GreaterMethod);
+}
+
+ML_METHOD(MLQueueT, MLFunctionT) {
+//<Greater
+//>queue
+// Returns a new queue using :mini:`Greater` to compare priorities.
+	return ml_queue(Args[0]);
+}
+
+static inline int priority_higher(ml_value_t *Compare, ml_value_t *A, ml_value_t *B) {
 	ml_value_t *Args[2] = {A, B};
-	ml_value_t *Result = ml_simple_call(CompareMethod, 2, Args);
-	return ml_integer_value(Result);
+	ml_value_t *Result = ml_simple_call(Compare, 2, Args);
+	return Result != MLNil;
+}
+
+static void ml_queue_up_run(ml_queue_t *Queue, ml_value_t *Result) {
+	if (ml_integer_value(Result) >= 0) {
+
+	}
 }
 
 static void ml_queue_up(ml_queue_t *Queue, ml_queue_entry_t *Entry) {
@@ -56,7 +77,7 @@ static void ml_queue_up(ml_queue_t *Queue, ml_queue_entry_t *Entry) {
 		int ParentIndex = (Index - 1) / 2;
 		ml_queue_entry_t *Parent = Entries[ParentIndex];
 		// if (Parent->Priority >= Entry->Priority) {
-		if (ml_queue_compare(Parent->Priority, Entry->Priority) >= 0) {
+		if (!priority_higher(Queue->Compare, Entry->Priority, Parent->Priority)) {
 			Entry->Index = Index;
 			return;
 		}
@@ -78,12 +99,14 @@ static void ml_queue_down(ml_queue_t *Queue, ml_queue_entry_t *Entry) {
 		int Largest = Index;
 		Entries[Index] = Entry;
 		if (Left < Count && Entries[Left]) {
-			int Compare = ml_queue_compare(Entries[Left]->Priority, Entries[Largest]->Priority);
-			if (Compare > 0) Largest = Left;
+			if (priority_higher(Queue->Compare, Entries[Left]->Priority, Entries[Largest]->Priority)) {
+				Largest = Left;
+			}
 		}
 		if (Right < Count && Entries[Right]) {
-			int Compare = ml_queue_compare(Entries[Right]->Priority, Entries[Largest]->Priority);
-			if (Compare > 0) Largest = Right;
+			if (priority_higher(Queue->Compare, Entries[Right]->Priority, Entries[Largest]->Priority)) {
+				Largest = Right;
+			}
 		}
 		if (Largest != Index) {
 			ml_queue_entry_t *Parent = Entries[Largest];
@@ -123,6 +146,15 @@ ML_METHOD("insert", MLQueueT, MLAnyT, MLAnyT) {
 	Entry->Priority = Args[2];
 	ml_queue_insert(Queue, Entry);
 	return (ml_value_t *)Entry;
+}
+
+ML_METHOD("peek", MLQueueT) {
+//<Queue
+//>queue::entry|nil
+// Returns the next entry in :mini:`Queue` without removing it, or :mini:`nil` if :mini:`Queue` is empty.
+	ml_queue_t *Queue = (ml_queue_t *)Args[0];
+	if (!Queue->Count) return MLNil;
+	return (ml_value_t *)Queue->Entries[0];
 }
 
 ML_METHOD("next", MLQueueT) {
@@ -167,13 +199,13 @@ ML_METHOD("adjust", MLQueueEntryT, MLAnyT) {
 	ml_queue_entry_t *Entry = (ml_queue_entry_t *)Args[0];
 	ml_value_t *Priority = Args[1];
 	ml_queue_t *Queue = Entry->Queue;
-	int Compare = ml_queue_compare(Priority, Entry->Priority);
+	int Greater = priority_higher(Queue->Compare, Priority, Entry->Priority);
 	Entry->Priority = Priority;
 	if (Entry->Index == INT_MAX) {
-		if (Compare < 0) {
-			ml_queue_down(Queue, Entry);
-		} else if (Compare > 0) {
+		if (Greater) {
 			ml_queue_up(Queue, Entry);
+		} else {
+			ml_queue_down(Queue, Entry);
 		}
 	}
 	return (ml_value_t *)Entry;
@@ -187,8 +219,7 @@ ML_METHOD("raise", MLQueueEntryT, MLAnyT) {
 	ml_queue_entry_t *Entry = (ml_queue_entry_t *)Args[0];
 	ml_value_t *Priority = Args[1];
 	ml_queue_t *Queue = Entry->Queue;
-	int Compare = ml_queue_compare(Priority, Entry->Priority);
-	if (Compare > 0) {
+	if (priority_higher(Queue->Compare, Priority, Entry->Priority)) {
 		Entry->Priority = Priority;
 		if (Entry->Index != INT_MAX) ml_queue_up(Queue, Entry);
 	}
@@ -203,8 +234,7 @@ ML_METHOD("lower", MLQueueEntryT, MLAnyT) {
 	ml_queue_entry_t *Entry = (ml_queue_entry_t *)Args[0];
 	ml_value_t *Priority = Args[1];
 	ml_queue_t *Queue = Entry->Queue;
-	int Compare = ml_queue_compare(Priority, Entry->Priority);
-	if (Compare < 0) {
+	if (priority_higher(Queue->Compare, Entry->Priority, Priority)) {
 		Entry->Priority = Priority;
 		if (Entry->Index != INT_MAX) ml_queue_down(Queue, Entry);
 	}
@@ -222,11 +252,10 @@ ML_METHOD("remove", MLQueueEntryT) {
 	Queue->Entries[Queue->Count] = NULL;
 	int Index = Next->Index = Entry->Index;
 	Queue->Entries[Index] = Next;
-	int Compare = ml_queue_compare(Entry->Priority, Next->Priority);
-	if (Compare < 0) {
-		ml_queue_down(Queue, Next);
-	} else if (Compare > 0) {
+	if (priority_higher(Queue->Compare, Next->Priority, Entry->Priority)) {
 		ml_queue_up(Queue, Next);
+	} else {
+		ml_queue_down(Queue, Next);
 	}
 	Entry->Index = INT_MAX;
 	return (ml_value_t *)Entry;

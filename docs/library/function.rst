@@ -1,7 +1,11 @@
 .. include:: <isonum.txt>
 
+.. include:: <isoamsa.txt>
+
 function
 ========
+
+.. _type-function:
 
 :mini:`type function`
    The base type of all functions.
@@ -33,6 +37,8 @@ function
    Returns an error if any of the keys in :mini:`Map` is not a string or method.
 
 
+.. _type-function-partial:
+
 :mini:`type function::partial < function, sequence`
    *TBD*
 
@@ -49,6 +55,8 @@ function
 :mini:`meth (Function: function) $ (Values...: any): partialfunction`
    Returns a function equivalent to :mini:`fun(Args...) Function(Values...,  Args...)`.
 
+
+.. _type-function-argless:
 
 :mini:`type function::argless < function, sequence`
    *TBD*

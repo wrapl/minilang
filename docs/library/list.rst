@@ -1,11 +1,17 @@
 .. include:: <isonum.txt>
 
+.. include:: <isoamsa.txt>
+
 list
 ====
+
+.. _type-list:
 
 :mini:`type list < sequence`
    A list of elements.
 
+
+.. _type-list-node:
 
 :mini:`type list::node`
    A node in a :mini:`list`.
@@ -48,6 +54,8 @@ list
 
    Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
 
+
+.. _type-list-slice:
 
 :mini:`type list::slice`
    A slice of a list.

@@ -1,7 +1,11 @@
 .. include:: <isonum.txt>
 
+.. include:: <isoamsa.txt>
+
 module
 ======
+
+.. _type-module:
 
 :mini:`type module`
    *TBD*
@@ -10,8 +14,9 @@ module
    Imports a symbol from a module.
 
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: module)`
-   *TBD*
+:mini:`meth (Buffer: string::buffer):append(Value: module)`
+   Appends a representation of :mini:`Value` to :mini:`Buffer`.
+
 
 :mini:`meth (Arg₁: module):path`
    *TBD*

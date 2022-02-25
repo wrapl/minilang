@@ -6,7 +6,7 @@
 #include "minilang.h"
 #include "stringmap.h"
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -83,7 +83,7 @@ typedef struct {ml_value_t *Value; int Extra;} ml_cbor_result_t;
 
 ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns);
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 

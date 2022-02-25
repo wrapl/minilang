@@ -1,7 +1,11 @@
 .. include:: <isonum.txt>
 
+.. include:: <isoamsa.txt>
+
 polynomial
 ==========
+
+.. _type-polynomial:
 
 :mini:`type polynomial`
    *TBD*
@@ -44,6 +48,8 @@ polynomial
 
 :mini:`meth (Arg₁: polynomial) / (Arg₂: number)`
    *TBD*
+
+.. _type-polynomial-rational:
 
 :mini:`type polynomial::rational`
    *TBD*

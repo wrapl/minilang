@@ -14,9 +14,6 @@
 
 #define ML_XML_STACK_SIZE 32
 
-typedef struct ml_xml_node_t ml_xml_node_t;
-typedef struct ml_xml_element_t ml_xml_element_t;
-
 struct ml_xml_node_t {
 	ml_string_t Base;
 	ml_xml_element_t *Parent;
@@ -113,7 +110,7 @@ ml_value_t *ml_xml_element_head(ml_value_t *Value) {
 	return (ml_value_t *)((ml_xml_element_t *)Value)->Head;
 }
 
-static void ml_xml_element_put(ml_xml_element_t *Parent, ml_xml_node_t *Child) {
+void ml_xml_element_put(ml_xml_element_t *Parent, ml_xml_node_t *Child) {
 	if (Child->Parent) {
 		ml_xml_element_t *OldParent = Child->Parent;
 		if (Child->Prev) {
@@ -1149,13 +1146,13 @@ static void xml_start_element(xml_decoder_t *Decoder, const XML_Char *Name, cons
 	ml_value_t *Tag = (ml_value_t *)stringmap_search(MLXmlTags, Name);
 	if (!Tag) {
 		Name = GC_strdup(Name);
-		Tag = ml_cstring(Name);
+		Tag = ml_string(Name, -1);
 		stringmap_insert(MLXmlTags, Name, Tag);
 	}
 	Element->Base.Base.Value = (const char *)Tag;
 	Element->Attributes = ml_map();
 	for (const XML_Char **Attr = Attrs; Attr[0]; Attr += 2) {
-		ml_map_insert(Element->Attributes, ml_cstring(GC_strdup(Attr[0])), ml_cstring(GC_strdup(Attr[1])));
+		ml_map_insert(Element->Attributes, ml_string(GC_strdup(Attr[0]), -1), ml_string(GC_strdup(Attr[1]), -1));
 	}
 	Decoder->Element = Element;
 }

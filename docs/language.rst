@@ -237,7 +237,7 @@ Note that this shorthand is only for :mini:`let`-declarations, if another type o
 Compound Declarations
 ~~~~~~~~~~~~~~~~~~~~~
 
-*Minilang* provides no language support for modules, classes and probably some other useful features. Instead, *Minilang* allows for these features to be implemented as functions provided by the runtime, with evaluation at load time to remove any additional overhead from function calls. *Minilang* provides some syntax sugar constructs to simplify writing these types of declaration. More details can be found in :doc:`features/modules`.
+*Minilang* provides no language support for modules, classes and probably some other useful features. Instead, *Minilang* allows for these features to be implemented as functions provided by the runtime, with evaluation at load time to remove any additional overhead from function calls. *Minilang* provides some syntax sugar constructs to simplify writing these types of declaration.
 
 Imports, Classes, etc.
 ......................
@@ -250,6 +250,7 @@ A declaration of the form :mini:`Expression: Name(Args...)` is equivalent to :mi
    
    class: point(:X, :Y)
 
+More details can be found in :doc:`features/modules` and :doc:`features/classes`.
 
 Exports, etc.
 .............

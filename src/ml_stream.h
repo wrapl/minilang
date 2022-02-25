@@ -3,7 +3,7 @@
 
 #include "minilang.h"
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -25,7 +25,7 @@ extern ml_type_t MLStreamFdT[];
 
 ml_value_t *ml_fd_stream(int Fd);
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 

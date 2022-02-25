@@ -1,7 +1,7 @@
 #ifndef STRINGMAP_H
 #define STRINGMAP_H
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -25,7 +25,7 @@ int stringmap_foreach(stringmap_t *Map, void *Data, int (*callback)(const char *
 
 unsigned long stringmap_hash(const char *Key) __attribute__ ((pure));
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 

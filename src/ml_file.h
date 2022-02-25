@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include "minilang.h"
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -18,7 +18,7 @@ extern ml_cfunction_t MLFileOpen[];
 
 FILE *ml_file_handle(ml_value_t *Value) __attribute__((pure));
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 

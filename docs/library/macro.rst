@@ -1,7 +1,11 @@
 .. include:: <isonum.txt>
 
+.. include:: <isoamsa.txt>
+
 macro
 =====
+
+.. _type-expr:
 
 :mini:`type expr`
    An expression value used by the compiler to implement macros.
@@ -15,6 +19,14 @@ macro
    Returns a new expression which wraps :mini:`Expr` with the constant definitions from :mini:`Definitions`.
 
 
+:mini:`meth (Expr: expr):scoped(Module: module): expr`
+   Returns a new expression which wraps :mini:`Expr` with the exports from :mini:`Module`.
+
+
+:mini:`meth (Expr: expr):scoped(Module: type): expr`
+   Returns a new expression which wraps :mini:`Expr` with the exports from :mini:`Module`.
+
+
 :mini:`meth (Expr: expr):subst(Name₁ is  Sub₁, ...): expr`
    Returns a new expression which substitutes macro references to :mini:`:$Nameᵢ` with the corresponding expression :mini:`Subᵢ`.
 
@@ -23,27 +35,39 @@ macro
    Returns a new expression which substitutes macro references to :mini:`:$Nameᵢ` with the corresponding expressions :mini:`Subᵢ`.
 
 
+.. _fun-macro:
+
 :mini:`fun macro(Function: function): macro`
    Returns a new macro which applies :mini:`Function` when compiled.
 
    :mini:`Function` should have the following signature: :mini:`Function(Expr₁: expr,  Expr₂: expr,  ...): expr`.
 
 
+.. _type-macro:
+
 :mini:`type macro`
    A macro.
 
+
+.. _fun-macro-ident:
 
 :mini:`fun macro::ident(Name: string): expr`
    Returns a new identifier expression.
 
 
+.. _fun-macro-value:
+
 :mini:`fun macro::value(Value: any): expr`
    Returns a new value expression.
 
 
+.. _fun-macro-fun:
+
 :mini:`fun macro::fun(Params: map, Arg₂: expr): expr`
    Returns a new function expression.
 
+
+.. _type-block-builder:
 
 :mini:`type block::builder`
    Utility object for building a block expression.
@@ -69,25 +93,37 @@ macro
    Finishes a block and returns it as an expression.
 
 
+.. _fun-macro-block:
+
 :mini:`fun macro::block(): blockbuilder`
    Returns a new block builder.
 
+
+.. _type-expr-builder:
 
 :mini:`type expr::builder`
    Utility object for building a block expression.
 
 
+.. _fun-macro-tuple:
+
 :mini:`fun macro::tuple(): exprbuilder`
    Returns a new list builder.
 
+
+.. _fun-macro-list:
 
 :mini:`fun macro::list(): exprbuilder`
    Returns a new list builder.
 
 
+.. _fun-macro-map:
+
 :mini:`fun macro::map(): exprbuilder`
    Returns a new list builder.
 
+
+.. _fun-macro-call:
 
 :mini:`fun macro::call(): exprbuilder`
    Returns a new call builder.

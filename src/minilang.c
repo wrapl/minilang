@@ -5,6 +5,7 @@
 #include "ml_macros.h"
 #include "ml_file.h"
 #include "ml_object.h"
+#include "ml_expr.h"
 #include "stringmap.h"
 #include <stdio.h>
 #include <string.h>
@@ -133,7 +134,7 @@ ML_FUNCTION(MLCollect) {
 }
 
 static int ml_globals_add(const char *Name, ml_value_t *Value, ml_value_t *Result) {
-	ml_map_insert(Result, ml_cstring(Name), Value);
+	ml_map_insert(Result, ml_string(Name, -1), Value);
 	return 0;
 }
 
@@ -190,6 +191,7 @@ int main(int Argc, const char *Argv[]) {
 #endif
 
 	ml_init(Globals);
+	ml_expr_init(Globals);
 	ml_file_init(Globals);
 	ml_object_init(Globals);
 	ml_sequence_init(Globals);
@@ -292,7 +294,7 @@ int main(int Argc, const char *Argv[]) {
 	const char *Command = NULL;
 	for (int I = 1; I < Argc; ++I) {
 		if (FileName) {
-			ml_list_put(Args, ml_cstring(Argv[I]));
+			ml_list_put(Args, ml_string(Argv[I], -1));
 		} else if (Argv[I][0] == '-') {
 			switch (Argv[I][1]) {
 			case 'E':

@@ -1,10 +1,16 @@
 .. include:: <isonum.txt>
 
+.. include:: <isoamsa.txt>
+
 channel
 =======
 
+.. _fun-channel:
+
 :mini:`fun channel()`
    *TBD*
+
+.. _type-channel:
 
 :mini:`type channel`
    *TBD*

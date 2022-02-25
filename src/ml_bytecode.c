@@ -15,6 +15,9 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "bytecode"
 
+// Overview
+// This is a mostly internal module, subject to change.
+
 typedef struct {
 	const ml_type_t *Type;
 	ml_value_t *Value;
@@ -43,6 +46,8 @@ static void ml_variable_call(ml_state_t *Caller, ml_variable_t *Variable, int Co
 }
 
 ML_TYPE(MLVariableT, (), "variable",
+// A variable, which can hold another value (returned when dereferenced) and assigned a new value.
+// Variables may optionally be typed, assigning a value that is not an instance of the specified type (or a subtype) will raise an error.
 	.hash = (void *)ml_variable_hash,
 	.deref = (void *)ml_variable_deref,
 	.assign = (void *)ml_variable_assign,
@@ -58,14 +63,23 @@ ml_value_t *ml_variable(ml_value_t *Value, ml_type_t *Type) {
 }
 
 ML_METHOD(MLVariableT) {
+//>variable
+// Return a new untyped variable with current value :mini:`nil`.
 	return ml_variable(MLNil, NULL);
 }
 
 ML_METHOD(MLVariableT, MLAnyT) {
+//<Value
+//>variable
+// Return a new untyped variable with current value :mini:`Value`.
 	return ml_variable(Args[0], NULL);
 }
 
 ML_METHOD(MLVariableT, MLAnyT, MLTypeT) {
+//<Value
+//<Type
+//>variable
+// Return a new typed variable with type :mini:`Type` and current value :mini:`Value`.
 	return ml_variable(Args[0], (ml_type_t *)Args[1]);
 }
 
@@ -99,10 +113,10 @@ typedef struct DEBUG_STRUCT(frame) DEBUG_STRUCT(frame);
 
 struct DEBUG_STRUCT(frame) {
 	ml_state_t Base;
-	//union {
+	union {
 		void *Next;
 		ml_inst_t *Inst;
-	//};
+	};
 	ml_value_t **Top;
 	const char *Source;
 	ml_inst_t *OnError;
@@ -112,9 +126,6 @@ struct DEBUG_STRUCT(frame) {
 #endif
 	unsigned int Line;
 	char Continue, Reentry, Suspend;
-	/*unsigned int Continue:1;
-	unsigned int Reentry:1;
-	unsigned int Suspend:1;*/
 #ifdef DEBUG_VERSION
 	unsigned int StepOver:1;
 	unsigned int StepOut:1;
@@ -1500,6 +1511,9 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Closure), ml_state_t *Frame, ml_c
 
 ML_FUNCTION(MLClosure) {
 //@closure
+//<Original
+//>closure
+// Returns a copy of :mini:`Closure`.
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLClosureT);
 	ml_closure_t *Original = (ml_closure_t *)Args[0];
@@ -1513,6 +1527,7 @@ ML_FUNCTION(MLClosure) {
 }
 
 ML_TYPE(MLClosureT, (MLFunctionT, MLSequenceT), "closure",
+// A Minilang function.
 	.hash = ml_closure_hash,
 	.call = (void *)ml_closure_call,
 	.Constructor = (ml_value_t *)MLClosure
@@ -1527,6 +1542,7 @@ static void ML_TYPED_FN(ml_value_find_refs, MLClosureT, ml_closure_t *Closure, v
 }
 
 ML_TYPE(MLClosureInfoT, (), "closure::info");
+// Information about a closure.
 
 static void ML_TYPED_FN(ml_value_find_refs, MLClosureInfoT, ml_closure_info_t *Info, void *Data, ml_value_ref_fn RefFn) {
 	if (!RefFn(Data, (ml_value_t *)Info)) return;
@@ -1607,6 +1623,9 @@ ml_value_t *ml_closure(ml_closure_info_t *Info) {
 }
 
 ML_METHOD("append", MLStringBufferT, MLClosureT) {
+//<Buffer
+//<Closure
+// Appends a representation of :mini:`Closure` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_closure_t *Closure = (ml_closure_t *)Args[1];
 	ml_stringbuffer_write(Buffer, Closure->Info->Name, strlen(Closure->Info->Name));
@@ -1619,6 +1638,9 @@ static int ml_closure_parameter_fn(const char *Name, void *Value, ml_value_t *Pa
 }
 
 ML_METHOD("parameters", MLClosureT) {
+//<Closure
+//>list
+// Returns the list of parameter names of :mini:`Closure`.
 	ml_closure_t *Closure = (ml_closure_t *)Args[0];
 	ml_value_t *Parameters = ml_list();
 	ml_list_grow(Parameters, Closure->Info->Params->Size);
@@ -1765,10 +1787,13 @@ static int ML_TYPED_FN(ml_function_source, MLClosureT, ml_closure_t *Closure, co
 }
 
 ML_METHOD("info", MLClosureT) {
+//<Closure
+//>map
+// Returns some information about :mini:`Closure`.
 	ml_closure_t *Closure = (ml_closure_t *)Args[0];
 	ml_closure_info_t *Info = Closure->Info;
 	ml_value_t *Result = ml_map();
-	ml_map_insert(Result, ml_cstring("Source"), ml_cstring(Info->Source));
+	ml_map_insert(Result, ml_cstring("Source"), ml_string(Info->Source, -1));
 	ml_map_insert(Result, ml_cstring("Start"), ml_integer(Info->StartLine));
 	ml_map_insert(Result, ml_cstring("End"), ml_integer(Info->EndLine));
 	ml_map_insert(Result, ml_cstring("Size"), ml_integer(Info->FrameSize));
@@ -1777,6 +1802,9 @@ ML_METHOD("info", MLClosureT) {
 }
 
 ML_METHOD("list", MLClosureT) {
+//<Closure
+//>string
+// Returns a listing of the bytecode of :mini:`Closure`.
 	ml_closure_t *Closure = (ml_closure_t *)Args[0];
 	ml_closure_info_t *Info = Closure->Info;
 	ml_closure_info_labels(Info);

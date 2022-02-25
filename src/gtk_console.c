@@ -254,7 +254,7 @@ static GtkWidget *console_open_source(gtk_console_t *Console, const char *Source
 	if (!Slot[0]) {
 		console_open_file_t *OpenFile = Slot[0] = new(console_open_file_t);
 		OpenFile->Console = Console;
-		OpenFile->Name = ml_cstring(SourceName);
+		OpenFile->Name = ml_string(SourceName, -1);
 		GtkSourceBuffer *Buffer = gtk_source_buffer_new_with_language(Console->Language);
 		gtk_source_buffer_set_style_scheme(Buffer, Console->StyleScheme);
 		GtkTextIter End[1];

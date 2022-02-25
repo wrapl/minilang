@@ -42,6 +42,10 @@ ML_METHOD_DECL(IndexMethod, "[]");
 ML_METHOD_DECL(SymbolMethod, "::");
 ML_METHOD_DECL(LessMethod, "<");
 ML_METHOD_DECL(CallMethod, "()");
+ML_METHOD_DECL(LessMethod, "<");
+ML_METHOD_DECL(GreaterMethod, ">");
+ML_METHOD_DECL(AddMethod, "+");
+ML_METHOD_DECL(MulMethod, "*");
 
 static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 	const unsigned int Mask = (CHAR_BIT * sizeof(uintptr_t) - 1);
@@ -104,7 +108,7 @@ ML_METHOD("rank", MLTypeT) {
 }
 
 static int ml_type_exports_fn(const char *Name, void *Value, ml_value_t *Exports) {
-	ml_map_insert(Exports, ml_cstring(Name), Value);
+	ml_map_insert(Exports, ml_string(Name, -1), Value);
 	return 0;
 }
 
@@ -175,6 +179,7 @@ ML_METHOD("parents", MLTypeT) {
 //!type
 //<Type
 //>list
+// Returns a list of the parent types of :mini:`Type`.
 	ml_type_t *Type = (ml_type_t *)Args[0];
 	ml_value_t *Parents = ml_list();
 #ifdef ML_GENERICS
@@ -357,6 +362,9 @@ ML_METHOD("?", MLTypeT) {
 }
 
 ML_METHOD("append", MLStringBufferT, MLTypeT) {
+//<Buffer
+//<Value
+// Appends a representation of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_type_t *Type = (ml_type_t *)Args[1];
 	ml_stringbuffer_printf(Buffer, "<<%s>>", Type->Name);
@@ -748,17 +756,17 @@ ML_METHOD("in", MLAnyT, MLTypeT) {
 
 ML_METHOD_ANON(MLCompilerSwitch, "compiler::switch");
 
-ML_METHODVX(MLCompilerSwitch, MLFunctionT) {
+ML_METHOD(MLCompilerSwitch, MLFunctionT) {
 //!internal
-	return ml_call(Caller, Args[0], Count - 1, Args + 1);
+	return Args[0];
 }
 
-ML_METHODVX(MLCompilerSwitch, MLTypeT) {
+ML_METHOD(MLCompilerSwitch, MLTypeT) {
 //!internal
 	ml_type_t *Type = (ml_type_t *)Args[0];
 	ml_value_t *Switch = (ml_value_t *)stringmap_search(Type->Exports, "switch");
-	if (!Switch) ML_ERROR("SwitchError", "%s does not support switch", Type->Name);
-	return ml_call(Caller, Switch, Count - 1, Args + 1);
+	if (!Switch) return ml_error("SwitchError", "%s does not support switch", Type->Name);
+	return Switch;
 }
 
 typedef struct {
@@ -859,6 +867,10 @@ static ml_value_t *ml_trace(void *Ptr, inthash_t *Cache) {
 }
 
 ML_METHOD("trace", MLAnyT) {
+//!internal
+//<Value
+//>list[map]
+// Returns information about the blocks of memory referenced by :mini:`Value`.
 	ml_value_t *Value = Args[0];
 	inthash_t Cache[1] = {INTHASH_INIT};
 	return ml_trace(Value, Cache) ?: MLNil;
@@ -940,7 +952,57 @@ ml_comp_any_any_any("<=");
 ml_comp_any_any_any(">");
 ml_comp_any_any_any(">=");
 
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Args[2];
+} ml_comp_state_t;
+
+static void ml_min_state_run(ml_comp_state_t *State, ml_value_t *Result) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Result)) ML_RETURN(Result);
+	if (ml_integer_value(Result) < 0) ML_RETURN(State->Args[0]);
+	ML_RETURN(State->Args[1]);
+}
+
+ML_METHODX("min", MLAnyT, MLAnyT) {
+//<A
+//<B
+//>any
+// Returns :mini:`A` if :mini:`A <> B < 0` and :mini:`B` otherwise.
+	ml_comp_state_t *State = new(ml_comp_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_min_state_run;
+	State->Args[0] = Args[0];
+	State->Args[1] = Args[1];
+	return ml_call(State, CompareMethod, 2, State->Args);
+}
+
+static void ml_max_state_run(ml_comp_state_t *State, ml_value_t *Result) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Result)) ML_RETURN(Result);
+	if (ml_integer_value(Result) > 0) ML_RETURN(State->Args[0]);
+	ML_RETURN(State->Args[1]);
+}
+
+ML_METHODX("max", MLAnyT, MLAnyT) {
+//<A
+//<B
+//>any
+// Returns :mini:`A` if :mini:`A <> B > 0` and :mini:`B` otherwise.
+	ml_comp_state_t *State = new(ml_comp_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_max_state_run;
+	State->Args[0] = Args[0];
+	State->Args[1] = Args[1];
+	return ml_call(State, CompareMethod, 2, State->Args);
+}
+
 ML_METHOD("append", MLStringBufferT, MLAnyT) {
+//<Buffer
+//<Value
+// Appends a representation of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_printf(Buffer, "<%s>", ml_typeof(Args[1])->Name);
 	return MLSome;
@@ -1641,6 +1703,9 @@ static void ML_TYPED_FN(ml_iterate, MLTupleT, ml_state_t *Caller, ml_tuple_t *Tu
 
 ML_METHOD("append", MLStringBufferT, MLTupleT) {
 //!tuple
+//<Buffer
+//<Value
+// Appends a representation of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_tuple_t *Value = (ml_tuple_t *)Args[1];
 	ml_stringbuffer_put(Buffer, '(');
@@ -1721,6 +1786,7 @@ static long ml_boolean_hash(ml_boolean_t *Boolean, ml_hash_chain_t *Chain) {
 
 ML_TYPE(MLBooleanT, (), "boolean",
 //!boolean
+// A boolean value (either :mini:`true` or :mini:`false`).
 	.hash = (void *)ml_boolean_hash
 );
 
@@ -3147,7 +3213,7 @@ static void ml_integer_switch(ml_state_t *Caller, ml_integer_switch_t *Switch, i
 	ML_CHECKX_ARG_COUNT(1);
 	ml_value_t *Arg = ml_deref(Args[0]);
 	if (!ml_is(Arg, MLNumberT)) {
-		ML_ERROR("TypeError", "expected number for argument 1");
+		ML_ERROR("TypeError", "Expected number for argument 1");
 	}
 	int64_t Value = ml_integer_value(Arg);
 	for (ml_integer_case_t *Case = Switch->Cases;; ++Case) {
@@ -3215,7 +3281,7 @@ static void ml_real_switch(ml_state_t *Caller, ml_real_switch_t *Switch, int Cou
 	ML_CHECKX_ARG_COUNT(1);
 	ml_value_t *Arg = ml_deref(Args[0]);
 	if (!ml_is(Arg, MLNumberT)) {
-		ML_ERROR("TypeError", "expected number for argument 1");
+		ML_ERROR("TypeError", "Expected number for argument 1");
 	}
 	double Value = ml_real_value(Arg);
 	for (ml_real_case_t *Case = Switch->Cases;; ++Case) {
@@ -3316,6 +3382,10 @@ ml_value_t *ml_module_export(ml_value_t *Module0, const char *Name, ml_value_t *
 }
 
 ML_METHOD("append", MLStringBufferT, MLModuleT) {
+//!module
+//<Buffer
+//<Value
+// Appends a representation of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_module_t *Module = (ml_module_t *)Args[1];
 	ml_stringbuffer_printf(Buffer, "module(%s)", Module->Path);
@@ -3323,13 +3393,13 @@ ML_METHOD("append", MLStringBufferT, MLModuleT) {
 }
 
 static int ml_module_exports_fn(const char *Name, void *Value, ml_value_t *Exports) {
-	ml_map_insert(Exports, ml_cstring(Name), Value);
+	ml_map_insert(Exports, ml_string(Name, -1), Value);
 	return 0;
 }
 
 ML_METHOD("path", MLModuleT) {
 	ml_module_t *Module = (ml_module_t *)Args[0];
-	return ml_cstring(Module->Path);
+	return ml_string(Module->Path, -1);
 }
 
 ML_METHOD("exports", MLModuleT) {
@@ -3394,10 +3464,11 @@ void ml_init(stringmap_t *Globals) {
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLTupleT, MLSequenceT, MLIntegerT, MLAnyT, NULL);
 #endif
-	stringmap_insert(MLTypeT->Exports, "switch", MLTypeSwitch);
+	stringmap_insert(MLTypeT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLTypeSwitch));
 	stringmap_insert(MLIntegerT->Exports, "range", MLIntegerRangeT);
-	stringmap_insert(MLIntegerT->Exports, "switch", MLIntegerSwitch);
+	stringmap_insert(MLIntegerT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLIntegerSwitch));
 	stringmap_insert(MLRealT->Exports, "range", MLRealRangeT);
+	stringmap_insert(MLRealT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLRealSwitch));
 	ml_method_by_value(MLIntegerT->Constructor, NULL, ml_identity, MLIntegerT, NULL);
 	ml_method_by_name("isfinite", NULL, ml_identity, MLIntegerT, NULL);
 	ml_method_by_name("isnan", NULL, ml_return_nil, MLIntegerT, NULL);

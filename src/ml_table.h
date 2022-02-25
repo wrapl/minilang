@@ -3,7 +3,7 @@
 
 #include "minilang.h"
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -14,7 +14,7 @@ ml_value_t *ml_table();
 ml_value_t *ml_table_insert(ml_value_t *Table, ml_value_t *Name, ml_value_t *Value);
 ml_value_t *ml_table_columns(ml_value_t *Table);
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 

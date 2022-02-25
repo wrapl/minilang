@@ -1,38 +1,63 @@
 .. include:: <isonum.txt>
 
+.. include:: <isoamsa.txt>
+
 bytecode
 ========
 
+This is a mostly internal module,  subject to change.
+
+.. _type-variable:
+
 :mini:`type variable`
-   *TBD*
+   A variable,  which can hold another value (returned when dereferenced) and assigned a new value.
 
-:mini:`meth variable()`
-   *TBD*
+   Variables may optionally be typed,  assigning a value that is not an instance of the specified type (or a subtype) will raise an error.
 
-:mini:`meth variable(Arg₁: any)`
-   *TBD*
 
-:mini:`meth variable(Arg₁: any, Arg₂: type)`
-   *TBD*
+:mini:`meth variable(): variable`
+   Return a new untyped variable with current value :mini:`nil`.
 
-:mini:`fun closure(Arg₁: closure)`
-   *TBD*
+
+:mini:`meth variable(Value: any): variable`
+   Return a new untyped variable with current value :mini:`Value`.
+
+
+:mini:`meth variable(Value: any, Type: type): variable`
+   Return a new typed variable with type :mini:`Type` and current value :mini:`Value`.
+
+
+.. _fun-closure:
+
+:mini:`fun closure(Original: closure): closure`
+   Returns a copy of :mini:`Closure`.
+
+
+.. _type-closure:
 
 :mini:`type closure < function, sequence`
-   *TBD*
+   A Minilang function.
+
+
+.. _type-closure-info:
 
 :mini:`type closure::info`
-   *TBD*
+   Information about a closure.
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: closure)`
-   *TBD*
 
-:mini:`meth (Arg₁: closure):parameters`
-   *TBD*
+:mini:`meth (Buffer: string::buffer):append(Closure: closure)`
+   Appends a representation of :mini:`Closure` to :mini:`Buffer`.
 
-:mini:`meth (Arg₁: closure):info`
-   *TBD*
 
-:mini:`meth (Arg₁: closure):list`
-   *TBD*
+:mini:`meth (Closure: closure):parameters: list`
+   Returns the list of parameter names of :mini:`Closure`.
+
+
+:mini:`meth (Closure: closure):info: map`
+   Returns some information about :mini:`Closure`.
+
+
+:mini:`meth (Closure: closure):list: string`
+   Returns a listing of the bytecode of :mini:`Closure`.
+
 

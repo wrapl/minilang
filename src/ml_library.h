@@ -3,7 +3,7 @@
 
 #include "minilang.h"
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -24,7 +24,7 @@ ml_module_t *ml_library_internal(const char *Name);
 void ml_library_entry(ml_state_t *Caller, ml_value_t **Slot);
 void ml_library_entry0(ml_value_t **Slot);
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 

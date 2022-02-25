@@ -589,7 +589,7 @@ ML_METHOD("trace", MLErrorValueT) {
 	ml_value_t *Trace = ml_list();
 	ml_source_t *Source = Value->Trace;
 	for (int I = MAX_TRACE; --I >= 0 && Source->Name; ++Source) {
-		ml_value_t *Tuple = ml_tuplev(2, ml_cstring(Source->Name), ml_integer(Source->Line));
+		ml_value_t *Tuple = ml_tuplev(2, ml_string(Source->Name, -1), ml_integer(Source->Line));
 		ml_list_put(Trace, Tuple);
 	}
 	return Trace;
@@ -860,17 +860,22 @@ void ml_scheduler_queue_init(int Size) {
 }
 
 ml_queued_state_t ml_scheduler_queue_next() {
+	ml_queued_state_t Next = {NULL, NULL};
+#ifdef ML_THREADS
+	pthread_mutex_lock(Queue->Lock);
+#endif
 	if (Queue->Fill) {
 		ml_queued_state_t *States = Queue->States;
 		int Read = Queue->Read;
-		ml_queued_state_t QueuedState = States[Read];
+		Next = States[Read];
 		States[Read] = (ml_queued_state_t){NULL, NULL};
 		--Queue->Fill;
 		Queue->Read = (Read + 1) % Queue->Size;
-		return QueuedState;
-	} else {
-		return (ml_queued_state_t){NULL, NULL};
 	}
+#ifdef ML_THREADS
+	pthread_mutex_unlock(Queue->Lock);
+#endif
+	return Next;
 }
 
 int ml_scheduler_queue_add(ml_state_t *State, ml_value_t *Value) {
@@ -1155,5 +1160,8 @@ ML_METHODX("raise", MLChannelT, MLErrorValueT) {
 */
 
 void ml_runtime_init() {
+#ifdef ML_THREADS
+	GC_add_roots(Queue, Queue + 1);
+#endif
 #include "ml_runtime_init.c"
 }

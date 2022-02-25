@@ -6,7 +6,7 @@
 #include "ml_runtime.h"
 #include "stringmap.h"
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -17,6 +17,7 @@ extern ml_type_t MLCompilerT[];
 extern ml_type_t MLMacroT[];
 extern ml_type_t MLParserT[];
 extern ml_type_t MLGlobalT[];
+extern ml_type_t MLExprT[];
 
 typedef struct ml_parser_t ml_parser_t;
 typedef struct ml_compiler_t ml_compiler_t;
@@ -59,7 +60,12 @@ ml_value_t *ml_global(const char *Name);
 ml_value_t *ml_global_get(ml_value_t *Global);
 ml_value_t *ml_global_set(ml_value_t *Global, ml_value_t *Value);
 
-#ifdef	__cplusplus
+ml_value_t *ml_macro(ml_value_t *Function);
+ml_value_t *ml_inline_call_macro(ml_value_t *Value);
+
+void ml_expr_evaluate(ml_state_t *Caller, ml_value_t *Expr);
+
+#ifdef __cplusplus
 }
 #endif
 

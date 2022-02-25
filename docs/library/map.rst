@@ -1,7 +1,11 @@
 .. include:: <isonum.txt>
 
+.. include:: <isoamsa.txt>
+
 map
 ===
+
+.. _type-map:
 
 :mini:`type map < sequence`
    A map of key-value pairs.
@@ -10,6 +14,8 @@ map
 
    Insert order is preserved.
 
+
+.. _type-map-node:
 
 :mini:`type map::node`
    A node in a :mini:`map`.

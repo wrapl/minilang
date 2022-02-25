@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -60,7 +60,7 @@ static inline inthash_result_t inthash_search2_inline(const inthash_t *Map, uint
 	return (inthash_result_t){NULL, 0};
 }
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 

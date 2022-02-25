@@ -71,6 +71,7 @@ static ml_value_t *ml_is_closure_threadsafe(ml_closure_info_t *Info) {
 			switch (MLInstTypes[Inst->Opcode]) {
 			case MLIT_NONE: Inst += 1; break;
 			case MLIT_INST: Inst += 2; break;
+			case MLIT_INST_COUNT_DECL: Inst += 4; break;
 			case MLIT_INST_TYPES: Inst += 3; break;
 			case MLIT_COUNT_COUNT: Inst += 3; break;
 			case MLIT_COUNT: Inst += 2; break;

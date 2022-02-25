@@ -82,44 +82,46 @@ PARENT."generate_init_files" := generate_init_files
 generate_init_files()
 
 let Objects := [
-	file("ml_compiler.o"),
-	file("ml_opcodes.o"),
-	file("ml_bytecode.o"),
-	file("ml_runtime.o"),
-	file("ml_types.o"),
-	file("ml_string.o"),
-	file("ml_method.o"),
-	file("ml_list.o"),
-	file("ml_map.o"),
-	file("ml_sequence.o"),
-	file("sha256.o"),
-	file("stringmap.o"),
 	file("inthash.o"),
+	file("ml_bytecode.o"),
+	file("ml_compiler.o"),
 	file("ml_console.o"),
 	file("ml_debugger.o"),
-	file("ml_object.o"),
+	file("ml_expr.o"),
 	file("ml_file.o"),
-	file("ml_stream.o")
+	file("ml_list.o"),
+	file("ml_map.o"),
+	file("ml_method.o"),
+	file("ml_object.o"),
+	file("ml_opcodes.o"),
+	file("ml_runtime.o"),
+	file("ml_sequence.o"),
+	file("ml_stream.o"),
+	file("ml_string.o"),
+	file("ml_types.o"),
+	file("sha256.o"),
+	file("stringmap.o")
 ]
 
 let Libraries := []
 
 let InstallHeaders := [
-	"minilang.h",
 	"config.h",
-	"ml_console.h",
-	"ml_sequence.h",
-	"ml_macros.h",
-	"ml_types.h",
-	"ml_object.h",
-	"ml_compiler.h",
-	"ml_runtime.h",
-	"ml_opcodes.h",
-	"ml_bytecode.h",
-	"stringmap.h",
 	"inthash.h",
+	"minilang.h",
+	"ml_bytecode.h",
+	"ml_compiler.h",
+	"ml_console.h",
+	"ml_expr.h",
 	"ml_file.h",
-	"ml_stream.h"
+	"ml_macros.h",
+	"ml_object.h",
+	"ml_opcodes.h",
+	"ml_runtime.h",
+	"ml_sequence.h",
+	"ml_stream.h",
+	"ml_types.h",
+	"stringmap.h"
 ]
 
 if MINILANG_STATICGC or defined("STATICGC") then
@@ -162,7 +164,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_UUID := 1
 	if PLATFORM = "Linux" and MACHINE = "x86_64" then
 		MINILANG_NANBOXING := not defined("NONANBOXING")
-	end 
+	end
 end
 
 MINILANG_TABLES := old or defined("TABLES")
@@ -229,21 +231,21 @@ end
 if MINILANG_MATH then
 	file("array"):mkdir
 	Objects:put(
-		file("ml_math.o"),
-		file("ml_polynomial.o"),
-		file("ml_array.o"),
-		file("array/update_set.o"),
-		file("array/update_add.o"),
-		file("array/update_sub.o"),
-		file("array/update_mul.o"),
-		file("array/update_div.o"),
+		file("array/compare_cmp.o"),
 		file("array/compare_eq.o"),
-		file("array/compare_ne.o"),
-		file("array/compare_lt.o"),
+		file("array/compare_ge.o"),
 		file("array/compare_gt.o"),
 		file("array/compare_le.o"),
-		file("array/compare_ge.o"),
-		file("array/compare_cmp.o")
+		file("array/compare_lt.o"),
+		file("array/compare_ne.o"),
+		file("array/update_add.o"),
+		file("array/update_div.o"),
+		file("array/update_mul.o"),
+		file("array/update_set.o"),
+		file("array/update_sub.o"),
+		file("ml_array.o"),
+		file("ml_math.o"),
+		file("ml_polynomial.o")
 	)
 	CFLAGS := old + ["-DML_MATH"]
 	InstallHeaders:put("ml_array.h")
@@ -321,7 +323,7 @@ end
 if MINILANG_LIBRARY then
 	CFLAGS := old + ['-DML_LIBRARY']
 	Objects:put(file("ml_library.o"), file("whereami.o"))
-	InstallHeaders:put("ml_library.h")	
+	InstallHeaders:put("ml_library.h")
 end
 
 if MINILANG_MODULES then

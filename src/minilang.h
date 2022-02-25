@@ -6,7 +6,7 @@
 
 #include "ml_compiler.h"
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 

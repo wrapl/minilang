@@ -1,5 +1,7 @@
 .. include:: <isonum.txt>
 
+.. include:: <isoamsa.txt>
+
 hierarchy
 =========
 
@@ -70,26 +72,7 @@ hierarchy
       "function":e -> "filter":w;
       "function":e -> "chained":w;
       "sequence":e -> "chained":w;
-      "sequence":e -> "doubled":w;
-      "sequence":e -> "doubled2":w;
-      "sequence":e -> "stacked":w;
-      "sequence":e -> "repeated":w;
-      "sequence":e -> "sequenced":w;
-      "sequence":e -> "limited":w;
-      "sequence":e -> "skipped":w;
-      "sequence":e -> "until":w;
       "function":e -> "tasks":w;
-      "sequence":e -> "buffered":w;
-      "sequence":e -> "unique":w;
-      "sequence":e -> "zipped":w;
-      "sequence":e -> "grid":w;
-      "sequence":e -> "paired":w;
-      "sequence":e -> "weaved":w;
-      "sequence":e -> "folded":w;
-      "sequence":e -> "unfolded":w;
-      "sequence":e -> "swapped":w;
-      "sequence":e -> "key":w;
-      "sequence":e -> "batched":w;
       "function":e -> "context":w;
       "any":e -> "reference":w;
       "any":e -> "error":w;
@@ -121,7 +104,6 @@ hierarchy
       "any":e -> "jsdecoder":w;
       "sequence":e -> "gir-typelib":w;
       "type":e -> "gir::base":w;
-      "function":e -> "gir":w;
       "gir::base":e -> "gir::object":w;
       "any":e -> "gir::object":w;
       "gir::base":e -> "gir::struct":w;

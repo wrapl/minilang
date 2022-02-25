@@ -1,10 +1,15 @@
 .. include:: <isonum.txt>
 
+.. include:: <isoamsa.txt>
+
 boolean
 =======
 
+.. _type-boolean:
+
 :mini:`type boolean`
-   *TBD*
+   A boolean value (either :mini:`true` or :mini:`false`).
+
 
 :mini:`meth boolean(String: string): boolean | error`
    Returns :mini:`true` if :mini:`String` equals :mini:`"true"` (ignoring case).
@@ -54,6 +59,7 @@ boolean
    Returns :mini:`Arg₂` if :mini:`Arg₁ >= Arg₂` and :mini:`nil` otherwise.
 
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: boolean)`
-   *TBD*
+:mini:`meth (Buffer: string::buffer):append(Value: boolean)`
+   Appends :mini`"true"` or :mini:`"false`" to :mini:`Buffer`.
+
 

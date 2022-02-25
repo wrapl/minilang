@@ -1,7 +1,7 @@
 Classes
 =======
 
-User defined classes can be created using the :mini:`class()` constructor.
+User defined classes can be created using the :mini:`class()` constructor, see :ref:`here <fun-class>`. Usually classes are defined using a compound declaration.
 
 :mini:`class(Arg₁, Arg₂, ...)`
    Creates a new class with additional properties based on the types of :mini:`Arg₁, Arg₂, ...`:

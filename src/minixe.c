@@ -601,7 +601,7 @@ static ml_value_t *compile_macro(ml_value_t *Value) {
 }
 
 static ml_value_t *attribute_get(ml_value_t *Attributes, const char *Name) {
-	ml_value_t *Value = ml_map_search(Attributes, ml_cstring(Name));
+	ml_value_t *Value = ml_map_search(Attributes, ml_string(Name, -1));
 	if (Value == MLNil) return global_get(Globals, Name);
 	return Value;
 }

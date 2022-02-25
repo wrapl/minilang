@@ -1,10 +1,16 @@
 .. include:: <isonum.txt>
 
+.. include:: <isoamsa.txt>
+
 range
 =====
 
+.. _type-integer-iter:
+
 :mini:`type integer::iter`
    *TBD*
+
+.. _type-integer-range:
 
 :mini:`type integer::range < sequence`
    *TBD*
@@ -55,8 +61,12 @@ range
 :mini:`meth (X: double):in(Range: integer::range): X | nil`
    *TBD*
 
+.. _type-real-iter:
+
 :mini:`type real::iter`
    *TBD*
+
+.. _type-real-range:
 
 :mini:`type real::range < sequence`
    *TBD*

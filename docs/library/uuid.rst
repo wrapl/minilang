@@ -1,7 +1,11 @@
 .. include:: <isonum.txt>
 
+.. include:: <isoamsa.txt>
+
 uuid
 ====
+
+.. _type-uuid:
 
 :mini:`type uuid`
    *TBD*

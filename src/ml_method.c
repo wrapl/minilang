@@ -360,7 +360,7 @@ ML_METHOD("name", MLMethodT) {
 //>string
 // Returns the name of :mini:`Method`.
 	ml_method_t *Method = (ml_method_t *)Args[0];
-	return ml_cstring(Method->Name);
+	return ml_string(Method->Name, -1);
 }
 
 void ml_method_by_name(const char *Name, void *Data, ml_callback_t Callback, ...) {
@@ -558,7 +558,7 @@ ML_METHODX("list", MLMethodT) {
 				const char *Source;
 				int Line;
 				if (ml_function_source(Definition->Callback, &Source, &Line)) {
-					Node->Value = ml_tuplev(2, ml_cstring(Source), ml_integer(Line));
+					Node->Value = ml_tuplev(2, ml_string(Source, -1), ml_integer(Line));
 				} else {
 					Node->Value = MLNil;
 				}
@@ -596,7 +596,7 @@ void ml_method_init() {
 	ml_context_set(&MLRootContext, ML_METHODS_INDEX, MLRootMethods);
 #include "ml_method_init.c"
 	MLRootMethods->Type = MLMethodsT;
-	stringmap_insert(MLMethodT->Exports, "switch", MLMethodSwitch);
+	stringmap_insert(MLMethodT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLMethodSwitch));
 	stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
 	stringmap_insert(MLMethodT->Exports, "context", MLMethodContext);
 	stringmap_insert(MLMethodT->Exports, "list", MLMethodList);

@@ -1,7 +1,11 @@
 .. include:: <isonum.txt>
 
+.. include:: <isoamsa.txt>
+
 compiler
 ========
+
+.. _type-compiler-function:
 
 :mini:`type compiler::function < state`
    *TBD*
@@ -18,16 +22,33 @@ compiler
 :mini:`meth (Arg₁: expr):end`
    *TBD*
 
+.. _fun-compiler:
+
 :mini:`fun compiler(Global: function|map): compiler`
    *TBD*
+
+.. _type-compiler:
 
 :mini:`type compiler < state`
    *TBD*
 
+.. _fun-parser:
+
 :mini:`fun parser(?Read: function): parser`
    *TBD*
 
+.. _type-parser:
+
 :mini:`type parser`
+   *TBD*
+
+:mini:`meth (Parser: parser):permissive(Permissive: boolean): parser`
+   *TBD*
+
+:mini:`meth (Parser: parser):parse: expr`
+   *TBD*
+
+:mini:`meth (Parser: parser):parse(Arg₂: string): expr`
    *TBD*
 
 :mini:`meth (Parser: parser):compile(Compiler: compiler): any`
@@ -71,6 +92,8 @@ compiler
 
 :mini:`meth (Compiler: compiler):vars: map`
    *TBD*
+
+.. _type-global:
 
 :mini:`type global`
    *TBD*

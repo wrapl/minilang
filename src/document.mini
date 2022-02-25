@@ -30,10 +30,19 @@ fun write_category(Category) do
 	print('Creating Category: {Category}\n')
 	let File := file('{OutputDirectory}/{Category:lower}.rst', "w")
 	File:write(".. include:: <isonum.txt>\n\n")
+	File:write(".. include:: <isoamsa.txt>\n\n")
 	File:write(Category, "\n")
 	for I in Category do File:write("=") end
 	File:write("\n\n")
 	ret File
+end
+
+fun write_overview(Category, Description) do
+	let File := Categories[Category, write_category]
+	for Line in Description do
+		File:write(Line)
+	end
+	File:write("\n")
 end
 
 fun type_name(var Type) do
@@ -149,7 +158,7 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 		end
 	end
 	Title:write("`")
-	let TitleString := Title:get
+	let TitleString := Title:rest
 	File:write(TitleString, "\n")
 	for Line in Description do
 		File:write("   ", Line, "\n")
@@ -158,7 +167,7 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 	for Param in Params do
 		if Param[3]:length > 0 then
 			File:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")
-		end	
+		end
 	end
 	:>File:write('   *Defined at line {Location[2]} in {Location[1]}*\n')
 	File:write("\n")
@@ -170,10 +179,10 @@ fun write_function(Category, Kind, Name, Params, Return, Description, Location) 
 	for Param in Params do print('\t{Param}\n') end
 	print('Returns: {Return}\n')
 	print('Description: {Description}\n')>:
-	
+
 	let File := Categories[Category, write_category]
 	let Title := string::buffer()
-	
+
 	var Terminator := ""
 	Title:write(':mini:`fun ', Name, "(")
 	var Seperator := ""
@@ -193,7 +202,8 @@ fun write_function(Category, Kind, Name, Params, Return, Description, Location) 
 		end
 	end
 	Title:write("`")
-	let TitleString := Title:get
+	let TitleString := Title:rest
+	File:write('.. _fun-{Name:replace("::", "-")}:\n\n')
 	File:write(TitleString, "\n")
 	for Line in Description do
 		File:write("   ", Line, "\n")
@@ -203,7 +213,7 @@ fun write_function(Category, Kind, Name, Params, Return, Description, Location) 
 		if Param in method then
 		elseif Param[3]:length > 0 then
 			File:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")
-		end	
+		end
 	end
 	:>File:write('   *Defined at line {Location[2]} in {Location[1]}*\n')
 	File:write("\n")
@@ -215,10 +225,10 @@ fun write_constructor(Category, Kind, Name, Params, Return, Description, Locatio
 	for Param in Params do print('\t{Param}\n') end
 	print('Returns: {Return}\n')
 	print('Description: {Description}\n')>:
-	
+
 	let File := Categories[Category, write_category]
 	let Title := string::buffer()
-	
+
 	var Terminator := ""
 	Title:write(':mini:`constructor ', Name, "(")
 	var Seperator := ""
@@ -234,7 +244,8 @@ fun write_constructor(Category, Kind, Name, Params, Return, Description, Locatio
 		end
 	end
 	Title:write("`")
-	let TitleString := Title:get
+	let TitleString := Title:rest
+	File:write('.. _fun-{Name:replace("::", "-")}:\n\n')
 	File:write(TitleString, "\n")
 	for Line in Description do
 		File:write("   ", Line, "\n")
@@ -244,7 +255,7 @@ fun write_constructor(Category, Kind, Name, Params, Return, Description, Locatio
 		if Param in method then
 		elseif Param[3]:length > 0 then
 			File:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")
-		end	
+		end
 	end
 	:>File:write('   *Defined at line {Location[2]} in {Location[1]}*\n')
 	File:write("\n")
@@ -255,28 +266,42 @@ let TypesGraph := string::buffer()
 fun write_type(Category, Name, Parents, Description, Location) do
 	:<print('[{Category}] ML_TYPE: {Name} [{Parents}]\n')
 	print('Description: {Description}\n')>:
-	
+
 	let File := Categories[Category, write_category]
+	let TypeName := type_name(Name)
 	let Title := string::buffer()
-	
-	Title:write(':mini:`type {type_name(Name)}')
+
+	Title:write(':mini:`type {TypeName}')
 	if Parents:length > 0 then
 		Title:write(" < ")
 		var Seperator := ""
 		if Category != "internal" then
 			for Parent in Parents do
-				TypesGraph:write('      \"{type_name(Parent)}\":e -> \"{type_name(Name)}\":w;\n')
+				TypesGraph:write('      \"{type_name(Parent)}\":e -> \"{TypeName}\":w;\n')
 				Title:write(Seperator, type_name(Parent))
 				Seperator := ", "
 			end
 		end
 	else
 		if Category != "internal" then
-			TypesGraph:write('      \"any\":e -> \"{type_name(Name)}\":w;\n')
+			TypesGraph:write('      \"any\":e -> \"{TypeName}\":w;\n')
 		end
 	end
 	Title:write("`\n")
-	File:write(Title:get)
+	File:write('.. _type-{TypeName:replace("::", "-")}:\n\n')
+	File:write(Title:rest)
+	for Line in Description do
+		File:write("   ", Line, "\n")
+	end
+	Description[1] or File:write("   *TBD*\n")
+	:>File:write('   *Defined at line {Location[2]} in {Location[1]}*\n')
+	File:write("\n")
+end
+
+fun write_value(Category, Name, Type, Description, Location) do
+	let File := Categories[Category, write_category]
+	File:write('.. _value-{Name:replace("::", "-")}:\n\n')
+	File:write(':mini:`let {Name}: {type_name(Type)}`\n')
 	for Line in Description do
 		File:write("   ", Line, "\n")
 	end
@@ -290,7 +315,7 @@ def Subscripts := {
 	"/5" is "₅", "/6" is "₆", "/7" is "₇", "/8" is "₈", "/9" is "₉",
 	"/i" is "ᵢ", "/j" is "ⱼ", "/m" is "ₘ", "/n" is "ₙ", "/v" is "ᵥ",
 	"," is ", "
-} 
+}
 
 class: define(:Params, :Items)
 
@@ -304,7 +329,7 @@ fun replace(X, Args) do
 			Match[2]:lower
 		else
 			Y
-		end						
+		end
 	case list do
 		list(X, replace(_, Args))
 	case tuple do
@@ -332,6 +357,20 @@ fun process(FileName) do
 				DefaultCategory := Line[4, 0]:trim
 			elseif Line % r"^#define ML_CATEGORY" then
 				DefaultCategory := Line[22, -2]
+			elseif Line % r"^// Overview" then
+				let Description := []
+				loop
+					let Line := while File:read
+					LineNo := old + 1
+					if Line % r"^/[/*] " then
+						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]" then
+						Description:put("\n")
+					else
+						exit
+					end
+				end
+				write_overview(DefaultCategory, Description)
 			elseif Line % r"^ML_METHOD_DECL" then
 			elseif Line % r"^ML_METHOD_ANON" then
 			elseif Line % r"^ML_METHOD" then
@@ -558,6 +597,34 @@ fun process(FileName) do
 				else
 					write_type(Category, Name, Parents, Description, Location)
 				end
+			elseif Line % r"^ML_LET" then
+				let Location := (FileName, LineNo)
+				let I := Line:find("(")
+				let J := Line:find(")", I + 1)
+				var Name := Line[I + 1, J]
+				var Category := DefaultCategory
+				var Type := "MLAnyT"
+				let Description := []
+				loop
+					let Line := while File:read
+					LineNo := old + 1
+					if Line % r"^/[/*]@" then
+						Name := Line[4, 0]:trim
+					elseif Line % r"^/[/*]!" then
+						Category := Line[4, 0]:trim
+					elseif Line % r"^/[/*]>" then
+						Type := Line[4, 0]:trim
+					elseif Line % r"^/[/*] " then
+						Description:put(Line[4, 0]:replace(Subscripts))
+					else
+						exit
+					end
+				end
+				if CurrentDefine then
+					CurrentDefine:put(write_value, [Category, Name, Type, Description, Location])
+				else
+					write_value(Category, Name, Type, Description, Location)
+				end
 			elseif let Match := Line % r"^#define ([A-Za-z0-9_]+)\((.+)\)" then
 				let Params := list(Match[3] / ",", :trim)
 				Defines[Match[2]] := CurrentDefine := define(Params, [])
@@ -596,7 +663,7 @@ FileNames:sort(; A, B) do
 	A = "ml_types.c" and ret A
 	B = "ml_types.c" and ret nil
 end
-	
+
 for FileName in FileNames do process(FileName) end
 
 for Category, File in Categories do File:close end

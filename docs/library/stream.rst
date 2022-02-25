@@ -1,7 +1,11 @@
 .. include:: <isonum.txt>
 
+.. include:: <isoamsa.txt>
+
 stream
 ======
+
+.. _type-stream:
 
 :mini:`type stream`
    Base type of readable and writable byte streams.
@@ -51,6 +55,8 @@ stream
    Flushes :mini:`Stream`. This method should be overridden for streams defined in Minilang.
 
 
+.. _type-stream-buffered:
+
 :mini:`type stream::buffered < stream`
    *TBD*
 
@@ -68,6 +74,8 @@ stream
 
 :mini:`meth (Arg₁: string::buffer):read(Arg₂: buffer)`
    *TBD*
+
+.. _type-stream-fd:
 
 :mini:`type stream::fd < stream`
    A file-descriptor based stream.

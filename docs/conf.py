@@ -8,7 +8,7 @@ from sphinx import version_info
 
 class FoldersDirective(Directive):
 	has_content = True
-	
+
 	def run(self):
 		env = self.state.document.settings.env
 		block_quote = nodes.line_block()
@@ -40,7 +40,7 @@ class FoldersDirective(Directive):
 				node.append(nodes.inline(text = '🖹 ' + text))
 				node['classes'].append('file')
 		return [block_quote]
-		
+
 
 # Configuration file for the Sphinx documentation builder.
 #
@@ -130,6 +130,10 @@ rst_prolog = """
 .. role:: c(code)
    :language: c
    :class: highlight
+
+.. role:: json(code)
+   :language: json
+   :class: highlight
 """
 
 def setup(sphinx):
@@ -141,6 +145,6 @@ def setup(sphinx):
 	else:
 		sphinx.add_lexer("mini", MinilangLexer())
 	lexers.LEXERS['mini'] = ('minilang', 'Minilang', ('mini',), ('*.mini', '*.rabs'), ('text/x-mini',))
-	#sphinx.add_domain(minilangDomain) 
+	#sphinx.add_domain(minilangDomain)
 	sphinx.add_directive('folders', FoldersDirective)
 	sphinx.add_css_file('css/custom.css')
