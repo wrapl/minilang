@@ -135,7 +135,7 @@ if MINILANG_STATICGC or defined("STATICGC") then
 			"--disable-shared",
 			:>"--disable-parallel-mark",
 			"--enable-threads=pthreads",
-			:>"--enable-mmap",
+			"--enable-mmap",
 			:>"--enable-redirect-malloc",
 			"--enable-large-config"
 		})
