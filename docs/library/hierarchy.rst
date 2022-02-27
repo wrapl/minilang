@@ -58,6 +58,8 @@ hierarchy
       "any":e -> "thread::mutex":w;
       "any":e -> "thread::protected":w;
       "any":e -> "thread::condition":w;
+      "any":e -> "task":w;
+      "function":e -> "tasks":w;
       "sequence":e -> "table":w;
       "sequence":e -> "table::row":w;
       "any":e -> "address":w;
@@ -72,7 +74,6 @@ hierarchy
       "function":e -> "filter":w;
       "function":e -> "chained":w;
       "sequence":e -> "chained":w;
-      "function":e -> "tasks":w;
       "function":e -> "context":w;
       "any":e -> "reference":w;
       "any":e -> "error":w;

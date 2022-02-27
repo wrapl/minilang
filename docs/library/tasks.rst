@@ -5,6 +5,32 @@
 tasks
 =====
 
+.. _type-task:
+
+:mini:`type task`
+   A task representing a value that will eventually be completed.
+
+
+:mini:`meth task(): task`
+   Returns a task. The task should eventually be completed with :mini:`Task:done()` or :mini:`Task:error()`.
+
+
+:mini:`meth task(Fn: function, Args: any, ...): task`
+   Calls :mini:`Fn(Args)` and immediately returns a task that will eventually be completed with the result of the call.
+
+
+:mini:`meth (Task: task):wait: any | error`
+   Waits until :mini:`Task` is completed and returns its result.
+
+
+:mini:`meth (Task: task):done(Result: any): any | error`
+   Completes :mini:`Task` with :mini:`Result`,  resuming any waiting code. Raises an error if :mini:`Task` is already complete.
+
+
+:mini:`meth (Task: task):error(Type: string, Message: string): any | error`
+   Completes :mini:`Task` with an :mini:`error(Type,  Message)`,  resuming any waiting code. Raises an error if :mini:`Task` is already complete.
+
+
 .. _fun-tasks:
 
 :mini:`fun tasks(Max?: integer, Min?: integer): tasks`
@@ -21,10 +47,8 @@ tasks
    A dynamic set of tasks (function calls). Multiple tasks can run in parallel (depending on the availability of a scheduler and/or asynchronous function calls).
 
 
-:mini:`meth (Tasks: tasks):add(Args...: any, Function: any)`
-   Adds the function call :mini:`Function(Args...)` to a set of tasks.
-
-   Adding a task to a completed tasks set returns an error.
+:mini:`meth (Tasks: tasks):add(Fn: function, Args: any, ...)`
+   Adds the function call :mini:`Fn(Args...)` to a set of tasks. Raises an error if :mini:`Tasks` is already complete.
 
 
 :mini:`meth (Tasks: tasks):wait: nil | error`
