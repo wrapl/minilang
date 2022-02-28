@@ -263,11 +263,9 @@ A declaration of the form :mini:`Expression: Declaration` is equivalent to :mini
 
    export: var Z
 
-Compound declarations can be combined. For example, the following code shows how a module which exports a class.
+Compound declarations can be combined. For example, the following code creates and exports a class.
 
 .. code-block:: mini
-
-   import: utils("lib/utils.mini")
 
    export: class: point(:X, :Y)
 
@@ -312,11 +310,14 @@ Integers
 Reals
    :mini:`1.2`, :mini:`.13`, :mini:`-1.3e5`.
 
+Booleans
+   :mini:`true`, :mini:`false`.
+
 Strings
    :mini:`"Hello world!\n"`, :mini:`'X = {X}'`. Strings can be written using double quotes or single quotes. Strings written with single quotes can have embedded expressions (between ``{`` and ``}``) and may span multiple lines (the line breaks are embedded in the string).
 
 Regular Expressions
-   :mini:`r".*\.c"`, :mini:`ri".*\.c"`. *Minilang* uses `TRE <https://github.com/laurikari/tre/>`_ as its regular expression implementation, the precise syntax supported can be found here `<https://laurikari.net/tre/documentation/regex-syntax/>`_.
+   :mini:`r".*\.c"` (case sensitive), :mini:`ri".*\.c"` (case insenstive). *Minilang* uses `TRE <https://github.com/laurikari/tre/>`_ as its regular expression implementation, the precise syntax supported can be found here `<https://laurikari.net/tre/documentation/regex-syntax/>`_.
 
 Lists
    :mini:`[1, 2, 3]`, :mini:`["a", 1.23, [nil]]`. The values in a list can be of any type including other lists and maps.
@@ -332,6 +333,15 @@ Methods
 
 Functions
    :mini:`fun(A, B) A + B`. If the last argument to a function or method call is an anonymous function then the following shorthand can be used: :mini:`f(1, 2, fun(A, B) A + B)` can be written as :mini:`f(1, 2; A, B) A + B`.
+
+Dates and Times
+   :mini:`T"2022-02-27"`, :mini:`T"1970-01-01T12:34:56"`, :mini:`T"1970-01-01T12:34:56+06"`. The optional time component can be separated by either ``T`` or a space ``\ ``. Timezones can be specified using ``+NN`` or ``-NN``, and UTC can be specified using ``Z``, if no timezone is specified then the time is interpreted in the local timezone.
+
+Imaginary Numbers
+   :mini:`2i`, :mini:`-0.5i`. If *Minilang* is built with support for complex number, the suffix ``i`` can be used to denote :math:`\sqrt{-1}`. The identifier :mini:`i` is also defined as :mini:`1i` but is not treated as a keyword (so code that uses :mini:`i` as an identifier will not break if run by a version of *Minilang* built with support for complex numbers).
+
+UUIDs
+   :mini:`U"1c0fec87-31bd-40b8-bc04-527f4b171412"`. If *Minilang* is built with support for UUIDs, UUID literals can be written directly in code.
 
 Conditional Expressions
 ~~~~~~~~~~~~~~~~~~~~~~~

@@ -2,4 +2,4 @@
 
 #define NE(A, B) A != B
 
-COMPARE_ROW_OPS_IMPL(ne, NE)
+COMPARE_FNS(Ne, ne, NE);

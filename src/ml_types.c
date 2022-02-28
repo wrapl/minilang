@@ -46,6 +46,9 @@ ML_METHOD_DECL(LessMethod, "<");
 ML_METHOD_DECL(GreaterMethod, ">");
 ML_METHOD_DECL(AddMethod, "+");
 ML_METHOD_DECL(MulMethod, "*");
+ML_METHOD_DECL(AndMethod, "/\\");
+ML_METHOD_DECL(OrMethod, "\\/");
+ML_METHOD_DECL(XorMethod, "><");
 
 static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 	const unsigned int Mask = (CHAR_BIT * sizeof(uintptr_t) - 1);

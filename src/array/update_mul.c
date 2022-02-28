@@ -9,4 +9,4 @@ static ml_value_t *value_mul(ml_value_t *A, ml_value_t *B) {
 	return ml_simple_call(MulMethod, 2, Args);
 }
 
-UPDATE_ROW_OPS_IMPL(mul, OP_MUL, value_mul)
+UPDATE_FNS(Mul, mul, OP_MUL, value_mul);

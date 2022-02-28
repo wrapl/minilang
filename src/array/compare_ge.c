@@ -2,4 +2,4 @@
 
 #define GE(A, B) A >= B
 
-COMPARE_ROW_OPS_IMPL(ge, GE)
+COMPARE_FNS(Ge, ge, GE);

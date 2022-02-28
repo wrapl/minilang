@@ -245,6 +245,9 @@ if MINILANG_MATH then
 		file("array/update_mul.o"),
 		file("array/update_set.o"),
 		file("array/update_sub.o"),
+		file("array/update_and.o"),
+		file("array/update_or.o"),
+		file("array/update_xor.o"),
 		file("ml_array.o"),
 		file("ml_math.o"),
 		file("ml_polynomial.o")
