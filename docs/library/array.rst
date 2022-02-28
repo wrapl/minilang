@@ -140,7 +140,9 @@ array
 
    Dimensions are copied to the output array,  applying the indices as follows:
 
-   * If :mini:`Indexᵢ` is :mini:`nil` then the next dimension is copied unchanged.
+   * If :mini:`Indexᵢ` is :mini:`nil` or :mini:`*` then the next dimension is copied unchanged.
+
+   * If :mini:`Indexᵢ` is :mini:`..` then the remaining indices are applied to the last dimensions of :mini:`Array` and the dimension in between are copied unchanged.
 
    * If :mini:`Indexᵢ` is an :mini:`integer` then the :mini:`Indexᵢ`-th value of the next dimension is selected and the dimension is dropped from the output.
 
