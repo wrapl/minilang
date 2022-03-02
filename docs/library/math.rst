@@ -161,6 +161,15 @@ math
    Returns the square root of :mini:`Arg₁`.
 
 
+:mini:`meth (Arg₁: integer):SquareMethod`
+   *TBD*
+
+:mini:`meth (Arg₁: real):SquareMethod`
+   *TBD*
+
+:mini:`meth (Arg₁: complex):SquareMethod`
+   *TBD*
+
 :mini:`meth math::tan(Arg₁: real): real`
    Returns :mini:`tan(Arg₁)`.
 
@@ -283,5 +292,23 @@ math
    Returns a random real between :mini:`Min` and :mini:`Max`.
 
    If omitted,  :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`1`.
+
+
+.. _value-inf:
+
+:mini:`let inf: real`
+   Positive infinity.
+
+
+.. _value-pi:
+
+:mini:`let pi: real`
+   Pi.
+
+
+.. _value-e:
+
+:mini:`let e: real`
+   Euler's constant.
 
 

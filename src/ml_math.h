@@ -17,6 +17,7 @@ extern ml_value_t *Log10Method;
 extern ml_value_t *SinMethod;
 extern ml_value_t *SinhMethod;
 extern ml_value_t *SqrtMethod;
+extern ml_value_t *SquareMethod;
 extern ml_value_t *TanMethod;
 extern ml_value_t *TanhMethod;
 extern ml_value_t *ErfMethod;

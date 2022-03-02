@@ -613,8 +613,8 @@ ML_METHOD("swap", MLArrayT, MLIntegerT, MLIntegerT) {
 // Returns an array sharing the underlying data with :mini:`Array` with dimensions :mini:`Index/1` and :mini:`Index/2` swapped.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Degree = Source->Degree;
-	int IndexA = ml_integer_value_fast(Args[1]);
-	int IndexB = ml_integer_value_fast(Args[2]);
+	int IndexA = ml_integer_value(Args[1]);
+	int IndexB = ml_integer_value(Args[2]);
 	if (IndexA <= 0) IndexA += (Degree + 1);
 	if (IndexB <= 0) IndexB += (Degree + 1);
 	if (IndexA < 1 || IndexA > Degree) return ml_error("ArrayError", "Invalid index");
@@ -670,7 +670,7 @@ ML_METHOD("split", MLArrayT, MLIntegerT, MLListT) {
 // Returns an array sharing the underlying data with :mini:`Array` replacing the dimension at :mini:`Index` with new dimensions with sizes :mini:`Sizes`. The total count :mini:`Sizes/1 * Sizes/2 * ... * Sizes/n` must equal the original size.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Degree = Source->Degree;
-	int Expand = ml_integer_value_fast(Args[1]);
+	int Expand = ml_integer_value(Args[1]);
 	if (Expand <= 0) Expand += Degree + 1;
 	if (Expand < 1 || Expand > Degree) return ml_error("ArrayError", "Invalid index");
 	--Expand;
@@ -678,7 +678,7 @@ ML_METHOD("split", MLArrayT, MLIntegerT, MLListT) {
 	size_t Total = 1;
 	ML_LIST_FOREACH(Args[2], Iter) {
 		if (!ml_is(Iter->Value, MLIntegerT)) return ml_error("ArrayError", "Invalid size");
-		int Size = ml_integer_value_fast(Iter->Value);
+		int Size = ml_integer_value(Iter->Value);
 		if (Size <= 0) return ml_error("RangeError", "Invalid size");
 		Total *= Size;
 	}
@@ -690,7 +690,7 @@ ML_METHOD("split", MLArrayT, MLIntegerT, MLListT) {
 	int Stride = (--SourceDimension)->Stride;
 	ML_LIST_REVERSE(Args[2], Iter) {
 		--TargetDimension;
-		int Size = TargetDimension->Size = ml_integer_value_fast(Iter->Value);
+		int Size = TargetDimension->Size = ml_integer_value(Iter->Value);
 		TargetDimension->Stride = Stride;
 		Stride *= Size;
 	}
@@ -707,10 +707,10 @@ ML_METHOD("join", MLArrayT, MLIntegerT, MLIntegerT) {
 // Returns an array sharing the underlying data with :mini:`Array` replacing the dimensions at :mini:`Start .. (Start + Count)` with a single dimension with the same overall size.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Degree = Source->Degree;
-	int Start = ml_integer_value_fast(Args[1]);
+	int Start = ml_integer_value(Args[1]);
 	if (Start <= 0) Start += Degree + 1;
 	if (Start < 1 || Start > Degree) return ml_error("ArrayError", "Invalid index");
-	int Join = ml_integer_value_fast(Args[2]);
+	int Join = ml_integer_value(Args[2]);
 	if (Join <= 0) return ml_error("ArrayError", "Invalid run");
 	--Start;
 	int End = Start + Join - 1;
@@ -804,7 +804,7 @@ static ml_array_t MLArrayNil[1] = {{
 }};
 
 static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLIntegerT, ml_value_t *Index, ml_array_indexer_t *Indexer) {
-	int IndexValue = ml_integer_value(Index);
+	int IndexValue = ml_integer_value_fast(Index);
 	if (IndexValue <= 0) IndexValue += Indexer->Source->Size + 1;
 	if (--IndexValue < 0) return (ml_value_t *)MLArrayNil;
 	if (IndexValue >= Indexer->Source->Size) return (ml_value_t *)MLArrayNil;
@@ -2064,6 +2064,105 @@ COMPLETE_FUNCTIONS(complex_double, complex_double);
 
 #endif
 
+static int64_t isquare(int64_t X) {
+	return X * X;
+}
+
+static double square(double X) {
+	return X * X;
+}
+
+#ifdef ML_COMPLEX
+
+static complex double csquare(complex double X) {
+	return X * X;
+}
+#endif
+
+#define NORM_FUNCTION(CTYPE1, CTYPE2, NORM) \
+\
+static double compute_norm_ ## CTYPE2(int Degree, ml_array_dimension_t *Dimension, void *Address, double P) { \
+	double Sum = 0; \
+	if (Degree > 1) { \
+		int Stride = Dimension->Stride; \
+		if (Dimension->Indices) { \
+			int *Indices = Dimension->Indices; \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				Sum += compute_norm_ ## CTYPE2(Degree - 1, Dimension + 1, Address + Indices[I] * Stride, P); \
+			} \
+		} else { \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				Sum += compute_norm_ ## CTYPE2(Degree - 1, Dimension + 1, Address, P); \
+				Address += Stride; \
+			} \
+		} \
+	} else { \
+		int Stride = Dimension->Stride; \
+		if (Dimension->Indices) { \
+			int *Indices = Dimension->Indices; \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				Sum += pow(NORM(*(CTYPE2 *)(Address + Indices[I] * Stride)), P); \
+			} \
+		} else { \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				Sum += pow(NORM(*(CTYPE2 *)Address), P); \
+				Address += Stride; \
+			} \
+		} \
+	} \
+	return Sum; \
+} \
+\
+static double compute_norm0_ ## CTYPE2(int Degree, ml_array_dimension_t *Dimension, void *Address, double P) { \
+	double Sum = 1; \
+	if (Degree > 1) { \
+		int Stride = Dimension->Stride; \
+		if (Dimension->Indices) { \
+			int *Indices = Dimension->Indices; \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				Sum += compute_norm0_ ## CTYPE2(Degree - 1, Dimension + 1, Address + Indices[I] * Stride, P); \
+			} \
+		} else { \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				Sum += compute_norm0_ ## CTYPE2(Degree - 1, Dimension + 1, Address, P); \
+				Address += Stride; \
+			} \
+		} \
+	} else { \
+		int Stride = Dimension->Stride; \
+		if (Dimension->Indices) { \
+			int *Indices = Dimension->Indices; \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				Sum *= pow(NORM(*(CTYPE2 *)(Address + Indices[I] * Stride)), P); \
+			} \
+		} else { \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				Sum *= pow(NORM(*(CTYPE2 *)Address), P); \
+				Address += Stride; \
+			} \
+		} \
+	} \
+	return Sum; \
+}
+
+NORM_FUNCTION(double, int8_t, labs);
+NORM_FUNCTION(double, uint8_t, labs);
+NORM_FUNCTION(double, int16_t, labs);
+NORM_FUNCTION(double, uint16_t, labs);
+NORM_FUNCTION(double, int32_t, labs);
+NORM_FUNCTION(double, uint32_t, labs);
+NORM_FUNCTION(double, int64_t, labs);
+NORM_FUNCTION(double, uint64_t, labs);
+NORM_FUNCTION(double, float, fabs);
+NORM_FUNCTION(double, double, fabs);
+
+#ifdef ML_COMPLEX
+
+NORM_FUNCTION(double, complex_float, cabs);
+NORM_FUNCTION(double, complex_double, cabs);
+
+#endif
+
 static char *array_flatten_to(char *Target, int Size, int Degree, int FlatDegree, ml_array_dimension_t *Dimension, char *Source) {
 	if (Degree == FlatDegree) {
 		int Total = Dimension->Size * Dimension->Stride;
@@ -2206,7 +2305,7 @@ ML_METHOD("reshape", MLArrayT, MLListT) {
 	size_t TargetCount = 1;
 	ML_LIST_FOREACH(Args[1], Iter) {
 		if (!ml_is(Iter->Value, MLIntegerT)) return ml_error("ArrayError", "Invalid size");
-		int Size = ml_integer_value_fast(Iter->Value);
+		int Size = ml_integer_value(Iter->Value);
 		if (Size <= 0) return ml_error("ArrayError", "Invalid size");
 		TargetCount *= Size;
 	}
@@ -2223,7 +2322,7 @@ ML_METHOD("reshape", MLArrayT, MLListT) {
 	ML_LIST_REVERSE(Args[1], Iter) {
 		--I;
 		Target->Dimensions[I].Stride = DataSize;
-		int Size = Target->Dimensions[I].Size = ml_integer_value_fast(Iter->Value);
+		int Size = Target->Dimensions[I].Size = ml_integer_value(Iter->Value);
 		DataSize *= Size;
 	}
 	Target->Base.Length = DataSize;
@@ -2557,6 +2656,109 @@ ML_METHOD("prod", MLArrayT, MLIntegerT) {
 	return (ml_value_t *)Target;
 }
 
+ML_METHOD("||", MLArrayT) {
+//<Array
+//>number
+// Returns the norm of the values in :mini:`Array`.
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	double P = 2, Norm;
+	switch (Source->Format) {
+	case ML_ARRAY_FORMAT_I8:
+		Norm = compute_norm_int8_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+	case ML_ARRAY_FORMAT_U8:
+		Norm = compute_norm_uint8_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+	case ML_ARRAY_FORMAT_I16:
+		Norm = compute_norm_int16_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+	case ML_ARRAY_FORMAT_U16:
+		Norm = compute_norm_uint16_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+	case ML_ARRAY_FORMAT_I32:
+		Norm = compute_norm_int32_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+	case ML_ARRAY_FORMAT_U32:
+		Norm = compute_norm_uint32_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+	case ML_ARRAY_FORMAT_I64:
+		Norm = compute_norm_int64_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+	case ML_ARRAY_FORMAT_U64:
+		Norm = compute_norm_uint64_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+	case ML_ARRAY_FORMAT_F32:
+		Norm = compute_norm_float(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+	case ML_ARRAY_FORMAT_F64:
+		Norm = compute_norm_double(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+#ifdef ML_COMPLEX
+	case ML_ARRAY_FORMAT_C32:
+		Norm = compute_norm_complex_float(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+	case ML_ARRAY_FORMAT_C64:
+		Norm = compute_norm_complex_double(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+#endif
+	default:
+		return ml_error("ArrayError", "Invalid array format");
+	}
+	return ml_real(pow(Norm, 1 / P));
+}
+
+ML_METHOD("||", MLArrayT, MLRealT) {
+//<Array
+//>number
+// Returns the norm of the values in :mini:`Array`.
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	double P = ml_real_value(Args[1]), Norm;
+	if (P < 1) return ml_error("ValueError", "Invalid p-value for norm");
+	switch (Source->Format) {
+	case ML_ARRAY_FORMAT_I8:
+		Norm = compute_norm_int8_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+	case ML_ARRAY_FORMAT_U8:
+		Norm = compute_norm_uint8_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+	case ML_ARRAY_FORMAT_I16:
+		Norm = compute_norm_int16_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+	case ML_ARRAY_FORMAT_U16:
+		Norm = compute_norm_uint16_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+	case ML_ARRAY_FORMAT_I32:
+		Norm = compute_norm_int32_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+	case ML_ARRAY_FORMAT_U32:
+		Norm = compute_norm_uint32_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+	case ML_ARRAY_FORMAT_I64:
+		Norm = compute_norm_int64_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+	case ML_ARRAY_FORMAT_U64:
+		Norm = compute_norm_uint64_t(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+	case ML_ARRAY_FORMAT_F32:
+		Norm = compute_norm_float(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+	case ML_ARRAY_FORMAT_F64:
+		Norm = compute_norm_double(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+#ifdef ML_COMPLEX
+	case ML_ARRAY_FORMAT_C32:
+		Norm = compute_norm_complex_float(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+	case ML_ARRAY_FORMAT_C64:
+		Norm = compute_norm_complex_double(Source->Degree, Source->Dimensions, Source->Base.Value, P);
+		break;
+#endif
+	default:
+		return ml_error("ArrayError", "Invalid array format");
+	}
+	return ml_real(pow(Norm, 1 / P));
+}
+
 ML_METHOD("-", MLArrayT) {
 //<Array
 //>array
@@ -2636,6 +2838,18 @@ ML_METHOD("-", MLArrayT) {
 	return (ml_value_t *)C;
 }
 
+static ml_value_t *array_math_integer_fn(int64_t (*fn)(int64_t), int Count, ml_value_t **Args) {
+	ml_array_t *A = (ml_array_t *)Args[0];
+	if (A->Degree == -1) return (ml_value_t *)A;
+	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation");
+	int Degree = A->Degree;
+	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I64, Degree);
+	int DataSize = array_copy(C, A);
+	int64_t *Values = (int64_t *)C->Base.Value;
+	for (int I = DataSize / sizeof(int64_t); --I >= 0; ++Values) *Values = fn(*Values);
+	return (ml_value_t *)C;
+}
+
 static ml_value_t *array_math_real_fn(double (*fn)(double), int Count, ml_value_t **Args) {
 	ml_array_t *A = (ml_array_t *)Args[0];
 	if (A->Degree == -1) return (ml_value_t *)A;
@@ -2649,6 +2863,7 @@ static ml_value_t *array_math_real_fn(double (*fn)(double), int Count, ml_value_
 }
 
 #ifdef ML_COMPLEX
+
 static ml_value_t *array_math_complex_fn(complex_double (*fn)(complex_double), int Count, ml_value_t **Args) {
 	ml_array_t *A = (ml_array_t *)Args[0];
 	if (A->Degree == -1) return (ml_value_t *)A;
@@ -2827,7 +3042,7 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLArrayT, MLDoubleT) { \
+ML_METHOD(#OP, MLArrayT, MLRealT) { \
 /*<A
 //<B
 //>array
@@ -2836,7 +3051,7 @@ ML_METHOD(#OP, MLArrayT, MLDoubleT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	double B = ml_double_value_fast(Args[1]); \
+	double B = ml_real_value(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(MAX(A->Format, ML_ARRAY_FORMAT_F64), Degree); \
 	int DataSize = array_copy(C, A); \
@@ -2854,7 +3069,7 @@ ML_METHOD(#OP, MLArrayT, MLDoubleT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLDoubleT, MLArrayT) { \
+ML_METHOD(#OP, MLRealT, MLArrayT) { \
 /*<A
 //<B
 //>array
@@ -2863,7 +3078,7 @@ ML_METHOD(#OP, MLDoubleT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	double B = ml_double_value_fast(Args[0]); \
+	double B = ml_real_value(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(MAX(A->Format, ML_ARRAY_FORMAT_F64), Degree); \
 	int DataSize = array_copy(C, A); \
@@ -2895,7 +3110,7 @@ ML_METHOD(#OP, MLArrayT, MLComplexT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	complex_double B = ml_complex_value_fast(Args[1]); \
+	complex_double B = ml_complex_value(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_C64, Degree); \
 	int DataSize = array_copy(C, A); \
@@ -2913,7 +3128,7 @@ ML_METHOD(#OP, MLComplexT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	complex_double B = ml_complex_value_fast(Args[0]); \
+	complex_double B = ml_complex_value(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_C64, Degree); \
 	int DataSize = array_copy(C, A); \
@@ -2933,6 +3148,36 @@ ML_ARITH_METHOD(+);
 ML_ARITH_METHOD(*);
 ML_ARITH_METHOD(-);
 ML_ARITH_METHOD(/);
+
+#ifdef ML_COMPLEX
+
+ML_METHOD("^", MLArrayComplexT, MLComplexT) {
+	ml_array_t *A = (ml_array_t *)Args[0];
+	if (A->Degree == -1) return (ml_value_t *)A;
+	complex_double B = ml_complex_value(Args[1]);
+	int Degree = A->Degree;
+	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_C64, Degree);
+	int DataSize = array_copy(C, A);
+	complex_double *Values = (complex_double *)C->Base.Value;
+	for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = cpow(*Values, B);
+	return (ml_value_t *)C;
+}
+
+#else
+
+ML_METHOD("^", MLArrayRealT, MLRealT) {
+	ml_array_t *A = (ml_array_t *)Args[0];
+	if (A->Degree == -1) return (ml_value_t *)A;
+	double B = ml_real_value(Args[1]);
+	int Degree = A->Degree;
+	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_F64, Degree);
+	int DataSize = array_copy(C, A);
+	double *Values = (double *)C->Base.Value;
+	for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = pow(*Values, B);
+	return (ml_value_t *)C;
+}
+
+#endif
 
 #define ML_COMPARE_METHOD_BASE(TITLE, TITLE2, OP) \
 \
@@ -2986,7 +3231,7 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLArrayT, MLDoubleT) { \
+ML_METHOD(#OP, MLArrayT, MLRealT) { \
 /*<A
 //<B
 //>array
@@ -2995,7 +3240,7 @@ ML_METHOD(#OP, MLArrayT, MLDoubleT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	double B = ml_double_value_fast(Args[1]); \
+	double B = ml_real_value(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I8, Degree); \
 	int DataSize = 1; \
@@ -3011,7 +3256,7 @@ ML_METHOD(#OP, MLArrayT, MLDoubleT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLDoubleT, MLArrayT) { \
+ML_METHOD(#OP, MLRealT, MLArrayT) { \
 /*<A
 //<B
 //>array
@@ -3020,7 +3265,7 @@ ML_METHOD(#OP, MLDoubleT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	double B = ml_double_value_fast(Args[0]); \
+	double B = ml_real_value(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I8, Degree); \
 	int DataSize = 1; \
@@ -3050,7 +3295,7 @@ ML_METHOD(#OP, MLArrayT, MLComplexT) { \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	double B = ml_complex_value_fast(Args[1]); \
+	complex double B = ml_complex_value(Args[1]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I8, Degree); \
 	int DataSize = 1; \
@@ -3075,7 +3320,7 @@ ML_METHOD(#OP, MLComplexT, MLArrayT) { \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
-	double B = ml_double_value_fast(Args[0]); \
+	complex double B = ml_complex_value(Args[0]); \
 	int Degree = A->Degree; \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I8, Degree); \
 	int DataSize = 1; \
@@ -5400,6 +5645,8 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_method_by_name("--", MLArrayInfixSubFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("//", MLArrayInfixDivFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
 
+	ml_method_by_value(SquareMethod, isquare, (ml_callback_t)array_math_integer_fn, MLArrayIntegerT, NULL);
+
 	ml_method_by_value(AcosMethod, acos, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
 	ml_method_by_value(AsinMethod, asin, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
 	ml_method_by_value(AtanMethod, atan, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
@@ -5414,6 +5661,7 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_method_by_value(SinMethod, sin, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
 	ml_method_by_value(SinhMethod, sinh, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
 	ml_method_by_value(SqrtMethod, sqrt, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(SquareMethod, square, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
 	ml_method_by_value(TanMethod, tan, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
 	ml_method_by_value(TanhMethod, tanh, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
 	ml_method_by_value(ErfMethod, erf, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
@@ -5440,6 +5688,7 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_method_by_value(SinMethod, csin, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
 	ml_method_by_value(SinhMethod, csinh, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
 	ml_method_by_value(SqrtMethod, csqrt, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
+	ml_method_by_value(SquareMethod, csquare, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
 	ml_method_by_value(TanMethod, ctan, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
 	ml_method_by_value(TanhMethod, ctanh, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
 	ml_method_by_value(AcoshMethod, cacosh, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
