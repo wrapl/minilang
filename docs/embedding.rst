@@ -189,20 +189,45 @@ The other important type in the Minilang API is the :c:struct:`ml_state_t`. Mini
 
 Like :c:struct:`ml_value_t`, different types of :c:struct:`ml_state_t` may have additional fields.
 
-For applications which launch Minilang scripts as their main operation, the predefined :c:var:`MLMain` state is provided. When run, this state will output an error message if the result was an error, otherwise it will silently do nothing.
+The function :c:func:`ml_state` can be used to create a new simple state (with no additional fields).
 
 For example, if :c:expr:`Function` contains a callable :c:struct:`ml_value_t` then the following example can be used to call :mini:`Function(10, "Hello world")`.
 
 .. code-block:: c
 
+   static void ml_main_state_run(ml_state_t *State, ml_value_t *Value) {
+      if (ml_is_error(Value)) {
+         fprintf(stderr, "%s: %s\n", ml_error_type(Value), ml_error_message(Value));
+         ml_source_t Source;
+         int Level = 0;
+         while (ml_error_source(Value, Level++, &Source)) {
+            fprintf(stderr, "\t%s:%d\n", Source.Name, Source.Line);
+         }
+         exit(1);
+      }
+   }
+
    int main(int Argc, const char *Argv[]) {
-      // ...
-      ml_inline(MLMain, Function, 2, ml_integer(10), ml_cstring("Hello world"));
+      ml_state_t *Main = ml_state(NULL);
+      Main->run = ml_main_state_run;
+      ml_inline(Main, Function, 2, ml_integer(10), ml_cstring("Hello world"));
    }
 
 Another useful state type is a :c:struct:`ml_call_state_t` which holds a number of :c:struct:`ml_value_t`'s. When run, it will call the result as a function, with the supplied :c:struct:`ml_value_t`'s as arguments. For example, the following will load code from the specified file, run it with the supplied arguments as a single list called :mini:`Args` and then exit silently or with an error.
 
 .. code-block:: c
+
+   static void ml_main_state_run(ml_state_t *State, ml_value_t *Value) {
+      if (ml_is_error(Value)) {
+         fprintf(stderr, "%s: %s\n", ml_error_type(Value), ml_error_message(Value));
+         ml_source_t Source;
+         int Level = 0;
+         while (ml_error_source(Value, Level++, &Source)) {
+            fprintf(stderr, "\t%s:%d\n", Source.Name, Source.Line);
+         }
+         exit(1);
+      }
+   }
 
    int main(int Argc, const char *Argv[]) {
       static const char *Parameters[] = {"Args", NULL};
@@ -213,7 +238,9 @@ Another useful state type is a :c:struct:`ml_call_state_t` which holds a number 
       ml_value_t *Args = ml_list();
       const char *FileName = Argv[1];
       for (int I = 2; I < Argc; ++I) ml_list_append(Args, ml_cstring(Argv[I]));
-      ml_call_state_t *State = ml_call_state_new(MLMain, 1);
+      ml_state_t *Main = ml_state(NULL);
+      Main->run = ml_main_state_run;
+      ml_call_state_t *State = ml_call_state(Main, 1);
       State->Args[0] = Args;
       ml_load_file((ml_state_t *)State, global_get, NULL, FileName, Parameters);
    }
