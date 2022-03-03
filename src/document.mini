@@ -31,6 +31,7 @@ fun write_category(Category) do
 	let File := file('{OutputDirectory}/{Category:lower}.rst', "w")
 	File:write(".. include:: <isonum.txt>\n\n")
 	File:write(".. include:: <isoamsa.txt>\n\n")
+	File:write(".. include:: <isotech.txt>\n\n")
 	File:write(Category, "\n")
 	for I in Category do File:write("=") end
 	File:write("\n\n")
@@ -301,7 +302,7 @@ end
 fun write_value(Category, Name, Type, Description, Location) do
 	let File := Categories[Category, write_category]
 	File:write('.. _value-{Name:replace("::", "-")}:\n\n')
-	File:write(':mini:`let {Name}: {type_name(Type)}`\n')
+	File:write(':mini:`def {Name}: {type_name(Type)}`\n')
 	for Line in Description do
 		File:write("   ", Line, "\n")
 	end
@@ -597,7 +598,7 @@ fun process(FileName) do
 				else
 					write_type(Category, Name, Parents, Description, Location)
 				end
-			elseif Line % r"^ML_LET" then
+			elseif Line % r"^ML_DEF" then
 				let Location := (FileName, LineNo)
 				let I := Line:find("(")
 				let J := Line:find(")", I + 1)
@@ -627,7 +628,8 @@ fun process(FileName) do
 				end
 			elseif let Match := Line % r"^#define ([A-Za-z0-9_]+)\((.+)\)" then
 				let Params := list(Match[3] / ",", :trim)
-				Defines[Match[2]] := CurrentDefine := define(Params, [])
+				CurrentDefine := define(Params, [])
+				Defines[Match[2]] := old or CurrentDefine
 			elseif Line = "\n" then
 				CurrentDefine := nil
 			elseif let Match := Line % r"^([A-Za-z0-9_]+)\((.+)\)" then

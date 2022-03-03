@@ -2,4 +2,4 @@
 
 #define LT(A, B) A < B
 
-COMPARE_ROW_OPS_IMPL(lt, LT)
+COMPARE_FNS(Lt, lt, LT);

@@ -1124,7 +1124,7 @@ ml_value_t *ml_cbor_read_method(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	return ml_method(ml_string_value(Value));
 }
 
-ML_LET(CborObjects);
+ML_DEF(CborObjects);
 //@cbor::Objects
 //>map[string,function]
 // Constructors to call for tag 27 (objects).

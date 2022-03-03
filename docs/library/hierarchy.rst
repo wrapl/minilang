@@ -2,6 +2,8 @@
 
 .. include:: <isoamsa.txt>
 
+.. include:: <isotech.txt>
+
 hierarchy
 =========
 
@@ -38,19 +40,6 @@ hierarchy
       "sequence":e -> "tuple":w;
       "any":e -> "tuple::iter":w;
       "any":e -> "boolean":w;
-      "any":e -> "number":w;
-      "number":e -> "complex":w;
-      "complex":e -> "real":w;
-      "number":e -> "real":w;
-      "real":e -> "integer":w;
-      "function":e -> "integer":w;
-      "real":e -> "integer":w;
-      "function":e -> "integer":w;
-      "real":e -> "double":w;
-      "any":e -> "integer::iter":w;
-      "sequence":e -> "integer::range":w;
-      "any":e -> "real::iter":w;
-      "sequence":e -> "real::range":w;
       "any":e -> "module":w;
       "any":e -> "time":w;
       "any":e -> "thread":w;
@@ -58,6 +47,8 @@ hierarchy
       "any":e -> "thread::mutex":w;
       "any":e -> "thread::protected":w;
       "any":e -> "thread::condition":w;
+      "any":e -> "task":w;
+      "function":e -> "tasks":w;
       "sequence":e -> "table":w;
       "sequence":e -> "table::row":w;
       "any":e -> "address":w;
@@ -72,7 +63,6 @@ hierarchy
       "function":e -> "filter":w;
       "function":e -> "chained":w;
       "sequence":e -> "chained":w;
-      "function":e -> "tasks":w;
       "function":e -> "context":w;
       "any":e -> "reference":w;
       "any":e -> "error":w;
@@ -91,6 +81,16 @@ hierarchy
       "any":e -> "enum::range":w;
       "sequence":e -> "enum::range":w;
       "type":e -> "flags":w;
+      "any":e -> "number":w;
+      "number":e -> "complex":w;
+      "complex":e -> "real":w;
+      "real":e -> "integer":w;
+      "function":e -> "integer":w;
+      "real":e -> "double":w;
+      "any":e -> "integer::iter":w;
+      "sequence":e -> "integer::range":w;
+      "any":e -> "real::iter":w;
+      "sequence":e -> "real::range":w;
       "any":e -> "methods":w;
       "function":e -> "method":w;
       "sequence":e -> "map":w;

@@ -2,4 +2,4 @@
 
 #define EQ(A, B) A == B
 
-COMPARE_ROW_OPS_IMPL(eq, EQ)
+COMPARE_FNS(Eq, eq, EQ);

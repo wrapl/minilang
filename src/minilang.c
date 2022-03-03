@@ -13,6 +13,7 @@
 #include <gc.h>
 #include "ml_sequence.h"
 #include "ml_stream.h"
+#include "ml_tasks.h"
 
 #ifdef ML_MATH
 #include "ml_math.h"
@@ -191,14 +192,14 @@ int main(int Argc, const char *Argv[]) {
 #endif
 
 	ml_init(Globals);
+	ml_sequence_init(Globals);
+	ml_object_init(Globals);
+	ml_tasks_init(Globals);
 	ml_expr_init(Globals);
 	ml_file_init(Globals);
-	ml_object_init(Globals);
-	ml_sequence_init(Globals);
 	stringmap_insert(Globals, "now", MLNow);
 	stringmap_insert(Globals, "clock", MLClock);
 	stringmap_insert(Globals, "print", MLPrint);
-	stringmap_insert(Globals, "error", MLErrorValueT);
 	stringmap_insert(Globals, "raise", MLRaise);
 	stringmap_insert(Globals, "halt", MLHalt);
 	stringmap_insert(Globals, "break", MLBreak);

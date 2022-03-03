@@ -9,7 +9,7 @@ static ml_value_t *value_div(ml_value_t *A, ml_value_t *B) {
 	return ml_simple_call(DivMethod, 2, Args);
 }
 
-UPDATE_ROW_OPS_IMPL(div, OP_DIV, value_div)
+UPDATE_FNS(Div, div, OP_DIV, value_div);
 
 #define OP_RDIV(A, B) B / A
 
@@ -18,4 +18,4 @@ static ml_value_t *value_rdiv(ml_value_t *A, ml_value_t *B) {
 	return ml_simple_call(DivMethod, 2, Args);
 }
 
-UPDATE_ROW_OPS_IMPL(rdiv, OP_RDIV, value_rdiv)
+UPDATE_FNS(RDiv, rdiv, OP_RDIV, value_rdiv);

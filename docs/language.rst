@@ -3,7 +3,7 @@ Language
 
 *Minilang* has a simple syntax, similar to *Pascal* and *Oberon-2*. Keywords are in lower case, statements are delimited by semicolons ``;``, these can be and are usually omitted at the end of a line.
 
-As *Minilang* is designed to be embedded into larger applications, there is no implicit requirement to store *Minilang* code in source files with any specific extension (or indeed to store *Minilang* in files at all). However, :file:`.mini` is used for the sample and test scripts and there are highlighters created for *GtkSourceview* and *Visual Studio Code* that recognize this extension. 
+As *Minilang* is designed to be embedded into larger applications, there is no implicit requirement to store *Minilang* code in source files with any specific extension (or indeed to store *Minilang* in files at all). However, :file:`.mini` is used for the sample and test scripts and there are highlighters created for *GtkSourceview* and *Visual Studio Code* that recognize this extension.
 
 The following is an example of *Minilang* code showing an
 implementation of the Fibonacci numbers.
@@ -25,11 +25,11 @@ implementation of the Fibonacci numbers.
          ret B
       end
    end
-   
+
    for I in 1 .. 10 do
       print('fibonacci({I}) = {fibonacci(I)}\n')
    end
-   
+
    print('fibonacci({0}) = {fibonacci(0)}\n')
 
 This produces the following output:
@@ -60,7 +60,7 @@ Block comments start with ``:<`` and end with ``>:`` and can be nested.
 .. code-block:: mini
 
    :> This is a line comment.
-   
+
    :<
       This is a block comment
       spanning multiple lines
@@ -84,9 +84,9 @@ The following identifiers are reserved as keywords.
 
 .. code-block:: mini
 
-   if then elseif else end loop while until exit next
-   for each to in is when fun ret susp meth with do on
-   nil and or not old def let var _
+   _ and case debug def do each else elseif end exit for
+   fun if in is let loop meth next nil not old on or ref
+   ret susp switch then to until var when while with
 
 
 Whitespace and Line Breaks
@@ -99,7 +99,7 @@ For example the following are equivalent as the semicolons are replaced by line 
 .. code-block:: mini
 
    do print("Hello "); print("world"); end
-   
+
    do
       print("Hello ")
       print("world")
@@ -110,23 +110,23 @@ The following are also equivalent as the line break occurs after an infix operat
 .. code-block:: mini
 
    let X := "Hello " + "world"
-   
+
    let X := "Hello " +
       "world"
 
-However the following code is not equivalent to the code above as the line break occurs before the infix operator and hence no token is required to complete the expression: 
+However the following code is not equivalent to the code above as the line break occurs before the infix operator and hence no token is required to complete the expression:
 
 .. code-block:: mini
 
    let X := "Hello "
       + "world"
-      
+
 Instead the above code is equivalent to following where semicolons have been added to show the separate declaration and expression (with a prefix operation):
 
 .. code-block:: mini
 
    let X := "Hello ";
-   
+
    + "world";
 
 
@@ -172,7 +172,7 @@ The identifier :mini:`X` is declared in the top-level block and so is visible  t
 Declarations
 ------------
 
-All identifiers in *Minilang* (other than those provided by the compiler / embedding) must be explicitly declared. Declarations are only visible within their containing block and can be referenced before their actual declaration. This allows (among other things) mutually recursive functions. 
+All identifiers in *Minilang* (other than those provided by the compiler / embedding) must be explicitly declared. Declarations are only visible within their containing block and can be referenced before their actual declaration. This allows (among other things) mutually recursive functions.
 
 There are 3 types of declaration:
 
@@ -181,37 +181,37 @@ There are 3 types of declaration:
 #. :mini:`let Name := Expression` binds :mini:`Name` to the result of evaluating :mini:`Expression`. :mini:`Name` cannot be reassigned later in the block, hence the intial expression is required.
 
 #. :mini:`def Name := Expression` binds :mini:`Name` to the result of evaluating :mini:`Expression`. Unlike a :mini:`let`-declaration, :mini:`Expression` is evaluated once only when the code is first loaded. Consequently, :mini:`Expression` can only contain references to identifiers that are visible at load time (e.g. global identifiers or other :mini:`def`-declarations).
- 
+
 Declarations are visible in nested blocks (including nested functions), unless they are shadowed by another declaration.
 
 .. code-block:: mini
 
    print('Y = {Y}\n') :> Y is nil here
-   
+
    var Y := 1 + 2
-   
+
    print('Y = {Y}\n') :> Y is 3 here
-   
+
    var X
-   
+
    do
       X := 1 :> Sets X in surrounding scope
    end
-   
+
    print('X = {X}\n')
-   
+
    do
-      var X :> Shadows declaration of X 
+      var X :> Shadows declaration of X
       X := 2 :> Assigns to X in the previous line
       print('X = {X}\n')
    end
-   
+
    print('X = {X}\n')
 
 .. code-block:: console
 
    Y =
-   Y = 3 
+   Y = 3
    X = 1
    X = 2
    X = 1
@@ -231,7 +231,7 @@ Functions are first class values in *Minilang*, they can be assigned to variable
          return N * fact(N - 1)
       end
    end
-   
+
 Note that this shorthand is only for :mini:`let`-declarations, if another type of declaration is required (:mini:`var` or :mini:`def`) then the full declaration must be written.
 
 Compound Declarations
@@ -247,7 +247,7 @@ A declaration of the form :mini:`Expression: Name(Args...)` is equivalent to :mi
 .. code-block:: mini
 
    import: utils("lib/utils.mini")
-   
+
    class: point(:X, :Y)
 
 More details can be found in :doc:`features/modules` and :doc:`features/classes`.
@@ -260,17 +260,15 @@ A declaration of the form :mini:`Expression: Declaration` is equivalent to :mini
 .. code-block:: mini
 
    export: fun add(X, Y) X + Y
-   
+
    export: var Z
 
-Compound declarations can be combined. For example, the following code shows how a module which exports a class.
+Compound declarations can be combined. For example, the following code creates and exports a class.
 
 .. code-block:: mini
 
-   import: utils("lib/utils.mini")
-   
    export: class: point(:X, :Y)
-   
+
 Destructuring Declarations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -279,15 +277,15 @@ Multiple identifiers can be declared and initialized with contents of a single a
 #. :mini:`let (Name₁, Name₂, ...) := Expression`. Effectively equivalent to the following:
 
    .. code-block:: mini
-   
+
       let Temp := Expression
       let Name₁ := Temp[1]
       let Name₂ := Temp[2]
-   
+
 #. :mini:`let (Name₁, Name₂, ...) in Expression`. Effectively equivalent to the following:
 
    .. code-block:: mini
-   
+
       let Temp := Expression
       let Name₁ := Temp["Name₁"]
       let Name₂ := Temp["Name₂"]
@@ -312,11 +310,14 @@ Integers
 Reals
    :mini:`1.2`, :mini:`.13`, :mini:`-1.3e5`.
 
+Booleans
+   :mini:`true`, :mini:`false`.
+
 Strings
    :mini:`"Hello world!\n"`, :mini:`'X = {X}'`. Strings can be written using double quotes or single quotes. Strings written with single quotes can have embedded expressions (between ``{`` and ``}``) and may span multiple lines (the line breaks are embedded in the string).
 
 Regular Expressions
-   :mini:`r".*\.c"`, :mini:`ri".*\.c"`. *Minilang* uses `TRE <https://github.com/laurikari/tre/>`_ as its regular expression implementation, the precise syntax supported can be found here `<https://laurikari.net/tre/documentation/regex-syntax/>`_.
+   :mini:`r".*\.c"` (case sensitive), :mini:`ri".*\.c"` (case insenstive). *Minilang* uses `TRE <https://github.com/laurikari/tre/>`_ as its regular expression implementation, the precise syntax supported can be found here `<https://laurikari.net/tre/documentation/regex-syntax/>`_.
 
 Lists
    :mini:`[1, 2, 3]`, :mini:`["a", 1.23, [nil]]`. The values in a list can be of any type including other lists and maps.
@@ -325,13 +326,22 @@ Maps
    :mini:`{"a" is 1, 10 is "string"}`. The keys of a map have to be immutable and comparable (e.g. numbers, strings, tuples, etc). The values can be of any type.
 
 Tuples
-   :mini:`(1, 2, 3)`, :mini:`("a", 1.23, [nil])`. Like lists, tuples can contain values of any type. Tuple differ from lists by being immutable; once constructed the elements of a tuple cannot be modified. This allows them to be used as keys in maps. They can also be used for destructing assignments, 
+   :mini:`(1, 2, 3)`, :mini:`("a", 1.23, [nil])`. Like lists, tuples can contain values of any type. Tuple differ from lists by being immutable; once constructed the elements of a tuple cannot be modified. This allows them to be used as keys in maps. They can also be used for destructing assignments,
 
 Methods
    :mini:`:length`, :mini:`:X`, :mini:`<>`, :mini:`+`, :mini:`:"[]"`. Methods consisting only of the characters ``!``, ``@``, ``#``, ``$``, ``%``, ``^``, ``&``, ``*``, ``-``, ``+``, ``=``, ``|``, ``\\``, ``~``, `````, ``/``, ``?``, ``<``, ``>`` or ``.`` can be written directly without surrounding ``:"`` and ``"``.
 
 Functions
-   :mini:`fun(A, B) A + B`. If the last argument to a function or method call is an anonymous function then the following shorthand can be used: :mini:`f(1, 2, fun(A, B) A + B)` can be written as :mini:`f(1, 2; A, B) A + B`. 
+   :mini:`fun(A, B) A + B`. If the last argument to a function or method call is an anonymous function then the following shorthand can be used: :mini:`f(1, 2, fun(A, B) A + B)` can be written as :mini:`f(1, 2; A, B) A + B`.
+
+Dates and Times
+   :mini:`T"2022-02-27"`, :mini:`T"1970-01-01T12:34:56"`, :mini:`T"1970-01-01T12:34:56+06"`. The optional time component can be separated by either ``T`` or a space ``\ ``. Timezones can be specified using ``+NN`` or ``-NN``, and UTC can be specified using ``Z``, if no timezone is specified then the time is interpreted in the local timezone.
+
+Imaginary Numbers
+   :mini:`2i`, :mini:`-0.5i`. If *Minilang* is built with support for complex number, the suffix ``i`` can be used to denote :math:`\sqrt{-1}`. The identifier :mini:`i` is also defined as :mini:`1i` but is not treated as a keyword (so code that uses :mini:`i` as an identifier will not break if run by a version of *Minilang* built with support for complex numbers).
+
+UUIDs
+   :mini:`U"1c0fec87-31bd-40b8-bc04-527f4b171412"`. If *Minilang* is built with support for UUIDs, UUID literals can be written directly in code.
 
 Conditional Expressions
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -379,10 +389,10 @@ The :mini:`else`-clause is optional, if omitted and every condition evaluates to
 Switch Expressions
 ~~~~~~~~~~~~~~~~~~
 
-There are two types of :mini:`switch`-expression in *Minilang*. The basic :mini:`switch`-expression chooses a branch based on an integer value, with cases corresponding to ``0, 1, 2, ...``, etc. 
-   
+There are two types of :mini:`switch`-expression in *Minilang*. The basic :mini:`switch`-expression chooses a branch based on an integer value, with cases corresponding to ``0, 1, 2, ...``, etc.
+
 .. code-block:: mini
-   
+
    switch Expression
    case
       Block
@@ -391,7 +401,7 @@ There are two types of :mini:`switch`-expression in *Minilang*. The basic :mini:
    else
       Block
    end
-   
+
 When evaluated, :mini:`Expression` must evaluate to a non-negative integer, ``n``. The ``n + 1``-th :mini:`case` block is then evaluated if present, otherwise the :mini:`else` block option is evaluated. If no else block is present, then the value :mini:`nil` is used.
 
 The general :mini:`switch`-expression selects a branch corresponding to a value based on a specific *switch provider*.
@@ -463,7 +473,7 @@ A for loop is also an expression (like most things in *Minilang*), and can retur
 .. code-block:: mini
 
    var L := [1, 2, 3, 4, 5]
-   
+
    print('Index of 3 is {for I, X in L do until X = 3, I end}\n')
    print('Index of 6 is {for I, X in L do until X = 6, I end}\n')
    print('Index of 6 is {for I, X in L do until X = 6, I else "not found" end}\n')
@@ -473,7 +483,7 @@ A for loop is also an expression (like most things in *Minilang*), and can retur
    Index of 3 is 3
    Index of 6 is
    Index of 6 is not found
-   
+
 Sequences
 ...........
 
@@ -520,15 +530,15 @@ Functions
 
 Functions in *Minilang* are first class values. That means they can be passed to other functions and stored in variables, lists, maps, etc. Functions have access to variables in their surrounding scope when they were created.
 
-   The general syntax of a function is :mini:`fun(Name₁, Name₂, ...) Expression`. Calling a function is achieved by the traditional syntax :mini:`Function(Expression, Expression, ...)`. 
+   The general syntax of a function is :mini:`fun(Name₁, Name₂, ...) Expression`. Calling a function is achieved by the traditional syntax :mini:`Function(Expression, Expression, ...)`.
 
 .. code-block:: mini
 
    let add := fun(A, B) A + B
    let sub := fun(A, B) A - B
-   
+
    print('add(2, 3) = {add(2, 3)}\n')
-   
+
 .. code-block:: console
 
    add(2, 3) = 5
@@ -539,9 +549,9 @@ expression which returns a function.
 .. code-block:: mini
 
    var X := (if nil then add else sub end)(10, 3) :> 7
-   
+
    let f := fun(A) fun(B) A + B
-   
+
    var Y := f(2)(3) :> 5
 
 As a shorthand, the code :mini:`var Name := fun(Name₁, Name₂, ...) Expression` can be written
@@ -551,7 +561,7 @@ as :mini:`fun Name(Name₁, Name₂, ...) Expression`. Internally, the two forms
 
    fun add(A, B) A + B
 
-Although a function contains a single expression, this expression can be a block expression, :mini:`do ... end`. A block can contain any number of declarations and expressions, which are evaluated in sequence. The last value evaluated is returned as the value of the block. A return expression, :mini:`ret Expression`, returns the value of :mini:`Expression` from the enclosing function. If :mini:`Expression` is omitted, then :mini:`nil` is returned.  
+Although a function contains a single expression, this expression can be a block expression, :mini:`do ... end`. A block can contain any number of declarations and expressions, which are evaluated in sequence. The last value evaluated is returned as the value of the block. A return expression, :mini:`ret Expression`, returns the value of :mini:`Expression` from the enclosing function. If :mini:`Expression` is omitted, then :mini:`nil` is returned.
 
 .. code-block:: mini
 
@@ -561,7 +571,7 @@ Although a function contains a single expression, this expression can be a block
          F := F * I
       end
       ret F
-   end 
+   end
 
 When calling a function which expects another function as its last parameter,
 the following shorthand can be used:
@@ -593,7 +603,7 @@ Generators
       end
       ret nil
    end
-   
+
    for I, S in squares(10) do
       print('I = {I}, I² = {S}\n')
    end
@@ -647,7 +657,7 @@ For example:
    Returns the (unique) method with name :mini:`X`. If no name is passed then a completely new anonymous method is returned.
 
 :mini:`type(X)`
-   Returns the type of :mini:`X`. 
+   Returns the type of :mini:`X`.
 
 :mini:`stringbuffer()`
    Returns a new stringbuffer.
@@ -669,7 +679,7 @@ Methods are first class objects in *Minilang*. They can be created using a colon
 
 Methods consisting of only the characters ``!``, ``@``, ``#``, ``$``, ``%``, ``^``, ``&``, ``*``, ``-``, ``+``, ``=``, ``|``, ``\``, ``~``, `````, ``/``, ``?``, ``<``, ``>`` or ``.`` can be written directly, without any leading ``:`` or quotes.
 
-Methods behave as *atoms*, that is two methods with the same characters internally point to the same object, and are thus identically equal. 
+Methods behave as *atoms*, that is two methods with the same characters internally point to the same object, and are thus identically equal.
 
 .. code-block:: mini
 
@@ -708,10 +718,10 @@ Methods with only symbol characters or that are valid identifiers can be invoked
 
    +(A, B)
    A + B
-   
+
    +(A, *(B, C))
    A + (B * C)
-   
+
    list(1 .. 10 limit 5)
    list(:limit(..(1, 10), 5))
 
@@ -737,11 +747,11 @@ Macros can be created using the :mini:`macro` constructor, the example below use
       let Y := "Hello world"
       :$Expr
    end, Expr is Expr}
-   
+
    test(print('X = {X}, Y = {Y}\n'))
-   
+
    :> expands to
-  
+
    do
       let X := 10
       let Y := "Hello world"
@@ -760,17 +770,17 @@ The special built in value :mini:`nil` denotes the absence of any other value. V
 
 .. important::
 
-   Although *Minilang* has boolean values, conditional and looping statements treat only :mini:`nil` as false and *any* other value as true.  
+   Although *Minilang* has boolean values, conditional and looping statements treat only :mini:`nil` as false and *any* other value as true.
 
 .. code-block:: mini
 
    :> Nil
    nil
-   
+
    if nil then
       print("This will not be seen!")
    end
-   
+
    if 0 then
       print("This will be seen!")
    end
@@ -783,7 +793,7 @@ Comparison operators such as :mini:`=`, :mini:`>=`, etc, return the second argum
 
    1 < 2 :> returns 2
    1 > 2 :> returns nil
-   
+
    1 < 2 < 3 :> returns 3
    1 < 0 < 3 :> return nil
 
@@ -803,7 +813,7 @@ They support the standard arithmetic operations, comparison operations and conve
    10
    127
    -1
-   
+
    :>Reals
    1.234
    10.
@@ -819,7 +829,7 @@ They support the standard arithmetic operations, comparison operations and conve
    3 / 2 :> 1.5
    5 div 2 :> 2
    5 mod 2 :> 1
-   
+
    :> Comparison
    1 < 2 :> 2
    1 <= 2 :> 2
@@ -865,11 +875,11 @@ Complex strings are written between single quotes ``'`` and can contain the same
    :> Regular strings
    "Hello world!"
    "This has a new line\n", "\t"
-   
+
    :> Complex strings
    'The value of x is \'{x}\''
    'L:length = {L:length}\n'
-   
+
    :> Conversion
    string(1) :> "1"
    string([1, 2, 3]) :> "[1, 2, 3]"
@@ -908,16 +918,16 @@ Lists are extendable ordered collections of values, and are created using square
    :> Construction
    let L1 := [1, 2, 3, 4]
    let L2 := list(1 .. 10)
-   
+
    :> Indexing
    L1[1]
    L1[2] := 100
    L1[-1]
-   
+
    :> Slicing
    L1[1, 3]
    L1[2, 4] := [11, 12]
-   
+
    :> Methods
    L1:put(5, 6)
    L1:pull
@@ -925,7 +935,7 @@ Lists are extendable ordered collections of values, and are created using square
    L1:pop
    L1:length
    L1 + L2
-   
+
    :> Iteration
    for V in L1 do
       print('V = {V}\n')
@@ -949,16 +959,16 @@ Maps are extendable collections of key-value pairs, which can be indexed by its 
    :> Construction
    let M1 := {"A" is 1, "B" is 2}
    let M2 := map("banana")
-   
+
    :> Indexing
    M1["A"]
    M1["C"]
    M1["C"] := 3
    print('D -> {M1["D", fun() 4]}\n')
-   
+
    :> Methods
    M1:insert("E", 5)
    M1:delete("C")
    M1:size
- 
+
 See also :doc:`/library/map`.

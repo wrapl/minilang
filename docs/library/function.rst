@@ -2,6 +2,8 @@
 
 .. include:: <isoamsa.txt>
 
+.. include:: <isotech.txt>
+
 function
 ========
 

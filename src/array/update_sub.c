@@ -9,7 +9,7 @@ static ml_value_t *value_sub(ml_value_t *A, ml_value_t *B) {
 	return ml_simple_call(SubMethod, 2, Args);
 }
 
-UPDATE_ROW_OPS_IMPL(sub, OP_SUB, value_sub)
+UPDATE_FNS(Sub, sub, OP_SUB, value_sub);
 
 #define OP_RSUB(A, B) B - A
 
@@ -18,4 +18,4 @@ static ml_value_t *value_rsub(ml_value_t *A, ml_value_t *B) {
 	return ml_simple_call(SubMethod, 2, Args);
 }
 
-UPDATE_ROW_OPS_IMPL(rsub, OP_RSUB, value_rsub)
+UPDATE_FNS(RSub, rsub, OP_RSUB, value_rsub);
