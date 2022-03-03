@@ -158,7 +158,7 @@ ML_METHOD("^", MLRealT, MLRealT) {
 		}
 	}
 #endif
-	return ml_real(pow(ml_real_value(Args[0]), ml_real_value(Args[1])));
+	return ml_real(pow(Base, Exponent));
 }
 
 #ifdef ML_COMPLEX
