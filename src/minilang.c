@@ -192,11 +192,11 @@ int main(int Argc, const char *Argv[]) {
 #endif
 
 	ml_init(Globals);
+	ml_sequence_init(Globals);
+	ml_object_init(Globals);
+	ml_tasks_init(Globals);
 	ml_expr_init(Globals);
 	ml_file_init(Globals);
-	ml_object_init(Globals);
-	ml_sequence_init(Globals);
-	ml_tasks_init(Globals);
 	stringmap_insert(Globals, "now", MLNow);
 	stringmap_insert(Globals, "clock", MLClock);
 	stringmap_insert(Globals, "print", MLPrint);

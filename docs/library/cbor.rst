@@ -2,6 +2,8 @@
 
 .. include:: <isoamsa.txt>
 
+.. include:: <isotech.txt>
+
 cbor
 ====
 
@@ -19,7 +21,7 @@ cbor
 
 .. _value-cbor-Objects:
 
-:mini:`let cbor::Objects: map[string,function]`
+:mini:`def cbor::Objects: map[string,function]`
    Constructors to call for tag 27 (objects).
 
 

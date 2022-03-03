@@ -30,7 +30,7 @@ struct ml_value_t {
 	ml_type_t *Type;
 };
 
-#define ML_LET(NAME) ml_value_t *NAME = NULL
+#define ML_DEF(NAME) ml_value_t *NAME = NULL
 
 typedef struct ml_hash_chain_t ml_hash_chain_t;
 
@@ -484,20 +484,16 @@ static inline int ml_is_double(ml_value_t *Value) {
 	return ml_tag(Value) >= 7;
 }
 
-static inline double ml_to_double(const ml_value_t *Value) {
-	union { const ml_value_t *Value; uint64_t Bits; double Double; } Boxed;
-	Boxed.Value = Value;
-	Boxed.Bits -= 0x07000000000000;
-	return Boxed.Double;
-}
-
 static inline int64_t ml_integer_value_fast(const ml_value_t *Value) {
 	if (ml_tag(Value) == 1) return (int32_t)(intptr_t)Value;
 	return ((ml_int64_t *)Value)->Value;
 }
 
 static inline double ml_double_value_fast(const ml_value_t *Value) {
-	return ml_to_double(Value);
+	union { const ml_value_t *Value; uint64_t Bits; double Double; } Boxed;
+	Boxed.Value = Value;
+	Boxed.Bits -= 0x07000000000000;
+	return Boxed.Double;
 }
 
 #else

@@ -10,7 +10,7 @@ Minilang uses the `Hans-Boehm conservative garbage collector <https://github.com
 
 All memory that is passed to Minilang or is used to store Minilang values should be allocated with the garbage collector in order to ensure that memory does not leak and that Minilang values are not prematurely collected. For more complex uses (e.g. storing Minilang values in non-gc allocated memory or using finalizers to clean up resources when Minilang values are collected), the application can use the garbage collector API directly.
 
-A number of macros are defined in ``minilang/ml_macros.h`` which simply allocating memory for structs and arrays. This header file is not included automatically (in order to avoid conflicts with C++ code, and to keep application header files clean).
+A number of macros are defined in ``minilang/ml_macros.h`` which simplifies allocating memory for structs and arrays. This header file is not included automatically (in order to avoid conflicts with C++ code, and to keep application header files clean).
 
 .. c:macro:: new(T)
 
@@ -23,7 +23,7 @@ A number of macros are defined in ``minilang/ml_macros.h`` which simply allocati
 .. c:macro:: xnew(T, N, U)
 
    Returns a block of memory of :c:expr:`sizeof(T) + N * sizeof(U)` bytes, cast to :c:expr:`T *`. Used for allocating structs with variable-length arrays (*VLA*'s) as the last field.
-   
+
 .. c:macro:: snew(N)
 
    Returns a block of memory of :c:expr:`N` bytes that is expected to remain free of pointers. Used for allocating strings.
@@ -37,11 +37,11 @@ All values in Minilang are represented with a :c:struct:`ml_value_t`. This has a
 
    typedef struct ml_value_t ml_value_t;
    typedef struct ml_type_t ml_type_t;
-   
+
    struct ml_value_t {
       ml_type_t *Type;
    }
-   
+
    struct ml_type_t {
       ml_type_t *Type;
       // Additional fields
@@ -63,7 +63,7 @@ To construct instances of the basic types, use the following constants and funct
    ml_value_t *ml_integer(long Value);
    ml_value_t *ml_real(double Value);
    ml_value_t *ml_string(const char *Value, int Length);
-   ml_value_t *ml_cstring(const char *Value); // Uses strlen
+   ml_value_t *ml_cstring("STRING_LITERAL");
    ml_value_t *ml_string_format(const char *Format, ...); // Uses sprintf
    ml_value_t *ml_regex(const char *Value, int Length);
    ml_value_t *ml_method(const char *Name);
@@ -106,7 +106,7 @@ After checking the type of a :c:struct:`ml_value_t` using :c:func:`ml_is`, the f
    const char *ml_string_value(const ml_value_t *Value);
    size_t ml_string_length(const ml_value_t *Value);
    const char *ml_regex_pattern(const ml_value_t *Value);
-   const char *ml_method_name(const ml_value_t *Value)
+   const char *ml_method_name(const ml_value_t *Value);
 
 String values are not copied and should not be modified.
 
@@ -118,36 +118,54 @@ Initialization
 .. note::
 
    Stringmaps are found throughout the Minilang API to store string-value entries.
-   
+
    .. code-block:: c
-   
+
       typedef struct stringmap_t stringmap_t;
-      
+
       stringmap_t *stringmap_new();
       // Stringmaps can also be initialized by assigning STRINGMAP_INIT
-      
+
       void *stringmap_search(const stringmap_t *Map, const char *Key);
       void *stringmap_insert(stringmap_t *Map, const char *Key, void *Value);
       void *stringmap_remove(stringmap_t *Map, const char *Key);
       void **stringmap_slot(stringmap_t *Map, const char *Key);
       int stringmap_foreach(stringmap_t *Map, void *Data, int (*callback)(const char *, void *, void *));
-   
+
 Before any other Minilang API function can be used, the runtime needs to be initialized using :c:func:`ml_init`.
 
-Optional features should then be initialized, these optional initializers can be passed a :c:struct:`stringmap_t` to insert any global exports they provide. This globals can then be made available to the compiler API functions. The exports from each initializer is covered in their respective sections.
+Optional features should then be initialized, these optional initializers can be passed a :c:struct:`stringmap_t` to insert any global exports they provide. This globals can then be made available to the compiler API functions. The exports from each initializer is covered in their respective sections. Each optional :c:func:`ml_<name>_init` function is define in the corresponding :file:`ml_<name>.h` header file.
 
 .. code-block:: c
 
    #include <minilang/minilang.h>
+   #include <minilang/ml_sequence.h>
+   #include <minilang/ml_object.h>
+   #include <minilang/ml_tasks.h>
+   #include <minilang/ml_file.h>
+   #include <minilang/ml_math.h>
+   #include <minilang/ml_array.h>
+   #include <minilang/ml_json.h>
+   #include <minilang/ml_xml.h>
+   #include <minilang/ml_time.h>
+   #include <minilang/ml_uuid.h>
 
    int main(int Argc, const char *Argv[]) {
       stringmap_t *Globals = stringmap_new();
-      ml_init();
-      ml_types_init(Globals);
-      ml_file_init(Globals);
-      ml_object_init(Globals);
-      ml_iterfns_init(Globals);
-      // ...
+      ml_init(Globals);
+      ml_sequence_init(Globals); // Recommended for sequence functions
+      ml_object_init(Globals); // Recommended for class, enum and flag types
+
+      ml_tasks_init(Globals); // Optional tasks and parallel evaluation (if scheduler is enabled)
+      ml_file_init(Globals); // Optional file and directory functions
+      ml_math_init(Globals); // Optional maths functions
+      ml_array_init(Globals); // Optional multidimensional arrays (requires maths)
+
+      ml_json_init(Globals); // Optional JSON types and functions
+      ml_xml_init(Globals); // Optional XML types and functions
+      ml_time_init(Globals); // Optional time types and functions
+      ml_uuid_init(Globals); // Optional UUID types and functions
+      // etc ...
    }
 
 States
@@ -159,16 +177,16 @@ The other important type in the Minilang API is the :c:struct:`ml_state_t`. Mini
 
    typedef struct ml_context_t ml_context_t;
    typedef struct ml_state_t ml_state_t;
-   
+
    typedef void (*ml_state_fn)(ml_state_t *State, ml_value_t *Result);
-   
+
    struct ml_state_t {
       ml_type_t *Type;
       ml_state_t *Caller;
       ml_state_fn run;
       ml_context_t *Context;
    }
-   
+
 Like :c:struct:`ml_value_t`, different types of :c:struct:`ml_state_t` may have additional fields.
 
 For applications which launch Minilang scripts as their main operation, the predefined :c:var:`MLMain` state is provided. When run, this state will output an error message if the result was an error, otherwise it will silently do nothing.
@@ -198,7 +216,7 @@ Another useful state type is a :c:struct:`ml_call_state_t` which holds a number 
       ml_call_state_t *State = ml_call_state_new(MLMain, 1);
       State->Args[0] = Args;
       ml_load_file((ml_state_t *)State, global_get, NULL, FileName, Parameters);
-   } 
+   }
 
 Loading Minilang Code
 ---------------------
@@ -218,7 +236,7 @@ A compiler can be created using :c:func:`ml_compiler`.
    typedef ml_value_t *(*ml_getter_t)(void *Globals, const char *Name);
 
    ml_compiler_t *ml_compiler(ml_getter_t GlobalGet, void *Globals, ml_reader_t Read, void *Input);
-   
+
    ml_source_t ml_compiler_source(ml_compiler_t *Compiler, ml_source_t Source);
    void ml_compiler_input(ml_compiler_t *Compiler, const char *Text);
    void ml_compiler_reset(ml_compiler_t *Compiler);
@@ -228,7 +246,7 @@ The :c:expr:`Read` function is responsible for reading in source code and is cal
 
 .. note::
 
-   Although the :c:expr:`Read` function can return multiple lines, currently the compiler does not support partial lines. I.e. if a token is split across separate results from :c:expr:`Read`, the compiler will not join the pieces into the original token. 
+   Although the :c:expr:`Read` function can return multiple lines, currently the compiler does not support partial lines. I.e. if a token is split across separate results from :c:expr:`Read`, the compiler will not join the pieces into the original token.
 
 The :c:expr:`GlobalGet` function is responsible for supplying global identifiers to the compiler. Since there are no predefined functions, this function is always needed. :c:expr:`GlobalGet` should return :c:expr:`NULL` if the specified identifier is not defined. For convenience, the signature matches that of :c:func:`stringmap_search`, in which case :c:expr:`Globals` should be a :c:struct:`stringmap_t`.
 
@@ -280,11 +298,11 @@ The following (incomplete) code shows an outline of how to use a Minilang compil
       // Do something with Result (e.g. print to console)
       ml_command_evaluate((ml_state_t *)REPL, REPL->Compiler);
    }
-   
+
    const char *repl_read_line(repl_state_t *REPL) {
       // Return next line(s) of input
    }
-   
+
    int main() {
       ml_init();
       stringmap_t *Globals = stringmap_new();

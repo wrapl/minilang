@@ -2,6 +2,8 @@
 
 .. include:: <isoamsa.txt>
 
+.. include:: <isotech.txt>
+
 array
 =====
 
@@ -142,7 +144,7 @@ array
 
    * If :mini:`Indexᵢ` is :mini:`nil` or :mini:`*` then the next dimension is copied unchanged.
 
-   * If :mini:`Indexᵢ` is :mini:`..` then the remaining indices are applied to the last dimensions of :mini:`Array` and the dimension in between are copied unchanged.
+   * If :mini:`Indexᵢ` is :mini:`..` then the remaining indices are applied to the last dimensions of :mini:`Array` and the dimensions in between are copied unchanged.
 
    * If :mini:`Indexᵢ` is an :mini:`integer` then the :mini:`Indexᵢ`-th value of the next dimension is selected and the dimension is dropped from the output.
 
@@ -541,6 +543,14 @@ array
    Returns an array :mini:`C` where :mini:`Cᵥ := A + Bᵥ`.
 
 
+:mini:`meth (A: array) + (B: complex): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := Aᵥ + B`.
+
+
+:mini:`meth (A: complex) + (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := A + Bᵥ`.
+
+
 :mini:`meth (A: array) * (B: integer): array`
    Returns an array :mini:`C` where :mini:`Cᵥ := Aᵥ * B`.
 
@@ -554,6 +564,14 @@ array
 
 
 :mini:`meth (A: real) * (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := A * Bᵥ`.
+
+
+:mini:`meth (A: array) * (B: complex): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := Aᵥ * B`.
+
+
+:mini:`meth (A: complex) * (B: array): array`
    Returns an array :mini:`C` where :mini:`Cᵥ := A * Bᵥ`.
 
 
@@ -573,6 +591,14 @@ array
    Returns an array :mini:`C` where :mini:`Cᵥ := A - Bᵥ`.
 
 
+:mini:`meth (A: array) - (B: complex): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := Aᵥ - B`.
+
+
+:mini:`meth (A: complex) - (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := A - Bᵥ`.
+
+
 :mini:`meth (A: array) / (B: integer): array`
    Returns an array :mini:`C` where :mini:`Cᵥ := Aᵥ / B`.
 
@@ -586,6 +612,14 @@ array
 
 
 :mini:`meth (A: real) / (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := A / Bᵥ`.
+
+
+:mini:`meth (A: array) / (B: complex): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := Aᵥ / B`.
+
+
+:mini:`meth (A: complex) / (B: array): array`
    Returns an array :mini:`C` where :mini:`Cᵥ := A / Bᵥ`.
 
 
@@ -611,6 +645,14 @@ array
    Returns an array :mini:`C` where :mini:`Cᵥ := if A = Bᵥ then 1 else 0 end`.
 
 
+:mini:`meth (A: array) = (B: complex): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
+
+
+:mini:`meth (A: complex) = (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if A = Bᵥ then 1 else 0 end`.
+
+
 :mini:`meth (A: array) != (B: integer): array`
    Returns an array :mini:`C` where :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
 
@@ -624,6 +666,14 @@ array
 
 
 :mini:`meth (A: real) != (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
+
+
+:mini:`meth (A: array) != (B: complex): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
+
+
+:mini:`meth (A: complex) != (B: array): array`
    Returns an array :mini:`C` where :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
 
 
@@ -643,6 +693,14 @@ array
    Returns an array :mini:`C` where :mini:`Cᵥ := if A < Bᵥ then 1 else 0 end`.
 
 
+:mini:`meth (A: array) < (B: complex): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if Aᵥ < B then 1 else 0 end`.
+
+
+:mini:`meth (A: complex) < (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if A < Bᵥ then 1 else 0 end`.
+
+
 :mini:`meth (A: array) > (B: integer): array`
    Returns an array :mini:`C` where :mini:`Cᵥ := if Aᵥ > B then 1 else 0 end`.
 
@@ -656,6 +714,14 @@ array
 
 
 :mini:`meth (A: real) > (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if A > Bᵥ then 1 else 0 end`.
+
+
+:mini:`meth (A: array) > (B: complex): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if Aᵥ > B then 1 else 0 end`.
+
+
+:mini:`meth (A: complex) > (B: array): array`
    Returns an array :mini:`C` where :mini:`Cᵥ := if A > Bᵥ then 1 else 0 end`.
 
 
@@ -675,6 +741,14 @@ array
    Returns an array :mini:`C` where :mini:`Cᵥ := if A <= Bᵥ then 1 else 0 end`.
 
 
+:mini:`meth (A: array) <= (B: complex): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if Aᵥ <= B then 1 else 0 end`.
+
+
+:mini:`meth (A: complex) <= (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if A <= Bᵥ then 1 else 0 end`.
+
+
 :mini:`meth (A: array) >= (B: integer): array`
    Returns an array :mini:`C` where :mini:`Cᵥ := if Aᵥ >= B then 1 else 0 end`.
 
@@ -688,6 +762,14 @@ array
 
 
 :mini:`meth (A: real) >= (B: array): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if A >= Bᵥ then 1 else 0 end`.
+
+
+:mini:`meth (A: array) >= (B: complex): array`
+   Returns an array :mini:`C` where :mini:`Cᵥ := if Aᵥ >= B then 1 else 0 end`.
+
+
+:mini:`meth (A: complex) >= (B: array): array`
    Returns an array :mini:`C` where :mini:`Cᵥ := if A >= Bᵥ then 1 else 0 end`.
 
 

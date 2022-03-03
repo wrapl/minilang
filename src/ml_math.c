@@ -509,15 +509,11 @@ ML_FUNCTION(RealRandom) {
 }
 
 /*
-ML_LET(inf);
-//>real
-// Positive infinity.
-
-ML_LET(pi);
+ML_DEF(pi);
 //>real
 // Pi.
 
-ML_LET(e);
+ML_DEF(e);
 //>real
 // Euler's constant.
 */
@@ -565,7 +561,6 @@ void ml_math_init(stringmap_t *Globals) {
 			"round", RoundMethod,
 			"arg", ArgMethod,
 			"conj", ConjMethod,
-			"inf", ml_real(INFINITY),
 			"pi", ml_real(M_PI),
 			"π", ml_real(M_PI),
 			"e", ml_real(M_E),

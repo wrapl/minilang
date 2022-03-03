@@ -1143,7 +1143,7 @@ ML_METHODV("[]", MLArrayT) {
 // Returns a sub-array of :mini:`Array` sharing the underlying data, indexed by :mini:`Index/i`.
 // Dimensions are copied to the output array, applying the indices as follows:
 // * If :mini:`Index/i` is :mini:`nil` or :mini:`*` then the next dimension is copied unchanged.
-// * If :mini:`Index/i` is :mini:`..` then the remaining indices are applied to the last dimensions of :mini:`Array` and the dimension in between are copied unchanged.
+// * If :mini:`Index/i` is :mini:`..` then the remaining indices are applied to the last dimensions of :mini:`Array` and the dimensions in between are copied unchanged.
 // * If :mini:`Index/i` is an :mini:`integer` then the :mini:`Index/i`-th value of the next dimension is selected and the dimension is dropped from the output.
 // * If :mini:`Index/i` is an :mini:`integer::range` then the corresponding slice of the next dimension is copied to the output.
 // * If :mini:`Index/i` is a :mini:`tuple[integer, ...]` then the next dimensions are indexed by the corresponding integer in turn (i.e. :mini:`A[(I, J, K)]` gives the same result as :mini:`A[I, J, K]`).
