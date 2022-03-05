@@ -1715,7 +1715,7 @@ ML_METHOD("append", MLStringBufferT, MLTupleT) {
 	return MLSome;
 }
 
-ml_value_t *ML_TYPED_FN(ml_unpack, MLTupleT, ml_tuple_t *Tuple, int Index) {
+static ml_value_t *ML_TYPED_FN(ml_unpack, MLTupleT, ml_tuple_t *Tuple, int Index) {
 	if (Index > Tuple->Size) return MLNil;
 	return Tuple->Values[Index - 1];
 }

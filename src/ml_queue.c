@@ -277,6 +277,12 @@ ML_METHOD("priority", MLQueueEntryT) {
 	return Entry->Priority;
 }
 
+static ml_value_t *ML_TYPED_FN(ml_unpack, MLQueueEntryT, ml_queue_entry_t *Entry, int Index) {
+	if (Index == 1) return Entry->Value;
+	if (Index == 2) return Entry->Priority;
+	return MLNil;
+}
+
 ML_METHOD("queued", MLQueueEntryT) {
 //<Entry
 //>queue::entry|nil

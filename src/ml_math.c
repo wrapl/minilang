@@ -509,11 +509,11 @@ ML_FUNCTION(RealRandom) {
 }
 
 /*
-ML_DEF(pi);
+ML_DEF(math::pi);
 //>real
 // Pi.
 
-ML_DEF(e);
+ML_DEF(math::e);
 //>real
 // Euler's constant.
 */

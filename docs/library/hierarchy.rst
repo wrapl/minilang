@@ -1,12 +1,6 @@
-.. include:: <isonum.txt>
 
-.. include:: <isoamsa.txt>
-
-.. include:: <isotech.txt>
-
-hierarchy
+Hierarchy
 =========
-
 
 .. graphviz::
 

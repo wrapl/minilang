@@ -1255,11 +1255,11 @@ ML_METHOD("<>", MLStringT, MLStringT) {
 	int LengthB = ml_string_length(Args[1]);
 	if (LengthA < LengthB) {
 		int Compare = memcmp(StringA, StringB, LengthA);
-		if (Compare > 1) return (ml_value_t *)One;
+		if (Compare > 0) return (ml_value_t *)One;
 		return (ml_value_t *)NegOne;
 	} else if (LengthA > LengthB) {
 		int Compare = memcmp(StringA, StringB, LengthB);
-		if (Compare < 1) return (ml_value_t *)NegOne;
+		if (Compare < 0) return (ml_value_t *)NegOne;
 		return (ml_value_t *)One;
 	} else {
 		int Compare = memcmp(StringA, StringB, LengthA);

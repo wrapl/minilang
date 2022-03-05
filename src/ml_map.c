@@ -51,10 +51,13 @@ ml_value_t *ml_map() {
 }
 
 ML_METHOD(MLMapT) {
+//>map
 	return ml_map();
 }
 
 ML_METHODV(MLMapT, MLNamesT) {
+//<Key,Value
+//>map
 	ml_value_t *Map = ml_map();
 	ml_value_t **Values = Args + 1;
 	ML_NAMES_FOREACH(Args[0], Iter) ml_map_insert(Map, Iter->Value, *Values++);

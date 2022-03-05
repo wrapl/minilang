@@ -538,7 +538,7 @@ ML_METHOD("append", MLStringBufferT, MLListT, MLStringT) {
 	return (ml_value_t *)Buffer;
 }
 
-ml_value_t *ML_TYPED_FN(ml_unpack, MLListT, ml_list_t *List, int Index) {
+static ml_value_t *ML_TYPED_FN(ml_unpack, MLListT, ml_list_t *List, int Index) {
 	return (ml_value_t *)ml_list_index(List, Index) ?: MLNil;
 }
 

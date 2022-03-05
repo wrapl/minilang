@@ -95,9 +95,9 @@ static void ml_stream_read_run(ml_read_state_t *State, ml_value_t *Value) {
 
 ML_METHODX("read", MLStreamT, MLIntegerT) {
 //<Stream
-//<Delimiters
+//<Count
 //>string|nil
-// Returns the next text from :mini:`Stream`, upto :mini:`Count` characters, whichever comes first. Returns :mini:`nil` if :mini:`Stream` is empty.
+// Returns the next text from :mini:`Stream` upto :mini:`Count` characters. Returns :mini:`nil` if :mini:`Stream` is empty.
 	ml_value_t *Stream = Args[0];
 	ml_read_state_t *State = new(ml_read_state_t);
 	State->Base.Caller = Caller;
