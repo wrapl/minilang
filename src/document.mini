@@ -19,7 +19,7 @@ fun category_name(Type) do
 	end
 end
 
-enum: item("Category", "Type", "Export", "Constructor", "Function", "Method")
+enum: item("Category", "Type", "Export", "Constructor", "Function", "Method", "Append")
 
 fun write_category(Name, Items) do
 	print('Creating Category: {Name}\n')
@@ -163,6 +163,8 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 	Buffer:write("\n")
 	if Return[1] and Method = type_name(Return[1]) then
 		emit(Category, (Method, item::Constructor), Buffer:rest)
+	elseif Method = ":append" then
+		emit(Category, (type_name(Params[2][2]), item::Append, Method), Buffer:rest)
 	elseif Params[1] then
 		emit(Category, (type_name(Params[1][2]), item::Method, Method), Buffer:rest)
 	else
@@ -646,7 +648,7 @@ end
 
 with File := file('{OutputDirectory}/hierarchy.rst', "w") do
 	File:write('
-Hierarchy
+hierarchy
 =========
 
 .. graphviz::

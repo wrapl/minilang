@@ -15,10 +15,6 @@ xml
    *TBD*
 
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: xml::element)`
-   *TBD*
-
-
 .. _type-xml:
 
 :mini:`type xml`
@@ -36,13 +32,13 @@ xml
 
 
 
-:mini:`meth (Xml: xml) / (Tag: string, Attribute₁ is Value₁, ...): sequence`
-   Returns a sequence of the children of :mini:`Xml` with tag :mini:`Tag` and :mini:`Attribute₁ = Value₁`,  etc.
-
-
-
 :mini:`meth (Xml: xml) / (Fn: function): sequence`
    Returns a sequence of the children of :mini:`Xml` for which :mini:`Fn(Child)` is non-nil.
+
+
+
+:mini:`meth (Xml: xml) / (Tag: string, Attribute₁ is Value₁, ...): sequence`
+   Returns a sequence of the children of :mini:`Xml` with tag :mini:`Tag` and :mini:`Attribute₁ = Value₁`,  etc.
 
 
 
@@ -195,12 +191,12 @@ xml
 
 
 
-:mini:`meth (Xml: xml::element):text(Arg₂: string): string`
+:mini:`meth (Xml: xml::element):text: string`
    Returns the (recursive) text content of :mini:`Xml`.
 
 
 
-:mini:`meth (Xml: xml::element):text: string`
+:mini:`meth (Xml: xml::element):text(Arg₂: string): string`
    Returns the (recursive) text content of :mini:`Xml`.
 
 
@@ -223,6 +219,10 @@ xml
 :mini:`meth (Parent: xml::element)[Attribute: string]: string | nil`
    Returns the value of the :mini:`Attribute` attribute of :mini:`Parent`.
 
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: xml::element)`
+   *TBD*
 
 
 .. _type-xml-filter:

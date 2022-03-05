@@ -7,14 +7,6 @@
 table
 =====
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: table)`
-   *TBD*
-
-
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: table::row)`
-   *TBD*
-
-
 .. _type-table:
 
 :mini:`type table < sequence`
@@ -67,6 +59,10 @@ table
 
 
 
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: table)`
+   *TBD*
+
+
 .. _type-table-row:
 
 :mini:`type table::row < sequence`
@@ -82,5 +78,9 @@ table
 :mini:`meth (Row: table::row)[Name: string]: any`
    Returns the value from column :mini:`Name` in :mini:`Row`.
 
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: table::row)`
+   *TBD*
 
 

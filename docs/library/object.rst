@@ -53,6 +53,10 @@ object
    *TBD*
 
 
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: enum::value)`
+   *TBD*
+
+
 .. _type-flags:
 
 :mini:`type flags < type`
@@ -95,6 +99,10 @@ object
    *TBD*
 
 
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: flags::value)`
+   *TBD*
+
+
 .. _type-object:
 
 :mini:`type object`
@@ -105,6 +113,10 @@ object
 :mini:`meth (Object: object) :: (Field: string): field`
    Retrieves the field :mini:`Field` from :mini:`Object`. Mainly intended for unpacking objects.
 
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: object)`
+   *TBD*
 
 
 .. _type-property:
@@ -119,17 +131,5 @@ object
 :mini:`fun property(Value: any, set: any): property`
    Returns a new property which dereferences to :mini:`Value`. Assigning to the property will call :mini:`set(NewValue)`.
 
-
-
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: object)`
-   *TBD*
-
-
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: flags::value)`
-   *TBD*
-
-
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: enum::value)`
-   *TBD*
 
 

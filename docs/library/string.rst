@@ -66,6 +66,10 @@ string
 
 
 
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: regex)`
+   *TBD*
+
+
 .. _type-string:
 
 :mini:`type string < address, sequence`
@@ -253,11 +257,6 @@ string
 
 
 
-:mini:`meth (String: string):replace(I: integer, Function: integer, Arg₄: function): string`
-   Returns a copy of :mini:`String` with the :mini:`String[I,  J]` is replaced by :mini:`Function(String[I,  J])`.
-
-
-
 :mini:`meth (String: string):replace(I: integer, J: integer, Replacement: string): string`
    Returns a copy of :mini:`String` with the :mini:`String[I,  J]` is replaced by :mini:`Replacement`.
 
@@ -265,6 +264,11 @@ string
 
 :mini:`meth (String: string):replace(Pattern: regex, Replacement: string): string`
    Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Replacement`.
+
+
+
+:mini:`meth (String: string):replace(I: integer, Function: integer, Arg₄: function): string`
+   Returns a copy of :mini:`String` with the :mini:`String[I,  J]` is replaced by :mini:`Function(String[I,  J])`.
 
 
 
@@ -315,13 +319,13 @@ string
 
 
 
-:mini:`meth (String: string):trim: string`
-   Returns a copy of :mini:`String` with whitespace removed from both ends.
-
-
-
 :mini:`meth (String: string):trim(Chars: string): string`
    Returns a copy of :mini:`String` with characters in :mini:`Chars` removed from both ends.
+
+
+
+:mini:`meth (String: string):trim: string`
+   Returns a copy of :mini:`String` with whitespace removed from both ends.
 
 
 
@@ -365,8 +369,8 @@ string
 
 
 
-:mini:`meth (String: string)[Range: integer::range]: string`
-   Returns the substring of :mini:`String` corresponding to :mini:`Range` inclusively.
+:mini:`meth (String: string)[Index: integer]: string`
+   Returns the substring of :mini:`String` of length 1 at :mini:`Index`.
 
 
 
@@ -375,8 +379,8 @@ string
 
 
 
-:mini:`meth (String: string)[Index: integer]: string`
-   Returns the substring of :mini:`String` of length 1 at :mini:`Index`.
+:mini:`meth (String: string)[Range: integer::range]: string`
+   Returns the substring of :mini:`String` corresponding to :mini:`Range` inclusively.
 
 
 
@@ -387,6 +391,11 @@ string
 
 :mini:`meth (A: string) ~> (B: string): integer`
    Returns an asymmetric edit distance from :mini:`A` to :mini:`B`.
+
+
+
+:mini:`meth (Buffer: string::buffer):append(Value: string)`
+   Appends :mini:`Value` to :mini:`Buffer`.
 
 
 
@@ -401,15 +410,6 @@ string
 
 :mini:`fun string::buffer(): string::buffer`
    Returns a new :mini:`string::buffer`
-
-
-
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: regex)`
-   *TBD*
-
-
-:mini:`meth (Buffer: string::buffer):append(Value: string)`
-   Appends :mini:`Value` to :mini:`Buffer`.
 
 
 

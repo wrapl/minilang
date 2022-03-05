@@ -102,6 +102,16 @@ number
 
 
 
+:mini:`meth (Buffer: string::buffer):append(Value: complex)`
+   Appends :mini:`Value` to :mini:`Buffer`.
+
+
+
+:mini:`meth (Buffer: string::buffer):append(Value: complex, Format: string)`
+   Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string for the real and imaginary components.
+
+
+
 .. _type-double:
 
 :mini:`type double < real`
@@ -133,7 +143,7 @@ number
 
 
 
-:mini:`meth (A: double) + (B: integer): real`
+:mini:`meth (A: double) + (B: complex): complex`
    Returns :mini:`A + B`.
 
 
@@ -143,7 +153,7 @@ number
 
 
 
-:mini:`meth (A: double) + (B: complex): complex`
+:mini:`meth (A: double) + (B: integer): real`
    Returns :mini:`A + B`.
 
 
@@ -243,13 +253,23 @@ number
 
 
 
+:mini:`meth (A: double) >= (B: integer): real`
+   Returns :mini:`B` if :mini:`A >= B`,  otherwise returns :mini:`nil`.
+
+
+
 :mini:`meth (A: double) >= (B: double): real`
    Returns :mini:`B` if :mini:`A >= B`,  otherwise returns :mini:`nil`.
 
 
 
-:mini:`meth (A: double) >= (B: integer): real`
-   Returns :mini:`B` if :mini:`A >= B`,  otherwise returns :mini:`nil`.
+:mini:`meth (Buffer: string::buffer):append(Value: double, Format: string)`
+   Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string.
+
+
+
+:mini:`meth (Buffer: string::buffer):append(Value: double)`
+   Appends :mini:`Value` to :mini:`Buffer`.
 
 
 
@@ -259,8 +279,8 @@ number
    *TBD*
 
 
-:mini:`meth integer(String: string, Base: integer): integer | error`
-   Returns the base :mini:`Base` integer in :mini:`String` or an error if :mini:`String` does not contain a valid integer.
+:mini:`meth integer(Real: double): integer`
+   Converts :mini:`Real` to an integer (using default rounding).
 
 
 
@@ -269,8 +289,8 @@ number
 
 
 
-:mini:`meth integer(Real: double): integer`
-   Converts :mini:`Real` to an integer (using default rounding).
+:mini:`meth integer(String: string, Base: integer): integer | error`
+   Returns the base :mini:`Base` integer in :mini:`String` or an error if :mini:`String` does not contain a valid integer.
 
 
 
@@ -333,12 +353,12 @@ number
 
 
 
-:mini:`meth (A: integer) - (B: double): real`
+:mini:`meth (A: integer) - (B: integer): integer`
    Returns :mini:`A - B`.
 
 
 
-:mini:`meth (A: integer) - (B: integer): integer`
+:mini:`meth (A: integer) - (B: double): real`
    Returns :mini:`A - B`.
 
 
@@ -392,12 +412,12 @@ number
 
 
 
-:mini:`meth (A: integer) < (B: integer): integer`
+:mini:`meth (A: integer) < (B: double): real`
    Returns :mini:`B` if :mini:`A < B`,  otherwise returns :mini:`nil`.
 
 
 
-:mini:`meth (A: integer) < (B: double): real`
+:mini:`meth (A: integer) < (B: integer): integer`
    Returns :mini:`B` if :mini:`A < B`,  otherwise returns :mini:`nil`.
 
 
@@ -427,22 +447,22 @@ number
 
 
 
-:mini:`meth (A: integer) = (B: double): real`
-   Returns :mini:`B` if :mini:`A == B`,  otherwise returns :mini:`nil`.
-
-
-
 :mini:`meth (A: integer) = (B: integer): integer`
    Returns :mini:`B` if :mini:`A == B`,  otherwise returns :mini:`nil`.
 
 
 
-:mini:`meth (A: integer) > (B: double): real`
-   Returns :mini:`B` if :mini:`A > B`,  otherwise returns :mini:`nil`.
+:mini:`meth (A: integer) = (B: double): real`
+   Returns :mini:`B` if :mini:`A == B`,  otherwise returns :mini:`nil`.
 
 
 
 :mini:`meth (A: integer) > (B: integer): integer`
+   Returns :mini:`B` if :mini:`A > B`,  otherwise returns :mini:`nil`.
+
+
+
+:mini:`meth (A: integer) > (B: double): real`
    Returns :mini:`B` if :mini:`A > B`,  otherwise returns :mini:`nil`.
 
 
@@ -452,12 +472,12 @@ number
 
 
 
-:mini:`meth (A: integer) >= (B: integer): integer`
+:mini:`meth (A: integer) >= (B: double): real`
    Returns :mini:`B` if :mini:`A >= B`,  otherwise returns :mini:`nil`.
 
 
 
-:mini:`meth (A: integer) >= (B: double): real`
+:mini:`meth (A: integer) >= (B: integer): integer`
    Returns :mini:`B` if :mini:`A >= B`,  otherwise returns :mini:`nil`.
 
 
@@ -483,6 +503,21 @@ number
 
 :mini:`meth ~(A: integer): integer`
    Returns :mini:`~A`.
+
+
+
+:mini:`meth (Buffer: string::buffer):append(Value: integer, Base: integer)`
+   Appends :mini:`Value` to :mini:`Buffer` in base :mini:`Base`.
+
+
+
+:mini:`meth (Buffer: string::buffer):append(Value: integer, Format: string)`
+   Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string.
+
+
+
+:mini:`meth (Buffer: string::buffer):append(Value: integer)`
+   Appends :mini:`Value` to :mini:`Buffer` in base :mini:`10`.
 
 
 
@@ -534,51 +569,6 @@ number
 
 :mini:`meth number(String: string): integer | real | complex | error`
    Returns the number in :mini:`String` or an error if :mini:`String` does not contain a valid number.
-
-
-
-:mini:`meth (Buffer: string::buffer):append(Value: complex)`
-   Appends :mini:`Value` to :mini:`Buffer`.
-
-
-
-:mini:`meth (Buffer: string::buffer):append(Value: integer)`
-   Appends :mini:`Value` to :mini:`Buffer` in base :mini:`10`.
-
-
-
-:mini:`meth (Buffer: string::buffer):append(Value: complex, Format: string)`
-   Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string for the real and imaginary components.
-
-
-
-:mini:`meth (Buffer: string::buffer):append(Value: real::range)`
-   Appends a representation of :mini:`Value` to :mini:`Buffer`.
-
-
-
-:mini:`meth (Buffer: string::buffer):append(Value: double)`
-   Appends :mini:`Value` to :mini:`Buffer`.
-
-
-
-:mini:`meth (Buffer: string::buffer):append(Value: double, Format: string)`
-   Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string.
-
-
-
-:mini:`meth (Buffer: string::buffer):append(Value: integer::range)`
-   Appends a representation of :mini:`Value` to :mini:`Buffer`.
-
-
-
-:mini:`meth (Buffer: string::buffer):append(Value: integer, Base: integer)`
-   Appends :mini:`Value` to :mini:`Buffer` in base :mini:`Base`.
-
-
-
-:mini:`meth (Buffer: string::buffer):append(Value: integer, Format: string)`
-   Appends :mini:`Value` to :mini:`Buffer` using :mini:`Format` as a (checked) :c:`printf` format string.
 
 
 

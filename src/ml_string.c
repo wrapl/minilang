@@ -549,7 +549,7 @@ ML_METHOD("append", MLStringBufferT, MLIntegerT, MLStringT) {
 }
 
 ML_METHOD("append", MLStringBufferT, MLIntegerRangeT) {
-//!number
+//!range
 //<Buffer
 //<Value
 // Appends a representation of :mini:`Value` to :mini:`Buffer`.
@@ -564,7 +564,7 @@ ML_METHOD("append", MLStringBufferT, MLIntegerRangeT) {
 }
 
 ML_METHOD("append", MLStringBufferT, MLRealRangeT) {
-//!number
+//!range
 //<Buffer
 //<Value
 // Appends a representation of :mini:`Value` to :mini:`Buffer`.

@@ -32,6 +32,10 @@ method
 
 
 
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: method)`
+   *TBD*
+
+
 .. _fun-method-context:
 
 :mini:`fun method::context(): methods`
@@ -53,10 +57,6 @@ method
 .. _type-methods:
 
 :mini:`type methods`
-   *TBD*
-
-
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: method)`
    *TBD*
 
 

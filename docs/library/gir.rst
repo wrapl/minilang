@@ -114,6 +114,10 @@ gir
    *TBD*
 
 
+:mini:`meth (Value: string):append(Arg₂: gir::enum): string`
+   *TBD*
+
+
 .. _type-gir-object:
 
 :mini:`type gir::object`
@@ -142,6 +146,10 @@ gir
    *TBD*
 
 
+:mini:`meth (Object: string::buffer):append(Arg₂: gir::object): string`
+   *TBD*
+
+
 .. _type-gir-struct:
 
 :mini:`type gir::struct < gir::base`
@@ -154,6 +162,10 @@ gir
 :mini:`type gir::struct`
    A gobject-introspection struct instance.
 
+
+
+:mini:`meth (Struct: string::buffer):append(Arg₂: gir::struct): string`
+   *TBD*
 
 
 :mini:`meth (Typelib: gir::typelib) :: (Name: string): any | error`
@@ -180,23 +192,11 @@ gir
    *TBD*
 
 
-:mini:`meth (Arg₁: string):GirTypelibT(Arg₂: string)`
-   *TBD*
-
-
 :mini:`meth (Arg₁: string):GirTypelibT`
    *TBD*
 
 
-:mini:`meth (Value: string):append(Arg₂: gir::enum): string`
-   *TBD*
-
-
-:mini:`meth (Struct: string::buffer):append(Arg₂: gir::struct): string`
-   *TBD*
-
-
-:mini:`meth (Object: string::buffer):append(Arg₂: gir::object): string`
+:mini:`meth (Arg₁: string):GirTypelibT(Arg₂: string)`
    *TBD*
 
 

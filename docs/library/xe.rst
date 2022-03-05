@@ -7,22 +7,6 @@
 xe
 ==
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: xenode)`
-   *TBD*
-
-
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: xevar)`
-   *TBD*
-
-
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: xenode)`
-   *TBD*
-
-
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: xevar)`
-   *TBD*
-
-
 .. _fun-xeappend:
 
 :mini:`fun xeappend(Arg₁: list, Arg₂: any)`
@@ -97,13 +81,13 @@ xe
 
 .. _type-xenode:
 
-:mini:`type xenode`
+:mini:`type xenode < sequence`
    *TBD*
 
 
 .. _type-xenode:
 
-:mini:`type xenode < sequence`
+:mini:`type xenode`
    *TBD*
 
 
@@ -143,15 +127,23 @@ xe
    *TBD*
 
 
-:mini:`meth (Arg₁: xenode)[Arg₂: integer]`
-   *TBD*
-
-
 :mini:`meth (Arg₁: xenode)[Arg₂: string]`
    *TBD*
 
 
+:mini:`meth (Arg₁: xenode)[Arg₂: integer]`
+   *TBD*
+
+
 :mini:`meth (Arg₁: xenode)[Arg₂: nil]`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: xenode)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: xenode)`
    *TBD*
 
 
@@ -202,6 +194,14 @@ xe
 
 
 :mini:`meth (Arg₁: xevar):name`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: xevar)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: xevar)`
    *TBD*
 
 

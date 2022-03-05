@@ -38,15 +38,15 @@ This is a mostly internal module,  subject to change.
 
 
 
+:mini:`meth (Buffer: string::buffer):append(Closure: closure)`
+   Appends a representation of :mini:`Closure` to :mini:`Buffer`.
+
+
+
 .. _type-closure-info:
 
 :mini:`type closure::info`
    Information about a closure.
-
-
-
-:mini:`meth (Buffer: string::buffer):append(Closure: closure)`
-   Appends a representation of :mini:`Closure` to :mini:`Buffer`.
 
 
 

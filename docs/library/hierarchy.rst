@@ -1,5 +1,5 @@
 
-Hierarchy
+hierarchy
 =========
 
 .. graphviz::

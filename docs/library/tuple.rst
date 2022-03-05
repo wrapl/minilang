@@ -7,11 +7,6 @@
 tuple
 =====
 
-:mini:`meth (Buffer: string::buffer):append(Value: tuple)`
-   Appends a representation of :mini:`Value` to :mini:`Buffer`.
-
-
-
 .. _type-tuple:
 
 :mini:`type tuple < sequence`
@@ -70,6 +65,11 @@ tuple
    Returns the :mini:`Index`-th element in :mini:`Tuple` or an error if :mini:`Index` is out of range.
 
    Indexing starts at :mini:`1`. Negative indices count from the end,  with :mini:`-1` returning the last element.
+
+
+
+:mini:`meth (Buffer: string::buffer):append(Value: tuple)`
+   Appends a representation of :mini:`Value` to :mini:`Buffer`.
 
 
 

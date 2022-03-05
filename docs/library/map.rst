@@ -112,6 +112,15 @@ map
 
 
 
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: map)`
+   *TBD*
+
+
+:mini:`meth (Map: string::buffer):append(Seperator: map, Connector: string, Arg₄: string): string`
+   Returns a string containing the entries of :mini:`Map` with :mini:`Connector` between keys and values and :mini:`Seperator` between entries.
+
+
+
 .. _type-map-node:
 
 :mini:`type map::node`
@@ -121,14 +130,5 @@ map
 
    Assigning to a :mini:`mapnode` updates the corresponding value in the :mini:`map`.
 
-
-
-:mini:`meth (Map: string::buffer):append(Seperator: map, Connector: string, Arg₄: string): string`
-   Returns a string containing the entries of :mini:`Map` with :mini:`Connector` between keys and values and :mini:`Seperator` between entries.
-
-
-
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: map)`
-   *TBD*
 
 

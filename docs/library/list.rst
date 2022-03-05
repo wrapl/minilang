@@ -145,6 +145,14 @@ list
 
 
 
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: list, Arg₃: string)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: list)`
+   *TBD*
+
+
 .. _type-list-node:
 
 :mini:`type list::node`
@@ -161,13 +169,5 @@ list
 :mini:`type list::slice`
    A slice of a list.
 
-
-
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: list)`
-   *TBD*
-
-
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: list, Arg₃: string)`
-   *TBD*
 
 

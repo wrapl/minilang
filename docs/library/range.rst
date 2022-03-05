@@ -15,12 +15,12 @@ range
    *TBD*
 
 
-:mini:`meth (Start: integer) .. (Limit: integer, Step: integer): integer::range`
+:mini:`meth (Start: integer) .. (Limit: integer): integer::range`
    Returns a range from :mini:`Start` to :mini:`Limit` (inclusive).
 
 
 
-:mini:`meth (Start: integer) .. (Limit: integer): integer::range`
+:mini:`meth (Start: integer) .. (Limit: integer, Step: integer): integer::range`
    Returns a range from :mini:`Start` to :mini:`Limit` (inclusive).
 
 
@@ -38,13 +38,13 @@ range
    *TBD*
 
 
-:mini:`meth (Start: integer):up(Count: any): integer::range`
-   Returns an unlimited range from :mini:`Start`.
-
-
-
 :mini:`meth (Start: integer):up(Count: integer): integer::range`
    Returns a range from :mini:`Start` to :mini:`Start + Count - 1` (inclusive).
+
+
+
+:mini:`meth (Start: integer):up(Count: any): integer::range`
+   Returns an unlimited range from :mini:`Start`.
 
 
 
@@ -98,6 +98,11 @@ range
 
 :mini:`meth (Range: integer::range):step: integer`
    Returns the limit of :mini:`Range`.
+
+
+
+:mini:`meth (Buffer: string::buffer):append(Value: integer::range)`
+   Appends a representation of :mini:`Value` to :mini:`Buffer`.
 
 
 
@@ -158,6 +163,11 @@ range
 
 :mini:`meth (Range: real::range):step: real`
    Returns the step of :mini:`Range`.
+
+
+
+:mini:`meth (Buffer: string::buffer):append(Value: real::range)`
+   Appends a representation of :mini:`Value` to :mini:`Buffer`.
 
 
 

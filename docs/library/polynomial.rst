@@ -105,6 +105,10 @@ polynomial
    *TBD*
 
 
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: polynomial)`
+   *TBD*
+
+
 .. _type-polynomial-rational:
 
 :mini:`type polynomial::rational`
@@ -135,11 +139,11 @@ polynomial
    *TBD*
 
 
-:mini:`meth (Arg₁: polynomial::rational) - (Arg₂: polynomial)`
+:mini:`meth (Arg₁: polynomial::rational) - (Arg₂: polynomial::rational)`
    *TBD*
 
 
-:mini:`meth (Arg₁: polynomial::rational) - (Arg₂: polynomial::rational)`
+:mini:`meth (Arg₁: polynomial::rational) - (Arg₂: polynomial)`
    *TBD*
 
 
@@ -151,23 +155,19 @@ polynomial
    *TBD*
 
 
-:mini:`meth (Arg₁: polynomial::rational) / (Arg₂: polynomial::rational)`
-   *TBD*
-
-
 :mini:`meth (Arg₁: polynomial::rational) / (Arg₂: number)`
    *TBD*
 
 
-:mini:`meth polynomial(Arg₁: string)`
-   *TBD*
-
-
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: polynomial)`
+:mini:`meth (Arg₁: polynomial::rational) / (Arg₂: polynomial::rational)`
    *TBD*
 
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: polynomial::rational)`
+   *TBD*
+
+
+:mini:`meth polynomial(Arg₁: string)`
    *TBD*
 
 

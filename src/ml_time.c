@@ -140,6 +140,7 @@ ML_METHOD("nsec", MLTimeT) {
 }
 
 ML_METHOD("append", MLStringBufferT, MLTimeT) {
+//<Buffer
 //<Time
 //>string
 // Formats :mini:`Time` as a local time.
@@ -154,6 +155,7 @@ ML_METHOD("append", MLStringBufferT, MLTimeT) {
 }
 
 ML_METHOD("append", MLStringBufferT, MLTimeT, MLNilT) {
+//<Buffer
 //<Time
 //<TimeZone
 //>string
@@ -181,6 +183,7 @@ ML_METHOD("append", MLStringBufferT, MLTimeT, MLNilT) {
 }
 
 ML_METHOD("append", MLStringBufferT, MLTimeT, MLStringT) {
+//<Buffer
 //<Time
 //<Format
 //>string
@@ -197,6 +200,7 @@ ML_METHOD("append", MLStringBufferT, MLTimeT, MLStringT) {
 }
 
 ML_METHOD("append", MLStringBufferT, MLTimeT, MLStringT, MLNilT) {
+//<Buffer
 //<Time
 //<Format
 //<TimeZone
