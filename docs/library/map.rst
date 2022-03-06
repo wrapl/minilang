@@ -63,6 +63,11 @@ map
 
 
 
+:mini:`meth (Map: map):empty: map`
+   Deletes all keys and values from :mini:`Map` and returns it.
+
+
+
 :mini:`meth (Map: map):grow(Sequence: sequence, ...): map`
    Adds of all the key and value pairs produced by :mini:`Sequence` to :mini:`Map` and returns :mini:`Map`.
 
@@ -102,13 +107,13 @@ map
    *TBD*
 
 
-:mini:`meth (Map: map)[Key: any, Default: function]: mapnode`
-   Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then :mini:`Default(Key)` is called and the result inserted into :mini:`Map`.
-
-
-
 :mini:`meth (Map: map)[Key: any]: mapnode`
    Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then a new floating node is returned with value :mini:`nil`. This node will insert :mini:`Key` into :mini:`Map` if assigned.
+
+
+
+:mini:`meth (Map: map)[Key: any, Default: function]: mapnode`
+   Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then :mini:`Default(Key)` is called and the result inserted into :mini:`Map`.
 
 
 

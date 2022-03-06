@@ -394,6 +394,10 @@ ML_FUNCTION(MLString) {
 //<Value:any
 //>string
 // Returns a general (type name only) representation of :mini:`Value` as a string.
+//$= string(100)
+//$= string(nil)
+//$= string("Hello world!\n")
+//$= string([1, 2, 3])
 	ML_CHECK_ARG_COUNT(1);
 	if (ml_is(Args[0], MLStringT)) return Args[0];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
@@ -676,6 +680,8 @@ ML_METHOD(MLIntegerT, MLStringT) {
 //<String
 //>integer|error
 // Returns the base :mini:`10` integer in :mini:`String` or an error if :mini:`String` does not contain a valid integer.
+//$= integer("123")
+//$= integer("ABC")
 	const char *Start = ml_string_value(Args[0]);
 	char *End;
 	long Value = strtol(Start, &End, 10);
@@ -2644,6 +2650,14 @@ ml_value_t *ml_regexi(const char *Pattern, int Length) {
 const char *ml_regex_pattern(const ml_value_t *Value) {
 	ml_regex_t *Regex = (ml_regex_t *)Value;
 	return Regex->Pattern;
+}
+
+ML_METHOD("pattern", MLRegexT) {
+//<Regex
+//>string
+// Returns the pattern used to create :mini:`Regex`.
+//$= r"[0-9]+":pattern
+	return ml_string(ml_regex_pattern(Args[0]), -1);
 }
 
 ML_METHOD("<>", MLRegexT, MLRegexT) {

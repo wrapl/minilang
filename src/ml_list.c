@@ -111,6 +111,7 @@ ml_value_t *ml_list() {
 ML_METHOD(MLListT) {
 //>list
 // Returns an empty list.
+//$= list()
 	return ml_list();
 }
 
@@ -118,6 +119,7 @@ ML_METHOD(MLListT, MLTupleT) {
 //<Tuple
 //>list
 // Returns a list containing the values in :mini:`Tuple`.
+//$= list((1, 2, 3))
 	ml_value_t *List = ml_list();
 	ml_tuple_t *Tuple = (ml_tuple_t *)Args[0];
 	for (int I = 0; I < Tuple->Size; ++I) {
@@ -148,6 +150,7 @@ ML_METHODVX(MLListT, MLSequenceT) {
 //<Sequence
 //>list
 // Returns a list of all of the values produced by :mini:`Sequence`.
+//$= list(1 .. 10)
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)list_iterate;
@@ -161,6 +164,8 @@ ML_METHODVX("grow", MLListT, MLSequenceT) {
 //<Sequence
 //>list
 // Pushes of all of the values produced by :mini:`Sequence` onto :mini:`List` and returns :mini:`List`.
+//$- let L := [1, 2, 3]
+//$= L:grow(4 .. 6)
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)list_iterate;
@@ -315,6 +320,7 @@ ML_METHOD("count", MLListT) {
 //<List
 //>integer
 // Returns the length of :mini:`List`
+//$= [1, 2, 3]:count
 	ml_list_t *List = (ml_list_t *)Args[0];
 	return ml_integer(List->Length);
 }
@@ -323,6 +329,7 @@ ML_METHOD("length", MLListT) {
 //<List
 //>integer
 // Returns the length of :mini:`List`
+//$= [1, 2, 3]:length
 	ml_list_t *List = (ml_list_t *)Args[0];
 	return ml_integer(List->Length);
 }
@@ -383,6 +390,9 @@ ML_METHODX("filter", MLListT, MLFunctionT) {
 //<Filter
 //>list
 // Removes every :mini:`Value` from :mini:`List` for which :mini:`Function(Value)` returns :mini:`nil` and returns those values in a new list.
+//$- let L := [1, 2, 3, 4, 5, 6]
+//$= L:filter(2 | _)
+//$= L
 	ml_list_t *List = (ml_list_t *)Args[0];
 	ml_list_filter_state_t *State = new(ml_list_filter_state_t);
 	State->Base.Caller = Caller;
@@ -408,6 +418,10 @@ ML_METHOD("[]", MLListT, MLIntegerT) {
 //>listnode | nil
 // Returns the :mini:`Index`-th node in :mini:`List` or :mini:`nil` if :mini:`Index` is outside the range of :mini:`List`.
 // Indexing starts at :mini:`1`. Negative indices are counted from the end of the list, with :mini:`-1` returning the last node.
+//$- let L := ["a", "b", "c", "d", "e", "f"]
+//$= L[3]
+//$= L[-2]
+//$= L[8]
 	ml_list_t *List = (ml_list_t *)Args[0];
 	int Index = ml_integer_value_fast(Args[1]);
 	return (ml_value_t *)ml_list_index(List, Index) ?: MLNil;
@@ -610,6 +624,16 @@ ML_METHOD("pull", MLListT) {
 //>any | nil
 // Removes and returns the last element of :mini:`List` or :mini:`nil` if the :mini:`List` is empty.
 	return ml_list_pull(Args[0]) ?: MLNil;
+}
+
+ML_METHOD("empty", MLListT) {
+//<List
+//>list
+// Removes all elements from :mini:`List` and returns it.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	List->Head = List->Tail = NULL;
+	List->Length = 0;
+	return (ml_value_t *)List;
 }
 
 ML_METHOD("copy", MLListT) {

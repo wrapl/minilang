@@ -628,6 +628,10 @@ ML_METHOD("/", MLIntegerT, MLIntegerT) {
 //<Int/2
 //>integer | real
 // Returns :mini:`Int/1 / Int/2` as an integer if the division is exact, otherwise as a real.
+//$= let N := 10 / 2
+//$= type(N)
+//$= let R := 10 / 3
+//$= type(R)
 	int64_t IntegerA = ml_integer_value_fast(Args[0]);
 	int64_t IntegerB = ml_integer_value_fast(Args[1]);
 	if (!IntegerB) return ml_error("ValueError", "Division by 0");

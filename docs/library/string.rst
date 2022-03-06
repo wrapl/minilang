@@ -36,6 +36,16 @@ string
 
 
 
+:mini:`meth (Regex: regex):pattern: string`
+   Returns the pattern used to create :mini:`Regex`.
+
+   .. collapse:: Example
+
+      .. code-block:: mini
+
+         r"[0-9]+":pattern :> "[0-9]+"
+
+
 :mini:`meth (Arg₁: regex) < (Arg₂: regex): regex | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ < Arg₂` and :mini:`nil` otherwise.
 
@@ -82,6 +92,14 @@ string
 :mini:`fun string(Value: any): string`
    Returns a general (type name only) representation of :mini:`Value` as a string.
 
+   .. collapse:: Example
+
+      .. code-block:: mini
+
+         string(100) :> "100"
+         string(nil) :> "nil"
+         string("Hello world!\n") :> "Hello world!\n"
+         string([1, 2, 3]) :> "[1, 2, 3]"
 
 
 :mini:`meth (Arg₁: string) != (Arg₂: string): string | nil`
@@ -369,11 +387,6 @@ string
 
 
 
-:mini:`meth (String: string)[Index: integer]: string`
-   Returns the substring of :mini:`String` of length 1 at :mini:`Index`.
-
-
-
 :mini:`meth (String: string)[Start: integer, End: integer]: string`
    Returns the substring of :mini:`String` from :mini:`Start` to :mini:`End - 1` inclusively.
 
@@ -381,6 +394,11 @@ string
 
 :mini:`meth (String: string)[Range: integer::range]: string`
    Returns the substring of :mini:`String` corresponding to :mini:`Range` inclusively.
+
+
+
+:mini:`meth (String: string)[Index: integer]: string`
+   Returns the substring of :mini:`String` of length 1 at :mini:`Index`.
 
 
 

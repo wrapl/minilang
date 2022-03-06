@@ -494,6 +494,19 @@ ML_METHOD("::", MLMapT, MLStringT) {
 	return (ml_value_t *)Node;
 }
 
+ML_METHOD("empty", MLMapT) {
+//<Map
+//>map
+// Deletes all keys and values from :mini:`Map` and returns it.
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	Map->Root = Map->Head = Map->Tail = NULL;
+	Map->Size = 0;
+#ifdef ML_GENERICS
+	Map->Type = MLMapT;
+#endif
+	return (ml_value_t *)Map;
+}
+
 ML_METHOD("insert", MLMapT, MLAnyT, MLAnyT) {
 //<Map
 //<Key

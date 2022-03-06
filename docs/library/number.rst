@@ -287,6 +287,12 @@ number
 :mini:`meth integer(String: string): integer | error`
    Returns the base :mini:`10` integer in :mini:`String` or an error if :mini:`String` does not contain a valid integer.
 
+   .. collapse:: Example
+
+      .. code-block:: mini
+
+         integer("123") :> 123
+         integer("ABC") :> error("ValueError", "Error parsing integer")
 
 
 :mini:`meth integer(String: string, Base: integer): integer | error`
@@ -391,6 +397,14 @@ number
 :mini:`meth (Int₁: integer) / (Int₂: integer): integer | real`
    Returns :mini:`Int₁ / Int₂` as an integer if the division is exact,  otherwise as a real.
 
+   .. collapse:: Example
+
+      .. code-block:: mini
+
+         let N := 10 / 2 :> 5
+         type(N) :> <<int32>>
+         let R := 10 / 3 :> 3.33333
+         type(R) :> <<double>>
 
 
 :mini:`meth (A: integer) /\ (B: integer): integer`

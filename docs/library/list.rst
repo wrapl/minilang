@@ -17,16 +17,31 @@ list
 :mini:`meth list(Tuple: tuple): list`
    Returns a list containing the values in :mini:`Tuple`.
 
+   .. collapse:: Example
+
+      .. code-block:: mini
+
+         list((1, 2, 3)) :> [1, 2, 3]
 
 
 :mini:`meth list(Sequence: sequence, ...): list`
    Returns a list of all of the values produced by :mini:`Sequence`.
 
+   .. collapse:: Example
+
+      .. code-block:: mini
+
+         list(1 .. 10) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 
 :mini:`meth list(): list`
    Returns an empty list.
 
+   .. collapse:: Example
+
+      .. code-block:: mini
+
+         list() :> []
 
 
 :mini:`meth (List₁: list) + (List₂: list): list`
@@ -42,11 +57,28 @@ list
 :mini:`meth (List: list):count: integer`
    Returns the length of :mini:`List`
 
+   .. collapse:: Example
+
+      .. code-block:: mini
+
+         [1, 2, 3]:count :> 3
+
+
+:mini:`meth (List: list):empty: list`
+   Removes all elements from :mini:`List` and returns it.
+
 
 
 :mini:`meth (List: list):filter(Filter: function): list`
    Removes every :mini:`Value` from :mini:`List` for which :mini:`Function(Value)` returns :mini:`nil` and returns those values in a new list.
 
+   .. collapse:: Example
+
+      .. code-block:: mini
+
+         let L := [1, 2, 3, 4, 5, 6]
+         L:filter(2 | _) :> [1, 3, 5]
+         L :> [2, 4, 6]
 
 
 :mini:`meth (List: list):find(Value: any): integer | nil`
@@ -57,11 +89,22 @@ list
 :mini:`meth (List: list):grow(Sequence: sequence, ...): list`
    Pushes of all of the values produced by :mini:`Sequence` onto :mini:`List` and returns :mini:`List`.
 
+   .. collapse:: Example
+
+      .. code-block:: mini
+
+         let L := [1, 2, 3]
+         L:grow(4 .. 6) :> [1, 2, 3, 4, 5, 6]
 
 
 :mini:`meth (List: list):length: integer`
    Returns the length of :mini:`List`
 
+   .. collapse:: Example
+
+      .. code-block:: mini
+
+         [1, 2, 3]:length :> 3
 
 
 :mini:`meth (List: list):pop: any | nil`
@@ -99,6 +142,11 @@ list
 
 
 
+:mini:`meth (List: list):splice(Index: integer, Count: integer): list | nil`
+   Removes :mini:`Count` elements from :mini:`List` starting at :mini:`Index`. Returns the removed elements as a new list.
+
+
+
 :mini:`meth (List: list):splice(Index: integer, Source: list): nil`
    Inserts the elements from :mini:`Source` into :mini:`List` starting at :mini:`Index`,  leaving :mini:`Source` empty.
 
@@ -109,20 +157,8 @@ list
 
 
 
-:mini:`meth (List: list):splice(Index: integer, Count: integer): list | nil`
-   Removes :mini:`Count` elements from :mini:`List` starting at :mini:`Index`. Returns the removed elements as a new list.
-
-
-
 :mini:`meth (List: list):splice(Index: integer, Count: integer, Source: list): list | nil`
    Removes :mini:`Count` elements from :mini:`List` starting at :mini:`Index`,  then inserts the elements from :mini:`Source`,  leaving :mini:`Source` empty. Returns the removed elements as a new list.
-
-
-
-:mini:`meth (List: list)[Range: integer::range]: list::slice`
-   Returns a slice of :mini:`List` starting at :mini:`Range:start` and ending at :mini:`Range:limit`,  both inclusive.
-
-   Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
 
 
 
@@ -140,6 +176,21 @@ list
 
 :mini:`meth (List: list)[Index: integer]: listnode | nil`
    Returns the :mini:`Index`-th node in :mini:`List` or :mini:`nil` if :mini:`Index` is outside the range of :mini:`List`.
+
+   Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
+
+   .. collapse:: Example
+
+      .. code-block:: mini
+
+         let L := ["a", "b", "c", "d", "e", "f"]
+         L[3] :> "c"
+         L[-2] :> "e"
+         L[8] :> nil
+
+
+:mini:`meth (List: list)[Range: integer::range]: list::slice`
+   Returns a slice of :mini:`List` starting at :mini:`Range:start` and ending at :mini:`Range:limit`,  both inclusive.
 
    Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
 
