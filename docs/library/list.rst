@@ -17,31 +17,25 @@ list
 :mini:`meth list(Tuple: tuple): list`
    Returns a list containing the values in :mini:`Tuple`.
 
-   .. collapse:: Example
+   .. code-block:: mini
 
-      .. code-block:: mini
-
-         list((1, 2, 3)) :> [1, 2, 3]
+      list((1, 2, 3)) :> [1, 2, 3]
 
 
 :mini:`meth list(Sequence: sequence, ...): list`
    Returns a list of all of the values produced by :mini:`Sequence`.
 
-   .. collapse:: Example
+   .. code-block:: mini
 
-      .. code-block:: mini
-
-         list(1 .. 10) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      list(1 .. 10) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 
 :mini:`meth list(): list`
    Returns an empty list.
 
-   .. collapse:: Example
+   .. code-block:: mini
 
-      .. code-block:: mini
-
-         list() :> []
+      list() :> []
 
 
 :mini:`meth (List₁: list) + (List₂: list): list`
@@ -57,11 +51,9 @@ list
 :mini:`meth (List: list):count: integer`
    Returns the length of :mini:`List`
 
-   .. collapse:: Example
+   .. code-block:: mini
 
-      .. code-block:: mini
-
-         [1, 2, 3]:count :> 3
+      [1, 2, 3]:count :> 3
 
 
 :mini:`meth (List: list):empty: list`
@@ -72,13 +64,11 @@ list
 :mini:`meth (List: list):filter(Filter: function): list`
    Removes every :mini:`Value` from :mini:`List` for which :mini:`Function(Value)` returns :mini:`nil` and returns those values in a new list.
 
-   .. collapse:: Example
+   .. code-block:: mini
 
-      .. code-block:: mini
-
-         let L := [1, 2, 3, 4, 5, 6]
-         L:filter(2 | _) :> [1, 3, 5]
-         L :> [2, 4, 6]
+      let L := [1, 2, 3, 4, 5, 6]
+      L:filter(2 | _) :> [1, 3, 5]
+      L :> [2, 4, 6]
 
 
 :mini:`meth (List: list):find(Value: any): integer | nil`
@@ -89,22 +79,18 @@ list
 :mini:`meth (List: list):grow(Sequence: sequence, ...): list`
    Pushes of all of the values produced by :mini:`Sequence` onto :mini:`List` and returns :mini:`List`.
 
-   .. collapse:: Example
+   .. code-block:: mini
 
-      .. code-block:: mini
-
-         let L := [1, 2, 3]
-         L:grow(4 .. 6) :> [1, 2, 3, 4, 5, 6]
+      let L := [1, 2, 3]
+      L:grow(4 .. 6) :> [1, 2, 3, 4, 5, 6]
 
 
 :mini:`meth (List: list):length: integer`
    Returns the length of :mini:`List`
 
-   .. collapse:: Example
+   .. code-block:: mini
 
-      .. code-block:: mini
-
-         [1, 2, 3]:length :> 3
+      [1, 2, 3]:length :> 3
 
 
 :mini:`meth (List: list):pop: any | nil`
@@ -179,14 +165,12 @@ list
 
    Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
 
-   .. collapse:: Example
+   .. code-block:: mini
 
-      .. code-block:: mini
-
-         let L := ["a", "b", "c", "d", "e", "f"]
-         L[3] :> "c"
-         L[-2] :> "e"
-         L[8] :> nil
+      let L := ["a", "b", "c", "d", "e", "f"]
+      L[3] :> "c"
+      L[-2] :> "e"
+      L[8] :> nil
 
 
 :mini:`meth (List: list)[Range: integer::range]: list::slice`
