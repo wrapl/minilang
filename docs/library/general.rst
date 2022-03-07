@@ -19,21 +19,15 @@ general
    *TBD*
 
 
-.. _fun-exchange:
-
-:mini:`fun exchange(Arg₁: any)`
-   *TBD*
-
-
-.. _fun-halt:
-
-:mini:`fun halt(Code?: integer)`
-   *TBD*
-
-
 .. _fun-now:
 
 :mini:`fun now()`
+   *TBD*
+
+
+.. _fun-exchange:
+
+:mini:`fun exchange(Arg₁: any)`
    *TBD*
 
 
@@ -47,6 +41,12 @@ general
 .. _fun-replace:
 
 :mini:`fun replace(Arg₁: any, Arg₂: any)`
+   *TBD*
+
+
+.. _fun-halt:
+
+:mini:`fun halt(Code?: integer)`
    *TBD*
 
 

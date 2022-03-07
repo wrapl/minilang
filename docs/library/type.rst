@@ -14,6 +14,13 @@ type
 
 
 
+.. _fun-type:
+
+:mini:`fun type(Value: any): type`
+   Returns the type of :mini:`Value`.
+
+
+
 :mini:`meth (Value₁: any) != (Value₂: any): Value₂ | nil`
    Returns :mini:`Value₂` if :mini:`Value₁` and :mini:`Value₂` are not exactly the same instance and :mini:`nil` otherwise.
 
@@ -102,13 +109,6 @@ type
    Type of all types.
 
    Every type contains a set of named exports,  which allows them to be used as modules.
-
-
-
-.. _fun-type:
-
-:mini:`fun type(Value: any): type`
-   Returns the type of :mini:`Value`.
 
 
 

@@ -20,6 +20,29 @@ tasks
 
 
 
+.. _fun-buffered:
+
+:mini:`fun buffered(Size: integer, Sequence: any): sequence`
+   Returns an sequence that buffers the keys and values from :mini:`Sequence` in advance,  buffering at most :mini:`Size` pairs.
+
+   .. collapse:: Example
+
+      .. code-block:: mini
+
+         list(buffered(5, 1 .. 10)) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+
+.. _fun-tasks:
+
+:mini:`fun tasks(Max?: integer, Min?: integer): tasks`
+   Creates a new :mini:`tasks` set.
+
+   If specified,  at most :mini:`Max` functions will be called in parallel (the default is unlimited).
+
+   If :mini:`Min` is also specified then the number of running tasks must drop below :mini:`Min` before more tasks are launched.
+
+
+
 .. _type-task:
 
 :mini:`type task`
@@ -56,17 +79,6 @@ tasks
 
 :mini:`type tasks < function`
    A dynamic set of tasks (function calls). Multiple tasks can run in parallel (depending on the availability of a scheduler and/or asynchronous function calls).
-
-
-
-.. _fun-tasks:
-
-:mini:`fun tasks(Max?: integer, Min?: integer): tasks`
-   Creates a new :mini:`tasks` set.
-
-   If specified,  at most :mini:`Max` functions will be called in parallel (the default is unlimited).
-
-   If :mini:`Min` is also specified then the number of running tasks must drop below :mini:`Min` before more tasks are launched.
 
 
 

@@ -7,6 +7,48 @@
 macro
 =====
 
+.. _fun-macro-block:
+
+:mini:`fun macro::block(): blockbuilder`
+   Returns a new block builder.
+
+
+
+.. _fun-macro-call:
+
+:mini:`fun macro::call(): exprbuilder`
+   Returns a new call builder.
+
+
+
+.. _fun-macro-list:
+
+:mini:`fun macro::list(): exprbuilder`
+   Returns a new list builder.
+
+
+
+.. _fun-macro-map:
+
+:mini:`fun macro::map(): exprbuilder`
+   Returns a new list builder.
+
+
+
+.. _fun-macro-tuple:
+
+:mini:`fun macro::tuple(): exprbuilder`
+   Returns a new list builder.
+
+
+
+.. _fun-macro-value:
+
+:mini:`fun macro::value(Value: any): expr`
+   Returns a new value expression.
+
+
+
 .. _type-block-builder:
 
 :mini:`type block::builder`
@@ -46,13 +88,13 @@ macro
 
 
 
-:mini:`meth (Expr: expr):scoped(Name₁ is  Value₁, ...): expr`
-   Returns a new expression which wraps :mini:`Expr` with the constant definitions from :mini:`Names` and :mini:`Values`.
-
-
-
 :mini:`meth (Expr: expr):scoped(Module: module): expr`
    Returns a new expression which wraps :mini:`Expr` with the exports from :mini:`Module`.
+
+
+
+:mini:`meth (Expr: expr):scoped(Name₁ is  Value₁, ...): expr`
+   Returns a new expression which wraps :mini:`Expr` with the constant definitions from :mini:`Names` and :mini:`Values`.
 
 
 
@@ -93,13 +135,6 @@ macro
 
 
 
-.. _type-macro:
-
-:mini:`type macro`
-   A macro.
-
-
-
 .. _fun-macro:
 
 :mini:`fun macro(Function: function): macro`
@@ -109,17 +144,10 @@ macro
 
 
 
-.. _fun-macro-block:
+.. _type-macro:
 
-:mini:`fun macro::block(): blockbuilder`
-   Returns a new block builder.
-
-
-
-.. _fun-macro-call:
-
-:mini:`fun macro::call(): exprbuilder`
-   Returns a new call builder.
+:mini:`type macro`
+   A macro.
 
 
 
@@ -134,34 +162,6 @@ macro
 
 :mini:`fun macro::ident(Name: string): expr`
    Returns a new identifier expression.
-
-
-
-.. _fun-macro-list:
-
-:mini:`fun macro::list(): exprbuilder`
-   Returns a new list builder.
-
-
-
-.. _fun-macro-map:
-
-:mini:`fun macro::map(): exprbuilder`
-   Returns a new list builder.
-
-
-
-.. _fun-macro-tuple:
-
-:mini:`fun macro::tuple(): exprbuilder`
-   Returns a new list builder.
-
-
-
-.. _fun-macro-value:
-
-:mini:`fun macro::value(Value: any): expr`
-   Returns a new value expression.
 
 
 

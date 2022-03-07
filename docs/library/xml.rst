@@ -7,6 +7,12 @@
 xml
 ===
 
+.. _fun-xml-decoder:
+
+:mini:`fun xml::decoder(Callback: any): xml::decoder`
+   *TBD*
+
+
 :mini:`meth xml(Arg₁: stream)`
    *TBD*
 
@@ -137,12 +143,6 @@ xml
 .. _type-xml-decoder:
 
 :mini:`type xml::decoder < stream`
-   *TBD*
-
-
-.. _fun-xml-decoder:
-
-:mini:`fun xml::decoder(Callback: any): xml::decoder`
    *TBD*
 
 

@@ -7,15 +7,15 @@
 channel
 =======
 
-.. _type-channel:
-
-:mini:`type channel`
-   *TBD*
-
-
 .. _fun-channel:
 
 :mini:`fun channel()`
+   *TBD*
+
+
+.. _type-channel:
+
+:mini:`type channel`
    *TBD*
 
 

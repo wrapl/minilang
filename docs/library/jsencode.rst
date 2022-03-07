@@ -7,15 +7,21 @@
 jsencode
 ========
 
-.. _type-jsdecoder:
-
-:mini:`type jsdecoder`
-   *TBD*
-
-
 .. _fun-jsdecoder:
 
 :mini:`fun jsdecoder()`
+   *TBD*
+
+
+.. _fun-jsencoder:
+
+:mini:`fun jsencoder()`
+   *TBD*
+
+
+.. _type-jsdecoder:
+
+:mini:`type jsdecoder`
    *TBD*
 
 
@@ -30,12 +36,6 @@ jsencode
 .. _type-jsencoder:
 
 :mini:`type jsencoder`
-   *TBD*
-
-
-.. _fun-jsencoder:
-
-:mini:`fun jsencoder()`
    *TBD*
 
 

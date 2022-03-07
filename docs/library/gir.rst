@@ -7,6 +7,12 @@
 gir
 ===
 
+.. _fun-girrun:
+
+:mini:`fun girrun(Arg₁: any)`
+   *TBD*
+
+
 .. _type-fieldref-boolean:
 
 :mini:`type fieldref::boolean`
@@ -121,14 +127,14 @@ gir
 .. _type-gir-object:
 
 :mini:`type gir::object`
-   *TBD*
+   A gobject-introspection object instance.
+
 
 
 .. _type-gir-object:
 
 :mini:`type gir::object`
-   A gobject-introspection object instance.
-
+   *TBD*
 
 
 .. _type-gir-object:
@@ -172,12 +178,6 @@ gir
    *TBD*
 
 
-.. _fun-girrun:
-
-:mini:`fun girrun(Arg₁: any)`
-   *TBD*
-
-
 :mini:`meth integer(Value: gir::enum): integer`
    *TBD*
 
@@ -192,11 +192,11 @@ gir
    *TBD*
 
 
-:mini:`meth (Arg₁: string):GirTypelibT`
+:mini:`meth (Arg₁: string):GirTypelibT(Arg₂: string)`
    *TBD*
 
 
-:mini:`meth (Arg₁: string):GirTypelibT(Arg₂: string)`
+:mini:`meth (Arg₁: string):GirTypelibT`
    *TBD*
 
 

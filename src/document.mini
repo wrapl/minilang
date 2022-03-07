@@ -200,6 +200,7 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Examples,
 				Result := Next
 			on Error do
 				Result := Error
+				exit
 			end
 			Buffer:write(Example, " :> ", image(Result), "\n")
 		end
@@ -262,12 +263,13 @@ fun write_function(Category, Kind, Name, Params, Return, Description, Examples, 
 				Result := Next
 			on Error do
 				Result := Error
+				exit
 			end
 			Buffer:write(Example, " :> ", image(Result), "\n")
 		end
 	end
 	Buffer:write("\n")
-	emit(Category, (Name, item::Function), Buffer:rest)
+	emit(Category, (if let Param := first(Params) then type_name(Param[2]) else "" end, item::Function, Name), Buffer:rest)
 end
 
 fun write_constructor(Category, Kind, Name, Params, Return, Description, Location) do
@@ -502,16 +504,16 @@ fun process(FileName) do
 						Category := Line[4, 0]:trim
 					elseif Line % r"^/[/*] " then
 						Description:put(Line[4, 0]:replace(Subscripts))
-					elseif let Match := Line % r"ML_CHECK(X?)_ARG_COUNT\(([0-9]+)\)" then
-						let Count := integer(Match[3])
-						for I in (Params:length + 1) .. Count do
-							Params:put(['Arg/{I}':replace(Subscripts), "any", ""])
-						end
 					elseif Line % r"^/[/*]\$- " then
 						Example:write("         ", Line[6, 0])
 					elseif Line % r"^/[/*]\$= " then
 						Example:write("         ", Line[6, -1])
 						Examples:put(Example:rest)
+					elseif let Match := Line % r"ML_CHECK(X?)_ARG_COUNT\(([0-9]+)\)" then
+						let Count := integer(Match[3])
+						for I in (Params:length + 1) .. Count do
+							Params:put(['Arg/{I}':replace(Subscripts), "any", ""])
+						end
 					elseif let Match := Line % r"ML_CHECK(X?)_ARG_TYPE\(([0-9]+), (\w+)\)" then
 						let Index := integer(Match[3]) + 1
 						Params[Index][2] := Match[4]
@@ -533,6 +535,8 @@ fun process(FileName) do
 				let Params := []
 				var Return := []
 				let Description := []
+				let Examples := []
+				let Example := string::buffer()
 				loop
 					let Line := while File:read
 					LineNo := old + 1
@@ -560,6 +564,11 @@ fun process(FileName) do
 						Category := Line[4, 0]:trim
 					elseif Line % r"^/[/*] " then
 						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]\$- " then
+						Example:write("         ", Line[6, 0])
+					elseif Line % r"^/[/*]\$= " then
+						Example:write("         ", Line[6, -1])
+						Examples:put(Example:rest)
 					elseif let Match := Line % r"ML_CHECK(X?)_ARG_COUNT\(([0-9]+)\)" then
 						let Count := integer(Match[3])
 						for I in (Params:length + 1) .. Count do
@@ -573,9 +582,9 @@ fun process(FileName) do
 					end
 				end
 				if CurrentDefine then
-					CurrentDefine:put(write_function, [Category, Kind, Name, Params, Return, Description, Location])
+					CurrentDefine:put(write_function, [Category, Kind, Name, Params, Return, Description, Examples, Location])
 				else
-					write_function(Category, Kind, Name, Params, Return, Description, Location)
+					write_function(Category, Kind, Name, Params, Return, Description, Examples, Location)
 				end
 			elseif Line % r"^ML_CONSTRUCTOR" then
 				let Location := (FileName, LineNo)

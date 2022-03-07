@@ -186,6 +186,7 @@
       <keyword>grid</keyword>
       <keyword>pair</keyword>
       <keyword>weave</keyword>
+      <keyword>unpack</keyword>
       <keyword>fold</keyword>
       <keyword>unfold</keyword>
       <keyword>swap</keyword>
@@ -255,7 +256,7 @@
     </context>
     <context id="minilang">
       <include>
-<!--        
+<!--
 	<context ref="bash-line-comment"/>
 -->
         <context ref="comment"/>

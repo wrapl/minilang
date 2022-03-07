@@ -7,6 +7,28 @@
 string
 ======
 
+.. _fun-string-buffer:
+
+:mini:`fun string::buffer(): string::buffer`
+   Returns a new :mini:`string::buffer`
+
+
+
+.. _fun-string:
+
+:mini:`fun string(Value: any): string`
+   Returns a general (type name only) representation of :mini:`Value` as a string.
+
+   .. collapse:: Example
+
+      .. code-block:: mini
+
+         string(100) :> "100"
+         string(nil) :> "nil"
+         string("Hello world!\n") :> "Hello world!\n"
+         string([1, 2, 3]) :> "[1, 2, 3]"
+
+
 :mini:`meth (N: integer) * (String: string): string`
    Returns :mini:`String` concatentated :mini:`N` times.
 
@@ -21,13 +43,6 @@ string
 
 :mini:`type regex`
    A regular expression.
-
-
-
-.. _fun-regex:
-
-:mini:`fun regex(String: string): regex | error`
-   Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
 
 
 
@@ -87,19 +102,11 @@ string
 
 
 
-.. _fun-string:
+.. _fun-regex:
 
-:mini:`fun string(Value: any): string`
-   Returns a general (type name only) representation of :mini:`Value` as a string.
+:mini:`fun regex(String: string): regex | error`
+   Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
 
-   .. collapse:: Example
-
-      .. code-block:: mini
-
-         string(100) :> "100"
-         string(nil) :> "nil"
-         string("Hello world!\n") :> "Hello world!\n"
-         string([1, 2, 3]) :> "[1, 2, 3]"
 
 
 :mini:`meth (Arg₁: string) != (Arg₂: string): string | nil`
@@ -280,13 +287,13 @@ string
 
 
 
-:mini:`meth (String: string):replace(Pattern: regex, Replacement: string): string`
-   Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Replacement`.
-
-
-
 :mini:`meth (String: string):replace(I: integer, Function: integer, Arg₄: function): string`
    Returns a copy of :mini:`String` with the :mini:`String[I,  J]` is replaced by :mini:`Function(String[I,  J])`.
+
+
+
+:mini:`meth (String: string):replace(Pattern: regex, Replacement: string): string`
+   Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Replacement`.
 
 
 
@@ -337,13 +344,13 @@ string
 
 
 
-:mini:`meth (String: string):trim(Chars: string): string`
-   Returns a copy of :mini:`String` with characters in :mini:`Chars` removed from both ends.
-
-
-
 :mini:`meth (String: string):trim: string`
    Returns a copy of :mini:`String` with whitespace removed from both ends.
+
+
+
+:mini:`meth (String: string):trim(Chars: string): string`
+   Returns a copy of :mini:`String` with characters in :mini:`Chars` removed from both ends.
 
 
 
@@ -421,13 +428,6 @@ string
 
 :mini:`type string::buffer`
    A string buffer that automatically grows and shrinks as required.
-
-
-
-.. _fun-string-buffer:
-
-:mini:`fun string::buffer(): string::buffer`
-   Returns a new :mini:`string::buffer`
 
 
 

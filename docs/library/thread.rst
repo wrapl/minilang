@@ -7,10 +7,17 @@
 thread
 ======
 
-.. _type-thread:
+.. _fun-thread-condition:
 
-:mini:`type thread`
-   A thread.
+:mini:`fun thread::condition(): thread::condition`
+   Creates a new condition.
+
+
+
+.. _fun-thread-mutex:
+
+:mini:`fun thread::mutex(): thread::mutex`
+   Creates a new mutex.
 
 
 
@@ -23,6 +30,27 @@ thread
 
 
 
+.. _fun-thread-channel:
+
+:mini:`fun thread::channel(Capacity: integer): thread::channel`
+   Creates a new channel with capacity :mini:`Capacity`.
+
+
+
+.. _fun-thread-sleep:
+
+:mini:`fun thread::sleep(Duration: number): nil`
+   Causes the current thread to sleep for :mini:`Duration` microseconds.
+
+
+
+.. _type-thread:
+
+:mini:`type thread`
+   A thread.
+
+
+
 :mini:`meth (Thread: thread):join: any`
    Waits until the thread :mini:`Thread` completes and returns its result.
 
@@ -32,13 +60,6 @@ thread
 
 :mini:`type thread::channel`
    A channel for thread communication.
-
-
-
-.. _fun-thread-channel:
-
-:mini:`fun thread::channel(Capacity: integer): thread::channel`
-   Creates a new channel with capacity :mini:`Capacity`.
 
 
 
@@ -61,13 +82,6 @@ thread
 
 
 
-.. _fun-thread-condition:
-
-:mini:`fun thread::condition(): thread::condition`
-   Creates a new condition.
-
-
-
 :mini:`meth (Condition: thread::condition):broadcast: thread::condition`
    Signals all threads waiting on :mini:`Condition`.
 
@@ -87,13 +101,6 @@ thread
 
 :mini:`type thread::mutex`
    A mutex.
-
-
-
-.. _fun-thread-mutex:
-
-:mini:`fun thread::mutex(): thread::mutex`
-   Creates a new mutex.
 
 
 
@@ -121,13 +128,6 @@ thread
 
 :mini:`meth (Protected₁: thread::protected):use(..., Protectedₙ: thread::protected, Function: function): any`
    Locks :mini:`Protected₁:mutex`,  then calls :mini:`Function(Value₁,  ...,  Valueₙ)` where :mini:`Valueᵢ` is the value protected by :mini:`Protectedᵢ`. All :mini:`Protectedᵢ` must be protected by the same :mini:`thread::mutex`.
-
-
-
-.. _fun-thread-sleep:
-
-:mini:`fun thread::sleep(Duration: number): nil`
-   Causes the current thread to sleep for :mini:`Duration` microseconds.
 
 
 

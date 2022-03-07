@@ -13,12 +13,6 @@ compiler
    *TBD*
 
 
-.. _fun-compiler:
-
-:mini:`fun compiler(Global: function|map): compiler`
-   *TBD*
-
-
 :mini:`meth (Compiler: compiler):command_def(Name: string, Value: any): any`
    *TBD*
 
@@ -81,6 +75,18 @@ compiler
    *TBD*
 
 
+.. _fun-parser:
+
+:mini:`fun parser(Read?: function): parser`
+   *TBD*
+
+
+.. _fun-compiler:
+
+:mini:`fun compiler(Global: function|map): compiler`
+   *TBD*
+
+
 .. _type-global:
 
 :mini:`type global`
@@ -90,12 +96,6 @@ compiler
 .. _type-parser:
 
 :mini:`type parser`
-   *TBD*
-
-
-.. _fun-parser:
-
-:mini:`fun parser(Read?: function): parser`
    *TBD*
 
 

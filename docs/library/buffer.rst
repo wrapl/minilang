@@ -14,13 +14,6 @@ buffer
 
 
 
-.. _fun-buffer:
-
-:mini:`fun buffer(Length: integer): buffer`
-   Allocates a new buffer with :mini:`Length` bytes.
-
-
-
 :mini:`meth (Buffer: buffer) + (Offset: integer): buffer`
    Returns the buffer at offset :mini:`Offset` from :mini:`Address`.
 
@@ -63,6 +56,13 @@ buffer
 
 :mini:`meth (Buffer: buffer) @ (Length: integer): buffer`
    Returns the same buffer as :mini:`Buffer`,  limited to :mini:`Length` bytes.
+
+
+
+.. _fun-buffer:
+
+:mini:`fun buffer(Length: integer): buffer`
+   Allocates a new buffer with :mini:`Length` bytes.
 
 
 

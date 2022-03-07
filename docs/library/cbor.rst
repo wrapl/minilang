@@ -7,13 +7,6 @@
 cbor
 ====
 
-.. _value-cbor-Objects:
-
-:mini:`def cbor::Objects: map[string,function]`
-   Constructors to call for tag 27 (objects).
-
-
-
 .. _fun-cbor-decode:
 
 :mini:`fun cbor::decode(Bytes: address): any | error`
@@ -25,6 +18,13 @@ cbor
 
 :mini:`fun cbor::encode(Value: any): address | error`
    Encode :mini:`Value` into CBOR or return an error if :mini:`Value` cannot be encoded.
+
+
+
+.. _value-cbor-Objects:
+
+:mini:`def cbor::Objects: map[string,function]`
+   Constructors to call for tag 27 (objects).
 
 
 

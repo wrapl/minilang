@@ -7,12 +7,6 @@
 xe
 ==
 
-.. _fun-xeappend:
-
-:mini:`fun xeappend(Arg₁: list, Arg₂: any)`
-   *TBD*
-
-
 .. _fun-xeattr:
 
 :mini:`fun xeattr()`
@@ -34,18 +28,6 @@ xe
 .. _fun-xedo2:
 
 :mini:`fun xedo2()`
-   *TBD*
-
-
-.. _fun-xeeval:
-
-:mini:`fun xeeval(Arg₁: any, Arg₂: any)`
-   *TBD*
-
-
-.. _fun-xeexpand:
-
-:mini:`fun xeexpand(Arg₁: any)`
    *TBD*
 
 
@@ -79,21 +61,15 @@ xe
    *TBD*
 
 
-.. _type-xenode:
+.. _fun-xeeval:
 
-:mini:`type xenode < sequence`
+:mini:`fun xeeval(Arg₁: any, Arg₂: any)`
    *TBD*
 
 
-.. _type-xenode:
+.. _fun-xeexpand:
 
-:mini:`type xenode`
-   *TBD*
-
-
-.. _fun-xenode:
-
-:mini:`fun xenode(Arg₁: string, Arg₂: map, Arg₃: list)`
+:mini:`fun xeexpand(Arg₁: any)`
    *TBD*
 
 
@@ -103,47 +79,15 @@ xe
    *TBD*
 
 
-:mini:`meth (Arg₁: xenode):attributes`
+.. _fun-xeappend:
+
+:mini:`fun xeappend(Arg₁: list, Arg₂: any)`
    *TBD*
 
 
-:mini:`meth (Arg₁: xenode):attributes`
-   *TBD*
+.. _fun-xenode:
 
-
-:mini:`meth (Arg₁: xenode):content`
-   *TBD*
-
-
-:mini:`meth (Arg₁: xenode):content`
-   *TBD*
-
-
-:mini:`meth (Arg₁: xenode):tag`
-   *TBD*
-
-
-:mini:`meth (Arg₁: xenode):tag`
-   *TBD*
-
-
-:mini:`meth (Arg₁: xenode)[Arg₂: string]`
-   *TBD*
-
-
-:mini:`meth (Arg₁: xenode)[Arg₂: integer]`
-   *TBD*
-
-
-:mini:`meth (Arg₁: xenode)[Arg₂: nil]`
-   *TBD*
-
-
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: xenode)`
-   *TBD*
-
-
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: xenode)`
+:mini:`fun xenode(Arg₁: string, Arg₂: map, Arg₃: list)`
    *TBD*
 
 
@@ -165,6 +109,74 @@ xe
    *TBD*
 
 
+.. _fun-xevar:
+
+:mini:`fun xevar(Arg₁: string)`
+   *TBD*
+
+
+.. _fun-xevar:
+
+:mini:`fun xevar(Arg₁: string)`
+   *TBD*
+
+
+.. _type-xenode:
+
+:mini:`type xenode < sequence`
+   *TBD*
+
+
+.. _type-xenode:
+
+:mini:`type xenode`
+   *TBD*
+
+
+:mini:`meth (Arg₁: xenode):attributes`
+   *TBD*
+
+
+:mini:`meth (Arg₁: xenode):attributes`
+   *TBD*
+
+
+:mini:`meth (Arg₁: xenode):content`
+   *TBD*
+
+
+:mini:`meth (Arg₁: xenode):content`
+   *TBD*
+
+
+:mini:`meth (Arg₁: xenode):tag`
+   *TBD*
+
+
+:mini:`meth (Arg₁: xenode):tag`
+   *TBD*
+
+
+:mini:`meth (Arg₁: xenode)[Arg₂: nil]`
+   *TBD*
+
+
+:mini:`meth (Arg₁: xenode)[Arg₂: string]`
+   *TBD*
+
+
+:mini:`meth (Arg₁: xenode)[Arg₂: integer]`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: xenode)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: xenode)`
+   *TBD*
+
+
 .. _type-xescope:
 
 :mini:`type xescope`
@@ -174,18 +186,6 @@ xe
 .. _type-xevar:
 
 :mini:`type xevar`
-   *TBD*
-
-
-.. _fun-xevar:
-
-:mini:`fun xevar(Arg₁: string)`
-   *TBD*
-
-
-.. _fun-xevar:
-
-:mini:`fun xevar(Arg₁: string)`
    *TBD*
 
 

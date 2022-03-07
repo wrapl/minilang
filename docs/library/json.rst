@@ -18,20 +18,6 @@ JSON values are mapped to Minilang as follows:
 * *array* |harr| :mini:`list`
 * *object* |harr| :mini:`map`
 
-.. _fun-json-decode:
-
-:mini:`fun json::decode(Json: string): any`
-   Decodes :mini:`Json` into a Minilang value.
-
-
-
-.. _type-json-decoder:
-
-:mini:`type json::decoder < stream`
-   A JSON decoder that can be written to as a stream and calls a user-supplied callback whenever a complete value is parsed.
-
-
-
 .. _fun-json-decoder:
 
 :mini:`fun json::decoder(Callback: any): json::decoder`
@@ -43,6 +29,20 @@ JSON values are mapped to Minilang as follows:
 
 :mini:`fun json::encode(Value: any): string | error`
    Encodes :mini:`Value` into JSON,  raising an error if :mini:`Value` cannot be represented as JSON.
+
+
+
+.. _type-json-decoder:
+
+:mini:`type json::decoder < stream`
+   A JSON decoder that can be written to as a stream and calls a user-supplied callback whenever a complete value is parsed.
+
+
+
+.. _fun-json-decode:
+
+:mini:`fun json::decode(Json: string): any`
+   Decodes :mini:`Json` into a Minilang value.
 
 
 

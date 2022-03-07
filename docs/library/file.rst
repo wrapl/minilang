@@ -13,12 +13,6 @@ file
    *TBD*
 
 
-.. _fun-dir:
-
-:mini:`fun dir(Path: string): dir`
-   *TBD*
-
-
 :mini:`meth (Dir: dir):read: string`
    *TBD*
 
@@ -29,17 +23,23 @@ file
    *TBD*
 
 
-.. _fun-file:
-
-:mini:`fun file(Path: string, Mode: string): file`
-   *TBD*
-
-
 :mini:`meth (File: file):close: nil`
    *TBD*
 
 
 :mini:`meth (File: file):eof: File | nil`
+   *TBD*
+
+
+.. _fun-dir:
+
+:mini:`fun dir(Path: string): dir`
+   *TBD*
+
+
+.. _fun-file:
+
+:mini:`fun file(Path: string, Mode: string): file`
    *TBD*
 
 

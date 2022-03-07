@@ -7,6 +7,24 @@
 method
 ======
 
+.. _fun-method-context:
+
+:mini:`fun method::context(): methods`
+   *TBD*
+
+
+.. _fun-method-list:
+
+:mini:`fun method::list(): list[method]`
+   *TBD*
+
+
+.. _fun-method-set:
+
+:mini:`fun method::set(Method: any, Types: type, ..., Function: function): Function`
+   *TBD*
+
+
 .. _type-method:
 
 :mini:`type method < function`
@@ -33,24 +51,6 @@ method
 
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: method)`
-   *TBD*
-
-
-.. _fun-method-context:
-
-:mini:`fun method::context(): methods`
-   *TBD*
-
-
-.. _fun-method-list:
-
-:mini:`fun method::list(): list[method]`
-   *TBD*
-
-
-.. _fun-method-set:
-
-:mini:`fun method::set(Method: any, Types: type, ..., Function: function): Function`
    *TBD*
 
 
