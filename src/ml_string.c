@@ -2491,9 +2491,9 @@ ML_METHODX("replace", MLStringT, MLMapT) {
 ML_METHODX("replace", MLStringT, MLRegexT, MLFunctionT) {
 //<String
 //<Pattern
-//<Function
+//<Fn
 //>string
-// Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Function(Match)` where :mini:`Match` is the actual matched text.
+// Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Fn(Match, Sub/1, ..., Sub/n)` where :mini:`Match` is the actual matched text and :mini:`Sub/i` are the matched subpatterns.
 	ml_str_replacement_state_t *State = xnew(ml_str_replacement_state_t, 1, ml_str_replacement_t);
 	ml_str_replacement_t *Replacement = State->Replacements;
 	Replacement->Pattern.Regex = ml_regex_value(Args[1]);

@@ -195,8 +195,7 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Examples,
 		end
 	end
 	if Examples[1] then
-		Buffer:write("   .. collapse:: Example\n\n")
-		Buffer:write("      .. code-block:: mini\n\n")
+		Buffer:write("   .. code-block:: mini\n\n")
 		let Parser := parser(nil)
 		let Compiler := compiler(global)
 		for Example in Examples do
@@ -258,8 +257,7 @@ fun write_function(Category, Kind, Name, Params, Return, Description, Examples, 
 		end
 	end
 	if Examples[1] then
-		Buffer:write("   .. collapse:: Example\n\n")
-		Buffer:write("      .. code-block:: mini\n\n")
+		Buffer:write("   .. code-block:: mini\n\n")
 		let Parser := parser(nil)
 		let Compiler := compiler(global)
 		for Example in Examples do
@@ -462,9 +460,9 @@ fun process(FileName) do
 					elseif Line % r"^/[/*] " then
 						Description:put(Line[4, 0]:replace(Subscripts))
 					elseif Line % r"^/[/*]\$- " then
-						Example:write("         ", Line[6, 0])
+						Example:write("      ", Line[6, 0])
 					elseif Line % r"^/[/*]\$= " then
-						Example:write("         ", Line[6, -1])
+						Example:write("      ", Line[6, -1])
 						Examples:put(Example:rest)
 					else
 						exit
@@ -517,9 +515,9 @@ fun process(FileName) do
 					elseif Line % r"^/[/*] " then
 						Description:put(Line[4, 0]:replace(Subscripts))
 					elseif Line % r"^/[/*]\$- " then
-						Example:write("         ", Line[6, 0])
+						Example:write("      ", Line[6, 0])
 					elseif Line % r"^/[/*]\$= " then
-						Example:write("         ", Line[6, -1])
+						Example:write("      ", Line[6, -1])
 						Examples:put(Example:rest)
 					elseif let Match := Line % r"ML_CHECK(X?)_ARG_COUNT\(([0-9]+)\)" then
 						let Count := integer(Match[3])
@@ -577,9 +575,9 @@ fun process(FileName) do
 					elseif Line % r"^/[/*] " then
 						Description:put(Line[4, 0]:replace(Subscripts))
 					elseif Line % r"^/[/*]\$- " then
-						Example:write("         ", Line[6, 0])
+						Example:write("      ", Line[6, 0])
 					elseif Line % r"^/[/*]\$= " then
-						Example:write("         ", Line[6, -1])
+						Example:write("      ", Line[6, -1])
 						Examples:put(Example:rest)
 					elseif let Match := Line % r"ML_CHECK(X?)_ARG_COUNT\(([0-9]+)\)" then
 						let Count := integer(Match[3])

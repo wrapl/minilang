@@ -43,11 +43,9 @@ Every :mini:`string` is also an :mini:`address` so address methods can also be u
 :mini:`meth (Regex: regex):pattern: string`
    Returns the pattern used to create :mini:`Regex`.
 
-   .. collapse:: Example
+   .. code-block:: mini
 
-      .. code-block:: mini
-
-         r"[0-9]+":pattern :> "[0-9]+"
+      r"[0-9]+":pattern :> "[0-9]+"
 
 
 :mini:`meth (Arg₁: regex) < (Arg₂: regex): regex | nil`
@@ -96,14 +94,12 @@ Every :mini:`string` is also an :mini:`address` so address methods can also be u
 :mini:`fun string(Value: any): string`
    Returns a general (type name only) representation of :mini:`Value` as a string.
 
-   .. collapse:: Example
+   .. code-block:: mini
 
-      .. code-block:: mini
-
-         string(100) :> "100"
-         string(nil) :> "nil"
-         string("Hello world!\n") :> "Hello world!\n"
-         string([1, 2, 3]) :> "[1, 2, 3]"
+      string(100) :> "100"
+      string(nil) :> "nil"
+      string("Hello world!\n") :> "Hello world!\n"
+      string([1, 2, 3]) :> "[1, 2, 3]"
 
 
 :mini:`meth (Arg₁: string) != (Arg₂: string): string | nil`
@@ -311,8 +307,8 @@ Every :mini:`string` is also an :mini:`address` so address methods can also be u
 
 
 
-:mini:`meth (String: string):replace(Pattern: regex, Function: function): string`
-   Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Function(Match)` where :mini:`Match` is the actual matched text.
+:mini:`meth (String: string):replace(Pattern: regex, Fn: function): string`
+   Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Fn(Match,  Sub₁,  ...,  Subₙ)` where :mini:`Match` is the actual matched text and :mini:`Subᵢ` are the matched subpatterns.
 
 
 

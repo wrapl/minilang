@@ -25,11 +25,9 @@ tasks
 :mini:`fun buffered(Size: integer, Sequence: any): sequence`
    Returns an sequence that buffers the keys and values from :mini:`Sequence` in advance,  buffering at most :mini:`Size` pairs.
 
-   .. collapse:: Example
+   .. code-block:: mini
 
-      .. code-block:: mini
-
-         list(buffered(5, 1 .. 10)) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      list(buffered(5, 1 .. 10)) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 
 .. _type-task:
