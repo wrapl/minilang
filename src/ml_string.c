@@ -24,9 +24,27 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "string"
 
+// Overview
+// Strings in Minilang can contain any sequence of bytes, including :mini:`0`s.
+// Index and find methods however work on ``UTF-8`` characters, byte sequences that are not valid ``UTF-8`` are handled gracefully but the results are probably not very useful.
+// Every :mini:`string` is also an :mini:`address` so the byte-level address methods can also be used if necessary.
+
 ML_TYPE(MLAddressT, (), "address");
 //!address
 // An address represents a read-only bounded section of memory.
+
+ML_METHOD(MLAddressT, MLStringT) {
+//!address
+//<String
+//>address
+// Returns an address view of :mini:`String`.
+//$= address("Hello world!\n")
+	ml_address_t *Address = new(ml_address_t);
+	Address->Type = MLAddressT;
+	Address->Value = (char *)ml_string_value(Args[0]);
+	Address->Length = ml_string_length(Args[0]);
+	return (ml_value_t *)Address;
+}
 
 ml_value_t *ml_address(const char *Value, int Length) {
 	ml_address_t *Address = new(ml_address_t);
@@ -41,6 +59,8 @@ ML_METHOD("size", MLAddressT) {
 //<Address
 //>integer
 // Returns the number of bytes visible at :mini:`Address`.
+//$= let A := address("Hello world!\n")
+//$= A:size
 	return ml_integer(ml_address_length(Args[0]));
 }
 
@@ -49,6 +69,8 @@ ML_METHOD("length", MLAddressT) {
 //<Address
 //>integer
 // Returns the number of bytes visible at :mini:`Address`.
+//$= let A := address("Hello world!\n")
+//$= A:length
 	return ml_integer(ml_address_length(Args[0]));
 }
 
@@ -58,6 +80,8 @@ ML_METHOD("@", MLAddressT, MLIntegerT) {
 //<Length
 //>address
 // Returns the same address as :mini:`Address`, limited to :mini:`Length` bytes.
+//$= let A := address("Hello world!\n")
+//$= A @ 5
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	long Length = ml_integer_value_fast(Args[1]);
 	if (Length > Address->Length) return ml_error("SizeError", "Size larger than buffer");
@@ -75,6 +99,8 @@ ML_METHOD("+", MLAddressT, MLIntegerT) {
 //<Offset
 //>address
 // Returns the address at offset :mini:`Offset` from :mini:`Address`.
+//$= let A := address("Hello world!\n")
+//$= A + 4
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	long Offset = ml_integer_value_fast(Args[1]);
 	if (Offset > Address->Length) return ml_error("SizeError", "Offset larger than buffer");
@@ -91,6 +117,10 @@ ML_METHOD("-", MLAddressT, MLAddressT) {
 //<Address/2
 //>integer
 // Returns the offset from :mini:`Address/2` to :mini:`Address/1`, provided :mini:`Address/2` is visible to :mini:`Address/1`.
+//$- let A := address("Hello world!\n")
+//$- let B := A + 4
+//$= B - A
+//$= address("world!\n") - A
 	ml_address_t *Address1 = (ml_address_t *)Args[0];
 	ml_address_t *Address2 = (ml_address_t *)Args[1];
 	int64_t Offset = Address1->Value - Address2->Value;
@@ -103,6 +133,8 @@ ML_METHOD("get8", MLAddressT) {
 //<Address
 //>integer
 // Returns the signed 8-bit value at :mini:`Address`.
+//$= let A := address("Hello world!\n")
+//$= A:get8
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	if (Address->Length < 1) return ml_error("SizeError", "Not enough bytes to read");
 	return ml_integer(*(int8_t *)Address->Value);
@@ -113,6 +145,8 @@ ML_METHOD("get16", MLAddressT) {
 //<Address
 //>integer
 // Returns the signed 16-bit value at :mini:`Address`. Currently follows the platform endiness.
+//$= let A := address("Hello world!\n")
+//$= A:get16
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	if (Address->Length < 2) return ml_error("SizeError", "Not enough bytes to read");
 	return ml_integer(*(int16_t *)Address->Value);
@@ -123,6 +157,8 @@ ML_METHOD("get32", MLAddressT) {
 //<Address
 //>integer
 // Returns the signed 32-bit value at :mini:`Address`. Currently follows the platform endiness.
+//$= let A := address("Hello world!\n")
+//$= A:get32
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	if (Address->Length < 4) return ml_error("SizeError", "Not enough bytes to read");
 	return ml_integer(*(int32_t *)Address->Value);
@@ -133,6 +169,8 @@ ML_METHOD("get64", MLAddressT) {
 //<Address
 //>integer
 // Returns the signed 64-bit value at :mini:`Address`. Currently follows the platform endiness.
+//$= let A := address("Hello world!\n")
+//$= A:get64
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	if (Address->Length < 8) return ml_error("SizeError", "Not enough bytes to read");
 	return ml_integer(*(int64_t *)Address->Value);
@@ -143,6 +181,8 @@ ML_METHOD("getu8", MLAddressT) {
 //<Address
 //>integer
 // Returns the unsigned 8-bit value at :mini:`Address`.
+//$= let A := address("Hello world!\n")
+//$= A:getu8
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	if (Address->Length < 1) return ml_error("SizeError", "Not enough bytes to read");
 	return ml_integer(*(uint8_t *)Address->Value);
@@ -153,6 +193,8 @@ ML_METHOD("getu16", MLAddressT) {
 //<Address
 //>integer
 // Returns the unsigned 16-bit value at :mini:`Address`. Currently follows the platform endiness.
+//$= let A := address("Hello world!\n")
+//$= A:getu16
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	if (Address->Length < 2) return ml_error("SizeError", "Not enough bytes to read");
 	return ml_integer(*(uint16_t *)Address->Value);
@@ -163,6 +205,8 @@ ML_METHOD("getu32", MLAddressT) {
 //<Address
 //>integer
 // Returns the unsigned 32-bit value at :mini:`Address`. Currently follows the platform endiness.
+//$= let A := address("Hello world!\n")
+//$= A:getu32
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	if (Address->Length < 4) return ml_error("SizeError", "Not enough bytes to read");
 	return ml_integer(*(uint32_t *)Address->Value);
@@ -175,6 +219,8 @@ ML_METHOD("getu64", MLAddressT) {
 // Returns the unsigned 64-bit value at :mini:`Address`. Currently follows the platform endiness.
 // .. warning::
 //    Minilang currently uses signed 64-bit integers so this method will produce incorrect results if the actual value is too large to fit. This may change in future implementations or if arbitrary precision integers are added to the runtime.
+//$= let A := address("Hello world!\n")
+//$= A:getu64
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	if (Address->Length < 8) return ml_error("SizeError", "Not enough bytes to read");
 	return ml_integer(*(uint64_t *)Address->Value);
@@ -185,6 +231,8 @@ ML_METHOD("getf32", MLAddressT) {
 //<Address
 //>real
 // Returns the single precision floating point value at :mini:`Address`. Currently follows the platform endiness.
+//$= let A := address("Hello world!\n")
+//$= A:getf32
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	if (Address->Length < 4) return ml_error("SizeError", "Not enough bytes to read");
 	return ml_real(*(float *)Address->Value);
@@ -195,6 +243,8 @@ ML_METHOD("getf64", MLAddressT) {
 //<Address
 //>real
 // Returns the double precision floating point value at :mini:`Address`. Currently follows the platform endiness.
+//$= let A := address("Hello world!\n")
+//$= A:getf64
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	if (Address->Length < 8) return ml_error("SizeError", "Not enough bytes to read");
 	return ml_real(*(double *)Address->Value);
@@ -205,6 +255,8 @@ ML_METHOD("gets", MLAddressT) {
 //<Address
 //>string
 // Returns the string consisting of the bytes at :mini:`Address`.
+//$= let A := address("Hello world!\n")
+//$= A:gets
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	size_t Length = ml_address_length(Args[0]);
 	char *String = snew(Length + 1);
@@ -219,6 +271,8 @@ ML_METHOD("gets", MLAddressT, MLIntegerT) {
 //<Size
 //>string
 // Returns the string consisting of the first :mini:`Size` bytes at :mini:`Address`.
+//$= let A := address("Hello world!\n")
+//$= A:gets(5)
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	size_t Length = ml_integer_value(Args[1]);
 	if (Length > Address->Length) return ml_error("SizeError", "Not enough bytes to read");
@@ -228,12 +282,29 @@ ML_METHOD("gets", MLAddressT, MLIntegerT) {
 	return ml_string(String, Length);
 }
 
+ML_METHOD("find", MLAddressT, MLAddressT) {
+//!address
+//<Haystack
+//<Needle
+//>integer|nil
+// Returns the offset of the first occurence of the bytes of :mini:`Needle` in :mini:`Haystack` or :mini:`nil` is no occurence is found.
+//$= let A := address("Hello world!\n")
+//$= A:find("world")
+//$= A:find("other")
+	ml_address_t *Address1 = (ml_address_t *)Args[0];
+	ml_address_t *Address2 = (ml_address_t *)Args[1];
+	char *Find = memmem(Address1->Value, Address1->Length, Address2->Value, Address2->Length);
+	if (!Find) return MLNil;
+	return ml_integer(Find - Address1->Value);
+}
+
 ML_FUNCTION(MLBuffer) {
 //!buffer
 //@buffer
 //<Length
 //>buffer
 // Allocates a new buffer with :mini:`Length` bytes.
+//$= buffer(16)
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	long Size = ml_integer_value_fast(Args[0]);
@@ -265,6 +336,8 @@ ML_METHOD("@", MLBufferT, MLIntegerT) {
 //<Length
 //>buffer
 // Returns the same buffer as :mini:`Buffer`, limited to :mini:`Length` bytes.
+//$= let B := buffer(16)
+//$= let B @ 8
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
 	long Length = ml_integer_value_fast(Args[1]);
 	if (Length > Buffer->Length) return ml_error("SizeError", "Size larger than buffer");
@@ -282,6 +355,8 @@ ML_METHOD("+", MLBufferT, MLIntegerT) {
 //<Offset
 //>buffer
 // Returns the buffer at offset :mini:`Offset` from :mini:`Address`.
+//$= let B := buffer(16)
+//$= B + 8
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
 	long Offset = ml_integer_value_fast(Args[1]);
 	if (Offset > Buffer->Length) return ml_error("SizeError", "Offset larger than buffer");
@@ -298,6 +373,7 @@ ML_METHOD("put8", MLBufferT, MLIntegerT) {
 //<Value
 //>buffer
 // Puts :mini:`Value` in :mini:`Buffer` as an 8-bit signed value.
+//$= buffer(1):put8(64)
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
 	if (Buffer->Length < 1) return ml_error("SizeError", "Not enough space");
 	*(int8_t *)Buffer->Value = ml_integer_value(Args[1]);
@@ -310,6 +386,7 @@ ML_METHOD("put16", MLBufferT, MLIntegerT) {
 //<Value
 //>buffer
 // Puts :mini:`Value` in :mini:`Buffer` as an 16-bit signed value. Currently follows the platform endiness.
+//$= buffer(2):put16(12345)
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
 	if (Buffer->Length < 2) return ml_error("SizeError", "Not enough space");
 	*(int16_t *)Buffer->Value = ml_integer_value(Args[1]);
@@ -322,6 +399,7 @@ ML_METHOD("put32", MLBufferT, MLIntegerT) {
 //<Value
 //>buffer
 // Puts :mini:`Value` in :mini:`Buffer` as an 32-bit signed value. Currently follows the platform endiness.
+//$= buffer(4):put32(12345678)
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
 	if (Buffer->Length < 4) return ml_error("SizeError", "Not enough space");
 	*(int32_t *)Buffer->Value = ml_integer_value(Args[1]);
@@ -334,30 +412,33 @@ ML_METHOD("put64", MLBufferT, MLIntegerT) {
 //<Value
 //>buffer
 // Puts :mini:`Value` in :mini:`Buffer` as an 64-bit signed value. Currently follows the platform endiness.
+//$= buffer(8):put64(123456789123)
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
 	if (Buffer->Length < 8) return ml_error("SizeError", "Not enough space");
 	*(int64_t *)Buffer->Value = ml_integer_value(Args[1]);
 	return Args[0];
 }
 
-ML_METHOD("put32f", MLBufferT, MLRealT) {
+ML_METHOD("putf32", MLBufferT, MLRealT) {
 //!buffer
 //<Buffer
 //<Value
 //>buffer
 // Puts :mini:`Value` in :mini:`Buffer` as a single precision floating point value. Currently follows the platform endiness.
+//$= buffer(4):putf32(1.23456789)
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
 	if (Buffer->Length < 4) return ml_error("SizeError", "Not enough space");
 	*(float *)Buffer->Value = ml_real_value(Args[1]);
 	return Args[0];
 }
 
-ML_METHOD("put64f", MLBufferT, MLRealT) {
+ML_METHOD("putf64", MLBufferT, MLRealT) {
 //!buffer
 //<Buffer
 //<Value
 //>buffer
 // Puts :mini:`Value` in :mini:`Buffer` as a double precision floating point value. Currently follows the platform endiness.
+//$= buffer(8):putf64(1.23456789)
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
 	if (Buffer->Length < 8) return ml_error("SizeError", "Not enough space");
 	*(double *)Buffer->Value = ml_real_value(Args[1]);
@@ -370,6 +451,7 @@ ML_METHOD("put", MLBufferT, MLAddressT) {
 //<Value
 //>buffer
 // Puts the bytes of :mini:`Value` in :mini:`Buffer`.
+//$= buffer(10):put("Hello\0\0\0\0\0")
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
 	ml_address_t *Source = (ml_address_t *)Args[1];
 	if (Buffer->Length < Source->Length) return ml_error("SizeError", "Not enough space");

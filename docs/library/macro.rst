@@ -135,19 +135,19 @@ macro
 
 
 
+.. _type-macro:
+
+:mini:`type macro`
+   A macro.
+
+
+
 .. _fun-macro:
 
 :mini:`fun macro(Function: function): macro`
    Returns a new macro which applies :mini:`Function` when compiled.
 
    :mini:`Function` should have the following signature: :mini:`Function(Expr₁: expr,  Expr₂: expr,  ...): expr`.
-
-
-
-.. _type-macro:
-
-:mini:`type macro`
-   A macro.
 
 
 

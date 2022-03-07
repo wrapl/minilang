@@ -74,6 +74,14 @@ method: image()
 
 meth image(V: any) string(V)
 meth image(S: string) '\"{S:escape}\"'
+meth image(A: address) with B := string::buffer() do
+	B:write('<{A:size}:')
+	for I in 0 .. (A:size - 1) do
+		B:write(string((A + I):getu8, "%02X"))
+	end
+	B:write(">")
+	B:rest
+end
 meth image(L: list) '[{list(L, image), ", "}]'
 meth image(M: map) with B := string::buffer() do
 	def some := not nil
@@ -269,7 +277,11 @@ fun write_function(Category, Kind, Name, Params, Return, Description, Examples, 
 		end
 	end
 	Buffer:write("\n")
-	emit(Category, (if let Param := first(Params) then type_name(Param[2]) else "" end, item::Function, Name), Buffer:rest)
+	if Return[1] and Name = type_name(Return[1]) then
+		emit(Category, (Name, item::Constructor), Buffer:rest)
+	else
+		emit(Category, (if let Param := first(Params) then type_name(Param[2]) else "" end, item::Function, Name), Buffer:rest)
+	end
 end
 
 fun write_constructor(Category, Kind, Name, Params, Return, Description, Location) do

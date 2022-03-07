@@ -14,6 +14,13 @@ error
 
 
 
+.. _fun-error:
+
+:mini:`fun error(Type: string, Message: string): error`
+   Creates an error exception with type :mini:`Type` and message :mini:`Message`. Since this creates an exception,  it will trigger the current exception handler.
+
+
+
 .. _type-error-value:
 
 :mini:`type error::value`
@@ -38,13 +45,6 @@ error
 
 :mini:`meth (Error: error::value):type: string`
    Returns the type of :mini:`Error`.
-
-
-
-.. _fun-error:
-
-:mini:`fun error(Type: string, Message: string): error`
-   Creates an error exception with type :mini:`Type` and message :mini:`Message`. Since this creates an exception,  it will trigger the current exception handler.
 
 
 

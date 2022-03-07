@@ -18,13 +18,6 @@ JSON values are mapped to Minilang as follows:
 * *array* |harr| :mini:`list`
 * *object* |harr| :mini:`map`
 
-.. _fun-json-decoder:
-
-:mini:`fun json::decoder(Callback: any): json::decoder`
-   Returns a new JSON decoder that calls :mini:`Callback(Value)` whenever a complete JSON value is written to the decoder.
-
-
-
 .. _fun-json-encode:
 
 :mini:`fun json::encode(Value: any): string | error`
@@ -36,6 +29,13 @@ JSON values are mapped to Minilang as follows:
 
 :mini:`type json::decoder < stream`
    A JSON decoder that can be written to as a stream and calls a user-supplied callback whenever a complete value is parsed.
+
+
+
+.. _fun-json-decoder:
+
+:mini:`fun json::decoder(Callback: any): json::decoder`
+   Returns a new JSON decoder that calls :mini:`Callback(Value)` whenever a complete JSON value is written to the decoder.
 
 
 

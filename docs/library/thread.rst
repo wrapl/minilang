@@ -7,36 +7,6 @@
 thread
 ======
 
-.. _fun-thread-condition:
-
-:mini:`fun thread::condition(): thread::condition`
-   Creates a new condition.
-
-
-
-.. _fun-thread-mutex:
-
-:mini:`fun thread::mutex(): thread::mutex`
-   Creates a new mutex.
-
-
-
-.. _fun-thread:
-
-:mini:`fun thread(Args: any, ..., Fn: function): thread`
-   Creates a new thread and calls :mini:`Fn(Args...)` in the new thread.
-
-   All arguments must be thread-safe.
-
-
-
-.. _fun-thread-channel:
-
-:mini:`fun thread::channel(Capacity: integer): thread::channel`
-   Creates a new channel with capacity :mini:`Capacity`.
-
-
-
 .. _fun-thread-sleep:
 
 :mini:`fun thread::sleep(Duration: number): nil`
@@ -51,6 +21,15 @@ thread
 
 
 
+.. _fun-thread:
+
+:mini:`fun thread(Args: any, ..., Fn: function): thread`
+   Creates a new thread and calls :mini:`Fn(Args...)` in the new thread.
+
+   All arguments must be thread-safe.
+
+
+
 :mini:`meth (Thread: thread):join: any`
    Waits until the thread :mini:`Thread` completes and returns its result.
 
@@ -60,6 +39,13 @@ thread
 
 :mini:`type thread::channel`
    A channel for thread communication.
+
+
+
+.. _fun-thread-channel:
+
+:mini:`fun thread::channel(Capacity: integer): thread::channel`
+   Creates a new channel with capacity :mini:`Capacity`.
 
 
 
@@ -82,6 +68,13 @@ thread
 
 
 
+.. _fun-thread-condition:
+
+:mini:`fun thread::condition(): thread::condition`
+   Creates a new condition.
+
+
+
 :mini:`meth (Condition: thread::condition):broadcast: thread::condition`
    Signals all threads waiting on :mini:`Condition`.
 
@@ -101,6 +94,13 @@ thread
 
 :mini:`type thread::mutex`
    A mutex.
+
+
+
+.. _fun-thread-mutex:
+
+:mini:`fun thread::mutex(): thread::mutex`
+   Creates a new mutex.
 
 
 

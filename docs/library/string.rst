@@ -7,27 +7,9 @@
 string
 ======
 
-.. _fun-string-buffer:
-
-:mini:`fun string::buffer(): string::buffer`
-   Returns a new :mini:`string::buffer`
-
-
-
-.. _fun-string:
-
-:mini:`fun string(Value: any): string`
-   Returns a general (type name only) representation of :mini:`Value` as a string.
-
-   .. collapse:: Example
-
-      .. code-block:: mini
-
-         string(100) :> "100"
-         string(nil) :> "nil"
-         string("Hello world!\n") :> "Hello world!\n"
-         string([1, 2, 3]) :> "[1, 2, 3]"
-
+Strings in Minilang can contain any sequence of bytes,  including :mini:`0`s.
+Index and find methods however work on ``UTF-8`` characters,  byte sequences that are not valid ``UTF-8`` are handled gracefully but the results are probably not very useful.
+Every :mini:`string` is also an :mini:`address` so the byte-level address methods can also be used if necessary.
 
 :mini:`meth (N: integer) * (String: string): string`
    Returns :mini:`String` concatentated :mini:`N` times.
@@ -43,6 +25,13 @@ string
 
 :mini:`type regex`
    A regular expression.
+
+
+
+.. _fun-regex:
+
+:mini:`fun regex(String: string): regex | error`
+   Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
 
 
 
@@ -102,11 +91,19 @@ string
 
 
 
-.. _fun-regex:
+.. _fun-string:
 
-:mini:`fun regex(String: string): regex | error`
-   Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
+:mini:`fun string(Value: any): string`
+   Returns a general (type name only) representation of :mini:`Value` as a string.
 
+   .. collapse:: Example
+
+      .. code-block:: mini
+
+         string(100) :> "100"
+         string(nil) :> "nil"
+         string("Hello world!\n") :> "Hello world!\n"
+         string([1, 2, 3]) :> "[1, 2, 3]"
 
 
 :mini:`meth (Arg₁: string) != (Arg₂: string): string | nil`
@@ -119,12 +116,12 @@ string
 
 
 
-:mini:`meth (String: string) */ (Pattern: string): tuple[string,  string]`
+:mini:`meth (String: string) */ (Pattern: regex): tuple[string,  string]`
    Splits :mini:`String` at the last occurence of :mini:`Pattern` and returns the two substrings in a tuple.
 
 
 
-:mini:`meth (String: string) */ (Pattern: regex): tuple[string,  string]`
+:mini:`meth (String: string) */ (Pattern: string): tuple[string,  string]`
    Splits :mini:`String` at the last occurence of :mini:`Pattern` and returns the two substrings in a tuple.
 
 
@@ -134,10 +131,8 @@ string
 
 
 
-:mini:`meth (String: string) / (Pattern: regex, Index: integer): list`
+:mini:`meth (String: string) / (Pattern: string): list`
    Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
-
-   Only the :mini:`Index` subgroup matches are removed from the output substrings.
 
 
 
@@ -148,8 +143,10 @@ string
 
 
 
-:mini:`meth (String: string) / (Pattern: string): list`
+:mini:`meth (String: string) / (Pattern: regex, Index: integer): list`
    Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
+
+   Only the :mini:`Index` subgroup matches are removed from the output substrings.
 
 
 
@@ -277,8 +274,8 @@ string
 
 
 
-:mini:`meth (String: string):replace(I: integer, Function: function): string`
-   Returns a copy of :mini:`String` with the :mini:`String[I]` is replaced by :mini:`Function(String[I])`.
+:mini:`meth (String: string):replace(I: integer, Replacement: string): string`
+   Returns a copy of :mini:`String` with the :mini:`String[I]` is replaced by :mini:`Replacement`.
 
 
 
@@ -287,17 +284,22 @@ string
 
 
 
+:mini:`meth (String: string):replace(I: integer, Function: function): string`
+   Returns a copy of :mini:`String` with the :mini:`String[I]` is replaced by :mini:`Function(String[I])`.
+
+
+
 :mini:`meth (String: string):replace(I: integer, Function: integer, Arg₄: function): string`
    Returns a copy of :mini:`String` with the :mini:`String[I,  J]` is replaced by :mini:`Function(String[I,  J])`.
 
 
 
-:mini:`meth (String: string):replace(Pattern: regex, Replacement: string): string`
+:mini:`meth (String: string):replace(Pattern: string, Replacement: string): string`
    Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Replacement`.
 
 
 
-:mini:`meth (String: string):replace(Pattern: string, Replacement: string): string`
+:mini:`meth (String: string):replace(Pattern: regex, Replacement: string): string`
    Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Replacement`.
 
 
@@ -311,11 +313,6 @@ string
 
 :mini:`meth (String: string):replace(Pattern: regex, Function: function): string`
    Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Function(Match)` where :mini:`Match` is the actual matched text.
-
-
-
-:mini:`meth (String: string):replace(I: integer, Replacement: string): string`
-   Returns a copy of :mini:`String` with the :mini:`String[I]` is replaced by :mini:`Replacement`.
 
 
 
@@ -334,23 +331,23 @@ string
 
 
 
-:mini:`meth (String: string):starts(Prefix: string): string | nil`
-   Returns :mini:`String` if it starts with :mini:`Prefix` and :mini:`nil` otherwise.
-
-
-
 :mini:`meth (String: string):starts(Pattern: regex): string | nil`
    Returns :mini:`String` if it starts with :mini:`Pattern` and :mini:`nil` otherwise.
 
 
 
-:mini:`meth (String: string):trim: string`
-   Returns a copy of :mini:`String` with whitespace removed from both ends.
+:mini:`meth (String: string):starts(Prefix: string): string | nil`
+   Returns :mini:`String` if it starts with :mini:`Prefix` and :mini:`nil` otherwise.
 
 
 
 :mini:`meth (String: string):trim(Chars: string): string`
    Returns a copy of :mini:`String` with characters in :mini:`Chars` removed from both ends.
+
+
+
+:mini:`meth (String: string):trim: string`
+   Returns a copy of :mini:`String` with whitespace removed from both ends.
 
 
 
@@ -399,13 +396,13 @@ string
 
 
 
-:mini:`meth (String: string)[Range: integer::range]: string`
-   Returns the substring of :mini:`String` corresponding to :mini:`Range` inclusively.
-
-
-
 :mini:`meth (String: string)[Index: integer]: string`
    Returns the substring of :mini:`String` of length 1 at :mini:`Index`.
+
+
+
+:mini:`meth (String: string)[Range: integer::range]: string`
+   Returns the substring of :mini:`String` corresponding to :mini:`Range` inclusively.
 
 
 
@@ -428,6 +425,13 @@ string
 
 :mini:`type string::buffer`
    A string buffer that automatically grows and shrinks as required.
+
+
+
+.. _fun-string-buffer:
+
+:mini:`fun string::buffer(): string::buffer`
+   Returns a new :mini:`string::buffer`
 
 
 

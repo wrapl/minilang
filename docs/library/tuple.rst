@@ -7,17 +7,17 @@
 tuple
 =====
 
-.. _fun-tuple:
-
-:mini:`fun tuple(Value₁: any, : ..., Valueₙ: any): tuple`
-   Returns a tuple of values :mini:`Value₁,  ...,  Valueₙ`.
-
-
-
 .. _type-tuple:
 
 :mini:`type tuple < sequence`
    An immutable tuple of values.
+
+
+
+.. _fun-tuple:
+
+:mini:`fun tuple(Value₁: any, : ..., Valueₙ: any): tuple`
+   Returns a tuple of values :mini:`Value₁,  ...,  Valueₙ`.
 
 
 

@@ -21,7 +21,7 @@ class MinilangLexer(RegexLexer):
 			), suffix = r'\b'), Keyword),
 			(words((
 				"class", "method", "any", "type", "function", "number",
-				"integer", "real", "string", "buffer", "list",
+				"integer", "real", "address", "string", "buffer", "list",
 				"map", "tuple", "regex", "array", "file", "boolean",
 				"enum", "flags", "sequence", "macro", "address",
 				"import", "export", "complex"

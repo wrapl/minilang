@@ -2044,6 +2044,7 @@ void ml_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "i", ml_complex(1i));
 #endif
 		stringmap_insert(Globals, "method", MLMethodT);
+		stringmap_insert(Globals, "address", MLAddressT);
 		stringmap_insert(Globals, "buffer", MLBufferT);
 		stringmap_insert(Globals, "string", MLStringT);
 		//stringmap_insert(Globals, "stringbuffer", MLStringBufferT);

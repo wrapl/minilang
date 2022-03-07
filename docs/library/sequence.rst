@@ -7,19 +7,6 @@
 sequence
 ========
 
-.. _fun-chained:
-
-:mini:`fun chained(Base: any, Fn₁, : function, ...): chained`
-   Returns a new chained function or sequence with base :mini:`Base` and additional functions or filters :mini:`Fn₁,  ...,  Fnₙ`.
-
-   .. collapse:: Example
-
-      .. code-block:: mini
-
-         let F := chained(fun(X) X + 1, fun(X) X ^ 2)
-         F(10) :> 121
-
-
 .. _fun-count:
 
 :mini:`fun count(Sequence: any): integer`
@@ -131,6 +118,19 @@ sequence
 
    Filters do not affect the result but will shortcut a function call or skip an iteration if :mini:`nil` is returned. I.e. filters remove values from a sequence that fail a condition without affecting the values that pass.
 
+
+
+.. _fun-chained:
+
+:mini:`fun chained(Base: any, Fn₁, : function, ...): chained`
+   Returns a new chained function or sequence with base :mini:`Base` and additional functions or filters :mini:`Fn₁,  ...,  Fnₙ`.
+
+   .. collapse:: Example
+
+      .. code-block:: mini
+
+         let F := chained(fun(X) X + 1, fun(X) X ^ 2)
+         F(10) :> 121
 
 
 :mini:`meth (Base: function) -> (Function: function): chained`
@@ -555,16 +555,6 @@ sequence
          list(1 .. 10 skip 5) :> [6, 7, 8, 9, 10]
 
 
-:mini:`meth (Base: sequence) => (F₁: function, F₂: function): sequence`
-   Returns a chained sequence equivalent to :mini:`(F₁(K₁,  V₁),  F₂(K₁,  V₁)),  ...,  (F₁(Kₙ,  Vₙ),  F₂(Kₙ,  Vₙ))` where :mini:`Kᵢ` and :mini:`Vᵢ` are the keys and values produced by :mini:`Base`.
-
-   .. collapse:: Example
-
-      .. code-block:: mini
-
-         map("cake" => (tuple, *)) :> {(1, c) is "c", (2, a) is "aa", (3, k) is "kkk", (4, e) is "eeee"}
-
-
 :mini:`meth (Base: sequence) => (F: function): sequence`
    Returns a chained sequence equivalent to :mini:`(K₁,  F(K₁,  V₁)),  ...,  (Kₙ,  F(Kₙ,  Vₙ))` where :mini:`Kᵢ` and :mini:`Vᵢ` are the keys and values produced by :mini:`Base`.
 
@@ -573,6 +563,16 @@ sequence
       .. code-block:: mini
 
          map("cake" => *) :> {1 is "c", 2 is "aa", 3 is "kkk", 4 is "eeee"}
+
+
+:mini:`meth (Base: sequence) => (F₁: function, F₂: function): sequence`
+   Returns a chained sequence equivalent to :mini:`(F₁(K₁,  V₁),  F₂(K₁,  V₁)),  ...,  (F₁(Kₙ,  Vₙ),  F₂(Kₙ,  Vₙ))` where :mini:`Kᵢ` and :mini:`Vᵢ` are the keys and values produced by :mini:`Base`.
+
+   .. collapse:: Example
+
+      .. code-block:: mini
+
+         map("cake" => (tuple, *)) :> {(1, c) is "c", (2, a) is "aa", (3, k) is "kkk", (4, e) is "eeee"}
 
 
 :mini:`meth (Sequence: sequence) =>> (Function: function): sequence`
@@ -596,16 +596,6 @@ sequence
          map(M =>? !=) :> {2 is 4, 3 is 9, 4 is 6, 7 is 9, 8 is 4, 9 is 1, 10 is 0}
 
 
-:mini:`meth >>(Sequence: sequence): Sequence`
-   Returns an sequence that repeatedly produces the values from :mini:`Sequence` (for use with :mini:`limit`).
-
-   .. collapse:: Example
-
-      .. code-block:: mini
-
-         list(>>(1 .. 3) limit 10) :> [1, 2, 3, 1, 2, 3, 1, 2, 3, 1]
-
-
 :mini:`meth (Sequence₁: sequence) >> (Sequence₂: sequence): Sequence`
    Returns an sequence that produces the values from :mini:`Sequence₁` followed by those from :mini:`Sequence₂`.
 
@@ -614,6 +604,16 @@ sequence
       .. code-block:: mini
 
          list(1 .. 3 >> "cake") :> [1, 2, 3, "c", "a", "k", "e"]
+
+
+:mini:`meth >>(Sequence: sequence): Sequence`
+   Returns an sequence that repeatedly produces the values from :mini:`Sequence` (for use with :mini:`limit`).
+
+   .. collapse:: Example
+
+      .. code-block:: mini
+
+         list(>>(1 .. 3) limit 10) :> [1, 2, 3, 1, 2, 3, 1, 2, 3, 1]
 
 
 :mini:`meth (Sequence: sequence) ^ (Function: function): sequence`

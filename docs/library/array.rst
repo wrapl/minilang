@@ -14,6 +14,15 @@ array
 
 
 
+.. _fun-array:
+
+:mini:`fun array(List: list): array`
+   Returns a new array containing the values in :mini:`List`.
+
+   The shape and type of the array is determined from the elements in :mini:`List`.
+
+
+
 :mini:`meth (A: array) != (B: integer): array`
    Returns an array :mini:`C` where :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
 
@@ -347,6 +356,13 @@ array
 
 
 
+.. _fun-array-any:
+
+:mini:`fun array::any(Sizes: list[integer]): array::any`
+    Returns a new array of any values with the specified dimensions.
+
+
+
 .. _type-array-complex:
 
 :mini:`type array::complex < array`
@@ -365,10 +381,24 @@ array
 
 
 
+.. _fun-array-complex32:
+
+:mini:`fun array::complex32(Sizes: list[integer]): array::complex32`
+    Returns a new array of complex32 values with the specified dimensions.
+
+
+
 .. _type-array-complex64:
 
 :mini:`type array::complex64 < array::complex`
    An array of complex64 values.
+
+
+
+.. _fun-array-complex64:
+
+:mini:`fun array::complex64(Sizes: list[integer]): array::complex64`
+    Returns a new array of complex64 values with the specified dimensions.
 
 
 
@@ -379,10 +409,24 @@ array
 
 
 
+.. _fun-array-float32:
+
+:mini:`fun array::float32(Sizes: list[integer]): array::float32`
+    Returns a new array of float32 values with the specified dimensions.
+
+
+
 .. _type-array-float64:
 
 :mini:`type array::float64 < array::real`
    An array of float64 values.
+
+
+
+.. _fun-array-float64:
+
+:mini:`fun array::float64(Sizes: list[integer]): array::float64`
+    Returns a new array of float64 values with the specified dimensions.
 
 
 
@@ -393,10 +437,24 @@ array
 
 
 
+.. _fun-array-int16:
+
+:mini:`fun array::int16(Sizes: list[integer]): array::int16`
+    Returns a new array of int16 values with the specified dimensions.
+
+
+
 .. _type-array-int32:
 
 :mini:`type array::int32 < array::integer`
    An array of int32 values.
+
+
+
+.. _fun-array-int32:
+
+:mini:`fun array::int32(Sizes: list[integer]): array::int32`
+    Returns a new array of int32 values with the specified dimensions.
 
 
 
@@ -407,10 +465,24 @@ array
 
 
 
+.. _fun-array-int64:
+
+:mini:`fun array::int64(Sizes: list[integer]): array::int64`
+    Returns a new array of int64 values with the specified dimensions.
+
+
+
 .. _type-array-int8:
 
 :mini:`type array::int8 < array::integer`
    An array of int8 values.
+
+
+
+.. _fun-array-int8:
+
+:mini:`fun array::int8(Sizes: list[integer]): array::int8`
+    Returns a new array of int8 values with the specified dimensions.
 
 
 
@@ -446,10 +518,24 @@ array
 
 
 
+.. _fun-array-uint16:
+
+:mini:`fun array::uint16(Sizes: list[integer]): array::uint16`
+    Returns a new array of uint16 values with the specified dimensions.
+
+
+
 .. _type-array-uint32:
 
 :mini:`type array::uint32 < array::integer`
    An array of uint32 values.
+
+
+
+.. _fun-array-uint32:
+
+:mini:`fun array::uint32(Sizes: list[integer]): array::uint32`
+    Returns a new array of uint32 values with the specified dimensions.
 
 
 
@@ -460,10 +546,24 @@ array
 
 
 
+.. _fun-array-uint64:
+
+:mini:`fun array::uint64(Sizes: list[integer]): array::uint64`
+    Returns a new array of uint64 values with the specified dimensions.
+
+
+
 .. _type-array-uint8:
 
 :mini:`type array::uint8 < array::integer`
    An array of uint8 values.
+
+
+
+.. _fun-array-uint8:
+
+:mini:`fun array::uint8(Sizes: list[integer]): array::uint8`
+    Returns a new array of uint8 values with the specified dimensions.
 
 
 
@@ -567,15 +667,6 @@ array
 
 
 
-.. _fun-array:
-
-:mini:`fun array(List: list): array`
-   Returns a new array containing the values in :mini:`List`.
-
-   The shape and type of the array is determined from the elements in :mini:`List`.
-
-
-
 :mini:`meth $(List: list): array`
    Returns an array with the contents of :mini:`List`.
 
@@ -583,97 +674,6 @@ array
 
 :mini:`meth ^(List: list): array`
    Returns an array with the contents of :mini:`List`,  transposed.
-
-
-
-.. _fun-array-any:
-
-:mini:`fun array::any(Sizes: list[integer]): array::any`
-    Returns a new array of any values with the specified dimensions.
-
-
-
-.. _fun-array-complex32:
-
-:mini:`fun array::complex32(Sizes: list[integer]): array::complex32`
-    Returns a new array of complex32 values with the specified dimensions.
-
-
-
-.. _fun-array-complex64:
-
-:mini:`fun array::complex64(Sizes: list[integer]): array::complex64`
-    Returns a new array of complex64 values with the specified dimensions.
-
-
-
-.. _fun-array-float32:
-
-:mini:`fun array::float32(Sizes: list[integer]): array::float32`
-    Returns a new array of float32 values with the specified dimensions.
-
-
-
-.. _fun-array-float64:
-
-:mini:`fun array::float64(Sizes: list[integer]): array::float64`
-    Returns a new array of float64 values with the specified dimensions.
-
-
-
-.. _fun-array-int16:
-
-:mini:`fun array::int16(Sizes: list[integer]): array::int16`
-    Returns a new array of int16 values with the specified dimensions.
-
-
-
-.. _fun-array-int32:
-
-:mini:`fun array::int32(Sizes: list[integer]): array::int32`
-    Returns a new array of int32 values with the specified dimensions.
-
-
-
-.. _fun-array-int64:
-
-:mini:`fun array::int64(Sizes: list[integer]): array::int64`
-    Returns a new array of int64 values with the specified dimensions.
-
-
-
-.. _fun-array-int8:
-
-:mini:`fun array::int8(Sizes: list[integer]): array::int8`
-    Returns a new array of int8 values with the specified dimensions.
-
-
-
-.. _fun-array-uint16:
-
-:mini:`fun array::uint16(Sizes: list[integer]): array::uint16`
-    Returns a new array of uint16 values with the specified dimensions.
-
-
-
-.. _fun-array-uint32:
-
-:mini:`fun array::uint32(Sizes: list[integer]): array::uint32`
-    Returns a new array of uint32 values with the specified dimensions.
-
-
-
-.. _fun-array-uint64:
-
-:mini:`fun array::uint64(Sizes: list[integer]): array::uint64`
-    Returns a new array of uint64 values with the specified dimensions.
-
-
-
-.. _fun-array-uint8:
-
-:mini:`fun array::uint8(Sizes: list[integer]): array::uint8`
-    Returns a new array of uint8 values with the specified dimensions.
 
 
 
@@ -699,13 +699,13 @@ array
 
 
 
-:mini:`meth \(A: matrix): matrix`
-   Returns the inverse of :mini:`A`.
-
-
-
 :mini:`meth (A: matrix) \ (B: vector): vector`
    Returns the solution :mini:`X` of :mini:`A . X = B`.
+
+
+
+:mini:`meth \(A: matrix): matrix`
+   Returns the inverse of :mini:`A`.
 
 
 

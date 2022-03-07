@@ -7,13 +7,6 @@
 object
 ======
 
-.. _fun-property:
-
-:mini:`fun property(Value: any, set: any): property`
-   Returns a new property which dereferences to :mini:`Value`. Assigning to the property will call :mini:`set(NewValue)`.
-
-
-
 .. _type-class:
 
 :mini:`type class < type`
@@ -31,6 +24,12 @@ object
 .. _type-enum:
 
 :mini:`type enum < type, sequence`
+   *TBD*
+
+
+.. _fun-enum:
+
+:mini:`fun enum(Values: string, ...): enum`
    *TBD*
 
 
@@ -127,9 +126,10 @@ object
 
 
 
-.. _fun-enum:
+.. _fun-property:
 
-:mini:`fun enum(Values: string, ...): enum`
-   *TBD*
+:mini:`fun property(Value: any, set: any): property`
+   Returns a new property which dereferences to :mini:`Value`. Assigning to the property will call :mini:`set(NewValue)`.
+
 
 

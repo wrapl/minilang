@@ -218,6 +218,7 @@
       <keyword>integer</keyword>
       <keyword>real</keyword>
       <keyword>complex</keyword>
+      <keyword>address</keyword>
       <keyword>string</keyword>
       <keyword>buffer</keyword>
       <keyword>stringbuffer</keyword>
