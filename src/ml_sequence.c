@@ -15,38 +15,9 @@ static ML_METHOD_DECL(SoloMethod, "->");
 static ML_METHOD_DECL(DuoMethod, "=>");
 static ML_METHOD_DECL(FilterSoloMethod, "->?");
 static ML_METHOD_DECL(FilterDuoMethod, "=>?");
-static ML_METHOD_DECL(SoloApplyMethod, "!>");
-static ML_METHOD_DECL(FilterSoloApplyMethod, "!>?");
+static ML_METHOD_DECL(SoloApplyMethod, "->!");
+static ML_METHOD_DECL(FilterSoloApplyMethod, "->!?");
 static ML_METHOD_DECL(ApplyMethod, "!");
-
-typedef struct ml_filter_t {
-	ml_type_t *Type;
-	ml_value_t *Function;
-} ml_filter_t;
-
-static void ml_chained_filter_call(ml_state_t *Caller, ml_filter_t *Filter, int Count, ml_value_t **Args) {
-	return ml_call(Caller, Filter->Function, Count, Args);
-}
-
-ML_TYPE(FilterT, (MLFunctionT), "chained-filter",
-//@filter
-// A function marked as a filter when used in a chained function or sequence.
-	.call = (void *)ml_chained_filter_call
-);
-
-static ml_filter_t *FilterNil;
-
-ML_FUNCTION(Filter) {
-//@filter
-//<Function?
-//>filter
-// Returns a filter for use in chained functions and sequences.
-	if (Count == 0) return (ml_value_t *)FilterNil;
-	ml_filter_t *Filter = new(ml_filter_t);
-	Filter->Type = FilterT;
-	Filter->Function = Args[0];
-	return (ml_value_t *)Filter;
-}
 
 typedef struct ml_chained_state_t {
 	ml_state_t Base;
@@ -112,6 +83,8 @@ ML_FUNCTION(MLChained) {
 //<Fn/1,...,Fn/n:function
 //>chained
 // Returns a new chained function or sequence with base :mini:`Base` and additional functions or filters :mini:`Fn/1, ..., Fn/n`.
+//$- let F := chained(fun(X) X + 1, fun(X) X ^ 2)
+//$= F(10)
 	ML_CHECK_ARG_COUNT(1);
 	return ml_chained(Count, Args);
 }
@@ -146,7 +119,7 @@ typedef struct ml_chained_iterator_t {
 	ml_state_t Base;
 	ml_value_t *Iterator;
 	ml_value_t **Current, **Entries;
-	ml_value_t *Values[3];
+	ml_value_t *Values[4];
 } ml_chained_iterator_t;
 
 ML_TYPE(MLChainedStateT, (MLStateT), "chained-state");
@@ -230,17 +203,17 @@ static void ml_chained_iterator_continue(ml_chained_iterator_t *State) {
 		if (!Function) ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Missing value function for chain"));
 		State->Current = Entry + 2;
 		State->Base.run = (void *)ml_chained_iterator_value;
-		State->Values[2] = State->Values[1];
-		State->Values[1] = Function;
-		return ml_call(State, ApplyMethod, 2, State->Values + 1);
+		State->Values[3] = State->Values[1];
+		State->Values[2] = Function;
+		return ml_call(State, ApplyMethod, 2, State->Values + 2);
 	} else if (Function == FilterSoloApplyMethod) {
 		Function = Entry[1];
 		if (!Function) ML_CONTINUE(State->Base.Caller, ml_error("StateError", "Missing value function for chain"));
 		State->Current = Entry + 2;
 		State->Base.run = (void *)ml_chained_iterator_filter;
-		State->Values[2] = State->Values[1];
-		State->Values[1] = Function;
-		return ml_call(State, ApplyMethod, 2, State->Values + 1);
+		State->Values[3] = State->Values[1];
+		State->Values[2] = Function;
+		return ml_call(State, ApplyMethod, 2, State->Values + 2);
 	} else {
 		State->Current = Entry + 1;
 		State->Base.run = (void *)ml_chained_iterator_value;
@@ -283,8 +256,11 @@ static void ML_TYPED_FN(ml_iterate, MLChainedT, ml_state_t *Caller, ml_chained_f
 ML_METHOD("->", MLFunctionT, MLFunctionT) {
 //<Base
 //<Function
-//>sequence
+//>chained
 // Returns a chained function equivalent to :mini:`Function(Base(...))`.
+//$- let F := :upper -> (3 * _)
+//$= F("hello")
+//$= F("cake")
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 3, ml_value_t *);
 	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
@@ -323,6 +299,7 @@ ML_METHOD("=>", MLSequenceT, MLFunctionT) {
 //<F
 //>sequence
 // Returns a chained sequence equivalent to :mini:`(K/1, F(K/1, V/1)), ..., (K/n, F(K/n, V/n))` where :mini:`K/i` and :mini:`V/i` are the keys and values produced by :mini:`Base`.
+//$= map("cake" => *)
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 5, ml_value_t *);
 	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
@@ -339,6 +316,7 @@ ML_METHOD("=>", MLSequenceT, MLFunctionT, MLFunctionT) {
 //<F/2
 //>sequence
 // Returns a chained sequence equivalent to :mini:`(F/1(K/1, V/1), F/2(K/1, V/1)), ..., (F/1(K/n, V/n), F/2(K/n, V/n))` where :mini:`K/i` and :mini:`V/i` are the keys and values produced by :mini:`Base`.
+//$= map("cake" => (tuple, *))
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 5, ml_value_t *);
 	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
@@ -377,11 +355,12 @@ ML_METHOD("=>", MLChainedT, MLFunctionT, MLFunctionT) {
 	return (ml_value_t *)Chained;
 }
 
-ML_METHOD("!>", MLSequenceT, MLFunctionT) {
+ML_METHOD("->!", MLSequenceT, MLFunctionT) {
 //<Base
 //<F
 //>sequence
 // Returns a chained sequence equivalent to :mini:`(K/1, F ! V/1), ..., (K/n, F ! V/n)` where :mini:`K/i` and :mini:`V/i` are the keys and values produced by :mini:`Base`.
+//$= map({"A" is [1, 2], "B" is [3, 4], "C" is [5, 6]} ->! +)
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
 	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
@@ -391,7 +370,7 @@ ML_METHOD("!>", MLSequenceT, MLFunctionT) {
 	return (ml_value_t *)Chained;
 }
 
-ML_METHOD("!>", MLChainedT, MLFunctionT) {
+ML_METHOD("->!", MLChainedT, MLFunctionT) {
 //!internal
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
 	int N = 0;
@@ -409,6 +388,7 @@ ML_METHOD("->?", MLSequenceT, MLFunctionT) {
 //<F
 //>sequence
 // Returns a chained sequence equivalent to :mini:`(K/j, V/j), ...` where :mini:`K/i` and :mini:`V/i` are the keys and values produced by :mini:`Base` and :mini:`F(V/j)` returns non-:mini:`nil`.
+//$= list(1 .. 10 ->? (2 | _))
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
 #ifdef ML_GENERICS
 	ml_type_t *TArgs[3];
@@ -446,6 +426,8 @@ ML_METHOD("=>?", MLSequenceT, MLFunctionT) {
 //<F
 //>sequence
 // Returns a chained sequence equivalent to :mini:`(K/j, V/j), ...` where :mini:`K/i` and :mini:`V/i` are the keys and values produced by :mini:`Base` and :mini:`F(K/j, V/j)` returns non-:mini:`nil`.
+//$= let M := map(1 .. 10 -> fun(X) X ^ 2 % 10)
+//$= map(M =>? !=)
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
 	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
@@ -468,11 +450,12 @@ ML_METHOD("=>?", MLChainedT, MLFunctionT) {
 	return (ml_value_t *)Chained;
 }
 
-ML_METHOD("!>?", MLSequenceT, MLFunctionT) {
+ML_METHOD("->!?", MLSequenceT, MLFunctionT) {
 //<Base
 //<F
 //>sequence
 // Returns a chained sequence equivalent to :mini:`(K/j, V/j), ...` where :mini:`K/i` and :mini:`V/i` are the keys and values produced by :mini:`Base` and :mini:`F ! V/j` returns non-:mini:`nil`.
+//$= map({"A" is [1, 2], "B" is [3, 3], "C" is [5, 6]} ->!? !=)
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
 	Chained->Type = MLChainedT;
 	Chained->Entries[0] = Args[0];
@@ -482,7 +465,7 @@ ML_METHOD("!>?", MLSequenceT, MLFunctionT) {
 	return (ml_value_t *)Chained;
 }
 
-ML_METHOD("!>?", MLChainedT, MLFunctionT) {
+ML_METHOD("->!?", MLChainedT, MLFunctionT) {
 //!internal
 	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
 	int N = 0;
@@ -588,6 +571,7 @@ ML_METHOD("->>", MLSequenceT, MLFunctionT) {
 //<Function
 //>sequence
 // Returns a new sequence that generates the keys and values from :mini:`Function(Value)` for each value generated by :mini:`Sequence`.
+//$= list(1 .. 5 ->> (1 .. _))
 	return ml_doubled(Args[0], Args[1]);
 }
 
@@ -598,6 +582,7 @@ ML_METHOD("^", MLSequenceT, MLFunctionT) {
 // Returns a new sequence that generates the keys and values from :mini:`Function(Value)` for each value generated by :mini:`Sequence`.
 // .. deprecated:: 2.5.0
 //    Use :mini:`->>` instead.
+//$= list(1 .. 5 ^ (1 .. _))
 	return ml_doubled(Args[0], Args[1]);
 }
 
@@ -679,6 +664,7 @@ ML_METHOD("=>>", MLSequenceT, MLFunctionT) {
 //<Function
 //>sequence
 // Returns a new sequence that generates the keys and values from :mini:`Function(Key, Value)` for each key and value generated by :mini:`Sequence`.
+//$= list("cake" =>> *)
 	ml_doubled_t *Doubled = new(ml_doubled_t);
 	Doubled->Type = MLDoubled2T;
 	Doubled->Sequence = Args[0];
@@ -699,7 +685,6 @@ static void all_iter_value(ml_iter_state_t *State, ml_value_t *Value) {
 }
 
 static void all_iterate(ml_iter_state_t *State, ml_value_t *Value) {
-	Value = ml_deref(Value);
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, MLSome);
 	State->Base.run = (void *)all_iter_value;
@@ -710,6 +695,9 @@ ML_FUNCTIONX(All) {
 //<Sequence
 //>some | nil
 // Returns :mini:`nil` if :mini:`nil` is produced by :mini:`Sequence`. Otherwise returns :mini:`some`. If :mini:`Sequence` is empty, then :mini:`some` is returned.
+//$= all([1, 2, 3, 4])
+//$= all([1, 2, nil, 4])
+//$= all([])
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = new(ml_iter_state_t);
@@ -731,6 +719,8 @@ ML_FUNCTIONX(First) {
 //<Sequence
 //>any | nil
 // Returns the first value produced by :mini:`Sequence`.
+//$= first("cake")
+//$= first([])
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_state_t *State = new(ml_state_t);
@@ -764,6 +754,8 @@ ML_FUNCTIONX(First2) {
 //<Sequence
 //>tuple(any, any) | nil
 // Returns the first key and value produced by :mini:`Sequence`.
+//$= first2("cake")
+//$= first2([])
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
@@ -793,6 +785,8 @@ ML_FUNCTIONX(Last) {
 //<Sequence
 //>any | nil
 // Returns the last value produced by :mini:`Sequence`.
+//$= last("cake")
+//$= last([])
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
@@ -836,6 +830,8 @@ ML_FUNCTIONX(Last2) {
 //<Sequence
 //>tuple(any, any) | nil
 // Returns the last key and value produced by :mini:`Sequence`.
+//$= last2("cake")
+//$= last2([])
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
@@ -880,7 +876,9 @@ ML_FUNCTIONX(Count) {
 //@count
 //<Sequence
 //>integer
-// Returns the count of the values produced by :mini:`Sequence`.
+// Returns the count of the values produced by :mini:`Sequence`. For some types of sequences (e.g. :mini:`list`, :mini:`map`, etc), the count is simply retrieved. For all other types, the sequence is iterated and the total number of values counted.
+//$= count([1, 2, 3, 4])
+//$= count(1 .. 10 ->? (2 | _))
 	ML_CHECKX_ARG_COUNT(1);
 	if (Count == 1) {
 		ml_value_t *Method = ml_method_search(Caller, (ml_method_t *)CountMethod, 1, Args);
@@ -927,6 +925,7 @@ ML_FUNCTIONX(Count2) {
 //<Sequence
 //>map
 // Returns a map of the values produced by :mini:`Sequence` with associated counts.
+//$= count2("banana")
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_count2_state_t *State = new(ml_count2_state_t);
@@ -988,6 +987,8 @@ ML_FUNCTIONX(Reduce) {
 //>any | nil
 // Returns :mini:`Fn(Fn( ... Fn(Initial, V/1), V/2) ..., V/n)` where :mini:`V/i` are the values produced by :mini:`Sequence`.
 // If :mini:`Initial` is omitted, first value produced by :mini:`Sequence` is used.
+//$= reduce(1 .. 10, +)
+//$= reduce([], 1 .. 10, :put)
 	ML_CHECKX_ARG_COUNT(2);
 	if (Count == 2) {
 		ML_CHECKX_ARG_TYPE(0, MLSequenceT);
@@ -1056,6 +1057,7 @@ ML_FUNCTIONX(Reduce2) {
 //<Fn:function
 //>any | nil
 // Returns :mini:`Fn(Fn( ... Fn(Initial, K/1, V/1), K/2, V/2) ..., K/n, V/n)` where :mini:`K/i` and :mini:`V/i` are the keys and values produced by :mini:`Sequence`.
+//$= reduce2([], "cake", fun(L, K, V) L:put((K, V)))
 	ML_CHECKX_ARG_COUNT(3);
 	ML_CHECKX_ARG_TYPE(1, MLSequenceT);
 	ML_CHECKX_ARG_TYPE(2, MLFunctionT);
@@ -1072,6 +1074,7 @@ ML_FUNCTIONX(Min) {
 //<Sequence
 //>any | nil
 // Returns the smallest value (using :mini:`<`) produced by :mini:`Sequence`.
+//$= min([1, 5, 2, 10, 6])
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
@@ -1086,6 +1089,7 @@ ML_FUNCTIONX(Max) {
 //<Sequence
 //>any | nil
 // Returns the largest value (using :mini:`>`) produced by :mini:`Sequence`.
+//$= max([1, 5, 2, 10, 6])
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
@@ -1100,6 +1104,7 @@ ML_FUNCTIONX(Sum) {
 //<Sequence
 //>any | nil
 // Returns the sum of the values (using :mini:`+`) produced by :mini:`Sequence`.
+//$= sum([1, 5, 2, 10, 6])
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
@@ -1114,6 +1119,7 @@ ML_FUNCTIONX(Prod) {
 //<Sequence
 //>any | nil
 // Returns the product of the values (using :mini:`*`) produced by :mini:`Sequence`.
+//$= prod([1, 5, 2, 10, 6])
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
@@ -1170,6 +1176,7 @@ ML_METHODX("join", MLSequenceT, MLStringT) {
 //<Separator
 //>string
 // Joins the elements of :mini:`Sequence` into a string using :mini:`Separator` between elements.
+//$= (1 .. 10):join
 	ml_join_state_t *State = new(ml_join_state_t);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)join_first;
@@ -1185,6 +1192,7 @@ ML_METHODX("join", MLSequenceT) {
 //<Sequence
 //>string
 // Joins the elements of :mini:`Sequence` into a string.
+//$= 1 .. 10 join ","
 	ml_join_state_t *State = new(ml_join_state_t);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)join_first;
@@ -1264,6 +1272,9 @@ ML_FUNCTIONX(Extremum) {
 //<Sequence
 //<Fn
 //>tuple | nil
+// Returns a tuple with the key and value of the extremum value using :mini:`Fn(Value/1, Value/2)` produced by :mini:`Sequence`. Returns :mini:`nil` if :mini:`Sequence` is empty.
+//$= extremum("cake", >)
+//$= extremum("cake", <)
 	ML_CHECKX_ARG_COUNT(2);
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ML_CHECKX_ARG_TYPE(1, MLFunctionT);
@@ -1278,7 +1289,8 @@ ML_FUNCTIONX(Extremum) {
 ML_FUNCTIONX(Min2) {
 //<Sequence
 //>tuple | nil
-// Returns a tuple with the key and value of the smallest value (using :mini:`<`) produced by :mini:`Sequence`.
+// Returns a tuple with the key and value of the smallest value (using :mini:`<`) produced by :mini:`Sequence`.  Returns :mini:`nil` if :mini:`Sequence` is empty.
+//$= min2([1, 5, 2, 10, 6])
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 4, ml_value_t *);
@@ -1292,7 +1304,8 @@ ML_FUNCTIONX(Min2) {
 ML_FUNCTIONX(Max2) {
 //<Sequence
 //>tuple | nil
-// Returns a tuple with the key and value of the largest value (using :mini:`>`) produced by :mini:`Sequence`.
+// Returns a tuple with the key and value of the largest value (using :mini:`>`) produced by :mini:`Sequence`.  Returns :mini:`nil` if :mini:`Sequence` is empty.
+//$= max2([1, 5, 2, 10, 6])
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 4, ml_value_t *);
@@ -1388,6 +1401,7 @@ ML_METHOD("//", MLSequenceT, MLFunctionT) {
 //<Fn
 //>sequence
 // Returns an sequence that produces :mini:`V/1`, :mini:`Fn(V/1, V/2)`, :mini:`Fn(Fn(V/1, V/2), V/3)`, ... .
+//$= list(1 .. 10 // +)
 	ml_stacked_t *Stacked = new(ml_stacked_t);
 	Stacked->Type = MLStackedT;
 	Stacked->Value = Args[0];
@@ -1401,6 +1415,7 @@ ML_METHOD("//", MLSequenceT, MLAnyT, MLFunctionT) {
 //<Fn
 //>sequence
 // Returns an sequence that produces :mini:`Initial`, :mini:`Fn(Initial, V/1)`, :mini:`Fn(Fn(Initial, V/1), V/2)`, ... .
+//$= list(1 .. 10 // (10, +))
 	ml_stacked_t *Stacked = new(ml_stacked_t);
 	Stacked->Type = MLStackedT;
 	Stacked->Value = Args[0];
@@ -1465,7 +1480,8 @@ static void ML_TYPED_FN(ml_iterate, MLRepeatedT, ml_state_t *Caller, ml_repeated
 ML_METHOD("@", MLAnyT) {
 //<Value
 //>sequence
-// Returns an sequence that repeatedly produces :mini:`Value`.
+// Returns an infinite sequence that repeatedly produces :mini:`Value`. Should be used with :mini:`:limit` or paired with a finite sequence in :mini:`zip`, :mini:`weave`, etc.
+//$= list(@1 limit 10)
 	ML_CHECK_ARG_COUNT(1);
 	ml_repeated_t *Repeated = new(ml_repeated_t);
 	Repeated->Type = MLRepeatedT;
@@ -1477,8 +1493,9 @@ ML_METHOD("@", MLAnyT, MLFunctionT) {
 //<Value
 //<Update
 //>sequence
-// Returns an sequence that repeatedly produces :mini:`Value`.
+// Returns an infinite sequence that repeatedly produces :mini:`Value`. Should be used with :mini:`:limit` or paired with a finite sequence in :mini:`zip`, :mini:`weave`, etc.
 // :mini:`Value` is replaced with :mini:`Update(Value)` after each iteration.
+//$= list(1 @ (_ + 1) limit 10)
 	ML_CHECK_ARG_COUNT(1);
 	ml_repeated_t *Repeated = new(ml_repeated_t);
 	Repeated->Type = MLRepeatedT;
@@ -1542,6 +1559,7 @@ ML_METHOD(">>", MLSequenceT, MLSequenceT) {
 //<Sequence/2
 //>Sequence
 // Returns an sequence that produces the values from :mini:`Sequence/1` followed by those from :mini:`Sequence/2`.
+//$= list(1 .. 3 >> "cake")
 	ml_sequenced_t *Sequenced = xnew(ml_sequenced_t, 3, ml_value_t *);
 	Sequenced->Type = MLSequencedT;
 	Sequenced->First = Args[0];
@@ -1553,6 +1571,7 @@ ML_METHOD(">>", MLSequenceT) {
 //<Sequence
 //>Sequence
 // Returns an sequence that repeatedly produces the values from :mini:`Sequence` (for use with :mini:`limit`).
+//$= list(>>(1 .. 3) limit 10)
 	ml_sequenced_t *Sequenced = xnew(ml_sequenced_t, 3, ml_value_t *);
 	Sequenced->Type = MLSequencedT;
 	Sequenced->First = Args[0];
@@ -1629,6 +1648,8 @@ ML_METHOD("limit", MLSequenceT, MLIntegerT) {
 //<Limit
 //>sequence
 // Returns an sequence that produces at most :mini:`Limit` values from :mini:`Sequence`.
+//$= list(1 .. 10)
+//$= list(1 .. 10 limit 5)
 	ml_limited_t *Limited = new(ml_limited_t);
 	Limited->Type = MLLimitedT;
 	Limited->Value = Args[0];
@@ -1679,6 +1700,8 @@ ML_METHOD("skip", MLSequenceT, MLIntegerT) {
 //<Skip
 //>sequence
 // Returns an sequence that skips the first :mini:`Skip` values from :mini:`Sequence` and then produces the rest.
+//$= list(1 .. 10)
+//$= list(1 .. 10 skip 5)
 	ml_skipped_t *Skipped = new(ml_skipped_t);
 	Skipped->Type = MLSkippedT;
 	Skipped->Value = Args[0];
@@ -1754,123 +1777,14 @@ ML_METHOD("limit", MLSequenceT, MLFunctionT) {
 //<Sequence
 //<Fn
 //>sequence
-// Returns an sequence that stops when :mini:`Fn(Value)` is non-:mini:`nil`.
+// Returns an sequence that stops when :mini:`Fn(Value)` is :mini:`nil`.
+//$= list("banana")
+//$= list("banana" limit (_ != "n"))
 	ml_until_t *Until = new(ml_until_t);
 	Until->Type = MLUntilT;
 	Until->Value = Args[0];
 	Until->Fn = Args[1];
 	return (ml_value_t *)Until;
-}
-
-typedef struct {
-	ml_type_t *Type;
-	ml_value_t *Iter;
-	int Total;
-} ml_buffered_t;
-
-ML_TYPE(MLBufferedT, (MLSequenceT), "buffered");
-//!internal
-
-typedef struct {
-	ml_value_t *Key, *Value;
-} ml_buffered_key_value_t;
-
-typedef struct {
-	ml_state_t Base;
-	ml_value_t *Iter, *Final;
-	int Read, Write, Ready, Total;
-	ml_buffered_key_value_t KeyValues[];
-} ml_buffered_state_t;
-
-ML_TYPE(MLBufferedStateT, (MLStateT), "buffered-state");
-//!internal
-
-static void ml_buffered_iterate(ml_buffered_state_t *State, ml_value_t *Value);
-
-static void ml_buffered_value(ml_buffered_state_t *State, ml_value_t *Value) {
-	State->Base.run = (void *)ml_buffered_iterate;
-	State->KeyValues[State->Write].Value = Value;
-	State->Write = (State->Write + 1) % State->Total;
-	++State->Ready;
-	if (State->Ready < State->Total) {
-		ml_iter_next((ml_state_t *)State, State->Iter);
-	}
-	ml_state_t *Caller = State->Base.Caller;
-	if (Caller) {
-		State->Base.Caller = NULL;
-		ML_RETURN(State);
-	}
-}
-
-static void ml_buffered_key(ml_buffered_state_t *State, ml_value_t *Value) {
-	State->KeyValues[State->Write].Key = Value;
-	State->Base.run = (void *)ml_buffered_value;
-	return ml_iter_value((ml_state_t *)State, State->Iter);
-}
-
-static void ml_buffered_iterate(ml_buffered_state_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) {
-		State->Final = Value;
-	} else if (Value == MLNil) {
-		State->Final = MLNil;
-	} else {
-		State->Base.run = (void *)ml_buffered_key;
-		return ml_iter_key((ml_state_t *)State, State->Iter = Value);
-	}
-}
-
-static void ML_TYPED_FN(ml_iter_next, MLBufferedStateT, ml_state_t *Caller, ml_buffered_state_t *State) {
-	State->Read = (State->Read + 1) % State->Total;
-	--State->Ready;
-	if (!State->Final) {
-		ml_iter_next((ml_state_t *)State, State->Iter);
-	}
-	if (State->Ready) {
-		ML_RETURN(State);
-	} else if (State->Final) {
-		ML_RETURN(State->Final);
-	} else {
-		State->Base.Caller = Caller;
-	}
-}
-
-static void ML_TYPED_FN(ml_iter_key, MLBufferedStateT, ml_state_t *Caller, ml_buffered_state_t *State) {
-	ML_RETURN(State->KeyValues[State->Read].Key);
-}
-
-static void ML_TYPED_FN(ml_iter_value, MLBufferedStateT, ml_state_t *Caller, ml_buffered_state_t *State) {
-	ML_RETURN(State->KeyValues[State->Read].Value);
-}
-
-static void ML_TYPED_FN(ml_iterate, MLBufferedT, ml_state_t *Caller, ml_buffered_t *Buffered) {
-	ml_buffered_state_t *State = xnew(ml_buffered_state_t, Buffered->Total, ml_buffered_key_value_t);
-	State->Base.Type = MLBufferedStateT;
-	State->Base.run = (void *)ml_buffered_iterate;
-	State->Base.Context = Caller->Context;
-	State->Total = Buffered->Total;
-	State->Read = State->Write = State->Ready = 0;
-	ml_iterate((ml_state_t *)State, Buffered->Iter);
-	if (State->Ready) {
-		ML_RETURN(State);
-	} else if (State->Final) {
-		ML_RETURN(State->Final);
-	} else {
-		State->Base.Caller = Caller;
-	}
-}
-
-ML_FUNCTION(Buffered) {
-//<Size:integer
-//<Sequence
-//>sequence
-// Returns an sequence that buffers the keys and values from :mini:`Sequence` in advance, buffering at most :mini:`Size` pairs.
-	ML_CHECK_ARG_COUNT(2);
-	ML_CHECK_ARG_TYPE(0, MLIntegerT);
-	ml_buffered_t *Buffered = new(ml_buffered_t);
-	Buffered->Type = MLBufferedT;
-	Buffered->Total = ml_integer_value(Args[0]);
-	Buffered->Iter = ml_chained(Count - 1, Args + 1);
-	return (ml_value_t *)Buffered;
 }
 
 typedef struct ml_unique_t {
@@ -1942,6 +1856,7 @@ ML_FUNCTION(Unique) {
 //<Sequence
 //>sequence
 // Returns an sequence that returns the unique values produced by :mini:`Sequence`. Uniqueness is determined by using a :mini:`map`.
+//$= list(unique("banana"))
 	ML_CHECK_ARG_COUNT(1);
 	ml_unique_t *Unique = new(ml_unique_t);
 	Unique->Type = MLUniqueT;
@@ -2035,6 +1950,7 @@ ML_FUNCTION(Zip) {
 //>sequence
 // Returns a new sequence that produces :mini:`Function(V/1/1, ..., V/n/1), Function(V/1/2, ..., V/n/2), ...` where :mini:`V/i/j` is the :mini:`j`-th value produced by :mini:`Sequence/i`.
 // The sequence stops produces values when any of the :mini:`Sequence/i` stops.
+//$= list(zip(1 .. 3, "cake", tuple))
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(Count - 1, MLFunctionT);
 	ml_zipped_t *Zipped = xnew(ml_zipped_t, Count - 1, ml_value_t *);
@@ -2129,6 +2045,8 @@ ML_FUNCTION(Grid) {
 //<Function
 //>sequence
 // Returns a new sequence that produces :mini:`Function(V/1, V/2, ..., V/n)` for all possible combinations of :mini:`V/1, ..., V/n`, where :mini:`V/i` are the values produced by :mini:`Sequence/i`.
+//$= list(grid(1 .. 3, "cake", [true, false], tuple))
+//$= list(grid(1 .. 3, "cake", *))
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(Count - 1, MLFunctionT);
 	ml_grid_t *Grid = xnew(ml_grid_t, Count - 1, ml_value_t *);
@@ -2284,6 +2202,7 @@ ML_FUNCTION(Weave) {
 //>sequence
 // Returns a new sequence that produces interleaved values :mini:`V/i` from each of :mini:`Sequence/i`.
 // The sequence stops produces values when any of the :mini:`Sequence/i` stops.
+//$= list(weave(1 .. 3, "cake"))
 	ML_CHECK_ARG_COUNT(1);
 	ml_weaved_t *Weaved = xnew(ml_weaved_t, Count, ml_value_t *);
 	Weaved->Type = MLWeavedT;
@@ -2292,7 +2211,73 @@ ML_FUNCTION(Weave) {
 	return (ml_value_t *)Weaved;
 }
 
-typedef struct ml_folded_t {
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Iter;
+} ml_unpacked_t;
+
+ML_TYPE(MLUnpackedT, (MLSequenceT), "unpacked");
+//!internal
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Iter;
+	ml_value_t *Value;
+} ml_unpacked_state_t;
+
+ML_TYPE(MLUnpackedStateT, (MLStateT), "unpacked-state");
+//!internal
+
+static void unpacked_value(ml_unpacked_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Value = Value;
+	ML_CONTINUE(State->Base.Caller, State);
+}
+
+static void unpacked_iterate(ml_unpacked_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (void *)unpacked_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLUnpackedT, ml_state_t *Caller, ml_unpacked_t *Folded) {
+	ml_unpacked_state_t *State = new(ml_unpacked_state_t);
+	State->Base.Type = MLUnpackedStateT;
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)unpacked_iterate;
+	State->Base.Context = Caller->Context;
+	return ml_iterate((ml_state_t *)State, Folded->Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLUnpackedStateT, ml_state_t *Caller, ml_unpacked_state_t *State) {
+	ML_RETURN(ml_unpack(State->Value, 1));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLUnpackedStateT, ml_state_t *Caller, ml_unpacked_state_t *State) {
+	ML_RETURN(ml_unpack(State->Value, 2));
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLUnpackedStateT, ml_state_t *Caller, ml_unpacked_state_t *State) {
+	State->Base.run = (void *)unpacked_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+ML_FUNCTION(Unpack) {
+//@unpack
+//<Sequence:sequence
+//>sequence
+// Returns a new sequence unpacks each value generated by :mini:`Sequence` as keys and values respectively.
+//$- let L := [("A", "a"), ("B", "b"), ("C", "c")]
+//$= map(unpack(L))
+	ML_CHECK_ARG_COUNT(1);
+	ml_unpacked_t *Unpacked = new(ml_unpacked_t);
+	Unpacked->Type = MLUnpackedT;
+	Unpacked->Iter = ml_chained(Count, Args);
+	return (ml_value_t *)Unpacked;
+}
+
+typedef struct {
 	ml_type_t *Type;
 	ml_value_t *Iter;
 } ml_folded_t;
@@ -2313,8 +2298,7 @@ ML_TYPE(MLFoldedStateT, (MLStateT), "folded-state");
 static void folded_value(ml_folded_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	State->Value = Value;
-	ml_state_t *Caller = State->Base.Caller;
-	ML_RETURN(State);
+	ML_CONTINUE(State->Base.Caller, State);
 }
 
 static void folded_iterate_value(ml_folded_state_t *State, ml_value_t *Value) {
@@ -2365,6 +2349,7 @@ ML_FUNCTION(Fold) {
 //<Sequence:sequence
 //>sequence
 // Returns a new sequence that treats alternating values produced by :mini:`Sequence` as keys and values respectively.
+//$= map(fold(1 .. 10))
 	ML_CHECK_ARG_COUNT(1);
 	ml_folded_t *Folded = new(ml_folded_t);
 	Folded->Type = MLFoldedT;
@@ -2432,6 +2417,7 @@ ML_FUNCTION(Unfold) {
 //<Sequence:sequence
 //>sequence
 // Returns a new sequence that treats produces alternatively the keys and values produced by :mini:`Sequence`.
+//$= list(unfold("cake"))
 	ML_CHECK_ARG_COUNT(1);
 	ml_unfolded_t *Unfolded = new(ml_unfolded_t);
 	Unfolded->Type = MLUnfoldedT;
@@ -2488,6 +2474,7 @@ ML_FUNCTION(Swap) {
 //@swap
 //<Sequence:sequence
 // Returns a new sequence which swaps the keys and values produced by :mini:`Sequence`.
+//$= map(swap("cake"))
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLSequenceT);
 	ml_swapped_t *Swapped = new(ml_swapped_t);
@@ -2546,6 +2533,7 @@ ML_FUNCTION(Key) {
 //@key
 //<Sequence:sequence
 // Returns a new sequence which produces the keys of :mini:`Sequence`.
+//$= list(key({"A" is 1, "B" is 2, "C" is 3}))
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLSequenceT);
 	ml_key_t *Key = new(ml_key_t);
@@ -2644,7 +2632,9 @@ ML_FUNCTION(Batch) {
 //<Shift?:integer
 //<Function:function
 //>sequence
-// Returns a new sequence that calls :mini:`Function` with each batch of :mini:`Size` values produced by :mini:`Sequence` and produces the results.
+// Returns a new sequence that calls :mini:`Function` with each batch of :mini:`Size` values produced by :mini:`Sequence` and produces the results. If a :mini:`Shift` is provided then :mini:`Size - Shift` values of each batch come from the previous batch.
+//$= list(batch(1 .. 20, 4, tuple))
+//$= list(batch(1 .. 20, 4, 2, tuple))
 	ML_CHECK_ARG_COUNT(3);
 	ml_batched_t *Batched = new(ml_batched_t);
 	Batched->Type = MLBatchedT;
@@ -2667,9 +2657,6 @@ ML_FUNCTION(Batch) {
 void ml_sequence_init(stringmap_t *Globals) {
 	MLFunctionT->Constructor = (ml_value_t *)MLChained;
 	MLSequenceT->Constructor = (ml_value_t *)MLChained;
-	FilterNil = new(ml_filter_t);
-	FilterNil->Type = FilterT;
-	FilterNil->Function = ml_integer(1);
 #include "ml_sequence_init.c"
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLChainedT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
@@ -2677,7 +2664,6 @@ void ml_sequence_init(stringmap_t *Globals) {
 #endif
 	if (Globals) {
 		stringmap_insert(Globals, "chained", MLChainedT);
-		stringmap_insert(Globals, "filter", Filter);
 		stringmap_insert(Globals, "first", First);
 		stringmap_insert(Globals, "first2", First2);
 		stringmap_insert(Globals, "last", Last);
@@ -2698,12 +2684,12 @@ void ml_sequence_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "extremum", Extremum);
 		stringmap_insert(Globals, "min2", Min2);
 		stringmap_insert(Globals, "max2", Max2);
-		stringmap_insert(Globals, "buffered", Buffered);
 		stringmap_insert(Globals, "unique", Unique);
 		stringmap_insert(Globals, "zip", Zip);
 		stringmap_insert(Globals, "grid", Grid);
 		stringmap_insert(Globals, "pair", Pair);
 		stringmap_insert(Globals, "weave", Weave);
+		stringmap_insert(Globals, "unpack", Unpack);
 		stringmap_insert(Globals, "fold", Fold);
 		stringmap_insert(Globals, "unfold", Unfold);
 		stringmap_insert(Globals, "swap", Swap);

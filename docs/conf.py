@@ -71,7 +71,11 @@ author = 'Raja Mukherji'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.graphviz']
+extensions = [
+	'sphinx.ext.graphviz',
+	'sphinx.ext.viewcode',
+	'sphinx_toolbox.collapse',
+]
 
 graphviz_output_format = "svg"
 

@@ -19,31 +19,33 @@ fun category_name(Type) do
 	end
 end
 
-class: internal()
+enum: item("Category", "Type", "Export", "Constructor", "Function", "Method", "Append")
 
-meth :write(Internal: internal, ..) nil
-meth :close(Internal: internal) nil
-
-let Categories := {"internal" is internal()}
-
-fun write_category(Category) do
-	print('Creating Category: {Category}\n')
-	let File := file('{OutputDirectory}/{Category:lower}.rst', "w")
+fun write_category(Name, Items) do
+	print('Creating Category: {Name}\n')
+	let File := file('{OutputDirectory}/{Name:lower}.rst', "w")
 	File:write(".. include:: <isonum.txt>\n\n")
 	File:write(".. include:: <isoamsa.txt>\n\n")
 	File:write(".. include:: <isotech.txt>\n\n")
-	File:write(Category, "\n")
-	for I in Category do File:write("=") end
+	File:write(Name, "\n")
+	for I in Name do File:write("=") end
 	File:write("\n\n")
-	ret File
+	loop
+		let (Docs, Key) := while Items:next
+		:>print('\t{Key}\n')
+		File:write(Docs, "\n")
+	end
+	File:close
+end
+
+let Categories := {}
+
+fun emit(Category, Key, Docs) do
+	Categories[Category, fun queue(<)]:insert(Docs, Key)
 end
 
 fun write_overview(Category, Description) do
-	let File := Categories[Category, write_category]
-	for Line in Description do
-		File:write(Line)
-	end
-	File:write("\n")
+	emit(Category, tuple(), Description:join)
 end
 
 fun type_name(var Type) do
@@ -68,19 +70,46 @@ end
 
 fun is_symbol(Method) Method:lower = Method:upper
 
-fun write_method(Category, Kind, Method0, Params, Return, Description, Location) do
-	:<print('[{Category}] {Kind}: {Method}\n')
-	print("Params:\n")
-	for Param in Params do print('\t{Param}\n') end
-	print('Returns: {Return}\n')
-	print('Description: {Description}\n\n')>:
+method: image()
 
-	let File := Categories[Category, write_category]
-	let Title := string::buffer()
+meth image(V: any) string(V)
+meth image(S: string) '\"{S:escape}\"'
+meth image(A: address) with B := string::buffer() do
+	B:write('<{A:size}:')
+	for I in 0 .. (A:size - 1) do
+		B:write(string((A + I):getu8, "%02X"))
+	end
+	B:write(">")
+	B:rest
+end
+meth image(L: list) '[{list(L, image), ", "}]'
+meth image(M: map) with B := string::buffer() do
+	def some := not nil
+	B:write("{")
+	if M:count > 0 then
+		let (K, V) := first2(M)
+		B:write(image(K))
+		if V != some then
+			B:write(" is ", image(V))
+		end
+		for K, V in M skip 1 do
+			B:write(", ", image(K))
+			if V != some then
+				B:write(" is ", image(V))
+			end
+		end
+	end
+	B:write("}")
+	B:rest
+end
+meth image(E: error) 'error(\"{E:type}\", \"{E:message}\")'
+
+fun write_method(Category, Kind, Method0, Params, Return, Description, Examples, Location) do
+	let Buffer := string::buffer()
 	let Variadic := Kind = "ML_METHODV" or Kind = "ML_METHODVX"
 	var Terminator := ""
 	var Skip := 1
-	Title:write(':mini:`meth ')
+	Buffer:write(':mini:`meth ')
 	let Method := if let Match := Method0 % r"ML(\w+)T" then
 		Match[2]:lower
 	elseif Method0[1] = "\"" then
@@ -97,44 +126,41 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 		end
 	end
 	if Method = "[]" then
-		Title:write("(", Params[1][1], ": ", type_name(Params[1][2]), ")[")
+		Buffer:write("(", Params[1][1], ": ", type_name(Params[1][2]), ")[")
 		Terminator := "]"
 	elseif is_symbol(Method) then
 		if Params:length = 0 then
-			Title:write('{Method}()')
+			Buffer:write('{Method}()')
 		elseif Params:length = 1 and not Variadic then
-			Title:write('{Method}({Params[1][1]}: {type_name(Params[1][2])})')
+			Buffer:write('{Method}({Params[1][1]}: {type_name(Params[1][2])})')
 		else
-			Title:write('({Params[1][1]}: {type_name(Params[1][2])}) {Method} (')
+			Buffer:write('({Params[1][1]}: {type_name(Params[1][2])}) {Method} (')
 			Terminator := ")"
 		end
 	elseif Method[1] != ":" then
 		if Params:length = 0 then
-			Title:write('{Method}()')
+			Buffer:write('{Method}()')
 		elseif Params:length = 1 and not Variadic then
-			Title:write('{Method}({Params[1][1]}: {type_name(Params[1][2])})')
+			Buffer:write('{Method}({Params[1][1]}: {type_name(Params[1][2])})')
 		elseif Params[1][2] = "MLNamesT" then
 			let (Name, Value) := Params[1][1] / ","
-			Title:write('{Method}({Name}₁ is {Value or "Value"}₁, ')
+			Buffer:write('{Method}({Name}₁ is {Value or "Value"}₁, ')
 			Terminator := ")"
 		else
-			Title:write('{Method}({Params[1][1]}: {type_name(Params[1][2])}, ')
+			Buffer:write('{Method}({Params[1][1]}: {type_name(Params[1][2])}, ')
 			Terminator := ")"
 		end
 	else
-		:<Title:write('{Method}(')
-		Skip := 0
-		Terminator := ")">:
 		if Params:length = 0 then
-			Title:write('{Method}()')
+			Buffer:write('{Method}()')
 		elseif Params:length = 1 and not Variadic then
-			Title:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}')
+			Buffer:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}')
 		elseif Params[1][2] = "MLNamesT" then
 			let (Name, Value) := Params[1][1] / ","
-			Title:write('{Method}({Name}₁ is {Value or "Value"}₁,')
+			Buffer:write('{Method}({Name}₁ is {Value or "Value"}₁,')
 			Terminator := ")"
 		else
-			Title:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}(')
+			Buffer:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}(')
 			Terminator := ")"
 		end
 	end
@@ -142,144 +168,168 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Location)
 	for Param in Params skip Skip do
 		if Param[2] = "MLNamesT" then
 			let (Name, Value) := Param[1] / ","
-			Title:write(Seperator, '{Name}₁ is {Value or "Value"}₁')
+			Buffer:write(Seperator, '{Name}₁ is {Value or "Value"}₁')
 		else
-			Title:write(Seperator, '{Param[1]}: {type_name(Param[2])}')
+			Buffer:write(Seperator, '{Param[1]}: {type_name(Param[2])}')
 		end
 		Seperator := ", "
 	end
 	if Variadic then
-		first(Params -> _[1] ->? :find(_, "...")) or Title:write(Seperator, "...")
+		first(Params -> _[1] ->? :find(_, "...")) or Buffer:write(Seperator, "...")
 	end
-	Title:write(Terminator)
+	Buffer:write(Terminator)
 	if Return:length > 0 then
-		Title:write(": ", type_name(Return[1]))
+		Buffer:write(": ", type_name(Return[1]))
 		for Type in Return skip 1 do
-			Title:write(" | ", type_name(Type))
+			Buffer:write(" | ", type_name(Type))
 		end
 	end
-	Title:write("`")
-	let TitleString := Title:rest
-	File:write(TitleString, "\n")
+	Buffer:write("`\n")
 	for Line in Description do
-		File:write("   ", Line, "\n")
+		Buffer:write("   ", Line, "\n")
 	end
-	Description[1] or File:write("   *TBD*\n")
+	Description[1] or Buffer:write("   *TBD*\n")
 	for Param in Params do
 		if Param[3]:length > 0 then
-			File:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")
+			Buffer:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")
 		end
 	end
-	:>File:write('   *Defined at line {Location[2]} in {Location[1]}*\n')
-	File:write("\n")
+	if Examples[1] then
+		Buffer:write("   .. collapse:: Example\n\n")
+		Buffer:write("      .. code-block:: mini\n\n")
+		let Parser := parser(nil)
+		let Compiler := compiler(global)
+		for Example in Examples do
+			var Result
+			Parser:input(Example)
+			loop
+				let Next := Parser:evaluate(Compiler)
+				until Next = compiler::EOI
+				Result := Next
+			on Error do
+				Result := Error
+				exit
+			end
+			Buffer:write(Example, " :> ", image(Result), "\n")
+		end
+	end
+	Buffer:write("\n")
+	if Return[1] and Method = type_name(Return[1]) then
+		emit(Category, (Method, item::Constructor), Buffer:rest)
+	elseif Method = ":append" then
+		emit(Category, (type_name(Params[2][2]), item::Append, Method), Buffer:rest)
+	elseif Params[1] then
+		emit(Category, (type_name(Params[1][2]), item::Method, Method), Buffer:rest)
+	else
+		emit(Category, (Method, item::Method), Buffer:rest)
+	end
 end
 
-fun write_function(Category, Kind, Name, Params, Return, Description, Location) do
-	:<print('[{Category}] {Kind}: {Name}\n')
-	print("Params:\n")
-	for Param in Params do print('\t{Param}\n') end
-	print('Returns: {Return}\n')
-	print('Description: {Description}\n')>:
-
-	let File := Categories[Category, write_category]
-	let Title := string::buffer()
-
+fun write_function(Category, Kind, Name, Params, Return, Description, Examples, Location) do
+	let Buffer := string::buffer()
+	Buffer:write('.. _fun-{Name:replace("::", "-")}:\n\n')
 	var Terminator := ""
-	Title:write(':mini:`fun ', Name, "(")
+	Buffer:write(':mini:`fun ', Name, "(")
 	var Seperator := ""
 	for Param in Params do
 		if let Match := Param[1] % r"(.*)\.\.\." then
-			Title:write(Seperator, Match[2], ": ", type_name(Param[2]), ", ...")
+			Buffer:write(Seperator, Match[2], ": ", type_name(Param[2]), ", ...")
 		else
-			Title:write(Seperator, Param[1], ": ", type_name(Param[2]))
+			Buffer:write(Seperator, Param[1], ": ", type_name(Param[2]))
 		end
 		Seperator := ", "
 	end
-	Title:write(")")
+	Buffer:write(")")
 	if Return:length > 0 then
-		Title:write(": ", type_name(Return[1]))
+		Buffer:write(": ", type_name(Return[1]))
 		for Type in Return skip 1 do
-			Title:write(" | ", type_name(Type))
+			Buffer:write(" | ", type_name(Type))
 		end
 	end
-	Title:write("`")
-	let TitleString := Title:rest
-	File:write('.. _fun-{Name:replace("::", "-")}:\n\n')
-	File:write(TitleString, "\n")
+	Buffer:write("`\n")
 	for Line in Description do
-		File:write("   ", Line, "\n")
+		Buffer:write("   ", Line, "\n")
 	end
-	Description[1] or File:write("   *TBD*\n")
+	Description[1] or Buffer:write("   *TBD*\n")
 	for Param in Params do
 		if Param in method then
 		elseif Param[3]:length > 0 then
-			File:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")
+			Buffer:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")
 		end
 	end
-	:>File:write('   *Defined at line {Location[2]} in {Location[1]}*\n')
-	File:write("\n")
+	if Examples[1] then
+		Buffer:write("   .. collapse:: Example\n\n")
+		Buffer:write("      .. code-block:: mini\n\n")
+		let Parser := parser(nil)
+		let Compiler := compiler(global)
+		for Example in Examples do
+			var Result
+			Parser:input(Example)
+			loop
+				let Next := Parser:evaluate(Compiler)
+				until Next = compiler::EOI
+				Result := Next
+			on Error do
+				Result := Error
+				exit
+			end
+			Buffer:write(Example, " :> ", image(Result), "\n")
+		end
+	end
+	Buffer:write("\n")
+	if Return[1] and Name = type_name(Return[1]) then
+		emit(Category, (Name, item::Constructor), Buffer:rest)
+	else
+		emit(Category, (if let Param := first(Params) then type_name(Param[2]) else "" end, item::Function, Name), Buffer:rest)
+	end
 end
 
 fun write_constructor(Category, Kind, Name, Params, Return, Description, Location) do
-	:<print('[{Category}] {Kind}: {Name}\n')
-	print("Params:\n")
-	for Param in Params do print('\t{Param}\n') end
-	print('Returns: {Return}\n')
-	print('Description: {Description}\n')>:
-
-	let File := Categories[Category, write_category]
-	let Title := string::buffer()
-
+	let Buffer := string::buffer()
+	Buffer:write('.. _fun-{Name:replace("::", "-")}:\n\n')
 	var Terminator := ""
-	Title:write(':mini:`constructor ', Name, "(")
+	Buffer:write(':mini:`constructor ', Name, "(")
 	var Seperator := ""
 	for Param in Params do
-		Title:write(Seperator, Param[1], ": ", type_name(Param[2]))
+		Buffer:write(Seperator, Param[1], ": ", type_name(Param[2]))
 		Seperator := ", "
 	end
-	Title:write(")")
+	Buffer:write(")")
 	if Return:length > 0 then
-		Title:write(": ", type_name(Return[1]))
+		Buffer:write(": ", type_name(Return[1]))
 		for Type in Return skip 1 do
-			Title:write(" | ", type_name(Type))
+			Buffer:write(" | ", type_name(Type))
 		end
 	end
-	Title:write("`")
-	let TitleString := Title:rest
-	File:write('.. _fun-{Name:replace("::", "-")}:\n\n')
-	File:write(TitleString, "\n")
+	Buffer:write("`\n")
 	for Line in Description do
-		File:write("   ", Line, "\n")
+		Buffer:write("   ", Line, "\n")
 	end
-	Description[1] or File:write("   *TBD*\n")
+	Description[1] or Buffer:write("   *TBD*\n")
 	for Param in Params do
 		if Param in method then
 		elseif Param[3]:length > 0 then
-			File:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")
+			Buffer:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")
 		end
 	end
-	:>File:write('   *Defined at line {Location[2]} in {Location[1]}*\n')
-	File:write("\n")
+	Buffer:write("\n")
+	emit(Category, (type_name(Return[1] or "MLAnyT"), item::Constructor), Buffer:rest)
 end
 
 let TypesGraph := string::buffer()
 
 fun write_type(Category, Name, Parents, Description, Location) do
-	:<print('[{Category}] ML_TYPE: {Name} [{Parents}]\n')
-	print('Description: {Description}\n')>:
-
-	let File := Categories[Category, write_category]
 	let TypeName := type_name(Name)
-	let Title := string::buffer()
-
-	Title:write(':mini:`type {TypeName}')
+	let Buffer := string::buffer()
+	Buffer:write('.. _type-{TypeName:replace("::", "-")}:\n\n')
+	Buffer:write(':mini:`type {TypeName}')
 	if Parents:length > 0 then
-		Title:write(" < ")
+		Buffer:write(" < ")
 		var Seperator := ""
 		if Category != "internal" then
 			for Parent in Parents do
 				TypesGraph:write('      \"{type_name(Parent)}\":e -> \"{TypeName}\":w;\n')
-				Title:write(Seperator, type_name(Parent))
+				Buffer:write(Seperator, type_name(Parent))
 				Seperator := ", "
 			end
 		end
@@ -288,27 +338,25 @@ fun write_type(Category, Name, Parents, Description, Location) do
 			TypesGraph:write('      \"any\":e -> \"{TypeName}\":w;\n')
 		end
 	end
-	Title:write("`\n")
-	File:write('.. _type-{TypeName:replace("::", "-")}:\n\n')
-	File:write(Title:rest)
+	Buffer:write("`\n")
 	for Line in Description do
-		File:write("   ", Line, "\n")
+		Buffer:write("   ", Line, "\n")
 	end
-	Description[1] or File:write("   *TBD*\n")
-	:>File:write('   *Defined at line {Location[2]} in {Location[1]}*\n')
-	File:write("\n")
+	Description[1] or Buffer:write("   *TBD*\n")
+	Buffer:write("\n")
+	emit(Category, (TypeName, item::Type), Buffer:rest)
 end
 
 fun write_value(Category, Name, Type, Description, Location) do
-	let File := Categories[Category, write_category]
-	File:write('.. _value-{Name:replace("::", "-")}:\n\n')
-	File:write(':mini:`def {Name}: {type_name(Type)}`\n')
+	let Buffer := string::buffer()
+	Buffer:write('.. _value-{Name:replace("::", "-")}:\n\n')
+	Buffer:write(':mini:`def {Name}: {type_name(Type)}`\n')
 	for Line in Description do
-		File:write("   ", Line, "\n")
+		Buffer:write("   ", Line, "\n")
 	end
-	Description[1] or File:write("   *TBD*\n")
-	:>File:write('   *Defined at line {Location[2]} in {Location[1]}*\n')
-	File:write("\n")
+	Description[1] or Buffer:write("   *TBD*\n")
+	Buffer:write("\n")
+	emit(Category, (Name:before("::"), item::Export), Buffer:rest)
 end
 
 def Subscripts := {
@@ -384,6 +432,8 @@ fun process(FileName) do
 				let Params := []
 				var Return := []
 				let Description := []
+				let Examples := []
+				let Example := string::buffer()
 				loop
 					let Line := while File:read
 					LineNo := old + 1
@@ -411,6 +461,11 @@ fun process(FileName) do
 						Category := Line[4, 0]:trim
 					elseif Line % r"^/[/*] " then
 						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]\$- " then
+						Example:write("         ", Line[6, 0])
+					elseif Line % r"^/[/*]\$= " then
+						Example:write("         ", Line[6, -1])
+						Examples:put(Example:rest)
 					else
 						exit
 					end
@@ -419,9 +474,9 @@ fun process(FileName) do
 					Params:put(('Arg/{Params:length + 1}':replace(Subscripts), Type, ""))
 				end
 				if CurrentDefine then
-					CurrentDefine:put(write_method, [Category, Kind, Method, Params, Return, Description, Location])
+					CurrentDefine:put(write_method, [Category, Kind, Method, Params, Return, Description, Examples, Location])
 				else
-					write_method(Category, Kind, Method, Params, Return, Description, Location)
+					write_method(Category, Kind, Method, Params, Return, Description, Examples, Location)
 				end
 			elseif Line % r"^ML_FUNCTION" then
 				let Location := (FileName, LineNo)
@@ -432,6 +487,8 @@ fun process(FileName) do
 				let Params := []
 				var Return := []
 				let Description := []
+				let Examples := []
+				let Example := string::buffer()
 				loop
 					let Line := while File:read
 					LineNo := old + 1
@@ -459,6 +516,11 @@ fun process(FileName) do
 						Category := Line[4, 0]:trim
 					elseif Line % r"^/[/*] " then
 						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]\$- " then
+						Example:write("         ", Line[6, 0])
+					elseif Line % r"^/[/*]\$= " then
+						Example:write("         ", Line[6, -1])
+						Examples:put(Example:rest)
 					elseif let Match := Line % r"ML_CHECK(X?)_ARG_COUNT\(([0-9]+)\)" then
 						let Count := integer(Match[3])
 						for I in (Params:length + 1) .. Count do
@@ -472,9 +534,9 @@ fun process(FileName) do
 					end
 				end
 				if CurrentDefine then
-					CurrentDefine:put(write_function, [Category, Kind, Name, Params, Return, Description, Location])
+					CurrentDefine:put(write_function, [Category, Kind, Name, Params, Return, Description, Examples, Location])
 				else
-					write_function(Category, Kind, Name, Params, Return, Description, Location)
+					write_function(Category, Kind, Name, Params, Return, Description, Examples, Location)
 				end
 			elseif Line % r"^ML_CFUNCTION" then
 				let Location := (FileName, LineNo)
@@ -485,6 +547,8 @@ fun process(FileName) do
 				let Params := []
 				var Return := []
 				let Description := []
+				let Examples := []
+				let Example := string::buffer()
 				loop
 					let Line := while File:read
 					LineNo := old + 1
@@ -512,6 +576,11 @@ fun process(FileName) do
 						Category := Line[4, 0]:trim
 					elseif Line % r"^/[/*] " then
 						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]\$- " then
+						Example:write("         ", Line[6, 0])
+					elseif Line % r"^/[/*]\$= " then
+						Example:write("         ", Line[6, -1])
+						Examples:put(Example:rest)
 					elseif let Match := Line % r"ML_CHECK(X?)_ARG_COUNT\(([0-9]+)\)" then
 						let Count := integer(Match[3])
 						for I in (Params:length + 1) .. Count do
@@ -525,9 +594,9 @@ fun process(FileName) do
 					end
 				end
 				if CurrentDefine then
-					CurrentDefine:put(write_function, [Category, Kind, Name, Params, Return, Description, Location])
+					CurrentDefine:put(write_function, [Category, Kind, Name, Params, Return, Description, Examples, Location])
 				else
-					write_function(Category, Kind, Name, Params, Return, Description, Location)
+					write_function(Category, Kind, Name, Params, Return, Description, Examples, Location)
 				end
 			elseif Line % r"^ML_CONSTRUCTOR" then
 				let Location := (FileName, LineNo)
@@ -668,10 +737,17 @@ end
 
 for FileName in FileNames do process(FileName) end
 
-for Category, File in Categories do File:close end
+for Name, Items in Categories do
+	if Name != "internal" then
+		write_category(Name, Items)
+	end
+end
 
-with TypesFile := write_category("hierarchy") do
-	TypesFile:write('
+with File := file('{OutputDirectory}/hierarchy.rst', "w") do
+	File:write('
+hierarchy
+=========
+
 .. graphviz::
 
    digraph hierarchy \{
@@ -684,10 +760,10 @@ with TypesFile := write_category("hierarchy") do
       outputorder="edgesfirst";
       node [shape=box,fontsize=24];
 ')
-	TypesFile:write(TypesGraph:rest)
-	TypesFile:write('   }
+	File:write(TypesGraph:rest)
+	File:write('   }
 
 ')
-	TypesFile:close
+	File:close
 end
 

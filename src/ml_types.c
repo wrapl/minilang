@@ -1715,7 +1715,7 @@ ML_METHOD("append", MLStringBufferT, MLTupleT) {
 	return MLSome;
 }
 
-ml_value_t *ML_TYPED_FN(ml_unpack, MLTupleT, ml_tuple_t *Tuple, int Index) {
+static ml_value_t *ML_TYPED_FN(ml_unpack, MLTupleT, ml_tuple_t *Tuple, int Index) {
 	if (Index > Tuple->Size) return MLNil;
 	return Tuple->Values[Index - 1];
 }
@@ -2044,6 +2044,7 @@ void ml_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "i", ml_complex(1i));
 #endif
 		stringmap_insert(Globals, "method", MLMethodT);
+		stringmap_insert(Globals, "address", MLAddressT);
 		stringmap_insert(Globals, "buffer", MLBufferT);
 		stringmap_insert(Globals, "string", MLStringT);
 		//stringmap_insert(Globals, "stringbuffer", MLStringBufferT);

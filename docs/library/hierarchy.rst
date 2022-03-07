@@ -1,12 +1,6 @@
-.. include:: <isonum.txt>
-
-.. include:: <isoamsa.txt>
-
-.. include:: <isotech.txt>
 
 hierarchy
 =========
-
 
 .. graphviz::
 
@@ -60,7 +54,6 @@ hierarchy
       "any":e -> "stream":w;
       "stream":e -> "stream::buffered":w;
       "stream":e -> "stream::fd":w;
-      "function":e -> "filter":w;
       "function":e -> "chained":w;
       "sequence":e -> "chained":w;
       "function":e -> "context":w;

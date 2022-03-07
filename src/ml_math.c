@@ -11,41 +11,30 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "math"
 
-#define MATH_REAL(NAME, CNAME) \
+#define MATH_REAL(NAME, CNAME, EXPORT) \
 ML_METHOD_DECL(NAME ## Method, NULL); \
 \
 ML_METHOD(NAME ## Method, MLRealT) { \
-/*@math::CNAME
+/*@math::EXPORT
 //>real
-// Returns :mini:`CNAME(Arg/1)`.
+// Returns :mini:`EXPORT(Arg/1)`.
+//$= math::EXPORT(1.2345)
+//$= math::EXPORT(-1.2345)
 */\
 	return ml_real(CNAME(ml_real_value(Args[0]))); \
 }
 
-#ifndef ML_COMPLEX
+#ifdef ML_COMPLEX
 
-#define MATH_NUMBER(NAME, CNAME) \
+#define MATH_NUMBER(NAME, CNAME, EXPORT) \
 ML_METHOD_DECL(NAME ## Method, NULL); \
 \
 ML_METHOD(NAME ## Method, MLRealT) { \
-/*@math::CNAME
+/*@math::EXPORT
 //>real
-// Returns :mini:`CNAME(Arg/1)`.
-*/\
-	return ml_real(CNAME(ml_real_value(Args[0]))); \
-}
-
-#define MATH_NUMBER_KEEP_REAL(NAME, CNAME) MATH_NUMBER(NAME, CNAME)
-
-#else
-
-#define MATH_NUMBER(NAME, CNAME) \
-ML_METHOD_DECL(NAME ## Method, NULL); \
-\
-ML_METHOD(NAME ## Method, MLRealT) { \
-/*@math::CNAME
-//>real
-// Returns :mini:`CNAME(Arg/1)`.
+// Returns :mini:`EXPORT(Arg/1)`.
+//$= math::EXPORT(1.2345)
+//$= math::EXPORT(-1.2345)
 */\
 	complex double Result = c ## CNAME(ml_real_value(Args[0])); \
 	if (fabs(cimag(Result)) <= DBL_EPSILON) { \
@@ -56,9 +45,11 @@ ML_METHOD(NAME ## Method, MLRealT) { \
 } \
 \
 ML_METHOD(NAME ## Method, MLComplexT) { \
-/*@math::CNAME
+/*@math::EXPORT
 //>complex
-// Returns :mini:`CNAME(Arg/1)`.
+// Returns :mini:`EXPORT(Arg/1)`.
+//$= math::EXPORT(1.2345 + 6.789i)
+//$= math::EXPORT(-1.2345 + 6.789i)
 */\
 	complex double Result = c ## CNAME(ml_complex_value(Args[0])); \
 	if (fabs(cimag(Result)) <= DBL_EPSILON) { \
@@ -68,21 +59,25 @@ ML_METHOD(NAME ## Method, MLComplexT) { \
 	} \
 }
 
-#define MATH_NUMBER_KEEP_REAL(NAME, CNAME) \
+#define MATH_NUMBER_KEEP_REAL(NAME, CNAME, EXPORT) \
 ML_METHOD_DECL(NAME ## Method, NULL); \
 \
 ML_METHOD(NAME ## Method, MLRealT) { \
-/*@math::CNAME
+/*@math::EXPORT
 //>real
-// Returns :mini:`CNAME(Arg/1)`.
+// Returns :mini:`EXPORT(Arg/1)`.
+//$= math::EXPORT(1.2345)
+//$= math::EXPORT(-1.2345)
 */\
 	return ml_real(CNAME(ml_real_value(Args[0]))); \
 } \
 \
 ML_METHOD(NAME ## Method, MLComplexT) { \
-/*@math::CNAME
+/*@math::EXPORT
 //>complex
-// Returns :mini:`CNAME(Arg/1)`.
+// Returns :mini:`EXPORT(Arg/1)`.
+//$= math::EXPORT(1.2345 + 6.789i)
+//$= math::EXPORT(-1.2345 + 6.789i)
 */\
 	complex double Result = c ## CNAME(ml_complex_value(Args[0])); \
 	if (fabs(cimag(Result)) <= DBL_EPSILON) { \
@@ -92,15 +87,32 @@ ML_METHOD(NAME ## Method, MLComplexT) { \
 	} \
 }
 
+#else
+
+#define MATH_NUMBER(NAME, CNAME, EXPORT) \
+ML_METHOD_DECL(NAME ## Method, NULL); \
+\
+ML_METHOD(NAME ## Method, MLRealT) { \
+/*@math::EXPORT
+//>real
+// Returns :mini:`EXPORT(Arg/1)`.
+//$= math::EXPORT(1.2345)
+//$= math::EXPORT(-1.2345)
+*/\
+	return ml_real(CNAME(ml_real_value(Args[0]))); \
+}
+
+#define MATH_NUMBER_KEEP_REAL(NAME, CNAME, EXPORT) MATH_NUMBER(NAME, CNAME, EXPORT)
+
 #endif
 
-#define MATH_REAL_REAL(NAME, CNAME) \
+#define MATH_REAL_REAL(NAME, CNAME, EXPORT) \
 ML_METHOD_DECL(NAME ## Method, NULL); \
 \
 ML_METHOD(NAME ## Method, MLRealT, MLRealT) { \
-/*@math::CNAME
+/*@math::EXPORT
 //>real
-// Returns :mini:`CNAME(Arg/1, Arg/2)`.
+// Returns :mini:`EXPORT(Arg/1, Arg/2)`.
 */\
 	return ml_real(CNAME(ml_real_value(Args[0]), ml_real_value(Args[1]))); \
 }
@@ -118,6 +130,10 @@ ML_METHOD("^", MLIntegerT, MLIntegerT) {
 //<Y
 //>number
 // Returns :mini:`X` raised to the power of :mini:`Y`.
+//$= let N := 2 ^ 2
+//$= type(N)
+//$= let R := 2 ^ -1
+//$= type(R)
 	int64_t Base = ml_integer_value_fast(Args[0]);
 	int64_t Exponent = ml_integer_value_fast(Args[1]);
 	if (Exponent >= 0) {
@@ -138,6 +154,7 @@ ML_METHOD("^", MLRealT, MLIntegerT) {
 //<Y
 //>number
 // Returns :mini:`X` raised to the power of :mini:`Y`.
+//$= 2.3 ^ 2
 	return ml_real(pow(ml_real_value(Args[0]), ml_integer_value_fast(Args[1])));
 }
 
@@ -146,6 +163,10 @@ ML_METHOD("^", MLRealT, MLRealT) {
 //<Y
 //>number
 // Returns :mini:`X` raised to the power of :mini:`Y`.
+//$= let R := 2.3 ^ 1.5
+//$= type(R)
+//$= let C := -2.3 ^ 1.5
+//$= type(C)
 	double Base = ml_real_value(Args[0]);
 	double Exponent = ml_real_value(Args[1]);
 #ifdef ML_COMPLEX
@@ -158,7 +179,7 @@ ML_METHOD("^", MLRealT, MLRealT) {
 		}
 	}
 #endif
-	return ml_real(pow(ml_real_value(Args[0]), ml_real_value(Args[1])));
+	return ml_real(pow(Base, Exponent));
 }
 
 #ifdef ML_COMPLEX
@@ -168,6 +189,7 @@ ML_METHOD("^", MLComplexT, MLIntegerT) {
 //<Y
 //>number
 // Returns :mini:`X` raised to the power of :mini:`Y`.
+//$= (1 + 2i) ^ 2
 	complex double Base = ml_complex_value(Args[0]);
 	int64_t Power = ml_integer_value_fast(Args[1]);
 	if (Power == 0) return ml_real(0);
@@ -190,6 +212,7 @@ ML_METHOD("^", MLComplexT, MLNumberT) {
 //<Y
 //>number
 // Returns :mini:`X` raised to the power of :mini:`Y`.
+//$= (1 + 2i) ^ (2 + 3i)
 	complex double V = cpow(ml_complex_value(Args[0]), ml_complex_value(Args[1]));
 	if (fabs(cimag(V)) <= DBL_EPSILON) {
 		return ml_real(creal(V));
@@ -203,6 +226,7 @@ ML_METHOD("^", MLNumberT, MLComplexT) {
 //<Y
 //>number
 // Returns :mini:`X` raised to the power of :mini:`Y`.
+//$= 2.3 ^ (1 + 2i)
 	complex double V = cpow(ml_complex_value(Args[0]), ml_complex_value(Args[1]));
 	if (fabs(cimag(V)) < DBL_EPSILON) {
 		return ml_real(creal(V));
@@ -217,6 +241,7 @@ ML_METHOD("!", MLIntegerT) {
 //<N
 //>integer
 // Returns the factorial of :mini:`N`.
+//$= !10
 	int N = ml_integer_value_fast(Args[0]);
 	if (N > 20) return ml_error("RangeError", "Factorials over 20 are not supported yet");
 	int64_t F = N;
@@ -268,20 +293,20 @@ ML_METHOD(GCDMethod, MLIntegerT, MLIntegerT) {
 	return ml_integer(A << Shift);
 }
 
-MATH_NUMBER_KEEP_REAL(Acos, acos);
-MATH_NUMBER_KEEP_REAL(Asin, asin);
-MATH_NUMBER_KEEP_REAL(Atan, atan);
+MATH_NUMBER_KEEP_REAL(Acos, acos, acos);
+MATH_NUMBER_KEEP_REAL(Asin, asin, asin);
+MATH_NUMBER_KEEP_REAL(Atan, atan, atan);
 ML_METHOD(AtanMethod, MLRealT, MLRealT) {
 //@math::atan
 //>real
 // Returns :mini:`atan(Arg/2 / Arg/1)`.
 	return ml_real(atan2(ml_real_value(Args[0]), ml_real_value(Args[1])));
 }
-MATH_REAL(Ceil, ceil);
-MATH_NUMBER_KEEP_REAL(Cos, cos);
-MATH_NUMBER_KEEP_REAL(Cosh, cosh);
-MATH_NUMBER_KEEP_REAL(Exp, exp);
-MATH_REAL(Abs, fabs);
+MATH_REAL(Ceil, ceil, ceil);
+MATH_NUMBER_KEEP_REAL(Cos, cos, cos);
+MATH_NUMBER_KEEP_REAL(Cosh, cosh, cosh);
+MATH_NUMBER_KEEP_REAL(Exp, exp, exp);
+MATH_REAL(Abs, fabs, abs);
 ML_METHOD(AbsMethod, MLIntegerT) {
 //@abs
 //<N
@@ -290,7 +315,7 @@ ML_METHOD(AbsMethod, MLIntegerT) {
 	return ml_integer(labs(ml_integer_value_fast(Args[0])));
 }
 
-MATH_REAL(Floor, floor);
+MATH_REAL(Floor, floor, floor);
 ML_METHOD(FloorMethod, MLIntegerT) {
 //@floor
 //<N
@@ -298,11 +323,11 @@ ML_METHOD(FloorMethod, MLIntegerT) {
 // Returns the floor of :mini:`N` (:mini:`= N` for an integer).
 	return Args[0];
 }
-MATH_NUMBER(Log, log);
-MATH_NUMBER(Log10, log10);
-MATH_NUMBER_KEEP_REAL(Sin, sin);
-MATH_NUMBER_KEEP_REAL(Sinh, sinh);
-MATH_NUMBER(Sqrt, sqrt);
+MATH_NUMBER(Log, log, log);
+MATH_NUMBER(Log10, log10, log10);
+MATH_NUMBER_KEEP_REAL(Sin, sin, sin);
+MATH_NUMBER_KEEP_REAL(Sinh, sinh, sinh);
+MATH_NUMBER(Sqrt, sqrt, sqrt);
 ML_METHOD(SqrtMethod, MLIntegerT) {
 //@math::sqrt
 //>integer|real
@@ -328,34 +353,49 @@ ML_METHOD(SqrtMethod, MLIntegerT) {
 
 ML_METHOD_DECL(SquareMethod, NULL);
 ML_METHOD(SquareMethod, MLIntegerT) {
+//@math::square
+//<N
+//>integer
+// Returns :mini:`N * N`
+//$= math::square(10)
 	int64_t N = ml_integer_value_fast(Args[0]);
 	return ml_integer(N * N);
 }
 ML_METHOD(SquareMethod, MLRealT) {
+//@math::square
+//<R
+//>real
+// Returns :mini:`R * R`
+//$= math::square(1.234)
 	double N = ml_real_value(Args[0]);
 	return ml_real(N * N);
 }
 #ifdef ML_COMPLEX
 ML_METHOD(SquareMethod, MLComplexT) {
+//@math::square
+//<C
+//>complex
+// Returns :mini:`C * C`
+//$= math::square(1 + 2i)
 	complex double N = ml_complex_value(Args[0]);
 	return ml_complex(N * N);
 }
 #endif
 
-MATH_NUMBER_KEEP_REAL(Tan, tan);
-MATH_NUMBER_KEEP_REAL(Tanh, tanh);
-MATH_REAL(Erf, erf);
-MATH_REAL(Erfc, erfc);
-MATH_REAL_REAL(Hypot, hypot);
-MATH_REAL(Gamma, lgamma);
-MATH_NUMBER_KEEP_REAL(Acosh, acosh);
-MATH_NUMBER_KEEP_REAL(Asinh, asinh);
-MATH_NUMBER_KEEP_REAL(Atanh, atanh);
-MATH_REAL(Cbrt, cbrt);
-MATH_REAL(Expm1, expm1);
-MATH_REAL(Log1p, log1p);
-MATH_REAL_REAL(Rem, remainder);
-MATH_REAL(Round, round);
+MATH_NUMBER_KEEP_REAL(Tan, tan, tan);
+MATH_NUMBER_KEEP_REAL(Tanh, tanh, tanh);
+MATH_REAL(Erf, erf, erf);
+MATH_REAL(Erfc, erfc, erfc);
+MATH_REAL_REAL(Hypot, hypot, hypot);
+MATH_REAL(Gamma, lgamma, gamma);
+MATH_NUMBER_KEEP_REAL(Acosh, acosh, acosh);
+MATH_NUMBER_KEEP_REAL(Asinh, asinh, asinh);
+MATH_NUMBER_KEEP_REAL(Atanh, atanh, atanh);
+MATH_REAL(Cbrt, cbrt, cbrt);
+MATH_REAL(Expm1, expm1, expm1);
+MATH_REAL(Log1p, log1p, log1p);
+MATH_REAL_REAL(Rem, remainder, rem);
+MATH_REAL(Round, round, round);
 
 ML_METHOD_DECL(ArgMethod, "arg");
 
@@ -509,11 +549,11 @@ ML_FUNCTION(RealRandom) {
 }
 
 /*
-ML_DEF(pi);
+ML_DEF(math::pi);
 //>real
 // Pi.
 
-ML_DEF(e);
+ML_DEF(math::e);
 //>real
 // Euler's constant.
 */

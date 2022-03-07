@@ -7,25 +7,29 @@
 general
 =======
 
-.. _fun-exchange:
+.. _fun-clock:
 
-:mini:`fun exchange(Arg₁: any)`
+:mini:`fun clock()`
    *TBD*
 
-.. _fun-replace:
 
-:mini:`fun replace(Arg₁: any, Arg₂: any)`
+.. _fun-collect:
+
+:mini:`fun collect()`
    *TBD*
+
 
 .. _fun-now:
 
 :mini:`fun now()`
    *TBD*
 
-.. _fun-clock:
 
-:mini:`fun clock()`
+.. _fun-exchange:
+
+:mini:`fun exchange(Arg₁: any)`
    *TBD*
+
 
 .. _fun-print:
 
@@ -33,13 +37,16 @@ general
    Prints :mini:`Values` to standard output,  converting to strings if necessary.
 
 
+
+.. _fun-replace:
+
+:mini:`fun replace(Arg₁: any, Arg₂: any)`
+   *TBD*
+
+
 .. _fun-halt:
 
 :mini:`fun halt(Code?: integer)`
    *TBD*
 
-.. _fun-collect:
-
-:mini:`fun collect()`
-   *TBD*
 
