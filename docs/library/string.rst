@@ -7,9 +7,9 @@
 string
 ======
 
-Strings in Minilang can contain any sequence of bytes,  including :mini:`0`s.
+Strings in Minilang can contain any sequence of bytes,  including :mini:`0` bytes.
 Index and find methods however work on ``UTF-8`` characters,  byte sequences that are not valid ``UTF-8`` are handled gracefully but the results are probably not very useful.
-Every :mini:`string` is also an :mini:`address` so the byte-level address methods can also be used if necessary.
+Every :mini:`string` is also an :mini:`address` so address methods can also be used to work at the byte level if necessary.
 
 :mini:`meth (N: integer) * (String: string): string`
    Returns :mini:`String` concatentated :mini:`N` times.

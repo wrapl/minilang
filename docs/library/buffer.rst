@@ -23,7 +23,7 @@ buffer
 
       .. code-block:: mini
 
-         buffer(16) :> <16:20616108467F0000696E673A20737472>
+         buffer(16) :> <16:20E1A06A197F0000696E673A20737472>
 
 
 :mini:`meth (Buffer: buffer) + (Offset: integer): buffer`
@@ -33,7 +33,7 @@ buffer
 
       .. code-block:: mini
 
-         let B := buffer(16) :> <16:C0C9FE0F467F0000286D6C5F76616C75>
+         let B := buffer(16) :> <16:C0593E72197F0000286D6C5F76616C75>
          B + 8 :> <8:286D6C5F76616C75>
 
 
@@ -114,7 +114,7 @@ buffer
 
       .. code-block:: mini
 
-         let B := buffer(16) :> <16:60CBFE0F467F000056616C75653B0A00>
+         let B := buffer(16) :> <16:605B3E72197F000056616C75653B0A00>
          let B @ 8 :> error("ParseError", "Expected := not <operator>")
 
 
