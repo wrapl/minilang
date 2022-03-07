@@ -144,7 +144,7 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Examples,
 			Buffer:write('{Method}({Params[1][1]}: {type_name(Params[1][2])})')
 		elseif Params[1][2] = "MLNamesT" then
 			let (Name, Value) := Params[1][1] / ","
-			Buffer:write('{Method}({Name}₁ is {Value or "Value"}₁, ')
+			Buffer:write('{Method}({Name}₁ is {(Value or "Value"):trim}₁, ')
 			Terminator := ")"
 		else
 			Buffer:write('{Method}({Params[1][1]}: {type_name(Params[1][2])}, ')
@@ -157,7 +157,7 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Examples,
 			Buffer:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}')
 		elseif Params[1][2] = "MLNamesT" then
 			let (Name, Value) := Params[1][1] / ","
-			Buffer:write('{Method}({Name}₁ is {Value or "Value"}₁,')
+			Buffer:write('{Method}({Name}₁ is {(Value or "Value"):trim}₁,')
 			Terminator := ")"
 		else
 			Buffer:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}(')
@@ -168,7 +168,7 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Examples,
 	for Param in Params skip Skip do
 		if Param[2] = "MLNamesT" then
 			let (Name, Value) := Param[1] / ","
-			Buffer:write(Seperator, '{Name}₁ is {Value or "Value"}₁')
+			Buffer:write(Seperator, '{Name}₁ is {(Value or "Value"):trim}₁')
 		else
 			Buffer:write(Seperator, '{Param[1]}: {type_name(Param[2])}')
 		end
