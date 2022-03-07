@@ -18,7 +18,7 @@ map
 
 
 
-:mini:`meth map(Key₁ is  Value₁, ...): map`
+:mini:`meth map(Key₁ is Value₁, ...): map`
    *TBD*
 
 

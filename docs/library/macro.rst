@@ -93,7 +93,7 @@ macro
 
 
 
-:mini:`meth (Expr: expr):scoped(Name₁ is  Value₁, ...): expr`
+:mini:`meth (Expr: expr):scoped(Name₁ is Value₁, ...): expr`
    Returns a new expression which wraps :mini:`Expr` with the constant definitions from :mini:`Names` and :mini:`Values`.
 
 
@@ -108,7 +108,7 @@ macro
 
 
 
-:mini:`meth (Expr: expr):subst(Name₁ is  Sub₁, ...): expr`
+:mini:`meth (Expr: expr):subst(Name₁ is Sub₁, ...): expr`
    Returns a new expression which substitutes macro references to :mini:`:$Nameᵢ` with the corresponding expression :mini:`Subᵢ`.
 
 

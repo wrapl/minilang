@@ -67,7 +67,7 @@ object
    *TBD*
 
 
-:mini:`meth flags(Name₁ is  Value₁, ...): flags`
+:mini:`meth flags(Name₁ is Value₁, ...): flags`
    *TBD*
 
 
