@@ -2642,6 +2642,7 @@ ML_METHOD("replace", MLStringT, MLIntegerT, MLIntegerT, MLStringT) {
 //>string
 // Returns a copy of :mini:`String` with the :mini:`String[I, J]` is replaced by :mini:`Replacement`.
 //$= "Hello world":replace(1, 6, "Goodbye")
+//$= "Hello world":replace(-6, 0, ", how are you?")
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
 	const char *End = Start + Length;

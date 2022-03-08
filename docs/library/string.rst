@@ -457,6 +457,7 @@ When creating a substring,  the first index is inclusive and second index is exc
    .. code-block:: mini
 
       "Hello world":replace(1, 6, "Goodbye") :> "Goodbye world"
+      "Hello world":replace(-6, 0, ", how are you?") :> "Hello, how are you?"
 
 
 :mini:`meth (String: string):replace(I: integer, Fn: function): string`
