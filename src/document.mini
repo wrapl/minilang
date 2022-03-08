@@ -104,6 +104,40 @@ meth image(M: map) with B := string::buffer() do
 end
 meth image(E: error) 'error(\"{E:type}\", \"{E:message}\")'
 
+fun write_examples(Buffer, Examples) do
+	let Output := string::buffer()
+	let Parser := parser(nil)
+	let Compiler := compiler(; Name) do
+		if Name = "print" then
+			Output:write(_)
+		else
+			global(Name)
+		end
+	end
+	Buffer:write("   .. code-block:: mini\n\n")
+	for Example in Examples do
+		var Result
+		Parser:input(Example)
+		loop
+			let Next := Parser:evaluate(Compiler)
+			until Next = compiler::EOI
+			Result := Next
+		on Error do
+			Result := Error
+			exit
+		end
+		Buffer:write(Example, " :> ", image(Result), "\n")
+	end
+	if Output:length > 0 then
+		Buffer:write("\n")
+		Buffer:write("   .. code-block:: console\n\n")
+		loop
+			let Line := while Output:read
+			Buffer:write("      ", Line)
+		end
+	end
+end
+
 fun write_method(Category, Kind, Method0, Params, Return, Description, Examples, Location) do
 	let Buffer := string::buffer()
 	let Variadic := Kind = "ML_METHODV" or Kind = "ML_METHODVX"
@@ -194,24 +228,7 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Examples,
 			Buffer:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")
 		end
 	end
-	if Examples[1] then
-		Buffer:write("   .. code-block:: mini\n\n")
-		let Parser := parser(nil)
-		let Compiler := compiler(global)
-		for Example in Examples do
-			var Result
-			Parser:input(Example)
-			loop
-				let Next := Parser:evaluate(Compiler)
-				until Next = compiler::EOI
-				Result := Next
-			on Error do
-				Result := Error
-				exit
-			end
-			Buffer:write(Example, " :> ", image(Result), "\n")
-		end
-	end
+	Examples[1] and write_examples(Buffer, Examples)
 	Buffer:write("\n")
 	if Return[1] and Method = type_name(Return[1]) then
 		emit(Category, (Method, item::Constructor), Buffer:rest)
@@ -256,24 +273,7 @@ fun write_function(Category, Kind, Name, Params, Return, Description, Examples, 
 			Buffer:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")
 		end
 	end
-	if Examples[1] then
-		Buffer:write("   .. code-block:: mini\n\n")
-		let Parser := parser(nil)
-		let Compiler := compiler(global)
-		for Example in Examples do
-			var Result
-			Parser:input(Example)
-			loop
-				let Next := Parser:evaluate(Compiler)
-				until Next = compiler::EOI
-				Result := Next
-			on Error do
-				Result := Error
-				exit
-			end
-			Buffer:write(Example, " :> ", image(Result), "\n")
-		end
-	end
+	Examples[1] and write_examples(Buffer, Examples)
 	Buffer:write("\n")
 	if Return[1] and Name = type_name(Return[1]) then
 		emit(Category, (Name, item::Constructor), Buffer:rest)
