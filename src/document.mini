@@ -154,7 +154,7 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Examples,
 		end
 	else
 		if is_symbol(Method0) or Method0:find("::") then
-			Method0
+			Method0:replace("\\\\",  "\\")
 		else
 			':{Method0}'
 		end
@@ -702,7 +702,7 @@ fun process(FileName) do
 			elseif let Match := Line % r"^([A-Za-z0-9_]+)\((.+)\)" then
 				if let Define := Defines[Match[2]] then
 					if count(Define:Items) > 0 then
-						let Args := map(pair(Define:Params, list(Match[3] / ",", :trim)))
+						let Args := map(pair(Define:Params, list(Match[3] / ",", :trim, _:replace("\\\\",  "\\"))))
 						if CurrentDefine then
 							for Item in Define:Items do
 								CurrentDefine:put(Item[1], replace(Item[2], Args))
