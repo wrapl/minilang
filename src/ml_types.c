@@ -1371,6 +1371,17 @@ ML_METHOD("set", MLFunctionPartialT) {
 	return ml_integer(Partial->Set);
 }
 
+ML_METHODV("[]", MLFunctionPartialT) {
+//!function
+	ml_partial_function_t *Partial = xnew(ml_partial_function_t, Count, ml_value_t *);
+	Partial->Type = MLFunctionPartialT;
+	Partial->Function = IndexMethod;
+	Partial->Count = Count;
+	Partial->Set = Count - 1;
+	for (int I = 1; I < Count; ++I) Partial->Args[I] = Args[I];
+	return ml_chainedv(2, Args[0], Partial);
+}
+
 ML_METHOD("!!", MLFunctionT, MLListT) {
 //!function
 //<Function

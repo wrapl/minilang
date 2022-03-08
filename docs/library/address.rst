@@ -192,7 +192,7 @@ address
 
 
 :mini:`meth (Buffer: string::buffer):append(Value: address)`
-   Appends a string representation of :mini:`Value` to :mini:`Buffer`.
+   Appends a representation of :mini:`Value` to :mini:`Buffer`.
 
 
 

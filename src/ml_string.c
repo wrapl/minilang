@@ -27,7 +27,12 @@
 // Overview
 // Strings in Minilang can contain any sequence of bytes, including :mini:`0` bytes.
 // Index and find methods however work on ``UTF-8`` characters, byte sequences that are not valid ``UTF-8`` are handled gracefully but the results are probably not very useful.
+//
 // Every :mini:`string` is also an :mini:`address` so address methods can also be used to work at the byte level if necessary.
+//
+// Indexing a string starts at :mini:`1`, with the last character at :mini:`String:length`. Negative indices are counted form the end, :mini:`-1` is the last character and :mini:`-String:length` is the first character.
+//
+// When creating a substring, the first index is inclusive and second index is exclusive. The index :mini:`0` refers to just beyond the last character and can be used to take a substring to the end of a string.
 
 ML_TYPE(MLAddressT, (), "address");
 //!address
@@ -506,7 +511,7 @@ ML_METHOD("append", MLStringBufferT, MLAddressT) {
 //!address
 //<Buffer
 //<Value
-// Appends a string representation of :mini:`Value` to :mini:`Buffer`.
+// Appends a representation of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_address_t *Address = (ml_address_t *)Args[1];
 	ml_stringbuffer_printf(Buffer, "#%" PRIxPTR ":%ld", (uintptr_t)Address->Value, Address->Length);
@@ -1032,14 +1037,22 @@ ML_METHOD("append", MLStringBufferT, MLStringT) {
 ML_METHOD("length", MLStringT) {
 //<String
 //>integer
-// Returns the number of UTF-8 characters in :mini:`String`.
+// Returns the number of UTF-8 characters in :mini:`String`. Use :mini:`:size` to get the number of bytes.
+//$= "Hello world":length
+//$= "Hello world":size
+//$= "λ:😀️ → 😺️":length
+//$= "λ:😀️ → 😺️":size
 	return ml_integer(utf8_strlen(Args[0]));
 }
 
 ML_METHOD("count", MLStringT) {
 //<String
 //>integer
-// Returns the number of UTF-8 characters in :mini:`String`.
+// Returns the number of UTF-8 characters in :mini:`String`. Use :mini:`:size` to get the number of bytes.
+//$= "Hello world":count
+//$= "Hello world":size
+//$= "λ:😀️ → 😺️":count
+//$= "λ:😀️ → 😺️":size
 	return ml_integer(utf8_strlen(Args[0]));
 }
 
@@ -1047,6 +1060,8 @@ ML_METHOD("code", MLStringT) {
 //<String
 //>integer
 // Returns the unicode codepoint of the first UTF-8 character of :mini:`String`.
+//$= "A":code
+//$= "😀️":code
 	const char *S = ml_string_value(Args[0]);
 	uint32_t K = S[0] ? __builtin_clz(~(S[0] << 24)) : 0;
 	uint32_t Mask = (1 << (8 - K)) - 1;
@@ -1159,6 +1174,8 @@ ML_METHOD("limit", MLStringT, MLIntegerT) {
 //<Length
 //>string
 // Returns the prefix of :mini:`String` limited to :mini:`Length`.
+//$= "Hello world":limit(5)
+//$= "Cake":limit(5)
 	int Length = utf8_strlen(Args[0]);
 	int N = ml_integer_value_fast(Args[1]);
 	if (N < 0) return MLNil;
@@ -1178,6 +1195,8 @@ ML_METHOD("offset", MLStringT, MLIntegerT) {
 //<Index
 //>integer
 // Returns the byte position of the :mini:`Index`-th character of :mini:`String`.
+//$- let S := "λ:😀️ → 😺️"
+//$= list(1 .. S:length, S:offset(_))
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
 	int N = ml_integer_value_fast(Args[1]);
@@ -1197,6 +1216,7 @@ ML_METHOD("+", MLStringT, MLStringT) {
 //<B
 //>string
 // Returns :mini:`A` and :mini:`B` concatentated.
+//$= "Hello" + " " + "world"
 	int Length1 = ml_string_length(Args[0]);
 	int Length2 = ml_string_length(Args[1]);
 	int Length = Length1 + Length2;
@@ -1212,6 +1232,7 @@ ML_METHOD("*", MLIntegerT, MLStringT) {
 //<String
 //>string
 // Returns :mini:`String` concatentated :mini:`N` times.
+//$= 5 * "abc"
 	int N = ml_integer_value(Args[0]);
 	const char *Chars = ml_string_value(Args[1]);
 	int Length = ml_string_length(Args[1]);
@@ -1224,6 +1245,7 @@ ML_METHOD("trim", MLStringT) {
 //<String
 //>string
 // Returns a copy of :mini:`String` with whitespace removed from both ends.
+//$= " \t Hello \n":trim
 	const unsigned char *Start = (const unsigned char *)ml_string_value(Args[0]);
 	const unsigned char *End = Start + ml_string_length(Args[0]);
 	while (Start < End && Start[0] <= ' ') ++Start;
@@ -1237,6 +1259,7 @@ ML_METHOD("trim", MLStringT, MLStringT) {
 //<Chars
 //>string
 // Returns a copy of :mini:`String` with characters in :mini:`Chars` removed from both ends.
+//$= " \t Hello \n":trim(" \n")
 	char Trim[256] = {0,};
 	const unsigned char *P = (const unsigned char *)ml_string_value(Args[1]);
 	for (int Length = ml_string_length(Args[1]); --Length >= 0; ++P) Trim[*P] = 1;
@@ -1252,6 +1275,7 @@ ML_METHOD("ltrim", MLStringT) {
 //<String
 //>string
 // Returns a copy of :mini:`String` with characters in :mini:`Chars` removed from the start.
+//$= " \t Hello \n":ltrim
 	const unsigned char *Start = (const unsigned char *)ml_string_value(Args[0]);
 	const unsigned char *End = Start + ml_string_length(Args[0]);
 	while (Start < End && Start[0] <= ' ') ++Start;
@@ -1264,6 +1288,7 @@ ML_METHOD("ltrim", MLStringT, MLStringT) {
 //<Chars
 //>string
 // Returns a copy of :mini:`String` with characters in :mini:`Chars` removed from the start.
+//$= " \t Hello \n":trim(" \n")
 	char Trim[256] = {0,};
 	const unsigned char *P = (const unsigned char *)ml_string_value(Args[1]);
 	for (int Length = ml_string_length(Args[1]); --Length >= 0; ++P) Trim[*P] = 1;
@@ -1278,6 +1303,7 @@ ML_METHOD("rtrim", MLStringT) {
 //<String
 //>string
 // Returns a copy of :mini:`String` with characters in :mini:`Chars` removed from the end.
+//$= " \t Hello \n":rtrim
 	const unsigned char *Start = (const unsigned char *)ml_string_value(Args[0]);
 	const unsigned char *End = Start + ml_string_length(Args[0]);
 	while (Start < End && End[-1] <= ' ') --End;
@@ -1290,6 +1316,7 @@ ML_METHOD("rtrim", MLStringT, MLStringT) {
 //<Chars
 //>string
 // Returns a copy of :mini:`String` with characters in :mini:`Chars` removed from the end.
+//$= " \t Hello \n":rtrim(" \n")
 	char Trim[256] = {0,};
 	const unsigned char *P = (const unsigned char *)ml_string_value(Args[1]);
 	for (int Length = ml_string_length(Args[1]); --Length >= 0; ++P) Trim[*P] = 1;
@@ -1304,6 +1331,7 @@ ML_METHOD("reverse", MLStringT) {
 //<String
 //>string
 // Returns a string with the characters in :mini:`String` reversed.
+//$= "Hello world":reverse
 	int Length = ml_string_length(Args[0]);
 	char *Reversed = snew(Length + 1), *End = Reversed + Length;
 	const char *S = ml_string_value(Args[0]), *T = S, *U = S + Length;
@@ -1337,6 +1365,9 @@ ML_METHOD("<>", MLStringT, MLStringT) {
 //<B
 //>integer
 // Compares :mini:`A` and :mini:`B` lexicographically and returns :mini:`-1`, :mini:`0` or :mini:`1` respectively.
+//$= "Hello" <> "World"
+//$= "World" <> "Hello"
+//$= "Hello" <> "Hello"
 	const char *StringA = ml_string_value(Args[0]);
 	const char *StringB = ml_string_value(Args[1]);
 	int LengthA = ml_string_length(Args[0]);
@@ -1358,9 +1389,12 @@ ML_METHOD("<>", MLStringT, MLStringT) {
 }
 
 #define ml_comp_method_string_string(NAME, SYMBOL) \
-ML_METHOD(NAME, MLStringT, MLStringT) { \
+ML_METHOD(#NAME, MLStringT, MLStringT) { \
 /*>string|nil
-// Returns :mini:`Arg/2` if :mini:`Arg/1 SYMBOL Arg/2` and :mini:`nil` otherwise.
+// Returns :mini:`Arg/2` if :mini:`Arg/1 NAME Arg/2` and :mini:`nil` otherwise.
+//$= "Hello" NAME "World"
+//$= "World" NAME "Hello"
+//$= "Hello" NAME "Hello"
 */\
 	const char *StringA = ml_string_value(Args[0]); \
 	const char *StringB = ml_string_value(Args[1]); \
@@ -1377,12 +1411,12 @@ ML_METHOD(NAME, MLStringT, MLStringT) { \
 	return Compare SYMBOL 0 ? Args[1] : MLNil; \
 }
 
-ml_comp_method_string_string("=", ==)
-ml_comp_method_string_string("!=", !=)
-ml_comp_method_string_string("<", <)
-ml_comp_method_string_string(">", >)
-ml_comp_method_string_string("<=", <=)
-ml_comp_method_string_string(">=", >=)
+ml_comp_method_string_string(=, ==)
+ml_comp_method_string_string(!=, !=)
+ml_comp_method_string_string(<, <)
+ml_comp_method_string_string(>, >)
+ml_comp_method_string_string(<=, <=)
+ml_comp_method_string_string(>=, >=)
 
 #define SWAP(A, B) { \
 	typeof(A) Temp = A; \
@@ -1395,6 +1429,10 @@ ML_METHOD("~", MLStringT, MLStringT) {
 //<B
 //>integer
 // Returns the edit distance between :mini:`A` and :mini:`B`.
+//$= "cake" ~ "cat"
+//$= "yell" ~ "hello"
+//$= "say" ~ "goodbye"
+//$= "goodbye" ~ "say"
 	// TODO: use UTF-8 characters
 	const char *CharsA, *CharsB;
 	int LenA = ml_string_length(Args[0]);
@@ -1439,6 +1477,10 @@ ML_METHOD("~>", MLStringT, MLStringT) {
 //<B
 //>integer
 // Returns an asymmetric edit distance from :mini:`A` to :mini:`B`.
+//$= "cake" ~> "cat"
+//$= "yell" ~> "hello"
+//$= "say" ~> "goodbye"
+//$= "goodbye" ~> "say"
 	// TODO: use UTF-8 characters
 	int LenA = ml_string_length(Args[0]);
 	int LenB = ml_string_length(Args[1]);
@@ -1478,7 +1520,9 @@ ML_METHOD("/", MLStringT, MLStringT) {
 //<String
 //<Pattern
 //>list
-// Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
+// Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`. Adjacent occurences of :mini:`Pattern` do not create empty strings.
+//$= "The cat snored  as he slept" / " "
+//$= "2022/03/08" / "/"
 	ml_value_t *Results = ml_list();
 	const char *Subject = ml_string_value(Args[0]);
 	const char *Pattern = ml_string_value(Args[1]);
@@ -1511,6 +1555,8 @@ ML_METHOD("/", MLStringT, MLRegexT) {
 //>list
 // Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
 // If :mini:`Pattern` contains a subgroup then only the subgroup matches are removed from the output substrings.
+//$= "2022/03/08" / r"[/-]"
+//$= "2022-03-08" / r"[/-]"
 	ml_value_t *Results = ml_list();
 	const char *Subject = ml_string_value(Args[0]);
 	int SubjectLength = ml_string_length(Args[0]);
@@ -1552,6 +1598,7 @@ ML_METHOD("/", MLStringT, MLRegexT, MLIntegerT) {
 //>list
 // Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
 // Only the :mini:`Index` subgroup matches are removed from the output substrings.
+//$= "<A>-<B>-<C>" / (r">(-)<", 1)
 	ml_value_t *Results = ml_list();
 	const char *Subject = ml_string_value(Args[0]);
 	int SubjectLength = ml_string_length(Args[0]);
@@ -1593,6 +1640,7 @@ ML_METHOD("/*", MLStringT, MLStringT) {
 //<Pattern
 //>tuple[string, string]
 // Splits :mini:`String` at the first occurence of :mini:`Pattern` and returns the two substrings in a tuple.
+//$= "2022/03/08" /* "/"
 	const char *Subject = ml_string_value(Args[0]);
 	const char *End = Subject + ml_string_length(Args[0]);
 	const char *Pattern = ml_string_value(Args[1]);
@@ -1615,6 +1663,8 @@ ML_METHOD("/*", MLStringT, MLRegexT) {
 //<Pattern
 //>tuple[string, string]
 // Splits :mini:`String` at the first occurence of :mini:`Pattern` and returns the two substrings in a tuple.
+//$= "2022/03/08" /* r"[/-]"
+//$= "2022-03-08" /* r"[/-]"
 	const char *Subject = ml_string_value(Args[0]);
 	int SubjectLength = ml_string_length(Args[0]);
 	ml_regex_t *Pattern = (ml_regex_t *)Args[1];
@@ -1649,6 +1699,7 @@ ML_METHOD("*/", MLStringT, MLStringT) {
 //<Pattern
 //>tuple[string, string]
 // Splits :mini:`String` at the last occurence of :mini:`Pattern` and returns the two substrings in a tuple.
+//$= "2022/03/08" */ "/"
 	const char *Subject = ml_string_value(Args[0]);
 	const char *End = Subject + ml_string_length(Args[0]);
 	const char *Pattern = ml_string_value(Args[1]);
@@ -1674,6 +1725,8 @@ ML_METHOD("*/", MLStringT, MLRegexT) {
 //<Pattern
 //>tuple[string, string]
 // Splits :mini:`String` at the last occurence of :mini:`Pattern` and returns the two substrings in a tuple.
+//$= "2022/03/08" */ r"[/-]"
+//$= "2022-03-08" */ r"[/-]"
 	const char *Subject = ml_string_value(Args[0]);
 	const char *End = Subject + ml_string_length(Args[0]);
 	ml_regex_t *Pattern = (ml_regex_t *)Args[1];
@@ -1714,6 +1767,7 @@ ML_METHOD("lower", MLStringT) {
 //<String
 //>string
 // Returns :mini:`String` with each character converted to lower case.
+//$= "Hello World":lower
 	const char *Source = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	char *Target = snew(Length + 1);
@@ -1725,6 +1779,7 @@ ML_METHOD("upper", MLStringT) {
 //<String
 //>string
 // Returns :mini:`String` with each character converted to upper case.
+//$= "Hello World":upper
 	const char *Source = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	char *Target = snew(Length + 1);
@@ -1736,6 +1791,7 @@ ML_METHOD("escape", MLStringT) {
 //<String
 //>string
 // Returns :mini:`String` with white space, quotes and backslashes replaced by escape sequences.
+//$= "\t\"Text\"\r\n":escape
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	const char *Start = ml_string_value(Args[0]);
 	int N = ml_string_length(Args[0]);
@@ -1797,6 +1853,8 @@ ML_METHOD("find", MLStringT, MLStringT) {
 //<Needle
 //>integer|nil
 // Returns the index of the first occurence of :mini:`Needle` in :mini:`Haystack`, or :mini:`nil` if no occurence is found.
+//$= "The cat snored as he slept":find("cat")
+//$= "The cat snored as he slept":find("dog")
 	const char *Haystack = ml_string_value(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
 	const char *Match = strstr(Haystack, Needle);
@@ -1812,6 +1870,8 @@ ML_METHOD("find2", MLStringT, MLStringT) {
 //<Needle
 //>tuple[integer,string]|nil
 // Returns :mini:`(Index, Needle)` where :mini:`Index` is the first occurence of :mini:`Needle` in :mini:`Haystack`, or :mini:`nil` if no occurence is found.
+//$= "The cat snored as he slept":find2("cat")
+//$= "The cat snored as he slept":find2("dog")
 	const char *Haystack = ml_string_value(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
 	const char *Match = strstr(Haystack, Needle);
@@ -1837,6 +1897,9 @@ ML_METHOD("find", MLStringT, MLStringT, MLIntegerT) {
 //<Start
 //>integer|nil
 // Returns the index of the first occurence of :mini:`Needle` in :mini:`Haystack` at or after :mini:`Start`, or :mini:`nil` if no occurence is found.
+//$= "The cat snored as he slept":find("s", 1)
+//$= "The cat snored as he slept":find("s", 10)
+//$= "The cat snored as he slept":find("s", -6)
 	const char *Haystack = ml_string_value(Args[0]);
 	size_t HaystackLength = utf8_strlen(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
@@ -1859,6 +1922,9 @@ ML_METHOD("find2", MLStringT, MLStringT, MLIntegerT) {
 //<Start
 //>tuple[integer,string]|nil
 // Returns :mini:`(Index, Needle)` where :mini:`Index` is the first occurence of :mini:`Needle` in :mini:`Haystack` at or after :mini:`Start`, or :mini:`nil` if no occurence is found.
+//$= "The cat snored as he slept":find2("s", 1)
+//$= "The cat snored as he slept":find2("s", 10)
+//$= "The cat snored as he slept":find2("s", -6)
 	const char *Haystack = ml_string_value(Args[0]);
 	size_t HaystackLength = ml_string_length(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
@@ -1880,6 +1946,8 @@ ML_METHOD("find", MLStringT, MLRegexT) {
 //<Pattern
 //>integer|nil
 // Returns the index of the first occurence of :mini:`Pattern` in :mini:`Haystack`, or :mini:`nil` if no occurence is found.
+//$= "The cat snored as he slept":find(r"[a-z]{3}")
+//$= "The cat snored as he slept":find(r"[0-9]+")
 	const char *Haystack = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[1];
@@ -1906,6 +1974,8 @@ ML_METHOD("find2", MLStringT, MLRegexT) {
 //<Pattern
 //>tuple[integer,string]|nil
 // Returns :mini:`(Index, Match)` where :mini:`Index` is the first occurence of :mini:`Pattern` in :mini:`Haystack`, or :mini:`nil` if no occurence is found.
+//$= "The cat snored as he slept":find2(r"[a-z]{3}")
+//$= "The cat snored as he slept":find2(r"[0-9]+")
 	const char *Haystack = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
@@ -1944,6 +2014,9 @@ ML_METHOD("find", MLStringT, MLRegexT, MLIntegerT) {
 //<Start
 //>integer|nil
 // Returns the index of the first occurence of :mini:`Pattern` in :mini:`Haystack` at or after :mini:`Start`, or :mini:`nil` if no occurence is found.
+//$= "The cat snored as he slept":find(r"s[a-z]+", 1)
+//$= "The cat snored as he slept":find(r"s[a-z]+", 10)
+//$= "The cat snored as he slept":find(r"s[a-z]+", -6)
 	const char *Haystack = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
@@ -1977,6 +2050,9 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
 //<Start
 //>tuple[integer,string]|nil
 // Returns :mini:`(Index, Match)` where :mini:`Index` is the first occurence of :mini:`Pattern` in :mini:`Haystack` at or after :mini:`Start`, or :mini:`nil` if no occurence is found.
+//$= "The cat snored as he slept":find2(r"s[a-z]+", 1)
+//$= "The cat snored as he slept":find2(r"s[a-z]+", 10)
+//$= "The cat snored as he slept":find2(r"s[a-z]+", -6)
 	const char *Haystack = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
@@ -2020,6 +2096,8 @@ ML_METHOD("%", MLStringT, MLRegexT) {
 //<Pattern
 //>tuple[string]|nil
 // Matches :mini:`String` with :mini:`Pattern` returning a tuple of the matched components, or :mini:`nil` if the pattern does not match.
+//$= "2022-03-08" % r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)"
+//$= "Not a date" % r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)"
 	const char *Subject = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
@@ -2072,6 +2150,8 @@ ML_METHOD("?", MLStringT, MLRegexT) {
 //<Pattern
 //>string|nil
 // Returns :mini:`String` if it matches :mini:`Pattern` and :mini:`nil` otherwise.
+//$= "2022-03-08" ? r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)"
+//$= "Not a date" ? r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)"
 	const char *Subject = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
@@ -2107,6 +2187,8 @@ ML_METHOD("starts", MLStringT, MLStringT) {
 //<Prefix
 //>string|nil
 // Returns :mini:`String` if it starts with :mini:`Prefix` and :mini:`nil` otherwise.
+//$= "Hello world":starts("Hello")
+//$= "Hello world":starts("cake")
 	const char *Subject = ml_string_value(Args[0]);
 	const char *Prefix = ml_string_value(Args[1]);
 	int Length = ml_string_length(Args[1]);
@@ -2120,6 +2202,8 @@ ML_METHOD("starts", MLStringT, MLRegexT) {
 //<Pattern
 //>string|nil
 // Returns :mini:`String` if it starts with :mini:`Pattern` and :mini:`nil` otherwise.
+//$= "Hello world":starts(r"[A-Z]")
+//$= "Hello world":starts(r"[0-9]")
 	const char *Subject = ml_string_value(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
 	regmatch_t Matches[Regex->re_nsub + 1];
@@ -2151,6 +2235,8 @@ ML_METHOD("ends", MLStringT, MLStringT) {
 //<Suffix
 //>string|nil
 // Returns :mini:`String` if it ends with :mini:`Suffix` and :mini:`nil` otherwise.
+//$= "Hello world":ends("world")
+//$= "Hello world":ends("cake")
 	const char *Subject = ml_string_value(Args[0]);
 	const char *Suffix = ml_string_value(Args[1]);
 	int Length = ml_string_length(Args[1]);
@@ -2165,6 +2251,7 @@ ML_METHOD("after", MLStringT, MLStringT) {
 //<Delimiter
 //>string|nil
 // Returns the portion of :mini:`String` after the 1st occurence of :mini:`Delimiter`, or :mini:`nil` if no occurence if found.
+//$= "2022/03/08":after("/")
 	const char *Haystack = ml_string_value(Args[0]);
 	size_t HaystackLength = ml_string_length(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
@@ -2186,6 +2273,7 @@ ML_METHOD("after", MLStringT, MLStringT, MLIntegerT) {
 //>string|nil
 // Returns the portion of :mini:`String` after the :mini:`N`-th occurence of :mini:`Delimiter`, or :mini:`nil` if no :mini:`N`-th occurence if found.
 // If :mini:`N < 0` then occurences are counted from the end of :mini:`String`.
+//$= "2022/03/08":after("/", 2)
 	const char *Haystack = ml_string_value(Args[0]);
 	size_t HaystackLength = ml_string_length(Args[0]);
 	const char *HaystackEnd = Haystack + HaystackLength;
@@ -2227,6 +2315,7 @@ ML_METHOD("before", MLStringT, MLStringT) {
 //<Delimiter
 //>string|nil
 // Returns the portion of :mini:`String` before the 1st occurence of :mini:`Delimiter`, or :mini:`nil` if no occurence if found.
+//$= "2022/03/08":before("/")
 	const char *Haystack = ml_string_value(Args[0]);
 	const char *Needle = ml_string_value(Args[1]);
 	const char *Match = strstr(Haystack, Needle);
@@ -2242,6 +2331,7 @@ ML_METHOD("before", MLStringT, MLStringT, MLIntegerT) {
 //<Delimiter
 //<N
 //>string|nil
+//$= "2022/03/08":before("/", 2)
 // Returns the portion of :mini:`String` before the :mini:`N`-th occurence of :mini:`Delimiter`, or :mini:`nil` if no :mini:`N`-th occurence if found.
 // If :mini:`N < 0` then occurences are counted from the end of :mini:`String`.
 	const char *Haystack = ml_string_value(Args[0]);
@@ -2281,6 +2371,7 @@ ML_METHOD("replace", MLStringT, MLStringT, MLStringT) {
 //<Replacement
 //>string
 // Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Replacement`.
+//$= "Hello world":replace("l", "bb")
 	const char *Subject = ml_string_value(Args[0]);
 	const char *SubjectEnd = Subject + ml_string_length(Args[0]);
 	const char *Pattern = ml_string_value(Args[1]);
@@ -2307,6 +2398,7 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
 //<Replacement
 //>string
 // Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Replacement`.
+//$= "Hello world":replace(r"l+", "bb")
 	const char *Subject = ml_string_value(Args[0]);
 	int SubjectLength = ml_string_length(Args[0]);
 	regex_t *Regex = ml_regex_value(Args[1]);
@@ -2455,6 +2547,10 @@ ML_METHODX("replace", MLStringT, MLMapT) {
 //>string
 // Each key in :mini:`Replacements` can be either a string or a regex. Each value in :mini:`Replacements` can be either a string or a function.
 // Returns a copy of :mini:`String` with each matching string or regex from :mini:`Replacements` replaced with the corresponding value. Functions are called with the matched string or regex subpatterns.
+//$- "the dog snored as he slept":replace({
+//$-    r" ([a-z])" is fun(Match, A) '-{A:upper}',
+//$-    "nor" is "narl"
+//$= })
 	int NumPatterns = ml_map_size(Args[1]);
 	ml_str_replacement_state_t *State = xnew(ml_str_replacement_state_t, NumPatterns, ml_str_replacement_t);
 	ml_str_replacement_t *Replacement = State->Replacements;
@@ -2494,6 +2590,7 @@ ML_METHODX("replace", MLStringT, MLRegexT, MLFunctionT) {
 //<Fn
 //>string
 // Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Fn(Match, Sub/1, ..., Sub/n)` where :mini:`Match` is the actual matched text and :mini:`Sub/i` are the matched subpatterns.
+//$= "the cat snored as he slept":replace(r" ([a-z])", fun(Match, A) '-{A:upper}')
 	ml_str_replacement_state_t *State = xnew(ml_str_replacement_state_t, 1, ml_str_replacement_t);
 	ml_str_replacement_t *Replacement = State->Replacements;
 	Replacement->Pattern.Regex = ml_regex_value(Args[1]);
@@ -2515,6 +2612,7 @@ ML_METHOD("replace", MLStringT, MLIntegerT, MLStringT) {
 //<Replacement
 //>string
 // Returns a copy of :mini:`String` with the :mini:`String[I]` is replaced by :mini:`Replacement`.
+//$= "Hello world":replace(6, "_")
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
 	const char *End = Start + Length;
@@ -2543,6 +2641,8 @@ ML_METHOD("replace", MLStringT, MLIntegerT, MLIntegerT, MLStringT) {
 //<Replacement
 //>string
 // Returns a copy of :mini:`String` with the :mini:`String[I, J]` is replaced by :mini:`Replacement`.
+//$= "Hello world":replace(1, 6, "Goodbye")
+//$= "Hello world":replace(-6, 0, ", how are you?")
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
 	const char *End = Start + Length;
@@ -2597,9 +2697,10 @@ static void ml_fn_replace_func(ml_fn_replace_state_t *State, ml_value_t *Value) 
 ML_METHODX("replace", MLStringT, MLIntegerT, MLFunctionT) {
 //<String
 //<I
-//<Function
+//<Fn
 //>string
-// Returns a copy of :mini:`String` with the :mini:`String[I]` is replaced by :mini:`Function(String[I])`.
+// Returns a copy of :mini:`String` with the :mini:`String[I]` is replaced by :mini:`Fn(String[I])`.
+//$= "hello world":replace(1, :upper)
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
 	const char *End = Start + Length;
@@ -2630,9 +2731,10 @@ ML_METHODX("replace", MLStringT, MLIntegerT, MLFunctionT) {
 ML_METHODX("replace", MLStringT, MLIntegerT, MLIntegerT, MLFunctionT) {
 //<String
 //<I
-//<Function
+//<Fn
 //>string
-// Returns a copy of :mini:`String` with the :mini:`String[I, J]` is replaced by :mini:`Function(String[I, J])`.
+// Returns a copy of :mini:`String` with the :mini:`String[I, J]` is replaced by :mini:`Fn(String[I, J])`.
+//$= "hello world":replace(1, 6, :upper)
 	const char *Start = ml_string_value(Args[0]);
 	int Length = utf8_strlen(Args[0]);
 	const char *End = Start + Length;
@@ -2679,6 +2781,8 @@ ML_FUNCTION(MLRegex) {
 //<String
 //>regex | error
 // Compiles :mini:`String` as a regular expression. Returns an error if :mini:`String` is not a valid regular expression.
+//$= regex("[0-9]+")
+//$= regex("[0-9")
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	const char *Pattern = ml_string_value(Args[0]);
@@ -2746,7 +2850,10 @@ ML_METHOD("<>", MLRegexT, MLRegexT) {
 //<A
 //<B
 //>integer
-// Compares :mini:`A` and :mini:`B` lexicographically and returns :mini:`-1`, :mini:`0` or :mini:`1` respectively.
+// Compares :mini:`A` and :mini:`B` lexicographically and returns :mini:`-1`, :mini:`0` or :mini:`1` respectively. Mainly for using regular expressions as keys in maps.
+//$= r"[0-9]+" <> r"[A-Za-z0-9_]+"
+//$= r"[A-Za-z0-9_]+" <> r"[0-9]+"
+//$= r"[0-9]+" <> r"[0-9]+"
 	const char *PatternA = ml_regex_pattern(Args[0]);
 	const char *PatternB = ml_regex_pattern(Args[1]);
 	int Compare = strcmp(PatternA, PatternB);
@@ -2756,9 +2863,12 @@ ML_METHOD("<>", MLRegexT, MLRegexT) {
 }
 
 #define ml_comp_method_regex_regex(NAME, SYMBOL) \
-ML_METHOD(NAME, MLRegexT, MLRegexT) { \
+ML_METHOD(#NAME, MLRegexT, MLRegexT) { \
 /*>regex|nil
-// Returns :mini:`Arg/2` if :mini:`Arg/1 SYMBOL Arg/2` and :mini:`nil` otherwise.
+// Returns :mini:`Arg/2` if :mini:`Arg/1 NAME Arg/2` and :mini:`nil` otherwise.
+//$= r"[0-9]+" NAME r"[A-Za-z0-9_]+"
+//$= r"[A-Za-z0-9_]+" NAME r"[0-9]+"
+//$= r"[0-9]+" NAME r"[0-9]+"
 */\
 	const char *PatternA = ml_regex_pattern(Args[0]); \
 	const char *PatternB = ml_regex_pattern(Args[1]); \
@@ -2766,14 +2876,17 @@ ML_METHOD(NAME, MLRegexT, MLRegexT) { \
 	return Compare SYMBOL 0 ? Args[1] : MLNil; \
 }
 
-ml_comp_method_regex_regex("=", ==)
-ml_comp_method_regex_regex("!=", !=)
-ml_comp_method_regex_regex("<", <)
-ml_comp_method_regex_regex(">", >)
-ml_comp_method_regex_regex("<=", <=)
-ml_comp_method_regex_regex(">=", >=)
+ml_comp_method_regex_regex(=, ==)
+ml_comp_method_regex_regex(!=, !=)
+ml_comp_method_regex_regex(<, <)
+ml_comp_method_regex_regex(>, >)
+ml_comp_method_regex_regex(<=, <=)
+ml_comp_method_regex_regex(>=, >=)
 
 ML_METHOD("append", MLStringBufferT, MLRegexT) {
+//<Buffer
+//<Value
+// Appends a representation of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_printf(Buffer, "/%s/", ml_regex_pattern(Args[1]));
 	return MLSome;
@@ -2829,6 +2942,18 @@ ML_FUNCTION(MLStringSwitch) {
 //@string::switch
 //<Cases...:string|regex
 // Implements :mini:`switch` for string values. Case values must be strings or regular expressions.
+//$- for Pet in ["cat", "dog", "mouse", "fox"] do
+//$-    switch Pet: string
+//$-       case "cat" do
+//$-          print("Meow!\n")
+//$-       case "dog" do
+//$-          print("Woof!\n")
+//$-       case "mouse" do
+//$-          print("Squeak!\n")
+//$-       else
+//$-          print("???!")
+//$-       end
+//$= end
 	int Total = 1;
 	for (int I = 0; I < Count; ++I) Total += ml_list_length(Args[I]);
 	ml_string_switch_t *Switch = xnew(ml_string_switch_t, Total, ml_string_case_t);
@@ -3089,7 +3214,11 @@ ml_value_t *ml_stringbuffer_get_value(ml_stringbuffer_t *Buffer) {
 ML_METHOD("rest", MLStringBufferT) {
 //<Buffer
 //>string
-// Returns the contents of :mini:`Buffer` as a string.
+// Returns the contents of :mini:`Buffer` as a string and clears :mini:`Buffer`.
+//$- let B := string::buffer()
+//$- B:write("Hello world")
+//$= B:rest
+//$= B:rest
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	return ml_stringbuffer_get_value(Buffer);
 }
@@ -3097,9 +3226,13 @@ ML_METHOD("rest", MLStringBufferT) {
 ML_METHOD("get", MLStringBufferT) {
 //<Buffer
 //>string
-// Returns the contents of :mini:`Buffer` as a string.
+// Returns the contents of :mini:`Buffer` as a string and clears :mini:`Buffer`.
 // .. deprecated:: 2.5.0
 //    Use :mini:`Buffer:rest` instead.
+//$- let B := string::buffer()
+//$- B:write("Hello world")
+//$= B:get
+//$= B:get
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	return ml_stringbuffer_get_value(Buffer);
 }
@@ -3108,6 +3241,9 @@ ML_METHOD("length", MLStringBufferT) {
 //<Buffer
 //>integer
 // Returns the number of bytes currently available in :mini:`Buffer`.
+//$- let B := string::buffer()
+//$- B:write("Hello world")
+//$= B:length
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	return ml_integer(Buffer->Length);
 }
@@ -3195,6 +3331,9 @@ ML_METHODVX("write", MLStringBufferT, MLAnyT) {
 //<Value/1,...,Value/n
 //>integer
 // Writes each :mini:`Value/i` in turn to :mini:`Buffer`.
+//$- let B := string::buffer()
+//$- B:write("1 + 1 = ", 1 + 1)
+//$= B:rest
 	ml_write_state_t *State = xnew(ml_write_state_t, Count - 1, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;

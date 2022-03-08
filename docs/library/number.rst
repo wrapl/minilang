@@ -234,12 +234,12 @@ number
 
 
 :mini:`meth (A: double) = (B: double): real`
-   Returns :mini:`B` if :mini:`A == B`,  otherwise returns :mini:`nil`.
+   Returns :mini:`B` if :mini:`A = B`,  otherwise returns :mini:`nil`.
 
 
 
 :mini:`meth (A: double) = (B: integer): real`
-   Returns :mini:`B` if :mini:`A == B`,  otherwise returns :mini:`nil`.
+   Returns :mini:`B` if :mini:`A = B`,  otherwise returns :mini:`nil`.
 
 
 
@@ -404,7 +404,7 @@ number
 
 
 :mini:`meth (A: integer) /\ (B: integer): integer`
-   Returns :mini:`A & B`.
+   Returns the bitwise and of :mini:`A` and :mini:`B`.
 
 
 
@@ -458,12 +458,12 @@ number
 
 
 :mini:`meth (A: integer) = (B: integer): integer`
-   Returns :mini:`B` if :mini:`A == B`,  otherwise returns :mini:`nil`.
+   Returns :mini:`B` if :mini:`A = B`,  otherwise returns :mini:`nil`.
 
 
 
 :mini:`meth (A: integer) = (B: double): real`
-   Returns :mini:`B` if :mini:`A == B`,  otherwise returns :mini:`nil`.
+   Returns :mini:`B` if :mini:`A = B`,  otherwise returns :mini:`nil`.
 
 
 
@@ -478,7 +478,7 @@ number
 
 
 :mini:`meth (A: integer) >< (B: integer): integer`
-   Returns :mini:`A ^ B`.
+   Returns the bitwise xor of :mini:`A` and :mini:`B`.
 
 
 
@@ -498,7 +498,7 @@ number
 
 
 :mini:`meth (A: integer) \/ (B: integer): integer`
-   Returns :mini:`A | B`.
+   Returns the bitwise or of :mini:`A` and :mini:`B`.
 
 
 

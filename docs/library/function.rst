@@ -80,3 +80,7 @@ function
    *TBD*
 
 
+:mini:`meth (Arg₁: function::partial)[...]`
+   *TBD*
+
+
