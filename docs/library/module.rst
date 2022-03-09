@@ -17,7 +17,6 @@ module
    Imports a symbol from a module.
 
 
-
 :mini:`meth (Arg₁: module):exports`
    *TBD*
 
@@ -28,6 +27,5 @@ module
 
 :mini:`meth (Buffer: string::buffer):append(Value: module)`
    Appends a representation of :mini:`Value` to :mini:`Buffer`.
-
 
 

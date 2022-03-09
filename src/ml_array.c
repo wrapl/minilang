@@ -2300,7 +2300,8 @@ ML_METHOD("reshape", MLArrayT, MLListT) {
 //>array
 // Returns a copy of :mini:`Array` with dimensions specified by :mini:`Sizes`.
 // .. note::
-//    Currently this method always makes a copy of the data so that changes to the returned array do not affect the original.
+//
+//    This method always makes a copy of the data so that changes to the returned array do not affect the original.
 	int TargetDegree = ml_list_length(Args[1]);
 	size_t TargetCount = 1;
 	ML_LIST_FOREACH(Args[1], Iter) {

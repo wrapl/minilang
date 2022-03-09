@@ -784,6 +784,63 @@ ml_comp_method_number_number(>, >)
 ml_comp_method_number_number(<=, <=)
 ml_comp_method_number_number(>=, >=)
 
+#define ml_select_method_integer_integer(NAME, SYMBOL) \
+ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
+/*<A
+//<B
+//>integer
+// Returns :mini:`NAME(A, B)`.
+*/\
+	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
+	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
+	return IntegerA SYMBOL IntegerB ? Args[0] : Args[1]; \
+}
+
+#define ml_select_method_real_real(NAME, SYMBOL) \
+ML_METHOD(#NAME, MLDoubleT, MLDoubleT) { \
+/*<A
+//<B
+//>real
+// Returns :mini:`NAME(A, B)`.
+*/\
+	double RealA = ml_double_value_fast(Args[0]); \
+	double RealB = ml_double_value_fast(Args[1]); \
+	return RealA SYMBOL RealB ? Args[0] : Args[1]; \
+}
+
+#define ml_select_method_real_integer(NAME, SYMBOL) \
+ML_METHOD(#NAME, MLDoubleT, MLIntegerT) { \
+/*<A
+//<B
+//>real
+// Returns :mini:`NAME(A, B)`.
+*/\
+	double RealA = ml_double_value_fast(Args[0]); \
+	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
+	return RealA SYMBOL IntegerB ? Args[0] : Args[1]; \
+}
+
+#define ml_select_method_integer_real(NAME, SYMBOL) \
+ML_METHOD(#NAME, MLIntegerT, MLDoubleT) { \
+/*<A
+//<B
+//>real
+// Returns :mini:`NAME(A, B)`.
+*/\
+	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
+	double RealB = ml_double_value_fast(Args[1]); \
+	return IntegerA SYMBOL RealB ? Args[0] : Args[1]; \
+}
+
+#define ml_select_method_number_number(NAME, SYMBOL) \
+ml_select_method_integer_integer(NAME, SYMBOL) \
+ml_select_method_real_real(NAME, SYMBOL) \
+ml_select_method_real_integer(NAME, SYMBOL) \
+ml_select_method_integer_real(NAME, SYMBOL)
+
+ml_select_method_number_number(min, <);
+ml_select_method_number_number(max, >);
+
 #ifdef ML_NANBOXING
 
 #define NegOne ml_int32(-1)

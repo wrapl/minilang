@@ -24,12 +24,10 @@ sequence
    Used for iterating over a sequence.
 
 
-
 .. _fun-iter_next:
 
 :mini:`fun iter_next(Value: any): any | nil`
    Used for iterating over a sequence.
-
 
 
 .. _fun-iter_value:
@@ -38,45 +36,10 @@ sequence
    Used for iterating over a sequence.
 
 
-
 .. _fun-iterate:
 
 :mini:`fun iterate(Value: any): any | nil`
    Used for iterating over a sequence.
-
-
-
-.. _fun-reduce:
-
-:mini:`fun reduce(Initial?: any, Sequence: sequence, Fn: function): any | nil`
-   Returns :mini:`Fn(Fn( ... Fn(Initial,  V₁),  V₂) ...,  Vₙ)` where :mini:`Vᵢ` are the values produced by :mini:`Sequence`.
-
-   If :mini:`Initial` is omitted,  first value produced by :mini:`Sequence` is used.
-
-   .. code-block:: mini
-
-      reduce(1 .. 10, +) :> 55
-      reduce([], 1 .. 10, :put) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
-
-.. _fun-reduce2:
-
-:mini:`fun reduce2(Initial: any, Sequence: sequence, Fn: function): any | nil`
-   Returns :mini:`Fn(Fn( ... Fn(Initial,  K₁,  V₁),  K₂,  V₂) ...,  Kₙ,  Vₙ)` where :mini:`Kᵢ` and :mini:`Vᵢ` are the keys and values produced by :mini:`Sequence`.
-
-   .. code-block:: mini
-
-      reduce2([], "cake", fun(L, K, V) L:put((K, V))) :> [(1, c), (2, a), (3, k), (4, e)]
-
-
-.. _fun-unique:
-
-:mini:`fun unique(Sequence: any): sequence`
-   Returns an sequence that returns the unique values produced by :mini:`Sequence`. Uniqueness is determined by using a :mini:`map`.
-
-   .. code-block:: mini
-
-      list(unique("banana")) :> ["b", "a", "n"]
 
 
 :mini:`meth @(Value: any): sequence`
@@ -89,7 +52,6 @@ sequence
 
 :mini:`meth (Value: any) @ (Update: function): sequence`
    Returns an infinite sequence that repeatedly produces :mini:`Value`. Should be used with :mini:`:limit` or paired with a finite sequence in :mini:`zip`,  :mini:`weave`,  etc.
-
    :mini:`Value` is replaced with :mini:`Update(Value)` after each iteration.
 
    .. code-block:: mini
@@ -101,11 +63,10 @@ sequence
 
 :mini:`type chained < function, sequence`
    A chained function or sequence,  consisting of a base function or sequence and any number of additional functions or filters.
-
+   
    When used as a function or sequence,  the base is used to produce an initial result,  then the additional functions are applied in turn to the result.
-
+   
    Filters do not affect the result but will shortcut a function call or skip an iteration if :mini:`nil` is returned. I.e. filters remove values from a sequence that fail a condition without affecting the values that pass.
-
 
 
 .. _fun-chained:
@@ -133,7 +94,6 @@ sequence
 
 :mini:`type sequence`
    The base type for any sequence value.
-
 
 
 .. _fun-all:
@@ -167,17 +127,6 @@ sequence
    .. code-block:: mini
 
       count2("banana") :> {"b" is 1, "a" is 3, "n" is 2}
-
-
-.. _fun-extremum:
-
-:mini:`fun extremum(Sequence: sequence, Fn: function): tuple | nil`
-   Returns a tuple with the key and value of the extremum value using :mini:`Fn(Value₁,  Value₂)` produced by :mini:`Sequence`. Returns :mini:`nil` if :mini:`Sequence` is empty.
-
-   .. code-block:: mini
-
-      extremum("cake", >) :> (2, a)
-      extremum("cake", <) :> (3, k)
 
 
 .. _fun-first:
@@ -258,7 +207,7 @@ sequence
 .. _fun-max:
 
 :mini:`fun max(Sequence: sequence): any | nil`
-   Returns the largest value (using :mini:`>`) produced by :mini:`Sequence`.
+   Returns the largest value (using :mini:`:max`) produced by :mini:`Sequence`.
 
    .. code-block:: mini
 
@@ -278,7 +227,7 @@ sequence
 .. _fun-min:
 
 :mini:`fun min(Sequence: sequence): any | nil`
-   Returns the smallest value (using :mini:`<`) produced by :mini:`Sequence`.
+   Returns the smallest value (using :mini:`:min`) produced by :mini:`Sequence`.
 
    .. code-block:: mini
 
@@ -301,7 +250,6 @@ sequence
    Returns a new sequence that produces the values from :mini:`Sequence₁` as keys and the values from :mini:`Sequence₂` as values.
 
 
-
 .. _fun-prod:
 
 :mini:`fun prod(Sequence: sequence): any | nil`
@@ -310,6 +258,29 @@ sequence
    .. code-block:: mini
 
       prod([1, 5, 2, 10, 6]) :> 600
+
+
+.. _fun-reduce:
+
+:mini:`fun reduce(Initial?: any, Sequence: sequence, Fn: function): any | nil`
+   Returns :mini:`Fn(Fn( ... Fn(Initial,  V₁),  V₂) ...,  Vₙ)` where :mini:`Vᵢ` are the values produced by :mini:`Sequence`.
+   If :mini:`Initial` is omitted,  the first value produced by :mini:`Sequence` is used.
+
+   .. code-block:: mini
+
+      reduce(1 .. 10, +) :> 55
+      reduce([], 1 .. 10, :put) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+
+.. _fun-reduce2:
+
+:mini:`fun reduce2(Initial?: any, Sequence: sequence, Fn: function): any | nil`
+   Returns :mini:`Fn(Fn( ... Fn(Initial,  K₁,  V₁),  K₂,  V₂) ...,  Kₙ,  Vₙ)` where :mini:`Kᵢ` and :mini:`Vᵢ` are the keys and values produced by :mini:`Sequence`.
+   If :mini:`Initial` is omitted,  a tuple with the first key and value produced by :mini:`Sequence` is used.
+
+   .. code-block:: mini
+
+      reduce2([], "cake", fun(L, K, V) L:put((K, V))) :> [(1, c), (2, a), (3, k), (4, e)]
 
 
 .. _fun-sum:
@@ -342,6 +313,16 @@ sequence
       list(unfold("cake")) :> [1, "c", 2, "a", 3, "k", 4, "e"]
 
 
+.. _fun-unique:
+
+:mini:`fun unique(Sequence: sequence): sequence`
+   Returns an sequence that returns the unique values produced by :mini:`Sequence`. Uniqueness is determined by using a :mini:`map`.
+
+   .. code-block:: mini
+
+      list(unique("banana")) :> ["b", "a", "n"]
+
+
 .. _fun-unpack:
 
 :mini:`fun unpack(Sequence: sequence): sequence`
@@ -357,7 +338,6 @@ sequence
 
 :mini:`fun weave(Sequence₁, : sequence, ...): sequence`
    Returns a new sequence that produces interleaved values :mini:`Vᵢ` from each of :mini:`Sequenceᵢ`.
-
    The sequence stops produces values when any of the :mini:`Sequenceᵢ` stops.
 
    .. code-block:: mini
@@ -369,7 +349,6 @@ sequence
 
 :mini:`fun zip(Sequence₁, : sequence, ..., Function: any): sequence`
    Returns a new sequence that produces :mini:`Function(V₁₁,  ...,  Vₙ₁),  Function(V₁₂,  ...,  Vₙ₂),  ...` where :mini:`Vᵢⱼ` is the :mini:`j`-th value produced by :mini:`Sequenceᵢ`.
-
    The sequence stops produces values when any of the :mini:`Sequenceᵢ` stops.
 
    .. code-block:: mini
@@ -379,7 +358,6 @@ sequence
 
 :mini:`meth (Base: sequence) -> (F: function): sequence`
    Returns a chained sequence equivalent to :mini:`(K₁,  F(V₁)),  ...,  (Kₙ,  F(Vₙ))` where :mini:`Kᵢ` and :mini:`Vᵢ` are the keys and values produced by :mini:`Base`.
-
 
 
 :mini:`meth (Base: sequence) ->! (F: function): sequence`
@@ -414,20 +392,20 @@ sequence
       list(1 .. 10 ->? (2 | _)) :> [2, 4, 6, 8, 10]
 
 
-:mini:`meth (Sequence: sequence) // (Initial: any, Fn: function): sequence`
-   Returns an sequence that produces :mini:`Initial`,  :mini:`Fn(Initial,  V₁)`,  :mini:`Fn(Fn(Initial,  V₁),  V₂)`,  ... .
-
-   .. code-block:: mini
-
-      list(1 .. 10 // (10, +)) :> [11, 13, 16, 20, 25, 31, 38, 46, 55, 65]
-
-
 :mini:`meth (Sequence: sequence) // (Fn: function): sequence`
    Returns an sequence that produces :mini:`V₁`,  :mini:`Fn(V₁,  V₂)`,  :mini:`Fn(Fn(V₁,  V₂),  V₃)`,  ... .
 
    .. code-block:: mini
 
       list(1 .. 10 // +) :> [1, 3, 6, 10, 15, 21, 28, 36, 45, 55]
+
+
+:mini:`meth (Sequence: sequence) // (Initial: any, Fn: function): sequence`
+   Returns an sequence that produces :mini:`Initial`,  :mini:`Fn(Initial,  V₁)`,  :mini:`Fn(Fn(Initial,  V₁),  V₂)`,  ... .
+
+   .. code-block:: mini
+
+      list(1 .. 10 // (10, +)) :> [11, 13, 16, 20, 25, 31, 38, 46, 55, 65]
 
 
 :mini:`meth (Sequence: sequence):join(Separator: string): string`
@@ -473,20 +451,20 @@ sequence
       list(1 .. 10 skip 5) :> [6, 7, 8, 9, 10]
 
 
-:mini:`meth (Base: sequence) => (F: function): sequence`
-   Returns a chained sequence equivalent to :mini:`(K₁,  F(K₁,  V₁)),  ...,  (Kₙ,  F(Kₙ,  Vₙ))` where :mini:`Kᵢ` and :mini:`Vᵢ` are the keys and values produced by :mini:`Base`.
-
-   .. code-block:: mini
-
-      map("cake" => *) :> {1 is "c", 2 is "aa", 3 is "kkk", 4 is "eeee"}
-
-
 :mini:`meth (Base: sequence) => (F₁: function, F₂: function): sequence`
    Returns a chained sequence equivalent to :mini:`(F₁(K₁,  V₁),  F₂(K₁,  V₁)),  ...,  (F₁(Kₙ,  Vₙ),  F₂(Kₙ,  Vₙ))` where :mini:`Kᵢ` and :mini:`Vᵢ` are the keys and values produced by :mini:`Base`.
 
    .. code-block:: mini
 
       map("cake" => (tuple, *)) :> {(1, c) is "c", (2, a) is "aa", (3, k) is "kkk", (4, e) is "eeee"}
+
+
+:mini:`meth (Base: sequence) => (F: function): sequence`
+   Returns a chained sequence equivalent to :mini:`(K₁,  F(K₁,  V₁)),  ...,  (Kₙ,  F(Kₙ,  Vₙ))` where :mini:`Kᵢ` and :mini:`Vᵢ` are the keys and values produced by :mini:`Base`.
+
+   .. code-block:: mini
+
+      map("cake" => *) :> {1 is "c", 2 is "aa", 3 is "kkk", 4 is "eeee"}
 
 
 :mini:`meth (Sequence: sequence) =>> (Function: function): sequence`
@@ -506,14 +484,6 @@ sequence
       map(M =>? !=) :> {2 is 4, 3 is 9, 4 is 6, 7 is 9, 8 is 4, 9 is 1, 10 is 0}
 
 
-:mini:`meth (Sequence₁: sequence) >> (Sequence₂: sequence): Sequence`
-   Returns an sequence that produces the values from :mini:`Sequence₁` followed by those from :mini:`Sequence₂`.
-
-   .. code-block:: mini
-
-      list(1 .. 3 >> "cake") :> [1, 2, 3, "c", "a", "k", "e"]
-
-
 :mini:`meth >>(Sequence: sequence): Sequence`
    Returns an sequence that repeatedly produces the values from :mini:`Sequence` (for use with :mini:`limit`).
 
@@ -522,11 +492,18 @@ sequence
       list(>>(1 .. 3) limit 10) :> [1, 2, 3, 1, 2, 3, 1, 2, 3, 1]
 
 
+:mini:`meth (Sequence₁: sequence) >> (Sequence₂: sequence): Sequence`
+   Returns an sequence that produces the values from :mini:`Sequence₁` followed by those from :mini:`Sequence₂`.
+
+   .. code-block:: mini
+
+      list(1 .. 3 >> "cake") :> [1, 2, 3, "c", "a", "k", "e"]
+
+
 :mini:`meth (Sequence: sequence) ^ (Function: function): sequence`
    Returns a new sequence that generates the keys and values from :mini:`Function(Value)` for each value generated by :mini:`Sequence`.
-
    .. deprecated:: 2.5.0
-
+   
       Use :mini:`->>` instead.
 
    .. code-block:: mini

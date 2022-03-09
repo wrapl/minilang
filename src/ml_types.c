@@ -30,6 +30,8 @@ ML_METHOD_DECL(ValueMethod, "value");
 ML_METHOD_DECL(KeyMethod, "key");
 ML_METHOD_DECL(NextMethod, "next");
 ML_METHOD_DECL(CompareMethod, "<>");
+ML_METHOD_DECL(MinMethod, "min");
+ML_METHOD_DECL(MaxMethod, "max");
 ML_METHOD_DECL(IndexMethod, "[]");
 ML_METHOD_DECL(SymbolMethod, "::");
 ML_METHOD_DECL(LessMethod, "<");
@@ -879,6 +881,21 @@ ML_METHOD("<>", MLAnyT, MLAnyT) {
 // This comparison is based on the internal addresses of :mini:`Value/1` and :mini:`Value/2` and thus only has no persistent meaning.
 	if (Args[0] < Args[1]) return (ml_value_t *)NegOne;
 	if (Args[0] > Args[1]) return (ml_value_t *)One;
+	return (ml_value_t *)Zero;
+}
+
+ML_METHOD("<>", MLNilT, MLAnyT) {
+//!internal
+	return (ml_value_t *)NegOne;
+}
+
+ML_METHOD("<>", MLAnyT, MLNilT) {
+//!internal
+	return (ml_value_t *)One;
+}
+
+ML_METHOD("<>", MLNilT, MLNilT) {
+//!internal
 	return (ml_value_t *)Zero;
 }
 

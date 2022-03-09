@@ -223,6 +223,7 @@ ML_METHOD("getu64", MLAddressT) {
 //>integer
 // Returns the unsigned 64-bit value at :mini:`Address`. Currently follows the platform endiness.
 // .. warning::
+//
 //    Minilang currently uses signed 64-bit integers so this method will produce incorrect results if the actual value is too large to fit. This may change in future implementations or if arbitrary precision integers are added to the runtime.
 //$= let A := address("Hello world!\n")
 //$= A:getu64
@@ -1368,6 +1369,8 @@ ML_METHOD("<>", MLStringT, MLStringT) {
 //$= "Hello" <> "World"
 //$= "World" <> "Hello"
 //$= "Hello" <> "Hello"
+//$= "abcd" <> "abc"
+//$= "abc" <> "abcd"
 	const char *StringA = ml_string_value(Args[0]);
 	const char *StringB = ml_string_value(Args[1]);
 	int LengthA = ml_string_length(Args[0]);
@@ -1395,6 +1398,8 @@ ML_METHOD(#NAME, MLStringT, MLStringT) { \
 //$= "Hello" NAME "World"
 //$= "World" NAME "Hello"
 //$= "Hello" NAME "Hello"
+//$= "abcd" NAME "abc"
+//$= "abc" NAME "abcd"
 */\
 	const char *StringA = ml_string_value(Args[0]); \
 	const char *StringB = ml_string_value(Args[1]); \
@@ -1417,6 +1422,64 @@ ml_comp_method_string_string(<, <)
 ml_comp_method_string_string(>, >)
 ml_comp_method_string_string(<=, <=)
 ml_comp_method_string_string(>=, >=)
+
+ML_METHOD("min", MLStringT, MLStringT) {
+//<A
+//<B
+//>integer
+// Returns :mini:`min(A, B)`
+//$= "Hello":min("World")
+//$= "World":min("Hello")
+//$= "abcd":min("abc")
+//$= "abc":min("abcd")
+	const char *StringA = ml_string_value(Args[0]);
+	const char *StringB = ml_string_value(Args[1]);
+	int LengthA = ml_string_length(Args[0]);
+	int LengthB = ml_string_length(Args[1]);
+	if (LengthA < LengthB) {
+		int Compare = memcmp(StringA, StringB, LengthA);
+		if (Compare > 0) return Args[1];
+		return Args[0];
+	} else if (LengthA > LengthB) {
+		int Compare = memcmp(StringA, StringB, LengthB);
+		if (Compare < 0) return Args[0];
+		return Args[1];
+	} else {
+		int Compare = memcmp(StringA, StringB, LengthA);
+		if (Compare < 0) return Args[0];
+		if (Compare > 0) return Args[1];
+		return Args[1];
+	}
+}
+
+ML_METHOD("max", MLStringT, MLStringT) {
+//<A
+//<B
+//>integer
+// Returns :mini:`max(A, B)`
+//$= "Hello":max("World")
+//$= "World":max("Hello")
+//$= "abcd":max("abc")
+//$= "abc":max("abcd")
+	const char *StringA = ml_string_value(Args[0]);
+	const char *StringB = ml_string_value(Args[1]);
+	int LengthA = ml_string_length(Args[0]);
+	int LengthB = ml_string_length(Args[1]);
+	if (LengthA < LengthB) {
+		int Compare = memcmp(StringA, StringB, LengthA);
+		if (Compare > 0) return Args[0];
+		return Args[1];
+	} else if (LengthA > LengthB) {
+		int Compare = memcmp(StringA, StringB, LengthB);
+		if (Compare < 0) return Args[1];
+		return Args[0];
+	} else {
+		int Compare = memcmp(StringA, StringB, LengthA);
+		if (Compare < 0) return Args[1];
+		if (Compare > 0) return Args[0];
+		return Args[1];
+	}
+}
 
 #define SWAP(A, B) { \
 	typeof(A) Temp = A; \
@@ -3228,6 +3291,7 @@ ML_METHOD("get", MLStringBufferT) {
 //>string
 // Returns the contents of :mini:`Buffer` as a string and clears :mini:`Buffer`.
 // .. deprecated:: 2.5.0
+//
 //    Use :mini:`Buffer:rest` instead.
 //$- let B := string::buffer()
 //$- B:write("Hello world")

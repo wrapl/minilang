@@ -7,6 +7,12 @@
 runtime
 =======
 
+.. _fun-break:
+
+:mini:`fun break(Condition?: any)`
+   If a debugger is present and :mini:`Condition` is omitted or not :mini:`nil` then triggers a breakpoint.
+
+
 .. _fun-callcc:
 
 :mini:`fun callcc()`
@@ -17,13 +23,6 @@ runtime
 
 :mini:`fun calldc()`
    *TBD*
-
-
-.. _fun-break:
-
-:mini:`fun break(Condition?: any)`
-   If a debugger is present and :mini:`Condition` is omitted or not :mini:`nil` then triggers a breakpoint.
-
 
 
 .. _fun-markcc:

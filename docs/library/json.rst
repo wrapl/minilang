@@ -24,12 +24,10 @@ JSON values are mapped to Minilang as follows:
    Encodes :mini:`Value` into JSON,  raising an error if :mini:`Value` cannot be represented as JSON.
 
 
-
 .. _type-json-decoder:
 
 :mini:`type json::decoder < stream`
    A JSON decoder that can be written to as a stream and calls a user-supplied callback whenever a complete value is parsed.
-
 
 
 .. _fun-json-decoder:
@@ -38,11 +36,9 @@ JSON values are mapped to Minilang as follows:
    Returns a new JSON decoder that calls :mini:`Callback(Value)` whenever a complete JSON value is written to the decoder.
 
 
-
 .. _fun-json-decode:
 
 :mini:`fun json::decode(Json: string): any`
    Decodes :mini:`Json` into a Minilang value.
-
 
 

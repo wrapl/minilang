@@ -13,7 +13,6 @@ address
    An address represents a read-only bounded section of memory.
 
 
-
 :mini:`meth address(String: string): address`
    Returns an address view of :mini:`String`.
 
@@ -144,9 +143,8 @@ address
 
 :mini:`meth (Address: address):getu64: integer`
    Returns the unsigned 64-bit value at :mini:`Address`. Currently follows the platform endiness.
-
    .. warning::
-
+   
       Minilang currently uses signed 64-bit integers so this method will produce incorrect results if the actual value is too large to fit. This may change in future implementations or if arbitrary precision integers are added to the runtime.
 
    .. code-block:: mini
@@ -193,6 +191,5 @@ address
 
 :mini:`meth (Buffer: string::buffer):append(Value: address)`
    Appends a representation of :mini:`Value` to :mini:`Buffer`.
-
 
 

@@ -19,6 +19,12 @@ general
    *TBD*
 
 
+.. _fun-halt:
+
+:mini:`fun halt(Code?: integer)`
+   
+
+
 .. _fun-now:
 
 :mini:`fun now()`
@@ -37,16 +43,9 @@ general
    Prints :mini:`Values` to standard output,  converting to strings if necessary.
 
 
-
 .. _fun-replace:
 
 :mini:`fun replace(Arg₁: any, Arg₂: any)`
-   *TBD*
-
-
-.. _fun-halt:
-
-:mini:`fun halt(Code?: integer)`
    *TBD*
 
 
