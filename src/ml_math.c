@@ -397,6 +397,12 @@ MATH_REAL(Log1p, log1p, log1p);
 MATH_REAL_REAL(Rem, remainder, rem);
 MATH_REAL(Round, round, round);
 
+double logit(double X) {
+	return log(X / (1 - X));
+}
+
+MATH_REAL(Logit, logit, logit);
+
 ML_METHOD_DECL(ArgMethod, "arg");
 
 ML_METHOD(ArgMethod, MLRealT) {
@@ -579,6 +585,7 @@ void ml_math_init(stringmap_t *Globals) {
 			"floor", FloorMethod,
 			"log", LogMethod,
 			"log10", Log10Method,
+			"logit", LogitMethod,
 			"sin", SinMethod,
 			"sinh", SinhMethod,
 			"sqrt", SqrtMethod,

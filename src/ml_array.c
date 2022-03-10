@@ -3243,8 +3243,8 @@ ML_METHOD(#OP, MLComplexT, MLArrayT) { \
 
 #else
 
-#define ML_ARITH_METHOD(BASE) \
-ML_ARITH_METHOD_BASE(BASE)
+#define ML_ARITH_METHOD(BASE, MIN_FORMAT) \
+ML_ARITH_METHOD_BASE(BASE, MIN_FORMAT)
 
 #endif
 
@@ -5563,6 +5563,26 @@ ML_METHOD("tr", MLMatrixT) {
 	}
 }
 
+ML_METHOD("softmax", MLVectorRealT) {
+//<Vector
+//>vector
+// Returns :mini:`softmax(Vector)`.
+//$= let A := array([1, 4.2, 0.6, 1.23, 4.3, 1.2, 2.5])
+//$= let B := A:softmax
+	ml_array_t *A = (ml_array_t *)Args[0];
+	int N = A->Dimensions[0].Size;
+	ml_array_t *B = ml_array(ML_ARRAY_FORMAT_F64, 1, N);
+	array_copy(B, A);
+	double *Values = (double *)B->Base.Value;
+	double M = -INFINITY;
+	for (int I = 0; I < N; ++I) if (M < Values[I]) M = Values[I];
+	double Sum = 0.0;
+	for (int I = 0; I < N; ++I) Sum += exp(Values[I] - M);
+	double C = M + log(Sum);
+	for (int I = 0; I < N; ++I) Values[I] = exp(Values[I] - C);
+	return (ml_value_t *)B;
+}
+
 #ifdef ML_CBOR
 
 #include "ml_cbor.h"
@@ -5762,6 +5782,7 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_method_by_value(FloorMethod, floor, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
 	ml_method_by_value(LogMethod, log, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
 	ml_method_by_value(Log10Method, log10, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(LogitMethod, logit, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
 	ml_method_by_value(SinMethod, sin, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
 	ml_method_by_value(SinhMethod, sinh, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
 	ml_method_by_value(SqrtMethod, sqrt, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
