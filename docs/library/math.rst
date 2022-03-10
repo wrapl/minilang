@@ -260,16 +260,16 @@ math
       math::square(10) :> 100
 
 
-.. _value-math-pi:
-
-:mini:`def math::pi: real`
-   Pi.
-
-
 .. _value-math-e:
 
 :mini:`def math::e: real`
    Euler's constant.
+
+
+.. _value-math-pi:
+
+:mini:`def math::pi: real`
+   Pi.
 
 
 :mini:`meth (X: number) ^ (Y: complex): number`
@@ -292,6 +292,14 @@ math
    Returns the complex conjugate of :mini:`R` (:mini:`= R` for a real number).
 
 
+:mini:`meth (X: real) ^ (Y: integer): number`
+   Returns :mini:`X` raised to the power of :mini:`Y`.
+
+   .. code-block:: mini
+
+      2.3 ^ 2 :> 5.29
+
+
 :mini:`meth (X: real) ^ (Y: real): number`
    Returns :mini:`X` raised to the power of :mini:`Y`.
 
@@ -301,14 +309,6 @@ math
       type(R) :> <<double>>
       let C := -2.3 ^ 1.5 :> -6.40758e-16 - 3.48812i
       type(C) :> <<complex>>
-
-
-:mini:`meth (X: real) ^ (Y: integer): number`
-   Returns :mini:`X` raised to the power of :mini:`Y`.
-
-   .. code-block:: mini
-
-      2.3 ^ 2 :> 5.29
 
 
 :mini:`meth math::abs(Arg₁: real): real`
@@ -497,6 +497,15 @@ math
 
       math::log1p(1.2345) :> 0.804017
       math::log1p(-1.2345) :> -nan
+
+
+:mini:`meth math::logit(Arg₁: real): real`
+   Returns :mini:`logit(Arg₁)`.
+
+   .. code-block:: mini
+
+      math::logit(1.2345) :> -nan
+      math::logit(-1.2345) :> -nan
 
 
 :mini:`meth math::rem(Arg₁: real, Arg₂: real): real`

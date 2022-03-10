@@ -738,13 +738,13 @@ array
 
 .. _type-array-real:
 
-:mini:`type array::real < array`
+:mini:`type array::real < array::complex`
    Base type for arrays of real numbers.
 
 
 .. _type-array-real:
 
-:mini:`type array::real < array::complex`
+:mini:`type array::real < array`
    Base type for arrays of real numbers.
 
 
@@ -1186,6 +1186,15 @@ array
 
 :mini:`type vector::real < array::real, vector`
    Base type for vectors of real numbers.
+
+
+:mini:`meth (Vector: vector::real):softmax: vector`
+   Returns :mini:`softmax(Vector)`.
+
+   .. code-block:: mini
+
+      let A := array([1, 4.2, 0.6, 1.23, 4.3, 1.2, 2.5]) :> <1 4.2 0.6 1.23 4.3 1.2 2.5>
+      let B := A:softmax :> <0.01659 0.406995 0.0111206 0.0208802 0.449799 0.0202631 0.0743513>
 
 
 .. _type-vector-uint16:
