@@ -19,15 +19,12 @@ range
    Returns a range from :mini:`Start` to :mini:`Limit` (inclusive).
 
 
-
 :mini:`meth (Start: integer) .. (Limit: integer, Step: integer): integer::range`
    Returns a range from :mini:`Start` to :mini:`Limit` (inclusive).
 
 
-
 :mini:`meth (Start: integer):by(Step: integer): integer::range`
    Returns a unlimited range from :mini:`Start` in steps of :mini:`Step`.
-
 
 
 :mini:`meth (X: integer):in(Range: real::range): X | nil`
@@ -42,10 +39,8 @@ range
    Returns a range from :mini:`Start` to :mini:`Start + Count - 1` (inclusive).
 
 
-
 :mini:`meth (Start: integer):up(Count: any): integer::range`
    Returns an unlimited range from :mini:`Start`.
-
 
 
 .. _type-integer-iter:
@@ -72,14 +67,12 @@ range
    Returns a range with the same limits as :mini:`Range` but with step :mini:`Step`.
 
 
-
 :mini:`meth (Range: integer::range):by(Step: double): real::range`
    *TBD*
 
 
 :mini:`meth (Range: integer::range):count: integer`
    Returns the number of values in :mini:`Range`.
-
 
 
 :mini:`meth (Range: integer::range):in(Count: integer): real::range`
@@ -90,20 +83,16 @@ range
    Returns the limit of :mini:`Range`.
 
 
-
 :mini:`meth (Range: integer::range):start: integer`
    Returns the start of :mini:`Range`.
-
 
 
 :mini:`meth (Range: integer::range):step: integer`
    Returns the limit of :mini:`Range`.
 
 
-
 :mini:`meth (Buffer: string::buffer):append(Value: integer::range)`
    Appends a representation of :mini:`Value` to :mini:`Buffer`.
-
 
 
 :mini:`meth (Start: number) .. (Limit: number): real::range`
@@ -146,7 +135,6 @@ range
    Returns the number of values in :mini:`Range`.
 
 
-
 :mini:`meth (Range: real::range):in(Count: integer): real::range`
    *TBD*
 
@@ -155,19 +143,15 @@ range
    Returns the limit of :mini:`Range`.
 
 
-
 :mini:`meth (Range: real::range):start: real`
    Returns the start of :mini:`Range`.
-
 
 
 :mini:`meth (Range: real::range):step: real`
    Returns the step of :mini:`Range`.
 
 
-
 :mini:`meth (Buffer: string::buffer):append(Value: real::range)`
    Appends a representation of :mini:`Value` to :mini:`Buffer`.
-
 
 

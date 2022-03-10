@@ -62,8 +62,8 @@ hierarchy
       "any":e -> "error::value":w;
       "any":e -> "semaphore":w;
       "any":e -> "channel":w;
-      "any":e -> "queue::entry":w;
-      "sequence":e -> "queue":w;
+      "any":e -> "pqueue::entry":w;
+      "sequence":e -> "pqueue":w;
       "any":e -> "polynomial":w;
       "any":e -> "polynomial::rational":w;
       "any":e -> "object":w;

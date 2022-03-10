@@ -13,7 +13,6 @@ buffer
    A buffer represents a writable bounded section of memory.
 
 
-
 .. _fun-buffer:
 
 :mini:`fun buffer(Length: integer): buffer`
@@ -21,7 +20,7 @@ buffer
 
    .. code-block:: mini
 
-      buffer(16) :> <16:20B1D3F55F7F00003D20456E643B0A00>
+      buffer(16) :> <16:A0295B71A97F0000655F74202A4C696D>
 
 
 :mini:`meth (Buffer: buffer) + (Offset: integer): buffer`
@@ -29,8 +28,8 @@ buffer
 
    .. code-block:: mini
 
-      let B := buffer(16) :> <16:009A70FD5F7F00003D204E6F64652D3E>
-      B + 8 :> <8:3D204E6F64652D3E>
+      let B := buffer(16) :> <16:00265B71A97F000055524E285461736B>
+      B + 8 :> <8:55524E285461736B>
 
 
 :mini:`meth (Buffer: buffer):put(Value: address): buffer`
@@ -94,7 +93,7 @@ buffer
 
    .. code-block:: mini
 
-      let B := buffer(16) :> <16:A09B70FD5F7F00002C204D4C4E616D65>
+      let B := buffer(16) :> <16:20275B71A97F00003E4C696D6974203D>
       let B @ 8 :> error("ParseError", "Expected := not <operator>")
 
 

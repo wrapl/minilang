@@ -35,10 +35,8 @@ method
    Returns the method with name :mini:`Name`.
 
 
-
 :mini:`meth method(): method`
    Returns a new anonymous method.
-
 
 
 :mini:`meth (Arg₁: method):list`
@@ -47,7 +45,6 @@ method
 
 :mini:`meth (Method: method):name: string`
    Returns the name of :mini:`Method`.
-
 
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: method)`

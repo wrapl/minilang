@@ -91,7 +91,6 @@ gir
    A gobject-introspection typelib.
 
 
-
 .. _type-gir-base:
 
 :mini:`type gir::base < type`
@@ -104,12 +103,10 @@ gir
    A gobject-instrospection enum type.
 
 
-
 .. _type-gir-enum:
 
 :mini:`type gir::enum`
    A gobject-instrospection enum value.
-
 
 
 :mini:`meth (Value₁: gir::enum) | (Value₂: nil): enumvalue`
@@ -130,7 +127,6 @@ gir
    A gobject-introspection object instance.
 
 
-
 .. _type-gir-object:
 
 :mini:`type gir::object`
@@ -141,7 +137,6 @@ gir
 
 :mini:`type gir::object < gir::base`
    A gobject-introspection object type.
-
 
 
 :mini:`meth (Object: gir::object) :: (Property: string): any`
@@ -162,12 +157,10 @@ gir
    A gobject-introspection struct type.
 
 
-
 .. _type-gir-struct:
 
 :mini:`type gir::struct`
    A gobject-introspection struct instance.
-
 
 
 :mini:`meth (Struct: string::buffer):append(Arg₂: gir::struct): string`

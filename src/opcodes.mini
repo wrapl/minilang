@@ -28,7 +28,7 @@ case "c" do
 		Output:write("#endif\n")
 		Output:close
 	end
-	
+
 	with Output := file("ml_opcodes.c", "w") do
 		Output:write("#include \"ml_opcodes.h\"\n\nconst char *MLInstNames[] = {\n")
 		for (Name, Type) in Opcodes do
@@ -55,6 +55,17 @@ case "py" do
 		for I, (Name, Type) in Opcodes do
 			Output:write('MLI_{Name} = {I - 1}\n')
 		end
+		Output:close
+	end
+case "java" do
+	with Output := file("Opcode.java", "w") do
+		Output:write("package wrapl.minilang;\n\n")
+		Output:write("enum Opcode {")
+		for I, (Name, Type) in Opcodes do
+			I > 1 and Output:write(",")
+			Output:write('\n\tMLI_{Name}')
+		end
+		Output:write("\n}\n")
 		Output:close
 	end
 end

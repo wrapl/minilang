@@ -521,6 +521,12 @@ ML_METHOD("[]", MLListT, MLListT) {
 }
 
 ML_METHOD("append", MLStringBufferT, MLListT) {
+//<Buffer
+//<List
+// Appends a representation of :mini:`List` to :mini:`Buffer` of the form :mini:`"[" + repr(V/1) + ", " + repr(V/2) + ", " + ... + repr(V/n) + "]"`, where :mini:`repr(V/i)` is a representation of the *i*-th element (using :mini:`:append`).
+//$- let B := string::buffer()
+//$- B:append([1, 2, 3, 4])
+//$= B:rest
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_put(Buffer, '[');
 	ml_list_t *List = (ml_list_t *)Args[1];
@@ -537,6 +543,13 @@ ML_METHOD("append", MLStringBufferT, MLListT) {
 }
 
 ML_METHOD("append", MLStringBufferT, MLListT, MLStringT) {
+//<Buffer
+//<List
+//<Sep
+// Appends a representation of :mini:`List` to :mini:`Buffer` of the form :mini:`repr(V/1) + Sep + repr(V/2) + Sep + ... + repr(V/n)`, where :mini:`repr(V/i)` is a representation of the *i*-th element (using :mini:`:append`).
+//$- let B := string::buffer()
+//$- B:append([1, 2, 3, 4], " - ")
+//$= B:rest
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	const char *Seperator = ml_string_value(Args[2]);
 	size_t SeperatorLength = ml_string_length(Args[2]);
@@ -634,15 +647,6 @@ ML_METHOD("empty", MLListT) {
 	List->Head = List->Tail = NULL;
 	List->Length = 0;
 	return (ml_value_t *)List;
-}
-
-ML_METHOD("copy", MLListT) {
-//<List
-//>list
-// Returns a (shallow) copy of :mini:`List`.
-	ml_value_t *List = ml_list();
-	ML_LIST_FOREACH(Args[0], Iter) ml_list_put(List, Iter->Value);
-	return List;
 }
 
 ML_METHOD("+", MLListT, MLListT) {

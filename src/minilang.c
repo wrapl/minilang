@@ -58,8 +58,8 @@
 #include "ml_table.h"
 #endif
 
-#ifdef ML_QUEUES
-#include "ml_queue.h"
+#ifdef ML_PQUEUES
+#include "ml_pqueue.h"
 #endif
 
 #ifdef ML_TIME
@@ -272,8 +272,8 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_TABLES
 	ml_table_init(Globals);
 #endif
-#ifdef ML_QUEUES
-	ml_queue_init(Globals);
+#ifdef ML_PQUEUES
+	ml_pqueue_init(Globals);
 #endif
 #ifdef ML_TIME
 	ml_time_init(STD_EXPORTS);

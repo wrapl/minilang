@@ -28,12 +28,10 @@ When creating a substring,  the first index is inclusive and second index is exc
    Returns a UTF-8 string containing the character with unicode codepoint :mini:`Codepoint`.
 
 
-
 .. _type-regex:
 
 :mini:`type regex`
    A regular expression.
-
 
 
 .. _fun-regex:
@@ -129,12 +127,10 @@ When creating a substring,  the first index is inclusive and second index is exc
    Appends a representation of :mini:`Value` to :mini:`Buffer`.
 
 
-
 .. _type-string:
 
 :mini:`type string < address, sequence`
    A string of characters in UTF-8 encoding.
-
 
 
 .. _fun-string:
@@ -158,6 +154,8 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Hello" != "World" :> "World"
       "World" != "Hello" :> "Hello"
       "Hello" != "Hello" :> nil
+      "abcd" != "abc" :> "abc"
+      "abc" != "abcd" :> "abcd"
 
 
 :mini:`meth (String: string) % (Pattern: regex): tuple[string] | nil`
@@ -169,6 +167,14 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Not a date" % r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)" :> nil
 
 
+:mini:`meth (String: string) */ (Pattern: string): tuple[string,  string]`
+   Splits :mini:`String` at the last occurence of :mini:`Pattern` and returns the two substrings in a tuple.
+
+   .. code-block:: mini
+
+      "2022/03/08" */ "/" :> (2022/03, 08)
+
+
 :mini:`meth (String: string) */ (Pattern: regex): tuple[string,  string]`
    Splits :mini:`String` at the last occurence of :mini:`Pattern` and returns the two substrings in a tuple.
 
@@ -178,20 +184,22 @@ When creating a substring,  the first index is inclusive and second index is exc
       "2022-03-08" */ r"[/-]" :> (2022-03, 08)
 
 
-:mini:`meth (String: string) */ (Pattern: string): tuple[string,  string]`
-   Splits :mini:`String` at the last occurence of :mini:`Pattern` and returns the two substrings in a tuple.
-
-   .. code-block:: mini
-
-      "2022/03/08" */ "/" :> (2022/03, 08)
-
-
 :mini:`meth (A: string) + (B: string): string`
    Returns :mini:`A` and :mini:`B` concatentated.
 
    .. code-block:: mini
 
       "Hello" + " " + "world" :> "Hello world"
+
+
+:mini:`meth (String: string) / (Pattern: regex): list`
+   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
+   If :mini:`Pattern` contains a subgroup then only the subgroup matches are removed from the output substrings.
+
+   .. code-block:: mini
+
+      "2022/03/08" / r"[/-]" :> ["2022", "03", "08"]
+      "2022-03-08" / r"[/-]" :> ["2022", "03", "08"]
 
 
 :mini:`meth (String: string) / (Pattern: string): list`
@@ -203,20 +211,8 @@ When creating a substring,  the first index is inclusive and second index is exc
       "2022/03/08" / "/" :> ["2022", "03", "08"]
 
 
-:mini:`meth (String: string) / (Pattern: regex): list`
-   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
-
-   If :mini:`Pattern` contains a subgroup then only the subgroup matches are removed from the output substrings.
-
-   .. code-block:: mini
-
-      "2022/03/08" / r"[/-]" :> ["2022", "03", "08"]
-      "2022-03-08" / r"[/-]" :> ["2022", "03", "08"]
-
-
 :mini:`meth (String: string) / (Pattern: regex, Index: integer): list`
    Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
-
    Only the :mini:`Index` subgroup matches are removed from the output substrings.
 
    .. code-block:: mini
@@ -251,7 +247,6 @@ When creating a substring,  the first index is inclusive and second index is exc
 
 :mini:`meth (String: string):after(Delimiter: string, N: integer): string | nil`
    Returns the portion of :mini:`String` after the :mini:`N`-th occurence of :mini:`Delimiter`,  or :mini:`nil` if no :mini:`N`-th occurence if found.
-
    If :mini:`N < 0` then occurences are counted from the end of :mini:`String`.
 
    .. code-block:: mini
@@ -269,7 +264,6 @@ When creating a substring,  the first index is inclusive and second index is exc
 
 :mini:`meth (String: string):before(Delimiter: string, N: integer): string | nil`
    Returns the portion of :mini:`String` before the :mini:`N`-th occurence of :mini:`Delimiter`,  or :mini:`nil` if no :mini:`N`-th occurence if found.
-
    If :mini:`N < 0` then occurences are counted from the end of :mini:`String`.
 
    .. code-block:: mini
@@ -434,6 +428,28 @@ When creating a substring,  the first index is inclusive and second index is exc
       " \t Hello \n":trim(" \n") :> "\t Hello"
 
 
+:mini:`meth (A: string):max(B: string): integer`
+   Returns :mini:`max(A,  B)`
+
+   .. code-block:: mini
+
+      "Hello":max("World") :> "World"
+      "World":max("Hello") :> "World"
+      "abcd":max("abc") :> "abcd"
+      "abc":max("abcd") :> "abcd"
+
+
+:mini:`meth (A: string):min(B: string): integer`
+   Returns :mini:`min(A,  B)`
+
+   .. code-block:: mini
+
+      "Hello":min("World") :> "Hello"
+      "World":min("Hello") :> "Hello"
+      "abcd":min("abc") :> "abc"
+      "abc":min("abcd") :> "abc"
+
+
 :mini:`meth (String: string):offset(Index: integer): integer`
    Returns the byte position of the :mini:`Index`-th character of :mini:`String`.
 
@@ -441,6 +457,14 @@ When creating a substring,  the first index is inclusive and second index is exc
 
       let S := "λ:😀️ → 😺️"
       list(1 .. S:length, S:offset(_)) :> [0, 2, 3, 7, 10, 11, 14, 15, 19]
+
+
+:mini:`meth (String: string):replace(Pattern: regex, Fn: function): string`
+   Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Fn(Match,  Sub₁,  ...,  Subₙ)` where :mini:`Match` is the actual matched text and :mini:`Subᵢ` are the matched subpatterns.
+
+   .. code-block:: mini
+
+      "the cat snored as he slept":replace(r" ([a-z])", fun(Match, A) '-{A:upper}') :> "the-Cat-Snored-As-He-Slept"
 
 
 :mini:`meth (String: string):replace(I: integer, Replacement: string): string`
@@ -460,14 +484,6 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Hello world":replace(-6, 0, ", how are you?") :> "Hello, how are you?"
 
 
-:mini:`meth (String: string):replace(I: integer, Fn: function): string`
-   Returns a copy of :mini:`String` with the :mini:`String[I]` is replaced by :mini:`Fn(String[I])`.
-
-   .. code-block:: mini
-
-      "hello world":replace(1, :upper) :> "Hello world"
-
-
 :mini:`meth (String: string):replace(I: integer, Fn: integer, Arg₄: function): string`
    Returns a copy of :mini:`String` with the :mini:`String[I,  J]` is replaced by :mini:`Fn(String[I,  J])`.
 
@@ -476,25 +492,8 @@ When creating a substring,  the first index is inclusive and second index is exc
       "hello world":replace(1, 6, :upper) :> "HELLO world"
 
 
-:mini:`meth (String: string):replace(Pattern: string, Replacement: string): string`
-   Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Replacement`.
-
-   .. code-block:: mini
-
-      "Hello world":replace("l", "bb") :> "Hebbbbo worbbd"
-
-
-:mini:`meth (String: string):replace(Pattern: regex, Replacement: string): string`
-   Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Replacement`.
-
-   .. code-block:: mini
-
-      "Hello world":replace(r"l+", "bb") :> "Hebbo worbbd"
-
-
 :mini:`meth (String: string):replace(Replacements: map): string`
    Each key in :mini:`Replacements` can be either a string or a regex. Each value in :mini:`Replacements` can be either a string or a function.
-
    Returns a copy of :mini:`String` with each matching string or regex from :mini:`Replacements` replaced with the corresponding value. Functions are called with the matched string or regex subpatterns.
 
    .. code-block:: mini
@@ -505,12 +504,28 @@ When creating a substring,  the first index is inclusive and second index is exc
       }) :> "the-Dog-Snarled-As-He-Slept"
 
 
-:mini:`meth (String: string):replace(Pattern: regex, Fn: function): string`
-   Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Fn(Match,  Sub₁,  ...,  Subₙ)` where :mini:`Match` is the actual matched text and :mini:`Subᵢ` are the matched subpatterns.
+:mini:`meth (String: string):replace(Pattern: regex, Replacement: string): string`
+   Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Replacement`.
 
    .. code-block:: mini
 
-      "the cat snored as he slept":replace(r" ([a-z])", fun(Match, A) '-{A:upper}') :> "the-Cat-Snored-As-He-Slept"
+      "Hello world":replace(r"l+", "bb") :> "Hebbo worbbd"
+
+
+:mini:`meth (String: string):replace(Pattern: string, Replacement: string): string`
+   Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Replacement`.
+
+   .. code-block:: mini
+
+      "Hello world":replace("l", "bb") :> "Hebbbbo worbbd"
+
+
+:mini:`meth (String: string):replace(I: integer, Fn: function): string`
+   Returns a copy of :mini:`String` with the :mini:`String[I]` is replaced by :mini:`Fn(String[I])`.
+
+   .. code-block:: mini
+
+      "hello world":replace(1, :upper) :> "Hello world"
 
 
 :mini:`meth (String: string):reverse: string`
@@ -587,6 +602,8 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Hello" < "World" :> "World"
       "World" < "Hello" :> nil
       "Hello" < "Hello" :> nil
+      "abcd" < "abc" :> nil
+      "abc" < "abcd" :> "abcd"
 
 
 :mini:`meth (Arg₁: string) <= (Arg₂: string): string | nil`
@@ -597,6 +614,8 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Hello" <= "World" :> "World"
       "World" <= "Hello" :> nil
       "Hello" <= "Hello" :> "Hello"
+      "abcd" <= "abc" :> nil
+      "abc" <= "abcd" :> "abcd"
 
 
 :mini:`meth (A: string) <> (B: string): integer`
@@ -607,6 +626,8 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Hello" <> "World" :> -1
       "World" <> "Hello" :> 1
       "Hello" <> "Hello" :> 0
+      "abcd" <> "abc" :> 1
+      "abc" <> "abcd" :> -1
 
 
 :mini:`meth (Arg₁: string) = (Arg₂: string): string | nil`
@@ -617,6 +638,8 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Hello" = "World" :> nil
       "World" = "Hello" :> nil
       "Hello" = "Hello" :> "Hello"
+      "abcd" = "abc" :> nil
+      "abc" = "abcd" :> nil
 
 
 :mini:`meth (Arg₁: string) > (Arg₂: string): string | nil`
@@ -627,6 +650,8 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Hello" > "World" :> nil
       "World" > "Hello" :> "Hello"
       "Hello" > "Hello" :> nil
+      "abcd" > "abc" :> "abc"
+      "abc" > "abcd" :> nil
 
 
 :mini:`meth (Arg₁: string) >= (Arg₂: string): string | nil`
@@ -637,6 +662,8 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Hello" >= "World" :> nil
       "World" >= "Hello" :> "Hello"
       "Hello" >= "Hello" :> "Hello"
+      "abcd" >= "abc" :> "abc"
+      "abc" >= "abcd" :> nil
 
 
 :mini:`meth (String: string) ? (Pattern: regex): string | nil`
@@ -648,19 +675,16 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Not a date" ? r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)" :> nil
 
 
-:mini:`meth (String: string)[Start: integer, End: integer]: string`
-   Returns the substring of :mini:`String` from :mini:`Start` to :mini:`End - 1` inclusively.
-
-
-
 :mini:`meth (String: string)[Index: integer]: string`
    Returns the substring of :mini:`String` of length 1 at :mini:`Index`.
-
 
 
 :mini:`meth (String: string)[Range: integer::range]: string`
    Returns the substring of :mini:`String` corresponding to :mini:`Range` inclusively.
 
+
+:mini:`meth (String: string)[Start: integer, End: integer]: string`
+   Returns the substring of :mini:`String` from :mini:`Start` to :mini:`End - 1` inclusively.
 
 
 :mini:`meth (A: string) ~ (B: string): integer`
@@ -689,12 +713,10 @@ When creating a substring,  the first index is inclusive and second index is exc
    Appends :mini:`Value` to :mini:`Buffer`.
 
 
-
 .. _type-string-buffer:
 
 :mini:`type string::buffer`
    A string buffer that automatically grows and shrinks as required.
-
 
 
 .. _fun-string-buffer:
@@ -703,12 +725,10 @@ When creating a substring,  the first index is inclusive and second index is exc
    Returns a new :mini:`string::buffer`
 
 
-
 :mini:`meth (Buffer: string::buffer):get: string`
    Returns the contents of :mini:`Buffer` as a string and clears :mini:`Buffer`.
-
    .. deprecated:: 2.5.0
-
+   
       Use :mini:`Buffer:rest` instead.
 
    .. code-block:: mini

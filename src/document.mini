@@ -41,7 +41,7 @@ end
 let Categories := {}
 
 fun emit(Category, Key, Docs) do
-	Categories[Category, fun queue(<)]:insert(Docs, Key)
+	Categories[Category, fun pqueue(<)]:insert(Docs, Key)
 end
 
 fun write_overview(Category, Description) do
@@ -52,7 +52,7 @@ fun type_name(var Type) do
 	Type or ret "any"
 	Type := Type:replace(" ## ", "::")
 	if let Match := Type % r"^ML(.*)T$" then
-		if let Match2 := Match[2] % r"([A-Z][a-z]+)([A-Z][a-z]+)" then
+		if let Match2 := Match[2] % r"([A-Z]{1,2}[a-z]+)([A-Z][a-z]+)" then
 			ret '{Match2[2]:lower}::{Match2[3]:lower}'
 		end
 		ret Match[2]:lower:trim(":")
@@ -82,6 +82,7 @@ meth image(A: address) with B := string::buffer() do
 	B:write(">")
 	B:rest
 end
+meth image(A: array) := string
 meth image(L: list) '[{list(L, image), ", "}]'
 meth image(M: map) with B := string::buffer() do
 	def some := not nil
@@ -114,7 +115,7 @@ fun write_examples(Buffer, Examples) do
 			global(Name)
 		end
 	end
-	Buffer:write("   .. code-block:: mini\n\n")
+	Buffer:write("\n   .. code-block:: mini\n\n")
 	for Example in Examples do
 		var Result
 		Parser:input(Example)
@@ -220,7 +221,7 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Examples,
 	end
 	Buffer:write("`\n")
 	for Line in Description do
-		Buffer:write("   ", Line, "\n")
+		Buffer:write("   ", Line)
 	end
 	Description[1] or Buffer:write("   *TBD*\n")
 	for Param in Params do
@@ -264,7 +265,7 @@ fun write_function(Category, Kind, Name, Params, Return, Description, Examples, 
 	end
 	Buffer:write("`\n")
 	for Line in Description do
-		Buffer:write("   ", Line, "\n")
+		Buffer:write("   ", Line)
 	end
 	Description[1] or Buffer:write("   *TBD*\n")
 	for Param in Params do
@@ -278,7 +279,7 @@ fun write_function(Category, Kind, Name, Params, Return, Description, Examples, 
 	if Return[1] and Name = type_name(Return[1]) then
 		emit(Category, (Name, item::Constructor), Buffer:rest)
 	else
-		emit(Category, (if let Param := first(Params) then type_name(Param[2]) else "" end, item::Function, Name), Buffer:rest)
+		emit(Category, (if let Param := first(Params ->? fun(Param) not Param[1]:ends("?")) then type_name(Param[2]) else "" end, item::Function, Name), Buffer:rest)
 	end
 end
 
@@ -301,7 +302,7 @@ fun write_constructor(Category, Kind, Name, Params, Return, Description, Locatio
 	end
 	Buffer:write("`\n")
 	for Line in Description do
-		Buffer:write("   ", Line, "\n")
+		Buffer:write("   ", Line)
 	end
 	Description[1] or Buffer:write("   *TBD*\n")
 	for Param in Params do
@@ -338,7 +339,7 @@ fun write_type(Category, Name, Parents, Description, Location) do
 	end
 	Buffer:write("`\n")
 	for Line in Description do
-		Buffer:write("   ", Line, "\n")
+		Buffer:write("   ", Line)
 	end
 	Description[1] or Buffer:write("   *TBD*\n")
 	Buffer:write("\n")
@@ -350,7 +351,7 @@ fun write_value(Category, Name, Type, Description, Location) do
 	Buffer:write('.. _value-{Name:replace("::", "-")}:\n\n')
 	Buffer:write(':mini:`def {Name}: {type_name(Type)}`\n')
 	for Line in Description do
-		Buffer:write("   ", Line, "\n")
+		Buffer:write("   ", Line)
 	end
 	Description[1] or Buffer:write("   *TBD*\n")
 	Buffer:write("\n")
@@ -459,6 +460,8 @@ fun process(FileName) do
 						Category := Line[4, 0]:trim
 					elseif Line % r"^/[/*] " then
 						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]\n" then
+						Description:put("\n")
 					elseif Line % r"^/[/*]\$- " then
 						Example:write("      ", Line[6, 0])
 					elseif Line % r"^/[/*]\$= " then
@@ -514,6 +517,8 @@ fun process(FileName) do
 						Category := Line[4, 0]:trim
 					elseif Line % r"^/[/*] " then
 						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]\n" then
+						Description:put("\n")
 					elseif Line % r"^/[/*]\$- " then
 						Example:write("      ", Line[6, 0])
 					elseif Line % r"^/[/*]\$= " then
@@ -574,6 +579,8 @@ fun process(FileName) do
 						Category := Line[4, 0]:trim
 					elseif Line % r"^/[/*] " then
 						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]\n" then
+						Description:put("\n")
 					elseif Line % r"^/[/*]\$- " then
 						Example:write("      ", Line[6, 0])
 					elseif Line % r"^/[/*]\$= " then
@@ -629,6 +636,8 @@ fun process(FileName) do
 						Category := Line[4, 0]:trim
 					elseif Line % r"^/[/*] " then
 						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]\n" then
+						Description:put("\n")
 					else
 						exit
 					end
@@ -656,6 +665,8 @@ fun process(FileName) do
 						Category := Line[4, 0]:trim
 					elseif Line % r"^/[/*] " then
 						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]\n" then
+						Description:put("\n")
 					else
 						exit
 					end
@@ -684,6 +695,8 @@ fun process(FileName) do
 						Type := Line[4, 0]:trim
 					elseif Line % r"^/[/*] " then
 						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]\n" then
+						Description:put("\n")
 					else
 						exit
 					end
