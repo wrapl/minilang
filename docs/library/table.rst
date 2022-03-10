@@ -13,16 +13,16 @@ table
    A table is a set of named arrays. The arrays must have the same length.
 
 
-:mini:`meth table(): table`
-   Returns an empty table.
+:mini:`meth table(Columns: map): table`
+   Returns a table with the entries from :mini:`Columns`. The keys of :mini:`Columns` must be strings,  the values of :mini:`Columns` are converted to arrays using :mini:`array()` if necessary.
 
 
 :mini:`meth table(Names₁ is Value₁, Value₁,  ...,  Valueₙ: any): table`
    Returns a table using :mini:`Names` for column names and :mini:`Values` as column values,  converted to arrays using :mini:`array()` if necessary.
 
 
-:mini:`meth table(Columns: map): table`
-   Returns a table with the entries from :mini:`Columns`. The keys of :mini:`Columns` must be strings,  the values of :mini:`Columns` are converted to arrays using :mini:`array()` if necessary.
+:mini:`meth table(): table`
+   Returns an empty table.
 
 
 :mini:`meth (Table: table) :: (Name: string, ...): array`
@@ -49,8 +49,8 @@ table
    Returns the :mini:`Row`-th row of :mini:`Table`.
 
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: table)`
-   *TBD*
+:mini:`meth (Buffer: string::buffer):append(Value: table)`
+   Appends a representation of :mini:`Value` to :mini:`Buffer`.
 
 
 .. _type-table-row:
@@ -67,7 +67,7 @@ table
    Returns the value from column :mini:`Name` in :mini:`Row`.
 
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: table::row)`
-   *TBD*
+:mini:`meth (Buffer: string::buffer):append(Value: table::row)`
+   Appends a representation of :mini:`Value` to :mini:`Buffer`.
 
 

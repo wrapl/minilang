@@ -539,6 +539,8 @@ ML_METHOD("degree", MLArrayT) {
 //<Array
 //>integer
 // Return the degree of :mini:`Array`.
+//$= let A := array([[1, 2, 3], [4, 5, 6]])
+//$= A:degree
 	ml_array_t *Array = (ml_array_t *)Args[0];
 	return ml_integer(Array->Degree);
 }
@@ -547,6 +549,8 @@ ML_METHOD("shape", MLArrayT) {
 //<Array
 //>list
 // Return the shape of :mini:`Array`.
+//$= let A := array([[1, 2, 3], [4, 5, 6]])
+//$= A:shape
 	ml_array_t *Array = (ml_array_t *)Args[0];
 	ml_value_t *Shape = ml_list();
 	for (int I = 0; I < Array->Degree; ++I) {
@@ -559,6 +563,8 @@ ML_METHOD("count", MLArrayT) {
 //<Array
 //>integer
 // Return the number of elements in :mini:`Array`.
+//$= let A := array([[1, 2, 3], [4, 5, 6]])
+//$= A:count
 	ml_array_t *Array = (ml_array_t *)Args[0];
 	size_t Size = 1;
 	for (int I = 0; I < Array->Degree; ++I) Size *= Array->Dimensions[I].Size;
@@ -569,6 +575,8 @@ ML_METHOD("^", MLArrayT) {
 //<Array
 //>array
 // Returns the transpose of :mini:`Array`, sharing the underlying data.
+//$= let A := array([[1, 2, 3], [4, 5, 6]])
+//$= ^A
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Degree = Source->Degree;
 	ml_array_t *Target = ml_array_alloc(Source->Format, Degree);
@@ -584,6 +592,10 @@ ML_METHOD("permute", MLArrayT, MLListT) {
 //<Indices
 //>array
 // Returns an array sharing the underlying data with :mini:`Array`, permuting the axes according to :mini:`Indices`.
+//$= let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
+//$= A:shape
+//$= let B := A:permute([2, 3, 1])
+//$= B:shape
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int Degree = Source->Degree;
 	if (Degree > 64) return ml_error("ArrayError", "Not implemented for degree > 64 yet");
@@ -748,7 +760,11 @@ ML_METHOD("strides", MLArrayT) {
 ML_METHOD("size", MLArrayT) {
 //<Array
 //>integer
-// Return the size of :mini:`Array` in bytes.
+// Return the size of :mini:`Array` in contiguous bytes, or :mini:`nil` if :mini:`Array` is not contiguous.
+//$= let A := array([[1, 2, 3], [4, 5, 6]])
+//$= A:size
+//$= let B := ^A
+//$= B:size
 	ml_array_t *Array = (ml_array_t *)Args[0];
 	size_t Size = Array->Dimensions[Array->Degree - 1].Stride;
 	for (int I = 1; I < Array->Degree; ++I) Size *= Array->Dimensions[I].Size;
@@ -1142,14 +1158,23 @@ ML_METHODV("[]", MLArrayT) {
 //>array
 // Returns a sub-array of :mini:`Array` sharing the underlying data, indexed by :mini:`Index/i`.
 // Dimensions are copied to the output array, applying the indices as follows:
+//
 // * If :mini:`Index/i` is :mini:`nil` or :mini:`*` then the next dimension is copied unchanged.
+//
 // * If :mini:`Index/i` is :mini:`..` then the remaining indices are applied to the last dimensions of :mini:`Array` and the dimensions in between are copied unchanged.
+//
 // * If :mini:`Index/i` is an :mini:`integer` then the :mini:`Index/i`-th value of the next dimension is selected and the dimension is dropped from the output.
+//
 // * If :mini:`Index/i` is an :mini:`integer::range` then the corresponding slice of the next dimension is copied to the output.
+//
 // * If :mini:`Index/i` is a :mini:`tuple[integer, ...]` then the next dimensions are indexed by the corresponding integer in turn (i.e. :mini:`A[(I, J, K)]` gives the same result as :mini:`A[I, J, K]`).
+//
 // * If :mini:`Index/i` is a :mini:`list[integer]` then the next dimension is copied as a sparse dimension with the respective entries.
+//
 // * If :mini:`Index/i` is a :mini:`list[tuple[integer, ...]]` then the appropriate dimensions are dropped and a single sparse dimension is added with the corresponding entries.
+//
 // * If :mini:`Index/i` is an :mini:`array` with dimensions that matches the corresponding dimensions of :mini:`A` then a sparse dimension is added with entries corresponding to the non-zero values in :mini:`Index/i` (i.e. :mini:`A[B]` is equivalent to :mini:`A[B:where]`).
+//
 // If fewer than :mini:`A:degree` indices are provided then the remaining dimensions are copied unchanged.
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	return ml_array_index(Source, Count - 1, Args + 1);
@@ -1558,6 +1583,33 @@ static ml_value_t *compare_array_fn(void *Data, int Count, ml_value_t **Args) {
 	return (ml_value_t *)Target;
 }
 
+#define COMPARE_METHOD(OP) \
+/*
+ML_METHOD(#OP, MLArrayT, MLArrayT) {
+//<A
+//<B
+//>array
+// Returns :mini:`A OP B` (element-wise). The shapes of :mini:`A` and :mini:`B` must be compatible, i.e. either
+//
+// * :mini:`A:shape = B:shape` or
+// * :mini:`B:shape` is a prefix of :mini:`A:shape`.
+//
+// When the shapes are not the same, remaining dimensions are repeated (broadcast) to the required size.
+//$= let A := array([[1, 8, 3], [4, 5, 12]])
+//$= let B := array([[7, 2, 9], [4, 11, 6]])
+//$= let C := array([1, 5, 10])
+//$= A OP B
+//$= A OP C
+}
+*/
+
+COMPARE_METHOD(=)
+COMPARE_METHOD(!=)
+COMPARE_METHOD(<)
+COMPARE_METHOD(<=)
+COMPARE_METHOD(>)
+COMPARE_METHOD(>=)
+
 extern int ml_array_compare(ml_array_t *A, ml_array_t *B);
 
 ML_METHOD("<>", MLArrayT, MLArrayT) {
@@ -1579,7 +1631,14 @@ static long srotl(long X, unsigned int N) {
 
 #ifdef ML_COMPLEX
 
-#define COMPLEX_APPEND(BUFFER, PRINTF, VALUE) ml_stringbuffer_printf(BUFFER, PRINTF, creal(VALUE), cimag(VALUE))
+#define COMPLEX_APPEND(BUFFER, PRINTF, VALUE) { \
+	double Real = creal(VALUE), Imag = cimag(VALUE); \
+	if (Imag < 0) { \
+		ml_stringbuffer_printf(BUFFER, PRINTF " - " PRINTF "i", Real, -Imag); \
+	} else { \
+		ml_stringbuffer_printf(BUFFER, PRINTF " + " PRINTF "i", Real, Imag); \
+	} \
+}
 
 #endif
 
@@ -1611,7 +1670,7 @@ static ml_value_t *ML_TYPED_FN(ml_array_value, MLArray ## SUFFIX, ml_array_t *Ar
 } \
 \
 static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_array_dimension_t *Dimension, char *Address) { \
-	ml_stringbuffer_write(Buffer, "< ", 2); \
+	ml_stringbuffer_write(Buffer, "<", 1); \
 	int Stride = Dimension->Stride; \
 	if (Dimension->Indices) { \
 		int *Indices = Dimension->Indices; \
@@ -1649,7 +1708,7 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 			} \
 		} \
 	} \
-	ml_stringbuffer_write(Buffer, " >", 2); \
+	ml_stringbuffer_write(Buffer, ">", 1); \
 } \
 \
  ML_METHOD("append", MLStringBufferT, MLArray ## SUFFIX) { \
@@ -1857,8 +1916,8 @@ ARRAY_DECL(RealT, float64, Float64T, double, ml_stringbuffer_printf, "%g", ml_re
 
 #ifdef ML_COMPLEX
 
-ARRAY_DECL(ComplexT, complex32, Complex32T, complex_float, COMPLEX_APPEND, "%g + %gi", ml_complex_value, ml_complex, , NOP_VAL, ML_ARRAY_FORMAT_C32, (long));
-ARRAY_DECL(ComplexT, complex64, Complex64T, complex_double, COMPLEX_APPEND, "%g + %gi", ml_complex_value, ml_complex, , NOP_VAL, ML_ARRAY_FORMAT_C64, (long));
+ARRAY_DECL(ComplexT, complex32, Complex32T, complex_float, COMPLEX_APPEND, "%g", ml_complex_value, ml_complex, , NOP_VAL, ML_ARRAY_FORMAT_C32, (long));
+ARRAY_DECL(ComplexT, complex64, Complex64T, complex_double, COMPLEX_APPEND, "%g", ml_complex_value, ml_complex, , NOP_VAL, ML_ARRAY_FORMAT_C64, (long));
 
 #endif
 
@@ -2900,6 +2959,8 @@ static ml_value_t *array_infix_fn(void *Data, int Count, ml_value_t **Args) {
 	if (A->Degree == -1) return (ml_value_t *)A;
 	ml_array_t *B = (ml_array_t *)Args[1];
 	if (B->Degree == -1) return (ml_value_t *)B;
+	ml_array_format_t Format = MAX(A->Format, B->Format);
+	if (Updates == UpdateDivRowFns) Format = MAX(Format, ML_ARRAY_FORMAT_F64);
 	if (A->Degree < B->Degree) {
 		ml_array_t *T = A;
 		A = B;
@@ -2916,13 +2977,43 @@ static ml_value_t *array_infix_fn(void *Data, int Count, ml_value_t **Args) {
 			return ml_error("ShapeError", "Incompatible arrays");
 		}
 	}
-	ml_array_t *C = ml_array_alloc(MAX(A->Format, B->Format), Degree);
+	ml_array_t *C = ml_array_alloc(Format, Degree);
 	array_copy(C, A);
 	update_row_fn_t Update = Updates[C->Format * MAX_FORMATS + B->Format];
 	if (!Update) return ml_error("ArrayError", "Unsupported array format pair (%s, %s)", C->Base.Type->Name, B->Base.Type->Name);
 	update_prefix(Update, C->Degree - B->Degree, C->Dimensions, C->Base.Value, B->Degree, B->Dimensions, B->Base.Value);
 	return (ml_value_t *)C;
 }
+
+#define INFIX_METHOD(OP) \
+/*
+ML_METHOD(#OP, MLArrayT, MLArrayT) {
+//<A
+//<B
+//>array
+// Returns :mini:`A OP B` (element-wise). The shapes of :mini:`A` and :mini:`B` must be compatible, i.e. either
+//
+// * :mini:`A:shape = B:shape` or
+// * :mini:`A:shape` is a prefix of :mini:`B:shape` or
+// * :mini:`B:shape` is a prefix of :mini:`A:shape`.
+//
+// When the shapes are not the same, remaining dimensions are repeated (broadcast) to the required size.
+//$= let A := array([[1, 2, 3], [4, 5, 6]])
+//$= let B := array([[7, 8, 9], [10, 11, 12]])
+//$= let C := array([5, 10, 15])
+//$= A OP B
+//$= A OP C
+//$= C OP A
+}
+*/
+
+INFIX_METHOD(+)
+INFIX_METHOD(-)
+INFIX_METHOD(*)
+INFIX_METHOD(/)
+INFIX_METHOD(/\\)
+INFIX_METHOD(\\/)
+INFIX_METHOD(><)
 
 #ifdef ML_COMPLEX
 
@@ -2957,20 +3048,22 @@ static ml_value_t *array_infix_fn(void *Data, int Count, ml_value_t **Args) {
 
 #endif
 
-#define ML_ARITH_METHOD_BASE(OP) \
+#define ML_ARITH_METHOD_BASE(OP, MIN_FORMAT) \
 \
 ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where :mini:`C/v := A/v OP B`.
+// Returns an array :mini:`C` where each :mini:`C/v := A/v OP B`.
+//$= let A := array([[1, 2], [3, 4]])
+//$= A OP 2
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	int64_t B = ml_integer_value_fast(Args[1]); \
 	int Degree = A->Degree; \
-	ml_array_t *C = ml_array_alloc(MAX(A->Format, ML_ARRAY_FORMAT_I64), Degree); \
+	ml_array_t *C = ml_array_alloc(MAX(A->Format, MIN_FORMAT), Degree); \
 	int DataSize = array_copy(C, A); \
 	switch (C->Format) { \
 	case ML_ARRAY_FORMAT_I64: { \
@@ -3005,14 +3098,16 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where :mini:`C/v := A OP B/v`.
+// Returns an array :mini:`C` where each :mini:`C/v := A OP B/v`.
+//$= let A := array([[1, 2], [3, 4]])
+//$= 2 OP A
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
 	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
 	int64_t B = ml_integer_value_fast(Args[0]); \
 	int Degree = A->Degree; \
-	ml_array_t *C = ml_array_alloc(MAX(A->Format, ML_ARRAY_FORMAT_I64), Degree); \
+	ml_array_t *C = ml_array_alloc(MAX(A->Format, MIN_FORMAT), Degree); \
 	int DataSize = array_copy(C, A); \
 	switch (C->Format) { \
 	case ML_ARRAY_FORMAT_I64: { \
@@ -3047,7 +3142,9 @@ ML_METHOD(#OP, MLArrayT, MLRealT) { \
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where :mini:`C/v := A/v OP B`.
+// Returns an array :mini:`C` where each :mini:`C/v := A/v OP B`.
+//$= let A := array([[1, 2], [3, 4]])
+//$= A OP 2.5
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
@@ -3074,7 +3171,9 @@ ML_METHOD(#OP, MLRealT, MLArrayT) { \
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where :mini:`C/v := A OP B/v`.
+// Returns an array :mini:`C` where each :mini:`C/v := A OP B/v`.
+//$= let A := array([[1, 2], [3, 4]])
+//$= 2.5 OP A
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
@@ -3099,14 +3198,16 @@ ML_METHOD(#OP, MLRealT, MLArrayT) { \
 
 #ifdef ML_COMPLEX
 
-#define ML_ARITH_METHOD(OP) \
-ML_ARITH_METHOD_BASE(OP) \
+#define ML_ARITH_METHOD(OP, MIN_FORMAT) \
+ML_ARITH_METHOD_BASE(OP, MIN_FORMAT) \
 \
 ML_METHOD(#OP, MLArrayT, MLComplexT) { \
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where :mini:`C/v := A/v OP B`.
+// Returns an array :mini:`C` where each :mini:`C/v := A/v OP B`.
+//$= let A := array([[1, 2], [3, 4]])
+//$= A OP (1 + 1i)
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
@@ -3124,7 +3225,9 @@ ML_METHOD(#OP, MLComplexT, MLArrayT) { \
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where :mini:`C/v := A OP B/v`.
+// Returns an array :mini:`C` where each :mini:`C/v := A OP B/v`.
+//$= let A := array([[1, 2], [3, 4]])
+//$= (1 + 1i) OP A
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
@@ -3145,10 +3248,10 @@ ML_ARITH_METHOD_BASE(BASE)
 
 #endif
 
-ML_ARITH_METHOD(+);
-ML_ARITH_METHOD(*);
-ML_ARITH_METHOD(-);
-ML_ARITH_METHOD(/);
+ML_ARITH_METHOD(+, ML_ARRAY_FORMAT_I64);
+ML_ARITH_METHOD(*, ML_ARRAY_FORMAT_I64);
+ML_ARITH_METHOD(-, ML_ARRAY_FORMAT_I64);
+ML_ARITH_METHOD(/, ML_ARRAY_FORMAT_F64);
 
 #ifdef ML_COMPLEX
 
@@ -3186,7 +3289,7 @@ ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where :mini:`C/v := if A/v OP B then 1 else 0 end`.
+// Returns an array :mini:`C` where each :mini:`C/v := if A/v OP B then 1 else 0 end`.
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
@@ -3211,7 +3314,7 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where :mini:`C/v := if A OP B/v then 1 else 0 end`.
+// Returns an array :mini:`C` where each :mini:`C/v := if A OP B/v then 1 else 0 end`.
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
@@ -3236,7 +3339,7 @@ ML_METHOD(#OP, MLArrayT, MLRealT) { \
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where :mini:`C/v := if A/v OP B then 1 else 0 end`.
+// Returns an array :mini:`C` where each :mini:`C/v := if A/v OP B then 1 else 0 end`.
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
@@ -3261,7 +3364,7 @@ ML_METHOD(#OP, MLRealT, MLArrayT) { \
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where :mini:`C/v := if A OP B/v then 1 else 0 end`.
+// Returns an array :mini:`C` where each :mini:`C/v := if A OP B/v then 1 else 0 end`.
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
@@ -3291,7 +3394,7 @@ ML_METHOD(#OP, MLArrayT, MLComplexT) { \
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where :mini:`C/v := if A/v OP B then 1 else 0 end`.
+// Returns an array :mini:`C` where each :mini:`C/v := if A/v OP B then 1 else 0 end`.
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
@@ -3316,7 +3419,7 @@ ML_METHOD(#OP, MLComplexT, MLArrayT) { \
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where :mini:`C/v := if A OP B/v then 1 else 0 end`.
+// Returns an array :mini:`C` where each :mini:`C/v := if A OP B/v then 1 else 0 end`.
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \

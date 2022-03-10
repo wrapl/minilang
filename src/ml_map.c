@@ -52,12 +52,16 @@ ml_value_t *ml_map() {
 
 ML_METHOD(MLMapT) {
 //>map
+// Returns a new map.
+//$= map()
 	return ml_map();
 }
 
 ML_METHODV(MLMapT, MLNamesT) {
 //<Key,Value
 //>map
+// Returns a new map with the specified keys and values.
+//$= map(A is 1, B is 2, C is 3)
 	ml_value_t *Map = ml_map();
 	ml_value_t **Values = Args + 1;
 	ML_NAMES_FOREACH(Args[0], Iter) ml_map_insert(Map, Iter->Value, *Values++);
@@ -94,6 +98,7 @@ ML_METHODVX(MLMapT, MLSequenceT) {
 //<Sequence
 //>map
 // Returns a map of all the key and value pairs produced by :mini:`Sequence`.
+//$= map("cake")
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 2, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)map_iterate;
@@ -107,6 +112,7 @@ ML_METHODVX("grow", MLMapT, MLSequenceT) {
 //<Sequence
 //>map
 // Adds of all the key and value pairs produced by :mini:`Sequence` to :mini:`Map` and returns :mini:`Map`.
+//$= map(
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 2, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)map_iterate;
@@ -353,6 +359,7 @@ ML_METHOD("size", MLMapT) {
 //<Map
 //>integer
 // Returns the number of entries in :mini:`Map`.
+//$= {"A" is 1, "B" is 2, "C" is 3}:size
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	return ml_integer(Map->Size);
 }
@@ -361,6 +368,7 @@ ML_METHOD("count", MLMapT) {
 //<Map
 //>integer
 // Returns the number of entries in :mini:`Map`.
+//$= {"A" is 1, "B" is 2, "C" is 3}:count
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	return ml_integer(Map->Size);
 }
@@ -430,6 +438,12 @@ ML_METHOD("[]", MLMapT, MLAnyT) {
 //<Key
 //>mapnode
 // Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then a new floating node is returned with value :mini:`nil`. This node will insert :mini:`Key` into :mini:`Map` if assigned.
+//$- let M := {"A" is 1, "B" is 2, "C" is 3}
+//$= M["A"]
+//$= M["D"]
+//$= M["A"] := 10
+//$= M["D"] := 20
+//$= M
 	ml_map_node_t *Node = ml_map_find_node((ml_map_t *)Args[0], Args[1]);
 	if (!Node) {
 		Node = new(ml_map_node_t);
@@ -458,9 +472,13 @@ static void ml_node_state_run(ml_ref_state_t *State, ml_value_t *Value) {
 ML_METHODX("[]", MLMapT, MLAnyT, MLFunctionT) {
 //<Map
 //<Key
-//<Default
+//<Fn
 //>mapnode
-// Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then :mini:`Default(Key)` is called and the result inserted into :mini:`Map`.
+// Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then :mini:`Fn(Key)` is called and the result inserted into :mini:`Map`.
+//$- let M := {"A" is 1, "B" is 2, "C" is 3}
+//$= M["A", fun(Key) Key:code]
+//$= M["D", fun(Key) Key:code]
+//$= M
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_value_t *Key = Args[1];
 	ml_map_node_t *Node = ml_map_node(Map, &Map->Root, ml_typeof(Key)->hash(Key, NULL), Key);
@@ -484,6 +502,12 @@ ML_METHOD("::", MLMapT, MLStringT) {
 //<Key
 //>mapnode
 // Same as :mini:`Map[Key]`. This method allows maps to be used as modules.
+//$- let M := {"A" is 1, "B" is 2, "C" is 3}
+//$= M::A
+//$= M::D
+//$= M::A := 10
+//$= M::D := 20
+//$= M
 	ml_map_node_t *Node = ml_map_find_node((ml_map_t *)Args[0], Args[1]);
 	if (!Node) {
 		Node = new(ml_map_node_t);
@@ -498,6 +522,8 @@ ML_METHOD("empty", MLMapT) {
 //<Map
 //>map
 // Deletes all keys and values from :mini:`Map` and returns it.
+//$= let M := {"A" is 1, "B" is 2, "C" is 3}
+//$= M:empty
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	Map->Root = Map->Head = Map->Tail = NULL;
 	Map->Size = 0;
@@ -514,6 +540,10 @@ ML_METHOD("insert", MLMapT, MLAnyT, MLAnyT) {
 //>any | nil
 // Inserts :mini:`Key` into :mini:`Map` with corresponding value :mini:`Value`.
 // Returns the previous value associated with :mini:`Key` if any, otherwise :mini:`nil`.
+//$- let M := {"A" is 1, "B" is 2, "C" is 3}
+//$= M:insert("A", 10)
+//$= M:insert("D", 20)
+//$= M
 	ml_value_t *Map = (ml_value_t *)Args[0];
 	ml_value_t *Key = Args[1];
 	ml_value_t *Value = Args[2];
@@ -525,6 +555,10 @@ ML_METHOD("delete", MLMapT, MLAnyT) {
 //<Key
 //>any | nil
 // Removes :mini:`Key` from :mini:`Map` and returns the corresponding value if any, otherwise :mini:`nil`.
+//$- let M := {"A" is 1, "B" is 2, "C" is 3}
+//$= M:delete("A")
+//$= M:delete("D")
+//$= M
 	ml_value_t *Map = (ml_value_t *)Args[0];
 	ml_value_t *Key = Args[1];
 	return ml_map_delete(Map, Key);
@@ -535,6 +569,10 @@ ML_METHOD("missing", MLMapT, MLAnyT) {
 //<Key
 //>some | nil
 // If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`some` and returns :mini:`some`.
+//$- let M := {"A" is 1, "B" is 2, "C" is 3}
+//$= M:missing("A")
+//$= M:missing("D")
+//$= M
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_value_t *Key = Args[1];
 	ml_map_node_t *Node = ml_map_node(Map, &Map->Root, ml_typeof(Key)->hash(Key, NULL), Key);
@@ -554,9 +592,13 @@ static void ml_missing_state_run(ml_ref_state_t *State, ml_value_t *Value) {
 ML_METHODX("missing", MLMapT, MLAnyT, MLFunctionT) {
 //<Map
 //<Key
-//<Function
+//<Fn
 //>any | nil
-// If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Function()` and returns :mini:`some`.
+// If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Fn(Key)` and returns :mini:`some`.
+//$- let M := {"A" is 1, "B" is 2, "C" is 3}
+//$= M:missing("A", fun(Key) Key:code)
+//$= M:missing("D", fun(Key) Key:code)
+//$= M
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_value_t *Key = Args[1];
 	ml_map_node_t *Node = ml_map_node(Map, &Map->Root, ml_typeof(Key)->hash(Key, NULL), Key);
@@ -622,10 +664,10 @@ static int ml_map_stringer(ml_value_t *Key, ml_value_t *Value, ml_map_stringer_t
 
 ML_METHOD("append", MLStringBufferT, MLMapT, MLStringT, MLStringT) {
 //<Map
-//<Seperator
-//<Connector
+//<Sep
+//<Conn
 //>string
-// Returns a string containing the entries of :mini:`Map` with :mini:`Connector` between keys and values and :mini:`Seperator` between entries.
+// Returns a string containing the entries of :mini:`Map` with :mini:`Conn` between keys and values and :mini:`Sep` between entries.
 	ml_map_stringer_t Stringer[1] = {{
 		ml_string_value(Args[2]), ml_string_value(Args[3]),
 		(ml_stringbuffer_t *)Args[0],
@@ -658,6 +700,9 @@ ML_METHOD("+", MLMapT, MLMapT) {
 //>map
 // Returns a new map combining the entries of :mini:`Map/1` and :mini:`Map/2`.
 // If the same key is in both :mini:`Map/1` and :mini:`Map/2` then the corresponding value from :mini:`Map/2` is chosen.
+//$= let A := map(swap("banana"))
+//$= let B := map(swap("bread"))
+//$= A + B
 	ml_value_t *Map = ml_map();
 	ML_MAP_FOREACH(Args[0], Node) ml_map_insert(Map, Node->Key, Node->Value);
 	ML_MAP_FOREACH(Args[1], Node) ml_map_insert(Map, Node->Key, Node->Value);
@@ -668,10 +713,13 @@ ML_METHOD("*", MLMapT, MLMapT) {
 //<Map/1
 //<Map/2
 //>map
-// Returns a new map containing the entries of :mini:`Map/1` which are also in :mini:`Map/2`. The values are chosen from :mini:`Map/1`.
+// Returns a new map containing the entries of :mini:`Map/1` which are also in :mini:`Map/2`. The values are chosen from :mini:`Map/2`.
+//$= let A := map(swap("banana"))
+//$= let B := map(swap("bread"))
+//$= A * B
 	ml_value_t *Map = ml_map();
-	ML_MAP_FOREACH(Args[0], Node) {
-		if (ml_map_search0(Args[1], Node->Key)) ml_map_insert(Map, Node->Key, Node->Value);
+	ML_MAP_FOREACH(Args[1], Node) {
+		if (ml_map_search0(Args[0], Node->Key)) ml_map_insert(Map, Node->Key, Node->Value);
 	}
 	return Map;
 }
@@ -681,6 +729,9 @@ ML_METHOD("/", MLMapT, MLMapT) {
 //<Map/2
 //>map
 // Returns a new map containing the entries of :mini:`Map/1` which are not in :mini:`Map/2`.
+//$= let A := map(swap("banana"))
+//$= let B := map(swap("bread"))
+//$= A / B
 	ml_value_t *Map = ml_map();
 	ML_MAP_FOREACH(Args[0], Node) {
 		if (!ml_map_search0(Args[1], Node->Key)) ml_map_insert(Map, Node->Key, Node->Value);
@@ -785,6 +836,9 @@ extern ml_value_t *LessMethod;
 ML_METHODX("sort", MLMapT) {
 //<Map
 //>Map
+// Sorts the entries (changes the iteration order) of :mini:`Map` using :mini:`Key/i < Key/j` and returns :mini:`Map`.
+//$= let M := map(swap("cake"))
+//$= M:sort
 	if (!ml_map_size(Args[0])) ML_RETURN(Args[0]);
 	ml_map_sort_state_t *State = new(ml_map_sort_state_t);
 	State->Base.Caller = Caller;
@@ -805,8 +859,11 @@ ML_METHODX("sort", MLMapT) {
 
 ML_METHODX("sort", MLMapT, MLFunctionT) {
 //<Map
-//<Compare
+//<Cmp
 //>Map
+// Sorts the entries (changes the iteration order) of :mini:`Map` using :mini:`Cmp(Key/i, Key/j)` and returns :mini:`Map`
+//$= let M := map(swap("cake"))
+//$= M:sort(>)
 	if (!ml_map_size(Args[0])) ML_RETURN(Args[0]);
 	ml_map_sort_state_t *State = new(ml_map_sort_state_t);
 	State->Base.Caller = Caller;
@@ -827,8 +884,11 @@ ML_METHODX("sort", MLMapT, MLFunctionT) {
 
 ML_METHODX("sort2", MLMapT, MLFunctionT) {
 //<Map
-//<Compare
+//<Cmp
 //>Map
+// Sorts the entries (changes the iteration order) of :mini:`Map` using :mini:`Cmp(Key/i, Key/j, Value/i, Value/j)` and returns :mini:`Map`
+//$= let M := map(swap("cake"))
+//$= M:sort(fun(K1, K2, V1, V2) V1 < V2)
 	if (!ml_map_size(Args[0])) ML_RETURN(Args[0]);
 	ml_map_sort_state_t *State = new(ml_map_sort_state_t);
 	State->Base.Caller = Caller;

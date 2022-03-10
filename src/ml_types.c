@@ -972,7 +972,7 @@ typedef struct {
 static void ml_min_state_run(ml_comp_state_t *State, ml_value_t *Result) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Result)) ML_RETURN(Result);
-	if (ml_integer_value(Result) < 0) ML_RETURN(State->Args[0]);
+	if (Result != MLNil) ML_RETURN(State->Args[0]);
 	ML_RETURN(State->Args[1]);
 }
 
@@ -980,20 +980,20 @@ ML_METHODX("min", MLAnyT, MLAnyT) {
 //<A
 //<B
 //>any
-// Returns :mini:`A` if :mini:`A <> B < 0` and :mini:`B` otherwise.
+// Returns :mini:`A` if :mini:`A < B` and :mini:`B` otherwise.
 	ml_comp_state_t *State = new(ml_comp_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_min_state_run;
 	State->Args[0] = Args[0];
 	State->Args[1] = Args[1];
-	return ml_call(State, CompareMethod, 2, State->Args);
+	return ml_call(State, LessMethod, 2, State->Args);
 }
 
 static void ml_max_state_run(ml_comp_state_t *State, ml_value_t *Result) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Result)) ML_RETURN(Result);
-	if (ml_integer_value(Result) > 0) ML_RETURN(State->Args[0]);
+	if (Result != MLNil) ML_RETURN(State->Args[0]);
 	ML_RETURN(State->Args[1]);
 }
 
@@ -1001,14 +1001,14 @@ ML_METHODX("max", MLAnyT, MLAnyT) {
 //<A
 //<B
 //>any
-// Returns :mini:`A` if :mini:`A <> B > 0` and :mini:`B` otherwise.
+// Returns :mini:`A` if :mini:`A > B` and :mini:`B` otherwise.
 	ml_comp_state_t *State = new(ml_comp_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_max_state_run;
 	State->Args[0] = Args[0];
 	State->Args[1] = Args[1];
-	return ml_call(State, CompareMethod, 2, State->Args);
+	return ml_call(State, GreaterMethod, 2, State->Args);
 }
 
 ML_METHOD("append", MLStringBufferT, MLAnyT) {
@@ -1856,6 +1856,10 @@ ML_METHODV("/\\", MLBooleanT, MLBooleanT) {
 //<Bool/2
 //>boolean
 // Returns the logical and of :mini:`Bool/1` and :mini:`Bool/2`.
+//$= true /\ true
+//$= true /\ false
+//$= false /\ true
+//$= false /\ false
 	int Result = ml_boolean_value(Args[0]);
 	for (int I = 1; I < Count; ++I) Result &= ml_boolean_value(Args[I]);
 	return MLBooleans[Result];
@@ -1867,8 +1871,26 @@ ML_METHODV("\\/", MLBooleanT, MLBooleanT) {
 //<Bool/2
 //>boolean
 // Returns the logical or of :mini:`Bool/1` and :mini:`Bool/2`.
+//$= true \/ true
+//$= true \/ false
+//$= false \/ true
+//$= false \/ false
 	int Result = ml_boolean_value(Args[0]);
 	for (int I = 1; I < Count; ++I) Result |= ml_boolean_value(Args[I]);
+	return MLBooleans[Result];
+}
+
+ML_METHOD("><", MLBooleanT, MLBooleanT) {
+//!boolean
+//<Bool/1
+//<Bool/2
+//>boolean
+// Returns the logical xor of :mini:`Bool/1` and :mini:`Bool/2`.
+//$= true >< true
+//$= true >< false
+//$= false >< true
+//$= false >< false
+	int Result = ml_boolean_value(Args[0]) != ml_boolean_value(Args[1]);
 	return MLBooleans[Result];
 }
 

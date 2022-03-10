@@ -85,9 +85,7 @@ static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_
 	}
 	for (ssize_t I = Count; --I >= 0;) {
 		ml_type_t *Type = Definition->Types[I];
-		if (ml_is_subtype(Types[I], Type)) goto found;
-		return 0;
-	found:
+		if (!ml_is_subtype(Types[I], Type)) return 0;
 		Score += 5 + Type->Rank;
 	}
 	return Score;

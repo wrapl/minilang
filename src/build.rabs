@@ -162,7 +162,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_SCHEDULER := not defined("NOSCHEDULER")
 	MINILANG_TRE := 1
 	MINILANG_GENERICS := not defined("NOGENERICS")
-	MINILANG_QUEUES := 1
+	MINILANG_PQUEUES := 1
 	MINILANG_TIME := 1
 	MINILANG_UUID := 1
 	if PLATFORM = "Linux" and MACHINE = "x86_64" then
@@ -187,7 +187,7 @@ MINILANG_JIT := old or defined("JIT")
 MINILANG_NANBOXING := old or defined("NANBOXING")
 MINILANG_TRE := old or defined("TRE")
 MINILANG_GENERICS := old or defined("GENERICS")
-MINILANG_QUEUES := old or defined("QUEUES")
+MINILANG_PQUEUES := old or defined("PQUEUES")
 MINILANG_TIME := old or defined("TIME")
 MINILANG_UUID := old or defined("UUID")
 MINILANG_LIBS := old or defined("LIBS")
@@ -364,10 +364,10 @@ if MINILANG_TRE then
 	LDFLAGS := old + ["-ltre"]
 end
 
-if MINILANG_QUEUES then
-	Objects:put(file("ml_queue.o"))
-	CFLAGS := old + ["-DML_QUEUES"]
-	InstallHeaders:put("ml_queue.h")
+if MINILANG_PQUEUES then
+	Objects:put(file("ml_pqueue.o"))
+	CFLAGS := old + ["-DML_PQUEUES"]
+	InstallHeaders:put("ml_pqueue.h")
 end
 
 if MINILANG_TIME then

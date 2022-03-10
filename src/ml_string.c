@@ -571,7 +571,7 @@ ML_METHOD("append", MLStringBufferT, MLBooleanT) {
 //!boolean
 //<Buffer
 //<Value
-// Appends :mini`"true"` or :mini:`"false`" to :mini:`Buffer`.
+// Appends :mini:`"true"` or :mini:`"false"` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_boolean_t *Boolean = (ml_boolean_t *)Args[1];
 	if (Boolean->Value) {

@@ -1170,7 +1170,7 @@ typedef struct {
 static void ml_extremum_run(ml_extremum_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
-	if (Value != MLNil) {
+	if (Value == MLNil) {
 		ml_tuple_set(State->Tuple, 1, State->Key);
 		ml_tuple_set(State->Tuple, 2, State->Value);
 	}
@@ -1185,7 +1185,7 @@ static void ml_minimum2_fn(ml_state_t *Caller, ml_extremum_state_t *State, int C
 	State->Value = Args[2];
 	State->Args[0] = ml_tuple_get(State->Tuple, 2);
 	State->Args[1] = State->Value;
-	return ml_call(State, GreaterMethod, 2, State->Args);
+	return ml_call(State, LessMethod, 2, State->Args);
 }
 
 ML_FUNCTIONX(Min2) {
@@ -1213,7 +1213,7 @@ static void ml_maximum2_fn(ml_state_t *Caller, ml_extremum_state_t *State, int C
 	State->Value = Args[2];
 	State->Args[0] = ml_tuple_get(State->Tuple, 2);
 	State->Args[1] = State->Value;
-	return ml_call(State, LessMethod, 2, State->Args);
+	return ml_call(State, GreaterMethod, 2, State->Args);
 }
 
 ML_FUNCTIONX(Max2) {

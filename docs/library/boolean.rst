@@ -30,6 +30,13 @@ boolean
 :mini:`meth (Bool₁: boolean) /\ (Bool₂: boolean, ...): boolean`
    Returns the logical and of :mini:`Bool₁` and :mini:`Bool₂`.
 
+   .. code-block:: mini
+
+      true /\ true :> true
+      true /\ false :> false
+      false /\ true :> false
+      false /\ false :> false
+
 
 :mini:`meth (Arg₁: boolean) < (Arg₂: boolean): boolean | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ < Arg₂` and :mini:`nil` otherwise.
@@ -51,6 +58,17 @@ boolean
    Returns :mini:`Arg₂` if :mini:`Arg₁ > Arg₂` and :mini:`nil` otherwise.
 
 
+:mini:`meth (Bool₁: boolean) >< (Bool₂: boolean): boolean`
+   Returns the logical xor of :mini:`Bool₁` and :mini:`Bool₂`.
+
+   .. code-block:: mini
+
+      true >< true :> false
+      true >< false :> true
+      false >< true :> true
+      false >< false :> false
+
+
 :mini:`meth (Arg₁: boolean) >= (Arg₂: boolean): boolean | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ >= Arg₂` and :mini:`nil` otherwise.
 
@@ -58,8 +76,15 @@ boolean
 :mini:`meth (Bool₁: boolean) \/ (Bool₂: boolean, ...): boolean`
    Returns the logical or of :mini:`Bool₁` and :mini:`Bool₂`.
 
+   .. code-block:: mini
+
+      true \/ true :> true
+      true \/ false :> true
+      false \/ true :> true
+      false \/ false :> false
+
 
 :mini:`meth (Buffer: string::buffer):append(Value: boolean)`
-   Appends :mini`"true"` or :mini:`"false`" to :mini:`Buffer`.
+   Appends :mini:`"true"` or :mini:`"false"` to :mini:`Buffer`.
 
 
