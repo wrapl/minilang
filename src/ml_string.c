@@ -477,7 +477,19 @@ static long ml_string_hash(ml_string_t *String, ml_hash_chain_t *Chain) {
 
 ML_METHOD_DECL(AppendMethod, "append");
 
-ML_FUNCTION(MLString) {
+typedef struct {
+	ml_state_t Base;
+	ml_stringbuffer_t Buffer[1];
+	ml_value_t *Args[];
+} ml_string_state_t;
+
+static void ml_string_state_run(ml_string_state_t *State, ml_value_t *Result) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Result)) ML_RETURN(Result);
+	ML_RETURN(ml_stringbuffer_get_value(State->Buffer));
+}
+
+ML_FUNCTIONX(MLString) {
 //@string
 //<Value:any
 //>string
@@ -486,20 +498,16 @@ ML_FUNCTION(MLString) {
 //$= string(nil)
 //$= string("Hello world!\n")
 //$= string([1, 2, 3])
-	ML_CHECK_ARG_COUNT(1);
-	if (ml_is(Args[0], MLStringT)) return Args[0];
-	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	ml_value_t *Error;
-	if (Count == 1) {
-		Error = ml_stringbuffer_simple_append(Buffer, Args[0]);
-	} else {
-		ml_value_t **Args2 = ml_alloc_args(Count + 1);
-		memmove(Args2 + 1, Args, Count * sizeof(ml_value_t *));
-		Args2[0] = (ml_value_t *)Buffer;
-		Error = ml_simple_call(AppendMethod, Count + 1, Args2);
-	}
-	if (ml_is_error(Error)) return Error;
-	return ml_stringbuffer_get_value(Buffer);
+	ML_CHECKX_ARG_COUNT(1);
+	if (ml_is(Args[0], MLStringT)) ML_RETURN(Args[0]);
+	ml_string_state_t *State = xnew(ml_string_state_t, Count + 1, ml_value_t *);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_string_state_run;
+	State->Buffer[0] = ML_STRINGBUFFER_INIT;
+	State->Args[0] = (ml_value_t *)State->Buffer;
+	memcpy(State->Args + 1, Args, Count * sizeof(ml_value_t *));
+	return ml_call(State, AppendMethod, Count + 1, State->Args);
 }
 
 ML_TYPE(MLStringT, (MLAddressT, MLSequenceT), "string",

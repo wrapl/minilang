@@ -420,15 +420,6 @@ void ml_cbor_read_error_fn(ml_cbor_reader_t *Reader, int Position, const char *M
 	value_handler(Reader, ml_error("CBORError", "Read error: %s at %d", Message, Position));
 }
 
-static ml_value_t *ml_value_fn(ml_value_t *Callback, ml_value_t *Value) {
-	return ml_simple_inline(Callback, 1, Value);
-}
-
-static ml_cbor_tag_fn ml_value_tag_fn(uint64_t Tag, ml_value_t *Callback, void **Data) {
-	Data[0] = ml_simple_inline(Callback, 1, ml_integer(Tag));
-	return (ml_cbor_tag_fn)ml_value_fn;
-}
-
 ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 	ml_cbor_reader_t Reader[1];
 	Reader->TagFns = TagFns ?: DefaultTagFns;
@@ -1374,7 +1365,6 @@ void ml_cbor_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "cbor", ml_module("cbor",
 			"encode", MLEncode,
 			"decode", MLDecode,
-			"Objects", CborObjects,
 		NULL));
 	}
 }

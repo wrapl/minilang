@@ -21,20 +21,20 @@ pqueue
    Returns a new priority queue using :mini:`>` to compare priorities.
 
 
-:mini:`meth (PQueue: pqueue):count: integer`
-   Returns the number of entries in :mini:`PQueue`.
+:mini:`meth (Queue: pqueue):count: integer`
+   Returns the number of entries in :mini:`Queue`.
 
 
-:mini:`meth (PQueue: pqueue):insert(Value: any, Priority: any): pqueue::entry`
-   Creates and returns a new entry in :mini:`PQueue` with value :mini:`Value` and priority :mini:`Priority`.
+:mini:`meth (Queue: pqueue):insert(Value: any, Priority: any): pqueue::entry`
+   Creates and returns a new entry in :mini:`Queue` with value :mini:`Value` and priority :mini:`Priority`.
 
 
-:mini:`meth (PQueue: pqueue):next: pqueue::entry | nil`
-   Removes and returns the highest priority entry in :mini:`PQueue`,  or :mini:`nil` if :mini:`PQueue` is empty.
+:mini:`meth (Queue: pqueue):next: pqueue::entry | nil`
+   Removes and returns the highest priority entry in :mini:`Queue`,  or :mini:`nil` if :mini:`Queue` is empty.
 
 
-:mini:`meth (PQueue: pqueue):peek: pqueue::entry | nil`
-   Returns the highest priority entry in :mini:`PQueue` without removing it,  or :mini:`nil` if :mini:`PQueue` is empty.
+:mini:`meth (Queue: pqueue):peek: pqueue::entry | nil`
+   Returns the highest priority entry in :mini:`Queue` without removing it,  or :mini:`nil` if :mini:`Queue` is empty.
 
 
 .. _type-pqueue-entry:

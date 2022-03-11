@@ -860,6 +860,7 @@ static inline ml_value_t *ml_nop(void *Value) {
 
 #endif
 
+void ml_methods_prevent_changes(ml_methods_t *Methods, int PreventChanges);
 ml_methods_t *ml_methods_context(ml_context_t *Context);
 
 // Maps //

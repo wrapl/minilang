@@ -28,6 +28,7 @@ struct ml_methods_t {
 #ifdef ML_THREADSAFE
 	volatile atomic_flag Lock[1];
 #endif
+	int PreventChanges;
 };
 
 static void ml_methods_call(ml_state_t *Caller, ml_methods_t *Methods, int Count, ml_value_t **Args) {
@@ -50,6 +51,10 @@ static ml_methods_t MLRootMethods[1] = {{
 	, {ATOMIC_FLAG_INIT}
 #endif
 }};
+
+void ml_methods_prevent_changes(ml_methods_t *Methods, int PreventChanges) {
+	Methods->PreventChanges = PreventChanges;
+}
 
 ml_methods_t *ml_methods_context(ml_context_t *Context) {
 	ml_methods_t *Methods = new(ml_methods_t);
@@ -501,7 +506,7 @@ ML_FUNCTION(MLMethodSwitch) {
 
 ML_METHOD_DECL(RangeMethod, "..");
 
-static inline void ml_method_set(ml_context_t *Context, int NumTypes, int Variadic, ml_value_t **Args, ml_value_t *Function) {
+static inline void ml_method_set(ml_methods_t *Methods, int NumTypes, int Variadic, ml_value_t **Args, ml_value_t *Function) {
 	// Use alloca here, VLA prevents TCO.
 	ml_type_t **Types = alloca(NumTypes * sizeof(ml_type_t *));
 	for (int I = 1; I <= NumTypes; ++I) {
@@ -512,7 +517,6 @@ static inline void ml_method_set(ml_context_t *Context, int NumTypes, int Variad
 		}
 	}
 	ml_method_t *Method = (ml_method_t *)Args[0];
-	ml_methods_t *Methods = Context->Values[ML_METHODS_INDEX];
 	ml_method_insert(Methods, Method, Function, NumTypes, Variadic, Types);
 }
 
@@ -522,6 +526,8 @@ ML_FUNCTIONX(MLMethodSet) {
 //<Types...:type
 //<Function:function
 //>Function
+	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
+	if (Methods->PreventChanges) ML_ERROR("ContextError", "Context does not allow methods to be defined");
 	ML_CHECKX_ARG_COUNT(2);
 	if (ml_is(Args[0], MLTypeT)) Args[0] = ((ml_type_t *)Args[0])->Constructor;
 	ML_CHECKX_ARG_TYPE(0, MLMethodT);
@@ -537,7 +543,7 @@ ML_FUNCTIONX(MLMethodSet) {
 	}
 	ML_CHECKX_ARG_TYPE(Count - 1, MLFunctionT);
 	ml_value_t *Function = Args[Count - 1];
-	ml_method_set(Caller->Context, NumTypes, Variadic, Args, Function);
+	ml_method_set(Methods, NumTypes, Variadic, Args, Function);
 	ML_RETURN(Function);
 }
 
