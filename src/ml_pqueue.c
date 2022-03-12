@@ -203,9 +203,9 @@ ML_METHODX("next", MLPQueueT) {
 	ml_pqueue_t *Queue = (ml_pqueue_t *)Args[0];
 	if (!Queue->Count) ML_RETURN(MLNil);
 	ml_pqueue_entry_t *Next = Queue->Entries[0];
+	Next->Index = INT_MAX;
 	ml_pqueue_entry_t *Entry = Queue->Entries[--Queue->Count];
 	Queue->Entries[Queue->Count] = NULL;
-	Next->Index = INT_MAX;
 	if (!Queue->Count) ML_RETURN(Next);
 	Queue->Entries[0] = Entry;
 	Entry->Index = 0;
