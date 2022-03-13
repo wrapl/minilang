@@ -874,7 +874,7 @@ struct ml_map_t {
 	ml_type_t *Type;
 	ml_map_node_t *Head, *Tail, *Root;
 	ml_method_cached_t *Cached;
-	int Size;
+	int Size, LRU;
 };
 
 struct ml_map_node_t {

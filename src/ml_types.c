@@ -1107,10 +1107,8 @@ ML_METHODX("!", MLFunctionT, MLMapT) {
 	*(Arg++) = Names;
 	ML_MAP_FOREACH(Map, Node) {
 		ml_value_t *Name = Node->Key;
-		if (ml_is(Name, MLMethodT)) {
+		if (ml_is(Name, MLStringT)) {
 			ml_names_add(Names, Name);
-		} else if (ml_is(Name, MLStringT)) {
-			ml_names_add(Names, ml_method(ml_string_value(Name)));
 		} else {
 			ML_ERROR("TypeError", "Parameter names must be strings or methods");
 		}
@@ -1140,10 +1138,8 @@ ML_METHODX("!", MLFunctionT, MLTupleT, MLMapT) {
 	*(Arg++) = Names;
 	ML_MAP_FOREACH(Map, Node) {
 		ml_value_t *Name = Node->Key;
-		if (ml_is(Name, MLMethodT)) {
+		if (ml_is(Name, MLStringT)) {
 			ml_names_add(Names, Name);
-		} else if (ml_is(Name, MLStringT)) {
-			ml_names_add(Names, ml_method(ml_string_value(Name)));
 		} else {
 			ML_ERROR("TypeError", "Parameter names must be strings or methods");
 		}
@@ -1172,10 +1168,8 @@ ML_METHODX("!", MLFunctionT, MLListT, MLMapT) {
 	*(Arg++) = Names;
 	ML_MAP_FOREACH(Map, Node) {
 		ml_value_t *Name = Node->Key;
-		if (ml_is(Name, MLMethodT)) {
+		if (ml_is(Name, MLStringT)) {
 			ml_names_add(Names, Name);
-		} else if (ml_is(Name, MLStringT)) {
-			ml_names_add(Names, ml_method(ml_string_value(Name)));
 		} else {
 			ML_ERROR("TypeError", "Parameter names must be strings or methods");
 		}
