@@ -18,12 +18,12 @@ tasks
 
 .. _fun-buffered:
 
-:mini:`fun buffered(Size: integer, Sequence: any): sequence`
-   Returns an sequence that buffers the keys and values from :mini:`Sequence` in advance,  buffering at most :mini:`Size` pairs.
+:mini:`fun buffered(Sequence: sequence, Size: integer, Fn: function): sequence`
+   Returns the sequence :mini:`(Kᵢ,  Fn(Kᵢ,  Vᵢ))` where :mini:`Kᵢ,  Vᵢ` are the keys and values produced by :mini:`Sequence`. The calls to :mini:`Fn` are done in parallel,  with at most :mini:`Size` calls at a time. The original sequence order is preserved (using an internal buffer).
 
    .. code-block:: mini
 
-      list(buffered(5, 1 .. 10)) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      list(buffered(1 .. 10, 5, tuple)) :> [(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6), (7, 7), (8, 8), (9, 9), (10, 10)]
 
 
 .. _type-task:

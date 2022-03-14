@@ -97,7 +97,7 @@ map
    .. code-block:: mini
 
       let M := {"A" is 1, "B" is 2, "C" is 3}
-      M:delete("A") :> nil
+      M:delete("A") :> 1
       M:delete("D") :> nil
       M :> {"B" is 2, "C" is 3}
 
