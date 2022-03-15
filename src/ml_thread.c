@@ -8,9 +8,7 @@ typedef struct {
 		ml_value_t **Args;
 		ml_value_t *Result;
 	};
-#ifdef ML_SCHEDULER
 	ml_schedule_t Schedule;
-#endif
 	pthread_t Handle;
 	int Count;
 } ml_thread_t;

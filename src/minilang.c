@@ -5,7 +5,6 @@
 #include "ml_macros.h"
 #include "ml_file.h"
 #include "ml_object.h"
-#include "ml_expr.h"
 #include "stringmap.h"
 #include <stdio.h>
 #include <string.h>
@@ -13,12 +12,15 @@
 #include <gc.h>
 #include "ml_sequence.h"
 #include "ml_stream.h"
-#include "ml_tasks.h"
 
 #ifdef ML_MATH
 #include "ml_math.h"
 #include "ml_array.h"
 #include "ml_polynomial.h"
+#endif
+
+#ifdef ML_EXPRS
+#include "ml_expr.h"
 #endif
 
 #ifdef ML_GIR
@@ -52,6 +54,10 @@
 
 #ifdef ML_THREADS
 #include "ml_thread.h"
+#endif
+
+#ifdef ML_SCHEDULER
+#include "ml_tasks.h"
 #endif
 
 #ifdef ML_TABLES
@@ -194,8 +200,12 @@ int main(int Argc, const char *Argv[]) {
 	ml_init(Globals);
 	ml_sequence_init(Globals);
 	ml_object_init(Globals);
+#ifdef ML_SCHEDULER
 	ml_tasks_init(Globals);
+#endif
+#ifdef ML_EXPRS
 	ml_expr_init(Globals);
+#endif
 	ml_file_init(Globals);
 	stringmap_insert(Globals, "now", MLNow);
 	stringmap_insert(Globals, "clock", MLClock);
