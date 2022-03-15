@@ -273,16 +273,17 @@ ml_value_t *ml_map_insert(ml_value_t *Map0, ml_value_t *Key, ml_value_t *Value) 
 		ValueType0 = MLAnyT;
 	}
 #ifdef ML_GENERICS
-	if (Map->Size == 1 && Map->Type == MLMapT) {
-		Map->Type = ml_generic_type(3, (ml_type_t *[]){MLMapT, ml_typeof(Key), ValueType0});
-	} else if (Map->Type->Type == MLTypeGenericT) {
+	if (Map->Type->Type != MLTypeGenericT) {
+		Map->Type = ml_generic_type(3, (ml_type_t *[]){Map->Type, ml_typeof(Key), ValueType0});
+	} else {
+		ml_type_t *BaseType = ml_generic_type_args(Map->Type)[0];
 		ml_type_t *KeyType = ml_generic_type_args(Map->Type)[1];
 		ml_type_t *ValueType = ml_generic_type_args(Map->Type)[2];
 		if (KeyType != ml_typeof(Key) || ValueType != ValueType0) {
 			ml_type_t *KeyType2 = ml_type_max(KeyType, ml_typeof(Key));
 			ml_type_t *ValueType2 = ml_type_max(ValueType, ValueType0);
 			if (KeyType != KeyType2 || ValueType != ValueType2) {
-				Map->Type = ml_generic_type(3, (ml_type_t *[]){MLMapT, KeyType2, ValueType2});
+				Map->Type = ml_generic_type(3, (ml_type_t *[]){BaseType, KeyType2, ValueType2});
 			}
 		}
 	}
@@ -433,6 +434,34 @@ ML_TYPE(MLMapIndexT, (), "map-index",
 	.call = (void *)ml_map_index_call
 );
 
+ML_METHOD("lru", MLMapT) {
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	return Map->LRU ? (ml_value_t *)MLTrue : (ml_value_t *)MLFalse;
+}
+
+ML_METHOD("lru", MLMapT, MLBooleanT) {
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	Map->LRU = Args[1] == (ml_value_t *)MLTrue;
+	return (ml_value_t *)Map;
+}
+
+static void ml_map_access_node(ml_map_t *Map, ml_map_node_t *Node) {
+	ml_map_node_t *Next = Node->Next;
+	if (Next) {
+		ml_map_node_t *Prev = Node->Prev;
+		Next->Prev = Prev;
+		if (Prev) {
+			Prev->Next = Next;
+		} else {
+			Map->Head = Next;
+		}
+		Node->Prev = Map->Tail;
+		Node->Next = NULL;
+		Map->Tail->Next = Node;
+		Map->Tail = Node;
+	}
+}
+
 ML_METHOD("[]", MLMapT, MLAnyT) {
 //<Map
 //<Key
@@ -444,12 +473,15 @@ ML_METHOD("[]", MLMapT, MLAnyT) {
 //$= M["A"] := 10
 //$= M["D"] := 20
 //$= M
-	ml_map_node_t *Node = ml_map_find_node((ml_map_t *)Args[0], Args[1]);
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = ml_map_find_node(Map, Args[1]);
 	if (!Node) {
 		Node = new(ml_map_node_t);
 		Node->Type = MLMapIndexT;
 		Node->Value = Args[0];
 		Node->Key = Args[1];
+	} else if (Map->LRU) {
+		ml_map_access_node(Map, Node);
 	}
 	return (ml_value_t *)Node;
 }
@@ -508,12 +540,15 @@ ML_METHOD("::", MLMapT, MLStringT) {
 //$= M::A := 10
 //$= M::D := 20
 //$= M
-	ml_map_node_t *Node = ml_map_find_node((ml_map_t *)Args[0], Args[1]);
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = ml_map_find_node(Map, Args[1]);
 	if (!Node) {
 		Node = new(ml_map_node_t);
 		Node->Type = MLMapIndexT;
 		Node->Value = Args[0];
 		Node->Key = Args[1];
+	} else if (Map->LRU) {
+		ml_map_access_node(Map, Node);
 	}
 	return (ml_value_t *)Node;
 }
@@ -531,6 +566,34 @@ ML_METHOD("empty", MLMapT) {
 	Map->Type = MLMapT;
 #endif
 	return (ml_value_t *)Map;
+}
+
+ML_METHOD("pop", MLMapT) {
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = Map->Head;
+	if (!Node) return MLNil;
+	return ml_map_delete(Args[0], Node->Key);
+}
+
+ML_METHOD("pull", MLMapT) {
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = Map->Tail;
+	if (!Node) return MLNil;
+	return ml_map_delete(Args[0], Node->Key);
+}
+
+ML_METHOD("pop2", MLMapT) {
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = Map->Head;
+	if (!Node) return MLNil;
+	return ml_tuplev(2, Node->Key, ml_map_delete(Args[0], Node->Key));
+}
+
+ML_METHOD("pull2", MLMapT) {
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = Map->Tail;
+	if (!Node) return MLNil;
+	return ml_tuplev(2, Node->Key, ml_map_delete(Args[0], Node->Key));
 }
 
 ML_METHOD("insert", MLMapT, MLAnyT, MLAnyT) {

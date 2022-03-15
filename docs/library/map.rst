@@ -131,15 +131,12 @@ map
       M :> {"A" is 10, "B" is 2, "C" is 3, "D" is 20}
 
 
-:mini:`meth (Map: map):missing(Key: any, Fn: function): any | nil`
-   If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Fn(Key)` and returns :mini:`some`.
+:mini:`meth (Arg₁: map):lru`
+   *TBD*
 
-   .. code-block:: mini
 
-      let M := {"A" is 1, "B" is 2, "C" is 3}
-      M:missing("A", fun(Key) Key:code) :> nil
-      M:missing("D", fun(Key) Key:code) :> some
-      M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
+:mini:`meth (Arg₁: map):lru(Arg₂: boolean)`
+   *TBD*
 
 
 :mini:`meth (Map: map):missing(Key: any): some | nil`
@@ -151,6 +148,33 @@ map
       M:missing("A") :> nil
       M:missing("D") :> some
       M :> {"A" is 1, "B" is 2, "C" is 3, "D"}
+
+
+:mini:`meth (Map: map):missing(Key: any, Fn: function): any | nil`
+   If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`Fn(Key)` and returns :mini:`some`.
+
+   .. code-block:: mini
+
+      let M := {"A" is 1, "B" is 2, "C" is 3}
+      M:missing("A", fun(Key) Key:code) :> nil
+      M:missing("D", fun(Key) Key:code) :> some
+      M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
+
+
+:mini:`meth (Arg₁: map):pop`
+   *TBD*
+
+
+:mini:`meth (Arg₁: map):pop2`
+   *TBD*
+
+
+:mini:`meth (Arg₁: map):pull`
+   *TBD*
+
+
+:mini:`meth (Arg₁: map):pull2`
+   *TBD*
 
 
 :mini:`meth (Map: map):size: integer`
@@ -188,6 +212,17 @@ map
       M:sort(fun(K1, K2, V1, V2) V1 < V2) :> {"e" is 4, "k" is 3, "a" is 2, "c" is 1}
 
 
+:mini:`meth (Map: map)[Key: any, Fn: function]: mapnode`
+   Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then :mini:`Fn(Key)` is called and the result inserted into :mini:`Map`.
+
+   .. code-block:: mini
+
+      let M := {"A" is 1, "B" is 2, "C" is 3}
+      M["A", fun(Key) Key:code] :> 1
+      M["D", fun(Key) Key:code] :> 68
+      M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
+
+
 :mini:`meth (Map: map)[Key: any]: mapnode`
    Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then a new floating node is returned with value :mini:`nil`. This node will insert :mini:`Key` into :mini:`Map` if assigned.
 
@@ -199,17 +234,6 @@ map
       M["A"] := 10 :> 10
       M["D"] := 20 :> 20
       M :> {"A" is 10, "B" is 2, "C" is 3, "D" is 20}
-
-
-:mini:`meth (Map: map)[Key: any, Fn: function]: mapnode`
-   Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then :mini:`Fn(Key)` is called and the result inserted into :mini:`Map`.
-
-   .. code-block:: mini
-
-      let M := {"A" is 1, "B" is 2, "C" is 3}
-      M["A", fun(Key) Key:code] :> 1
-      M["D", fun(Key) Key:code] :> 68
-      M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
 
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: map)`

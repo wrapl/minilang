@@ -811,7 +811,7 @@ static void ml_array_nil_assign(ml_state_t *Caller, ml_value_t *Array, ml_value_
 
 ML_TYPE(MLArrayNilT, (MLArrayT), "array::nil",
 //!internal
-	.deref = (void *)ml_array_nil_deref,
+	//.deref = (void *)ml_array_nil_deref,
 	.assign = (void *)ml_array_nil_assign
 );
 

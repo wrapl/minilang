@@ -120,9 +120,9 @@ static void ml_tasks_call(ml_state_t *Caller, ml_tasks_t *Tasks, int Count, ml_v
 	if (!Tasks->Waiting) ML_ERROR("TasksError", "Tasks have already completed");
 	if (Tasks->Value != MLNil) ML_RETURN(Tasks->Value);
 	ML_CHECKX_ARG_TYPE(Count - 1, MLFunctionT);
-	ml_value_t *Function = Args[Count - 1];
+	ml_value_t *Fn = Args[Count - 1];
 	++Tasks->Waiting;
-	ml_call(Tasks, Function, Count - 1, Args);
+	ml_call(Tasks, Fn, Count - 1, Args);
 	if (Tasks->Waiting > Tasks->Limit && !Tasks->Limited) {
 		Tasks->Limited = Caller;
 	} else {
@@ -188,9 +188,9 @@ ML_METHODVX("add", MLTasksT, MLFunctionT) {
 	if (!Tasks->Waiting) ML_ERROR("TasksError", "Tasks have already completed");
 	if (Tasks->Value != MLNil) ML_RETURN(Tasks->Value);
 	ML_CHECKX_ARG_TYPE(Count - 1, MLFunctionT);
-	ml_value_t *Function = Args[Count - 1];
+	ml_value_t *Fn = Args[Count - 1];
 	++Tasks->Waiting;
-	ml_call(Tasks, Function, Count - 2, Args + 1);
+	ml_call(Tasks, Fn, Count - 2, Args + 1);
 	if (Tasks->Waiting > Tasks->Limit && !Tasks->Limited) {
 		Tasks->Limited = Caller;
 	} else {
@@ -215,7 +215,7 @@ typedef struct {
 	ml_state_t NextState[1];
 	ml_state_t KeyState[1];
 	ml_state_t ValueState[1];
-	ml_value_t *Iter, *Function, *Error;
+	ml_value_t *Iter, *Fn, *Error;
 	ml_value_t *Args[2];
 	size_t Waiting, Limit, Burst;
 } ml_parallel_t;
@@ -245,7 +245,7 @@ static void parallel_iter_value(ml_state_t *State, ml_value_t *Value) {
 	ml_parallel_t *Parallel = (ml_parallel_t *)((char *)State - offsetof(ml_parallel_t, ValueState));
 	if (Parallel->Error) return;
 	Parallel->Args[1] = Value;
-	ml_call(Parallel, Parallel->Function, 2, Parallel->Args);
+	ml_call(Parallel, Parallel->Fn, 2, Parallel->Args);
 	if (Parallel->Iter) {
 		if (Parallel->Waiting > Parallel->Limit) return;
 		++Parallel->Waiting;
@@ -272,12 +272,12 @@ ML_FUNCTIONX(Parallel) {
 //<Sequence
 //<Max?:integer
 //<Min?:integer
-//<Function:function
+//<Fn:function
 //>nil | error
-// Iterates through :mini:`Sequence` and calls :mini:`Function(Key, Value)` for each :mini:`Key, Value` pair produced **without** waiting for the call to return.
-// The call to :mini:`parallel` returns when all calls to :mini:`Function` return, or an error occurs.
-// If :mini:`Max` is given, at most :mini:`Max` calls to :mini:`Function` will run at a time by pausing iteration through :mini:`Sequence`.
-// If :mini:`Min` is also given then iteration will be resumed only when the number of calls to :mini:`Function` drops to :mini:`Min`.
+// Iterates through :mini:`Sequence` and calls :mini:`Fn(Key, Value)` for each :mini:`Key, Value` pair produced **without** waiting for the call to return.
+// The call to :mini:`parallel` returns when all calls to :mini:`Fn` return, or an error occurs.
+// If :mini:`Max` is given, at most :mini:`Max` calls to :mini:`Fn` will run at a time by pausing iteration through :mini:`Sequence`.
+// If :mini:`Min` is also given then iteration will be resumed only when the number of calls to :mini:`Fn` drops to :mini:`Min`.
 	ML_CHECKX_ARG_COUNT(2);
 
 	ml_parallel_t *Parallel = new(ml_parallel_t);
@@ -298,18 +298,18 @@ ML_FUNCTIONX(Parallel) {
 		ML_CHECKX_ARG_TYPE(3, MLFunctionT);
 		Parallel->Limit = ml_integer_value_fast(Args[2]);
 		Parallel->Burst = ml_integer_value_fast(Args[1]) + 1;
-		Parallel->Function = Args[3];
+		Parallel->Fn = Args[3];
 	} else if (Count > 2) {
 		ML_CHECKX_ARG_TYPE(1, MLIntegerT);
 		ML_CHECKX_ARG_TYPE(2, MLFunctionT);
 		Parallel->Limit = ml_integer_value_fast(Args[1]);
 		Parallel->Burst = SIZE_MAX;
-		Parallel->Function = Args[2];
+		Parallel->Fn = Args[2];
 	} else {
 		ML_CHECKX_ARG_TYPE(1, MLFunctionT);
 		Parallel->Limit = SIZE_MAX;
 		Parallel->Burst = SIZE_MAX;
-		Parallel->Function = Args[1];
+		Parallel->Fn = Args[1];
 	}
 
 	return ml_iterate(Parallel->NextState, Args[0]);
@@ -317,22 +317,24 @@ ML_FUNCTIONX(Parallel) {
 
 typedef struct {
 	ml_type_t *Type;
-	ml_value_t *Iter;
-	int Total;
+	ml_value_t *Iter, *Fn;
+	int Size;
 } ml_buffered_t;
 
 ML_TYPE(MLBufferedT, (MLSequenceT), "buffered");
 //!internal
 
 typedef struct {
+	ml_state_t Base;
 	ml_value_t *Key, *Value;
-} ml_buffered_key_value_t;
+} ml_buffered_entry_t;
 
 typedef struct {
 	ml_state_t Base;
-	ml_value_t *Iter, *Final;
-	int Read, Write, Ready, Total;
-	ml_buffered_key_value_t KeyValues[];
+	ml_value_t *Iter, *Fn;
+	ml_value_t *Key, *Value;
+	int Size, Use, Fetch, Ready;
+	ml_buffered_entry_t Entries[];
 } ml_buffered_state_t;
 
 ML_TYPE(MLBufferedStateT, (MLStateT), "buffered-state");
@@ -340,90 +342,138 @@ ML_TYPE(MLBufferedStateT, (MLStateT), "buffered-state");
 
 static void ml_buffered_iterate(ml_buffered_state_t *State, ml_value_t *Value);
 
-static void ml_buffered_value(ml_buffered_state_t *State, ml_value_t *Value) {
-	State->Base.run = (void *)ml_buffered_iterate;
-	State->KeyValues[State->Write].Value = Value;
-	State->Write = (State->Write + 1) % State->Total;
-	++State->Ready;
-	if (State->Ready < State->Total) {
-		ml_iter_next((ml_state_t *)State, State->Iter);
-	}
-	ml_state_t *Caller = State->Base.Caller;
-	if (Caller) {
-		State->Base.Caller = NULL;
-		ML_RETURN(State);
-	}
-}
-
-static void ml_buffered_key(ml_buffered_state_t *State, ml_value_t *Value) {
-	State->KeyValues[State->Write].Key = Value;
-	State->Base.run = (void *)ml_buffered_value;
-	return ml_iter_value((ml_state_t *)State, State->Iter);
-}
-
-static void ml_buffered_iterate(ml_buffered_state_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) {
-		State->Final = Value;
-	} else if (Value == MLNil) {
-		State->Final = MLNil;
+static void ml_buffered_call(ml_state_t *Caller, ml_buffered_state_t *State, ml_buffered_entry_t *Entry) {
+	if (!Entry->Key) {
+		ML_CONTINUE(Caller, Entry->Value);
 	} else {
-		State->Base.run = (void *)ml_buffered_key;
-		return ml_iter_key((ml_state_t *)State, State->Iter = Value);
+		State->Key = Entry->Key;
+		State->Value = Entry->Value;
+		Entry->Key = Entry->Value = NULL;
+		++State->Use;
+		State->Base.Caller = NULL;
+		if (State->Ready) {
+			State->Ready = 0;
+			State->Base.run = (ml_state_fn)ml_buffered_iterate;
+			ml_iter_next((ml_state_t *)State, State->Iter);
+		}
+		ML_CONTINUE(Caller, State);
 	}
 }
 
 static void ML_TYPED_FN(ml_iter_next, MLBufferedStateT, ml_state_t *Caller, ml_buffered_state_t *State) {
-	State->Read = (State->Read + 1) % State->Total;
-	--State->Ready;
-	if (!State->Final) {
-		ml_iter_next((ml_state_t *)State, State->Iter);
-	}
-	if (State->Ready) {
-		ML_RETURN(State);
-	} else if (State->Final) {
-		ML_RETURN(State->Final);
+	ml_buffered_entry_t *Entry = State->Entries + (State->Use % State->Size);
+	if (Entry->Value) {
+		return ml_buffered_call(Caller, State, Entry);
 	} else {
 		State->Base.Caller = Caller;
+		State->Base.Context = Caller->Context;
 	}
 }
 
 static void ML_TYPED_FN(ml_iter_key, MLBufferedStateT, ml_state_t *Caller, ml_buffered_state_t *State) {
-	ML_RETURN(State->KeyValues[State->Read].Key);
+	ML_RETURN(State->Key);
 }
 
 static void ML_TYPED_FN(ml_iter_value, MLBufferedStateT, ml_state_t *Caller, ml_buffered_state_t *State) {
-	ML_RETURN(State->KeyValues[State->Read].Value);
+	ML_RETURN(State->Value);
 }
 
-static void ML_TYPED_FN(ml_iterate, MLBufferedT, ml_state_t *Caller, ml_buffered_t *Buffered) {
-	ml_buffered_state_t *State = xnew(ml_buffered_state_t, Buffered->Total, ml_buffered_key_value_t);
-	State->Base.Type = MLBufferedStateT;
-	State->Base.run = (void *)ml_buffered_iterate;
-	State->Base.Context = Caller->Context;
-	State->Total = Buffered->Total;
-	State->Read = State->Write = State->Ready = 0;
-	ml_iterate((ml_state_t *)State, Buffered->Iter);
-	if (State->Ready) {
-		ML_RETURN(State);
-	} else if (State->Final) {
-		ML_RETURN(State->Final);
-	} else {
-		State->Base.Caller = Caller;
+static void ml_buffered_entry_call(ml_buffered_entry_t *Entry, ml_value_t *Value) {
+	ml_buffered_state_t *State = (ml_buffered_state_t *)Entry->Base.Caller;
+	int Index = Entry - State->Entries;
+	Entry->Value = Value;
+	ml_state_t *Caller = State->Base.Caller;
+	if (Caller && (Index == (State->Use % State->Size))) {
+		return ml_buffered_call(Caller, State, Entry);
 	}
 }
 
+static void ml_buffered_value(ml_buffered_state_t *State, ml_value_t *Value) {
+	ml_buffered_entry_t *Entry = &State->Entries[State->Fetch % State->Size];
+	if (ml_is_error(Value)) {
+		++State->Fetch;
+		Entry->Key = NULL;
+		ml_buffered_entry_call(Entry, Value);
+	} else {
+		State->Ready = 1;
+		++State->Fetch;
+		ml_value_t **Args = ml_alloc_args(2);
+		Args[0] = Entry->Key;
+		Args[1] = Value;
+		ml_call((ml_state_t *)Entry, State->Fn, 2, Args);
+		if (State->Fetch - State->Use < State->Size) {
+			if (State->Ready) {
+				State->Ready = 0;
+				State->Base.run = (ml_state_fn)ml_buffered_iterate;
+				ml_iter_next((ml_state_t *)State, State->Iter);
+			}
+		}
+	}
+}
+
+static void ml_buffered_key(ml_buffered_state_t *State, ml_value_t *Value) {
+	ml_buffered_entry_t *Entry = &State->Entries[State->Fetch % State->Size];
+	if (ml_is_error(Value)) {
+		++State->Fetch;
+		Entry->Key = NULL;
+		ml_buffered_entry_call(Entry, Value);
+	} else {
+		Entry->Key = Value;
+		State->Base.run = (ml_state_fn)ml_buffered_value;
+		ml_iter_value((ml_state_t *)State, State->Iter);
+	}
+}
+
+static void ml_buffered_iterate(ml_buffered_state_t *State, ml_value_t *Value) {
+	ml_buffered_entry_t *Entry = &State->Entries[State->Fetch % State->Size];
+	if (ml_is_error(Value)) {
+		++State->Fetch;
+		Entry->Key = NULL;
+		ml_buffered_entry_call(Entry, Value);
+	} else if (Value == MLNil) {
+		++State->Fetch;
+		Entry->Key = NULL;
+		ml_buffered_entry_call(Entry, Value);
+	} else {
+		State->Base.run = (ml_state_fn)ml_buffered_key;
+		ml_iter_key((ml_state_t *)State, State->Iter = Value);
+	}
+}
+
+static void ML_TYPED_FN(ml_iterate, MLBufferedT, ml_state_t *Caller, ml_buffered_t *Buffered) {
+	ml_buffered_state_t *State = xnew(ml_buffered_state_t, Buffered->Size, ml_buffered_entry_t);
+	State->Base.Type = MLBufferedStateT;
+	State->Base.run = (void *)ml_buffered_iterate;
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Fn = Buffered->Fn;
+	State->Size = Buffered->Size;
+	State->Use = State->Fetch = 0;
+	for (int I = 0; I < State->Size; ++I) {
+		State->Entries[I].Base.Caller = (ml_state_t *)State;
+		State->Entries[I].Base.Context = Caller->Context;
+		State->Entries[I].Base.run = (ml_state_fn)ml_buffered_entry_call;
+	}
+	return ml_iterate((ml_state_t *)State, Buffered->Iter);
+}
+
 ML_FUNCTION(Buffered) {
+//<Sequence:sequence
 //<Size:integer
-//<Sequence
+//<Fn:function
 //>sequence
-// Returns an sequence that buffers the keys and values from :mini:`Sequence` in advance, buffering at most :mini:`Size` pairs.
-//$= list(buffered(5, 1 .. 10))
-	ML_CHECK_ARG_COUNT(2);
-	ML_CHECK_ARG_TYPE(0, MLIntegerT);
+// Returns the sequence :mini:`(K/i, Fn(K/i, V/i))` where :mini:`K/i, V/i` are the keys and values produced by :mini:`Sequence`. The calls to :mini:`Fn` are done in parallel, with at most :mini:`Size` calls at a time. The original sequence order is preserved (using an internal buffer).
+//$= list(buffered(1 .. 10, 5, tuple))
+	ML_CHECK_ARG_COUNT(3);
+	ML_CHECK_ARG_TYPE(1, MLIntegerT);
+	ML_CHECK_ARG_TYPE(2, MLFunctionT);
+	int Size = ml_integer_value(Args[1]);
+	if (Size <= 0 || Size > 1024) return ml_error("RangeError", "Buffered size out of range");
 	ml_buffered_t *Buffered = new(ml_buffered_t);
 	Buffered->Type = MLBufferedT;
-	Buffered->Total = ml_integer_value(Args[0]);
-	Buffered->Iter = ml_chained(Count - 1, Args + 1);
+	Buffered->Size = Size;
+	Buffered->Iter = Args[0];
+	Buffered->Fn = Args[2];
 	return (ml_value_t *)Buffered;
 }
 
