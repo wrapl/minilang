@@ -9,11 +9,11 @@ tasks
 
 .. _fun-parallel:
 
-:mini:`fun parallel(Sequence: any, Max?: integer, Min?: integer, Function: function): nil | error`
-   Iterates through :mini:`Sequence` and calls :mini:`Function(Key,  Value)` for each :mini:`Key,  Value` pair produced **without** waiting for the call to return.
-   The call to :mini:`parallel` returns when all calls to :mini:`Function` return,  or an error occurs.
-   If :mini:`Max` is given,  at most :mini:`Max` calls to :mini:`Function` will run at a time by pausing iteration through :mini:`Sequence`.
-   If :mini:`Min` is also given then iteration will be resumed only when the number of calls to :mini:`Function` drops to :mini:`Min`.
+:mini:`fun parallel(Sequence: any, Max?: integer, Min?: integer, Fn: function): nil | error`
+   Iterates through :mini:`Sequence` and calls :mini:`Fn(Key,  Value)` for each :mini:`Key,  Value` pair produced **without** waiting for the call to return.
+   The call to :mini:`parallel` returns when all calls to :mini:`Fn` return,  or an error occurs.
+   If :mini:`Max` is given,  at most :mini:`Max` calls to :mini:`Fn` will run at a time by pausing iteration through :mini:`Sequence`.
+   If :mini:`Min` is also given then iteration will be resumed only when the number of calls to :mini:`Fn` drops to :mini:`Min`.
 
 
 .. _fun-buffered:

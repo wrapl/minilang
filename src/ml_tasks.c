@@ -120,9 +120,9 @@ static void ml_tasks_call(ml_state_t *Caller, ml_tasks_t *Tasks, int Count, ml_v
 	if (!Tasks->Waiting) ML_ERROR("TasksError", "Tasks have already completed");
 	if (Tasks->Value != MLNil) ML_RETURN(Tasks->Value);
 	ML_CHECKX_ARG_TYPE(Count - 1, MLFunctionT);
-	ml_value_t *Function = Args[Count - 1];
+	ml_value_t *Fn = Args[Count - 1];
 	++Tasks->Waiting;
-	ml_call(Tasks, Function, Count - 1, Args);
+	ml_call(Tasks, Fn, Count - 1, Args);
 	if (Tasks->Waiting > Tasks->Limit && !Tasks->Limited) {
 		Tasks->Limited = Caller;
 	} else {
@@ -188,9 +188,9 @@ ML_METHODVX("add", MLTasksT, MLFunctionT) {
 	if (!Tasks->Waiting) ML_ERROR("TasksError", "Tasks have already completed");
 	if (Tasks->Value != MLNil) ML_RETURN(Tasks->Value);
 	ML_CHECKX_ARG_TYPE(Count - 1, MLFunctionT);
-	ml_value_t *Function = Args[Count - 1];
+	ml_value_t *Fn = Args[Count - 1];
 	++Tasks->Waiting;
-	ml_call(Tasks, Function, Count - 2, Args + 1);
+	ml_call(Tasks, Fn, Count - 2, Args + 1);
 	if (Tasks->Waiting > Tasks->Limit && !Tasks->Limited) {
 		Tasks->Limited = Caller;
 	} else {
@@ -215,7 +215,7 @@ typedef struct {
 	ml_state_t NextState[1];
 	ml_state_t KeyState[1];
 	ml_state_t ValueState[1];
-	ml_value_t *Iter, *Function, *Error;
+	ml_value_t *Iter, *Fn, *Error;
 	ml_value_t *Args[2];
 	size_t Waiting, Limit, Burst;
 } ml_parallel_t;
@@ -245,7 +245,7 @@ static void parallel_iter_value(ml_state_t *State, ml_value_t *Value) {
 	ml_parallel_t *Parallel = (ml_parallel_t *)((char *)State - offsetof(ml_parallel_t, ValueState));
 	if (Parallel->Error) return;
 	Parallel->Args[1] = Value;
-	ml_call(Parallel, Parallel->Function, 2, Parallel->Args);
+	ml_call(Parallel, Parallel->Fn, 2, Parallel->Args);
 	if (Parallel->Iter) {
 		if (Parallel->Waiting > Parallel->Limit) return;
 		++Parallel->Waiting;
@@ -272,12 +272,12 @@ ML_FUNCTIONX(Parallel) {
 //<Sequence
 //<Max?:integer
 //<Min?:integer
-//<Function:function
+//<Fn:function
 //>nil | error
-// Iterates through :mini:`Sequence` and calls :mini:`Function(Key, Value)` for each :mini:`Key, Value` pair produced **without** waiting for the call to return.
-// The call to :mini:`parallel` returns when all calls to :mini:`Function` return, or an error occurs.
-// If :mini:`Max` is given, at most :mini:`Max` calls to :mini:`Function` will run at a time by pausing iteration through :mini:`Sequence`.
-// If :mini:`Min` is also given then iteration will be resumed only when the number of calls to :mini:`Function` drops to :mini:`Min`.
+// Iterates through :mini:`Sequence` and calls :mini:`Fn(Key, Value)` for each :mini:`Key, Value` pair produced **without** waiting for the call to return.
+// The call to :mini:`parallel` returns when all calls to :mini:`Fn` return, or an error occurs.
+// If :mini:`Max` is given, at most :mini:`Max` calls to :mini:`Fn` will run at a time by pausing iteration through :mini:`Sequence`.
+// If :mini:`Min` is also given then iteration will be resumed only when the number of calls to :mini:`Fn` drops to :mini:`Min`.
 	ML_CHECKX_ARG_COUNT(2);
 
 	ml_parallel_t *Parallel = new(ml_parallel_t);
@@ -298,18 +298,18 @@ ML_FUNCTIONX(Parallel) {
 		ML_CHECKX_ARG_TYPE(3, MLFunctionT);
 		Parallel->Limit = ml_integer_value_fast(Args[2]);
 		Parallel->Burst = ml_integer_value_fast(Args[1]) + 1;
-		Parallel->Function = Args[3];
+		Parallel->Fn = Args[3];
 	} else if (Count > 2) {
 		ML_CHECKX_ARG_TYPE(1, MLIntegerT);
 		ML_CHECKX_ARG_TYPE(2, MLFunctionT);
 		Parallel->Limit = ml_integer_value_fast(Args[1]);
 		Parallel->Burst = SIZE_MAX;
-		Parallel->Function = Args[2];
+		Parallel->Fn = Args[2];
 	} else {
 		ML_CHECKX_ARG_TYPE(1, MLFunctionT);
 		Parallel->Limit = SIZE_MAX;
 		Parallel->Burst = SIZE_MAX;
-		Parallel->Function = Args[1];
+		Parallel->Fn = Args[1];
 	}
 
 	return ml_iterate(Parallel->NextState, Args[0]);
