@@ -104,20 +104,12 @@ list
    Reverses :mini:`List` in-place and returns it.
 
 
-:mini:`meth (List: list):sort(Compare: function): List`
-   Sorts :mini:`List` in-place using :mini:`Compare` and returns it.
-
-
 :mini:`meth (List: list):sort: List`
    Sorts :mini:`List` in-place using :mini:`<` and returns it.
 
 
-:mini:`meth (List: list):splice(Index: integer, Source: list): nil`
-   Inserts the elements from :mini:`Source` into :mini:`List` starting at :mini:`Index`,  leaving :mini:`Source` empty.
-
-
-:mini:`meth (List: list):splice(Index: integer, Count: integer, Source: list): list | nil`
-   Removes :mini:`Count` elements from :mini:`List` starting at :mini:`Index`,  then inserts the elements from :mini:`Source`,  leaving :mini:`Source` empty. Returns the removed elements as a new list.
+:mini:`meth (List: list):sort(Compare: function): List`
+   Sorts :mini:`List` in-place using :mini:`Compare` and returns it.
 
 
 :mini:`meth (List: list):splice: list | nil`
@@ -128,13 +120,17 @@ list
    Removes :mini:`Count` elements from :mini:`List` starting at :mini:`Index`. Returns the removed elements as a new list.
 
 
-:mini:`meth (List: list)[From: integer, To: integer]: list::slice`
-   Returns a slice of :mini:`List` starting at :mini:`From` (inclusive) and ending at :mini:`To` (exclusive).
+:mini:`meth (List: list):splice(Index: integer, Count: integer, Source: list): list | nil`
+   Removes :mini:`Count` elements from :mini:`List` starting at :mini:`Index`,  then inserts the elements from :mini:`Source`,  leaving :mini:`Source` empty. Returns the removed elements as a new list.
+
+
+:mini:`meth (List: list):splice(Index: integer, Source: list): nil`
+   Inserts the elements from :mini:`Source` into :mini:`List` starting at :mini:`Index`,  leaving :mini:`Source` empty.
+
+
+:mini:`meth (List: list)[Range: integer::range]: list::slice`
+   Returns a slice of :mini:`List` starting at :mini:`Range:start` and ending at :mini:`Range:limit`,  both inclusive.
    Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
-
-
-:mini:`meth (List: list)[Indices: list]: list`
-   Returns a list containing the :mini:`List[Indices[1]]`,  :mini:`List[Indices[2]]`,  etc.
 
 
 :mini:`meth (List: list)[Index: integer]: listnode | nil`
@@ -149,19 +145,13 @@ list
       L[8] :> nil
 
 
-:mini:`meth (List: list)[Range: integer::range]: list::slice`
-   Returns a slice of :mini:`List` starting at :mini:`Range:start` and ending at :mini:`Range:limit`,  both inclusive.
+:mini:`meth (List: list)[From: integer, To: integer]: list::slice`
+   Returns a slice of :mini:`List` starting at :mini:`From` (inclusive) and ending at :mini:`To` (exclusive).
    Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
 
 
-:mini:`meth (Buffer: string::buffer):append(List: list, Sep: string)`
-   Appends a representation of :mini:`List` to :mini:`Buffer` of the form :mini:`repr(V₁) + Sep + repr(V₂) + Sep + ... + repr(Vₙ)`,  where :mini:`repr(Vᵢ)` is a representation of the *i*-th element (using :mini:`:append`).
-
-   .. code-block:: mini
-
-      let B := string::buffer()
-      B:append([1, 2, 3, 4], " - ")
-      B:rest :> "1 - 2 - 3 - 4"
+:mini:`meth (List: list)[Indices: list]: list`
+   Returns a list containing the :mini:`List[Indices[1]]`,  :mini:`List[Indices[2]]`,  etc.
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list)`
@@ -172,6 +162,16 @@ list
       let B := string::buffer()
       B:append([1, 2, 3, 4])
       B:rest :> "[1, 2, 3, 4]"
+
+
+:mini:`meth (Buffer: string::buffer):append(List: list, Sep: string)`
+   Appends a representation of :mini:`List` to :mini:`Buffer` of the form :mini:`repr(V₁) + Sep + repr(V₂) + Sep + ... + repr(Vₙ)`,  where :mini:`repr(Vᵢ)` is a representation of the *i*-th element (using :mini:`:append`).
+
+   .. code-block:: mini
+
+      let B := string::buffer()
+      B:append([1, 2, 3, 4], " - ")
+      B:rest :> "1 - 2 - 3 - 4"
 
 
 .. _type-list-node:

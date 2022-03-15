@@ -167,14 +167,6 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Not a date" % r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)" :> nil
 
 
-:mini:`meth (String: string) */ (Pattern: string): tuple[string,  string]`
-   Splits :mini:`String` at the last occurence of :mini:`Pattern` and returns the two substrings in a tuple.
-
-   .. code-block:: mini
-
-      "2022/03/08" */ "/" :> (2022/03, 08)
-
-
 :mini:`meth (String: string) */ (Pattern: regex): tuple[string,  string]`
    Splits :mini:`String` at the last occurence of :mini:`Pattern` and returns the two substrings in a tuple.
 
@@ -182,6 +174,14 @@ When creating a substring,  the first index is inclusive and second index is exc
 
       "2022/03/08" */ r"[/-]" :> (2022/03, 08)
       "2022-03-08" */ r"[/-]" :> (2022-03, 08)
+
+
+:mini:`meth (String: string) */ (Pattern: string): tuple[string,  string]`
+   Splits :mini:`String` at the last occurence of :mini:`Pattern` and returns the two substrings in a tuple.
+
+   .. code-block:: mini
+
+      "2022/03/08" */ "/" :> (2022/03, 08)
 
 
 :mini:`meth (A: string) + (B: string): string`
@@ -202,15 +202,6 @@ When creating a substring,  the first index is inclusive and second index is exc
       "2022-03-08" / r"[/-]" :> ["2022", "03", "08"]
 
 
-:mini:`meth (String: string) / (Pattern: string): list`
-   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`. Adjacent occurences of :mini:`Pattern` do not create empty strings.
-
-   .. code-block:: mini
-
-      "The cat snored  as he slept" / " " :> ["The", "cat", "snored", "as", "he", "slept"]
-      "2022/03/08" / "/" :> ["2022", "03", "08"]
-
-
 :mini:`meth (String: string) / (Pattern: regex, Index: integer): list`
    Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
    Only the :mini:`Index` subgroup matches are removed from the output substrings.
@@ -220,12 +211,13 @@ When creating a substring,  the first index is inclusive and second index is exc
       "<A>-<B>-<C>" / (r">(-)<", 1) :> ["<A>", "<B>", "<C>"]
 
 
-:mini:`meth (String: string) /* (Pattern: string): tuple[string,  string]`
-   Splits :mini:`String` at the first occurence of :mini:`Pattern` and returns the two substrings in a tuple.
+:mini:`meth (String: string) / (Pattern: string): list`
+   Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`. Adjacent occurences of :mini:`Pattern` do not create empty strings.
 
    .. code-block:: mini
 
-      "2022/03/08" /* "/" :> (2022, 03/08)
+      "The cat snored  as he slept" / " " :> ["The", "cat", "snored", "as", "he", "slept"]
+      "2022/03/08" / "/" :> ["2022", "03", "08"]
 
 
 :mini:`meth (String: string) /* (Pattern: regex): tuple[string,  string]`
@@ -235,6 +227,14 @@ When creating a substring,  the first index is inclusive and second index is exc
 
       "2022/03/08" /* r"[/-]" :> (2022, 03/08)
       "2022-03-08" /* r"[/-]" :> (2022, 03-08)
+
+
+:mini:`meth (String: string) /* (Pattern: string): tuple[string,  string]`
+   Splits :mini:`String` at the first occurence of :mini:`Pattern` and returns the two substrings in a tuple.
+
+   .. code-block:: mini
+
+      "2022/03/08" /* "/" :> (2022, 03/08)
 
 
 :mini:`meth (String: string):after(Delimiter: string): string | nil`
@@ -308,25 +308,6 @@ When creating a substring,  the first index is inclusive and second index is exc
       "\t\"Text\"\r\n":escape :> "\\t\\\"Text\\\"\\r\\n"
 
 
-:mini:`meth (Haystack: string):find(Needle: string): integer | nil`
-   Returns the index of the first occurence of :mini:`Needle` in :mini:`Haystack`,  or :mini:`nil` if no occurence is found.
-
-   .. code-block:: mini
-
-      "The cat snored as he slept":find("cat") :> 5
-      "The cat snored as he slept":find("dog") :> nil
-
-
-:mini:`meth (Haystack: string):find(Needle: string, Start: integer): integer | nil`
-   Returns the index of the first occurence of :mini:`Needle` in :mini:`Haystack` at or after :mini:`Start`,  or :mini:`nil` if no occurence is found.
-
-   .. code-block:: mini
-
-      "The cat snored as he slept":find("s", 1) :> 9
-      "The cat snored as he slept":find("s", 10) :> 17
-      "The cat snored as he slept":find("s", -6) :> 22
-
-
 :mini:`meth (Haystack: string):find(Pattern: regex): integer | nil`
    Returns the index of the first occurence of :mini:`Pattern` in :mini:`Haystack`,  or :mini:`nil` if no occurence is found.
 
@@ -346,23 +327,23 @@ When creating a substring,  the first index is inclusive and second index is exc
       "The cat snored as he slept":find(r"s[a-z]+", -6) :> 22
 
 
-:mini:`meth (Haystack: string):find2(Needle: string): tuple[integer, string] | nil`
-   Returns :mini:`(Index,  Needle)` where :mini:`Index` is the first occurence of :mini:`Needle` in :mini:`Haystack`,  or :mini:`nil` if no occurence is found.
+:mini:`meth (Haystack: string):find(Needle: string): integer | nil`
+   Returns the index of the first occurence of :mini:`Needle` in :mini:`Haystack`,  or :mini:`nil` if no occurence is found.
 
    .. code-block:: mini
 
-      "The cat snored as he slept":find2("cat") :> (5, cat)
-      "The cat snored as he slept":find2("dog") :> nil
+      "The cat snored as he slept":find("cat") :> 5
+      "The cat snored as he slept":find("dog") :> nil
 
 
-:mini:`meth (Haystack: string):find2(Needle: string, Start: integer): tuple[integer, string] | nil`
-   Returns :mini:`(Index,  Needle)` where :mini:`Index` is the first occurence of :mini:`Needle` in :mini:`Haystack` at or after :mini:`Start`,  or :mini:`nil` if no occurence is found.
+:mini:`meth (Haystack: string):find(Needle: string, Start: integer): integer | nil`
+   Returns the index of the first occurence of :mini:`Needle` in :mini:`Haystack` at or after :mini:`Start`,  or :mini:`nil` if no occurence is found.
 
    .. code-block:: mini
 
-      "The cat snored as he slept":find2("s", 1) :> (9, s)
-      "The cat snored as he slept":find2("s", 10) :> (17, s)
-      "The cat snored as he slept":find2("s", -6) :> (22, s)
+      "The cat snored as he slept":find("s", 1) :> 9
+      "The cat snored as he slept":find("s", 10) :> 17
+      "The cat snored as he slept":find("s", -6) :> 22
 
 
 :mini:`meth (Haystack: string):find2(Pattern: regex): tuple[integer, string] | nil`
@@ -382,6 +363,25 @@ When creating a substring,  the first index is inclusive and second index is exc
       "The cat snored as he slept":find2(r"s[a-z]+", 1) :> (9, snored)
       "The cat snored as he slept":find2(r"s[a-z]+", 10) :> (22, slept)
       "The cat snored as he slept":find2(r"s[a-z]+", -6) :> (22, slept)
+
+
+:mini:`meth (Haystack: string):find2(Needle: string): tuple[integer, string] | nil`
+   Returns :mini:`(Index,  Needle)` where :mini:`Index` is the first occurence of :mini:`Needle` in :mini:`Haystack`,  or :mini:`nil` if no occurence is found.
+
+   .. code-block:: mini
+
+      "The cat snored as he slept":find2("cat") :> (5, cat)
+      "The cat snored as he slept":find2("dog") :> nil
+
+
+:mini:`meth (Haystack: string):find2(Needle: string, Start: integer): tuple[integer, string] | nil`
+   Returns :mini:`(Index,  Needle)` where :mini:`Index` is the first occurence of :mini:`Needle` in :mini:`Haystack` at or after :mini:`Start`,  or :mini:`nil` if no occurence is found.
+
+   .. code-block:: mini
+
+      "The cat snored as he slept":find2("s", 1) :> (9, s)
+      "The cat snored as he slept":find2("s", 10) :> (17, s)
+      "The cat snored as he slept":find2("s", -6) :> (22, s)
 
 
 :mini:`meth (String: string):length: integer`
@@ -459,20 +459,20 @@ When creating a substring,  the first index is inclusive and second index is exc
       list(1 .. S:length, S:offset(_)) :> [0, 2, 3, 7, 10, 11, 14, 15, 19]
 
 
-:mini:`meth (String: string):replace(Pattern: regex, Fn: function): string`
-   Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Fn(Match,  Sub₁,  ...,  Subₙ)` where :mini:`Match` is the actual matched text and :mini:`Subᵢ` are the matched subpatterns.
+:mini:`meth (String: string):replace(I: integer, Fn: function): string`
+   Returns a copy of :mini:`String` with the :mini:`String[I]` is replaced by :mini:`Fn(String[I])`.
 
    .. code-block:: mini
 
-      "the cat snored as he slept":replace(r" ([a-z])", fun(Match, A) '-{A:upper}') :> "the-Cat-Snored-As-He-Slept"
+      "hello world":replace(1, :upper) :> "Hello world"
 
 
-:mini:`meth (String: string):replace(I: integer, Replacement: string): string`
-   Returns a copy of :mini:`String` with the :mini:`String[I]` is replaced by :mini:`Replacement`.
+:mini:`meth (String: string):replace(I: integer, Fn: integer, Arg₄: function): string`
+   Returns a copy of :mini:`String` with the :mini:`String[I,  J]` is replaced by :mini:`Fn(String[I,  J])`.
 
    .. code-block:: mini
 
-      "Hello world":replace(6, "_") :> "Hello_world"
+      "hello world":replace(1, 6, :upper) :> "HELLO world"
 
 
 :mini:`meth (String: string):replace(I: integer, J: integer, Replacement: string): string`
@@ -484,12 +484,12 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Hello world":replace(-6, 0, ", how are you?") :> "Hello, how are you?"
 
 
-:mini:`meth (String: string):replace(I: integer, Fn: integer, Arg₄: function): string`
-   Returns a copy of :mini:`String` with the :mini:`String[I,  J]` is replaced by :mini:`Fn(String[I,  J])`.
+:mini:`meth (String: string):replace(I: integer, Replacement: string): string`
+   Returns a copy of :mini:`String` with the :mini:`String[I]` is replaced by :mini:`Replacement`.
 
    .. code-block:: mini
 
-      "hello world":replace(1, 6, :upper) :> "HELLO world"
+      "Hello world":replace(6, "_") :> "Hello_world"
 
 
 :mini:`meth (String: string):replace(Replacements: map): string`
@@ -502,6 +502,14 @@ When creating a substring,  the first index is inclusive and second index is exc
          r" ([a-z])" is fun(Match, A) '-{A:upper}',
          "nor" is "narl"
       }) :> "the-Dog-Snarled-As-He-Slept"
+
+
+:mini:`meth (String: string):replace(Pattern: regex, Fn: function): string`
+   Returns a copy of :mini:`String` with each occurence of :mini:`Pattern` replaced by :mini:`Fn(Match,  Sub₁,  ...,  Subₙ)` where :mini:`Match` is the actual matched text and :mini:`Subᵢ` are the matched subpatterns.
+
+   .. code-block:: mini
+
+      "the cat snored as he slept":replace(r" ([a-z])", fun(Match, A) '-{A:upper}') :> "the-Cat-Snored-As-He-Slept"
 
 
 :mini:`meth (String: string):replace(Pattern: regex, Replacement: string): string`
@@ -518,14 +526,6 @@ When creating a substring,  the first index is inclusive and second index is exc
    .. code-block:: mini
 
       "Hello world":replace("l", "bb") :> "Hebbbbo worbbd"
-
-
-:mini:`meth (String: string):replace(I: integer, Fn: function): string`
-   Returns a copy of :mini:`String` with the :mini:`String[I]` is replaced by :mini:`Fn(String[I])`.
-
-   .. code-block:: mini
-
-      "hello world":replace(1, :upper) :> "Hello world"
 
 
 :mini:`meth (String: string):reverse: string`
@@ -570,20 +570,20 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Hello world":starts("cake") :> nil
 
 
-:mini:`meth (String: string):trim(Chars: string): string`
-   Returns a copy of :mini:`String` with characters in :mini:`Chars` removed from both ends.
-
-   .. code-block:: mini
-
-      " \t Hello \n":trim(" \n") :> "\t Hello"
-
-
 :mini:`meth (String: string):trim: string`
    Returns a copy of :mini:`String` with whitespace removed from both ends.
 
    .. code-block:: mini
 
       " \t Hello \n":trim :> "Hello"
+
+
+:mini:`meth (String: string):trim(Chars: string): string`
+   Returns a copy of :mini:`String` with characters in :mini:`Chars` removed from both ends.
+
+   .. code-block:: mini
+
+      " \t Hello \n":trim(" \n") :> "\t Hello"
 
 
 :mini:`meth (String: string):upper: string`
@@ -675,12 +675,12 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Not a date" ? r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)" :> nil
 
 
-:mini:`meth (String: string)[Index: integer]: string`
-   Returns the substring of :mini:`String` of length 1 at :mini:`Index`.
-
-
 :mini:`meth (String: string)[Range: integer::range]: string`
    Returns the substring of :mini:`String` corresponding to :mini:`Range` inclusively.
+
+
+:mini:`meth (String: string)[Index: integer]: string`
+   Returns the substring of :mini:`String` of length 1 at :mini:`Index`.
 
 
 :mini:`meth (String: string)[Start: integer, End: integer]: string`

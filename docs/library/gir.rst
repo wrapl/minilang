@@ -109,11 +109,11 @@ gir
    A gobject-instrospection enum value.
 
 
-:mini:`meth (Value₁: gir::enum) | (Value₂: nil): enumvalue`
+:mini:`meth (Value₁: gir::enum) | (Value₂: gir::enum): enumvalue`
    *TBD*
 
 
-:mini:`meth (Value₁: gir::enum) | (Value₂: gir::enum): enumvalue`
+:mini:`meth (Value₁: gir::enum) | (Value₂: nil): enumvalue`
    *TBD*
 
 
@@ -185,11 +185,11 @@ gir
    *TBD*
 
 
-:mini:`meth (Arg₁: string):GirTypelibT(Arg₂: string)`
+:mini:`meth (Arg₁: string):GirTypelibT`
    *TBD*
 
 
-:mini:`meth (Arg₁: string):GirTypelibT`
+:mini:`meth (Arg₁: string):GirTypelibT(Arg₂: string)`
    *TBD*
 
 

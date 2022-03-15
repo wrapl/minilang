@@ -356,10 +356,6 @@ math
       math::asinh(-1.2345) :> -1.03787
 
 
-:mini:`meth math::atan(Arg₁: real, Arg₂: real): real`
-   Returns :mini:`atan(Arg₂ / Arg₁)`.
-
-
 :mini:`meth math::atan(Arg₁: real): real`
    Returns :mini:`atan(Arg₁)`.
 
@@ -367,6 +363,10 @@ math
 
       math::atan(1.2345) :> 0.889961
       math::atan(-1.2345) :> -0.889961
+
+
+:mini:`meth math::atan(Arg₁: real, Arg₂: real): real`
+   Returns :mini:`atan(Arg₂ / Arg₁)`.
 
 
 :mini:`meth math::atanh(Arg₁: real): real`

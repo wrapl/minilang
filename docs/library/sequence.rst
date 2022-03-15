@@ -392,14 +392,6 @@ sequence
       list(1 .. 10 ->? (2 | _)) :> [2, 4, 6, 8, 10]
 
 
-:mini:`meth (Sequence: sequence) // (Fn: function): sequence`
-   Returns an sequence that produces :mini:`V₁`,  :mini:`Fn(V₁,  V₂)`,  :mini:`Fn(Fn(V₁,  V₂),  V₃)`,  ... .
-
-   .. code-block:: mini
-
-      list(1 .. 10 // +) :> [1, 3, 6, 10, 15, 21, 28, 36, 45, 55]
-
-
 :mini:`meth (Sequence: sequence) // (Initial: any, Fn: function): sequence`
    Returns an sequence that produces :mini:`Initial`,  :mini:`Fn(Initial,  V₁)`,  :mini:`Fn(Fn(Initial,  V₁),  V₂)`,  ... .
 
@@ -408,12 +400,12 @@ sequence
       list(1 .. 10 // (10, +)) :> [11, 13, 16, 20, 25, 31, 38, 46, 55, 65]
 
 
-:mini:`meth (Sequence: sequence):join(Separator: string): string`
-   Joins the elements of :mini:`Sequence` into a string using :mini:`Separator` between elements.
+:mini:`meth (Sequence: sequence) // (Fn: function): sequence`
+   Returns an sequence that produces :mini:`V₁`,  :mini:`Fn(V₁,  V₂)`,  :mini:`Fn(Fn(V₁,  V₂),  V₃)`,  ... .
 
    .. code-block:: mini
 
-      (1 .. 10):join :> "12345678910"
+      list(1 .. 10 // +) :> [1, 3, 6, 10, 15, 21, 28, 36, 45, 55]
 
 
 :mini:`meth (Sequence: sequence):join: string`
@@ -422,6 +414,14 @@ sequence
    .. code-block:: mini
 
       1 .. 10 join "," :> "1,2,3,4,5,6,7,8,9,10"
+
+
+:mini:`meth (Sequence: sequence):join(Separator: string): string`
+   Joins the elements of :mini:`Sequence` into a string using :mini:`Separator` between elements.
+
+   .. code-block:: mini
+
+      (1 .. 10):join :> "12345678910"
 
 
 :mini:`meth (Sequence: sequence):limit(Fn: function): sequence`
@@ -451,20 +451,20 @@ sequence
       list(1 .. 10 skip 5) :> [6, 7, 8, 9, 10]
 
 
-:mini:`meth (Base: sequence) => (F₁: function, F₂: function): sequence`
-   Returns a chained sequence equivalent to :mini:`(F₁(K₁,  V₁),  F₂(K₁,  V₁)),  ...,  (F₁(Kₙ,  Vₙ),  F₂(Kₙ,  Vₙ))` where :mini:`Kᵢ` and :mini:`Vᵢ` are the keys and values produced by :mini:`Base`.
-
-   .. code-block:: mini
-
-      map("cake" => (tuple, *)) :> {(1, c) is "c", (2, a) is "aa", (3, k) is "kkk", (4, e) is "eeee"}
-
-
 :mini:`meth (Base: sequence) => (F: function): sequence`
    Returns a chained sequence equivalent to :mini:`(K₁,  F(K₁,  V₁)),  ...,  (Kₙ,  F(Kₙ,  Vₙ))` where :mini:`Kᵢ` and :mini:`Vᵢ` are the keys and values produced by :mini:`Base`.
 
    .. code-block:: mini
 
       map("cake" => *) :> {1 is "c", 2 is "aa", 3 is "kkk", 4 is "eeee"}
+
+
+:mini:`meth (Base: sequence) => (F₁: function, F₂: function): sequence`
+   Returns a chained sequence equivalent to :mini:`(F₁(K₁,  V₁),  F₂(K₁,  V₁)),  ...,  (F₁(Kₙ,  Vₙ),  F₂(Kₙ,  Vₙ))` where :mini:`Kᵢ` and :mini:`Vᵢ` are the keys and values produced by :mini:`Base`.
+
+   .. code-block:: mini
+
+      map("cake" => (tuple, *)) :> {(1, c) is "c", (2, a) is "aa", (3, k) is "kkk", (4, e) is "eeee"}
 
 
 :mini:`meth (Sequence: sequence) =>> (Function: function): sequence`

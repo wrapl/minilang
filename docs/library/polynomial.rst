@@ -7,19 +7,19 @@
 polynomial
 ==========
 
-:mini:`meth (Arg₁: number) * (Arg₂: polynomial)`
-   *TBD*
-
-
 :mini:`meth (Arg₁: number) * (Arg₂: polynomial::rational)`
    *TBD*
 
 
-:mini:`meth (Arg₁: number) + (Arg₂: polynomial)`
+:mini:`meth (Arg₁: number) * (Arg₂: polynomial)`
    *TBD*
 
 
 :mini:`meth (Arg₁: number) + (Arg₂: polynomial::rational)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: number) + (Arg₂: polynomial)`
    *TBD*
 
 
@@ -31,11 +31,11 @@ polynomial
    *TBD*
 
 
-:mini:`meth (Arg₁: number) / (Arg₂: polynomial)`
+:mini:`meth (Arg₁: number) / (Arg₂: polynomial::rational)`
    *TBD*
 
 
-:mini:`meth (Arg₁: number) / (Arg₂: polynomial::rational)`
+:mini:`meth (Arg₁: number) / (Arg₂: polynomial)`
    *TBD*
 
 
@@ -45,11 +45,11 @@ polynomial
    *TBD*
 
 
-:mini:`meth (Arg₁: polynomial) * (Arg₂: polynomial::rational)`
+:mini:`meth (Arg₁: polynomial) * (Arg₂: number)`
    *TBD*
 
 
-:mini:`meth (Arg₁: polynomial) * (Arg₂: number)`
+:mini:`meth (Arg₁: polynomial) * (Arg₂: polynomial::rational)`
    *TBD*
 
 
@@ -57,7 +57,7 @@ polynomial
    *TBD*
 
 
-:mini:`meth (Arg₁: polynomial) + (Arg₂: polynomial)`
+:mini:`meth (Arg₁: polynomial) + (Arg₂: number)`
    *TBD*
 
 
@@ -65,11 +65,7 @@ polynomial
    *TBD*
 
 
-:mini:`meth (Arg₁: polynomial) + (Arg₂: number)`
-   *TBD*
-
-
-:mini:`meth (Arg₁: polynomial) - (Arg₂: polynomial)`
+:mini:`meth (Arg₁: polynomial) + (Arg₂: polynomial)`
    *TBD*
 
 
@@ -81,7 +77,11 @@ polynomial
    *TBD*
 
 
-:mini:`meth (Arg₁: polynomial) / (Arg₂: polynomial)`
+:mini:`meth (Arg₁: polynomial) - (Arg₂: polynomial)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: polynomial) / (Arg₂: number)`
    *TBD*
 
 
@@ -89,7 +89,7 @@ polynomial
    *TBD*
 
 
-:mini:`meth (Arg₁: polynomial) / (Arg₂: number)`
+:mini:`meth (Arg₁: polynomial) / (Arg₂: polynomial)`
    *TBD*
 
 
@@ -115,10 +115,6 @@ polynomial
    *TBD*
 
 
-:mini:`meth (Arg₁: polynomial::rational) * (Arg₂: polynomial)`
-   *TBD*
-
-
 :mini:`meth (Arg₁: polynomial::rational) * (Arg₂: number)`
    *TBD*
 
@@ -127,7 +123,11 @@ polynomial
    *TBD*
 
 
-:mini:`meth (Arg₁: polynomial::rational) + (Arg₂: polynomial)`
+:mini:`meth (Arg₁: polynomial::rational) * (Arg₂: polynomial)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: polynomial::rational) + (Arg₂: number)`
    *TBD*
 
 
@@ -135,7 +135,11 @@ polynomial
    *TBD*
 
 
-:mini:`meth (Arg₁: polynomial::rational) + (Arg₂: number)`
+:mini:`meth (Arg₁: polynomial::rational) + (Arg₂: polynomial)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: polynomial::rational) - (Arg₂: number)`
    *TBD*
 
 
@@ -147,19 +151,15 @@ polynomial
    *TBD*
 
 
-:mini:`meth (Arg₁: polynomial::rational) - (Arg₂: number)`
-   *TBD*
-
-
-:mini:`meth (Arg₁: polynomial::rational) / (Arg₂: polynomial)`
-   *TBD*
-
-
 :mini:`meth (Arg₁: polynomial::rational) / (Arg₂: number)`
    *TBD*
 
 
 :mini:`meth (Arg₁: polynomial::rational) / (Arg₂: polynomial::rational)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: polynomial::rational) / (Arg₂: polynomial)`
    *TBD*
 
 

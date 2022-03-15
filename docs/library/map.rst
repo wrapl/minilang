@@ -185,15 +185,6 @@ map
       {"A" is 1, "B" is 2, "C" is 3}:size :> 3
 
 
-:mini:`meth (Map: map):sort(Cmp: function): Map`
-   Sorts the entries (changes the iteration order) of :mini:`Map` using :mini:`Cmp(Keyᵢ,  Keyⱼ)` and returns :mini:`Map`
-
-   .. code-block:: mini
-
-      let M := map(swap("cake")) :> {"c" is 1, "a" is 2, "k" is 3, "e" is 4}
-      M:sort(>) :> {"k" is 3, "e" is 4, "c" is 1, "a" is 2}
-
-
 :mini:`meth (Map: map):sort: Map`
    Sorts the entries (changes the iteration order) of :mini:`Map` using :mini:`Keyᵢ < Keyⱼ` and returns :mini:`Map`.
 
@@ -203,6 +194,15 @@ map
       M:sort :> {"a" is 2, "c" is 1, "e" is 4, "k" is 3}
 
 
+:mini:`meth (Map: map):sort(Cmp: function): Map`
+   Sorts the entries (changes the iteration order) of :mini:`Map` using :mini:`Cmp(Keyᵢ,  Keyⱼ)` and returns :mini:`Map`
+
+   .. code-block:: mini
+
+      let M := map(swap("cake")) :> {"c" is 1, "a" is 2, "k" is 3, "e" is 4}
+      M:sort(>) :> {"k" is 3, "e" is 4, "c" is 1, "a" is 2}
+
+
 :mini:`meth (Map: map):sort2(Cmp: function): Map`
    Sorts the entries (changes the iteration order) of :mini:`Map` using :mini:`Cmp(Keyᵢ,  Keyⱼ,  Valueᵢ,  Valueⱼ)` and returns :mini:`Map`
 
@@ -210,17 +210,6 @@ map
 
       let M := map(swap("cake")) :> {"c" is 1, "a" is 2, "k" is 3, "e" is 4}
       M:sort(fun(K1, K2, V1, V2) V1 < V2) :> {"e" is 4, "k" is 3, "a" is 2, "c" is 1}
-
-
-:mini:`meth (Map: map)[Key: any, Fn: function]: mapnode`
-   Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then :mini:`Fn(Key)` is called and the result inserted into :mini:`Map`.
-
-   .. code-block:: mini
-
-      let M := {"A" is 1, "B" is 2, "C" is 3}
-      M["A", fun(Key) Key:code] :> 1
-      M["D", fun(Key) Key:code] :> 68
-      M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
 
 
 :mini:`meth (Map: map)[Key: any]: mapnode`
@@ -234,6 +223,17 @@ map
       M["A"] := 10 :> 10
       M["D"] := 20 :> 20
       M :> {"A" is 10, "B" is 2, "C" is 3, "D" is 20}
+
+
+:mini:`meth (Map: map)[Key: any, Fn: function]: mapnode`
+   Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then :mini:`Fn(Key)` is called and the result inserted into :mini:`Map`.
+
+   .. code-block:: mini
+
+      let M := {"A" is 1, "B" is 2, "C" is 3}
+      M["A", fun(Key) Key:code] :> 1
+      M["D", fun(Key) Key:code] :> 68
+      M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
 
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: map)`
