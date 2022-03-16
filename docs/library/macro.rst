@@ -75,6 +75,10 @@ macro
    An expression value used by the compiler to implement macros.
 
 
+:mini:`meth (Expr: expr):scoped(Definitions: map): expr`
+   Returns a new expression which wraps :mini:`Expr` with the constant definitions from :mini:`Definitions`.
+
+
 :mini:`meth (Expr: expr):scoped(Module: module): expr`
    Returns a new expression which wraps :mini:`Expr` with the exports from :mini:`Module`.
 
@@ -87,16 +91,12 @@ macro
    Returns a new expression which wraps :mini:`Expr` with the exports from :mini:`Module`.
 
 
-:mini:`meth (Expr: expr):scoped(Definitions: map): expr`
-   Returns a new expression which wraps :mini:`Expr` with the constant definitions from :mini:`Definitions`.
+:mini:`meth (Expr: expr):subst(Names: list, Subs: list): expr`
+   Returns a new expression which substitutes macro references to :mini:`:$Nameᵢ` with the corresponding expressions :mini:`Subᵢ`.
 
 
 :mini:`meth (Expr: expr):subst(Name₁ is Sub₁, ...): expr`
    Returns a new expression which substitutes macro references to :mini:`:$Nameᵢ` with the corresponding expression :mini:`Subᵢ`.
-
-
-:mini:`meth (Expr: expr):subst(Names: list, Subs: list): expr`
-   Returns a new expression which substitutes macro references to :mini:`:$Nameᵢ` with the corresponding expressions :mini:`Subᵢ`.
 
 
 .. _type-expr-builder:

@@ -1,4 +1,4 @@
-#include "update_impl_bitwise.h"
+#include "update_impl_integer.h"
 
 #define OP_OR(A, B) A | B
 

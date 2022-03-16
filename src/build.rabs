@@ -88,7 +88,6 @@ let Objects := [
 	file("ml_tasks.o"),
 	file("ml_console.o"),
 	file("ml_debugger.o"),
-	file("ml_expr.o"),
 	file("ml_file.o"),
 	file("ml_list.o"),
 	file("ml_map.o"),
@@ -115,7 +114,6 @@ let InstallHeaders := [
 	"ml_compiler.h",
 	"ml_tasks.h",
 	"ml_console.h",
-	"ml_expr.h",
 	"ml_file.h",
 	"ml_macros.h",
 	"ml_object.h",
@@ -153,8 +151,8 @@ end
 if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_TABLES := 1
 	MINILANG_MATH := 1
+	MINILANG_EXPRS := 1
 	MINILANG_COMPLEX := not defined("NOCOMPLEX")
-	:>MINILANG_GIR := 1
 	MINILANG_CBOR := 1
 	MINILANG_JSON := 1
 	MINILANG_XML := 1
@@ -172,6 +170,7 @@ end
 
 MINILANG_TABLES := old or defined("TABLES")
 MINILANG_MATH := MINILANG_TABLES or old or defined("MATH")
+MINILANG_EXPRS := old or defined("EXPRS")
 MINILANG_COMPLEX := old or defined("COMPLEX")
 MINILANG_GIR := old or defined("GIR")
 MINILANG_CBOR := old or defined("CBOR")
@@ -180,7 +179,7 @@ MINILANG_XML := old or defined("XML")
 MINILANG_XE := old or defined("XE")
 MINILANG_LIBRARY := old or defined("LIBRARY")
 MINILANG_MODULES := MINILANG_LIBRARY or old or defined("MODULES")
-MINILANG_SCHEDULER := MINILANG_MODULES or old or defined("SCHEDULER")
+MINILANG_SCHEDULER := MINILANG_MODULES or old or defined("SCHEDULER") or defined("THREADS")
 MINILANG_THREADS := old or defined("THREADS")
 MINILANG_THREADSAFE := MINILANG_THREADS or old or defined("THREADSAFE")
 MINILANG_JIT := old or defined("JIT")
@@ -242,12 +241,14 @@ if MINILANG_MATH then
 		file("array/compare_lt.o"),
 		file("array/compare_ne.o"),
 		file("array/update_add.o"),
+		file("array/update_and.o"),
 		file("array/update_div.o"),
+		file("array/update_max.o"),
+		file("array/update_min.o"),
 		file("array/update_mul.o"),
+		file("array/update_or.o"),
 		file("array/update_set.o"),
 		file("array/update_sub.o"),
-		file("array/update_and.o"),
-		file("array/update_or.o"),
 		file("array/update_xor.o"),
 		file("ml_array.o"),
 		file("ml_math.o"),
@@ -257,6 +258,12 @@ if MINILANG_MATH then
 	InstallHeaders:put("ml_array.h")
 	InstallHeaders:put("ml_math.h")
 	InstallHeaders:put("ml_polynomial.h")
+end
+
+if MINILANG_EXPRS then
+	Objects:put(file("ml_expr.o"))
+	CFLAGS := old + ["-DML_EXPRS"]
+	InstallHeaders:put("ml_expr.h")
 end
 
 if MINILANG_GTK_CONSOLE then

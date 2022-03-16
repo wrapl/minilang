@@ -13,8 +13,13 @@ function
    The base type of all functions.
 
 
-:mini:`meth (Function: function) ! (Tuple: tuple): any`
-   Calls :mini:`Function` with the values in :mini:`Tuple` as positional arguments.
+:mini:`meth (Function: function) ! (List: list): any`
+   Calls :mini:`Function` with the values in :mini:`List` as positional arguments.
+
+
+:mini:`meth (Function: function) ! (List: list, Map: map): any`
+   Calls :mini:`Function` with the values in :mini:`List` as positional arguments and the keys and values in :mini:`Map` as named arguments.
+   Returns an error if any of the keys in :mini:`Map` is not a string or method.
 
 
 :mini:`meth (Function: function) ! (Map: map): any`
@@ -22,17 +27,12 @@ function
    Returns an error if any of the keys in :mini:`Map` is not a string or method.
 
 
+:mini:`meth (Function: function) ! (Tuple: tuple): any`
+   Calls :mini:`Function` with the values in :mini:`Tuple` as positional arguments.
+
+
 :mini:`meth (Function: function) ! (Tuple: tuple, Map: map): any`
    Calls :mini:`Function` with the values in :mini:`Tuple` as positional arguments and the keys and values in :mini:`Map` as named arguments.
-   Returns an error if any of the keys in :mini:`Map` is not a string or method.
-
-
-:mini:`meth (Function: function) ! (List: list): any`
-   Calls :mini:`Function` with the values in :mini:`List` as positional arguments.
-
-
-:mini:`meth (Function: function) ! (List: list, Map: map): any`
-   Calls :mini:`Function` with the values in :mini:`List` as positional arguments and the keys and values in :mini:`Map` as named arguments.
    Returns an error if any of the keys in :mini:`Map` is not a string or method.
 
 

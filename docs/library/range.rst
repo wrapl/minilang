@@ -27,20 +27,20 @@ range
    Returns a unlimited range from :mini:`Start` in steps of :mini:`Step`.
 
 
-:mini:`meth (X: integer):in(Range: real::range): X | nil`
-   *TBD*
-
-
 :mini:`meth (X: integer):in(Range: integer::range): X | nil`
    *TBD*
 
 
-:mini:`meth (Start: integer):up(Count: integer): integer::range`
-   Returns a range from :mini:`Start` to :mini:`Start + Count - 1` (inclusive).
+:mini:`meth (X: integer):in(Range: real::range): X | nil`
+   *TBD*
 
 
 :mini:`meth (Start: integer):up(Count: any): integer::range`
    Returns an unlimited range from :mini:`Start`.
+
+
+:mini:`meth (Start: integer):up(Count: integer): integer::range`
+   Returns a range from :mini:`Start` to :mini:`Start + Count - 1` (inclusive).
 
 
 .. _type-integer-iter:
@@ -55,20 +55,20 @@ range
    *TBD*
 
 
+:mini:`meth (Range: integer::range):bin(Value: double): integer | nil`
+   *TBD*
+
+
 :mini:`meth (Range: integer::range):bin(Value: integer): integer | nil`
    *TBD*
 
 
-:mini:`meth (Range: integer::range):bin(Value: double): integer | nil`
+:mini:`meth (Range: integer::range):by(Step: double): real::range`
    *TBD*
 
 
 :mini:`meth (Range: integer::range):by(Step: integer): integer::range`
    Returns a range with the same limits as :mini:`Range` but with step :mini:`Step`.
-
-
-:mini:`meth (Range: integer::range):by(Step: double): real::range`
-   *TBD*
 
 
 :mini:`meth (Range: integer::range):count: integer`

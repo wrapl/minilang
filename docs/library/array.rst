@@ -9,7 +9,7 @@ array
 
 .. _type-array:
 
-:mini:`type array < address, sequence`
+:mini:`type array < buffer, sequence`
    Base type for multidimensional arrays.
 
 
@@ -20,16 +20,28 @@ array
    The shape and type of the array is determined from the elements in :mini:`List`.
 
 
-:mini:`meth (A: array) != (B: integer): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
+.. _fun-array-hcat:
+
+:mini:`fun array::hcat(Array₁: array, ...): array`
+   Returns a new array with the values of :mini:`Array₁,  ...,  Arrayₙ` concatenated along the last dimension.
+
+   .. code-block:: mini
+
+      let A := $[[1, 2, 3], [4, 5, 6]] :> <<1 2 3> <4 5 6>>
+      let B := $[[7, 8, 9], [10, 11, 12]] :> <<7 8 9> <10 11 12>>
+      array::hcat(A, B) :> <<1 2 3 7 8 9> <10 11 12 10 11 12>>
 
 
-:mini:`meth (A: array) != (B: real): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
+.. _fun-array-vcat:
 
+:mini:`fun array::vcat(Array₁: array, ...): array`
+   Returns a new array with the values of :mini:`Array₁,  ...,  Arrayₙ` concatenated along the first dimension.
 
-:mini:`meth (A: array) != (B: complex): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
+   .. code-block:: mini
+
+      let A := $[[1, 2, 3], [4, 5, 6]] :> <<1 2 3> <4 5 6>>
+      let B := $[[7, 8, 9], [10, 11, 12]] :> <<7 8 9> <10 11 12>>
+      array::vcat(A, B) :> <<1 2 3> <4 5 6> <7 8 9> <10 11 12>>
 
 
 :mini:`meth (A: array) != (B: array): array`
@@ -47,6 +59,18 @@ array
       let C := array([1, 5, 10]) :> <1 5 10>
       A != B :> <<1 1 1> <0 1 1>>
       A != C :> <<0 1 1> <1 0 1>>
+
+
+:mini:`meth (A: array) != (B: complex): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
+
+
+:mini:`meth (A: array) != (B: integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
+
+
+:mini:`meth (A: array) != (B: real): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ != B then 1 else 0 end`.
 
 
 :mini:`meth (A: array) * (B: array): array`
@@ -68,6 +92,15 @@ array
       C * A :> <<5 20 45> <20 50 90>>
 
 
+:mini:`meth (A: array) * (B: complex): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ * B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A * (1 + 1i) :> <<1 + 1i 2 + 2i> <3 + 3i 4 + 4i>>
+
+
 :mini:`meth (A: array) * (B: integer): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ * B`.
 
@@ -84,15 +117,6 @@ array
 
       let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
       A * 2.5 :> <<2.5 5> <7.5 10>>
-
-
-:mini:`meth (A: array) * (B: complex): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ * B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
-      A * (1 + 1i) :> <<1 + 1i 2 + 2i> <3 + 3i 4 + 4i>>
 
 
 :mini:`meth (A: array) + (B: array): array`
@@ -114,13 +138,13 @@ array
       C + A :> <<6 12 18> <9 15 21>>
 
 
-:mini:`meth (A: array) + (B: real): array`
+:mini:`meth (A: array) + (B: complex): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ + B`.
 
    .. code-block:: mini
 
       let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
-      A + 2.5 :> <<3.5 4.5> <5.5 6.5>>
+      A + (1 + 1i) :> <<2 + 1i 3 + 1i> <4 + 1i 5 + 1i>>
 
 
 :mini:`meth (A: array) + (B: integer): array`
@@ -132,13 +156,13 @@ array
       A + 2 :> <<3 4> <5 6>>
 
 
-:mini:`meth (A: array) + (B: complex): array`
+:mini:`meth (A: array) + (B: real): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ + B`.
 
    .. code-block:: mini
 
       let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
-      A + (1 + 1i) :> <<2 + 1i 3 + 1i> <4 + 1i 5 + 1i>>
+      A + 2.5 :> <<3.5 4.5> <5.5 6.5>>
 
 
 :mini:`meth -(Array: array): array`
@@ -164,6 +188,15 @@ array
       C - A :> <<4 8 12> <1 5 9>>
 
 
+:mini:`meth (A: array) - (B: complex): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ - B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A - (1 + 1i) :> <<0 - 1i 1 - 1i> <2 - 1i 3 - 1i>>
+
+
 :mini:`meth (A: array) - (B: integer): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ - B`.
 
@@ -180,15 +213,6 @@ array
 
       let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
       A - 2.5 :> <<-1.5 -0.5> <0.5 1.5>>
-
-
-:mini:`meth (A: array) - (B: complex): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ - B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
-      A - (1 + 1i) :> <<0 - 1i 1 - 1i> <2 - 1i 3 - 1i>>
 
 
 :mini:`meth (A: array) . (B: array): array`
@@ -214,6 +238,15 @@ array
       C / A :> <<5 5 5> <1.25 2 2.5>>
 
 
+:mini:`meth (A: array) / (B: complex): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ / B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A / (1 + 1i) :> <<0.5 - 0.5i 1 - 1i> <1.5 - 1.5i 2 - 2i>>
+
+
 :mini:`meth (A: array) / (B: integer): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ / B`.
 
@@ -230,15 +263,6 @@ array
 
       let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
       A / 2.5 :> <<0.4 0.8> <1.2 1.6>>
-
-
-:mini:`meth (A: array) / (B: complex): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ / B`.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
-      A / (1 + 1i) :> <<0.5 - 0.5i 1 - 1i> <1.5 - 1.5i 2 - 2i>>
 
 
 :mini:`meth (A: array) /\ (B: array): array`
@@ -258,6 +282,15 @@ array
       A /\ B :> <<1 0 1> <0 1 4>>
       A /\ C :> <<1 2 3> <4 0 6>>
       C /\ A :> <<1 2 3> <4 0 6>>
+
+
+:mini:`meth (A: array) /\ (B: integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ bitwise and B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A /\ 2 :> <<0 2> <2 0>>
 
 
 :mini:`meth (Array: array):copy: array`
@@ -294,6 +327,118 @@ array
    Returns an array sharing the underlying data with :mini:`Array` replacing the dimensions at :mini:`Start .. (Start + Count)` with a single dimension with the same overall size.
 
 
+:mini:`meth (A: array):max(B: array): array`
+   Returns :mini:`A max B` (element-wise). The shapes of :mini:`A` and :mini:`B` must be compatible,  i.e. either
+   
+   * :mini:`A:shape = B:shape` or
+   * :mini:`A:shape` is a prefix of :mini:`B:shape` or
+   * :mini:`B:shape` is a prefix of :mini:`A:shape`.
+   
+   When the shapes are not the same,  remaining dimensions are repeated (broadcast) to the required size.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
+      let B := array([[7, 8, 9], [10, 11, 12]]) :> <<7 8 9> <10 11 12>>
+      let C := array([5, 10, 15]) :> <5 10 15>
+      A max B :> <<7 8 9> <10 11 12>>
+      A max C :> <<5 10 15> <5 10 15>>
+      C max A :> <<5 10 15> <5 10 15>>
+
+
+:mini:`meth (A: array):max(B: integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := max(Aᵥ,  B)`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A max 2 :> <<2 2> <3 4>>
+
+
+:mini:`meth (A: array):max(B: real): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := max(Aᵥ,  B)`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A max 2.5 :> <<2.5 2.5> <3 4>>
+
+
+:mini:`meth (Array: array):maxval: number`
+   Returns the maximum of the values in :mini:`Array`.
+
+   .. code-block:: mini
+
+      let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]) :> <<<1 2 3> <4 5 6>> <<7 8 9> <10 11 12>>>
+      A:maxval :> 7
+
+
+:mini:`meth (Array: array):maxval(Count: integer): array`
+   Returns a new array with the maximums of :mini:`Array` in the last :mini:`Count` dimensions.
+
+   .. code-block:: mini
+
+      let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]) :> <<<1 2 3> <4 5 6>> <<7 8 9> <10 11 12>>>
+      maxval(1) :> error("CompilerError", "identifier maxval not declared")
+      A:maxval(2) :> nil
+
+
+:mini:`meth (A: array):min(B: array): array`
+   Returns :mini:`A min B` (element-wise). The shapes of :mini:`A` and :mini:`B` must be compatible,  i.e. either
+   
+   * :mini:`A:shape = B:shape` or
+   * :mini:`A:shape` is a prefix of :mini:`B:shape` or
+   * :mini:`B:shape` is a prefix of :mini:`A:shape`.
+   
+   When the shapes are not the same,  remaining dimensions are repeated (broadcast) to the required size.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
+      let B := array([[7, 8, 9], [10, 11, 12]]) :> <<7 8 9> <10 11 12>>
+      let C := array([5, 10, 15]) :> <5 10 15>
+      A min B :> <<1 2 3> <4 5 6>>
+      A min C :> <<1 2 3> <4 5 6>>
+      C min A :> <<1 2 3> <4 5 6>>
+
+
+:mini:`meth (A: array):min(B: integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := min(Aᵥ,  B)`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A min 2 :> <<1 2> <2 2>>
+
+
+:mini:`meth (A: array):min(B: real): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := min(Aᵥ,  B)`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A min 2.5 :> <<1 2> <2.5 2.5>>
+
+
+:mini:`meth (Array: array):minval: number`
+   Returns the minimum of the values in :mini:`Array`.
+
+   .. code-block:: mini
+
+      let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]) :> <<<1 2 3> <4 5 6>> <<7 8 9> <10 11 12>>>
+      A:minval :> 1
+
+
+:mini:`meth (Array: array):minval(Count: integer): array`
+   Returns a new array with the minimums :mini:`Array` in the last :mini:`Count` dimensions.
+
+   .. code-block:: mini
+
+      let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]) :> <<<1 2 3> <4 5 6>> <<7 8 9> <10 11 12>>>
+      A:minval(1) :> <<1 4> <7 10>>
+      A:minval(2) :> <1 7>
+
+
 :mini:`meth (Array: array):permute(Indices: list): array`
    Returns an array sharing the underlying data with :mini:`Array`,  permuting the axes according to :mini:`Indices`.
 
@@ -308,9 +453,19 @@ array
 :mini:`meth (Array: array):prod: number`
    Returns the product of the values in :mini:`Array`.
 
+   .. code-block:: mini
 
-:mini:`meth (Array: array):prod(Index: integer): array`
-   Returns a new array with the products of :mini:`Array` in the :mini:`Index`-th dimension.
+      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
+      A:prod :> 720
+
+
+:mini:`meth (Array: array):prod(Count: integer): array`
+   Returns a new array with the products of :mini:`Array` in the last :mini:`Count` dimensions.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
+      A:prod(1) :> <6 120>
 
 
 :mini:`meth (Array: array):prods(Index: integer): array`
@@ -355,9 +510,19 @@ array
 :mini:`meth (Array: array):sum: number`
    Returns the sum of the values in :mini:`Array`.
 
+   .. code-block:: mini
+
+      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
+      A:sum :> 21
+
 
 :mini:`meth (Array: array):sum(Index: integer): array`
-   Returns a new array with the sums of :mini:`Array` in the :mini:`Index`-th dimension.
+   Returns a new array with the sums of :mini:`Array` in the last :mini:`Count` dimensions.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
+      A:sum(1) :> <6 15>
 
 
 :mini:`meth (Array: array):sums(Index: integer): array`
@@ -380,18 +545,6 @@ array
    Returns list of indices :mini:`Array` where :mini:`Function(Arrayᵢ)` returns a non-nil value.
 
 
-:mini:`meth (A: array) < (B: integer): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ < B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) < (B: real): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ < B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) < (B: complex): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ < B then 1 else 0 end`.
-
-
 :mini:`meth (A: array) < (B: array): array`
    Returns :mini:`A < B` (element-wise). The shapes of :mini:`A` and :mini:`B` must be compatible,  i.e. either
    
@@ -409,16 +562,16 @@ array
       A < C :> <<0 0 1> <0 0 0>>
 
 
-:mini:`meth (A: array) <= (B: integer): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ <= B then 1 else 0 end`.
+:mini:`meth (A: array) < (B: complex): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ < B then 1 else 0 end`.
 
 
-:mini:`meth (A: array) <= (B: real): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ <= B then 1 else 0 end`.
+:mini:`meth (A: array) < (B: integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ < B then 1 else 0 end`.
 
 
-:mini:`meth (A: array) <= (B: complex): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ <= B then 1 else 0 end`.
+:mini:`meth (A: array) < (B: real): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ < B then 1 else 0 end`.
 
 
 :mini:`meth (A: array) <= (B: array): array`
@@ -438,20 +591,20 @@ array
       A <= C :> <<1 0 1> <0 1 0>>
 
 
+:mini:`meth (A: array) <= (B: complex): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ <= B then 1 else 0 end`.
+
+
+:mini:`meth (A: array) <= (B: integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ <= B then 1 else 0 end`.
+
+
+:mini:`meth (A: array) <= (B: real): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ <= B then 1 else 0 end`.
+
+
 :mini:`meth (A: array) <> (B: array): integer`
    Compare the degrees,  dimensions and entries of  :mini:`A` and :mini:`B` and returns :mini:`-1`,  :mini:`0` or :mini:`1`. This method is only intending for sorting arrays or using them as keys in a map.
-
-
-:mini:`meth (A: array) = (B: integer): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) = (B: real): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) = (B: complex): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
 
 
 :mini:`meth (A: array) = (B: array): array`
@@ -471,6 +624,18 @@ array
       A = C :> <<1 0 0> <0 1 0>>
 
 
+:mini:`meth (A: array) = (B: complex): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
+
+
+:mini:`meth (A: array) = (B: integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
+
+
+:mini:`meth (A: array) = (B: real): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ = B then 1 else 0 end`.
+
+
 :mini:`meth (A: array) > (B: array): array`
    Returns :mini:`A > B` (element-wise). The shapes of :mini:`A` and :mini:`B` must be compatible,  i.e. either
    
@@ -488,15 +653,15 @@ array
       A > C :> <<0 1 0> <1 0 1>>
 
 
+:mini:`meth (A: array) > (B: complex): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ > B then 1 else 0 end`.
+
+
 :mini:`meth (A: array) > (B: integer): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ > B then 1 else 0 end`.
 
 
 :mini:`meth (A: array) > (B: real): array`
-   Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ > B then 1 else 0 end`.
-
-
-:mini:`meth (A: array) > (B: complex): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ > B then 1 else 0 end`.
 
 
@@ -519,6 +684,15 @@ array
       C >< A :> <<5 10 15> <5 15 15>>
 
 
+:mini:`meth (A: array) >< (B: integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ bitwise xor B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A >< 2 :> <<3 0> <1 6>>
+
+
 :mini:`meth (A: array) >= (B: array): array`
    Returns :mini:`A >= B` (element-wise). The shapes of :mini:`A` and :mini:`B` must be compatible,  i.e. either
    
@@ -536,7 +710,7 @@ array
       A >= C :> <<1 1 0> <1 1 1>>
 
 
-:mini:`meth (A: array) >= (B: real): array`
+:mini:`meth (A: array) >= (B: complex): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ >= B then 1 else 0 end`.
 
 
@@ -544,7 +718,7 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ >= B then 1 else 0 end`.
 
 
-:mini:`meth (A: array) >= (B: complex): array`
+:mini:`meth (A: array) >= (B: real): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if Aᵥ >= B then 1 else 0 end`.
 
 
@@ -593,6 +767,15 @@ array
       A \/ B :> <<7 10 11> <14 15 14>>
       A \/ C :> <<5 10 15> <5 15 15>>
       C \/ A :> <<5 10 15> <5 15 15>>
+
+
+:mini:`meth (A: array) \/ (B: integer): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := Aᵥ bitwise or B`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      A \/ 2 :> <<3 2> <3 6>>
 
 
 :mini:`meth ^(Array: array): array`
@@ -860,6 +1043,19 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A >= Bᵥ then 1 else 0 end`.
 
 
+.. _fun-array-cat:
+
+:mini:`fun array::cat(Index: integer, Array₁: any, ...): array`
+   Returns a new array with the values of :mini:`Array₁,  ...,  Arrayₙ` concatenated along the :mini:`Index`-th dimension.
+
+   .. code-block:: mini
+
+      let A := $[[1, 2, 3], [4, 5, 6]] :> <<1 2 3> <4 5 6>>
+      let B := $[[7, 8, 9], [10, 11, 12]] :> <<7 8 9> <10 11 12>>
+      array::cat(1, A, B) :> <<1 2 3> <4 5 6> <7 8 9> <10 11 12>>
+      array::cat(2, A, B) :> <<1 2 3 7 8 9> <10 11 12 10 11 12>>
+
+
 :mini:`meth (A: integer) != (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
 
@@ -900,6 +1096,33 @@ array
       2 / A :> <<2 1> <0.666667 0.5>>
 
 
+:mini:`meth (A: integer) /\ (B: array): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := A bitwise and Bᵥ`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2 /\ A :> <<0 2> <2 0>>
+
+
+:mini:`meth (A: integer):max(B: array): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := max(A,  Bᵥ)`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2 max A :> <<2 2> <3 4>>
+
+
+:mini:`meth (A: integer):min(B: array): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := min(A,  Bᵥ)`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2 min A :> <<1 2> <2 2>>
+
+
 :mini:`meth (A: integer) < (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A < Bᵥ then 1 else 0 end`.
 
@@ -916,8 +1139,26 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A > Bᵥ then 1 else 0 end`.
 
 
+:mini:`meth (A: integer) >< (B: array): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := A bitwise xor Bᵥ`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2 >< A :> <<3 0> <1 6>>
+
+
 :mini:`meth (A: integer) >= (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A >= Bᵥ then 1 else 0 end`.
+
+
+:mini:`meth (A: integer) \/ (B: array): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := A bitwise or Bᵥ`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2 \/ A :> <<3 2> <3 6>>
 
 
 :mini:`meth $(List: list): array`
@@ -946,12 +1187,12 @@ array
    Returns :mini:`X` transformed by :mini:`T`. :mini:`T` must be a :mini:`N` |times| :mini:`N` matrix and :mini:`X` a vector of size :mini:`N - 1`.
 
 
-:mini:`meth (A: matrix) \ (B: vector): vector`
-   Returns the solution :mini:`X` of :mini:`A . X = B`.
-
-
 :mini:`meth \(A: matrix): matrix`
    Returns the inverse of :mini:`A`.
+
+
+:mini:`meth (A: matrix) \ (B: vector): vector`
+   Returns the solution :mini:`X` of :mini:`A . X = B`.
 
 
 .. _type-matrix-any:
@@ -1090,6 +1331,24 @@ array
       2.5 / A :> <<2.5 1.25> <0.833333 0.625>>
 
 
+:mini:`meth (A: real):max(B: array): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := max(A,  Bᵥ)`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2.5 max A :> <<2 2> <3 4>>
+
+
+:mini:`meth (A: real):min(B: array): array`
+   Returns an array :mini:`C` where each :mini:`Cᵥ := min(A,  Bᵥ)`.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
+      2.5 min A :> <<1 2> <2 2>>
+
+
 :mini:`meth (A: real) < (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A < Bᵥ then 1 else 0 end`.
 
@@ -1108,6 +1367,23 @@ array
 
 :mini:`meth (A: real) >= (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A >= Bᵥ then 1 else 0 end`.
+
+
+.. _fun-array-new:
+
+:mini:`fun array::new(Arg₁: type, Arg₂: list)`
+   *TBD*
+
+
+.. _fun-array-wrap:
+
+:mini:`fun array::wrap(Type: type, Buffer: buffer, Sizes: list, Strides: list): array`
+   Returns an array pointing to the contents of :mini:`Address` with the corresponding sizes and strides.
+
+   .. code-block:: mini
+
+      let B := buffer(16) :> <16:40A657E6AD7F00002B4E6578743B0A00>
+      array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2]) :> <<<42560 58967> <32685 0>> <<20011 30821> <15220 10>>>
 
 
 .. _type-vector:

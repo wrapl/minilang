@@ -27,11 +27,11 @@ compiler
    *TBD*
 
 
-:mini:`meth (Compiler: compiler):command_var(Name: string, Type: type): variable`
+:mini:`meth (Compiler: compiler):command_var(Name: string): variable`
    *TBD*
 
 
-:mini:`meth (Compiler: compiler):command_var(Name: string): variable`
+:mini:`meth (Compiler: compiler):command_var(Name: string, Type: type): variable`
    *TBD*
 
 

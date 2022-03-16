@@ -157,15 +157,15 @@ xe
    *TBD*
 
 
+:mini:`meth (Arg₁: xenode)[Arg₂: integer]`
+   *TBD*
+
+
 :mini:`meth (Arg₁: xenode)[Arg₂: nil]`
    *TBD*
 
 
 :mini:`meth (Arg₁: xenode)[Arg₂: string]`
-   *TBD*
-
-
-:mini:`meth (Arg₁: xenode)[Arg₂: integer]`
    *TBD*
 
 

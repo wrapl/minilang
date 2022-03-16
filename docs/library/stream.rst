@@ -25,16 +25,16 @@ stream
    Flushes :mini:`Stream`. This method should be overridden for streams defined in Minilang.
 
 
+:mini:`meth (Stream: stream):read: string | nil`
+   Equivalent to :mini:`Stream:readi(SIZE_MAX,  '\n')`.
+
+
 :mini:`meth (Stream: stream):read(Buffer: buffer): integer`
    Reads bytes from :mini:`Stream` into :mini:`Buffer` to :mini:`Stream`. This method should be overridden for streams defined in Minilang.
 
 
 :mini:`meth (Stream: stream):read(Count: integer): string | nil`
    Returns the next text from :mini:`Stream` upto :mini:`Count` characters. Returns :mini:`nil` if :mini:`Stream` is empty.
-
-
-:mini:`meth (Stream: stream):read: string | nil`
-   Equivalent to :mini:`Stream:readi(SIZE_MAX,  '\n')`.
 
 
 :mini:`meth (Stream: stream):readi(Count: integer, Delimiters: string): string | nil`

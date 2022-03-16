@@ -33,11 +33,11 @@ time
    *TBD*
 
 
-:mini:`meth (Arg₁: time) - (Arg₂: time)`
+:mini:`meth (Arg₁: time) - (Arg₂: number)`
    *TBD*
 
 
-:mini:`meth (Arg₁: time) - (Arg₂: number)`
+:mini:`meth (Arg₁: time) - (Arg₂: time)`
    *TBD*
 
 
@@ -49,16 +49,16 @@ time
    *TBD*
 
 
-:mini:`meth (Buffer: string::buffer):append(Time: time, Format: string): string`
-   Formats :mini:`Time` as a local time according to the specified format.
-
-
 :mini:`meth (Buffer: string::buffer):append(Time: time): string`
    Formats :mini:`Time` as a local time.
 
 
 :mini:`meth (Buffer: string::buffer):append(Time: time, TimeZone: nil): string`
    Formats :mini:`Time` as a UTC time according to ISO 8601.
+
+
+:mini:`meth (Buffer: string::buffer):append(Time: time, Format: string): string`
+   Formats :mini:`Time` as a local time according to the specified format.
 
 
 :mini:`meth (Buffer: string::buffer):append(Time: time, Format: string, TimeZone: nil): string`
