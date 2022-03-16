@@ -26,7 +26,7 @@ ML_CFUNCTION(MLArray, NULL, ml_array_of_fn);
 // Returns a new array containing the values in :mini:`List`.
 // The shape and type of the array is determined from the elements in :mini:`List`.
 
-ML_TYPE(MLArrayT, (MLAddressT, MLSequenceT), "array",
+ML_TYPE(MLArrayT, (MLBufferT, MLSequenceT), "array",
 // Base type for multidimensional arrays.
 	.Constructor = (ml_value_t *)MLArray
 );
@@ -443,7 +443,8 @@ static void ml_array_typed_new_fnx(ml_state_t *Caller, void *Data, int Count, ml
 	}
 }
 
-static void ml_array_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args) {
+ML_FUNCTIONX(MLArrayNew) {
+//@array::new
 	ML_CHECKX_ARG_COUNT(2);
 	ML_CHECKX_ARG_TYPE(0, MLTypeT);
 	ML_CHECKX_ARG_TYPE(1, MLListT);
@@ -482,9 +483,18 @@ static void ml_array_new_fnx(ml_state_t *Caller, void *Data, int Count, ml_value
 	return ml_array_typed_new_fnx(Caller, (void *)Format, Count - 1, Args + 1);
 }
 
-static __attribute__ ((malloc)) ml_value_t *ml_array_wrap_fn(void *Data, int Count, ml_value_t **Args) {
-	ML_CHECK_ARG_COUNT(3);
-	ML_CHECK_ARG_TYPE(1, MLAddressT);
+ML_FUNCTION(MLArrayWrap) {
+//@array::wrap
+//<Type:type
+//<Buffer
+//<Sizes
+//<Strides
+//>array
+// Returns an array pointing to the contents of :mini:`Address` with the corresponding sizes and strides.
+//$= let B := buffer(16)
+//$= array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
+	ML_CHECK_ARG_COUNT(4);
+	ML_CHECK_ARG_TYPE(1, MLBufferT);
 	ML_CHECK_ARG_TYPE(2, MLListT);
 	ML_CHECK_ARG_TYPE(3, MLListT);
 	ml_array_format_t Format;
@@ -1452,6 +1462,97 @@ static ml_value_t *update_array_fn(void *Data, int Count, ml_value_t **Args) {
 		Update(ValueDimension, Target->Base.Value, ValueDimension, Source->Base.Value);
 	}
 	return Args[0];
+}
+
+static ml_value_t *ml_array_cat(int Axis, int Count, ml_value_t **Args) {
+	ml_array_t *A = (ml_array_t *)Args[0];
+	int Degree = A->Degree;
+	if (Axis >= A->Degree) return ml_error("RangeError", "Invalid axis");
+	int Size = A->Dimensions[Axis].Size;
+	ml_array_format_t Format = A->Format;
+	for (int I = 1; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLArrayT);
+		ml_array_t *B = (ml_array_t *)Args[I];
+		if (B->Degree != Degree) return ml_error("ShapeError", "Incompatible array shapes");
+		for (int J = 0; J < Degree; ++J) {
+			if (J == Axis) {
+				Size += B->Dimensions[J].Size;
+			} else {
+				if (B->Dimensions[J].Size != A->Dimensions[J].Size) return ml_error("ShapeError", "Incompatible array shapes");
+			}
+		}
+		if (Format < B->Format) Format = B->Format;
+	}
+	ml_array_t *C = ml_array_alloc(Format, Degree);
+	int Stride = MLArraySizes[Format];
+	for (int I = Degree; --I >= 0;) {
+		C->Dimensions[I].Stride = Stride;
+		if (I == Axis) {
+			C->Dimensions[I].Size = Size;
+			Stride *= Size;
+		} else {
+			C->Dimensions[I].Size = A->Dimensions[I].Size;
+			Stride *= A->Dimensions[I].Size;
+		}
+	}
+	C->Base.Length = Stride;
+	void *Value = C->Base.Value = snew(Stride);
+	update_row_fn_t Update = UpdateSetRowFns[C->Format * MAX_FORMATS + A->Format];
+	update_array(Update, C->Dimensions, Value, Degree, A->Dimensions, A->Base.Value);
+	int Offset = A->Dimensions[Axis].Size;
+	for (int I = 1; I < Count; ++I) {
+		Value += Offset * C->Dimensions[Axis].Stride;
+		ml_array_t *B = (ml_array_t *)Args[I];
+		Update = UpdateSetRowFns[C->Format * MAX_FORMATS + B->Format];
+		update_array(Update, C->Dimensions, Value, Degree, B->Dimensions, B->Base.Value);
+		Offset = B->Dimensions[Axis].Size;
+	}
+	return (ml_value_t *)C;
+}
+
+ML_FUNCTION(MLArrayCat) {
+//@array::cat
+//<Index
+//<Array/1...
+//>array
+// Returns a new array with the values of :mini:`Array/1, ..., Array/n` concatenated along the :mini:`Index`-th dimension.
+//$= let A := $[[1, 2, 3], [4, 5, 6]]
+//$= let B := $[[7, 8, 9], [10, 11, 12]]
+//$= array::cat(1, A, B)
+//$= array::cat(2, A, B)
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLIntegerT);
+	int Axis = ml_integer_value(Args[0]) - 1;
+	if (Axis < 0) return ml_error("RangeError", "Invalid axis");
+	ML_CHECK_ARG_TYPE(1, MLArrayT);
+	return ml_array_cat(Axis, Count - 1, Args + 1);
+}
+
+ML_FUNCTION(MLArrayHCat) {
+//@array::hcat
+//<Array/1...
+//>array
+// Returns a new array with the values of :mini:`Array/1, ..., Array/n` concatenated along the last dimension.
+//$= let A := $[[1, 2, 3], [4, 5, 6]]
+//$= let B := $[[7, 8, 9], [10, 11, 12]]
+//$= array::hcat(A, B)
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLArrayT);
+	ml_array_t *A = (ml_array_t *)Args[0];
+	return ml_array_cat(A->Degree - 1, Count, Args);
+}
+
+ML_FUNCTION(MLArrayVCat) {
+//@array::vcat
+//<Array/1...
+//>array
+// Returns a new array with the values of :mini:`Array/1, ..., Array/n` concatenated along the first dimension.
+//$= let A := $[[1, 2, 3], [4, 5, 6]]
+//$= let B := $[[7, 8, 9], [10, 11, 12]]
+//$= array::vcat(A, B)
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLArrayT);
+	return ml_array_cat(0, Count, Args);
 }
 
 #define UPDATE_METHOD(TITLE, NAME, ATYPE, CTYPE, FROM_VAL, FORMAT) \
@@ -2856,12 +2957,12 @@ ML_METHOD("prod", MLArrayT, MLIntegerT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("minimum", MLArrayT) {
+ML_METHOD("minval", MLArrayT) {
 //<Array
 //>number
 // Returns the minimum of the values in :mini:`Array`.
 //$= let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
-//$= A:minimum
+//$= A:minval
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	switch (Source->Format) {
 	case ML_ARRAY_FORMAT_I8:
@@ -2889,14 +2990,14 @@ ML_METHOD("minimum", MLArrayT) {
 	}
 }
 
-ML_METHOD("minimum", MLArrayT, MLIntegerT) {
+ML_METHOD("minval", MLArrayT, MLIntegerT) {
 //<Array
 //<Count
 //>array
 // Returns a new array with the minimums :mini:`Array` in the last :mini:`Count` dimensions.
 //$= let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
-//$= A:minimum(1)
-//$= A:minimum(2)
+//$= A:minval(1)
+//$= A:minval(2)
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int SumDegree = ml_integer_value(Args[1]);
 	if (SumDegree <= 0 || SumDegree >= Source->Degree) return ml_error("RangeError", "Invalid axes count for min");
@@ -2958,12 +3059,12 @@ ML_METHOD("minimum", MLArrayT, MLIntegerT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("maximum", MLArrayT) {
+ML_METHOD("maxval", MLArrayT) {
 //<Array
 //>number
 // Returns the maximum of the values in :mini:`Array`.
 //$= let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
-//$= A:maximum
+//$= A:maxval
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	switch (Source->Format) {
 	case ML_ARRAY_FORMAT_I8:
@@ -2991,14 +3092,14 @@ ML_METHOD("maximum", MLArrayT) {
 	}
 }
 
-ML_METHOD("maximum", MLArrayT, MLIntegerT) {
+ML_METHOD("maxval", MLArrayT, MLIntegerT) {
 //<Array
 //<Count
 //>array
 // Returns a new array with the maximums of :mini:`Array` in the last :mini:`Count` dimensions.
 //$= let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
-//$= A:maximum(1)
-//$= A:maximum(2)
+//$= maxval(1)
+//$= A:maxval(2)
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int SumDegree = ml_integer_value(Args[1]);
 	if (SumDegree <= 0 || SumDegree >= Source->Degree) return ml_error("RangeError", "Invalid axes count for max");
@@ -6305,8 +6406,11 @@ void ml_array_init(stringmap_t *Globals) {
 #endif
 
 	ml_method_define(ml_method("$"), MLArrayT->Constructor, 0, MLListT, NULL);
-	stringmap_insert(MLArrayT->Exports, "new", ml_cfunctionx(NULL, ml_array_new_fnx));
-	stringmap_insert(MLArrayT->Exports, "wrap", ml_cfunction(NULL, ml_array_wrap_fn));
+	stringmap_insert(MLArrayT->Exports, "new", MLArrayNew);
+	stringmap_insert(MLArrayT->Exports, "wrap", MLArrayWrap);
+	stringmap_insert(MLArrayT->Exports, "cat", MLArrayCat);
+	stringmap_insert(MLArrayT->Exports, "hcat", MLArrayHCat);
+	stringmap_insert(MLArrayT->Exports, "vcat", MLArrayVCat);
 	stringmap_insert(MLArrayT->Exports, "nil", MLArrayNil);
 	stringmap_insert(MLArrayT->Exports, "any", MLArrayAnyT);
 	stringmap_insert(MLArrayT->Exports, "int8", MLArrayInt8T);

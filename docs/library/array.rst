@@ -9,7 +9,7 @@ array
 
 .. _type-array:
 
-:mini:`type array < address, sequence`
+:mini:`type array < buffer, sequence`
    Base type for multidimensional arrays.
 
 
@@ -18,6 +18,30 @@ array
 :mini:`fun array(List: list): array`
    Returns a new array containing the values in :mini:`List`.
    The shape and type of the array is determined from the elements in :mini:`List`.
+
+
+.. _fun-array-hcat:
+
+:mini:`fun array::hcat(Array₁: array, ...): array`
+   Returns a new array with the values of :mini:`Array₁,  ...,  Arrayₙ` concatenated along the last dimension.
+
+   .. code-block:: mini
+
+      let A := $[[1, 2, 3], [4, 5, 6]] :> <<1 2 3> <4 5 6>>
+      let B := $[[7, 8, 9], [10, 11, 12]] :> <<7 8 9> <10 11 12>>
+      array::hcat(A, B) :> <<1 2 3 7 8 9> <10 11 12 10 11 12>>
+
+
+.. _fun-array-vcat:
+
+:mini:`fun array::vcat(Array₁: array, ...): array`
+   Returns a new array with the values of :mini:`Array₁,  ...,  Arrayₙ` concatenated along the first dimension.
+
+   .. code-block:: mini
+
+      let A := $[[1, 2, 3], [4, 5, 6]] :> <<1 2 3> <4 5 6>>
+      let B := $[[7, 8, 9], [10, 11, 12]] :> <<7 8 9> <10 11 12>>
+      array::vcat(A, B) :> <<1 2 3> <4 5 6> <7 8 9> <10 11 12>>
 
 
 :mini:`meth (A: array) != (B: array): array`
@@ -340,23 +364,23 @@ array
       A max 2.5 :> <<2.5 2.5> <3 4>>
 
 
-:mini:`meth (Array: array):maximum: number`
+:mini:`meth (Array: array):maxval: number`
    Returns the maximum of the values in :mini:`Array`.
 
    .. code-block:: mini
 
       let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]) :> <<<1 2 3> <4 5 6>> <<7 8 9> <10 11 12>>>
-      A:maximum :> 7
+      A:maxval :> 7
 
 
-:mini:`meth (Array: array):maximum(Count: integer): array`
+:mini:`meth (Array: array):maxval(Count: integer): array`
    Returns a new array with the maximums of :mini:`Array` in the last :mini:`Count` dimensions.
 
    .. code-block:: mini
 
       let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]) :> <<<1 2 3> <4 5 6>> <<7 8 9> <10 11 12>>>
-      A:maximum(1) :> <<3 6> <9 12>>
-      A:maximum(2) :> <4 10>
+      maxval(1) :> error("CompilerError", "identifier maxval not declared")
+      A:maxval(2) :> nil
 
 
 :mini:`meth (A: array):min(B: array): array`
@@ -396,23 +420,23 @@ array
       A min 2.5 :> <<1 2> <2.5 2.5>>
 
 
-:mini:`meth (Array: array):minimum: number`
+:mini:`meth (Array: array):minval: number`
    Returns the minimum of the values in :mini:`Array`.
 
    .. code-block:: mini
 
       let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]) :> <<<1 2 3> <4 5 6>> <<7 8 9> <10 11 12>>>
-      A:minimum :> 1
+      A:minval :> 1
 
 
-:mini:`meth (Array: array):minimum(Count: integer): array`
+:mini:`meth (Array: array):minval(Count: integer): array`
    Returns a new array with the minimums :mini:`Array` in the last :mini:`Count` dimensions.
 
    .. code-block:: mini
 
       let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]) :> <<<1 2 3> <4 5 6>> <<7 8 9> <10 11 12>>>
-      A:minimum(1) :> <<1 4> <7 10>>
-      A:minimum(2) :> <1 7>
+      A:minval(1) :> <<1 4> <7 10>>
+      A:minval(2) :> <1 7>
 
 
 :mini:`meth (Array: array):permute(Indices: list): array`
@@ -1019,6 +1043,19 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A >= Bᵥ then 1 else 0 end`.
 
 
+.. _fun-array-cat:
+
+:mini:`fun array::cat(Index: integer, Array₁: any, ...): array`
+   Returns a new array with the values of :mini:`Array₁,  ...,  Arrayₙ` concatenated along the :mini:`Index`-th dimension.
+
+   .. code-block:: mini
+
+      let A := $[[1, 2, 3], [4, 5, 6]] :> <<1 2 3> <4 5 6>>
+      let B := $[[7, 8, 9], [10, 11, 12]] :> <<7 8 9> <10 11 12>>
+      array::cat(1, A, B) :> <<1 2 3> <4 5 6> <7 8 9> <10 11 12>>
+      array::cat(2, A, B) :> <<1 2 3 7 8 9> <10 11 12 10 11 12>>
+
+
 :mini:`meth (A: integer) != (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A != Bᵥ then 1 else 0 end`.
 
@@ -1330,6 +1367,23 @@ array
 
 :mini:`meth (A: real) >= (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A >= Bᵥ then 1 else 0 end`.
+
+
+.. _fun-array-new:
+
+:mini:`fun array::new(Arg₁: type, Arg₂: list)`
+   *TBD*
+
+
+.. _fun-array-wrap:
+
+:mini:`fun array::wrap(Type: type, Buffer: buffer, Sizes: list, Strides: list): array`
+   Returns an array pointing to the contents of :mini:`Address` with the corresponding sizes and strides.
+
+   .. code-block:: mini
+
+      let B := buffer(16) :> <16:8058F0C6587F00006F6E733A206D6170>
+      array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2]) :> <<<22656 50928> <32600 0>> <<28271 14963> <27936 28769>>>
 
 
 .. _type-vector:

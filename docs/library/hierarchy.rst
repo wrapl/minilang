@@ -130,7 +130,7 @@ hierarchy
       "function":e -> "closure":w;
       "sequence":e -> "closure":w;
       "any":e -> "closure::info":w;
-      "address":e -> "array":w;
+      "buffer":e -> "array":w;
       "sequence":e -> "array":w;
       "array":e -> "vector":w;
       "array":e -> "matrix":w;
