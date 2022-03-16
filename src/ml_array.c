@@ -3001,53 +3001,42 @@ ML_METHOD("minval", MLArrayT, MLIntegerT) {
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int SumDegree = ml_integer_value(Args[1]);
 	if (SumDegree <= 0 || SumDegree >= Source->Degree) return ml_error("RangeError", "Invalid axes count for min");
-	ml_array_format_t Format;
 	void (*fill_mins)(int, ml_array_dimension_t *, void *, int, ml_array_dimension_t *, void *);
 	switch (Source->Format) {
 	case ML_ARRAY_FORMAT_I8:
-		Format = ML_ARRAY_FORMAT_I64;
 		fill_mins = fill_mins_int8_t;
 		break;
 	case ML_ARRAY_FORMAT_U8:
-		Format = ML_ARRAY_FORMAT_U64;
 		fill_mins = fill_mins_uint8_t;
 		break;
 	case ML_ARRAY_FORMAT_I16:
-		Format = ML_ARRAY_FORMAT_I64;
 		fill_mins = fill_mins_int16_t;
 		break;
 	case ML_ARRAY_FORMAT_U16:
-		Format = ML_ARRAY_FORMAT_U64;
 		fill_mins = fill_mins_uint16_t;
 		break;
 	case ML_ARRAY_FORMAT_I32:
-		Format = ML_ARRAY_FORMAT_I64;
 		fill_mins = fill_mins_int32_t;
 		break;
 	case ML_ARRAY_FORMAT_U32:
-		Format = ML_ARRAY_FORMAT_U64;
 		fill_mins = fill_mins_uint32_t;
 		break;
 	case ML_ARRAY_FORMAT_I64:
-		Format = ML_ARRAY_FORMAT_I64;
 		fill_mins = fill_mins_int64_t;
 		break;
 	case ML_ARRAY_FORMAT_U64:
-		Format = ML_ARRAY_FORMAT_U64;
 		fill_mins = fill_mins_uint64_t;
 		break;
 	case ML_ARRAY_FORMAT_F32:
-		Format = ML_ARRAY_FORMAT_F64;
 		fill_mins = fill_mins_float;
 		break;
 	case ML_ARRAY_FORMAT_F64:
-		Format = ML_ARRAY_FORMAT_F64;
 		fill_mins = fill_mins_double;
 		break;
 	default:
 		return ml_error("ArrayError", "Invalid array format");
 	}
-	ml_array_t *Target = ml_array_alloc(Format, Source->Degree - SumDegree);
+	ml_array_t *Target = ml_array_alloc(Source->Format, Source->Degree - SumDegree);
 	int DataSize = MLArraySizes[Target->Format];
 	for (int I = Target->Degree; --I >= 0;) {
 		Target->Dimensions[I].Stride = DataSize;
@@ -3098,58 +3087,47 @@ ML_METHOD("maxval", MLArrayT, MLIntegerT) {
 //>array
 // Returns a new array with the maximums of :mini:`Array` in the last :mini:`Count` dimensions.
 //$= let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
-//$= maxval(1)
+//$= A:maxval(1)
 //$= A:maxval(2)
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int SumDegree = ml_integer_value(Args[1]);
 	if (SumDegree <= 0 || SumDegree >= Source->Degree) return ml_error("RangeError", "Invalid axes count for max");
-	ml_array_format_t Format;
 	void (*fill_maxs)(int, ml_array_dimension_t *, void *, int, ml_array_dimension_t *, void *);
 	switch (Source->Format) {
 	case ML_ARRAY_FORMAT_I8:
-		Format = ML_ARRAY_FORMAT_I64;
 		fill_maxs = fill_maxs_int8_t;
 		break;
 	case ML_ARRAY_FORMAT_U8:
-		Format = ML_ARRAY_FORMAT_U64;
 		fill_maxs = fill_maxs_uint8_t;
 		break;
 	case ML_ARRAY_FORMAT_I16:
-		Format = ML_ARRAY_FORMAT_I64;
 		fill_maxs = fill_maxs_int16_t;
 		break;
 	case ML_ARRAY_FORMAT_U16:
-		Format = ML_ARRAY_FORMAT_U64;
 		fill_maxs = fill_maxs_uint16_t;
 		break;
 	case ML_ARRAY_FORMAT_I32:
-		Format = ML_ARRAY_FORMAT_I64;
 		fill_maxs = fill_maxs_int32_t;
 		break;
 	case ML_ARRAY_FORMAT_U32:
-		Format = ML_ARRAY_FORMAT_U64;
 		fill_maxs = fill_maxs_uint32_t;
 		break;
 	case ML_ARRAY_FORMAT_I64:
-		Format = ML_ARRAY_FORMAT_I64;
 		fill_maxs = fill_maxs_int64_t;
 		break;
 	case ML_ARRAY_FORMAT_U64:
-		Format = ML_ARRAY_FORMAT_U64;
 		fill_maxs = fill_maxs_uint64_t;
 		break;
 	case ML_ARRAY_FORMAT_F32:
-		Format = ML_ARRAY_FORMAT_F64;
 		fill_maxs = fill_maxs_float;
 		break;
 	case ML_ARRAY_FORMAT_F64:
-		Format = ML_ARRAY_FORMAT_F64;
 		fill_maxs = fill_maxs_double;
 		break;
 	default:
 		return ml_error("ArrayError", "Invalid array format");
 	}
-	ml_array_t *Target = ml_array_alloc(Format, Source->Degree - SumDegree);
+	ml_array_t *Target = ml_array_alloc(Source->Format, Source->Degree - SumDegree);
 	int DataSize = MLArraySizes[Target->Format];
 	for (int I = Target->Degree; --I >= 0;) {
 		Target->Dimensions[I].Stride = DataSize;

@@ -379,8 +379,8 @@ array
    .. code-block:: mini
 
       let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]) :> <<<1 2 3> <4 5 6>> <<7 8 9> <10 11 12>>>
-      maxval(1) :> error("CompilerError", "identifier maxval not declared")
-      A:maxval(2) :> nil
+      A:maxval(1) :> <<3 6> <9 12>>
+      A:maxval(2) :> <4 10>
 
 
 :mini:`meth (A: array):min(B: array): array`
@@ -1382,8 +1382,8 @@ array
 
    .. code-block:: mini
 
-      let B := buffer(16) :> <16:606E38FF097F00002D3E4E616D65203D>
-      array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2]) :> <<<28256 65336> <32521 0>> <<15917 24910> <25965 15648>>>
+      let B := buffer(16) :> <16:C0CC6B521D7F000065722D3E4E657874>
+      array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2]) :> <<<52416 21099> <32541 0>> <<29285 15917> <25934 29816>>>
 
 
 .. _type-vector:
