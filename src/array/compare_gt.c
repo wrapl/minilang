@@ -1,4 +1,4 @@
-#include "compare_impl.h"
+#include "compare_impl_real.h"
 
 #define GT(A, B) A > B
 

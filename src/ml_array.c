@@ -1370,6 +1370,8 @@ UPDATE_FNS(RDiv);
 UPDATE_FNS(And);
 UPDATE_FNS(Or);
 UPDATE_FNS(Xor);
+UPDATE_FNS(Min);
+UPDATE_FNS(Max);
 
 static void update_array(update_row_fn_t Update, ml_array_dimension_t *TargetDimension, char *TargetData, int SourceDegree, ml_array_dimension_t *SourceDimension, char *SourceData) {
 	if (SourceDegree == 0) {
@@ -2854,12 +2856,12 @@ ML_METHOD("prod", MLArrayT, MLIntegerT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("min", MLArrayT) {
+ML_METHOD("minimum", MLArrayT) {
 //<Array
 //>number
 // Returns the minimum of the values in :mini:`Array`.
-//$= let A := array([[1, 2, 3], [4, 5, 6]])
-//$= A:min
+//$= let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
+//$= A:minimum
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	switch (Source->Format) {
 	case ML_ARRAY_FORMAT_I8:
@@ -2887,13 +2889,14 @@ ML_METHOD("min", MLArrayT) {
 	}
 }
 
-ML_METHOD("min", MLArrayT, MLIntegerT) {
+ML_METHOD("minimum", MLArrayT, MLIntegerT) {
 //<Array
-//<Index
+//<Count
 //>array
 // Returns a new array with the minimums :mini:`Array` in the last :mini:`Count` dimensions.
-//$= let A := array([[1, 2, 3], [4, 5, 6]])
-//$= A:min(1)
+//$= let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
+//$= A:minimum(1)
+//$= A:minimum(2)
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int SumDegree = ml_integer_value(Args[1]);
 	if (SumDegree <= 0 || SumDegree >= Source->Degree) return ml_error("RangeError", "Invalid axes count for min");
@@ -2955,12 +2958,12 @@ ML_METHOD("min", MLArrayT, MLIntegerT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("max", MLArrayT) {
+ML_METHOD("maximum", MLArrayT) {
 //<Array
 //>number
 // Returns the maximum of the values in :mini:`Array`.
-//$= let A := array([[1, 2, 3], [4, 5, 6]])
-//$= A:max
+//$= let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
+//$= A:maximum
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	switch (Source->Format) {
 	case ML_ARRAY_FORMAT_I8:
@@ -2988,13 +2991,14 @@ ML_METHOD("max", MLArrayT) {
 	}
 }
 
-ML_METHOD("max", MLArrayT, MLIntegerT) {
+ML_METHOD("maximum", MLArrayT, MLIntegerT) {
 //<Array
-//<Index
+//<Count
 //>array
 // Returns a new array with the maximums of :mini:`Array` in the last :mini:`Count` dimensions.
-//$= let A := array([[1, 2, 3], [4, 5, 6]])
-//$= A:max(1)
+//$= let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
+//$= A:maximum(1)
+//$= A:maximum(2)
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	int SumDegree = ml_integer_value(Args[1]);
 	if (SumDegree <= 0 || SumDegree >= Source->Degree) return ml_error("RangeError", "Invalid axes count for max");
@@ -3291,6 +3295,7 @@ static ml_value_t *array_math_complex_real_fn(double (*fn)(complex_double), int 
 }
 #endif
 
+#define MIN(X, Y) ((X < Y) ? X : Y)
 #define MAX(X, Y) ((X > Y) ? X : Y)
 
 static ml_value_t *array_infix_fn(void *Data, int Count, ml_value_t **Args) {
@@ -3354,49 +3359,51 @@ INFIX_METHOD(/)
 INFIX_METHOD(/\\)
 INFIX_METHOD(\\/)
 INFIX_METHOD(><)
+INFIX_METHOD(min)
+INFIX_METHOD(max)
 
 #ifdef ML_COMPLEX
 
-#define op_complex_array_integer(OP) \
+#define op_complex_array_left(NAME) \
 	case ML_ARRAY_FORMAT_C32: { \
 		complex_float *Values = (complex_float *)C->Base.Value; \
-		for (int I = DataSize / sizeof(complex_float); --I >= 0; ++Values) *Values = *Values OP B; \
+		for (int I = DataSize / sizeof(complex_float); --I >= 0; ++Values) *Values = *Values NAME B; \
 		break; \
 	} \
 	case ML_ARRAY_FORMAT_C64: { \
 		complex_double *Values = (complex_double *)C->Base.Value; \
-		for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = *Values OP B; \
+		for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = *Values NAME B; \
 		break; \
 	}
 
-#define op_complex_integer_array(OP) \
+#define op_complex_array_right(NAME) \
 	case ML_ARRAY_FORMAT_C32: { \
 		complex_float *Values = (complex_float *)C->Base.Value; \
-		for (int I = DataSize / sizeof(complex_float); --I >= 0; ++Values) *Values = B OP *Values; \
+		for (int I = DataSize / sizeof(complex_float); --I >= 0; ++Values) *Values = B NAME *Values; \
 		break; \
 	} \
 	case ML_ARRAY_FORMAT_C64: { \
 		complex_double *Values = (complex_double *)C->Base.Value; \
-		for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = B OP *Values; \
+		for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = B NAME *Values; \
 		break; \
 	}
 
 #else
 
-#define op_complex_array_integer(OP)
-#define op_complex_integer_array(OP)
+#define op_complex_array_let(NAME)
+#define op_complex_array_right(NAME)
 
 #endif
 
-#define ML_ARITH_METHOD_BASE(OP, MIN_FORMAT) \
+#define ML_ARITH_METHOD_BASE(NAME, MIN_FORMAT) \
 \
-ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
+ML_METHOD(#NAME, MLArrayT, MLIntegerT) { \
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where each :mini:`C/v := A/v OP B`.
+// Returns an array :mini:`C` where each :mini:`C/v := A/v NAME B`.
 //$= let A := array([[1, 2], [3, 4]])
-//$= A OP 2
+//$= A NAME 2
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
@@ -3408,25 +3415,25 @@ ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 	switch (C->Format) { \
 	case ML_ARRAY_FORMAT_I64: { \
 		int64_t *Values = (int64_t *)C->Base.Value; \
-		for (int I = DataSize / sizeof(int64_t); --I >= 0; ++Values) *Values = *Values OP B; \
+		for (int I = DataSize / sizeof(int64_t); --I >= 0; ++Values) *Values = *Values NAME B; \
 		break; \
 	} \
 	case ML_ARRAY_FORMAT_U64: { \
 		uint64_t *Values = (uint64_t *)C->Base.Value; \
-		for (int I = DataSize / sizeof(uint64_t); --I >= 0; ++Values) *Values = *Values OP B; \
+		for (int I = DataSize / sizeof(uint64_t); --I >= 0; ++Values) *Values = *Values NAME B; \
 		break; \
 	} \
 	case ML_ARRAY_FORMAT_F32: { \
 		float *Values = (float *)C->Base.Value; \
-		for (int I = DataSize / sizeof(float); --I >= 0; ++Values) *Values = *Values OP B; \
+		for (int I = DataSize / sizeof(float); --I >= 0; ++Values) *Values = *Values NAME B; \
 		break; \
 	} \
 	case ML_ARRAY_FORMAT_F64: { \
 		double *Values = (double *)C->Base.Value; \
-		for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = *Values OP B; \
+		for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = *Values NAME B; \
 		break; \
 	} \
-	op_complex_array_integer(OP) \
+	op_complex_array_left(NAME) \
 	default: { \
 		return ml_error("TypeError", "Invalid types for array operation"); \
 	} \
@@ -3434,13 +3441,13 @@ ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
+ML_METHOD(#NAME, MLIntegerT, MLArrayT) { \
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where each :mini:`C/v := A OP B/v`.
+// Returns an array :mini:`C` where each :mini:`C/v := A NAME B/v`.
 //$= let A := array([[1, 2], [3, 4]])
-//$= 2 OP A
+//$= 2 NAME A
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
@@ -3452,25 +3459,25 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 	switch (C->Format) { \
 	case ML_ARRAY_FORMAT_I64: { \
 		int64_t *Values = (int64_t *)C->Base.Value; \
-		for (int I = DataSize / sizeof(int64_t); --I >= 0; ++Values) *Values = B OP *Values; \
+		for (int I = DataSize / sizeof(int64_t); --I >= 0; ++Values) *Values = B NAME *Values; \
 		break; \
 	} \
 	case ML_ARRAY_FORMAT_U64: { \
 		uint64_t *Values = (uint64_t *)C->Base.Value; \
-		for (int I = DataSize / sizeof(uint64_t); --I >= 0; ++Values) *Values = B OP *Values; \
+		for (int I = DataSize / sizeof(uint64_t); --I >= 0; ++Values) *Values = B NAME *Values; \
 		break; \
 	} \
 	case ML_ARRAY_FORMAT_F32: { \
 		float *Values = (float *)C->Base.Value; \
-		for (int I = DataSize / sizeof(float); --I >= 0; ++Values) *Values = B OP *Values; \
+		for (int I = DataSize / sizeof(float); --I >= 0; ++Values) *Values = B NAME *Values; \
 		break; \
 	} \
 	case ML_ARRAY_FORMAT_F64: { \
 		double *Values = (double *)C->Base.Value; \
-		for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = B OP *Values; \
+		for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = B NAME *Values; \
 		break; \
 	} \
-	op_complex_integer_array(OP) \
+	op_complex_array_right(NAME) \
 	default: { \
 		return ml_error("TypeError", "Invalid types for array operation"); \
 	} \
@@ -3478,13 +3485,13 @@ ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLArrayT, MLRealT) { \
+ML_METHOD(#NAME, MLArrayT, MLRealT) { \
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where each :mini:`C/v := A/v OP B`.
+// Returns an array :mini:`C` where each :mini:`C/v := A/v NAME B`.
 //$= let A := array([[1, 2], [3, 4]])
-//$= A OP 2.5
+//$= A NAME 2.5
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
@@ -3496,10 +3503,10 @@ ML_METHOD(#OP, MLArrayT, MLRealT) { \
 	switch (C->Format) { \
 	case ML_ARRAY_FORMAT_F64: { \
 		double *Values = (double *)C->Base.Value; \
-		for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = *Values OP B; \
+		for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = *Values NAME B; \
 		break; \
 	} \
-	op_complex_array_integer(OP) \
+	op_complex_array_left(NAME) \
 	default: { \
 		return ml_error("TypeError", "Invalid types for array operation"); \
 	} \
@@ -3507,13 +3514,13 @@ ML_METHOD(#OP, MLArrayT, MLRealT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLRealT, MLArrayT) { \
+ML_METHOD(#NAME, MLRealT, MLArrayT) { \
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where each :mini:`C/v := A OP B/v`.
+// Returns an array :mini:`C` where each :mini:`C/v := A NAME B/v`.
 //$= let A := array([[1, 2], [3, 4]])
-//$= 2.5 OP A
+//$= 2.5 NAME A
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
@@ -3525,10 +3532,10 @@ ML_METHOD(#OP, MLRealT, MLArrayT) { \
 	switch (C->Format) { \
 	case ML_ARRAY_FORMAT_F64: { \
 		double *Values = (double *)C->Base.Value; \
-		for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = B OP *Values; \
+		for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = B NAME *Values; \
 		break; \
 	} \
-	op_complex_integer_array(OP) \
+	op_complex_array_right(NAME) \
 	default: { \
 		return ml_error("TypeError", "Invalid types for array operation"); \
 	} \
@@ -3538,16 +3545,16 @@ ML_METHOD(#OP, MLRealT, MLArrayT) { \
 
 #ifdef ML_COMPLEX
 
-#define ML_ARITH_METHOD(OP, MIN_FORMAT) \
-ML_ARITH_METHOD_BASE(OP, MIN_FORMAT) \
+#define ML_ARITH_METHOD(NAME, MIN_FORMAT) \
+ML_ARITH_METHOD_BASE(NAME, MIN_FORMAT) \
 \
-ML_METHOD(#OP, MLArrayT, MLComplexT) { \
+ML_METHOD(#NAME, MLArrayT, MLComplexT) { \
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where each :mini:`C/v := A/v OP B`.
+// Returns an array :mini:`C` where each :mini:`C/v := A/v NAME B`.
 //$= let A := array([[1, 2], [3, 4]])
-//$= A OP (1 + 1i)
+//$= A NAME (1 + 1i)
 */ \
 	ml_array_t *A = (ml_array_t *)Args[0]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
@@ -3557,17 +3564,17 @@ ML_METHOD(#OP, MLArrayT, MLComplexT) { \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_C64, Degree); \
 	int DataSize = array_copy(C, A); \
 	complex_double *Values = (complex_double *)C->Base.Value; \
-	for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = *Values OP B; \
+	for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = *Values NAME B; \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLComplexT, MLArrayT) { \
+ML_METHOD(#NAME, MLComplexT, MLArrayT) { \
 /*<A
 //<B
 //>array
-// Returns an array :mini:`C` where each :mini:`C/v := A OP B/v`.
+// Returns an array :mini:`C` where each :mini:`C/v := A NAME B/v`.
 //$= let A := array([[1, 2], [3, 4]])
-//$= (1 + 1i) OP A
+//$= (1 + 1i) NAME A
 */ \
 	ml_array_t *A = (ml_array_t *)Args[1]; \
 	if (A->Degree == -1) return (ml_value_t *)A; \
@@ -3577,7 +3584,7 @@ ML_METHOD(#OP, MLComplexT, MLArrayT) { \
 	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_C64, Degree); \
 	int DataSize = array_copy(C, A); \
 	complex_double *Values = (complex_double *)C->Base.Value; \
-	for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = B OP *Values; \
+	for (int I = DataSize / sizeof(complex_double); --I >= 0; ++Values) *Values = B NAME *Values; \
 	return (ml_value_t *)C; \
 }
 
@@ -3592,6 +3599,137 @@ ML_ARITH_METHOD(+, ML_ARRAY_FORMAT_I64);
 ML_ARITH_METHOD(*, ML_ARRAY_FORMAT_I64);
 ML_ARITH_METHOD(-, ML_ARRAY_FORMAT_I64);
 ML_ARITH_METHOD(/, ML_ARRAY_FORMAT_F64);
+
+#define ML_ARITH_METHOD_BITWISE(NAME, SYMBOL, OP) \
+\
+ML_METHOD(#NAME, MLArrayT, MLIntegerT) { \
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where each :mini:`C/v := A/v bitwise OP B`.
+//$= let A := array([[1, 2], [3, 4]])
+//$= A NAME 2
+*/ \
+	ml_array_t *A = (ml_array_t *)Args[0]; \
+	if (A->Degree == -1) return (ml_value_t *)A; \
+	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
+	int64_t B = ml_integer_value_fast(Args[1]); \
+	int Degree = A->Degree; \
+	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I64, Degree); \
+	int DataSize = array_copy(C, A); \
+	int64_t *Values = (int64_t *)C->Base.Value; \
+	for (int I = DataSize / sizeof(int64_t); --I >= 0; ++Values) *Values = *Values SYMBOL B; \
+	return (ml_value_t *)C; \
+} \
+\
+ML_METHOD(#NAME, MLIntegerT, MLArrayT) { \
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where each :mini:`C/v := A bitwise OP B/v`.
+//$= let A := array([[1, 2], [3, 4]])
+//$= 2 NAME A
+*/ \
+	ml_array_t *A = (ml_array_t *)Args[1]; \
+	if (A->Degree == -1) return (ml_value_t *)A; \
+	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
+	int64_t B = ml_integer_value_fast(Args[0]); \
+	int Degree = A->Degree; \
+	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I64, Degree); \
+	int DataSize = array_copy(C, A); \
+	int64_t *Values = (int64_t *)C->Base.Value; \
+	for (int I = DataSize / sizeof(int64_t); --I >= 0; ++Values) *Values = B SYMBOL *Values; \
+	return (ml_value_t *)C; \
+}
+
+ML_ARITH_METHOD_BITWISE(/\\, &, and)
+ML_ARITH_METHOD_BITWISE(\\/, |, or)
+ML_ARITH_METHOD_BITWISE(><, ^, xor)
+
+#define ML_ARITH_METHOD_MINMAX(NAME, FN) \
+\
+ML_METHOD(#NAME, MLArrayT, MLIntegerT) { \
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where each :mini:`C/v := NAME(A/v, B)`.
+//$= let A := array([[1, 2], [3, 4]])
+//$= A NAME 2
+*/ \
+	ml_array_t *A = (ml_array_t *)Args[0]; \
+	if (A->Degree == -1) return (ml_value_t *)A; \
+	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
+	int64_t B = ml_integer_value_fast(Args[1]); \
+	int Degree = A->Degree; \
+	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I64, Degree); \
+	int DataSize = array_copy(C, A); \
+	int64_t *Values = (int64_t *)C->Base.Value; \
+	for (int I = DataSize / sizeof(int64_t); --I >= 0; ++Values) *Values = FN(*Values, B); \
+	return (ml_value_t *)C; \
+} \
+\
+ML_METHOD(#NAME, MLIntegerT, MLArrayT) { \
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where each :mini:`C/v := NAME(A, B/v)`.
+//$= let A := array([[1, 2], [3, 4]])
+//$= 2 NAME A
+*/ \
+	ml_array_t *A = (ml_array_t *)Args[1]; \
+	if (A->Degree == -1) return (ml_value_t *)A; \
+	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
+	int64_t B = ml_integer_value_fast(Args[0]); \
+	int Degree = A->Degree; \
+	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_I64, Degree); \
+	int DataSize = array_copy(C, A); \
+	int64_t *Values = (int64_t *)C->Base.Value; \
+	for (int I = DataSize / sizeof(int64_t); --I >= 0; ++Values) *Values = FN(B, *Values); \
+	return (ml_value_t *)C; \
+} \
+\
+ML_METHOD(#NAME, MLArrayT, MLRealT) { \
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where each :mini:`C/v := NAME(A/v, B)`.
+//$= let A := array([[1, 2], [3, 4]])
+//$= A NAME 2.5
+*/ \
+	ml_array_t *A = (ml_array_t *)Args[0]; \
+	if (A->Degree == -1) return (ml_value_t *)A; \
+	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
+	double B = ml_real_value(Args[1]); \
+	int Degree = A->Degree; \
+	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_F64, Degree); \
+	int DataSize = array_copy(C, A); \
+	double *Values = (double *)C->Base.Value; \
+	for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = FN(*Values, B); \
+	return (ml_value_t *)C; \
+} \
+\
+ML_METHOD(#NAME, MLRealT, MLArrayT) { \
+/*<A
+//<B
+//>array
+// Returns an array :mini:`C` where each :mini:`C/v := NAME(A, B/v)`.
+//$= let A := array([[1, 2], [3, 4]])
+//$= 2.5 NAME A
+*/ \
+	ml_array_t *A = (ml_array_t *)Args[1]; \
+	if (A->Degree == -1) return (ml_value_t *)A; \
+	if (A->Format == ML_ARRAY_FORMAT_ANY) return ml_error("TypeError", "Invalid types for array operation"); \
+	int64_t B = ml_real_value(Args[0]); \
+	int Degree = A->Degree; \
+	ml_array_t *C = ml_array_alloc(ML_ARRAY_FORMAT_F64, Degree); \
+	int DataSize = array_copy(C, A); \
+	double *Values = (double *)C->Base.Value; \
+	for (int I = DataSize / sizeof(double); --I >= 0; ++Values) *Values = FN(B, *Values); \
+	return (ml_value_t *)C; \
+}
+
+ML_ARITH_METHOD_MINMAX(min, MIN)
+ML_ARITH_METHOD_MINMAX(max, MAX)
 
 #ifdef ML_COMPLEX
 
@@ -6098,6 +6236,8 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_method_by_name("/\\", UpdateAndRowFns, array_infix_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("\\/", UpdateOrRowFns, array_infix_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("><", UpdateXorRowFns, array_infix_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("min", UpdateMinRowFns, array_infix_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("max", UpdateMaxRowFns, array_infix_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("=", CompareEqRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("!=", CompareNeRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("<", CompareLtRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
