@@ -3491,7 +3491,7 @@ INFIX_METHOD(max)
 
 #else
 
-#define op_complex_array_let(NAME)
+#define op_complex_array_left(NAME)
 #define op_complex_array_right(NAME)
 
 #endif
@@ -3691,8 +3691,8 @@ ML_METHOD(#NAME, MLComplexT, MLArrayT) { \
 
 #else
 
-#define ML_ARITH_METHOD(BASE, MIN_FORMAT) \
-ML_ARITH_METHOD_BASE(BASE, MIN_FORMAT)
+#define ML_ARITH_METHOD(NAME, MIN_FORMAT) \
+ML_ARITH_METHOD_BASE(NAME, MIN_FORMAT)
 
 #endif
 
