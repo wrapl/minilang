@@ -2202,21 +2202,21 @@ static void fill_prods_ ## CTYPE2(int TargetDegree, ml_array_dimension_t *Target
 	} \
 }
 
-#define MINMAX_FUNCTIONS(CTYPE1, MINVAL, MAXVAL) \
+#define MINMAX_FUNCTIONS(CTYPE, MINVAL, MAXVAL) \
 \
-static CTYPE1 compute_mins_ ## CTYPE1(int Degree, ml_array_dimension_t *Dimension, void *Address) { \
-	CTYPE1 Min = MAXVAL; \
+static CTYPE compute_mins_ ## CTYPE(int Degree, ml_array_dimension_t *Dimension, void *Address) { \
+	CTYPE Min = MAXVAL; \
 	if (Degree > 1) { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
 			int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
-				CTYPE1 Min2 = compute_mins_ ## CTYPE1(Degree - 1, Dimension + 1, Address + Indices[I] * Stride); \
+				CTYPE Min2 = compute_mins_ ## CTYPE(Degree - 1, Dimension + 1, Address + Indices[I] * Stride); \
 				if (Min2 < Min) Min = Min2; \
 			} \
 		} else { \
 			for (int I = 0; I < Dimension->Size; ++I) { \
-				CTYPE1 Min2 = compute_mins_ ## CTYPE1(Degree - 1, Dimension + 1, Address); \
+				CTYPE Min2 = compute_mins_ ## CTYPE(Degree - 1, Dimension + 1, Address); \
 				if (Min2 < Min) Min = Min2; \
 				Address += Stride; \
 			} \
@@ -2226,12 +2226,12 @@ static CTYPE1 compute_mins_ ## CTYPE1(int Degree, ml_array_dimension_t *Dimensio
 		if (Dimension->Indices) { \
 			int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
-				CTYPE1 Min2 = *(CTYPE1 *)(Address + Indices[I] * Stride); \
+				CTYPE Min2 = *(CTYPE *)(Address + Indices[I] * Stride); \
 				if (Min2 < Min) Min = Min2; \
 			} \
 		} else { \
 			for (int I = 0; I < Dimension->Size; ++I) { \
-				CTYPE1 Min2 = *(CTYPE1 *)Address; \
+				CTYPE Min2 = *(CTYPE *)Address; \
 				if (Min2 < Min) Min = Min2; \
 				Address += Stride; \
 			} \
@@ -2240,21 +2240,21 @@ static CTYPE1 compute_mins_ ## CTYPE1(int Degree, ml_array_dimension_t *Dimensio
 	return Min; \
 } \
 \
-static void fill_mins_ ## CTYPE1(int TargetDegree, ml_array_dimension_t *TargetDimension, void *TargetAddress, int SourceDegree, ml_array_dimension_t *SourceDimension, void *SourceAddress) { \
+static void fill_mins_ ## CTYPE(int TargetDegree, ml_array_dimension_t *TargetDimension, void *TargetAddress, int SourceDegree, ml_array_dimension_t *SourceDimension, void *SourceAddress) { \
 	if (TargetDegree == 0) { \
-		*(CTYPE1 *)TargetAddress = compute_mins_ ## CTYPE1(SourceDegree, SourceDimension, SourceAddress); \
+		*(CTYPE *)TargetAddress = compute_mins_ ## CTYPE(SourceDegree, SourceDimension, SourceAddress); \
 	} else { \
 		int TargetStride = TargetDimension->Stride; \
 		int SourceStride = SourceDimension->Stride; \
 		if (SourceDimension->Indices) { \
 			int *Indices = SourceDimension->Indices; \
 			for (int I = 0; I < SourceDimension->Size; ++I) { \
-				fill_mins_ ## CTYPE1(TargetDegree - 1, TargetDimension + 1, TargetAddress, SourceDegree - 1, SourceDimension + 1, SourceAddress + Indices[I] * SourceStride); \
+				fill_mins_ ## CTYPE(TargetDegree - 1, TargetDimension + 1, TargetAddress, SourceDegree - 1, SourceDimension + 1, SourceAddress + Indices[I] * SourceStride); \
 				TargetAddress += TargetStride; \
 			} \
 		} else { \
 			for (int I = 0; I < SourceDimension->Size; ++I) { \
-				fill_mins_ ## CTYPE1(TargetDegree - 1, TargetDimension + 1, TargetAddress, SourceDegree - 1, SourceDimension + 1, SourceAddress); \
+				fill_mins_ ## CTYPE(TargetDegree - 1, TargetDimension + 1, TargetAddress, SourceDegree - 1, SourceDimension + 1, SourceAddress); \
 				TargetAddress += TargetStride; \
 				SourceAddress += SourceStride; \
 			} \
@@ -2262,19 +2262,76 @@ static void fill_mins_ ## CTYPE1(int TargetDegree, ml_array_dimension_t *TargetD
 	} \
 } \
 \
-static CTYPE1 compute_maxs_ ## CTYPE1(int Degree, ml_array_dimension_t *Dimension, void *Address) { \
-	CTYPE1 Max = MINVAL; \
+static double find_mins_ ## CTYPE(int *Target, int Degree, ml_array_dimension_t *Dimension, void *Address, CTYPE Min) { \
 	if (Degree > 1) { \
 		int Stride = Dimension->Stride; \
 		if (Dimension->Indices) { \
 			int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
-				CTYPE1 Max2 = compute_mins_ ## CTYPE1(Degree - 1, Dimension + 1, Address + Indices[I] * Stride); \
+				CTYPE Min2 = find_mins_ ## CTYPE(Target + 1, Degree - 1, Dimension + 1, Address + Indices[I] * Stride, Min); \
+				if (Min2 < Min) { Min = Min2; *Target = I + 1; } \
+			} \
+		} else { \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				CTYPE Min2 = find_mins_ ## CTYPE(Target + 1, Degree - 1, Dimension + 1, Address, Min); \
+				if (Min2 < Min) { Min = Min2; *Target = I + 1; } \
+				Address += Stride; \
+			} \
+		} \
+	} else { \
+		int Stride = Dimension->Stride; \
+		if (Dimension->Indices) { \
+			int *Indices = Dimension->Indices; \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				CTYPE Min2 = *(CTYPE *)(Address + Indices[I] * Stride); \
+				if (Min2 < Min) { Min = Min2; *Target = I + 1; } \
+			} \
+		} else { \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				CTYPE Min2 = *(CTYPE *)Address; \
+				if (Min2 < Min) { Min = Min2; *Target = I + 1; } \
+				Address += Stride; \
+			} \
+		} \
+	} \
+	return Min; \
+} \
+\
+static void index_mins_ ## CTYPE(int TargetDegree, ml_array_dimension_t *TargetDimension, void *TargetAddress, int SourceDegree, ml_array_dimension_t *SourceDimension, void *SourceAddress) { \
+	if (TargetDegree == 1) { \
+		find_mins_ ## CTYPE((int *)TargetAddress, SourceDegree, SourceDimension, SourceAddress, MAXVAL); \
+	} else { \
+		int TargetStride = TargetDimension->Stride; \
+		int SourceStride = SourceDimension->Stride; \
+		if (SourceDimension->Indices) { \
+			int *Indices = SourceDimension->Indices; \
+			for (int I = 0; I < SourceDimension->Size; ++I) { \
+				index_mins_ ## CTYPE(TargetDegree - 1, TargetDimension + 1, TargetAddress, SourceDegree - 1, SourceDimension + 1, SourceAddress + Indices[I] * SourceStride); \
+				TargetAddress += TargetStride; \
+			} \
+		} else { \
+			for (int I = 0; I < SourceDimension->Size; ++I) { \
+				index_mins_ ## CTYPE(TargetDegree - 1, TargetDimension + 1, TargetAddress, SourceDegree - 1, SourceDimension + 1, SourceAddress); \
+				TargetAddress += TargetStride; \
+				SourceAddress += SourceStride; \
+			} \
+		} \
+	} \
+} \
+\
+static CTYPE compute_maxs_ ## CTYPE(int Degree, ml_array_dimension_t *Dimension, void *Address) { \
+	CTYPE Max = MINVAL; \
+	if (Degree > 1) { \
+		int Stride = Dimension->Stride; \
+		if (Dimension->Indices) { \
+			int *Indices = Dimension->Indices; \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				CTYPE Max2 = compute_mins_ ## CTYPE(Degree - 1, Dimension + 1, Address + Indices[I] * Stride); \
 				if (Max2 > Max) Max = Max2; \
 			} \
 		} else { \
 			for (int I = 0; I < Dimension->Size; ++I) { \
-				CTYPE1 Max2 = compute_mins_ ## CTYPE1(Degree - 1, Dimension + 1, Address); \
+				CTYPE Max2 = compute_mins_ ## CTYPE(Degree - 1, Dimension + 1, Address); \
 				if (Max2 > Max) Max = Max2; \
 				Address += Stride; \
 			} \
@@ -2284,12 +2341,12 @@ static CTYPE1 compute_maxs_ ## CTYPE1(int Degree, ml_array_dimension_t *Dimensio
 		if (Dimension->Indices) { \
 			int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
-				CTYPE1 Max2 = *(CTYPE1 *)(Address + Indices[I] * Stride); \
+				CTYPE Max2 = *(CTYPE *)(Address + Indices[I] * Stride); \
 				if (Max2 > Max) Max = Max2; \
 			} \
 		} else { \
 			for (int I = 0; I < Dimension->Size; ++I) { \
-				CTYPE1 Max2 = *(CTYPE1 *)Address; \
+				CTYPE Max2 = *(CTYPE *)Address; \
 				if (Max2 > Max) Max = Max2; \
 				Address += Stride; \
 			} \
@@ -2298,28 +2355,84 @@ static CTYPE1 compute_maxs_ ## CTYPE1(int Degree, ml_array_dimension_t *Dimensio
 	return Max; \
 } \
 \
-static void fill_maxs_ ## CTYPE1(int TargetDegree, ml_array_dimension_t *TargetDimension, void *TargetAddress, int SourceDegree, ml_array_dimension_t *SourceDimension, void *SourceAddress) { \
+static void fill_maxs_ ## CTYPE(int TargetDegree, ml_array_dimension_t *TargetDimension, void *TargetAddress, int SourceDegree, ml_array_dimension_t *SourceDimension, void *SourceAddress) { \
 	if (TargetDegree == 0) { \
-		*(CTYPE1 *)TargetAddress = compute_maxs_ ## CTYPE1(SourceDegree, SourceDimension, SourceAddress); \
+		*(CTYPE *)TargetAddress = compute_maxs_ ## CTYPE(SourceDegree, SourceDimension, SourceAddress); \
 	} else { \
 		int TargetStride = TargetDimension->Stride; \
 		int SourceStride = SourceDimension->Stride; \
 		if (SourceDimension->Indices) { \
 			int *Indices = SourceDimension->Indices; \
 			for (int I = 0; I < SourceDimension->Size; ++I) { \
-				fill_maxs_ ## CTYPE1(TargetDegree - 1, TargetDimension + 1, TargetAddress, SourceDegree - 1, SourceDimension + 1, SourceAddress + Indices[I] * SourceStride); \
+				fill_maxs_ ## CTYPE(TargetDegree - 1, TargetDimension + 1, TargetAddress, SourceDegree - 1, SourceDimension + 1, SourceAddress + Indices[I] * SourceStride); \
 				TargetAddress += TargetStride; \
 			} \
 		} else { \
 			for (int I = 0; I < SourceDimension->Size; ++I) { \
-				fill_maxs_ ## CTYPE1(TargetDegree - 1, TargetDimension + 1, TargetAddress, SourceDegree - 1, SourceDimension + 1, SourceAddress); \
+				fill_maxs_ ## CTYPE(TargetDegree - 1, TargetDimension + 1, TargetAddress, SourceDegree - 1, SourceDimension + 1, SourceAddress); \
+				TargetAddress += TargetStride; \
+				SourceAddress += SourceStride; \
+			} \
+		} \
+	} \
+} \
+\
+static double find_maxs_ ## CTYPE(int *Target, int Degree, ml_array_dimension_t *Dimension, void *Address, CTYPE Max) { \
+	if (Degree > 1) { \
+		int Stride = Dimension->Stride; \
+		if (Dimension->Indices) { \
+			int *Indices = Dimension->Indices; \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				CTYPE Max2 = find_maxs_ ## CTYPE(Target + 1, Degree - 1, Dimension + 1, Address + Indices[I] * Stride, Max); \
+				if (Max2 > Max) { Max = Max2; *Target = I + 1; } \
+			} \
+		} else { \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				CTYPE Max2 = find_maxs_ ## CTYPE(Target + 1, Degree - 1, Dimension + 1, Address, Max); \
+				if (Max2 > Max) { Max = Max2; *Target = I + 1; } \
+				Address += Stride; \
+			} \
+		} \
+	} else { \
+		int Stride = Dimension->Stride; \
+		if (Dimension->Indices) { \
+			int *Indices = Dimension->Indices; \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				CTYPE Max2 = *(CTYPE *)(Address + Indices[I] * Stride); \
+				if (Max2 > Max) { Max = Max2; *Target = I + 1; } \
+			} \
+		} else { \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				CTYPE Max2 = *(CTYPE *)Address; \
+				if (Max2 > Max) { Max = Max2; *Target = I + 1; } \
+				Address += Stride; \
+			} \
+		} \
+	} \
+	return Max; \
+} \
+\
+static void index_maxs_ ## CTYPE(int TargetDegree, ml_array_dimension_t *TargetDimension, void *TargetAddress, int SourceDegree, ml_array_dimension_t *SourceDimension, void *SourceAddress) { \
+	if (TargetDegree == 1) { \
+		find_maxs_ ## CTYPE((int *)TargetAddress, SourceDegree, SourceDimension, SourceAddress, MINVAL); \
+	} else { \
+		int TargetStride = TargetDimension->Stride; \
+		int SourceStride = SourceDimension->Stride; \
+		if (SourceDimension->Indices) { \
+			int *Indices = SourceDimension->Indices; \
+			for (int I = 0; I < SourceDimension->Size; ++I) { \
+				index_maxs_ ## CTYPE(TargetDegree - 1, TargetDimension + 1, TargetAddress, SourceDegree - 1, SourceDimension + 1, SourceAddress + Indices[I] * SourceStride); \
+				TargetAddress += TargetStride; \
+			} \
+		} else { \
+			for (int I = 0; I < SourceDimension->Size; ++I) { \
+				index_maxs_ ## CTYPE(TargetDegree - 1, TargetDimension + 1, TargetAddress, SourceDegree - 1, SourceDimension + 1, SourceAddress); \
 				TargetAddress += TargetStride; \
 				SourceAddress += SourceStride; \
 			} \
 		} \
 	} \
 }
-
 
 PARTIAL_FUNCTIONS(int64_t);
 PARTIAL_FUNCTIONS(uint64_t);
@@ -3048,6 +3161,117 @@ ML_METHOD("minval", MLArrayT, MLIntegerT) {
 	return (ml_value_t *)Target;
 }
 
+ML_METHOD("minidx", MLArrayT) {
+//<Array
+//<Count
+//>array
+// Returns a new array with the indices of minimums of :mini:`Array` in the last :mini:`Count` dimensions.
+//$= let A := array::int64([2, 2, 3];) integer::random(100)
+//$= A:minidx
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	ml_array_t *Target = ml_array_alloc(ML_ARRAY_FORMAT_I32, 1);
+	int DataSize = MLArraySizes[Target->Format];
+	Target->Dimensions[Target->Degree - 1].Stride = DataSize;
+	Target->Dimensions[Target->Degree - 1].Size = Source->Degree;
+	Target->Base.Value = snew(DataSize);
+	switch (Source->Format) {
+	case ML_ARRAY_FORMAT_I8:
+		find_mins_int8_t((int *)Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value, INT8_MAX);
+		break;
+	case ML_ARRAY_FORMAT_U8:
+		find_mins_uint8_t((int *)Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value, UINT8_MAX);
+		break;
+	case ML_ARRAY_FORMAT_I16:
+		find_mins_int16_t((int *)Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value, INT16_MAX);
+		break;
+	case ML_ARRAY_FORMAT_U16:
+		find_mins_uint16_t((int *)Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value, UINT16_MAX);
+		break;
+	case ML_ARRAY_FORMAT_I32:
+		find_mins_int32_t((int *)Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value, INT32_MAX);
+		break;
+	case ML_ARRAY_FORMAT_U32:
+		find_mins_uint32_t((int *)Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value, UINT32_MAX);
+		break;
+	case ML_ARRAY_FORMAT_I64:
+		find_mins_int64_t((int *)Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value, INT64_MAX);
+		break;
+	case ML_ARRAY_FORMAT_U64:
+		find_mins_uint64_t((int *)Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value, UINT64_MAX);
+		break;
+	case ML_ARRAY_FORMAT_F32:
+		find_mins_float((int *)Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value, FLT_MAX);
+		break;
+	case ML_ARRAY_FORMAT_F64:
+		find_mins_double((int *)Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value, DBL_MAX);
+		break;
+	default:
+		return ml_error("ArrayError", "Invalid array format");
+	}
+	return (ml_value_t *)Target;
+}
+
+ML_METHOD("minidx", MLArrayT, MLIntegerT) {
+//<Array
+//<Count
+//>array
+// Returns a new array with the indices of minimums of :mini:`Array` in the last :mini:`Count` dimensions.
+//$= let A := array::int64([2, 2, 3];) integer::random(100)
+//$= A:minidx(1)
+//$= A:minidx(2)
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	int SumDegree = ml_integer_value(Args[1]);
+	if (SumDegree <= 0 || SumDegree >= Source->Degree) return ml_error("RangeError", "Invalid axes count for min");
+	void (*index_mins)(int, ml_array_dimension_t *, void *, int, ml_array_dimension_t *, void *);
+	switch (Source->Format) {
+	case ML_ARRAY_FORMAT_I8:
+		index_mins = index_mins_int8_t;
+		break;
+	case ML_ARRAY_FORMAT_U8:
+		index_mins = index_mins_uint8_t;
+		break;
+	case ML_ARRAY_FORMAT_I16:
+		index_mins = index_mins_int16_t;
+		break;
+	case ML_ARRAY_FORMAT_U16:
+		index_mins = index_mins_uint16_t;
+		break;
+	case ML_ARRAY_FORMAT_I32:
+		index_mins = index_mins_int32_t;
+		break;
+	case ML_ARRAY_FORMAT_U32:
+		index_mins = index_mins_uint32_t;
+		break;
+	case ML_ARRAY_FORMAT_I64:
+		index_mins = index_mins_int64_t;
+		break;
+	case ML_ARRAY_FORMAT_U64:
+		index_mins = index_mins_uint64_t;
+		break;
+	case ML_ARRAY_FORMAT_F32:
+		index_mins = index_mins_float;
+		break;
+	case ML_ARRAY_FORMAT_F64:
+		index_mins = index_mins_double;
+		break;
+	default:
+		return ml_error("ArrayError", "Invalid array format");
+	}
+	ml_array_t *Target = ml_array_alloc(ML_ARRAY_FORMAT_I32, (Source->Degree - SumDegree) + 1);
+	int DataSize = MLArraySizes[Target->Format];
+	Target->Dimensions[Target->Degree - 1].Stride = DataSize;
+	Target->Dimensions[Target->Degree - 1].Size = SumDegree;
+	DataSize *= SumDegree;
+	for (int I = Target->Degree - 1; --I >= 0;) {
+		Target->Dimensions[I].Stride = DataSize;
+		int Size = Target->Dimensions[I].Size = Source->Dimensions[I].Size;
+		DataSize *= Size;
+	}
+	Target->Base.Value = snew(DataSize);
+	index_mins(Target->Degree, Target->Dimensions, Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value);
+	return (ml_value_t *)Target;
+}
+
 ML_METHOD("maxval", MLArrayT) {
 //<Array
 //>number
@@ -3136,6 +3360,117 @@ ML_METHOD("maxval", MLArrayT, MLIntegerT) {
 	}
 	Target->Base.Value = snew(DataSize);
 	fill_maxs(Target->Degree, Target->Dimensions, Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value);
+	return (ml_value_t *)Target;
+}
+
+ML_METHOD("maxidx", MLArrayT) {
+//<Array
+//<Count
+//>array
+// Returns a new array with the indices of maximums of :mini:`Array` in the last :mini:`Count` dimensions.
+//$= let A := array::int64([2, 2, 3];) integer::random(100)
+//$= A:maxidx
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	ml_array_t *Target = ml_array_alloc(ML_ARRAY_FORMAT_I32, 1);
+	int DataSize = MLArraySizes[Target->Format];
+	Target->Dimensions[Target->Degree - 1].Stride = DataSize;
+	Target->Dimensions[Target->Degree - 1].Size = Source->Degree;
+	Target->Base.Value = snew(DataSize);
+	switch (Source->Format) {
+	case ML_ARRAY_FORMAT_I8:
+		find_maxs_int8_t((int *)Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value, INT8_MIN);
+		break;
+	case ML_ARRAY_FORMAT_U8:
+		find_maxs_uint8_t((int *)Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value, 0);
+		break;
+	case ML_ARRAY_FORMAT_I16:
+		find_maxs_int16_t((int *)Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value, INT16_MIN);
+		break;
+	case ML_ARRAY_FORMAT_U16:
+		find_maxs_uint16_t((int *)Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value, 0);
+		break;
+	case ML_ARRAY_FORMAT_I32:
+		find_maxs_int32_t((int *)Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value, INT32_MIN);
+		break;
+	case ML_ARRAY_FORMAT_U32:
+		find_maxs_uint32_t((int *)Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value, 0);
+		break;
+	case ML_ARRAY_FORMAT_I64:
+		find_maxs_int64_t((int *)Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value, INT64_MIN);
+		break;
+	case ML_ARRAY_FORMAT_U64:
+		find_maxs_uint64_t((int *)Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value, 0);
+		break;
+	case ML_ARRAY_FORMAT_F32:
+		find_maxs_float((int *)Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value, FLT_MIN);
+		break;
+	case ML_ARRAY_FORMAT_F64:
+		find_maxs_double((int *)Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value, DBL_MIN);
+		break;
+	default:
+		return ml_error("ArrayError", "Invalid array format");
+	}
+	return (ml_value_t *)Target;
+}
+
+ML_METHOD("maxidx", MLArrayT, MLIntegerT) {
+//<Array
+//<Count
+//>array
+// Returns a new array with the indices of maximums of :mini:`Array` in the last :mini:`Count` dimensions.
+//$= let A := array::int64([2, 2, 3];) integer::random(100)
+//$= A:maxidx(1)
+//$= A:maxidx(2)
+	ml_array_t *Source = (ml_array_t *)Args[0];
+	int SumDegree = ml_integer_value(Args[1]);
+	if (SumDegree <= 0 || SumDegree >= Source->Degree) return ml_error("RangeError", "Invalid axes count for max");
+	void (*index_maxs)(int, ml_array_dimension_t *, void *, int, ml_array_dimension_t *, void *);
+	switch (Source->Format) {
+	case ML_ARRAY_FORMAT_I8:
+		index_maxs = index_maxs_int8_t;
+		break;
+	case ML_ARRAY_FORMAT_U8:
+		index_maxs = index_maxs_uint8_t;
+		break;
+	case ML_ARRAY_FORMAT_I16:
+		index_maxs = index_maxs_int16_t;
+		break;
+	case ML_ARRAY_FORMAT_U16:
+		index_maxs = index_maxs_uint16_t;
+		break;
+	case ML_ARRAY_FORMAT_I32:
+		index_maxs = index_maxs_int32_t;
+		break;
+	case ML_ARRAY_FORMAT_U32:
+		index_maxs = index_maxs_uint32_t;
+		break;
+	case ML_ARRAY_FORMAT_I64:
+		index_maxs = index_maxs_int64_t;
+		break;
+	case ML_ARRAY_FORMAT_U64:
+		index_maxs = index_maxs_uint64_t;
+		break;
+	case ML_ARRAY_FORMAT_F32:
+		index_maxs = index_maxs_float;
+		break;
+	case ML_ARRAY_FORMAT_F64:
+		index_maxs = index_maxs_double;
+		break;
+	default:
+		return ml_error("ArrayError", "Invalid array format");
+	}
+	ml_array_t *Target = ml_array_alloc(ML_ARRAY_FORMAT_I32, (Source->Degree - SumDegree) + 1);
+	int DataSize = MLArraySizes[Target->Format];
+	Target->Dimensions[Target->Degree - 1].Stride = DataSize;
+	Target->Dimensions[Target->Degree - 1].Size = SumDegree;
+	DataSize *= SumDegree;
+	for (int I = Target->Degree - 1; --I >= 0;) {
+		Target->Dimensions[I].Stride = DataSize;
+		int Size = Target->Dimensions[I].Size = Source->Dimensions[I].Size;
+		DataSize *= Size;
+	}
+	Target->Base.Value = snew(DataSize);
+	index_maxs(Target->Degree, Target->Dimensions, Target->Base.Value, Source->Degree, Source->Dimensions, Source->Base.Value);
 	return (ml_value_t *)Target;
 }
 

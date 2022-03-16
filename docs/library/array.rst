@@ -364,6 +364,25 @@ array
       A max 2.5 :> <<2.5 2.5> <3 4>>
 
 
+:mini:`meth (Array: array):maxidx(Count: any): array`
+   Returns a new array with the indices of maximums of :mini:`Array` in the last :mini:`Count` dimensions.
+
+   .. code-block:: mini
+
+      let A := array::int64([2, 2, 3];) integer::random(100) :> <<<52 6 96> <3 100 6>> <<87 76 61> <75 3 53>>>
+      A:maxidx :> <1 2 2>
+
+
+:mini:`meth (Array: array):maxidx(Count: integer): array`
+   Returns a new array with the indices of maximums of :mini:`Array` in the last :mini:`Count` dimensions.
+
+   .. code-block:: mini
+
+      let A := array::int64([2, 2, 3];) integer::random(100) :> <<<13 54 53> <46 99 63>> <<72 98 86> <62 90 84>>>
+      A:maxidx(1) :> <<<2> <2>> <<2> <2>>>
+      A:maxidx(2) :> <<2 2> <1 2>>
+
+
 :mini:`meth (Array: array):maxval: number`
    Returns the maximum of the values in :mini:`Array`.
 
@@ -418,6 +437,25 @@ array
 
       let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
       A min 2.5 :> <<1 2> <2.5 2.5>>
+
+
+:mini:`meth (Array: array):minidx(Count: any): array`
+   Returns a new array with the indices of minimums of :mini:`Array` in the last :mini:`Count` dimensions.
+
+   .. code-block:: mini
+
+      let A := array::int64([2, 2, 3];) integer::random(100) :> <<<76 56 88> <28 92 39>> <<51 1 34> <46 10 27>>>
+      A:minidx :> <2 1 2>
+
+
+:mini:`meth (Array: array):minidx(Count: integer): array`
+   Returns a new array with the indices of minimums of :mini:`Array` in the last :mini:`Count` dimensions.
+
+   .. code-block:: mini
+
+      let A := array::int64([2, 2, 3];) integer::random(100) :> <<<100 24 90> <92 98 41>> <<54 63 27> <72 78 61>>>
+      A:minidx(1) :> <<<2> <3>> <<3> <3>>>
+      A:minidx(2) :> <<1 2> <1 3>>
 
 
 :mini:`meth (Array: array):minval: number`
@@ -1382,8 +1420,8 @@ array
 
    .. code-block:: mini
 
-      let B := buffer(16) :> <16:C0CC6B521D7F000065722D3E4E657874>
-      array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2]) :> <<<52416 21099> <32541 0>> <<29285 15917> <25934 29816>>>
+      let B := buffer(16) :> <16:C04AF4D83F7F0000696C64203D204368>
+      array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2]) :> <<<19136 55540> <32575 0>> <<27753 8292> <8253 26691>>>
 
 
 .. _type-vector:
