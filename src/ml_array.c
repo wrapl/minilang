@@ -858,7 +858,7 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLListT, ml_value_t *Index, m
 				int IndexValue = ml_integer_value(Values[I]);
 				if (IndexValue <= 0) IndexValue += Source->Size + 1;
 				if (--IndexValue < 0) return (ml_value_t *)MLArrayNil;
-				if (IndexValue >= Indexer->Source->Size) return (ml_value_t *)MLArrayNil;
+				if (IndexValue >= Source->Size) return (ml_value_t *)MLArrayNil;
 				if (Source->Indices) IndexValue = Source->Indices[IndexValue];
 				Address += IndexValue * Source->Stride;
 				++Source;
@@ -898,11 +898,10 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLListT, ml_value_t *Index, m
 	return NULL;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLIntegerRangeT, ml_value_t *Index, ml_array_indexer_t *Indexer) {
-	ml_integer_range_t *IndexValue = (ml_integer_range_t *)Index;
-	int Min = IndexValue->Start;
-	int Max = IndexValue->Limit;
-	int Step = IndexValue->Step;
+static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLIntegerRangeT, ml_integer_range_t *Range, ml_array_indexer_t *Indexer) {
+	int Min = Range->Start;
+	int Max = Range->Limit;
+	int Step = Range->Step;
 	if (Min < 1) Min += Indexer->Source->Size + 1;
 	if (Max < 1) Max += Indexer->Source->Size + 1;
 	if (--Min < 0) return (ml_value_t *)MLArrayNil;
@@ -929,10 +928,10 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLIntegerRangeT, ml_value_t *
 	return NULL;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLTupleT, ml_value_t *Index, ml_array_indexer_t *Indexer) {
-	int Size = ((ml_tuple_t *)Index)->Size;
+static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLTupleT, ml_tuple_t *Tuple, ml_array_indexer_t *Indexer) {
+	int Size = Tuple->Size;
 	if (Indexer->Source + Size > Indexer->Limit) return ml_error("RangeError", "Too many indices");
-	ml_value_t **TupleValues = ((ml_tuple_t *)Index)->Values;
+	ml_value_t **TupleValues = Tuple->Values;
 	for (int I = 0; I < Size; ++I) {
 		if (!ml_is(TupleValues[I], MLIntegerT)) return ml_error("TypeError", "Expected integer in tuple index");
 		int IndexValue = ml_integer_value(TupleValues[I]);
@@ -1101,8 +1100,7 @@ static int *ml_array_offsets_nonzero(ml_array_t *A, int *Offsets, ml_array_dimen
 		}
 }
 
-static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayT, ml_value_t *Index, ml_array_indexer_t *Indexer) {
-	ml_array_t *Array = (ml_array_t *)Index;
+static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayInt8T, ml_array_t *Array, ml_array_indexer_t *Indexer) {
 	int Degree = Array->Degree;
 	if (Indexer->Source + Degree > Indexer->Limit) return ml_error("RangeError", "Too many indices");
 	for (int I = 0; I < Degree; ++I) {
@@ -1120,6 +1118,101 @@ static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayT, ml_value_t *Index, 
 	Indexer->Address += First;
 	++Indexer->Target;
 	Indexer->Source += Degree;
+	return NULL;
+}
+
+static int *ml_array_to_indices(int *Indices, int Degree, ml_array_dimension_t *TargetDimension, int Offset, ml_array_dimension_t *IndexDimension, void *IndexData) {
+	if (Degree == 0) {
+		if (IndexDimension->Indices) {
+			int *IndexIndices = IndexDimension->Indices;
+			for (int I = 0; I < IndexDimension->Size; ++I) {
+				int N = *(int32_t *)(IndexData + IndexIndices[I] * IndexDimension->Stride) - 1;
+				if (N < 0 || N >= TargetDimension[I].Size) return NULL;
+				Offset += N * TargetDimension[I].Stride;
+			}
+		} else {
+			for (int I = 0; I < IndexDimension->Size; ++I) {
+				int N = *(int32_t *)(IndexData + I * IndexDimension->Stride) - 1;
+				if (N < 0 || N >= TargetDimension[I].Size) return NULL;
+				Offset += N * TargetDimension[I].Stride;
+			}
+		}
+		*Indices++ = Offset;
+	} else {
+		if (IndexDimension->Indices) {
+			int *IndexIndices = IndexDimension->Indices;
+			if (TargetDimension->Indices) {
+				int *TargetIndices = TargetDimension->Indices;
+				for (int I = 0; I < IndexDimension->Size; ++I) {
+					Indices = ml_array_to_indices(Indices, Degree - 1,
+						TargetDimension + 1,
+						Offset + TargetIndices[I] * TargetDimension->Stride,
+						IndexDimension + 1,
+						IndexData +  IndexIndices[I] * IndexDimension->Stride
+					);
+					if (!Indices) return Indices;
+				}
+			} else {
+				for (int I = 0; I < IndexDimension->Size; ++I) {
+					Indices = ml_array_to_indices(Indices, Degree - 1,
+						TargetDimension + 1,
+						Offset + I * TargetDimension->Stride,
+						IndexDimension + 1,
+						IndexData +  IndexIndices[I] * IndexDimension->Stride
+					);
+					if (!Indices) return Indices;
+				}
+			}
+		} else {
+			if (TargetDimension->Indices) {
+				int *TargetIndices = TargetDimension->Indices;
+				for (int I = 0; I < IndexDimension->Size; ++I) {
+					Indices = ml_array_to_indices(Indices, Degree - 1,
+						TargetDimension + 1,
+						Offset + TargetIndices[I] * TargetDimension->Stride,
+						IndexDimension + 1,
+						IndexData +  I * IndexDimension->Stride
+					);
+					if (!Indices) return Indices;
+				}
+			} else {
+				for (int I = 0; I < IndexDimension->Size; ++I) {
+					Indices = ml_array_to_indices(Indices, Degree - 1,
+						TargetDimension + 1,
+						Offset + I * TargetDimension->Stride,
+						IndexDimension + 1,
+						IndexData +  I * IndexDimension->Stride
+					);
+					if (!Indices) return Indices;
+				}
+			}
+		}
+	}
+	return Indices;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayInt32T, ml_array_t *Array, ml_array_indexer_t *Indexer) {
+	int Degree = Array->Degree - 1;
+	int Total = Degree + Array->Dimensions[Degree].Size;
+	if (Indexer->Source + Total > Indexer->Limit) return ml_error("RangeError", "Too many indices");
+	int Count = 1;
+	for (int I = 0; I < Degree; ++I) {
+		if (Array->Dimensions[I].Size != Indexer->Source[I].Size) {
+			return ml_error("ShapeError", "Array sizes do not match");
+		}
+		Count *= Array->Dimensions[I].Size;
+	}
+	Indexer->Target->Size = Count;
+	int *Indices = Indexer->Target->Indices = (int *)snew(Count * sizeof(int));
+	if (!ml_array_to_indices(Indices, Degree, Indexer->Source, 0, Array->Dimensions, Array->Base.Value)) {
+		return ml_error("IndexError", "Index out of bounds");
+	}
+	int First = Indices[0];
+	for (int I = 0; I < Count; ++I) Indices[I] -= First;
+	Indexer->Target->Stride = 1;
+	Indexer->Address += First;
+	++Indexer->Target;
+	Indexer->Source += Total;
 	return NULL;
 }
 
@@ -1183,9 +1276,25 @@ ML_METHODV("[]", MLArrayT) {
 //
 // * If :mini:`Index/i` is a :mini:`list[tuple[integer, ...]]` then the appropriate dimensions are dropped and a single sparse dimension is added with the corresponding entries.
 //
-// * If :mini:`Index/i` is an :mini:`array` with dimensions that matches the corresponding dimensions of :mini:`A` then a sparse dimension is added with entries corresponding to the non-zero values in :mini:`Index/i` (i.e. :mini:`A[B]` is equivalent to :mini:`A[B:where]`).
+// * If :mini:`Index/i` is an :mini:`array::int8` with dimensions matching the corresponding dimensions of :mini:`A` then a sparse dimension is added with entries corresponding to the non-zero values in :mini:`Index/i` (i.e. :mini:`A[B]` is equivalent to :mini:`A[B:where]`).
+// * If :mini:`Index/i` is an :mini:`array::int32` with all but last dimensions matching the corresponding dimensions of :mini:`A` then a sparse dimension is added with entries corresponding indices in the last dimension of :mini:`Index/i`.
 //
 // If fewer than :mini:`A:degree` indices are provided then the remaining dimensions are copied unchanged.
+//$- let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
+//$= A[1]
+//$= A[1, 2]
+//$= A[1, 2, 3]
+//$= A[nil, 2]
+//$= A[.., 3]
+//$= A[.., 1 .. 2]
+//$= A[(1, 2, 3)]
+//$= A[[(1, 2, 3), (2, 1, 1)]]
+//$= let B := A > 10
+//$= type(B)
+//$= A[B]
+//$= let C := A:maxidx(2)
+//$= type(C)
+//$= A[C]
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	return ml_array_index(Source, Count - 1, Args + 1);
 }

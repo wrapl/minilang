@@ -842,9 +842,28 @@ array
    
    * If :mini:`Indexᵢ` is a :mini:`list[tuple[integer,  ...]]` then the appropriate dimensions are dropped and a single sparse dimension is added with the corresponding entries.
    
-   * If :mini:`Indexᵢ` is an :mini:`array` with dimensions that matches the corresponding dimensions of :mini:`A` then a sparse dimension is added with entries corresponding to the non-zero values in :mini:`Indexᵢ` (i.e. :mini:`A[B]` is equivalent to :mini:`A[B:where]`).
+   * If :mini:`Indexᵢ` is an :mini:`array::int8` with dimensions matching the corresponding dimensions of :mini:`A` then a sparse dimension is added with entries corresponding to the non-zero values in :mini:`Indexᵢ` (i.e. :mini:`A[B]` is equivalent to :mini:`A[B:where]`).
+   * If :mini:`Indexᵢ` is an :mini:`array::int32` with all but last dimensions matching the corresponding dimensions of :mini:`A` then a sparse dimension is added with entries corresponding indices in the last dimension of :mini:`Indexᵢ`.
    
    If fewer than :mini:`A:degree` indices are provided then the remaining dimensions are copied unchanged.
+
+   .. code-block:: mini
+
+      let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
+      A[1] :> <<19 16 12> <4 7 20>>
+      A[1, 2] :> <4 7 20>
+      A[1, 2, 3] :> 20
+      A[nil, 2] :> <<4 7 20> <20 9 20>>
+      A[.., 3] :> <<12 20> <8 20>>
+      A[.., 1 .. 2] :> <<<19 16> <4 7>> <<5 17> <20 9>>>
+      A[(1, 2, 3)] :> 20
+      A[[(1, 2, 3), (2, 1, 1)]] :> <20 5>
+      let B := A > 10 :> <<<1 1 1> <0 0 1>> <<0 1 0> <1 0 1>>>
+      type(B) :> <<array::int8>>
+      A[B] :> <19 16 12 20 17 20 20>
+      let C := A:maxidx(2) :> <<2 3> <2 1>>
+      type(C) :> <<matrix::int32>>
+      A[C] :> <20 20>
 
 
 :mini:`meth (Array: array)[Indices: map]: array`
@@ -1494,9 +1513,9 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:609DF3E33F7F00003E496E646578203D>
+      :> <16:605F8665527F00000000000000000000>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
-      :> <<<40288 58355> <32575 0>> <<18750 25710> <30821 15648>>>
+      :> <<<24416 25990> <32594 0>> <<0 0> <0 0>>>
 
 
 .. _type-vector:
