@@ -251,7 +251,8 @@ number
    .. code-block:: mini
 
       integer("123") :> 123
-      integer("ABC") :> error("ValueError", "Error parsing integer")
+      integer("ABC")
+      :> error("ValueError", "Error parsing integer")
 
 
 :mini:`meth integer(String: string, Base: integer): integer | error`

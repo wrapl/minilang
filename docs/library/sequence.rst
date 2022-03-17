@@ -56,7 +56,8 @@ sequence
 
    .. code-block:: mini
 
-      list(1 @ (_ + 1) limit 10) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      list(1 @ (_ + 1) limit 10)
+      :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 
 .. _type-chained:
@@ -115,8 +116,10 @@ sequence
 
    .. code-block:: mini
 
-      list(batch(1 .. 20, 4, tuple)) :> [(1, 2, 3, 4), (5, 6, 7, 8), (9, 10, 11, 12), (13, 14, 15, 16), (17, 18, 19, 20)]
-      list(batch(1 .. 20, 4, 2, tuple)) :> [(1, 2, 3, 4), (3, 4, 5, 6), (5, 6, 7, 8), (7, 8, 9, 10), (9, 10, 11, 12), (11, 12, 13, 14), (13, 14, 15, 16), (15, 16, 17, 18), (17, 18, 19, 20)]
+      list(batch(1 .. 20, 4, tuple))
+      :> [(1, 2, 3, 4), (5, 6, 7, 8), (9, 10, 11, 12), (13, 14, 15, 16), (17, 18, 19, 20)]
+      list(batch(1 .. 20, 4, 2, tuple))
+      :> [(1, 2, 3, 4), (3, 4, 5, 6), (5, 6, 7, 8), (7, 8, 9, 10), (9, 10, 11, 12), (11, 12, 13, 14), (13, 14, 15, 16), (15, 16, 17, 18), (17, 18, 19, 20)]
 
 
 .. _fun-count2:
@@ -158,7 +161,8 @@ sequence
 
    .. code-block:: mini
 
-      map(fold(1 .. 10)) :> {1 is 2, 3 is 4, 5 is 6, 7 is 8, 9 is 10}
+      map(fold(1 .. 10))
+      :> {1 is 2, 3 is 4, 5 is 6, 7 is 8, 9 is 10}
 
 
 .. _fun-grid:
@@ -168,8 +172,10 @@ sequence
 
    .. code-block:: mini
 
-      list(grid(1 .. 3, "cake", [true, false], tuple)) :> [(1, c, true), (1, c, false), (1, a, true), (1, a, false), (1, k, true), (1, k, false), (1, e, true), (1, e, false), (2, c, true), (2, c, false), (2, a, true), (2, a, false), (2, k, true), (2, k, false), (2, e, true), (2, e, false), (3, c, true), (3, c, false), (3, a, true), (3, a, false), (3, k, true), (3, k, false), (3, e, true), (3, e, false)]
-      list(grid(1 .. 3, "cake", *)) :> ["c", "a", "k", "e", "cc", "aa", "kk", "ee", "ccc", "aaa", "kkk", "eee"]
+      list(grid(1 .. 3, "cake", [true, false], tuple))
+      :> [(1, c, true), (1, c, false), (1, a, true), (1, a, false), (1, k, true), (1, k, false), (1, e, true), (1, e, false), (2, c, true), (2, c, false), (2, a, true), (2, a, false), (2, k, true), (2, k, false), (2, e, true), (2, e, false), (3, c, true), (3, c, false), (3, a, true), (3, a, false), (3, k, true), (3, k, false), (3, e, true), (3, e, false)]
+      list(grid(1 .. 3, "cake", *))
+      :> ["c", "a", "k", "e", "cc", "aa", "kk", "ee", "ccc", "aaa", "kkk", "eee"]
 
 
 .. _fun-key:
@@ -179,7 +185,8 @@ sequence
 
    .. code-block:: mini
 
-      list(key({"A" is 1, "B" is 2, "C" is 3})) :> ["A", "B", "C"]
+      list(key({"A" is 1, "B" is 2, "C" is 3}))
+      :> ["A", "B", "C"]
 
 
 .. _fun-last:
@@ -269,7 +276,8 @@ sequence
    .. code-block:: mini
 
       reduce(1 .. 10, +) :> 55
-      reduce([], 1 .. 10, :put) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      reduce([], 1 .. 10, :put)
+      :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 
 .. _fun-reduce2:
@@ -280,7 +288,8 @@ sequence
 
    .. code-block:: mini
 
-      reduce2([], "cake", fun(L, K, V) L:put((K, V))) :> [(1, c), (2, a), (3, k), (4, e)]
+      reduce2([], "cake", fun(L, K, V) L:put((K, V)))
+      :> [(1, c), (2, a), (3, k), (4, e)]
 
 
 .. _fun-sum:
@@ -300,7 +309,8 @@ sequence
 
    .. code-block:: mini
 
-      map(swap("cake")) :> {"c" is 1, "a" is 2, "k" is 3, "e" is 4}
+      map(swap("cake"))
+      :> {"c" is 1, "a" is 2, "k" is 3, "e" is 4}
 
 
 .. _fun-unfold:
@@ -353,7 +363,8 @@ sequence
 
    .. code-block:: mini
 
-      list(zip(1 .. 3, "cake", tuple)) :> [(1, c), (2, a), (3, k)]
+      list(zip(1 .. 3, "cake", tuple))
+      :> [(1, c), (2, a), (3, k)]
 
 
 :mini:`meth (Base: sequence) -> (F: function): sequence`
@@ -365,7 +376,8 @@ sequence
 
    .. code-block:: mini
 
-      map({"A" is [1, 2], "B" is [3, 4], "C" is [5, 6]} ->! +) :> {"A" is 3, "B" is 7, "C" is 11}
+      map({"A" is [1, 2], "B" is [3, 4], "C" is [5, 6]} ->! +)
+      :> {"A" is 3, "B" is 7, "C" is 11}
 
 
 :mini:`meth (Base: sequence) ->!? (F: function): sequence`
@@ -373,7 +385,8 @@ sequence
 
    .. code-block:: mini
 
-      map({"A" is [1, 2], "B" is [3, 3], "C" is [5, 6]} ->!? !=) :> {"A" is [1, 2], "C" is [5, 6]}
+      map({"A" is [1, 2], "B" is [3, 3], "C" is [5, 6]} ->!? !=)
+      :> {"A" is [1, 2], "C" is [5, 6]}
 
 
 :mini:`meth (Sequence: sequence) ->> (Function: function): sequence`
@@ -381,7 +394,8 @@ sequence
 
    .. code-block:: mini
 
-      list(1 .. 5 ->> (1 .. _)) :> [1, 1, 2, 1, 2, 3, 1, 2, 3, 4, 1, 2, 3, 4, 5]
+      list(1 .. 5 ->> (1 .. _))
+      :> [1, 1, 2, 1, 2, 3, 1, 2, 3, 4, 1, 2, 3, 4, 5]
 
 
 :mini:`meth (Base: sequence) ->? (F: function): sequence`
@@ -397,7 +411,8 @@ sequence
 
    .. code-block:: mini
 
-      list(1 .. 10 // (10, +)) :> [11, 13, 16, 20, 25, 31, 38, 46, 55, 65]
+      list(1 .. 10 // (10, +))
+      :> [11, 13, 16, 20, 25, 31, 38, 46, 55, 65]
 
 
 :mini:`meth (Sequence: sequence) // (Fn: function): sequence`
@@ -405,7 +420,8 @@ sequence
 
    .. code-block:: mini
 
-      list(1 .. 10 // +) :> [1, 3, 6, 10, 15, 21, 28, 36, 45, 55]
+      list(1 .. 10 // +)
+      :> [1, 3, 6, 10, 15, 21, 28, 36, 45, 55]
 
 
 :mini:`meth (Sequence: sequence):join: string`
@@ -456,7 +472,8 @@ sequence
 
    .. code-block:: mini
 
-      map("cake" => *) :> {1 is "c", 2 is "aa", 3 is "kkk", 4 is "eeee"}
+      map("cake" => *)
+      :> {1 is "c", 2 is "aa", 3 is "kkk", 4 is "eeee"}
 
 
 :mini:`meth (Base: sequence) => (F₁: function, F₂: function): sequence`
@@ -464,7 +481,8 @@ sequence
 
    .. code-block:: mini
 
-      map("cake" => (tuple, *)) :> {(1, c) is "c", (2, a) is "aa", (3, k) is "kkk", (4, e) is "eeee"}
+      map("cake" => (tuple, *))
+      :> {(1, c) is "c", (2, a) is "aa", (3, k) is "kkk", (4, e) is "eeee"}
 
 
 :mini:`meth (Sequence: sequence) =>> (Function: function): sequence`
@@ -472,7 +490,8 @@ sequence
 
    .. code-block:: mini
 
-      list("cake" =>> *) :> ["c", "a", "a", "k", "k", "k", "e", "e", "e", "e"]
+      list("cake" =>> *)
+      :> ["c", "a", "a", "k", "k", "k", "e", "e", "e", "e"]
 
 
 :mini:`meth (Base: sequence) =>? (F: function): sequence`
@@ -480,8 +499,10 @@ sequence
 
    .. code-block:: mini
 
-      let M := map(1 .. 10 -> fun(X) X ^ 2 % 10) :> {1 is 1, 2 is 4, 3 is 9, 4 is 6, 5 is 5, 6 is 6, 7 is 9, 8 is 4, 9 is 1, 10 is 0}
-      map(M =>? !=) :> {2 is 4, 3 is 9, 4 is 6, 7 is 9, 8 is 4, 9 is 1, 10 is 0}
+      let M := map(1 .. 10 -> fun(X) X ^ 2 % 10)
+      :> {1 is 1, 2 is 4, 3 is 9, 4 is 6, 5 is 5, 6 is 6, 7 is 9, 8 is 4, 9 is 1, 10 is 0}
+      map(M =>? !=)
+      :> {2 is 4, 3 is 9, 4 is 6, 7 is 9, 8 is 4, 9 is 1, 10 is 0}
 
 
 :mini:`meth >>(Sequence: sequence): Sequence`
@@ -489,7 +510,8 @@ sequence
 
    .. code-block:: mini
 
-      list(>>(1 .. 3) limit 10) :> [1, 2, 3, 1, 2, 3, 1, 2, 3, 1]
+      list(>>(1 .. 3) limit 10)
+      :> [1, 2, 3, 1, 2, 3, 1, 2, 3, 1]
 
 
 :mini:`meth (Sequence₁: sequence) >> (Sequence₂: sequence): Sequence`
@@ -508,6 +530,7 @@ sequence
 
    .. code-block:: mini
 
-      list(1 .. 5 ^ (1 .. _)) :> [1, 1, 2, 1, 2, 3, 1, 2, 3, 4, 1, 2, 3, 4, 5]
+      list(1 .. 5 ^ (1 .. _))
+      :> [1, 1, 2, 1, 2, 3, 1, 2, 3, 4, 1, 2, 3, 4, 5]
 
 

@@ -2326,12 +2326,12 @@ static CTYPE compute_maxs_ ## CTYPE(int Degree, ml_array_dimension_t *Dimension,
 		if (Dimension->Indices) { \
 			int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
-				CTYPE Max2 = compute_mins_ ## CTYPE(Degree - 1, Dimension + 1, Address + Indices[I] * Stride); \
+				CTYPE Max2 = compute_maxs_ ## CTYPE(Degree - 1, Dimension + 1, Address + Indices[I] * Stride); \
 				if (Max2 > Max) Max = Max2; \
 			} \
 		} else { \
 			for (int I = 0; I < Dimension->Size; ++I) { \
-				CTYPE Max2 = compute_mins_ ## CTYPE(Degree - 1, Dimension + 1, Address); \
+				CTYPE Max2 = compute_maxs_ ## CTYPE(Degree - 1, Dimension + 1, Address); \
 				if (Max2 > Max) Max = Max2; \
 				Address += Stride; \
 			} \
@@ -3074,7 +3074,7 @@ ML_METHOD("minval", MLArrayT) {
 //<Array
 //>number
 // Returns the minimum of the values in :mini:`Array`.
-//$= let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
+//$- let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
 //$= A:minval
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	switch (Source->Format) {
@@ -3108,7 +3108,7 @@ ML_METHOD("minval", MLArrayT, MLIntegerT) {
 //<Count
 //>array
 // Returns a new array with the minimums :mini:`Array` in the last :mini:`Count` dimensions.
-//$= let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
+//$- let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
 //$= A:minval(1)
 //$= A:minval(2)
 	ml_array_t *Source = (ml_array_t *)Args[0];
@@ -3163,10 +3163,9 @@ ML_METHOD("minval", MLArrayT, MLIntegerT) {
 
 ML_METHOD("minidx", MLArrayT) {
 //<Array
-//<Count
 //>array
 // Returns a new array with the indices of minimums of :mini:`Array` in the last :mini:`Count` dimensions.
-//$= let A := array::int64([2, 2, 3];) integer::random(100)
+//$- let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
 //$= A:minidx
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	ml_array_t *Target = ml_array_alloc(ML_ARRAY_FORMAT_I32, 1);
@@ -3216,7 +3215,7 @@ ML_METHOD("minidx", MLArrayT, MLIntegerT) {
 //<Count
 //>array
 // Returns a new array with the indices of minimums of :mini:`Array` in the last :mini:`Count` dimensions.
-//$= let A := array::int64([2, 2, 3];) integer::random(100)
+//$- let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
 //$= A:minidx(1)
 //$= A:minidx(2)
 	ml_array_t *Source = (ml_array_t *)Args[0];
@@ -3276,7 +3275,7 @@ ML_METHOD("maxval", MLArrayT) {
 //<Array
 //>number
 // Returns the maximum of the values in :mini:`Array`.
-//$= let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
+//$- let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
 //$= A:maxval
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	switch (Source->Format) {
@@ -3310,7 +3309,7 @@ ML_METHOD("maxval", MLArrayT, MLIntegerT) {
 //<Count
 //>array
 // Returns a new array with the maximums of :mini:`Array` in the last :mini:`Count` dimensions.
-//$= let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
+//$- let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
 //$= A:maxval(1)
 //$= A:maxval(2)
 	ml_array_t *Source = (ml_array_t *)Args[0];
@@ -3365,10 +3364,9 @@ ML_METHOD("maxval", MLArrayT, MLIntegerT) {
 
 ML_METHOD("maxidx", MLArrayT) {
 //<Array
-//<Count
 //>array
 // Returns a new array with the indices of maximums of :mini:`Array` in the last :mini:`Count` dimensions.
-//$= let A := array::int64([2, 2, 3];) integer::random(100)
+//$- let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
 //$= A:maxidx
 	ml_array_t *Source = (ml_array_t *)Args[0];
 	ml_array_t *Target = ml_array_alloc(ML_ARRAY_FORMAT_I32, 1);
@@ -3418,7 +3416,7 @@ ML_METHOD("maxidx", MLArrayT, MLIntegerT) {
 //<Count
 //>array
 // Returns a new array with the indices of maximums of :mini:`Array` in the last :mini:`Count` dimensions.
-//$= let A := array::int64([2, 2, 3];) integer::random(100)
+//$- let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
 //$= A:maxidx(1)
 //$= A:maxidx(2)
 	ml_array_t *Source = (ml_array_t *)Args[0];
@@ -3761,8 +3759,11 @@ ML_METHOD(#OP, MLArrayT, MLArrayT) {
 //$= let B := array([[7, 8, 9], [10, 11, 12]])
 //$= let C := array([5, 10, 15])
 //$= A OP B
+//$= B OP A
 //$= A OP C
 //$= C OP A
+//$= B OP C
+//$= C OP B
 }
 */
 
