@@ -1781,10 +1781,11 @@ ML_METHOD(NAME, MLTupleT, MLTupleT) { \
 // Returns :mini:`Arg/2` if :mini:`Arg/1 SYMBOL Arg/2` and :mini:`nil` otherwise.
 */\
 	ml_value_t *Result = ml_tuple_compare((ml_tuple_t *)Args[0], (ml_tuple_t *)Args[1]); \
-	if (Result == (ml_value_t *)NegOne) return NEG; \
-	if (Result == (ml_value_t *)Zero) return ZERO; \
-	if (Result == (ml_value_t *)One) return POS; \
-	return Result; \
+	if (ml_is_error(Result)) return Result; \
+	int Compare = ml_integer_value(Result); \
+	if (Compare < 0) return NEG; \
+	if (Compare > 0) return POS; \
+	return ZERO; \
 }
 
 ml_comp_tuple_tuple("=", MLNil, Args[1], MLNil);
