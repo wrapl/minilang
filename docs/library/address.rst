@@ -18,7 +18,8 @@ address
 
    .. code-block:: mini
 
-      address("Hello world!\n") :> <13:48656C6C6F20776F726C64210A>
+      address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
 
 
 :mini:`meth (Address: address) + (Offset: integer): address`
@@ -26,7 +27,8 @@ address
 
    .. code-block:: mini
 
-      let A := address("Hello world!\n") :> <13:48656C6C6F20776F726C64210A>
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
       A + 4 :> <9:6F20776F726C64210A>
 
 
@@ -38,7 +40,8 @@ address
       let A := address("Hello world!\n")
       let B := A + 4
       B - A :> 4
-      address("world!\n") - A :> error("ValueError", "Addresses are not from same base")
+      address("world!\n") - A
+      :> error("ValueError", "Addresses are not from same base")
 
 
 :mini:`meth (Haystack: address):find(Needle: address): integer | nil`
@@ -46,7 +49,8 @@ address
 
    .. code-block:: mini
 
-      let A := address("Hello world!\n") :> <13:48656C6C6F20776F726C64210A>
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
       A:find("world") :> 6
       A:find("other") :> nil
 
@@ -56,7 +60,8 @@ address
 
    .. code-block:: mini
 
-      let A := address("Hello world!\n") :> <13:48656C6C6F20776F726C64210A>
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
       A:get16 :> 25928
 
 
@@ -65,7 +70,8 @@ address
 
    .. code-block:: mini
 
-      let A := address("Hello world!\n") :> <13:48656C6C6F20776F726C64210A>
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
       A:get32 :> 1819043144
 
 
@@ -74,7 +80,8 @@ address
 
    .. code-block:: mini
 
-      let A := address("Hello world!\n") :> <13:48656C6C6F20776F726C64210A>
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
       A:get64 :> 8031924123371070792
 
 
@@ -83,7 +90,8 @@ address
 
    .. code-block:: mini
 
-      let A := address("Hello world!\n") :> <13:48656C6C6F20776F726C64210A>
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
       A:get8 :> 72
 
 
@@ -92,7 +100,8 @@ address
 
    .. code-block:: mini
 
-      let A := address("Hello world!\n") :> <13:48656C6C6F20776F726C64210A>
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
       A:getf32 :> 1.14314e+27
 
 
@@ -101,7 +110,8 @@ address
 
    .. code-block:: mini
 
-      let A := address("Hello world!\n") :> <13:48656C6C6F20776F726C64210A>
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
       A:getf64 :> 8.76578e+228
 
 
@@ -110,7 +120,8 @@ address
 
    .. code-block:: mini
 
-      let A := address("Hello world!\n") :> <13:48656C6C6F20776F726C64210A>
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
       A:gets :> "Hello world!\n"
 
 
@@ -119,7 +130,8 @@ address
 
    .. code-block:: mini
 
-      let A := address("Hello world!\n") :> <13:48656C6C6F20776F726C64210A>
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
       A:gets(5) :> "Hello"
 
 
@@ -128,7 +140,8 @@ address
 
    .. code-block:: mini
 
-      let A := address("Hello world!\n") :> <13:48656C6C6F20776F726C64210A>
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
       A:getu16 :> 25928
 
 
@@ -137,7 +150,8 @@ address
 
    .. code-block:: mini
 
-      let A := address("Hello world!\n") :> <13:48656C6C6F20776F726C64210A>
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
       A:getu32 :> 1819043144
 
 
@@ -149,7 +163,8 @@ address
 
    .. code-block:: mini
 
-      let A := address("Hello world!\n") :> <13:48656C6C6F20776F726C64210A>
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
       A:getu64 :> 8031924123371070792
 
 
@@ -158,7 +173,8 @@ address
 
    .. code-block:: mini
 
-      let A := address("Hello world!\n") :> <13:48656C6C6F20776F726C64210A>
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
       A:getu8 :> 72
 
 
@@ -167,7 +183,8 @@ address
 
    .. code-block:: mini
 
-      let A := address("Hello world!\n") :> <13:48656C6C6F20776F726C64210A>
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
       A:length :> 13
 
 
@@ -176,7 +193,8 @@ address
 
    .. code-block:: mini
 
-      let A := address("Hello world!\n") :> <13:48656C6C6F20776F726C64210A>
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
       A:size :> 13
 
 
@@ -185,7 +203,8 @@ address
 
    .. code-block:: mini
 
-      let A := address("Hello world!\n") :> <13:48656C6C6F20776F726C64210A>
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
       A @ 5 :> <5:48656C6C6F>
 
 

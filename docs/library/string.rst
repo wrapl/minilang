@@ -42,7 +42,8 @@ When creating a substring,  the first index is inclusive and second index is exc
    .. code-block:: mini
 
       regex("[0-9]+") :> /[0-9]+/
-      regex("[0-9") :> error("RegexError", "regex error: Missing ']'")
+      regex("[0-9")
+      :> error("RegexError", "regex error: Missing ']'")
 
 
 :mini:`meth (Arg₁: regex) != (Arg₂: regex): regex | nil`
@@ -163,7 +164,8 @@ When creating a substring,  the first index is inclusive and second index is exc
 
    .. code-block:: mini
 
-      "2022-03-08" % r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)" :> (2022-03-08, 2022, 03, 08)
+      "2022-03-08" % r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)"
+      :> (2022-03-08, 2022, 03, 08)
       "Not a date" % r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)" :> nil
 
 
@@ -216,7 +218,8 @@ When creating a substring,  the first index is inclusive and second index is exc
 
    .. code-block:: mini
 
-      "The cat snored  as he slept" / " " :> ["The", "cat", "snored", "as", "he", "slept"]
+      "The cat snored  as he slept" / " "
+      :> ["The", "cat", "snored", "as", "he", "slept"]
       "2022/03/08" / "/" :> ["2022", "03", "08"]
 
 
@@ -351,7 +354,8 @@ When creating a substring,  the first index is inclusive and second index is exc
 
    .. code-block:: mini
 
-      "The cat snored as he slept":find2(r"[a-z]{3}") :> (5, cat)
+      "The cat snored as he slept":find2(r"[a-z]{3}")
+      :> (5, cat)
       "The cat snored as he slept":find2(r"[0-9]+") :> nil
 
 
@@ -360,9 +364,12 @@ When creating a substring,  the first index is inclusive and second index is exc
 
    .. code-block:: mini
 
-      "The cat snored as he slept":find2(r"s[a-z]+", 1) :> (9, snored)
-      "The cat snored as he slept":find2(r"s[a-z]+", 10) :> (22, slept)
-      "The cat snored as he slept":find2(r"s[a-z]+", -6) :> (22, slept)
+      "The cat snored as he slept":find2(r"s[a-z]+", 1)
+      :> (9, snored)
+      "The cat snored as he slept":find2(r"s[a-z]+", 10)
+      :> (22, slept)
+      "The cat snored as he slept":find2(r"s[a-z]+", -6)
+      :> (22, slept)
 
 
 :mini:`meth (Haystack: string):find2(Needle: string): tuple[integer, string] | nil`
@@ -456,7 +463,8 @@ When creating a substring,  the first index is inclusive and second index is exc
    .. code-block:: mini
 
       let S := "λ:😀️ → 😺️"
-      list(1 .. S:length, S:offset(_)) :> [0, 2, 3, 7, 10, 11, 14, 15, 19]
+      list(1 .. S:length, S:offset(_))
+      :> [0, 2, 3, 7, 10, 11, 14, 15, 19]
 
 
 :mini:`meth (String: string):replace(I: integer, Fn: function): string`
@@ -481,7 +489,8 @@ When creating a substring,  the first index is inclusive and second index is exc
    .. code-block:: mini
 
       "Hello world":replace(1, 6, "Goodbye") :> "Goodbye world"
-      "Hello world":replace(-6, 0, ", how are you?") :> "Hello, how are you?"
+      "Hello world":replace(-6, 0, ", how are you?")
+      :> "Hello, how are you?"
 
 
 :mini:`meth (String: string):replace(I: integer, Replacement: string): string`
@@ -509,7 +518,8 @@ When creating a substring,  the first index is inclusive and second index is exc
 
    .. code-block:: mini
 
-      "the cat snored as he slept":replace(r" ([a-z])", fun(Match, A) '-{A:upper}') :> "the-Cat-Snored-As-He-Slept"
+      "the cat snored as he slept":replace(r" ([a-z])", fun(Match, A) '-{A:upper}')
+      :> "the-Cat-Snored-As-He-Slept"
 
 
 :mini:`meth (String: string):replace(Pattern: regex, Replacement: string): string`
@@ -671,7 +681,8 @@ When creating a substring,  the first index is inclusive and second index is exc
 
    .. code-block:: mini
 
-      "2022-03-08" ? r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)" :> "2022-03-08"
+      "2022-03-08" ? r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)"
+      :> "2022-03-08"
       "Not a date" ? r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)" :> nil
 
 

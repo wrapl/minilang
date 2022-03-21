@@ -20,7 +20,8 @@ map
 
    .. code-block:: mini
 
-      map(A is 1, B is 2, C is 3) :> {"A" is 1, "B" is 2, "C" is 3}
+      map(A is 1, B is 2, C is 3)
+      :> {"A" is 1, "B" is 2, "C" is 3}
 
 
 :mini:`meth map(Sequence: sequence, ...): map`
@@ -44,8 +45,10 @@ map
 
    .. code-block:: mini
 
-      let A := map(swap("banana")) :> {"b" is 1, "a" is 6, "n" is 5}
-      let B := map(swap("bread")) :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
+      let A := map(swap("banana"))
+      :> {"b" is 1, "a" is 6, "n" is 5}
+      let B := map(swap("bread"))
+      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
       A * B :> {"b" is 1, "a" is 4}
 
 
@@ -55,9 +58,12 @@ map
 
    .. code-block:: mini
 
-      let A := map(swap("banana")) :> {"b" is 1, "a" is 6, "n" is 5}
-      let B := map(swap("bread")) :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
-      A + B :> {"b" is 1, "a" is 4, "n" is 5, "r" is 2, "e" is 3, "d" is 5}
+      let A := map(swap("banana"))
+      :> {"b" is 1, "a" is 6, "n" is 5}
+      let B := map(swap("bread"))
+      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
+      A + B
+      :> {"b" is 1, "a" is 4, "n" is 5, "r" is 2, "e" is 3, "d" is 5}
 
 
 :mini:`meth (Map₁: map) / (Map₂: map): map`
@@ -65,8 +71,10 @@ map
 
    .. code-block:: mini
 
-      let A := map(swap("banana")) :> {"b" is 1, "a" is 6, "n" is 5}
-      let B := map(swap("bread")) :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
+      let A := map(swap("banana"))
+      :> {"b" is 1, "a" is 6, "n" is 5}
+      let B := map(swap("bread"))
+      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
       A / B :> {"n" is 5}
 
 
@@ -107,7 +115,8 @@ map
 
    .. code-block:: mini
 
-      let M := {"A" is 1, "B" is 2, "C" is 3} :> {"A" is 1, "B" is 2, "C" is 3}
+      let M := {"A" is 1, "B" is 2, "C" is 3}
+      :> {"A" is 1, "B" is 2, "C" is 3}
       M:empty :> {}
 
 
@@ -116,7 +125,8 @@ map
 
    .. code-block:: mini
 
-      map( :> error("ParseError", "Expected <expression> not <end of input>")
+      map(
+      :> error("ParseError", "Expected <expression> not <end of input>")
 
 
 :mini:`meth (Map: map):insert(Key: any, Value: any): any | nil`
@@ -190,7 +200,8 @@ map
 
    .. code-block:: mini
 
-      let M := map(swap("cake")) :> {"c" is 1, "a" is 2, "k" is 3, "e" is 4}
+      let M := map(swap("cake"))
+      :> {"c" is 1, "a" is 2, "k" is 3, "e" is 4}
       M:sort :> {"a" is 2, "c" is 1, "e" is 4, "k" is 3}
 
 
@@ -199,7 +210,8 @@ map
 
    .. code-block:: mini
 
-      let M := map(swap("cake")) :> {"c" is 1, "a" is 2, "k" is 3, "e" is 4}
+      let M := map(swap("cake"))
+      :> {"c" is 1, "a" is 2, "k" is 3, "e" is 4}
       M:sort(>) :> {"k" is 3, "e" is 4, "c" is 1, "a" is 2}
 
 
@@ -208,8 +220,10 @@ map
 
    .. code-block:: mini
 
-      let M := map(swap("cake")) :> {"c" is 1, "a" is 2, "k" is 3, "e" is 4}
-      M:sort(fun(K1, K2, V1, V2) V1 < V2) :> {"e" is 4, "k" is 3, "a" is 2, "c" is 1}
+      let M := map(swap("cake"))
+      :> {"c" is 1, "a" is 2, "k" is 3, "e" is 4}
+      M:sort(fun(K1, K2, V1, V2) V1 < V2)
+      :> {"e" is 4, "k" is 3, "a" is 2, "c" is 1}
 
 
 :mini:`meth (Map: map)[Key: any]: mapnode`

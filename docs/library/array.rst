@@ -28,7 +28,8 @@ array
    .. code-block:: mini
 
       let A := $[[1, 2, 3], [4, 5, 6]] :> <<1 2 3> <4 5 6>>
-      let B := $[[7, 8, 9], [10, 11, 12]] :> <<7 8 9> <10 11 12>>
+      let B := $[[7, 8, 9], [10, 11, 12]]
+      :> <<7 8 9> <10 11 12>>
       array::hcat(A, B) :> <<1 2 3 7 8 9> <10 11 12 10 11 12>>
 
 
@@ -40,7 +41,8 @@ array
    .. code-block:: mini
 
       let A := $[[1, 2, 3], [4, 5, 6]] :> <<1 2 3> <4 5 6>>
-      let B := $[[7, 8, 9], [10, 11, 12]] :> <<7 8 9> <10 11 12>>
+      let B := $[[7, 8, 9], [10, 11, 12]]
+      :> <<7 8 9> <10 11 12>>
       array::vcat(A, B) :> <<1 2 3> <4 5 6> <7 8 9> <10 11 12>>
 
 
@@ -54,8 +56,10 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 8, 3], [4, 5, 12]]) :> <<1 8 3> <4 5 12>>
-      let B := array([[7, 2, 9], [4, 11, 6]]) :> <<7 2 9> <4 11 6>>
+      let A := array([[1, 8, 3], [4, 5, 12]])
+      :> <<1 8 3> <4 5 12>>
+      let B := array([[7, 2, 9], [4, 11, 6]])
+      :> <<7 2 9> <4 11 6>>
       let C := array([1, 5, 10]) :> <1 5 10>
       A != B :> <<1 1 1> <0 1 1>>
       A != C :> <<0 1 1> <1 0 1>>
@@ -84,12 +88,17 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
-      let B := array([[7, 8, 9], [10, 11, 12]]) :> <<7 8 9> <10 11 12>>
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      let B := array([[7, 8, 9], [10, 11, 12]])
+      :> <<7 8 9> <10 11 12>>
       let C := array([5, 10, 15]) :> <5 10 15>
       A * B :> <<7 16 27> <40 55 72>>
+      B * A :> <<7 16 27> <40 55 72>>
       A * C :> <<5 20 45> <20 50 90>>
       C * A :> <<5 20 45> <20 50 90>>
+      B * C :> <<35 80 135> <50 110 180>>
+      C * B :> <<35 80 135> <50 110 180>>
 
 
 :mini:`meth (A: array) * (B: complex): array`
@@ -130,12 +139,17 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
-      let B := array([[7, 8, 9], [10, 11, 12]]) :> <<7 8 9> <10 11 12>>
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      let B := array([[7, 8, 9], [10, 11, 12]])
+      :> <<7 8 9> <10 11 12>>
       let C := array([5, 10, 15]) :> <5 10 15>
       A + B :> <<8 10 12> <14 16 18>>
+      B + A :> <<8 10 12> <14 16 18>>
       A + C :> <<6 12 18> <9 15 21>>
       C + A :> <<6 12 18> <9 15 21>>
+      B + C :> <<12 18 24> <15 21 27>>
+      C + B :> <<12 18 24> <15 21 27>>
 
 
 :mini:`meth (A: array) + (B: complex): array`
@@ -180,12 +194,17 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
-      let B := array([[7, 8, 9], [10, 11, 12]]) :> <<7 8 9> <10 11 12>>
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      let B := array([[7, 8, 9], [10, 11, 12]])
+      :> <<7 8 9> <10 11 12>>
       let C := array([5, 10, 15]) :> <5 10 15>
       A - B :> <<-6 -6 -6> <-6 -6 -6>>
+      B - A :> <<6 6 6> <6 6 6>>
       A - C :> <<-4 -8 -12> <-1 -5 -9>>
       C - A :> <<4 8 12> <1 5 9>>
+      B - C :> <<2 -2 -6> <5 1 -3>>
+      C - B :> <<-2 2 6> <-5 -1 3>>
 
 
 :mini:`meth (A: array) - (B: complex): array`
@@ -230,12 +249,17 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
-      let B := array([[7, 8, 9], [10, 11, 12]]) :> <<7 8 9> <10 11 12>>
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      let B := array([[7, 8, 9], [10, 11, 12]])
+      :> <<7 8 9> <10 11 12>>
       let C := array([5, 10, 15]) :> <5 10 15>
       A / B :> <<0.142857 0.25 0.333333> <0.4 0.454545 0.5>>
+      B / A :> <<7 4 3> <2.5 2.2 2>>
       A / C :> <<0.2 0.2 0.2> <0.8 0.5 0.4>>
       C / A :> <<5 5 5> <1.25 2 2.5>>
+      B / C :> <<1.4 0.8 0.6> <2 1.1 0.8>>
+      C / B :> <<0.714286 1.25 1.66667> <0.5 0.909091 1.25>>
 
 
 :mini:`meth (A: array) / (B: complex): array`
@@ -276,12 +300,17 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
-      let B := array([[7, 8, 9], [10, 11, 12]]) :> <<7 8 9> <10 11 12>>
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      let B := array([[7, 8, 9], [10, 11, 12]])
+      :> <<7 8 9> <10 11 12>>
       let C := array([5, 10, 15]) :> <5 10 15>
       A /\ B :> <<1 0 1> <0 1 4>>
+      B /\ A :> <<1 0 1> <0 1 4>>
       A /\ C :> <<1 2 3> <4 0 6>>
       C /\ A :> <<1 2 3> <4 0 6>>
+      B /\ C :> <<5 8 9> <0 10 12>>
+      C /\ B :> <<5 8 9> <0 10 12>>
 
 
 :mini:`meth (A: array) /\ (B: integer): array`
@@ -306,7 +335,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
       A:count :> 6
 
 
@@ -315,7 +345,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
       A:degree :> 2
 
 
@@ -338,12 +369,17 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
-      let B := array([[7, 8, 9], [10, 11, 12]]) :> <<7 8 9> <10 11 12>>
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      let B := array([[7, 8, 9], [10, 11, 12]])
+      :> <<7 8 9> <10 11 12>>
       let C := array([5, 10, 15]) :> <5 10 15>
       A max B :> <<7 8 9> <10 11 12>>
+      B max A :> <<7 8 9> <10 11 12>>
       A max C :> <<5 10 15> <5 10 15>>
       C max A :> <<5 10 15> <5 10 15>>
+      B max C :> <<7 10 15> <10 11 15>>
+      C max B :> <<7 10 15> <10 11 15>>
 
 
 :mini:`meth (A: array):max(B: integer): array`
@@ -364,13 +400,32 @@ array
       A max 2.5 :> <<2.5 2.5> <3 4>>
 
 
+:mini:`meth (Array: array):maxidx: array`
+   Returns a new array with the indices of maximums of :mini:`Array` in the last :mini:`Count` dimensions.
+
+   .. code-block:: mini
+
+      let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
+      A:maxidx :> <1 2 3>
+
+
+:mini:`meth (Array: array):maxidx(Count: integer): array`
+   Returns a new array with the indices of maximums of :mini:`Array` in the last :mini:`Count` dimensions.
+
+   .. code-block:: mini
+
+      let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
+      A:maxidx(1) :> <<<1> <3>> <<2> <1>>>
+      A:maxidx(2) :> <<2 3> <2 1>>
+
+
 :mini:`meth (Array: array):maxval: number`
    Returns the maximum of the values in :mini:`Array`.
 
    .. code-block:: mini
 
-      let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]) :> <<<1 2 3> <4 5 6>> <<7 8 9> <10 11 12>>>
-      A:maxval :> 7
+      let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
+      A:maxval :> 20
 
 
 :mini:`meth (Array: array):maxval(Count: integer): array`
@@ -378,9 +433,9 @@ array
 
    .. code-block:: mini
 
-      let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]) :> <<<1 2 3> <4 5 6>> <<7 8 9> <10 11 12>>>
-      maxval(1) :> error("CompilerError", "identifier maxval not declared")
-      A:maxval(2) :> nil
+      let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
+      A:maxval(1) :> <<19 20> <17 20>>
+      A:maxval(2) :> <20 20>
 
 
 :mini:`meth (A: array):min(B: array): array`
@@ -394,12 +449,17 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
-      let B := array([[7, 8, 9], [10, 11, 12]]) :> <<7 8 9> <10 11 12>>
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      let B := array([[7, 8, 9], [10, 11, 12]])
+      :> <<7 8 9> <10 11 12>>
       let C := array([5, 10, 15]) :> <5 10 15>
       A min B :> <<1 2 3> <4 5 6>>
+      B min A :> <<1 2 3> <4 5 6>>
       A min C :> <<1 2 3> <4 5 6>>
       C min A :> <<1 2 3> <4 5 6>>
+      B min C :> <<5 8 9> <5 10 12>>
+      C min B :> <<5 8 9> <5 10 12>>
 
 
 :mini:`meth (A: array):min(B: integer): array`
@@ -420,13 +480,32 @@ array
       A min 2.5 :> <<1 2> <2.5 2.5>>
 
 
+:mini:`meth (Array: array):minidx: array`
+   Returns a new array with the indices of minimums of :mini:`Array` in the last :mini:`Count` dimensions.
+
+   .. code-block:: mini
+
+      let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
+      A:minidx :> <1 2 1>
+
+
+:mini:`meth (Array: array):minidx(Count: integer): array`
+   Returns a new array with the indices of minimums of :mini:`Array` in the last :mini:`Count` dimensions.
+
+   .. code-block:: mini
+
+      let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
+      A:minidx(1) :> <<<3> <1>> <<1> <2>>>
+      A:minidx(2) :> <<2 1> <1 1>>
+
+
 :mini:`meth (Array: array):minval: number`
    Returns the minimum of the values in :mini:`Array`.
 
    .. code-block:: mini
 
-      let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]) :> <<<1 2 3> <4 5 6>> <<7 8 9> <10 11 12>>>
-      A:minval :> 1
+      let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
+      A:minval :> 4
 
 
 :mini:`meth (Array: array):minval(Count: integer): array`
@@ -434,9 +513,9 @@ array
 
    .. code-block:: mini
 
-      let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]) :> <<<1 2 3> <4 5 6>> <<7 8 9> <10 11 12>>>
-      A:minval(1) :> <<1 4> <7 10>>
-      A:minval(2) :> <1 7>
+      let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
+      A:minval(1) :> <<12 4> <5 9>>
+      A:minval(2) :> <4 5>
 
 
 :mini:`meth (Array: array):permute(Indices: list): array`
@@ -444,9 +523,11 @@ array
 
    .. code-block:: mini
 
-      let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]) :> <<<1 2 3> <4 5 6>> <<7 8 9> <10 11 12>>>
+      let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
+      :> <<<1 2 3> <4 5 6>> <<7 8 9> <10 11 12>>>
       A:shape :> [2, 2, 3]
-      let B := A:permute([2, 3, 1]) :> <<<1 7> <2 8> <3 9>> <<4 10> <5 11> <6 12>>>
+      let B := A:permute([2, 3, 1])
+      :> <<<1 7> <2 8> <3 9>> <<4 10> <5 11> <6 12>>>
       B:shape :> [2, 3, 2]
 
 
@@ -455,7 +536,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
       A:prod :> 720
 
 
@@ -464,7 +546,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
       A:prod(1) :> <6 120>
 
 
@@ -484,7 +567,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
       A:shape :> [2, 3]
 
 
@@ -493,7 +577,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
       A:size :> 48
       let B := ^A :> <<1 4> <2 5> <3 6>>
       B:size :> nil
@@ -512,7 +597,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
       A:sum :> 21
 
 
@@ -521,7 +607,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
       A:sum(1) :> <6 15>
 
 
@@ -555,8 +642,10 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 8, 3], [4, 5, 12]]) :> <<1 8 3> <4 5 12>>
-      let B := array([[7, 2, 9], [4, 11, 6]]) :> <<7 2 9> <4 11 6>>
+      let A := array([[1, 8, 3], [4, 5, 12]])
+      :> <<1 8 3> <4 5 12>>
+      let B := array([[7, 2, 9], [4, 11, 6]])
+      :> <<7 2 9> <4 11 6>>
       let C := array([1, 5, 10]) :> <1 5 10>
       A < B :> <<1 0 1> <0 1 0>>
       A < C :> <<0 0 1> <0 0 0>>
@@ -584,8 +673,10 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 8, 3], [4, 5, 12]]) :> <<1 8 3> <4 5 12>>
-      let B := array([[7, 2, 9], [4, 11, 6]]) :> <<7 2 9> <4 11 6>>
+      let A := array([[1, 8, 3], [4, 5, 12]])
+      :> <<1 8 3> <4 5 12>>
+      let B := array([[7, 2, 9], [4, 11, 6]])
+      :> <<7 2 9> <4 11 6>>
       let C := array([1, 5, 10]) :> <1 5 10>
       A <= B :> <<1 0 1> <1 1 0>>
       A <= C :> <<1 0 1> <0 1 0>>
@@ -617,8 +708,10 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 8, 3], [4, 5, 12]]) :> <<1 8 3> <4 5 12>>
-      let B := array([[7, 2, 9], [4, 11, 6]]) :> <<7 2 9> <4 11 6>>
+      let A := array([[1, 8, 3], [4, 5, 12]])
+      :> <<1 8 3> <4 5 12>>
+      let B := array([[7, 2, 9], [4, 11, 6]])
+      :> <<7 2 9> <4 11 6>>
       let C := array([1, 5, 10]) :> <1 5 10>
       A = B :> <<0 0 0> <1 0 0>>
       A = C :> <<1 0 0> <0 1 0>>
@@ -646,8 +739,10 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 8, 3], [4, 5, 12]]) :> <<1 8 3> <4 5 12>>
-      let B := array([[7, 2, 9], [4, 11, 6]]) :> <<7 2 9> <4 11 6>>
+      let A := array([[1, 8, 3], [4, 5, 12]])
+      :> <<1 8 3> <4 5 12>>
+      let B := array([[7, 2, 9], [4, 11, 6]])
+      :> <<7 2 9> <4 11 6>>
       let C := array([1, 5, 10]) :> <1 5 10>
       A > B :> <<0 1 0> <0 0 1>>
       A > C :> <<0 1 0> <1 0 1>>
@@ -676,12 +771,17 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
-      let B := array([[7, 8, 9], [10, 11, 12]]) :> <<7 8 9> <10 11 12>>
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      let B := array([[7, 8, 9], [10, 11, 12]])
+      :> <<7 8 9> <10 11 12>>
       let C := array([5, 10, 15]) :> <5 10 15>
       A >< B :> <<7 10 11> <14 15 14>>
+      B >< A :> <<7 10 11> <14 15 14>>
       A >< C :> <<5 10 15> <5 15 15>>
       C >< A :> <<5 10 15> <5 15 15>>
+      B >< C :> <<7 10 15> <15 11 15>>
+      C >< B :> <<7 10 15> <15 11 15>>
 
 
 :mini:`meth (A: array) >< (B: integer): array`
@@ -703,8 +803,10 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 8, 3], [4, 5, 12]]) :> <<1 8 3> <4 5 12>>
-      let B := array([[7, 2, 9], [4, 11, 6]]) :> <<7 2 9> <4 11 6>>
+      let A := array([[1, 8, 3], [4, 5, 12]])
+      :> <<1 8 3> <4 5 12>>
+      let B := array([[7, 2, 9], [4, 11, 6]])
+      :> <<7 2 9> <4 11 6>>
       let C := array([1, 5, 10]) :> <1 5 10>
       A >= B :> <<0 1 0> <1 0 1>>
       A >= C :> <<1 1 0> <1 1 1>>
@@ -740,9 +842,28 @@ array
    
    * If :mini:`Indexᵢ` is a :mini:`list[tuple[integer,  ...]]` then the appropriate dimensions are dropped and a single sparse dimension is added with the corresponding entries.
    
-   * If :mini:`Indexᵢ` is an :mini:`array` with dimensions that matches the corresponding dimensions of :mini:`A` then a sparse dimension is added with entries corresponding to the non-zero values in :mini:`Indexᵢ` (i.e. :mini:`A[B]` is equivalent to :mini:`A[B:where]`).
+   * If :mini:`Indexᵢ` is an :mini:`array::int8` with dimensions matching the corresponding dimensions of :mini:`A` then a sparse dimension is added with entries corresponding to the non-zero values in :mini:`Indexᵢ` (i.e. :mini:`A[B]` is equivalent to :mini:`A[B:where]`).
+   * If :mini:`Indexᵢ` is an :mini:`array::int32` with all but last dimensions matching the corresponding dimensions of :mini:`A` then a sparse dimension is added with entries corresponding indices in the last dimension of :mini:`Indexᵢ`.
    
    If fewer than :mini:`A:degree` indices are provided then the remaining dimensions are copied unchanged.
+
+   .. code-block:: mini
+
+      let A := array([[[19, 16, 12], [4, 7, 20]], [[5, 17, 8], [20, 9, 20]]])
+      A[1] :> <<19 16 12> <4 7 20>>
+      A[1, 2] :> <4 7 20>
+      A[1, 2, 3] :> 20
+      A[nil, 2] :> <<4 7 20> <20 9 20>>
+      A[.., 3] :> <<12 20> <8 20>>
+      A[.., 1 .. 2] :> <<<19 16> <4 7>> <<5 17> <20 9>>>
+      A[(1, 2, 3)] :> 20
+      A[[(1, 2, 3), (2, 1, 1)]] :> <20 5>
+      let B := A > 10 :> <<<1 1 1> <0 0 1>> <<0 1 0> <1 0 1>>>
+      type(B) :> <<array::int8>>
+      A[B] :> <19 16 12 20 17 20 20>
+      let C := A:maxidx(2) :> <<2 3> <2 1>>
+      type(C) :> <<matrix::int32>>
+      A[C] :> <20 20>
 
 
 :mini:`meth (Array: array)[Indices: map]: array`
@@ -761,12 +882,17 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
-      let B := array([[7, 8, 9], [10, 11, 12]]) :> <<7 8 9> <10 11 12>>
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      let B := array([[7, 8, 9], [10, 11, 12]])
+      :> <<7 8 9> <10 11 12>>
       let C := array([5, 10, 15]) :> <5 10 15>
       A \/ B :> <<7 10 11> <14 15 14>>
+      B \/ A :> <<7 10 11> <14 15 14>>
       A \/ C :> <<5 10 15> <5 15 15>>
       C \/ A :> <<5 10 15> <5 15 15>>
+      B \/ C :> <<7 10 15> <15 11 15>>
+      C \/ B :> <<7 10 15> <15 11 15>>
 
 
 :mini:`meth (A: array) \/ (B: integer): array`
@@ -783,7 +909,8 @@ array
 
    .. code-block:: mini
 
-      let A := array([[1, 2, 3], [4, 5, 6]]) :> <<1 2 3> <4 5 6>>
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
       ^A :> <<1 4> <2 5> <3 6>>
 
 
@@ -1020,7 +1147,8 @@ array
    .. code-block:: mini
 
       let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
-      (1 + 1i) / A :> <<1 + 1i 0.5 + 0.5i> <0.333333 + 0.333333i 0.25 + 0.25i>>
+      (1 + 1i) / A
+      :> <<1 + 1i 0.5 + 0.5i> <0.333333 + 0.333333i 0.25 + 0.25i>>
 
 
 :mini:`meth (A: complex) < (B: array): array`
@@ -1051,8 +1179,10 @@ array
    .. code-block:: mini
 
       let A := $[[1, 2, 3], [4, 5, 6]] :> <<1 2 3> <4 5 6>>
-      let B := $[[7, 8, 9], [10, 11, 12]] :> <<7 8 9> <10 11 12>>
-      array::cat(1, A, B) :> <<1 2 3> <4 5 6> <7 8 9> <10 11 12>>
+      let B := $[[7, 8, 9], [10, 11, 12]]
+      :> <<7 8 9> <10 11 12>>
+      array::cat(1, A, B)
+      :> <<1 2 3> <4 5 6> <7 8 9> <10 11 12>>
       array::cat(2, A, B) :> <<1 2 3 7 8 9> <10 11 12 10 11 12>>
 
 
@@ -1382,8 +1512,10 @@ array
 
    .. code-block:: mini
 
-      let B := buffer(16) :> <16:606E38FF097F00002D3E4E616D65203D>
-      array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2]) :> <<<28256 65336> <32521 0>> <<15917 24910> <25965 15648>>>
+      let B := buffer(16)
+      :> <16:40BA79EF117F0000722D3E4E65787420>
+      array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
+      :> <<<47680 61305> <32529 0>> <<11634 20030> <30821 8308>>>
 
 
 .. _type-vector:
@@ -1469,8 +1601,10 @@ array
 
    .. code-block:: mini
 
-      let A := array([1, 4.2, 0.6, 1.23, 4.3, 1.2, 2.5]) :> <1 4.2 0.6 1.23 4.3 1.2 2.5>
-      let B := A:softmax :> <0.01659 0.406995 0.0111206 0.0208802 0.449799 0.0202631 0.0743513>
+      let A := array([1, 4.2, 0.6, 1.23, 4.3, 1.2, 2.5])
+      :> <1 4.2 0.6 1.23 4.3 1.2 2.5>
+      let B := A:softmax
+      :> <0.01659 0.406995 0.0111206 0.0208802 0.449799 0.0202631 0.0743513>
 
 
 .. _type-vector-uint16:
