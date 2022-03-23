@@ -112,7 +112,7 @@ ML_METHODVX("grow", MLMapT, MLSequenceT) {
 //<Sequence
 //>map
 // Adds of all the key and value pairs produced by :mini:`Sequence` to :mini:`Map` and returns :mini:`Map`.
-//$= map(
+//$= map("cake"):grow("banana")
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 2, ml_value_t *);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)map_iterate;

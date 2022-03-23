@@ -343,7 +343,7 @@ ML_METHOD("@", MLBufferT, MLIntegerT) {
 //>buffer
 // Returns the same buffer as :mini:`Buffer`, limited to :mini:`Length` bytes.
 //$= let B := buffer(16)
-//$= let B @ 8
+//$= B @ 8
 	ml_address_t *Buffer = (ml_address_t *)Args[0];
 	long Length = ml_integer_value_fast(Args[1]);
 	if (Length > Buffer->Length) return ml_error("SizeError", "Size larger than buffer");

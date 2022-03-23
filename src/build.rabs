@@ -38,10 +38,10 @@ if PLATFORM = "Linux" then
 end
 
 if DEBUG then
-	CFLAGS := old + ["-O1", "-g", "-DGC_DEBUG", "-DDEBUG"]
+	CFLAGS := old + ["-O3", "-g", "-DGC_DEBUG", "-DDEBUG"]
 	LDFLAGS := old + ["-g"]
 else
-	CFLAGS := old + ["-O3", "-fexpensive-optimizations", "-g"]
+	CFLAGS := old + ["-O3", "-g", "-fexpensive-optimizations"]
 	LDFLAGS := old + ["-g"]
 end
 

@@ -125,8 +125,8 @@ map
 
    .. code-block:: mini
 
-      map(
-      :> error("ParseError", "Expected <expression> not <end of input>")
+      map("cake"):grow("banana")
+      :> {1 is "b", 2 is "a", 3 is "n", 4 is "a", 5 is "n", 6 is "a"}
 
 
 :mini:`meth (Map: map):insert(Key: any, Value: any): any | nil`
