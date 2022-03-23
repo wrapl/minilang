@@ -71,12 +71,14 @@ static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
 #endif
 
 static void ML_TYPED_FN(ml_stream_read, MLFileT, ml_state_t *Caller, ml_file_t *File, void *Address, int Count) {
+	if (!File->Handle) ML_ERROR("FileError", "reading from closed file");
 	ssize_t Result = fread(Address, 1, Count, File->Handle);
 	if (Result < 0) ML_ERROR("FileError", "error reading from file: %s", strerror(errno));
 	ML_RETURN(ml_integer(Result));
 }
 
 static void ML_TYPED_FN(ml_stream_write, MLFileT, ml_state_t *Caller, ml_file_t *File, const void *Address, int Count) {
+	if (!File->Handle) ML_ERROR("FileError", "wrtiting to closed file");
 	ssize_t Result = fwrite(Address, 1, Count, File->Handle);
 	if (Result < 0) ML_ERROR("FileError", "error writing to file: %s", strerror(errno));
 	ML_RETURN(ml_integer(Result));
@@ -86,7 +88,7 @@ ML_METHOD("eof", MLFileT) {
 //<File
 //>File | nil
 	ml_file_t *File = (ml_file_t *)Args[0];
-	if (!File->Handle) return ml_error("FileError", "file closed");
+	if (!File->Handle) return ml_error("FileError", "file already closed");
 	if (feof(File->Handle)) return Args[0];
 	return MLNil;
 }
@@ -97,7 +99,7 @@ ML_METHOD("close", MLFileT) {
 	ml_file_t *File = (ml_file_t *)Args[0];
 	if (File->Handle) {
 		fclose(File->Handle);
-		File->Handle = 0;
+		File->Handle = NULL;
 	}
 	return MLNil;
 }

@@ -3229,13 +3229,15 @@ void ml_stringbuffer_put(ml_stringbuffer_t *Buffer, char Char) {
 static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
 	char *P = String;
 	ml_stringbuffer_node_t *Node = Buffer->Head;
+	int Start = Buffer->Start;
 	while (Node->Next) {
-		memcpy(P, Node->Chars, ML_STRINGBUFFER_NODE_SIZE);
-		P += ML_STRINGBUFFER_NODE_SIZE;
+		memcpy(P, Node->Chars + Start, ML_STRINGBUFFER_NODE_SIZE - Start);
+		P += ML_STRINGBUFFER_NODE_SIZE - Start;
 		Node = Node->Next;
+		Start = 0;
 	}
-	memcpy(P, Node->Chars, ML_STRINGBUFFER_NODE_SIZE - Buffer->Space);
-	P += ML_STRINGBUFFER_NODE_SIZE - Buffer->Space;
+	memcpy(P, Node->Chars + Start, ML_STRINGBUFFER_NODE_SIZE - (Buffer->Space + Start));
+	P += ML_STRINGBUFFER_NODE_SIZE - (Buffer->Space + Start);
 	*P++ = 0;
 
 	ml_stringbuffer_node_t *Head = Buffer->Head, *Tail = Buffer->Tail;
@@ -3254,7 +3256,7 @@ static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
 		Buffer->File = NULL;
 	}
 	Buffer->Head = Buffer->Tail = NULL;
-	Buffer->Length = Buffer->Space = 0;
+	Buffer->Length = Buffer->Space = Buffer->Start = 0;
 }
 
 char *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) {
