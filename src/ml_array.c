@@ -1577,7 +1577,7 @@ static ml_value_t *ml_array_cat(int Axis, int Count, ml_value_t **Args) {
 	ml_array_t *A = (ml_array_t *)Args[0];
 	int Degree = A->Degree;
 	if (Axis >= A->Degree) return ml_error("RangeError", "Invalid axis");
-	int Size = A->Dimensions[Axis].Size;
+	int Total = A->Dimensions[Axis].Size;
 	ml_array_format_t Format = A->Format;
 	for (int I = 1; I < Count; ++I) {
 		ML_CHECK_ARG_TYPE(I, MLArrayT);
@@ -1585,7 +1585,7 @@ static ml_value_t *ml_array_cat(int Axis, int Count, ml_value_t **Args) {
 		if (B->Degree != Degree) return ml_error("ShapeError", "Incompatible array shapes");
 		for (int J = 0; J < Degree; ++J) {
 			if (J == Axis) {
-				Size += B->Dimensions[J].Size;
+				Total += B->Dimensions[J].Size;
 			} else {
 				if (B->Dimensions[J].Size != A->Dimensions[J].Size) return ml_error("ShapeError", "Incompatible array shapes");
 			}
@@ -1597,8 +1597,8 @@ static ml_value_t *ml_array_cat(int Axis, int Count, ml_value_t **Args) {
 	for (int I = Degree; --I >= 0;) {
 		C->Dimensions[I].Stride = Stride;
 		if (I == Axis) {
-			C->Dimensions[I].Size = Size;
-			Stride *= Size;
+			C->Dimensions[I].Size = Total;
+			Stride *= Total;
 		} else {
 			C->Dimensions[I].Size = A->Dimensions[I].Size;
 			Stride *= A->Dimensions[I].Size;
@@ -1607,15 +1607,18 @@ static ml_value_t *ml_array_cat(int Axis, int Count, ml_value_t **Args) {
 	C->Base.Length = Stride;
 	void *Value = C->Base.Value = snew(Stride);
 	update_row_fn_t Update = UpdateSetRowFns[C->Format * MAX_FORMATS + A->Format];
+	C->Dimensions[Axis].Size = A->Dimensions[Axis].Size;
 	update_array(Update, C->Dimensions, Value, Degree, A->Dimensions, A->Base.Value);
 	int Offset = A->Dimensions[Axis].Size;
 	for (int I = 1; I < Count; ++I) {
 		Value += Offset * C->Dimensions[Axis].Stride;
 		ml_array_t *B = (ml_array_t *)Args[I];
 		Update = UpdateSetRowFns[C->Format * MAX_FORMATS + B->Format];
+		C->Dimensions[Axis].Size = B->Dimensions[Axis].Size;
 		update_array(Update, C->Dimensions, Value, Degree, B->Dimensions, B->Base.Value);
 		Offset = B->Dimensions[Axis].Size;
 	}
+	C->Dimensions[Axis].Size = Total;
 	return (ml_value_t *)C;
 }
 
