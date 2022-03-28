@@ -43,12 +43,6 @@ range
    Returns a range from :mini:`Start` to :mini:`Start + Count - 1` (inclusive).
 
 
-.. _type-integer-iter:
-
-:mini:`type integer::iter`
-   *TBD*
-
-
 .. _type-integer-range:
 
 :mini:`type integer::range < sequence`
@@ -104,12 +98,6 @@ range
 
 
 :mini:`meth (Start: number):by(Step: number): real::range`
-   *TBD*
-
-
-.. _type-real-iter:
-
-:mini:`type real::iter`
    *TBD*
 
 

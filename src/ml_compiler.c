@@ -929,7 +929,7 @@ struct mlc_block_t {
 	ml_inst_t *CatchInst, *Exits;
 	inthash_t DeclHashes;
 	mlc_try_t Try;
-	int Flags, Size, Top;
+	int Flags, Size, Top, Must;
 	ml_decl_t *Decls[];
 };
 
@@ -1327,6 +1327,18 @@ static void ml_def_unpack_expr_compile(mlc_function_t *Function, mlc_local_expr_
 	Frame->Expr = Expr;
 	Frame->Flags = Flags;
 	return mlc_expr_call(Function, Expr->Child);
+}
+
+static void ml_must_expr_compile(mlc_function_t *Function, mlc_must_expr_t *Expr, int Flags) {
+	ml_inst_t *LoadInst = MLC_EMIT(Expr->StartLine, MLI_LOAD, 1);
+	LoadInst[1].Value = ml_integer(Expr->Index);
+	ml_inst_t *LetInst = MLC_EMIT(Expr->StartLine, MLI_LET, 1);
+	LetInst[1].Count = Function->Block->Must;
+	if (Flags & MLCF_PUSH) {
+		LoadInst->Opcode = MLI_LOAD_PUSH;
+		mlc_inc_top(Function);
+	}
+	MLC_RETURN(NULL);
 }
 
 static void ml_block_expr_compile3(mlc_function_t *Function, ml_value_t *Value, mlc_block_t *Frame) {
@@ -3096,6 +3108,7 @@ const char *MLTokens[] = {
 	"let", // MLT_LET,
 	"loop", // MLT_LOOP,
 	"meth", // MLT_METH,
+	"must", // MLT_MUST,
 	"next", // MLT_NEXT,
 	"nil", // MLT_NIL,
 	"not", // MLT_NOT,
@@ -4790,6 +4803,7 @@ typedef struct {
 	mlc_local_t **VarsSlot;
 	mlc_local_t **LetsSlot;
 	mlc_local_t **DefsSlot;
+	mlc_expr_t *MustExpr;
 } ml_accept_block_t;
 
 static void ml_accept_block_var(ml_parser_t *Parser, ml_accept_block_t *Accept) {
@@ -5054,6 +5068,10 @@ static void ml_accept_block_fun(ml_parser_t *Parser, ml_accept_block_t *Accept) 
 	}
 }
 
+static void ml_accept_block_must(ml_parser_t *Parser, ml_accept_block_t *Accept) {
+
+}
+
 static mlc_expr_t *ml_accept_block_export(ml_parser_t *Parser, mlc_expr_t *Expr, mlc_local_t *Export) {
 	ML_EXPR(CallExpr, parent, call);
 	CallExpr->Child = Expr;
@@ -5176,6 +5194,11 @@ static mlc_block_expr_t *ml_accept_block_body(ml_parser_t *Parser) {
 		case MLT_FUN: {
 			ml_next(Parser);
 			ml_accept_block_fun(Parser, Accept);
+			break;
+		}
+		case MLT_MUST: {
+			ml_next(Parser);
+			ml_accept_block_must(Parser, Accept);
 			break;
 		}
 		default: {
@@ -5513,7 +5536,8 @@ typedef struct {
 } ml_global_t;
 
 static ml_value_t *ml_global_deref(ml_global_t *Global) {
-	if (!Global->Value) return ml_error("NameError", "identifier %s not declared", Global->Name);
+	//if (!Global->Value) return ml_error("NameError", "identifier %s not declared", Global->Name);
+	if (!Global->Value) return Global->Value = ml_uninitialized(Global->Name);
 	return ml_deref(Global->Value);
 }
 
@@ -5732,6 +5756,9 @@ static void ml_command_ident_run(mlc_function_t *Function, ml_value_t *Value, ml
 		break;
 	default:
 		break;
+	}
+	if (Global->Value && ml_typeof(Global->Value) == MLUninitializedT) {
+		ml_uninitialized_set(Global->Value, Value);
 	}
 	Global->Value = Value;
 	MLC_POP();

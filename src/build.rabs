@@ -417,7 +417,6 @@ MINIDBG := (BIN_DIR/"minidbg")[file("minidbg")] => fun(Target) do
 	execute("chmod", "+x", Target)
 end
 MINIPP := c_program(BIN_DIR/"minipp", [file("minipp.o")], [LIBMINILANG])
-MINIXE := c_program(BIN_DIR/"minixe", [file("minixe.o")], [LIBMINILANG])
 
 if PLATFORM = "Linux" then
 	let Exports := file("exports.lst")
@@ -425,7 +424,7 @@ if PLATFORM = "Linux" then
 	LDFLAGS := old + ["-ldl", '-Wl,--dynamic-list={Exports}']
 end
 
-DEFAULT[LIBMINILANG, MINILANG, MINIDBG, MINIPP, MINIXE]
+DEFAULT[LIBMINILANG, MINILANG, MINIDBG, MINIPP]
 
 PARENT."LIBMINILANG" := LIBMINILANG
 

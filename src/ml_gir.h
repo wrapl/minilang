@@ -26,4 +26,20 @@ void ml_gir_queue_add(ml_state_t *State, ml_value_t *Value);
 
 extern ml_schedule_t GirSchedule[];
 
+#ifndef GENERATE_INIT
+
+#define ML_GIR_TYPELIB(VALUE, NAME, VERSION) \
+static ml_value_t *VALUE
+
+#define ML_GIR_IMPORT(VALUE, TYPELIB, NAME) \
+static ml_value_t *VALUE
+
+#else
+
+#define ML_GIR_TYPELIB(VALUE, NAME, VERSION) INIT_CODE VALUE = ml_gir_typelib(NAME, VERSION)
+
+#define ML_GIR_IMPORT(VALUE, TYPELIB, NAME) INIT_CODE VALUE = ml_gir_import(TYPELIB, NAME)
+
+#endif
+
 #endif

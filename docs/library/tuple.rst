@@ -60,9 +60,3 @@ tuple
    Appends a representation of :mini:`Value` to :mini:`Buffer`.
 
 
-.. _type-tuple-iter:
-
-:mini:`type tuple::iter`
-   *TBD*
-
-

@@ -37,12 +37,6 @@ object
 
 .. _type-enum-range:
 
-:mini:`type enum::range`
-   *TBD*
-
-
-.. _type-enum-range:
-
 :mini:`type enum::range < sequence`
    *TBD*
 

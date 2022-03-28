@@ -947,7 +947,7 @@ static void ML_TYPED_FN(ml_iter_key, MLIntegerIterT, ml_state_t *Caller, ml_inte
 }
 
 ML_TYPE(MLIntegerIterT, (), "integer-iter");
-//!range
+//!internal
 
 static void ML_TYPED_FN(ml_iterate, MLIntegerRangeT, ml_state_t *Caller, ml_value_t *Value) {
 	ml_integer_range_t *Range = (ml_integer_range_t *)Value;
@@ -1148,7 +1148,7 @@ static void ML_TYPED_FN(ml_iter_key, MLRealIterT, ml_state_t *Caller, ml_real_it
 }
 
 ML_TYPE(MLRealIterT, (), "real-iter");
-//!range
+//!internal
 
 static void ML_TYPED_FN(ml_iterate, MLRealRangeT, ml_state_t *Caller, ml_value_t *Value) {
 	ml_real_range_t *Range = (ml_real_range_t *)Value;

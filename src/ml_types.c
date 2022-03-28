@@ -1693,6 +1693,7 @@ typedef struct {
 } ml_tuple_iter_t;
 
 ML_TYPE(MLTupleIterT, (), "tuple-iter");
+//!internal
 
 static void ML_TYPED_FN(ml_iter_next, MLTupleIterT, ml_state_t *Caller, ml_tuple_iter_t *Iter) {
 	if (Iter->Index == Iter->Size) ML_RETURN(MLNil);

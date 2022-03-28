@@ -19,6 +19,7 @@ is, MLT_IS
 let, MLT_LET
 loop, MLT_LOOP
 meth, MLT_METH
+must, MLT_MUST
 next, MLT_NEXT
 nil, MLT_NIL
 not, MLT_NOT
