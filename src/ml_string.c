@@ -3062,7 +3062,13 @@ ML_FUNCTION(MLStringBuffer) {
 	return ml_stringbuffer();
 }
 
+/*
+ML_TYPE(MLStringBufferT, (MLStreamT), "stringbuffer");
+// A string buffer that automatically grows and shrinks as required.
+*/
+
 ML_TYPE(MLStringBufferT, (), "stringbuffer",
+//!internal
 // A string buffer that automatically grows and shrinks as required.
 	.Constructor = (ml_value_t *)MLStringBuffer
 );

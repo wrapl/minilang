@@ -745,6 +745,7 @@ typedef struct {
 } ml_enum_range_iter_t;
 
 ML_TYPE(MLEnumRangeIterT, (), "enum-range-iter");
+//!internal
 
 typedef struct {
 	ml_type_t *Type;

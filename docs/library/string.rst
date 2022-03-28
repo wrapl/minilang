@@ -726,7 +726,7 @@ When creating a substring,  the first index is inclusive and second index is exc
 
 .. _type-string-buffer:
 
-:mini:`type string::buffer`
+:mini:`type string::buffer < stream`
    A string buffer that automatically grows and shrinks as required.
 
 

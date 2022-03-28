@@ -13,157 +13,163 @@ gir
    *TBD*
 
 
-.. _type-fieldref-boolean:
+.. _type-gir:
 
-:mini:`type fieldref::boolean`
-   *TBD*
-
-
-.. _type-fieldref-double:
-
-:mini:`type fieldref::double`
-   *TBD*
-
-
-.. _type-fieldref-float:
-
-:mini:`type fieldref::float`
-   *TBD*
-
-
-.. _type-fieldref-int16:
-
-:mini:`type fieldref::int16`
-   *TBD*
-
-
-.. _type-fieldref-int32:
-
-:mini:`type fieldref::int32`
-   *TBD*
-
-
-.. _type-fieldref-int64:
-
-:mini:`type fieldref::int64`
-   *TBD*
-
-
-.. _type-fieldref-int8:
-
-:mini:`type fieldref::int8`
-   *TBD*
-
-
-.. _type-fieldref-uint16:
-
-:mini:`type fieldref::uint16`
-   *TBD*
-
-
-.. _type-fieldref-uint32:
-
-:mini:`type fieldref::uint32`
-   *TBD*
-
-
-.. _type-fieldref-uint64:
-
-:mini:`type fieldref::uint64`
-   *TBD*
-
-
-.. _type-fieldref-uint8:
-
-:mini:`type fieldref::uint8`
-   *TBD*
-
-
-.. _type-fieldref-utf8:
-
-:mini:`type fieldref::utf8`
-   *TBD*
-
-
-.. _type-gir-typelib:
-
-:mini:`type gir-typelib < sequence`
+:mini:`type gir < sequence`
    A gobject-introspection typelib.
 
 
-.. _type-gir-base:
+.. _type-gir-baseinfo:
 
-:mini:`type gir::base < type`
+:mini:`type gir::baseinfo < type`
    *TBD*
 
 
 .. _type-gir-enum:
 
-:mini:`type gir::enum < gir::base`
+:mini:`type gir::enum < gir::baseinfo`
    A gobject-instrospection enum type.
 
 
-.. _type-gir-enum:
+.. _type-gir-enumvalue:
 
-:mini:`type gir::enum`
+:mini:`type gir::enumvalue`
    A gobject-instrospection enum value.
 
 
-:mini:`meth (Value₁: gir::enum) | (Value₂: gir::enum): enumvalue`
+:mini:`meth (Value₁: gir::enumvalue) | (Value₂: gir::enumvalue): enumvalue`
    *TBD*
 
 
-:mini:`meth (Value₁: gir::enum) | (Value₂: nil): enumvalue`
+:mini:`meth (Value₁: gir::enumvalue) | (Value₂: nil): enumvalue`
    *TBD*
 
 
-:mini:`meth (Value: string):append(Arg₂: gir::enum): string`
+:mini:`meth (Value: string):append(Arg₂: gir::enumvalue): string`
+   *TBD*
+
+
+.. _type-gir-fieldref:
+
+:mini:`type gir::fieldref`
+   *TBD*
+
+
+.. _type-gir-fieldref-boolean:
+
+:mini:`type gir::fieldref-boolean < gir::fieldref`
+   *TBD*
+
+
+.. _type-gir-fieldref-double:
+
+:mini:`type gir::fieldref-double < gir::fieldref`
+   *TBD*
+
+
+.. _type-gir-fieldref-float:
+
+:mini:`type gir::fieldref-float < gir::fieldref`
+   *TBD*
+
+
+.. _type-gir-fieldref-int16:
+
+:mini:`type gir::fieldref-int16 < gir::fieldref`
+   *TBD*
+
+
+.. _type-gir-fieldref-int32:
+
+:mini:`type gir::fieldref-int32 < gir::fieldref`
+   *TBD*
+
+
+.. _type-gir-fieldref-int64:
+
+:mini:`type gir::fieldref-int64 < gir::fieldref`
+   *TBD*
+
+
+.. _type-gir-fieldref-int8:
+
+:mini:`type gir::fieldref-int8 < gir::fieldref`
+   *TBD*
+
+
+.. _type-gir-fieldref-uint16:
+
+:mini:`type gir::fieldref-uint16 < gir::fieldref`
+   *TBD*
+
+
+.. _type-gir-fieldref-uint32:
+
+:mini:`type gir::fieldref-uint32 < gir::fieldref`
+   *TBD*
+
+
+.. _type-gir-fieldref-uint64:
+
+:mini:`type gir::fieldref-uint64 < gir::fieldref`
+   *TBD*
+
+
+.. _type-gir-fieldref-uint8:
+
+:mini:`type gir::fieldref-uint8 < gir::fieldref`
+   *TBD*
+
+
+.. _type-gir-fieldref-utf8:
+
+:mini:`type gir::fieldref-utf8 < gir::fieldref`
    *TBD*
 
 
 .. _type-gir-object:
 
-:mini:`type gir::object`
-   A gobject-introspection object instance.
-
-
-.. _type-gir-object:
-
-:mini:`type gir::object`
-   *TBD*
-
-
-.. _type-gir-object:
-
-:mini:`type gir::object < gir::base`
+:mini:`type gir::object < gir::baseinfo`
    A gobject-introspection object type.
 
 
-:mini:`meth (Object: gir::object) :: (Property: string): any`
+.. _type-gir-objectinstance:
+
+:mini:`type gir::objectinstance`
+   A gobject-introspection object instance.
+
+
+:mini:`meth (Object: gir::objectinstance) :: (Property: string): any`
    *TBD*
 
 
-:mini:`meth (Object: gir::object):connect(Signal: string, Handler: function): Object`
+:mini:`meth (Object: gir::objectinstance):connect(Signal: string, Handler: function): Object`
    *TBD*
 
 
-:mini:`meth (Object: string::buffer):append(Arg₂: gir::object): string`
+:mini:`meth (Object: string::buffer):append(Arg₂: gir::objectinstance): string`
+   *TBD*
+
+
+.. _type-gir-objectproperty:
+
+:mini:`type gir::objectproperty`
    *TBD*
 
 
 .. _type-gir-struct:
 
-:mini:`type gir::struct < gir::base`
+:mini:`type gir::struct < gir::baseinfo`
    A gobject-introspection struct type.
 
 
-.. _type-gir-struct:
+.. _type-gir-structinstance:
 
-:mini:`type gir::struct`
+:mini:`type gir::structinstance`
    A gobject-introspection struct instance.
 
 
-:mini:`meth (Struct: string::buffer):append(Arg₂: gir::struct): string`
+:mini:`meth (Struct: string::buffer):append(Arg₂: gir::structinstance): string`
    *TBD*
 
 
@@ -171,11 +177,11 @@ gir
    *TBD*
 
 
-:mini:`meth integer(Value: gir::enum): integer`
+:mini:`meth integer(Value: gir::enumvalue): integer`
    *TBD*
 
 
-:mini:`meth (Value₁: nil) | (Value₂: gir::enum): enumvalue`
+:mini:`meth (Value₁: nil) | (Value₂: gir::enumvalue): enumvalue`
    *TBD*
 
 

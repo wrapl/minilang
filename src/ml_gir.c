@@ -54,8 +54,8 @@ typedef struct {
 	const char *Namespace;
 } typelib_t;
 
-ML_TYPE(GirTypelibT, (MLSequenceT), "gir-typelib");
-//@gir-typelib
+ML_TYPE(GirTypelibT, (MLSequenceT), "typelib");
+//@gir
 // A gobject-introspection typelib.
 
 GITypelib *ml_gir_get_typelib(ml_value_t *Value) {
@@ -79,7 +79,7 @@ typedef struct {
 	GIBaseInfo *Info;
 } baseinfo_t;
 
-ML_TYPE(GirBaseInfoT, (MLTypeT), "gir-base-info");
+ML_TYPE(GirBaseInfoT, (MLTypeT), "base-info");
 
 static ml_value_t *baseinfo_to_value(GIBaseInfo *Info);
 static void _ml_to_value(ml_value_t *Source, GValue *Dest);
@@ -133,10 +133,10 @@ typedef struct {
 	ptrset_t Handlers[1];
 } object_instance_t;
 
-ML_TYPE(GirObjectT, (GirBaseInfoT), "gir-object-type");
+ML_TYPE(GirObjectT, (GirBaseInfoT), "object-type");
 // A gobject-introspection object type.
 
-ML_TYPE(GirObjectInstanceT, (), "gir-object");
+ML_TYPE(GirObjectInstanceT, (), "object-instance");
 // A gobject-introspection object instance.
 
 static object_instance_t *ObjectInstanceNil;
@@ -220,10 +220,10 @@ typedef struct {
 	void *Value;
 } struct_instance_t;
 
-ML_TYPE(GirStructT, (GirBaseInfoT), "gir-struct-type");
+ML_TYPE(GirStructT, (GirBaseInfoT), "struct-type");
 // A gobject-introspection struct type.
 
-ML_TYPE(GirStructInstanceT, (), "gir-struct");
+ML_TYPE(GirStructInstanceT, (), "struct-instance");
 // A gobject-introspection struct instance.
 
 ml_value_t *ml_gir_struct_instance(ml_value_t *Struct, void *Value) {
@@ -258,6 +258,9 @@ typedef struct field_ref_t {
 	void *Address;
 } field_ref_t;
 
+ML_TYPE(GirFieldRefT, (), "field-ref");
+//@gir::fieldref
+
 #define FIELD_REF(UNAME, LNAME, GTYPE, GETTER, SETTER) \
 static ml_value_t *field_ref_ ## LNAME ## _deref(field_ref_t *Ref) { \
 	GTYPE Value = *(GTYPE *)Ref->Address; \
@@ -270,8 +273,8 @@ static void field_ref_ ## LNAME ## _assign(ml_state_t *Caller, field_ref_t *Ref,
 	ML_RETURN(Value); \
 } \
 \
-ML_TYPE(FieldRef ## UNAME ## T, (), "field-ref-" #LNAME, \
-/*@fieldref::LNAME
+ML_TYPE(GirFieldRef ## UNAME ## T, (GirFieldRefT), "field-ref-" #LNAME, \
+/*@gir::fieldref-LNAME
 */ \
 	.deref = (void *)field_ref_ ## LNAME ## _deref, \
 	.assign = (void *)field_ref_ ## LNAME ## _assign \
@@ -297,20 +300,20 @@ static ml_value_t *struct_field_ref(GIFieldInfo *Info, int Count, ml_value_t **A
 	GITypeInfo *TypeInfo = g_field_info_get_type(Info);
 	switch (g_type_info_get_tag(TypeInfo)) {
 	case GI_TYPE_TAG_VOID: return ml_error("TodoError", "Field ref not implemented yet");
-	case GI_TYPE_TAG_BOOLEAN: Ref->Type = FieldRefBooleanT; break;
-	case GI_TYPE_TAG_INT8: Ref->Type = FieldRefInt8T; break;
-	case GI_TYPE_TAG_UINT8: Ref->Type = FieldRefUInt8T; break;
-	case GI_TYPE_TAG_INT16: Ref->Type = FieldRefInt16T; break;
-	case GI_TYPE_TAG_UINT16: Ref->Type = FieldRefUInt16T; break;
-	case GI_TYPE_TAG_INT32: Ref->Type = FieldRefInt32T; break;
-	case GI_TYPE_TAG_UINT32: Ref->Type = FieldRefUInt32T; break;
-	case GI_TYPE_TAG_INT64: Ref->Type = FieldRefInt64T; break;
-	case GI_TYPE_TAG_UINT64: Ref->Type = FieldRefUInt64T; break;
-	case GI_TYPE_TAG_FLOAT: Ref->Type = FieldRefFloatT; break;
-	case GI_TYPE_TAG_DOUBLE: Ref->Type = FieldRefDoubleT; break;
+	case GI_TYPE_TAG_BOOLEAN: Ref->Type = GirFieldRefBooleanT; break;
+	case GI_TYPE_TAG_INT8: Ref->Type = GirFieldRefInt8T; break;
+	case GI_TYPE_TAG_UINT8: Ref->Type = GirFieldRefUInt8T; break;
+	case GI_TYPE_TAG_INT16: Ref->Type = GirFieldRefInt16T; break;
+	case GI_TYPE_TAG_UINT16: Ref->Type = GirFieldRefUInt16T; break;
+	case GI_TYPE_TAG_INT32: Ref->Type = GirFieldRefInt32T; break;
+	case GI_TYPE_TAG_UINT32: Ref->Type = GirFieldRefUInt32T; break;
+	case GI_TYPE_TAG_INT64: Ref->Type = GirFieldRefInt64T; break;
+	case GI_TYPE_TAG_UINT64: Ref->Type = GirFieldRefUInt64T; break;
+	case GI_TYPE_TAG_FLOAT: Ref->Type = GirFieldRefFloatT; break;
+	case GI_TYPE_TAG_DOUBLE: Ref->Type = GirFieldRefDoubleT; break;
 	case GI_TYPE_TAG_GTYPE: return ml_error("TodoError", "Field ref not implemented yet");
-	case GI_TYPE_TAG_UTF8: Ref->Type = FieldRefUtf8T; break;
-	case GI_TYPE_TAG_FILENAME: Ref->Type = FieldRefUtf8T; break;
+	case GI_TYPE_TAG_UTF8: Ref->Type = GirFieldRefUtf8T; break;
+	case GI_TYPE_TAG_FILENAME: Ref->Type = GirFieldRefUtf8T; break;
 	case GI_TYPE_TAG_ARRAY: return ml_error("TodoError", "Field ref not implemented yet");
 	case GI_TYPE_TAG_INTERFACE: {
 		GIBaseInfo *InterfaceInfo = g_type_info_get_interface(TypeInfo);
@@ -362,10 +365,10 @@ struct enum_value_t {
 	gint64 Value;
 };
 
-ML_TYPE(GirEnumT, (GirBaseInfoT), "gir-enum-type");
+ML_TYPE(GirEnumT, (GirBaseInfoT), "enum-type");
 // A gobject-instrospection enum type.
 
-ML_TYPE(GirEnumValueT, (), "gir-enum");
+ML_TYPE(GirEnumValueT, (), "enum-value");
 // A gobject-instrospection enum value.
 
 gint64 ml_gir_enum_value_value(ml_value_t *Value) {
@@ -2173,7 +2176,7 @@ static void object_property_assign(ml_state_t *Caller, object_property_t *Proper
 	ML_RETURN(Value0);
 }
 
-ML_TYPE(GirObjectPropertyT, (), "gir-object-property",
+ML_TYPE(GirObjectPropertyT, (), "object-property",
 	.deref = (void *)object_property_deref,
 	.assign = (void *)object_property_assign
 );

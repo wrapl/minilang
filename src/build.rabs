@@ -417,7 +417,6 @@ MINIDBG := (BIN_DIR/"minidbg")[file("minidbg")] => fun(Target) do
 	execute("chmod", "+x", Target)
 end
 MINIPP := c_program(BIN_DIR/"minipp", [file("minipp.o")], [LIBMINILANG])
-MINIXE := c_program(BIN_DIR/"minixe", [file("minixe.o")], [LIBMINILANG])
 
 if PLATFORM = "Linux" then
 	let Exports := file("exports.lst")
