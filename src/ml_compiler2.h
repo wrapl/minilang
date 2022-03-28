@@ -26,6 +26,7 @@ typedef enum ml_token_t {
 	MLT_LET,
 	MLT_LOOP,
 	MLT_METH,
+	MLT_MUST,
 	MLT_NEXT,
 	MLT_NIL,
 	MLT_NOT,
@@ -221,6 +222,13 @@ struct mlc_for_expr_t {
 	mlc_local_t *Local;
 	mlc_expr_t *Child;
 	int Unpack;
+};
+
+typedef struct mlc_must_expr_t mlc_must_expr_t;
+
+struct mlc_must_expr_t {
+	MLC_EXPR_FIELDS(must);
+	int Index;
 };
 
 typedef struct mlc_block_expr_t mlc_block_expr_t;

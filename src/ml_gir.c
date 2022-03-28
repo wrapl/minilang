@@ -2234,6 +2234,43 @@ ML_FUNCTIONX(GirRun) {
 
 #endif
 
+#include "ml_stream.h"
+#include <gio/gio.h>
+
+ML_GIR_TYPELIB(Gio, "Gio", NULL);
+
+ML_GIR_IMPORT(GInputStreamT, Gio, "InputStream");
+
+static void g_input_stream_callback(GObject *Object, GAsyncResult *Result, gpointer Data) {
+	GInputStream *Stream = (GInputStream *)Object;
+	ml_state_t *Caller = (ml_state_t *)Data;
+	GError *Error = NULL;
+	gssize Count = g_input_stream_read_finish(Stream, Result, &Error);
+	if (Error) ML_ERROR("GirError", "%s", Error->message);
+	ML_RETURN(ml_integer(Count));
+}
+
+static void ML_TYPED_FN(ml_stream_read, (ml_type_t *)GInputStreamT, ml_state_t *Caller, object_instance_t *Value, void *Address, int Count) {
+	GInputStream *Stream = (GInputStream *)Value->Handle;
+	g_input_stream_read_async(Stream, Address, Count, 0, NULL, g_input_stream_callback, Caller);
+}
+
+ML_GIR_IMPORT(GOutputStreamT, Gio, "OutputStream");
+
+static void g_output_stream_callback(GObject *Object, GAsyncResult *Result, gpointer Data) {
+	GOutputStream *Stream = (GOutputStream *)Object;
+	ml_state_t *Caller = (ml_state_t *)Data;
+	GError *Error = NULL;
+	gssize Count = g_output_stream_write_finish(Stream, Result, &Error);
+	if (Error) ML_ERROR("GirError", "%s", Error->message);
+	ML_RETURN(ml_integer(Count));
+}
+
+static void ML_TYPED_FN(ml_stream_write, (ml_type_t *)GOutputStreamT, ml_state_t *Caller, object_instance_t *Value, void *Address, int Count) {
+	GOutputStream *Stream = (GOutputStream *)Value->Handle;
+	g_output_stream_write_async(Stream, Address, Count, 0, NULL, g_input_stream_callback, Caller);
+}
+
 void ml_gir_init(stringmap_t *Globals) {
 	g_setenv("G_SLICE", "always-malloc", 1);
 	GError *Error = 0;
@@ -2252,6 +2289,7 @@ void ml_gir_init(stringmap_t *Globals) {
 	GirObjectT->call = MLTypeT->call;
 	GirStructT->call = MLTypeT->call;
 #include "ml_gir_init.c"
+	ml_type_add_parent((ml_type_t *)GInputStreamT, MLStreamT);
 #ifdef ML_SCHEDULER
 	stringmap_insert(Globals, "sleep", (ml_value_t *)MLSleep);
 	stringmap_insert(GirTypelibT->Exports, "run", GirRun);

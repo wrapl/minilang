@@ -140,8 +140,9 @@ struct DEBUG_STRUCT(frame) {
 static void DEBUG_FUNC(continuation_call)(ml_state_t *Caller, DEBUG_STRUCT(frame) *Frame, int Count, ml_value_t **Args) {
 	if (Frame->Suspend) ML_ERROR("StateError", "Cannot call suspended function");
 	Frame->Continue = 1;
-	Frame->Base.Caller = Caller;
-	Frame->Base.Context = Caller->Context;
+	Caller->run(Caller, MLNil);
+	//Frame->Base.Caller = Caller;
+	//Frame->Base.Context = Caller->Context;
 	return Frame->Base.run((ml_state_t *)Frame, Count ? Args[0] : MLNil);
 }
 
