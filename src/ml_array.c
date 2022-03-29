@@ -6112,7 +6112,9 @@ static ml_value_t *ml_array_pairwise_infix(ml_array_infix_set_fn *InfixSetFns, i
 	ml_array_dimension_t *DimA = A->Dimensions;
 	ml_array_dimension_t *DimB = B->Dimensions;
 	int Degree = DegreeA + DegreeB;
-	ml_array_t *C = ml_array_alloc(MAX(A->Format, B->Format), Degree);
+	ml_array_format_t Format = MAX(A->Format, B->Format);
+	if (InfixSetFns == MLArrayInfixDivFns) Format = MAX(Format, ML_ARRAY_FORMAT_F64);
+	ml_array_t *C = ml_array_alloc(Format, Degree);
 	int DataSize = MLArraySizes[C->Format];
 	int Base = DegreeA;
 	for (int I = DegreeB; --I >= 0;) {
@@ -6138,6 +6140,28 @@ static ml_value_t *ml_array_pairwise_infix(ml_array_infix_set_fn *InfixSetFns, i
 	);
 	return (ml_value_t *)C;
 }
+
+#define ML_ARRAY_PAIRWISE(NAME, OP) \
+/*
+ML_METHOD(NAME, MLArrayT, MLArrayT) {
+//<A
+//<B
+//>array
+// Returns an array with :mini:`A/i OP B/j` for each pair of elements of :mini:`A` and :mini:`B`. The result will have shape :mini:`A:shape + B:shape`.
+//
+//$= let A := array([1, 8, 3])
+//$= let B := array([[7, 2], [4, 11]])
+//$= A:shape
+//$= B:shape
+//$= let C := A OPOP B
+//$= C:shape
+}
+*/
+
+ML_ARRAY_PAIRWISE("++", +)
+ML_ARRAY_PAIRWISE("--", -)
+ML_ARRAY_PAIRWISE("**", *)
+ML_ARRAY_PAIRWISE("//", /)
 
 static int ml_lu_decomp_real(double **A, int *P, int N) {
 	for (int I = 0; I <= N; ++I) P[I] = I;

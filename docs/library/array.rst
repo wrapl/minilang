@@ -128,6 +128,21 @@ array
       A * 2.5 :> <<2.5 5> <7.5 10>>
 
 
+:mini:`meth (A: array) ** (B: array): array`
+   Returns an array with :mini:`Aᵢ * Bⱼ` for each pair of elements of :mini:`A` and :mini:`B`. The result will have shape :mini:`A:shape + B:shape`.
+   
+
+   .. code-block:: mini
+
+      let A := array([1, 8, 3]) :> <1 8 3>
+      let B := array([[7, 2], [4, 11]]) :> <<7 2> <4 11>>
+      A:shape :> [3]
+      B:shape :> [2, 2]
+      let C := A ** B
+      :> <<<7 2> <4 11>> <<56 16> <32 88>> <<21 6> <12 33>>>
+      C:shape :> [3, 2, 2]
+
+
 :mini:`meth (A: array) + (B: array): array`
    Returns :mini:`A + B` (element-wise). The shapes of :mini:`A` and :mini:`B` must be compatible,  i.e. either
    
@@ -177,6 +192,21 @@ array
 
       let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
       A + 2.5 :> <<3.5 4.5> <5.5 6.5>>
+
+
+:mini:`meth (A: array) ++ (B: array): array`
+   Returns an array with :mini:`Aᵢ + Bⱼ` for each pair of elements of :mini:`A` and :mini:`B`. The result will have shape :mini:`A:shape + B:shape`.
+   
+
+   .. code-block:: mini
+
+      let A := array([1, 8, 3]) :> <1 8 3>
+      let B := array([[7, 2], [4, 11]]) :> <<7 2> <4 11>>
+      A:shape :> [3]
+      B:shape :> [2, 2]
+      let C := A ++ B
+      :> <<<8 3> <5 12>> <<15 10> <12 19>> <<10 5> <7 14>>>
+      C:shape :> [3, 2, 2]
 
 
 :mini:`meth -(Array: array): array`
@@ -234,6 +264,21 @@ array
       A - 2.5 :> <<-1.5 -0.5> <0.5 1.5>>
 
 
+:mini:`meth (A: array) -- (B: array): array`
+   Returns an array with :mini:`Aᵢ - Bⱼ` for each pair of elements of :mini:`A` and :mini:`B`. The result will have shape :mini:`A:shape + B:shape`.
+   
+
+   .. code-block:: mini
+
+      let A := array([1, 8, 3]) :> <1 8 3>
+      let B := array([[7, 2], [4, 11]]) :> <<7 2> <4 11>>
+      A:shape :> [3]
+      B:shape :> [2, 2]
+      let C := A -- B
+      :> <<<-6 -1> <-3 -10>> <<1 6> <4 -3>> <<-4 1> <-1 -8>>>
+      C:shape :> [3, 2, 2]
+
+
 :mini:`meth (A: array) . (B: array): array`
    Returns the inner product of :mini:`A` and :mini:`B`. The last dimension of :mini:`A` and the first dimension of :mini:`B` must match,  skipping any dimensions of size :mini:`1`.
 
@@ -287,6 +332,21 @@ array
 
       let A := array([[1, 2], [3, 4]]) :> <<1 2> <3 4>>
       A / 2.5 :> <<0.4 0.8> <1.2 1.6>>
+
+
+:mini:`meth (A: array) // (B: array): array`
+   Returns an array with :mini:`Aᵢ / Bⱼ` for each pair of elements of :mini:`A` and :mini:`B`. The result will have shape :mini:`A:shape + B:shape`.
+   
+
+   .. code-block:: mini
+
+      let A := array([1, 8, 3]) :> <1 8 3>
+      let B := array([[7, 2], [4, 11]]) :> <<7 2> <4 11>>
+      A:shape :> [3]
+      B:shape :> [2, 2]
+      let C := A // B
+      :> <<<0.142857 0.5> <0.25 0.0909091>> <<1.14286 4> <2 0.727273>> <<0.428571 1.5> <0.75 0.272727>>>
+      C:shape :> [3, 2, 2]
 
 
 :mini:`meth (A: array) /\ (B: array): array`
@@ -1513,9 +1573,9 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:A07240C5A47F00006C457870722D3E43>
+      :> <16:802512D1C57F00007870725F74202A43>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
-      :> <<<29344 50496> <32676 0>> <<17772 28792> <11634 17214>>>
+      :> <<<9600 53522> <32709 0>> <<28792 24434> <8308 17194>>>
 
 
 .. _type-vector:
