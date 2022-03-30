@@ -770,7 +770,7 @@ The special built in value :mini:`nil` denotes the absence of any other value. V
 
 .. important::
 
-   Although *Minilang* has boolean values, conditional and looping statements treat only :mini:`nil` as false and *any* other value as true.
+   Although *Minilang* has boolean values, conditional and looping statements treat only :mini:`nil` as false and **any** other value as true.
 
 .. code-block:: mini
 

@@ -11,8 +11,6 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "runtime"
 
-//!internal
-
 // Runtime //
 
 #ifdef ML_THREADSAFE

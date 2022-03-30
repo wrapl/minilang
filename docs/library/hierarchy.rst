@@ -5,7 +5,6 @@ hierarchy
 .. graphviz::
 
    digraph hierarchy {
-      size="180,120";
       rankdir="LR";
       fontsize="40pt"
       concentrate=true;
@@ -13,17 +12,6 @@ hierarchy
       packMode="node";
       outputorder="edgesfirst";
       node [shape=box,fontsize=24];
-      "any":e -> "xml":w;
-      "xml":e -> "xml::text":w;
-      "string":e -> "xml::text":w;
-      "xml":e -> "xml::element":w;
-      "sequence":e -> "xml::element":w;
-      "function":e -> "xml::filter":w;
-      "stream":e -> "xml::decoder":w;
-      "sequence":e -> "xe::node":w;
-      "any":e -> "xe::var":w;
-      "any":e -> "uuid":w;
-      "any":e -> "any":w;
       "any":e -> "sequence":w;
       "any":e -> "function":w;
       "function":e -> "type":w;
@@ -34,6 +22,16 @@ hierarchy
       "sequence":e -> "tuple":w;
       "any":e -> "boolean":w;
       "any":e -> "module":w;
+      "any":e -> "xml":w;
+      "xml":e -> "xml::text":w;
+      "string":e -> "xml::text":w;
+      "xml":e -> "xml::element":w;
+      "sequence":e -> "xml::element":w;
+      "function":e -> "xml::filter":w;
+      "stream":e -> "xml::decoder":w;
+      "sequence":e -> "xe::node":w;
+      "any":e -> "xe::var":w;
+      "any":e -> "uuid":w;
       "any":e -> "time":w;
       "any":e -> "thread":w;
       "any":e -> "thread::channel":w;
@@ -56,9 +54,13 @@ hierarchy
       "function":e -> "chained":w;
       "sequence":e -> "chained":w;
       "function":e -> "context":w;
+      "function":e -> "state":w;
+      "state":e -> "resumable::state":w;
       "any":e -> "reference":w;
+      "any":e -> "uninitialized":w;
       "any":e -> "error":w;
       "any":e -> "error::value":w;
+      "any":e -> "mini::debugger":w;
       "any":e -> "semaphore":w;
       "any":e -> "channel":w;
       "any":e -> "pqueue::entry":w;
@@ -124,6 +126,8 @@ hierarchy
       "any":e -> "parser":w;
       "any":e -> "global":w;
       "any":e -> "variable":w;
+      "state":e -> "continuation":w;
+      "sequence":e -> "continuation":w;
       "function":e -> "closure":w;
       "sequence":e -> "closure":w;
       "any":e -> "closure::info":w;

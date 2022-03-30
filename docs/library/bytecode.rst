@@ -43,6 +43,12 @@ This is a mostly internal module,  subject to change.
    Information about a closure.
 
 
+.. _type-continuation:
+
+:mini:`type continuation < state, sequence`
+   A bytecode function frame which can be resumed.
+
+
 .. _type-variable:
 
 :mini:`type variable`
@@ -54,11 +60,11 @@ This is a mostly internal module,  subject to change.
    Return a new untyped variable with current value :mini:`Value`.
 
 
-:mini:`meth variable(Value: any, Type: type): variable`
-   Return a new typed variable with type :mini:`Type` and current value :mini:`Value`.
-
-
 :mini:`meth variable(): variable`
    Return a new untyped variable with current value :mini:`nil`.
+
+
+:mini:`meth variable(Value: any, Type: type): variable`
+   Return a new typed variable with type :mini:`Type` and current value :mini:`Value`.
 
 
