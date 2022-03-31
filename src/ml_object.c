@@ -665,29 +665,27 @@ ML_TYPE(MLEnumSwitchT, (MLFunctionT), "enum-switch",
 	.call = (void *)ml_enum_switch
 );
 
-ML_METHODVX(MLCompilerSwitch, MLEnumT) {
-//!internal
-	ml_enum_t *Enum = (ml_enum_t *)Args[0];
+static ml_value_t *ml_enum_switch_fn(ml_enum_t *Enum, int Count, ml_value_t **Args) {
 	int Total = 1;
-	for (int I = 1; I < Count; ++I) {
-		ML_CHECKX_ARG_TYPE(I, MLListT);
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
 		Total += ml_list_length(Args[I]);
 	}
 	ml_enum_switch_t *Switch = xnew(ml_enum_switch_t, Total, ml_enum_case_t);
 	Switch->Type = MLEnumSwitchT;
 	Switch->Enum = Enum;
 	ml_enum_case_t *Case = Switch->Cases;
-	for (int I = 1; I < Count; ++I) {
+	for (int I = 0; I < Count; ++I) {
 		ML_LIST_FOREACH(Args[I], Iter) {
 			ml_value_t *Value = Iter->Value;
 			if (ml_is(Value, (ml_type_t *)Enum)) {
 				Case->Value = ml_enum_value_value(Value);
 			} else if (ml_is(Value, MLStringT)) {
 				ml_value_t *EnumValue = stringmap_search(Enum->Base.Exports, ml_string_value(Value));
-				if (!EnumValue) ML_ERROR("EnumError", "Invalid enum name");
+				if (!EnumValue) return ml_error("EnumError", "Invalid enum name");
 				Case->Value = ml_enum_value_value(EnumValue);
 			} else {
-				ML_ERROR("ValueError", "Unsupported value in enum case");
+				return ml_error("ValueError", "Unsupported value in enum case");
 			}
 			Case->Index = ml_integer(I - 1);
 			++Case;
@@ -695,7 +693,12 @@ ML_METHODVX(MLCompilerSwitch, MLEnumT) {
 	}
 	Case->Value = UINT64_MAX;
 	Case->Index = ml_integer(Count - 1);
-	ML_RETURN(Switch);
+	return (ml_value_t *)Switch;
+}
+
+ML_METHOD(MLCompilerSwitch, MLEnumT) {
+//!internal
+	return ml_inline_call_macro(ml_cfunction(Args[0], (ml_callback_t)ml_enum_switch_fn));
 }
 
 ML_METHOD("count", MLEnumT) {
@@ -1036,38 +1039,36 @@ ML_TYPE(MLFlagsSwitchT, (MLFunctionT), "flags-switch",
 	.call = (void *)ml_flags_switch
 );
 
-ML_METHODVX(MLCompilerSwitch, MLFlagsT) {
-//!internal
-	ml_flags_t *Flags = (ml_flags_t *)Args[0];
+static ml_value_t *ml_flags_switch_fn(ml_flags_t *Flags, int Count, ml_value_t **Args) {
 	int Total = 1;
-	for (int I = 1; I < Count; ++I) {
-		ML_CHECKX_ARG_TYPE(I, MLListT);
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
 		Total += ml_list_length(Args[I]);
 	}
 	ml_flags_switch_t *Switch = xnew(ml_flags_switch_t, Total, ml_flags_case_t);
 	Switch->Type = MLFlagsSwitchT;
 	Switch->Flags = Flags;
 	ml_flags_case_t *Case = Switch->Cases;
-	for (int I = 1; I < Count; ++I) {
+	for (int I = 0; I < Count; ++I) {
 		ML_LIST_FOREACH(Args[I], Iter) {
 			ml_value_t *Value = Iter->Value;
 			if (ml_is(Value, (ml_type_t *)Flags)) {
 				Case->Value = ml_flags_value_value(Value);
 			} else if (ml_is(Value, MLStringT)) {
 				ml_value_t *FlagsValue = stringmap_search(Flags->Base.Exports, ml_string_value(Value));
-				if (!FlagsValue) ML_ERROR("FlagsError", "Invalid flags name");
+				if (!FlagsValue) return ml_error("FlagsError", "Invalid flags name");
 				Case->Value = ml_flags_value_value(FlagsValue);
 			} else if (ml_is(Value, MLTupleT)) {
 				ml_tuple_t *Tuple = (ml_tuple_t *)Value;
 				for (int J = 0; J < Tuple->Size; ++J) {
 					ml_value_t *Value = Tuple->Values[J];
-					if (!ml_is(Value, MLStringT)) ML_ERROR("ValueError", "Unsupported value in flags case");
+					if (!ml_is(Value, MLStringT)) return ml_error("ValueError", "Unsupported value in flags case");
 					ml_value_t *FlagsValue = stringmap_search(Flags->Base.Exports, ml_string_value(Tuple->Values[J]));
-					if (!FlagsValue) ML_ERROR("FlagsError", "Invalid flags name");
+					if (!FlagsValue) return ml_error("FlagsError", "Invalid flags name");
 					Case->Value |= ml_flags_value_value(FlagsValue);
 				}
 			} else {
-				ML_ERROR("ValueError", "Unsupported value in flags case");
+				return ml_error("ValueError", "Unsupported value in flags case");
 			}
 			Case->Index = ml_integer(I - 1);
 			++Case;
@@ -1075,7 +1076,12 @@ ML_METHODVX(MLCompilerSwitch, MLFlagsT) {
 	}
 	Case->Value = 0;
 	Case->Index = ml_integer(Count - 1);
-	ML_RETURN(Switch);
+	return (ml_value_t *)Switch;
+}
+
+ML_METHOD(MLCompilerSwitch, MLFlagsT) {
+//!internal
+	return ml_inline_call_macro(ml_cfunction(Args[0], (ml_callback_t)ml_flags_switch_fn));
 }
 
 ML_METHOD("+", MLFlagsValueT, MLFlagsValueT) {
