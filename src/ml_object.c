@@ -617,16 +617,17 @@ const char *ml_enum_value_name(ml_value_t *Value) {
 
 static void ml_enum_call(ml_state_t *Caller, ml_enum_t *Enum, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
-	if (ml_is(Args[0], MLStringT)) {
-		ml_value_t *Value = stringmap_search(Enum->Base.Exports, ml_string_value(Args[0]));
+	ml_value_t *Arg = ml_deref(Args[0]);
+	if (ml_is(Arg, MLStringT)) {
+		ml_value_t *Value = stringmap_search(Enum->Base.Exports, ml_string_value(Arg));
 		if (!Value) ML_ERROR("EnumError", "Invalid enum name");
 		ML_RETURN(Value);
-	} else if (ml_is(Args[0], MLIntegerT)) {
-		int Index = ml_integer_value_fast(Args[0]);
+	} else if (ml_is(Arg, MLIntegerT)) {
+		int Index = ml_integer_value_fast(Arg);
 		if (Index <= 0 || Index > Enum->Base.Exports->Size) ML_ERROR("EnumError", "Invalid enum index");
 		ML_RETURN(Enum->Values[Index - 1]);
 	} else {
-		ML_ERROR("TypeError", "Expected <integer> or <string> not <%s>", ml_typeof(Args[0])->Name);
+		ML_ERROR("TypeError", "Expected <integer> or <string> not <%s>", ml_typeof(Arg)->Name);
 	}
 }
 
@@ -821,16 +822,17 @@ static void ml_flags_call(ml_state_t *Caller, ml_flags_t *Flags, int Count, ml_v
 	ml_flags_value_t *Value = new(ml_flags_value_t);
 	Value->Type = (ml_type_t *)Flags;
 	for (int I = 0; I < Count; ++I) {
-		if (ml_is(Args[I], MLStringT)) {
-			ml_value_t *Flag = stringmap_search(Flags->Base.Exports, ml_string_value(Args[I]));
+		ml_value_t *Arg = ml_deref(Args[I]);
+		if (ml_is(Arg, MLStringT)) {
+			ml_value_t *Flag = stringmap_search(Flags->Base.Exports, ml_string_value(Arg));
 			if (!Flag) ML_ERROR("FlagError", "Invalid flag name");
 			Value->Value |= ml_flags_value_value(Flag);
-		} else if (ml_is(Args[I], MLIntegerT)) {
-			uint64_t Flag = ml_integer_value_fast(Args[I]);
+		} else if (ml_is(Arg, MLIntegerT)) {
+			uint64_t Flag = ml_integer_value_fast(Arg);
 			if (Flag >= (1L << Flags->Base.Exports->Size)) ML_ERROR("FlagError", "Invalid flags value");
 			Value->Value |= Flag;
 		} else {
-			ML_ERROR("TypeError", "Expected <integer> or <string> not <%s>", ml_typeof(Args[0])->Name);
+			ML_ERROR("TypeError", "Expected <integer> or <string> not <%s>", ml_typeof(Arg)->Name);
 		}
 	}
 	ML_RETURN(Value);
