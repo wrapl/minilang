@@ -1651,6 +1651,35 @@ static ml_value_t *method_invoke(GIFunctionInfo *Info, int Count, ml_value_t **A
 	return function_info_invoke(Info, Count, Args);
 }
 
+static void method_register(const char *Name, GIFunctionInfo *Info, object_t *Object) {
+	int NArgs = g_callable_info_get_n_args((GICallableInfo *)Info);
+	int NArgsIn = 0;
+	for (int I = 0; I < NArgs; ++I) {
+		GIArgInfo *ArgInfo = g_callable_info_get_arg((GICallableInfo *)Info, I);
+		GITypeInfo TypeInfo[1];
+		g_arg_info_load_type(ArgInfo, TypeInfo);
+		switch (g_arg_info_get_direction(ArgInfo)) {
+		case GI_DIRECTION_IN:
+		case GI_DIRECTION_INOUT:
+			if (g_type_info_get_tag(TypeInfo) == GI_TYPE_TAG_ARRAY) {
+				int LengthIndex = g_type_info_get_array_length(TypeInfo);
+				if (LengthIndex < 0) ++NArgsIn;
+			} else {
+				++NArgsIn;
+			}
+			break;
+		case GI_DIRECTION_OUT:
+			if (g_arg_info_is_caller_allocates(ArgInfo)) ++NArgsIn;
+			break;
+		}
+	}
+	++NArgsIn;
+	ml_type_t *Types[NArgsIn];
+	Types[0] = (ml_type_t *)Object;
+	for (int I = 1; I < NArgsIn; ++I) Types[I] = MLAnyT;
+	ml_method_define(ml_method(Name), ml_cfunction(Info, (ml_callback_t)method_invoke), NArgsIn, 0, Types);
+}
+
 static void interface_add_methods(object_t *Object, GIInterfaceInfo *Info) {
 	int NumMethods = g_interface_info_get_n_methods(Info);
 	for (int I = 0; I < NumMethods; ++I) {
@@ -1658,7 +1687,8 @@ static void interface_add_methods(object_t *Object, GIInterfaceInfo *Info) {
 		const char *MethodName = g_base_info_get_name((GIBaseInfo *)MethodInfo);
 		GIFunctionInfoFlags Flags = g_function_info_get_flags(MethodInfo);
 		if (Flags & GI_FUNCTION_IS_METHOD) {
-			ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Object, NULL);
+			//ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Object, NULL);
+			method_register(MethodName, MethodInfo, Object);
 		}
 	}
 	int NumSignals = g_interface_info_get_n_signals(Info);
@@ -1699,7 +1729,8 @@ static void object_add_methods(object_t *Object, GIObjectInfo *Info) {
 		const char *MethodName = g_base_info_get_name((GIBaseInfo *)MethodInfo);
 		GIFunctionInfoFlags Flags = g_function_info_get_flags(MethodInfo);
 		if (Flags & GI_FUNCTION_IS_METHOD) {
-			ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Object, NULL);
+			//ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Object, NULL);
+			method_register(MethodName, MethodInfo, Object);
 		//} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
 		} else {
 			stringmap_insert(Object->Base.Exports, MethodName, ml_cfunction(MethodInfo, (void *)constructor_invoke));

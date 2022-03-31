@@ -6852,7 +6852,7 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_method_by_value(ArgMethod, carg, (ml_callback_t)array_math_complex_real_fn, MLArrayComplexT, NULL);
 #endif
 
-	ml_method_define(ml_method("$"), MLArrayT->Constructor, 0, MLListT, NULL);
+	ml_method_definev(ml_method("$"), MLArrayT->Constructor, 0, MLListT, NULL);
 	stringmap_insert(MLArrayT->Exports, "new", MLArrayNew);
 	stringmap_insert(MLArrayT->Exports, "wrap", MLArrayWrap);
 	stringmap_insert(MLArrayT->Exports, "cat", MLArrayCat);
