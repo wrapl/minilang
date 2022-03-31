@@ -688,12 +688,12 @@ static ml_value_t *ml_enum_switch_fn(ml_enum_t *Enum, int Count, ml_value_t **Ar
 			} else {
 				return ml_error("ValueError", "Unsupported value in enum case");
 			}
-			Case->Index = ml_integer(I - 1);
+			Case->Index = ml_integer(I);
 			++Case;
 		}
 	}
 	Case->Value = UINT64_MAX;
-	Case->Index = ml_integer(Count - 1);
+	Case->Index = ml_integer(Count);
 	return (ml_value_t *)Switch;
 }
 
@@ -1072,12 +1072,12 @@ static ml_value_t *ml_flags_switch_fn(ml_flags_t *Flags, int Count, ml_value_t *
 			} else {
 				return ml_error("ValueError", "Unsupported value in flags case");
 			}
-			Case->Index = ml_integer(I - 1);
+			Case->Index = ml_integer(I);
 			++Case;
 		}
 	}
 	Case->Value = 0;
-	Case->Index = ml_integer(Count - 1);
+	Case->Index = ml_integer(Count);
 	return (ml_value_t *)Switch;
 }
 
