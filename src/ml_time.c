@@ -164,7 +164,7 @@ ML_METHOD("append", MLStringBufferT, MLTimeT, MLNilT) {
 	ml_time_t *Time = (ml_time_t *)Args[1];
 	struct tm TM = {0,};
 	gmtime_r(&Time->Value->tv_sec, &TM);
-	char Temp[50];
+	char Temp[60];
 	size_t Length;
 	unsigned long NSec = Time->Value->tv_nsec;
 	if (NSec) {
