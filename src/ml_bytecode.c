@@ -147,7 +147,8 @@ static void DEBUG_FUNC(continuation_call)(ml_state_t *Caller, DEBUG_STRUCT(frame
 }
 
 ML_TYPE(DEBUG_TYPE(Continuation), (MLStateT, MLSequenceT), "continuation",
-//!internal
+//@continuation
+// A bytecode function frame which can be resumed.
 	.call = (void *)DEBUG_FUNC(continuation_call)
 );
 

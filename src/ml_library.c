@@ -32,7 +32,7 @@ struct ml_library_loader_t {
 };
 
 static ml_library_loader_t *Loaders = NULL;
-static int MaxLibraryExtensionLength = 2;
+static int MaxLibraryExtensionLength = 8;
 
 typedef struct {
 	ml_library_loader_t *Loader;

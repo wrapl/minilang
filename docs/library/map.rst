@@ -12,7 +12,7 @@ map
 :mini:`type map < sequence`
    A map of key-value pairs.
    Keys can be of any type supporting hashing and comparison.
-   Insert order is preserved.
+   By default,  iterating over a map generates the key-value pairs in the order they were inserted,  however this ordering can be changed.
 
 
 :mini:`meth map(Key₁ is Value₁, ...): map`
@@ -141,14 +141,6 @@ map
       M :> {"A" is 10, "B" is 2, "C" is 3, "D" is 20}
 
 
-:mini:`meth (Arg₁: map):lru`
-   *TBD*
-
-
-:mini:`meth (Arg₁: map):lru(Arg₂: boolean)`
-   *TBD*
-
-
 :mini:`meth (Map: map):missing(Key: any): some | nil`
    If :mini:`Key` is present in :mini:`Map` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Map` with value :mini:`some` and returns :mini:`some`.
 
@@ -171,20 +163,130 @@ map
       M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
 
 
-:mini:`meth (Arg₁: map):pop`
-   *TBD*
+:mini:`meth (Map: map):order: integer`
+   Returns the current ordering of :mini:`Map`.
+   
+   * :mini:`0` |harr| default ordering; inserted pairs are put at end,  no reordering on access.
+   * :mini:`1` |harr| MRU ordering; inserted pairs are put at start,  accessed pairs are moved to start.
+   * :mini:`-1` |harr| LRU ordering; inserted pairs are put at end,  accessed paires are moved to end.
 
 
-:mini:`meth (Arg₁: map):pop2`
-   *TBD*
+:mini:`meth (Map: map):order(Order: integer): map`
+   Sets the ordering
 
 
-:mini:`meth (Arg₁: map):pull`
-   *TBD*
+:mini:`meth (Map: map):pop: any | nil`
+   Deletes the first key-value pair from :mini:`Map` according to its iteration order. Returns the deleted value,  or :mini:`nil` if :mini:`Map` is empty.
+
+   .. code-block:: mini
+
+      :> Insertion order (default)
+      let M1 := map("cake")
+      :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
+      M1:pop :> "c"
+      M1 :> {2 is "a", 3 is "k", 4 is "e"}
+      
+      :> LRU order
+      let M2 := map("cake"):order(-1)
+      :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
+      M2[2]; M2[4]; M2[1]; M2[3]
+      M2:pop :> "a"
+      M2 :> {4 is "e", 1 is "c", 3 is "k"}
+      
+      :> MRU order
+      let M3 := map("cake"):order(1)
+      :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
+      M3[2]; M3[4]; M3[1]; M3[3]
+      M3:pop :> "k"
+      M3 :> {1 is "c", 4 is "e", 2 is "a"}
 
 
-:mini:`meth (Arg₁: map):pull2`
-   *TBD*
+:mini:`meth (Map: map):pop2: tuple[any, any] | nil`
+   Deletes the first key-value pair from :mini:`Map` according to its iteration order. Returns the deleted key-value pair,  or :mini:`nil` if :mini:`Map` is empty.
+
+   .. code-block:: mini
+
+      :> Insertion order (default)
+      let M1 := map("cake")
+      :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
+      M1:pop2 :> (1, c)
+      M1 :> {2 is "a", 3 is "k", 4 is "e"}
+      
+      :> LRU order
+      let M2 := map("cake"):order(-1)
+      :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
+      M2[2]; M2[4]; M2[1]; M2[3]
+      M2:pop2 :> (2, a)
+      M2 :> {4 is "e", 1 is "c", 3 is "k"}
+      
+      :> MRU order
+      let M3 := map("cake"):order(1)
+      :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
+      M3[2]; M3[4]; M3[1]; M3[3]
+      M3:pop2 :> (3, k)
+      M3 :> {1 is "c", 4 is "e", 2 is "a"}
+
+
+:mini:`meth (Map: map):pull: any | nil`
+   Deletes the last key-value pair from :mini:`Map` according to its iteration order. Returns the deleted value,  or :mini:`nil` if :mini:`Map` is empty.
+
+   .. code-block:: mini
+
+      :> Insertion order (default)
+      let M1 := map("cake")
+      :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
+      M1:pull :> "e"
+      M1 :> {1 is "c", 2 is "a", 3 is "k"}
+      
+      :> LRU order
+      let M2 := map("cake"):order(-1)
+      :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
+      M2[2]; M2[4]; M2[1]; M2[3]
+      M2:pull :> "k"
+      M2 :> {2 is "a", 4 is "e", 1 is "c"}
+      
+      :> MRU order
+      let M3 := map("cake"):order(1)
+      :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
+      M3[2]; M3[4]; M3[1]; M3[3]
+      M3:pull :> "a"
+      M3 :> {3 is "k", 1 is "c", 4 is "e"}
+
+
+:mini:`meth (Map: map):pull2: tuple[any, any] | nil`
+   Deletes the last key-value pair from :mini:`Map` according to its iteration order. Returns the deleted key-value pair,  or :mini:`nil` if :mini:`Map` is empty.
+
+   .. code-block:: mini
+
+      :> Insertion order (default)
+      let M1 := map("cake")
+      :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
+      M1:pull2 :> (4, e)
+      M1 :> {1 is "c", 2 is "a", 3 is "k"}
+      
+      :> LRU order
+      let M2 := map("cake"):order(-1)
+      :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
+      M2[2]; M2[4]; M2[1]; M2[3]
+      M2:pull2 :> (3, k)
+      M2 :> {2 is "a", 4 is "e", 1 is "c"}
+      
+      :> MRU order
+      let M3 := map("cake"):order(1)
+      :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
+      M3[2]; M3[4]; M3[1]; M3[3]
+      M3:pull2 :> (2, a)
+      M3 :> {3 is "k", 1 is "c", 4 is "e"}
+
+
+:mini:`meth (Map: map):reverse: map`
+   Reverses the iteration order of :mini:`Map` in-place and returns it.
+
+   .. code-block:: mini
+
+      let M := map("cake")
+      :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
+      M:reverse :> {4 is "e", 3 is "k", 2 is "a", 1 is "c"}
 
 
 :mini:`meth (Map: map):size: integer`
@@ -250,19 +352,19 @@ map
       M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
 
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: map)`
-   *TBD*
+:mini:`meth (Buffer: string::buffer):append(Map: map)`
+   Appends a representation of :mini:`Map` to :mini:`Buffer`.
 
 
-:mini:`meth (Map: string::buffer):append(Sep: map, Conn: string, Arg₄: string): string`
-   Returns a string containing the entries of :mini:`Map` with :mini:`Conn` between keys and values and :mini:`Sep` between entries.
+:mini:`meth (Buffer: string::buffer):append(Map: map, Sep: string, Conn: string)`
+   Appends the entries of :mini:`Map` to :mini:`Buffer` with :mini:`Conn` between keys and values and :mini:`Sep` between entries.
 
 
 .. _type-map-node:
 
 :mini:`type map::node`
    A node in a :mini:`map`.
-   Dereferencing a :mini:`mapnode` returns the corresponding value from the :mini:`map`.
-   Assigning to a :mini:`mapnode` updates the corresponding value in the :mini:`map`.
+   Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
+   Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
 
 

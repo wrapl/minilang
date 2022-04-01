@@ -4,11 +4,16 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "uuid"
 
+// Overview
+// .. note::
+//    Depending on how *Minilang* is built, :mini:`uuid` might need to be imported using :mini:`import: uuid("std/uuid")`.
+
 static long ml_uuid_hash(ml_uuid_t *UUID, ml_hash_chain_t *Chain) {
 	return *(long *)UUID->Value;
 }
 
 ML_TYPE(MLUUIDT, (), "uuid",
+// A UUID.
 	.hash = (void *)ml_uuid_hash
 );
 
@@ -29,6 +34,10 @@ ml_value_t *ml_uuid_parse(const char *Value, int Length) {
 }
 
 ML_METHOD(MLUUIDT) {
+//>uuid
+// Returns a new random UUID.
+//$- import: uuid("std/uuid")
+//$= uuid()
 	ml_uuid_t *UUID = new(ml_uuid_t);
 	UUID->Type = MLUUIDT;
 	uuid_generate(UUID->Value);
@@ -36,10 +45,19 @@ ML_METHOD(MLUUIDT) {
 }
 
 ML_METHOD(MLUUIDT, MLStringT) {
+//<String
+//>uuid|error
+// Parses :mini:`String` as a UUID, returning an error if :mini:`String` does not have the correct format.
+//$- import: uuid("std/uuid")
+//$= uuid("5fe1af82-02f9-429a-8787-4a7c16628a02")
+//$= uuid("test")
 	return ml_uuid_parse(ml_string_value(Args[0]), ml_string_length(Args[0]));
 }
 
 ML_METHOD("append", MLStringBufferT, MLUUIDT) {
+//<Buffer
+//<UUID
+// Appends a representation of :mini:`UUID` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_uuid_t *UUID = (ml_uuid_t *)Args[1];
 	char String[UUID_STR_LEN];

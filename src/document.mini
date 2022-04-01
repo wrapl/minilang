@@ -8,7 +8,9 @@ for FileName in dir(OutputDirectory) do
 end
 
 fun category_name(Type) do
-	if Type:find("State") then
+	if Type = "MLStateT" then
+		ret "runtime"
+	elseif Type:find("State") then
 		ret "internal"
 	elseif let Match := Type % r"^ML(.*)T$" then
 		ret Match[2]:lower
@@ -337,7 +339,7 @@ fun write_type(Category, Name, Parents, Description, Location) do
 			end
 		end
 	else
-		if Category != "internal" then
+		if Category != "internal" and Name != "MLAnyT" then
 			TypesGraph:write('      \"any\":e -> \"{TypeName}\":w;\n')
 		end
 	end
@@ -392,6 +394,7 @@ fun replace(X, Args) do
 end
 
 fun process(FileName) do
+	print('Processing {FileName}\n')
 	let File := file(FileName, 'r')
 	var DefaultCategory := "general"
 	if let Match := FileName % r"ml_([a-z]+).c" then
@@ -468,6 +471,8 @@ fun process(FileName) do
 						Description:put("\n")
 					elseif Line % r"^/[/*]\$- " then
 						Example:write("      ", Line[6, 0])
+					elseif Line % r"^/[/*]\$-" then
+						Example:write("      \n")
 					elseif Line % r"^/[/*]\$= " then
 						Example:write("      ", Line[6, -1])
 						Examples:put(Example:rest)
@@ -525,6 +530,8 @@ fun process(FileName) do
 						Description:put("\n")
 					elseif Line % r"^/[/*]\$- " then
 						Example:write("      ", Line[6, 0])
+					elseif Line % r"^/[/*]\$-" then
+						Example:write("      \n")
 					elseif Line % r"^/[/*]\$= " then
 						Example:write("      ", Line[6, -1])
 						Examples:put(Example:rest)
@@ -587,6 +594,8 @@ fun process(FileName) do
 						Description:put("\n")
 					elseif Line % r"^/[/*]\$- " then
 						Example:write("      ", Line[6, 0])
+					elseif Line % r"^/[/*]\$-" then
+						Example:write("      \n")
 					elseif Line % r"^/[/*]\$= " then
 						Example:write("      ", Line[6, -1])
 						Examples:put(Example:rest)
@@ -653,7 +662,7 @@ fun process(FileName) do
 				end
 			elseif Line % r"^(ML_TYPE|ML_INTERFACE)" then
 				let Location := (FileName, LineNo)
-				let I := Line:find("("), J := Line:find("(", I + 1)
+				let I := Line:find("("), J := Line:find(", (", I + 1) + 2
 				let K := Line:find(")", J + 1)
 				var Name := Line[I + 1, J]:trim(", ")
 				var Category := DefaultCategory
@@ -746,8 +755,9 @@ end
 
 let FileNames := list(Args skip 1)
 FileNames:sort(; A, B) do
-	A = "ml_types.c" and ret A
-	B = "ml_types.c" and ret nil
+	A = "src/ml_types.c" and ret A
+	B = "src/ml_types.c" and ret nil
+	ret A > B
 end
 
 for FileName in FileNames do process(FileName) end
@@ -766,7 +776,6 @@ hierarchy
 .. graphviz::
 
    digraph hierarchy \{
-      size="180,120";
       rankdir="LR";
       fontsize="40pt"
       concentrate=true;

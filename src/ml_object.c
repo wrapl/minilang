@@ -492,7 +492,8 @@ static long ml_enum_value_hash(ml_enum_value_t *Value, ml_hash_chain_t *Chain) {
 }
 
 ML_TYPE(MLEnumValueT, (MLInt64T), "enum-value");
-//!internal
+//@enum::value
+// An instance of an enumeration type.
 
 ML_METHOD("append", MLStringBufferT, MLEnumValueT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
@@ -505,6 +506,10 @@ ML_FUNCTION(MLEnum) {
 //@enum
 //<Values...:string
 //>enum
+// Returns a new enumeration type.
+//$= let day := enum("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+//$= day::Wed
+//$= day::Fri + 0
 	for (int I = 0; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLStringT);
 	ml_enum_t *Enum = xnew(ml_enum_t, Count, ml_value_t *);
 	Enum->Base.Type = MLEnumT;
@@ -617,20 +622,22 @@ const char *ml_enum_value_name(ml_value_t *Value) {
 
 static void ml_enum_call(ml_state_t *Caller, ml_enum_t *Enum, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
-	if (ml_is(Args[0], MLStringT)) {
-		ml_value_t *Value = stringmap_search(Enum->Base.Exports, ml_string_value(Args[0]));
+	ml_value_t *Arg = ml_deref(Args[0]);
+	if (ml_is(Arg, MLStringT)) {
+		ml_value_t *Value = stringmap_search(Enum->Base.Exports, ml_string_value(Arg));
 		if (!Value) ML_ERROR("EnumError", "Invalid enum name");
 		ML_RETURN(Value);
-	} else if (ml_is(Args[0], MLIntegerT)) {
-		int Index = ml_integer_value_fast(Args[0]);
+	} else if (ml_is(Arg, MLIntegerT)) {
+		int Index = ml_integer_value_fast(Arg);
 		if (Index <= 0 || Index > Enum->Base.Exports->Size) ML_ERROR("EnumError", "Invalid enum index");
 		ML_RETURN(Enum->Values[Index - 1]);
 	} else {
-		ML_ERROR("TypeError", "Expected <integer> or <string> not <%s>", ml_typeof(Args[0])->Name);
+		ML_ERROR("TypeError", "Expected <integer> or <string> not <%s>", ml_typeof(Arg)->Name);
 	}
 }
 
 ML_TYPE(MLEnumT, (MLTypeT, MLSequenceT), "enum",
+// The base type of enumeration types.
 	.call = (void *)ml_enum_call,
 	.Constructor = (void *)MLEnum
 );
@@ -665,42 +672,48 @@ ML_TYPE(MLEnumSwitchT, (MLFunctionT), "enum-switch",
 	.call = (void *)ml_enum_switch
 );
 
-ML_METHODVX(MLCompilerSwitch, MLEnumT) {
-//!internal
-	ml_enum_t *Enum = (ml_enum_t *)Args[0];
+static ml_value_t *ml_enum_switch_fn(ml_enum_t *Enum, int Count, ml_value_t **Args) {
 	int Total = 1;
-	for (int I = 1; I < Count; ++I) {
-		ML_CHECKX_ARG_TYPE(I, MLListT);
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
 		Total += ml_list_length(Args[I]);
 	}
 	ml_enum_switch_t *Switch = xnew(ml_enum_switch_t, Total, ml_enum_case_t);
 	Switch->Type = MLEnumSwitchT;
 	Switch->Enum = Enum;
 	ml_enum_case_t *Case = Switch->Cases;
-	for (int I = 1; I < Count; ++I) {
+	for (int I = 0; I < Count; ++I) {
 		ML_LIST_FOREACH(Args[I], Iter) {
 			ml_value_t *Value = Iter->Value;
 			if (ml_is(Value, (ml_type_t *)Enum)) {
 				Case->Value = ml_enum_value_value(Value);
 			} else if (ml_is(Value, MLStringT)) {
 				ml_value_t *EnumValue = stringmap_search(Enum->Base.Exports, ml_string_value(Value));
-				if (!EnumValue) ML_ERROR("EnumError", "Invalid enum name");
+				if (!EnumValue) return ml_error("EnumError", "Invalid enum name");
 				Case->Value = ml_enum_value_value(EnumValue);
 			} else {
-				ML_ERROR("ValueError", "Unsupported value in enum case");
+				return ml_error("ValueError", "Unsupported value in enum case");
 			}
-			Case->Index = ml_integer(I - 1);
+			Case->Index = ml_integer(I);
 			++Case;
 		}
 	}
 	Case->Value = UINT64_MAX;
-	Case->Index = ml_integer(Count - 1);
-	ML_RETURN(Switch);
+	Case->Index = ml_integer(Count);
+	return (ml_value_t *)Switch;
+}
+
+ML_METHOD(MLCompilerSwitch, MLEnumT) {
+//!internal
+	return ml_inline_call_macro(ml_cfunction(Args[0], (ml_callback_t)ml_enum_switch_fn));
 }
 
 ML_METHOD("count", MLEnumT) {
 //<Enum
 //>integer
+// Returns the size of the enumeration :mini:`Enum`.
+//$= let day := enum("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+//$= day:count
 	ml_enum_t *Enum = (ml_enum_t *)Args[0];
 	return ml_integer(Enum->Base.Exports->Size);
 }
@@ -754,8 +767,15 @@ typedef struct {
 } ml_enum_range_t;
 
 ML_TYPE(MLEnumRangeT, (MLSequenceT), "enum-range");
+// A range of enum values.
 
 ML_METHOD("..", MLEnumValueT, MLEnumValueT) {
+//<Min
+//<Max
+//>enum::range
+// Returns a range of enum values. :mini:`Min` and :mini:`Max` must belong to the same enumeration.
+//$= let day := enum("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+//$= day::Mon .. day::Fri
 	ml_enum_value_t *ValueA = (ml_enum_value_t *)Args[0];
 	ml_enum_value_t *ValueB = (ml_enum_value_t *)Args[1];
 	if (ValueA->Base.Type != ValueB->Base.Type) {
@@ -818,22 +838,24 @@ static void ml_flags_call(ml_state_t *Caller, ml_flags_t *Flags, int Count, ml_v
 	ml_flags_value_t *Value = new(ml_flags_value_t);
 	Value->Type = (ml_type_t *)Flags;
 	for (int I = 0; I < Count; ++I) {
-		if (ml_is(Args[I], MLStringT)) {
-			ml_value_t *Flag = stringmap_search(Flags->Base.Exports, ml_string_value(Args[I]));
+		ml_value_t *Arg = ml_deref(Args[I]);
+		if (ml_is(Arg, MLStringT)) {
+			ml_value_t *Flag = stringmap_search(Flags->Base.Exports, ml_string_value(Arg));
 			if (!Flag) ML_ERROR("FlagError", "Invalid flag name");
 			Value->Value |= ml_flags_value_value(Flag);
-		} else if (ml_is(Args[I], MLIntegerT)) {
-			uint64_t Flag = ml_integer_value_fast(Args[I]);
+		} else if (ml_is(Arg, MLIntegerT)) {
+			uint64_t Flag = ml_integer_value_fast(Arg);
 			if (Flag >= (1L << Flags->Base.Exports->Size)) ML_ERROR("FlagError", "Invalid flags value");
 			Value->Value |= Flag;
 		} else {
-			ML_ERROR("TypeError", "Expected <integer> or <string> not <%s>", ml_typeof(Args[0])->Name);
+			ML_ERROR("TypeError", "Expected <integer> or <string> not <%s>", ml_typeof(Arg)->Name);
 		}
 	}
 	ML_RETURN(Value);
 }
 
 ML_TYPE(MLFlagsT, (MLTypeT), "flags",
+// The base type of flag types.
 	.call = (void *)ml_flags_call
 );
 
@@ -842,7 +864,8 @@ static long ml_flag_value_hash(ml_flags_value_t *Value, ml_hash_chain_t *Chain) 
 }
 
 ML_TYPE(MLFlagsValueT, (MLInt64T), "flag-value");
-//!internal
+//@flags::value
+// An instance of a flags type.
 
 typedef struct {
 	ml_stringbuffer_t *Buffer;
@@ -870,6 +893,10 @@ ML_METHOD("append", MLStringBufferT, MLFlagsValueT) {
 ML_METHODV(MLFlagsT, MLStringT) {
 //<Name/1
 //>flags
+// Returns a new flags type, where :mini:`Name/i` has value $2^{i-1}$.
+//$= let mode := flags("Read", "Write", "Execute")
+//$= mode::Read
+//$= mode::Read + mode::Write
 	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLStringT);
 	ml_flags_t *Flags = xnew(ml_flags_t, Count, ml_value_t *);
 	Flags->Base.Type = MLFlagsT;
@@ -896,6 +923,11 @@ ML_METHODV(MLFlagsT, MLStringT) {
 ML_METHODV(MLFlagsT, MLNamesT) {
 //<Name,Value
 //>flags
+// Returns a new flags type
+// Returns a new flags type, where :mini:`Name/i` has value :mini:`Value/i`.
+//$= let mode := flags(Read is 1, Write is 4, Execute is 32)
+//$= mode::Read
+//$= mode::Read + mode::Write
 	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLIntegerT);
 	ml_flags_t *Flags = xnew(ml_flags_t, Count - 1, ml_value_t *);
 	Flags->Base.Type = MLFlagsT;
@@ -1036,49 +1068,58 @@ ML_TYPE(MLFlagsSwitchT, (MLFunctionT), "flags-switch",
 	.call = (void *)ml_flags_switch
 );
 
-ML_METHODVX(MLCompilerSwitch, MLFlagsT) {
-//!internal
-	ml_flags_t *Flags = (ml_flags_t *)Args[0];
+static ml_value_t *ml_flags_switch_fn(ml_flags_t *Flags, int Count, ml_value_t **Args) {
 	int Total = 1;
-	for (int I = 1; I < Count; ++I) {
-		ML_CHECKX_ARG_TYPE(I, MLListT);
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
 		Total += ml_list_length(Args[I]);
 	}
 	ml_flags_switch_t *Switch = xnew(ml_flags_switch_t, Total, ml_flags_case_t);
 	Switch->Type = MLFlagsSwitchT;
 	Switch->Flags = Flags;
 	ml_flags_case_t *Case = Switch->Cases;
-	for (int I = 1; I < Count; ++I) {
+	for (int I = 0; I < Count; ++I) {
 		ML_LIST_FOREACH(Args[I], Iter) {
 			ml_value_t *Value = Iter->Value;
 			if (ml_is(Value, (ml_type_t *)Flags)) {
 				Case->Value = ml_flags_value_value(Value);
 			} else if (ml_is(Value, MLStringT)) {
 				ml_value_t *FlagsValue = stringmap_search(Flags->Base.Exports, ml_string_value(Value));
-				if (!FlagsValue) ML_ERROR("FlagsError", "Invalid flags name");
+				if (!FlagsValue) return ml_error("FlagsError", "Invalid flags name");
 				Case->Value = ml_flags_value_value(FlagsValue);
 			} else if (ml_is(Value, MLTupleT)) {
 				ml_tuple_t *Tuple = (ml_tuple_t *)Value;
 				for (int J = 0; J < Tuple->Size; ++J) {
 					ml_value_t *Value = Tuple->Values[J];
-					if (!ml_is(Value, MLStringT)) ML_ERROR("ValueError", "Unsupported value in flags case");
+					if (!ml_is(Value, MLStringT)) return ml_error("ValueError", "Unsupported value in flags case");
 					ml_value_t *FlagsValue = stringmap_search(Flags->Base.Exports, ml_string_value(Tuple->Values[J]));
-					if (!FlagsValue) ML_ERROR("FlagsError", "Invalid flags name");
+					if (!FlagsValue) return ml_error("FlagsError", "Invalid flags name");
 					Case->Value |= ml_flags_value_value(FlagsValue);
 				}
 			} else {
-				ML_ERROR("ValueError", "Unsupported value in flags case");
+				return ml_error("ValueError", "Unsupported value in flags case");
 			}
-			Case->Index = ml_integer(I - 1);
+			Case->Index = ml_integer(I);
 			++Case;
 		}
 	}
 	Case->Value = 0;
-	Case->Index = ml_integer(Count - 1);
-	ML_RETURN(Switch);
+	Case->Index = ml_integer(Count);
+	return (ml_value_t *)Switch;
+}
+
+ML_METHOD(MLCompilerSwitch, MLFlagsT) {
+//!internal
+	return ml_inline_call_macro(ml_cfunction(Args[0], (ml_callback_t)ml_flags_switch_fn));
 }
 
 ML_METHOD("+", MLFlagsValueT, MLFlagsValueT) {
+//<Flags/1
+//<Flags/2
+//>flags::value
+// Returns the union of :mini:`Flags/1` and :mini:`Flags/2`. :mini:`Flags/1` and :mini:`Flags/2` must have the same flags type.
+//$= let mode := flags("Read", "Write", "Execute")
+//$= mode::Read + mode::Write
 	ml_flags_value_t *A = (ml_flags_value_t *)Args[0];
 	ML_CHECK_ARG_TYPE(1, A->Type);
 	ml_flags_value_t *B = (ml_flags_value_t *)Args[1];
@@ -1089,6 +1130,12 @@ ML_METHOD("+", MLFlagsValueT, MLFlagsValueT) {
 }
 
 ML_METHOD("-", MLFlagsValueT, MLFlagsValueT) {
+//<Flags/1
+//<Flags/2
+//>flags::value
+// Returns the difference of :mini:`Flags/1` and :mini:`Flags/2`. :mini:`Flags/1` and :mini:`Flags/2` must have the same flags type.
+//$= let mode := flags("Read", "Write", "Execute")
+//$= mode("Read", "Write") - mode::Write
 	ml_flags_value_t *A = (ml_flags_value_t *)Args[0];
 	ML_CHECK_ARG_TYPE(1, A->Type);
 	ml_flags_value_t *B = (ml_flags_value_t *)Args[1];
@@ -1099,6 +1146,13 @@ ML_METHOD("-", MLFlagsValueT, MLFlagsValueT) {
 }
 
 ML_METHOD("<", MLFlagsValueT, MLFlagsValueT) {
+//<Flags/1
+//<Flags/2
+//>flags::value
+// Returns the :mini:`Flags/2` if it contains all of :mini:`Flags/1`. :mini:`Flags/1` and :mini:`Flags/2` must have the same flags type.
+//$= let mode := flags("Read", "Write", "Execute")
+//$= mode("Read", "Write") < mode("Read", "Write", "Execute")
+//$= mode("Read", "Write", "Execute") < mode("Read", "Write")
 	ml_flags_value_t *A = (ml_flags_value_t *)Args[0];
 	ML_CHECK_ARG_TYPE(1, A->Type);
 	ml_flags_value_t *B = (ml_flags_value_t *)Args[1];
@@ -1110,6 +1164,13 @@ ML_METHOD("<", MLFlagsValueT, MLFlagsValueT) {
 }
 
 ML_METHOD("<=", MLFlagsValueT, MLFlagsValueT) {
+//<Flags/1
+//<Flags/2
+//>flags::value
+// Returns the :mini:`Flags/2` if it contains all of :mini:`Flags/1`. :mini:`Flags/1` and :mini:`Flags/2` must have the same flags type.
+//$= let mode := flags("Read", "Write", "Execute")
+//$= mode("Read", "Write") <= mode("Read", "Write", "Execute")
+//$= mode("Read", "Write", "Execute") <= mode("Read", "Write")
 	ml_flags_value_t *A = (ml_flags_value_t *)Args[0];
 	ML_CHECK_ARG_TYPE(1, A->Type);
 	ml_flags_value_t *B = (ml_flags_value_t *)Args[1];
@@ -1121,6 +1182,13 @@ ML_METHOD("<=", MLFlagsValueT, MLFlagsValueT) {
 }
 
 ML_METHOD(">", MLFlagsValueT, MLFlagsValueT) {
+//<Flags/1
+//<Flags/2
+//>flags::value
+// Returns the :mini:`Flags/2` if it is contained in :mini:`Flags/1`. :mini:`Flags/1` and :mini:`Flags/2` must have the same flags type.
+//$= let mode := flags("Read", "Write", "Execute")
+//$= mode("Read", "Write") > mode("Read", "Write", "Execute")
+//$= mode("Read", "Write", "Execute") > mode("Read", "Write")
 	ml_flags_value_t *A = (ml_flags_value_t *)Args[0];
 	ML_CHECK_ARG_TYPE(1, A->Type);
 	ml_flags_value_t *B = (ml_flags_value_t *)Args[1];
@@ -1132,6 +1200,13 @@ ML_METHOD(">", MLFlagsValueT, MLFlagsValueT) {
 }
 
 ML_METHOD(">=", MLFlagsValueT, MLFlagsValueT) {
+//<Flags/1
+//<Flags/2
+//>flags::value
+// Returns the :mini:`Flags/2` if it is contained in :mini:`Flags/1`. :mini:`Flags/1` and :mini:`Flags/2` must have the same flags type.
+//$= let mode := flags("Read", "Write", "Execute")
+//$= mode("Read", "Write") >= mode("Read", "Write", "Execute")
+//$= mode("Read", "Write", "Execute") >= mode("Read", "Write")
 	ml_flags_value_t *A = (ml_flags_value_t *)Args[0];
 	ML_CHECK_ARG_TYPE(1, A->Type);
 	ml_flags_value_t *B = (ml_flags_value_t *)Args[1];

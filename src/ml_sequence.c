@@ -385,6 +385,18 @@ ML_METHOD("->!", MLChainedT, MLFunctionT) {
 	return (ml_value_t *)Chained;
 }
 
+static inline ml_type_t *ml_generic_sequence(ml_type_t *Base, ml_value_t *Sequence) {
+#ifdef ML_GENERICS
+	ml_type_t *TArgs[3];
+	if (ml_find_generic_parent(ml_typeof(Sequence), MLSequenceT, 3, TArgs) == 3) {
+		if (TArgs[1] == MLAnyT && TArgs[2] == MLAnyT) return Base;
+		TArgs[0] = Base;
+		return ml_generic_type(3, TArgs);
+	}
+#endif
+	return Base;
+}
+
 ML_METHOD("->?", MLSequenceT, MLFunctionT) {
 //<Base
 //<F
@@ -392,17 +404,7 @@ ML_METHOD("->?", MLSequenceT, MLFunctionT) {
 // Returns a chained sequence equivalent to :mini:`(K/j, V/j), ...` where :mini:`K/i` and :mini:`V/i` are the keys and values produced by :mini:`Base` and :mini:`F(V/j)` returns non-:mini:`nil`.
 //$= list(1 .. 10 ->? (2 | _))
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
-#ifdef ML_GENERICS
-	ml_type_t *TArgs[3];
-	if (ml_find_generic_parent(ml_typeof(Args[0]), MLSequenceT, 3, TArgs) == 3) {
-		TArgs[0] = MLChainedT;
-		Chained->Type = ml_generic_type(3, TArgs);
-	} else {
-		Chained->Type = MLChainedT;
-	}
-#else
-	Chained->Type = MLChainedT;
-#endif
+	Chained->Type = ml_generic_sequence(MLChainedT, Args[0]);
 	Chained->Entries[0] = Args[0];
 	Chained->Entries[1] = FilterSoloMethod;
 	Chained->Entries[2] = Args[1];
@@ -1475,7 +1477,12 @@ ML_METHOD("@", MLAnyT) {
 //$= list(@1 limit 10)
 	ML_CHECK_ARG_COUNT(1);
 	ml_repeated_t *Repeated = new(ml_repeated_t);
+#ifdef ML_GENERICS
+	ml_type_t *TArgs[3] = {MLRepeatedT, MLIntegerT, ml_typeof(Args[0])};
+	Repeated->Type = ml_generic_type(3, TArgs);
+#else
 	Repeated->Type = MLRepeatedT;
+#endif
 	Repeated->Value = Args[0];
 	return (ml_value_t *)Repeated;
 }
@@ -1552,7 +1559,24 @@ ML_METHOD(">>", MLSequenceT, MLSequenceT) {
 // Returns an sequence that produces the values from :mini:`Sequence/1` followed by those from :mini:`Sequence/2`.
 //$= list(1 .. 3 >> "cake")
 	ml_sequenced_t *Sequenced = xnew(ml_sequenced_t, 3, ml_value_t *);
+#ifdef ML_GENERICS
+	ml_type_t *TArgs[3];
+	if (ml_find_generic_parent(ml_typeof(Args[0]), MLSequenceT, 3, TArgs) == 3) {
+		ml_type_t *KeyType = TArgs[1], *ValueType = TArgs[2];
+		if (ml_find_generic_parent(ml_typeof(Args[1]), MLSequenceT, 3, TArgs) == 3) {
+			TArgs[0] = MLSequencedT;
+			TArgs[1] = ml_type_max(KeyType, TArgs[1]);
+			TArgs[2] = ml_type_max(ValueType, TArgs[2]);
+			Sequenced->Type = ml_generic_type(3, TArgs);
+		} else {
+			Sequenced->Type = MLSequencedT;
+		}
+	} else {
+		Sequenced->Type = MLSequencedT;
+	}
+#else
 	Sequenced->Type = MLSequencedT;
+#endif
 	Sequenced->First = Args[0];
 	Sequenced->Second = Args[1];
 	return (ml_value_t *)Sequenced;
@@ -1564,7 +1588,7 @@ ML_METHOD(">>", MLSequenceT) {
 // Returns an sequence that repeatedly produces the values from :mini:`Sequence` (for use with :mini:`limit`).
 //$= list(>>(1 .. 3) limit 10)
 	ml_sequenced_t *Sequenced = xnew(ml_sequenced_t, 3, ml_value_t *);
-	Sequenced->Type = MLSequencedT;
+	Sequenced->Type = ml_generic_sequence(MLSequencedT, Args[0]);
 	Sequenced->First = Args[0];
 	Sequenced->Second = (ml_value_t *)Sequenced;
 	return (ml_value_t *)Sequenced;
@@ -1642,7 +1666,7 @@ ML_METHOD("limit", MLSequenceT, MLIntegerT) {
 //$= list(1 .. 10)
 //$= list(1 .. 10 limit 5)
 	ml_limited_t *Limited = new(ml_limited_t);
-	Limited->Type = MLLimitedT;
+	Limited->Type = ml_generic_sequence(MLLimitedT, Args[0]);
 	Limited->Value = Args[0];
 	Limited->Remaining = ml_integer_value_fast(Args[1]);
 	return (ml_value_t *)Limited;
@@ -1694,7 +1718,7 @@ ML_METHOD("skip", MLSequenceT, MLIntegerT) {
 //$= list(1 .. 10)
 //$= list(1 .. 10 skip 5)
 	ml_skipped_t *Skipped = new(ml_skipped_t);
-	Skipped->Type = MLSkippedT;
+	Skipped->Type = ml_generic_sequence(MLSkippedT, Args[0]);
 	Skipped->Value = Args[0];
 	Skipped->Remaining = ml_integer_value_fast(Args[1]);
 	return (ml_value_t *)Skipped;
@@ -1772,7 +1796,7 @@ ML_METHOD("limit", MLSequenceT, MLFunctionT) {
 //$= list("banana")
 //$= list("banana" limit (_ != "n"))
 	ml_until_t *Until = new(ml_until_t);
-	Until->Type = MLUntilT;
+	Until->Type = ml_generic_sequence(MLUntilT, Args[0]);
 	Until->Value = Args[0];
 	Until->Fn = Args[1];
 	return (ml_value_t *)Until;
@@ -1850,8 +1874,8 @@ ML_FUNCTION(Unique) {
 //$= list(unique("banana"))
 	ML_CHECK_ARG_COUNT(1);
 	ml_unique_t *Unique = new(ml_unique_t);
-	Unique->Type = MLUniqueT;
-	Unique->Iter = ml_chained(Count, Args);
+	ml_value_t *Iter = Unique->Iter = ml_chained(Count, Args);
+	Unique->Type = ml_generic_sequence(MLUniqueT, Iter);
 	return (ml_value_t *)Unique;
 }
 
@@ -2469,7 +2493,20 @@ ML_FUNCTION(Swap) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLSequenceT);
 	ml_swapped_t *Swapped = new(ml_swapped_t);
+#ifdef ML_GENERICS
+	ml_type_t *TArgs[3];
+	if (ml_find_generic_parent(ml_typeof(Args[0]), MLSequenceT, 3, TArgs) == 3) {
+		TArgs[0] = MLSwappedT;
+		ml_type_t *KeyType = TArgs[1];
+		TArgs[1] = TArgs[2];
+		TArgs[2] = KeyType;
+		Swapped->Type = ml_generic_type(3, TArgs);
+	} else {
+		Swapped->Type = MLSwappedT;
+	}
+#else
 	Swapped->Type = MLSwappedT;
+#endif
 	Swapped->Value = Args[0];
 	return (ml_value_t *)Swapped;
 }
@@ -2652,6 +2689,13 @@ void ml_sequence_init(stringmap_t *Globals) {
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLChainedT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 	ml_type_add_rule(MLDoubledT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
+	ml_type_add_rule(MLRepeatedT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
+	ml_type_add_rule(MLSequencedT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
+	ml_type_add_rule(MLLimitedT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
+	ml_type_add_rule(MLUntilT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
+	ml_type_add_rule(MLSkippedT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
+	ml_type_add_rule(MLSwappedT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
+	ml_type_add_rule(MLUniqueT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 #endif
 	if (Globals) {
 		stringmap_insert(Globals, "chained", MLChainedT);

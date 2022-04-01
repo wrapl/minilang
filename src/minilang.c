@@ -270,6 +270,7 @@ int main(int Argc, const char *Argv[]) {
 	ml_polynomial_init(Globals);
 #endif
 #ifdef ML_GIR
+	GMainLoop *GirLoop = NULL;
 	ml_gir_init(Globals);
 #endif
 #ifdef ML_GTK_CONSOLE
@@ -357,6 +358,11 @@ int main(int Argc, const char *Argv[]) {
 				break;
 #endif
 			case 'z': GC_disable(); break;
+#ifdef ML_GIR
+			case 'g':
+				GirLoop = g_main_loop_new(NULL, TRUE);
+				break;
+#endif
 #ifdef ML_GTK_CONSOLE
 			case 'G':
 				GtkConsole = 1;
@@ -390,6 +396,9 @@ int main(int Argc, const char *Argv[]) {
 	}
 #endif
 	if (FileName) {
+#if defined(ML_GIR) && defined(ML_SCHEDULER)
+		if (GirLoop) ml_context_set(Main->Context, ML_SCHEDULER_INDEX, GirSchedule);
+#endif
 #ifdef ML_LIBRARY
 		if (LoadModule) {
 			ml_library_load(Main, NULL, FileName);
@@ -402,7 +411,15 @@ int main(int Argc, const char *Argv[]) {
 		}
 #endif
 #ifdef ML_SCHEDULER
+#ifdef ML_GIR
+		if (GirLoop) {
+			g_main_loop_run(GirLoop);
+		} else {
+#endif
 		if (SliceSize) simple_queue_run();
+#ifdef ML_GIR
+		}
+#endif
 #endif
 	} else if (Command) {
 		ml_parser_t *Parser = ml_parser(NULL, NULL);

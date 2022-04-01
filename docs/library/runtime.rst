@@ -31,15 +31,53 @@ runtime
    *TBD*
 
 
-.. _type-reference:
+:mini:`meth (Arg₁: channel):error(Arg₂: string, Arg₃: string)`
+   *TBD*
 
-:mini:`type reference`
+
+:mini:`meth (Arg₁: channel):raise(Arg₂: error::value)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: channel):raise(Arg₂: string, Arg₃: any)`
+   *TBD*
+
+
+.. _type-debugger:
+
+:mini:`type debugger`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: error::value)`
+   *TBD*
+
+
+.. _type-resumable-state:
+
+:mini:`type resumable::state < state`
+   *TBD*
+
+
+.. _type-state:
+
+:mini:`type state < function`
    *TBD*
 
 
 .. _fun-swapcc:
 
 :mini:`fun swapcc(Arg₁: state)`
+   *TBD*
+
+
+.. _type-uninitialized:
+
+:mini:`type uninitialized`
+   An uninitialized value. Used for forward declarations.
+
+
+:mini:`meth (Arg₁: uninitialized) :: (Arg₂: string)`
    *TBD*
 
 

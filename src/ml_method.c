@@ -237,7 +237,12 @@ void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Ca
 	}
 }
 
-void ml_method_define(ml_value_t *Method, ml_value_t *Function, int Variadic, ...) {
+void ml_method_define(ml_value_t *Value, ml_value_t *Function, int Count, int Variadic, ml_type_t **Types) {
+	ml_method_t *Method = (ml_method_t *)Value;
+	ml_method_insert(MLRootMethods, Method, Function, Count, Variadic, Types);
+}
+
+void ml_method_definev(ml_value_t *Method, ml_value_t *Function, int Variadic, ...) {
 	int Count = 0;
 	va_list Args;
 	va_start(Args, Variadic);
@@ -424,11 +429,6 @@ void ml_methodx_by_value(void *Value, void *Data, ml_callbackx_t Callback, ...) 
 	while ((Type = va_arg(Args, ml_type_t *))) *T++ = Type;
 	va_end(Args);
 	ml_method_insert(MLRootMethods, Method, ml_cfunctionx(Data, Callback), Count, 1, Types);
-}
-
-void ml_method_by_array(ml_value_t *Value, ml_value_t *Function, int Count, ml_type_t **Types) {
-	ml_method_t *Method = (ml_method_t *)Value;
-	ml_method_insert(MLRootMethods, Method, Function, Count, 1, Types);
 }
 
 ML_METHOD("append", MLStringBufferT, MLMethodT) {
