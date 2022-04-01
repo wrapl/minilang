@@ -296,7 +296,7 @@ static void ml_reference_call(ml_state_t *Caller, ml_reference_t *Reference, int
 }
 
 ML_TYPE(MLReferenceT, (), "reference",
-//!runtime
+//!internal
 	.hash = (void *)ml_reference_hash,
 	.deref = (void *)ml_reference_deref,
 	.assign = (void *)ml_reference_assign,
@@ -334,6 +334,7 @@ static void ml_unitialized_assign(ml_state_t *Caller, ml_uninitialized_t *Uninit
 }
 
 ML_TYPE(MLUninitializedT, (), "uninitialized",
+// An uninitialized value. Used for forward declarations.
 	.call = (void *)ml_uninitialized_call,
 	.assign = (void *)ml_unitialized_assign
 );

@@ -53,12 +53,6 @@ runtime
    *TBD*
 
 
-.. _type-reference:
-
-:mini:`type reference`
-   *TBD*
-
-
 .. _type-resumable-state:
 
 :mini:`type resumable::state < state`
@@ -80,7 +74,7 @@ runtime
 .. _type-uninitialized:
 
 :mini:`type uninitialized`
-   *TBD*
+   An uninitialized value. Used for forward declarations.
 
 
 :mini:`meth (Arg₁: uninitialized) :: (Arg₂: string)`

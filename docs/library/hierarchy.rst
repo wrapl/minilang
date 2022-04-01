@@ -56,7 +56,6 @@ hierarchy
       "function":e -> "context":w;
       "function":e -> "state":w;
       "state":e -> "resumable::state":w;
-      "any":e -> "reference":w;
       "any":e -> "uninitialized":w;
       "any":e -> "error":w;
       "any":e -> "error::value":w;
