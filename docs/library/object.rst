@@ -22,27 +22,52 @@ object
 .. _type-enum:
 
 :mini:`type enum < type, sequence`
-   *TBD*
+   The base type of enumeration types.
 
 
 .. _fun-enum:
 
 :mini:`fun enum(Values: string, ...): enum`
-   *TBD*
+   Returns a new enumeration type.
+
+   .. code-block:: mini
+
+      let day := enum("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+      :> <<day>>
+      day::Wed :> Wed
+      day::Fri + 0 :> 5
 
 
 :mini:`meth (Enum: enum):count: integer`
-   *TBD*
+   Returns the size of the enumeration :mini:`Enum`.
+
+   .. code-block:: mini
+
+      let day := enum("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+      :> <<day>>
+      day:count :> 7
 
 
 .. _type-enum-range:
 
 :mini:`type enum::range < sequence`
-   *TBD*
+   A range of enum values.
 
 
-:mini:`meth (Arg₁: enum::value) .. (Arg₂: enum::value)`
-   *TBD*
+.. _type-enum-value:
+
+:mini:`type enum::value < int64`
+   An instance of an enumeration type.
+
+
+:mini:`meth (Min: enum::value) .. (Max: enum::value): enum::range`
+   Returns a range of enum values. :mini:`Min` and :mini:`Max` must belong to the same enumeration.
+
+   .. code-block:: mini
+
+      let day := enum("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+      :> <<day>>
+      day::Mon .. day::Fri :> <enum-range>
 
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: enum::value)`
@@ -52,39 +77,101 @@ object
 .. _type-flags:
 
 :mini:`type flags < type`
-   *TBD*
+   The base type of flag types.
 
 
 :mini:`meth flags(Name₁: string, ...): flags`
-   *TBD*
+   Returns a new flags type,  where :mini:`Nameᵢ` has value $2^{i-1}$.
+
+   .. code-block:: mini
+
+      let mode := flags("Read", "Write", "Execute") :> <<mode>>
+      mode::Read :> Read
+      mode::Read + mode::Write :> Write|Read
 
 
 :mini:`meth flags(Name₁ is Value₁, ...): flags`
-   *TBD*
+   Returns a new flags type
+   Returns a new flags type,  where :mini:`Nameᵢ` has value :mini:`Valueᵢ`.
+
+   .. code-block:: mini
+
+      let mode := flags(Read is 1, Write is 4, Execute is 32)
+      :> <<mode>>
+      mode::Read :> Read
+      mode::Read + mode::Write :> Write|Read
 
 
-:mini:`meth (Arg₁: flags::value) + (Arg₂: flags::value)`
-   *TBD*
+.. _type-flags-value:
+
+:mini:`type flags::value < int64`
+   An instance of a flags type.
 
 
-:mini:`meth (Arg₁: flags::value) - (Arg₂: flags::value)`
-   *TBD*
+:mini:`meth (Flags₁: flags::value) + (Flags₂: flags::value): flags::value`
+   Returns the union of :mini:`Flags₁` and :mini:`Flags₂`. :mini:`Flags₁` and :mini:`Flags₂` must have the same flags type.
+
+   .. code-block:: mini
+
+      let mode := flags("Read", "Write", "Execute") :> <<mode>>
+      mode::Read + mode::Write :> Write|Read
 
 
-:mini:`meth (Arg₁: flags::value) < (Arg₂: flags::value)`
-   *TBD*
+:mini:`meth (Flags₁: flags::value) - (Flags₂: flags::value): flags::value`
+   Returns the difference of :mini:`Flags₁` and :mini:`Flags₂`. :mini:`Flags₁` and :mini:`Flags₂` must have the same flags type.
+
+   .. code-block:: mini
+
+      let mode := flags("Read", "Write", "Execute") :> <<mode>>
+      mode("Read", "Write") - mode::Write :> Read
 
 
-:mini:`meth (Arg₁: flags::value) <= (Arg₂: flags::value)`
-   *TBD*
+:mini:`meth (Flags₁: flags::value) < (Flags₂: flags::value): flags::value`
+   Returns the :mini:`Flags₂` if it contains all of :mini:`Flags₁`. :mini:`Flags₁` and :mini:`Flags₂` must have the same flags type.
+
+   .. code-block:: mini
+
+      let mode := flags("Read", "Write", "Execute") :> <<mode>>
+      mode("Read", "Write") < mode("Read", "Write", "Execute")
+      :> Write|Read|Execute
+      mode("Read", "Write", "Execute") < mode("Read", "Write")
+      :> nil
 
 
-:mini:`meth (Arg₁: flags::value) > (Arg₂: flags::value)`
-   *TBD*
+:mini:`meth (Flags₁: flags::value) <= (Flags₂: flags::value): flags::value`
+   Returns the :mini:`Flags₂` if it contains all of :mini:`Flags₁`. :mini:`Flags₁` and :mini:`Flags₂` must have the same flags type.
+
+   .. code-block:: mini
+
+      let mode := flags("Read", "Write", "Execute") :> <<mode>>
+      mode("Read", "Write") <= mode("Read", "Write", "Execute")
+      :> Write|Read|Execute
+      mode("Read", "Write", "Execute") <= mode("Read", "Write")
+      :> nil
 
 
-:mini:`meth (Arg₁: flags::value) >= (Arg₂: flags::value)`
-   *TBD*
+:mini:`meth (Flags₁: flags::value) > (Flags₂: flags::value): flags::value`
+   Returns the :mini:`Flags₂` if it is contained in :mini:`Flags₁`. :mini:`Flags₁` and :mini:`Flags₂` must have the same flags type.
+
+   .. code-block:: mini
+
+      let mode := flags("Read", "Write", "Execute") :> <<mode>>
+      mode("Read", "Write") > mode("Read", "Write", "Execute")
+      :> nil
+      mode("Read", "Write", "Execute") > mode("Read", "Write")
+      :> Write|Read
+
+
+:mini:`meth (Flags₁: flags::value) >= (Flags₂: flags::value): flags::value`
+   Returns the :mini:`Flags₂` if it is contained in :mini:`Flags₁`. :mini:`Flags₁` and :mini:`Flags₂` must have the same flags type.
+
+   .. code-block:: mini
+
+      let mode := flags("Read", "Write", "Execute") :> <<mode>>
+      mode("Read", "Write") >= mode("Read", "Write", "Execute")
+      :> nil
+      mode("Read", "Write", "Execute") >= mode("Read", "Write")
+      :> Write|Read
 
 
 :mini:`meth list(Arg₁: flags::value)`

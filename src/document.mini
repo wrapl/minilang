@@ -471,6 +471,8 @@ fun process(FileName) do
 						Description:put("\n")
 					elseif Line % r"^/[/*]\$- " then
 						Example:write("      ", Line[6, 0])
+					elseif Line % r"^/[/*]\$-" then
+						Example:write("      \n")
 					elseif Line % r"^/[/*]\$= " then
 						Example:write("      ", Line[6, -1])
 						Examples:put(Example:rest)
@@ -528,6 +530,8 @@ fun process(FileName) do
 						Description:put("\n")
 					elseif Line % r"^/[/*]\$- " then
 						Example:write("      ", Line[6, 0])
+					elseif Line % r"^/[/*]\$-" then
+						Example:write("      \n")
 					elseif Line % r"^/[/*]\$= " then
 						Example:write("      ", Line[6, -1])
 						Examples:put(Example:rest)
@@ -590,6 +594,8 @@ fun process(FileName) do
 						Description:put("\n")
 					elseif Line % r"^/[/*]\$- " then
 						Example:write("      ", Line[6, 0])
+					elseif Line % r"^/[/*]\$-" then
+						Example:write("      \n")
 					elseif Line % r"^/[/*]\$= " then
 						Example:write("      ", Line[6, -1])
 						Examples:put(Example:rest)

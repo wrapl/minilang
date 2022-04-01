@@ -7,25 +7,40 @@
 uuid
 ====
 
-:mini:`meth uuid(Arg₁: string)`
-   *TBD*
-
+.. note::
+   Depending on how *Minilang* is built,  :mini:`uuid` might need to be imported using :mini:`import: uuid("std/uuid")`.
 
 .. _type-uuid:
 
 :mini:`type uuid`
-   *TBD*
+   A UUID.
 
 
-:mini:`meth uuid()`
-   *TBD*
+:mini:`meth uuid(String: string): uuid | error`
+   Parses :mini:`String` as a UUID,  returning an error if :mini:`String` does not have the correct format.
+
+   .. code-block:: mini
+
+      import: uuid("std/uuid")
+      uuid("5fe1af82-02f9-429a-8787-4a7c16628a02")
+      :> 5fe1af82-02f9-429a-8787-4a7c16628a02
+      uuid("test") :> error("UUIDError", "Invalid UUID string")
+
+
+:mini:`meth uuid(): uuid`
+   Returns a new random UUID.
+
+   .. code-block:: mini
+
+      import: uuid("std/uuid")
+      uuid() :> 0a3b05fc-166e-44e2-987c-319d511587b1
 
 
 :mini:`meth (Arg₁: uuid) <> (Arg₂: uuid)`
    *TBD*
 
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: uuid)`
-   *TBD*
+:mini:`meth (Buffer: string::buffer):append(UUID: uuid)`
+   Appends a representation of :mini:`UUID` to :mini:`Buffer`.
 
 

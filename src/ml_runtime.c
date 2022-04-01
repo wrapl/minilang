@@ -684,7 +684,7 @@ static void ml_mini_debugger_call(ml_state_t *Caller, ml_mini_debugger_t *Debugg
 	return ml_call(State, Function, Count - 1, Args + 1);
 }
 
-ML_TYPE(MLMiniDebuggerT, (), "mini-debugger",
+ML_TYPE(MLDebuggerT, (), "mini-debugger",
 	.call = (void *)ml_mini_debugger_call
 );
 
@@ -724,9 +724,14 @@ static size_t *mini_debugger_breakpoints(ml_debugger_t *Base, const char *Source
 }
 
 ML_FUNCTION(MLDebugger) {
+//!debugger
+//@debugger
+//<Function
+//>debugger
+// Returns a new debugger for :mini:`Function()`.
 	ML_CHECK_ARG_COUNT(1);
 	ml_mini_debugger_t *Debugger = new(ml_mini_debugger_t);
-	Debugger->Type = MLMiniDebuggerT;
+	Debugger->Type = MLDebuggerT;
 	Debugger->Base.run = mini_debugger_run;
 	Debugger->Base.breakpoints = mini_debugger_breakpoints;
 	Debugger->Base.StepIn = 1;
@@ -735,7 +740,12 @@ ML_FUNCTION(MLDebugger) {
 	return (ml_value_t *)Debugger;
 }
 
-ML_METHOD("breakpoint_set", MLMiniDebuggerT, MLStringT, MLIntegerT) {
+ML_METHOD("breakpoint_set", MLDebuggerT, MLStringT, MLIntegerT) {
+//!debugger
+//<Debugger
+//<Source
+//<Line
+// Sets a breakpoint in :mini:`Source` at line :mini:`Line`.
 	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
 	const char *Source = ml_string_value(Args[1]);
 	int LineNo = ml_integer_value(Args[2]);
@@ -745,7 +755,12 @@ ML_METHOD("breakpoint_set", MLMiniDebuggerT, MLStringT, MLIntegerT) {
 	return Args[0];
 }
 
-ML_METHOD("breakpoint_clear", MLMiniDebuggerT, MLStringT, MLIntegerT) {
+ML_METHOD("breakpoint_clear", MLDebuggerT, MLStringT, MLIntegerT) {
+//!debugger
+//<Debugger
+//<Source
+//<Line
+// Clears any breakpoints from :mini:`Source` at line :mini:`Line`.
 	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
 	const char *Source = ml_string_value(Args[1]);
 	int LineNo = ml_integer_value(Args[2]);
@@ -755,19 +770,32 @@ ML_METHOD("breakpoint_clear", MLMiniDebuggerT, MLStringT, MLIntegerT) {
 	return Args[0];
 }
 
-ML_METHOD("error_mode", MLMiniDebuggerT, MLAnyT) {
+ML_METHOD("error_mode", MLDebuggerT, MLAnyT) {
+//!debugger
+//<Debugger
+//<Set
+// If :mini:`Set` is not :mini:`nil` then :mini:`Debugger` will stop on errors.
 	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
 	Debugger->Base.BreakOnError = Args[1] != MLNil;
 	return Args[0];
 }
 
-ML_METHOD("step_mode", MLMiniDebuggerT, MLAnyT) {
+ML_METHOD("step_mode", MLDebuggerT, MLAnyT) {
+//!debugger
+//<Debugger
+//<Set
+// If :mini:`Set` is not :mini:`nil` then :mini:`Debugger` will stop on after each line.
 	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
 	Debugger->Base.StepIn = Args[1] != MLNil;
 	return Args[0];
 }
 
-ML_METHODX("step_in", MLMiniDebuggerT, MLStateT, MLAnyT) {
+ML_METHODX("step_in", MLDebuggerT, MLStateT, MLAnyT) {
+//!debugger
+//<Debugger
+//<State
+//<Value
+// Resume :mini:`State` with :mini:`Value` in the debugger, stopping after the next line.
 	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
 	ml_state_t *State = (ml_state_t *)Args[1];
 	Debugger->Base.StepIn = 1;
@@ -775,7 +803,12 @@ ML_METHODX("step_in", MLMiniDebuggerT, MLStateT, MLAnyT) {
 	return State->run(State, Args[2]);
 }
 
-ML_METHODX("step_over", MLMiniDebuggerT, MLStateT, MLAnyT) {
+ML_METHODX("step_over", MLDebuggerT, MLStateT, MLAnyT) {
+//!debugger
+//<Debugger
+//<State
+//<Value
+// Resume :mini:`State` with :mini:`Value` in the debugger, stopping after the next line in the same function (i.e. stepping over function calls).
 	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
 	ml_state_t *State = (ml_state_t *)Args[1];
 	Debugger->Base.StepIn = 0;
@@ -783,7 +816,12 @@ ML_METHODX("step_over", MLMiniDebuggerT, MLStateT, MLAnyT) {
 	return State->run(State, Args[2]);
 }
 
-ML_METHODX("step_out", MLMiniDebuggerT, MLStateT, MLAnyT) {
+ML_METHODX("step_out", MLDebuggerT, MLStateT, MLAnyT) {
+//!debugger
+//<Debugger
+//<State
+//<Value
+// Resume :mini:`State` with :mini:`Value` in the debugger, stopping at the end of the current function.
 	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
 	ml_state_t *State = (ml_state_t *)Args[1];
 	Debugger->Base.StepIn = 0;
@@ -791,7 +829,12 @@ ML_METHODX("step_out", MLMiniDebuggerT, MLStateT, MLAnyT) {
 	return State->run(State, Args[2]);
 }
 
-ML_METHODX("continue", MLMiniDebuggerT, MLStateT, MLAnyT) {
+ML_METHODX("continue", MLDebuggerT, MLStateT, MLAnyT) {
+//!debugger
+//<Debugger
+//<State
+//<Value
+// Resume :mini:`State` with :mini:`Value` in the debugger.
 	ml_mini_debugger_t *Debugger = (ml_mini_debugger_t *)Args[0];
 	ml_state_t *State = (ml_state_t *)Args[1];
 	Debugger->Base.StepIn = 0;
@@ -800,6 +843,10 @@ ML_METHODX("continue", MLMiniDebuggerT, MLStateT, MLAnyT) {
 }
 
 ML_METHOD("locals", MLStateT) {
+//!debugger
+//<State
+//>list[string]
+// Returns the list of locals in :mini:`State`. Returns an empty list if :mini:`State` does not have any debugging information.
 	ml_state_t *State = (ml_state_t *)Args[0];
 	ml_value_t *Locals = ml_list();
 	for (ml_decl_t *Decl = ml_debugger_decls(State); Decl; Decl = Decl->Next) {
@@ -809,6 +856,10 @@ ML_METHOD("locals", MLStateT) {
 }
 
 ML_METHOD("trace", MLStateT) {
+//!debugger
+//<State
+//>list[state]
+// Returns the call trace from :mini:`State`, excluding states that do not have debugging information.
 	ml_state_t *State = (ml_state_t *)Args[0];
 	ml_value_t *Trace = ml_list();
 	while (State) {
@@ -822,6 +873,10 @@ ML_METHOD("trace", MLStateT) {
 }
 
 ML_METHOD("source", MLStateT) {
+//!debugger
+//<State
+//>tuple[string, integer]
+// Returns the source location for :mini:`State`.
 	ml_state_t *State = (ml_state_t *)Args[0];
 	ml_source_t Source = ml_debugger_source(State);
 	return ml_tuplev(2, ml_string(Source.Name, -1), ml_integer(Source.Line));

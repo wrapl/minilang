@@ -11,7 +11,7 @@
 ML_TYPE(MLMapT, (MLSequenceT), "map",
 // A map of key-value pairs.
 // Keys can be of any type supporting hashing and comparison.
-// Insert order is preserved.
+// By default, iterating over a map generates the key-value pairs in the order they were inserted, however this ordering can be changed.
 );
 
 static void ML_TYPED_FN(ml_value_find_refs, MLMapT, ml_value_t *Value, void *Data, ml_value_ref_fn RefFn) {
@@ -37,8 +37,8 @@ static void ml_map_node_call(ml_state_t *Caller, ml_map_node_t *Node, int Count,
 
 ML_TYPE(MLMapNodeT, (), "map-node",
 // A node in a :mini:`map`.
-// Dereferencing a :mini:`mapnode` returns the corresponding value from the :mini:`map`.
-// Assigning to a :mini:`mapnode` updates the corresponding value in the :mini:`map`.
+// Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
+// Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
 	.deref = (void *)ml_map_node_deref,
 	.assign = (void *)ml_map_node_assign,
 	.call = (void *)ml_map_node_call
@@ -224,14 +224,25 @@ static ml_map_node_t *ml_map_node(ml_map_t *Map, ml_map_node_t **Slot, long Hash
 		++Map->Size;
 		ml_map_node_t *Node = Slot[0] = new(ml_map_node_t);
 		Node->Type = MLMapNodeT;
-		ml_map_node_t *Prev = Map->Tail;
-		if (Prev) {
-			Prev->Next = Node;
-			Node->Prev = Prev;
-		} else {
+		if (Map->Order > 0) {
+			ml_map_node_t *Next = Map->Head;
+			if (Next) {
+				Next->Prev = Node;
+				Node->Next = Next;
+			} else {
+				Map->Tail = Node;
+			}
 			Map->Head = Node;
+		} else {
+			ml_map_node_t *Prev = Map->Tail;
+			if (Prev) {
+				Prev->Next = Node;
+				Node->Prev = Prev;
+			} else {
+				Map->Head = Node;
+			}
+			Map->Tail = Node;
 		}
-		Map->Tail = Node;
 		Node->Depth = 1;
 		Node->Hash = Hash;
 		Node->Key = Key;
@@ -434,18 +445,53 @@ ML_TYPE(MLMapIndexT, (), "map-index",
 	.call = (void *)ml_map_index_call
 );
 
-ML_METHOD("lru", MLMapT) {
+ML_METHOD("order", MLMapT) {
+//<Map
+//>integer
+// Returns the current ordering of :mini:`Map`.
+//
+// * :mini:`0` |harr| default ordering; inserted pairs are put at end, no reordering on access.
+// * :mini:`1` |harr| MRU ordering; inserted pairs are put at start, accessed pairs are moved to start.
+// * :mini:`-1` |harr| LRU ordering; inserted pairs are put at end, accessed paires are moved to end.
 	ml_map_t *Map = (ml_map_t *)Args[0];
-	return Map->LRU ? (ml_value_t *)MLTrue : (ml_value_t *)MLFalse;
+	return ml_integer(Map->Order);
 }
 
-ML_METHOD("lru", MLMapT, MLBooleanT) {
+ML_METHOD("order", MLMapT, MLIntegerT) {
+//<Map
+//<Order
+//>map
+// Sets the ordering
 	ml_map_t *Map = (ml_map_t *)Args[0];
-	Map->LRU = Args[1] == (ml_value_t *)MLTrue;
+	int Order = ml_integer_value(Args[1]);
+	if (Order < 0) {
+		Map->Order = -1;
+	} else if (Order > 0) {
+		Map->Order = 1;
+	} else {
+		Map->Order = 0;
+	}
 	return (ml_value_t *)Map;
 }
 
-static void ml_map_access_node(ml_map_t *Map, ml_map_node_t *Node) {
+static void ml_map_move_node_head(ml_map_t *Map, ml_map_node_t *Node) {
+	ml_map_node_t *Prev = Node->Prev;
+	if (Prev) {
+		ml_map_node_t *Next = Node->Next;
+		Prev->Next = Next;
+		if (Next) {
+			Next->Prev = Prev;
+		} else {
+			Map->Tail = Prev;
+		}
+		Node->Next = Map->Head;
+		Node->Prev = NULL;
+		Map->Head->Prev = Node;
+		Map->Head = Node;
+	}
+}
+
+static void ml_map_move_node_tail(ml_map_t *Map, ml_map_node_t *Node) {
 	ml_map_node_t *Next = Node->Next;
 	if (Next) {
 		ml_map_node_t *Prev = Node->Prev;
@@ -480,8 +526,10 @@ ML_METHOD("[]", MLMapT, MLAnyT) {
 		Node->Type = MLMapIndexT;
 		Node->Value = Args[0];
 		Node->Key = Args[1];
-	} else if (Map->LRU) {
-		ml_map_access_node(Map, Node);
+	} else if (Map->Order < 0) {
+		ml_map_move_node_tail(Map, Node);
+	} else if (Map->Order > 0) {
+		ml_map_move_node_head(Map, Node);
 	}
 	return (ml_value_t *)Node;
 }
@@ -547,8 +595,10 @@ ML_METHOD("::", MLMapT, MLStringT) {
 		Node->Type = MLMapIndexT;
 		Node->Value = Args[0];
 		Node->Key = Args[1];
-	} else if (Map->LRU) {
-		ml_map_access_node(Map, Node);
+	} else if (Map->Order < 0) {
+		ml_map_move_node_tail(Map, Node);
+	} else if (Map->Order > 0) {
+		ml_map_move_node_head(Map, Node);
 	}
 	return (ml_value_t *)Node;
 }
@@ -569,6 +619,25 @@ ML_METHOD("empty", MLMapT) {
 }
 
 ML_METHOD("pop", MLMapT) {
+//<Map
+//>any|nil
+// Deletes the first key-value pair from :mini:`Map` according to its iteration order. Returns the deleted value, or :mini:`nil` if :mini:`Map` is empty.
+//$- :> Insertion order (default)
+//$= let M1 := map("cake")
+//$= M1:pop
+//$= M1
+//$-
+//$- :> LRU order
+//$= let M2 := map("cake"):order(-1)
+//$- M2[2]; M2[4]; M2[1]; M2[3]
+//$= M2:pop
+//$= M2
+//$-
+//$- :> MRU order
+//$= let M3 := map("cake"):order(1)
+//$- M3[2]; M3[4]; M3[1]; M3[3]
+//$= M3:pop
+//$= M3
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_map_node_t *Node = Map->Head;
 	if (!Node) return MLNil;
@@ -576,6 +645,25 @@ ML_METHOD("pop", MLMapT) {
 }
 
 ML_METHOD("pull", MLMapT) {
+//<Map
+//>any|nil
+// Deletes the last key-value pair from :mini:`Map` according to its iteration order. Returns the deleted value, or :mini:`nil` if :mini:`Map` is empty.
+//$- :> Insertion order (default)
+//$= let M1 := map("cake")
+//$= M1:pull
+//$= M1
+//$-
+//$- :> LRU order
+//$= let M2 := map("cake"):order(-1)
+//$- M2[2]; M2[4]; M2[1]; M2[3]
+//$= M2:pull
+//$= M2
+//$-
+//$- :> MRU order
+//$= let M3 := map("cake"):order(1)
+//$- M3[2]; M3[4]; M3[1]; M3[3]
+//$= M3:pull
+//$= M3
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_map_node_t *Node = Map->Tail;
 	if (!Node) return MLNil;
@@ -583,6 +671,25 @@ ML_METHOD("pull", MLMapT) {
 }
 
 ML_METHOD("pop2", MLMapT) {
+//<Map
+//>tuple[any,any]|nil
+// Deletes the first key-value pair from :mini:`Map` according to its iteration order. Returns the deleted key-value pair, or :mini:`nil` if :mini:`Map` is empty.
+//$- :> Insertion order (default)
+//$= let M1 := map("cake")
+//$= M1:pop2
+//$= M1
+//$-
+//$- :> LRU order
+//$= let M2 := map("cake"):order(-1)
+//$- M2[2]; M2[4]; M2[1]; M2[3]
+//$= M2:pop2
+//$= M2
+//$-
+//$- :> MRU order
+//$= let M3 := map("cake"):order(1)
+//$- M3[2]; M3[4]; M3[1]; M3[3]
+//$= M3:pop2
+//$= M3
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_map_node_t *Node = Map->Head;
 	if (!Node) return MLNil;
@@ -590,6 +697,25 @@ ML_METHOD("pop2", MLMapT) {
 }
 
 ML_METHOD("pull2", MLMapT) {
+//<Map
+//>tuple[any,any]|nil
+// Deletes the last key-value pair from :mini:`Map` according to its iteration order. Returns the deleted key-value pair, or :mini:`nil` if :mini:`Map` is empty.
+//$- :> Insertion order (default)
+//$= let M1 := map("cake")
+//$= M1:pull2
+//$= M1
+//$-
+//$- :> LRU order
+//$= let M2 := map("cake"):order(-1)
+//$- M2[2]; M2[4]; M2[1]; M2[3]
+//$= M2:pull2
+//$= M2
+//$-
+//$- :> MRU order
+//$= let M3 := map("cake"):order(1)
+//$- M3[2]; M3[4]; M3[1]; M3[3]
+//$= M3:pull2
+//$= M3
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_map_node_t *Node = Map->Tail;
 	if (!Node) return MLNil;
@@ -681,6 +807,9 @@ ML_METHODX("missing", MLMapT, MLAnyT, MLFunctionT) {
 }
 
 ML_METHOD("append", MLStringBufferT, MLMapT) {
+//<Buffer
+//<Map
+// Appends a representation of :mini:`Map` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_put(Buffer, '{');
 	ml_map_t *Map = (ml_map_t *)Args[1];
@@ -726,11 +855,11 @@ static int ml_map_stringer(ml_value_t *Key, ml_value_t *Value, ml_map_stringer_t
 }
 
 ML_METHOD("append", MLStringBufferT, MLMapT, MLStringT, MLStringT) {
+//<Buffer
 //<Map
 //<Sep
 //<Conn
-//>string
-// Returns a string containing the entries of :mini:`Map` with :mini:`Conn` between keys and values and :mini:`Sep` between entries.
+// Appends the entries of :mini:`Map` to :mini:`Buffer` with :mini:`Conn` between keys and values and :mini:`Sep` between entries.
 	ml_map_stringer_t Stringer[1] = {{
 		ml_string_value(Args[2]), ml_string_value(Args[3]),
 		(ml_stringbuffer_t *)Args[0],
@@ -968,6 +1097,30 @@ ML_METHODX("sort2", MLMapT, MLFunctionT) {
 	Map->Head = Map->Tail = NULL;
 	Map->Size = 0;
 	return ml_map_sort_state_run(State, NULL);
+}
+
+ML_METHOD("reverse", MLMapT) {
+//<Map
+//>map
+// Reverses the iteration order of :mini:`Map` in-place and returns it.
+//$= let M := map("cake")
+//$= M:reverse
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Prev = Map->Head;
+	if (!Prev) return (ml_value_t *)Map;
+	Map->Tail = Prev;
+	ml_map_node_t *Node = Prev->Next;
+	Prev->Next = NULL;
+	while (Node) {
+		ml_map_node_t *Next = Node->Next;
+		Node->Next = Prev;
+		Prev->Prev = Node;
+		Prev = Node;
+		Node = Next;
+	}
+	Prev->Prev = NULL;
+	Map->Head = Prev;
+	return (ml_value_t *)Map;
 }
 
 void ml_map_init() {
