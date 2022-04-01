@@ -1658,12 +1658,16 @@ static void method_register(const char *Name, GIFunctionInfo *Info, object_t *Ob
 		GIArgInfo *ArgInfo = g_callable_info_get_arg((GICallableInfo *)Info, I);
 		GITypeInfo TypeInfo[1];
 		g_arg_info_load_type(ArgInfo, TypeInfo);
+		GITypeTag Tag = g_type_info_get_tag(TypeInfo);
 		switch (g_arg_info_get_direction(ArgInfo)) {
 		case GI_DIRECTION_IN:
 		case GI_DIRECTION_INOUT:
-			if (g_type_info_get_tag(TypeInfo) == GI_TYPE_TAG_ARRAY) {
+			if (Tag == GI_TYPE_TAG_ARRAY) {
 				int LengthIndex = g_type_info_get_array_length(TypeInfo);
 				if (LengthIndex < 0) ++NArgsIn;
+			} else if (Tag == GI_TYPE_TAG_INTERFACE) {
+				GIBaseInfo *InterfaceInfo = g_type_info_get_interface(TypeInfo);
+				if (!g_base_info_equal(InterfaceInfo, DestroyNotifyInfo)) ++NArgsIn;
 			} else {
 				++NArgsIn;
 			}
