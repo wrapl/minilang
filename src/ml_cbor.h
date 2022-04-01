@@ -44,7 +44,7 @@ typedef struct {
 	size_t Length;
 } ml_cbor_t;
 
-typedef void (*ml_cbor_write_fn)(void *Data, const unsigned char *Bytes, unsigned Size);
+typedef void (*ml_cbor_write_fn)(void *Data, const unsigned char *Bytes, size_t Size);
 typedef struct ml_cbor_writer_t ml_cbor_writer_t;
 
 ml_cbor_writer_t *ml_cbor_writer(void *Data, ml_cbor_write_fn WriteFn, inthash_t *Globals);

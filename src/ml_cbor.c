@@ -1,6 +1,7 @@
 #include "minilang.h"
 #include "ml_macros.h"
 #include "ml_cbor.h"
+#include "ml_stream.h"
 #ifdef ML_CBOR_BYTECODE
 #include "ml_bytecode.h"
 #endif
@@ -454,13 +455,13 @@ ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 	return (ml_cbor_result_t){ml_cbor_reader_get(Reader), ml_cbor_reader_extra(Reader)};
 }
 
-ML_FUNCTION(MLDecode) {
+ML_METHOD_ANON(MLDecode, "cbor::decode");
+
+ML_METHOD(MLDecode, MLAddressT) {
 //@cbor::decode
 //<Bytes
 //>any|error
 // Decode :mini:`Bytes` into a Minilang value, or return an error if :mini:`Bytes` contains invalid CBOR or cannot be decoded into a Minilang value.
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLAddressT);
 	ml_cbor_t Cbor = {{.Data = ml_address_value(Args[0])}, ml_address_length(Args[0])};
 	return ml_from_cbor(Cbor, NULL);
 }
@@ -1086,16 +1087,38 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLRealRangeT, ml_cbor_writer_t *Wr
 	return NULL;
 }
 
-ML_FUNCTION(MLEncode) {
+ML_METHOD_ANON(MLEncode, "cbor::encode");
+
+ML_METHOD(MLEncode, MLAnyT) {
 //@cbor::encode
 //<Value
 //>address|error
 // Encode :mini:`Value` into CBOR or return an error if :mini:`Value` cannot be encoded.
-	ML_CHECK_ARG_COUNT(1);
 	ml_cbor_t Cbor = ml_cbor_writer_encode(Args[0]);
 	if (!Cbor.Length) return Cbor.Error;
 	if (Cbor.Data) return ml_address(Cbor.Data, Cbor.Length);
 	return ml_error("CborError", "Error encoding to cbor");
+}
+
+ML_METHOD(MLEncode, MLStringBufferT, MLAnyT) {
+//@cbor::encode
+//<Value
+//>address|error
+// Encode :mini:`Value` into CBOR or return an error if :mini:`Value` cannot be encoded.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_value_t *Value = Args[1];
+	ml_cbor_writer_t Writer[1];
+	Writer->Data = Buffer;
+	Writer->WriteFn = (void *)ml_stringbuffer_write;
+	Writer->Globals = DefaultWriteGlobals;
+	Writer->References[0] = INTHASH_INIT;
+	Writer->Reused[0] = INTHASH_INIT;
+	Writer->Index = 0;
+	Writer->NumSettings = 0;
+	ml_cbor_writer_find_refs(Writer, Value);
+	ml_value_t *Error = ml_cbor_write(Writer, Value);
+	if (Error) return Error;
+	return (ml_value_t *)Buffer;
 }
 
 #ifdef ML_TABLES
