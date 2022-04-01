@@ -200,6 +200,10 @@ void ml_scheduler_queue_init(int Size);
 ml_queued_state_t ml_scheduler_queue_next();
 int ml_scheduler_queue_add(ml_state_t *State, ml_value_t *Value);
 
+#ifdef ML_SCHEDULER
+extern ml_cfunctionx_t MLAtomic[];
+#endif
+
 #ifdef ML_THREADS
 ml_queued_state_t ml_scheduler_queue_next_wait();
 int ml_scheduler_queue_add_signal(ml_state_t *State, ml_value_t *Value);
