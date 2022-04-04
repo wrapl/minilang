@@ -72,7 +72,9 @@ typedef struct ml_module_state_t {
 ML_TYPE(MLModuleStateT, (), "module-state");
 
 static void ml_module_done_run(ml_module_state_t *State, ml_value_t *Value) {
-	ML_CONTINUE(State->Base.Caller, State->Module);
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	ML_RETURN(State->Module);
 }
 
 static void ml_module_init_run(ml_module_state_t *State, ml_value_t *Value) {
