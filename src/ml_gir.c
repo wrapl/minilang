@@ -2329,6 +2329,7 @@ void ml_gir_init(stringmap_t *Globals) {
 	GirStructT->call = MLTypeT->call;
 #include "ml_gir_init.c"
 	ml_type_add_parent((ml_type_t *)GInputStreamT, MLStreamT);
+	ml_type_add_parent((ml_type_t *)GOutputStreamT, MLStreamT);
 #ifdef ML_SCHEDULER
 	stringmap_insert(Globals, "sleep", (ml_value_t *)MLSleep);
 	stringmap_insert(GirTypelibT->Exports, "run", GirRun);
