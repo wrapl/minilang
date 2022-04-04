@@ -451,109 +451,6 @@ ML_METHOD(ConjMethod, MLComplexT) {
 
 #endif
 
-ML_FUNCTION(IntegerRandom) {
-//@integer::random
-//<Min?:number
-//<Max?:number
-//>integer
-// Returns a random integer between :mini:`Min` and :mini:`Max` (where :mini:`Max <= 2³² - 1`.
-// If omitted, :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`2³² - 1`.
-	if (Count == 2) {
-		ML_CHECK_ARG_TYPE(0, MLRealT);
-		ML_CHECK_ARG_TYPE(1, MLRealT);
-		int Base = ml_integer_value(Args[0]);
-		int Limit = ml_integer_value(Args[1]) + 1 - Base;
-		if (Limit <= 0) return Args[0];
-		int Divisor = RAND_MAX / Limit;
-		int Random;
-		do Random = random() / Divisor; while (Random > Limit);
-		return ml_integer(Base + Random);
-	} else if (Count == 1) {
-		ML_CHECK_ARG_TYPE(0, MLRealT);
-		int Limit = ml_integer_value(Args[0]);
-		if (Limit <= 0) return Args[0];
-		int Divisor = RAND_MAX / Limit;
-		int Random;
-		do Random = random() / Divisor; while (Random > Limit);
-		return ml_integer(Random + 1);
-	} else {
-		return ml_integer(random());
-	}
-}
-
-ML_FUNCTION(IntegerRandomPermutation) {
-//@integer::random_permutation
-//<Max:number
-//>list
-// Returns a random permutation of :mini:`1, ..., Max`.
-	ML_CHECK_ARG_TYPE(0, MLIntegerT);
-	int Limit = ml_integer_value_fast(Args[0]);
-	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
-	ml_value_t *Permutation = ml_list();
-	ml_list_put(Permutation, ml_integer(1));
-	for (int I = 2; I <= Limit; ++I) {
-		int Divisor = RAND_MAX / I, J;
-		do J = random() / Divisor; while (J > I);
-		++J;
-		if (J == I) {
-			ml_list_put(Permutation, ml_integer(I));
-		} else {
-			ml_value_t *Old = ml_list_get(Permutation, J);
-			ml_list_set(Permutation, J, ml_integer(I));
-			ml_list_put(Permutation, Old);
-		}
-	}
-	return Permutation;
-}
-
-ML_FUNCTION(IntegerRandomCycle) {
-//@integer::random_cycle
-//<Max:number
-//>list
-// Returns a random cyclic permutation (no sub-cycles) of :mini:`1, ..., Max`.
-	ML_CHECK_ARG_TYPE(0, MLIntegerT);
-	int Limit = ml_integer_value_fast(Args[0]);
-	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
-	ml_value_t *Permutation = ml_list();
-	ml_list_put(Permutation, ml_integer(1));
-	if (Limit == 1) return Permutation;
-	ml_list_push(Permutation, ml_integer(2));
-	for (int I = 2; I < Limit; ++I) {
-		int Divisor = RAND_MAX / I, J;
-		do J = random() / Divisor; while (J > I);
-		++J;
-		ml_value_t *Old = ml_list_get(Permutation, J);
-		ml_list_set(Permutation, J, ml_integer(I + 1));
-		ml_list_put(Permutation, Old);
-	}
-	return Permutation;
-}
-
-ML_FUNCTION(RealRandom) {
-//@real::random
-//<Min?:number
-//<Max?:number
-//>real
-// Returns a random real between :mini:`Min` and :mini:`Max`.
-// If omitted, :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`1`.
-	if (Count == 2) {
-		ML_CHECK_ARG_TYPE(0, MLRealT);
-		ML_CHECK_ARG_TYPE(1, MLRealT);
-		double Base = ml_real_value(Args[0]);
-		double Limit = ml_real_value(Args[1]) - Base;
-		if (Limit <= 0) return Args[0];
-		double Scale = Limit / (double)RAND_MAX;
-		return ml_real(Base + random() * Scale);
-	} else if (Count == 1) {
-		double Limit = ml_real_value(Args[0]);
-		if (Limit <= 0) return Args[0];
-		double Scale = Limit / (double)RAND_MAX;
-		return ml_real(random() * Scale);
-	} else {
-		return ml_real(random() / (double)RAND_MAX);
-	}
-}
-
 /*
 ML_DEF(math::pi);
 //>real
@@ -565,12 +462,7 @@ ML_DEF(math::e);
 */
 
 void ml_math_init(stringmap_t *Globals) {
-	srandom(time(NULL));
 #include "ml_math_init.c"
-	stringmap_insert(MLIntegerT->Exports, "random", IntegerRandom);
-	stringmap_insert(MLIntegerT->Exports, "permutation", IntegerRandomPermutation);
-	stringmap_insert(MLIntegerT->Exports, "cycle", IntegerRandomCycle);
-	stringmap_insert(MLRealT->Exports, "random", RealRandom);
 	if (Globals) {
 		stringmap_insert(Globals, "math", ml_module("math",
 			"gcd", GCDMethod,

@@ -90,6 +90,7 @@ hierarchy
       "sequence":e -> "list":w;
       "any":e -> "list::node":w;
       "any":e -> "list::slice":w;
+      "sequence":e -> "permutations":w;
       "stream":e -> "json::decoder":w;
       "any":e -> "jsvalue":w;
       "any":e -> "jsencoder":w;

@@ -331,6 +331,7 @@ struct ml_macro_t {
 #define MLCF_PUSH 1
 #define MLCF_LOCAL 2
 #define MLCF_CONSTANT 4
+#define MLCF_RETURN 8
 
 typedef void (*mlc_frame_fn)(mlc_function_t *Function, ml_value_t *Value, void *Frame);
 

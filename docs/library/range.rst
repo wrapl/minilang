@@ -77,6 +77,10 @@ range
    Returns the limit of :mini:`Range`.
 
 
+:mini:`meth (Range: integer::range):random: integer`
+   *TBD*
+
+
 :mini:`meth (Range: integer::range):start: integer`
    Returns the start of :mini:`Range`.
 
@@ -129,6 +133,10 @@ range
 
 :mini:`meth (Range: real::range):limit: real`
    Returns the limit of :mini:`Range`.
+
+
+:mini:`meth (Range: real::range):random: real`
+   *TBD*
 
 
 :mini:`meth (Range: real::range):start: real`

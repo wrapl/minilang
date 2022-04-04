@@ -3,6 +3,10 @@
 
 #include "minilang.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern ml_value_t *AcosMethod;
 extern ml_value_t *AsinMethod;
 extern ml_value_t *AtanMethod;
@@ -37,5 +41,9 @@ extern ml_value_t *ConjMethod;
 double logit(double X);
 
 void ml_math_init(stringmap_t *Globals);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

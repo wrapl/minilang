@@ -49,6 +49,10 @@ list
       [1, 2, 3]:count :> 3
 
 
+:mini:`meth (List: list):cycle: list`
+   Permutes :mini:`List` in place with no sub-cycles.
+
+
 :mini:`meth (List: list):empty: list`
    Removes all elements from :mini:`List` and returns it.
 
@@ -84,6 +88,14 @@ list
       [1, 2, 3]:length :> 3
 
 
+:mini:`meth (List: list):permutations: sequence`
+   Returns a sequence of all permutations of :mini:`List`,  performed in-place.
+
+
+:mini:`meth (List: list):permute: list`
+   Permutes :mini:`List` in place.
+
+
 :mini:`meth (List: list):pop: any | nil`
    Removes and returns the first element of :mini:`List` or :mini:`nil` if the :mini:`List` is empty.
 
@@ -98,6 +110,16 @@ list
 
 :mini:`meth (List: list):put(Values...: any): list`
    Pushes :mini:`Values` onto the end of :mini:`List` and returns :mini:`List`.
+
+
+:mini:`meth (List: list):random: any`
+   Returns a random (assignable) node from :mini:`List`.
+
+   .. code-block:: mini
+
+      let L := list("cake") :> ["c", "a", "k", "e"]
+      L:random :> "k"
+      L:random :> "c"
 
 
 :mini:`meth (List: list):reverse: list`
@@ -186,5 +208,11 @@ list
 
 :mini:`type list::slice`
    A slice of a list.
+
+
+.. _type-permutations:
+
+:mini:`type permutations < sequence`
+   *TBD*
 
 

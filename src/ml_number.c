@@ -921,6 +921,110 @@ ML_METHOD("isnan", MLDoubleT) {
 	return Args[0];
 }
 
+ML_FUNCTION(RandomInteger) {
+//@integer::random
+//<Min?:number
+//<Max?:number
+//>integer
+// Returns a random integer between :mini:`Min` and :mini:`Max` (where :mini:`Max <= 2³² - 1`.
+// If omitted, :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`2³² - 1`.
+	if (Count == 2) {
+		ML_CHECK_ARG_TYPE(0, MLRealT);
+		ML_CHECK_ARG_TYPE(1, MLRealT);
+		int Base = ml_integer_value(Args[0]);
+		int Limit = ml_integer_value(Args[1]) + 1 - Base;
+		if (Limit <= 0) return Args[0];
+		int Divisor = RAND_MAX / Limit;
+		int Random;
+		do Random = random() / Divisor; while (Random >= Limit);
+		return ml_integer(Base + Random);
+	} else if (Count == 1) {
+		ML_CHECK_ARG_TYPE(0, MLRealT);
+		int Limit = ml_integer_value(Args[0]);
+		if (Limit <= 0) return Args[0];
+		int Divisor = RAND_MAX / Limit;
+		int Random;
+		do Random = random() / Divisor; while (Random >= Limit);
+		return ml_integer(Random + 1);
+	} else {
+		return ml_integer(random());
+	}
+}
+
+ML_FUNCTION(RandomPermutation) {
+//@integer::random_permutation
+//<Max:number
+//>list
+// Returns a random permutation of :mini:`1, ..., Max`.
+	ML_CHECK_ARG_TYPE(0, MLIntegerT);
+	int Limit = ml_integer_value_fast(Args[0]);
+	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
+	ml_value_t *Permutation = ml_list();
+	ml_list_put(Permutation, ml_integer(1));
+	for (int I = 2; I <= Limit; ++I) {
+		int Divisor = RAND_MAX / I, J;
+		do J = random() / Divisor; while (J >= I);
+		++J;
+		if (J == I) {
+			ml_list_put(Permutation, ml_integer(I));
+		} else {
+			ml_value_t *Old = ml_list_get(Permutation, J);
+			ml_list_set(Permutation, J, ml_integer(I));
+			ml_list_put(Permutation, Old);
+		}
+	}
+	return Permutation;
+}
+
+ML_FUNCTION(RandomCycle) {
+//@integer::random_cycle
+//<Max:number
+//>list
+// Returns a random cyclic permutation (no sub-cycles) of :mini:`1, ..., Max`.
+	ML_CHECK_ARG_TYPE(0, MLIntegerT);
+	int Limit = ml_integer_value_fast(Args[0]);
+	if (Limit <= 0) return ml_error("ValueError", "Permutation requires positive size");
+	ml_value_t *Permutation = ml_list();
+	ml_list_put(Permutation, ml_integer(1));
+	if (Limit == 1) return Permutation;
+	ml_list_push(Permutation, ml_integer(2));
+	for (int I = 2; I < Limit; ++I) {
+		int Divisor = RAND_MAX / I, J;
+		do J = random() / Divisor; while (J >= I);
+		++J;
+		ml_value_t *Old = ml_list_get(Permutation, J);
+		ml_list_set(Permutation, J, ml_integer(I + 1));
+		ml_list_put(Permutation, Old);
+	}
+	return Permutation;
+}
+
+
+ML_FUNCTION(RandomReal) {
+//@real::random
+//<Min?:number
+//<Max?:number
+//>real
+// Returns a random real between :mini:`Min` and :mini:`Max`.
+// If omitted, :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`1`.
+	if (Count == 2) {
+		ML_CHECK_ARG_TYPE(0, MLRealT);
+		ML_CHECK_ARG_TYPE(1, MLRealT);
+		double Base = ml_real_value(Args[0]);
+		double Limit = ml_real_value(Args[1]) - Base;
+		if (Limit <= 0) return Args[0];
+		double Scale = Limit / (double)RAND_MAX;
+		return ml_real(Base + random() * Scale);
+	} else if (Count == 1) {
+		double Limit = ml_real_value(Args[0]);
+		if (Limit <= 0) return Args[0];
+		double Scale = Limit / (double)RAND_MAX;
+		return ml_real(random() * Scale);
+	} else {
+		return ml_real(random() / (double)RAND_MAX);
+	}
+}
+
 typedef struct ml_integer_iter_t {
 	const ml_type_t *Type;
 	long Current, Step, Limit;
@@ -1124,6 +1228,22 @@ ML_METHOD("in", MLDoubleT, MLIntegerRangeT) {
 	if (Value < Range->Start) return MLNil;
 	if (Value > Range->Limit) return MLNil;
 	return Args[0];
+}
+
+ML_METHOD("random", MLIntegerRangeT) {
+//!range
+//<Range
+//>integer
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
+	if (!Range->Step) return ml_integer(Range->Start);
+	int64_t Diff = Range->Limit - Range->Start;
+	if (Diff < 0 && Range->Step > 0) return ml_integer(Range->Start);
+	if (Diff > 0 && Range->Step < 0) return ml_integer(Range->Start);
+	int Limit = Diff / Range->Step + 1;
+	int Divisor = RAND_MAX / Limit;
+	int Random;
+	do Random = random() / Divisor; while (Random >= Limit);
+	return ml_integer(Range->Start + Random * Range->Step);
 }
 
 typedef struct ml_real_iter_t {
@@ -1396,6 +1516,18 @@ ML_METHOD("in", MLDoubleT, MLRealRangeT) {
 	return Args[0];
 }
 
+ML_METHOD("random", MLRealRangeT) {
+//!range
+//<Range
+//>real
+	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
+	int Limit = Range->Count;
+	int Divisor = RAND_MAX / Limit;
+	int Random;
+	do Random = random() / Divisor; while (Random >= Limit);
+	return ml_real(Range->Start + Random * Range->Step);
+}
+
 // Switch Functions //
 //!type
 
@@ -1537,8 +1669,12 @@ void ml_number_init() {
 #include "ml_number_init.c"
 	stringmap_insert(MLIntegerT->Exports, "range", MLIntegerRangeT);
 	stringmap_insert(MLIntegerT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLIntegerSwitch));
+	stringmap_insert(MLIntegerT->Exports, "random", RandomInteger);
+	stringmap_insert(MLIntegerT->Exports, "random_permutation", RandomPermutation);
+	stringmap_insert(MLIntegerT->Exports, "random_cycle", RandomCycle);
 	stringmap_insert(MLRealT->Exports, "range", MLRealRangeT);
 	stringmap_insert(MLRealT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLRealSwitch));
+	stringmap_insert(MLRealT->Exports, "random", RandomReal);
 	ml_method_by_value(MLIntegerT->Constructor, NULL, ml_identity, MLIntegerT, NULL);
 	ml_method_by_name("isfinite", NULL, ml_identity, MLIntegerT, NULL);
 	ml_method_by_name("isnan", NULL, ml_return_nil, MLIntegerT, NULL);

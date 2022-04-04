@@ -7,6 +7,20 @@
 number
 ======
 
+.. _fun-integer-random:
+
+:mini:`fun integer::random(Min?: number, Max?: number): integer`
+   Returns a random integer between :mini:`Min` and :mini:`Max` (where :mini:`Max <= 2³² - 1`.
+   If omitted,  :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`2³² - 1`.
+
+
+.. _fun-real-random:
+
+:mini:`fun real::random(Min?: number, Max?: number): real`
+   Returns a random real between :mini:`Min` and :mini:`Max`.
+   If omitted,  :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`1`.
+
+
 .. _type-complex:
 
 :mini:`type complex < number`
@@ -245,6 +259,10 @@ number
    *TBD*
 
 
+:mini:`meth integer(Real: double): integer`
+   Converts :mini:`Real` to an integer (using default rounding).
+
+
 :mini:`meth integer(String: string): integer | error`
    Returns the base :mini:`10` integer in :mini:`String` or an error if :mini:`String` does not contain a valid integer.
 
@@ -259,8 +277,16 @@ number
    Returns the base :mini:`Base` integer in :mini:`String` or an error if :mini:`String` does not contain a valid integer.
 
 
-:mini:`meth integer(Real: double): integer`
-   Converts :mini:`Real` to an integer (using default rounding).
+.. _fun-integer-random_cycle:
+
+:mini:`fun integer::random_cycle(Max: integer): list`
+   Returns a random cyclic permutation (no sub-cycles) of :mini:`1,  ...,  Max`.
+
+
+.. _fun-integer-random_permutation:
+
+:mini:`fun integer::random_permutation(Max: integer): list`
+   Returns a random permutation of :mini:`1,  ...,  Max`.
 
 
 :mini:`meth (A: integer) != (B: double): real`
