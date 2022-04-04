@@ -2307,7 +2307,7 @@ static void g_output_stream_callback(GObject *Object, GAsyncResult *Result, gpoi
 
 static void ML_TYPED_FN(ml_stream_write, (ml_type_t *)GOutputStreamT, ml_state_t *Caller, object_instance_t *Value, void *Address, int Count) {
 	GOutputStream *Stream = (GOutputStream *)Value->Handle;
-	g_output_stream_write_async(Stream, Address, Count, 0, NULL, g_input_stream_callback, Caller);
+	g_output_stream_write_async(Stream, Address, Count, 0, NULL, g_output_stream_callback, Caller);
 }
 
 void ml_gir_init(stringmap_t *Globals) {
