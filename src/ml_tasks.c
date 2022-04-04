@@ -70,12 +70,12 @@ ML_METHODVX(MLTaskT, MLFunctionT) {
 //<Args
 //>task
 // Calls :mini:`Fn(Args)` and immediately returns a task that will eventually be completed with the result of the call.
-	ml_task_state_t *Task = new(ml_task_state_t);
-	Task->Base.Context = Caller->Context;
-	Task->Base.run = (ml_state_fn)ml_task_run;
-	Task->Task->Type = MLTaskT;
-	ml_call(Task, Args[0], Count - 1, Args + 1);
-	ML_RETURN(Task->Task);
+	ml_task_state_t *State = new(ml_task_state_t);
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_task_run;
+	State->Task->Type = MLTaskT;
+	ml_call(State, Args[0], Count - 1, Args + 1);
+	ML_RETURN(State->Task);
 }
 
 ML_METHODX("wait", MLTaskT) {
@@ -107,6 +107,33 @@ ML_METHOD("error", MLTaskT, MLStringT, MLStringT) {
 	if (Task->Value) return ml_error("TaskError", "Task value already set");
 	ml_task_set(Task, ml_error(ml_string_value(Args[1]), "%s", ml_string_value(Args[2])));
 	return MLNil;
+}
+
+typedef struct {
+	ml_task_state_t Base;
+	ml_value_t *Fn;
+	ml_value_t *Args[1];
+} ml_task_then_t;
+
+static void ml_task_then_run(ml_task_then_t *State, ml_value_t *Value) {
+	State->Args[0] = Value;
+	State->Base.Base.run = (ml_state_fn)ml_task_run;
+	return ml_call((ml_state_t *)State, State->Fn, 1, State->Args);
+}
+
+ML_METHODX("then", MLTaskT, MLFunctionT) {
+//<Task
+//<Fn
+//>task
+// Equivalent to :mini:`task(:wait -> Fn, Task)`.
+	ml_task_t *Task = (ml_task_t *)Args[0];
+	ml_task_then_t *Then = new(ml_task_then_t);
+	Then->Base.Base.Context = Caller->Context;
+	Then->Base.Base.run = (ml_state_fn)ml_task_then_run;
+	Then->Base.Task->Type = MLTaskT;
+	Then->Fn = Args[1];
+	ml_task_call((ml_state_t *)Then, Task, 0, NULL);
+	ML_RETURN(Then->Base.Task);
 }
 
 typedef struct {
