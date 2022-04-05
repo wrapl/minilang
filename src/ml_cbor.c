@@ -455,9 +455,9 @@ ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 	return (ml_cbor_result_t){ml_cbor_reader_get(Reader), ml_cbor_reader_extra(Reader)};
 }
 
-ML_METHOD_ANON(MLDecode, "cbor::decode");
+ML_METHOD_ANON(CborDecode, "cbor::decode");
 
-ML_METHOD(MLDecode, MLAddressT) {
+ML_METHOD(CborDecode, MLAddressT) {
 //@cbor::decode
 //<Bytes
 //>any|error
@@ -1087,9 +1087,9 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLRealRangeT, ml_cbor_writer_t *Wr
 	return NULL;
 }
 
-ML_METHOD_ANON(MLEncode, "cbor::encode");
+ML_METHOD_ANON(CborEncode, "cbor::encode");
 
-ML_METHOD(MLEncode, MLAnyT) {
+ML_METHOD(CborEncode, MLAnyT) {
 //@cbor::encode
 //<Value
 //>address|error
@@ -1100,7 +1100,7 @@ ML_METHOD(MLEncode, MLAnyT) {
 	return ml_error("CborError", "Error encoding to cbor");
 }
 
-ML_METHOD(MLEncode, MLStringBufferT, MLAnyT) {
+ML_METHOD(CborEncode, MLStringBufferT, MLAnyT) {
 //@cbor::encode
 //<Value
 //>address|error
@@ -1386,8 +1386,8 @@ void ml_cbor_init(stringmap_t *Globals) {
 #include "ml_cbor_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "cbor", ml_module("cbor",
-			"encode", MLEncode,
-			"decode", MLDecode,
+			"encode", CborEncode,
+			"decode", CborDecode,
 		NULL));
 	}
 }

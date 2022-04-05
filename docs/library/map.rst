@@ -40,6 +40,19 @@ map
       map() :> {}
 
 
+:mini:`meth (Map: map) :: (Key: string): mapnode`
+   Same as :mini:`Map[Key]`. This method allows maps to be used as modules.
+
+   .. code-block:: mini
+
+      let M := {"A" is 1, "B" is 2, "C" is 3}
+      M::A :> 1
+      M::D :> nil
+      M::A := 10 :> 10
+      M::D := 20 :> 20
+      M :> {"A" is 10, "B" is 2, "C" is 3, "D" is 20}
+
+
 :mini:`meth (Map₁: map) * (Map₂: map): map`
    Returns a new map containing the entries of :mini:`Map₁` which are also in :mini:`Map₂`. The values are chosen from :mini:`Map₂`.
 
@@ -78,17 +91,28 @@ map
       A / B :> {"n" is 5}
 
 
-:mini:`meth (Map: map) :: (Key: string): mapnode`
-   Same as :mini:`Map[Key]`. This method allows maps to be used as modules.
+:mini:`meth (Map: map)[Key: any]: mapnode`
+   Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then a new floating node is returned with value :mini:`nil`. This node will insert :mini:`Key` into :mini:`Map` if assigned.
 
    .. code-block:: mini
 
       let M := {"A" is 1, "B" is 2, "C" is 3}
-      M::A :> 1
-      M::D :> nil
-      M::A := 10 :> 10
-      M::D := 20 :> 20
+      M["A"] :> 1
+      M["D"] :> nil
+      M["A"] := 10 :> 10
+      M["D"] := 20 :> 20
       M :> {"A" is 10, "B" is 2, "C" is 3, "D" is 20}
+
+
+:mini:`meth (Map: map)[Key: any, Fn: function]: mapnode`
+   Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then :mini:`Fn(Key)` is called and the result inserted into :mini:`Map`.
+
+   .. code-block:: mini
+
+      let M := {"A" is 1, "B" is 2, "C" is 3}
+      M["A", fun(Key) Key:code] :> 1
+      M["D", fun(Key) Key:code] :> 68
+      M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
 
 
 :mini:`meth (Map: map):count: integer`
@@ -326,30 +350,6 @@ map
       :> {"c" is 1, "a" is 2, "k" is 3, "e" is 4}
       M:sort(fun(K1, K2, V1, V2) V1 < V2)
       :> {"e" is 4, "k" is 3, "a" is 2, "c" is 1}
-
-
-:mini:`meth (Map: map)[Key: any]: mapnode`
-   Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then a new floating node is returned with value :mini:`nil`. This node will insert :mini:`Key` into :mini:`Map` if assigned.
-
-   .. code-block:: mini
-
-      let M := {"A" is 1, "B" is 2, "C" is 3}
-      M["A"] :> 1
-      M["D"] :> nil
-      M["A"] := 10 :> 10
-      M["D"] := 20 :> 20
-      M :> {"A" is 10, "B" is 2, "C" is 3, "D" is 20}
-
-
-:mini:`meth (Map: map)[Key: any, Fn: function]: mapnode`
-   Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then :mini:`Fn(Key)` is called and the result inserted into :mini:`Map`.
-
-   .. code-block:: mini
-
-      let M := {"A" is 1, "B" is 2, "C" is 3}
-      M["A", fun(Key) Key:code] :> 1
-      M["D", fun(Key) Key:code] :> 68
-      M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
 
 
 :mini:`meth (Buffer: string::buffer):append(Map: map)`

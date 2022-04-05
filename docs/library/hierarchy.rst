@@ -119,6 +119,7 @@ hierarchy
       "any":e -> "gir::objectproperty":w;
       "stream":e -> "file":w;
       "sequence":e -> "dir":w;
+      "file":e -> "popen":w;
       "state":e -> "compiler::function":w;
       "any":e -> "expr":w;
       "any":e -> "macro":w;

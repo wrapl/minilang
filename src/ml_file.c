@@ -16,12 +16,6 @@ typedef struct ml_file_t {
 	FILE *Handle;
 } ml_file_t;
 
-extern ml_cfunction_t MLFileOpen[];
-
-ML_TYPE(MLFileT, (MLStreamT), "file",
-	.Constructor = (ml_value_t *)MLFileOpen
-);
-
 static void ml_file_finalize(ml_file_t *File, void *Data) {
 	if (File->Handle) {
 		fclose(File->Handle);
@@ -48,6 +42,10 @@ ML_FUNCTION(MLFileOpen) {
 	GC_register_finalizer(File, (void *)ml_file_finalize, 0, 0, 0);
 	return (ml_value_t *)File;
 }
+
+ML_TYPE(MLFileT, (MLStreamT), "file",
+	.Constructor = (ml_value_t *)MLFileOpen
+);
 
 FILE *ml_file_handle(ml_value_t *Value) {
 	return ((ml_file_t *)Value)->Handle;
@@ -149,18 +147,14 @@ typedef struct {
 	int Index;
 } ml_dir_t;
 
-extern ml_cfunction_t MLDirOpen[];
-
-ML_TYPE(MLDirT, (MLSequenceT), "directory",
-	.Constructor = (ml_value_t *)MLDirOpen
-);
-
 static void ml_dir_finalize(ml_dir_t *Dir, void *Data) {
 	if (Dir->Handle) {
 		closedir(Dir->Handle);
 		Dir->Handle = NULL;
 	}
 }
+
+extern ml_type_t MLDirT[];
 
 ML_FUNCTION(MLDirOpen) {
 //@dir
@@ -177,6 +171,10 @@ ML_FUNCTION(MLDirOpen) {
 	GC_register_finalizer(Dir, (void *)ml_dir_finalize, 0, 0, 0);
 	return (ml_value_t *)Dir;
 }
+
+ML_TYPE(MLDirT, (MLSequenceT), "directory",
+	.Constructor = (ml_value_t *)MLDirOpen
+);
 
 ML_METHOD("read", MLDirT) {
 //<Dir
@@ -219,6 +217,43 @@ static void ML_TYPED_FN(ml_iterate, MLDirT, ml_state_t *Caller, ml_dir_t *Dir) {
 	ML_RETURN(Dir);
 }
 
+static void ml_popen_finalize(ml_file_t *File, void *Data) {
+	if (File->Handle) {
+		pclose(File->Handle);
+		File->Handle = NULL;
+	}
+}
+
+extern ml_type_t MLPOpenT[];
+
+ML_FUNCTION(MLPOpen) {
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ML_CHECK_ARG_TYPE(1, MLStringT);
+	const char *Command = ml_string_value(Args[0]);
+	const char *Mode = ml_string_value(Args[1]);
+	FILE *Handle = popen(Command, Mode);
+	if (!Handle) return ml_error("FileError", "failed to run %s in mode %s: %s", Command, Mode, strerror(errno));
+	ml_file_t *File = new(ml_file_t);
+	File->Type = MLPOpenT;
+	File->Handle = Handle;
+	GC_register_finalizer(File, (void *)ml_popen_finalize, 0, 0, 0);
+	return (ml_value_t *)File;
+}
+
+ML_TYPE(MLPOpenT, (MLFileT), "popen",
+	.Constructor = (ml_value_t *)MLPOpen
+);
+
+ML_METHOD("close", MLPOpenT) {
+	ml_file_t *File = (ml_file_t *)Args[0];
+	if (File->Handle) {
+		pclose(File->Handle);
+		File->Handle = NULL;
+	}
+	return MLNil;
+}
+
 void ml_file_init(stringmap_t *Globals) {
 #include "ml_file_init.c"
 	stringmap_insert(MLFileT->Exports, "rename", MLFileRename);
@@ -226,5 +261,6 @@ void ml_file_init(stringmap_t *Globals) {
 	if (Globals) {
 		stringmap_insert(Globals, "file", MLFileT);
 		stringmap_insert(Globals, "dir", MLDirT);
+		stringmap_insert(Globals, "popen", MLPOpenT);
 	}
 }

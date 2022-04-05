@@ -41,6 +41,32 @@ list
    Returns a new list with the elements of :mini:`List₁` followed by the elements of :mini:`List₂`.
 
 
+:mini:`meth (List: list)[Range: integer::range]: list::slice`
+   Returns a slice of :mini:`List` starting at :mini:`Range:start` and ending at :mini:`Range:limit`,  both inclusive.
+   Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
+
+
+:mini:`meth (List: list)[Index: integer]: listnode | nil`
+   Returns the :mini:`Index`-th node in :mini:`List` or :mini:`nil` if :mini:`Index` is outside the range of :mini:`List`.
+   Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
+
+   .. code-block:: mini
+
+      let L := ["a", "b", "c", "d", "e", "f"]
+      L[3] :> "c"
+      L[-2] :> "e"
+      L[8] :> nil
+
+
+:mini:`meth (List: list)[From: integer, To: integer]: list::slice`
+   Returns a slice of :mini:`List` starting at :mini:`From` (inclusive) and ending at :mini:`To` (exclusive).
+   Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
+
+
+:mini:`meth (List: list)[Indices: list]: list`
+   Returns a list containing the :mini:`List[Indices[1]]`,  :mini:`List[Indices[2]]`,  etc.
+
+
 :mini:`meth (List: list):count: integer`
    Returns the length of :mini:`List`
 
@@ -119,7 +145,7 @@ list
 
       let L := list("cake") :> ["c", "a", "k", "e"]
       L:random :> "k"
-      L:random :> "e"
+      L:random :> "a"
 
 
 :mini:`meth (List: list):reverse: list`
@@ -148,32 +174,6 @@ list
 
 :mini:`meth (List: list):splice(Index: integer, Source: list): nil`
    Inserts the elements from :mini:`Source` into :mini:`List` starting at :mini:`Index`,  leaving :mini:`Source` empty.
-
-
-:mini:`meth (List: list)[Range: integer::range]: list::slice`
-   Returns a slice of :mini:`List` starting at :mini:`Range:start` and ending at :mini:`Range:limit`,  both inclusive.
-   Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
-
-
-:mini:`meth (List: list)[Index: integer]: listnode | nil`
-   Returns the :mini:`Index`-th node in :mini:`List` or :mini:`nil` if :mini:`Index` is outside the range of :mini:`List`.
-   Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
-
-   .. code-block:: mini
-
-      let L := ["a", "b", "c", "d", "e", "f"]
-      L[3] :> "c"
-      L[-2] :> "e"
-      L[8] :> nil
-
-
-:mini:`meth (List: list)[From: integer, To: integer]: list::slice`
-   Returns a slice of :mini:`List` starting at :mini:`From` (inclusive) and ending at :mini:`To` (exclusive).
-   Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
-
-
-:mini:`meth (List: list)[Indices: list]: list`
-   Returns a list containing the :mini:`List[Indices[1]]`,  :mini:`List[Indices[2]]`,  etc.
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list)`

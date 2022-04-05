@@ -181,22 +181,6 @@ number
    Returns :mini:`A / B`.
 
 
-:mini:`meth (A: double):max(B: double): real`
-   Returns :mini:`max(A,  B)`.
-
-
-:mini:`meth (A: double):max(B: integer): real`
-   Returns :mini:`max(A,  B)`.
-
-
-:mini:`meth (A: double):min(B: double): real`
-   Returns :mini:`min(A,  B)`.
-
-
-:mini:`meth (A: double):min(B: integer): real`
-   Returns :mini:`min(A,  B)`.
-
-
 :mini:`meth (A: double) < (B: double): real`
    Returns :mini:`B` if :mini:`A < B`,  otherwise returns :mini:`nil`.
 
@@ -243,6 +227,22 @@ number
 
 :mini:`meth (A: double) >= (B: integer): real`
    Returns :mini:`B` if :mini:`A >= B`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (A: double):max(B: double): real`
+   Returns :mini:`max(A,  B)`.
+
+
+:mini:`meth (A: double):max(B: integer): real`
+   Returns :mini:`max(A,  B)`.
+
+
+:mini:`meth (A: double):min(B: double): real`
+   Returns :mini:`min(A,  B)`.
+
+
+:mini:`meth (A: double):min(B: integer): real`
+   Returns :mini:`min(A,  B)`.
 
 
 :mini:`meth (Buffer: string::buffer):append(Value: double)`
@@ -378,32 +378,6 @@ number
    Returns the bitwise and of :mini:`A` and :mini:`B`.
 
 
-:mini:`meth (Int₁: integer):div(Int₂: integer): integer`
-   Returns the quotient of :mini:`Int₁` divided by :mini:`Int₂`.
-   The result is calculated by rounding down in all cases.
-
-
-:mini:`meth (A: integer):max(B: double): real`
-   Returns :mini:`max(A,  B)`.
-
-
-:mini:`meth (A: integer):max(B: integer): integer`
-   Returns :mini:`max(A,  B)`.
-
-
-:mini:`meth (A: integer):min(B: double): real`
-   Returns :mini:`min(A,  B)`.
-
-
-:mini:`meth (A: integer):min(B: integer): integer`
-   Returns :mini:`min(A,  B)`.
-
-
-:mini:`meth (Int₁: integer):mod(Int₂: integer): integer`
-   Returns the remainder of :mini:`Int₁` divided by :mini:`Int₂`.
-   Note: the result is calculated by rounding down in all cases. In particular,  the result is always nonnegative.
-
-
 :mini:`meth (A: integer) < (B: double): real`
    Returns :mini:`B` if :mini:`A < B`,  otherwise returns :mini:`nil`.
 
@@ -466,6 +440,32 @@ number
 
 :mini:`meth (A: integer) \/ (B: integer): integer`
    Returns the bitwise or of :mini:`A` and :mini:`B`.
+
+
+:mini:`meth (Int₁: integer):div(Int₂: integer): integer`
+   Returns the quotient of :mini:`Int₁` divided by :mini:`Int₂`.
+   The result is calculated by rounding down in all cases.
+
+
+:mini:`meth (A: integer):max(B: double): real`
+   Returns :mini:`max(A,  B)`.
+
+
+:mini:`meth (A: integer):max(B: integer): integer`
+   Returns :mini:`max(A,  B)`.
+
+
+:mini:`meth (A: integer):min(B: double): real`
+   Returns :mini:`min(A,  B)`.
+
+
+:mini:`meth (A: integer):min(B: integer): integer`
+   Returns :mini:`min(A,  B)`.
+
+
+:mini:`meth (Int₁: integer):mod(Int₂: integer): integer`
+   Returns the remainder of :mini:`Int₁` divided by :mini:`Int₂`.
+   Note: the result is calculated by rounding down in all cases. In particular,  the result is always nonnegative.
 
 
 :mini:`meth real(Arg₁: integer)`

@@ -25,18 +25,6 @@ type
    Returns a hash for :mini:`Value` for use in lookup tables,  etc.
 
 
-:mini:`meth (Value: any):in(Type: type): Value | nil`
-   Returns :mini:`Value` if it is an instance of :mini:`Type` or a type that inherits from :mini:`Type` and :mini:`nil` otherwise.
-
-
-:mini:`meth (A: any):max(B: any): any`
-   Returns :mini:`A` if :mini:`A > B` and :mini:`B` otherwise.
-
-
-:mini:`meth (A: any):min(B: any): any`
-   Returns :mini:`A` if :mini:`A < B` and :mini:`B` otherwise.
-
-
 :mini:`meth (Arg₁: any) < (Arg₂: any, Arg₃: any, ...): any | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
 
@@ -66,6 +54,18 @@ type
    Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
 
 
+:mini:`meth (Value: any):in(Type: type): Value | nil`
+   Returns :mini:`Value` if it is an instance of :mini:`Type` or a type that inherits from :mini:`Type` and :mini:`nil` otherwise.
+
+
+:mini:`meth (A: any):max(B: any): any`
+   Returns :mini:`A` if :mini:`A > B` and :mini:`B` otherwise.
+
+
+:mini:`meth (A: any):min(B: any): any`
+   Returns :mini:`A` if :mini:`A < B` and :mini:`B` otherwise.
+
+
 :mini:`meth (Buffer: string::buffer):append(Value: any)`
    Appends a representation of :mini:`Value` to :mini:`Buffer`.
 
@@ -91,26 +91,14 @@ type
    Returns the type of :mini:`Value`.
 
 
-:mini:`meth (Type₁: type) * (Type₂: type): type`
-   Returns the closest common parent type of :mini:`Type₁` and :mini:`Type₂`.
-
-
 :mini:`meth (Type: type) :: (Name: string): any | error`
    Returns the value of :mini:`Name` exported from :mini:`Type`.
    Returns an error if :mini:`Name` is not present.
    This allows types to behave as modules.
 
 
-:mini:`meth (Type: type):exports: map`
-   Returns a map of all the exports from :mini:`Type`.
-
-
-:mini:`meth (Type: type):parents: list`
-   Returns a list of the parent types of :mini:`Type`.
-
-
-:mini:`meth (Type: type):rank: integer`
-   Returns the rank of :mini:`Type`,  i.e. the depth of its inheritence tree.
+:mini:`meth (Type₁: type) * (Type₂: type): type`
+   Returns the closest common parent type of :mini:`Type₁` and :mini:`Type₂`.
 
 
 :mini:`meth (Type₁: type) < (Type₂: type): type or nil`
@@ -135,6 +123,18 @@ type
 
 :mini:`meth (Base: type)[Type₁, ..., Typeₙ: type]: type`
    Returns the generic type :mini:`Base[Type₁,  ...,  Typeₙ]`.
+
+
+:mini:`meth (Type: type):exports: map`
+   Returns a map of all the exports from :mini:`Type`.
+
+
+:mini:`meth (Type: type):parents: list`
+   Returns a list of the parent types of :mini:`Type`.
+
+
+:mini:`meth (Type: type):rank: integer`
+   Returns the rank of :mini:`Type`,  i.e. the depth of its inheritence tree.
 
 
 :mini:`meth (Type₁: type) | (Type₂: type): type`

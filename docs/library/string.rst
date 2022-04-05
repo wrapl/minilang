@@ -56,14 +56,6 @@ When creating a substring,  the first index is inclusive and second index is exc
       r"[0-9]+" != r"[0-9]+" :> nil
 
 
-:mini:`meth (Regex: regex):pattern: string`
-   Returns the pattern used to create :mini:`Regex`.
-
-   .. code-block:: mini
-
-      r"[0-9]+":pattern :> "[0-9]+"
-
-
 :mini:`meth (Arg₁: regex) < (Arg₂: regex): regex | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ < Arg₂` and :mini:`nil` otherwise.
 
@@ -122,6 +114,14 @@ When creating a substring,  the first index is inclusive and second index is exc
       r"[0-9]+" >= r"[A-Za-z0-9_]+" :> nil
       r"[A-Za-z0-9_]+" >= r"[0-9]+" :> /[0-9]+/
       r"[0-9]+" >= r"[0-9]+" :> /[0-9]+/
+
+
+:mini:`meth (Regex: regex):pattern: string`
+   Returns the pattern used to create :mini:`Regex`.
+
+   .. code-block:: mini
+
+      r"[0-9]+":pattern :> "[0-9]+"
 
 
 :mini:`meth (Buffer: string::buffer):append(Value: regex)`
@@ -238,6 +238,100 @@ When creating a substring,  the first index is inclusive and second index is exc
    .. code-block:: mini
 
       "2022/03/08" /* "/" :> (2022, 03/08)
+
+
+:mini:`meth (Arg₁: string) < (Arg₂: string): string | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ < Arg₂` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      "Hello" < "World" :> "World"
+      "World" < "Hello" :> nil
+      "Hello" < "Hello" :> nil
+      "abcd" < "abc" :> nil
+      "abc" < "abcd" :> "abcd"
+
+
+:mini:`meth (Arg₁: string) <= (Arg₂: string): string | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ <= Arg₂` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      "Hello" <= "World" :> "World"
+      "World" <= "Hello" :> nil
+      "Hello" <= "Hello" :> "Hello"
+      "abcd" <= "abc" :> nil
+      "abc" <= "abcd" :> "abcd"
+
+
+:mini:`meth (A: string) <> (B: string): integer`
+   Compares :mini:`A` and :mini:`B` lexicographically and returns :mini:`-1`,  :mini:`0` or :mini:`1` respectively.
+
+   .. code-block:: mini
+
+      "Hello" <> "World" :> -1
+      "World" <> "Hello" :> 1
+      "Hello" <> "Hello" :> 0
+      "abcd" <> "abc" :> 1
+      "abc" <> "abcd" :> -1
+
+
+:mini:`meth (Arg₁: string) = (Arg₂: string): string | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ = Arg₂` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      "Hello" = "World" :> nil
+      "World" = "Hello" :> nil
+      "Hello" = "Hello" :> "Hello"
+      "abcd" = "abc" :> nil
+      "abc" = "abcd" :> nil
+
+
+:mini:`meth (Arg₁: string) > (Arg₂: string): string | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ > Arg₂` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      "Hello" > "World" :> nil
+      "World" > "Hello" :> "Hello"
+      "Hello" > "Hello" :> nil
+      "abcd" > "abc" :> "abc"
+      "abc" > "abcd" :> nil
+
+
+:mini:`meth (Arg₁: string) >= (Arg₂: string): string | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ >= Arg₂` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      "Hello" >= "World" :> nil
+      "World" >= "Hello" :> "Hello"
+      "Hello" >= "Hello" :> "Hello"
+      "abcd" >= "abc" :> "abc"
+      "abc" >= "abcd" :> nil
+
+
+:mini:`meth (String: string) ? (Pattern: regex): string | nil`
+   Returns :mini:`String` if it matches :mini:`Pattern` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      "2022-03-08" ? r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)"
+      :> "2022-03-08"
+      "Not a date" ? r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)" :> nil
+
+
+:mini:`meth (String: string)[Range: integer::range]: string`
+   Returns the substring of :mini:`String` corresponding to :mini:`Range` inclusively.
+
+
+:mini:`meth (String: string)[Index: integer]: string`
+   Returns the substring of :mini:`String` of length 1 at :mini:`Index`.
+
+
+:mini:`meth (String: string)[Start: integer, End: integer]: string`
+   Returns the substring of :mini:`String` from :mini:`Start` to :mini:`End - 1` inclusively.
 
 
 :mini:`meth (String: string):after(Delimiter: string): string | nil`
@@ -602,100 +696,6 @@ When creating a substring,  the first index is inclusive and second index is exc
    .. code-block:: mini
 
       "Hello World":upper :> "HELLO WORLD"
-
-
-:mini:`meth (Arg₁: string) < (Arg₂: string): string | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ < Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      "Hello" < "World" :> "World"
-      "World" < "Hello" :> nil
-      "Hello" < "Hello" :> nil
-      "abcd" < "abc" :> nil
-      "abc" < "abcd" :> "abcd"
-
-
-:mini:`meth (Arg₁: string) <= (Arg₂: string): string | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ <= Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      "Hello" <= "World" :> "World"
-      "World" <= "Hello" :> nil
-      "Hello" <= "Hello" :> "Hello"
-      "abcd" <= "abc" :> nil
-      "abc" <= "abcd" :> "abcd"
-
-
-:mini:`meth (A: string) <> (B: string): integer`
-   Compares :mini:`A` and :mini:`B` lexicographically and returns :mini:`-1`,  :mini:`0` or :mini:`1` respectively.
-
-   .. code-block:: mini
-
-      "Hello" <> "World" :> -1
-      "World" <> "Hello" :> 1
-      "Hello" <> "Hello" :> 0
-      "abcd" <> "abc" :> 1
-      "abc" <> "abcd" :> -1
-
-
-:mini:`meth (Arg₁: string) = (Arg₂: string): string | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ = Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      "Hello" = "World" :> nil
-      "World" = "Hello" :> nil
-      "Hello" = "Hello" :> "Hello"
-      "abcd" = "abc" :> nil
-      "abc" = "abcd" :> nil
-
-
-:mini:`meth (Arg₁: string) > (Arg₂: string): string | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ > Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      "Hello" > "World" :> nil
-      "World" > "Hello" :> "Hello"
-      "Hello" > "Hello" :> nil
-      "abcd" > "abc" :> "abc"
-      "abc" > "abcd" :> nil
-
-
-:mini:`meth (Arg₁: string) >= (Arg₂: string): string | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ >= Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      "Hello" >= "World" :> nil
-      "World" >= "Hello" :> "Hello"
-      "Hello" >= "Hello" :> "Hello"
-      "abcd" >= "abc" :> "abc"
-      "abc" >= "abcd" :> nil
-
-
-:mini:`meth (String: string) ? (Pattern: regex): string | nil`
-   Returns :mini:`String` if it matches :mini:`Pattern` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      "2022-03-08" ? r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)"
-      :> "2022-03-08"
-      "Not a date" ? r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)" :> nil
-
-
-:mini:`meth (String: string)[Range: integer::range]: string`
-   Returns the substring of :mini:`String` corresponding to :mini:`Range` inclusively.
-
-
-:mini:`meth (String: string)[Index: integer]: string`
-   Returns the substring of :mini:`String` of length 1 at :mini:`Index`.
-
-
-:mini:`meth (String: string)[Start: integer, End: integer]: string`
-   Returns the substring of :mini:`String` from :mini:`Start` to :mini:`End - 1` inclusively.
 
 
 :mini:`meth (A: string) ~ (B: string): integer`

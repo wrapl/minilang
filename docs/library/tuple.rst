@@ -23,10 +23,6 @@ tuple
    Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
 
 
-:mini:`meth (Tuple: tuple):size: integer`
-   Returns the number of elements in :mini:`Tuple`.
-
-
 :mini:`meth (Arg₁: tuple) < (Arg₂: tuple): tuple | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
 
@@ -54,6 +50,10 @@ tuple
 :mini:`meth (Tuple: tuple)[Index: integer]: any | error`
    Returns the :mini:`Index`-th element in :mini:`Tuple` or an error if :mini:`Index` is out of range.
    Indexing starts at :mini:`1`. Negative indices count from the end,  with :mini:`-1` returning the last element.
+
+
+:mini:`meth (Tuple: tuple):size: integer`
+   Returns the number of elements in :mini:`Tuple`.
 
 
 :mini:`meth (Buffer: string::buffer):append(Value: tuple)`

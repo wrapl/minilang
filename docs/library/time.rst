@@ -41,12 +41,12 @@ time
    *TBD*
 
 
-:mini:`meth (Time: time):nsec: integer`
-   Returns the nanoseconds component of :mini:`Time`.
-
-
 :mini:`meth (Arg₁: time) <> (Arg₂: time)`
    *TBD*
+
+
+:mini:`meth (Time: time):nsec: integer`
+   Returns the nanoseconds component of :mini:`Time`.
 
 
 :mini:`meth (Buffer: string::buffer):append(Time: time): string`
