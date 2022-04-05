@@ -133,6 +133,84 @@ ML_METHOD("-", MLAddressT, MLAddressT) {
 	return ml_integer(Offset);
 }
 
+#ifdef ML_NANBOXING
+
+#define NegOne ml_int32(-1)
+#define One ml_int32(1)
+#define Zero ml_int32(0)
+
+#else
+
+static ml_integer_t One[1] = {{MLIntegerT, 1}};
+static ml_integer_t NegOne[1] = {{MLIntegerT, -1}};
+static ml_integer_t Zero[1] = {{MLIntegerT, 0}};
+
+#endif
+
+ML_METHOD("<>", MLAddressT, MLAddressT) {
+//!address
+//<A
+//<B
+//>integer
+// Compares the bytes at :mini:`A` and :mini:`B` lexicographically and returns :mini:`-1`, :mini:`0` or :mini:`1` respectively.
+//$= "Hello" <> "World"
+//$= "World" <> "Hello"
+//$= "Hello" <> "Hello"
+//$= "abcd" <> "abc"
+//$= "abc" <> "abcd"
+	const char *AddressA = ml_address_value(Args[0]);
+	const char *AddressB = ml_address_value(Args[1]);
+	int LengthA = ml_address_length(Args[0]);
+	int LengthB = ml_address_length(Args[1]);
+	if (LengthA < LengthB) {
+		int Compare = memcmp(AddressA, AddressB, LengthA);
+		if (Compare > 0) return (ml_value_t *)One;
+		return (ml_value_t *)NegOne;
+	} else if (LengthA > LengthB) {
+		int Compare = memcmp(AddressA, AddressB, LengthB);
+		if (Compare < 0) return (ml_value_t *)NegOne;
+		return (ml_value_t *)One;
+	} else {
+		int Compare = memcmp(AddressA, AddressB, LengthA);
+		if (Compare < 0) return (ml_value_t *)NegOne;
+		if (Compare > 0) return (ml_value_t *)One;
+		return (ml_value_t *)Zero;
+	}
+}
+
+#define ml_comp_method_address_address(NAME, SYMBOL) \
+ML_METHOD(#NAME, MLAddressT, MLAddressT) { \
+/*!address
+//>address|nil
+// Returns :mini:`Arg/2` if the bytes at :mini:`Arg/1` NAME the bytes at :mini:`Arg/2` and :mini:`nil` otherwise.
+//$= "Hello" NAME "World"
+//$= "World" NAME "Hello"
+//$= "Hello" NAME "Hello"
+//$= "abcd" NAME "abc"
+//$= "abc" NAME "abcd"
+*/\
+	const char *AddressA = ml_address_value(Args[0]); \
+	const char *AddressB = ml_address_value(Args[1]); \
+	int LengthA = ml_address_length(Args[0]); \
+	int LengthB = ml_address_length(Args[1]); \
+	int Compare; \
+	if (LengthA < LengthB) { \
+		Compare = memcmp(AddressA, AddressB, LengthA) ?: -1; \
+	} else if (LengthA > LengthB) { \
+		Compare = memcmp(AddressA, AddressB, LengthB) ?: 1; \
+	} else { \
+		Compare = memcmp(AddressA, AddressB, LengthA); \
+	} \
+	return Compare SYMBOL 0 ? Args[1] : MLNil; \
+}
+
+ml_comp_method_address_address(=, ==)
+ml_comp_method_address_address(!=, !=)
+ml_comp_method_address_address(<, <)
+ml_comp_method_address_address(>, >)
+ml_comp_method_address_address(<=, <=)
+ml_comp_method_address_address(>=, >=)
+
 ML_METHOD("get8", MLAddressT) {
 //!address
 //<Address
@@ -1354,20 +1432,6 @@ ML_METHOD("reverse", MLStringT) {
 	Reversed[Length] = 0;
 	return ml_string(Reversed, Length);
 }
-
-#ifdef ML_NANBOXING
-
-#define NegOne ml_int32(-1)
-#define One ml_int32(1)
-#define Zero ml_int32(0)
-
-#else
-
-static ml_integer_t One[1] = {{MLIntegerT, 1}};
-static ml_integer_t NegOne[1] = {{MLIntegerT, -1}};
-static ml_integer_t Zero[1] = {{MLIntegerT, 0}};
-
-#endif
 
 ML_METHOD("<>", MLStringT, MLStringT) {
 //<A

@@ -31,18 +31,6 @@ xe
    *TBD*
 
 
-:mini:`meth (Arg₁: xe::node):attributes`
-   *TBD*
-
-
-:mini:`meth (Arg₁: xe::node):content`
-   *TBD*
-
-
-:mini:`meth (Arg₁: xe::node):tag`
-   *TBD*
-
-
 :mini:`meth (Arg₁: xe::node)[Arg₂: integer]`
    *TBD*
 
@@ -52,6 +40,18 @@ xe
 
 
 :mini:`meth (Arg₁: xe::node)[Arg₂: string]`
+   *TBD*
+
+
+:mini:`meth (Arg₁: xe::node):attributes`
+   *TBD*
+
+
+:mini:`meth (Arg₁: xe::node):content`
+   *TBD*
+
+
+:mini:`meth (Arg₁: xe::node):tag`
    *TBD*
 
 

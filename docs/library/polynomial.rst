@@ -93,15 +93,15 @@ polynomial
    *TBD*
 
 
+:mini:`meth (Arg₁: polynomial) ^ (Arg₂: integer)`
+   *TBD*
+
+
 :mini:`meth (Arg₁: polynomial):red(Arg₂: polynomial)`
    *TBD*
 
 
 :mini:`meth (Arg₁: polynomial):spol(Arg₂: polynomial)`
-   *TBD*
-
-
-:mini:`meth (Arg₁: polynomial) ^ (Arg₂: integer)`
    *TBD*
 
 

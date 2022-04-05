@@ -49,6 +49,10 @@ tasks
    Completes :mini:`Task` with an :mini:`error(Type,  Message)`,  resuming any waiting code. Raises an error if :mini:`Task` is already complete.
 
 
+:mini:`meth (Task: task):then(Fn: function): task`
+   Equivalent to :mini:`task(:wait -> Fn,  Task)`.
+
+
 :mini:`meth (Task: task):wait: any | error`
    Waits until :mini:`Task` is completed and returns its result.
 

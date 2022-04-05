@@ -22,6 +22,18 @@ address
       :> <13:48656C6C6F20776F726C64210A>
 
 
+:mini:`meth (Arg₁: address) != (Arg₂: address): address | nil`
+   Returns :mini:`Arg₂` if the bytes at :mini:`Arg₁` != the bytes at :mini:`Arg₂` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      "Hello" != "World" :> "World"
+      "World" != "Hello" :> "Hello"
+      "Hello" != "Hello" :> nil
+      "abcd" != "abc" :> "abc"
+      "abc" != "abcd" :> "abcd"
+
+
 :mini:`meth (Address: address) + (Offset: integer): address`
    Returns the address at offset :mini:`Offset` from :mini:`Address`.
 
@@ -42,6 +54,88 @@ address
       B - A :> 4
       address("world!\n") - A
       :> error("ValueError", "Addresses are not from same base")
+
+
+:mini:`meth (Arg₁: address) < (Arg₂: address): address | nil`
+   Returns :mini:`Arg₂` if the bytes at :mini:`Arg₁` < the bytes at :mini:`Arg₂` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      "Hello" < "World" :> "World"
+      "World" < "Hello" :> nil
+      "Hello" < "Hello" :> nil
+      "abcd" < "abc" :> nil
+      "abc" < "abcd" :> "abcd"
+
+
+:mini:`meth (Arg₁: address) <= (Arg₂: address): address | nil`
+   Returns :mini:`Arg₂` if the bytes at :mini:`Arg₁` <= the bytes at :mini:`Arg₂` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      "Hello" <= "World" :> "World"
+      "World" <= "Hello" :> nil
+      "Hello" <= "Hello" :> "Hello"
+      "abcd" <= "abc" :> nil
+      "abc" <= "abcd" :> "abcd"
+
+
+:mini:`meth (A: address) <> (B: address): integer`
+   Compares the bytes at :mini:`A` and :mini:`B` lexicographically and returns :mini:`-1`,  :mini:`0` or :mini:`1` respectively.
+
+   .. code-block:: mini
+
+      "Hello" <> "World" :> -1
+      "World" <> "Hello" :> 1
+      "Hello" <> "Hello" :> 0
+      "abcd" <> "abc" :> 1
+      "abc" <> "abcd" :> -1
+
+
+:mini:`meth (Arg₁: address) = (Arg₂: address): address | nil`
+   Returns :mini:`Arg₂` if the bytes at :mini:`Arg₁` = the bytes at :mini:`Arg₂` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      "Hello" = "World" :> nil
+      "World" = "Hello" :> nil
+      "Hello" = "Hello" :> "Hello"
+      "abcd" = "abc" :> nil
+      "abc" = "abcd" :> nil
+
+
+:mini:`meth (Arg₁: address) > (Arg₂: address): address | nil`
+   Returns :mini:`Arg₂` if the bytes at :mini:`Arg₁` > the bytes at :mini:`Arg₂` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      "Hello" > "World" :> nil
+      "World" > "Hello" :> "Hello"
+      "Hello" > "Hello" :> nil
+      "abcd" > "abc" :> "abc"
+      "abc" > "abcd" :> nil
+
+
+:mini:`meth (Arg₁: address) >= (Arg₂: address): address | nil`
+   Returns :mini:`Arg₂` if the bytes at :mini:`Arg₁` >= the bytes at :mini:`Arg₂` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      "Hello" >= "World" :> nil
+      "World" >= "Hello" :> "Hello"
+      "Hello" >= "Hello" :> "Hello"
+      "abcd" >= "abc" :> "abc"
+      "abc" >= "abcd" :> nil
+
+
+:mini:`meth (Address: address) @ (Length: integer): address`
+   Returns the same address as :mini:`Address`,  limited to :mini:`Length` bytes.
+
+   .. code-block:: mini
+
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
+      A @ 5 :> <5:48656C6C6F>
 
 
 :mini:`meth (Haystack: address):find(Needle: address): integer | nil`
@@ -196,16 +290,6 @@ address
       let A := address("Hello world!\n")
       :> <13:48656C6C6F20776F726C64210A>
       A:size :> 13
-
-
-:mini:`meth (Address: address) @ (Length: integer): address`
-   Returns the same address as :mini:`Address`,  limited to :mini:`Length` bytes.
-
-   .. code-block:: mini
-
-      let A := address("Hello world!\n")
-      :> <13:48656C6C6F20776F726C64210A>
-      A @ 5 :> <5:48656C6C6F>
 
 
 :mini:`meth (Buffer: string::buffer):append(Value: address)`

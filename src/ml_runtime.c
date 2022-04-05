@@ -978,6 +978,22 @@ int ml_scheduler_queue_add_signal(ml_state_t *State, ml_value_t *Value) {
 
 #endif
 
+void ml_scheduler_atomic(ml_state_t *State, ml_value_t *Value);
+
+static ml_schedule_t AtomicSchedule = {INT_MAX, (void *)ml_scheduler_atomic};
+
+void ml_scheduler_atomic(ml_state_t *State, ml_value_t *Value) {
+	AtomicSchedule.Counter = INT_MAX;
+	return State->run(State, Value);
+}
+
+ML_FUNCTIONX(MLAtomic) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_state_t *State = ml_state(Caller);
+	ml_context_set(State->Context, ML_SCHEDULER_INDEX, &AtomicSchedule);
+	return ml_call(State, Args[0], Count - 1, Args + 1);
+}
+
 #endif
 
 // Semaphore //

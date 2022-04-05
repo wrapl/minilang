@@ -1656,14 +1656,19 @@ static void method_register(const char *Name, GIFunctionInfo *Info, object_t *Ob
 	int NArgsIn = 0;
 	for (int I = 0; I < NArgs; ++I) {
 		GIArgInfo *ArgInfo = g_callable_info_get_arg((GICallableInfo *)Info, I);
+		int ClosureArg = g_arg_info_get_closure(ArgInfo);
+		if (ClosureArg >= 0) continue;
 		GITypeInfo TypeInfo[1];
 		g_arg_info_load_type(ArgInfo, TypeInfo);
+		int LengthIndex = g_type_info_get_array_length(TypeInfo);
+		if (LengthIndex >= 0) continue;
+		GITypeTag Tag = g_type_info_get_tag(TypeInfo);
 		switch (g_arg_info_get_direction(ArgInfo)) {
 		case GI_DIRECTION_IN:
 		case GI_DIRECTION_INOUT:
-			if (g_type_info_get_tag(TypeInfo) == GI_TYPE_TAG_ARRAY) {
-				int LengthIndex = g_type_info_get_array_length(TypeInfo);
-				if (LengthIndex < 0) ++NArgsIn;
+			if (Tag == GI_TYPE_TAG_INTERFACE) {
+				GIBaseInfo *InterfaceInfo = g_type_info_get_interface(TypeInfo);
+				if (!g_base_info_equal(InterfaceInfo, DestroyNotifyInfo)) ++NArgsIn;
 			} else {
 				++NArgsIn;
 			}
@@ -2302,7 +2307,7 @@ static void g_output_stream_callback(GObject *Object, GAsyncResult *Result, gpoi
 
 static void ML_TYPED_FN(ml_stream_write, (ml_type_t *)GOutputStreamT, ml_state_t *Caller, object_instance_t *Value, void *Address, int Count) {
 	GOutputStream *Stream = (GOutputStream *)Value->Handle;
-	g_output_stream_write_async(Stream, Address, Count, 0, NULL, g_input_stream_callback, Caller);
+	g_output_stream_write_async(Stream, Address, Count, 0, NULL, g_output_stream_callback, Caller);
 }
 
 void ml_gir_init(stringmap_t *Globals) {
@@ -2324,6 +2329,7 @@ void ml_gir_init(stringmap_t *Globals) {
 	GirStructT->call = MLTypeT->call;
 #include "ml_gir_init.c"
 	ml_type_add_parent((ml_type_t *)GInputStreamT, MLStreamT);
+	ml_type_add_parent((ml_type_t *)GOutputStreamT, MLStreamT);
 #ifdef ML_SCHEDULER
 	stringmap_insert(Globals, "sleep", (ml_value_t *)MLSleep);
 	stringmap_insert(GirTypelibT->Exports, "run", GirRun);

@@ -60,15 +60,15 @@ function
    *TBD*
 
 
+:mini:`meth (Arg₁: function::partial)[...]`
+   *TBD*
+
+
 :mini:`meth (Arg₁: function::partial):arity`
    *TBD*
 
 
 :mini:`meth (Arg₁: function::partial):set`
-   *TBD*
-
-
-:mini:`meth (Arg₁: function::partial)[...]`
    *TBD*
 
 

@@ -7,32 +7,6 @@
 math
 ====
 
-.. _fun-integer-random:
-
-:mini:`fun integer::random(Min?: number, Max?: number): integer`
-   Returns a random integer between :mini:`Min` and :mini:`Max` (where :mini:`Max <= 2³² - 1`.
-   If omitted,  :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`2³² - 1`.
-
-
-.. _fun-real-random:
-
-:mini:`fun real::random(Min?: number, Max?: number): real`
-   Returns a random real between :mini:`Min` and :mini:`Max`.
-   If omitted,  :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`1`.
-
-
-:mini:`meth (Z: complex):abs: real`
-   Returns the absolute value (magnitude) of :mini:`Z`.
-
-
-:mini:`meth (Z: complex):arg: real`
-   Returns the complex argument of :mini:`Z`.
-
-
-:mini:`meth (Z: complex):conj: real`
-   Returns the complex conjugate of :mini:`Z`.
-
-
 :mini:`meth (X: complex) ^ (Y: integer): number`
    Returns :mini:`X` raised to the power of :mini:`Y`.
 
@@ -47,6 +21,18 @@ math
    .. code-block:: mini
 
       (1 + 2i) ^ (2 + 3i) :> -0.0151327 - 0.179867i
+
+
+:mini:`meth (Z: complex):abs: real`
+   Returns the absolute value (magnitude) of :mini:`Z`.
+
+
+:mini:`meth (Z: complex):arg: real`
+   Returns the complex argument of :mini:`Z`.
+
+
+:mini:`meth (Z: complex):conj: real`
+   Returns the complex conjugate of :mini:`Z`.
 
 
 :mini:`meth math::acos(Arg₁: complex): complex`
@@ -201,18 +187,6 @@ math
       math::tanh(-1.2345 + 6.789i) :> -0.905042 + 0.130855i
 
 
-.. _fun-integer-random_cycle:
-
-:mini:`fun integer::random_cycle(Max: integer): list`
-   Returns a random cyclic permutation (no sub-cycles) of :mini:`1,  ...,  Max`.
-
-
-.. _fun-integer-random_permutation:
-
-:mini:`fun integer::random_permutation(Max: integer): list`
-   Returns a random permutation of :mini:`1,  ...,  Max`.
-
-
 :mini:`meth !(N: integer): integer`
    Returns the factorial of :mini:`N`.
 
@@ -223,6 +197,17 @@ math
 
 :mini:`meth (N: integer) ! (R: integer): integer`
    Returns the number of ways of choosing :mini:`R` elements from :mini:`N`.
+
+
+:mini:`meth (X: integer) ^ (Y: integer): number`
+   Returns :mini:`X` raised to the power of :mini:`Y`.
+
+   .. code-block:: mini
+
+      let N := 2 ^ 2 :> 4
+      type(N) :> <<int32>>
+      let R := 2 ^ -1 :> 0.5
+      type(R) :> <<double>>
 
 
 :mini:`meth (N: integer):abs: integer`
@@ -237,17 +222,6 @@ math
    Returns the greatest common divisor of :mini:`A` and :mini:`B`.
 
 
-:mini:`meth (X: integer) ^ (Y: integer): number`
-   Returns :mini:`X` raised to the power of :mini:`Y`.
-
-   .. code-block:: mini
-
-      let N := 2 ^ 2 :> 4
-      type(N) :> <<int32>>
-      let R := 2 ^ -1 :> 0.5
-      type(R) :> <<double>>
-
-
 :mini:`meth math::sqrt(Arg₁: integer): integer | real`
    Returns the square root of :mini:`Arg₁`.
 
@@ -260,16 +234,16 @@ math
       math::square(10) :> 100
 
 
-.. _value-math-e:
-
-:mini:`def math::e: real`
-   Euler's constant.
-
-
 .. _value-math-pi:
 
 :mini:`def math::pi: real`
    Pi.
+
+
+.. _value-math-e:
+
+:mini:`def math::e: real`
+   Euler's constant.
 
 
 :mini:`meth (X: number) ^ (Y: complex): number`
@@ -282,14 +256,6 @@ math
 
 :mini:`meth (X: real) % (Y: real): real`
    Returns the remainder of :mini:`X` on division by :mini:`Y`.
-
-
-:mini:`meth (R: real):arg: real`
-   Returns the complex argument of :mini:`R` (:mini:`= 0` for a real number).
-
-
-:mini:`meth (R: real):conj: real`
-   Returns the complex conjugate of :mini:`R` (:mini:`= R` for a real number).
 
 
 :mini:`meth (X: real) ^ (Y: integer): number`
@@ -309,6 +275,14 @@ math
       type(R) :> <<double>>
       let C := -2.3 ^ 1.5 :> -6.40758e-16 - 3.48812i
       type(C) :> <<complex>>
+
+
+:mini:`meth (R: real):arg: real`
+   Returns the complex argument of :mini:`R` (:mini:`= 0` for a real number).
+
+
+:mini:`meth (R: real):conj: real`
+   Returns the complex conjugate of :mini:`R` (:mini:`= R` for a real number).
 
 
 :mini:`meth math::abs(Arg₁: real): real`

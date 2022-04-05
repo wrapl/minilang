@@ -19,6 +19,10 @@ compiler
    *TBD*
 
 
+:mini:`meth (Compiler: compiler)[Name: string]: any`
+   *TBD*
+
+
 :mini:`meth (Compiler: compiler):command_def(Name: string, Value: any): any`
    *TBD*
 
@@ -52,10 +56,6 @@ compiler
 
 
 :mini:`meth (Compiler: compiler):vars: map`
-   *TBD*
-
-
-:mini:`meth (Compiler: compiler)[Name: string]: any`
    *TBD*
 
 

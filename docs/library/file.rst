@@ -43,6 +43,16 @@ file
    *TBD*
 
 
+.. _type-popen:
+
+:mini:`type popen < file`
+   *TBD*
+
+
+:mini:`meth (Arg₁: popen):close`
+   *TBD*
+
+
 .. _fun-file-rename:
 
 :mini:`fun file::rename(Old: string, New: string): nil`
@@ -52,6 +62,12 @@ file
 .. _fun-file-unlink:
 
 :mini:`fun file::unlink(Path: string)`
+   *TBD*
+
+
+.. _fun-mlpopen:
+
+:mini:`fun mlpopen(Arg₁: string, Arg₂: string)`
    *TBD*
 
 

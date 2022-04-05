@@ -209,7 +209,7 @@ static void mlc_expr_call(mlc_function_t *Parent, mlc_expr_t *Expr) {
 	Frame->Expr = Expr;
 	Frame->Info = new(ml_closure_info_t);
 	Frame->Info->Entry = Function->Next;
-	mlc_compile(Function, Expr, 0);
+	mlc_compile(Function, Expr, MLCF_RETURN);
 }
 
 static void ml_unknown_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags) {
@@ -307,7 +307,7 @@ static void ml_if_expr_compile3(mlc_function_t *Function, ml_value_t *Value, mlc
 	}
 	if (Expr->Else) {
 		Function->Frame->run = (mlc_frame_fn)ml_if_expr_compile4;
-		return mlc_compile(Function, Expr->Else, 0);
+		return mlc_compile(Function, Expr->Else, Frame->Flags & MLCF_RETURN);
 	}
 	MLC_LINK(Frame->Exits, Function->Next);
 	if (Frame->Flags & MLCF_PUSH) {
@@ -365,7 +365,7 @@ static void ml_if_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc
 		}
 	}
 	Function->Frame->run = (mlc_frame_fn)ml_if_expr_compile3;
-	return mlc_compile(Function, Case->Body, 0);
+	return mlc_compile(Function, Case->Body, Frame->Flags & MLCF_RETURN);
 }
 
 static void ml_if_expr_compile(mlc_function_t *Function, mlc_if_expr_t *Expr, int Flags) {
@@ -499,7 +499,7 @@ static void ml_switch_expr_compile3(mlc_function_t *Function, ml_value_t *Value,
 		GotoInst[1].Inst = Frame->Exits;
 		Frame->Exits = GotoInst + 1;
 		*Frame->Insts++ = Function->Next;
-		return mlc_compile(Function, Child, 0);
+		return mlc_compile(Function, Child, Frame->Flags & MLCF_RETURN);
 	}
 	MLC_LINK(Frame->Exits, Function->Next);
 	if (Frame->Flags & MLCF_PUSH) {
@@ -520,7 +520,7 @@ static void ml_switch_expr_compile2(mlc_function_t *Function, ml_value_t *Value,
 	Frame->Child = Child = Child->Next;
 	Function->Frame->run = (mlc_frame_fn)ml_switch_expr_compile3;
 	*Frame->Insts++ = Function->Next;
-	return mlc_compile(Function, Child, 0);
+	return mlc_compile(Function, Child, Frame->Flags & MLCF_RETURN);
 }
 
 static void ml_switch_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
@@ -669,7 +669,7 @@ static void ml_return_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *
 		MLC_FRAME(mlc_parent_expr_frame_t, ml_return_expr_compile2);
 		Frame->Expr = Expr;
 		Frame->Flags = Flags;
-		return mlc_compile(Function, Expr->Child, 0);
+		return mlc_compile(Function, Expr->Child, MLCF_RETURN);
 	} else {
 		MLC_EMIT(Expr->StartLine, MLI_NIL, 0);
 		MLC_EMIT(Expr->EndLine, MLI_RETURN, 0);
@@ -997,7 +997,7 @@ static void ml_var_in_expr_compile2(mlc_function_t *Function, ml_value_t *Value,
 		ml_inst_t *ValueInst = MLC_EMIT(Expr->EndLine, MLI_LOAD_PUSH, 1);
 		ValueInst[1].Value = ml_string(Local->Ident, -1);
 		mlc_inc_top(Function);
-		ml_inst_t *CallInst = MLC_EMIT(Expr->EndLine, MLI_CONST_CALL_2, 1);
+		ml_inst_t *CallInst = MLC_EMIT(Expr->EndLine, MLI_CALL_CONST_2, 1);
 		CallInst[1].Value = SymbolMethod;
 		Function->Top -= 2;
 		ml_decl_t *Decl = Decls[I];
@@ -1079,7 +1079,7 @@ static void ml_let_in_expr_compile2(mlc_function_t *Function, ml_value_t *Value,
 		ml_inst_t *ValueInst = MLC_EMIT(Expr->EndLine, MLI_LOAD_PUSH, 1);
 		ValueInst[1].Value = ml_string(Local->Ident, -1);
 		mlc_inc_top(Function);
-		ml_inst_t *CallInst = MLC_EMIT(Expr->EndLine, MLI_CONST_CALL_2, 1);
+		ml_inst_t *CallInst = MLC_EMIT(Expr->EndLine, MLI_CALL_CONST_2, 1);
 		CallInst[1].Value = SymbolMethod;
 		Function->Top -= 2;
 		ml_decl_t *Decl = Decls[I];
@@ -1168,7 +1168,7 @@ static void ml_ref_in_expr_compile2(mlc_function_t *Function, ml_value_t *Value,
 		ml_inst_t *ValueInst = MLC_EMIT(Expr->EndLine, MLI_LOAD_PUSH, 1);
 		ValueInst[1].Value = ml_string(Local->Ident, -1);
 		mlc_inc_top(Function);
-		ml_inst_t *CallInst = MLC_EMIT(Expr->EndLine, MLI_CONST_CALL_2, 1);
+		ml_inst_t *CallInst = MLC_EMIT(Expr->EndLine, MLI_CALL_CONST_2, 1);
 		CallInst[1].Value = SymbolMethod;
 		Function->Top -= 2;
 		ml_decl_t *Decl = Decls[I];
@@ -1402,7 +1402,11 @@ static void ml_block_expr_compile2(mlc_function_t *Function, ml_value_t *Value, 
 	mlc_expr_t *Child = Frame->Child;
 	if (Child) {
 		Frame->Child = Child->Next;
-		return mlc_compile(Function, Child, 0);
+		if ((Frame->Flags & MLCF_RETURN) && !Child->Next && !Function->Try) {
+			return mlc_compile(Function, Child, MLCF_RETURN);
+		} else {
+			return mlc_compile(Function, Child, 0);
+		}
 	}
 	mlc_block_expr_t *Expr = Frame->Expr;
 	if (Expr->NumVars + Expr->NumLets) {
@@ -1556,7 +1560,11 @@ static void ml_block_expr_compile(mlc_function_t *Function, mlc_block_expr_t *Ex
 	mlc_expr_t *Child = Expr->Child;
 	if (Child) {
 		Frame->Child = Child->Next;
-		return mlc_compile(Function, Child, 0);
+		if ((Frame->Flags & MLCF_RETURN) && !Child->Next && !Function->Try) {
+			return mlc_compile(Function, Child, MLCF_RETURN);
+		} else {
+			return mlc_compile(Function, Child, 0);
+		}
 	} else {
 		Frame->Child = NULL;
 		MLC_EMIT(Expr->StartLine, MLI_NIL, 0);
@@ -2103,23 +2111,25 @@ static void ml_call_expr_compile5(mlc_function_t *Function, ml_value_t *Value, m
 		return mlc_compile(Function, Child, MLCF_PUSH);
 	}
 	mlc_expr_t *Expr = Frame->Expr;
+	int TailCall = Frame->Flags & MLCF_RETURN;
+	//if (TailCall) fprintf(stderr, "Found a tail call at %s:%d!\n", Expr->Source, Expr->EndLine);
 	if (Frame->Value) {
 		int Count = Frame->Count;
 		if (ml_typeof(Frame->Value) == MLMethodT) {
 			ml_inst_t *CallInst;
 			if (Count < 10) {
-				CallInst = MLC_EMIT(Expr->EndLine, MLI_METHOD_CALL_0 + Count, 2);
+				CallInst = MLC_EMIT(Expr->EndLine, (TailCall ? MLI_TAIL_CALL_METHOD_0 : MLI_CALL_METHOD_0) + Count, 2);
 			} else {
-				CallInst = MLC_EMIT(Expr->EndLine, MLI_METHOD_CALL, 3);
+				CallInst = MLC_EMIT(Expr->EndLine, (TailCall ? MLI_TAIL_CALL_METHOD : MLI_CALL_METHOD), 3);
 				CallInst[2].Count = Count;
 			}
 			CallInst[1].Value = Frame->Value;
 		} else {
 			ml_inst_t *CallInst;
 			if (Count < 10) {
-				CallInst = MLC_EMIT(Expr->EndLine, MLI_CONST_CALL_0 + Count, 1);
+				CallInst = MLC_EMIT(Expr->EndLine, (TailCall ? MLI_TAIL_CALL_CONST_0 : MLI_CALL_CONST_0) + Count, 1);
 			} else {
-				CallInst = MLC_EMIT(Expr->EndLine, MLI_CONST_CALL, 2);
+				CallInst = MLC_EMIT(Expr->EndLine, (TailCall ? MLI_TAIL_CALL_CONST : MLI_CALL_CONST), 2);
 				CallInst[2].Count = Count;
 			}
 			ml_value_t *Value = Frame->Value;
@@ -2128,7 +2138,7 @@ static void ml_call_expr_compile5(mlc_function_t *Function, ml_value_t *Value, m
 		}
 		Function->Top -= Count;
 	} else {
-		ml_inst_t *CallInst = MLC_EMIT(Expr->EndLine, MLI_CALL, 1);
+		ml_inst_t *CallInst = MLC_EMIT(Expr->EndLine, (TailCall ? MLI_TAIL_CALL : MLI_CALL), 1);
 		CallInst[1].Count = Frame->Count;
 		Function->Top -= Frame->Count + 1;
 	}
@@ -2545,7 +2555,7 @@ static void ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, 
 	Frame->HasParamTypes = HasParamTypes;
 	Frame->SubFunction = SubFunction;
 	Frame->Flags = Flags;
-	mlc_compile(SubFunction, Expr->Body, 0);
+	mlc_compile(SubFunction, Expr->Body, MLCF_RETURN);
 }
 
 typedef struct {
@@ -5319,7 +5329,7 @@ void ml_function_compile(ml_state_t *Caller, mlc_expr_t *Expr, ml_compiler_t *Co
 	MLC_FRAME(mlc_compile_frame_t, ml_function_compile2);
 	Frame->Info = Info;
 	Frame->Expr = Expr;
-	mlc_compile(Function, Expr, 0);
+	mlc_compile(Function, Expr, MLCF_RETURN);
 }
 
 ML_METHOD("permissive", MLParserT, MLBooleanT) {

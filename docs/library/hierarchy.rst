@@ -90,6 +90,7 @@ hierarchy
       "sequence":e -> "list":w;
       "any":e -> "list::node":w;
       "any":e -> "list::slice":w;
+      "sequence":e -> "permutations":w;
       "stream":e -> "json::decoder":w;
       "any":e -> "jsvalue":w;
       "any":e -> "jsencoder":w;
@@ -118,6 +119,7 @@ hierarchy
       "any":e -> "gir::objectproperty":w;
       "stream":e -> "file":w;
       "sequence":e -> "dir":w;
+      "file":e -> "popen":w;
       "state":e -> "compiler::function":w;
       "any":e -> "expr":w;
       "any":e -> "macro":w;

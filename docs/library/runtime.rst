@@ -31,6 +31,12 @@ runtime
    *TBD*
 
 
+.. _fun-mlatomic:
+
+:mini:`fun mlatomic(Arg₁: any)`
+   *TBD*
+
+
 :mini:`meth (Arg₁: channel):error(Arg₂: string, Arg₃: string)`
    *TBD*
 

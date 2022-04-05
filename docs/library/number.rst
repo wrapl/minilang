@@ -7,6 +7,20 @@
 number
 ======
 
+.. _fun-integer-random:
+
+:mini:`fun integer::random(Min?: number, Max?: number): integer`
+   Returns a random integer between :mini:`Min` and :mini:`Max` (where :mini:`Max <= 2³² - 1`.
+   If omitted,  :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`2³² - 1`.
+
+
+.. _fun-real-random:
+
+:mini:`fun real::random(Min?: number, Max?: number): real`
+   Returns a random real between :mini:`Min` and :mini:`Max`.
+   If omitted,  :mini:`Min` defaults to :mini:`0` and :mini:`Max` defaults to :mini:`1`.
+
+
 .. _type-complex:
 
 :mini:`type complex < number`
@@ -167,22 +181,6 @@ number
    Returns :mini:`A / B`.
 
 
-:mini:`meth (A: double):max(B: double): real`
-   Returns :mini:`max(A,  B)`.
-
-
-:mini:`meth (A: double):max(B: integer): real`
-   Returns :mini:`max(A,  B)`.
-
-
-:mini:`meth (A: double):min(B: double): real`
-   Returns :mini:`min(A,  B)`.
-
-
-:mini:`meth (A: double):min(B: integer): real`
-   Returns :mini:`min(A,  B)`.
-
-
 :mini:`meth (A: double) < (B: double): real`
    Returns :mini:`B` if :mini:`A < B`,  otherwise returns :mini:`nil`.
 
@@ -231,6 +229,22 @@ number
    Returns :mini:`B` if :mini:`A >= B`,  otherwise returns :mini:`nil`.
 
 
+:mini:`meth (A: double):max(B: double): real`
+   Returns :mini:`max(A,  B)`.
+
+
+:mini:`meth (A: double):max(B: integer): real`
+   Returns :mini:`max(A,  B)`.
+
+
+:mini:`meth (A: double):min(B: double): real`
+   Returns :mini:`min(A,  B)`.
+
+
+:mini:`meth (A: double):min(B: integer): real`
+   Returns :mini:`min(A,  B)`.
+
+
 :mini:`meth (Buffer: string::buffer):append(Value: double)`
    Appends :mini:`Value` to :mini:`Buffer`.
 
@@ -243,6 +257,10 @@ number
 
 :mini:`type integer < real, function`
    *TBD*
+
+
+:mini:`meth integer(Real: double): integer`
+   Converts :mini:`Real` to an integer (using default rounding).
 
 
 :mini:`meth integer(String: string): integer | error`
@@ -259,8 +277,16 @@ number
    Returns the base :mini:`Base` integer in :mini:`String` or an error if :mini:`String` does not contain a valid integer.
 
 
-:mini:`meth integer(Real: double): integer`
-   Converts :mini:`Real` to an integer (using default rounding).
+.. _fun-integer-random_cycle:
+
+:mini:`fun integer::random_cycle(Max: integer): list`
+   Returns a random cyclic permutation (no sub-cycles) of :mini:`1,  ...,  Max`.
+
+
+.. _fun-integer-random_permutation:
+
+:mini:`fun integer::random_permutation(Max: integer): list`
+   Returns a random permutation of :mini:`1,  ...,  Max`.
 
 
 :mini:`meth (A: integer) != (B: double): real`
@@ -352,32 +378,6 @@ number
    Returns the bitwise and of :mini:`A` and :mini:`B`.
 
 
-:mini:`meth (Int₁: integer):div(Int₂: integer): integer`
-   Returns the quotient of :mini:`Int₁` divided by :mini:`Int₂`.
-   The result is calculated by rounding down in all cases.
-
-
-:mini:`meth (A: integer):max(B: double): real`
-   Returns :mini:`max(A,  B)`.
-
-
-:mini:`meth (A: integer):max(B: integer): integer`
-   Returns :mini:`max(A,  B)`.
-
-
-:mini:`meth (A: integer):min(B: double): real`
-   Returns :mini:`min(A,  B)`.
-
-
-:mini:`meth (A: integer):min(B: integer): integer`
-   Returns :mini:`min(A,  B)`.
-
-
-:mini:`meth (Int₁: integer):mod(Int₂: integer): integer`
-   Returns the remainder of :mini:`Int₁` divided by :mini:`Int₂`.
-   Note: the result is calculated by rounding down in all cases. In particular,  the result is always nonnegative.
-
-
 :mini:`meth (A: integer) < (B: double): real`
    Returns :mini:`B` if :mini:`A < B`,  otherwise returns :mini:`nil`.
 
@@ -440,6 +440,32 @@ number
 
 :mini:`meth (A: integer) \/ (B: integer): integer`
    Returns the bitwise or of :mini:`A` and :mini:`B`.
+
+
+:mini:`meth (Int₁: integer):div(Int₂: integer): integer`
+   Returns the quotient of :mini:`Int₁` divided by :mini:`Int₂`.
+   The result is calculated by rounding down in all cases.
+
+
+:mini:`meth (A: integer):max(B: double): real`
+   Returns :mini:`max(A,  B)`.
+
+
+:mini:`meth (A: integer):max(B: integer): integer`
+   Returns :mini:`max(A,  B)`.
+
+
+:mini:`meth (A: integer):min(B: double): real`
+   Returns :mini:`min(A,  B)`.
+
+
+:mini:`meth (A: integer):min(B: integer): integer`
+   Returns :mini:`min(A,  B)`.
+
+
+:mini:`meth (Int₁: integer):mod(Int₂: integer): integer`
+   Returns the remainder of :mini:`Int₁` divided by :mini:`Int₂`.
+   Note: the result is calculated by rounding down in all cases. In particular,  the result is always nonnegative.
 
 
 :mini:`meth real(Arg₁: integer)`

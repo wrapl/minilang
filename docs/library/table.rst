@@ -29,6 +29,14 @@ table
    Returns the column :mini:`Name` from :mini:`Table`.
 
 
+:mini:`meth (Table: table)[Row: integer]: tablerow`
+   Returns the :mini:`Row`-th row of :mini:`Table`.
+
+
+:mini:`meth (Table: table)[Name: string, ...]: array`
+   Returns the column :mini:`Name` from :mini:`Table`.
+
+
 :mini:`meth (Table: table):delete(Name: string): array`
    Remove the column :mini:`Name` from :mini:`Table` and return the value array.
 
@@ -39,14 +47,6 @@ table
 
 :mini:`meth (Table: table):insert(Name: string, Value: array): table`
    Insert the column :mini:`Name` with values :mini:`Value` into :mini:`Table`.
-
-
-:mini:`meth (Table: table)[Row: integer]: tablerow`
-   Returns the :mini:`Row`-th row of :mini:`Table`.
-
-
-:mini:`meth (Table: table)[Name: string, ...]: array`
-   Returns the column :mini:`Name` from :mini:`Table`.
 
 
 :mini:`meth (Buffer: string::buffer):append(Value: table)`

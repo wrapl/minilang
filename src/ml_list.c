@@ -1103,6 +1103,162 @@ ML_METHODX("find", MLListT, MLAnyT) {
 	return ml_call(State, EqualMethod, 2, State->Args);
 }
 
+ML_METHOD("permute", MLListT) {
+//!list
+//<List
+//>list
+// Permutes :mini:`List` in place.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	int N = List->Length;
+	if (N <= 1) return (ml_value_t *)List;
+	ml_list_node_t *Nodes[N], *Node = List->Head;
+	for (int I = 0; I < N; ++I, Node = Node->Next) Nodes[I] = Node;
+	for (int I = N; --I > 0;) {
+		int Divisor = RAND_MAX / (I + 1), J;
+		do J = random() / Divisor; while (J > I);
+		if (J != I) {
+			ml_list_node_t *Old = Nodes[J];
+			Nodes[J] = Nodes[I];
+			Nodes[I] = Old;
+		}
+	}
+	Node = List->Head = Nodes[0];
+	List->CachedNode = Node;
+	List->CachedIndex = 1;
+	Node->Prev = NULL;
+	for (int I = 1; I < N; ++I) {
+		Node->Next = Nodes[I];
+		Nodes[I]->Prev = Node;
+		Node = Nodes[I];
+	}
+	Node->Next = NULL;
+	List->Tail = Node;
+	return (ml_value_t *)List;
+}
+
+ML_METHOD("cycle", MLListT) {
+//!list
+//<List
+//>list
+// Permutes :mini:`List` in place with no sub-cycles.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	int N = List->Length;
+	if (N <= 1) return (ml_value_t *)List;
+	ml_list_node_t *Nodes[N], *Node = List->Head;
+	for (int I = 0; I < N; ++I, Node = Node->Next) Nodes[I] = Node;
+	for (int I = N; --I > 0;) {
+		int Divisor = RAND_MAX / I, J;
+		do J = random() / Divisor; while (J >= I);
+		ml_list_node_t *Old = Nodes[J];
+		Nodes[J] = Nodes[I];
+		Nodes[I] = Old;
+	}
+	Node = List->Head = Nodes[0];
+	List->CachedNode = Node;
+	List->CachedIndex = 1;
+	Node->Prev = NULL;
+	for (int I = 1; I < N; ++I) {
+		Node->Next = Nodes[I];
+		Nodes[I]->Prev = Node;
+		Node = Nodes[I];
+	}
+	Node->Next = NULL;
+	List->Tail = Node;
+	return (ml_value_t *)List;
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_list_t *List;
+	ml_list_node_t **Nodes;
+	int Index, Length;
+	int P[];
+} ml_permutations_t;
+
+ML_TYPE(MLPermutationsT, (MLSequenceT), "list::permutations");
+//internal
+
+static void ML_TYPED_FN(ml_iterate, MLPermutationsT, ml_state_t *Caller, ml_permutations_t *Permutations) {
+	Permutations->Index = 1;
+	ML_RETURN(Permutations);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLPermutationsT, ml_state_t *Caller, ml_permutations_t *Permutations) {
+	int N = Permutations->Length;
+	int *P = Permutations->P;
+	int Index = 1;
+	while (!P[Index]) {
+		P[Index] = Index;
+		++Index;
+	}
+	if (Index == N) ML_RETURN(MLNil);
+	--P[Index];
+	int J = Index % 2 ? P[Index] : 0;
+	ml_list_node_t **Nodes = Permutations->Nodes;
+	ml_list_node_t *Node = Nodes[Index];
+	Nodes[Index] = Nodes[J];
+	Nodes[J] = Node;
+	ml_list_t *List = Permutations->List;
+	Node = List->Head = Nodes[0];
+	List->CachedNode = Node;
+	List->CachedIndex = 1;
+	Node->Prev = NULL;
+	for (int I = 1; I < N; ++I) {
+		Node->Next = Nodes[I];
+		Nodes[I]->Prev = Node;
+		Node = Nodes[I];
+	}
+	Node->Next = NULL;
+	List->Tail = Node;
+	List->Length = N;
+	++Permutations->Index;
+	ML_RETURN(Permutations);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLPermutationsT, ml_state_t *Caller, ml_permutations_t *Permutations) {
+	ML_RETURN(ml_integer(Permutations->Index));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLPermutationsT, ml_state_t *Caller, ml_permutations_t *Permutations) {
+	ML_RETURN(Permutations->List);
+}
+
+ML_METHOD("permutations", MLListT) {
+//<List
+//>sequence
+// Returns a sequence of all permutations of :mini:`List`, performed in-place.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	int N = List->Length;
+	ml_permutations_t *Permutations = xnew(ml_permutations_t, N + 1, int);
+	Permutations->Type = MLPermutationsT;
+	Permutations->Length = N;
+	ml_list_node_t **Nodes = Permutations->Nodes = anew(ml_list_node_t *, N);
+	ml_list_node_t *Node = List->Head;
+	for (int I = 0; I < N; ++I, Node = Node->Next) {
+		Nodes[I] = Node;
+		Permutations->P[I] = I;
+	}
+	Permutations->P[N] = N;
+	Permutations->List = List;
+	return (ml_value_t *)Permutations;
+}
+
+ML_METHOD("random", MLListT) {
+//<List
+//>any
+// Returns a random (assignable) node from :mini:`List`.
+//$= let L := list("cake")
+//$= L:random
+//$= L:random
+	ml_list_t *List = (ml_list_t *)Args[0];
+	int Limit = List->Length;
+	if (Limit <= 0) return MLNil;
+	int Divisor = RAND_MAX / Limit;
+	int Random;
+	do Random = random() / Divisor; while (Random >= Limit);
+	return (ml_value_t *)ml_list_index(List, Random + 1);
+}
+
 ML_TYPE(MLNamesT, (), "names",
 //!internal
 );

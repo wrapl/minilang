@@ -424,49 +424,6 @@ sequence
       :> [1, 3, 6, 10, 15, 21, 28, 36, 45, 55]
 
 
-:mini:`meth (Sequence: sequence):join: string`
-   Joins the elements of :mini:`Sequence` into a string.
-
-   .. code-block:: mini
-
-      1 .. 10 join "," :> "1,2,3,4,5,6,7,8,9,10"
-
-
-:mini:`meth (Sequence: sequence):join(Separator: string): string`
-   Joins the elements of :mini:`Sequence` into a string using :mini:`Separator` between elements.
-
-   .. code-block:: mini
-
-      (1 .. 10):join :> "12345678910"
-
-
-:mini:`meth (Sequence: sequence):limit(Fn: function): sequence`
-   Returns an sequence that stops when :mini:`Fn(Value)` is :mini:`nil`.
-
-   .. code-block:: mini
-
-      list("banana") :> ["b", "a", "n", "a", "n", "a"]
-      list("banana" limit (_ != "n")) :> ["b", "a"]
-
-
-:mini:`meth (Sequence: sequence):limit(Limit: integer): sequence`
-   Returns an sequence that produces at most :mini:`Limit` values from :mini:`Sequence`.
-
-   .. code-block:: mini
-
-      list(1 .. 10) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-      list(1 .. 10 limit 5) :> [1, 2, 3, 4, 5]
-
-
-:mini:`meth (Sequence: sequence):skip(Skip: integer): sequence`
-   Returns an sequence that skips the first :mini:`Skip` values from :mini:`Sequence` and then produces the rest.
-
-   .. code-block:: mini
-
-      list(1 .. 10) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-      list(1 .. 10 skip 5) :> [6, 7, 8, 9, 10]
-
-
 :mini:`meth (Base: sequence) => (F: function): sequence`
    Returns a chained sequence equivalent to :mini:`(K₁,  F(K₁,  V₁)),  ...,  (Kₙ,  F(Kₙ,  Vₙ))` where :mini:`Kᵢ` and :mini:`Vᵢ` are the keys and values produced by :mini:`Base`.
 
@@ -532,5 +489,48 @@ sequence
 
       list(1 .. 5 ^ (1 .. _))
       :> [1, 1, 2, 1, 2, 3, 1, 2, 3, 4, 1, 2, 3, 4, 5]
+
+
+:mini:`meth (Sequence: sequence):join: string`
+   Joins the elements of :mini:`Sequence` into a string.
+
+   .. code-block:: mini
+
+      1 .. 10 join "," :> "1,2,3,4,5,6,7,8,9,10"
+
+
+:mini:`meth (Sequence: sequence):join(Separator: string): string`
+   Joins the elements of :mini:`Sequence` into a string using :mini:`Separator` between elements.
+
+   .. code-block:: mini
+
+      (1 .. 10):join :> "12345678910"
+
+
+:mini:`meth (Sequence: sequence):limit(Fn: function): sequence`
+   Returns an sequence that stops when :mini:`Fn(Value)` is :mini:`nil`.
+
+   .. code-block:: mini
+
+      list("banana") :> ["b", "a", "n", "a", "n", "a"]
+      list("banana" limit (_ != "n")) :> ["b", "a"]
+
+
+:mini:`meth (Sequence: sequence):limit(Limit: integer): sequence`
+   Returns an sequence that produces at most :mini:`Limit` values from :mini:`Sequence`.
+
+   .. code-block:: mini
+
+      list(1 .. 10) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      list(1 .. 10 limit 5) :> [1, 2, 3, 4, 5]
+
+
+:mini:`meth (Sequence: sequence):skip(Skip: integer): sequence`
+   Returns an sequence that skips the first :mini:`Skip` values from :mini:`Sequence` and then produces the rest.
+
+   .. code-block:: mini
+
+      list(1 .. 10) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      list(1 .. 10 skip 5) :> [6, 7, 8, 9, 10]
 
 
