@@ -840,39 +840,6 @@ static ml_integer_t Zero[1] = {{MLIntegerT, 0}};
 
 #endif
 
-static ml_value_t *ml_trace(void *Ptr, inthash_t *Cache) {
-	void **Base = (void **)GC_base(Ptr);
-	if (Base) {
-		ml_value_t *Label = inthash_search(Cache, (uintptr_t)Base);
-		if (Label) return Label;
-		Label = ml_string_format("V%d", Cache->Size - Cache->Space);
-		inthash_insert(Cache, (uintptr_t)Base, Label);
-		ml_value_t *Trace = ml_list();
-		size_t Size = (GC_size(Base) + sizeof(void *) - 1) / sizeof(void *);
-		ml_list_put(Trace, Label);
-		ml_list_put(Trace, ml_integer(Size));
-		ml_value_t *Fields = ml_map();
-		ml_list_put(Trace, Fields);
-		for (int I = 0; I < Size; ++I) {
-			ml_value_t *Field = ml_trace(Base[I], Cache);
-			if (Field) ml_map_insert(Fields, ml_integer(I), Field);
-		}
-		return Trace;
-	} else {
-		return NULL;
-	}
-}
-
-ML_METHOD("trace", MLAnyT) {
-//!internal
-//<Value
-//>list[map]
-// Returns information about the blocks of memory referenced by :mini:`Value`.
-	ml_value_t *Value = Args[0];
-	inthash_t Cache[1] = {INTHASH_INIT};
-	return ml_trace(Value, Cache) ?: MLNil;
-}
-
 ML_METHOD("<>", MLAnyT, MLAnyT) {
 //<Value/1
 //<Value/2
@@ -2038,6 +2005,63 @@ ML_FUNCTIONZ(MLReplace) {
 	State->New = ml_deref(Args[Count - 1]);
 	State->Index = Count - 1;
 	return ml_exchange_run(State, MLNil);
+}
+
+static ml_value_t *ml_mem_trace(void *Ptr, inthash_t *Cache) {
+	void **Base = (void **)GC_base(Ptr);
+	if (!Base) return NULL;
+	ml_value_t *Label = inthash_search(Cache, (uintptr_t)Base);
+	if (Label) return Label;
+	Label = ml_string_format("V%d", Cache->Size - Cache->Space);
+	inthash_insert(Cache, (uintptr_t)Base, Label);
+	ml_value_t *Trace = ml_list();
+	size_t Size = (GC_size(Base) + sizeof(void *) - 1) / sizeof(void *);
+	ml_list_put(Trace, Label);
+	ml_list_put(Trace, ml_integer(Size));
+	ml_value_t *Fields = ml_map();
+	ml_list_put(Trace, Fields);
+	for (int I = 0; I < Size; ++I) {
+		ml_value_t *Field = ml_mem_trace(Base[I], Cache);
+		if (Field) ml_map_insert(Fields, ml_integer(I), Field);
+	}
+	return Trace;
+}
+
+ML_FUNCTION(MLMemTrace) {
+//<Value
+//>list[map]
+// Returns information about the blocks of memory referenced by :mini:`Value`.
+	ML_CHECK_ARG_COUNT(1);
+	ml_value_t *Value = Args[0];
+	inthash_t Cache[1] = {INTHASH_INIT};
+	return ml_mem_trace(Value, Cache) ?: MLNil;
+}
+
+static size_t ml_mem_size(void *Ptr, inthash_t *Cache) {
+	void **Base = (void **)GC_base(Ptr);
+	if (!Base) return 0;
+	if (inthash_search(Cache, (uintptr_t)Base)) return 0;
+	inthash_insert(Cache, (uintptr_t)Base, Base);
+	size_t Size = GC_size(Base);
+	int Count = (Size + sizeof(void *) - 1) / sizeof(void *);
+	for (int I = Count; --I >= 0;) Size += ml_mem_size(*Base++, Cache);
+	return Size;
+}
+
+ML_FUNCTION(MLMemSize) {
+//<Value
+//>list[map]
+// Returns information about the blocks of memory referenced by :mini:`Value`.
+	ML_CHECK_ARG_COUNT(1);
+	ml_value_t *Value = Args[0];
+	inthash_t Cache[1] = {INTHASH_INIT};
+	return ml_integer(ml_mem_size(Value, Cache));
+}
+
+ML_FUNCTION(MLMemCollect) {
+// Call garbage collector.
+	GC_gcollect();
+	return MLNil;
 }
 
 void ml_init(stringmap_t *Globals) {

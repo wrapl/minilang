@@ -5,6 +5,56 @@ gir: glib("GLib")
 
 gtk::init(nil, nil)
 
+fun describe(Buffer, Indent, Expr) do
+	Buffer:write(Indent, Expr[3], ".", Expr[1], "\n")
+	switch Expr[1]: string
+	case "if" do
+		for Case in Expr[5] do
+			Buffer:write(Indent, '| if {Case[1]} {Case[2]}\n')
+			describe(Buffer, Indent + "| | ", Case[3])
+			Buffer:write(Indent, "| then\n")
+			describe(Buffer, Indent + "| | ", Case[4])
+		end
+		if Expr[6] then
+			Buffer:write(Indent, "| else\n")
+			describe(Buffer, Indent + "| | ", Expr[6])
+		end
+	case "string" do
+		for Part in Expr[5] do
+			if Part in list then
+				Buffer:write(Indent, "| {}\n")
+				for Child in Part do
+					describe(Buffer, Indent + "| | ", Child)
+				end
+			else
+				Buffer:write(Indent, "| \"", Part:escape, "\"\n")
+			end
+		end
+	case "value" do
+		switch Expr[5]: type
+		case string do
+			Buffer:write(Indent, "| \"", Expr[5]:escape, "\"\n")
+		case parser::expr do
+			describe(Buffer, Indent + "| > ", Expr[5]:describe)
+		else
+			Buffer:write(Indent, "| ", Expr[5], "\n")
+		end
+	else
+		for Field in Expr skip 4 do
+			switch Field: type
+			case tuple do
+				describe(Buffer, Indent + "| ", Field)
+			case list do
+				for Child in Field do
+					describe(Buffer, Indent + "| ", Child)
+				end
+			else
+				Buffer:write(Indent, "| ", Field, "\n")
+			end
+		end
+	end
+end
+
 gir::run(;) do
 	let Config := glib::KeyFile::new()
 	Config:load_from_file(glib::get_user_config_dir() + "/minilang.conf", glib::KeyFileFlags::none)
@@ -55,53 +105,6 @@ gir::run(;) do
 
 	let EditBuffer := Editor:get_buffer
 	let OutputBuffer := Output:get_buffer
-
-	fun describe(Buffer, Indent, Expr) do
-		Buffer:write(Indent, Expr[3], ".", Expr[1], "\n")
-		switch Expr[1]: string
-		case "if" do
-			for Case in Expr[5] do
-				Buffer:write(Indent, '| if {Case[1]} {Case[2]}\n')
-				describe(Buffer, Indent + "| | ", Case[3])
-				Buffer:write(Indent, "| then\n")
-				describe(Buffer, Indent + "| | ", Case[4])
-			end
-			if Expr[6] then
-				Buffer:write(Indent, "| else\n")
-				describe(Buffer, Indent + "| | ", Expr[6])
-			end
-		case "string" do
-			for Part in Expr[5] do
-				if Part in list then
-					Buffer:write(Indent, "| {}\n")
-					for Child in Part do
-						describe(Buffer, Indent + "| | ", Child)
-					end
-				else
-					Buffer:write(Indent, "| \"", Part:escape, "\"\n")
-				end
-			end
-		case "value" do
-			if Expr[5] in string then
-				Buffer:write(Indent, "| \"", Expr[5]:escape, "\"\n")
-			else
-				Buffer:write(Indent, "| ", Expr[5], "\n")
-			end
-		else
-			for Field in Expr skip 4 do
-				switch Field: type
-				case tuple do
-					describe(Buffer, Indent + "| ", Field)
-				case list do
-					for Child in Field do
-						describe(Buffer, Indent + "| ", Child)
-					end
-				else
-					Buffer:write(Indent, "| ", Field, "\n")
-				end
-			end
-		end
-	end
 
 	EditBuffer:connect("changed"; Buffer) do
 		let Start := gtk::TextIter()
