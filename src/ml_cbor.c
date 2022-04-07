@@ -911,6 +911,7 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *
 			break;
 		case MLIT_CLOSURE: {
 			ml_closure_info_t *Info = Inst[1].ClosureInfo;
+			Info->Type = MLClosureInfoT;
 			ml_list_put(Values, (ml_value_t *)Info);
 			vlq64_encode(Buffer, Info->NumUpValues);
 			for (int N = 0; N < Info->NumUpValues; ++N) vlq64_encode(Buffer, Inst[2 + N].Count);
@@ -941,6 +942,7 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *
 static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLClosureT, ml_cbor_writer_t *Writer, ml_closure_t *Closure) {
 	minicbor_write_tag(Writer->Data, Writer->WriteFn, 27);
 	ml_closure_info_t *Info = Closure->Info;
+	Info->Type = MLClosureInfoT;
 	minicbor_write_array(Writer->Data, Writer->WriteFn, 2 + Info->NumUpValues);
 	minicbor_write_string(Writer->Data, Writer->WriteFn, 1);
 	Writer->WriteFn(Writer->Data, (unsigned char *)"*", 1);
