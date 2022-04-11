@@ -713,9 +713,10 @@ static int ml_closure_info_param_fn(const char *Name, void *Index, const char *P
 }
 
 static int ml_closure_find_decl(ml_stringbuffer_t *Buffer, inthash_t *Decls, ml_decl_t *Decl) {
+	if (!Decl) return -1;
 	inthash_result_t Result = inthash_search2(Decls, (uintptr_t)Decl);
 	if (Result.Present) return (uintptr_t)Result.Value;
-	int Next = Decl->Next ? ml_closure_find_decl(Buffer, Decls, Decl->Next) : -1;
+	int Next = ml_closure_find_decl(Buffer, Decls, Decl->Next);
 	int Index = Decls->Size;
 	vlq64_encode_string(Buffer, Decl->Ident);
 	vlq64_encode(Buffer, Next);
@@ -755,7 +756,7 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *
 	ml_closure_info_labels(Info);
 	inthash_t Decls[1] = {INTHASH_INIT};
 	ml_stringbuffer_t DeclBuffer[1] = {ML_STRINGBUFFER_INIT};
-	int DeclsIndex = Info->Decls ? ml_closure_find_decl(DeclBuffer, Decls, Info->Decls) : -1;
+	int DeclsIndex = ml_closure_find_decl(DeclBuffer, Decls, Info->Decls);
 	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
 		if (Inst->Label) inthash_insert(Labels, Inst->Label, (void *)((Inst - Base) + BaseOffset));
 		if (Inst->Opcode == MLI_LINK) {
