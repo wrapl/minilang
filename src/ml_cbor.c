@@ -755,7 +755,7 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *
 	ml_closure_info_labels(Info);
 	inthash_t Decls[1] = {INTHASH_INIT};
 	ml_stringbuffer_t DeclBuffer[1] = {ML_STRINGBUFFER_INIT};
-	int DeclsIndex = ml_closure_find_decl(DeclBuffer, Decls, Info->Decls);
+	int DeclsIndex = Info->Decls ? ml_closure_find_decl(DeclBuffer, Decls, Info->Decls) : 0;
 	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
 		if (Inst->Label) inthash_insert(Labels, Inst->Label, (void *)((Inst - Base) + BaseOffset));
 		if (Inst->Opcode == MLI_LINK) {
