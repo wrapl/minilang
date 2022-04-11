@@ -101,6 +101,8 @@ hierarchy
       "any":e -> "gir::objectinstance":w;
       "gir::baseinfo":e -> "gir::struct":w;
       "any":e -> "gir::structinstance":w;
+      "gir::baseinfo":e -> "gir::union":w;
+      "any":e -> "gir::unioninstance":w;
       "any":e -> "gir::fieldref":w;
       "gir::fieldref":e -> "gir::fieldref-boolean":w;
       "gir::fieldref":e -> "gir::fieldref-int8":w;

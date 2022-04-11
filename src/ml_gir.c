@@ -253,6 +253,49 @@ ML_METHOD("append", MLStringBufferT, GirStructInstanceT) {
 	return MLSome;
 }
 
+typedef struct {
+	ml_type_t Base;
+	GIUnionInfo *Info;
+} union_t;
+
+typedef struct {
+	const union_t *Type;
+	void *Value;
+} union_instance_t;
+
+ML_TYPE(GirUnionT, (GirBaseInfoT), "union-type");
+// A gobject-introspection struct type.
+
+ML_TYPE(GirUnionInstanceT, (), "union-instance");
+// A gobject-introspection struct instance.
+
+ml_value_t *ml_gir_union_instance(ml_value_t *Union, void *Value) {
+	union_instance_t *Instance = new(union_instance_t);
+	Instance->Type = (union_t *)Union;
+	Instance->Value = Value;
+	return (ml_value_t *)Instance;
+}
+
+void *ml_gir_union_instance_value(ml_value_t *Value) {
+	return ((union_instance_t *)Value)->Value;
+}
+
+static ml_value_t *union_instance(union_t *Union, int Count, ml_value_t **Args) {
+	union_instance_t *Instance = new(union_instance_t);
+	Instance->Type = Union;
+	Instance->Value = GC_MALLOC(g_union_info_get_size(Union->Info));
+	return (ml_value_t *)Instance;
+}
+
+ML_METHOD("append", MLStringBufferT, GirUnionInstanceT) {
+//<Union
+//>string
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	union_instance_t *Instance = (union_instance_t *)Args[1];
+	ml_stringbuffer_printf(Buffer, "<%s>", g_base_info_get_name((GIBaseInfo *)Instance->Type->Info));
+	return MLSome;
+}
+
 typedef struct field_ref_t {
 	ml_type_t *Type;
 	void *Address;
@@ -349,6 +392,70 @@ static ml_value_t *struct_field_ref(GIFieldInfo *Info, int Count, ml_value_t **A
 	}
 	return (ml_value_t *)Ref;
 }
+
+static ml_value_t *union_field_ref(GIFieldInfo *Info, int Count, ml_value_t **Args) {
+	union_instance_t *Instance = (union_instance_t *)Args[0];
+	field_ref_t *Ref = new(field_ref_t);
+	Ref->Address = (char *)Instance->Value + g_field_info_get_offset(Info);
+
+	GITypeInfo *TypeInfo = g_field_info_get_type(Info);
+	switch (g_type_info_get_tag(TypeInfo)) {
+	case GI_TYPE_TAG_VOID: return ml_error("TodoError", "Field ref not implemented yet");
+	case GI_TYPE_TAG_BOOLEAN: Ref->Type = GirFieldRefBooleanT; break;
+	case GI_TYPE_TAG_INT8: Ref->Type = GirFieldRefInt8T; break;
+	case GI_TYPE_TAG_UINT8: Ref->Type = GirFieldRefUInt8T; break;
+	case GI_TYPE_TAG_INT16: Ref->Type = GirFieldRefInt16T; break;
+	case GI_TYPE_TAG_UINT16: Ref->Type = GirFieldRefUInt16T; break;
+	case GI_TYPE_TAG_INT32: Ref->Type = GirFieldRefInt32T; break;
+	case GI_TYPE_TAG_UINT32: Ref->Type = GirFieldRefUInt32T; break;
+	case GI_TYPE_TAG_INT64: Ref->Type = GirFieldRefInt64T; break;
+	case GI_TYPE_TAG_UINT64: Ref->Type = GirFieldRefUInt64T; break;
+	case GI_TYPE_TAG_FLOAT: Ref->Type = GirFieldRefFloatT; break;
+	case GI_TYPE_TAG_DOUBLE: Ref->Type = GirFieldRefDoubleT; break;
+	case GI_TYPE_TAG_GTYPE: return ml_error("TodoError", "Field ref not implemented yet");
+	case GI_TYPE_TAG_UTF8: Ref->Type = GirFieldRefUtf8T; break;
+	case GI_TYPE_TAG_FILENAME: Ref->Type = GirFieldRefUtf8T; break;
+	case GI_TYPE_TAG_ARRAY: return ml_error("TodoError", "Field ref not implemented yet");
+	case GI_TYPE_TAG_INTERFACE: {
+		GIBaseInfo *InterfaceInfo = g_type_info_get_interface(TypeInfo);
+		switch (g_base_info_get_type(InterfaceInfo)) {
+		case GI_INFO_TYPE_INVALID:
+		case GI_INFO_TYPE_INVALID_0: return ml_error("TodoError", "Field ref not implemented yet");
+		case GI_INFO_TYPE_FUNCTION: return ml_error("TodoError", "Field ref not implemented yet");
+		case GI_INFO_TYPE_CALLBACK: return ml_error("TodoError", "Field ref not implemented yet");
+		case GI_INFO_TYPE_STRUCT: {
+			struct_instance_t *Instance2 = new(struct_instance_t);
+			Instance2->Type = (struct_t *)struct_info_lookup((GIStructInfo *)InterfaceInfo);
+			Instance2->Value = Instance->Value;
+			return (ml_value_t *)Instance2;
+		}
+		case GI_INFO_TYPE_BOXED: return ml_error("TodoError", "Field ref not implemented yet");
+		case GI_INFO_TYPE_ENUM: return ml_error("TodoError", "Field ref not implemented yet");
+		case GI_INFO_TYPE_FLAGS: return ml_error("TodoError", "Field ref not implemented yet");
+		case GI_INFO_TYPE_OBJECT: return ml_error("TodoError", "Field ref not implemented yet");
+		case GI_INFO_TYPE_INTERFACE: return ml_error("TodoError", "Field ref not implemented yet");
+		case GI_INFO_TYPE_CONSTANT: return ml_error("TodoError", "Field ref not implemented yet");
+		case GI_INFO_TYPE_UNION: return ml_error("TodoError", "Field ref not implemented yet");
+		case GI_INFO_TYPE_VALUE: return ml_error("TodoError", "Field ref not implemented yet");
+		case GI_INFO_TYPE_SIGNAL: return ml_error("TodoError", "Field ref not implemented yet");
+		case GI_INFO_TYPE_VFUNC: return ml_error("TodoError", "Field ref not implemented yet");
+		case GI_INFO_TYPE_PROPERTY: return ml_error("TodoError", "Field ref not implemented yet");
+		case GI_INFO_TYPE_FIELD: return ml_error("TodoError", "Field ref not implemented yet");
+		case GI_INFO_TYPE_ARG: return ml_error("TodoError", "Field ref not implemented yet");
+		case GI_INFO_TYPE_TYPE: return ml_error("TodoError", "Field ref not implemented yet");
+		case GI_INFO_TYPE_UNRESOLVED: return ml_error("TodoError", "Field ref not implemented yet");
+		}
+		break;
+	}
+	case GI_TYPE_TAG_GLIST: return ml_error("TodoError", "Field ref not implemented yet");
+	case GI_TYPE_TAG_GSLIST: return ml_error("TodoError", "Field ref not implemented yet");
+	case GI_TYPE_TAG_GHASH: return ml_error("TodoError", "Field ref not implemented yet");
+	case GI_TYPE_TAG_ERROR: return ml_error("TodoError", "Field ref not implemented yet");
+	case GI_TYPE_TAG_UNICHAR: return ml_error("TodoError", "Field ref not implemented yet");
+	}
+	return (ml_value_t *)Ref;
+}
+
 
 typedef struct enum_t enum_t;
 typedef struct enum_value_t enum_value_t;
@@ -1685,7 +1792,17 @@ static void method_register(const char *Name, GIFunctionInfo *Info, object_t *Ob
 	ml_method_define(ml_method(Name), ml_cfunction(Info, (ml_callback_t)method_invoke), NArgsIn, 0, Types);
 }
 
+static void interface_add_signals(object_t *Object, GIInterfaceInfo *Info) {
+	int NumSignals = g_interface_info_get_n_signals(Info);
+	for (int I = 0; I < NumSignals; ++I) {
+		GISignalInfo *SignalInfo = g_interface_info_get_signal(Info, I);
+		const char *SignalName = g_base_info_get_name((GIBaseInfo *)SignalInfo);
+		stringmap_insert(Object->Signals, SignalName, SignalInfo);
+	}
+}
+
 static void interface_add_methods(object_t *Object, GIInterfaceInfo *Info) {
+	interface_add_signals(Object, Info);
 	int NumMethods = g_interface_info_get_n_methods(Info);
 	for (int I = 0; I < NumMethods; ++I) {
 		GIFunctionInfo *MethodInfo = g_interface_info_get_method(Info, I);
@@ -1695,12 +1812,6 @@ static void interface_add_methods(object_t *Object, GIInterfaceInfo *Info) {
 			//ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Object, NULL);
 			method_register(MethodName, MethodInfo, Object);
 		}
-	}
-	int NumSignals = g_interface_info_get_n_signals(Info);
-	for (int I = 0; I < NumSignals; ++I) {
-		GISignalInfo *SignalInfo = g_interface_info_get_signal(Info, I);
-		const char *SignalName = g_base_info_get_name((GIBaseInfo *)SignalInfo);
-		stringmap_insert(Object->Signals, SignalName, SignalInfo);
 	}
 }
 
@@ -1725,6 +1836,7 @@ static void object_add_methods(object_t *Object, GIObjectInfo *Info) {
 	int NumInterfaces = g_object_info_get_n_interfaces(Info);
 	for (int I = 0; I < NumInterfaces; ++I) {
 		GIInterfaceInfo *InterfaceInfo = g_object_info_get_interface(Info, I);
+		interface_add_signals(Object, InterfaceInfo);
 		ml_type_t *Interface = interface_info_lookup(InterfaceInfo);
 		ml_type_add_parent((ml_type_t *)Object, Interface);
 	}
@@ -1759,6 +1871,7 @@ static ml_value_t *object_instance(object_t *Object, int Count, ml_value_t **Arg
 		ML_NAMES_FOREACH(Args[0], Iter) {
 			Names[Index] = ml_string_value(Iter->Value);
 			_ml_to_value(Args[Index + 1], Values + Index);
+			++Index;
 		}
 		Instance->Handle = g_object_new_with_properties(Type, NumProperties, Names, Values);
 	} else {
@@ -1840,6 +1953,42 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 				ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Struct, NULL);
 			} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
 				stringmap_insert(Struct->Base.Exports, MethodName, ml_cfunction(MethodInfo, (void *)constructor_invoke));
+			}
+		}
+	}
+	return Slot[0];
+}
+
+static ml_type_t *union_info_lookup(GIUnionInfo *Info) {
+	const char *TypeName = g_base_info_get_name((GIBaseInfo *)Info);
+	ml_type_t **Slot = (ml_type_t **)stringmap_slot(TypeMap, TypeName);
+	if (!Slot[0]) {
+		union_t *Union = new(union_t);
+		Union->Base.Type = GirUnionT;
+		Union->Base.Name = TypeName;
+		Union->Base.hash = ml_default_hash;
+		Union->Base.call = ml_default_call;
+		Union->Base.deref = ml_default_deref;
+		Union->Base.assign = ml_default_assign;
+		Union->Info = Info;
+		ml_type_init((ml_type_t *)Union, GirUnionInstanceT, NULL);
+		Union->Base.Constructor = ml_cfunction(Union, (void *)union_instance);
+		Slot[0] = (ml_type_t *)Union;
+		int NumFields = g_union_info_get_n_fields(Info);
+		for (int I = 0; I < NumFields; ++I) {
+			GIFieldInfo *FieldInfo = g_union_info_get_field(Info, I);
+			const char *FieldName = g_base_info_get_name((GIBaseInfo *)FieldInfo);
+			ml_method_by_name(FieldName, FieldInfo, (ml_callback_t)union_field_ref, Union, NULL);
+		}
+		int NumMethods = g_union_info_get_n_methods(Info);
+		for (int I = 0; I < NumMethods; ++I) {
+			GIFunctionInfo *MethodInfo = g_union_info_get_method(Info, I);
+			const char *MethodName = g_base_info_get_name((GIBaseInfo *)MethodInfo);
+			GIFunctionInfoFlags Flags = g_function_info_get_flags(MethodInfo);
+			if (Flags & GI_FUNCTION_IS_METHOD) {
+				ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Union, NULL);
+			} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
+				stringmap_insert(Union->Base.Exports, MethodName, ml_cfunction(MethodInfo, (void *)constructor_invoke));
 			}
 		}
 	}
@@ -2045,12 +2194,15 @@ static ml_value_t *_value_to_ml(const GValue *Value, GIBaseInfo *Info) {
 				case GI_INFO_TYPE_OBJECT:
 				case GI_INFO_TYPE_INTERFACE: {
 					return ml_gir_instance_get(g_value_get_pointer(Value), InterfaceInfo);
-					break;
 				}
 				case GI_INFO_TYPE_CONSTANT: {
 					break;
 				}
 				case GI_INFO_TYPE_UNION: {
+					union_instance_t *Instance = new(union_instance_t);
+					Instance->Type = (union_t *)union_info_lookup((GIUnionInfo *)InterfaceInfo);
+					Instance->Value = g_value_get_boxed(Value);
+					return (ml_value_t *)Instance;
 					break;
 				}
 				case GI_INFO_TYPE_VALUE: {
@@ -2283,6 +2435,8 @@ ML_GIR_IMPORT(GInputStreamT, Gio, "InputStream");
 static void g_input_stream_callback(GObject *Object, GAsyncResult *Result, gpointer Data) {
 	GInputStream *Stream = (GInputStream *)Object;
 	ml_state_t *Caller = (ml_state_t *)Data;
+	object_instance_t *Instance = (object_instance_t *)g_object_get_qdata(Object, MLQuark);
+	ptrset_remove(Instance->Handlers, Caller);
 	GError *Error = NULL;
 	gssize Count = g_input_stream_read_finish(Stream, Result, &Error);
 	if (Error) ML_ERROR("GirError", "%s", Error->message);
@@ -2291,6 +2445,7 @@ static void g_input_stream_callback(GObject *Object, GAsyncResult *Result, gpoin
 
 static void ML_TYPED_FN(ml_stream_read, (ml_type_t *)GInputStreamT, ml_state_t *Caller, object_instance_t *Value, void *Address, int Count) {
 	GInputStream *Stream = (GInputStream *)Value->Handle;
+	ptrset_insert(Value->Handlers, Caller);
 	g_input_stream_read_async(Stream, Address, Count, 0, NULL, g_input_stream_callback, Caller);
 }
 
@@ -2299,6 +2454,8 @@ ML_GIR_IMPORT(GOutputStreamT, Gio, "OutputStream");
 static void g_output_stream_callback(GObject *Object, GAsyncResult *Result, gpointer Data) {
 	GOutputStream *Stream = (GOutputStream *)Object;
 	ml_state_t *Caller = (ml_state_t *)Data;
+	object_instance_t *Instance = (object_instance_t *)g_object_get_qdata(Object, MLQuark);
+	ptrset_remove(Instance->Handlers, Caller);
 	GError *Error = NULL;
 	gssize Count = g_output_stream_write_finish(Stream, Result, &Error);
 	if (Error) ML_ERROR("GirError", "%s", Error->message);
@@ -2307,6 +2464,7 @@ static void g_output_stream_callback(GObject *Object, GAsyncResult *Result, gpoi
 
 static void ML_TYPED_FN(ml_stream_write, (ml_type_t *)GOutputStreamT, ml_state_t *Caller, object_instance_t *Value, void *Address, int Count) {
 	GOutputStream *Stream = (GOutputStream *)Value->Handle;
+	ptrset_insert(Value->Handlers, Caller);
 	g_output_stream_write_async(Stream, Address, Count, 0, NULL, g_output_stream_callback, Caller);
 }
 
