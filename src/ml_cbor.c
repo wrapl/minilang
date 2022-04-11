@@ -1250,7 +1250,8 @@ ML_FUNCTION(DecodeClosureInfo) {
 		Decls[I].Index = VLQ64_NEXT();
 		Decls[I].Flags = VLQ64_NEXT();
 	}
-	Info->Decls = &Decls[VLQ64_NEXT()];
+	int DeclIndex = VLQ64_NEXT();
+	Info->Decls = DeclIndex >= 0 ? Decls + DeclIndex : NULL;
 	int NumInsts = VLQ64_NEXT();
 	ml_inst_t *Code = Info->Entry = anew(ml_inst_t, NumInsts);
 	ml_inst_t *Halt = Info->Halt = Code + NumInsts;
