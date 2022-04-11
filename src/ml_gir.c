@@ -2435,7 +2435,7 @@ ML_GIR_IMPORT(GInputStreamT, Gio, "InputStream");
 static void g_input_stream_callback(GObject *Object, GAsyncResult *Result, gpointer Data) {
 	GInputStream *Stream = (GInputStream *)Object;
 	ml_state_t *Caller = (ml_state_t *)Data;
-	object_instance_t *Instance = (object_instance_t *)g_object_get_qdata(Object, MLQuark);
+	object_instance_t *Instance = ml_gir_instance_get(Object, NULL);
 	ptrset_remove(Instance->Handlers, Caller);
 	GError *Error = NULL;
 	gssize Count = g_input_stream_read_finish(Stream, Result, &Error);
@@ -2454,7 +2454,7 @@ ML_GIR_IMPORT(GOutputStreamT, Gio, "OutputStream");
 static void g_output_stream_callback(GObject *Object, GAsyncResult *Result, gpointer Data) {
 	GOutputStream *Stream = (GOutputStream *)Object;
 	ml_state_t *Caller = (ml_state_t *)Data;
-	object_instance_t *Instance = (object_instance_t *)g_object_get_qdata(Object, MLQuark);
+	object_instance_t *Instance = ml_gir_instance_get(Object, NULL);
 	ptrset_remove(Instance->Handlers, Caller);
 	GError *Error = NULL;
 	gssize Count = g_output_stream_write_finish(Stream, Result, &Error);
