@@ -746,7 +746,7 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *
 	vlq64_encode(Buffer, Info->FrameSize);
 	vlq64_encode(Buffer, Info->NumParams);
 	vlq64_encode(Buffer, Info->NumUpValues);
-	vlq64_encode(Buffer, Info->Flags);
+	vlq64_encode(Buffer, Info->Flags & (ML_CLOSURE_EXTRA_ARGS | ML_CLOSURE_NAMED_ARGS));
 	const char *Params[Info->NumParams];
 	stringmap_foreach(Info->Params, Params, (void *)ml_closure_info_param_fn);
 	for (int I = 0; I < Info->NumParams; ++I) vlq64_encode_string(Buffer, Params[I]);
