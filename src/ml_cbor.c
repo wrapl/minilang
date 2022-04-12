@@ -773,7 +773,7 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *
 			Inst += 2;
 			break;
 		case MLIT_INST_COUNT_DECL:
-			ml_closure_find_decl(Buffer, Decls, Inst[3].Decls);
+			ml_closure_find_decl(DeclBuffer, Decls, Inst[3].Decls);
 			Inst += 4;
 			break;
 		case MLIT_INST_TYPES:
@@ -801,15 +801,15 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *
 			Inst += 3;
 			break;
 		case MLIT_DECL:
-			ml_closure_find_decl(Buffer, Decls, Inst[1].Decls);
+			ml_closure_find_decl(DeclBuffer, Decls, Inst[1].Decls);
 			Inst += 2;
 			break;
 		case MLIT_COUNT_DECL:
-			ml_closure_find_decl(Buffer, Decls, Inst[2].Decls);
+			ml_closure_find_decl(DeclBuffer, Decls, Inst[2].Decls);
 			Inst += 3;
 			break;
 		case MLIT_COUNT_COUNT_DECL:
-			ml_closure_find_decl(Buffer, Decls, Inst[3].Decls);
+			ml_closure_find_decl(DeclBuffer, Decls, Inst[3].Decls);
 			Inst += 4;
 			break;
 		case MLIT_CLOSURE:
