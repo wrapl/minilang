@@ -717,7 +717,7 @@ static int ml_closure_find_decl(ml_stringbuffer_t *Buffer, inthash_t *Decls, ml_
 	inthash_result_t Result = inthash_search2(Decls, (uintptr_t)Decl);
 	if (Result.Present) return (uintptr_t)Result.Value;
 	int Next = ml_closure_find_decl(Buffer, Decls, Decl->Next);
-	int Index = Decls->Size;
+	int Index = Decls->Size - Decls->Space;
 	vlq64_encode_string(Buffer, Decl->Ident);
 	vlq64_encode(Buffer, Next);
 	vlq64_encode(Buffer, Decl->Source.Line);
@@ -1235,7 +1235,7 @@ ML_FUNCTION(DecodeClosureInfo) {
 	Info->FrameSize = VLQ64_NEXT();
 	Info->NumParams = VLQ64_NEXT();
 	Info->NumUpValues = VLQ64_NEXT();
-	Info->Flags = VLQ64_NEXT();
+	Info->Flags = VLQ64_NEXT() & (ML_CLOSURE_EXTRA_ARGS | ML_CLOSURE_NAMED_ARGS);
 	for (int I = 0; I < Info->NumParams; ++I) {
 		const char *Param = VLQ64_NEXT_STRING();
 		stringmap_insert(Info->Params, Param, (void *)(uintptr_t)(I + 1));

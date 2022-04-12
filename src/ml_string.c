@@ -3395,6 +3395,12 @@ ML_METHOD("length", MLStringBufferT) {
 int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t)) {
 	ml_stringbuffer_node_t *Node = Buffer->Head;
 	if (!Node) return 0;
+	int Start = Buffer->Start;
+	if (!Node->Next) {
+		return callback(Data, Node->Chars + Start, (ML_STRINGBUFFER_NODE_SIZE - Buffer->Space) - Start);
+	}
+	if (callback(Data, Node->Chars + Start, ML_STRINGBUFFER_NODE_SIZE - Start)) return 1;
+	Node = Node->Next;
 	while (Node->Next) {
 		if (callback(Data, Node->Chars, ML_STRINGBUFFER_NODE_SIZE)) return 1;
 		Node = Node->Next;

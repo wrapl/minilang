@@ -1103,6 +1103,116 @@ ML_METHODX("find", MLListT, MLAnyT) {
 	return ml_call(State, EqualMethod, 2, State->Args);
 }
 
+static void ml_list_delete(ml_list_t *List, ml_list_node_t *Node) {
+	ml_list_node_t *Prev = Node->Prev;
+	ml_list_node_t *Next = Node->Next;
+	if (Prev) Prev->Next = Next; else List->Head = Next;
+	if (Next) Next->Prev = Prev; else List->Tail = Prev;
+	List->CachedNode = List->Head;
+	List->CachedIndex = 1;
+	--List->Length;
+}
+
+ML_METHOD("delete", MLListT, MLIntegerT) {
+//<List
+//<Index
+//>any|nil
+// Removes and returns the :mini:`Index`-th value from :mini:`List`.
+//$= let L := list("cake")
+//$= L:delete(2)
+//$= L:delete(-1)
+//$= L
+	ml_list_t *List = (ml_list_t *)Args[0];
+	int Index = ml_integer_value(Args[1]);
+	ml_list_node_t *Node = ml_list_index(List, Index);
+	if (Node) {
+		ml_list_delete(List, Node);
+		return Node->Value;
+	} else {
+		return MLNil;
+	}
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_list_t *List;
+	ml_list_node_t *Node;
+	ml_value_t *Fn;
+	ml_value_t *Args[1];
+} ml_list_remove_state_t;
+
+static void ml_list_pop_state_run(ml_list_remove_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_list_node_t *Node = State->Node;
+	if (Value != MLNil) {
+		ml_list_delete(State->List, Node);
+		ML_CONTINUE(State->Base.Caller, Node->Value);
+	}
+	if ((Node = Node->Next)) {
+		State->Node = Node;
+		State->Args[0] = Node->Value;
+		return ml_call(State, State->Fn, 1, State->Args);
+	}
+	ML_CONTINUE(State->Base.Caller, MLNil);
+}
+
+ML_METHODX("pop", MLListT, MLFunctionT) {
+//<List
+//<Fn
+//>any|nil
+// Removes and returns the first value where :mini:`Fn(Value)` is not :mini:`nil`.
+//$= let L := list(1 .. 10)
+//$= L:pop(3 | _)
+//$= L
+	ml_list_node_t *Node = ((ml_list_t *)Args[0])->Head;
+	if (!Node) ML_RETURN(MLNil);
+	ml_list_remove_state_t *State = new(ml_list_remove_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_list_pop_state_run;
+	State->Fn = Args[1];
+	State->List = (ml_list_t *)Args[0];
+	State->Node = Node;
+	State->Args[0] = Node->Value;
+	return ml_call(State, State->Fn, 1, State->Args);
+}
+
+static void ml_list_pull_state_run(ml_list_remove_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	ml_list_node_t *Node = State->Node;
+	if (Value != MLNil) {
+		ml_list_delete(State->List, Node);
+		ML_CONTINUE(State->Base.Caller, Node->Value);
+	}
+	if ((Node = Node->Prev)) {
+		State->Node = Node;
+		State->Args[0] = Node->Value;
+		return ml_call(State, State->Fn, 1, State->Args);
+	}
+	ML_CONTINUE(State->Base.Caller, MLNil);
+}
+
+ML_METHODX("pull", MLListT, MLFunctionT) {
+//<List
+//<Fn
+//>any|nil
+// Removes and returns the last value where :mini:`Fn(Value)` is not :mini:`nil`.
+//$= let L := list(1 .. 10)
+//$= L:pull(3 | _)
+//$= L
+	ml_list_node_t *Node = ((ml_list_t *)Args[0])->Tail;
+	if (!Node) ML_RETURN(MLNil);
+	ml_list_remove_state_t *State = new(ml_list_remove_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_list_pull_state_run;
+	State->Fn = Args[1];
+	State->List = (ml_list_t *)Args[0];
+	State->Node = Node;
+	State->Args[0] = Node->Value;
+	return ml_call(State, State->Fn, 1, State->Args);
+}
+
 ML_METHOD("permute", MLListT) {
 //!list
 //<List

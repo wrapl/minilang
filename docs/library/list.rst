@@ -79,6 +79,17 @@ list
    Permutes :mini:`List` in place with no sub-cycles.
 
 
+:mini:`meth (List: list):delete(Index: integer): any | nil`
+   Removes and returns the :mini:`Index`-th value from :mini:`List`.
+
+   .. code-block:: mini
+
+      let L := list("cake") :> ["c", "a", "k", "e"]
+      L:delete(2) :> "a"
+      L:delete(-1) :> "e"
+      L :> ["c", "k"]
+
+
 :mini:`meth (List: list):empty: list`
    Removes all elements from :mini:`List` and returns it.
 
@@ -126,8 +137,28 @@ list
    Removes and returns the first element of :mini:`List` or :mini:`nil` if the :mini:`List` is empty.
 
 
+:mini:`meth (List: list):pop(Fn: function): any | nil`
+   Removes and returns the first value where :mini:`Fn(Value)` is not :mini:`nil`.
+
+   .. code-block:: mini
+
+      let L := list(1 .. 10) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      L:pop(3 | _) :> 3
+      L :> [1, 2, 4, 5, 6, 7, 8, 9, 10]
+
+
 :mini:`meth (List: list):pull: any | nil`
    Removes and returns the last element of :mini:`List` or :mini:`nil` if the :mini:`List` is empty.
+
+
+:mini:`meth (List: list):pull(Fn: function): any | nil`
+   Removes and returns the last value where :mini:`Fn(Value)` is not :mini:`nil`.
+
+   .. code-block:: mini
+
+      let L := list(1 .. 10) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      L:pull(3 | _) :> 9
+      L :> [1, 2, 3, 4, 5, 6, 7, 8, 10]
 
 
 :mini:`meth (List: list):push(Values...: any): list`
@@ -144,8 +175,8 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "e"
       L:random :> "a"
+      L:random :> "e"
 
 
 :mini:`meth (List: list):reverse: list`
