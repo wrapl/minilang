@@ -390,6 +390,9 @@ int main(int Argc, const char *Argv[]) {
 		ml_context_set(Main->Context, ML_SCHEDULER_INDEX, &MainSchedule);
 	}
 #endif
+#ifdef ML_LIBRARY
+	stringmap_insert(Sys->Exports, "Args", Args);
+#endif
 #ifdef ML_GTK_CONSOLE
 	if (GtkConsole) {
 		gtk_console_t *Console = gtk_console(&MLRootContext, (ml_getter_t)stringmap_search, Globals);
