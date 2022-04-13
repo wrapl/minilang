@@ -50,9 +50,8 @@ sequence
       list(@1 limit 10) :> [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
 
-:mini:`meth (Value: any) @ (Update: function): sequence`
-   Returns an infinite sequence that repeatedly produces :mini:`Value`. Should be used with :mini:`:limit` or paired with a finite sequence in :mini:`zip`,  :mini:`weave`,  etc.
-   :mini:`Value` is replaced with :mini:`Update(Value)` after each iteration.
+:mini:`meth (Initial: any) @ (Fn: function): sequence`
+   Returns a sequence that produces :mini:`Initial`,  :mini:`Fn(Initial)`,  :mini:`Fn(Fn(Initial))`,  ... stopping when :mini:`Fn(Last)` returns :mini:`nil`.
 
    .. code-block:: mini
 
