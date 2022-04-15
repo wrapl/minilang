@@ -180,23 +180,25 @@ static void ml_polynomial_call_factor(ml_polynomial_call_state_t *State) {
 		}
 	}
 	ml_factors_t *F2 = State->F;
-	int Count2 = F2->Count;
 	for (int I = State->I2; I < F->Count; ++I) {
 		ml_substitution_t *Sub = inthash_search(State->Subs, F->Factors[I].Variable);
 		if (Sub) {
-			F2->Count = Count2;
 			State->I2 = I + 1;
 			State->Args[2] = Sub->Values[F->Factors[I].Degree - 1];
 			State->Base.run = (ml_state_fn)ml_polynomial_factor_run;
 			return ml_call(State, MulMethod, 2, State->Args + 1);
-		} else {
-			F2->Factors[Count2++] = F->Factors[I];
+		} else if (F2) {
+			F2->Factors[F2->Count++] = F->Factors[I];
 			F2->Degree += F->Factors[I].Degree;
+		} else {
+			F2 = State->F = xnew(ml_factors_t, F->Count - I, ml_factor_t);
+			F2->Factors[0] = F->Factors[I];
+			F2->Degree += F->Factors[I].Degree;
+			F2->Count = 1;
 		}
 	}
-	F2->Count = Count2;
 	State->I2 = F->Count + 1;
-	if (F2->Count) {
+	if (F2) {
 		ml_polynomial_t *Q = xnew(ml_polynomial_t, 1, ml_term_t);
 		Q->Type = MLPolynomialT;
 		Q->Count = 1;
@@ -230,18 +232,21 @@ static void ml_polynomial_call_term(ml_polynomial_call_state_t *State) {
 			ML_CONTINUE(State->Base.Caller, ml_real(Term.Coeff));
 		}
 	}
+	State->F = NULL;
 	const ml_factors_t *F = Term.Factors;
 	for (int I = 0; I < F->Count; ++I) {
 		ml_substitution_t *Sub = inthash_search(State->Subs, F->Factors[I].Variable);
 		if (Sub) {
-			ml_factors_t *F2 = State->F = xnew(ml_factors_t, F->Count - 1, ml_factor_t);
-			int Degree = 0;
-			for (int J = 0; J < I; ++J) {
-				F2->Factors[J] = F->Factors[J];
-				Degree += F->Factors[J].Degree;
+			if (I) {
+				ml_factors_t *F2 = State->F = xnew(ml_factors_t, F->Count - 1, ml_factor_t);
+				int Degree = 0;
+				for (int J = 0; J < I; ++J) {
+					F2->Factors[J] = F->Factors[J];
+					Degree += F->Factors[J].Degree;
+				}
+				F2->Degree = Degree;
+				F2->Count = I;
 			}
-			F2->Degree = Degree;
-			F2->Count = I;
 			State->Args[1] = Sub->Values[F->Factors[I].Degree - 1];
 			State->I2 = I + 1;
 			return ml_polynomial_call_factor(State);
