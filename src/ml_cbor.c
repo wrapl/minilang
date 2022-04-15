@@ -713,10 +713,11 @@ static int ml_closure_info_param_fn(const char *Name, void *Index, const char *P
 }
 
 static int ml_closure_find_decl(ml_stringbuffer_t *Buffer, inthash_t *Decls, ml_decl_t *Decl) {
+	if (!Decl) return -1;
 	inthash_result_t Result = inthash_search2(Decls, (uintptr_t)Decl);
 	if (Result.Present) return (uintptr_t)Result.Value;
-	int Next = Decl->Next ? ml_closure_find_decl(Buffer, Decls, Decl->Next) : -1;
-	int Index = Decls->Size;
+	int Next = ml_closure_find_decl(Buffer, Decls, Decl->Next);
+	int Index = Decls->Size - Decls->Space;
 	vlq64_encode_string(Buffer, Decl->Ident);
 	vlq64_encode(Buffer, Next);
 	vlq64_encode(Buffer, Decl->Source.Line);
@@ -745,7 +746,7 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *
 	vlq64_encode(Buffer, Info->FrameSize);
 	vlq64_encode(Buffer, Info->NumParams);
 	vlq64_encode(Buffer, Info->NumUpValues);
-	vlq64_encode(Buffer, Info->Flags);
+	vlq64_encode(Buffer, Info->Flags & (ML_CLOSURE_EXTRA_ARGS | ML_CLOSURE_NAMED_ARGS));
 	const char *Params[Info->NumParams];
 	stringmap_foreach(Info->Params, Params, (void *)ml_closure_info_param_fn);
 	for (int I = 0; I < Info->NumParams; ++I) vlq64_encode_string(Buffer, Params[I]);
@@ -772,7 +773,7 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *
 			Inst += 2;
 			break;
 		case MLIT_INST_COUNT_DECL:
-			ml_closure_find_decl(Buffer, Decls, Inst[3].Decls);
+			ml_closure_find_decl(DeclBuffer, Decls, Inst[3].Decls);
 			Inst += 4;
 			break;
 		case MLIT_INST_TYPES:
@@ -800,15 +801,15 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *
 			Inst += 3;
 			break;
 		case MLIT_DECL:
-			ml_closure_find_decl(Buffer, Decls, Inst[1].Decls);
+			ml_closure_find_decl(DeclBuffer, Decls, Inst[1].Decls);
 			Inst += 2;
 			break;
 		case MLIT_COUNT_DECL:
-			ml_closure_find_decl(Buffer, Decls, Inst[2].Decls);
+			ml_closure_find_decl(DeclBuffer, Decls, Inst[2].Decls);
 			Inst += 3;
 			break;
 		case MLIT_COUNT_COUNT_DECL:
-			ml_closure_find_decl(Buffer, Decls, Inst[3].Decls);
+			ml_closure_find_decl(DeclBuffer, Decls, Inst[3].Decls);
 			Inst += 4;
 			break;
 		case MLIT_CLOSURE:
@@ -911,6 +912,7 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *
 			break;
 		case MLIT_CLOSURE: {
 			ml_closure_info_t *Info = Inst[1].ClosureInfo;
+			Info->Type = MLClosureInfoT;
 			ml_list_put(Values, (ml_value_t *)Info);
 			vlq64_encode(Buffer, Info->NumUpValues);
 			for (int N = 0; N < Info->NumUpValues; ++N) vlq64_encode(Buffer, Inst[2 + N].Count);
@@ -941,6 +943,7 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *
 static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLClosureT, ml_cbor_writer_t *Writer, ml_closure_t *Closure) {
 	minicbor_write_tag(Writer->Data, Writer->WriteFn, 27);
 	ml_closure_info_t *Info = Closure->Info;
+	Info->Type = MLClosureInfoT;
 	minicbor_write_array(Writer->Data, Writer->WriteFn, 2 + Info->NumUpValues);
 	minicbor_write_string(Writer->Data, Writer->WriteFn, 1);
 	Writer->WriteFn(Writer->Data, (unsigned char *)"*", 1);
@@ -1232,7 +1235,7 @@ ML_FUNCTION(DecodeClosureInfo) {
 	Info->FrameSize = VLQ64_NEXT();
 	Info->NumParams = VLQ64_NEXT();
 	Info->NumUpValues = VLQ64_NEXT();
-	Info->Flags = VLQ64_NEXT();
+	Info->Flags = VLQ64_NEXT() & (ML_CLOSURE_EXTRA_ARGS | ML_CLOSURE_NAMED_ARGS);
 	for (int I = 0; I < Info->NumParams; ++I) {
 		const char *Param = VLQ64_NEXT_STRING();
 		stringmap_insert(Info->Params, Param, (void *)(uintptr_t)(I + 1));
@@ -1242,13 +1245,14 @@ ML_FUNCTION(DecodeClosureInfo) {
 	for (int I = 0; I < NumDecls; ++I) {
 		Decls[I].Ident = VLQ64_NEXT_STRING();
 		int Next = VLQ64_NEXT();
-		Decls[I].Next = Next > 0 ? &Decls[Next] : NULL;
+		Decls[I].Next = Next >= 0 ? &Decls[Next] : NULL;
 		Decls[I].Source.Name = Info->Source;
 		Decls[I].Source.Line = VLQ64_NEXT();
 		Decls[I].Index = VLQ64_NEXT();
 		Decls[I].Flags = VLQ64_NEXT();
 	}
-	Info->Decls = &Decls[VLQ64_NEXT()];
+	int DeclIndex = VLQ64_NEXT();
+	Info->Decls = DeclIndex >= 0 ? &Decls[DeclIndex] : NULL;
 	int NumInsts = VLQ64_NEXT();
 	ml_inst_t *Code = Info->Entry = anew(ml_inst_t, NumInsts);
 	ml_inst_t *Halt = Info->Halt = Code + NumInsts;

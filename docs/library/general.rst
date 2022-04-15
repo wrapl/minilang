@@ -13,16 +13,16 @@ general
    *TBD*
 
 
-.. _fun-collect:
-
-:mini:`fun collect()`
-   *TBD*
-
-
 .. _fun-halt:
 
 :mini:`fun halt(Code?: integer)`
    
+
+
+.. _fun-mlmemcollect:
+
+:mini:`fun mlmemcollect()`
+   Call garbage collector.
 
 
 .. _fun-now:
@@ -35,6 +35,18 @@ general
 
 :mini:`fun exchange(Arg₁: any)`
    *TBD*
+
+
+.. _fun-mlmemsize:
+
+:mini:`fun mlmemsize(Value: any): list[map]`
+   Returns information about the blocks of memory referenced by :mini:`Value`.
+
+
+.. _fun-mlmemtrace:
+
+:mini:`fun mlmemtrace(Value: any): list[map]`
+   Returns information about the blocks of memory referenced by :mini:`Value`.
 
 
 .. _fun-print:

@@ -1488,11 +1488,10 @@ ML_METHOD("@", MLAnyT) {
 }
 
 ML_METHOD("@", MLAnyT, MLFunctionT) {
-//<Value
-//<Update
+//<Initial
+//<Fn
 //>sequence
-// Returns an infinite sequence that repeatedly produces :mini:`Value`. Should be used with :mini:`:limit` or paired with a finite sequence in :mini:`zip`, :mini:`weave`, etc.
-// :mini:`Value` is replaced with :mini:`Update(Value)` after each iteration.
+// Returns a sequence that produces :mini:`Initial`, :mini:`Fn(Initial)`, :mini:`Fn(Fn(Initial))`, ... stopping when :mini:`Fn(Last)` returns :mini:`nil`.
 //$= list(1 @ (_ + 1) limit 10)
 	ML_CHECK_ARG_COUNT(1);
 	ml_repeated_t *Repeated = new(ml_repeated_t);

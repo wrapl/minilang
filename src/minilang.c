@@ -134,12 +134,6 @@ ML_FUNCTION(MLHalt) {
 	}
 }
 
-ML_FUNCTION(MLCollect) {
-//@collect
-	GC_gcollect();
-	return MLNil;
-}
-
 static int ml_globals_add(const char *Name, ml_value_t *Value, ml_value_t *Result) {
 	ml_map_insert(Result, ml_string(Name, -1), Value);
 	return 0;
@@ -191,6 +185,10 @@ static void ml_main_state_run(ml_state_t *State, ml_value_t *Value) {
 #endif
 }
 
+extern ml_cfunction_t MLMemTrace[];
+extern ml_cfunction_t MLMemSize[];
+extern ml_cfunction_t MLMemCollect[];
+
 int main(int Argc, const char *Argv[]) {
 #ifdef ML_BACKTRACE
 	BacktraceState = backtrace_create_state(Argv[0], 0, NULL, NULL);
@@ -214,7 +212,11 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "halt", MLHalt);
 	stringmap_insert(Globals, "break", MLBreak);
 	stringmap_insert(Globals, "debugger", MLDebugger);
-	stringmap_insert(Globals, "collect", MLCollect);
+	stringmap_insert(Globals, "memory", ml_module("memory",
+		"trace", MLMemTrace,
+		"size", MLMemSize,
+		"collect", MLMemCollect,
+	NULL));
 	stringmap_insert(Globals, "callcc", MLCallCC);
 	stringmap_insert(Globals, "markcc", MLMarkCC);
 	stringmap_insert(Globals, "calldc", MLCallDC);
@@ -387,6 +389,9 @@ int main(int Argc, const char *Argv[]) {
 		ml_scheduler_queue_init(8);
 		ml_context_set(Main->Context, ML_SCHEDULER_INDEX, &MainSchedule);
 	}
+#endif
+#ifdef ML_LIBRARY
+	stringmap_insert(Sys->Exports, "Args", Args);
 #endif
 #ifdef ML_GTK_CONSOLE
 	if (GtkConsole) {

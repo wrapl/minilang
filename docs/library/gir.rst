@@ -177,6 +177,22 @@ gir
    *TBD*
 
 
+.. _type-gir-union:
+
+:mini:`type gir::union < gir::baseinfo`
+   A gobject-introspection struct type.
+
+
+.. _type-gir-unioninstance:
+
+:mini:`type gir::unioninstance`
+   A gobject-introspection struct instance.
+
+
+:mini:`meth (Union: string::buffer):append(Arg₂: gir::unioninstance): string`
+   *TBD*
+
+
 :mini:`meth integer(Value: gir::enumvalue): integer`
    *TBD*
 

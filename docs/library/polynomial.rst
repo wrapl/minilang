@@ -97,6 +97,10 @@ polynomial
    *TBD*
 
 
+:mini:`meth (Arg₁: polynomial):d(Arg₂: polynomial)`
+   *TBD*
+
+
 :mini:`meth (Arg₁: polynomial):red(Arg₂: polynomial)`
    *TBD*
 
