@@ -17,9 +17,21 @@ typedef struct {
 	ml_factor_t Factors[];
 } ml_factors_t;
 
+#ifdef ML_COMPLEX
+#include <complex.h>
+#undef I
+
+typedef complex double ml_coeff_t;
+
+#else
+
+typedef double ml_coeff_t;
+
+#endif
+
 typedef struct {
 	const ml_factors_t *Factors;
-	double Coeff;
+	ml_coeff_t Coeff;
 } ml_term_t;
 
 typedef struct {

@@ -340,11 +340,11 @@ static void ml_array_init_run(ml_array_init_state_t *State, ml_value_t *Value) {
 		break;
 #ifdef ML_COMPLEX
 	case ML_ARRAY_FORMAT_C32:
-		*(float *)State->Address = ml_complex_value(Value);
+		*(complex float *)State->Address = ml_complex_value(Value);
 		State->Address += sizeof(complex float);
 		break;
 	case ML_ARRAY_FORMAT_C64:
-		*(double *)State->Address = ml_complex_value(Value);
+		*(complex double *)State->Address = ml_complex_value(Value);
 		State->Address += sizeof(complex double);
 		break;
 #endif
