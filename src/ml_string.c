@@ -1981,7 +1981,17 @@ ML_METHOD("escape", MLStringT) {
 	return ml_stringbuffer_get_value(Buffer);
 }
 
-
+ML_METHOD("contains", MLStringT, MLStringT) {
+//<Haystack
+//<Needle
+//>string|nil
+// Returns the :mini:`Haystack` if it contains :mini:`Pattern` or :mini:`nil` otherwise.
+//$= "The cat snored as he slept":contains("cat")
+//$= "The cat snored as he slept":contains("dog")
+	const char *Haystack = ml_string_value(Args[0]);
+	const char *Needle = ml_string_value(Args[1]);
+	return strstr(Haystack, Needle) ? Args[0] : MLNil;
+}
 
 ML_METHOD("find", MLStringT, MLStringT) {
 //<Haystack
@@ -2074,6 +2084,34 @@ ML_METHOD("find2", MLStringT, MLStringT, MLIntegerT) {
 	} else {
 		return MLNil;
 	}
+}
+
+ML_METHOD("contains", MLStringT, MLRegexT) {
+//<Haystack
+//<Pattern
+//>string|nil
+// Returns the :mini:`Haystack` if it contains :mini:`Pattern` or :mini:`nil` otherwise.
+//$= "The cat snored as he slept":contains(r"[a-z]{3}")
+//$= "The cat snored as he slept":contains(r"[0-9]+")
+	const char *Haystack = ml_string_value(Args[0]);
+	regex_t *Regex = ml_regex_value(Args[1]);
+	regmatch_t Matches[1];
+#ifdef ML_TRE
+	int Length = ml_string_length(Args[0]);
+	switch (regnexec(Regex, Haystack, Length, 1, Matches, 0)) {
+#else
+	switch (regexec(Regex, Haystack, 1, Matches, 0)) {
+#endif
+	case REG_NOMATCH:
+		return MLNil;
+	case REG_ESPACE: {
+		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
+		char *ErrorMessage = snew(ErrorSize + 1);
+		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
+		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+	}
+	}
+	return Args[0];
 }
 
 ML_METHOD("find", MLStringT, MLRegexT) {
