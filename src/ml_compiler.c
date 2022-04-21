@@ -5243,30 +5243,12 @@ static mlc_block_expr_t *ml_accept_block_body(ml_parser_t *Parser) {
 static mlc_expr_t *ml_accept_block(ml_parser_t *Parser) {
 	mlc_block_expr_t *BlockExpr = ml_accept_block_body(Parser);
 	if (ml_parse(Parser, MLT_ON)) {
-		mlc_catch_expr_t **CatchSlot = &BlockExpr->Catches;
-		do {
-			mlc_catch_expr_t *CatchExpr = CatchSlot[0] = new(mlc_catch_expr_t);
-			CatchExpr->Line = Parser->Source.Line;
-			CatchSlot = &CatchExpr->Next;
-			ml_accept(Parser, MLT_IDENT);
-			CatchExpr->Ident = Parser->Ident;
-			if (ml_parse2(Parser, MLT_COLON)) {
-				mlc_catch_type_t **TypeSlot = &CatchExpr->Types;
-				do {
-					ml_accept(Parser, MLT_VALUE);
-					ml_value_t *Value = Parser->Value;
-					if (!ml_is(Value, MLStringT)) {
-						ml_parse_error(Parser, "ParseError", "Expected <string> not <%s>", ml_typeof(Value)->Name);
-					}
-					mlc_catch_type_t *Type = TypeSlot[0] = new(mlc_catch_type_t);
-					TypeSlot = &Type->Next;
-					Type->Type = ml_string_value(Value);
-				} while (ml_parse2(Parser, MLT_COMMA));
-			}
-			ml_accept(Parser, MLT_DO);
-			mlc_block_expr_t *Body = ml_accept_block_body(Parser);
-			CatchExpr->Body = ML_EXPR_END(Body);
-		} while (ml_parse(Parser, MLT_ON));
+		mlc_catch_expr_t *CatchExpr = BlockExpr->Catches = new(mlc_catch_expr_t);
+		CatchExpr->Line = Parser->Source.Line;
+		ml_accept(Parser, MLT_IDENT);
+		CatchExpr->Ident = Parser->Ident;
+		ml_accept(Parser, MLT_DO);
+		CatchExpr->Body = ml_accept_block(Parser);
 	}
 	return ML_EXPR_END(BlockExpr);
 }
