@@ -1090,6 +1090,30 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLRealRangeT, ml_cbor_writer_t *Wr
 	return NULL;
 }
 
+#ifdef ML_COMPLEX
+
+#include <complex.h>
+#undef I
+
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLComplexT, ml_cbor_writer_t *Writer, ml_complex_t *Arg) {
+	minicbor_write_tag(Writer->Data, Writer->WriteFn, 27);
+	minicbor_write_array(Writer->Data, Writer->WriteFn, 3);
+	minicbor_write_string(Writer->Data, Writer->WriteFn, 7);
+	Writer->WriteFn(Writer->Data, (unsigned const char *)"complex", 7);
+	minicbor_write_float8(Writer->Data, Writer->WriteFn, creal(Arg->Value));
+	minicbor_write_float8(Writer->Data, Writer->WriteFn, cimag(Arg->Value));
+	return NULL;
+}
+
+ML_FUNCTION(DecodeComplex) {
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLRealT);
+	ML_CHECK_ARG_TYPE(1, MLRealT);
+	return ml_complex(ml_real_value(Args[0]) + ml_real_value(Args[1]) * _Complex_I);
+}
+
+#endif
+
 ML_METHOD_ANON(CborEncode, "cbor::encode");
 
 ML_METHOD(CborEncode, MLAnyT) {
@@ -1372,6 +1396,9 @@ static void ml_cbor_default_global(const char *Name, void *Value) {
 void ml_cbor_init(stringmap_t *Globals) {
 	if (!CborObjects) CborObjects = ml_map();
 	ml_cbor_default_object("range", RangeMethod);
+#ifdef ML_COMPLEX
+	ml_cbor_default_object("complex", (ml_value_t *)DecodeComplex);
+#endif
 	ml_cbor_default_object("!", (ml_value_t *)DecodeClosureInfo);
 	ml_cbor_default_object("*", (ml_value_t *)DecodeClosure);
 	ml_cbor_default_tag(35, ml_cbor_read_regex);

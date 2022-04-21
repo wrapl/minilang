@@ -72,6 +72,10 @@ ML_METHOD(MLComplexT, MLRealT) {
 	return ml_complex(ml_real_value(Args[0]));
 }
 
+ML_METHOD(MLComplexT, MLRealT, MLRealT) {
+	return ml_complex(ml_real_value(Args[0]) + ml_real_value(Args[1]) * _Complex_I);
+}
+
 ML_METHOD(MLRealT, MLComplexT) {
 	return ml_real(creal(ml_complex_value(Args[0])));
 }

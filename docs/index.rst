@@ -37,9 +37,9 @@ Sample
 .. code-block:: mini
 
    print("Hello world!\n")
-   
+
    var L := [1, 2, 3, 4, 5]
-   
+
    for X in L do
       print('X = {X}\n')
    end
@@ -49,12 +49,12 @@ Details
 
 .. toctree::
    :maxdepth: 1
-   
+
    /start
    /language
    /library
-   /features
+   /topics
    /embedding
    /extending
    /api
-   /internals   
+   /internals

@@ -250,7 +250,7 @@ A declaration of the form :mini:`Expression: Name(Args...)` is equivalent to :mi
 
    class: point(:X, :Y)
 
-More details can be found in :doc:`features/modules` and :doc:`features/classes`.
+More details can be found in :doc:`/topics/modules` and :doc:`/topics/classes`.
 
 Exports, etc.
 .............
@@ -417,7 +417,7 @@ The general :mini:`switch`-expression selects a branch corresponding to a value 
       Block
    end
 
-*Minilang* includes switch providers for several basic types including numbers, strings and types. More details can be found in :doc:`/features/switch`.
+*Minilang* includes switch providers for several basic types including numbers, strings and types. More details can be found in :doc:`/topics/switch`.
 
 Loop Expressions
 ~~~~~~~~~~~~~~~~
@@ -521,7 +521,7 @@ The default step size is :mini:`1` but can be changed using the :mini:`:by` meth
    X = 7
    X = 9
 
-*Minilang* provides many other types of sequences as well as functions that construct new sequences from others. More details can be found in :doc:`/features/sequences`.
+*Minilang* provides many other types of sequences as well as functions that construct new sequences from others. More details can be found in :doc:`/topics/sequences`.
 
 Functions
 ~~~~~~~~~
@@ -665,12 +665,12 @@ For example:
 Generics
 ........
 
-*Minilang* can optionally be built with support for generic types such as :mini:`list[integer]`, :mini:`map[string, tuple[string, number]]`, etc. More details can be found in :doc:`/features/generics`.
+*Minilang* can optionally be built with support for generic types such as :mini:`list[integer]`, :mini:`map[string, tuple[string, number]]`, etc. More details can be found in :doc:`/topics/types`.
 
 Classes, Enums and Flags
 ........................
 
-*Minilang* can optionally be built with support for user-defined types, using the :mini:`class`, :mini:`enum` or :mini:`flags` types. More details can be found in :doc:`/features/classes`.
+*Minilang* can optionally be built with support for user-defined types, using the :mini:`class`, :mini:`enum` or :mini:`flags` types. More details can be found in :doc:`/topics/classes`.
 
 Methods
 ~~~~~~~
@@ -690,7 +690,7 @@ Methods behave as *atoms*, that is two methods with the same characters internal
    +
    <>
 
-Methods provide type-dependant function calls. Each method is effectively a mapping from lists of types to functions. When called with arguments, a method looks through its entries for the best match based on the types of *all* of the arguments and calls the corresponding function. More information on how methods work can be found in :doc:`/features/methods`.
+Methods provide type-dependant function calls. Each method is effectively a mapping from lists of types to functions. When called with arguments, a method looks through its entries for the best match based on the types of *all* of the arguments and calls the corresponding function. More information on how methods work can be found in :doc:`/topics/methods`.
 
 .. code-block:: mini
 
@@ -758,7 +758,7 @@ Macros can be created using the :mini:`macro` constructor, the example below use
       print('X = {X}, Y = {Y}\n')
    end
 
-See :doc:`/features/macros` for more information.
+See :doc:`/topics/macros` for more information.
 
 Values
 ------

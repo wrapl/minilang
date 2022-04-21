@@ -1172,7 +1172,7 @@ ML_METHOD("-", MLNumberT, MLPolynomialT) {
 //<B
 //>polynomial
 // Returns :mini:`A - B`.
-	ml_polynomial_t A = (ml_polynomial_t *)Args[1];
+	ml_polynomial_t *A = (ml_polynomial_t *)Args[1];
 	ml_coeff_t N = ml_coeff_value(Args[0]);
 	int CA = A->Count;
 	if (abs(N) < DBL_EPSILON) {

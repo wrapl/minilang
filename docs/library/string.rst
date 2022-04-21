@@ -377,6 +377,26 @@ When creating a substring,  the first index is inclusive and second index is exc
       "😀️":code :> 128512
 
 
+:mini:`meth (Haystack: string):contains(Pattern: regex): string | nil`
+   Returns the :mini:`Haystack` if it contains :mini:`Pattern` or :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      "The cat snored as he slept":contains(r"[a-z]{3}")
+      :> "The cat snored as he slept"
+      "The cat snored as he slept":contains(r"[0-9]+") :> nil
+
+
+:mini:`meth (Haystack: string):contains(Needle: string): string | nil`
+   Returns the :mini:`Haystack` if it contains :mini:`Pattern` or :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      "The cat snored as he slept":contains("cat")
+      :> "The cat snored as he slept"
+      "The cat snored as he slept":contains("dog") :> nil
+
+
 :mini:`meth (String: string):count: integer`
    Returns the number of UTF-8 characters in :mini:`String`. Use :mini:`:size` to get the number of bytes.
 

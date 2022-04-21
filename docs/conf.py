@@ -75,6 +75,7 @@ extensions = [
 	'sphinx.ext.graphviz',
 	'sphinx.ext.viewcode',
 	'sphinx_toolbox.collapse',
+	'sphinx_a4doc',
 ]
 
 graphviz_output_format = "svg"
