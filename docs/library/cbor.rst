@@ -21,6 +21,12 @@ cbor
    Constructors to call for tag 27 (objects).
 
 
+.. _fun-decodecomplex:
+
+:mini:`fun decodecomplex(Arg₁: real, Arg₂: real)`
+   *TBD*
+
+
 :mini:`meth cbor::encode(Value: string::buffer, Arg₂: any): address | error`
    Encode :mini:`Value` into CBOR or return an error if :mini:`Value` cannot be encoded.
 

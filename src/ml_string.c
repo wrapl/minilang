@@ -3538,9 +3538,9 @@ void ml_string_init() {
 	GC_word StringBufferLayout[] = {1};
 	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
 	stringmap_insert(MLStringT->Exports, "buffer", MLStringBufferT);
-	regcomp(IntFormat, "^%[-+ #'0]*[.0-9]*[dioxX]$", REG_NOSUB);
-	regcomp(LongFormat, "^%[-+ #'0]*[.0-9]*l[dioxX]$", REG_NOSUB);
-	regcomp(RealFormat, "^%[-+ #'0]*[.0-9]*[aefgAEG]$", REG_NOSUB);
+	regcomp(IntFormat, "^\\s*%[-+ #'0]*[.0-9]*[diouxX]\\s*$", REG_NOSUB);
+	regcomp(LongFormat, "^\\s*%[-+ #'0]*[.0-9]*l[diouxX]\\s*$", REG_NOSUB);
+	regcomp(RealFormat, "^\\s*%[-+ #'0]*[.0-9]*[aefgAEG]\\s*$", REG_NOSUB);
 	stringmap_insert(MLStringT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLStringSwitch));
 #include "ml_string_init.c"
 #ifdef ML_TRE

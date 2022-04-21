@@ -11,6 +11,9 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "time"
 
+// Overview
+// Provides time and date operations. Depending on how Minilang was built, may need to be imported using :mini:`import: time("std/time")`.
+
 typedef struct {
 	const ml_type_t *Type;
 	struct timespec Value[1];
@@ -231,6 +234,10 @@ static int ml_time_compare(ml_time_t *TimeA, ml_time_t *TimeB) {
 }
 
 ML_METHOD("<>", MLTimeT, MLTimeT) {
+//<A
+//<B
+//>integer
+// Compares the times :mini:`A` and :mini:`B` and returns :mini:`-1`, :mini:`0` or :mini:`1` respectively.
 	ml_time_t *TimeA = (ml_time_t *)Args[0];
 	ml_time_t *TimeB = (ml_time_t *)Args[1];
 	return ml_integer(ml_time_compare(TimeA, TimeB));
@@ -251,6 +258,12 @@ ml_comp_method_time_time("<=", <=);
 ml_comp_method_time_time(">=", >=);
 
 ML_METHOD("-", MLTimeT, MLTimeT) {
+//<End
+//<Start
+//>real
+// Returns the time elasped betwen :mini:`Start` and :mini:`End` in seconds.
+//$- import: time("std/time")
+//$= time("2022-04-01 12:00:00") - time("2022-04-01 11:00:00")
 	ml_time_t *TimeA = (ml_time_t *)Args[0];
 	ml_time_t *TimeB = (ml_time_t *)Args[1];
 	double Sec = difftime(TimeA->Value->tv_sec, TimeB->Value->tv_sec);
@@ -259,6 +272,12 @@ ML_METHOD("-", MLTimeT, MLTimeT) {
 }
 
 ML_METHOD("+", MLTimeT, MLNumberT) {
+//<Start
+//<Duration
+//>time
+// Returns the time :mini:`Duration` seconds after :mini:`Start`.
+//$- import: time("std/time")
+//$= time("2022-04-01 12:00:00") + 3600
 	ml_time_t *TimeA = (ml_time_t *)Args[0];
 	double Diff = ml_real_value(Args[1]);
 	double DiffSec = floor(Diff);
@@ -273,6 +292,12 @@ ML_METHOD("+", MLTimeT, MLNumberT) {
 }
 
 ML_METHOD("-", MLTimeT, MLNumberT) {
+//<Start
+//<Duration
+//>time
+// Returns the time :mini:`Duration` seconds before :mini:`Start`.
+//$- import: time("std/time")
+//$= time("2022-04-01 12:00:00") - 3600
 	ml_time_t *TimeA = (ml_time_t *)Args[0];
 	double Diff = -ml_real_value(Args[1]);
 	double DiffSec = floor(Diff);

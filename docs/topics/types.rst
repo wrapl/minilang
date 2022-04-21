@@ -63,7 +63,7 @@ The parents of a type can be obtained using :mini:`Type:parents`. The result is 
    [<<number>>, <<integer>>, <<real>>, <<function>>, <<complex>>]
 
 Types have Exports
------------------
+------------------
 
 Types in *Minilang* can also have named exports, accessible as :mini:`Type::Name`. This is used to collect related values by type, and allows types to be used as modules (when *Minilang* is built with module support).
 

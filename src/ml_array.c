@@ -6698,7 +6698,23 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_cbor_writer_t *Writer
 			}
 			Size *= Array->Dimensions[I].Size;
 		}
+#ifdef ML_COMPLEX
+		if (Array->Format == ML_ARRAY_FORMAT_C32) {
+			ml_cbor_write_tag(Writer, 27);
+			ml_cbor_write_array(Writer, 2);
+			ml_cbor_write_string(Writer, 16);
+			ml_cbor_write_raw(Writer, (unsigned const char *)"array::complex32", 16);
+		} else if (Array->Format == ML_ARRAY_FORMAT_C64) {
+			ml_cbor_write_tag(Writer, 27);
+			ml_cbor_write_array(Writer, 2);
+			ml_cbor_write_string(Writer, 16);
+			ml_cbor_write_raw(Writer, (unsigned const char *)"array::complex64", 16);
+		} else {
+			ml_cbor_write_tag(Writer, Tags[Array->Format]);
+		}
+#else
 		ml_cbor_write_tag(Writer, Tags[Array->Format]);
+#endif
 		ml_cbor_write_bytes(Writer, Size);
 		ml_cbor_write_array_typed(FlatDegree, FlatSize, Array->Dimensions, Array->Base.Value, Writer);
 	}
@@ -6727,7 +6743,7 @@ static ml_value_t *ml_cbor_read_multi_array_fn(ml_cbor_reader_t *Reader, ml_valu
 	return (ml_value_t *)Target;
 }
 
-static ml_value_t *ml_cbor_read_typed_array_fn(ml_cbor_reader_t *Reader, ml_value_t *Value, ml_array_format_t Format) {
+static ml_value_t *ml_cbor_read_typed_array_fn(ml_value_t *Value, ml_array_format_t Format) {
 	if (!ml_is(Value, MLAddressT)) return ml_error("TagError", "Array requires bytes");
 	ml_address_t *Buffer = (ml_address_t *)Value;
 	int ItemSize = MLArraySizes[Format];
@@ -6741,7 +6757,7 @@ static ml_value_t *ml_cbor_read_typed_array_fn(ml_cbor_reader_t *Reader, ml_valu
 
 #define ML_CBOR_READ_TYPED_ARRAY(TYPE, FORMAT) \
 static ml_value_t *ml_cbor_read_ ## TYPE ## _array_fn(ml_cbor_reader_t *Reader, ml_value_t *Value) { \
-	return ml_cbor_read_typed_array_fn(Reader, Value, ML_ARRAY_FORMAT_ ## FORMAT); \
+	return ml_cbor_read_typed_array_fn(Value, ML_ARRAY_FORMAT_ ## FORMAT); \
 }
 
 ML_CBOR_READ_TYPED_ARRAY(uint8, U8)
@@ -6766,6 +6782,16 @@ static ml_value_t *ml_cbor_read_any_array_fn(ml_cbor_reader_t *Reader, ml_value_
 	Array->Base.Value = (char *)Values;
 	ML_LIST_FOREACH(Value, Iter) *Values++ = Iter->Value;
 	return (ml_value_t *)Array;
+}
+
+ML_FUNCTION(MLCborReadComplex32) {
+	ML_CHECK_ARG_COUNT(1);
+	return ml_cbor_read_typed_array_fn(Args[0], ML_ARRAY_FORMAT_C32);
+}
+
+ML_FUNCTION(MLCborReadComplex64) {
+	ML_CHECK_ARG_COUNT(1);
+	return ml_cbor_read_typed_array_fn(Args[0], ML_ARRAY_FORMAT_C64);
 }
 
 #endif
@@ -6921,5 +6947,7 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_cbor_default_tag(79, ml_cbor_read_int64_array_fn);
 	ml_cbor_default_tag(85, ml_cbor_read_float32_array_fn);
 	ml_cbor_default_tag(86, ml_cbor_read_float64_array_fn);
+	ml_cbor_default_object("array::complex32", (ml_value_t *)MLCborReadComplex32);
+	ml_cbor_default_object("array::complex64", (ml_value_t *)MLCborReadComplex64);
 #endif
 }

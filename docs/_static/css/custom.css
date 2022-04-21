@@ -104,3 +104,11 @@ div.folders ul li:after {
 .bd-sidebar {
 	overflow-y: auto;
 }
+
+.railroad-diagram text {
+	dominant-baseline: central;
+}
+
+.railroad-diagram .terminal text {
+	color: #0098dd;
+}
