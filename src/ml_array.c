@@ -6951,7 +6951,9 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_cbor_default_tag(79, ml_cbor_read_int64_array_fn);
 	ml_cbor_default_tag(85, ml_cbor_read_float32_array_fn);
 	ml_cbor_default_tag(86, ml_cbor_read_float64_array_fn);
+#ifdef ML_COMPLEX
 	ml_cbor_default_object("array::complex32", (ml_value_t *)MLCborReadComplex32);
 	ml_cbor_default_object("array::complex64", (ml_value_t *)MLCborReadComplex64);
+#endif
 #endif
 }
