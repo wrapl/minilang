@@ -925,7 +925,6 @@ struct mlc_block_t {
 	ml_decl_t *OldDecls;
 	mlc_block_expr_t *Expr;
 	mlc_expr_t *Child;
-	mlc_catch_expr_t *CatchExpr;
 	ml_inst_t *CatchInst, *Exits;
 	inthash_t DeclHashes;
 	mlc_try_t Try;
@@ -1342,49 +1341,15 @@ static void ml_must_expr_compile(mlc_function_t *Function, mlc_must_expr_t *Expr
 }
 
 static void ml_block_expr_compile3(mlc_function_t *Function, ml_value_t *Value, mlc_block_t *Frame) {
-	mlc_catch_expr_t *CatchExpr = Frame->CatchExpr;
-	ml_inst_t *ExitInst = MLC_EMIT(CatchExpr->Body->EndLine, MLI_EXIT, 2);
+	mlc_block_expr_t *Expr = Frame->Expr;
+	ml_inst_t *ExitInst = MLC_EMIT(Expr->CatchBody->EndLine, MLI_EXIT, 2);
 	ExitInst[1].Count = 1;
 	ExitInst[2].Decls = Frame->OldDecls;
 	Function->Decls = Frame->OldDecls;
 	Function->Top = Frame->Top;
-	ml_inst_t *GotoInst = MLC_EMIT(CatchExpr->Body->EndLine, MLI_GOTO, 1);
+	ml_inst_t *GotoInst = MLC_EMIT(Expr->CatchBody->EndLine, MLI_GOTO, 1);
 	GotoInst[1].Inst = Frame->Exits;
 	Frame->Exits = GotoInst + 1;
-	if ((CatchExpr = CatchExpr->Next)) {
-		if (Frame->CatchInst) {
-			Frame->CatchInst[1].Inst = Function->Next;
-			Frame->CatchInst = NULL;
-		}
-		if (CatchExpr->Types) {
-			int NumTypes = 0;
-			for (mlc_catch_type_t *Type = CatchExpr->Types; Type; Type = Type->Next) ++NumTypes;
-			Frame->CatchInst = MLC_EMIT(CatchExpr->Line, MLI_CATCH_TYPE, 2);
-			const char **Ptrs = Frame->CatchInst[2].Ptrs = anew(const char *, NumTypes + 1);
-			for (mlc_catch_type_t *Type = CatchExpr->Types; Type; Type = Type->Next) *Ptrs++ = Type->Type;
-		}
-		ml_decl_t *Decl = new(ml_decl_t);
-		Decl->Source.Name = Function->Source;
-		Decl->Source.Line = CatchExpr->Line;
-		Decl->Ident = CatchExpr->Ident;
-		Decl->Hash = ml_ident_hash(CatchExpr->Ident);
-		Decl->Index = Function->Top;
-		Decl->Next = Function->Decls;
-		Function->Decls = Decl;
-		mlc_inc_top(Function);
-		ml_inst_t *CatchInst = MLC_EMIT(CatchExpr->Line, MLI_CATCH, 3);
-		if (Function->Try) {
-			CatchInst[1].Inst = Function->Try->Retries;
-			Function->Try->Retries = CatchInst + 1;
-		} else {
-			CatchInst[1].Inst = Function->Returns;
-			Function->Returns = CatchInst + 1;
-		}
-		CatchInst[2].Count = Frame->Top;
-		CatchInst[3].Decls = Function->Decls;
-		return mlc_compile(Function, CatchExpr->Body, 0);
-	}
-	mlc_block_expr_t *Expr = Frame->Expr;
 	if (Frame->CatchInst) {
 		Frame->CatchInst[1].Inst = Function->Next;
 		MLC_EMIT(Expr->EndLine, MLI_RETRY, 0);
@@ -1417,7 +1382,7 @@ static void ml_block_expr_compile2(mlc_function_t *Function, ml_value_t *Value, 
 	Function->Decls = Frame->OldDecls;
 	Function->Block = Frame->Up;
 	Function->Top = Frame->Top;
-	if (Expr->Catches) {
+	if (Expr->CatchBody) {
 		Frame->Exits = NULL;
 		Function->Try = Function->Try->Up;
 		ml_inst_t *TryInst = MLC_EMIT(Expr->EndLine, MLI_TRY, 1);
@@ -1433,25 +1398,17 @@ static void ml_block_expr_compile2(mlc_function_t *Function, ml_value_t *Value, 
 		Frame->Exits = GotoInst + 1;
 		MLC_LINK(Frame->Try.Retries, Function->Next);
 
-		mlc_catch_expr_t *CatchExpr = Frame->CatchExpr = Expr->Catches;
 		Function->Frame->run = (mlc_frame_fn)ml_block_expr_compile3;
-		if (CatchExpr->Types) {
-			int NumTypes = 0;
-			for (mlc_catch_type_t *Type = CatchExpr->Types; Type; Type = Type->Next) ++NumTypes;
-			Frame->CatchInst = MLC_EMIT(CatchExpr->Line, MLI_CATCH_TYPE, 2);
-			const char **Ptrs = Frame->CatchInst[2].Ptrs = anew(const char *, NumTypes + 1);
-			for (mlc_catch_type_t *Type = CatchExpr->Types; Type; Type = Type->Next) *Ptrs++ = Type->Type;
-		}
 		ml_decl_t *Decl = new(ml_decl_t);
 		Decl->Source.Name = Function->Source;
-		Decl->Source.Line = CatchExpr->Line;
-		Decl->Ident = CatchExpr->Ident;
-		Decl->Hash = ml_ident_hash(CatchExpr->Ident);
+		Decl->Source.Line = Expr->CatchBody->StartLine;
+		Decl->Ident = Expr->CatchIdent;
+		Decl->Hash = ml_ident_hash(Expr->CatchIdent);
 		Decl->Index = Function->Top;
 		Decl->Next = Function->Decls;
 		Function->Decls = Decl;
 		mlc_inc_top(Function);
-		ml_inst_t *CatchInst = MLC_EMIT(CatchExpr->Line, MLI_CATCH, 3);
+		ml_inst_t *CatchInst = MLC_EMIT(Expr->CatchBody->StartLine, MLI_CATCH, 3);
 		if (Function->Try) {
 			CatchInst[1].Inst = Function->Try->Retries;
 			Function->Try->Retries = CatchInst + 1;
@@ -1461,7 +1418,7 @@ static void ml_block_expr_compile2(mlc_function_t *Function, ml_value_t *Value, 
 		}
 		CatchInst[2].Count = Frame->Top;
 		CatchInst[3].Decls = Function->Decls;
-		return mlc_compile(Function, CatchExpr->Body, 0);
+		return mlc_compile(Function, Expr->CatchBody, 0);
 	}
 	if (Frame->Flags & MLCF_PUSH) {
 		MLC_EMIT(Expr->EndLine, MLI_PUSH, 0);
@@ -1479,7 +1436,7 @@ static void ml_block_expr_compile(mlc_function_t *Function, mlc_block_expr_t *Ex
 	Frame->Top = Function->Top;
 	Frame->OldDecls = Function->Decls;
 	Frame->CatchInst = NULL;
-	if (Expr->Catches) {
+	if (Expr->CatchBody) {
 		ml_inst_t *TryInst = MLC_EMIT(Expr->StartLine, MLI_TRY, 1);
 		TryInst[1].Inst = NULL;
 		Frame->Try.Up = Function->Try;
@@ -5243,12 +5200,10 @@ static mlc_block_expr_t *ml_accept_block_body(ml_parser_t *Parser) {
 static mlc_expr_t *ml_accept_block(ml_parser_t *Parser) {
 	mlc_block_expr_t *BlockExpr = ml_accept_block_body(Parser);
 	if (ml_parse(Parser, MLT_ON)) {
-		mlc_catch_expr_t *CatchExpr = BlockExpr->Catches = new(mlc_catch_expr_t);
-		CatchExpr->Line = Parser->Source.Line;
 		ml_accept(Parser, MLT_IDENT);
-		CatchExpr->Ident = Parser->Ident;
+		BlockExpr->CatchIdent = Parser->Ident;
 		ml_accept(Parser, MLT_DO);
-		CatchExpr->Body = ml_accept_block(Parser);
+		BlockExpr->CatchBody = ml_accept_block(Parser);
 	}
 	return ML_EXPR_END(BlockExpr);
 }

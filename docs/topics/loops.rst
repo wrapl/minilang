@@ -74,7 +74,43 @@ The optional expression passed to :mini:`exit` is evaluated in the context of th
 For expressions
 ---------------
 
-.. parser-rule-diagram:: 'for' ( identifier ',' )? ( identifier | '(' identifier ( ',' identifier )* ')' )  'in' expression 'do' block ( 'else' block ) 'end'
+.. parser-rule-diagram:: 'for' ( identifier ',' )? ( identifier | '(' identifier ( ',' identifier )* ')' )  'in' expression 'do' block ( 'else' block )? 'end'
 
 A :mini:`for`-expressions loops over a sequence, binding the generated keys and values to local variables and evaluating a block of code for each iteration. The loop stops when the sequence is exhausted, or if a :mini:`exit` expression is used to exit the loop.
+
+If a :mini:`for`-expression exhausts its sequence without exiting, the :mini:`else`-block will be evaluated and the returned as the value of the :mini:`for`-expression. If the :mini:`else`-block is omitted (usually the case), the value of the :mini:`for`-expression will be :mini:`nil`.
+
+A :mini:`next`-expression can also be used in a :mini:`for`-expression which will advance to the next iteration of the sequence.
+
+.. code-block:: mini
+
+   for I in 1 .. 10 do
+      I = 3 and next
+      print('I = {I}\n')
+      I = 8 and exit "Done!"
+   end
+
+.. code-block:: console
+
+   I = 1
+   I = 2
+   I = 4
+   I = 5
+   I = 6
+   I = 7
+   I = 8
+   Done!
+
+Each expressions
+----------------
+
+.. parser-rule-diagram:: 'each' expression
+
+An :mini:`each`-expression simply loops over a sequence.
+
+.. code-block:: mini
+
+   each X
+   :> behaves like
+   for Temp in X do end
 

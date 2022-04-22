@@ -875,20 +875,21 @@ ML_SEQUENCE_FUNCTION(IterNext, iter_next);
 ML_SEQUENCE_FUNCTION(IterValue, iter_value);
 ML_SEQUENCE_FUNCTION(IterKey, iter_key);
 
-ML_METHOD_DECL(CountMethod, "count");
-
-ML_FUNCTIONX(Count) {
+/*
+ML_FUNCTION(Count) {
 //@count
 //<Sequence
 //>integer
 // Returns the count of the values produced by :mini:`Sequence`. For some types of sequences (e.g. :mini:`list`, :mini:`map`, etc), the count is simply retrieved. For all other types, the sequence is iterated and the total number of values counted.
 //$= count([1, 2, 3, 4])
 //$= count(1 .. 10 ->? (2 | _))
-	ML_CHECKX_ARG_COUNT(1);
-	if (Count == 1) {
-		ml_value_t *Method = ml_method_search(Caller, (ml_method_t *)CountMethod, 1, Args);
-		if (Method) return ml_call(Caller, Method, 1, Args);
-	}
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLSequenceT);
+}
+*/
+
+ML_METHODVX("count", MLSequenceT) {
+//!internal
 	ml_count_state_t *State = new(ml_count_state_t);
 	State->Base.Caller = Caller;
 	State->Base.run = (void *)count_iterate;
@@ -2707,7 +2708,7 @@ void ml_sequence_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "iter_next", IterNext);
 		stringmap_insert(Globals, "iter_key", IterKey);
 		stringmap_insert(Globals, "iter_value", IterValue);
-		stringmap_insert(Globals, "count", Count);
+		stringmap_insert(Globals, "count", ml_method("count"));
 		stringmap_insert(Globals, "count2", Count2);
 		stringmap_insert(Globals, "reduce", Reduce);
 		stringmap_insert(Globals, "min", Min);

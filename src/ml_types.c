@@ -805,6 +805,8 @@ ML_FUNCTION(MLTypeSwitch) {
 			ml_value_t *Value = Iter->Value;
 			if (ml_is(Value, MLTypeT)) {
 				Case->Type = (ml_type_t *)Value;
+			} else if (Value == MLNil) {
+				Case->Type = MLNilT;
 			} else {
 				return ml_error("ValueError", "Unsupported value in type case");
 			}

@@ -232,28 +232,13 @@ struct mlc_must_expr_t {
 };
 
 typedef struct mlc_block_expr_t mlc_block_expr_t;
-typedef struct mlc_catch_expr_t mlc_catch_expr_t;
-typedef struct mlc_catch_type_t mlc_catch_type_t;
 
 struct mlc_block_expr_t {
 	MLC_EXPR_FIELDS(block);
 	mlc_local_t *Vars, *Lets, *Defs;
-	mlc_expr_t *Child;
-	mlc_catch_expr_t *Catches;
+	mlc_expr_t *Child, *CatchBody;
+	const char *CatchIdent;
 	int NumVars, NumLets, NumDefs;
-};
-
-struct mlc_catch_expr_t {
-	mlc_catch_expr_t *Next;
-	const char *Ident;
-	mlc_catch_type_t *Types;
-	mlc_expr_t *Body;
-	int Line;
-};
-
-struct mlc_catch_type_t {
-	mlc_catch_type_t *Next;
-	const char *Type;
 };
 
 typedef struct mlc_parent_value_expr_t mlc_parent_value_expr_t;
