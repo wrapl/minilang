@@ -712,6 +712,46 @@ ML_FUNCTIONX(All) {
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
+/****************************** Some ******************************/
+
+static void some_iterate(ml_iter_state_t *State, ml_value_t *Value);
+
+static void some_value(ml_iter_state_t *State, ml_value_t *Value) {
+	Value = ml_deref(Value);
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value != MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (ml_state_fn)some_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void some_iterate(ml_iter_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (ml_state_fn)some_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+static void ml_some_call(ml_state_t *Caller, ml_value_t *Some, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	for (int I = 0; I < Count; ++I) Args[I] = ml_deref(Args[I]);
+	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
+	ml_iter_state_t *State = new(ml_iter_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)some_iterate;
+	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
+}
+
+/*
+ML_FUNCTIONX(Some) {
+//<Sequence:sequence
+//>any | nil
+// Returns the first value produced by :mini:`Sequence` that is not :mini:`nil`.
+//$= some([nil, nil, "X", nil])
+//$= some([nil, nil, nil, nil])
+}
+*/
+
 /****************************** First ******************************/
 
 static void first_iterate(ml_state_t *State, ml_value_t *Value) {
@@ -730,8 +770,8 @@ ML_FUNCTIONX(First) {
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_state_t *State = new(ml_state_t);
 	State->Caller = Caller;
-	State->run = first_iterate;
 	State->Context = Caller->Context;
+	State->run = first_iterate;
 	return ml_iterate(State, ml_chained(Count, Args));
 }
 
@@ -765,8 +805,8 @@ ML_FUNCTIONX(First2) {
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
 	State->Base.Caller = Caller;
-	State->Base.run = (ml_state_fn)first2_iterate;
 	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)first2_iterate;
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
@@ -796,8 +836,8 @@ ML_FUNCTIONX(Last) {
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)last_iterate;
 	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)last_iterate;
 	State->Values[0] = MLNil;
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
@@ -841,8 +881,8 @@ ML_FUNCTIONX(Last2) {
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)last2_iterate;
 	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)last2_iterate;
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
@@ -892,8 +932,8 @@ ML_METHODVX("count", MLSequenceT) {
 //!internal
 	ml_count_state_t *State = new(ml_count_state_t);
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)count_iterate;
 	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)count_iterate;
 	State->Count = 0;
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
@@ -936,8 +976,8 @@ ML_FUNCTIONX(Count2) {
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_count2_state_t *State = new(ml_count2_state_t);
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)count2_iterate;
 	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)count2_iterate;
 	State->Counts = ml_map();
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
@@ -1003,8 +1043,8 @@ ML_FUNCTIONX(Reduce) {
 		ML_CHECKX_ARG_TYPE(1, MLFunctionT);
 		ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
 		State->Base.Caller = Caller;
-		State->Base.run = (void *)reduce_iterate;
 		State->Base.Context = Caller->Context;
+		State->Base.run = (void *)reduce_iterate;
 		State->Values[0] = Args[1];
 		return ml_iterate((ml_state_t *)State, Args[0]);
 	} else {
@@ -1012,8 +1052,8 @@ ML_FUNCTIONX(Reduce) {
 		ML_CHECKX_ARG_TYPE(2, MLFunctionT);
 		ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
 		State->Base.Caller = Caller;
-		State->Base.run = (void *)reduce_iter_next;
 		State->Base.Context = Caller->Context;
+		State->Base.run = (void *)reduce_iter_next;
 		State->Values[0] = Args[2];
 		State->Values[1] = Args[0];
 		return ml_iterate((ml_state_t *)State, Args[1]);
@@ -1029,8 +1069,8 @@ ML_FUNCTIONX(Min) {
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)reduce_iterate;
 	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)reduce_iterate;
 	State->Values[0] = MinMethod;
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
@@ -1044,8 +1084,8 @@ ML_FUNCTIONX(Max) {
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)reduce_iterate;
 	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)reduce_iterate;
 	State->Values[0] = MaxMethod;
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
@@ -1059,8 +1099,8 @@ ML_FUNCTIONX(Sum) {
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)reduce_iterate;
 	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)reduce_iterate;
 	State->Values[0] = AddMethod;
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
@@ -1074,8 +1114,8 @@ ML_FUNCTIONX(Prod) {
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)reduce_iterate;
 	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)reduce_iterate;
 	State->Values[0] = MulMethod;
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
@@ -1147,8 +1187,8 @@ ML_FUNCTIONX(Reduce2) {
 		ML_CHECKX_ARG_TYPE(1, MLFunctionT);
 		ml_iter_state_t *State = xnew(ml_iter_state_t, 4, ml_value_t *);
 		State->Base.Caller = Caller;
-		State->Base.run = (void *)reduce2_iterate;
 		State->Base.Context = Caller->Context;
+		State->Base.run = (void *)reduce2_iterate;
 		State->Values[0] = Args[1];
 		return ml_iterate((ml_state_t *)State, Args[1]);
 	} else {
@@ -1156,8 +1196,8 @@ ML_FUNCTIONX(Reduce2) {
 		ML_CHECKX_ARG_TYPE(2, MLFunctionT);
 		ml_iter_state_t *State = xnew(ml_iter_state_t, 4, ml_value_t *);
 		State->Base.Caller = Caller;
-		State->Base.run = (void *)reduce2_iter_next;
 		State->Base.Context = Caller->Context;
+		State->Base.run = (void *)reduce2_iter_next;
 		State->Values[0] = Args[2];
 		State->Values[1] = Args[0];
 		return ml_iterate((ml_state_t *)State, Args[1]);
@@ -1200,8 +1240,8 @@ ML_FUNCTIONX(Min2) {
 	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 4, ml_value_t *);
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)reduce2_iterate;
 	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)reduce2_iterate;
 	ml_extremum_state_t *Extremum = new(ml_extremum_state_t);
 	Extremum->Base.run = (ml_state_fn)ml_extremum_run;
 	State->Values[0] = ml_cfunctionx(Extremum, (ml_callbackx_t)ml_minimum2_fn);
@@ -1285,8 +1325,8 @@ ML_METHODX("join", MLSequenceT, MLStringT) {
 //$= (1 .. 10):join
 	ml_join_state_t *State = new(ml_join_state_t);
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)join_first;
 	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)join_first;
 	State->Separator = ml_string_value(Args[1]);
 	State->SeparatorLength = ml_string_length(Args[1]);
 	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
@@ -1301,8 +1341,8 @@ ML_METHODX("join", MLSequenceT) {
 //$= 1 .. 10 join ","
 	ml_join_state_t *State = new(ml_join_state_t);
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)join_first;
 	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)join_first;
 	State->Separator = "";
 	State->SeparatorLength = 0;
 	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
@@ -1383,8 +1423,8 @@ static void ML_TYPED_FN(ml_iterate, MLStackedT, ml_state_t *Caller, ml_stacked_t
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 3, ml_value_t *);
 	State->Base.Type = MLStackedStateT;
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)stacked_iterate;
 	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)stacked_iterate;
 	State->Values[0] = Stacked->ReduceFn;
 	State->Values[1] = Stacked->Initial;
 	return ml_iterate((ml_state_t *)State, Stacked->Value);
@@ -2683,6 +2723,7 @@ ML_FUNCTION(Batch) {
 }
 
 void ml_sequence_init(stringmap_t *Globals) {
+	MLSomeT->call = ml_some_call;
 	MLFunctionT->Constructor = (ml_value_t *)MLChained;
 	MLSequenceT->Constructor = (ml_value_t *)MLChained;
 #include "ml_sequence_init.c"

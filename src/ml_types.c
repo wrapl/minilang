@@ -476,7 +476,7 @@ void ml_type_add_rule(ml_type_t *T, ml_type_t *U, ...) {
 ML_TYPE(MLNilT, (MLFunctionT, MLSequenceT), "nil");
 //!internal
 
-ML_TYPE(MLSomeT, (), "some");
+ML_TYPE(MLSomeT, (MLFunctionT), "some");
 //!internal
 
 static void ml_blank_assign(ml_state_t *Caller, ml_value_t *Blank, ml_value_t *Value) {
@@ -2127,6 +2127,7 @@ void ml_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "map", MLMapT);
 		stringmap_insert(Globals, "error", MLErrorValueT);
 		stringmap_insert(Globals, "module", MLModuleT);
+		stringmap_insert(Globals, "some", MLSome);
 		stringmap_insert(Globals, "exchange", MLExchange);
 		stringmap_insert(Globals, "replace", MLReplace);
 	}

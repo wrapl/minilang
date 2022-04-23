@@ -291,6 +291,17 @@ sequence
       :> [(1, c), (2, a), (3, k), (4, e)]
 
 
+.. _fun-some:
+
+:mini:`fun some(Sequence: sequence): any | nil`
+   Returns the first value produced by :mini:`Sequence` that is not :mini:`nil`.
+
+   .. code-block:: mini
+
+      some([nil, nil, "X", nil]) :> "X"
+      some([nil, nil, nil, nil]) :> nil
+
+
 .. _fun-sum:
 
 :mini:`fun sum(Sequence: sequence): any | nil`

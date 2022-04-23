@@ -102,7 +102,7 @@ xml
 
 
 :mini:`meth (Xml: xml):parent(Tag: string): xml | nil`
-   Returns the parent of :mini:`Xml` if it has tag :mini:`Tag`,  otherwise :mini:`nil`.
+   Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists,  otherwise :mini:`nil`.
 
 
 :mini:`meth (Xml: xml):prev: xml | nil`
