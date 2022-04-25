@@ -1671,6 +1671,12 @@ ML_FUNCTION(MLRealSwitch) {
 
 void ml_number_init() {
 #include "ml_number_init.c"
+#ifdef ML_GENERICS
+	ml_type_t *TArgs[3] = {MLSequenceT, MLIntegerT, MLIntegerT};
+	ml_type_add_parent(MLIntegerRangeT, ml_generic_type(3, TArgs));
+	TArgs[2] = MLRealT;
+	ml_type_add_parent(MLRealRangeT, ml_generic_type(3, TArgs));
+#endif
 	stringmap_insert(MLIntegerT->Exports, "range", MLIntegerRangeT);
 	stringmap_insert(MLIntegerT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLIntegerSwitch));
 	stringmap_insert(MLIntegerT->Exports, "random", RandomInteger);

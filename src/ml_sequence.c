@@ -2190,7 +2190,23 @@ ML_FUNCTION(Pair) {
 // Returns a new sequence that produces the values from :mini:`Sequence/1` as keys and the values from :mini:`Sequence/2` as values.
 	ML_CHECK_ARG_COUNT(2);
 	ml_paired_t *Paired = new(ml_paired_t);
+#ifdef ML_GENERICS
+	ml_type_t *TArgs0[3];
+	if (ml_find_generic_parent(ml_typeof(Args[0]), MLSequenceT, 3, TArgs0) == 3) {
+		ml_type_t *TArgs1[3];
+		if (ml_find_generic_parent(ml_typeof(Args[1]), MLSequenceT, 3, TArgs1) == 3) {
+			TArgs1[0] = MLPairedT;
+			TArgs1[1] = TArgs0[2];
+			Paired->Type = ml_generic_type(3, TArgs1);
+		} else {
+			Paired->Type = MLPairedT;
+		}
+	} else {
+		Paired->Type = MLPairedT;
+	}
+#else
 	Paired->Type = MLPairedT;
+#endif
 	Paired->Keys = Args[0];
 	Paired->Values = Args[1];
 	return (ml_value_t *)Paired;

@@ -46,36 +46,6 @@ When creating a substring,  the first index is inclusive and second index is exc
       :> error("RegexError", "regex error: Missing ']'")
 
 
-:mini:`meth (Arg₁: regex) != (Arg₂: regex): regex | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ != Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      r"[0-9]+" != r"[A-Za-z0-9_]+" :> /[A-Za-z0-9_]+/
-      r"[A-Za-z0-9_]+" != r"[0-9]+" :> /[0-9]+/
-      r"[0-9]+" != r"[0-9]+" :> nil
-
-
-:mini:`meth (Arg₁: regex) < (Arg₂: regex): regex | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ < Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      r"[0-9]+" < r"[A-Za-z0-9_]+" :> /[A-Za-z0-9_]+/
-      r"[A-Za-z0-9_]+" < r"[0-9]+" :> nil
-      r"[0-9]+" < r"[0-9]+" :> nil
-
-
-:mini:`meth (Arg₁: regex) <= (Arg₂: regex): regex | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ <= Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      r"[0-9]+" <= r"[A-Za-z0-9_]+" :> /[A-Za-z0-9_]+/
-      r"[A-Za-z0-9_]+" <= r"[0-9]+" :> nil
-      r"[0-9]+" <= r"[0-9]+" :> /[0-9]+/
-
-
 :mini:`meth (A: regex) <> (B: regex): integer`
    Compares :mini:`A` and :mini:`B` lexicographically and returns :mini:`-1`,  :mini:`0` or :mini:`1` respectively. Mainly for using regular expressions as keys in maps.
 
@@ -84,36 +54,6 @@ When creating a substring,  the first index is inclusive and second index is exc
       r"[0-9]+" <> r"[A-Za-z0-9_]+" :> -1
       r"[A-Za-z0-9_]+" <> r"[0-9]+" :> 1
       r"[0-9]+" <> r"[0-9]+" :> 0
-
-
-:mini:`meth (Arg₁: regex) = (Arg₂: regex): regex | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ = Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      r"[0-9]+" = r"[A-Za-z0-9_]+" :> nil
-      r"[A-Za-z0-9_]+" = r"[0-9]+" :> nil
-      r"[0-9]+" = r"[0-9]+" :> /[0-9]+/
-
-
-:mini:`meth (Arg₁: regex) > (Arg₂: regex): regex | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ > Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      r"[0-9]+" > r"[A-Za-z0-9_]+" :> nil
-      r"[A-Za-z0-9_]+" > r"[0-9]+" :> /[0-9]+/
-      r"[0-9]+" > r"[0-9]+" :> nil
-
-
-:mini:`meth (Arg₁: regex) >= (Arg₂: regex): regex | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ >= Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      r"[0-9]+" >= r"[A-Za-z0-9_]+" :> nil
-      r"[A-Za-z0-9_]+" >= r"[0-9]+" :> /[0-9]+/
-      r"[0-9]+" >= r"[0-9]+" :> /[0-9]+/
 
 
 :mini:`meth (Regex: regex):pattern: string`
@@ -145,18 +85,6 @@ When creating a substring,  the first index is inclusive and second index is exc
       string(nil) :> "nil"
       string("Hello world!\n") :> "Hello world!\n"
       string([1, 2, 3]) :> "[1, 2, 3]"
-
-
-:mini:`meth (Arg₁: string) != (Arg₂: string): string | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ != Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      "Hello" != "World" :> "World"
-      "World" != "Hello" :> "Hello"
-      "Hello" != "Hello" :> nil
-      "abcd" != "abc" :> "abc"
-      "abc" != "abcd" :> "abcd"
 
 
 :mini:`meth (String: string) % (Pattern: regex): tuple[string] | nil`
@@ -240,30 +168,6 @@ When creating a substring,  the first index is inclusive and second index is exc
       "2022/03/08" /* "/" :> (2022, 03/08)
 
 
-:mini:`meth (Arg₁: string) < (Arg₂: string): string | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ < Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      "Hello" < "World" :> "World"
-      "World" < "Hello" :> nil
-      "Hello" < "Hello" :> nil
-      "abcd" < "abc" :> nil
-      "abc" < "abcd" :> "abcd"
-
-
-:mini:`meth (Arg₁: string) <= (Arg₂: string): string | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ <= Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      "Hello" <= "World" :> "World"
-      "World" <= "Hello" :> nil
-      "Hello" <= "Hello" :> "Hello"
-      "abcd" <= "abc" :> nil
-      "abc" <= "abcd" :> "abcd"
-
-
 :mini:`meth (A: string) <> (B: string): integer`
    Compares :mini:`A` and :mini:`B` lexicographically and returns :mini:`-1`,  :mini:`0` or :mini:`1` respectively.
 
@@ -274,42 +178,6 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Hello" <> "Hello" :> 0
       "abcd" <> "abc" :> 1
       "abc" <> "abcd" :> -1
-
-
-:mini:`meth (Arg₁: string) = (Arg₂: string): string | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ = Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      "Hello" = "World" :> nil
-      "World" = "Hello" :> nil
-      "Hello" = "Hello" :> "Hello"
-      "abcd" = "abc" :> nil
-      "abc" = "abcd" :> nil
-
-
-:mini:`meth (Arg₁: string) > (Arg₂: string): string | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ > Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      "Hello" > "World" :> nil
-      "World" > "Hello" :> "Hello"
-      "Hello" > "Hello" :> nil
-      "abcd" > "abc" :> "abc"
-      "abc" > "abcd" :> nil
-
-
-:mini:`meth (Arg₁: string) >= (Arg₂: string): string | nil`
-   Returns :mini:`Arg₂` if :mini:`Arg₁ >= Arg₂` and :mini:`nil` otherwise.
-
-   .. code-block:: mini
-
-      "Hello" >= "World" :> nil
-      "World" >= "Hello" :> "Hello"
-      "Hello" >= "Hello" :> "Hello"
-      "abcd" >= "abc" :> "abc"
-      "abc" >= "abcd" :> nil
 
 
 :mini:`meth (String: string) ? (Pattern: regex): string | nil`

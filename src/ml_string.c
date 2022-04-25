@@ -3543,6 +3543,10 @@ void ml_string_init() {
 	regcomp(RealFormat, "^\\s*%[-+ #'0]*[.0-9]*[aefgAEG]\\s*$", REG_NOSUB);
 	stringmap_insert(MLStringT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLStringSwitch));
 #include "ml_string_init.c"
+#ifdef ML_GENERICS
+	ml_type_t *TArgs[3] = {MLSequenceT, MLIntegerT, MLStringT};
+	ml_type_add_parent(MLStringT, ml_generic_type(3, TArgs));
+#endif
 #ifdef ML_TRE
 	ml_value_t *Features = ml_map();
 	stringmap_insert(MLRegexT->Exports, "features", Features);

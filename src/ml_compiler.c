@@ -2125,7 +2125,16 @@ static void ml_call_macro_compile(mlc_function_t *Function, ml_macro_t *Macro, m
 	for (mlc_expr_t *E = Child; E; E = E->Next) ++Count;
 	ml_value_t **Args = ml_alloc_args(Count);
 	Count = 0;
-	for (mlc_expr_t *E = Child; E; E = E->Next) Args[Count++] = ml_expr_value(E, Function);
+	for (mlc_expr_t *E = Child; E; E = E->Next) {
+		if (E->compile == (void *)ml_value_expr_compile) {
+			mlc_value_expr_t *ValueExpr = (mlc_value_expr_t *)E;
+			if (ml_typeof(ValueExpr->Value) == MLNamesT) {
+				Args[Count++] = ValueExpr->Value;
+				continue;
+			}
+		}
+		Args[Count++] = ml_expr_value(E, Function);
+	}
 	MLC_FRAME(ml_macro_frame_t, ml_call_macro_compile2);
 	Frame->Expr = Expr;
 	Frame->Flags = Flags;
