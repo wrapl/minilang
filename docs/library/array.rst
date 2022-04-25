@@ -7,18 +7,6 @@
 array
 =====
 
-.. _fun-mlcborreadcomplex32:
-
-:mini:`fun mlcborreadcomplex32(Arg₁: any)`
-   *TBD*
-
-
-.. _fun-mlcborreadcomplex64:
-
-:mini:`fun mlcborreadcomplex64(Arg₁: any)`
-   *TBD*
-
-
 .. _type-array:
 
 :mini:`type array < buffer, sequence`
@@ -474,9 +462,9 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:C0EB2EF83F7F00000000000000000000>
+      :> <16:60BF3E72B47F00000000000000000000>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
-      :> <<<60352 63534> <32575 0>> <<0 0> <0 0>>>
+      :> <<<48992 29246> <32692 0>> <<0 0> <0 0>>>
 
 
 .. _type-vector:
