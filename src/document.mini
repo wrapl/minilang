@@ -74,6 +74,7 @@ fun is_symbol(Method) Method:lower = Method:upper
 method: image()
 
 meth image(V: any) string(V)
+meth image(V: nil) "nil"
 meth image(S: string) '\"{S:escape}\"'
 meth image(A: address) with B := string::buffer() do
 	B:write('<{A:size}:')
@@ -118,7 +119,7 @@ fun write_examples(Buffer, Examples) do
 	end
 	Buffer:write("\n   .. code-block:: mini\n\n")
 	for Example in Examples do
-		var Result
+		var Result := ""
 		let Last := Example:after("\n", -1) or Example
 		Parser:input(Example)
 		loop
@@ -368,6 +369,7 @@ def Subscripts := {
 	"/0" is "₀", "/1" is "₁", "/2" is "₂", "/3" is "₃", "/4" is "₄",
 	"/5" is "₅", "/6" is "₆", "/7" is "₇", "/8" is "₈", "/9" is "₉",
 	"/i" is "ᵢ", "/j" is "ⱼ", "/m" is "ₘ", "/n" is "ₙ", "/v" is "ᵥ",
+	"/+" is "₊", "/-" is "₋", "/=" is "₌", "/(" is "₍", "/)" is "₎",
 	"," is ", "
 }
 

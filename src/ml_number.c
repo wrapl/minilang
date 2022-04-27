@@ -596,34 +596,6 @@ ML_METHOD(">>", MLIntegerT, MLIntegerT) {
 	return ml_integer(IntegerC);
 }
 
-ML_METHOD("++", MLIntegerT) {
-//<Int
-//>integer
-// Returns :mini:`Int + 1`
-	return ml_integer(ml_integer_value_fast(Args[0]) + 1);
-}
-
-ML_METHOD("--", MLIntegerT) {
-//<Int
-//>integer
-// Returns :mini:`Int - 1`
-	return ml_integer(ml_integer_value_fast(Args[0]) - 1);
-}
-
-ML_METHOD("++", MLDoubleT) {
-//<Real
-//>real
-// Returns :mini:`Real + 1`
-	return ml_real(ml_double_value_fast(Args[0]) + 1);
-}
-
-ML_METHOD("--", MLDoubleT) {
-//<Real
-//>real
-// Returns :mini:`Real - 1`
-	return ml_real(ml_double_value_fast(Args[0]) - 1);
-}
-
 ml_arith_method_real_real(/, /)
 ml_arith_method_real_integer(/, /)
 ml_arith_method_integer_real(/, /)

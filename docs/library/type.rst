@@ -17,8 +17,20 @@ type
    Returns :mini:`Value₂` if :mini:`Value₁` and :mini:`Value₂` are not exactly the same instance and :mini:`nil` otherwise.
 
 
+:mini:`meth (Arg₁: any) != (Arg₂: any, Arg₃: any, ...): any | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+
+
 :mini:`meth #(Value: any): integer`
    Returns a hash for :mini:`Value` for use in lookup tables,  etc.
+
+
+:mini:`meth (Arg₁: any) < (Arg₂: any, Arg₃: any, ...): any | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth (Arg₁: any) <= (Arg₂: any, Arg₃: any, ...): any | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
 
 
 :mini:`meth (Value₁: any) <> (Value₂: any): integer`
@@ -28,6 +40,18 @@ type
 
 :mini:`meth (Value₁: any) = (Value₂: any): Value₂ | nil`
    Returns :mini:`Value₂` if :mini:`Value₁` and :mini:`Value₂` are exactly the same instance and :mini:`nil` otherwise.
+
+
+:mini:`meth (Arg₁: any) = (Arg₂: any, Arg₃: any, ...): any | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth (Arg₁: any) > (Arg₂: any, Arg₃: any, ...): any | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth (Arg₁: any) >= (Arg₂: any, Arg₃: any, ...): any | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
 
 
 :mini:`meth (Value: any):in(Type: type): Value | nil`

@@ -7,6 +7,30 @@
 sequence
 ========
 
+.. _fun-iter_key:
+
+:mini:`fun iter_key(Value: any): any | nil`
+   Used for iterating over a sequence.
+
+
+.. _fun-iter_next:
+
+:mini:`fun iter_next(Value: any): any | nil`
+   Used for iterating over a sequence.
+
+
+.. _fun-iter_value:
+
+:mini:`fun iter_value(Value: any): any | nil`
+   Used for iterating over a sequence.
+
+
+.. _fun-iterate:
+
+:mini:`fun iterate(Value: any): any | nil`
+   Used for iterating over a sequence.
+
+
 :mini:`meth @(Value: any): sequence`
    Returns an infinite sequence that repeatedly produces :mini:`Value`. Should be used with :mini:`:limit` or paired with a finite sequence in :mini:`zip`,  :mini:`weave`,  etc.
 

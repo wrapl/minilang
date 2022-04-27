@@ -7095,13 +7095,13 @@ static ml_value_t *ml_cbor_read_any_array_fn(ml_cbor_reader_t *Reader, ml_value_
 #ifdef ML_COMPLEX
 
 ML_FUNCTION(MLCborReadComplex32) {
-//!interal
+//!internal
 	ML_CHECK_ARG_COUNT(1);
 	return ml_cbor_read_typed_array_fn(Args[0], ML_ARRAY_FORMAT_C32);
 }
 
 ML_FUNCTION(MLCborReadComplex64) {
-//!interal
+//!internal
 	ML_CHECK_ARG_COUNT(1);
 	return ml_cbor_read_typed_array_fn(Args[0], ML_ARRAY_FORMAT_C64);
 }

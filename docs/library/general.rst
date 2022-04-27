@@ -19,34 +19,28 @@ general
    
 
 
-.. _fun-mlmemcollect:
-
-:mini:`fun mlmemcollect()`
-   Call garbage collector.
-
-
 .. _fun-now:
 
 :mini:`fun now()`
    *TBD*
 
 
+.. _fun-cas:
+
+:mini:`fun cas(Var: any, Old: any, New: any): any`
+   If the value of :mini:`Var` is identically equal to :mini:`Old`,  then sets :mini:`Var` to :mini:`New` and returns :mini:`New`. Otherwise leaves :mini:`Var` unchanged and returns :mini:`nil`.
+
+   .. code-block:: mini
+
+      var X := 10
+      with Old := X do cas(X, Old, Old + 1) end :> 11
+      X :> 11
+
+
 .. _fun-exchange:
 
-:mini:`fun exchange(Arg₁: any)`
-   *TBD*
-
-
-.. _fun-mlmemsize:
-
-:mini:`fun mlmemsize(Value: any): list[map]`
-   Returns information about the blocks of memory referenced by :mini:`Value`.
-
-
-.. _fun-mlmemtrace:
-
-:mini:`fun mlmemtrace(Value: any): list[map]`
-   Returns information about the blocks of memory referenced by :mini:`Value`.
+:mini:`fun exchange(Var₁, : any, ...)`
+   Assigns :mini:`Varᵢ := Varᵢ₊₁` for each :mini:`1 <= i < n` and :mini:`Varₙ := Var₁`.
 
 
 .. _fun-print:
@@ -57,7 +51,7 @@ general
 
 .. _fun-replace:
 
-:mini:`fun replace(Arg₁: any, Arg₂: any)`
-   *TBD*
+:mini:`fun replace(Var₁, : any, ..., Value: any)`
+   Assigns :mini:`Varᵢ := Varᵢ₊₁` for each :mini:`1 <= i < n` and :mini:`Varₙ := Value`. Returns the old value of :mini:`Var₁`.
 
 

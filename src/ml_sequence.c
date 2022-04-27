@@ -2753,6 +2753,7 @@ void ml_sequence_init(stringmap_t *Globals) {
 	ml_type_add_rule(MLSkippedT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 	ml_type_add_rule(MLSwappedT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 	ml_type_add_rule(MLUniqueT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
+	ml_type_add_rule(MLPairedT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 #endif
 	if (Globals) {
 		stringmap_insert(Globals, "chained", MLChainedT);

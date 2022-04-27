@@ -1983,8 +1983,28 @@ static void ml_exchange_run(ml_exchange_t *State, ml_value_t *Result) {
 	return ml_assign(State, State->Args[I], New);
 }
 
+ML_FUNCTIONZ(MLCompareAndSet) {
+//@cas
+//<Var:any
+//<Old:any
+//<New:any
+//>any
+// If the value of :mini:`Var` is identically equal to :mini:`Old`, then sets :mini:`Var` to :mini:`New` and returns :mini:`New`. Otherwise leaves :mini:`Var` unchanged and returns :mini:`nil`.
+//$- var X := 10
+//$= with Old := X do cas(X, Old, Old + 1) end
+//$= X
+	ML_CHECKX_ARG_COUNT(3);
+	ml_value_t *Var = ml_deref(Args[0]);
+	ml_value_t *Old = ml_deref(Args[1]);
+	ml_value_t *New = ml_deref(Args[2]);
+	if (Var != Old) ML_RETURN(MLNil);
+	return ml_assign(Caller, Args[0], New);
+}
+
 ML_FUNCTIONZ(MLExchange) {
 //@exchange
+//<Var/1,...,Var/n:any
+// Assigns :mini:`Var/i := Var/i/+/1` for each :mini:`1 <= i < n` and :mini:`Var/n := Var/1`.
 	ML_CHECKX_ARG_COUNT(1);
 	ml_exchange_t *State = xnew(ml_exchange_t, Count, ml_value_t *);
 	State->Base.Caller = Caller;
@@ -1998,6 +2018,9 @@ ML_FUNCTIONZ(MLExchange) {
 
 ML_FUNCTIONZ(MLReplace) {
 //@replace
+//<Var/1,...,Var/n:any
+//<Value:any
+// Assigns :mini:`Var/i := Var/i/+/1` for each :mini:`1 <= i < n` and :mini:`Var/n := Value`. Returns the old value of :mini:`Var/1`.
 	ML_CHECKX_ARG_COUNT(2);
 	ml_exchange_t *State = xnew(ml_exchange_t, Count - 1, ml_value_t *);
 	State->Base.Caller = Caller;
@@ -2030,6 +2053,8 @@ static ml_value_t *ml_mem_trace(void *Ptr, inthash_t *Cache) {
 }
 
 ML_FUNCTION(MLMemTrace) {
+//!memory
+//@trace
 //<Value
 //>list[map]
 // Returns information about the blocks of memory referenced by :mini:`Value`.
@@ -2051,6 +2076,8 @@ static size_t ml_mem_size(void *Ptr, inthash_t *Cache) {
 }
 
 ML_FUNCTION(MLMemSize) {
+//!memory
+//@size
 //<Value
 //>list[map]
 // Returns information about the blocks of memory referenced by :mini:`Value`.
@@ -2061,6 +2088,8 @@ ML_FUNCTION(MLMemSize) {
 }
 
 ML_FUNCTION(MLMemCollect) {
+//!memory
+//@collect
 // Call garbage collector.
 	GC_gcollect();
 	return MLNil;
@@ -2130,5 +2159,6 @@ void ml_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "some", MLSome);
 		stringmap_insert(Globals, "exchange", MLExchange);
 		stringmap_insert(Globals, "replace", MLReplace);
+		stringmap_insert(Globals, "cas", MLCompareAndSet);
 	}
 }
