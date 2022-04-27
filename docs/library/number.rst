@@ -145,6 +145,10 @@ number
    Returns :mini:`A + B`.
 
 
+:mini:`meth ++(Real: double): real`
+   Returns :mini:`Real + 1`
+
+
 :mini:`meth -(A: double): real`
    Returns :mini:`-A`.
 
@@ -159,6 +163,10 @@ number
 
 :mini:`meth (A: double) - (B: integer): real`
    Returns :mini:`A - B`.
+
+
+:mini:`meth --(Real: double): real`
+   Returns :mini:`Real - 1`
 
 
 :mini:`meth (A: double) / (B: complex): complex`
@@ -323,6 +331,10 @@ number
    Returns :mini:`A + B`.
 
 
+:mini:`meth ++(Int: integer): integer`
+   Returns :mini:`Int + 1`
+
+
 :mini:`meth -(A: integer): integer`
    Returns :mini:`-A`.
 
@@ -337,6 +349,10 @@ number
 
 :mini:`meth (A: integer) - (B: integer): integer`
    Returns :mini:`A - B`.
+
+
+:mini:`meth --(Int: integer): integer`
+   Returns :mini:`Int - 1`
 
 
 :mini:`meth (A: integer) / (B: complex): complex`
