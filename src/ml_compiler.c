@@ -5326,7 +5326,7 @@ ML_METHODX("compile", MLParserT, MLCompilerT, MLListT) {
 	ml_compiler_t *Compiler = (ml_compiler_t *)Args[1];
 	mlc_expr_t *Expr = ml_accept_file(Parser);
 	if (!Expr) ML_RETURN(Parser->Value);
-	const char **Parameters = anew(const char *, ml_list_length(Args[2]));
+	const char **Parameters = anew(const char *, ml_list_length(Args[2]) + 1);
 	int I = 0;
 	ML_LIST_FOREACH(Args[2], Iter) {
 		if (!ml_is(Iter->Value, MLStringT)) ML_ERROR("TypeError", "Parameter name must be a string");
