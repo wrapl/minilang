@@ -3183,6 +3183,17 @@ static ml_stringbuffer_node_t * _Atomic StringBufferNodeCache = NULL;
 static ml_stringbuffer_node_t *StringBufferNodeCache = NULL;
 #endif
 
+static inline ml_stringbuffer_node_t *ml_stringbuffer_node() {
+	if (!StringBufferDesc) {
+		GC_word StringBufferLayout[] = {1};
+		StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
+	}
+	//ml_stringbuffer_t *Node = new(ml_stringbuffer_node_t);
+	ml_stringbuffer_node_t *Node = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+	Node->Next = NULL;
+	return Node;
+}
+
 size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length) {
 	ml_stringbuffer_node_t *Node = Buffer->Head;
 	Buffer->Length -= Length;
@@ -3222,7 +3233,7 @@ char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Length) {
 		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
 		do {
 			if (!Next) {
-				Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+				Next = ml_stringbuffer_node();
 				break;
 			}
 			CacheNext = Next->Next;
@@ -3230,7 +3241,7 @@ char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Length) {
 #else
 		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
 		if (!Next) {
-			Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+			Next = ml_stringbuffer_node();
 		} else {
 			StringBufferNodeCache = Next->Next;
 		}
@@ -3256,7 +3267,7 @@ ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, siz
 		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
 		do {
 			if (!Next) {
-				Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+				Next = ml_stringbuffer_node();
 				break;
 			}
 			CacheNext = Next->Next;
@@ -3264,7 +3275,7 @@ ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, siz
 #else
 		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
 		if (!Next) {
-			Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+			Next = ml_stringbuffer_node();
 		} else {
 			StringBufferNodeCache = Next->Next;
 		}
@@ -3310,7 +3321,7 @@ void ml_stringbuffer_put(ml_stringbuffer_t *Buffer, char Char) {
 		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
 		do {
 			if (!Next) {
-				Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+				Next = ml_stringbuffer_node();
 				break;
 			}
 			CacheNext = Next->Next;
@@ -3318,7 +3329,7 @@ void ml_stringbuffer_put(ml_stringbuffer_t *Buffer, char Char) {
 #else
 		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
 		if (!Next) {
-			Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+			Next = ml_stringbuffer_node();
 		} else {
 			StringBufferNodeCache = Next->Next;
 		}
@@ -3535,8 +3546,6 @@ ML_METHODVX("write", MLStringBufferT, MLAnyT) {
 }
 
 void ml_string_init() {
-	GC_word StringBufferLayout[] = {1};
-	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
 	stringmap_insert(MLStringT->Exports, "buffer", MLStringBufferT);
 	regcomp(IntFormat, "^\\s*%[-+ #'0]*[.0-9]*[diouxX]\\s*$", REG_NOSUB);
 	regcomp(LongFormat, "^\\s*%[-+ #'0]*[.0-9]*l[diouxX]\\s*$", REG_NOSUB);
