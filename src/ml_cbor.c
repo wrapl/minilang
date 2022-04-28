@@ -635,6 +635,7 @@ ml_cbor_t ml_cbor_writer_encode(ml_value_t *Value) {
 	ml_value_t *Error = ml_cbor_write(Writer, Value);
 	if (Error) return (ml_cbor_t){{.Error = Error}, 0};
 	size_t Size = Buffer->Length;
+	if (!Size) return (ml_cbor_t){{.Error = ml_error("CBORError", "Empty CBOR encoding")}, 0};
 	return (ml_cbor_t){{.Data = ml_stringbuffer_get_string(Buffer)}, Size};
 }
 
