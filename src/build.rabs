@@ -40,6 +40,9 @@ end
 if DEBUG then
 	CFLAGS := old + ["-O1", "-g", "-DGC_DEBUG", "-DDEBUG"]
 	LDFLAGS := old + ["-g"]
+elseif defined("GC_DEBUG") then
+	CFLAGS := old + ["-O3", "-g", "-fexpensive-optimizations", "-DGC_DEBUG"]
+	LDFLAGS := old + ["-g"]
 else
 	CFLAGS := old + ["-O3", "-g", "-fexpensive-optimizations"]
 	LDFLAGS := old + ["-g"]
