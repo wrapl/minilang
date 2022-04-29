@@ -3190,7 +3190,6 @@ static inline ml_stringbuffer_node_t *ml_stringbuffer_node() {
 	}
 	//ml_stringbuffer_t *Node = new(ml_stringbuffer_node_t);
 	ml_stringbuffer_node_t *Node = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
-	Node->Next = NULL;
 	return Node;
 }
 
