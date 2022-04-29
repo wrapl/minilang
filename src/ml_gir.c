@@ -2430,13 +2430,14 @@ ML_FUNCTIONX(GirRun) {
 
 ML_GIR_TYPELIB(Gio, "Gio", NULL);
 
+static ptrset_t IOCallers[1] = {0,};
+
 ML_GIR_IMPORT(GInputStreamT, Gio, "InputStream");
 
 static void g_input_stream_callback(GObject *Object, GAsyncResult *Result, gpointer Data) {
 	GInputStream *Stream = (GInputStream *)Object;
 	ml_state_t *Caller = (ml_state_t *)Data;
-	object_instance_t *Instance = (object_instance_t *)ml_gir_instance_get(Object, NULL);
-	ptrset_remove(Instance->Handlers, Caller);
+	ptrset_remove(IOCallers, Caller);
 	GError *Error = NULL;
 	gssize Count = g_input_stream_read_finish(Stream, Result, &Error);
 	if (Error) ML_ERROR("GirError", "%s", Error->message);
@@ -2445,7 +2446,7 @@ static void g_input_stream_callback(GObject *Object, GAsyncResult *Result, gpoin
 
 static void ML_TYPED_FN(ml_stream_read, (ml_type_t *)GInputStreamT, ml_state_t *Caller, object_instance_t *Value, void *Address, int Count) {
 	GInputStream *Stream = (GInputStream *)Value->Handle;
-	ptrset_insert(Value->Handlers, Caller);
+	ptrset_insert(IOCallers, Caller);
 	g_input_stream_read_async(Stream, Address, Count, 0, NULL, g_input_stream_callback, Caller);
 }
 
@@ -2454,8 +2455,7 @@ ML_GIR_IMPORT(GOutputStreamT, Gio, "OutputStream");
 static void g_output_stream_callback(GObject *Object, GAsyncResult *Result, gpointer Data) {
 	GOutputStream *Stream = (GOutputStream *)Object;
 	ml_state_t *Caller = (ml_state_t *)Data;
-	object_instance_t *Instance = (object_instance_t *)ml_gir_instance_get(Object, NULL);
-	ptrset_remove(Instance->Handlers, Caller);
+	ptrset_remove(IOCallers, Caller);
 	GError *Error = NULL;
 	gssize Count = g_output_stream_write_finish(Stream, Result, &Error);
 	if (Error) ML_ERROR("GirError", "%s", Error->message);
@@ -2464,7 +2464,7 @@ static void g_output_stream_callback(GObject *Object, GAsyncResult *Result, gpoi
 
 static void ML_TYPED_FN(ml_stream_write, (ml_type_t *)GOutputStreamT, ml_state_t *Caller, object_instance_t *Value, void *Address, int Count) {
 	GOutputStream *Stream = (GOutputStream *)Value->Handle;
-	ptrset_insert(Value->Handlers, Caller);
+	ptrset_insert(IOCallers, Caller);
 	g_output_stream_write_async(Stream, Address, Count, 0, NULL, g_output_stream_callback, Caller);
 }
 
