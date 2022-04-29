@@ -194,7 +194,6 @@ int main(int Argc, const char *Argv[]) {
 	BacktraceState = backtrace_create_state(Argv[0], 0, NULL, NULL);
 	signal(SIGSEGV, error_handler);
 #endif
-
 	ml_init(Globals);
 	ml_sequence_init(Globals);
 	ml_object_init(Globals);
