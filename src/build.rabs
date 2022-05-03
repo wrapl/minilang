@@ -48,7 +48,7 @@ else
 	LDFLAGS := old + ["-g"]
 end
 
-PREBUILDS := old + [file("config.h")]
+PREBUILDS := old + [file("ml_config.h")]
 INIT_HEADERS := [file("ml_types.h")]
 
 fun generate_init_file(Source) do
@@ -110,7 +110,7 @@ let Objects := [
 let Libraries := []
 
 let InstallHeaders := [
-	"config.h",
+	"ml_config.h",
 	"inthash.h",
 	"minilang.h",
 	"ml_bytecode.h",
@@ -198,7 +198,7 @@ MINILANG_JSENCODE := old or defined("JSENCODE")
 
 MINILANG_GTK_CONSOLE := old or defined("GTK_CONSOLE")
 
-file("config.h") => fun(Target) do
+file("ml_config.h") => fun(Target) do
 	let File := Target:open("w")
 	File:write("#ifndef ML_CONFIG_H\n")
 	File:write("#define ML_CONFIG_H\n")
