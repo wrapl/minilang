@@ -4211,7 +4211,7 @@ static void ml_accept_for_decl(ml_parser_t *Parser, mlc_for_expr_t *Expr) {
 		int Count = 0;
 		mlc_local_t **Slot = &Expr->Local;
 		do {
-			ml_accept(Parser, MLT_IDENT);
+			if (!ml_parse2(Parser, MLT_BLANK)) ml_accept(Parser, MLT_IDENT);
 			++Count;
 			mlc_local_t *Local = Slot[0] = new(mlc_local_t);
 			Local->Line = Parser->Source.Line;

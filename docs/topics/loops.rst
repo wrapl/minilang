@@ -74,7 +74,7 @@ The optional expression passed to :mini:`exit` is evaluated in the context of th
 For expressions
 ---------------
 
-.. parser-rule-diagram:: 'for' ( identifier ',' )? ( identifier | '(' identifier ( ',' identifier )* ')' )  'in' expression 'do' block ( 'else' block )? 'end'
+.. parser-rule-diagram:: 'for' ( identifier ',' )? ( identifier | '(' ( identifier | '_' ) ( ',' ( identifier | '_' ) )* ')' )  'in' expression 'do' block ( 'else' block )? 'end'
 
 A :mini:`for`-expressions loops over a sequence, binding the generated keys and values to local variables and evaluating a block of code for each iteration. The loop stops when the sequence is exhausted, or if a :mini:`exit` expression is used to exit the loop.
 

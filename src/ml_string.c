@@ -3184,10 +3184,6 @@ static ml_stringbuffer_node_t *StringBufferNodeCache = NULL;
 #endif
 
 static inline ml_stringbuffer_node_t *ml_stringbuffer_node() {
-	if (!StringBufferDesc) {
-		GC_word StringBufferLayout[] = {1};
-		StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
-	}
 	//ml_stringbuffer_t *Node = new(ml_stringbuffer_node_t);
 	ml_stringbuffer_node_t *Node = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
 	return Node;
@@ -3545,6 +3541,8 @@ ML_METHODVX("write", MLStringBufferT, MLAnyT) {
 }
 
 void ml_string_init() {
+	GC_word StringBufferLayout[] = {1};
+	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
 	stringmap_insert(MLStringT->Exports, "buffer", MLStringBufferT);
 	regcomp(IntFormat, "^\\s*%[-+ #'0]*[.0-9]*[diouxX]\\s*$", REG_NOSUB);
 	regcomp(LongFormat, "^\\s*%[-+ #'0]*[.0-9]*l[diouxX]\\s*$", REG_NOSUB);

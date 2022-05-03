@@ -415,12 +415,12 @@ typedef struct {
 	ml_type_t *Type;
 	const char *Error;
 	const char *Message;
+	ml_value_t *Value;
 	ml_source_t Trace[MAX_TRACE];
 } ml_error_value_t;
 
 typedef struct {
 	ml_type_t *Type;
-	ml_value_t *Value;
 	ml_error_value_t Error[];
 } ml_error_t;
 
@@ -447,7 +447,7 @@ ML_FUNCTION(MLError) {
 	Error->Error->Type = MLErrorValueT;
 	Error->Error->Error = ml_string_value(Args[0]);
 	Error->Error->Message = ml_string_value(Args[1]);
-	Error->Value = (ml_value_t *)Error->Error;
+	Error->Error->Value = MLNil;
 	return (ml_value_t *)Error;
 }
 
@@ -465,7 +465,7 @@ ML_FUNCTION(MLRaise) {
 	Error->Error->Type = MLErrorValueT;
 	Error->Error->Error = ml_string_value(Args[0]);
 	Error->Error->Message = ml_typeof(Args[1])->Name;
-	Error->Value = Args[1];
+	Error->Error->Value = Args[1];
 	return (ml_value_t *)Error;
 }
 
@@ -490,7 +490,7 @@ ml_value_t *ml_errorv(const char *Error, const char *Format, va_list Args) {
 	Value->Error->Type = MLErrorValueT;
 	Value->Error->Error = Error;
 	Value->Error->Message = Message;
-	Value->Value = (ml_value_t *)Value->Error;
+	Value->Error->Value = MLNil;
 	return (ml_value_t *)Value;
 }
 
@@ -502,6 +502,10 @@ ml_value_t *ml_error(const char *Error, const char *Format, ...) {
 	return Value;
 }
 
+ml_value_t *ml_error_unwrap(const ml_value_t *Value) {
+	return (ml_value_t *)((ml_error_t *)Value)->Error;
+}
+
 const char *ml_error_type(const ml_value_t *Value) {
 	return ((ml_error_t *)Value)->Error->Error;
 }
@@ -511,7 +515,7 @@ const char *ml_error_message(const ml_value_t *Value) {
 }
 
 ml_value_t *ml_error_value(const ml_value_t *Value) {
-	return ((ml_error_t *)Value)->Value;
+	return ((ml_error_t *)Value)->Error->Value;
 }
 
 int ml_error_source(const ml_value_t *Value, int Level, ml_source_t *Source) {
@@ -584,14 +588,19 @@ ML_METHOD("trace", MLErrorValueT) {
 //<Error
 //>list
 // Returns the stack trace of :mini:`Error` as a list of tuples.
-	ml_error_value_t *Value = (ml_error_value_t *)Args[0];
+	ml_error_value_t *Error = (ml_error_value_t *)Args[0];
 	ml_value_t *Trace = ml_list();
-	ml_source_t *Source = Value->Trace;
+	ml_source_t *Source = Error->Trace;
 	for (int I = MAX_TRACE; --I >= 0 && Source->Name; ++Source) {
 		ml_value_t *Tuple = ml_tuplev(2, ml_string(Source->Name, -1), ml_integer(Source->Line));
 		ml_list_put(Trace, Tuple);
 	}
 	return Trace;
+}
+
+ML_METHOD("value", MLErrorValueT) {
+	ml_error_value_t *Error = (ml_error_value_t *)Args[0];
+	return Error->Value;
 }
 
 ML_METHOD("raise", MLErrorValueT) {
@@ -606,7 +615,7 @@ ML_METHOD("raise", MLErrorValueT) {
 	Error->Error->Message = ml_error_value_message(Args[0]);
 	int Level = 0;
 	while (ml_error_value_source(Args[0], Level, Error->Error->Trace + Level)) ++Level;
-	Error->Value = (ml_value_t *)Error->Error;
+	Error->Error->Value = (ml_value_t *)Error->Error;
 	return (ml_value_t *)Error;
 }
 

@@ -420,16 +420,19 @@ ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
 	const ml_type_t *Base = Args[0];
 	const char *Name = Base->Name;
 	if (NumArgs > 1) {
-		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-		ml_stringbuffer_write(Buffer, Base->Name, strlen(Base->Name));
-		ml_stringbuffer_put(Buffer, '[');
-		ml_stringbuffer_write(Buffer, Args[1]->Name, strlen(Args[1]->Name));
+		size_t Length = strlen(Base->Name) + NumArgs + 1;
+		for (int I = 1; I < NumArgs; ++I) Length += strlen(Args[I]->Name);
+		char *Name2 = snew(Length);
+		char *End = stpcpy(Name2, Base->Name);
+		*End++ = '[';
+		End = stpcpy(End, Args[1]->Name);
 		for (int I = 2; I < NumArgs; ++I) {
-			ml_stringbuffer_put(Buffer, ',');
-			ml_stringbuffer_write(Buffer, Args[I]->Name, strlen(Args[I]->Name));
+			*End++ = ',';
+			End = stpcpy(End, Args[I]->Name);
 		}
-		ml_stringbuffer_put(Buffer, ']');
-		Name = ml_stringbuffer_get_string(Buffer);
+		*End++ = ']';
+		*End = 0;
+		Name = Name2;
 	}
 	Type->Base.Type = MLTypeGenericT;
 	Type->Base.Name = Name;
@@ -1630,6 +1633,10 @@ ml_value_t *ml_unpack(ml_value_t *Value, int Index) {
 	typeof(ml_unpack) *function = ml_typed_fn_get(ml_typeof(Value), ml_unpack);
 	if (!function) return ml_simple_inline(IndexMethod, 2, Value, ml_integer(Index));
 	return function(Value, Index);
+}
+
+static ml_value_t *ML_TYPED_FN(ml_unpack, MLNilT, ml_value_t *Value, int Index) {
+	return MLNil;
 }
 
 ML_METHOD("size", MLTupleT) {
