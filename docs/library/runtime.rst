@@ -55,6 +55,10 @@ runtime
    *TBD*
 
 
+:mini:`meth (Arg₁: error::value):value`
+   *TBD*
+
+
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: error::value)`
    *TBD*
 

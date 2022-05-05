@@ -1193,9 +1193,15 @@ enum {
 	ML_UNORM_NFKD
 };
 
-ML_ENUM(MLStringNormalizationT, "string::norm", "NFC", "NFD", "NFKC", "NFKD");
+ML_ENUM(MLStringNormT, "string::norm", "NFC", "NFD", "NFKC", "NFKD");
 
-ML_METHOD("normalize", MLStringT, MLStringNormalizationT) {
+ML_METHOD("normalize", MLStringT, MLStringNormT) {
+//<String
+//<Norm
+//>string
+// Returns a normalized copy of :mini:`String` using the normalizer specified by :mini:`Norm`.
+//$= let S := "𝕥𝕖𝕩𝕥"
+//$= S:normalize(string::norm::NFD)
 	UErrorCode Error = U_ZERO_ERROR;
 	int SrcLimit = 4 * ml_string_length(Args[0]);
 	UChar Src[SrcLimit];
@@ -1225,6 +1231,56 @@ ML_METHOD("normalize", MLStringT, MLStringNormalizationT) {
 	u_strToUTF8(String, Actual * 4, &Length, Dest, Actual, &Error);
 	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error encoding UTF-8");
 	return ml_string(String, Length);
+}
+
+ML_ENUM2(MLStringCTypeT, "string::ctype",
+//@string::ctype
+	"Cn", U_GENERAL_OTHER_TYPES,
+	"Lu", U_UPPERCASE_LETTER,
+	"Ll", U_LOWERCASE_LETTER,
+	"Lt", U_TITLECASE_LETTER,
+	"Lm", U_MODIFIER_LETTER,
+	"Lo", U_OTHER_LETTER,
+	"Mn", U_NON_SPACING_MARK,
+	"Me", U_ENCLOSING_MARK,
+	"Mc", U_COMBINING_SPACING_MARK,
+	"Nd", U_DECIMAL_DIGIT_NUMBER,
+	"Nl", U_LETTER_NUMBER,
+	"No", U_OTHER_NUMBER,
+	"Zs", U_SPACE_SEPARATOR,
+	"Zl", U_LINE_SEPARATOR,
+	"Zp", U_PARAGRAPH_SEPARATOR,
+	"Cc", U_CONTROL_CHAR,
+	"Cf", U_FORMAT_CHAR,
+	"Co", U_PRIVATE_USE_CHAR,
+	"Cs", U_SURROGATE,
+	"Pd", U_DASH_PUNCTUATION,
+	"Ps", U_START_PUNCTUATION,
+	"Pe", U_END_PUNCTUATION,
+	"Pc", U_CONNECTOR_PUNCTUATION,
+	"Po", U_OTHER_PUNCTUATION,
+	"Sm", U_MATH_SYMBOL,
+	"Sc", U_CURRENCY_SYMBOL,
+	"Sk", U_MODIFIER_SYMBOL,
+	"So", U_OTHER_SYMBOL,
+	"Pi", U_INITIAL_PUNCTUATION,
+	"Pf", U_FINAL_PUNCTUATION
+);
+
+ML_METHOD("ctype", MLStringT) {
+//<String
+//>string::ctype
+// Returns the unicode type of the first character of :mini:`String`.
+//$= map("To €2 á\n" => (2, 2 -> :ctype))
+	UErrorCode Error = U_ZERO_ERROR;
+	int SrcLimit = 4 * ml_string_length(Args[0]);
+	UChar Src[SrcLimit];
+	int Length;
+	u_strFromUTF8(Src, SrcLimit, &Length, ml_string_value(Args[0]), ml_string_length(Args[0]), &Error);
+	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error decoding UTF-8");
+	UChar32 Src32[1];
+	u_strToUTF32(Src32, 1, &Length, Src, Length, &Error);
+	return ml_enum_value(MLStringCTypeT, u_charType(Src32[0]));
 }
 
 #endif
@@ -3621,6 +3677,7 @@ void ml_string_init() {
 	}
 #endif
 #ifdef ML_ICU
-	stringmap_insert(MLStringT->Exports, "norm", MLStringNormalizationT);
+	stringmap_insert(MLStringT->Exports, "norm", MLStringNormT);
+	stringmap_insert(MLStringT->Exports, "ctype", MLStringCTypeT);
 #endif
 }
