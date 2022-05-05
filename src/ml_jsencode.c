@@ -159,6 +159,120 @@ static json_t *ML_TYPED_FN(ml_json_encode, MLTimeT, ml_json_encoder_cache_t *Cac
 
 #endif
 
+#ifdef ML_MATH
+
+#include "ml_array.h"
+
+#define ML_JSON_ENCODE_ARRAY(CTYPE, JSON) \
+\
+static void ml_json_encode_array_ ## CTYPE(int Degree, ml_array_dimension_t *Dimension, char *Address, json_t *Json) { \
+	if (Degree == 0) { \
+		json_array_append_new(Json, JSON(*(CTYPE *)Address)); \
+		return; \
+	} else { \
+		int Stride = Dimension->Stride; \
+		if (Dimension->Indices) { \
+			int *Indices = Dimension->Indices; \
+			for (int I = 0; I < Dimension->Size; ++I) { \
+				ml_json_encode_array_ ## CTYPE(Degree - 1, Dimension + 1, Address + Indices[I] * Stride, Json); \
+			} \
+		} else { \
+			for (int I = Dimension->Size; --I >= 0;) { \
+				ml_json_encode_array_ ## CTYPE(Degree - 1, Dimension + 1, Address, Json); \
+				Address += Stride; \
+			} \
+		} \
+	} \
+}
+
+ML_JSON_ENCODE_ARRAY(int8_t, json_integer)
+ML_JSON_ENCODE_ARRAY(uint8_t, json_integer)
+ML_JSON_ENCODE_ARRAY(int16_t, json_integer)
+ML_JSON_ENCODE_ARRAY(uint16_t, json_integer)
+ML_JSON_ENCODE_ARRAY(int32_t, json_integer)
+ML_JSON_ENCODE_ARRAY(uint32_t, json_integer)
+ML_JSON_ENCODE_ARRAY(int64_t, json_integer)
+ML_JSON_ENCODE_ARRAY(uint64_t, json_integer)
+ML_JSON_ENCODE_ARRAY(float, json_real)
+ML_JSON_ENCODE_ARRAY(double, json_real)
+
+static void ml_json_encode_array_any(int Degree, ml_array_dimension_t *Dimension, char *Address, json_t *Json, ml_json_encoder_cache_t *Cache) {
+	if (Degree == 0) {
+		json_array_append_new(Json, ml_json_encode(Cache, *(ml_value_t **)Address));
+	} else {
+		int Stride = Dimension->Stride;
+		if (Dimension->Indices) {
+			int *Indices = Dimension->Indices;
+			for (int I = 0; I < Dimension->Size; ++I) {
+				ml_json_encode_array_any(Degree - 1, Dimension + 1, Address + Indices[I] * Stride, Json, Cache);
+			}
+		} else {
+			for (int I = Dimension->Size; --I >= 0;) {
+				ml_json_encode_array_any(Degree - 1, Dimension + 1, Address, Json, Cache);
+				Address += Stride;
+			}
+		}
+	}
+}
+
+static json_t *ML_TYPED_FN(ml_json_encode, MLArrayT, ml_json_encoder_cache_t *Cache, ml_array_t *Array) {
+	const char *Type;
+	json_t *Values = json_array();
+	json_t *Shape = json_array();
+	for (int I = 0; I < Array->Degree; ++I) json_array_append_new(Shape, json_integer(Array->Dimensions[I].Size));
+	switch (Array->Format) {
+	case ML_ARRAY_FORMAT_U8:
+		Type = "uint8";
+		ml_json_encode_array_uint8_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
+		break;
+	case ML_ARRAY_FORMAT_I8:
+		Type = "int8";
+		ml_json_encode_array_int8_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
+		break;
+	case ML_ARRAY_FORMAT_U16:
+		Type = "uint16";
+		ml_json_encode_array_uint16_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
+		break;
+	case ML_ARRAY_FORMAT_I16:
+		Type = "int16";
+		ml_json_encode_array_int16_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
+		break;
+	case ML_ARRAY_FORMAT_U32:
+		Type = "uint32";
+		ml_json_encode_array_uint32_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
+		break;
+	case ML_ARRAY_FORMAT_I32:
+		Type = "int32";
+		ml_json_encode_array_int32_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
+		break;
+	case ML_ARRAY_FORMAT_U64:
+		Type = "uint64";
+		ml_json_encode_array_uint64_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
+		break;
+	case ML_ARRAY_FORMAT_I64:
+		Type = "int64";
+		ml_json_encode_array_int64_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
+		break;
+	case ML_ARRAY_FORMAT_F32:
+		Type = "float32";
+		ml_json_encode_array_float(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
+		break;
+	case ML_ARRAY_FORMAT_F64:
+		Type = "float64";
+		ml_json_encode_array_double(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
+		break;
+	case ML_ARRAY_FORMAT_ANY:
+		Type = "any";
+		ml_json_encode_array_any(Array->Degree, Array->Dimensions, Array->Base.Value, Values, Cache);
+		break;
+	default:
+		return json_pack("[ss]", "unsupported", Array->Base.Type->Name);
+	}
+	return json_pack("[ssoo]", "array", Type, Shape, Values);
+}
+
+#endif
+
 static json_t *ml_closure_info_encode(ml_closure_info_t *Info, ml_json_encoder_cache_t *Cache);
 
 typedef struct {
@@ -549,6 +663,16 @@ static ml_value_t *ml_json_decode_time(ml_json_decoder_cache_t *Cache, json_t *J
 
 #endif
 
+#ifdef ML_MATH
+
+static ml_value_t *ml_json_decode_array(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Count) {
+	json_t *Value = json_array_get(Json, 0);
+	if (!json_is_string(Value)) return ml_error("TypeError", "Time requires strings");
+	return ml_time_parse(json_string_value(Value), json_string_length(Value));
+}
+
+#endif
+
 static ml_value_t *ml_json_decode_variable(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
 	return ml_variable(MLNil, NULL);
 }
@@ -792,6 +916,9 @@ void ml_jsencode_init(stringmap_t *Globals) {
 	stringmap_insert(Decoders, "z", ml_json_decode_closure);
 #ifdef ML_TIME
 	stringmap_insert(Decoders, "time", ml_json_decode_time);
+#endif
+#ifdef ML_MATH
+	stringmap_insert(Decoders, "array", ml_json_decode_array);
 #endif
 #ifdef ML_UUID
 	stringmap_insert(Decoders, "uuid", ml_json_decode_uuid);

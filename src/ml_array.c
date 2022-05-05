@@ -1032,72 +1032,72 @@ ARRAY_OFFSETS_NONZERO(any, MLNil);
 
 static int ml_array_count_nonzero(ml_array_t *A) {
 	switch (A->Format) {
-		case ML_ARRAY_FORMAT_U8:
-			return ml_array_count_nonzero_uint8_t(A->Base.Value, A->Degree - 1, A->Dimensions);
-		case ML_ARRAY_FORMAT_I8:
-			return ml_array_count_nonzero_int8_t(A->Base.Value, A->Degree - 1, A->Dimensions);
-		case ML_ARRAY_FORMAT_U16:
-			return ml_array_count_nonzero_uint16_t(A->Base.Value, A->Degree - 1, A->Dimensions);
-		case ML_ARRAY_FORMAT_I16:
-			return ml_array_count_nonzero_int16_t(A->Base.Value, A->Degree - 1, A->Dimensions);
-		case ML_ARRAY_FORMAT_U32:
-			return ml_array_count_nonzero_uint32_t(A->Base.Value, A->Degree - 1, A->Dimensions);
-		case ML_ARRAY_FORMAT_I32:
-			return ml_array_count_nonzero_int32_t(A->Base.Value, A->Degree - 1, A->Dimensions);
-		case ML_ARRAY_FORMAT_U64:
-			return ml_array_count_nonzero_uint64_t(A->Base.Value, A->Degree - 1, A->Dimensions);
-		case ML_ARRAY_FORMAT_I64:
-			return ml_array_count_nonzero_int64_t(A->Base.Value, A->Degree - 1, A->Dimensions);
-		case ML_ARRAY_FORMAT_F32:
-			return ml_array_count_nonzero_float(A->Base.Value, A->Degree - 1, A->Dimensions);
-		case ML_ARRAY_FORMAT_F64:
-			return ml_array_count_nonzero_double(A->Base.Value, A->Degree - 1, A->Dimensions);
-	#ifdef ML_COMPLEX
-		case ML_ARRAY_FORMAT_C32:
-			return ml_array_count_nonzero_complex_float(A->Base.Value, A->Degree - 1, A->Dimensions);
-		case ML_ARRAY_FORMAT_C64:
-			return ml_array_count_nonzero_complex_double(A->Base.Value, A->Degree - 1, A->Dimensions);
-	#endif
-		case ML_ARRAY_FORMAT_ANY:
-			return ml_array_count_nonzero_any(A->Base.Value, A->Degree - 1, A->Dimensions);
-		default:
-			return 0;
-		}
+	case ML_ARRAY_FORMAT_U8:
+		return ml_array_count_nonzero_uint8_t(A->Base.Value, A->Degree - 1, A->Dimensions);
+	case ML_ARRAY_FORMAT_I8:
+		return ml_array_count_nonzero_int8_t(A->Base.Value, A->Degree - 1, A->Dimensions);
+	case ML_ARRAY_FORMAT_U16:
+		return ml_array_count_nonzero_uint16_t(A->Base.Value, A->Degree - 1, A->Dimensions);
+	case ML_ARRAY_FORMAT_I16:
+		return ml_array_count_nonzero_int16_t(A->Base.Value, A->Degree - 1, A->Dimensions);
+	case ML_ARRAY_FORMAT_U32:
+		return ml_array_count_nonzero_uint32_t(A->Base.Value, A->Degree - 1, A->Dimensions);
+	case ML_ARRAY_FORMAT_I32:
+		return ml_array_count_nonzero_int32_t(A->Base.Value, A->Degree - 1, A->Dimensions);
+	case ML_ARRAY_FORMAT_U64:
+		return ml_array_count_nonzero_uint64_t(A->Base.Value, A->Degree - 1, A->Dimensions);
+	case ML_ARRAY_FORMAT_I64:
+		return ml_array_count_nonzero_int64_t(A->Base.Value, A->Degree - 1, A->Dimensions);
+	case ML_ARRAY_FORMAT_F32:
+		return ml_array_count_nonzero_float(A->Base.Value, A->Degree - 1, A->Dimensions);
+	case ML_ARRAY_FORMAT_F64:
+		return ml_array_count_nonzero_double(A->Base.Value, A->Degree - 1, A->Dimensions);
+#ifdef ML_COMPLEX
+	case ML_ARRAY_FORMAT_C32:
+		return ml_array_count_nonzero_complex_float(A->Base.Value, A->Degree - 1, A->Dimensions);
+	case ML_ARRAY_FORMAT_C64:
+		return ml_array_count_nonzero_complex_double(A->Base.Value, A->Degree - 1, A->Dimensions);
+#endif
+	case ML_ARRAY_FORMAT_ANY:
+		return ml_array_count_nonzero_any(A->Base.Value, A->Degree - 1, A->Dimensions);
+	default:
+		return 0;
+	}
 }
 
 static int *ml_array_offsets_nonzero(ml_array_t *A, int *Offsets, ml_array_dimension_t *Source) {
 	switch (A->Format) {
-		case ML_ARRAY_FORMAT_U8:
-			return ml_array_offsets_nonzero_uint8_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-		case ML_ARRAY_FORMAT_I8:
-			return ml_array_offsets_nonzero_int8_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-		case ML_ARRAY_FORMAT_U16:
-			return ml_array_offsets_nonzero_uint16_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-		case ML_ARRAY_FORMAT_I16:
-			return ml_array_offsets_nonzero_int16_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-		case ML_ARRAY_FORMAT_U32:
-			return ml_array_offsets_nonzero_uint32_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-		case ML_ARRAY_FORMAT_I32:
-			return ml_array_offsets_nonzero_int32_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-		case ML_ARRAY_FORMAT_U64:
-			return ml_array_offsets_nonzero_uint64_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-		case ML_ARRAY_FORMAT_I64:
-			return ml_array_offsets_nonzero_int64_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-		case ML_ARRAY_FORMAT_F32:
-			return ml_array_offsets_nonzero_float(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-		case ML_ARRAY_FORMAT_F64:
-			return ml_array_offsets_nonzero_double(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-	#ifdef ML_COMPLEX
-		case ML_ARRAY_FORMAT_C32:
-			return ml_array_offsets_nonzero_complex_float(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-		case ML_ARRAY_FORMAT_C64:
-			return ml_array_offsets_nonzero_complex_double(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-	#endif
-		case ML_ARRAY_FORMAT_ANY:
-			return ml_array_offsets_nonzero_any(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-		default:
-			return 0;
-		}
+	case ML_ARRAY_FORMAT_U8:
+		return ml_array_offsets_nonzero_uint8_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+	case ML_ARRAY_FORMAT_I8:
+		return ml_array_offsets_nonzero_int8_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+	case ML_ARRAY_FORMAT_U16:
+		return ml_array_offsets_nonzero_uint16_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+	case ML_ARRAY_FORMAT_I16:
+		return ml_array_offsets_nonzero_int16_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+	case ML_ARRAY_FORMAT_U32:
+		return ml_array_offsets_nonzero_uint32_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+	case ML_ARRAY_FORMAT_I32:
+		return ml_array_offsets_nonzero_int32_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+	case ML_ARRAY_FORMAT_U64:
+		return ml_array_offsets_nonzero_uint64_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+	case ML_ARRAY_FORMAT_I64:
+		return ml_array_offsets_nonzero_int64_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+	case ML_ARRAY_FORMAT_F32:
+		return ml_array_offsets_nonzero_float(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+	case ML_ARRAY_FORMAT_F64:
+		return ml_array_offsets_nonzero_double(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+#ifdef ML_COMPLEX
+	case ML_ARRAY_FORMAT_C32:
+		return ml_array_offsets_nonzero_complex_float(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+	case ML_ARRAY_FORMAT_C64:
+		return ml_array_offsets_nonzero_complex_double(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+#endif
+	case ML_ARRAY_FORMAT_ANY:
+		return ml_array_offsets_nonzero_any(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+	default:
+		return 0;
+	}
 }
 
 static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayInt8T, ml_array_t *Array, ml_array_indexer_t *Indexer) {
