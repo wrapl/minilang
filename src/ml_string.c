@@ -1180,6 +1180,55 @@ ML_METHOD("utf8", MLIntegerT) {
 	return ml_string(S, I);
 }
 
+#ifdef ML_ICU
+
+#include "ml_object.h"
+#include <unicode/unorm2.h>
+#include <unicode/ustring.h>
+
+enum {
+	ML_UNORM_NFC,
+	ML_UNORM_NFD,
+	ML_UNORM_NFKC,
+	ML_UNORM_NFKD
+};
+
+ML_ENUM(MLStringNormalizationT, "string::norm", "NFC", "NFD", "NFKC", "NFKD");
+
+ML_METHOD("normalize", MLStringT, MLStringNormalizationT) {
+	UErrorCode Error = U_ZERO_ERROR;
+	int SrcLimit = 4 * ml_string_length(Args[0]);
+	UChar Src[SrcLimit];
+	int Length;
+	u_strFromUTF8(Src, SrcLimit, &Length, ml_string_value(Args[0]), ml_string_length(Args[0]), &Error);
+	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error decoding UTF-8");
+	const UNormalizer2 *Normalizer;
+	switch (ml_enum_value_value(Args[1])) {
+	case ML_UNORM_NFC:
+		Normalizer = unorm2_getNFCInstance(&Error);
+		break;
+	case ML_UNORM_NFD:
+		Normalizer = unorm2_getNFDInstance(&Error);
+		break;
+	case ML_UNORM_NFKC:
+		Normalizer = unorm2_getNFKCInstance(&Error);
+		break;
+	case ML_UNORM_NFKD:
+		Normalizer = unorm2_getNFKDInstance(&Error);
+		break;
+	}
+	size_t Capacity = 4 * Length;
+	UChar Dest[Capacity];
+	int Actual = unorm2_normalize(Normalizer, Src, Length, Dest, Capacity, &Error);
+	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error normalizing string");
+	char *String = snew(Actual * 4);
+	u_strToUTF8(String, Actual * 4, &Length, Dest, Actual, &Error);
+	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error encoding UTF-8");
+	return ml_string(String, Length);
+}
+
+#endif
+
 ML_METHOD("[]", MLStringT, MLIntegerT) {
 //<String
 //<Index
@@ -3570,5 +3619,8 @@ void ml_string_init() {
 	if (!tre_config(TRE_CONFIG_VERSION, &Version)) {
 		ml_map_insert(Features, ml_cstring("version"), ml_string(Version, -1));
 	}
+#endif
+#ifdef ML_ICU
+	stringmap_insert(MLStringT->Exports, "norm", MLStringNormalizationT);
 #endif
 }

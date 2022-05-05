@@ -166,6 +166,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_PQUEUES := 1
 	MINILANG_TIME := 1
 	MINILANG_UUID := 1
+	MINILANG_ICU := 1
 	if PLATFORM = "Linux" and MACHINE = "x86_64" then
 		MINILANG_NANBOXING := not defined("NONANBOXING")
 	end
@@ -192,6 +193,7 @@ MINILANG_GENERICS := old or defined("GENERICS")
 MINILANG_PQUEUES := old or defined("PQUEUES")
 MINILANG_TIME := old or defined("TIME")
 MINILANG_UUID := old or defined("UUID")
+MINILANG_ICU := old or defined("ICU")
 MINILANG_LIBS := old or defined("LIBS")
 MINILANG_BACKTRACE := old or defined("BACKTRACE")
 MINILANG_JSENCODE := old or defined("JSENCODE")
@@ -391,6 +393,11 @@ if MINILANG_UUID then
 	CFLAGS := old + ["-DML_UUID"]
 	LDFLAGS := old + ["-luuid"]
 	InstallHeaders:put("ml_uuid.h")
+end
+
+if MINILANG_ICU then
+	CFLAGS := old + ["-DML_ICU"]
+	LDFLAGS := old + ["-licuuc"]
 end
 
 if MINILANG_JSENCODE then
