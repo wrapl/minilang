@@ -235,10 +235,13 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller
 	ERROR(); \
 }
 
+#define FRAME_DECLS(DECLS)
+
 #else
 
 #undef ERROR
 #undef ADVANCE
+#undef FRAME_DECLS
 
 #define ERROR() { \
 	Inst = Frame->OnError; \
@@ -251,6 +254,8 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller
 	CHECK_COUNTER \
 	goto DO_DEBUG_ADVANCE; \
 }
+
+#define FRAME_DECLS(DECLS) Frame->Decls = DECLS;
 
 #endif
 
@@ -650,9 +655,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_WITH: {
 		*Top = Result;
 		++Top;
-#ifdef DEBUG_VERSION
-		Frame->Decls = Inst[1].Decls;
-#endif
+		FRAME_DECLS(Inst[1].Decls);
 		ADVANCE(Inst + 2);
 	}
 	DO_WITHX: {
@@ -664,9 +667,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			*Top = Result;
 			++Top;
 		}
-#ifdef DEBUG_VERSION
-		Frame->Decls = Inst[2].Decls;
-#endif
+		FRAME_DECLS(Inst[2].Decls);
 		ADVANCE(Inst + 3);
 	}
 	DO_POP: {
@@ -686,16 +687,12 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			*Top = NULL;
 			++Top;
 		}
-#ifdef DEBUG_VERSION
-		Frame->Decls = Inst[3].Decls;
-#endif
+		FRAME_DECLS(Inst[3].Decls);
 		ADVANCE(Inst + 4);
 	}
 	DO_EXIT: {
 		for (int I = Inst[1].Count; --I >= 0;) *--Top = NULL;
-#ifdef DEBUG_VERSION
-		Frame->Decls = Inst[2].Decls;
-#endif
+		FRAME_DECLS(Inst[2].Decls);
 		ADVANCE(Inst + 3);
 	}
 	DO_GOTO: {
@@ -732,9 +729,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		while (Top > Old) *--Top = NULL;
 		*Top = Result;
 		++Top;
-#ifdef DEBUG_VERSION
-		Frame->Decls = Inst[3].Decls;
-#endif
+		FRAME_DECLS(Inst[3].Decls);
 		ADVANCE(Inst + 4);
 	}
 	DO_RETRY: {

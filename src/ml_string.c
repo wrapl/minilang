@@ -1193,7 +1193,12 @@ enum {
 	ML_UNORM_NFKD
 };
 
-ML_ENUM(MLStringNormT, "string::norm", "NFC", "NFD", "NFKC", "NFKD");
+ML_ENUM2(MLStringNormT, "string::norm",
+	"NFC", ML_UNORM_NFC,
+	"NFD", ML_UNORM_NFD,
+	"NFKC", ML_UNORM_NFKC,
+	"NFKD", ML_UNORM_NFKD
+);
 
 ML_METHOD("normalize", MLStringT, MLStringNormT) {
 //<String
@@ -1208,7 +1213,7 @@ ML_METHOD("normalize", MLStringT, MLStringNormT) {
 	int Length;
 	u_strFromUTF8(Src, SrcLimit, &Length, ml_string_value(Args[0]), ml_string_length(Args[0]), &Error);
 	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error decoding UTF-8");
-	const UNormalizer2 *Normalizer;
+	const UNormalizer2 *Normalizer = NULL;
 	switch (ml_enum_value_value(Args[1])) {
 	case ML_UNORM_NFC:
 		Normalizer = unorm2_getNFCInstance(&Error);
@@ -1223,6 +1228,7 @@ ML_METHOD("normalize", MLStringT, MLStringNormT) {
 		Normalizer = unorm2_getNFKDInstance(&Error);
 		break;
 	}
+	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error getting normalizer");
 	size_t Capacity = 4 * Length;
 	UChar Dest[Capacity];
 	int Actual = unorm2_normalize(Normalizer, Src, Length, Dest, Capacity, &Error);
@@ -1272,15 +1278,15 @@ ML_METHOD("ctype", MLStringT) {
 //>string::ctype
 // Returns the unicode type of the first character of :mini:`String`.
 //$= map("To €2 á\n" => (2, 2 -> :ctype))
-	UErrorCode Error = U_ZERO_ERROR;
-	int SrcLimit = 4 * ml_string_length(Args[0]);
-	UChar Src[SrcLimit];
-	int Length;
-	u_strFromUTF8(Src, SrcLimit, &Length, ml_string_value(Args[0]), ml_string_length(Args[0]), &Error);
-	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error decoding UTF-8");
-	UChar32 Src32[1];
-	u_strToUTF32(Src32, 1, &Length, Src, Length, &Error);
-	return ml_enum_value(MLStringCTypeT, u_charType(Src32[0]));
+	const char *S = ml_string_value(Args[0]);
+	uint32_t K = S[0] ? __builtin_clz(~(S[0] << 24)) : 0;
+	uint32_t Mask = (1 << (8 - K)) - 1;
+	uint32_t Value = S[0] & Mask;
+	for (++S, --K; K > 0 && S[0]; --K, ++S) {
+		Value <<= 6;
+		Value += S[0] & 0x3F;
+	}
+	return ml_enum_value(MLStringCTypeT, u_charType(Value));
 }
 
 #endif
