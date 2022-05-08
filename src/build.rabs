@@ -191,7 +191,8 @@ MINILANG_NANBOXING := old or defined("NANBOXING")
 MINILANG_TRE := old or defined("TRE")
 MINILANG_GENERICS := old or defined("GENERICS")
 MINILANG_PQUEUES := old or defined("PQUEUES")
-MINILANG_TIME := old or defined("TIME")
+MINILANG_TIMEZONES := old or defined("TIMEZONES")
+MINILANG_TIME := old or MINILANG_TIMEZONES or defined("TIME")
 MINILANG_UUID := old or defined("UUID")
 MINILANG_ICU := old or defined("ICU")
 MINILANG_LIBS := old or defined("LIBS")
@@ -386,6 +387,18 @@ if MINILANG_TIME then
 	Objects:put(file("ml_time.o"))
 	CFLAGS := old + ["-DML_TIME"]
 	InstallHeaders:put("ml_time.h")
+end
+
+if MINILANG_TIMEZONES then
+	let TIMELIB := file("timelib/timelib.a") => fun(Target) do
+		file("timelib"):rmdir
+		execute("git clone https://github.com/derickr/timelib.git", Dir)
+		file("timelib"):chdir
+		execute("make timelib.a FLAGS=\"-O3 -DHAVE_STDINT_H -DHAVE_GETTIMEOFDAY -DHAVE_UNISTD_H -DHAVE_DIRENT_H -I.\"")
+	end
+	PREBUILDS := old + [TIMELIB]
+	CFLAGS := old + ["-DML_TIMEZONES"]
+	LDFLAGS := old + [TIMELIB]
 end
 
 if MINILANG_UUID then

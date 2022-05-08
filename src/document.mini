@@ -721,6 +721,37 @@ fun process(FileName) do
 				else
 					write_value(Category, Name, Type, Description, Location)
 				end
+			elseif Line % r"^ML_VALUE" then
+				let Location := (FileName, LineNo)
+				let I := Line:find("(")
+				let J := Line:find(",", I + 1)
+				let K := Line:find(")", J + 1)
+				var Name := Line[I + 1, J]
+				var Type := Line[J + 1, K]:trim
+				var Category := DefaultCategory
+				let Description := []
+				loop
+					let Line := while File:read
+					LineNo := old + 1
+					if Line % r"^/[/*]@" then
+						Name := Line[4, 0]:trim
+					elseif Line % r"^/[/*]!" then
+						Category := Line[4, 0]:trim
+					elseif Line % r"^/[/*]>" then
+						Type := Line[4, 0]:trim
+					elseif Line % r"^/[/*] " then
+						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]\n" then
+						Description:put("\n")
+					else
+						exit
+					end
+				end
+				if CurrentDefine then
+					CurrentDefine:put(write_value, [Category, Name, Type, Description, Location])
+				else
+					write_value(Category, Name, Type, Description, Location)
+				end
 			elseif let Match := Line % r"^#define ([A-Za-z0-9_]+)\((.+)\)" then
 				let Params := list(Match[3] / ",", :trim)
 				CurrentDefine := define(Params, [])

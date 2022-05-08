@@ -7,6 +7,18 @@
 type
 ====
 
+.. _value-MLNil:
+
+:mini:`def MLNil: nil`
+   *TBD*
+
+
+.. _value-MLBlank:
+
+:mini:`def MLBlank: blank`
+   *TBD*
+
+
 .. _type-any:
 
 :mini:`type any`

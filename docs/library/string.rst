@@ -586,7 +586,7 @@ When creating a substring,  the first index is inclusive and second index is exc
    .. code-block:: mini
 
       let S := "𝕥𝕖𝕩𝕥" :> "𝕥𝕖𝕩𝕥"
-      S:normalize(string::norm::NFD) :> "text"
+      S:normalize(string::norm::NFD) :> "𝕥𝕖𝕩𝕥"
 
 
 :mini:`meth (String: string):offset(Index: integer): integer`

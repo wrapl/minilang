@@ -33,7 +33,7 @@ uuid
    .. code-block:: mini
 
       import: uuid("std/uuid")
-      uuid() :> 9afd9ca3-ffbd-4715-b6fe-d0e95066c8b7
+      uuid() :> fdcfbba4-353f-4b10-8993-e89a5b10f659
 
 
 :mini:`meth (Arg₁: uuid) <> (Arg₂: uuid)`
