@@ -34,6 +34,7 @@ hierarchy
       "any":e -> "uuid":w;
       "any":e -> "time":w;
       "any":e -> "time::zone":w;
+      "any":e -> "time::zoned":w;
       "any":e -> "thread":w;
       "any":e -> "thread::channel":w;
       "any":e -> "thread::mutex":w;

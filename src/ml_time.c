@@ -151,6 +151,7 @@ ML_METHOD(MLTimeT, MLIntegerT, MLIntegerT, MLIntegerT, MLIntegerT, MLIntegerT, M
 	TM.tm_hour = ml_integer_value(Args[3]);
 	TM.tm_min = ml_integer_value(Args[4]);
 	TM.tm_sec = ml_integer_value(Args[5]);
+	TM.tm_isdst = -1;
 	ml_time_t *Time = new(ml_time_t);
 	Time->Type = MLTimeT;
 	Time->Value->tv_sec = timelocal(&TM);
@@ -174,6 +175,7 @@ ML_METHOD(MLTimeT, MLIntegerT, MLIntegerT, MLIntegerT, MLIntegerT, MLIntegerT, M
 	TM.tm_hour = ml_integer_value(Args[3]);
 	TM.tm_min = ml_integer_value(Args[4]);
 	TM.tm_sec = ml_integer_value(Args[5]);
+	TM.tm_isdst = -1;
 	ml_time_t *Time = new(ml_time_t);
 	Time->Type = MLTimeT;
 	Time->Value->tv_sec = timegm(&TM);
@@ -190,6 +192,7 @@ ML_METHOD(MLTimeT, MLIntegerT, MLIntegerT, MLIntegerT) {
 	TM.tm_year = ml_integer_value(Args[0]) - 1900;
 	TM.tm_mon = ml_integer_value(Args[1]) - 1;
 	TM.tm_mday = ml_integer_value(Args[2]);
+	TM.tm_isdst = -1;
 	ml_time_t *Time = new(ml_time_t);
 	Time->Type = MLTimeT;
 	Time->Value->tv_sec = timelocal(&TM);
@@ -207,6 +210,7 @@ ML_METHOD(MLTimeT, MLIntegerT, MLIntegerT, MLIntegerT, MLNilT) {
 	TM.tm_year = ml_integer_value(Args[0]) - 1900;
 	TM.tm_mon = ml_integer_value(Args[1]) - 1;
 	TM.tm_mday = ml_integer_value(Args[2]);
+	TM.tm_isdst = -1;
 	ml_time_t *Time = new(ml_time_t);
 	Time->Type = MLTimeT;
 	Time->Value->tv_sec = timegm(&TM);
@@ -451,11 +455,31 @@ ML_METHOD(NAME, MLTimeT, MLNilT) { \
 ML_TIME_PART("year", year, ml_integer(TM.tm_year + 1900))
 ML_TIME_PART("month", month, ml_enum_value(MLTimeMonthT, TM.tm_mon + 1))
 ML_TIME_PART("day", date, ml_integer(TM.tm_mday))
-ML_TIME_PART("yday", number of days from the start of the year, ml_integer(TM.tm_yday))
+ML_TIME_PART("yday", number of days from the start of the year, ml_integer(TM.tm_yday + 1))
 ML_TIME_PART("wday", day of the week, ml_enum_value(MLTimeDayT, TM.tm_wday ?: 7))
 ML_TIME_PART("hour", hour, ml_integer(TM.tm_hour))
 ML_TIME_PART("minute", minute, ml_integer(TM.tm_min))
 ML_TIME_PART("second", second, ml_integer(TM.tm_sec))
+
+ML_FUNCTION(MLTimeMdays) {
+//@time::mdays
+//<Year
+//<Month
+//>integer
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLIntegerT);
+	ML_CHECK_ARG_TYPE(1, MLIntegerT);
+	int Year = ml_integer_value(Args[0]);
+	int Month = ml_integer_value(Args[1]);
+	if (Month < 1 || Month > 12) return ml_error("ValueError", "Invalid month");
+	if (Year % 4 == 0 && (Year % 100 != 0 || Year % 400 == 0)) {
+		static int Days[] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+		return ml_integer(Days[Month - 1]);
+	} else {
+		static int Days[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+		return ml_integer(Days[Month - 1]);
+	}
+}
 
 #ifdef ML_TIMEZONES
 
@@ -576,7 +600,7 @@ ML_METHOD(NAME, MLTimeT, MLTimeZoneT) { \
 ML_TIME_PART_WITH_ZONE("year", year, ml_integer(TL.y))
 ML_TIME_PART_WITH_ZONE("month", month, ml_enum_value(MLTimeMonthT, TL.m))
 ML_TIME_PART_WITH_ZONE("day", date, ml_integer(TL.d))
-ML_TIME_PART_WITH_ZONE("yday", number of days from the start of the year, ml_integer(timelib_day_of_year(TL.y, TL.m, TL.d)))
+ML_TIME_PART_WITH_ZONE("yday", number of days from the start of the year, ml_integer(timelib_day_of_year(TL.y, TL.m, TL.d) + 1))
 ML_TIME_PART_WITH_ZONE("wday", day of the week, ml_enum_value(MLTimeDayT, timelib_iso_day_of_week(TL.y, TL.m, TL.d)))
 ML_TIME_PART_WITH_ZONE("hour", hour, ml_integer(TL.h))
 ML_TIME_PART_WITH_ZONE("minute", minute, ml_integer(TL.i))
@@ -619,6 +643,53 @@ ML_METHOD("append", MLStringBufferT, MLTimeT, MLTimeZoneT) {
 	}
 	ml_stringbuffer_write(Buffer, Temp, Length);
 	return MLSome;
+}
+
+ML_METHOD("append", MLStringBufferT, MLTimeT, MLStringT, MLTimeZoneT) {
+//<Buffer
+//<Time
+//<Format
+//<TimeZone
+//>string
+// Formats :mini:`Time` as a time in :mini:`TimeZone` according to the specified format.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_time_t *Time = (ml_time_t *)Args[1];
+	const char *Format = ml_string_value(Args[2]);
+	ml_time_zone_t *TimeZone = (ml_time_zone_t *)Args[3];
+	timelib_time TL = {0,};
+	timelib_set_timezone(&TL, TimeZone->Info);
+	timelib_unixtime2local(&TL, Time->Value->tv_sec);
+	struct tm TM = {0,};
+	TM.tm_year = TL.y - 1900;
+	TM.tm_mon = TL.m;
+	TM.tm_mday = TL.d;
+	TM.tm_hour = TL.h;
+	TM.tm_min = TL.i;
+	TM.tm_sec = TL.s;
+	TM.tm_yday = timelib_day_of_year(TL.y, TL.m, TL.d);
+	TM.tm_wday = timelib_day_of_week(TL.y, TL.m, TL.d);
+	char Temp[120];
+	size_t Length = strftime(Temp, 120, Format, &TM);
+	ml_stringbuffer_write(Buffer, Temp, Length);
+	return MLSome;
+}
+
+typedef struct {
+	ml_type_t *Type;
+	timelib_time Value[1];
+} ml_time_zoned_t;
+
+ML_TYPE(MLTimeZonedT, (), "time::zoned");
+
+ML_METHOD("@", MLTimeT, MLTimeZoneT) {
+	ml_time_t *Time = (ml_time_t *)Args[0];
+	ml_time_zone_t *TimeZone = (ml_time_zone_t *)Args[1];
+	ml_time_zoned_t *Zoned = new(ml_time_zoned_t);
+	Zoned->Type = MLTimeZonedT;
+	timelib_set_timezone(Zoned->Value, TimeZone->Info);
+	timelib_unixtime2local(Zoned->Value, Time->Value->tv_sec);
+	Zoned->Value->us = Time->Value->tv_nsec / 1000;
+	return (ml_value_t *)Zoned;
 }
 
 #endif
@@ -699,6 +770,7 @@ void ml_time_init(stringmap_t *Globals) {
 		"Hour", ml_integer(60 * 60),
 		"Day", ml_integer(60 * 60 * 24),
 	NULL));
+	stringmap_insert(MLTimeT->Exports, "mdays", MLTimeMdays);
 	stringmap_insert(MLTimeT->Exports, "day", MLTimeDayT);
 	stringmap_insert(MLTimeT->Exports, "month", MLTimeMonthT);
 	if (Globals) stringmap_insert(Globals, "time", MLTimeT);

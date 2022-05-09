@@ -15,6 +15,12 @@ Provides time and date operations. Depending on how Minilang was built,  may nee
    Returns a list of available time zone names.
 
 
+.. _fun-time-mdays:
+
+:mini:`fun time::mdays(Year: integer, Month: integer): integer`
+   *TBD*
+
+
 .. _type-time:
 
 :mini:`type time`
@@ -31,12 +37,12 @@ Provides time and date operations. Depending on how Minilang was built,  may nee
    Returns the time specified by the provided components in UTC.
 
 
-:mini:`meth time(Year: integer, Month: integer, Day: integer): time`
-   Returns the time specified by the provided components in the local time.
-
-
 :mini:`meth time(String: string): time`
    Parses the :mini:`String` as a time according to ISO 8601.
+
+
+:mini:`meth time(Year: integer, Month: integer, Day: integer): time`
+   Returns the time specified by the provided components in the local time.
 
 
 :mini:`meth time(String: string, Format: string): time`
@@ -97,6 +103,10 @@ Provides time and date operations. Depending on how Minilang was built,  may nee
 
 :mini:`meth (A: time) <> (B: time): integer`
    Compares the times :mini:`A` and :mini:`B` and returns :mini:`-1`,  :mini:`0` or :mini:`1` respectively.
+
+
+:mini:`meth (Arg₁: time) @ (Arg₂: time::zone)`
+   *TBD*
 
 
 :mini:`meth (Time: time):day: integer`
@@ -215,6 +225,10 @@ Provides time and date operations. Depending on how Minilang was built,  may nee
    Formats :mini:`Time` as a UTC time according to the specified format.
 
 
+:mini:`meth (Buffer: string::buffer):append(Time: time, Format: string, TimeZone: time::zone): string`
+   Formats :mini:`Time` as a time in :mini:`TimeZone` according to the specified format.
+
+
 :mini:`meth (Buffer: string::buffer):append(Time: time, TimeZone: time::zone): string`
    Formats :mini:`Time` as a time in :mini:`TimeZone`.
 
@@ -227,6 +241,12 @@ Provides time and date operations. Depending on how Minilang was built,  may nee
 
 :mini:`meth (Buffer: string::buffer):append(TimeZone: time::zone)`
    Appends the name of :mini:`TimeZone` to :mini:`Buffer`.
+
+
+.. _type-time-zoned:
+
+:mini:`type time::zoned`
+   *TBD*
 
 
 :mini:`meth (Name: time::zones) :: (Arg₂: string): time::zone | error`
