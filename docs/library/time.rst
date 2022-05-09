@@ -100,15 +100,15 @@ Provides time and date operations. Depending on how Minilang was built,  may nee
 
 
 :mini:`meth (Time: time):day: integer`
-   Returns the day of the week from :mini:`Time` in local time.
+   Returns the date from :mini:`Time` in local time.
 
 
 :mini:`meth (Time: time):day(TimeZone: nil): integer`
-   Returns the day of the week from :mini:`Time` in UTC.
+   Returns the date from :mini:`Time` in UTC.
 
 
 :mini:`meth (Time: time):day(TimeZone: time::zone): integer`
-   Returns the TL.m from :mini:`Time` in :mini:`TimeZone`.
+   Returns the date from :mini:`Time` in :mini:`TimeZone`.
 
 
 :mini:`meth (Time: time):hour: integer`
@@ -121,18 +121,6 @@ Provides time and date operations. Depending on how Minilang was built,  may nee
 
 :mini:`meth (Time: time):hour(TimeZone: time::zone): integer`
    Returns the hour from :mini:`Time` in :mini:`TimeZone`.
-
-
-:mini:`meth (Time: time):mday: integer`
-   Returns the date from :mini:`Time` in local time.
-
-
-:mini:`meth (Time: time):mday(TimeZone: nil): integer`
-   Returns the date from :mini:`Time` in UTC.
-
-
-:mini:`meth (Time: time):mday(TimeZone: time::zone): integer`
-   Returns the date from :mini:`Time` in :mini:`TimeZone`.
 
 
 :mini:`meth (Time: time):minute: integer`
@@ -175,6 +163,18 @@ Provides time and date operations. Depending on how Minilang was built,  may nee
    Returns the second from :mini:`Time` in :mini:`TimeZone`.
 
 
+:mini:`meth (Time: time):wday: integer`
+   Returns the day of the week from :mini:`Time` in local time.
+
+
+:mini:`meth (Time: time):wday(TimeZone: nil): integer`
+   Returns the day of the week from :mini:`Time` in UTC.
+
+
+:mini:`meth (Time: time):wday(TimeZone: time::zone): integer`
+   Returns the day of the week from :mini:`Time` in :mini:`TimeZone`.
+
+
 :mini:`meth (Time: time):yday: integer`
    Returns the number of days from the start of the year from :mini:`Time` in local time.
 
@@ -184,7 +184,7 @@ Provides time and date operations. Depending on how Minilang was built,  may nee
 
 
 :mini:`meth (Time: time):yday(TimeZone: time::zone): integer`
-   Returns the TL.m from :mini:`Time` in :mini:`TimeZone`.
+   Returns the number of days from the start of the year from :mini:`Time` in :mini:`TimeZone`.
 
 
 :mini:`meth (Time: time):year: integer`
@@ -216,7 +216,7 @@ Provides time and date operations. Depending on how Minilang was built,  may nee
 
 
 :mini:`meth (Buffer: string::buffer):append(Time: time, TimeZone: time::zone): string`
-   Formats :mini:`Time` as a time in :mini:`TimeZone` according to ISO 8601.
+   Formats :mini:`Time` as a time in :mini:`TimeZone`.
 
 
 .. _type-time-zone:
@@ -225,11 +225,11 @@ Provides time and date operations. Depending on how Minilang was built,  may nee
    A time zone.
 
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: time::zone)`
-   *TBD*
+:mini:`meth (Buffer: string::buffer):append(TimeZone: time::zone)`
+   Appends the name of :mini:`TimeZone` to :mini:`Buffer`.
 
 
-:mini:`meth (Arg₁: time::zones) :: (Arg₂: string)`
-   *TBD*
+:mini:`meth (Name: time::zones) :: (Arg₂: string): time::zone | error`
+   Returns the time zone identified by :mini:`Name` or an error if no time zone is found.
 
 

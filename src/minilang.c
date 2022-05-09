@@ -252,9 +252,9 @@ int main(int Argc, const char *Argv[]) {
 
 	ml_stream_init(IO_EXPORTS);
 	stringmap_insert(IO_EXPORTS, "terminal", ml_module("terminal",
-		"stdin", ml_fd_stream(STDIN_FILENO),
-		"stdout", ml_fd_stream(STDOUT_FILENO),
-		"stderr", ml_fd_stream(STDERR_FILENO),
+		"Stdin", ml_fd_stream(STDIN_FILENO),
+		"Stdout", ml_fd_stream(STDOUT_FILENO),
+		"Stderr", ml_fd_stream(STDERR_FILENO),
 	NULL));
 #ifdef ML_CBOR
 	ml_cbor_init(FMT_EXPORTS);
