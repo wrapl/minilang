@@ -398,7 +398,7 @@ if MINILANG_TIMEZONES then
 	end
 	PREBUILDS := old + [TIMELIB]
 	CFLAGS := old + ["-DML_TIMEZONES"]
-	LDFLAGS := old + [TIMELIB]
+	Libraries:put(TIMELIB)
 end
 
 if MINILANG_UUID then
