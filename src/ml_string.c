@@ -1180,6 +1180,117 @@ ML_METHOD("utf8", MLIntegerT) {
 	return ml_string(S, I);
 }
 
+#ifdef ML_ICU
+
+#include "ml_object.h"
+#include <unicode/unorm2.h>
+#include <unicode/ustring.h>
+
+enum {
+	ML_UNORM_NFC,
+	ML_UNORM_NFD,
+	ML_UNORM_NFKC,
+	ML_UNORM_NFKD
+};
+
+ML_ENUM2(MLStringNormT, "string::norm",
+	"NFC", ML_UNORM_NFC,
+	"NFD", ML_UNORM_NFD,
+	"NFKC", ML_UNORM_NFKC,
+	"NFKD", ML_UNORM_NFKD
+);
+
+ML_METHOD("normalize", MLStringT, MLStringNormT) {
+//<String
+//<Norm
+//>string
+// Returns a normalized copy of :mini:`String` using the normalizer specified by :mini:`Norm`.
+//$= let S := "𝕥𝕖𝕩𝕥"
+//$= S:normalize(string::norm::NFD)
+	UErrorCode Error = U_ZERO_ERROR;
+	int SrcLimit = 4 * ml_string_length(Args[0]);
+	UChar Src[SrcLimit];
+	int Length;
+	u_strFromUTF8(Src, SrcLimit, &Length, ml_string_value(Args[0]), ml_string_length(Args[0]), &Error);
+	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error decoding UTF-8");
+	const UNormalizer2 *Normalizer = NULL;
+	switch (ml_enum_value_value(Args[1])) {
+	case ML_UNORM_NFC:
+		Normalizer = unorm2_getNFCInstance(&Error);
+		break;
+	case ML_UNORM_NFD:
+		Normalizer = unorm2_getNFDInstance(&Error);
+		break;
+	case ML_UNORM_NFKC:
+		Normalizer = unorm2_getNFKCInstance(&Error);
+		break;
+	case ML_UNORM_NFKD:
+		Normalizer = unorm2_getNFKDInstance(&Error);
+		break;
+	}
+	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error getting normalizer");
+	size_t Capacity = 4 * Length;
+	UChar Dest[Capacity];
+	int Actual = unorm2_normalize(Normalizer, Src, Length, Dest, Capacity, &Error);
+	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error normalizing string");
+	char *String = snew(Actual * 4);
+	u_strToUTF8(String, Actual * 4, &Length, Dest, Actual, &Error);
+	if (U_FAILURE(Error)) return ml_error("UnicodeError", "Error encoding UTF-8");
+	return ml_string(String, Length);
+}
+
+ML_ENUM2(MLStringCTypeT, "string::ctype",
+//@string::ctype
+	"Cn", U_GENERAL_OTHER_TYPES,
+	"Lu", U_UPPERCASE_LETTER,
+	"Ll", U_LOWERCASE_LETTER,
+	"Lt", U_TITLECASE_LETTER,
+	"Lm", U_MODIFIER_LETTER,
+	"Lo", U_OTHER_LETTER,
+	"Mn", U_NON_SPACING_MARK,
+	"Me", U_ENCLOSING_MARK,
+	"Mc", U_COMBINING_SPACING_MARK,
+	"Nd", U_DECIMAL_DIGIT_NUMBER,
+	"Nl", U_LETTER_NUMBER,
+	"No", U_OTHER_NUMBER,
+	"Zs", U_SPACE_SEPARATOR,
+	"Zl", U_LINE_SEPARATOR,
+	"Zp", U_PARAGRAPH_SEPARATOR,
+	"Cc", U_CONTROL_CHAR,
+	"Cf", U_FORMAT_CHAR,
+	"Co", U_PRIVATE_USE_CHAR,
+	"Cs", U_SURROGATE,
+	"Pd", U_DASH_PUNCTUATION,
+	"Ps", U_START_PUNCTUATION,
+	"Pe", U_END_PUNCTUATION,
+	"Pc", U_CONNECTOR_PUNCTUATION,
+	"Po", U_OTHER_PUNCTUATION,
+	"Sm", U_MATH_SYMBOL,
+	"Sc", U_CURRENCY_SYMBOL,
+	"Sk", U_MODIFIER_SYMBOL,
+	"So", U_OTHER_SYMBOL,
+	"Pi", U_INITIAL_PUNCTUATION,
+	"Pf", U_FINAL_PUNCTUATION
+);
+
+ML_METHOD("ctype", MLStringT) {
+//<String
+//>string::ctype
+// Returns the unicode type of the first character of :mini:`String`.
+//$= map("To €2 á\n" => (2, 2 -> :ctype))
+	const char *S = ml_string_value(Args[0]);
+	uint32_t K = S[0] ? __builtin_clz(~(S[0] << 24)) : 0;
+	uint32_t Mask = (1 << (8 - K)) - 1;
+	uint32_t Value = S[0] & Mask;
+	for (++S, --K; K > 0 && S[0]; --K, ++S) {
+		Value <<= 6;
+		Value += S[0] & 0x3F;
+	}
+	return ml_enum_value(MLStringCTypeT, u_charType(Value));
+}
+
+#endif
+
 ML_METHOD("[]", MLStringT, MLIntegerT) {
 //<String
 //<Index
@@ -3183,6 +3294,12 @@ static ml_stringbuffer_node_t * _Atomic StringBufferNodeCache = NULL;
 static ml_stringbuffer_node_t *StringBufferNodeCache = NULL;
 #endif
 
+static inline ml_stringbuffer_node_t *ml_stringbuffer_node() {
+	//ml_stringbuffer_t *Node = new(ml_stringbuffer_node_t);
+	ml_stringbuffer_node_t *Node = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+	return Node;
+}
+
 size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length) {
 	ml_stringbuffer_node_t *Node = Buffer->Head;
 	Buffer->Length -= Length;
@@ -3222,7 +3339,7 @@ char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Length) {
 		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
 		do {
 			if (!Next) {
-				Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+				Next = ml_stringbuffer_node();
 				break;
 			}
 			CacheNext = Next->Next;
@@ -3230,7 +3347,7 @@ char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Length) {
 #else
 		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
 		if (!Next) {
-			Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+			Next = ml_stringbuffer_node();
 		} else {
 			StringBufferNodeCache = Next->Next;
 		}
@@ -3256,7 +3373,7 @@ ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, siz
 		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
 		do {
 			if (!Next) {
-				Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+				Next = ml_stringbuffer_node();
 				break;
 			}
 			CacheNext = Next->Next;
@@ -3264,7 +3381,7 @@ ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, siz
 #else
 		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
 		if (!Next) {
-			Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+			Next = ml_stringbuffer_node();
 		} else {
 			StringBufferNodeCache = Next->Next;
 		}
@@ -3310,7 +3427,7 @@ void ml_stringbuffer_put(ml_stringbuffer_t *Buffer, char Char) {
 		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
 		do {
 			if (!Next) {
-				Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+				Next = ml_stringbuffer_node();
 				break;
 			}
 			CacheNext = Next->Next;
@@ -3318,7 +3435,7 @@ void ml_stringbuffer_put(ml_stringbuffer_t *Buffer, char Char) {
 #else
 		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
 		if (!Next) {
-			Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+			Next = ml_stringbuffer_node();
 		} else {
 			StringBufferNodeCache = Next->Next;
 		}
@@ -3543,6 +3660,10 @@ void ml_string_init() {
 	regcomp(RealFormat, "^\\s*%[-+ #'0]*[.0-9]*[aefgAEG]\\s*$", REG_NOSUB);
 	stringmap_insert(MLStringT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLStringSwitch));
 #include "ml_string_init.c"
+#ifdef ML_GENERICS
+	ml_type_t *TArgs[3] = {MLSequenceT, MLIntegerT, MLStringT};
+	ml_type_add_parent(MLStringT, ml_generic_type(3, TArgs));
+#endif
 #ifdef ML_TRE
 	ml_value_t *Features = ml_map();
 	stringmap_insert(MLRegexT->Exports, "features", Features);
@@ -3560,5 +3681,9 @@ void ml_string_init() {
 	if (!tre_config(TRE_CONFIG_VERSION, &Version)) {
 		ml_map_insert(Features, ml_cstring("version"), ml_string(Version, -1));
 	}
+#endif
+#ifdef ML_ICU
+	stringmap_insert(MLStringT->Exports, "norm", MLStringNormT);
+	stringmap_insert(MLStringT->Exports, "ctype", MLStringCTypeT);
 #endif
 }

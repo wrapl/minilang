@@ -1,7 +1,11 @@
 Switch Expressions
 ==================
 
-The :mini:`switch`-expression in *Minilang* provides an alternative to an :mini:`if`-expression with multiple :mini:`elseif` branches when a single value is tested for the first match. For example:
+The :mini:`switch`-expression in *Minilang* provides an alternative to an :mini:`if`-expression with multiple :mini:`elseif` branches when a single value is tested for the first match.
+
+.. parser-rule-diagram:: 'switch' expression ':' expression ( 'case' expression ( ',' expression )* 'do' block )* ( 'else' block )? 'end'
+
+For example:
 
 .. code-block:: mini
 
@@ -16,7 +20,7 @@ The :mini:`switch`-expression in *Minilang* provides an alternative to an :mini:
          "many"
       end
    end
-   
+
    fun test2(X) do
       switch X: integer
       case 1 do
@@ -37,8 +41,8 @@ Given a :mini:`switch`-expression with provider :mini:`P`, the compiler uses the
 This design allows support for new kinds of :mini:`switch`-expressions to be added later, either to the language or by specific applications. Currently the following switch providers are available:
 
 :mini:`type`
-   Case values must be types. A case value matches if the switch value is of the same type or a sub-type. 
-   
+   Case values must be types (or :mini:`nil`). A case value matches if the switch value is of the same type or a sub-type.
+
 :mini:`integer`, :mini:`real`
    Case values must be numbers or numeric ranges. A case value matches if the switch value is equal to it (for numbers) or contained in it (for ranges).
 
@@ -47,9 +51,9 @@ This design allows support for new kinds of :mini:`switch`-expressions to be add
 
 Any :mini:`enum` type
    Case values must be values of the enum type or strings corresponding to values of the enum. A case value matches if the switch value is equal to it.
-    
+
 Any :mini:`flags` type
    Flag values must be values of the flags type, strings corresponding to values of the enum, or tuples of the previous. A case value matches if the switch value contains *at least* the same flags, it may have extra flags.
 
-Any function
-   Any function can be used as a switch provider as long as it accepts a list of lists and returns another function as described above.
+Any function or macro
+   Any function or macro can be used as a switch provider as long as it accepts a list of lists and returns another function as described above.

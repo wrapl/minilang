@@ -610,6 +610,32 @@ ML_METHOD("--", MLIntegerT) {
 	return ml_integer(ml_integer_value_fast(Args[0]) - 1);
 }
 
+ML_FUNCTIONZ(MLIntegerInc1) {
+//!internal
+	int64_t Value = ml_integer_value(ml_deref(Args[0]));
+	return ml_assign(Caller, Args[0], ml_integer(Value + 1));
+}
+
+ML_FUNCTIONZ(MLIntegerDec1) {
+//!internal
+	int64_t Value = ml_integer_value(ml_deref(Args[0]));
+	return ml_assign(Caller, Args[0], ml_integer(Value - 1));
+}
+
+ML_FUNCTIONZ(MLIntegerInc) {
+//!internal
+	int64_t Value = ml_integer_value(ml_deref(Args[0]));
+	int64_t Amount = ml_integer_value(ml_deref(Args[1]));
+	return ml_assign(Caller, Args[0], ml_integer(Value + Amount));
+}
+
+ML_FUNCTIONZ(MLIntegerDec) {
+//!internal
+	int64_t Value = ml_integer_value(ml_deref(Args[0]));
+	int64_t Amount = ml_integer_value(ml_deref(Args[1]));
+	return ml_assign(Caller, Args[0], ml_integer(Value - Amount));
+}
+
 ML_METHOD("++", MLDoubleT) {
 //<Real
 //>real
@@ -1671,6 +1697,12 @@ ML_FUNCTION(MLRealSwitch) {
 
 void ml_number_init() {
 #include "ml_number_init.c"
+#ifdef ML_GENERICS
+	ml_type_t *TArgs[3] = {MLSequenceT, MLIntegerT, MLIntegerT};
+	ml_type_add_parent(MLIntegerRangeT, ml_generic_type(3, TArgs));
+	TArgs[2] = MLRealT;
+	ml_type_add_parent(MLRealRangeT, ml_generic_type(3, TArgs));
+#endif
 	stringmap_insert(MLIntegerT->Exports, "range", MLIntegerRangeT);
 	stringmap_insert(MLIntegerT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLIntegerSwitch));
 	stringmap_insert(MLIntegerT->Exports, "random", RandomInteger);
@@ -1687,6 +1719,10 @@ void ml_number_init() {
 	stringmap_insert(MLRealT->Exports, "Inf", ml_real(INFINITY));
 	stringmap_insert(MLRealT->Exports, "NaN", ml_real(NAN));
 	ml_method_by_value(MLNumberT->Constructor, NULL, ml_identity, MLNumberT, NULL);
+	ml_method_define(ml_method("inc"), (ml_value_t *)MLIntegerInc1, 1, 0, (ml_type_t *[]){MLIntegerT});
+	ml_method_define(ml_method("dec"), (ml_value_t *)MLIntegerDec1, 1, 0, (ml_type_t *[]){MLIntegerT});
+	ml_method_define(ml_method("inc"), (ml_value_t *)MLIntegerInc, 2, 0, (ml_type_t *[]){MLIntegerT, MLIntegerT});
+	ml_method_define(ml_method("dec"), (ml_value_t *)MLIntegerDec, 2, 0, (ml_type_t *[]){MLIntegerT, MLIntegerT});
 	ml_infix_many("+");
 	ml_infix_many("*");
 	ml_infix_many("/\\");

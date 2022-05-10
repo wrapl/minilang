@@ -40,12 +40,15 @@ end
 if DEBUG then
 	CFLAGS := old + ["-O1", "-g", "-DGC_DEBUG", "-DDEBUG"]
 	LDFLAGS := old + ["-g"]
+elseif defined("GC_DEBUG") then
+	CFLAGS := old + ["-O3", "-g", "-fexpensive-optimizations", "-DGC_DEBUG"]
+	LDFLAGS := old + ["-g"]
 else
 	CFLAGS := old + ["-O3", "-g", "-fexpensive-optimizations"]
 	LDFLAGS := old + ["-g"]
 end
 
-PREBUILDS := old + [file("config.h")]
+PREBUILDS := old + [file("ml_config.h")]
 INIT_HEADERS := [file("ml_types.h")]
 
 fun generate_init_file(Source) do
@@ -107,7 +110,7 @@ let Objects := [
 let Libraries := []
 
 let InstallHeaders := [
-	"config.h",
+	"ml_config.h",
 	"inthash.h",
 	"minilang.h",
 	"ml_bytecode.h",
@@ -163,6 +166,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_PQUEUES := 1
 	MINILANG_TIME := 1
 	MINILANG_UUID := 1
+	MINILANG_ICU := 1
 	if PLATFORM = "Linux" and MACHINE = "x86_64" then
 		MINILANG_NANBOXING := not defined("NONANBOXING")
 	end
@@ -187,15 +191,17 @@ MINILANG_NANBOXING := old or defined("NANBOXING")
 MINILANG_TRE := old or defined("TRE")
 MINILANG_GENERICS := old or defined("GENERICS")
 MINILANG_PQUEUES := old or defined("PQUEUES")
-MINILANG_TIME := old or defined("TIME")
+MINILANG_TIMEZONES := old or defined("TIMEZONES")
+MINILANG_TIME := old or MINILANG_TIMEZONES or defined("TIME")
 MINILANG_UUID := old or defined("UUID")
+MINILANG_ICU := old or defined("ICU")
 MINILANG_LIBS := old or defined("LIBS")
 MINILANG_BACKTRACE := old or defined("BACKTRACE")
 MINILANG_JSENCODE := old or defined("JSENCODE")
 
 MINILANG_GTK_CONSOLE := old or defined("GTK_CONSOLE")
 
-file("config.h") => fun(Target) do
+file("ml_config.h") => fun(Target) do
 	let File := Target:open("w")
 	File:write("#ifndef ML_CONFIG_H\n")
 	File:write("#define ML_CONFIG_H\n")
@@ -383,11 +389,28 @@ if MINILANG_TIME then
 	InstallHeaders:put("ml_time.h")
 end
 
+if MINILANG_TIMEZONES then
+	let TIMELIB := file("timelib/timelib.a") => fun(Target) do
+		file("timelib"):rmdir
+		execute("git clone https://github.com/derickr/timelib.git", Dir)
+		file("timelib"):chdir
+		execute("make timelib.a FLAGS=\"-O3 -DHAVE_STDINT_H -DHAVE_GETTIMEOFDAY -DHAVE_UNISTD_H -DHAVE_DIRENT_H -I.\"")
+	end
+	PREBUILDS := old + [TIMELIB]
+	CFLAGS := old + ["-DML_TIMEZONES"]
+	Libraries:put(TIMELIB)
+end
+
 if MINILANG_UUID then
 	Objects:put(file("ml_uuid.o"))
 	CFLAGS := old + ["-DML_UUID"]
 	LDFLAGS := old + ["-luuid"]
 	InstallHeaders:put("ml_uuid.h")
+end
+
+if MINILANG_ICU then
+	CFLAGS := old + ["-DML_ICU"]
+	LDFLAGS := old + ["-licuuc"]
 end
 
 if MINILANG_JSENCODE then

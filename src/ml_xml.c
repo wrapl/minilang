@@ -649,7 +649,7 @@ ML_METHOD("parent", MLXmlT, MLStringT) {
 //<Xml
 //<Tag
 //>xml|nil
-// Returns the parent of :mini:`Xml` if it has tag :mini:`Tag`, otherwise :mini:`nil`.
+// Returns the ancestor of :mini:`Xml` with tag :mini:`Tag` if one exists, otherwise :mini:`nil`.
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
 	const char *Tag = stringmap_search(MLXmlTags, ml_string_value(Args[1]));
 	while ((Node = (ml_xml_node_t *)Node->Parent)) {

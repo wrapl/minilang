@@ -1,8 +1,13 @@
 #include "ml_time.h"
 #include "ml_macros.h"
+#include "ml_object.h"
 #include <string.h>
 #include <math.h>
 #include <ctype.h>
+
+#ifdef ML_TIMEZONES
+#include <timelib/timelib.h>
+#endif
 
 #ifdef ML_CBOR
 #include "ml_cbor.h"
@@ -24,7 +29,7 @@ static long ml_time_hash(ml_time_t *Time, ml_hash_chain_t *Chain) {
 }
 
 ML_TYPE(MLTimeT, (), "time",
-// A time in UTC with nanosecond resolution.
+// An instant in time with nanosecond resolution.
 	.hash = (void *)ml_time_hash
 );
 
@@ -34,7 +39,7 @@ void ml_time_value(ml_value_t *Value, struct timespec *Time) {
 
 ML_METHOD(MLTimeT) {
 //>time
-// Returns the current UTC time.
+// Returns the current time.
 	ml_time_t *Time = new(ml_time_t);
 	Time->Type = MLTimeT;
 	clock_gettime(CLOCK_REALTIME, Time->Value);
@@ -104,33 +109,111 @@ ML_METHOD(MLTimeT, MLStringT, MLStringT) {
 //<Format
 //>time
 // Parses the :mini:`String` as a time according to specified format. The time is assumed to be in local time.
-	ml_time_t *Time = new(ml_time_t);
-	Time->Type = MLTimeT;
 	struct tm TM = {0,};
 	if (!strptime(ml_string_value(Args[0]), ml_string_value(Args[1]), &TM)) {
 		return ml_error("TimeError", "Error parsing time");
 	}
+	ml_time_t *Time = new(ml_time_t);
+	Time->Type = MLTimeT;
 	Time->Value->tv_sec = timelocal(&TM);
 	return (ml_value_t *)Time;
 }
 
-ML_METHOD(MLTimeT, MLStringT, MLStringT, MLBooleanT) {
+ML_METHOD(MLTimeT, MLStringT, MLStringT, MLNilT) {
 //<String
 //<Format
-//<UTC
+//<TimeZone
 //>time
-// Parses the :mini:`String` as a time according to specified format. The time is assumed to be in local time unless UTC is :mini:`true`.
+// Parses the :mini:`String` as a time according to specified format. The time is assumed to be in UTC.
 	ml_time_t *Time = new(ml_time_t);
 	Time->Type = MLTimeT;
 	struct tm TM = {0,};
 	if (!strptime(ml_string_value(Args[0]), ml_string_value(Args[1]), &TM)) {
 		return ml_error("TimeError", "Error parsing time");
 	}
-	if (ml_boolean_value(Args[2])) {
-		Time->Value->tv_sec = timegm(&TM);
-	} else {
-		Time->Value->tv_sec = timelocal(&TM);
-	}
+	Time->Value->tv_sec = timegm(&TM);
+	return (ml_value_t *)Time;
+}
+
+ML_METHOD(MLTimeT, MLIntegerT, MLIntegerT, MLIntegerT, MLIntegerT, MLIntegerT, MLIntegerT) {
+//<Year
+//<Month
+//<Day
+//<Hour
+//<Minute
+//<Second
+//>time
+// Returns the time specified by the provided components in the local time.
+	struct tm TM = {0,};
+	TM.tm_year = ml_integer_value(Args[0]) - 1900;
+	TM.tm_mon = ml_integer_value(Args[1]) - 1;
+	TM.tm_mday = ml_integer_value(Args[2]);
+	TM.tm_hour = ml_integer_value(Args[3]);
+	TM.tm_min = ml_integer_value(Args[4]);
+	TM.tm_sec = ml_integer_value(Args[5]);
+	TM.tm_isdst = -1;
+	ml_time_t *Time = new(ml_time_t);
+	Time->Type = MLTimeT;
+	Time->Value->tv_sec = timelocal(&TM);
+	return (ml_value_t *)Time;
+}
+
+ML_METHOD(MLTimeT, MLIntegerT, MLIntegerT, MLIntegerT, MLIntegerT, MLIntegerT, MLIntegerT, MLNilT) {
+//<Year
+//<Month
+//<Day
+//<Hour
+//<Minute
+//<Second
+//<TimeZone
+//>time
+// Returns the time specified by the provided components in UTC.
+	struct tm TM = {0,};
+	TM.tm_year = ml_integer_value(Args[0]) - 1900;
+	TM.tm_mon = ml_integer_value(Args[1]) - 1;
+	TM.tm_mday = ml_integer_value(Args[2]);
+	TM.tm_hour = ml_integer_value(Args[3]);
+	TM.tm_min = ml_integer_value(Args[4]);
+	TM.tm_sec = ml_integer_value(Args[5]);
+	TM.tm_isdst = -1;
+	ml_time_t *Time = new(ml_time_t);
+	Time->Type = MLTimeT;
+	Time->Value->tv_sec = timegm(&TM);
+	return (ml_value_t *)Time;
+}
+
+ML_METHOD(MLTimeT, MLIntegerT, MLIntegerT, MLIntegerT) {
+//<Year
+//<Month
+//<Day
+//>time
+// Returns the time specified by the provided components in the local time.
+	struct tm TM = {0,};
+	TM.tm_year = ml_integer_value(Args[0]) - 1900;
+	TM.tm_mon = ml_integer_value(Args[1]) - 1;
+	TM.tm_mday = ml_integer_value(Args[2]);
+	TM.tm_isdst = -1;
+	ml_time_t *Time = new(ml_time_t);
+	Time->Type = MLTimeT;
+	Time->Value->tv_sec = timelocal(&TM);
+	return (ml_value_t *)Time;
+}
+
+ML_METHOD(MLTimeT, MLIntegerT, MLIntegerT, MLIntegerT, MLNilT) {
+//<Year
+//<Month
+//<Day
+//<TimeZone
+//>time
+// Returns the time specified by the provided components in UTC.
+	struct tm TM = {0,};
+	TM.tm_year = ml_integer_value(Args[0]) - 1900;
+	TM.tm_mon = ml_integer_value(Args[1]) - 1;
+	TM.tm_mday = ml_integer_value(Args[2]);
+	TM.tm_isdst = -1;
+	ml_time_t *Time = new(ml_time_t);
+	Time->Type = MLTimeT;
+	Time->Value->tv_sec = timegm(&TM);
 	return (ml_value_t *)Time;
 }
 
@@ -151,8 +234,20 @@ ML_METHOD("append", MLStringBufferT, MLTimeT) {
 	ml_time_t *Time = (ml_time_t *)Args[1];
 	struct tm TM = {0,};
 	localtime_r(&Time->Value->tv_sec, &TM);
-	char Temp[30];
-	size_t Length = strftime(Temp, 30, "%F %T", &TM);
+	char Temp[60];
+	size_t Length;
+	unsigned long NSec = Time->Value->tv_nsec;
+	if (NSec) {
+		int Width = 9;
+		while (NSec % 10 == 0) {
+			--Width;
+			NSec /= 10;
+		}
+		Length = strftime(Temp, 40, "%FT%T", &TM);
+		Length += sprintf(Temp + Length, ".%0*lu", Width, NSec);
+	} else {
+		Length = strftime(Temp, 60, "%FT%T", &TM);
+	}
 	ml_stringbuffer_write(Buffer, Temp, Length);
 	return MLSome;
 }
@@ -213,11 +308,7 @@ ML_METHOD("append", MLStringBufferT, MLTimeT, MLStringT, MLNilT) {
 	ml_time_t *Time = (ml_time_t *)Args[1];
 	const char *Format = ml_string_value(Args[2]);
 	struct tm TM = {0,};
-	if (ml_boolean_value(Args[3])) {
-		gmtime_r(&Time->Value->tv_sec, &TM);
-	} else {
-		localtime_r(&Time->Value->tv_sec, &TM);
-	}
+	gmtime_r(&Time->Value->tv_sec, &TM);
 	char Temp[120];
 	size_t Length = strftime(Temp, 120, Format, &TM);
 	ml_stringbuffer_write(Buffer, Temp, Length);
@@ -311,6 +402,298 @@ ML_METHOD("-", MLTimeT, MLNumberT) {
 	return ml_time(Sec, NSec);
 }
 
+ML_ENUM(MLTimeDayT, "time::day",
+	"Monday",
+	"Tuesday",
+	"Wednesday",
+	"Thursday",
+	"Friday",
+	"Saturday",
+	"Sunday"
+);
+
+ML_ENUM(MLTimeMonthT, "time::month",
+	"January",
+	"February",
+	"March",
+	"April",
+	"May",
+	"June",
+	"July",
+	"August",
+	"September",
+	"October",
+	"November",
+	"December"
+);
+
+#define ML_TIME_PART(NAME, DESC, EXPR) \
+\
+ML_METHOD(NAME, MLTimeT) { \
+/*<Time
+//>integer
+// Returns the DESC from :mini:`Time` in local time.
+*/ \
+	ml_time_t *Time = (ml_time_t *)Args[0]; \
+	struct tm TM; \
+	localtime_r(&Time->Value->tv_sec, &TM); \
+	return EXPR; \
+} \
+\
+ML_METHOD(NAME, MLTimeT, MLNilT) { \
+/*<Time
+//<TimeZone
+//>integer
+// Returns the DESC from :mini:`Time` in UTC.
+*/ \
+	ml_time_t *Time = (ml_time_t *)Args[0]; \
+	struct tm TM; \
+	gmtime_r(&Time->Value->tv_sec, &TM); \
+	return EXPR; \
+}
+
+ML_TIME_PART("year", year, ml_integer(TM.tm_year + 1900))
+ML_TIME_PART("month", month, ml_enum_value(MLTimeMonthT, TM.tm_mon + 1))
+ML_TIME_PART("day", date, ml_integer(TM.tm_mday))
+ML_TIME_PART("yday", number of days from the start of the year, ml_integer(TM.tm_yday + 1))
+ML_TIME_PART("wday", day of the week, ml_enum_value(MLTimeDayT, TM.tm_wday ?: 7))
+ML_TIME_PART("hour", hour, ml_integer(TM.tm_hour))
+ML_TIME_PART("minute", minute, ml_integer(TM.tm_min))
+ML_TIME_PART("second", second, ml_integer(TM.tm_sec))
+
+ML_FUNCTION(MLTimeMdays) {
+//@time::mdays
+//<Year
+//<Month
+//>integer
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLIntegerT);
+	ML_CHECK_ARG_TYPE(1, MLIntegerT);
+	int Year = ml_integer_value(Args[0]);
+	int Month = ml_integer_value(Args[1]);
+	if (Month < 1 || Month > 12) return ml_error("ValueError", "Invalid month");
+	if (Year % 4 == 0 && (Year % 100 != 0 || Year % 400 == 0)) {
+		static int Days[] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+		return ml_integer(Days[Month - 1]);
+	} else {
+		static int Days[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+		return ml_integer(Days[Month - 1]);
+	}
+}
+
+#ifdef ML_TIMEZONES
+
+ML_TYPE(MLTimeZonesT, (), "time::zones");
+//!internal
+
+ML_VALUE(MLTimeZones, MLTimeZonesT);
+//@time::zones
+// The set of available time zones.
+
+typedef struct {
+	ml_type_t *Type;
+	timelib_tzinfo *Info;
+} ml_time_zone_t;
+
+ML_TYPE(MLTimeZoneT, (), "time::zone");
+// A time zone.
+
+static void ml_time_zone_finalize(ml_time_zone_t *TimeZone, void *Data) {
+	timelib_tzinfo_dtor(TimeZone->Info);
+}
+
+ML_METHOD("::", MLTimeZonesT, MLStringT) {
+//<Name
+//>time::zone|error
+// Returns the time zone identified by :mini:`Name` or an error if no time zone is found.
+	int Error = 0;
+	timelib_tzinfo *Info = timelib_parse_tzfile(ml_string_value(Args[1]), timelib_builtin_db(), &Error);
+	if (!Info) return ml_error("TimeZoneError", "Time zone not found");
+	ml_time_zone_t *TimeZone = new(ml_time_zone_t);
+	TimeZone->Type = MLTimeZoneT;
+	TimeZone->Info = Info;
+	GC_register_finalizer(TimeZone, (GC_finalization_proc)ml_time_zone_finalize, NULL, NULL, NULL);
+	return (ml_value_t *)TimeZone;
+}
+
+ML_FUNCTION(MLTimeZoneList) {
+//@time::zone::list
+//>list[string]
+// Returns a list of available time zone names.
+	int Total;
+	const timelib_tzdb_index_entry *Entries = timelib_timezone_identifiers_list(timelib_builtin_db(), &Total);
+	ml_value_t *List = ml_list();
+	for (int I = 0; I < Total; ++I) ml_list_put(List, ml_string(Entries[I].id, -1));
+	return List;
+}
+
+ML_METHOD("append", MLStringBufferT, MLTimeZoneT) {
+//<Buffer
+//<TimeZone
+// Appends the name of :mini:`TimeZone` to :mini:`Buffer`.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_time_zone_t *TimeZone = (ml_time_zone_t *)Args[1];
+	ml_stringbuffer_write(Buffer, TimeZone->Info->name, strlen(TimeZone->Info->name));
+	return MLSome;
+}
+
+ML_METHOD(MLTimeT, MLIntegerT, MLIntegerT, MLIntegerT, MLIntegerT, MLIntegerT, MLIntegerT, MLTimeZoneT) {
+//<Year
+//<Month
+//<Day
+//<Hour
+//<Minute
+//<Second
+//>time
+// Returns the time specified by the provided components in the specified time zone.
+	timelib_time TL = {0,};
+	TL.y = ml_integer_value(Args[0]);
+	TL.m = ml_integer_value(Args[1]);
+	TL.d = ml_integer_value(Args[2]);
+	TL.h = ml_integer_value(Args[3]);
+	TL.i = ml_integer_value(Args[4]);
+	TL.s = ml_integer_value(Args[5]);
+	ml_time_zone_t *TimeZone = (ml_time_zone_t *)Args[6];
+	timelib_set_timezone(&TL, TimeZone->Info);
+	timelib_update_ts(&TL, TimeZone->Info);
+	ml_time_t *Time = new(ml_time_t);
+	Time->Type = MLTimeT;
+	Time->Value->tv_sec = TL.sse;
+	return (ml_value_t *)Time;
+}
+
+ML_METHOD(MLTimeT, MLIntegerT, MLIntegerT, MLIntegerT, MLTimeZoneT) {
+//<Year
+//<Month
+//<Day
+//>time
+// Returns the time specified by the provided components in the specified time zone.
+	timelib_time TL = {0,};
+	TL.y = ml_integer_value(Args[0]);
+	TL.m = ml_integer_value(Args[1]);
+	TL.d = ml_integer_value(Args[2]);
+	ml_time_zone_t *TimeZone = (ml_time_zone_t *)Args[3];
+	timelib_set_timezone(&TL, TimeZone->Info);
+	timelib_update_ts(&TL, TimeZone->Info);
+	ml_time_t *Time = new(ml_time_t);
+	Time->Type = MLTimeT;
+	Time->Value->tv_sec = TL.sse;
+	return (ml_value_t *)Time;
+}
+
+#define ML_TIME_PART_WITH_ZONE(NAME, DESC, EXPR) \
+\
+ML_METHOD(NAME, MLTimeT, MLTimeZoneT) { \
+/*<Time
+//<TimeZone
+//>integer
+// Returns the DESC from :mini:`Time` in :mini:`TimeZone`.
+*/ \
+	ml_time_t *Time = (ml_time_t *)Args[0]; \
+	ml_time_zone_t *TimeZone = (ml_time_zone_t *)Args[1]; \
+	timelib_time TL = {0,}; \
+	timelib_set_timezone(&TL, TimeZone->Info); \
+	timelib_unixtime2local(&TL, Time->Value->tv_sec); \
+	return EXPR; \
+}
+
+ML_TIME_PART_WITH_ZONE("year", year, ml_integer(TL.y))
+ML_TIME_PART_WITH_ZONE("month", month, ml_enum_value(MLTimeMonthT, TL.m))
+ML_TIME_PART_WITH_ZONE("day", date, ml_integer(TL.d))
+ML_TIME_PART_WITH_ZONE("yday", number of days from the start of the year, ml_integer(timelib_day_of_year(TL.y, TL.m, TL.d) + 1))
+ML_TIME_PART_WITH_ZONE("wday", day of the week, ml_enum_value(MLTimeDayT, timelib_iso_day_of_week(TL.y, TL.m, TL.d)))
+ML_TIME_PART_WITH_ZONE("hour", hour, ml_integer(TL.h))
+ML_TIME_PART_WITH_ZONE("minute", minute, ml_integer(TL.i))
+ML_TIME_PART_WITH_ZONE("second", second, ml_integer(TL.s))
+
+ML_METHOD("append", MLStringBufferT, MLTimeT, MLTimeZoneT) {
+//<Buffer
+//<Time
+//<TimeZone
+//>string
+// Formats :mini:`Time` as a time in :mini:`TimeZone`.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_time_t *Time = (ml_time_t *)Args[1];
+	ml_time_zone_t *TimeZone = (ml_time_zone_t *)Args[2];
+	timelib_time TL = {0,};
+	timelib_set_timezone(&TL, TimeZone->Info);
+	timelib_unixtime2local(&TL, Time->Value->tv_sec);
+	struct tm TM = {0,};
+	TM.tm_year = TL.y - 1900;
+	TM.tm_mon = TL.m;
+	TM.tm_mday = TL.d;
+	TM.tm_hour = TL.h;
+	TM.tm_min = TL.i;
+	TM.tm_sec = TL.s;
+	TM.tm_yday = timelib_day_of_year(TL.y, TL.m, TL.d);
+	TM.tm_wday = timelib_day_of_week(TL.y, TL.m, TL.d);
+	char Temp[60];
+	size_t Length;
+	unsigned long NSec = Time->Value->tv_nsec;
+	if (NSec) {
+		int Width = 9;
+		while (NSec % 10 == 0) {
+			--Width;
+			NSec /= 10;
+		}
+		Length = strftime(Temp, 40, "%FT%T", &TM);
+		Length += sprintf(Temp + Length, ".%0*lu", Width, NSec);
+	} else {
+		Length = strftime(Temp, 60, "%FT%T", &TM);
+	}
+	ml_stringbuffer_write(Buffer, Temp, Length);
+	return MLSome;
+}
+
+ML_METHOD("append", MLStringBufferT, MLTimeT, MLStringT, MLTimeZoneT) {
+//<Buffer
+//<Time
+//<Format
+//<TimeZone
+//>string
+// Formats :mini:`Time` as a time in :mini:`TimeZone` according to the specified format.
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_time_t *Time = (ml_time_t *)Args[1];
+	const char *Format = ml_string_value(Args[2]);
+	ml_time_zone_t *TimeZone = (ml_time_zone_t *)Args[3];
+	timelib_time TL = {0,};
+	timelib_set_timezone(&TL, TimeZone->Info);
+	timelib_unixtime2local(&TL, Time->Value->tv_sec);
+	struct tm TM = {0,};
+	TM.tm_year = TL.y - 1900;
+	TM.tm_mon = TL.m;
+	TM.tm_mday = TL.d;
+	TM.tm_hour = TL.h;
+	TM.tm_min = TL.i;
+	TM.tm_sec = TL.s;
+	TM.tm_yday = timelib_day_of_year(TL.y, TL.m, TL.d);
+	TM.tm_wday = timelib_day_of_week(TL.y, TL.m, TL.d);
+	char Temp[120];
+	size_t Length = strftime(Temp, 120, Format, &TM);
+	ml_stringbuffer_write(Buffer, Temp, Length);
+	return MLSome;
+}
+
+typedef struct {
+	ml_type_t *Type;
+	timelib_time Value[1];
+} ml_time_zoned_t;
+
+ML_TYPE(MLTimeZonedT, (), "time::zoned");
+
+ML_METHOD("@", MLTimeT, MLTimeZoneT) {
+	ml_time_t *Time = (ml_time_t *)Args[0];
+	ml_time_zone_t *TimeZone = (ml_time_zone_t *)Args[1];
+	ml_time_zoned_t *Zoned = new(ml_time_zoned_t);
+	Zoned->Type = MLTimeZonedT;
+	timelib_set_timezone(Zoned->Value, TimeZone->Info);
+	timelib_unixtime2local(Zoned->Value, Time->Value->tv_sec);
+	Zoned->Value->us = Time->Value->tv_nsec / 1000;
+	return (ml_value_t *)Zoned;
+}
+
+#endif
+
 #ifdef ML_CBOR
 
 #include "ml_cbor.h"
@@ -381,14 +764,22 @@ static ml_value_t *ml_cbor_read_time_fn(ml_cbor_reader_t *Reader, ml_value_t *Va
 
 void ml_time_init(stringmap_t *Globals) {
 #include "ml_time_init.c"
-	stringmap_insert(MLTimeT->Exports, "second", ml_integer(1));
-	stringmap_insert(MLTimeT->Exports, "minute", ml_integer(60));
-	stringmap_insert(MLTimeT->Exports, "hour", ml_integer(3600));
-	stringmap_insert(MLTimeT->Exports, "day", ml_integer(86400));
-	stringmap_insert(MLTimeT->Exports, "week", ml_integer(604800));
-	stringmap_insert(MLTimeT->Exports, "year", ml_integer(31557600));
+	stringmap_insert(MLTimeT->Exports, "part", ml_module("part",
+		"Second", ml_integer(1),
+		"Minute", ml_integer(60),
+		"Hour", ml_integer(60 * 60),
+		"Day", ml_integer(60 * 60 * 24),
+	NULL));
+	stringmap_insert(MLTimeT->Exports, "mdays", MLTimeMdays);
+	stringmap_insert(MLTimeT->Exports, "day", MLTimeDayT);
+	stringmap_insert(MLTimeT->Exports, "month", MLTimeMonthT);
 	if (Globals) stringmap_insert(Globals, "time", MLTimeT);
 	ml_string_fn_register("T", ml_time_parse);
+#ifdef ML_TIMEZONES
+	stringmap_insert(MLTimeT->Exports, "zones", MLTimeZones);
+	stringmap_insert(MLTimeT->Exports, "zone", MLTimeZoneT);
+	stringmap_insert(MLTimeZoneT->Exports, "list", MLTimeZoneList);
+#endif
 #ifdef ML_CBOR
 	ml_cbor_default_tag(0, ml_cbor_read_time_fn);
 	ml_cbor_default_tag(1, ml_cbor_read_time_fn);

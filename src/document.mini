@@ -74,6 +74,7 @@ fun is_symbol(Method) Method:lower = Method:upper
 method: image()
 
 meth image(V: any) string(V)
+meth image(V: nil) "nil"
 meth image(S: string) '\"{S:escape}\"'
 meth image(A: address) with B := string::buffer() do
 	B:write('<{A:size}:')
@@ -118,7 +119,7 @@ fun write_examples(Buffer, Examples) do
 	end
 	Buffer:write("\n   .. code-block:: mini\n\n")
 	for Example in Examples do
-		var Result
+		var Result := ""
 		let Last := Example:after("\n", -1) or Example
 		Parser:input(Example)
 		loop
@@ -368,6 +369,7 @@ def Subscripts := {
 	"/0" is "₀", "/1" is "₁", "/2" is "₂", "/3" is "₃", "/4" is "₄",
 	"/5" is "₅", "/6" is "₆", "/7" is "₇", "/8" is "₈", "/9" is "₉",
 	"/i" is "ᵢ", "/j" is "ⱼ", "/m" is "ₘ", "/n" is "ₙ", "/v" is "ᵥ",
+	"/+" is "₊", "/-" is "₋", "/=" is "₌", "/(" is "₍", "/)" is "₎",
 	"," is ", "
 }
 
@@ -696,6 +698,37 @@ fun process(FileName) do
 				var Name := Line[I + 1, J]
 				var Category := DefaultCategory
 				var Type := "MLAnyT"
+				let Description := []
+				loop
+					let Line := while File:read
+					LineNo := old + 1
+					if Line % r"^/[/*]@" then
+						Name := Line[4, 0]:trim
+					elseif Line % r"^/[/*]!" then
+						Category := Line[4, 0]:trim
+					elseif Line % r"^/[/*]>" then
+						Type := Line[4, 0]:trim
+					elseif Line % r"^/[/*] " then
+						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]\n" then
+						Description:put("\n")
+					else
+						exit
+					end
+				end
+				if CurrentDefine then
+					CurrentDefine:put(write_value, [Category, Name, Type, Description, Location])
+				else
+					write_value(Category, Name, Type, Description, Location)
+				end
+			elseif Line % r"^ML_VALUE" then
+				let Location := (FileName, LineNo)
+				let I := Line:find("(")
+				let J := Line:find(",", I + 1)
+				let K := Line:find(")", J + 1)
+				var Name := Line[I + 1, J]
+				var Type := Line[J + 1, K]:trim
+				var Category := DefaultCategory
 				let Description := []
 				loop
 					let Line := while File:read

@@ -130,6 +130,7 @@ static inline int ml_is_error(ml_value_t *Value) {
 
 ml_value_t *ml_error(const char *Error, const char *Format, ...) __attribute__ ((malloc, format(printf, 2, 3)));
 ml_value_t *ml_errorv(const char *Error, const char *Format, va_list Args) __attribute__ ((malloc));
+ml_value_t *ml_error_unwrap(const ml_value_t *Value);
 const char *ml_error_type(const ml_value_t *Value) __attribute__ ((pure));
 const char *ml_error_message(const ml_value_t *Value) __attribute__ ((pure));
 ml_value_t *ml_error_value(const ml_value_t *Value) __attribute__ ((pure));

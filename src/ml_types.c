@@ -420,16 +420,19 @@ ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
 	const ml_type_t *Base = Args[0];
 	const char *Name = Base->Name;
 	if (NumArgs > 1) {
-		ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-		ml_stringbuffer_write(Buffer, Base->Name, strlen(Base->Name));
-		ml_stringbuffer_put(Buffer, '[');
-		ml_stringbuffer_write(Buffer, Args[1]->Name, strlen(Args[1]->Name));
+		size_t Length = strlen(Base->Name) + NumArgs + 1;
+		for (int I = 1; I < NumArgs; ++I) Length += strlen(Args[I]->Name);
+		char *Name2 = snew(Length);
+		char *End = stpcpy(Name2, Base->Name);
+		*End++ = '[';
+		End = stpcpy(End, Args[1]->Name);
 		for (int I = 2; I < NumArgs; ++I) {
-			ml_stringbuffer_put(Buffer, ',');
-			ml_stringbuffer_write(Buffer, Args[I]->Name, strlen(Args[I]->Name));
+			*End++ = ',';
+			End = stpcpy(End, Args[I]->Name);
 		}
-		ml_stringbuffer_put(Buffer, ']');
-		Name = ml_stringbuffer_get_string(Buffer);
+		*End++ = ']';
+		*End = 0;
+		Name = Name2;
 	}
 	Type->Base.Type = MLTypeGenericT;
 	Type->Base.Name = Name;
@@ -476,7 +479,7 @@ void ml_type_add_rule(ml_type_t *T, ml_type_t *U, ...) {
 ML_TYPE(MLNilT, (MLFunctionT, MLSequenceT), "nil");
 //!internal
 
-ML_TYPE(MLSomeT, (), "some");
+ML_TYPE(MLSomeT, (MLFunctionT), "some");
 //!internal
 
 static void ml_blank_assign(ml_state_t *Caller, ml_value_t *Blank, ml_value_t *Value) {
@@ -805,6 +808,8 @@ ML_FUNCTION(MLTypeSwitch) {
 			ml_value_t *Value = Iter->Value;
 			if (ml_is(Value, MLTypeT)) {
 				Case->Type = (ml_type_t *)Value;
+			} else if (Value == MLNil) {
+				Case->Type = MLNilT;
 			} else {
 				return ml_error("ValueError", "Unsupported value in type case");
 			}
@@ -1630,6 +1635,10 @@ ml_value_t *ml_unpack(ml_value_t *Value, int Index) {
 	return function(Value, Index);
 }
 
+static ml_value_t *ML_TYPED_FN(ml_unpack, MLNilT, ml_value_t *Value, int Index) {
+	return MLNil;
+}
+
 ML_METHOD("size", MLTupleT) {
 //!tuple
 //<Tuple
@@ -1981,8 +1990,28 @@ static void ml_exchange_run(ml_exchange_t *State, ml_value_t *Result) {
 	return ml_assign(State, State->Args[I], New);
 }
 
+ML_FUNCTIONZ(MLCompareAndSet) {
+//@cas
+//<Var:any
+//<Old:any
+//<New:any
+//>any
+// If the value of :mini:`Var` is identically equal to :mini:`Old`, then sets :mini:`Var` to :mini:`New` and returns :mini:`New`. Otherwise leaves :mini:`Var` unchanged and returns :mini:`nil`.
+//$- var X := 10
+//$= with Old := X do cas(X, Old, Old + 1) end
+//$= X
+	ML_CHECKX_ARG_COUNT(3);
+	ml_value_t *Var = ml_deref(Args[0]);
+	ml_value_t *Old = ml_deref(Args[1]);
+	ml_value_t *New = ml_deref(Args[2]);
+	if (Var != Old) ML_RETURN(MLNil);
+	return ml_assign(Caller, Args[0], New);
+}
+
 ML_FUNCTIONZ(MLExchange) {
 //@exchange
+//<Var/1,...,Var/n:any
+// Assigns :mini:`Var/i := Var/i/+/1` for each :mini:`1 <= i < n` and :mini:`Var/n := Var/1`.
 	ML_CHECKX_ARG_COUNT(1);
 	ml_exchange_t *State = xnew(ml_exchange_t, Count, ml_value_t *);
 	State->Base.Caller = Caller;
@@ -1996,6 +2025,9 @@ ML_FUNCTIONZ(MLExchange) {
 
 ML_FUNCTIONZ(MLReplace) {
 //@replace
+//<Var/1,...,Var/n:any
+//<Value:any
+// Assigns :mini:`Var/i := Var/i/+/1` for each :mini:`1 <= i < n` and :mini:`Var/n := Value`. Returns the old value of :mini:`Var/1`.
 	ML_CHECKX_ARG_COUNT(2);
 	ml_exchange_t *State = xnew(ml_exchange_t, Count - 1, ml_value_t *);
 	State->Base.Caller = Caller;
@@ -2028,6 +2060,8 @@ static ml_value_t *ml_mem_trace(void *Ptr, inthash_t *Cache) {
 }
 
 ML_FUNCTION(MLMemTrace) {
+//!memory
+//@trace
 //<Value
 //>list[map]
 // Returns information about the blocks of memory referenced by :mini:`Value`.
@@ -2049,6 +2083,8 @@ static size_t ml_mem_size(void *Ptr, inthash_t *Cache) {
 }
 
 ML_FUNCTION(MLMemSize) {
+//!memory
+//@size
 //<Value
 //>list[map]
 // Returns information about the blocks of memory referenced by :mini:`Value`.
@@ -2059,6 +2095,8 @@ ML_FUNCTION(MLMemSize) {
 }
 
 ML_FUNCTION(MLMemCollect) {
+//!memory
+//@collect
 // Call garbage collector.
 	GC_gcollect();
 	return MLNil;
@@ -2125,7 +2163,9 @@ void ml_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "map", MLMapT);
 		stringmap_insert(Globals, "error", MLErrorValueT);
 		stringmap_insert(Globals, "module", MLModuleT);
+		stringmap_insert(Globals, "some", MLSome);
 		stringmap_insert(Globals, "exchange", MLExchange);
 		stringmap_insert(Globals, "replace", MLReplace);
+		stringmap_insert(Globals, "cas", MLCompareAndSet);
 	}
 }

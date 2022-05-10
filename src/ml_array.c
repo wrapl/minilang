@@ -1032,72 +1032,72 @@ ARRAY_OFFSETS_NONZERO(any, MLNil);
 
 static int ml_array_count_nonzero(ml_array_t *A) {
 	switch (A->Format) {
-		case ML_ARRAY_FORMAT_U8:
-			return ml_array_count_nonzero_uint8_t(A->Base.Value, A->Degree - 1, A->Dimensions);
-		case ML_ARRAY_FORMAT_I8:
-			return ml_array_count_nonzero_int8_t(A->Base.Value, A->Degree - 1, A->Dimensions);
-		case ML_ARRAY_FORMAT_U16:
-			return ml_array_count_nonzero_uint16_t(A->Base.Value, A->Degree - 1, A->Dimensions);
-		case ML_ARRAY_FORMAT_I16:
-			return ml_array_count_nonzero_int16_t(A->Base.Value, A->Degree - 1, A->Dimensions);
-		case ML_ARRAY_FORMAT_U32:
-			return ml_array_count_nonzero_uint32_t(A->Base.Value, A->Degree - 1, A->Dimensions);
-		case ML_ARRAY_FORMAT_I32:
-			return ml_array_count_nonzero_int32_t(A->Base.Value, A->Degree - 1, A->Dimensions);
-		case ML_ARRAY_FORMAT_U64:
-			return ml_array_count_nonzero_uint64_t(A->Base.Value, A->Degree - 1, A->Dimensions);
-		case ML_ARRAY_FORMAT_I64:
-			return ml_array_count_nonzero_int64_t(A->Base.Value, A->Degree - 1, A->Dimensions);
-		case ML_ARRAY_FORMAT_F32:
-			return ml_array_count_nonzero_float(A->Base.Value, A->Degree - 1, A->Dimensions);
-		case ML_ARRAY_FORMAT_F64:
-			return ml_array_count_nonzero_double(A->Base.Value, A->Degree - 1, A->Dimensions);
-	#ifdef ML_COMPLEX
-		case ML_ARRAY_FORMAT_C32:
-			return ml_array_count_nonzero_complex_float(A->Base.Value, A->Degree - 1, A->Dimensions);
-		case ML_ARRAY_FORMAT_C64:
-			return ml_array_count_nonzero_complex_double(A->Base.Value, A->Degree - 1, A->Dimensions);
-	#endif
-		case ML_ARRAY_FORMAT_ANY:
-			return ml_array_count_nonzero_any(A->Base.Value, A->Degree - 1, A->Dimensions);
-		default:
-			return 0;
-		}
+	case ML_ARRAY_FORMAT_U8:
+		return ml_array_count_nonzero_uint8_t(A->Base.Value, A->Degree - 1, A->Dimensions);
+	case ML_ARRAY_FORMAT_I8:
+		return ml_array_count_nonzero_int8_t(A->Base.Value, A->Degree - 1, A->Dimensions);
+	case ML_ARRAY_FORMAT_U16:
+		return ml_array_count_nonzero_uint16_t(A->Base.Value, A->Degree - 1, A->Dimensions);
+	case ML_ARRAY_FORMAT_I16:
+		return ml_array_count_nonzero_int16_t(A->Base.Value, A->Degree - 1, A->Dimensions);
+	case ML_ARRAY_FORMAT_U32:
+		return ml_array_count_nonzero_uint32_t(A->Base.Value, A->Degree - 1, A->Dimensions);
+	case ML_ARRAY_FORMAT_I32:
+		return ml_array_count_nonzero_int32_t(A->Base.Value, A->Degree - 1, A->Dimensions);
+	case ML_ARRAY_FORMAT_U64:
+		return ml_array_count_nonzero_uint64_t(A->Base.Value, A->Degree - 1, A->Dimensions);
+	case ML_ARRAY_FORMAT_I64:
+		return ml_array_count_nonzero_int64_t(A->Base.Value, A->Degree - 1, A->Dimensions);
+	case ML_ARRAY_FORMAT_F32:
+		return ml_array_count_nonzero_float(A->Base.Value, A->Degree - 1, A->Dimensions);
+	case ML_ARRAY_FORMAT_F64:
+		return ml_array_count_nonzero_double(A->Base.Value, A->Degree - 1, A->Dimensions);
+#ifdef ML_COMPLEX
+	case ML_ARRAY_FORMAT_C32:
+		return ml_array_count_nonzero_complex_float(A->Base.Value, A->Degree - 1, A->Dimensions);
+	case ML_ARRAY_FORMAT_C64:
+		return ml_array_count_nonzero_complex_double(A->Base.Value, A->Degree - 1, A->Dimensions);
+#endif
+	case ML_ARRAY_FORMAT_ANY:
+		return ml_array_count_nonzero_any(A->Base.Value, A->Degree - 1, A->Dimensions);
+	default:
+		return 0;
+	}
 }
 
 static int *ml_array_offsets_nonzero(ml_array_t *A, int *Offsets, ml_array_dimension_t *Source) {
 	switch (A->Format) {
-		case ML_ARRAY_FORMAT_U8:
-			return ml_array_offsets_nonzero_uint8_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-		case ML_ARRAY_FORMAT_I8:
-			return ml_array_offsets_nonzero_int8_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-		case ML_ARRAY_FORMAT_U16:
-			return ml_array_offsets_nonzero_uint16_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-		case ML_ARRAY_FORMAT_I16:
-			return ml_array_offsets_nonzero_int16_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-		case ML_ARRAY_FORMAT_U32:
-			return ml_array_offsets_nonzero_uint32_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-		case ML_ARRAY_FORMAT_I32:
-			return ml_array_offsets_nonzero_int32_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-		case ML_ARRAY_FORMAT_U64:
-			return ml_array_offsets_nonzero_uint64_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-		case ML_ARRAY_FORMAT_I64:
-			return ml_array_offsets_nonzero_int64_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-		case ML_ARRAY_FORMAT_F32:
-			return ml_array_offsets_nonzero_float(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-		case ML_ARRAY_FORMAT_F64:
-			return ml_array_offsets_nonzero_double(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-	#ifdef ML_COMPLEX
-		case ML_ARRAY_FORMAT_C32:
-			return ml_array_offsets_nonzero_complex_float(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-		case ML_ARRAY_FORMAT_C64:
-			return ml_array_offsets_nonzero_complex_double(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-	#endif
-		case ML_ARRAY_FORMAT_ANY:
-			return ml_array_offsets_nonzero_any(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
-		default:
-			return 0;
-		}
+	case ML_ARRAY_FORMAT_U8:
+		return ml_array_offsets_nonzero_uint8_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+	case ML_ARRAY_FORMAT_I8:
+		return ml_array_offsets_nonzero_int8_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+	case ML_ARRAY_FORMAT_U16:
+		return ml_array_offsets_nonzero_uint16_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+	case ML_ARRAY_FORMAT_I16:
+		return ml_array_offsets_nonzero_int16_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+	case ML_ARRAY_FORMAT_U32:
+		return ml_array_offsets_nonzero_uint32_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+	case ML_ARRAY_FORMAT_I32:
+		return ml_array_offsets_nonzero_int32_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+	case ML_ARRAY_FORMAT_U64:
+		return ml_array_offsets_nonzero_uint64_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+	case ML_ARRAY_FORMAT_I64:
+		return ml_array_offsets_nonzero_int64_t(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+	case ML_ARRAY_FORMAT_F32:
+		return ml_array_offsets_nonzero_float(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+	case ML_ARRAY_FORMAT_F64:
+		return ml_array_offsets_nonzero_double(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+#ifdef ML_COMPLEX
+	case ML_ARRAY_FORMAT_C32:
+		return ml_array_offsets_nonzero_complex_float(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+	case ML_ARRAY_FORMAT_C64:
+		return ml_array_offsets_nonzero_complex_double(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+#endif
+	case ML_ARRAY_FORMAT_ANY:
+		return ml_array_offsets_nonzero_any(Offsets, A->Base.Value, A->Degree - 1, A->Dimensions, 0, Source);
+	default:
+		return 0;
+	}
 }
 
 static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayInt8T, ml_array_t *Array, ml_array_indexer_t *Indexer) {
@@ -4457,121 +4457,429 @@ ML_COMPARE_METHOD(Le, Ge, <=);
 ML_COMPARE_METHOD(Ge, Le, >=);
 
 static ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, ml_array_format_t Format) {
-	if (ml_is(Value, MLListT)) {
-		int Size = ml_list_length(Value);
-		if (!Size) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
-		ml_array_t *Array = ml_array_of_create(ml_list_get(Value, 1), Degree + 1, Format);
-		if (Array->Base.Type == MLErrorT) return Array;
-		Array->Dimensions[Degree].Size = Size;
-		if (Degree < Array->Degree - 1) {
-			Array->Dimensions[Degree].Stride = Array->Dimensions[Degree + 1].Size * Array->Dimensions[Degree + 1].Stride;
-		}
-		return Array;
-	} else if (ml_is(Value, MLTupleT)) {
-		int Size = ml_tuple_size(Value);
-		if (!Size) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
-		ml_array_t *Array = ml_array_of_create(ml_tuple_get(Value, 1), Degree + 1, Format);
-		if (Array->Base.Type == MLErrorT) return Array;
-		Array->Dimensions[Degree].Size = Size;
-		if (Degree < Array->Degree - 1) {
-			Array->Dimensions[Degree].Stride = Array->Dimensions[Degree + 1].Size * Array->Dimensions[Degree + 1].Stride;
-		}
-		return Array;
-	} else if (ml_is(Value, MLArrayT)) {
-		ml_array_t *Nested = (ml_array_t *)Value;
-		ml_array_t *Array = ml_array_alloc(Format, Degree + Nested->Degree);
-		ml_array_dimension_t *Dimensions = Array->Dimensions + Degree;
-		size_t Stride = MLArraySizes[Format];
-		for (int I = Nested->Degree; --I >= 0;) {
-			Dimensions[I].Stride = Stride;
-			size_t Size = Dimensions[I].Size = Nested->Dimensions[I].Size;
-			Stride *= Size;
-		}
-		return Array;
-	} else {
-		ml_array_t *Array = ml_array_alloc(Format, Degree);
-		if (Degree) {
-			Array->Dimensions[Degree - 1].Size = 1;
-			Array->Dimensions[Degree - 1].Stride = MLArraySizes[Format];
-		}
-		return Array;
+	typeof(ml_array_of_create) *function = ml_typed_fn_get(ml_typeof(Value), ml_array_of_create);
+	if (function) return function(Value, Degree, Format);
+	ml_array_t *Array = ml_array_alloc(Format, Degree);
+	if (Degree) {
+		Array->Dimensions[Degree - 1].Size = 1;
+		Array->Dimensions[Degree - 1].Stride = MLArraySizes[Format];
 	}
+	return Array;
+}
+
+static ml_array_t *ML_TYPED_FN(ml_array_of_create, MLListT, ml_value_t *Value, int Degree, ml_array_format_t Format) {
+	int Size = ml_list_length(Value);
+	if (!Size) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
+	ml_array_t *Array = ml_array_of_create(ml_list_get(Value, 1), Degree + 1, Format);
+	if (Array->Base.Type == MLErrorT) return Array;
+	Array->Dimensions[Degree].Size = Size;
+	if (Degree < Array->Degree - 1) {
+		Array->Dimensions[Degree].Stride = Array->Dimensions[Degree + 1].Size * Array->Dimensions[Degree + 1].Stride;
+	}
+	return Array;
+}
+
+static ml_array_t *ML_TYPED_FN(ml_array_of_create, MLTupleT, ml_value_t *Value, int Degree, ml_array_format_t Format) {
+	int Size = ml_tuple_size(Value);
+	if (!Size) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
+	ml_array_t *Array = ml_array_of_create(ml_tuple_get(Value, 1), Degree + 1, Format);
+	if (Array->Base.Type == MLErrorT) return Array;
+	Array->Dimensions[Degree].Size = Size;
+	if (Degree < Array->Degree - 1) {
+		Array->Dimensions[Degree].Stride = Array->Dimensions[Degree + 1].Size * Array->Dimensions[Degree + 1].Stride;
+	}
+	return Array;
+}
+
+static ml_array_t *ML_TYPED_FN(ml_array_of_create, MLArrayT, ml_array_t *Value, int Degree, ml_array_format_t Format) {
+	ml_array_t *Array = ml_array_alloc(Format, Degree + Value->Degree);
+	ml_array_dimension_t *Dimensions = Array->Dimensions + Degree;
+	size_t Stride = MLArraySizes[Format];
+	for (int I = Value->Degree; --I >= 0;) {
+		Dimensions[I].Stride = Stride;
+		size_t Size = Dimensions[I].Size = Value->Dimensions[I].Size;
+		Stride *= Size;
+	}
+	return Array;
+}
+
+static ml_array_t *ML_TYPED_FN(ml_array_of_create, MLIntegerRangeT, ml_integer_range_t *Range, int Degree, ml_array_format_t Format) {
+	size_t Count = 0;
+	int64_t Diff = Range->Limit - Range->Start;
+	if (!Range->Step) {
+	} else if (Diff < 0 && Range->Step > 0) {
+	} else if (Diff > 0 && Range->Step < 0) {
+	} else {
+		Count = Diff / Range->Step + 1;
+	}
+	if (!Count) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
+	ml_array_t *Array = ml_array_alloc(Format, Degree + 1);
+	ml_array_dimension_t *Dimension = Array->Dimensions + Degree;
+	Dimension->Stride = MLArraySizes[Format];
+	Dimension->Size = Count;
+	return Array;
+}
+
+static ml_array_t *ML_TYPED_FN(ml_array_of_create, MLRealRangeT, ml_real_range_t *Range, int Degree, ml_array_format_t Format) {
+	if (!Range->Count) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
+	ml_array_t *Array = ml_array_alloc(Format, Degree + 1);
+	ml_array_dimension_t *Dimension = Array->Dimensions + Degree;
+	Dimension->Stride = MLArraySizes[Format];
+	Dimension->Size = Range->Count;
+	return Array;
 }
 
 static ml_value_t *ml_array_of_fill(ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_value_t *Value) {
-	if (ml_is(Value, MLListT)) {
-		if (!Degree) return ml_error("ValueError", "Inconsistent depth in array");
-		if (ml_list_length(Value) != Dimension->Size) return ml_error("ValueError", "Inconsistent lengths in array");
-		ML_LIST_FOREACH(Value, Iter) {
-			ml_value_t *Error = ml_array_of_fill(Format, Dimension + 1, Address, Degree - 1, Iter->Value);
-			if (Error) return Error;
-			Address += Dimension->Stride;
-		}
-	} else if (ml_is(Value, MLTupleT)) {
-		if (!Degree) return ml_error("ValueError", "Inconsistent depth in array");
-		if (ml_tuple_size(Value) != Dimension->Size) return ml_error("ValueError", "Inconsistent lengths in array");
-		ml_tuple_t *Tuple = (ml_tuple_t *)Value;
-		for (int I = 0; I < Tuple->Size; ++I) {
-			ml_value_t *Error = ml_array_of_fill(Format, Dimension + 1, Address, Degree - 1, Tuple->Values[I]);
-			if (Error) return Error;
-			Address += Dimension->Stride;
-		}
-	} else if (ml_is(Value, MLArrayT)) {
-		ml_array_t *Source = (ml_array_t *)Value;
-		if (Source->Degree != Degree) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__);
-		for (int I = 0; I < Degree; ++I) {
-			if (Dimension[I].Size != Source->Dimensions[I].Size) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__);
-		}
-		update_row_fn_t Update = UpdateSetRowFns[Format * MAX_FORMATS + Source->Format];
-		update_array(Update, Dimension, Address, Degree, Source->Dimensions, Source->Base.Value);
-	} else {
-		if (Degree) return ml_error("ValueError", "Inconsistent depth in array");
-		switch (Format) {
-		case ML_ARRAY_FORMAT_NONE: break;
-		case ML_ARRAY_FORMAT_U8: *(uint8_t *)Address = ml_integer_value(Value); break;
-		case ML_ARRAY_FORMAT_I8: *(int8_t *)Address = ml_integer_value(Value); break;
-		case ML_ARRAY_FORMAT_U16: *(uint16_t *)Address = ml_integer_value(Value); break;
-		case ML_ARRAY_FORMAT_I16: *(int16_t *)Address = ml_integer_value(Value); break;
-		case ML_ARRAY_FORMAT_U32: *(uint32_t *)Address = ml_integer_value(Value); break;
-		case ML_ARRAY_FORMAT_I32: *(int32_t *)Address = ml_integer_value(Value); break;
-		case ML_ARRAY_FORMAT_U64: *(uint64_t *)Address = ml_integer_value(Value); break;
-		case ML_ARRAY_FORMAT_I64: *(int64_t *)Address = ml_integer_value(Value); break;
-		case ML_ARRAY_FORMAT_F32: *(float *)Address = ml_real_value(Value); break;
-		case ML_ARRAY_FORMAT_F64: *(double *)Address = ml_real_value(Value); break;
+	typeof(ml_array_of_fill) *function = ml_typed_fn_get(ml_typeof(Value), ml_array_of_fill);
+	if (function) return function(Format, Dimension, Address, Degree, Value);
+	if (Degree) return ml_error("ValueError", "Inconsistent depth in array");
+	switch (Format) {
+	case ML_ARRAY_FORMAT_NONE: break;
+	case ML_ARRAY_FORMAT_U8: *(uint8_t *)Address = ml_integer_value(Value); break;
+	case ML_ARRAY_FORMAT_I8: *(int8_t *)Address = ml_integer_value(Value); break;
+	case ML_ARRAY_FORMAT_U16: *(uint16_t *)Address = ml_integer_value(Value); break;
+	case ML_ARRAY_FORMAT_I16: *(int16_t *)Address = ml_integer_value(Value); break;
+	case ML_ARRAY_FORMAT_U32: *(uint32_t *)Address = ml_integer_value(Value); break;
+	case ML_ARRAY_FORMAT_I32: *(int32_t *)Address = ml_integer_value(Value); break;
+	case ML_ARRAY_FORMAT_U64: *(uint64_t *)Address = ml_integer_value(Value); break;
+	case ML_ARRAY_FORMAT_I64: *(int64_t *)Address = ml_integer_value(Value); break;
+	case ML_ARRAY_FORMAT_F32: *(float *)Address = ml_real_value(Value); break;
+	case ML_ARRAY_FORMAT_F64: *(double *)Address = ml_real_value(Value); break;
 #ifdef ML_COMPLEX
-		case ML_ARRAY_FORMAT_C32: *(complex_float *)Address = ml_complex_value(Value); break;
-		case ML_ARRAY_FORMAT_C64: *(complex_double *)Address = ml_complex_value(Value); break;
+	case ML_ARRAY_FORMAT_C32: *(complex_float *)Address = ml_complex_value(Value); break;
+	case ML_ARRAY_FORMAT_C64: *(complex_double *)Address = ml_complex_value(Value); break;
 #endif
-		case ML_ARRAY_FORMAT_ANY: *(ml_value_t **)Address = Value; break;
-		}
+	case ML_ARRAY_FORMAT_ANY: *(ml_value_t **)Address = Value; break;
 	}
 	return NULL;
 }
 
-static __attribute__ ((pure)) ml_array_format_t ml_array_of_type_guess(ml_value_t *Value, ml_array_format_t Format) {
-	if (ml_is(Value, MLListT)) {
-		ML_LIST_FOREACH(Value, Iter) {
-			Format = ml_array_of_type_guess(Iter->Value, Format);
-		}
-	} else if (ml_is(Value, MLTupleT)) {
-		ml_tuple_t *Tuple = (ml_tuple_t *)Value;
-		for (int I = 0; I < Tuple->Size; ++I) {
-			Format = ml_array_of_type_guess(Tuple->Values[I], Format);
-		}
-	} else if (ml_is(Value, MLArrayT)) {
-		ml_array_t *Array = (ml_array_t *)Value;
-		if (Format <= Array->Format) Format = Array->Format;
-	} else if (ml_is(Value, MLIntegerT)) {
-		if (Format < ML_ARRAY_FORMAT_I64) Format = ML_ARRAY_FORMAT_I64;
-	} else if (ml_is(Value, MLRealT)) {
-		if (Format < ML_ARRAY_FORMAT_F64) Format = ML_ARRAY_FORMAT_F64;
-#ifdef ML_COMPLEX
-	} else if (ml_is(Value, MLComplexT)) {
-		if (Format < ML_ARRAY_FORMAT_C64) Format = ML_ARRAY_FORMAT_C64;
-#endif
-	} else {
-		Format = ML_ARRAY_FORMAT_ANY;
+static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLListT, ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_value_t *Value) {
+	if (!Degree) return ml_error("ValueError", "Inconsistent depth in array");
+	if (ml_list_length(Value) != Dimension->Size) return ml_error("ValueError", "Inconsistent lengths in array");
+	ML_LIST_FOREACH(Value, Iter) {
+		ml_value_t *Error = ml_array_of_fill(Format, Dimension + 1, Address, Degree - 1, Iter->Value);
+		if (Error) return Error;
+		Address += Dimension->Stride;
 	}
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLTupleT, ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_value_t *Value) {
+	if (!Degree) return ml_error("ValueError", "Inconsistent depth in array");
+	if (ml_tuple_size(Value) != Dimension->Size) return ml_error("ValueError", "Inconsistent lengths in array");
+	ml_tuple_t *Tuple = (ml_tuple_t *)Value;
+	for (int I = 0; I < Tuple->Size; ++I) {
+		ml_value_t *Error = ml_array_of_fill(Format, Dimension + 1, Address, Degree - 1, Tuple->Values[I]);
+		if (Error) return Error;
+		Address += Dimension->Stride;
+	}
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLArrayT, ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_value_t *Value) {
+	ml_array_t *Source = (ml_array_t *)Value;
+	if (Source->Degree != Degree) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__);
+	for (int I = 0; I < Degree; ++I) {
+		if (Dimension[I].Size != Source->Dimensions[I].Size) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__);
+	}
+	update_row_fn_t Update = UpdateSetRowFns[Format * MAX_FORMATS + Source->Format];
+	update_array(Update, Dimension, Address, Degree, Source->Dimensions, Source->Base.Value);
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLIntegerRangeT, ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_integer_range_t *Range) {
+	if (!Degree) return ml_error("ValueError", "Inconsistent depth in array");
+	size_t Count = 0;
+	int64_t Diff = Range->Limit - Range->Start;
+	if (!Range->Step) {
+	} else if (Diff < 0 && Range->Step > 0) {
+	} else if (Diff > 0 && Range->Step < 0) {
+	} else {
+		Count = Diff / Range->Step + 1;
+	}
+	if (Count != Dimension->Size) return ml_error("ValueError", "Inconsistent lengths in array");
+	int64_t Value = Range->Start, Step = Range->Step;
+	switch (Format) {
+	case ML_ARRAY_FORMAT_NONE: break;
+	case ML_ARRAY_FORMAT_U8: {
+		for (int I = 0; I < Count; ++I) {
+			*(uint8_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_I8: {
+		for (int I = 0; I < Count; ++I) {
+			*(int8_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_U16: {
+		for (int I = 0; I < Count; ++I) {
+			*(uint16_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_I16: {
+		for (int I = 0; I < Count; ++I) {
+			*(int16_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_U32: {
+		for (int I = 0; I < Count; ++I) {
+			*(uint32_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_I32: {
+		for (int I = 0; I < Count; ++I) {
+			*(int32_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_U64: {
+		for (int I = 0; I < Count; ++I) {
+			*(uint64_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_I64: {
+		for (int I = 0; I < Count; ++I) {
+			*(int64_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_F32: {
+		for (int I = 0; I < Count; ++I) {
+			*(float *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_F64: {
+		for (int I = 0; I < Count; ++I) {
+			*(double *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+#ifdef ML_COMPLEX
+	case ML_ARRAY_FORMAT_C32: {
+		for (int I = 0; I < Count; ++I) {
+			*(complex_float *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_C64: {
+		for (int I = 0; I < Count; ++I) {
+			*(complex_double *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+#endif
+	case ML_ARRAY_FORMAT_ANY: {
+		for (int I = 0; I < Count; ++I) {
+			*(ml_value_t **)Address = ml_integer(Value);
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	}
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLRealRangeT, ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_real_range_t *Range) {
+	if (!Degree) return ml_error("ValueError", "Inconsistent depth in array");
+	size_t Count = Range->Count;
+	if (Count != Dimension->Size) return ml_error("ValueError", "Inconsistent lengths in array");
+	double Value = Range->Start, Step = Range->Step;
+	switch (Format) {
+	case ML_ARRAY_FORMAT_NONE: break;
+	case ML_ARRAY_FORMAT_U8: {
+		for (int I = 0; I < Count; ++I) {
+			*(uint8_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_I8: {
+		for (int I = 0; I < Count; ++I) {
+			*(int8_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_U16: {
+		for (int I = 0; I < Count; ++I) {
+			*(uint16_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_I16: {
+		for (int I = 0; I < Count; ++I) {
+			*(int16_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_U32: {
+		for (int I = 0; I < Count; ++I) {
+			*(uint32_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_I32: {
+		for (int I = 0; I < Count; ++I) {
+			*(int32_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_U64: {
+		for (int I = 0; I < Count; ++I) {
+			*(uint64_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_I64: {
+		for (int I = 0; I < Count; ++I) {
+			*(int64_t *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_F32: {
+		for (int I = 0; I < Count; ++I) {
+			*(float *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_F64: {
+		for (int I = 0; I < Count; ++I) {
+			*(double *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+#ifdef ML_COMPLEX
+	case ML_ARRAY_FORMAT_C32: {
+		for (int I = 0; I < Count; ++I) {
+			*(complex_float *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	case ML_ARRAY_FORMAT_C64: {
+		for (int I = 0; I < Count; ++I) {
+			*(complex_double *)Address = Value;
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+#endif
+	case ML_ARRAY_FORMAT_ANY: {
+		for (int I = 0; I < Count; ++I) {
+			*(ml_value_t **)Address = ml_integer(Value);
+			Value += Step;
+			Address += Dimension->Stride;
+		}
+		break;
+	}
+	}
+	return NULL;
+}
+
+static ml_array_format_t ml_array_of_type_guess(ml_value_t *Value, ml_array_format_t Format) {
+	typeof(ml_array_of_type_guess) *function = ml_typed_fn_get(ml_typeof(Value), ml_array_of_type_guess);
+	if (function) return function(Value, Format);
+	return ML_ARRAY_FORMAT_ANY;
+}
+
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLListT, ml_value_t *Value, ml_array_format_t Format) {
+	ML_LIST_FOREACH(Value, Iter) {
+		Format = ml_array_of_type_guess(Iter->Value, Format);
+	}
+	return Format;
+}
+
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLTupleT, ml_value_t *Value, ml_array_format_t Format) {
+	ml_tuple_t *Tuple = (ml_tuple_t *)Value;
+	for (int I = 0; I < Tuple->Size; ++I) {
+		Format = ml_array_of_type_guess(Tuple->Values[I], Format);
+	}
+	return Format;
+}
+
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLArrayT, ml_value_t *Value, ml_array_format_t Format) {
+	ml_array_t *Array = (ml_array_t *)Value;
+	if (Format <= Array->Format) Format = Array->Format;
+	return Format;
+}
+
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLIntegerT, ml_value_t *Value, ml_array_format_t Format) {
+	if (Format < ML_ARRAY_FORMAT_I64) Format = ML_ARRAY_FORMAT_I64;
+	return Format;
+}
+
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLRealT, ml_value_t *Value, ml_array_format_t Format) {
+	if (Format < ML_ARRAY_FORMAT_F64) Format = ML_ARRAY_FORMAT_F64;
+	return Format;
+}
+
+#ifdef ML_COMPLEX
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLComplexT, ml_value_t *Value, ml_array_format_t Format) {
+	if (Format < ML_ARRAY_FORMAT_C64) Format = ML_ARRAY_FORMAT_C64;
+	return Format;
+}
+#endif
+
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLIntegerRangeT, ml_value_t *Value, ml_array_format_t Format) {
+	if (Format < ML_ARRAY_FORMAT_I64) Format = ML_ARRAY_FORMAT_I64;
+	return Format;
+}
+
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLRealRangeT, ml_value_t *Value, ml_array_format_t Format) {
+	if (Format < ML_ARRAY_FORMAT_F64) Format = ML_ARRAY_FORMAT_F64;
 	return Format;
 }
 
@@ -6784,15 +7092,21 @@ static ml_value_t *ml_cbor_read_any_array_fn(ml_cbor_reader_t *Reader, ml_value_
 	return (ml_value_t *)Array;
 }
 
+#ifdef ML_COMPLEX
+
 ML_FUNCTION(MLCborReadComplex32) {
+//!internal
 	ML_CHECK_ARG_COUNT(1);
 	return ml_cbor_read_typed_array_fn(Args[0], ML_ARRAY_FORMAT_C32);
 }
 
 ML_FUNCTION(MLCborReadComplex64) {
+//!internal
 	ML_CHECK_ARG_COUNT(1);
 	return ml_cbor_read_typed_array_fn(Args[0], ML_ARRAY_FORMAT_C64);
 }
+
+#endif
 
 #endif
 
@@ -6947,7 +7261,9 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_cbor_default_tag(79, ml_cbor_read_int64_array_fn);
 	ml_cbor_default_tag(85, ml_cbor_read_float32_array_fn);
 	ml_cbor_default_tag(86, ml_cbor_read_float64_array_fn);
+#ifdef ML_COMPLEX
 	ml_cbor_default_object("array::complex32", (ml_value_t *)MLCborReadComplex32);
 	ml_cbor_default_object("array::complex64", (ml_value_t *)MLCborReadComplex64);
+#endif
 #endif
 }

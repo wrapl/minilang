@@ -408,6 +408,15 @@ When creating a substring,  the first index is inclusive and second index is exc
       "λ:😀️ → 😺️":size :> 22
 
 
+:mini:`meth (String: string):ctype: string::ctype`
+   Returns the unicode type of the first character of :mini:`String`.
+
+   .. code-block:: mini
+
+      map("To €2 á\n" => (2, 2 -> :ctype))
+      :> {"T" is Lu, "o" is Ll, " " is Zs, "€" is Sc, "2" is Nd, "á" is Ll, "\n" is Cc}
+
+
 :mini:`meth (String: string):ends(Suffix: string): string | nil`
    Returns :mini:`String` if it ends with :mini:`Suffix` and :mini:`nil` otherwise.
 
@@ -569,6 +578,15 @@ When creating a substring,  the first index is inclusive and second index is exc
       "World":min("Hello") :> "Hello"
       "abcd":min("abc") :> "abc"
       "abc":min("abcd") :> "abc"
+
+
+:mini:`meth (String: string):normalize(Norm: string::norm): string`
+   Returns a normalized copy of :mini:`String` using the normalizer specified by :mini:`Norm`.
+
+   .. code-block:: mini
+
+      let S := "𝕥𝕖𝕩𝕥" :> "𝕥𝕖𝕩𝕥"
+      S:normalize(string::norm::NFD) :> "𝕥𝕖𝕩𝕥"
 
 
 :mini:`meth (String: string):offset(Index: integer): integer`

@@ -7,17 +7,6 @@
 sequence
 ========
 
-.. _fun-count:
-
-:mini:`fun count(Sequence: any): integer`
-   Returns the count of the values produced by :mini:`Sequence`. For some types of sequences (e.g. :mini:`list`,  :mini:`map`,  etc),  the count is simply retrieved. For all other types,  the sequence is iterated and the total number of values counted.
-
-   .. code-block:: mini
-
-      count([1, 2, 3, 4]) :> 4
-      count(1 .. 10 ->? (2 | _)) :> 5
-
-
 .. _fun-iter_key:
 
 :mini:`fun iter_key(Value: any): any | nil`
@@ -119,6 +108,17 @@ sequence
       :> [(1, 2, 3, 4), (5, 6, 7, 8), (9, 10, 11, 12), (13, 14, 15, 16), (17, 18, 19, 20)]
       list(batch(1 .. 20, 4, 2, tuple))
       :> [(1, 2, 3, 4), (3, 4, 5, 6), (5, 6, 7, 8), (7, 8, 9, 10), (9, 10, 11, 12), (11, 12, 13, 14), (13, 14, 15, 16), (15, 16, 17, 18), (17, 18, 19, 20)]
+
+
+.. _fun-count:
+
+:mini:`fun count(Sequence: sequence): integer`
+   Returns the count of the values produced by :mini:`Sequence`. For some types of sequences (e.g. :mini:`list`,  :mini:`map`,  etc),  the count is simply retrieved. For all other types,  the sequence is iterated and the total number of values counted.
+
+   .. code-block:: mini
+
+      count([1, 2, 3, 4]) :> 4
+      count(1 .. 10 ->? (2 | _)) :> 5
 
 
 .. _fun-count2:
@@ -289,6 +289,17 @@ sequence
 
       reduce2([], "cake", fun(L, K, V) L:put((K, V)))
       :> [(1, c), (2, a), (3, k), (4, e)]
+
+
+.. _fun-some:
+
+:mini:`fun some(Sequence: sequence): any | nil`
+   Returns the first value produced by :mini:`Sequence` that is not :mini:`nil`.
+
+   .. code-block:: mini
+
+      some([nil, nil, "X", nil]) :> "X"
+      some([nil, nil, nil, nil]) :> nil
 
 
 .. _fun-sum:

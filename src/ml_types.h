@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include "stringmap.h"
 #include "inthash.h"
-#include "config.h"
+#include "ml_config.h"
 
 #ifdef __cplusplus
 extern "C" {

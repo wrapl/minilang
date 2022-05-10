@@ -2430,13 +2430,45 @@ ML_FUNCTIONX(GirRun) {
 
 ML_GIR_TYPELIB(Gio, "Gio", NULL);
 
+typedef struct ml_gio_callback_t ml_gio_callback_t;
+
+struct ml_gio_callback_t {
+	ml_gio_callback_t *Next, *Prev;
+	ml_state_t *Caller;
+};
+
+static ml_gio_callback_t GioCallbacks[1] = {{GioCallbacks, GioCallbacks, NULL}};
+static ml_gio_callback_t *GioCallbackCache = NULL;
+
+static ml_gio_callback_t *ml_gio_callback(ml_state_t *Caller) {
+	ml_gio_callback_t *Callback = GioCallbackCache;
+	if (Callback) {
+		GioCallbackCache = Callback->Next;
+	} else {
+		Callback = new(ml_gio_callback_t);
+	}
+	Callback->Prev = GioCallbacks;
+	Callback->Next = GioCallbacks->Next;
+	GioCallbacks->Next->Prev = Callback;
+	GioCallbacks->Next = Callback;
+	Callback->Caller = Caller;
+	return Callback;
+}
+
+static ml_state_t *ml_gio_callback_use(ml_gio_callback_t *Callback) {
+	Callback->Prev->Next = Callback->Next;
+	Callback->Next->Prev = Callback->Prev;
+	ml_state_t *Caller = Callback->Caller;
+	Callback->Next = GioCallbackCache;
+	GioCallbackCache = Callback;
+	return Caller;
+}
+
 ML_GIR_IMPORT(GInputStreamT, Gio, "InputStream");
 
 static void g_input_stream_callback(GObject *Object, GAsyncResult *Result, gpointer Data) {
 	GInputStream *Stream = (GInputStream *)Object;
-	ml_state_t *Caller = (ml_state_t *)Data;
-	object_instance_t *Instance = (object_instance_t *)ml_gir_instance_get(Object, NULL);
-	ptrset_remove(Instance->Handlers, Caller);
+	ml_state_t *Caller = ml_gio_callback_use((ml_gio_callback_t *)Data);
 	GError *Error = NULL;
 	gssize Count = g_input_stream_read_finish(Stream, Result, &Error);
 	if (Error) ML_ERROR("GirError", "%s", Error->message);
@@ -2445,17 +2477,14 @@ static void g_input_stream_callback(GObject *Object, GAsyncResult *Result, gpoin
 
 static void ML_TYPED_FN(ml_stream_read, (ml_type_t *)GInputStreamT, ml_state_t *Caller, object_instance_t *Value, void *Address, int Count) {
 	GInputStream *Stream = (GInputStream *)Value->Handle;
-	ptrset_insert(Value->Handlers, Caller);
-	g_input_stream_read_async(Stream, Address, Count, 0, NULL, g_input_stream_callback, Caller);
+	g_input_stream_read_async(Stream, Address, Count, 0, NULL, g_input_stream_callback, ml_gio_callback(Caller));
 }
 
 ML_GIR_IMPORT(GOutputStreamT, Gio, "OutputStream");
 
 static void g_output_stream_callback(GObject *Object, GAsyncResult *Result, gpointer Data) {
 	GOutputStream *Stream = (GOutputStream *)Object;
-	ml_state_t *Caller = (ml_state_t *)Data;
-	object_instance_t *Instance = (object_instance_t *)ml_gir_instance_get(Object, NULL);
-	ptrset_remove(Instance->Handlers, Caller);
+	ml_state_t *Caller = ml_gio_callback_use((ml_gio_callback_t *)Data);
 	GError *Error = NULL;
 	gssize Count = g_output_stream_write_finish(Stream, Result, &Error);
 	if (Error) ML_ERROR("GirError", "%s", Error->message);
@@ -2464,8 +2493,7 @@ static void g_output_stream_callback(GObject *Object, GAsyncResult *Result, gpoi
 
 static void ML_TYPED_FN(ml_stream_write, (ml_type_t *)GOutputStreamT, ml_state_t *Caller, object_instance_t *Value, void *Address, int Count) {
 	GOutputStream *Stream = (GOutputStream *)Value->Handle;
-	ptrset_insert(Value->Handlers, Caller);
-	g_output_stream_write_async(Stream, Address, Count, 0, NULL, g_output_stream_callback, Caller);
+	g_output_stream_write_async(Stream, Address, Count, 0, NULL, g_output_stream_callback, ml_gio_callback(Caller));
 }
 
 void ml_gir_init(stringmap_t *Globals) {

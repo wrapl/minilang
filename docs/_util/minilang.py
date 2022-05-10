@@ -38,7 +38,7 @@ class MinilangLexer(RegexLexer):
 			(r':>.*\n', Comment),
 			(':<', Comment.Multiline, 'comment'),
 			(r'\s+', Text),
-			(r'[A-Za-z_]\w*', Text),
+			(r'[A-Za-z_](\w|[₊₋₌₍₎])*', Text),
 			(':=', Operator),
 			(',', Operator),
 			(';', Operator),

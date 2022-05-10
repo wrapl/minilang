@@ -213,14 +213,20 @@ ml_value_t *ml_cbor_use_previous(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 }
 
 static void value_handler(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+	if (ml_is_error(Value)) {
+		Reader->Value = Value;
+		return minicbor_reader_finish(Reader->Reader);
+	}
 	for (tag_t *Tag = Reader->Tags; Tag; Tag = Tag->Prev) {
-		if (!ml_is_error(Value)) {
-			if (Tag->Handler == ml_cbor_mark_reused) {
-				ml_value_t *Uninitialized = Reader->Reused[Tag->Index];
-				if (Uninitialized) ml_uninitialized_set(Uninitialized, Value);
-				Reader->Reused[Tag->Index] = Value;
-			} else {
-				Value = Tag->Handler(Reader, Value);
+		if (Tag->Handler == ml_cbor_mark_reused) {
+			ml_value_t *Uninitialized = Reader->Reused[Tag->Index];
+			if (Uninitialized) ml_uninitialized_set(Uninitialized, Value);
+			Reader->Reused[Tag->Index] = Value;
+		} else {
+			Value = Tag->Handler(Reader, Value);
+			if (ml_is_error(Value)) {
+				Reader->Value = Value;
+				return minicbor_reader_finish(Reader->Reader);
 			}
 		}
 	}
@@ -629,6 +635,7 @@ ml_cbor_t ml_cbor_writer_encode(ml_value_t *Value) {
 	ml_value_t *Error = ml_cbor_write(Writer, Value);
 	if (Error) return (ml_cbor_t){{.Error = Error}, 0};
 	size_t Size = Buffer->Length;
+	if (!Size) return (ml_cbor_t){{.Error = ml_error("CBORError", "Empty CBOR encoding")}, 0};
 	return (ml_cbor_t){{.Data = ml_stringbuffer_get_string(Buffer)}, Size};
 }
 
