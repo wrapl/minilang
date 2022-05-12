@@ -2375,6 +2375,84 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
 	return Result;
 }
 
+#ifdef ML_GENERICS
+
+ML_GENERIC_TYPE(MLTupleIntegerStringT, MLTupleT, MLIntegerT, MLStringT);
+
+ML_METHOD("find2", MLStringT, MLStringT, MLTupleIntegerStringT) {
+//<Haystack
+//<Needle
+//<Start
+//>tuple[integer,string]|nil
+// Returns :mini:`(Index, Needle)` where :mini:`Index` is the first occurence of :mini:`Needle` in :mini:`Haystack` at or after :mini:`Start`, or :mini:`nil` if no occurence is found.
+//$= "The cat snored as he slept":find2("s", 1)
+//$= "The cat snored as he slept":find2("s", 10)
+//$= "The cat snored as he slept":find2("s", -6)
+	const char *Haystack = ml_string_value(Args[0]);
+	size_t HaystackLength = ml_string_length(Args[0]);
+	const char *Needle = ml_string_value(Args[1]);
+	int Start = ml_integer_value(ml_tuple_get(Args[2], 1)) + ml_string_length(ml_tuple_get(Args[2], 2));
+	if (Start <= 0) Start += HaystackLength + 1;
+	if (Start <= 0) return MLNil;
+	if (Start > HaystackLength) return MLNil;
+	Haystack = utf8_skip(Haystack, Start);
+	const char *Match = strstr(Haystack, Needle);
+	if (Match) {
+		return ml_tuplev(2, ml_integer(Start + utf8_position(Haystack, Match)), Args[1]);
+	} else {
+		return MLNil;
+	}
+}
+
+ML_METHOD("find2", MLStringT, MLRegexT, MLTupleIntegerStringT) {
+//<Haystack
+//<Pattern
+//<Start
+//>tuple[integer,string]|nil
+// Returns :mini:`(Index, Match)` where :mini:`Index` is the first occurence of :mini:`Pattern` in :mini:`Haystack` at or after :mini:`Start`, or :mini:`nil` if no occurence is found.
+//$= "The cat snored as he slept":find2(r"s[a-z]+", 1)
+//$= "The cat snored as he slept":find2(r"s[a-z]+", 10)
+//$= "The cat snored as he slept":find2(r"s[a-z]+", -6)
+	const char *Haystack = ml_string_value(Args[0]);
+	int Length = ml_string_length(Args[0]);
+	regex_t *Regex = ml_regex_value(Args[1]);
+	int Start = ml_integer_value(ml_tuple_get(Args[2], 1)) + ml_string_length(ml_tuple_get(Args[2], 2));
+	if (Start <= 0) Start += Length + 1;
+	if (Start <= 0) return MLNil;
+	if (Start > Length) return MLNil;
+	const char *Haystack2 = utf8_skip(Haystack, Start);
+	Length -= (Haystack2 - Haystack);
+	regmatch_t Matches[Regex->re_nsub + 1];
+#ifdef ML_TRE
+	switch (regnexec(Regex, Haystack2, Length, Regex->re_nsub + 1, Matches, 0)) {
+#else
+	switch (regexec(Regex, Haystack2, Regex->re_nsub + 1, Matches, 0)) {
+#endif
+	case REG_NOMATCH:
+		return MLNil;
+	case REG_ESPACE: {
+		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
+		char *ErrorMessage = snew(ErrorSize + 1);
+		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
+		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+	}
+	}
+	ml_value_t *Result = ml_tuple(Regex->re_nsub + 2);
+	ml_tuple_set(Result, 1, ml_integer(Start + utf8_position(Haystack2, Haystack2 + Matches->rm_so)));
+	for (int I = 0; I < Regex->re_nsub + 1; ++I) {
+		regoff_t Start = Matches[I].rm_so;
+		if (Start >= 0) {
+			size_t Length = Matches[I].rm_eo - Start;
+			ml_tuple_set(Result, I + 2, ml_string(Haystack2 + Start, Length));
+		} else {
+			ml_tuple_set(Result, I + 2, MLNil);
+		}
+	}
+	return Result;
+}
+
+#endif
+
 ML_METHOD("%", MLStringT, MLRegexT) {
 //<String
 //<Pattern

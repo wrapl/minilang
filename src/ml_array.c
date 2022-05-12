@@ -1885,41 +1885,42 @@ static ml_value_t *ML_TYPED_FN(ml_array_value, MLArray ## SUFFIX, ml_array_t *Ar
 } \
 \
 static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_array_dimension_t *Dimension, char *Address) { \
+	if (!Dimension->Size) { \
+		ml_stringbuffer_write(Buffer, "<>", 2); \
+		return; \
+	} \
 	ml_stringbuffer_write(Buffer, "<", 1); \
 	int Stride = Dimension->Stride; \
-	if (Dimension->Indices) { \
+	if (Degree == 1) { \
 		int *Indices = Dimension->Indices; \
-		if (Dimension->Size) { \
-			if (Degree == 1) { \
-				APPEND(Buffer, PRINTF, *(CTYPE *)(Address + (Indices[0]) * Dimension->Stride)); \
-				for (int I = 1; I < Dimension->Size; ++I) { \
-					ml_stringbuffer_put(Buffer, ' '); \
-					APPEND(Buffer, PRINTF, *(CTYPE *)(Address + (Indices[I]) * Stride)); \
-				} \
-			} else { \
-				append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address + (Indices[0]) * Dimension->Stride); \
-				for (int I = 1; I < Dimension->Size; ++I) { \
-					ml_stringbuffer_put(Buffer, ' '); \
-					append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address + (Indices[I]) * Dimension->Stride); \
-				} \
+		if (Dimension->Indices) { \
+			APPEND(Buffer, PRINTF, *(CTYPE *)(Address + (Indices[0]) * Dimension->Stride)); \
+			for (int I = 1; I < Dimension->Size; ++I) { \
+				ml_stringbuffer_put(Buffer, ' '); \
+				APPEND(Buffer, PRINTF, *(CTYPE *)(Address + (Indices[I]) * Stride)); \
+			} \
+		} else { \
+			APPEND(Buffer, PRINTF, *(CTYPE *)Address); \
+			for (int I = Dimension->Size; --I > 0;) { \
+				ml_stringbuffer_put(Buffer, ' '); \
+				Address += Stride; \
+				APPEND(Buffer, PRINTF, *(CTYPE *)Address); \
 			} \
 		} \
 	} else { \
-		if (Degree == 1) { \
-			APPEND(Buffer, PRINTF, *(CTYPE *)Address); \
-			Address += Stride; \
-			for (int I = Dimension->Size; --I > 0;) { \
+		int *Indices = Dimension->Indices; \
+		if (Dimension->Indices) { \
+			append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address + (Indices[0]) * Dimension->Stride); \
+			for (int I = 1; I < Dimension->Size; ++I) { \
 				ml_stringbuffer_put(Buffer, ' '); \
-				APPEND(Buffer, PRINTF, *(CTYPE *)Address); \
-				Address += Stride; \
+				append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address + (Indices[I]) * Dimension->Stride); \
 			} \
 		} else { \
 			append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address); \
-			Address += Stride; \
 			for (int I = Dimension->Size; --I > 0;) { \
 				ml_stringbuffer_put(Buffer, ' '); \
-				append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address); \
 				Address += Stride; \
+				append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address); \
 			} \
 		} \
 	} \

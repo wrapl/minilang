@@ -33,7 +33,7 @@ static void ml_task_call(ml_state_t *Caller, ml_task_t *Task, int Count, ml_valu
 	}
 }
 
-ML_TYPE(MLTaskT, (), "task",
+ML_TYPE(MLTaskT, (MLFunctionT), "task",
 // A task representing a value that will eventually be completed.
 	.call = (void *)ml_task_call
 );

@@ -9,7 +9,7 @@ tuple
 
 .. _type-tuple:
 
-:mini:`type tuple < sequence`
+:mini:`type tuple < function, sequence`
    An immutable tuple of values.
 
 

@@ -19,6 +19,7 @@ hierarchy
       "sequence":e -> "function::partial":w;
       "function":e -> "function::argless":w;
       "sequence":e -> "function::argless":w;
+      "function":e -> "tuple":w;
       "sequence":e -> "tuple":w;
       "any":e -> "boolean":w;
       "any":e -> "module":w;
@@ -40,7 +41,7 @@ hierarchy
       "any":e -> "thread::mutex":w;
       "any":e -> "thread::protected":w;
       "any":e -> "thread::condition":w;
-      "any":e -> "task":w;
+      "function":e -> "task":w;
       "function":e -> "tasks":w;
       "sequence":e -> "table":w;
       "sequence":e -> "table::row":w;
@@ -66,7 +67,7 @@ hierarchy
       "any":e -> "channel":w;
       "any":e -> "pqueue::entry":w;
       "sequence":e -> "pqueue":w;
-      "any":e -> "polynomial":w;
+      "function":e -> "polynomial":w;
       "any":e -> "polynomial::rational":w;
       "any":e -> "object":w;
       "type":e -> "class":w;

@@ -29,7 +29,7 @@ tasks
 
 .. _type-task:
 
-:mini:`type task`
+:mini:`type task < function`
    A task representing a value that will eventually be completed.
 
 

@@ -41,7 +41,7 @@ polynomial
 
 .. _type-polynomial:
 
-:mini:`type polynomial`
+:mini:`type polynomial < function`
    A polynomial with numeric (real or complex) coefficients.
    Calling a polynomial with named arguments returns the result of substituting the named variables with the corresponding values.
 

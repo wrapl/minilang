@@ -1542,7 +1542,7 @@ ML_FUNCTION(MLTuple) {
 	return Tuple;
 }
 
-ML_TYPE(MLTupleT, (MLSequenceT), "tuple",
+ML_TYPE(MLTupleT, (MLFunctionT, MLSequenceT), "tuple",
 //!tuple
 // An immutable tuple of values.
 	.hash = (void *)ml_tuple_hash,
