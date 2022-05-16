@@ -26,7 +26,7 @@ else
 	LDFLAGS += -g
 endif
 
-obj/config.h: | obj
+obj/ml_config.h: | obj
 	@echo "#ifndef ML_CONFIG_H" > $@ 
 	@echo "#define ML_CONFIG_H" >> $@
 	@echo "#endif" >> $@
@@ -34,7 +34,7 @@ obj/config.h: | obj
 obj/%.o: src/%.c obj/config.h | obj
 	$(CC) $(CFLAGS) -c -o $@ $< 
 
-obj/%_init.c: src/%.c obj/config.h | obj
+obj/%_init.c: src/%.c obj/ml_config.h | obj
 	@echo "" > $@
 	cc -E -P -DGENERATE_INIT $(CFLAGS) $< | sed -f sed.txt | grep -o 'INIT_CODE .*);' | sed 's/INIT_CODE //g' > $@
 
