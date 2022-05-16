@@ -31,7 +31,7 @@ obj/ml_config.h: | obj
 	@echo "#define ML_CONFIG_H" >> $@
 	@echo "#endif" >> $@
 
-obj/%.o: src/%.c obj/config.h | obj
+obj/%.o: src/%.c obj/ml_config.h | obj
 	$(CC) $(CFLAGS) -c -o $@ $< 
 
 obj/%_init.c: src/%.c obj/ml_config.h | obj
