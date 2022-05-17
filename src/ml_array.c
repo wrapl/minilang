@@ -4457,6 +4457,60 @@ ML_COMPARE_METHOD(Gt, Lt, >);
 ML_COMPARE_METHOD(Le, Ge, <=);
 ML_COMPARE_METHOD(Ge, Le, >=);
 
+static ml_array_format_t ml_array_of_type_guess(ml_value_t *Value, ml_array_format_t Format) {
+	typeof(ml_array_of_type_guess) *function = ml_typed_fn_get(ml_typeof(Value), ml_array_of_type_guess);
+	if (function) return function(Value, Format);
+	return ML_ARRAY_FORMAT_ANY;
+}
+
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLListT, ml_value_t *Value, ml_array_format_t Format) {
+	ML_LIST_FOREACH(Value, Iter) {
+		Format = ml_array_of_type_guess(Iter->Value, Format);
+	}
+	return Format;
+}
+
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLTupleT, ml_value_t *Value, ml_array_format_t Format) {
+	ml_tuple_t *Tuple = (ml_tuple_t *)Value;
+	for (int I = 0; I < Tuple->Size; ++I) {
+		Format = ml_array_of_type_guess(Tuple->Values[I], Format);
+	}
+	return Format;
+}
+
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLArrayT, ml_value_t *Value, ml_array_format_t Format) {
+	ml_array_t *Array = (ml_array_t *)Value;
+	if (Format <= Array->Format) Format = Array->Format;
+	return Format;
+}
+
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLIntegerT, ml_value_t *Value, ml_array_format_t Format) {
+	if (Format < ML_ARRAY_FORMAT_I64) Format = ML_ARRAY_FORMAT_I64;
+	return Format;
+}
+
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLRealT, ml_value_t *Value, ml_array_format_t Format) {
+	if (Format < ML_ARRAY_FORMAT_F64) Format = ML_ARRAY_FORMAT_F64;
+	return Format;
+}
+
+#ifdef ML_COMPLEX
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLComplexT, ml_value_t *Value, ml_array_format_t Format) {
+	if (Format < ML_ARRAY_FORMAT_C64) Format = ML_ARRAY_FORMAT_C64;
+	return Format;
+}
+#endif
+
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLIntegerRangeT, ml_value_t *Value, ml_array_format_t Format) {
+	if (Format < ML_ARRAY_FORMAT_I64) Format = ML_ARRAY_FORMAT_I64;
+	return Format;
+}
+
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLRealRangeT, ml_value_t *Value, ml_array_format_t Format) {
+	if (Format < ML_ARRAY_FORMAT_F64) Format = ML_ARRAY_FORMAT_F64;
+	return Format;
+}
+
 static ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, ml_array_format_t Format) {
 	typeof(ml_array_of_create) *function = ml_typed_fn_get(ml_typeof(Value), ml_array_of_create);
 	if (function) return function(Value, Degree, Format);
@@ -4594,12 +4648,16 @@ static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLIntegerRangeT, ml_array_forma
 	size_t Count = 0;
 	int64_t Diff = Range->Limit - Range->Start;
 	if (!Range->Step) {
+		Count = Dimension->Size;
 	} else if (Diff < 0 && Range->Step > 0) {
+		return ml_error("ValueError", "Inconsistent lengths in array");
 	} else if (Diff > 0 && Range->Step < 0) {
+		return ml_error("ValueError", "Inconsistent lengths in array");
 	} else {
 		Count = Diff / Range->Step + 1;
+		if (Count < Dimension->Size) return ml_error("ValueError", "Inconsistent lengths in array");
+		if (Count > Dimension->Size) Count = Dimension->Size;
 	}
-	if (Count != Dimension->Size) return ml_error("ValueError", "Inconsistent lengths in array");
 	int64_t Value = Range->Start, Step = Range->Step;
 	switch (Format) {
 	case ML_ARRAY_FORMAT_NONE: break;
@@ -4828,60 +4886,6 @@ static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLRealRangeT, ml_array_format_t
 	}
 	}
 	return NULL;
-}
-
-static ml_array_format_t ml_array_of_type_guess(ml_value_t *Value, ml_array_format_t Format) {
-	typeof(ml_array_of_type_guess) *function = ml_typed_fn_get(ml_typeof(Value), ml_array_of_type_guess);
-	if (function) return function(Value, Format);
-	return ML_ARRAY_FORMAT_ANY;
-}
-
-static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLListT, ml_value_t *Value, ml_array_format_t Format) {
-	ML_LIST_FOREACH(Value, Iter) {
-		Format = ml_array_of_type_guess(Iter->Value, Format);
-	}
-	return Format;
-}
-
-static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLTupleT, ml_value_t *Value, ml_array_format_t Format) {
-	ml_tuple_t *Tuple = (ml_tuple_t *)Value;
-	for (int I = 0; I < Tuple->Size; ++I) {
-		Format = ml_array_of_type_guess(Tuple->Values[I], Format);
-	}
-	return Format;
-}
-
-static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLArrayT, ml_value_t *Value, ml_array_format_t Format) {
-	ml_array_t *Array = (ml_array_t *)Value;
-	if (Format <= Array->Format) Format = Array->Format;
-	return Format;
-}
-
-static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLIntegerT, ml_value_t *Value, ml_array_format_t Format) {
-	if (Format < ML_ARRAY_FORMAT_I64) Format = ML_ARRAY_FORMAT_I64;
-	return Format;
-}
-
-static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLRealT, ml_value_t *Value, ml_array_format_t Format) {
-	if (Format < ML_ARRAY_FORMAT_F64) Format = ML_ARRAY_FORMAT_F64;
-	return Format;
-}
-
-#ifdef ML_COMPLEX
-static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLComplexT, ml_value_t *Value, ml_array_format_t Format) {
-	if (Format < ML_ARRAY_FORMAT_C64) Format = ML_ARRAY_FORMAT_C64;
-	return Format;
-}
-#endif
-
-static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLIntegerRangeT, ml_value_t *Value, ml_array_format_t Format) {
-	if (Format < ML_ARRAY_FORMAT_I64) Format = ML_ARRAY_FORMAT_I64;
-	return Format;
-}
-
-static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLRealRangeT, ml_value_t *Value, ml_array_format_t Format) {
-	if (Format < ML_ARRAY_FORMAT_F64) Format = ML_ARRAY_FORMAT_F64;
-	return Format;
 }
 
 static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args) {

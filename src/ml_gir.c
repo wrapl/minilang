@@ -2272,14 +2272,15 @@ static void _ml_to_value(ml_value_t *Source, GValue *Dest) {
 }
 
 typedef struct {
-	GClosure Base;
+	object_instance_t *Instance;
 	GISignalInfo *SignalInfo;
 	ml_context_t *Context;
 	ml_value_t *Function;
-} gir_closure_t;
+} gir_closure_info_t;
 
-static void gir_closure_marshal(gir_closure_t *Closure, GValue *Dest, guint NumArgs, const GValue *Args, gpointer Hint, void *Data) {
-	GICallableInfo *SignalInfo = (GICallableInfo *)Closure->SignalInfo;
+static void gir_closure_marshal(GClosure *Closure, GValue *Dest, guint NumArgs, const GValue *Args, gpointer Hint, void *Data) {
+	gir_closure_info_t *Info = (gir_closure_info_t *)Closure->data;
+	GICallableInfo *SignalInfo = (GICallableInfo *)Info->SignalInfo;
 	ml_value_t *MLArgs[NumArgs];
 	MLArgs[0] = _value_to_ml(Args, NULL);
 	for (guint I = 1; I < NumArgs; ++I) {
@@ -2288,8 +2289,8 @@ static void gir_closure_marshal(gir_closure_t *Closure, GValue *Dest, guint NumA
 		g_arg_info_load_type(ArgInfo, TypeInfo);
 		MLArgs[I] = _value_to_ml(Args + I, g_type_info_get_interface(TypeInfo));
 	}
-	ml_result_state_t *State = ml_result_state(Closure->Context);
-	ml_call(State, Closure->Function, NumArgs, MLArgs);
+	ml_result_state_t *State = ml_result_state(Info->Context);
+	ml_call(State, Info->Function, NumArgs, MLArgs);
 	GMainContext *MainContext = g_main_context_default();
 	while (!State->Value) g_main_context_iteration(MainContext, TRUE);
 	ml_value_t *Source = State->Value;
@@ -2317,8 +2318,8 @@ static void gir_closure_marshal(gir_closure_t *Closure, GValue *Dest, guint NumA
 	}
 }
 
-static void gir_closure_finalize(object_instance_t *Instance, gir_closure_t *Closure) {
-	ptrset_remove(Instance->Handlers, Closure->Function);
+static void gir_closure_finalize(gir_closure_info_t *Info, GClosure *Closure) {
+	ptrset_remove(Info->Instance->Handlers, Info);
 }
 
 ML_METHODX("connect", GirObjectInstanceT, MLStringT, MLFunctionT) {
@@ -2330,14 +2331,16 @@ ML_METHODX("connect", GirObjectInstanceT, MLStringT, MLFunctionT) {
 	const char *Signal = ml_string_value(Args[1]);
 	GISignalInfo *SignalInfo = (GISignalInfo *)stringmap_search(Instance->Type->Signals, Signal);
 	if (!SignalInfo) ML_ERROR("NameError", "Signal %s not found", Signal);
-	ptrset_insert(Instance->Handlers, Args[2]);
-	gir_closure_t *Closure = (gir_closure_t *)g_closure_new_simple(sizeof(gir_closure_t), SignalInfo);
-	Closure->Context = Caller->Context;
-	Closure->Function = Args[2];
-	Closure->SignalInfo = SignalInfo;
-	g_closure_set_marshal((GClosure *)Closure, (GClosureMarshal)gir_closure_marshal);
-	g_closure_add_finalize_notifier((GClosure *)Closure, Instance, (void *)gir_closure_finalize);
-	g_signal_connect_closure(Instance->Handle, Signal, (GClosure *)Closure, Count > 3 && Args[3] != MLNil);
+	gir_closure_info_t *Info = new(gir_closure_info_t);
+	Info->Instance = Instance;
+	Info->Context = Caller->Context;
+	Info->Function = Args[2];
+	Info->SignalInfo = SignalInfo;
+	ptrset_insert(Instance->Handlers, Info);
+	GClosure *Closure = g_closure_new_simple(sizeof(GClosure), Info);
+	g_closure_set_marshal(Closure, gir_closure_marshal);
+	g_closure_add_finalize_notifier(Closure, Info, (void *)gir_closure_finalize);
+	g_signal_connect_closure(Instance->Handle, Signal, Closure, Count > 3 && Args[3] != MLNil);
 	ML_RETURN(Instance);
 }
 
