@@ -7142,6 +7142,7 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_method_by_name("--", MLArrayInfixSubFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("//", MLArrayInfixDivFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
 
+	ml_method_by_value(AbsMethod, labs, (ml_callback_t)array_math_integer_fn, MLArrayIntegerT, NULL);
 	ml_method_by_value(SquareMethod, isquare, (ml_callback_t)array_math_integer_fn, MLArrayIntegerT, NULL);
 
 	ml_method_by_value(AcosMethod, acos, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
@@ -7151,7 +7152,7 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_method_by_value(CosMethod, cos, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
 	ml_method_by_value(CoshMethod, cosh, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
 	ml_method_by_value(ExpMethod, exp, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(AbsMethod, abs, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(AbsMethod, fabs, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
 	ml_method_by_value(FloorMethod, floor, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
 	ml_method_by_value(LogMethod, log, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
 	ml_method_by_value(Log10Method, log10, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);

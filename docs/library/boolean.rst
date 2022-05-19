@@ -7,6 +7,12 @@
 boolean
 =======
 
+.. _fun-boolean-random:
+
+:mini:`fun boolean::random(P?: number): boolean`
+   Returns a random boolean that has probability :mini:`P` of being :mini:`true`. If omitted,  :mini:`P` defaults to :mini:`0.5`.
+
+
 .. _type-boolean:
 
 :mini:`type boolean`

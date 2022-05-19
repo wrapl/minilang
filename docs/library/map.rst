@@ -91,6 +91,18 @@ map
       A / B :> {"n" is 5}
 
 
+:mini:`meth (Map₁: map) /\ (Map₂: map): map`
+   Returns a new map containing the entries of :mini:`Map₁` which are also in :mini:`Map₂`. The values are chosen from :mini:`Map₂`.
+
+   .. code-block:: mini
+
+      let A := map(swap("banana"))
+      :> {"b" is 1, "a" is 6, "n" is 5}
+      let B := map(swap("bread"))
+      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
+      A /\ B :> {"b" is 1, "a" is 4}
+
+
 :mini:`meth (Map: map)[Key: any]: mapnode`
    Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then a new floating node is returned with value :mini:`nil`. This node will insert :mini:`Key` into :mini:`Map` if assigned.
 
@@ -113,6 +125,20 @@ map
       M["A", fun(Key) Key:code] :> 1
       M["D", fun(Key) Key:code] :> 68
       M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
+
+
+:mini:`meth (Map₁: map) \/ (Map₂: map): map`
+   Returns a new map combining the entries of :mini:`Map₁` and :mini:`Map₂`.
+   If the same key is in both :mini:`Map₁` and :mini:`Map₂` then the corresponding value from :mini:`Map₂` is chosen.
+
+   .. code-block:: mini
+
+      let A := map(swap("banana"))
+      :> {"b" is 1, "a" is 6, "n" is 5}
+      let B := map(swap("bread"))
+      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
+      A \/ B
+      :> {"b" is 1, "a" is 4, "n" is 5, "r" is 2, "e" is 3, "d" is 5}
 
 
 :mini:`meth (Map: map):count: integer`

@@ -56,7 +56,7 @@ object
 
 .. _type-enum-value:
 
-:mini:`type enum::value < int64`
+:mini:`type enum::value < integer`
    An instance of an enumeration type.
 
 
@@ -104,7 +104,7 @@ object
 
 .. _type-flags-value:
 
-:mini:`type flags::value < int64`
+:mini:`type flags::value < integer`
    An instance of a flags type.
 
 

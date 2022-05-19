@@ -72,12 +72,12 @@ hierarchy
       "any":e -> "object":w;
       "type":e -> "class":w;
       "any":e -> "property":w;
-      "int64":e -> "enum::value":w;
+      "integer":e -> "enum::value":w;
       "type":e -> "enum":w;
       "sequence":e -> "enum":w;
       "sequence":e -> "enum::range":w;
       "type":e -> "flags":w;
-      "int64":e -> "flags::value":w;
+      "integer":e -> "flags::value":w;
       "any":e -> "number":w;
       "number":e -> "complex":w;
       "complex":e -> "real":w;
