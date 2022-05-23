@@ -8,6 +8,7 @@ CFLAGS := old + [
 	"-std=gnu11", :>'--save-temps',
 	"-fstrict-aliasing",
 	"-foptimize-sibling-calls",
+	"-fcf-protection=none",
 	"-Wall", "-Wstrict-aliasing",
 	"-Wno-deprecated-declarations",
 	"-Wno-unused-function",
