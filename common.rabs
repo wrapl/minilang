@@ -11,6 +11,9 @@ PREBUILDS := []
 if defined("CFLAGS") then
 	CFLAGS:grow(defined("CFLAGS") / " ")
 end
+if defined("LDFLAGS") then
+	LDFLAGS:grow(defined("LDFLAGS") / " ")
+end
 
 pkgconfig := fun(Args) do
 	expr('pkg-config {Args}') => fun() shell('pkg-config', Args):trim
