@@ -9,6 +9,7 @@ CFLAGS := old + [
 	"-fstrict-aliasing",
 	"-foptimize-sibling-calls",
 	"-fcf-protection=none",
+	"-fno-stack-protector",
 	"-Wall", "-Wstrict-aliasing",
 	"-Wno-deprecated-declarations",
 	"-Wno-unused-function",
