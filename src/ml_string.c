@@ -791,7 +791,7 @@ ML_METHOD("append", MLStringBufferT, MLComplexT) {
 //<Value
 // Appends :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	complex double Complex = ml_complex_value_fast(Args[1]);
+	complex double Complex = ml_complex_value(Args[1]);
 	double Real = creal(Complex);
 	double Imag = cimag(Complex);
 	if (fabs(Real) <= DBL_EPSILON) {
@@ -831,7 +831,7 @@ ML_METHOD("append", MLStringBufferT, MLComplexT, MLStringT) {
 	if (regexec(RealFormat, Format, 0, NULL, 0)) {
 		return ml_error("FormatError", "Invalid format string");
 	}
-	complex double Complex = ml_complex_value_fast(Args[0]);
+	complex double Complex = ml_complex_value(Args[0]);
 	double Real = creal(Complex);
 	double Imag = cimag(Complex);
 	if (Imag < 0) {

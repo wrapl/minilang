@@ -961,6 +961,24 @@ ML_METHOD("/", MLMapT, MLMapT) {
 	return Map;
 }
 
+ML_METHOD("><", MLMapT, MLMapT) {
+//<Map/1
+//<Map/2
+//>map
+// Returns a new map containing the entries of :mini:`Map/1` and :mini:`Map/2` that are not in both.
+//$= let A := map(swap("banana"))
+//$= let B := map(swap("bread"))
+//$= A >< B
+	ml_value_t *Map = ml_map();
+	ML_MAP_FOREACH(Args[0], Node) {
+		if (!ml_map_search0(Args[1], Node->Key)) ml_map_insert(Map, Node->Key, Node->Value);
+	}
+	ML_MAP_FOREACH(Args[1], Node) {
+		if (!ml_map_search0(Args[0], Node->Key)) ml_map_insert(Map, Node->Key, Node->Value);
+	}
+	return Map;
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_map_t *Map;

@@ -433,7 +433,7 @@ ML_METHOD("=>?", MLSequenceT, MLFunctionT) {
 //$= let M := map(1 .. 10 -> fun(X) X ^ 2 % 10)
 //$= map(M =>? !=)
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
-	Chained->Type = MLChainedT;
+	Chained->Type = ml_generic_sequence(MLChainedT, Args[0]);
 	Chained->Entries[0] = Args[0];
 	Chained->Entries[1] = FilterDuoMethod;
 	Chained->Entries[2] = Args[1];
@@ -447,7 +447,7 @@ ML_METHOD("=>?", MLChainedT, MLFunctionT) {
 	int N = 0;
 	while (Base->Entries[N]) ++N;
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, N + 3, ml_value_t *);
-	Chained->Type = MLChainedT;
+	Chained->Type = ml_generic_sequence(MLChainedT, Args[0]);
 	for (int I = 0; I < N; ++I) Chained->Entries[I] = Base->Entries[I];
 	Chained->Entries[N] = FilterDuoMethod;
 	Chained->Entries[N + 1] = Args[1];
@@ -461,7 +461,7 @@ ML_METHOD("->!?", MLSequenceT, MLFunctionT) {
 // Returns a chained sequence equivalent to :mini:`(K/j, V/j), ...` where :mini:`K/i` and :mini:`V/i` are the keys and values produced by :mini:`Base` and :mini:`F ! V/j` returns non-:mini:`nil`.
 //$= map({"A" is [1, 2], "B" is [3, 3], "C" is [5, 6]} ->!? !=)
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, 4, ml_value_t *);
-	Chained->Type = MLChainedT;
+	Chained->Type = ml_generic_sequence(MLChainedT, Args[0]);
 	Chained->Entries[0] = Args[0];
 	Chained->Entries[1] = FilterSoloApplyMethod;
 	Chained->Entries[2] = Args[1];
@@ -475,7 +475,7 @@ ML_METHOD("->!?", MLChainedT, MLFunctionT) {
 	int N = 0;
 	while (Base->Entries[N]) ++N;
 	ml_chained_function_t *Chained = xnew(ml_chained_function_t, N + 3, ml_value_t *);
-	Chained->Type = MLChainedT;
+	Chained->Type = ml_generic_sequence(MLChainedT, Args[0]);
 	for (int I = 0; I < N; ++I) Chained->Entries[I] = Base->Entries[I];
 	Chained->Entries[N] = FilterSoloApplyMethod;
 	Chained->Entries[N + 1] = Args[1];

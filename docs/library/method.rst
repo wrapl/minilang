@@ -39,6 +39,10 @@ method
    Returns a new anonymous method.
 
 
+:mini:`meth (Arg₁: method)[Arg₂: type, ...]`
+   *TBD*
+
+
 :mini:`meth (Arg₁: method):list`
    *TBD*
 

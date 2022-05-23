@@ -80,7 +80,7 @@ ML_METHOD(MLRealT, MLComplexT) {
 	return ml_real(creal(ml_complex_value(Args[0])));
 }
 
-extern complex double ml_complex_value_fast(const ml_value_t *Value);
+extern complex double ml_complex_value(const ml_value_t *Value);
 
 complex double ml_complex_value(const ml_value_t *Value) {
 #ifdef ML_NANBOXING
@@ -118,7 +118,7 @@ ML_METHOD(#NAME, MLComplexT) { \
 //>complex
 // Returns :mini:`NAMEA`.
 */\
-	complex double ComplexA = ml_complex_value_fast(Args[0]); \
+	complex double ComplexA = ml_complex_value(Args[0]); \
 	complex double ComplexB = SYMBOL(ComplexA); \
 	if (fabs(cimag(ComplexB)) <= DBL_EPSILON) { \
 		return ml_real(creal(ComplexB)); \
@@ -134,8 +134,8 @@ ML_METHOD(#NAME, MLComplexT, MLComplexT) { \
 //>real
 // complex :mini:`A NAME B`.
 */\
-	complex double ComplexA = ml_complex_value_fast(Args[0]); \
-	complex double ComplexB = ml_complex_value_fast(Args[1]); \
+	complex double ComplexA = ml_complex_value(Args[0]); \
+	complex double ComplexB = ml_complex_value(Args[1]); \
 	complex double ComplexC = ComplexA SYMBOL ComplexB; \
 	if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
 		return ml_real(creal(ComplexC)); \
@@ -151,7 +151,7 @@ ML_METHOD(#NAME, MLComplexT, MLIntegerT) { \
 //>complex
 // Returns :mini:`A NAME B`.
 */\
-	complex double ComplexA = ml_complex_value_fast(Args[0]); \
+	complex double ComplexA = ml_complex_value(Args[0]); \
 	int64_t IntegerB = ml_integer_value_fast(Args[1]); \
 	complex double ComplexC = ComplexA SYMBOL IntegerB; \
 	if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
@@ -169,7 +169,7 @@ ML_METHOD(#NAME, MLIntegerT, MLComplexT) { \
 // Returns :mini:`A NAME B`.
 */\
 	int64_t IntegerA = ml_integer_value_fast(Args[0]); \
-	complex double ComplexB = ml_complex_value_fast(Args[1]); \
+	complex double ComplexB = ml_complex_value(Args[1]); \
 	complex double ComplexC = IntegerA SYMBOL ComplexB; \
 	if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
 		return ml_real(creal(ComplexC)); \
@@ -185,7 +185,7 @@ ML_METHOD(#NAME, MLComplexT, MLDoubleT) { \
 //>complex
 // Returns :mini:`A NAME B`.
 */\
-	complex double ComplexA = ml_complex_value_fast(Args[0]); \
+	complex double ComplexA = ml_complex_value(Args[0]); \
 	double RealB = ml_double_value_fast(Args[1]); \
 	complex double ComplexC = ComplexA SYMBOL RealB; \
 	if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
@@ -203,7 +203,7 @@ ML_METHOD(#NAME, MLDoubleT, MLComplexT) { \
 // Returns :mini:`A NAME B`.
 */\
 	double RealA = ml_double_value_fast(Args[0]); \
-	complex double ComplexB = ml_complex_value_fast(Args[1]); \
+	complex double ComplexB = ml_complex_value(Args[1]); \
 	complex double ComplexC = RealA SYMBOL ComplexB; \
 	if (fabs(cimag(ComplexC)) <= DBL_EPSILON) { \
 		return ml_real(creal(ComplexC)); \
@@ -216,14 +216,14 @@ ML_METHOD("r", MLComplexT) {
 //<Z
 //>real
 // Returns the real component of :mini:`Z`.
-	return ml_real(creal(ml_complex_value_fast(Args[0])));
+	return ml_real(creal(ml_complex_value(Args[0])));
 }
 
 ML_METHOD("i", MLComplexT) {
 //<Z
 //>real
 // Returns the imaginary component of :mini:`Z`.
-	return ml_real(cimag(ml_complex_value_fast(Args[0])));
+	return ml_real(cimag(ml_complex_value(Args[0])));
 }
 
 #endif
