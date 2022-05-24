@@ -566,11 +566,6 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_WITH] = &&DO_WITH,
 		[MLI_WITHX] = &&DO_WITHX,
 	};
-	if (!Result) {
-		ml_value_t *Error = ml_error("RuntimeError", "NULL value passed to continuation");
-		ml_error_trace_add(Error, (ml_source_t){Frame->Source, Frame->Inst->Line});
-		ML_CONTINUE(Frame->Base.Caller, Error);
-	}
 #ifdef ML_SCHEDULER
 	uint64_t Counter = Frame->Schedule->Counter;
 #endif

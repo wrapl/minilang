@@ -5,6 +5,11 @@ end
 
 CFLAGS := old + [
 	"-march=native",
+	"-mtune=native",
+	"-mno-sse2",
+	:>"-mno-align-stringops",
+	:>"-minline-all-stringops",
+	"-momit-leaf-frame-pointer",
 	"-std=gnu11", :>'--save-temps',
 	"-fstrict-aliasing",
 	"-foptimize-sibling-calls",
@@ -13,6 +18,7 @@ CFLAGS := old + [
 	"-Wall", "-Wstrict-aliasing",
 	"-Wno-deprecated-declarations",
 	"-Wno-unused-function",
+	"-Wno-ignored-optimization-argument",
 	"-Werror=cast-function-type",
 	"-Werror=format-security",
 	:>"-Wsuggest-attribute=pure",
@@ -35,10 +41,6 @@ if defined("LTO") then
 	LDFLAGS:put("-flto")
 end
 
-if PLATFORM = "Linux" then
-	CFLAGS:put("-fno-tree-loop-distribute-patterns")
-end
-
 if DEBUG then
 	CFLAGS := old + ["-O1", "-g", "-DGC_DEBUG", "-DDEBUG"]
 	LDFLAGS := old + ["-g"]
@@ -48,6 +50,10 @@ elseif defined("GC_DEBUG") then
 else
 	CFLAGS := old + ["-O3", "-g", "-fexpensive-optimizations"]
 	LDFLAGS := old + ["-g"]
+end
+
+if PLATFORM = "Linux" then
+	CFLAGS:put("-fno-tree-loop-distribute-patterns")
 end
 
 PREBUILDS := old + [file("ml_config.h")]
