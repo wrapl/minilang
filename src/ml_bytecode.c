@@ -1766,6 +1766,15 @@ ML_METHOD("parameters", MLClosureT) {
 	return Parameters;
 }
 
+ML_METHOD("sha256", MLClosureT) {
+//<Closure
+//>address
+// Returns the SHA256 hash of :mini:`Closure`.
+	char *Hash = snew(SHA256_BLOCK_SIZE);
+	ml_closure_sha256(Args[0], (unsigned char *)Hash);
+	return ml_address(Hash, SHA256_BLOCK_SIZE);
+}
+
 static void ml_closure_value_list(ml_value_t *Value, ml_stringbuffer_t *Buffer) {
 	if (ml_is(Value, MLStringT)) {
 		ml_stringbuffer_write(Buffer, " \"", 2);

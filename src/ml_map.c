@@ -806,6 +806,36 @@ ML_METHODX("missing", MLMapT, MLAnyT, MLFunctionT) {
 	}
 }
 
+typedef struct {
+	ml_type_t *Type;
+	ml_map_node_t *Node;
+} ml_map_from_t;
+
+ML_TYPE(MLMapFromT, (MLSequenceT), "map::from");
+//!internal
+
+static void ML_TYPED_FN(ml_iterate, MLMapFromT, ml_state_t *Caller, ml_map_from_t *From) {
+	ML_RETURN(From->Node);
+}
+
+ML_METHOD("from", MLMapT, MLAnyT) {
+//<Map
+//<Key
+//>sequence|nil
+// Returns the subset of :mini:`Map` after :mini:`Key` as a sequence.
+//$- let M := {"A" is 1, "B" is 2, "C" is 3, "D" is 4, "E" is 5}
+//$= map(M:from("C"))
+//$= map(M:from("F"))
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_value_t *Key = Args[1];
+	ml_map_node_t *Node = ml_map_find_node(Map, Key);
+	if (!Node) return MLNil;
+	ml_map_from_t *From = new(ml_map_from_t);
+	From->Type = MLMapFromT;
+	From->Node = Node;
+	return (ml_value_t *)From;
+}
+
 ML_METHOD("append", MLStringBufferT, MLMapT) {
 //<Buffer
 //<Map
