@@ -536,6 +536,16 @@ sequence
       list(1 .. 10 limit 5) :> [1, 2, 3, 4, 5]
 
 
+:mini:`meth (Sequence: sequence):random(...): any | nil`
+   Returns a random value produced by :mini:`Sequence`.
+
+   .. code-block:: mini
+
+      random("cake")
+      :> error("CompilerError", "identifier random not declared")
+      random([]) :> 
+
+
 :mini:`meth (Sequence: sequence):skip(Skip: integer): sequence`
    Returns an sequence that skips the first :mini:`Skip` values from :mini:`Sequence` and then produces the rest.
 

@@ -9,6 +9,22 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "sequence"
 
+#define ML_SEQUENCE_FUNCTION(NAME, FN) \
+ML_FUNCTIONX(NAME) { \
+/*@FN
+//<Value:any
+//>any|nil
+// Used for iterating over a sequence.
+*/ \
+	ML_CHECKX_ARG_COUNT(1); \
+	return ml_ ## FN(Caller, Args[0]); \
+}
+
+ML_SEQUENCE_FUNCTION(Iterate, iterate);
+ML_SEQUENCE_FUNCTION(IterNext, iter_next);
+ML_SEQUENCE_FUNCTION(IterValue, iter_value);
+ML_SEQUENCE_FUNCTION(IterKey, iter_key);
+
 /****************************** Chained ******************************/
 
 static ML_METHOD_DECL(SoloMethod, "->");
@@ -900,22 +916,6 @@ static void count_iterate(ml_count_state_t *State, ml_value_t *Value) {
 	return ml_iter_next((ml_state_t *)State, State->Iter = Value);
 }
 
-#define ML_SEQUENCE_FUNCTION(NAME, FN) \
-ML_FUNCTIONX(NAME) { \
-/*@FN
-//<Value:any
-//>any|nil
-// Used for iterating over a sequence.
-*/ \
-	ML_CHECKX_ARG_COUNT(1); \
-	return ml_ ## FN(Caller, Args[0]); \
-}
-
-ML_SEQUENCE_FUNCTION(Iterate, iterate);
-ML_SEQUENCE_FUNCTION(IterNext, iter_next);
-ML_SEQUENCE_FUNCTION(IterValue, iter_value);
-ML_SEQUENCE_FUNCTION(IterKey, iter_key);
-
 /*
 ML_FUNCTION(Count) {
 //@count
@@ -980,6 +980,54 @@ ML_FUNCTIONX(Count2) {
 	State->Base.Context = Caller->Context;
 	State->Base.run = (void *)count2_iterate;
 	State->Counts = ml_map();
+	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Value;
+	ml_value_t *Iter;
+	int Index;
+} ml_random_state_t;
+
+static void random_iterate(ml_random_state_t *State, ml_value_t *Value);
+
+static void random_value(ml_random_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Value = Value;
+	State->Base.run = (void *)random_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void random_iterate(ml_random_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, State->Value);
+	int Index = ++State->Index;
+	int Divisor = RAND_MAX / Index;
+	int Random;
+	do Random = random() / Divisor; while (Random >= Index);
+	if (!Random) {
+		State->Base.run = (void *)random_value;
+		return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+	} else {
+		return ml_iter_next((ml_state_t *)State, Value);
+	}
+}
+
+ML_METHODVX("random", MLSequenceT) {
+//<Sequence
+//>any | nil
+// Returns a random value produced by :mini:`Sequence`.
+//$= random("cake")
+//$= random([])
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLSequenceT);
+	ml_random_state_t *State = new(ml_random_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (void *)random_iterate;
+	State->Index = 0;
+	State->Value = MLNil;
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
@@ -2769,6 +2817,7 @@ void ml_sequence_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "iter_value", IterValue);
 		stringmap_insert(Globals, "count", ml_method("count"));
 		stringmap_insert(Globals, "count2", Count2);
+		stringmap_insert(Globals, "random", ml_method("random"));
 		stringmap_insert(Globals, "reduce", Reduce);
 		stringmap_insert(Globals, "min", Min);
 		stringmap_insert(Globals, "max", Max);

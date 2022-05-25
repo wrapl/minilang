@@ -351,6 +351,17 @@ map
       M3 :> {3 is "k", 1 is "c", 4 is "e"}
 
 
+:mini:`meth (List: map):random: any`
+   Returns a random (assignable) node from :mini:`Map`.
+
+   .. code-block:: mini
+
+      let M := map("cake")
+      :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
+      M:random :> "c"
+      M:random :> "e"
+
+
 :mini:`meth (Map: map):reverse: map`
    Reverses the iteration order of :mini:`Map` in-place and returns it.
 

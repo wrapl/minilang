@@ -1201,6 +1201,24 @@ ML_METHOD("reverse", MLMapT) {
 	return (ml_value_t *)Map;
 }
 
+ML_METHOD("random", MLMapT) {
+//<List
+//>any
+// Returns a random (assignable) node from :mini:`Map`.
+//$= let M := map("cake")
+//$= M:random
+//$= M:random
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	int Limit = Map->Size;
+	if (Limit <= 0) return MLNil;
+	int Divisor = RAND_MAX / Limit;
+	int Random;
+	do Random = random() / Divisor; while (Random >= Limit);
+	ml_map_node_t *Node = Map->Head;
+	while (--Random >= 0) Node = Node->Next;
+	return (ml_value_t *)Node;
+}
+
 void ml_map_init() {
 #include "ml_map_init.c"
 #ifdef ML_GENERICS
