@@ -33,6 +33,10 @@ This is a mostly internal module,  subject to change.
    Returns the list of parameter names of :mini:`Closure`.
 
 
+:mini:`meth (Closure: closure):sha256: address`
+   Returns the SHA256 hash of :mini:`Closure`.
+
+
 :mini:`meth (Buffer: string::buffer):append(Closure: closure)`
    Appends a representation of :mini:`Closure` to :mini:`Buffer`.
 
@@ -60,11 +64,11 @@ This is a mostly internal module,  subject to change.
    Return a new untyped variable with current value :mini:`Value`.
 
 
-:mini:`meth variable(): variable`
-   Return a new untyped variable with current value :mini:`nil`.
-
-
 :mini:`meth variable(Value: any, Type: type): variable`
    Return a new typed variable with type :mini:`Type` and current value :mini:`Value`.
+
+
+:mini:`meth variable(): variable`
+   Return a new untyped variable with current value :mini:`nil`.
 
 

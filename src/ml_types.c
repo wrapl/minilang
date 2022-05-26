@@ -1542,7 +1542,7 @@ ML_FUNCTION(MLTuple) {
 	return Tuple;
 }
 
-ML_TYPE(MLTupleT, (MLSequenceT), "tuple",
+ML_TYPE(MLTupleT, (MLFunctionT, MLSequenceT), "tuple",
 //!tuple
 // An immutable tuple of values.
 	.hash = (void *)ml_tuple_hash,
@@ -1894,6 +1894,21 @@ ml_comp_method_boolean_boolean(">", >);
 ml_comp_method_boolean_boolean("<=", <=);
 ml_comp_method_boolean_boolean(">=", >=);
 
+ML_FUNCTION(RandomBoolean) {
+//@boolean::random
+//<P?:number
+//>boolean
+// Returns a random boolean that has probability :mini:`P` of being :mini:`true`. If omitted, :mini:`P` defaults to :mini:`0.5`.
+	int Threshold;
+	if (Count == 1) {
+		ML_CHECK_ARG_TYPE(0, MLRealT);
+		Threshold = RAND_MAX * ml_real_value(Args[0]);
+	} else {
+		Threshold = RAND_MAX / 2;
+	}
+	return (ml_value_t *)(random() > Threshold ? MLFalse : MLTrue);
+}
+
 // Modules //
 //!module
 
@@ -2115,6 +2130,7 @@ void ml_init(stringmap_t *Globals) {
 #ifdef ML_COMPLEX
 	stringmap_insert(MLCompilerT->Exports, "i", ml_complex(1i));
 #endif
+	stringmap_insert(MLBooleanT->Exports, "random", RandomBoolean);
 	ml_method_by_name("=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
 	ml_method_by_name("!=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
 	ml_method_by_name("<", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);

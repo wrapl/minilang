@@ -495,6 +495,19 @@ When creating a substring,  the first index is inclusive and second index is exc
       :> (22, slept)
 
 
+:mini:`meth (Haystack: string):find2(Pattern: regex, Start: tuple::integer): tuple[integer, string] | nil`
+   Returns :mini:`(Index,  Match)` where :mini:`Index` is the first occurence of :mini:`Pattern` in :mini:`Haystack` at or after :mini:`Start`,  or :mini:`nil` if no occurence is found.
+
+   .. code-block:: mini
+
+      "The cat snored as he slept":find2(r"s[a-z]+", 1)
+      :> (9, snored)
+      "The cat snored as he slept":find2(r"s[a-z]+", 10)
+      :> (22, slept)
+      "The cat snored as he slept":find2(r"s[a-z]+", -6)
+      :> (22, slept)
+
+
 :mini:`meth (Haystack: string):find2(Needle: string): tuple[integer, string] | nil`
    Returns :mini:`(Index,  Needle)` where :mini:`Index` is the first occurence of :mini:`Needle` in :mini:`Haystack`,  or :mini:`nil` if no occurence is found.
 
@@ -505,6 +518,16 @@ When creating a substring,  the first index is inclusive and second index is exc
 
 
 :mini:`meth (Haystack: string):find2(Needle: string, Start: integer): tuple[integer, string] | nil`
+   Returns :mini:`(Index,  Needle)` where :mini:`Index` is the first occurence of :mini:`Needle` in :mini:`Haystack` at or after :mini:`Start`,  or :mini:`nil` if no occurence is found.
+
+   .. code-block:: mini
+
+      "The cat snored as he slept":find2("s", 1) :> (9, s)
+      "The cat snored as he slept":find2("s", 10) :> (17, s)
+      "The cat snored as he slept":find2("s", -6) :> (22, s)
+
+
+:mini:`meth (Haystack: string):find2(Needle: string, Start: tuple::integer): tuple[integer, string] | nil`
    Returns :mini:`(Index,  Needle)` where :mini:`Index` is the first occurence of :mini:`Needle` in :mini:`Haystack` at or after :mini:`Start`,  or :mini:`nil` if no occurence is found.
 
    .. code-block:: mini

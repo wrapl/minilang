@@ -236,9 +236,13 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_LIBRARY
 	ml_library_init(Globals);
 	ml_module_t *Sys = ml_library_internal("sys");
+	stringmap_insert(Globals, "sys", Sys);
 	ml_module_t *Std = ml_library_internal("std");
+	stringmap_insert(Globals, "std", Std);
 	ml_module_t *Fmt = ml_library_internal("fmt");
+	stringmap_insert(Globals, "fmt", Fmt);
 	ml_module_t *IO = ml_library_internal("io");
+	stringmap_insert(Globals, "io", IO);
 #define SYS_EXPORTS Sys->Exports
 #define STD_EXPORTS Std->Exports
 #define FMT_EXPORTS Fmt->Exports

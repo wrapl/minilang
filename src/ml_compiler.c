@@ -1588,122 +1588,6 @@ static void ml_old_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int 
 	MLC_RETURN(NULL);
 }
 
-static void ml_tuple_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_parent_expr_frame_t *Frame) {
-	mlc_expr_t *Child = Frame->Child;
-	if ((Child = Child->Next)) {
-		Frame->Child = Child;
-		++Frame->Count;
-		return mlc_compile(Function, Child, MLCF_PUSH);
-	}
-	mlc_parent_expr_t *Expr = Frame->Expr;
-	ml_inst_t *TupleInst = MLC_EMIT(Expr->StartLine, MLI_TUPLE_NEW, 1);
-	TupleInst[1].Count = Frame->Count;
-	Function->Top -= Frame->Count;
-	if (Frame->Flags & MLCF_PUSH) {
-		MLC_EMIT(Expr->EndLine, MLI_PUSH, 0);
-		mlc_inc_top(Function);
-	}
-	MLC_POP();
-	MLC_RETURN(NULL);
-}
-
-static void ml_tuple_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
-	mlc_expr_t *Child = Expr->Child;
-	if (Child) {
-		MLC_FRAME(mlc_parent_expr_frame_t, ml_tuple_expr_compile2);
-		Frame->Expr = Expr;
-		Frame->Child = Child;
-		Frame->Flags = Flags;
-		Frame->Count = 1;
-		return mlc_compile(Function, Child, MLCF_PUSH);
-	}
-	ml_inst_t *TupleInst = MLC_EMIT(Expr->StartLine, MLI_TUPLE_NEW, 1);
-	TupleInst[1].Count = 0;
-	if (Flags & MLCF_PUSH) {
-		MLC_EMIT(Expr->EndLine, MLI_PUSH, 0);
-		mlc_inc_top(Function);
-	}
-	MLC_RETURN(NULL);
-}
-
-static void ml_list_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_parent_expr_frame_t *Frame) {
-	mlc_expr_t *Child = Frame->Child;
-	MLC_EMIT(Child->EndLine, MLI_LIST_APPEND, 0);
-	if ((Child = Child->Next)) {
-		Frame->Child = Child;
-		return mlc_compile(Function, Child, 0);
-	}
-	mlc_parent_expr_t *Expr = Frame->Expr;
-	if (!(Frame->Flags & MLCF_PUSH)) {
-		MLC_EMIT(Expr->EndLine, MLI_POP, 0);
-		--Function->Top;
-	}
-	MLC_POP();
-	MLC_RETURN(NULL);
-}
-
-static void ml_list_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
-	MLC_EMIT(Expr->StartLine, MLI_LIST_NEW, 0);
-	mlc_inc_top(Function);
-	mlc_expr_t *Child = Expr->Child;
-	if (Child) {
-		MLC_FRAME(mlc_parent_expr_frame_t, ml_list_expr_compile2);
-		Frame->Expr = Expr;
-		Frame->Child = Child;
-		Frame->Flags = Flags;
-		return mlc_compile(Function, Child, 0);
-	}
-	if (!(Flags & MLCF_PUSH)) {
-		MLC_EMIT(Expr->EndLine, MLI_POP, 0);
-		--Function->Top;
-	}
-	MLC_RETURN(NULL);
-}
-
-static void ml_map_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_parent_expr_frame_t *Frame);
-
-static void ml_map_expr_compile3(mlc_function_t *Function, ml_value_t *Value, mlc_parent_expr_frame_t *Frame) {
-	mlc_expr_t *Child = Frame->Child;
-	MLC_EMIT(Child->EndLine, MLI_MAP_INSERT, 0);
-	--Function->Top;
-	if ((Child = Child->Next)) {
-		Function->Frame->run = (mlc_frame_fn)ml_map_expr_compile2;
-		Frame->Child = Child;
-		return mlc_compile(Function, Child, MLCF_PUSH);
-	}
-	mlc_parent_expr_t *Expr = Frame->Expr;
-	if (!(Frame->Flags & MLCF_PUSH)) {
-		MLC_EMIT(Expr->EndLine, MLI_POP, 0);
-		--Function->Top;
-	}
-	MLC_POP();
-	MLC_RETURN(NULL);
-}
-
-static void ml_map_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_parent_expr_frame_t *Frame) {
-	Function->Frame->run = (mlc_frame_fn)ml_map_expr_compile3;
-	mlc_expr_t *Child = Frame->Child = Frame->Child->Next;
-	mlc_compile(Function, Child, 0);
-}
-
-static void ml_map_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
-	MLC_EMIT(Expr->StartLine, MLI_MAP_NEW, 0);
-	mlc_inc_top(Function);
-	mlc_expr_t *Child = Expr->Child;
-	if (Child) {
-		MLC_FRAME(mlc_parent_expr_frame_t, ml_map_expr_compile2);
-		Frame->Expr = Expr;
-		Frame->Child = Child;
-		Frame->Flags = Flags;
-		return mlc_compile(Function, Child, MLCF_PUSH);
-	}
-	if (!(Flags & MLCF_PUSH)) {
-		MLC_EMIT(Expr->EndLine, MLI_POP, 0);
-		--Function->Top;
-	}
-	MLC_RETURN(NULL);
-}
-
 ML_TYPE(MLExprT, (), "expr");
 //!macro
 // An expression value used by the compiler to implement macros.
@@ -2197,6 +2081,176 @@ static void ml_const_call_expr_compile(mlc_function_t *Function, mlc_parent_valu
 		}
 	}
 	return ml_call_expr_compile4(Function, Expr->Value, Frame);
+}
+
+static void ml_tuple_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_parent_expr_frame_t *Frame) {
+	mlc_expr_t *Child = Frame->Child;
+	if ((Child = Child->Next)) {
+		Frame->Child = Child;
+		++Frame->Count;
+		return mlc_compile(Function, Child, MLCF_PUSH);
+	}
+	mlc_parent_expr_t *Expr = Frame->Expr;
+	ml_inst_t *TupleInst = MLC_EMIT(Expr->StartLine, MLI_TUPLE_NEW, 1);
+	TupleInst[1].Count = Frame->Count;
+	Function->Top -= Frame->Count;
+	if (Frame->Flags & MLCF_PUSH) {
+		MLC_EMIT(Expr->EndLine, MLI_PUSH, 0);
+		mlc_inc_top(Function);
+	}
+	MLC_POP();
+	MLC_RETURN(NULL);
+}
+
+static void ml_tuple_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
+	for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next) {
+		if (Child->compile == (void *)ml_blank_expr_compile) {
+			MLC_FRAME(ml_call_expr_frame_t, ml_call_expr_compile4);
+			Frame->Expr = (mlc_expr_t *)Expr;
+			Frame->Child = Expr->Child;
+			int Count = 0;
+			for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next) ++Count;
+			Frame->Count = Count;
+			Frame->Flags = Flags;
+			ml_inst_t *LoadInst = MLC_EMIT(Expr->StartLine, MLI_LOAD, 1);
+			LoadInst[1].Value = (ml_value_t *)MLTupleT;
+			return ml_call_expr_compile2(Function, (ml_value_t *)MLTupleT, Frame);
+		}
+	}
+	mlc_expr_t *Child = Expr->Child;
+	if (Child) {
+		MLC_FRAME(mlc_parent_expr_frame_t, ml_tuple_expr_compile2);
+		Frame->Expr = Expr;
+		Frame->Child = Child;
+		Frame->Flags = Flags;
+		Frame->Count = 1;
+		return mlc_compile(Function, Child, MLCF_PUSH);
+	}
+	ml_inst_t *TupleInst = MLC_EMIT(Expr->StartLine, MLI_TUPLE_NEW, 1);
+	TupleInst[1].Count = 0;
+	if (Flags & MLCF_PUSH) {
+		MLC_EMIT(Expr->EndLine, MLI_PUSH, 0);
+		mlc_inc_top(Function);
+	}
+	MLC_RETURN(NULL);
+}
+
+static void ml_list_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_parent_expr_frame_t *Frame) {
+	mlc_expr_t *Child = Frame->Child;
+	MLC_EMIT(Child->EndLine, MLI_LIST_APPEND, 0);
+	if ((Child = Child->Next)) {
+		Frame->Child = Child;
+		return mlc_compile(Function, Child, 0);
+	}
+	mlc_parent_expr_t *Expr = Frame->Expr;
+	if (!(Frame->Flags & MLCF_PUSH)) {
+		MLC_EMIT(Expr->EndLine, MLI_POP, 0);
+		--Function->Top;
+	}
+	MLC_POP();
+	MLC_RETURN(NULL);
+}
+
+ML_FUNCTION(MLListOfArgs) {
+	ml_value_t *List = ml_list();
+	for (int I = 0; I < Count; ++I) ml_list_put(List, Args[I]);
+	return List;
+}
+
+static void ml_list_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
+	for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next) {
+		if (Child->compile == (void *)ml_blank_expr_compile) {
+			MLC_FRAME(ml_call_expr_frame_t, ml_call_expr_compile4);
+			Frame->Expr = (mlc_expr_t *)Expr;
+			Frame->Child = Expr->Child;
+			int Count = 0;
+			for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next) ++Count;
+			Frame->Count = Count;
+			Frame->Flags = Flags;
+			ml_inst_t *LoadInst = MLC_EMIT(Expr->StartLine, MLI_LOAD, 1);
+			LoadInst[1].Value = (ml_value_t *)MLListOfArgs;
+			return ml_call_expr_compile2(Function, (ml_value_t *)MLListOfArgs, Frame);
+		}
+	}
+	MLC_EMIT(Expr->StartLine, MLI_LIST_NEW, 0);
+	mlc_inc_top(Function);
+	mlc_expr_t *Child = Expr->Child;
+	if (Child) {
+		MLC_FRAME(mlc_parent_expr_frame_t, ml_list_expr_compile2);
+		Frame->Expr = Expr;
+		Frame->Child = Child;
+		Frame->Flags = Flags;
+		return mlc_compile(Function, Child, 0);
+	}
+	if (!(Flags & MLCF_PUSH)) {
+		MLC_EMIT(Expr->EndLine, MLI_POP, 0);
+		--Function->Top;
+	}
+	MLC_RETURN(NULL);
+}
+
+static void ml_map_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_parent_expr_frame_t *Frame);
+
+static void ml_map_expr_compile3(mlc_function_t *Function, ml_value_t *Value, mlc_parent_expr_frame_t *Frame) {
+	mlc_expr_t *Child = Frame->Child;
+	MLC_EMIT(Child->EndLine, MLI_MAP_INSERT, 0);
+	--Function->Top;
+	if ((Child = Child->Next)) {
+		Function->Frame->run = (mlc_frame_fn)ml_map_expr_compile2;
+		Frame->Child = Child;
+		return mlc_compile(Function, Child, MLCF_PUSH);
+	}
+	mlc_parent_expr_t *Expr = Frame->Expr;
+	if (!(Frame->Flags & MLCF_PUSH)) {
+		MLC_EMIT(Expr->EndLine, MLI_POP, 0);
+		--Function->Top;
+	}
+	MLC_POP();
+	MLC_RETURN(NULL);
+}
+
+static void ml_map_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_parent_expr_frame_t *Frame) {
+	Function->Frame->run = (mlc_frame_fn)ml_map_expr_compile3;
+	mlc_expr_t *Child = Frame->Child = Frame->Child->Next;
+	mlc_compile(Function, Child, 0);
+}
+
+ML_FUNCTION(MLMapOfArgs) {
+	ml_value_t *Map = ml_map();
+	for (int I = 1; I < Count; I += 2) ml_map_insert(Map, Args[I - 1], Args[I]);
+	return Map;
+}
+
+static void ml_map_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
+	for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next) {
+		if (Child->compile == (void *)ml_blank_expr_compile) {
+			MLC_FRAME(ml_call_expr_frame_t, ml_call_expr_compile4);
+			Frame->Expr = (mlc_expr_t *)Expr;
+			Frame->Child = Expr->Child;
+			int Count = 0;
+			for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next) ++Count;
+			Frame->Count = Count;
+			Frame->Flags = Flags;
+			ml_inst_t *LoadInst = MLC_EMIT(Expr->StartLine, MLI_LOAD, 1);
+			LoadInst[1].Value = (ml_value_t *)MLMapOfArgs;
+			return ml_call_expr_compile2(Function, (ml_value_t *)MLMapOfArgs, Frame);
+		}
+	}
+	MLC_EMIT(Expr->StartLine, MLI_MAP_NEW, 0);
+	mlc_inc_top(Function);
+	mlc_expr_t *Child = Expr->Child;
+	if (Child) {
+		MLC_FRAME(mlc_parent_expr_frame_t, ml_map_expr_compile2);
+		Frame->Expr = Expr;
+		Frame->Child = Child;
+		Frame->Flags = Flags;
+		return mlc_compile(Function, Child, MLCF_PUSH);
+	}
+	if (!(Flags & MLCF_PUSH)) {
+		MLC_EMIT(Expr->EndLine, MLI_POP, 0);
+		--Function->Top;
+	}
+	MLC_RETURN(NULL);
 }
 
 typedef struct {

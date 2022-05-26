@@ -806,6 +806,36 @@ ML_METHODX("missing", MLMapT, MLAnyT, MLFunctionT) {
 	}
 }
 
+typedef struct {
+	ml_type_t *Type;
+	ml_map_node_t *Node;
+} ml_map_from_t;
+
+ML_TYPE(MLMapFromT, (MLSequenceT), "map::from");
+//!internal
+
+static void ML_TYPED_FN(ml_iterate, MLMapFromT, ml_state_t *Caller, ml_map_from_t *From) {
+	ML_RETURN(From->Node);
+}
+
+ML_METHOD("from", MLMapT, MLAnyT) {
+//<Map
+//<Key
+//>sequence|nil
+// Returns the subset of :mini:`Map` after :mini:`Key` as a sequence.
+//$- let M := {"A" is 1, "B" is 2, "C" is 3, "D" is 4, "E" is 5}
+//$= map(M:from("C"))
+//$= map(M:from("F"))
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_value_t *Key = Args[1];
+	ml_map_node_t *Node = ml_map_find_node(Map, Key);
+	if (!Node) return MLNil;
+	ml_map_from_t *From = new(ml_map_from_t);
+	From->Type = MLMapFromT;
+	From->Node = Node;
+	return (ml_value_t *)From;
+}
+
 ML_METHOD("append", MLStringBufferT, MLMapT) {
 //<Buffer
 //<Map
@@ -901,6 +931,21 @@ ML_METHOD("+", MLMapT, MLMapT) {
 	return Map;
 }
 
+ML_METHOD("\\/", MLMapT, MLMapT) {
+//<Map/1
+//<Map/2
+//>map
+// Returns a new map combining the entries of :mini:`Map/1` and :mini:`Map/2`.
+// If the same key is in both :mini:`Map/1` and :mini:`Map/2` then the corresponding value from :mini:`Map/2` is chosen.
+//$= let A := map(swap("banana"))
+//$= let B := map(swap("bread"))
+//$= A \/ B
+	ml_value_t *Map = ml_map();
+	ML_MAP_FOREACH(Args[0], Node) ml_map_insert(Map, Node->Key, Node->Value);
+	ML_MAP_FOREACH(Args[1], Node) ml_map_insert(Map, Node->Key, Node->Value);
+	return Map;
+}
+
 ML_METHOD("*", MLMapT, MLMapT) {
 //<Map/1
 //<Map/2
@@ -909,6 +954,21 @@ ML_METHOD("*", MLMapT, MLMapT) {
 //$= let A := map(swap("banana"))
 //$= let B := map(swap("bread"))
 //$= A * B
+	ml_value_t *Map = ml_map();
+	ML_MAP_FOREACH(Args[1], Node) {
+		if (ml_map_search0(Args[0], Node->Key)) ml_map_insert(Map, Node->Key, Node->Value);
+	}
+	return Map;
+}
+
+ML_METHOD("/\\", MLMapT, MLMapT) {
+//<Map/1
+//<Map/2
+//>map
+// Returns a new map containing the entries of :mini:`Map/1` which are also in :mini:`Map/2`. The values are chosen from :mini:`Map/2`.
+//$= let A := map(swap("banana"))
+//$= let B := map(swap("bread"))
+//$= A /\ B
 	ml_value_t *Map = ml_map();
 	ML_MAP_FOREACH(Args[1], Node) {
 		if (ml_map_search0(Args[0], Node->Key)) ml_map_insert(Map, Node->Key, Node->Value);
@@ -927,6 +987,24 @@ ML_METHOD("/", MLMapT, MLMapT) {
 	ml_value_t *Map = ml_map();
 	ML_MAP_FOREACH(Args[0], Node) {
 		if (!ml_map_search0(Args[1], Node->Key)) ml_map_insert(Map, Node->Key, Node->Value);
+	}
+	return Map;
+}
+
+ML_METHOD("><", MLMapT, MLMapT) {
+//<Map/1
+//<Map/2
+//>map
+// Returns a new map containing the entries of :mini:`Map/1` and :mini:`Map/2` that are not in both.
+//$= let A := map(swap("banana"))
+//$= let B := map(swap("bread"))
+//$= A >< B
+	ml_value_t *Map = ml_map();
+	ML_MAP_FOREACH(Args[0], Node) {
+		if (!ml_map_search0(Args[1], Node->Key)) ml_map_insert(Map, Node->Key, Node->Value);
+	}
+	ML_MAP_FOREACH(Args[1], Node) {
+		if (!ml_map_search0(Args[0], Node->Key)) ml_map_insert(Map, Node->Key, Node->Value);
 	}
 	return Map;
 }
@@ -1121,6 +1199,24 @@ ML_METHOD("reverse", MLMapT) {
 	Prev->Prev = NULL;
 	Map->Head = Prev;
 	return (ml_value_t *)Map;
+}
+
+ML_METHOD("random", MLMapT) {
+//<List
+//>any
+// Returns a random (assignable) node from :mini:`Map`.
+//$= let M := map("cake")
+//$= M:random
+//$= M:random
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	int Limit = Map->Size;
+	if (Limit <= 0) return MLNil;
+	int Divisor = RAND_MAX / Limit;
+	int Random;
+	do Random = random() / Divisor; while (Random >= Limit);
+	ml_map_node_t *Node = Map->Head;
+	while (--Random >= 0) Node = Node->Next;
+	return (ml_value_t *)Node;
 }
 
 void ml_map_init() {

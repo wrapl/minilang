@@ -181,8 +181,6 @@ __attribute__ ((pure)) static inline ml_type_t *ml_typeof(const ml_value_t *Valu
 
 #else
 
-#define MLInt64T MLIntegerT
-
 static inline ml_type_t *ml_typeof(const ml_value_t *Value) {
 	return Value->Type;
 }
@@ -535,10 +533,6 @@ extern ml_type_t MLComplexT[];
 
 ml_value_t *ml_complex(complex_double Value);
 complex_double ml_complex_value(const ml_value_t *Value);
-
-inline complex_double ml_complex_value_fast(const ml_value_t *Value) {
-	return ((ml_complex_t *)Value)->Value;
-}
 
 #endif
 

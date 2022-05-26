@@ -88,7 +88,7 @@ static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_
 	} else if (!Definition->Variadic) {
 		Score = 2;
 	}
-	for (ssize_t I = Count; --I >= 0;) {
+	for (int I = Count; --I >= 0;) {
 		ml_type_t *Type = Definition->Types[I];
 		if (!ml_is_subtype(Types[I], Type)) return 0;
 		Score += 5 + Type->Rank;
@@ -162,7 +162,7 @@ static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 static __attribute__ ((noinline)) ml_value_t *ml_method_search2(ml_state_t *Caller, ml_method_t *Method, int Count, ml_value_t **Args) {
 	ml_type_t *Types[Count];
 	uintptr_t Hash = (uintptr_t)Method;
-	for (ssize_t I = Count; --I >= 0;) {
+	for (int I = Count; --I >= 0;) {
 		ml_type_t *Type = Types[I] = ml_typeof_deref(Args[I]);
 		Hash = rotl(Hash, 1) ^ (uintptr_t)Type;
 	}
@@ -184,7 +184,7 @@ static __attribute__ ((noinline)) ml_value_t *ml_method_search2(ml_state_t *Call
 	if (Count > ML_SMALL_METHOD_COUNT) return ml_method_search2(Caller, Method, Count, Args);
 	ml_type_t *Types[ML_SMALL_METHOD_COUNT];
 	uintptr_t Hash = (uintptr_t)Method;
-	for (ssize_t I = Count; --I >= 0;) {
+	for (int I = Count; --I >= 0;) {
 		ml_type_t *Type = Types[I] = ml_typeof_deref(Args[I]);
 		Hash = rotl(Hash, 1) ^ (uintptr_t)Type;
 	}
@@ -197,7 +197,7 @@ static __attribute__ ((noinline)) ml_value_t *ml_method_search2(ml_state_t *Call
 static __attribute__ ((noinline)) ml_method_cached_t *ml_method_search_cached2(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args) {
 	ml_type_t *Types[Count];
 	uintptr_t Hash = (uintptr_t)Method;
-	for (ssize_t I = Count; --I >= 0;) {
+	for (int I = Count; --I >= 0;) {
 		ml_type_t *Type = Types[I] = ml_typeof_deref(Args[I]);
 		Hash = rotl(Hash, 1) ^ (uintptr_t)Type;
 	}
@@ -210,7 +210,7 @@ ml_method_cached_t *ml_method_search_cached(ml_methods_t *Methods, ml_method_t *
 	if (Count > ML_SMALL_METHOD_COUNT) return ml_method_search_cached2(Methods, Method, Count, Args);
 	ml_type_t *Types[ML_SMALL_METHOD_COUNT];
 	uintptr_t Hash = (uintptr_t)Method;
-	for (ssize_t I = Count; --I >= 0;) {
+	for (int I = Count; --I >= 0;) {
 		ml_type_t *Type = Types[I] = ml_typeof_deref(Args[I]);
 		Hash = rotl(Hash, 1) ^ (uintptr_t)Type;
 	}
@@ -571,6 +571,46 @@ ML_METHODX("list", MLMethodT) {
 		Methods = Methods->Parent;
 	} while (Methods);
 	ML_RETURN(Results);
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Callback;
+	ml_method_cached_t *Cached;
+} ml_method_function_t;
+
+static void ml_method_function_call(ml_state_t *Caller, ml_method_function_t *Function, int Count, ml_value_t **Args) {
+	ml_method_cached_t *Cached = Function->Cached;
+	ML_CHECKX_ARG_COUNT(Cached->Count);
+	for (int I = 0; I < Cached->Count; ++I) ML_CHECKX_ARG_TYPE(I, Cached->Types[I]);
+	return ml_call(Caller, Function->Callback, Count, Args);
+}
+
+ML_TYPE(MLMethodFunctionT, (MLFunctionT), "method::function",
+//!internal
+	.call = (void *)ml_method_function_call
+);
+
+extern ml_type_t MLClosureT[];
+
+ML_METHODVX("[]", MLMethodT, MLTypeT) {
+	ml_method_t *Method = (ml_method_t *)Args[0];
+	--Count; ++Args;
+	uintptr_t Hash = (uintptr_t)Method;
+	for (int I = Count; --I >= 0;) {
+		ML_CHECKX_ARG_TYPE(I, MLTypeT);
+		Args[I] = ml_deref(Args[I]);
+		Hash = rotl(Hash, 1) ^ (uintptr_t)Args[I];
+	}
+	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
+	ml_method_cached_t *Cached = ml_method_search_entry(Methods, Method, Count, (ml_type_t **)Args, Hash);
+	if (!Cached) ML_RETURN(ml_no_method_error(Method, Count, Args));
+	if (ml_is(Cached->Callback, MLClosureT)) ML_RETURN(Cached->Callback);
+	ml_method_function_t *Function = xnew(ml_method_function_t, Count, ml_type_t *);
+	Function->Type = MLMethodFunctionT;
+	Function->Callback = Cached->Callback;
+	Function->Cached = Cached;
+	ML_RETURN(Function);
 }
 
 ML_FUNCTIONX(MLMethodContext) {

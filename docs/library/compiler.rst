@@ -7,6 +7,18 @@
 compiler
 ========
 
+.. _fun-mllistofargs:
+
+:mini:`fun mllistofargs()`
+   *TBD*
+
+
+.. _fun-mlmapofargs:
+
+:mini:`fun mlmapofargs()`
+   *TBD*
+
+
 .. _type-compiler:
 
 :mini:`type compiler < state`

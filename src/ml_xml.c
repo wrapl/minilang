@@ -55,7 +55,7 @@ ML_METHOD("prev", MLXmlT) {
 ML_METHOD("next", MLXmlT) {
 //<Xml
 //>xml|nil
-// Returnst the next sibling of :mini:`Xml` or :mini:`nil`.
+// Returns the next sibling of :mini:`Xml` or :mini:`nil`.
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
 	return (ml_value_t *)Node->Next ?: MLNil;
 }
@@ -147,6 +147,9 @@ ML_METHODV(MLXmlElementT, MLStringT) {
 //<Children...:string|xml
 //<Attributes?:names|map
 //>xml::element
+// Returns a new XML node with tag :mini:`Tag` and optional children and attributes. Since attributes are created with named arguments, they should be passed at the end.
+//$- import: xml("fmt/xml")
+//$= xml::element("test", "Text", type is "example")
 	ml_xml_element_t *Element = new(ml_xml_element_t);
 	Element->Base.Base.Type = MLXmlElementT;
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(MLXmlTags, ml_string_value(Args[0]));
@@ -184,7 +187,7 @@ ML_METHODV(MLXmlElementT, MLStringT) {
 				ml_map_insert(Element->Attributes, Iter->Key, Iter->Value);
 			}
 		} else {
-			return ml_error("XMLError", "Unsupported value for xml element");
+			return ml_error("XMLError", "Unsupported value for XML element");
 		}
 	}
 	if (Buffer->Length) {
@@ -236,8 +239,9 @@ ML_METHOD("text", MLXmlElementT) {
 
 ML_METHOD("text", MLXmlElementT, MLStringT) {
 //<Xml
+//<Sep
 //>string
-// Returns the (recursive) text content of :mini:`Xml`.
+// Returns the (recursive) text content of :mini:`Xml`, adding :mini:`Sep` between the contents of adjacent nodes.
 	ml_xml_element_t *Element = (ml_xml_element_t *)Args[0];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_xml_element_text(Element, Buffer, ml_string_value(Args[1]), ml_string_length(Args[1]));
@@ -327,7 +331,7 @@ static void ml_xml_grow_state_value(ml_xml_grow_state_t *State, ml_value_t *Valu
 			ml_map_insert(Element->Attributes, Iter->Key, Iter->Value);
 		}
 	} else {
-		ML_ERROR("XMLError", "Unsupported value for xml element");
+		ML_ERROR("XMLError", "Unsupported value for XML element");
 	}
 	State->Base.run = (ml_state_fn)ml_xml_grow_state_next;
 	ml_iter_next((ml_state_t *)State, State->Iter);
@@ -436,7 +440,9 @@ ML_TYPE(MLXmlFilterT, (MLFunctionT), "xml::filter",
 
 ML_METHODV(MLXmlFilterT, MLNamesT) {
 //@xml::filter
+//<Attr,Value
 //>xml::filter
+// Returns an XML filter that checks if a node has attributes :mini:`Attr/i = Value/i`.
 	ml_xml_filter_t *Filter = new(ml_xml_filter_t);
 	Filter->Type = MLXmlFilterT;
 	ml_value_t *Attributes = Filter->Attributes = ml_map();
@@ -450,7 +456,10 @@ ML_METHODV(MLXmlFilterT, MLNamesT) {
 
 ML_METHODV(MLXmlFilterT, MLStringT, MLNamesT) {
 //@xml::filter
+//<Tag
+//<Attr,Value
 //>xml::filter
+// Returns an XML filter that checks if a node has tag :mini:`Tag` and attributes :mini:`Attr/i = Value/i`.
 	ml_xml_filter_t *Filter = new(ml_xml_filter_t);
 	Filter->Type = MLXmlFilterT;
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(MLXmlTags, ml_string_value(Args[0]));
@@ -661,6 +670,10 @@ ML_METHOD("parent", MLXmlT, MLStringT) {
 }
 
 ML_METHOD("parent", MLXmlT, MLIntegerT) {
+//<Xml
+//<N
+//>xml|nil
+// Returns the :mini:`N`-th parent of :mini:`Xml` or :mini:`nil`.
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
 	int Steps = ml_integer_value(Args[1]);
 	while (Steps > 0) {
@@ -672,6 +685,10 @@ ML_METHOD("parent", MLXmlT, MLIntegerT) {
 }
 
 ML_METHOD("next", MLXmlT, MLIntegerT) {
+//<Xml
+//<N
+//>xml|nil
+// Returns the :mini:`N`-th next sibling of :mini:`Xml` or :mini:`nil`.
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
 	int Steps = ml_integer_value(Args[1]);
 	while (Steps > 0) {
@@ -683,6 +700,10 @@ ML_METHOD("next", MLXmlT, MLIntegerT) {
 }
 
 ML_METHOD("prev", MLXmlT, MLIntegerT) {
+//<Xml
+//<N
+//>xml|nil
+// Returns the :mini:`N`-th previous sibling of :mini:`Xml` or :mini:`nil`.
 	ml_xml_node_t *Node = (ml_xml_node_t *)Args[0];
 	int Steps = ml_integer_value(Args[1]);
 	while (Steps > 0) {
@@ -1028,14 +1049,12 @@ ML_METHOD("contains", MLXmlSequenceT, MLRegexT) {
 	return Chained;
 }
 
-extern ml_cfunctionx_t First[];
-
 ML_METHOD("has", MLXmlSequenceT, MLFunctionT) {
 //<Sequence
 //<Fn
 //>sequence
-// Equivalent to :mini:`Sequence ->? fun(X) first(Fn(X))`.
-	ml_value_t *Filter = ml_chainedv(2, Args[1], First);
+// Equivalent to :mini:`Sequence ->? fun(X) some(Fn(X))`.
+	ml_value_t *Filter = ml_chainedv(2, Args[1], MLSome);
 	ml_value_t *Chained = ml_chainedv(3, Args[0], FilterSoloMethod, Filter);
 #ifdef ML_GENERICS
 	Chained->Type = (ml_type_t *)MLXmlChainedT;
@@ -1102,6 +1121,9 @@ static ml_value_t *ml_xml_node_append(ml_stringbuffer_t *Buffer, ml_xml_element_
 }
 
 ML_METHOD("append", MLStringBufferT, MLXmlElementT) {
+//<Buffer
+//<Xml
+// Appends a string representation of :mini:`Xml` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_xml_element_t *Node = (ml_xml_element_t *)Args[1];
 	ml_value_t *Error = ml_xml_node_append(Buffer, Node);
@@ -1200,9 +1222,9 @@ static void xml_decode_callback(ml_value_t **Result, ml_value_t *Value) {
 }
 
 ML_METHOD(MLXmlT, MLStringT) {
-//@xml
-//<Xml
+//<String
 //>xml
+// Returns :mini:`String` parsed into an XML node.
 	ml_value_t *Result = NULL;
 	xml_decoder_t Decoder = {0,};
 	Decoder.Callback = (void *)xml_decode_callback;
@@ -1247,6 +1269,9 @@ static void ml_xml_stream_state_run(ml_xml_stream_state_t *State, ml_value_t *Re
 }
 
 ML_METHODX(MLXmlT, MLStreamT) {
+//<Stream
+//>xml
+// Returns the contents of :mini:`Stream` parsed into an XML node.
 	ml_xml_stream_state_t *State = new(ml_xml_stream_state_t);
 	State->Decoder.Callback = (void *)xml_decode_callback;
 	State->Decoder.Data = &State->Result;
@@ -1288,6 +1313,7 @@ ML_FUNCTIONX(XmlDecoder) {
 //@xml::decoder
 //<Callback
 //>xml::decoder
+// Returns a new decoder that calls :mini:`Callback(Xml)` each time a complete XML document is parsed.
 	ML_CHECKX_ARG_COUNT(1);
 	ml_xml_decoder_t *Decoder = new(ml_xml_decoder_t);
 	Decoder->Base.Type = MLXmlDecoderT;
@@ -1309,6 +1335,7 @@ ML_FUNCTIONX(XmlDecoder) {
 
 ML_TYPE(MLXmlDecoderT, (MLStreamT), "xml::decoder",
 //@xml::decoder
+// A callback based streaming XML decoder.
 	.Constructor = (ml_value_t *)XmlDecoder
 );
 

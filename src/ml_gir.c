@@ -587,7 +587,8 @@ static size_t array_element_size(GITypeInfo *Info) {
 	return 0;
 }
 
-typedef struct ml_gir_callback_t {
+typedef struct {
+	ml_context_t *Context;
 	ml_value_t *Function;
 	GICallbackInfo *Info;
 	ffi_cif Cif[1];
@@ -664,7 +665,11 @@ static void callback_invoke(ffi_cif *Cif, void *Return, void **Params, ml_gir_ca
 			break;
 		}
 	}
-	ml_value_t *Result = ml_simple_call(Callback->Function, Count, Args);
+	ml_result_state_t *State = ml_result_state(Callback->Context);
+	ml_call(State, Callback->Function, Count, Args);
+	GMainContext *MainContext = g_main_context_default();
+	while (!State->Value) g_main_context_iteration(MainContext, TRUE);
+	ml_value_t *Result = State->Value;
 	GITypeInfo *ReturnInfo = g_callable_info_get_return_type((GICallableInfo *)Info);
 	switch (g_type_info_get_tag(ReturnInfo)) {
 	case GI_TYPE_TAG_VOID: break;
@@ -725,14 +730,15 @@ static void callback_invoke(ffi_cif *Cif, void *Return, void **Params, ml_gir_ca
 		case GI_INFO_TYPE_INVALID_0: break;
 		case GI_INFO_TYPE_FUNCTION: break;
 		case GI_INFO_TYPE_CALLBACK: {
-			ml_gir_callback_t *Callback = (ml_gir_callback_t *)GC_MALLOC_UNCOLLECTABLE(sizeof(ml_gir_callback_t));
-			Callback->Info = InterfaceInfo;
-			Callback->Function = Result;
+			ml_gir_callback_t *Callback2 = (ml_gir_callback_t *)GC_MALLOC_UNCOLLECTABLE(sizeof(ml_gir_callback_t));
+			Callback2->Context = Callback->Context;
+			Callback2->Info = InterfaceInfo;
+			Callback2->Function = Result;
 			*(void **)Return = g_callable_info_prepare_closure(
 				InterfaceInfo,
-				Callback->Cif,
+				Callback2->Cif,
 				(GIFFIClosureCallback)callback_invoke,
-				Callback
+				Callback2
 			);
 			break;
 		}
@@ -1128,7 +1134,7 @@ static void *list_to_array(ml_value_t *List, GITypeInfo *TypeInfo) {
 	return Array;
 }
 
-static GSList *list_to_slist(ml_value_t *List, GITypeInfo *TypeInfo) {
+static GSList *list_to_slist(ml_context_t *Context, ml_value_t *List, GITypeInfo *TypeInfo) {
 	GSList *Head = NULL, **Slot = &Head;
 	switch (g_type_info_get_tag(TypeInfo)) {
 	case GI_TYPE_TAG_BOOLEAN: {
@@ -1204,6 +1210,7 @@ static GSList *list_to_slist(ml_value_t *List, GITypeInfo *TypeInfo) {
 			ML_LIST_FOREACH(List, Iter) {
 				GSList *Node = Slot[0] = g_slist_alloc();
 				ml_gir_callback_t *Callback = (ml_gir_callback_t *)GC_MALLOC_UNCOLLECTABLE(sizeof(ml_gir_callback_t));
+				Callback->Context = Context;
 				Callback->Info = InterfaceInfo;
 				Callback->Function = Iter->Value;
 				Node->data = g_callable_info_prepare_closure(
@@ -1278,7 +1285,7 @@ static void set_input_length(GICallableInfo *Info, int Index, GIArgument *ArgsIn
 
 static GIBaseInfo *DestroyNotifyInfo;
 
-static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_value_t **Args) {
+static void function_info_invoke(ml_state_t *Caller, GIFunctionInfo *Info, int Count, ml_value_t **Args) {
 	int NArgs = g_callable_info_get_n_args((GICallableInfo *)Info);
 	int NArgsIn = 0, NArgsOut = 0;
 	for (int I = 0; I < NArgs; ++I) {
@@ -1334,7 +1341,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 						goto skip_in_arg;
 					}
 				}
-				return ml_error("InvokeError", "Not enough arguments");
+				ML_ERROR("InvokeError", "Not enough arguments");
 			}
 			ml_value_t *Arg = Args[N++];
 			switch (Tag) {
@@ -1400,7 +1407,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 				} else if (Arg == (ml_value_t *)MLBooleanT) {
 					ArgsIn[IndexIn].v_size = G_TYPE_BOOLEAN;
 				} else {
-					return ml_error("TypeError", "Expected type for parameter %d", I);
+					ML_ERROR("TypeError", "Expected type for parameter %d", I);
 				}
 				break;
 			}
@@ -1409,7 +1416,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 				if (Arg == MLNil) {
 					ArgsIn[IndexIn].v_string = NULL;
 				} else {
-					ML_CHECK_ARG_TYPE(N - 1, MLStringT);
+					ML_CHECKX_ARG_TYPE(N - 1, MLStringT);
 					ArgsIn[IndexIn].v_string = (char *)ml_string_value(Arg);
 				}
 				break;
@@ -1436,7 +1443,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 							set_input_length(Info, LengthIndex, ArgsIn, ml_list_length(Arg));
 						}
 					} else {
-						return ml_error("TypeError", "Expected list for parameter %d", I);
+						ML_ERROR("TypeError", "Expected list for parameter %d", I);
 					}
 					break;
 				}
@@ -1452,7 +1459,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 							set_input_length(Info, LengthIndex, ArgsIn, ml_list_length(Arg));
 						}
 					} else {
-						return ml_error("TypeError", "Expected list for parameter %d", I);
+						ML_ERROR("TypeError", "Expected list for parameter %d", I);
 					}
 					break;
 				}
@@ -1469,13 +1476,14 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 				} else switch (g_base_info_get_type(InterfaceInfo)) {
 				case GI_INFO_TYPE_INVALID:
 				case GI_INFO_TYPE_INVALID_0: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_FUNCTION: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_CALLBACK: {
 					ml_gir_callback_t *Callback = (ml_gir_callback_t *)GC_MALLOC_UNCOLLECTABLE(sizeof(ml_gir_callback_t));
+					Callback->Context = Caller->Context;
 					Callback->Info = InterfaceInfo;
 					Callback->Function = Arg;
 					ArgsIn[IndexIn].v_pointer = g_callable_info_prepare_closure(
@@ -1492,12 +1500,12 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 					} else if (ml_is(Arg, GirStructInstanceT)) {
 						ArgsIn[IndexIn].v_pointer = ((struct_instance_t *)Arg)->Value;
 					} else {
-						return ml_error("TypeError", "Expected gir struct not %s for parameter %d", ml_typeof(Args[I])->Name, I);
+						ML_ERROR("TypeError", "Expected gir struct not %s for parameter %d", ml_typeof(Args[I])->Name, I);
 					}
 					break;
 				}
 				case GI_INFO_TYPE_BOXED: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_ENUM:
 				case GI_INFO_TYPE_FLAGS: {
@@ -1506,7 +1514,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 					} else if (ml_is(Arg, GirEnumValueT)) {
 						ArgsIn[IndexIn].v_int64 = ((enum_value_t *)Arg)->Value;
 					} else {
-						return ml_error("TypeError", "Expected gir enum not %s for parameter %d", ml_typeof(Args[I])->Name, I);
+						ML_ERROR("TypeError", "Expected gir enum not %s for parameter %d", ml_typeof(Args[I])->Name, I);
 					}
 					break;
 				}
@@ -1517,39 +1525,39 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 					} else if (ml_is(Arg, GirObjectInstanceT)) {
 						ArgsIn[IndexIn].v_pointer = ((object_instance_t *)Arg)->Handle;
 					} else {
-						return ml_error("TypeError", "Expected gir object not %s for parameter %d", ml_typeof(Args[I])->Name, I);
+						ML_ERROR("TypeError", "Expected gir object not %s for parameter %d", ml_typeof(Args[I])->Name, I);
 					}
 					break;
 				}
 				case GI_INFO_TYPE_CONSTANT: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_UNION: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_VALUE: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_SIGNAL: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_VFUNC: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_PROPERTY: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_FIELD: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_ARG: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_TYPE: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_UNRESOLVED: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				}
 				break;
@@ -1559,7 +1567,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 			}
 			case GI_TYPE_TAG_GSLIST: {
 				GITypeInfo *ElementInfo = g_type_info_get_param_type(TypeInfo, 0);
-				ArgsIn[IndexIn].v_pointer = list_to_slist(Arg, ElementInfo);
+				ArgsIn[IndexIn].v_pointer = list_to_slist(Caller->Context, Arg, ElementInfo);
 				break;
 			}
 			case GI_TYPE_TAG_GHASH: {
@@ -1597,7 +1605,7 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 			}
 			case GI_TYPE_TAG_ARRAY: {
 				if (g_arg_info_is_caller_allocates(ArgInfo)) {
-					if (N >= Count) return ml_error("InvokeError", "Not enough arguments");
+					if (N >= Count) ML_ERROR("InvokeError", "Not enough arguments");
 					ml_value_t *Arg = Args[N++];
 					GITypeInfo *ElementInfo = g_type_info_get_param_type(TypeInfo, 0);
 					int LengthIndex = g_type_info_get_array_length(TypeInfo);
@@ -1615,12 +1623,12 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 								set_input_length(Info, LengthIndex, ArgsIn, ml_address_length(Arg));
 							}
 						} else {
-							return ml_error("TypeError", "Expected buffer for parameter %d", I);
+							ML_ERROR("TypeError", "Expected buffer for parameter %d", I);
 						}
 						break;
 					}
 					default: {
-						return ml_error("NotImplemented", "Not able to marshal out-arrays yet at %d", __LINE__);
+						ML_ERROR("NotImplemented", "Not able to marshal out-arrays yet at %d", __LINE__);
 					}
 					}
 				} else {
@@ -1638,22 +1646,22 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 				} else switch (g_base_info_get_type(InterfaceInfo)) {
 				case GI_INFO_TYPE_INVALID:
 				case GI_INFO_TYPE_INVALID_0: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_FUNCTION: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_CALLBACK: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_STRUCT: {
 					if (g_arg_info_is_caller_allocates(ArgInfo)) {
-						if (N >= Count) return ml_error("InvokeError", "Not enough arguments");
+						if (N >= Count) ML_ERROR("InvokeError", "Not enough arguments");
 						ml_value_t *Arg = Args[N++];
 						if (ml_is(Arg, GirStructInstanceT)) {
 							ArgsOut[IndexOut].v_pointer = ((struct_instance_t *)Arg)->Value;
 						} else {
-							return ml_error("TypeError", "Expected gir struct not %s for parameter %d", ml_typeof(Args[I])->Name, I);
+							ML_ERROR("TypeError", "Expected gir struct not %s for parameter %d", ml_typeof(Args[I])->Name, I);
 						}
 					} else {
 						ArgsOut[IndexOut].v_pointer = &ResultsOut[IndexResult++];
@@ -1661,13 +1669,13 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 					break;
 				}
 				case GI_INFO_TYPE_BOXED: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_ENUM: {
 					break;
 				}
 				case GI_INFO_TYPE_FLAGS: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_OBJECT:
 				case GI_INFO_TYPE_INTERFACE: {
@@ -1675,34 +1683,34 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 					break;
 				}
 				case GI_INFO_TYPE_CONSTANT: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_UNION: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_VALUE: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_SIGNAL: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_VFUNC: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_PROPERTY: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_FIELD: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_ARG: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_TYPE: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				case GI_INFO_TYPE_UNRESOLVED: {
-					return ml_error("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
+					ML_ERROR("NotImplemented", "Not able to marshal %s yet at %d", g_base_info_get_name(InterfaceInfo), __LINE__);
 				}
 				}
 				break;
@@ -1729,9 +1737,9 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 	GError *Error = 0;
 	GIArgument ReturnValue[1];
 	gboolean Invoked = g_function_info_invoke(Info, ArgsIn, IndexIn, ArgsOut, IndexOut, ReturnValue, &Error);
-	if (!Invoked || Error) return ml_error("InvokeError", "Error: %s", Error->message);
+	if (!Invoked || Error) ML_ERROR("InvokeError", "Error: %s", Error->message);
 	GITypeInfo *ReturnInfo = g_callable_info_get_return_type((GICallableInfo *)Info);
-	if (!IndexResult) return argument_to_ml(ReturnValue, ReturnInfo, (GICallableInfo *)Info, ArgsOut);
+	if (!IndexResult) ML_RETURN(argument_to_ml(ReturnValue, ReturnInfo, (GICallableInfo *)Info, ArgsOut));
 	ml_value_t *Result = ml_tuple(IndexResult + 1);
 	ml_tuple_set(Result, 1, argument_to_ml(ReturnValue, ReturnInfo, (GICallableInfo *)Info, ArgsOut));
 	IndexResult = 0;
@@ -1747,15 +1755,15 @@ static ml_value_t *function_info_invoke(GIFunctionInfo *Info, int Count, ml_valu
 			}
 		}
 	}
-	return Result;
+	ML_RETURN(Result);
 }
 
-static ml_value_t *constructor_invoke(GIFunctionInfo *Info, int Count, ml_value_t **Args) {
-	return function_info_invoke(Info, Count, Args);
+static void constructor_invoke(ml_state_t *Caller, GIFunctionInfo *Info, int Count, ml_value_t **Args) {
+	return function_info_invoke(Caller, Info, Count, Args);
 }
 
-static ml_value_t *method_invoke(GIFunctionInfo *Info, int Count, ml_value_t **Args) {
-	return function_info_invoke(Info, Count, Args);
+static void method_invoke(ml_state_t *Caller, GIFunctionInfo *Info, int Count, ml_value_t **Args) {
+	return function_info_invoke(Caller, Info, Count, Args);
 }
 
 static void method_register(const char *Name, GIFunctionInfo *Info, object_t *Object) {
@@ -1789,7 +1797,7 @@ static void method_register(const char *Name, GIFunctionInfo *Info, object_t *Ob
 	ml_type_t *Types[NArgsIn];
 	Types[0] = (ml_type_t *)Object;
 	for (int I = 1; I < NArgsIn; ++I) Types[I] = MLAnyT;
-	ml_method_define(ml_method(Name), ml_cfunction(Info, (ml_callback_t)method_invoke), NArgsIn, 0, Types);
+	ml_method_define(ml_method(Name), ml_cfunctionx(Info, (ml_callbackx_t)method_invoke), NArgsIn, 0, Types);
 }
 
 static void interface_add_signals(object_t *Object, GIInterfaceInfo *Info) {
@@ -1850,7 +1858,7 @@ static void object_add_methods(object_t *Object, GIObjectInfo *Info) {
 			method_register(MethodName, MethodInfo, Object);
 		//} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
 		} else {
-			stringmap_insert(Object->Base.Exports, MethodName, ml_cfunction(MethodInfo, (void *)constructor_invoke));
+			stringmap_insert(Object->Base.Exports, MethodName, ml_cfunctionx(MethodInfo, (void *)constructor_invoke));
 		}
 	}
 }
@@ -1950,9 +1958,9 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 			const char *MethodName = g_base_info_get_name((GIBaseInfo *)MethodInfo);
 			GIFunctionInfoFlags Flags = g_function_info_get_flags(MethodInfo);
 			if (Flags & GI_FUNCTION_IS_METHOD) {
-				ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Struct, NULL);
+				ml_methodx_by_name(MethodName, MethodInfo, (ml_callbackx_t)method_invoke, Struct, NULL);
 			} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
-				stringmap_insert(Struct->Base.Exports, MethodName, ml_cfunction(MethodInfo, (void *)constructor_invoke));
+				stringmap_insert(Struct->Base.Exports, MethodName, ml_cfunctionx(MethodInfo, (void *)constructor_invoke));
 			}
 		}
 	}
@@ -1986,9 +1994,9 @@ static ml_type_t *union_info_lookup(GIUnionInfo *Info) {
 			const char *MethodName = g_base_info_get_name((GIBaseInfo *)MethodInfo);
 			GIFunctionInfoFlags Flags = g_function_info_get_flags(MethodInfo);
 			if (Flags & GI_FUNCTION_IS_METHOD) {
-				ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Union, NULL);
+				ml_methodx_by_name(MethodName, MethodInfo, (ml_callbackx_t)method_invoke, Union, NULL);
 			} else if (Flags & GI_FUNCTION_IS_CONSTRUCTOR) {
-				stringmap_insert(Union->Base.Exports, MethodName, ml_cfunction(MethodInfo, (void *)constructor_invoke));
+				stringmap_insert(Union->Base.Exports, MethodName, ml_cfunctionx(MethodInfo, (void *)constructor_invoke));
 			}
 		}
 	}
@@ -2050,7 +2058,7 @@ static ml_value_t *baseinfo_to_value(GIBaseInfo *Info) {
 		break;
 	}
 	case GI_INFO_TYPE_FUNCTION: {
-		return ml_cfunction(Info, (ml_callback_t)function_info_invoke);
+		return ml_cfunctionx(Info, (ml_callbackx_t)function_info_invoke);
 	}
 	case GI_INFO_TYPE_CALLBACK: {
 		break;
@@ -2272,14 +2280,15 @@ static void _ml_to_value(ml_value_t *Source, GValue *Dest) {
 }
 
 typedef struct {
-	GClosure Base;
+	object_instance_t *Instance;
 	GISignalInfo *SignalInfo;
 	ml_context_t *Context;
 	ml_value_t *Function;
-} gir_closure_t;
+} gir_closure_info_t;
 
-static void gir_closure_marshal(gir_closure_t *Closure, GValue *Dest, guint NumArgs, const GValue *Args, gpointer Hint, void *Data) {
-	GICallableInfo *SignalInfo = (GICallableInfo *)Closure->SignalInfo;
+static void gir_closure_marshal(GClosure *Closure, GValue *Dest, guint NumArgs, const GValue *Args, gpointer Hint, void *Data) {
+	gir_closure_info_t *Info = (gir_closure_info_t *)Closure->data;
+	GICallableInfo *SignalInfo = (GICallableInfo *)Info->SignalInfo;
 	ml_value_t *MLArgs[NumArgs];
 	MLArgs[0] = _value_to_ml(Args, NULL);
 	for (guint I = 1; I < NumArgs; ++I) {
@@ -2288,8 +2297,8 @@ static void gir_closure_marshal(gir_closure_t *Closure, GValue *Dest, guint NumA
 		g_arg_info_load_type(ArgInfo, TypeInfo);
 		MLArgs[I] = _value_to_ml(Args + I, g_type_info_get_interface(TypeInfo));
 	}
-	ml_result_state_t *State = ml_result_state(Closure->Context);
-	ml_call(State, Closure->Function, NumArgs, MLArgs);
+	ml_result_state_t *State = ml_result_state(Info->Context);
+	ml_call(State, Info->Function, NumArgs, MLArgs);
 	GMainContext *MainContext = g_main_context_default();
 	while (!State->Value) g_main_context_iteration(MainContext, TRUE);
 	ml_value_t *Source = State->Value;
@@ -2317,8 +2326,8 @@ static void gir_closure_marshal(gir_closure_t *Closure, GValue *Dest, guint NumA
 	}
 }
 
-static void gir_closure_finalize(object_instance_t *Instance, gir_closure_t *Closure) {
-	ptrset_remove(Instance->Handlers, Closure->Function);
+static void gir_closure_finalize(gir_closure_info_t *Info, GClosure *Closure) {
+	ptrset_remove(Info->Instance->Handlers, Info);
 }
 
 ML_METHODX("connect", GirObjectInstanceT, MLStringT, MLFunctionT) {
@@ -2330,14 +2339,16 @@ ML_METHODX("connect", GirObjectInstanceT, MLStringT, MLFunctionT) {
 	const char *Signal = ml_string_value(Args[1]);
 	GISignalInfo *SignalInfo = (GISignalInfo *)stringmap_search(Instance->Type->Signals, Signal);
 	if (!SignalInfo) ML_ERROR("NameError", "Signal %s not found", Signal);
-	ptrset_insert(Instance->Handlers, Args[2]);
-	gir_closure_t *Closure = (gir_closure_t *)g_closure_new_simple(sizeof(gir_closure_t), SignalInfo);
-	Closure->Context = Caller->Context;
-	Closure->Function = Args[2];
-	Closure->SignalInfo = SignalInfo;
-	g_closure_set_marshal((GClosure *)Closure, (GClosureMarshal)gir_closure_marshal);
-	g_closure_add_finalize_notifier((GClosure *)Closure, Instance, (void *)gir_closure_finalize);
-	g_signal_connect_closure(Instance->Handle, Signal, (GClosure *)Closure, Count > 3 && Args[3] != MLNil);
+	gir_closure_info_t *Info = new(gir_closure_info_t);
+	Info->Instance = Instance;
+	Info->Context = Caller->Context;
+	Info->Function = Args[2];
+	Info->SignalInfo = SignalInfo;
+	ptrset_insert(Instance->Handlers, Info);
+	GClosure *Closure = g_closure_new_simple(sizeof(GClosure), Info);
+	g_closure_set_marshal(Closure, gir_closure_marshal);
+	g_closure_add_finalize_notifier(Closure, Info, (void *)gir_closure_finalize);
+	g_signal_connect_closure(Instance->Handle, Signal, Closure, Count > 3 && Args[3] != MLNil);
 	ML_RETURN(Instance);
 }
 

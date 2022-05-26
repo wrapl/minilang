@@ -425,12 +425,48 @@ static void ml_polynomial_call(ml_state_t *Caller, ml_polynomial_t *P, int Count
 		State->I1 = 0;
 		State->Args[0] = NULL;
 		return ml_polynomial_call_term(State);
+	} else if (Count == 1) {
+		ml_term_t *Term = P->Terms;
+		if (Term->Factors->Count != 1) ML_ERROR("CallError", "Can not call multivariate polynomial without named arguments");
+		int Variable = Term->Factors->Factors[0].Variable;
+		int MaxDegree = Term->Factors->Factors[0].Degree;
+		for (int I = 1; I < P->Count; ++I) {
+			++Term;
+			if (Term->Factors->Count > 1) ML_ERROR("CallError", "Can not call multivariate polynomial without named arguments");
+			if (Term->Factors->Count == 1) {
+				if (Term->Factors->Factors[0].Variable != Variable) ML_ERROR("CallError", "Can not call multivariate polynomial without named arguments");
+				if (MaxDegree < Term->Factors->Factors[0].Degree) MaxDegree = Term->Factors->Factors[0].Degree;
+			}
+		}
+		ml_polynomial_call_state_t *State = xnew(ml_polynomial_call_state_t, 1, ml_substitution_t);
+		ml_substitution_t *Sub = xnew(ml_substitution_t, MaxDegree, ml_value_t *);
+		Sub->Variable = Variable;
+		Sub->Degree = MaxDegree;
+		Sub->Values[0] = ml_deref(Args[0]);
+		inthash_insert(State->Subs, Variable, Sub);
+		State->Base.Caller = Caller;
+		State->Base.Context = Caller->Context;
+		State->P = P;
+		for (int I1 = 0; I1 < State->Subs->Size; ++I1) {
+			ml_substitution_t *Sub = State->Subs->Values[I1];
+			if (Sub && Sub->Degree > 1) {
+				State->I1 = I1;
+				State->I2 = 1;
+				State->Args[0] = Sub->Values[0];
+				State->Args[1] = Sub->Values[0];
+				State->Base.run = (ml_state_fn)ml_polynomial_compute_powers;
+				return ml_call(State, MulMethod, 2, State->Args);
+			}
+		}
+		State->I1 = 0;
+		State->Args[0] = NULL;
+		return ml_polynomial_call_term(State);
 	} else {
 		ML_ERROR("ImplementationError", "Not implemented yet");
 	}
 }
 
-ML_TYPE(MLPolynomialT, (), "polynomial",
+ML_TYPE(MLPolynomialT, (MLFunctionT), "polynomial",
 // A polynomial with numeric (real or complex) coefficients.
 // Calling a polynomial with named arguments returns the result of substituting the named variables with the corresponding values.
 	.call = (void *)ml_polynomial_call

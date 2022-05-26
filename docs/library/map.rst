@@ -91,6 +91,30 @@ map
       A / B :> {"n" is 5}
 
 
+:mini:`meth (Map₁: map) /\ (Map₂: map): map`
+   Returns a new map containing the entries of :mini:`Map₁` which are also in :mini:`Map₂`. The values are chosen from :mini:`Map₂`.
+
+   .. code-block:: mini
+
+      let A := map(swap("banana"))
+      :> {"b" is 1, "a" is 6, "n" is 5}
+      let B := map(swap("bread"))
+      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
+      A /\ B :> {"b" is 1, "a" is 4}
+
+
+:mini:`meth (Map₁: map) >< (Map₂: map): map`
+   Returns a new map containing the entries of :mini:`Map₁` and :mini:`Map₂` that are not in both.
+
+   .. code-block:: mini
+
+      let A := map(swap("banana"))
+      :> {"b" is 1, "a" is 6, "n" is 5}
+      let B := map(swap("bread"))
+      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
+      A >< B :> {"n" is 5, "r" is 2, "e" is 3, "d" is 5}
+
+
 :mini:`meth (Map: map)[Key: any]: mapnode`
    Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then a new floating node is returned with value :mini:`nil`. This node will insert :mini:`Key` into :mini:`Map` if assigned.
 
@@ -113,6 +137,20 @@ map
       M["A", fun(Key) Key:code] :> 1
       M["D", fun(Key) Key:code] :> 68
       M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
+
+
+:mini:`meth (Map₁: map) \/ (Map₂: map): map`
+   Returns a new map combining the entries of :mini:`Map₁` and :mini:`Map₂`.
+   If the same key is in both :mini:`Map₁` and :mini:`Map₂` then the corresponding value from :mini:`Map₂` is chosen.
+
+   .. code-block:: mini
+
+      let A := map(swap("banana"))
+      :> {"b" is 1, "a" is 6, "n" is 5}
+      let B := map(swap("bread"))
+      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
+      A \/ B
+      :> {"b" is 1, "a" is 4, "n" is 5, "r" is 2, "e" is 3, "d" is 5}
 
 
 :mini:`meth (Map: map):count: integer`
@@ -142,6 +180,16 @@ map
       let M := {"A" is 1, "B" is 2, "C" is 3}
       :> {"A" is 1, "B" is 2, "C" is 3}
       M:empty :> {}
+
+
+:mini:`meth (Map: map):from(Key: any): sequence | nil`
+   Returns the subset of :mini:`Map` after :mini:`Key` as a sequence.
+
+   .. code-block:: mini
+
+      let M := {"A" is 1, "B" is 2, "C" is 3, "D" is 4, "E" is 5}
+      map(M:from("C")) :> {"C" is 3, "D" is 4, "E" is 5}
+      map(M:from("F")) :> {}
 
 
 :mini:`meth (Map: map):grow(Sequence: sequence, ...): map`
@@ -301,6 +349,17 @@ map
       M3[2]; M3[4]; M3[1]; M3[3]
       M3:pull2 :> (2, a)
       M3 :> {3 is "k", 1 is "c", 4 is "e"}
+
+
+:mini:`meth (List: map):random: any`
+   Returns a random (assignable) node from :mini:`Map`.
+
+   .. code-block:: mini
+
+      let M := map("cake")
+      :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
+      M:random :> "a"
+      M:random :> "e"
 
 
 :mini:`meth (Map: map):reverse: map`

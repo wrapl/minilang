@@ -7,18 +7,18 @@
 xml
 ===
 
-:mini:`meth xml(Arg₁: stream)`
-   *TBD*
-
-
-:mini:`meth (Xml: string):xml: xml`
-   *TBD*
-
-
 .. _type-xml:
 
 :mini:`type xml`
    An XML node.
+
+
+:mini:`meth xml(String: string): xml`
+   Returns :mini:`String` parsed into an XML node.
+
+
+:mini:`meth xml(Stream: stream): xml`
+   Returns the contents of :mini:`Stream` parsed into an XML node.
 
 
 :mini:`meth (Xml: xml) / (Fn: function): sequence`
@@ -86,19 +86,19 @@ xml
 
 
 :mini:`meth (Xml: xml):next: xml | nil`
-   Returnst the next sibling of :mini:`Xml` or :mini:`nil`.
+   Returns the next sibling of :mini:`Xml` or :mini:`nil`.
 
 
-:mini:`meth (Arg₁: xml):next(Arg₂: integer)`
-   *TBD*
+:mini:`meth (Xml: xml):next(N: integer): xml | nil`
+   Returns the :mini:`N`-th next sibling of :mini:`Xml` or :mini:`nil`.
 
 
 :mini:`meth (Xml: xml):parent: xml | nil`
    Returnst the parent of :mini:`Xml` or :mini:`nil`.
 
 
-:mini:`meth (Arg₁: xml):parent(Arg₂: integer)`
-   *TBD*
+:mini:`meth (Xml: xml):parent(N: integer): xml | nil`
+   Returns the :mini:`N`-th parent of :mini:`Xml` or :mini:`nil`.
 
 
 :mini:`meth (Xml: xml):parent(Tag: string): xml | nil`
@@ -109,20 +109,20 @@ xml
    Returnst the previous sibling of :mini:`Xml` or :mini:`nil`.
 
 
-:mini:`meth (Arg₁: xml):prev(Arg₂: integer)`
-   *TBD*
+:mini:`meth (Xml: xml):prev(N: integer): xml | nil`
+   Returns the :mini:`N`-th previous sibling of :mini:`Xml` or :mini:`nil`.
 
 
 .. _type-xml-decoder:
 
 :mini:`type xml::decoder < stream`
-   *TBD*
+   A callback based streaming XML decoder.
 
 
 .. _fun-xml-decoder:
 
 :mini:`fun xml::decoder(Callback: any): xml::decoder`
-   *TBD*
+   Returns a new decoder that calls :mini:`Callback(Xml)` each time a complete XML document is parsed.
 
 
 .. _type-xml-element:
@@ -132,7 +132,13 @@ xml
 
 
 :mini:`meth xml::element(Tag: string, Children...: string|xml, Attributes?: names|map): xml::element`
-   *TBD*
+   Returns a new XML node with tag :mini:`Tag` and optional children and attributes. Since attributes are created with named arguments,  they should be passed at the end.
+
+   .. code-block:: mini
+
+      import: xml("fmt/xml")
+      xml::element("test", "Text", type is "example")
+      :> <test type="example">Text</test>
 
 
 :mini:`meth /(Xml: xml::element): sequence`
@@ -183,12 +189,12 @@ xml
    Returns the (recursive) text content of :mini:`Xml`.
 
 
-:mini:`meth (Xml: xml::element):text(Arg₂: string): string`
-   Returns the (recursive) text content of :mini:`Xml`.
+:mini:`meth (Xml: xml::element):text(Sep: string): string`
+   Returns the (recursive) text content of :mini:`Xml`,  adding :mini:`Sep` between the contents of adjacent nodes.
 
 
-:mini:`meth (Arg₁: string::buffer):append(Arg₂: xml::element)`
-   *TBD*
+:mini:`meth (Buffer: string::buffer):append(Xml: xml::element)`
+   Appends a string representation of :mini:`Xml` to :mini:`Buffer`.
 
 
 .. _type-xml-filter:
@@ -197,12 +203,12 @@ xml
    An XML filter.
 
 
-:mini:`meth xml::filter(Arg₁₁ is Value₁, ...): xml::filter`
-   *TBD*
+:mini:`meth xml::filter(Attr₁ is Value₁, ...): xml::filter`
+   Returns an XML filter that checks if a node has attributes :mini:`Attrᵢ = Valueᵢ`.
 
 
-:mini:`meth xml::filter(Arg₁: string, Arg₂₁ is Value₁, ...): xml::filter`
-   *TBD*
+:mini:`meth xml::filter(Tag: string, Attr₁ is Value₁, ...): xml::filter`
+   Returns an XML filter that checks if a node has tag :mini:`Tag` and attributes :mini:`Attrᵢ = Valueᵢ`.
 
 
 :mini:`meth (Sequence: xml::sequence) / (Args: any, ...): sequence`
@@ -230,7 +236,7 @@ xml
 
 
 :mini:`meth (Sequence: xml::sequence):has(Fn: function): sequence`
-   Equivalent to :mini:`Sequence ->? fun(X) first(Fn(X))`.
+   Equivalent to :mini:`Sequence ->? fun(X) some(Fn(X))`.
 
 
 :mini:`meth (Sequence: xml::sequence):next(Args: any, ...): sequence`

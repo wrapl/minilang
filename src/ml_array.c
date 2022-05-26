@@ -1885,41 +1885,42 @@ static ml_value_t *ML_TYPED_FN(ml_array_value, MLArray ## SUFFIX, ml_array_t *Ar
 } \
 \
 static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_array_dimension_t *Dimension, char *Address) { \
+	if (!Dimension->Size) { \
+		ml_stringbuffer_write(Buffer, "<>", 2); \
+		return; \
+	} \
 	ml_stringbuffer_write(Buffer, "<", 1); \
 	int Stride = Dimension->Stride; \
-	if (Dimension->Indices) { \
+	if (Degree == 1) { \
 		int *Indices = Dimension->Indices; \
-		if (Dimension->Size) { \
-			if (Degree == 1) { \
-				APPEND(Buffer, PRINTF, *(CTYPE *)(Address + (Indices[0]) * Dimension->Stride)); \
-				for (int I = 1; I < Dimension->Size; ++I) { \
-					ml_stringbuffer_put(Buffer, ' '); \
-					APPEND(Buffer, PRINTF, *(CTYPE *)(Address + (Indices[I]) * Stride)); \
-				} \
-			} else { \
-				append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address + (Indices[0]) * Dimension->Stride); \
-				for (int I = 1; I < Dimension->Size; ++I) { \
-					ml_stringbuffer_put(Buffer, ' '); \
-					append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address + (Indices[I]) * Dimension->Stride); \
-				} \
+		if (Dimension->Indices) { \
+			APPEND(Buffer, PRINTF, *(CTYPE *)(Address + (Indices[0]) * Dimension->Stride)); \
+			for (int I = 1; I < Dimension->Size; ++I) { \
+				ml_stringbuffer_put(Buffer, ' '); \
+				APPEND(Buffer, PRINTF, *(CTYPE *)(Address + (Indices[I]) * Stride)); \
+			} \
+		} else { \
+			APPEND(Buffer, PRINTF, *(CTYPE *)Address); \
+			for (int I = Dimension->Size; --I > 0;) { \
+				ml_stringbuffer_put(Buffer, ' '); \
+				Address += Stride; \
+				APPEND(Buffer, PRINTF, *(CTYPE *)Address); \
 			} \
 		} \
 	} else { \
-		if (Degree == 1) { \
-			APPEND(Buffer, PRINTF, *(CTYPE *)Address); \
-			Address += Stride; \
-			for (int I = Dimension->Size; --I > 0;) { \
+		int *Indices = Dimension->Indices; \
+		if (Dimension->Indices) { \
+			append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address + (Indices[0]) * Dimension->Stride); \
+			for (int I = 1; I < Dimension->Size; ++I) { \
 				ml_stringbuffer_put(Buffer, ' '); \
-				APPEND(Buffer, PRINTF, *(CTYPE *)Address); \
-				Address += Stride; \
+				append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address + (Indices[I]) * Dimension->Stride); \
 			} \
 		} else { \
 			append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address); \
-			Address += Stride; \
 			for (int I = Dimension->Size; --I > 0;) { \
 				ml_stringbuffer_put(Buffer, ' '); \
-				append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address); \
 				Address += Stride; \
+				append_array_ ## CTYPE(Buffer, Degree - 1, Dimension + 1, Address); \
 			} \
 		} \
 	} \
@@ -4456,6 +4457,60 @@ ML_COMPARE_METHOD(Gt, Lt, >);
 ML_COMPARE_METHOD(Le, Ge, <=);
 ML_COMPARE_METHOD(Ge, Le, >=);
 
+static ml_array_format_t ml_array_of_type_guess(ml_value_t *Value, ml_array_format_t Format) {
+	typeof(ml_array_of_type_guess) *function = ml_typed_fn_get(ml_typeof(Value), ml_array_of_type_guess);
+	if (function) return function(Value, Format);
+	return ML_ARRAY_FORMAT_ANY;
+}
+
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLListT, ml_value_t *Value, ml_array_format_t Format) {
+	ML_LIST_FOREACH(Value, Iter) {
+		Format = ml_array_of_type_guess(Iter->Value, Format);
+	}
+	return Format;
+}
+
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLTupleT, ml_value_t *Value, ml_array_format_t Format) {
+	ml_tuple_t *Tuple = (ml_tuple_t *)Value;
+	for (int I = 0; I < Tuple->Size; ++I) {
+		Format = ml_array_of_type_guess(Tuple->Values[I], Format);
+	}
+	return Format;
+}
+
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLArrayT, ml_value_t *Value, ml_array_format_t Format) {
+	ml_array_t *Array = (ml_array_t *)Value;
+	if (Format <= Array->Format) Format = Array->Format;
+	return Format;
+}
+
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLIntegerT, ml_value_t *Value, ml_array_format_t Format) {
+	if (Format < ML_ARRAY_FORMAT_I64) Format = ML_ARRAY_FORMAT_I64;
+	return Format;
+}
+
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLRealT, ml_value_t *Value, ml_array_format_t Format) {
+	if (Format < ML_ARRAY_FORMAT_F64) Format = ML_ARRAY_FORMAT_F64;
+	return Format;
+}
+
+#ifdef ML_COMPLEX
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLComplexT, ml_value_t *Value, ml_array_format_t Format) {
+	if (Format < ML_ARRAY_FORMAT_C64) Format = ML_ARRAY_FORMAT_C64;
+	return Format;
+}
+#endif
+
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLIntegerRangeT, ml_value_t *Value, ml_array_format_t Format) {
+	if (Format < ML_ARRAY_FORMAT_I64) Format = ML_ARRAY_FORMAT_I64;
+	return Format;
+}
+
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLRealRangeT, ml_value_t *Value, ml_array_format_t Format) {
+	if (Format < ML_ARRAY_FORMAT_F64) Format = ML_ARRAY_FORMAT_F64;
+	return Format;
+}
+
 static ml_array_t *ml_array_of_create(ml_value_t *Value, int Degree, ml_array_format_t Format) {
 	typeof(ml_array_of_create) *function = ml_typed_fn_get(ml_typeof(Value), ml_array_of_create);
 	if (function) return function(Value, Degree, Format);
@@ -4593,12 +4648,16 @@ static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLIntegerRangeT, ml_array_forma
 	size_t Count = 0;
 	int64_t Diff = Range->Limit - Range->Start;
 	if (!Range->Step) {
+		Count = Dimension->Size;
 	} else if (Diff < 0 && Range->Step > 0) {
+		return ml_error("ValueError", "Inconsistent lengths in array");
 	} else if (Diff > 0 && Range->Step < 0) {
+		return ml_error("ValueError", "Inconsistent lengths in array");
 	} else {
 		Count = Diff / Range->Step + 1;
+		if (Count < Dimension->Size) return ml_error("ValueError", "Inconsistent lengths in array");
+		if (Count > Dimension->Size) Count = Dimension->Size;
 	}
-	if (Count != Dimension->Size) return ml_error("ValueError", "Inconsistent lengths in array");
 	int64_t Value = Range->Start, Step = Range->Step;
 	switch (Format) {
 	case ML_ARRAY_FORMAT_NONE: break;
@@ -4827,60 +4886,6 @@ static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLRealRangeT, ml_array_format_t
 	}
 	}
 	return NULL;
-}
-
-static ml_array_format_t ml_array_of_type_guess(ml_value_t *Value, ml_array_format_t Format) {
-	typeof(ml_array_of_type_guess) *function = ml_typed_fn_get(ml_typeof(Value), ml_array_of_type_guess);
-	if (function) return function(Value, Format);
-	return ML_ARRAY_FORMAT_ANY;
-}
-
-static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLListT, ml_value_t *Value, ml_array_format_t Format) {
-	ML_LIST_FOREACH(Value, Iter) {
-		Format = ml_array_of_type_guess(Iter->Value, Format);
-	}
-	return Format;
-}
-
-static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLTupleT, ml_value_t *Value, ml_array_format_t Format) {
-	ml_tuple_t *Tuple = (ml_tuple_t *)Value;
-	for (int I = 0; I < Tuple->Size; ++I) {
-		Format = ml_array_of_type_guess(Tuple->Values[I], Format);
-	}
-	return Format;
-}
-
-static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLArrayT, ml_value_t *Value, ml_array_format_t Format) {
-	ml_array_t *Array = (ml_array_t *)Value;
-	if (Format <= Array->Format) Format = Array->Format;
-	return Format;
-}
-
-static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLIntegerT, ml_value_t *Value, ml_array_format_t Format) {
-	if (Format < ML_ARRAY_FORMAT_I64) Format = ML_ARRAY_FORMAT_I64;
-	return Format;
-}
-
-static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLRealT, ml_value_t *Value, ml_array_format_t Format) {
-	if (Format < ML_ARRAY_FORMAT_F64) Format = ML_ARRAY_FORMAT_F64;
-	return Format;
-}
-
-#ifdef ML_COMPLEX
-static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLComplexT, ml_value_t *Value, ml_array_format_t Format) {
-	if (Format < ML_ARRAY_FORMAT_C64) Format = ML_ARRAY_FORMAT_C64;
-	return Format;
-}
-#endif
-
-static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLIntegerRangeT, ml_value_t *Value, ml_array_format_t Format) {
-	if (Format < ML_ARRAY_FORMAT_I64) Format = ML_ARRAY_FORMAT_I64;
-	return Format;
-}
-
-static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLRealRangeT, ml_value_t *Value, ml_array_format_t Format) {
-	if (Format < ML_ARRAY_FORMAT_F64) Format = ML_ARRAY_FORMAT_F64;
-	return Format;
 }
 
 static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args) {
@@ -7137,6 +7142,7 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_method_by_name("--", MLArrayInfixSubFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
 	ml_method_by_name("//", MLArrayInfixDivFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
 
+	ml_method_by_value(AbsMethod, labs, (ml_callback_t)array_math_integer_fn, MLArrayIntegerT, NULL);
 	ml_method_by_value(SquareMethod, isquare, (ml_callback_t)array_math_integer_fn, MLArrayIntegerT, NULL);
 
 	ml_method_by_value(AcosMethod, acos, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
@@ -7146,7 +7152,7 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_method_by_value(CosMethod, cos, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
 	ml_method_by_value(CoshMethod, cosh, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
 	ml_method_by_value(ExpMethod, exp, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(AbsMethod, abs, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(AbsMethod, fabs, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
 	ml_method_by_value(FloorMethod, floor, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
 	ml_method_by_value(LogMethod, log, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
 	ml_method_by_value(Log10Method, log10, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);

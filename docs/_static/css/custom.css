@@ -110,5 +110,10 @@ div.folders ul li:after {
 }
 
 .railroad-diagram .terminal text {
-	color: #0098dd;
+	font-weight: bold;
+}
+
+.railroad-diagram .non-terminal text {
+	font-weight: normal;
+	font-style: italic;
 }
