@@ -541,9 +541,8 @@ sequence
 
    .. code-block:: mini
 
-      random("cake")
-      :> error("CompilerError", "identifier random not declared")
-      random([]) :> 
+      random("cake") :> "a"
+      random([]) :> nil
 
 
 :mini:`meth (Sequence: sequence):skip(Skip: integer): sequence`
