@@ -597,8 +597,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_state_t *Caller = Frame->Base.Caller;
 		if (!Frame->Continue) {
 			//memset(Frame, 0, ML_FRAME_REUSE_SIZE);
-			//while (Top > Frame->Stack) *--Top = NULL;
-			memset(Frame->Stack, 0, (Top - Frame->Stack) * sizeof(ml_value_t *));
+			while (Top > Frame->Stack) *--Top = NULL;
+			//memset(Frame->Stack, 0, (Top - Frame->Stack) * sizeof(ml_value_t *));
 			ML_CACHED_FRAME_LOCK();
 			Frame->Next = MLCachedFrame;
 			MLCachedFrame = (ml_frame_t *)Frame;
