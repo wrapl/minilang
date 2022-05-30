@@ -385,7 +385,6 @@ typedef struct {
 	int Flags, Count;
 } mlc_parent_expr_frame_t;
 
-
 typedef struct {
 	mlc_parent_expr_t *Expr;
 	mlc_expr_t *Child;
@@ -532,9 +531,38 @@ static void ml_switch_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *
 	return mlc_compile(Function, Child, 0);
 }
 
+typedef struct {
+	mlc_expr_t *Must, *End;
+	int Line;
+} mlc_must_frame_t;
+
+static void ml_must_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_must_frame_t *Frame) {
+	mlc_expr_t *Must = Frame->Must;
+	if (Must != Frame->End) {
+		Frame->Must = Must->Next;
+		Frame->Line = Must->EndLine;
+		return mlc_compile(Function, Must, 0);
+	}
+	MLC_EMIT(Frame->Line, MLI_POP, 0);
+	--Function->Top;
+	MLC_POP();
+	MLC_RETURN(NULL);
+}
+
+static void ml_must_expr_compile(mlc_function_t *Function, mlc_expr_t *Must, mlc_expr_t *End) {
+	MLC_FRAME(mlc_must_frame_t, ml_must_expr_compile2);
+	Frame->Must = Must->Next;
+	Frame->End = End;
+	Frame->Line = Must->EndLine;
+	MLC_EMIT(Must->StartLine, MLI_PUSH, 0);
+	mlc_inc_top(Function);
+	return mlc_compile(Function, Must, 0);
+}
+
 struct mlc_loop_t {
 	mlc_loop_t *Up;
 	mlc_try_t *Try;
+	mlc_expr_t *Must;
 	ml_decl_t *Decls;
 	ml_inst_t *Nexts, *Exits;
 	int NextTop, ExitTop;
@@ -568,6 +596,7 @@ static void ml_loop_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Ex
 	Frame->Flags = Flags;
 	Frame->Loop->Up = Function->Loop;
 	Frame->Loop->Try = Function->Try;
+	Frame->Loop->Must = Function->Must;
 	Frame->Loop->Decls = Function->Decls;
 	Frame->Loop->Exits = NULL;
 	Frame->Loop->Nexts = NULL;
@@ -576,6 +605,26 @@ static void ml_loop_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Ex
 	Function->Loop = Frame->Loop;
 	Frame->Next = Function->Next;
 	return mlc_compile(Function, Expr->Child, 0);
+}
+
+ML_TYPE(MLExprGotoT, (), "expr::goto");
+//!internal
+
+ML_VALUE(MLExprGoto, MLExprGotoT);
+
+static void ml_next_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_expr_t **Frame) {
+	mlc_expr_t *Expr = Frame[0];
+	mlc_loop_t *Loop = Function->Loop;
+	if (Function->Top > Loop->NextTop) {
+		ml_inst_t *ExitInst = MLC_EMIT(Expr->EndLine, MLI_EXIT, 2);
+		ExitInst[1].Count = Function->Top - Loop->NextTop;
+		ExitInst[2].Decls = Loop->Decls;
+	}
+	ml_inst_t *GotoInst = MLC_EMIT(Expr->EndLine, MLI_GOTO, 1);
+	GotoInst[1].Inst = Loop->Nexts;
+	Loop->Nexts = GotoInst + 1;
+	MLC_POP();
+	MLC_RETURN(MLExprGoto);
 }
 
 static void ml_next_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags) {
@@ -591,6 +640,11 @@ static void ml_next_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int
 			Function->Returns = TryInst + 1;
 		}
 	}
+	if (Function->Must != Loop->Must) {
+		MLC_FRAME(mlc_expr_t *, ml_next_expr_compile2);
+		Frame[0] = Expr;
+		return ml_must_expr_compile(Function, Function->Must, Loop->Must);
+	}
 	if (Function->Top > Loop->NextTop) {
 		ml_inst_t *ExitInst = MLC_EMIT(Expr->EndLine, MLI_EXIT, 2);
 		ExitInst[1].Count = Function->Top - Loop->NextTop;
@@ -599,7 +653,7 @@ static void ml_next_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int
 	ml_inst_t *GotoInst = MLC_EMIT(Expr->EndLine, MLI_GOTO, 1);
 	GotoInst[1].Inst = Loop->Nexts;
 	Loop->Nexts = GotoInst + 1;
-	MLC_RETURN(NULL);
+	MLC_RETURN(MLExprGoto);
 }
 
 typedef struct {
@@ -609,7 +663,7 @@ typedef struct {
 	int Flags;
 } mlc_exit_expr_frame_t;
 
-static void ml_exit_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_exit_expr_frame_t *Frame) {
+static void ml_exit_expr_compile3(mlc_function_t *Function, ml_value_t *Value, mlc_exit_expr_frame_t *Frame) {
 	mlc_parent_expr_t *Expr = Frame->Expr;
 	mlc_loop_t *Loop = Frame->Loop;
 	Function->Loop = Loop;
@@ -627,7 +681,23 @@ static void ml_exit_expr_compile2(mlc_function_t *Function, ml_value_t *Value, m
 		mlc_inc_top(Function);
 	}
 	MLC_POP();
-	MLC_RETURN(NULL);
+	MLC_RETURN(MLExprGoto);
+}
+
+static void ml_exit_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_exit_expr_frame_t *Frame) {
+	mlc_loop_t *Loop = Frame->Loop;
+	if (Value == MLExprGoto) {
+		Function->Loop = Loop;
+		Function->Try = Frame->Try;
+		MLC_POP();
+		MLC_RETURN(Value);
+	}
+	if (Function->Must != Loop->Must) {
+		Function->Frame->run = (mlc_frame_fn)ml_exit_expr_compile3;
+		return ml_must_expr_compile(Function, Function->Must, Loop->Must);
+	} else {
+		return ml_exit_expr_compile3(Function, Value, Frame);
+	}
 }
 
 static void ml_exit_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
@@ -657,11 +727,22 @@ static void ml_exit_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Ex
 	}
 }
 
-static void ml_return_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_parent_expr_frame_t *Frame) {
+static void ml_return_expr_compile3(mlc_function_t *Function, ml_value_t *Value, mlc_parent_expr_frame_t *Frame) {
 	mlc_parent_expr_t *Expr = Frame->Expr;
 	MLC_EMIT(Expr->EndLine, MLI_RETURN, 0);
 	MLC_POP();
-	MLC_RETURN(NULL);
+	MLC_RETURN(MLExprGoto);
+}
+
+static void ml_return_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_parent_expr_frame_t *Frame) {
+	if (Function->Must) {
+		Function->Frame->run = (mlc_frame_fn)ml_return_expr_compile3;
+		return ml_must_expr_compile(Function, Function->Must, NULL);
+	}
+	mlc_parent_expr_t *Expr = Frame->Expr;
+	MLC_EMIT(Expr->EndLine, MLI_RETURN, 0);
+	MLC_POP();
+	MLC_RETURN(MLExprGoto);
 }
 
 static void ml_return_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
@@ -673,7 +754,7 @@ static void ml_return_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *
 	} else {
 		MLC_EMIT(Expr->StartLine, MLI_NIL, 0);
 		MLC_EMIT(Expr->EndLine, MLI_RETURN, 0);
-		MLC_RETURN(NULL);
+		MLC_RETURN(MLExprGoto);
 	}
 }
 
@@ -876,6 +957,7 @@ static void ml_for_expr_compile2(mlc_function_t *Function, ml_value_t *Value, ml
 	}
 	Frame->Loop->Up = Function->Loop;
 	Frame->Loop->Try = Function->Try;
+	Frame->Loop->Must = Function->Must;
 	Frame->Loop->Exits = NULL;
 	Frame->Loop->Nexts = NULL;
 	if (Function->Top >= Function->Size) Function->Size = Function->Top + 1;
@@ -925,10 +1007,11 @@ struct mlc_block_t {
 	ml_decl_t *OldDecls;
 	mlc_block_expr_t *Expr;
 	mlc_expr_t *Child;
-	ml_inst_t *CatchInst, *Exits;
+	ml_inst_t *Exits;
 	inthash_t DeclHashes;
 	mlc_try_t Try;
-	int Flags, Size, Top, Must;
+	mlc_expr_t *Must;
+	int Flags, Size, Top;
 	ml_decl_t *Decls[];
 };
 
@@ -1328,16 +1411,45 @@ static void ml_def_unpack_expr_compile(mlc_function_t *Function, mlc_local_expr_
 	return mlc_expr_call(Function, Expr->Child);
 }
 
-static void ml_must_expr_compile(mlc_function_t *Function, mlc_must_expr_t *Expr, int Flags) {
-	ml_inst_t *LoadInst = MLC_EMIT(Expr->StartLine, MLI_LOAD, 1);
-	LoadInst[1].Value = ml_integer(Expr->Index);
-	ml_inst_t *LetInst = MLC_EMIT(Expr->StartLine, MLI_LET, 1);
-	LetInst[1].Count = Function->Block->Must;
-	if (Flags & MLCF_PUSH) {
-		LoadInst->Opcode = MLI_LOAD_PUSH;
+static void ml_block_expr_compile5(mlc_function_t *Function, ml_value_t *Value, mlc_block_t *Frame) {
+	mlc_block_expr_t *Expr = Frame->Expr;
+	MLC_EMIT(Expr->EndLine, MLI_RETRY, 0);
+	MLC_LINK(Frame->Exits, Function->Next);
+	if (Frame->Flags & MLCF_PUSH) {
+		MLC_EMIT(Expr->EndLine, MLI_PUSH, 0);
 		mlc_inc_top(Function);
 	}
+	MLC_POP();
 	MLC_RETURN(NULL);
+}
+
+static void ml_block_expr_compile4(mlc_function_t *Function, ml_value_t *Value, mlc_block_t *Frame) {
+	mlc_block_expr_t *Expr = Frame->Expr;
+	Function->Must = Frame->Must;
+	Frame->Exits = NULL;
+	Function->Try = Function->Try->Up;
+	ml_inst_t *TryInst = MLC_EMIT(Expr->EndLine, MLI_TRY, 1);
+	if (Function->Try) {
+		TryInst[1].Inst = Function->Try->Retries;
+		Function->Try->Retries = TryInst + 1;
+	} else {
+		TryInst[1].Inst = Function->Returns;
+		Function->Returns = TryInst + 1;
+	}
+	ml_inst_t *GotoInst = MLC_EMIT(Expr->EndLine, MLI_GOTO, 1);
+	GotoInst[1].Inst = Frame->Exits;
+	Frame->Exits = GotoInst + 1;
+	MLC_LINK(Frame->Try.Retries, Function->Next);
+	Function->Frame->run = (mlc_frame_fn)ml_block_expr_compile5;
+	ml_inst_t *CatchInst = MLC_EMIT(Expr->Must->StartLine, MLI_TRY, 1);
+	if (Function->Try) {
+		CatchInst[1].Inst = Function->Try->Retries;
+		Function->Try->Retries = CatchInst + 1;
+	} else {
+		CatchInst[1].Inst = Function->Returns;
+		Function->Returns = CatchInst + 1;
+	}
+	return ml_must_expr_compile(Function, Expr->Must, Frame->Must);
 }
 
 static void ml_block_expr_compile3(mlc_function_t *Function, ml_value_t *Value, mlc_block_t *Frame) {
@@ -1350,10 +1462,6 @@ static void ml_block_expr_compile3(mlc_function_t *Function, ml_value_t *Value, 
 	ml_inst_t *GotoInst = MLC_EMIT(Expr->CatchBody->EndLine, MLI_GOTO, 1);
 	GotoInst[1].Inst = Frame->Exits;
 	Frame->Exits = GotoInst + 1;
-	if (Frame->CatchInst) {
-		Frame->CatchInst[1].Inst = Function->Next;
-		MLC_EMIT(Expr->EndLine, MLI_RETRY, 0);
-	}
 	MLC_LINK(Frame->Exits, Function->Next);
 	if (Frame->Flags & MLCF_PUSH) {
 		MLC_EMIT(Expr->EndLine, MLI_PUSH, 0);
@@ -1397,7 +1505,6 @@ static void ml_block_expr_compile2(mlc_function_t *Function, ml_value_t *Value, 
 		GotoInst[1].Inst = Frame->Exits;
 		Frame->Exits = GotoInst + 1;
 		MLC_LINK(Frame->Try.Retries, Function->Next);
-
 		Function->Frame->run = (mlc_frame_fn)ml_block_expr_compile3;
 		ml_decl_t *Decl = new(ml_decl_t);
 		Decl->Source.Name = Function->Source;
@@ -1419,6 +1526,9 @@ static void ml_block_expr_compile2(mlc_function_t *Function, ml_value_t *Value, 
 		CatchInst[2].Count = Frame->Top;
 		CatchInst[3].Decls = Function->Decls;
 		return mlc_compile(Function, Expr->CatchBody, 0);
+	} else if (Expr->Must) {
+		Function->Frame->run = (mlc_frame_fn)ml_block_expr_compile4;
+		return ml_must_expr_compile(Function, Expr->Must, Frame->Must);
 	}
 	if (Frame->Flags & MLCF_PUSH) {
 		MLC_EMIT(Expr->EndLine, MLI_PUSH, 0);
@@ -1435,7 +1545,6 @@ static void ml_block_expr_compile(mlc_function_t *Function, mlc_block_expr_t *Ex
 	Frame->Flags = Flags;
 	Frame->Top = Function->Top;
 	Frame->OldDecls = Function->Decls;
-	Frame->CatchInst = NULL;
 	if (Expr->CatchBody) {
 		ml_inst_t *TryInst = MLC_EMIT(Expr->StartLine, MLI_TRY, 1);
 		TryInst[1].Inst = NULL;
@@ -1443,6 +1552,16 @@ static void ml_block_expr_compile(mlc_function_t *Function, mlc_block_expr_t *Ex
 		Frame->Try.Retries = TryInst + 1;
 		Frame->Try.Top = Function->Top;
 		Function->Try = &Frame->Try;
+	} else if (Expr->Must) {
+		ml_inst_t *TryInst = MLC_EMIT(Expr->StartLine, MLI_TRY, 1);
+		TryInst[1].Inst = NULL;
+		Frame->Try.Up = Function->Try;
+		Frame->Try.Retries = TryInst + 1;
+		Frame->Try.Top = Function->Top;
+		Function->Try = &Frame->Try;
+		Frame->Must = Function->Must;
+		Expr->Must->Next = Function->Must;
+		Function->Must = Expr->Must;
 	}
 	int Top = Function->Top;
 	ml_decl_t *Last = Function->Decls, *Decls = Last;
@@ -4833,7 +4952,6 @@ typedef struct {
 	mlc_local_t **VarsSlot;
 	mlc_local_t **LetsSlot;
 	mlc_local_t **DefsSlot;
-	mlc_expr_t *MustExpr;
 } ml_accept_block_t;
 
 static void ml_accept_block_var(ml_parser_t *Parser, ml_accept_block_t *Accept) {
@@ -5098,10 +5216,6 @@ static void ml_accept_block_fun(ml_parser_t *Parser, ml_accept_block_t *Accept) 
 	}
 }
 
-static void ml_accept_block_must(ml_parser_t *Parser, ml_accept_block_t *Accept) {
-
-}
-
 static mlc_expr_t *ml_accept_block_export(ml_parser_t *Parser, mlc_expr_t *Expr, mlc_local_t *Export) {
 	ML_EXPR(CallExpr, parent, call);
 	CallExpr->Child = Expr;
@@ -5228,8 +5342,12 @@ static mlc_block_expr_t *ml_accept_block_body(ml_parser_t *Parser) {
 		}
 		case MLT_MUST: {
 			ml_next(Parser);
-			ml_accept_block_must(Parser, Accept);
-			break;
+			mlc_expr_t *Must = ml_accept_expression(Parser, EXPR_DEFAULT);
+			mlc_block_expr_t *MustExpr = ml_accept_block_body(Parser);
+			MustExpr->Must = Must;
+			Accept->ExprSlot[0] = ML_EXPR_END(MustExpr);
+			Accept->ExprSlot = &MustExpr->Next;
+			goto finish;
 		}
 		default: {
 			mlc_expr_t *Expr = ml_parse_block_expr(Parser, Accept);

@@ -7,6 +7,12 @@
 polynomial
 ==========
 
+.. _fun-mlpolynomialroots:
+
+:mini:`fun mlpolynomialroots()`
+   *TBD*
+
+
 :mini:`meth (A: number) * (B: polynomial::rational): polynomial::rational`
    Returns :mini:`A * B`.
 

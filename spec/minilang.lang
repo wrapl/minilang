@@ -153,6 +153,7 @@
       <keyword>debug</keyword>
       <keyword>switch</keyword>
       <keyword>case</keyword>
+      <keyword>must</keyword>
     </context>
     <context id="functions" style-ref="function">
       <keyword>print</keyword>

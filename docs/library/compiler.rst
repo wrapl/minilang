@@ -7,6 +7,12 @@
 compiler
 ========
 
+.. _value-MLExprGoto:
+
+:mini:`def MLExprGoto: expr::goto`
+   *TBD*
+
+
 .. _fun-mllistofargs:
 
 :mini:`fun mllistofargs()`
