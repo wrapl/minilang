@@ -462,7 +462,6 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_CALL] = &&DO_CALL,
 		[MLI_TAIL_CALL] = &&DO_TAIL_CALL,
 		[MLI_CATCH] = &&DO_CATCH,
-		[MLI_CATCH_TYPE] = &&DO_CATCH_TYPE,
 		[MLI_CLOSURE] = &&DO_CLOSURE,
 		[MLI_CLOSURE_TYPED] = &&DO_CLOSURE_TYPED,
 		[MLI_CALL_CONST_0] = &&DO_CALL_CONST_0,
@@ -539,6 +538,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_PARTIAL_NEW] = &&DO_PARTIAL_NEW,
 		[MLI_PARTIAL_SET] = &&DO_PARTIAL_SET,
 		[MLI_POP] = &&DO_POP,
+		[MLI_POPX] = &&DO_POPX,
 		[MLI_PUSH] = &&DO_PUSH,
 		[MLI_REF] = &&DO_REF,
 		[MLI_REFI] = &&DO_REFI,
@@ -628,8 +628,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst + 1);
 	}
 	DO_NIL_PUSH: {
-		Result = *Top = MLNil;
-		++Top;
+		Result = *Top++ = MLNil;
 		ADVANCE(Inst + 1);
 	}
 	DO_AND: {
@@ -643,13 +642,11 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst + 1);
 	}
 	DO_PUSH: {
-		*Top = Result;
-		++Top;
+		*Top++ = Result;
 		ADVANCE(Inst + 1);
 	}
 	DO_WITH: {
-		*Top = Result;
-		++Top;
+		*Top++ = Result;
 		FRAME_DECLS(Inst[1].Decls);
 		ADVANCE(Inst + 2);
 	}
@@ -659,8 +656,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		for (int I = 0; I < Count; ++I) {
 			Result = ml_unpack(Packed, I + 1);
 			ERROR_CHECK(Result);
-			*Top = Result;
-			++Top;
+			*Top++ = Result;
 		}
 		FRAME_DECLS(Inst[2].Decls);
 		ADVANCE(Inst + 3);
@@ -675,13 +671,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			ml_variable_t *Local = new(ml_variable_t);
 			Local->Type = MLVariableT;
 			Local->Value = MLNil;
-			*Top = (ml_value_t *)Local;
-			++Top;
+			*Top++ = (ml_value_t *)Local;
 		}
-		for (int I = Inst[2].Count; --I >= 0;) {
-			*Top = NULL;
-			++Top;
-		}
+		for (int I = Inst[2].Count; --I >= 0;) *Top++ = NULL;
 		FRAME_DECLS(Inst[3].Decls);
 		ADVANCE(Inst + 4);
 	}
@@ -697,21 +689,6 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->OnError = Inst[1].Inst;
 		ADVANCE(Inst + 2);
 	}
-	DO_CATCH_TYPE: {
-		if (!ml_is_error(Result)) {
-			Result = ml_error("InternalError", "expected error value, not %s", ml_typeof(Result)->Name);
-			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
-			ERROR();
-		}
-		const char *Type = ml_error_type(Result);
-		for (const char **Ptr = Inst[2].Ptrs; *Ptr; ++Ptr) {
-			if (!Ptr) break;
-			if (!strcmp(*Ptr, Type)) goto match;
-		}
-		ADVANCE(Inst[1].Inst);
-	match:
-		ADVANCE(Inst + 3);
-	}
 	DO_CATCH: {
 		Frame->OnError = Inst[1].Inst;
 		if (!ml_is_error(Result)) {
@@ -722,8 +699,19 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Result = ml_error_unwrap(Result);
 		ml_value_t **Old = Frame->Stack + Inst[2].Count;
 		while (Top > Old) *--Top = NULL;
-		*Top = Result;
-		++Top;
+		*Top++ = Result;
+		FRAME_DECLS(Inst[3].Decls);
+		ADVANCE(Inst + 4);
+	}
+	DO_POPX: {
+		Frame->OnError = Inst[1].Inst;
+		if (!ml_is_error(Result)) {
+			Result = ml_error("InternalError", "expected error value, not %s", ml_typeof(Result)->Name);
+			ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
+			ERROR();
+		}
+		ml_value_t **Old = Frame->Stack + Inst[2].Count;
+		while (Top > Old) *--Top = NULL;
 		FRAME_DECLS(Inst[3].Decls);
 		ADVANCE(Inst + 4);
 	}
@@ -735,8 +723,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst + 2);
 	}
 	DO_LOAD_PUSH: {
-		Result = *Top = Inst[1].Value;
-		++Top;
+		Result = *Top++ = Inst[1].Value;
 		ADVANCE(Inst + 2);
 	}
 	DO_LOAD_VAR: {
@@ -846,8 +833,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		if (Result == MLNil) {
 			ADVANCE(Inst[1].Inst);
 		} else {
-			*Top = Result;
-			++Top;
+			*Top++ = Result;
 			ADVANCE(Inst + 2);
 		}
 	}
@@ -1108,8 +1094,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst + 2);
 	}
 	DO_LIST_NEW: {
-		*Top = ml_list();
-		++Top;
+		*Top++ = ml_list();
 		ADVANCE(Inst + 1);
 	}
 	DO_LIST_APPEND: {
@@ -1118,8 +1103,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst + 1);
 	}
 	DO_MAP_NEW: {
-		*Top = ml_map();
-		++Top;
+		*Top++ = ml_map();
 		ADVANCE(Inst + 1);
 	}
 	DO_MAP_INSERT: {
@@ -1193,8 +1177,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	}
 	DO_PARTIAL_NEW: {
 		Result = ml_deref(Result);
-		*Top = ml_partial_function(Result, Inst[1].Count);
-		++Top;
+		*Top++ = ml_partial_function(Result, Inst[1].Count);
 		ADVANCE(Inst + 2);
 	}
 	DO_PARTIAL_SET: {
@@ -1203,8 +1186,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst + 2);
 	}
 	DO_STRING_NEW: {
-		*Top = ml_stringbuffer();
-		++Top;
+		*Top++ = ml_stringbuffer();
 		ADVANCE(Inst + 1);
 	}
 	DO_STRING_ADD: {
@@ -1478,9 +1460,6 @@ static int ml_closure_find_labels(ml_inst_t *Inst, unsigned int *Labels) {
 	case MLIT_INST_COUNT_DECL:
 		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
 		return 4;
-	case MLIT_INST_TYPES:
-		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
-		return 3;
 	case MLIT_COUNT_COUNT: return 3;
 	case MLIT_COUNT: return 2;
 	case MLIT_VALUE: return 2;
@@ -1530,11 +1509,6 @@ static int ml_inst_hash(ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) 
 		*(int *)(Info->Hash + I) ^= Inst[1].Inst->Label;
 		*(int *)(Info->Hash + J) ^= Inst[2].Count;
 		return 4;
-	case MLIT_INST_TYPES:
-		for (const char **Ptr = Inst[2].Ptrs; *Ptr; ++Ptr) {
-			*(long *)(Info->Hash + J) ^= stringmap_hash(*Ptr);
-		}
-		return 3;
 	case MLIT_COUNT_COUNT:
 		*(int *)(Info->Hash + I) ^= Inst[1].Count;
 		*(int *)(Info->Hash + J) ^= Inst[2].Count;
@@ -1679,10 +1653,6 @@ static void ML_TYPED_FN(ml_value_find_refs, MLClosureInfoT, ml_closure_info_t *I
 		case MLIT_INST_COUNT_DECL:
 			Inst += 4;
 			break;
-		case MLIT_INST_TYPES: {
-			Inst += 3;
-			break;
-		}
 		case MLIT_COUNT_COUNT:
 			Inst += 3;
 			break;
@@ -1822,11 +1792,6 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 			ml_stringbuffer_printf(Buffer, " -");
 		}
 		return 4;
-	}
-	case MLIT_INST_TYPES: {
-		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
-		for (const char **Ptr = Inst[2].Ptrs; *Ptr; ++Ptr) ml_stringbuffer_printf(Buffer, " %s", *Ptr);
-		return 3;
 	}
 	case MLIT_COUNT_COUNT:
 		ml_stringbuffer_printf(Buffer, " %d, %d", Inst[1].Count, Inst[2].Count);

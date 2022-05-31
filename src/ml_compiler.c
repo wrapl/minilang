@@ -1451,15 +1451,17 @@ static void ml_block_expr_compile4(mlc_function_t *Function, ml_value_t *Value, 
 	GotoInst[1].Inst = Frame->Exits;
 	Frame->Exits = GotoInst + 1;
 	MLC_LINK(Frame->Try.Retries, Function->Next);
-	Function->Frame->run = (mlc_frame_fn)ml_block_expr_compile5;
-	ml_inst_t *CatchInst = MLC_EMIT(Expr->Must->StartLine, MLI_TRY, 1);
+	ml_inst_t *PopInst = MLC_EMIT(Expr->Must->StartLine, MLI_POPX, 3);
 	if (Function->Try) {
-		CatchInst[1].Inst = Function->Try->Retries;
-		Function->Try->Retries = CatchInst + 1;
+		PopInst[1].Inst = Function->Try->Retries;
+		Function->Try->Retries = PopInst + 1;
 	} else {
-		CatchInst[1].Inst = Function->Returns;
-		Function->Returns = CatchInst + 1;
+		PopInst[1].Inst = Function->Returns;
+		Function->Returns = PopInst + 1;
 	}
+	PopInst[2].Count = Frame->Top;
+	PopInst[3].Decls = Function->Decls;
+	Function->Frame->run = (mlc_frame_fn)ml_block_expr_compile5;
 	return ml_must_expr_compile(Function, &Frame->Must, Frame->OldMust);
 }
 
@@ -1516,7 +1518,6 @@ static void ml_block_expr_compile2(mlc_function_t *Function, ml_value_t *Value, 
 		GotoInst[1].Inst = Frame->Exits;
 		Frame->Exits = GotoInst + 1;
 		MLC_LINK(Frame->Try.Retries, Function->Next);
-		Function->Frame->run = (mlc_frame_fn)ml_block_expr_compile3;
 		ml_decl_t *Decl = new(ml_decl_t);
 		Decl->Source.Name = Function->Source;
 		Decl->Source.Line = Expr->CatchBody->StartLine;
@@ -1536,6 +1537,7 @@ static void ml_block_expr_compile2(mlc_function_t *Function, ml_value_t *Value, 
 		}
 		CatchInst[2].Count = Frame->Top;
 		CatchInst[3].Decls = Function->Decls;
+		Function->Frame->run = (mlc_frame_fn)ml_block_expr_compile3;
 		return mlc_compile(Function, Expr->CatchBody, 0);
 	} else if (Expr->Must) {
 		Function->Frame->run = (mlc_frame_fn)ml_block_expr_compile4;

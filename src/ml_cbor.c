@@ -783,9 +783,6 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *
 			ml_closure_find_decl(DeclBuffer, Decls, Inst[3].Decls);
 			Inst += 4;
 			break;
-		case MLIT_INST_TYPES:
-			Inst += 3;
-			break;
 		case MLIT_COUNT_COUNT:
 			Inst += 3;
 			break;
@@ -861,15 +858,6 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *
 			vlq64_encode(Buffer, (uintptr_t)inthash_search(Decls, (uintptr_t)Inst[3].Decls));
 			Inst += 4;
 			break;
-		case MLIT_INST_TYPES: {
-			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
-			int Count = 0;
-			for (const char **Ptr = Inst[2].Ptrs; *Ptr; ++Ptr) ++Count;
-			vlq64_encode(Buffer, Count);
-			for (const char **Ptr = Inst[2].Ptrs; *Ptr; ++Ptr) vlq64_encode_string(Buffer, *Ptr);
-			Inst += 3;
-			break;
-		}
 		case MLIT_COUNT_COUNT:
 			vlq64_encode(Buffer, Inst[1].Count);
 			vlq64_encode(Buffer, Inst[2].Count);
@@ -1319,13 +1307,6 @@ ML_FUNCTION(DecodeClosureInfo) {
 		case MLIT_VALUE_DATA:
 			NEXT_VALUE(Inst[1].Value);
 			Inst += 3; break;
-		case MLIT_INST_TYPES: {
-			Inst[1].Inst = Code + VLQ64_NEXT();
-			int Count2 = VLQ64_NEXT();
-			const char **Ptrs = Inst[2].Ptrs = anew(const char *, Count2 + 1);
-			for (int J = 0; J < Count2; ++J) *Ptrs++ = VLQ64_NEXT_STRING();
-			Inst += 3; break;
-		}
 		case MLIT_COUNT_COUNT:
 			Inst[1].Count = VLQ64_NEXT();
 			Inst[2].Count = VLQ64_NEXT();

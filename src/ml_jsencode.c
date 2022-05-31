@@ -305,7 +305,6 @@ static int ml_closure_find_labels(ml_inst_t *Inst, uintptr_t *Offset) {
 	case MLIT_NONE: *Offset += 2; return 1;
 	case MLIT_INST: *Offset += 3; return 2;
 	case MLIT_INST_COUNT_DECL: *Offset += 5; return 4;
-	case MLIT_INST_TYPES: *Offset += 4; return 3;
 	case MLIT_COUNT_COUNT: *Offset += 4; return 3;
 	case MLIT_COUNT: *Offset += 3; return 2;
 	case MLIT_VALUE: *Offset += 3; return 2;
@@ -338,14 +337,6 @@ static int ml_closure_inst_encode(ml_inst_t *Inst, ml_json_encoder_cache_t *Cach
 		json_array_append_new(Json, json_integer(Inst[2].Count));
 		json_array_append(Json, ml_closure_decl_encode(Inst[3].Decls, Decls));
 		return 4;
-	case MLIT_INST_TYPES: {
-		json_array_append_new(Json, json_integer((uintptr_t)inthash_search(Labels, Inst[1].Inst->Label)));
-		json_t *Types = json_array();
-		for (const char **Ptr = Inst[2].Ptrs; *Ptr; ++Ptr) {
-			json_array_append_new(Types, json_string(*Ptr));
-		}
-		return 3;
-	}
 	case MLIT_COUNT_COUNT:
 		json_array_append_new(Json, json_integer(Inst[1].Count));
 		json_array_append_new(Json, json_integer(Inst[2].Count));
@@ -721,7 +712,6 @@ static ml_closure_info_t *ml_json_decode_closure_info(ml_json_decoder_cache_t *C
 			I += 3; Offset += 2; break;
 		case MLIT_VALUE_DATA:
 			I += 3; Offset += 3; break;
-		case MLIT_INST_TYPES:
 		case MLIT_COUNT_COUNT:
 		case MLIT_VALUE_COUNT:
 			I += 4; Offset += 3; break;
@@ -786,15 +776,6 @@ static ml_closure_info_t *ml_json_decode_closure_info(ml_json_decoder_cache_t *C
 		case MLIT_VALUE_DATA:
 			Inst[1].Value = ml_json_decode(Cache, json_array_get(Instructions, I++));
 			Inst += 3; break;
-		case MLIT_INST_TYPES: {
-			Inst[1].Inst = Code + Offsets[json_integer_value(json_array_get(Instructions, I++))];
-			json_t *Types = json_array_get(Instructions, I++);
-			const char **Ptrs = Inst[2].Ptrs = anew(const char *, json_array_size(Types) + 1);
-			for (int J = 0; J < json_array_size(Types); ++J) {
-				*Ptrs++ = json_string_value(json_array_get(Types, J));
-			}
-			Inst += 3; break;
-		}
 		case MLIT_COUNT_COUNT:
 			Inst[1].Count = json_integer_value(json_array_get(Instructions, I++));
 			Inst[2].Count = json_integer_value(json_array_get(Instructions, I++));
