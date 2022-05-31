@@ -71,6 +71,7 @@ typedef struct mlc_frame_t mlc_frame_t;
 typedef struct mlc_loop_t mlc_loop_t;
 typedef struct mlc_block_t mlc_block_t;
 typedef struct mlc_try_t mlc_try_t;
+typedef struct mlc_must_t mlc_must_t;
 typedef struct mlc_upvalue_t mlc_upvalue_t;
 typedef struct mlc_define_t mlc_define_t;
 
@@ -93,7 +94,7 @@ struct mlc_function_t {
 	mlc_define_t *Defines;
 	mlc_loop_t *Loop;
 	mlc_try_t *Try;
-	mlc_expr_t *Must;
+	mlc_must_t *Must;
 	mlc_upvalue_t *UpValues;
 	ml_inst_t *Next, *Returns;
 	int Top, Size, Self, Space;
