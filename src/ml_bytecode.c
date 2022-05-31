@@ -462,6 +462,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_CALL] = &&DO_CALL,
 		[MLI_TAIL_CALL] = &&DO_TAIL_CALL,
 		[MLI_CATCH] = &&DO_CATCH,
+		[MLI_CATCHX] = &&DO_CATCHX,
 		[MLI_CLOSURE] = &&DO_CLOSURE,
 		[MLI_CLOSURE_TYPED] = &&DO_CLOSURE_TYPED,
 		[MLI_CALL_CONST_0] = &&DO_CALL_CONST_0,
@@ -538,7 +539,6 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_PARTIAL_NEW] = &&DO_PARTIAL_NEW,
 		[MLI_PARTIAL_SET] = &&DO_PARTIAL_SET,
 		[MLI_POP] = &&DO_POP,
-		[MLI_POPX] = &&DO_POPX,
 		[MLI_PUSH] = &&DO_PUSH,
 		[MLI_REF] = &&DO_REF,
 		[MLI_REFI] = &&DO_REFI,
@@ -703,7 +703,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		FRAME_DECLS(Inst[3].Decls);
 		ADVANCE(Inst + 4);
 	}
-	DO_POPX: {
+	DO_CATCHX: {
 		Frame->OnError = Inst[1].Inst;
 		if (!ml_is_error(Result)) {
 			Result = ml_error("InternalError", "expected error value, not %s", ml_typeof(Result)->Name);

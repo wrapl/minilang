@@ -1451,7 +1451,7 @@ static void ml_block_expr_compile4(mlc_function_t *Function, ml_value_t *Value, 
 	GotoInst[1].Inst = Frame->Exits;
 	Frame->Exits = GotoInst + 1;
 	MLC_LINK(Frame->Try.Retries, Function->Next);
-	ml_inst_t *PopInst = MLC_EMIT(Expr->Must->StartLine, MLI_POPX, 3);
+	ml_inst_t *PopInst = MLC_EMIT(Expr->Must->StartLine, MLI_CATCHX, 3);
 	if (Function->Try) {
 		PopInst[1].Inst = Function->Try->Retries;
 		Function->Try->Retries = PopInst + 1;
