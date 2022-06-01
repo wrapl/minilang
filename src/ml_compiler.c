@@ -2070,7 +2070,6 @@ static void ml_call_expr_compile2(mlc_function_t *Function, ml_value_t *Value, m
 		}
 		++Index;
 	}
-	PartialInst[1].Count = Frame->Count;
 	if (!(Frame->Flags & MLCF_PUSH)) {
 		MLC_EMIT(Expr->EndLine, MLI_POP, 0);
 		--Function->Top;
@@ -2182,6 +2181,12 @@ static void ml_call_expr_compile4(mlc_function_t *Function, ml_value_t *Value, m
 	}
 }
 
+ML_FUNCTIONX(MLCall) {
+//!internal
+	ML_CHECKX_ARG_COUNT(1);
+	return ml_call(Caller, Args[0], Count - 1, Args + 1);
+}
+
 static void ml_call_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
 	MLC_FRAME(ml_call_expr_frame_t, ml_call_expr_compile4);
 	Frame->Expr = (mlc_expr_t *)Expr;
@@ -2190,6 +2195,29 @@ static void ml_call_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Ex
 	for (mlc_expr_t *Child = Expr->Child->Next; Child; Child = Child->Next) ++Count;
 	Frame->Count = Count;
 	Frame->Flags = Flags;
+	if (Expr->Child->compile == (void *)ml_blank_expr_compile) {
+		ml_inst_t *LoadInst = MLC_EMIT(Expr->StartLine, MLI_LOAD, 1);
+		LoadInst[1].Value = (ml_value_t *)MLCall;
+		ml_inst_t *PartialInst = MLC_EMIT(Expr->StartLine, MLI_PARTIAL_NEW, 1);
+		PartialInst[1].Count = Frame->Count + 1;
+		mlc_inc_top(Function);
+		Function->Frame->run = (mlc_frame_fn)ml_call_expr_compile3;
+		int Index = 0;
+		for (mlc_expr_t *Child = Expr->Child->Next; Child; Child = Child->Next) {
+			++Index;
+			if (Child->compile != (void *)ml_blank_expr_compile) {
+				Frame->Index = Index;
+				Frame->Child = Child;
+				return mlc_compile(Function, Child, 0);
+			}
+		}
+		if (!Flags & MLCF_PUSH) {
+			MLC_EMIT(Expr->EndLine, MLI_POP, 0);
+			--Function->Top;
+		}
+		MLC_POP();
+		MLC_RETURN(NULL);
+	}
 	for (mlc_expr_t *Child = Expr->Child->Next; Child; Child = Child->Next) {
 		if (Child->compile == (void *)ml_blank_expr_compile) {
 			Function->Frame->run = (mlc_frame_fn)ml_call_expr_compile2;

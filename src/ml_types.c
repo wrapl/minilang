@@ -244,6 +244,7 @@ const char *ml_type_name(const ml_value_t *Value) {
 
 void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent) {
 	if (inthash_insert(Type->Parents, (uintptr_t)Parent, Parent)) return;
+	//inthash_insert(Type->Parents, (uintptr_t)Parent, Parent);
 	for (int I = 0; I < Parent->Parents->Size; ++I) {
 		ml_type_t *Parent2 = (ml_type_t *)Parent->Parents->Keys[I];
 		if (Parent2) ml_type_add_parent(Type, Parent2);
@@ -2125,6 +2126,7 @@ void ml_init(stringmap_t *Globals) {
 #include "ml_types_init.c"
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLTupleT, MLSequenceT, MLIntegerT, MLAnyT, NULL);
+	ml_type_add_rule(MLTupleT, MLFunctionT, MLTupleT, NULL);
 #endif
 	stringmap_insert(MLTypeT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLTypeSwitch));
 #ifdef ML_COMPLEX
