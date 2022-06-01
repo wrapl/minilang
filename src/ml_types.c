@@ -243,7 +243,7 @@ const char *ml_type_name(const ml_value_t *Value) {
 }
 
 void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent) {
-	inthash_insert(Type->Parents, (uintptr_t)Parent, Parent);
+	if (inthash_insert(Type->Parents, (uintptr_t)Parent, Parent)) return;
 	for (int I = 0; I < Parent->Parents->Size; ++I) {
 		ml_type_t *Parent2 = (ml_type_t *)Parent->Parents->Keys[I];
 		if (Parent2) ml_type_add_parent(Type, Parent2);
