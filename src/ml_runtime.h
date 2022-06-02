@@ -213,9 +213,10 @@ int ml_scheduler_queue_add_signal(ml_state_t *State, ml_value_t *Value);
 #define ml_scheduler_queue_add_signal ml_scheduler_queue_add
 #endif
 
-// Semaphores
+// Locks
 
 extern ml_type_t MLSemaphoreT[];
+extern ml_type_t MLRWLockT[];
 
 // Channels
 

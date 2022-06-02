@@ -222,6 +222,7 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "swapcc", MLSwapCC);
 	stringmap_insert(Globals, "channel", MLChannelT);
 	stringmap_insert(Globals, "semaphore", MLSemaphoreT);
+	stringmap_insert(Globals, "rwlock", MLRWLockT);
 #ifdef ML_SCHEDULER_
 	stringmap_insert(Globals, "atomic", MLAtomic);
 #endif
