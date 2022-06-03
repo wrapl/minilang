@@ -25,12 +25,6 @@ runtime
    *TBD*
 
 
-.. _fun-mlrwlock:
-
-:mini:`fun mlrwlock()`
-   *TBD*
-
-
 .. _fun-markcc:
 
 :mini:`fun markcc(Arg₁: any)`

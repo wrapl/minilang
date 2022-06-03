@@ -1018,6 +1018,8 @@ ML_FUNCTION(MLSemaphore) {
 //!semaphore
 //@semaphore
 //<Initial? : integer
+//>semaphore
+// Returns a new semaphore with initial value :mini:`Initial` or :mini:`1` if no initial value is specified.
 	if (Count > 0) ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	ml_semaphore_t *Semaphore = new(ml_semaphore_t);
 	Semaphore->Type = MLSemaphoreT;
@@ -1031,17 +1033,20 @@ ML_FUNCTION(MLSemaphore) {
 
 ML_TYPE(MLSemaphoreT, (), "semaphore",
 //!semaphore
+// A semaphore for synchronizing concurrent code.
 	.Constructor = (ml_value_t *)MLSemaphore
 );
 
 ML_METHODX("wait", MLSemaphoreT) {
 //!semaphore
 //<Semaphore
+//>integer
+// Waits until the internal value in :mini:`Semaphore` is postive, then decrements it and returns the new value.
 	ml_semaphore_t *Semaphore = (ml_semaphore_t *)Args[0];
 	int64_t Value = Semaphore->Value;
 	if (Value) {
 		Semaphore->Value = Value - 1;
-		ML_RETURN(Semaphore);
+		ML_RETURN(ml_integer(Semaphore->Value));
 	}
 	if (++Semaphore->Fill > Semaphore->Size) {
 		int Size = Semaphore->Size * 2;
@@ -1059,6 +1064,8 @@ ML_METHODX("wait", MLSemaphoreT) {
 ML_METHOD("signal", MLSemaphoreT) {
 //!semaphore
 //<Semaphore
+//>integer
+// Increments the internal value in :mini:`Semaphore`, resuming any waiters. Returns the new value.
 	ml_semaphore_t *Semaphore = (ml_semaphore_t *)Args[0];
 	int Fill = Semaphore->Fill;
 	if (Fill) {
@@ -1070,12 +1077,14 @@ ML_METHOD("signal", MLSemaphoreT) {
 	} else {
 		++Semaphore->Value;
 	}
-	return (ml_value_t *)Semaphore;
+	return ml_integer(Semaphore);
 }
 
 ML_METHOD("value", MLSemaphoreT) {
 //!semaphore
 //<Semaphore
+//>integer
+// Returns the internal value in :mini:`Semaphore`.
 	ml_semaphore_t *Semaphore = (ml_semaphore_t *)Args[0];
 	return ml_integer(Semaphore->Value);
 }
@@ -1093,6 +1102,10 @@ typedef struct {
 } ml_rw_lock_t;
 
 ML_FUNCTION(MLRWLock) {
+//!rwlock
+//@rwlock
+//>rwlock
+// Returns a new read-write lock.
 	ml_rw_lock_t *RWLock = new(ml_rw_lock_t);
 	RWLock->Type = MLRWLockT;
 	RWLock->Readers = RWLock->Writers = 0;
@@ -1105,11 +1118,14 @@ ML_FUNCTION(MLRWLock) {
 
 ML_TYPE(MLRWLockT, (), "rwlock",
 //!rwlock
+// A read-write lock for synchronizing concurrent code.
 	.Constructor = (ml_value_t *)MLRWLock
 );
 
 ML_METHODX("rdlock", MLRWLockT) {
 //!rwlock
+//<Lock
+// Locks :mini:`Lock` for reading, waiting if there are any writers using or waiting to use :mini:`Lock`.
 	ml_rw_lock_t *RWLock = (ml_rw_lock_t *)Args[0];
 	if (!RWLock->Writers) {
 		++RWLock->Readers;
@@ -1131,6 +1147,8 @@ ML_METHODX("rdlock", MLRWLockT) {
 
 ML_METHODX("wrlock", MLRWLockT) {
 //!rwlock
+//<Lock
+// Locks :mini:`Lock` for reading, waiting if there are any readers or other writers using :mini:`Lock`.
 	ml_rw_lock_t *RWLock = (ml_rw_lock_t *)Args[0];
 	if (!RWLock->Writers && !RWLock->Readers) {
 		RWLock->Writers = 1;
@@ -1153,6 +1171,8 @@ ML_METHODX("wrlock", MLRWLockT) {
 
 ML_METHOD("unlock", MLRWLockT) {
 //!rwlock
+//<Lock
+// Unlocks :mini:`Lock`, resuming any waiting writers or readers (giving preference to writers).
 	ml_rw_lock_t *RWLock = (ml_rw_lock_t *)Args[0];
 	if (RWLock->Readers) --RWLock->Readers;
 	RWLock->Writers = 0;

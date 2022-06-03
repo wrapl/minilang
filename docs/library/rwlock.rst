@@ -10,18 +10,24 @@ rwlock
 .. _type-rwlock:
 
 :mini:`type rwlock`
-   *TBD*
+   A read-write lock for synchronizing concurrent code.
 
 
-:mini:`meth (Arg₁: rwlock):rdlock`
-   *TBD*
+.. _fun-rwlock:
+
+:mini:`fun rwlock(): rwlock`
+   Returns a new read-write lock.
 
 
-:mini:`meth (Arg₁: rwlock):unlock`
-   *TBD*
+:mini:`meth (Lock: rwlock):rdlock`
+   Locks :mini:`Lock` for reading,  waiting if there are any writers using or waiting to use :mini:`Lock`.
 
 
-:mini:`meth (Arg₁: rwlock):wrlock`
-   *TBD*
+:mini:`meth (Lock: rwlock):unlock`
+   Unlocks :mini:`Lock`,  resuming any waiting writers or readers (giving preference to writers).
+
+
+:mini:`meth (Lock: rwlock):wrlock`
+   Locks :mini:`Lock` for reading,  waiting if there are any readers or other writers using :mini:`Lock`.
 
 

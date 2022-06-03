@@ -377,6 +377,18 @@ sequence
       :> [(1, c), (2, a), (3, k)]
 
 
+.. _fun-zip2:
+
+:mini:`fun zip2(Sequence₁, : sequence, ..., KeyFn: any, ValueFn: any): sequence`
+   Returns a new sequence that produces :mini:`KeyFn(K₁₁,  ...,  Kₙ₁) - ValueFn(V₁₁,  ...,  Vₙ₁),  ...` where :mini:`Kᵢⱼ - Vᵢⱼ` are the :mini:`j`-th key and value produced by :mini:`Sequenceᵢ`.
+   The sequence stops produces values when any of the :mini:`Sequenceᵢ` stops.
+
+   .. code-block:: mini
+
+      map(zip2(1 .. 3, "cake", tuple, tuple))
+      :> {(1, 1) is (1, c), (2, 2) is (2, a), (3, 3) is (3, k)}
+
+
 :mini:`meth (Base: sequence) -> (F: function): sequence`
    Returns a chained sequence equivalent to :mini:`(K₁,  F(V₁)),  ...,  (Kₙ,  F(Vₙ))` where :mini:`Kᵢ` and :mini:`Vᵢ` are the keys and values produced by :mini:`Base`.
 
@@ -541,7 +553,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "e"
+      random("cake") :> "k"
       random([]) :> nil
 
 

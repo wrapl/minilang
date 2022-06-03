@@ -7,27 +7,27 @@
 semaphore
 =========
 
-.. _fun-semaphore:
-
-:mini:`fun semaphore(Initial?: integer)`
-   *TBD*
-
-
 .. _type-semaphore:
 
 :mini:`type semaphore`
-   *TBD*
+   A semaphore for synchronizing concurrent code.
 
 
-:mini:`meth (Semaphore: semaphore):signal`
-   *TBD*
+.. _fun-semaphore:
+
+:mini:`fun semaphore(Initial?: integer): semaphore`
+   Returns a new semaphore with initial value :mini:`Initial` or :mini:`1` if no initial value is specified.
 
 
-:mini:`meth (Semaphore: semaphore):value`
-   *TBD*
+:mini:`meth (Semaphore: semaphore):signal: integer`
+   Increments the internal value in :mini:`Semaphore`,  resuming any waiters. Returns the new value.
 
 
-:mini:`meth (Semaphore: semaphore):wait`
-   *TBD*
+:mini:`meth (Semaphore: semaphore):value: integer`
+   Returns the internal value in :mini:`Semaphore`.
+
+
+:mini:`meth (Semaphore: semaphore):wait: integer`
+   Waits until the internal value in :mini:`Semaphore` is postive,  then decrements it and returns the new value.
 
 
