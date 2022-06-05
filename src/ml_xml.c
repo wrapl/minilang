@@ -75,6 +75,14 @@ static void ML_TYPED_FN(ml_iter_value, MLXmlT, ml_state_t *Caller, ml_xml_node_t
 ML_TYPE(MLXmlTextT, (MLXmlT, MLStringT), "xml::text");
 // A XML text node.
 
+ml_xml_node_t *ml_xml_text(const char *Content, int Length) {
+	ml_xml_node_t *Text = new(ml_xml_node_t);
+	Text->Base.Type = MLXmlTextT;
+	Text->Base.Length = Length < 0 ? strlen(Content) : Length;
+	Text->Base.Value = Content;
+	return Text;
+}
+
 ML_METHOD("text", MLXmlTextT) {
 //<Xml
 //>string
@@ -93,6 +101,16 @@ struct ml_xml_element_t {
 
 ML_TYPE(MLXmlElementT, (MLXmlT, MLSequenceT), "xml::element");
 // An XML element node.
+
+ml_xml_element_t *ml_xml_element(const char *Tag) {
+	ml_xml_element_t *Element = new(ml_xml_element_t);
+	Element->Base.Base.Type = MLXmlElementT;
+	ml_value_t **Slot = (ml_value_t **)stringmap_slot(MLXmlTags, Tag);
+	if (!Slot[0]) Slot[0] = ml_string(GC_strdup(Tag), -1);
+	Element->Base.Base.Value = (const char *)Slot[0];
+	Element->Attributes = ml_map();
+	return Element;
+}
 
 ml_value_t *ml_xml_element_tag(ml_value_t *Value) {
 	return (ml_value_t *)((ml_xml_element_t *)Value)->Base.Base.Value;

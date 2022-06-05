@@ -153,7 +153,8 @@ static void instance_finalize(object_instance_t *Instance, void *Data) {
 static GQuark MLQuark;
 
 ml_value_t *ml_gir_instance_get(void *Handle, GIBaseInfo *Fallback) {
-	if (Handle == 0) return (ml_value_t *)ObjectInstanceNil;
+	//if (Handle == 0) return (ml_value_t *)ObjectInstanceNil;
+	if (Handle == 0) return MLNil;
 	object_instance_t *Instance = (object_instance_t *)g_object_get_qdata(Handle, MLQuark);
 	if (Instance) return (ml_value_t *)Instance;
 	Instance = new(object_instance_t);
@@ -203,7 +204,7 @@ ML_METHOD("append", MLStringBufferT, GirObjectInstanceT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	object_instance_t *Instance = (object_instance_t *)Args[1];
 	if (Instance == ObjectInstanceNil) {
-		ml_stringbuffer_write(Buffer, "(null)", 6);
+		ml_stringbuffer_write(Buffer, "nil-object", 6);
 	} else {
 		ml_stringbuffer_printf(Buffer, "<%s>", g_base_info_get_name((GIBaseInfo *)Instance->Type->Info));
 	}
@@ -1902,9 +1903,9 @@ static ml_type_t *object_info_lookup(GIObjectInfo *Info) {
 		Object->Base.call = ml_default_call;
 		Object->Base.deref = ml_default_deref;
 		Object->Base.assign = ml_default_assign;
+		Object->Base.Constructor = ml_cfunction(Object, (ml_callback_t)object_instance);
 		Object->Info = Info;
 		ml_type_init((ml_type_t *)Object, GirObjectInstanceT, NULL);
-		Object->Base.Constructor = ml_cfunction(Object, (ml_callback_t)object_instance);
 		object_add_methods(Object, Info);
 		Slot[0] = (ml_type_t *)Object;
 	}
@@ -1922,9 +1923,9 @@ static ml_type_t *interface_info_lookup(GIInterfaceInfo *Info) {
 		Object->Base.call = ml_default_call;
 		Object->Base.deref = ml_default_deref;
 		Object->Base.assign = ml_default_assign;
+		Object->Base.Constructor = ml_cfunction(Object, (ml_callback_t)object_instance);
 		Object->Info = Info;
 		ml_type_init((ml_type_t *)Object, GirObjectInstanceT, NULL);
-		Object->Base.Constructor = ml_cfunction(Object, (ml_callback_t)object_instance);
 		interface_add_methods(Object, Info);
 		Slot[0] = (ml_type_t *)Object;
 	}
@@ -1942,9 +1943,9 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 		Struct->Base.call = ml_default_call;
 		Struct->Base.deref = ml_default_deref;
 		Struct->Base.assign = ml_default_assign;
+		Struct->Base.Constructor = ml_cfunction(Struct, (void *)struct_instance);
 		Struct->Info = Info;
 		ml_type_init((ml_type_t *)Struct, GirStructInstanceT, NULL);
-		Struct->Base.Constructor = ml_cfunction(Struct, (void *)struct_instance);
 		Slot[0] = (ml_type_t *)Struct;
 		int NumFields = g_struct_info_get_n_fields(Info);
 		for (int I = 0; I < NumFields; ++I) {
@@ -1978,9 +1979,9 @@ static ml_type_t *union_info_lookup(GIUnionInfo *Info) {
 		Union->Base.call = ml_default_call;
 		Union->Base.deref = ml_default_deref;
 		Union->Base.assign = ml_default_assign;
+		Union->Base.Constructor = ml_cfunction(Union, (void *)union_instance);
 		Union->Info = Info;
 		ml_type_init((ml_type_t *)Union, GirUnionInstanceT, NULL);
-		Union->Base.Constructor = ml_cfunction(Union, (void *)union_instance);
 		Slot[0] = (ml_type_t *)Union;
 		int NumFields = g_union_info_get_n_fields(Info);
 		for (int I = 0; I < NumFields; ++I) {
