@@ -54,6 +54,20 @@ ML_METHOD(MLUUIDT, MLStringT) {
 	return ml_uuid_parse(ml_string_value(Args[0]), ml_string_length(Args[0]));
 }
 
+ML_METHOD(MLAddressT, MLUUIDT) {
+//<UUID
+//>address
+// Returns an address view of :mini:`UUID`.
+//$- import: uuid("std/uuid")
+//$= address(uuid())
+	ml_uuid_t *UUID = (ml_uuid_t *)Args[0];
+	ml_address_t *Address = new(ml_address_t);
+	Address->Type = MLAddressT;
+	Address->Value = (char *)UUID->Value;
+	Address->Length = sizeof(uuid_t);
+	return (ml_value_t *)Address;
+}
+
 ML_METHOD("append", MLStringBufferT, MLUUIDT) {
 //<Buffer
 //<UUID
