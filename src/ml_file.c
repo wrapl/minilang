@@ -91,6 +91,14 @@ ML_METHOD("eof", MLFileT) {
 	return MLNil;
 }
 
+ML_METHOD("flush", MLFileT) {
+//<File
+//>nil
+	ml_file_t *File = (ml_file_t *)Args[0];
+	if (File->Handle) fflush(File->Handle);
+	return (ml_value_t *)File;
+}
+
 ML_METHOD("close", MLFileT) {
 //<File
 //>nil

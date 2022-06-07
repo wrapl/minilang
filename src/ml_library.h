@@ -19,6 +19,7 @@ void ml_library_loader_add(
 void ml_library_load(ml_state_t *Caller, const char *Path, const char *Name);
 ml_value_t *ml_library_load0(const char *Path, const char *Name);
 
+void ml_library_register(const char *Name, ml_value_t *Module);
 ml_module_t *ml_library_internal(const char *Name);
 
 void ml_library_entry(ml_state_t *Caller, ml_value_t **Slot);

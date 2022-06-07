@@ -15,6 +15,10 @@ static int MaxLibraryPathLength = 0;
 static stringmap_t Modules[1] = {STRINGMAP_INIT};
 static stringmap_t *Globals;
 
+void ml_library_register(const char *Name, ml_value_t *Module) {
+	stringmap_insert(Modules, Name, Module);
+}
+
 ml_module_t *ml_library_internal(const char *Name) {
 	ml_module_t *Module = (ml_module_t *)ml_module(Name, NULL);
 	stringmap_insert(Modules, Name, Module);
@@ -50,6 +54,8 @@ static ml_library_loader_t InternalLoader = {
 	.load = internal_load,
 	.load0 = internal_load0
 };
+
+extern ml_value_t *SymbolMethod;
 
 static ml_library_info_t ml_library_find(const char *Path, const char *Name) {
 	char *FileName;
@@ -97,11 +103,20 @@ typedef struct {
 static void ml_parent_state_run(ml_parent_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	*State->Import = '/';
+	if (ml_is(Value, MLErrorT)) ML_RETURN(Value);
 	if (ml_is(Value, MLModuleT)) {
 		ml_value_t *Import = ml_module_import(Value, State->Import + 1);
-		if (Import) ML_RETURN(Import);
+		if (Import) {
+			ML_RETURN(Import);
+		} else {
+			ML_ERROR("ModuleError", "Module %s not found in %s", State->Name, State->Path ?: "<library>");
+		}
+	} else {
+		ml_value_t **Args = ml_alloc_args(2);
+		Args[0] = Value;
+		Args[1] = ml_string(State->Import + 1, -1);
+		return ml_call(Caller, SymbolMethod, 2, Args);
 	}
-	ML_ERROR("ModuleError", "Module %s not found in %s", State->Name, State->Path ?: "<library>");
 }
 
 void ml_library_load(ml_state_t *Caller, const char *Path, const char *Name) {

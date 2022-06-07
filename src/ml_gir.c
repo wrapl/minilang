@@ -121,6 +121,22 @@ ML_METHOD(GirTypelibT, MLStringT, MLStringT) {
 	return ml_gir_typelib(ml_string_value(Args[0]), ml_string_value(Args[1]));
 }
 
+#ifdef ML_LIBRARY
+
+#include "ml_library.h"
+
+ML_TYPE(GirModuleT, (), "gir::module");
+ML_VALUE(GirModule, GirModuleT);
+
+ML_METHOD("::", GirModuleT, MLStringT) {
+	char *Name = GC_strdup(ml_string_value(Args[1]));
+	char *Version = strchr(Name, '@');
+	if (Version) *Version++ = 0;
+	return ml_gir_typelib(Name, Version);
+}
+
+#endif
+
 typedef struct {
 	ml_type_t Base;
 	GIObjectInfo *Info;
@@ -151,6 +167,7 @@ static void instance_finalize(object_instance_t *Instance, void *Data) {
 }
 
 static GQuark MLQuark;
+static GType MLType;
 
 ml_value_t *ml_gir_instance_get(void *Handle, GIBaseInfo *Fallback) {
 	//if (Handle == 0) return (ml_value_t *)ObjectInstanceNil;
@@ -2520,6 +2537,7 @@ void ml_gir_init(stringmap_t *Globals) {
 	ml_typed_fn_set(TypelibIterT, ml_iter_value, typelib_iter_value);
 	ml_typed_fn_set(TypelibIterT, ml_iter_key, typelib_iter_key);
 	MLQuark = g_quark_from_static_string("<<minilang>>");
+	MLType = g_pointer_type_register_static("minilang");
 	ObjectInstanceNil = new(object_instance_t);
 	ObjectInstanceNil->Type = (object_t *)GirObjectInstanceT;
 	//ml_typed_fn_set(EnumT, ml_iterate, enum_iterate);
@@ -2533,4 +2551,7 @@ void ml_gir_init(stringmap_t *Globals) {
 	stringmap_insert(GirTypelibT->Exports, "run", GirRun);
 #endif
 	stringmap_insert(Globals, "gir", GirTypelibT);
+#ifdef ML_LIBRARY
+	ml_library_register("gir", GirModule);
+#endif
 }
