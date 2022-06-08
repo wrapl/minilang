@@ -1077,7 +1077,7 @@ ML_METHOD("signal", MLSemaphoreT) {
 	} else {
 		++Semaphore->Value;
 	}
-	return ml_integer(Semaphore);
+	return ml_integer(Semaphore->Value);
 }
 
 ML_METHOD("value", MLSemaphoreT) {
