@@ -54,6 +54,8 @@ hierarchy
       "any":e -> "stream":w;
       "stream":e -> "stream::buffered":w;
       "stream":e -> "stream::fd":w;
+      "sequence":e -> "set":w;
+      "any":e -> "set::node":w;
       "function":e -> "chained":w;
       "sequence":e -> "chained":w;
       "function":e -> "context":w;
@@ -101,6 +103,7 @@ hierarchy
       "any":e -> "jsdecoder":w;
       "sequence":e -> "gir":w;
       "type":e -> "gir::baseinfo":w;
+      "any":e -> "gir::module":w;
       "gir::baseinfo":e -> "gir::object":w;
       "any":e -> "gir::objectinstance":w;
       "gir::baseinfo":e -> "gir::struct":w;

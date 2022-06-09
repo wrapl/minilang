@@ -7,6 +7,16 @@
 map
 ===
 
+:mini:`meth (Key: any):in(Map: map): any | nil`
+   Returns :mini:`Key` if it is in :mini:`Map`,  otherwise return :mini:`nil`.
+
+   .. code-block:: mini
+
+      let M := {"A" is 1, "B" is 2, "C" is 3}
+      "A" in M :> "A"
+      "D" in M :> nil
+
+
 .. _type-map:
 
 :mini:`type map < sequence`
@@ -359,7 +369,7 @@ map
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
       M:random :> "c"
-      M:random :> "a"
+      M:random :> "c"
 
 
 :mini:`meth (Map: map):reverse: map`

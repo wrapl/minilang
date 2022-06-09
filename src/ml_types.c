@@ -15,6 +15,7 @@
 #include "ml_method.h"
 #include "ml_list.h"
 #include "ml_map.h"
+#include "ml_set.h"
 
 #ifdef ML_TRE
 #include <tre/regex.h>
@@ -2150,6 +2151,7 @@ void ml_init(stringmap_t *Globals) {
 	ml_method_init();
 	ml_list_init();
 	ml_map_init();
+	ml_set_init();
 	ml_compiler_init();
 	ml_runtime_init();
 	ml_bytecode_init();
@@ -2179,6 +2181,7 @@ void ml_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "list", MLListT);
 		stringmap_insert(Globals, "names", MLNamesT);
 		stringmap_insert(Globals, "map", MLMapT);
+		stringmap_insert(Globals, "set", MLSetT);
 		stringmap_insert(Globals, "error", MLErrorValueT);
 		stringmap_insert(Globals, "module", MLModuleT);
 		stringmap_insert(Globals, "some", MLSome);

@@ -37,12 +37,12 @@ Provides time and date operations. Depending on how Minilang was built,  may nee
    Returns the time specified by the provided components in UTC.
 
 
-:mini:`meth time(String: string): time`
-   Parses the :mini:`String` as a time according to ISO 8601.
-
-
 :mini:`meth time(Year: integer, Month: integer, Day: integer): time`
    Returns the time specified by the provided components in the local time.
+
+
+:mini:`meth time(String: string): time`
+   Parses the :mini:`String` as a time according to ISO 8601.
 
 
 :mini:`meth time(String: string, Format: string): time`
@@ -159,6 +159,10 @@ Provides time and date operations. Depending on how Minilang was built,  may nee
 
 :mini:`meth (Time: time):nsec: integer`
    Returns the nanoseconds component of :mini:`Time`.
+
+
+:mini:`meth (Arg₁: time):precision(Arg₂: integer)`
+   *TBD*
 
 
 :mini:`meth (Time: time):second: integer`

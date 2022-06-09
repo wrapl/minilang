@@ -534,6 +534,18 @@ ML_METHOD("[]", MLMapT, MLAnyT) {
 	return (ml_value_t *)Node;
 }
 
+ML_METHOD("in", MLAnyT, MLMapT) {
+//<Key
+//<Map
+//>any|nil
+// Returns :mini:`Key` if it is in :mini:`Map`, otherwise return :mini:`nil`.
+//$- let M := {"A" is 1, "B" is 2, "C" is 3}
+//$= "A" in M
+//$= "D" in M
+	ml_map_t *Map = (ml_map_t *)Args[1];
+	return ml_map_find_node(Map, Args[0]) ? Args[0] : MLNil;
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Key;

@@ -43,6 +43,10 @@ file
    *TBD*
 
 
+:mini:`meth (File: file):flush: nil`
+   *TBD*
+
+
 .. _type-popen:
 
 :mini:`type popen < file`

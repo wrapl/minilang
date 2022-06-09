@@ -883,7 +883,7 @@ struct ml_map_node_t {
 
 ml_value_t *ml_map() __attribute__((malloc));
 ml_value_t *ml_map_search(ml_value_t *Map, ml_value_t *Key);
-ml_value_t *ml_map_search0(ml_value_t *Map0, ml_value_t *Key);
+ml_value_t *ml_map_search0(ml_value_t *Map, ml_value_t *Key);
 ml_map_node_t *ml_map_slot(ml_value_t *Map, ml_value_t *Key);
 ml_value_t *ml_map_insert(ml_value_t *Map, ml_value_t *Key, ml_value_t *Value);
 ml_value_t *ml_map_delete(ml_value_t *Map, ml_value_t *Key);
@@ -953,8 +953,8 @@ static inline void ml_map_iter_update(ml_map_iter_t *Iter, ml_value_t *Value) {
 	Iter->Value = Iter->Node->Value = Value;
 }
 
-#define ML_MAP_FOREACH(LIST, ITER) \
-	for (ml_map_node_t *ITER = ((ml_map_t *)LIST)->Head; ITER; ITER = ITER->Next)
+#define ML_MAP_FOREACH(MAP, ITER) \
+	for (ml_map_node_t *ITER = ((ml_map_t *)MAP)->Head; ITER; ITER = ITER->Next)
 
 // Names //
 

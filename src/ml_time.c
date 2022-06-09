@@ -402,6 +402,25 @@ ML_METHOD("-", MLTimeT, MLNumberT) {
 	return ml_time(Sec, NSec);
 }
 
+ML_METHOD("precision", MLTimeT, MLIntegerT) {
+	ml_time_t *TimeA = (ml_time_t *)Args[0];
+	time_t Sec = TimeA->Value->tv_sec;
+	unsigned long NSec = TimeA->Value->tv_nsec;
+	switch (ml_integer_value(Args[1])) {
+	case 0: NSec = 0; break;
+	case 1: NSec = (NSec / 100000000) * 100000000; break;
+	case 2: NSec = (NSec / 10000000) * 10000000; break;
+	case 3: NSec = (NSec / 1000000) * 1000000; break;
+	case 4: NSec = (NSec / 100000) * 100000; break;
+	case 5: NSec = (NSec / 10000) * 10000; break;
+	case 6: NSec = (NSec / 1000) * 1000; break;
+	case 7: NSec = (NSec / 100) * 100; break;
+	case 8: NSec = (NSec / 10) * 10; break;
+	default: break;
+	}
+	return ml_time(Sec, NSec);
+}
+
 ML_ENUM(MLTimeDayT, "time::day",
 	"Monday",
 	"Tuesday",
