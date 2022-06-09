@@ -177,7 +177,7 @@ ml_value_t *ml_gir_instance_get(void *Handle, GIBaseInfo *Fallback) {
 	Instance = new(object_instance_t);
 	Instance->Handle = Handle;
 	g_object_ref_sink(Handle);
-	GC_register_finalizer(Instance, (GC_finalization_proc)instance_finalize, 0, 0, 0);
+	GC_register_finalizer_ignore_self(Instance, (GC_finalization_proc)instance_finalize, 0, 0, 0);
 	GType Type = G_OBJECT_TYPE(Handle);
 	GIBaseInfo *Info = g_irepository_find_by_gtype(NULL, Type);
 	if (Info) {
@@ -1905,7 +1905,7 @@ static ml_value_t *object_instance(object_t *Object, int Count, ml_value_t **Arg
 	}
 	g_object_set_qdata(Instance->Handle, MLQuark, Instance);
 	g_object_ref_sink(Instance->Handle);
-	GC_register_finalizer(Instance, (GC_finalization_proc)instance_finalize, 0, 0, 0);
+	GC_register_finalizer_ignore_self(Instance, (GC_finalization_proc)instance_finalize, 0, 0, 0);
 	return (ml_value_t *)Instance;
 }
 
