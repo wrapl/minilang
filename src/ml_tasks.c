@@ -504,6 +504,14 @@ ML_FUNCTION(Buffered) {
 	return (ml_value_t *)Buffered;
 }
 
+static ML_METHOD_DECL(CountMethod, "count");
+
+ML_METHODX("count", MLBufferedT) {
+	ml_buffered_t *Buffered = (ml_buffered_t *)Args[0];
+	Args[0] = Buffered->Iter;
+	return ml_call(Caller, CountMethod, 1, Args);
+}
+
 void ml_tasks_init(stringmap_t *Globals) {
 #include "ml_tasks_init.c"
 	if (Globals) {

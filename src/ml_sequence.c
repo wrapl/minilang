@@ -34,6 +34,7 @@ static ML_METHOD_DECL(FilterDuoMethod, "=>?");
 static ML_METHOD_DECL(SoloApplyMethod, "->!");
 static ML_METHOD_DECL(FilterSoloApplyMethod, "->!?");
 static ML_METHOD_DECL(ApplyMethod, "!");
+static ML_METHOD_DECL(CountMethod, "count");
 
 typedef struct ml_chained_state_t {
 	ml_state_t Base;
@@ -496,6 +497,13 @@ ML_METHOD("->!?", MLChainedT, MLFunctionT) {
 	Chained->Entries[N] = FilterSoloApplyMethod;
 	Chained->Entries[N + 1] = Args[1];
 	return (ml_value_t *)Chained;
+}
+
+ML_METHODX("count", MLChainedT) {
+//!internal
+	ml_chained_function_t *Chained = (ml_chained_function_t *)Args[0];
+	Args[0] = Chained->Entries[0];
+	return ml_call(Caller, CountMethod, 1, Args);
 }
 
 /****************************** Doubled ******************************/
@@ -2928,7 +2936,7 @@ void ml_sequence_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "iter_next", IterNext);
 		stringmap_insert(Globals, "iter_key", IterKey);
 		stringmap_insert(Globals, "iter_value", IterValue);
-		stringmap_insert(Globals, "count", ml_method("count"));
+		stringmap_insert(Globals, "count", CountMethod);
 		stringmap_insert(Globals, "count2", Count2);
 		stringmap_insert(Globals, "random", ml_method("random"));
 		stringmap_insert(Globals, "reduce", Reduce);
