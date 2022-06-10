@@ -499,13 +499,6 @@ ML_METHOD("->!?", MLChainedT, MLFunctionT) {
 	return (ml_value_t *)Chained;
 }
 
-ML_METHODX("count", MLChainedT) {
-//!internal
-	ml_chained_function_t *Chained = (ml_chained_function_t *)Args[0];
-	Args[0] = Chained->Entries[0];
-	return ml_call(Caller, CountMethod, 1, Args);
-}
-
 /****************************** Doubled ******************************/
 
 typedef struct {

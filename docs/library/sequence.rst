@@ -118,7 +118,7 @@ sequence
    .. code-block:: mini
 
       count([1, 2, 3, 4]) :> 4
-      count(1 .. 10 ->? (2 | _)) :> 10
+      count(1 .. 10 ->? (2 | _)) :> 5
 
 
 .. _fun-count2:
@@ -553,7 +553,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "k"
+      random("cake") :> "c"
       random([]) :> nil
 
 
