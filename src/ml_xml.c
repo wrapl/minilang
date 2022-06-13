@@ -445,8 +445,12 @@ static void ml_xml_filter_call(ml_state_t *Caller, ml_xml_filter_t *Filter, int 
 	if (Filter->Tag && Filter->Tag != Element->Base.Base.Value) ML_RETURN(MLNil);
 	if (Filter->Attributes) ML_MAP_FOREACH(Filter->Attributes, Iter) {
 		ml_value_t *Value = ml_map_search(Element->Attributes, Iter->Key);
-		if (Value == MLNil) ML_RETURN(MLNil);
-		if (strcmp(ml_string_value(Iter->Value), ml_string_value(Value))) ML_RETURN(MLNil);
+		if (Iter->Value == MLNil) {
+			if (Value != MLNil) ML_RETURN(MLNil);
+		} else {
+			if (Value == MLNil) ML_RETURN(MLNil);
+			if (strcmp(ml_string_value(Iter->Value), ml_string_value(Value))) ML_RETURN(MLNil);
+		}
 	}
 	ML_RETURN(Element);
 }
@@ -466,7 +470,7 @@ ML_METHODV(MLXmlFilterT, MLNamesT) {
 	ml_value_t *Attributes = Filter->Attributes = ml_map();
 	int I = 1;
 	ML_NAMES_FOREACH(Args[0], Iter) {
-		ML_CHECK_ARG_TYPE(I, MLStringT);
+		if (Args[I] != MLNil) ML_CHECK_ARG_TYPE(I, MLStringT);
 		ml_map_insert(Attributes, Iter->Value, Args[I++]);
 	}
 	return (ml_value_t *)Filter;
@@ -486,7 +490,7 @@ ML_METHODV(MLXmlFilterT, MLStringT, MLNamesT) {
 	ml_value_t *Attributes = Filter->Attributes = ml_map();
 	int I = 2;
 	ML_NAMES_FOREACH(Args[1], Iter) {
-		ML_CHECK_ARG_TYPE(I, MLStringT);
+		if (Args[I] != MLNil) ML_CHECK_ARG_TYPE(I, MLStringT);
 		ml_map_insert(Attributes, Iter->Value, Args[I++]);
 	}
 	return (ml_value_t *)Filter;
@@ -641,7 +645,7 @@ ML_METHODV(NAME, MLXmlT, MLStringT, MLNamesT) { \
 	ml_value_t *Attributes = Filter->Attributes = ml_map(); \
 	int I = 3; \
 	ML_NAMES_FOREACH(Args[2], Iter) { \
-		ML_CHECK_ARG_TYPE(I, MLStringT); \
+		if (Args[I] != MLNil) ML_CHECK_ARG_TYPE(I, MLStringT); \
 		ml_map_insert(Attributes, Iter->Value, Args[I++]); \
 	} \
 	ml_xml_element_t *Element = (ml_xml_element_t *)Args[0]; \
@@ -838,7 +842,7 @@ ML_METHODV("//", MLXmlT, MLNamesT) {
 	ml_value_t *Attributes = Filter->Attributes = ml_map();
 	int I = 2;
 	ML_NAMES_FOREACH(Args[1], Iter) {
-		ML_CHECK_ARG_TYPE(I, MLStringT);
+		if (Args[I] != MLNil) ML_CHECK_ARG_TYPE(I, MLStringT);
 		ml_map_insert(Attributes, Iter->Value, Args[I++]);
 	}
 	ml_xml_element_t *Element = (ml_xml_element_t *)Args[0];
@@ -866,7 +870,7 @@ ML_METHODV("//", MLXmlT, MLStringT, MLNamesT) {
 	ml_value_t *Attributes = Filter->Attributes = ml_map();
 	int I = 3;
 	ML_NAMES_FOREACH(Args[2], Iter) {
-		ML_CHECK_ARG_TYPE(I, MLStringT);
+		if (Args[I] != MLNil) ML_CHECK_ARG_TYPE(I, MLStringT);
 		ml_map_insert(Attributes, Iter->Value, Args[I++]);
 	}
 	ml_xml_element_t *Element = (ml_xml_element_t *)Args[0];

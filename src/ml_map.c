@@ -818,6 +818,28 @@ ML_METHODX("missing", MLMapT, MLAnyT, MLFunctionT) {
 	}
 }
 
+ML_METHOD("take", MLMapT, MLMapT) {
+//<Map
+//<Source
+//>map
+// Inserts the key-value pairs from :mini:`Source` into :mini:`Map`, leaving :mini:`Source` empty.
+//$= let A := map(swap("cat"))
+//$= let B := map(swap("cake"))
+//$= A:take(B)
+//$= A
+//$= B
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_t *Source = (ml_map_t *)Args[1];
+	for (ml_map_node_t *Node = Source->Head; Node;) {
+		ml_map_node_t *Next = Node->Next;
+		ml_map_insert_node(Map, &Map->Root, ml_typeof(Node->Key)->hash(Node->Key, NULL), Node);
+		Node = Next;
+	}
+	Source->Root = Source->Head = Source->Tail = NULL;
+	Source->Size = 0;
+	return (ml_value_t *)Map;
+}
+
 typedef struct {
 	ml_type_t *Type;
 	ml_map_node_t *Node;

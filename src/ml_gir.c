@@ -1837,6 +1837,8 @@ static void interface_add_methods(object_t *Object, GIInterfaceInfo *Info) {
 		if (Flags & GI_FUNCTION_IS_METHOD) {
 			//ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Object, NULL);
 			method_register(MethodName, MethodInfo, Object);
+		} else {
+			stringmap_insert(Object->Base.Exports, MethodName, ml_cfunctionx(MethodInfo, (void *)constructor_invoke));
 		}
 	}
 }
@@ -2097,7 +2099,7 @@ static ml_value_t *baseinfo_to_value(GIBaseInfo *Info) {
 		return (ml_value_t *)object_info_lookup((GIObjectInfo *)Info);
 	}
 	case GI_INFO_TYPE_INTERFACE: {
-		break;
+		return (ml_value_t *)interface_info_lookup((GIInterfaceInfo *)Info);
 	}
 	case GI_INFO_TYPE_CONSTANT: {
 		return constant_info_lookup((GIConstantInfo *)Info);

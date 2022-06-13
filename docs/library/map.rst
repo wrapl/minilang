@@ -421,6 +421,21 @@ map
       :> {"e" is 4, "k" is 3, "a" is 2, "c" is 1}
 
 
+:mini:`meth (Map: map):take(Source: map): map`
+   Inserts the key-value pairs from :mini:`Source` into :mini:`Map`,  leaving :mini:`Source` empty.
+
+   .. code-block:: mini
+
+      let A := map(swap("cat"))
+      :> {"c" is 1, "a" is 2, "t" is 3}
+      let B := map(swap("cake"))
+      :> {"c" is 1, "a" is 2, "k" is 3, "e" is 4}
+      A:take(B)
+      :> {"c" is 1, "a" is 2, "t" is 3, "k" is 3, "e" is 4}
+      A :> {"c" is 1, "a" is 2, "t" is 3, "k" is 3, "e" is 4}
+      B :> {}
+
+
 :mini:`meth (Buffer: string::buffer):append(Map: map)`
    Appends a representation of :mini:`Map` to :mini:`Buffer`.
 

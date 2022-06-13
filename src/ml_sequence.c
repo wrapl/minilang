@@ -1612,6 +1612,7 @@ static void ml_sequenced_fnx_iterate(ml_sequenced_state_t *State, ml_value_t *Va
 
 static void ML_TYPED_FN(ml_iter_next, MLSequencedStateT, ml_state_t *Caller, ml_sequenced_state_t *State) {
 	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
 	State->Base.run = (void *)ml_sequenced_fnx_iterate;
 	return ml_iter_next((ml_state_t *)State, State->Iter);
 }
@@ -1637,17 +1638,18 @@ static void ML_TYPED_FN(ml_iterate, MLSequencedT, ml_state_t *Caller, ml_sequenc
 	ml_sequenced_state_t *State = new(ml_sequenced_state_t);
 	State->Base.Type = MLSequencedStateT;
 	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
 	State->Base.run = (void *)ml_sequenced_fnx_iterate;
 	State->Next = Sequenced->Second;
 	return ml_iterate((ml_state_t *)State, Sequenced->First);
 }
 
-ML_METHOD(">>", MLSequenceT, MLSequenceT) {
+ML_METHOD("&", MLSequenceT, MLSequenceT) {
 //<Sequence/1
 //<Sequence/2
 //>Sequence
 // Returns an sequence that produces the values from :mini:`Sequence/1` followed by those from :mini:`Sequence/2`.
-//$= list(1 .. 3 >> "cake")
+//$= list(1 .. 3 & "cake")
 	ml_sequenced_t *Sequenced = xnew(ml_sequenced_t, 3, ml_value_t *);
 #ifdef ML_GENERICS
 	ml_type_t *TArgs[3];
@@ -1672,11 +1674,11 @@ ML_METHOD(">>", MLSequenceT, MLSequenceT) {
 	return (ml_value_t *)Sequenced;
 }
 
-ML_METHOD(">>", MLSequenceT) {
+ML_METHOD("&", MLSequenceT) {
 //<Sequence
 //>Sequence
 // Returns an sequence that repeatedly produces the values from :mini:`Sequence` (for use with :mini:`limit`).
-//$= list(>>(1 .. 3) limit 10)
+//$= list(&(1 .. 3) limit 10)
 	ml_sequenced_t *Sequenced = xnew(ml_sequenced_t, 3, ml_value_t *);
 	Sequenced->Type = ml_generic_sequence(MLSequencedT, Args[0]);
 	Sequenced->First = Args[0];

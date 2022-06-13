@@ -337,7 +337,7 @@ void ml_library_init(stringmap_t *_Globals) {
 	ml_library_path_add_default();
 	ml_library_loader_add(".mini", NULL, ml_library_mini_load, NULL);
 	ml_library_loader_add(".so", NULL, ml_library_so_load, ml_library_so_load0);
-	ml_library_loader_add("", ml_library_dir_test, ml_library_dir_load, ml_library_dir_load0);
+	//ml_library_loader_add("", ml_library_dir_test, ml_library_dir_load, ml_library_dir_load0);
 #include "ml_library_init.c"
 	stringmap_insert(Globals, "import", ml_cfunctionx(NULL, (ml_callbackx_t)ml_library_import));
 	stringmap_insert(Globals, "library",  ml_module("library",
