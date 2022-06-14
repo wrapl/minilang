@@ -383,7 +383,7 @@ static void ml_polynomial_call(ml_state_t *Caller, ml_polynomial_t *P, int Count
 	if (!Count) ML_RETURN(P);
 	if (!P->Count) ML_RETURN(ml_real(0));
 	if (ml_typeof(Args[0]) == MLNamesT) {
-		ML_CHECKX_NAMED_ARGS(0);
+		ML_NAMES_CHECKX_ARG_COUNT(0);
 		ml_polynomial_call_state_t *State = xnew(ml_polynomial_call_state_t, Count, ml_substitution_t);
 		int I = 0;
 		ML_NAMES_FOREACH(Args[0], Iter) {

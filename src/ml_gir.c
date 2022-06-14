@@ -1891,7 +1891,7 @@ static ml_value_t *object_instance(object_t *Object, int Count, ml_value_t **Arg
 	GType Type = g_registered_type_info_get_g_type((GIRegisteredTypeInfo *)Object->Info);
 	if (Count > 0) {
 		ML_CHECK_ARG_TYPE(0, MLNamesT);
-		ML_CHECK_NAMED_ARGS(0);
+		ML_NAMES_CHECK_ARG_COUNT(0);
 		int NumProperties = Count - 1;
 		const char *Names[NumProperties];
 		GValue Values[NumProperties];

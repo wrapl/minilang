@@ -27,7 +27,7 @@ ML_METHODX("::", MLMiniModuleT, MLStringT) {
 static void ml_export(ml_state_t *Caller, ml_mini_module_t *Module, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLNamesT);
-	ML_CHECKX_NAMED_ARGS(0);
+	ML_NAMES_CHECKX_ARG_COUNT(0);
 	int Index = 0;
 	ml_value_t *Value = MLNil;
 	ML_NAMES_FOREACH(Args[0], Iter) {

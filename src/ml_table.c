@@ -171,7 +171,7 @@ ML_METHODVX(MLTableT, MLNamesT) {
 //<Value/1, ..., Value/n:any
 //>table
 // Returns a table using :mini:`Names` for column names and :mini:`Values` as column values, converted to arrays using :mini:`array()` if necessary.
-	ML_CHECKX_NAMED_ARGS(0);
+	ML_NAMES_CHECKX_ARG_COUNT(0);
 	ml_table_t *Table = (ml_table_t *)ml_table();
 	int N = 1;
 	ML_NAMES_FOREACH(Args[0], Iter) ml_map_insert(Table->Columns, Iter->Value, Args[N++]);
@@ -243,7 +243,7 @@ ML_METHODV("insert", MLTableT, MLNamesT) {
 //<Value/1, ..., Value/n:array
 //>table
 // Insert columns with names from :mini:`Names` and values :mini:`Value/1`, ..., :mini:`Value/n` into :mini:`Table`.
-	ML_CHECK_NAMED_ARGS(1);
+	ML_NAMES_CHECK_ARG_COUNT(1);
 	ml_table_t *Table = (ml_table_t *)Args[0];
 	int N = 2;
 	ML_NAMES_FOREACH(Args[1], Iter) {

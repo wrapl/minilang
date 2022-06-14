@@ -1376,7 +1376,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 #else
 			if (Arg->Type == MLNamesT) {
 #endif
-				ML_CHECKX_NAMED_ARGS(I);
+				ML_NAMES_CHECKX_ARG_COUNT(I);
 				ML_NAMES_FOREACH(Arg, Node) {
 					const char *Name = ml_string_value(Node->Value);
 					int Index = (intptr_t)stringmap_search(Info->Params, Name);
@@ -1400,7 +1400,7 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 #else
 			if (Arg->Type == MLNamesT) {
 #endif
-				ML_CHECKX_NAMED_ARGS(I);
+				ML_NAMES_CHECKX_ARG_COUNT(I);
 				ML_NAMES_FOREACH(Arg, Node) {
 					const char *Name = ml_string_value(Node->Value);
 					int Index = (intptr_t)stringmap_search(Info->Params, Name);
