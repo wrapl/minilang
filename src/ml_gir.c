@@ -177,7 +177,7 @@ ml_value_t *ml_gir_instance_get(void *Handle, GIBaseInfo *Fallback) {
 	Instance = new(object_instance_t);
 	Instance->Handle = Handle;
 	g_object_ref_sink(Handle);
-	GC_register_finalizer_ignore_self(Instance, (GC_finalization_proc)instance_finalize, 0, 0, 0);
+	GC_register_finalizer(Instance, (GC_finalization_proc)instance_finalize, 0, 0, 0);
 	GType Type = G_OBJECT_TYPE(Handle);
 	GIBaseInfo *Info = g_irepository_find_by_gtype(NULL, Type);
 	if (Info) {
@@ -1908,7 +1908,7 @@ static ml_value_t *object_instance(object_t *Object, int Count, ml_value_t **Arg
 	}
 	g_object_set_qdata(Instance->Handle, MLQuark, Instance);
 	g_object_ref_sink(Instance->Handle);
-	GC_register_finalizer_ignore_self(Instance, (GC_finalization_proc)instance_finalize, 0, 0, 0);
+	GC_register_finalizer(Instance, (GC_finalization_proc)instance_finalize, 0, 0, 0);
 	return (ml_value_t *)Instance;
 }
 
@@ -2348,7 +2348,7 @@ static void gir_closure_marshal(GClosure *Closure, GValue *Dest, guint NumArgs, 
 }
 
 static void gir_closure_finalize(gir_closure_info_t *Info, GClosure *Closure) {
-	ptrset_remove(Info->Instance->Handlers, Info);
+	if (Info->Instance) ptrset_remove(Info->Instance->Handlers, Info);
 }
 
 ML_METHODX("connect", GirObjectInstanceT, MLStringT, MLFunctionT) {
@@ -2362,6 +2362,7 @@ ML_METHODX("connect", GirObjectInstanceT, MLStringT, MLFunctionT) {
 	if (!SignalInfo) ML_ERROR("NameError", "Signal %s not found", Signal);
 	gir_closure_info_t *Info = new(gir_closure_info_t);
 	Info->Instance = Instance;
+	GC_register_disappearing_link((void **)&Info->Instance);
 	Info->Context = Caller->Context;
 	Info->Function = Args[2];
 	Info->SignalInfo = SignalInfo;
