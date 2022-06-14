@@ -188,6 +188,7 @@ ML_METHODV(MLXmlElementT, MLStringT) {
 			}
 			ml_xml_element_put(Element, (ml_xml_node_t *)Args[I]);
 		} else if (ml_is(Args[I], MLNamesT)) {
+			ML_CHECK_NAMED_ARGS(I);
 			ML_NAMES_FOREACH(Args[I], Iter) {
 				++I;
 				ML_CHECK_ARG_TYPE(I, MLStringT);
@@ -465,6 +466,7 @@ ML_METHODV(MLXmlFilterT, MLNamesT) {
 //<Attr,Value
 //>xml::filter
 // Returns an XML filter that checks if a node has attributes :mini:`Attr/i = Value/i`.
+	ML_CHECK_NAMED_ARGS(0);
 	ml_xml_filter_t *Filter = new(ml_xml_filter_t);
 	Filter->Type = MLXmlFilterT;
 	ml_value_t *Attributes = Filter->Attributes = ml_map();
@@ -482,6 +484,7 @@ ML_METHODV(MLXmlFilterT, MLStringT, MLNamesT) {
 //<Attr,Value
 //>xml::filter
 // Returns an XML filter that checks if a node has tag :mini:`Tag` and attributes :mini:`Attr/i = Value/i`.
+	ML_CHECK_NAMED_ARGS(1);
 	ml_xml_filter_t *Filter = new(ml_xml_filter_t);
 	Filter->Type = MLXmlFilterT;
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(MLXmlTags, ml_string_value(Args[0]));
@@ -613,6 +616,7 @@ ML_METHODV(NAME, MLXmlT, MLNamesT) { \
 //>sequence
 // Returns a sequence of the DOC of :mini:`Xml` with :mini:`Attribute/1 = Value/1`, etc.
 */ \
+	ML_CHECK_NAMED_ARGS(1); \
 	ml_xml_filter_t *Filter = new(ml_xml_filter_t); \
 	Filter->Type = MLXmlFilterT; \
 	ml_value_t *Attributes = Filter->Attributes = ml_map(); \
@@ -637,6 +641,7 @@ ML_METHODV(NAME, MLXmlT, MLStringT, MLNamesT) { \
 //>sequence
 // Returns a sequence of the DOC of :mini:`Xml` with tag :mini:`Tag` and :mini:`Attribute/1 = Value/1`, etc.
 */ \
+	ML_CHECK_NAMED_ARGS(2); \
 	ml_xml_filter_t *Filter = new(ml_xml_filter_t); \
 	Filter->Type = MLXmlFilterT; \
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(MLXmlTags, ml_string_value(Args[1])); \
@@ -837,6 +842,7 @@ ML_METHODV("//", MLXmlT, MLNamesT) {
 //<Attribute
 //>sequence
 // Returns a sequence of the recursive children of :mini:`Xml` with :mini:`Attribute/1 = Value/1`, etc.
+	ML_CHECK_NAMED_ARGS(1);
 	ml_xml_filter_t *Filter = new(ml_xml_filter_t);
 	Filter->Type = MLXmlFilterT;
 	ml_value_t *Attributes = Filter->Attributes = ml_map();
@@ -862,6 +868,7 @@ ML_METHODV("//", MLXmlT, MLStringT, MLNamesT) {
 //<Attribute
 //>sequence
 // Returns a sequence of the recursive children of :mini:`Xml` with tag :mini:`Tag` and :mini:`Attribute/1 = Value/1`, etc.
+	ML_CHECK_NAMED_ARGS(2);
 	ml_xml_filter_t *Filter = new(ml_xml_filter_t);
 	Filter->Type = MLXmlFilterT;
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(MLXmlTags, ml_string_value(Args[1]));

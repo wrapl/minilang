@@ -25,16 +25,36 @@ general
    *TBD*
 
 
+.. _fun-assign:
+
+:mini:`fun assign(Var: any, Value: any): any`
+   Functional equivalent of :mini:`Var := Value`.
+
+
+.. _fun-call:
+
+:mini:`fun call(Fn: any, Args: any, ...): any`
+   Returns :mini:`Fn(Args)`.
+
+
 .. _fun-cas:
 
 :mini:`fun cas(Var: any, Old: any, New: any): any`
-   If the value of :mini:`Var` is identically equal to :mini:`Old`,  then sets :mini:`Var` to :mini:`New` and returns :mini:`New`. Otherwise leaves :mini:`Var` unchanged and returns :mini:`nil`.
+   If the value of :mini:`Var` is *identically* equal to :mini:`Old`,  then sets :mini:`Var` to :mini:`New` and returns :mini:`New`. Otherwise leaves :mini:`Var` unchanged and returns :mini:`nil`.
 
    .. code-block:: mini
 
       var X := 10
-      with Old := X do cas(X, Old, Old + 1) end :> 11
+      cas(X, 10, 11) :> 11
       X :> 11
+      cas(X, 20, 21) :> nil
+      X :> 11
+
+
+.. _fun-deref:
+
+:mini:`fun deref(Value: any): any`
+   Returns the dereferenced value of :mini:`Value`.
 
 
 .. _fun-exchange:

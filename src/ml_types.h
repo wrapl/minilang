@@ -363,6 +363,13 @@ static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Arg
 		return ml_error("CallError", "%d arguments required", N); \
 	}
 
+#define ML_CHECK_NAMED_ARGS(N) { \
+	int Required = ml_names_length(Args[N]) + N + 1; \
+	if (Count < Required) { \
+		return ml_error("CallError", "%d arguments required", Required); \
+	} \
+}
+
 #define ML_CHECKX_ARG_TYPE(N, TYPE) \
 	if (!ml_is(Args[N], TYPE)) { \
 		ML_ERROR("TypeError", "expected %s for argument %d", TYPE->Name, N + 1); \
@@ -372,6 +379,13 @@ static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Arg
 	if (Count < N) { \
 		ML_ERROR("CallError", "%d arguments required", N); \
 	}
+
+#define ML_CHECKX_NAMED_ARGS(N) { \
+	int Required = ml_names_length(Args[N]) + N + 1; \
+	if (Count < Required) { \
+		ML_ERROR("CallError", "%d arguments required", Required); \
+	} \
+}
 
 #define ML_CONTINUE(STATE, VALUE) { \
 	ml_state_t *__State = (ml_state_t *)(STATE); \
@@ -964,7 +978,7 @@ ml_value_t *ml_names();
 void ml_names_add(ml_value_t *Names, ml_value_t *Value);
 #define ml_names_length ml_list_length
 
-#define ML_NAMES_FOREACH(LIST, ITER) ML_LIST_FOREACH(LIST, ITER)
+#define ML_NAMES_FOREACH(LIST, ITER) ML_LIST_FOREACH(ml_deref(LIST), ITER)
 
 // Modules //
 

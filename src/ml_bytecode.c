@@ -1369,13 +1369,14 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 	if (Flags & ML_CLOSURE_NAMED_ARGS) {
 		ml_value_t *Options = ml_map();
 		for (; I < Count; ++I) {
-			ml_value_t *Arg = Args[I];
+			ml_value_t *Arg = ml_deref(Args[I]);
 			if (ml_is_error(Arg)) ML_RETURN(Arg);
 #ifdef ML_NANBOXING
 			if (!ml_tag(Arg) && Arg->Type == MLNamesT) {
 #else
 			if (Arg->Type == MLNamesT) {
 #endif
+				ML_CHECKX_NAMED_ARGS(I);
 				ML_NAMES_FOREACH(Arg, Node) {
 					const char *Name = ml_string_value(Node->Value);
 					int Index = (intptr_t)stringmap_search(Info->Params, Name);
@@ -1392,13 +1393,14 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 		++NumParams;
 	} else {
 		for (; I < Count; ++I) {
-			ml_value_t *Arg = Args[I];
+			ml_value_t *Arg = ml_deref(Args[I]);
 			if (ml_is_error(Arg)) ML_RETURN(Arg);
 #ifdef ML_NANBOXING
 			if (!ml_tag(Arg) && Arg->Type == MLNamesT) {
 #else
 			if (Arg->Type == MLNamesT) {
 #endif
+				ML_CHECKX_NAMED_ARGS(I);
 				ML_NAMES_FOREACH(Arg, Node) {
 					const char *Name = ml_string_value(Node->Value);
 					int Index = (intptr_t)stringmap_search(Info->Params, Name);

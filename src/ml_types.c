@@ -2007,24 +2007,6 @@ static void ml_exchange_run(ml_exchange_t *State, ml_value_t *Result) {
 	return ml_assign(State, State->Args[I], New);
 }
 
-ML_FUNCTIONZ(MLCompareAndSet) {
-//@cas
-//<Var:any
-//<Old:any
-//<New:any
-//>any
-// If the value of :mini:`Var` is identically equal to :mini:`Old`, then sets :mini:`Var` to :mini:`New` and returns :mini:`New`. Otherwise leaves :mini:`Var` unchanged and returns :mini:`nil`.
-//$- var X := 10
-//$= with Old := X do cas(X, Old, Old + 1) end
-//$= X
-	ML_CHECKX_ARG_COUNT(3);
-	ml_value_t *Var = ml_deref(Args[0]);
-	ml_value_t *Old = ml_deref(Args[1]);
-	ml_value_t *New = ml_deref(Args[2]);
-	if (Var != Old) ML_RETURN(MLNil);
-	return ml_assign(Caller, Args[0], New);
-}
-
 ML_FUNCTIONZ(MLExchange) {
 //@exchange
 //<Var/1,...,Var/n:any
@@ -2054,6 +2036,54 @@ ML_FUNCTIONZ(MLReplace) {
 	State->New = ml_deref(Args[Count - 1]);
 	State->Index = Count - 1;
 	return ml_exchange_run(State, MLNil);
+}
+
+ML_FUNCTION(MLDeref) {
+//@deref
+//<Value:any
+//>any
+// Returns the dereferenced value of :mini:`Value`.
+	return Args[0];
+}
+
+ML_FUNCTIONZ(MLAssign) {
+//@assign
+//<Var:any
+//<Value:any
+//>any
+// Functional equivalent of :mini:`Var := Value`.
+	ML_CHECKX_ARG_COUNT(2);
+	return ml_assign(Caller, Args[0], Args[1]);
+}
+
+ML_FUNCTIONZ(MLCall) {
+//@call
+//<Fn:any
+//<Args...:any
+//>any
+// Returns :mini:`Fn(Args)`.
+	ML_CHECKX_ARG_COUNT(1);
+	return ml_call(Caller, Args[0], Count - 1, Args + 1);
+}
+
+ML_FUNCTIONZ(MLCompareAndSet) {
+//@cas
+//<Var:any
+//<Old:any
+//<New:any
+//>any
+// If the value of :mini:`Var` is *identically* equal to :mini:`Old`, then sets :mini:`Var` to :mini:`New` and returns :mini:`New`. Otherwise leaves :mini:`Var` unchanged and returns :mini:`nil`.
+//$- var X := 10
+//$= cas(X, 10, 11)
+//$= X
+//$= cas(X, 20, 21)
+//$= X
+	ML_CHECKX_ARG_COUNT(3);
+	ml_value_t *Var = ml_deref(Args[0]);
+	ml_value_t *Old = ml_deref(Args[1]);
+	ml_value_t *New = ml_deref(Args[2]);
+	if (Var != Old) ML_RETURN(MLNil);
+	return ml_assign(Caller, Args[0], New);
 }
 
 static ml_value_t *ml_mem_trace(void *Ptr, inthash_t *Cache) {
@@ -2175,16 +2205,17 @@ void ml_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "address", MLAddressT);
 		stringmap_insert(Globals, "buffer", MLBufferT);
 		stringmap_insert(Globals, "string", MLStringT);
-		//stringmap_insert(Globals, "stringbuffer", MLStringBufferT);
 		stringmap_insert(Globals, "regex", MLRegexT);
 		stringmap_insert(Globals, "tuple", MLTupleT);
 		stringmap_insert(Globals, "list", MLListT);
-		stringmap_insert(Globals, "names", MLNamesT);
 		stringmap_insert(Globals, "map", MLMapT);
 		stringmap_insert(Globals, "set", MLSetT);
 		stringmap_insert(Globals, "error", MLErrorValueT);
 		stringmap_insert(Globals, "module", MLModuleT);
 		stringmap_insert(Globals, "some", MLSome);
+		stringmap_insert(Globals, "deref", MLDeref);
+		stringmap_insert(Globals, "assign", MLAssign);
+		stringmap_insert(Globals, "call", MLCall);
 		stringmap_insert(Globals, "exchange", MLExchange);
 		stringmap_insert(Globals, "replace", MLReplace);
 		stringmap_insert(Globals, "cas", MLCompareAndSet);

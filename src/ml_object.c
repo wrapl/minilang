@@ -152,6 +152,7 @@ static void ml_object_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int 
 		ml_value_t *Arg = ml_deref(Args[I]);
 		if (ml_is_error(Arg)) ML_RETURN(Arg);
 		if (ml_is(Arg, MLNamesT)) {
+			ML_CHECKX_NAMED_ARGS(I);
 			ML_NAMES_FOREACH(Args[I], Iter) {
 				++I;
 				const char *Name = ml_string_value(Iter->Value);
@@ -334,7 +335,8 @@ ML_FUNCTIONX(MLClass) {
 				ml_type_t *Parent = (ml_type_t *)Args[I];
 				ml_type_add_parent((ml_type_t *)Class, Parent);
 			} else if (ml_is(Args[I], MLNamesT)) {
-				ML_LIST_FOREACH(Args[I], Iter) {
+				ML_CHECKX_NAMED_ARGS(I);
+				ML_NAMES_FOREACH(Args[I], Iter) {
 					ml_value_t *Key = Iter->Value;
 					const char *Name = ml_string_value(Key);
 					ml_value_t *Value = Args[++I];
@@ -375,7 +377,8 @@ ML_FUNCTIONX(MLClass) {
 				ml_type_t *Parent = (ml_type_t *)Args[I];
 				ml_type_add_parent((ml_type_t *)Class, Parent);
 			} else if (ml_is(Args[I], MLNamesT)) {
-				ML_LIST_FOREACH(Args[I], Iter) {
+				ML_CHECKX_NAMED_ARGS(I);
+				ML_NAMES_FOREACH(Args[I], Iter) {
 					ml_value_t *Key = Iter->Value;
 					const char *Name = ml_string_value(Key);
 					ml_value_t *Value = Args[++I];
@@ -944,6 +947,7 @@ ML_METHODV(MLFlagsT, MLNamesT) {
 //$= let mode := flags(Read is 1, Write is 4, Execute is 32)
 //$= mode::Read
 //$= mode::Read + mode::Write
+	ML_CHECK_NAMED_ARGS(0);
 	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLIntegerT);
 	ml_flags_t *Flags = xnew(ml_flags_t, Count - 1, ml_value_t *);
 	Flags->Base.Type = MLFlagsT;

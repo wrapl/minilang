@@ -1891,6 +1891,7 @@ static ml_value_t *object_instance(object_t *Object, int Count, ml_value_t **Arg
 	GType Type = g_registered_type_info_get_g_type((GIRegisteredTypeInfo *)Object->Info);
 	if (Count > 0) {
 		ML_CHECK_ARG_TYPE(0, MLNamesT);
+		ML_CHECK_NAMED_ARGS(0);
 		int NumProperties = Count - 1;
 		const char *Names[NumProperties];
 		GValue Values[NumProperties];
@@ -2435,7 +2436,7 @@ static ptrset_t SleepSet[1] = {PTRSET_INIT};
 static gboolean sleep_run(void *Data) {
 	ptrset_remove(SleepSet, Data);
 	ml_gir_queue_add((ml_state_t *)Data, MLNil);
-	return FALSE;
+	return G_SOURCE_REMOVE;
 }
 
 ML_FUNCTIONX(MLSleep) {
@@ -2549,7 +2550,7 @@ void ml_gir_init(stringmap_t *Globals) {
 	ml_type_add_parent((ml_type_t *)GInputStreamT, MLStreamT);
 	ml_type_add_parent((ml_type_t *)GOutputStreamT, MLStreamT);
 #ifdef ML_SCHEDULER
-	stringmap_insert(Globals, "sleep", (ml_value_t *)MLSleep);
+	stringmap_insert(Globals, "sleep", MLSleep);
 	stringmap_insert(GirTypelibT->Exports, "run", GirRun);
 #endif
 	stringmap_insert(Globals, "gir", GirTypelibT);

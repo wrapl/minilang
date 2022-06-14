@@ -89,11 +89,11 @@ static json_t *ML_TYPED_FN(ml_json_encode, MLListT, ml_json_encoder_cache_t *Cac
 	return Json;
 }
 
-static json_t *ML_TYPED_FN(ml_json_encode, MLNamesT, ml_json_encoder_cache_t *Cache, ml_list_t *Value) {
+static json_t *ML_TYPED_FN(ml_json_encode, MLNamesT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
 	json_t *Json = json_array();
 	json_array_append_new(Json, json_string("n"));
 	inthash_insert(Cache->Cached, (uintptr_t)Value, Json);
-	ML_LIST_FOREACH(Value, Iter) {
+	ML_NAMES_FOREACH(Value, Iter) {
 		json_array_append_new(Json, ml_json_encode(Cache, Iter->Value));
 	}
 	return Json;

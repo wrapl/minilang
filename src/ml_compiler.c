@@ -1816,6 +1816,7 @@ ML_METHODV("scoped", MLExprT, MLNamesT) {
 //<Name,Value
 //>expr
 // Returns a new expression which wraps :mini:`Expr` with the constant definitions from :mini:`Names` and :mini:`Values`.
+	ML_CHECK_NAMED_ARGS(1);
 	ml_expr_value_t *Value = (ml_expr_value_t *)Args[0];
 	mlc_expr_t *Child = Value->Expr;
 	mlc_scoped_expr_t *Expr = xnew(mlc_scoped_expr_t, ml_names_length(Args[1]) + 1, mlc_scoped_decl_t);
@@ -1942,6 +1943,7 @@ ML_METHODV("subst", MLExprT, MLNamesT) {
 //<Name,Sub
 //>expr
 // Returns a new expression which substitutes macro references to :mini:`:$Name/i` with the corresponding expression :mini:`Sub/i`.
+	ML_CHECK_NAMED_ARGS(1);
 	mlc_subst_expr_t *Expr = new(mlc_subst_expr_t);
 	ml_expr_value_t *Value = (ml_expr_value_t *)Args[0];
 	mlc_expr_t *Child = Value->Expr;
@@ -2181,11 +2183,7 @@ static void ml_call_expr_compile4(mlc_function_t *Function, ml_value_t *Value, m
 	}
 }
 
-ML_FUNCTIONX(MLCall) {
-//!internal
-	ML_CHECKX_ARG_COUNT(1);
-	return ml_call(Caller, Args[0], Count - 1, Args + 1);
-}
+extern ml_cfunctionx_t MLCall[];
 
 static void ml_call_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
 	MLC_FRAME(ml_call_expr_frame_t, ml_call_expr_compile4);

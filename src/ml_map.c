@@ -62,6 +62,7 @@ ML_METHODV(MLMapT, MLNamesT) {
 //>map
 // Returns a new map with the specified keys and values.
 //$= map(A is 1, B is 2, C is 3)
+	ML_CHECK_NAMED_ARGS(0);
 	ml_value_t *Map = ml_map();
 	ml_value_t **Values = Args + 1;
 	ML_NAMES_FOREACH(Args[0], Iter) ml_map_insert(Map, Iter->Value, *Values++);
