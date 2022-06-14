@@ -146,7 +146,6 @@ typedef struct {
 typedef struct {
 	const object_t *Type;
 	void *Handle;
-	ptrset_t Handlers[1];
 } object_instance_t;
 
 ML_TYPE(GirObjectT, (GirBaseInfoT), "object-type");
@@ -2347,8 +2346,10 @@ static void gir_closure_marshal(GClosure *Closure, GValue *Dest, guint NumArgs, 
 	}
 }
 
+static ptrset_t SignalHandlers[1];
+
 static void gir_closure_finalize(gir_closure_info_t *Info, GClosure *Closure) {
-	if (Info->Instance) ptrset_remove(Info->Instance->Handlers, Info);
+	ptrset_remove(SignalHandlers, Info);
 }
 
 ML_METHODX("connect", GirObjectInstanceT, MLStringT, MLFunctionT) {
@@ -2362,11 +2363,10 @@ ML_METHODX("connect", GirObjectInstanceT, MLStringT, MLFunctionT) {
 	if (!SignalInfo) ML_ERROR("NameError", "Signal %s not found", Signal);
 	gir_closure_info_t *Info = new(gir_closure_info_t);
 	Info->Instance = Instance;
-	GC_register_disappearing_link((void **)&Info->Instance);
 	Info->Context = Caller->Context;
 	Info->Function = Args[2];
 	Info->SignalInfo = SignalInfo;
-	ptrset_insert(Instance->Handlers, Info);
+	ptrset_insert(SignalHandlers, Info);
 	GClosure *Closure = g_closure_new_simple(sizeof(GClosure), Info);
 	g_closure_set_marshal(Closure, gir_closure_marshal);
 	g_closure_add_finalize_notifier(Closure, Info, (void *)gir_closure_finalize);
