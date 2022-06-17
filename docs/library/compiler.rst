@@ -7,33 +7,9 @@
 compiler
 ========
 
-.. _value-MLExprGoto:
-
-:mini:`def MLExprGoto: expr::goto`
-   *TBD*
-
-
 .. _fun-mllistofargs:
 
 :mini:`fun mllistofargs()`
-   *TBD*
-
-
-.. _fun-mlmapofargs:
-
-:mini:`fun mlmapofargs()`
-   *TBD*
-
-
-.. _type-compiler:
-
-:mini:`type compiler < state`
-   *TBD*
-
-
-.. _fun-compiler:
-
-:mini:`fun compiler(Global: function|map): compiler`
    *TBD*
 
 
@@ -41,19 +17,7 @@ compiler
    *TBD*
 
 
-:mini:`meth (Compiler: compiler):command_def(Name: string, Value: any): any`
-   *TBD*
-
-
-:mini:`meth (Compiler: compiler):command_let(Name: string, Value: any): any`
-   *TBD*
-
-
 :mini:`meth (Compiler: compiler):command_var(Name: string): variable`
-   *TBD*
-
-
-:mini:`meth (Compiler: compiler):command_var(Name: string, Type: type): variable`
    *TBD*
 
 
@@ -95,10 +59,6 @@ compiler
    *TBD*
 
 
-:mini:`meth (Arg₁: expr):start`
-   *TBD*
-
-
 .. _type-global:
 
 :mini:`type global`
@@ -108,12 +68,6 @@ compiler
 .. _type-parser:
 
 :mini:`type parser`
-   *TBD*
-
-
-.. _fun-parser:
-
-:mini:`fun parser(Read?: function): parser`
    *TBD*
 
 
@@ -133,6 +87,14 @@ compiler
    *TBD*
 
 
+:mini:`meth (Compiler: compiler):command_let(Name: string, Value: any): any`
+   *TBD*
+
+
+:mini:`meth (Compiler: compiler):command_var(Name: string, Type: type): variable`
+   *TBD*
+
+
 :mini:`meth (Parser: parser):input(String: string): compiler`
    *TBD*
 
@@ -149,6 +111,26 @@ compiler
    *TBD*
 
 
+.. _fun-parser:
+
+:mini:`fun parser(Read?: function): parser`
+   *TBD*
+
+
+:mini:`meth (Arg₁: expr):start`
+   *TBD*
+
+
+.. _fun-compiler:
+
+:mini:`fun compiler(Global: function|map): compiler`
+   *TBD*
+
+
+:mini:`meth (Compiler: compiler):command_def(Name: string, Value: any): any`
+   *TBD*
+
+
 :mini:`meth (Parser: parser):reset: parser`
    *TBD*
 
@@ -157,7 +139,25 @@ compiler
    *TBD*
 
 
+.. _type-compiler:
+
+:mini:`type compiler < state`
+   *TBD*
+
+
+.. _fun-mlmapofargs:
+
+:mini:`fun mlmapofargs()`
+   *TBD*
+
+
 :mini:`meth (Parser: parser):source(Source: string, Line: integer): tuple`
+   *TBD*
+
+
+.. _value-MLExprGoto:
+
+:mini:`def MLExprGoto: expr::goto`
    *TBD*
 
 

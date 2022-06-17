@@ -247,8 +247,8 @@ set
    .. code-block:: mini
 
       let M := set("cake") :> {c, a, k, e}
-      M:random :> "e"
-      M:random :> "a"
+      M:random :> "k"
+      M:random :> "c"
 
 
 :mini:`meth (Set: set):reverse: set`

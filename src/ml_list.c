@@ -1071,7 +1071,7 @@ typedef struct {
 	int Index;
 } ml_list_find_state_t;
 
-ML_METHOD_DECL(EqualMethod, "=");
+extern ml_value_t *EqualMethod;
 
 static void ml_list_find_state_run(ml_list_find_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;

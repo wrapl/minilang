@@ -35,8 +35,8 @@ ML_METHOD_DECL(MinMethod, "min");
 ML_METHOD_DECL(MaxMethod, "max");
 ML_METHOD_DECL(IndexMethod, "[]");
 ML_METHOD_DECL(SymbolMethod, "::");
-ML_METHOD_DECL(LessMethod, "<");
 ML_METHOD_DECL(CallMethod, "()");
+ML_METHOD_DECL(EqualMethod, "=");
 ML_METHOD_DECL(LessMethod, "<");
 ML_METHOD_DECL(GreaterMethod, ">");
 ML_METHOD_DECL(AddMethod, "+");
@@ -852,7 +852,11 @@ ML_METHOD("<>", MLAnyT, MLAnyT) {
 //<Value/2
 //>integer
 // Compares :mini:`Value/1` and :mini:`Value/2` and returns :mini:`-1`, :mini:`0` or :mini:`1`.
-// This comparison is based on the internal addresses of :mini:`Value/1` and :mini:`Value/2` and thus only has no persistent meaning.
+// This comparison is based on the types and internal addresses of :mini:`Value/1` and :mini:`Value/2` and thus only has no persistent meaning.
+	ml_type_t *Type1 = ml_typeof(Args[0]);
+	ml_type_t *Type2 = ml_typeof(Args[1]);
+	if (Type1 < Type2) return (ml_value_t *)NegOne;
+	if (Type1 > Type2) return (ml_value_t *)One;
 	if (Args[0] < Args[1]) return (ml_value_t *)NegOne;
 	if (Args[0] > Args[1]) return (ml_value_t *)One;
 	return (ml_value_t *)Zero;
@@ -1722,6 +1726,7 @@ static ml_value_t *ML_TYPED_FN(ml_unpack, MLTupleT, ml_tuple_t *Tuple, int Index
 }
 
 static ml_value_t *ml_tuple_compare(ml_tuple_t *A, ml_tuple_t *B) {
+	// TODO: Replace this with a state to remove ml_simple_call
 	ml_value_t *Args[2];
 	ml_value_t *Result;
 	int N;
@@ -1754,25 +1759,250 @@ ML_METHOD("<>", MLTupleT, MLTupleT) {
 	return ml_tuple_compare((ml_tuple_t *)Args[0], (ml_tuple_t *)Args[1]);
 }
 
-#define ml_comp_tuple_tuple(NAME, NEG, ZERO, POS) \
-ML_METHOD(NAME, MLTupleT, MLTupleT) { \
-/*>tuple|nil
-// Returns :mini:`Arg/2` if :mini:`Arg/1 SYMBOL Arg/2` and :mini:`nil` otherwise.
-*/\
-	ml_value_t *Result = ml_tuple_compare((ml_tuple_t *)Args[0], (ml_tuple_t *)Args[1]); \
-	if (ml_is_error(Result)) return Result; \
-	int Compare = ml_integer_value(Result); \
-	if (Compare < 0) return NEG; \
-	if (Compare > 0) return POS; \
-	return ZERO; \
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Result, *Order, *Default;
+	ml_value_t **A, **B;
+	ml_value_t *Args[2];
+	int Count;
+} ml_tuple_compare_state_t;
+
+static void ml_tuple_compare_equal_run(ml_tuple_compare_state_t *State, ml_value_t *Result) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Result)) ML_RETURN(Result);
+	if (Result == MLNil) ML_RETURN(State->Result);
+	if (--State->Count == 0) ML_RETURN(State->Default);
+	State->Args[0] = *++State->A;
+	State->Args[1] = *++State->B;
+	return ml_call(State, EqualMethod, 2, State->Args);
 }
 
-ml_comp_tuple_tuple("=", MLNil, Args[1], MLNil);
-ml_comp_tuple_tuple("!=", Args[1], MLNil, Args[1]);
-ml_comp_tuple_tuple("<", Args[1], MLNil, MLNil);
-ml_comp_tuple_tuple("<=", Args[1], Args[1], MLNil);
-ml_comp_tuple_tuple(">", MLNil, MLNil, Args[1]);
-ml_comp_tuple_tuple(">=", MLNil, Args[1], Args[1]);
+ML_METHODX("=", MLTupleT, MLTupleT) {
+//<A
+//<B
+//>B | nil
+// Returns :mini:`B` if :mini:`A:size = B:size` and :mini:`A/i = B/i` for each :mini:`i`.
+//$= =((1, 2, 3), (1, 2, 3))
+//$= =((1, 2, 3), (1, 2))
+//$= =((1, 2), (1, 2, 3))
+//$= =((1, 2, 3), (1, 2, 4))
+//$= =((1, 3, 2), (1, 2, 3))
+	ml_tuple_t *A = (ml_tuple_t *)Args[0];
+	ml_tuple_t *B = (ml_tuple_t *)Args[1];
+	if (A->Size != B->Size) ML_RETURN(MLNil);
+	if (!A->Size) ML_RETURN(B);
+	ml_tuple_compare_state_t *State = new(ml_tuple_compare_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_tuple_compare_equal_run;
+	State->Result = MLNil;
+	State->Default = (ml_value_t *)B;
+	State->Count = A->Size;
+	State->A = A->Values;
+	State->B = B->Values;
+	State->Args[0] = A->Values[0];
+	State->Args[1] = B->Values[0];
+	return ml_call(State, EqualMethod, 2, State->Args);
+}
+
+ML_METHODX("!=", MLTupleT, MLTupleT) {
+//<A
+//<B
+//>B | nil
+// Returns :mini:`B` if :mini:`A:size != B:size` or :mini:`A/i != B/i` for some :mini:`i`.
+//$= !=((1, 2, 3), (1, 2, 3))
+//$= !=((1, 2, 3), (1, 2))
+//$= !=((1, 2), (1, 2, 3))
+//$= !=((1, 2, 3), (1, 2, 4))
+//$= !=((1, 3, 2), (1, 2, 3))
+	ml_tuple_t *A = (ml_tuple_t *)Args[0];
+	ml_tuple_t *B = (ml_tuple_t *)Args[1];
+	if (A->Size != B->Size) ML_RETURN(B);
+	if (!A->Size) ML_RETURN(MLNil);
+	ml_tuple_compare_state_t *State = new(ml_tuple_compare_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_tuple_compare_equal_run;
+	State->Result = (ml_value_t *)B;
+	State->Default = MLNil;
+	State->Count = A->Size;
+	State->A = A->Values;
+	State->B = B->Values;
+	State->Args[0] = A->Values[0];
+	State->Args[1] = B->Values[0];
+	return ml_call(State, EqualMethod, 2, State->Args);
+}
+
+static void ml_tuple_compare_order_run(ml_tuple_compare_state_t *State, ml_value_t *Result);
+
+static void ml_tuple_compare_order2_run(ml_tuple_compare_state_t *State, ml_value_t *Result) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Result)) ML_RETURN(Result);
+	if (Result == MLNil) ML_RETURN(MLNil);
+	if (--State->Count == 0) ML_RETURN(State->Default);
+	State->Args[0] = *++State->A;
+	State->Args[1] = *++State->B;
+	State->Base.run = (ml_state_fn)ml_tuple_compare_order_run;
+	return ml_call(State, State->Order, 2, State->Args);
+}
+
+static void ml_tuple_compare_order_run(ml_tuple_compare_state_t *State, ml_value_t *Result) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Result)) ML_RETURN(Result);
+	if (Result != MLNil) ML_RETURN(State->Result);
+	State->Args[0] = *State->A;
+	State->Args[1] = *State->B;
+	State->Base.run = (ml_state_fn)ml_tuple_compare_order2_run;
+	return ml_call(State, EqualMethod, 2, State->Args);
+}
+
+ML_METHODX("<", MLTupleT, MLTupleT) {
+//<A
+//<B
+//>B | nil
+// Returns :mini:`B` if :mini:`A/i = B/i` for each :mini:`i = 1 .. j-1` and :mini:`A/j < B/j`.
+//$= <((1, 2, 3), (1, 2, 3))
+//$= <((1, 2, 3), (1, 2))
+//$= <((1, 2), (1, 2, 3))
+//$= <((1, 2, 3), (1, 2, 4))
+//$= <((1, 3, 2), (1, 2, 3))
+	ml_tuple_t *A = (ml_tuple_t *)Args[0];
+	ml_tuple_t *B = (ml_tuple_t *)Args[1];
+	if (!A->Size) {
+		if (!B->Size) ML_RETURN(MLNil);
+		ML_RETURN(B);
+	}
+	if (!B->Size) ML_RETURN(MLNil);
+	ml_tuple_compare_state_t *State = new(ml_tuple_compare_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_tuple_compare_order_run;
+	State->Result = (ml_value_t *)B;
+	State->Order = LessMethod;
+	if (A->Size >= B->Size) {
+		State->Default = MLNil;
+		State->Count = B->Size;
+	} else {
+		State->Default = (ml_value_t *)B;
+		State->Count = A->Size;
+	}
+	State->A = A->Values;
+	State->B = B->Values;
+	State->Args[0] = A->Values[0];
+	State->Args[1] = B->Values[0];
+	return ml_call(State, LessMethod, 2, State->Args);
+}
+
+ML_METHODX("<=", MLTupleT, MLTupleT) {
+//<A
+//<B
+//>B | nil
+// Returns :mini:`B` if :mini:`A/i = B/i` for each :mini:`i = 1 .. j-1` and :mini:`A/j <= B/j`.
+//$= <=((1, 2, 3), (1, 2, 3))
+//$= <=((1, 2, 3), (1, 2))
+//$= <=((1, 2), (1, 2, 3))
+//$= <=((1, 2, 3), (1, 2, 4))
+//$= <=((1, 3, 2), (1, 2, 3))
+	ml_tuple_t *A = (ml_tuple_t *)Args[0];
+	ml_tuple_t *B = (ml_tuple_t *)Args[1];
+	if (!A->Size) {
+		if (!B->Size) ML_RETURN(B);
+		ML_RETURN(B);
+	}
+	if (!B->Size) ML_RETURN(MLNil);
+	ml_tuple_compare_state_t *State = new(ml_tuple_compare_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_tuple_compare_order_run;
+	State->Result = (ml_value_t *)B;
+	State->Order = LessMethod;
+	if (A->Size > B->Size) {
+		State->Default = MLNil;
+		State->Count = B->Size;
+	} else {
+		State->Default = (ml_value_t *)B;
+		State->Count = A->Size;
+	}
+	State->A = A->Values;
+	State->B = B->Values;
+	State->Args[0] = A->Values[0];
+	State->Args[1] = B->Values[0];
+	return ml_call(State, LessMethod, 2, State->Args);
+}
+
+ML_METHODX(">", MLTupleT, MLTupleT) {
+//<A
+//<B
+//>B | nil
+// Returns :mini:`B` if :mini:`A/i = B/i` for each :mini:`i = 1 .. j-1` and :mini:`A/j > B/j`.
+//$= >((1, 2, 3), (1, 2, 3))
+//$= >((1, 2, 3), (1, 2))
+//$= >((1, 2), (1, 2, 3))
+//$= >((1, 2, 3), (1, 2, 4))
+//$= >((1, 3, 2), (1, 2, 3))
+	ml_tuple_t *A = (ml_tuple_t *)Args[0];
+	ml_tuple_t *B = (ml_tuple_t *)Args[1];
+	if (!A->Size) {
+		if (!B->Size) ML_RETURN(MLNil);
+		ML_RETURN(MLNil);
+	}
+	if (!B->Size) ML_RETURN(A);
+	ml_tuple_compare_state_t *State = new(ml_tuple_compare_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_tuple_compare_order_run;
+	State->Result = (ml_value_t *)B;
+	State->Order = GreaterMethod;
+	if (A->Size <= B->Size) {
+		State->Default = MLNil;
+		State->Count = A->Size;
+	} else {
+		State->Default = (ml_value_t *)B;
+		State->Count = B->Size;
+	}
+	State->A = A->Values;
+	State->B = B->Values;
+	State->Args[0] = A->Values[0];
+	State->Args[1] = B->Values[0];
+	return ml_call(State, GreaterMethod, 2, State->Args);
+}
+
+ML_METHODX(">=", MLTupleT, MLTupleT) {
+//<A
+//<B
+//>B | nil
+// Returns :mini:`B` if :mini:`A/i = B/i` for each :mini:`i = 1 .. j-1` and :mini:`A/j >= B/j`.
+//$= >=((1, 2, 3), (1, 2, 3))
+//$= >=((1, 2, 3), (1, 2))
+//$= >=((1, 2), (1, 2, 3))
+//$= >=((1, 2, 3), (1, 2, 4))
+//$= >=((1, 3, 2), (1, 2, 3))
+	ml_tuple_t *A = (ml_tuple_t *)Args[0];
+	ml_tuple_t *B = (ml_tuple_t *)Args[1];
+	if (!A->Size) {
+		if (!B->Size) ML_RETURN(B);
+		ML_RETURN(MLNil);
+	}
+	if (!B->Size) ML_RETURN(B);
+	ml_tuple_compare_state_t *State = new(ml_tuple_compare_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_tuple_compare_order_run;
+	State->Result = (ml_value_t *)B;
+	State->Order = GreaterMethod;
+	if (A->Size < B->Size) {
+		State->Default = MLNil;
+		State->Count = A->Size;
+	} else {
+		State->Default = (ml_value_t *)B;
+		State->Count = B->Size;
+	}
+	State->A = A->Values;
+	State->B = B->Values;
+	State->Args[0] = A->Values[0];
+	State->Args[1] = B->Values[0];
+	return ml_call(State, GreaterMethod, 2, State->Args);
+}
 
 // Boolean //
 //!boolean
@@ -1880,21 +2110,25 @@ ML_METHOD("<>", MLBooleanT, MLBooleanT) {
 }
 
 #define ml_comp_method_boolean_boolean(NAME, SYMBOL) \
-ML_METHOD(NAME, MLBooleanT, MLBooleanT) { \
+ML_METHOD(#NAME, MLBooleanT, MLBooleanT) { \
 /*>boolean|nil
 // Returns :mini:`Arg/2` if :mini:`Arg/1 SYMBOL Arg/2` and :mini:`nil` otherwise.
+//$= true NAME true
+//$= true NAME false
+//$= false NAME true
+//$= false NAME false
 */\
 	ml_boolean_t *BooleanA = (ml_boolean_t *)Args[0]; \
 	ml_boolean_t *BooleanB = (ml_boolean_t *)Args[1]; \
 	return BooleanA->Value SYMBOL BooleanB->Value ? Args[1] : MLNil; \
 }
 
-ml_comp_method_boolean_boolean("=", ==);
-ml_comp_method_boolean_boolean("!=", !=);
-ml_comp_method_boolean_boolean("<", <);
-ml_comp_method_boolean_boolean(">", >);
-ml_comp_method_boolean_boolean("<=", <=);
-ml_comp_method_boolean_boolean(">=", >=);
+ml_comp_method_boolean_boolean(=, ==);
+ml_comp_method_boolean_boolean(!=, !=);
+ml_comp_method_boolean_boolean(<, <);
+ml_comp_method_boolean_boolean(>, >);
+ml_comp_method_boolean_boolean(<=, <=);
+ml_comp_method_boolean_boolean(>=, >=);
 
 ML_FUNCTION(RandomBoolean) {
 //@boolean::random
