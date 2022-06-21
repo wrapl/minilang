@@ -16,7 +16,7 @@ general
 .. _fun-halt:
 
 :mini:`fun halt(Code?: integer)`
-   
+   Causes the current process to exit with optional exit code :mini:`Code` or :mini:`0` if omitted.
 
 
 .. _fun-now:
@@ -33,8 +33,8 @@ general
 
 .. _fun-call:
 
-:mini:`fun call(Fn: any, Args: any, ...): any`
-   Returns :mini:`Fn(Args)`.
+:mini:`fun call(Fn: any, Arg₁: any, ..., Argₙ: any): any`
+   Returns :mini:`Fn(Arg₁,  ...,  Argₙ)`.
 
 
 .. _fun-cas:
@@ -59,19 +59,19 @@ general
 
 .. _fun-exchange:
 
-:mini:`fun exchange(Var₁, : any, ...)`
+:mini:`fun exchange(Var₁: any, ..., Varₙ: any)`
    Assigns :mini:`Varᵢ := Varᵢ₊₁` for each :mini:`1 <= i < n` and :mini:`Varₙ := Var₁`.
 
 
 .. _fun-print:
 
-:mini:`fun print(Values..: any): nil`
+:mini:`fun print(Values: any, ...): nil`
    Prints :mini:`Values` to standard output,  converting to strings if necessary.
 
 
 .. _fun-replace:
 
-:mini:`fun replace(Var₁, : any, ..., Value: any)`
+:mini:`fun replace(Var₁: any, ..., Varₙ: any, Value: any)`
    Assigns :mini:`Varᵢ := Varᵢ₊₁` for each :mini:`1 <= i < n` and :mini:`Varₙ := Value`. Returns the old value of :mini:`Var₁`.
 
 

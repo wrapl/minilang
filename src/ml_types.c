@@ -2243,7 +2243,8 @@ static void ml_exchange_run(ml_exchange_t *State, ml_value_t *Result) {
 
 ML_FUNCTIONZ(MLExchange) {
 //@exchange
-//<Var/1,...,Var/n:any
+//<Var/1...:any
+//<Var/n:any
 // Assigns :mini:`Var/i := Var/i/+/1` for each :mini:`1 <= i < n` and :mini:`Var/n := Var/1`.
 	ML_CHECKX_ARG_COUNT(1);
 	ml_exchange_t *State = xnew(ml_exchange_t, Count, ml_value_t *);
@@ -2258,7 +2259,8 @@ ML_FUNCTIONZ(MLExchange) {
 
 ML_FUNCTIONZ(MLReplace) {
 //@replace
-//<Var/1,...,Var/n:any
+//<Var/1...:any
+//<Var/n:any
 //<Value:any
 // Assigns :mini:`Var/i := Var/i/+/1` for each :mini:`1 <= i < n` and :mini:`Var/n := Value`. Returns the old value of :mini:`Var/1`.
 	ML_CHECKX_ARG_COUNT(2);
@@ -2293,9 +2295,10 @@ ML_FUNCTIONZ(MLAssign) {
 ML_FUNCTIONZ(MLCall) {
 //@call
 //<Fn:any
-//<Args...:any
+//<Arg/1...:any
+//<Arg/n:any
 //>any
-// Returns :mini:`Fn(Args)`.
+// Returns :mini:`Fn(Arg/1, ..., Arg/n)`.
 	ML_CHECKX_ARG_COUNT(1);
 	return ml_call(Caller, Args[0], Count - 1, Args + 1);
 }

@@ -109,7 +109,7 @@ static int ml_stringbuffer_print(FILE *File, const char *String, size_t Length) 
 
 ML_FUNCTION(MLPrint) {
 //@print
-//<Values..:any
+//<Values...:any
 //>nil
 // Prints :mini:`Values` to standard output, converting to strings if necessary.
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
@@ -125,7 +125,7 @@ ML_FUNCTION(MLPrint) {
 ML_FUNCTION(MLHalt) {
 //@halt
 //<Code?:integer
-//
+// Causes the current process to exit with optional exit code :mini:`Code` or :mini:`0` if omitted.
 	if (Count > 0) {
 		ML_CHECK_ARG_TYPE(0, MLIntegerT);
 		exit(ml_integer_value_fast(Args[0]));

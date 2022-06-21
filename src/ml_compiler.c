@@ -3010,9 +3010,9 @@ ML_METHOD("let", MLBlockBuilderT, MLStringT, MLExprT) {
 ML_METHODV("do", MLBlockBuilderT, MLExprT) {
 //!macro
 //<Builder
-//<Expr...
+//<Expr/i...
 //>blockbuilder
-// Adds the expression :mini:`Expr` to a block.
+// Adds each expression :mini:`Expr/i` to a block.
 	mlc_block_builder_t *Builder = (mlc_block_builder_t *)Args[0];
 	for (int I = 1; I < Count; ++I) {
 		mlc_expr_t *Delegate = ml_delegate_expr(Args[I]);
