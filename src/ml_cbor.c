@@ -1376,7 +1376,7 @@ void ml_cbor_default_object(const char *Name, ml_value_t *Constructor) {
 	ml_map_insert(CborObjects, ml_string(Name, -1), Constructor);
 }
 
-static void ml_cbor_default_global(const char *Name, void *Value) {
+void ml_cbor_default_global(const char *Name, void *Value) {
 	stringmap_insert(DefaultReadGlobals, Name, Value);
 	inthash_insert(DefaultWriteGlobals, (uintptr_t)Value, (void *)Name);
 }
@@ -1402,6 +1402,16 @@ void ml_cbor_init(stringmap_t *Globals) {
 	ml_cbor_default_global("string", MLStringT);
 	ml_cbor_default_global("list", MLListT);
 	ml_cbor_default_global("map", MLMapT);
+	ml_cbor_default_global("boolean", MLBooleanT);
+	ml_cbor_default_global("error", MLErrorT);
+	ml_cbor_default_global("regex", MLRegexT);
+#ifdef ML_COMPLEX
+	ml_cbor_default_global("complex", MLComplexT);
+#endif
+	ml_cbor_default_global("method", MLMethodT);
+	ml_cbor_default_global("address", MLAddressT);
+	ml_cbor_default_global("buffer", MLBufferT);
+	ml_cbor_default_global("tuple", MLTupleT);
 #include "ml_cbor_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "cbor", ml_module("cbor",

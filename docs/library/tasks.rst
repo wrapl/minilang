@@ -16,10 +16,6 @@ tasks
    If :mini:`Min` is also given then iteration will be resumed only when the number of calls to :mini:`Fn` drops to :mini:`Min`.
 
 
-:mini:`meth (Arg₁: buffered):count`
-   *TBD*
-
-
 .. _fun-buffered:
 
 :mini:`fun buffered(Sequence: sequence, Size: integer, Fn: function): sequence`

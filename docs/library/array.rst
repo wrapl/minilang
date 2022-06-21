@@ -986,6 +986,11 @@ array
 
 :mini:`type array::any < array`
    An array of any values.
+   
+   :mini:`(A: array::any) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::any) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
 
 
 .. _fun-array-any:
@@ -1008,6 +1013,11 @@ array
 
 :mini:`type array::complex32 < array::complex`
    An array of complex32 values.
+   
+   :mini:`(A: array::complex32) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::complex32) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
 
 
 .. _fun-array-complex32:
@@ -1020,6 +1030,11 @@ array
 
 :mini:`type array::complex64 < array::complex`
    An array of complex64 values.
+   
+   :mini:`(A: array::complex64) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::complex64) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
 
 
 .. _fun-array-complex64:
@@ -1032,6 +1047,11 @@ array
 
 :mini:`type array::float32 < array::real`
    An array of float32 values.
+   
+   :mini:`(A: array::float32) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::float32) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
 
 
 .. _fun-array-float32:
@@ -1044,6 +1064,11 @@ array
 
 :mini:`type array::float64 < array::real`
    An array of float64 values.
+   
+   :mini:`(A: array::float64) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::float64) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
 
 
 .. _fun-array-float64:
@@ -1056,6 +1081,11 @@ array
 
 :mini:`type array::int16 < array::integer`
    An array of int16 values.
+   
+   :mini:`(A: array::int16) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::int16) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
 
 
 .. _fun-array-int16:
@@ -1068,6 +1098,11 @@ array
 
 :mini:`type array::int32 < array::integer`
    An array of int32 values.
+   
+   :mini:`(A: array::int32) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::int32) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
 
 
 .. _fun-array-int32:
@@ -1080,6 +1115,11 @@ array
 
 :mini:`type array::int64 < array::integer`
    An array of int64 values.
+   
+   :mini:`(A: array::int64) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::int64) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
 
 
 .. _fun-array-int64:
@@ -1092,6 +1132,11 @@ array
 
 :mini:`type array::int8 < array::integer`
    An array of int8 values.
+   
+   :mini:`(A: array::int8) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::int8) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
 
 
 .. _fun-array-int8:
@@ -1126,6 +1171,11 @@ array
 
 :mini:`type array::uint16 < array::integer`
    An array of uint16 values.
+   
+   :mini:`(A: array::uint16) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::uint16) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
 
 
 .. _fun-array-uint16:
@@ -1138,6 +1188,11 @@ array
 
 :mini:`type array::uint32 < array::integer`
    An array of uint32 values.
+   
+   :mini:`(A: array::uint32) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::uint32) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
 
 
 .. _fun-array-uint32:
@@ -1150,6 +1205,11 @@ array
 
 :mini:`type array::uint64 < array::integer`
    An array of uint64 values.
+   
+   :mini:`(A: array::uint64) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::uint64) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
 
 
 .. _fun-array-uint64:
@@ -1162,6 +1222,11 @@ array
 
 :mini:`type array::uint8 < array::integer`
    An array of uint8 values.
+   
+   :mini:`(A: array::uint8) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::uint8) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
 
 
 .. _fun-array-uint8:
@@ -1573,9 +1638,9 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:A0D95893BB7F000020226D6C5F737472>
+      :> <16:0051BC74C37F0000656E745F65787072>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
-      :> <<<55712 37720> <32699 0>> <<8736 27757> <29535 29300>>>
+      :> <<<20736 29884> <32707 0>> <<28261 24436> <30821 29296>>>
 
 
 .. _type-vector:

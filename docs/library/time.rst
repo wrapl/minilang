@@ -7,7 +7,7 @@
 time
 ====
 
-Provides time and date operations. Depending on how Minilang was built,  may need to be imported using :mini:`import: time("std/time")`.
+Provides time and date operations.
 
 .. _fun-time-zone-list:
 
@@ -37,20 +37,20 @@ Provides time and date operations. Depending on how Minilang was built,  may nee
    Returns the time specified by the provided components in UTC.
 
 
-:mini:`meth time(Year: integer, Month: integer, Day: integer): time`
-   Returns the time specified by the provided components in the local time.
-
-
 :mini:`meth time(String: string): time`
    Parses the :mini:`String` as a time according to ISO 8601.
 
 
-:mini:`meth time(String: string, Format: string): time`
-   Parses the :mini:`String` as a time according to specified format. The time is assumed to be in local time.
+:mini:`meth time(Year: integer, Month: integer, Day: integer): time`
+   Returns the time specified by the provided components in the local time.
 
 
 :mini:`meth time(Year: integer, Month: integer, Day: integer, TimeZone: nil): time`
    Returns the time specified by the provided components in UTC.
+
+
+:mini:`meth time(String: string, Format: string): time`
+   Parses the :mini:`String` as a time according to specified format. The time is assumed to be in local time.
 
 
 :mini:`meth time(Year: integer, Month: integer, Day: integer, Hour: integer, Minute: integer, Second: integer, Arg₇: time::zone): time`
@@ -78,7 +78,6 @@ Provides time and date operations. Depending on how Minilang was built,  may nee
 
    .. code-block:: mini
 
-      import: time("std/time")
       time("2022-04-01 12:00:00") + 3600 :> 2022-04-01T13:00:00
 
 
@@ -87,7 +86,6 @@ Provides time and date operations. Depending on how Minilang was built,  may nee
 
    .. code-block:: mini
 
-      import: time("std/time")
       time("2022-04-01 12:00:00") - 3600 :> 2022-04-01T11:00:00
 
 
@@ -96,7 +94,6 @@ Provides time and date operations. Depending on how Minilang was built,  may nee
 
    .. code-block:: mini
 
-      import: time("std/time")
       time("2022-04-01 12:00:00") - time("2022-04-01 11:00:00")
       :> 3600
 
@@ -235,6 +232,18 @@ Provides time and date operations. Depending on how Minilang was built,  may nee
 
 :mini:`meth (Buffer: string::buffer):append(Time: time, TimeZone: time::zone): string`
    Formats :mini:`Time` as a time in :mini:`TimeZone`.
+
+
+.. _type-time-day:
+
+:mini:`type time::day < enum`
+   *TBD*
+
+
+.. _type-time-month:
+
+:mini:`type time::month < enum`
+   *TBD*
 
 
 .. _type-time-zone:

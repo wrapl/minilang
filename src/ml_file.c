@@ -29,6 +29,11 @@ ML_FUNCTION(MLFileOpen) {
 //<Path
 //<Mode
 //>file
+// Opens the file at :mini:`Path` depending on :mini:`Mode`,
+//
+// * :mini:`"r"`: opens the file for reading,
+// * :mini:`"w"`: opens the file for writing,
+// * :mini:`"a"`: opens the file for appending.
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLStringT);
@@ -44,6 +49,7 @@ ML_FUNCTION(MLFileOpen) {
 }
 
 ML_TYPE(MLFileT, (MLStreamT), "file",
+// A file handle for reading / writing.
 	.Constructor = (ml_value_t *)MLFileOpen
 );
 
@@ -85,6 +91,7 @@ static void ML_TYPED_FN(ml_stream_write, MLFileT, ml_state_t *Caller, ml_file_t 
 ML_METHOD("eof", MLFileT) {
 //<File
 //>File | nil
+// Returns :mini:`File` if :mini:`File` is closed, otherwise return :mini:`nil`.
 	ml_file_t *File = (ml_file_t *)Args[0];
 	if (!File->Handle) return ml_error("FileError", "file already closed");
 	if (feof(File->Handle)) return Args[0];
@@ -93,7 +100,7 @@ ML_METHOD("eof", MLFileT) {
 
 ML_METHOD("flush", MLFileT) {
 //<File
-//>nil
+// Flushes any pending writes to :mini:`File`.
 	ml_file_t *File = (ml_file_t *)Args[0];
 	if (File->Handle) fflush(File->Handle);
 	return (ml_value_t *)File;
@@ -101,12 +108,11 @@ ML_METHOD("flush", MLFileT) {
 
 ML_METHOD("close", MLFileT) {
 //<File
-//>nil
+// Closes :mini:`File`.
 	ml_file_t *File = (ml_file_t *)Args[0];
-	if (File->Handle) {
-		fclose(File->Handle);
-		File->Handle = NULL;
-	}
+	if (!File->Handle) return ml_error("FileError", "File already closed");
+	fclose(File->Handle);
+	File->Handle = NULL;
 	return MLNil;
 }
 
@@ -123,7 +129,7 @@ ML_FUNCTION(MLFileRename) {
 //@file::rename
 //<Old
 //<New
-//>nil
+// Renames the file :mini:`Old` to :mini:`New`.
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLStringT);
@@ -139,6 +145,7 @@ ML_FUNCTION(MLFileUnlink) {
 //!file
 //@file::unlink
 //<Path
+// Removes the file at :mini:`Path`.
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	const char *Name = ml_string_value(Args[0]);
@@ -235,6 +242,14 @@ static void ml_popen_finalize(ml_file_t *File, void *Data) {
 extern ml_type_t MLPOpenT[];
 
 ML_FUNCTION(MLPOpen) {
+//@popen
+//<Command
+//<Mode
+//>popen
+// Executes :mini:`Command` with the shell and returns an open file to communicate with the subprocess depending on :mini:`Mode`,
+//
+// * :mini:`"r"`: opens the file for reading,
+// * :mini:`"w"`: opens the file for writing.
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ML_CHECK_ARG_TYPE(1, MLStringT);
@@ -250,16 +265,19 @@ ML_FUNCTION(MLPOpen) {
 }
 
 ML_TYPE(MLPOpenT, (MLFileT), "popen",
+// A file that reads or writes to a running subprocess.
 	.Constructor = (ml_value_t *)MLPOpen
 );
 
 ML_METHOD("close", MLPOpenT) {
+//<File
+//>integer
+// Waits for the subprocess to finish and returns the exit status.
 	ml_file_t *File = (ml_file_t *)Args[0];
-	if (File->Handle) {
-		pclose(File->Handle);
-		File->Handle = NULL;
-	}
-	return MLNil;
+	if (!File->Handle) return ml_error("FileError", "File already closed");
+	int Result = pclose(File->Handle);
+	File->Handle = NULL;
+	return ml_integer(Result);
 }
 
 void ml_file_init(stringmap_t *Globals) {

@@ -162,10 +162,15 @@ void ml_xml_element_put(ml_xml_element_t *Parent, ml_xml_node_t *Child) {
 ML_METHODV(MLXmlElementT, MLStringT) {
 //@xml::element
 //<Tag
-//<Children...:string|xml
-//<Attributes?:names|map
+//<Arg/1,...,Arg/n
 //>xml::element
-// Returns a new XML node with tag :mini:`Tag` and optional children and attributes. Since attributes are created with named arguments, they should be passed at the end.
+// Returns a new XML node with tag :mini:`Tag` and optional children and attributes depending on the types of each :mini:`Arg/i`:
+//
+// * :mini:`string`: added as child text node. Consecutive strings are added a single node.
+// * :mini:`xml`: added as a child node.
+// * :mini:`list`: each value must be a :mini:`string` or :mini:`xml` and is added as above.
+// * :mini:`map`: keys and values must be strings, set as attributes.
+// * :mini:`name is value`: values must be strings, set as attributes.
 //$- import: xml("fmt/xml")
 //$= xml::element("test", "Text", type is "example")
 	ml_xml_element_t *Element = new(ml_xml_element_t);
@@ -178,7 +183,7 @@ ML_METHODV(MLXmlElementT, MLStringT) {
 	for (int I = 1; I < Count; ++I) {
 		if (ml_is(Args[I], MLStringT)) {
 			ml_stringbuffer_write(Buffer, ml_string_value(Args[I]), ml_string_length(Args[I]));
-		} else if (ml_is(Args[I], MLXmlElementT)) {
+		} else if (ml_is(Args[I], MLXmlT)) {
 			if (Buffer->Length) {
 				ml_xml_node_t *Text = new(ml_xml_node_t);
 				Text->Base.Type = MLXmlTextT;
@@ -187,6 +192,22 @@ ML_METHODV(MLXmlElementT, MLStringT) {
 				ml_xml_element_put(Element, Text);
 			}
 			ml_xml_element_put(Element, (ml_xml_node_t *)Args[I]);
+		} else if (ml_is(Args[I], MLListT)) {
+			ML_LIST_FOREACH(Args[I], Iter) {
+				ml_value_t *Arg = Iter->Value;
+				if (ml_is(Arg, MLStringT)) {
+					ml_stringbuffer_write(Buffer, ml_string_value(Arg), ml_string_length(Arg));
+				} else if (ml_is(Arg, MLXmlT)) {
+					if (Buffer->Length) {
+						ml_xml_node_t *Text = new(ml_xml_node_t);
+						Text->Base.Type = MLXmlTextT;
+						Text->Base.Length = Buffer->Length;
+						Text->Base.Value = ml_stringbuffer_get_string(Buffer);
+						ml_xml_element_put(Element, Text);
+					}
+					ml_xml_element_put(Element, (ml_xml_node_t *)Arg);
+				}
+			}
 		} else if (ml_is(Args[I], MLNamesT)) {
 			ML_NAMES_CHECK_ARG_COUNT(I);
 			ML_NAMES_FOREACH(Args[I], Iter) {

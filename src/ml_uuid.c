@@ -6,7 +6,7 @@
 
 // Overview
 // .. note::
-//    Depending on how *Minilang* is built, :mini:`uuid` might need to be imported using :mini:`import: uuid("std/uuid")`.
+//    Depending on how *Minilang* is built, :mini:`uuid` might need to be imported using :mini:`import: uuid("util/uuid")`.
 
 static long ml_uuid_hash(ml_uuid_t *UUID, ml_hash_chain_t *Chain) {
 	return *(long *)UUID->Value;
@@ -36,7 +36,7 @@ ml_value_t *ml_uuid_parse(const char *Value, int Length) {
 ML_METHOD(MLUUIDT) {
 //>uuid
 // Returns a new random UUID.
-//$- import: uuid("std/uuid")
+//$- import: uuid("util/uuid")
 //$= uuid()
 	ml_uuid_t *UUID = new(ml_uuid_t);
 	UUID->Type = MLUUIDT;
@@ -48,7 +48,7 @@ ML_METHOD(MLUUIDT, MLStringT) {
 //<String
 //>uuid|error
 // Parses :mini:`String` as a UUID, returning an error if :mini:`String` does not have the correct format.
-//$- import: uuid("std/uuid")
+//$- import: uuid("util/uuid")
 //$= uuid("5fe1af82-02f9-429a-8787-4a7c16628a02")
 //$= uuid("test")
 	return ml_uuid_parse(ml_string_value(Args[0]), ml_string_length(Args[0]));
@@ -58,7 +58,7 @@ ML_METHOD(MLAddressT, MLUUIDT) {
 //<UUID
 //>address
 // Returns an address view of :mini:`UUID`.
-//$- import: uuid("std/uuid")
+//$- import: uuid("util/uuid")
 //$= address(uuid())
 	ml_uuid_t *UUID = (ml_uuid_t *)Args[0];
 	ml_address_t *Address = new(ml_address_t);
@@ -125,5 +125,6 @@ void ml_uuid_init(stringmap_t *Globals) {
 	ml_string_fn_register("U", ml_uuid_parse);
 #ifdef ML_CBOR
 	ml_cbor_default_tag(37, ml_cbor_read_uuid_fn);
+	ml_cbor_default_global("uuid", MLUUIDT);
 #endif
 }

@@ -2090,6 +2090,11 @@ ML_CFUNCTIONX(MLArray ## SUFFIX ## New, (void *)FORMAT, ml_array_typed_new_fnx);
 ML_TYPE(MLArray ## SUFFIX, (MLArray ## PARENT), "array::" #PREFIX, \
 /*@array::PREFIX
 // An array of PREFIX values.
+//
+// :mini:`(A: array::PREFIX) := (B: number)`
+//    Sets the values in :mini:`A` to :mini:`B`.
+// :mini:`(A: array::PREFIX) := (B: array | list)`
+//    Sets the values in :mini:`A` to those in :mini:`B`, broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
 */\
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
 	.deref = (void *)ml_array_ ## CTYPE ## _deref, \
@@ -7271,5 +7276,8 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_cbor_default_object("array::complex32", (ml_value_t *)MLCborReadComplex32);
 	ml_cbor_default_object("array::complex64", (ml_value_t *)MLCborReadComplex64);
 #endif
+	ml_cbor_default_global("array", MLArrayT);
+	ml_cbor_default_global("vector", MLVectorT);
+	ml_cbor_default_global("matrix", MLMatrixT);
 #endif
 }

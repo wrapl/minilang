@@ -7,12 +7,6 @@
 method
 ======
 
-.. _fun-method-context:
-
-:mini:`fun method::context(): methods`
-   *TBD*
-
-
 .. _fun-method-list:
 
 :mini:`fun method::list(): list[method]`
@@ -31,12 +25,12 @@ method
    *TBD*
 
 
-:mini:`meth method(Name: string): method`
-   Returns the method with name :mini:`Name`.
-
-
 :mini:`meth method(): method`
    Returns a new anonymous method.
+
+
+:mini:`meth method(Name: string): method`
+   Returns the method with name :mini:`Name`.
 
 
 :mini:`meth (Arg₁: method)[Arg₂: type, ...]`
@@ -55,9 +49,18 @@ method
    *TBD*
 
 
-.. _type-methods:
+.. _type-method-context:
 
-:mini:`type methods`
-   *TBD*
+:mini:`type method::context`
+   A context for isolating method definitions.
+   
+   :mini:`(C: method::context)(Fn: function,  Args,  ...): any`
+       Calls :mini:`Fn(Args)` in a new context using :mini:`C` for method definitions.
+
+
+.. _fun-method-context:
+
+:mini:`fun method::context(): method::context`
+   Returns a new context for method definitions. The new context will inherit methods definitions from the current context.
 
 

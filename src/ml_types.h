@@ -861,6 +861,13 @@ ml_methods_t *ml_methods_context(ml_context_t *Context);
 
 typedef struct ml_map_t ml_map_t;
 typedef struct ml_map_node_t ml_map_node_t;
+typedef enum {
+	MAP_ORDER_INSERT,
+	MAP_ORDER_LRU,
+	MAP_ORDER_MRU,
+	MAP_ORDER_ASC,
+	MAP_ORDER_DESC
+} ml_map_order_t;
 
 extern ml_type_t MLMapT[];
 
@@ -868,7 +875,8 @@ struct ml_map_t {
 	ml_type_t *Type;
 	ml_map_node_t *Head, *Tail, *Root;
 	ml_method_cached_t *Cached;
-	int Size, Order;
+	int Size;
+	ml_map_order_t Order;
 };
 
 struct ml_map_node_t {

@@ -1286,7 +1286,7 @@ typedef struct {
 } ml_permutations_t;
 
 ML_TYPE(MLPermutationsT, (MLSequenceT), "list::permutations");
-//internal
+//!internal
 
 static void ML_TYPED_FN(ml_iterate, MLPermutationsT, ml_state_t *Caller, ml_permutations_t *Permutations) {
 	Permutations->Index = 1;

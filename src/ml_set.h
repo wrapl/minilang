@@ -7,6 +7,13 @@
 
 typedef struct ml_set_t ml_set_t;
 typedef struct ml_set_node_t ml_set_node_t;
+typedef enum {
+	SET_ORDER_INSERT,
+	SET_ORDER_LRU,
+	SET_ORDER_MRU,
+	SET_ORDER_ASC,
+	SET_ORDER_DESC
+} ml_set_order_t;
 
 extern ml_type_t MLSetT[];
 
@@ -14,7 +21,8 @@ struct ml_set_t {
 	ml_type_t *Type;
 	ml_set_node_t *Head, *Tail, *Root;
 	ml_method_cached_t *Cached;
-	int Size, Order;
+	int Size;
+	ml_set_order_t Order;
 };
 
 struct ml_set_node_t {

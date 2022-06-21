@@ -27,6 +27,7 @@ ml_cbor_tag_fn ml_cbor_tag_fn_get(ml_cbor_tag_fns_t *TagFns, uint64_t Tag);
 void ml_cbor_tag_fn_set(ml_cbor_tag_fns_t *TagFns, uint64_t Tag, ml_cbor_tag_fn Fn);
 
 void ml_cbor_default_tag(uint64_t Tag, ml_cbor_tag_fn TagFn);
+void ml_cbor_default_global(const char *Name, void *Value);
 
 ml_cbor_reader_t *ml_cbor_reader(ml_cbor_tag_fns_t *TagFns, stringmap_t *Globals);
 void ml_cbor_reader_reset(ml_cbor_reader_t *Reader);

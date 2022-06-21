@@ -8,15 +8,15 @@ uuid
 ====
 
 .. note::
-   Depending on how *Minilang* is built,  :mini:`uuid` might need to be imported using :mini:`import: uuid("std/uuid")`.
+   Depending on how *Minilang* is built,  :mini:`uuid` might need to be imported using :mini:`import: uuid("util/uuid")`.
 
 :mini:`meth address(UUID: uuid): address`
    Returns an address view of :mini:`UUID`.
 
    .. code-block:: mini
 
-      import: uuid("std/uuid")
-      address(uuid()) :> <16:E8CF2A9A90BC48DF8CDCE5E27AF53DE4>
+      import: uuid("util/uuid")
+      address(uuid()) :> <16:36F05D3A011745FEAE24711E90ECFED9>
 
 
 .. _type-uuid:
@@ -30,7 +30,7 @@ uuid
 
    .. code-block:: mini
 
-      import: uuid("std/uuid")
+      import: uuid("util/uuid")
       uuid("5fe1af82-02f9-429a-8787-4a7c16628a02")
       :> 5fe1af82-02f9-429a-8787-4a7c16628a02
       uuid("test") :> error("UUIDError", "Invalid UUID string")
@@ -41,8 +41,8 @@ uuid
 
    .. code-block:: mini
 
-      import: uuid("std/uuid")
-      uuid() :> 54253ae5-8570-44d4-94d1-a745527a3ac5
+      import: uuid("util/uuid")
+      uuid() :> 7ac84444-f4c5-4fdf-b58e-76335711443b
 
 
 :mini:`meth (Arg₁: uuid) <> (Arg₂: uuid)`

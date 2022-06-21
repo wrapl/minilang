@@ -43,7 +43,7 @@ end
 let Categories := {}
 
 fun emit(Category, Key, Docs) do
-	Categories[Category, fun pqueue(<)]:insert(Docs, Key)
+	Categories[Category, fun util::pqueue(<)]:insert(Docs, Key)
 end
 
 fun write_overview(Category, Description) do
@@ -324,7 +324,7 @@ end
 
 let TypesGraph := string::buffer()
 
-fun write_type(Category, Name, Parents, Description, Location) do
+fun write_type(Category, Name, Parents, Description, Examples, Location) do
 	let TypeName := type_name(Name)
 	let Buffer := string::buffer()
 	Buffer:write('.. _type-{TypeName:replace("::", "-")}:\n\n')
@@ -349,6 +349,7 @@ fun write_type(Category, Name, Parents, Description, Location) do
 		Buffer:write("   ", Line)
 	end
 	Description[1] or Buffer:write("   *TBD*\n")
+	Examples[1] and write_examples(Buffer, Examples)
 	Buffer:write("\n")
 	emit(Category, (TypeName, item::Type), Buffer:rest)
 end
@@ -671,6 +672,8 @@ fun process(FileName) do
 				let Parents := Line[J + 1, K] / ", "
 				let Title := Line[K + 1, 0]:trim(", ){")
 				let Description := []
+				let Examples := []
+				let Example := string::buffer()
 				loop
 					let Line := while File:read
 					LineNo := old + 1
@@ -682,14 +685,59 @@ fun process(FileName) do
 						Description:put(Line[4, 0]:replace(Subscripts))
 					elseif Line % r"^/[/*]\n" then
 						Description:put("\n")
+					elseif Line % r"^/[/*]\$- " then
+						Example:write("      ", Line[6, 0])
+					elseif Line % r"^/[/*]\$-" then
+						Example:write("      \n")
+					elseif Line % r"^/[/*]\$= " then
+						Example:write("      ", Line[6, -1])
+						Examples:put(Example:rest)
 					else
 						exit
 					end
 				end
 				if CurrentDefine then
-					CurrentDefine:put(write_type, [Category, Name, Parents, Description, Location])
+					CurrentDefine:put(write_type, [Category, Name, Parents, Description, Examples, Location])
 				else
-					write_type(Category, Name, Parents, Description, Location)
+					write_type(Category, Name, Parents, Description, Examples, Location)
+				end
+			elseif Line % r"^(ML_ENUM|ML_FLAGS)" then
+				let Location := (FileName, LineNo)
+				let I := Line:find("("), J := Line:find(",", I + 1) + 1
+				let K := Line:find(",", J + 1)
+				var Name := Line[I + 1, J]:trim(", ")
+				var Category := DefaultCategory
+				let Parent := if Line % r"^ML_ENUM" then "MLEnumT" else "MLFlagsT" end
+				let Title := Line[J + 1, K]:trim(", ){")
+				let Description := []
+				let Examples := []
+				let Example := string::buffer()
+				loop
+					let Line := while File:read
+					LineNo := old + 1
+					if Line % r"^/[/*]@" then
+						Name := Line[4, 0]:trim
+					elseif Line % r"^/[/*]!" then
+						Category := Line[4, 0]:trim
+					elseif Line % r"^/[/*] " then
+						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]\n" then
+						Description:put("\n")
+					elseif Line % r"^/[/*]\$- " then
+						Example:write("      ", Line[6, 0])
+					elseif Line % r"^/[/*]\$-" then
+						Example:write("      \n")
+					elseif Line % r"^/[/*]\$= " then
+						Example:write("      ", Line[6, -1])
+						Examples:put(Example:rest)
+					else
+						exit
+					end
+				end
+				if CurrentDefine then
+					CurrentDefine:put(write_type, [Category, Name, [Parent], Description, Examples, Location])
+				else
+					write_type(Category, Name, [Parent], Description, Examples, Location)
 				end
 			elseif Line % r"^ML_DEF" then
 				let Location := (FileName, LineNo)

@@ -1371,11 +1371,11 @@ ML_METHODV("[]", MLFunctionPartialT) {
 	return ml_chainedv(2, Args[0], Partial);
 }
 
-ML_METHOD("!!", MLFunctionT, MLListT) {
+ML_METHOD("$!", MLFunctionT, MLListT) {
 //!function
 //<Function
 //<List
-//>partialfunction
+//>function::partial
 // Returns a function equivalent to :mini:`fun(Args...) Function(List/1, List/2, ..., Args...)`.
 	ml_list_t *ArgsList = (ml_list_t *)Args[1];
 	ml_partial_function_t *Partial = xnew(ml_partial_function_t, ArgsList->Length, ml_value_t *);
@@ -1391,7 +1391,7 @@ ML_METHODV("$", MLFunctionT, MLAnyT) {
 //!function
 //<Function
 //<Values...
-//>partialfunction
+//>function::partial
 // Returns a function equivalent to :mini:`fun(Args...) Function(Values..., Args...)`.
 	ml_partial_function_t *Partial = xnew(ml_partial_function_t, Count - 1, ml_value_t *);
 	Partial->Type = MLFunctionPartialT;
@@ -1416,14 +1416,14 @@ static void ml_argless_function_call(ml_state_t *Caller, ml_argless_function_t *
 }
 
 ML_TYPE(MLFunctionArglessT, (MLFunctionT, MLSequenceT), "argless-function",
-//!function
+//!internal
 	.call = (void *)ml_argless_function_call
 );
 
 ML_METHOD("/", MLFunctionT) {
 //!function
 //<Function
-//>arglessfunction
+//>function
 // Returns a function equivalent to :mini:`fun(Args...) Function()`.
 	ml_argless_function_t *Argless = new(ml_argless_function_t);
 	Argless->Type = MLFunctionArglessT;

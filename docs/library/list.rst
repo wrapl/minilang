@@ -175,8 +175,8 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "a"
-      L:random :> "e"
+      L:random :> "k"
+      L:random :> "k"
 
 
 :mini:`meth (List: list):reverse: list`
@@ -239,11 +239,5 @@ list
 
 :mini:`type list::slice`
    A slice of a list.
-
-
-.. _type-permutations:
-
-:mini:`type permutations < sequence`
-   *TBD*
 
 

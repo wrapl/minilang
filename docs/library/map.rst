@@ -25,6 +25,14 @@ map
    By default,  iterating over a map generates the key-value pairs in the order they were inserted,  however this ordering can be changed.
 
 
+:mini:`meth map(): map`
+   Returns a new map.
+
+   .. code-block:: mini
+
+      map() :> {}
+
+
 :mini:`meth map(Key₁ is Value₁, ...): map`
    Returns a new map with the specified keys and values.
 
@@ -40,14 +48,6 @@ map
    .. code-block:: mini
 
       map("cake") :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-
-
-:mini:`meth map(): map`
-   Returns a new map.
-
-   .. code-block:: mini
-
-      map() :> {}
 
 
 :mini:`meth (Map: map) :: (Key: string): mapnode`
@@ -245,15 +245,11 @@ map
       M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
 
 
-:mini:`meth (Map: map):order: integer`
+:mini:`meth (Map: map):order: map::order`
    Returns the current ordering of :mini:`Map`.
-   
-   * :mini:`0` |harr| default ordering; inserted pairs are put at end,  no reordering on access.
-   * :mini:`1` |harr| MRU ordering; inserted pairs are put at start,  accessed pairs are moved to start.
-   * :mini:`-1` |harr| LRU ordering; inserted pairs are put at end,  accessed paires are moved to end.
 
 
-:mini:`meth (Map: map):order(Order: integer): map`
+:mini:`meth (Map: map):order(Order: map::order): map`
    Sets the ordering
 
 
@@ -269,14 +265,14 @@ map
       M1 :> {2 is "a", 3 is "k", 4 is "e"}
       
       :> LRU order
-      let M2 := map("cake"):order(-1)
+      let M2 := map("cake"):order(map::order::LRU)
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
       M2[2]; M2[4]; M2[1]; M2[3]
       M2:pop :> "a"
       M2 :> {4 is "e", 1 is "c", 3 is "k"}
       
       :> MRU order
-      let M3 := map("cake"):order(1)
+      let M3 := map("cake"):order(map::order::MRU)
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
       M3[2]; M3[4]; M3[1]; M3[3]
       M3:pop :> "k"
@@ -295,14 +291,14 @@ map
       M1 :> {2 is "a", 3 is "k", 4 is "e"}
       
       :> LRU order
-      let M2 := map("cake"):order(-1)
+      let M2 := map("cake"):order(map::order::LRU)
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
       M2[2]; M2[4]; M2[1]; M2[3]
       M2:pop2 :> (2, a)
       M2 :> {4 is "e", 1 is "c", 3 is "k"}
       
       :> MRU order
-      let M3 := map("cake"):order(1)
+      let M3 := map("cake"):order(map::order::MRU)
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
       M3[2]; M3[4]; M3[1]; M3[3]
       M3:pop2 :> (3, k)
@@ -321,14 +317,14 @@ map
       M1 :> {1 is "c", 2 is "a", 3 is "k"}
       
       :> LRU order
-      let M2 := map("cake"):order(-1)
+      let M2 := map("cake"):order(map::order::LRU)
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
       M2[2]; M2[4]; M2[1]; M2[3]
       M2:pull :> "k"
       M2 :> {2 is "a", 4 is "e", 1 is "c"}
       
       :> MRU order
-      let M3 := map("cake"):order(1)
+      let M3 := map("cake"):order(map::order::MRU)
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
       M3[2]; M3[4]; M3[1]; M3[3]
       M3:pull :> "a"
@@ -347,14 +343,14 @@ map
       M1 :> {1 is "c", 2 is "a", 3 is "k"}
       
       :> LRU order
-      let M2 := map("cake"):order(-1)
+      let M2 := map("cake"):order(map::order::LRU)
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
       M2[2]; M2[4]; M2[1]; M2[3]
       M2:pull2 :> (3, k)
       M2 :> {2 is "a", 4 is "e", 1 is "c"}
       
       :> MRU order
-      let M3 := map("cake"):order(1)
+      let M3 := map("cake"):order(map::order::MRU)
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
       M3[2]; M3[4]; M3[1]; M3[3]
       M3:pull2 :> (2, a)
@@ -368,8 +364,8 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "a"
-      M:random :> "e"
+      M:random :> "k"
+      M:random :> "c"
 
 
 :mini:`meth (Map: map):reverse: map`
@@ -450,5 +446,15 @@ map
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
+
+
+.. _type-map-order:
+
+:mini:`type map::order < enum`
+   * :mini:`map::order::Insert` |harr| default ordering; inserted pairs are put at end,  no reordering on access.
+   * :mini:`map::order::Ascending` |harr| inserted pairs are kept in ascending key order,  no reordering on access.
+   * :mini:`map::order::Ascending` |harr| inserted pairs are kept in descending key order,  no reordering on access.
+   * :mini:`map::order::MRU` |harr| inserted pairs are put at start,  accessed pairs are moved to start.
+   * :mini:`map::order::LRU` |harr| inserted pairs are put at end,  accessed pairs are moved to end.
 
 

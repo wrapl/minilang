@@ -26,7 +26,7 @@ set
 
 
 :mini:`meth set(Sequence: sequence, ...): set`
-   Returns a set of all the key and value pairs produced by :mini:`Sequence`.
+   Returns a set of all the values produced by :mini:`Sequence`.
 
    .. code-block:: mini
 
@@ -42,7 +42,7 @@ set
 
 
 :mini:`meth (Set₁: set) * (Set₂: set): set`
-   Returns a new set containing the entries of :mini:`Set₁` which are also in :mini:`Set₂`. The values are chosen from :mini:`Set₂`.
+   Returns a new set containing the values of :mini:`Set₁` which are also in :mini:`Set₂`.
 
    .. code-block:: mini
 
@@ -52,8 +52,7 @@ set
 
 
 :mini:`meth (Set₁: set) + (Set₂: set): set`
-   Returns a new set combining the entries of :mini:`Set₁` and :mini:`Set₂`.
-   If the same key is in both :mini:`Set₁` and :mini:`Set₂` then the corresponding value from :mini:`Set₂` is chosen.
+   Returns a new set combining the values of :mini:`Set₁` and :mini:`Set₂`.
 
    .. code-block:: mini
 
@@ -63,7 +62,7 @@ set
 
 
 :mini:`meth (Set₁: set) / (Set₂: set): set`
-   Returns a new set containing the entries of :mini:`Set₁` which are not in :mini:`Set₂`.
+   Returns a new set containing the values of :mini:`Set₁` which are not in :mini:`Set₂`.
 
    .. code-block:: mini
 
@@ -73,7 +72,7 @@ set
 
 
 :mini:`meth (Set₁: set) /\ (Set₂: set): set`
-   Returns a new set containing the entries of :mini:`Set₁` which are also in :mini:`Set₂`. The values are chosen from :mini:`Set₂`.
+   Returns a new set containing the values of :mini:`Set₁` which are also in :mini:`Set₂`.
 
    .. code-block:: mini
 
@@ -83,7 +82,7 @@ set
 
 
 :mini:`meth (Set₁: set) >< (Set₂: set): set`
-   Returns a new set containing the entries of :mini:`Set₁` and :mini:`Set₂` that are not in both.
+   Returns a new set containing the values of :mini:`Set₁` and :mini:`Set₂` that are not in both.
 
    .. code-block:: mini
 
@@ -104,8 +103,7 @@ set
 
 
 :mini:`meth (Set₁: set) \/ (Set₂: set): set`
-   Returns a new set combining the entries of :mini:`Set₁` and :mini:`Set₂`.
-   If the same key is in both :mini:`Set₁` and :mini:`Set₂` then the corresponding value from :mini:`Set₂` is chosen.
+   Returns a new set combining the values of :mini:`Set₁` and :mini:`Set₂`.
 
    .. code-block:: mini
 
@@ -115,7 +113,7 @@ set
 
 
 :mini:`meth (Set: set):count: integer`
-   Returns the number of entries in :mini:`Set`.
+   Returns the number of values in :mini:`Set`.
 
    .. code-block:: mini
 
@@ -134,7 +132,7 @@ set
 
 
 :mini:`meth (Set: set):empty: set`
-   Deletes all keys and values from :mini:`Set` and returns it.
+   Deletes all values from :mini:`Set` and returns it.
 
    .. code-block:: mini
 
@@ -153,7 +151,7 @@ set
 
 
 :mini:`meth (Set: set):grow(Sequence: sequence, ...): set`
-   Adds of all the key and value pairs produced by :mini:`Sequence` to :mini:`Set` and returns :mini:`Set`.
+   Adds of all the values produced by :mini:`Sequence` to :mini:`Set` and returns :mini:`Set`.
 
    .. code-block:: mini
 
@@ -183,15 +181,11 @@ set
       M :> {A, B, C, D}
 
 
-:mini:`meth (Set: set):order: integer`
+:mini:`meth (Set: set):order: set::order`
    Returns the current ordering of :mini:`Set`.
-   
-   * :mini:`0` |harr| default ordering; inserted pairs are put at end,  no reordering on access.
-   * :mini:`1` |harr| MRU ordering; inserted pairs are put at start,  accessed pairs are moved to start.
-   * :mini:`-1` |harr| LRU ordering; inserted pairs are put at end,  accessed paires are moved to end.
 
 
-:mini:`meth (Set: set):order(Order: integer): set`
+:mini:`meth (Set: set):order(Order: set::order): set`
    Sets the ordering
 
 
@@ -206,13 +200,15 @@ set
       M1 :> {a, k, e}
       
       :> LRU order
-      let M2 := set("cake"):order(-1) :> {c, a, k, e}
+      let M2 := set("cake"):order(set::order::LRU)
+      :> {c, a, k, e}
       M2[2]; M2[4]; M2[1]; M2[3]
       M2:pop :> "c"
       M2 :> {a, k, e}
       
       :> MRU order
-      let M3 := set("cake"):order(1) :> {c, a, k, e}
+      let M3 := set("cake"):order(set::order::MRU)
+      :> {c, a, k, e}
       M3[2]; M3[4]; M3[1]; M3[3]
       M3:pop :> "c"
       M3 :> {a, k, e}
@@ -229,13 +225,15 @@ set
       M1 :> {c, a, k}
       
       :> LRU order
-      let M2 := set("cake"):order(-1) :> {c, a, k, e}
+      let M2 := set("cake"):order(set::order::LRU)
+      :> {c, a, k, e}
       M2[2]; M2[4]; M2[1]; M2[3]
       M2:pull :> "e"
       M2 :> {c, a, k}
       
       :> MRU order
-      let M3 := set("cake"):order(1) :> {c, a, k, e}
+      let M3 := set("cake"):order(set::order::MRU)
+      :> {c, a, k, e}
       M3[2]; M3[4]; M3[1]; M3[3]
       M3:pull :> "e"
       M3 :> {c, a, k}
@@ -248,7 +246,7 @@ set
 
       let M := set("cake") :> {c, a, k, e}
       M:random :> "k"
-      M:random :> "c"
+      M:random :> "a"
 
 
 :mini:`meth (Set: set):reverse: set`
@@ -261,7 +259,7 @@ set
 
 
 :mini:`meth (Set: set):size: integer`
-   Returns the number of entries in :mini:`Set`.
+   Returns the number of values in :mini:`Set`.
 
    .. code-block:: mini
 
@@ -269,7 +267,7 @@ set
 
 
 :mini:`meth (Set: set):sort: Set`
-   Sorts the entries (changes the iteration order) of :mini:`Set` using :mini:`Keyᵢ < Keyⱼ` and returns :mini:`Set`.
+   Sorts the values (changes the iteration order) of :mini:`Set` using :mini:`Valueᵢ < Valueⱼ` and returns :mini:`Set`.
 
    .. code-block:: mini
 
@@ -278,7 +276,7 @@ set
 
 
 :mini:`meth (Set: set):sort(Cmp: function): Set`
-   Sorts the entries (changes the iteration order) of :mini:`Set` using :mini:`Cmp(Keyᵢ,  Keyⱼ)` and returns :mini:`Set`
+   Sorts the values (changes the iteration order) of :mini:`Set` using :mini:`Cmp(Valueᵢ,  Valueⱼ)` and returns :mini:`Set`
 
    .. code-block:: mini
 
@@ -291,12 +289,16 @@ set
 
 
 :mini:`meth (Buffer: string::buffer):append(Set: set, Sep: string)`
-   Appends the entries of :mini:`Set` to :mini:`Buffer` with :mini:`Conn` between keys and values and :mini:`Sep` between entries.
+   Appends the values of :mini:`Set` to :mini:`Buffer` with :mini:`Sep` between values.
 
 
-.. _type-set-node:
+.. _type-set-order:
 
-:mini:`type set::node`
-   A node in a :mini:`set`.
+:mini:`type set::order < enum`
+   * :mini:`set::order::Insert` |harr| default ordering; inserted values are put at end,  no reordering on access.
+   * :mini:`set::order::Ascending` |harr| inserted values are kept in ascending order,  no reordering on access.
+   * :mini:`set::order::Ascending` |harr| inserted values are kept in descending order,  no reordering on access.
+   * :mini:`set::order::MRU` |harr| inserted values are put at start,  accessed values are moved to start.
+   * :mini:`set::order::LRU` |harr| inserted values are put at end,  accessed values are moved to end.
 
 

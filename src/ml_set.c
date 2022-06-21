@@ -4,6 +4,7 @@
 #include <string.h>
 #include "ml_sequence.h"
 #include "ml_method.h"
+#include "ml_object.h"
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "set"
@@ -14,6 +15,19 @@ ML_TYPE(MLSetT, (MLSequenceT), "set",
 // By default, iterating over a set generates the values in the order they were inserted, however this ordering can be changed.
 );
 
+ML_ENUM2(MLSetOrderT, "set::order",
+// * :mini:`set::order::Insert` |harr| default ordering; inserted values are put at end, no reordering on access.
+// * :mini:`set::order::Ascending` |harr| inserted values are kept in ascending order, no reordering on access.
+// * :mini:`set::order::Ascending` |harr| inserted values are kept in descending order, no reordering on access.
+// * :mini:`set::order::MRU` |harr| inserted values are put at start, accessed values are moved to start.
+// * :mini:`set::order::LRU` |harr| inserted values are put at end, accessed values are moved to end.
+	"Insert", SET_ORDER_INSERT,
+	"LRU", SET_ORDER_LRU,
+	"MRU", SET_ORDER_MRU,
+	"Ascending", SET_ORDER_ASC,
+	"Descending", SET_ORDER_DESC
+);
+
 static void ML_TYPED_FN(ml_value_find_refs, MLSetT, ml_value_t *Value, void *Data, ml_value_ref_fn RefFn) {
 	if (!RefFn(Data, Value)) return;
 	ML_SET_FOREACH(Value, Iter) {
@@ -22,7 +36,7 @@ static void ML_TYPED_FN(ml_value_find_refs, MLSetT, ml_value_t *Value, void *Dat
 }
 
 ML_TYPE(MLSetNodeT, (), "set-node");
-// A node in a :mini:`set`.
+//!internal
 
 ml_value_t *ml_set() {
 	ml_set_t *Set = new(ml_set_t);
@@ -57,7 +71,7 @@ static void set_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 ML_METHODVX(MLSetT, MLSequenceT) {
 //<Sequence
 //>set
-// Returns a set of all the key and value pairs produced by :mini:`Sequence`.
+// Returns a set of all the values produced by :mini:`Sequence`.
 //$= set("cake")
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
 	State->Base.Caller = Caller;
@@ -71,7 +85,7 @@ ML_METHODVX("grow", MLSetT, MLSequenceT) {
 //<Set
 //<Sequence
 //>set
-// Adds of all the key and value pairs produced by :mini:`Sequence` to :mini:`Set` and returns :mini:`Set`.
+// Adds of all the values produced by :mini:`Sequence` to :mini:`Set` and returns :mini:`Set`.
 //$= set("cake"):grow("banana")
 	ml_iter_state_t *State = xnew(ml_iter_state_t, 1, ml_value_t *);
 	State->Base.Caller = Caller;
@@ -179,64 +193,112 @@ static void ml_set_rebalance(ml_set_node_t **Slot) {
 	}
 }
 
-static ml_set_node_t *ml_set_node(ml_set_t *Set, ml_set_node_t **Slot, long Hash, ml_value_t *Key) {
-	if (!Slot[0]) {
-		++Set->Size;
-		ml_set_node_t *Node = Slot[0] = new(ml_set_node_t);
-		Node->Type = MLSetNodeT;
-		if (Set->Order > 0) {
-			ml_set_node_t *Next = Set->Head;
-			if (Next) {
-				Next->Prev = Node;
-				Node->Next = Next;
-			} else {
-				Set->Tail = Node;
-			}
-			Set->Head = Node;
-		} else {
-			ml_set_node_t *Prev = Set->Tail;
-			if (Prev) {
-				Prev->Next = Node;
-				Node->Prev = Prev;
-			} else {
-				Set->Head = Node;
-			}
-			Set->Tail = Node;
-		}
-		Node->Depth = 1;
-		Node->Hash = Hash;
-		Node->Key = Key;
-		return Node;
+static void ml_set_insert_before(ml_set_t *Set, ml_set_node_t *Parent, ml_set_node_t *Node) {
+	Node->Next = Parent;
+	Node->Prev = Parent->Prev;
+	if (Parent->Prev) {
+		Parent->Prev->Next = Node;
+	} else {
+		Set->Head = Node;
 	}
+	Parent->Prev = Node;
+}
+
+static void ml_set_insert_after(ml_set_t *Set, ml_set_node_t *Parent, ml_set_node_t *Node) {
+	Node->Prev = Parent;
+	Node->Next = Parent->Next;
+	if (Parent->Next) {
+		Parent->Next->Prev = Node;
+	} else {
+		Set->Tail = Node;
+	}
+	Parent->Next = Node;
+}
+
+static ml_set_node_t *ml_set_node_child(ml_set_t *Set, ml_set_node_t *Parent, long Hash, ml_value_t *Key) {
 	int Compare;
-	if (Hash < Slot[0]->Hash) {
+	if (Hash < Parent->Hash) {
 		Compare = -1;
-	} else if (Hash > Slot[0]->Hash) {
+	} else if (Hash > Parent->Hash) {
 		Compare = 1;
 	} else {
-		ml_value_t *Args[2] = {Key, Slot[0]->Key};
+		ml_value_t *Args[2] = {Key, Parent->Key};
 		ml_value_t *Result = ml_set_compare(Set, Args);
 		Compare = ml_integer_value(Result);
 	}
-	if (!Compare) {
-		return Slot[0];
+	if (!Compare) return Parent;
+	ml_set_node_t **Slot = Compare < 0 ? &Parent->Left : &Parent->Right;
+	ml_set_node_t *Node;
+	if (Slot[0]) {
+		Node = ml_set_node_child(Set, Slot[0], Hash, Key);
 	} else {
-		ml_set_node_t *Node = ml_set_node(Set, Compare < 0 ? &Slot[0]->Left : &Slot[0]->Right, Hash, Key);
-		ml_set_rebalance(Slot);
-		ml_set_update_depth(Slot[0]);
-		return Node;
+		++Set->Size;
+		Node = Slot[0] = new(ml_set_node_t);
+		Node->Type = MLSetNodeT;
+		Node->Depth = 1;
+		Node->Hash = Hash;
+		Node->Key = Key;
+		switch (Set->Order) {
+		case SET_ORDER_INSERT:
+		case SET_ORDER_LRU: {
+			ml_set_node_t *Prev = Set->Tail;
+			Prev->Next = Node;
+			Node->Prev = Prev;
+			Set->Tail = Node;
+			break;
+		}
+		case SET_ORDER_MRU: {
+			ml_set_node_t *Next = Set->Head;
+			Next->Prev = Node;
+			Node->Next = Next;
+			Set->Head = Node;
+			break;
+		}
+		case SET_ORDER_ASC: {
+			if (Compare < 0) {
+				ml_set_insert_before(Set, Parent, Node);
+			} else {
+				ml_set_insert_after(Set, Parent, Node);
+			}
+			break;
+		}
+		case SET_ORDER_DESC: {
+			if (Compare > 0) {
+				ml_set_insert_before(Set, Parent, Node);
+			} else {
+				ml_set_insert_after(Set, Parent, Node);
+			}
+			break;
+		}
+		}
 	}
+	ml_set_rebalance(Slot);
+	ml_set_update_depth(Slot[0]);
+	return Node;
+}
+
+static ml_set_node_t *ml_set_node(ml_set_t *Set, long Hash, ml_value_t *Key) {
+	ml_set_node_t *Root = Set->Root;
+	if (Root) return ml_set_node_child(Set, Root, Hash, Key);
+	++Set->Size;
+	ml_set_node_t *Node = Set->Root = new(ml_set_node_t);
+	Node->Type = MLSetNodeT;
+	Set->Head = Set->Tail = Node;
+	Node->Depth = 1;
+	Node->Hash = Hash;
+	Node->Key = Key;
+	return Node;
 }
 
 ml_set_node_t *ml_set_slot(ml_value_t *Set0, ml_value_t *Key) {
 	ml_set_t *Set = (ml_set_t *)Set0;
-	return ml_set_node(Set, &Set->Root, ml_typeof(Key)->hash(Key, NULL), Key);
+	return ml_set_node(Set, ml_typeof(Key)->hash(Key, NULL), Key);
 }
 
 ml_value_t *ml_set_insert(ml_value_t *Set0, ml_value_t *Key) {
 	ml_set_t *Set = (ml_set_t *)Set0;
 	int Size = Set->Size;
-	ml_set_node(Set, &Set->Root, ml_typeof(Key)->hash(Key, NULL), Key);
+	ml_set_node(Set, ml_typeof(Key)->hash(Key, NULL), Key);
 #ifdef ML_GENERICS
 	if (Set->Type->Type != MLTypeGenericT) {
 		Set->Type = ml_generic_type(2, (ml_type_t *[]){Set->Type, ml_typeof(Key)});
@@ -322,7 +384,7 @@ int ml_set_foreach(ml_value_t *Value, void *Data, int (*callback)(ml_value_t *, 
 ML_METHOD("size", MLSetT) {
 //<Set
 //>integer
-// Returns the number of entries in :mini:`Set`.
+// Returns the number of values in :mini:`Set`.
 //$= set(["A", "B", "C"]):size
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	return ml_integer(Set->Size);
@@ -331,7 +393,7 @@ ML_METHOD("size", MLSetT) {
 ML_METHOD("count", MLSetT) {
 //<Set
 //>integer
-// Returns the number of entries in :mini:`Set`.
+// Returns the number of values in :mini:`Set`.
 //$= set(["A", "B", "C"]):count
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	return ml_integer(Set->Size);
@@ -381,30 +443,19 @@ static ml_set_node_t *ml_set_insert_node(ml_set_t *Set, ml_set_node_t **Slot, lo
 
 ML_METHOD("order", MLSetT) {
 //<Set
-//>integer
+//>set::order
 // Returns the current ordering of :mini:`Set`.
-//
-// * :mini:`0` |harr| default ordering; inserted pairs are put at end, no reordering on access.
-// * :mini:`1` |harr| MRU ordering; inserted pairs are put at start, accessed pairs are moved to start.
-// * :mini:`-1` |harr| LRU ordering; inserted pairs are put at end, accessed paires are moved to end.
 	ml_set_t *Set = (ml_set_t *)Args[0];
-	return ml_integer(Set->Order);
+	return ml_enum_value(MLSetOrderT, Set->Order);
 }
 
-ML_METHOD("order", MLSetT, MLIntegerT) {
+ML_METHOD("order", MLSetT, MLSetOrderT) {
 //<Set
 //<Order
 //>set
 // Sets the ordering
 	ml_set_t *Set = (ml_set_t *)Args[0];
-	int Order = ml_integer_value(Args[1]);
-	if (Order < 0) {
-		Set->Order = -1;
-	} else if (Order > 0) {
-		Set->Order = 1;
-	} else {
-		Set->Order = 0;
-	}
+	Set->Order = ml_enum_value_value(Args[1]);
 	return (ml_value_t *)Set;
 }
 
@@ -454,9 +505,9 @@ ML_METHOD("[]", MLSetT, MLAnyT) {
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	ml_set_node_t *Node = ml_set_find_node(Set, Args[1]);
 	if (!Node) return MLNil;
-	if (Set->Order < 0) {
+	if (Set->Order == SET_ORDER_LRU) {
 		ml_set_move_node_tail(Set, Node);
-	} else if (Set->Order > 0) {
+	} else if (Set->Order == SET_ORDER_MRU) {
 		ml_set_move_node_head(Set, Node);
 	}
 	return MLSome;
@@ -477,7 +528,7 @@ ML_METHOD("in", MLAnyT, MLSetT) {
 ML_METHOD("empty", MLSetT) {
 //<Set
 //>set
-// Deletes all keys and values from :mini:`Set` and returns it.
+// Deletes all values from :mini:`Set` and returns it.
 //$= let M := set(["A", "B", "C"])
 //$= M:empty
 	ml_set_t *Set = (ml_set_t *)Args[0];
@@ -499,13 +550,13 @@ ML_METHOD("pop", MLSetT) {
 //$= M1
 //$-
 //$- :> LRU order
-//$= let M2 := set("cake"):order(-1)
+//$= let M2 := set("cake"):order(set::order::LRU)
 //$- M2[2]; M2[4]; M2[1]; M2[3]
 //$= M2:pop
 //$= M2
 //$-
 //$- :> MRU order
-//$= let M3 := set("cake"):order(1)
+//$= let M3 := set("cake"):order(set::order::MRU)
 //$- M3[2]; M3[4]; M3[1]; M3[3]
 //$= M3:pop
 //$= M3
@@ -526,13 +577,13 @@ ML_METHOD("pull", MLSetT) {
 //$= M1
 //$-
 //$- :> LRU order
-//$= let M2 := set("cake"):order(-1)
+//$= let M2 := set("cake"):order(set::order::LRU)
 //$- M2[2]; M2[4]; M2[1]; M2[3]
 //$= M2:pull
 //$= M2
 //$-
 //$- :> MRU order
-//$= let M3 := set("cake"):order(1)
+//$= let M3 := set("cake"):order(set::order::MRU)
 //$- M3[2]; M3[4]; M3[1]; M3[3]
 //$= M3:pull
 //$= M3
@@ -585,7 +636,7 @@ ML_METHOD("missing", MLSetT, MLAnyT) {
 	ml_set_t *Set = (ml_set_t *)Args[0];
 	ml_value_t *Key = Args[1];
 	int Size = Set->Size;
-	ml_set_node(Set, &Set->Root, ml_typeof(Key)->hash(Key, NULL), Key);
+	ml_set_node(Set, ml_typeof(Key)->hash(Key, NULL), Key);
 	return Set->Size == Size ? MLNil : MLSome;
 }
 
@@ -660,7 +711,7 @@ ML_METHOD("append", MLStringBufferT, MLSetT, MLStringT) {
 //<Buffer
 //<Set
 //<Sep
-// Appends the entries of :mini:`Set` to :mini:`Buffer` with :mini:`Conn` between keys and values and :mini:`Sep` between entries.
+// Appends the values of :mini:`Set` to :mini:`Buffer` with :mini:`Sep` between values.
 	ml_set_stringer_t Stringer[1] = {{
 		ml_string_value(Args[2]),
 		(ml_stringbuffer_t *)Args[0],
@@ -691,8 +742,7 @@ ML_METHOD("+", MLSetT, MLSetT) {
 //<Set/1
 //<Set/2
 //>set
-// Returns a new set combining the entries of :mini:`Set/1` and :mini:`Set/2`.
-// If the same key is in both :mini:`Set/1` and :mini:`Set/2` then the corresponding value from :mini:`Set/2` is chosen.
+// Returns a new set combining the values of :mini:`Set/1` and :mini:`Set/2`.
 //$= let A := set("banana")
 //$= let B := set("bread")
 //$= A + B
@@ -706,8 +756,7 @@ ML_METHOD("\\/", MLSetT, MLSetT) {
 //<Set/1
 //<Set/2
 //>set
-// Returns a new set combining the entries of :mini:`Set/1` and :mini:`Set/2`.
-// If the same key is in both :mini:`Set/1` and :mini:`Set/2` then the corresponding value from :mini:`Set/2` is chosen.
+// Returns a new set combining the values of :mini:`Set/1` and :mini:`Set/2`.
 //$= let A := set("banana")
 //$= let B := set("bread")
 //$= A \/ B
@@ -721,7 +770,7 @@ ML_METHOD("*", MLSetT, MLSetT) {
 //<Set/1
 //<Set/2
 //>set
-// Returns a new set containing the entries of :mini:`Set/1` which are also in :mini:`Set/2`. The values are chosen from :mini:`Set/2`.
+// Returns a new set containing the values of :mini:`Set/1` which are also in :mini:`Set/2`.
 //$= let A := set("banana")
 //$= let B := set("bread")
 //$= A * B
@@ -736,7 +785,7 @@ ML_METHOD("/\\", MLSetT, MLSetT) {
 //<Set/1
 //<Set/2
 //>set
-// Returns a new set containing the entries of :mini:`Set/1` which are also in :mini:`Set/2`. The values are chosen from :mini:`Set/2`.
+// Returns a new set containing the values of :mini:`Set/1` which are also in :mini:`Set/2`.
 //$= let A := set("banana")
 //$= let B := set("bread")
 //$= A /\ B
@@ -751,7 +800,7 @@ ML_METHOD("/", MLSetT, MLSetT) {
 //<Set/1
 //<Set/2
 //>set
-// Returns a new set containing the entries of :mini:`Set/1` which are not in :mini:`Set/2`.
+// Returns a new set containing the values of :mini:`Set/1` which are not in :mini:`Set/2`.
 //$= let A := set("banana")
 //$= let B := set("bread")
 //$= A / B
@@ -766,7 +815,7 @@ ML_METHOD("><", MLSetT, MLSetT) {
 //<Set/1
 //<Set/2
 //>set
-// Returns a new set containing the entries of :mini:`Set/1` and :mini:`Set/2` that are not in both.
+// Returns a new set containing the values of :mini:`Set/1` and :mini:`Set/2` that are not in both.
 //$= let A := set("banana")
 //$= let B := set("bread")
 //$= A >< B
@@ -875,7 +924,7 @@ extern ml_value_t *LessMethod;
 ML_METHODX("sort", MLSetT) {
 //<Set
 //>Set
-// Sorts the entries (changes the iteration order) of :mini:`Set` using :mini:`Key/i < Key/j` and returns :mini:`Set`.
+// Sorts the values (changes the iteration order) of :mini:`Set` using :mini:`Value/i < Value/j` and returns :mini:`Set`.
 //$= let M := set("cake")
 //$= M:sort
 	if (!ml_set_size(Args[0])) ML_RETURN(Args[0]);
@@ -900,7 +949,7 @@ ML_METHODX("sort", MLSetT, MLFunctionT) {
 //<Set
 //<Cmp
 //>Set
-// Sorts the entries (changes the iteration order) of :mini:`Set` using :mini:`Cmp(Key/i, Key/j)` and returns :mini:`Set`
+// Sorts the values (changes the iteration order) of :mini:`Set` using :mini:`Cmp(Value/i, Value/j)` and returns :mini:`Set`
 //$= let M := set("cake")
 //$= M:sort(>)
 	if (!ml_set_size(Args[0])) ML_RETURN(Args[0]);
@@ -985,6 +1034,7 @@ static ml_value_t *ml_cbor_read_set(ml_cbor_reader_t *Reader, ml_value_t *Value)
 
 void ml_set_init() {
 #include "ml_set_init.c"
+	stringmap_insert(MLSetT->Exports, "order", MLSetOrderT);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLSetT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(1), NULL);
 #endif

@@ -244,15 +244,19 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "fmt", Fmt);
 	ml_module_t *IO = ml_library_internal("io");
 	stringmap_insert(Globals, "io", IO);
+	ml_module_t *Util = ml_library_internal("util");
+	stringmap_insert(Globals, "util", Util);
 #define SYS_EXPORTS Sys->Exports
 #define STD_EXPORTS Std->Exports
 #define FMT_EXPORTS Fmt->Exports
 #define IO_EXPORTS IO->Exports
+#define UTIL_EXPORTS Util->Exports
 #else
 #define SYS_EXPORTS Globals
 #define STD_EXPORTS Globals
 #define FMT_EXPORTS Globals
 #define IO_EXPORTS Globals
+#define UTIL_EXPORTS Globals
 #endif
 
 	ml_stream_init(IO_EXPORTS);
@@ -293,16 +297,16 @@ int main(int Argc, const char *Argv[]) {
 	ml_table_init(Globals);
 #endif
 #ifdef ML_PQUEUES
-	ml_pqueue_init(Globals);
+	ml_pqueue_init(UTIL_EXPORTS);
 #endif
 #ifdef ML_TIME
-	ml_time_init(STD_EXPORTS);
+	ml_time_init(Globals);
 #endif
 #ifdef ML_UUID
-	ml_uuid_init(STD_EXPORTS);
+	ml_uuid_init(UTIL_EXPORTS);
 #endif
 #ifdef ML_JSENCODE
-	ml_jsencode_init(Globals);
+	ml_jsencode_init(UTIL_EXPORTS);
 #endif
 #ifdef ML_THREADS
 	ml_thread_init(SYS_EXPORTS);

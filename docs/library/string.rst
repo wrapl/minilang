@@ -842,6 +842,18 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:rest :> "1 + 1 = 2"
 
 
+.. _type-string-ctype:
+
+:mini:`type string::ctype < enum`
+   *TBD*
+
+
+.. _type-string-norm:
+
+:mini:`type string::norm < enum`
+   *TBD*
+
+
 .. _fun-string-switch:
 
 :mini:`fun string::switch(Cases: string|regex, ...)`

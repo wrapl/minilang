@@ -131,8 +131,14 @@ xml
    An XML element node.
 
 
-:mini:`meth xml::element(Tag: string, Children...: string|xml, Attributes?: names|map): xml::element`
-   Returns a new XML node with tag :mini:`Tag` and optional children and attributes. Since attributes are created with named arguments,  they should be passed at the end.
+:mini:`meth xml::element(Tag: string, Arg₁, ..., Argₙ: any): xml::element`
+   Returns a new XML node with tag :mini:`Tag` and optional children and attributes depending on the types of each :mini:`Argᵢ`:
+   
+   * :mini:`string`: added as child text node. Consecutive strings are added a single node.
+   * :mini:`xml`: added as a child node.
+   * :mini:`list`: each value must be a :mini:`string` or :mini:`xml` and is added as above.
+   * :mini:`map`: keys and values must be strings,  set as attributes.
+   * :mini:`name is value`: values must be strings,  set as attributes.
 
    .. code-block:: mini
 

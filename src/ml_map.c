@@ -4,6 +4,7 @@
 #include <string.h>
 #include "ml_sequence.h"
 #include "ml_method.h"
+#include "ml_object.h"
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "map"
@@ -12,6 +13,19 @@ ML_TYPE(MLMapT, (MLSequenceT), "map",
 // A map of key-value pairs.
 // Keys can be of any type supporting hashing and comparison.
 // By default, iterating over a map generates the key-value pairs in the order they were inserted, however this ordering can be changed.
+);
+
+ML_ENUM2(MLMapOrderT, "map::order",
+// * :mini:`map::order::Insert` |harr| default ordering; inserted pairs are put at end, no reordering on access.
+// * :mini:`map::order::Ascending` |harr| inserted pairs are kept in ascending key order, no reordering on access.
+// * :mini:`map::order::Ascending` |harr| inserted pairs are kept in descending key order, no reordering on access.
+// * :mini:`map::order::MRU` |harr| inserted pairs are put at start, accessed pairs are moved to start.
+// * :mini:`map::order::LRU` |harr| inserted pairs are put at end, accessed pairs are moved to end.
+	"Insert", MAP_ORDER_INSERT,
+	"LRU", MAP_ORDER_LRU,
+	"MRU", MAP_ORDER_MRU,
+	"Ascending", MAP_ORDER_ASC,
+	"Descending", MAP_ORDER_DESC
 );
 
 static void ML_TYPED_FN(ml_value_find_refs, MLMapT, ml_value_t *Value, void *Data, ml_value_ref_fn RefFn) {
@@ -220,63 +234,111 @@ static void ml_map_rebalance(ml_map_node_t **Slot) {
 	}
 }
 
-static ml_map_node_t *ml_map_node(ml_map_t *Map, ml_map_node_t **Slot, long Hash, ml_value_t *Key) {
-	if (!Slot[0]) {
-		++Map->Size;
-		ml_map_node_t *Node = Slot[0] = new(ml_map_node_t);
-		Node->Type = MLMapNodeT;
-		if (Map->Order > 0) {
-			ml_map_node_t *Next = Map->Head;
-			if (Next) {
-				Next->Prev = Node;
-				Node->Next = Next;
-			} else {
-				Map->Tail = Node;
-			}
-			Map->Head = Node;
-		} else {
-			ml_map_node_t *Prev = Map->Tail;
-			if (Prev) {
-				Prev->Next = Node;
-				Node->Prev = Prev;
-			} else {
-				Map->Head = Node;
-			}
-			Map->Tail = Node;
-		}
-		Node->Depth = 1;
-		Node->Hash = Hash;
-		Node->Key = Key;
-		return Node;
+static void ml_map_insert_before(ml_map_t *Map, ml_map_node_t *Parent, ml_map_node_t *Node) {
+	Node->Next = Parent;
+	Node->Prev = Parent->Prev;
+	if (Parent->Prev) {
+		Parent->Prev->Next = Node;
+	} else {
+		Map->Head = Node;
 	}
+	Parent->Prev = Node;
+}
+
+static void ml_map_insert_after(ml_map_t *Map, ml_map_node_t *Parent, ml_map_node_t *Node) {
+	Node->Prev = Parent;
+	Node->Next = Parent->Next;
+	if (Parent->Next) {
+		Parent->Next->Prev = Node;
+	} else {
+		Map->Tail = Node;
+	}
+	Parent->Next = Node;
+}
+
+static ml_map_node_t *ml_map_node_child(ml_map_t *Map, ml_map_node_t *Parent, long Hash, ml_value_t *Key) {
 	int Compare;
-	if (Hash < Slot[0]->Hash) {
+	if (Hash < Parent->Hash) {
 		Compare = -1;
-	} else if (Hash > Slot[0]->Hash) {
+	} else if (Hash > Parent->Hash) {
 		Compare = 1;
 	} else {
-		ml_value_t *Args[2] = {Key, Slot[0]->Key};
+		ml_value_t *Args[2] = {Key, Parent->Key};
 		ml_value_t *Result = ml_map_compare(Map, Args);
 		Compare = ml_integer_value(Result);
 	}
-	if (!Compare) {
-		return Slot[0];
+	if (!Compare) return Parent;
+	ml_map_node_t **Slot = Compare < 0 ? &Parent->Left : &Parent->Right;
+	ml_map_node_t *Node;
+	if (Slot[0]) {
+		Node = ml_map_node_child(Map, Slot[0], Hash, Key);
 	} else {
-		ml_map_node_t *Node = ml_map_node(Map, Compare < 0 ? &Slot[0]->Left : &Slot[0]->Right, Hash, Key);
-		ml_map_rebalance(Slot);
-		ml_map_update_depth(Slot[0]);
-		return Node;
+		++Map->Size;
+		Node = Slot[0] = new(ml_map_node_t);
+		Node->Type = MLMapNodeT;
+		Node->Depth = 1;
+		Node->Hash = Hash;
+		Node->Key = Key;
+		switch (Map->Order) {
+		case MAP_ORDER_INSERT:
+		case MAP_ORDER_LRU: {
+			ml_map_node_t *Prev = Map->Tail;
+			Prev->Next = Node;
+			Node->Prev = Prev;
+			Map->Tail = Node;
+			break;
+		}
+		case MAP_ORDER_MRU: {
+			ml_map_node_t *Next = Map->Head;
+			Next->Prev = Node;
+			Node->Next = Next;
+			Map->Head = Node;
+			break;
+		}
+		case MAP_ORDER_ASC: {
+			if (Compare < 0) {
+				ml_map_insert_before(Map, Parent, Node);
+			} else {
+				ml_map_insert_after(Map, Parent, Node);
+			}
+			break;
+		}
+		case MAP_ORDER_DESC: {
+			if (Compare > 0) {
+				ml_map_insert_before(Map, Parent, Node);
+			} else {
+				ml_map_insert_after(Map, Parent, Node);
+			}
+			break;
+		}
+		}
 	}
+	ml_map_rebalance(Slot);
+	ml_map_update_depth(Slot[0]);
+	return Node;
+}
+
+static ml_map_node_t *ml_map_node(ml_map_t *Map, long Hash, ml_value_t *Key) {
+	ml_map_node_t *Root = Map->Root;
+	if (Root) return ml_map_node_child(Map, Root, Hash, Key);
+	++Map->Size;
+	ml_map_node_t *Node = Map->Root = new(ml_map_node_t);
+	Node->Type = MLMapNodeT;
+	Map->Head = Map->Tail = Node;
+	Node->Depth = 1;
+	Node->Hash = Hash;
+	Node->Key = Key;
+	return Node;
 }
 
 ml_map_node_t *ml_map_slot(ml_value_t *Map0, ml_value_t *Key) {
 	ml_map_t *Map = (ml_map_t *)Map0;
-	return ml_map_node(Map, &Map->Root, ml_typeof(Key)->hash(Key, NULL), Key);
+	return ml_map_node(Map, ml_typeof(Key)->hash(Key, NULL), Key);
 }
 
 ml_value_t *ml_map_insert(ml_value_t *Map0, ml_value_t *Key, ml_value_t *Value) {
 	ml_map_t *Map = (ml_map_t *)Map0;
-	ml_map_node_t *Node = ml_map_node(Map, &Map->Root, ml_typeof(Key)->hash(Key, NULL), Key);
+	ml_map_node_t *Node = ml_map_node(Map, ml_typeof(Key)->hash(Key, NULL), Key);
 	ml_value_t *Old = Node->Value ?: MLNil;
 	Node->Value = Value;
 	ml_type_t *ValueType0 = ml_typeof(Value);
@@ -448,30 +510,19 @@ ML_TYPE(MLMapIndexT, (), "map-index",
 
 ML_METHOD("order", MLMapT) {
 //<Map
-//>integer
+//>map::order
 // Returns the current ordering of :mini:`Map`.
-//
-// * :mini:`0` |harr| default ordering; inserted pairs are put at end, no reordering on access.
-// * :mini:`1` |harr| MRU ordering; inserted pairs are put at start, accessed pairs are moved to start.
-// * :mini:`-1` |harr| LRU ordering; inserted pairs are put at end, accessed paires are moved to end.
 	ml_map_t *Map = (ml_map_t *)Args[0];
-	return ml_integer(Map->Order);
+	return ml_enum_value(MLMapOrderT, Map->Order);
 }
 
-ML_METHOD("order", MLMapT, MLIntegerT) {
+ML_METHOD("order", MLMapT, MLMapOrderT) {
 //<Map
 //<Order
 //>map
 // Sets the ordering
 	ml_map_t *Map = (ml_map_t *)Args[0];
-	int Order = ml_integer_value(Args[1]);
-	if (Order < 0) {
-		Map->Order = -1;
-	} else if (Order > 0) {
-		Map->Order = 1;
-	} else {
-		Map->Order = 0;
-	}
+	Map->Order = ml_enum_value_value(Args[1]);
 	return (ml_value_t *)Map;
 }
 
@@ -527,9 +578,9 @@ ML_METHOD("[]", MLMapT, MLAnyT) {
 		Node->Type = MLMapIndexT;
 		Node->Value = Args[0];
 		Node->Key = Args[1];
-	} else if (Map->Order < 0) {
+	} else if (Map->Order == MAP_ORDER_LRU) {
 		ml_map_move_node_tail(Map, Node);
-	} else if (Map->Order > 0) {
+	} else if (Map->Order == MAP_ORDER_MRU) {
 		ml_map_move_node_head(Map, Node);
 	}
 	return (ml_value_t *)Node;
@@ -574,7 +625,7 @@ ML_METHODX("[]", MLMapT, MLAnyT, MLFunctionT) {
 //$= M
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_value_t *Key = Args[1];
-	ml_map_node_t *Node = ml_map_node(Map, &Map->Root, ml_typeof(Key)->hash(Key, NULL), Key);
+	ml_map_node_t *Node = ml_map_node(Map, ml_typeof(Key)->hash(Key, NULL), Key);
 	if (!Node->Value) {
 		Node->Value = MLNil;
 		ml_ref_state_t *State = new(ml_ref_state_t);
@@ -608,9 +659,9 @@ ML_METHOD("::", MLMapT, MLStringT) {
 		Node->Type = MLMapIndexT;
 		Node->Value = Args[0];
 		Node->Key = Args[1];
-	} else if (Map->Order < 0) {
+	} else if (Map->Order == MAP_ORDER_LRU) {
 		ml_map_move_node_tail(Map, Node);
-	} else if (Map->Order > 0) {
+	} else if (Map->Order == MAP_ORDER_MRU) {
 		ml_map_move_node_head(Map, Node);
 	}
 	return (ml_value_t *)Node;
@@ -641,13 +692,13 @@ ML_METHOD("pop", MLMapT) {
 //$= M1
 //$-
 //$- :> LRU order
-//$= let M2 := map("cake"):order(-1)
+//$= let M2 := map("cake"):order(map::order::LRU)
 //$- M2[2]; M2[4]; M2[1]; M2[3]
 //$= M2:pop
 //$= M2
 //$-
 //$- :> MRU order
-//$= let M3 := map("cake"):order(1)
+//$= let M3 := map("cake"):order(map::order::MRU)
 //$- M3[2]; M3[4]; M3[1]; M3[3]
 //$= M3:pop
 //$= M3
@@ -667,13 +718,13 @@ ML_METHOD("pull", MLMapT) {
 //$= M1
 //$-
 //$- :> LRU order
-//$= let M2 := map("cake"):order(-1)
+//$= let M2 := map("cake"):order(map::order::LRU)
 //$- M2[2]; M2[4]; M2[1]; M2[3]
 //$= M2:pull
 //$= M2
 //$-
 //$- :> MRU order
-//$= let M3 := map("cake"):order(1)
+//$= let M3 := map("cake"):order(map::order::MRU)
 //$- M3[2]; M3[4]; M3[1]; M3[3]
 //$= M3:pull
 //$= M3
@@ -693,13 +744,13 @@ ML_METHOD("pop2", MLMapT) {
 //$= M1
 //$-
 //$- :> LRU order
-//$= let M2 := map("cake"):order(-1)
+//$= let M2 := map("cake"):order(map::order::LRU)
 //$- M2[2]; M2[4]; M2[1]; M2[3]
 //$= M2:pop2
 //$= M2
 //$-
 //$- :> MRU order
-//$= let M3 := map("cake"):order(1)
+//$= let M3 := map("cake"):order(map::order::MRU)
 //$- M3[2]; M3[4]; M3[1]; M3[3]
 //$= M3:pop2
 //$= M3
@@ -719,13 +770,13 @@ ML_METHOD("pull2", MLMapT) {
 //$= M1
 //$-
 //$- :> LRU order
-//$= let M2 := map("cake"):order(-1)
+//$= let M2 := map("cake"):order(map::order::LRU)
 //$- M2[2]; M2[4]; M2[1]; M2[3]
 //$= M2:pull2
 //$= M2
 //$-
 //$- :> MRU order
-//$= let M3 := map("cake"):order(1)
+//$= let M3 := map("cake"):order(map::order::MRU)
 //$- M3[2]; M3[4]; M3[1]; M3[3]
 //$= M3:pull2
 //$= M3
@@ -777,7 +828,7 @@ ML_METHOD("missing", MLMapT, MLAnyT) {
 //$= M
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_value_t *Key = Args[1];
-	ml_map_node_t *Node = ml_map_node(Map, &Map->Root, ml_typeof(Key)->hash(Key, NULL), Key);
+	ml_map_node_t *Node = ml_map_node(Map, ml_typeof(Key)->hash(Key, NULL), Key);
 	if (!Node->Value) return Node->Value = MLSome;
 	return MLNil;
 }
@@ -803,7 +854,7 @@ ML_METHODX("missing", MLMapT, MLAnyT, MLFunctionT) {
 //$= M
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	ml_value_t *Key = Args[1];
-	ml_map_node_t *Node = ml_map_node(Map, &Map->Root, ml_typeof(Key)->hash(Key, NULL), Key);
+	ml_map_node_t *Node = ml_map_node(Map, ml_typeof(Key)->hash(Key, NULL), Key);
 	if (!Node->Value) {
 		Node->Value = MLNil;
 		ml_ref_state_t *State = new(ml_ref_state_t);
@@ -1256,6 +1307,7 @@ ML_METHOD("random", MLMapT) {
 
 void ml_map_init() {
 #include "ml_map_init.c"
+	stringmap_insert(MLMapT->Exports, "order", MLMapOrderT);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLMapT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 #endif
