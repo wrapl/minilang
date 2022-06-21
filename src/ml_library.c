@@ -15,6 +15,10 @@ static int MaxLibraryPathLength = 0;
 static stringmap_t Modules[1] = {STRINGMAP_INIT};
 static stringmap_t *Globals;
 
+void ml_library_register(const char *Name, ml_value_t *Module) {
+	stringmap_insert(Modules, Name, Module);
+}
+
 ml_module_t *ml_library_internal(const char *Name) {
 	ml_module_t *Module = (ml_module_t *)ml_module(Name, NULL);
 	stringmap_insert(Modules, Name, Module);
@@ -50,6 +54,8 @@ static ml_library_loader_t InternalLoader = {
 	.load = internal_load,
 	.load0 = internal_load0
 };
+
+extern ml_value_t *SymbolMethod;
 
 static ml_library_info_t ml_library_find(const char *Path, const char *Name) {
 	char *FileName;
@@ -97,11 +103,20 @@ typedef struct {
 static void ml_parent_state_run(ml_parent_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	*State->Import = '/';
+	if (ml_is(Value, MLErrorT)) ML_RETURN(Value);
 	if (ml_is(Value, MLModuleT)) {
 		ml_value_t *Import = ml_module_import(Value, State->Import + 1);
-		if (Import) ML_RETURN(Import);
+		if (Import) {
+			ML_RETURN(Import);
+		} else {
+			ML_ERROR("ModuleError", "Module %s not found in %s", State->Name, State->Path ?: "<library>");
+		}
+	} else {
+		ml_value_t **Args = ml_alloc_args(2);
+		Args[0] = Value;
+		Args[1] = ml_string(State->Import + 1, -1);
+		return ml_call(Caller, SymbolMethod, 2, Args);
 	}
-	ML_ERROR("ModuleError", "Module %s not found in %s", State->Name, State->Path ?: "<library>");
 }
 
 void ml_library_load(ml_state_t *Caller, const char *Path, const char *Name) {
@@ -214,6 +229,40 @@ static ml_value_t *ml_library_so_load0(const char *FileName, ml_value_t **Slot) 
 	}
 }
 
+typedef struct {
+	ml_type_t *Type;
+	const char *Path;
+} ml_dir_module_t;
+
+ML_TYPE(MLModuleDirT, (), "module::directory");
+
+ML_METHODX("::", MLModuleDirT, MLStringT) {
+	ml_dir_module_t *Module = (ml_dir_module_t *)Args[0];
+	const char *Name = ml_string_value(Args[1]);
+	return ml_library_load(Caller, Module->Path, Name);
+}
+
+static int ml_library_dir_test(const char *FileName) {
+	struct stat Stat[1];
+	return !lstat(FileName, Stat) && S_ISDIR(Stat->st_mode);
+}
+
+static void ml_library_dir_load(ml_state_t *Caller, const char *FileName, ml_value_t **Slot) {
+	ml_dir_module_t *Module = new(ml_dir_module_t);
+	Module->Type = MLModuleDirT;
+	Module->Path = FileName;
+	Slot[0] = (ml_value_t *)Module;
+	ML_RETURN(Module);
+}
+
+static ml_value_t *ml_library_dir_load0(const char *FileName, ml_value_t **Slot) {
+	ml_dir_module_t *Module = new(ml_dir_module_t);
+	Module->Type = MLModuleDirT;
+	Module->Path = FileName;
+	Slot[0] = (ml_value_t *)Module;
+	return Slot[0];
+}
+
 #include "whereami.h"
 
 void ml_library_path_add(const char *Path) {
@@ -288,6 +337,7 @@ void ml_library_init(stringmap_t *_Globals) {
 	ml_library_path_add_default();
 	ml_library_loader_add(".mini", NULL, ml_library_mini_load, NULL);
 	ml_library_loader_add(".so", NULL, ml_library_so_load, ml_library_so_load0);
+	//ml_library_loader_add("", ml_library_dir_test, ml_library_dir_load, ml_library_dir_load0);
 #include "ml_library_init.c"
 	stringmap_insert(Globals, "import", ml_cfunctionx(NULL, (ml_callbackx_t)ml_library_import));
 	stringmap_insert(Globals, "library",  ml_module("library",

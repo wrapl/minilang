@@ -36,22 +36,16 @@ function
    Returns an error if any of the keys in :mini:`Map` is not a string or method.
 
 
-:mini:`meth (Function: function) !! (List: list): partialfunction`
-   Returns a function equivalent to :mini:`fun(Args...) Function(List₁,  List₂,  ...,  Args...)`.
-
-
-:mini:`meth (Function: function) $ (Values...: any): partialfunction`
+:mini:`meth (Function: function) $ (Values...: any): function::partial`
    Returns a function equivalent to :mini:`fun(Args...) Function(Values...,  Args...)`.
 
 
-:mini:`meth /(Function: function): arglessfunction`
+:mini:`meth (Function: function) $! (List: list): function::partial`
+   Returns a function equivalent to :mini:`fun(Args...) Function(List₁,  List₂,  ...,  Args...)`.
+
+
+:mini:`meth /(Function: function): function`
    Returns a function equivalent to :mini:`fun(Args...) Function()`.
-
-
-.. _type-function-argless:
-
-:mini:`type function::argless < function, sequence`
-   *TBD*
 
 
 .. _type-function-partial:

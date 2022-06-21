@@ -153,6 +153,7 @@
       <keyword>debug</keyword>
       <keyword>switch</keyword>
       <keyword>case</keyword>
+      <keyword>must</keyword>
     </context>
     <context id="functions" style-ref="function">
       <keyword>print</keyword>
@@ -226,10 +227,11 @@
       <keyword>sequence</keyword>
       <keyword>list</keyword>
       <keyword>map</keyword>
-      <keyword>queue</keyword>
+      <keyword>time</keyword>
       <keyword>tuple</keyword>
       <keyword>regex</keyword>
       <keyword>array</keyword>
+      <keyword>table</keyword>
       <keyword>file</keyword>
       <keyword>enum</keyword>
       <keyword>flags</keyword>

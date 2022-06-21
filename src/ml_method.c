@@ -38,12 +38,26 @@ static void ml_methods_call(ml_state_t *Caller, ml_methods_t *Methods, int Count
 	return ml_call(State, Function, Count - 1, Args + 1);
 }
 
-ML_TYPE(MLMethodsT, (), "methods",
+ML_TYPE(MLMethodContextT, (), "method::context",
+// A context for isolating method definitions.
+//
+// :mini:`(C: method::context)(Fn: function, Args, ...): any`
+//     Calls :mini:`Fn(Args)` in a new context using :mini:`C` for method definitions.
 	.call = (void *)ml_methods_call
 );
 
+ML_FUNCTIONX(MLMethodContext) {
+//@method::context
+//>method::context
+// Returns a new context for method definitions. The new context will inherit methods definitions from the current context.
+	ml_methods_t *Methods = new(ml_methods_t);
+	Methods->Type = MLMethodContextT;
+	Methods->Parent = Caller->Context->Values[ML_METHODS_INDEX];
+	ML_RETURN(Methods);
+}
+
 static ml_methods_t MLRootMethods[1] = {{
-	NULL, NULL,
+	MLMethodContextT, NULL,
 	{INTHASH_INIT},
 	{INTHASH_INIT},
 	{INTHASH_INIT}
@@ -58,7 +72,7 @@ void ml_methods_prevent_changes(ml_methods_t *Methods, int PreventChanges) {
 
 ml_methods_t *ml_methods_context(ml_context_t *Context) {
 	ml_methods_t *Methods = new(ml_methods_t);
-	Methods->Type = MLMethodsT;
+	Methods->Type = MLMethodContextT;
 	Methods->Parent = Context->Values[ML_METHODS_INDEX];
 #ifdef ML_THREADSAFE
 	Methods->Lock[0] = (atomic_flag)ATOMIC_FLAG_INIT;
@@ -613,15 +627,6 @@ ML_METHODVX("[]", MLMethodT, MLTypeT) {
 	ML_RETURN(Function);
 }
 
-ML_FUNCTIONX(MLMethodContext) {
-//@method::context
-//>methods
-	ml_methods_t *Methods = new(ml_methods_t);
-	Methods->Type = MLMethodsT;
-	Methods->Parent = Caller->Context->Values[ML_METHODS_INDEX];
-	ML_RETURN(Methods);
-}
-
 static int ml_method_list_fn(const char *Name, ml_value_t *Method, ml_value_t *Result) {
 	ml_list_put(Result, Method);
 	return 0;
@@ -639,7 +644,6 @@ ML_FUNCTION(MLMethodList) {
 void ml_method_init() {
 	ml_context_set(&MLRootContext, ML_METHODS_INDEX, MLRootMethods);
 #include "ml_method_init.c"
-	MLRootMethods->Type = MLMethodsT;
 	stringmap_insert(MLMethodT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLMethodSwitch));
 	stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
 	stringmap_insert(MLMethodT->Exports, "context", MLMethodContext);

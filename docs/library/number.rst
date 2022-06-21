@@ -256,7 +256,18 @@ number
 .. _type-integer:
 
 :mini:`type integer < real, function`
-   *TBD*
+   A 64-bit signed integer value.
+   
+   :mini:`fun (I: integer)(Arg₁,  ...,  Argₙ): any | nil`
+      Returns the :mini:`I`-th argument or :mini:`nil` if there is no :mini:`I`-th argument. Negative values of :mini:`I` are counted from the last argument.
+      In particular,  :mini:`0(...)` always returns :mini:`nil` and :mini:`1` behaves as the identity function.
+
+   .. code-block:: mini
+
+      2("a", "b", "c") :> "b"
+      -1("a", "b", "c") :> "c"
+      4("a", "b", "c") :> nil
+      0("a", "b", "c") :> nil
 
 
 :mini:`meth integer(String: string): integer | error`

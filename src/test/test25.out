@@ -1,0 +1,33 @@
+J = 1
+J = 1
+J = 1
+J = 1
+J = 1
+J = 1
+J = 1
+J = 1
+J = 1
+J = 1
+I = 1
+J = 2
+J = 2
+J = 2
+J = 2
+J = 2
+J = 2
+J = 2
+J = 2
+J = 2
+J = 2
+I = 2
+J = 3
+J = 3
+J = 3
+J = 3
+I = 3
+Starting
+Finishing: I = 5
+Must: I = 3
+Starting
+Must: I = 2
+ValueError: Division by 0

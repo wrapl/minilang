@@ -861,6 +861,13 @@ ml_methods_t *ml_methods_context(ml_context_t *Context);
 
 typedef struct ml_map_t ml_map_t;
 typedef struct ml_map_node_t ml_map_node_t;
+typedef enum {
+	MAP_ORDER_INSERT,
+	MAP_ORDER_LRU,
+	MAP_ORDER_MRU,
+	MAP_ORDER_ASC,
+	MAP_ORDER_DESC
+} ml_map_order_t;
 
 extern ml_type_t MLMapT[];
 
@@ -868,7 +875,8 @@ struct ml_map_t {
 	ml_type_t *Type;
 	ml_map_node_t *Head, *Tail, *Root;
 	ml_method_cached_t *Cached;
-	int Size, Order;
+	int Size;
+	ml_map_order_t Order;
 };
 
 struct ml_map_node_t {
@@ -883,7 +891,7 @@ struct ml_map_node_t {
 
 ml_value_t *ml_map() __attribute__((malloc));
 ml_value_t *ml_map_search(ml_value_t *Map, ml_value_t *Key);
-ml_value_t *ml_map_search0(ml_value_t *Map0, ml_value_t *Key);
+ml_value_t *ml_map_search0(ml_value_t *Map, ml_value_t *Key);
 ml_map_node_t *ml_map_slot(ml_value_t *Map, ml_value_t *Key);
 ml_value_t *ml_map_insert(ml_value_t *Map, ml_value_t *Key, ml_value_t *Value);
 ml_value_t *ml_map_delete(ml_value_t *Map, ml_value_t *Key);
@@ -953,8 +961,8 @@ static inline void ml_map_iter_update(ml_map_iter_t *Iter, ml_value_t *Value) {
 	Iter->Value = Iter->Node->Value = Value;
 }
 
-#define ML_MAP_FOREACH(LIST, ITER) \
-	for (ml_map_node_t *ITER = ((ml_map_t *)LIST)->Head; ITER; ITER = ITER->Next)
+#define ML_MAP_FOREACH(MAP, ITER) \
+	for (ml_map_node_t *ITER = ((ml_map_t *)MAP)->Head; ITER; ITER = ITER->Next)
 
 // Names //
 
@@ -964,7 +972,119 @@ ml_value_t *ml_names();
 void ml_names_add(ml_value_t *Names, ml_value_t *Value);
 #define ml_names_length ml_list_length
 
-#define ML_NAMES_FOREACH(LIST, ITER) ML_LIST_FOREACH(LIST, ITER)
+#define ML_NAMES_CHECK_ARG_COUNT(N) { \
+	int Required = ml_names_length(ml_deref(Args[N])) + N + 1; \
+	if (Count < Required) { \
+		return ml_error("CallError", "%d arguments required", Required); \
+	} \
+}
+
+#define ML_NAMES_CHECKX_ARG_COUNT(N) { \
+	int Required = ml_names_length(ml_deref(Args[N])) + N + 1; \
+	if (Count < Required) { \
+		ML_ERROR("CallError", "%d arguments required", Required); \
+	} \
+}
+
+#define ML_NAMES_FOREACH(NAMES, ITER) ML_LIST_FOREACH(ml_deref(NAMES), ITER)
+
+// Sets //
+
+typedef struct ml_set_t ml_set_t;
+typedef struct ml_set_node_t ml_set_node_t;
+typedef enum {
+	SET_ORDER_INSERT,
+	SET_ORDER_LRU,
+	SET_ORDER_MRU,
+	SET_ORDER_ASC,
+	SET_ORDER_DESC
+} ml_set_order_t;
+
+extern ml_type_t MLSetT[];
+
+struct ml_set_t {
+	ml_type_t *Type;
+	ml_set_node_t *Head, *Tail, *Root;
+	ml_method_cached_t *Cached;
+	int Size;
+	ml_set_order_t Order;
+};
+
+struct ml_set_node_t {
+	ml_type_t *Type;
+	ml_set_node_t *Next, *Prev;
+	ml_value_t *Key;
+	ml_set_node_t *Left, *Right;
+	long Hash;
+	int Depth;
+};
+
+ml_value_t *ml_set() __attribute__((malloc));
+ml_value_t *ml_set_search(ml_value_t *Set, ml_value_t *Key);
+ml_value_t *ml_set_search0(ml_value_t *Set, ml_value_t *Key);
+ml_set_node_t *ml_set_slot(ml_value_t *Set, ml_value_t *Key);
+ml_value_t *ml_set_insert(ml_value_t *Set, ml_value_t *Key);
+ml_value_t *ml_set_delete(ml_value_t *Set, ml_value_t *Key);
+
+static inline int ml_set_size(ml_value_t *Set) {
+	return ((ml_set_t *)Set)->Size;
+}
+
+int ml_set_foreach(ml_value_t *Set, void *Data, int (*callback)(ml_value_t *, void *));
+
+typedef struct {
+	ml_set_node_t *Node;
+	ml_value_t *Key;
+} ml_set_iter_t;
+
+static inline int ml_set_iter_forward(ml_value_t *Set0, ml_set_iter_t *Iter) {
+	ml_set_t *Set = (ml_set_t *)Set0;
+	ml_set_node_t *Node = Iter->Node = Set->Head;
+	if (!Node) {
+		return 0;
+	} else {
+		Iter->Key = Node->Key;
+		return 1;
+	}
+}
+
+static inline int ml_set_iter_next(ml_set_iter_t *Iter) {
+	ml_set_node_t *Node = Iter->Node = Iter->Node->Next;
+	if (!Node) {
+		return 0;
+	} else {
+		Iter->Key = Node->Key;
+		return 1;
+	}
+}
+
+static inline int ml_set_iter_backward(ml_value_t *Set0, ml_set_iter_t *Iter) {
+	ml_set_t *Set = (ml_set_t *)Set0;
+	ml_set_node_t *Node = Iter->Node = Set->Tail;
+	if (!Node) {
+		return 0;
+	} else {
+		Iter->Key = Node->Key;
+		return 1;
+	}
+}
+
+static inline int ml_set_iter_prev(ml_set_iter_t *Iter) {
+	ml_set_node_t *Node = Iter->Node = Iter->Node->Prev;
+	if (!Node) {
+		return 0;
+	} else {
+		Iter->Key = Node->Key;
+		return 1;
+	}
+}
+
+static inline int ml_set_iter_valid(ml_set_iter_t *Iter) {
+	return Iter->Node != NULL;
+}
+
+#define ML_SET_FOREACH(SET, ITER) \
+	for (ml_set_node_t *ITER = ((ml_set_t *)SET)->Head; ITER; ITER = ITER->Next)
 
 // Modules //
 

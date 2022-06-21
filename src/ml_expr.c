@@ -174,12 +174,13 @@ ml_value_t *mlc_expr_describe(mlc_expr_t *Expr) {
 	}
 	case ML_EXPR_BLOCK: {
 		mlc_block_expr_t *BlockExpr = (mlc_block_expr_t *)Expr;
-		// TODO: Add catches
-		return ml_tuplev(8, ExprName, Source, Start, End,
+		return ml_tuplev(10, ExprName, Source, Start, End,
 			mlc_locals_describe(BlockExpr->Vars, INT_MAX),
 			mlc_locals_describe(BlockExpr->Lets, INT_MAX),
 			mlc_locals_describe(BlockExpr->Defs, INT_MAX),
-			mlc_exprs_describe(BlockExpr->Child)
+			mlc_exprs_describe(BlockExpr->Child),
+			BlockExpr->CatchIdent ? ml_string(BlockExpr->CatchIdent, -1) : MLNil,
+			mlc_expr_describe(BlockExpr->CatchBody)
 		);
 	}
 	case ML_EXPR_STRING: {

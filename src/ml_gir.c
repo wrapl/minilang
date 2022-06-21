@@ -121,6 +121,22 @@ ML_METHOD(GirTypelibT, MLStringT, MLStringT) {
 	return ml_gir_typelib(ml_string_value(Args[0]), ml_string_value(Args[1]));
 }
 
+#ifdef ML_LIBRARY
+
+#include "ml_library.h"
+
+ML_TYPE(GirModuleT, (), "gir::module");
+ML_VALUE(GirModule, GirModuleT);
+
+ML_METHOD("::", GirModuleT, MLStringT) {
+	char *Name = GC_strdup(ml_string_value(Args[1]));
+	char *Version = strchr(Name, '@');
+	if (Version) *Version++ = 0;
+	return ml_gir_typelib(Name, Version);
+}
+
+#endif
+
 typedef struct {
 	ml_type_t Base;
 	GIObjectInfo *Info;
@@ -151,9 +167,11 @@ static void instance_finalize(object_instance_t *Instance, void *Data) {
 }
 
 static GQuark MLQuark;
+static GType MLType;
 
 ml_value_t *ml_gir_instance_get(void *Handle, GIBaseInfo *Fallback) {
-	if (Handle == 0) return (ml_value_t *)ObjectInstanceNil;
+	//if (Handle == 0) return (ml_value_t *)ObjectInstanceNil;
+	if (Handle == 0) return MLNil;
 	object_instance_t *Instance = (object_instance_t *)g_object_get_qdata(Handle, MLQuark);
 	if (Instance) return (ml_value_t *)Instance;
 	Instance = new(object_instance_t);
@@ -203,7 +221,7 @@ ML_METHOD("append", MLStringBufferT, GirObjectInstanceT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	object_instance_t *Instance = (object_instance_t *)Args[1];
 	if (Instance == ObjectInstanceNil) {
-		ml_stringbuffer_write(Buffer, "(null)", 6);
+		ml_stringbuffer_write(Buffer, "nil-object", 6);
 	} else {
 		ml_stringbuffer_printf(Buffer, "<%s>", g_base_info_get_name((GIBaseInfo *)Instance->Type->Info));
 	}
@@ -1819,6 +1837,8 @@ static void interface_add_methods(object_t *Object, GIInterfaceInfo *Info) {
 		if (Flags & GI_FUNCTION_IS_METHOD) {
 			//ml_method_by_name(MethodName, MethodInfo, (ml_callback_t)method_invoke, Object, NULL);
 			method_register(MethodName, MethodInfo, Object);
+		} else {
+			stringmap_insert(Object->Base.Exports, MethodName, ml_cfunctionx(MethodInfo, (void *)constructor_invoke));
 		}
 	}
 }
@@ -1871,6 +1891,7 @@ static ml_value_t *object_instance(object_t *Object, int Count, ml_value_t **Arg
 	GType Type = g_registered_type_info_get_g_type((GIRegisteredTypeInfo *)Object->Info);
 	if (Count > 0) {
 		ML_CHECK_ARG_TYPE(0, MLNamesT);
+		ML_NAMES_CHECK_ARG_COUNT(0);
 		int NumProperties = Count - 1;
 		const char *Names[NumProperties];
 		GValue Values[NumProperties];
@@ -1902,9 +1923,9 @@ static ml_type_t *object_info_lookup(GIObjectInfo *Info) {
 		Object->Base.call = ml_default_call;
 		Object->Base.deref = ml_default_deref;
 		Object->Base.assign = ml_default_assign;
+		Object->Base.Constructor = ml_cfunction(Object, (ml_callback_t)object_instance);
 		Object->Info = Info;
 		ml_type_init((ml_type_t *)Object, GirObjectInstanceT, NULL);
-		Object->Base.Constructor = ml_cfunction(Object, (ml_callback_t)object_instance);
 		object_add_methods(Object, Info);
 		Slot[0] = (ml_type_t *)Object;
 	}
@@ -1922,9 +1943,9 @@ static ml_type_t *interface_info_lookup(GIInterfaceInfo *Info) {
 		Object->Base.call = ml_default_call;
 		Object->Base.deref = ml_default_deref;
 		Object->Base.assign = ml_default_assign;
+		Object->Base.Constructor = ml_cfunction(Object, (ml_callback_t)object_instance);
 		Object->Info = Info;
 		ml_type_init((ml_type_t *)Object, GirObjectInstanceT, NULL);
-		Object->Base.Constructor = ml_cfunction(Object, (ml_callback_t)object_instance);
 		interface_add_methods(Object, Info);
 		Slot[0] = (ml_type_t *)Object;
 	}
@@ -1942,9 +1963,9 @@ static ml_type_t *struct_info_lookup(GIStructInfo *Info) {
 		Struct->Base.call = ml_default_call;
 		Struct->Base.deref = ml_default_deref;
 		Struct->Base.assign = ml_default_assign;
+		Struct->Base.Constructor = ml_cfunction(Struct, (void *)struct_instance);
 		Struct->Info = Info;
 		ml_type_init((ml_type_t *)Struct, GirStructInstanceT, NULL);
-		Struct->Base.Constructor = ml_cfunction(Struct, (void *)struct_instance);
 		Slot[0] = (ml_type_t *)Struct;
 		int NumFields = g_struct_info_get_n_fields(Info);
 		for (int I = 0; I < NumFields; ++I) {
@@ -1978,9 +1999,9 @@ static ml_type_t *union_info_lookup(GIUnionInfo *Info) {
 		Union->Base.call = ml_default_call;
 		Union->Base.deref = ml_default_deref;
 		Union->Base.assign = ml_default_assign;
+		Union->Base.Constructor = ml_cfunction(Union, (void *)union_instance);
 		Union->Info = Info;
 		ml_type_init((ml_type_t *)Union, GirUnionInstanceT, NULL);
-		Union->Base.Constructor = ml_cfunction(Union, (void *)union_instance);
 		Slot[0] = (ml_type_t *)Union;
 		int NumFields = g_union_info_get_n_fields(Info);
 		for (int I = 0; I < NumFields; ++I) {
@@ -2079,7 +2100,7 @@ static ml_value_t *baseinfo_to_value(GIBaseInfo *Info) {
 		return (ml_value_t *)object_info_lookup((GIObjectInfo *)Info);
 	}
 	case GI_INFO_TYPE_INTERFACE: {
-		break;
+		return (ml_value_t *)interface_info_lookup((GIInterfaceInfo *)Info);
 	}
 	case GI_INFO_TYPE_CONSTANT: {
 		return constant_info_lookup((GIConstantInfo *)Info);
@@ -2327,7 +2348,8 @@ static void gir_closure_marshal(GClosure *Closure, GValue *Dest, guint NumArgs, 
 }
 
 static void gir_closure_finalize(gir_closure_info_t *Info, GClosure *Closure) {
-	ptrset_remove(Info->Instance->Handlers, Info);
+	if (Info->Instance) ptrset_remove(Info->Instance->Handlers, Info);
+	GC_free(Info);
 }
 
 ML_METHODX("connect", GirObjectInstanceT, MLStringT, MLFunctionT) {
@@ -2339,8 +2361,9 @@ ML_METHODX("connect", GirObjectInstanceT, MLStringT, MLFunctionT) {
 	const char *Signal = ml_string_value(Args[1]);
 	GISignalInfo *SignalInfo = (GISignalInfo *)stringmap_search(Instance->Type->Signals, Signal);
 	if (!SignalInfo) ML_ERROR("NameError", "Signal %s not found", Signal);
-	gir_closure_info_t *Info = new(gir_closure_info_t);
+	gir_closure_info_t *Info = GC_malloc_uncollectable(sizeof(gir_closure_info_t));
 	Info->Instance = Instance;
+	GC_register_disappearing_link((void **)&Info->Instance);
 	Info->Context = Caller->Context;
 	Info->Function = Args[2];
 	Info->SignalInfo = SignalInfo;
@@ -2415,7 +2438,7 @@ static ptrset_t SleepSet[1] = {PTRSET_INIT};
 static gboolean sleep_run(void *Data) {
 	ptrset_remove(SleepSet, Data);
 	ml_gir_queue_add((ml_state_t *)Data, MLNil);
-	return FALSE;
+	return G_SOURCE_REMOVE;
 }
 
 ML_FUNCTIONX(MLSleep) {
@@ -2519,6 +2542,7 @@ void ml_gir_init(stringmap_t *Globals) {
 	ml_typed_fn_set(TypelibIterT, ml_iter_value, typelib_iter_value);
 	ml_typed_fn_set(TypelibIterT, ml_iter_key, typelib_iter_key);
 	MLQuark = g_quark_from_static_string("<<minilang>>");
+	MLType = g_pointer_type_register_static("minilang");
 	ObjectInstanceNil = new(object_instance_t);
 	ObjectInstanceNil->Type = (object_t *)GirObjectInstanceT;
 	//ml_typed_fn_set(EnumT, ml_iterate, enum_iterate);
@@ -2528,8 +2552,11 @@ void ml_gir_init(stringmap_t *Globals) {
 	ml_type_add_parent((ml_type_t *)GInputStreamT, MLStreamT);
 	ml_type_add_parent((ml_type_t *)GOutputStreamT, MLStreamT);
 #ifdef ML_SCHEDULER
-	stringmap_insert(Globals, "sleep", (ml_value_t *)MLSleep);
+	stringmap_insert(Globals, "sleep", MLSleep);
 	stringmap_insert(GirTypelibT->Exports, "run", GirRun);
 #endif
 	stringmap_insert(Globals, "gir", GirTypelibT);
+#ifdef ML_LIBRARY
+	ml_library_register("gir", GirModule);
+#endif
 }

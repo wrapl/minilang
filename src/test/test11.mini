@@ -6,6 +6,6 @@ end
 
 var T := {}
 
-for K, V in test !! [10] do
+for K, V in test $! [10] do
 	print('{K} -> {V}\n')
 end

@@ -842,6 +842,52 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:rest :> "1 + 1 = 2"
 
 
+.. _type-string-ctype:
+
+:mini:`type string::ctype < enum`
+   
+   * :mini:`string::ctype::Cn`: General Other Types
+   * :mini:`string::ctype::Lu`: Uppercase Letter
+   * :mini:`string::ctype::Ll`: Lowercase Letter
+   * :mini:`string::ctype::Lt`: Titlecase Letter
+   * :mini:`string::ctype::Lm`: Modifier Letter
+   * :mini:`string::ctype::Lo`: Other Letter
+   * :mini:`string::ctype::Mn`: Non Spacing Mark
+   * :mini:`string::ctype::Me`: Enclosing Mark
+   * :mini:`string::ctype::Mc`: Combining Spacing Mark
+   * :mini:`string::ctype::Nd`: Decimal Digit Number
+   * :mini:`string::ctype::Nl`: Letter Number
+   * :mini:`string::ctype::No`: Other Number
+   * :mini:`string::ctype::Zs`: Space Separator
+   * :mini:`string::ctype::Zl`: Line Separator
+   * :mini:`string::ctype::Zp`: Paragraph Separator
+   * :mini:`string::ctype::Cc`: Control Char
+   * :mini:`string::ctype::Cf`: Format Char
+   * :mini:`string::ctype::Co`: Private Use Char
+   * :mini:`string::ctype::Cs`: Surrogate
+   * :mini:`string::ctype::Pd`: Dash Punctuation
+   * :mini:`string::ctype::Ps`: Start Punctuation
+   * :mini:`string::ctype::Pe`: End Punctuation
+   * :mini:`string::ctype::Pc`: Connector Punctuation
+   * :mini:`string::ctype::Po`: Other Punctuation
+   * :mini:`string::ctype::Sm`: Math Symbol
+   * :mini:`string::ctype::Sc`: Currency Symbol
+   * :mini:`string::ctype::Sk`: Modifier Symbol
+   * :mini:`string::ctype::So`: Other Symbol
+   * :mini:`string::ctype::Pi`: Initial Punctuation
+   * :mini:`string::ctype::Pf`: Final Punctuation
+
+
+.. _type-string-norm:
+
+:mini:`type string::norm < enum`
+   
+   * :mini:`string::norm::NFC`
+   * :mini:`string::norm::NFD`
+   * :mini:`string::norm::NFKC`
+   * :mini:`string::norm::NFKD`
+
+
 .. _fun-string-switch:
 
 :mini:`fun string::switch(Cases: string|regex, ...)`

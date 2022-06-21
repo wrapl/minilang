@@ -1071,7 +1071,7 @@ typedef struct {
 	int Index;
 } ml_list_find_state_t;
 
-ML_METHOD_DECL(EqualMethod, "=");
+extern ml_value_t *EqualMethod;
 
 static void ml_list_find_state_run(ml_list_find_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
@@ -1286,7 +1286,7 @@ typedef struct {
 } ml_permutations_t;
 
 ML_TYPE(MLPermutationsT, (MLSequenceT), "list::permutations");
-//internal
+//!internal
 
 static void ML_TYPED_FN(ml_iterate, MLPermutationsT, ml_state_t *Caller, ml_permutations_t *Permutations) {
 	Permutations->Index = 1;

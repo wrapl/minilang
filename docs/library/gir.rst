@@ -127,6 +127,16 @@ gir
    *TBD*
 
 
+.. _type-gir-module:
+
+:mini:`type gir::module`
+   *TBD*
+
+
+:mini:`meth (Arg₁: gir::module) :: (Arg₂: string)`
+   *TBD*
+
+
 .. _type-gir-object:
 
 :mini:`type gir::object < gir::baseinfo`

@@ -783,9 +783,6 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *
 			ml_closure_find_decl(DeclBuffer, Decls, Inst[3].Decls);
 			Inst += 4;
 			break;
-		case MLIT_INST_TYPES:
-			Inst += 3;
-			break;
 		case MLIT_COUNT_COUNT:
 			Inst += 3;
 			break;
@@ -861,15 +858,6 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLClosureInfoT, ml_cbor_writer_t *
 			vlq64_encode(Buffer, (uintptr_t)inthash_search(Decls, (uintptr_t)Inst[3].Decls));
 			Inst += 4;
 			break;
-		case MLIT_INST_TYPES: {
-			vlq64_encode(Buffer, (uintptr_t)inthash_search(Labels, Inst[1].Inst->Label));
-			int Count = 0;
-			for (const char **Ptr = Inst[2].Ptrs; *Ptr; ++Ptr) ++Count;
-			vlq64_encode(Buffer, Count);
-			for (const char **Ptr = Inst[2].Ptrs; *Ptr; ++Ptr) vlq64_encode_string(Buffer, *Ptr);
-			Inst += 3;
-			break;
-		}
 		case MLIT_COUNT_COUNT:
 			vlq64_encode(Buffer, Inst[1].Count);
 			vlq64_encode(Buffer, Inst[2].Count);
@@ -1319,13 +1307,6 @@ ML_FUNCTION(DecodeClosureInfo) {
 		case MLIT_VALUE_DATA:
 			NEXT_VALUE(Inst[1].Value);
 			Inst += 3; break;
-		case MLIT_INST_TYPES: {
-			Inst[1].Inst = Code + VLQ64_NEXT();
-			int Count2 = VLQ64_NEXT();
-			const char **Ptrs = Inst[2].Ptrs = anew(const char *, Count2 + 1);
-			for (int J = 0; J < Count2; ++J) *Ptrs++ = VLQ64_NEXT_STRING();
-			Inst += 3; break;
-		}
 		case MLIT_COUNT_COUNT:
 			Inst[1].Count = VLQ64_NEXT();
 			Inst[2].Count = VLQ64_NEXT();
@@ -1395,7 +1376,7 @@ void ml_cbor_default_object(const char *Name, ml_value_t *Constructor) {
 	ml_map_insert(CborObjects, ml_string(Name, -1), Constructor);
 }
 
-static void ml_cbor_default_global(const char *Name, void *Value) {
+void ml_cbor_default_global(const char *Name, void *Value) {
 	stringmap_insert(DefaultReadGlobals, Name, Value);
 	inthash_insert(DefaultWriteGlobals, (uintptr_t)Value, (void *)Name);
 }
@@ -1421,6 +1402,16 @@ void ml_cbor_init(stringmap_t *Globals) {
 	ml_cbor_default_global("string", MLStringT);
 	ml_cbor_default_global("list", MLListT);
 	ml_cbor_default_global("map", MLMapT);
+	ml_cbor_default_global("boolean", MLBooleanT);
+	ml_cbor_default_global("error", MLErrorT);
+	ml_cbor_default_global("regex", MLRegexT);
+#ifdef ML_COMPLEX
+	ml_cbor_default_global("complex", MLComplexT);
+#endif
+	ml_cbor_default_global("method", MLMethodT);
+	ml_cbor_default_global("address", MLAddressT);
+	ml_cbor_default_global("buffer", MLBufferT);
+	ml_cbor_default_global("tuple", MLTupleT);
 #include "ml_cbor_init.c"
 	if (Globals) {
 		stringmap_insert(Globals, "cbor", ml_module("cbor",

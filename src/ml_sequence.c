@@ -34,6 +34,7 @@ static ML_METHOD_DECL(FilterDuoMethod, "=>?");
 static ML_METHOD_DECL(SoloApplyMethod, "->!");
 static ML_METHOD_DECL(FilterSoloApplyMethod, "->!?");
 static ML_METHOD_DECL(ApplyMethod, "!");
+static ML_METHOD_DECL(CountMethod, "count");
 
 typedef struct ml_chained_state_t {
 	ml_state_t Base;
@@ -502,7 +503,7 @@ ML_METHOD("->!?", MLChainedT, MLFunctionT) {
 
 typedef struct {
 	ml_type_t *Type;
-	ml_value_t *Sequence, *Function;
+	ml_value_t *Sequence, *ValueFn;
 } ml_doubled_t;
 
 ML_TYPE(MLDoubledT, (MLSequenceT), "doubled");
@@ -559,7 +560,7 @@ static void ML_TYPED_FN(ml_iterate, MLDoubledT, ml_state_t *Caller, ml_doubled_t
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (void *)ml_double_iter0_next;
-	State->Function = Doubled->Function;
+	State->Function = Doubled->ValueFn;
 	return ml_iterate((ml_state_t *)State, Doubled->Sequence);
 }
 
@@ -582,7 +583,7 @@ ml_value_t *ml_doubled(ml_value_t *Sequence, ml_value_t *Function) {
 	ml_doubled_t *Doubled = new(ml_doubled_t);
 	Doubled->Type = MLDoubledT;
 	Doubled->Sequence = Sequence;
-	Doubled->Function = Function;
+	Doubled->ValueFn = Function;
 	return (ml_value_t *)Doubled;
 }
 
@@ -662,7 +663,7 @@ static void ML_TYPED_FN(ml_iterate, MLDoubled2T, ml_state_t *Caller, ml_doubled_
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (void *)ml_double2_iter0_next;
-	State->Function = Doubled->Function;
+	State->Function = Doubled->ValueFn;
 	return ml_iterate((ml_state_t *)State, Doubled->Sequence);
 }
 
@@ -690,7 +691,7 @@ ML_METHOD("=>>", MLSequenceT, MLFunctionT) {
 	ml_doubled_t *Doubled = new(ml_doubled_t);
 	Doubled->Type = MLDoubled2T;
 	Doubled->Sequence = Args[0];
-	Doubled->Function = Args[1];
+	Doubled->ValueFn = Args[1];
 	return (ml_value_t *)Doubled;
 }
 
@@ -1611,6 +1612,7 @@ static void ml_sequenced_fnx_iterate(ml_sequenced_state_t *State, ml_value_t *Va
 
 static void ML_TYPED_FN(ml_iter_next, MLSequencedStateT, ml_state_t *Caller, ml_sequenced_state_t *State) {
 	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
 	State->Base.run = (void *)ml_sequenced_fnx_iterate;
 	return ml_iter_next((ml_state_t *)State, State->Iter);
 }
@@ -1636,17 +1638,18 @@ static void ML_TYPED_FN(ml_iterate, MLSequencedT, ml_state_t *Caller, ml_sequenc
 	ml_sequenced_state_t *State = new(ml_sequenced_state_t);
 	State->Base.Type = MLSequencedStateT;
 	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
 	State->Base.run = (void *)ml_sequenced_fnx_iterate;
 	State->Next = Sequenced->Second;
 	return ml_iterate((ml_state_t *)State, Sequenced->First);
 }
 
-ML_METHOD(">>", MLSequenceT, MLSequenceT) {
+ML_METHOD("&", MLSequenceT, MLSequenceT) {
 //<Sequence/1
 //<Sequence/2
 //>Sequence
 // Returns an sequence that produces the values from :mini:`Sequence/1` followed by those from :mini:`Sequence/2`.
-//$= list(1 .. 3 >> "cake")
+//$= list(1 .. 3 & "cake")
 	ml_sequenced_t *Sequenced = xnew(ml_sequenced_t, 3, ml_value_t *);
 #ifdef ML_GENERICS
 	ml_type_t *TArgs[3];
@@ -1671,11 +1674,11 @@ ML_METHOD(">>", MLSequenceT, MLSequenceT) {
 	return (ml_value_t *)Sequenced;
 }
 
-ML_METHOD(">>", MLSequenceT) {
+ML_METHOD("&", MLSequenceT) {
 //<Sequence
 //>Sequence
 // Returns an sequence that repeatedly produces the values from :mini:`Sequence` (for use with :mini:`limit`).
-//$= list(>>(1 .. 3) limit 10)
+//$= list(&(1 .. 3) limit 10)
 	ml_sequenced_t *Sequenced = xnew(ml_sequenced_t, 3, ml_value_t *);
 	Sequenced->Type = ml_generic_sequence(MLSequencedT, Args[0]);
 	Sequenced->First = Args[0];
@@ -2062,6 +2065,119 @@ ML_FUNCTION(Zip) {
 	Zipped->Count = Count - 1;
 	Zipped->Function = Args[Count - 1];
 	for (int I = 0; I < Count - 1; ++I) Zipped->Iters[I] = Args[I];
+	return (ml_value_t *)Zipped;
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *ValueFn, *KeyFn;
+	int Count;
+	ml_value_t *Iters[];
+} ml_zipped2_t;
+
+ML_TYPE(MLZipped2T, (MLSequenceT), "zipped2");
+//!internal
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *ValueFn, *KeyFn;
+	ml_value_t **Iters;
+	int Count, Index, Iteration;
+	ml_value_t *Args[];
+} ml_zipped2_state_t;
+
+ML_TYPE(MLZipped2StateT, (MLStateT), "zipped2-state");
+//!internal
+
+static void zipped2_iterate(ml_zipped2_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Iters[State->Index] = Value;
+	if (++State->Index ==  State->Count) ML_CONTINUE(State->Base.Caller, State);
+	return ml_iterate((ml_state_t *)State, State->Iters[State->Index]);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLZipped2T, ml_state_t *Caller, ml_zipped2_t *Zipped) {
+	ml_zipped2_state_t *State = xnew(ml_zipped2_state_t, 2 * Zipped->Count, ml_value_t *);
+	State->Base.Type = MLZipped2StateT;
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)zipped2_iterate;
+	State->Base.Context = Caller->Context;
+	State->ValueFn = Zipped->ValueFn;
+	State->KeyFn = Zipped->KeyFn;
+	State->Iters = State->Args + Zipped->Count;
+	for (int I = 0; I < Zipped->Count; ++I) State->Iters[I] = Zipped->Iters[I];
+	State->Count = Zipped->Count;
+	State->Iteration = 1;
+	return ml_iterate((ml_state_t *)State, State->Iters[0]);
+}
+
+static void ml_zipped2_fnx_key(ml_zipped2_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Args[State->Index] = Value;
+	if (++State->Index ==  State->Count) {
+		return ml_call(State->Base.Caller, State->KeyFn, State->Count, State->Args);
+	}
+	return ml_iter_key((ml_state_t *)State, State->Iters[State->Index]);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLZipped2StateT, ml_state_t *Caller, ml_zipped2_state_t *State) {
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)ml_zipped2_fnx_key;
+	State->Index = 0;
+	return ml_iter_key((ml_state_t *)State, State->Iters[0]);
+}
+
+static void ml_zipped2_fnx_value(ml_zipped2_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Args[State->Index] = Value;
+	if (++State->Index ==  State->Count) {
+		return ml_call(State->Base.Caller, State->ValueFn, State->Count, State->Args);
+	}
+	return ml_iter_value((ml_state_t *)State, State->Iters[State->Index]);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLZipped2StateT, ml_state_t *Caller, ml_zipped2_state_t *State) {
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)ml_zipped2_fnx_value;
+	State->Index = 0;
+	return ml_iter_value((ml_state_t *)State, State->Iters[0]);
+}
+
+static void zipped2_iter_next(ml_zipped2_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Iters[State->Index] = Value;
+	if (++State->Index ==  State->Count) ML_CONTINUE(State->Base.Caller, State);
+	return ml_iter_next((ml_state_t *)State, State->Iters[State->Index]);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLZipped2StateT, ml_state_t *Caller, ml_zipped2_state_t *State) {
+	State->Base.Caller = Caller;
+	State->Base.run = (void *)zipped2_iter_next;
+	++State->Iteration;
+	State->Index = 0;
+	return ml_iter_next((ml_state_t *)State, State->Iters[0]);
+}
+
+ML_FUNCTION(Zip2) {
+//@zip2
+//<Sequence/1,...,Sequence/n:sequence
+//<KeyFn
+//<ValueFn
+//>sequence
+// Returns a new sequence that produces :mini:`KeyFn(K/1/1, ..., K/n/1) - ValueFn(V/1/1, ..., V/n/1), ...` where :mini:`K/i/j - V/i/j` are the :mini:`j`-th key and value produced by :mini:`Sequence/i`.
+// The sequence stops produces values when any of the :mini:`Sequence/i` stops.
+//$= map(zip2(1 .. 3, "cake", tuple, tuple))
+	ML_CHECK_ARG_COUNT(3);
+	ML_CHECK_ARG_TYPE(Count - 2, MLFunctionT);
+	ML_CHECK_ARG_TYPE(Count - 1, MLFunctionT);
+	ml_zipped2_t *Zipped = xnew(ml_zipped2_t, Count - 2, ml_value_t *);
+	Zipped->Type = MLZipped2T;
+	Zipped->Count = Count - 2;
+	Zipped->ValueFn = Args[Count - 1];
+	Zipped->KeyFn = Args[Count - 2];
+	for (int I = 0; I < Count - 2; ++I) Zipped->Iters[I] = Args[I];
 	return (ml_value_t *)Zipped;
 }
 
@@ -2815,7 +2931,7 @@ void ml_sequence_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "iter_next", IterNext);
 		stringmap_insert(Globals, "iter_key", IterKey);
 		stringmap_insert(Globals, "iter_value", IterValue);
-		stringmap_insert(Globals, "count", ml_method("count"));
+		stringmap_insert(Globals, "count", CountMethod);
 		stringmap_insert(Globals, "count2", Count2);
 		stringmap_insert(Globals, "random", ml_method("random"));
 		stringmap_insert(Globals, "reduce", Reduce);
@@ -2828,6 +2944,7 @@ void ml_sequence_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "max2", Max2);
 		stringmap_insert(Globals, "unique", Unique);
 		stringmap_insert(Globals, "zip", Zip);
+		stringmap_insert(Globals, "zip2", Zip2);
 		stringmap_insert(Globals, "grid", Grid);
 		stringmap_insert(Globals, "pair", Pair);
 		stringmap_insert(Globals, "weave", Weave);

@@ -21,6 +21,8 @@ ml_value_t *ml_xml_element_head(ml_value_t *Value);
 typedef struct ml_xml_node_t ml_xml_node_t;
 typedef struct ml_xml_element_t ml_xml_element_t;
 
+ml_xml_element_t *ml_xml_element(const char *Tag);
+ml_xml_node_t *ml_xml_text(const char *Content, int Length);
 void ml_xml_element_put(ml_xml_element_t *Parent, ml_xml_node_t *Child);
 
 #endif

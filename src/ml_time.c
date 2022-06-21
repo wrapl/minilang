@@ -17,7 +17,7 @@
 #define ML_CATEGORY "time"
 
 // Overview
-// Provides time and date operations. Depending on how Minilang was built, may need to be imported using :mini:`import: time("std/time")`.
+// Provides time and date operations.
 
 typedef struct {
 	const ml_type_t *Type;
@@ -353,7 +353,6 @@ ML_METHOD("-", MLTimeT, MLTimeT) {
 //<Start
 //>real
 // Returns the time elasped betwen :mini:`Start` and :mini:`End` in seconds.
-//$- import: time("std/time")
 //$= time("2022-04-01 12:00:00") - time("2022-04-01 11:00:00")
 	ml_time_t *TimeA = (ml_time_t *)Args[0];
 	ml_time_t *TimeB = (ml_time_t *)Args[1];
@@ -367,7 +366,6 @@ ML_METHOD("+", MLTimeT, MLNumberT) {
 //<Duration
 //>time
 // Returns the time :mini:`Duration` seconds after :mini:`Start`.
-//$- import: time("std/time")
 //$= time("2022-04-01 12:00:00") + 3600
 	ml_time_t *TimeA = (ml_time_t *)Args[0];
 	double Diff = ml_real_value(Args[1]);
@@ -387,7 +385,6 @@ ML_METHOD("-", MLTimeT, MLNumberT) {
 //<Duration
 //>time
 // Returns the time :mini:`Duration` seconds before :mini:`Start`.
-//$- import: time("std/time")
 //$= time("2022-04-01 12:00:00") - 3600
 	ml_time_t *TimeA = (ml_time_t *)Args[0];
 	double Diff = -ml_real_value(Args[1]);
@@ -398,6 +395,25 @@ ML_METHOD("-", MLTimeT, MLNumberT) {
 	if (NSec >= 1000000000) {
 		NSec -= 1000000000;
 		++Sec;
+	}
+	return ml_time(Sec, NSec);
+}
+
+ML_METHOD("precision", MLTimeT, MLIntegerT) {
+	ml_time_t *TimeA = (ml_time_t *)Args[0];
+	time_t Sec = TimeA->Value->tv_sec;
+	unsigned long NSec = TimeA->Value->tv_nsec;
+	switch (ml_integer_value(Args[1])) {
+	case 0: NSec = 0; break;
+	case 1: NSec = (NSec / 100000000) * 100000000; break;
+	case 2: NSec = (NSec / 10000000) * 10000000; break;
+	case 3: NSec = (NSec / 1000000) * 1000000; break;
+	case 4: NSec = (NSec / 100000) * 100000; break;
+	case 5: NSec = (NSec / 10000) * 10000; break;
+	case 6: NSec = (NSec / 1000) * 1000; break;
+	case 7: NSec = (NSec / 100) * 100; break;
+	case 8: NSec = (NSec / 10) * 10; break;
+	default: break;
 	}
 	return ml_time(Sec, NSec);
 }
@@ -783,5 +799,6 @@ void ml_time_init(stringmap_t *Globals) {
 #ifdef ML_CBOR
 	ml_cbor_default_tag(0, ml_cbor_read_time_fn);
 	ml_cbor_default_tag(1, ml_cbor_read_time_fn);
+	ml_cbor_default_global("time", MLTimeT);
 #endif
 }

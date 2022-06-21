@@ -28,6 +28,13 @@ boolean
 :mini:`meth (Arg₁: boolean) != (Arg₂: boolean): boolean | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ != Arg₂` and :mini:`nil` otherwise.
 
+   .. code-block:: mini
+
+      true != true :> nil
+      true != false :> false
+      false != true :> true
+      false != false :> nil
+
 
 :mini:`meth -(Bool: boolean): boolean`
    Returns the logical inverse of :mini:`Bool`
@@ -47,9 +54,23 @@ boolean
 :mini:`meth (Arg₁: boolean) < (Arg₂: boolean): boolean | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ < Arg₂` and :mini:`nil` otherwise.
 
+   .. code-block:: mini
+
+      true < true :> nil
+      true < false :> nil
+      false < true :> true
+      false < false :> nil
+
 
 :mini:`meth (Arg₁: boolean) <= (Arg₂: boolean): boolean | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ <= Arg₂` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      true <= true :> true
+      true <= false :> nil
+      false <= true :> true
+      false <= false :> false
 
 
 :mini:`meth (Bool₁: boolean) <> (Bool₂: boolean): integer`
@@ -59,9 +80,23 @@ boolean
 :mini:`meth (Arg₁: boolean) = (Arg₂: boolean): boolean | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ == Arg₂` and :mini:`nil` otherwise.
 
+   .. code-block:: mini
+
+      true = true :> true
+      true = false :> nil
+      false = true :> nil
+      false = false :> false
+
 
 :mini:`meth (Arg₁: boolean) > (Arg₂: boolean): boolean | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ > Arg₂` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      true > true :> nil
+      true > false :> false
+      false > true :> nil
+      false > false :> nil
 
 
 :mini:`meth (Bool₁: boolean) >< (Bool₂: boolean): boolean`
@@ -77,6 +112,13 @@ boolean
 
 :mini:`meth (Arg₁: boolean) >= (Arg₂: boolean): boolean | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ >= Arg₂` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      true >= true :> true
+      true >= false :> false
+      false >= true :> nil
+      false >= false :> false
 
 
 :mini:`meth (Bool₁: boolean) \/ (Bool₂: boolean, ...): boolean`

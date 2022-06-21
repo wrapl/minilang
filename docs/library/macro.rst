@@ -49,8 +49,8 @@ macro
    Utility object for building a block expression.
 
 
-:mini:`meth (Builder: block::builder):do(Expr...: expr): blockbuilder`
-   Adds the expression :mini:`Expr` to a block.
+:mini:`meth (Builder: block::builder):do(Exprᵢ...: expr): blockbuilder`
+   Adds each expression :mini:`Exprᵢ` to a block.
 
 
 :mini:`meth (Builder: block::builder):end: expr`

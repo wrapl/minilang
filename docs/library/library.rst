@@ -7,6 +7,16 @@
 library
 =======
 
+.. _type-module-dir:
+
+:mini:`type module::dir`
+   *TBD*
+
+
+:mini:`meth (Arg₁: module::dir) :: (Arg₂: string)`
+   *TBD*
+
+
 .. _fun-addpath:
 
 :mini:`fun addpath(Arg₁: string)`

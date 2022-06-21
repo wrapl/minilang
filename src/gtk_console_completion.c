@@ -89,8 +89,8 @@ static void gtk_console_completion_provider_populate(ConsoleCompletionProvider *
 		} while (0);
 	}
 	g_free(Name);
+	if (Value && ml_is(Value, MLGlobalT)) Value = ml_global_get(Value);
 	if (Value) {
-		if (ml_is(Value, MLGlobalT)) Value = ml_global_get(Value);
 		if (ml_is(Value, MLTypeT)) {
 			ml_type_t *Type = (ml_type_t *)Value;
 			stringmap_foreach(Type->Exports, Info, (void *)populate_fn);

@@ -71,6 +71,7 @@ typedef struct mlc_frame_t mlc_frame_t;
 typedef struct mlc_loop_t mlc_loop_t;
 typedef struct mlc_block_t mlc_block_t;
 typedef struct mlc_try_t mlc_try_t;
+typedef struct mlc_must_t mlc_must_t;
 typedef struct mlc_upvalue_t mlc_upvalue_t;
 typedef struct mlc_define_t mlc_define_t;
 
@@ -93,6 +94,7 @@ struct mlc_function_t {
 	mlc_define_t *Defines;
 	mlc_loop_t *Loop;
 	mlc_try_t *Try;
+	mlc_must_t *Must;
 	mlc_upvalue_t *UpValues;
 	ml_inst_t *Next, *Returns;
 	int Top, Size, Self, Space;
@@ -224,19 +226,12 @@ struct mlc_for_expr_t {
 	int Unpack;
 };
 
-typedef struct mlc_must_expr_t mlc_must_expr_t;
-
-struct mlc_must_expr_t {
-	MLC_EXPR_FIELDS(must);
-	int Index;
-};
-
 typedef struct mlc_block_expr_t mlc_block_expr_t;
 
 struct mlc_block_expr_t {
 	MLC_EXPR_FIELDS(block);
 	mlc_local_t *Vars, *Lets, *Defs;
-	mlc_expr_t *Child, *CatchBody;
+	mlc_expr_t *Child, *CatchBody, *Must;
 	const char *CatchIdent;
 	int NumVars, NumLets, NumDefs;
 };

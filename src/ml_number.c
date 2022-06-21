@@ -328,6 +328,15 @@ static void ml_integer_call(ml_state_t *Caller, ml_integer_t *Integer, int Count
 }
 
 ML_TYPE(MLIntegerT, (MLRealT, MLFunctionT), "integer",
+// A 64-bit signed integer value.
+//
+// :mini:`fun (I: integer)(Arg/1, ..., Arg/n): any | nil`
+//    Returns the :mini:`I`-th argument or :mini:`nil` if there is no :mini:`I`-th argument. Negative values of :mini:`I` are counted from the last argument.
+//    In particular, :mini:`0(...)` always returns :mini:`nil` and :mini:`1` behaves as the identity function.
+//$= 2("a", "b", "c")
+//$= -1("a", "b", "c")
+//$= 4("a", "b", "c")
+//$= 0("a", "b", "c")
 	.hash = (void *)ml_integer_hash,
 	.call = (void *)ml_integer_call
 );

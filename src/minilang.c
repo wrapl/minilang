@@ -109,7 +109,7 @@ static int ml_stringbuffer_print(FILE *File, const char *String, size_t Length) 
 
 ML_FUNCTION(MLPrint) {
 //@print
-//<Values..:any
+//<Values...:any
 //>nil
 // Prints :mini:`Values` to standard output, converting to strings if necessary.
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
@@ -125,7 +125,7 @@ ML_FUNCTION(MLPrint) {
 ML_FUNCTION(MLHalt) {
 //@halt
 //<Code?:integer
-//
+// Causes the current process to exit with optional exit code :mini:`Code` or :mini:`0` if omitted.
 	if (Count > 0) {
 		ML_CHECK_ARG_TYPE(0, MLIntegerT);
 		exit(ml_integer_value_fast(Args[0]));
@@ -222,6 +222,7 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "swapcc", MLSwapCC);
 	stringmap_insert(Globals, "channel", MLChannelT);
 	stringmap_insert(Globals, "semaphore", MLSemaphoreT);
+	stringmap_insert(Globals, "rwlock", MLRWLockT);
 #ifdef ML_SCHEDULER_
 	stringmap_insert(Globals, "atomic", MLAtomic);
 #endif
@@ -243,15 +244,19 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "fmt", Fmt);
 	ml_module_t *IO = ml_library_internal("io");
 	stringmap_insert(Globals, "io", IO);
+	ml_module_t *Util = ml_library_internal("util");
+	stringmap_insert(Globals, "util", Util);
 #define SYS_EXPORTS Sys->Exports
 #define STD_EXPORTS Std->Exports
 #define FMT_EXPORTS Fmt->Exports
 #define IO_EXPORTS IO->Exports
+#define UTIL_EXPORTS Util->Exports
 #else
 #define SYS_EXPORTS Globals
 #define STD_EXPORTS Globals
 #define FMT_EXPORTS Globals
 #define IO_EXPORTS Globals
+#define UTIL_EXPORTS Globals
 #endif
 
 	ml_stream_init(IO_EXPORTS);
@@ -292,16 +297,16 @@ int main(int Argc, const char *Argv[]) {
 	ml_table_init(Globals);
 #endif
 #ifdef ML_PQUEUES
-	ml_pqueue_init(Globals);
+	ml_pqueue_init(UTIL_EXPORTS);
 #endif
 #ifdef ML_TIME
-	ml_time_init(STD_EXPORTS);
+	ml_time_init(Globals);
 #endif
 #ifdef ML_UUID
-	ml_uuid_init(STD_EXPORTS);
+	ml_uuid_init(UTIL_EXPORTS);
 #endif
 #ifdef ML_JSENCODE
-	ml_jsencode_init(Globals);
+	ml_jsencode_init(UTIL_EXPORTS);
 #endif
 #ifdef ML_THREADS
 	ml_thread_init(SYS_EXPORTS);

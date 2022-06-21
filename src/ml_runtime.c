@@ -1018,6 +1018,8 @@ ML_FUNCTION(MLSemaphore) {
 //!semaphore
 //@semaphore
 //<Initial? : integer
+//>semaphore
+// Returns a new semaphore with initial value :mini:`Initial` or :mini:`1` if no initial value is specified.
 	if (Count > 0) ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	ml_semaphore_t *Semaphore = new(ml_semaphore_t);
 	Semaphore->Type = MLSemaphoreT;
@@ -1031,27 +1033,29 @@ ML_FUNCTION(MLSemaphore) {
 
 ML_TYPE(MLSemaphoreT, (), "semaphore",
 //!semaphore
+// A semaphore for synchronizing concurrent code.
 	.Constructor = (ml_value_t *)MLSemaphore
 );
 
 ML_METHODX("wait", MLSemaphoreT) {
 //!semaphore
 //<Semaphore
+//>integer
+// Waits until the internal value in :mini:`Semaphore` is postive, then decrements it and returns the new value.
 	ml_semaphore_t *Semaphore = (ml_semaphore_t *)Args[0];
 	int64_t Value = Semaphore->Value;
 	if (Value) {
 		Semaphore->Value = Value - 1;
-		ML_RETURN(Args[0]);
+		ML_RETURN(ml_integer(Semaphore->Value));
 	}
-	++Semaphore->Fill;
-	if (Semaphore->Fill > Semaphore->Size) {
-		int NewSize = Semaphore->Size * 2;
-		ml_state_t **NewStates = anew(ml_state_t *, NewSize);
-		memcpy(NewStates, Semaphore->States, Semaphore->Size * sizeof(ml_state_t *));
+	if (++Semaphore->Fill > Semaphore->Size) {
+		int Size = Semaphore->Size * 2;
+		ml_state_t **States = anew(ml_state_t *, Size);
+		memcpy(States, Semaphore->States, Semaphore->Size * sizeof(ml_state_t *));
 		Semaphore->Read = 0;
 		Semaphore->Write = Semaphore->Size;
-		Semaphore->States = NewStates;
-		Semaphore->Size = NewSize;
+		Semaphore->States = States;
+		Semaphore->Size = Size;
 	}
 	Semaphore->States[Semaphore->Write] = Caller;
 	Semaphore->Write = (Semaphore->Write + 1) % Semaphore->Size;
@@ -1060,6 +1064,8 @@ ML_METHODX("wait", MLSemaphoreT) {
 ML_METHOD("signal", MLSemaphoreT) {
 //!semaphore
 //<Semaphore
+//>integer
+// Increments the internal value in :mini:`Semaphore`, resuming any waiters. Returns the new value.
 	ml_semaphore_t *Semaphore = (ml_semaphore_t *)Args[0];
 	int Fill = Semaphore->Fill;
 	if (Fill) {
@@ -1067,18 +1073,133 @@ ML_METHOD("signal", MLSemaphoreT) {
 		ml_state_t *State = Semaphore->States[Semaphore->Read];
 		Semaphore->States[Semaphore->Read] = NULL;
 		Semaphore->Read = (Semaphore->Read + 1) % Semaphore->Size;
-		State->run(State, Args[0]);
+		State->run(State, (ml_value_t *)Semaphore);
 	} else {
 		++Semaphore->Value;
 	}
-	return Args[0];
+	return ml_integer(Semaphore->Value);
 }
 
 ML_METHOD("value", MLSemaphoreT) {
 //!semaphore
 //<Semaphore
+//>integer
+// Returns the internal value in :mini:`Semaphore`.
 	ml_semaphore_t *Semaphore = (ml_semaphore_t *)Args[0];
 	return ml_integer(Semaphore->Value);
+}
+
+typedef struct {
+	ml_state_t *State;
+	int Writer;
+} ml_rw_waiter_t;
+
+typedef struct {
+	ml_type_t *Type;
+	ml_rw_waiter_t *Waiters;
+	int Readers, Writers;
+	int Size, Fill, Write, Read;
+} ml_rw_lock_t;
+
+ML_FUNCTION(MLRWLock) {
+//!rwlock
+//@rwlock
+//>rwlock
+// Returns a new read-write lock.
+	ml_rw_lock_t *RWLock = new(ml_rw_lock_t);
+	RWLock->Type = MLRWLockT;
+	RWLock->Readers = RWLock->Writers = 0;
+	RWLock->Fill = 0;
+	RWLock->Size = 4;
+	RWLock->Read = RWLock->Write = 0;
+	RWLock->Waiters = anew(ml_rw_waiter_t, 4);
+	return (ml_value_t *)RWLock;
+}
+
+ML_TYPE(MLRWLockT, (), "rwlock",
+//!rwlock
+// A read-write lock for synchronizing concurrent code.
+	.Constructor = (ml_value_t *)MLRWLock
+);
+
+ML_METHODX("rdlock", MLRWLockT) {
+//!rwlock
+//<Lock
+// Locks :mini:`Lock` for reading, waiting if there are any writers using or waiting to use :mini:`Lock`.
+	ml_rw_lock_t *RWLock = (ml_rw_lock_t *)Args[0];
+	if (!RWLock->Writers) {
+		++RWLock->Readers;
+		ML_RETURN(RWLock);
+	}
+	if (++RWLock->Fill > RWLock->Size) {
+		int Size = RWLock->Size * 2;
+		ml_rw_waiter_t *Waiters = anew(ml_rw_waiter_t, Size);
+		memcpy(Waiters, RWLock->Waiters, RWLock->Size * sizeof(ml_rw_waiter_t));
+		RWLock->Read = 0;
+		RWLock->Write = RWLock->Size;
+		RWLock->Waiters = Waiters;
+		RWLock->Size = Size;
+	}
+	RWLock->Waiters[RWLock->Write].State = Caller;
+	RWLock->Waiters[RWLock->Write].Writer = 0;
+	RWLock->Write = (RWLock->Write + 1) % RWLock->Size;
+}
+
+ML_METHODX("wrlock", MLRWLockT) {
+//!rwlock
+//<Lock
+// Locks :mini:`Lock` for reading, waiting if there are any readers or other writers using :mini:`Lock`.
+	ml_rw_lock_t *RWLock = (ml_rw_lock_t *)Args[0];
+	if (!RWLock->Writers && !RWLock->Readers) {
+		RWLock->Writers = 1;
+		ML_RETURN(RWLock);
+	}
+	if (++RWLock->Fill > RWLock->Size) {
+		int Size = RWLock->Size * 2;
+		ml_rw_waiter_t *Waiters = anew(ml_rw_waiter_t, Size);
+		memcpy(Waiters, RWLock->Waiters, RWLock->Size * sizeof(ml_rw_waiter_t));
+		RWLock->Read = 0;
+		RWLock->Write = RWLock->Size;
+		RWLock->Waiters = Waiters;
+		RWLock->Size = Size;
+	}
+	RWLock->Writers = 1;
+	RWLock->Waiters[RWLock->Write].State = Caller;
+	RWLock->Waiters[RWLock->Write].Writer = 1;
+	RWLock->Write = (RWLock->Write + 1) % RWLock->Size;
+}
+
+ML_METHOD("unlock", MLRWLockT) {
+//!rwlock
+//<Lock
+// Unlocks :mini:`Lock`, resuming any waiting writers or readers (giving preference to writers).
+	ml_rw_lock_t *RWLock = (ml_rw_lock_t *)Args[0];
+	if (RWLock->Readers) --RWLock->Readers;
+	RWLock->Writers = 0;
+	while (RWLock->Fill) {
+		ml_rw_waiter_t Waiter = RWLock->Waiters[RWLock->Read];
+		if (Waiter.Writer) {
+			if (!RWLock->Writers && !RWLock->Readers) {
+				RWLock->Writers = 1;
+				--RWLock->Fill;
+				RWLock->Waiters[RWLock->Read].State = NULL;
+				RWLock->Read = (RWLock->Read + 1) % RWLock->Size;
+				Waiter.State->run(Waiter.State, (ml_value_t *)RWLock);
+			} else {
+				RWLock->Writers = 1;
+			}
+			break;
+		} else if (!RWLock->Writers) {
+			++RWLock->Readers;
+			--RWLock->Fill;
+			RWLock->Waiters[RWLock->Read].State = NULL;
+			RWLock->Read = (RWLock->Read + 1) % RWLock->Size;
+			Waiter.State->run(Waiter.State, (ml_value_t *)RWLock);
+		} else {
+			break;
+		}
+	}
+	return (ml_value_t *)RWLock;
 }
 
 // Channels
