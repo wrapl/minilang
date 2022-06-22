@@ -37,8 +37,8 @@ tasks
    Returns a task. The task should eventually be completed with :mini:`Task:done()` or :mini:`Task:error()`.
 
 
-:mini:`meth task(Fn: function, Args: any, ...): task`
-   Calls :mini:`Fn(Args)` and immediately returns a task that will eventually be completed with the result of the call.
+:mini:`meth task(Arg₁: any, ..., Argₙ: any, Fn: function): task`
+   Returns a task which calls :mini:`Fn(Arg₁,  ...,  Argₙ)`.
 
 
 :mini:`meth (Task: task):done(Result: any): any | error`
@@ -50,7 +50,7 @@ tasks
 
 
 :mini:`meth (Task: task):then(Fn: function): task`
-   Equivalent to :mini:`task(:wait -> Fn,  Task)`.
+   Equivalent to :mini:`task(Task,  :wait -> Fn)`.
 
 
 :mini:`meth (Task: task):wait: any | error`
@@ -69,10 +69,13 @@ tasks
    Creates a new :mini:`tasks` set.
    If specified,  at most :mini:`Max` functions will be called in parallel (the default is unlimited).
    If :mini:`Min` is also specified then the number of running tasks must drop below :mini:`Min` before more tasks are launched.
+   
+   :mini:`(Tasks: tasks)(Arg₁: any,  ...,  Argₙ: any,  Fn: function)`
+      Adds another task to :mini:`Tasks` that calls :mini:`Fn(Arg₁,  ...,  Argₙ)`.
 
 
-:mini:`meth (Tasks: tasks):add(Fn: function, Args: any, ...)`
-   Adds the function call :mini:`Fn(Args...)` to a set of tasks. Raises an error if :mini:`Tasks` is already complete.
+:mini:`meth (Tasks: tasks):add(Arg₁: any, ..., Argₙ: any, Fn: function)`
+   Adds the function call :mini:`Fn(Arg₁,  ...,  Argₙ)` to a set of tasks. Raises an error if :mini:`Tasks` is already complete.
 
 
 :mini:`meth (Tasks: tasks):wait: nil | error`

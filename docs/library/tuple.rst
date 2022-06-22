@@ -11,6 +11,9 @@ tuple
 
 :mini:`type tuple < function, sequence`
    An immutable tuple of values.
+   
+   :mini:`(Tuple: tuple)(Arg₁,  ...,  Argₙ)`
+      Returns :mini:`(Tuple[1](Arg₁,  ...,  Argₙ),  ...,  Tuple[k](Arg₁,  ...,  Argₙ))`
 
 
 .. _fun-tuple:

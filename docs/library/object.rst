@@ -204,7 +204,7 @@ object
 
 .. _fun-property:
 
-:mini:`fun property(Value: any, set: any): property`
-   Returns a new property which dereferences to :mini:`Value`. Assigning to the property will call :mini:`set(NewValue)`.
+:mini:`fun property(Value: any, Set: function): property`
+   Returns a new property which dereferences to :mini:`Value`. Assigning to the property will call :mini:`Set(NewValue)`.
 
 

@@ -161,11 +161,11 @@ list
       L :> [1, 2, 3, 4, 5, 6, 7, 8, 10]
 
 
-:mini:`meth (List: list):push(Values...: any): list`
+:mini:`meth (List: list):push(Values: any, ...): list`
    Pushes :mini:`Values` onto the start of :mini:`List` and returns :mini:`List`.
 
 
-:mini:`meth (List: list):put(Values...: any): list`
+:mini:`meth (List: list):put(Values: any, ...): list`
    Pushes :mini:`Values` onto the end of :mini:`List` and returns :mini:`List`.
 
 
@@ -175,8 +175,8 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "e"
       L:random :> "c"
+      L:random :> "a"
 
 
 :mini:`meth (List: list):reverse: list`

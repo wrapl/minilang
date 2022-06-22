@@ -42,7 +42,7 @@ thread
    Creates a new channel with capacity :mini:`Capacity`.
 
 
-:mini:`meth (Channel₁: thread::channel):recv(..., Channelₙ: thread::channel): tuple[integer, any]`
+:mini:`meth (Channel₁: thread::channel):recv(: thread::channel, ...): tuple[integer, any]`
    Gets the next available message on any of :mini:`Channel₁,  ...,  Channelₙ`,  blocking if :mini:`Channel` is empty. Returns :mini:`(Index,  Message)` where :mini:`Index = 1,  ...,  n`.
 
 
@@ -105,7 +105,7 @@ thread
    A thread-safe (protected) wrapper for another value.
 
 
-:mini:`meth (Protected₁: thread::protected):use(..., Protectedₙ: thread::protected, Function: function): any`
+:mini:`meth (Protected₁: thread::protected):use(: thread::protected, ..., Function: function): any`
    Locks :mini:`Protected₁:mutex`,  then calls :mini:`Function(Value₁,  ...,  Valueₙ)` where :mini:`Valueᵢ` is the value protected by :mini:`Protectedᵢ`. All :mini:`Protectedᵢ` must be protected by the same :mini:`thread::mutex`.
 
 

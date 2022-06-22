@@ -318,7 +318,15 @@ static void ml_method_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_
 }
 
 ML_TYPE(MLMethodT, (MLFunctionT), "method",
-//!method
+// A map of type signatures to functions. Each type signature consists of a number of types and a flag denoting whether the signature is variadic.
+//
+// :mini:`(M: method)(Arg/1, ..., Arg/n)`
+//    Calls :mini:`Fn(Arg/1, ..., Arg/n)` where :mini:`Fn` is the function associated with the closest matching type signature defined in :mini:`M`.
+//
+//    A type signature :mini:`(Type/1, ..., Type/k, Variadic)` matches if :mini:`type(Arg/i) < Type/i` for each :math:`i = 1, ..., k` and either :math:`n = k` or :math:`n < k` and :math:`Variadic` is true.
+//
+//    * A type signature is considered a closer match if its types are closer in terms of subtyping to the types of the arguments.
+//    * A type signature with the same number of types as arguments is considered a closer match than a matching variadic signature with fewer types.
 	.hash = ml_method_hash,
 	.call = ml_method_call
 );
@@ -538,8 +546,10 @@ ML_FUNCTIONX(MLMethodSet) {
 //@method::set
 //<Method
 //<Types...:type
+//<..?
 //<Function:function
 //>Function
+// Adds a new type signature and associated function to :mini:`Method`. If the last argument is :mini:`..` then the signature is variadic. Method definitions using :mini:`meth` are translated into calls to :mini:`method::set`.
 	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
 	if (Methods->PreventChanges) ML_ERROR("ContextError", "Context does not allow methods to be defined");
 	ML_CHECKX_ARG_COUNT(2);

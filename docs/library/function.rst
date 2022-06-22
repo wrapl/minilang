@@ -36,7 +36,7 @@ function
    Returns an error if any of the keys in :mini:`Map` is not a string or method.
 
 
-:mini:`meth (Function: function) $ (Values...: any): function::partial`
+:mini:`meth (Function: function) $ (Values: any, ...): function::partial`
    Returns a function equivalent to :mini:`fun(Args...) Function(Values...,  Args...)`.
 
 

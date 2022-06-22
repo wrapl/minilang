@@ -516,6 +516,7 @@ typedef struct {
 } ml_buffered_stream_t;
 
 ML_TYPE(MLStreamBufferedT, (MLStreamT), "stream::buffered");
+// A stream that buffers reads and writes from another stream.
 
 ml_value_t *ml_stream_buffered(ml_value_t *Stream, size_t Size) {
 	ml_buffered_stream_t *Buffered = new(ml_buffered_stream_t);
@@ -537,6 +538,10 @@ ml_value_t *ml_stream_buffered(ml_value_t *Stream, size_t Size) {
 
 ML_METHOD(MLStreamBufferedT, MLStreamT, MLIntegerT) {
 //@stream::buffered
+//<Stream
+//<Size
+//>stream::buffered
+// Returns a new stream that buffers reads and writes from :mini:`Stream`.
 	return ml_stream_buffered(Args[0], ml_integer_value(Args[1]));
 }
 
@@ -545,6 +550,7 @@ static void ML_TYPED_FN(ml_stream_read, MLStreamBufferedT, ml_state_t *Caller, m
 }
 
 ML_METHODX("read", MLStreamBufferedT, MLBufferT) {
+//!internal
 	ml_buffered_stream_t *Stream = (ml_buffered_stream_t *)Args[0];
 	void *Address = ml_buffer_value(Args[1]);
 	Count = ml_buffer_length(Args[1]);
@@ -556,6 +562,7 @@ static void ML_TYPED_FN(ml_stream_write, MLStreamBufferedT, ml_state_t *Caller, 
 }
 
 ML_METHODX("write", MLStreamBufferedT, MLAddressT) {
+//!internal
 	ml_buffered_stream_t *Stream = (ml_buffered_stream_t *)Args[0];
 	const void *Address = ml_address_value(Args[1]);
 	Count = ml_address_length(Args[1]);
@@ -573,6 +580,8 @@ static void ML_TYPED_FN(ml_stream_flush, MLStreamBufferedT, ml_state_t *Caller, 
 }
 
 ML_METHODX("flush", MLStreamBufferedT) {
+//<Stream
+// Writes any bytes in the buffer.
 	ml_buffered_stream_t *Stream = (ml_buffered_stream_t *)Args[0];
 	ml_buffered_writer_t *Writer = Stream->Writer;
 	if (Writer->Base.Caller) ML_ERROR("StreamError", "Attempting to write from stream before previous write complete");
@@ -603,6 +612,7 @@ static void ML_TYPED_FN(ml_stream_read, MLStringBufferT, ml_state_t *Caller, ml_
 }
 
 ML_METHOD("read", MLStringBufferT, MLBufferT) {
+//!internal
 	ml_stringbuffer_t *Stream = (ml_stringbuffer_t *)Args[0];
 	void *Address = ml_buffer_value(Args[1]);
 	Count = ml_buffer_length(Args[1]);

@@ -49,34 +49,26 @@ stream
    Returns the remainder of :mini:`Stream` or :mini:`nil` if :mini:`Stream` is empty.
 
 
-:mini:`meth stream::buffered(Arg₁: stream, Arg₂: integer)`
-   *TBD*
-
-
 :mini:`meth (Stream: stream):write(Address: address): integer`
    Writes the bytes at :mini:`Address` to :mini:`Stream`. This method should be overridden for streams defined in Minilang.
 
 
-:mini:`meth (Stream: stream):write(Value₁, ..., Valueₙ: any): integer`
+:mini:`meth (Stream: stream):write(Value₁, : any, ...): integer`
    Writes each :mini:`Valueᵢ` in turn to :mini:`Stream`.
 
 
 .. _type-stream-buffered:
 
 :mini:`type stream::buffered < stream`
-   *TBD*
+   A stream that buffers reads and writes from another stream.
 
 
-:mini:`meth (Arg₁: stream::buffered):flush`
-   *TBD*
+:mini:`meth stream::buffered(Stream: stream, Size: integer): stream::buffered`
+   Returns a new stream that buffers reads and writes from :mini:`Stream`.
 
 
-:mini:`meth (Arg₁: stream::buffered):read(Arg₂: buffer)`
-   *TBD*
-
-
-:mini:`meth (Arg₁: stream::buffered):write(Arg₂: address)`
-   *TBD*
+:mini:`meth (Stream: stream::buffered):flush`
+   Writes any bytes in the buffer.
 
 
 .. _type-stream-fd:
@@ -91,9 +83,5 @@ stream
 
 :mini:`meth (Stream: stream::fd):write(Source: address): integer`
    Writes from :mini:`Source` to :mini:`Stream` returning the actual number of bytes written.
-
-
-:mini:`meth (Arg₁: string::buffer):read(Arg₂: buffer)`
-   *TBD*
 
 

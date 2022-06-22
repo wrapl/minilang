@@ -832,7 +832,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       B:rest :> ""
 
 
-:mini:`meth (Buffer: string::buffer):write(Value₁, ..., Valueₙ: any): integer`
+:mini:`meth (Buffer: string::buffer):write(Value₁, : any, ...): integer`
    Writes each :mini:`Valueᵢ` in turn to :mini:`Buffer`.
 
    .. code-block:: mini

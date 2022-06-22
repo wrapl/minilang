@@ -15,14 +15,22 @@ method
 
 .. _fun-method-set:
 
-:mini:`fun method::set(Method: any, Types: type, ..., Function: function): Function`
-   *TBD*
+:mini:`fun method::set(Method: any, Types: type, ..., ..?: any, Function: function): Function`
+   Adds a new type signature and associated function to :mini:`Method`. If the last argument is :mini:`..` then the signature is variadic. Method definitions using :mini:`meth` are translated into calls to :mini:`method::set`.
 
 
 .. _type-method:
 
 :mini:`type method < function`
-   *TBD*
+   A map of type signatures to functions. Each type signature consists of a number of types and a flag denoting whether the signature is variadic.
+   
+   :mini:`(M: method)(Arg₁,  ...,  Argₙ)`
+      Calls :mini:`Fn(Arg₁,  ...,  Argₙ)` where :mini:`Fn` is the function associated with the closest matching type signature defined in :mini:`M`.
+   
+      A type signature :mini:`(Type₁,  ...,  Type/k,  Variadic)` matches if :mini:`type(Argᵢ) < Typeᵢ` for each :math:`i = 1,  ...,  k` and either :math:`n = k` or :math:`n < k` and :math:`Variadic` is true.
+   
+      * A type signature is considered a closer match if its types are closer in terms of subtyping to the types of the arguments.
+      * A type signature with the same number of types as arguments is considered a closer match than a matching variadic signature with fewer types.
 
 
 :mini:`meth method(): method`
