@@ -130,6 +130,10 @@ list
 
 
 :mini:`meth (List: list):permute: list`
+   .. deprecated:: 2.7.0
+   
+      Use :mini:`List:shuffle` instead.
+   
    Permutes :mini:`List` in place.
 
 
@@ -175,12 +179,16 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "c"
       L:random :> "a"
+      L:random :> "k"
 
 
 :mini:`meth (List: list):reverse: list`
    Reverses :mini:`List` in-place and returns it.
+
+
+:mini:`meth (List: list):shuffle: list`
+   Shuffles :mini:`List` in place.
 
 
 :mini:`meth (List: list):sort: List`
