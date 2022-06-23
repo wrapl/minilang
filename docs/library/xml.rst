@@ -131,7 +131,7 @@ xml
    An XML element node.
 
 
-:mini:`meth xml::element(Tag: string, Arg₁, ..., Argₙ: any): xml::element`
+:mini:`meth xml::element(Tag: string, Arg₁, : any, ...): xml::element`
    Returns a new XML node with tag :mini:`Tag` and optional children and attributes depending on the types of each :mini:`Argᵢ`:
    
    * :mini:`string`: added as child text node. Consecutive strings are added a single node.

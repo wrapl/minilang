@@ -130,6 +130,10 @@ list
 
 
 :mini:`meth (List: list):permute: list`
+   .. deprecated:: 2.7.0
+   
+      Use :mini:`List:shuffle` instead.
+   
    Permutes :mini:`List` in place.
 
 
@@ -161,11 +165,11 @@ list
       L :> [1, 2, 3, 4, 5, 6, 7, 8, 10]
 
 
-:mini:`meth (List: list):push(Values...: any): list`
+:mini:`meth (List: list):push(Values: any, ...): list`
    Pushes :mini:`Values` onto the start of :mini:`List` and returns :mini:`List`.
 
 
-:mini:`meth (List: list):put(Values...: any): list`
+:mini:`meth (List: list):put(Values: any, ...): list`
    Pushes :mini:`Values` onto the end of :mini:`List` and returns :mini:`List`.
 
 
@@ -175,12 +179,16 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "e"
-      L:random :> "c"
+      L:random :> "a"
+      L:random :> "k"
 
 
 :mini:`meth (List: list):reverse: list`
    Reverses :mini:`List` in-place and returns it.
+
+
+:mini:`meth (List: list):shuffle: list`
+   Shuffles :mini:`List` in place.
 
 
 :mini:`meth (List: list):sort: List`

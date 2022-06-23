@@ -494,8 +494,13 @@ ML_TYPE(MLBlankT, (), "blank",
 );
 
 ML_VALUE(MLNil, MLNilT);
+//!internal
+
 ML_VALUE(MLSome, MLSomeT);
+//!internal
+
 ML_VALUE(MLBlank, MLBlankT);
+//!internal
 
 #ifdef ML_GENERICS
 
@@ -1551,6 +1556,9 @@ ML_FUNCTION(MLTuple) {
 ML_TYPE(MLTupleT, (MLFunctionT, MLSequenceT), "tuple",
 //!tuple
 // An immutable tuple of values.
+//
+// :mini:`(Tuple: tuple)(Arg/1, ..., Arg/n)`
+//    Returns :mini:`(Tuple[1](Arg/1, ..., Arg/n), ..., Tuple[k](Arg/1, ..., Arg/n))`
 	.hash = (void *)ml_tuple_hash,
 	.deref = (void *)ml_tuple_deref,
 	.assign = (void *)ml_tuple_assign,

@@ -436,9 +436,9 @@ ML_TYPE(MLPropertyT, (), "property",
 ML_FUNCTIONX(MLProperty) {
 //@property
 //<Value
-//<set
+//<Set:function
 //>property
-// Returns a new property which dereferences to :mini:`Value`. Assigning to the property will call :mini:`set(NewValue)`.
+// Returns a new property which dereferences to :mini:`Value`. Assigning to the property will call :mini:`Set(NewValue)`.
 	ML_CHECKX_ARG_COUNT(2);
 	ml_property_t *Property = new(ml_property_t);
 	Property->Type = MLPropertyT;

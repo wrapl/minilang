@@ -65,16 +65,18 @@ static void ml_task_run(ml_task_state_t *Task, ml_value_t *Result) {
 	if (!Task->Task->Value) ml_task_set(Task->Task, Result);
 }
 
-ML_METHODVX(MLTaskT, MLFunctionT) {
-//<Fn
-//<Args
+ML_METHODVX(MLTaskT, MLAnyT) {
+//<Arg/1...
+//<Arg/n:any
+//<Fn:function
 //>task
-// Calls :mini:`Fn(Args)` and immediately returns a task that will eventually be completed with the result of the call.
+// Returns a task which calls :mini:`Fn(Arg/1, ..., Arg/n)`.
+	ML_CHECKX_ARG_TYPE(Count - 1, MLFunctionT);
 	ml_task_state_t *State = new(ml_task_state_t);
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_task_run;
 	State->Task->Type = MLTaskT;
-	ml_call(State, Args[0], Count - 1, Args + 1);
+	ml_call(State, Args[Count - 1], Count - 1, Args);
 	ML_RETURN(State->Task);
 }
 
@@ -125,7 +127,7 @@ ML_METHODX("then", MLTaskT, MLFunctionT) {
 //<Task
 //<Fn
 //>task
-// Equivalent to :mini:`task(:wait -> Fn, Task)`.
+// Equivalent to :mini:`task(Task, :wait -> Fn)`.
 	ml_task_t *Task = (ml_task_t *)Args[0];
 	ml_task_then_t *Then = new(ml_task_then_t);
 	Then->Base.Base.Context = Caller->Context;
@@ -177,6 +179,9 @@ ML_FUNCTIONX(Tasks) {
 // Creates a new :mini:`tasks` set.
 // If specified, at most :mini:`Max` functions will be called in parallel (the default is unlimited).
 // If :mini:`Min` is also specified then the number of running tasks must drop below :mini:`Min` before more tasks are launched.
+//
+// :mini:`(Tasks: tasks)(Arg/1: any, ..., Arg/n: any, Fn: function)`
+//    Adds another task to :mini:`Tasks` that calls :mini:`Fn(Arg/1, ..., Arg/n)`.
 	ml_tasks_t *Tasks = new(ml_tasks_t);
 	Tasks->Base.Type = MLTasksT;
 	Tasks->Base.run = (void *)ml_tasks_continue;
@@ -206,11 +211,12 @@ ML_TYPE(MLTasksT, (MLFunctionT), "tasks",
 	.Constructor = (ml_value_t *)Tasks
 );
 
-ML_METHODVX("add", MLTasksT, MLFunctionT) {
+ML_METHODVX("add", MLTasksT, MLAnyT) {
 //<Tasks
-//<Fn
-//<Args
-// Adds the function call :mini:`Fn(Args...)` to a set of tasks. Raises an error if :mini:`Tasks` is already complete.
+//<Arg/1...
+//<Arg/n:any
+//<Fn:function
+// Adds the function call :mini:`Fn(Arg/1, ..., Arg/n)` to a set of tasks. Raises an error if :mini:`Tasks` is already complete.
 	ml_tasks_t *Tasks = (ml_tasks_t *)Args[0];
 	if (!Tasks->Waiting) ML_ERROR("TasksError", "Tasks have already completed");
 	if (Tasks->Value != MLNil) ML_RETURN(Tasks->Value);

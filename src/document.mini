@@ -149,7 +149,6 @@ end
 fun write_method(Category, Kind, Method0, Params, Return, Description, Examples, Location) do
 	let Buffer := string::buffer()
 	let Variadic := Kind = "ML_METHODV" or Kind = "ML_METHODVX"
-	var Terminator := ""
 	var Skip := 1
 	Buffer:write(':mini:`meth ')
 	let Method := if let Match := Method0 % r"ML(\w+)T" then
@@ -167,6 +166,8 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Examples,
 			':{Method0}'
 		end
 	end
+	var Terminator := ""
+	var Seperator := ""
 	if Method = "[]" then
 		Buffer:write("(", Params[1][1], ": ", type_name(Params[1][2]), ")[")
 		Terminator := "]"
@@ -186,10 +187,16 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Examples,
 			Buffer:write('{Method}({Params[1][1]}: {type_name(Params[1][2])})')
 		elseif Params[1][2] = "MLNamesT" then
 			let (Name, Value) := Params[1][1] / ","
-			Buffer:write('{Method}({Name}₁ is {(Value or "Value"):trim}₁, ')
+			Buffer:write('{Method}({Name}₁ is {(Value or "Value"):trim}₁')
+			Seperator := ", "
+			Terminator := ")"
+		elseif let Match := Params[1][1] % r"(.*)\.\.\." then
+			Buffer:write('{Method}({Match[2]}: {type_name(Params[1][2])}, ...')
+			Seperator := ", "
 			Terminator := ")"
 		else
-			Buffer:write('{Method}({Params[1][1]}: {type_name(Params[1][2])}, ')
+			Buffer:write('{Method}({Params[1][1]}: {type_name(Params[1][2])}')
+			Seperator := ", "
 			Terminator := ")"
 		end
 	else
@@ -199,20 +206,22 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Examples,
 			Buffer:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}')
 		elseif Params[1][2] = "MLNamesT" then
 			let (Name, Value) := Params[1][1] / ","
-			Buffer:write('{Method}({Name}₁ is {(Value or "Value"):trim}₁,')
+			Buffer:write('{Method}({Name}₁ is {(Value or "Value"):trim}₁')
+			Seperator := ", "
 			Terminator := ")"
 		else
 			Buffer:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}(')
 			Terminator := ")"
 		end
 	end
-	var Seperator := ""
 	for Param in Params skip Skip do
 		if Param[2] = "MLNamesT" then
 			let (Name, Value) := Param[1] / ","
 			Buffer:write(Seperator, '{Name}₁ is {(Value or "Value"):trim}₁')
+		elseif let Match := Param[1] % r"(.*)\.\.\." then
+			Buffer:write(Seperator, Match[2], ": ", type_name(Param[2]), ", ...")
 		else
-			Buffer:write(Seperator, '{Param[1]}: {type_name(Param[2])}')
+			Buffer:write(Seperator, Param[1], ": ", type_name(Param[2]))
 		end
 		Seperator := ", "
 	end

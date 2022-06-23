@@ -1332,7 +1332,6 @@ typedef struct ml_join_state_t {
 	ml_value_t *Iter;
 	ml_stringbuffer_t Buffer[1];
 	size_t SeparatorLength;
-	ml_value_t *Args[2];
 } ml_join_state_t;
 
 static void join_value(ml_join_state_t *State, ml_value_t *Value);
@@ -1351,13 +1350,10 @@ static void join_append(ml_join_state_t *State, ml_value_t *Value) {
 	return ml_iter_next((ml_state_t *)State, State->Iter);
 }
 
-extern ml_value_t *AppendMethod;
-
 static void join_value(ml_join_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	State->Args[1] = Value;
 	State->Base.run = (void *)join_append;
-	return ml_call((ml_state_t *)State, AppendMethod, 2, State->Args);
+	return ml_stringbuffer_append((ml_state_t *)State, State->Buffer, Value);
 }
 
 static void join_first(ml_join_state_t *State, ml_value_t *Value) {
@@ -1380,7 +1376,6 @@ ML_METHODX("join", MLSequenceT, MLStringT) {
 	State->Separator = ml_string_value(Args[1]);
 	State->SeparatorLength = ml_string_length(Args[1]);
 	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
-	State->Args[0] = (ml_value_t *)State->Buffer;
 	return ml_iterate((ml_state_t *)State, Args[0]);
 }
 
@@ -1396,7 +1391,6 @@ ML_METHODX("join", MLSequenceT) {
 	State->Separator = "";
 	State->SeparatorLength = 0;
 	State->Buffer[0] = (ml_stringbuffer_t)ML_STRINGBUFFER_INIT;
-	State->Args[0] = (ml_value_t *)State->Buffer;
 	return ml_iterate((ml_state_t *)State, Args[0]);
 }
 

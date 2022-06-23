@@ -558,12 +558,14 @@ ML_METHOD_DECL(AppendMethod, "append");
 typedef struct {
 	ml_state_t Base;
 	ml_stringbuffer_t Buffer[1];
+	ml_hash_chain_t Chain[1];
 	ml_value_t *Args[];
 } ml_string_state_t;
 
 static void ml_string_state_run(ml_string_state_t *State, ml_value_t *Result) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Result)) ML_RETURN(Result);
+	if (State->Chain->Index) ml_stringbuffer_printf(State->Buffer, "<%d", State->Chain->Index);
 	ML_RETURN(ml_stringbuffer_get_value(State->Buffer));
 }
 
@@ -582,7 +584,9 @@ ML_FUNCTIONX(MLString) {
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_string_state_run;
+	State->Chain->Value = Args[0];
 	State->Buffer[0] = ML_STRINGBUFFER_INIT;
+	State->Buffer->Chain = State->Chain;
 	State->Args[0] = (ml_value_t *)State->Buffer;
 	memcpy(State->Args + 1, Args, Count * sizeof(ml_value_t *));
 	return ml_call(State, AppendMethod, Count + 1, State->Args);
@@ -3684,14 +3688,14 @@ ml_value_t *ml_stringbuffer_simple_append(ml_stringbuffer_t *Buffer, ml_value_t 
 		if (Link->Value == Value) {
 			int Index = Link->Index;
 			if (!Index) Index = Link->Index = ++Buffer->Index;
-			ml_stringbuffer_printf(Buffer, "^%d", Index);
+			ml_stringbuffer_printf(Buffer, ">%d", Index);
 			return (ml_value_t *)Buffer;
 		}
 	}
 	ml_hash_chain_t NewChain[1] = {{Chain, Value, 0}};
 	Buffer->Chain = NewChain;
 	ml_value_t *Result = ml_simple_inline(AppendMethod, 2, Buffer, Value);
-	if (NewChain->Index) ml_stringbuffer_printf(Buffer, "@%d", NewChain->Index);
+	if (NewChain->Index) ml_stringbuffer_printf(Buffer, "<%d", NewChain->Index);
 	Buffer->Chain = Chain;
 	return Result;
 }
@@ -3702,11 +3706,17 @@ typedef struct {
 	ml_value_t *Args[2];
 } ml_stringbuffer_append_state_t;
 
+#ifdef ML_THREADSAFE
+static ml_stringbuffer_append_state_t _Atomic *StringBufferAppendStateCache = NULL;
+#else
+static ml_stringbuffer_append_state_t *StringBufferAppendStateCache = NULL;
+#endif
+
 static void ml_stringbuffer_append_run(ml_stringbuffer_append_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)State->Args[0];
-	if (State->Chain->Index) ml_stringbuffer_printf(Buffer, "@%d", State->Chain->Index);
+	if (State->Chain->Index) ml_stringbuffer_printf(Buffer, "<%d", State->Chain->Index);
 	Buffer->Chain = State->Chain->Previous;
 	ML_RETURN(Buffer);
 }
@@ -3716,7 +3726,7 @@ void ml_stringbuffer_append(ml_state_t *Caller, ml_stringbuffer_t *Buffer, ml_va
 		if (Link->Value == Value) {
 			int Index = Link->Index;
 			if (!Index) Index = Link->Index = ++Buffer->Index;
-			ml_stringbuffer_printf(Buffer, "^%d", Index);
+			ml_stringbuffer_printf(Buffer, ">%d", Index);
 			ML_RETURN(Buffer);
 		}
 	}

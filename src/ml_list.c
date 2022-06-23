@@ -1217,7 +1217,44 @@ ML_METHOD("permute", MLListT) {
 //!list
 //<List
 //>list
+// .. deprecated:: 2.7.0
+//
+//    Use :mini:`List:shuffle` instead.
+//
 // Permutes :mini:`List` in place.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	int N = List->Length;
+	if (N <= 1) return (ml_value_t *)List;
+	ml_list_node_t *Nodes[N], *Node = List->Head;
+	for (int I = 0; I < N; ++I, Node = Node->Next) Nodes[I] = Node;
+	for (int I = N; --I > 0;) {
+		int Divisor = RAND_MAX / (I + 1), J;
+		do J = random() / Divisor; while (J > I);
+		if (J != I) {
+			ml_list_node_t *Old = Nodes[J];
+			Nodes[J] = Nodes[I];
+			Nodes[I] = Old;
+		}
+	}
+	Node = List->Head = Nodes[0];
+	List->CachedNode = Node;
+	List->CachedIndex = 1;
+	Node->Prev = NULL;
+	for (int I = 1; I < N; ++I) {
+		Node->Next = Nodes[I];
+		Nodes[I]->Prev = Node;
+		Node = Nodes[I];
+	}
+	Node->Next = NULL;
+	List->Tail = Node;
+	return (ml_value_t *)List;
+}
+
+ML_METHOD("shuffle", MLListT) {
+//!list
+//<List
+//>list
+// Shuffles :mini:`List` in place.
 	ml_list_t *List = (ml_list_t *)Args[0];
 	int N = List->Length;
 	if (N <= 1) return (ml_value_t *)List;
