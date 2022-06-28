@@ -45,6 +45,10 @@ tasks
    Completes :mini:`Task` with :mini:`Result`,  resuming any waiting code. Raises an error if :mini:`Task` is already complete.
 
 
+:mini:`meth (Task: task):else(Fn: function): task`
+   *TBD*
+
+
 :mini:`meth (Task: task):error(Type: string, Message: string): any | error`
    Completes :mini:`Task` with an :mini:`error(Type,  Message)`,  resuming any waiting code. Raises an error if :mini:`Task` is already complete.
 
@@ -65,17 +69,17 @@ tasks
 
 .. _fun-tasks:
 
-:mini:`fun tasks(Max?: integer, Min?: integer): tasks`
+:mini:`fun tasks(Max?: integer): tasks`
    Creates a new :mini:`tasks` set.
    If specified,  at most :mini:`Max` functions will be called in parallel (the default is unlimited).
-   If :mini:`Min` is also specified then the number of running tasks must drop below :mini:`Min` before more tasks are launched.
-   
-   :mini:`(Tasks: tasks)(Arg₁: any,  ...,  Argₙ: any,  Fn: function)`
-      Adds another task to :mini:`Tasks` that calls :mini:`Fn(Arg₁,  ...,  Argₙ)`.
 
 
 :mini:`meth (Tasks: tasks):add(Arg₁: any, ..., Argₙ: any, Fn: function)`
    Adds the function call :mini:`Fn(Arg₁,  ...,  Argₙ)` to a set of tasks. Raises an error if :mini:`Tasks` is already complete.
+
+
+:mini:`meth (Tasks: tasks):then(Fn: function): task`
+   Equivalent to :mini:`task(Tasks,  :wait -> Fn)`.
 
 
 :mini:`meth (Tasks: tasks):wait: nil | error`

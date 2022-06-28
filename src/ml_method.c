@@ -493,6 +493,7 @@ typedef struct {
 
 static void ml_method_switch(ml_state_t *Caller, ml_method_switch_t *Switch, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLMethodT);
 	ml_value_t *Arg = ml_deref(Args[0]);
 	ml_value_t *Index = inthash_search(Switch->Cases, (uintptr_t)Arg);
 	ML_RETURN(Index ?: Switch->Default);
@@ -516,7 +517,7 @@ ML_FUNCTION(MLMethodSwitch) {
 		ML_LIST_FOREACH(Args[I], Iter) {
 			ml_value_t *Value = Iter->Value;
 			if (ml_is(Value, MLMethodT)) {
-				inthash_insert(Switch->Cases, (uintptr_t)Iter->Value, ml_integer(I));
+				inthash_insert(Switch->Cases, (uintptr_t)Value, ml_integer(I));
 			} else {
 				return ml_error("ValueError", "Unsupported value in method case");
 			}

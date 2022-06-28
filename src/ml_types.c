@@ -1003,6 +1003,42 @@ ML_METHOD("append", MLStringBufferT, MLAnyT) {
 	return MLSome;
 }
 
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Default;
+	inthash_t Cases[1];
+} ml_any_switch_t;
+
+static void ml_any_switch(ml_state_t *Caller, ml_any_switch_t *Switch, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_value_t *Arg = ml_deref(Args[0]);
+	ml_value_t *Index = inthash_search(Switch->Cases, (uintptr_t)Arg);
+	ML_RETURN(Index ?: Switch->Default);
+}
+
+ML_TYPE(MLAnySwitchT, (MLFunctionT), "any-switch",
+//!internal
+	.call = (void *)ml_any_switch
+);
+
+ML_FUNCTION(MLAnySwitch) {
+//!internal
+	int Total = 1;
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
+		Total += ml_list_length(Args[I]);
+	}
+	ml_any_switch_t *Switch = new(ml_any_switch_t);
+	Switch->Type = MLAnySwitchT;
+	for (int I = 0; I < Count; ++I) {
+		ML_LIST_FOREACH(Args[I], Iter) {
+			inthash_insert(Switch->Cases, (uintptr_t)Iter->Value, ml_integer(I));
+		}
+	}
+	Switch->Default = ml_integer(Count);
+	return (ml_value_t *)Switch;
+}
+
 void ml_value_set_name(ml_value_t *Value, const char *Name) {
 	typeof(ml_value_set_name) *function = ml_typed_fn_get(ml_typeof(Value), ml_value_set_name);
 	if (function) function(Value, Name);
@@ -1284,6 +1320,16 @@ ml_value_t *ml_cfunctionz(void *Data, ml_callbackx_t Callback) {
 	Function->Type = MLCFunctionZT;
 	Function->Data = Data;
 	Function->Callback = Callback;
+	return (ml_value_t *)Function;
+}
+
+ml_value_t *ml_cfunctionz2(void *Data, ml_callbackx_t Callback, const char *Source, int Line) {
+	ml_cfunctionx_t *Function = new(ml_cfunctionx_t);
+	Function->Type = MLCFunctionZT;
+	Function->Data = Data;
+	Function->Callback = Callback;
+	Function->Source = Source;
+	Function->Line = Line;
 	return (ml_value_t *)Function;
 }
 
@@ -2405,6 +2451,7 @@ void ml_init(stringmap_t *Globals) {
 	ml_type_add_rule(MLTupleT, MLFunctionT, MLTupleT, NULL);
 #endif
 	stringmap_insert(MLTypeT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLTypeSwitch));
+	stringmap_insert(MLAnyT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLAnySwitch));
 #ifdef ML_COMPLEX
 	stringmap_insert(MLCompilerT->Exports, "i", ml_complex(1i));
 #endif
