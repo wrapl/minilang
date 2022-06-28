@@ -16,7 +16,7 @@ uuid
    .. code-block:: mini
 
       import: uuid("util/uuid")
-      address(uuid()) :> <16:9618D4B346784F1293866AFEC159C99D>
+      address(uuid()) :> <16:CBCE9394C3E64ED8AA3EB0D04774EB1C>
 
 
 .. _type-uuid:
@@ -42,7 +42,7 @@ uuid
    .. code-block:: mini
 
       import: uuid("util/uuid")
-      uuid() :> f333e2c6-00a3-4a46-af68-55a32845cb66
+      uuid() :> df6dbaa1-80a1-4396-a7f5-e910907a794c
 
 
 :mini:`meth (Arg₁: uuid) <> (Arg₂: uuid)`

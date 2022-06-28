@@ -16,6 +16,22 @@ tasks
    If :mini:`Min` is also given then iteration will be resumed only when the number of calls to :mini:`Fn` drops to :mini:`Min`.
 
 
+:mini:`meth (Fn: function):else(Else: function): task`
+   *TBD*
+
+
+:mini:`meth (Fn: function):on(On: function): task`
+   *TBD*
+
+
+:mini:`meth (Fn: function):then(Then: function): task`
+   Equivalent to :mini:`task(Fn,  call -> Fn)`.
+
+
+:mini:`meth (Fn: function):then(Then: function, Else: function): task`
+   *TBD*
+
+
 .. _fun-buffered:
 
 :mini:`fun buffered(Sequence: sequence, Size: integer, Fn: function): sequence`
@@ -45,16 +61,8 @@ tasks
    Completes :mini:`Task` with :mini:`Result`,  resuming any waiting code. Raises an error if :mini:`Task` is already complete.
 
 
-:mini:`meth (Task: task):else(Fn: function): task`
-   *TBD*
-
-
 :mini:`meth (Task: task):error(Type: string, Message: string): any | error`
    Completes :mini:`Task` with an :mini:`error(Type,  Message)`,  resuming any waiting code. Raises an error if :mini:`Task` is already complete.
-
-
-:mini:`meth (Task: task):then(Fn: function): task`
-   Equivalent to :mini:`task(Task,  :wait -> Fn)`.
 
 
 :mini:`meth (Task: task):wait: any | error`
@@ -76,10 +84,6 @@ tasks
 
 :mini:`meth (Tasks: tasks):add(Arg₁: any, ..., Argₙ: any, Fn: function)`
    Adds the function call :mini:`Fn(Arg₁,  ...,  Argₙ)` to a set of tasks. Raises an error if :mini:`Tasks` is already complete.
-
-
-:mini:`meth (Tasks: tasks):then(Fn: function): task`
-   Equivalent to :mini:`task(Tasks,  :wait -> Fn)`.
 
 
 :mini:`meth (Tasks: tasks):wait: nil | error`

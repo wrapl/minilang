@@ -113,57 +113,86 @@ ML_METHOD("error", MLTaskT, MLStringT, MLStringT) {
 
 typedef struct {
 	ml_task_state_t Base;
-	ml_value_t *Fn;
+	ml_value_t *Then, *Else, *On;
 	ml_value_t *Args[1];
-} ml_task_then_t;
+} ml_task_composed_t;
 
-static void ml_task_then_run(ml_task_then_t *State, ml_value_t *Value) {
+static void ml_task_composed_run(ml_task_composed_t *Composed, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
-		ml_task_set(State->Base.Task, Value);
+		if (Composed->On) {
+			Composed->Args[0] = ml_error_unwrap(Value);
+			Composed->Base.Base.run = (ml_state_fn)ml_task_run;
+			return ml_call((ml_state_t *)Composed, Composed->On, 1, Composed->Args);
+		}
+	} else if (Value == MLNil) {
+		if (Composed->Else) {
+			Composed->Args[0] = ml_error_unwrap(Value);
+			Composed->Base.Base.run = (ml_state_fn)ml_task_run;
+			return ml_call((ml_state_t *)Composed, Composed->Else, 1, Composed->Args);
+		}
 	} else {
-		State->Args[0] = Value;
-		State->Base.Base.run = (ml_state_fn)ml_task_run;
-		return ml_call((ml_state_t *)State, State->Fn, 1, State->Args);
+		if (Composed->Then) {
+			Composed->Args[0] = Value;
+			Composed->Base.Base.run = (ml_state_fn)ml_task_run;
+			return ml_call((ml_state_t *)Composed, Composed->Then, 1, Composed->Args);
+		}
 	}
+	ml_task_set(Composed->Base.Task, Value);
 }
 
-ML_METHODX("then", MLTaskT, MLFunctionT) {
-//<Task
+ML_METHODX("then", MLFunctionT, MLFunctionT) {
 //<Fn
+//<Then
 //>task
-// Equivalent to :mini:`task(Task, :wait -> Fn)`.
-	ml_task_t *Task = (ml_task_t *)Args[0];
-	ml_task_then_t *Then = new(ml_task_then_t);
-	Then->Base.Base.Context = Caller->Context;
-	Then->Base.Base.run = (ml_state_fn)ml_task_then_run;
-	Then->Base.Task->Type = MLTaskT;
-	Then->Fn = Args[1];
-	ml_task_call((ml_state_t *)Then, Task, 0, NULL);
-	ML_RETURN(Then->Base.Task);
+// Equivalent to :mini:`task(Fn, call -> Fn)`.
+	ml_task_composed_t *Composed = new(ml_task_composed_t);
+	Composed->Base.Base.Context = Caller->Context;
+	Composed->Base.Base.run = (ml_state_fn)ml_task_composed_run;
+	Composed->Base.Task->Type = MLTaskT;
+	Composed->Then = Args[1];
+	ml_call((ml_state_t *)Composed, Args[0], 0, NULL);
+	ML_RETURN(Composed->Base.Task);
 }
 
-static void ml_task_else_run(ml_task_then_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) {
-		State->Args[0] = ml_error_unwrap(Value);
-		State->Base.Base.run = (ml_state_fn)ml_task_run;
-		return ml_call((ml_state_t *)State, State->Fn, 1, State->Args);
-	} else {
-		ml_task_set(State->Base.Task, Value);
-	}
-}
-
-ML_METHODX("else", MLTaskT, MLFunctionT) {
-//<Task
+ML_METHODX("then", MLFunctionT, MLFunctionT, MLFunctionT) {
 //<Fn
+//<Then
+//<Else
 //>task
-	ml_task_t *Task = (ml_task_t *)Args[0];
-	ml_task_then_t *Else = new(ml_task_then_t);
-	Else->Base.Base.Context = Caller->Context;
-	Else->Base.Base.run = (ml_state_fn)ml_task_else_run;
-	Else->Base.Task->Type = MLTaskT;
-	Else->Fn = Args[1];
-	ml_task_call((ml_state_t *)Else, Task, 0, NULL);
-	ML_RETURN(Else->Base.Task);
+	ml_task_composed_t *Composed = new(ml_task_composed_t);
+	Composed->Base.Base.Context = Caller->Context;
+	Composed->Base.Base.run = (ml_state_fn)ml_task_composed_run;
+	Composed->Base.Task->Type = MLTaskT;
+	Composed->Then = Args[1];
+	Composed->Else = Args[2];
+	ml_call((ml_state_t *)Composed, Args[0], 0, NULL);
+	ML_RETURN(Composed->Base.Task);
+}
+
+ML_METHODX("else", MLFunctionT, MLFunctionT) {
+//<Fn
+//<Else
+//>task
+	ml_task_composed_t *Composed = new(ml_task_composed_t);
+	Composed->Base.Base.Context = Caller->Context;
+	Composed->Base.Base.run = (ml_state_fn)ml_task_composed_run;
+	Composed->Base.Task->Type = MLTaskT;
+	Composed->Else = Args[1];
+	ml_call((ml_state_t *)Composed, Args[0], 0, NULL);
+	ML_RETURN(Composed->Base.Task);
+}
+
+ML_METHODX("on", MLFunctionT, MLFunctionT) {
+//<Fn
+//<On
+//>task
+	ml_task_composed_t *Composed = new(ml_task_composed_t);
+	Composed->Base.Base.Context = Caller->Context;
+	Composed->Base.Base.run = (ml_state_fn)ml_task_composed_run;
+	Composed->Base.Task->Type = MLTaskT;
+	Composed->On = Args[1];
+	ml_call((ml_state_t *)Composed, Args[0], 0, NULL);
+	ML_RETURN(Composed->Base.Task);
 }
 
 typedef struct ml_tasks_pending_t ml_tasks_pending_t;
@@ -291,21 +320,6 @@ ML_METHODX("wait", MLTasksT) {
 		Waiter->State = Caller;
 		Tasks->Waiters = Waiter;
 	}
-}
-
-ML_METHODX("then", MLTasksT, MLFunctionT) {
-//<Tasks
-//<Fn
-//>task
-// Equivalent to :mini:`task(Tasks, :wait -> Fn)`.
-	ml_tasks_t *Tasks = (ml_tasks_t *)Args[0];
-	ml_task_then_t *Then = new(ml_task_then_t);
-	Then->Base.Base.Context = Caller->Context;
-	Then->Base.Base.run = (ml_state_fn)ml_task_then_run;
-	Then->Base.Task->Type = MLTaskT;
-	Then->Fn = Args[1];
-	ml_tasks_call((ml_state_t *)Then, Tasks, 0, NULL);
-	ML_RETURN(Then->Base.Task);
 }
 
 typedef struct ml_parallel_iter_t ml_parallel_iter_t;
