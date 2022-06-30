@@ -27,9 +27,9 @@ cbor
    *TBD*
 
 
-.. _fun-mlcborglobal:
+.. _fun-cborglobal:
 
-:mini:`fun mlcborglobal(Name: string, Value: any)`
+:mini:`fun cborglobal(Name: string, Value: any)`
    *TBD*
 
 
