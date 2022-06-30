@@ -2303,7 +2303,7 @@ ML_METHOD("::", MLExternalT, MLStringT) {
 	ml_external_t *External = (ml_external_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
 	ml_value_t **Slot = (ml_value_t **)stringmap_slot(External->Exports, Name);
-	if (!Slot) {
+	if (!Slot[0]) {
 		char *FullName = snew(External->Length + strlen(Name) + 3);
 		stpcpy(stpcpy(stpcpy(FullName, External->Name), "::"), Name);
 		Slot[0] = ml_external(FullName);
