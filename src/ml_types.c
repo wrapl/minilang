@@ -2275,6 +2275,42 @@ ML_METHOD("exports", MLModuleT) {
 	return Exports;
 }
 
+// Externals //
+
+ml_value_t *ml_external(const char *Name) {
+	ml_external_t *External = new(ml_external_t);
+	External->Type = MLExternalT;
+	External->Name = Name;
+	External->Length = strlen(Name);
+	return (ml_value_t *)External;
+}
+
+ML_FUNCTION(MLExternal) {
+//<Name
+//>external
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	return ml_external(ml_string_value(Args[0]));
+}
+
+ML_TYPE(MLExternalT, (), "external");
+// A placeholder value that can be encoded and replaced on decoding.
+
+ML_METHOD("::", MLExternalT, MLStringT) {
+//<External
+//<Import
+//>external
+	ml_external_t *External = (ml_external_t *)Args[0];
+	const char *Name = ml_string_value(Args[1]);
+	ml_value_t **Slot = (ml_value_t **)stringmap_slot(External->Exports, Name);
+	if (!Slot) {
+		char *FullName = snew(External->Length + strlen(Name) + 3);
+		stpcpy(stpcpy(stpcpy(FullName, External->Name), "::"), Name);
+		Slot[0] = ml_external(FullName);
+	}
+	return Slot[0];
+}
+
 // Init //
 //!general
 
@@ -2502,6 +2538,7 @@ void ml_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "list", MLListT);
 		stringmap_insert(Globals, "map", MLMapT);
 		stringmap_insert(Globals, "set", MLSetT);
+		stringmap_insert(Globals, "external", MLExternal);
 		stringmap_insert(Globals, "error", MLErrorValueT);
 		stringmap_insert(Globals, "module", MLModuleT);
 		stringmap_insert(Globals, "some", MLSome);

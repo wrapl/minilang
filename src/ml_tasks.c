@@ -144,7 +144,7 @@ ML_METHODX("then", MLFunctionT, MLFunctionT) {
 //<Fn
 //<Then
 //>task
-// Equivalent to :mini:`task(Fn, call -> Fn)`.
+// Equivalent to :mini:`task(Fn, call -> Then)`.
 	ml_task_composed_t *Composed = new(ml_task_composed_t);
 	Composed->Base.Base.Context = Caller->Context;
 	Composed->Base.Base.run = (ml_state_fn)ml_task_composed_run;

@@ -1113,6 +1113,19 @@ const char *ml_module_path(ml_value_t *Module) __attribute__ ((pure));
 ml_value_t *ml_module_import(ml_value_t *Module, const char *Name) __attribute__ ((pure));
 ml_value_t *ml_module_export(ml_value_t *Module, const char *Name, ml_value_t *Value);
 
+// Externals //
+
+extern ml_type_t MLExternalT[];
+
+typedef struct {
+	ml_type_t *Type;
+	const char *Name;
+	stringmap_t Exports[1];
+	int Length;
+} ml_external_t;
+
+ml_value_t *ml_external(const char *Name) __attribute__ ((malloc));
+
 // Init //
 
 void ml_types_init(stringmap_t *Globals);

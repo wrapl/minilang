@@ -1109,6 +1109,13 @@ ML_FUNCTION(DecodeComplex) {
 
 #endif
 
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLExternalT, ml_cbor_writer_t *Writer, ml_external_t *Arg) {
+	minicbor_write_tag(Writer->Data, Writer->WriteFn, 29);
+	minicbor_write_string(Writer->Data, Writer->WriteFn, Arg->Length);
+	Writer->WriteFn(Writer->Data, (unsigned const char *)Arg->Name, Arg->Length);
+	return NULL;
+}
+
 ML_METHOD_ANON(CborEncode, "cbor::encode");
 
 ML_METHOD(CborEncode, MLAnyT) {
@@ -1381,6 +1388,15 @@ void ml_cbor_default_global(const char *Name, void *Value) {
 	inthash_insert(DefaultWriteGlobals, (uintptr_t)Value, (void *)Name);
 }
 
+ML_FUNCTION(CborGlobal) {
+//<Name
+//<Value
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	stringmap_insert(DefaultReadGlobals, ml_string_value(Args[0]), Args[1]);
+	return MLNil;
+}
+
 void ml_cbor_init(stringmap_t *Globals) {
 	if (!CborObjects) CborObjects = ml_map();
 	ml_cbor_default_object("range", RangeMethod);
@@ -1402,6 +1418,7 @@ void ml_cbor_init(stringmap_t *Globals) {
 	ml_cbor_default_global("string", MLStringT);
 	ml_cbor_default_global("list", MLListT);
 	ml_cbor_default_global("map", MLMapT);
+	ml_cbor_default_global("set", MLSetT);
 	ml_cbor_default_global("boolean", MLBooleanT);
 	ml_cbor_default_global("error", MLErrorT);
 	ml_cbor_default_global("regex", MLRegexT);
@@ -1417,6 +1434,7 @@ void ml_cbor_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "cbor", ml_module("cbor",
 			"encode", CborEncode,
 			"decode", CborDecode,
+			"global", CborGlobal,
 		NULL));
 	}
 }

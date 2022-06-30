@@ -49,6 +49,7 @@ obj/ml_number.o: obj/ml_number_init.c
 obj/ml_object.o: obj/ml_object_init.c
 obj/ml_runtime.o: obj/ml_runtime_init.c
 obj/ml_sequence.o: obj/ml_sequence_init.c
+obj/ml_set.o: obj/ml_set_init.c
 obj/ml_stream.o: obj/ml_stream_init.c
 obj/ml_string.o: obj/ml_string_init.c
 obj/ml_types.o: obj/ml_types_init.c
@@ -68,6 +69,7 @@ common_objects = \
 	obj/ml_opcodes.o \
 	obj/ml_runtime.o \
 	obj/ml_sequence.o \
+	obj/ml_set.o \
 	obj/ml_stream.o \
 	obj/ml_string.o \
 	obj/ml_types.o \

@@ -25,7 +25,7 @@ tasks
 
 
 :mini:`meth (Fn: function):then(Then: function): task`
-   Equivalent to :mini:`task(Fn,  call -> Fn)`.
+   Equivalent to :mini:`task(Fn,  call -> Then)`.
 
 
 :mini:`meth (Fn: function):then(Then: function, Else: function): task`

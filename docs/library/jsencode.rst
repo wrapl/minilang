@@ -39,23 +39,7 @@ jsencode
    *TBD*
 
 
-:mini:`meth (Arg₁: jsencoder):add(Arg₂: any, Arg₃: string)`
-   *TBD*
-
-
 :mini:`meth (Arg₁: jsencoder):encode(Arg₂: any)`
-   *TBD*
-
-
-.. _type-jsvalue:
-
-:mini:`type jsvalue`
-   *TBD*
-
-
-.. _fun-jsvalue:
-
-:mini:`fun jsvalue(Arg₁: string)`
    *TBD*
 
 

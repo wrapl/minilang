@@ -15,14 +15,14 @@
 #define ML_CATEGORY "jsencode"
 
 struct ml_json_encoder_cache_t {
-	inthash_t *Globals;
+	//inthash_t *Globals;
 	inthash_t Cached[1];
 	int LastIndex;
 };
 
 ml_json_encoder_cache_t *ml_json_encoder(inthash_t *Globals) {
 	ml_json_encoder_cache_t *Cache = new(ml_json_encoder_cache_t);
-	Cache->Globals = Globals;
+	//Cache->Globals = Globals;
 	return Cache;
 }
 
@@ -40,8 +40,8 @@ json_t *ml_json_encode(ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
 		}
 		return json_pack("[o]", First);
 	}
-	Json = inthash_search(Cache->Globals, (uintptr_t)Value);
-	if (Json) return Json;
+	//Json = inthash_search(Cache->Globals, (uintptr_t)Value);
+	//if (Json) return Json;
 	typeof(ml_json_encode) *encode = ml_typed_fn_get(ml_typeof(Value), ml_json_encode);
 	if (!encode) return json_pack("[ss]", "unsupported", ml_typeof(Value)->Name);
 	return encode(Cache, Value);
@@ -452,33 +452,13 @@ static json_t *ML_TYPED_FN(ml_json_encode, MLClosureT, ml_json_encoder_cache_t *
 	return Json;
 }
 
-typedef struct {
-	ml_type_t *Type;
-	json_t *Json;
-} ml_json_value_t;
-
-extern ml_type_t JSValueT[1];
-
-ML_FUNCTION(JSValue) {
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLStringT);
-	ml_json_value_t *Value = new(ml_json_value_t);
-	Value->Type = JSValueT;
-	Value->Json = json_pack("[ss]", "^", ml_string_value(Args[0]));
-	return (ml_value_t *)Value;
-}
-
-ML_TYPE(JSValueT, (), "js-value",
-	.Constructor = (ml_value_t *)JSValue
-);
-
-static json_t *ML_TYPED_FN(ml_json_encode, JSValueT, ml_json_encoder_cache_t *Cache, ml_json_value_t *Value) {
-	return Value->Json;
+static json_t *ML_TYPED_FN(ml_json_encode, MLExternalT, ml_json_encoder_cache_t *Cache, ml_external_t *Value) {
+	return json_pack("[ss]", "^", Value->Name);
 }
 
 typedef struct {
 	ml_type_t *Type;
-	inthash_t Globals[1];
+	//inthash_t Globals[1];
 } ml_json_encoder_t;
 
 extern ml_type_t JSEncoderT[1];
@@ -493,19 +473,19 @@ ML_TYPE(JSEncoderT, (), "js-encoder",
 	.Constructor = (ml_value_t *)JSEncoder
 );
 
-ML_METHOD("add", JSEncoderT, MLAnyT, MLStringT) {
+/*ML_METHOD("add", JSEncoderT, MLAnyT, MLStringT) {
 	ml_json_encoder_t *Encoder = (ml_json_encoder_t *)Args[0];
 	inthash_insert(Encoder->Globals,
 		(uintptr_t)Args[1],
 		json_pack("[ss]", "^", ml_string_value(Args[2]))
 	);
 	return Args[0];
-}
+}*/
 
 ML_METHOD("encode", JSEncoderT, MLAnyT) {
 	ml_json_encoder_t *Encoder = (ml_json_encoder_t *)Args[0];
 	ml_json_encoder_cache_t Cache[1] = {0,};
-	Cache->Globals = Encoder->Globals;
+	//Cache->Globals = Encoder->Globals;
 	json_t *Json = ml_json_encode(Cache, Args[1]);
 	const char *String = json_dumps(Json, JSON_ENCODE_ANY | JSON_COMPACT);
 	return ml_string(String, -1);
@@ -906,7 +886,6 @@ void ml_jsencode_init(stringmap_t *Globals) {
 #endif
 #include "ml_jsencode_init.c"
 	if (Globals) {
-		stringmap_insert(Globals, "jsvalue", JSValue);
 		stringmap_insert(Globals, "jsencoder", JSEncoderT);
 		stringmap_insert(Globals, "jsdecoder", JSDecoderT);
 	}
