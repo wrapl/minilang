@@ -481,7 +481,6 @@ static ml_map_node_t *ml_map_insert_node(ml_map_t *Map, ml_map_node_t **Slot, lo
 		Compare = ml_integer_value(Result);
 	}
 	if (!Compare) {
-		Slot[0]->Value = Index->Value;
 		return Slot[0];
 	} else {
 		ml_map_node_t *Node = ml_map_insert_node(Map, Compare < 0 ? &Slot[0]->Left : &Slot[0]->Right, Hash, Index);
@@ -493,7 +492,8 @@ static ml_map_node_t *ml_map_insert_node(ml_map_t *Map, ml_map_node_t **Slot, lo
 
 static void ml_map_index_assign(ml_state_t *Caller, ml_map_node_t *Index, ml_value_t *Value) {
 	ml_map_t *Map = (ml_map_t *)Index->Value;
-	ml_map_insert_node(Map, &Map->Root, ml_typeof(Index->Key)->hash(Index->Key, NULL), Index);
+	ml_map_node_t *Node = ml_map_insert_node(Map, &Map->Root, ml_typeof(Index->Key)->hash(Index->Key, NULL), Index);
+	Node->Value = Value;
 	ML_RETURN(Value);
 }
 
@@ -884,7 +884,9 @@ ML_METHOD("take", MLMapT, MLMapT) {
 	ml_map_t *Source = (ml_map_t *)Args[1];
 	for (ml_map_node_t *Node = Source->Head; Node;) {
 		ml_map_node_t *Next = Node->Next;
-		ml_map_insert_node(Map, &Map->Root, ml_typeof(Node->Key)->hash(Node->Key, NULL), Node);
+		ml_value_t *Value = Node->Value;
+		ml_map_node_t *New = ml_map_insert_node(Map, &Map->Root, ml_typeof(Node->Key)->hash(Node->Key, NULL), Node);
+		New->Value = Value;
 		Node = Next;
 	}
 	Source->Root = Source->Head = Source->Tail = NULL;
