@@ -1169,7 +1169,8 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLExternalT, ml_cbor_writer_t *Wri
 }
 
 static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLSomeT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {
-	minicbor_write_tag(Writer->Data, Writer->WriteFn, 29);
+	minicbor_write_tag(Writer->Data, Writer->WriteFn, 27);
+	minicbor_write_array(Writer->Data, Writer->WriteFn, 1);
 	minicbor_write_string(Writer->Data, Writer->WriteFn, 4);
 	Writer->WriteFn(Writer->Data, (unsigned const char *)"some", 4);
 	return NULL;
@@ -1444,6 +1445,7 @@ void ml_cbor_default_object(const char *Name, ml_value_t *Constructor) {
 
 void ml_cbor_init(stringmap_t *Globals) {
 	if (!CborObjects) CborObjects = ml_map();
+	ml_cbor_default_object("some", (ml_value_t *)MLSomeT);
 	ml_cbor_default_object("tuple", (ml_value_t *)MLTupleT);
 	ml_cbor_default_object("range", RangeMethod);
 #ifdef ML_COMPLEX

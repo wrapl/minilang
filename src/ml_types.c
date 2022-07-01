@@ -481,8 +481,15 @@ void ml_type_add_rule(ml_type_t *T, ml_type_t *U, ...) {
 ML_TYPE(MLNilT, (MLFunctionT, MLSequenceT), "nil");
 //!internal
 
-ML_TYPE(MLSomeT, (MLFunctionT), "some");
+ML_FUNCTION(MLSomeFn) {
 //!internal
+	return MLSome;
+}
+
+ML_TYPE(MLSomeT, (MLFunctionT), "some",
+//!internal
+	.Constructor = (ml_value_t *)MLSomeFn
+);
 
 static void ml_blank_assign(ml_state_t *Caller, ml_value_t *Blank, ml_value_t *Value) {
 	ML_RETURN(Value);
