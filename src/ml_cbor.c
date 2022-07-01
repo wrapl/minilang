@@ -1227,10 +1227,7 @@ ml_value_t *ml_cbor_read_method(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	return ml_method(ml_string_value(Value));
 }
 
-ML_DEF(CborObjects);
-//@cbor::Objects
-//>map[string,function]
-// Constructors to call for tag 27 (objects).
+static stringmap_t CborObjectTypes[1] = {STRINGMAP_INIT};
 
 ml_value_t *ml_cbor_read_object(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	if (!ml_is(Value, MLListT)) return ml_error("TagError", "Object requires list");
@@ -1239,8 +1236,8 @@ ml_value_t *ml_cbor_read_object(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	if (!ml_list_iter_valid(Iter)) return ml_error("CBORError", "Object tag requires type name");
 	ml_value_t *TypeName = Iter->Value;
 	if (ml_typeof(TypeName) != MLStringT) return ml_error("CBORError", "Object tag requires type name");
-	ml_value_t *Constructor = ml_map_search(CborObjects, TypeName);
-	if (Constructor == MLNil) return ml_error("CBORError", "Object %s not found", ml_string_value(TypeName));
+	ml_value_t *Constructor = stringmap_search(CborObjectTypes, ml_string_value(TypeName));
+	if (!Constructor) return ml_error("CBORError", "Object %s not found", ml_string_value(TypeName));
 	int Count2 = ml_list_length(Value) - 1;
 	ml_value_t **Args2 = ml_alloc_args(Count2);
 	for (int I = 0; I < Count2; ++I) {
@@ -1440,11 +1437,10 @@ ML_FUNCTION(DecodeClosure) {
 extern ml_value_t *RangeMethod;
 
 void ml_cbor_default_object(const char *Name, ml_value_t *Constructor) {
-	ml_map_insert(CborObjects, ml_string(Name, -1), Constructor);
+	stringmap_insert(CborObjectTypes, Name, Constructor);
 }
 
 void ml_cbor_init(stringmap_t *Globals) {
-	if (!CborObjects) CborObjects = ml_map();
 	ml_cbor_default_object("some", (ml_value_t *)MLSomeT);
 	ml_cbor_default_object("tuple", (ml_value_t *)MLTupleT);
 	ml_cbor_default_object("range", RangeMethod);
