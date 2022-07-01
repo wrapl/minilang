@@ -725,40 +725,6 @@ ml_cbor_t ml_to_cbor(ml_value_t *Value) {
 	return ml_cbor_writer_encode(Value);
 }
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLListT, ml_cbor_writer_t *Writer, ml_value_t *Value) {
-	minicbor_write_array(Writer->Data, Writer->WriteFn, ml_list_length(Value));
-	ML_LIST_FOREACH(Value, Iter) {
-		ml_value_t *Error = ml_cbor_write(Writer, Iter->Value);
-		if (Error) return Error;
-	}
-	return NULL;
-}
-
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLMapT, ml_cbor_writer_t *Writer, ml_value_t *Value) {
-	minicbor_write_map(Writer->Data, Writer->WriteFn, ml_map_size(Value));
-	ML_MAP_FOREACH(Value, Iter) {
-		ml_value_t *Error = ml_cbor_write(Writer, Iter->Key);
-		if (Error) return Error;
-		Error = ml_cbor_write(Writer, Iter->Value);
-		if (Error) return Error;
-	}
-	return NULL;
-}
-
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLObjectT, ml_cbor_writer_t *Writer, ml_value_t *Value) {
-	minicbor_write_tag(Writer->Data, Writer->WriteFn, 27);
-	int Size = ml_object_size(Value);
-	minicbor_write_array(Writer->Data, Writer->WriteFn, 1 + Size);
-	const char *Name = ml_typeof(Value)->Name;
-	minicbor_write_string(Writer->Data, Writer->WriteFn, strlen(Name));
-	Writer->WriteFn(Writer->Data, (unsigned char *)Name, strlen(Name));
-	for (int I = 0; I < Size; ++I) {
-		ml_value_t *Error = ml_cbor_write(Writer, ml_object_field(Value, I));
-		if (Error) return Error;
-	}
-	return NULL;
-}
-
 static void vlq64_encode(ml_stringbuffer_t *Buffer, int64_t Value) {
 	unsigned char Bytes[9];
 	uint64_t X = (uint64_t)Value;
@@ -1071,8 +1037,11 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLRegexT, ml_cbor_writer_t *Writer
 }
 
 static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTupleT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {
+	minicbor_write_tag(Writer->Data, Writer->WriteFn, 27);
 	int Size = ml_tuple_size(Arg);
-	minicbor_write_array(Writer->Data, Writer->WriteFn, Size);
+	minicbor_write_array(Writer->Data, Writer->WriteFn, 1 + Size);
+	minicbor_write_string(Writer->Data, Writer->WriteFn, 5);
+	Writer->WriteFn(Writer->Data, (void *)"tuple", 5);
 	for (int I = 1; I <= Size; ++I) {
 		ml_value_t *Error = ml_cbor_write(Writer, ml_tuple_get(Arg, I));
 		if (Error) return Error;
@@ -1196,6 +1165,13 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLExternalT, ml_cbor_writer_t *Wri
 	minicbor_write_tag(Writer->Data, Writer->WriteFn, 29);
 	minicbor_write_string(Writer->Data, Writer->WriteFn, Arg->Length);
 	Writer->WriteFn(Writer->Data, (unsigned const char *)Arg->Name, Arg->Length);
+	return NULL;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLSomeT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {
+	minicbor_write_tag(Writer->Data, Writer->WriteFn, 29);
+	minicbor_write_string(Writer->Data, Writer->WriteFn, 4);
+	Writer->WriteFn(Writer->Data, (unsigned const char *)"some", 4);
 	return NULL;
 }
 

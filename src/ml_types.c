@@ -2546,11 +2546,13 @@ void ml_init(stringmap_t *Globals) {
 	stringmap_insert(MLExternalT->Exports, "add", MLExternalAdd);
 	stringmap_insert(MLExternals, "type", MLTypeT);
 	stringmap_insert(MLExternals, "any", MLAnyT);
+	stringmap_insert(MLExternals, "some", MLSome);
 	stringmap_insert(MLExternals, "integer", MLIntegerT);
 	stringmap_insert(MLExternals, "real", MLRealT);
 	stringmap_insert(MLExternals, "number", MLNumberT);
 	stringmap_insert(MLExternals, "string", MLStringT);
 	stringmap_insert(MLExternals, "list", MLListT);
+	stringmap_insert(MLExternals, "tuple", MLTupleT);
 	stringmap_insert(MLExternals, "map", MLMapT);
 	stringmap_insert(MLExternals, "set", MLSetT);
 	stringmap_insert(MLExternals, "boolean", MLBooleanT);
