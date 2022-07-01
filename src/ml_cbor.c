@@ -1444,6 +1444,7 @@ void ml_cbor_default_object(const char *Name, ml_value_t *Constructor) {
 
 void ml_cbor_init(stringmap_t *Globals) {
 	if (!CborObjects) CborObjects = ml_map();
+	ml_cbor_default_object("tuple", (ml_value_t *)MLTupleT);
 	ml_cbor_default_object("range", RangeMethod);
 #ifdef ML_COMPLEX
 	ml_cbor_default_object("complex", (ml_value_t *)DecodeComplex);
