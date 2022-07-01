@@ -796,9 +796,9 @@ void ml_time_init(stringmap_t *Globals) {
 	stringmap_insert(MLTimeT->Exports, "zone", MLTimeZoneT);
 	stringmap_insert(MLTimeZoneT->Exports, "list", MLTimeZoneList);
 #endif
+	stringmap_insert(MLExternals, "time", MLTimeT);
 #ifdef ML_CBOR
 	ml_cbor_default_tag(0, ml_cbor_read_time_fn);
 	ml_cbor_default_tag(1, ml_cbor_read_time_fn);
-	ml_cbor_default_global("time", MLTimeT);
 #endif
 }

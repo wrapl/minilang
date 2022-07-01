@@ -34,14 +34,14 @@ struct ml_methods_t {
 static void ml_methods_call(ml_state_t *Caller, ml_methods_t *Methods, int Count, ml_value_t **Args) {
 	ml_state_t *State = ml_state(Caller);
 	State->Context->Values[ML_METHODS_INDEX] = Methods;
-	ml_value_t *Function = Args[0];
-	return ml_call(State, Function, Count - 1, Args + 1);
+	ml_value_t *Function = ml_deref(Args[Count - 1]);
+	return ml_call(State, Function, Count - 1, Args);
 }
 
 ML_TYPE(MLMethodContextT, (), "method::context",
 // A context for isolating method definitions.
 //
-// :mini:`(C: method::context)(Fn: function, Args, ...): any`
+// :mini:`(C: method::context)(Args: any, ..., Fn: function): any`
 //     Calls :mini:`Fn(Args)` in a new context using :mini:`C` for method definitions.
 	.call = (void *)ml_methods_call
 );

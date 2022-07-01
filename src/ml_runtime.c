@@ -94,9 +94,8 @@ static void ml_context_key_call(ml_state_t *Caller, ml_context_key_t *Key, int C
 		Value->Value = Args[0];
 		ml_state_t *State = ml_state(Caller);
 		ml_context_set(State->Context, ML_VARIABLES_INDEX, Value);
-		ml_value_t *Function = Args[1];
-		Function = ml_deref(Function);
-		return ml_call(State, Function, Count - 2, Args + 2);
+		ml_value_t *Function = ml_deref(Args[Count - 1]);
+		return ml_call(State, Function, Count - 2, Args + 1);
 	}
 }
 

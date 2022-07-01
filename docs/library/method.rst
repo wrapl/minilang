@@ -62,7 +62,7 @@ method
 :mini:`type method::context`
    A context for isolating method definitions.
    
-   :mini:`(C: method::context)(Fn: function,  Args,  ...): any`
+   :mini:`(C: method::context)(Args: any,  ...,  Fn: function): any`
        Calls :mini:`Fn(Args)` in a new context using :mini:`C` for method definitions.
 
 
