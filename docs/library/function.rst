@@ -36,6 +36,14 @@ function
    Returns an error if any of the keys in :mini:`Map` is not a string or method.
 
 
+:mini:`meth (Function: function) !! (List: list): function::partial`
+   
+   .. deprecated:: 2.7.0
+   
+      Use :mini:`$!` instead.
+   Returns a function equivalent to :mini:`fun(Args...) Function(List₁,  List₂,  ...,  Args...)`.
+
+
 :mini:`meth (Function: function) $ (Values: any, ...): function::partial`
    Returns a function equivalent to :mini:`fun(Args...) Function(Values...,  Args...)`.
 
