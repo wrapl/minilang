@@ -1445,6 +1445,26 @@ ML_METHOD("$!", MLFunctionT, MLListT) {
 	return (ml_value_t *)Partial;
 }
 
+ML_METHOD("!!", MLFunctionT, MLListT) {
+//!function
+//<Function
+//<List
+//>function::partial
+//
+// .. deprecated:: 2.7.0
+//
+//    Use :mini:`$!` instead.
+// Returns a function equivalent to :mini:`fun(Args...) Function(List/1, List/2, ..., Args...)`.
+	ml_list_t *ArgsList = (ml_list_t *)Args[1];
+	ml_partial_function_t *Partial = xnew(ml_partial_function_t, ArgsList->Length, ml_value_t *);
+	Partial->Type = MLFunctionPartialT;
+	Partial->Function = Args[0];
+	Partial->Count = Partial->Set = ArgsList->Length;
+	ml_value_t **Arg = Partial->Args;
+	ML_LIST_FOREACH(ArgsList, Node) *Arg++ = Node->Value;
+	return (ml_value_t *)Partial;
+}
+
 ML_METHODV("$", MLFunctionT, MLAnyT) {
 //!function
 //<Function
