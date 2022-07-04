@@ -1,7 +1,8 @@
-#include "ml_jsencode.h"
 #include "ml_macros.h"
 #include "ml_bytecode.h"
 #include <string.h>
+#include <jansson.h>
+#include "ml_minijs.h"
 
 #ifdef ML_UUID
 #include "ml_uuid.h"
@@ -12,25 +13,14 @@
 #endif
 
 #undef ML_CATEGORY
-#define ML_CATEGORY "jsencode"
+#define ML_CATEGORY "minijs"
 
-struct ml_json_encoder_cache_t {
-	//inthash_t *Globals;
+typedef struct {
 	inthash_t Cached[1];
 	int LastIndex;
-};
+} ml_minijs_encoder_t;
 
-ml_json_encoder_cache_t *ml_json_encoder(inthash_t *Globals) {
-	ml_json_encoder_cache_t *Cache = new(ml_json_encoder_cache_t);
-	//Cache->Globals = Globals;
-	return Cache;
-}
-
-void ml_json_encoder_add(ml_json_encoder_cache_t *Cache, ml_value_t *Value, json_t *Json) {
-	inthash_insert(Cache->Cached, (uintptr_t)Value, Json);
-}
-
-json_t *ml_json_encode(ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
+json_t *ml_minijs_encode(ml_minijs_encoder_t *Cache, ml_value_t *Value) {
 	json_t *Json = inthash_search(Cache->Cached, (uintptr_t)Value);
 	if (Json) {
 		json_t *First = json_array_get(Json, 0);
@@ -40,85 +30,83 @@ json_t *ml_json_encode(ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
 		}
 		return json_pack("[o]", First);
 	}
-	//Json = inthash_search(Cache->Globals, (uintptr_t)Value);
-	//if (Json) return Json;
-	typeof(ml_json_encode) *encode = ml_typed_fn_get(ml_typeof(Value), ml_json_encode);
+	typeof(ml_minijs_encode) *encode = ml_typed_fn_get(ml_typeof(Value), ml_minijs_encode);
 	if (!encode) return json_pack("[ss]", "unsupported", ml_typeof(Value)->Name);
 	return encode(Cache, Value);
 }
 
-static json_t *ML_TYPED_FN(ml_json_encode, MLNilT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
+static json_t *ML_TYPED_FN(ml_minijs_encode, MLNilT, ml_minijs_encoder_t *Cache, ml_value_t *Value) {
 	return json_null();
 }
 
-static json_t *ML_TYPED_FN(ml_json_encode, MLBlankT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
+static json_t *ML_TYPED_FN(ml_minijs_encode, MLBlankT, ml_minijs_encoder_t *Cache, ml_value_t *Value) {
 	return json_pack("[s]", "_");
 }
 
-static json_t *ML_TYPED_FN(ml_json_encode, MLBooleanT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
+static json_t *ML_TYPED_FN(ml_minijs_encode, MLBooleanT, ml_minijs_encoder_t *Cache, ml_value_t *Value) {
 	return json_boolean(Value == (ml_value_t *)MLTrue);
 }
 
-static json_t *ML_TYPED_FN(ml_json_encode, MLIntegerT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
+static json_t *ML_TYPED_FN(ml_minijs_encode, MLIntegerT, ml_minijs_encoder_t *Cache, ml_value_t *Value) {
 	return json_integer(ml_integer_value(Value));
 }
 
-static json_t *ML_TYPED_FN(ml_json_encode, MLDoubleT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
+static json_t *ML_TYPED_FN(ml_minijs_encode, MLDoubleT, ml_minijs_encoder_t *Cache, ml_value_t *Value) {
 	return json_real(ml_real_value(Value));
 }
 
-static json_t *ML_TYPED_FN(ml_json_encode, MLStringT, ml_json_encoder_cache_t *Cache, ml_string_t *Value) {
+static json_t *ML_TYPED_FN(ml_minijs_encode, MLStringT, ml_minijs_encoder_t *Cache, ml_string_t *Value) {
 	return json_stringn(Value->Value, Value->Length);
 }
 
-static json_t *ML_TYPED_FN(ml_json_encode, MLRegexT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
+static json_t *ML_TYPED_FN(ml_minijs_encode, MLRegexT, ml_minijs_encoder_t *Cache, ml_value_t *Value) {
 	return json_pack("[ss]", "r", ml_regex_pattern(Value));
 }
 
-static json_t *ML_TYPED_FN(ml_json_encode, MLMethodT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
+static json_t *ML_TYPED_FN(ml_minijs_encode, MLMethodT, ml_minijs_encoder_t *Cache, ml_value_t *Value) {
 	return json_pack("[ss]", ":", ml_method_name(Value));
 }
 
-static json_t *ML_TYPED_FN(ml_json_encode, MLListT, ml_json_encoder_cache_t *Cache, ml_list_t *Value) {
+static json_t *ML_TYPED_FN(ml_minijs_encode, MLListT, ml_minijs_encoder_t *Cache, ml_list_t *Value) {
 	json_t *Json = json_array();
 	json_array_append_new(Json, json_string("l"));
 	inthash_insert(Cache->Cached, (uintptr_t)Value, Json);
 	ML_LIST_FOREACH(Value, Iter) {
-		json_array_append_new(Json, ml_json_encode(Cache, Iter->Value));
+		json_array_append_new(Json, ml_minijs_encode(Cache, Iter->Value));
 	}
 	return Json;
 }
 
-static json_t *ML_TYPED_FN(ml_json_encode, MLNamesT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
+static json_t *ML_TYPED_FN(ml_minijs_encode, MLNamesT, ml_minijs_encoder_t *Cache, ml_value_t *Value) {
 	json_t *Json = json_array();
 	json_array_append_new(Json, json_string("n"));
 	inthash_insert(Cache->Cached, (uintptr_t)Value, Json);
 	ML_NAMES_FOREACH(Value, Iter) {
-		json_array_append_new(Json, ml_json_encode(Cache, Iter->Value));
+		json_array_append_new(Json, ml_minijs_encode(Cache, Iter->Value));
 	}
 	return Json;
 }
 
-static json_t *ML_TYPED_FN(ml_json_encode, MLMapT, ml_json_encoder_cache_t *Cache, ml_map_t *Value) {
+static json_t *ML_TYPED_FN(ml_minijs_encode, MLMapT, ml_minijs_encoder_t *Cache, ml_map_t *Value) {
 	json_t *Json = json_array();
 	json_array_append_new(Json, json_string("m"));
 	inthash_insert(Cache->Cached, (uintptr_t)Value, Json);
 	ML_MAP_FOREACH(Value, Iter) {
-		json_array_append_new(Json, ml_json_encode(Cache, Iter->Key));
-		json_array_append_new(Json, ml_json_encode(Cache, Iter->Value));
+		json_array_append_new(Json, ml_minijs_encode(Cache, Iter->Key));
+		json_array_append_new(Json, ml_minijs_encode(Cache, Iter->Value));
 	}
 	return Json;
 }
 
-static json_t *ML_TYPED_FN(ml_json_encode, MLTypeT, ml_json_encoder_cache_t *Cache, ml_type_t *Value) {
+static json_t *ML_TYPED_FN(ml_minijs_encode, MLTypeT, ml_minijs_encoder_t *Cache, ml_type_t *Value) {
 	return json_pack("[ss]", "t", Value->Name);
 }
 
-static json_t *ML_TYPED_FN(ml_json_encode, MLGlobalT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
-	return ml_json_encode(Cache, ml_global_get(Value));
+static json_t *ML_TYPED_FN(ml_minijs_encode, MLGlobalT, ml_minijs_encoder_t *Cache, ml_value_t *Value) {
+	return ml_minijs_encode(Cache, ml_global_get(Value));
 }
 
-static json_t *ML_TYPED_FN(ml_json_encode, MLVariableT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
+static json_t *ML_TYPED_FN(ml_minijs_encode, MLVariableT, ml_minijs_encoder_t *Cache, ml_value_t *Value) {
 	json_t *Json = json_array();
 	json_array_append_new(Json, json_string("v"));
 	inthash_insert(Cache->Cached, (uintptr_t)Value, Json);
@@ -127,7 +115,7 @@ static json_t *ML_TYPED_FN(ml_json_encode, MLVariableT, ml_json_encoder_cache_t 
 
 #ifdef ML_UUID
 
-static json_t *ML_TYPED_FN(ml_json_encode, MLUUIDT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
+static json_t *ML_TYPED_FN(ml_minijs_encode, MLUUIDT, ml_minijs_encoder_t *Cache, ml_value_t *Value) {
 	char IdString[UUID_STR_LEN];
 	uuid_unparse_lower(ml_uuid_value(Value), IdString);
 	return json_pack("[ss]", "uuid", IdString);
@@ -137,7 +125,7 @@ static json_t *ML_TYPED_FN(ml_json_encode, MLUUIDT, ml_json_encoder_cache_t *Cac
 
 #ifdef ML_TIME
 
-static json_t *ML_TYPED_FN(ml_json_encode, MLTimeT, ml_json_encoder_cache_t *Cache, ml_value_t *Value) {
+static json_t *ML_TYPED_FN(ml_minijs_encode, MLTimeT, ml_minijs_encoder_t *Cache, ml_value_t *Value) {
 	struct timespec Time[1];
 	ml_time_value(Value, Time);
 	struct tm TM = {0,};
@@ -165,7 +153,7 @@ static json_t *ML_TYPED_FN(ml_json_encode, MLTimeT, ml_json_encoder_cache_t *Cac
 
 #define ML_JSON_ENCODE_ARRAY(CTYPE, JSON) \
 \
-static void ml_json_encode_array_ ## CTYPE(int Degree, ml_array_dimension_t *Dimension, char *Address, json_t *Json) { \
+static void ml_minijs_encode_array_ ## CTYPE(int Degree, ml_array_dimension_t *Dimension, char *Address, json_t *Json) { \
 	if (Degree == 0) { \
 		json_array_append_new(Json, JSON(*(CTYPE *)Address)); \
 		return; \
@@ -174,11 +162,11 @@ static void ml_json_encode_array_ ## CTYPE(int Degree, ml_array_dimension_t *Dim
 		if (Dimension->Indices) { \
 			int *Indices = Dimension->Indices; \
 			for (int I = 0; I < Dimension->Size; ++I) { \
-				ml_json_encode_array_ ## CTYPE(Degree - 1, Dimension + 1, Address + Indices[I] * Stride, Json); \
+				ml_minijs_encode_array_ ## CTYPE(Degree - 1, Dimension + 1, Address + Indices[I] * Stride, Json); \
 			} \
 		} else { \
 			for (int I = Dimension->Size; --I >= 0;) { \
-				ml_json_encode_array_ ## CTYPE(Degree - 1, Dimension + 1, Address, Json); \
+				ml_minijs_encode_array_ ## CTYPE(Degree - 1, Dimension + 1, Address, Json); \
 				Address += Stride; \
 			} \
 		} \
@@ -196,26 +184,26 @@ ML_JSON_ENCODE_ARRAY(uint64_t, json_integer)
 ML_JSON_ENCODE_ARRAY(float, json_real)
 ML_JSON_ENCODE_ARRAY(double, json_real)
 
-static void ml_json_encode_array_any(int Degree, ml_array_dimension_t *Dimension, char *Address, json_t *Json, ml_json_encoder_cache_t *Cache) {
+static void ml_minijs_encode_array_any(int Degree, ml_array_dimension_t *Dimension, char *Address, json_t *Json, ml_minijs_encoder_t *Cache) {
 	if (Degree == 0) {
-		json_array_append_new(Json, ml_json_encode(Cache, *(ml_value_t **)Address));
+		json_array_append_new(Json, ml_minijs_encode(Cache, *(ml_value_t **)Address));
 	} else {
 		int Stride = Dimension->Stride;
 		if (Dimension->Indices) {
 			int *Indices = Dimension->Indices;
 			for (int I = 0; I < Dimension->Size; ++I) {
-				ml_json_encode_array_any(Degree - 1, Dimension + 1, Address + Indices[I] * Stride, Json, Cache);
+				ml_minijs_encode_array_any(Degree - 1, Dimension + 1, Address + Indices[I] * Stride, Json, Cache);
 			}
 		} else {
 			for (int I = Dimension->Size; --I >= 0;) {
-				ml_json_encode_array_any(Degree - 1, Dimension + 1, Address, Json, Cache);
+				ml_minijs_encode_array_any(Degree - 1, Dimension + 1, Address, Json, Cache);
 				Address += Stride;
 			}
 		}
 	}
 }
 
-static json_t *ML_TYPED_FN(ml_json_encode, MLArrayT, ml_json_encoder_cache_t *Cache, ml_array_t *Array) {
+static json_t *ML_TYPED_FN(ml_minijs_encode, MLArrayT, ml_minijs_encoder_t *Cache, ml_array_t *Array) {
 	const char *Type;
 	json_t *Values = json_array();
 	json_t *Shape = json_array();
@@ -223,47 +211,47 @@ static json_t *ML_TYPED_FN(ml_json_encode, MLArrayT, ml_json_encoder_cache_t *Ca
 	switch (Array->Format) {
 	case ML_ARRAY_FORMAT_U8:
 		Type = "uint8";
-		ml_json_encode_array_uint8_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
+		ml_minijs_encode_array_uint8_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
 		break;
 	case ML_ARRAY_FORMAT_I8:
 		Type = "int8";
-		ml_json_encode_array_int8_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
+		ml_minijs_encode_array_int8_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
 		break;
 	case ML_ARRAY_FORMAT_U16:
 		Type = "uint16";
-		ml_json_encode_array_uint16_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
+		ml_minijs_encode_array_uint16_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
 		break;
 	case ML_ARRAY_FORMAT_I16:
 		Type = "int16";
-		ml_json_encode_array_int16_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
+		ml_minijs_encode_array_int16_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
 		break;
 	case ML_ARRAY_FORMAT_U32:
 		Type = "uint32";
-		ml_json_encode_array_uint32_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
+		ml_minijs_encode_array_uint32_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
 		break;
 	case ML_ARRAY_FORMAT_I32:
 		Type = "int32";
-		ml_json_encode_array_int32_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
+		ml_minijs_encode_array_int32_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
 		break;
 	case ML_ARRAY_FORMAT_U64:
 		Type = "uint64";
-		ml_json_encode_array_uint64_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
+		ml_minijs_encode_array_uint64_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
 		break;
 	case ML_ARRAY_FORMAT_I64:
 		Type = "int64";
-		ml_json_encode_array_int64_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
+		ml_minijs_encode_array_int64_t(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
 		break;
 	case ML_ARRAY_FORMAT_F32:
 		Type = "float32";
-		ml_json_encode_array_float(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
+		ml_minijs_encode_array_float(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
 		break;
 	case ML_ARRAY_FORMAT_F64:
 		Type = "float64";
-		ml_json_encode_array_double(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
+		ml_minijs_encode_array_double(Array->Degree, Array->Dimensions, Array->Base.Value, Values);
 		break;
 	case ML_ARRAY_FORMAT_ANY:
 		Type = "any";
-		ml_json_encode_array_any(Array->Degree, Array->Dimensions, Array->Base.Value, Values, Cache);
+		ml_minijs_encode_array_any(Array->Degree, Array->Dimensions, Array->Base.Value, Values, Cache);
 		break;
 	default:
 		return json_pack("[ss]", "unsupported", Array->Base.Type->Name);
@@ -273,7 +261,7 @@ static json_t *ML_TYPED_FN(ml_json_encode, MLArrayT, ml_json_encoder_cache_t *Ca
 
 #endif
 
-static json_t *ml_closure_info_encode(ml_closure_info_t *Info, ml_json_encoder_cache_t *Cache);
+static json_t *ml_closure_info_encode(ml_closure_info_t *Info, ml_minijs_encoder_t *Cache);
 
 typedef struct {
 	json_t *Json;
@@ -323,7 +311,7 @@ static int ml_closure_find_labels(ml_inst_t *Inst, uintptr_t *Offset) {
 	}
 }
 
-static int ml_closure_inst_encode(ml_inst_t *Inst, ml_json_encoder_cache_t *Cache, json_t *Json, inthash_t *Labels, ml_decls_json_t *Decls) {
+static int ml_closure_inst_encode(ml_inst_t *Inst, ml_minijs_encoder_t *Cache, json_t *Json, inthash_t *Labels, ml_decls_json_t *Decls) {
 	json_array_append_new(Json, json_integer(Inst->Opcode));
 	json_array_append_new(Json, json_integer(Inst->Line));
 	switch (MLInstTypes[Inst->Opcode]) {
@@ -345,17 +333,17 @@ static int ml_closure_inst_encode(ml_inst_t *Inst, ml_json_encoder_cache_t *Cach
 		json_array_append_new(Json, json_integer(Inst[1].Count));
 		return 2;
 	case MLIT_VALUE:
-		json_array_append_new(Json, ml_json_encode(Cache, Inst[1].Value));
+		json_array_append_new(Json, ml_minijs_encode(Cache, Inst[1].Value));
 		return 2;
 	case MLIT_VALUE_DATA:
-		json_array_append_new(Json, ml_json_encode(Cache, Inst[1].Value));
+		json_array_append_new(Json, ml_minijs_encode(Cache, Inst[1].Value));
 		return 3;
 	case MLIT_VALUE_COUNT:
-		json_array_append_new(Json, ml_json_encode(Cache, Inst[1].Value));
+		json_array_append_new(Json, ml_minijs_encode(Cache, Inst[1].Value));
 		json_array_append_new(Json, json_integer(Inst[2].Count));
 		return 3;
 	case MLIT_VALUE_COUNT_DATA:
-		json_array_append_new(Json, ml_json_encode(Cache, Inst[1].Value));
+		json_array_append_new(Json, ml_minijs_encode(Cache, Inst[1].Value));
 		json_array_append_new(Json, json_integer(Inst[2].Count));
 		return 4;
 	case MLIT_COUNT_CHARS:
@@ -394,7 +382,7 @@ static int ml_closure_inst_encode(ml_inst_t *Inst, ml_json_encoder_cache_t *Cach
 	}
 }
 
-static json_t *ml_closure_info_encode(ml_closure_info_t *Info, ml_json_encoder_cache_t *Cache) {
+static json_t *ml_closure_info_encode(ml_closure_info_t *Info, ml_minijs_encoder_t *Cache) {
 	json_t *Json = json_array();
 	json_array_append_new(Json, json_string("!"));
 	json_array_append_new(Json, json_integer(ML_BYTECODE_VERSION));
@@ -440,72 +428,43 @@ static json_t *ml_closure_info_encode(ml_closure_info_t *Info, ml_json_encoder_c
 }
 
 
-static json_t *ML_TYPED_FN(ml_json_encode, MLClosureT, ml_json_encoder_cache_t *Cache, ml_closure_t *Value) {
+static json_t *ML_TYPED_FN(ml_minijs_encode, MLClosureT, ml_minijs_encoder_t *Cache, ml_closure_t *Value) {
 	json_t *Json = json_array();
 	json_array_append_new(Json, json_string("z"));
 	inthash_insert(Cache->Cached, (uintptr_t)Value, Json);
 	ml_closure_info_t *Info = Value->Info;
 	json_array_append_new(Json, ml_closure_info_encode(Info, Cache));
 	for (int I = 0; I < Info->NumUpValues; ++I) {
-		json_array_append_new(Json, ml_json_encode(Cache, Value->UpValues[I]));
+		json_array_append_new(Json, ml_minijs_encode(Cache, Value->UpValues[I]));
 	}
 	return Json;
 }
 
-static json_t *ML_TYPED_FN(ml_json_encode, MLExternalT, ml_json_encoder_cache_t *Cache, ml_external_t *Value) {
+static json_t *ML_TYPED_FN(ml_minijs_encode, MLExternalT, ml_minijs_encoder_t *Cache, ml_external_t *Value) {
 	return json_pack("[ss]", "^", Value->Name);
 }
 
-typedef struct {
-	ml_type_t *Type;
-	//inthash_t Globals[1];
-} ml_json_encoder_t;
-
-extern ml_type_t JSEncoderT[1];
-
-ML_FUNCTION(JSEncoder) {
-	ml_json_encoder_t *Encoder = new(ml_json_encoder_t);
-	Encoder->Type = JSEncoderT;
-	return (ml_value_t *)Encoder;
-}
-
-ML_TYPE(JSEncoderT, (), "js-encoder",
-	.Constructor = (ml_value_t *)JSEncoder
-);
-
-/*ML_METHOD("add", JSEncoderT, MLAnyT, MLStringT) {
-	ml_json_encoder_t *Encoder = (ml_json_encoder_t *)Args[0];
-	inthash_insert(Encoder->Globals,
-		(uintptr_t)Args[1],
-		json_pack("[ss]", "^", ml_string_value(Args[2]))
-	);
-	return Args[0];
-}*/
-
-ML_METHOD("encode", JSEncoderT, MLAnyT) {
-	ml_json_encoder_t *Encoder = (ml_json_encoder_t *)Args[0];
-	ml_json_encoder_cache_t Cache[1] = {0,};
-	//Cache->Globals = Encoder->Globals;
-	json_t *Json = ml_json_encode(Cache, Args[1]);
+ML_FUNCTION(MinijsEncode) {
+//@minijs::encode
+//<Value
+//>string|error
+	ML_CHECK_ARG_COUNT(1);
+	ml_minijs_encoder_t Cache[1] = {0,};
+	json_t *Json = ml_minijs_encode(Cache, Args[0]);
 	const char *String = json_dumps(Json, JSON_ENCODE_ANY | JSON_COMPACT);
 	return ml_string(String, -1);
 }
 
-struct ml_json_decoder_cache_t {
+typedef struct {
 	stringmap_t *Globals;
 	inthash_t Cached[1];
-};
-
-typedef struct {
-	ml_type_t *Type;
-	stringmap_t Globals[1];
-} ml_json_decoder_t;
+} ml_minijs_decoder_t;
 
 static stringmap_t Decoders[1] = {STRINGMAP_INIT};
 
-typedef ml_value_t *(*ml_json_decode_fn)(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Count);
+typedef ml_value_t *(*ml_minijs_decode_fn)(ml_minijs_decoder_t *Cache, json_t *Json, intptr_t Count);
 
-ml_value_t *ml_json_decode(ml_json_decoder_cache_t *Cache, json_t *Json) {
+ml_value_t *ml_minijs_decode(ml_minijs_decoder_t *Cache, json_t *Json) {
 	switch (Json->type) {
 	case JSON_OBJECT: return ml_error("JSONError", "Unsupported JSON value");
 	case JSON_ARRAY: {
@@ -527,7 +486,7 @@ ml_value_t *ml_json_decode(ml_json_decoder_cache_t *Cache, json_t *Json) {
 		}
 		if (First->type == JSON_STRING) {
 			const char *Name = json_string_value(First);
-			ml_json_decode_fn decode = (ml_json_decode_fn)stringmap_search(Decoders, Name);
+			ml_minijs_decode_fn decode = (ml_minijs_decode_fn)stringmap_search(Decoders, Name);
 			if (!decode) return ml_error("JSONError", "Unsupported JSON decoder: %s", Name);
 			return decode(Cache, Json, Index);
 		} else {
@@ -544,33 +503,33 @@ ml_value_t *ml_json_decode(ml_json_decoder_cache_t *Cache, json_t *Json) {
 	}
 }
 
-static ml_value_t *ml_json_decode_global(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+static ml_value_t *ml_minijs_decode_global(ml_minijs_decoder_t *Cache, json_t *Json, intptr_t Index) {
 	json_t *Value = json_array_get(Json, 0);
 	if (!json_is_string(Value)) return ml_error("TypeError", "Global requires string name");
 	const char *Name = json_string_value(Value);
 	return stringmap_search(Cache->Globals, Name) ?: ml_error("NameError", "Unknown global %s", Name);
 }
 
-static ml_value_t *ml_json_decode_blank(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+static ml_value_t *ml_minijs_decode_blank(ml_minijs_decoder_t *Cache, json_t *Json, intptr_t Index) {
 	return MLBlank;
 }
 
-static ml_value_t *ml_json_decode_some(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+static ml_value_t *ml_minijs_decode_some(ml_minijs_decoder_t *Cache, json_t *Json, intptr_t Index) {
 	return MLSome;
 }
 
-static ml_value_t *ml_json_decode_list(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+static ml_value_t *ml_minijs_decode_list(ml_minijs_decoder_t *Cache, json_t *Json, intptr_t Index) {
 	ml_value_t *List = ml_list();
 	if (Index >= 0) inthash_insert(Cache->Cached, Index, List);
 	for (int I = 0; I < json_array_size(Json); ++I) {
-		ml_value_t *Value = ml_json_decode(Cache, json_array_get(Json, I));
+		ml_value_t *Value = ml_minijs_decode(Cache, json_array_get(Json, I));
 		if (ml_is_error(Value)) return Value;
 		ml_list_put(List, Value);
 	}
 	return List;
 }
 
-static ml_value_t *ml_json_decode_names(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+static ml_value_t *ml_minijs_decode_names(ml_minijs_decoder_t *Cache, json_t *Json, intptr_t Index) {
 	ml_value_t *Names = ml_names();
 	if (Index >= 0) inthash_insert(Cache->Cached, Index, Names);
 	for (int I = 0; I < json_array_size(Json); ++I) {
@@ -581,34 +540,34 @@ static ml_value_t *ml_json_decode_names(ml_json_decoder_cache_t *Cache, json_t *
 	return Names;
 }
 
-static ml_value_t *ml_json_decode_map(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+static ml_value_t *ml_minijs_decode_map(ml_minijs_decoder_t *Cache, json_t *Json, intptr_t Index) {
 	int Size = json_array_size(Json);
 	if (Size % 2) return ml_error("JsonError", "Invalid JSON map");
 	ml_value_t *Map = ml_map();
 	if (Index >= 0) inthash_insert(Cache->Cached, Index, Map);
 	for (int I = 0; I < Size; I += 2) {
-		ml_value_t *Key = ml_json_decode(Cache, json_array_get(Json, I));
+		ml_value_t *Key = ml_minijs_decode(Cache, json_array_get(Json, I));
 		if (ml_is_error(Key)) return Key;
-		ml_value_t *Value = ml_json_decode(Cache, json_array_get(Json, I + 1));
+		ml_value_t *Value = ml_minijs_decode(Cache, json_array_get(Json, I + 1));
 		if (ml_is_error(Value)) return Value;
 		ml_map_insert(Map, Key, Value);
 	}
 	return Map;
 }
 
-static ml_value_t *ml_json_decode_regex(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+static ml_value_t *ml_minijs_decode_regex(ml_minijs_decoder_t *Cache, json_t *Json, intptr_t Index) {
 	json_t *Value = json_array_get(Json, 0);
 	if (!json_is_string(Value)) return ml_error("TypeError", "Regex requires strings");
 	return ml_regex(json_string_value(Value), json_string_length(Value));
 }
 
-static ml_value_t *ml_json_decode_method(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+static ml_value_t *ml_minijs_decode_method(ml_minijs_decoder_t *Cache, json_t *Json, intptr_t Index) {
 	json_t *Value = json_array_get(Json, 0);
 	if (!json_is_string(Value)) return ml_error("TypeError", "Method requires strings");
 	return ml_method(json_string_value(Value));
 }
 
-static ml_value_t *ml_json_decode_type(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+static ml_value_t *ml_minijs_decode_type(ml_minijs_decoder_t *Cache, json_t *Json, intptr_t Index) {
 	json_t *Value = json_array_get(Json, 0);
 	if (!json_is_string(Value)) return ml_error("TypeError", "Type requires strings");
 	return MLNil;
@@ -616,7 +575,7 @@ static ml_value_t *ml_json_decode_type(ml_json_decoder_cache_t *Cache, json_t *J
 
 #ifdef ML_UUID
 
-static ml_value_t *ml_json_decode_uuid(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Count) {
+static ml_value_t *ml_minijs_decode_uuid(ml_minijs_decoder_t *Cache, json_t *Json, intptr_t Count) {
 	json_t *Value = json_array_get(Json, 0);
 	if (!json_is_string(Value)) return ml_error("TypeError", "UUID requires strings");
 	return ml_uuid_parse(json_string_value(Value), json_string_length(Value));
@@ -626,7 +585,7 @@ static ml_value_t *ml_json_decode_uuid(ml_json_decoder_cache_t *Cache, json_t *J
 
 #ifdef ML_TIME
 
-static ml_value_t *ml_json_decode_time(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Count) {
+static ml_value_t *ml_minijs_decode_time(ml_minijs_decoder_t *Cache, json_t *Json, intptr_t Count) {
 	json_t *Value = json_array_get(Json, 0);
 	if (!json_is_string(Value)) return ml_error("TypeError", "Time requires strings");
 	return ml_time_parse(json_string_value(Value), json_string_length(Value));
@@ -636,7 +595,7 @@ static ml_value_t *ml_json_decode_time(ml_json_decoder_cache_t *Cache, json_t *J
 
 #ifdef ML_MATH
 
-static ml_value_t *ml_json_decode_array(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Count) {
+static ml_value_t *ml_minijs_decode_array(ml_minijs_decoder_t *Cache, json_t *Json, intptr_t Count) {
 	json_t *Value = json_array_get(Json, 0);
 	if (!json_is_string(Value)) return ml_error("TypeError", "Time requires strings");
 	return ml_time_parse(json_string_value(Value), json_string_length(Value));
@@ -644,11 +603,11 @@ static ml_value_t *ml_json_decode_array(ml_json_decoder_cache_t *Cache, json_t *
 
 #endif
 
-static ml_value_t *ml_json_decode_variable(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+static ml_value_t *ml_minijs_decode_variable(ml_minijs_decoder_t *Cache, json_t *Json, intptr_t Index) {
 	return ml_variable(MLNil, NULL);
 }
 
-static ml_closure_info_t *ml_json_decode_closure_info(ml_json_decoder_cache_t *Cache, json_t *Json) {
+static ml_closure_info_t *ml_minijs_decode_closure_info(ml_minijs_decoder_t *Cache, json_t *Json) {
 	ml_closure_info_t *Info = new(ml_closure_info_t);
 	Info->Name = "<js-closure>";
 	const char *Exclaimation;
@@ -751,21 +710,21 @@ static ml_closure_info_t *ml_json_decode_closure_info(ml_json_decoder_cache_t *C
 			Inst[1].Count = json_integer_value(json_array_get(Instructions, I++));
 			Inst += 2; break;
 		case MLIT_VALUE:
-			Inst[1].Value = ml_json_decode(Cache, json_array_get(Instructions, I++));
+			Inst[1].Value = ml_minijs_decode(Cache, json_array_get(Instructions, I++));
 			Inst += 2; break;
 		case MLIT_VALUE_DATA:
-			Inst[1].Value = ml_json_decode(Cache, json_array_get(Instructions, I++));
+			Inst[1].Value = ml_minijs_decode(Cache, json_array_get(Instructions, I++));
 			Inst += 3; break;
 		case MLIT_COUNT_COUNT:
 			Inst[1].Count = json_integer_value(json_array_get(Instructions, I++));
 			Inst[2].Count = json_integer_value(json_array_get(Instructions, I++));
 			Inst += 3; break;
 		case MLIT_VALUE_COUNT:
-			Inst[1].Value = ml_json_decode(Cache, json_array_get(Instructions, I++));
+			Inst[1].Value = ml_minijs_decode(Cache, json_array_get(Instructions, I++));
 			Inst[2].Count = json_integer_value(json_array_get(Instructions, I++));
 			Inst += 3; break;
 		case MLIT_VALUE_COUNT_DATA:
-			Inst[1].Value = ml_json_decode(Cache, json_array_get(Instructions, I++));
+			Inst[1].Value = ml_minijs_decode(Cache, json_array_get(Instructions, I++));
 			Inst[2].Count = json_integer_value(json_array_get(Instructions, I++));
 			Inst += 4; break;
 		case MLIT_COUNT_CHARS: {
@@ -787,7 +746,7 @@ static ml_closure_info_t *ml_json_decode_closure_info(ml_json_decoder_cache_t *C
 			Inst[3].Decls = Decls[json_integer_value(json_array_get(Instructions, I++))];
 			Inst += 4; break;
 		case MLIT_CLOSURE:
-			Inst[1].ClosureInfo = ml_json_decode_closure_info(Cache, json_array_get(Instructions, I++));
+			Inst[1].ClosureInfo = ml_minijs_decode_closure_info(Cache, json_array_get(Instructions, I++));
 			for (int J = 0; J < Inst[1].ClosureInfo->NumUpValues; ++J) {
 				Inst[J + 2].Count = json_integer_value(json_array_get(Instructions, I++));
 			}
@@ -810,83 +769,70 @@ static ml_closure_info_t *ml_json_decode_closure_info(ml_json_decoder_cache_t *C
 	return Info;
 }
 
-static ml_value_t *ml_json_decode_closure(ml_json_decoder_cache_t *Cache, json_t *Json, intptr_t Index) {
+static ml_value_t *ml_minijs_decode_closure(ml_minijs_decoder_t *Cache, json_t *Json, intptr_t Index) {
 	json_t *InfoJson = json_array_get(Json, 0);
 	int NumUpValues = json_integer_value(json_array_get(InfoJson, 6));
 	ml_closure_t *Closure = xnew(ml_closure_t, NumUpValues, ml_value_t *);
 	Closure->Type = MLClosureT;
 	if (Index >= 0) inthash_insert(Cache->Cached, Index, Closure);
-	Closure->Info = ml_json_decode_closure_info(Cache, InfoJson);
+	Closure->Info = ml_minijs_decode_closure_info(Cache, InfoJson);
 	if (!Closure->Info) return ml_error("VersionError", "Bytecode version mismatch");
 	for (int I = 0; I < NumUpValues; ++I) {
-		Closure->UpValues[I] = ml_json_decode(Cache, json_array_get(Json, I + 1));
+		Closure->UpValues[I] = ml_minijs_decode(Cache, json_array_get(Json, I + 1));
 	}
 	return (ml_value_t *)Closure;
 }
 
-extern ml_type_t JSDecoderT[1];
+ML_METHOD_ANON(MinijsDecode, "minijs::decode");
 
-ML_FUNCTION(JSDecoder) {
-	ml_json_decoder_t *Decoder = new(ml_json_decoder_t);
-	Decoder->Type = JSDecoderT;
-	return (ml_value_t *)Decoder;
-}
-
-ML_TYPE(JSDecoderT, (), "js-decoder",
-	.Constructor = (ml_value_t *)JSDecoder
-);
-
-ML_METHOD("add", JSDecoderT, MLStringT, MLAnyT) {
-	ml_json_decoder_t *Decoder = (ml_json_decoder_t *)Args[0];
-	stringmap_insert(Decoder->Globals, ml_string_value(Args[1]), Args[2]);
-	return Args[0];
-}
-
-ML_METHOD("decode", JSDecoderT, MLStringT) {
-	ml_json_decoder_t *Decoder = (ml_json_decoder_t *)Args[0];
-	ml_json_decoder_cache_t Cache[1] = {0,};
-	Cache->Globals = Decoder->Globals;
+ML_METHOD(MinijsDecode, MLStringT) {
+//@minijs::decode
+//<Json
+//>any|error
+	ml_minijs_decoder_t Cache[1] = {0,};
 	json_error_t Error;
-	json_t *Json = json_loadb(ml_string_value(Args[1]), ml_string_length(Args[1]), JSON_DECODE_ANY, &Error);
+	json_t *Json = json_loadb(ml_string_value(Args[0]), ml_string_length(Args[0]), JSON_DECODE_ANY, &Error);
 	if (!Json) {
 		return ml_error("JSONError", "%d: %s", Error.position, Error.text);
 	}
-	return ml_json_decode(Cache, Json);
+	return ml_minijs_decode(Cache, Json);
 }
 
-void ml_jsencode_init(stringmap_t *Globals) {
-	stringmap_insert(Decoders, "^", ml_json_decode_global);
-	stringmap_insert(Decoders, "blank", ml_json_decode_blank);
-	stringmap_insert(Decoders, "_", ml_json_decode_blank);
-	stringmap_insert(Decoders, "some", ml_json_decode_some);
-	stringmap_insert(Decoders, "list", ml_json_decode_list);
-	stringmap_insert(Decoders, "l", ml_json_decode_list);
-	stringmap_insert(Decoders, "names", ml_json_decode_names);
-	stringmap_insert(Decoders, "n", ml_json_decode_names);
-	stringmap_insert(Decoders, "map", ml_json_decode_map);
-	stringmap_insert(Decoders, "m", ml_json_decode_map);
-	stringmap_insert(Decoders, "type", ml_json_decode_type);
-	stringmap_insert(Decoders, "t", ml_json_decode_type);
-	stringmap_insert(Decoders, "regex", ml_json_decode_regex);
-	stringmap_insert(Decoders, "r", ml_json_decode_regex);
-	stringmap_insert(Decoders, "method", ml_json_decode_method);
-	stringmap_insert(Decoders, ":", ml_json_decode_method);
-	stringmap_insert(Decoders, "variable", ml_json_decode_variable);
-	stringmap_insert(Decoders, "v", ml_json_decode_variable);
-	stringmap_insert(Decoders, "closure", ml_json_decode_closure);
-	stringmap_insert(Decoders, "z", ml_json_decode_closure);
+void ml_minijs_init(stringmap_t *Globals) {
+	stringmap_insert(Decoders, "^", ml_minijs_decode_global);
+	stringmap_insert(Decoders, "blank", ml_minijs_decode_blank);
+	stringmap_insert(Decoders, "_", ml_minijs_decode_blank);
+	stringmap_insert(Decoders, "some", ml_minijs_decode_some);
+	stringmap_insert(Decoders, "list", ml_minijs_decode_list);
+	stringmap_insert(Decoders, "l", ml_minijs_decode_list);
+	stringmap_insert(Decoders, "names", ml_minijs_decode_names);
+	stringmap_insert(Decoders, "n", ml_minijs_decode_names);
+	stringmap_insert(Decoders, "map", ml_minijs_decode_map);
+	stringmap_insert(Decoders, "m", ml_minijs_decode_map);
+	stringmap_insert(Decoders, "type", ml_minijs_decode_type);
+	stringmap_insert(Decoders, "t", ml_minijs_decode_type);
+	stringmap_insert(Decoders, "regex", ml_minijs_decode_regex);
+	stringmap_insert(Decoders, "r", ml_minijs_decode_regex);
+	stringmap_insert(Decoders, "method", ml_minijs_decode_method);
+	stringmap_insert(Decoders, ":", ml_minijs_decode_method);
+	stringmap_insert(Decoders, "variable", ml_minijs_decode_variable);
+	stringmap_insert(Decoders, "v", ml_minijs_decode_variable);
+	stringmap_insert(Decoders, "closure", ml_minijs_decode_closure);
+	stringmap_insert(Decoders, "z", ml_minijs_decode_closure);
 #ifdef ML_TIME
-	stringmap_insert(Decoders, "time", ml_json_decode_time);
+	stringmap_insert(Decoders, "time", ml_minijs_decode_time);
 #endif
 #ifdef ML_MATH
-	stringmap_insert(Decoders, "array", ml_json_decode_array);
+	stringmap_insert(Decoders, "array", ml_minijs_decode_array);
 #endif
 #ifdef ML_UUID
-	stringmap_insert(Decoders, "uuid", ml_json_decode_uuid);
+	stringmap_insert(Decoders, "uuid", ml_minijs_decode_uuid);
 #endif
-#include "ml_jsencode_init.c"
+#include "ml_minijs_init.c"
 	if (Globals) {
-		stringmap_insert(Globals, "jsencoder", JSEncoderT);
-		stringmap_insert(Globals, "jsdecoder", JSDecoderT);
+		stringmap_insert(Globals, "minijs", ml_module("minijs",
+			"encode", MinijsEncode,
+			"decode", MinijsDecode,
+		NULL));
 	}
 }

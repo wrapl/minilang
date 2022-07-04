@@ -1471,30 +1471,6 @@ ML_METHOD("bin", MLIntegerRangeT, MLDoubleT) {
 	return ml_integer(floor((Value - Range->Start) / Range->Step) + 1);
 }
 
-ML_METHOD("bin", MLRealRangeT, MLIntegerT) {
-//!range
-//<Range
-//<Value
-//>integer | nil
-	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
-	int64_t Value = ml_integer_value_fast(Args[1]);
-	if (Value < Range->Start) return MLNil;
-	if (Value > Range->Limit) return MLNil;
-	return ml_integer((Value - Range->Start) / Range->Step + 1);
-}
-
-ML_METHOD("bin", MLRealRangeT, MLDoubleT) {
-//!range
-//<Range
-//<Value
-//>integer | nil
-	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
-	double Value = ml_real_value(Args[1]);
-	if (Value < Range->Start) return MLNil;
-	if (Value > Range->Limit) return MLNil;
-	return ml_integer(floor((Value - Range->Start) / Range->Step) + 1);
-}
-
 ML_METHOD("count", MLRealRangeT) {
 //!range
 //<Range
@@ -1565,6 +1541,30 @@ ML_METHOD("random", MLRealRangeT) {
 	int Random;
 	do Random = random() / Divisor; while (Random >= Limit);
 	return ml_real(Range->Start + Random * Range->Step);
+}
+
+ML_METHOD("bin", MLRealRangeT, MLIntegerT) {
+//!range
+//<Range
+//<Value
+//>integer | nil
+	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
+	int64_t Value = ml_integer_value_fast(Args[1]);
+	if (Value < Range->Start) return MLNil;
+	if (Value > Range->Limit) return MLNil;
+	return ml_integer((Value - Range->Start) / Range->Step + 1);
+}
+
+ML_METHOD("bin", MLRealRangeT, MLDoubleT) {
+//!range
+//<Range
+//<Value
+//>integer | nil
+	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
+	double Value = ml_real_value(Args[1]);
+	if (Value < Range->Start) return MLNil;
+	if (Value > Range->Limit) return MLNil;
+	return ml_integer(floor((Value - Range->Start) / Range->Step) + 1);
 }
 
 // Switch Functions //

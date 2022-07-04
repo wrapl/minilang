@@ -76,8 +76,8 @@
 #include "ml_uuid.h"
 #endif
 
-#ifdef ML_JSENCODE
-#include "ml_jsencode.h"
+#ifdef ML_MINIJS
+#include "ml_minijs.h"
 #endif
 
 #ifdef ML_BACKTRACE
@@ -305,8 +305,8 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_UUID
 	ml_uuid_init(UTIL_EXPORTS);
 #endif
-#ifdef ML_JSENCODE
-	ml_jsencode_init(UTIL_EXPORTS);
+#ifdef ML_MINIJS
+	ml_minijs_init(FMT_EXPORTS);
 #endif
 #ifdef ML_THREADS
 	ml_thread_init(SYS_EXPORTS);
