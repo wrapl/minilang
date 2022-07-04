@@ -7,6 +7,14 @@
 xml
 ===
 
+:mini:`meth xml::parse(Stream: stream): xml`
+   Returns the contents of :mini:`Stream` parsed into an XML node.
+
+
+:mini:`meth xml::parse(String: string): xml`
+   Returns :mini:`String` parsed into an XML node.
+
+
 .. _type-xml:
 
 :mini:`type xml`

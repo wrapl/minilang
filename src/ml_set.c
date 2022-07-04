@@ -30,9 +30,7 @@ ML_ENUM2(MLSetOrderT, "set::order",
 
 static void ML_TYPED_FN(ml_value_find_refs, MLSetT, ml_value_t *Value, void *Data, ml_value_ref_fn RefFn) {
 	if (!RefFn(Data, Value)) return;
-	ML_SET_FOREACH(Value, Iter) {
-		ml_value_find_refs(Iter->Key, Data, RefFn);
-	}
+	ML_SET_FOREACH(Value, Iter) ml_value_find_refs(Iter->Key, Data, RefFn);
 }
 
 ML_TYPE(MLSetNodeT, (), "set-node");

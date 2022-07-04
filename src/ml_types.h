@@ -814,9 +814,13 @@ static inline ml_value_t *ml_type_constructor(ml_type_t *Type) {
 
 #define ML_METHODX(METHOD, TYPES ...) static void CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args)
 
+#define ML_METHODZ(METHOD, TYPES ...) static ml_value_t *CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)(void *Data, int Count, ml_value_t **Args)
+
 #define ML_METHODV(METHOD, TYPES ...) static ml_value_t *CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)(void *Data, int Count, ml_value_t **Args)
 
 #define ML_METHODVX(METHOD, TYPES ...) static void CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args)
+
+#define ML_METHODVZ(METHOD, TYPES ...) static void CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args)
 
 static inline ml_value_t *ml_nop(void *Value) {
 	return (ml_value_t *)Value;
@@ -833,9 +837,13 @@ static inline ml_value_t *ml_nop(void *Value) {
 
 #define ML_METHODX(METHOD, TYPES ...) INIT_CODE ml_method_definev(_Generic(METHOD, char *: ml_method, ml_type_t *: ml_type_constructor, default: ml_nop)(METHOD), ml_cfunctionx2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), 0, ##TYPES, NULL);
 
+#define ML_METHODZ(METHOD, TYPES ...) INIT_CODE ml_method_definev(_Generic(METHOD, char *: ml_method, ml_type_t *: ml_type_constructor, default: ml_nop)(METHOD), ml_cfunctionz2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), 0, ##TYPES, NULL);
+
 #define ML_METHODV(METHOD, TYPES ...) INIT_CODE ml_method_definev(_Generic(METHOD, char *: ml_method, ml_type_t *: ml_type_constructor, default: ml_nop)(METHOD), ml_cfunction2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), 1, ##TYPES, NULL);
 
 #define ML_METHODVX(METHOD, TYPES ...) INIT_CODE ml_method_definev(_Generic(METHOD, char *: ml_method, ml_type_t *: ml_type_constructor, default: ml_nop)(METHOD), ml_cfunctionx2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), 1, ##TYPES, NULL);
+
+#define ML_METHODVZ(METHOD, TYPES ...) INIT_CODE ml_method_definev(_Generic(METHOD, char *: ml_method, ml_type_t *: ml_type_constructor, default: ml_nop)(METHOD), ml_cfunctionz2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), 1, ##TYPES, NULL);
 
 #else
 
@@ -843,9 +851,13 @@ static inline ml_value_t *ml_nop(void *Value) {
 
 #define ML_METHODX(METHOD, TYPES ...) INIT_CODE ml_methodx_by_auto(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), TYPES, (void *)NULL);
 
+#define ML_METHODZ(METHOD, TYPES ...) INIT_CODE ml_methodz_by_auto(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), TYPES, (void *)NULL);
+
 #define ML_METHODV(METHOD, TYPES ...) INIT_CODE ml_method_by_auto(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), TYPES, (void *)NULL);
 
 #define ML_METHODVX(METHOD, TYPES ...) INIT_CODE ml_methodx_by_auto(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), TYPES, (void *)NULL);
+
+#define ML_METHODVZ(METHOD, TYPES ...) INIT_CODE ml_methodz_by_auto(METHOD, NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), TYPES, (void *)NULL);
 
 #endif
 
@@ -1100,6 +1112,21 @@ ml_value_t *ml_module(const char *Path, ...) __attribute__ ((malloc, sentinel));
 const char *ml_module_path(ml_value_t *Module) __attribute__ ((pure));
 ml_value_t *ml_module_import(ml_value_t *Module, const char *Name) __attribute__ ((pure));
 ml_value_t *ml_module_export(ml_value_t *Module, const char *Name, ml_value_t *Value);
+
+// Externals //
+
+extern ml_type_t MLExternalT[];
+
+typedef struct {
+	ml_type_t *Type;
+	const char *Name;
+	stringmap_t Exports[1];
+	int Length;
+} ml_external_t;
+
+ml_value_t *ml_external(const char *Name) __attribute__ ((malloc));
+
+extern stringmap_t MLExternals[];
 
 // Init //
 

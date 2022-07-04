@@ -1341,6 +1341,58 @@ ML_METHODX(MLXmlT, MLStreamT) {
 	return State->read((ml_state_t *)State, State->Stream, State->Text, ML_STRINGBUFFER_NODE_SIZE);
 }
 
+ML_METHOD_ANON(MLXmlParse, "xml::parse");
+
+ML_METHOD(MLXmlParse, MLStringT) {
+//@xml::parse
+//<String
+//>xml
+// Returns :mini:`String` parsed into an XML node.
+	ml_value_t *Result = NULL;
+	xml_decoder_t Decoder = {0,};
+	Decoder.Callback = (void *)xml_decode_callback;
+	Decoder.Data = &Result;
+	Decoder.Stack = &Decoder.Stack0;
+	XML_Memory_Handling_Suite Suite = {GC_malloc, GC_realloc, ml_free};
+	XML_Parser Handle = XML_ParserCreate_MM(NULL, &Suite, NULL);
+	XML_SetUserData(Handle, &Decoder);
+	XML_SetElementHandler(Handle, (void *)xml_start_element, (void *)xml_end_element);
+	XML_SetCharacterDataHandler(Handle, (void *)xml_character_data);
+	XML_SetSkippedEntityHandler(Handle, (void *)xml_skipped_entity);
+	XML_SetDefaultHandler(Handle, (void *)xml_default);
+	const char *Text = ml_string_value(Args[0]);
+	size_t Length = ml_string_length(Args[0]);
+	if (XML_Parse(Handle, Text, Length, 1) == XML_STATUS_ERROR) {
+		enum XML_Error Error = XML_GetErrorCode(Handle);
+		return ml_error("XMLError", "%s", XML_ErrorString(Error));
+	}
+	return Result ?: ml_error("XMLError", "Incomplete XML");
+}
+
+ML_METHODX(MLXmlParse, MLStreamT) {
+//@xml::parse
+//<Stream
+//>xml
+// Returns the contents of :mini:`Stream` parsed into an XML node.
+	ml_xml_stream_state_t *State = new(ml_xml_stream_state_t);
+	State->Decoder.Callback = (void *)xml_decode_callback;
+	State->Decoder.Data = &State->Result;
+	State->Decoder.Stack = &State->Decoder.Stack0;
+	XML_Memory_Handling_Suite Suite = {GC_malloc, GC_realloc, ml_free};
+	XML_Parser Handle = State->Handle = XML_ParserCreate_MM(NULL, &Suite, NULL);
+	XML_SetUserData(Handle, &State->Decoder);
+	XML_SetElementHandler(Handle, (void *)xml_start_element, (void *)xml_end_element);
+	XML_SetCharacterDataHandler(Handle, (void *)xml_character_data);
+	XML_SetSkippedEntityHandler(Handle, (void *)xml_skipped_entity);
+	XML_SetDefaultHandler(Handle, (void *)xml_default);
+	State->Stream = Args[0];
+	State->read = ml_typed_fn_get(ml_typeof(Args[0]), ml_stream_read) ?: ml_stream_read_method;
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_xml_stream_state_run;
+	return State->read((ml_state_t *)State, State->Stream, State->Text, ML_STRINGBUFFER_NODE_SIZE);
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Callback;
@@ -1407,6 +1459,7 @@ static void ML_TYPED_FN(ml_stream_flush, MLXmlDecoderT, ml_state_t *Caller, ml_x
 
 void ml_xml_init(stringmap_t *Globals) {
 #include "ml_xml_init.c"
+	stringmap_insert(MLXmlT->Exports, "parse", MLXmlParse);
 	stringmap_insert(MLXmlT->Exports, "text", MLXmlTextT);
 	stringmap_insert(MLXmlT->Exports, "element", MLXmlElementT);
 	stringmap_insert(MLXmlT->Exports, "decoder", MLXmlDecoderT);

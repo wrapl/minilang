@@ -21,6 +21,7 @@ hierarchy
       "sequence":e -> "tuple":w;
       "any":e -> "boolean":w;
       "any":e -> "module":w;
+      "any":e -> "external":w;
       "any":e -> "xml":w;
       "xml":e -> "xml::text":w;
       "string":e -> "xml::text":w;
@@ -101,9 +102,6 @@ hierarchy
       "any":e -> "list::slice":w;
       "any":e -> "module::dir":w;
       "stream":e -> "json::decoder":w;
-      "any":e -> "jsvalue":w;
-      "any":e -> "jsencoder":w;
-      "any":e -> "jsdecoder":w;
       "sequence":e -> "gir":w;
       "type":e -> "gir::baseinfo":w;
       "any":e -> "gir::module":w;

@@ -884,7 +884,9 @@ ML_METHOD("take", MLMapT, MLMapT) {
 	ml_map_t *Source = (ml_map_t *)Args[1];
 	for (ml_map_node_t *Node = Source->Head; Node;) {
 		ml_map_node_t *Next = Node->Next;
-		ml_map_insert_node(Map, &Map->Root, ml_typeof(Node->Key)->hash(Node->Key, NULL), Node);
+		ml_value_t *Value = Node->Value;
+		ml_map_node_t *New = ml_map_insert_node(Map, &Map->Root, ml_typeof(Node->Key)->hash(Node->Key, NULL), Node);
+		New->Value = Value;
 		Node = Next;
 	}
 	Source->Root = Source->Head = Source->Tail = NULL;

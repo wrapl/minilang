@@ -34,14 +34,14 @@ struct ml_methods_t {
 static void ml_methods_call(ml_state_t *Caller, ml_methods_t *Methods, int Count, ml_value_t **Args) {
 	ml_state_t *State = ml_state(Caller);
 	State->Context->Values[ML_METHODS_INDEX] = Methods;
-	ml_value_t *Function = Args[0];
-	return ml_call(State, Function, Count - 1, Args + 1);
+	ml_value_t *Function = ml_deref(Args[Count - 1]);
+	return ml_call(State, Function, Count - 1, Args);
 }
 
 ML_TYPE(MLMethodContextT, (), "method::context",
 // A context for isolating method definitions.
 //
-// :mini:`(C: method::context)(Fn: function, Args, ...): any`
+// :mini:`(C: method::context)(Args: any, ..., Fn: function): any`
 //     Calls :mini:`Fn(Args)` in a new context using :mini:`C` for method definitions.
 	.call = (void *)ml_methods_call
 );
@@ -493,6 +493,7 @@ typedef struct {
 
 static void ml_method_switch(ml_state_t *Caller, ml_method_switch_t *Switch, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLMethodT);
 	ml_value_t *Arg = ml_deref(Args[0]);
 	ml_value_t *Index = inthash_search(Switch->Cases, (uintptr_t)Arg);
 	ML_RETURN(Index ?: Switch->Default);
@@ -516,7 +517,7 @@ ML_FUNCTION(MLMethodSwitch) {
 		ML_LIST_FOREACH(Args[I], Iter) {
 			ml_value_t *Value = Iter->Value;
 			if (ml_is(Value, MLMethodT)) {
-				inthash_insert(Switch->Cases, (uintptr_t)Iter->Value, ml_integer(I));
+				inthash_insert(Switch->Cases, (uintptr_t)Value, ml_integer(I));
 			} else {
 				return ml_error("ValueError", "Unsupported value in method case");
 			}

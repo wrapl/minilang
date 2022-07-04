@@ -3707,7 +3707,7 @@ typedef struct {
 } ml_stringbuffer_append_state_t;
 
 #ifdef ML_THREADSAFE
-static ml_stringbuffer_append_state_t _Atomic *StringBufferAppendStateCache = NULL;
+static ml_stringbuffer_append_state_t * _Atomic StringBufferAppendStateCache = NULL;
 #else
 static ml_stringbuffer_append_state_t *StringBufferAppendStateCache = NULL;
 #endif

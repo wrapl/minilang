@@ -481,8 +481,15 @@ void ml_type_add_rule(ml_type_t *T, ml_type_t *U, ...) {
 ML_TYPE(MLNilT, (MLFunctionT, MLSequenceT), "nil");
 //!internal
 
-ML_TYPE(MLSomeT, (MLFunctionT), "some");
+ML_FUNCTION(MLSomeFn) {
 //!internal
+	return MLSome;
+}
+
+ML_TYPE(MLSomeT, (MLFunctionT), "some",
+//!internal
+	.Constructor = (ml_value_t *)MLSomeFn
+);
 
 static void ml_blank_assign(ml_state_t *Caller, ml_value_t *Blank, ml_value_t *Value) {
 	ML_RETURN(Value);
@@ -1003,6 +1010,42 @@ ML_METHOD("append", MLStringBufferT, MLAnyT) {
 	return MLSome;
 }
 
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Default;
+	inthash_t Cases[1];
+} ml_any_switch_t;
+
+static void ml_any_switch(ml_state_t *Caller, ml_any_switch_t *Switch, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_value_t *Arg = ml_deref(Args[0]);
+	ml_value_t *Index = inthash_search(Switch->Cases, (uintptr_t)Arg);
+	ML_RETURN(Index ?: Switch->Default);
+}
+
+ML_TYPE(MLAnySwitchT, (MLFunctionT), "any-switch",
+//!internal
+	.call = (void *)ml_any_switch
+);
+
+ML_FUNCTION(MLAnySwitch) {
+//!internal
+	int Total = 1;
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
+		Total += ml_list_length(Args[I]);
+	}
+	ml_any_switch_t *Switch = new(ml_any_switch_t);
+	Switch->Type = MLAnySwitchT;
+	for (int I = 0; I < Count; ++I) {
+		ML_LIST_FOREACH(Args[I], Iter) {
+			inthash_insert(Switch->Cases, (uintptr_t)Iter->Value, ml_integer(I));
+		}
+	}
+	Switch->Default = ml_integer(Count);
+	return (ml_value_t *)Switch;
+}
+
 void ml_value_set_name(ml_value_t *Value, const char *Name) {
 	typeof(ml_value_set_name) *function = ml_typed_fn_get(ml_typeof(Value), ml_value_set_name);
 	if (function) function(Value, Name);
@@ -1284,6 +1327,16 @@ ml_value_t *ml_cfunctionz(void *Data, ml_callbackx_t Callback) {
 	Function->Type = MLCFunctionZT;
 	Function->Data = Data;
 	Function->Callback = Callback;
+	return (ml_value_t *)Function;
+}
+
+ml_value_t *ml_cfunctionz2(void *Data, ml_callbackx_t Callback, const char *Source, int Line) {
+	ml_cfunctionx_t *Function = new(ml_cfunctionx_t);
+	Function->Type = MLCFunctionZT;
+	Function->Data = Data;
+	Function->Callback = Callback;
+	Function->Source = Source;
+	Function->Line = Line;
 	return (ml_value_t *)Function;
 }
 
@@ -2229,6 +2282,71 @@ ML_METHOD("exports", MLModuleT) {
 	return Exports;
 }
 
+// Externals //
+//!external
+
+ml_value_t *ml_external(const char *Name) {
+	ml_external_t *External = new(ml_external_t);
+	External->Type = MLExternalT;
+	External->Name = Name;
+	External->Length = strlen(Name);
+	return (ml_value_t *)External;
+}
+
+ML_FUNCTION(MLExternal) {
+//@external
+//<Name
+//>external
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	return ml_external(ml_string_value(Args[0]));
+}
+
+ML_TYPE(MLExternalT, (), "external",
+// A placeholder value that can be encoded and replaced on decoding.
+	.Constructor = (ml_value_t *)MLExternal
+);
+
+ML_METHOD("::", MLExternalT, MLStringT) {
+//<External
+//<Import
+//>external
+	ml_external_t *External = (ml_external_t *)Args[0];
+	const char *Name = ml_string_value(Args[1]);
+	ml_value_t **Slot = (ml_value_t **)stringmap_slot(External->Exports, Name);
+	if (!Slot[0]) {
+		char *FullName = snew(External->Length + strlen(Name) + 3);
+		stpcpy(stpcpy(stpcpy(FullName, External->Name), "::"), Name);
+		Slot[0] = ml_external(FullName);
+	}
+	return Slot[0];
+}
+
+stringmap_t MLExternals[1] = {STRINGMAP_INIT};
+
+ML_FUNCTION(MLExternalGet) {
+//@external::get
+//<Name
+//>any|error
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	const char *Name = ml_string_value(Args[0]);
+	ml_value_t *Value = (ml_value_t *)stringmap_search(MLExternals, Name);
+	if (Value) return Value;
+	return ml_error("NameError", "External %s not defined", Name);
+}
+
+ML_FUNCTION(MLExternalAdd) {
+//@external::add
+//<Name
+//<Value
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	const char *Name = ml_string_value(Args[0]);
+	stringmap_insert(MLExternals, Name, Args[1]);
+	return MLNil;
+}
+
 // Init //
 //!general
 
@@ -2405,6 +2523,7 @@ void ml_init(stringmap_t *Globals) {
 	ml_type_add_rule(MLTupleT, MLFunctionT, MLTupleT, NULL);
 #endif
 	stringmap_insert(MLTypeT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLTypeSwitch));
+	stringmap_insert(MLAnyT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLAnySwitch));
 #ifdef ML_COMPLEX
 	stringmap_insert(MLCompilerT->Exports, "i", ml_complex(1i));
 #endif
@@ -2430,6 +2549,29 @@ void ml_init(stringmap_t *Globals) {
 	ml_compiler_init();
 	ml_runtime_init();
 	ml_bytecode_init();
+	stringmap_insert(MLExternalT->Exports, "get", MLExternalGet);
+	stringmap_insert(MLExternalT->Exports, "add", MLExternalAdd);
+	stringmap_insert(MLExternals, "type", MLTypeT);
+	stringmap_insert(MLExternals, "any", MLAnyT);
+	stringmap_insert(MLExternals, "some", MLSome);
+	stringmap_insert(MLExternals, "integer", MLIntegerT);
+	stringmap_insert(MLExternals, "real", MLRealT);
+	stringmap_insert(MLExternals, "number", MLNumberT);
+	stringmap_insert(MLExternals, "string", MLStringT);
+	stringmap_insert(MLExternals, "list", MLListT);
+	stringmap_insert(MLExternals, "tuple", MLTupleT);
+	stringmap_insert(MLExternals, "map", MLMapT);
+	stringmap_insert(MLExternals, "set", MLSetT);
+	stringmap_insert(MLExternals, "boolean", MLBooleanT);
+	stringmap_insert(MLExternals, "error", MLErrorT);
+	stringmap_insert(MLExternals, "regex", MLRegexT);
+#ifdef ML_COMPLEX
+	stringmap_insert(MLExternals, "complex", MLComplexT);
+#endif
+	stringmap_insert(MLExternals, "method", MLMethodT);
+	stringmap_insert(MLExternals, "address", MLAddressT);
+	stringmap_insert(MLExternals, "buffer", MLBufferT);
+	stringmap_insert(MLExternals, "tuple", MLTupleT);
 	if (Globals) {
 		stringmap_insert(Globals, "any", MLAnyT);
 		stringmap_insert(Globals, "type", MLTypeT);
@@ -2455,6 +2597,7 @@ void ml_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "list", MLListT);
 		stringmap_insert(Globals, "map", MLMapT);
 		stringmap_insert(Globals, "set", MLSetT);
+		stringmap_insert(Globals, "external", MLExternalT);
 		stringmap_insert(Globals, "error", MLErrorValueT);
 		stringmap_insert(Globals, "module", MLModuleT);
 		stringmap_insert(Globals, "some", MLSome);

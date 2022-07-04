@@ -205,7 +205,7 @@ MINILANG_UUID := old or defined("UUID")
 MINILANG_ICU := old or defined("ICU")
 MINILANG_LIBS := old or defined("LIBS")
 MINILANG_BACKTRACE := old or defined("BACKTRACE")
-MINILANG_JSENCODE := old or defined("JSENCODE")
+MINILANG_MINIJS := old or defined("MINIJS")
 
 MINILANG_GTK_CONSOLE := old or defined("GTK_CONSOLE")
 
@@ -421,11 +421,11 @@ if MINILANG_ICU then
 	LDFLAGS := old + ["-licuuc"]
 end
 
-if MINILANG_JSENCODE then
-	Objects:put(file("ml_jsencode.o"))
-	CFLAGS := old + ["-DML_JSENCODE"]
+if MINILANG_MINIJS then
+	Objects:put(file("ml_minijs.o"))
+	CFLAGS := old + ["-DML_MINIJS"]
 	LDFLAGS := old + ["-ljansson"]
-	InstallHeaders:put("ml_jsencode.h")
+	InstallHeaders:put("ml_minijs.h")
 end
 
 if PLATFORM = "Linux" then

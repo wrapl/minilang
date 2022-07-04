@@ -365,7 +365,7 @@ map
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
       M:random :> "c"
-      M:random :> "c"
+      M:random :> "e"
 
 
 :mini:`meth (Map: map):reverse: map`
