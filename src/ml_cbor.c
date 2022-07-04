@@ -156,6 +156,9 @@ ml_cbor_reader_t *ml_cbor_reader(ml_cbor_tag_fns_t *TagFns, ml_getter_t GlobalGe
 }
 
 void ml_cbor_reader_reset(ml_cbor_reader_t *Reader) {
+	Reader->Collection = NULL;
+	Reader->Tags = NULL;
+	Reader->Value = NULL;
 	Reader->NumReused = Reader->MaxReused = 0;
 	minicbor_reader_init(Reader->Reader);
 }
