@@ -16,6 +16,12 @@
 #include <regex.h>
 #endif
 
+#ifdef ML_ICU
+#include "ml_object.h"
+#include <unicode/unorm2.h>
+#include <unicode/ustring.h>
+#endif
+
 #ifdef ML_COMPLEX
 #include <complex.h>
 #undef I
@@ -1184,11 +1190,48 @@ ML_METHOD("utf8", MLIntegerT) {
 	return ml_string(S, I);
 }
 
-#ifdef ML_ICU
+ML_METHOD("lower", MLStringT) {
+//<String
+//>string
+// Returns :mini:`String` with each character converted to lower case.
+//$= "Hello World":lower
+	const char *Source = ml_string_value(Args[0]);
+	int Length = ml_string_length(Args[0]);
+	char *Target = snew(Length + 1);
+	for (int I = 0; I < Length; ++I) Target[I] = tolower(Source[I]);
+	return ml_string(Target, Length);
+}
 
-#include "ml_object.h"
-#include <unicode/unorm2.h>
-#include <unicode/ustring.h>
+ML_METHOD("upper", MLStringT) {
+//<String
+//>string
+// Returns :mini:`String` with each character converted to upper case.
+//$= "Hello World":upper
+	const char *Source = ml_string_value(Args[0]);
+	int Length = ml_string_length(Args[0]);
+	char *Target = snew(Length + 1);
+	for (int I = 0; I < Length; ++I) Target[I] = toupper(Source[I]);
+	return ml_string(Target, Length);
+}
+
+ML_METHOD("title", MLStringT) {
+//<String
+//>string
+// Returns :mini:`String` with the first character and each character after whitespace converted to upper case and each other case converted to lower case.
+//$= "hello world":title
+//$= "HELLO WORLD":title
+	const char *Source = ml_string_value(Args[0]);
+	int Length = ml_string_length(Args[0]);
+	char *Target = snew(Length + 1);
+	int Upper = 1;
+	for (int I = 0; I < Length; ++I) {
+		Target[I] = (Upper ? toupper : tolower)(Source[I]);
+		Upper = isblank(Source[I]);
+	}
+	return ml_string(Target, Length);
+}
+
+#ifdef ML_ICU
 
 enum {
 	ML_UNORM_NFC,
@@ -2048,30 +2091,6 @@ ML_METHOD("*/", MLStringT, MLRegexT) {
 	ml_tuple_set(Results, 1, Args[0]);
 	ml_tuple_set(Results, 2, ml_cstring(""));
 	return Results;
-}
-
-ML_METHOD("lower", MLStringT) {
-//<String
-//>string
-// Returns :mini:`String` with each character converted to lower case.
-//$= "Hello World":lower
-	const char *Source = ml_string_value(Args[0]);
-	int Length = ml_string_length(Args[0]);
-	char *Target = snew(Length + 1);
-	for (int I = 0; I < Length; ++I) Target[I] = tolower(Source[I]);
-	return ml_string(Target, Length);
-}
-
-ML_METHOD("upper", MLStringT) {
-//<String
-//>string
-// Returns :mini:`String` with each character converted to upper case.
-//$= "Hello World":upper
-	const char *Source = ml_string_value(Args[0]);
-	int Length = ml_string_length(Args[0]);
-	char *Target = snew(Length + 1);
-	for (int I = 0; I < Length; ++I) Target[I] = toupper(Source[I]);
-	return ml_string(Target, Length);
 }
 
 ML_METHOD("escape", MLStringT) {

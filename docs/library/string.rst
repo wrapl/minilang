@@ -735,6 +735,15 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Hello world":starts("cake") :> nil
 
 
+:mini:`meth (String: string):title: string`
+   Returns :mini:`String` with the first character and each character after whitespace converted to upper case and each other case converted to lower case.
+
+   .. code-block:: mini
+
+      "hello world":title :> "Hello World"
+      "HELLO WORLD":title :> "Hello World"
+
+
 :mini:`meth (String: string):trim: string`
    Returns a copy of :mini:`String` with whitespace removed from both ends.
 
