@@ -1,7 +1,6 @@
 #include "ml_macros.h"
 #include "ml_bytecode.h"
 #include <string.h>
-#include <jansson.h>
 #include "ml_minijs.h"
 
 #ifdef ML_UUID
@@ -15,10 +14,10 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "minijs"
 
-typedef struct {
+struct ml_minijs_encoder_t {
 	inthash_t Cached[1];
 	int LastIndex;
-} ml_minijs_encoder_t;
+};
 
 json_t *ml_minijs_encode(ml_minijs_encoder_t *Cache, ml_value_t *Value) {
 	json_t *Json = inthash_search(Cache->Cached, (uintptr_t)Value);
