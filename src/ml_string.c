@@ -611,7 +611,8 @@ ML_METHOD("append", MLStringBufferT, MLAddressT) {
 // Appends a representation of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_address_t *Address = (ml_address_t *)Args[1];
-	ml_stringbuffer_printf(Buffer, "#%" PRIxPTR ":%ld", (uintptr_t)Address->Value, Address->Length);
+	//ml_stringbuffer_printf(Buffer, "#%" PRIxPTR ":%ld", (uintptr_t)Address->Value, Address->Length);
+	ml_stringbuffer_write(Buffer, Address->Value, Address->Length);
 	return MLSome;
 }
 

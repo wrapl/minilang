@@ -2342,7 +2342,12 @@ ML_METHOD("::", MLExternalT, MLStringT) {
 	return Slot[0];
 }
 
-stringmap_t MLExternals[1] = {STRINGMAP_INIT};
+ml_externals_t MLExternals = {{INTHASH_INIT}, {STRINGMAP_INIT}};
+
+void ml_externals_add(const char *Name, void *Value) {
+	stringmap_insert(MLExternals.Names, Name, Value);
+	inthash_insert(MLExternals.Values, (uintptr_t)Value, (void *)Name);
+}
 
 ML_FUNCTION(MLExternalGet) {
 //@external::get
@@ -2351,7 +2356,7 @@ ML_FUNCTION(MLExternalGet) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	const char *Name = ml_string_value(Args[0]);
-	ml_value_t *Value = (ml_value_t *)stringmap_search(MLExternals, Name);
+	ml_value_t *Value = (ml_value_t *)stringmap_search(MLExternals.Names, Name);
 	if (Value) return Value;
 	return ml_error("NameError", "External %s not defined", Name);
 }
@@ -2363,7 +2368,8 @@ ML_FUNCTION(MLExternalAdd) {
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	const char *Name = ml_string_value(Args[0]);
-	stringmap_insert(MLExternals, Name, Args[1]);
+	stringmap_insert(MLExternals.Names, Name, Args[1]);
+	inthash_insert(MLExternals.Values, (uintptr_t)Args[1], (void *)Name);
 	return MLNil;
 }
 
@@ -2571,27 +2577,27 @@ void ml_init(stringmap_t *Globals) {
 	ml_bytecode_init();
 	stringmap_insert(MLExternalT->Exports, "get", MLExternalGet);
 	stringmap_insert(MLExternalT->Exports, "add", MLExternalAdd);
-	stringmap_insert(MLExternals, "type", MLTypeT);
-	stringmap_insert(MLExternals, "any", MLAnyT);
-	stringmap_insert(MLExternals, "some", MLSome);
-	stringmap_insert(MLExternals, "integer", MLIntegerT);
-	stringmap_insert(MLExternals, "real", MLRealT);
-	stringmap_insert(MLExternals, "number", MLNumberT);
-	stringmap_insert(MLExternals, "string", MLStringT);
-	stringmap_insert(MLExternals, "list", MLListT);
-	stringmap_insert(MLExternals, "tuple", MLTupleT);
-	stringmap_insert(MLExternals, "map", MLMapT);
-	stringmap_insert(MLExternals, "set", MLSetT);
-	stringmap_insert(MLExternals, "boolean", MLBooleanT);
-	stringmap_insert(MLExternals, "error", MLErrorT);
-	stringmap_insert(MLExternals, "regex", MLRegexT);
+	ml_externals_add("type", MLTypeT);
+	ml_externals_add("any", MLAnyT);
+	ml_externals_add("some", MLSome);
+	ml_externals_add("integer", MLIntegerT);
+	ml_externals_add("real", MLRealT);
+	ml_externals_add("number", MLNumberT);
+	ml_externals_add("string", MLStringT);
+	ml_externals_add("list", MLListT);
+	ml_externals_add("tuple", MLTupleT);
+	ml_externals_add("map", MLMapT);
+	ml_externals_add("set", MLSetT);
+	ml_externals_add("boolean", MLBooleanT);
+	ml_externals_add("error", MLErrorT);
+	ml_externals_add("regex", MLRegexT);
 #ifdef ML_COMPLEX
-	stringmap_insert(MLExternals, "complex", MLComplexT);
+	ml_externals_add("complex", MLComplexT);
 #endif
-	stringmap_insert(MLExternals, "method", MLMethodT);
-	stringmap_insert(MLExternals, "address", MLAddressT);
-	stringmap_insert(MLExternals, "buffer", MLBufferT);
-	stringmap_insert(MLExternals, "tuple", MLTupleT);
+	ml_externals_add("method", MLMethodT);
+	ml_externals_add("address", MLAddressT);
+	ml_externals_add("buffer", MLBufferT);
+	ml_externals_add("tuple", MLTupleT);
 	if (Globals) {
 		stringmap_insert(Globals, "any", MLAnyT);
 		stringmap_insert(Globals, "type", MLTypeT);

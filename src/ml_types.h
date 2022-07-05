@@ -1126,7 +1126,14 @@ typedef struct {
 
 ml_value_t *ml_external(const char *Name) __attribute__ ((malloc));
 
-extern stringmap_t MLExternals[];
+typedef struct {
+	inthash_t Values[1];
+	stringmap_t Names[1];
+} ml_externals_t;
+
+extern ml_externals_t MLExternals;
+
+void ml_externals_add(const char *Name, void *Value);
 
 // Init //
 

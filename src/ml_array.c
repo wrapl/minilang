@@ -7276,8 +7276,8 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_cbor_default_object("array::complex32", (ml_value_t *)MLCborReadComplex32);
 	ml_cbor_default_object("array::complex64", (ml_value_t *)MLCborReadComplex64);
 #endif
-	stringmap_insert(MLExternals, "array", MLArrayT);
-	stringmap_insert(MLExternals, "vector", MLVectorT);
-	stringmap_insert(MLExternals, "matrix", MLMatrixT);
+	ml_externals_add("array", MLArrayT);
+	ml_externals_add("vector", MLVectorT);
+	ml_externals_add("matrix", MLMatrixT);
 #endif
 }
