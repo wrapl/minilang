@@ -619,27 +619,37 @@ ML_METHOD("--", MLIntegerT) {
 	return ml_integer(ml_integer_value_fast(Args[0]) - 1);
 }
 
-ML_FUNCTIONZ(MLIntegerInc1) {
-//!internal
+ML_METHODZ("inc", MLIntegerT) {
+//<X
+//>integer
+// Atomic equivalent to :mini:`X := old + 1`.
 	int64_t Value = ml_integer_value(ml_deref(Args[0]));
 	return ml_assign(Caller, Args[0], ml_integer(Value + 1));
 }
 
-ML_FUNCTIONZ(MLIntegerDec1) {
-//!internal
+ML_METHODZ("dec", MLIntegerT) {
+//<X
+//>integer
+// Atomic equivalent to :mini:`X := old - 1`.
 	int64_t Value = ml_integer_value(ml_deref(Args[0]));
 	return ml_assign(Caller, Args[0], ml_integer(Value - 1));
 }
 
-ML_FUNCTIONZ(MLIntegerInc) {
-//!internal
+ML_METHODZ("inc", MLIntegerT, MLIntegerT) {
+//<X
+//<Y
+//>integer
+// Atomic equivalent to :mini:`X := old + Y`.
 	int64_t Value = ml_integer_value(ml_deref(Args[0]));
 	int64_t Amount = ml_integer_value(ml_deref(Args[1]));
 	return ml_assign(Caller, Args[0], ml_integer(Value + Amount));
 }
 
-ML_FUNCTIONZ(MLIntegerDec) {
-//!internal
+ML_METHODZ("dec", MLIntegerT, MLIntegerT) {
+//<X
+//<Y
+//>integer
+// Atomic equivalent to :mini:`X := old - Y`.
 	int64_t Value = ml_integer_value(ml_deref(Args[0]));
 	int64_t Amount = ml_integer_value(ml_deref(Args[1]));
 	return ml_assign(Caller, Args[0], ml_integer(Value - Amount));
@@ -1728,10 +1738,6 @@ void ml_number_init() {
 	stringmap_insert(MLRealT->Exports, "Inf", ml_real(INFINITY));
 	stringmap_insert(MLRealT->Exports, "NaN", ml_real(NAN));
 	ml_method_by_value(MLNumberT->Constructor, NULL, ml_identity, MLNumberT, NULL);
-	ml_method_define(ml_method("inc"), (ml_value_t *)MLIntegerInc1, 1, 0, (ml_type_t *[]){MLIntegerT});
-	ml_method_define(ml_method("dec"), (ml_value_t *)MLIntegerDec1, 1, 0, (ml_type_t *[]){MLIntegerT});
-	ml_method_define(ml_method("inc"), (ml_value_t *)MLIntegerInc, 2, 0, (ml_type_t *[]){MLIntegerT, MLIntegerT});
-	ml_method_define(ml_method("dec"), (ml_value_t *)MLIntegerDec, 2, 0, (ml_type_t *[]){MLIntegerT, MLIntegerT});
 	ml_infix_many("+");
 	ml_infix_many("*");
 	ml_infix_many("/\\");

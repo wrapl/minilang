@@ -453,9 +453,25 @@ number
    Returns the bitwise or of :mini:`A` and :mini:`B`.
 
 
+:mini:`meth (X: integer):dec: integer`
+   Atomic equivalent to :mini:`X := old - 1`.
+
+
+:mini:`meth (X: integer):dec(Y: integer): integer`
+   Atomic equivalent to :mini:`X := old - Y`.
+
+
 :mini:`meth (Int₁: integer):div(Int₂: integer): integer`
    Returns the quotient of :mini:`Int₁` divided by :mini:`Int₂`.
    The result is calculated by rounding down in all cases.
+
+
+:mini:`meth (X: integer):inc: integer`
+   Atomic equivalent to :mini:`X := old + 1`.
+
+
+:mini:`meth (X: integer):inc(Y: integer): integer`
+   Atomic equivalent to :mini:`X := old + Y`.
 
 
 :mini:`meth (A: integer):max(B: double): real`
@@ -523,16 +539,16 @@ number
    *TBD*
 
 
-.. _value-real-Inf:
-
-:mini:`def real::Inf: real`
-   Positive infinity.
-
-
 .. _value-real-NaN:
 
 :mini:`def real::NaN: real`
    Not a number.
+
+
+.. _value-real-Inf:
+
+:mini:`def real::Inf: real`
+   Positive infinity.
 
 
 :mini:`meth real(String: string): real | error`
