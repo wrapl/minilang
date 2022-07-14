@@ -1718,6 +1718,7 @@ ML_METHOD("append", MLStringBufferT, MLClosureT) {
 // Appends a representation of :mini:`Closure` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_closure_t *Closure = (ml_closure_t *)Args[1];
+	ml_stringbuffer_put(Buffer, '@');
 	ml_stringbuffer_write(Buffer, Closure->Info->Name, strlen(Closure->Info->Name));
 	return MLSome;
 }

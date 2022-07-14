@@ -4162,11 +4162,13 @@ static mlc_expr_t *ml_accept_fun_expr(ml_parser_t *Parser, const char *Name, ml_
 	return ML_EXPR_END(FunExpr);
 }
 
-extern ml_cfunctionx_t MLMethodSet[];
+//extern ml_cfunctionx_t MLMethodSet[];
+ML_METHOD_DECL(SetMethod, "set");
 
 static mlc_expr_t *ml_accept_meth_expr(ml_parser_t *Parser) {
 	ML_EXPR(MethodExpr, parent_value, const_call);
-	MethodExpr->Value = (ml_value_t *)MLMethodSet;
+	//MethodExpr->Value = (ml_value_t *)MLMethodSet;
+	MethodExpr->Value = SetMethod;
 	mlc_expr_t *Method = ml_parse_term(Parser, 1);
 	if (!Method) {
 		if (!Parser->Permissive) ml_parse_error(Parser, "ParseError", "Expected <factor> not <%s>", MLTokens[Parser->Token]);

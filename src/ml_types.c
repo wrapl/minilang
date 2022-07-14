@@ -2543,6 +2543,7 @@ void ml_init(stringmap_t *Globals) {
 	GC_set_pages_executable(1);
 #endif
 	GC_INIT();
+	ml_method_init();
 #include "ml_types_init.c"
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLTupleT, MLSequenceT, MLIntegerT, MLAnyT, NULL);
@@ -2568,7 +2569,6 @@ void ml_init(stringmap_t *Globals) {
 	ml_method_by_name(">=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
 	ml_number_init();
 	ml_string_init();
-	ml_method_init();
 	ml_list_init();
 	ml_map_init();
 	ml_set_init();
