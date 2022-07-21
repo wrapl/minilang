@@ -69,6 +69,7 @@ hierarchy
       "any":e -> "error::value":w;
       "any":e -> "debugger":w;
       "any":e -> "semaphore":w;
+      "any":e -> "condition":w;
       "any":e -> "rwlock":w;
       "any":e -> "channel":w;
       "any":e -> "pqueue::entry":w;

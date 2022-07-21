@@ -1036,12 +1036,7 @@ ML_TYPE(MLSemaphoreT, (), "semaphore",
 	.Constructor = (ml_value_t *)MLSemaphore
 );
 
-ML_METHODX("wait", MLSemaphoreT) {
-//!semaphore
-//<Semaphore
-//>integer
-// Waits until the internal value in :mini:`Semaphore` is postive, then decrements it and returns the new value.
-	ml_semaphore_t *Semaphore = (ml_semaphore_t *)Args[0];
+static void ml_semaphore_wait(ml_state_t *Caller, ml_semaphore_t *Semaphore) {
 	int64_t Value = Semaphore->Value;
 	if (Value) {
 		Semaphore->Value = Value - 1;
@@ -1060,22 +1055,34 @@ ML_METHODX("wait", MLSemaphoreT) {
 	Semaphore->Write = (Semaphore->Write + 1) % Semaphore->Size;
 }
 
-ML_METHOD("signal", MLSemaphoreT) {
-//!semaphore
-//<Semaphore
-//>integer
-// Increments the internal value in :mini:`Semaphore`, resuming any waiters. Returns the new value.
-	ml_semaphore_t *Semaphore = (ml_semaphore_t *)Args[0];
+static void ml_semaphore_signal(ml_semaphore_t *Semaphore) {
 	int Fill = Semaphore->Fill;
 	if (Fill) {
 		Semaphore->Fill = Fill - 1;
 		ml_state_t *State = Semaphore->States[Semaphore->Read];
 		Semaphore->States[Semaphore->Read] = NULL;
 		Semaphore->Read = (Semaphore->Read + 1) % Semaphore->Size;
-		State->run(State, (ml_value_t *)Semaphore);
+		State->run(State, ml_integer(Semaphore->Value));
 	} else {
 		++Semaphore->Value;
 	}
+}
+
+ML_METHODX("wait", MLSemaphoreT) {
+//!semaphore
+//<Semaphore
+//>integer
+// Waits until the internal value in :mini:`Semaphore` is postive, then decrements it and returns the new value.
+	return ml_semaphore_wait(Caller, (ml_semaphore_t *)Args[0]);
+}
+
+ML_METHOD("signal", MLSemaphoreT) {
+//!semaphore
+//<Semaphore
+//>integer
+// Increments the internal value in :mini:`Semaphore`, resuming any waiters. Returns the new value.
+	ml_semaphore_t *Semaphore = (ml_semaphore_t *)Args[0];
+	ml_semaphore_signal(Semaphore);
 	return ml_integer(Semaphore->Value);
 }
 
@@ -1086,6 +1093,92 @@ ML_METHOD("value", MLSemaphoreT) {
 // Returns the internal value in :mini:`Semaphore`.
 	ml_semaphore_t *Semaphore = (ml_semaphore_t *)Args[0];
 	return ml_integer(Semaphore->Value);
+}
+
+typedef struct {
+	ml_state_t *State;
+	ml_semaphore_t *Semaphore;
+} ml_cond_waiter_t;
+
+typedef struct {
+	ml_type_t *Type;
+	ml_cond_waiter_t *Waiters;
+	int Size, Fill, Write, Read;
+} ml_condition_t;
+
+ML_FUNCTION(MLCondition) {
+//!condition
+//@condition
+//>condition
+// Returns a new condition.
+	ml_condition_t *Condition = new(ml_condition_t);
+	Condition->Type = MLConditionT;
+	Condition->Fill = 0;
+	Condition->Size = 4;
+	Condition->Read = Condition->Write = 0;
+	Condition->Waiters = anew(ml_cond_waiter_t, 4);
+	return (ml_value_t *)Condition;
+}
+
+ML_TYPE(MLConditionT, (), "condition",
+//!condition
+// A condition for synchronizing concurrent code.
+	.Constructor = (ml_value_t *)MLCondition
+);
+
+ML_METHODX("wait", MLConditionT, MLSemaphoreT) {
+//!condition
+//<Condition
+//<Semaphore
+//>integer
+// Increments :mini:`Semaphore`, waits until :mini:`Condition` is signalled, then decrements :mini:`Semaphore` (waiting if necessary) and returns its value.
+	ml_condition_t *Condition = (ml_condition_t *)Args[0];
+	ml_semaphore_t *Semaphore = (ml_semaphore_t *)Args[1];
+	if (++Condition->Fill > Condition->Size) {
+		int Size = Condition->Size * 2;
+		ml_cond_waiter_t *Waiters = anew(ml_cond_waiter_t, Size);
+		memcpy(Waiters, Condition->Waiters, Condition->Size * sizeof(ml_cond_waiter_t));
+		Condition->Read = 0;
+		Condition->Write = Condition->Size;
+		Condition->Waiters = Waiters;
+		Condition->Size = Size;
+	}
+	Condition->Waiters[Condition->Write].State = Caller;
+	Condition->Waiters[Condition->Write].Semaphore = Semaphore;
+	Condition->Write = (Condition->Write + 1) % Condition->Size;
+	ml_semaphore_signal(Semaphore);
+}
+
+ML_METHOD("signal", MLConditionT) {
+//!condition
+//<Condition
+// Signals :mini:`Condition`, resuming a single waiter.
+	ml_condition_t *Condition = (ml_condition_t *)Args[0];
+	if (Condition->Fill) {
+		--Condition->Fill;
+		ml_cond_waiter_t Waiter = Condition->Waiters[Condition->Read];
+		Condition->Waiters[Condition->Read].State = NULL;
+		Condition->Waiters[Condition->Read].Semaphore = NULL;
+		Condition->Read = (Condition->Read + 1) % Condition->Size;
+		ml_semaphore_wait(Waiter.State, Waiter.Semaphore);
+	}
+	return MLNil;
+}
+
+ML_METHOD("broadcast", MLConditionT) {
+//!condition
+//<Condition
+// Signals :mini:`Condition`, resuming all waiters.
+	ml_condition_t *Condition = (ml_condition_t *)Args[0];
+	while (Condition->Fill) {
+		--Condition->Fill;
+		ml_cond_waiter_t Waiter = Condition->Waiters[Condition->Read];
+		Condition->Waiters[Condition->Read].State = NULL;
+		Condition->Waiters[Condition->Read].Semaphore = NULL;
+		Condition->Read = (Condition->Read + 1) % Condition->Size;
+		ml_semaphore_wait(Waiter.State, Waiter.Semaphore);
+	}
+	return MLNil;
 }
 
 typedef struct {
