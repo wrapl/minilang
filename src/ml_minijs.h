@@ -6,7 +6,7 @@
 
 typedef struct ml_minijs_encoder_t ml_minijs_encoder_t;
 
-json_t *ml_minijs_encode(ml_minijs_encoder_t *Cache, ml_value_t *Value);
+json_t *ml_minijs_encode(ml_minijs_encoder_t *Encoder, ml_value_t *Value);
 
 void ml_minijs_init(stringmap_t *Globals);
 

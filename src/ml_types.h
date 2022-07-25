@@ -1116,6 +1116,7 @@ ml_value_t *ml_module_export(ml_value_t *Module, const char *Name, ml_value_t *V
 // Externals //
 
 extern ml_type_t MLExternalT[];
+extern ml_type_t MLExternalSetT[];
 
 typedef struct {
 	ml_type_t *Type;
@@ -1126,12 +1127,18 @@ typedef struct {
 
 ml_value_t *ml_external(const char *Name) __attribute__ ((malloc));
 
-typedef struct {
+typedef struct ml_externals_t ml_externals_t;
+
+struct ml_externals_t {
+	ml_type_t *Type;
+	ml_externals_t *Next;
 	inthash_t Values[1];
 	stringmap_t Names[1];
-} ml_externals_t;
+};
 
-extern ml_externals_t MLExternals;
+extern ml_externals_t MLExternals[1];
+const char *ml_externals_get_name(ml_externals_t *Externals, ml_value_t *Value);
+ml_value_t *ml_externals_get_value(ml_externals_t *Externals, const char *Name);
 
 void ml_externals_add(const char *Name, void *Value);
 

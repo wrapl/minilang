@@ -2342,11 +2342,51 @@ ML_METHOD("::", MLExternalT, MLStringT) {
 	return Slot[0];
 }
 
-ml_externals_t MLExternals = {{INTHASH_INIT}, {STRINGMAP_INIT}};
+ML_TYPE(MLExternalSetT, (), "externals");
+
+ML_METHOD(MLExternalSetT) {
+//@external::set
+//>external::set
+	ml_externals_t *Externals = new(ml_externals_t);
+	Externals->Type = MLExternalSetT;
+	Externals->Next = MLExternals;
+	return (ml_value_t *)Externals;
+}
+
+ML_METHOD("add", MLExternalSetT, MLStringT, MLAnyT) {
+//<Externals
+//<Name
+//<Value
+	ml_externals_t *Externals = (ml_externals_t *)Args[0];
+	const char *Name = ml_string_value(Args[1]);
+	stringmap_insert(Externals->Names, Name, Args[2]);
+	inthash_insert(Externals->Values, (uintptr_t)Args[1], (void *)Name);
+	return MLNil;
+}
+
+ml_externals_t MLExternals[1] = {MLExternalSetT, NULL, {INTHASH_INIT}, {STRINGMAP_INIT}};
+
+const char *ml_externals_get_name(ml_externals_t *Externals, ml_value_t *Value) {
+	while (Externals) {
+		const char *Name = (const char *)inthash_search(Externals->Values,  (uintptr_t)Value);
+		if (Name) return Name;
+		Externals = Externals->Next;
+	}
+	return NULL;
+}
+
+ml_value_t *ml_externals_get_value(ml_externals_t *Externals, const char *Name) {
+	while (Externals) {
+		ml_value_t *Value = stringmap_search(Externals->Names, Name);
+		if (Value) return Value;
+		Externals = Externals->Next;
+	}
+	return NULL;
+}
 
 void ml_externals_add(const char *Name, void *Value) {
-	stringmap_insert(MLExternals.Names, Name, Value);
-	inthash_insert(MLExternals.Values, (uintptr_t)Value, (void *)Name);
+	stringmap_insert(MLExternals->Names, Name, Value);
+	inthash_insert(MLExternals->Values, (uintptr_t)Value, (void *)Name);
 }
 
 ML_FUNCTION(MLExternalGet) {
@@ -2356,7 +2396,7 @@ ML_FUNCTION(MLExternalGet) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	const char *Name = ml_string_value(Args[0]);
-	ml_value_t *Value = (ml_value_t *)stringmap_search(MLExternals.Names, Name);
+	ml_value_t *Value = (ml_value_t *)stringmap_search(MLExternals->Names, Name);
 	if (Value) return Value;
 	return ml_error("NameError", "External %s not defined", Name);
 }
@@ -2368,8 +2408,8 @@ ML_FUNCTION(MLExternalAdd) {
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	const char *Name = ml_string_value(Args[0]);
-	stringmap_insert(MLExternals.Names, Name, Args[1]);
-	inthash_insert(MLExternals.Values, (uintptr_t)Args[1], (void *)Name);
+	stringmap_insert(MLExternals->Names, Name, Args[1]);
+	inthash_insert(MLExternals->Values, (uintptr_t)Args[1], (void *)Name);
 	return MLNil;
 }
 
@@ -2575,6 +2615,7 @@ void ml_init(stringmap_t *Globals) {
 	ml_compiler_init();
 	ml_runtime_init();
 	ml_bytecode_init();
+	stringmap_insert(MLExternalT->Exports, "set", MLExternalSetT);
 	stringmap_insert(MLExternalT->Exports, "get", MLExternalGet);
 	stringmap_insert(MLExternalT->Exports, "add", MLExternalAdd);
 	ml_externals_add("type", MLTypeT);

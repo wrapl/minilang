@@ -48,7 +48,7 @@ typedef struct {
 typedef void (*ml_cbor_write_fn)(void *Data, const unsigned char *Bytes, size_t Size);
 typedef struct ml_cbor_writer_t ml_cbor_writer_t;
 
-ml_cbor_writer_t *ml_cbor_writer(void *Data, ml_cbor_write_fn WriteFn, inthash_t *Globals);
+ml_cbor_writer_t *ml_cbor_writer(void *Data, ml_cbor_write_fn WriteFn, ml_externals_t *Externals);
 void ml_cbor_writer_reset(ml_cbor_writer_t *Writer, void *Data);
 void ml_cbor_writer_set_setting(ml_cbor_writer_t *Writer, int Setting, void *Value);
 void *ml_cbor_writer_get_setting(ml_cbor_writer_t *Writer, int Setting);

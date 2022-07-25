@@ -22,6 +22,7 @@ hierarchy
       "any":e -> "boolean":w;
       "any":e -> "module":w;
       "any":e -> "external":w;
+      "any":e -> "external::set":w;
       "any":e -> "xml":w;
       "xml":e -> "xml::text":w;
       "string":e -> "xml::text":w;

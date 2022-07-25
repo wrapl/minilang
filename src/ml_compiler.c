@@ -2800,41 +2800,38 @@ static void ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Ex
 	//printf("#<%s> -> %ld\n", Expr->Ident, Hash);
 	for (mlc_function_t *UpFunction = Function; UpFunction; UpFunction = UpFunction->Up) {
 		for (ml_decl_t *Decl = UpFunction->Decls; Decl; Decl = Decl->Next) {
-			if (Hash == Decl->Hash) {
-				//printf("\tTesting <%s>\n", Decl->Ident);
-				if (!strcmp(Decl->Ident, Expr->Ident)) {
-					if (Decl->Flags == MLC_DECL_CONSTANT) {
-						if (!Decl->Value) Decl->Value = ml_uninitialized(Decl->Ident);
-						return ml_ident_expr_finish(Function, Expr, Decl->Value, Flags);
+			if (Hash == Decl->Hash && !strcmp(Decl->Ident, Expr->Ident)) {
+				if (Decl->Flags == MLC_DECL_CONSTANT) {
+					if (!Decl->Value) Decl->Value = ml_uninitialized(Decl->Ident);
+					return ml_ident_expr_finish(Function, Expr, Decl->Value, Flags);
+				} else {
+					int Index = ml_upvalue_find(Function, Decl, UpFunction, Expr->StartLine);
+					if (Decl->Flags & MLC_DECL_FORWARD) Decl->Flags |= MLC_DECL_BACKFILL;
+					if (Index < 0) {
+						ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_UPVALUE, 1);
+						LocalInst[1].Count = ~Index;
+					} else if (Decl->Flags & MLC_DECL_FORWARD) {
+						ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCALI, 2);
+						LocalInst[1].Count = Index - Function->Top;
+						LocalInst[2].Chars = Decl->Ident;
 					} else {
-						int Index = ml_upvalue_find(Function, Decl, UpFunction, Expr->StartLine);
-						if (Decl->Flags & MLC_DECL_FORWARD) Decl->Flags |= MLC_DECL_BACKFILL;
-						if ((Index >= 0) && (Decl->Flags & MLC_DECL_FORWARD)) {
-							ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCALI, 2);
+						if (Flags & MLCF_LOCAL) {
+							MLC_RETURN(ml_integer(Index));
+						} else if (Flags & MLCF_PUSH) {
+							ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCAL_PUSH, 1);
 							LocalInst[1].Count = Index - Function->Top;
-							LocalInst[2].Chars = Decl->Ident;
-						} else if (Index >= 0) {
-							if (Flags & MLCF_LOCAL) {
-								MLC_RETURN(ml_integer(Index));
-							} else if (Flags & MLCF_PUSH) {
-								ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCAL_PUSH, 1);
-								LocalInst[1].Count = Index - Function->Top;
-								mlc_inc_top(Function);
-								MLC_RETURN(NULL);
-							} else {
-								ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCAL, 1);
-								LocalInst[1].Count = Index - Function->Top;
-							}
-						} else {
-							ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_UPVALUE, 1);
-							LocalInst[1].Count = ~Index;
-						}
-						if (Flags & MLCF_PUSH) {
-							MLC_EMIT(Expr->StartLine, MLI_PUSH, 0);
 							mlc_inc_top(Function);
+							MLC_RETURN(NULL);
+						} else {
+							ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCAL, 1);
+							LocalInst[1].Count = Index - Function->Top;
 						}
-						MLC_RETURN(NULL);
 					}
+					if (Flags & MLCF_PUSH) {
+						MLC_EMIT(Expr->StartLine, MLI_PUSH, 0);
+						mlc_inc_top(Function);
+					}
+					MLC_RETURN(NULL);
 				}
 			}
 		}
