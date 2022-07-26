@@ -2865,6 +2865,10 @@ static void ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Ex
 	ml_value_t *Value = (ml_value_t *)stringmap_search(Function->Compiler->Vars, Expr->Ident);
 	if (!Value) Value = Function->Compiler->GlobalGet(Function->Compiler->Globals, Expr->Ident);
 	if (!Value) {
+		if (!strcmp(Expr->Ident, "true")) Value = (ml_value_t *)MLTrue;
+		if (!strcmp(Expr->Ident, "false")) Value = (ml_value_t *)MLFalse;
+	}
+	if (!Value) {
 		MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "identifier %s not declared", Expr->Ident));
 	}
 	if (ml_is_error(Value)) MLC_EXPR_ERROR(Expr, Value);
