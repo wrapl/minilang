@@ -572,6 +572,7 @@ static void ml_must_expr_compile(mlc_function_t *Function, mlc_must_t *Must, mlc
 
 struct mlc_loop_t {
 	mlc_loop_t *Up;
+	const char *Name;
 	mlc_try_t *Try;
 	mlc_must_t *Must;
 	ml_decl_t *Decls;
@@ -606,6 +607,7 @@ static void ml_loop_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Ex
 	Frame->Expr = Expr;
 	Frame->Flags = Flags;
 	Frame->Loop->Up = Function->Loop;
+	Frame->Loop->Name = Expr->Name;
 	Frame->Loop->Try = Function->Try;
 	Frame->Loop->Must = Function->Must;
 	Frame->Loop->Decls = Function->Decls;
@@ -623,9 +625,16 @@ ML_TYPE(MLExprGotoT, (), "expr::goto");
 
 ML_VALUE(MLExprGoto, MLExprGotoT);
 
-static void ml_next_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_expr_t **Frame) {
-	mlc_expr_t *Expr = Frame[0];
+static void ml_next_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_parent_expr_t **Frame) {
+	mlc_parent_expr_t *Expr = Frame[0];
 	mlc_loop_t *Loop = Function->Loop;
+	if (Expr->Name) {
+		while (Loop) {
+			if (Loop->Name && !strcmp(Loop->Name, Expr->Name)) break;
+			Loop = Loop->Up;
+		}
+		if (!Loop) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "exit not in loop named %s", Expr->Name));
+	}
 	if (Function->Top > Loop->NextTop) {
 		ml_inst_t *ExitInst = MLC_EMIT(Expr->EndLine, MLI_EXIT, 2);
 		ExitInst[1].Count = Function->Top - Loop->NextTop;
@@ -638,9 +647,16 @@ static void ml_next_expr_compile2(mlc_function_t *Function, ml_value_t *Value, m
 	MLC_RETURN(MLExprGoto);
 }
 
-static void ml_next_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags) {
+static void ml_next_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
 	mlc_loop_t *Loop = Function->Loop;
 	if (!Loop) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "next not in loop"));
+	if (Expr->Name) {
+		while (Loop) {
+			if (Loop->Name && !strcmp(Loop->Name, Expr->Name)) break;
+			Loop = Loop->Up;
+		}
+		if (!Loop) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "exit not in loop named %s", Expr->Name));
+	}
 	if (Function->Try != Loop->Try) {
 		ml_inst_t *TryInst = MLC_EMIT(Expr->StartLine, MLI_TRY, 1);
 		if (Loop->Try) {
@@ -652,7 +668,7 @@ static void ml_next_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int
 		}
 	}
 	if (Function->Must != Loop->Must) {
-		MLC_FRAME(mlc_expr_t *, ml_next_expr_compile2);
+		MLC_FRAME(mlc_parent_expr_t *, ml_next_expr_compile2);
 		Frame[0] = Expr;
 		return ml_must_expr_compile(Function, Function->Must, Loop->Must);
 	}
@@ -669,24 +685,24 @@ static void ml_next_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int
 
 typedef struct {
 	mlc_parent_expr_t *Expr;
-	mlc_loop_t *Loop;
-	mlc_try_t *Try;
+	mlc_loop_t *OldLoop, *Target;
+	mlc_try_t *OldTry;
 	int Flags;
 } mlc_exit_expr_frame_t;
 
 static void ml_exit_expr_compile3(mlc_function_t *Function, ml_value_t *Value, mlc_exit_expr_frame_t *Frame) {
 	mlc_parent_expr_t *Expr = Frame->Expr;
-	mlc_loop_t *Loop = Frame->Loop;
-	Function->Loop = Loop;
-	Function->Try = Frame->Try;
-	if (Function->Top > Loop->ExitTop) {
+	mlc_loop_t *Target = Frame->Target;
+	Function->Loop = Frame->OldLoop;
+	Function->Try = Frame->OldTry;
+	if (Function->Top > Target->ExitTop) {
 		ml_inst_t *ExitInst = MLC_EMIT(Expr->EndLine, MLI_EXIT, 2);
-		ExitInst[1].Count = Function->Top - Loop->ExitTop;
-		ExitInst[2].Decls = Loop->Decls;
+		ExitInst[1].Count = Function->Top - Target->ExitTop;
+		ExitInst[2].Decls = Target->Decls;
 	}
 	ml_inst_t *GotoInst = MLC_EMIT(Expr->EndLine, MLI_GOTO, 1);
-	GotoInst[1].Inst = Loop->Exits;
-	Loop->Exits = GotoInst + 1;
+	GotoInst[1].Inst = Target->Exits;
+	Target->Exits = GotoInst + 1;
 	if (Frame->Flags & MLCF_PUSH) {
 		MLC_EMIT(Expr->EndLine, MLI_PUSH, 0);
 		mlc_inc_top(Function);
@@ -696,16 +712,16 @@ static void ml_exit_expr_compile3(mlc_function_t *Function, ml_value_t *Value, m
 }
 
 static void ml_exit_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_exit_expr_frame_t *Frame) {
-	mlc_loop_t *Loop = Frame->Loop;
+	mlc_loop_t *Target = Frame->Target;
 	if (Value == MLExprGoto) {
-		Function->Loop = Loop;
-		Function->Try = Frame->Try;
+		Function->Loop = Frame->OldLoop;
+		Function->Try = Frame->OldTry;
 		MLC_POP();
 		MLC_RETURN(Value);
 	}
-	if (Function->Must != Loop->Must) {
+	if (Function->Must != Target->Must) {
 		Function->Frame->run = (mlc_frame_fn)ml_exit_expr_compile3;
-		return ml_must_expr_compile(Function, Function->Must, Loop->Must);
+		return ml_must_expr_compile(Function, Function->Must, Target->Must);
 	} else {
 		return ml_exit_expr_compile3(Function, Value, Frame);
 	}
@@ -715,8 +731,15 @@ static void ml_exit_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Ex
 	MLC_FRAME(mlc_exit_expr_frame_t, ml_exit_expr_compile2);
 	Frame->Expr = Expr;
 	Frame->Flags = Flags;
-	mlc_loop_t *Loop = Frame->Loop = Function->Loop;
+	mlc_loop_t *Loop = Function->Loop;
 	if (!Loop) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "exit not in loop"));
+	if (Expr->Name) {
+		while (Loop) {
+			if (Loop->Name && !strcmp(Loop->Name, Expr->Name)) break;
+			Loop = Loop->Up;
+		}
+		if (!Loop) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "exit not in loop named %s", Expr->Name));
+	}
 	if (Function->Try != Loop->Try) {
 		ml_inst_t *TryInst = MLC_EMIT(Expr->StartLine, MLI_TRY, 1);
 		if (Loop->Try) {
@@ -727,7 +750,9 @@ static void ml_exit_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Ex
 			Function->Returns = TryInst + 1;
 		}
 	}
-	Frame->Try = Function->Try;
+	Frame->Target = Loop;
+	Frame->OldLoop = Function->Loop;
+	Frame->OldTry = Function->Try;
 	Function->Loop = Loop->Up;
 	Function->Try = Loop->Try;
 	if (Expr->Child) {
@@ -967,6 +992,7 @@ static void ml_for_expr_compile2(mlc_function_t *Function, ml_value_t *Value, ml
 		WithInst[1].Decls = Function->Decls;
 	}
 	Frame->Loop->Up = Function->Loop;
+	Frame->Loop->Name = Expr->Name;
 	Frame->Loop->Try = Function->Try;
 	Frame->Loop->Must = Function->Must;
 	Frame->Loop->Exits = NULL;
@@ -3325,7 +3351,8 @@ const char *MLTokens[] = {
 	":", // MLT_COLON,
 	",", // MLT_COMMA,
 	":=", // MLT_ASSIGN,
-	"::", // MLT_SYMBOL,
+	":-", // MLT_NAMED,
+	"<import>", // MLT_IMPORT,
 	"<value>", // MLT_VALUE,
 	"<expr>", // MLT_EXPR,
 	"<inline>", // MLT_INLINE,
@@ -3949,6 +3976,10 @@ static ml_token_t ml_scan(ml_parser_t *Parser) {
 				ml_scan_string(Parser);
 				Parser->Token = MLT_METHOD;
 				return Parser->Token;
+			} else if (Char == '-') {
+				Parser->Token = MLT_NAMED;
+				Parser->Next = Next + 1;
+				return Parser->Token;
 			} else if (Char == '>') {
 				const char *End = Next + 1;
 				while (End[0] && End[0] != '\n') ++End;
@@ -4458,6 +4489,8 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 		[MLT_OLD] = ml_old_expr_compile,
 		[MLT_DEBUG] = ml_debug_expr_compile
 	};
+	const char *ExprName = NULL;
+with_name:
 	switch (ml_current(Parser)) {
 	case MLT_EACH:
 	case MLT_NOT:
@@ -4497,10 +4530,18 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 		ParentExpr->compile = CompileFns[Parser->Token];
 		ml_next(Parser);
 		ParentExpr->StartLine = Parser->Source.Line;
+		ParentExpr->Name = ExprName;
 		ParentExpr->Child = ml_parse_expression(Parser, EXPR_DEFAULT);
 		return ML_EXPR_END(ParentExpr);
 	}
-	case MLT_NEXT:
+	case MLT_NEXT: {
+		mlc_parent_expr_t *ParentExpr = new(mlc_parent_expr_t);
+		ParentExpr->compile = CompileFns[Parser->Token];
+		ml_next(Parser);
+		ParentExpr->StartLine = Parser->Source.Line;
+		ParentExpr->Name = ExprName;
+		return ML_EXPR_END(ParentExpr);
+	}
 	case MLT_NIL:
 	case MLT_BLANK:
 	case MLT_OLD:
@@ -4634,6 +4675,7 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 	case MLT_LOOP: {
 		ml_next(Parser);
 		ML_EXPR(LoopExpr, parent, loop);
+		LoopExpr->Name = ExprName;
 		LoopExpr->Child = ml_accept_block(Parser);
 		ml_accept(Parser, MLT_END);
 		return ML_EXPR_END(LoopExpr);
@@ -4643,6 +4685,7 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 		ML_EXPR(ForExpr, for, for);
 		ml_accept_for_decl(Parser, ForExpr);
 		ml_accept(Parser, MLT_IN);
+		ForExpr->Name = ExprName;
 		ForExpr->Child = ml_accept_expression(Parser, EXPR_DEFAULT);
 		ml_accept(Parser, MLT_DO);
 		ForExpr->Child->Next = ml_accept_block(Parser);
@@ -4682,8 +4725,13 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 	}
 	case MLT_IDENT: {
 		ml_next(Parser);
+		const char *Ident = Parser->Ident;
+		if (ml_parse(Parser, MLT_NAMED)) {
+			ExprName = Ident;
+			goto with_name;
+		}
 		ML_EXPR(IdentExpr, ident, ident);
-		IdentExpr->Ident = Parser->Ident;
+		IdentExpr->Ident = Ident;
 		return ML_EXPR_END(IdentExpr);
 	}
 	case MLT_VALUE: {

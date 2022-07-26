@@ -1,10 +1,13 @@
 fun test1(N) do
-	for I in 1 .. 10 do
+	main :- for I in 1 .. 10 do
 		must print('I = {I}\n')
 		for J in 1 .. 10 do
+			if I * J = 9 then
+				main :- next
+			end
 			must print('J = {J}\n')
 			if (I * I) + (J * J) = (N * N) then
-				exit exit '{I}^2 + {J}^2 = {N}^2'
+				main :- exit '{I}^2 + {J}^2 = {N}^2'
 			end
 		end
 	end
