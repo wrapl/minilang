@@ -4738,6 +4738,12 @@ with_name:
 		IdentExpr->Ident = Ident;
 		return ML_EXPR_END(IdentExpr);
 	}
+	case MLT_IMPORT: {
+		ml_next(Parser);
+		ML_EXPR(ValueExpr, value, value);
+		ValueExpr->Value = ml_symbol(Parser->Ident);
+		return ML_EXPR_END(ValueExpr);
+	}
 	case MLT_VALUE: {
 		ml_next(Parser);
 		ML_EXPR(ValueExpr, value, value);

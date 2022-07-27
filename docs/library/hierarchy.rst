@@ -23,6 +23,8 @@ hierarchy
       "any":e -> "module":w;
       "any":e -> "external":w;
       "any":e -> "external::set":w;
+      "function":e -> "symbol":w;
+      "any":e -> "symbol::range":w;
       "any":e -> "xml":w;
       "xml":e -> "xml::text":w;
       "string":e -> "xml::text":w;

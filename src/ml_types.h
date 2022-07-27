@@ -1142,6 +1142,29 @@ ml_value_t *ml_externals_get_value(ml_externals_t *Externals, const char *Name);
 
 void ml_externals_add(const char *Name, void *Value);
 
+// Symbols //
+
+typedef struct {
+	ml_type_t *Type;
+	const char *Name;
+} ml_symbol_t;
+
+extern ml_type_t MLSymbolT[];
+
+ml_value_t *ml_symbol(const char *Name);
+
+#define ml_symbol_name(VALUE) ((ml_symbol_t *)VALUE)->Name
+
+typedef struct {
+	ml_type_t *Type;
+	const char *First, *Last;
+} ml_symbol_range_t;
+
+extern ml_type_t MLSymbolRangeT[];
+
+#define ml_symbol_range_first(VALUE) ((ml_symbol_range_t *)VALUE)->First
+#define ml_symbol_range_last(VALUE) ((ml_symbol_range_t *)VALUE)->Last
+
 // Init //
 
 void ml_types_init(stringmap_t *Globals);

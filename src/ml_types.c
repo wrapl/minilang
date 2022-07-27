@@ -2413,6 +2413,38 @@ ML_FUNCTION(MLExternalAdd) {
 	return MLNil;
 }
 
+// Symbols //
+//!symbol
+
+static void ml_symbol_call(ml_state_t *Caller, ml_symbol_t *Symbol, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_value_t **Args2 = ml_alloc_args(2);
+	Args2[0] = Args[0];
+	Args2[1] = ml_string(Symbol->Name, -1);
+	return ml_call(Caller, SymbolMethod, 2, Args2);
+}
+
+ML_TYPE(MLSymbolT, (MLFunctionT), "symbol",
+	.call = (void *)ml_symbol_call
+);
+
+ml_value_t *ml_symbol(const char *Name) {
+	ml_symbol_t *Symbol = new(ml_symbol_t);
+	Symbol->Type = MLSymbolT;
+	Symbol->Name = Name;
+	return (ml_value_t *)Symbol;
+}
+
+ML_TYPE(MLSymbolRangeT, (), "symbol::range");
+
+ML_METHOD("..", MLSymbolT, MLSymbolT) {
+	ml_symbol_range_t *Range = new(ml_symbol_range_t);
+	Range->Type = MLSymbolRangeT;
+	Range->First = ml_symbol_name(Args[0]);
+	Range->Last = ml_symbol_name(Args[1]);
+	return (ml_value_t *)Range;
+}
+
 // Init //
 //!general
 
