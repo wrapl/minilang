@@ -7,6 +7,10 @@
 type
 ====
 
+:mini:`meth ()`
+   *TBD*
+
+
 .. _type-any:
 
 :mini:`type any`

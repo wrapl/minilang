@@ -36,6 +36,7 @@ ML_METHOD_DECL(MaxMethod, "max");
 ML_METHOD_DECL(IndexMethod, "[]");
 ML_METHOD_DECL(SymbolMethod, "::");
 ML_METHOD_DECL(CallMethod, "()");
+ML_METHOD_DECL(AssignMethod, ":=");
 ML_METHOD_DECL(EqualMethod, "=");
 ML_METHOD_DECL(LessMethod, "<");
 ML_METHOD_DECL(GreaterMethod, ">");
@@ -858,6 +859,13 @@ static ml_integer_t NegOne[1] = {{MLIntegerT, -1}};
 static ml_integer_t Zero[1] = {{MLIntegerT, 0}};
 
 #endif
+
+ML_METHODVZ("()", MLAnyT) {
+	ml_value_t *Value = ml_deref(Args[0]);
+	ml_type_t *Type = ml_typeof(Value);
+	if (Type->call == ml_default_call) ML_ERROR("TypeError", "<%s> is not callable", Type->Name);
+	return Type->call(Caller, Value, Count - 1, Args + 1);
+}
 
 ML_METHOD("<>", MLAnyT, MLAnyT) {
 //<Value/1

@@ -965,7 +965,7 @@ ML_METHOD("append", MLStringBufferT, MLFlagsValueT) {
 ML_METHODV(MLFlagsT, MLStringT) {
 //<Name/1
 //>flags
-// Returns a new flags type, where :mini:`Name/i` has value $2^{i-1}$.
+// Returns a new flags type, where :mini:`Name/i` has value :math:`2^{i-1}`.
 //$= let mode := flags("Read", "Write", "Execute")
 //$= mode::Read
 //$= mode::Read + mode::Write

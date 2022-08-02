@@ -14,7 +14,7 @@ flags
 
 
 :mini:`meth flags(Name₁: string, ...): flags`
-   Returns a new flags type,  where :mini:`Nameᵢ` has value $2^{i-1}$.
+   Returns a new flags type,  where :mini:`Nameᵢ` has value :math:`2^{i-1}`.
 
    .. code-block:: mini
 
