@@ -1790,23 +1790,14 @@ static inline complex double ccbrt(complex double X) {
 	return -cpow(-X, 1.0 / 3.0);
 }
 
-#define PRINT_COMPLEX(X) printf(#X " = %f + %fi\n", creal(X), cimag(X))
-
 static void ml_roots_cubic(complex double Coeffs[], complex double Roots[]) {
 	complex double A = Coeffs[1] / Coeffs[0];
 	complex double B = Coeffs[2] / Coeffs[0];
 	complex double C = Coeffs[3] / Coeffs[0];
-	PRINT_COMPLEX(A);
-	PRINT_COMPLEX(B);
-	PRINT_COMPLEX(C);
 	complex double A13 = A / 3;
-	PRINT_COMPLEX(A13);
 	complex double F = B / 3 - A13 * A13;
 	complex double G = A13 * B / 2 - C / 2 - A13 * A13 * A13;
 	complex double H = G * G + F * F * F;
-	PRINT_COMPLEX(F);
-	PRINT_COMPLEX(G);
-	PRINT_COMPLEX(H);
 	if (cabs(F) < DBL_EPSILON && cabs(G) < DBL_EPSILON && cabs(H) < DBL_EPSILON) {
 		if (fabs(cimag(C)) < DBL_EPSILON) {
 			Roots[0] = Roots[1] = Roots[2] = -cbrt(creal(C));
@@ -1817,9 +1808,6 @@ static void ml_roots_cubic(complex double Coeffs[], complex double Roots[]) {
 		complex double SqrtH = csqrt(H);
 		complex double S = ccbrt(G + SqrtH);
 		complex double T = ccbrt(G - SqrtH);
-		PRINT_COMPLEX(SqrtH);
-		PRINT_COMPLEX(S);
-		PRINT_COMPLEX(T);
 		complex double SaddT = S + T;
 		complex double SsubT = (S - T) * sqrt(3) * _Complex_I / 2;
 		Roots[0] = SaddT - A13;
