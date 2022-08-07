@@ -1638,9 +1638,9 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:E07ED8DFCC7F00008033FADFCC7F0000>
+      :> <16:4099216C937F0000DDFFFFFFFFFFFFFF>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
-      :> <<<32480 57304> <32716 0>> <<13184 57338> <32716 0>>>
+      :> <<<39232 27681> <32659 0>> <<65501 65535> <65535 65535>>>
 
 
 .. _type-vector:

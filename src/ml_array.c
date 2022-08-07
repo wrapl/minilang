@@ -186,6 +186,15 @@ ML_ARRAY_TYPES(Array);
 ML_ARRAY_TYPES(Vector);
 ML_ARRAY_TYPES(Matrix);
 
+static ml_array_format_t ml_array_format(ml_type_t *Type) {
+	for (ml_array_format_t Format = ML_ARRAY_FORMAT_NONE; Format <= ML_ARRAY_FORMAT_ANY; ++Format) {
+		if (MLArrayTypes[Format] == Type) return Format;
+		if (MLVectorTypes[Format] == Type) return Format;
+		if (MLMatrixTypes[Format] == Type) return Format;
+	}
+	return ML_ARRAY_FORMAT_NONE;
+}
+
 ml_array_t *ml_array_alloc(ml_array_format_t Format, int Degree) {
 	ml_array_t *Array = xnew(ml_array_t, Degree, ml_array_dimension_t);
 	if (Degree == 1) {

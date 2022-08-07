@@ -7,10 +7,14 @@
 polynomial
 ==========
 
-.. _fun-mlpolynomialroots:
+.. _fun-polynomial-roots:
 
-:mini:`fun mlpolynomialroots()`
-   *TBD*
+:mini:`fun polynomial::roots(Coeffs: list): list[complex]`
+   Returns the roots of the single variable polynomial :math:`Coeff_{0} + Coeff_{1}x + Coeff_{2}x^{2} + ...`. If the degree is less than 5,  the relevant formula is used to calculate the roots,  otherwise the roots are estimated using an iterative process.
+
+   .. code-block:: mini
+
+      polynomial::roots([2, -3, 1]) :> [1, 2]
 
 
 :mini:`meth (A: number) * (B: polynomial::rational): polynomial::rational`

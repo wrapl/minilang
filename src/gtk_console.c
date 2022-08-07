@@ -53,6 +53,7 @@ struct gtk_console_t {
 	stringmap_t OpenFiles[1];
 	stringmap_t Cycles[1];
 	stringmap_t Combos[1];
+	gint WindowSize[2];
 	char Chars[32];
 	int NumChars;
 };
@@ -489,6 +490,17 @@ static void console_font_changed(GtkFontChooser *Widget, gtk_console_t *Console)
 
 	g_key_file_set_string(Console->Config, "gtk-console", "font", FontName);
 	g_key_file_save_to_file(Console->Config, Console->ConfigPath, NULL);
+}
+
+static void console_size_allocate(GtkWindow *Window, GdkRectangle *Allocation, gtk_console_t *Console) {
+	gint Width, Height;
+	gtk_window_get_size(Window, &Width, &Height);
+	if (Width != Console->WindowSize[0] || Height != Console->WindowSize[1]) {
+		Console->WindowSize[0] = Width;
+		Console->WindowSize[1] = Height;
+		g_key_file_set_integer_list(Console->Config, "gtk-console", "size", Console->WindowSize, 2);
+		g_key_file_save_to_file(Console->Config, Console->ConfigPath, NULL);
+	}
 }
 
 #ifdef __APPLE__
@@ -934,7 +946,19 @@ gtk_console_t *gtk_console(ml_context_t *Context, ml_getter_t GlobalGet, void *G
 	Console->MemoryBar = GTK_LABEL(MemoryBar);
 
 	gtk_container_add(GTK_CONTAINER(Console->Window), Container);
-	gtk_window_set_default_size(GTK_WINDOW(Console->Window), 640, 480);
+	if (g_key_file_has_key(Console->Config, "gtk-console", "size", NULL)) {
+		gsize Length = 0;
+		gint *Size = g_key_file_get_integer_list(Console->Config, "gtk-console", "size", &Length, NULL);
+		if (Length == 2) {
+			Console->WindowSize[0] = Size[0];
+			Console->WindowSize[1] = Size[1];
+		}
+	} else {
+		Console->WindowSize[0] = 640;
+		Console->WindowSize[1] = 480;
+	}
+	gtk_window_set_default_size(GTK_WINDOW(Console->Window), Console->WindowSize[0], Console->WindowSize[1]);
+	g_signal_connect(G_OBJECT(Console->Window), "size-allocate", G_CALLBACK(console_size_allocate), Console);
 	g_signal_connect(G_OBJECT(Console->Window), "delete-event", G_CALLBACK(gtk_main_quit), Console);
 
 	stringmap_insert(Console->Globals, "set_font", ml_cfunction(Console, (ml_callback_t)console_set_font));
