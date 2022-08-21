@@ -699,7 +699,7 @@ static int ml_cbor_writer_ref_fn(ml_cbor_writer_t *Writer, ml_value_t *Value) {
 }
 
 void ml_cbor_writer_find_refs(ml_cbor_writer_t *Writer, ml_value_t *Value) {
-	ml_value_find_refs(Value, Writer, (ml_value_ref_fn)ml_cbor_writer_ref_fn);
+	ml_value_find_refs(Value, Writer, (ml_value_ref_fn)ml_cbor_writer_ref_fn, 1);
 }
 
 ml_value_t *ml_cbor_write(ml_cbor_writer_t *Writer, ml_value_t *Value) {

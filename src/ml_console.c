@@ -107,7 +107,7 @@ static void ml_console_debug_enter(ml_console_t *Console, interactive_debugger_t
 	ConsoleDebugger->Debugger = Debugger;
 	printf("Debug break [%d]: %s:%d\n", Index, Source.Name, Source.Line);
 	ml_console(Console->Base.Context, (void *)ml_console_debugger_get, ConsoleDebugger, "\e[34m>>>\e[0m ", "\e[34m...\e[0m ");
-	interactive_debugger_resume(Debugger);
+	interactive_debugger_resume(Debugger, Index);
 }
 
 static void ml_console_debug_exit(void *Data, interactive_debugger_t *Debugger, ml_state_t *Caller, int Index) {

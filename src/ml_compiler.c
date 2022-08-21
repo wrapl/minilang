@@ -212,6 +212,12 @@ static void mlc_expr_call(mlc_function_t *Parent, mlc_expr_t *Expr) {
 	mlc_compile(Function, Expr, MLCF_RETURN);
 }
 
+ML_TYPE(MLExprGotoT, (), "expr::goto");
+//!internal
+
+ML_VALUE(MLExprGoto, MLExprGotoT);
+//!internal
+
 static void ml_unknown_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags) {
 	MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "unknown expression cannot be compiled"));
 }
@@ -261,7 +267,7 @@ typedef struct {
 	mlc_if_case_t *Case;
 	ml_decl_t *Decls;
 	ml_inst_t *Exits, *IfInst;
-	int Flags;
+	int Flags, Goto;
 } mlc_if_expr_frame_t;
 
 static void ml_if_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_if_expr_frame_t *Frame);
@@ -273,8 +279,9 @@ static void ml_if_expr_compile4(mlc_function_t *Function, ml_value_t *Value, mlc
 		MLC_EMIT(Expr->EndLine, MLI_PUSH, 0);
 		mlc_inc_top(Function);
 	}
+	int Goto = Frame->Goto && (Value == MLExprGoto);
 	MLC_POP();
-	MLC_RETURN(NULL);
+	MLC_RETURN(Goto ? MLExprGoto : NULL);
 }
 
 static void ml_if_expr_compile3(mlc_function_t *Function, ml_value_t *Value, mlc_if_expr_frame_t *Frame) {
@@ -293,11 +300,12 @@ static void ml_if_expr_compile3(mlc_function_t *Function, ml_value_t *Value, mlc
 	}
 	mlc_if_expr_t *Expr = Frame->Expr;
 	if (Case->Next || Expr->Else) {
-		//if (!(Result & MLCF_RETURN)) {
-		ml_inst_t *GotoInst = MLC_EMIT(Case->Body->EndLine, MLI_GOTO, 1);
-		GotoInst[1].Inst = Frame->Exits;
-		Frame->Exits = GotoInst + 1;
-		//}
+		if (Value != MLExprGoto) {
+			Frame->Goto = 0;
+			ml_inst_t *GotoInst = MLC_EMIT(Case->Body->EndLine, MLI_GOTO, 1);
+			GotoInst[1].Inst = Frame->Exits;
+			Frame->Exits = GotoInst + 1;
+		}
 	}
 	Frame->IfInst[1].Inst = Function->Next;
 	if (Case->Next) {
@@ -314,8 +322,9 @@ static void ml_if_expr_compile3(mlc_function_t *Function, ml_value_t *Value, mlc
 		MLC_EMIT(Expr->EndLine, MLI_PUSH, 0);
 		mlc_inc_top(Function);
 	}
+	int Goto = Frame->Goto;
 	MLC_POP();
-	MLC_RETURN(NULL);
+	MLC_RETURN(Goto ? MLExprGoto : NULL);
 }
 
 static void ml_if_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_if_expr_frame_t *Frame) {
@@ -373,6 +382,7 @@ static void ml_if_expr_compile(mlc_function_t *Function, mlc_if_expr_t *Expr, in
 	Frame->Expr = Expr;
 	Frame->Decls = Function->Decls;
 	Frame->Flags = Flags;
+	Frame->Goto = !!Expr->Else;
 	Frame->Exits = NULL;
 	Frame->IfInst = NULL;
 	mlc_if_case_t *Case = Frame->Case = Expr->Cases;
@@ -620,11 +630,6 @@ static void ml_loop_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Ex
 	return mlc_compile(Function, Expr->Child, 0);
 }
 
-ML_TYPE(MLExprGotoT, (), "expr::goto");
-//!internal
-
-ML_VALUE(MLExprGoto, MLExprGotoT);
-
 static void ml_next_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_parent_expr_t **Frame) {
 	mlc_parent_expr_t *Expr = Frame[0];
 	mlc_loop_t *Loop = Function->Loop;
@@ -775,8 +780,10 @@ static void ml_return_expr_compile2(mlc_function_t *Function, ml_value_t *Value,
 		Function->Frame->run = (mlc_frame_fn)ml_return_expr_compile3;
 		return ml_must_expr_compile(Function, Function->Must, NULL);
 	}
-	mlc_parent_expr_t *Expr = Frame->Expr;
-	MLC_EMIT(Expr->EndLine, MLI_RETURN, 0);
+	if (Value != MLExprGoto) {
+		mlc_parent_expr_t *Expr = Frame->Expr;
+		MLC_EMIT(Expr->EndLine, MLI_RETURN, 0);
+	}
 	MLC_POP();
 	MLC_RETURN(MLExprGoto);
 }
@@ -1574,7 +1581,7 @@ static void ml_block_expr_compile2(mlc_function_t *Function, ml_value_t *Value, 
 		mlc_inc_top(Function);
 	}
 	MLC_POP();
-	MLC_RETURN(NULL);
+	MLC_RETURN(Value);
 }
 
 static void ml_block_expr_compile(mlc_function_t *Function, mlc_block_expr_t *Expr, int Flags) {
@@ -2149,7 +2156,7 @@ static void ml_call_expr_compile5(mlc_function_t *Function, ml_value_t *Value, m
 		mlc_inc_top(Function);
 	}
 	MLC_POP();
-	MLC_RETURN(NULL);
+	MLC_RETURN(TailCall ? MLExprGoto : NULL);
 }
 
 typedef struct {
@@ -2338,6 +2345,7 @@ static void ml_list_expr_compile2(mlc_function_t *Function, ml_value_t *Value, m
 }
 
 ML_FUNCTION(MLListOfArgs) {
+//!internal
 	ml_value_t *List = ml_list();
 	for (int I = 0; I < Count; ++I) ml_list_put(List, Args[I]);
 	return List;
@@ -2402,6 +2410,7 @@ static void ml_map_expr_compile2(mlc_function_t *Function, ml_value_t *Value, ml
 }
 
 ML_FUNCTION(MLMapOfArgs) {
+//!internal
 	ml_value_t *Map = ml_map();
 	for (int I = 1; I < Count; I += 2) ml_map_insert(Map, Args[I - 1], Args[I]);
 	return Map;
@@ -5782,9 +5791,9 @@ ML_TYPE(MLGlobalT, (), "global",
 	.call = (void *)ml_global_call
 );
 
-static void ML_TYPED_FN(ml_value_find_refs, MLGlobalT, ml_global_t *Global, void *Data, ml_value_ref_fn RefFn) {
+static void ML_TYPED_FN(ml_value_find_refs, MLGlobalT, ml_global_t *Global, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
 	if (!RefFn(Data, (ml_value_t *)Global)) return;
-	ml_value_find_refs(Global->Value, Data, RefFn);
+	ml_value_find_refs(Global->Value, Data, RefFn, RefsOnly);
 }
 
 ml_value_t *ml_global(const char *Name) {

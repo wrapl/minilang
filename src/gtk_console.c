@@ -180,6 +180,14 @@ static void console_continue(GtkWidget *Button, gtk_console_t *Console) {
 	ml_command_evaluate((ml_state_t *)Console, Parser, Compiler);
 }
 
+static void console_continue_all(GtkWidget *Button, gtk_console_t *Console) {
+	ml_parser_t *Parser = Console->Parser;
+	ml_compiler_t *Compiler = Console->Compiler;
+	ml_parser_reset(Parser);
+	ml_parser_input(Parser, "continue_all()");
+	ml_command_evaluate((ml_state_t *)Console, Parser, Compiler);
+}
+
 void gtk_console_evaluate(gtk_console_t *Console, const char *Text) {
 	ml_parser_t *Parser = Console->Parser;
 	ml_compiler_t *Compiler = Console->Compiler;
@@ -275,6 +283,8 @@ static GtkWidget *console_open_source(gtk_console_t *Console, const char *Source
 		GtkWidget *Scrolled = gtk_scrolled_window_new(NULL, NULL);
 		gtk_container_add(GTK_CONTAINER(Scrolled), View);
 		gtk_text_view_set_monospace(GTK_TEXT_VIEW(View), TRUE);
+		gtk_text_view_set_editable(GTK_TEXT_VIEW(View), FALSE);
+
 		gtk_widget_override_font(View, Console->FontDescription);
 		gtk_source_view_set_tab_width(GTK_SOURCE_VIEW(View), 4);
 		gtk_source_view_set_highlight_current_line(GTK_SOURCE_VIEW(View), TRUE);
@@ -448,7 +458,7 @@ static void console_debug_exit(gtk_console_t *Console, interactive_debugger_t *D
 		GtkTreeSelection *Selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(Console->ThreadView));
 		gtk_tree_selection_unselect_all(Selection);
 	}
-	return interactive_debugger_resume(Debugger);
+	return interactive_debugger_resume(Debugger, Index);
 }
 
 static void console_clear(GtkWidget *Button, gtk_console_t *Console) {
@@ -878,10 +888,14 @@ gtk_console_t *gtk_console(ml_context_t *Context, ml_getter_t GlobalGet, void *G
 	GtkWidget *ContinueButton = gtk_button_new();
 	gtk_button_set_label(GTK_BUTTON(ContinueButton), "Run");
 	gtk_box_pack_start(GTK_BOX(DebugButtons), ContinueButton, FALSE, FALSE, 2);
+	GtkWidget *ContinueAllButton = gtk_button_new();
+	gtk_button_set_label(GTK_BUTTON(ContinueAllButton), "Run All");
+	gtk_box_pack_start(GTK_BOX(DebugButtons), ContinueAllButton, FALSE, FALSE, 2);
 	g_signal_connect(G_OBJECT(StepInButton), "clicked", G_CALLBACK(console_step_in), Console);
 	g_signal_connect(G_OBJECT(StepOverButton), "clicked", G_CALLBACK(console_step_over), Console);
 	g_signal_connect(G_OBJECT(StepOutButton), "clicked", G_CALLBACK(console_step_out), Console);
 	g_signal_connect(G_OBJECT(ContinueButton), "clicked", G_CALLBACK(console_continue), Console);
+	g_signal_connect(G_OBJECT(ContinueAllButton), "clicked", G_CALLBACK(console_continue_all), Console);
 	gtk_box_pack_start(GTK_BOX(InputPanel), DebugButtons, FALSE, FALSE, 2);
 	GtkWidget *SubmitButton = gtk_button_new();
 	gtk_button_set_image(GTK_BUTTON(SubmitButton), gtk_image_new_from_icon_name("go-jump-symbolic", GTK_ICON_SIZE_BUTTON));

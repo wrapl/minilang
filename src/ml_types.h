@@ -146,6 +146,14 @@ void ml_type_add_rule(ml_type_t *Type, ml_type_t *Parent, ...) __attribute__ ((s
 int ml_is_subtype(ml_type_t *Type1, ml_type_t *Type2) __attribute__ ((pure));
 ml_type_t *ml_type_max(ml_type_t *Type1, ml_type_t *Type2);
 
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Fn;
+	inthash_t Cache[1];
+} ml_copy_t;
+
+extern ml_type_t MLCopyT[];
+
 #ifdef ML_NANBOXING
 
 extern ml_type_t MLInt32T[];
@@ -256,7 +264,7 @@ typedef ml_value_t *(*ml_callback_t)(void *Data, int Count, ml_value_t **Args);
 typedef void (*ml_callbackx_t)(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args);
 
 typedef int (*ml_value_ref_fn)(void *Data, ml_value_t *Value);
-void ml_value_find_refs(ml_value_t *Value, void *Data, ml_value_ref_fn RefFn);
+void ml_value_find_refs(ml_value_t *Value, void *Data, ml_value_ref_fn RefFn, int RefsOnly);
 
 // Iterators //
 
@@ -597,6 +605,7 @@ static inline size_t ml_buffer_length(const ml_value_t *Value) {
 }
 
 ml_value_t *ml_string(const char *Value, int Length) __attribute__((malloc));
+ml_value_t *ml_string_copy(const char *Value, int Length) __attribute__((malloc));
 ml_value_t *ml_string_format(const char *Format, ...) __attribute__((malloc, format(printf, 1, 2)));
 #define ml_string_value ml_address_value
 #define ml_string_length ml_address_length

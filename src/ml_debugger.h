@@ -21,7 +21,7 @@ ml_value_t *interactive_debugger(
 
 ml_value_t *interactive_debugger_get(interactive_debugger_t *Debugger, const char *Name);
 ml_source_t interactive_debugger_switch(interactive_debugger_t *Debugger, int Index);
-void interactive_debugger_resume(interactive_debugger_t *Debugger);
+void interactive_debugger_resume(interactive_debugger_t *Debugger, int Index);
 
 #ifdef __cplusplus
 }

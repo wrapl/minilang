@@ -58,9 +58,9 @@ ML_TYPE(MLListT, (MLSequenceT), "list",
 // A list of elements.
 );
 
-static void ML_TYPED_FN(ml_value_find_refs, MLListT, ml_value_t *Value, void *Data, ml_value_ref_fn RefFn) {
+static void ML_TYPED_FN(ml_value_find_refs, MLListT, ml_value_t *Value, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
 	if (!RefFn(Data, Value)) return;
-	ML_LIST_FOREACH(Value, Iter) ml_value_find_refs(Iter->Value, Data, RefFn);
+	ML_LIST_FOREACH(Value, Iter) ml_value_find_refs(Iter->Value, Data, RefFn, RefsOnly);
 }
 
 static ml_value_t *ml_list_node_deref(ml_list_node_t *Node) {
@@ -1404,6 +1404,41 @@ ML_METHOD("random", MLListT) {
 	int Random;
 	do Random = random() / Divisor; while (Random >= Limit);
 	return (ml_value_t *)ml_list_index(List, Random + 1);
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Copy, *Dest;
+	ml_list_node_t *Node;
+	ml_value_t *Args[1];
+} ml_list_copy_t;
+
+static void ml_list_copy_run(ml_list_copy_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	ml_list_put(State->Dest, Value);
+	ml_list_node_t *Node = State->Node->Next;
+	if (!Node) ML_RETURN(State->Dest);
+	State->Node = Node;
+	State->Args[0] = Node->Value;
+	return ml_call(State, State->Copy, 1, State->Args);
+}
+
+ML_METHODX("copy", MLCopyT, MLListT) {
+	ml_copy_t *Copy = (ml_copy_t *)Args[0];
+	ml_value_t *Dest = ml_list();
+	inthash_insert(Copy->Cache, (uintptr_t)Args[1], Dest);
+	ml_list_node_t *Node = ((ml_list_t *)Args[1])->Head;
+	if (!Node) ML_RETURN(Dest);
+	ml_list_copy_t *State = new(ml_list_copy_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_list_copy_run;
+	State->Copy = (ml_value_t *)Copy;
+	State->Dest = Dest;
+	State->Node = Node;
+	State->Args[0] = Node->Value;
+	return ml_call(State, (ml_value_t *)Copy, 1, State->Args);
 }
 
 ML_TYPE(MLNamesT, (), "names",

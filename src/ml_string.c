@@ -617,8 +617,6 @@ ML_METHOD("append", MLStringBufferT, MLAddressT) {
 }
 
 ml_value_t *ml_string(const char *Value, int Length) {
-	ml_string_t *String = new(ml_string_t);
-	String->Type = MLStringT;
 	if (Length >= 0) {
 		if (Value[Length]) {
 			char *Copy = snew(Length + 1);
@@ -629,7 +627,21 @@ ml_value_t *ml_string(const char *Value, int Length) {
 	} else {
 		Length = Value ? strlen(Value) : 0;
 	}
+	ml_string_t *String = new(ml_string_t);
+	String->Type = MLStringT;
 	String->Value = Value;
+	String->Length = Length;
+	return (ml_value_t *)String;
+}
+
+ml_value_t *ml_string_copy(const char *Value, int Length) {
+	if (Length < 0) Length = Value ? strlen(Value) : 0;
+	char *Copy = snew(Length + 1);
+	memcpy(Copy, Value, Length);
+	Copy[Length] = 0;
+	ml_string_t *String = new(ml_string_t);
+	String->Type = MLStringT;
+	String->Value = Copy;
 	String->Length = Length;
 	return (ml_value_t *)String;
 }
@@ -641,27 +653,6 @@ ml_value_t *ml_string_format(const char *Format, ...) {
 	int Length = vasprintf(&Value, Format, Args);
 	va_end(Args);
 	return ml_string(Value, Length);
-}
-
-
-ML_METHOD("append", MLStringBufferT, MLNilT) {
-//!type
-//<Buffer
-//<Value
-// Appends :mini:`"nil"` to :mini:`Buffer`.
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_write(Buffer, "nil", 3);
-	return MLSome;
-}
-
-ML_METHOD("append", MLStringBufferT, MLSomeT) {
-//!type
-//<Buffer
-//<Value
-// Appends :mini:`"some"` to :mini:`Buffer`.
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_write(Buffer, "some", 4);
-	return MLSome;
 }
 
 ML_METHOD("append", MLStringBufferT, MLBooleanT) {

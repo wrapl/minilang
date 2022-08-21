@@ -1775,11 +1775,11 @@ ML_METHOD("append", MLStringBufferT, MLPolynomialRationalT) {
 
 #ifdef ML_COMPLEX
 
-static void ml_roots_linear(complex double Coeffs[], complex double Roots[]) {
+void ml_roots_linear(const complex double Coeffs[], complex double Roots[]) {
 	Roots[0] = -Coeffs[0] / Coeffs[1];
 }
 
-static void ml_roots_quadratic(complex double Coeffs[], complex double Roots[]) {
+void ml_roots_quadratic(const complex double Coeffs[], complex double Roots[]) {
 	complex double A = Coeffs[1] / Coeffs[2];
 	complex double B = Coeffs[0] / Coeffs[2];
 	complex double A0 = -A / 2;
@@ -1794,7 +1794,7 @@ static inline complex double ccbrt(complex double X) {
 	return -cpow(-X, 1.0 / 3.0);
 }
 
-static void ml_roots_cubic(complex double Coeffs[], complex double Roots[]) {
+void ml_roots_cubic(const complex double Coeffs[], complex double Roots[]) {
 	complex double A = Coeffs[2] / Coeffs[3];
 	complex double B = Coeffs[1] / Coeffs[3];
 	complex double C = Coeffs[0] / Coeffs[3];
@@ -1820,7 +1820,7 @@ static void ml_roots_cubic(complex double Coeffs[], complex double Roots[]) {
 	}
 }
 
-static void ml_roots_quartic(complex double Coeffs[], complex double Roots[]) {
+void ml_roots_quartic(const complex double Coeffs[], complex double Roots[]) {
 	complex double A = Coeffs[3] / Coeffs[4];
 	complex double B = Coeffs[2] / Coeffs[4];
 	complex double C = Coeffs[1] / Coeffs[4];
@@ -1845,7 +1845,7 @@ static void ml_roots_quartic(complex double Coeffs[], complex double Roots[]) {
 	Roots[3] -= A0;
 }
 
-static void ml_roots_general(int N, complex double Coeffs[], complex double Roots[]) {
+void ml_roots_general(int N, const complex double Coeffs[], complex double Roots[]) {
 	complex double Deriv[N];
 	for (int I = 0; I < N; ++I) {
 		Deriv[I] = (I + 1) * Coeffs[I + 1];
@@ -1895,22 +1895,27 @@ ML_FUNCTION(MLPolynomialRoots) {
 //$= polynomial::roots([2, -3, 1])
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLListT);
-	int N = ml_list_length(Args[0]);
-	complex double Coeffs[N];
-	int NumRoots = N - 1;
-	complex double Roots[NumRoots];
+	int N = ml_list_length(Args[0]), M = N - 1;
+	complex double Coeffs[N], *C = Coeffs;
+	complex double Roots[M], *R = Roots;
 	int I = 0;
 	ML_LIST_FOREACH(Args[0], Iter) Coeffs[I++] = ml_complex_value(Iter->Value);
+	for (complex double *CEnd = Coeffs + N; C < CEnd && cabs(*C) < DBL_EPSILON; ++C) {
+		*R++ = 0; --N;
+	}
+	while (N > 0 && cabs(C[N - 1]) < DBL_EPSILON) {
+		--N; --M;
+	}
 	switch (N) {
-	case 1: break;
-	case 2: ml_roots_linear(Coeffs, Roots); break;
-	case 3: ml_roots_quadratic(Coeffs, Roots); break;
-	case 4: ml_roots_cubic(Coeffs, Roots); break;
-	case 5: ml_roots_quartic(Coeffs, Roots); break;
-	default: ml_roots_general(NumRoots, Coeffs, Roots); break;
+	case 0: case 1: M = 0; break;
+	case 2: ml_roots_linear(C, R); break;
+	case 3: ml_roots_quadratic(C, R); break;
+	case 4: ml_roots_cubic(C, R); break;
+	case 5: ml_roots_quartic(C, R); break;
+	default: ml_roots_general(N - 1, C, R); break;
 	}
 	ml_value_t *Result = ml_list();
-	for (int I = 0; I < NumRoots; ++I) ml_list_put(Result, ml_complex(Roots[I]));
+	for (int I = 0; I < M; ++I) ml_list_put(Result, ml_complex(Roots[I]));
 	return Result;
 }
 

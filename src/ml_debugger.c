@@ -81,15 +81,24 @@ ml_source_t interactive_debugger_switch(interactive_debugger_t *Debugger, int In
 	return ml_debugger_source(Thread->Active);
 }
 
-void interactive_debugger_resume(interactive_debugger_t *Debugger) {
-	debug_thread_t *Thread = Debugger->ActiveThread;
+void interactive_debugger_resume(interactive_debugger_t *Debugger, int Index) {
+	debug_thread_t *Thread;
+	if (Index == -1) {
+		Thread = Debugger->ActiveThread;
+		Debugger->ActiveThread = NULL;
+	} else if (0 <= Index && Index < Debugger->MaxThreads) {
+		Thread = Debugger->Threads + Index;
+	} else {
+		return;
+	}
 	ml_state_t *State = Thread->State;
-	ml_value_t *Value = Thread->Value;
-	Debugger->ActiveThread = NULL;
-	Thread->Active = Thread->State = NULL;
-	Thread->Value = NULL;
-	--Debugger->NumThreads;
-	return State->run(State, Value);
+	if (State) {
+		ml_value_t *Value = Thread->Value;
+		Thread->Active = Thread->State = NULL;
+		Thread->Value = NULL;
+		--Debugger->NumThreads;
+		return State->run(State, Value);
+	}
 }
 
 static int debugger_breakpoints_fn(const char *Module, breakpoints_t *Breakpoints, ml_value_t *Result) {
@@ -144,6 +153,15 @@ static void debugger_continue(ml_state_t *Caller, interactive_debugger_t *Debugg
 	Debugger->Base.StepIn = 0;
 	ml_debugger_step_mode(Thread->State, 0, 0);
 	return Debugger->Info->exit(Debugger->Info->Data, Debugger, Caller, Index);
+}
+
+static void debugger_continue_all(ml_state_t *Caller, interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
+	debug_thread_t *Thread = Debugger->Threads;
+	for (int I = 0; I < Debugger->MaxThreads; ++I, ++Thread) {
+		if (Thread->State) {
+			Debugger->Info->exit(Debugger->Info->Data, Debugger, Caller, I);
+		}
+	}
 }
 
 static void debugger_step_in(ml_state_t *Caller, interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
@@ -314,6 +332,7 @@ static void interactive_debugger_fnx(ml_state_t *Caller, interactive_debugger_in
 	stringmap_insert(Debugger->Globals, "breakpoint_clear", ml_cfunction(Debugger, (void *)debugger_breakpoint_clear));
 	stringmap_insert(Debugger->Globals, "breakpoints", ml_cfunction(Debugger, (void *)debugger_breakpoints_list));
 	stringmap_insert(Debugger->Globals, "continue", ml_cfunctionx(Debugger, (void *)debugger_continue));
+	stringmap_insert(Debugger->Globals, "continue_all", ml_cfunctionx(Debugger, (void *)debugger_continue_all));
 	stringmap_insert(Debugger->Globals, "step_in", ml_cfunctionx(Debugger, (void *)debugger_step_in));
 	stringmap_insert(Debugger->Globals, "step_over", ml_cfunctionx(Debugger, (void *)debugger_step_over));
 	stringmap_insert(Debugger->Globals, "step_out", ml_cfunctionx(Debugger, (void *)debugger_step_out));

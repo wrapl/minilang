@@ -26,6 +26,7 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "type"
 
+ML_METHOD_DECL(CopyMethod, "copy");
 ML_METHOD_DECL(IterateMethod, "iterate");
 ML_METHOD_DECL(ValueMethod, "value");
 ML_METHOD_DECL(KeyMethod, "key");
@@ -54,6 +55,7 @@ static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 // Types //
 
 ML_INTERFACE(MLAnyT, (), "any", .Rank = 0);
+//!any
 // Base type for all values.
 
 ML_INTERFACE(MLSequenceT, (), "sequence");
@@ -477,6 +479,41 @@ void ml_type_add_rule(ml_type_t *T, ml_type_t *U, ...) {
 
 #endif
 
+// Copying //
+
+static void ml_copy_call(ml_state_t *Caller, ml_copy_t *Copy, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_value_t *Key = ml_deref(Args[0]);
+	if (Count > 1) {
+		inthash_insert(Copy->Cache, (uintptr_t)Key, ml_deref(Args[1]));
+		ML_RETURN(Args[1]);
+	} else {
+		ml_value_t *Cached = inthash_search(Copy->Cache, (uintptr_t)Key);
+		if (Cached) ML_RETURN(Cached);
+		ml_value_t **Args2 = ml_alloc_args(2);
+		Args2[0] = (ml_value_t *)Copy;
+		Args2[1] = Key;
+		return ml_call(Caller, Copy->Fn, 2, Args2);
+	}
+}
+
+ML_FUNCTIONX(MLCopy) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_copy_t *Copy = new(ml_copy_t);
+	Copy->Type = MLCopyT;
+	Copy->Fn = Count > 1 ? Args[1] : CopyMethod;
+	return ml_call(Caller, (ml_value_t *)Copy, 1, Args);
+}
+
+ML_TYPE(MLCopyT, (MLFunctionT), "copy",
+	.call = (void *)ml_copy_call,
+	.Constructor = (ml_value_t *)MLCopy
+);
+
+ML_METHOD("copy", MLCopyT, MLAnyT) {
+	return Args[1];
+}
+
 // Values //
 
 ML_TYPE(MLNilT, (MLFunctionT, MLSequenceT), "nil");
@@ -504,8 +541,22 @@ ML_TYPE(MLBlankT, (), "blank",
 ML_VALUE(MLNil, MLNilT);
 //!internal
 
+ML_METHOD("append", MLStringBufferT, MLNilT) {
+//!internal
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_stringbuffer_write(Buffer, "nil", 3);
+	return MLSome;
+}
+
 ML_VALUE(MLSome, MLSomeT);
 //!internal
+
+ML_METHOD("append", MLStringBufferT, MLSomeT) {
+//!internal
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_stringbuffer_write(Buffer, "some", 4);
+	return MLSome;
+}
 
 ML_VALUE(MLBlank, MLBlankT);
 //!internal
@@ -761,6 +812,8 @@ static void ML_TYPED_FN(ml_iterate, MLNilT, ml_state_t *Caller, ml_value_t *Valu
 	ML_RETURN(Value);
 }
 
+//!any
+
 ML_METHOD("in", MLAnyT, MLTypeT) {
 //<Value
 //<Type
@@ -861,6 +914,7 @@ static ml_integer_t Zero[1] = {{MLIntegerT, 0}};
 #endif
 
 ML_METHODVZ("()", MLAnyT) {
+//!internal
 	ml_value_t *Value = ml_deref(Args[0]);
 	ml_type_t *Type = ml_typeof(Value);
 	if (Type->call == ml_default_call) ML_ERROR("TypeError", "<%s> is not callable", Type->Name);
@@ -1059,9 +1113,37 @@ void ml_value_set_name(ml_value_t *Value, const char *Name) {
 	if (function) function(Value, Name);
 }
 
-void ml_value_find_refs(ml_value_t *Value, void *Data, ml_value_ref_fn CycleFn) {
+void ml_value_find_refs(ml_value_t *Value, void *Data, ml_value_ref_fn CycleFn, int RefsOnly) {
 	typeof(ml_value_find_refs) *function = ml_typed_fn_get(ml_typeof(Value), ml_value_find_refs);
-	if (function) function(Value, Data, CycleFn);
+	if (function) return function(Value, Data, CycleFn, RefsOnly);
+	if (!RefsOnly) CycleFn(Data, Value);
+}
+
+typedef struct {
+	ml_value_t *Refs;
+	inthash_t Done[1];
+} ml_find_refs_t;
+
+static int ml_find_refs_fn(ml_find_refs_t *FindRefs, ml_value_t *Value) {
+	if (!inthash_insert(FindRefs->Done, (uintptr_t)Value, Value)) {
+		ml_list_put(FindRefs->Refs, Value);
+		return 1;
+	}
+	return 0;
+}
+
+ML_FUNCTION(MLFindRefs) {
+//!general
+//@findrefs
+//<Value:any
+//<RefsOnly?:boolean
+//>list
+// Returns a list of all unique values referenced by :mini:`Value` (including :mini:`Value`).
+	ML_CHECK_ARG_COUNT(1);
+	ml_find_refs_t FindRefs[1] = {ml_list(), {INTHASH_INIT}};
+	int RefsOnly = (Count > 1) && (Args[1] == (ml_value_t *)MLTrue);
+	ml_value_find_refs(Args[0], FindRefs, (ml_value_ref_fn)ml_find_refs_fn, RefsOnly);
+	return FindRefs->Refs;
 }
 
 // Iterators //
@@ -1646,6 +1728,11 @@ ML_TYPE(MLTupleT, (MLFunctionT, MLSequenceT), "tuple",
 	.call = (void *)ml_tuple_call,
 	.Constructor = (ml_value_t *)MLTuple
 );
+
+static void ML_TYPED_FN(ml_value_find_refs, MLTupleT, ml_tuple_t *Tuple, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
+	if (!RefFn(Data, (ml_value_t *)Tuple)) return;
+	for (int I = 0; I < Tuple->Size; ++I) ml_value_find_refs(Tuple->Values[I], Data, RefFn, RefsOnly);
+}
 
 ml_value_t *ml_tuple(size_t Size) {
 	ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
@@ -2713,6 +2800,8 @@ void ml_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "deref", MLDeref);
 		stringmap_insert(Globals, "assign", MLAssign);
 		stringmap_insert(Globals, "call", MLCall);
+		stringmap_insert(Globals, "copy", MLCopyT);
+		stringmap_insert(Globals, "findrefs", MLFindRefs);
 		stringmap_insert(Globals, "exchange", MLExchange);
 		stringmap_insert(Globals, "replace", MLReplace);
 		stringmap_insert(Globals, "cas", MLCompareAndSet);

@@ -63,6 +63,12 @@ general
    Assigns :mini:`Varᵢ := Varᵢ₊₁` for each :mini:`1 <= i < n` and :mini:`Varₙ := Var₁`.
 
 
+.. _fun-findrefs:
+
+:mini:`fun findrefs(Value: any, RefsOnly?: boolean): list`
+   Returns a list of all unique values referenced by :mini:`Value` (including :mini:`Value`).
+
+
 .. _fun-print:
 
 :mini:`fun print(Values: any, ...): nil`
