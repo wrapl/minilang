@@ -1134,7 +1134,7 @@ void ml_value_set_name(ml_value_t *Value, const char *Name) {
 void ml_value_find_refs(ml_value_t *Value, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
 	typeof(ml_value_find_refs) *function = ml_typed_fn_get(ml_typeof(Value), ml_value_find_refs);
 	if (function) return function(Value, Data, RefFn, RefsOnly);
-	if (!RefsOnly) RefFn(Data, Value);
+	if (!RefsOnly) RefFn(Data, Value, 0);
 }
 
 typedef struct {
@@ -1143,7 +1143,7 @@ typedef struct {
 	inthash_t Done[1];
 } ml_find_refs_t;
 
-static int ml_find_refs_fn(ml_find_refs_t *FindRefs, ml_value_t *Value) {
+static int ml_find_refs_fn(ml_find_refs_t *FindRefs, ml_value_t *Value, int HasRefs) {
 	if (!inthash_insert(FindRefs->Done, (uintptr_t)Value, Value)) {
 		ml_list_put(FindRefs->Refs, Value);
 		return 1;
@@ -1151,7 +1151,7 @@ static int ml_find_refs_fn(ml_find_refs_t *FindRefs, ml_value_t *Value) {
 	return 0;
 }
 
-static int ml_find_refs_typed_fn(ml_find_refs_t *FindRefs, ml_value_t *Value) {
+static int ml_find_refs_typed_fn(ml_find_refs_t *FindRefs, ml_value_t *Value, int HasRefs) {
 	if (!inthash_insert(FindRefs->Done, (uintptr_t)Value, Value)) {
 		if (ml_is(Value, FindRefs->Type)) ml_list_put(FindRefs->Refs, Value);
 		return 1;
@@ -1766,7 +1766,7 @@ ML_TYPE(MLTupleT, (MLFunctionT, MLSequenceT), "tuple",
 );
 
 static void ML_TYPED_FN(ml_value_find_refs, MLTupleT, ml_tuple_t *Tuple, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
-	if (!RefFn(Data, (ml_value_t *)Tuple)) return;
+	if (!RefFn(Data, (ml_value_t *)Tuple, 1)) return;
 	for (int I = 0; I < Tuple->Size; ++I) ml_value_find_refs(Tuple->Values[I], Data, RefFn, RefsOnly);
 }
 

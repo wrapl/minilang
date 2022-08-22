@@ -264,7 +264,7 @@ void ml_value_set_name(ml_value_t *Value, const char *Name);
 typedef ml_value_t *(*ml_callback_t)(void *Data, int Count, ml_value_t **Args);
 typedef void (*ml_callbackx_t)(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args);
 
-typedef int (*ml_value_ref_fn)(void *Data, ml_value_t *Value);
+typedef int (*ml_value_ref_fn)(void *Data, ml_value_t *Value, int HasRefs);
 void ml_value_find_refs(ml_value_t *Value, void *Data, ml_value_ref_fn RefFn, int RefsOnly);
 
 // Iterators //

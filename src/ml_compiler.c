@@ -5792,7 +5792,7 @@ ML_TYPE(MLGlobalT, (), "global",
 );
 
 static void ML_TYPED_FN(ml_value_find_refs, MLGlobalT, ml_global_t *Global, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
-	if (!RefFn(Data, (ml_value_t *)Global)) return;
+	if (!RefFn(Data, (ml_value_t *)Global, 1)) return;
 	ml_value_find_refs(Global->Value, Data, RefFn, RefsOnly);
 }
 

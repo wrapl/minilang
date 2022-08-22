@@ -1628,7 +1628,7 @@ ML_TYPE(MLClosureT, (MLFunctionT, MLSequenceT), "closure",
 );
 
 static void ML_TYPED_FN(ml_value_find_refs, MLClosureT, ml_closure_t *Closure, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
-	if (!RefFn(Data, (ml_value_t *)Closure)) return;
+	if (!RefFn(Data, (ml_value_t *)Closure, 1)) return;
 	ml_closure_info_t *Info = Closure->Info;
 	Info->Type = MLClosureInfoT;
 	ml_value_find_refs((ml_value_t *)Info, Data, RefFn, RefsOnly);
@@ -1639,7 +1639,7 @@ ML_TYPE(MLClosureInfoT, (), "closure::info");
 // Information about a closure.
 
 static void ML_TYPED_FN(ml_value_find_refs, MLClosureInfoT, ml_closure_info_t *Info, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
-	if (!RefFn(Data, (ml_value_t *)Info)) return;
+	if (!RefFn(Data, (ml_value_t *)Info, 1)) return;
 	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
 		if (Inst->Opcode == MLI_LINK) {
 			Inst = Inst[1].Inst;

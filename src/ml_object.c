@@ -51,7 +51,7 @@ ML_INTERFACE(MLObjectT, (), "object");
 // Parent type of all object classes.
 
 static void ML_TYPED_FN(ml_value_find_refs, MLObjectT, ml_object_t *Value, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
-	if (!RefFn(Data, (ml_value_t *)Value)) return;
+	if (!RefFn(Data, (ml_value_t *)Value, 1)) return;
 	int Size = Value->Type->Fields->Size;
 	for (int I = 0; I < Size; ++I) ml_value_find_refs(Value->Fields[I].Value, Data, RefFn, RefsOnly);
 }

@@ -690,7 +690,7 @@ void *ml_cbor_writer_get_setting(ml_cbor_writer_t *Writer, int Setting) {
 	return Setting < Writer->NumSettings ? Writer->Settings[Setting] : NULL;
 }
 
-static int ml_cbor_writer_ref_fn(ml_cbor_writer_t *Writer, ml_value_t *Value) {
+static int ml_cbor_writer_ref_fn(ml_cbor_writer_t *Writer, ml_value_t *Value, int HasRefs) {
 	if (inthash_insert(Writer->References, (uintptr_t)Value, Value)) {
 		inthash_insert(Writer->Reused, (uintptr_t)Value, (void *)0L);
 		return 0;

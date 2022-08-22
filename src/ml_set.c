@@ -29,7 +29,7 @@ ML_ENUM2(MLSetOrderT, "set::order",
 );
 
 static void ML_TYPED_FN(ml_value_find_refs, MLSetT, ml_value_t *Value, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
-	if (!RefFn(Data, Value)) return;
+	if (!RefFn(Data, Value, 1)) return;
 	ML_SET_FOREACH(Value, Iter) ml_value_find_refs(Iter->Key, Data, RefFn, RefsOnly);
 }
 
