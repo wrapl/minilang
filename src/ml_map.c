@@ -1332,6 +1332,10 @@ static void ml_map_copy_run(ml_map_copy_t *State, ml_value_t *Value) {
 }
 
 ML_METHODX("copy", MLCopyT, MLMapT) {
+//<Copy
+//<Map
+//>map
+// Returns a new map contains copies of the keys and values of :mini:`Map` created using :mini:`Copy`.
 	ml_copy_t *Copy = (ml_copy_t *)Args[0];
 	ml_value_t *Dest = ml_map();
 	((ml_map_t *)Dest)->Order = ((ml_map_t *)Args[1])->Order;

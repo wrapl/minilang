@@ -1425,6 +1425,10 @@ static void ml_list_copy_run(ml_list_copy_t *State, ml_value_t *Value) {
 }
 
 ML_METHODX("copy", MLCopyT, MLListT) {
+//<Copy
+//<List
+//>list
+// Returns a new list contains copies of the elements of :mini:`List` created using :mini:`Copy`.
 	ml_copy_t *Copy = (ml_copy_t *)Args[0];
 	ml_value_t *Dest = ml_list();
 	inthash_insert(Copy->Cache, (uintptr_t)Args[1], Dest);

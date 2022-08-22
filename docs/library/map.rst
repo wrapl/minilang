@@ -17,6 +17,10 @@ map
       "D" in M :> nil
 
 
+:mini:`meth (Copy: copy):copy(Map: map): map`
+   Returns a new map contains copies of the keys and values of :mini:`Map` created using :mini:`Copy`.
+
+
 .. _type-map:
 
 :mini:`type map < sequence`
@@ -364,7 +368,7 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "k"
+      M:random :> "a"
       M:random :> "c"
 
 

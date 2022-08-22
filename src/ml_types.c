@@ -479,41 +479,6 @@ void ml_type_add_rule(ml_type_t *T, ml_type_t *U, ...) {
 
 #endif
 
-// Copying //
-
-static void ml_copy_call(ml_state_t *Caller, ml_copy_t *Copy, int Count, ml_value_t **Args) {
-	ML_CHECKX_ARG_COUNT(1);
-	ml_value_t *Key = ml_deref(Args[0]);
-	if (Count > 1) {
-		inthash_insert(Copy->Cache, (uintptr_t)Key, ml_deref(Args[1]));
-		ML_RETURN(Args[1]);
-	} else {
-		ml_value_t *Cached = inthash_search(Copy->Cache, (uintptr_t)Key);
-		if (Cached) ML_RETURN(Cached);
-		ml_value_t **Args2 = ml_alloc_args(2);
-		Args2[0] = (ml_value_t *)Copy;
-		Args2[1] = Key;
-		return ml_call(Caller, Copy->Fn, 2, Args2);
-	}
-}
-
-ML_FUNCTIONX(MLCopy) {
-	ML_CHECKX_ARG_COUNT(1);
-	ml_copy_t *Copy = new(ml_copy_t);
-	Copy->Type = MLCopyT;
-	Copy->Fn = Count > 1 ? Args[1] : CopyMethod;
-	return ml_call(Caller, (ml_value_t *)Copy, 1, Args);
-}
-
-ML_TYPE(MLCopyT, (MLFunctionT), "copy",
-	.call = (void *)ml_copy_call,
-	.Constructor = (ml_value_t *)MLCopy
-);
-
-ML_METHOD("copy", MLCopyT, MLAnyT) {
-	return Args[1];
-}
-
 // Values //
 
 ML_TYPE(MLNilT, (MLFunctionT, MLSequenceT), "nil");
@@ -813,6 +778,57 @@ static void ML_TYPED_FN(ml_iterate, MLNilT, ml_state_t *Caller, ml_value_t *Valu
 }
 
 //!any
+
+// Copying //
+
+static void ml_copy_call(ml_state_t *Caller, ml_copy_t *Copy, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_value_t *Key = ml_deref(Args[0]);
+	if (Count > 1) {
+		inthash_insert(Copy->Cache, (uintptr_t)Key, ml_deref(Args[1]));
+		ML_RETURN(Args[1]);
+	} else {
+		ml_value_t *Cached = inthash_search(Copy->Cache, (uintptr_t)Key);
+		if (Cached) ML_RETURN(Cached);
+		ml_value_t **Args2 = ml_alloc_args(2);
+		Args2[0] = (ml_value_t *)Copy;
+		Args2[1] = Key;
+		return ml_call(Caller, Copy->Fn, 2, Args2);
+	}
+}
+
+ML_FUNCTIONX(MLCopy) {
+//@copy
+//<Value
+//<Fn?:function
+//>any
+// Creates a deep copy of :mini:`Value`, calling :mini:`Fn(Copier, Value)` to copy individual values.
+// If omitted, :mini:`Fn` defaults to :mini:`:copy`.
+	ML_CHECKX_ARG_COUNT(1);
+	ml_copy_t *Copy = new(ml_copy_t);
+	Copy->Type = MLCopyT;
+	Copy->Fn = Count > 1 ? Args[1] : CopyMethod;
+	return ml_call(Caller, (ml_value_t *)Copy, 1, Args);
+}
+
+ML_TYPE(MLCopyT, (MLFunctionT), "copy",
+// Used to copy values inside a call to :mini:`copy(Value)`.
+// If :mini:`Copy` is an instance of :mini:`copy` then
+//
+// * :mini:`Copy(X, Y)` add the mapping :mini:`X -> Y` to :mini:`Copy` and returns :mini:`Y`,
+// * :mini:`Copy(X)` creates a copy of :mini:`X` using the value of :mini:`Fn` passed to :mini:`copy`.
+//$= copy([1, {"A" is 2.5}]; Copy, X) do print('Copying {X}\n'); Copy:copy(X) end
+	.call = (void *)ml_copy_call,
+	.Constructor = (ml_value_t *)MLCopy
+);
+
+ML_METHOD("copy", MLCopyT, MLAnyT) {
+//<Copy
+//<Value
+//>any
+// Default copy implementation, just returns :mini:`Value`.
+	return Args[1];
+}
 
 ML_METHOD("in", MLAnyT, MLTypeT) {
 //<Value
