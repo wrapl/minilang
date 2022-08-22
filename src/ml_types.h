@@ -2,6 +2,7 @@
 #define ML_TYPES_H
 
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 #include "stringmap.h"
 #include "inthash.h"
