@@ -777,9 +777,9 @@ static void ML_TYPED_FN(ml_iterate, MLNilT, ml_state_t *Caller, ml_value_t *Valu
 	ML_RETURN(Value);
 }
 
-//!any
-
 // Copying //
+
+//!general
 
 static void ml_copy_call(ml_state_t *Caller, ml_copy_t *Copy, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
@@ -829,6 +829,8 @@ ML_METHOD("copy", MLCopyT, MLAnyT) {
 // Default copy implementation, just returns :mini:`Value`.
 	return Args[1];
 }
+
+//!any
 
 ML_METHOD("in", MLAnyT, MLTypeT) {
 //<Value

@@ -51,6 +51,13 @@ general
       X :> 11
 
 
+.. _fun-copy:
+
+:mini:`fun copy(Value: any, Fn?: function): any`
+   Creates a deep copy of :mini:`Value`,  calling :mini:`Fn(Copier,  Value)` to copy individual values.
+   If omitted,  :mini:`Fn` defaults to :mini:`:copy`.
+
+
 .. _fun-deref:
 
 :mini:`fun deref(Value: any): any`
@@ -79,5 +86,32 @@ general
 
 :mini:`fun replace(Var₁: any, ..., Varₙ: any, Value: any)`
    Assigns :mini:`Varᵢ := Varᵢ₊₁` for each :mini:`1 <= i < n` and :mini:`Varₙ := Value`. Returns the old value of :mini:`Var₁`.
+
+
+.. _type-copy:
+
+:mini:`type copy < function`
+   Used to copy values inside a call to :mini:`copy(Value)`.
+   If :mini:`Copy` is an instance of :mini:`copy` then
+   
+   * :mini:`Copy(X,  Y)` add the mapping :mini:`X -> Y` to :mini:`Copy` and returns :mini:`Y`, 
+   * :mini:`Copy(X)` creates a copy of :mini:`X` using the value of :mini:`Fn` passed to :mini:`copy`.
+
+   .. code-block:: mini
+
+      copy([1, {"A" is 2.5}]; Copy, X) do print('Copying {X}\n'); Copy:copy(X) end
+      :> [1, {"A" is 2.5}]
+
+   .. code-block:: console
+
+      Copying [1, {A is 2.5}]
+      Copying 1
+      Copying {A is 2.5}
+      Copying A
+      Copying 2.5
+
+
+:mini:`meth (Copy: copy):copy(Value: any): any`
+   Default copy implementation,  just returns :mini:`Value`.
 
 
