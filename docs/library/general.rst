@@ -65,7 +65,7 @@ general
 
 .. _fun-findrefs:
 
-:mini:`fun findrefs(Value: any, RefsOnly?: boolean): list`
+:mini:`fun findrefs(Value: any, Filter?: boolean|type): list`
    Returns a list of all unique values referenced by :mini:`Value` (including :mini:`Value`).
 
 

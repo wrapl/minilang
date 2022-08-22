@@ -1129,14 +1129,15 @@ void ml_value_set_name(ml_value_t *Value, const char *Name) {
 	if (function) function(Value, Name);
 }
 
-void ml_value_find_refs(ml_value_t *Value, void *Data, ml_value_ref_fn CycleFn, int RefsOnly) {
+void ml_value_find_refs(ml_value_t *Value, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
 	typeof(ml_value_find_refs) *function = ml_typed_fn_get(ml_typeof(Value), ml_value_find_refs);
-	if (function) return function(Value, Data, CycleFn, RefsOnly);
-	if (!RefsOnly) CycleFn(Data, Value);
+	if (function) return function(Value, Data, RefFn, RefsOnly);
+	if (!RefsOnly) RefFn(Data, Value);
 }
 
 typedef struct {
 	ml_value_t *Refs;
+	ml_type_t *Type;
 	inthash_t Done[1];
 } ml_find_refs_t;
 
@@ -1148,17 +1149,34 @@ static int ml_find_refs_fn(ml_find_refs_t *FindRefs, ml_value_t *Value) {
 	return 0;
 }
 
+static int ml_find_refs_typed_fn(ml_find_refs_t *FindRefs, ml_value_t *Value) {
+	if (!inthash_insert(FindRefs->Done, (uintptr_t)Value, Value)) {
+		if (ml_is(Value, FindRefs->Type)) ml_list_put(FindRefs->Refs, Value);
+		return 1;
+	}
+	return 0;
+}
+
 ML_FUNCTION(MLFindRefs) {
 //!general
 //@findrefs
 //<Value:any
-//<RefsOnly?:boolean
+//<Filter?:boolean|type
 //>list
 // Returns a list of all unique values referenced by :mini:`Value` (including :mini:`Value`).
 	ML_CHECK_ARG_COUNT(1);
-	ml_find_refs_t FindRefs[1] = {ml_list(), {INTHASH_INIT}};
-	int RefsOnly = (Count > 1) && (Args[1] == (ml_value_t *)MLTrue);
-	ml_value_find_refs(Args[0], FindRefs, (ml_value_ref_fn)ml_find_refs_fn, RefsOnly);
+	ml_find_refs_t FindRefs[1] = {ml_list(), MLAnyT, {INTHASH_INIT}};
+	int RefsOnly = 0;
+	ml_value_ref_fn RefFn = (ml_value_ref_fn)ml_find_refs_fn;
+	if (Count > 1) {
+		if (ml_is(Args[1], MLBooleanT)) {
+			RefsOnly = Args[1] == (ml_value_t *)MLTrue;
+		} else if (ml_is(Args[1], MLTypeT)) {
+			FindRefs->Type = (ml_type_t *)Args[1];
+			RefFn = (ml_value_ref_fn)ml_find_refs_typed_fn;
+		}
+	}
+	ml_value_find_refs(Args[0], FindRefs, (ml_value_ref_fn)RefFn, RefsOnly);
 	return FindRefs->Refs;
 }
 
