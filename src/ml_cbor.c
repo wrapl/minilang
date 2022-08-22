@@ -145,7 +145,7 @@ ml_cbor_reader_t *ml_cbor_reader(ml_cbor_tag_fns_t *TagFns, ml_getter_t GlobalGe
 		Reader->GlobalGet = GlobalGet;
 		Reader->Globals = Globals;
 	} else {
-		Reader->GlobalGet = (ml_getter_t)stringmap_search;
+		Reader->GlobalGet = (ml_getter_t)ml_externals_get_value;
 		Reader->Globals = MLExternals;
 	}
 	Reader->NumSettings = NumCborSettings;
@@ -156,6 +156,9 @@ ml_cbor_reader_t *ml_cbor_reader(ml_cbor_tag_fns_t *TagFns, ml_getter_t GlobalGe
 }
 
 void ml_cbor_reader_reset(ml_cbor_reader_t *Reader) {
+	Reader->Collection = NULL;
+	Reader->Tags = NULL;
+	Reader->Value = NULL;
 	Reader->NumReused = Reader->MaxReused = 0;
 	minicbor_reader_init(Reader->Reader);
 }
@@ -177,8 +180,8 @@ static int ml_cbor_reader_next_index(ml_cbor_reader_t *Reader) {
 	return Index;
 }
 
-void ml_cbor_reader_read(ml_cbor_reader_t *Reader, unsigned char *Bytes, int Size) {
-	minicbor_read(Reader->Reader, Bytes, Size);
+int ml_cbor_reader_read(ml_cbor_reader_t *Reader, unsigned char *Bytes, int Size) {
+	return minicbor_read(Reader->Reader, Bytes, Size);
 }
 
 ml_value_t *ml_cbor_reader_get(ml_cbor_reader_t *Reader) {
@@ -436,7 +439,7 @@ void ml_cbor_read_error_fn(ml_cbor_reader_t *Reader, int Position, const char *M
 ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 	ml_cbor_reader_t Reader[1];
 	Reader->TagFns = TagFns ?: DefaultTagFns;
-	Reader->GlobalGet = (ml_getter_t)stringmap_search;
+	Reader->GlobalGet = (ml_getter_t)ml_externals_get_value;
 	Reader->Globals = MLExternals;
 	Reader->Reused = NULL;
 	Reader->NumReused = Reader->MaxReused = 0;
@@ -455,7 +458,7 @@ ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 	ml_cbor_reader_t Reader[1];
 	Reader->TagFns = TagFns ?: DefaultTagFns;
-	Reader->GlobalGet = (ml_getter_t)stringmap_search;
+	Reader->GlobalGet = (ml_getter_t)ml_externals_get_value;
 	Reader->Globals = MLExternals;
 	Reader->Reused = NULL;
 	Reader->NumReused = Reader->MaxReused = 0;
@@ -478,7 +481,7 @@ ML_METHOD(CborDecode, MLAddressT) {
 // Decode :mini:`Bytes` into a Minilang value, or return an error if :mini:`Bytes` contains invalid CBOR or cannot be decoded into a Minilang value.
 	ml_cbor_reader_t Reader[1];
 	Reader->TagFns = DefaultTagFns;
-	Reader->GlobalGet = (ml_getter_t)stringmap_search;
+	Reader->GlobalGet = (ml_getter_t)ml_externals_get_value;
 	Reader->Globals = MLExternals;
 	Reader->Reused = NULL;
 	Reader->NumReused = Reader->MaxReused = 0;
@@ -497,7 +500,7 @@ ML_METHOD(CborDecode, MLAddressT) {
 static ml_value_t *ml_cbor_global_get_map(ml_value_t *Map, const char *Name) {
 	ml_value_t *Value = ml_map_search(Map, ml_string(Name, -1));
 	if (Value) return Value;
-	return stringmap_search(MLExternals, Name);
+	return ml_externals_get_value(MLExternals, Name);
 }
 
 ML_METHOD(CborDecode, MLAddressT, MLMapT) {
@@ -554,10 +557,34 @@ ML_METHOD(CborDecode, MLAddressT, MLFunctionT) {
 	return ml_cbor_reader_get(Reader);
 }
 
+ML_METHOD(CborDecode, MLAddressT, MLExternalSetT) {
+//@cbor::decode
+//<Bytes
+//<Externals
+//>any|error
+// Decode :mini:`Bytes` into a Minilang value, or return an error if :mini:`Bytes` contains invalid CBOR or cannot be decoded into a Minilang value.
+	ml_cbor_reader_t Reader[1];
+	Reader->TagFns = DefaultTagFns;
+	Reader->GlobalGet = (ml_getter_t)ml_externals_get_value;
+	Reader->Globals = Args[1];
+	Reader->Reused = NULL;
+	Reader->NumReused = Reader->MaxReused = 0;
+	Reader->NumSettings = 0;
+	minicbor_reader_init(Reader->Reader);
+	Reader->Reader->UserData = Reader;
+	Reader->Collection = 0;
+	Reader->Tags = 0;
+	Reader->Value = 0;
+	minicbor_read(Reader->Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
+	int Extra = ml_cbor_reader_extra(Reader);
+	if (Extra) return ml_error("CBORError", "Extra bytes after decoding: %d", Extra);
+	return ml_cbor_reader_get(Reader);
+}
+
 struct ml_cbor_writer_t {
 	void *Data;
 	ml_cbor_write_fn WriteFn;
-	inthash_t *Globals;
+	ml_externals_t *Externals;
 	inthash_t References[1];
 	inthash_t Reused[1];
 	int Index, NumSettings;
@@ -636,13 +663,11 @@ void ml_cbor_write_raw(ml_cbor_writer_t *Writer, const unsigned char *Bytes, siz
 	Writer->WriteFn(Writer->Data, Bytes, Length);
 }
 
-static inthash_t DefaultWriteGlobals[1] = {INTHASH_INIT};
-
-ml_cbor_writer_t *ml_cbor_writer(void *Data, ml_cbor_write_fn WriteFn, inthash_t *Globals) {
+ml_cbor_writer_t *ml_cbor_writer(void *Data, ml_cbor_write_fn WriteFn, ml_externals_t *Externals) {
 	ml_cbor_writer_t *Writer = xnew(ml_cbor_writer_t, NumCborSettings, void *);
 	Writer->Data = Data;
 	Writer->WriteFn = WriteFn;
-	Writer->Globals = Globals ?: DefaultWriteGlobals;
+	Writer->Externals = Externals ?: MLExternals;
 	Writer->References[0] = INTHASH_INIT;
 	Writer->Reused[0] = INTHASH_INIT;
 	Writer->Index = 0;
@@ -674,7 +699,7 @@ static int ml_cbor_writer_ref_fn(ml_cbor_writer_t *Writer, ml_value_t *Value) {
 }
 
 void ml_cbor_writer_find_refs(ml_cbor_writer_t *Writer, ml_value_t *Value) {
-	ml_value_find_refs(Value, Writer, (ml_value_ref_fn)ml_cbor_writer_ref_fn);
+	ml_value_find_refs(Value, Writer, (ml_value_ref_fn)ml_cbor_writer_ref_fn, 1);
 }
 
 ml_value_t *ml_cbor_write(ml_cbor_writer_t *Writer, ml_value_t *Value) {
@@ -690,9 +715,7 @@ ml_value_t *ml_cbor_write(ml_cbor_writer_t *Writer, ml_value_t *Value) {
 		inthash_insert(Writer->Reused, (uintptr_t)Value, (void *)(uintptr_t)Index);
 		minicbor_write_tag(Writer->Data, Writer->WriteFn, 28);
 	}
-	typeof(ml_cbor_write) *function = ml_typed_fn_get(ml_typeof(Value), ml_cbor_write);
-	if (function) return function(Writer, Value);
-	const char *Name = (const char *)inthash_search(Writer->Globals, (uintptr_t)Value);
+	const char *Name = ml_externals_get_name(Writer->Externals, Value);
 	if (Name) {
 		minicbor_write_tag(Writer->Data, Writer->WriteFn, 29);
 		size_t Length = strlen(Name);
@@ -700,6 +723,8 @@ ml_value_t *ml_cbor_write(ml_cbor_writer_t *Writer, ml_value_t *Value) {
 		Writer->WriteFn(Writer->Data, (const unsigned char *)Name, Length);
 		return NULL;
 	}
+	typeof(ml_cbor_write) *function = ml_typed_fn_get(ml_typeof(Value), ml_cbor_write);
+	if (function) return function(Writer, Value);
 	return ml_error("CBORError", "No method to encode %s to CBOR", ml_typeof(Value)->Name);
 }
 
@@ -708,7 +733,7 @@ ml_cbor_t ml_cbor_writer_encode(ml_value_t *Value) {
 	ml_cbor_writer_t Writer[1];
 	Writer->Data = Buffer;
 	Writer->WriteFn = (void *)ml_stringbuffer_write;
-	Writer->Globals = DefaultWriteGlobals;
+	Writer->Externals = MLExternals;
 	Writer->References[0] = INTHASH_INIT;
 	Writer->Reused[0] = INTHASH_INIT;
 	Writer->Index = 0;
@@ -1189,17 +1214,18 @@ ML_METHOD(CborEncode, MLAnyT) {
 	return ml_error("CborError", "Error encoding to cbor");
 }
 
-ML_METHOD(CborEncode, MLStringBufferT, MLAnyT) {
+ML_METHOD(CborEncode, MLAnyT, MLStringBufferT) {
 //@cbor::encode
 //<Value
+//<Buffer
 //>address|error
 // Encode :mini:`Value` into CBOR or return an error if :mini:`Value` cannot be encoded.
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_value_t *Value = Args[1];
+	ml_value_t *Value = Args[0];
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[1];
 	ml_cbor_writer_t Writer[1];
 	Writer->Data = Buffer;
 	Writer->WriteFn = (void *)ml_stringbuffer_write;
-	Writer->Globals = DefaultWriteGlobals;
+	Writer->Externals = MLExternals;
 	Writer->References[0] = INTHASH_INIT;
 	Writer->Reused[0] = INTHASH_INIT;
 	Writer->Index = 0;
@@ -1210,12 +1236,51 @@ ML_METHOD(CborEncode, MLStringBufferT, MLAnyT) {
 	return (ml_value_t *)Buffer;
 }
 
-#ifdef ML_TABLES
-#include "ml_table.h"
+ML_METHOD(CborEncode, MLAnyT, MLExternalSetT) {
+//@cbor::encode
+//<Value
+//<Externals
+//>address|error
+// Encode :mini:`Value` into CBOR or return an error if :mini:`Value` cannot be encoded.
+	ml_value_t *Value = Args[0];
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	ml_cbor_writer_t Writer[1];
+	Writer->Data = Buffer;
+	Writer->WriteFn = (void *)ml_stringbuffer_write;
+	Writer->Externals = (ml_externals_t *)Args[1];
+	Writer->References[0] = INTHASH_INIT;
+	Writer->Reused[0] = INTHASH_INIT;
+	Writer->Index = 0;
+	Writer->NumSettings = 0;
+	ml_cbor_writer_find_refs(Writer, Value);
+	ml_value_t *Error = ml_cbor_write(Writer, Value);
+	if (Error) return Error;
+	int Length = Buffer->Length;
+	return ml_address(ml_stringbuffer_get_string(Buffer), Length);
+}
 
-
-
-#endif
+ML_METHOD(CborEncode, MLAnyT, MLStringBufferT, MLExternalSetT) {
+//@cbor::encode
+//<Value
+//<Buffer
+//<Externals
+//>address|error
+// Encode :mini:`Value` into CBOR or return an error if :mini:`Value` cannot be encoded.
+	ml_value_t *Value = Args[0];
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[1];
+	ml_cbor_writer_t Writer[1];
+	Writer->Data = Buffer;
+	Writer->WriteFn = (void *)ml_stringbuffer_write;
+	Writer->Externals = (ml_externals_t *)Args[2];
+	Writer->References[0] = INTHASH_INIT;
+	Writer->Reused[0] = INTHASH_INIT;
+	Writer->Index = 0;
+	Writer->NumSettings = 0;
+	ml_cbor_writer_find_refs(Writer, Value);
+	ml_value_t *Error = ml_cbor_write(Writer, Value);
+	if (Error) return Error;
+	return (ml_value_t *)Buffer;
+}
 
 ml_value_t *ml_cbor_read_regex(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	if (!ml_is(Value, MLStringT)) return ml_error("TagError", "Regex requires string");

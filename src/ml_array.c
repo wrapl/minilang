@@ -21,7 +21,7 @@ static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args);
 
 ML_CFUNCTION(MLArray, NULL, ml_array_of_fn);
 //@array
-//<List:list
+//<List:list`
 //>array
 // Returns a new array containing the values in :mini:`List`.
 // The shape and type of the array is determined from the elements in :mini:`List`.
@@ -142,112 +142,68 @@ size_t MLArraySizes[] = {
 	[ML_ARRAY_FORMAT_ANY] = sizeof(ml_value_t *)
 };
 
-ml_array_t *ml_array_alloc(ml_array_format_t Format, int Degree) {
-	ml_type_t *Type = MLArrayT;
-	switch (Format) {
-	case ML_ARRAY_FORMAT_NONE:
-		switch (Degree) {
-		case 1: Type = MLVectorAnyT; break;
-		case 2: Type = MLMatrixAnyT; break;
-		default: Type = MLArrayAnyT; break;
-		}
-		break;
-	case ML_ARRAY_FORMAT_U8:
-		switch (Degree) {
-		case 1: Type = MLVectorUInt8T; break;
-		case 2: Type = MLMatrixUInt8T; break;
-		default: Type = MLArrayUInt8T; break;
-		}
-		break;
-	case ML_ARRAY_FORMAT_I8:
-		switch (Degree) {
-		case 1: Type = MLVectorInt8T; break;
-		case 2: Type = MLMatrixInt8T; break;
-		default: Type = MLArrayInt8T; break;
-		}
-		break;
-	case ML_ARRAY_FORMAT_U16:
-		switch (Degree) {
-		case 1: Type = MLVectorUInt16T; break;
-		case 2: Type = MLMatrixUInt16T; break;
-		default: Type = MLArrayUInt16T; break;
-		}
-		break;
-	case ML_ARRAY_FORMAT_I16:
-		switch (Degree) {
-		case 1: Type = MLVectorInt16T; break;
-		case 2: Type = MLMatrixInt16T; break;
-		default: Type = MLArrayInt16T; break;
-		}
-		break;
-	case ML_ARRAY_FORMAT_U32:
-		switch (Degree) {
-		case 1: Type = MLVectorUInt32T; break;
-		case 2: Type = MLMatrixUInt32T; break;
-		default: Type = MLArrayUInt32T; break;
-		}
-		break;
-	case ML_ARRAY_FORMAT_I32:
-		switch (Degree) {
-		case 1: Type = MLVectorInt32T; break;
-		case 2: Type = MLMatrixInt32T; break;
-		default: Type = MLArrayInt32T; break;
-		}
-		break;
-	case ML_ARRAY_FORMAT_U64:
-		switch (Degree) {
-		case 1: Type = MLVectorUInt64T; break;
-		case 2: Type = MLMatrixUInt64T; break;
-		default: Type = MLArrayUInt64T; break;
-		}
-		break;
-	case ML_ARRAY_FORMAT_I64:
-		switch (Degree) {
-		case 1: Type = MLVectorInt64T; break;
-		case 2: Type = MLMatrixInt64T; break;
-		default: Type = MLArrayInt64T; break;
-		}
-		break;
-	case ML_ARRAY_FORMAT_F32:
-		switch (Degree) {
-		case 1: Type = MLVectorFloat32T; break;
-		case 2: Type = MLMatrixFloat32T; break;
-		default: Type = MLArrayFloat32T; break;
-		}
-		break;
-	case ML_ARRAY_FORMAT_F64:
-		switch (Degree) {
-		case 1: Type = MLVectorFloat64T; break;
-		case 2: Type = MLMatrixFloat64T; break;
-		default: Type = MLArrayFloat64T; break;
-		}
-		break;
 #ifdef ML_COMPLEX
-	case ML_ARRAY_FORMAT_C32:
-		switch (Degree) {
-		case 1: Type = MLVectorComplex32T; break;
-		case 2: Type = MLMatrixComplex32T; break;
-		default: Type = MLArrayComplex32T; break;
-		}
-		break;
-	case ML_ARRAY_FORMAT_C64:
-		switch (Degree) {
-		case 1: Type = MLVectorComplex64T; break;
-		case 2: Type = MLMatrixComplex64T; break;
-		default: Type = MLArrayComplex64T; break;
-		}
-		break;
+
+#define ML_ARRAY_TYPES(NAME) \
+static ml_type_t *ML ## NAME ## Types[] = { \
+	[ML_ARRAY_FORMAT_NONE] = ML ## NAME ## T, \
+	[ML_ARRAY_FORMAT_U8] = ML ## NAME ## UInt8T, \
+	[ML_ARRAY_FORMAT_I8] = ML ## NAME ## Int8T, \
+	[ML_ARRAY_FORMAT_U16] = ML ## NAME ## UInt16T, \
+	[ML_ARRAY_FORMAT_I16] = ML ## NAME ## Int16T, \
+	[ML_ARRAY_FORMAT_U32] = ML ## NAME ## UInt32T, \
+	[ML_ARRAY_FORMAT_I32] = ML ## NAME ## Int32T, \
+	[ML_ARRAY_FORMAT_U64] = ML ## NAME ## UInt64T, \
+	[ML_ARRAY_FORMAT_I64] = ML ## NAME ## Int64T, \
+	[ML_ARRAY_FORMAT_F32] = ML ## NAME ## Float32T, \
+	[ML_ARRAY_FORMAT_F64] = ML ## NAME ## Float64T, \
+	[ML_ARRAY_FORMAT_C32] = ML ## NAME ## Complex32T, \
+	[ML_ARRAY_FORMAT_C64] = ML ## NAME ## Complex64T, \
+	[ML_ARRAY_FORMAT_ANY] = ML ## NAME ## AnyT \
+}
+
+#else
+
+#define ML_ARRAY_TYPES(NAME) \
+static ml_type_t *ML ## NAME ## Types[] = { \
+	[ML_ARRAY_FORMAT_NONE] = ML ## NAME ## T, \
+	[ML_ARRAY_FORMAT_U8] = ML ## NAME ## UInt8T, \
+	[ML_ARRAY_FORMAT_I8] = ML ## NAME ## Int8T, \
+	[ML_ARRAY_FORMAT_U16] = ML ## NAME ## UInt16T, \
+	[ML_ARRAY_FORMAT_I16] = ML ## NAME ## Int16T, \
+	[ML_ARRAY_FORMAT_U32] = ML ## NAME ## UInt32T, \
+	[ML_ARRAY_FORMAT_I32] = ML ## NAME ## Int32T, \
+	[ML_ARRAY_FORMAT_U64] = ML ## NAME ## UInt64T, \
+	[ML_ARRAY_FORMAT_I64] = ML ## NAME ## Int64T, \
+	[ML_ARRAY_FORMAT_F32] = ML ## NAME ## Float32T, \
+	[ML_ARRAY_FORMAT_F64] = ML ## NAME ## Float64T, \
+	[ML_ARRAY_FORMAT_ANY] = ML ## NAME ## AnyT \
+}
+
 #endif
-	case ML_ARRAY_FORMAT_ANY:
-		switch (Degree) {
-		case 1: Type = MLVectorAnyT; break;
-		case 2: Type = MLMatrixAnyT; break;
-		default: Type = MLArrayAnyT; break;
-		}
-		break;
-	};
+
+ML_ARRAY_TYPES(Array);
+ML_ARRAY_TYPES(Vector);
+ML_ARRAY_TYPES(Matrix);
+
+static ml_array_format_t ml_array_format(ml_type_t *Type) {
+	for (ml_array_format_t Format = ML_ARRAY_FORMAT_NONE; Format <= ML_ARRAY_FORMAT_ANY; ++Format) {
+		if (MLArrayTypes[Format] == Type) return Format;
+		if (MLVectorTypes[Format] == Type) return Format;
+		if (MLMatrixTypes[Format] == Type) return Format;
+	}
+	return ML_ARRAY_FORMAT_NONE;
+}
+
+ml_array_t *ml_array_alloc(ml_array_format_t Format, int Degree) {
 	ml_array_t *Array = xnew(ml_array_t, Degree, ml_array_dimension_t);
-	Array->Base.Type = Type;
+	if (Degree == 1) {
+		Array->Base.Type = MLVectorTypes[Format];
+	} else if (Degree == 2) {
+		Array->Base.Type = MLMatrixTypes[Format];
+	} else {
+		Array->Base.Type = MLArrayTypes[Format];
+	}
 	Array->Degree = Degree;
 	Array->Format = Format;
 	return Array;
@@ -794,6 +750,36 @@ static ml_value_t *ml_array_value(ml_array_t *Array, char *Address) {
 }
 
 typedef struct {
+	ml_type_t *Type;
+	ml_array_t Array[1];
+} ml_array_ref_t;
+
+static ml_value_t *ml_array_ref_deref(ml_array_ref_t *Ref);
+
+static void ml_array_ref_assign(ml_state_t *Caller, ml_array_ref_t *Ref, ml_value_t *Value);
+
+ML_TYPE(MLArrayRefT, (), "array::ref",
+//!internal
+	.deref = (void *)ml_array_ref_deref,
+	.assign = (void *)ml_array_ref_assign
+);
+
+ml_array_ref_t *ml_array_ref_alloc(ml_array_format_t Format, int Degree) {
+	ml_array_ref_t *Ref = xnew(ml_array_ref_t, Degree, ml_array_dimension_t);
+	Ref->Type = MLArrayRefT;
+	if (Degree == 1) {
+		Ref->Array->Base.Type = MLVectorTypes[Format];
+	} else if (Degree == 2) {
+		Ref->Array->Base.Type = MLMatrixTypes[Format];
+	} else {
+		Ref->Array->Base.Type = MLArrayTypes[Format];
+	}
+	Ref->Array->Degree = Degree;
+	Ref->Array->Format = Format;
+	return Ref;
+}
+
+typedef struct {
 	void *Address;
 	ml_array_dimension_t *Target, *Source, *Limit;
 } ml_array_indexer_t;
@@ -821,7 +807,7 @@ static void ml_array_nil_assign(ml_state_t *Caller, ml_value_t *Array, ml_value_
 
 ML_TYPE(MLArrayNilT, (MLArrayT), "array::nil",
 //!internal
-	//.deref = (void *)ml_array_nil_deref,
+	.deref = (void *)ml_array_nil_deref,
 	.assign = (void *)ml_array_nil_assign
 );
 
@@ -1249,10 +1235,10 @@ ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **Indices) 
 		++Indexer->Source;
 	}
 	int Degree = Indexer->Target - TargetDimensions;
-	ml_array_t *Target = ml_array_alloc(Source->Format, Degree);
-	for (int I = 0; I < Degree; ++I) Target->Dimensions[I] = TargetDimensions[I];
-	Target->Base.Value = Indexer->Address;
-	return (ml_value_t *)Target;
+	ml_array_ref_t *Ref = ml_array_ref_alloc(Source->Format, Degree);
+	for (int I = 0; I < Degree; ++I) Ref->Array->Dimensions[I] = TargetDimensions[I];
+	Ref->Array->Base.Value = Indexer->Address;
+	return (ml_value_t *)Ref;
 }
 
 ML_METHODV("[]", MLArrayT) {
@@ -2098,7 +2084,6 @@ ML_TYPE(MLArray ## SUFFIX, (MLArray ## PARENT), "array::" #PREFIX, \
 */\
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
 	.deref = (void *)ml_array_ ## CTYPE ## _deref, \
-	.assign = (void *)ml_array_ ## CTYPE ## _assign, \
 	.Constructor = (ml_value_t *)MLArray ## SUFFIX ## New \
 ); \
 \
@@ -2108,7 +2093,6 @@ ML_TYPE(MLVector ## SUFFIX, (MLVector ## PARENT, MLArray ## SUFFIX), "vector::" 
 */\
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
 	.deref = (void *)ml_array_ ## CTYPE ## _deref, \
-	.assign = (void *)ml_array_ ## CTYPE ## _assign, \
 	.Constructor = (ml_value_t *)MLArray ## SUFFIX ## New \
 ); \
 \
@@ -2118,7 +2102,6 @@ ML_TYPE(MLMatrix ## SUFFIX, (MLMatrix ## PARENT, MLArray ## SUFFIX), "matrix::" 
 */\
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
 	.deref = (void *)ml_array_ ## CTYPE ## _deref, \
-	.assign = (void *)ml_array_ ## CTYPE ## _assign, \
 	.Constructor = (ml_value_t *)MLArray ## SUFFIX ## New \
 );
 
@@ -2143,6 +2126,49 @@ ARRAY_DECL(ComplexT, complex64, Complex64T, complex_double, COMPLEX_APPEND, "%g"
 #endif
 
 ARRAY_DECL(T, any, AnyT, any, BUFFER_APPEND, "?", ml_nop, ml_nop, ml_number, ml_number_value, ML_ARRAY_FORMAT_ANY, ml_hash);
+
+static ml_value_t *ml_array_ref_deref(ml_array_ref_t *Ref) {
+	switch (Ref->Array->Format) {
+	case ML_ARRAY_FORMAT_NONE: break;
+	case ML_ARRAY_FORMAT_U8: return ml_array_uint8_t_deref(Ref->Array);
+	case ML_ARRAY_FORMAT_I8: return ml_array_int8_t_deref(Ref->Array);
+	case ML_ARRAY_FORMAT_U16: return ml_array_uint16_t_deref(Ref->Array);
+	case ML_ARRAY_FORMAT_I16: return ml_array_int16_t_deref(Ref->Array);
+	case ML_ARRAY_FORMAT_U32: return ml_array_uint32_t_deref(Ref->Array);
+	case ML_ARRAY_FORMAT_I32: return ml_array_int32_t_deref(Ref->Array);
+	case ML_ARRAY_FORMAT_U64: return ml_array_uint64_t_deref(Ref->Array);
+	case ML_ARRAY_FORMAT_I64: return ml_array_int64_t_deref(Ref->Array);
+	case ML_ARRAY_FORMAT_F32: return ml_array_float_deref(Ref->Array);
+	case ML_ARRAY_FORMAT_F64: return ml_array_double_deref(Ref->Array);
+#ifdef ML_COMPLEX
+	case ML_ARRAY_FORMAT_C32: return ml_array_complex_float_deref(Ref->Array);
+	case ML_ARRAY_FORMAT_C64: return ml_array_complex_double_deref(Ref->Array);
+#endif
+	case ML_ARRAY_FORMAT_ANY: return ml_array_any_deref(Ref->Array);
+	}
+	__builtin_unreachable();
+}
+
+static void ml_array_ref_assign(ml_state_t *Caller, ml_array_ref_t *Ref, ml_value_t *Value) {
+	switch (Ref->Array->Format) {
+	case ML_ARRAY_FORMAT_NONE: break;
+	case ML_ARRAY_FORMAT_U8: return ml_array_uint8_t_assign(Caller, Ref->Array, Value);
+	case ML_ARRAY_FORMAT_I8: return ml_array_int8_t_assign(Caller, Ref->Array, Value);
+	case ML_ARRAY_FORMAT_U16: return ml_array_uint16_t_assign(Caller, Ref->Array, Value);
+	case ML_ARRAY_FORMAT_I16: return ml_array_int16_t_assign(Caller, Ref->Array, Value);
+	case ML_ARRAY_FORMAT_U32: return ml_array_uint32_t_assign(Caller, Ref->Array, Value);
+	case ML_ARRAY_FORMAT_I32: return ml_array_int32_t_assign(Caller, Ref->Array, Value);
+	case ML_ARRAY_FORMAT_U64: return ml_array_uint64_t_assign(Caller, Ref->Array, Value);
+	case ML_ARRAY_FORMAT_I64: return ml_array_int64_t_assign(Caller, Ref->Array, Value);
+	case ML_ARRAY_FORMAT_F32: return ml_array_float_assign(Caller, Ref->Array, Value);
+	case ML_ARRAY_FORMAT_F64: return ml_array_double_assign(Caller, Ref->Array, Value);
+#ifdef ML_COMPLEX
+	case ML_ARRAY_FORMAT_C32: return ml_array_complex_float_assign(Caller, Ref->Array, Value);
+	case ML_ARRAY_FORMAT_C64: return ml_array_complex_double_assign(Caller, Ref->Array, Value);
+#endif
+	case ML_ARRAY_FORMAT_ANY: return ml_array_any_assign(Caller, Ref->Array, Value);
+	}
+}
 
 #define PARTIAL_FUNCTIONS(CTYPE) \
 \
@@ -7276,8 +7302,8 @@ void ml_array_init(stringmap_t *Globals) {
 	ml_cbor_default_object("array::complex32", (ml_value_t *)MLCborReadComplex32);
 	ml_cbor_default_object("array::complex64", (ml_value_t *)MLCborReadComplex64);
 #endif
-	stringmap_insert(MLExternals, "array", MLArrayT);
-	stringmap_insert(MLExternals, "vector", MLVectorT);
-	stringmap_insert(MLExternals, "matrix", MLMatrixT);
+	ml_externals_add("array", MLArrayT);
+	ml_externals_add("vector", MLVectorT);
+	ml_externals_add("matrix", MLMatrixT);
 #endif
 }

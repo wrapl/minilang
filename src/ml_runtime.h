@@ -216,6 +216,7 @@ int ml_scheduler_queue_add_signal(ml_state_t *State, ml_value_t *Value);
 // Locks
 
 extern ml_type_t MLSemaphoreT[];
+extern ml_type_t MLConditionT[];
 extern ml_type_t MLRWLockT[];
 
 // Channels

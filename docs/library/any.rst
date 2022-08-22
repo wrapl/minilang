@@ -1,0 +1,106 @@
+.. include:: <isonum.txt>
+
+.. include:: <isoamsa.txt>
+
+.. include:: <isotech.txt>
+
+any
+===
+
+.. _type-any:
+
+:mini:`type any`
+   Base type for all values.
+
+
+.. _fun-copy:
+
+:mini:`fun copy(Value: any, Fn?: function): any`
+   Creates a deep copy of :mini:`Value`,  calling :mini:`Fn(Copier,  Value)` to copy individual values.
+   If omitted,  :mini:`Fn` defaults to :mini:`:copy`.
+
+
+:mini:`meth (Value₁: any) != (Value₂: any): Value₂ | nil`
+   Returns :mini:`Value₂` if :mini:`Value₁` and :mini:`Value₂` are not exactly the same instance and :mini:`nil` otherwise.
+
+
+:mini:`meth (Arg₁: any) != (Arg₂: any, Arg₃: any, ...): any | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth #(Value: any): integer`
+   Returns a hash for :mini:`Value` for use in lookup tables,  etc.
+
+
+:mini:`meth (Arg₁: any) < (Arg₂: any, Arg₃: any, ...): any | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth (Arg₁: any) <= (Arg₂: any, Arg₃: any, ...): any | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth (Value₁: any) <> (Value₂: any): integer`
+   Compares :mini:`Value₁` and :mini:`Value₂` and returns :mini:`-1`,  :mini:`0` or :mini:`1`.
+   This comparison is based on the types and internal addresses of :mini:`Value₁` and :mini:`Value₂` and thus only has no persistent meaning.
+
+
+:mini:`meth (Value₁: any) = (Value₂: any): Value₂ | nil`
+   Returns :mini:`Value₂` if :mini:`Value₁` and :mini:`Value₂` are exactly the same instance and :mini:`nil` otherwise.
+
+
+:mini:`meth (Arg₁: any) = (Arg₂: any, Arg₃: any, ...): any | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth (Arg₁: any) > (Arg₂: any, Arg₃: any, ...): any | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth (Arg₁: any) >= (Arg₂: any, Arg₃: any, ...): any | nil`
+   Returns :mini:`Arg₂` if :mini:`Arg₁ SYMBOL Arg₂` and :mini:`nil` otherwise.
+
+
+:mini:`meth (Value: any):in(Type: type): Value | nil`
+   Returns :mini:`Value` if it is an instance of :mini:`Type` or a type that inherits from :mini:`Type` and :mini:`nil` otherwise.
+
+
+:mini:`meth (A: any):max(B: any): any`
+   Returns :mini:`A` if :mini:`A > B` and :mini:`B` otherwise.
+
+
+:mini:`meth (A: any):min(B: any): any`
+   Returns :mini:`A` if :mini:`A < B` and :mini:`B` otherwise.
+
+
+:mini:`meth (Buffer: string::buffer):append(Value: any)`
+   Appends a representation of :mini:`Value` to :mini:`Buffer`.
+
+
+.. _type-copy:
+
+:mini:`type copy < function`
+   Used to copy values inside a call to :mini:`copy(Value)`.
+   If :mini:`Copy` is an instance of :mini:`copy` then
+   
+   * :mini:`Copy(X,  Y)` add the mapping :mini:`X -> Y` to :mini:`Copy` and returns :mini:`Y`, 
+   * :mini:`Copy(X)` creates a copy of :mini:`X` using the value of :mini:`Fn` passed to :mini:`copy`.
+
+   .. code-block:: mini
+
+      copy([1, {"A" is 2.5}]; Copy, X) do print('Copying {X}\n'); Copy:copy(X) end
+      :> [1, {"A" is 2.5}]
+
+   .. code-block:: console
+
+      Copying [1, {A is 2.5}]
+      Copying 1
+      Copying {A is 2.5}
+      Copying A
+      Copying 2.5
+
+
+:mini:`meth (Copy: copy):copy(Value: any): any`
+   Default copy implementation,  just returns :mini:`Value`.
+
+

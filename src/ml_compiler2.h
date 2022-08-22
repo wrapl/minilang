@@ -56,6 +56,7 @@ typedef enum ml_token_t {
 	MLT_COLON,
 	MLT_COMMA,
 	MLT_ASSIGN,
+	MLT_NAMED,
 	MLT_IMPORT,
 	MLT_VALUE,
 	MLT_EXPR,
@@ -205,6 +206,7 @@ typedef struct mlc_parent_expr_t mlc_parent_expr_t;
 struct mlc_parent_expr_t {
 	MLC_EXPR_FIELDS(parent);
 	mlc_expr_t *Child;
+	const char *Name;
 };
 
 typedef struct mlc_local_expr_t mlc_local_expr_t;
@@ -223,6 +225,7 @@ struct mlc_for_expr_t {
 	const char *Key;
 	mlc_local_t *Local;
 	mlc_expr_t *Child;
+	const char *Name;
 	int Unpack;
 };
 

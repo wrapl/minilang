@@ -33,7 +33,7 @@ ml_cbor_reader_t *ml_cbor_reader(ml_cbor_tag_fns_t *TagFns, ml_getter_t GlobalGe
 void ml_cbor_reader_reset(ml_cbor_reader_t *Reader);
 void ml_cbor_reader_set_setting(ml_cbor_reader_t *Reader, int Key, void *Value);
 void *ml_cbor_reader_get_setting(ml_cbor_reader_t *Reader, int Key);
-void ml_cbor_reader_read(ml_cbor_reader_t *Reader, unsigned char *Bytes, int Size);
+int ml_cbor_reader_read(ml_cbor_reader_t *Reader, unsigned char *Bytes, int Size);
 ml_value_t *ml_cbor_reader_get(ml_cbor_reader_t *Reader);
 int ml_cbor_reader_extra(ml_cbor_reader_t *Reader);
 
@@ -48,7 +48,7 @@ typedef struct {
 typedef void (*ml_cbor_write_fn)(void *Data, const unsigned char *Bytes, size_t Size);
 typedef struct ml_cbor_writer_t ml_cbor_writer_t;
 
-ml_cbor_writer_t *ml_cbor_writer(void *Data, ml_cbor_write_fn WriteFn, inthash_t *Globals);
+ml_cbor_writer_t *ml_cbor_writer(void *Data, ml_cbor_write_fn WriteFn, ml_externals_t *Externals);
 void ml_cbor_writer_reset(ml_cbor_writer_t *Writer, void *Data);
 void ml_cbor_writer_set_setting(ml_cbor_writer_t *Writer, int Setting, void *Value);
 void *ml_cbor_writer_get_setting(ml_cbor_writer_t *Writer, int Setting);

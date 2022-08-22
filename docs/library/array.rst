@@ -15,7 +15,7 @@ array
 
 .. _fun-array:
 
-:mini:`fun array(List: list): array`
+:mini:`fun array(List: list`): array`
    Returns a new array containing the values in :mini:`List`.
    The shape and type of the array is determined from the elements in :mini:`List`.
 
@@ -1638,9 +1638,9 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:A052C29ECF7F00000000000000000000>
+      :> <16:A089B725947F000040D5E025947F0000>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
-      :> <<<21152 40642> <32719 0>> <<0 0> <0 0>>>
+      :> <<<35232 9655> <32660 0>> <<54592 9696> <32660 0>>>
 
 
 .. _type-vector:

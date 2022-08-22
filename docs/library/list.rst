@@ -7,6 +7,10 @@
 list
 ====
 
+:mini:`meth (Copy: copy):copy(List: list): list`
+   Returns a new list contains copies of the elements of :mini:`List` created using :mini:`Copy`.
+
+
 .. _type-list:
 
 :mini:`type list < sequence`
@@ -179,8 +183,8 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "c"
-      L:random :> "e"
+      L:random :> "a"
+      L:random :> "a"
 
 
 :mini:`meth (List: list):reverse: list`

@@ -28,11 +28,11 @@ ML_ENUM2(MLMapOrderT, "map::order",
 	"Descending", MAP_ORDER_DESC
 );
 
-static void ML_TYPED_FN(ml_value_find_refs, MLMapT, ml_value_t *Value, void *Data, ml_value_ref_fn RefFn) {
+static void ML_TYPED_FN(ml_value_find_refs, MLMapT, ml_value_t *Value, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
 	if (!RefFn(Data, Value)) return;
 	ML_MAP_FOREACH(Value, Iter) {
-		ml_value_find_refs(Iter->Key, Data, RefFn);
-		ml_value_find_refs(Iter->Value, Data, RefFn);
+		ml_value_find_refs(Iter->Key, Data, RefFn, RefsOnly);
+		ml_value_find_refs(Iter->Value, Data, RefFn, RefsOnly);
 	}
 }
 
@@ -1305,6 +1305,52 @@ ML_METHOD("random", MLMapT) {
 	ml_map_node_t *Node = Map->Head;
 	while (--Random >= 0) Node = Node->Next;
 	return (ml_value_t *)Node;
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Copy, *Dest, *Key;
+	ml_map_node_t *Node;
+	ml_value_t *Args[1];
+} ml_map_copy_t;
+
+static void ml_map_copy_run(ml_map_copy_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	if (!State->Key) {
+		State->Key = Value;
+		State->Args[0] = State->Node->Value;
+		return ml_call(State, State->Copy, 1, State->Args);
+	}
+	ml_map_insert(State->Dest, State->Key, Value);
+	State->Key = NULL;
+	ml_map_node_t *Node = State->Node->Next;
+	if (!Node) ML_RETURN(State->Dest);
+	State->Node = Node;
+	State->Args[0] = Node->Key;
+	return ml_call(State, State->Copy, 1, State->Args);
+}
+
+ML_METHODX("copy", MLCopyT, MLMapT) {
+//<Copy
+//<Map
+//>map
+// Returns a new map contains copies of the keys and values of :mini:`Map` created using :mini:`Copy`.
+	ml_copy_t *Copy = (ml_copy_t *)Args[0];
+	ml_value_t *Dest = ml_map();
+	((ml_map_t *)Dest)->Order = ((ml_map_t *)Args[1])->Order;
+	inthash_insert(Copy->Cache, (uintptr_t)Args[1], Dest);
+	ml_map_node_t *Node = ((ml_map_t *)Args[1])->Head;
+	if (!Node) ML_RETURN(Dest);
+	ml_map_copy_t *State = new(ml_map_copy_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_map_copy_run;
+	State->Copy = (ml_value_t *)Copy;
+	State->Dest = Dest;
+	State->Node = Node;
+	State->Args[0] = Node->Key;
+	return ml_call(State, (ml_value_t *)Copy, 1, State->Args);
 }
 
 void ml_map_init() {

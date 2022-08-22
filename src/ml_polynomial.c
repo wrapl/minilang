@@ -1775,218 +1775,13 @@ ML_METHOD("append", MLStringBufferT, MLPolynomialRationalT) {
 
 #ifdef ML_COMPLEX
 
-// Code adapted from https://github.com/yairchu/quartic
-
-#define MAX_DEGREE 4
-
-static double stableness_score(complex double a, complex double b);
-static int solve_normalized_poly(int degree, const complex double *poly, complex double *results);
-static void calc_shifted_coefs(complex double shift, int degree, const complex double *src, complex double *dst);
-static void calc_binomials(int num_binoms, int stride, double *dst);
-static void calc_powers(complex double x, int max_power, complex double *dst);
-static int solve_depressed_poly(int degree, const complex double *poly, complex double *results);
-static int solve_depressed_quartic(const complex double *poly, complex double *results);
-static int solve_depressed_cubic(const complex double *poly, complex double *results);
-static int solve_depressed_quadratic(const complex double *poly, complex double *results);
-
-/* poly: pointer to coefficients array of size degree + 1.
- * results: pointer to results output array of size degree.
- */
-int solve_poly(int degree, const complex double *poly, complex double *results) {
-	complex double normalized_poly[MAX_DEGREE + 1];
-	int i;
-	const complex double a = poly[degree];
-	if (degree == 0)
-		return 0;
-	if (cabs(a) < DBL_EPSILON) return solve_poly(degree - 1, poly, results);
-	if (degree > MAX_DEGREE) return -1;
-	if (degree > 2 && stableness_score(poly[degree], poly[degree - 1]) > stableness_score(poly[0], poly[1])) {
-		complex double rev_poly[MAX_DEGREE + 1];
-		int num_results;
-		for (i = 0; i <= degree; ++i)
-			rev_poly[i] = poly[degree - i];
-		num_results = solve_poly(degree, rev_poly, results);
-		for (i = 0; i < num_results; ++i)
-			results[i] = 1 / results[i];
-		return num_results;
-	}
-	for (i = 0; i < degree; ++i)
-		normalized_poly[i] = poly[i] / a;
-	normalized_poly[degree] = 1.0;
-	return solve_normalized_poly(degree, normalized_poly, results);
+void ml_roots_linear(const complex double Coeffs[], complex double Roots[]) {
+	Roots[0] = -Coeffs[0] / Coeffs[1];
 }
 
-static double stableness_score(complex double a, complex double b) {
-	const double t = sqrt(cabs(a) / cabs(b));
-	return t + 1.0 / t;
-}
-
-/* Normalized polynomials have the form of
- *   x^n + a*x^(n-1) + ..
- * The coefficient for x^n is one.
- * solve_normalized_poly does expect to get this coefficient despite it being known.
- */
-static int solve_normalized_poly(int degree, const complex double *poly, complex double *results) {
-	const complex double shift = -poly[degree - 1] / degree;
-	complex double shifted_coefs[MAX_DEGREE + 1];
-	int i, num_results;
-	calc_shifted_coefs(shift, degree, poly, shifted_coefs);
-	num_results = solve_depressed_poly(degree, shifted_coefs, results);
-	for (i = 0; i < num_results; ++i) results[i] += shift;
-	return num_results;
-}
-
-static void calc_shifted_coefs(complex double shift, int degree, const complex double *src, complex double *dst) {
-	double binomials[MAX_DEGREE + 1][MAX_DEGREE + 1];
-	complex double shift_powers[MAX_DEGREE + 1];
-	int dst_i, src_i;
-	for (dst_i = 0; dst_i <= degree; ++dst_i)
-		dst[dst_i] = 0.0;
-	calc_binomials(degree+1, sizeof(binomials[0]) / sizeof(binomials[0][0]), binomials[0]);
-	calc_powers(shift, degree, shift_powers);
-	for (src_i = 0; src_i <= degree; ++src_i) {
-		for (dst_i = 0; dst_i <= src_i; ++dst_i) {
-			dst[dst_i] = dst[dst_i] + binomials[src_i][dst_i] * src[src_i] + shift_powers[src_i - dst_i];
-		}
-	}
-}
-
-static void calc_binomials(int num_binoms, int stride, double *dst) {
-	int row;
-	for (row = 0; row < num_binoms; ++row) {
-		const int row_idx = row * stride;
-		const int prev_row_idx = (row - 1) * stride;
-		int col;
-		dst[row_idx] = 1;
-		for (col = 1; col < row; ++col) {
-			dst[row_idx + col] = dst[prev_row_idx + col - 1] + dst[prev_row_idx + col];
-		}
-		dst[row_idx + row] = 1;
-	}
-}
-
-static void calc_powers(complex double x, int max_power, complex double *dst) {
-	int i;
-	dst[0] = 1.0;
-	if (max_power >= 1) dst[1] = x;
-	for (i = 2; i <= max_power; ++i) dst[i] = x * dst[i - 1];
-}
-
-/* Depressed polynomials have the form of:
- *   x^n + a*x^(n-2) + ..
- * The coefficient for x^n is 1 and for x^(n-1) is zero.
- * So it gets 3 coefficients for a depressed quartic polynom.
- */
-static int solve_depressed_poly(int degree, const complex double *poly, complex double *results) {
-	if (degree > 0 && cabs(poly[0]) < DBL_EPSILON) {
-		results[0] = 0.0;
-		return 1 + solve_depressed_poly(degree - 1, poly + 1, results + 1);
-	}
-	switch (degree) {
-	case 4:
-		return solve_depressed_quartic(poly, results);
-	case 3:
-		return solve_depressed_cubic(poly, results);
-	case 2:
-		return solve_depressed_quadratic(poly, results);
-	case 1:
-		results[0] = 0.0;
-		return 1;
-	case 0:
-		return 0;
-	default:
-		return -1;
-	}
-}
-
-/* Based on http://en.wikipedia.org/wiki/Quartic_function#Quick_and_memorable_solution_from_first_principles */
-static int solve_depressed_quartic(const complex double *poly, complex double *results)
-{
-	complex double helper_cubic[4];
-	complex double helper_results[3];
-	complex double quadratic_factor[3];
-	complex double p, c_plus_p_sqr, d_div_p;
-	const complex double e = poly[0];
-	const complex double d = poly[1];
-	const complex double c = poly[2];
-	double helper_norm, t;
-	int num_helper_results, num_results, best_helper_result, i;
-
-	if (cabs(d) < DBL_EPSILON) {
-		int i, num_quad_results;
-		complex double quadratic[3];
-		complex double quadratic_results[2];
-		quadratic[0] = e;
-		quadratic[1] = c;
-		quadratic[2] = 1.0;
-		num_quad_results = solve_poly(2, quadratic, quadratic_results);
-		for (i = 0; i < num_quad_results; ++i) {
-			const complex double s = csqrt(quadratic_results[i]);
-			results[2*i] = -s;
-			results[2*i + 1] = s;
-		}
-		return 2 * num_quad_results;
-	}
-
-	helper_cubic[0] = -d * d;
-	helper_cubic[1] = c * c - 4 * e;
-	helper_cubic[2] = 2 * c;
-	helper_cubic[3] = 1;
-	num_helper_results = solve_poly(3, helper_cubic, helper_results);
-	if (num_helper_results < 1) return 0;
-
-	// Pick the result of helper_cubic which has the highest norm,
-	// For more stable calculation. Fixes https://github.com/yairchu/quartic/issues/2
-	best_helper_result = 0;
-	helper_norm = cabs(helper_results[0]);
-	for (i = 1; i < num_helper_results; ++i) {
-		t = cabs(helper_results[i]);
-		if (t > helper_norm) {
-			helper_norm = t;
-			best_helper_result = i;
-		}
-	}
-
-	p = csqrt(helper_results[best_helper_result]);
-	c_plus_p_sqr = c + p * p;
-	d_div_p = d / p;
-	quadratic_factor[0] = c_plus_p_sqr - d_div_p;
-	quadratic_factor[1] = 2 * p;
-	quadratic_factor[2] = 2;
-	num_results = solve_poly(2, quadratic_factor, results);
-	quadratic_factor[0] = c_plus_p_sqr + d_div_p;
-	quadratic_factor[1] = -quadratic_factor[1];
-	return num_results + solve_poly(2, quadratic_factor, results + num_results);
-}
-
-/* Based on http://en.wikipedia.org/wiki/Cubic_equation#Cardano.27s_method */
-static int solve_depressed_cubic(const complex double *poly, complex double *results) {
-	const complex double q = poly[0];
-	const complex double p = poly[1];
-	if (cabs(p) < DBL_EPSILON) {
-		results[0] = cpow(-q, 1.0 / 3.0);
-		results[1] = results[0];
-		results[2] = results[1];
-		return 3;
-	}
-	complex double t = q * q / 4 + p * p * p / 27;
-	complex double z = -0.5 + 0.5 * sqrt(3.0) * _Complex_I;
-	results[0] = cpow(-q / 2 + csqrt(t), 1.0 / 3.0);
-	results[1] = results[0] * z;
-	results[2] = results[1] * z;
-	return 3;
-}
-
-static int solve_depressed_quadratic(const complex double *poly, complex double *results) {
-	const complex double t = csqrt(-poly[0]);
-	results[0] = -t;
-	results[1] = t;
-	return 2;
-}
-
-static void ml_roots_quadratic(complex double Coeffs[], complex double Roots[]) {
-	complex double A = Coeffs[1] / Coeffs[0];
-	complex double B = Coeffs[2] / Coeffs[0];
+void ml_roots_quadratic(const complex double Coeffs[], complex double Roots[]) {
+	complex double A = Coeffs[1] / Coeffs[2];
+	complex double B = Coeffs[0] / Coeffs[2];
 	complex double A0 = -A / 2;
 	complex double D = (A0 * A0) - B;
 	complex double SD = csqrt(D);
@@ -1995,20 +1790,18 @@ static void ml_roots_quadratic(complex double Coeffs[], complex double Roots[]) 
 }
 
 static inline complex double ccbrt(complex double X) {
-	if (creal(X) >= 0) return cpow(X, 1 / 3);
-	return -cpow(-X, 1 / 3);
+	if (creal(X) >= 0) return cpow(X, 1.0 / 3.0);
+	return -cpow(-X, 1.0 / 3.0);
 }
 
-static void ml_roots_cubic(complex double Coeffs[], complex double Roots[]) {
-	complex double A = Coeffs[1] / Coeffs[0];
-	complex double B = Coeffs[2] / Coeffs[0];
-	complex double C = Coeffs[3] / Coeffs[0];
+void ml_roots_cubic(const complex double Coeffs[], complex double Roots[]) {
+	complex double A = Coeffs[2] / Coeffs[3];
+	complex double B = Coeffs[1] / Coeffs[3];
+	complex double C = Coeffs[0] / Coeffs[3];
 	complex double A13 = A / 3;
-	complex double A2 = A13 * A13;
-	const double Sqrt3 = sqrt(3);
-	complex double F = B / 3 - A2;
-	complex double G = A13 * (2 * A2 - B) + C;
-	complex double H = G * G / 4 + F * F * F;
+	complex double F = B / 3 - A13 * A13;
+	complex double G = A13 * B / 2 - C / 2 - A13 * A13 * A13;
+	complex double H = G * G + F * F * F;
 	if (cabs(F) < DBL_EPSILON && cabs(G) < DBL_EPSILON && cabs(H) < DBL_EPSILON) {
 		if (fabs(cimag(C)) < DBL_EPSILON) {
 			Roots[0] = Roots[1] = Roots[2] = -cbrt(creal(C));
@@ -2017,34 +1810,34 @@ static void ml_roots_cubic(complex double Coeffs[], complex double Roots[]) {
 		}
 	} else {
 		complex double SqrtH = csqrt(H);
-		complex double S = ccbrt(-G / 2 + SqrtH);
-		complex double U = ccbrt(-G / 2 - SqrtH);
-		double SaddU = S + U;
-		double SsubU = S - U;
-		Roots[0] = SaddU - A13;
-		Roots[1] = -SaddU / 2 - A13 + SsubU * Sqrt3 * _Complex_I / 2;
-		Roots[2] = -SaddU / 2 - A13 - SsubU * Sqrt3 * _Complex_I / 2;
+		complex double S = ccbrt(G + SqrtH);
+		complex double T = ccbrt(G - SqrtH);
+		complex double SaddT = S + T;
+		complex double SsubT = (S - T) * sqrt(3) * _Complex_I / 2;
+		Roots[0] = SaddT - A13;
+		Roots[1] = -SaddT / 2 + SsubT - A13;
+		Roots[2] = -SaddT / 2 - SsubT - A13;
 	}
 }
 
-static void ml_roots_quartic(complex double Coeffs[], complex double Roots[]) {
-	complex double A = Coeffs[1] / Coeffs[0];
-	complex double B = Coeffs[2] / Coeffs[0];
-	complex double C = Coeffs[3] / Coeffs[0];
-	complex double D = Coeffs[4] / Coeffs[0];
+void ml_roots_quartic(const complex double Coeffs[], complex double Roots[]) {
+	complex double A = Coeffs[3] / Coeffs[4];
+	complex double B = Coeffs[2] / Coeffs[4];
+	complex double C = Coeffs[1] / Coeffs[4];
+	complex double D = Coeffs[0] / Coeffs[4];
 	complex double A0 = A / 4;
 	complex double A02 = A0 * A0;
 	complex double P = 3 * A02 - B / 2;
 	complex double Q = A * A02 - B * A0 + C / 2;
 	complex double R = 3 * A02 * A02 - B * A02 + C * A0 - D;
-	complex double Cubic[4] = {1, P, R, P * R - Q * Q / 2};
+	complex double Cubic[4] = {P * R - Q * Q / 2, R, P, 1};
 	ml_roots_cubic(Cubic, Roots);
 	complex double Z0 = Roots[0];
 	complex double S = csqrt(2 * P + 2 * creal(Z0));
 	complex double T = cabs(S) < DBL_EPSILON ? Z0 * Z0 + R : -Q / S;
-	complex double Quadratic1[3] = {1, S, Z0 + T};
+	complex double Quadratic1[3] = {Z0 + T, S, 1};
 	ml_roots_quadratic(Quadratic1, Roots);
-	complex double Quadratic2[3] = {1, -S, Z0 - T};
+	complex double Quadratic2[3] = {Z0 - T, -S, 1};
 	ml_roots_quadratic(Quadratic2, Roots + 2);
 	Roots[0] -= A0;
 	Roots[1] -= A0;
@@ -2052,33 +1845,77 @@ static void ml_roots_quartic(complex double Coeffs[], complex double Roots[]) {
 	Roots[3] -= A0;
 }
 
-ML_FUNCTION(MLPolynomialRoots) {
-	complex double Coeffs[5];
-	complex double Roots[4];
-	ML_CHECK_ARG_COUNT(3);
-	ML_CHECK_ARG_TYPE(0, MLComplexT);
-	Coeffs[0] = ml_complex_value(Args[0]);
-	ML_CHECK_ARG_TYPE(1, MLComplexT);
-	Coeffs[1] = ml_complex_value(Args[1]);
-	ML_CHECK_ARG_TYPE(2, MLComplexT);
-	Coeffs[2] = ml_complex_value(Args[2]);
-	if (Count > 3) {
-		ML_CHECK_ARG_TYPE(3, MLComplexT);
-		Coeffs[3] = ml_complex_value(Args[3]);
-		if (Count > 4) {
-			ML_CHECK_ARG_TYPE(4, MLComplexT);
-			Coeffs[4] = ml_complex_value(Args[4]);
-			if (Count > 5) return ml_error("CallError", "Too many arguments");
-			ml_roots_quartic(Coeffs, Roots);
-		} else {
-			ml_roots_cubic(Coeffs, Roots);
-		}
-	} else {
-		ml_roots_quadratic(Coeffs, Roots);
+void ml_roots_general(int N, const complex double Coeffs[], complex double Roots[]) {
+	complex double Deriv[N];
+	for (int I = 0; I < N; ++I) {
+		Deriv[I] = (I + 1) * Coeffs[I + 1];
+		Roots[I] = (double)rand() / RAND_MAX + (double)rand() * _Complex_I / RAND_MAX;
 	}
-	int NumRoots = solve_poly(Count, Coeffs, Roots);
+	for (int I = 0; I <= N; ++I) printf("Coeff[%d] = %f + %fi\n", I, creal(Coeffs[I]), cimag(Coeffs[I]));
+	for (int I = 0; I < N; ++I) printf("Deriv[%d] = %f + %fi\n", I, creal(Deriv[I]), cimag(Deriv[I]));
+	for (int K = 0; K < 100; ++K) {
+		printf("Iteration %d\n", K);
+		for (int I = 0; I < N; ++I) printf("\tZ[%d] = %f + %fi\n", I, creal(Roots[I]), cimag(Roots[I]));
+		complex double P[N], Q[N], R[N];
+		for (int I = 0; I < N; ++I) {
+			complex double PI = Coeffs[0];
+			complex double QI = Deriv[0];
+			complex double X = Roots[I];
+			for (int J = 1; J < N; ++J) {
+				PI += X * Coeffs[J];
+				QI += X * Deriv[J];
+				X *= Roots[I];
+			}
+			PI += X * Coeffs[N];
+			P[I] = PI;
+			Q[I] = QI;
+			complex double RI = 0;
+			for (int J = 0; J < N; ++J) if (J != I) {
+				RI += 1 / (Roots[I] - Roots[J]);
+			}
+			R[I] = RI;
+		}
+		double Delta = 0;
+		for (int I = 0; I < N; ++I) {
+			complex double W = P[I] / (Q[I] - P[I] * R[I]);
+			Roots[I] -= W;
+			Delta += cabs(W);
+		}
+		printf("\tDelta = %f\n", Delta);
+		if (isnan(Delta)) return;
+		if (Delta < 1e-9) return;
+	}
+}
+
+ML_FUNCTION(MLPolynomialRoots) {
+//@polynomial::roots
+//<Coeffs
+//>list[complex]
+// Returns the roots of the single variable polynomial :math:`Coeff_{0} + Coeff_{1}x + Coeff_{2}x^{2} + ...`. If the degree is less than 5, the relevant formula is used to calculate the roots, otherwise the roots are estimated using an iterative process.
+//$= polynomial::roots([2, -3, 1])
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLListT);
+	int N = ml_list_length(Args[0]), M = N - 1;
+	complex double Coeffs[N], *C = Coeffs;
+	complex double Roots[M], *R = Roots;
+	int I = 0;
+	ML_LIST_FOREACH(Args[0], Iter) Coeffs[I++] = ml_complex_value(Iter->Value);
+	for (complex double *CEnd = Coeffs + N; C < CEnd && cabs(*C) < DBL_EPSILON; ++C) {
+		*R++ = 0; --N;
+	}
+	while (N > 0 && cabs(C[N - 1]) < DBL_EPSILON) {
+		--N; --M;
+	}
+	switch (N) {
+	case 0: case 1: M = 0; break;
+	case 2: ml_roots_linear(C, R); break;
+	case 3: ml_roots_quadratic(C, R); break;
+	case 4: ml_roots_cubic(C, R); break;
+	case 5: ml_roots_quartic(C, R); break;
+	default: ml_roots_general(N - 1, C, R); break;
+	}
 	ml_value_t *Result = ml_list();
-	for (int I = 0; I < NumRoots; ++I) ml_list_put(Result, ml_complex(Roots[I]));
+	for (int I = 0; I < M; ++I) ml_list_put(Result, ml_complex(Roots[I]));
 	return Result;
 }
 

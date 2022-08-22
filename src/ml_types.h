@@ -146,6 +146,14 @@ void ml_type_add_rule(ml_type_t *Type, ml_type_t *Parent, ...) __attribute__ ((s
 int ml_is_subtype(ml_type_t *Type1, ml_type_t *Type2) __attribute__ ((pure));
 ml_type_t *ml_type_max(ml_type_t *Type1, ml_type_t *Type2);
 
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Fn;
+	inthash_t Cache[1];
+} ml_copy_t;
+
+extern ml_type_t MLCopyT[];
+
 #ifdef ML_NANBOXING
 
 extern ml_type_t MLInt32T[];
@@ -256,7 +264,7 @@ typedef ml_value_t *(*ml_callback_t)(void *Data, int Count, ml_value_t **Args);
 typedef void (*ml_callbackx_t)(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args);
 
 typedef int (*ml_value_ref_fn)(void *Data, ml_value_t *Value);
-void ml_value_find_refs(ml_value_t *Value, void *Data, ml_value_ref_fn RefFn);
+void ml_value_find_refs(ml_value_t *Value, void *Data, ml_value_ref_fn RefFn, int RefsOnly);
 
 // Iterators //
 
@@ -597,6 +605,7 @@ static inline size_t ml_buffer_length(const ml_value_t *Value) {
 }
 
 ml_value_t *ml_string(const char *Value, int Length) __attribute__((malloc));
+ml_value_t *ml_string_copy(const char *Value, int Length) __attribute__((malloc));
 ml_value_t *ml_string_format(const char *Format, ...) __attribute__((malloc, format(printf, 1, 2)));
 #define ml_string_value ml_address_value
 #define ml_string_length ml_address_length
@@ -814,7 +823,7 @@ static inline ml_value_t *ml_type_constructor(ml_type_t *Type) {
 
 #define ML_METHODX(METHOD, TYPES ...) static void CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args)
 
-#define ML_METHODZ(METHOD, TYPES ...) static ml_value_t *CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)(void *Data, int Count, ml_value_t **Args)
+#define ML_METHODZ(METHOD, TYPES ...) static void CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args)
 
 #define ML_METHODV(METHOD, TYPES ...) static ml_value_t *CONCAT3(ml_method_fn_, __LINE__, __COUNTER__)(void *Data, int Count, ml_value_t **Args)
 
@@ -1116,6 +1125,7 @@ ml_value_t *ml_module_export(ml_value_t *Module, const char *Name, ml_value_t *V
 // Externals //
 
 extern ml_type_t MLExternalT[];
+extern ml_type_t MLExternalSetT[];
 
 typedef struct {
 	ml_type_t *Type;
@@ -1126,7 +1136,43 @@ typedef struct {
 
 ml_value_t *ml_external(const char *Name) __attribute__ ((malloc));
 
-extern stringmap_t MLExternals[];
+typedef struct ml_externals_t ml_externals_t;
+
+struct ml_externals_t {
+	ml_type_t *Type;
+	ml_externals_t *Next;
+	inthash_t Values[1];
+	stringmap_t Names[1];
+};
+
+extern ml_externals_t MLExternals[1];
+const char *ml_externals_get_name(ml_externals_t *Externals, ml_value_t *Value);
+ml_value_t *ml_externals_get_value(ml_externals_t *Externals, const char *Name);
+
+void ml_externals_add(const char *Name, void *Value);
+
+// Symbols //
+
+typedef struct {
+	ml_type_t *Type;
+	const char *Name;
+} ml_symbol_t;
+
+extern ml_type_t MLSymbolT[];
+
+ml_value_t *ml_symbol(const char *Name);
+
+#define ml_symbol_name(VALUE) ((ml_symbol_t *)VALUE)->Name
+
+typedef struct {
+	ml_type_t *Type;
+	const char *First, *Last;
+} ml_symbol_range_t;
+
+extern ml_type_t MLSymbolRangeT[];
+
+#define ml_symbol_range_first(VALUE) ((ml_symbol_range_t *)VALUE)->First
+#define ml_symbol_range_last(VALUE) ((ml_symbol_range_t *)VALUE)->Last
 
 // Init //
 

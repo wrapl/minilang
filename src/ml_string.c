@@ -16,6 +16,12 @@
 #include <regex.h>
 #endif
 
+#ifdef ML_ICU
+#include "ml_object.h"
+#include <unicode/unorm2.h>
+#include <unicode/ustring.h>
+#endif
+
 #ifdef ML_COMPLEX
 #include <complex.h>
 #undef I
@@ -602,16 +608,15 @@ ML_METHOD("append", MLStringBufferT, MLAddressT) {
 //!address
 //<Buffer
 //<Value
-// Appends a representation of :mini:`Value` to :mini:`Buffer`.
+// Appends the contents of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_address_t *Address = (ml_address_t *)Args[1];
-	ml_stringbuffer_printf(Buffer, "#%" PRIxPTR ":%ld", (uintptr_t)Address->Value, Address->Length);
+	//ml_stringbuffer_printf(Buffer, "#%" PRIxPTR ":%ld", (uintptr_t)Address->Value, Address->Length);
+	ml_stringbuffer_write(Buffer, Address->Value, Address->Length);
 	return MLSome;
 }
 
 ml_value_t *ml_string(const char *Value, int Length) {
-	ml_string_t *String = new(ml_string_t);
-	String->Type = MLStringT;
 	if (Length >= 0) {
 		if (Value[Length]) {
 			char *Copy = snew(Length + 1);
@@ -622,7 +627,21 @@ ml_value_t *ml_string(const char *Value, int Length) {
 	} else {
 		Length = Value ? strlen(Value) : 0;
 	}
+	ml_string_t *String = new(ml_string_t);
+	String->Type = MLStringT;
 	String->Value = Value;
+	String->Length = Length;
+	return (ml_value_t *)String;
+}
+
+ml_value_t *ml_string_copy(const char *Value, int Length) {
+	if (Length < 0) Length = Value ? strlen(Value) : 0;
+	char *Copy = snew(Length + 1);
+	memcpy(Copy, Value, Length);
+	Copy[Length] = 0;
+	ml_string_t *String = new(ml_string_t);
+	String->Type = MLStringT;
+	String->Value = Copy;
 	String->Length = Length;
 	return (ml_value_t *)String;
 }
@@ -634,27 +653,6 @@ ml_value_t *ml_string_format(const char *Format, ...) {
 	int Length = vasprintf(&Value, Format, Args);
 	va_end(Args);
 	return ml_string(Value, Length);
-}
-
-
-ML_METHOD("append", MLStringBufferT, MLNilT) {
-//!type
-//<Buffer
-//<Value
-// Appends :mini:`"nil"` to :mini:`Buffer`.
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_write(Buffer, "nil", 3);
-	return MLSome;
-}
-
-ML_METHOD("append", MLStringBufferT, MLSomeT) {
-//!type
-//<Buffer
-//<Value
-// Appends :mini:`"some"` to :mini:`Buffer`.
-	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_write(Buffer, "some", 4);
-	return MLSome;
 }
 
 ML_METHOD("append", MLStringBufferT, MLBooleanT) {
@@ -1184,11 +1182,48 @@ ML_METHOD("utf8", MLIntegerT) {
 	return ml_string(S, I);
 }
 
-#ifdef ML_ICU
+ML_METHOD("lower", MLStringT) {
+//<String
+//>string
+// Returns :mini:`String` with each character converted to lower case.
+//$= "Hello World":lower
+	const char *Source = ml_string_value(Args[0]);
+	int Length = ml_string_length(Args[0]);
+	char *Target = snew(Length + 1);
+	for (int I = 0; I < Length; ++I) Target[I] = tolower(Source[I]);
+	return ml_string(Target, Length);
+}
 
-#include "ml_object.h"
-#include <unicode/unorm2.h>
-#include <unicode/ustring.h>
+ML_METHOD("upper", MLStringT) {
+//<String
+//>string
+// Returns :mini:`String` with each character converted to upper case.
+//$= "Hello World":upper
+	const char *Source = ml_string_value(Args[0]);
+	int Length = ml_string_length(Args[0]);
+	char *Target = snew(Length + 1);
+	for (int I = 0; I < Length; ++I) Target[I] = toupper(Source[I]);
+	return ml_string(Target, Length);
+}
+
+ML_METHOD("title", MLStringT) {
+//<String
+//>string
+// Returns :mini:`String` with the first character and each character after whitespace converted to upper case and each other case converted to lower case.
+//$= "hello world":title
+//$= "HELLO WORLD":title
+	const char *Source = ml_string_value(Args[0]);
+	int Length = ml_string_length(Args[0]);
+	char *Target = snew(Length + 1);
+	int Upper = 1;
+	for (int I = 0; I < Length; ++I) {
+		Target[I] = (Upper ? toupper : tolower)(Source[I]);
+		Upper = isblank(Source[I]);
+	}
+	return ml_string(Target, Length);
+}
+
+#ifdef ML_ICU
 
 enum {
 	ML_UNORM_NFC,
@@ -2048,30 +2083,6 @@ ML_METHOD("*/", MLStringT, MLRegexT) {
 	ml_tuple_set(Results, 1, Args[0]);
 	ml_tuple_set(Results, 2, ml_cstring(""));
 	return Results;
-}
-
-ML_METHOD("lower", MLStringT) {
-//<String
-//>string
-// Returns :mini:`String` with each character converted to lower case.
-//$= "Hello World":lower
-	const char *Source = ml_string_value(Args[0]);
-	int Length = ml_string_length(Args[0]);
-	char *Target = snew(Length + 1);
-	for (int I = 0; I < Length; ++I) Target[I] = tolower(Source[I]);
-	return ml_string(Target, Length);
-}
-
-ML_METHOD("upper", MLStringT) {
-//<String
-//>string
-// Returns :mini:`String` with each character converted to upper case.
-//$= "Hello World":upper
-	const char *Source = ml_string_value(Args[0]);
-	int Length = ml_string_length(Args[0]);
-	char *Target = snew(Length + 1);
-	for (int I = 0; I < Length; ++I) Target[I] = toupper(Source[I]);
-	return ml_string(Target, Length);
 }
 
 ML_METHOD("escape", MLStringT) {

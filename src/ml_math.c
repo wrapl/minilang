@@ -12,7 +12,7 @@
 #define ML_CATEGORY "math"
 
 #define MATH_REAL(NAME, CNAME, EXPORT) \
-ML_METHOD_DECL(NAME ## Method, NULL); \
+ML_METHOD_ANON(NAME ## Method, "math::" #EXPORT); \
 \
 ML_METHOD(NAME ## Method, MLRealT) { \
 /*@math::EXPORT
@@ -27,7 +27,7 @@ ML_METHOD(NAME ## Method, MLRealT) { \
 #ifdef ML_COMPLEX
 
 #define MATH_NUMBER(NAME, CNAME, EXPORT) \
-ML_METHOD_DECL(NAME ## Method, NULL); \
+ML_METHOD_ANON(NAME ## Method, "math::" #EXPORT); \
 \
 ML_METHOD(NAME ## Method, MLRealT) { \
 /*@math::EXPORT
@@ -60,7 +60,7 @@ ML_METHOD(NAME ## Method, MLComplexT) { \
 }
 
 #define MATH_NUMBER_KEEP_REAL(NAME, CNAME, EXPORT) \
-ML_METHOD_DECL(NAME ## Method, NULL); \
+ML_METHOD_ANON(NAME ## Method, "math::" #EXPORT); \
 \
 ML_METHOD(NAME ## Method, MLRealT) { \
 /*@math::EXPORT
@@ -90,7 +90,7 @@ ML_METHOD(NAME ## Method, MLComplexT) { \
 #else
 
 #define MATH_NUMBER(NAME, CNAME, EXPORT) \
-ML_METHOD_DECL(NAME ## Method, NULL); \
+ML_METHOD_ANON(NAME ## Method, "math::" #EXPORT); \
 \
 ML_METHOD(NAME ## Method, MLRealT) { \
 /*@math::EXPORT
@@ -107,7 +107,7 @@ ML_METHOD(NAME ## Method, MLRealT) { \
 #endif
 
 #define MATH_REAL_REAL(NAME, CNAME, EXPORT) \
-ML_METHOD_DECL(NAME ## Method, NULL); \
+ML_METHOD_DECL(NAME ## Method, "math::" #EXPORT); \
 \
 ML_METHOD(NAME ## Method, MLRealT, MLRealT) { \
 /*@math::EXPORT
@@ -267,7 +267,7 @@ ML_METHOD("!", MLIntegerT, MLIntegerT) {
 	return ml_integer(C);
 }
 
-ML_METHOD_DECL(GCDMethod, "gcd");
+ML_METHOD_DECL(GCDMethod, "math::gcd");
 
 ML_METHOD(GCDMethod, MLIntegerT, MLIntegerT) {
 //@gcd
@@ -351,7 +351,7 @@ ML_METHOD(SqrtMethod, MLIntegerT) {
 	return ml_real(sqrt(N));
 }
 
-ML_METHOD_DECL(SquareMethod, NULL);
+ML_METHOD_ANON(SquareMethod, "math::square");
 ML_METHOD(SquareMethod, MLIntegerT) {
 //@math::square
 //<N
@@ -403,7 +403,7 @@ double logit(double X) {
 
 MATH_REAL(Logit, logit, logit);
 
-ML_METHOD_DECL(ArgMethod, "arg");
+ML_METHOD_ANON(ArgMethod, "math::arg");
 
 ML_METHOD(ArgMethod, MLRealT) {
 //@arg
@@ -413,7 +413,7 @@ ML_METHOD(ArgMethod, MLRealT) {
 	return ml_real(0.0);
 }
 
-ML_METHOD_DECL(ConjMethod, "conj");
+ML_METHOD_ANON(ConjMethod, "math::conj");
 
 ML_METHOD(ConjMethod, MLRealT) {
 //@conj

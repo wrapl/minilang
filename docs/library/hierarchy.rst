@@ -15,6 +15,7 @@ hierarchy
       "any":e -> "sequence":w;
       "any":e -> "function":w;
       "function":e -> "type":w;
+      "function":e -> "copy":w;
       "function":e -> "function::partial":w;
       "sequence":e -> "function::partial":w;
       "function":e -> "tuple":w;
@@ -22,6 +23,9 @@ hierarchy
       "any":e -> "boolean":w;
       "any":e -> "module":w;
       "any":e -> "external":w;
+      "any":e -> "external::set":w;
+      "function":e -> "symbol":w;
+      "any":e -> "symbol::range":w;
       "any":e -> "xml":w;
       "xml":e -> "xml::text":w;
       "string":e -> "xml::text":w;
@@ -69,6 +73,7 @@ hierarchy
       "any":e -> "error::value":w;
       "any":e -> "debugger":w;
       "any":e -> "semaphore":w;
+      "any":e -> "condition":w;
       "any":e -> "rwlock":w;
       "any":e -> "channel":w;
       "any":e -> "pqueue::entry":w;

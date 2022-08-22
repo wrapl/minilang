@@ -7,13 +7,19 @@
 minijs
 ======
 
-.. _fun-minijs-encode:
+:mini:`meth minijs::encode(Value: any): string | error`
+   *TBD*
 
-:mini:`fun minijs::encode(Value: any): string | error`
+
+:mini:`meth minijs::encode(Value: any, Externals: external::set): string | error`
    *TBD*
 
 
 :mini:`meth minijs::decode(Json: string): any | error`
+   *TBD*
+
+
+:mini:`meth minijs::decode(Json: string, Externals: external::set): any | error`
    *TBD*
 
 

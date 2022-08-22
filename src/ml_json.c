@@ -69,7 +69,7 @@ static int real_handler(json_decoder_t *Decoder, double Value) {
 }
 
 static int string_handler(json_decoder_t *Decoder, const char *Value, size_t Length) {
-	return value_handler(Decoder, ml_string(Value, Length));
+	return value_handler(Decoder, ml_string_copy(Value, Length));
 }
 
 static int push_value(json_decoder_t *Decoder, ml_value_t *Value) {
@@ -114,7 +114,7 @@ static int start_map_handler(json_decoder_t *Decoder) {
 }
 
 static int map_key_handler(json_decoder_t *Decoder, const char *Key, size_t Length) {
-	Decoder->Key = ml_string(Key, Length);
+	Decoder->Key = ml_string_copy(Key, Length);
 	return 1;
 }
 

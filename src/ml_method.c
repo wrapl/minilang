@@ -244,11 +244,11 @@ void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Ca
 	ml_methods_lock(Methods);
 	Definition->Next = inthash_insert(Methods->Definitions, (uintptr_t)Method, Definition);
 	ml_method_cached_t *Cached = inthash_search(Methods->Methods, (uintptr_t)Method);
-	ml_methods_unlock(Methods);
 	while (Cached) {
 		Cached->Callback = NULL;
 		Cached = Cached->MethodNext;
 	}
+	ml_methods_unlock(Methods);
 }
 
 void ml_method_define(ml_value_t *Value, ml_value_t *Function, int Count, int Variadic, ml_type_t **Types) {
@@ -331,6 +331,12 @@ ML_TYPE(MLMethodT, (MLFunctionT), "method",
 	.call = ml_method_call
 );
 
+ML_TYPE(MLMethodAnonT, (MLMethodT), "method::anon",
+//!internal
+	.hash = ml_method_hash,
+	.call = ml_method_call
+);
+
 #ifdef ML_THREADSAFE
 
 static volatile atomic_flag MLMethodsLock[1] = {ATOMIC_FLAG_INIT};
@@ -349,7 +355,7 @@ static volatile atomic_flag MLMethodsLock[1] = {ATOMIC_FLAG_INIT};
 ml_value_t *ml_method(const char *Name) {
 	if (!Name) {
 		ml_method_t *Method = new(ml_method_t);
-		Method->Type = MLMethodT;
+		Method->Type = MLMethodAnonT;
 		asprintf((char **)&Method->Name, "<anon:0x%lx>", (uintptr_t)Method);
 		return (ml_value_t *)Method;
 	}
@@ -367,7 +373,7 @@ ml_value_t *ml_method(const char *Name) {
 
 ml_value_t *ml_method_anon(const char *Name) {
 	ml_method_t *Method = new(ml_method_t);
-	Method->Type = MLMethodT;
+	Method->Type = MLMethodAnonT;
 	Method->Name = Name;
 	return (ml_value_t *)Method;
 }
@@ -461,6 +467,14 @@ ML_METHOD("append", MLStringBufferT, MLMethodT) {
 	return MLSome;
 }
 
+ML_METHOD("append", MLStringBufferT, MLMethodAnonT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_method_t *Method = (ml_method_t *)Args[1];
+	ml_stringbuffer_put(Buffer, '@');
+	ml_stringbuffer_write(Buffer, Method->Name, strlen(Method->Name));
+	return MLSome;
+}
+
 /*ML_METHODVX("[]", MLMethodT) {
 	ml_method_t *Method = (ml_method_t *)Args[0];
 	for (int I = 1; I < Count; ++I) ML_CHECKX_ARG_TYPE(I, MLTypeT);
@@ -543,6 +557,7 @@ static inline void ml_method_set(ml_methods_t *Methods, int NumTypes, int Variad
 	ml_method_insert(Methods, Method, Function, NumTypes, Variadic, Types);
 }
 
+/*
 ML_FUNCTIONX(MLMethodSet) {
 //@method::set
 //<Method
@@ -555,6 +570,61 @@ ML_FUNCTIONX(MLMethodSet) {
 	if (Methods->PreventChanges) ML_ERROR("ContextError", "Context does not allow methods to be defined");
 	ML_CHECKX_ARG_COUNT(2);
 	if (ml_is(Args[0], MLTypeT)) Args[0] = ((ml_type_t *)Args[0])->Constructor;
+	ML_CHECKX_ARG_TYPE(0, MLMethodT);
+	int NumTypes = Count - 2, Variadic = 0;
+	if (Count >= 3 && Args[Count - 2] == RangeMethod) {
+		Variadic = 1;
+		--NumTypes;
+	}
+	for (int I = 1; I <= NumTypes; ++I) {
+		if (Args[I] != MLNil) {
+			ML_CHECKX_ARG_TYPE(I, MLTypeT);
+		}
+	}
+	ML_CHECKX_ARG_TYPE(Count - 1, MLFunctionT);
+	ml_value_t *Function = Args[Count - 1];
+	ml_method_set(Methods, NumTypes, Variadic, Args, Function);
+	ML_RETURN(Function);
+}
+*/
+
+ML_METHODVX("set", MLMethodT) {
+//<Method
+//<Types...:type
+//<..?
+//<Function:function
+//>Function
+// Adds a new type signature and associated function to :mini:`Method`. If the last argument is :mini:`..` then the signature is variadic. Method definitions using :mini:`meth` are translated into calls to :mini:`method::set`.
+	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
+	if (Methods->PreventChanges) ML_ERROR("ContextError", "Context does not allow methods to be defined");
+	ML_CHECKX_ARG_COUNT(2);
+	int NumTypes = Count - 2, Variadic = 0;
+	if (Count >= 3 && Args[Count - 2] == RangeMethod) {
+		Variadic = 1;
+		--NumTypes;
+	}
+	for (int I = 1; I <= NumTypes; ++I) {
+		if (Args[I] != MLNil) {
+			ML_CHECKX_ARG_TYPE(I, MLTypeT);
+		}
+	}
+	ML_CHECKX_ARG_TYPE(Count - 1, MLFunctionT);
+	ml_value_t *Function = Args[Count - 1];
+	ml_method_set(Methods, NumTypes, Variadic, Args, Function);
+	ML_RETURN(Function);
+}
+
+ML_METHODVX("set", MLTypeT) {
+//<Type
+//<Types...:type
+//<..?
+//<Function:function
+//>Function
+// Adds a new type signature and associated function to :mini:`Method`. If the last argument is :mini:`..` then the signature is variadic. Method definitions using :mini:`meth` are translated into calls to :mini:`method::set`.
+	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
+	if (Methods->PreventChanges) ML_ERROR("ContextError", "Context does not allow methods to be defined");
+	ML_CHECKX_ARG_COUNT(2);
+	Args[0] = ((ml_type_t *)Args[0])->Constructor;
 	ML_CHECKX_ARG_TYPE(0, MLMethodT);
 	int NumTypes = Count - 2, Variadic = 0;
 	if (Count >= 3 && Args[Count - 2] == RangeMethod) {
@@ -656,7 +726,7 @@ void ml_method_init() {
 	ml_context_set(&MLRootContext, ML_METHODS_INDEX, MLRootMethods);
 #include "ml_method_init.c"
 	stringmap_insert(MLMethodT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLMethodSwitch));
-	stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
+	//stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
 	stringmap_insert(MLMethodT->Exports, "context", MLMethodContext);
 	stringmap_insert(MLMethodT->Exports, "list", MLMethodList);
 	ml_method_by_value(MLMethodT->Constructor, NULL, ml_identity, MLMethodT, NULL);

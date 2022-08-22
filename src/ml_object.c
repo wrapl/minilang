@@ -50,10 +50,10 @@ struct ml_object_t {
 ML_INTERFACE(MLObjectT, (), "object");
 // Parent type of all object classes.
 
-static void ML_TYPED_FN(ml_value_find_refs, MLObjectT, ml_object_t *Value, void *Data, ml_value_ref_fn RefFn) {
+static void ML_TYPED_FN(ml_value_find_refs, MLObjectT, ml_object_t *Value, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
 	if (!RefFn(Data, (ml_value_t *)Value)) return;
 	int Size = Value->Type->Fields->Size;
-	for (int I = 0; I < Size; ++I) ml_value_find_refs(Value->Fields[I].Value, Data, RefFn);
+	for (int I = 0; I < Size; ++I) ml_value_find_refs(Value->Fields[I].Value, Data, RefFn, RefsOnly);
 }
 
 ML_METHOD("::", MLObjectT, MLStringT) {
@@ -476,10 +476,7 @@ ml_value_t *ml_object_field(const ml_value_t *Value, size_t Field) {
 	return ((ml_object_t *)Value)->Fields[Field].Value;
 }
 
-typedef struct {
-	ml_type_t Base;
-	ml_value_t *Values[];
-} ml_enum_t;
+//!enum
 
 typedef struct {
 #ifdef ML_NANBOXING
@@ -489,6 +486,11 @@ typedef struct {
 #endif
 	ml_value_t *Name;
 } ml_enum_value_t;
+
+typedef struct {
+	ml_type_t Base;
+	ml_enum_value_t *Values[];
+} ml_enum_t;
 
 static long ml_enum_value_hash(ml_enum_value_t *Value, ml_hash_chain_t *Chain) {
 	return (long)Value->Base.Type + Value->Base.Value;
@@ -513,15 +515,14 @@ ML_METHOD("append", MLStringBufferT, MLEnumValueT) {
 	return Args[0];
 }
 
-ML_FUNCTION(MLEnum) {
-//@enum
+ML_METHODV(MLEnumT, MLStringT) {
 //<Values...:string
 //>enum
 // Returns a new enumeration type.
 //$= let day := enum("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 //$= day::Wed
 //$= day::Fri + 0
-	for (int I = 0; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLStringT);
+	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLStringT);
 	ml_enum_t *Enum = xnew(ml_enum_t, Count, ml_value_t *);
 	Enum->Base.Type = MLEnumT;
 	asprintf((char **)&Enum->Base.Name, "enum:%lx", (uintptr_t)Enum);
@@ -536,9 +537,40 @@ ML_FUNCTION(MLEnum) {
 		ml_enum_value_t *Value = new(ml_enum_value_t);
 		Value->Base.Type = (ml_type_t *)Enum;
 		Value->Name = Args[I];
-		Enum->Values[I] = (ml_value_t *)Value;
+		Enum->Values[I] = Value;
 		Value->Base.Value = I + 1;
 		stringmap_insert(Enum->Base.Exports, ml_string_value(Args[I]), Value);
+	}
+	return (ml_value_t *)Enum;
+}
+
+ML_METHODV(MLEnumT, MLNamesT) {
+//<Name,Value
+//>enum
+// Returns a new enumeration type.
+//$= let colour := enum(Red is 10, Green is 20, Blue is 30)
+//$= colour::Red
+//$= list(colour, _ + 0)
+	ML_NAMES_CHECK_ARG_COUNT(0);
+	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLIntegerT);
+	ml_enum_t *Enum = xnew(ml_enum_t, Count - 1, ml_value_t *);
+	Enum->Base.Type = MLEnumT;
+	asprintf((char **)&Enum->Base.Name, "enum:%lx", (uintptr_t)Enum);
+	Enum->Base.deref = ml_default_deref;
+	Enum->Base.assign = ml_default_assign;
+	Enum->Base.hash = (void *)ml_enum_value_hash;
+	Enum->Base.call = ml_default_call;
+	Enum->Base.Rank = 1;
+	ml_type_init((ml_type_t *)Enum, MLEnumValueT, NULL);
+	Enum->Base.Exports[0] = (stringmap_t)STRINGMAP_INIT;
+	int I = 0;
+	ML_NAMES_FOREACH(Args[0], Iter) {
+		ml_enum_value_t *Value = new(ml_enum_value_t);
+		Value->Base.Type = (ml_type_t *)Enum;
+		Value->Name = Iter->Value;
+		Enum->Values[I] = Value;
+		Value->Base.Value = ml_integer_value(Args[++I]);
+		stringmap_insert(Enum->Base.Exports, ml_string_value(Iter->Value), Value);
 	}
 	return (ml_value_t *)Enum;
 }
@@ -567,7 +599,7 @@ ml_type_t *ml_enum(const char *TypeName, ...) {
 		ml_enum_value_t *Value = new(ml_enum_value_t);
 		Value->Base.Type = (ml_type_t *)Enum;
 		Value->Name = Name;
-		Enum->Values[Index++] = (ml_value_t *)Value;
+		Enum->Values[Index++] = Value;
 		Value->Base.Value = Index;
 		stringmap_insert(Enum->Base.Exports, String, Value);
 	}
@@ -602,7 +634,7 @@ ml_type_t *ml_enum2(const char *TypeName, ...) {
 		ml_enum_value_t *Value = new(ml_enum_value_t);
 		Value->Base.Type = (ml_type_t *)Enum;
 		Value->Name = Name;
-		Enum->Values[Index++] = (ml_value_t *)Value;
+		Enum->Values[Index++] = Value;
 		Value->Base.Value = va_arg(Args, int);
 		stringmap_insert(Enum->Base.Exports, String, Value);
 	}
@@ -639,9 +671,12 @@ static void ml_enum_call(ml_state_t *Caller, ml_enum_t *Enum, int Count, ml_valu
 		if (!Value) ML_ERROR("EnumError", "Invalid enum name");
 		ML_RETURN(Value);
 	} else if (ml_is(Arg, MLIntegerT)) {
+		ml_enum_value_t **Values = Enum->Values;
 		int Index = ml_integer_value_fast(Arg);
-		if (Index <= 0 || Index > Enum->Base.Exports->Size) ML_ERROR("EnumError", "Invalid enum index");
-		ML_RETURN(Enum->Values[Index - 1]);
+		for (int I = 0; I < Enum->Base.Exports->Size; ++I) {
+			if (Values[I]->Base.Value == Index) ML_RETURN(Values[I]);
+		}
+		ML_ERROR("EnumError", "Invalid enum index");
 	} else {
 		ML_ERROR("TypeError", "Expected <integer> or <string> not <%s>", ml_typeof(Arg)->Name);
 	}
@@ -649,75 +684,8 @@ static void ml_enum_call(ml_state_t *Caller, ml_enum_t *Enum, int Count, ml_valu
 
 ML_TYPE(MLEnumT, (MLTypeT, MLSequenceT), "enum",
 // The base type of enumeration types.
-	.call = (void *)ml_enum_call,
-	.Constructor = (void *)MLEnum
+	.call = (void *)ml_enum_call
 );
-
-typedef struct {
-	ml_value_t *Index;
-	uint64_t Value;
-} ml_enum_case_t;
-
-typedef struct {
-	ml_type_t *Type;
-	ml_enum_t *Enum;
-	ml_enum_case_t Cases[];
-} ml_enum_switch_t;
-
-static void ml_enum_switch(ml_state_t *Caller, ml_enum_switch_t *Switch, int Count, ml_value_t **Args) {
-	ML_CHECKX_ARG_COUNT(1);
-	ml_value_t *Arg = ml_deref(Args[0]);
-	if (!ml_is(Arg, (ml_type_t *)Switch->Enum)) {
-		ML_ERROR("TypeError", "expected %s for argument 1", Switch->Enum->Base.Name);
-	}
-	uint64_t Value = ml_enum_value_value(Arg);
-	for (ml_enum_case_t *Case = Switch->Cases;; ++Case) {
-		if (Case->Value == Value) ML_RETURN(Case->Index);
-		if (Case->Value == UINT64_MAX) ML_RETURN(Case->Index);
-	}
-	ML_RETURN(MLNil);
-}
-
-ML_TYPE(MLEnumSwitchT, (MLFunctionT), "enum-switch",
-//!internal
-	.call = (void *)ml_enum_switch
-);
-
-static ml_value_t *ml_enum_switch_fn(ml_enum_t *Enum, int Count, ml_value_t **Args) {
-	int Total = 1;
-	for (int I = 0; I < Count; ++I) {
-		ML_CHECK_ARG_TYPE(I, MLListT);
-		Total += ml_list_length(Args[I]);
-	}
-	ml_enum_switch_t *Switch = xnew(ml_enum_switch_t, Total, ml_enum_case_t);
-	Switch->Type = MLEnumSwitchT;
-	Switch->Enum = Enum;
-	ml_enum_case_t *Case = Switch->Cases;
-	for (int I = 0; I < Count; ++I) {
-		ML_LIST_FOREACH(Args[I], Iter) {
-			ml_value_t *Value = Iter->Value;
-			if (ml_is(Value, (ml_type_t *)Enum)) {
-				Case->Value = ml_enum_value_value(Value);
-			} else if (ml_is(Value, MLStringT)) {
-				ml_value_t *EnumValue = stringmap_search(Enum->Base.Exports, ml_string_value(Value));
-				if (!EnumValue) return ml_error("EnumError", "Invalid enum name");
-				Case->Value = ml_enum_value_value(EnumValue);
-			} else {
-				return ml_error("ValueError", "Unsupported value in enum case");
-			}
-			Case->Index = ml_integer(I);
-			++Case;
-		}
-	}
-	Case->Value = UINT64_MAX;
-	Case->Index = ml_integer(Count);
-	return (ml_value_t *)Switch;
-}
-
-ML_METHOD(MLCompilerSwitch, MLEnumT) {
-//!internal
-	return ml_inline_call_macro(ml_cfunction(Args[0], (ml_callback_t)ml_enum_switch_fn));
-}
 
 ML_METHOD("count", MLEnumT) {
 //<Enum
@@ -731,7 +699,7 @@ ML_METHOD("count", MLEnumT) {
 
 typedef struct {
 	ml_type_t *Type;
-	ml_value_t **Values;
+	ml_enum_value_t **Values;
 	int Index, Size;
 } ml_enum_iter_t;
 
@@ -764,8 +732,8 @@ static void ML_TYPED_FN(ml_iter_value, MLEnumIterT, ml_state_t *Caller, ml_enum_
 
 typedef struct {
 	ml_type_t *Type;
-	ml_value_t **Current, **Base, **Limit;
-	int Index, Count;
+	ml_enum_value_t **Current, **Limit;
+	int Index;
 } ml_enum_range_iter_t;
 
 ML_TYPE(MLEnumRangeIterT, (), "enum-range-iter");
@@ -793,36 +761,36 @@ ML_METHOD("..", MLEnumValueT, MLEnumValueT) {
 		return ml_error("TypeError", "Enum types do not match");
 	}
 	ml_enum_range_t *Range = new(ml_enum_range_t);
+#ifdef ML_GENERICS
+	ml_type_t *Types[2] = {MLEnumRangeT, ValueA->Base.Type};
+	Range->Type = ml_generic_type(2, Types);
+#else
 	Range->Type = MLEnumRangeT;
-	Range->Enum = (ml_enum_t *)ValueA->Base.Type;
-	Range->Min = ValueA->Base.Value - 1;
-	Range->Max = ValueB->Base.Value - 1;
+#endif
+	ml_enum_t *Enum = Range->Enum = (ml_enum_t *)ValueA->Base.Type;
+	for (int I = 0; I < Enum->Base.Exports->Size; ++I) {
+		if (Enum->Values[I] == ValueA) Range->Min = I;
+		if (Enum->Values[I] == ValueB) Range->Max = I;
+	}
 	return (ml_value_t *)Range;
 }
 
 static void ML_TYPED_FN(ml_iterate, MLEnumRangeT, ml_state_t *Caller, ml_enum_range_t *Range) {
-	int Count = Range->Max - Range->Min;
-	if (Count == 0) ML_RETURN(MLNil);
-	int Size = Range->Enum->Base.Exports->Size;
-	if (Count < 0) Count += Size;
+	if (Range->Max < Range->Min) ML_RETURN(MLNil);
 	ml_enum_range_iter_t *Iter = new(ml_enum_range_iter_t);
 	Iter->Type = MLEnumRangeIterT;
 	Iter->Index = 1;
-	Iter->Count = Count + 1;
-	ml_value_t **Base = Iter->Base = Range->Enum->Values;
-	Iter->Current = Base + Range->Min;
-	Iter->Limit = Base + Size;
+	Iter->Current = Range->Enum->Values + Range->Min;
+	Iter->Limit = Range->Enum->Values + Range->Max + 1;
 	ML_RETURN(Iter);
 }
 
 static void ML_TYPED_FN(ml_iter_next, MLEnumRangeIterT, ml_state_t *Caller, ml_enum_range_iter_t *Iter) {
-	if (--Iter->Count) {
-		++Iter->Current;
-		if (Iter->Current == Iter->Limit) Iter->Current = Iter->Base;
+	if (++Iter->Current == Iter->Limit) {
+		ML_RETURN(MLNil);
+	} else {
 		++Iter->Index;
 		ML_RETURN(Iter);
-	} else {
-		ML_RETURN(MLNil);
 	}
 }
 
@@ -833,6 +801,91 @@ static void ML_TYPED_FN(ml_iter_key, MLEnumRangeIterT, ml_state_t *Caller, ml_en
 static void ML_TYPED_FN(ml_iter_value, MLEnumRangeIterT, ml_state_t *Caller, ml_enum_range_iter_t *Iter) {
 	ML_RETURN(Iter->Current[0]);
 }
+
+typedef struct {
+	ml_value_t *Index;
+	uint64_t Min, Max;
+} ml_enum_case_t;
+
+typedef struct {
+	ml_type_t *Type;
+	ml_enum_t *Enum;
+	ml_enum_case_t Cases[];
+} ml_enum_switch_t;
+
+static void ml_enum_switch(ml_state_t *Caller, ml_enum_switch_t *Switch, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_value_t *Arg = ml_deref(Args[0]);
+	if (!ml_is(Arg, (ml_type_t *)Switch->Enum)) {
+		ML_ERROR("TypeError", "expected %s for argument 1", Switch->Enum->Base.Name);
+	}
+	uint64_t Value = ml_enum_value_value(Arg);
+	for (ml_enum_case_t *Case = Switch->Cases;; ++Case) {
+		if (Case->Min <= Value && Case->Max >= Value) ML_RETURN(Case->Index);
+		if (Case->Min == UINT64_MAX) ML_RETURN(Case->Index);
+	}
+	ML_RETURN(MLNil);
+}
+
+ML_TYPE(MLEnumSwitchT, (MLFunctionT), "enum-switch",
+//!internal
+	.call = (void *)ml_enum_switch
+);
+
+static ml_value_t *ml_enum_switch_fn(ml_enum_t *Enum, int Count, ml_value_t **Args) {
+	int Total = 1;
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
+		Total += ml_list_length(Args[I]);
+	}
+	ml_enum_switch_t *Switch = xnew(ml_enum_switch_t, Total, ml_enum_case_t);
+	Switch->Type = MLEnumSwitchT;
+	Switch->Enum = Enum;
+	ml_enum_case_t *Case = Switch->Cases;
+	for (int I = 0; I < Count; ++I) {
+		ML_LIST_FOREACH(Args[I], Iter) {
+			ml_value_t *Value = Iter->Value;
+			if (ml_is(Value, (ml_type_t *)Enum)) {
+				Case->Min = Case->Max = ml_enum_value_value(Value);
+			} else if (ml_is(Value, MLSymbolT)) {
+				ml_enum_value_t *EnumValue = stringmap_search(Enum->Base.Exports, ml_symbol_name(Value));
+				if (!EnumValue) return ml_error("EnumError", "Invalid enum name");
+				Case->Min = Case->Max = EnumValue->Base.Value;
+			} else if (ml_is(Value, MLStringT)) {
+				ml_value_t *EnumValue = stringmap_search(Enum->Base.Exports, ml_string_value(Value));
+				if (!EnumValue) return ml_error("EnumError", "Invalid enum name");
+				Case->Min = Case->Max = ml_enum_value_value(EnumValue);
+			} else if (ml_is(Value, MLEnumRangeT)) {
+				ml_enum_range_t *Range = (ml_enum_range_t *)Value;
+				if (Range->Enum != Enum) return ml_error("ValueError", "Unsupported value in enum case");
+				Case->Min = Enum->Values[Range->Min]->Base.Value;
+				Case->Max = Enum->Values[Range->Max]->Base.Value;
+			} else if (ml_is(Value, MLSymbolRangeT)) {
+				ml_symbol_range_t *Range = (ml_symbol_range_t *)Value;
+				ml_enum_value_t *Min = stringmap_search(Enum->Base.Exports, Range->First);
+				ml_enum_value_t *Max = stringmap_search(Enum->Base.Exports, Range->Last);
+				if (!Min) return ml_error("EnumError", "Invalid enum name");
+				if (!Max) return ml_error("EnumError", "Invalid enum name");
+				Case->Min = Min->Base.Value;
+				Case->Max = Max->Base.Value;
+			} else {
+				return ml_error("ValueError", "Unsupported value in enum case");
+			}
+			Case->Index = ml_integer(I);
+			++Case;
+		}
+	}
+	Case->Min = Case->Max = UINT64_MAX;
+	Case->Index = ml_integer(Count);
+	return (ml_value_t *)Switch;
+}
+
+ML_METHOD(MLCompilerSwitch, MLEnumT) {
+//!internal
+	return ml_inline_call_macro(ml_cfunction(Args[0], (ml_callback_t)ml_enum_switch_fn));
+}
+
+//!flags
 
 typedef struct {
 	ml_type_t Base;
@@ -912,7 +965,7 @@ ML_METHOD("append", MLStringBufferT, MLFlagsValueT) {
 ML_METHODV(MLFlagsT, MLStringT) {
 //<Name/1
 //>flags
-// Returns a new flags type, where :mini:`Name/i` has value $2^{i-1}$.
+// Returns a new flags type, where :mini:`Name/i` has value :math:`2^{i-1}`.
 //$= let mode := flags("Read", "Write", "Execute")
 //$= mode::Read
 //$= mode::Read + mode::Write
@@ -1255,6 +1308,14 @@ ML_METHOD(MLListT, MLFlagsValueT) {
 
 void ml_object_init(stringmap_t *Globals) {
 #include "ml_object_init.c"
+	ml_externals_add("property", MLPropertyT);
+	ml_externals_add("object", MLObjectT);
+	ml_externals_add("class", MLClassT);
+	ml_externals_add("enum", MLEnumT);
+	ml_externals_add("flags", MLFlagsT);
+#ifdef ML_GENERICS
+	ml_type_add_rule(MLEnumRangeT, MLSequenceT, MLIntegerT, ML_TYPE_ARG(1), NULL);
+#endif
 	if (Globals) {
 		stringmap_insert(Globals, "property", MLPropertyT);
 		stringmap_insert(Globals, "object", MLObjectT);

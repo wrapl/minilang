@@ -26,6 +26,7 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "type"
 
+ML_METHOD_DECL(CopyMethod, "copy");
 ML_METHOD_DECL(IterateMethod, "iterate");
 ML_METHOD_DECL(ValueMethod, "value");
 ML_METHOD_DECL(KeyMethod, "key");
@@ -36,6 +37,7 @@ ML_METHOD_DECL(MaxMethod, "max");
 ML_METHOD_DECL(IndexMethod, "[]");
 ML_METHOD_DECL(SymbolMethod, "::");
 ML_METHOD_DECL(CallMethod, "()");
+ML_METHOD_DECL(AssignMethod, ":=");
 ML_METHOD_DECL(EqualMethod, "=");
 ML_METHOD_DECL(LessMethod, "<");
 ML_METHOD_DECL(GreaterMethod, ">");
@@ -53,6 +55,7 @@ static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 // Types //
 
 ML_INTERFACE(MLAnyT, (), "any", .Rank = 0);
+//!any
 // Base type for all values.
 
 ML_INTERFACE(MLSequenceT, (), "sequence");
@@ -503,8 +506,22 @@ ML_TYPE(MLBlankT, (), "blank",
 ML_VALUE(MLNil, MLNilT);
 //!internal
 
+ML_METHOD("append", MLStringBufferT, MLNilT) {
+//!internal
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_stringbuffer_write(Buffer, "nil", 3);
+	return MLSome;
+}
+
 ML_VALUE(MLSome, MLSomeT);
 //!internal
+
+ML_METHOD("append", MLStringBufferT, MLSomeT) {
+//!internal
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_stringbuffer_write(Buffer, "some", 4);
+	return MLSome;
+}
 
 ML_VALUE(MLBlank, MLBlankT);
 //!internal
@@ -760,6 +777,59 @@ static void ML_TYPED_FN(ml_iterate, MLNilT, ml_state_t *Caller, ml_value_t *Valu
 	ML_RETURN(Value);
 }
 
+//!any
+
+// Copying //
+
+static void ml_copy_call(ml_state_t *Caller, ml_copy_t *Copy, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_value_t *Key = ml_deref(Args[0]);
+	if (Count > 1) {
+		inthash_insert(Copy->Cache, (uintptr_t)Key, ml_deref(Args[1]));
+		ML_RETURN(Args[1]);
+	} else {
+		ml_value_t *Cached = inthash_search(Copy->Cache, (uintptr_t)Key);
+		if (Cached) ML_RETURN(Cached);
+		ml_value_t **Args2 = ml_alloc_args(2);
+		Args2[0] = (ml_value_t *)Copy;
+		Args2[1] = Key;
+		return ml_call(Caller, Copy->Fn, 2, Args2);
+	}
+}
+
+ML_FUNCTIONX(MLCopy) {
+//@copy
+//<Value
+//<Fn?:function
+//>any
+// Creates a deep copy of :mini:`Value`, calling :mini:`Fn(Copier, Value)` to copy individual values.
+// If omitted, :mini:`Fn` defaults to :mini:`:copy`.
+	ML_CHECKX_ARG_COUNT(1);
+	ml_copy_t *Copy = new(ml_copy_t);
+	Copy->Type = MLCopyT;
+	Copy->Fn = Count > 1 ? Args[1] : CopyMethod;
+	return ml_call(Caller, (ml_value_t *)Copy, 1, Args);
+}
+
+ML_TYPE(MLCopyT, (MLFunctionT), "copy",
+// Used to copy values inside a call to :mini:`copy(Value)`.
+// If :mini:`Copy` is an instance of :mini:`copy` then
+//
+// * :mini:`Copy(X, Y)` add the mapping :mini:`X -> Y` to :mini:`Copy` and returns :mini:`Y`,
+// * :mini:`Copy(X)` creates a copy of :mini:`X` using the value of :mini:`Fn` passed to :mini:`copy`.
+//$= copy([1, {"A" is 2.5}]; Copy, X) do print('Copying {X}\n'); Copy:copy(X) end
+	.call = (void *)ml_copy_call,
+	.Constructor = (ml_value_t *)MLCopy
+);
+
+ML_METHOD("copy", MLCopyT, MLAnyT) {
+//<Copy
+//<Value
+//>any
+// Default copy implementation, just returns :mini:`Value`.
+	return Args[1];
+}
+
 ML_METHOD("in", MLAnyT, MLTypeT) {
 //<Value
 //<Type
@@ -858,6 +928,14 @@ static ml_integer_t NegOne[1] = {{MLIntegerT, -1}};
 static ml_integer_t Zero[1] = {{MLIntegerT, 0}};
 
 #endif
+
+ML_METHODVZ("()", MLAnyT) {
+//!internal
+	ml_value_t *Value = ml_deref(Args[0]);
+	ml_type_t *Type = ml_typeof(Value);
+	if (Type->call == ml_default_call) ML_ERROR("TypeError", "<%s> is not callable", Type->Name);
+	return Type->call(Caller, Value, Count - 1, Args + 1);
+}
 
 ML_METHOD("<>", MLAnyT, MLAnyT) {
 //<Value/1
@@ -1051,9 +1129,37 @@ void ml_value_set_name(ml_value_t *Value, const char *Name) {
 	if (function) function(Value, Name);
 }
 
-void ml_value_find_refs(ml_value_t *Value, void *Data, ml_value_ref_fn CycleFn) {
+void ml_value_find_refs(ml_value_t *Value, void *Data, ml_value_ref_fn CycleFn, int RefsOnly) {
 	typeof(ml_value_find_refs) *function = ml_typed_fn_get(ml_typeof(Value), ml_value_find_refs);
-	if (function) function(Value, Data, CycleFn);
+	if (function) return function(Value, Data, CycleFn, RefsOnly);
+	if (!RefsOnly) CycleFn(Data, Value);
+}
+
+typedef struct {
+	ml_value_t *Refs;
+	inthash_t Done[1];
+} ml_find_refs_t;
+
+static int ml_find_refs_fn(ml_find_refs_t *FindRefs, ml_value_t *Value) {
+	if (!inthash_insert(FindRefs->Done, (uintptr_t)Value, Value)) {
+		ml_list_put(FindRefs->Refs, Value);
+		return 1;
+	}
+	return 0;
+}
+
+ML_FUNCTION(MLFindRefs) {
+//!general
+//@findrefs
+//<Value:any
+//<RefsOnly?:boolean
+//>list
+// Returns a list of all unique values referenced by :mini:`Value` (including :mini:`Value`).
+	ML_CHECK_ARG_COUNT(1);
+	ml_find_refs_t FindRefs[1] = {ml_list(), {INTHASH_INIT}};
+	int RefsOnly = (Count > 1) && (Args[1] == (ml_value_t *)MLTrue);
+	ml_value_find_refs(Args[0], FindRefs, (ml_value_ref_fn)ml_find_refs_fn, RefsOnly);
+	return FindRefs->Refs;
 }
 
 // Iterators //
@@ -1638,6 +1744,11 @@ ML_TYPE(MLTupleT, (MLFunctionT, MLSequenceT), "tuple",
 	.call = (void *)ml_tuple_call,
 	.Constructor = (ml_value_t *)MLTuple
 );
+
+static void ML_TYPED_FN(ml_value_find_refs, MLTupleT, ml_tuple_t *Tuple, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
+	if (!RefFn(Data, (ml_value_t *)Tuple)) return;
+	for (int I = 0; I < Tuple->Size; ++I) ml_value_find_refs(Tuple->Values[I], Data, RefFn, RefsOnly);
+}
 
 ml_value_t *ml_tuple(size_t Size) {
 	ml_tuple_t *Tuple = xnew(ml_tuple_t, Size, ml_value_t *);
@@ -2342,7 +2453,52 @@ ML_METHOD("::", MLExternalT, MLStringT) {
 	return Slot[0];
 }
 
-stringmap_t MLExternals[1] = {STRINGMAP_INIT};
+ML_TYPE(MLExternalSetT, (), "externals");
+
+ML_METHOD(MLExternalSetT) {
+//@external::set
+//>external::set
+	ml_externals_t *Externals = new(ml_externals_t);
+	Externals->Type = MLExternalSetT;
+	Externals->Next = MLExternals;
+	return (ml_value_t *)Externals;
+}
+
+ML_METHOD("add", MLExternalSetT, MLStringT, MLAnyT) {
+//<Externals
+//<Name
+//<Value
+	ml_externals_t *Externals = (ml_externals_t *)Args[0];
+	const char *Name = ml_string_value(Args[1]);
+	stringmap_insert(Externals->Names, Name, Args[2]);
+	inthash_insert(Externals->Values, (uintptr_t)Args[1], (void *)Name);
+	return MLNil;
+}
+
+ml_externals_t MLExternals[1] = {MLExternalSetT, NULL, {INTHASH_INIT}, {STRINGMAP_INIT}};
+
+const char *ml_externals_get_name(ml_externals_t *Externals, ml_value_t *Value) {
+	while (Externals) {
+		const char *Name = (const char *)inthash_search(Externals->Values,  (uintptr_t)Value);
+		if (Name) return Name;
+		Externals = Externals->Next;
+	}
+	return NULL;
+}
+
+ml_value_t *ml_externals_get_value(ml_externals_t *Externals, const char *Name) {
+	while (Externals) {
+		ml_value_t *Value = stringmap_search(Externals->Names, Name);
+		if (Value) return Value;
+		Externals = Externals->Next;
+	}
+	return NULL;
+}
+
+void ml_externals_add(const char *Name, void *Value) {
+	stringmap_insert(MLExternals->Names, Name, Value);
+	inthash_insert(MLExternals->Values, (uintptr_t)Value, (void *)Name);
+}
 
 ML_FUNCTION(MLExternalGet) {
 //@external::get
@@ -2351,7 +2507,7 @@ ML_FUNCTION(MLExternalGet) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	const char *Name = ml_string_value(Args[0]);
-	ml_value_t *Value = (ml_value_t *)stringmap_search(MLExternals, Name);
+	ml_value_t *Value = (ml_value_t *)stringmap_search(MLExternals->Names, Name);
 	if (Value) return Value;
 	return ml_error("NameError", "External %s not defined", Name);
 }
@@ -2363,8 +2519,41 @@ ML_FUNCTION(MLExternalAdd) {
 	ML_CHECK_ARG_COUNT(2);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	const char *Name = ml_string_value(Args[0]);
-	stringmap_insert(MLExternals, Name, Args[1]);
+	stringmap_insert(MLExternals->Names, Name, Args[1]);
+	inthash_insert(MLExternals->Values, (uintptr_t)Args[1], (void *)Name);
 	return MLNil;
+}
+
+// Symbols //
+//!symbol
+
+static void ml_symbol_call(ml_state_t *Caller, ml_symbol_t *Symbol, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_value_t **Args2 = ml_alloc_args(2);
+	Args2[0] = Args[0];
+	Args2[1] = ml_string(Symbol->Name, -1);
+	return ml_call(Caller, SymbolMethod, 2, Args2);
+}
+
+ML_TYPE(MLSymbolT, (MLFunctionT), "symbol",
+	.call = (void *)ml_symbol_call
+);
+
+ml_value_t *ml_symbol(const char *Name) {
+	ml_symbol_t *Symbol = new(ml_symbol_t);
+	Symbol->Type = MLSymbolT;
+	Symbol->Name = Name;
+	return (ml_value_t *)Symbol;
+}
+
+ML_TYPE(MLSymbolRangeT, (), "symbol::range");
+
+ML_METHOD("..", MLSymbolT, MLSymbolT) {
+	ml_symbol_range_t *Range = new(ml_symbol_range_t);
+	Range->Type = MLSymbolRangeT;
+	Range->First = ml_symbol_name(Args[0]);
+	Range->Last = ml_symbol_name(Args[1]);
+	return (ml_value_t *)Range;
 }
 
 // Init //
@@ -2537,6 +2726,7 @@ void ml_init(stringmap_t *Globals) {
 	GC_set_pages_executable(1);
 #endif
 	GC_INIT();
+	ml_method_init();
 #include "ml_types_init.c"
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLTupleT, MLSequenceT, MLIntegerT, MLAnyT, NULL);
@@ -2562,36 +2752,38 @@ void ml_init(stringmap_t *Globals) {
 	ml_method_by_name(">=", NULL, ml_return_nil, MLAnyT, MLNilT, NULL);
 	ml_number_init();
 	ml_string_init();
-	ml_method_init();
 	ml_list_init();
 	ml_map_init();
 	ml_set_init();
 	ml_compiler_init();
 	ml_runtime_init();
 	ml_bytecode_init();
+	stringmap_insert(MLExternalT->Exports, "set", MLExternalSetT);
 	stringmap_insert(MLExternalT->Exports, "get", MLExternalGet);
 	stringmap_insert(MLExternalT->Exports, "add", MLExternalAdd);
-	stringmap_insert(MLExternals, "type", MLTypeT);
-	stringmap_insert(MLExternals, "any", MLAnyT);
-	stringmap_insert(MLExternals, "some", MLSome);
-	stringmap_insert(MLExternals, "integer", MLIntegerT);
-	stringmap_insert(MLExternals, "real", MLRealT);
-	stringmap_insert(MLExternals, "number", MLNumberT);
-	stringmap_insert(MLExternals, "string", MLStringT);
-	stringmap_insert(MLExternals, "list", MLListT);
-	stringmap_insert(MLExternals, "tuple", MLTupleT);
-	stringmap_insert(MLExternals, "map", MLMapT);
-	stringmap_insert(MLExternals, "set", MLSetT);
-	stringmap_insert(MLExternals, "boolean", MLBooleanT);
-	stringmap_insert(MLExternals, "error", MLErrorT);
-	stringmap_insert(MLExternals, "regex", MLRegexT);
+	ml_externals_add("type", MLTypeT);
+	ml_externals_add("function", MLFunctionT);
+	ml_externals_add("method", MLMethodT);
+	ml_externals_add("any", MLAnyT);
+	ml_externals_add("some", MLSome);
+	ml_externals_add("integer", MLIntegerT);
+	ml_externals_add("real", MLRealT);
+	ml_externals_add("number", MLNumberT);
+	ml_externals_add("string", MLStringT);
+	ml_externals_add("list", MLListT);
+	ml_externals_add("tuple", MLTupleT);
+	ml_externals_add("map", MLMapT);
+	ml_externals_add("set", MLSetT);
+	ml_externals_add("boolean", MLBooleanT);
+	ml_externals_add("error", MLErrorT);
+	ml_externals_add("regex", MLRegexT);
 #ifdef ML_COMPLEX
-	stringmap_insert(MLExternals, "complex", MLComplexT);
+	ml_externals_add("complex", MLComplexT);
 #endif
-	stringmap_insert(MLExternals, "method", MLMethodT);
-	stringmap_insert(MLExternals, "address", MLAddressT);
-	stringmap_insert(MLExternals, "buffer", MLBufferT);
-	stringmap_insert(MLExternals, "tuple", MLTupleT);
+	ml_externals_add("method", MLMethodT);
+	ml_externals_add("address", MLAddressT);
+	ml_externals_add("buffer", MLBufferT);
+	ml_externals_add("tuple", MLTupleT);
 	if (Globals) {
 		stringmap_insert(Globals, "any", MLAnyT);
 		stringmap_insert(Globals, "type", MLTypeT);
@@ -2624,6 +2816,8 @@ void ml_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "deref", MLDeref);
 		stringmap_insert(Globals, "assign", MLAssign);
 		stringmap_insert(Globals, "call", MLCall);
+		stringmap_insert(Globals, "copy", MLCopyT);
+		stringmap_insert(Globals, "findrefs", MLFindRefs);
 		stringmap_insert(Globals, "exchange", MLExchange);
 		stringmap_insert(Globals, "replace", MLReplace);
 		stringmap_insert(Globals, "cas", MLCompareAndSet);

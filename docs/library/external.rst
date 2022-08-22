@@ -23,6 +23,20 @@ external
    *TBD*
 
 
+.. _type-external-set:
+
+:mini:`type external::set`
+   *TBD*
+
+
+:mini:`meth external::set(): external::set`
+   *TBD*
+
+
+:mini:`meth (Externals: external::set):add(Name: string, Value: any)`
+   *TBD*
+
+
 .. _fun-external-add:
 
 :mini:`fun external::add(Name: string, Value: any)`

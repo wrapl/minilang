@@ -55,6 +55,16 @@ void ml_polynomial_write(ml_stringbuffer_t *Buffer, ml_polynomial_t *Poly);
 
 void ml_polynomial_init(stringmap_t *Globals);
 
+#ifdef ML_COMPLEX
+
+void ml_roots_linear(const complex double C[], complex double R[]);
+void ml_roots_quadratic(const complex double C[], complex double R[]);
+void ml_roots_cubic(const complex double C[], complex double R[]);
+void ml_roots_quartic(const complex double C[], complex double R[]);
+void ml_roots_general(int N, const complex double C[], complex double R[]);
+
+#endif
+
 #ifdef __cplusplus
 }
 #endif
