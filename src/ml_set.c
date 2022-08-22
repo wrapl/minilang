@@ -1010,6 +1010,45 @@ ML_METHOD("random", MLSetT) {
 	return Node->Key;
 }
 
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Copy, *Dest;
+	ml_set_node_t *Node;
+	ml_value_t *Args[1];
+} ml_set_copy_t;
+
+static void ml_set_copy_run(ml_set_copy_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	ml_set_insert(State->Dest, Value);
+	ml_set_node_t *Node = State->Node->Next;
+	if (!Node) ML_RETURN(State->Dest);
+	State->Node = Node;
+	State->Args[0] = Node->Key;
+	return ml_call(State, State->Copy, 1, State->Args);
+}
+
+ML_METHODX("copy", MLCopyT, MLSetT) {
+//<Copy
+//<Set
+//>set
+// Returns a new set contains copies of the elements of :mini:`Set` created using :mini:`Copy`.
+	ml_copy_t *Copy = (ml_copy_t *)Args[0];
+	ml_value_t *Dest = ml_set();
+	inthash_insert(Copy->Cache, (uintptr_t)Args[1], Dest);
+	ml_set_node_t *Node = ((ml_set_t *)Args[1])->Head;
+	if (!Node) ML_RETURN(Dest);
+	ml_set_copy_t *State = new(ml_set_copy_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_set_copy_run;
+	State->Copy = (ml_value_t *)Copy;
+	State->Dest = Dest;
+	State->Node = Node;
+	State->Args[0] = Node->Key;
+	return ml_call(State, (ml_value_t *)Copy, 1, State->Args);
+}
+
 #ifdef ML_CBOR
 
 #include "ml_cbor.h"

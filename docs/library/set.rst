@@ -17,6 +17,10 @@ set
       "D" in S :> nil
 
 
+:mini:`meth (Copy: copy):copy(Set: set): set`
+   Returns a new set contains copies of the elements of :mini:`Set` created using :mini:`Copy`.
+
+
 .. _type-set:
 
 :mini:`type set < sequence`
@@ -246,7 +250,7 @@ set
 
       let M := set("cake") :> {c, a, k, e}
       M:random :> "e"
-      M:random :> "k"
+      M:random :> "c"
 
 
 :mini:`meth (Set: set):reverse: set`
