@@ -28,9 +28,9 @@ ML_ENUM2(MLSetOrderT, "set::order",
 	"Descending", SET_ORDER_DESC
 );
 
-static void ML_TYPED_FN(ml_value_find_refs, MLSetT, ml_value_t *Value, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
+static void ML_TYPED_FN(ml_value_find_all, MLSetT, ml_value_t *Value, void *Data, ml_value_find_fn RefFn) {
 	if (!RefFn(Data, Value, 1)) return;
-	ML_SET_FOREACH(Value, Iter) ml_value_find_refs(Iter->Key, Data, RefFn, RefsOnly);
+	ML_SET_FOREACH(Value, Iter) ml_value_find_all(Iter->Key, Data, RefFn);
 }
 
 ML_TYPE(MLSetNodeT, (), "set-node");

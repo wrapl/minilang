@@ -1627,12 +1627,12 @@ ML_TYPE(MLClosureT, (MLFunctionT, MLSequenceT), "closure",
 	.Constructor = (ml_value_t *)MLClosure
 );
 
-static void ML_TYPED_FN(ml_value_find_refs, MLClosureT, ml_closure_t *Closure, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
+static void ML_TYPED_FN(ml_value_find_all, MLClosureT, ml_closure_t *Closure, void *Data, ml_value_find_fn RefFn) {
 	if (!RefFn(Data, (ml_value_t *)Closure, 1)) return;
 	ml_closure_info_t *Info = Closure->Info;
 	Info->Type = MLClosureInfoT;
-	ml_value_find_refs((ml_value_t *)Info, Data, RefFn, RefsOnly);
-	for (int I = 0; I < Info->NumUpValues; ++I) ml_value_find_refs(Closure->UpValues[I], Data, RefFn, RefsOnly);
+	ml_value_find_all((ml_value_t *)Info, Data, RefFn);
+	for (int I = 0; I < Info->NumUpValues; ++I) ml_value_find_all(Closure->UpValues[I], Data, RefFn);
 }
 
 static int ML_TYPED_FN(ml_value_is_constant, MLClosureT, ml_closure_t *Closure) {
@@ -1646,7 +1646,7 @@ static int ML_TYPED_FN(ml_value_is_constant, MLClosureT, ml_closure_t *Closure) 
 ML_TYPE(MLClosureInfoT, (), "closure::info");
 // Information about a closure.
 
-static void ML_TYPED_FN(ml_value_find_refs, MLClosureInfoT, ml_closure_info_t *Info, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
+static void ML_TYPED_FN(ml_value_find_all, MLClosureInfoT, ml_closure_info_t *Info, void *Data, ml_value_find_fn RefFn) {
 	if (!RefFn(Data, (ml_value_t *)Info, 1)) return;
 	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
 		if (Inst->Opcode == MLI_LINK) {
@@ -1670,19 +1670,19 @@ static void ML_TYPED_FN(ml_value_find_refs, MLClosureInfoT, ml_closure_info_t *I
 			Inst += 2;
 			break;
 		case MLIT_VALUE:
-			ml_value_find_refs(Inst[1].Value, Data, RefFn, RefsOnly);
+			ml_value_find_all(Inst[1].Value, Data, RefFn);
 			Inst += 2;
 			break;
 		case MLIT_VALUE_DATA:
-			ml_value_find_refs(Inst[1].Value, Data, RefFn, RefsOnly);
+			ml_value_find_all(Inst[1].Value, Data, RefFn);
 			Inst += 3;
 			break;
 		case MLIT_VALUE_COUNT:
-			ml_value_find_refs(Inst[1].Value, Data, RefFn, RefsOnly);
+			ml_value_find_all(Inst[1].Value, Data, RefFn);
 			Inst += 3;
 			break;
 		case MLIT_VALUE_COUNT_DATA:
-			ml_value_find_refs(Inst[1].Value, Data, RefFn, RefsOnly);
+			ml_value_find_all(Inst[1].Value, Data, RefFn);
 			Inst += 4;
 			break;
 		case MLIT_COUNT_CHARS:
@@ -1700,7 +1700,7 @@ static void ML_TYPED_FN(ml_value_find_refs, MLClosureInfoT, ml_closure_info_t *I
 		case MLIT_CLOSURE: {
 			ml_closure_info_t *Info = Inst[1].ClosureInfo;
 			if (!Info->Type) Info->Type = MLClosureInfoT;
-			ml_value_find_refs((ml_value_t *)Info, Data, RefFn, RefsOnly);
+			ml_value_find_all((ml_value_t *)Info, Data, RefFn);
 			Inst += 2 + Info->NumUpValues;
 			break;
 		}

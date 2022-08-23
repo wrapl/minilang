@@ -691,6 +691,7 @@ void *ml_cbor_writer_get_setting(ml_cbor_writer_t *Writer, int Setting) {
 }
 
 static int ml_cbor_writer_ref_fn(ml_cbor_writer_t *Writer, ml_value_t *Value, int HasRefs) {
+	if (!HasRefs) return 0;
 	if (inthash_insert(Writer->References, (uintptr_t)Value, Value)) {
 		inthash_insert(Writer->Reused, (uintptr_t)Value, (void *)0L);
 		return 0;
@@ -699,7 +700,7 @@ static int ml_cbor_writer_ref_fn(ml_cbor_writer_t *Writer, ml_value_t *Value, in
 }
 
 void ml_cbor_writer_find_refs(ml_cbor_writer_t *Writer, ml_value_t *Value) {
-	ml_value_find_refs(Value, Writer, (ml_value_ref_fn)ml_cbor_writer_ref_fn, 1);
+	ml_value_find_all(Value, Writer, (ml_value_find_fn)ml_cbor_writer_ref_fn);
 }
 
 ml_value_t *ml_cbor_write(ml_cbor_writer_t *Writer, ml_value_t *Value) {

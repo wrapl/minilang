@@ -70,9 +70,9 @@ general
    Assigns :mini:`Varᵢ := Varᵢ₊₁` for each :mini:`1 <= i < n` and :mini:`Varₙ := Var₁`.
 
 
-.. _fun-findrefs:
+.. _fun-findall:
 
-:mini:`fun findrefs(Value: any, Filter?: boolean|type): list`
+:mini:`fun findall(Value: any, Filter?: boolean|type): list`
    Returns a list of all unique values referenced by :mini:`Value` (including :mini:`Value`).
 
 

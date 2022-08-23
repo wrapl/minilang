@@ -58,9 +58,9 @@ ML_TYPE(MLListT, (MLSequenceT), "list",
 // A list of elements.
 );
 
-static void ML_TYPED_FN(ml_value_find_refs, MLListT, ml_value_t *Value, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
+static void ML_TYPED_FN(ml_value_find_all, MLListT, ml_value_t *Value, void *Data, ml_value_find_fn RefFn) {
 	if (!RefFn(Data, Value, 1)) return;
-	ML_LIST_FOREACH(Value, Iter) ml_value_find_refs(Iter->Value, Data, RefFn, RefsOnly);
+	ML_LIST_FOREACH(Value, Iter) ml_value_find_all(Iter->Value, Data, RefFn);
 }
 
 static ml_value_t *ml_list_node_deref(ml_list_node_t *Node) {
