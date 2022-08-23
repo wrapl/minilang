@@ -1097,6 +1097,28 @@ ML_METHOD("><", MLMapT, MLMapT) {
 	return Map;
 }
 
+ML_METHOD(">/<", MLMapT, MLMapT) {
+//<Map/1
+//<Map/2
+//>map
+// Returns a tuple of :mini:`(Map/1 / Map/2, Map/1 * Map/2, Map/2 / Map/1)`.
+//$= let A := map(swap("banana"))
+//$= let B := map(swap("bread"))
+//$= A >/< B
+	ml_value_t *Map1 = ml_map(), *Map2 = ml_map(), *Map3 = ml_map();
+	ML_MAP_FOREACH(Args[0], Node) {
+		if (!ml_map_search0(Args[1], Node->Key)) {
+			ml_map_insert(Map1, Node->Key, Node->Value);
+		} else {
+			ml_map_insert(Map2, Node->Key, Node->Value);
+		}
+	}
+	ML_MAP_FOREACH(Args[1], Node) {
+		if (!ml_map_search0(Args[0], Node->Key)) ml_map_insert(Map3, Node->Key, Node->Value);
+	}
+	return ml_tuplev(3, Map1, Map2, Map3);
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_map_t *Map;

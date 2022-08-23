@@ -827,6 +827,28 @@ ML_METHOD("><", MLSetT, MLSetT) {
 	return Set;
 }
 
+ML_METHOD(">/<", MLSetT, MLSetT) {
+//<Set/1
+//<Set/2
+//>set
+// Returns a tuple of :mini:`(Set/1 / Set/2, Set/1 * Set/2, Set/2 / Set/1)`.
+//$= let A := set("banana")
+//$= let B := set("bread")
+//$= A >/< B
+	ml_value_t *Set1 = ml_set(), *Set2 = ml_set(), *Set3 = ml_set();
+	ML_SET_FOREACH(Args[0], Node) {
+		if (!ml_set_search0(Args[1], Node->Key)) {
+			ml_set_insert(Set1, Node->Key);
+		} else {
+			ml_set_insert(Set2, Node->Key);
+		}
+	}
+	ML_SET_FOREACH(Args[1], Node) {
+		if (!ml_set_search0(Args[0], Node->Key)) ml_set_insert(Set3, Node->Key);
+	}
+	return ml_tuplev(3, Set1, Set2, Set3);
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_set_t *Set;

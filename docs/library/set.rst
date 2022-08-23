@@ -85,6 +85,16 @@ set
       A /\ B :> {b, a}
 
 
+:mini:`meth (Set₁: set) >/< (Set₂: set): set`
+   Returns a tuple of :mini:`(Set₁ / Set₂,  Set₁ * Set₂,  Set₂ / Set₁)`.
+
+   .. code-block:: mini
+
+      let A := set("banana") :> {b, a, n}
+      let B := set("bread") :> {b, r, e, a, d}
+      A >/< B :> ({n}, {b, a}, {r, e, d})
+
+
 :mini:`meth (Set₁: set) >< (Set₂: set): set`
    Returns a new set containing the values of :mini:`Set₁` and :mini:`Set₂` that are not in both.
 
@@ -249,7 +259,7 @@ set
    .. code-block:: mini
 
       let M := set("cake") :> {c, a, k, e}
-      M:random :> "a"
+      M:random :> "k"
       M:random :> "a"
 
 

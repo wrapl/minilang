@@ -117,6 +117,19 @@ map
       A /\ B :> {"b" is 1, "a" is 4}
 
 
+:mini:`meth (Map₁: map) >/< (Map₂: map): map`
+   Returns a tuple of :mini:`(Map₁ / Map₂,  Map₁ * Map₂,  Map₂ / Map₁)`.
+
+   .. code-block:: mini
+
+      let A := map(swap("banana"))
+      :> {"b" is 1, "a" is 6, "n" is 5}
+      let B := map(swap("bread"))
+      :> {"b" is 1, "r" is 2, "e" is 3, "a" is 4, "d" is 5}
+      A >/< B
+      :> ({n is 5}, {b is 1, a is 6}, {r is 2, e is 3, d is 5})
+
+
 :mini:`meth (Map₁: map) >< (Map₂: map): map`
    Returns a new map containing the entries of :mini:`Map₁` and :mini:`Map₂` that are not in both.
 
@@ -368,8 +381,8 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
+      M:random :> "k"
       M:random :> "c"
-      M:random :> "a"
 
 
 :mini:`meth (Map: map):reverse: map`

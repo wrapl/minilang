@@ -83,12 +83,12 @@ general
 
    .. code-block:: mini
 
-      isconstant(1) :> 1
-      isconstant(1.5) :> 1.5
-      isconstant("Hello") :> "Hello"
-      isconstant(true) :> true
+      isconstant(1) :> some
+      isconstant(1.5) :> some
+      isconstant("Hello") :> some
+      isconstant(true) :> some
       isconstant([1, 2, 3]) :> nil
-      isconstant((1, 2, 3)) :> (1, 2, 3)
+      isconstant((1, 2, 3)) :> some
       isconstant((1, [2], 3)) :> nil
 
 
