@@ -1097,14 +1097,14 @@ ML_METHOD("><", MLMapT, MLMapT) {
 	return Map;
 }
 
-ML_METHOD(">/<", MLMapT, MLMapT) {
+ML_METHOD("<=>", MLMapT, MLMapT) {
 //<Map/1
 //<Map/2
 //>map
 // Returns a tuple of :mini:`(Map/1 / Map/2, Map/1 * Map/2, Map/2 / Map/1)`.
 //$= let A := map(swap("banana"))
 //$= let B := map(swap("bread"))
-//$= A >/< B
+//$= A <=> B
 	ml_value_t *Map1 = ml_map(), *Map2 = ml_map(), *Map3 = ml_map();
 	ML_MAP_FOREACH(Args[0], Node) {
 		if (!ml_map_search0(Args[1], Node->Key)) {

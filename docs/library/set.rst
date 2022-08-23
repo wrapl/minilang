@@ -85,14 +85,14 @@ set
       A /\ B :> {b, a}
 
 
-:mini:`meth (Set₁: set) >/< (Set₂: set): set`
+:mini:`meth (Set₁: set) <=> (Set₂: set): set`
    Returns a tuple of :mini:`(Set₁ / Set₂,  Set₁ * Set₂,  Set₂ / Set₁)`.
 
    .. code-block:: mini
 
       let A := set("banana") :> {b, a, n}
       let B := set("bread") :> {b, r, e, a, d}
-      A >/< B :> ({n}, {b, a}, {r, e, d})
+      A <=> B :> ({n}, {b, a}, {r, e, d})
 
 
 :mini:`meth (Set₁: set) >< (Set₂: set): set`
@@ -260,7 +260,7 @@ set
 
       let M := set("cake") :> {c, a, k, e}
       M:random :> "e"
-      M:random :> "a"
+      M:random :> "c"
 
 
 :mini:`meth (Set: set):reverse: set`

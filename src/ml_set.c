@@ -827,14 +827,14 @@ ML_METHOD("><", MLSetT, MLSetT) {
 	return Set;
 }
 
-ML_METHOD(">/<", MLSetT, MLSetT) {
+ML_METHOD("<=>", MLSetT, MLSetT) {
 //<Set/1
 //<Set/2
 //>set
 // Returns a tuple of :mini:`(Set/1 / Set/2, Set/1 * Set/2, Set/2 / Set/1)`.
 //$= let A := set("banana")
 //$= let B := set("bread")
-//$= A >/< B
+//$= A <=> B
 	ml_value_t *Set1 = ml_set(), *Set2 = ml_set(), *Set3 = ml_set();
 	ML_SET_FOREACH(Args[0], Node) {
 		if (!ml_set_search0(Args[1], Node->Key)) {
