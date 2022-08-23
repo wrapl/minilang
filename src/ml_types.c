@@ -1182,7 +1182,7 @@ ML_FUNCTION(MLFindAll) {
 	ml_find_refs_t FindRefs[1] = {ml_list(), MLAnyT, {INTHASH_INIT}};
 	ml_value_find_fn RefFn = (ml_value_find_fn)ml_find_all_fn;
 	if (Count > 1) {
-		ML_CHECK_ARG_TYPE(0, MLTypeT);
+		ML_CHECK_ARG_TYPE(1, MLTypeT);
 		FindRefs->Type = (ml_type_t *)Args[1];
 		RefFn = (ml_value_find_fn)ml_find_all_typed_fn;
 	}
