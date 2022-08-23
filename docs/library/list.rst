@@ -184,7 +184,7 @@ list
 
       let L := list("cake") :> ["c", "a", "k", "e"]
       L:random :> "e"
-      L:random :> "a"
+      L:random :> "k"
 
 
 :mini:`meth (List: list):reverse: list`

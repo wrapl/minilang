@@ -76,6 +76,22 @@ general
    Returns a list of all unique values referenced by :mini:`Value` (including :mini:`Value`).
 
 
+.. _fun-isconstant:
+
+:mini:`fun isconstant(Value: any): any | nil`
+   Returns :mini:`some` if it is a constant (i.e. directly immutable and not referencing any mutable values),  otherwise returns :mini:`nil`.
+
+   .. code-block:: mini
+
+      isconstant(1) :> 1
+      isconstant(1.5) :> 1.5
+      isconstant("Hello") :> "Hello"
+      isconstant(true) :> true
+      isconstant([1, 2, 3]) :> nil
+      isconstant((1, 2, 3)) :> (1, 2, 3)
+      isconstant((1, [2], 3)) :> nil
+
+
 .. _fun-print:
 
 :mini:`fun print(Values: any, ...): nil`

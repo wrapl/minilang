@@ -1635,6 +1635,14 @@ static void ML_TYPED_FN(ml_value_find_refs, MLClosureT, ml_closure_t *Closure, v
 	for (int I = 0; I < Info->NumUpValues; ++I) ml_value_find_refs(Closure->UpValues[I], Data, RefFn, RefsOnly);
 }
 
+static int ML_TYPED_FN(ml_value_is_constant, MLClosureT, ml_closure_t *Closure) {
+	ml_closure_info_t *Info = Closure->Info;
+	for (int I = 0; I < Info->NumUpValues; ++I) {
+		if (!ml_value_is_constant(Closure->UpValues[I])) return 0;
+	}
+	return 1;
+}
+
 ML_TYPE(MLClosureInfoT, (), "closure::info");
 // Information about a closure.
 

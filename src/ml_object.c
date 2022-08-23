@@ -489,6 +489,7 @@ typedef struct {
 
 typedef struct {
 	ml_type_t Base;
+	ml_value_t *Switch;
 	ml_enum_value_t *Values[];
 } ml_enum_t;
 
@@ -882,7 +883,9 @@ static ml_value_t *ml_enum_switch_fn(ml_enum_t *Enum, int Count, ml_value_t **Ar
 
 ML_METHOD(MLCompilerSwitch, MLEnumT) {
 //!internal
-	return ml_inline_call_macro(ml_cfunction(Args[0], (ml_callback_t)ml_enum_switch_fn));
+	ml_enum_t *Enum = (ml_enum_t *)Args[0];
+	if (!Enum->Switch) Enum->Switch = ml_inline_function(ml_cfunction(Enum, (ml_callback_t)ml_enum_switch_fn));
+	return Enum->Switch;
 }
 
 //!flags

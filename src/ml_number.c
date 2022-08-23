@@ -51,6 +51,10 @@ static void ml_infix_many(const char *Name) {
 ML_TYPE(MLNumberT, (), "number");
 // Base type for numbers.
 
+static int ML_TYPED_FN(ml_value_is_constant, MLNumberT, ml_value_t *Value) {
+	return 1;
+}
+
 #ifdef ML_COMPLEX
 
 static long ml_complex_hash(ml_complex_t *Complex, ml_hash_chain_t *Chain) {
@@ -1608,7 +1612,7 @@ ML_TYPE(MLIntegerSwitchT, (MLFunctionT), "integer-switch",
 	.call = (void *)ml_integer_switch
 );
 
-ML_FUNCTION(MLIntegerSwitch) {
+ML_FUNCTION_INLINE(MLIntegerSwitch) {
 //!internal
 	int Total = 1;
 	for (int I = 0; I < Count; ++I) {
@@ -1676,7 +1680,7 @@ ML_TYPE(MLRealSwitchT, (MLFunctionT), "real-switch",
 	.call = (void *)ml_real_switch
 );
 
-ML_FUNCTION(MLRealSwitch) {
+ML_FUNCTION_INLINE(MLRealSwitch) {
 //!internal
 	int Total = 1;
 	for (int I = 0; I < Count; ++I) {
@@ -1723,12 +1727,12 @@ void ml_number_init() {
 	ml_type_add_parent(MLRealRangeT, ml_generic_type(3, TArgs));
 #endif
 	stringmap_insert(MLIntegerT->Exports, "range", MLIntegerRangeT);
-	stringmap_insert(MLIntegerT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLIntegerSwitch));
+	stringmap_insert(MLIntegerT->Exports, "switch", MLIntegerSwitch);
 	stringmap_insert(MLIntegerT->Exports, "random", RandomInteger);
 	stringmap_insert(MLIntegerT->Exports, "random_permutation", RandomPermutation);
 	stringmap_insert(MLIntegerT->Exports, "random_cycle", RandomCycle);
 	stringmap_insert(MLRealT->Exports, "range", MLRealRangeT);
-	stringmap_insert(MLRealT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLRealSwitch));
+	stringmap_insert(MLRealT->Exports, "switch", MLRealSwitch);
 	stringmap_insert(MLRealT->Exports, "random", RandomReal);
 	ml_method_by_value(MLIntegerT->Constructor, NULL, ml_identity, MLIntegerT, NULL);
 	ml_method_by_name("isfinite", NULL, ml_identity, MLIntegerT, NULL);

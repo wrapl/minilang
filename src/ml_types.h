@@ -267,6 +267,8 @@ typedef void (*ml_callbackx_t)(ml_state_t *Caller, void *Data, int Count, ml_val
 typedef int (*ml_value_ref_fn)(void *Data, ml_value_t *Value, int HasRefs);
 void ml_value_find_refs(ml_value_t *Value, void *Data, ml_value_ref_fn RefFn, int RefsOnly);
 
+int ml_value_is_constant(ml_value_t *Value);
+
 // Iterators //
 
 extern ml_type_t MLSequenceT[];

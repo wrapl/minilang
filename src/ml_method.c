@@ -378,6 +378,10 @@ ml_value_t *ml_method_anon(const char *Name) {
 	return (ml_value_t *)Method;
 }
 
+static int ML_TYPED_FN(ml_value_is_constant, MLMethodT, ml_value_t *Value) {
+	return 1;
+}
+
 ML_METHOD(MLMethodT) {
 //>method
 // Returns a new anonymous method.
@@ -518,7 +522,7 @@ ML_TYPE(MLMethodSwitchT, (MLFunctionT), "method-switch",
 	.call = (void *)ml_method_switch
 );
 
-ML_FUNCTION(MLMethodSwitch) {
+ML_FUNCTION_INLINE(MLMethodSwitch) {
 //!internal
 	int Total = 1;
 	for (int I = 0; I < Count; ++I) {
@@ -725,7 +729,7 @@ ML_FUNCTION(MLMethodList) {
 void ml_method_init() {
 	ml_context_set(&MLRootContext, ML_METHODS_INDEX, MLRootMethods);
 #include "ml_method_init.c"
-	stringmap_insert(MLMethodT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLMethodSwitch));
+	stringmap_insert(MLMethodT->Exports, "switch", MLMethodSwitch);
 	//stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
 	stringmap_insert(MLMethodT->Exports, "context", MLMethodContext);
 	stringmap_insert(MLMethodT->Exports, "list", MLMethodList);

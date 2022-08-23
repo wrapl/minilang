@@ -140,6 +140,7 @@ hierarchy
       "state":e -> "compiler::function":w;
       "any":e -> "expr":w;
       "any":e -> "macro":w;
+      "function":e -> "function::inline":w;
       "any":e -> "block::builder":w;
       "any":e -> "expr::builder":w;
       "state":e -> "compiler":w;

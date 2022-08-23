@@ -33,6 +33,10 @@ ml_value_t *ml_uuid_parse(const char *Value, int Length) {
 	return (ml_value_t *)UUID;
 }
 
+static int ML_TYPED_FN(ml_value_is_constant, MLUUIDT, ml_value_t *Value) {
+	return 1;
+}
+
 ML_METHOD(MLUUIDT) {
 //>uuid
 // Returns a new random UUID.

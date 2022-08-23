@@ -19,6 +19,24 @@ extern ml_type_t MLParserT[];
 extern ml_type_t MLGlobalT[];
 extern ml_type_t MLExprT[];
 
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Value;
+} ml_inline_function_t;
+
+extern ml_type_t MLFunctionInlineT[];
+
+#define ML_FUNCTION_INLINE2(NAME, FUNCTION) static ml_value_t *FUNCTION(void *Data, int Count, ml_value_t **Args); \
+\
+ml_cfunction_t NAME ## _IMPL[1] = {{MLCFunctionT, FUNCTION, NULL}}; \
+\
+ml_inline_function_t NAME[1] = {{MLFunctionInlineT, (ml_value_t *)NAME ## _IMPL}}; \
+\
+static ml_value_t *FUNCTION(void *Data, int Count, ml_value_t **Args)
+
+#define ML_FUNCTION_INLINE(NAME) ML_FUNCTION_INLINE2(NAME, CONCAT3(ml_cfunction_, __LINE__, __COUNTER__))
+
+
 typedef struct ml_parser_t ml_parser_t;
 typedef struct ml_compiler_t ml_compiler_t;
 
@@ -62,6 +80,8 @@ ml_value_t *ml_global_set(ml_value_t *Global, ml_value_t *Value);
 
 ml_value_t *ml_macro(ml_value_t *Function);
 ml_value_t *ml_inline_call_macro(ml_value_t *Value);
+
+ml_value_t *ml_inline_function(ml_value_t *Value);
 
 void ml_expr_evaluate(ml_state_t *Caller, ml_value_t *Expr);
 

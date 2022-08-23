@@ -81,6 +81,12 @@ compiler
    *TBD*
 
 
+.. _type-function-inline:
+
+:mini:`type function::inline < function`
+   *TBD*
+
+
 .. _type-global:
 
 :mini:`type global`

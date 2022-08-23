@@ -99,6 +99,10 @@ ML_TYPE(MLTypeT, (MLFunctionT), "type",
 	.Constructor = (ml_value_t *)MLType
 );
 
+static int ML_TYPED_FN(ml_value_is_constant, MLTypeT, ml_value_t *Value) {
+	return 1;
+}
+
 ML_METHOD("rank", MLTypeT) {
 //!type
 //<Type
@@ -484,6 +488,10 @@ void ml_type_add_rule(ml_type_t *T, ml_type_t *U, ...) {
 ML_TYPE(MLNilT, (MLFunctionT, MLSequenceT), "nil");
 //!internal
 
+static int ML_TYPED_FN(ml_value_is_constant, MLNilT, ml_value_t *Value) {
+	return 1;
+}
+
 ML_FUNCTION(MLSomeFn) {
 //!internal
 	return MLSome;
@@ -493,6 +501,10 @@ ML_TYPE(MLSomeT, (MLFunctionT), "some",
 //!internal
 	.Constructor = (ml_value_t *)MLSomeFn
 );
+
+static int ML_TYPED_FN(ml_value_is_constant, MLSomeT, ml_value_t *Value) {
+	return 1;
+}
 
 static void ml_blank_assign(ml_state_t *Caller, ml_value_t *Blank, ml_value_t *Value) {
 	ML_RETURN(Value);
@@ -879,7 +891,7 @@ ML_TYPE(MLTypeSwitchT, (MLFunctionT), "type-switch",
 	.call = (void *)ml_type_switch
 );
 
-ML_FUNCTION(MLTypeSwitch) {
+ML_FUNCTION_INLINE(MLTypeSwitch) {
 //!internal
 	int Total = 1;
 	for (int I = 0; I < Count; ++I) {
@@ -1108,7 +1120,7 @@ ML_TYPE(MLAnySwitchT, (MLFunctionT), "any-switch",
 	.call = (void *)ml_any_switch
 );
 
-ML_FUNCTION(MLAnySwitch) {
+ML_FUNCTION_INLINE(MLAnySwitch) {
 //!internal
 	int Total = 1;
 	for (int I = 0; I < Count; ++I) {
@@ -1180,6 +1192,30 @@ ML_FUNCTION(MLFindRefs) {
 	}
 	ml_value_find_refs(Args[0], FindRefs, (ml_value_ref_fn)RefFn, RefsOnly);
 	return FindRefs->Refs;
+}
+
+int ml_value_is_constant(ml_value_t *Value) {
+	typeof(ml_value_is_constant) *function = ml_typed_fn_get(ml_typeof(Value), ml_value_is_constant);
+	if (function) return function(Value);
+	return 0;
+}
+
+ML_FUNCTION(MLIsConstant) {
+//!general
+//@isconstant
+//<Value:any
+//>any|nil
+// Returns :mini:`some` if it is a constant (i.e. directly immutable and not referencing any mutable values), otherwise returns :mini:`nil`.
+//$= isconstant(1)
+//$= isconstant(1.5)
+//$= isconstant("Hello")
+//$= isconstant(true)
+//$= isconstant([1, 2, 3])
+//$= isconstant((1, 2, 3))
+//$= isconstant((1, [2], 3))
+	ML_CHECK_ARG_COUNT(1);
+	if (ml_value_is_constant(Args[0])) return MLSome;
+	return MLNil;
 }
 
 // Iterators //
@@ -1777,6 +1813,13 @@ ml_value_t *ml_tuple(size_t Size) {
 	return (ml_value_t *)Tuple;
 }
 
+static int ML_TYPED_FN(ml_value_is_constant, MLTupleT, ml_tuple_t *Tuple) {
+	for (int I = 0; I < Tuple->Size; ++I) {
+		if (!ml_value_is_constant(Tuple->Values[I])) return 0;
+	}
+	return 1;
+}
+
 #ifdef ML_GENERICS
 
 ml_value_t *ml_tuple_set(ml_value_t *Tuple0, int Index, ml_value_t *Value) {
@@ -2243,6 +2286,10 @@ static ml_value_t *MLBooleans[2] = {
 
 ml_value_t *ml_boolean(int Value) {
 	return Value ? (ml_value_t *)MLTrue : (ml_value_t *)MLFalse;
+}
+
+static int ML_TYPED_FN(ml_value_is_constant, MLBooleanT, ml_value_t *Value) {
+	return 1;
 }
 
 ML_METHOD(MLBooleanT, MLStringT) {
@@ -2752,8 +2799,8 @@ void ml_init(stringmap_t *Globals) {
 	ml_type_add_rule(MLTupleT, MLSequenceT, MLIntegerT, MLAnyT, NULL);
 	ml_type_add_rule(MLTupleT, MLFunctionT, MLTupleT, NULL);
 #endif
-	stringmap_insert(MLTypeT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLTypeSwitch));
-	stringmap_insert(MLAnyT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLAnySwitch));
+	stringmap_insert(MLTypeT->Exports, "switch", MLTypeSwitch);
+	stringmap_insert(MLAnyT->Exports, "switch", MLAnySwitch);
 #ifdef ML_COMPLEX
 	stringmap_insert(MLCompilerT->Exports, "i", ml_complex(1i));
 #endif
@@ -2838,6 +2885,7 @@ void ml_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "call", MLCall);
 		stringmap_insert(Globals, "copy", MLCopyT);
 		stringmap_insert(Globals, "findrefs", MLFindRefs);
+		stringmap_insert(Globals, "isconstant", MLIsConstant);
 		stringmap_insert(Globals, "exchange", MLExchange);
 		stringmap_insert(Globals, "replace", MLReplace);
 		stringmap_insert(Globals, "cas", MLCompareAndSet);
