@@ -105,7 +105,7 @@ map
       A / B :> {"n" is 5}
 
 
-:mini:`meth (Map₁: map) /\ (Map₂: map): map`
+:mini:`meth (Map₁: map) /\\ (Map₂: map): map`
    Returns a new map containing the entries of :mini:`Map₁` which are also in :mini:`Map₂`. The values are chosen from :mini:`Map₂`.
 
    .. code-block:: mini
@@ -166,7 +166,7 @@ map
       M :> {"A" is 1, "B" is 2, "C" is 3, "D" is 68}
 
 
-:mini:`meth (Map₁: map) \/ (Map₂: map): map`
+:mini:`meth (Map₁: map) \\/ (Map₂: map): map`
    Returns a new map combining the entries of :mini:`Map₁` and :mini:`Map₂`.
    If the same key is in both :mini:`Map₁` and :mini:`Map₂` then the corresponding value from :mini:`Map₂` is chosen.
 
@@ -382,7 +382,7 @@ map
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
       M:random :> "k"
-      M:random :> "k"
+      M:random :> "c"
 
 
 :mini:`meth (Map: map):reverse: map`

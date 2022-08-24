@@ -75,7 +75,7 @@ set
       A / B :> {n}
 
 
-:mini:`meth (Set₁: set) /\ (Set₂: set): set`
+:mini:`meth (Set₁: set) /\\ (Set₂: set): set`
    Returns a new set containing the values of :mini:`Set₁` which are also in :mini:`Set₂`.
 
    .. code-block:: mini
@@ -116,7 +116,7 @@ set
       M :> {A, B, C}
 
 
-:mini:`meth (Set₁: set) \/ (Set₂: set): set`
+:mini:`meth (Set₁: set) \\/ (Set₂: set): set`
    Returns a new set combining the values of :mini:`Set₁` and :mini:`Set₂`.
 
    .. code-block:: mini
@@ -259,8 +259,8 @@ set
    .. code-block:: mini
 
       let M := set("cake") :> {c, a, k, e}
-      M:random :> "k"
-      M:random :> "e"
+      M:random :> "a"
+      M:random :> "c"
 
 
 :mini:`meth (Set: set):reverse: set`

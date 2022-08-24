@@ -4,3 +4,4 @@ sphinxcontrib-fulltoc
 pydata-sphinx-theme
 sphinx_toolbox
 sphinx-a4doc
+renku-sphinx-theme
