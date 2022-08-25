@@ -1434,11 +1434,11 @@ array
    Returns :mini:`X` transformed by :mini:`T`. :mini:`T` must be a :mini:`N` |times| :mini:`N` matrix and :mini:`X` a vector of size :mini:`N - 1`.
 
 
-:mini:`meth \\(A: matrix): matrix`
+:mini:`meth \(A: matrix): matrix`
    Returns the inverse of :mini:`A`.
 
 
-:mini:`meth (A: matrix) \\ (B: vector): vector`
+:mini:`meth (A: matrix) \ (B: vector): vector`
    Returns the solution :mini:`X` of :mini:`A . X = B`.
 
 
@@ -1638,9 +1638,9 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:803F8772B97F00005F7265616465725F>
+      :> <16:A06B3FB6AF7F00003E496E646578203D>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
-      :> <<<16256 29319> <32697 0>> <<29279 24933> <25956 24434>>>
+      :> <<<27552 46655> <32687 0>> <<18750 25710> <30821 15648>>>
 
 
 .. _type-vector:

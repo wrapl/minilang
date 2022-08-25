@@ -155,13 +155,13 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Examples,
 		Match[2]:lower
 	elseif Method0[1] = "\"" then
 		if is_symbol(Method0) or Method0:find("::") then
-			Method0[2, -1]:>replace("\\\\",  "\\")
+			Method0[2, -1]:replace("\\\\",  "\\")
 		else
 			':{Method0[2, -1]}'
 		end
 	else
 		if is_symbol(Method0) or Method0:find("::") then
-			Method0:>replace("\\\\",  "\\")
+			Method0:replace("\\\\",  "\\")
 		else
 			':{Method0}'
 		end

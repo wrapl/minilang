@@ -127,6 +127,10 @@ general
       Copying 2.5
 
 
+:mini:`meth (Copy: copy):const(Value: any): any`
+   Default const implementation,  just returns :mini:`Value`.
+
+
 :mini:`meth (Copy: copy):copy(Value: any): any`
    Default copy implementation,  just returns :mini:`Value`.
 

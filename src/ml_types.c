@@ -842,6 +842,14 @@ ML_METHOD("copy", MLCopyT, MLAnyT) {
 	return Args[1];
 }
 
+ML_METHOD("const", MLCopyT, MLAnyT) {
+//<Copy
+//<Value
+//>any
+// Default const implementation, just returns :mini:`Value`.
+	return Args[1];
+}
+
 //!any
 
 ML_METHOD("in", MLAnyT, MLTypeT) {

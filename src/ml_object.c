@@ -517,7 +517,7 @@ ML_METHOD("append", MLStringBufferT, MLEnumValueT) {
 }
 
 ML_METHODV(MLEnumT, MLStringT) {
-//<Values...:string
+//<Names...
 //>enum
 // Returns a new enumeration type.
 //$= let day := enum("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")

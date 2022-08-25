@@ -7,14 +7,26 @@
 list
 ====
 
-:mini:`meth (Copy: copy):copy(List: list): list`
-   Returns a new list contains copies of the elements of :mini:`List` created using :mini:`Copy`.
+:mini:`meth (Copy: copy):const(List: list): list::const`
+   Returns a new constant list containing copies of the elements of :mini:`List` created using :mini:`Copy`.
+
+
+:mini:`meth (Copy: copy):copy(List: list::const): list`
+   Returns a new list containing copies of the elements of :mini:`List` created using :mini:`Copy`.
 
 
 .. _type-list:
 
-:mini:`type list < sequence`
+:mini:`type list < list::const`
    A list of elements.
+
+
+:mini:`meth list(): list`
+   Returns an empty list.
+
+   .. code-block:: mini
+
+      list() :> []
 
 
 :mini:`meth list(Tuple: tuple): list`
@@ -33,50 +45,14 @@ list
       list(1 .. 10) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 
-:mini:`meth list(): list`
-   Returns an empty list.
-
-   .. code-block:: mini
-
-      list() :> []
-
-
-:mini:`meth (List₁: list) + (List₂: list): list`
-   Returns a new list with the elements of :mini:`List₁` followed by the elements of :mini:`List₂`.
-
-
 :mini:`meth (List: list)[Range: integer::range]: list::slice`
    Returns a slice of :mini:`List` starting at :mini:`Range:start` and ending at :mini:`Range:limit`,  both inclusive.
    Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
 
 
-:mini:`meth (List: list)[Index: integer]: listnode | nil`
-   Returns the :mini:`Index`-th node in :mini:`List` or :mini:`nil` if :mini:`Index` is outside the range of :mini:`List`.
-   Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
-
-   .. code-block:: mini
-
-      let L := ["a", "b", "c", "d", "e", "f"]
-      L[3] :> "c"
-      L[-2] :> "e"
-      L[8] :> nil
-
-
 :mini:`meth (List: list)[From: integer, To: integer]: list::slice`
    Returns a slice of :mini:`List` starting at :mini:`From` (inclusive) and ending at :mini:`To` (exclusive).
    Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
-
-
-:mini:`meth (List: list)[Indices: list]: list`
-   Returns a list containing the :mini:`List[Indices[1]]`,  :mini:`List[Indices[2]]`,  etc.
-
-
-:mini:`meth (List: list):count: integer`
-   Returns the length of :mini:`List`
-
-   .. code-block:: mini
-
-      [1, 2, 3]:count :> 3
 
 
 :mini:`meth (List: list):cycle: list`
@@ -108,10 +84,6 @@ list
       L :> [2, 4, 6]
 
 
-:mini:`meth (List: list):find(Value: any): integer | nil`
-   Returns the first position where :mini:`List[Position] = Value`.
-
-
 :mini:`meth (List: list):grow(Sequence: sequence, ...): list`
    Pushes of all of the values produced by :mini:`Sequence` onto :mini:`List` and returns :mini:`List`.
 
@@ -119,14 +91,6 @@ list
 
       let L := [1, 2, 3]
       L:grow(4 .. 6) :> [1, 2, 3, 4, 5, 6]
-
-
-:mini:`meth (List: list):length: integer`
-   Returns the length of :mini:`List`
-
-   .. code-block:: mini
-
-      [1, 2, 3]:length :> 3
 
 
 :mini:`meth (List: list):permutations: sequence`
@@ -177,16 +141,6 @@ list
    Pushes :mini:`Values` onto the end of :mini:`List` and returns :mini:`List`.
 
 
-:mini:`meth (List: list):random: any`
-   Returns a random (assignable) node from :mini:`List`.
-
-   .. code-block:: mini
-
-      let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "k"
-      L:random :> "c"
-
-
 :mini:`meth (List: list):reverse: list`
    Reverses :mini:`List` in-place and returns it.
 
@@ -219,7 +173,63 @@ list
    Inserts the elements from :mini:`Source` into :mini:`List` starting at :mini:`Index`,  leaving :mini:`Source` empty.
 
 
-:mini:`meth (Buffer: string::buffer):append(List: list)`
+.. _type-list-const:
+
+:mini:`type list::const < sequence`
+   *TBD*
+
+
+:mini:`meth (List₁: list::const) + (List₂: list::const): list`
+   Returns a new list with the elements of :mini:`List₁` followed by the elements of :mini:`List₂`.
+
+
+:mini:`meth (List: list::const)[Index: integer]: list::node | nil`
+   Returns the :mini:`Index`-th node in :mini:`List` or :mini:`nil` if :mini:`Index` is outside the range of :mini:`List`.
+   Indexing starts at :mini:`1`. Negative indices are counted from the end of the list,  with :mini:`-1` returning the last node.
+
+   .. code-block:: mini
+
+      let L := ["a", "b", "c", "d", "e", "f"]
+      L[3] :> "c"
+      L[-2] :> "e"
+      L[8] :> nil
+
+
+:mini:`meth (List: list::const)[Indices: list]: list`
+   Returns a list containing the :mini:`List[Indices[1]]`,  :mini:`List[Indices[2]]`,  etc.
+
+
+:mini:`meth (List: list::const):count: integer`
+   Returns the length of :mini:`List`
+
+   .. code-block:: mini
+
+      [1, 2, 3]:count :> 3
+
+
+:mini:`meth (List: list::const):find(Value: any): integer | nil`
+   Returns the first position where :mini:`List[Position] = Value`.
+
+
+:mini:`meth (List: list::const):length: integer`
+   Returns the length of :mini:`List`
+
+   .. code-block:: mini
+
+      [1, 2, 3]:length :> 3
+
+
+:mini:`meth (List: list::const):random: any`
+   Returns a random (assignable) node from :mini:`List`.
+
+   .. code-block:: mini
+
+      let L := list("cake") :> ["c", "a", "k", "e"]
+      L:random :> "e"
+      L:random :> "c"
+
+
+:mini:`meth (Buffer: string::buffer):append(List: list::const)`
    Appends a representation of :mini:`List` to :mini:`Buffer` of the form :mini:`"[" + repr(V₁) + ",  " + repr(V₂) + ",  " + ... + repr(Vₙ) + "]"`,  where :mini:`repr(Vᵢ)` is a representation of the *i*-th element (using :mini:`:append`).
 
    .. code-block:: mini
@@ -229,7 +239,7 @@ list
       B:rest :> "[1, 2, 3, 4]"
 
 
-:mini:`meth (Buffer: string::buffer):append(List: list, Sep: string)`
+:mini:`meth (Buffer: string::buffer):append(List: list::const, Sep: string)`
    Appends a representation of :mini:`List` to :mini:`Buffer` of the form :mini:`repr(V₁) + Sep + repr(V₂) + Sep + ... + repr(Vₙ)`,  where :mini:`repr(Vᵢ)` is a representation of the *i*-th element (using :mini:`:append`).
 
    .. code-block:: mini
@@ -243,8 +253,15 @@ list
 
 :mini:`type list::node`
    A node in a :mini:`list`.
-   Dereferencing a :mini:`listnode` returns the corresponding value from the :mini:`list`.
-   Assigning to a :mini:`listnode` updates the corresponding value in the :mini:`list`.
+   Dereferencing a :mini:`list::node::const` returns the corresponding value from the :mini:`list`.
+
+
+.. _type-list-node:
+
+:mini:`type list::node < list::node`
+   A node in a :mini:`list`.
+   Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
+   Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
 
 
 .. _type-list-slice:

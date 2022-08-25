@@ -99,11 +99,15 @@ hierarchy
       "sequence":e -> "real::range":w;
       "any":e -> "method::context":w;
       "function":e -> "method":w;
-      "sequence":e -> "map":w;
+      "sequence":e -> "map::const":w;
+      "map::const":e -> "map":w;
       "enum":e -> "map::order":w;
       "any":e -> "map::node":w;
-      "sequence":e -> "list":w;
+      "map::node":e -> "map::node":w;
+      "sequence":e -> "list::const":w;
+      "list::const":e -> "list":w;
       "any":e -> "list::node":w;
+      "list::node":e -> "list::node":w;
       "any":e -> "list::slice":w;
       "any":e -> "module::dir":w;
       "stream":e -> "json::decoder":w;
