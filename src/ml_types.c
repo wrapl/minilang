@@ -1817,6 +1817,58 @@ ml_value_t *ml_tuple(size_t Size) {
 	return (ml_value_t *)Tuple;
 }
 
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Copy, *Dest;
+	ml_value_t **Values;
+	ml_value_t *Args[1];
+	int Index, Size;
+} ml_tuple_copy_t;
+
+static void ml_tuple_copy_run(ml_tuple_copy_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	ml_tuple_set(State->Dest, State->Index, Value);
+	int Index = State->Index + 1;
+	if (Index > State->Size) ML_RETURN(State->Dest);
+	State->Index = Index;
+	State->Args[0] = *++State->Values;
+	return ml_call(State, State->Copy, 1, State->Args);
+}
+
+static void ml_tuple_copy(ml_state_t *Caller, ml_copy_t *Copy, ml_tuple_t *Source) {
+	ml_value_t *Dest = ml_tuple(Source->Size);
+	inthash_insert(Copy->Cache, (uintptr_t)Source, Dest);
+	if (!Source->Size) ML_RETURN(Dest);
+	ml_tuple_copy_t *State = new(ml_tuple_copy_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_tuple_copy_run;
+	State->Copy = (ml_value_t *)Copy;
+	State->Dest = Dest;
+	State->Index = 1;
+	State->Size = Source->Size;
+	State->Values = Source->Values;
+	State->Args[0] = Source->Values[0];
+	return ml_call(State, (ml_value_t *)Copy, 1, State->Args);
+}
+
+ML_METHODX("copy", MLCopyT, MLTupleT) {
+//<Copy
+//<Tuple
+//>tuple
+// Returns a new tuple containing copies of the elements of :mini:`Tuple` created using :mini:`Copy`.
+	return ml_tuple_copy(Caller, (ml_copy_t *)Args[0], (ml_tuple_t *)Args[1]);
+}
+
+ML_METHODX("const", MLCopyT, MLTupleT) {
+//<Copy
+//<Tuple
+//>tuple
+// Returns a new constant tuple containing copies of the elements of :mini:`Tuple` created using :mini:`Copy`.
+	return ml_tuple_copy(Caller, (ml_copy_t *)Args[0], (ml_tuple_t *)Args[1]);
+}
+
 static int ML_TYPED_FN(ml_value_is_constant, MLTupleT, ml_tuple_t *Tuple) {
 	for (int I = 0; I < Tuple->Size; ++I) {
 		if (!ml_value_is_constant(Tuple->Values[I])) return 0;

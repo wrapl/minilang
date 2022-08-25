@@ -7,6 +7,14 @@
 tuple
 =====
 
+:mini:`meth (Copy: copy):const(Tuple: tuple): tuple`
+   Returns a new constant tuple containing copies of the elements of :mini:`Tuple` created using :mini:`Copy`.
+
+
+:mini:`meth (Copy: copy):copy(Tuple: tuple): tuple`
+   Returns a new tuple containing copies of the elements of :mini:`Tuple` created using :mini:`Copy`.
+
+
 .. _type-tuple:
 
 :mini:`type tuple < function, sequence`
