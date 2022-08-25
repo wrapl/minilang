@@ -91,7 +91,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # -- Options for HTML output -------------------------------------------------
 
-html_theme = 'renku'
+html_theme = 'karma_sphinx_theme'
 
 html_theme_options = {
 	"style_external_links": True,

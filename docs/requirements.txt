@@ -1,7 +1,6 @@
 sphinx >= 4.0.0
 sphinxcontrib-domaintools
 sphinxcontrib-fulltoc
-pydata-sphinx-theme
 sphinx_toolbox
 sphinx-a4doc
-renku-sphinx-theme
+karma_sphinx_theme
