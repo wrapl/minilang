@@ -1123,8 +1123,9 @@ static void ml_var_in_expr_compile2(mlc_function_t *Function, ml_value_t *Value,
 		ml_inst_t *ValueInst = MLC_EMIT(Expr->EndLine, MLI_LOAD_PUSH, 1);
 		ValueInst[1].Value = ml_string(Local->Ident, -1);
 		mlc_inc_top(Function);
-		ml_inst_t *CallInst = MLC_EMIT(Expr->EndLine, MLI_CALL_CONST_2, 1);
+		ml_inst_t *CallInst = MLC_EMIT(Expr->EndLine, MLI_CALL_CONST, 2);
 		CallInst[1].Value = SymbolMethod;
+		CallInst[2].Count = 2;
 		Function->Top -= 2;
 		ml_decl_t *Decl = Decls[I];
 		ml_inst_t *VarInst = MLC_EMIT(Expr->EndLine, MLI_VAR, 1);
@@ -1205,8 +1206,9 @@ static void ml_let_in_expr_compile2(mlc_function_t *Function, ml_value_t *Value,
 		ml_inst_t *ValueInst = MLC_EMIT(Expr->EndLine, MLI_LOAD_PUSH, 1);
 		ValueInst[1].Value = ml_string(Local->Ident, -1);
 		mlc_inc_top(Function);
-		ml_inst_t *CallInst = MLC_EMIT(Expr->EndLine, MLI_CALL_CONST_2, 1);
+		ml_inst_t *CallInst = MLC_EMIT(Expr->EndLine, MLI_CALL_CONST, 2);
 		CallInst[1].Value = SymbolMethod;
+		CallInst[2].Count = 2;
 		Function->Top -= 2;
 		ml_decl_t *Decl = Decls[I];
 		ml_inst_t *LetInst;
@@ -1294,8 +1296,9 @@ static void ml_ref_in_expr_compile2(mlc_function_t *Function, ml_value_t *Value,
 		ml_inst_t *ValueInst = MLC_EMIT(Expr->EndLine, MLI_LOAD_PUSH, 1);
 		ValueInst[1].Value = ml_string(Local->Ident, -1);
 		mlc_inc_top(Function);
-		ml_inst_t *CallInst = MLC_EMIT(Expr->EndLine, MLI_CALL_CONST_2, 1);
+		ml_inst_t *CallInst = MLC_EMIT(Expr->EndLine, MLI_CALL_CONST, 2);
 		CallInst[1].Value = SymbolMethod;
+		CallInst[2].Count = 2;
 		Function->Top -= 2;
 		ml_decl_t *Decl = Decls[I];
 		ml_inst_t *LetInst;
@@ -2162,21 +2165,13 @@ static void ml_call_expr_compile5(mlc_function_t *Function, ml_value_t *Value, m
 		int Count = Frame->Count;
 		if (ml_typeof(Frame->Value) == MLMethodT) {
 			ml_inst_t *CallInst;
-			if (Count < 10) {
-				CallInst = MLC_EMIT(Expr->EndLine, (TailCall ? MLI_TAIL_CALL_METHOD_0 : MLI_CALL_METHOD_0) + Count, 2);
-			} else {
-				CallInst = MLC_EMIT(Expr->EndLine, (TailCall ? MLI_TAIL_CALL_METHOD : MLI_CALL_METHOD), 3);
-				CallInst[2].Count = Count;
-			}
+			CallInst = MLC_EMIT(Expr->EndLine, (TailCall ? MLI_TAIL_CALL_METHOD : MLI_CALL_METHOD), 3);
+			CallInst[2].Count = Count;
 			CallInst[1].Value = Frame->Value;
 		} else {
 			ml_inst_t *CallInst;
-			if (Count < 10) {
-				CallInst = MLC_EMIT(Expr->EndLine, (TailCall ? MLI_TAIL_CALL_CONST_0 : MLI_CALL_CONST_0) + Count, 1);
-			} else {
-				CallInst = MLC_EMIT(Expr->EndLine, (TailCall ? MLI_TAIL_CALL_CONST : MLI_CALL_CONST), 2);
-				CallInst[2].Count = Count;
-			}
+			CallInst = MLC_EMIT(Expr->EndLine, (TailCall ? MLI_TAIL_CALL_CONST : MLI_CALL_CONST), 2);
+			CallInst[2].Count = Count;
 			ml_value_t *Value = Frame->Value;
 			CallInst[1].Value = Value;
 			if (ml_typeof(Value) == MLUninitializedT) ml_uninitialized_use(Value, &CallInst[1].Value);
@@ -2247,12 +2242,8 @@ static void mlc_inline_call_expr_compile3(mlc_function_t *Function, ml_value_t *
 	}
 	int Count = Frame->Count;
 	ml_inst_t *CallInst;
-	if (Count < 10) {
-		CallInst = MLC_EMIT(Frame->Line, MLI_TAIL_CALL_CONST_0 + Count, 1);
-	} else {
-		CallInst = MLC_EMIT(Frame->Line, MLI_TAIL_CALL_CONST, 2);
-		CallInst[2].Count = Count;
-	}
+	CallInst = MLC_EMIT(Frame->Line, MLI_TAIL_CALL_CONST, 2);
+	CallInst[2].Count = Count;
 	CallInst[1].Value = Frame->Value;
 	ml_closure_info_t *Info = Frame->Info;
 	ml_state_t *Caller = Function->Base.Caller;

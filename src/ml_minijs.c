@@ -300,7 +300,6 @@ static int ml_closure_find_labels(ml_inst_t *Inst, uintptr_t *Offset) {
 	case MLIT_COUNT_COUNT: *Offset += 4; return 3;
 	case MLIT_COUNT: *Offset += 3; return 2;
 	case MLIT_VALUE: *Offset += 3; return 2;
-	case MLIT_VALUE_DATA: *Offset += 3; return 3;
 	case MLIT_VALUE_COUNT: *Offset += 4; return 3;
 	case MLIT_VALUE_COUNT_DATA: *Offset += 4; return 4;
 	case MLIT_COUNT_CHARS: *Offset += 3; return 3;
@@ -339,9 +338,6 @@ static int ml_closure_inst_encode(ml_inst_t *Inst, ml_minijs_encoder_t *Encoder,
 	case MLIT_VALUE:
 		json_array_append_new(Json, ml_minijs_encode(Encoder, Inst[1].Value));
 		return 2;
-	case MLIT_VALUE_DATA:
-		json_array_append_new(Json, ml_minijs_encode(Encoder, Inst[1].Value));
-		return 3;
 	case MLIT_VALUE_COUNT:
 		json_array_append_new(Json, ml_minijs_encode(Encoder, Inst[1].Value));
 		json_array_append_new(Json, json_integer(Inst[2].Count));
@@ -667,8 +663,6 @@ static ml_closure_info_t *ml_minijs_decode_closure_info(ml_minijs_decoder_t *Dec
 		case MLIT_COUNT:
 		case MLIT_VALUE:
 			I += 3; Offset += 2; break;
-		case MLIT_VALUE_DATA:
-			I += 3; Offset += 3; break;
 		case MLIT_COUNT_COUNT:
 		case MLIT_VALUE_COUNT:
 			I += 4; Offset += 3; break;
@@ -730,9 +724,6 @@ static ml_closure_info_t *ml_minijs_decode_closure_info(ml_minijs_decoder_t *Dec
 		case MLIT_VALUE:
 			Inst[1].Value = ml_minijs_decode(Decoder, json_array_get(Instructions, I++));
 			Inst += 2; break;
-		case MLIT_VALUE_DATA:
-			Inst[1].Value = ml_minijs_decode(Decoder, json_array_get(Instructions, I++));
-			Inst += 3; break;
 		case MLIT_COUNT_COUNT:
 			Inst[1].Count = json_integer_value(json_array_get(Instructions, I++));
 			Inst[2].Count = json_integer_value(json_array_get(Instructions, I++));

@@ -16,8 +16,8 @@ case "c" do
 		Output:write("#ifndef ML_OPCODES_H\n#define ML_OPCODES_H\n")
 		Output:write('\n#define ML_BYTECODE_VERSION {Version}\n')
 		Output:write("\ntypedef enum {\n")
-		for (Name, Type) in Opcodes do
-			Output:write('\tMLI_{Name},\n')
+		for I, (Name, Type) in Opcodes do
+			Output:write('\tMLI_{Name} = {I - 1},\n')
 		end
 		Output:write("} ml_opcode_t;\n\ntypedef enum {\n")
 		let Types := list(unique(Opcodes -> _[2])):sort
@@ -32,11 +32,11 @@ case "c" do
 	with Output := file("ml_opcodes.c", "w") do
 		Output:write("#include \"ml_opcodes.h\"\n\nconst char *MLInstNames[] = {\n")
 		for (Name, Type) in Opcodes do
-			Output:write('\t\"{Name:lower}\",\n')
+			Output:write('\t[MLI_{Name}] = \"{Name:lower}\",\n')
 		end
 		Output:write("};\n\nconst ml_inst_type_t MLInstTypes[] = {\n")
 		for (Name, Type) in Opcodes do
-			Output:write('\tMLIT_{Type},\n')
+			Output:write('\t[MLI_{Name}] = MLIT_{Type},\n')
 		end
 		Output:write("};\n\n")
 		Output:close

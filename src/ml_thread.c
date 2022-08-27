@@ -81,15 +81,6 @@ static ml_value_t *ml_is_closure_threadsafe(ml_closure_info_t *Info) {
 				Inst += 2;
 				break;
 			}
-			case MLIT_VALUE_DATA: {
-				ml_value_t *Error = ml_is_threadsafe(Inst[1].Value);
-				if (Error) {
-					ml_error_trace_add(Error, (ml_source_t){Info->Source, Inst->Line});
-					return Error;
-				}
-				Inst += 3;
-				break;
-			}
 			case MLIT_VALUE_COUNT: {
 				ml_value_t *Error = ml_is_threadsafe(Inst[1].Value);
 				if (Error) {
