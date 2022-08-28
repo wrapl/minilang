@@ -7,6 +7,8 @@
 compiler
 ========
 
+.. rst-class:: mini-api
+
 .. _type-compiler:
 
 :mini:`type compiler < state`

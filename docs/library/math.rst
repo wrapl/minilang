@@ -7,6 +7,8 @@
 math
 ====
 
+.. rst-class:: mini-api
+
 :mini:`meth (X: complex) ^ (Y: integer): number`
    Returns :mini:`X` raised to the power of :mini:`Y`.
 

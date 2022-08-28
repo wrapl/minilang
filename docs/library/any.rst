@@ -7,6 +7,8 @@
 any
 ===
 
+.. rst-class:: mini-api
+
 .. _type-any:
 
 :mini:`type any`

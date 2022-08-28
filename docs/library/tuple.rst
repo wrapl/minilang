@@ -7,6 +7,8 @@
 tuple
 =====
 
+.. rst-class:: mini-api
+
 :mini:`meth (Copy: copy):const(Tuple: tuple): tuple`
    Returns a new constant tuple containing copies of the elements of :mini:`Tuple` created using :mini:`Copy`.
 

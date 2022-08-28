@@ -7,6 +7,8 @@
 list
 ====
 
+.. rst-class:: mini-api
+
 :mini:`meth (Copy: copy):const(List: list): list::const`
    Returns a new constant list containing copies of the elements of :mini:`List` created using :mini:`Copy`.
 
@@ -226,7 +228,7 @@ list
 
       let L := list("cake") :> ["c", "a", "k", "e"]
       L:random :> "k"
-      L:random :> "c"
+      L:random :> "a"
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list::const)`
@@ -251,17 +253,17 @@ list
 
 .. _type-list-node:
 
-:mini:`type list::node`
-   A node in a :mini:`list`.
-   Dereferencing a :mini:`list::node::const` returns the corresponding value from the :mini:`list`.
-
-
-.. _type-list-node:
-
-:mini:`type list::node < list::node`
+:mini:`type list::node < list::node::const`
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
+
+
+.. _type-list-node-const:
+
+:mini:`type list::node::const`
+   A node in a :mini:`list`.
+   Dereferencing a :mini:`list::node::const` returns the corresponding value from the :mini:`list`.
 
 
 .. _type-list-slice:

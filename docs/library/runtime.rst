@@ -7,6 +7,8 @@
 runtime
 =======
 
+.. rst-class:: mini-api
+
 .. _fun-break:
 
 :mini:`fun break(Condition?: any)`

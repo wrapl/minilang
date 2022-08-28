@@ -7,6 +7,8 @@
 range
 =====
 
+.. rst-class:: mini-api
+
 :mini:`meth (X: double):in(Range: integer::range): X | nil`
    *TBD*
 

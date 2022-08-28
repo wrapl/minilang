@@ -7,6 +7,8 @@
 channel
 =======
 
+.. rst-class:: mini-api
+
 .. _fun-channel:
 
 :mini:`fun channel()`

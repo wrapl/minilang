@@ -7,6 +7,8 @@
 map
 ===
 
+.. rst-class:: mini-api
+
 :mini:`meth (Key: any):in(Map: map::const): any | nil`
    Returns :mini:`Key` if it is in :mini:`Map`,  otherwise return :mini:`nil`.
 
@@ -468,7 +470,7 @@ map
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
       M:random :> "a"
-      M:random :> "k"
+      M:random :> "a"
 
 
 :mini:`meth (Map: map::const):size: integer`
@@ -489,15 +491,15 @@ map
 
 .. _type-map-node:
 
-:mini:`type map::node < map::node`
+:mini:`type map::node < map::node::const`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
 
 
-.. _type-map-node:
+.. _type-map-node-const:
 
-:mini:`type map::node`
+:mini:`type map::node::const`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node::const` returns the corresponding value from the :mini:`map`.
 

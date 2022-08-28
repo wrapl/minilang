@@ -117,3 +117,7 @@ div.folders ul li:after {
 	font-weight: normal;
 	font-style: italic;
 }
+
+.mini-api dt {
+	font-size: 110%;
+}

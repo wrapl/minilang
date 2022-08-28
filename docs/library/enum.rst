@@ -7,6 +7,8 @@
 enum
 ====
 
+.. rst-class:: mini-api
+
 .. _type-enum:
 
 :mini:`type enum < type, sequence`

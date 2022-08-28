@@ -7,6 +7,8 @@
 json
 ====
 
+.. rst-class:: mini-api
+
 JSON values are mapped to Minilang as follows:
 
 * :json:`null` |harr| :mini:`nil`

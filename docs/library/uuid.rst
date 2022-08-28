@@ -7,6 +7,8 @@
 uuid
 ====
 
+.. rst-class:: mini-api
+
 .. note::
    Depending on how *Minilang* is built,  :mini:`uuid` might need to be imported using :mini:`import: uuid("util/uuid")`.
 
@@ -16,7 +18,7 @@ uuid
    .. code-block:: mini
 
       import: uuid("util/uuid")
-      address(uuid()) :> <16:C9F07A9237EA46B2BFFC26FC028A9C17>
+      address(uuid()) :> <16:FCAC9AFD229B4A9DAC387F6BF003C902>
 
 
 .. _type-uuid:
@@ -42,7 +44,7 @@ uuid
    .. code-block:: mini
 
       import: uuid("util/uuid")
-      uuid() :> d5b3d7a6-8607-4a12-ab0c-f3740c1e027e
+      uuid() :> 2c19949d-5962-4cd4-ba35-0ff7ca11e356
 
 
 :mini:`meth (Arg₁: uuid) <> (Arg₂: uuid)`

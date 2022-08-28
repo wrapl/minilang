@@ -7,6 +7,8 @@
 flags
 =====
 
+.. rst-class:: mini-api
+
 .. _type-flags:
 
 :mini:`type flags < type`

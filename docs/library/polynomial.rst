@@ -7,6 +7,8 @@
 polynomial
 ==========
 
+.. rst-class:: mini-api
+
 .. _fun-polynomial-roots:
 
 :mini:`fun polynomial::roots(Coeffs: list): list[complex]`

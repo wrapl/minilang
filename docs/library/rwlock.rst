@@ -7,6 +7,8 @@
 rwlock
 ======
 
+.. rst-class:: mini-api
+
 .. _type-rwlock:
 
 :mini:`type rwlock`

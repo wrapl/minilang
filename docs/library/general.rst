@@ -7,6 +7,8 @@
 general
 =======
 
+.. rst-class:: mini-api
+
 .. _fun-clock:
 
 :mini:`fun clock()`

@@ -7,6 +7,8 @@
 type
 ====
 
+.. rst-class:: mini-api
+
 .. _type-type:
 
 :mini:`type type < function`

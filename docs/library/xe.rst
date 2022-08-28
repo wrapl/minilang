@@ -7,6 +7,8 @@
 xe
 ==
 
+.. rst-class:: mini-api
+
 .. _fun-xenode:
 
 :mini:`fun xenode(Arg₁: any)`

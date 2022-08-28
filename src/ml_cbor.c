@@ -1079,7 +1079,7 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTupleT, ml_cbor_writer_t *Writer
 	return NULL;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLListT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLListConstT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {
 	minicbor_write_array(Writer, ml_list_length(Arg));
 	ML_LIST_FOREACH(Arg, Node) {
 		ml_value_t *Error = ml_cbor_write(Writer, Node->Value);
@@ -1088,7 +1088,7 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLListT, ml_cbor_writer_t *Writer,
 	return NULL;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLMapT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLMapConstT, ml_cbor_writer_t *Writer, ml_value_t *Arg) {
 	minicbor_write_map(Writer, ml_map_size(Arg));
 	ML_MAP_FOREACH(Arg, Node) {
 		ml_value_t *Error = ml_cbor_write(Writer, Node->Key);

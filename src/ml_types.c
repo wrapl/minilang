@@ -280,38 +280,51 @@ static volatile atomic_flag MLTypedFnLock[1] = {ATOMIC_FLAG_INIT};
 
 #endif
 
-static void *__attribute__ ((noinline)) ml_typed_fn_get_parent(ml_type_t *Type, void *TypedFn) {
-	void *BestFn = NULL;
-	int BestRank = 0;
+typedef struct {
+	ml_type_t *Type;
+	void *Fn;
+} ml_typed_fn_entry_t;
+
+static ml_typed_fn_entry_t *ml_typed_fn_get_entry(ml_type_t *Type, void *TypedFn);
+
+static ml_typed_fn_entry_t *__attribute__ ((noinline)) ml_typed_fn_get_parent(ml_type_t *Type, void *TypedFn) {
+	static ml_typed_fn_entry_t NullEntry[1] = {{MLAnyT, NULL}};
+	ml_typed_fn_entry_t *BestEntry = NullEntry;
 	for (int I = 0; I < Type->Parents->Size; ++I) {
 		ml_type_t *Parent = (ml_type_t *)Type->Parents->Keys[I];
-		if (Parent && (Parent->Rank > BestRank)) {
-			void *Fn = ml_typed_fn_get(Parent, TypedFn);
-			if (Fn) {
-				BestFn = Fn;
-				BestRank = Parent->Rank;
+		if (Parent && (Parent->Rank > BestEntry->Type->Rank)) {
+			ml_typed_fn_entry_t *Entry = ml_typed_fn_get_entry(Parent, TypedFn);
+			if (Entry && Entry->Type->Rank > BestEntry->Type->Rank) {
+				BestEntry = Entry;
 			}
 		}
 	}
 	ML_TYPED_FN_LOCK();
-	inthash_insert(Type->TypedFns, (uintptr_t)TypedFn, BestFn);
+	inthash_insert(Type->TypedFns, (uintptr_t)TypedFn, BestEntry);
 	ML_TYPED_FN_UNLOCK();
-	return BestFn;
+	return BestEntry;
 }
 
-inline void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn) {
+static ml_typed_fn_entry_t *ml_typed_fn_get_entry(ml_type_t *Type, void *TypedFn) {
 #ifdef ML_GENERICS
 	while (Type->Type == MLTypeGenericT) Type = ml_generic_type_args(Type)[0];
 #endif
 	ML_TYPED_FN_LOCK();
-	inthash_result_t Result = inthash_search2_inline(Type->TypedFns, (uintptr_t)TypedFn);
+	ml_typed_fn_entry_t *Entry = (ml_typed_fn_entry_t *)inthash_search_inline(Type->TypedFns, (uintptr_t)TypedFn);
 	ML_TYPED_FN_UNLOCK();
-	if (Result.Present) return Result.Value;
+	if (Entry) return Entry;
 	return ml_typed_fn_get_parent(Type, TypedFn);
 }
 
+inline void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn) {
+	return ml_typed_fn_get_entry(Type, TypedFn)->Fn;
+}
+
 void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function) {
-	inthash_insert(Type->TypedFns, (uintptr_t)TypedFn, Function);
+	ml_typed_fn_entry_t *Entry = new(ml_typed_fn_entry_t);
+	Entry->Type = Type;
+	Entry->Fn = Function;
+	inthash_insert(Type->TypedFns, (uintptr_t)TypedFn, Entry);
 }
 
 typedef struct {
@@ -624,13 +637,11 @@ int ml_is_subtype(ml_type_t *T, ml_type_t *U) {
 			if (GenericT->Args[0] == U) return 1;
 			return ml_is_generic_subtype(GenericT->NumArgs, GenericT->Args, 1, &U);
 		}
+	} else if (U->Type == MLTypeGenericT) {
+		ml_generic_type_t *GenericU = (ml_generic_type_t *)U;
+		if (ml_is_generic_subtype(1, &T, GenericU->NumArgs, GenericU->Args)) return 1;
 	} else {
-		if (U->Type == MLTypeGenericT) {
-			ml_generic_type_t *GenericU = (ml_generic_type_t *)U;
-			if (ml_is_generic_subtype(1, &T, GenericU->NumArgs, GenericU->Args)) return 1;
-		} else {
-			if (ml_is_generic_subtype(1, &T, 1, &U)) return 1;
-		}
+		if (ml_is_generic_subtype(1, &T, 1, &U)) return 1;
 	}
 #endif
 	return (uintptr_t)inthash_search(T->Parents, (uintptr_t)U);

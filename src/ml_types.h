@@ -692,6 +692,7 @@ int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callbac
 typedef struct ml_list_node_t ml_list_node_t;
 typedef struct ml_list_t ml_list_t;
 
+extern ml_type_t MLListConstT[];
 extern ml_type_t MLListT[];
 
 struct ml_list_node_t {
@@ -910,6 +911,7 @@ typedef enum {
 	MAP_ORDER_DESC
 } ml_map_order_t;
 
+extern ml_type_t MLMapConstT[];
 extern ml_type_t MLMapT[];
 
 struct ml_map_t {

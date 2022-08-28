@@ -7,6 +7,8 @@
 method
 ======
 
+.. rst-class:: mini-api
+
 .. _fun-method-list:
 
 :mini:`fun method::list(): list[method]`

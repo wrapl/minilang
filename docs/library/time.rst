@@ -7,6 +7,8 @@
 time
 ====
 
+.. rst-class:: mini-api
+
 Provides time and date operations.
 
 .. _fun-time-zone-list:

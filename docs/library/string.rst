@@ -7,6 +7,8 @@
 string
 ======
 
+.. rst-class:: mini-api
+
 Strings in Minilang can contain any sequence of bytes,  including :mini:`0` bytes.
 Index and find methods however work on ``UTF-8`` characters,  byte sequences that are not valid ``UTF-8`` are handled gracefully but the results are probably not very useful.
 
@@ -15,6 +17,14 @@ Every :mini:`string` is also an :mini:`address` so address methods can also be u
 Indexing a string starts at :mini:`1`,  with the last character at :mini:`String:length`. Negative indices are counted form the end,  :mini:`-1` is the last character and :mini:`-String:length` is the first character.
 
 When creating a substring,  the first index is inclusive and second index is exclusive. The index :mini:`0` refers to just beyond the last character and can be used to take a substring to the end of a string.
+
+:mini:`meth (Arg₁: copy):const(Arg₂: buffer)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: copy):copy(Arg₂: buffer)`
+   *TBD*
+
 
 :mini:`meth (N: integer) * (String: string): string`
    Returns :mini:`String` concatentated :mini:`N` times.
@@ -495,7 +505,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       :> (22, slept)
 
 
-:mini:`meth (Haystack: string):find2(Pattern: regex, Start: tuple::integer): tuple[integer, string] | nil`
+:mini:`meth (Haystack: string):find2(Pattern: regex, Start: tuple::integer::string): tuple[integer, string] | nil`
    Returns :mini:`(Index,  Match)` where :mini:`Index` is the first occurence of :mini:`Pattern` in :mini:`Haystack` at or after :mini:`Start`,  or :mini:`nil` if no occurence is found.
 
    .. code-block:: mini
@@ -527,7 +537,7 @@ When creating a substring,  the first index is inclusive and second index is exc
       "The cat snored as he slept":find2("s", -6) :> (22, s)
 
 
-:mini:`meth (Haystack: string):find2(Needle: string, Start: tuple::integer): tuple[integer, string] | nil`
+:mini:`meth (Haystack: string):find2(Needle: string, Start: tuple::integer::string): tuple[integer, string] | nil`
    Returns :mini:`(Index,  Needle)` where :mini:`Index` is the first occurence of :mini:`Needle` in :mini:`Haystack` at or after :mini:`Start`,  or :mini:`nil` if no occurence is found.
 
    .. code-block:: mini

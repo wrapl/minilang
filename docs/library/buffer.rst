@@ -7,6 +7,8 @@
 buffer
 ======
 
+.. rst-class:: mini-api
+
 .. _type-buffer:
 
 :mini:`type buffer < address`
@@ -20,7 +22,7 @@ buffer
 
    .. code-block:: mini
 
-      buffer(16) :> <16:80C35F4F867F00000000000000000000>
+      buffer(16) :> <16:00BD45B1FD7E00007461626C65293A69>
 
 
 :mini:`meth (Buffer: buffer) + (Offset: integer): buffer`
@@ -29,8 +31,8 @@ buffer
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:40C05F4F867F00000000000000000000>
-      B + 8 :> <8:0000000000000000>
+      :> <16:A0B745B1FD7E00006C655F726F775F69>
+      B + 8 :> <8:6C655F726F775F69>
 
 
 :mini:`meth (Buffer: buffer) @ (Length: integer): buffer`
@@ -39,8 +41,8 @@ buffer
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:80C15F4F867F00000000000000000000>
-      B @ 8 :> <8:80C15F4F867F0000>
+      :> <16:00B945B1FD7E0000626C653A3A726F77>
+      B @ 8 :> <8:00B945B1FD7E0000>
 
 
 :mini:`meth (Buffer: buffer):put(Value: address): buffer`

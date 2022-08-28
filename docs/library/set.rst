@@ -7,6 +7,8 @@
 set
 ===
 
+.. rst-class:: mini-api
+
 :mini:`meth (Key: any):in(Set: set): any | nil`
    Returns :mini:`Key` if it is in :mini:`Map`,  otherwise return :mini:`nil`.
 
@@ -260,7 +262,7 @@ set
 
       let M := set("cake") :> {c, a, k, e}
       M:random :> "k"
-      M:random :> "k"
+      M:random :> "a"
 
 
 :mini:`meth (Set: set):reverse: set`

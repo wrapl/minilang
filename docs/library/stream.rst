@@ -7,6 +7,8 @@
 stream
 ======
 
+.. rst-class:: mini-api
+
 .. _type-stream:
 
 :mini:`type stream`

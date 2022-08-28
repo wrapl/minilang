@@ -7,6 +7,8 @@
 cbor
 ====
 
+.. rst-class:: mini-api
+
 :mini:`meth cbor::decode(Bytes: address): any | error`
    Decode :mini:`Bytes` into a Minilang value,  or return an error if :mini:`Bytes` contains invalid CBOR or cannot be decoded into a Minilang value.
 

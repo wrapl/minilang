@@ -7,6 +7,8 @@
 gir
 ===
 
+.. rst-class:: mini-api
+
 .. _fun-girrun:
 
 :mini:`fun girrun(Arg₁: any)`

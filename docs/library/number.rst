@@ -7,6 +7,8 @@
 number
 ======
 
+.. rst-class:: mini-api
+
 .. _fun-integer-random:
 
 :mini:`fun integer::random(Min?: number, Max?: number): integer`

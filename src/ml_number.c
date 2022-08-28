@@ -1084,6 +1084,9 @@ typedef struct ml_integer_iter_t {
 	long Index;
 } ml_integer_iter_t;
 
+ML_TYPE(MLIntegerIterT, (), "integer-iter");
+//!internal
+
 static void ML_TYPED_FN(ml_iter_value, MLIntegerIterT, ml_state_t *Caller, ml_integer_iter_t *Iter) {
 	ML_RETURN(ml_integer(Iter->Current));
 }
@@ -1103,8 +1106,8 @@ static void ML_TYPED_FN(ml_iter_key, MLIntegerIterT, ml_state_t *Caller, ml_inte
 	ML_RETURN(ml_integer(Iter->Index));
 }
 
-ML_TYPE(MLIntegerIterT, (), "integer-iter");
-//!internal
+ML_TYPE(MLIntegerRangeT, (MLSequenceT), "integer-range");
+//!range
 
 static void ML_TYPED_FN(ml_iterate, MLIntegerRangeT, ml_state_t *Caller, ml_value_t *Value) {
 	ml_integer_range_t *Range = (ml_integer_range_t *)Value;
@@ -1118,9 +1121,6 @@ static void ML_TYPED_FN(ml_iterate, MLIntegerRangeT, ml_state_t *Caller, ml_valu
 	Iter->Step = Range->Step;
 	ML_RETURN(Iter);
 }
-
-ML_TYPE(MLIntegerRangeT, (MLSequenceT), "integer-range");
-//!range
 
 ML_METHOD("..", MLIntegerT, MLIntegerT) {
 //!range
@@ -1305,6 +1305,9 @@ typedef struct ml_real_iter_t {
 	long Index, Remaining;
 } ml_real_iter_t;
 
+ML_TYPE(MLRealIterT, (), "real-iter");
+//!internal
+
 static void ML_TYPED_FN(ml_iter_value, MLRealIterT, ml_state_t *Caller, ml_real_iter_t *Iter) {
 	ML_RETURN(ml_real(Iter->Current));
 }
@@ -1320,8 +1323,8 @@ static void ML_TYPED_FN(ml_iter_key, MLRealIterT, ml_state_t *Caller, ml_real_it
 	ML_RETURN(ml_integer(Iter->Index));
 }
 
-ML_TYPE(MLRealIterT, (), "real-iter");
-//!internal
+ML_TYPE(MLRealRangeT, (MLSequenceT), "real-range");
+//!range
 
 static void ML_TYPED_FN(ml_iterate, MLRealRangeT, ml_state_t *Caller, ml_value_t *Value) {
 	ml_real_range_t *Range = (ml_real_range_t *)Value;
@@ -1336,9 +1339,6 @@ static void ML_TYPED_FN(ml_iterate, MLRealRangeT, ml_state_t *Caller, ml_value_t
 	Iter->Remaining = Range->Count;
 	ML_RETURN(Iter);
 }
-
-ML_TYPE(MLRealRangeT, (MLSequenceT), "real-range");
-//!range
 
 ML_METHOD("..", MLNumberT, MLNumberT) {
 //!range

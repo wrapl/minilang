@@ -7,6 +7,8 @@
 file
 ====
 
+.. rst-class:: mini-api
+
 .. _type-dir:
 
 :mini:`type dir < sequence`

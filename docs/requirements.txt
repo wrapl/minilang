@@ -3,4 +3,4 @@ sphinxcontrib-domaintools
 sphinxcontrib-fulltoc
 sphinx_toolbox
 sphinx-a4doc
-karma_sphinx_theme
+furo

@@ -7,6 +7,8 @@
 address
 =======
 
+.. rst-class:: mini-api
+
 .. _type-address:
 
 :mini:`type address`

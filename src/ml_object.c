@@ -643,10 +643,6 @@ ml_type_t *ml_enum2(const char *TypeName, ...) {
 	return (ml_type_t *)Enum;
 }
 
-static void ML_TYPED_FN(ml_value_set_name, MLEnumT, ml_enum_t *Enum, const char *Name) {
-	Enum->Base.Name = Name;
-}
-
 ml_value_t *ml_enum_value(ml_type_t *Type, uint64_t Index) {
 	const ml_enum_t *Enum = (ml_enum_t *)Type;
 	ml_enum_value_t **Values = (ml_enum_value_t **)Enum->Values;
@@ -687,6 +683,10 @@ ML_TYPE(MLEnumT, (MLTypeT, MLSequenceT), "enum",
 // The base type of enumeration types.
 	.call = (void *)ml_enum_call
 );
+
+static void ML_TYPED_FN(ml_value_set_name, MLEnumT, ml_enum_t *Enum, const char *Name) {
+	Enum->Base.Name = Name;
+}
 
 ML_METHOD("count", MLEnumT) {
 //<Enum

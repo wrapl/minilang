@@ -7,6 +7,8 @@
 object
 ======
 
+.. rst-class:: mini-api
+
 .. _type-class:
 
 :mini:`type class < type`

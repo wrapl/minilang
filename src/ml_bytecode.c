@@ -1528,10 +1528,6 @@ static long ml_closure_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
-static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Closure), ml_state_t *Frame, ml_closure_t *Closure) {
-	return ml_closure_call(Frame, Closure, 0, NULL);
-}
-
 ML_FUNCTION(MLClosure) {
 //@closure
 //<Original
@@ -1555,6 +1551,10 @@ ML_TYPE(MLClosureT, (MLFunctionT, MLSequenceT), "closure",
 	.call = (void *)ml_closure_call,
 	.Constructor = (ml_value_t *)MLClosure
 );
+
+static void ML_TYPED_FN(ml_iterate, MLClosureT, ml_state_t *Frame, ml_closure_t *Closure) {
+	return ml_closure_call(Frame, Closure, 0, NULL);
+}
 
 static void ML_TYPED_FN(ml_value_find_all, MLClosureT, ml_closure_t *Closure, void *Data, ml_value_find_fn RefFn) {
 	if (!RefFn(Data, (ml_value_t *)Closure, 1)) return;
