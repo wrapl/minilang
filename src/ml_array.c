@@ -21,7 +21,7 @@ static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args);
 
 ML_CFUNCTION(MLArray, NULL, ml_array_of_fn);
 //@array
-//<List:list`
+//<List:list
 //>array
 // Returns a new array containing the values in :mini:`List`.
 // The shape and type of the array is determined from the elements in :mini:`List`.
