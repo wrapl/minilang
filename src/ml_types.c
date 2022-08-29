@@ -2969,6 +2969,7 @@ void ml_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "assign", MLAssign);
 		stringmap_insert(Globals, "call", MLCall);
 		stringmap_insert(Globals, "copy", MLCopyT);
+		stringmap_insert(Globals, "const", MLConstT);
 		stringmap_insert(Globals, "findall", MLFindAll);
 		stringmap_insert(Globals, "isconstant", MLIsConstant);
 		stringmap_insert(Globals, "exchange", MLExchange);
