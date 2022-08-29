@@ -26,114 +26,100 @@ ML_CFUNCTION(MLArray, NULL, ml_array_of_fn);
 // Returns a new array containing the values in :mini:`List`.
 // The shape and type of the array is determined from the elements in :mini:`List`.
 
-ML_TYPE(MLArrayConstT, (MLAddressT, MLSequenceT), "array::const");
-
-ML_TYPE(MLArrayT, (MLArrayConstT, MLBufferT), "array",
+ML_TYPE(MLArrayT, (MLAddressT, MLSequenceT), "array",
 // Base type for multidimensional arrays.
 	.Constructor = (ml_value_t *)MLArray
 );
 
-ML_TYPE(MLVectorConstT, (MLArrayConstT), "vector::const");
+ML_TYPE(MLArrayMutableT, (MLArrayT, MLBufferT), "array::mutable");
 
-ML_TYPE(MLVectorT, (MLVectorConstT, MLArrayT), "vector",
+ML_TYPE(MLVectorT, (MLArrayT), "vector",
 // Arrays with exactly 1 dimension.
 	.Constructor = (ml_value_t *)MLArray
 );
 
-ML_TYPE(MLMatrixConstT, (MLArrayConstT), "matrix::const");
+ML_TYPE(MLVectorMutableT, (MLVectorT, MLArrayMutableT), "vector::mutable");
 
-ML_TYPE(MLMatrixT, (MLMatrixConstT, MLArrayT), "matrix",
+ML_TYPE(MLMatrixT, (MLArrayT), "matrix",
 // Arrays with exactly 2 dimensions.
 	.Constructor = (ml_value_t *)MLArray
 );
 
+ML_TYPE(MLMatrixMutableT, (MLMatrixT, MLArrayMutableT), "matrix::mutable");
+
 #ifdef ML_COMPLEX
 
-ML_TYPE(MLArrayConstComplexT, (MLArrayConstT), "array::const::complex");
-
-extern ml_type_t MLArrayConstComplex32T[];
-extern ml_type_t MLArrayConstComplex64T[];
-
-ML_TYPE(MLArrayComplexT, (MLArrayConstComplexT, MLArrayT), "array::complex");
-// Base type for arrays of complex numbers.
+ML_TYPE(MLArrayComplexT, (MLArrayT), "array::complex");
 
 extern ml_type_t MLArrayComplex32T[];
 extern ml_type_t MLArrayComplex64T[];
 
-ML_TYPE(MLVectorConstComplexT, (MLArrayConstComplexT, MLVectorConstT), "vector::const::complex");
+ML_TYPE(MLArrayMutableComplexT, (MLArrayComplexT, MLArrayMutableT), "array::mutable::complex");
+// Base type for arrays of complex numbers.
 
-extern ml_type_t MLVectorConstComplex32T[];
-extern ml_type_t MLVectorConstComplex64T[];
+extern ml_type_t MLArrayMutableComplex32T[];
+extern ml_type_t MLArrayMutableComplex64T[];
 
-ML_TYPE(MLVectorComplexT, (MLVectorConstComplexT, MLArrayComplexT, MLVectorT), "vector::complex");
-// Base type for vectors of complex numbers.
+ML_TYPE(MLVectorComplexT, (MLArrayComplexT, MLVectorT), "vector::complex");
 
 extern ml_type_t MLVectorComplex32T[];
 extern ml_type_t MLVectorComplex64T[];
 
-ML_TYPE(MLMatrixConstComplexT, (MLArrayConstComplexT, MLMatrixConstT), "matrix::complex");
+ML_TYPE(MLVectorMutableComplexT, (MLVectorComplexT, MLArrayMutableComplexT, MLVectorMutableT), "vector::mutable::complex");
+// Base type for vectors of complex numbers.
 
-extern ml_type_t MLMatrixConstComplex32T[];
-extern ml_type_t MLMatrixConstComplex64T[];
+extern ml_type_t MLVectorMutableComplex32T[];
+extern ml_type_t MLVectorMutableComplex64T[];
 
-ML_TYPE(MLMatrixComplexT, (MLArrayComplexT, MLMatrixT), "matrix::complex");
-// Base type for matrices of complex numbers.
+ML_TYPE(MLMatrixComplexT, (MLArrayComplexT, MLMatrixT), "matrix::mutable::complex");
 
 extern ml_type_t MLMatrixComplex32T[];
 extern ml_type_t MLMatrixComplex64T[];
 
-ML_TYPE(MLArrayConstRealT, (MLArrayConstComplexT), "array::real");
+ML_TYPE(MLMatrixMutableComplexT, (MLArrayMutableComplexT, MLMatrixMutableT), "matrix::mutable::complex");
+// Base type for matrices of complex numbers.
 
-ML_TYPE(MLArrayRealT, (MLArrayConstRealT, MLArrayComplexT), "array::real");
+extern ml_type_t MLMatrixMutableComplex32T[];
+extern ml_type_t MLMatrixMutableComplex64T[];
+
+ML_TYPE(MLArrayRealT, (MLArrayComplexT), "array::mutable::real");
+
+ML_TYPE(MLArrayMutableRealT, (MLArrayRealT, MLArrayMutableComplexT), "array::mutable::real");
 // Base type for arrays of real numbers.
 
-ML_TYPE(MLVectorConstRealT, (MLArrayConstRealT, MLVectorConstComplexT), "vector::const::real");
+ML_TYPE(MLVectorRealT, (MLArrayRealT, MLVectorComplexT), "vector::real");
 
-ML_TYPE(MLVectorRealT, (MLVectorConstRealT, MLArrayRealT, MLVectorT), "vector::real");
+ML_TYPE(MLVectorMutableRealT, (MLVectorRealT, MLArrayMutableRealT, MLVectorMutableT), "vector::mutable::real");
 // Base type for vectors of real numbers.
 
-ML_TYPE(MLMatrixConstRealT, (MLArrayConstRealT, MLMatrixConstComplexT), "matrix::const::real");
+ML_TYPE(MLMatrixRealT, (MLArrayRealT, MLMatrixComplexT), "matrix::real");
 
-ML_TYPE(MLMatrixRealT, (MLMatrixConstRealT, MLArrayRealT, MLMatrixComplexT), "matrix::real");
+ML_TYPE(MLMatrixMutableRealT, (MLMatrixRealT, MLArrayMutableRealT, MLMatrixMutableComplexT), "matrix::mutable::real");
 // Base type for matrices of real numbers.
 
 #else
 
-ML_TYPE(MLArrayConstRealT, (MLArrayConstT), "array::real");
+ML_TYPE(MLArrayRealT, (MLArrayT), "array::mutable::real");
 //!internal
 
-ML_TYPE(MLArrayRealT, (MLArrayConstRealT, MLArrayT), "array::real");
+ML_TYPE(MLArrayMutableRealT, (MLArrayRealT, MLArrayMutableT), "array::mutable::real");
 //!internal
 
-ML_TYPE(MLVectorConstRealT, (MLArrayConstRealT, MLVectorConstT), "vector::const::real");
+ML_TYPE(MLVectorRealT, (MLArrayRealT, MLVectorT), "vector::real");
 //!internal
 
-ML_TYPE(MLVectorRealT, (MLVectorConstRealT, MLArrayRealT, MLVectorComplexT), "vector::real");
+ML_TYPE(MLVectorMutableRealT, (MLVectorRealT, MLArrayMutableRealT, MLVectorMutableComplexT), "vector::mutable::real");
 //!internal
 
-ML_TYPE(MLMatrixConstRealT, (MLArrayConstRealT, MLMatrixConstT), "matrix::const::real");
+ML_TYPE(MLMatrixRealT, (MLArrayRealT, MLMatrixT), "matrix::real");
 //!internal
 
-ML_TYPE(MLMatrixRealT, (MLMatrixConstRealT, MLArrayRealT, MLMatrixT), "matrix::real");
+ML_TYPE(MLMatrixMutableRealT, (MLMatrixRealT, MLArrayMutableRealT, MLMatrixMutableT), "matrix::mutable::real");
 //!internal
 
 #endif
 
-ML_TYPE(MLArrayConstIntegerT, (MLArrayConstRealT), "array::const::integer");
-
-extern ml_type_t MLArrayConstUInt8T[];
-extern ml_type_t MLArrayConstInt8T[];
-extern ml_type_t MLArrayConstUInt16T[];
-extern ml_type_t MLArrayConstInt16T[];
-extern ml_type_t MLArrayConstUInt32T[];
-extern ml_type_t MLArrayConstInt32T[];
-extern ml_type_t MLArrayConstUInt64T[];
-extern ml_type_t MLArrayConstInt64T[];
-extern ml_type_t MLArrayConstFloat32T[];
-extern ml_type_t MLArrayConstFloat64T[];
-
-ML_TYPE(MLArrayIntegerT, (MLArrayConstIntegerT, MLArrayRealT), "array::integer");
-// Base type for arrays of integers.
+ML_TYPE(MLArrayIntegerT, (MLArrayRealT), "array::integer");
 
 extern ml_type_t MLArrayUInt8T[];
 extern ml_type_t MLArrayInt8T[];
@@ -146,21 +132,21 @@ extern ml_type_t MLArrayInt64T[];
 extern ml_type_t MLArrayFloat32T[];
 extern ml_type_t MLArrayFloat64T[];
 
-ML_TYPE(MLVectorConstIntegerT, (MLVectorConstRealT), "vector::const::integer");
+ML_TYPE(MLArrayMutableIntegerT, (MLArrayIntegerT, MLArrayMutableRealT), "array::mutable::integer");
+// Base type for arrays of integers.
 
-extern ml_type_t MLVectorConstUInt8T[];
-extern ml_type_t MLVectorConstInt8T[];
-extern ml_type_t MLVectorConstUInt16T[];
-extern ml_type_t MLVectorConstInt16T[];
-extern ml_type_t MLVectorConstUInt32T[];
-extern ml_type_t MLVectorConstInt32T[];
-extern ml_type_t MLVectorConstUInt64T[];
-extern ml_type_t MLVectorConstInt64T[];
-extern ml_type_t MLVectorConstFloat32T[];
-extern ml_type_t MLVectorConstFloat64T[];
+extern ml_type_t MLArrayMutableUInt8T[];
+extern ml_type_t MLArrayMutableInt8T[];
+extern ml_type_t MLArrayMutableUInt16T[];
+extern ml_type_t MLArrayMutableInt16T[];
+extern ml_type_t MLArrayMutableUInt32T[];
+extern ml_type_t MLArrayMutableInt32T[];
+extern ml_type_t MLArrayMutableUInt64T[];
+extern ml_type_t MLArrayMutableInt64T[];
+extern ml_type_t MLArrayMutableFloat32T[];
+extern ml_type_t MLArrayMutableFloat64T[];
 
-ML_TYPE(MLVectorIntegerT, (MLVectorConstIntegerT, MLVectorRealT), "vector::integer");
-// Base type for vectors of integers.
+ML_TYPE(MLVectorIntegerT, (MLVectorRealT), "vector::integer");
 
 extern ml_type_t MLVectorUInt8T[];
 extern ml_type_t MLVectorInt8T[];
@@ -173,21 +159,21 @@ extern ml_type_t MLVectorInt64T[];
 extern ml_type_t MLVectorFloat32T[];
 extern ml_type_t MLVectorFloat64T[];
 
-ML_TYPE(MLMatrixConstIntegerT, (MLMatrixConstRealT), "matrix::const::integer");
+ML_TYPE(MLVectorMutableIntegerT, (MLVectorIntegerT, MLVectorMutableRealT), "vector::mutable::integer");
+// Base type for vectors of integers.
 
-extern ml_type_t MLMatrixConstUInt8T[];
-extern ml_type_t MLMatrixConstInt8T[];
-extern ml_type_t MLMatrixConstUInt16T[];
-extern ml_type_t MLMatrixConstInt16T[];
-extern ml_type_t MLMatrixConstUInt32T[];
-extern ml_type_t MLMatrixConstInt32T[];
-extern ml_type_t MLMatrixConstUInt64T[];
-extern ml_type_t MLMatrixConstInt64T[];
-extern ml_type_t MLMatrixConstFloat32T[];
-extern ml_type_t MLMatrixConstFloat64T[];
+extern ml_type_t MLVectorMutableUInt8T[];
+extern ml_type_t MLVectorMutableInt8T[];
+extern ml_type_t MLVectorMutableUInt16T[];
+extern ml_type_t MLVectorMutableInt16T[];
+extern ml_type_t MLVectorMutableUInt32T[];
+extern ml_type_t MLVectorMutableInt32T[];
+extern ml_type_t MLVectorMutableUInt64T[];
+extern ml_type_t MLVectorMutableInt64T[];
+extern ml_type_t MLVectorMutableFloat32T[];
+extern ml_type_t MLVectorMutableFloat64T[];
 
-ML_TYPE(MLMatrixIntegerT, (MLMatrixConstIntegerT, MLMatrixRealT), "matrix::integer");
-// Base type for matrices of integers.
+ML_TYPE(MLMatrixIntegerT, (MLMatrixRealT), "matrix::integer");
 
 extern ml_type_t MLMatrixUInt8T[];
 extern ml_type_t MLMatrixInt8T[];
@@ -200,13 +186,27 @@ extern ml_type_t MLMatrixInt64T[];
 extern ml_type_t MLMatrixFloat32T[];
 extern ml_type_t MLMatrixFloat64T[];
 
-extern ml_type_t MLArrayConstAnyT[];
-extern ml_type_t MLVectorConstAnyT[];
-extern ml_type_t MLMatrixConstAnyT[];
+ML_TYPE(MLMatrixMutableIntegerT, (MLMatrixIntegerT, MLMatrixMutableRealT), "matrix::mutable::integer");
+// Base type for matrices of integers.
+
+extern ml_type_t MLMatrixMutableUInt8T[];
+extern ml_type_t MLMatrixMutableInt8T[];
+extern ml_type_t MLMatrixMutableUInt16T[];
+extern ml_type_t MLMatrixMutableInt16T[];
+extern ml_type_t MLMatrixMutableUInt32T[];
+extern ml_type_t MLMatrixMutableInt32T[];
+extern ml_type_t MLMatrixMutableUInt64T[];
+extern ml_type_t MLMatrixMutableInt64T[];
+extern ml_type_t MLMatrixMutableFloat32T[];
+extern ml_type_t MLMatrixMutableFloat64T[];
 
 extern ml_type_t MLArrayAnyT[];
 extern ml_type_t MLVectorAnyT[];
 extern ml_type_t MLMatrixAnyT[];
+
+extern ml_type_t MLArrayMutableAnyT[];
+extern ml_type_t MLVectorMutableAnyT[];
+extern ml_type_t MLMatrixMutableAnyT[];
 
 size_t MLArraySizes[] = {
 	[ML_ARRAY_FORMAT_NONE] = sizeof(ml_value_t *),
@@ -267,18 +267,18 @@ static ml_type_t *ML ## NAME ## Types[] = { \
 
 #endif
 
-ML_ARRAY_TYPES(ArrayConst);
 ML_ARRAY_TYPES(Array);
-ML_ARRAY_TYPES(VectorConst);
+ML_ARRAY_TYPES(ArrayMutable);
 ML_ARRAY_TYPES(Vector);
-ML_ARRAY_TYPES(MatrixConst);
+ML_ARRAY_TYPES(VectorMutable);
 ML_ARRAY_TYPES(Matrix);
+ML_ARRAY_TYPES(MatrixMutable);
 
 static ml_array_format_t ml_array_format(ml_type_t *Type) {
 	for (ml_array_format_t Format = ML_ARRAY_FORMAT_NONE; Format <= ML_ARRAY_FORMAT_ANY; ++Format) {
-		if (MLArrayTypes[Format] == Type) return Format;
-		if (MLVectorTypes[Format] == Type) return Format;
-		if (MLMatrixTypes[Format] == Type) return Format;
+		if (MLArrayMutableTypes[Format] == Type) return Format;
+		if (MLVectorMutableTypes[Format] == Type) return Format;
+		if (MLMatrixMutableTypes[Format] == Type) return Format;
 	}
 	return ML_ARRAY_FORMAT_NONE;
 }
@@ -286,11 +286,11 @@ static ml_array_format_t ml_array_format(ml_type_t *Type) {
 ml_array_t *ml_array_alloc(ml_array_format_t Format, int Degree) {
 	ml_array_t *Array = xnew(ml_array_t, Degree, ml_array_dimension_t);
 	if (Degree == 1) {
-		Array->Base.Type = MLVectorTypes[Format];
+		Array->Base.Type = MLVectorMutableTypes[Format];
 	} else if (Degree == 2) {
-		Array->Base.Type = MLMatrixTypes[Format];
+		Array->Base.Type = MLMatrixMutableTypes[Format];
 	} else {
-		Array->Base.Type = MLArrayTypes[Format];
+		Array->Base.Type = MLArrayMutableTypes[Format];
 	}
 	Array->Degree = Degree;
 	Array->Format = Format;
@@ -445,7 +445,7 @@ static void ml_array_typed_new_fnx(ml_state_t *Caller, void *Data, int Count, ml
 		ml_value_t *Function = State->Function = Args[1];
 		for (int I = 0; I < Array->Degree; ++I) State->Args[I] = ml_integer(1);
 		return ml_call(State, Function, Array->Degree, State->Args);
-	} else if (ml_is(Args[0], MLArrayConstT)) {
+	} else if (ml_is(Args[0], MLArrayT)) {
 		ml_array_t *Source = (ml_array_t *)Args[0];
 		ml_array_t *Target = ml_array_alloc(Format, Source->Degree);
 		array_copy(Target, Source);
@@ -519,9 +519,9 @@ ML_FUNCTION(MLArrayWrap) {
 	ml_array_t *Array = ml_array_alloc(Format, Degree);
 	if (!ml_is(Args[1], MLBufferT)) {
 		switch (Degree) {
-		case 1: Array->Base.Type = MLVectorConstTypes[Format]; break;
-		case 2: Array->Base.Type = MLMatrixConstTypes[Format]; break;
-		default: Array->Base.Type = MLArrayConstTypes[Format]; break;
+		case 1: Array->Base.Type = MLVectorTypes[Format]; break;
+		case 2: Array->Base.Type = MLMatrixTypes[Format]; break;
+		default: Array->Base.Type = MLArrayTypes[Format]; break;
 		}
 	}
 	for (int I = 0; I < Degree; ++I) {
@@ -537,7 +537,7 @@ ML_FUNCTION(MLArrayWrap) {
 	return (ml_value_t *)Array;
 }
 
-ML_METHOD("degree", MLArrayConstT) {
+ML_METHOD("degree", MLArrayT) {
 //<Array
 //>integer
 // Return the degree of :mini:`Array`.
@@ -547,7 +547,7 @@ ML_METHOD("degree", MLArrayConstT) {
 	return ml_integer(Array->Degree);
 }
 
-ML_METHOD("shape", MLArrayConstT) {
+ML_METHOD("shape", MLArrayT) {
 //<Array
 //>list
 // Return the shape of :mini:`Array`.
@@ -561,7 +561,7 @@ ML_METHOD("shape", MLArrayConstT) {
 	return Shape;
 }
 
-ML_METHOD("count", MLArrayConstT) {
+ML_METHOD("count", MLArrayT) {
 //<Array
 //>integer
 // Return the number of elements in :mini:`Array`.
@@ -573,7 +573,7 @@ ML_METHOD("count", MLArrayConstT) {
 	return ml_integer(Size);
 }
 
-ML_METHOD("^", MLArrayConstT) {
+ML_METHOD("^", MLArrayT) {
 //<Array
 //>array
 // Returns the transpose of :mini:`Array`, sharing the underlying data.
@@ -589,7 +589,7 @@ ML_METHOD("^", MLArrayConstT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("permute", MLArrayConstT, MLListT) {
+ML_METHOD("permute", MLArrayT, MLListT) {
 //<Array
 //<Indices
 //>array
@@ -619,7 +619,7 @@ ML_METHOD("permute", MLArrayConstT, MLListT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("swap", MLArrayConstT, MLIntegerT, MLIntegerT) {
+ML_METHOD("swap", MLArrayT, MLIntegerT, MLIntegerT) {
 //<Array
 //<Index/1
 //<Index/2
@@ -641,7 +641,7 @@ ML_METHOD("swap", MLArrayConstT, MLIntegerT, MLIntegerT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("expand", MLArrayConstT, MLListT) {
+ML_METHOD("expand", MLArrayT, MLListT) {
 //<Array
 //<Indices
 //>array
@@ -676,7 +676,7 @@ ML_METHOD("expand", MLArrayConstT, MLListT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("split", MLArrayConstT, MLIntegerT, MLListT) {
+ML_METHOD("split", MLArrayT, MLIntegerT, MLListT) {
 //<Array
 //<Index
 //<Sizes
@@ -713,7 +713,7 @@ ML_METHOD("split", MLArrayConstT, MLIntegerT, MLListT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("join", MLArrayConstT, MLIntegerT, MLIntegerT) {
+ML_METHOD("join", MLArrayT, MLIntegerT, MLIntegerT) {
 //<Array
 //<Start
 //<Count
@@ -747,7 +747,7 @@ ML_METHOD("join", MLArrayConstT, MLIntegerT, MLIntegerT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("strides", MLArrayConstT) {
+ML_METHOD("strides", MLArrayT) {
 //<Array
 //>list
 // Return the strides of :mini:`Array` in bytes.
@@ -759,7 +759,7 @@ ML_METHOD("strides", MLArrayConstT) {
 	return Strides;
 }
 
-ML_METHOD("size", MLArrayConstT) {
+ML_METHOD("size", MLArrayT) {
 //<Array
 //>integer
 // Return the size of :mini:`Array` in contiguous bytes, or :mini:`nil` if :mini:`Array` is not contiguous.
@@ -804,11 +804,11 @@ ml_array_ref_t *ml_array_ref_alloc(ml_array_format_t Format, int Degree) {
 	ml_array_ref_t *Ref = xnew(ml_array_ref_t, Degree, ml_array_dimension_t);
 	Ref->Type = MLArrayRefT;
 	if (Degree == 1) {
-		Ref->Array->Base.Type = MLVectorTypes[Format];
+		Ref->Array->Base.Type = MLVectorMutableTypes[Format];
 	} else if (Degree == 2) {
-		Ref->Array->Base.Type = MLMatrixTypes[Format];
+		Ref->Array->Base.Type = MLMatrixMutableTypes[Format];
 	} else {
-		Ref->Array->Base.Type = MLArrayTypes[Format];
+		Ref->Array->Base.Type = MLArrayMutableTypes[Format];
 	}
 	Ref->Array->Degree = Degree;
 	Ref->Array->Format = Format;
@@ -1122,7 +1122,7 @@ static int *ml_array_offsets_nonzero(ml_array_t *A, int *Offsets, ml_array_dimen
 	}
 }
 
-static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayInt8T, ml_array_t *Array, ml_array_indexer_t *Indexer) {
+static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayMutableInt8T, ml_array_t *Array, ml_array_indexer_t *Indexer) {
 	int Degree = Array->Degree;
 	if (Indexer->Source + Degree > Indexer->Limit) return ml_error("RangeError", "Too many indices");
 	for (int I = 0; I < Degree; ++I) {
@@ -1213,7 +1213,7 @@ static int *ml_array_to_indices(int *Indices, int Degree, ml_array_dimension_t *
 	return Indices;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayInt32T, ml_array_t *Array, ml_array_indexer_t *Indexer) {
+static ml_value_t *ML_TYPED_FN(ml_array_index_get, MLArrayMutableInt32T, ml_array_t *Array, ml_array_indexer_t *Indexer) {
 	int Degree = Array->Degree - 1;
 	int Total = Degree + Array->Dimensions[Degree].Size;
 	if (Indexer->Source + Total > Indexer->Limit) return ml_error("RangeError", "Too many indices");
@@ -1271,7 +1271,7 @@ ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **Indices) 
 		++Indexer->Source;
 	}
 	int Degree = Indexer->Target - TargetDimensions;
-	if (ml_is_subtype(Source->Base.Type, MLArrayT)) {
+	if (ml_is_subtype(Source->Base.Type, MLArrayMutableT)) {
 		ml_array_ref_t *Ref = ml_array_ref_alloc(Source->Format, Degree);
 		for (int I = 0; I < Degree; ++I) Ref->Array->Dimensions[I] = TargetDimensions[I];
 		Ref->Array->Base.Value = Indexer->Address;
@@ -1284,7 +1284,7 @@ ml_value_t *ml_array_index(ml_array_t *Source, int Count, ml_value_t **Indices) 
 	}
 }
 
-ML_METHODV("[]", MLArrayConstT) {
+ML_METHODV("[]", MLArrayT) {
 //<Array
 //<Index/1
 //>array
@@ -1328,7 +1328,7 @@ ML_METHODV("[]", MLArrayConstT) {
 	return ml_array_index(Source, Count - 1, Args + 1);
 }
 
-ML_METHOD("[]", MLArrayConstT, MLMapT) {
+ML_METHOD("[]", MLArrayT, MLMapT) {
 //<Array
 //<Indices
 //>array
@@ -1443,7 +1443,7 @@ static void ML_TYPED_FN(ml_iter_key, MLArrayIteratorT, ml_state_t *Caller, ml_ar
 	ML_RETURN(Tuple);
 }
 
-static void ML_TYPED_FN(ml_iterate, MLArrayConstT, ml_state_t *Caller, ml_array_t *Array) {
+static void ML_TYPED_FN(ml_iterate, MLArrayT, ml_state_t *Caller, ml_array_t *Array) {
 	ml_array_iterator_t *Iterator = xnew(ml_array_iterator_t, Array->Degree, ml_array_iter_dim_t);
 	Iterator->Type = MLArrayIteratorT;
 	Iterator->Address = Array->Base.Value;
@@ -1609,7 +1609,7 @@ static ml_value_t *ml_array_cat(int Axis, int Count, ml_value_t **Args) {
 	int Total = A->Dimensions[Axis].Size;
 	ml_array_format_t Format = A->Format;
 	for (int I = 1; I < Count; ++I) {
-		ML_CHECK_ARG_TYPE(I, MLArrayConstT);
+		ML_CHECK_ARG_TYPE(I, MLArrayT);
 		ml_array_t *B = (ml_array_t *)Args[I];
 		if (B->Degree != Degree) return ml_error("ShapeError", "Incompatible array shapes");
 		for (int J = 0; J < Degree; ++J) {
@@ -1665,7 +1665,7 @@ ML_FUNCTION(MLArrayCat) {
 	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	int Axis = ml_integer_value(Args[0]) - 1;
 	if (Axis < 0) return ml_error("RangeError", "Invalid axis");
-	ML_CHECK_ARG_TYPE(1, MLArrayConstT);
+	ML_CHECK_ARG_TYPE(1, MLArrayT);
 	return ml_array_cat(Axis, Count - 1, Args + 1);
 }
 
@@ -1678,7 +1678,7 @@ ML_FUNCTION(MLArrayHCat) {
 //$= let B := $[[7, 8, 9], [10, 11, 12]]
 //$= array::hcat(A, B)
 	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLArrayConstT);
+	ML_CHECK_ARG_TYPE(0, MLArrayT);
 	ml_array_t *A = (ml_array_t *)Args[0];
 	return ml_array_cat(A->Degree - 1, Count, Args);
 }
@@ -1692,7 +1692,7 @@ ML_FUNCTION(MLArrayVCat) {
 //$= let B := $[[7, 8, 9], [10, 11, 12]]
 //$= array::vcat(A, B)
 	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLArrayConstT);
+	ML_CHECK_ARG_TYPE(0, MLArrayT);
 	return ml_array_cat(0, Count, Args);
 }
 
@@ -1829,7 +1829,7 @@ static ml_value_t *compare_array_fn(void *Data, int Count, ml_value_t **Args) {
 
 #define COMPARE_METHOD(OP) \
 /*
-ML_METHOD(#OP, MLArrayConstT, MLArrayConstT) {
+ML_METHOD(#OP, MLArrayT, MLArrayT) {
 //<A
 //<B
 //>array
@@ -1856,7 +1856,7 @@ COMPARE_METHOD(>=)
 
 extern int ml_array_compare(ml_array_t *A, ml_array_t *B);
 
-ML_METHOD("<>", MLArrayConstT, MLArrayConstT) {
+ML_METHOD("<>", MLArrayT, MLArrayT) {
 //<A
 //<B
 //>integer
@@ -1952,7 +1952,7 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 	ml_stringbuffer_write(Buffer, ">", 1); \
 } \
 \
- ML_METHOD("append", MLStringBufferT, MLArrayConst ## SUFFIX) { \
+ ML_METHOD("append", MLStringBufferT, MLArray ## SUFFIX) { \
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0]; \
 	ml_array_t *Array = (ml_array_t *)Args[1]; \
 	if (Array->Degree == 0) { \
@@ -1963,7 +1963,7 @@ static void append_array_ ## CTYPE(ml_stringbuffer_t *Buffer, int Degree, ml_arr
 	return MLSome; \
 } \
 \
-UPDATE_METHODS(MLArray ## SUFFIX, CTYPE, FROM_VAL, FORMAT); \
+UPDATE_METHODS(MLArrayMutable ## SUFFIX, CTYPE, FROM_VAL, FORMAT); \
 static CTYPE ml_array_get0_ ## CTYPE(void *Address, int Format) { \
 	switch (Format) { \
 	case ML_ARRAY_FORMAT_NONE: break; \
@@ -2084,7 +2084,7 @@ static void ml_array_ ## CTYPE ## _assign(ml_state_t *Caller, ml_array_t *Target
 			update_prefix(Update, Target->Degree - 1, Target->Dimensions, Target->Base.Value, 0, ValueDimension, (char *)&CValue); \
 		} \
 		ML_RETURN(Value); \
-	} else if (ml_is(Value, MLArrayConstT)) { \
+	} else if (ml_is(Value, MLArrayT)) { \
 		ml_array_t *Source = (ml_array_t *)Value; \
 		if (Source->Degree > Target->Degree) ML_ERROR("ArrayError", "Incompatible assignment (%d)", __LINE__); \
 		int PrefixDegree = Target->Degree - Source->Degree; \
@@ -2111,17 +2111,17 @@ ML_CFUNCTIONX(MLArray ## SUFFIX ## New, (void *)FORMAT, ml_array_typed_new_fnx);
 //>array::PREFIX
 //  Returns a new array of PREFIX values with the specified dimensions.
 */\
-ML_TYPE(MLArrayConst ## SUFFIX, (MLArrayConst ## PARENT), "array::const::" #PREFIX); \
-/*@array::const::PREFIX
+ML_TYPE(MLArray ## SUFFIX, (MLArray ## PARENT), "array::" #PREFIX); \
+/*@array::PREFIX
 */ \
 \
-ML_TYPE(MLArray ## SUFFIX, (MLArrayConst ## SUFFIX, MLArray ## PARENT), "array::" #PREFIX, \
-/*@array::PREFIX
+ML_TYPE(MLArrayMutable ## SUFFIX, (MLArray ## SUFFIX, MLArrayMutable ## PARENT), "array::mutable::" #PREFIX, \
+/*@array::mutable::PREFIX
 // An array of PREFIX values.
 //
-// :mini:`(A: array::PREFIX) := (B: number)`
+// :mini:`(A: array::mutable::PREFIX) := (B: number)`
 //    Sets the values in :mini:`A` to :mini:`B`.
-// :mini:`(A: array::PREFIX) := (B: array | list)`
+// :mini:`(A: array::mutable::PREFIX) := (B: array | list)`
 //    Sets the values in :mini:`A` to those in :mini:`B`, broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
 */\
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
@@ -2129,24 +2129,24 @@ ML_TYPE(MLArray ## SUFFIX, (MLArrayConst ## SUFFIX, MLArray ## PARENT), "array::
 	.Constructor = (ml_value_t *)MLArray ## SUFFIX ## New \
 ); \
 \
-ML_TYPE(MLVectorConst ## SUFFIX, (MLVectorConst ## PARENT, MLArrayConst ## SUFFIX), "vector::const::" #PREFIX); \
-/*@vector::const::PREFIX
+ML_TYPE(MLVector ## SUFFIX, (MLVector ## PARENT, MLArray ## SUFFIX), "vector::" #PREFIX); \
+/*@vector::PREFIX
 */ \
 \
-ML_TYPE(MLVector ## SUFFIX, (MLVectorConst ## SUFFIX, MLVector ## PARENT, MLArray ## SUFFIX), "vector::" #PREFIX, \
-/*@vector::PREFIX
+ML_TYPE(MLVectorMutable ## SUFFIX, (MLVector ## SUFFIX, MLVectorMutable ## PARENT, MLArrayMutable ## SUFFIX), "vector::mutable::" #PREFIX, \
+/*@vector::mutable::PREFIX
 // A vector of PREFIX values.
 */\
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
 	.deref = (void *)ml_array_ ## CTYPE ## _deref, \
 	.Constructor = (ml_value_t *)MLArray ## SUFFIX ## New \
 ); \
-ML_TYPE(MLMatrixConst ## SUFFIX, (MLMatrixConst ## PARENT, MLArrayConst ## SUFFIX), "matrix::const::" #PREFIX); \
-/*@matrix::const::PREFIX
+ML_TYPE(MLMatrix ## SUFFIX, (MLMatrix ## PARENT, MLArray ## SUFFIX), "matrix::" #PREFIX); \
+/*@matrix::PREFIX
 */ \
 \
-ML_TYPE(MLMatrix ## SUFFIX, (MLMatrixConst ## SUFFIX, MLMatrix ## PARENT, MLArray ## SUFFIX), "matrix::" #PREFIX, \
-/*@matrix::PREFIX
+ML_TYPE(MLMatrixMutable ## SUFFIX, (MLMatrix ## SUFFIX, MLMatrixMutable ## PARENT, MLArrayMutable ## SUFFIX), "matrix::mutable::" #PREFIX, \
+/*@matrix::mutable::PREFIX
 // A matrix of PREFIX values.
 */\
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
@@ -2154,7 +2154,7 @@ ML_TYPE(MLMatrix ## SUFFIX, (MLMatrixConst ## SUFFIX, MLMatrix ## PARENT, MLArra
 	.Constructor = (ml_value_t *)MLArray ## SUFFIX ## New \
 ); \
 \
-static ml_value_t *ML_TYPED_FN(ml_array_value, MLArrayConst ## SUFFIX, ml_array_t *Array, char *Address) { \
+static ml_value_t *ML_TYPED_FN(ml_array_value, MLArray ## SUFFIX, ml_array_t *Array, char *Address) { \
 	return TO_VAL(*(CTYPE *)Array->Base.Value); \
 }
 
@@ -2896,7 +2896,7 @@ static int array_copy(ml_array_t *Target, ml_array_t *Source) {
 	return DataSize;
 }
 
-ML_METHOD("reshape", MLArrayConstT, MLListT) {
+ML_METHOD("reshape", MLArrayT, MLListT) {
 //<Array
 //<Sizes
 //>array
@@ -2932,7 +2932,7 @@ ML_METHOD("reshape", MLArrayConstT, MLListT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("sums", MLArrayConstT, MLIntegerT) {
+ML_METHOD("sums", MLArrayT, MLIntegerT) {
 //<Array
 //<Index
 //>array
@@ -2983,7 +2983,7 @@ ML_METHOD("sums", MLArrayConstT, MLIntegerT) {
 	}
 }
 
-ML_METHOD("prods", MLArrayConstT, MLIntegerT) {
+ML_METHOD("prods", MLArrayT, MLIntegerT) {
 //<Array
 //<Index
 //>array
@@ -3033,7 +3033,7 @@ ML_METHOD("prods", MLArrayConstT, MLIntegerT) {
 	}
 }
 
-ML_METHOD("sum", MLArrayConstT) {
+ML_METHOD("sum", MLArrayT) {
 //<Array
 //>number
 // Returns the sum of the values in :mini:`Array`.
@@ -3072,7 +3072,7 @@ ML_METHOD("sum", MLArrayConstT) {
 	}
 }
 
-ML_METHOD("sum", MLArrayConstT, MLIntegerT) {
+ML_METHOD("sum", MLArrayT, MLIntegerT) {
 //<Array
 //<Index
 //>array
@@ -3150,7 +3150,7 @@ ML_METHOD("sum", MLArrayConstT, MLIntegerT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("prod", MLArrayConstT) {
+ML_METHOD("prod", MLArrayT) {
 //<Array
 //>number
 // Returns the product of the values in :mini:`Array`.
@@ -3189,7 +3189,7 @@ ML_METHOD("prod", MLArrayConstT) {
 	}
 }
 
-ML_METHOD("prod", MLArrayConstT, MLIntegerT) {
+ML_METHOD("prod", MLArrayT, MLIntegerT) {
 //<Array
 //<Count
 //>array
@@ -3267,7 +3267,7 @@ ML_METHOD("prod", MLArrayConstT, MLIntegerT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("minval", MLArrayConstT) {
+ML_METHOD("minval", MLArrayT) {
 //<Array
 //>number
 // Returns the minimum of the values in :mini:`Array`.
@@ -3300,7 +3300,7 @@ ML_METHOD("minval", MLArrayConstT) {
 	}
 }
 
-ML_METHOD("minval", MLArrayConstT, MLIntegerT) {
+ML_METHOD("minval", MLArrayT, MLIntegerT) {
 //<Array
 //<Count
 //>array
@@ -3358,7 +3358,7 @@ ML_METHOD("minval", MLArrayConstT, MLIntegerT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("minidx", MLArrayConstT) {
+ML_METHOD("minidx", MLArrayT) {
 //<Array
 //>array
 // Returns a new array with the indices of minimums of :mini:`Array` in the last :mini:`Count` dimensions.
@@ -3407,7 +3407,7 @@ ML_METHOD("minidx", MLArrayConstT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("minidx", MLArrayConstT, MLIntegerT) {
+ML_METHOD("minidx", MLArrayT, MLIntegerT) {
 //<Array
 //<Count
 //>array
@@ -3468,7 +3468,7 @@ ML_METHOD("minidx", MLArrayConstT, MLIntegerT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("maxval", MLArrayConstT) {
+ML_METHOD("maxval", MLArrayT) {
 //<Array
 //>number
 // Returns the maximum of the values in :mini:`Array`.
@@ -3501,7 +3501,7 @@ ML_METHOD("maxval", MLArrayConstT) {
 	}
 }
 
-ML_METHOD("maxval", MLArrayConstT, MLIntegerT) {
+ML_METHOD("maxval", MLArrayT, MLIntegerT) {
 //<Array
 //<Count
 //>array
@@ -3559,7 +3559,7 @@ ML_METHOD("maxval", MLArrayConstT, MLIntegerT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("maxidx", MLArrayConstT) {
+ML_METHOD("maxidx", MLArrayT) {
 //<Array
 //>array
 // Returns a new array with the indices of maximums of :mini:`Array` in the last :mini:`Count` dimensions.
@@ -3608,7 +3608,7 @@ ML_METHOD("maxidx", MLArrayConstT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("maxidx", MLArrayConstT, MLIntegerT) {
+ML_METHOD("maxidx", MLArrayT, MLIntegerT) {
 //<Array
 //<Count
 //>array
@@ -3669,7 +3669,7 @@ ML_METHOD("maxidx", MLArrayConstT, MLIntegerT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("||", MLArrayConstT) {
+ML_METHOD("||", MLArrayT) {
 //<Array
 //>number
 // Returns the norm of the values in :mini:`Array`.
@@ -3720,7 +3720,7 @@ ML_METHOD("||", MLArrayConstT) {
 	return ml_real(pow(Norm, 1 / P));
 }
 
-ML_METHOD("||", MLArrayConstT, MLRealT) {
+ML_METHOD("||", MLArrayT, MLRealT) {
 //<Array
 //>number
 // Returns the norm of the values in :mini:`Array`.
@@ -3772,7 +3772,7 @@ ML_METHOD("||", MLArrayConstT, MLRealT) {
 	return ml_real(pow(Norm, 1 / P));
 }
 
-ML_METHOD("-", MLArrayConstT) {
+ML_METHOD("-", MLArrayT) {
 //<Array
 //>array
 // Returns an array with the negated values from :mini:`Array`.
@@ -3938,7 +3938,7 @@ static ml_value_t *array_infix_fn(void *Data, int Count, ml_value_t **Args) {
 
 #define INFIX_METHOD(OP) \
 /*
-ML_METHOD(#OP, MLArrayConstT, MLArrayConstT) {
+ML_METHOD(#OP, MLArrayT, MLArrayT) {
 //<A
 //<B
 //>array
@@ -4006,7 +4006,7 @@ INFIX_METHOD(max)
 
 #define ML_ARITH_METHOD_BASE(NAME, MIN_FORMAT) \
 \
-ML_METHOD(#NAME, MLArrayConstT, MLIntegerT) { \
+ML_METHOD(#NAME, MLArrayT, MLIntegerT) { \
 /*<A
 //<B
 //>array
@@ -4050,7 +4050,7 @@ ML_METHOD(#NAME, MLArrayConstT, MLIntegerT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#NAME, MLIntegerT, MLArrayConstT) { \
+ML_METHOD(#NAME, MLIntegerT, MLArrayT) { \
 /*<A
 //<B
 //>array
@@ -4094,7 +4094,7 @@ ML_METHOD(#NAME, MLIntegerT, MLArrayConstT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#NAME, MLArrayConstT, MLRealT) { \
+ML_METHOD(#NAME, MLArrayT, MLRealT) { \
 /*<A
 //<B
 //>array
@@ -4123,7 +4123,7 @@ ML_METHOD(#NAME, MLArrayConstT, MLRealT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#NAME, MLRealT, MLArrayConstT) { \
+ML_METHOD(#NAME, MLRealT, MLArrayT) { \
 /*<A
 //<B
 //>array
@@ -4157,7 +4157,7 @@ ML_METHOD(#NAME, MLRealT, MLArrayConstT) { \
 #define ML_ARITH_METHOD(NAME, MIN_FORMAT) \
 ML_ARITH_METHOD_BASE(NAME, MIN_FORMAT) \
 \
-ML_METHOD(#NAME, MLArrayConstT, MLComplexT) { \
+ML_METHOD(#NAME, MLArrayT, MLComplexT) { \
 /*<A
 //<B
 //>array
@@ -4177,7 +4177,7 @@ ML_METHOD(#NAME, MLArrayConstT, MLComplexT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#NAME, MLComplexT, MLArrayConstT) { \
+ML_METHOD(#NAME, MLComplexT, MLArrayT) { \
 /*<A
 //<B
 //>array
@@ -4211,7 +4211,7 @@ ML_ARITH_METHOD(/, ML_ARRAY_FORMAT_F64);
 
 #define ML_ARITH_METHOD_BITWISE(NAME, SYMBOL, OP) \
 \
-ML_METHOD(#NAME, MLArrayConstT, MLIntegerT) { \
+ML_METHOD(#NAME, MLArrayT, MLIntegerT) { \
 /*<A
 //<B
 //>array
@@ -4231,7 +4231,7 @@ ML_METHOD(#NAME, MLArrayConstT, MLIntegerT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#NAME, MLIntegerT, MLArrayConstT) { \
+ML_METHOD(#NAME, MLIntegerT, MLArrayT) { \
 /*<A
 //<B
 //>array
@@ -4257,7 +4257,7 @@ ML_ARITH_METHOD_BITWISE(><, ^, xor)
 
 #define ML_ARITH_METHOD_MINMAX(NAME, FN) \
 \
-ML_METHOD(#NAME, MLArrayConstT, MLIntegerT) { \
+ML_METHOD(#NAME, MLArrayT, MLIntegerT) { \
 /*<A
 //<B
 //>array
@@ -4277,7 +4277,7 @@ ML_METHOD(#NAME, MLArrayConstT, MLIntegerT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#NAME, MLIntegerT, MLArrayConstT) { \
+ML_METHOD(#NAME, MLIntegerT, MLArrayT) { \
 /*<A
 //<B
 //>array
@@ -4297,7 +4297,7 @@ ML_METHOD(#NAME, MLIntegerT, MLArrayConstT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#NAME, MLArrayConstT, MLRealT) { \
+ML_METHOD(#NAME, MLArrayT, MLRealT) { \
 /*<A
 //<B
 //>array
@@ -4317,7 +4317,7 @@ ML_METHOD(#NAME, MLArrayConstT, MLRealT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#NAME, MLRealT, MLArrayConstT) { \
+ML_METHOD(#NAME, MLRealT, MLArrayT) { \
 /*<A
 //<B
 //>array
@@ -4342,7 +4342,7 @@ ML_ARITH_METHOD_MINMAX(max, MAX)
 
 #ifdef ML_COMPLEX
 
-ML_METHOD("^", MLArrayComplexT, MLComplexT) {
+ML_METHOD("^", MLArrayMutableComplexT, MLComplexT) {
 	ml_array_t *A = (ml_array_t *)Args[0];
 	if (A->Degree == -1) return (ml_value_t *)A;
 	complex_double B = ml_complex_value(Args[1]);
@@ -4356,7 +4356,7 @@ ML_METHOD("^", MLArrayComplexT, MLComplexT) {
 
 #else
 
-ML_METHOD("^", MLArrayRealT, MLRealT) {
+ML_METHOD("^", MLArrayMutableRealT, MLRealT) {
 	ml_array_t *A = (ml_array_t *)Args[0];
 	if (A->Degree == -1) return (ml_value_t *)A;
 	double B = ml_real_value(Args[1]);
@@ -4372,7 +4372,7 @@ ML_METHOD("^", MLArrayRealT, MLRealT) {
 
 #define ML_COMPARE_METHOD_BASE(TITLE, TITLE2, OP) \
 \
-ML_METHOD(#OP, MLArrayConstT, MLIntegerT) { \
+ML_METHOD(#OP, MLArrayT, MLIntegerT) { \
 /*<A
 //<B
 //>array
@@ -4397,7 +4397,7 @@ ML_METHOD(#OP, MLArrayConstT, MLIntegerT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLIntegerT, MLArrayConstT) { \
+ML_METHOD(#OP, MLIntegerT, MLArrayT) { \
 /*<A
 //<B
 //>array
@@ -4422,7 +4422,7 @@ ML_METHOD(#OP, MLIntegerT, MLArrayConstT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLArrayConstT, MLRealT) { \
+ML_METHOD(#OP, MLArrayT, MLRealT) { \
 /*<A
 //<B
 //>array
@@ -4447,7 +4447,7 @@ ML_METHOD(#OP, MLArrayConstT, MLRealT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLRealT, MLArrayConstT) { \
+ML_METHOD(#OP, MLRealT, MLArrayT) { \
 /*<A
 //<B
 //>array
@@ -4477,7 +4477,7 @@ ML_METHOD(#OP, MLRealT, MLArrayConstT) { \
 #define ML_COMPARE_METHOD(TITLE, TITLE2, OP) \
 ML_COMPARE_METHOD_BASE(TITLE, TITLE2, OP) \
 \
-ML_METHOD(#OP, MLArrayConstT, MLComplexT) { \
+ML_METHOD(#OP, MLArrayT, MLComplexT) { \
 /*<A
 //<B
 //>array
@@ -4502,7 +4502,7 @@ ML_METHOD(#OP, MLArrayConstT, MLComplexT) { \
 	return (ml_value_t *)C; \
 } \
 \
-ML_METHOD(#OP, MLComplexT, MLArrayConstT) { \
+ML_METHOD(#OP, MLComplexT, MLArrayT) { \
 /*<A
 //<B
 //>array
@@ -4562,7 +4562,7 @@ static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLTupleT, ml_value_
 	return Format;
 }
 
-static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLArrayConstT, ml_value_t *Value, ml_array_format_t Format) {
+static ml_array_format_t ML_TYPED_FN(ml_array_of_type_guess, MLArrayT, ml_value_t *Value, ml_array_format_t Format) {
 	ml_array_t *Array = (ml_array_t *)Value;
 	if (Format <= Array->Format) Format = Array->Format;
 	return Format;
@@ -4630,7 +4630,7 @@ static ml_array_t *ML_TYPED_FN(ml_array_of_create, MLTupleT, ml_value_t *Value, 
 	return Array;
 }
 
-static ml_array_t *ML_TYPED_FN(ml_array_of_create, MLArrayConstT, ml_array_t *Value, int Degree, ml_array_format_t Format) {
+static ml_array_t *ML_TYPED_FN(ml_array_of_create, MLArrayT, ml_array_t *Value, int Degree, ml_array_format_t Format) {
 	ml_array_t *Array = ml_array_alloc(Format, Degree + Value->Degree);
 	ml_array_dimension_t *Dimensions = Array->Dimensions + Degree;
 	size_t Stride = MLArraySizes[Format];
@@ -4716,7 +4716,7 @@ static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLTupleT, ml_array_format_t For
 	return NULL;
 }
 
-static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLArrayConstT, ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_value_t *Value) {
+static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLArrayT, ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_value_t *Value) {
 	ml_array_t *Source = (ml_array_t *)Value;
 	if (Source->Degree != Degree) return ml_error("ArrayError", "Incompatible assignment (%d)", __LINE__);
 	for (int I = 0; I < Degree; ++I) {
@@ -4977,37 +4977,9 @@ static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args) {
 	ml_value_t *Source = Args[0];
 	ml_array_format_t Format = ML_ARRAY_FORMAT_NONE;
 	if (Count == 2) {
-		if (Args[0] == (ml_value_t *)MLArrayAnyT) {
-			Format = ML_ARRAY_FORMAT_ANY;
-		} else if (Args[0] == (ml_value_t *)MLArrayUInt8T) {
-			Format = ML_ARRAY_FORMAT_U8;
-		} else if (Args[0] == (ml_value_t *)MLArrayInt8T) {
-			Format = ML_ARRAY_FORMAT_I8;
-		} else if (Args[0] == (ml_value_t *)MLArrayUInt16T) {
-			Format = ML_ARRAY_FORMAT_U16;
-		} else if (Args[0] == (ml_value_t *)MLArrayInt16T) {
-			Format = ML_ARRAY_FORMAT_I16;
-		} else if (Args[0] == (ml_value_t *)MLArrayUInt32T) {
-			Format = ML_ARRAY_FORMAT_U32;
-		} else if (Args[0] == (ml_value_t *)MLArrayInt32T) {
-			Format = ML_ARRAY_FORMAT_I32;
-		} else if (Args[0] == (ml_value_t *)MLArrayUInt64T) {
-			Format = ML_ARRAY_FORMAT_U64;
-		} else if (Args[0] == (ml_value_t *)MLArrayInt64T) {
-			Format = ML_ARRAY_FORMAT_I64;
-		} else if (Args[0] == (ml_value_t *)MLArrayFloat32T) {
-			Format = ML_ARRAY_FORMAT_F32;
-		} else if (Args[0] == (ml_value_t *)MLArrayFloat64T) {
-			Format = ML_ARRAY_FORMAT_F64;
-#ifdef ML_COMPLEX
-		} else if (Args[0] == (ml_value_t *)MLArrayComplex32T) {
-			Format = ML_ARRAY_FORMAT_C32;
-		} else if (Args[0] == (ml_value_t *)MLArrayComplex64T) {
-			Format = ML_ARRAY_FORMAT_C64;
-#endif
-		} else {
-			return ml_error("TypeError", "Unknown type for array");
-		}
+		ML_CHECK_ARG_TYPE(0, MLTypeT);
+		Format = ml_array_format((ml_type_t *)Args[0]);
+		if (Format == ML_ARRAY_FORMAT_NONE) return ml_error("TypeError", "Unknown type for array");
 		Source = Args[1];
 	} else {
 		Format = ml_array_of_type_guess(Args[0], ML_ARRAY_FORMAT_NONE);
@@ -5022,7 +4994,7 @@ static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args) {
 	return Error ?: (ml_value_t *)Array;
 }
 
-ML_METHOD("copy", MLArrayConstT) {
+ML_METHOD("copy", MLArrayT) {
 //<Array
 //>array
 // Return a new array with the same values of :mini:`Array` but not sharing the underlying data.
@@ -5033,7 +5005,7 @@ ML_METHOD("copy", MLArrayConstT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("copy", MLCopyT, MLArrayConstT) {
+ML_METHOD("copy", MLCopyT, MLArrayT) {
 	ml_copy_t *Copy = (ml_copy_t *)Args[0];
 	ml_array_t *Source = (ml_array_t *)Args[1];
 	if (Source->Degree == -1) return (ml_value_t *)Source;
@@ -5048,15 +5020,15 @@ ML_METHOD("copy", MLCopyT, MLArrayConstT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("const", MLCopyT, MLArrayConstT) {
+ML_METHOD("const", MLCopyT, MLArrayT) {
 	ml_copy_t *Copy = (ml_copy_t *)Args[0];
 	ml_array_t *Source = (ml_array_t *)Args[1];
 	if (Source->Degree == -1) return (ml_value_t *)Source;
 	ml_array_t *Target = ml_array_alloc(Source->Format, Source->Degree);
 	switch (Target->Degree) {
-	case 1: Target->Base.Type = MLVectorConstTypes[Target->Format]; break;
-	case 2: Target->Base.Type = MLMatrixConstTypes[Target->Format]; break;
-	default: Target->Base.Type = MLArrayConstTypes[Target->Format]; break;
+	case 1: Target->Base.Type = MLVectorTypes[Target->Format]; break;
+	case 2: Target->Base.Type = MLMatrixTypes[Target->Format]; break;
+	default: Target->Base.Type = MLArrayTypes[Target->Format]; break;
 	}
 	inthash_insert(Copy->Cache, (uintptr_t)Source, Target);
 	if (Source->Format == ML_ARRAY_FORMAT_ANY) {
@@ -5153,7 +5125,7 @@ ARRAY_APPLY(C64, complex_double, ml_complex, ml_complex_value);
 
 ARRAY_APPLY(Any, any, , );
 
-ML_METHODX("copy", MLArrayConstT, MLFunctionT) {
+ML_METHODX("copy", MLArrayT, MLFunctionT) {
 //<Array
 //<Function
 //>array
@@ -5303,7 +5275,7 @@ ARRAY_UPDATE(complex_double, ml_complex, ml_complex_value);
 
 ARRAY_UPDATE(any, , );
 
-ML_METHODX("update", MLArrayT, MLFunctionT) {
+ML_METHODX("update", MLArrayMutableT, MLFunctionT) {
 //<Array
 //<Function
 //>array
@@ -5470,7 +5442,7 @@ ARRAY_WHERE(complex_double, ml_complex, ml_complex_value);
 
 ARRAY_WHERE(any, , );
 
-ML_METHODX("where", MLArrayConstT, MLFunctionT) {
+ML_METHODX("where", MLArrayT, MLFunctionT) {
 //<Array
 //<Function
 //>list[tuple]
@@ -5658,7 +5630,7 @@ ARRAY_WHERE_NONZERO(complex_double, 0);
 
 ARRAY_WHERE_NONZERO(any, MLNil);
 
-ML_METHOD("where", MLArrayConstT) {
+ML_METHOD("where", MLArrayT) {
 //<Array
 //>list
 // Returns a list of non-zero indices of :mini:`Array`.
@@ -6307,7 +6279,7 @@ static ml_array_dot_fn MLArrayDotFns[] = {
 	[ML_ARRAY_FORMAT_ANY] = (ml_array_dot_fn)ml_array_dot_any
 };
 
-ML_METHOD(".", MLArrayConstT, MLArrayConstT) {
+ML_METHOD(".", MLArrayT, MLArrayT) {
 //<A
 //<B
 //>array
@@ -6572,7 +6544,7 @@ static ml_value_t *ml_array_pairwise_infix(ml_array_infix_set_fn *InfixSetFns, i
 
 #define ML_ARRAY_PAIRWISE(NAME, OP) \
 /*
-ML_METHOD(NAME, MLArrayConstT, MLArrayConstT) {
+ML_METHOD(NAME, MLArrayT, MLArrayT) {
 //<A
 //<B
 //>array
@@ -7021,7 +6993,7 @@ ML_METHOD("tr", MLMatrixT) {
 	}
 }
 
-ML_METHOD("softmax", MLVectorRealT) {
+ML_METHOD("softmax", MLVectorMutableRealT) {
 //<Vector
 //>vector
 // Returns :mini:`softmax(Vector)`.
@@ -7084,7 +7056,7 @@ static void ml_cbor_write_array_any(int Degree, ml_array_dimension_t *Dimension,
 	}
 }
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLArrayConstT, ml_cbor_writer_t *Writer, ml_array_t *Array) {
+static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_cbor_writer_t *Writer, ml_array_t *Array) {
 	static uint64_t Tags[] = {
 		[ML_ARRAY_FORMAT_U8] = 64,
 		[ML_ARRAY_FORMAT_I8] = 72,
@@ -7159,7 +7131,7 @@ static ml_value_t *ml_cbor_read_multi_array_fn(ml_cbor_reader_t *Reader, ml_valu
 	ml_value_t *Dimensions = ml_list_get(Value, 1);
 	if (!ml_is(Dimensions, MLListT)) return ml_error("CborError", "Invalid multi-dimensional array");
 	ml_array_t *Source = (ml_array_t *)ml_list_get(Value, 2);
-	if (!ml_is((ml_value_t *)Source, MLArrayConstT)) return ml_error("CborError", "Invalid multi-dimensional array");
+	if (!ml_is((ml_value_t *)Source, MLArrayT)) return ml_error("CborError", "Invalid multi-dimensional array");
 	ml_array_t *Target = ml_array_alloc(Source->Format, ml_list_length(Dimensions));
 	ml_array_dimension_t *Dimension = Target->Dimensions + Target->Degree;
 	int Stride = MLArraySizes[Source->Format];
@@ -7236,85 +7208,85 @@ ML_FUNCTION(MLCborReadComplex64) {
 
 void ml_array_init(stringmap_t *Globals) {
 #include "ml_array_init.c"
-	ml_method_by_name("set", UpdateSetRowFns, update_array_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("add", UpdateAddRowFns, update_array_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("mul", UpdateMulRowFns, update_array_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("sub", UpdateSubRowFns, update_array_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("div", UpdateDivRowFns, update_array_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("+", UpdateAddRowFns, array_infix_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("*", UpdateMulRowFns, array_infix_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("-", UpdateSubRowFns, array_infix_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("/", UpdateDivRowFns, array_infix_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("/\\", UpdateAndRowFns, array_infix_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("\\/", UpdateOrRowFns, array_infix_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("><", UpdateXorRowFns, array_infix_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("min", UpdateMinRowFns, array_infix_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("max", UpdateMaxRowFns, array_infix_fn, MLArrayT, MLArrayT, NULL);
-	ml_method_by_name("=", CompareEqRowFns, compare_array_fn, MLArrayConstT, MLArrayConstT, NULL);
-	ml_method_by_name("!=", CompareNeRowFns, compare_array_fn, MLArrayConstT, MLArrayConstT, NULL);
-	ml_method_by_name("<", CompareLtRowFns, compare_array_fn, MLArrayConstT, MLArrayConstT, NULL);
-	ml_method_by_name(">", CompareGtRowFns, compare_array_fn, MLArrayConstT, MLArrayConstT, NULL);
-	ml_method_by_name("<=", CompareLeRowFns, compare_array_fn, MLArrayConstT, MLArrayConstT, NULL);
-	ml_method_by_name(">=", CompareGeRowFns, compare_array_fn, MLArrayConstT, MLArrayConstT, NULL);
-	ml_method_by_name("++", MLArrayInfixAddFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayConstT, MLArrayConstT, NULL);
-	ml_method_by_name("**", MLArrayInfixMulFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayConstT, MLArrayConstT, NULL);
-	ml_method_by_name("--", MLArrayInfixSubFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayConstT, MLArrayConstT, NULL);
-	ml_method_by_name("//", MLArrayInfixDivFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayConstT, MLArrayConstT, NULL);
+	ml_method_by_name("set", UpdateSetRowFns, update_array_fn, MLArrayMutableT, MLArrayMutableT, NULL);
+	ml_method_by_name("add", UpdateAddRowFns, update_array_fn, MLArrayMutableT, MLArrayMutableT, NULL);
+	ml_method_by_name("mul", UpdateMulRowFns, update_array_fn, MLArrayMutableT, MLArrayMutableT, NULL);
+	ml_method_by_name("sub", UpdateSubRowFns, update_array_fn, MLArrayMutableT, MLArrayMutableT, NULL);
+	ml_method_by_name("div", UpdateDivRowFns, update_array_fn, MLArrayMutableT, MLArrayMutableT, NULL);
+	ml_method_by_name("+", UpdateAddRowFns, array_infix_fn, MLArrayMutableT, MLArrayMutableT, NULL);
+	ml_method_by_name("*", UpdateMulRowFns, array_infix_fn, MLArrayMutableT, MLArrayMutableT, NULL);
+	ml_method_by_name("-", UpdateSubRowFns, array_infix_fn, MLArrayMutableT, MLArrayMutableT, NULL);
+	ml_method_by_name("/", UpdateDivRowFns, array_infix_fn, MLArrayMutableT, MLArrayMutableT, NULL);
+	ml_method_by_name("/\\", UpdateAndRowFns, array_infix_fn, MLArrayMutableT, MLArrayMutableT, NULL);
+	ml_method_by_name("\\/", UpdateOrRowFns, array_infix_fn, MLArrayMutableT, MLArrayMutableT, NULL);
+	ml_method_by_name("><", UpdateXorRowFns, array_infix_fn, MLArrayMutableT, MLArrayMutableT, NULL);
+	ml_method_by_name("min", UpdateMinRowFns, array_infix_fn, MLArrayMutableT, MLArrayMutableT, NULL);
+	ml_method_by_name("max", UpdateMaxRowFns, array_infix_fn, MLArrayMutableT, MLArrayMutableT, NULL);
+	ml_method_by_name("=", CompareEqRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("!=", CompareNeRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("<", CompareLtRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name(">", CompareGtRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("<=", CompareLeRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name(">=", CompareGeRowFns, compare_array_fn, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("++", MLArrayInfixAddFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("**", MLArrayInfixMulFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("--", MLArrayInfixSubFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
+	ml_method_by_name("//", MLArrayInfixDivFns, (ml_callback_t)ml_array_pairwise_infix, MLArrayT, MLArrayT, NULL);
 
-	ml_method_by_value(AbsMethod, labs, (ml_callback_t)array_math_integer_fn, MLArrayIntegerT, NULL);
-	ml_method_by_value(SquareMethod, isquare, (ml_callback_t)array_math_integer_fn, MLArrayIntegerT, NULL);
+	ml_method_by_value(AbsMethod, labs, (ml_callback_t)array_math_integer_fn, MLArrayMutableIntegerT, NULL);
+	ml_method_by_value(SquareMethod, isquare, (ml_callback_t)array_math_integer_fn, MLArrayMutableIntegerT, NULL);
 
-	ml_method_by_value(AcosMethod, acos, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(AsinMethod, asin, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(AtanMethod, atan, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(CeilMethod, ceil, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(CosMethod, cos, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(CoshMethod, cosh, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(ExpMethod, exp, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(AbsMethod, fabs, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(FloorMethod, floor, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(LogMethod, log, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(Log10Method, log10, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(LogitMethod, logit, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(SinMethod, sin, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(SinhMethod, sinh, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(SqrtMethod, sqrt, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(SquareMethod, square, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(TanMethod, tan, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(TanhMethod, tanh, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(ErfMethod, erf, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(ErfcMethod, erfc, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(GammaMethod, gamma, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(AcoshMethod, acosh, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(AsinhMethod, asinh, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(AtanhMethod, atanh, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(CbrtMethod, cbrt, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(Expm1Method, expm1, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(Log1pMethod, log1p, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
-	ml_method_by_value(RoundMethod, round, (ml_callback_t)array_math_real_fn, MLArrayRealT, NULL);
+	ml_method_by_value(AcosMethod, acos, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(AsinMethod, asin, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(AtanMethod, atan, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(CeilMethod, ceil, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(CosMethod, cos, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(CoshMethod, cosh, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(ExpMethod, exp, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(AbsMethod, fabs, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(FloorMethod, floor, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(LogMethod, log, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(Log10Method, log10, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(LogitMethod, logit, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(SinMethod, sin, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(SinhMethod, sinh, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(SqrtMethod, sqrt, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(SquareMethod, square, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(TanMethod, tan, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(TanhMethod, tanh, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(ErfMethod, erf, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(ErfcMethod, erfc, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(GammaMethod, gamma, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(AcoshMethod, acosh, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(AsinhMethod, asinh, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(AtanhMethod, atanh, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(CbrtMethod, cbrt, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(Expm1Method, expm1, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(Log1pMethod, log1p, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
+	ml_method_by_value(RoundMethod, round, (ml_callback_t)array_math_real_fn, MLArrayMutableRealT, NULL);
 
 #ifdef ML_COMPLEX
-	ml_method_by_value(AcosMethod, cacos, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
-	ml_method_by_value(AsinMethod, casin, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
-	ml_method_by_value(AtanMethod, catan, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
-	ml_method_by_value(CosMethod, ccos, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
-	ml_method_by_value(CoshMethod, ccosh, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
-	ml_method_by_value(ExpMethod, cexp, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
-	ml_method_by_value(AbsMethod, cabs, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
-	ml_method_by_value(LogMethod, clog, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
-	ml_method_by_value(Log10Method, clog10, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
-	ml_method_by_value(SinMethod, csin, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
-	ml_method_by_value(SinhMethod, csinh, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
-	ml_method_by_value(SqrtMethod, csqrt, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
-	ml_method_by_value(SquareMethod, csquare, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
-	ml_method_by_value(TanMethod, ctan, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
-	ml_method_by_value(TanhMethod, ctanh, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
-	ml_method_by_value(AcoshMethod, cacosh, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
-	ml_method_by_value(AsinhMethod, casinh, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
-	ml_method_by_value(AtanhMethod, catanh, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
-	ml_method_by_value(ConjMethod, conj, (ml_callback_t)array_math_complex_fn, MLArrayComplexT, NULL);
-	ml_method_by_value(AbsMethod, cabs, (ml_callback_t)array_math_complex_real_fn, MLArrayComplexT, NULL);
-	ml_method_by_value(ArgMethod, carg, (ml_callback_t)array_math_complex_real_fn, MLArrayComplexT, NULL);
+	ml_method_by_value(AcosMethod, cacos, (ml_callback_t)array_math_complex_fn, MLArrayMutableComplexT, NULL);
+	ml_method_by_value(AsinMethod, casin, (ml_callback_t)array_math_complex_fn, MLArrayMutableComplexT, NULL);
+	ml_method_by_value(AtanMethod, catan, (ml_callback_t)array_math_complex_fn, MLArrayMutableComplexT, NULL);
+	ml_method_by_value(CosMethod, ccos, (ml_callback_t)array_math_complex_fn, MLArrayMutableComplexT, NULL);
+	ml_method_by_value(CoshMethod, ccosh, (ml_callback_t)array_math_complex_fn, MLArrayMutableComplexT, NULL);
+	ml_method_by_value(ExpMethod, cexp, (ml_callback_t)array_math_complex_fn, MLArrayMutableComplexT, NULL);
+	ml_method_by_value(AbsMethod, cabs, (ml_callback_t)array_math_complex_fn, MLArrayMutableComplexT, NULL);
+	ml_method_by_value(LogMethod, clog, (ml_callback_t)array_math_complex_fn, MLArrayMutableComplexT, NULL);
+	ml_method_by_value(Log10Method, clog10, (ml_callback_t)array_math_complex_fn, MLArrayMutableComplexT, NULL);
+	ml_method_by_value(SinMethod, csin, (ml_callback_t)array_math_complex_fn, MLArrayMutableComplexT, NULL);
+	ml_method_by_value(SinhMethod, csinh, (ml_callback_t)array_math_complex_fn, MLArrayMutableComplexT, NULL);
+	ml_method_by_value(SqrtMethod, csqrt, (ml_callback_t)array_math_complex_fn, MLArrayMutableComplexT, NULL);
+	ml_method_by_value(SquareMethod, csquare, (ml_callback_t)array_math_complex_fn, MLArrayMutableComplexT, NULL);
+	ml_method_by_value(TanMethod, ctan, (ml_callback_t)array_math_complex_fn, MLArrayMutableComplexT, NULL);
+	ml_method_by_value(TanhMethod, ctanh, (ml_callback_t)array_math_complex_fn, MLArrayMutableComplexT, NULL);
+	ml_method_by_value(AcoshMethod, cacosh, (ml_callback_t)array_math_complex_fn, MLArrayMutableComplexT, NULL);
+	ml_method_by_value(AsinhMethod, casinh, (ml_callback_t)array_math_complex_fn, MLArrayMutableComplexT, NULL);
+	ml_method_by_value(AtanhMethod, catanh, (ml_callback_t)array_math_complex_fn, MLArrayMutableComplexT, NULL);
+	ml_method_by_value(ConjMethod, conj, (ml_callback_t)array_math_complex_fn, MLArrayMutableComplexT, NULL);
+	ml_method_by_value(AbsMethod, cabs, (ml_callback_t)array_math_complex_real_fn, MLArrayMutableComplexT, NULL);
+	ml_method_by_value(ArgMethod, carg, (ml_callback_t)array_math_complex_real_fn, MLArrayMutableComplexT, NULL);
 #endif
 
 	ml_method_definev(ml_method("$"), MLArrayT->Constructor, 0, MLListT, NULL);

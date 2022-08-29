@@ -538,27 +538,6 @@ ML_METHOD("append", MLStringBufferT, MLSomeT) {
 }
 
 ML_VALUE(MLBlank, MLBlankT);
-
-ML_METHOD_DECL(ConstMethod, "const");
-
-ML_FUNCTIONX(MLConst) {
-//!general
-//@const
-//<Value
-//>any
-// Returns a constant copy of :mini:`Value`.
-	ML_CHECKX_ARG_COUNT(1);
-	ml_copy_t *Copy = new(ml_copy_t);
-	Copy->Type = MLCopyT;
-	Copy->Fn = ConstMethod;
-	return ml_call(Caller, (ml_value_t *)Copy, 1, Args);
-}
-
-ML_TYPE(MLConstT, (), "const",
-//!general
-//@const
-	.Constructor = (ml_value_t *)MLConst
-);
 //!internal
 
 #ifdef ML_GENERICS
@@ -2969,7 +2948,6 @@ void ml_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "assign", MLAssign);
 		stringmap_insert(Globals, "call", MLCall);
 		stringmap_insert(Globals, "copy", MLCopyT);
-		stringmap_insert(Globals, "const", MLConstT);
 		stringmap_insert(Globals, "findall", MLFindAll);
 		stringmap_insert(Globals, "isconstant", MLIsConstant);
 		stringmap_insert(Globals, "exchange", MLExchange);

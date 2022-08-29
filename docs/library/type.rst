@@ -16,12 +16,6 @@ type
    Every type contains a set of named exports,  which allows them to be used as modules.
 
 
-.. _value-MLBlank:
-
-:mini:`def MLBlank: blank`
-   *TBD*
-
-
 .. _fun-type:
 
 :mini:`fun type(Value: any): type`
@@ -34,8 +28,32 @@ type
    This allows types to behave as modules.
 
 
+:mini:`meth (Type₁: type) * (Type₂: type): type`
+   Returns the closest common parent type of :mini:`Type₁` and :mini:`Type₂`.
+
+
+:mini:`meth (Type₁: type) < (Type₂: type): type or nil`
+   Returns :mini:`Type₂` if :mini:`Type₂` is a strict parent of :mini:`Type₁`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (Type₁: type) <= (Type₂: type): type or nil`
+   Returns :mini:`Type₂` if :mini:`Type₂` is a parent of :mini:`Type₁`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (Type₁: type) > (Type₂: type): type or nil`
+   Returns :mini:`Type₂` if :mini:`Type₂` is a strict sub-type of :mini:`Type₁`,  otherwise returns :mini:`nil`.
+
+
+:mini:`meth (Type₁: type) >= (Type₂: type): type or nil`
+   Returns :mini:`Type₂` if :mini:`Type₂` is a sub-type of :mini:`Type₁`,  otherwise returns :mini:`nil`.
+
+
 :mini:`meth ?(Type: type): type`
    Returns a union interface of :mini:`Type` and :mini:`type(nil)`.
+
+
+:mini:`meth (Base: type)[Type₁, : type, ...]: type`
+   Returns the generic type :mini:`Base[Type₁,  ...,  Typeₙ]`.
 
 
 :mini:`meth (Type: type):exports: map`

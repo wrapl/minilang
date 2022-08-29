@@ -53,12 +53,6 @@ general
       X :> 11
 
 
-.. _fun-const:
-
-:mini:`fun const(Value: any): any`
-   Returns a constant copy of :mini:`Value`.
-
-
 .. _fun-copy:
 
 :mini:`fun copy(Value: any, Fn?: function): any`
@@ -110,12 +104,6 @@ general
 
 :mini:`fun replace(Var₁: any, ..., Varₙ: any, Value: any)`
    Assigns :mini:`Varᵢ := Varᵢ₊₁` for each :mini:`1 <= i < n` and :mini:`Varₙ := Value`. Returns the old value of :mini:`Var₁`.
-
-
-.. _type-const:
-
-:mini:`type const`
-   *TBD*
 
 
 .. _type-copy:
