@@ -410,9 +410,8 @@ static volatile atomic_flag MLGenericsLock[1] = {ATOMIC_FLAG_INIT};
 
 #endif
 
-static inthash_t GenericTypeCache[1] = {INTHASH_INIT};
-
 ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
+	static inthash_t GenericTypeCache[1] = {INTHASH_INIT};
 	uintptr_t Hash = (uintptr_t)3541;
 	for (int I = NumArgs; --I >= 0;) Hash = rotl(Hash, 1) ^ (uintptr_t)Args[I];
 	ML_GENERICS_LOCK();
@@ -452,6 +451,7 @@ ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
 	Type->Base.deref = Base->deref;
 	Type->Base.assign = Base->assign;
 	Type->Base.Rank = Base->Rank + 1;
+	Type->Base.Interface = Args[0]->Interface;
 	Type->NumArgs = NumArgs;
 	for (int I = 0; I < NumArgs; ++I) Type->Args[I] = Args[I];
 	Type->NextGeneric = (ml_generic_type_t *)inthash_insert(GenericTypeCache, Hash, Type);
@@ -542,6 +542,27 @@ ML_VALUE(MLBlank, MLBlankT);
 
 #ifdef ML_GENERICS
 
+ML_METHOD_DECL(ConstMethod, "const");
+
+ML_FUNCTIONX(MLConst) {
+//!general
+//@const
+//<Value
+//>any
+// Returns a constant copy of :mini:`Value`.
+	ML_CHECKX_ARG_COUNT(1);
+	ml_copy_t *Copy = new(ml_copy_t);
+	Copy->Type = MLCopyT;
+	Copy->Fn = ConstMethod;
+	return ml_call(Caller, (ml_value_t *)Copy, 1, Args);
+}
+
+ML_TYPE(MLConstT, (), "const",
+//!general
+//@const
+	.Constructor = (ml_value_t *)MLConst
+);
+
 int ml_find_generic_parent0(int TNumArgs, ml_type_t **TArgs, ml_type_t *U, int Max, ml_type_t **Args) {
 	if (TArgs[0] == U) {
 		if (Max > TNumArgs) Max = TNumArgs;
@@ -580,6 +601,17 @@ int ml_find_generic_parent(ml_type_t *T, ml_type_t *U, int Max, ml_type_t **Args
 	}
 }
 
+static int ml_is_generic_subtype1(int TNumArgs, ml_type_t **TArgs, ml_type_t *U) {
+	if (TArgs[0] == U) return 1;
+	for (ml_generic_rule_t *Rule = TArgs[0]->Rules; Rule; Rule = Rule->Next) {
+		int TNumArgs2 = Rule->NumArgs;
+		ml_type_t *TArgs2[TNumArgs2];
+		ml_generic_fill(Rule, TArgs2, TNumArgs, TArgs);
+		if (ml_is_generic_subtype1(TNumArgs2, TArgs2, U)) return 1;
+	}
+	return 0;
+}
+
 static int ml_is_generic_subtype(int TNumArgs, ml_type_t **TArgs, int UNumArgs, ml_type_t **UArgs) {
 	if (TArgs[0] == UArgs[0]) {
 		if (UNumArgs == 1) return 1;
@@ -591,10 +623,6 @@ static int ml_is_generic_subtype(int TNumArgs, ml_type_t **TArgs, int UNumArgs, 
 		}
 	}
 different:
-	/*if (TArgs[0] == MLTupleT && TNumArgs > 1) {
-
-		if (ml_is_generic_subtype(TNumArgs - 1, TArgs, UNumArgs, UArgs)) return 1;
-	}*/
 	for (ml_generic_rule_t *Rule = TArgs[0]->Rules; Rule; Rule = Rule->Next) {
 		int TNumArgs2 = Rule->NumArgs;
 		ml_type_t *TArgs2[TNumArgs2];
@@ -616,24 +644,32 @@ int ml_is_subtype(ml_type_t *T, ml_type_t *U) {
 		}
 		return 0;
 	}
+	if (inthash_search(T->Parents, (uintptr_t)U)) return 1;
 #ifdef ML_GENERICS
 	if (T->Type == MLTypeGenericT) {
 		ml_generic_type_t *GenericT = (ml_generic_type_t *)T;
-		if (U->Type == MLTypeGenericT) {
+		if (GenericT->Args[0] == U) {
+			return 1;
+		} else if (GenericT->Args[0] == MLConstT) {
+			// Using generic constants
+			if (GenericT->NumArgs == 2 && U->Interface) return ml_is_subtype(GenericT->Args[1], U);
+		} else if (U->Type == MLTypeGenericT) {
 			ml_generic_type_t *GenericU = (ml_generic_type_t *)U;
 			return ml_is_generic_subtype(GenericT->NumArgs, GenericT->Args, GenericU->NumArgs, GenericU->Args);
-		} else {
-			if (GenericT->Args[0] == U) return 1;
-			return ml_is_generic_subtype(GenericT->NumArgs, GenericT->Args, 1, &U);
 		}
+		return ml_is_generic_subtype1(GenericT->NumArgs, GenericT->Args, U);
 	} else if (U->Type == MLTypeGenericT) {
 		ml_generic_type_t *GenericU = (ml_generic_type_t *)U;
-		if (ml_is_generic_subtype(1, &T, GenericU->NumArgs, GenericU->Args)) return 1;
+		if (GenericU->Args[0] == MLConstT) {
+			// Using generic constants
+			if (GenericU->NumArgs == 2) return ml_is_subtype(T, GenericU->Args[1]);
+		}
+		return ml_is_generic_subtype(1, &T, GenericU->NumArgs, GenericU->Args);
 	} else {
-		if (ml_is_generic_subtype(1, &T, 1, &U)) return 1;
+		return ml_is_generic_subtype1(1, &T, U);
 	}
 #endif
-	return (uintptr_t)inthash_search(T->Parents, (uintptr_t)U);
+	return 0;
 }
 
 #ifdef ML_GENERICS
@@ -2940,6 +2976,9 @@ void ml_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "assign", MLAssign);
 		stringmap_insert(Globals, "call", MLCall);
 		stringmap_insert(Globals, "copy", MLCopyT);
+#ifdef ML_GENERICS
+		stringmap_insert(Globals, "const", MLConstT);
+#endif
 		stringmap_insert(Globals, "findall", MLFindAll);
 		stringmap_insert(Globals, "isconstant", MLIsConstant);
 		stringmap_insert(Globals, "exchange", MLExchange);
