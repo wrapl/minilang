@@ -19,6 +19,10 @@ set
       "D" in S :> nil
 
 
+:mini:`meth (Copy: copy):const(Set: set): set`
+   Returns a new set contains copies of the elements of :mini:`Set` created using :mini:`Copy`.
+
+
 :mini:`meth (Copy: copy):copy(Set: set): set`
    Returns a new set contains copies of the elements of :mini:`Set` created using :mini:`Copy`.
 
@@ -31,20 +35,20 @@ set
    By default,  iterating over a set generates the values in the order they were inserted,  however this ordering can be changed.
 
 
-:mini:`meth set(Sequence: sequence, ...): set`
-   Returns a set of all the values produced by :mini:`Sequence`.
-
-   .. code-block:: mini
-
-      set("cake") :> {c, a, k, e}
-
-
 :mini:`meth set(): set`
    Returns a new set.
 
    .. code-block:: mini
 
       set() :> {}
+
+
+:mini:`meth set(Sequence: sequence, ...): set`
+   Returns a set of all the values produced by :mini:`Sequence`.
+
+   .. code-block:: mini
+
+      set("cake") :> {c, a, k, e}
 
 
 :mini:`meth (Set₁: set) * (Set₂: set): set`
@@ -136,26 +140,6 @@ set
       set(["A", "B", "C"]):count :> 3
 
 
-:mini:`meth (Set: set):delete(Key: any): some | nil`
-   Removes :mini:`Key` from :mini:`Set` and returns the corresponding value if any,  otherwise :mini:`nil`.
-
-   .. code-block:: mini
-
-      let M := set(["A", "B", "C"])
-      M:delete("A") :> some
-      M:delete("D") :> nil
-      M :> {B, C}
-
-
-:mini:`meth (Set: set):empty: set`
-   Deletes all values from :mini:`Set` and returns it.
-
-   .. code-block:: mini
-
-      let M := set(["A", "B", "C"]) :> {A, B, C}
-      M:empty :> {}
-
-
 :mini:`meth (Set: set):from(Key: any): sequence | nil`
    Returns the subset of :mini:`Set` after :mini:`Key` as a sequence.
 
@@ -166,7 +150,63 @@ set
       set(M:from("F")) :> {}
 
 
-:mini:`meth (Set: set):grow(Sequence: sequence, ...): set`
+:mini:`meth (Set: set):order: set::order`
+   Returns the current ordering of :mini:`Set`.
+
+
+:mini:`meth (List: set):random: any`
+   Returns a random (assignable) node from :mini:`Set`.
+
+   .. code-block:: mini
+
+      let M := set("cake") :> {c, a, k, e}
+      M:random :> "e"
+      M:random :> "k"
+
+
+:mini:`meth (Set: set):size: integer`
+   Returns the number of values in :mini:`Set`.
+
+   .. code-block:: mini
+
+      set(["A", "B", "C"]):size :> 3
+
+
+:mini:`meth (Buffer: string::buffer):append(Set: set)`
+   Appends a representation of :mini:`Set` to :mini:`Buffer`.
+
+
+:mini:`meth (Buffer: string::buffer):append(Set: set, Sep: string)`
+   Appends the values of :mini:`Set` to :mini:`Buffer` with :mini:`Sep` between values.
+
+
+.. _type-set-mutable:
+
+:mini:`type set::mutable < set`
+   *TBD*
+
+
+:mini:`meth (Set: set::mutable):delete(Key: any): some | nil`
+   Removes :mini:`Key` from :mini:`Set` and returns the corresponding value if any,  otherwise :mini:`nil`.
+
+   .. code-block:: mini
+
+      let M := set(["A", "B", "C"])
+      M:delete("A") :> some
+      M:delete("D") :> nil
+      M :> {B, C}
+
+
+:mini:`meth (Set: set::mutable):empty: set`
+   Deletes all values from :mini:`Set` and returns it.
+
+   .. code-block:: mini
+
+      let M := set(["A", "B", "C"]) :> {A, B, C}
+      M:empty :> {}
+
+
+:mini:`meth (Set: set::mutable):grow(Sequence: sequence, ...): set`
    Adds of all the values produced by :mini:`Sequence` to :mini:`Set` and returns :mini:`Set`.
 
    .. code-block:: mini
@@ -174,7 +214,7 @@ set
       set("cake"):grow("banana") :> {c, a, k, e, b, n}
 
 
-:mini:`meth (Set: set):insert(Key: any, Value: any): some | nil`
+:mini:`meth (Set: set::mutable):insert(Key: any, Value: any): some | nil`
    Inserts :mini:`Key` into :mini:`Set` with corresponding value :mini:`Value`.
    Returns the previous value associated with :mini:`Key` if any,  otherwise :mini:`nil`.
 
@@ -186,7 +226,7 @@ set
       M :> {A, B, C, D}
 
 
-:mini:`meth (Set: set):missing(Key: any): some | nil`
+:mini:`meth (Set: set::mutable):missing(Key: any): some | nil`
    If :mini:`Key` is present in :mini:`Set` then returns :mini:`nil`. Otherwise inserts :mini:`Key` into :mini:`Set` with value :mini:`some` and returns :mini:`some`.
 
    .. code-block:: mini
@@ -197,15 +237,11 @@ set
       M :> {A, B, C, D}
 
 
-:mini:`meth (Set: set):order: set::order`
-   Returns the current ordering of :mini:`Set`.
-
-
-:mini:`meth (Set: set):order(Order: set::order): set`
+:mini:`meth (Set: set::mutable):order(Order: set::order): set`
    Sets the ordering
 
 
-:mini:`meth (Set: set):pop: any | nil`
+:mini:`meth (Set: set::mutable):pop: any | nil`
    Deletes the first value from :mini:`Set` according to its iteration order. Returns the deleted value,  or :mini:`nil` if :mini:`Set` is empty.
 
    .. code-block:: mini
@@ -230,7 +266,7 @@ set
       M3 :> {a, k, e}
 
 
-:mini:`meth (Set: set):pull: any | nil`
+:mini:`meth (Set: set::mutable):pull: any | nil`
    Deletes the last value from :mini:`Set` according to its iteration order. Returns the deleted value,  or :mini:`nil` if :mini:`Set` is empty.
 
    .. code-block:: mini
@@ -255,17 +291,7 @@ set
       M3 :> {c, a, k}
 
 
-:mini:`meth (List: set):random: any`
-   Returns a random (assignable) node from :mini:`Set`.
-
-   .. code-block:: mini
-
-      let M := set("cake") :> {c, a, k, e}
-      M:random :> "c"
-      M:random :> "a"
-
-
-:mini:`meth (Set: set):reverse: set`
+:mini:`meth (Set: set::mutable):reverse: set`
    Reverses the iteration order of :mini:`Set` in-place and returns it.
 
    .. code-block:: mini
@@ -274,15 +300,7 @@ set
       M:reverse :> {e, k, a, c}
 
 
-:mini:`meth (Set: set):size: integer`
-   Returns the number of values in :mini:`Set`.
-
-   .. code-block:: mini
-
-      set(["A", "B", "C"]):size :> 3
-
-
-:mini:`meth (Set: set):sort: Set`
+:mini:`meth (Set: set::mutable):sort: Set`
    Sorts the values (changes the iteration order) of :mini:`Set` using :mini:`Valueᵢ < Valueⱼ` and returns :mini:`Set`.
 
    .. code-block:: mini
@@ -291,21 +309,13 @@ set
       M:sort :> {a, c, e, k}
 
 
-:mini:`meth (Set: set):sort(Cmp: function): Set`
+:mini:`meth (Set: set::mutable):sort(Cmp: function): Set`
    Sorts the values (changes the iteration order) of :mini:`Set` using :mini:`Cmp(Valueᵢ,  Valueⱼ)` and returns :mini:`Set`
 
    .. code-block:: mini
 
       let M := set("cake") :> {c, a, k, e}
       M:sort(>) :> {k, e, c, a}
-
-
-:mini:`meth (Buffer: string::buffer):append(Set: set)`
-   Appends a representation of :mini:`Set` to :mini:`Buffer`.
-
-
-:mini:`meth (Buffer: string::buffer):append(Set: set, Sep: string)`
-   Appends the values of :mini:`Set` to :mini:`Buffer` with :mini:`Sep` between values.
 
 
 .. _type-set-order:

@@ -62,6 +62,7 @@ hierarchy
       "stream":e -> "stream::buffered":w;
       "stream":e -> "stream::fd":w;
       "sequence":e -> "set":w;
+      "set":e -> "set::mutable":w;
       "enum":e -> "set::order":w;
       "function":e -> "chained":w;
       "sequence":e -> "chained":w;
@@ -80,6 +81,8 @@ hierarchy
       "sequence":e -> "pqueue":w;
       "function":e -> "polynomial":w;
       "any":e -> "polynomial::rational":w;
+      "any":e -> "field":w;
+      "field":e -> "field::mutable":w;
       "any":e -> "object":w;
       "type":e -> "class":w;
       "any":e -> "property":w;

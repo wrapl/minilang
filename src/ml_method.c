@@ -337,6 +337,10 @@ ML_TYPE(MLMethodAnonT, (MLMethodT), "method::anon",
 	.call = ml_method_call
 );
 
+static void ML_TYPED_FN(ml_value_set_name, MLMethodAnonT, ml_method_t *Method, const char *Name) {
+	Method->Name = Name;
+}
+
 #ifdef ML_THREADSAFE
 
 static volatile atomic_flag MLMethodsLock[1] = {ATOMIC_FLAG_INIT};

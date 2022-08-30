@@ -21,6 +21,18 @@ object
    Returns a new class inheriting from :mini:`Parents`,  with fields :mini:`Fields` and exports :mini:`Exports`. The special exports :mini:`::of` and :mini:`::init` can be set to override the default conversion and initialization behaviour. The :mini:`::new` export will *always* be set to the original constructor for this class.
 
 
+.. _type-field:
+
+:mini:`type field`
+   *TBD*
+
+
+.. _type-field-mutable:
+
+:mini:`type field::mutable < field`
+   *TBD*
+
+
 .. _type-object:
 
 :mini:`type object`

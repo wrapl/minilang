@@ -1645,14 +1645,18 @@ ml_value_t *ml_closure(ml_closure_info_t *Info) {
 	return (ml_value_t *)Closure;
 }
 
+static void ML_TYPED_FN(ml_value_set_name, MLClosureT, ml_closure_t *Closure, const char *Name) {
+	Closure->Name = Name;
+}
+
 ML_METHOD("append", MLStringBufferT, MLClosureT) {
 //<Buffer
 //<Closure
 // Appends a representation of :mini:`Closure` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_closure_t *Closure = (ml_closure_t *)Args[1];
-	ml_stringbuffer_put(Buffer, '@');
-	ml_stringbuffer_write(Buffer, Closure->Info->Name, strlen(Closure->Info->Name));
+	const char *Name = Closure->Name ?: Closure->Info->Name;
+	ml_stringbuffer_write(Buffer, Name, strlen(Name));
 	return MLSome;
 }
 
@@ -1850,7 +1854,7 @@ void ml_closure_list(ml_value_t *Value) {
 	ml_closure_info_t *Info = Closure->Info;
 	ml_closure_info_labels(Info);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	ml_stringbuffer_printf(Buffer, "<%s:%d>\n", Info->Source, Info->StartLine);
+	ml_stringbuffer_printf(Buffer, "@%s:%d\n", Info->Source, Info->StartLine);
 	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
 		if (Inst->Opcode == MLI_LINK) {
 			Inst = Inst[1].Inst;

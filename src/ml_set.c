@@ -15,6 +15,8 @@ ML_TYPE(MLSetT, (MLSequenceT), "set",
 // By default, iterating over a set generates the values in the order they were inserted, however this ordering can be changed.
 );
 
+ML_TYPE(MLSetMutableT, (MLSetT), "set::mutable");
+
 ML_ENUM2(MLSetOrderT, "set::order",
 // * :mini:`set::order::Insert` |harr| default ordering; inserted values are put at end, no reordering on access.
 // * :mini:`set::order::Ascending` |harr| inserted values are kept in ascending order, no reordering on access.
@@ -33,12 +35,12 @@ static void ML_TYPED_FN(ml_value_find_all, MLSetT, ml_value_t *Value, void *Data
 	ML_SET_FOREACH(Value, Iter) ml_value_find_all(Iter->Key, Data, RefFn);
 }
 
-ML_TYPE(MLSetNodeT, (), "set-node");
+ML_TYPE(MLSetNodeT, (), "set::node");
 //!internal
 
 ml_value_t *ml_set() {
 	ml_set_t *Set = new(ml_set_t);
-	Set->Type = MLSetT;
+	Set->Type = MLSetMutableT;
 	return (ml_value_t *)Set;
 }
 
@@ -79,7 +81,7 @@ ML_METHODVX(MLSetT, MLSequenceT) {
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
-ML_METHODVX("grow", MLSetT, MLSequenceT) {
+ML_METHODVX("grow", MLSetMutableT, MLSequenceT) {
 //<Set
 //<Sequence
 //>set
@@ -447,7 +449,7 @@ ML_METHOD("order", MLSetT) {
 	return ml_enum_value(MLSetOrderT, Set->Order);
 }
 
-ML_METHOD("order", MLSetT, MLSetOrderT) {
+ML_METHOD("order", MLSetMutableT, MLSetOrderT) {
 //<Set
 //<Order
 //>set
@@ -523,7 +525,7 @@ ML_METHOD("in", MLAnyT, MLSetT) {
 	return ml_set_find_node(Set, Args[0]) ? Args[0] : MLNil;
 }
 
-ML_METHOD("empty", MLSetT) {
+ML_METHOD("empty", MLSetMutableT) {
 //<Set
 //>set
 // Deletes all values from :mini:`Set` and returns it.
@@ -538,7 +540,7 @@ ML_METHOD("empty", MLSetT) {
 	return (ml_value_t *)Set;
 }
 
-ML_METHOD("pop", MLSetT) {
+ML_METHOD("pop", MLSetMutableT) {
 //<Set
 //>any|nil
 // Deletes the first value from :mini:`Set` according to its iteration order. Returns the deleted value, or :mini:`nil` if :mini:`Set` is empty.
@@ -565,7 +567,7 @@ ML_METHOD("pop", MLSetT) {
 	return Node->Key;
 }
 
-ML_METHOD("pull", MLSetT) {
+ML_METHOD("pull", MLSetMutableT) {
 //<Set
 //>any|nil
 // Deletes the last value from :mini:`Set` according to its iteration order. Returns the deleted value, or :mini:`nil` if :mini:`Set` is empty.
@@ -592,7 +594,7 @@ ML_METHOD("pull", MLSetT) {
 	return Node->Key;
 }
 
-ML_METHOD("insert", MLSetT, MLAnyT) {
+ML_METHOD("insert", MLSetMutableT, MLAnyT) {
 //<Set
 //<Key
 //<Value
@@ -608,7 +610,7 @@ ML_METHOD("insert", MLSetT, MLAnyT) {
 	return ml_set_insert(Set, Key);
 }
 
-ML_METHOD("delete", MLSetT, MLAnyT) {
+ML_METHOD("delete", MLSetMutableT, MLAnyT) {
 //<Set
 //<Key
 //>some|nil
@@ -622,7 +624,7 @@ ML_METHOD("delete", MLSetT, MLAnyT) {
 	return ml_set_delete(Set, Key);
 }
 
-ML_METHOD("missing", MLSetT, MLAnyT) {
+ML_METHOD("missing", MLSetMutableT, MLAnyT) {
 //<Set
 //<Key
 //>some|nil
@@ -941,7 +943,7 @@ finished:
 
 extern ml_value_t *LessMethod;
 
-ML_METHODX("sort", MLSetT) {
+ML_METHODX("sort", MLSetMutableT) {
 //<Set
 //>Set
 // Sorts the values (changes the iteration order) of :mini:`Set` using :mini:`Value/i < Value/j` and returns :mini:`Set`.
@@ -965,7 +967,7 @@ ML_METHODX("sort", MLSetT) {
 	return ml_set_sort_state_run(State, NULL);
 }
 
-ML_METHODX("sort", MLSetT, MLFunctionT) {
+ML_METHODX("sort", MLSetMutableT, MLFunctionT) {
 //<Set
 //<Cmp
 //>Set
@@ -990,7 +992,7 @@ ML_METHODX("sort", MLSetT, MLFunctionT) {
 	return ml_set_sort_state_run(State, NULL);
 }
 
-ML_METHOD("reverse", MLSetT) {
+ML_METHOD("reverse", MLSetMutableT) {
 //<Set
 //>set
 // Reverses the iteration order of :mini:`Set` in-place and returns it.
@@ -1071,6 +1073,52 @@ ML_METHODX("copy", MLCopyT, MLSetT) {
 	return ml_call(State, (ml_value_t *)Copy, 1, State->Args);
 }
 
+static void ml_set_const_run(ml_set_copy_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	ml_set_insert(State->Dest, Value);
+	ml_set_node_t *Node = State->Node->Next;
+	if (!Node) {
+#ifdef ML_GENERICS
+		if (State->Dest->Type->Type == MLTypeGenericT) {
+			ml_type_t *TArgs[2];
+			ml_find_generic_parent(State->Dest->Type, MLSetMutableT, 2, TArgs);
+			TArgs[0] = MLSetT;
+			State->Dest->Type = ml_generic_type(2, TArgs);
+		} else {
+#endif
+			State->Dest->Type = MLSetT;
+#ifdef ML_GENERICS
+		}
+#endif
+		ML_RETURN(State->Dest);
+	}
+	State->Node = Node;
+	State->Args[0] = Node->Key;
+	return ml_call(State, State->Copy, 1, State->Args);
+}
+
+ML_METHODX("const", MLCopyT, MLSetT) {
+//<Copy
+//<Set
+//>set
+// Returns a new set contains copies of the elements of :mini:`Set` created using :mini:`Copy`.
+	ml_copy_t *Copy = (ml_copy_t *)Args[0];
+	ml_value_t *Dest = ml_set();
+	inthash_insert(Copy->Cache, (uintptr_t)Args[1], Dest);
+	ml_set_node_t *Node = ((ml_set_t *)Args[1])->Head;
+	if (!Node) ML_RETURN(Dest);
+	ml_set_copy_t *State = new(ml_set_copy_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_set_const_run;
+	State->Copy = (ml_value_t *)Copy;
+	State->Dest = Dest;
+	State->Node = Node;
+	State->Args[0] = Node->Key;
+	return ml_call(State, (ml_value_t *)Copy, 1, State->Args);
+}
+
 #ifdef ML_CBOR
 
 #include "ml_cbor.h"
@@ -1094,8 +1142,10 @@ static ml_value_t *ml_cbor_read_set(ml_cbor_reader_t *Reader, ml_value_t *Value)
 void ml_set_init() {
 #include "ml_set_init.c"
 	stringmap_insert(MLSetT->Exports, "order", MLSetOrderT);
+	stringmap_insert(MLSetT->Exports, "mutable", MLSetMutableT);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLSetT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(1), NULL);
+	ml_type_add_rule(MLSetMutableT, MLSetT, ML_TYPE_ARG(1), NULL);
 #endif
 #ifdef ML_CBOR
 	ml_cbor_default_tag(258, ml_cbor_read_set);
