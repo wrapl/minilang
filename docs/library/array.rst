@@ -1846,7 +1846,7 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:00B57068537F00000000000000000000>
+      :> <16:2051EA5CA07F00000000000000000000>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
       :> error("TypeError", "Unknown type for array")
 
@@ -1997,7 +1997,7 @@ array
 
 .. _type-vector-mutable-real:
 
-:mini:`type vector::mutable::real < vector::real, array::mutable::real, vector::mutable`
+:mini:`type vector::mutable::real < vector::real, array::mutable::real, vector::mutable::complex`
    Base type for vectors of real numbers.
 
 

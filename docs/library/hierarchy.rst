@@ -188,7 +188,7 @@ hierarchy
       "vector::complex":e -> "vector::real":w;
       "vector::real":e -> "vector::mutable::real":w;
       "array::mutable::real":e -> "vector::mutable::real":w;
-      "vector::mutable":e -> "vector::mutable::real":w;
+      "vector::mutable::complex":e -> "vector::mutable::real":w;
       "array::real":e -> "matrix::real":w;
       "matrix::complex":e -> "matrix::real":w;
       "matrix::real":e -> "matrix::mutable::real":w;

@@ -89,7 +89,7 @@ ML_TYPE(MLArrayMutableRealT, (MLArrayRealT, MLArrayMutableComplexT), "array::mut
 
 ML_TYPE(MLVectorRealT, (MLArrayRealT, MLVectorComplexT), "vector::real");
 
-ML_TYPE(MLVectorMutableRealT, (MLVectorRealT, MLArrayMutableRealT, MLVectorMutableT), "vector::mutable::real");
+ML_TYPE(MLVectorMutableRealT, (MLVectorRealT, MLArrayMutableRealT, MLVectorMutableComplexT), "vector::mutable::real");
 // Base type for vectors of real numbers.
 
 ML_TYPE(MLMatrixRealT, (MLArrayRealT, MLMatrixComplexT), "matrix::real");
@@ -108,7 +108,7 @@ ML_TYPE(MLArrayMutableRealT, (MLArrayRealT, MLArrayMutableT), "array::mutable::r
 ML_TYPE(MLVectorRealT, (MLArrayRealT, MLVectorT), "vector::real");
 //!internal
 
-ML_TYPE(MLVectorMutableRealT, (MLVectorRealT, MLArrayMutableRealT, MLVectorMutableComplexT), "vector::mutable::real");
+ML_TYPE(MLVectorMutableRealT, (MLVectorRealT, MLArrayMutableRealT, MLVectorMutableT), "vector::mutable::real");
 //!internal
 
 ML_TYPE(MLMatrixRealT, (MLArrayRealT, MLMatrixT), "matrix::real");
