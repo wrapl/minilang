@@ -1154,7 +1154,6 @@ ML_METHOD("..", MLIntegerT, MLIntegerT, MLIntegerT) {
 ML_METHOD("up", MLIntegerT) {
 //!range
 //<Start
-//<Count
 //>integer::range
 // Returns an unlimited range from :mini:`Start`.
 	ml_integer_range_t *Range = new(ml_integer_range_t);

@@ -37,7 +37,7 @@ range
    *TBD*
 
 
-:mini:`meth (Start: integer):up(Count: any): integer::range`
+:mini:`meth (Start: integer):up: integer::range`
    Returns an unlimited range from :mini:`Start`.
 
 

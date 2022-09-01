@@ -2111,9 +2111,12 @@ ML_CFUNCTIONX(MLArray ## SUFFIX ## New, (void *)FORMAT, ml_array_typed_new_fnx);
 //>array::PREFIX
 //  Returns a new array of PREFIX values with the specified dimensions.
 */\
-ML_TYPE(MLArray ## SUFFIX, (MLArray ## PARENT), "array::" #PREFIX); \
+ML_TYPE(MLArray ## SUFFIX, (MLArray ## PARENT), "array::" #PREFIX, \
 /*@array::PREFIX
 */ \
+	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
+	.Constructor = (ml_value_t *)MLArray ## SUFFIX ## New \
+); \
 \
 ML_TYPE(MLArrayMutable ## SUFFIX, (MLArray ## SUFFIX, MLArrayMutable ## PARENT), "array::mutable::" #PREFIX, \
 /*@array::mutable::PREFIX
@@ -2125,32 +2128,35 @@ ML_TYPE(MLArrayMutable ## SUFFIX, (MLArray ## SUFFIX, MLArrayMutable ## PARENT),
 //    Sets the values in :mini:`A` to those in :mini:`B`, broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
 */\
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
-	.deref = (void *)ml_array_ ## CTYPE ## _deref, \
 	.Constructor = (ml_value_t *)MLArray ## SUFFIX ## New \
 ); \
 \
-ML_TYPE(MLVector ## SUFFIX, (MLVector ## PARENT, MLArray ## SUFFIX), "vector::" #PREFIX); \
+ML_TYPE(MLVector ## SUFFIX, (MLVector ## PARENT, MLArray ## SUFFIX), "vector::" #PREFIX, \
 /*@vector::PREFIX
 */ \
+	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
+	.Constructor = (ml_value_t *)MLArray ## SUFFIX ## New \
+); \
 \
 ML_TYPE(MLVectorMutable ## SUFFIX, (MLVector ## SUFFIX, MLVectorMutable ## PARENT, MLArrayMutable ## SUFFIX), "vector::mutable::" #PREFIX, \
 /*@vector::mutable::PREFIX
 // A vector of PREFIX values.
 */\
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
-	.deref = (void *)ml_array_ ## CTYPE ## _deref, \
 	.Constructor = (ml_value_t *)MLArray ## SUFFIX ## New \
 ); \
-ML_TYPE(MLMatrix ## SUFFIX, (MLMatrix ## PARENT, MLArray ## SUFFIX), "matrix::" #PREFIX); \
+ML_TYPE(MLMatrix ## SUFFIX, (MLMatrix ## PARENT, MLArray ## SUFFIX), "matrix::" #PREFIX, \
 /*@matrix::PREFIX
 */ \
+	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
+	.Constructor = (ml_value_t *)MLArray ## SUFFIX ## New \
+); \
 \
 ML_TYPE(MLMatrixMutable ## SUFFIX, (MLMatrix ## SUFFIX, MLMatrixMutable ## PARENT, MLArrayMutable ## SUFFIX), "matrix::mutable::" #PREFIX, \
 /*@matrix::mutable::PREFIX
 // A matrix of PREFIX values.
 */\
 	.hash = (void *)ml_array_ ## CTYPE ## _hash, \
-	.deref = (void *)ml_array_ ## CTYPE ## _deref, \
 	.Constructor = (ml_value_t *)MLArray ## SUFFIX ## New \
 ); \
 \

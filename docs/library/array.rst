@@ -1846,7 +1846,7 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:2051EA5CA07F00000000000000000000>
+      :> <16:40BA812C6C7F000075696C6465725400>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
       :> error("TypeError", "Unknown type for array")
 
