@@ -19,12 +19,12 @@ set
       "D" in S :> nil
 
 
-:mini:`meth (Copy: copy):const(Set: set): set`
+:mini:`meth (Copy: copy):visit(Set: set): set`
    Returns a new set contains copies of the elements of :mini:`Set` created using :mini:`Copy`.
 
 
-:mini:`meth (Copy: copy):copy(Set: set): set`
-   Returns a new set contains copies of the elements of :mini:`Set` created using :mini:`Copy`.
+:mini:`meth (Copy: copy::const):visit(Set: set): set`
+   Returns a new set contains copies of the elements of :mini:`Set` created using :mini:`Visitor`.
 
 
 .. _type-set:
@@ -161,7 +161,7 @@ set
 
       let M := set("cake") :> {c, a, k, e}
       M:random :> "a"
-      M:random :> "k"
+      M:random :> "a"
 
 
 :mini:`meth (Set: set):size: integer`

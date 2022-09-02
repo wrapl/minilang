@@ -15,7 +15,9 @@ hierarchy
       "any":e -> "sequence":w;
       "any":e -> "function":w;
       "function":e -> "type":w;
-      "function":e -> "copy":w;
+      "function":e -> "visitor":w;
+      "visitor":e -> "copy":w;
+      "copy":e -> "copy::const":w;
       "function":e -> "function::partial":w;
       "sequence":e -> "function::partial":w;
       "function":e -> "tuple":w;

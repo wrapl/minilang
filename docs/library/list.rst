@@ -9,12 +9,12 @@ list
 
 .. rst-class:: mini-api
 
-:mini:`meth (Copy: copy):const(List: list::mutable): list::const`
-   Returns a new constant list containing copies of the elements of :mini:`List` created using :mini:`Copy`.
-
-
-:mini:`meth (Copy: copy):copy(List: list): list`
+:mini:`meth (Copy: copy):visit(List: list): list`
    Returns a new list containing copies of the elements of :mini:`List` created using :mini:`Copy`.
+
+
+:mini:`meth (Copy: copy::const):visit(List: list::mutable): list::const`
+   Returns a new constant list containing copies of the elements of :mini:`List` created using :mini:`Copy`.
 
 
 .. _type-list:
@@ -93,8 +93,8 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "e"
-      L:random :> "c"
+      L:random :> "k"
+      L:random :> "k"
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list)`

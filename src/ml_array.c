@@ -5011,23 +5011,23 @@ ML_METHOD("copy", MLArrayT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("copy", MLCopyT, MLArrayT) {
-	ml_copy_t *Copy = (ml_copy_t *)Args[0];
+ML_METHOD("visit", MLCopyT, MLArrayT) {
+	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
 	ml_array_t *Source = (ml_array_t *)Args[1];
 	if (Source->Degree == -1) return (ml_value_t *)Source;
 	ml_array_t *Target = ml_array_alloc(Source->Format, Source->Degree);
-	inthash_insert(Copy->Cache, (uintptr_t)Source, Target);
+	inthash_insert(Visitor->Cache, (uintptr_t)Source, Target);
 	if (Source->Format == ML_ARRAY_FORMAT_ANY) {
 		array_copy(Target, Source);
-		// TODO: Use Copy to make a copy of each value in Target.
+		// TODO: Use Visitor to make a copy of each value in Target.
 	} else {
 		array_copy(Target, Source);
 	}
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("const", MLCopyT, MLArrayT) {
-	ml_copy_t *Copy = (ml_copy_t *)Args[0];
+ML_METHOD("visit", MLCopyConstT, MLArrayT) {
+	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
 	ml_array_t *Source = (ml_array_t *)Args[1];
 	if (Source->Degree == -1) return (ml_value_t *)Source;
 	ml_array_t *Target = ml_array_alloc(Source->Format, Source->Degree);
@@ -5036,10 +5036,10 @@ ML_METHOD("const", MLCopyT, MLArrayT) {
 	case 2: Target->Base.Type = MLMatrixTypes[Target->Format]; break;
 	default: Target->Base.Type = MLArrayTypes[Target->Format]; break;
 	}
-	inthash_insert(Copy->Cache, (uintptr_t)Source, Target);
+	inthash_insert(Visitor->Cache, (uintptr_t)Source, Target);
 	if (Source->Format == ML_ARRAY_FORMAT_ANY) {
 		array_copy(Target, Source);
-		// TODO: Use Copy to make a copy of each value in Target.
+		// TODO: Use Visitor to make a copy of each value in Target.
 	} else {
 		array_copy(Target, Source);
 	}

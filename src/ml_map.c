@@ -1366,7 +1366,7 @@ ML_METHOD("random", MLMapT) {
 
 typedef struct {
 	ml_state_t Base;
-	ml_value_t *Copy, *Dest, *Key;
+	ml_value_t *Visitor, *Dest, *Key;
 	ml_map_node_t *Node;
 	ml_value_t *Args[1];
 } ml_map_copy_t;
@@ -1377,7 +1377,7 @@ static void ml_map_copy_run(ml_map_copy_t *State, ml_value_t *Value) {
 	if (!State->Key) {
 		State->Key = Value;
 		State->Args[0] = State->Node->Value;
-		return ml_call(State, State->Copy, 1, State->Args);
+		return ml_call(State, State->Visitor, 1, State->Args);
 	}
 	ml_map_insert(State->Dest, State->Key, Value);
 	State->Key = NULL;
@@ -1385,29 +1385,29 @@ static void ml_map_copy_run(ml_map_copy_t *State, ml_value_t *Value) {
 	if (!Node) ML_RETURN(State->Dest);
 	State->Node = Node;
 	State->Args[0] = Node->Key;
-	return ml_call(State, State->Copy, 1, State->Args);
+	return ml_call(State, State->Visitor, 1, State->Args);
 }
 
-ML_METHODX("copy", MLCopyT, MLMapT) {
+ML_METHODX("visit", MLCopyT, MLMapT) {
 //<Copy
 //<Map
 //>map
 // Returns a new map contains copies of the keys and values of :mini:`Map` created using :mini:`Copy`.
-	ml_copy_t *Copy = (ml_copy_t *)Args[0];
+	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
 	ml_value_t *Dest = ml_map();
 	((ml_map_t *)Dest)->Order = ((ml_map_t *)Args[1])->Order;
-	inthash_insert(Copy->Cache, (uintptr_t)Args[1], Dest);
+	inthash_insert(Visitor->Cache, (uintptr_t)Args[1], Dest);
 	ml_map_node_t *Node = ((ml_map_t *)Args[1])->Head;
 	if (!Node) ML_RETURN(Dest);
 	ml_map_copy_t *State = new(ml_map_copy_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_map_copy_run;
-	State->Copy = (ml_value_t *)Copy;
+	State->Visitor = (ml_value_t *)Visitor;
 	State->Dest = Dest;
 	State->Node = Node;
 	State->Args[0] = Node->Key;
-	return ml_call(State, (ml_value_t *)Copy, 1, State->Args);
+	return ml_call(State, (ml_value_t *)Visitor, 1, State->Args);
 }
 
 static void ml_map_const_run(ml_map_copy_t *State, ml_value_t *Value) {
@@ -1416,7 +1416,7 @@ static void ml_map_const_run(ml_map_copy_t *State, ml_value_t *Value) {
 	if (!State->Key) {
 		State->Key = Value;
 		State->Args[0] = State->Node->Value;
-		return ml_call(State, State->Copy, 1, State->Args);
+		return ml_call(State, State->Visitor, 1, State->Args);
 	}
 	ml_map_insert(State->Dest, State->Key, Value);
 	State->Key = NULL;
@@ -1439,29 +1439,29 @@ static void ml_map_const_run(ml_map_copy_t *State, ml_value_t *Value) {
 	}
 	State->Node = Node;
 	State->Args[0] = Node->Key;
-	return ml_call(State, State->Copy, 1, State->Args);
+	return ml_call(State, State->Visitor, 1, State->Args);
 }
 
-ML_METHODX("const", MLCopyT, MLMapT) {
+ML_METHODX("visit", MLCopyConstT, MLMapT) {
 //<Copy
 //<Map
 //>map::const
 // Returns a new constant map containing copies of the keys and values of :mini:`Map` created using :mini:`Copy`.
-	ml_copy_t *Copy = (ml_copy_t *)Args[0];
+	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
 	ml_value_t *Dest = ml_map();
 	((ml_map_t *)Dest)->Order = ((ml_map_t *)Args[1])->Order;
-	inthash_insert(Copy->Cache, (uintptr_t)Args[1], Dest);
+	inthash_insert(Visitor->Cache, (uintptr_t)Args[1], Dest);
 	ml_map_node_t *Node = ((ml_map_t *)Args[1])->Head;
 	if (!Node) ML_RETURN(Dest);
 	ml_map_copy_t *State = new(ml_map_copy_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_map_const_run;
-	State->Copy = (ml_value_t *)Copy;
+	State->Visitor = (ml_value_t *)Visitor;
 	State->Dest = Dest;
 	State->Node = Node;
 	State->Args[0] = Node->Key;
-	return ml_call(State, (ml_value_t *)Copy, 1, State->Args);
+	return ml_call(State, (ml_value_t *)Visitor, 1, State->Args);
 }
 
 static int ML_TYPED_FN(ml_value_is_constant, MLMapMutableT, ml_value_t *Map) {

@@ -397,6 +397,16 @@ MATH_REAL(Log1p, log1p, log1p);
 MATH_REAL_REAL(Rem, remainder, rem);
 MATH_REAL(Round, round, round);
 
+ML_METHOD(RoundMethod, MLRealT, MLRealT) {
+//@math::round
+//>real
+// Returns :mini:`round(Arg/1 * Arg/2) / Arg/2`.
+//$= math::round(1.2345, 100)
+//$= math::round(-1.2345, 32)
+	double Scale = ml_real_value(Args[1]);
+	return ml_real(round(ml_real_value(Args[0]) * Scale) / Scale);
+}
+
 double logit(double X) {
 	return log(X / (1 - X));
 }

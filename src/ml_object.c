@@ -436,6 +436,15 @@ ML_FUNCTIONX(MLClass) {
 	}
 }
 
+static void ML_TYPED_FN(ml_value_set_name, MLNamedTypeT, ml_named_type_t *Class, const char *Name) {
+	Class->Base.Name = Name;
+	if (Class->Initializer) {
+		const char *InitName;
+		asprintf((char **)&InitName, "%s::init", Name);
+		ml_value_set_name(Class->Initializer, InitName);
+	}
+}
+
 static void ML_TYPED_FN(ml_value_set_name, MLClassT, ml_class_t *Class, const char *Name) {
 	Class->Base.Name = Name;
 	if (Class->Initializer) {

@@ -56,8 +56,13 @@ general
 .. _fun-copy:
 
 :mini:`fun copy(Value: any, Fn?: function): any`
-   Creates a deep copy of :mini:`Value`,  calling :mini:`Fn(Copier,  Value)` to copy individual values.
-   If omitted,  :mini:`Fn` defaults to :mini:`:copy`.
+   Returns a copy of :mini:`Value` using a new :mini:`copy` instance which applies :mini:`Fn(Copy,  Value)` to each value. If omitted,  :mini:`Fn` defaults to :mini:`:visit`.
+
+
+.. _fun-copy-const:
+
+:mini:`fun copy::const(Value: any, Fn?: function): any`
+   Returns a copy of :mini:`Value` using a new :mini:`copy::const` instance which applies :mini:`Fn(Copy,  Value)` to each value. If omitted,  :mini:`Fn` defaults to :mini:`:visit`.
 
 
 .. _fun-deref:
@@ -108,32 +113,29 @@ general
 
 .. _type-copy:
 
-:mini:`type copy < function`
-   Used to copy values inside a call to :mini:`copy(Value)`.
-   If :mini:`Copy` is an instance of :mini:`copy` then
+:mini:`type copy < visitor`
+   A visitor that creates a copy of each value it visits.
+
+
+.. _type-copy-const:
+
+:mini:`type copy::const < copy`
+   A visitor that creates an immutable copy of each value it visits.
+
+
+.. _type-visitor:
+
+:mini:`type visitor < function`
+   Used to apply a transformation recursively to values.
    
-   * :mini:`Copy(X,  Y)` add the mapping :mini:`X -> Y` to :mini:`Copy` and returns :mini:`Y`, 
-   * :mini:`Copy(X)` creates a copy of :mini:`X` using the value of :mini:`Fn` passed to :mini:`copy`.
-
-   .. code-block:: mini
-
-      copy([1, {"A" is 2.5}]; Copy, X) do print('Copying {X}\n'); Copy:copy(X) end
-      :> [1, {"A" is 2.5}]
-
-   .. code-block:: console
-
-      Copying [1, {A is 2.5}]
-      Copying 1
-      Copying {A is 2.5}
-      Copying A
-      Copying 2.5
+   :mini:`fun (V: visitor)(Value: any,  Result: any): any`
+      Adds the pair :mini:`(Value,  Result)` to :mini:`V`'s cache and returns :mini:`Result`.
+   
+   :mini:`fun (V: visitor)(Value: any): any`
+      Visits :mini:`Value` with :mini:`V` returning the result.
 
 
-:mini:`meth (Copy: copy):const(Value: any): any`
-   Default const implementation,  just returns :mini:`Value`.
-
-
-:mini:`meth (Copy: copy):copy(Value: any): any`
-   Default copy implementation,  just returns :mini:`Value`.
+:mini:`meth (Visitor: visitor):visit(Value: any): any`
+   Default visitor implementation,  just returns :mini:`Value`.
 
 

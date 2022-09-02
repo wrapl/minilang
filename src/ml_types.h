@@ -149,11 +149,14 @@ ml_type_t *ml_type_max(ml_type_t *Type1, ml_type_t *Type2);
 
 typedef struct {
 	ml_type_t *Type;
-	ml_value_t *Fn;
+	ml_value_t *Fn, *Error;
+	ml_value_t *Args[2];
 	inthash_t Cache[1];
-} ml_copy_t;
+} ml_visitor_t;
 
+extern ml_type_t MLVisitorT[];
 extern ml_type_t MLCopyT[];
+extern ml_type_t MLCopyConstT[];
 
 #ifdef ML_NANBOXING
 

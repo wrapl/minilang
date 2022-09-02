@@ -1442,7 +1442,7 @@ ML_METHOD("random", MLListT) {
 
 typedef struct {
 	ml_state_t Base;
-	ml_value_t *Copy, *Dest;
+	ml_value_t *Visitor, *Dest;
 	ml_list_node_t *Node;
 	ml_value_t *Args[1];
 } ml_list_copy_t;
@@ -1455,28 +1455,28 @@ static void ml_list_copy_run(ml_list_copy_t *State, ml_value_t *Value) {
 	if (!Node) ML_RETURN(State->Dest);
 	State->Node = Node;
 	State->Args[0] = Node->Value;
-	return ml_call(State, State->Copy, 1, State->Args);
+	return ml_call(State, State->Visitor, 1, State->Args);
 }
 
-ML_METHODX("copy", MLCopyT, MLListT) {
+ML_METHODX("visit", MLCopyT, MLListT) {
 //<Copy
 //<List
 //>list
 // Returns a new list containing copies of the elements of :mini:`List` created using :mini:`Copy`.
-	ml_copy_t *Copy = (ml_copy_t *)Args[0];
+	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
 	ml_value_t *Dest = ml_list();
-	inthash_insert(Copy->Cache, (uintptr_t)Args[1], Dest);
+	inthash_insert(Visitor->Cache, (uintptr_t)Args[1], Dest);
 	ml_list_node_t *Node = ((ml_list_t *)Args[1])->Head;
 	if (!Node) ML_RETURN(Dest);
 	ml_list_copy_t *State = new(ml_list_copy_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_list_copy_run;
-	State->Copy = (ml_value_t *)Copy;
+	State->Visitor = (ml_value_t *)Visitor;
 	State->Dest = Dest;
 	State->Node = Node;
 	State->Args[0] = Node->Value;
-	return ml_call(State, (ml_value_t *)Copy, 1, State->Args);
+	return ml_call(State, (ml_value_t *)Visitor, 1, State->Args);
 }
 
 static void ml_list_const_run(ml_list_copy_t *State, ml_value_t *Value) {
@@ -1502,28 +1502,28 @@ static void ml_list_const_run(ml_list_copy_t *State, ml_value_t *Value) {
 	}
 	State->Node = Node;
 	State->Args[0] = Node->Value;
-	return ml_call(State, State->Copy, 1, State->Args);
+	return ml_call(State, State->Visitor, 1, State->Args);
 }
 
-ML_METHODX("const", MLCopyT, MLListMutableT) {
+ML_METHODX("visit", MLCopyConstT, MLListMutableT) {
 //<Copy
 //<List
 //>list::const
 // Returns a new constant list containing copies of the elements of :mini:`List` created using :mini:`Copy`.
-	ml_copy_t *Copy = (ml_copy_t *)Args[0];
+	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
 	ml_value_t *Dest = ml_list();
-	inthash_insert(Copy->Cache, (uintptr_t)Args[1], Dest);
+	inthash_insert(Visitor->Cache, (uintptr_t)Args[1], Dest);
 	ml_list_node_t *Node = ((ml_list_t *)Args[1])->Head;
 	if (!Node) ML_RETURN(Dest);
 	ml_list_copy_t *State = new(ml_list_copy_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_list_const_run;
-	State->Copy = (ml_value_t *)Copy;
+	State->Visitor = (ml_value_t *)Visitor;
 	State->Dest = Dest;
 	State->Node = Node;
 	State->Args[0] = Node->Value;
-	return ml_call(State, (ml_value_t *)Copy, 1, State->Args);
+	return ml_call(State, (ml_value_t *)Visitor, 1, State->Args);
 }
 
 static int ML_TYPED_FN(ml_value_is_constant, MLListMutableT, ml_value_t *List) {
