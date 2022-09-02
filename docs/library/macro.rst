@@ -7,6 +7,8 @@
 macro
 =====
 
+.. rst-class:: mini-api
+
 .. _fun-macro-block:
 
 :mini:`fun macro::block(): blockbuilder`

@@ -7,6 +7,8 @@
 boolean
 =======
 
+.. rst-class:: mini-api
+
 .. _fun-boolean-random:
 
 :mini:`fun boolean::random(P?: number): boolean`

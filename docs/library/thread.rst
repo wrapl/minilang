@@ -7,6 +7,8 @@
 thread
 ======
 
+.. rst-class:: mini-api
+
 .. _fun-thread-sleep:
 
 :mini:`fun thread::sleep(Duration: number): nil`

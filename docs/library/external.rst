@@ -7,6 +7,8 @@
 external
 ========
 
+.. rst-class:: mini-api
+
 .. _type-external:
 
 :mini:`type external`

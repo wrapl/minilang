@@ -2,6 +2,7 @@
 #define ML_TYPES_H
 
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 #include "stringmap.h"
 #include "inthash.h"
@@ -148,11 +149,14 @@ ml_type_t *ml_type_max(ml_type_t *Type1, ml_type_t *Type2);
 
 typedef struct {
 	ml_type_t *Type;
-	ml_value_t *Fn;
+	ml_value_t *Fn, *Error;
+	ml_value_t *Args[2];
 	inthash_t Cache[1];
-} ml_copy_t;
+} ml_visitor_t;
 
+extern ml_type_t MLVisitorT[];
 extern ml_type_t MLCopyT[];
+extern ml_type_t MLCopyConstT[];
 
 #ifdef ML_NANBOXING
 
@@ -167,8 +171,9 @@ __attribute__ ((pure)) static inline int ml_tag(const ml_value_t *Value) {
 static inline ml_value_t *ml_deref(ml_value_t *Value) {
 	unsigned Tag = ml_tag(Value);
 	if (__builtin_expect(Tag == 0, 1)) {
-		if (__builtin_expect(Value->Type->deref != ml_default_deref, 0)) {
-			return Value->Type->deref(Value);
+		ml_value_t *(*Deref)(ml_value_t *) = Value->Type->deref;
+		if (__builtin_expect(Deref != ml_default_deref, 0)) {
+			return Deref(Value);
 		}
 	}
 	return Value;
@@ -184,6 +189,22 @@ __attribute__ ((pure)) static inline ml_type_t *ml_typeof(const ml_value_t *Valu
 		return MLDoubleT;
 	}
 }
+
+/*static inline ml_type_t *ml_typeof_deref(ml_value_t *Value) {
+	unsigned Tag = ml_tag(Value);
+	if (__builtin_expect(Tag == 0, 1)) {
+		ml_type_t *Type = Value->Type;
+		ml_value_t *(*Deref)(ml_value_t *) = Type->deref;
+		if (__builtin_expect(Deref != ml_default_deref, 0)) {
+			return ml_typeof(Deref(Value));
+		}
+		return Type;
+	} else if (Tag == 1) {
+		return MLInt32T;
+	} else {
+		return MLDoubleT;
+	}
+}*/
 
 #define ml_typeof_deref(VALUE) ml_typeof(ml_deref(VALUE))
 
@@ -263,8 +284,10 @@ void ml_value_set_name(ml_value_t *Value, const char *Name);
 typedef ml_value_t *(*ml_callback_t)(void *Data, int Count, ml_value_t **Args);
 typedef void (*ml_callbackx_t)(ml_state_t *Caller, void *Data, int Count, ml_value_t **Args);
 
-typedef int (*ml_value_ref_fn)(void *Data, ml_value_t *Value);
-void ml_value_find_refs(ml_value_t *Value, void *Data, ml_value_ref_fn RefFn, int RefsOnly);
+typedef int (*ml_value_find_fn)(void *Data, ml_value_t *Value, int HasRefs);
+void ml_value_find_all(ml_value_t *Value, void *Data, ml_value_find_fn RefFn);
+
+int ml_value_is_constant(ml_value_t *Value);
 
 // Iterators //
 
@@ -491,7 +514,7 @@ static inline int ml_is_double(ml_value_t *Value) {
 }
 
 static inline int64_t ml_integer_value_fast(const ml_value_t *Value) {
-	if (ml_tag(Value) == 1) return (int32_t)(intptr_t)Value;
+	if (__builtin_expect(!!ml_tag(Value), 1)) return (int32_t)(intptr_t)Value;
 	return ((ml_int64_t *)Value)->Value;
 }
 

@@ -75,7 +75,7 @@ void ml_cbor_write_simple(ml_cbor_writer_t *Writer, unsigned char Simple);
 void ml_cbor_write_break(ml_cbor_writer_t *Writer);
 void ml_cbor_write_tag(ml_cbor_writer_t *Writer, uint64_t Tag);
 
-void ml_cbor_write_raw(ml_cbor_writer_t *Writer, const unsigned char *Bytes, size_t Length);
+void ml_cbor_write_raw(ml_cbor_writer_t *Writer, const void *Bytes, size_t Length);
 
 ml_cbor_t ml_to_cbor(ml_value_t *Value);
 ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns);

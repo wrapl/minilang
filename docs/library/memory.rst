@@ -7,6 +7,8 @@
 memory
 ======
 
+.. rst-class:: mini-api
+
 .. _fun-collect:
 
 :mini:`fun collect()`

@@ -290,63 +290,42 @@ extern ml_value_t *SymbolMethod;
 
 #endif
 
-
-
-#ifdef DEBUG_VERSION
-
-#define DO_CALL_CONST_(COUNT) \
-	DO_CALL_CONST_ ## COUNT: \
-	DO_TAIL_CALL_CONST_ ## COUNT: { \
-		ml_value_t *Function = Inst[1].Value; \
+#define DO_CALL_COUNT(COUNT) \
+	DO_CALL_ ## COUNT: { \
+		ml_value_t *Function = Top[~COUNT]; \
 		ml_value_t **Args = Top - COUNT; \
 		ml_inst_t *Next = Inst + 2; \
 		ML_STORE_COUNTER(); \
 		Frame->Inst = Next; \
 		Frame->Line = Inst->Line; \
-		Frame->Top = Args; \
+		Frame->Top = Top - (COUNT + 1); \
 		return ml_call(Frame, Function, COUNT, Args); \
-	}
-
-#define DO_CALL_METHOD_(COUNT) \
-	DO_CALL_METHOD_ ## COUNT: \
-	DO_TAIL_CALL_METHOD_ ## COUNT: { \
-		ml_method_t *Method = (ml_method_t *)Inst[1].Value; \
+	} \
+	DO_TAIL_CALL_ ## COUNT: { \
+		ml_value_t *Function = Top[~COUNT]; \
 		ml_value_t **Args = Top - COUNT; \
-		ml_method_cached_t *Cached = Inst[2].Data; \
-		if (Cached) { \
-			for (int I = 0; I < COUNT; ++I) { \
-				if (Cached->Types[I] != ml_typeof_deref(Args[I])) { \
-					Cached = NULL; \
-					break; \
-				} \
-			} \
-		} \
-		if (!Cached || !Cached->Callback) { \
-			ml_methods_t *Methods = Frame->Base.Context->Values[ML_METHODS_INDEX]; \
-			Cached = ml_method_search_cached(Methods, Method, COUNT, Args); \
-			if (!Cached) { \
-				Result = ml_no_method_error(Method, COUNT, Args); \
-				ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line}); \
-				ERROR(); \
-			} \
-			Inst[2].Data = Cached; \
-		} \
-		ml_value_t *Function = Cached->Callback; \
-		ml_inst_t *Next = Inst + 3; \
+		ml_inst_t *Next = Inst + 2; \
 		ML_STORE_COUNTER(); \
-		Frame->Inst = Next; \
-		Frame->Line = Inst->Line; \
-		Frame->Top = Args; \
-		return ml_call(Frame, Function, COUNT, Args); \
-	}
-
-#else
-
-#define DO_CALL_CONST_(COUNT) \
+		if (!Frame->Continue) { \
+			ML_CACHED_FRAME_LOCK(); \
+			if (!MLCachedFrame) { \
+				MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE); \
+			} \
+			Frame->Next = MLCachedFrame->Next; \
+			MLCachedFrame->Next = Frame; \
+			ML_CACHED_FRAME_UNLOCK(); \
+			return ml_call(Frame->Base.Caller, Function, COUNT, Args); \
+		} else { \
+			Frame->Inst = Next; \
+			Frame->Line = Inst->Line; \
+			Frame->Top = Top - (COUNT + 1); \
+			return ml_call(Frame, Function, COUNT, Args); \
+		} \
+	} \
 	DO_CALL_CONST_ ## COUNT: { \
 		ml_value_t *Function = Inst[1].Value; \
 		ml_value_t **Args = Top - COUNT; \
-		ml_inst_t *Next = Inst + 2; \
+		ml_inst_t *Next = Inst + 3; \
 		ML_STORE_COUNTER(); \
 		Frame->Inst = Next; \
 		Frame->Line = Inst->Line; \
@@ -356,7 +335,7 @@ extern ml_value_t *SymbolMethod;
 	DO_TAIL_CALL_CONST_ ## COUNT: { \
 		ml_value_t *Function = Inst[1].Value; \
 		ml_value_t **Args = Top - COUNT; \
-		ml_inst_t *Next = Inst + 2; \
+		ml_inst_t *Next = Inst + 3; \
 		ML_STORE_COUNTER(); \
 		if (!Frame->Continue) { \
 			ML_CACHED_FRAME_LOCK(); \
@@ -373,13 +352,11 @@ extern ml_value_t *SymbolMethod;
 			Frame->Top = Args; \
 			return ml_call(Frame, Function, COUNT, Args); \
 		} \
-	}
-
-#define DO_CALL_METHOD_(COUNT) \
+	} \
 	DO_CALL_METHOD_ ## COUNT: { \
 		ml_method_t *Method = (ml_method_t *)Inst[1].Value; \
 		ml_value_t **Args = Top - COUNT; \
-		ml_method_cached_t *Cached = Inst[2].Data; \
+		ml_method_cached_t *Cached = Inst[3].Data; \
 		if (Cached) { \
 			for (int I = 0; I < COUNT; ++I) { \
 				if (Cached->Types[I] != ml_typeof_deref(Args[I])) { \
@@ -396,10 +373,10 @@ extern ml_value_t *SymbolMethod;
 				ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line}); \
 				ERROR(); \
 			} \
-			Inst[2].Data = Cached; \
+			Inst[3].Data = Cached; \
 		} \
 		ml_value_t *Function = Cached->Callback; \
-		ml_inst_t *Next = Inst + 3; \
+		ml_inst_t *Next = Inst + 4; \
 		ML_STORE_COUNTER(); \
 		Frame->Inst = Next; \
 		Frame->Line = Inst->Line; \
@@ -409,7 +386,7 @@ extern ml_value_t *SymbolMethod;
 	DO_TAIL_CALL_METHOD_ ## COUNT: { \
 		ml_method_t *Method = (ml_method_t *)Inst[1].Value; \
 		ml_value_t **Args = Top - COUNT; \
-		ml_method_cached_t *Cached = Inst[2].Data; \
+		ml_method_cached_t *Cached = Inst[3].Data; \
 		if (Cached) { \
 			for (int I = 0; I < COUNT; ++I) { \
 				if (Cached->Types[I] != ml_typeof_deref(Args[I])) { \
@@ -426,10 +403,10 @@ extern ml_value_t *SymbolMethod;
 				ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line}); \
 				ERROR(); \
 			} \
-			Inst[2].Data = Cached; \
+			Inst[3].Data = Cached; \
 		} \
 		ml_value_t *Function = Cached->Callback; \
-		ml_inst_t *Next = Inst + 3; \
+		ml_inst_t *Next = Inst + 4; \
 		ML_STORE_COUNTER(); \
 		if (!Frame->Continue) { \
 			ML_CACHED_FRAME_LOCK(); \
@@ -448,7 +425,19 @@ extern ml_value_t *SymbolMethod;
 		} \
 	}
 
-#endif
+#define CALL_LABELS(PREFIX) \
+	static const void *PREFIX ##_Labels[] = { \
+		&&DO_ ## PREFIX ## _0, \
+		&&DO_ ## PREFIX ## _1, \
+		&&DO_ ## PREFIX ## _2, \
+		&&DO_ ## PREFIX ## _3, \
+		&&DO_ ## PREFIX ## _4, \
+		&&DO_ ## PREFIX ## _5, \
+		&&DO_ ## PREFIX ## _6, \
+		&&DO_ ## PREFIX ## _7, \
+		&&DO_ ## PREFIX ## _8, \
+		&&DO_ ## PREFIX ## _9 \
+	}
 
 #endif
 
@@ -465,27 +454,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_CATCHX] = &&DO_CATCHX,
 		[MLI_CLOSURE] = &&DO_CLOSURE,
 		[MLI_CLOSURE_TYPED] = &&DO_CLOSURE_TYPED,
-		[MLI_CALL_CONST_0] = &&DO_CALL_CONST_0,
-		[MLI_CALL_CONST_1] = &&DO_CALL_CONST_1,
-		[MLI_CALL_CONST_2] = &&DO_CALL_CONST_2,
-		[MLI_CALL_CONST_3] = &&DO_CALL_CONST_3,
-		[MLI_CALL_CONST_4] = &&DO_CALL_CONST_4,
-		[MLI_CALL_CONST_5] = &&DO_CALL_CONST_5,
-		[MLI_CALL_CONST_6] = &&DO_CALL_CONST_6,
-		[MLI_CALL_CONST_7] = &&DO_CALL_CONST_7,
-		[MLI_CALL_CONST_8] = &&DO_CALL_CONST_8,
-		[MLI_CALL_CONST_9] = &&DO_CALL_CONST_9,
 		[MLI_CALL_CONST] = &&DO_CALL_CONST,
-		[MLI_TAIL_CALL_CONST_0] = &&DO_TAIL_CALL_CONST_0,
-		[MLI_TAIL_CALL_CONST_1] = &&DO_TAIL_CALL_CONST_1,
-		[MLI_TAIL_CALL_CONST_2] = &&DO_TAIL_CALL_CONST_2,
-		[MLI_TAIL_CALL_CONST_3] = &&DO_TAIL_CALL_CONST_3,
-		[MLI_TAIL_CALL_CONST_4] = &&DO_TAIL_CALL_CONST_4,
-		[MLI_TAIL_CALL_CONST_5] = &&DO_TAIL_CALL_CONST_5,
-		[MLI_TAIL_CALL_CONST_6] = &&DO_TAIL_CALL_CONST_6,
-		[MLI_TAIL_CALL_CONST_7] = &&DO_TAIL_CALL_CONST_7,
-		[MLI_TAIL_CALL_CONST_8] = &&DO_TAIL_CALL_CONST_8,
-		[MLI_TAIL_CALL_CONST_9] = &&DO_TAIL_CALL_CONST_9,
 		[MLI_TAIL_CALL_CONST] = &&DO_TAIL_CALL_CONST,
 		[MLI_ENTER] = &&DO_ENTER,
 		[MLI_EXIT] = &&DO_EXIT,
@@ -508,27 +477,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_LOCAL_PUSH] = &&DO_LOCAL_PUSH,
 		[MLI_MAP_INSERT] = &&DO_MAP_INSERT,
 		[MLI_MAP_NEW] = &&DO_MAP_NEW,
-		[MLI_CALL_METHOD_0] = &&DO_CALL_METHOD_0,
-		[MLI_CALL_METHOD_1] = &&DO_CALL_METHOD_1,
-		[MLI_CALL_METHOD_2] = &&DO_CALL_METHOD_2,
-		[MLI_CALL_METHOD_3] = &&DO_CALL_METHOD_3,
-		[MLI_CALL_METHOD_4] = &&DO_CALL_METHOD_4,
-		[MLI_CALL_METHOD_5] = &&DO_CALL_METHOD_5,
-		[MLI_CALL_METHOD_6] = &&DO_CALL_METHOD_6,
-		[MLI_CALL_METHOD_7] = &&DO_CALL_METHOD_7,
-		[MLI_CALL_METHOD_8] = &&DO_CALL_METHOD_8,
-		[MLI_CALL_METHOD_9] = &&DO_CALL_METHOD_9,
 		[MLI_CALL_METHOD] = &&DO_CALL_METHOD,
-		[MLI_TAIL_CALL_METHOD_0] = &&DO_TAIL_CALL_METHOD_0,
-		[MLI_TAIL_CALL_METHOD_1] = &&DO_TAIL_CALL_METHOD_1,
-		[MLI_TAIL_CALL_METHOD_2] = &&DO_TAIL_CALL_METHOD_2,
-		[MLI_TAIL_CALL_METHOD_3] = &&DO_TAIL_CALL_METHOD_3,
-		[MLI_TAIL_CALL_METHOD_4] = &&DO_TAIL_CALL_METHOD_4,
-		[MLI_TAIL_CALL_METHOD_5] = &&DO_TAIL_CALL_METHOD_5,
-		[MLI_TAIL_CALL_METHOD_6] = &&DO_TAIL_CALL_METHOD_6,
-		[MLI_TAIL_CALL_METHOD_7] = &&DO_TAIL_CALL_METHOD_7,
-		[MLI_TAIL_CALL_METHOD_8] = &&DO_TAIL_CALL_METHOD_8,
-		[MLI_TAIL_CALL_METHOD_9] = &&DO_TAIL_CALL_METHOD_9,
 		[MLI_TAIL_CALL_METHOD] = &&DO_TAIL_CALL_METHOD,
 		[MLI_NEXT] = &&DO_NEXT,
 		[MLI_NIL] = &&DO_NIL,
@@ -566,6 +515,12 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_WITH] = &&DO_WITH,
 		[MLI_WITHX] = &&DO_WITHX,
 	};
+	CALL_LABELS(CALL);
+	CALL_LABELS(TAIL_CALL);
+	CALL_LABELS(CALL_CONST);
+	CALL_LABELS(TAIL_CALL_CONST);
+	CALL_LABELS(CALL_METHOD);
+	CALL_LABELS(TAIL_CALL_METHOD);
 #ifdef ML_SCHEDULER
 	uint64_t Counter = Frame->Schedule->Counter;
 #endif
@@ -870,12 +825,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ML_STORE_COUNTER();
 		return ml_iter_key((ml_state_t *)Frame, Result);
 	}
-	DO_CALL:
-#ifdef ML_DEBUGGER
-	DO_TAIL_CALL:
-#endif
-	{
+	DO_CALL: {
 		int Count = Inst[1].Count;
+		if (__builtin_expect(Count < 10, 1)) goto *CALL_Labels[Count];
 		ml_value_t *Function = Top[~Count];
 		ml_value_t **Args = Top - Count;
 		ml_inst_t *Next = Inst + 2;
@@ -885,9 +837,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Top = Top - (Count + 1);
 		return ml_call(Frame, Function, Count, Args);
 	}
-#ifndef ML_DEBUGGER
 	DO_TAIL_CALL: {
 		int Count = Inst[1].Count;
+		if (__builtin_expect(Count < 10, 1)) goto *TAIL_CALL_Labels[Count];
 		ml_value_t *Function = Top[~Count];
 		ml_value_t **Args = Top - Count;
 		ml_inst_t *Next = Inst + 2;
@@ -909,14 +861,10 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			return ml_call(Frame, Function, Count, Args);
 		}
 	}
-#endif
-	DO_CALL_CONST:
-#ifdef ML_DEBUGGER
-	DO_TAIL_CALL_CONST:
-#endif
-	{
-		ml_value_t *Function = Inst[1].Value;
+	DO_CALL_CONST: {
 		int Count = Inst[2].Count;
+		if (__builtin_expect(Count < 10, 1)) goto *CALL_CONST_Labels[Count];
+		ml_value_t *Function = Inst[1].Value;
 		ml_value_t **Args = Top - Count;
 		ml_inst_t *Next = Inst + 3;
 		ML_STORE_COUNTER();
@@ -925,10 +873,10 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Top = Args;
 		return ml_call(Frame, Function, Count, Args);
 	}
-#ifndef ML_DEBUGGER
 	DO_TAIL_CALL_CONST: {
-		ml_value_t *Function = Inst[1].Value;
 		int Count = Inst[2].Count;
+		if (__builtin_expect(Count < 10, 1)) goto *TAIL_CALL_CONST_Labels[Count];
+		ml_value_t *Function = Inst[1].Value;
 		ml_value_t **Args = Top - Count;
 		ml_inst_t *Next = Inst + 3;
 		ML_STORE_COUNTER();
@@ -949,24 +897,10 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			return ml_call(Frame, Function, Count, Args);
 		}
 	}
-#endif
-	DO_CALL_CONST_(0)
-	DO_CALL_CONST_(1)
-	DO_CALL_CONST_(2)
-	DO_CALL_CONST_(3)
-	DO_CALL_CONST_(4)
-	DO_CALL_CONST_(5)
-	DO_CALL_CONST_(6)
-	DO_CALL_CONST_(7)
-	DO_CALL_CONST_(8)
-	DO_CALL_CONST_(9)
-	DO_CALL_METHOD:
-#ifdef ML_DEBUGGER
-	DO_TAIL_CALL_METHOD:
-#endif
-	{
-		ml_method_t *Method = (ml_method_t *)Inst[1].Value;
+	DO_CALL_METHOD: {
 		int Count = Inst[2].Count;
+		if (__builtin_expect(Count < 10, 1)) goto *CALL_METHOD_Labels[Count];
+		ml_method_t *Method = (ml_method_t *)Inst[1].Value;
 		ml_value_t **Args = Top - Count;
 		ml_method_cached_t *Cached = Inst[3].Data;
 		if (Cached) {
@@ -995,10 +929,10 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Top = Args;
 		return ml_call(Frame, Function, Count, Args);
 	}
-#ifndef ML_DEBUGGER
 	DO_TAIL_CALL_METHOD: {
-		ml_method_t *Method = (ml_method_t *)Inst[1].Value;
 		int Count = Inst[2].Count;
+		if (__builtin_expect(Count < 10, 1)) goto *TAIL_CALL_METHOD_Labels[Count];
+		ml_method_t *Method = (ml_method_t *)Inst[1].Value;
 		ml_value_t **Args = Top - Count;
 		ml_method_cached_t *Cached = Inst[3].Data;
 		if (Cached) {
@@ -1039,17 +973,6 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			return ml_call(Frame, Function, Count, Args);
 		}
 	}
-#endif
-	DO_CALL_METHOD_(0)
-	DO_CALL_METHOD_(1)
-	DO_CALL_METHOD_(2)
-	DO_CALL_METHOD_(3)
-	DO_CALL_METHOD_(4)
-	DO_CALL_METHOD_(5)
-	DO_CALL_METHOD_(6)
-	DO_CALL_METHOD_(7)
-	DO_CALL_METHOD_(8)
-	DO_CALL_METHOD_(9)
 	DO_ASSIGN: {
 		Result = ml_deref(Result);
 		ml_value_t *Ref = Top[-1];
@@ -1253,6 +1176,16 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst + 2);
 #endif
 	}
+	DO_CALL_COUNT(0);
+	DO_CALL_COUNT(1);
+	DO_CALL_COUNT(2);
+	DO_CALL_COUNT(3);
+	DO_CALL_COUNT(4);
+	DO_CALL_COUNT(5);
+	DO_CALL_COUNT(6);
+	DO_CALL_COUNT(7);
+	DO_CALL_COUNT(8);
+	DO_CALL_COUNT(9);
 #ifdef DEBUG_VERSION
 	DO_DEBUG_ERROR: {
 		ml_debugger_t *Debugger = Frame->Debugger;
@@ -1465,7 +1398,6 @@ static int ml_closure_find_labels(ml_inst_t *Inst, unsigned int *Labels) {
 	case MLIT_COUNT_COUNT: return 3;
 	case MLIT_COUNT: return 2;
 	case MLIT_VALUE: return 2;
-	case MLIT_VALUE_DATA: return 3;
 	case MLIT_VALUE_COUNT: return 3;
 	case MLIT_VALUE_COUNT_DATA: return 4;
 	case MLIT_COUNT_CHARS: return 3;
@@ -1521,9 +1453,6 @@ static int ml_inst_hash(ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) 
 	case MLIT_VALUE:
 		*(long *)(Info->Hash + J) ^= ml_hash(Inst[1].Value);
 		return 2;
-	case MLIT_VALUE_DATA:
-		*(long *)(Info->Hash + J) ^= ml_hash(Inst[1].Value);
-		return 3;
 	case MLIT_VALUE_COUNT:
 		*(long *)(Info->Hash + J) ^= ml_hash(Inst[1].Value);
 		*(int *)(Info->Hash + I) ^= Inst[2].Count;
@@ -1599,10 +1528,6 @@ static long ml_closure_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	return Hash;
 }
 
-static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Closure), ml_state_t *Frame, ml_closure_t *Closure) {
-	return ml_closure_call(Frame, Closure, 0, NULL);
-}
-
 ML_FUNCTION(MLClosure) {
 //@closure
 //<Original
@@ -1627,19 +1552,31 @@ ML_TYPE(MLClosureT, (MLFunctionT, MLSequenceT), "closure",
 	.Constructor = (ml_value_t *)MLClosure
 );
 
-static void ML_TYPED_FN(ml_value_find_refs, MLClosureT, ml_closure_t *Closure, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
-	if (!RefFn(Data, (ml_value_t *)Closure)) return;
+static void ML_TYPED_FN(ml_iterate, MLClosureT, ml_state_t *Frame, ml_closure_t *Closure) {
+	return ml_closure_call(Frame, Closure, 0, NULL);
+}
+
+static void ML_TYPED_FN(ml_value_find_all, MLClosureT, ml_closure_t *Closure, void *Data, ml_value_find_fn RefFn) {
+	if (!RefFn(Data, (ml_value_t *)Closure, 1)) return;
 	ml_closure_info_t *Info = Closure->Info;
 	Info->Type = MLClosureInfoT;
-	ml_value_find_refs((ml_value_t *)Info, Data, RefFn, RefsOnly);
-	for (int I = 0; I < Info->NumUpValues; ++I) ml_value_find_refs(Closure->UpValues[I], Data, RefFn, RefsOnly);
+	ml_value_find_all((ml_value_t *)Info, Data, RefFn);
+	for (int I = 0; I < Info->NumUpValues; ++I) ml_value_find_all(Closure->UpValues[I], Data, RefFn);
+}
+
+static int ML_TYPED_FN(ml_value_is_constant, MLClosureT, ml_closure_t *Closure) {
+	ml_closure_info_t *Info = Closure->Info;
+	for (int I = 0; I < Info->NumUpValues; ++I) {
+		if (!ml_value_is_constant(Closure->UpValues[I])) return 0;
+	}
+	return 1;
 }
 
 ML_TYPE(MLClosureInfoT, (), "closure::info");
 // Information about a closure.
 
-static void ML_TYPED_FN(ml_value_find_refs, MLClosureInfoT, ml_closure_info_t *Info, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
-	if (!RefFn(Data, (ml_value_t *)Info)) return;
+static void ML_TYPED_FN(ml_value_find_all, MLClosureInfoT, ml_closure_info_t *Info, void *Data, ml_value_find_fn RefFn) {
+	if (!RefFn(Data, (ml_value_t *)Info, 1)) return;
 	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
 		if (Inst->Opcode == MLI_LINK) {
 			Inst = Inst[1].Inst;
@@ -1662,19 +1599,15 @@ static void ML_TYPED_FN(ml_value_find_refs, MLClosureInfoT, ml_closure_info_t *I
 			Inst += 2;
 			break;
 		case MLIT_VALUE:
-			ml_value_find_refs(Inst[1].Value, Data, RefFn, RefsOnly);
+			ml_value_find_all(Inst[1].Value, Data, RefFn);
 			Inst += 2;
 			break;
-		case MLIT_VALUE_DATA:
-			ml_value_find_refs(Inst[1].Value, Data, RefFn, RefsOnly);
-			Inst += 3;
-			break;
 		case MLIT_VALUE_COUNT:
-			ml_value_find_refs(Inst[1].Value, Data, RefFn, RefsOnly);
+			ml_value_find_all(Inst[1].Value, Data, RefFn);
 			Inst += 3;
 			break;
 		case MLIT_VALUE_COUNT_DATA:
-			ml_value_find_refs(Inst[1].Value, Data, RefFn, RefsOnly);
+			ml_value_find_all(Inst[1].Value, Data, RefFn);
 			Inst += 4;
 			break;
 		case MLIT_COUNT_CHARS:
@@ -1692,7 +1625,7 @@ static void ML_TYPED_FN(ml_value_find_refs, MLClosureInfoT, ml_closure_info_t *I
 		case MLIT_CLOSURE: {
 			ml_closure_info_t *Info = Inst[1].ClosureInfo;
 			if (!Info->Type) Info->Type = MLClosureInfoT;
-			ml_value_find_refs((ml_value_t *)Info, Data, RefFn, RefsOnly);
+			ml_value_find_all((ml_value_t *)Info, Data, RefFn);
 			Inst += 2 + Info->NumUpValues;
 			break;
 		}
@@ -1712,14 +1645,18 @@ ml_value_t *ml_closure(ml_closure_info_t *Info) {
 	return (ml_value_t *)Closure;
 }
 
+static void ML_TYPED_FN(ml_value_set_name, MLClosureT, ml_closure_t *Closure, const char *Name) {
+	Closure->Name = Name;
+}
+
 ML_METHOD("append", MLStringBufferT, MLClosureT) {
 //<Buffer
 //<Closure
 // Appends a representation of :mini:`Closure` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_closure_t *Closure = (ml_closure_t *)Args[1];
-	ml_stringbuffer_put(Buffer, '@');
-	ml_stringbuffer_write(Buffer, Closure->Info->Name, strlen(Closure->Info->Name));
+	const char *Name = Closure->Name ?: Closure->Info->Name;
+	ml_stringbuffer_write(Buffer, Name, strlen(Name));
 	return MLSome;
 }
 
@@ -1805,9 +1742,6 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 	case MLIT_VALUE:
 		ml_closure_value_list(Inst[1].Value, Buffer);
 		return 2;
-	case MLIT_VALUE_DATA:
-		ml_closure_value_list(Inst[1].Value, Buffer);
-		return 3;
 	case MLIT_VALUE_COUNT:
 		ml_closure_value_list(Inst[1].Value, Buffer);
 		ml_stringbuffer_printf(Buffer, ", %d", Inst[2].Count);
@@ -1920,7 +1854,7 @@ void ml_closure_list(ml_value_t *Value) {
 	ml_closure_info_t *Info = Closure->Info;
 	ml_closure_info_labels(Info);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
-	ml_stringbuffer_printf(Buffer, "<%s:%d>\n", Info->Source, Info->StartLine);
+	ml_stringbuffer_printf(Buffer, "@%s:%d\n", Info->Source, Info->StartLine);
 	for (ml_inst_t *Inst = Info->Entry; Inst != Info->Halt;) {
 		if (Inst->Opcode == MLI_LINK) {
 			Inst = Inst[1].Inst;

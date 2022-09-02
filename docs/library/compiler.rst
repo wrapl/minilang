@@ -7,6 +7,8 @@
 compiler
 ========
 
+.. rst-class:: mini-api
+
 .. _type-compiler:
 
 :mini:`type compiler < state`
@@ -78,6 +80,12 @@ compiler
 
 
 :mini:`meth (Arg₁: expr):start`
+   *TBD*
+
+
+.. _type-function-inline:
+
+:mini:`type function::inline < function`
    *TBD*
 
 

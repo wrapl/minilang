@@ -7,6 +7,8 @@
 debugger
 ========
 
+.. rst-class:: mini-api
+
 .. _fun-debugger:
 
 :mini:`fun debugger(Function: any): debugger`

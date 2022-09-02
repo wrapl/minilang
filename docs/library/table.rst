@@ -7,6 +7,8 @@
 table
 =====
 
+.. rst-class:: mini-api
+
 .. _type-table:
 
 :mini:`type table < sequence`

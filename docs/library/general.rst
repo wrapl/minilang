@@ -7,6 +7,8 @@
 general
 =======
 
+.. rst-class:: mini-api
+
 .. _fun-clock:
 
 :mini:`fun clock()`
@@ -51,6 +53,18 @@ general
       X :> 11
 
 
+.. _fun-copy:
+
+:mini:`fun copy(Value: any, Fn?: function): any`
+   Returns a copy of :mini:`Value` using a new :mini:`copy` instance which applies :mini:`Fn(Copy,  Value)` to each value. If omitted,  :mini:`Fn` defaults to :mini:`:visit`.
+
+
+.. _fun-copy-const:
+
+:mini:`fun copy::const(Value: any, Fn?: function): any`
+   Returns a copy of :mini:`Value` using a new :mini:`copy::const` instance which applies :mini:`Fn(Copy,  Value)` to each value. If omitted,  :mini:`Fn` defaults to :mini:`:visit`.
+
+
 .. _fun-deref:
 
 :mini:`fun deref(Value: any): any`
@@ -63,10 +77,26 @@ general
    Assigns :mini:`Varᵢ := Varᵢ₊₁` for each :mini:`1 <= i < n` and :mini:`Varₙ := Var₁`.
 
 
-.. _fun-findrefs:
+.. _fun-findall:
 
-:mini:`fun findrefs(Value: any, RefsOnly?: boolean): list`
+:mini:`fun findall(Value: any, Filter?: boolean|type): list`
    Returns a list of all unique values referenced by :mini:`Value` (including :mini:`Value`).
+
+
+.. _fun-isconstant:
+
+:mini:`fun isconstant(Value: any): any | nil`
+   Returns :mini:`some` if it is a constant (i.e. directly immutable and not referencing any mutable values),  otherwise returns :mini:`nil`.
+
+   .. code-block:: mini
+
+      isconstant(1) :> 1
+      isconstant(1.5) :> 1.5
+      isconstant("Hello") :> "Hello"
+      isconstant(true) :> true
+      isconstant([1, 2, 3]) :> nil
+      isconstant((1, 2, 3)) :> (1, 2, 3)
+      isconstant((1, [2], 3)) :> nil
 
 
 .. _fun-print:
@@ -79,5 +109,33 @@ general
 
 :mini:`fun replace(Var₁: any, ..., Varₙ: any, Value: any)`
    Assigns :mini:`Varᵢ := Varᵢ₊₁` for each :mini:`1 <= i < n` and :mini:`Varₙ := Value`. Returns the old value of :mini:`Var₁`.
+
+
+.. _type-copy:
+
+:mini:`type copy < visitor`
+   A visitor that creates a copy of each value it visits.
+
+
+.. _type-copy-const:
+
+:mini:`type copy::const < copy`
+   A visitor that creates an immutable copy of each value it visits.
+
+
+.. _type-visitor:
+
+:mini:`type visitor < function`
+   Used to apply a transformation recursively to values.
+   
+   :mini:`fun (V: visitor)(Value: any,  Result: any): any`
+      Adds the pair :mini:`(Value,  Result)` to :mini:`V`'s cache and returns :mini:`Result`.
+   
+   :mini:`fun (V: visitor)(Value: any): any`
+      Visits :mini:`Value` with :mini:`V` returning the result.
+
+
+:mini:`meth (Visitor: visitor):visit(Value: any): any`
+   Default visitor implementation,  just returns :mini:`Value`.
 
 

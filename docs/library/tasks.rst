@@ -7,6 +7,8 @@
 tasks
 =====
 
+.. rst-class:: mini-api
+
 .. _fun-parallel:
 
 :mini:`fun parallel(Sequence: any, Max?: integer, Min?: integer, Fn: function): nil | error`

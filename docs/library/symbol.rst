@@ -7,6 +7,8 @@
 symbol
 ======
 
+.. rst-class:: mini-api
+
 .. _type-symbol:
 
 :mini:`type symbol < function`

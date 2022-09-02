@@ -7,13 +7,15 @@
 enum
 ====
 
+.. rst-class:: mini-api
+
 .. _type-enum:
 
 :mini:`type enum < type, sequence`
    The base type of enumeration types.
 
 
-:mini:`meth enum(Values: string, ..., Arg₂: string): enum`
+:mini:`meth enum(Names: string, ...): enum`
    Returns a new enumeration type.
 
    .. code-block:: mini

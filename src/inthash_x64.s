@@ -81,3 +81,8 @@ inthash_search2:
 	xor %eax, %eax
 	xor %edx, %edx
 	ret
+
+#ifdef __ELF__
+.section .note.GNU-stack,""
+#endif
+

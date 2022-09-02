@@ -7,6 +7,8 @@
 condition
 =========
 
+.. rst-class:: mini-api
+
 .. _type-condition:
 
 :mini:`type condition`

@@ -7,6 +7,8 @@
 xml
 ===
 
+.. rst-class:: mini-api
+
 :mini:`meth xml::parse(Stream: stream): xml`
    Returns the contents of :mini:`Stream` parsed into an XML node.
 

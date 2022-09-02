@@ -203,6 +203,7 @@
       <keyword>export</keyword>
       <keyword>exchange</keyword>
       <keyword>replace</keyword>
+      <keyword>copy</keyword>
       <keyword>skip</keyword>
       <keyword>limit</keyword>
       <keyword>some</keyword>

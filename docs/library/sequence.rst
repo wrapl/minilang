@@ -7,6 +7,8 @@
 sequence
 ========
 
+.. rst-class:: mini-api
+
 .. _fun-iter_key:
 
 :mini:`fun iter_key(Value: any): any | nil`
@@ -552,7 +554,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "e"
+      random("cake") :> "c"
       random([]) :> nil
 
 

@@ -7,6 +7,8 @@
 minijs
 ======
 
+.. rst-class:: mini-api
+
 :mini:`meth minijs::encode(Value: any): string | error`
    *TBD*
 

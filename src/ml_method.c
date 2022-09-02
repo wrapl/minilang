@@ -337,6 +337,10 @@ ML_TYPE(MLMethodAnonT, (MLMethodT), "method::anon",
 	.call = ml_method_call
 );
 
+static void ML_TYPED_FN(ml_value_set_name, MLMethodAnonT, ml_method_t *Method, const char *Name) {
+	Method->Name = Name;
+}
+
 #ifdef ML_THREADSAFE
 
 static volatile atomic_flag MLMethodsLock[1] = {ATOMIC_FLAG_INIT};
@@ -376,6 +380,10 @@ ml_value_t *ml_method_anon(const char *Name) {
 	Method->Type = MLMethodAnonT;
 	Method->Name = Name;
 	return (ml_value_t *)Method;
+}
+
+static int ML_TYPED_FN(ml_value_is_constant, MLMethodT, ml_value_t *Value) {
+	return 1;
 }
 
 ML_METHOD(MLMethodT) {
@@ -518,7 +526,7 @@ ML_TYPE(MLMethodSwitchT, (MLFunctionT), "method-switch",
 	.call = (void *)ml_method_switch
 );
 
-ML_FUNCTION(MLMethodSwitch) {
+ML_FUNCTION_INLINE(MLMethodSwitch) {
 //!internal
 	int Total = 1;
 	for (int I = 0; I < Count; ++I) {
@@ -725,7 +733,7 @@ ML_FUNCTION(MLMethodList) {
 void ml_method_init() {
 	ml_context_set(&MLRootContext, ML_METHODS_INDEX, MLRootMethods);
 #include "ml_method_init.c"
-	stringmap_insert(MLMethodT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLMethodSwitch));
+	stringmap_insert(MLMethodT->Exports, "switch", MLMethodSwitch);
 	//stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
 	stringmap_insert(MLMethodT->Exports, "context", MLMethodContext);
 	stringmap_insert(MLMethodT->Exports, "list", MLMethodList);

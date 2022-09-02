@@ -7,6 +7,8 @@
 semaphore
 =========
 
+.. rst-class:: mini-api
+
 .. _type-semaphore:
 
 :mini:`type semaphore`

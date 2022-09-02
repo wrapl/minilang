@@ -7,6 +7,8 @@
 function
 ========
 
+.. rst-class:: mini-api
+
 .. _type-function:
 
 :mini:`type function`

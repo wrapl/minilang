@@ -32,6 +32,7 @@ fun write_category(Name, Items) do
 	File:write(Name, "\n")
 	for I in Name do File:write("=") end
 	File:write("\n\n")
+	File:write(".. rst-class:: mini-api\n\n")
 	loop
 		let (Docs, Key) := while Items:next
 		:>print('\t{Key}\n')
@@ -52,21 +53,28 @@ end
 
 fun type_name(var Type) do
 	Type or ret "any"
-	Type := Type:replace(" ## ", "::")
-	if let Match := Type % r"^ML(.*)T$" then
-		if let Match2 := Match[2] % r"([A-Z]{1,2}[a-z]+)([A-Z][a-z]+)" then
-			ret '{Match2[2]:lower}::{Match2[3]:lower}'
+	Type := Type:replace(" ## ", "")
+	let Name := if let Match := Type % r"^ML(.*)T$" then
+		if let Match2 := Match[2] % r"([A-Z]{1,2}[a-z]+)([A-Z]{1,2}[a-z0-9]+)([A-Z]{1,2}[a-z0-9]+)" then
+			'{Match2[2]:lower}::{Match2[3]:lower}::{Match2[4]:lower}'
+		elseif let Match2 := Match[2] % r"([A-Z]{1,2}[a-z]+)([A-Z]{1,2}[a-z0-9]+)" then
+			'{Match2[2]:lower}::{Match2[3]:lower}'
+		else
+			Match[2]:lower:trim(":")
 		end
-		ret Match[2]:lower:trim(":")
 	elseif let Match := Type % r"^Gir(.*)T$" then
-		ret "gir::" + Match[2]:lower:trim(":")
+		"gir::" + Match[2]:lower:trim(":")
 	elseif let Match := Type % r"^XE(.*)T$" then
-		ret "xe::" + Match[2]:lower:trim(":")
+		"xe::" + Match[2]:lower:trim(":")
 	elseif let Match := Type % r"^(.*)T$" then
-		ret Match[2]:lower:trim(":")
+		Match[2]:lower:trim(":")
 	else
-		ret Type
+		Type
 	end
+	:<if first(grid([Type], ["Array", "Matrix", "Vector", "::"], :find)) then
+		print(Type, " -> ", Name, "\n")
+	end>:
+	ret Name
 end
 
 fun is_symbol(Method) Method:lower = Method:upper
@@ -343,7 +351,8 @@ fun write_type(Category, Name, Parents, Description, Examples, Location) do
 		var Seperator := ""
 		if Category != "internal" then
 			for Parent in Parents do
-				TypesGraph:write('      \"{type_name(Parent)}\":e -> \"{TypeName}\":w;\n')
+				let ParentName := type_name(Parent)
+				TypesGraph:write('      \"{ParentName}\":e -> \"{TypeName}\":w;\n')
 				Buffer:write(Seperator, type_name(Parent))
 				Seperator := ", "
 			end

@@ -7,6 +7,8 @@
 library
 =======
 
+.. rst-class:: mini-api
+
 .. _type-module-dir:
 
 :mini:`type module::dir`

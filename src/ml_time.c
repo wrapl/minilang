@@ -37,6 +37,10 @@ void ml_time_value(ml_value_t *Value, struct timespec *Time) {
 	Time[0] = ((ml_time_t *)Value)->Value[0];
 }
 
+static int ML_TYPED_FN(ml_value_is_constant, MLTimeT, ml_value_t *Value) {
+	return 1;
+}
+
 ML_METHOD(MLTimeT) {
 //>time
 // Returns the current time.

@@ -15,12 +15,6 @@ static ml_list_node_t *ml_list_index(ml_list_t *List, int Index) {
 	if (Index < 1) return NULL;
 	if (Index == 1) return List->Head;
 	int CachedIndex = List->CachedIndex;
-	if (CachedIndex < 0) {
-		CachedIndex = 0;
-		List->CachedNode = List->Head;
-	} else if (CachedIndex > Length) {
-
-	}
 	switch (Index - CachedIndex) {
 	case -1: {
 		List->CachedIndex = Index;
@@ -54,34 +48,29 @@ static ml_list_node_t *ml_list_index(ml_list_t *List, int Index) {
 	return (List->CachedNode = Node);
 }
 
-ML_TYPE(MLListT, (MLSequenceT), "list",
+ML_TYPE(MLListT, (MLSequenceT), "list");
+
+ML_TYPE(MLListMutableT, (MLListT), "list::mutable",
 // A list of elements.
 );
 
-static void ML_TYPED_FN(ml_value_find_refs, MLListT, ml_value_t *Value, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
-	if (!RefFn(Data, Value)) return;
-	ML_LIST_FOREACH(Value, Iter) ml_value_find_refs(Iter->Value, Data, RefFn, RefsOnly);
+static void ML_TYPED_FN(ml_value_find_all, MLListT, ml_value_t *Value, void *Data, ml_value_find_fn RefFn) {
+	if (!RefFn(Data, Value, 1)) return;
+	ML_LIST_FOREACH(Value, Iter) ml_value_find_all(Iter->Value, Data, RefFn);
 }
 
 static ml_value_t *ml_list_node_deref(ml_list_node_t *Node) {
 	return Node->Value;
 }
 
-static void ml_list_node_assign(ml_state_t *Caller, ml_list_node_t *Node, ml_value_t *Value) {
-	Node->Value = Value;
-	ML_RETURN(Value);
-}
-
 static void ml_list_node_call(ml_state_t *Caller, ml_list_node_t *Node, int Count, ml_value_t **Args) {
 	return ml_call(Caller, Node->Value, Count, Args);
 }
 
-ML_TYPE(MLListNodeT, (), "list-node",
+ML_TYPE(MLListNodeT, (), "list::node",
 // A node in a :mini:`list`.
-// Dereferencing a :mini:`listnode` returns the corresponding value from the :mini:`list`.
-// Assigning to a :mini:`listnode` updates the corresponding value in the :mini:`list`.
+// Dereferencing a :mini:`list::node::const` returns the corresponding value from the :mini:`list`.
 	.deref = (void *)ml_list_node_deref,
-	.assign = (void *)ml_list_node_assign,
 	.call = (void *)ml_list_node_call
 );
 
@@ -100,9 +89,23 @@ static void ML_TYPED_FN(ml_iter_value, MLListNodeT, ml_state_t *Caller, ml_list_
 	ML_RETURN(Node);
 }
 
+static void ml_list_node_assign(ml_state_t *Caller, ml_list_node_t *Node, ml_value_t *Value) {
+	Node->Value = Value;
+	ML_RETURN(Value);
+}
+
+ML_TYPE(MLListNodeMutableT, (MLListNodeT), "list::node::mutable",
+// A node in a :mini:`list`.
+// Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
+// Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
+	.deref = (void *)ml_list_node_deref,
+	.assign = (void *)ml_list_node_assign,
+	.call = (void *)ml_list_node_call
+);
+
 ml_value_t *ml_list() {
 	ml_list_t *List = new(ml_list_t);
-	List->Type = MLListT;
+	List->Type = MLListMutableT;
 	List->Head = List->Tail = NULL;
 	List->Length = 0;
 	return (ml_value_t *)List;
@@ -159,7 +162,7 @@ ML_METHODVX(MLListT, MLSequenceT) {
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
-ML_METHODVX("grow", MLListT, MLSequenceT) {
+ML_METHODVX("grow", MLListMutableT, MLSequenceT) {
 //<List
 //<Sequence
 //>list
@@ -197,7 +200,7 @@ void ml_list_grow(ml_value_t *List0, int Count) {
 void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
 	ml_list_t *List = (ml_list_t *)List0;
 	ml_list_node_t *Node = new(ml_list_node_t);
-	Node->Type = MLListNodeT;
+	Node->Type = MLListNodeMutableT;
 	Node->Value = Value;
 	if ((Node->Next = List->Head)) {
 		List->Head->Prev = Node;
@@ -207,7 +210,7 @@ void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
 			if (Type != ml_typeof(Value)) {
 				ml_type_t *Type2 = ml_type_max(Type, ml_typeof(Value));
 				if (Type != Type2) {
-					List->Type = ml_generic_type(2, (ml_type_t *[]){MLListT, Type2});
+					List->Type = ml_generic_type(2, (ml_type_t *[]){MLListMutableT, Type2});
 				}
 			}
 		}
@@ -215,8 +218,8 @@ void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
 	} else {
 		List->Tail = Node;
 #ifdef ML_GENERICS
-		if (List->Type == MLListT) {
-			List->Type = ml_generic_type(2, (ml_type_t *[]){MLListT, ml_typeof(Value)});
+		if (List->Type == MLListMutableT) {
+			List->Type = ml_generic_type(2, (ml_type_t *[]){MLListMutableT, ml_typeof(Value)});
 		}
 #endif
 	}
@@ -228,7 +231,7 @@ void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
 void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 	ml_list_t *List = (ml_list_t *)List0;
 	ml_list_node_t *Node = new(ml_list_node_t);
-	Node->Type = MLListNodeT;
+	Node->Type = MLListNodeMutableT;
 	Node->Value = Value;
 	ml_type_t *Type0 = ml_typeof(Value);
 	if (Type0 == MLUninitializedT) {
@@ -243,7 +246,7 @@ void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 			if (Type != Type0) {
 				ml_type_t *Type2 = ml_type_max(Type, Type0);
 				if (Type != Type2) {
-					List->Type = ml_generic_type(2, (ml_type_t *[]){MLListT, Type2});
+					List->Type = ml_generic_type(2, (ml_type_t *[]){MLListMutableT, Type2});
 				}
 			}
 		}
@@ -251,8 +254,8 @@ void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 	} else {
 		List->Head = Node;
 #ifdef ML_GENERICS
-		if (List->Type == MLListT) {
-			List->Type = ml_generic_type(2, (ml_type_t *[]){MLListT, ml_typeof(Value)});
+		if (List->Type == MLListMutableT) {
+			List->Type = ml_generic_type(2, (ml_type_t *[]){MLListMutableT, ml_typeof(Value)});
 		}
 #endif
 	}
@@ -385,7 +388,7 @@ static void ml_list_filter_state_run(ml_list_filter_state_t *State, ml_value_t *
 	ML_CONTINUE(State->Base.Caller, State->Drop);
 }
 
-ML_METHODX("filter", MLListT, MLFunctionT) {
+ML_METHODX("filter", MLListMutableT, MLFunctionT) {
 //<List
 //<Filter
 //>list
@@ -400,7 +403,7 @@ ML_METHODX("filter", MLListT, MLFunctionT) {
 	State->Base.run = (ml_state_fn)ml_list_filter_state_run;
 	State->List = List;
 	ml_list_t *Drop = State->Drop = new(ml_list_t);
-	Drop->Type = MLListT;
+	Drop->Type = MLListMutableT;
 	State->Filter = Args[1];
 	State->Node = List->Head;
 	State->KeepSlot = &List->Head;
@@ -415,7 +418,7 @@ ML_METHODX("filter", MLListT, MLFunctionT) {
 ML_METHOD("[]", MLListT, MLIntegerT) {
 //<List
 //<Index
-//>listnode | nil
+//>list::node | nil
 // Returns the :mini:`Index`-th node in :mini:`List` or :mini:`nil` if :mini:`Index` is outside the range of :mini:`List`.
 // Indexing starts at :mini:`1`. Negative indices are counted from the end of the list, with :mini:`-1` returning the last node.
 //$- let L := ["a", "b", "c", "d", "e", "f"]
@@ -465,7 +468,7 @@ ML_TYPE(MLListSliceT, (), "list-slice",
 	.assign = (void *)ml_list_slice_assign
 );
 
-ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
+ML_METHOD("[]", MLListMutableT, MLIntegerT, MLIntegerT) {
 //<List
 //<From
 //<To
@@ -485,7 +488,22 @@ ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
 	return (ml_value_t *)Slice;
 }
 
-ML_METHOD("[]", MLListT, MLIntegerRangeT) {
+ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
+//!internal
+	ml_list_t *List = (ml_list_t *)Args[0];
+	int Start = ml_integer_value_fast(Args[1]);
+	int End = ml_integer_value_fast(Args[2]);
+	if (Start <= 0) Start += List->Length + 1;
+	if (End <= 0) End += List->Length + 1;
+	if (Start <= 0 || End < Start || End > List->Length + 1) return MLNil;
+	ml_list_slice_t *Slice = new(ml_list_slice_t);
+	Slice->Type = MLListSliceT;
+	Slice->Head = ml_list_index(List, Start);
+	Slice->Length = End - Start;
+	return ml_deref((ml_value_t *)Slice);
+}
+
+ML_METHOD("[]", MLListMutableT, MLIntegerRangeT) {
 //<List
 //<Range
 //>list::slice
@@ -505,7 +523,23 @@ ML_METHOD("[]", MLListT, MLIntegerRangeT) {
 	return (ml_value_t *)Slice;
 }
 
-ML_METHOD("[]", MLListT, MLListT) {
+ML_METHOD("[]", MLListT, MLIntegerRangeT) {
+//!internal
+	ml_list_t *List = (ml_list_t *)Args[0];
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[1];
+	int Start = Range->Start, End = Range->Limit + 1, Step = Range->Step;
+	if (Step != 1) return ml_error("ValueError", "Invalid step size for list slice");
+	if (Start <= 0) Start += List->Length + 1;
+	if (End <= 0) End += List->Length + 1;
+	if (Start <= 0 || End < Start || End > List->Length + 1) return MLNil;
+	ml_list_slice_t *Slice = new(ml_list_slice_t);
+	Slice->Type = MLListSliceT;
+	Slice->Head = ml_list_index(List, Start);
+	Slice->Length = End - Start;
+	return ml_deref((ml_value_t *)Slice);
+}
+
+ML_METHOD("[]", MLListT, MLListMutableT) {
 //<List
 //<Indices
 //>list
@@ -605,7 +639,7 @@ static void ML_TYPED_FN(ml_iterate, MLListT, ml_state_t *Caller, ml_list_t *List
 	}
 }
 
-ML_METHODV("push", MLListT) {
+ML_METHODV("push", MLListMutableT) {
 //<List
 //<Values...: any
 //>list
@@ -615,7 +649,7 @@ ML_METHODV("push", MLListT) {
 	return Args[0];
 }
 
-ML_METHODV("put", MLListT) {
+ML_METHODV("put", MLListMutableT) {
 //<List
 //<Values...: any
 //>list
@@ -625,21 +659,21 @@ ML_METHODV("put", MLListT) {
 	return Args[0];
 }
 
-ML_METHOD("pop", MLListT) {
+ML_METHOD("pop", MLListMutableT) {
 //<List
 //>any | nil
 // Removes and returns the first element of :mini:`List` or :mini:`nil` if the :mini:`List` is empty.
 	return ml_list_pop(Args[0]) ?: MLNil;
 }
 
-ML_METHOD("pull", MLListT) {
+ML_METHOD("pull", MLListMutableT) {
 //<List
 //>any | nil
 // Removes and returns the last element of :mini:`List` or :mini:`nil` if the :mini:`List` is empty.
 	return ml_list_pull(Args[0]) ?: MLNil;
 }
 
-ML_METHOD("empty", MLListT) {
+ML_METHOD("empty", MLListMutableT) {
 //<List
 //>list
 // Removes all elements from :mini:`List` and returns it.
@@ -660,7 +694,7 @@ ML_METHOD("+", MLListT, MLListT) {
 	return List;
 }
 
-ML_METHOD("splice", MLListT) {
+ML_METHOD("splice", MLListMutableT) {
 //<List
 //>list | nil
 // Removes all elements from :mini:`List`. Returns the removed elements as a new list.
@@ -672,7 +706,7 @@ ML_METHOD("splice", MLListT) {
 	return (ml_value_t *)Removed;
 }
 
-ML_METHOD("splice", MLListT, MLIntegerT, MLIntegerT) {
+ML_METHOD("splice", MLListMutableT, MLIntegerT, MLIntegerT) {
 //<List
 //<Index
 //<Count
@@ -739,7 +773,7 @@ ML_METHOD("splice", MLListT, MLIntegerT, MLIntegerT) {
 	return (ml_value_t *)Removed;
 }
 
-ML_METHOD("splice", MLListT, MLIntegerT, MLIntegerT, MLListT) {
+ML_METHOD("splice", MLListMutableT, MLIntegerT, MLIntegerT, MLListMutableT) {
 //<List
 //<Index
 //<Count
@@ -856,7 +890,7 @@ ML_METHOD("splice", MLListT, MLIntegerT, MLIntegerT, MLListT) {
 	return (ml_value_t *)Removed;
 }
 
-ML_METHOD("splice", MLListT, MLIntegerT, MLListT) {
+ML_METHOD("splice", MLListMutableT, MLIntegerT, MLListMutableT) {
 //<List
 //<Index
 //<Source
@@ -901,7 +935,7 @@ ML_METHOD("splice", MLListT, MLIntegerT, MLListT) {
 	return MLNil;
 }
 
-ML_METHOD("reverse", MLListT) {
+ML_METHOD("reverse", MLListMutableT) {
 //<List
 //>list
 // Reverses :mini:`List` in-place and returns it.
@@ -1019,7 +1053,7 @@ finished:
 
 extern ml_value_t *LessMethod;
 
-ML_METHODX("sort", MLListT) {
+ML_METHODX("sort", MLListMutableT) {
 //<List
 //>List
 // Sorts :mini:`List` in-place using :mini:`<` and returns it.
@@ -1041,7 +1075,7 @@ ML_METHODX("sort", MLListT) {
 	return ml_list_sort_state_run(State, NULL);
 }
 
-ML_METHODX("sort", MLListT, MLFunctionT) {
+ML_METHODX("sort", MLListMutableT, MLFunctionT) {
 //<List
 //<Compare
 //>List
@@ -1113,7 +1147,7 @@ static void ml_list_delete(ml_list_t *List, ml_list_node_t *Node) {
 	--List->Length;
 }
 
-ML_METHOD("delete", MLListT, MLIntegerT) {
+ML_METHOD("delete", MLListMutableT, MLIntegerT) {
 //<List
 //<Index
 //>any|nil
@@ -1156,7 +1190,7 @@ static void ml_list_pop_state_run(ml_list_remove_state_t *State, ml_value_t *Val
 	ML_CONTINUE(State->Base.Caller, MLNil);
 }
 
-ML_METHODX("pop", MLListT, MLFunctionT) {
+ML_METHODX("pop", MLListMutableT, MLFunctionT) {
 //<List
 //<Fn
 //>any|nil
@@ -1192,7 +1226,7 @@ static void ml_list_pull_state_run(ml_list_remove_state_t *State, ml_value_t *Va
 	ML_CONTINUE(State->Base.Caller, MLNil);
 }
 
-ML_METHODX("pull", MLListT, MLFunctionT) {
+ML_METHODX("pull", MLListMutableT, MLFunctionT) {
 //<List
 //<Fn
 //>any|nil
@@ -1213,7 +1247,7 @@ ML_METHODX("pull", MLListT, MLFunctionT) {
 	return ml_call(State, State->Fn, 1, State->Args);
 }
 
-ML_METHOD("permute", MLListT) {
+ML_METHOD("permute", MLListMutableT) {
 //!list
 //<List
 //>list
@@ -1250,7 +1284,7 @@ ML_METHOD("permute", MLListT) {
 	return (ml_value_t *)List;
 }
 
-ML_METHOD("shuffle", MLListT) {
+ML_METHOD("shuffle", MLListMutableT) {
 //!list
 //<List
 //>list
@@ -1283,7 +1317,7 @@ ML_METHOD("shuffle", MLListT) {
 	return (ml_value_t *)List;
 }
 
-ML_METHOD("cycle", MLListT) {
+ML_METHOD("cycle", MLListMutableT) {
 //!list
 //<List
 //>list
@@ -1370,7 +1404,7 @@ static void ML_TYPED_FN(ml_iter_value, MLPermutationsT, ml_state_t *Caller, ml_p
 	ML_RETURN(Permutations->List);
 }
 
-ML_METHOD("permutations", MLListT) {
+ML_METHOD("permutations", MLListMutableT) {
 //<List
 //>sequence
 // Returns a sequence of all permutations of :mini:`List`, performed in-place.
@@ -1408,7 +1442,7 @@ ML_METHOD("random", MLListT) {
 
 typedef struct {
 	ml_state_t Base;
-	ml_value_t *Copy, *Dest;
+	ml_value_t *Visitor, *Dest;
 	ml_list_node_t *Node;
 	ml_value_t *Args[1];
 } ml_list_copy_t;
@@ -1421,28 +1455,86 @@ static void ml_list_copy_run(ml_list_copy_t *State, ml_value_t *Value) {
 	if (!Node) ML_RETURN(State->Dest);
 	State->Node = Node;
 	State->Args[0] = Node->Value;
-	return ml_call(State, State->Copy, 1, State->Args);
+	return ml_call(State, State->Visitor, 1, State->Args);
 }
 
-ML_METHODX("copy", MLCopyT, MLListT) {
+ML_METHODX("visit", MLCopyT, MLListT) {
 //<Copy
 //<List
 //>list
-// Returns a new list contains copies of the elements of :mini:`List` created using :mini:`Copy`.
-	ml_copy_t *Copy = (ml_copy_t *)Args[0];
+// Returns a new list containing copies of the elements of :mini:`List` created using :mini:`Copy`.
+	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
 	ml_value_t *Dest = ml_list();
-	inthash_insert(Copy->Cache, (uintptr_t)Args[1], Dest);
+	inthash_insert(Visitor->Cache, (uintptr_t)Args[1], Dest);
 	ml_list_node_t *Node = ((ml_list_t *)Args[1])->Head;
 	if (!Node) ML_RETURN(Dest);
 	ml_list_copy_t *State = new(ml_list_copy_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_list_copy_run;
-	State->Copy = (ml_value_t *)Copy;
+	State->Visitor = (ml_value_t *)Visitor;
 	State->Dest = Dest;
 	State->Node = Node;
 	State->Args[0] = Node->Value;
-	return ml_call(State, (ml_value_t *)Copy, 1, State->Args);
+	return ml_call(State, (ml_value_t *)Visitor, 1, State->Args);
+}
+
+static void ml_list_const_run(ml_list_copy_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	ml_list_put(State->Dest, Value);
+	ml_list_node_t *Node = State->Node->Next;
+	if (!Node) {
+#ifdef ML_GENERICS
+		if (State->Dest->Type->Type == MLTypeGenericT) {
+			ml_type_t *TArgs[2];
+			ml_find_generic_parent(State->Dest->Type, MLListMutableT, 2, TArgs);
+			TArgs[0] = MLListT;
+			State->Dest->Type = ml_generic_type(2, TArgs);
+		} else {
+#endif
+			State->Dest->Type = MLListT;
+#ifdef ML_GENERICS
+		}
+#endif
+		ML_LIST_FOREACH(State->Dest, Iter) Iter->Type = MLListNodeT;
+		ML_RETURN(State->Dest);
+	}
+	State->Node = Node;
+	State->Args[0] = Node->Value;
+	return ml_call(State, State->Visitor, 1, State->Args);
+}
+
+ML_METHODX("visit", MLCopyConstT, MLListMutableT) {
+//<Copy
+//<List
+//>list::const
+// Returns a new constant list containing copies of the elements of :mini:`List` created using :mini:`Copy`.
+	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
+	ml_value_t *Dest = ml_list();
+	inthash_insert(Visitor->Cache, (uintptr_t)Args[1], Dest);
+	ml_list_node_t *Node = ((ml_list_t *)Args[1])->Head;
+	if (!Node) ML_RETURN(Dest);
+	ml_list_copy_t *State = new(ml_list_copy_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_list_const_run;
+	State->Visitor = (ml_value_t *)Visitor;
+	State->Dest = Dest;
+	State->Node = Node;
+	State->Args[0] = Node->Value;
+	return ml_call(State, (ml_value_t *)Visitor, 1, State->Args);
+}
+
+static int ML_TYPED_FN(ml_value_is_constant, MLListMutableT, ml_value_t *List) {
+	return 0;
+}
+
+static int ML_TYPED_FN(ml_value_is_constant, MLListT, ml_value_t *List) {
+	ML_LIST_FOREACH(List, Iter) {
+		if (!ml_value_is_constant(Iter->Value)) return 0;
+	}
+	return 1;
 }
 
 ML_TYPE(MLNamesT, (), "names",
@@ -1458,7 +1550,7 @@ ml_value_t *ml_names() {
 void ml_names_add(ml_value_t *Names, ml_value_t *Value) {
 	ml_list_t *List = (ml_list_t *)Names;
 	ml_list_node_t *Node = new(ml_list_node_t);
-	Node->Type = MLListNodeT;
+	Node->Type = MLListNodeMutableT;
 	Node->Value = Value;
 	if ((Node->Prev = List->Tail)) {
 		List->Tail->Next = Node;
@@ -1471,7 +1563,9 @@ void ml_names_add(ml_value_t *Names, ml_value_t *Value) {
 
 void ml_list_init() {
 #include "ml_list_init.c"
+	stringmap_insert(MLListT->Exports, "mutable", MLListMutableT);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLListT, MLSequenceT, MLIntegerT, ML_TYPE_ARG(1), NULL);
+	ml_type_add_rule(MLListMutableT, MLListT, ML_TYPE_ARG(1), NULL);
 #endif
 }

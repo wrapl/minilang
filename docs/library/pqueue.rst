@@ -7,6 +7,8 @@
 pqueue
 ======
 
+.. rst-class:: mini-api
+
 .. _type-pqueue:
 
 :mini:`type pqueue < sequence`

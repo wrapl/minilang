@@ -7,6 +7,8 @@
 expr
 ====
 
+.. rst-class:: mini-api
+
 .. _type-declflags:
 
 :mini:`type declflags < flags`

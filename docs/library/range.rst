@@ -7,6 +7,8 @@
 range
 =====
 
+.. rst-class:: mini-api
+
 :mini:`meth (X: double):in(Range: integer::range): X | nil`
    *TBD*
 
@@ -35,7 +37,7 @@ range
    *TBD*
 
 
-:mini:`meth (Start: integer):up(Count: any): integer::range`
+:mini:`meth (Start: integer):up: integer::range`
    Returns an unlimited range from :mini:`Start`.
 
 

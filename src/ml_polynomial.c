@@ -473,6 +473,10 @@ ML_TYPE(MLPolynomialT, (MLFunctionT), "polynomial",
 	.call = (void *)ml_polynomial_call
 );
 
+static int ML_TYPED_FN(ml_value_is_constant, MLPolynomialT, ml_value_t *Value) {
+	return 1;
+}
+
 static ml_polynomial_t *ml_polynomial_const(ml_coeff_t Value) {
 	ml_polynomial_t *C = xnew(ml_polynomial_t, 1, ml_term_t);
 	C->Type = MLPolynomialT;

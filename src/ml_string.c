@@ -65,6 +65,10 @@ ml_value_t *ml_address(const char *Value, int Length) {
 	return (ml_value_t *)Address;
 }
 
+static int ML_TYPED_FN(ml_value_is_constant, MLAddressT, ml_value_t *Value) {
+	return 1;
+}
+
 ML_METHOD("size", MLAddressT) {
 //!address
 //<Address
@@ -418,6 +422,24 @@ ml_value_t *ml_buffer(char *Value, int Length) {
 	Buffer->Value = Value;
 	Buffer->Length = Length;
 	return (ml_value_t *)Buffer;
+}
+
+static int ML_TYPED_FN(ml_value_is_constant, MLBufferT, ml_value_t *Value) {
+	return 0;
+}
+
+ML_METHOD("copy", MLCopyT, MLBufferT) {
+	size_t Size = ml_buffer_length(Args[1]);
+	char *Value = snew(Size);
+	memcpy(Value, ml_buffer_value(Args[1]), Size);
+	return ml_buffer(Value, Size);
+}
+
+ML_METHOD("const", MLCopyT, MLBufferT) {
+	size_t Size = ml_buffer_length(Args[1]);
+	char *Value = snew(Size);
+	memcpy(Value, ml_buffer_value(Args[1]), Size);
+	return ml_address(Value, Size);
 }
 
 ML_METHOD("@", MLBufferT, MLIntegerT) {
@@ -3252,6 +3274,10 @@ const char *ml_regex_pattern(const ml_value_t *Value) {
 	return Regex->Pattern;
 }
 
+static int ML_TYPED_FN(ml_value_is_constant, MLRegexT, ml_value_t *Value) {
+	return 1;
+}
+
 ML_METHOD("pattern", MLRegexT) {
 //<Regex
 //>string
@@ -3352,7 +3378,7 @@ ML_TYPE(MLStringSwitchT, (MLFunctionT), "string-switch",
 	.call = (void *)ml_string_switch
 );
 
-ML_FUNCTION(MLStringSwitch) {
+ML_FUNCTION_INLINE(MLStringSwitch) {
 //@string::switch
 //<Cases...:string|regex
 // Implements :mini:`switch` for string values. Case values must be strings or regular expressions.
@@ -3794,7 +3820,7 @@ void ml_string_init() {
 	regcomp(IntFormat, "^\\s*%[-+ #'0]*[.0-9]*[diouxX]\\s*$", REG_NOSUB);
 	regcomp(LongFormat, "^\\s*%[-+ #'0]*[.0-9]*l[diouxX]\\s*$", REG_NOSUB);
 	regcomp(RealFormat, "^\\s*%[-+ #'0]*[.0-9]*[aefgAEG]\\s*$", REG_NOSUB);
-	stringmap_insert(MLStringT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLStringSwitch));
+	stringmap_insert(MLStringT->Exports, "switch", MLStringSwitch);
 #include "ml_string_init.c"
 #ifdef ML_GENERICS
 	ml_type_t *TArgs[3] = {MLSequenceT, MLIntegerT, MLStringT};

@@ -7,6 +7,8 @@
 context
 =======
 
+.. rst-class:: mini-api
+
 .. _type-context:
 
 :mini:`type context < function`

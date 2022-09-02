@@ -7,6 +7,8 @@
 error
 =====
 
+.. rst-class:: mini-api
+
 .. _type-error:
 
 :mini:`type error`

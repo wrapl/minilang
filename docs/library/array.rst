@@ -7,15 +7,17 @@
 array
 =====
 
+.. rst-class:: mini-api
+
 .. _type-array:
 
-:mini:`type array < buffer, sequence`
+:mini:`type array < address, sequence`
    Base type for multidimensional arrays.
 
 
 .. _fun-array:
 
-:mini:`fun array(List: list`): array`
+:mini:`fun array(List: list): array`
    Returns a new array containing the values in :mini:`List`.
    The shape and type of the array is determined from the elements in :mini:`List`.
 
@@ -609,10 +611,10 @@ array
       A[(1, 2, 3)] :> 20
       A[[(1, 2, 3), (2, 1, 1)]] :> <20 5>
       let B := A > 10 :> <<<1 1 1> <0 0 1>> <<0 1 0> <1 0 1>>>
-      type(B) :> <<array::int8>>
+      type(B) :> <<array::mutable::int8>>
       A[B] :> <19 16 12 20 17 20 20>
       let C := A:maxidx(2) :> <<2 3> <2 1>>
-      type(C) :> <<matrix::int32>>
+      type(C) :> <<matrix::mutable::int32>>
       A[C] :> <20 20>
 
 
@@ -962,10 +964,6 @@ array
    Returns an array sharing the underlying data with :mini:`Array` with dimensions :mini:`Index₁` and :mini:`Index₂` swapped.
 
 
-:mini:`meth (Array: array):update(Function: function): array`
-   Update the values in :mini:`Array` in place by applying :mini:`Function` to each value.
-
-
 :mini:`meth (Array: array):where: list`
    Returns a list of non-zero indices of :mini:`Array`.
 
@@ -985,12 +983,7 @@ array
 .. _type-array-any:
 
 :mini:`type array::any < array`
-   An array of any values.
-   
-   :mini:`(A: array::any) := (B: number)`
-      Sets the values in :mini:`A` to :mini:`B`.
-   :mini:`(A: array::any) := (B: array | list)`
-      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+   *TBD*
 
 
 .. _fun-array-any:
@@ -1002,22 +995,13 @@ array
 .. _type-array-complex:
 
 :mini:`type array::complex < array`
-   Base type for arrays of complex numbers.
-
-
-:mini:`meth (Arg₁: array::complex) ^ (Arg₂: complex)`
    *TBD*
 
 
 .. _type-array-complex32:
 
 :mini:`type array::complex32 < array::complex`
-   An array of complex32 values.
-   
-   :mini:`(A: array::complex32) := (B: number)`
-      Sets the values in :mini:`A` to :mini:`B`.
-   :mini:`(A: array::complex32) := (B: array | list)`
-      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+   *TBD*
 
 
 .. _fun-array-complex32:
@@ -1029,12 +1013,7 @@ array
 .. _type-array-complex64:
 
 :mini:`type array::complex64 < array::complex`
-   An array of complex64 values.
-   
-   :mini:`(A: array::complex64) := (B: number)`
-      Sets the values in :mini:`A` to :mini:`B`.
-   :mini:`(A: array::complex64) := (B: array | list)`
-      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+   *TBD*
 
 
 .. _fun-array-complex64:
@@ -1046,12 +1025,7 @@ array
 .. _type-array-float32:
 
 :mini:`type array::float32 < array::real`
-   An array of float32 values.
-   
-   :mini:`(A: array::float32) := (B: number)`
-      Sets the values in :mini:`A` to :mini:`B`.
-   :mini:`(A: array::float32) := (B: array | list)`
-      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+   *TBD*
 
 
 .. _fun-array-float32:
@@ -1063,12 +1037,7 @@ array
 .. _type-array-float64:
 
 :mini:`type array::float64 < array::real`
-   An array of float64 values.
-   
-   :mini:`(A: array::float64) := (B: number)`
-      Sets the values in :mini:`A` to :mini:`B`.
-   :mini:`(A: array::float64) := (B: array | list)`
-      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+   *TBD*
 
 
 .. _fun-array-float64:
@@ -1080,12 +1049,7 @@ array
 .. _type-array-int16:
 
 :mini:`type array::int16 < array::integer`
-   An array of int16 values.
-   
-   :mini:`(A: array::int16) := (B: number)`
-      Sets the values in :mini:`A` to :mini:`B`.
-   :mini:`(A: array::int16) := (B: array | list)`
-      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+   *TBD*
 
 
 .. _fun-array-int16:
@@ -1097,12 +1061,7 @@ array
 .. _type-array-int32:
 
 :mini:`type array::int32 < array::integer`
-   An array of int32 values.
-   
-   :mini:`(A: array::int32) := (B: number)`
-      Sets the values in :mini:`A` to :mini:`B`.
-   :mini:`(A: array::int32) := (B: array | list)`
-      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+   *TBD*
 
 
 .. _fun-array-int32:
@@ -1114,12 +1073,7 @@ array
 .. _type-array-int64:
 
 :mini:`type array::int64 < array::integer`
-   An array of int64 values.
-   
-   :mini:`(A: array::int64) := (B: number)`
-      Sets the values in :mini:`A` to :mini:`B`.
-   :mini:`(A: array::int64) := (B: array | list)`
-      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+   *TBD*
 
 
 .. _fun-array-int64:
@@ -1131,12 +1085,7 @@ array
 .. _type-array-int8:
 
 :mini:`type array::int8 < array::integer`
-   An array of int8 values.
-   
-   :mini:`(A: array::int8) := (B: number)`
-      Sets the values in :mini:`A` to :mini:`B`.
-   :mini:`(A: array::int8) := (B: array | list)`
-      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+   *TBD*
 
 
 .. _fun-array-int8:
@@ -1148,34 +1097,198 @@ array
 .. _type-array-integer:
 
 :mini:`type array::integer < array::real`
+   *TBD*
+
+
+.. _type-array-mutable:
+
+:mini:`type array::mutable < array, buffer`
+   *TBD*
+
+
+:mini:`meth (Array: array::mutable):update(Function: function): array`
+   Update the values in :mini:`Array` in place by applying :mini:`Function` to each value.
+
+
+.. _type-array-mutable-any:
+
+:mini:`type array::mutable::any < array::any, array::mutable`
+   An array of any values.
+   
+   :mini:`(A: array::mutable::any) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::mutable::any) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+
+
+.. _type-array-mutable-complex:
+
+:mini:`type array::mutable::complex < array::complex, array::mutable`
+   Base type for arrays of complex numbers.
+
+
+:mini:`meth (Arg₁: array::mutable::complex) ^ (Arg₂: complex)`
+   *TBD*
+
+
+.. _type-array-mutable-complex32:
+
+:mini:`type array::mutable::complex32 < array::complex32, array::mutable::complex`
+   An array of complex32 values.
+   
+   :mini:`(A: array::mutable::complex32) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::mutable::complex32) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+
+
+.. _type-array-mutable-complex64:
+
+:mini:`type array::mutable::complex64 < array::complex64, array::mutable::complex`
+   An array of complex64 values.
+   
+   :mini:`(A: array::mutable::complex64) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::mutable::complex64) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+
+
+.. _type-array-mutable-float32:
+
+:mini:`type array::mutable::float32 < array::float32, array::mutable::real`
+   An array of float32 values.
+   
+   :mini:`(A: array::mutable::float32) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::mutable::float32) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+
+
+.. _type-array-mutable-float64:
+
+:mini:`type array::mutable::float64 < array::float64, array::mutable::real`
+   An array of float64 values.
+   
+   :mini:`(A: array::mutable::float64) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::mutable::float64) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+
+
+.. _type-array-mutable-int16:
+
+:mini:`type array::mutable::int16 < array::int16, array::mutable::integer`
+   An array of int16 values.
+   
+   :mini:`(A: array::mutable::int16) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::mutable::int16) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+
+
+.. _type-array-mutable-int32:
+
+:mini:`type array::mutable::int32 < array::int32, array::mutable::integer`
+   An array of int32 values.
+   
+   :mini:`(A: array::mutable::int32) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::mutable::int32) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+
+
+.. _type-array-mutable-int64:
+
+:mini:`type array::mutable::int64 < array::int64, array::mutable::integer`
+   An array of int64 values.
+   
+   :mini:`(A: array::mutable::int64) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::mutable::int64) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+
+
+.. _type-array-mutable-int8:
+
+:mini:`type array::mutable::int8 < array::int8, array::mutable::integer`
+   An array of int8 values.
+   
+   :mini:`(A: array::mutable::int8) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::mutable::int8) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+
+
+.. _type-array-mutable-integer:
+
+:mini:`type array::mutable::integer < array::integer, array::mutable::real`
    Base type for arrays of integers.
+
+
+.. _type-array-mutable-real:
+
+:mini:`type array::mutable::real < array::real, array::mutable::complex`
+   Base type for arrays of real numbers.
+
+
+:mini:`meth (Arg₁: array::mutable::real) ^ (Arg₂: real)`
+   *TBD*
+
+
+.. _type-array-mutable-uint16:
+
+:mini:`type array::mutable::uint16 < array::uint16, array::mutable::integer`
+   An array of uint16 values.
+   
+   :mini:`(A: array::mutable::uint16) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::mutable::uint16) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+
+
+.. _type-array-mutable-uint32:
+
+:mini:`type array::mutable::uint32 < array::uint32, array::mutable::integer`
+   An array of uint32 values.
+   
+   :mini:`(A: array::mutable::uint32) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::mutable::uint32) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+
+
+.. _type-array-mutable-uint64:
+
+:mini:`type array::mutable::uint64 < array::uint64, array::mutable::integer`
+   An array of uint64 values.
+   
+   :mini:`(A: array::mutable::uint64) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::mutable::uint64) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+
+
+.. _type-array-mutable-uint8:
+
+:mini:`type array::mutable::uint8 < array::uint8, array::mutable::integer`
+   An array of uint8 values.
+   
+   :mini:`(A: array::mutable::uint8) := (B: number)`
+      Sets the values in :mini:`A` to :mini:`B`.
+   :mini:`(A: array::mutable::uint8) := (B: array | list)`
+      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
 
 
 .. _type-array-real:
 
 :mini:`type array::real < array::complex`
-   Base type for arrays of real numbers.
-
-
-.. _type-array-real:
-
-:mini:`type array::real < array`
-   Base type for arrays of real numbers.
-
-
-:mini:`meth (Arg₁: array::real) ^ (Arg₂: real)`
    *TBD*
 
 
 .. _type-array-uint16:
 
 :mini:`type array::uint16 < array::integer`
-   An array of uint16 values.
-   
-   :mini:`(A: array::uint16) := (B: number)`
-      Sets the values in :mini:`A` to :mini:`B`.
-   :mini:`(A: array::uint16) := (B: array | list)`
-      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+   *TBD*
 
 
 .. _fun-array-uint16:
@@ -1187,12 +1300,7 @@ array
 .. _type-array-uint32:
 
 :mini:`type array::uint32 < array::integer`
-   An array of uint32 values.
-   
-   :mini:`(A: array::uint32) := (B: number)`
-      Sets the values in :mini:`A` to :mini:`B`.
-   :mini:`(A: array::uint32) := (B: array | list)`
-      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+   *TBD*
 
 
 .. _fun-array-uint32:
@@ -1204,12 +1312,7 @@ array
 .. _type-array-uint64:
 
 :mini:`type array::uint64 < array::integer`
-   An array of uint64 values.
-   
-   :mini:`(A: array::uint64) := (B: number)`
-      Sets the values in :mini:`A` to :mini:`B`.
-   :mini:`(A: array::uint64) := (B: array | list)`
-      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+   *TBD*
 
 
 .. _fun-array-uint64:
@@ -1221,12 +1324,7 @@ array
 .. _type-array-uint8:
 
 :mini:`type array::uint8 < array::integer`
-   An array of uint8 values.
-   
-   :mini:`(A: array::uint8) := (B: number)`
-      Sets the values in :mini:`A` to :mini:`B`.
-   :mini:`(A: array::uint8) := (B: array | list)`
-      Sets the values in :mini:`A` to those in :mini:`B`,  broadcasting as necessary. The shape of :mini:`B` must match the last dimensions of :mini:`A`.
+   *TBD*
 
 
 .. _fun-array-uint8:
@@ -1294,6 +1392,14 @@ array
 
 :mini:`meth (A: complex) >= (B: array): array`
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A >= Bᵥ then 1 else 0 end`.
+
+
+:mini:`meth (Arg₁: copy):visit(Arg₂: array)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: copy::const):visit(Arg₂: array)`
+   *TBD*
 
 
 .. _fun-array-cat:
@@ -1453,97 +1559,199 @@ array
 .. _type-matrix-any:
 
 :mini:`type matrix::any < matrix, array::any`
-   A matrix of any values.
+   *TBD*
 
 
 .. _type-matrix-complex:
 
 :mini:`type matrix::complex < array::complex, matrix`
-   Base type for matrices of complex numbers.
+   *TBD*
 
 
 .. _type-matrix-complex32:
 
 :mini:`type matrix::complex32 < matrix::complex, array::complex32`
-   A matrix of complex32 values.
+   *TBD*
 
 
 .. _type-matrix-complex64:
 
 :mini:`type matrix::complex64 < matrix::complex, array::complex64`
-   A matrix of complex64 values.
+   *TBD*
 
 
 .. _type-matrix-float32:
 
 :mini:`type matrix::float32 < matrix::real, array::float32`
-   A matrix of float32 values.
+   *TBD*
 
 
 .. _type-matrix-float64:
 
 :mini:`type matrix::float64 < matrix::real, array::float64`
-   A matrix of float64 values.
+   *TBD*
 
 
 .. _type-matrix-int16:
 
 :mini:`type matrix::int16 < matrix::integer, array::int16`
-   A matrix of int16 values.
+   *TBD*
 
 
 .. _type-matrix-int32:
 
 :mini:`type matrix::int32 < matrix::integer, array::int32`
-   A matrix of int32 values.
+   *TBD*
 
 
 .. _type-matrix-int64:
 
 :mini:`type matrix::int64 < matrix::integer, array::int64`
-   A matrix of int64 values.
+   *TBD*
 
 
 .. _type-matrix-int8:
 
 :mini:`type matrix::int8 < matrix::integer, array::int8`
-   A matrix of int8 values.
+   *TBD*
 
 
 .. _type-matrix-integer:
 
 :mini:`type matrix::integer < matrix::real`
+   *TBD*
+
+
+.. _type-matrix-mutable:
+
+:mini:`type matrix::mutable < matrix, array::mutable`
+   *TBD*
+
+
+.. _type-matrix-mutable-any:
+
+:mini:`type matrix::mutable::any < matrix::any, matrix::mutable, array::mutable::any`
+   A matrix of any values.
+
+
+.. _type-matrix-mutable-complex:
+
+:mini:`type matrix::mutable::complex < array::mutable::complex, matrix::mutable`
+   Base type for matrices of complex numbers.
+
+
+.. _type-matrix-mutable-complex32:
+
+:mini:`type matrix::mutable::complex32 < matrix::complex32, matrix::mutable::complex, array::mutable::complex32`
+   A matrix of complex32 values.
+
+
+.. _type-matrix-mutable-complex64:
+
+:mini:`type matrix::mutable::complex64 < matrix::complex64, matrix::mutable::complex, array::mutable::complex64`
+   A matrix of complex64 values.
+
+
+.. _type-matrix-mutable-float32:
+
+:mini:`type matrix::mutable::float32 < matrix::float32, matrix::mutable::real, array::mutable::float32`
+   A matrix of float32 values.
+
+
+.. _type-matrix-mutable-float64:
+
+:mini:`type matrix::mutable::float64 < matrix::float64, matrix::mutable::real, array::mutable::float64`
+   A matrix of float64 values.
+
+
+.. _type-matrix-mutable-int16:
+
+:mini:`type matrix::mutable::int16 < matrix::int16, matrix::mutable::integer, array::mutable::int16`
+   A matrix of int16 values.
+
+
+.. _type-matrix-mutable-int32:
+
+:mini:`type matrix::mutable::int32 < matrix::int32, matrix::mutable::integer, array::mutable::int32`
+   A matrix of int32 values.
+
+
+.. _type-matrix-mutable-int64:
+
+:mini:`type matrix::mutable::int64 < matrix::int64, matrix::mutable::integer, array::mutable::int64`
+   A matrix of int64 values.
+
+
+.. _type-matrix-mutable-int8:
+
+:mini:`type matrix::mutable::int8 < matrix::int8, matrix::mutable::integer, array::mutable::int8`
+   A matrix of int8 values.
+
+
+.. _type-matrix-mutable-integer:
+
+:mini:`type matrix::mutable::integer < matrix::integer, matrix::mutable::real`
    Base type for matrices of integers.
+
+
+.. _type-matrix-mutable-real:
+
+:mini:`type matrix::mutable::real < matrix::real, array::mutable::real, matrix::mutable::complex`
+   Base type for matrices of real numbers.
+
+
+.. _type-matrix-mutable-uint16:
+
+:mini:`type matrix::mutable::uint16 < matrix::uint16, matrix::mutable::integer, array::mutable::uint16`
+   A matrix of uint16 values.
+
+
+.. _type-matrix-mutable-uint32:
+
+:mini:`type matrix::mutable::uint32 < matrix::uint32, matrix::mutable::integer, array::mutable::uint32`
+   A matrix of uint32 values.
+
+
+.. _type-matrix-mutable-uint64:
+
+:mini:`type matrix::mutable::uint64 < matrix::uint64, matrix::mutable::integer, array::mutable::uint64`
+   A matrix of uint64 values.
+
+
+.. _type-matrix-mutable-uint8:
+
+:mini:`type matrix::mutable::uint8 < matrix::uint8, matrix::mutable::integer, array::mutable::uint8`
+   A matrix of uint8 values.
 
 
 .. _type-matrix-real:
 
-:mini:`type matrix::real < array::real, matrix`
-   Base type for matrices of real numbers.
+:mini:`type matrix::real < array::real, matrix::complex`
+   *TBD*
 
 
 .. _type-matrix-uint16:
 
 :mini:`type matrix::uint16 < matrix::integer, array::uint16`
-   A matrix of uint16 values.
+   *TBD*
 
 
 .. _type-matrix-uint32:
 
 :mini:`type matrix::uint32 < matrix::integer, array::uint32`
-   A matrix of uint32 values.
+   *TBD*
 
 
 .. _type-matrix-uint64:
 
 :mini:`type matrix::uint64 < matrix::integer, array::uint64`
-   A matrix of uint64 values.
+   *TBD*
 
 
 .. _type-matrix-uint8:
 
 :mini:`type matrix::uint8 < matrix::integer, array::uint8`
-   A matrix of uint8 values.
+   *TBD*
 
 
 :mini:`meth (A: real) != (B: array): array`
@@ -1632,15 +1840,15 @@ array
 
 .. _fun-array-wrap:
 
-:mini:`fun array::wrap(Type: type, Buffer: buffer, Sizes: list, Strides: list): array`
+:mini:`fun array::wrap(Type: type, Buffer: address, Sizes: list, Strides: list): array`
    Returns an array pointing to the contents of :mini:`Address` with the corresponding sizes and strides.
 
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:E02CA606D67F000055524E285061636B>
+      :> <16:80FACCC1927F0000737472756374207B>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
-      :> <<<11488 1702> <32726 0>> <<21077 10318> <24912 27491>>>
+      :> error("TypeError", "Unknown type for array")
 
 
 .. _type-vector:
@@ -1652,76 +1860,148 @@ array
 .. _type-vector-any:
 
 :mini:`type vector::any < vector, array::any`
-   A vector of any values.
+   *TBD*
 
 
 .. _type-vector-complex:
 
 :mini:`type vector::complex < array::complex, vector`
-   Base type for vectors of complex numbers.
+   *TBD*
 
 
 .. _type-vector-complex32:
 
 :mini:`type vector::complex32 < vector::complex, array::complex32`
-   A vector of complex32 values.
+   *TBD*
 
 
 .. _type-vector-complex64:
 
 :mini:`type vector::complex64 < vector::complex, array::complex64`
-   A vector of complex64 values.
+   *TBD*
 
 
 .. _type-vector-float32:
 
 :mini:`type vector::float32 < vector::real, array::float32`
-   A vector of float32 values.
+   *TBD*
 
 
 .. _type-vector-float64:
 
 :mini:`type vector::float64 < vector::real, array::float64`
-   A vector of float64 values.
+   *TBD*
 
 
 .. _type-vector-int16:
 
 :mini:`type vector::int16 < vector::integer, array::int16`
-   A vector of int16 values.
+   *TBD*
 
 
 .. _type-vector-int32:
 
 :mini:`type vector::int32 < vector::integer, array::int32`
-   A vector of int32 values.
+   *TBD*
 
 
 .. _type-vector-int64:
 
 :mini:`type vector::int64 < vector::integer, array::int64`
-   A vector of int64 values.
+   *TBD*
 
 
 .. _type-vector-int8:
 
 :mini:`type vector::int8 < vector::integer, array::int8`
-   A vector of int8 values.
+   *TBD*
 
 
 .. _type-vector-integer:
 
 :mini:`type vector::integer < vector::real`
+   *TBD*
+
+
+.. _type-vector-mutable:
+
+:mini:`type vector::mutable < vector, array::mutable`
+   *TBD*
+
+
+.. _type-vector-mutable-any:
+
+:mini:`type vector::mutable::any < vector::any, vector::mutable, array::mutable::any`
+   A vector of any values.
+
+
+.. _type-vector-mutable-complex:
+
+:mini:`type vector::mutable::complex < vector::complex, array::mutable::complex, vector::mutable`
+   Base type for vectors of complex numbers.
+
+
+.. _type-vector-mutable-complex32:
+
+:mini:`type vector::mutable::complex32 < vector::complex32, vector::mutable::complex, array::mutable::complex32`
+   A vector of complex32 values.
+
+
+.. _type-vector-mutable-complex64:
+
+:mini:`type vector::mutable::complex64 < vector::complex64, vector::mutable::complex, array::mutable::complex64`
+   A vector of complex64 values.
+
+
+.. _type-vector-mutable-float32:
+
+:mini:`type vector::mutable::float32 < vector::float32, vector::mutable::real, array::mutable::float32`
+   A vector of float32 values.
+
+
+.. _type-vector-mutable-float64:
+
+:mini:`type vector::mutable::float64 < vector::float64, vector::mutable::real, array::mutable::float64`
+   A vector of float64 values.
+
+
+.. _type-vector-mutable-int16:
+
+:mini:`type vector::mutable::int16 < vector::int16, vector::mutable::integer, array::mutable::int16`
+   A vector of int16 values.
+
+
+.. _type-vector-mutable-int32:
+
+:mini:`type vector::mutable::int32 < vector::int32, vector::mutable::integer, array::mutable::int32`
+   A vector of int32 values.
+
+
+.. _type-vector-mutable-int64:
+
+:mini:`type vector::mutable::int64 < vector::int64, vector::mutable::integer, array::mutable::int64`
+   A vector of int64 values.
+
+
+.. _type-vector-mutable-int8:
+
+:mini:`type vector::mutable::int8 < vector::int8, vector::mutable::integer, array::mutable::int8`
+   A vector of int8 values.
+
+
+.. _type-vector-mutable-integer:
+
+:mini:`type vector::mutable::integer < vector::integer, vector::mutable::real`
    Base type for vectors of integers.
 
 
-.. _type-vector-real:
+.. _type-vector-mutable-real:
 
-:mini:`type vector::real < array::real, vector`
+:mini:`type vector::mutable::real < vector::real, array::mutable::real, vector::mutable::complex`
    Base type for vectors of real numbers.
 
 
-:mini:`meth (Vector: vector::real):softmax: vector`
+:mini:`meth (Vector: vector::mutable::real):softmax: vector`
    Returns :mini:`softmax(Vector)`.
 
    .. code-block:: mini
@@ -1732,27 +2012,57 @@ array
       :> <0.01659 0.406995 0.0111206 0.0208802 0.449799 0.0202631 0.0743513>
 
 
+.. _type-vector-mutable-uint16:
+
+:mini:`type vector::mutable::uint16 < vector::uint16, vector::mutable::integer, array::mutable::uint16`
+   A vector of uint16 values.
+
+
+.. _type-vector-mutable-uint32:
+
+:mini:`type vector::mutable::uint32 < vector::uint32, vector::mutable::integer, array::mutable::uint32`
+   A vector of uint32 values.
+
+
+.. _type-vector-mutable-uint64:
+
+:mini:`type vector::mutable::uint64 < vector::uint64, vector::mutable::integer, array::mutable::uint64`
+   A vector of uint64 values.
+
+
+.. _type-vector-mutable-uint8:
+
+:mini:`type vector::mutable::uint8 < vector::uint8, vector::mutable::integer, array::mutable::uint8`
+   A vector of uint8 values.
+
+
+.. _type-vector-real:
+
+:mini:`type vector::real < array::real, vector::complex`
+   *TBD*
+
+
 .. _type-vector-uint16:
 
 :mini:`type vector::uint16 < vector::integer, array::uint16`
-   A vector of uint16 values.
+   *TBD*
 
 
 .. _type-vector-uint32:
 
 :mini:`type vector::uint32 < vector::integer, array::uint32`
-   A vector of uint32 values.
+   *TBD*
 
 
 .. _type-vector-uint64:
 
 :mini:`type vector::uint64 < vector::integer, array::uint64`
-   A vector of uint64 values.
+   *TBD*
 
 
 .. _type-vector-uint8:
 
 :mini:`type vector::uint8 < vector::integer, array::uint8`
-   A vector of uint8 values.
+   *TBD*
 
 

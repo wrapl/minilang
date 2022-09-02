@@ -18,11 +18,11 @@ extern ml_type_t MLClassT[];
 extern ml_type_t MLObjectT[];
 
 size_t ml_class_size(const ml_value_t *Value) __attribute__ ((pure));
-const char *ml_class_field_name(const ml_value_t *Value, size_t Field) __attribute__ ((pure));
+const char *ml_class_field_name(const ml_value_t *Value, int Index) __attribute__ ((pure));
 
 ml_value_t *ml_object_class(const ml_value_t *Value) __attribute__ ((pure));
 size_t ml_object_size(const ml_value_t *Value) __attribute__ ((pure));
-ml_value_t *ml_object_field(const ml_value_t *Value, size_t Field) __attribute__ ((pure));
+ml_value_t *ml_object_field(const ml_value_t *Value, int Index) __attribute__ ((pure));
 
 extern ml_type_t MLEnumT[];
 extern ml_type_t MLEnumValueT[];

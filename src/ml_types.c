@@ -99,6 +99,10 @@ ML_TYPE(MLTypeT, (MLFunctionT), "type",
 	.Constructor = (ml_value_t *)MLType
 );
 
+static int ML_TYPED_FN(ml_value_is_constant, MLTypeT, ml_value_t *Value) {
+	return 1;
+}
+
 ML_METHOD("rank", MLTypeT) {
 //!type
 //<Type
@@ -276,17 +280,27 @@ static volatile atomic_flag MLTypedFnLock[1] = {ATOMIC_FLAG_INIT};
 
 #endif
 
-static void *__attribute__ ((noinline)) ml_typed_fn_get_parent(ml_type_t *Type, void *TypedFn) {
+typedef struct ml_typed_fn_entry_t ml_typed_fn_entry_t;
+
+struct ml_typed_fn_entry_t {
+	ml_typed_fn_entry_t *Next;
+	ml_type_t *Type;
+	void *Fn;
+};
+
+static inthash_t MLTypedFns[1] = {INTHASH_INIT};
+
+void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn) {
+	ML_TYPED_FN_LOCK();
+	inthash_result_t Result = inthash_search2_inline(Type->TypedFns, (uintptr_t)TypedFn);
+	ML_TYPED_FN_UNLOCK();
+	if (Result.Present) return Result.Value;
+	int BestRank = -1;
 	void *BestFn = NULL;
-	int BestRank = 0;
-	for (int I = 0; I < Type->Parents->Size; ++I) {
-		ml_type_t *Parent = (ml_type_t *)Type->Parents->Keys[I];
-		if (Parent && (Parent->Rank > BestRank)) {
-			void *Fn = ml_typed_fn_get(Parent, TypedFn);
-			if (Fn) {
-				BestFn = Fn;
-				BestRank = Parent->Rank;
-			}
+	for (ml_typed_fn_entry_t *Entry = inthash_search(MLTypedFns, (uintptr_t)TypedFn); Entry; Entry = Entry->Next) {
+		if (Entry->Type->Rank > BestRank && ml_is_subtype(Type, Entry->Type)) {
+			BestRank = Entry->Type->Rank;
+			BestFn = Entry->Fn;
 		}
 	}
 	ML_TYPED_FN_LOCK();
@@ -295,19 +309,11 @@ static void *__attribute__ ((noinline)) ml_typed_fn_get_parent(ml_type_t *Type, 
 	return BestFn;
 }
 
-inline void *ml_typed_fn_get(ml_type_t *Type, void *TypedFn) {
-#ifdef ML_GENERICS
-	while (Type->Type == MLTypeGenericT) Type = ml_generic_type_args(Type)[0];
-#endif
-	ML_TYPED_FN_LOCK();
-	inthash_result_t Result = inthash_search2_inline(Type->TypedFns, (uintptr_t)TypedFn);
-	ML_TYPED_FN_UNLOCK();
-	if (Result.Present) return Result.Value;
-	return ml_typed_fn_get_parent(Type, TypedFn);
-}
-
 void ml_typed_fn_set(ml_type_t *Type, void *TypedFn, void *Function) {
-	inthash_insert(Type->TypedFns, (uintptr_t)TypedFn, Function);
+	ml_typed_fn_entry_t *Entry = new(ml_typed_fn_entry_t);
+	Entry->Type = Type;
+	Entry->Fn = Function;
+	Entry->Next = inthash_insert(MLTypedFns, (uintptr_t)TypedFn, Entry);
 }
 
 typedef struct {
@@ -404,9 +410,8 @@ static volatile atomic_flag MLGenericsLock[1] = {ATOMIC_FLAG_INIT};
 
 #endif
 
-static inthash_t GenericTypeCache[1] = {INTHASH_INIT};
-
 ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
+	static inthash_t GenericTypeCache[1] = {INTHASH_INIT};
 	uintptr_t Hash = (uintptr_t)3541;
 	for (int I = NumArgs; --I >= 0;) Hash = rotl(Hash, 1) ^ (uintptr_t)Args[I];
 	ML_GENERICS_LOCK();
@@ -446,6 +451,7 @@ ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
 	Type->Base.deref = Base->deref;
 	Type->Base.assign = Base->assign;
 	Type->Base.Rank = Base->Rank + 1;
+	Type->Base.Interface = Args[0]->Interface;
 	Type->NumArgs = NumArgs;
 	for (int I = 0; I < NumArgs; ++I) Type->Args[I] = Args[I];
 	Type->NextGeneric = (ml_generic_type_t *)inthash_insert(GenericTypeCache, Hash, Type);
@@ -484,6 +490,10 @@ void ml_type_add_rule(ml_type_t *T, ml_type_t *U, ...) {
 ML_TYPE(MLNilT, (MLFunctionT, MLSequenceT), "nil");
 //!internal
 
+static int ML_TYPED_FN(ml_value_is_constant, MLNilT, ml_value_t *Value) {
+	return 1;
+}
+
 ML_FUNCTION(MLSomeFn) {
 //!internal
 	return MLSome;
@@ -493,6 +503,10 @@ ML_TYPE(MLSomeT, (MLFunctionT), "some",
 //!internal
 	.Constructor = (ml_value_t *)MLSomeFn
 );
+
+static int ML_TYPED_FN(ml_value_is_constant, MLSomeT, ml_value_t *Value) {
+	return 1;
+}
 
 static void ml_blank_assign(ml_state_t *Caller, ml_value_t *Blank, ml_value_t *Value) {
 	ML_RETURN(Value);
@@ -566,6 +580,17 @@ int ml_find_generic_parent(ml_type_t *T, ml_type_t *U, int Max, ml_type_t **Args
 	}
 }
 
+static int ml_is_generic_subtype1(int TNumArgs, ml_type_t **TArgs, ml_type_t *U) {
+	if (TArgs[0] == U) return 1;
+	for (ml_generic_rule_t *Rule = TArgs[0]->Rules; Rule; Rule = Rule->Next) {
+		int TNumArgs2 = Rule->NumArgs;
+		ml_type_t *TArgs2[TNumArgs2];
+		ml_generic_fill(Rule, TArgs2, TNumArgs, TArgs);
+		if (ml_is_generic_subtype1(TNumArgs2, TArgs2, U)) return 1;
+	}
+	return 0;
+}
+
 static int ml_is_generic_subtype(int TNumArgs, ml_type_t **TArgs, int UNumArgs, ml_type_t **UArgs) {
 	if (TArgs[0] == UArgs[0]) {
 		if (UNumArgs == 1) return 1;
@@ -577,10 +602,6 @@ static int ml_is_generic_subtype(int TNumArgs, ml_type_t **TArgs, int UNumArgs, 
 		}
 	}
 different:
-	/*if (TArgs[0] == MLTupleT && TNumArgs > 1) {
-
-		if (ml_is_generic_subtype(TNumArgs - 1, TArgs, UNumArgs, UArgs)) return 1;
-	}*/
 	for (ml_generic_rule_t *Rule = TArgs[0]->Rules; Rule; Rule = Rule->Next) {
 		int TNumArgs2 = Rule->NumArgs;
 		ml_type_t *TArgs2[TNumArgs2];
@@ -602,26 +623,25 @@ int ml_is_subtype(ml_type_t *T, ml_type_t *U) {
 		}
 		return 0;
 	}
+	if (inthash_search(T->Parents, (uintptr_t)U)) return 1;
 #ifdef ML_GENERICS
 	if (T->Type == MLTypeGenericT) {
 		ml_generic_type_t *GenericT = (ml_generic_type_t *)T;
-		if (U->Type == MLTypeGenericT) {
+		if (GenericT->Args[0] == U) {
+			return 1;
+		} else if (U->Type == MLTypeGenericT) {
 			ml_generic_type_t *GenericU = (ml_generic_type_t *)U;
 			return ml_is_generic_subtype(GenericT->NumArgs, GenericT->Args, GenericU->NumArgs, GenericU->Args);
-		} else {
-			if (GenericT->Args[0] == U) return 1;
-			return ml_is_generic_subtype(GenericT->NumArgs, GenericT->Args, 1, &U);
 		}
+		return ml_is_generic_subtype1(GenericT->NumArgs, GenericT->Args, U);
+	} else if (U->Type == MLTypeGenericT) {
+		ml_generic_type_t *GenericU = (ml_generic_type_t *)U;
+		return ml_is_generic_subtype(1, &T, GenericU->NumArgs, GenericU->Args);
 	} else {
-		if (U->Type == MLTypeGenericT) {
-			ml_generic_type_t *GenericU = (ml_generic_type_t *)U;
-			if (ml_is_generic_subtype(1, &T, GenericU->NumArgs, GenericU->Args)) return 1;
-		} else {
-			if (ml_is_generic_subtype(1, &T, 1, &U)) return 1;
-		}
+		return ml_is_generic_subtype1(1, &T, U);
 	}
 #endif
-	return (uintptr_t)inthash_search(T->Parents, (uintptr_t)U);
+	return 0;
 }
 
 #ifdef ML_GENERICS
@@ -777,58 +797,91 @@ static void ML_TYPED_FN(ml_iterate, MLNilT, ml_state_t *Caller, ml_value_t *Valu
 	ML_RETURN(Value);
 }
 
-//!any
-
 // Copying //
 
-static void ml_copy_call(ml_state_t *Caller, ml_copy_t *Copy, int Count, ml_value_t **Args) {
+//!general
+
+ML_METHOD_DECL(VisitMethod, "visit");
+
+static void ml_visitor(ml_state_t *Caller, void *Type, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
-	ml_value_t *Key = ml_deref(Args[0]);
+	ml_visitor_t *Visitor = new(ml_visitor_t);
+	Visitor->Type = (ml_type_t *)Type;
+	Visitor->Fn = Count > 1 ? Args[1] : VisitMethod;
+	Visitor->Error = ml_error("CallError", "Recursive visit detected");
+	Visitor->Args[0] = (ml_value_t *)Visitor;
+	ml_value_t **Args2 = ml_alloc_args(2);
+	Args2[0] = (ml_value_t *)Visitor;
+	Args2[1] = Args[0];
+	return ml_call(Caller, Visitor->Fn, 2, Args2);
+}
+
+ML_CFUNCTIONX(MLVisitor, MLVisitorT, ml_visitor);
+//!internal
+
+static void ml_visitor_call(ml_state_t *Caller, ml_visitor_t *Visitor, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_value_t *Value = ml_deref(Args[0]);
 	if (Count > 1) {
-		inthash_insert(Copy->Cache, (uintptr_t)Key, ml_deref(Args[1]));
-		ML_RETURN(Args[1]);
+		ml_value_t *Result = ml_deref(Args[1]);
+		inthash_insert(Visitor->Cache, (uintptr_t)Value, Result);
+		ML_RETURN(Result);
 	} else {
-		ml_value_t *Cached = inthash_search(Copy->Cache, (uintptr_t)Key);
-		if (Cached) ML_RETURN(Cached);
-		ml_value_t **Args2 = ml_alloc_args(2);
-		Args2[0] = (ml_value_t *)Copy;
-		Args2[1] = Key;
-		return ml_call(Caller, Copy->Fn, 2, Args2);
+		ml_value_t *Result = inthash_search(Visitor->Cache, (uintptr_t)Value);
+		if (Result) ML_RETURN(Result);
+		inthash_insert(Visitor->Cache, (uintptr_t)Value, Visitor->Error);
+		Visitor->Args[1] = Value;
+		return ml_call(Caller, Visitor->Fn, 2, Visitor->Args);
 	}
 }
 
-ML_FUNCTIONX(MLCopy) {
-//@copy
+ML_TYPE(MLVisitorT, (MLFunctionT), "visitor",
+// Used to apply a transformation recursively to values.
+//
+// :mini:`fun (V: visitor)(Value: any, Result: any): any`
+//    Adds the pair :mini:`(Value, Result)` to :mini:`V`'s cache and returns :mini:`Result`.
+//
+// :mini:`fun (V: visitor)(Value: any): any`
+//    Visits :mini:`Value` with :mini:`V` returning the result.
+	.call = (void *)ml_visitor_call,
+	.Constructor = (ml_value_t *)MLVisitor
+);
+
+ML_METHOD("visit", MLVisitorT, MLAnyT) {
+//<Visitor
 //<Value
-//<Fn?:function
 //>any
-// Creates a deep copy of :mini:`Value`, calling :mini:`Fn(Copier, Value)` to copy individual values.
-// If omitted, :mini:`Fn` defaults to :mini:`:copy`.
-	ML_CHECKX_ARG_COUNT(1);
-	ml_copy_t *Copy = new(ml_copy_t);
-	Copy->Type = MLCopyT;
-	Copy->Fn = Count > 1 ? Args[1] : CopyMethod;
-	return ml_call(Caller, (ml_value_t *)Copy, 1, Args);
+// Default visitor implementation, just returns :mini:`Value`.
+	return Args[1];
 }
 
-ML_TYPE(MLCopyT, (MLFunctionT), "copy",
-// Used to copy values inside a call to :mini:`copy(Value)`.
-// If :mini:`Copy` is an instance of :mini:`copy` then
-//
-// * :mini:`Copy(X, Y)` add the mapping :mini:`X -> Y` to :mini:`Copy` and returns :mini:`Y`,
-// * :mini:`Copy(X)` creates a copy of :mini:`X` using the value of :mini:`Fn` passed to :mini:`copy`.
-//$= copy([1, {"A" is 2.5}]; Copy, X) do print('Copying {X}\n'); Copy:copy(X) end
-	.call = (void *)ml_copy_call,
+ML_CFUNCTIONX(MLCopy, MLCopyT, ml_visitor);
+//@copy
+//<Value:any
+//<Fn?:function
+//>any
+// Returns a copy of :mini:`Value` using a new :mini:`copy` instance which applies :mini:`Fn(Copy, Value)` to each value. If omitted, :mini:`Fn` defaults to :mini:`:visit`.
+
+ML_TYPE(MLCopyT, (MLVisitorT), "copy",
+// A visitor that creates a copy of each value it visits.
+	.call = (void *)ml_visitor_call,
 	.Constructor = (ml_value_t *)MLCopy
 );
 
-ML_METHOD("copy", MLCopyT, MLAnyT) {
-//<Copy
-//<Value
+ML_CFUNCTIONX(MLCopyConst, MLCopyConstT, ml_visitor);
+//@copy::const
+//<Value:any
+//<Fn?:function
 //>any
-// Default copy implementation, just returns :mini:`Value`.
-	return Args[1];
-}
+// Returns a copy of :mini:`Value` using a new :mini:`copy::const` instance which applies :mini:`Fn(Copy, Value)` to each value. If omitted, :mini:`Fn` defaults to :mini:`:visit`.
+
+ML_TYPE(MLCopyConstT, (MLCopyT), "const",
+// A visitor that creates an immutable copy of each value it visits.
+	.call = (void *)ml_visitor_call,
+	.Constructor = (ml_value_t *)MLCopyConst
+);
+
+//!any
 
 ML_METHOD("in", MLAnyT, MLTypeT) {
 //<Value
@@ -877,7 +930,7 @@ ML_TYPE(MLTypeSwitchT, (MLFunctionT), "type-switch",
 	.call = (void *)ml_type_switch
 );
 
-ML_FUNCTION(MLTypeSwitch) {
+ML_FUNCTION_INLINE(MLTypeSwitch) {
 //!internal
 	int Total = 1;
 	for (int I = 0; I < Count; ++I) {
@@ -1106,7 +1159,7 @@ ML_TYPE(MLAnySwitchT, (MLFunctionT), "any-switch",
 	.call = (void *)ml_any_switch
 );
 
-ML_FUNCTION(MLAnySwitch) {
+ML_FUNCTION_INLINE(MLAnySwitch) {
 //!internal
 	int Total = 1;
 	for (int I = 0; I < Count; ++I) {
@@ -1129,18 +1182,19 @@ void ml_value_set_name(ml_value_t *Value, const char *Name) {
 	if (function) function(Value, Name);
 }
 
-void ml_value_find_refs(ml_value_t *Value, void *Data, ml_value_ref_fn CycleFn, int RefsOnly) {
-	typeof(ml_value_find_refs) *function = ml_typed_fn_get(ml_typeof(Value), ml_value_find_refs);
-	if (function) return function(Value, Data, CycleFn, RefsOnly);
-	if (!RefsOnly) CycleFn(Data, Value);
+void ml_value_find_all(ml_value_t *Value, void *Data, ml_value_find_fn RefFn) {
+	typeof(ml_value_find_all) *function = ml_typed_fn_get(ml_typeof(Value), ml_value_find_all);
+	if (function) return function(Value, Data, RefFn);
+	RefFn(Data, Value, 0);
 }
 
 typedef struct {
 	ml_value_t *Refs;
+	ml_type_t *Type;
 	inthash_t Done[1];
 } ml_find_refs_t;
 
-static int ml_find_refs_fn(ml_find_refs_t *FindRefs, ml_value_t *Value) {
+static int ml_find_all_fn(ml_find_refs_t *FindRefs, ml_value_t *Value, int HasRefs) {
 	if (!inthash_insert(FindRefs->Done, (uintptr_t)Value, Value)) {
 		ml_list_put(FindRefs->Refs, Value);
 		return 1;
@@ -1148,18 +1202,55 @@ static int ml_find_refs_fn(ml_find_refs_t *FindRefs, ml_value_t *Value) {
 	return 0;
 }
 
-ML_FUNCTION(MLFindRefs) {
+static int ml_find_all_typed_fn(ml_find_refs_t *FindRefs, ml_value_t *Value, int HasRefs) {
+	if (!inthash_insert(FindRefs->Done, (uintptr_t)Value, Value)) {
+		if (ml_is(Value, FindRefs->Type)) ml_list_put(FindRefs->Refs, Value);
+		return 1;
+	}
+	return 0;
+}
+
+ML_FUNCTION(MLFindAll) {
 //!general
-//@findrefs
+//@findall
 //<Value:any
-//<RefsOnly?:boolean
+//<Filter?:boolean|type
 //>list
 // Returns a list of all unique values referenced by :mini:`Value` (including :mini:`Value`).
 	ML_CHECK_ARG_COUNT(1);
-	ml_find_refs_t FindRefs[1] = {ml_list(), {INTHASH_INIT}};
-	int RefsOnly = (Count > 1) && (Args[1] == (ml_value_t *)MLTrue);
-	ml_value_find_refs(Args[0], FindRefs, (ml_value_ref_fn)ml_find_refs_fn, RefsOnly);
+	ml_find_refs_t FindRefs[1] = {ml_list(), MLAnyT, {INTHASH_INIT}};
+	ml_value_find_fn RefFn = (ml_value_find_fn)ml_find_all_fn;
+	if (Count > 1) {
+		ML_CHECK_ARG_TYPE(1, MLTypeT);
+		FindRefs->Type = (ml_type_t *)Args[1];
+		RefFn = (ml_value_find_fn)ml_find_all_typed_fn;
+	}
+	ml_value_find_all(Args[0], FindRefs, (ml_value_find_fn)RefFn);
 	return FindRefs->Refs;
+}
+
+int ml_value_is_constant(ml_value_t *Value) {
+	typeof(ml_value_is_constant) *function = ml_typed_fn_get(ml_typeof(Value), ml_value_is_constant);
+	if (function) return function(Value);
+	return 0;
+}
+
+ML_FUNCTION(MLIsConstant) {
+//!general
+//@isconstant
+//<Value:any
+//>any|nil
+// Returns :mini:`some` if it is a constant (i.e. directly immutable and not referencing any mutable values), otherwise returns :mini:`nil`.
+//$= isconstant(1)
+//$= isconstant(1.5)
+//$= isconstant("Hello")
+//$= isconstant(true)
+//$= isconstant([1, 2, 3])
+//$= isconstant((1, 2, 3))
+//$= isconstant((1, [2], 3))
+	ML_CHECK_ARG_COUNT(1);
+	if (ml_value_is_constant(Args[0])) return Args[0];
+	return MLNil;
 }
 
 // Iterators //
@@ -1745,9 +1836,9 @@ ML_TYPE(MLTupleT, (MLFunctionT, MLSequenceT), "tuple",
 	.Constructor = (ml_value_t *)MLTuple
 );
 
-static void ML_TYPED_FN(ml_value_find_refs, MLTupleT, ml_tuple_t *Tuple, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
-	if (!RefFn(Data, (ml_value_t *)Tuple)) return;
-	for (int I = 0; I < Tuple->Size; ++I) ml_value_find_refs(Tuple->Values[I], Data, RefFn, RefsOnly);
+static void ML_TYPED_FN(ml_value_find_all, MLTupleT, ml_tuple_t *Tuple, void *Data, ml_value_find_fn RefFn) {
+	if (!RefFn(Data, (ml_value_t *)Tuple, 1)) return;
+	for (int I = 0; I < Tuple->Size; ++I) ml_value_find_all(Tuple->Values[I], Data, RefFn);
 }
 
 ml_value_t *ml_tuple(size_t Size) {
@@ -1755,6 +1846,57 @@ ml_value_t *ml_tuple(size_t Size) {
 	Tuple->Type = MLTupleT;
 	Tuple->Size = Size;
 	return (ml_value_t *)Tuple;
+}
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Copy, *Dest;
+	ml_value_t **Values;
+	ml_value_t *Args[1];
+	int Index, Size;
+} ml_tuple_copy_t;
+
+static void ml_tuple_copy_run(ml_tuple_copy_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	ml_tuple_set(State->Dest, State->Index, Value);
+	int Index = State->Index + 1;
+	if (Index > State->Size) ML_RETURN(State->Dest);
+	State->Index = Index;
+	State->Args[0] = *++State->Values;
+	return ml_call(State, State->Copy, 1, State->Args);
+}
+
+static void ml_tuple_copy(ml_state_t *Caller, ml_visitor_t *Visitor, ml_tuple_t *Source) {
+	ml_value_t *Dest = ml_tuple(Source->Size);
+	inthash_insert(Visitor->Cache, (uintptr_t)Source, Dest);
+	if (!Source->Size) ML_RETURN(Dest);
+	ml_tuple_copy_t *State = new(ml_tuple_copy_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_tuple_copy_run;
+	State->Copy = (ml_value_t *)Visitor;
+	State->Dest = Dest;
+	State->Index = 1;
+	State->Size = Source->Size;
+	State->Values = Source->Values;
+	State->Args[0] = Source->Values[0];
+	return ml_call(State, (ml_value_t *)Visitor, 1, State->Args);
+}
+
+ML_METHODX("visit", MLCopyT, MLTupleT) {
+//<Copy
+//<Tuple
+//>tuple
+// Returns a new tuple containing copies of the elements of :mini:`Tuple` created using :mini:`Copy`.
+	return ml_tuple_copy(Caller, (ml_visitor_t *)Args[0], (ml_tuple_t *)Args[1]);
+}
+
+static int ML_TYPED_FN(ml_value_is_constant, MLTupleT, ml_tuple_t *Tuple) {
+	for (int I = 0; I < Tuple->Size; ++I) {
+		if (!ml_value_is_constant(Tuple->Values[I])) return 0;
+	}
+	return 1;
 }
 
 #ifdef ML_GENERICS
@@ -2223,6 +2365,10 @@ static ml_value_t *MLBooleans[2] = {
 
 ml_value_t *ml_boolean(int Value) {
 	return Value ? (ml_value_t *)MLTrue : (ml_value_t *)MLFalse;
+}
+
+static int ML_TYPED_FN(ml_value_is_constant, MLBooleanT, ml_value_t *Value) {
+	return 1;
 }
 
 ML_METHOD(MLBooleanT, MLStringT) {
@@ -2732,12 +2878,13 @@ void ml_init(stringmap_t *Globals) {
 	ml_type_add_rule(MLTupleT, MLSequenceT, MLIntegerT, MLAnyT, NULL);
 	ml_type_add_rule(MLTupleT, MLFunctionT, MLTupleT, NULL);
 #endif
-	stringmap_insert(MLTypeT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLTypeSwitch));
-	stringmap_insert(MLAnyT->Exports, "switch", ml_inline_call_macro((ml_value_t *)MLAnySwitch));
+	stringmap_insert(MLTypeT->Exports, "switch", MLTypeSwitch);
+	stringmap_insert(MLAnyT->Exports, "switch", MLAnySwitch);
 #ifdef ML_COMPLEX
 	stringmap_insert(MLCompilerT->Exports, "i", ml_complex(1i));
 #endif
 	stringmap_insert(MLBooleanT->Exports, "random", RandomBoolean);
+	stringmap_insert(MLCopyT->Exports, "const", MLCopyConstT);
 	ml_method_by_name("=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
 	ml_method_by_name("!=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
 	ml_method_by_name("<", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
@@ -2816,8 +2963,10 @@ void ml_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "deref", MLDeref);
 		stringmap_insert(Globals, "assign", MLAssign);
 		stringmap_insert(Globals, "call", MLCall);
+		stringmap_insert(Globals, "visitor", MLVisitorT);
 		stringmap_insert(Globals, "copy", MLCopyT);
-		stringmap_insert(Globals, "findrefs", MLFindRefs);
+		stringmap_insert(Globals, "findall", MLFindAll);
+		stringmap_insert(Globals, "isconstant", MLIsConstant);
 		stringmap_insert(Globals, "exchange", MLExchange);
 		stringmap_insert(Globals, "replace", MLReplace);
 		stringmap_insert(Globals, "cas", MLCompareAndSet);

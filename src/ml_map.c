@@ -9,7 +9,9 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "map"
 
-ML_TYPE(MLMapT, (MLSequenceT), "map",
+ML_TYPE(MLMapT, (MLSequenceT), "map");
+
+ML_TYPE(MLMapMutableT, (MLMapT), "map::mutable",
 // A map of key-value pairs.
 // Keys can be of any type supporting hashing and comparison.
 // By default, iterating over a map generates the key-value pairs in the order they were inserted, however this ordering can be changed.
@@ -28,11 +30,11 @@ ML_ENUM2(MLMapOrderT, "map::order",
 	"Descending", MAP_ORDER_DESC
 );
 
-static void ML_TYPED_FN(ml_value_find_refs, MLMapT, ml_value_t *Value, void *Data, ml_value_ref_fn RefFn, int RefsOnly) {
-	if (!RefFn(Data, Value)) return;
+static void ML_TYPED_FN(ml_value_find_all, MLMapT, ml_value_t *Value, void *Data, ml_value_find_fn RefFn) {
+	if (!RefFn(Data, Value, 1)) return;
 	ML_MAP_FOREACH(Value, Iter) {
-		ml_value_find_refs(Iter->Key, Data, RefFn, RefsOnly);
-		ml_value_find_refs(Iter->Value, Data, RefFn, RefsOnly);
+		ml_value_find_all(Iter->Key, Data, RefFn);
+		ml_value_find_all(Iter->Value, Data, RefFn);
 	}
 }
 
@@ -40,16 +42,23 @@ static ml_value_t *ml_map_node_deref(ml_map_node_t *Node) {
 	return Node->Value;
 }
 
+static void ml_map_node_call(ml_state_t *Caller, ml_map_node_t *Node, int Count, ml_value_t **Args) {
+	return ml_call(Caller, Node->Value, Count, Args);
+}
+
+ML_TYPE(MLMapNodeT, (), "map::node",
+// A node in a :mini:`map`.
+// Dereferencing a :mini:`map::node::const` returns the corresponding value from the :mini:`map`.
+	.deref = (void *)ml_map_node_deref,
+	.call = (void *)ml_map_node_call
+);
+
 static void ml_map_node_assign(ml_state_t *Caller, ml_map_node_t *Node, ml_value_t *Value) {
 	Node->Value = Value;
 	ML_RETURN(Value);
 }
 
-static void ml_map_node_call(ml_state_t *Caller, ml_map_node_t *Node, int Count, ml_value_t **Args) {
-	return ml_call(Caller, Node->Value, Count, Args);
-}
-
-ML_TYPE(MLMapNodeT, (), "map-node",
+ML_TYPE(MLMapNodeMutableT, (MLMapNodeT), "map::node::mutable",
 // A node in a :mini:`map`.
 // Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
 // Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
@@ -60,7 +69,7 @@ ML_TYPE(MLMapNodeT, (), "map-node",
 
 ml_value_t *ml_map() {
 	ml_map_t *Map = new(ml_map_t);
-	Map->Type = MLMapT;
+	Map->Type = MLMapMutableT;
 	return (ml_value_t *)Map;
 }
 
@@ -122,7 +131,7 @@ ML_METHODVX(MLMapT, MLSequenceT) {
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
 }
 
-ML_METHODVX("grow", MLMapT, MLSequenceT) {
+ML_METHODVX("grow", MLMapMutableT, MLSequenceT) {
 //<Map
 //<Sequence
 //>map
@@ -275,7 +284,7 @@ static ml_map_node_t *ml_map_node_child(ml_map_t *Map, ml_map_node_t *Parent, lo
 	} else {
 		++Map->Size;
 		Node = Slot[0] = new(ml_map_node_t);
-		Node->Type = MLMapNodeT;
+		Node->Type = MLMapNodeMutableT;
 		Node->Depth = 1;
 		Node->Hash = Hash;
 		Node->Key = Key;
@@ -323,7 +332,7 @@ static ml_map_node_t *ml_map_node(ml_map_t *Map, long Hash, ml_value_t *Key) {
 	if (Root) return ml_map_node_child(Map, Root, Hash, Key);
 	++Map->Size;
 	ml_map_node_t *Node = Map->Root = new(ml_map_node_t);
-	Node->Type = MLMapNodeT;
+	Node->Type = MLMapNodeMutableT;
 	Map->Head = Map->Tail = Node;
 	Node->Depth = 1;
 	Node->Hash = Hash;
@@ -457,7 +466,7 @@ static ml_map_node_t *ml_map_insert_node(ml_map_t *Map, ml_map_node_t **Slot, lo
 	if (!Slot[0]) {
 		++Map->Size;
 		ml_map_node_t *Node = Slot[0] = Index;
-		Node->Type = MLMapNodeT;
+		Node->Type = MLMapNodeMutableT;
 		ml_map_node_t *Prev = Map->Tail;
 		if (Prev) {
 			Prev->Next = Node;
@@ -516,7 +525,7 @@ ML_METHOD("order", MLMapT) {
 	return ml_enum_value(MLMapOrderT, Map->Order);
 }
 
-ML_METHOD("order", MLMapT, MLMapOrderT) {
+ML_METHOD("order", MLMapMutableT, MLMapOrderT) {
 //<Map
 //<Order
 //>map
@@ -560,10 +569,10 @@ static void ml_map_move_node_tail(ml_map_t *Map, ml_map_node_t *Node) {
 	}
 }
 
-ML_METHOD("[]", MLMapT, MLAnyT) {
+ML_METHOD("[]", MLMapMutableT, MLAnyT) {
 //<Map
 //<Key
-//>mapnode
+//>map::node
 // Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then a new floating node is returned with value :mini:`nil`. This node will insert :mini:`Key` into :mini:`Map` if assigned.
 //$- let M := {"A" is 1, "B" is 2, "C" is 3}
 //$= M["A"]
@@ -584,6 +593,19 @@ ML_METHOD("[]", MLMapT, MLAnyT) {
 		ml_map_move_node_head(Map, Node);
 	}
 	return (ml_value_t *)Node;
+}
+
+ML_METHOD("[]", MLMapT, MLAnyT) {
+//<Map
+//<Key
+//>any|nil
+// Returns the value corresponding to :mini:`Key` in :mini:`Map`, or :mini:`nil` if :mini:`Key` is not in :mini:`Map`.
+//$- let M := copy({"A" is 1, "B" is 2, "C" is 3}, :const)
+//$= M["A"]
+//$= M["D"]
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = ml_map_find_node(Map, Args[1]);
+	return Node ? Node->Value : MLNil;
 }
 
 ML_METHOD("in", MLAnyT, MLMapT) {
@@ -613,11 +635,11 @@ static void ml_node_state_run(ml_ref_state_t *State, ml_value_t *Value) {
 	}
 }
 
-ML_METHODX("[]", MLMapT, MLAnyT, MLFunctionT) {
+ML_METHODX("[]", MLMapMutableT, MLAnyT, MLFunctionT) {
 //<Map
 //<Key
 //<Fn
-//>mapnode
+//>map::node
 // Returns the node corresponding to :mini:`Key` in :mini:`Map`. If :mini:`Key` is not in :mini:`Map` then :mini:`Fn(Key)` is called and the result inserted into :mini:`Map`.
 //$- let M := {"A" is 1, "B" is 2, "C" is 3}
 //$= M["A", fun(Key) Key:code]
@@ -641,10 +663,10 @@ ML_METHODX("[]", MLMapT, MLAnyT, MLFunctionT) {
 	}
 }
 
-ML_METHOD("::", MLMapT, MLStringT) {
+ML_METHOD("::", MLMapMutableT, MLStringT) {
 //<Map
 //<Key
-//>mapnode
+//>map::node
 // Same as :mini:`Map[Key]`. This method allows maps to be used as modules.
 //$- let M := {"A" is 1, "B" is 2, "C" is 3}
 //$= M::A
@@ -667,7 +689,20 @@ ML_METHOD("::", MLMapT, MLStringT) {
 	return (ml_value_t *)Node;
 }
 
-ML_METHOD("empty", MLMapT) {
+ML_METHOD("::", MLMapT, MLStringT) {
+//<Map
+//<Key
+//>map::node
+// Same as :mini:`Map[Key]`. This method allows maps to be used as modules.
+//$- let M := copy({"A" is 1, "B" is 2, "C" is 3}, :const)
+//$= M::A
+//$= M::D
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = ml_map_find_node(Map, Args[1]);
+	return Node ? Node->Value : MLNil;
+}
+
+ML_METHOD("empty", MLMapMutableT) {
 //<Map
 //>map
 // Deletes all keys and values from :mini:`Map` and returns it.
@@ -677,12 +712,12 @@ ML_METHOD("empty", MLMapT) {
 	Map->Root = Map->Head = Map->Tail = NULL;
 	Map->Size = 0;
 #ifdef ML_GENERICS
-	Map->Type = MLMapT;
+	Map->Type = MLMapMutableT;
 #endif
 	return (ml_value_t *)Map;
 }
 
-ML_METHOD("pop", MLMapT) {
+ML_METHOD("pop", MLMapMutableT) {
 //<Map
 //>any|nil
 // Deletes the first key-value pair from :mini:`Map` according to its iteration order. Returns the deleted value, or :mini:`nil` if :mini:`Map` is empty.
@@ -708,7 +743,7 @@ ML_METHOD("pop", MLMapT) {
 	return ml_map_delete(Args[0], Node->Key);
 }
 
-ML_METHOD("pull", MLMapT) {
+ML_METHOD("pull", MLMapMutableT) {
 //<Map
 //>any|nil
 // Deletes the last key-value pair from :mini:`Map` according to its iteration order. Returns the deleted value, or :mini:`nil` if :mini:`Map` is empty.
@@ -734,7 +769,7 @@ ML_METHOD("pull", MLMapT) {
 	return ml_map_delete(Args[0], Node->Key);
 }
 
-ML_METHOD("pop2", MLMapT) {
+ML_METHOD("pop2", MLMapMutableT) {
 //<Map
 //>tuple[any,any]|nil
 // Deletes the first key-value pair from :mini:`Map` according to its iteration order. Returns the deleted key-value pair, or :mini:`nil` if :mini:`Map` is empty.
@@ -760,7 +795,7 @@ ML_METHOD("pop2", MLMapT) {
 	return ml_tuplev(2, Node->Key, ml_map_delete(Args[0], Node->Key));
 }
 
-ML_METHOD("pull2", MLMapT) {
+ML_METHOD("pull2", MLMapMutableT) {
 //<Map
 //>tuple[any,any]|nil
 // Deletes the last key-value pair from :mini:`Map` according to its iteration order. Returns the deleted key-value pair, or :mini:`nil` if :mini:`Map` is empty.
@@ -786,7 +821,7 @@ ML_METHOD("pull2", MLMapT) {
 	return ml_tuplev(2, Node->Key, ml_map_delete(Args[0], Node->Key));
 }
 
-ML_METHOD("insert", MLMapT, MLAnyT, MLAnyT) {
+ML_METHOD("insert", MLMapMutableT, MLAnyT, MLAnyT) {
 //<Map
 //<Key
 //<Value
@@ -803,7 +838,7 @@ ML_METHOD("insert", MLMapT, MLAnyT, MLAnyT) {
 	return ml_map_insert(Map, Key, Value);
 }
 
-ML_METHOD("delete", MLMapT, MLAnyT) {
+ML_METHOD("delete", MLMapMutableT, MLAnyT) {
 //<Map
 //<Key
 //>any | nil
@@ -817,7 +852,7 @@ ML_METHOD("delete", MLMapT, MLAnyT) {
 	return ml_map_delete(Map, Key);
 }
 
-ML_METHOD("missing", MLMapT, MLAnyT) {
+ML_METHOD("missing", MLMapMutableT, MLAnyT) {
 //<Map
 //<Key
 //>some | nil
@@ -842,7 +877,7 @@ static void ml_missing_state_run(ml_ref_state_t *State, ml_value_t *Value) {
 	}
 }
 
-ML_METHODX("missing", MLMapT, MLAnyT, MLFunctionT) {
+ML_METHODX("missing", MLMapMutableT, MLAnyT, MLFunctionT) {
 //<Map
 //<Key
 //<Fn
@@ -870,7 +905,7 @@ ML_METHODX("missing", MLMapT, MLAnyT, MLFunctionT) {
 	}
 }
 
-ML_METHOD("take", MLMapT, MLMapT) {
+ML_METHOD("take", MLMapMutableT, MLMapMutableT) {
 //<Map
 //<Source
 //>map
@@ -1097,6 +1132,28 @@ ML_METHOD("><", MLMapT, MLMapT) {
 	return Map;
 }
 
+ML_METHOD("<=>", MLMapT, MLMapT) {
+//<Map/1
+//<Map/2
+//>map
+// Returns a tuple of :mini:`(Map/1 / Map/2, Map/1 * Map/2, Map/2 / Map/1)`.
+//$= let A := map(swap("banana"))
+//$= let B := map(swap("bread"))
+//$= A <=> B
+	ml_value_t *Map1 = ml_map(), *Map2 = ml_map(), *Map3 = ml_map();
+	ML_MAP_FOREACH(Args[0], Node) {
+		if (!ml_map_search0(Args[1], Node->Key)) {
+			ml_map_insert(Map1, Node->Key, Node->Value);
+		} else {
+			ml_map_insert(Map2, Node->Key, Node->Value);
+		}
+	}
+	ML_MAP_FOREACH(Args[1], Node) {
+		if (!ml_map_search0(Args[0], Node->Key)) ml_map_insert(Map3, Node->Key, Node->Value);
+	}
+	return ml_tuplev(3, Map1, Map2, Map3);
+}
+
 typedef struct {
 	ml_state_t Base;
 	ml_map_t *Map;
@@ -1191,7 +1248,7 @@ finished:
 
 extern ml_value_t *LessMethod;
 
-ML_METHODX("sort", MLMapT) {
+ML_METHODX("sort", MLMapMutableT) {
 //<Map
 //>Map
 // Sorts the entries (changes the iteration order) of :mini:`Map` using :mini:`Key/i < Key/j` and returns :mini:`Map`.
@@ -1215,7 +1272,7 @@ ML_METHODX("sort", MLMapT) {
 	return ml_map_sort_state_run(State, NULL);
 }
 
-ML_METHODX("sort", MLMapT, MLFunctionT) {
+ML_METHODX("sort", MLMapMutableT, MLFunctionT) {
 //<Map
 //<Cmp
 //>Map
@@ -1240,7 +1297,7 @@ ML_METHODX("sort", MLMapT, MLFunctionT) {
 	return ml_map_sort_state_run(State, NULL);
 }
 
-ML_METHODX("sort2", MLMapT, MLFunctionT) {
+ML_METHODX("sort2", MLMapMutableT, MLFunctionT) {
 //<Map
 //<Cmp
 //>Map
@@ -1265,7 +1322,7 @@ ML_METHODX("sort2", MLMapT, MLFunctionT) {
 	return ml_map_sort_state_run(State, NULL);
 }
 
-ML_METHOD("reverse", MLMapT) {
+ML_METHOD("reverse", MLMapMutableT) {
 //<Map
 //>map
 // Reverses the iteration order of :mini:`Map` in-place and returns it.
@@ -1309,7 +1366,7 @@ ML_METHOD("random", MLMapT) {
 
 typedef struct {
 	ml_state_t Base;
-	ml_value_t *Copy, *Dest, *Key;
+	ml_value_t *Visitor, *Dest, *Key;
 	ml_map_node_t *Node;
 	ml_value_t *Args[1];
 } ml_map_copy_t;
@@ -1320,7 +1377,7 @@ static void ml_map_copy_run(ml_map_copy_t *State, ml_value_t *Value) {
 	if (!State->Key) {
 		State->Key = Value;
 		State->Args[0] = State->Node->Value;
-		return ml_call(State, State->Copy, 1, State->Args);
+		return ml_call(State, State->Visitor, 1, State->Args);
 	}
 	ml_map_insert(State->Dest, State->Key, Value);
 	State->Key = NULL;
@@ -1328,35 +1385,104 @@ static void ml_map_copy_run(ml_map_copy_t *State, ml_value_t *Value) {
 	if (!Node) ML_RETURN(State->Dest);
 	State->Node = Node;
 	State->Args[0] = Node->Key;
-	return ml_call(State, State->Copy, 1, State->Args);
+	return ml_call(State, State->Visitor, 1, State->Args);
 }
 
-ML_METHODX("copy", MLCopyT, MLMapT) {
+ML_METHODX("visit", MLCopyT, MLMapT) {
 //<Copy
 //<Map
 //>map
 // Returns a new map contains copies of the keys and values of :mini:`Map` created using :mini:`Copy`.
-	ml_copy_t *Copy = (ml_copy_t *)Args[0];
+	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
 	ml_value_t *Dest = ml_map();
 	((ml_map_t *)Dest)->Order = ((ml_map_t *)Args[1])->Order;
-	inthash_insert(Copy->Cache, (uintptr_t)Args[1], Dest);
+	inthash_insert(Visitor->Cache, (uintptr_t)Args[1], Dest);
 	ml_map_node_t *Node = ((ml_map_t *)Args[1])->Head;
 	if (!Node) ML_RETURN(Dest);
 	ml_map_copy_t *State = new(ml_map_copy_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_map_copy_run;
-	State->Copy = (ml_value_t *)Copy;
+	State->Visitor = (ml_value_t *)Visitor;
 	State->Dest = Dest;
 	State->Node = Node;
 	State->Args[0] = Node->Key;
-	return ml_call(State, (ml_value_t *)Copy, 1, State->Args);
+	return ml_call(State, (ml_value_t *)Visitor, 1, State->Args);
 }
+
+static void ml_map_const_run(ml_map_copy_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	if (!State->Key) {
+		State->Key = Value;
+		State->Args[0] = State->Node->Value;
+		return ml_call(State, State->Visitor, 1, State->Args);
+	}
+	ml_map_insert(State->Dest, State->Key, Value);
+	State->Key = NULL;
+	ml_map_node_t *Node = State->Node->Next;
+	if (!Node) {
+#ifdef ML_GENERICS
+		if (State->Dest->Type->Type == MLTypeGenericT) {
+			ml_type_t *TArgs[3];
+			ml_find_generic_parent(State->Dest->Type, MLMapMutableT, 3, TArgs);
+			TArgs[0] = MLMapT;
+			State->Dest->Type = ml_generic_type(3, TArgs);
+		} else {
+#endif
+			State->Dest->Type = MLMapT;
+#ifdef ML_GENERICS
+		}
+#endif
+		ML_MAP_FOREACH(State->Dest, Iter) Iter->Type = MLMapNodeT;
+		ML_RETURN(State->Dest);
+	}
+	State->Node = Node;
+	State->Args[0] = Node->Key;
+	return ml_call(State, State->Visitor, 1, State->Args);
+}
+
+ML_METHODX("visit", MLCopyConstT, MLMapT) {
+//<Copy
+//<Map
+//>map::const
+// Returns a new constant map containing copies of the keys and values of :mini:`Map` created using :mini:`Copy`.
+	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
+	ml_value_t *Dest = ml_map();
+	((ml_map_t *)Dest)->Order = ((ml_map_t *)Args[1])->Order;
+	inthash_insert(Visitor->Cache, (uintptr_t)Args[1], Dest);
+	ml_map_node_t *Node = ((ml_map_t *)Args[1])->Head;
+	if (!Node) ML_RETURN(Dest);
+	ml_map_copy_t *State = new(ml_map_copy_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_map_const_run;
+	State->Visitor = (ml_value_t *)Visitor;
+	State->Dest = Dest;
+	State->Node = Node;
+	State->Args[0] = Node->Key;
+	return ml_call(State, (ml_value_t *)Visitor, 1, State->Args);
+}
+
+static int ML_TYPED_FN(ml_value_is_constant, MLMapMutableT, ml_value_t *Map) {
+	return 0;
+}
+
+static int ML_TYPED_FN(ml_value_is_constant, MLMapT, ml_value_t *Map) {
+	ML_MAP_FOREACH(Map, Iter) {
+		if (!ml_value_is_constant(Iter->Key)) return 0;
+		if (!ml_value_is_constant(Iter->Value)) return 0;
+	}
+	return 1;
+}
+
 
 void ml_map_init() {
 #include "ml_map_init.c"
+	stringmap_insert(MLMapT->Exports, "mutable", MLMapMutableT);
 	stringmap_insert(MLMapT->Exports, "order", MLMapOrderT);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLMapT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
+	ml_type_add_rule(MLMapMutableT, MLMapT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 #endif
 }

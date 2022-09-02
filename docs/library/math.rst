@@ -7,6 +7,8 @@
 math
 ====
 
+.. rst-class:: mini-api
+
 :mini:`meth (X: complex) ^ (Y: integer): number`
    Returns :mini:`X` raised to the power of :mini:`Y`.
 
@@ -493,6 +495,15 @@ math
 
       math::round(1.2345) :> 1
       math::round(-1.2345) :> -1
+
+
+:mini:`meth math::round(Arg₁: real, Arg₂: real): real`
+   Returns :mini:`round(Arg₁ * Arg₂) / Arg₂`.
+
+   .. code-block:: mini
+
+      math::round(1.2345, 100) :> 1.23
+      math::round(-1.2345, 32) :> -1.25
 
 
 :mini:`meth math::sin(Arg₁: real): real`

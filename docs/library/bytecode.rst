@@ -7,6 +7,8 @@
 bytecode
 ========
 
+.. rst-class:: mini-api
+
 This is a mostly internal module,  subject to change.
 
 .. _type-closure:
