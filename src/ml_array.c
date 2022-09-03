@@ -5011,7 +5011,7 @@ ML_METHOD("copy", MLArrayT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("visit", MLCopyT, MLArrayT) {
+ML_METHOD("copy", MLVisitorT, MLArrayT) {
 	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
 	ml_array_t *Source = (ml_array_t *)Args[1];
 	if (Source->Degree == -1) return (ml_value_t *)Source;
@@ -5026,7 +5026,7 @@ ML_METHOD("visit", MLCopyT, MLArrayT) {
 	return (ml_value_t *)Target;
 }
 
-ML_METHOD("visit", MLCopyConstT, MLArrayT) {
+ML_METHOD("const", MLVisitorT, MLArrayT) {
 	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
 	ml_array_t *Source = (ml_array_t *)Args[1];
 	if (Source->Degree == -1) return (ml_value_t *)Source;

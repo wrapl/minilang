@@ -9,14 +9,6 @@ list
 
 .. rst-class:: mini-api
 
-:mini:`meth (Copy: copy):visit(List: list): list`
-   Returns a new list containing copies of the elements of :mini:`List` created using :mini:`Copy`.
-
-
-:mini:`meth (Copy: copy::const):visit(List: list::mutable): list::const`
-   Returns a new constant list containing copies of the elements of :mini:`List` created using :mini:`Copy`.
-
-
 .. _type-list:
 
 :mini:`type list < sequence`
@@ -93,8 +85,8 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "k"
-      L:random :> "k"
+      L:random :> "c"
+      L:random :> "c"
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list)`
@@ -270,5 +262,17 @@ list
 
 :mini:`type list::slice`
    A slice of a list.
+
+
+:mini:`meth (Visitor: visitor):const(List: list::mutable): list::const`
+   Returns a new constant list containing copies of the elements of :mini:`List` created using :mini:`Copy`.
+
+
+:mini:`meth (Visitor: visitor):copy(List: list): list`
+   Returns a new list containing copies of the elements of :mini:`List` created using :mini:`Copy`.
+
+
+:mini:`meth (Visitor: visitor):visit(List: list): list`
+   Returns a new list containing copies of the elements of :mini:`List` created using :mini:`Copy`.
 
 

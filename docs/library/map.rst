@@ -19,14 +19,6 @@ map
       "D" in M :> nil
 
 
-:mini:`meth (Copy: copy):visit(Map: map): map`
-   Returns a new map contains copies of the keys and values of :mini:`Map` created using :mini:`Copy`.
-
-
-:mini:`meth (Copy: copy::const):visit(Map: map): map::const`
-   Returns a new constant map containing copies of the keys and values of :mini:`Map` created using :mini:`Copy`.
-
-
 .. _type-map:
 
 :mini:`type map < sequence`
@@ -64,9 +56,8 @@ map
    .. code-block:: mini
 
       let M := copy({"A" is 1, "B" is 2, "C" is 3}, :const)
-      M::A
-      :> error("MethodError", "no method found for const(copy, map::mutable[string,int32])")
-      M::D :> <uninitialized>
+      M::A :> 1
+      M::D :> nil
 
 
 :mini:`meth (Map₁: map) * (Map₂: map): map`
@@ -150,10 +141,8 @@ map
    .. code-block:: mini
 
       let M := copy({"A" is 1, "B" is 2, "C" is 3}, :const)
-      M["A"]
-      :> error("MethodError", "no method found for const(copy, map::mutable[string,int32])")
-      M["D"]
-      :> error("MethodError", "no method found for [](uninitialized, string)")
+      M["A"] :> 1
+      M["D"] :> nil
 
 
 :mini:`meth (Map₁: map) \/ (Map₂: map): map`
@@ -199,7 +188,7 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "k"
+      M:random :> "e"
       M:random :> "c"
 
 
@@ -515,5 +504,17 @@ map
    * :mini:`map::order::Ascending` |harr| inserted pairs are kept in descending key order,  no reordering on access.
    * :mini:`map::order::MRU` |harr| inserted pairs are put at start,  accessed pairs are moved to start.
    * :mini:`map::order::LRU` |harr| inserted pairs are put at end,  accessed pairs are moved to end.
+
+
+:mini:`meth (Copy: visitor):const(Map: map): map::const`
+   Returns a new constant map containing copies of the keys and values of :mini:`Map` created using :mini:`Copy`.
+
+
+:mini:`meth (Copy: visitor):copy(Map: map): map`
+   Returns a new map contains copies of the keys and values of :mini:`Map` created using :mini:`Copy`.
+
+
+:mini:`meth (Copy: visitor):visit(Map: map): map`
+   Returns a new map contains copies of the keys and values of :mini:`Map` created using :mini:`Copy`.
 
 

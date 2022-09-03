@@ -428,14 +428,14 @@ static int ML_TYPED_FN(ml_value_is_constant, MLBufferT, ml_value_t *Value) {
 	return 0;
 }
 
-ML_METHOD("copy", MLCopyT, MLBufferT) {
+ML_METHOD("copy", MLVisitorT, MLBufferT) {
 	size_t Size = ml_buffer_length(Args[1]);
 	char *Value = snew(Size);
 	memcpy(Value, ml_buffer_value(Args[1]), Size);
 	return ml_buffer(Value, Size);
 }
 
-ML_METHOD("const", MLCopyT, MLBufferT) {
+ML_METHOD("const", MLVisitorT, MLBufferT) {
 	size_t Size = ml_buffer_length(Args[1]);
 	char *Value = snew(Size);
 	memcpy(Value, ml_buffer_value(Args[1]), Size);

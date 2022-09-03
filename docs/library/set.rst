@@ -19,14 +19,6 @@ set
       "D" in S :> nil
 
 
-:mini:`meth (Copy: copy):visit(Set: set): set`
-   Returns a new set contains copies of the elements of :mini:`Set` created using :mini:`Copy`.
-
-
-:mini:`meth (Copy: copy::const):visit(Set: set): set`
-   Returns a new set contains copies of the elements of :mini:`Set` created using :mini:`Visitor`.
-
-
 .. _type-set:
 
 :mini:`type set < sequence`
@@ -160,8 +152,8 @@ set
    .. code-block:: mini
 
       let M := set("cake") :> {c, a, k, e}
-      M:random :> "a"
-      M:random :> "a"
+      M:random :> "e"
+      M:random :> "e"
 
 
 :mini:`meth (Set: set):size: integer`
@@ -326,5 +318,17 @@ set
    * :mini:`set::order::Ascending` |harr| inserted values are kept in descending order,  no reordering on access.
    * :mini:`set::order::MRU` |harr| inserted values are put at start,  accessed values are moved to start.
    * :mini:`set::order::LRU` |harr| inserted values are put at end,  accessed values are moved to end.
+
+
+:mini:`meth (Visitor: visitor):const(Set: set): set`
+   Returns a new set contains copies of the elements of :mini:`Set` created using :mini:`Visitor`.
+
+
+:mini:`meth (Visitor: visitor):copy(Set: set): set`
+   Returns a new set contains copies of the elements of :mini:`Set` created using :mini:`Copy`.
+
+
+:mini:`meth (Visitor: visitor):visit(Set: set): set`
+   Returns a new set contains copies of the elements of :mini:`Set` created using :mini:`Copy`.
 
 

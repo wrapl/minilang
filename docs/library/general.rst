@@ -56,13 +56,7 @@ general
 .. _fun-copy:
 
 :mini:`fun copy(Value: any, Fn?: function): any`
-   Returns a copy of :mini:`Value` using a new :mini:`copy` instance which applies :mini:`Fn(Copy,  Value)` to each value. If omitted,  :mini:`Fn` defaults to :mini:`:visit`.
-
-
-.. _fun-copy-const:
-
-:mini:`fun copy::const(Value: any, Fn?: function): any`
-   Returns a copy of :mini:`Value` using a new :mini:`copy::const` instance which applies :mini:`Fn(Copy,  Value)` to each value. If omitted,  :mini:`Fn` defaults to :mini:`:visit`.
+   Returns a copy of :mini:`Value` using a new :mini:`copy` instance which applies :mini:`Fn(Copy,  Value)` to each value. If omitted,  :mini:`Fn` defaults to :mini:`:copy`.
 
 
 .. _fun-deref:
@@ -111,16 +105,10 @@ general
    Assigns :mini:`Varᵢ := Varᵢ₊₁` for each :mini:`1 <= i < n` and :mini:`Varₙ := Value`. Returns the old value of :mini:`Var₁`.
 
 
-.. _type-copy:
+.. _fun-visit:
 
-:mini:`type copy < visitor`
-   A visitor that creates a copy of each value it visits.
-
-
-.. _type-copy-const:
-
-:mini:`type copy::const < copy`
-   A visitor that creates an immutable copy of each value it visits.
+:mini:`fun visit(Value: any, Fn: function): any`
+   Returns :mini:`Fn(V,  Value)` where :mini:`V` is a newly created :mini:`visitor`.
 
 
 .. _type-visitor:
@@ -135,7 +123,15 @@ general
       Visits :mini:`Value` with :mini:`V` returning the result.
 
 
-:mini:`meth (Visitor: visitor):visit(Value: any): any`
+:mini:`meth (Visitor: visitor):const(Value: any): any`
    Default visitor implementation,  just returns :mini:`Value`.
+
+
+:mini:`meth (Visitor: visitor):copy(Value: any): any`
+   Default visitor implementation,  just returns :mini:`Value`.
+
+
+:mini:`meth (Visitor: visitor):visit(Value: any): any`
+   Default visitor implementation,  just returns :mini:`nil`.
 
 

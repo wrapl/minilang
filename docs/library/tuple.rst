@@ -9,10 +9,6 @@ tuple
 
 .. rst-class:: mini-api
 
-:mini:`meth (Copy: copy):visit(Tuple: tuple): tuple`
-   Returns a new tuple containing copies of the elements of :mini:`Tuple` created using :mini:`Copy`.
-
-
 .. _type-tuple:
 
 :mini:`type tuple < function, sequence`
@@ -115,5 +111,17 @@ tuple
 
 :mini:`meth (Buffer: string::buffer):append(Value: tuple)`
    Appends a representation of :mini:`Value` to :mini:`Buffer`.
+
+
+:mini:`meth (Copy: visitor):const(Tuple: tuple): tuple`
+   Returns a new tuple containing copies of the elements of :mini:`Tuple` created using :mini:`Copy`.
+
+
+:mini:`meth (Copy: visitor):copy(Tuple: tuple): tuple`
+   Returns a new tuple containing copies of the elements of :mini:`Tuple` created using :mini:`Copy`.
+
+
+:mini:`meth (Arg₁: visitor):visit(Arg₂: tuple)`
+   *TBD*
 
 

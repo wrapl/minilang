@@ -1394,14 +1394,6 @@ array
    Returns an array :mini:`C` where each :mini:`Cᵥ := if A >= Bᵥ then 1 else 0 end`.
 
 
-:mini:`meth (Arg₁: copy):visit(Arg₂: array)`
-   *TBD*
-
-
-:mini:`meth (Arg₁: copy::const):visit(Arg₂: array)`
-   *TBD*
-
-
 .. _fun-array-cat:
 
 :mini:`fun array::cat(Index: integer, Array₁: any, ...): array`
@@ -1846,7 +1838,7 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:80FACCC1927F0000737472756374207B>
+      :> <16:209C9864177F00003E496E646578203D>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
       :> error("TypeError", "Unknown type for array")
 
@@ -2063,6 +2055,14 @@ array
 .. _type-vector-uint8:
 
 :mini:`type vector::uint8 < vector::integer, array::uint8`
+   *TBD*
+
+
+:mini:`meth (Arg₁: visitor):const(Arg₂: array)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: visitor):copy(Arg₂: array)`
    *TBD*
 
 

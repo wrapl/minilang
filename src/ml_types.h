@@ -155,8 +155,6 @@ typedef struct {
 } ml_visitor_t;
 
 extern ml_type_t MLVisitorT[];
-extern ml_type_t MLCopyT[];
-extern ml_type_t MLCopyConstT[];
 
 #ifdef ML_NANBOXING
 
