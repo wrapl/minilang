@@ -224,7 +224,7 @@ struct mlc_for_expr_t {
 	MLC_EXPR_FIELDS(for);
 	const char *Key;
 	mlc_local_t *Local;
-	mlc_expr_t *Child;
+	mlc_expr_t *Sequence, *Body;
 	const char *Name;
 	int Unpack;
 };

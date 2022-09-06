@@ -1723,7 +1723,7 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 	case MLIT_INST:
 		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
 		return 2;
-	case MLIT_INST_COUNT_DECL: {
+	case MLIT_INST_COUNT_DECL:
 		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
 		ml_stringbuffer_printf(Buffer, ", %d", Inst[2].Count);
 		if (Inst[3].Decls) {
@@ -1732,7 +1732,6 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 			ml_stringbuffer_printf(Buffer, " -");
 		}
 		return 4;
-	}
 	case MLIT_COUNT_COUNT:
 		ml_stringbuffer_printf(Buffer, " %d, %d", Inst[1].Count, Inst[2].Count);
 		return 3;

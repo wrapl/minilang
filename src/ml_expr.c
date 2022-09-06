@@ -153,10 +153,11 @@ ml_value_t *mlc_expr_describe(mlc_expr_t *Expr) {
 	}
 	case ML_EXPR_FOR: {
 		mlc_for_expr_t *ForExpr = (mlc_for_expr_t *)Expr;
-		return ml_tuplev(7, ExprName, Source, Start, End,
+		return ml_tuplev(8, ExprName, Source, Start, End,
 			ForExpr->Key ? ml_string(ForExpr->Key, -1) : MLNil,
 			mlc_locals_describe(ForExpr->Local, INT_MAX),
-			mlc_exprs_describe(ForExpr->Child)
+			mlc_exprs_describe(ForExpr->Sequence),
+			mlc_exprs_describe(ForExpr->Body)
 		);
 	}
 	case ML_EXPR_FUN: {
