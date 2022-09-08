@@ -2623,12 +2623,18 @@ static void ml_resolve_expr_compile3(mlc_function_t *Function, ml_value_t *Value
 		MLC_RETURN(Value);
 	} else if (Flags & MLCF_PUSH) {
 		ml_inst_t *ValueInst = MLC_EMIT(Expr->EndLine, MLI_LOAD_PUSH, 1);
+		if (ml_typeof(Value) == MLUninitializedT) {
+			ml_uninitialized_use(Value, &ValueInst[1].Value);
+		}
 		ValueInst[1].Value = Value;
 		mlc_inc_top(Function);
 		MLC_POP();
 		MLC_RETURN(NULL);
 	} else {
 		ml_inst_t *ValueInst = MLC_EMIT(Expr->EndLine, MLI_LOAD, 1);
+		if (ml_typeof(Value) == MLUninitializedT) {
+			ml_uninitialized_use(Value, &ValueInst[1].Value);
+		}
 		ValueInst[1].Value = Value;
 		MLC_POP();
 		MLC_RETURN(NULL);

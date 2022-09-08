@@ -1,9 +1,9 @@
 #include "../ml_array.h"
 
 #define UPDATE(OP, TARGET, SOURCE) { \
-	typeof(TARGET) Target = TARGET; \
-	typeof(SOURCE) Source = SOURCE; \
-	*Target = OP(*Target, Source); \
+	typeof(TARGET) _Target = TARGET; \
+	typeof(SOURCE) _Source = SOURCE; \
+	*_Target = OP(*_Target, _Source); \
 }
 
 #define UPDATE_ROW_IMPL(NAME, OP, TARGET, SOURCE) \

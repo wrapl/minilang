@@ -639,6 +639,7 @@ ML_METHOD("append", MLStringBufferT, MLAddressT) {
 }
 
 ml_value_t *ml_string(const char *Value, int Length) {
+	Value = Value ?: "";
 	if (Length >= 0) {
 		if (Value[Length]) {
 			char *Copy = snew(Length + 1);
@@ -647,7 +648,7 @@ ml_value_t *ml_string(const char *Value, int Length) {
 			Value = Copy;
 		}
 	} else {
-		Length = Value ? strlen(Value) : 0;
+		Length = strlen(Value);
 	}
 	ml_string_t *String = new(ml_string_t);
 	String->Type = MLStringT;
