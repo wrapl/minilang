@@ -4832,7 +4832,7 @@ static void ml_accept_for_decls(ml_parser_t *Parser, mlc_for_expr_t *Expr) {
 	mlc_expr_t **ArgSlot = &FlagExpr->Next->Next;
 	Expr->Sequence = ML_EXPR_END(CallExpr);
 	do {
-		int Flag = 0;
+		int Flag = 0, Done = 0;
 		if (ml_parse2(Parser, MLT_IDENT)) {
 			++Total;
 			mlc_local_t *Local = mlc_local_new(Parser->Ident, Parser->Source.Line);
@@ -4841,10 +4841,11 @@ static void ml_accept_for_decls(ml_parser_t *Parser, mlc_for_expr_t *Expr) {
 			if (ml_parse2(Parser, MLT_COMMA)) {
 				Flag = 1;
 			} else {
-				goto next;
+				Done = 1;
 			}
 		}
-		if (ml_parse2(Parser, MLT_LEFT_PAREN)) {
+		if (Done) {
+		} else if (ml_parse2(Parser, MLT_LEFT_PAREN)) {
 			do {
 				++Total;
 				if (!ml_parse2(Parser, MLT_BLANK)) ml_accept(Parser, MLT_IDENT);
@@ -4860,7 +4861,6 @@ static void ml_accept_for_decls(ml_parser_t *Parser, mlc_for_expr_t *Expr) {
 			LocalSlot[0] = Local;
 			LocalSlot = &Local->Next;
 		}
-	next:
 		ML_EXPR(FlagExpr, value, value);
 		FlagExpr->Value = ml_integer(Flag);
 		FlagExpr->Next = Expr->Sequence;
