@@ -91,7 +91,7 @@ hierarchy
       "sequence":e -> "enum":w;
       "sequence":e -> "enum::range":w;
       "type":e -> "flags":w;
-      "integer":e -> "flags::value":w;
+      "any":e -> "flags::value":w;
       "any":e -> "number":w;
       "number":e -> "complex":w;
       "complex":e -> "real":w;

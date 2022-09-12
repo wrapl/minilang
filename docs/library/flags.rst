@@ -39,7 +39,7 @@ flags
 
 .. _type-flags-value:
 
-:mini:`type flags::value < integer`
+:mini:`type flags::value`
    An instance of a flags type.
 
 

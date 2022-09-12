@@ -980,17 +980,9 @@ static long ml_flag_value_hash(ml_flags_value_t *Value, ml_hash_chain_t *Chain) 
 	return (long)Value->Type + Value->Value;
 }
 
-#ifdef ML_NANBOXING
-#define MLIntegerT MLInt64T
-#endif
-
-ML_TYPE(MLFlagsValueT, (MLIntegerT), "flag-value");
+ML_TYPE(MLFlagsValueT, (), "flag-value");
 //@flags::value
 // An instance of a flags type.
-
-#ifdef ML_NANBOXING
-#undef MLIntegerT
-#endif
 
 typedef struct {
 	ml_stringbuffer_t *Buffer;
