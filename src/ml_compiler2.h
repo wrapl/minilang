@@ -57,6 +57,7 @@ typedef enum ml_token_t {
 	MLT_COMMA,
 	MLT_ASSIGN,
 	MLT_NAMED,
+	MLT_NIL_CHECK,
 	MLT_IMPORT,
 	MLT_VALUE,
 	MLT_EXPR,
@@ -81,6 +82,7 @@ struct mlc_expr_t {
 	mlc_expr_t *Next;
 	const char *Source;
 	int StartLine, EndLine;
+	int NilCheck;
 };
 
 struct mlc_function_t {
@@ -167,7 +169,8 @@ ml_expr_type_t mlc_expr_type(mlc_expr_t *Expr);
 	void (*compile)(mlc_function_t *, mlc_## name ## _expr_t *, int); \
 	mlc_expr_t *Next; \
 	const char *Source; \
-	int StartLine, EndLine;
+	int StartLine, EndLine; \
+	int NilCheck;
 
 typedef struct mlc_value_expr_t mlc_value_expr_t;
 

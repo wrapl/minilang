@@ -481,6 +481,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_TAIL_CALL_METHOD] = &&DO_TAIL_CALL_METHOD,
 		[MLI_NEXT] = &&DO_NEXT,
 		[MLI_NIL] = &&DO_NIL,
+		[MLI_NIL_CHECK] = &&DO_NIL_CHECK,
 		[MLI_NIL_PUSH] = &&DO_NIL_PUSH,
 		[MLI_NOT] = &&DO_NOT,
 		[MLI_OR] = &&DO_OR,
@@ -824,6 +825,15 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Top = Top;
 		ML_STORE_COUNTER();
 		return ml_iter_key((ml_state_t *)Frame, Result);
+	}
+	DO_NIL_CHECK: {
+		Result = ml_deref(Top[-1]);
+		if (Result == MLNil) {
+			for (int I = Inst[2].Count; --I >= 0;) *--Top = NULL;
+			ADVANCE(Inst[1].Inst);
+		} else {
+			ADVANCE(Inst + 3);
+		}
 	}
 	DO_CALL: {
 		int Count = Inst[1].Count;
@@ -1392,6 +1402,9 @@ static int ml_closure_find_labels(ml_inst_t *Inst, unsigned int *Labels) {
 	case MLIT_INST:
 		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
 		return 2;
+	case MLIT_INST_COUNT:
+		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
+		return 3;
 	case MLIT_INST_COUNT_DECL:
 		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
 		return 4;
@@ -1439,6 +1452,10 @@ static int ml_inst_hash(ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) 
 	case MLIT_INST:
 		*(int *)(Info->Hash + I) ^= Inst[1].Inst->Label;
 		return 2;
+	case MLIT_INST_COUNT:
+		*(int *)(Info->Hash + I) ^= Inst[1].Inst->Label;
+		*(int *)(Info->Hash + J) ^= Inst[2].Count;
+		return 3;
 	case MLIT_INST_COUNT_DECL:
 		*(int *)(Info->Hash + I) ^= Inst[1].Inst->Label;
 		*(int *)(Info->Hash + J) ^= Inst[2].Count;
@@ -1723,6 +1740,10 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 	case MLIT_INST:
 		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
 		return 2;
+	case MLIT_INST_COUNT:
+		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
+		ml_stringbuffer_printf(Buffer, ", %d", Inst[2].Count);
+		return 3;
 	case MLIT_INST_COUNT_DECL:
 		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
 		ml_stringbuffer_printf(Buffer, ", %d", Inst[2].Count);
