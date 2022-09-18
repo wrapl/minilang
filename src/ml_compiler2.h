@@ -23,6 +23,7 @@ typedef enum ml_token_t {
 	MLT_IF,
 	MLT_IN,
 	MLT_IS,
+	MLT_IT,
 	MLT_LET,
 	MLT_LOOP,
 	MLT_METH,
@@ -82,7 +83,6 @@ struct mlc_expr_t {
 	mlc_expr_t *Next;
 	const char *Source;
 	int StartLine, EndLine;
-	int NilCheck;
 };
 
 struct mlc_function_t {
@@ -100,7 +100,7 @@ struct mlc_function_t {
 	mlc_must_t *Must;
 	mlc_upvalue_t *UpValues;
 	ml_inst_t *Next, *Returns;
-	int Top, Size, Self, Space;
+	int Top, Size, Old, It, Space;
 };
 
 struct mlc_define_t {
@@ -170,7 +170,6 @@ ml_expr_type_t mlc_expr_type(mlc_expr_t *Expr);
 	mlc_expr_t *Next; \
 	const char *Source; \
 	int StartLine, EndLine; \
-	int NilCheck;
 
 typedef struct mlc_value_expr_t mlc_value_expr_t;
 

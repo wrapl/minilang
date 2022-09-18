@@ -16,6 +16,7 @@ fun, MLT_FUN
 if, MLT_IF
 in, MLT_IN
 is, MLT_IS
+it, MLT_IT
 let, MLT_LET
 loop, MLT_LOOP
 meth, MLT_METH

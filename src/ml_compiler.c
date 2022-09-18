@@ -207,6 +207,8 @@ static void mlc_expr_call(mlc_function_t *Parent, mlc_expr_t *Expr) {
 	Function->Base.run = (ml_state_fn)mlc_function_run;
 	Function->Compiler = Parent->Compiler;
 	Function->Source = Parent->Source;
+	Function->Old = -1;
+	Function->It = -1;
 	Function->Up = Parent;
 	Function->Size = 1;
 	Function->Next = anew(ml_inst_t, 128);
@@ -1714,7 +1716,7 @@ static void ml_assign_expr_compile4(mlc_function_t *Function, ml_value_t *Value,
 		MLC_EMIT(Expr->EndLine, MLI_PUSH, 0);
 		mlc_inc_top(Function);
 	}
-	Function->Self = Frame->Count;
+	Function->Old = Frame->Count;
 	MLC_POP();
 	MLC_RETURN(NULL);
 }
@@ -1722,23 +1724,23 @@ static void ml_assign_expr_compile4(mlc_function_t *Function, ml_value_t *Value,
 static void ml_assign_expr_compile3(mlc_function_t *Function, ml_value_t *Value, mlc_parent_expr_frame_t *Frame) {
 	mlc_parent_expr_t *Expr = Frame->Expr;
 	ml_inst_t *AssignInst = MLC_EMIT(Expr->EndLine, MLI_ASSIGN_LOCAL, 1);
-	AssignInst[1].Count = Function->Self - Function->Top;
+	AssignInst[1].Count = Function->Old - Function->Top;
 	if (Frame->Flags & MLCF_PUSH) {
 		MLC_EMIT(Expr->EndLine, MLI_PUSH, 0);
 		mlc_inc_top(Function);
 	}
-	Function->Self = Frame->Count;
+	Function->Old = Frame->Count;
 	MLC_POP();
 	MLC_RETURN(NULL);
 }
 
 static void ml_assign_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_parent_expr_frame_t *Frame) {
-	Frame->Count = Function->Self;
+	Frame->Count = Function->Old;
 	if (Value) {
-		Function->Self = ml_integer_value_fast(Value);
+		Function->Old = ml_integer_value_fast(Value);
 		Function->Frame->run = (mlc_frame_fn)ml_assign_expr_compile3;
 	} else {
-		Function->Self = Function->Top - 1;
+		Function->Old = Function->Top - 1;
 		Function->Frame->run = (mlc_frame_fn)ml_assign_expr_compile4;
 	}
 	return mlc_compile(Function, Frame->Child, 0);
@@ -1754,13 +1756,27 @@ static void ml_assign_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *
 }
 
 static void ml_old_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags) {
+	if (Function->Old < 0) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "old must be used in assigment expression"));
 	if (Flags & MLCF_PUSH) {
-		ml_inst_t *OldInst = MLC_EMIT(Expr->StartLine, MLI_LOCAL_PUSH, 1);
-		OldInst[1].Count = Function->Self - Function->Top;
+		ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCAL_PUSH, 1);
+		LocalInst[1].Count = Function->Old - Function->Top;
 		mlc_inc_top(Function);
 	} else {
-		ml_inst_t *OldInst = MLC_EMIT(Expr->StartLine, MLI_LOCAL, 1);
-		OldInst[1].Count = Function->Self - Function->Top;
+		ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCAL, 1);
+		LocalInst[1].Count = Function->Old - Function->Top;
+	}
+	MLC_RETURN(NULL);
+}
+
+static void ml_it_expr_compile(mlc_function_t *Function, mlc_expr_t *Expr, int Flags) {
+	if (Function->It < 0) MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "it must be used in guard expression"));
+	if (Flags & MLCF_PUSH) {
+		ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCAL_PUSH, 1);
+		LocalInst[1].Count = Function->It - Function->Top;
+		mlc_inc_top(Function);
+	} else {
+		ml_inst_t *LocalInst = MLC_EMIT(Expr->StartLine, MLI_LOCAL, 1);
+		LocalInst[1].Count = Function->It - Function->Top;
 	}
 	MLC_RETURN(NULL);
 }
@@ -1788,6 +1804,8 @@ void ml_expr_evaluate(ml_state_t *Caller, ml_value_t *Expr) {
 	Function->Base.run = (ml_state_fn)mlc_function_run;
 	Function->Compiler = Parent->Compiler;
 	Function->Source = Parent->Source;
+	Function->Old = -1;
+	Function->It = -1;
 	Function->Up = Parent;
 	Function->Size = 1;
 	Function->Next = anew(ml_inst_t, 128);
@@ -2186,12 +2204,6 @@ static void ml_call_expr_compile5(mlc_function_t *Function, ml_value_t *Value, m
 	mlc_expr_t *Child = Frame->Child;
 	if (Child) {
 		++Frame->Index;
-		if (Child->NilCheck) {
-			ml_inst_t *CheckInst = MLC_EMIT(Child->EndLine, MLI_NIL_CHECK, 2);
-			CheckInst[2].Count = Frame->Index;
-			CheckInst[1].Inst = Frame->NilInst;
-			Frame->NilInst = CheckInst + 1;
-		}
 		if ((Child = Child->Next)) {
 			Frame->Child = Child;
 			return mlc_compile(Function, Child, MLCF_PUSH);
@@ -2266,7 +2278,6 @@ static void ml_call_macro_compile(mlc_function_t *Function, ml_macro_t *Macro, m
 	return ml_call(Function, Macro->Function, Count, Args);
 }
 
-
 typedef struct {
 	ml_value_t *Value;
 	mlc_expr_t *Child;
@@ -2315,6 +2326,8 @@ static void mlc_inline_call_expr_compile2(mlc_function_t *Parent, ml_value_t *Va
 	Function->Base.run = (ml_state_fn)mlc_function_run;
 	Function->Compiler = Parent->Compiler;
 	Function->Source = Parent->Source;
+	Function->Old = -1;
+	Function->It = -1;
 	Function->Up = Parent;
 	Function->Size = 1;
 	Function->Next = anew(ml_inst_t, 128);
@@ -2436,6 +2449,38 @@ static void ml_const_call_expr_compile(mlc_function_t *Function, mlc_parent_valu
 		}
 	}
 	return ml_call_expr_compile4(Function, Expr->Value, Frame);
+}
+
+typedef struct {
+	mlc_expr_t *Guard;
+	int OldIt;
+} ml_guard_expr_frame_t;
+
+static void ml_guard_expr_compile3(mlc_function_t *Function, ml_value_t *Value, ml_guard_expr_frame_t *Frame) {
+	Function->It = Frame->OldIt;
+	MLC_POP();
+	ml_call_expr_frame_t *Caller = (ml_call_expr_frame_t *)&Function->Frame->Data;
+	ml_inst_t *CheckInst = MLC_EMIT(Frame->Guard->EndLine, MLI_AND_POP, 2);
+	CheckInst[2].Count = Caller->Index + 1;
+	CheckInst[1].Inst = Caller->NilInst;
+	Caller->NilInst = CheckInst + 1;
+	MLC_RETURN(NULL);
+}
+
+static void ml_guard_expr_compile2(mlc_function_t *Function, ml_value_t *Value, ml_guard_expr_frame_t *Frame) {
+	Frame->OldIt = Function->It;
+	Function->It = Function->Top - 1;
+	Function->Frame->run = (mlc_frame_fn)ml_guard_expr_compile3;
+	return mlc_compile(Function, Frame->Guard, 0);
+}
+
+static void ml_guard_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
+	if (Function->Frame->run != (mlc_frame_fn)ml_call_expr_compile5) {
+		MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "guard expression used outside of function call"));
+	}
+	MLC_FRAME(ml_guard_expr_frame_t, ml_guard_expr_compile2);
+	Frame->Guard = Expr->Child->Next;
+	return mlc_compile(Function, Expr->Child, MLCF_PUSH);
 }
 
 static void ml_tuple_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_parent_expr_frame_t *Frame) {
@@ -2884,6 +2929,8 @@ static void ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, 
 	SubFunction->Compiler = Function->Compiler;
 	SubFunction->Up = Function;
 	SubFunction->Source = Expr->Source;
+	SubFunction->Old = -1;
+	SubFunction->It = -1;
 	ml_closure_info_t *Info = new(ml_closure_info_t);
 	Info->Source = Expr->Source;
 	Info->StartLine = Expr->StartLine;
@@ -3507,6 +3554,7 @@ const char *MLTokens[] = {
 	"if", // MLT_IF,
 	"in", // MLT_IN,
 	"is", // MLT_IS,
+	"it", // MLT_IT,
 	"let", // MLT_LET,
 	"loop", // MLT_LOOP,
 	"meth", // MLT_METH,
@@ -4904,6 +4952,7 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 		[MLT_NIL] = ml_nil_expr_compile,
 		[MLT_BLANK] = ml_blank_expr_compile,
 		[MLT_OLD] = ml_old_expr_compile,
+		[MLT_IT] = ml_it_expr_compile,
 		[MLT_DEBUG] = ml_debug_expr_compile
 	};
 	const char *ExprName = NULL;
@@ -4963,6 +5012,7 @@ with_name:
 	case MLT_NIL:
 	case MLT_BLANK:
 	case MLT_OLD:
+	case MLT_IT:
 	{
 		mlc_expr_t *Expr = new(mlc_expr_t);
 		Expr->compile = CompileFns[Parser->Token];
@@ -5333,9 +5383,19 @@ static mlc_expr_t *ml_parse_term(ml_parser_t *Parser, int MethDecl) {
 			Expr = ML_EXPR_END(ResolveExpr);
 			break;
 		}
-		case MLT_NIL_CHECK: {
+		case MLT_LEFT_BRACE: {
 			ml_next(Parser);
-			Expr->NilCheck = 1;
+			ML_EXPR(GuardExpr, parent, guard);
+			GuardExpr->Child = Expr;
+			mlc_expr_t *Guard = ml_parse_expression(Parser, EXPR_DEFAULT);
+			if (!Guard) {
+				Guard = new(mlc_expr_t);
+				Guard->compile = ml_it_expr_compile;
+				Guard->StartLine = Guard->EndLine = Parser->Source.Line;
+			}
+			Expr->Next = Guard;
+			ml_accept(Parser, MLT_RIGHT_BRACE);
+			Expr = ML_EXPR_END(GuardExpr);
 			break;
 		}
 		default: {
@@ -5912,6 +5972,8 @@ void ml_function_compile(ml_state_t *Caller, mlc_expr_t *Expr, ml_compiler_t *Co
 	Function->Base.run = (ml_state_fn)mlc_function_run;
 	Function->Compiler = Compiler;
 	Function->Source = Expr->Source;
+	Function->Old = -1;
+	Function->It = -1;
 	ml_closure_info_t *Info = new(ml_closure_info_t);
 	int NumParams = 0;
 	if (Parameters) {
@@ -6505,6 +6567,8 @@ void ml_command_evaluate(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t 
 	Function->Base.run = (ml_state_fn)mlc_function_run;
 	Function->Compiler = Compiler;
 	Function->Source = Parser->Source.Name;
+	Function->Old = -1;
+	Function->It = -1;
 	Function->Up = NULL;
 	__attribute__((unused)) MLC_FRAME(void, ml_command_evaluate2);
 	if (setjmp(Parser->OnError)) MLC_RETURN(Parser->Value);

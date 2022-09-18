@@ -2,6 +2,7 @@
 
 const char *MLInstNames[] = {
 	[MLI_AND] = "and",
+	[MLI_AND_POP] = "and_pop",
 	[MLI_ASSIGN] = "assign",
 	[MLI_ASSIGN_LOCAL] = "assign_local",
 	[MLI_CALL] = "call",
@@ -34,7 +35,6 @@ const char *MLInstNames[] = {
 	[MLI_MAP_NEW] = "map_new",
 	[MLI_NEXT] = "next",
 	[MLI_NIL] = "nil",
-	[MLI_NIL_CHECK] = "nil_check",
 	[MLI_NIL_PUSH] = "nil_push",
 	[MLI_NOT] = "not",
 	[MLI_OR] = "or",
@@ -75,6 +75,7 @@ const char *MLInstNames[] = {
 
 const ml_inst_type_t MLInstTypes[] = {
 	[MLI_AND] = MLIT_INST,
+	[MLI_AND_POP] = MLIT_INST_COUNT,
 	[MLI_ASSIGN] = MLIT_NONE,
 	[MLI_ASSIGN_LOCAL] = MLIT_COUNT,
 	[MLI_CALL] = MLIT_COUNT,
@@ -107,7 +108,6 @@ const ml_inst_type_t MLInstTypes[] = {
 	[MLI_MAP_NEW] = MLIT_NONE,
 	[MLI_NEXT] = MLIT_INST,
 	[MLI_NIL] = MLIT_NONE,
-	[MLI_NIL_CHECK] = MLIT_INST_COUNT,
 	[MLI_NIL_PUSH] = MLIT_NONE,
 	[MLI_NOT] = MLIT_NONE,
 	[MLI_OR] = MLIT_INST,

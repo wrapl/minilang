@@ -481,7 +481,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_TAIL_CALL_METHOD] = &&DO_TAIL_CALL_METHOD,
 		[MLI_NEXT] = &&DO_NEXT,
 		[MLI_NIL] = &&DO_NIL,
-		[MLI_NIL_CHECK] = &&DO_NIL_CHECK,
+		[MLI_AND_POP] = &&DO_AND_POP,
 		[MLI_NIL_PUSH] = &&DO_NIL_PUSH,
 		[MLI_NOT] = &&DO_NOT,
 		[MLI_OR] = &&DO_OR,
@@ -621,6 +621,15 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Result = *--Top;
 		*Top = NULL;
 		ADVANCE(Inst + 1);
+	}
+	DO_AND_POP: {
+		if (ml_deref(Result) == MLNil) {
+			for (int I = Inst[2].Count; --I >= 0;) *--Top = NULL;
+			Result = MLNil;
+			ADVANCE(Inst[1].Inst);
+		} else {
+			ADVANCE(Inst + 3);
+		}
 	}
 	DO_ENTER: {
 		for (int I = Inst[1].Count; --I >= 0;) {
@@ -825,15 +834,6 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Top = Top;
 		ML_STORE_COUNTER();
 		return ml_iter_key((ml_state_t *)Frame, Result);
-	}
-	DO_NIL_CHECK: {
-		Result = ml_deref(Top[-1]);
-		if (Result == MLNil) {
-			for (int I = Inst[2].Count; --I >= 0;) *--Top = NULL;
-			ADVANCE(Inst[1].Inst);
-		} else {
-			ADVANCE(Inst + 3);
-		}
 	}
 	DO_CALL: {
 		int Count = Inst[1].Count;
