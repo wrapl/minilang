@@ -61,10 +61,26 @@ static ml_library_info_t ml_library_find(const char *Path, const char *Name) {
 	char *FileName;
 	ml_library_loader_t *Loader = NULL;
 	if (Path) {
+		int Remove = 0;
+		while (Name[0] == '.') {
+			if (Name[1] == '/') {
+				Name += 2;
+			} else if (Name[1] == '.' && Name[2] == '/') {
+				Name += 3;
+				++Remove;
+			} else {
+				break;
+			}
+		}
 		const char *BasePath = realpath(Path, NULL);
 		if (!BasePath) return (ml_library_info_t){NULL, NULL};
-		FileName = snew(strlen(BasePath) + strlen(Name) + MaxLibraryExtensionLength);
-		char *End = stpcpy(FileName, BasePath);
+		int BasePathLength = strlen(BasePath);
+		while (Remove && --BasePathLength > 0) {
+			if (BasePath[BasePathLength] == '/') --Remove;
+		}
+		if (Remove) return (ml_library_info_t){NULL, NULL};
+		FileName = snew(BasePathLength + strlen(Name) + MaxLibraryExtensionLength);
+		char *End = mempcpy(FileName, BasePath, BasePathLength);
 		*End++ = '/';
 		End = stpcpy(End, Name);
 		Loader = Loaders;
@@ -173,20 +189,65 @@ static ml_value_t *ml_library_default_load0(const char *FileName, ml_value_t **S
 	return ml_error("ModuleError", "Module %s loaded incorrectly", FileName);
 }
 
-static void ml_library_import(ml_state_t *Caller, ml_module_t *Module, int Count, ml_value_t **Args) {
+typedef struct {
+	ml_type_t *Type;
+	const char *Path;
+} ml_importer_t;
+
+static void ml_importer_call(ml_state_t *Caller, ml_importer_t *Importer, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLStringT);
-	// TODO: Allow relative library loading
-	return ml_library_load(Caller, NULL, ml_string_value(Args[0]));
+	const char *Name = ml_string_value(ml_deref(Args[0]));
+	if (Name[0] == '.') {
+		return ml_library_load(Caller, Importer->Path, Name);
+	} else {
+		return ml_library_load(Caller, NULL, Name);
+	}
 }
 
-static ml_value_t *ml_library_mini_global_get(ml_module_t **Slot, const char *Name) {
-	if (!strcmp(Name, "import")) return ml_cfunctionx(Slot[0], (ml_callbackx_t)ml_library_import);
-	return (ml_value_t *)stringmap_search(Globals, Name);
+ML_TYPE(MLImporterT, (MLFunctionT), "importer",
+	.call = (void *)ml_importer_call
+);
+
+ML_METHOD("append", MLStringBufferT, MLImporterT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_importer_t *Importer = (ml_importer_t *)Args[1];
+	if (!Importer->Path) return MLNil;
+	ml_stringbuffer_write(Buffer, Importer->Path, strlen(Importer->Path));
+	return MLSome;
 }
+
+extern const char *ml_load_file_read(void *Data);
 
 static void ml_library_mini_load(ml_state_t *Caller, const char *FileName, ml_value_t **Slot) {
-	return ml_module_load_file(Caller, FileName, (ml_getter_t)ml_library_mini_global_get, Slot, Slot);
+	FILE *File = fopen(FileName, "r");
+	if (!File) ML_ERROR("LoadError", "error opening %s", FileName);
+	ml_parser_t *Parser = ml_parser(ml_load_file_read, File);
+	int LineNo = 1;
+	const char *Line = ml_load_file_read(File);
+	if (!Line) ML_ERROR("LoadError", "empty file %s", FileName);
+	if (Line[0] == '#' && Line[1] == '!') {
+		LineNo = 2;
+		Line = ml_load_file_read(File);
+		if (!Line) ML_ERROR("LoadError", "empty file %s", FileName);
+	}
+	ml_parser_source(Parser, (ml_source_t){FileName, LineNo});
+	ml_parser_input(Parser, Line);
+	ml_compiler_t *Compiler = ml_compiler((ml_getter_t)stringmap_search, Globals);
+	ml_importer_t *Importer = new(ml_importer_t);
+	Importer->Type = MLImporterT;
+	int FileNameLength = strlen(FileName);
+	for (int I = FileNameLength; --I >= 0;) {
+		if (FileName[I] == '/') {
+			char *Path = snew(I + 1);
+			memcpy(Path, FileName, I);
+			Path[I] = 0;
+			Importer->Path = Path;
+			break;
+		}
+	}
+	ml_compiler_define(Compiler, "import", (ml_value_t *)Importer);
+	return ml_module_compile(Caller, Parser, Compiler, Slot);
 }
 
 static void ml_library_so_load(ml_state_t *Caller, const char *FileName, ml_value_t **Slot) {
@@ -331,6 +392,8 @@ ML_FUNCTION(Unload) {
 	return MLNil;
 }
 
+static ml_importer_t Importer[1] = {{MLImporterT, NULL}};
+
 void ml_library_init(stringmap_t *_Globals) {
 	Globals = _Globals;
 	LibraryPath = ml_list();
@@ -339,7 +402,7 @@ void ml_library_init(stringmap_t *_Globals) {
 	ml_library_loader_add(".so", NULL, ml_library_so_load, ml_library_so_load0);
 	//ml_library_loader_add("", ml_library_dir_test, ml_library_dir_load, ml_library_dir_load0);
 #include "ml_library_init.c"
-	stringmap_insert(Globals, "import", ml_cfunctionx(NULL, (ml_callbackx_t)ml_library_import));
+	stringmap_insert(Globals, "import", Importer);
 	stringmap_insert(Globals, "library",  ml_module("library",
 		"unload", Unload,
 		"add_path", AddPath,

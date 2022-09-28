@@ -9,6 +9,16 @@ library
 
 .. rst-class:: mini-api
 
+.. _type-importer:
+
+:mini:`type importer < function`
+   *TBD*
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: importer)`
+   *TBD*
+
+
 .. _type-module-dir:
 
 :mini:`type module::dir`

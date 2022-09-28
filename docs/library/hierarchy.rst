@@ -112,6 +112,7 @@ hierarchy
       "any":e -> "list::node":w;
       "list::node":e -> "list::node::mutable":w;
       "any":e -> "list::slice":w;
+      "function":e -> "importer":w;
       "any":e -> "module::dir":w;
       "stream":e -> "json::decoder":w;
       "sequence":e -> "gir":w;

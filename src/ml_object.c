@@ -529,11 +529,7 @@ ml_value_t *ml_object_field(const ml_value_t *Value, int Index) {
 //!enum
 
 typedef struct {
-#ifdef ML_NANBOXING
-	ml_int64_t Base;
-#else
 	ml_integer_t Base;
-#endif
 	ml_value_t *Name;
 } ml_enum_value_t;
 
@@ -945,11 +941,7 @@ typedef struct {
 	ml_value_t *Names[];
 } ml_flags_t;
 
-#ifdef ML_NANBOXING
-typedef ml_int64_t ml_flags_value_t;
-#else
 typedef ml_integer_t ml_flags_value_t;
-#endif
 
 static void ml_flags_call(ml_state_t *Caller, ml_flags_t *Flags, int Count, ml_value_t **Args) {
 	ml_flags_value_t *Value = new(ml_flags_value_t);

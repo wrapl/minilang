@@ -18,14 +18,13 @@ __thread
 #endif
 ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
 
-static int MLContextSize = 6;
+static int MLContextSize = 5;
 // Reserved context slots:
 //  0: Method Table
 //  1: Context variables
 //  2: Debugger
 //	3: Scheduler
-//	4: Module Path
-//	5: Current Thread
+//	4: Current Thread
 
 static void default_swap(ml_state_t *State, ml_value_t *Value);
 

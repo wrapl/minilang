@@ -6607,7 +6607,7 @@ static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
 }
 #endif
 
-static const char *ml_file_read(void *Data) {
+const char *ml_load_file_read(void *Data) {
 	FILE *File = (FILE *)Data;
 	char *Line = NULL;
 	size_t Length = 0;
@@ -6636,13 +6636,13 @@ void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, cons
 	if (!Parameters) Parameters = DefaultParameters;
 	FILE *File = fopen(FileName, "r");
 	if (!File) ML_ERROR("LoadError", "error opening %s", FileName);
-	ml_parser_t *Parser = ml_parser(ml_file_read, File);
+	ml_parser_t *Parser = ml_parser(ml_load_file_read, File);
 	Parser->Source.Name = FileName;
-	const char *Line = ml_file_read(File);
+	const char *Line = ml_load_file_read(File);
 	if (!Line) ML_ERROR("LoadError", "empty file %s", FileName);
 	if (Line[0] == '#' && Line[1] == '!') {
 		Parser->Line = 2;
-		Line = ml_file_read(File);
+		Line = ml_load_file_read(File);
 		if (!Line) ML_ERROR("LoadError", "empty file %s", FileName);
 	} else {
 		Parser->Line = 1;

@@ -64,10 +64,6 @@ static void ml_export(ml_state_t *Caller, ml_mini_module_t *Module, int Count, m
 typedef struct ml_module_state_t {
 	ml_state_t Base;
 	ml_value_t *Module;
-	ml_value_t *Import;
-	ml_getter_t GlobalGet;
-	void *Globals;
-	ml_value_t *Args[1];
 } ml_module_state_t;
 
 ML_TYPE(MLModuleStateT, (), "module-state");
@@ -81,11 +77,10 @@ static void ml_module_done_run(ml_module_state_t *State, ml_value_t *Value) {
 static void ml_module_init_run(ml_module_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	State->Base.run = (ml_state_fn)ml_module_done_run;
-	return ml_call(State, Value, 1, State->Args);
+	return ml_call(State, Value, 0, NULL);
 }
 
 void ml_module_compile2(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t *Compiler, ml_value_t **Slot, int Flags) {
-	static const char *Parameters[] = {"export", NULL};
 	ml_mini_module_t *Module;
 	if ((Flags & MLMF_USE_GLOBALS) && Slot[0] && ml_typeof(Slot[0]) == MLMiniModuleT) {
 		Module = (ml_mini_module_t *)Slot[0];
@@ -96,37 +91,21 @@ void ml_module_compile2(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t *
 		Module->Flags = Flags;
 		Slot[0] = (ml_value_t *)Module;
 	}
+	ml_compiler_define(Compiler, "export", ml_cfunctionz(Module, (ml_callbackx_t)ml_export));
 	ml_module_state_t *State = new(ml_module_state_t);
 	State->Base.Type = MLModuleStateT;
 	State->Base.run = (void *)ml_module_init_run;
 	State->Base.Context = Caller->Context;
 	State->Base.Caller = Caller;
 	State->Module = (ml_value_t *)Module;
-	State->Args[0] = ml_cfunctionz(Module, (ml_callbackx_t)ml_export);
 	mlc_expr_t *Expr = ml_accept_file(Parser);
 	if (!Expr) ML_RETURN(ml_parser_value(Parser));
-	ml_function_compile((ml_state_t *)State, Expr, Compiler, Parameters);
+	return ml_function_compile((ml_state_t *)State, Expr, Compiler, NULL);
 }
 
 
 void ml_module_compile(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t *Compiler, ml_value_t **Slot) {
 	return ml_module_compile2(Caller, Parser, Compiler, Slot, 0);
-}
-
-void ml_module_load_file(ml_state_t *Caller, const char *FileName, ml_getter_t GlobalGet, void *Globals, ml_value_t **Slot) {
-	static const char *Parameters[] = {"export", NULL};
-	ml_mini_module_t *Module = new(ml_mini_module_t);
-	Module->Base.Type = MLMiniModuleT;
-	Module->Base.Path = FileName;
-	Slot[0] = (ml_value_t *)Module;
-	ml_module_state_t *State = new(ml_module_state_t);
-	State->Base.Type = MLModuleStateT;
-	State->Base.run = (void *)ml_module_init_run;
-	State->Base.Context = Caller->Context;
-	State->Base.Caller = Caller;
-	State->Module = (ml_value_t *)Module;
-	State->Args[0] = ml_cfunctionz(Module, (ml_callbackx_t)ml_export);
-	return ml_load_file((ml_state_t *)State, GlobalGet, Globals, FileName, Parameters);
 }
 
 typedef struct {
