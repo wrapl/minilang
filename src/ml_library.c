@@ -57,42 +57,47 @@ static ml_library_loader_t InternalLoader = {
 
 extern ml_value_t *SymbolMethod;
 
+static char *path_join(const char *Base, const char *Rest, int Remove, int Space) {
+	while (Rest[0] == '.') {
+		if (Rest[1] == '/') {
+			Rest += 2;
+		} else if (Rest[1] == '.' && Rest[2] == '/') {
+			Rest += 3;
+			++Remove;
+		} else if (Rest[1] == 0) {
+			Rest += 1;
+		} else {
+			break;
+		}
+	}
+	int BaseLength = strlen(Base);
+	while (Remove && --BaseLength > 0) {
+		if (Base[BaseLength] == '/') --Remove;
+	}
+	if (Remove) return NULL;
+	char *Path = snew(BaseLength + 1 + strlen(Rest) + Space);
+	char *End = mempcpy(Path, Base, BaseLength);
+	if (Rest[0]) {
+		*End++ = '/';
+		strcpy(End, Rest);
+	}
+	return Path;
+}
+
 static ml_library_info_t ml_library_find(const char *Path, const char *Name) {
-	char *FileName;
 	ml_library_loader_t *Loader = NULL;
 	if (Path) {
-		int Remove = 0;
-		while (Name[0] == '.') {
-			if (Name[1] == '/') {
-				Name += 2;
-			} else if (Name[1] == '.' && Name[2] == '/') {
-				Name += 3;
-				++Remove;
-			} else {
-				break;
-			}
-		}
-		const char *BasePath = realpath(Path, NULL);
-		if (!BasePath) return (ml_library_info_t){NULL, NULL};
-		int BasePathLength = strlen(BasePath);
-		while (Remove && --BasePathLength > 0) {
-			if (BasePath[BasePathLength] == '/') --Remove;
-		}
-		if (Remove) return (ml_library_info_t){NULL, NULL};
-		FileName = snew(BasePathLength + strlen(Name) + MaxLibraryExtensionLength);
-		char *End = mempcpy(FileName, BasePath, BasePathLength);
-		*End++ = '/';
-		End = stpcpy(End, Name);
+		char *FileName = path_join(Path, Name, 0, MaxLibraryExtensionLength);
+		if (!FileName) return (ml_library_info_t){NULL, NULL};
+		char *End = FileName + strlen(FileName);
 		Loader = Loaders;
 		while (Loader) {
 			strcpy(End, Loader->Extension);
 			if (Loader->test(FileName)) return (ml_library_info_t){Loader, FileName};
 			Loader = Loader->Next;
 		}
-		*End = 0;
-		Name = FileName;
 	} else {
-		FileName = snew(MaxLibraryPathLength + strlen(Name) + MaxLibraryExtensionLength);
+		char *FileName = snew(MaxLibraryPathLength + 1 + strlen(Name) + MaxLibraryExtensionLength);
 		ML_LIST_FOREACH(LibraryPath, Iter) {
 			char *End = stpcpy(FileName, ml_string_value(Iter->Value));
 			*End++ = '/';
@@ -327,13 +332,13 @@ static ml_value_t *ml_library_dir_load0(const char *FileName, ml_value_t **Slot)
 #include "whereami.h"
 
 void ml_library_path_add(const char *Path) {
-	const char *RealPath = realpath(Path, NULL);
-	if (!RealPath) {
-		fprintf(stderr, "Error: library path %s not found\n", Path);
-		exit(-1);
+	if (Path[0] != '/') {
+		char *Cwd = getcwd(NULL, 0);
+		Path = path_join(Cwd, Path, 0, 0);
+		free(Cwd);
 	}
-	int PathLength = strlen(RealPath);
-	ml_list_push(LibraryPath, ml_string(RealPath, PathLength));
+	int PathLength = strlen(Path);
+	ml_list_push(LibraryPath, ml_string(Path, PathLength));
 	if (MaxLibraryPathLength < PathLength) MaxLibraryPathLength = PathLength;
 }
 
@@ -386,9 +391,9 @@ ML_FUNCTION(Unload) {
 //>nil
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
-	const char *FileName = realpath(ml_string_value(Args[0]), NULL);
-	if (!FileName) return ml_error("ModuleError", "File %s not found", ml_string_value(Args[0]));
-	stringmap_remove(Modules, FileName);
+	ml_library_info_t Info = ml_library_find(NULL, ml_string_value(Args[0]));
+	if (!Info.FileName) return ml_error("ModuleError", "File %s not found", ml_string_value(Args[0]));
+	stringmap_remove(Modules, Info.FileName);
 	return MLNil;
 }
 
