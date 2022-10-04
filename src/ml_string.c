@@ -2813,6 +2813,7 @@ ML_METHOD("replace", MLStringT, MLStringT, MLStringT) {
 	const char *SubjectEnd = Subject + ml_string_length(Args[0]);
 	const char *Pattern = ml_string_value(Args[1]);
 	int PatternLength = ml_string_length(Args[1]);
+	if (!PatternLength) return ml_error("ValueError", "Empty pattern used in replace");
 	const char *Replace = ml_string_value(Args[2]);
 	int ReplaceLength = ml_string_length(Args[2]);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
