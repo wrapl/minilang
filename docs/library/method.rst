@@ -15,6 +15,12 @@ method
    *TBD*
 
 
+.. _fun-method-isolate:
+
+:mini:`fun method::isolate(Args: any, ..., Fn: function): any`
+   Evaluates :mini:`Fn(Args)` in a new method context and returns the result.
+
+
 .. _fun-method-set:
 
 :mini:`fun method::set(Method: any, Types: type, ..., ..?: any, Function: function): Function`

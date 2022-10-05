@@ -56,6 +56,21 @@ ML_FUNCTIONX(MLMethodContext) {
 	ML_RETURN(Methods);
 }
 
+ML_FUNCTIONX(MLMethodIsolate) {
+//@method::isolate
+//<Args...
+//<Fn:function
+//>any
+// Evaluates :mini:`Fn(Args)` in a new method context and returns the result.
+	ml_state_t *State = ml_state(Caller);
+	ml_methods_t *Methods = new(ml_methods_t);
+	Methods->Type = MLMethodContextT;
+	Methods->Parent = Caller->Context->Values[ML_METHODS_INDEX];
+	State->Context->Values[ML_METHODS_INDEX] = Methods;
+	ml_value_t *Function = ml_deref(Args[Count - 1]);
+	return ml_call(State, Function, Count - 1, Args);
+}
+
 static ml_methods_t MLRootMethods[1] = {{
 	MLMethodContextT, NULL,
 	{INTHASH_INIT},
@@ -736,6 +751,7 @@ void ml_method_init() {
 	stringmap_insert(MLMethodT->Exports, "switch", MLMethodSwitch);
 	//stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
 	stringmap_insert(MLMethodT->Exports, "context", MLMethodContext);
+	stringmap_insert(MLMethodT->Exports, "isolate", MLMethodIsolate);
 	stringmap_insert(MLMethodT->Exports, "list", MLMethodList);
 	ml_method_by_value(MLMethodT->Constructor, NULL, ml_identity, MLMethodT, NULL);
 }

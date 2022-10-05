@@ -2,6 +2,7 @@
 
 const char *MLInstNames[] = {
 	[MLI_AND] = "and",
+	[MLI_AND_POP] = "and_pop",
 	[MLI_ASSIGN] = "assign",
 	[MLI_ASSIGN_LOCAL] = "assign_local",
 	[MLI_CALL] = "call",
@@ -74,6 +75,7 @@ const char *MLInstNames[] = {
 
 const ml_inst_type_t MLInstTypes[] = {
 	[MLI_AND] = MLIT_INST,
+	[MLI_AND_POP] = MLIT_INST_COUNT,
 	[MLI_ASSIGN] = MLIT_NONE,
 	[MLI_ASSIGN_LOCAL] = MLIT_COUNT,
 	[MLI_CALL] = MLIT_COUNT,

@@ -71,6 +71,28 @@ The optional expression passed to :mini:`exit` is evaluated in the context of th
 
    I = 3, J = 4, K = 5
 
+Named loops
+...........
+
+If it is required to exit or restart deeply nested loops, using multiple :mini:`exit`'s can be inconvenient and error prone. *Minilang* allows loops (both :mini:`loop` and :mini:`for`) to be named and then referred to in a :mini:`exit` or :mini:`next` expression.
+
+.. code-block:: mini
+
+   main :- for I in 1 .. 10 do
+      for J in 1 .. 10 do
+         if I * J = 9 then
+            main :- next
+         end
+         if (I * I) + (J * J) = (5 * 5) then
+            main :- exit '{I}^2 + {J}^2 = {5}^2'
+         end
+      end
+   end
+
+.. code-block:: console
+
+   4^2 + 3^2 = 5^2
+
 For expressions
 ---------------
 

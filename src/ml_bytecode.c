@@ -481,6 +481,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		[MLI_TAIL_CALL_METHOD] = &&DO_TAIL_CALL_METHOD,
 		[MLI_NEXT] = &&DO_NEXT,
 		[MLI_NIL] = &&DO_NIL,
+		[MLI_AND_POP] = &&DO_AND_POP,
 		[MLI_NIL_PUSH] = &&DO_NIL_PUSH,
 		[MLI_NOT] = &&DO_NOT,
 		[MLI_OR] = &&DO_OR,
@@ -620,6 +621,15 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Result = *--Top;
 		*Top = NULL;
 		ADVANCE(Inst + 1);
+	}
+	DO_AND_POP: {
+		if (ml_deref(Result) == MLNil) {
+			for (int I = Inst[2].Count; --I >= 0;) *--Top = NULL;
+			Result = MLNil;
+			ADVANCE(Inst[1].Inst);
+		} else {
+			ADVANCE(Inst + 3);
+		}
 	}
 	DO_ENTER: {
 		for (int I = Inst[1].Count; --I >= 0;) {
@@ -1392,6 +1402,9 @@ static int ml_closure_find_labels(ml_inst_t *Inst, unsigned int *Labels) {
 	case MLIT_INST:
 		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
 		return 2;
+	case MLIT_INST_COUNT:
+		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
+		return 3;
 	case MLIT_INST_COUNT_DECL:
 		if (!Inst[1].Inst->Label) Inst[1].Inst->Label = ++*Labels;
 		return 4;
@@ -1439,6 +1452,10 @@ static int ml_inst_hash(ml_inst_t *Inst, ml_closure_info_t *Info, int I, int J) 
 	case MLIT_INST:
 		*(int *)(Info->Hash + I) ^= Inst[1].Inst->Label;
 		return 2;
+	case MLIT_INST_COUNT:
+		*(int *)(Info->Hash + I) ^= Inst[1].Inst->Label;
+		*(int *)(Info->Hash + J) ^= Inst[2].Count;
+		return 3;
 	case MLIT_INST_COUNT_DECL:
 		*(int *)(Info->Hash + I) ^= Inst[1].Inst->Label;
 		*(int *)(Info->Hash + J) ^= Inst[2].Count;
@@ -1723,7 +1740,11 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 	case MLIT_INST:
 		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
 		return 2;
-	case MLIT_INST_COUNT_DECL: {
+	case MLIT_INST_COUNT:
+		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
+		ml_stringbuffer_printf(Buffer, ", %d", Inst[2].Count);
+		return 3;
+	case MLIT_INST_COUNT_DECL:
 		ml_stringbuffer_printf(Buffer, " ->L%d", Inst[1].Inst->Label);
 		ml_stringbuffer_printf(Buffer, ", %d", Inst[2].Count);
 		if (Inst[3].Decls) {
@@ -1732,7 +1753,6 @@ static int ml_closure_inst_list(ml_inst_t *Inst, ml_stringbuffer_t *Buffer) {
 			ml_stringbuffer_printf(Buffer, " -");
 		}
 		return 4;
-	}
 	case MLIT_COUNT_COUNT:
 		ml_stringbuffer_printf(Buffer, " %d, %d", Inst[1].Count, Inst[2].Count);
 		return 3;

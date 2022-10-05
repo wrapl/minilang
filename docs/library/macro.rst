@@ -77,6 +77,12 @@ macro
    An expression value used by the compiler to implement macros.
 
 
+.. _fun-macro-subst:
+
+:mini:`fun macro::subst(Expr: expr): macro`
+   Returns a new macro which substitutes its arguments into :mini:`Expr`.
+
+
 :mini:`meth (Expr: expr):scoped(Definitions: map): expr`
    Returns a new expression which wraps :mini:`Expr` with the constant definitions from :mini:`Definitions`.
 
@@ -95,6 +101,10 @@ macro
 
 :mini:`meth (Expr: expr):subst(Names: list, Subs: list): expr`
    Returns a new expression which substitutes macro references to :mini:`:$Nameᵢ` with the corresponding expressions :mini:`Subᵢ`.
+
+
+:mini:`meth (Expr: expr):subst(Subs: map, ...): expr`
+   Returns a new expression which substitutes macro references to :mini:`:$Nameᵢ` with the corresponding expression :mini:`Subᵢ`.
 
 
 :mini:`meth (Expr: expr):subst(Name₁ is Sub₁, ...): expr`

@@ -93,7 +93,7 @@ complex double ml_complex_value(const ml_value_t *Value) {
 	if (Tag >= 7) return ml_double_value_fast(Value);
 	if (Tag == 0) {
 		if (Value->Type == MLInt64T) {
-			return ((ml_int64_t *)Value)->Value;
+			return ((ml_integer_t *)Value)->Value;
 		} else if (Value->Type == MLComplexT) {
 			return ((ml_complex_t *)Value)->Value;
 		}
@@ -279,7 +279,7 @@ ML_TYPE(MLInt32T, (MLIntegerT), "int32",
 );
 
 static long ml_int64_hash(ml_value_t *Value, ml_hash_chain_t *Chain) {
-	return ((ml_int64_t *)Value)->Value;
+	return ((ml_integer_t *)Value)->Value;
 }
 
 ML_TYPE(MLInt64T, (MLIntegerT), "int64",
@@ -289,7 +289,7 @@ ML_TYPE(MLInt64T, (MLIntegerT), "int64",
 );
 
 ml_value_t *ml_int64(int64_t Integer) {
-	ml_int64_t *Value = new(ml_int64_t);
+	ml_integer_t *Value = new(ml_integer_t);
 	Value->Type = MLInt64T;
 	Value->Value = Integer;
 	return (ml_value_t *)Value;
@@ -301,7 +301,7 @@ int64_t ml_integer_value(const ml_value_t *Value) {
 	if (Tag >= 7) return ml_double_value_fast(Value);
 	if (Tag == 0) {
 		if (Value->Type == MLInt64T) {
-			return ((ml_int64_t *)Value)->Value;
+			return ((ml_integer_t *)Value)->Value;
 		}
 	}
 	return 0;
@@ -314,7 +314,7 @@ ML_METHOD(MLRealT, MLInt32T) {
 
 ML_METHOD(MLRealT, MLInt64T) {
 //!internal
-	return ml_real(((ml_int64_t *)Args[0])->Value);
+	return ml_real(((ml_integer_t *)Args[0])->Value);
 }
 
 #else
@@ -391,7 +391,7 @@ double ml_real_value(const ml_value_t *Value) {
 	if (Tag >= 7) return ml_double_value_fast(Value);
 	if (Tag == 0) {
 		if (Value->Type == MLInt64T) {
-			return ((ml_int64_t *)Value)->Value;
+			return ((ml_integer_t *)Value)->Value;
 		}
 	}
 	return 0;
@@ -404,7 +404,7 @@ ML_METHOD(MLDoubleT, MLInt32T) {
 
 ML_METHOD(MLDoubleT, MLInt64T) {
 //!internal
-	return ml_real(((ml_int64_t *)Args[0])->Value);
+	return ml_real(((ml_integer_t *)Args[0])->Value);
 }
 
 #else

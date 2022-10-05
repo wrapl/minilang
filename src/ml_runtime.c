@@ -18,14 +18,13 @@ __thread
 #endif
 ml_value_t *MLArgCache[ML_ARG_CACHE_SIZE];
 
-static int MLContextSize = 6;
+static int MLContextSize = 5;
 // Reserved context slots:
 //  0: Method Table
 //  1: Context variables
 //  2: Debugger
 //	3: Scheduler
-//	4: Module Path
-//	5: Current Thread
+//	4: Current Thread
 
 static void default_swap(ml_state_t *State, ml_value_t *Value);
 
@@ -359,9 +358,9 @@ void ml_uninitialized_use(ml_value_t *Uninitialized0, ml_value_t **Value) {
 
 static ML_METHOD_DECL(SymbolMethod, "::");
 
-static int ml_uninitialized_resolve(const char *Name, ml_uninitialized_t *Unitialized, ml_value_t *Value) {
+static int ml_uninitialized_resolve(const char *Name, ml_uninitialized_t *Uninitialized, ml_value_t *Value) {
 	ml_value_t *Result = ml_simple_inline(SymbolMethod, 2, Value, ml_string(Name, -1));
-	ml_uninitialized_set((ml_value_t *)Unitialized, Result);
+	ml_uninitialized_set((ml_value_t *)Uninitialized, Result);
 	return 0;
 }
 

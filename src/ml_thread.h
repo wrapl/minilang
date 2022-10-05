@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define ML_THREAD_INDEX 5
+#define ML_THREAD_INDEX 4
 
 extern ml_type_t MLThreadT[];
 

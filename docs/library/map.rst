@@ -19,14 +19,6 @@ map
       "D" in M :> nil
 
 
-:mini:`meth (Copy: copy):visit(Map: map): map`
-   Returns a new map contains copies of the keys and values of :mini:`Map` created using :mini:`Copy`.
-
-
-:mini:`meth (Copy: copy::const):visit(Map: map): map::const`
-   Returns a new constant map containing copies of the keys and values of :mini:`Map` created using :mini:`Copy`.
-
-
 .. _type-map:
 
 :mini:`type map < sequence`
@@ -58,15 +50,31 @@ map
       :> {"A" is 1, "B" is 2, "C" is 3}
 
 
+.. _fun-map-join:
+
+:mini:`fun map::join(Map₁, : map, ..., Fn: function): map`
+   Returns a new map containing the union of the keys of :mini:`Mapᵢ`,  and with values :mini:`Fn(V₁,  ...,  Vₙ)` where each :mini:`Vᵢ` comes from :mini:`Mapᵢ` (or :mini:`nil`).
+
+   .. code-block:: mini
+
+      let A := map(swap("apple"))
+      :> {"a" is 1, "p" is 3, "l" is 4, "e" is 5}
+      let B := map(swap("banana"))
+      :> {"b" is 1, "a" is 6, "n" is 5}
+      let C := map(swap("pear"))
+      :> {"p" is 1, "e" is 2, "a" is 3, "r" is 4}
+      map::join(A, B, C, tuple)
+      :> {"a" is (1, 6, 3), "p" is (3, nil, 1), "l" is (4, nil, nil), "e" is (5, nil, 2), "b" is (nil, 1, nil), "n" is (nil, 5, nil), "r" is (nil, nil, 4)}
+
+
 :mini:`meth (Map: map) :: (Key: string): map::node`
    Same as :mini:`Map[Key]`. This method allows maps to be used as modules.
 
    .. code-block:: mini
 
       let M := copy({"A" is 1, "B" is 2, "C" is 3}, :const)
-      M::A
-      :> error("MethodError", "no method found for const(copy, map::mutable[string,int32])")
-      M::D :> <uninitialized>
+      M::A :> 1
+      M::D :> nil
 
 
 :mini:`meth (Map₁: map) * (Map₂: map): map`
@@ -150,10 +158,8 @@ map
    .. code-block:: mini
 
       let M := copy({"A" is 1, "B" is 2, "C" is 3}, :const)
-      M["A"]
-      :> error("MethodError", "no method found for const(copy, map::mutable[string,int32])")
-      M["D"]
-      :> error("MethodError", "no method found for [](uninitialized, string)")
+      M["A"] :> 1
+      M["D"] :> nil
 
 
 :mini:`meth (Map₁: map) \/ (Map₂: map): map`
@@ -200,7 +206,7 @@ map
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
       M:random :> "k"
-      M:random :> "c"
+      M:random :> "k"
 
 
 :mini:`meth (Map: map):size: integer`
@@ -515,5 +521,17 @@ map
    * :mini:`map::order::Ascending` |harr| inserted pairs are kept in descending key order,  no reordering on access.
    * :mini:`map::order::MRU` |harr| inserted pairs are put at start,  accessed pairs are moved to start.
    * :mini:`map::order::LRU` |harr| inserted pairs are put at end,  accessed pairs are moved to end.
+
+
+:mini:`meth (Copy: visitor):const(Map: map): map::const`
+   Returns a new constant map containing copies of the keys and values of :mini:`Map` created using :mini:`Copy`.
+
+
+:mini:`meth (Copy: visitor):copy(Map: map): map`
+   Returns a new map contains copies of the keys and values of :mini:`Map` created using :mini:`Copy`.
+
+
+:mini:`meth (Copy: visitor):visit(Map: map): map`
+   Returns a new map contains copies of the keys and values of :mini:`Map` created using :mini:`Copy`.
 
 

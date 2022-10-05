@@ -41,7 +41,11 @@ struct ml_hash_chain_t {
 	int Index;
 };
 
+#ifdef ML_GENERICS
+
 typedef struct ml_generic_rule_t ml_generic_rule_t;
+
+#endif
 
 struct ml_type_t {
 	ml_type_t *Type;
@@ -155,8 +159,6 @@ typedef struct {
 } ml_visitor_t;
 
 extern ml_type_t MLVisitorT[];
-extern ml_type_t MLCopyT[];
-extern ml_type_t MLCopyConstT[];
 
 #ifdef ML_NANBOXING
 
@@ -477,12 +479,12 @@ extern ml_type_t MLDoubleT[];
 int64_t ml_integer_value(const ml_value_t *Value) __attribute__ ((const));
 double ml_real_value(const ml_value_t *Value) __attribute__ ((const));
 
-#ifdef ML_NANBOXING
-
 typedef struct {
 	ml_type_t *Type;
 	int64_t Value;
-} ml_int64_t;
+} ml_integer_t;
+
+#ifdef ML_NANBOXING
 
 static inline int ml_is_int32(ml_value_t *Value) {
 	return ml_tag(Value) == 1;
@@ -515,7 +517,7 @@ static inline int ml_is_double(ml_value_t *Value) {
 
 static inline int64_t ml_integer_value_fast(const ml_value_t *Value) {
 	if (__builtin_expect(!!ml_tag(Value), 1)) return (int32_t)(intptr_t)Value;
-	return ((ml_int64_t *)Value)->Value;
+	return ((ml_integer_t *)Value)->Value;
 }
 
 static inline double ml_double_value_fast(const ml_value_t *Value) {
@@ -529,11 +531,6 @@ static inline double ml_double_value_fast(const ml_value_t *Value) {
 
 ml_value_t *ml_integer(int64_t Value) __attribute__((malloc));
 ml_value_t *ml_real(double Value) __attribute__((malloc));
-
-typedef struct {
-	ml_type_t *Type;
-	int64_t Value;
-} ml_integer_t;
 
 inline int64_t ml_integer_value_fast(const ml_value_t *Value) {
 	return ((ml_integer_t *)Value)->Value;

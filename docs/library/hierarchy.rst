@@ -16,8 +16,6 @@ hierarchy
       "any":e -> "function":w;
       "function":e -> "type":w;
       "function":e -> "visitor":w;
-      "visitor":e -> "copy":w;
-      "copy":e -> "copy::const":w;
       "function":e -> "function::partial":w;
       "sequence":e -> "function::partial":w;
       "function":e -> "tuple":w;
@@ -93,7 +91,7 @@ hierarchy
       "sequence":e -> "enum":w;
       "sequence":e -> "enum::range":w;
       "type":e -> "flags":w;
-      "integer":e -> "flags::value":w;
+      "any":e -> "flags::value":w;
       "any":e -> "number":w;
       "number":e -> "complex":w;
       "complex":e -> "real":w;
@@ -114,6 +112,7 @@ hierarchy
       "any":e -> "list::node":w;
       "list::node":e -> "list::node::mutable":w;
       "any":e -> "list::slice":w;
+      "function":e -> "importer":w;
       "any":e -> "module::dir":w;
       "stream":e -> "json::decoder":w;
       "sequence":e -> "gir":w;
@@ -150,6 +149,7 @@ hierarchy
       "any":e -> "expr":w;
       "any":e -> "macro":w;
       "function":e -> "function::inline":w;
+      "function":e -> "macro::subst":w;
       "any":e -> "block::builder":w;
       "any":e -> "expr::builder":w;
       "state":e -> "compiler":w;

@@ -2360,7 +2360,7 @@ ML_METHODX("connect", GirObjectInstanceT, MLStringT, MLFunctionT) {
 	object_instance_t *Instance = (object_instance_t *)Args[0];
 	const char *Signal = ml_string_value(Args[1]);
 	GISignalInfo *SignalInfo = (GISignalInfo *)stringmap_search(Instance->Type->Signals, Signal);
-	if (!SignalInfo) ML_ERROR("NameError", "Signal %s not found", Signal);
+	if (!SignalInfo) ML_ERROR("NameError", "Signal %s::%s not found", Instance->Type->Base.Name, Signal);
 	gir_closure_info_t *Info = GC_malloc_uncollectable(sizeof(gir_closure_info_t));
 	Info->Instance = Instance;
 	GC_register_disappearing_link((void **)&Info->Instance);

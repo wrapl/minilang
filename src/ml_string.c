@@ -428,14 +428,14 @@ static int ML_TYPED_FN(ml_value_is_constant, MLBufferT, ml_value_t *Value) {
 	return 0;
 }
 
-ML_METHOD("copy", MLCopyT, MLBufferT) {
+ML_METHOD("copy", MLVisitorT, MLBufferT) {
 	size_t Size = ml_buffer_length(Args[1]);
 	char *Value = snew(Size);
 	memcpy(Value, ml_buffer_value(Args[1]), Size);
 	return ml_buffer(Value, Size);
 }
 
-ML_METHOD("const", MLCopyT, MLBufferT) {
+ML_METHOD("const", MLVisitorT, MLBufferT) {
 	size_t Size = ml_buffer_length(Args[1]);
 	char *Value = snew(Size);
 	memcpy(Value, ml_buffer_value(Args[1]), Size);
@@ -639,6 +639,7 @@ ML_METHOD("append", MLStringBufferT, MLAddressT) {
 }
 
 ml_value_t *ml_string(const char *Value, int Length) {
+	Value = Value ?: "";
 	if (Length >= 0) {
 		if (Value[Length]) {
 			char *Copy = snew(Length + 1);
@@ -647,7 +648,7 @@ ml_value_t *ml_string(const char *Value, int Length) {
 			Value = Copy;
 		}
 	} else {
-		Length = Value ? strlen(Value) : 0;
+		Length = strlen(Value);
 	}
 	ml_string_t *String = new(ml_string_t);
 	String->Type = MLStringT;
@@ -2812,6 +2813,7 @@ ML_METHOD("replace", MLStringT, MLStringT, MLStringT) {
 	const char *SubjectEnd = Subject + ml_string_length(Args[0]);
 	const char *Pattern = ml_string_value(Args[1]);
 	int PatternLength = ml_string_length(Args[1]);
+	if (!PatternLength) return ml_error("ValueError", "Empty pattern used in replace");
 	const char *Replace = ml_string_value(Args[2]);
 	int ReplaceLength = ml_string_length(Args[2]);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};

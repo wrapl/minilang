@@ -38,11 +38,11 @@ When a closure is called, the supplied arguments are bound to the function param
   * Otherwise if there is a *list* parameter, the argument is added to that parameter's value,
   * Otherwise the argument is ignored.
 
-* All remaining normal parameters are set to :mini:`nil`
-* Any parameters which have been bound to :mini:`nil` and have default expressions (written as :mini:`:= expression`) are assigned the value of their default expressions (evaluated each time the closure is called)
-* Finally the closure body is evaluated
-* If a type was specified for the closure (using :mini:`: expression`), the type of the result is checked and an error returned if it does not match
-* Otherwise if the result types matches or no type was specified, the result is returned
+* All remaining normal parameters are set to :mini:`nil`,
+* Any parameters which have been bound to :mini:`nil` and have default expressions (written as :mini:`:= expression`) are assigned the value of their default expressions (evaluated each time the closure is called),
+* Finally the closure body is evaluated.
+* If a type was specified for the closure (using :mini:`: expression`), the type of the result is checked and an error returned if it does not match,
+* Otherwise if the result types matches or no type was specified, the result is returned.
 
 Calling Functions
 -----------------

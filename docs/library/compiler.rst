@@ -9,6 +9,12 @@ compiler
 
 .. rst-class:: mini-api
 
+.. _fun-mlcompilerzip:
+
+:mini:`fun mlcompilerzip()`
+   *TBD*
+
+
 .. _type-compiler:
 
 :mini:`type compiler < state`
@@ -92,6 +98,12 @@ compiler
 .. _type-global:
 
 :mini:`type global`
+   *TBD*
+
+
+.. _type-macro-subst:
+
+:mini:`type macro::subst < function`
    *TBD*
 
 

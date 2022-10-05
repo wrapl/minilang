@@ -1427,6 +1427,10 @@ ML_FUNCTION(DecodeClosureInfo) {
 		case MLIT_INST:
 			Inst[1].Inst = Code + VLQ64_NEXT();
 			Inst += 2; break;
+		case MLIT_INST_COUNT:
+			Inst[1].Inst = Code + VLQ64_NEXT();
+			Inst[2].Count = VLQ64_NEXT();
+			Inst += 3; break;
 		case MLIT_INST_COUNT_DECL:
 			Inst[1].Inst = Code + VLQ64_NEXT();
 			Inst[2].Count = VLQ64_NEXT();

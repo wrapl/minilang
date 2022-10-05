@@ -26,7 +26,6 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "type"
 
-ML_METHOD_DECL(CopyMethod, "copy");
 ML_METHOD_DECL(IterateMethod, "iterate");
 ML_METHOD_DECL(ValueMethod, "value");
 ML_METHOD_DECL(KeyMethod, "key");
@@ -801,13 +800,17 @@ static void ML_TYPED_FN(ml_iterate, MLNilT, ml_state_t *Caller, ml_value_t *Valu
 
 //!general
 
-ML_METHOD_DECL(VisitMethod, "visit");
-
-static void ml_visitor(ml_state_t *Caller, void *Type, int Count, ml_value_t **Args) {
-	ML_CHECKX_ARG_COUNT(1);
+ML_FUNCTIONX(MLVisit) {
+//@visit
+//<Value
+//<Fn
+//>any
+// Returns :mini:`Fn(V, Value)` where :mini:`V` is a newly created :mini:`visitor`.
+	ML_CHECKX_ARG_COUNT(2);
+	ML_CHECKX_ARG_TYPE(1, MLFunctionT);
 	ml_visitor_t *Visitor = new(ml_visitor_t);
-	Visitor->Type = (ml_type_t *)Type;
-	Visitor->Fn = Count > 1 ? Args[1] : VisitMethod;
+	Visitor->Type = MLVisitorT;
+	Visitor->Fn = Args[1];
 	Visitor->Error = ml_error("CallError", "Recursive visit detected");
 	Visitor->Args[0] = (ml_value_t *)Visitor;
 	ml_value_t **Args2 = ml_alloc_args(2);
@@ -815,9 +818,6 @@ static void ml_visitor(ml_state_t *Caller, void *Type, int Count, ml_value_t **A
 	Args2[1] = Args[0];
 	return ml_call(Caller, Visitor->Fn, 2, Args2);
 }
-
-ML_CFUNCTIONX(MLVisitor, MLVisitorT, ml_visitor);
-//!internal
 
 static void ml_visitor_call(ml_state_t *Caller, ml_visitor_t *Visitor, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
@@ -827,8 +827,14 @@ static void ml_visitor_call(ml_state_t *Caller, ml_visitor_t *Visitor, int Count
 		inthash_insert(Visitor->Cache, (uintptr_t)Value, Result);
 		ML_RETURN(Result);
 	} else {
-		ml_value_t *Result = inthash_search(Visitor->Cache, (uintptr_t)Value);
-		if (Result) ML_RETURN(Result);
+#ifdef ML_NANBOXING
+		if (!ml_tag(Value)) {
+#endif
+			ml_value_t *Result = inthash_search(Visitor->Cache, (uintptr_t)Value);
+			if (Result) ML_RETURN(Result);
+#ifdef ML_NANBOXING
+		}
+#endif
 		inthash_insert(Visitor->Cache, (uintptr_t)Value, Visitor->Error);
 		Visitor->Args[1] = Value;
 		return ml_call(Caller, Visitor->Fn, 2, Visitor->Args);
@@ -843,43 +849,68 @@ ML_TYPE(MLVisitorT, (MLFunctionT), "visitor",
 //
 // :mini:`fun (V: visitor)(Value: any): any`
 //    Visits :mini:`Value` with :mini:`V` returning the result.
-	.call = (void *)ml_visitor_call,
-	.Constructor = (ml_value_t *)MLVisitor
+	.call = (void *)ml_visitor_call
 );
 
 ML_METHOD("visit", MLVisitorT, MLAnyT) {
 //<Visitor
 //<Value
 //>any
-// Default visitor implementation, just returns :mini:`Value`.
-	return Args[1];
+// Default visitor implementation, just returns :mini:`nil`.
+	return MLNil;
 }
 
-ML_CFUNCTIONX(MLCopy, MLCopyT, ml_visitor);
+ML_METHOD_DECL(CopyMethod, "copy");
+
+ML_FUNCTIONX(MLCopy) {
 //@copy
 //<Value:any
 //<Fn?:function
 //>any
-// Returns a copy of :mini:`Value` using a new :mini:`copy` instance which applies :mini:`Fn(Copy, Value)` to each value. If omitted, :mini:`Fn` defaults to :mini:`:visit`.
+// Returns a copy of :mini:`Value` using a new :mini:`copy` instance which applies :mini:`Fn(Copy, Value)` to each value. If omitted, :mini:`Fn` defaults to :mini:`:copy`.
+	ML_CHECKX_ARG_COUNT(1);
+	ml_visitor_t *Visitor = new(ml_visitor_t);
+	Visitor->Type = MLVisitorT;
+	Visitor->Fn = Count > 1 ? Args[1] : CopyMethod;
+	Visitor->Error = ml_error("CallError", "Recursive visit detected");
+	Visitor->Args[0] = (ml_value_t *)Visitor;
+	ml_value_t **Args2 = ml_alloc_args(2);
+	Args2[0] = (ml_value_t *)Visitor;
+	Args2[1] = Args[0];
+	return ml_call(Caller, Visitor->Fn, 2, Args2);
+}
 
-ML_TYPE(MLCopyT, (MLVisitorT), "copy",
-// A visitor that creates a copy of each value it visits.
-	.call = (void *)ml_visitor_call,
-	.Constructor = (ml_value_t *)MLCopy
-);
-
-ML_CFUNCTIONX(MLCopyConst, MLCopyConstT, ml_visitor);
-//@copy::const
-//<Value:any
-//<Fn?:function
+ML_METHOD("copy", MLVisitorT, MLAnyT) {
+//<Visitor
+//<Value
 //>any
-// Returns a copy of :mini:`Value` using a new :mini:`copy::const` instance which applies :mini:`Fn(Copy, Value)` to each value. If omitted, :mini:`Fn` defaults to :mini:`:visit`.
+// Default visitor implementation, just returns :mini:`Value`.
+#ifdef ML_NANBOXING
+	if (!ml_tag(Args[1])) {
+#endif
+	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
+	inthash_insert(Visitor->Cache, (uintptr_t)Args[1], Args[1]);
+#ifdef ML_NANBOXING
+	}
+#endif
+	return Args[1];
+}
 
-ML_TYPE(MLCopyConstT, (MLCopyT), "const",
-// A visitor that creates an immutable copy of each value it visits.
-	.call = (void *)ml_visitor_call,
-	.Constructor = (ml_value_t *)MLCopyConst
-);
+ML_METHOD("const", MLVisitorT, MLAnyT) {
+//<Visitor
+//<Value
+//>any
+// Default visitor implementation, just returns :mini:`Value`.
+#ifdef ML_NANBOXING
+	if (!ml_tag(Args[1])) {
+#endif
+	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
+	inthash_insert(Visitor->Cache, (uintptr_t)Args[1], Args[1]);
+#ifdef ML_NANBOXING
+	}
+#endif
+	return Args[1];
+}
 
 //!any
 
@@ -1850,13 +1881,39 @@ ml_value_t *ml_tuple(size_t Size) {
 
 typedef struct {
 	ml_state_t Base;
-	ml_value_t *Copy, *Dest;
+	ml_value_t *Visitor, *Dest;
 	ml_value_t **Values;
 	ml_value_t *Args[1];
 	int Index, Size;
-} ml_tuple_copy_t;
+} ml_tuple_visit_t;
 
-static void ml_tuple_copy_run(ml_tuple_copy_t *State, ml_value_t *Value) {
+static void ml_tuple_visit_run(ml_tuple_visit_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	int Index = State->Index + 1;
+	if (Index > State->Size) ML_RETURN(MLNil);
+	State->Index = Index;
+	State->Args[0] = *++State->Values;
+	return ml_call(State, State->Visitor, 1, State->Args);
+}
+
+ML_METHODX("visit", MLVisitorT, MLTupleT) {
+	ml_visitor_t *Visitor = (ml_visitor_t *)Args[0];
+	ml_tuple_t *Source = (ml_tuple_t *)Args[1];
+	if (!Source->Size) ML_RETURN(MLNil);
+	ml_tuple_visit_t *State = new(ml_tuple_visit_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_tuple_visit_run;
+	State->Visitor = (ml_value_t *)Visitor;
+	State->Index = 1;
+	State->Size = Source->Size;
+	State->Values = Source->Values;
+	State->Args[0] = Source->Values[0];
+	return ml_call(State, (ml_value_t *)Visitor, 1, State->Args);
+}
+
+static void ml_tuple_copy_run(ml_tuple_visit_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	ml_tuple_set(State->Dest, State->Index, Value);
@@ -1864,18 +1921,18 @@ static void ml_tuple_copy_run(ml_tuple_copy_t *State, ml_value_t *Value) {
 	if (Index > State->Size) ML_RETURN(State->Dest);
 	State->Index = Index;
 	State->Args[0] = *++State->Values;
-	return ml_call(State, State->Copy, 1, State->Args);
+	return ml_call(State, State->Visitor, 1, State->Args);
 }
 
 static void ml_tuple_copy(ml_state_t *Caller, ml_visitor_t *Visitor, ml_tuple_t *Source) {
 	ml_value_t *Dest = ml_tuple(Source->Size);
 	inthash_insert(Visitor->Cache, (uintptr_t)Source, Dest);
 	if (!Source->Size) ML_RETURN(Dest);
-	ml_tuple_copy_t *State = new(ml_tuple_copy_t);
+	ml_tuple_visit_t *State = new(ml_tuple_visit_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_tuple_copy_run;
-	State->Copy = (ml_value_t *)Visitor;
+	State->Visitor = (ml_value_t *)Visitor;
 	State->Dest = Dest;
 	State->Index = 1;
 	State->Size = Source->Size;
@@ -1884,7 +1941,15 @@ static void ml_tuple_copy(ml_state_t *Caller, ml_visitor_t *Visitor, ml_tuple_t 
 	return ml_call(State, (ml_value_t *)Visitor, 1, State->Args);
 }
 
-ML_METHODX("visit", MLCopyT, MLTupleT) {
+ML_METHODX("copy", MLVisitorT, MLTupleT) {
+//<Copy
+//<Tuple
+//>tuple
+// Returns a new tuple containing copies of the elements of :mini:`Tuple` created using :mini:`Copy`.
+	return ml_tuple_copy(Caller, (ml_visitor_t *)Args[0], (ml_tuple_t *)Args[1]);
+}
+
+ML_METHODX("const", MLVisitorT, MLTupleT) {
 //<Copy
 //<Tuple
 //>tuple
@@ -2884,7 +2949,6 @@ void ml_init(stringmap_t *Globals) {
 	stringmap_insert(MLCompilerT->Exports, "i", ml_complex(1i));
 #endif
 	stringmap_insert(MLBooleanT->Exports, "random", RandomBoolean);
-	stringmap_insert(MLCopyT->Exports, "const", MLCopyConstT);
 	ml_method_by_name("=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
 	ml_method_by_name("!=", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
 	ml_method_by_name("<", NULL, ml_return_nil, MLNilT, MLAnyT, NULL);
@@ -2963,8 +3027,8 @@ void ml_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "deref", MLDeref);
 		stringmap_insert(Globals, "assign", MLAssign);
 		stringmap_insert(Globals, "call", MLCall);
-		stringmap_insert(Globals, "visitor", MLVisitorT);
-		stringmap_insert(Globals, "copy", MLCopyT);
+		stringmap_insert(Globals, "visit", MLVisit);
+		stringmap_insert(Globals, "copy", MLCopy);
 		stringmap_insert(Globals, "findall", MLFindAll);
 		stringmap_insert(Globals, "isconstant", MLIsConstant);
 		stringmap_insert(Globals, "exchange", MLExchange);

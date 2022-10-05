@@ -23,6 +23,7 @@ typedef enum ml_token_t {
 	MLT_IF,
 	MLT_IN,
 	MLT_IS,
+	MLT_IT,
 	MLT_LET,
 	MLT_LOOP,
 	MLT_METH,
@@ -57,6 +58,7 @@ typedef enum ml_token_t {
 	MLT_COMMA,
 	MLT_ASSIGN,
 	MLT_NAMED,
+	MLT_NIL_CHECK,
 	MLT_IMPORT,
 	MLT_VALUE,
 	MLT_EXPR,
@@ -98,7 +100,7 @@ struct mlc_function_t {
 	mlc_must_t *Must;
 	mlc_upvalue_t *UpValues;
 	ml_inst_t *Next, *Returns;
-	int Top, Size, Self, Space;
+	int Top, Size, Old, It, Space;
 };
 
 struct mlc_define_t {
@@ -167,7 +169,7 @@ ml_expr_type_t mlc_expr_type(mlc_expr_t *Expr);
 	void (*compile)(mlc_function_t *, mlc_## name ## _expr_t *, int); \
 	mlc_expr_t *Next; \
 	const char *Source; \
-	int StartLine, EndLine;
+	int StartLine, EndLine; \
 
 typedef struct mlc_value_expr_t mlc_value_expr_t;
 
@@ -224,7 +226,7 @@ struct mlc_for_expr_t {
 	MLC_EXPR_FIELDS(for);
 	const char *Key;
 	mlc_local_t *Local;
-	mlc_expr_t *Child;
+	mlc_expr_t *Sequence, *Body;
 	const char *Name;
 	int Unpack;
 };
