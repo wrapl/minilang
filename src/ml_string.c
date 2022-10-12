@@ -392,15 +392,26 @@ ML_METHOD("find", MLAddressT, MLAddressT) {
 	return ml_integer(Find - Address1->Value);
 }
 
-ML_FUNCTION(MLBuffer) {
+ML_TYPE(MLBufferT, (MLAddressT), "buffer",
+//!buffer
+// A buffer represents a writable bounded section of memory.
+);
+
+ml_value_t *ml_buffer(char *Value, int Length) {
+	ml_address_t *Buffer = new(ml_address_t);
+	Buffer->Type = MLBufferT;
+	Buffer->Value = Value;
+	Buffer->Length = Length;
+	return (ml_value_t *)Buffer;
+}
+
+ML_METHOD(MLBufferT, MLIntegerT) {
 //!buffer
 //@buffer
 //<Length
 //>buffer
 // Allocates a new buffer with :mini:`Length` bytes.
 //$= buffer(16)
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	long Size = ml_integer_value_fast(Args[0]);
 	if (Size < 0) return ml_error("ValueError", "Buffer size must be non-negative");
 	ml_address_t *Buffer = new(ml_address_t);
@@ -410,17 +421,19 @@ ML_FUNCTION(MLBuffer) {
 	return (ml_value_t *)Buffer;
 }
 
-ML_TYPE(MLBufferT, (MLAddressT), "buffer",
+ML_METHOD(MLBufferT, MLAddressT) {
 //!buffer
-// A buffer represents a writable bounded section of memory.
-	.Constructor = (ml_value_t *)MLBuffer
-);
-
-ml_value_t *ml_buffer(char *Value, int Length) {
+//@buffer
+//<Source
+//>buffer
+// Allocates a new buffer with the same size and initial contents as :mini:`Source`.
+//$= buffer("Hello world")
+	long Size = ml_address_length(Args[0]);
 	ml_address_t *Buffer = new(ml_address_t);
 	Buffer->Type = MLBufferT;
-	Buffer->Value = Value;
-	Buffer->Length = Length;
+	Buffer->Length = Size;
+	Buffer->Value = snew(Size);
+	memcpy(Buffer->Value, ml_address_value(Args[0]), Size);
 	return (ml_value_t *)Buffer;
 }
 

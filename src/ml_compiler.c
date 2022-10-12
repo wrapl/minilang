@@ -2517,6 +2517,19 @@ static void ml_tuple_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *E
 			return ml_call_expr_compile2(Function, (ml_value_t *)MLTupleT, Frame);
 		}
 	}
+	for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next) {
+		if (Child->compile == (void *)ml_guard_expr_compile) {
+			MLC_FRAME(ml_call_expr_frame_t, ml_call_expr_compile4);
+			Frame->Expr = (mlc_expr_t *)Expr;
+			Frame->Child = Expr->Child;
+			int Count = 0;
+			for (mlc_expr_t *Child = Expr->Child; Child; Child = Child->Next) ++Count;
+			Frame->Count = Count;
+			Frame->NilInst = NULL;
+			Frame->Flags = Flags;
+			return ml_call_expr_compile4(Function, (ml_value_t *)MLTupleT, Frame);
+		}
+	}
 	mlc_expr_t *Child = Expr->Child;
 	if (Child) {
 		MLC_FRAME(mlc_parent_expr_frame_t, ml_tuple_expr_compile2);

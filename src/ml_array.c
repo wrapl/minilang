@@ -276,8 +276,11 @@ ML_ARRAY_TYPES(MatrixMutable);
 
 static ml_array_format_t ml_array_format(ml_type_t *Type) {
 	for (ml_array_format_t Format = ML_ARRAY_FORMAT_NONE; Format <= ML_ARRAY_FORMAT_ANY; ++Format) {
+		if (MLArrayTypes[Format] == Type) return Format;
 		if (MLArrayMutableTypes[Format] == Type) return Format;
+		if (MLVectorTypes[Format] == Type) return Format;
 		if (MLVectorMutableTypes[Format] == Type) return Format;
+		if (MLMatrixTypes[Format] == Type) return Format;
 		if (MLMatrixMutableTypes[Format] == Type) return Format;
 	}
 	return ML_ARRAY_FORMAT_NONE;
@@ -482,6 +485,14 @@ static void ml_array_typed_new_fnx(ml_state_t *Caller, void *Data, int Count, ml
 		ml_value_t *Function = State->Function = Args[Count - 1];
 		for (int I = 0; I < Array->Degree; ++I) State->Args[I] = ml_integer(1);
 		return ml_call(State, Function, Array->Degree, State->Args);
+	} else if (ml_is(Args[0], MLAddressT)) {
+		ml_array_t *Array = ml_array_alloc(Format, 1);
+		if (!ml_is(Args[0], MLBufferT)) Array->Base.Type = MLVectorTypes[Format];
+		size_t Size = Array->Dimensions[0].Size = ml_address_length(Args[0]) / MLArraySizes[Format];
+		size_t Stride = Array->Dimensions[0].Stride = MLArraySizes[Format];
+		Array->Base.Value = (void *)ml_address_value(Args[0]);
+		Array->Base.Length = Size * Stride;
+		ML_RETURN(Array);
 	} else {
 		ML_ERROR("TypeError", "expected list or array for argument 1");
 	}
@@ -515,6 +526,7 @@ ML_FUNCTION(MLArrayWrap) {
 	ml_array_format_t Format = ml_array_format((ml_type_t *)Args[0]);
 	if (Format == ML_ARRAY_FORMAT_NONE) return ml_error("TypeError", "Unknown type for array");
 	int Degree = ml_list_length(Args[2]);
+	if (!Degree) return ml_error("ValueError", "Dimensions must not be empty");
 	if (Degree != ml_list_length(Args[3])) return ml_error("ValueError", "Dimensions and strides must have same length");
 	ml_array_t *Array = ml_array_alloc(Format, Degree);
 	if (!ml_is(Args[1], MLBufferT)) {
@@ -524,16 +536,24 @@ ML_FUNCTION(MLArrayWrap) {
 		default: Array->Base.Type = MLArrayTypes[Format]; break;
 		}
 	}
+	size_t Total = 0;
 	for (int I = 0; I < Degree; ++I) {
-		ml_value_t *Size = ml_list_get(Args[2], I + 1);
-		ml_value_t *Stride = ml_list_get(Args[3], I + 1);
-		if (!ml_is(Size, MLIntegerT)) return ml_error("TypeError", "Dimension is not an integer");
-		if (!ml_is(Stride, MLIntegerT)) return ml_error("TypeError", "Stride is not an integer");
-		Array->Dimensions[I].Size = ml_integer_value(Size);
-		Array->Dimensions[I].Stride = ml_integer_value(Stride);
+		ml_value_t *SizeValue = ml_list_get(Args[2], I + 1);
+		ml_value_t *StrideValue = ml_list_get(Args[3], I + 1);
+		if (!ml_is(SizeValue, MLIntegerT)) return ml_error("TypeError", "Dimension is not an integer");
+		if (!ml_is(StrideValue, MLIntegerT)) return ml_error("TypeError", "Stride is not an integer");
+		int Size = ml_integer_value(SizeValue);
+		if (Size <= 0) return ml_error("ValueError", "Dimension must be positive");
+		int Stride = ml_integer_value(StrideValue);
+		if (Stride <= 0) return ml_error("ValueError", "Stride must be positive");
+		Total += (Size - 1) * Stride;
+		Array->Dimensions[I].Size = Size;
+		Array->Dimensions[I].Stride = Stride;
 	}
+	Total += Array->Dimensions[Degree - 1].Stride;
+	if (Total > ml_address_length(Args[1])) return ml_error("ValueError", "Size larger than buffer");
 	Array->Base.Value = ((ml_address_t *)Args[1])->Value;
-	Array->Base.Length = ((ml_address_t *)Args[1])->Length;
+	Array->Base.Length = Total;
 	return (ml_value_t *)Array;
 }
 
