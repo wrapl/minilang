@@ -9,13 +9,17 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "set"
 
-ML_TYPE(MLSetT, (MLSequenceT), "set",
+ML_TYPE(MLSetT, (MLSequenceT), "set"
 // A set of values.
 // Values can be of any type supporting hashing and comparison.
 // By default, iterating over a set generates the values in the order they were inserted, however this ordering can be changed.
 );
 
+#ifdef ML_MUTABLES
 ML_TYPE(MLSetMutableT, (MLSetT), "set::mutable");
+#else
+#define MLSetMutableT MLSetT
+#endif
 
 ML_ENUM2(MLSetOrderT, "set::order",
 // * :mini:`set::order::Insert` |harr| default ordering; inserted values are put at end, no reordering on access.

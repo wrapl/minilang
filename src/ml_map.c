@@ -9,13 +9,17 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "map"
 
-ML_TYPE(MLMapT, (MLSequenceT), "map");
-
-ML_TYPE(MLMapMutableT, (MLMapT), "map::mutable",
+ML_TYPE(MLMapT, (MLSequenceT), "map"
 // A map of key-value pairs.
 // Keys can be of any type supporting hashing and comparison.
 // By default, iterating over a map generates the key-value pairs in the order they were inserted, however this ordering can be changed.
 );
+
+#ifdef ML_MUTABLES
+ML_TYPE(MLMapMutableT, (MLMapT), "map::mutable");
+#else
+#define MLMapMutableT MLMapT
+#endif
 
 ML_ENUM2(MLMapOrderT, "map::order",
 // * :mini:`map::order::Insert` |harr| default ordering; inserted pairs are put at end, no reordering on access.
@@ -46,17 +50,19 @@ static void ml_map_node_call(ml_state_t *Caller, ml_map_node_t *Node, int Count,
 	return ml_call(Caller, Node->Value, Count, Args);
 }
 
+static void ml_map_node_assign(ml_state_t *Caller, ml_map_node_t *Node, ml_value_t *Value) {
+	Node->Value = Value;
+	ML_RETURN(Value);
+}
+
+#ifdef ML_MUTABLES
+
 ML_TYPE(MLMapNodeT, (), "map::node",
 // A node in a :mini:`map`.
 // Dereferencing a :mini:`map::node::const` returns the corresponding value from the :mini:`map`.
 	.deref = (void *)ml_map_node_deref,
 	.call = (void *)ml_map_node_call
 );
-
-static void ml_map_node_assign(ml_state_t *Caller, ml_map_node_t *Node, ml_value_t *Value) {
-	Node->Value = Value;
-	ML_RETURN(Value);
-}
 
 ML_TYPE(MLMapNodeMutableT, (MLMapNodeT), "map::node::mutable",
 // A node in a :mini:`map`.
@@ -66,6 +72,21 @@ ML_TYPE(MLMapNodeMutableT, (MLMapNodeT), "map::node::mutable",
 	.assign = (void *)ml_map_node_assign,
 	.call = (void *)ml_map_node_call
 );
+
+#else
+
+#define MLMapNodeMutableT MLMapNodeT
+
+ML_TYPE(MLMapNodeMutableT, (), "map::node",
+// A node in a :mini:`map`.
+// Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
+// Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
+	.deref = (void *)ml_map_node_deref,
+	.assign = (void *)ml_map_node_assign,
+	.call = (void *)ml_map_node_call
+);
+
+#endif
 
 ml_value_t *ml_map() {
 	ml_map_t *Map = new(ml_map_t);

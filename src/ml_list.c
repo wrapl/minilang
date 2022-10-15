@@ -48,11 +48,15 @@ static ml_list_node_t *ml_list_index(ml_list_t *List, int Index) {
 	return (List->CachedNode = Node);
 }
 
-ML_TYPE(MLListT, (MLSequenceT), "list");
-
-ML_TYPE(MLListMutableT, (MLListT), "list::mutable",
+ML_TYPE(MLListT, (MLSequenceT), "list"
 // A list of elements.
 );
+
+#ifdef ML_MUTABLES
+ML_TYPE(MLListMutableT, (MLListT), "list::mutable");
+#else
+#define MLListMutableT MLListT
+#endif
 
 static void ML_TYPED_FN(ml_value_find_all, MLListT, ml_value_t *Value, void *Data, ml_value_find_fn RefFn) {
 	if (!RefFn(Data, Value, 1)) return;
@@ -67,12 +71,43 @@ static void ml_list_node_call(ml_state_t *Caller, ml_list_node_t *Node, int Coun
 	return ml_call(Caller, Node->Value, Count, Args);
 }
 
+static void ml_list_node_assign(ml_state_t *Caller, ml_list_node_t *Node, ml_value_t *Value) {
+	Node->Value = Value;
+	ML_RETURN(Value);
+}
+
+#ifdef ML_MUTABLES
+
 ML_TYPE(MLListNodeT, (), "list::node",
 // A node in a :mini:`list`.
 // Dereferencing a :mini:`list::node::const` returns the corresponding value from the :mini:`list`.
 	.deref = (void *)ml_list_node_deref,
 	.call = (void *)ml_list_node_call
 );
+
+ML_TYPE(MLListNodeMutableT, (MLListNodeT), "list::node::mutable",
+// A node in a :mini:`list`.
+// Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
+// Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
+	.deref = (void *)ml_list_node_deref,
+	.assign = (void *)ml_list_node_assign,
+	.call = (void *)ml_list_node_call
+);
+
+#else
+
+#define MLListNodeMutableT MLListNodeT
+
+ML_TYPE(MLListNodeMutableT, (), "list::node",
+// A node in a :mini:`list`.
+// Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
+// Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
+	.deref = (void *)ml_list_node_deref,
+	.assign = (void *)ml_list_node_assign,
+	.call = (void *)ml_list_node_call
+);
+
+#endif
 
 static void ML_TYPED_FN(ml_iter_next, MLListNodeT, ml_state_t *Caller, ml_list_node_t *Node) {
 	ml_list_node_t *Next = Node->Next;
@@ -88,20 +123,6 @@ static void ML_TYPED_FN(ml_iter_key, MLListNodeT, ml_state_t *Caller, ml_list_no
 static void ML_TYPED_FN(ml_iter_value, MLListNodeT, ml_state_t *Caller, ml_list_node_t *Node) {
 	ML_RETURN(Node);
 }
-
-static void ml_list_node_assign(ml_state_t *Caller, ml_list_node_t *Node, ml_value_t *Value) {
-	Node->Value = Value;
-	ML_RETURN(Value);
-}
-
-ML_TYPE(MLListNodeMutableT, (MLListNodeT), "list::node::mutable",
-// A node in a :mini:`list`.
-// Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
-// Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
-	.deref = (void *)ml_list_node_deref,
-	.assign = (void *)ml_list_node_assign,
-	.call = (void *)ml_list_node_call
-);
 
 ml_value_t *ml_list() {
 	ml_list_t *List = new(ml_list_t);
