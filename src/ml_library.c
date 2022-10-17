@@ -117,11 +117,11 @@ static ml_library_info_t ml_library_find(const char *Path, const char *Name) {
 
 typedef struct {
 	ml_state_t Base;
-	const char *Path, *Name;
-	char *Import;
-} ml_parent_state_t;
+	const char *Path;
+	char *Name, *Import;
+} ml_import_state_t;
 
-static void ml_parent_state_run(ml_parent_state_t *State, ml_value_t *Value) {
+static void ml_parent_state_run(ml_import_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	*State->Import = '/';
 	if (ml_is(Value, MLErrorT)) ML_RETURN(Value);
@@ -143,14 +143,15 @@ static void ml_parent_state_run(ml_parent_state_t *State, ml_value_t *Value) {
 void ml_library_load(ml_state_t *Caller, const char *Path, const char *Name) {
 	ml_library_info_t Info = ml_library_find(Path, Name);
 	if (!Info.Loader) {
-		char *Import = strrchr(Name, '/');
+		char *NameCopy = GC_strdup(Name);
+		char *Import = strrchr(NameCopy, '/');
 		if (Import) {
-			ml_parent_state_t *State = new(ml_parent_state_t);
+			ml_import_state_t *State = new(ml_import_state_t);
 			State->Base.Caller = Caller;
 			State->Base.Context = Caller->Context;
 			State->Base.run = (ml_state_fn)ml_parent_state_run;
 			State->Path = Path;
-			State->Name = Name;
+			State->Name = NameCopy;
 			State->Import = Import;
 			*Import = 0;
 			return ml_library_load((ml_state_t *)State, Path, Name);

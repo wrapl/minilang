@@ -9,20 +9,18 @@ buffer
 
 .. rst-class:: mini-api
 
+:mini:`meth (Source: address):buffer: buffer`
+   Allocates a new buffer with the same size and initial contents as :mini:`Source`.
+
+   .. code-block:: mini
+
+      buffer("Hello world") :> <11:48656C6C6F20776F726C64>
+
+
 .. _type-buffer:
 
 :mini:`type buffer < address`
    A buffer represents a writable bounded section of memory.
-
-
-.. _fun-buffer:
-
-:mini:`fun buffer(Length: integer): buffer`
-   Allocates a new buffer with :mini:`Length` bytes.
-
-   .. code-block:: mini
-
-      buffer(16) :> <16:800B5F7FFA7F0000655F74202A4B6579>
 
 
 :mini:`meth (Buffer: buffer) + (Offset: integer): buffer`
@@ -31,8 +29,8 @@ buffer
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:40065F7FFA7F00003E4B6579203D204E>
-      B + 8 :> <8:3E4B6579203D204E>
+      :> <16:A07EE7596A7F00004E414D452022576F>
+      B + 8 :> <8:4E414D452022576F>
 
 
 :mini:`meth (Buffer: buffer) @ (Length: integer): buffer`
@@ -41,8 +39,8 @@ buffer
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:00085F7FFA7F00005D203D20456E7472>
-      B @ 8 :> <8:00085F7FFA7F0000>
+      :> <16:A0E095616A7F0000655F74202A417267>
+      B @ 8 :> <8:A0E095616A7F0000>
 
 
 :mini:`meth (Buffer: buffer):put(Value: address): buffer`
@@ -100,5 +98,13 @@ buffer
    .. code-block:: mini
 
       buffer(8):putf64(1.23456789) :> <8:1BDE8342CAC0F33F>
+
+
+:mini:`meth (Length: integer):buffer: buffer`
+   Allocates a new buffer with :mini:`Length` bytes.
+
+   .. code-block:: mini
+
+      buffer(16) :> <16:E0E595616A7F0000417267735B315D3B>
 
 

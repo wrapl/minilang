@@ -22,7 +22,18 @@ map
 .. _type-map:
 
 :mini:`type map < sequence`
-   *TBD*
+   A map of key-value pairs.
+   Keys can be of any type supporting hashing and comparison.
+   By default,  iterating over a map generates the key-value pairs in the order they were inserted,  however this ordering can be changed.
+
+
+:mini:`meth map(Key₁ is Value₁, ...): map`
+   Returns a new map with the specified keys and values.
+
+   .. code-block:: mini
+
+      map(A is 1, B is 2, C is 3)
+      :> {"A" is 1, "B" is 2, "C" is 3}
 
 
 :mini:`meth map(Sequence: sequence, ...): map`
@@ -39,15 +50,6 @@ map
    .. code-block:: mini
 
       map() :> {}
-
-
-:mini:`meth map(Key₁ is Value₁, ...): map`
-   Returns a new map with the specified keys and values.
-
-   .. code-block:: mini
-
-      map(A is 1, B is 2, C is 3)
-      :> {"A" is 1, "B" is 2, "C" is 3}
 
 
 .. _fun-map-join:
@@ -206,7 +208,7 @@ map
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
       M:random :> "k"
-      M:random :> "k"
+      M:random :> "a"
 
 
 :mini:`meth (Map: map):size: integer`
@@ -228,9 +230,7 @@ map
 .. _type-map-mutable:
 
 :mini:`type map::mutable < map`
-   A map of key-value pairs.
-   Keys can be of any type supporting hashing and comparison.
-   By default,  iterating over a map generates the key-value pairs in the order they were inserted,  however this ordering can be changed.
+   *TBD*
 
 
 :mini:`meth (Map: map::mutable) :: (Key: string): map::node`
@@ -508,6 +508,14 @@ map
 .. _type-map-node-mutable:
 
 :mini:`type map::node::mutable < map::node`
+   A node in a :mini:`map`.
+   Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
+   Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
+
+
+.. _type-map-node-mutable:
+
+:mini:`type map::node::mutable`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.

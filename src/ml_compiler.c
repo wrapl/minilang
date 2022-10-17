@@ -2475,12 +2475,17 @@ static void ml_guard_expr_compile2(mlc_function_t *Function, ml_value_t *Value, 
 }
 
 static void ml_guard_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Expr, int Flags) {
-	if (Function->Frame->run != (mlc_frame_fn)ml_call_expr_compile5) {
+	if (Function->Frame->run == (mlc_frame_fn)ml_call_expr_compile4) {
+		MLC_FRAME(ml_guard_expr_frame_t, ml_guard_expr_compile2);
+		Frame->Guard = Expr->Child->Next;
+		return mlc_compile(Function, Expr->Child, MLCF_PUSH);
+	} else if (Function->Frame->run == (mlc_frame_fn)ml_call_expr_compile5) {
+		MLC_FRAME(ml_guard_expr_frame_t, ml_guard_expr_compile2);
+		Frame->Guard = Expr->Child->Next;
+		return mlc_compile(Function, Expr->Child, MLCF_PUSH);
+	} else {
 		MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "guard expression used outside of function call"));
 	}
-	MLC_FRAME(ml_guard_expr_frame_t, ml_guard_expr_compile2);
-	Frame->Guard = Expr->Child->Next;
-	return mlc_compile(Function, Expr->Child, MLCF_PUSH);
 }
 
 static void ml_tuple_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_parent_expr_frame_t *Frame) {

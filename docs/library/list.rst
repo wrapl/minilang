@@ -12,7 +12,15 @@ list
 .. _type-list:
 
 :mini:`type list < sequence`
-   *TBD*
+   A list of elements.
+
+
+:mini:`meth list(Sequence: sequence, ...): list`
+   Returns a list of all of the values produced by :mini:`Sequence`.
+
+   .. code-block:: mini
+
+      list(1 .. 10) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 
 :mini:`meth list(): list`
@@ -29,14 +37,6 @@ list
    .. code-block:: mini
 
       list((1, 2, 3)) :> [1, 2, 3]
-
-
-:mini:`meth list(Sequence: sequence, ...): list`
-   Returns a list of all of the values produced by :mini:`Sequence`.
-
-   .. code-block:: mini
-
-      list(1 .. 10) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 
 :mini:`meth (List₁: list) + (List₂: list): list`
@@ -86,7 +86,7 @@ list
 
       let L := list("cake") :> ["c", "a", "k", "e"]
       L:random :> "e"
-      L:random :> "k"
+      L:random :> "c"
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list)`
@@ -112,7 +112,7 @@ list
 .. _type-list-mutable:
 
 :mini:`type list::mutable < list`
-   A list of elements.
+   *TBD*
 
 
 :mini:`meth (List: list::mutable)[Range: integer::range]: list::slice`
@@ -253,6 +253,14 @@ list
 .. _type-list-node-mutable:
 
 :mini:`type list::node::mutable < list::node`
+   A node in a :mini:`list`.
+   Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
+   Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
+
+
+.. _type-list-node-mutable:
+
+:mini:`type list::node::mutable`
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
