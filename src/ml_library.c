@@ -152,9 +152,9 @@ void ml_library_load(ml_state_t *Caller, const char *Path, const char *Name) {
 			State->Base.run = (ml_state_fn)ml_parent_state_run;
 			State->Path = Path;
 			State->Name = NameCopy;
-			State->Import = Import;
+			State->Import = Import + 1;
 			*Import = 0;
-			return ml_library_load((ml_state_t *)State, Path, Name);
+			return ml_library_load((ml_state_t *)State, Path, NameCopy);
 		}
 		ML_ERROR("ModuleError", "Module %s not found in %s", Name, Path ?: "<library>");
 	}

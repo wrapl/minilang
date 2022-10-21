@@ -18,7 +18,8 @@ uuid
    .. code-block:: mini
 
       import: uuid("util/uuid")
-      address(uuid()) :> <16:07EE7D67EAFE41898078BAE8C2285E73>
+      address(uuid())
+      :> error("ModuleError", "Module util not found in <library>")
 
 
 .. _type-uuid:
@@ -34,8 +35,9 @@ uuid
 
       import: uuid("util/uuid")
       uuid("5fe1af82-02f9-429a-8787-4a7c16628a02")
-      :> 5fe1af82-02f9-429a-8787-4a7c16628a02
-      uuid("test") :> error("UUIDError", "Invalid UUID string")
+      :> error("ModuleError", "Module util not found in <library>")
+      uuid("test")
+      :> error("ValueError", "uuid is uninitialized")
 
 
 :mini:`meth uuid(): uuid`
@@ -44,7 +46,8 @@ uuid
    .. code-block:: mini
 
       import: uuid("util/uuid")
-      uuid() :> 224f956c-5e79-4862-aa1a-bcd0d627d474
+      uuid()
+      :> error("ModuleError", "Module util not found in <library>")
 
 
 :mini:`meth (Arg₁: uuid) <> (Arg₂: uuid)`
