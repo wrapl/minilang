@@ -149,6 +149,12 @@ When creating a substring,  the first index is inclusive and second index is exc
       string([1, 2, 3]) :> "[1, 2, 3]"
 
 
+.. _fun-mlstringescape:
+
+:mini:`fun mlstringescape(Arg₁: string)`
+   *TBD*
+
+
 :mini:`meth (Arg₁: string) != (Arg₂: string): string | nil`
    Returns :mini:`Arg₂` if :mini:`Arg₁ != Arg₂` and :mini:`nil` otherwise.
 

@@ -3220,6 +3220,48 @@ ML_METHODX("replace", MLStringT, MLIntegerT, MLIntegerT, MLFunctionT) {
 	return ml_call(State, Args[3], 1, Args2);
 }
 
+ML_FUNCTION(MLStringEscape) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	const char *S = ml_string_value(Args[0]);
+	for (int I = ml_string_length(Args[0]); --I >= 0; ++S) {
+		switch (*S) {
+		case '\0':
+			ml_stringbuffer_write(Buffer, "\\0", strlen("\\0"));
+			break;
+		case '\a':
+			ml_stringbuffer_write(Buffer, "\\a", strlen("\\a"));
+			break;
+		case '\b':
+			ml_stringbuffer_write(Buffer, "\\b", strlen("\\b"));
+			break;
+		case '\t':
+			ml_stringbuffer_write(Buffer, "\\t", strlen("\\t"));
+			break;
+		case '\r':
+			ml_stringbuffer_write(Buffer, "\\r", strlen("\\r"));
+			break;
+		case '\n':
+			ml_stringbuffer_write(Buffer, "\\n", strlen("\\n"));
+			break;
+		case '\\':
+			ml_stringbuffer_write(Buffer, "\\\\", strlen("\\\\"));
+			break;
+		case '\'':
+			ml_stringbuffer_write(Buffer, "\\\'", strlen("\\\'"));
+			break;
+		case '\"':
+			ml_stringbuffer_write(Buffer, "\\\"", strlen("\\\""));
+			break;
+		default:
+			ml_stringbuffer_write(Buffer, S, 1);
+			break;
+		}
+	}
+	return ml_stringbuffer_get_value(Buffer);
+}
+
 static long ml_regex_hash(ml_regex_t *Regex, ml_hash_chain_t *Chain) {
 	long Hash = 5381;
 	const char *Pattern = Regex->Pattern;
@@ -3622,6 +3664,19 @@ void ml_stringbuffer_put(ml_stringbuffer_t *Buffer, char Char) {
 	Buffer->Tail = Node;
 }
 
+void ml_stringbuffer_put32(ml_stringbuffer_t *Buffer, uint32_t Code) {
+	char Val[8];
+	uint32_t LeadByteMax = 0x7F;
+	int I = 0;
+	while (Code > LeadByteMax) {
+		Val[I++] = (Code & 0x3F) | 0x80;
+		Code >>= 6;
+		LeadByteMax >>= (I == 1 ? 2 : 1);
+	}
+	Val[I++] = (Code & LeadByteMax) | (~LeadByteMax << 1);
+	while (I--) ml_stringbuffer_put(Buffer, Val[I]);
+}
+
 static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
 	char *P = String;
 	ml_stringbuffer_node_t *Node = Buffer->Head;
@@ -3836,6 +3891,7 @@ void ml_string_init() {
 	regcomp(LongFormat, "^\\s*%[-+ #'0]*[.0-9]*l[diouxX]\\s*$", REG_NOSUB);
 	regcomp(RealFormat, "^\\s*%[-+ #'0]*[.0-9]*[aefgAEG]\\s*$", REG_NOSUB);
 	stringmap_insert(MLStringT->Exports, "switch", MLStringSwitch);
+	stringmap_insert(MLStringT->Exports, "escape", MLStringEscape);
 #include "ml_string_init.c"
 #ifdef ML_GENERICS
 	ml_type_t *TArgs[3] = {MLSequenceT, MLIntegerT, MLStringT};

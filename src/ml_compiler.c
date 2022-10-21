@@ -3763,6 +3763,15 @@ static mlc_expr_t *ml_accept_term(ml_parser_t *Parser);
 static mlc_expr_t *ml_accept_expression(ml_parser_t *Parser, ml_expr_level_t Level);
 static void ml_accept_arguments(ml_parser_t *Parser, ml_token_t EndToken, mlc_expr_t **ArgsSlot);
 
+static inline uint8_t ml_nibble(ml_parser_t *Parser, char C) {
+	switch (C) {
+	case '0' ... '9': return C - '0';
+	case 'A' ... 'F': return (C - 'A') + 10;
+	case 'a' ... 'f': return (C - 'a') + 10;
+	default: ml_parse_error(Parser, "ParseError", "invalid character in escape sequence");
+	}
+}
+
 static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 	mlc_string_part_t *Parts = NULL, **Slot = &Parts;
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
@@ -3809,34 +3818,29 @@ static ml_token_t ml_accept_string(ml_parser_t *Parser) {
 			case 't': ml_stringbuffer_put(Buffer, '\t'); break;
 			case 'e': ml_stringbuffer_put(Buffer, '\e'); break;
 			case 'x': {
-				char Char;
-				switch ((C = *End++)) {
-				case '0' ... '9':
-					Char = (C - '0') << 4;
-					break;
-				case 'A' ... 'F':
-					Char = (C + 10 - 'A') << 4;
-					break;
-				case 'a' ... 'f':
-					Char = (C + 10 - 'a') << 4;
-					break;
-				default:
-					ml_parse_error(Parser, "ParseError", "invalid character in escape sequence");
-				}
-				switch ((C = *End++)) {
-				case '0' ... '9':
-					Char += (C - '0');
-					break;
-				case 'A' ... 'F':
-					Char += (C + 10 - 'A');
-					break;
-				case 'a' ... 'f':
-					Char += (C + 10 - 'a');
-					break;
-				default:
-					ml_parse_error(Parser, "ParseError", "invalid character in escape sequence");
-				}
-				ml_stringbuffer_write(Buffer, &Char, 1);
+				char Char = ml_nibble(Parser, *End++) << 4;
+				Char += ml_nibble(Parser, *End++);
+				ml_stringbuffer_put(Buffer, Char);
+				break;
+			}
+			case 'u': {
+				uint32_t Code = ml_nibble(Parser, *End++) << 12;
+				Code += ml_nibble(Parser, *End++) << 8;
+				Code += ml_nibble(Parser, *End++) << 4;
+				Code += ml_nibble(Parser, *End++);
+				ml_stringbuffer_put32(Buffer, Code);
+				break;
+			}
+			case 'U': {
+				uint32_t Code = ml_nibble(Parser, *End++) << 28;
+				Code += ml_nibble(Parser, *End++) << 24;
+				Code += ml_nibble(Parser, *End++) << 20;
+				Code += ml_nibble(Parser, *End++) << 16;
+				Code += ml_nibble(Parser, *End++) << 12;
+				Code += ml_nibble(Parser, *End++) << 8;
+				Code += ml_nibble(Parser, *End++) << 4;
+				Code += ml_nibble(Parser, *End++);
+				ml_stringbuffer_put32(Buffer, Code);
 				break;
 			}
 			case '\'': ml_stringbuffer_put(Buffer, '\''); break;
@@ -3967,6 +3971,20 @@ void ml_string_fn_register(const char *Prefix, string_fn_t Fn) {
 	stringmap_insert(StringFns, Prefix, Fn);
 }
 
+static inline char *ml_scan_utf8(char *D, uint32_t Code) {
+	char Val[8];
+	uint32_t LeadByteMax = 0x7F;
+	int I = 0;
+	while (Code > LeadByteMax) {
+		Val[I++] = (Code & 0x3F) | 0x80;
+		Code >>= 6;
+		LeadByteMax >>= (I == 1 ? 2 : 1);
+	}
+	Val[I++] = (Code & LeadByteMax) | (~LeadByteMax << 1);
+	while (I--) *D++ = Val[I];
+	return D;
+}
+
 static int ml_scan_string(ml_parser_t *Parser) {
 	const char *End = Parser->Next;
 	while (End[0] != '\"') {
@@ -3987,34 +4005,29 @@ static int ml_scan_string(ml_parser_t *Parser) {
 			case 't': *D++ = '\t'; break;
 			case 'e': *D++ = '\e'; break;
 			case 'x': {
-				char C, Char;
-				switch ((C = *++S)) {
-				case '0' ... '9':
-					Char = (C - '0') << 4;
-					break;
-				case 'A' ... 'F':
-					Char = (C + 10 - 'A') << 4;
-					break;
-				case 'a' ... 'f':
-					Char = (C + 10 - 'a') << 4;
-					break;
-				default:
-					ml_parse_error(Parser, "ParseError", "invalid character in escape sequence");
-				}
-				switch ((C = *++S)) {
-				case '0' ... '9':
-					Char += (C - '0');
-					break;
-				case 'A' ... 'F':
-					Char += (C + 10 - 'A');
-					break;
-				case 'a' ... 'f':
-					Char += (C + 10 - 'a');
-					break;
-				default:
-					ml_parse_error(Parser, "ParseError", "invalid character in escape sequence");
-				}
+				char Char = ml_nibble(Parser, *++S) << 4;
+				Char += ml_nibble(Parser, *++S);
 				*D++ = Char;
+				break;
+			}
+			case 'u': {
+				uint32_t Code = ml_nibble(Parser, *++S) << 12;
+				Code += ml_nibble(Parser, *++S) << 8;
+				Code += ml_nibble(Parser, *++S) << 4;
+				Code += ml_nibble(Parser, *++S);
+				D = ml_scan_utf8(D, Code);
+				break;
+			}
+			case 'U': {
+				uint32_t Code = ml_nibble(Parser, *++S) << 28;
+				Code += ml_nibble(Parser, *++S) << 24;
+				Code += ml_nibble(Parser, *++S) << 20;
+				Code += ml_nibble(Parser, *++S) << 16;
+				Code += ml_nibble(Parser, *++S) << 12;
+				Code += ml_nibble(Parser, *++S) << 8;
+				Code += ml_nibble(Parser, *++S) << 4;
+				Code += ml_nibble(Parser, *++S);
+				D = ml_scan_utf8(D, Code);
 				break;
 			}
 			case '\'': *D++ = '\''; break;
