@@ -19,7 +19,7 @@ uuid
 
       import: uuid("util/uuid")
       address(uuid())
-      :> error("ModuleError", "Module util not found in <library>")
+      :> error("ModuleError", "Module util//uid not found in <library>")
 
 
 .. _type-uuid:
@@ -35,7 +35,7 @@ uuid
 
       import: uuid("util/uuid")
       uuid("5fe1af82-02f9-429a-8787-4a7c16628a02")
-      :> error("ModuleError", "Module util not found in <library>")
+      :> error("ModuleError", "Module util//uid not found in <library>")
       uuid("test")
       :> error("ValueError", "uuid is uninitialized")
 
@@ -47,7 +47,7 @@ uuid
 
       import: uuid("util/uuid")
       uuid()
-      :> error("ModuleError", "Module util not found in <library>")
+      :> error("ModuleError", "Module util//uid not found in <library>")
 
 
 :mini:`meth (Arg₁: uuid) <> (Arg₂: uuid)`

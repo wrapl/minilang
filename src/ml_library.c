@@ -130,7 +130,7 @@ static void ml_parent_state_run(ml_import_state_t *State, ml_value_t *Value) {
 		if (Import) {
 			ML_RETURN(Import);
 		} else {
-			ML_ERROR("ModuleError", "Module %s not found in %s", State->Name, State->Path ?: "<library>");
+			ML_ERROR("ModuleError", "Module %s/%s not found in %s", State->Name, State->Import, State->Path ?: "<library>");
 		}
 	} else {
 		ml_value_t **Args = ml_alloc_args(2);
@@ -152,7 +152,7 @@ void ml_library_load(ml_state_t *Caller, const char *Path, const char *Name) {
 			State->Base.run = (ml_state_fn)ml_parent_state_run;
 			State->Path = Path;
 			State->Name = NameCopy;
-			State->Import = Import + 1;
+			State->Import = Import;
 			*Import = 0;
 			return ml_library_load((ml_state_t *)State, Path, NameCopy);
 		}
