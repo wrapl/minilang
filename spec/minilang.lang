@@ -22,7 +22,6 @@
   <metadata>
     <property name="mimetypes">text/x-minilang</property>
     <property name="globs">*.mini</property>
-    <property name="line-comment-start">--</property>
   </metadata>
   <styles>
     <style id="comment" _name="Comment" map-to="def:comment"/>

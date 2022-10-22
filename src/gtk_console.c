@@ -865,15 +865,12 @@ gtk_console_t *gtk_console(ml_context_t *Context, ml_getter_t GlobalGet, void *G
 	gtk_paned_set_position(GTK_PANED(Debugging), 100);
 
 	GtkWidget *OutputPane = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
-	gtk_paned_pack1(GTK_PANED(OutputPane), Debugging, TRUE, TRUE);
-	gtk_paned_pack2(GTK_PANED(OutputPane), Console->LogScrolled, TRUE, TRUE);
+	gtk_paned_pack1(GTK_PANED(OutputPane), GTK_WIDGET(Console->Notebook), TRUE, TRUE);
+	gtk_paned_pack2(GTK_PANED(OutputPane), Debugging, TRUE, TRUE);
 	gtk_paned_set_position(GTK_PANED(OutputPane), 200);
 
 	Console->Paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
-	gtk_paned_add1(GTK_PANED(Console->Paned), GTK_WIDGET(Console->Notebook));
-	gtk_paned_add2(GTK_PANED(Console->Paned), OutputPane);
-	gtk_paned_set_position(GTK_PANED(Console->Paned), 500);
-
+	
 	GtkWidget *InputPanel = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2);
 	GtkWidget *DebugButtons = Console->DebugButtons = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2);
 	GtkWidget *StepInButton = gtk_button_new();
@@ -921,17 +918,22 @@ gtk_console_t *gtk_console(ml_context_t *Context, ml_getter_t GlobalGet, void *G
 	gtk_container_add(GTK_CONTAINER(SourceScrolled), SourceView);
 	gtk_notebook_append_page(Console->Notebook, SourceScrolled, gtk_label_new("<console>"));
 
-	GtkWidget *Container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
-	gtk_box_pack_start(GTK_BOX(Container), Console->Paned, TRUE, TRUE, 2);
-
 	GtkWidget *InputFrame = gtk_frame_new(NULL);
 	gtk_container_add(GTK_CONTAINER(InputFrame), InputPanel);
-	gtk_box_pack_start(GTK_BOX(Container), InputFrame, FALSE, TRUE, 2);
 	g_signal_connect(G_OBJECT(Console->InputView), "key-press-event", G_CALLBACK(console_keypress), Console);
 	g_signal_connect(G_OBJECT(SubmitButton), "clicked", G_CALLBACK(console_submit), Console);
 	g_signal_connect(G_OBJECT(ClearButton), "clicked", G_CALLBACK(console_clear), Console);
 	Console->Window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_icon_name(GTK_WINDOW(Console->Window), "face-smile");
+	
+	GtkWidget *ReplBox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
+	gtk_box_pack_start(GTK_BOX(ReplBox), InputFrame, FALSE, TRUE, 2);
+	gtk_box_pack_start(GTK_BOX(ReplBox), Console->LogScrolled, TRUE, TRUE, 2);
+	
+	gtk_paned_add1(GTK_PANED(Console->Paned), ReplBox);
+	gtk_paned_add2(GTK_PANED(Console->Paned), OutputPane);
+	gtk_paned_set_position(GTK_PANED(Console->Paned), 600);
+
 
 	GtkWidget *LayoutButton = gtk_button_new_with_label("Layout");
 	g_signal_connect(G_OBJECT(LayoutButton), "clicked", G_CALLBACK(toggle_layout), Console);
@@ -959,7 +961,7 @@ gtk_console_t *gtk_console(ml_context_t *Context, ml_getter_t GlobalGet, void *G
 
 	Console->MemoryBar = GTK_LABEL(MemoryBar);
 
-	gtk_container_add(GTK_CONTAINER(Console->Window), Container);
+	gtk_container_add(GTK_CONTAINER(Console->Window), Console->Paned);
 	if (g_key_file_has_key(Console->Config, "gtk-console", "size", NULL)) {
 		gsize Length = 0;
 		gint *Size = g_key_file_get_integer_list(Console->Config, "gtk-console", "size", &Length, NULL);
