@@ -138,26 +138,22 @@ ML_TYPE(MLClassT, (MLTypeT), "class",
 	.Constructor = (ml_value_t *)MLClass
 );
 
-typedef struct {
-	ml_object_t *Object;
-	ml_stringbuffer_t *Buffer;
-	int Comma;
-} ml_object_stringer_t;
-
-static int field_string(const char *Name, ml_field_info_t *Info, ml_object_stringer_t *Stringer) {
-	if (Stringer->Comma++) ml_stringbuffer_write(Stringer->Buffer, ", ", 2);
-	ml_stringbuffer_write(Stringer->Buffer, Name, strlen(Name));
-	ml_stringbuffer_write(Stringer->Buffer, " is ", 4);
-	ml_stringbuffer_simple_append(Stringer->Buffer, Stringer->Object->Fields[Info->Index].Value);
-	return 0;
-}
-
 ML_METHOD("append", MLStringBufferT, MLObjectT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_object_t *Object = (ml_object_t *)Args[1];
-	ml_object_stringer_t Stringer = {Object, (ml_stringbuffer_t *)Args[0], 0};
-	ml_stringbuffer_printf(Stringer.Buffer, "%s(", Object->Type->Base.Name);
-	stringmap_foreach(Object->Type->Names, &Stringer, (void *)field_string);
-	ml_stringbuffer_put(Stringer.Buffer, ')');
+	ml_stringbuffer_printf(Buffer, "%s(", Object->Type->Base.Name);
+	int Comma = 0;
+	for (ml_field_info_t *Info = Object->Type->Fields; Info; Info = Info->Next) {
+		const char *Name = ml_method_name(Info->Method);
+		if (Name) {
+			if (Comma) ml_stringbuffer_write(Buffer, ", ", 2);
+			ml_stringbuffer_write(Buffer, Name, strlen(Name));
+			ml_stringbuffer_write(Buffer, " is ", 4);
+			ml_stringbuffer_simple_append(Buffer, Object->Fields[Info->Index].Value);
+			Comma = 1;
+		}
+	}
+	ml_stringbuffer_put(Buffer, ')');
 	return MLSome;
 }
 
