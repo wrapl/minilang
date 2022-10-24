@@ -154,7 +154,7 @@ xml
 
       import: xml("fmt/xml")
       xml::element("test", "Text", type is "example")
-      :> error("ModuleError", "Module fmt//ml not found in <library>")
+      :> <test type="example">Text</test>
 
 
 :mini:`meth /(Xml: xml::element): sequence`

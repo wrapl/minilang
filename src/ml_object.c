@@ -7,29 +7,6 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "object"
 
-typedef struct ml_class_t ml_class_t;
-typedef struct ml_object_t ml_object_t;
-
-typedef struct ml_field_info_t ml_field_info_t;
-
-struct ml_field_info_t {
-	ml_field_info_t *Next;
-	ml_value_t *Method;
-	int Index, Const;
-};
-
-struct ml_class_t {
-	ml_type_t Base;
-	ml_value_t *Initializer;
-	ml_field_info_t *Fields;
-	stringmap_t Names[1];
-	int NumFields;
-};
-
-typedef struct {
-	const ml_type_t *Type;
-	ml_value_t *Value;
-} ml_field_t;
 
 static ml_value_t *ml_field_deref(ml_field_t *Field) {
 	return Field->Value;
@@ -54,11 +31,6 @@ ML_TYPE(MLFieldMutableT, (MLFieldT), "field::mutable",
 	.assign = (void *)ml_field_assign,
 	.call = (void *)ml_field_call
 );
-
-struct ml_object_t {
-	ml_class_t *Type;
-	ml_field_t Fields[];
-};
 
 ml_value_t *ml_field_fn(void *Data, int Count, ml_value_t **Args) {
 	ml_object_t *Object = (ml_object_t *)Args[0];
@@ -110,6 +82,7 @@ static void ml_object_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int 
 		if (ml_is_error(Arg)) ML_RETURN(Arg);
 		if (ml_is(Arg, MLNamesT)) {
 			ML_NAMES_CHECKX_ARG_COUNT(I);
+			ml_value_t **Arg2 = Args + I;
 			ML_NAMES_FOREACH(Args[I], Iter) {
 				++I;
 				const char *Name = ml_string_value(Iter->Value);
@@ -118,7 +91,7 @@ static void ml_object_constructor_fn(ml_state_t *Caller, ml_class_t *Class, int 
 					ML_ERROR("ValueError", "Class %s does not have field %s", Class->Base.Name, Name);
 				}
 				ml_field_t *Field = &Object->Fields[Info->Index];
-				Field->Value = Arg;
+				Field->Value = *++Arg2;
 			}
 			break;
 		} else if (I > Class->NumFields) {
@@ -251,7 +224,23 @@ static void ml_named_initializer_fn(ml_state_t *Caller, ml_named_type_t *Class, 
 	return ml_call(State, Class->Native->Constructor, 0, NULL);
 }
 
-static void add_field(ml_class_t *Class, ml_value_t *Method) {
+static ml_value_t *get_field_fn(int Index) {
+	static ml_value_t **FieldFns = NULL;
+	static int NumFieldFns = 0;
+	if (Index >= NumFieldFns) {
+		ml_value_t **NewFieldFns = anew(ml_value_t *, Index + 1);
+		memcpy(NewFieldFns, FieldFns, NumFieldFns * sizeof(ml_value_t *));
+		for (int I = NumFieldFns; I <= Index; ++I) {
+			void *Offset = &((ml_object_t *)0)->Fields[I];
+			NewFieldFns[I] = ml_cfunction(Offset, ml_field_fn);
+		}
+		FieldFns = NewFieldFns;
+		NumFieldFns = Index + 1;
+	}
+	return FieldFns[Index];
+}
+
+static void add_field(ml_context_t *Context, ml_class_t *Class, ml_value_t *Method) {
 	ml_field_info_t **Slot = &Class->Fields;
 	int Index = 0;
 	while (Slot[0]) {
@@ -265,30 +254,40 @@ static void add_field(ml_class_t *Class, ml_value_t *Method) {
 	Info->Index = Index;
 	const char *Name = ml_method_name(Method);
 	if (Name) stringmap_insert(Class->Names, Name, Info);
-}
-
-static void setup_fields(ml_state_t *Caller, ml_class_t *Class) {
-	static ml_value_t **FieldFns = NULL;
-	static int NumFieldFns = 0;
-	int NumFields = Class->NumFields;
-	if (NumFields > NumFieldFns) {
-		ml_value_t **NewFieldFns = anew(ml_value_t *, NumFields);
-		memcpy(NewFieldFns, FieldFns, NumFieldFns * sizeof(ml_value_t *));
-		for (int I = NumFieldFns; I < NumFields; ++I) {
-			void *Offset = &((ml_object_t *)0)->Fields[I];
-			NewFieldFns[I] = ml_cfunction(Offset, ml_field_fn);
-		}
-		FieldFns = NewFieldFns;
-		NumFieldFns = NumFields;
-	}
-	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
+	ml_methods_t *Methods = Context->Values[ML_METHODS_INDEX];
 	ml_type_t *Types[1] = {(ml_type_t *)Class};
-	for (ml_field_info_t *Info = Class->Fields; Info; Info = Info->Next) {
-		ml_method_insert(Methods, (ml_method_t *)Info->Method, FieldFns[Info->Index], 1, 1, Types);
-	}
+	ml_method_insert(Methods, (ml_method_t *)Info->Method, get_field_fn(Info->Index), 1, 1, Types);
 }
 
-extern ml_value_t *CallMethod;
+ml_value_t *ml_class(const char *Name) {
+	ml_class_t *Class = new(ml_class_t);
+	Class->Base.Type = MLClassT;
+	if (Name) {
+		Class->Base.Name = Name;
+	} else {
+		asprintf((char **)&Class->Base.Name, "class:%lx", (uintptr_t)Class);
+	}
+	Class->Base.hash = ml_default_hash;
+	Class->Base.call = ml_default_call;
+	Class->Base.deref = ml_default_deref;
+	Class->Base.assign = ml_default_assign;
+	ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_object_constructor_fn);
+	Class->Base.Constructor = Constructor;
+	return (ml_value_t *)Class;
+}
+
+void ml_class_add_parent(ml_context_t *Context, ml_value_t *Class0, ml_value_t *Parent0) {
+	ml_class_t *Class = (ml_class_t *)Class0;
+	ml_class_t *Parent = (ml_class_t *)Parent0;
+	for (ml_field_info_t *Info = Parent->Fields; Info; Info = Info->Next) {
+		add_field(Context, Class, Info->Method);
+	}
+	ml_type_add_parent((ml_type_t *)Class, (ml_type_t *)Parent);
+}
+
+void ml_class_add_field(ml_context_t *Context, ml_value_t *Class0, ml_value_t *Field) {
+	add_field(Context, (ml_class_t *)Class0, Field);
+}
 
 ML_FUNCTIONX(MLClass) {
 //!object
@@ -298,13 +297,10 @@ ML_FUNCTIONX(MLClass) {
 //<Exports...:names
 //>class
 // Returns a new class inheriting from :mini:`Parents`, with fields :mini:`Fields` and exports :mini:`Exports`. The special exports :mini:`::of` and :mini:`::init` can be set to override the default conversion and initialization behaviour. The :mini:`::new` export will *always* be set to the original constructor for this class.
-	int Rank = 0;
 	ml_type_t *NativeType = NULL;
 	for (int I = 0; I < Count; ++I) {
 		if (ml_typeof(Args[I]) == MLMethodT) {
 		} else if (ml_is(Args[I], MLClassT)) {
-			ml_class_t *Parent = (ml_class_t *)Args[I];
-			if (Rank < Parent->Base.Rank) Rank = Parent->Base.Rank;
 		} else if (ml_is(Args[I], MLNamedTypeT)) {
 			ml_named_type_t *Parent = (ml_named_type_t *)Args[I];
 			if (NativeType && NativeType != Parent->Native) {
@@ -322,7 +318,6 @@ ML_FUNCTIONX(MLClass) {
 				}
 				NativeType = Parent;
 			}
-			if (Rank < Parent->Rank) Rank = Parent->Rank;
 		} else if (ml_is(Args[I], MLNamesT)) {
 			break;
 		} else {
@@ -337,7 +332,6 @@ ML_FUNCTIONX(MLClass) {
 		Class->Base.call = NativeType->call;
 		Class->Base.deref = NativeType->deref;
 		Class->Base.assign = NativeType->assign;
-		Class->Base.Rank = Rank + 1;
 		Class->Native = NativeType;
 		ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_named_constructor_fn);
 		Class->Base.Constructor = Constructor;
@@ -368,22 +362,21 @@ ML_FUNCTIONX(MLClass) {
 	} else {
 		ml_class_t *Class = new(ml_class_t);
 		Class->Base.Type = MLClassT;
-		asprintf((char **)&Class->Base.Name, "object:%lx", (uintptr_t)Class);
+		asprintf((char **)&Class->Base.Name, "class:%lx", (uintptr_t)Class);
 		Class->Base.hash = ml_default_hash;
 		Class->Base.call = ml_default_call;
 		Class->Base.deref = ml_default_deref;
 		Class->Base.assign = ml_default_assign;
-		Class->Base.Rank = Rank + 1;
 		ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_object_constructor_fn);
 		Class->Base.Constructor = Constructor;
 		ml_value_t *Const = NULL;
 		for (int I = 0; I < Count; ++I) {
 			if (ml_typeof(Args[I]) == MLMethodT) {
-				add_field(Class, Args[I]);
+				add_field(Caller->Context, Class, Args[I]);
 			} else if (ml_is(Args[I], MLClassT)) {
 				ml_class_t *Parent = (ml_class_t *)Args[I];
 				for (ml_field_info_t *Info = Parent->Fields; Info; Info = Info->Next) {
-					add_field(Class, Info->Method);
+					add_field(Caller->Context, Class, Info->Method);
 				}
 				ml_type_add_parent((ml_type_t *)Class, (ml_type_t *)Parent);
 			} else if (ml_is(Args[I], MLTypeT)) {
@@ -430,7 +423,6 @@ ML_FUNCTIONX(MLClass) {
 			}
 		}
 		ml_type_add_parent((ml_type_t *)Class, MLObjectT);
-		setup_fields(Caller, Class);
 		stringmap_insert(Class->Base.Exports, "new", Constructor);
 		ML_RETURN(Class);
 	}
