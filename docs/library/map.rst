@@ -207,8 +207,8 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "k"
       M:random :> "a"
+      M:random :> "k"
 
 
 :mini:`meth (Map: map):size: integer`
@@ -529,6 +529,12 @@ map
    * :mini:`map::order::Ascending` |harr| inserted pairs are kept in descending key order,  no reordering on access.
    * :mini:`map::order::MRU` |harr| inserted pairs are put at start,  accessed pairs are moved to start.
    * :mini:`map::order::LRU` |harr| inserted pairs are put at end,  accessed pairs are moved to end.
+
+
+.. _type-mapnodenodestate:
+
+:mini:`type mapnodenodestate < state`
+   *TBD*
 
 
 :mini:`meth (Copy: visitor):const(Map: map): map::const`

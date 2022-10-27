@@ -60,7 +60,8 @@ ml_value_t *mlc_expr_describe(mlc_expr_t *Expr) {
 	case ML_EXPR_BLANK:
 	case ML_EXPR_NEXT:
 	case ML_EXPR_NIL:
-	case ML_EXPR_OLD: {
+	case ML_EXPR_OLD:
+	case ML_EXPR_IT: {
 		return ml_tuplev(4, ExprName, Source, Start, End);
 	}
 	case ML_EXPR_VALUE: {
@@ -88,7 +89,8 @@ ml_value_t *mlc_expr_describe(mlc_expr_t *Expr) {
 	case ML_EXPR_RETURN:
 	case ML_EXPR_SUSPEND:
 	case ML_EXPR_SWITCH:
-	case ML_EXPR_TUPLE: {
+	case ML_EXPR_TUPLE:
+	case ML_EXPR_GUARD: {
 		mlc_parent_expr_t *ParentExpr = (mlc_parent_expr_t *)Expr;
 		return ml_tuplev(5, ExprName, Source, Start, End,
 			mlc_exprs_describe(ParentExpr->Child)
@@ -205,8 +207,8 @@ ml_value_t *mlc_expr_describe(mlc_expr_t *Expr) {
 	case ML_EXPR_DEFAULT: {
 		return ml_tuplev(4, ExprName, Source, Start, End);
 	}
-	default: __builtin_unreachable();
 	}
+	__builtin_unreachable();
 }
 
 ML_METHOD("describe", MLExprT) {
@@ -217,55 +219,6 @@ ML_METHOD("describe", MLExprT) {
 }
 
 void ml_expr_init() {
-	ExprNames[ML_EXPR_UNKNOWN] = ml_cstring("unknown");
-	ExprNames[ML_EXPR_AND] = ml_cstring("and");
-	ExprNames[ML_EXPR_ASSIGN] = ml_cstring("assign");
-	ExprNames[ML_EXPR_BLANK] = ml_cstring("blank");
-	ExprNames[ML_EXPR_BLOCK] = ml_cstring("block");
-	ExprNames[ML_EXPR_CALL] = ml_cstring("call");
-	ExprNames[ML_EXPR_CONST_CALL] = ml_cstring("const_call");
-	ExprNames[ML_EXPR_DEBUG] = ml_cstring("debug");
-	ExprNames[ML_EXPR_DEFAULT] = ml_cstring("default");
-	ExprNames[ML_EXPR_DEFINE] = ml_cstring("define");
-	ExprNames[ML_EXPR_DEF] = ml_cstring("def");
-	ExprNames[ML_EXPR_DEF_IN] = ml_cstring("def_in");
-	ExprNames[ML_EXPR_DEF_UNPACK] = ml_cstring("def_unpack");
-	ExprNames[ML_EXPR_DELEGATE] = ml_cstring("delegate");
-	ExprNames[ML_EXPR_EACH] = ml_cstring("each");
-	ExprNames[ML_EXPR_EXIT] = ml_cstring("exit");
-	ExprNames[ML_EXPR_FOR] = ml_cstring("for");
-	ExprNames[ML_EXPR_FUN] = ml_cstring("fun");
-	ExprNames[ML_EXPR_IDENT] = ml_cstring("ident");
-	ExprNames[ML_EXPR_IF] = ml_cstring("if");
-	ExprNames[ML_EXPR_INLINE] = ml_cstring("inline");
-	ExprNames[ML_EXPR_LET] = ml_cstring("let");
-	ExprNames[ML_EXPR_LET_IN] = ml_cstring("let_in");
-	ExprNames[ML_EXPR_LET_UNPACK] = ml_cstring("let_unpack");
-	ExprNames[ML_EXPR_LIST] = ml_cstring("list");
-	ExprNames[ML_EXPR_LOOP] = ml_cstring("loop");
-	ExprNames[ML_EXPR_MAP] = ml_cstring("map");
-	ExprNames[ML_EXPR_NEXT] = ml_cstring("next");
-	ExprNames[ML_EXPR_NIL] = ml_cstring("nil");
-	ExprNames[ML_EXPR_NOT] = ml_cstring("not");
-	ExprNames[ML_EXPR_OLD] = ml_cstring("old");
-	ExprNames[ML_EXPR_OR] = ml_cstring("or");
-	ExprNames[ML_EXPR_REF] = ml_cstring("ref");
-	ExprNames[ML_EXPR_REF_IN] = ml_cstring("ref_in");
-	ExprNames[ML_EXPR_REF_UNPACK] = ml_cstring("ref_unpack");
-	ExprNames[ML_EXPR_REGISTER] = ml_cstring("register");
-	ExprNames[ML_EXPR_RESOLVE] = ml_cstring("resolve");
-	ExprNames[ML_EXPR_RETURN] = ml_cstring("return");
-	ExprNames[ML_EXPR_SCOPED] = ml_cstring("scoped");
-	ExprNames[ML_EXPR_STRING] = ml_cstring("string");
-	ExprNames[ML_EXPR_SUBST] = ml_cstring("subst");
-	ExprNames[ML_EXPR_SUSPEND] = ml_cstring("suspend");
-	ExprNames[ML_EXPR_SWITCH] = ml_cstring("switch");
-	ExprNames[ML_EXPR_TUPLE] = ml_cstring("tuple");
-	ExprNames[ML_EXPR_VALUE] = ml_cstring("value");
-	ExprNames[ML_EXPR_VAR] = ml_cstring("var");
-	ExprNames[ML_EXPR_VAR_IN] = ml_cstring("var_in");
-	ExprNames[ML_EXPR_VAR_TYPE] = ml_cstring("var_type");
-	ExprNames[ML_EXPR_VAR_UNPACK] = ml_cstring("var_unpack");
-	ExprNames[ML_EXPR_WITH] = ml_cstring("with");
+#include "ml_expr_names.c"
 #include "ml_expr_init.c"
 }

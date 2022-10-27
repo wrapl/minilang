@@ -641,19 +641,31 @@ ML_METHOD("in", MLAnyT, MLMapT) {
 	return ml_map_find_node(Map, Args[0]) ? Args[0] : MLNil;
 }
 
+typedef struct ml_map_node_waiter_t ml_map_node_waiter_t;
+
+struct ml_map_node_waiter_t {
+	ml_map_node_waiter_t *Next;
+	ml_state_t *Caller;
+};
+
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Key;
 	ml_map_node_t *Node;
-} ml_ref_state_t;
+	ml_map_node_waiter_t *Waiters;
+} ml_map_node_state_t;
 
-static void ml_node_state_run(ml_ref_state_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) {
-		ML_CONTINUE(State->Base.Caller, Value);
-	} else {
+ML_TYPE(MapNodeNodeStateT, (MLStateT), "map::node::state");
+
+static void ml_node_state_run(ml_map_node_state_t *State, ml_value_t *Value) {
+	if (!ml_is_error(Value)) {
 		State->Node->Value = Value;
-		ML_CONTINUE(State->Base.Caller, State->Node);
+		Value = (ml_value_t *)State->Node;
 	}
+	for (ml_map_node_waiter_t *Waiter = State->Waiters; Waiter; Waiter = Waiter->Next) {
+		Waiter->Caller->run(Waiter->Caller, Value);
+	}
+	ML_CONTINUE(State->Base.Caller, Value);
 }
 
 ML_METHODX("[]", MLMapMutableT, MLAnyT, MLFunctionT) {
@@ -670,15 +682,22 @@ ML_METHODX("[]", MLMapMutableT, MLAnyT, MLFunctionT) {
 	ml_value_t *Key = Args[1];
 	ml_map_node_t *Node = ml_map_node(Map, ml_typeof(Key)->hash(Key, NULL), Key);
 	if (!Node->Value) {
-		Node->Value = MLNil;
-		ml_ref_state_t *State = new(ml_ref_state_t);
+		ml_map_node_state_t *State = new(ml_map_node_state_t);
+		State->Base.Type = MapNodeNodeStateT;
 		State->Base.Caller = Caller;
 		State->Base.Context = Caller->Context;
 		State->Base.run = (void *)ml_node_state_run;
 		State->Key = Key;
 		State->Node = Node;
+		Node->Value = (ml_value_t *)State;
 		ml_value_t *Function = Args[2];
 		return ml_call(State, Function, 1, &State->Key);
+	} else if (ml_typeof(Node->Value) == MapNodeNodeStateT) {
+		ml_map_node_state_t *State = (ml_map_node_state_t *)Node->Value;
+		ml_map_node_waiter_t *Waiter = new(ml_map_node_waiter_t);
+		Waiter->Caller = Caller;
+		Waiter->Next = State->Waiters;
+		State->Waiters = Waiter;
 	} else {
 		ML_RETURN(Node);
 	}
@@ -889,7 +908,7 @@ ML_METHOD("missing", MLMapMutableT, MLAnyT) {
 	return MLNil;
 }
 
-static void ml_missing_state_run(ml_ref_state_t *State, ml_value_t *Value) {
+static void ml_missing_state_run(ml_map_node_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
 		ML_CONTINUE(State->Base.Caller, Value);
 	} else {
@@ -913,7 +932,7 @@ ML_METHODX("missing", MLMapMutableT, MLAnyT, MLFunctionT) {
 	ml_map_node_t *Node = ml_map_node(Map, ml_typeof(Key)->hash(Key, NULL), Key);
 	if (!Node->Value) {
 		Node->Value = MLNil;
-		ml_ref_state_t *State = new(ml_ref_state_t);
+		ml_map_node_state_t *State = new(ml_map_node_state_t);
 		State->Base.Caller = Caller;
 		State->Base.Context = Caller->Context;
 		State->Base.run = (void *)ml_missing_state_run;

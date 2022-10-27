@@ -562,7 +562,7 @@ typedef struct {
 	int Line;
 } mlc_must_frame_t;
 
-static void ml_must_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_must_frame_t *Frame) {
+static void ml_must_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_must_frame_t *Frame) {
 	mlc_must_t *Must = Frame->Must;
 	if (Must != Frame->End) {
 		Frame->Must = Must->Next;
@@ -577,8 +577,8 @@ static void ml_must_expr_compile2(mlc_function_t *Function, ml_value_t *Value, m
 	MLC_RETURN(NULL);
 }
 
-static void ml_must_expr_compile(mlc_function_t *Function, mlc_must_t *Must, mlc_must_t *End) {
-	MLC_FRAME(mlc_must_frame_t, ml_must_expr_compile2);
+static void ml_must_compile(mlc_function_t *Function, mlc_must_t *Must, mlc_must_t *End) {
+	MLC_FRAME(mlc_must_frame_t, ml_must_compile2);
 	Frame->Decls = Function->Decls;
 	Frame->Must = Must->Next;
 	Frame->End = End;
@@ -684,7 +684,7 @@ static void ml_next_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Ex
 	if (Function->Must != Loop->Must) {
 		MLC_FRAME(mlc_parent_expr_t *, ml_next_expr_compile2);
 		Frame[0] = Expr;
-		return ml_must_expr_compile(Function, Function->Must, Loop->Must);
+		return ml_must_compile(Function, Function->Must, Loop->Must);
 	}
 	if (Function->Top > Loop->NextTop) {
 		ml_inst_t *ExitInst = MLC_EMIT(Expr->EndLine, MLI_EXIT, 2);
@@ -735,7 +735,7 @@ static void ml_exit_expr_compile2(mlc_function_t *Function, ml_value_t *Value, m
 	}
 	if (Function->Must != Target->Must) {
 		Function->Frame->run = (mlc_frame_fn)ml_exit_expr_compile3;
-		return ml_must_expr_compile(Function, Function->Must, Target->Must);
+		return ml_must_compile(Function, Function->Must, Target->Must);
 	} else {
 		return ml_exit_expr_compile3(Function, Value, Frame);
 	}
@@ -787,7 +787,7 @@ static void ml_return_expr_compile3(mlc_function_t *Function, ml_value_t *Value,
 static void ml_return_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_parent_expr_frame_t *Frame) {
 	if (Function->Must) {
 		Function->Frame->run = (mlc_frame_fn)ml_return_expr_compile3;
-		return ml_must_expr_compile(Function, Function->Must, NULL);
+		return ml_must_compile(Function, Function->Must, NULL);
 	}
 	if (Value != MLExprGoto) {
 		mlc_parent_expr_t *Expr = Frame->Expr;
@@ -1507,7 +1507,7 @@ static void ml_block_expr_compile4(mlc_function_t *Function, ml_value_t *Value, 
 	PopInst[2].Count = Frame->Top;
 	PopInst[3].Decls = Function->Decls;
 	Function->Frame->run = (mlc_frame_fn)ml_block_expr_compile5;
-	return ml_must_expr_compile(Function, &Frame->Must, Frame->OldMust);
+	return ml_must_compile(Function, &Frame->Must, Frame->OldMust);
 }
 
 static void ml_block_expr_compile3(mlc_function_t *Function, ml_value_t *Value, mlc_block_t *Frame) {
@@ -1586,7 +1586,7 @@ static void ml_block_expr_compile2(mlc_function_t *Function, ml_value_t *Value, 
 		return mlc_compile(Function, Expr->CatchBody, 0);
 	} else if (Expr->Must) {
 		Function->Frame->run = (mlc_frame_fn)ml_block_expr_compile4;
-		return ml_must_expr_compile(Function, &Frame->Must, Frame->OldMust);
+		return ml_must_compile(Function, &Frame->Must, Frame->OldMust);
 	}
 	if (Frame->Flags & MLCF_PUSH) {
 		MLC_EMIT(Expr->EndLine, MLI_PUSH, 0);
@@ -3500,58 +3500,7 @@ static void ml_define_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *E
 	MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "identifier %s not defined", Expr->Ident));
 }
 
-ml_expr_type_t mlc_expr_type(mlc_expr_t *Expr) {
-	if (Expr->compile == (void *)ml_and_expr_compile) return ML_EXPR_AND;
-	if (Expr->compile == (void *)ml_assign_expr_compile) return ML_EXPR_ASSIGN;
-	if (Expr->compile == (void *)ml_blank_expr_compile) return ML_EXPR_BLANK;
-	if (Expr->compile == (void *)ml_block_expr_compile) return ML_EXPR_BLOCK;
-	if (Expr->compile == (void *)ml_call_expr_compile) return ML_EXPR_CALL;
-	if (Expr->compile == (void *)ml_const_call_expr_compile) return ML_EXPR_CONST_CALL;
-	if (Expr->compile == (void *)ml_debug_expr_compile) return ML_EXPR_DEBUG;
-	if (Expr->compile == (void *)ml_def_expr_compile) return ML_EXPR_DEF;
-	if (Expr->compile == (void *)ml_def_in_expr_compile) return ML_EXPR_DEF_IN;
-	if (Expr->compile == (void *)ml_def_unpack_expr_compile) return ML_EXPR_DEF_UNPACK;
-	if (Expr->compile == (void *)ml_default_expr_compile) return ML_EXPR_DEFAULT;
-	if (Expr->compile == (void *)ml_define_expr_compile) return ML_EXPR_DEFINE;
-	if (Expr->compile == (void *)ml_delegate_expr_compile) return ML_EXPR_DELEGATE;
-	if (Expr->compile == (void *)ml_each_expr_compile) return ML_EXPR_EACH;
-	if (Expr->compile == (void *)ml_exit_expr_compile) return ML_EXPR_EXIT;
-	if (Expr->compile == (void *)ml_for_expr_compile) return ML_EXPR_FOR;
-	if (Expr->compile == (void *)ml_fun_expr_compile) return ML_EXPR_FUN;
-	if (Expr->compile == (void *)ml_ident_expr_compile) return ML_EXPR_IDENT;
-	if (Expr->compile == (void *)ml_if_expr_compile) return ML_EXPR_IF;
-	if (Expr->compile == (void *)ml_inline_expr_compile) return ML_EXPR_INLINE;
-	if (Expr->compile == (void *)ml_let_expr_compile) return ML_EXPR_LET;
-	if (Expr->compile == (void *)ml_let_in_expr_compile) return ML_EXPR_LET_IN;
-	if (Expr->compile == (void *)ml_let_unpack_expr_compile) return ML_EXPR_LET_UNPACK;
-	if (Expr->compile == (void *)ml_list_expr_compile) return ML_EXPR_LIST;
-	if (Expr->compile == (void *)ml_loop_expr_compile) return ML_EXPR_LOOP;
-	if (Expr->compile == (void *)ml_map_expr_compile) return ML_EXPR_MAP;
-	if (Expr->compile == (void *)ml_next_expr_compile) return ML_EXPR_NEXT;
-	if (Expr->compile == (void *)ml_nil_expr_compile) return ML_EXPR_NIL;
-	if (Expr->compile == (void *)ml_not_expr_compile) return ML_EXPR_NOT;
-	if (Expr->compile == (void *)ml_old_expr_compile) return ML_EXPR_OLD;
-	if (Expr->compile == (void *)ml_or_expr_compile) return ML_EXPR_OR;
-	if (Expr->compile == (void *)ml_ref_expr_compile) return ML_EXPR_REF;
-	if (Expr->compile == (void *)ml_ref_in_expr_compile) return ML_EXPR_REF_IN;
-	if (Expr->compile == (void *)ml_ref_unpack_expr_compile) return ML_EXPR_REF_UNPACK;
-	if (Expr->compile == (void *)ml_register_expr_compile) return ML_EXPR_REGISTER;
-	if (Expr->compile == (void *)ml_resolve_expr_compile) return ML_EXPR_RESOLVE;
-	if (Expr->compile == (void *)ml_return_expr_compile) return ML_EXPR_RETURN;
-	if (Expr->compile == (void *)ml_scoped_expr_compile) return ML_EXPR_SCOPED;
-	if (Expr->compile == (void *)ml_string_expr_compile) return ML_EXPR_STRING;
-	if (Expr->compile == (void *)ml_subst_expr_compile) return ML_EXPR_SUBST;
-	if (Expr->compile == (void *)ml_suspend_expr_compile) return ML_EXPR_SUSPEND;
-	if (Expr->compile == (void *)ml_switch_expr_compile) return ML_EXPR_SWITCH;
-	if (Expr->compile == (void *)ml_tuple_expr_compile) return ML_EXPR_TUPLE;
-	if (Expr->compile == (void *)ml_value_expr_compile) return ML_EXPR_VALUE;
-	if (Expr->compile == (void *)ml_var_expr_compile) return ML_EXPR_VAR;
-	if (Expr->compile == (void *)ml_var_in_expr_compile) return ML_EXPR_VAR_IN;
-	if (Expr->compile == (void *)ml_var_type_expr_compile) return ML_EXPR_VAR_TYPE;
-	if (Expr->compile == (void *)ml_var_unpack_expr_compile) return ML_EXPR_VAR_UNPACK;
-	if (Expr->compile == (void *)ml_with_expr_compile) return ML_EXPR_WITH;
-	return ML_EXPR_UNKNOWN;
-}
+#include "ml_expr_types.c"
 
 const char *MLTokens[] = {
 	"", // MLT_NONE,
