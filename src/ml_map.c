@@ -1641,6 +1641,8 @@ void ml_map_init() {
 	stringmap_insert(MLMapT->Exports, "join", MLMapJoin);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLMapT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
+#ifdef ML_MUTABLES
 	ml_type_add_rule(MLMapMutableT, MLMapT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
+#endif
 #endif
 }

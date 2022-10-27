@@ -1615,6 +1615,8 @@ void ml_list_init() {
 	stringmap_insert(MLListT->Exports, "mutable", MLListMutableT);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLListT, MLSequenceT, MLIntegerT, ML_TYPE_ARG(1), NULL);
+#ifdef ML_MUTABLES
 	ml_type_add_rule(MLListMutableT, MLListT, ML_TYPE_ARG(1), NULL);
+#endif
 #endif
 }

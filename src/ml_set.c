@@ -1177,7 +1177,9 @@ void ml_set_init() {
 	stringmap_insert(MLSetT->Exports, "mutable", MLSetMutableT);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLSetT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(1), NULL);
+#ifdef ML_MUTABLES
 	ml_type_add_rule(MLSetMutableT, MLSetT, ML_TYPE_ARG(1), NULL);
+#endif
 #endif
 #ifdef ML_CBOR
 	ml_cbor_default_tag(258, ml_cbor_read_set);
