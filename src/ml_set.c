@@ -21,6 +21,26 @@ ML_TYPE(MLSetMutableT, (MLSetT), "set::mutable");
 #define MLSetMutableT MLSetT
 #endif
 
+#ifdef ML_GENERICS
+
+static void ml_set_update_generic(ml_set_t *Set, ml_value_t *Value) {
+	if (Set->Type->Type != MLTypeGenericT) {
+		Set->Type = ml_generic_type(2, (ml_type_t *[]){Set->Type, ml_typeof(Value)});
+	} else {
+		ml_type_t *ValueType0 = ml_typeof(Value);
+		ml_type_t *BaseType = ml_generic_type_args(Set->Type)[0];
+		ml_type_t *ValueType = ml_generic_type_args(Set->Type)[1];
+		if (!ml_is_subtype(ValueType0, ValueType)) {
+			ml_type_t *ValueType2 = ml_type_max(ValueType, ValueType0);
+			if (ValueType != ValueType2) {
+				Set->Type = ml_generic_type(2, (ml_type_t *[]){BaseType, ValueType2});
+			}
+		}
+	}
+}
+
+#endif
+
 ML_ENUM2(MLSetOrderT, "set::order",
 // * :mini:`set::order::Insert` |harr| default ordering; inserted values are put at end, no reordering on access.
 // * :mini:`set::order::Ascending` |harr| inserted values are kept in ascending order, no reordering on access.
@@ -304,18 +324,7 @@ ml_value_t *ml_set_insert(ml_value_t *Set0, ml_value_t *Key) {
 	int Size = Set->Size;
 	ml_set_node(Set, ml_typeof(Key)->hash(Key, NULL), Key);
 #ifdef ML_GENERICS
-	if (Set->Type->Type != MLTypeGenericT) {
-		Set->Type = ml_generic_type(2, (ml_type_t *[]){Set->Type, ml_typeof(Key)});
-	} else {
-		ml_type_t *BaseType = ml_generic_type_args(Set->Type)[0];
-		ml_type_t *KeyType = ml_generic_type_args(Set->Type)[1];
-		if (KeyType != ml_typeof(Key)) {
-			ml_type_t *KeyType2 = ml_type_max(KeyType, ml_typeof(Key));
-			if (KeyType != KeyType2) {
-				Set->Type = ml_generic_type(2, (ml_type_t *[]){BaseType, KeyType2});
-			}
-		}
-	}
+	ml_set_update_generic(Set, Key);
 #endif
 	return Set->Size == Size ? MLSome : MLNil;
 }
