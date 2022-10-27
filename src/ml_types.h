@@ -235,10 +235,11 @@ static inline ml_type_t *ml_typeof_deref(ml_value_t *Value) {
 
 static inline int ml_is(const ml_value_t *Value, const ml_type_t *Expected) {
 	const ml_type_t *Type = ml_typeof(Value);
+	if (Type == Expected) return 1;
 #ifdef ML_GENERICS
 	if (Type->Type == MLTypeGenericT) Type = ml_generic_type_args(Type)[0];
-#endif
 	if (Type == Expected) return 1;
+#endif
 	return (uintptr_t)inthash_search(Type->Parents, (uintptr_t)Expected);
 }
 
@@ -926,6 +927,7 @@ struct ml_map_node_t {
 	ml_map_node_t *Next, *Prev;
 	ml_value_t *Key;
 	ml_map_node_t *Left, *Right;
+	ml_map_t *Map;
 	ml_value_t *Value;
 	long Hash;
 	int Depth;

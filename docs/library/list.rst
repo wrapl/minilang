@@ -86,7 +86,7 @@ list
 
       let L := list("cake") :> ["c", "a", "k", "e"]
       L:random :> "c"
-      L:random :> "a"
+      L:random :> "k"
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list)`

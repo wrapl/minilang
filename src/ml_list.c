@@ -58,6 +58,27 @@ ML_TYPE(MLListMutableT, (MLListT), "list::mutable");
 #define MLListMutableT MLListT
 #endif
 
+#ifdef ML_GENERICS
+
+static void ml_list_update_generic(ml_list_t *List, ml_value_t *Value) {
+	if (List->Type->Type != MLTypeGenericT) {
+		List->Type = ml_generic_type(2, (ml_type_t *[]){List->Type, ml_typeof(Value)});
+	} else {
+		ml_type_t *ValueType0 = ml_typeof(Value);
+		ml_type_t *BaseType = ml_generic_type_args(List->Type)[0];
+		ml_type_t *ValueType = ml_generic_type_args(List->Type)[1];
+		if (!ml_is_subtype(ValueType0, ValueType)) {
+			ml_type_t *ValueType2 = ml_type_max(ValueType, ValueType0);
+			if (ValueType != ValueType2) {
+				List->Type = ml_generic_type(2, (ml_type_t *[]){BaseType, ValueType2});
+			}
+		}
+	}
+}
+
+#endif
+
+
 static void ML_TYPED_FN(ml_value_find_all, MLListT, ml_value_t *Value, void *Data, ml_value_find_fn RefFn) {
 	if (!RefFn(Data, Value, 1)) return;
 	ML_LIST_FOREACH(Value, Iter) ml_value_find_all(Iter->Value, Data, RefFn);
@@ -225,25 +246,12 @@ void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
 	Node->Value = Value;
 	if ((Node->Next = List->Head)) {
 		List->Head->Prev = Node;
-#ifdef ML_GENERICS
-		if (List->Type->Type == MLTypeGenericT) {
-			ml_type_t *Type = ml_generic_type_args(List->Type)[1];
-			if (Type != ml_typeof(Value)) {
-				ml_type_t *Type2 = ml_type_max(Type, ml_typeof(Value));
-				if (Type != Type2) {
-					List->Type = ml_generic_type(2, (ml_type_t *[]){MLListMutableT, Type2});
-				}
-			}
-		}
-#endif
 	} else {
 		List->Tail = Node;
-#ifdef ML_GENERICS
-		if (List->Type == MLListMutableT) {
-			List->Type = ml_generic_type(2, (ml_type_t *[]){MLListMutableT, ml_typeof(Value)});
-		}
-#endif
 	}
+#ifdef ML_GENERICS
+	ml_list_update_generic(List, Value);
+#endif
 	List->CachedNode = List->Head = Node;
 	List->CachedIndex = 1;
 	++List->Length;
@@ -261,25 +269,12 @@ void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 	}
 	if ((Node->Prev = List->Tail)) {
 		List->Tail->Next = Node;
-#ifdef ML_GENERICS
-		if (List->Type->Type == MLTypeGenericT) {
-			ml_type_t *Type = ml_generic_type_args(List->Type)[1];
-			if (Type != Type0) {
-				ml_type_t *Type2 = ml_type_max(Type, Type0);
-				if (Type != Type2) {
-					List->Type = ml_generic_type(2, (ml_type_t *[]){MLListMutableT, Type2});
-				}
-			}
-		}
-#endif
 	} else {
 		List->Head = Node;
-#ifdef ML_GENERICS
-		if (List->Type == MLListMutableT) {
-			List->Type = ml_generic_type(2, (ml_type_t *[]){MLListMutableT, ml_typeof(Value)});
-		}
-#endif
 	}
+#ifdef ML_GENERICS
+	ml_list_update_generic(List, Value);
+#endif
 	List->CachedNode = List->Tail = Node;
 	List->CachedIndex = ++List->Length;
 }

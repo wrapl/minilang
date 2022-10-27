@@ -689,6 +689,7 @@ static ml_type_t *ml_generic_type_max(ml_type_t *Max, int TNumArgs, ml_type_t **
 #endif
 
 ml_type_t *ml_type_max(ml_type_t *T, ml_type_t *U) {
+	if (T == U) return T;
 	ml_type_t *Max = MLAnyT;
 	if (T->Rank < U->Rank) {
 		if (inthash_search(U->Parents, (uintptr_t)T)) return T;

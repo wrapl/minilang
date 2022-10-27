@@ -21,6 +21,29 @@ ML_TYPE(MLMapMutableT, (MLMapT), "map::mutable");
 #define MLMapMutableT MLMapT
 #endif
 
+#ifdef ML_GENERICS
+
+static void ml_map_update_generic(ml_map_t *Map, ml_value_t *Key, ml_value_t *Value) {
+	if (Map->Type->Type != MLTypeGenericT) {
+		Map->Type = ml_generic_type(3, (ml_type_t *[]){Map->Type, ml_typeof(Key), ml_typeof(Value)});
+	} else {
+		ml_type_t *KeyType0 = ml_typeof(Key);
+		ml_type_t *ValueType0 = ml_typeof(Value);
+		ml_type_t *BaseType = ml_generic_type_args(Map->Type)[0];
+		ml_type_t *KeyType = ml_generic_type_args(Map->Type)[1];
+		ml_type_t *ValueType = ml_generic_type_args(Map->Type)[2];
+		if (!ml_is_subtype(KeyType0, KeyType) || !ml_is_subtype(ValueType0, ValueType)) {
+			ml_type_t *KeyType2 = ml_type_max(KeyType, KeyType0);
+			ml_type_t *ValueType2 = ml_type_max(ValueType, ValueType0);
+			if (KeyType != KeyType2 || ValueType != ValueType2) {
+				Map->Type = ml_generic_type(3, (ml_type_t *[]){BaseType, KeyType2, ValueType2});
+			}
+		}
+	}
+}
+
+#endif
+
 ML_ENUM2(MLMapOrderT, "map::order",
 // * :mini:`map::order::Insert` |harr| default ordering; inserted pairs are put at end, no reordering on access.
 // * :mini:`map::order::Ascending` |harr| inserted pairs are kept in ascending key order, no reordering on access.
@@ -52,6 +75,9 @@ static void ml_map_node_call(ml_state_t *Caller, ml_map_node_t *Node, int Count,
 
 static void ml_map_node_assign(ml_state_t *Caller, ml_map_node_t *Node, ml_value_t *Value) {
 	Node->Value = Value;
+#ifdef ML_GENERICS
+	ml_map_update_generic(Node->Map, Node->Key, Value);
+#endif
 	ML_RETURN(Value);
 }
 
@@ -169,18 +195,21 @@ ML_METHODVX("grow", MLMapMutableT, MLSequenceT) {
 extern ml_value_t *CompareMethod;
 
 static inline ml_value_t *ml_map_compare(ml_map_t *Map, ml_value_t **Args) {
-	/*ml_method_cached_t *Cached = Map->Cached;
+	ml_method_cached_t *Cached = Map->Cached;
 	if (Cached) {
-		if (Cached->Types[0] != ml_typeof(Args[0])) Cached = NULL;
-		if (Cached->Types[1] != ml_typeof(Args[1])) Cached = NULL;
+		if (Cached->Types[0] != ml_typeof(Args[0])) {
+			Cached = NULL;
+		} else if (Cached->Types[1] != ml_typeof(Args[1])) {
+			Cached = NULL;
+		}
 	}
 	if (!Cached || !Cached->Callback) {
 		Cached = ml_method_search_cached(NULL, (ml_method_t *)CompareMethod, 2, Args);
 		if (!Cached) return ml_no_method_error((ml_method_t *)CompareMethod, 2, Args);
 		Map->Cached = Cached;
 	}
-	return ml_simple_call(Cached->Callback, 2, Args);*/
-	return ml_simple_call(CompareMethod, 2, Args);
+	return ml_simple_call(Cached->Callback, 2, Args);
+	//return ml_simple_call(CompareMethod, 2, Args);
 }
 
 static ml_map_node_t *ml_map_find_node(ml_map_t *Map, ml_value_t *Key) {
@@ -306,6 +335,7 @@ static ml_map_node_t *ml_map_node_child(ml_map_t *Map, ml_map_node_t *Parent, lo
 		++Map->Size;
 		Node = Slot[0] = new(ml_map_node_t);
 		Node->Type = MLMapNodeMutableT;
+		Node->Map = Map;
 		Node->Depth = 1;
 		Node->Hash = Hash;
 		Node->Key = Key;
@@ -354,6 +384,7 @@ static ml_map_node_t *ml_map_node(ml_map_t *Map, long Hash, ml_value_t *Key) {
 	++Map->Size;
 	ml_map_node_t *Node = Map->Root = new(ml_map_node_t);
 	Node->Type = MLMapNodeMutableT;
+	Node->Map = Map;
 	Map->Head = Map->Tail = Node;
 	Node->Depth = 1;
 	Node->Hash = Hash;
@@ -377,20 +408,7 @@ ml_value_t *ml_map_insert(ml_value_t *Map0, ml_value_t *Key, ml_value_t *Value) 
 		ValueType0 = MLAnyT;
 	}
 #ifdef ML_GENERICS
-	if (Map->Type->Type != MLTypeGenericT) {
-		Map->Type = ml_generic_type(3, (ml_type_t *[]){Map->Type, ml_typeof(Key), ValueType0});
-	} else {
-		ml_type_t *BaseType = ml_generic_type_args(Map->Type)[0];
-		ml_type_t *KeyType = ml_generic_type_args(Map->Type)[1];
-		ml_type_t *ValueType = ml_generic_type_args(Map->Type)[2];
-		if (KeyType != ml_typeof(Key) || ValueType != ValueType0) {
-			ml_type_t *KeyType2 = ml_type_max(KeyType, ml_typeof(Key));
-			ml_type_t *ValueType2 = ml_type_max(ValueType, ValueType0);
-			if (KeyType != KeyType2 || ValueType != ValueType2) {
-				Map->Type = ml_generic_type(3, (ml_type_t *[]){BaseType, KeyType2, ValueType2});
-			}
-		}
-	}
+	ml_map_update_generic(Map, Key, Value);
 #endif
 	return Old;
 }
@@ -606,6 +624,7 @@ ML_METHOD("[]", MLMapMutableT, MLAnyT) {
 	if (!Node) {
 		Node = new(ml_map_node_t);
 		Node->Type = MLMapIndexT;
+		Node->Map = Map;
 		Node->Value = Args[0];
 		Node->Key = Args[1];
 	} else if (Map->Order == MAP_ORDER_LRU) {
@@ -719,6 +738,7 @@ ML_METHOD("::", MLMapMutableT, MLStringT) {
 	if (!Node) {
 		Node = new(ml_map_node_t);
 		Node->Type = MLMapIndexT;
+		Node->Map = Map;
 		Node->Value = Args[0];
 		Node->Key = Args[1];
 	} else if (Map->Order == MAP_ORDER_LRU) {
