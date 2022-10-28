@@ -41,6 +41,21 @@ static inline void *inthash_search_inline(const inthash_t *Map, uintptr_t Key) {
 	return NULL;
 }
 
+static inline int inthash_contains_inline(const inthash_t *Map, uintptr_t Key) {
+	if (!Map->Size) return 0;
+	uintptr_t *Keys = Map->Keys;
+	size_t Mask = Map->Size - 1;
+	size_t Index = (Key >> INTHASH_INDEX_SHIFT) & Mask;
+	if (Keys[Index] == Key) return 1;
+	if (Keys[Index] < Key) return 0;
+	size_t Incr = (Key >> INTHASH_INCR_SHIFT) | 1;
+	do {
+		Index = (Index + Incr) & Mask;
+		if (Keys[Index] == Key) return 1;
+	} while (Keys[Index] > Key);
+	return 0;
+}
+
 typedef struct {void *Value; int Present;} inthash_result_t;
 
 inthash_result_t inthash_search2(const inthash_t *Map, uintptr_t Key) __attribute__ ((pure));

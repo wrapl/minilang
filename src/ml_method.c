@@ -330,7 +330,7 @@ __attribute__ ((noinline)) ml_value_t *ml_no_method_error(ml_method_t *Method, i
 static void ml_method_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_method_t *Method = (ml_method_t *)Value;
 	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
-	while (Methods->Parent && !inthash_search(Methods->Definitions, (uintptr_t)Method)) {
+	while (Methods->Parent && !inthash_contains_inline(Methods->Definitions, (uintptr_t)Method)) {
 		Methods = Methods->Parent;
 	}
 	ml_value_t *Callback = ml_method_search(Methods, Method, Count, Args);
