@@ -817,7 +817,7 @@ void ml_method_definev(ml_value_t *Method, ml_value_t *Function, int Variadic, .
 
 void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Callback, int Count, int Variadic, ml_type_t **Types);
 
-ml_value_t *ml_method_search(ml_state_t *Caller, ml_method_t *Method, int Count, ml_value_t **Args);
+ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args);
 
 typedef struct ml_method_cached_t ml_method_cached_t;
 

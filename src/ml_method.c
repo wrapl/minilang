@@ -188,14 +188,13 @@ static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 	return (X << (N & Mask)) | (X >> ((-N) & Mask ));
 }
 
-static __attribute__ ((noinline)) ml_value_t *ml_method_search2(ml_state_t *Caller, ml_method_t *Method, int Count, ml_value_t **Args) {
+static __attribute__ ((noinline)) ml_value_t *ml_method_search2(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args) {
 	ml_type_t *Types[Count];
 	uintptr_t Hash = (uintptr_t)Method;
 	for (int I = Count; --I >= 0;) {
 		ml_type_t *Type = Types[I] = ml_typeof_deref(Args[I]);
 		Hash = rotl(Hash, 1) ^ (uintptr_t)Type;
 	}
-	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
 	ml_method_cached_t *Cached = ml_method_search_entry(Methods, Method, Count, Types, Hash);
 	if (Cached) return Cached->Callback;
 	return NULL;
@@ -208,16 +207,15 @@ static __attribute__ ((noinline)) ml_value_t *ml_method_search2(ml_state_t *Call
 #else
 	__attribute__ ((noinline))
 #endif
-	ml_value_t *ml_method_search(ml_state_t *Caller, ml_method_t *Method, int Count, ml_value_t **Args) {
+	ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args) {
 	// TODO: Use generation numbers to check Methods->Parent for invalidated definitions
-	if (Count > ML_SMALL_METHOD_COUNT) return ml_method_search2(Caller, Method, Count, Args);
+	if (Count > ML_SMALL_METHOD_COUNT) return ml_method_search2(Methods, Method, Count, Args);
 	ml_type_t *Types[ML_SMALL_METHOD_COUNT];
 	uintptr_t Hash = (uintptr_t)Method;
 	for (int I = Count; --I >= 0;) {
 		ml_type_t *Type = Types[I] = ml_typeof_deref(Args[I]);
 		Hash = rotl(Hash, 1) ^ (uintptr_t)Type;
 	}
-	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
 	ml_method_cached_t *Cached = ml_method_search_entry(Methods, Method, Count, Types, Hash);
 	if (Cached) return Cached->Callback;
 	return NULL;
@@ -236,6 +234,13 @@ static __attribute__ ((noinline)) ml_method_cached_t *ml_method_search_cached2(m
 ml_method_cached_t *ml_method_search_cached(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args) {
 	// TODO: Use generation numbers to check Methods->Parent for invalidated definitions
 	Methods = Methods ?: MLRootMethods;
+	while (Methods->Parent) {
+		ml_methods_lock(Methods);
+		void *Present = inthash_search(Methods->Definitions, (uintptr_t)Method);
+		ml_methods_unlock(Methods);
+		if (Present) break;
+		Methods = Methods->Parent;
+	}
 	if (Count > ML_SMALL_METHOD_COUNT) return ml_method_search_cached2(Methods, Method, Count, Args);
 	ml_type_t *Types[ML_SMALL_METHOD_COUNT];
 	uintptr_t Hash = (uintptr_t)Method;
@@ -260,6 +265,7 @@ void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Ca
 	Definition->Next = inthash_insert(Methods->Definitions, (uintptr_t)Method, Definition);
 	ml_method_cached_t *Cached = inthash_search(Methods->Methods, (uintptr_t)Method);
 	while (Cached) {
+		// TODO: Only invalidate cached entries that are superseeded by this definition
 		Cached->Callback = NULL;
 		Cached = Cached->MethodNext;
 	}
@@ -323,8 +329,11 @@ __attribute__ ((noinline)) ml_value_t *ml_no_method_error(ml_method_t *Method, i
 
 static void ml_method_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
 	ml_method_t *Method = (ml_method_t *)Value;
-	ml_value_t *Callback = ml_method_search(Caller, Method, Count, Args);
-
+	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
+	while (Methods->Parent && !inthash_search(Methods->Definitions, (uintptr_t)Method)) {
+		Methods = Methods->Parent;
+	}
+	ml_value_t *Callback = ml_method_search(Methods, Method, Count, Args);
 	if (__builtin_expect(Callback != NULL, 1)) {
 		return ml_call(Caller, Callback, Count, Args);
 	} else {

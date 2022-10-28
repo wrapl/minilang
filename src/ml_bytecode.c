@@ -292,8 +292,8 @@ extern ml_value_t *SymbolMethod;
 
 #define DO_CALL_COUNT(COUNT) \
 	DO_CALL_ ## COUNT: { \
-		ml_value_t *Function = Top[~COUNT]; \
 		ml_value_t **Args = Top - COUNT; \
+		ml_value_t *Function = Args[-1]; \
 		ml_inst_t *Next = Inst + 2; \
 		ML_STORE_COUNTER(); \
 		Frame->Inst = Next; \
@@ -323,8 +323,8 @@ extern ml_value_t *SymbolMethod;
 		} \
 	} \
 	DO_CALL_CONST_ ## COUNT: { \
-		ml_value_t *Function = Inst[1].Value; \
 		ml_value_t **Args = Top - COUNT; \
+		ml_value_t *Function = Inst[1].Value; \
 		ml_inst_t *Next = Inst + 3; \
 		ML_STORE_COUNTER(); \
 		Frame->Inst = Next; \
@@ -333,8 +333,8 @@ extern ml_value_t *SymbolMethod;
 		return ml_call(Frame, Function, COUNT, Args); \
 	} \
 	DO_TAIL_CALL_CONST_ ## COUNT: { \
-		ml_value_t *Function = Inst[1].Value; \
 		ml_value_t **Args = Top - COUNT; \
+		ml_value_t *Function = Inst[1].Value; \
 		ml_inst_t *Next = Inst + 3; \
 		ML_STORE_COUNTER(); \
 		if (!Frame->Continue) { \
@@ -354,8 +354,8 @@ extern ml_value_t *SymbolMethod;
 		} \
 	} \
 	DO_CALL_METHOD_ ## COUNT: { \
-		ml_method_t *Method = (ml_method_t *)Inst[1].Value; \
 		ml_value_t **Args = Top - COUNT; \
+		/*ml_method_t *Method = (ml_method_t *)Inst[1].Value; \
 		ml_method_cached_t *Cached = Inst[3].Data; \
 		if (Cached) { \
 			for (int I = 0; I < COUNT; ++I) { \
@@ -375,7 +375,8 @@ extern ml_value_t *SymbolMethod;
 			} \
 			Inst[3].Data = Cached; \
 		} \
-		ml_value_t *Function = Cached->Callback; \
+		ml_value_t *Function = Cached->Callback;*/ \
+		ml_value_t *Function = Inst[1].Value; \
 		ml_inst_t *Next = Inst + 4; \
 		ML_STORE_COUNTER(); \
 		Frame->Inst = Next; \
@@ -384,8 +385,8 @@ extern ml_value_t *SymbolMethod;
 		return ml_call(Frame, Function, COUNT, Args); \
 	} \
 	DO_TAIL_CALL_METHOD_ ## COUNT: { \
-		ml_method_t *Method = (ml_method_t *)Inst[1].Value; \
 		ml_value_t **Args = Top - COUNT; \
+		/*ml_method_t *Method = (ml_method_t *)Inst[1].Value; \
 		ml_method_cached_t *Cached = Inst[3].Data; \
 		if (Cached) { \
 			for (int I = 0; I < COUNT; ++I) { \
@@ -405,7 +406,8 @@ extern ml_value_t *SymbolMethod;
 			} \
 			Inst[3].Data = Cached; \
 		} \
-		ml_value_t *Function = Cached->Callback; \
+		ml_value_t *Function = Cached->Callback;*/ \
+		ml_value_t *Function = Inst[1].Value; \
 		ml_inst_t *Next = Inst + 4; \
 		ML_STORE_COUNTER(); \
 		if (!Frame->Continue) { \
@@ -838,8 +840,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_CALL: {
 		int Count = Inst[1].Count;
 		if (__builtin_expect(Count < 10, 1)) goto *CALL_Labels[Count];
-		ml_value_t *Function = Top[~Count];
 		ml_value_t **Args = Top - Count;
+		ml_value_t *Function = Args[-1];
 		ml_inst_t *Next = Inst + 2;
 		ML_STORE_COUNTER();
 		Frame->Inst = Next;
@@ -874,8 +876,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_CALL_CONST: {
 		int Count = Inst[2].Count;
 		if (__builtin_expect(Count < 10, 1)) goto *CALL_CONST_Labels[Count];
-		ml_value_t *Function = Inst[1].Value;
 		ml_value_t **Args = Top - Count;
+		ml_value_t *Function = Inst[1].Value;
 		ml_inst_t *Next = Inst + 3;
 		ML_STORE_COUNTER();
 		Frame->Inst = Next;
@@ -886,8 +888,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_TAIL_CALL_CONST: {
 		int Count = Inst[2].Count;
 		if (__builtin_expect(Count < 10, 1)) goto *TAIL_CALL_CONST_Labels[Count];
-		ml_value_t *Function = Inst[1].Value;
 		ml_value_t **Args = Top - Count;
+		ml_value_t *Function = Inst[1].Value;
 		ml_inst_t *Next = Inst + 3;
 		ML_STORE_COUNTER();
 		if (!Frame->Continue) {
@@ -910,8 +912,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_CALL_METHOD: {
 		int Count = Inst[2].Count;
 		if (__builtin_expect(Count < 10, 1)) goto *CALL_METHOD_Labels[Count];
-		ml_method_t *Method = (ml_method_t *)Inst[1].Value;
 		ml_value_t **Args = Top - Count;
+		/*ml_method_t *Method = (ml_method_t *)Inst[1].Value;
 		ml_method_cached_t *Cached = Inst[3].Data;
 		if (Cached) {
 			for (int I = 0; I < Count; ++I) {
@@ -931,7 +933,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			}
 			Inst[3].Data = Cached;
 		}
-		ml_value_t *Function = Cached->Callback;
+		ml_value_t *Function = Cached->Callback;*/
+		ml_value_t *Function = Inst[1].Value;
 		ml_inst_t *Next = Inst + 4;
 		ML_STORE_COUNTER();
 		Frame->Inst = Next;
@@ -942,8 +945,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_TAIL_CALL_METHOD: {
 		int Count = Inst[2].Count;
 		if (__builtin_expect(Count < 10, 1)) goto *TAIL_CALL_METHOD_Labels[Count];
-		ml_method_t *Method = (ml_method_t *)Inst[1].Value;
 		ml_value_t **Args = Top - Count;
+		/*ml_method_t *Method = (ml_method_t *)Inst[1].Value;
 		ml_method_cached_t *Cached = Inst[3].Data;
 		if (Cached) {
 			for (int I = 0; I < Count; ++I) {
@@ -963,7 +966,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			}
 			Inst[3].Data = Cached;
 		}
-		ml_value_t *Function = Cached->Callback;
+		ml_value_t *Function = Cached->Callback;*/
+		ml_value_t *Function = Inst[1].Value;
 		ml_inst_t *Next = Inst + 4;
 		ML_STORE_COUNTER();
 		if (!Frame->Continue) {
