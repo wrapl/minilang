@@ -977,10 +977,8 @@ ml_queued_state_t ml_scheduler_queue_next_wait() {
 	return QueuedState;
 }
 
-int ml_scheduler_queue_add_signal(ml_state_t *State, ml_value_t *Value) {
-	int Fill = ml_scheduler_queue_add(State, Value);
-	if (Fill == 1) pthread_cond_signal(Queue->Available);
-	return Fill;
+void ml_scheduler_queue_add_signal(ml_state_t *State, ml_value_t *Value) {
+	if (ml_scheduler_queue_add(State, Value) == 1) pthread_cond_signal(Queue->Available);
 }
 
 #endif

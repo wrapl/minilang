@@ -350,6 +350,12 @@ ML_FUNCTION(AddPath) {
 	return MLNil;
 }
 
+ML_FUNCTION(GetPath) {
+	ml_value_t *Path = ml_list();
+	ML_LIST_FOREACH(LibraryPath, Iter) ml_list_put(Path, Iter->Value);
+	return Path;
+}
+
 static void ml_library_path_add_default(void) {
 	int ExecutablePathLength = wai_getExecutablePath(NULL, 0, NULL);
 	char *ExecutablePath = snew(ExecutablePathLength + 1);
@@ -412,5 +418,6 @@ void ml_library_init(stringmap_t *_Globals) {
 	stringmap_insert(Globals, "library",  ml_module("library",
 		"unload", Unload,
 		"add_path", AddPath,
+		"get_path", GetPath,
 	NULL));
 }

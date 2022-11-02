@@ -3507,10 +3507,26 @@ static ml_stringbuffer_node_t * _Atomic StringBufferNodeCache = NULL;
 static ml_stringbuffer_node_t *StringBufferNodeCache = NULL;
 #endif
 
-static inline ml_stringbuffer_node_t *ml_stringbuffer_node() {
-	//ml_stringbuffer_t *Node = new(ml_stringbuffer_node_t);
-	ml_stringbuffer_node_t *Node = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
-	return Node;
+static ml_stringbuffer_node_t *ml_stringbuffer_node() {
+#ifdef ML_THREADSAFE
+	ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
+	do {
+		if (!Next) {
+			Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+			break;
+		}
+		CacheNext = Next->Next;
+	} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &Next, CacheNext));
+#else
+	ml_stringbuffer_node_t *Next = StringBufferNodeCache;
+	if (!Next) {
+		Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+	} else {
+		StringBufferNodeCache = Next->Next;
+	}
+#endif
+	Next->Next = NULL;
+	return Next;
 }
 
 size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length) {
@@ -3548,26 +3564,7 @@ char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Length) {
 	Buffer->Length += Length;
 	Buffer->Space -= Length;
 	if (!Buffer->Space) {
-#ifdef ML_THREADSAFE
-		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
-		do {
-			if (!Next) {
-				Next = ml_stringbuffer_node();
-				break;
-			}
-			CacheNext = Next->Next;
-		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &Next, CacheNext));
-#else
-		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
-		if (!Next) {
-			Next = ml_stringbuffer_node();
-		} else {
-			StringBufferNodeCache = Next->Next;
-		}
-#endif
-		Next->Next = NULL;
-		Node->Next = Next;
-		Node = Next;
+		Node = Node->Next = ml_stringbuffer_node();
 		Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
 		Buffer->Tail = Node;
 	}
@@ -3582,26 +3579,7 @@ ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, siz
 		memcpy(Node->Chars + ML_STRINGBUFFER_NODE_SIZE - Buffer->Space, String, Buffer->Space);
 		String += Buffer->Space;
 		Remaining -= Buffer->Space;
-#ifdef ML_THREADSAFE
-		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
-		do {
-			if (!Next) {
-				Next = ml_stringbuffer_node();
-				break;
-			}
-			CacheNext = Next->Next;
-		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &Next, CacheNext));
-#else
-		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
-		if (!Next) {
-			Next = ml_stringbuffer_node();
-		} else {
-			StringBufferNodeCache = Next->Next;
-		}
-#endif
-		Next->Next = NULL;
-		Node->Next = Next;
-		Node = Next;
+		Node = Node->Next = ml_stringbuffer_node();
 		Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
 	}
 	memcpy(Node->Chars + ML_STRINGBUFFER_NODE_SIZE - Buffer->Space, String, Remaining);
@@ -3636,26 +3614,7 @@ ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ..
 void ml_stringbuffer_put(ml_stringbuffer_t *Buffer, char Char) {
 	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
 	if (!Buffer->Space) {
-#ifdef ML_THREADSAFE
-		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
-		do {
-			if (!Next) {
-				Next = ml_stringbuffer_node();
-				break;
-			}
-			CacheNext = Next->Next;
-		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &Next, CacheNext));
-#else
-		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
-		if (!Next) {
-			Next = ml_stringbuffer_node();
-		} else {
-			StringBufferNodeCache = Next->Next;
-		}
-#endif
-		Next->Next = NULL;
-		Node->Next = Next;
-		Node = Next;
+		Node = Node->Next = ml_stringbuffer_node();;
 		Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
 	}
 	Node->Chars[ML_STRINGBUFFER_NODE_SIZE - Buffer->Space] = Char;
@@ -3812,12 +3771,6 @@ typedef struct {
 	ml_hash_chain_t Chain[1];
 	ml_value_t *Args[2];
 } ml_stringbuffer_append_state_t;
-
-#ifdef ML_THREADSAFE
-static ml_stringbuffer_append_state_t * _Atomic StringBufferAppendStateCache = NULL;
-#else
-static ml_stringbuffer_append_state_t *StringBufferAppendStateCache = NULL;
-#endif
 
 static void ml_stringbuffer_append_run(ml_stringbuffer_append_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;

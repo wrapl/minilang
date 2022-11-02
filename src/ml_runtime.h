@@ -207,7 +207,7 @@ extern ml_cfunctionx_t MLAtomic[];
 
 #ifdef ML_THREADS
 ml_queued_state_t ml_scheduler_queue_next_wait();
-int ml_scheduler_queue_add_signal(ml_state_t *State, ml_value_t *Value);
+void ml_scheduler_queue_add_signal(ml_state_t *State, ml_value_t *Value);
 #else
 #define ml_scheduler_queue_next_wait ml_scheduler_queue_next
 #define ml_scheduler_queue_add_signal ml_scheduler_queue_add

@@ -35,12 +35,12 @@ Provides time and date operations.
    The set of available time zones.
 
 
-:mini:`meth time(Year: integer, Month: integer, Day: integer, Hour: integer, Minute: integer, Second: integer, TimeZone: nil): time`
-   Returns the time specified by the provided components in UTC.
-
-
 :mini:`meth time(String: string): time`
    Parses the :mini:`String` as a time according to ISO 8601.
+
+
+:mini:`meth time(Year: integer, Month: integer, Day: integer, Hour: integer, Minute: integer, Second: integer, TimeZone: nil): time`
+   Returns the time specified by the provided components in UTC.
 
 
 :mini:`meth time(Year: integer, Month: integer, Day: integer): time`
@@ -59,16 +59,16 @@ Provides time and date operations.
    Returns the time specified by the provided components in the specified time zone.
 
 
-:mini:`meth time(Year: integer, Month: integer, Day: integer, Arg₄: time::zone): time`
-   Returns the time specified by the provided components in the specified time zone.
-
-
 :mini:`meth time(): time`
    Returns the current time.
 
 
 :mini:`meth time(String: string, Format: string, TimeZone: nil): time`
    Parses the :mini:`String` as a time according to specified format. The time is assumed to be in UTC.
+
+
+:mini:`meth time(Year: integer, Month: integer, Day: integer, Arg₄: time::zone): time`
+   Returns the time specified by the provided components in the specified time zone.
 
 
 :mini:`meth time(Year: integer, Month: integer, Day: integer, Hour: integer, Minute: integer, Second: integer): time`
@@ -186,6 +186,18 @@ Provides time and date operations.
 
 :mini:`meth (Time: time):wday(TimeZone: time::zone): integer`
    Returns the day of the week from :mini:`Time` in :mini:`TimeZone`.
+
+
+:mini:`meth (Arg₁: time):with(Arg₂₁ is Value₁, ...)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: time):with(Arg₂: nil, Arg₃₁ is Value₁, ...)`
+   *TBD*
+
+
+:mini:`meth (Arg₁: time):with(Arg₂: time::zone, Arg₃₁ is Value₁, ...)`
+   *TBD*
 
 
 :mini:`meth (Time: time):yday: integer`
