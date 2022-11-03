@@ -609,8 +609,10 @@ typedef struct {
 static void ml_loop_expr_compile2(mlc_function_t *Function, ml_value_t *Value, mlc_loop_frame_t *Frame) {
 	mlc_parent_expr_t *Expr = Frame->Expr;
 	MLC_LINK(Frame->Loop->Nexts, Frame->Next);
-	ml_inst_t *GotoInst = MLC_EMIT(Expr->EndLine, MLI_GOTO, 1);
-	GotoInst[1].Inst = Frame->Next;
+	if (Value != MLExprGoto) {
+		ml_inst_t *GotoInst = MLC_EMIT(Expr->EndLine, MLI_GOTO, 1);
+		GotoInst[1].Inst = Frame->Next;
+	}
 	MLC_LINK(Frame->Loop->Exits, Function->Next);
 	Function->Loop = Frame->Loop->Up;
 	if (Frame->Flags & MLCF_PUSH) {
