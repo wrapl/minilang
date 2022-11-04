@@ -1136,6 +1136,20 @@ ML_METHOD("..", MLIntegerT, MLIntegerT) {
 	return (ml_value_t *)Range;
 }
 
+ML_METHOD("..<", MLIntegerT, MLIntegerT) {
+//!range
+//<Start
+//<Limit
+//>integer::range
+// Returns a range from :mini:`Start` to :mini:`Limit` (exclusive).
+	ml_integer_range_t *Range = new(ml_integer_range_t);
+	Range->Type = MLIntegerRangeT;
+	Range->Start = ml_integer_value_fast(Args[0]);
+	Range->Limit = ml_integer_value_fast(Args[1]) - 1;
+	Range->Step = 1;
+	return (ml_value_t *)Range;
+}
+
 ML_METHOD("..", MLIntegerT, MLIntegerT, MLIntegerT) {
 //!range
 //<Start

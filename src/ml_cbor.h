@@ -84,6 +84,30 @@ typedef struct {ml_value_t *Value; int Extra;} ml_cbor_result_t;
 
 ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns);
 
+#define ML_CBOR_TAG_TIME_STRING 0
+#define ML_CBOR_TAG_TIME_EPOCH 1
+#define ML_CBOR_TAG_OBJECT 27
+#define ML_CBOR_TAG_MARK_REUSED 28
+#define ML_CBOR_TAG_USE_PREVIOUS 29
+#define ML_CBOR_TAG_REGEX 35
+#define ML_CBOR_TAG_UUID 37
+#define ML_CBOR_TAG_IDENTIFIER 39
+#define ML_CBOR_TAG_MULTI_ARRAY 40
+#define ML_CBOR_TAG_ARRAY_ANY 41
+#define ML_CBOR_TAG_ARRAY_UINT8 64
+#define ML_CBOR_TAG_ARRAY_UINT16_LE 69
+#define ML_CBOR_TAG_ARRAY_UINT32_LE 70
+#define ML_CBOR_TAG_ARRAY_UINT64_LE 71
+#define ML_CBOR_TAG_ARRAY_INT8 72
+#define ML_CBOR_TAG_ARRAY_INT16_LE 77
+#define ML_CBOR_TAG_ARRAY_INT32_LE 78
+#define ML_CBOR_TAG_ARRAY_INT64_LE 79
+#define ML_CBOR_TAG_ARRAY_FLOAT32_LE 85
+#define ML_CBOR_TAG_ARRAY_FLOAT64_LE 86
+#define ML_CBOR_TAG_FINITE_SET 258
+#define ML_CBOR_TAG_COMPLEX 43000
+#define ML_CBOR_TAG_COMPLEX_ARRAY 43001
+
 #ifdef __cplusplus
 }
 #endif
