@@ -9,22 +9,6 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "sequence"
 
-#define ML_SEQUENCE_FUNCTION(NAME, FN) \
-ML_FUNCTIONX(NAME) { \
-/*@FN
-//<Value:any
-//>any|nil
-// Used for iterating over a sequence.
-*/ \
-	ML_CHECKX_ARG_COUNT(1); \
-	return ml_ ## FN(Caller, Args[0]); \
-}
-
-ML_SEQUENCE_FUNCTION(Iterate, iterate);
-ML_SEQUENCE_FUNCTION(IterNext, iter_next);
-ML_SEQUENCE_FUNCTION(IterValue, iter_value);
-ML_SEQUENCE_FUNCTION(IterKey, iter_key);
-
 /****************************** Chained ******************************/
 
 static ML_METHOD_DECL(SoloMethod, "->");
@@ -2897,6 +2881,63 @@ ML_FUNCTION(Batch) {
 	return (ml_value_t *)Batched;
 }
 
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Iter;
+} ml_iterator_t;
+
+ML_TYPE(MLIteratorT, (), "iterator");
+//@iterator
+// An iterator.
+
+static void ml_iterator_run(ml_iterator_t *Iterator, ml_value_t *Iter) {
+	ml_state_t *Caller = Iterator->Base.Caller;
+	Iterator->Iter = Iter;
+	if (Iter == MLNil) ML_RETURN(Iter);
+	if (ml_is_error(Iter)) ML_RETURN(Iter);
+	ML_RETURN(Iterator);
+}
+
+ML_FUNCTIONX(MLIterate) {
+//@iterate
+//<Sequence:sequence
+//>iterator|nil
+// Create an iterator for :mini:`Sequence`. Returns :mini:`nil` is :mini:`Sequence` is empty.
+	ML_CHECKX_ARG_COUNT(1);
+	ml_iterator_t *Iterator = new(ml_iterator_t);
+	Iterator->Base.Type = MLIteratorT;
+	Iterator->Base.Caller = Caller;
+	Iterator->Base.Context = Caller->Context;
+	Iterator->Base.run = (ml_state_fn)ml_iterator_run;
+	return ml_iterate((ml_state_t *)Iterator, Args[0]);
+}
+
+ML_METHODX("next", MLIteratorT) {
+//<Iterator
+//>iterator|nil
+// Advances :mini:`Iterator`, returning :mini:`nil` if it is finished.
+	ml_iterator_t *Iterator = (ml_iterator_t *)Args[0];
+	Iterator->Base.Caller = Caller;
+	Iterator->Base.Context = Caller->Context;
+	return ml_iter_next((ml_state_t *)Iterator, Iterator->Iter);
+}
+
+ML_METHODX("key", MLIteratorT) {
+//<Iterator
+//>any
+// Returns the current key produced by :mini:`Iterator`.
+	ml_iterator_t *Iterator = (ml_iterator_t *)Args[0];
+	return ml_iter_key(Caller, Iterator->Iter);
+}
+
+ML_METHODX("value", MLIteratorT) {
+//<Iterator
+//>any
+// Returns the current value produced by :mini:`Iterator`.
+	ml_iterator_t *Iterator = (ml_iterator_t *)Args[0];
+	return ml_iter_value(Caller, Iterator->Iter);
+}
+
 void ml_sequence_init(stringmap_t *Globals) {
 	MLSomeT->call = ml_some_call;
 	MLFunctionT->Constructor = (ml_value_t *)MLChained;
@@ -2921,10 +2962,7 @@ void ml_sequence_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "last", Last);
 		stringmap_insert(Globals, "last2", Last2);
 		stringmap_insert(Globals, "all", All);
-		stringmap_insert(Globals, "iterate", Iterate);
-		stringmap_insert(Globals, "iter_next", IterNext);
-		stringmap_insert(Globals, "iter_key", IterKey);
-		stringmap_insert(Globals, "iter_value", IterValue);
+		stringmap_insert(Globals, "iterate", MLIterate);
 		stringmap_insert(Globals, "count", CountMethod);
 		stringmap_insert(Globals, "count2", Count2);
 		stringmap_insert(Globals, "random", ml_method("random"));

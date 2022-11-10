@@ -66,6 +66,7 @@ hierarchy
       "enum":e -> "set::order":w;
       "function":e -> "chained":w;
       "sequence":e -> "chained":w;
+      "any":e -> "iterator":w;
       "function":e -> "context":w;
       "function":e -> "state":w;
       "state":e -> "resumable::state":w;

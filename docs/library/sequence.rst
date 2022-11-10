@@ -9,30 +9,6 @@ sequence
 
 .. rst-class:: mini-api
 
-.. _fun-iter_key:
-
-:mini:`fun iter_key(Value: any): any | nil`
-   Used for iterating over a sequence.
-
-
-.. _fun-iter_next:
-
-:mini:`fun iter_next(Value: any): any | nil`
-   Used for iterating over a sequence.
-
-
-.. _fun-iter_value:
-
-:mini:`fun iter_value(Value: any): any | nil`
-   Used for iterating over a sequence.
-
-
-.. _fun-iterate:
-
-:mini:`fun iterate(Value: any): any | nil`
-   Used for iterating over a sequence.
-
-
 :mini:`meth @(Value: any): sequence`
    Returns an infinite sequence that repeatedly produces :mini:`Value`. Should be used with :mini:`:limit` or paired with a finite sequence in :mini:`zip`,  :mini:`weave`,  etc.
 
@@ -79,6 +55,24 @@ sequence
       let F := :upper -> (3 * _)
       F("hello") :> "HELLOHELLOHELLO"
       F("cake") :> "CAKECAKECAKE"
+
+
+.. _type-iterator:
+
+:mini:`type iterator`
+   An iterator.
+
+
+:mini:`meth (Iterator: iterator):key: any`
+   Returns the current key produced by :mini:`Iterator`.
+
+
+:mini:`meth (Iterator: iterator):next: iterator | nil`
+   Advances :mini:`Iterator`,  returning :mini:`nil` if it is finished.
+
+
+:mini:`meth (Iterator: iterator):value: any`
+   Returns the current value produced by :mini:`Iterator`.
 
 
 .. _type-sequence:
@@ -177,6 +171,12 @@ sequence
       :> [(1, c, true), (1, c, false), (1, a, true), (1, a, false), (1, k, true), (1, k, false), (1, e, true), (1, e, false), (2, c, true), (2, c, false), (2, a, true), (2, a, false), (2, k, true), (2, k, false), (2, e, true), (2, e, false), (3, c, true), (3, c, false), (3, a, true), (3, a, false), (3, k, true), (3, k, false), (3, e, true), (3, e, false)]
       list(grid(1 .. 3, "cake", *))
       :> ["c", "a", "k", "e", "cc", "aa", "kk", "ee", "ccc", "aaa", "kkk", "eee"]
+
+
+.. _fun-iterate:
+
+:mini:`fun iterate(Sequence: sequence): iterator | nil`
+   Create an iterator for :mini:`Sequence`. Returns :mini:`nil` is :mini:`Sequence` is empty.
 
 
 .. _fun-key:
@@ -554,7 +554,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "a"
+      random("cake") :> "k"
       random([]) :> nil
 
 
