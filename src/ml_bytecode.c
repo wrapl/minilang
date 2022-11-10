@@ -1728,7 +1728,7 @@ static void ml_closure_value_list(ml_value_t *Value, ml_stringbuffer_t *Buffer) 
 	} else if (ml_typeof(Value) == MLMethodT) {
 		ml_stringbuffer_printf(Buffer, " :%s", ml_method_name(Value));
 	} else if (ml_typeof(Value) == MLTypeT) {
-		ml_stringbuffer_printf(Buffer, " <%s>", ml_type_name(Value));
+		ml_stringbuffer_printf(Buffer, " <%s>", ml_type_name((ml_type_t *)Value));
 	} else {
 		ml_stringbuffer_printf(Buffer, " %s", ml_typeof(Value)->Name);
 	}

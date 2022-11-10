@@ -1,5 +1,6 @@
 #include <gc.h>
 #include <string.h>
+#include <stdarg.h>
 #include "minilang.h"
 #include "ml_macros.h"
 #include "ml_object.h"
@@ -138,6 +139,15 @@ ML_TYPE(MLClassT, (MLTypeT), "class",
 	.Constructor = (ml_value_t *)MLClass
 );
 
+ML_METHOD("fields", MLClassT) {
+	ml_class_t *Class = (ml_class_t *)Args[0];
+	ml_value_t *Fields = ml_list();
+	for (ml_field_info_t *Info = Class->Fields; Info; Info = Info->Next) {
+		ml_list_put(Fields, Info->Method);
+	}
+	return Fields;
+}
+
 ML_METHOD("append", MLStringBufferT, MLObjectT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_object_t *Object = (ml_object_t *)Args[1];
@@ -255,7 +265,7 @@ static void add_field(ml_context_t *Context, ml_class_t *Class, ml_value_t *Meth
 	ml_method_insert(Methods, (ml_method_t *)Info->Method, get_field_fn(Info->Index), 1, 1, Types);
 }
 
-ml_value_t *ml_class(const char *Name) {
+ml_type_t *ml_class(const char *Name) {
 	ml_class_t *Class = new(ml_class_t);
 	Class->Base.Type = MLClassT;
 	if (Name) {
@@ -269,10 +279,13 @@ ml_value_t *ml_class(const char *Name) {
 	Class->Base.assign = ml_default_assign;
 	ml_value_t *Constructor = ml_cfunctionx(Class, (void *)ml_object_constructor_fn);
 	Class->Base.Constructor = Constructor;
-	return (ml_value_t *)Class;
+	ml_type_add_parent((ml_type_t *)Class, MLObjectT);
+	stringmap_insert(Class->Base.Exports, "new", Constructor);
+	return (ml_type_t *)Class;
 }
 
-void ml_class_add_parent(ml_context_t *Context, ml_value_t *Class0, ml_value_t *Parent0) {
+void ml_class_add_parent(ml_context_t *Context, ml_type_t *Class0, ml_type_t *Parent0) {
+	Context = Context ?: &MLRootContext;
 	ml_class_t *Class = (ml_class_t *)Class0;
 	ml_class_t *Parent = (ml_class_t *)Parent0;
 	for (ml_field_info_t *Info = Parent->Fields; Info; Info = Info->Next) {
@@ -281,7 +294,8 @@ void ml_class_add_parent(ml_context_t *Context, ml_value_t *Class0, ml_value_t *
 	ml_type_add_parent((ml_type_t *)Class, (ml_type_t *)Parent);
 }
 
-void ml_class_add_field(ml_context_t *Context, ml_value_t *Class0, ml_value_t *Field) {
+void ml_class_add_field(ml_context_t *Context, ml_type_t *Class0, ml_value_t *Field) {
+	Context = Context ?: &MLRootContext;
 	add_field(Context, (ml_class_t *)Class0, Field);
 }
 
@@ -483,7 +497,7 @@ ML_FUNCTIONX(MLProperty) {
 	ML_RETURN(Property);
 }
 
-size_t ml_class_size(const ml_value_t *Value) {
+size_t ml_class_size(const ml_type_t *Value) {
 	return ((ml_class_t *)Value)->NumFields;
 }
 
@@ -500,14 +514,38 @@ static int ml_class_field_fn(const char *Name, ml_field_info_t *Info, ml_class_f
 	return 0;
 }
 
-const char *ml_class_field_name(const ml_value_t *Value, int Index) {
+const char *ml_class_field_name(const ml_type_t *Class, int Index) {
 	ml_class_field_find_t Find = {NULL, Index};
-	stringmap_foreach(((ml_class_t *)Value)->Names, &Find, (void *)ml_class_field_fn);
+	stringmap_foreach(((ml_class_t *)Class)->Names, &Find, (void *)ml_class_field_fn);
 	return Find.Name;
 }
 
+ml_value_t *ml_object(ml_type_t *Class0, ...) {
+	ml_class_t *Class = (ml_class_t *)Class0;
+	ml_object_t *Object = xnew(ml_object_t, Class->NumFields, ml_field_t);
+	Object->Type = Class;
+	ml_field_t *Slot = Object->Fields;
+	for (int I = Class->NumFields; --I >= 0; ++Slot) {
+		Slot->Type = MLFieldMutableT;
+		Slot->Value = MLNil;
+	}
+	va_list Arg;
+	va_start(Arg, Class0);
+	const char *Name;
+	while ((Name = va_arg(Arg, const char *))) {
+		ml_field_info_t *Info = stringmap_search(Class->Names, Name);
+		if (!Info) return ml_error("ValueError", "Class %s does not have field %s", Class->Base.Name, Name);
+		ml_field_t *Field = &Object->Fields[Info->Index];
+		Field->Value = va_arg(Arg, ml_value_t *);
+	}
+	for (ml_field_info_t *Info = Class->Fields; Info; Info = Info->Next) {
+		if (Info->Const) Object->Fields[Info->Index].Type = MLFieldT;
+	}
+	return (ml_value_t *)Object;
+}
+
 size_t ml_object_size(const ml_value_t *Value) {
-	return ml_class_size((ml_value_t *)Value->Type);
+	return ml_class_size(Value->Type);
 }
 
 ml_value_t *ml_object_field(const ml_value_t *Value, int Index) {

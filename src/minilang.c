@@ -19,8 +19,8 @@
 #include "ml_polynomial.h"
 #endif
 
-#ifdef ML_EXPRS
-#include "ml_expr.h"
+#ifdef ML_AST
+#include "ml_ast.h"
 #endif
 
 #ifdef ML_GIR
@@ -200,8 +200,8 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_SCHEDULER
 	ml_tasks_init(Globals);
 #endif
-#ifdef ML_EXPRS
-	ml_expr_init(Globals);
+#ifdef ML_AST
+	ml_ast_init(Globals);
 #endif
 	ml_file_init(Globals);
 	stringmap_insert(Globals, "now", MLNow);

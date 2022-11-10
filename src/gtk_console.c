@@ -365,7 +365,7 @@ static void ML_TYPED_FN(console_show_value, MLMapT, GtkTreeStore *Store, GtkTree
 }
 
 static void ML_TYPED_FN(console_show_value, MLObjectT, GtkTreeStore *Store, GtkTreeIter *Iter, const char *Name, ml_value_t *Value) {
-	ml_value_t *Class = (ml_value_t *)ml_typeof(Value);
+	ml_type_t *Class = ml_typeof(Value);
 	GtkTreeIter Child[1];
 	gtk_tree_store_insert_with_values(Store, Child, Iter, -1, 0, Name, 1, ml_type_name(Class), -1);
 	int Count = ml_class_size(Class);

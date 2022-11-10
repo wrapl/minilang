@@ -108,7 +108,9 @@ ml_type_t TYPE[1] = {{ \
 void ml_type_init(ml_type_t *Type, ...) __attribute__ ((sentinel));
 
 ml_type_t *ml_type(ml_type_t *Parent, const char *Name);
-const char *ml_type_name(const ml_value_t *Value) __attribute__((pure));
+static inline const char *ml_type_name(const ml_type_t *Value) {
+	return Value->Name;
+}
 
 void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent);
 

@@ -4,7 +4,7 @@
 #include "ml_compiler.h"
 #include "ml_bytecode.h"
 
-typedef enum ml_token_t {
+typedef enum {
 	MLT_NONE,
 	MLT_EOL,
 	MLT_EOI,
@@ -82,7 +82,8 @@ struct mlc_expr_t {
 	void (*compile)(mlc_function_t *, mlc_expr_t *, int);
 	mlc_expr_t *Next;
 	const char *Source;
-	int StartLine, EndLine;
+	int StartLine;
+	int EndLine;
 };
 
 struct mlc_function_t {
@@ -132,7 +133,8 @@ typedef struct mlc_local_t mlc_local_t;
 struct mlc_local_t {
 	mlc_local_t *Next;
 	const char *Ident;
-	int Line, Index;
+	int Line;
+	int Index;
 };
 
 typedef struct mlc_if_expr_t mlc_if_expr_t;
@@ -175,7 +177,8 @@ struct mlc_for_expr_t {
 	MLC_EXPR_FIELDS(for);
 	const char *Key;
 	mlc_local_t *Local;
-	mlc_expr_t *Sequence, *Body;
+	mlc_expr_t *Sequence;
+	mlc_expr_t *Body;
 	const char *Name;
 	int Unpack;
 };
@@ -184,10 +187,16 @@ typedef struct mlc_block_expr_t mlc_block_expr_t;
 
 struct mlc_block_expr_t {
 	MLC_EXPR_FIELDS(block);
-	mlc_local_t *Vars, *Lets, *Defs;
-	mlc_expr_t *Child, *CatchBody, *Must;
+	mlc_local_t *Vars;
+	mlc_local_t *Lets;
+	mlc_local_t *Defs;
+	mlc_expr_t *Child;
+	mlc_expr_t *CatchBody;
+	mlc_expr_t *Must;
 	const char *CatchIdent;
-	int NumVars, NumLets, NumDefs;
+	int NumVars;
+	int NumLets;
+	int NumDefs;
 };
 
 typedef struct mlc_parent_value_expr_t mlc_parent_value_expr_t;
@@ -212,7 +221,8 @@ struct mlc_string_part_t {
 		mlc_expr_t *Child;
 		const char *Chars;
 	};
-	int Length, Line;
+	int Length;
+	int Line;
 };
 
 typedef struct mlc_fun_expr_t mlc_fun_expr_t;
@@ -231,13 +241,15 @@ struct mlc_param_t {
 	mlc_param_t *Next;
 	const char *Ident;
 	mlc_expr_t *Type;
-	int Line, Kind;
+	int Line;
+	ml_param_kind_t Kind;
 };
 
 struct mlc_default_expr_t {
 	MLC_EXPR_FIELDS(default);
 	mlc_expr_t *Child;
-	int Index, Flags;
+	int Index;
+	int Flags;
 };
 
 struct mlc_fun_expr_t {

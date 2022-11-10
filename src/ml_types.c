@@ -245,10 +245,6 @@ ml_type_t *ml_type(ml_type_t *Parent, const char *Name) {
 	return Type;
 }
 
-const char *ml_type_name(const ml_value_t *Value) {
-	return ((ml_type_t *)Value)->Name;
-}
-
 void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent) {
 	if (inthash_insert(Type->Parents, (uintptr_t)Parent, Parent)) return;
 	//inthash_insert(Type->Parents, (uintptr_t)Parent, Parent);

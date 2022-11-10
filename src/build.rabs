@@ -162,7 +162,7 @@ end
 if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_TABLES := 1
 	MINILANG_MATH := 1
-	MINILANG_EXPRS := 1
+	MINILANG_AST := 1
 	MINILANG_COMPLEX := not defined("NOCOMPLEX")
 	MINILANG_CBOR := 1
 	MINILANG_JSON := 1
@@ -183,7 +183,7 @@ end
 
 MINILANG_TABLES := old or defined("TABLES")
 MINILANG_MATH := MINILANG_TABLES or old or defined("MATH")
-MINILANG_EXPRS := old or defined("EXPRS")
+MINILANG_AST := old or defined("AST")
 MINILANG_COMPLEX := old or defined("COMPLEX")
 MINILANG_GIR := old or defined("GIR")
 MINILANG_CBOR := old or defined("CBOR")
@@ -279,10 +279,10 @@ if MINILANG_MATH then
 	InstallHeaders:put("ml_polynomial.h")
 end
 
-if MINILANG_EXPRS then
-	Objects:put(file("ml_expr.o"))
-	CFLAGS := old + ["-DML_EXPRS"]
-	InstallHeaders:put("ml_expr.h")
+if MINILANG_AST then
+	Objects:put(file("ml_ast.o"))
+	CFLAGS := old + ["-DML_AST"]
+	InstallHeaders:put("ml_ast.h")
 end
 
 if MINILANG_GTK_CONSOLE then
@@ -298,6 +298,24 @@ if MINILANG_GIR then
 	CFLAGS := old + ["-DML_GIR", pkgconfig("--cflags gobject-introspection-1.0")]
 	LDFLAGS := old + [pkgconfig("--libs gobject-introspection-1.0")]
 	InstallHeaders:put("ml_gir.h")
+end
+
+if MINILANG_LIGHTNING or defined("LIGHTNING") then
+	let Dir := file("lightning")
+	let Lib := file("lightning/lib/.libs/liblightning.a") => fun(Lib) do
+		Dir:rmdir:mkdir:chdir
+		execute("wget https://ftp.gnu.org/gnu/lightning/lightning-2.1.4.tar.gz -O- | tar xvzP --strip-components=1")
+		execute('CC={CC} ./configure', {
+			"--prefix" is PATH,
+			"--enable-static",
+			"--disable-shared"
+		})
+		execute("make clean")
+		execute("make -j4")
+	end
+	PREBUILDS := old + [Lib]
+	CFLAGS := old + ['-I{Dir/"includes"}', "-DML_LIGHTNING"]
+	LDFLAGS := old + [Lib]
 end
 
 if MINILANG_CBOR then
