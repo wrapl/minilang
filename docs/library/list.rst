@@ -85,8 +85,8 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
+      L:random :> "k"
       L:random :> "e"
-      L:random :> "c"
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list)`
@@ -252,7 +252,7 @@ list
 
 .. _type-list-node-mutable:
 
-:mini:`type list::node::mutable < list::node`
+:mini:`type list::node::mutable`
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
@@ -260,7 +260,7 @@ list
 
 .. _type-list-node-mutable:
 
-:mini:`type list::node::mutable`
+:mini:`type list::node::mutable < list::node`
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
@@ -270,6 +270,10 @@ list
 
 :mini:`type list::slice`
    A slice of a list.
+
+
+:mini:`meth list(Arg₁: names)`
+   *TBD*
 
 
 :mini:`meth (Visitor: visitor):const(List: list::mutable): list::const`

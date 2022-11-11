@@ -1605,6 +1605,12 @@ void ml_names_add(ml_value_t *Names, ml_value_t *Value) {
 	List->CachedIndex = ++List->Length;
 }
 
+ML_METHOD(MLListT, MLNamesT) {
+	ml_value_t *List = ml_list();
+	ML_NAMES_FOREACH(Args[0], Iter) ml_list_put(List, Iter->Value);
+	return List;
+}
+
 void ml_list_init() {
 #include "ml_list_init.c"
 	stringmap_insert(MLListT->Exports, "mutable", MLListMutableT);

@@ -271,6 +271,10 @@ static void ml_value_expr_compile(mlc_function_t *Function, mlc_value_expr_t *Ex
 	MLC_RETURN(NULL);
 }
 
+static void ml_names_expr_compile(mlc_function_t *Function, mlc_value_expr_t *Expr, int Flags) {
+	return ml_value_expr_compile(Function, Expr, Flags);
+}
+
 typedef struct {
 	mlc_if_expr_t *Expr;
 	mlc_if_case_t *Case;
@@ -4290,6 +4294,12 @@ static inline ml_token_t ml_current(ml_parser_t *Parser) {
 	return Parser->Token;
 }
 
+static inline ml_token_t ml_current2(ml_parser_t *Parser) {
+	if (Parser->Token == MLT_NONE) ml_scan(Parser);
+	while (Parser->Token == MLT_EOL) ml_scan(Parser);
+	return Parser->Token;
+}
+
 static inline void ml_next(ml_parser_t *Parser) {
 	Parser->Token = MLT_NONE;
 	Parser->Source.Line = Parser->Line;
@@ -4522,15 +4532,17 @@ static void ml_accept_named_arguments(ml_parser_t *Parser, ml_token_t EndToken, 
 	Arg = ArgsSlot[0] = ml_accept_expression(Parser, EXPR_DEFAULT);
 	ArgsSlot = &Arg->Next;
 	while (ml_parse2(Parser, MLT_COMMA)) {
-		if (ml_parse2(Parser, MLT_IDENT)) {
+		ml_token_t Token = ml_current2(Parser);
+		if (Token == MLT_IDENT) {
+			ml_next(Parser);
 			ml_names_add(Names, ml_string(Parser->Ident, -1));
-		} else if (ml_parse2(Parser, MLT_VALUE)) {
-			if (ml_typeof(Parser->Value) != MLStringT) {
-				ml_parse_error(Parser, "ParseError", "Argument names must be identifiers or string");
-			}
+		} else if (Token == MLT_VALUE && ml_typeof(Parser->Value) == MLStringT) {
+			ml_next(Parser);
 			ml_names_add(Names, Parser->Value);
-		} else {
+		} else if (!Parser->Permissive) {
 			ml_parse_error(Parser, "ParseError", "Argument names must be identifiers or string");
+		} else {
+			goto resume;
 		}
 		ml_accept(Parser, MLT_IS);
 		if (ml_parse2(Parser, MLT_SEMICOLON)) {
@@ -4540,6 +4552,7 @@ static void ml_accept_named_arguments(ml_parser_t *Parser, ml_token_t EndToken, 
 		Arg = ArgsSlot[0] = ml_accept_expression(Parser, EXPR_DEFAULT);
 		ArgsSlot = &Arg->Next;
 	}
+resume:
 	if (ml_parse2(Parser, MLT_SEMICOLON)) {
 		mlc_expr_t *FunExpr = ml_accept_fun_expr(Parser, NULL, EndToken);
 		FunExpr->Next = NamesSlot[0];
@@ -4568,7 +4581,7 @@ static void ml_accept_arguments(ml_parser_t *Parser, ml_token_t EndToken, mlc_ex
 				} else {
 					ml_parse_error(Parser, "ParseError", "Argument names must be identifiers or strings");
 				}
-				ML_EXPR(NamesArg, value, value);
+				ML_EXPR(NamesArg, value, names);
 				NamesArg->Value = Names;
 				ArgsSlot[0] = ML_EXPR_END(NamesArg);
 				return ml_accept_named_arguments(Parser, EndToken, ArgsSlot, Names);
@@ -6398,8 +6411,25 @@ static ml_command_idents_frame_t *ml_accept_command_idents(mlc_function_t *Funct
 typedef struct {
 	ml_global_t *Global;
 	mlc_expr_t *VarType;
+	ml_value_t *Value;
 	ml_token_t Type;
 } ml_command_ident_frame_t;
+
+static void ml_command_var_type_run(mlc_function_t *Function, ml_value_t *Value, ml_command_ident_frame_t *Frame) {
+	ml_state_t *Caller = Function->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	if (!ml_is(Value, MLTypeT)) ML_ERROR("TypeError", "Expected type not %s", ml_typeof(Value)->Name);
+	ml_type_t *Type = (ml_type_t *)Value;
+	if (!ml_is(Frame->Value, Type)) ML_ERROR("TypeError", "Cannot assign %s to variable of type %s", ml_typeof(Frame->Value)->Name, ml_type_name(Type));
+	Value = ml_variable(Frame->Value, Type);
+	ml_global_t *Global = Frame->Global;
+	if (Global->Value && ml_typeof(Global->Value) == MLUninitializedT) {
+		ml_uninitialized_set(Global->Value, Value);
+	}
+	Global->Value = Value;
+	MLC_POP();
+	MLC_RETURN(Value);
+}
 
 static void ml_command_ident_run(mlc_function_t *Function, ml_value_t *Value, ml_command_ident_frame_t *Frame) {
 	if (ml_is_error(Value)) {
@@ -6414,6 +6444,11 @@ static void ml_command_ident_run(mlc_function_t *Function, ml_value_t *Value, ml
 	if (Frame->Type == MLT_LET || Frame->Type == MLT_VAR) Value = ml_deref(Value);
 	switch (Frame->Type) {
 	case MLT_VAR:
+		if (Frame->VarType) {
+			Function->Frame->run = (mlc_frame_fn)ml_command_var_type_run;
+			Frame->Value = Value;
+			return mlc_expr_call(Function, Frame->VarType);
+		}
 		Value = ml_variable(Value, NULL);
 		break;
 	case MLT_LET:

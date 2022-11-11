@@ -69,6 +69,11 @@ ML_FIELD("name", AstForExprT);
 
 ML_FIELD("unpack", AstForExprT);
 
+ML_CLASS(AstSubstExprT, (AstExprT), "ast::expr::subst");
+//@ast::expr::subst
+// A :mini:`subst` expression
+//
+
 ML_CLASS(AstValueExprT, (AstExprT), "ast::expr::value");
 //@ast::expr::value
 // A :mini:`value` expression
@@ -76,11 +81,6 @@ ML_CLASS(AstValueExprT, (AstExprT), "ast::expr::value");
 // * :mini:`:value(Value: ast::expr::value): any`
 
 ML_FIELD("value", AstValueExprT);
-
-ML_CLASS(AstSubstExprT, (AstExprT), "ast::expr::subst");
-//@ast::expr::subst
-// A :mini:`subst` expression
-//
 
 ML_CLASS(AstIdentExprT, (AstExprT), "ast::expr::ident");
 //@ast::expr::ident
@@ -298,6 +298,11 @@ ML_CLASS(AstMapExprT, (AstParentExprT), "ast::expr::map");
 // A :mini:`map` expression
 //
 
+ML_CLASS(AstNamesExprT, (AstValueExprT), "ast::expr::names");
+//@ast::expr::names
+// A :mini:`names` expression
+//
+
 ML_CLASS(AstNextExprT, (AstParentExprT), "ast::expr::next");
 //@ast::expr::next
 // A :mini:`next` expression
@@ -469,8 +474,8 @@ static void ml_ast_types_init() {
 	stringmap_insert(AstExprT->Exports, "if", AstIfExprT);
 	stringmap_insert(AstExprT->Exports, "fun", AstFunExprT);
 	stringmap_insert(AstExprT->Exports, "for", AstForExprT);
-	stringmap_insert(AstExprT->Exports, "value", AstValueExprT);
 	stringmap_insert(AstExprT->Exports, "subst", AstSubstExprT);
+	stringmap_insert(AstExprT->Exports, "value", AstValueExprT);
 	stringmap_insert(AstExprT->Exports, "ident", AstIdentExprT);
 	stringmap_insert(AstExprT->Exports, "local", AstLocalExprT);
 	stringmap_insert(AstExprT->Exports, "block", AstBlockExprT);
@@ -501,6 +506,7 @@ static void ml_ast_types_init() {
 	stringmap_insert(AstExprT->Exports, "list", AstListExprT);
 	stringmap_insert(AstExprT->Exports, "loop", AstLoopExprT);
 	stringmap_insert(AstExprT->Exports, "map", AstMapExprT);
+	stringmap_insert(AstExprT->Exports, "names", AstNamesExprT);
 	stringmap_insert(AstExprT->Exports, "next", AstNextExprT);
 	stringmap_insert(AstExprT->Exports, "nil", AstNilExprT);
 	stringmap_insert(AstExprT->Exports, "not", AstNotExprT);
@@ -782,6 +788,7 @@ ml_value_t *mlc_expr_describe(mlc_expr_t *Expr) {
 		case ML_EXPR_LIST: return a_mlc_parent_expr_t(AstListExprT, (mlc_parent_expr_t *)Expr);
 		case ML_EXPR_LOOP: return a_mlc_parent_expr_t(AstLoopExprT, (mlc_parent_expr_t *)Expr);
 		case ML_EXPR_MAP: return a_mlc_parent_expr_t(AstMapExprT, (mlc_parent_expr_t *)Expr);
+		case ML_EXPR_NAMES: return a_mlc_value_expr_t(AstNamesExprT, (mlc_value_expr_t *)Expr);
 		case ML_EXPR_NEXT: return a_mlc_parent_expr_t(AstNextExprT, (mlc_parent_expr_t *)Expr);
 		case ML_EXPR_NIL: return a_mlc_expr_t(AstNilExprT, (mlc_expr_t *)Expr);
 		case ML_EXPR_NOT: return a_mlc_parent_expr_t(AstNotExprT, (mlc_parent_expr_t *)Expr);

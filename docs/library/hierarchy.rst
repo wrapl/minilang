@@ -167,8 +167,8 @@ hierarchy
       "astexpr":e -> "ast::expr::if":w;
       "astexpr":e -> "ast::expr::fun":w;
       "astexpr":e -> "ast::expr::for":w;
-      "astexpr":e -> "ast::expr::value":w;
       "astexpr":e -> "ast::expr::subst":w;
+      "astexpr":e -> "ast::expr::value":w;
       "astexpr":e -> "ast::expr::ident":w;
       "astexpr":e -> "ast::expr::local":w;
       "astexpr":e -> "ast::expr::block":w;
@@ -199,6 +199,7 @@ hierarchy
       "astparentexpr":e -> "ast::expr::list":w;
       "astparentexpr":e -> "ast::expr::loop":w;
       "astparentexpr":e -> "ast::expr::map":w;
+      "astvalueexpr":e -> "ast::expr::names":w;
       "astparentexpr":e -> "ast::expr::next":w;
       "astexpr":e -> "ast::expr::nil":w;
       "astparentexpr":e -> "ast::expr::not":w;

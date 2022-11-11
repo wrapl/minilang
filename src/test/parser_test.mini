@@ -7,6 +7,8 @@ gtk::init(nil, nil)
 
 fun describe(Buffer, Indent, Expr) do
 	switch Expr: type
+	case ast::expr::names do
+		Buffer:write(type(Expr), " ", list(Expr:value))
 	case list do
 		if Expr:length > 0 then
 			Buffer:write("[")

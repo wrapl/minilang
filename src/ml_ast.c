@@ -12,8 +12,6 @@ ML_ENUM2(ParamKindT, "param-kind",
 	"AsVar", ML_PARAM_ASVAR
 );
 
-extern const char *MLTokens[];
-
 #include "ml_ast_types.c"
 
 ML_METHOD("ast", MLExprT) {

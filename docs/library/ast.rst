@@ -251,6 +251,13 @@ ast
    
 
 
+.. _type-ast-expr-names:
+
+:mini:`type ast::expr::names < astvalueexpr`
+   A :mini:`names` expression
+   
+
+
 .. _type-ast-expr-next:
 
 :mini:`type ast::expr::next < astparentexpr`
