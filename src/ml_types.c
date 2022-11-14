@@ -45,6 +45,7 @@ ML_METHOD_DECL(MulMethod, "*");
 ML_METHOD_DECL(AndMethod, "/\\");
 ML_METHOD_DECL(OrMethod, "\\/");
 ML_METHOD_DECL(XorMethod, "><");
+ML_METHOD_DECL(RangeMethod, "..");
 
 static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 	const unsigned int Mask = (CHAR_BIT * sizeof(uintptr_t) - 1);
@@ -2925,7 +2926,7 @@ ML_FUNCTION(MLMemCollect) {
 //!memory
 //@collect
 // Call garbage collector.
-	GC_gcollect();
+	GC_gcollect_and_unmap();
 	return MLNil;
 }
 

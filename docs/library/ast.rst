@@ -251,13 +251,6 @@ ast
    
 
 
-.. _type-ast-expr-names:
-
-:mini:`type ast::expr::names < astvalueexpr`
-   A :mini:`names` expression
-   
-
-
 .. _type-ast-expr-next:
 
 :mini:`type ast::expr::next < astparentexpr`
@@ -487,6 +480,12 @@ ast
    * :mini:`:chars(Value: ast::stringpart): string`
    * :mini:`:length(Value: ast::stringpart): integer`
    * :mini:`:line(Value: ast::stringpart): integer`
+
+
+.. _type-astnames:
+
+:mini:`type astnames < list`
+   *TBD*
 
 
 :mini:`meth (Expr: expr):ast: ast::expr`

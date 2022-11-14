@@ -262,7 +262,7 @@ static void add_field(ml_context_t *Context, ml_class_t *Class, ml_value_t *Meth
 	if (Name) stringmap_insert(Class->Names, Name, Info);
 	ml_methods_t *Methods = Context->Values[ML_METHODS_INDEX];
 	ml_type_t *Types[1] = {(ml_type_t *)Class};
-	ml_method_insert(Methods, (ml_method_t *)Info->Method, get_field_fn(Info->Index), 1, 1, Types);
+	ml_method_insert(Methods, (ml_method_t *)Info->Method, get_field_fn(Info->Index), 1, NULL, Types);
 }
 
 ml_type_t *ml_class(const char *Name) {

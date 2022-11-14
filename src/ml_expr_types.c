@@ -27,7 +27,6 @@ ml_expr_type_t mlc_expr_type(mlc_expr_t *Expr) {
 	if (Expr->compile == (void *)ml_list_expr_compile) return ML_EXPR_LIST;
 	if (Expr->compile == (void *)ml_loop_expr_compile) return ML_EXPR_LOOP;
 	if (Expr->compile == (void *)ml_map_expr_compile) return ML_EXPR_MAP;
-	if (Expr->compile == (void *)ml_names_expr_compile) return ML_EXPR_NAMES;
 	if (Expr->compile == (void *)ml_next_expr_compile) return ML_EXPR_NEXT;
 	if (Expr->compile == (void *)ml_nil_expr_compile) return ML_EXPR_NIL;
 	if (Expr->compile == (void *)ml_not_expr_compile) return ML_EXPR_NOT;

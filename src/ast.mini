@@ -226,7 +226,7 @@ with Output := file("src/ml_ast_types.c", "w") do
 				elseif FieldType = "const char *" then
 					Output:write('Struct->{FieldName} ? ml_string(Struct->{FieldName}, -1) : MLNil')
 				elseif FieldType = "ml_value_t *" then
-					Output:write('Struct->{FieldName}')
+					Output:write('ml_ast_names(Struct->{FieldName})')
 				elseif FieldType = "mlc_expr_t *" then
 					Output:write('l_mlc_expr_t(Struct->{FieldName})')
 				elseif FieldType = "ml_param_kind_t" then

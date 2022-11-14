@@ -21,12 +21,6 @@ method
    Evaluates :mini:`Fn(Args)` in a new method context and returns the result.
 
 
-.. _fun-method-set:
-
-:mini:`fun method::set(Method: any, Types: type, ..., ..?: any, Function: function): Function`
-   Adds a new type signature and associated function to :mini:`Method`. If the last argument is :mini:`..` then the signature is variadic. Method definitions using :mini:`meth` are translated into calls to :mini:`method::set`.
-
-
 .. _type-method:
 
 :mini:`type method < function`
@@ -49,6 +43,10 @@ method
    Returns the method with name :mini:`Name`.
 
 
+:mini:`meth (Method: method):MLMethodDefine(Types: type, ..., ..?: any, Function: function): Function`
+   Adds a new type signature and associated function to :mini:`Method`. If the last argument is :mini:`..` then the signature is variadic. Method definitions using :mini:`meth` are translated into calls to :mini:`method::set`.
+
+
 :mini:`meth (Arg₁: method)[Arg₂: type, ...]`
    *TBD*
 
@@ -59,10 +57,6 @@ method
 
 :mini:`meth (Method: method):name: string`
    Returns the name of :mini:`Method`.
-
-
-:mini:`meth (Method: method):set(Types: type, ..., ..?: any, Function: function): Function`
-   Adds a new type signature and associated function to :mini:`Method`. If the last argument is :mini:`..` then the signature is variadic. Method definitions using :mini:`meth` are translated into calls to :mini:`method::set`.
 
 
 :mini:`meth (Arg₁: string::buffer):append(Arg₂: method)`
@@ -88,7 +82,7 @@ method
    Returns a new context for method definitions. The new context will inherit methods definitions from the current context.
 
 
-:mini:`meth (Type: type):set(Types: type, ..., ..?: any, Function: function): Function`
+:mini:`meth (Type: type):MLMethodDefine(Types: type, ..., ..?: any, Function: function): Function`
    Adds a new type signature and associated function to :mini:`Method`. If the last argument is :mini:`..` then the signature is variadic. Method definitions using :mini:`meth` are translated into calls to :mini:`method::set`.
 
 

@@ -15,7 +15,8 @@ typedef struct ml_method_definition_t ml_method_definition_t;
 struct ml_method_definition_t {
 	ml_method_definition_t *Next;
 	ml_value_t *Callback;
-	int Count, Variadic;
+	ml_type_t *Variadic;
+	int Count;
 	ml_type_t *Types[];
 };
 
@@ -251,7 +252,7 @@ ml_method_cached_t *ml_method_search_cached(ml_methods_t *Methods, ml_method_t *
 	return ml_method_search_entry(Methods, Method, Count, Types, Hash);
 }
 
-void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Callback, int Count, int Variadic, ml_type_t **Types) {
+void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Callback, int Count, ml_type_t *Variadic, ml_type_t **Types) {
 	if (!ml_is((ml_value_t *)Method, MLMethodT)) {
 		fprintf(stderr, "Internal error: attempting to define method for non-method value\n");
 		exit(-1);
@@ -272,12 +273,12 @@ void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Ca
 	ml_methods_unlock(Methods);
 }
 
-void ml_method_define(ml_value_t *Value, ml_value_t *Function, int Count, int Variadic, ml_type_t **Types) {
+void ml_method_define(ml_value_t *Value, ml_value_t *Function, int Count, ml_type_t *Variadic, ml_type_t **Types) {
 	ml_method_t *Method = (ml_method_t *)Value;
 	ml_method_insert(MLRootMethods, Method, Function, Count, Variadic, Types);
 }
 
-void ml_method_definev(ml_value_t *Method, ml_value_t *Function, int Variadic, ...) {
+void ml_method_definev(ml_value_t *Method, ml_value_t *Function, ml_type_t *Variadic, ...) {
 	int Count = 0;
 	va_list Args;
 	va_start(Args, Variadic);
@@ -443,7 +444,7 @@ void ml_method_by_name(const char *Name, void *Data, ml_callback_t Callback, ...
 	va_start(Args, Callback);
 	while ((Type = va_arg(Args, ml_type_t *))) *T++ = Type;
 	va_end(Args);
-	ml_method_insert(MLRootMethods, Method, ml_cfunction(Data, Callback), Count, 1, Types);
+	ml_method_insert(MLRootMethods, Method, ml_cfunction(Data, Callback), Count, MLAnyT, Types);
 }
 
 void ml_method_by_value(void *Value, void *Data, ml_callback_t Callback, ...) {
@@ -458,7 +459,7 @@ void ml_method_by_value(void *Value, void *Data, ml_callback_t Callback, ...) {
 	va_start(Args, Callback);
 	while ((Type = va_arg(Args, ml_type_t *))) *T++ = Type;
 	va_end(Args);
-	ml_method_insert(MLRootMethods, Method, ml_cfunction(Data, Callback), Count, 1, Types);
+	ml_method_insert(MLRootMethods, Method, ml_cfunction(Data, Callback), Count, MLAnyT, Types);
 }
 
 void ml_methodx_by_name(const char *Name, void *Data, ml_callbackx_t Callback, ...) {
@@ -473,7 +474,7 @@ void ml_methodx_by_name(const char *Name, void *Data, ml_callbackx_t Callback, .
 	va_start(Args, Callback);
 	while ((Type = va_arg(Args, ml_type_t *))) *T++ = Type;
 	va_end(Args);
-	ml_method_insert(MLRootMethods, Method, ml_cfunctionx(Data, Callback), Count, 1, Types);
+	ml_method_insert(MLRootMethods, Method, ml_cfunctionx(Data, Callback), Count, MLAnyT, Types);
 }
 
 void ml_methodx_by_value(void *Value, void *Data, ml_callbackx_t Callback, ...) {
@@ -488,7 +489,7 @@ void ml_methodx_by_value(void *Value, void *Data, ml_callbackx_t Callback, ...) 
 	va_start(Args, Callback);
 	while ((Type = va_arg(Args, ml_type_t *))) *T++ = Type;
 	va_end(Args);
-	ml_method_insert(MLRootMethods, Method, ml_cfunctionx(Data, Callback), Count, 1, Types);
+	ml_method_insert(MLRootMethods, Method, ml_cfunctionx(Data, Callback), Count, MLAnyT, Types);
 }
 
 ML_METHOD("append", MLStringBufferT, MLMethodT) {
@@ -573,9 +574,7 @@ ML_FUNCTION_INLINE(MLMethodSwitch) {
 	return (ml_value_t *)Switch;
 }
 
-ML_METHOD_DECL(RangeMethod, "..");
-
-static inline void ml_method_set(ml_methods_t *Methods, int NumTypes, int Variadic, ml_value_t **Args, ml_value_t *Function) {
+static inline void ml_method_set(ml_methods_t *Methods, int NumTypes, ml_type_t *Variadic, ml_value_t **Args, ml_value_t *Function) {
 	// Use alloca here, VLA prevents TCO.
 	ml_type_t **Types = alloca(NumTypes * sizeof(ml_type_t *));
 	for (int I = 1; I <= NumTypes; ++I) {
@@ -589,38 +588,9 @@ static inline void ml_method_set(ml_methods_t *Methods, int NumTypes, int Variad
 	ml_method_insert(Methods, Method, Function, NumTypes, Variadic, Types);
 }
 
-/*
-ML_FUNCTIONX(MLMethodSet) {
-//@method::set
-//<Method
-//<Types...:type
-//<..?
-//<Function:function
-//>Function
-// Adds a new type signature and associated function to :mini:`Method`. If the last argument is :mini:`..` then the signature is variadic. Method definitions using :mini:`meth` are translated into calls to :mini:`method::set`.
-	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
-	if (Methods->PreventChanges) ML_ERROR("ContextError", "Context does not allow methods to be defined");
-	ML_CHECKX_ARG_COUNT(2);
-	if (ml_is(Args[0], MLTypeT)) Args[0] = ((ml_type_t *)Args[0])->Constructor;
-	ML_CHECKX_ARG_TYPE(0, MLMethodT);
-	int NumTypes = Count - 2, Variadic = 0;
-	if (Count >= 3 && Args[Count - 2] == RangeMethod) {
-		Variadic = 1;
-		--NumTypes;
-	}
-	for (int I = 1; I <= NumTypes; ++I) {
-		if (Args[I] != MLNil) {
-			ML_CHECKX_ARG_TYPE(I, MLTypeT);
-		}
-	}
-	ML_CHECKX_ARG_TYPE(Count - 1, MLFunctionT);
-	ml_value_t *Function = Args[Count - 1];
-	ml_method_set(Methods, NumTypes, Variadic, Args, Function);
-	ML_RETURN(Function);
-}
-*/
+ML_METHOD_ANON(MLMethodDefine, "method::define");
 
-ML_METHODVX("set", MLMethodT) {
+ML_METHODVX(MLMethodDefine, MLMethodT) {
 //<Method
 //<Types...:type
 //<..?
@@ -630,9 +600,10 @@ ML_METHODVX("set", MLMethodT) {
 	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
 	if (Methods->PreventChanges) ML_ERROR("ContextError", "Context does not allow methods to be defined");
 	ML_CHECKX_ARG_COUNT(2);
-	int NumTypes = Count - 2, Variadic = 0;
-	if (Count >= 3 && Args[Count - 2] == RangeMethod) {
-		Variadic = 1;
+	int NumTypes = Count - 2;
+	ml_type_t *Variadic = NULL;
+	if (Count >= 3 && ml_is(Args[Count - 2], MLListT)) {
+		Variadic = MLAnyT;
 		--NumTypes;
 	}
 	for (int I = 1; I <= NumTypes; ++I) {
@@ -646,7 +617,7 @@ ML_METHODVX("set", MLMethodT) {
 	ML_RETURN(Function);
 }
 
-ML_METHODVX("set", MLTypeT) {
+ML_METHODVX(MLMethodDefine, MLTypeT) {
 //<Type
 //<Types...:type
 //<..?
@@ -658,9 +629,10 @@ ML_METHODVX("set", MLTypeT) {
 	ML_CHECKX_ARG_COUNT(2);
 	Args[0] = ((ml_type_t *)Args[0])->Constructor;
 	ML_CHECKX_ARG_TYPE(0, MLMethodT);
-	int NumTypes = Count - 2, Variadic = 0;
-	if (Count >= 3 && Args[Count - 2] == RangeMethod) {
-		Variadic = 1;
+	int NumTypes = Count - 2;
+	ml_type_t *Variadic = NULL;
+	if (Count >= 3 && ml_is(Args[Count - 2], MLListT)) {
+		Variadic = MLAnyT;
 		--NumTypes;
 	}
 	for (int I = 1; I <= NumTypes; ++I) {
@@ -679,11 +651,11 @@ ML_METHODX("list", MLMethodT) {
 	ml_methods_t *Methods = Caller->Context->Values[ML_METHODS_INDEX];
 	do {
 		for (ml_method_definition_t *Definition = (ml_method_definition_t *)inthash_search(Methods->Definitions, (uintptr_t)Args[0]); Definition; Definition = Definition->Next) {
-			ml_value_t *Signature = ml_tuple(Definition->Count + Definition->Variadic);
+			ml_value_t *Signature = ml_tuple(Definition->Count + !!Definition->Variadic);
 			for (int I = 0; I < Definition->Count; ++I) {
 				ml_tuple_set(Signature, I + 1, (ml_value_t *)Definition->Types[I]);
 			}
-			if (Definition->Variadic) ml_tuple_set(Signature, Definition->Count + 1, RangeMethod);
+			if (Definition->Variadic) ml_tuple_set(Signature, Definition->Count + 1, ml_list());
 			ml_map_node_t *Node = ml_map_slot(Results, Signature);
 			if (!Node->Value) {
 				const char *Source;
@@ -757,6 +729,7 @@ ML_FUNCTION(MLMethodList) {
 void ml_method_init() {
 	ml_context_set(&MLRootContext, ML_METHODS_INDEX, MLRootMethods);
 #include "ml_method_init.c"
+	stringmap_insert(MLMethodT->Exports, "define", MLMethodDefine);
 	stringmap_insert(MLMethodT->Exports, "switch", MLMethodSwitch);
 	//stringmap_insert(MLMethodT->Exports, "set", MLMethodSet);
 	stringmap_insert(MLMethodT->Exports, "context", MLMethodContext);

@@ -792,6 +792,8 @@ static inline void ml_list_iter_update(ml_list_iter_t *Iter, ml_value_t *Value) 
 
 // Methods //
 
+extern ml_value_t *MLMethodDefine;
+
 typedef struct ml_method_t ml_method_t;
 typedef struct ml_methods_t ml_methods_t;
 
@@ -814,10 +816,10 @@ void ml_method_by_value(void *Method, void *Data, ml_callback_t Function, ...) _
 void ml_methodx_by_name(const char *Method, void *Data, ml_callbackx_t Function, ...) __attribute__ ((sentinel));
 void ml_methodx_by_value(void *Method, void *Data, ml_callbackx_t Function, ...) __attribute__ ((sentinel));
 
-void ml_method_define(ml_value_t *Value, ml_value_t *Function, int Count, int Variadic, ml_type_t **Types);
-void ml_method_definev(ml_value_t *Method, ml_value_t *Function, int Variadic, ...);
+void ml_method_define(ml_value_t *Value, ml_value_t *Function, int Count, ml_type_t *Variadic, ml_type_t **Types);
+void ml_method_definev(ml_value_t *Method, ml_value_t *Function, ml_type_t *Variadic, ...);
 
-void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Callback, int Count, int Variadic, ml_type_t **Types);
+void ml_method_insert(ml_methods_t *Methods, ml_method_t *Method, ml_value_t *Callback, int Count, ml_type_t *Variadic, ml_type_t **Types);
 
 ml_value_t *ml_method_search(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args);
 
@@ -866,17 +868,17 @@ static inline ml_value_t *ml_nop(void *Value) {
 
 #ifndef __cplusplus
 
-#define ML_METHOD(METHOD, TYPES ...) INIT_CODE ml_method_definev(_Generic(METHOD, char *: ml_method, ml_type_t *: ml_type_constructor, default: ml_nop)(METHOD), ml_cfunction2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), 0, ##TYPES, NULL);
+#define ML_METHOD(METHOD, TYPES ...) INIT_CODE ml_method_definev(_Generic(METHOD, char *: ml_method, ml_type_t *: ml_type_constructor, default: ml_nop)(METHOD), ml_cfunction2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), NULL, ##TYPES, NULL);
 
-#define ML_METHODX(METHOD, TYPES ...) INIT_CODE ml_method_definev(_Generic(METHOD, char *: ml_method, ml_type_t *: ml_type_constructor, default: ml_nop)(METHOD), ml_cfunctionx2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), 0, ##TYPES, NULL);
+#define ML_METHODX(METHOD, TYPES ...) INIT_CODE ml_method_definev(_Generic(METHOD, char *: ml_method, ml_type_t *: ml_type_constructor, default: ml_nop)(METHOD), ml_cfunctionx2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), NULL, ##TYPES, NULL);
 
-#define ML_METHODZ(METHOD, TYPES ...) INIT_CODE ml_method_definev(_Generic(METHOD, char *: ml_method, ml_type_t *: ml_type_constructor, default: ml_nop)(METHOD), ml_cfunctionz2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), 0, ##TYPES, NULL);
+#define ML_METHODZ(METHOD, TYPES ...) INIT_CODE ml_method_definev(_Generic(METHOD, char *: ml_method, ml_type_t *: ml_type_constructor, default: ml_nop)(METHOD), ml_cfunctionz2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), NULL, ##TYPES, NULL);
 
-#define ML_METHODV(METHOD, TYPES ...) INIT_CODE ml_method_definev(_Generic(METHOD, char *: ml_method, ml_type_t *: ml_type_constructor, default: ml_nop)(METHOD), ml_cfunction2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), 1, ##TYPES, NULL);
+#define ML_METHODV(METHOD, TYPES ...) INIT_CODE ml_method_definev(_Generic(METHOD, char *: ml_method, ml_type_t *: ml_type_constructor, default: ml_nop)(METHOD), ml_cfunction2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), MLAnyT, ##TYPES, NULL);
 
-#define ML_METHODVX(METHOD, TYPES ...) INIT_CODE ml_method_definev(_Generic(METHOD, char *: ml_method, ml_type_t *: ml_type_constructor, default: ml_nop)(METHOD), ml_cfunctionx2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), 1, ##TYPES, NULL);
+#define ML_METHODVX(METHOD, TYPES ...) INIT_CODE ml_method_definev(_Generic(METHOD, char *: ml_method, ml_type_t *: ml_type_constructor, default: ml_nop)(METHOD), ml_cfunctionx2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), MLAnyT, ##TYPES, NULL);
 
-#define ML_METHODVZ(METHOD, TYPES ...) INIT_CODE ml_method_definev(_Generic(METHOD, char *: ml_method, ml_type_t *: ml_type_constructor, default: ml_nop)(METHOD), ml_cfunctionz2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), 1, ##TYPES, NULL);
+#define ML_METHODVZ(METHOD, TYPES ...) INIT_CODE ml_method_definev(_Generic(METHOD, char *: ml_method, ml_type_t *: ml_type_constructor, default: ml_nop)(METHOD), ml_cfunctionz2(NULL, CONCAT3(ml_method_fn_, __LINE__, __COUNTER__), ML_CATEGORY, __LINE__), MLAnyT, ##TYPES, NULL);
 
 #else
 
@@ -1207,27 +1209,27 @@ void ml_types_init(stringmap_t *Globals);
 }
 
 template <typename... args> void ml_method_by_auto(const char *Cached, void *Data, ml_callback_t Function, args... Args) {
-	ml_method_definev(ml_method(Cached), ml_cfunction(Data, Function), 0, Args...);
+	ml_method_definev(ml_method(Cached), ml_cfunction(Data, Function), NULL, Args...);
 }
 
 template <typename... args> void ml_method_by_auto(ml_value_t *Cached, void *Data, ml_callback_t Function, args... Args) {
-	ml_method_definev(Cached, ml_cfunction(Data, Function), 0, Args...);
+	ml_method_definev(Cached, ml_cfunction(Data, Function), NULL, Args...);
 }
 
 template <typename... args> void ml_method_by_auto(ml_type_t *Type, void *Data, ml_callback_t Function, args... Args) {
-	ml_method_definev(Type->Constructor, ml_cfunction(Data, Function), 0, Args...);
+	ml_method_definev(Type->Constructor, ml_cfunction(Data, Function), NULL, Args...);
 }
 
 template <typename... args> void ml_methodx_by_auto(const char *Cached, void *Data, ml_callbackx_t Function, args... Args) {
-	ml_method_definev(ml_method(Cached), ml_cfunctionx(Data, Function), 0, Args...);
+	ml_method_definev(ml_method(Cached), ml_cfunctionx(Data, Function), NULL, Args...);
 }
 
 template <typename... args> void ml_methodx_by_auto(ml_value_t *Cached, void *Data, ml_callbackx_t Function, args... Args) {
-	ml_methodx_define(Cached, ml_cfunctionx(Data, Function), 0, Args...);
+	ml_methodx_define(Cached, ml_cfunctionx(Data, Function), NULL, Args...);
 }
 
 template <typename... args> void ml_methodx_by_auto(ml_type_t *Type, void *Data, ml_callbackx_t Function, args... Args) {
-	ml_methodx_define(Type->Constructor, ml_cfunctionx(Data, Function), 0, Args...);
+	ml_methodx_define(Type->Constructor, ml_cfunctionx(Data, Function), NULL, Args...);
 }
 
 #endif

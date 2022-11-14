@@ -12,6 +12,19 @@ ML_ENUM2(ParamKindT, "param-kind",
 	"AsVar", ML_PARAM_ASVAR
 );
 
+ML_TYPE(AstNamesT, (MLListT), "ast::names");
+
+static ml_value_t *ml_ast_names(ml_value_t *Value) {
+	if (ml_typeof(Value) == MLNamesT) {
+		ml_value_t *List = ml_list();
+		ML_NAMES_FOREACH(Value, Iter) ml_list_put(List, Iter->Value);
+		List->Type = AstNamesT;
+		return List;
+	} else {
+		return Value;
+	}
+}
+
 #include "ml_ast_types.c"
 
 ML_METHOD("ast", MLExprT) {
@@ -24,6 +37,7 @@ ML_METHOD("ast", MLExprT) {
 void ml_ast_init(stringmap_t *Globals) {
 #include "ml_ast_init.c"
 	ml_ast_types_init();
+	stringmap_insert(Ast->Exports, "names", AstNamesT);
 	if (Globals) {
 		stringmap_insert(Globals, "ast", Ast);
 	}

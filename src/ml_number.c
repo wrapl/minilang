@@ -45,7 +45,7 @@ static void ml_infix_many_fn(ml_state_t *Caller, void *Infix, int Count, ml_valu
 
 static void ml_infix_many(const char *Name) {
 	ml_value_t *Method = ml_method(Name);
-	ml_method_definev(Method, ml_cfunctionx(Method, ml_infix_many_fn), 1, MLAnyT, MLAnyT, MLAnyT, NULL);
+	ml_method_definev(Method, ml_cfunctionx(Method, ml_infix_many_fn), MLAnyT, MLAnyT, MLAnyT, MLAnyT, NULL);
 }
 
 ML_TYPE(MLNumberT, (), "number");

@@ -271,10 +271,6 @@ static void ml_value_expr_compile(mlc_function_t *Function, mlc_value_expr_t *Ex
 	MLC_RETURN(NULL);
 }
 
-static void ml_names_expr_compile(mlc_function_t *Function, mlc_value_expr_t *Expr, int Flags) {
-	return ml_value_expr_compile(Function, Expr, Flags);
-}
-
 typedef struct {
 	mlc_if_expr_t *Expr;
 	mlc_if_case_t *Case;
@@ -4425,12 +4421,11 @@ static mlc_expr_t *ml_accept_fun_expr(ml_parser_t *Parser, const char *Name, ml_
 }
 
 //extern ml_cfunctionx_t MLMethodSet[];
-ML_METHOD_DECL(SetMethod, "set");
 
 static mlc_expr_t *ml_accept_meth_expr(ml_parser_t *Parser) {
 	ML_EXPR(MethodExpr, parent_value, const_call);
 	//MethodExpr->Value = (ml_value_t *)MLMethodSet;
-	MethodExpr->Value = SetMethod;
+	MethodExpr->Value = MLMethodDefine;
 	mlc_expr_t *Method = ml_parse_term(Parser, 1);
 	if (!Method) {
 		if (!Parser->Permissive) ml_parse_error(Parser, "ParseError", "Expected <factor> not <%s>", MLTokens[Parser->Token]);
@@ -4450,7 +4445,7 @@ static mlc_expr_t *ml_accept_meth_expr(ml_parser_t *Parser) {
 			if (ml_parse2(Parser, MLT_OPERATOR)) {
 				if (!strcmp(Parser->Ident, "..")) {
 					ML_EXPR(ValueExpr, value, value);
-					ValueExpr->Value = ml_method("..");
+					ValueExpr->Value = ml_list();
 					mlc_expr_t *Arg = ArgsSlot[0] = ML_EXPR_END(ValueExpr);
 					ArgsSlot = &Arg->Next;
 					break;
@@ -4465,6 +4460,18 @@ static mlc_expr_t *ml_accept_meth_expr(ml_parser_t *Parser) {
 				ml_accept(Parser, MLT_IDENT);
 				Param->Ident = Parser->Ident;
 				Param->Kind = ML_PARAM_EXTRA;
+				mlc_expr_t *Arg;
+				if (ml_parse2(Parser, MLT_COLON)) {
+					ML_EXPR(ListExpr, parent, list);
+					ListExpr->Child = ml_accept_expression(Parser, EXPR_DEFAULT);
+					Arg = ML_EXPR_END(ListExpr);
+				} else {
+					ML_EXPR(ValueExpr, value, value);
+					ValueExpr->Value = ml_list();
+					Arg = ML_EXPR_END(ValueExpr);
+				}
+				ArgsSlot[0] = Arg;
+				ArgsSlot = &Arg->Next;
 				ml_accept(Parser, MLT_RIGHT_SQUARE);
 				if (ml_parse2(Parser, MLT_COMMA)) {
 					ml_accept(Parser, MLT_LEFT_BRACE);
@@ -4475,10 +4482,6 @@ static mlc_expr_t *ml_accept_meth_expr(ml_parser_t *Parser) {
 					Param->Kind = ML_PARAM_NAMED;
 					ml_accept(Parser, MLT_RIGHT_BRACE);
 				}
-				ML_EXPR(ValueExpr, value, value);
-				ValueExpr->Value = ml_method("..");
-				mlc_expr_t *Arg = ArgsSlot[0] = ML_EXPR_END(ValueExpr);
-				ArgsSlot = &Arg->Next;
 				break;
 			} else if (ml_parse2(Parser, MLT_LEFT_BRACE)) {
 				ml_accept(Parser, MLT_IDENT);
@@ -4486,7 +4489,7 @@ static mlc_expr_t *ml_accept_meth_expr(ml_parser_t *Parser) {
 				Param->Kind = ML_PARAM_NAMED;
 				ml_accept(Parser, MLT_RIGHT_BRACE);
 				ML_EXPR(ValueExpr, value, value);
-				ValueExpr->Value = ml_method("..");
+				ValueExpr->Value = ml_list();
 				mlc_expr_t *Arg = ArgsSlot[0] = ML_EXPR_END(ValueExpr);
 				ArgsSlot = &Arg->Next;
 				break;
@@ -4544,7 +4547,7 @@ static void ml_accept_named_arguments(ml_parser_t *Parser, ml_token_t EndToken, 
 		} else {
 			goto resume;
 		}
-		ml_accept(Parser, MLT_IS);
+		if (!ml_parse2(Parser, MLT_COLON)) ml_accept(Parser, MLT_IS);
 		if (ml_parse2(Parser, MLT_SEMICOLON)) {
 			ArgsSlot[0] = ml_accept_fun_expr(Parser, NULL, EndToken);
 			return;
@@ -4568,7 +4571,7 @@ static void ml_accept_arguments(ml_parser_t *Parser, ml_token_t EndToken, mlc_ex
 	} else if (!ml_parse2(Parser, EndToken)) {
 		do {
 			mlc_expr_t *Arg = ml_accept_expression(Parser, EXPR_DEFAULT);
-			if (ml_parse2(Parser, MLT_IS)) {
+			if (ml_parse2(Parser, MLT_COLON) || ml_parse2(Parser, MLT_IS)) {
 				ml_value_t *Names = ml_names();
 				if (Arg->compile == (void *)ml_ident_expr_compile) {
 					ml_names_add(Names, ml_string(((mlc_ident_expr_t *)Arg)->Ident, -1));
@@ -4581,7 +4584,7 @@ static void ml_accept_arguments(ml_parser_t *Parser, ml_token_t EndToken, mlc_ex
 				} else {
 					ml_parse_error(Parser, "ParseError", "Argument names must be identifiers or strings");
 				}
-				ML_EXPR(NamesArg, value, names);
+				ML_EXPR(NamesArg, value, value);
 				NamesArg->Value = Names;
 				ArgsSlot[0] = ML_EXPR_END(NamesArg);
 				return ml_accept_named_arguments(Parser, EndToken, ArgsSlot, Names);
@@ -5286,7 +5289,7 @@ with_name:
 			do {
 				mlc_expr_t *Arg = ArgsSlot[0] = ml_accept_expression(Parser, EXPR_DEFAULT);
 				ArgsSlot = &Arg->Next;
-				if (ml_parse2(Parser, MLT_IS)) {
+				if (ml_parse2(Parser, MLT_COLON) || ml_parse2(Parser, MLT_IS)) {
 					mlc_expr_t *ArgExpr = ArgsSlot[0] = ml_accept_expression(Parser, EXPR_DEFAULT);
 					ArgsSlot = &ArgExpr->Next;
 				} else {
