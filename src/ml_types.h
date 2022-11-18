@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
 #include <unistd.h>
 #include "stringmap.h"
 #include "inthash.h"
@@ -583,6 +584,9 @@ typedef struct {
 } ml_real_range_t;
 
 // Strings //
+
+int GC_vasprintf(char **Ptr, const char *Format, va_list Args);
+int GC_asprintf(char **Ptr, const char *Format, ...);
 
 typedef struct ml_address_t ml_address_t;
 typedef struct ml_string_t ml_string_t;

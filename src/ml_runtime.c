@@ -482,7 +482,7 @@ ML_TYPE(MLErrorValueT, (), "error",
 
 ml_value_t *ml_errorv(const char *Error, const char *Format, va_list Args) {
 	char *Message;
-	vasprintf(&Message, Format, Args);
+	GC_vasprintf(&Message, Format, Args);
 	ml_error_t *Value = xnew(ml_error_t, 1, ml_error_value_t);
 	Value->Type = MLErrorT;
 	Value->Error->Type = MLErrorValueT;

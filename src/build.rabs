@@ -459,7 +459,7 @@ if MINILANG_TIMEZONES then
 		file("timelib"):rmdir
 		execute("git clone https://github.com/derickr/timelib.git", Dir)
 		file("timelib"):chdir
-		execute("make timelib.a FLAGS=\"-O3 -DHAVE_STDINT_H -DHAVE_GETTIMEOFDAY -DHAVE_UNISTD_H -DHAVE_DIRENT_H -I.\"")
+		execute('make timelib.a FLAGS=\"{CFLAGS} -DHAVE_STDINT_H -DHAVE_GETTIMEOFDAY -DHAVE_UNISTD_H -DHAVE_DIRENT_H -I. --include {file("timelib_mem.h")}\"')
 	end
 	PREBUILDS := old + [TIMELIB]
 	CFLAGS := old + ["-DML_TIMEZONES"]

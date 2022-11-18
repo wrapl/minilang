@@ -385,7 +385,7 @@ ml_value_t *ml_method(const char *Name) {
 	if (!Name) {
 		ml_method_t *Method = new(ml_method_t);
 		Method->Type = MLMethodAnonT;
-		asprintf((char **)&Method->Name, "<anon:0x%lx>", (uintptr_t)Method);
+		GC_asprintf((char **)&Method->Name, "<anon:0x%lx>", (uintptr_t)Method);
 		return (ml_value_t *)Method;
 	}
 	ML_METHODS_LOCK();

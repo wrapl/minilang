@@ -83,12 +83,12 @@ void gtk_console_log(gtk_console_t *Console, ml_value_t *Value) {
 	gtk_text_buffer_get_end_iter(LogBuffer, End);
 	if (ml_is_error(Value)) {
 		char *Buffer;
-		int Length = asprintf(&Buffer, "%s: %s\n", ml_error_type(Value), ml_error_message(Value));
+		int Length = GC_asprintf(&Buffer, "%s: %s\n", ml_error_type(Value), ml_error_message(Value));
 		gtk_text_buffer_insert_with_tags(LogBuffer, End, Buffer, Length, Console->ErrorTag, NULL);
 		ml_source_t Source;
 		int Level = 0;
 		while (ml_error_source(Value, Level++, &Source)) {
-			Length = asprintf(&Buffer, "\t%s:%d\n", Source.Name, Source.Line);
+			Length = GC_asprintf(&Buffer, "\t%s:%d\n", Source.Name, Source.Line);
 			gtk_text_buffer_insert_with_tags(LogBuffer, End, Buffer, Length, Console->ErrorTag, NULL);
 		}
 	} else {
@@ -117,7 +117,7 @@ void gtk_console_log(gtk_console_t *Console, ml_value_t *Value) {
 			gtk_text_buffer_insert_with_tags(LogBuffer, End, "\n", 1, Console->ResultTag, NULL);
 		} else {
 			char *Buffer;
-			int Length = asprintf(&Buffer, "<%s>\n", ml_typeof(Value)->Name);
+			int Length = GC_asprintf(&Buffer, "<%s>\n", ml_typeof(Value)->Name);
 			gtk_text_buffer_insert_with_tags(LogBuffer, End, Buffer, Length, Console->ResultTag, NULL);
 		}
 	}
@@ -338,12 +338,12 @@ static void console_show_value(GtkTreeStore *Store, GtkTreeIter *Iter, const cha
 static void ML_TYPED_FN(console_show_value, MLListT, GtkTreeStore *Store, GtkTreeIter *Iter, const char *Name, ml_value_t *Value) {
 	GtkTreeIter Child[1];
 	char *Display;
-	asprintf(&Display, "list[%d]", ml_list_length(Value));
+	GC_asprintf(&Display, "list[%d]", ml_list_length(Value));
 	gtk_tree_store_insert_with_values(Store, Child, Iter, -1, 0, Name, 1, Display, -1);
 	int Index = 0;
 	ML_LIST_FOREACH(Value, Iter) {
 		if (++Index > 20) break;
-		asprintf(&Display, "[%d]", Index);
+		GC_asprintf(&Display, "[%d]", Index);
 		console_show_value(Store, Child, Display, Iter->Value);
 	}
 }
@@ -351,12 +351,12 @@ static void ML_TYPED_FN(console_show_value, MLListT, GtkTreeStore *Store, GtkTre
 static void ML_TYPED_FN(console_show_value, MLMapT, GtkTreeStore *Store, GtkTreeIter *Iter, const char *Name, ml_value_t *Value) {
 	GtkTreeIter Child[1];
 	char *Display;
-	asprintf(&Display, "map[%d]", ml_map_size(Value));
+	GC_asprintf(&Display, "map[%d]", ml_map_size(Value));
 	gtk_tree_store_insert_with_values(Store, Child, Iter, -1, 0, Name, 1, Display, -1);
 	int Index = 0;
 	ML_MAP_FOREACH(Value, Iter) {
 		if (++Index > 20) break;
-		asprintf(&Display, "[%d]", Index);
+		GC_asprintf(&Display, "[%d]", Index);
 		GtkTreeIter Child2[1];
 		gtk_tree_store_insert_with_values(Store, Child2, Child, -1, 0, Display, -1);
 		console_show_value(Store, Child2, "key", Iter->Key);
@@ -400,7 +400,7 @@ static void console_show_thread(gtk_console_t *Console, const char *SourceName, 
 	int Depth = 0;
 	ML_LIST_FOREACH(Frames, Iter1) {
 		char *Source;
-		asprintf(&Source, "%s:%ld",
+		GC_asprintf(&Source, "%s:%ld",
 			ml_string_value(ml_tuple_get(Iter1->Value, 1)),
 			ml_integer_value(ml_tuple_get(Iter1->Value, 2))
 		);
@@ -791,7 +791,7 @@ gtk_console_t *gtk_console(ml_context_t *Context, ml_getter_t GlobalGet, void *G
 	ml_context_set(Console->Base.Context, ML_SCHEDULER_INDEX, GirSchedule);
 #endif
 
-	asprintf((char **)&Console->ConfigPath, "%s/%s", g_get_user_config_dir(), "minilang.conf");
+	GC_asprintf((char **)&Console->ConfigPath, "%s/%s", g_get_user_config_dir(), "minilang.conf");
 	Console->Config = g_key_file_new();
 	g_key_file_load_from_file(Console->Config, Console->ConfigPath, G_KEY_FILE_NONE, NULL);
 

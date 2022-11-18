@@ -330,7 +330,7 @@ ML_METHOD("|", MLTypeT, MLTypeT) {
 	ml_type_t *Type2 = (ml_type_t *)Args[1];
 	ml_union_type_t *Type = xnew(ml_union_type_t, 2, ml_type_t *);
 	Type->Base.Type = MLTypeUnionT;
-	asprintf((char **)&Type->Base.Name, "%s | %s", Type1->Name, Type2->Name);
+	GC_asprintf((char **)&Type->Base.Name, "%s | %s", Type1->Name, Type2->Name);
 	Type->Base.hash = ml_default_hash;
 	Type->Base.call = ml_default_call;
 	Type->Base.deref = ml_default_deref;
@@ -353,7 +353,7 @@ ML_METHOD("?", MLTypeT) {
 	ml_type_t *Type1 = (ml_type_t *)Args[0];
 	ml_union_type_t *Type = xnew(ml_union_type_t, 2, ml_type_t *);
 	Type->Base.Type = MLTypeUnionT;
-	asprintf((char **)&Type->Base.Name, "%s | nil", Type1->Name);
+	GC_asprintf((char **)&Type->Base.Name, "%s | nil", Type1->Name);
 	Type->Base.hash = ml_default_hash;
 	Type->Base.call = ml_default_call;
 	Type->Base.deref = ml_default_deref;

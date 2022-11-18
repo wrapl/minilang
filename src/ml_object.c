@@ -271,7 +271,7 @@ ml_type_t *ml_class(const char *Name) {
 	if (Name) {
 		Class->Base.Name = Name;
 	} else {
-		asprintf((char **)&Class->Base.Name, "class:%lx", (uintptr_t)Class);
+		GC_asprintf((char **)&Class->Base.Name, "class:%lx", (uintptr_t)Class);
 	}
 	Class->Base.hash = ml_default_hash;
 	Class->Base.call = ml_default_call;
@@ -337,7 +337,7 @@ ML_FUNCTIONX(MLClass) {
 	if (NativeType) {
 		ml_named_type_t *Class = new(ml_named_type_t);
 		Class->Base.Type = MLNamedTypeT;
-		asprintf((char **)&Class->Base.Name, "named-%s:%lx", NativeType->Name, (uintptr_t)Class);
+		GC_asprintf((char **)&Class->Base.Name, "named-%s:%lx", NativeType->Name, (uintptr_t)Class);
 		Class->Base.hash = NativeType->hash;
 		Class->Base.call = NativeType->call;
 		Class->Base.deref = NativeType->deref;
@@ -372,7 +372,7 @@ ML_FUNCTIONX(MLClass) {
 	} else {
 		ml_class_t *Class = new(ml_class_t);
 		Class->Base.Type = MLClassT;
-		asprintf((char **)&Class->Base.Name, "class:%lx", (uintptr_t)Class);
+		GC_asprintf((char **)&Class->Base.Name, "class:%lx", (uintptr_t)Class);
 		Class->Base.hash = ml_default_hash;
 		Class->Base.call = ml_default_call;
 		Class->Base.deref = ml_default_deref;
@@ -442,7 +442,7 @@ static void ML_TYPED_FN(ml_value_set_name, MLNamedTypeT, ml_named_type_t *Class,
 	Class->Base.Name = Name;
 	if (Class->Initializer) {
 		const char *InitName;
-		asprintf((char **)&InitName, "%s::init", Name);
+		GC_asprintf((char **)&InitName, "%s::init", Name);
 		ml_value_set_name(Class->Initializer, InitName);
 	}
 }
@@ -451,7 +451,7 @@ static void ML_TYPED_FN(ml_value_set_name, MLClassT, ml_class_t *Class, const ch
 	Class->Base.Name = Name;
 	if (Class->Initializer) {
 		const char *InitName;
-		asprintf((char **)&InitName, "%s::init", Name);
+		GC_asprintf((char **)&InitName, "%s::init", Name);
 		ml_value_set_name(Class->Initializer, InitName);
 	}
 }
@@ -598,7 +598,7 @@ ML_METHODV(MLEnumT, MLStringT) {
 	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLStringT);
 	ml_enum_t *Enum = xnew(ml_enum_t, Count, ml_value_t *);
 	Enum->Base.Type = MLEnumT;
-	asprintf((char **)&Enum->Base.Name, "enum:%lx", (uintptr_t)Enum);
+	GC_asprintf((char **)&Enum->Base.Name, "enum:%lx", (uintptr_t)Enum);
 	Enum->Base.deref = ml_default_deref;
 	Enum->Base.assign = ml_default_assign;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
@@ -628,7 +628,7 @@ ML_METHODV(MLEnumT, MLNamesT) {
 	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLIntegerT);
 	ml_enum_t *Enum = xnew(ml_enum_t, Count - 1, ml_value_t *);
 	Enum->Base.Type = MLEnumT;
-	asprintf((char **)&Enum->Base.Name, "enum:%lx", (uintptr_t)Enum);
+	GC_asprintf((char **)&Enum->Base.Name, "enum:%lx", (uintptr_t)Enum);
 	Enum->Base.deref = ml_default_deref;
 	Enum->Base.assign = ml_default_assign;
 	Enum->Base.hash = (void *)ml_enum_value_hash;
@@ -1035,7 +1035,7 @@ ML_METHODV(MLFlagsT, MLStringT) {
 	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLStringT);
 	ml_flags_t *Flags = xnew(ml_flags_t, Count, ml_value_t *);
 	Flags->Base.Type = MLFlagsT;
-	asprintf((char **)&Flags->Base.Name, "flags:%lx", (uintptr_t)Flags);
+	GC_asprintf((char **)&Flags->Base.Name, "flags:%lx", (uintptr_t)Flags);
 	Flags->Base.deref = ml_default_deref;
 	Flags->Base.assign = ml_default_assign;
 	Flags->Base.hash = (void *)ml_flag_value_hash;
@@ -1067,7 +1067,7 @@ ML_METHODV(MLFlagsT, MLNamesT) {
 	for (int I = 1; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLIntegerT);
 	ml_flags_t *Flags = xnew(ml_flags_t, Count - 1, ml_value_t *);
 	Flags->Base.Type = MLFlagsT;
-	asprintf((char **)&Flags->Base.Name, "flags:%lx", (uintptr_t)Flags);
+	GC_asprintf((char **)&Flags->Base.Name, "flags:%lx", (uintptr_t)Flags);
 	Flags->Base.deref = ml_default_deref;
 	Flags->Base.assign = ml_default_assign;
 	Flags->Base.hash = (void *)ml_flag_value_hash;

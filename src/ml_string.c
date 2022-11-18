@@ -651,6 +651,23 @@ ML_METHOD("append", MLStringBufferT, MLAddressT) {
 	return MLSome;
 }
 
+int GC_vasprintf(char **Ptr, const char *Format, va_list Args) {
+	va_list Copy;
+	va_copy(Copy, Args);
+	int Actual = vsnprintf(NULL, 0, Format, Args);
+	char *Output = *Ptr = GC_malloc_atomic(Actual);
+	vsprintf(Output, Format, Copy);
+	return Actual;
+}
+
+int GC_asprintf(char **Ptr, const char *Format, ...) {
+	va_list Args;
+	va_start(Args, Format);
+	int Result = GC_vasprintf(Ptr, Format, Args);
+	va_end(Args);
+	return Result;
+}
+
 ml_value_t *ml_string(const char *Value, int Length) {
 	Value = Value ?: "";
 	if (Length >= 0) {
@@ -686,7 +703,7 @@ ml_value_t *ml_string_format(const char *Format, ...) {
 	va_list Args;
 	va_start(Args, Format);
 	char *Value;
-	int Length = vasprintf(&Value, Format, Args);
+	int Length = GC_vasprintf(&Value, Format, Args);
 	va_end(Args);
 	return ml_string(Value, Length);
 }
@@ -3475,9 +3492,14 @@ ML_FUNCTION_INLINE(MLStringSwitch) {
 	return (ml_value_t *)Switch;
 }
 
+static void ml_stringbuffer_finalize(ml_stringbuffer_t *Buffer, void *Data) {
+	if (Buffer->File) fclose(Buffer->File);
+}
+
 ml_value_t *ml_stringbuffer() {
 	ml_stringbuffer_t *Buffer = new(ml_stringbuffer_t);
 	Buffer->Type = MLStringBufferT;
+	GC_register_finalizer(Buffer, (GC_finalization_proc)ml_stringbuffer_finalize, NULL, NULL, NULL);
 	return (ml_value_t *)Buffer;
 }
 
@@ -3667,6 +3689,10 @@ static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
 	}
 	Buffer->Head = Buffer->Tail = NULL;
 	Buffer->Length = Buffer->Space = Buffer->Start = 0;
+	if (Buffer->File) {
+		fclose(Buffer->File);
+		Buffer->File = NULL;
+	}
 }
 
 char *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) {

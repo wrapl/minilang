@@ -191,7 +191,7 @@ static void mlc_expr_call2(mlc_function_t *Function, ml_value_t *Value, mlc_comp
 	Info->Source = Function->Source;
 	Info->StartLine = Expr->StartLine;
 	Info->EndLine = Expr->EndLine;
-	asprintf((char **)&Info->Name, "@%s:%d", Info->Source, Info->StartLine);
+	GC_asprintf((char **)&Info->Name, "@%s:%d", Info->Source, Info->StartLine);
 	Info->FrameSize = Function->Size;
 	Info->NumParams = 0;
 	MLC_POP();
@@ -2312,7 +2312,7 @@ static void mlc_inline_call_expr_compile3(mlc_function_t *Function, ml_value_t *
 	Info->Source = Function->Source;
 	Info->StartLine = Frame->Line;
 	Info->EndLine = Frame->Line;
-	asprintf((char **)&Info->Name, "@%s:%d", Info->Source, Info->StartLine);
+	GC_asprintf((char **)&Info->Name, "@%s:%d", Info->Source, Info->StartLine);
 	Info->FrameSize = Function->Size;
 	Info->NumParams = 0;
 	MLC_POP();
@@ -2958,7 +2958,7 @@ static void ml_fun_expr_compile(mlc_function_t *Function, mlc_fun_expr_t *Expr, 
 	if (Expr->Name) {
 		Info->Name = Expr->Name;
 	} else {
-		asprintf((char **)&Info->Name, "@%s:%d", Info->Source, Info->StartLine);
+		GC_asprintf((char **)&Info->Name, "@%s:%d", Info->Source, Info->StartLine);
 	}
 	int NumParams = 0, HasParamTypes = 0;
 	ml_decl_t **DeclSlot = &SubFunction->Decls;
@@ -5085,7 +5085,7 @@ with_name:
 		ml_next(Parser);
 		ML_EXPR(WhenExpr, local, with);
 		char *Ident;
-		asprintf(&Ident, "when:%d", Parser->Source.Line);
+		GC_asprintf(&Ident, "when:%d", Parser->Source.Line);
 		WhenExpr->Child = ml_accept_expression(Parser, EXPR_DEFAULT);
 		WhenExpr->Local = mlc_local_new(Ident, Parser->Source.Line);
 		ML_EXPR(IfExpr, if, if);
@@ -5994,7 +5994,7 @@ void ml_function_compile(ml_state_t *Caller, mlc_expr_t *Expr, ml_compiler_t *Co
 	Info->Source = Function->Source;
 	Info->StartLine = Expr->StartLine;
 	Info->EndLine = Expr->EndLine;
-	asprintf((char **)&Info->Name, "@%s:%d", Info->Source, Info->StartLine);
+	GC_asprintf((char **)&Info->Name, "@%s:%d", Info->Source, Info->StartLine);
 	Function->Next = Info->Entry = anew(ml_inst_t, 128);
 	Function->Space = 126;
 	Function->Returns = NULL;

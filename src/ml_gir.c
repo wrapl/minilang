@@ -2531,7 +2531,7 @@ static void ML_TYPED_FN(ml_stream_write, (ml_type_t *)GOutputStreamT, ml_state_t
 }
 
 void ml_gir_init(stringmap_t *Globals) {
-	g_setenv("G_SLICE", "always-malloc", 1);
+	//g_setenv("G_SLICE", "always-malloc", 1);
 	GError *Error = 0;
 	g_irepository_require(NULL, "GLib", NULL, 0, &Error);
 	g_irepository_require(NULL, "GObject", NULL, 0, &Error);
