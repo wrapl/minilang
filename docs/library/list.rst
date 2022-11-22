@@ -85,7 +85,7 @@ list
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "k"
+      L:random :> "c"
       L:random :> "e"
 
 

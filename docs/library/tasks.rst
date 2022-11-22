@@ -26,12 +26,30 @@ tasks
    *TBD*
 
 
+:mini:`meth (Main: function):tasks: tasks`
+   Creates a new :mini:`tasks` set.
+   If specified,  at most :mini:`MaxRunning` child tasks will run in parallel (the default is unlimited).
+   If specified,  at most :mini:`MaxPending` child tasks will be queued. Calls to add child tasks will wait until there some tasks are cleared.
+
+
 :mini:`meth (Fn: function):then(Then: function): task`
    Equivalent to :mini:`task(Fn,  call -> Then)`.
 
 
 :mini:`meth (Fn: function):then(Then: function, Else: function): task`
    *TBD*
+
+
+:mini:`meth (MaxRunning: integer):tasks(Main: function, Arg₃: integer, Arg₄: function): tasks`
+   Creates a new :mini:`tasks` set.
+   If specified,  at most :mini:`MaxRunning` child tasks will run in parallel (the default is unlimited).
+   If specified,  at most :mini:`MaxPending` child tasks will be queued. Calls to add child tasks will wait until there some tasks are cleared.
+
+
+:mini:`meth (MaxRunning: integer):tasks(MaxPending: integer, Main: function, Arg₄: integer, Arg₅: integer, Arg₆: function): tasks`
+   Creates a new :mini:`tasks` set.
+   If specified,  at most :mini:`MaxRunning` child tasks will run in parallel (the default is unlimited).
+   If specified,  at most :mini:`MaxPending` child tasks will be queued. Calls to add child tasks will wait until there some tasks are cleared.
 
 
 .. _fun-buffered:
@@ -75,20 +93,5 @@ tasks
 
 :mini:`type tasks < function`
    A dynamic set of tasks (function calls). Multiple tasks can run in parallel (depending on the availability of a scheduler and/or asynchronous function calls).
-
-
-.. _fun-tasks:
-
-:mini:`fun tasks(Max?: integer): tasks`
-   Creates a new :mini:`tasks` set.
-   If specified,  at most :mini:`Max` functions will be called in parallel (the default is unlimited).
-
-
-:mini:`meth (Tasks: tasks):add(Arg₁: any, ..., Argₙ: any, Fn: function)`
-   Adds the function call :mini:`Fn(Arg₁,  ...,  Argₙ)` to a set of tasks. Raises an error if :mini:`Tasks` is already complete.
-
-
-:mini:`meth (Tasks: tasks):wait: nil | error`
-   Waits until all of the tasks in a tasks set have returned,  or one of the tasks has returned an error (which is then returned from this call).
 
 

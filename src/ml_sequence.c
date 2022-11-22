@@ -483,6 +483,33 @@ ML_METHOD("->!?", MLChainedT, MLFunctionT) {
 	return (ml_value_t *)Chained;
 }
 
+extern ml_value_t *IndexMethod;
+
+ML_METHODV("[]", MLChainedT) {
+	ml_value_t *Partial = ml_partial_function(IndexMethod, Count + 1);
+	for (int I = 1; I < Count; ++I) ml_partial_function_set(Partial, I, Args[I]);
+	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
+	int N = 0;
+	while (Base->Entries[N]) ++N;
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, N + 2, ml_value_t *);
+	Chained->Type = MLChainedT;
+	for (int I = 0; I < N; ++I) Chained->Entries[I] = Base->Entries[I];
+	Chained->Entries[N] = Partial;
+	return (ml_value_t *)Chained;
+}
+
+ML_METHOD("::", MLChainedT, MLStringT) {
+//!internal
+	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
+	int N = 0;
+	while (Base->Entries[N]) ++N;
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, N + 2, ml_value_t *);
+	Chained->Type = MLChainedT;
+	for (int I = 0; I < N; ++I) Chained->Entries[I] = Base->Entries[I];
+	Chained->Entries[N] = ml_symbol(ml_string_value(Args[1]));
+	return (ml_value_t *)Chained;
+}
+
 /****************************** Doubled ******************************/
 
 typedef struct {

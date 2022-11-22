@@ -3612,7 +3612,7 @@ ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, siz
 }
 
 ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ...) {
-#ifdef Linux
+#ifdef __GLIBC__
 	static cookie_io_functions_t CookieFns = {0,
 		.write = (cookie_write_function_t *)ml_stringbuffer_write
 	};

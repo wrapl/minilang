@@ -15,6 +15,10 @@ symbol
    *TBD*
 
 
+:mini:`meth (Arg₁: symbol) :: (Arg₂: string)`
+   *TBD*
+
+
 :mini:`meth (Arg₁: symbol) .. (Arg₂: symbol)`
    *TBD*
 

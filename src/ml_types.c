@@ -2765,6 +2765,10 @@ ML_METHOD("..", MLSymbolT, MLSymbolT) {
 	return (ml_value_t *)Range;
 }
 
+ML_METHOD("::", MLSymbolT, MLStringT) {
+	return ml_chainedv(2, Args[0], ml_symbol(ml_string_value(Args[1])));
+}
+
 // Init //
 //!general
 

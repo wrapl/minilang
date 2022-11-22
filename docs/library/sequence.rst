@@ -47,6 +47,10 @@ sequence
       F(10) :> 121
 
 
+:mini:`meth (Arg₁: chained)[...]`
+   *TBD*
+
+
 :mini:`meth (Base: function) -> (Function: function): chained`
    Returns a chained function equivalent to :mini:`Function(Base(...))`.
 
@@ -554,7 +558,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "c"
+      random("cake") :> "k"
       random([]) :> nil
 
 
