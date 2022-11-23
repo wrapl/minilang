@@ -66,6 +66,8 @@ if GCC_VERSION then
 	if not DEBUG then
 		CFLAGS := old + ["-fexpensive-optimizations"]
 	end
+else
+	CFLAGS := old + ["-Wno-initializer-overrides"]
 end
 
 PREBUILDS := old + [file("ml_config.h")]
