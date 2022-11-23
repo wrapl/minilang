@@ -553,11 +553,7 @@ ML_TYPE(MLMethodSwitchT, (MLFunctionT), "method-switch",
 
 ML_FUNCTION_INLINE(MLMethodSwitch) {
 //!internal
-	int Total = 1;
-	for (int I = 0; I < Count; ++I) {
-		ML_CHECK_ARG_TYPE(I, MLListT);
-		Total += ml_list_length(Args[I]);
-	}
+	for (int I = 0; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLListT);
 	ml_method_switch_t *Switch = new(ml_method_switch_t);
 	Switch->Type = MLMethodSwitchT;
 	for (int I = 0; I < Count; ++I) {

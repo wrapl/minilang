@@ -1377,7 +1377,7 @@ ML_METHOD("..", MLNumberT, MLNumberT, MLNumberT) {
 	Range->Start = ml_real_value(Args[0]);
 	Range->Limit = ml_real_value(Args[1]);
 	double Step = Range->Step = ml_real_value(Args[2]);
-	double C = (Range->Limit - Range->Start) / Step + 1;
+	long C = (Range->Limit - Range->Start) / Step + 1;
 	if (C > LONG_MAX) C = 0;
 	Range->Count = C;
 	return (ml_value_t *)Range;
@@ -1408,7 +1408,7 @@ ML_METHOD("by", MLRealRangeT, MLNumberT) {
 	double Start = Range->Start = Range0->Start;
 	double Limit = Range->Limit = Range0->Limit;
 	Range->Step = ml_real_value(Args[1]);
-	double C = (Limit - Start) / Range->Step + 1;
+	long C = (Limit - Start) / Range->Step + 1;
 	if (C > LONG_MAX) C = 0;
 	Range->Count = C;
 	return (ml_value_t *)Range;
@@ -1468,7 +1468,7 @@ ML_METHOD("by", MLIntegerRangeT, MLDoubleT) {
 	double Start = Range->Start = Range0->Start;
 	double Limit = Range->Limit = Range0->Limit;
 	double Step = Range->Step = ml_double_value_fast(Args[1]);
-	double C = (Limit - Start) / Step + 1;
+	long C = (Limit - Start) / Step + 1;
 	if (C > LONG_MAX) C = 0;
 	Range->Count = C;
 	return (ml_value_t *)Range;

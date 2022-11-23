@@ -2418,7 +2418,7 @@ static void ml_call_expr_compile(mlc_function_t *Function, mlc_parent_expr_t *Ex
 				return mlc_compile(Function, Child, 0);
 			}
 		}
-		if (!Flags & MLCF_PUSH) {
+		if (!(Flags & MLCF_PUSH)) {
 			MLC_EMIT(Expr->EndLine, MLI_POP, 0);
 			--Function->Top;
 		}

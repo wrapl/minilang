@@ -1190,11 +1190,7 @@ ML_TYPE(MLAnySwitchT, (MLFunctionT), "any-switch",
 
 ML_FUNCTION_INLINE(MLAnySwitch) {
 //!internal
-	int Total = 1;
-	for (int I = 0; I < Count; ++I) {
-		ML_CHECK_ARG_TYPE(I, MLListT);
-		Total += ml_list_length(Args[I]);
-	}
+	for (int I = 0; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLListT);
 	ml_any_switch_t *Switch = new(ml_any_switch_t);
 	Switch->Type = MLAnySwitchT;
 	for (int I = 0; I < Count; ++I) {
@@ -1247,7 +1243,7 @@ ML_FUNCTION(MLFindAll) {
 //>list
 // Returns a list of all unique values referenced by :mini:`Value` (including :mini:`Value`).
 	ML_CHECK_ARG_COUNT(1);
-	ml_find_refs_t FindRefs[1] = {ml_list(), MLAnyT, {INTHASH_INIT}};
+	ml_find_refs_t FindRefs[1] = {{ml_list(), MLAnyT, {INTHASH_INIT}}};
 	ml_value_find_fn RefFn = (ml_value_find_fn)ml_find_all_fn;
 	if (Count > 1) {
 		ML_CHECK_ARG_TYPE(1, MLTypeT);
@@ -2684,7 +2680,7 @@ ML_METHOD("add", MLExternalSetT, MLStringT, MLAnyT) {
 	return MLNil;
 }
 
-ml_externals_t MLExternals[1] = {MLExternalSetT, NULL, {INTHASH_INIT}, {STRINGMAP_INIT}};
+ml_externals_t MLExternals[1] = {{MLExternalSetT, NULL, {INTHASH_INIT}, {STRINGMAP_INIT}}};
 
 const char *ml_externals_get_name(ml_externals_t *Externals, ml_value_t *Value) {
 	while (Externals) {
