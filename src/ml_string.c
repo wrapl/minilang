@@ -3492,14 +3492,9 @@ ML_FUNCTION_INLINE(MLStringSwitch) {
 	return (ml_value_t *)Switch;
 }
 
-static void ml_stringbuffer_finalize(ml_stringbuffer_t *Buffer, void *Data) {
-	if (Buffer->File) fclose(Buffer->File);
-}
-
 ml_value_t *ml_stringbuffer() {
 	ml_stringbuffer_t *Buffer = new(ml_stringbuffer_t);
 	Buffer->Type = MLStringBufferT;
-	GC_register_finalizer(Buffer, (GC_finalization_proc)ml_stringbuffer_finalize, NULL, NULL, NULL);
 	return (ml_value_t *)Buffer;
 }
 
@@ -3612,24 +3607,29 @@ ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, siz
 }
 
 ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ...) {
-#ifdef __GLIBC__
-	static cookie_io_functions_t CookieFns = {0,
-		.write = (cookie_write_function_t *)ml_stringbuffer_write
-	};
-	if (!Buffer->File) {
-		Buffer->File = fopencookie(Buffer, "w", CookieFns);
-		setvbuf(Buffer->File, NULL, _IONBF, 0);
+	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
+	int Space = Buffer->Space;
+	if (!Space) {
+		Node = Node->Next = ml_stringbuffer_node();
+		Space = Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
+		Buffer->Tail = Node;
 	}
-#else
-	if (!Buffer->File) {
-		Buffer->File = fwopen(Buffer, (void *)ml_stringbuffer_write);
-		setvbuf(Buffer->File, NULL, _IONBF, 0);
-	}
-#endif
+	char *Chars = Node->Chars + ML_STRINGBUFFER_NODE_SIZE - Space;
 	va_list Args;
 	va_start(Args, Format);
-	size_t Length = vfprintf(Buffer->File, Format, Args);
+	int Length = vsnprintf(Chars, Space, Format, Args);
 	va_end(Args);
+	if (Length <= Space) {
+		Buffer->Space -= Length;
+	} else {
+		char *Chars = alloca(Length + 1);
+		va_list Args;
+		va_start(Args, Format);
+		vsprintf(Chars, Format, Args);
+		va_end(Args);
+		ml_stringbuffer_write(Buffer, Chars, Length);
+	}
+	Buffer->Length += Length;
 	return Length;
 }
 
@@ -3682,17 +3682,8 @@ static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
 	Tail->Next = StringBufferNodeCache;
 	StringBufferNodeCache = Head;
 #endif
-
-	if (Buffer->File) {
-		fclose(Buffer->File);
-		Buffer->File = NULL;
-	}
 	Buffer->Head = Buffer->Tail = NULL;
 	Buffer->Length = Buffer->Space = Buffer->Start = 0;
-	if (Buffer->File) {
-		fclose(Buffer->File);
-		Buffer->File = NULL;
-	}
 }
 
 char *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) {

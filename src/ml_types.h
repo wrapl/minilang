@@ -656,7 +656,6 @@ struct ml_stringbuffer_t {
 	ml_type_t *Type;
 	ml_stringbuffer_node_t *Head, *Tail;
 	ml_hash_chain_t *Chain;
-	FILE *File;
 	int Space, Length, Start, Index;
 };
 

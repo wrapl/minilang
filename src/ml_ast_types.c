@@ -545,6 +545,15 @@ static ml_value_t *l_mlc_local_t(mlc_local_t *Struct) {
 	return List;
 }
 
+static ml_value_t *ln_mlc_local_t(mlc_local_t *Struct, int Count) {
+	ml_value_t *List = ml_list();
+	for (int I = Count ?: 1; --I >= 0;) {
+		ml_list_put(List, a_mlc_local_t(Struct));
+		Struct = Struct->Next;
+	}
+	return List;
+}
+
 static ml_value_t *a_mlc_expr_t(ml_type_t *Class, mlc_expr_t *Struct) {
 	if (!Struct) return MLNil;
 	return ml_object(Class,
@@ -713,7 +722,7 @@ static ml_value_t *a_mlc_local_expr_t(ml_type_t *Class, mlc_local_expr_t *Struct
 		"source", ml_string(Struct->Source, -1),
 		"startline", ml_integer(Struct->StartLine),
 		"endline", ml_integer(Struct->EndLine),
-		"local", l_mlc_local_t(Struct->Local),
+		"local", ln_mlc_local_t(Struct->Local, Struct->Count),
 		"child", l_mlc_expr_t(Struct->Child),
 		"count", ml_integer(Struct->Count),
 	NULL);

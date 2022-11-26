@@ -231,6 +231,12 @@ with Output := file("src/ml_ast_types.c", "w") do
 					Output:write('l_mlc_expr_t(Struct->{FieldName})')
 				elseif FieldType = "ml_param_kind_t" then
 					Output:write('ml_enum_value(ParamKindT, Struct->{FieldName})')
+				elseif FieldType = "mlc_local_t *" then
+					if Struct:fields["Count"] then
+						Output:write('ln_{FieldType[1, -2]}(Struct->{FieldName}, Struct->Count)')
+					else
+						Output:write('l_{FieldType[1, -2]}(Struct->{FieldName})')
+					end
 				elseif let FieldStruct := Structs[FieldType[1, -2]] then
 					if FieldStruct:list then
 						Output:write('l_{FieldType[1, -2]}(Struct->{FieldName})')
@@ -259,6 +265,16 @@ with Output := file("src/ml_ast_types.c", "w") do
 			else
 				Output:write('\t\tml_list_put(List, a_{Name}(Struct));\n')
 			end
+			Output:write('\t\tStruct = Struct->Next;\n')
+			Output:write('\t}\n')
+			Output:write('\treturn List;\n')
+			Output:write("}\n\n")
+		end
+		if Name = "mlc_local_t" then
+			Output:write('static ml_value_t *ln_{Name}({Name} *Struct, int Count) \{\n')
+			Output:write("\tml_value_t *List = ml_list();\n")
+			Output:write("\tfor (int I = Count ?: 1; --I >= 0;) {\n");
+			Output:write('\t\tml_list_put(List, a_{Name}(Struct));\n')
 			Output:write('\t\tStruct = Struct->Next;\n')
 			Output:write('\t}\n')
 			Output:write('\treturn List;\n')
