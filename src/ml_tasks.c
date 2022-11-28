@@ -42,7 +42,7 @@ static void ml_task_set(ml_task_t *Task, ml_value_t *Value) {
 	Task->Value = Value;
 	if (Task->Waiter) {
 		for (ml_waiter_t *Waiter = Task->Waiters; Waiter; Waiter = Waiter->Next) {
-			Waiter->State->run(Waiter->State, Value);
+			ml_state_schedule(Waiter->State, Value);
 		}
 		Task->Waiter->run(Task->Waiter, Value);
 	}

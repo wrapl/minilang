@@ -189,8 +189,16 @@ extern ml_cfunction_t MLDebugger[];
 
 typedef struct {
 	uint64_t Counter;
-	void (*swap)(ml_state_t *State, ml_value_t *Value);
+	void (*add)(ml_state_t *State, ml_value_t *Value);
 } ml_schedule_t;
+
+static inline ml_schedule_t *ml_schedule(ml_context_t *Context) {
+	return (ml_schedule_t *)Context->Values[ML_SCHEDULER_INDEX];
+}
+
+static inline void ml_state_schedule(ml_state_t *State, ml_value_t *Value) {
+	ml_schedule(State->Context)->add(State, Value);
+}
 
 typedef struct {
 	ml_state_t *State;

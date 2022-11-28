@@ -140,10 +140,8 @@ struct DEBUG_STRUCT(frame) {
 static void DEBUG_FUNC(continuation_call)(ml_state_t *Caller, DEBUG_STRUCT(frame) *Frame, int Count, ml_value_t **Args) {
 	if (Frame->Suspend) ML_ERROR("StateError", "Cannot call suspended function");
 	Frame->Continue = 1;
-	Caller->run(Caller, MLNil);
-	//Frame->Base.Caller = Caller;
-	//Frame->Base.Context = Caller->Context;
-	return Frame->Base.run((ml_state_t *)Frame, Count ? Args[0] : MLNil);
+	ml_state_schedule((ml_state_t *)Frame, Count ? Args[0] : MLNil);
+	ML_RETURN(MLNil);
 }
 
 ML_TYPE(DEBUG_TYPE(Continuation), (MLStateT, MLSequenceT), "continuation",
@@ -1242,7 +1240,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		Frame->Line = Inst->Line;
 		Frame->Inst = Inst;
 		Frame->Top = Top;
-		return Frame->Schedule->swap((ml_state_t *)Frame, Result);
+		return Frame->Schedule->add((ml_state_t *)Frame, Result);
 	}
 #endif
 }

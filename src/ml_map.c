@@ -682,7 +682,7 @@ static void ml_node_state_run(ml_map_node_state_t *State, ml_value_t *Value) {
 		Value = (ml_value_t *)State->Node;
 	}
 	for (ml_map_node_waiter_t *Waiter = State->Waiters; Waiter; Waiter = Waiter->Next) {
-		Waiter->Caller->run(Waiter->Caller, Value);
+		ml_state_schedule(Waiter->Caller, Value);
 	}
 	ML_CONTINUE(State->Base.Caller, Value);
 }

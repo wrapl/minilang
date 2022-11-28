@@ -161,7 +161,7 @@ static void *ml_thread_fn(ml_thread_t *Thread) {
 #ifdef ML_SCHEDULER
 	ml_scheduler_queue_init(8);
 	Thread->Schedule.Counter = 256;
-	Thread->Schedule.swap = (void *)ml_scheduler_queue_add_signal;
+	Thread->Schedule.add = (void *)ml_scheduler_queue_add_signal;
 	ml_context_set(Context, ML_SCHEDULER_INDEX, &Thread->Schedule);
 #endif
 	ml_context_set(Context, ML_THREAD_INDEX, Thread);
