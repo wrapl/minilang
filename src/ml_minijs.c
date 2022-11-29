@@ -831,7 +831,10 @@ ML_METHOD(MinijsDecode, MLStringT, MLExternalSetT) {
 	return ml_minijs_decode(Decoder, Json);
 }
 
+static void nop_free(void *Ptr) {}
+
 void ml_minijs_init(stringmap_t *Globals) {
+	json_set_alloc_funcs(GC_malloc, nop_free);
 	stringmap_insert(Decoders, "^", ml_minijs_decode_global);
 	stringmap_insert(Decoders, "blank", ml_minijs_decode_blank);
 	stringmap_insert(Decoders, "_", ml_minijs_decode_blank);
