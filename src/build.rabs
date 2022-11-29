@@ -457,11 +457,12 @@ if MINILANG_TIME then
 end
 
 if MINILANG_TIMEZONES then
-	let TIMELIB := file("timelib/timelib.a") => fun(Target) do
+	let Header := file("timelib_mem.h")
+	let TIMELIB := file("timelib/timelib.a")[Header] => fun(Target) do
 		file("timelib"):rmdir
 		execute("git clone https://github.com/derickr/timelib.git", Dir)
 		file("timelib"):chdir
-		execute('make timelib.a FLAGS=\"{CFLAGS} -DHAVE_STDINT_H -DHAVE_GETTIMEOFDAY -DHAVE_UNISTD_H -DHAVE_DIRENT_H -I. --include {file("timelib_mem.h")}\"')
+		execute('make timelib.a FLAGS=\"{CFLAGS} -DHAVE_STDINT_H -DHAVE_GETTIMEOFDAY -DHAVE_UNISTD_H -DHAVE_DIRENT_H -I. --include {Header}\"')
 	end
 	PREBUILDS := old + [TIMELIB]
 	CFLAGS := old + ["-DML_TIMEZONES"]
