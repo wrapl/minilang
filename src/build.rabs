@@ -441,7 +441,7 @@ if MINILANG_TRE then
 	PREBUILDS := old + [Lib]
 	CFLAGS := old + ["-DML_TRE", '-I{Dir / "lib"}']
 	:>LDFLAGS := old + ["-ltre"]
-	LDFLAGS := old + [Lib]
+	Libraries:put(Lib)
 end
 
 if MINILANG_PQUEUES then
