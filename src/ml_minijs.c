@@ -71,6 +71,17 @@ static json_t *ML_TYPED_FN(ml_minijs_encode, MLMethodT, ml_minijs_encoder_t *Enc
 	return json_pack("[ss]", ":", ml_method_name(Value));
 }
 
+static json_t *ML_TYPED_FN(ml_minijs_encode, MLTupleT, ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
+	json_t *Json = json_array();
+	json_array_append_new(Json, json_string("()"));
+	inthash_insert(Encoder->Cached, (uintptr_t)Value, Json);
+	int Size = ml_tuple_size(Value);
+	for (int I = 1; I <= Size; ++I) {
+		json_array_append_new(Json, ml_minijs_encode(Encoder, ml_tuple_get(Value, I)));
+	}
+	return Json;
+}
+
 static json_t *ML_TYPED_FN(ml_minijs_encode, MLListT, ml_minijs_encoder_t *Encoder, ml_list_t *Value) {
 	json_t *Json = json_array();
 	json_array_append_new(Json, json_string("l"));
