@@ -6610,7 +6610,6 @@ void ml_command_evaluate(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t 
 	}
 }
 
-#ifdef __MINGW32__
 static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
 	char Buffer[129];
 	if (fgets(Buffer, 129, File) == NULL) return -1;
@@ -6625,18 +6624,13 @@ static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {
 		return Offset + Length;
 	}
 }
-#endif
 
 const char *ml_load_file_read(void *Data) {
 	FILE *File = (FILE *)Data;
 	char *Line = NULL;
 	size_t Length = 0;
-#ifdef __MINGW32__
 	Length = ml_read_line(File, 0, &Line);
 	if (Length < 0) return NULL;
-#else
-	if (getline(&Line, &Length, File) < 0) return NULL;
-#endif
 	return Line;
 }
 

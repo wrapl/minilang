@@ -1790,11 +1790,11 @@ static void method_register(const char *Name, GIFunctionInfo *Info, object_t *Ob
 	for (int I = 0; I < NArgs; ++I) {
 		GIArgInfo *ArgInfo = g_callable_info_get_arg((GICallableInfo *)Info, I);
 		int ClosureArg = g_arg_info_get_closure(ArgInfo);
-		if (ClosureArg >= 0) continue;
+		if (ClosureArg >= 0) goto done;
 		GITypeInfo TypeInfo[1];
 		g_arg_info_load_type(ArgInfo, TypeInfo);
 		int LengthIndex = g_type_info_get_array_length(TypeInfo);
-		if (LengthIndex >= 0) continue;
+		if (LengthIndex >= 0) goto done;
 		GITypeTag Tag = g_type_info_get_tag(TypeInfo);
 		switch (g_arg_info_get_direction(ArgInfo)) {
 		case GI_DIRECTION_IN:
@@ -1802,6 +1802,7 @@ static void method_register(const char *Name, GIFunctionInfo *Info, object_t *Ob
 			if (Tag == GI_TYPE_TAG_INTERFACE) {
 				GIBaseInfo *InterfaceInfo = g_type_info_get_interface(TypeInfo);
 				if (!g_base_info_equal(InterfaceInfo, DestroyNotifyInfo)) ++NArgsIn;
+				g_base_info_unref(InterfaceInfo);
 			} else {
 				++NArgsIn;
 			}
@@ -1810,6 +1811,8 @@ static void method_register(const char *Name, GIFunctionInfo *Info, object_t *Ob
 			if (g_arg_info_is_caller_allocates(ArgInfo)) ++NArgsIn;
 			break;
 		}
+	done:
+		g_base_info_unref(ArgInfo);
 	}
 	++NArgsIn;
 	ml_type_t *Types[NArgsIn];
