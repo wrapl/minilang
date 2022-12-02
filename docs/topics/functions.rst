@@ -47,9 +47,39 @@ When a closure is called, the supplied arguments are bound to the function param
 Calling Functions
 -----------------
 
-Functions are called in *Minilang* using traditional postfix notation.
+Functions are called in *Minilang* using traditional postfix notation. Named arguments are passed using :mini:`Name is Value`, where :mini:`Name` is an identifier or a string.
+
+.. parser-rule-diagram:: term '(' ( expression ( ',' expression )* )? ( ',' ( identifier | string ) 'is' expression )* ')'
+
+.. code-block:: mini
+
+   test("Hello world\n", option is true)
+
+If the last argument is an anonymous function, :mini:`;` can be used to denote the end of the arguments and the start of the parameters of the anonymous function, with the body of the anonymous function then placed after call.
+
+.. code-block:: mini
+
+   array::int32([4, 3]; I, J) I * 10 + J
 
 Partial Functions
 -----------------
 
-Simple functions can be written in *Minilang* using blank expressions, written as a single underscore :mini:`_`.
+Simple functions can be written in *Minilang* using blank expressions, written as a single underscore :mini:`_`. Specifying :mini:`_` as one or more arguments in a function call results in a partial function instead.
+
+.. code-block:: mini
+
+   let print_line := print("<", _, ">\n")
+   
+   print_line("Hello world")
+
+.. code-block:: console
+
+   <Hello world>
+
+Since infix and indexing operations are also function calls, they can also be used with :mini:`_` to create partial functions.
+
+.. code-block:: mini
+
+   _ + 1
+   _[1]
+

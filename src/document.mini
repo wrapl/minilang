@@ -66,6 +66,10 @@ fun type_name(var Type) do
 		"gir::" + Match[2]:lower:trim(":")
 	elseif let Match := Type % r"^XE(.*)T$" then
 		"xe::" + Match[2]:lower:trim(":")
+	elseif let Match := Type % r"^Ast(.+)ExprT$" then
+		"ast::expr::" + Match[2]:lower:trim(":")
+	elseif let Match := Type % r"^Ast(.*)T$" then
+		"ast::" + Match[2]:lower:trim(":")
 	elseif let Match := Type % r"^(.*)T$" then
 		Match[2]:lower:trim(":")
 	else

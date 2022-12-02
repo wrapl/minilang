@@ -4394,6 +4394,7 @@ static mlc_expr_t *ml_accept_fun_expr(ml_parser_t *Parser, const char *Name, ml_
 						Param->Kind = ML_PARAM_BYREF;
 					} else if (ml_parse2(Parser, MLT_VAR)) {
 						Param->Kind = ML_PARAM_ASVAR;
+					} else if (ml_parse2(Parser, MLT_LET)) {
 					}
 					ml_accept(Parser, MLT_IDENT);
 					Param->Ident = Parser->Ident;
@@ -4501,6 +4502,7 @@ static mlc_expr_t *ml_accept_meth_expr(ml_parser_t *Parser) {
 						Param->Kind = ML_PARAM_BYREF;
 					} else if (ml_parse2(Parser, MLT_VAR)) {
 						Param->Kind = ML_PARAM_ASVAR;
+					} else if (ml_parse2(Parser, MLT_LET)) {
 					}
 					ml_accept(Parser, MLT_IDENT);
 					Param->Ident = Parser->Ident;

@@ -45,3 +45,17 @@ General Guards
 Other than simply checking for :mini:`nil`, guarded arguments can also check their preceeding expression for arbitrarily complex conditions by including another expression inside the braces. Within the braces, the keyword :mini:`it` refers to the value of the preceeding expression.
 
 .. parser-rule-diagram:: expression '{' expression '}'
+
+.. code-block:: mini
+
+   for I in 1 .. 10 do
+      print("I = ", I{2 | it}, "\n")
+   end
+
+.. code-block:: console
+
+   I = 2
+   I = 4
+   I = 6
+   I = 8
+   I = 10

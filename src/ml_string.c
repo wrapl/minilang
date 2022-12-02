@@ -3636,7 +3636,7 @@ ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ..
 void ml_stringbuffer_put(ml_stringbuffer_t *Buffer, char Char) {
 	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
 	if (!Buffer->Space) {
-		Node = Node->Next = ml_stringbuffer_node();;
+		Node = Node->Next = ml_stringbuffer_node();
 		Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
 	}
 	Node->Chars[ML_STRINGBUFFER_NODE_SIZE - Buffer->Space] = Char;

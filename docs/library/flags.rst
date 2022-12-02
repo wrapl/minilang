@@ -22,7 +22,7 @@ flags
 
       let mode := flags("Read", "Write", "Execute") :> <<mode>>
       mode::Read :> Read
-      mode::Read + mode::Write :> Write|Read
+      mode::Read + mode::Write :> Write,Read
 
 
 :mini:`meth flags(Name₁ is Value₁, ...): flags`
@@ -34,7 +34,17 @@ flags
       let mode := flags(Read is 1, Write is 4, Execute is 32)
       :> <<mode>>
       mode::Read :> Read
-      mode::Read + mode::Write :> Write|Read
+      mode::Read + mode::Write :> Write,Read
+
+
+.. _type-flags-spec:
+
+:mini:`type flags::spec`
+   A pair of flag sets for including and excluding flags.
+
+
+:mini:`meth (Arg₁: string::buffer):append(Arg₂: flags::spec)`
+   *TBD*
 
 
 .. _type-flags-value:
@@ -49,7 +59,7 @@ flags
    .. code-block:: mini
 
       let mode := flags("Read", "Write", "Execute") :> <<mode>>
-      mode::Read + mode::Write :> Write|Read
+      mode::Read + mode::Write :> Write,Read
 
 
 :mini:`meth (Flags₁: flags::value) - (Flags₂: flags::value): flags::value`
@@ -61,6 +71,14 @@ flags
       mode("Read", "Write") - mode::Write :> Read
 
 
+:mini:`meth /(Flags: flags::value): flags::spec`
+   *TBD*
+
+
+:mini:`meth (Flags₁: flags::value) / (Flags₂: flags::value): flags::spec`
+   *TBD*
+
+
 :mini:`meth (Flags₁: flags::value) < (Flags₂: flags::value): flags::value`
    Returns the :mini:`Flags₂` if it contains all of :mini:`Flags₁`. :mini:`Flags₁` and :mini:`Flags₂` must have the same flags type.
 
@@ -68,7 +86,7 @@ flags
 
       let mode := flags("Read", "Write", "Execute") :> <<mode>>
       mode("Read", "Write") < mode("Read", "Write", "Execute")
-      :> Write|Read|Execute
+      :> Write,Read,Execute
       mode("Read", "Write", "Execute") < mode("Read", "Write")
       :> nil
 
@@ -80,7 +98,7 @@ flags
 
       let mode := flags("Read", "Write", "Execute") :> <<mode>>
       mode("Read", "Write") <= mode("Read", "Write", "Execute")
-      :> Write|Read|Execute
+      :> Write,Read,Execute
       mode("Read", "Write", "Execute") <= mode("Read", "Write")
       :> nil
 
@@ -94,7 +112,7 @@ flags
       mode("Read", "Write") > mode("Read", "Write", "Execute")
       :> nil
       mode("Read", "Write", "Execute") > mode("Read", "Write")
-      :> Write|Read
+      :> Write,Read
 
 
 :mini:`meth (Flags₁: flags::value) >= (Flags₂: flags::value): flags::value`
@@ -106,7 +124,11 @@ flags
       mode("Read", "Write") >= mode("Read", "Write", "Execute")
       :> nil
       mode("Read", "Write", "Execute") >= mode("Read", "Write")
-      :> Write|Read
+      :> Write,Read
+
+
+:mini:`meth (Flags: flags::value):in(Spec: flags::spec)`
+   *TBD*
 
 
 :mini:`meth list(Arg₁: flags::value)`

@@ -41,8 +41,6 @@ ml_value_t *ml_field_fn(void *Data, int Count, ml_value_t **Args) {
 ML_INTERFACE(MLObjectT, (), "object");
 // Parent type of all object classes.
 
-
-
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Object;
@@ -967,7 +965,10 @@ typedef struct {
 	ml_value_t *Names[];
 } ml_flags_t;
 
-typedef ml_integer_t ml_flags_value_t;
+typedef struct {
+	ml_type_t *Type;
+	uint64_t Value;
+} ml_flags_value_t;
 
 static void ml_flags_call(ml_state_t *Caller, ml_flags_t *Flags, int Count, ml_value_t **Args) {
 	ml_flags_value_t *Value = new(ml_flags_value_t);
@@ -1011,7 +1012,7 @@ typedef struct {
 static int ml_flags_value_append(const char *Name, ml_flags_value_t *Flags, ml_flags_value_append_t *Append) {
 	if ((Append->Value & Flags->Value) == Flags->Value) {
 		ml_stringbuffer_t *Buffer = Append->Buffer;
-		if (Buffer->Length > Append->Length) ml_stringbuffer_put(Buffer, '|');
+		if (Buffer->Length > Append->Length) ml_stringbuffer_put(Buffer, ',');
 		ml_stringbuffer_write(Buffer, Name, strlen(Name));
 	}
 	return 0;
@@ -1022,6 +1023,35 @@ ML_METHOD("append", MLStringBufferT, MLFlagsValueT) {
 	ml_flags_value_t *Value = (ml_flags_value_t *)Args[1];
 	ml_flags_value_append_t Append[1] = {{Buffer, Value->Value, Buffer->Length}};
 	stringmap_foreach(Value->Type->Exports, Append, (void *)ml_flags_value_append);
+	return Buffer->Length > Append->Length ? MLSome : MLNil;
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_flags_t *Flags;
+	uint64_t Include;
+	uint64_t Exclude;
+} ml_flags_spec_t;
+
+ML_TYPE(MLFlagsSpecT, (), "flag-spec");
+//@flags::spec
+// A pair of flag sets for including and excluding flags.
+
+ML_METHOD("append", MLStringBufferT, MLFlagsSpecT) {
+	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
+	ml_flags_spec_t *Value = (ml_flags_spec_t *)Args[1];
+	ml_stringbuffer_put(Buffer, '(');
+	ml_flags_value_append_t Append[1] = {{Buffer, Value->Include, Buffer->Length}};
+	stringmap_foreach(Value->Flags->Base.Exports, Append, (void *)ml_flags_value_append);
+	if (Value->Exclude == ~Value->Include) {
+		ml_stringbuffer_write(Buffer, "/*", 2);
+	} else if (Value->Exclude) {
+		ml_stringbuffer_put(Buffer, '/');
+		Append->Value = Value->Exclude;
+		Append->Length = Buffer->Length;
+		stringmap_foreach(Value->Flags->Base.Exports, Append, (void *)ml_flags_value_append);
+	}
+	ml_stringbuffer_put(Buffer, ')');
 	return Buffer->Length > Append->Length ? MLSome : MLNil;
 }
 
@@ -1160,12 +1190,12 @@ static void ML_TYPED_FN(ml_value_set_name, MLFlagsT, ml_flags_t *Flags, const ch
 ml_value_t *ml_flags_value(ml_type_t *Type, uint64_t Flags) {
 	ml_flags_value_t *Value = new(ml_flags_value_t);
 	Value->Type = Type;
-	Value->Value = (int64_t)Flags;
+	Value->Value = Flags;
 	return (ml_value_t *)Value;
 }
 
 uint64_t ml_flags_value_value(ml_value_t *Value) {
-	return (uint64_t)((ml_flags_value_t *)Value)->Value;
+	return ((ml_flags_value_t *)Value)->Value;
 }
 
 const char *ml_flags_value_name(ml_value_t *Value) {
@@ -1350,6 +1380,48 @@ ML_METHOD(">=", MLFlagsValueT, MLFlagsValueT) {
 		return Args[1];
 	} else {
 		return MLNil;
+	}
+}
+
+ML_METHOD("/", MLFlagsValueT, MLFlagsValueT) {
+//<Flags/1
+//<Flags/2
+//>flags::spec
+	ml_flags_value_t *A = (ml_flags_value_t *)Args[0];
+	ML_CHECK_ARG_TYPE(1, A->Type);
+	ml_flags_value_t *B = (ml_flags_value_t *)Args[1];
+	ml_flags_spec_t *Spec = new(ml_flags_spec_t);
+	Spec->Type = MLFlagsSpecT;
+	Spec->Flags = (ml_flags_t *)A->Type;
+	Spec->Include = A->Value;
+	Spec->Exclude = B->Value;
+	return (ml_value_t *)Spec;
+}
+
+ML_METHOD("/", MLFlagsValueT) {
+//<Flags
+//>flags::spec
+	ml_flags_value_t *A = (ml_flags_value_t *)Args[0];
+	ml_flags_spec_t *Spec = new(ml_flags_spec_t);
+	Spec->Type = MLFlagsSpecT;
+	Spec->Flags = (ml_flags_t *)A->Type;
+	Spec->Include = A->Value;
+	Spec->Exclude = ~A->Value;
+	return (ml_value_t *)Spec;
+}
+
+ML_METHOD("in", MLFlagsValueT, MLFlagsSpecT) {
+//<Flags
+//<Spec
+	ml_flags_spec_t *Spec = (ml_flags_spec_t *)Args[1];
+	ML_CHECK_ARG_TYPE(0, ((ml_type_t *)Spec->Flags));
+	ml_flags_value_t *Flags = (ml_flags_value_t *)Args[0];
+	if ((Flags->Value & Spec->Include) != Spec->Include) {
+		return MLNil;
+	} else if (Flags->Value & Spec->Exclude) {
+		return MLNil;
+	} else {
+		return (ml_value_t *)Flags;
 	}
 }
 
