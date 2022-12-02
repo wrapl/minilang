@@ -114,7 +114,7 @@ typedef struct DEBUG_STRUCT(frame) DEBUG_STRUCT(frame);
 struct DEBUG_STRUCT(frame) {
 	ml_state_t Base;
 	union {
-		void *Next;
+		ml_frame_t *Next;
 		ml_inst_t *Inst;
 	};
 	ml_value_t **Top;
@@ -310,7 +310,7 @@ extern ml_value_t *SymbolMethod;
 				MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE); \
 			} \
 			Frame->Next = MLCachedFrame->Next; \
-			MLCachedFrame->Next = Frame; \
+			MLCachedFrame->Next = (ml_frame_t *)Frame; \
 			ML_CACHED_FRAME_UNLOCK(); \
 			return ml_call(Frame->Base.Caller, Function, COUNT, Args); \
 		} else { \
@@ -341,7 +341,7 @@ extern ml_value_t *SymbolMethod;
 				MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE); \
 			} \
 			Frame->Next = MLCachedFrame->Next; \
-			MLCachedFrame->Next = Frame; \
+			MLCachedFrame->Next = (ml_frame_t *)Frame; \
 			ML_CACHED_FRAME_UNLOCK(); \
 			return ml_call(Frame->Base.Caller, Function, COUNT, Args); \
 		} else { \
@@ -414,7 +414,7 @@ extern ml_value_t *SymbolMethod;
 				MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE); \
 			} \
 			Frame->Next = MLCachedFrame->Next; \
-			MLCachedFrame->Next = Frame; \
+			MLCachedFrame->Next = (ml_frame_t *)Frame; \
 			ML_CACHED_FRAME_UNLOCK(); \
 			return ml_call(Frame->Base.Caller, Function, COUNT, Args); \
 		} else { \
@@ -861,7 +861,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 				MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE);
 			}
 			Frame->Next = MLCachedFrame->Next;
-			MLCachedFrame->Next = Frame;
+			MLCachedFrame->Next = (ml_frame_t *)Frame;
 			ML_CACHED_FRAME_UNLOCK();
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		} else {
@@ -897,7 +897,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 				MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE);
 			}
 			Frame->Next = MLCachedFrame->Next;
-			MLCachedFrame->Next = Frame;
+			MLCachedFrame->Next = (ml_frame_t *)Frame;
 			ML_CACHED_FRAME_UNLOCK();
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		} else {
@@ -975,7 +975,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 				MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE);
 			}
 			Frame->Next = MLCachedFrame->Next;
-			MLCachedFrame->Next = Frame;
+			MLCachedFrame->Next = (ml_frame_t *)Frame;
 			ML_CACHED_FRAME_UNLOCK();
 			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		} else {
