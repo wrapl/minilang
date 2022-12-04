@@ -159,9 +159,9 @@ static void *ml_thread_fn(ml_thread_t *Thread) {
 	CurrentThread = Thread;
 	ml_context_t *Context = Thread->Base.Context;
 #ifdef ML_SCHEDULER
-	ml_scheduler_queue_init(8);
+	ml_default_queue_init(8);
 	Thread->Schedule.Counter = 256;
-	Thread->Schedule.add = (void *)ml_scheduler_queue_add_signal;
+	Thread->Schedule.add = (void *)ml_default_queue_add_signal;
 	ml_context_set(Context, ML_SCHEDULER_INDEX, &Thread->Schedule);
 #endif
 	ml_context_set(Context, ML_THREAD_INDEX, Thread);
@@ -171,7 +171,7 @@ static void *ml_thread_fn(ml_thread_t *Thread) {
 	Thread->Count = 0;
 	ml_call((ml_state_t *)Thread, Args[Count - 1], Count - 1, Args);
 	while (!Thread->Result) {
-		ml_queued_state_t QueuedState = ml_scheduler_queue_next_wait();
+		ml_queued_state_t QueuedState = ml_default_queue_next_wait();
 		Thread->Schedule.Counter = 256;
 		QueuedState.State->run(QueuedState.State, QueuedState.Value);
 	}

@@ -2425,7 +2425,7 @@ void ml_gir_queue_add(ml_state_t *State, ml_value_t *Value);
 ml_schedule_t GirSchedule[1] = {{256, ml_gir_queue_add}};
 
 static gboolean ml_gir_queue_run(void *Data) {
-	ml_queued_state_t QueuedState = ml_scheduler_queue_next();
+	ml_queued_state_t QueuedState = ml_default_queue_next_wait();
 	if (!QueuedState.State) return FALSE;
 	GirSchedule->Counter = 256;
 	QueuedState.State->run(QueuedState.State, QueuedState.Value);
@@ -2433,7 +2433,7 @@ static gboolean ml_gir_queue_run(void *Data) {
 }
 
 void ml_gir_queue_add(ml_state_t *State, ml_value_t *Value) {
-	if (ml_scheduler_queue_add(State, Value) == 1) g_idle_add(ml_gir_queue_run, NULL);
+	if (ml_default_queue_add(State, Value) == 1) g_idle_add(ml_gir_queue_run, NULL);
 }
 
 static ptrset_t SleepSet[1] = {PTRSET_INIT};

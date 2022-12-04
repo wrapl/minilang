@@ -911,7 +911,7 @@ __thread
 
 ml_scheduler_queue_t Queue[1];
 
-void ml_scheduler_queue_init(int Size) {
+void ml_default_queue_init(int Size) {
 	Queue->Size = Size;
 	Queue->States = anew(ml_queued_state_t, Size);
 #ifdef ML_THREADS
@@ -920,7 +920,7 @@ void ml_scheduler_queue_init(int Size) {
 #endif
 }
 
-ml_queued_state_t ml_scheduler_queue_next() {
+ml_queued_state_t ml_default_queue_next() {
 	ml_queued_state_t Next = {NULL, NULL};
 #ifdef ML_THREADS
 	pthread_mutex_lock(Queue->Lock);
@@ -939,7 +939,7 @@ ml_queued_state_t ml_scheduler_queue_next() {
 	return Next;
 }
 
-int ml_scheduler_queue_add(ml_state_t *State, ml_value_t *Value) {
+int ml_default_queue_add(ml_state_t *State, ml_value_t *Value) {
 #ifdef ML_THREADS
 	pthread_mutex_lock(Queue->Lock);
 #endif
@@ -964,7 +964,7 @@ int ml_scheduler_queue_add(ml_state_t *State, ml_value_t *Value) {
 
 #ifdef ML_THREADS
 
-ml_queued_state_t ml_scheduler_queue_next_wait() {
+ml_queued_state_t ml_default_queue_next_wait() {
 	pthread_mutex_lock(Queue->Lock);
 	while (!Queue->Fill) pthread_cond_wait(Queue->Available, Queue->Lock);
 	ml_queued_state_t *States = Queue->States;
@@ -977,8 +977,8 @@ ml_queued_state_t ml_scheduler_queue_next_wait() {
 	return QueuedState;
 }
 
-void ml_scheduler_queue_add_signal(ml_state_t *State, ml_value_t *Value) {
-	if (ml_scheduler_queue_add(State, Value) == 1) pthread_cond_signal(Queue->Available);
+void ml_default_queue_add_signal(ml_state_t *State, ml_value_t *Value) {
+	if (ml_default_queue_add(State, Value) == 1) pthread_cond_signal(Queue->Available);
 }
 
 #endif

@@ -3619,8 +3619,9 @@ ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ..
 	va_start(Args, Format);
 	int Length = vsnprintf(Chars, Space, Format, Args);
 	va_end(Args);
-	if (Length <= Space) {
+	if (Length < Space) {
 		Buffer->Space -= Length;
+		Buffer->Length += Length;
 	} else {
 		char *Chars = alloca(Length + 1);
 		va_list Args;
@@ -3629,7 +3630,6 @@ ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ..
 		va_end(Args);
 		ml_stringbuffer_write(Buffer, Chars, Length);
 	}
-	Buffer->Length += Length;
 	return Length;
 }
 
