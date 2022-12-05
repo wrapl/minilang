@@ -217,8 +217,8 @@ extern ml_cfunctionx_t MLAtomic[];
 ml_queued_state_t ml_default_queue_next_wait();
 void ml_default_queue_add_signal(ml_state_t *State, ml_value_t *Value);
 #else
-#define ml_default_queue_next_wait ml_scheduler_queue_next
-#define ml_default_queue_add_signal ml_scheduler_queue_add
+#define ml_default_queue_next_wait ml_default_queue_next
+#define ml_default_queue_add_signal ml_default_queue_add
 #endif
 
 // Locks
