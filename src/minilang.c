@@ -86,7 +86,7 @@
 
 static stringmap_t Globals[1] = {STRINGMAP_INIT};
 
-static ml_value_t *global_get(void *Data, const char *Name) {
+static ml_value_t *global_get(void *Data, const char *Name, const char *Source, int Line) {
 	return stringmap_search(Globals, Name);
 }
 
@@ -404,7 +404,7 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_GTK_CONSOLE
 	if (GtkConsole) {
-		gtk_console_t *Console = gtk_console(&MLRootContext, (ml_getter_t)stringmap_search, Globals);
+		gtk_console_t *Console = gtk_console(&MLRootContext, (ml_getter_t)stringmap_global_get, Globals);
 		gtk_console_show(Console, NULL);
 		if (FileName) gtk_console_load_file(Console, FileName, Args);
 		if (Command) gtk_console_evaluate(Console, Command);
@@ -444,7 +444,7 @@ int main(int Argc, const char *Argv[]) {
 		ml_parser_input(Parser, Command);
 		ml_command_evaluate(Main, Parser, Compiler);
 	} else {
-		ml_console(&MLRootContext, (ml_getter_t)stringmap_search, Globals, "--> ", "... ");
+		ml_console(&MLRootContext, (ml_getter_t)stringmap_global_get, Globals, "--> ", "... ");
 	}
 	return 0;
 }

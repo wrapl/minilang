@@ -92,7 +92,7 @@ typedef struct {
 extern ml_type_t MLReferenceT[];
 extern ml_type_t MLUninitializedT[];
 
-typedef ml_value_t *(*ml_getter_t)(void *Globals, const char *Name);
+typedef ml_value_t *(*ml_getter_t)(void *Globals, const char *Name, const char *Source, int Line);
 typedef ml_value_t *(*ml_setter_t)(void *Globals, const char *Name, ml_value_t *Value);
 
 typedef struct ml_reference_t ml_reference_t;

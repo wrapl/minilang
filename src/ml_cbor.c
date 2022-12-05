@@ -131,7 +131,7 @@ struct ml_cbor_reader_t {
 	tag_t *Tags;
 	ml_value_t *Value;
 	ml_cbor_tag_fns_t *TagFns;
-	ml_getter_t GlobalGet;
+	ml_external_fn_t GlobalGet;
 	void *Globals;
 	ml_value_t **Reused;
 	minicbor_reader_t Reader[1];
@@ -146,14 +146,14 @@ int ml_cbor_setting() {
 	return NumCborSettings++;
 }
 
-ml_cbor_reader_t *ml_cbor_reader(ml_cbor_tag_fns_t *TagFns, ml_getter_t GlobalGet, void *Globals) {
+ml_cbor_reader_t *ml_cbor_reader(ml_cbor_tag_fns_t *TagFns, ml_external_fn_t GlobalGet, void *Globals) {
 	ml_cbor_reader_t *Reader = xnew(ml_cbor_reader_t, NumCborSettings, void *);
 	Reader->TagFns = TagFns ?: DefaultTagFns;
 	if (GlobalGet) {
 		Reader->GlobalGet = GlobalGet;
 		Reader->Globals = Globals;
 	} else {
-		Reader->GlobalGet = (ml_getter_t)ml_externals_get_value;
+		Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 		Reader->Globals = MLExternals;
 	}
 	Reader->NumSettings = NumCborSettings;
@@ -447,7 +447,7 @@ void ml_cbor_read_error_fn(ml_cbor_reader_t *Reader, int Position, const char *M
 ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 	ml_cbor_reader_t Reader[1];
 	Reader->TagFns = TagFns ?: DefaultTagFns;
-	Reader->GlobalGet = (ml_getter_t)ml_externals_get_value;
+	Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 	Reader->Globals = MLExternals;
 	Reader->Reused = NULL;
 	Reader->NumReused = Reader->MaxReused = 0;
@@ -466,7 +466,7 @@ ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 	ml_cbor_reader_t Reader[1];
 	Reader->TagFns = TagFns ?: DefaultTagFns;
-	Reader->GlobalGet = (ml_getter_t)ml_externals_get_value;
+	Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 	Reader->Globals = MLExternals;
 	Reader->Reused = NULL;
 	Reader->NumReused = Reader->MaxReused = 0;
@@ -489,7 +489,7 @@ ML_METHOD(CborDecode, MLAddressT) {
 // Decode :mini:`Bytes` into a Minilang value, or return an error if :mini:`Bytes` contains invalid CBOR or cannot be decoded into a Minilang value.
 	ml_cbor_reader_t Reader[1];
 	Reader->TagFns = DefaultTagFns;
-	Reader->GlobalGet = (ml_getter_t)ml_externals_get_value;
+	Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 	Reader->Globals = MLExternals;
 	Reader->Reused = NULL;
 	Reader->NumReused = Reader->MaxReused = 0;
@@ -519,7 +519,7 @@ ML_METHOD(CborDecode, MLAddressT, MLMapT) {
 // Decode :mini:`Bytes` into a Minilang value, or return an error if :mini:`Bytes` contains invalid CBOR or cannot be decoded into a Minilang value.
 	ml_cbor_reader_t Reader[1];
 	Reader->TagFns = DefaultTagFns;
-	Reader->GlobalGet = (ml_getter_t)ml_cbor_global_get_map;
+	Reader->GlobalGet = (ml_external_fn_t)ml_cbor_global_get_map;
 	Reader->Globals = Args[1];
 	Reader->Reused = NULL;
 	Reader->NumReused = Reader->MaxReused = 0;
@@ -549,7 +549,7 @@ ML_METHOD(CborDecode, MLAddressT, MLFunctionT) {
 // Decode :mini:`Bytes` into a Minilang value, or return an error if :mini:`Bytes` contains invalid CBOR or cannot be decoded into a Minilang value.
 	ml_cbor_reader_t Reader[1];
 	Reader->TagFns = DefaultTagFns;
-	Reader->GlobalGet = (ml_getter_t)ml_cbor_global_get_fn;
+	Reader->GlobalGet = (ml_external_fn_t)ml_cbor_global_get_fn;
 	Reader->Globals = Args[1];
 	Reader->Reused = NULL;
 	Reader->NumReused = Reader->MaxReused = 0;
@@ -573,7 +573,7 @@ ML_METHOD(CborDecode, MLAddressT, MLExternalSetT) {
 // Decode :mini:`Bytes` into a Minilang value, or return an error if :mini:`Bytes` contains invalid CBOR or cannot be decoded into a Minilang value.
 	ml_cbor_reader_t Reader[1];
 	Reader->TagFns = DefaultTagFns;
-	Reader->GlobalGet = (ml_getter_t)ml_externals_get_value;
+	Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 	Reader->Globals = Args[1];
 	Reader->Reused = NULL;
 	Reader->NumReused = Reader->MaxReused = 0;

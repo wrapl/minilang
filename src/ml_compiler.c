@@ -3109,7 +3109,7 @@ static void ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Ex
 	if (!strcmp(Expr->Ident, "true")) return ml_ident_expr_finish(Function, Expr, (ml_value_t *)MLTrue, Flags);
 	if (!strcmp(Expr->Ident, "false")) return ml_ident_expr_finish(Function, Expr, (ml_value_t *)MLFalse, Flags);
 	ml_value_t *Value = (ml_value_t *)stringmap_search(Function->Compiler->Vars, Expr->Ident);
-	if (!Value) Value = Function->Compiler->GlobalGet(Function->Compiler->Globals, Expr->Ident);
+	if (!Value) Value = Function->Compiler->GlobalGet(Function->Compiler->Globals, Expr->Ident, Expr->Source, Expr->StartLine);
 	if (!Value) {
 		MLC_EXPR_ERROR(Expr, ml_error("CompilerError", "identifier %s not declared", Expr->Ident));
 	}
@@ -3573,12 +3573,12 @@ static void ml_compiler_call(ml_state_t *Caller, ml_compiler_t *Compiler, int Co
 	ML_RETURN(MLNil);
 }
 
-static ml_value_t *ml_function_global_get(ml_value_t *Function, const char *Name) {
-	ml_value_t *Value = ml_simple_inline(Function, 1, ml_string(Name, -1));
+static ml_value_t *ml_function_global_get(ml_value_t *Function, const char *Name, const char *Source, int Line) {
+	ml_value_t *Value = ml_simple_inline(Function, 3, ml_string(Name, -1), ml_string(Source, -1), ml_integer(Line));
 	return (Value != MLNotFound) ? Value : NULL;
 }
 
-static ml_value_t *ml_map_global_get(ml_value_t *Map, const char *Name) {
+static ml_value_t *ml_map_global_get(ml_value_t *Map, const char *Name, const char *Source, int Line) {
 	return ml_map_search0(Map, ml_string(Name, -1));
 }
 
@@ -3609,9 +3609,9 @@ void ml_compiler_define(ml_compiler_t *Compiler, const char *Name, ml_value_t *V
 	stringmap_insert(Compiler->Vars, Name, Value);
 }
 
-ml_value_t *ml_compiler_lookup(ml_compiler_t *Compiler, const char *Name) {
+ml_value_t *ml_compiler_lookup(ml_compiler_t *Compiler, const char *Name, const char *Source, int Line) {
 	ml_value_t *Value = (ml_value_t *)stringmap_search(Compiler->Vars, Name);
-	if (!Value) Value = Compiler->GlobalGet(Compiler->Globals, Name);
+	if (!Value) Value = Compiler->GlobalGet(Compiler->Globals, Name, Source, Line);
 	return Value;
 }
 
@@ -6610,6 +6610,10 @@ void ml_command_evaluate(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t 
 	} else {
 		return ml_accept_command_expr(Function, Parser);
 	}
+}
+
+ml_value_t *stringmap_global_get(const stringmap_t *Map, const char *Key, const char *Source, int Line) {
+	return (ml_value_t *)stringmap_search(Map, Key);
 }
 
 static ssize_t ml_read_line(FILE *File, ssize_t Offset, char **Result) {

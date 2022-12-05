@@ -29,8 +29,8 @@ struct ml_preprocessor_output_t {
 	ml_value_t *Writer;
 };
 
-static ml_value_t *ml_preprocessor_global_get(ml_preprocessor_t *Preprocessor, const char *Name) {
-	return stringmap_search(Globals, Name) ?: ml_error("ParseError", "Undefined symbol %s", Name);
+static ml_value_t *ml_preprocessor_global_get(ml_preprocessor_t *Preprocessor, const char *Name, const char *Source, int Line) {
+	return stringmap_search(Globals, Name) ?: ml_error("ParseError", "Undefined symbol %s at %s:%d", Name, Source, Line);
 }
 
 static const char *ml_preprocessor_line_read(ml_preprocessor_t *Preprocessor) {

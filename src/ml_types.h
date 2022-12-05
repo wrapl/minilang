@@ -1160,11 +1160,12 @@ extern ml_type_t MLExternalSetT[];
 typedef struct {
 	ml_type_t *Type;
 	const char *Name;
+	const char *Source;
 	stringmap_t Exports[1];
-	int Length;
+	int Length, Line;
 } ml_external_t;
 
-ml_value_t *ml_external(const char *Name) __attribute__ ((malloc));
+ml_value_t *ml_external(const char *Name, const char *Source, int Line) __attribute__ ((malloc));
 
 typedef struct ml_externals_t ml_externals_t;
 

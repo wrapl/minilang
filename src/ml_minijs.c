@@ -32,7 +32,7 @@ json_t *ml_minijs_encode(ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
 	}
 	const char *Name = ml_externals_get_name(Encoder->Externals, Value);
 	if (Name) {
-		return json_pack("[ss]", "^", Name);
+		return json_pack("[sssi]", "^", Name, "", 0);
 	}
 	typeof(ml_minijs_encode) *encode = ml_typed_fn_get(ml_typeof(Value), ml_minijs_encode);
 	if (!encode) return json_pack("[ss]", "unsupported", ml_typeof(Value)->Name);
@@ -457,7 +457,7 @@ static json_t *ML_TYPED_FN(ml_minijs_encode, MLClosureT, ml_minijs_encoder_t *En
 }
 
 static json_t *ML_TYPED_FN(ml_minijs_encode, MLExternalT, ml_minijs_encoder_t *Encoder, ml_external_t *Value) {
-	return json_pack("[ss]", "^", Value->Name);
+	return json_pack("[sssi]", "^", Value->Name, Value->Source, Value->Line);
 }
 
 ML_METHOD_ANON(MinijsEncode, "minijs::encode");

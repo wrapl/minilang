@@ -29,7 +29,9 @@ void ml_cbor_tag_fn_set(ml_cbor_tag_fns_t *TagFns, uint64_t Tag, ml_cbor_tag_fn 
 void ml_cbor_default_tag(uint64_t Tag, ml_cbor_tag_fn TagFn);
 void ml_cbor_default_global(const char *Name, void *Value);
 
-ml_cbor_reader_t *ml_cbor_reader(ml_cbor_tag_fns_t *TagFns, ml_getter_t GlobalGet, void *Globals);
+typedef ml_value_t *(*ml_external_fn_t)(void *Data, const char *Name);
+
+ml_cbor_reader_t *ml_cbor_reader(ml_cbor_tag_fns_t *TagFns, ml_external_fn_t GlobalGet, void *Globals);
 void ml_cbor_reader_reset(ml_cbor_reader_t *Reader);
 void ml_cbor_reader_set_setting(ml_cbor_reader_t *Reader, int Key, void *Value);
 void *ml_cbor_reader_get_setting(ml_cbor_reader_t *Reader, int Key);

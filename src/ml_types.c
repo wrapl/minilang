@@ -2621,11 +2621,13 @@ ML_METHOD("exports", MLModuleT) {
 // Externals //
 //!external
 
-ml_value_t *ml_external(const char *Name) {
+ml_value_t *ml_external(const char *Name, const char *Source, int Line) {
 	ml_external_t *External = new(ml_external_t);
 	External->Type = MLExternalT;
 	External->Name = Name;
 	External->Length = strlen(Name);
+	External->Source = Source;
+	External->Line = Line;
 	return (ml_value_t *)External;
 }
 
@@ -2635,7 +2637,15 @@ ML_FUNCTION(MLExternal) {
 //>external
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
-	return ml_external(ml_string_value(Args[0]));
+	const char *Source = "";
+	int Line = 0;
+	if (Count > 1) {
+		ML_CHECK_ARG_TYPE(1, MLStringT);
+		ML_CHECK_ARG_TYPE(2, MLIntegerT);
+		Source = ml_string_value(Args[1]);
+		Line = ml_integer_value(Args[2]);
+	}
+	return ml_external(ml_string_value(Args[0]), Source, Line);
 }
 
 ML_TYPE(MLExternalT, (), "external",
@@ -2653,7 +2663,7 @@ ML_METHOD("::", MLExternalT, MLStringT) {
 	if (!Slot[0]) {
 		char *FullName = snew(External->Length + strlen(Name) + 3);
 		stpcpy(stpcpy(stpcpy(FullName, External->Name), "::"), Name);
-		Slot[0] = ml_external(FullName);
+		Slot[0] = ml_external(FullName, "", 0);
 	}
 	return Slot[0];
 }
