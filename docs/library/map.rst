@@ -27,6 +27,14 @@ map
    By default,  iterating over a map generates the key-value pairs in the order they were inserted,  however this ordering can be changed.
 
 
+:mini:`meth map(Sequence: sequence, ...): map`
+   Returns a map of all the key and value pairs produced by :mini:`Sequence`.
+
+   .. code-block:: mini
+
+      map("cake") :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
+
+
 :mini:`meth map(Key₁ is Value₁, ...): map`
    Returns a new map with the specified keys and values.
 
@@ -34,14 +42,6 @@ map
 
       map(A is 1, B is 2, C is 3)
       :> {"A" is 1, "B" is 2, "C" is 3}
-
-
-:mini:`meth map(Sequence: sequence, ...): map`
-   Returns a map of all the key and value pairs produced by :mini:`Sequence`.
-
-   .. code-block:: mini
-
-      map("cake") :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
 
 
 :mini:`meth map(): map`
@@ -186,6 +186,10 @@ map
       {"A" is 1, "B" is 2, "C" is 3}:count :> 3
 
 
+:mini:`meth (Map: map):first`
+   Returns the first value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
+
+
 :mini:`meth (Map: map):from(Key: any): sequence | nil`
    Returns the subset of :mini:`Map` after :mini:`Key` as a sequence.
 
@@ -194,6 +198,10 @@ map
       let M := {"A" is 1, "B" is 2, "C" is 3, "D" is 4, "E" is 5}
       map(M:from("C")) :> {"C" is 3, "D" is 4, "E" is 5}
       map(M:from("F")) :> {}
+
+
+:mini:`meth (Map: map):last`
+   Returns the last value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
 
 
 :mini:`meth (Map: map):order: map::order`
@@ -207,7 +215,7 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "c"
+      M:random :> "k"
       M:random :> "c"
 
 
@@ -529,12 +537,6 @@ map
    * :mini:`map::order::Ascending` |harr| inserted pairs are kept in descending key order,  no reordering on access.
    * :mini:`map::order::MRU` |harr| inserted pairs are put at start,  accessed pairs are moved to start.
    * :mini:`map::order::LRU` |harr| inserted pairs are put at end,  accessed pairs are moved to end.
-
-
-.. _type-mapnodenodestate:
-
-:mini:`type mapnodenodestate < state`
-   *TBD*
 
 
 :mini:`meth (Copy: visitor):const(Map: map): map::const`

@@ -54,7 +54,7 @@ static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 
 // Types //
 
-ML_INTERFACE(MLAnyT, (), "any", .Rank = 0);
+ML_INTERFACE(MLAnyT, (), "any", .Rank = 1);
 //!any
 // Base type for all values.
 
@@ -199,6 +199,8 @@ ML_METHOD("parents", MLTypeT) {
 
 void ml_default_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
 	//ML_ERROR("TypeError", "<%s> is not callable", ml_typeof(Value)->Name);
+	ml_value_t *Deref = ml_deref(Value);
+	if (Deref != Value) return ml_call(Caller, Deref, Count, Args);
 	ml_value_t **Args2 = ml_alloc_args(Count + 1);
 	Args2[0] = Value;
 	for (int I = 0; I < Count; ++I) Args2[I + 1] = Args[I];
@@ -425,9 +427,13 @@ ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
 	Type = xnew(ml_generic_type_t, NumArgs, ml_type_t *);
 	const ml_type_t *Base = Args[0];
 	const char *Name = Base->Name;
+	int Rank = Base->Rank;
 	if (NumArgs > 1) {
 		size_t Length = strlen(Base->Name) + NumArgs + 1;
-		for (int I = 1; I < NumArgs; ++I) Length += strlen(Args[I]->Name);
+		for (int I = 1; I < NumArgs; ++I) {
+			Length += strlen(Args[I]->Name);
+			Rank += Args[I]->Rank;
+		}
 		char *Name2 = snew(Length);
 		char *End = stpcpy(Name2, Base->Name);
 		*End++ = '[';
@@ -446,7 +452,7 @@ ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
 	Type->Base.call = Base->call;
 	Type->Base.deref = Base->deref;
 	Type->Base.assign = Base->assign;
-	Type->Base.Rank = Base->Rank + 1;
+	Type->Base.Rank = Rank + 1;
 	Type->Base.Interface = Args[0]->Interface;
 	Type->NumArgs = NumArgs;
 	for (int I = 0; I < NumArgs; ++I) Type->Args[I] = Args[I];

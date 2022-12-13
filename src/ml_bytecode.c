@@ -41,17 +41,12 @@ static void ml_variable_assign(ml_state_t *Caller, ml_variable_t *Variable, ml_v
 	ML_RETURN(Value);
 }
 
-static void ml_variable_call(ml_state_t *Caller, ml_variable_t *Variable, int Count, ml_value_t **Args) {
-	return ml_call(Caller, Variable->Value, Count, Args);
-}
-
 ML_TYPE(MLVariableT, (), "variable",
 // A variable, which can hold another value (returned when dereferenced) and assigned a new value.
 // Variables may optionally be typed, assigning a value that is not an instance of the specified type (or a subtype) will raise an error.
 	.hash = (void *)ml_variable_hash,
 	.deref = (void *)ml_variable_deref,
-	.assign = (void *)ml_variable_assign,
-	.call = (void *)ml_variable_call
+	.assign = (void *)ml_variable_assign
 );
 
 ml_value_t *ml_variable(ml_value_t *Value, ml_type_t *Type) {

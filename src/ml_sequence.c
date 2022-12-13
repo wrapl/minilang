@@ -18,7 +18,6 @@ static ML_METHOD_DECL(FilterDuoMethod, "=>?");
 static ML_METHOD_DECL(SoloApplyMethod, "->!");
 static ML_METHOD_DECL(FilterSoloApplyMethod, "->!?");
 static ML_METHOD_DECL(ApplyMethod, "!");
-static ML_METHOD_DECL(CountMethod, "count");
 
 typedef struct ml_chained_state_t {
 	ml_state_t Base;
@@ -789,7 +788,7 @@ static void first_iterate(ml_state_t *State, ml_value_t *Value) {
 	return ml_iter_value(State->Caller, Value);
 }
 
-ML_FUNCTIONX(First) {
+ML_METHODX("first", MLSequenceT) {
 //<Sequence
 //>any | nil
 // Returns the first value produced by :mini:`Sequence`.
@@ -824,7 +823,7 @@ static void first2_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_FUNCTIONX(First2) {
+ML_METHODX("first2", MLSequenceT) {
 //<Sequence
 //>tuple(any, any) | nil
 // Returns the first key and value produced by :mini:`Sequence`.
@@ -855,7 +854,7 @@ static void last_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_FUNCTIONX(Last) {
+ML_METHODX("last", MLSequenceT) {
 //<Sequence
 //>any | nil
 // Returns the last value produced by :mini:`Sequence`.
@@ -900,7 +899,7 @@ static void last2_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_FUNCTIONX(Last2) {
+ML_METHODX("last2", MLSequenceT) {
 //<Sequence
 //>tuple(any, any) | nil
 // Returns the last key and value produced by :mini:`Sequence`.
@@ -1699,12 +1698,6 @@ typedef struct ml_limited_t {
 
 ML_TYPE(MLLimitedT, (MLSequenceT), "limited");
 //!internal
-
-ML_METHOD("count", MLLimitedT) {
-//!internal
-	ml_limited_t *Limited = (ml_limited_t *)Args[0];
-	return ml_integer(Limited->Remaining);
-}
 
 typedef struct ml_limited_state_t {
 	ml_state_t Base;
@@ -2984,13 +2977,13 @@ void ml_sequence_init(stringmap_t *Globals) {
 #endif
 	if (Globals) {
 		stringmap_insert(Globals, "chained", MLChainedT);
-		stringmap_insert(Globals, "first", First);
-		stringmap_insert(Globals, "first2", First2);
-		stringmap_insert(Globals, "last", Last);
-		stringmap_insert(Globals, "last2", Last2);
+		stringmap_insert(Globals, "first", ml_method("first"));
+		stringmap_insert(Globals, "first2", ml_method("first2"));
+		stringmap_insert(Globals, "last", ml_method("last"));
+		stringmap_insert(Globals, "last2", ml_method("last2"));
 		stringmap_insert(Globals, "all", All);
 		stringmap_insert(Globals, "iterate", MLIterate);
-		stringmap_insert(Globals, "count", CountMethod);
+		stringmap_insert(Globals, "count", ml_method("count"));
 		stringmap_insert(Globals, "count2", Count2);
 		stringmap_insert(Globals, "random", ml_method("random"));
 		stringmap_insert(Globals, "reduce", Reduce);

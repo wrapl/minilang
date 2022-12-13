@@ -131,28 +131,6 @@ sequence
       count2("banana") :> {"b" is 1, "a" is 3, "n" is 2}
 
 
-.. _fun-first:
-
-:mini:`fun first(Sequence: sequence): any | nil`
-   Returns the first value produced by :mini:`Sequence`.
-
-   .. code-block:: mini
-
-      first("cake") :> "c"
-      first([]) :> nil
-
-
-.. _fun-first2:
-
-:mini:`fun first2(Sequence: sequence): tuple(any,  any) | nil`
-   Returns the first key and value produced by :mini:`Sequence`.
-
-   .. code-block:: mini
-
-      first2("cake") :> (1, c)
-      first2([]) :> nil
-
-
 .. _fun-fold:
 
 :mini:`fun fold(Sequence: sequence): sequence`
@@ -192,28 +170,6 @@ sequence
 
       list(key({"A" is 1, "B" is 2, "C" is 3}))
       :> ["A", "B", "C"]
-
-
-.. _fun-last:
-
-:mini:`fun last(Sequence: sequence): any | nil`
-   Returns the last value produced by :mini:`Sequence`.
-
-   .. code-block:: mini
-
-      last("cake") :> "e"
-      last([]) :> nil
-
-
-.. _fun-last2:
-
-:mini:`fun last2(Sequence: sequence): tuple(any,  any) | nil`
-   Returns the last key and value produced by :mini:`Sequence`.
-
-   .. code-block:: mini
-
-      last2("cake") :> (4, e)
-      last2([]) :> nil
 
 
 .. _fun-max:
@@ -519,6 +475,24 @@ sequence
       :> [1, 1, 2, 1, 2, 3, 1, 2, 3, 4, 1, 2, 3, 4, 5]
 
 
+:mini:`meth (Sequence: sequence):first: any | nil`
+   Returns the first value produced by :mini:`Sequence`.
+
+   .. code-block:: mini
+
+      first("cake") :> "c"
+      first([]) :> nil
+
+
+:mini:`meth (Sequence: sequence):first2: tuple(any,  any) | nil`
+   Returns the first key and value produced by :mini:`Sequence`.
+
+   .. code-block:: mini
+
+      first2("cake") :> (1, c)
+      first2([]) :> nil
+
+
 :mini:`meth (Sequence: sequence):join: string`
    Joins the elements of :mini:`Sequence` into a string.
 
@@ -533,6 +507,24 @@ sequence
    .. code-block:: mini
 
       (1 .. 10):join :> "12345678910"
+
+
+:mini:`meth (Sequence: sequence):last: any | nil`
+   Returns the last value produced by :mini:`Sequence`.
+
+   .. code-block:: mini
+
+      last("cake") :> "e"
+      last([]) :> nil
+
+
+:mini:`meth (Sequence: sequence):last2: tuple(any,  any) | nil`
+   Returns the last key and value produced by :mini:`Sequence`.
+
+   .. code-block:: mini
+
+      last2("cake") :> (4, e)
+      last2([]) :> nil
 
 
 :mini:`meth (Sequence: sequence):limit(Fn: function): sequence`
@@ -558,7 +550,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "c"
+      random("cake") :> "e"
       random([]) :> nil
 
 

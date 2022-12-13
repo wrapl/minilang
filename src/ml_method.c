@@ -677,7 +677,13 @@ typedef struct {
 static void ml_method_function_call(ml_state_t *Caller, ml_method_function_t *Function, int Count, ml_value_t **Args) {
 	ml_method_cached_t *Cached = Function->Cached;
 	ML_CHECKX_ARG_COUNT(Cached->Count);
-	for (int I = 0; I < Cached->Count; ++I) ML_CHECKX_ARG_TYPE(I, Cached->Types[I]);
+	for (int I = 0; I < Cached->Count; ++I) {
+		ml_type_t *Actual = ml_typeof_deref(Args[I]);
+		ml_type_t *Expected = Cached->Types[I];
+		if (!ml_is_subtype(Actual, Expected)) {
+			ML_ERROR("TypeError", "expected %s for argument %d", Expected->Name, I + 1);
+		}
+	}
 	return ml_call(Caller, Function->Callback, Count, Args);
 }
 

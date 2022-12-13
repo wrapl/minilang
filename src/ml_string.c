@@ -3868,21 +3868,21 @@ void ml_string_init() {
 	ml_type_add_parent(MLStringT, ml_generic_type(3, TArgs));
 #endif
 #ifdef ML_TRE
-	ml_value_t *Features = ml_map();
+	ml_value_t *Features = ml_module("regex::features", NULL);
 	stringmap_insert(MLRegexT->Exports, "features", Features);
 	int Result;
 	if (!tre_config(TRE_CONFIG_APPROX, &Result)) {
-		ml_map_insert(Features, ml_cstring("approx"), ml_boolean(Result));
+		ml_module_export(Features, "approx", ml_boolean(Result));
 	}
 	if (!tre_config(TRE_CONFIG_WCHAR, &Result)) {
-		ml_map_insert(Features, ml_cstring("wchar"), ml_boolean(Result));
+		ml_module_export(Features, "wchar", ml_boolean(Result));
 	}
 	if (!tre_config(TRE_CONFIG_MULTIBYTE, &Result)) {
-		ml_map_insert(Features, ml_cstring("multibyte"), ml_boolean(Result));
+		ml_module_export(Features, "multibyte", ml_boolean(Result));
 	}
 	const char *Version;
 	if (!tre_config(TRE_CONFIG_VERSION, &Version)) {
-		ml_map_insert(Features, ml_cstring("version"), ml_string(Version, -1));
+		ml_module_export(Features, "version", ml_string(Version, -1));
 	}
 #endif
 #ifdef ML_ICU

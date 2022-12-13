@@ -13,13 +13,8 @@ static ml_value_t *ml_field_deref(ml_field_t *Field) {
 	return Field->Value;
 }
 
-static void ml_field_call(ml_state_t *Caller, ml_field_t *Field, int Count, ml_value_t **Args) {
-	return ml_call(Caller, Field->Value, Count, Args);
-}
-
 ML_TYPE(MLFieldT, (), "field",
-	.deref = (void *)ml_field_deref,
-	.call = (void *)ml_field_call
+	.deref = (void *)ml_field_deref
 );
 
 static void ml_field_assign(ml_state_t *Caller, ml_field_t *Field, ml_value_t *Value) {
@@ -29,8 +24,7 @@ static void ml_field_assign(ml_state_t *Caller, ml_field_t *Field, ml_value_t *V
 
 ML_TYPE(MLFieldMutableT, (MLFieldT), "field::mutable",
 	.deref = (void *)ml_field_deref,
-	.assign = (void *)ml_field_assign,
-	.call = (void *)ml_field_call
+	.assign = (void *)ml_field_assign
 );
 
 ml_value_t *ml_field_fn(void *Data, int Count, ml_value_t **Args) {

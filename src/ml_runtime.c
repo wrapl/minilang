@@ -289,16 +289,11 @@ static void ml_reference_assign(ml_state_t *Caller, ml_reference_t *Reference, m
 	ML_RETURN(Value);
 }
 
-static void ml_reference_call(ml_state_t *Caller, ml_reference_t *Reference, int Count, ml_value_t **Args) {
-	return ml_call(Caller, Reference->Address[0], Count, Args);
-}
-
 ML_TYPE(MLReferenceT, (), "reference",
 //!internal
 	.hash = (void *)ml_reference_hash,
 	.deref = (void *)ml_reference_deref,
-	.assign = (void *)ml_reference_assign,
-	.call = (void *)ml_reference_call
+	.assign = (void *)ml_reference_assign
 );
 
 inline ml_value_t *ml_reference(ml_value_t **Address) {

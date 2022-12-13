@@ -88,10 +88,6 @@ static ml_value_t *ml_list_node_deref(ml_list_node_t *Node) {
 	return Node->Value;
 }
 
-static void ml_list_node_call(ml_state_t *Caller, ml_list_node_t *Node, int Count, ml_value_t **Args) {
-	return ml_call(Caller, Node->Value, Count, Args);
-}
-
 static void ml_list_node_assign(ml_state_t *Caller, ml_list_node_t *Node, ml_value_t *Value) {
 	Node->Value = Value;
 	ML_RETURN(Value);
@@ -102,8 +98,7 @@ static void ml_list_node_assign(ml_state_t *Caller, ml_list_node_t *Node, ml_val
 ML_TYPE(MLListNodeT, (), "list::node",
 // A node in a :mini:`list`.
 // Dereferencing a :mini:`list::node::const` returns the corresponding value from the :mini:`list`.
-	.deref = (void *)ml_list_node_deref,
-	.call = (void *)ml_list_node_call
+	.deref = (void *)ml_list_node_deref
 );
 
 ML_TYPE(MLListNodeMutableT, (MLListNodeT), "list::node::mutable",
@@ -111,8 +106,7 @@ ML_TYPE(MLListNodeMutableT, (MLListNodeT), "list::node::mutable",
 // Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
 // Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
 	.deref = (void *)ml_list_node_deref,
-	.assign = (void *)ml_list_node_assign,
-	.call = (void *)ml_list_node_call
+	.assign = (void *)ml_list_node_assign
 );
 
 #else
@@ -124,8 +118,7 @@ ML_TYPE(MLListNodeMutableT, (), "list::node",
 // Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
 // Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
 	.deref = (void *)ml_list_node_deref,
-	.assign = (void *)ml_list_node_assign,
-	.call = (void *)ml_list_node_call
+	.assign = (void *)ml_list_node_assign
 );
 
 #endif
@@ -351,6 +344,20 @@ ML_METHOD("length", MLListT) {
 //$= [1, 2, 3]:length
 	ml_list_t *List = (ml_list_t *)Args[0];
 	return ml_integer(List->Length);
+}
+
+ML_METHOD("first", MLListT) {
+//<List
+// Returns the first value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	return List->Head ? List->Head->Value : MLNil;
+}
+
+ML_METHOD("last", MLListT) {
+//<List
+// Returns the last value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	return List->Tail ? List->Tail->Value : MLNil;
 }
 
 typedef struct {

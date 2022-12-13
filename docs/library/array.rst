@@ -929,18 +929,6 @@ array
       A:shape :> [2, 3]
 
 
-:mini:`meth (Array: array):size: integer`
-   Return the size of :mini:`Array` in contiguous bytes,  or :mini:`nil` if :mini:`Array` is not contiguous.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2, 3], [4, 5, 6]])
-      :> <<1 2 3> <4 5 6>>
-      A:size :> 48
-      let B := ^A :> <<1 4> <2 5> <3 6>>
-      B:size :> nil
-
-
 :mini:`meth (Array: array):split(Index: integer, Sizes: list): array`
    Returns an array sharing the underlying data with :mini:`Array` replacing the dimension at :mini:`Index` with new dimensions with sizes :mini:`Sizes`. The total count :mini:`Sizes₁ * Sizes₂ * ... * Sizesₙ` must equal the original size.
 
@@ -1861,9 +1849,9 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:800DBC9E0E7F00004552524F52282920>
+      :> <16:00D7A083057F00000000000000000000>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
-      :> <<<3456 40636> <32526 0>> <<21061 20306> <10322 8233>>>
+      :> <<<55040 33696> <32517 0>> <<0 0> <0 0>>>
 
 
 .. _type-vector:

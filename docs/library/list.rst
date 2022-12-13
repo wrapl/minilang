@@ -71,6 +71,14 @@ list
    Returns the first position where :mini:`List[Position] = Value`.
 
 
+:mini:`meth (List: list):first`
+   Returns the first value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
+
+
+:mini:`meth (List: list):last`
+   Returns the last value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
+
+
 :mini:`meth (List: list):length: integer`
    Returns the length of :mini:`List`
 
@@ -86,7 +94,7 @@ list
 
       let L := list("cake") :> ["c", "a", "k", "e"]
       L:random :> "e"
-      L:random :> "e"
+      L:random :> "c"
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list)`

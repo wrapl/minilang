@@ -1171,11 +1171,15 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLRealRangeT, ml_cbor_writer_t *Wr
 #include <complex.h>
 #undef I
 
+ml_value_t *ml_cbor_read_complex(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+	if (!ml_is(Value, MLListT)) return ml_error("TagError", "Complex requires list");
+	if (ml_list_length(Value) != 2) return ml_error("TagError", "Complex requires 2 values");
+	return ml_complex(ml_real_value(ml_list_get(Value, 1)) + ml_real_value(ml_list_get(Value, 2)) * _Complex_I);
+}
+
 static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLComplexT, ml_cbor_writer_t *Writer, ml_complex_t *Arg) {
-	minicbor_write_tag(Writer, 27);
-	minicbor_write_array(Writer, 3);
-	minicbor_write_string(Writer, 7);
-	Writer->WriteFn(Writer->Data, (unsigned const char *)"complex", 7);
+	minicbor_write_tag(Writer, 43000);
+	minicbor_write_array(Writer, 2);
 	minicbor_write_float8(Writer, creal(Arg->Value));
 	minicbor_write_float8(Writer, cimag(Arg->Value));
 	return NULL;
@@ -1517,6 +1521,7 @@ void ml_cbor_init(stringmap_t *Globals) {
 	ml_cbor_default_object("range", RangeMethod);
 #ifdef ML_COMPLEX
 	ml_cbor_default_object("complex", (ml_value_t *)DecodeComplex);
+	ml_cbor_default_tag(43000, ml_cbor_read_complex);
 #endif
 	ml_cbor_default_object("!", (ml_value_t *)DecodeClosureInfo);
 	ml_cbor_default_object("*", (ml_value_t *)DecodeClosure);

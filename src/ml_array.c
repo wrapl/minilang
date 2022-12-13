@@ -824,7 +824,7 @@ ML_METHOD("strides", MLArrayT) {
 	return Strides;
 }
 
-ML_METHOD("size", MLArrayT) {
+/*ML_METHOD("size", MLArrayT) {
 //<Array
 //>integer
 // Return the size of :mini:`Array` in contiguous bytes, or :mini:`nil` if :mini:`Array` is not contiguous.
@@ -837,7 +837,7 @@ ML_METHOD("size", MLArrayT) {
 	for (int I = 1; I < Array->Degree; ++I) Size *= Array->Dimensions[I].Size;
 	if (Array->Dimensions[0].Stride == Size) return ml_integer(Size * Array->Dimensions[0].Size);
 	return MLNil;
-}
+}*/
 
 extern ml_value_t *RangeMethod;
 extern ml_value_t *MulMethod;
@@ -5061,6 +5061,7 @@ static ml_value_t *ml_array_of_fn(void *Data, int Count, ml_value_t **Args) {
 	ml_array_dimension_t *Dimensions = Array->Dimensions;
 	size_t Size = Dimensions->Size * Dimensions->Stride;
 	char *Address = Array->Base.Value = snew(Size);
+	Array->Base.Length = Size;
 	ml_value_t *Error = ml_array_of_fill(Array->Format, Dimensions, Address, Degree, Source);
 	return Error ?: (ml_value_t *)Array;
 }
@@ -7144,20 +7145,21 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_cbor_writer_t *Writer
 		ml_cbor_write_simple(Writer, CBOR_SIMPLE_NULL);
 		return NULL;
 	}
-	ml_cbor_write_tag(Writer, 40);
-	ml_cbor_write_array(Writer, 2);
-	ml_cbor_write_array(Writer, Array->Degree);
-	if (Array->Format == ML_ARRAY_FORMAT_ANY) {
-		size_t Size = 1;
+	if (Array->Degree != 1) {
+		ml_cbor_write_tag(Writer, 40);
+		ml_cbor_write_array(Writer, 2);
+		ml_cbor_write_array(Writer, Array->Degree);
 		for (int I = 0; I < Array->Degree; ++I) {
-			Size *= Array->Dimensions[I].Size;
 			ml_cbor_write_integer(Writer, Array->Dimensions[I].Size);
 		}
+	}
+	if (Array->Format == ML_ARRAY_FORMAT_ANY) {
+		size_t Size = 1;
+		for (int I = 0; I < Array->Degree; ++I) Size *= Array->Dimensions[I].Size;
 		ml_cbor_write_tag(Writer, 41);
 		ml_cbor_write_array(Writer, Size);
 		ml_cbor_write_array_any(Array->Degree, Array->Dimensions, Array->Base.Value, Writer);
 	} else {
-		for (int I = 0; I < Array->Degree; ++I) ml_cbor_write_integer(Writer, Array->Dimensions[I].Size);
 		size_t Size = MLArraySizes[Array->Format];
 		int FlatDegree = -1;
 		size_t FlatSize = Size;

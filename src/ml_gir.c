@@ -2533,6 +2533,12 @@ static void ML_TYPED_FN(ml_stream_write, (ml_type_t *)GOutputStreamT, ml_state_t
 	g_output_stream_write_async(Stream, Address, Count, 0, NULL, g_output_stream_callback, ml_gio_callback(Caller));
 }
 
+typedef struct ml_gir_value_t ml_gir_value_t;
+
+struct ml_gir_value_t {
+
+};
+
 void ml_gir_init(stringmap_t *Globals) {
 	//g_setenv("G_SLICE", "always-malloc", 1);
 	GError *Error = 0;

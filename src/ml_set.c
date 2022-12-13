@@ -412,10 +412,19 @@ ML_METHOD("count", MLSetT) {
 	return ml_integer(Set->Size);
 }
 
-static ml_value_t *ml_set_index_deref(ml_set_node_t *Index) {
-	return MLNil;
+ML_METHOD("first", MLSetT) {
+//<Set
+// Returns the first value in :mini:`Set` or :mini:`nil` if :mini:`Set` is empty.
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	return Set->Head ? Set->Head->Key : MLNil;
 }
 
+ML_METHOD("last", MLSetT) {
+//<Set
+// Returns the last value in :mini:`Set` or :mini:`nil` if :mini:`Set` is empty.
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	return Set->Tail ? Set->Tail->Key : MLNil;
+}
 
 static ml_set_node_t *ml_set_insert_node(ml_set_t *Set, ml_set_node_t **Slot, long Hash, ml_set_node_t *Index) {
 	if (!Slot[0]) {
