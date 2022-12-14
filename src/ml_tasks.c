@@ -71,13 +71,14 @@ ML_METHODVZ(MLTaskT, MLAnyT) {
 //<Fn:function
 //>task
 // Returns a task which calls :mini:`Fn(Arg/1, ..., Arg/n)`.
-	ML_CHECKX_ARG_TYPE(Count - 1, MLFunctionT);
+	ml_value_t *Fn = ml_deref(Args[Count - 1]);
+	if (!ml_is(Fn, MLFunctionT)) ML_ERROR("TypeError", "expected function for argument %d", 1);
 	ml_task_state_t *State = new(ml_task_state_t);
 	State->Base.Context = Caller->Context;
 	State->Base.run = (ml_state_fn)ml_task_run;
 	State->Task->Type = MLTaskT;
-	ml_call(State, ml_deref(Args[Count - 1]), Count - 1, Args);
-	ML_RETURN(State->Task);
+	ml_state_schedule(Caller, (ml_value_t *)State->Task);
+	return ml_call(State, Fn, Count - 1, Args);
 }
 
 ML_METHODX("wait", MLTaskT) {

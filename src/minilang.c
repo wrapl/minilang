@@ -149,12 +149,12 @@ static ml_value_t *ml_globals(stringmap_t *Globals, int Count, ml_value_t **Args
 
 static unsigned int SliceSize = 256;
 static ml_value_t *MainResult = NULL;
-static ml_schedule_t MainSchedule = {256, (void *)ml_default_queue_add_signal};
+static ml_schedule_t MainSchedule[1] = {{256, (void *)ml_default_queue_add_signal}};
 
 static void simple_queue_run() {
 	while (!MainResult) {
 		ml_queued_state_t QueuedState = ml_default_queue_next_wait();
-		MainSchedule.Counter = SliceSize;
+		MainSchedule->Counter = SliceSize;
 		QueuedState.State->run(QueuedState.State, QueuedState.Value);
 	}
 }
@@ -379,6 +379,7 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_GTK_CONSOLE
 			case 'G':
+				GirLoop = g_main_loop_new(NULL, TRUE);
 				GtkConsole = 1;
 #ifdef ML_SCHEDULER
 				if (!SliceSize) SliceSize = 1000;
@@ -394,9 +395,17 @@ int main(int Argc, const char *Argv[]) {
 	Main->run = ml_main_state_run;
 #ifdef ML_SCHEDULER
 	if (SliceSize) {
-		MainSchedule.Counter = SliceSize;
+		MainSchedule->Counter = SliceSize;
 		ml_default_queue_init(8);
-		ml_context_set(Main->Context, ML_SCHEDULER_INDEX, &MainSchedule);
+#ifdef ML_GIR
+		if (GirLoop) {
+			ml_context_set(Main->Context, ML_SCHEDULER_INDEX, GirSchedule);
+		} else {
+#endif
+			ml_context_set(Main->Context, ML_SCHEDULER_INDEX, MainSchedule);
+#ifdef ML_GIR
+		}
+#endif
 	}
 #endif
 #ifdef ML_LIBRARY
@@ -408,14 +417,11 @@ int main(int Argc, const char *Argv[]) {
 		gtk_console_show(Console, NULL);
 		if (FileName) gtk_console_load_file(Console, FileName, Args);
 		if (Command) gtk_console_evaluate(Console, Command);
-		gtk_main();
+		g_main_loop_run(GirLoop);
 		return 0;
 	}
 #endif
 	if (FileName) {
-#if defined(ML_GIR) && defined(ML_SCHEDULER)
-		if (GirLoop) ml_context_set(Main->Context, ML_SCHEDULER_INDEX, GirSchedule);
-#endif
 #ifdef ML_LIBRARY
 		if (LoadModule) {
 			ml_library_load(Main, NULL, FileName);

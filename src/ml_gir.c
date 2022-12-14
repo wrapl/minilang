@@ -2440,7 +2440,7 @@ static ptrset_t SleepSet[1] = {PTRSET_INIT};
 
 static gboolean sleep_run(void *Data) {
 	ptrset_remove(SleepSet, Data);
-	ml_gir_queue_add((ml_state_t *)Data, MLNil);
+	ml_state_schedule((ml_state_t *)Data, MLNil);
 	return G_SOURCE_REMOVE;
 }
 

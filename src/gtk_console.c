@@ -776,7 +776,7 @@ gtk_console_t *gtk_console(ml_context_t *Context, ml_getter_t GlobalGet, void *G
 	gtk_console_t *Console = new(gtk_console_t);
 	Console->Base.Type = ConsoleT;
 	Console->Base.run = (ml_state_fn)ml_console_repl_run;
-	Console->Base.Context = ml_context(Context);
+	Console->Base.Context = Context;
 	Console->Name = strdup("<console>");
 	Console->ParentGetter = GlobalGet;
 	Console->ParentGlobals = Globals;
@@ -786,10 +786,6 @@ gtk_console_t *gtk_console(ml_context_t *Context, ml_getter_t GlobalGet, void *G
 	Console->Compiler = ml_compiler((ml_getter_t)console_global_get, Console);
 	ml_parser_source(Console->Parser, (ml_source_t){Console->Name, 0});
 	Console->Notebook = GTK_NOTEBOOK(gtk_notebook_new());
-
-#ifdef ML_SCHEDULER
-	ml_context_set(Console->Base.Context, ML_SCHEDULER_INDEX, GirSchedule);
-#endif
 
 	GC_asprintf((char **)&Console->ConfigPath, "%s/%s", g_get_user_config_dir(), "minilang.conf");
 	Console->Config = g_key_file_new();
