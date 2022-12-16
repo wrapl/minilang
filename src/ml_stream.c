@@ -1,5 +1,4 @@
 #include "ml_macros.h"
-#include <gc/gc.h>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>

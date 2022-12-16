@@ -1,6 +1,5 @@
 #include "inthash.h"
 #include "ml_macros.h"
-#include <gc/gc.h>
 
 inthash_t *inthash_new() {
 	return new(inthash_t);

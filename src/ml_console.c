@@ -8,7 +8,6 @@
 #ifndef __MINGW32__
 #include "linenoise.h"
 #endif
-#include <gc.h>
 #include <stdio.h>
 #include <string.h>
 

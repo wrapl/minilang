@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include <gc.h>
 #include "ml_sequence.h"
 #include "ml_stream.h"
 
@@ -284,7 +283,7 @@ int main(int Argc, const char *Argv[]) {
 	ml_polynomial_init(Globals);
 #endif
 #ifdef ML_GIR
-	GMainLoop *GirLoop = NULL;
+	int UseGirLoop = 0;
 	ml_gir_init(Globals);
 #endif
 #ifdef ML_GTK_CONSOLE
@@ -317,6 +316,7 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_MODULES
 	int LoadModule = 0;
 #endif
+	int BreakOnExit = 0;
 	const char *Command = NULL;
 	for (int I = 1; I < Argc; ++I) {
 		if (FileName) {
@@ -374,18 +374,21 @@ int main(int Argc, const char *Argv[]) {
 			case 'z': GC_disable(); break;
 #ifdef ML_GIR
 			case 'g':
-				GirLoop = g_main_loop_new(NULL, TRUE);
+				UseGirLoop = 1;
 				break;
 #endif
 #ifdef ML_GTK_CONSOLE
 			case 'G':
-				GirLoop = g_main_loop_new(NULL, TRUE);
+				UseGirLoop = 1;
 				GtkConsole = 1;
 #ifdef ML_SCHEDULER
 				if (!SliceSize) SliceSize = 1000;
 #endif
 				break;
 #endif
+			case 'B':
+				BreakOnExit = 1;
+				break;
 			}
 		} else {
 			FileName = Argv[I];
@@ -398,8 +401,8 @@ int main(int Argc, const char *Argv[]) {
 		MainSchedule->Counter = SliceSize;
 		ml_default_queue_init(8);
 #ifdef ML_GIR
-		if (GirLoop) {
-			ml_context_set(Main->Context, ML_SCHEDULER_INDEX, GirSchedule);
+		if (UseGirLoop) {
+			ml_gir_loop_init(Main->Context);
 		} else {
 #endif
 			ml_context_set(Main->Context, ML_SCHEDULER_INDEX, MainSchedule);
@@ -417,7 +420,7 @@ int main(int Argc, const char *Argv[]) {
 		gtk_console_show(Console, NULL);
 		if (FileName) gtk_console_load_file(Console, FileName, Args);
 		if (Command) gtk_console_evaluate(Console, Command);
-		g_main_loop_run(GirLoop);
+		ml_gir_loop_run();
 		return 0;
 	}
 #endif
@@ -435,12 +438,17 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_SCHEDULER
 #ifdef ML_GIR
-		if (GirLoop) {
-			g_main_loop_run(GirLoop);
+		if (UseGirLoop) {
+			ml_gir_loop_run();
 		} else {
 #endif
 		if (SliceSize) simple_queue_run();
 #ifdef ML_GIR
+		}
+		if (BreakOnExit) {
+#ifdef GC_DEBUG
+			GC_generate_random_backtrace();
+#endif
 		}
 #endif
 #endif

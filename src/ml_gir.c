@@ -1,6 +1,5 @@
 #include "ml_gir.h"
 #include "ml_macros.h"
-#include <gc/gc.h>
 #include <girffi.h>
 #include <stdio.h>
 
@@ -2538,6 +2537,21 @@ typedef struct ml_gir_value_t ml_gir_value_t;
 struct ml_gir_value_t {
 
 };
+
+static GMainLoop *MainLoop = NULL;
+
+void ml_gir_loop_init(ml_context_t *Context) {
+	MainLoop = g_main_loop_new(NULL, TRUE);
+	ml_context_set(Context, ML_SCHEDULER_INDEX, GirSchedule);
+}
+
+void ml_gir_loop_run() {
+	g_main_loop_run(MainLoop);
+}
+
+void ml_gir_loop_quit() {
+	g_main_loop_quit(MainLoop);
+}
 
 void ml_gir_init(stringmap_t *Globals) {
 	//g_setenv("G_SLICE", "always-malloc", 1);

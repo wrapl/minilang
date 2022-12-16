@@ -1,9 +1,8 @@
-#include <gc.h>
-#include <string.h>
-#include <stdarg.h>
 #include "minilang.h"
 #include "ml_macros.h"
 #include "ml_object.h"
+#include <string.h>
+#include <stdarg.h>
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "object"

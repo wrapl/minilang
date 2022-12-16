@@ -1,12 +1,11 @@
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <gc.h>
-#include <errno.h>
-#include <dirent.h>
 #include "ml_file.h"
 #include "ml_macros.h"
 #include "ml_stream.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <errno.h>
+#include <dirent.h>
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "file"

@@ -1,10 +1,8 @@
 #include "ml_sequence.h"
-
-#include <gc.h>
-#include "ml_runtime.h"
-#include <string.h>
-#include "minilang.h"
 #include "ml_macros.h"
+#include "ml_runtime.h"
+#include "minilang.h"
+#include <string.h>
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "sequence"

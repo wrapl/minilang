@@ -2,7 +2,6 @@
 #include "ml_macros.h"
 #include "ml_compiler2.h"
 #include "stringmap.h"
-#include <gc/gc.h>
 #include "ml_runtime.h"
 #include <string.h>
 #include <stdint.h>

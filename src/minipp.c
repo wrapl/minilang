@@ -4,7 +4,6 @@
 #include "ml_file.h"
 #include "ml_macros.h"
 #include <string.h>
-#include <gc/gc.h>
 #include "ml_object.h"
 #include "ml_sequence.h"
 

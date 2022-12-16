@@ -8,7 +8,6 @@
 #include <gtksourceview/gtksource.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <girepository.h>
-#include <gc/gc.h>
 #include "minilang.h"
 #include "ml_macros.h"
 #include "stringmap.h"
@@ -971,7 +970,7 @@ gtk_console_t *gtk_console(ml_context_t *Context, ml_getter_t GlobalGet, void *G
 	}
 	gtk_window_set_default_size(GTK_WINDOW(Console->Window), Console->WindowSize[0], Console->WindowSize[1]);
 	g_signal_connect(G_OBJECT(Console->Window), "size-allocate", G_CALLBACK(console_size_allocate), Console);
-	g_signal_connect(G_OBJECT(Console->Window), "delete-event", G_CALLBACK(gtk_main_quit), Console);
+	g_signal_connect(G_OBJECT(Console->Window), "delete-event", G_CALLBACK(ml_gir_loop_quit), NULL);
 
 	stringmap_insert(Console->Globals, "set_font", ml_cfunction(Console, (ml_callback_t)console_set_font));
 	stringmap_insert(Console->Globals, "set_style", ml_cfunction(Console, (ml_callback_t)console_set_style));

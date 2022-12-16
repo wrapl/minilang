@@ -5,7 +5,6 @@
 #ifdef ML_CBOR_BYTECODE
 #include "ml_bytecode.h"
 #endif
-#include <gc/gc.h>
 #include <string.h>
 #include "ml_object.h"
 #include "ml_bytecode.h"

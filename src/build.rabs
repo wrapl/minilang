@@ -43,10 +43,12 @@ if defined("LTO") then
 	LDFLAGS:put("-flto")
 end
 
+GC_DEBUG := defined("GC_DEBUG")
+
 if DEBUG then
 	CFLAGS := old + ["-O1", "-g", "-DGC_DEBUG", "-DDEBUG"]
 	LDFLAGS := old + ["-g"]
-elseif defined("GC_DEBUG") then
+elseif GC_DEBUG then
 	CFLAGS := old + ["-O3", "-g", "-DGC_DEBUG"]
 	LDFLAGS := old + ["-g"]
 else
@@ -156,16 +158,20 @@ if MINILANG_STATICGC or defined("STATICGC") then
 	let Lib := file("gc/.libs/libgc.a") => fun(Lib) do
 		Dir:rmdir:mkdir:chdir
 		execute("wget https://github.com/ivmai/bdwgc/releases/download/v8.2.2/gc-8.2.2.tar.gz -O- | tar xvzP --strip-components=1")
-		execute('CC={CC} ./configure', {
+		let Configuration := {
 			"--prefix" is PATH,
 			"--enable-static",
 			"--disable-shared",
-			:>"--disable-parallel-mark",
+			"--disable-parallel-mark",
 			"--enable-threads=pthreads",
-			"--enable-mmap",
+			:>"--enable-large-config",
 			:>"--enable-redirect-malloc",
-			"--enable-large-config"
-		})
+			"--enable-mmap"
+		}
+		if GC_DEBUG then
+			Configuration:insert("--enable-gc-debug", not nil)
+		end
+		execute('CC={CC} ./configure', Configuration)
 		execute("make clean")
 		execute("make -j4")
 	end

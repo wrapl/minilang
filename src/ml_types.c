@@ -6,7 +6,6 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdint.h>
-#include <gc/gc.h>
 
 #include "ml_compiler2.h"
 #include "ml_runtime.h"
