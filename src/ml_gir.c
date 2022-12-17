@@ -1304,7 +1304,7 @@ static GIBaseInfo *DestroyNotifyInfo;
 
 static void function_info_invoke(ml_state_t *Caller, GIFunctionInfo *Info, int Count, ml_value_t **Args) {
 	int NArgs = g_callable_info_get_n_args((GICallableInfo *)Info);
-	int NArgsIn = 0, NArgsOut = 0;
+	int NArgsIn = 1, NArgsOut = 0;
 	for (int I = 0; I < NArgs; ++I) {
 		GIArgInfo *ArgInfo = g_callable_info_get_arg((GICallableInfo *)Info, I);
 		switch (g_arg_info_get_direction(ArgInfo)) {
@@ -1313,12 +1313,15 @@ static void function_info_invoke(ml_state_t *Caller, GIFunctionInfo *Info, int C
 		case GI_DIRECTION_INOUT: ++NArgsIn; ++NArgsOut; break;
 		}
 	}
+	//const char *Name = g_base_info_get_name((GIBaseInfo *)Info);
+	//printf("Calling %s(In: %d, Out: %d)\n", Name, NArgsIn, NArgsOut);
 	//GIFunctionInfoFlags Flags = g_function_info_get_flags(Info);
 	GIArgument ArgsIn[NArgsIn];
 	GIArgument ArgsOut[NArgsOut];
 	GIArgument ResultsOut[NArgsOut];
 	GValue GValues[NArgs];
-	for (int I = 0; I < NArgsIn; ++I) ArgsIn[I].v_pointer = NULL;
+	//for (int I = 0; I <= NArgsIn; ++I) ArgsIn[I].v_pointer = NULL;
+	//for (int I = 0; I < NArgsOut; ++I) ArgsIn[I].v_pointer = NULL;
 	int IndexIn = 0, IndexOut = 0, IndexResult = 0, IndexValue = 0, N = 0;
 	if (g_function_info_get_flags(Info) & GI_FUNCTION_IS_METHOD) {
 		ArgsIn[0].v_pointer = ((object_instance_t *)Args[0])->Handle;
@@ -1681,6 +1684,7 @@ static void function_info_invoke(ml_state_t *Caller, GIFunctionInfo *Info, int C
 							ML_ERROR("TypeError", "Expected gir struct not %s for parameter %d", ml_typeof(Args[I])->Name, I);
 						}
 					} else {
+						ResultsOut[IndexResult].v_pointer = NULL;
 						ArgsOut[IndexOut].v_pointer = &ResultsOut[IndexResult++];
 					}
 					break;
@@ -1696,6 +1700,7 @@ static void function_info_invoke(ml_state_t *Caller, GIFunctionInfo *Info, int C
 				}
 				case GI_INFO_TYPE_OBJECT:
 				case GI_INFO_TYPE_INTERFACE: {
+					ResultsOut[IndexResult].v_pointer = NULL;
 					ArgsOut[IndexOut].v_pointer = &ResultsOut[IndexResult++];
 					break;
 				}
@@ -2424,7 +2429,7 @@ void ml_gir_queue_add(ml_state_t *State, ml_value_t *Value);
 ml_schedule_t GirSchedule[1] = {{256, ml_gir_queue_add}};
 
 static gboolean ml_gir_queue_run(void *Data) {
-	ml_queued_state_t QueuedState = ml_default_queue_next_wait();
+	ml_queued_state_t QueuedState = ml_default_queue_next();
 	if (!QueuedState.State) return FALSE;
 	GirSchedule->Counter = 256;
 	QueuedState.State->run(QueuedState.State, QueuedState.Value);
