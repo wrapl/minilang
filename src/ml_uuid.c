@@ -108,11 +108,10 @@ ml_comp_method_time_time(">=", >=);
 
 #include "ml_cbor.h"
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLUUIDT, ml_cbor_writer_t *Writer, ml_uuid_t *UUID) {
+static void ML_TYPED_FN(ml_cbor_write, MLUUIDT, ml_cbor_writer_t *Writer, ml_uuid_t *UUID) {
 	ml_cbor_write_tag(Writer, 37);
 	ml_cbor_write_bytes(Writer, 16);
 	ml_cbor_write_raw(Writer, UUID->Value, 16);
-	return NULL;
 }
 
 static ml_value_t *ml_cbor_read_uuid_fn(ml_cbor_reader_t *Reader, ml_value_t *Value) {

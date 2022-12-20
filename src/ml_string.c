@@ -1825,7 +1825,7 @@ ML_METHOD("~", MLStringT, MLStringT) {
 	int *Row2 = alloca((LenB + 1) * sizeof(int));
 	const int Insert = 1, Replace = 1, Swap = 1, Delete = 1;
 	for (int J = 0; J <= LenB; ++J) Row1[J] = J * Insert;
-	char PrevA = 0, PrevB;
+	char PrevA = 0, PrevB = 0;
 	for (int I = 0; I < LenA; ++I) {
 		Row2[0] = (I + 1) * Delete;
 		for (int J = 0; J < LenB; ++J) {
@@ -1867,7 +1867,7 @@ ML_METHOD("~>", MLStringT, MLStringT) {
 	int Best = LenB;
 	const int Insert = 1, Replace = 1, Swap = 1, Delete = 1;
 	for (int J = 0; J <= LenB; ++J) Row1[J] = J * Insert;
-	char PrevA = 0, PrevB;
+	char PrevA = 0, PrevB = 0;
 	for (int I = 0; I < 2 * LenB; ++I) {
 		Row2[0] = (I + 1) * Delete;
 		char CharA = I < LenA ? CharsA[I] : 0;

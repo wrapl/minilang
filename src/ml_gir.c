@@ -74,11 +74,17 @@ typedef struct {
 } typelib_iter_t;
 
 typedef struct {
-	ml_type_t *Type;
+	ml_type_t Type;
 	GIBaseInfo *Info;
 } baseinfo_t;
 
 ML_TYPE(GirBaseInfoT, (MLTypeT), "base-info");
+
+ML_METHOD("name", GirBaseInfoT) {
+	baseinfo_t *Info = (baseinfo_t *)Args[0];
+	const char *Name = g_base_info_get_name(Info->Info);
+	return ml_string_copy(Name, strlen(Name));
+}
 
 static ml_value_t *baseinfo_to_value(GIBaseInfo *Info);
 static void _ml_to_value(ml_value_t *Source, GValue *Dest);
@@ -1131,6 +1137,27 @@ static void *list_to_array(ml_value_t *List, GITypeInfo *TypeInfo) {
 		break;
 	}
 	case GI_TYPE_TAG_GTYPE: {
+		GType *Ptr = (GType *)Array;
+		ML_LIST_FOREACH(List, Iter) {
+			if (ml_is(Iter->Value, GirBaseInfoT)) {
+				baseinfo_t *Base = (baseinfo_t *)Iter->Value;
+				*Ptr++ = g_registered_type_info_get_g_type((GIRegisteredTypeInfo *)Base->Info);
+			} else if (ml_is(Iter->Value, MLStringT)) {
+				*Ptr++ = g_type_from_name(ml_string_value(Iter->Value));
+			} else if (Iter->Value == (ml_value_t *)MLNilT) {
+				*Ptr++ = G_TYPE_NONE;
+			} else if (Iter->Value == (ml_value_t *)MLIntegerT) {
+				*Ptr++ = G_TYPE_INT64;
+			} else if (Iter->Value == (ml_value_t *)MLStringT) {
+				*Ptr++ = G_TYPE_STRING;
+			} else if (Iter->Value == (ml_value_t *)MLDoubleT) {
+				*Ptr++ = G_TYPE_DOUBLE;
+			} else if (Iter->Value == (ml_value_t *)MLBooleanT) {
+				*Ptr++ = G_TYPE_BOOLEAN;
+			} else if (Iter->Value == (ml_value_t *)MLAddressT) {
+				*Ptr++ = G_TYPE_POINTER;
+			}
+		}
 		break;
 	}
 	case GI_TYPE_TAG_UTF8:
@@ -1191,6 +1218,30 @@ static GSList *list_to_slist(ml_context_t *Context, ml_value_t *List, GITypeInfo
 			} else if (ml_is(Iter->Value, MLStringT)) {
 				GSList *Node = Slot[0] = g_slist_alloc();
 				Node->data = GINT_TO_POINTER(g_type_from_name(ml_string_value(Iter->Value)));
+				Slot = &Node->next;
+			} else if (Iter->Value == (ml_value_t *)MLNilT) {
+				GSList *Node = Slot[0] = g_slist_alloc();
+				Node->data = GINT_TO_POINTER(G_TYPE_NONE);
+				Slot = &Node->next;
+			} else if (Iter->Value == (ml_value_t *)MLIntegerT) {
+				GSList *Node = Slot[0] = g_slist_alloc();
+				Node->data = GINT_TO_POINTER(G_TYPE_INT64);
+				Slot = &Node->next;
+			} else if (Iter->Value == (ml_value_t *)MLStringT) {
+				GSList *Node = Slot[0] = g_slist_alloc();
+				Node->data = GINT_TO_POINTER(G_TYPE_STRING);
+				Slot = &Node->next;
+			} else if (Iter->Value == (ml_value_t *)MLDoubleT) {
+				GSList *Node = Slot[0] = g_slist_alloc();
+				Node->data = GINT_TO_POINTER(G_TYPE_DOUBLE);
+				Slot = &Node->next;
+			} else if (Iter->Value == (ml_value_t *)MLBooleanT) {
+				GSList *Node = Slot[0] = g_slist_alloc();
+				Node->data = GINT_TO_POINTER(G_TYPE_BOOLEAN);
+				Slot = &Node->next;
+			} else if (Iter->Value == (ml_value_t *)MLAddressT) {
+				GSList *Node = Slot[0] = g_slist_alloc();
+				Node->data = GINT_TO_POINTER(G_TYPE_POINTER);
 				Slot = &Node->next;
 			}
 		}
@@ -1426,6 +1477,8 @@ static void function_info_invoke(ml_state_t *Caller, GIFunctionInfo *Info, int C
 					ArgsIn[IndexIn].v_size = G_TYPE_DOUBLE;
 				} else if (Arg == (ml_value_t *)MLBooleanT) {
 					ArgsIn[IndexIn].v_size = G_TYPE_BOOLEAN;
+				} else if (Arg == (ml_value_t *)MLAddressT) {
+					ArgsIn[IndexIn].v_size = G_TYPE_POINTER;
 				} else {
 					ML_ERROR("TypeError", "Expected type for parameter %d", I);
 				}
@@ -2329,27 +2382,35 @@ static void gir_closure_marshal(GClosure *Closure, GValue *Dest, guint NumArgs, 
 	ml_call(State, Info->Function, NumArgs, MLArgs);
 	GMainContext *MainContext = g_main_context_default();
 	while (!State->Value) g_main_context_iteration(MainContext, TRUE);
-	ml_value_t *Source = State->Value;
+	ml_value_t *Value = State->Value;
+	if (ml_is_error(Value)) {
+		fprintf(stderr, "%s: %s\n", ml_error_type(Value), ml_error_message(Value));
+		ml_source_t Source;
+		int Level = 0;
+		while (ml_error_source(Value, Level++, &Source)) {
+			fprintf(stderr, "\t%s:%d\n", Source.Name, Source.Line);
+		}
+	}
 	if (Dest) {
-		if (ml_is(Source, MLBooleanT)) {
-			g_value_set_boolean(Dest, ml_boolean_value(Source));
-		} else if (ml_is(Source, MLIntegerT)) {
-			g_value_set_long(Dest, ml_integer_value(Source));
-		} else if (ml_is(Source, MLDoubleT)) {
-			g_value_set_double(Dest, ml_real_value(Source));
-		} else if (ml_is(Source, MLStringT)) {
-			g_value_set_string(Dest, ml_string_value(Source));
-		} else if (ml_is(Source, GirObjectInstanceT)) {
-			void *Object = ((object_instance_t *)Source)->Handle;
+		if (ml_is(Value, MLBooleanT)) {
+			g_value_set_boolean(Dest, ml_boolean_value(Value));
+		} else if (ml_is(Value, MLIntegerT)) {
+			g_value_set_long(Dest, ml_integer_value(Value));
+		} else if (ml_is(Value, MLDoubleT)) {
+			g_value_set_double(Dest, ml_real_value(Value));
+		} else if (ml_is(Value, MLStringT)) {
+			g_value_set_string(Dest, ml_string_value(Value));
+		} else if (ml_is(Value, GirObjectInstanceT)) {
+			void *Object = ((object_instance_t *)Value)->Handle;
 			g_value_set_object(Dest, Object);
-		} else if (ml_is(Source, GirStructInstanceT)) {
-			void *Value = ((struct_instance_t *)Source)->Value;
-			g_value_set_object(Dest, Value);
-		} else if (ml_is(Source, GirEnumValueT)) {
-			enum_t *Enum = (enum_t *)((enum_value_t *)Source)->Type;
+		} else if (ml_is(Value, GirStructInstanceT)) {
+			void *Struct = ((struct_instance_t *)Value)->Value;
+			g_value_set_object(Dest, Struct);
+		} else if (ml_is(Value, GirEnumValueT)) {
+			enum_t *Enum = (enum_t *)((enum_value_t *)Value)->Type;
 			GType Type = g_type_from_name(g_base_info_get_name((GIBaseInfo *)Enum->Info));
 			g_value_init(Dest, Type);
-			g_value_set_enum(Dest, ((enum_value_t *)Source)->Value);
+			g_value_set_enum(Dest, ((enum_value_t *)Value)->Value);
 		}
 	}
 }
@@ -2378,8 +2439,15 @@ ML_METHODX("connect", GirObjectInstanceT, MLStringT, MLFunctionT) {
 	GClosure *Closure = g_closure_new_simple(sizeof(GClosure), Info);
 	g_closure_set_marshal(Closure, gir_closure_marshal);
 	g_closure_add_finalize_notifier(Closure, Info, (void *)gir_closure_finalize);
-	g_signal_connect_closure(Instance->Handle, Signal, Closure, Count > 3 && Args[3] != MLNil);
-	ML_RETURN(Instance);
+	gulong Id = g_signal_connect_closure(Instance->Handle, Signal, Closure, Count > 3 && Args[3] != MLNil);
+	ML_RETURN(ml_integer(Id));
+}
+
+ML_METHOD("disconnect", GirObjectInstanceT, MLIntegerT) {
+	object_instance_t *Instance = (object_instance_t *)Args[0];
+	gulong Id = ml_integer_value(Args[1]);
+	g_signal_handler_disconnect(Instance->Handle, Id);
+	return MLNil;
 }
 
 typedef struct {

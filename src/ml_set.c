@@ -1173,11 +1173,10 @@ ML_METHODX("const", MLVisitorT, MLSetT) {
 
 #include "ml_cbor.h"
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLSetT, ml_cbor_writer_t *Writer, ml_set_t *Set) {
+static void ML_TYPED_FN(ml_cbor_write, MLSetT, ml_cbor_writer_t *Writer, ml_set_t *Set) {
 	ml_cbor_write_tag(Writer, 258);
 	ml_cbor_write_array(Writer, Set->Size);
 	ML_SET_FOREACH(Set, Iter) ml_cbor_write(Writer, Iter->Key);
-	return NULL;
 }
 
 static ml_value_t *ml_cbor_read_set(ml_cbor_reader_t *Reader, ml_value_t *Value) {

@@ -47,7 +47,7 @@ typedef struct {
 	size_t Length;
 } ml_cbor_t;
 
-typedef void (*ml_cbor_write_fn)(void *Data, const unsigned char *Bytes, size_t Size);
+typedef int (*ml_cbor_write_fn)(void *Data, const unsigned char *Bytes, size_t Size);
 typedef struct ml_cbor_writer_t ml_cbor_writer_t;
 
 ml_cbor_writer_t *ml_cbor_writer(void *Data, ml_cbor_write_fn WriteFn, ml_externals_t *Externals);
@@ -57,8 +57,13 @@ void *ml_cbor_writer_get_setting(ml_cbor_writer_t *Writer, int Setting);
 void ml_cbor_writer_find_refs(ml_cbor_writer_t *Writer, ml_value_t *Value);
 ml_cbor_t ml_cbor_writer_encode(ml_value_t *Value);
 
-ml_value_t *ml_cbor_write(ml_cbor_writer_t *Writer, ml_value_t *Value);
+void ml_cbor_writer_error(ml_cbor_writer_t *Writer, ml_value_t *Error) __attribute__((noreturn));
 
+#define ML_CBOR_WRITER_ERROR(WRITER, ARGS...) ml_cbor_writer_error(WRITER, ml_error(ARGS))
+
+void ml_cbor_write(ml_cbor_writer_t *Writer, ml_value_t *Value);
+
+int ml_cbor_write_raw(ml_cbor_writer_t *Writer, const void *Bytes, size_t Length);
 void ml_cbor_write_integer(ml_cbor_writer_t *Writer, int64_t Number);
 void ml_cbor_write_positive(ml_cbor_writer_t *Writer, uint64_t Number);
 void ml_cbor_write_negative(ml_cbor_writer_t *Writer, uint64_t Number);
@@ -76,8 +81,6 @@ void ml_cbor_write_float8(ml_cbor_writer_t *Writer, double Number);
 void ml_cbor_write_simple(ml_cbor_writer_t *Writer, unsigned char Simple);
 void ml_cbor_write_break(ml_cbor_writer_t *Writer);
 void ml_cbor_write_tag(ml_cbor_writer_t *Writer, uint64_t Tag);
-
-void ml_cbor_write_raw(ml_cbor_writer_t *Writer, const void *Bytes, size_t Length);
 
 ml_cbor_t ml_to_cbor(ml_value_t *Value);
 ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns);

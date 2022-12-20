@@ -146,6 +146,19 @@ static ml_value_t *debugger_breakpoint_clear(interactive_debugger_t *Debugger, i
 	return debugger_breakpoints_list(Debugger, 0, NULL);
 }
 
+static ml_value_t *debugger_breakpoint_toggle(interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
+	ML_CHECK_ARG_COUNT(2);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ML_CHECK_ARG_TYPE(1, MLIntegerT);
+	const char *Source = ml_string_value(Args[0]);
+	size_t LineNo = ml_integer_value_fast(Args[1]);
+	size_t *Breakpoints = debugger_breakpoints(Debugger, Source, LineNo);
+	size_t Bit = 1L << (LineNo % SIZE_BITS);
+	Breakpoints[LineNo / SIZE_BITS] ^= Bit;
+	++Debugger->Base.Revision;
+	return ml_integer(Breakpoints[LineNo / SIZE_BITS] & Bit);
+}
+
 static void debugger_continue(ml_state_t *Caller, interactive_debugger_t *Debugger, int Count, ml_value_t **Args) {
 	debug_thread_t *Thread = Debugger->ActiveThread;
 	if (!Thread) return;
@@ -330,6 +343,7 @@ static void interactive_debugger_fnx(ml_state_t *Caller, interactive_debugger_in
 	Debugger->Threads = anew(debug_thread_t, 16);
 	stringmap_insert(Debugger->Globals, "breakpoint_set", ml_cfunction(Debugger, (void *)debugger_breakpoint_set));
 	stringmap_insert(Debugger->Globals, "breakpoint_clear", ml_cfunction(Debugger, (void *)debugger_breakpoint_clear));
+	stringmap_insert(Debugger->Globals, "breakpoint_toggle", ml_cfunction(Debugger, (void *)debugger_breakpoint_toggle));
 	stringmap_insert(Debugger->Globals, "breakpoints", ml_cfunction(Debugger, (void *)debugger_breakpoints_list));
 	stringmap_insert(Debugger->Globals, "continue", ml_cfunctionx(Debugger, (void *)debugger_continue));
 	stringmap_insert(Debugger->Globals, "continue_all", ml_cfunctionx(Debugger, (void *)debugger_continue_all));

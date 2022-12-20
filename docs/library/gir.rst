@@ -27,6 +27,10 @@ gir
    *TBD*
 
 
+:mini:`meth (Arg₁: gir::baseinfo):name`
+   *TBD*
+
+
 .. _type-gir-enum:
 
 :mini:`type gir::enum < gir::baseinfo`

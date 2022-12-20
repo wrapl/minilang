@@ -7128,7 +7128,7 @@ static void ml_cbor_write_array_any(int Degree, ml_array_dimension_t *Dimension,
 	}
 }
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_cbor_writer_t *Writer, ml_array_t *Array) {
+static void ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_cbor_writer_t *Writer, ml_array_t *Array) {
 	static uint64_t Tags[] = {
 		[ML_ARRAY_FORMAT_U8] = 64,
 		[ML_ARRAY_FORMAT_I8] = 72,
@@ -7143,7 +7143,7 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_cbor_writer_t *Writer
 	};
 	if (Array->Degree == -1) {
 		ml_cbor_write_simple(Writer, CBOR_SIMPLE_NULL);
-		return NULL;
+		return;
 	}
 	if (Array->Degree != 1) {
 		ml_cbor_write_tag(Writer, 40);
@@ -7195,7 +7195,6 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLArrayT, ml_cbor_writer_t *Writer
 		ml_cbor_write_bytes(Writer, Size);
 		ml_cbor_write_array_typed(FlatDegree, FlatSize, Array->Dimensions, Array->Base.Value, Writer);
 	}
-	return NULL;
 }
 
 static ml_value_t *ml_cbor_read_multi_array_fn(ml_cbor_reader_t *Reader, ml_value_t *Value) {

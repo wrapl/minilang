@@ -814,7 +814,7 @@ ML_METHOD("@", MLTimeT, MLTimeZoneT) {
 
 #include "ml_cbor.h"
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTimeT, ml_cbor_writer_t *Writer, ml_time_t *Time) {
+static void ML_TYPED_FN(ml_cbor_write, MLTimeT, ml_cbor_writer_t *Writer, ml_time_t *Time) {
 	struct tm TM = {0,};
 	gmtime_r(&Time->Value->tv_sec, &TM);
 	char Buffer[60];
@@ -833,7 +833,6 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTimeT, ml_cbor_writer_t *Writer,
 	size_t Length = End - Buffer;
 	ml_cbor_write_string(Writer, Length);
 	ml_cbor_write_raw(Writer, (const unsigned char *)Buffer, Length);
-	return NULL;
 }
 
 static ml_value_t *ml_cbor_read_time_fn(ml_cbor_reader_t *Reader, ml_value_t *Value) {

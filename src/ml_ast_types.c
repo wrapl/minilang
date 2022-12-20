@@ -816,5 +816,6 @@ ml_value_t *mlc_expr_describe(mlc_expr_t *Expr) {
 		case ML_EXPR_VAR_UNPACK: return a_mlc_local_expr_t(AstVarUnpackExprT, (mlc_local_expr_t *)Expr);
 		case ML_EXPR_WITH: return a_mlc_local_expr_t(AstWithExprT, (mlc_local_expr_t *)Expr);
 	}
+	__builtin_unreachable();
 }
 
