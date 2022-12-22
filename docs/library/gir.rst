@@ -163,6 +163,10 @@ gir
    *TBD*
 
 
+:mini:`meth (Arg₁: gir::objectinstance):disconnect(Arg₂: integer)`
+   *TBD*
+
+
 :mini:`meth (Object: string::buffer):append(Arg₂: gir::objectinstance): string`
    *TBD*
 

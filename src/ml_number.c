@@ -1227,6 +1227,130 @@ ML_METHOD("by", MLIntegerRangeT, MLIntegerT) {
 	return (ml_value_t *)Range;
 }
 
+ML_METHOD("+", MLIntegerRangeT, MLIntegerT) {
+//!range
+//<Range
+//<Shift
+//>integer::range
+// Returns a range
+	ml_integer_range_t *Range0 = (ml_integer_range_t *)Args[0];
+	int64_t Shift = ml_integer_value_fast(Args[1]);
+	ml_integer_range_t *Range = new(ml_integer_range_t);
+	Range->Type = MLIntegerRangeT;
+	Range->Start = Range0->Start + Shift;
+	Range->Limit = Range0->Limit + Shift;
+	Range->Step = Range0->Step;
+	return (ml_value_t *)Range;
+}
+
+ML_METHOD("-", MLIntegerRangeT, MLIntegerT) {
+//!range
+//<Range
+//<Shift
+//>integer::range
+// Returns a range
+	ml_integer_range_t *Range0 = (ml_integer_range_t *)Args[0];
+	int64_t Shift = ml_integer_value_fast(Args[1]);
+	ml_integer_range_t *Range = new(ml_integer_range_t);
+	Range->Type = MLIntegerRangeT;
+	Range->Start = Range0->Start - Shift;
+	Range->Limit = Range0->Limit - Shift;
+	Range->Step = Range0->Step;
+	return (ml_value_t *)Range;
+}
+
+ML_METHOD("*", MLIntegerRangeT, MLIntegerT) {
+//!range
+//<Range
+//<Scale
+//>integer::range
+// Returns a range
+	ml_integer_range_t *Range0 = (ml_integer_range_t *)Args[0];
+	int64_t Scale = ml_integer_value_fast(Args[1]);
+	ml_integer_range_t *Range = new(ml_integer_range_t);
+	Range->Type = MLIntegerRangeT;
+	Range->Start = Range0->Start * Scale;
+	Range->Limit = Range0->Limit * Scale;
+	Range->Step = Range0->Step * Scale;
+	return (ml_value_t *)Range;
+}
+
+ML_METHOD("+", MLIntegerT, MLIntegerRangeT) {
+//!range
+//<Shift
+//<Range
+//>integer::range
+// Returns a range
+	int64_t Shift = ml_integer_value_fast(Args[0]);
+	ml_integer_range_t *Range0 = (ml_integer_range_t *)Args[1];
+	ml_integer_range_t *Range = new(ml_integer_range_t);
+	Range->Type = MLIntegerRangeT;
+	Range->Start = Shift + Range0->Start;
+	Range->Limit = Shift + Range0->Limit;
+	Range->Step = Range0->Step;
+	return (ml_value_t *)Range;
+}
+
+ML_METHOD("-", MLIntegerT, MLIntegerRangeT) {
+//!range
+//<Shift
+//<Range
+//>integer::range
+// Returns a range
+	int64_t Shift = ml_integer_value_fast(Args[0]);
+	ml_integer_range_t *Range0 = (ml_integer_range_t *)Args[1];
+	ml_integer_range_t *Range = new(ml_integer_range_t);
+	Range->Type = MLIntegerRangeT;
+	Range->Start = Shift - Range0->Start;
+	Range->Limit = Shift - Range0->Limit;
+	Range->Step = -Range0->Step;
+	return (ml_value_t *)Range;
+}
+
+ML_METHOD("*", MLIntegerT, MLIntegerRangeT) {
+//!range
+//<Scale
+//<Range
+//>integer::range
+// Returns a range
+	int64_t Scale = ml_integer_value_fast(Args[0]);
+	ml_integer_range_t *Range0 = (ml_integer_range_t *)Args[1];
+	ml_integer_range_t *Range = new(ml_integer_range_t);
+	Range->Type = MLIntegerRangeT;
+	Range->Start = Scale * Range0->Start;
+	Range->Limit = Scale * Range0->Limit;
+	Range->Step = Scale * Range0->Step;
+	return (ml_value_t *)Range;
+}
+
+ML_METHOD("=", MLIntegerRangeT, MLIntegerRangeT) {
+//!range
+//<A
+//<B
+//>integer::range|nil
+// Returns a range
+	ml_integer_range_t *A = (ml_integer_range_t *)Args[0];
+	ml_integer_range_t *B = (ml_integer_range_t *)Args[1];
+	if (A->Start != B->Start) return MLNil;
+	if (A->Limit != B->Limit) return MLNil;
+	if (A->Step != B->Step) return MLNil;
+	return (ml_value_t *)B;
+}
+
+ML_METHOD("!=", MLIntegerRangeT, MLIntegerRangeT) {
+//!range
+//<A
+//<B
+//>integer::range|nil
+// Returns a range
+	ml_integer_range_t *A = (ml_integer_range_t *)Args[0];
+	ml_integer_range_t *B = (ml_integer_range_t *)Args[1];
+	if (A->Start != B->Start) return (ml_value_t *)B;
+	if (A->Limit != B->Limit) return (ml_value_t *)B;
+	if (A->Step != B->Step) return (ml_value_t *)B;
+	return MLNil;
+}
+
 ML_METHOD("count", MLIntegerRangeT) {
 //!range
 //<Range

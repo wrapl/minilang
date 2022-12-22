@@ -47,6 +47,10 @@ enum
       day:count :> 7
 
 
+:mini:`meth (Enum: enum):random: enum::value`
+   *TBD*
+
+
 .. _type-enum-range:
 
 :mini:`type enum::range < sequence`

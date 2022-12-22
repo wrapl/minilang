@@ -17,6 +17,18 @@ range
    *TBD*
 
 
+:mini:`meth (Scale: integer) * (Range: integer::range): integer::range`
+   Returns a range
+
+
+:mini:`meth (Shift: integer) + (Range: integer::range): integer::range`
+   Returns a range
+
+
+:mini:`meth (Shift: integer) - (Range: integer::range): integer::range`
+   Returns a range
+
+
 :mini:`meth (Start: integer) .. (Limit: integer): integer::range`
    Returns a range from :mini:`Start` to :mini:`Limit` (inclusive).
 
@@ -53,6 +65,26 @@ range
 
 :mini:`type integer::range < sequence`
    *TBD*
+
+
+:mini:`meth (A: integer::range) != (B: integer::range): integer::range | nil`
+   Returns a range
+
+
+:mini:`meth (Range: integer::range) * (Scale: integer): integer::range`
+   Returns a range
+
+
+:mini:`meth (Range: integer::range) + (Shift: integer): integer::range`
+   Returns a range
+
+
+:mini:`meth (Range: integer::range) - (Shift: integer): integer::range`
+   Returns a range
+
+
+:mini:`meth (A: integer::range) = (B: integer::range): integer::range | nil`
+   Returns a range
 
 
 :mini:`meth (Range: integer::range):bin(Value: double): integer | nil`

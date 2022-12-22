@@ -2138,17 +2138,6 @@ static void ml_array_ ## CTYPE ## _assign(ml_state_t *Caller, ml_array_t *Target
 	for (;;) if (FORMAT == ML_ARRAY_FORMAT_ANY && !Target->Degree) { \
 		*(ml_value_t **)Target->Base.Value = Value; \
 		ML_RETURN(Value); \
-	} else if (ml_is(Value, MLNumberT)) { \
-		CTYPE CValue = FROM_VAL(Value); \
-		ml_array_dimension_t ValueDimension[1] = {{1, 0, NULL}}; \
-		update_row_fn_t Update = UpdateSetRowFns[Target->Format * MAX_FORMATS + Target->Format]; \
-		if (!Update) ML_ERROR("ArrayError", "Unsupported array format pair (%s, %s)", Target->Base.Type->Name, ml_typeof(Value)->Name); \
-		if (Target->Degree == 0) { \
-			Update(ValueDimension, Target->Base.Value, ValueDimension, (char *)&CValue); \
-		} else { \
-			update_prefix(Update, Target->Degree - 1, Target->Dimensions, Target->Base.Value, 0, ValueDimension, (char *)&CValue); \
-		} \
-		ML_RETURN(Value); \
 	} else if (ml_is(Value, MLArrayT)) { \
 		ml_array_t *Source = (ml_array_t *)Value; \
 		if (Source->Degree > Target->Degree) ML_ERROR("ArrayError", "Incompatible assignment (%d)", __LINE__); \
@@ -2163,6 +2152,27 @@ static void ml_array_ ## CTYPE ## _assign(ml_state_t *Caller, ml_array_t *Target
 		} else { \
 			ml_array_dimension_t ValueDimension[1] = {{1, 0, NULL}}; \
 			Update(ValueDimension, Target->Base.Value, ValueDimension, Source->Base.Value); \
+		} \
+		ML_RETURN(Value); \
+	} else if (FORMAT == ML_ARRAY_FORMAT_ANY) { \
+		ml_array_dimension_t ValueDimension[1] = {{1, 0, NULL}}; \
+		update_row_fn_t Update = UpdateSetRowFns[Target->Format * MAX_FORMATS + Target->Format]; \
+		if (!Update) ML_ERROR("ArrayError", "Unsupported array format pair (%s, %s)", Target->Base.Type->Name, ml_typeof(Value)->Name); \
+		if (Target->Degree == 0) { \
+			Update(ValueDimension, Target->Base.Value, ValueDimension, (char *)&Value); \
+		} else { \
+			update_prefix(Update, Target->Degree - 1, Target->Dimensions, Target->Base.Value, 0, ValueDimension, (char *)&Value); \
+		} \
+		ML_RETURN(Value); \
+	} else if (ml_is(Value, MLNumberT)) { \
+		CTYPE CValue = FROM_VAL(Value); \
+		ml_array_dimension_t ValueDimension[1] = {{1, 0, NULL}}; \
+		update_row_fn_t Update = UpdateSetRowFns[Target->Format * MAX_FORMATS + Target->Format]; \
+		if (!Update) ML_ERROR("ArrayError", "Unsupported array format pair (%s, %s)", Target->Base.Type->Name, ml_typeof(Value)->Name); \
+		if (Target->Degree == 0) { \
+			Update(ValueDimension, Target->Base.Value, ValueDimension, (char *)&CValue); \
+		} else { \
+			update_prefix(Update, Target->Degree - 1, Target->Dimensions, Target->Base.Value, 0, ValueDimension, (char *)&CValue); \
 		} \
 		ML_RETURN(Value); \
 	} else { \

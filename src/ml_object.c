@@ -347,7 +347,6 @@ ML_FUNCTIONX(MLClass) {
 					const char *Name = ml_string_value(Key);
 					ml_value_t *Value = Args[++I];
 					stringmap_insert(Class->Base.Exports, Name, Value);
-					ml_value_set_name(Value, Name);
 					if (!strcmp(Name, "of")) {
 						Class->Base.Constructor = Value;
 					} else if (!strcmp(Name, "init")) {
@@ -390,7 +389,6 @@ ML_FUNCTIONX(MLClass) {
 					const char *Name = ml_string_value(Key);
 					ml_value_t *Value = Args[++I];
 					stringmap_insert(Class->Base.Exports, Name, Value);
-					ml_value_set_name(Value, Name);
 					if (!strcmp(Name, "of")) {
 						Class->Base.Constructor = Value;
 					} else if (!strcmp(Name, "init")) {
@@ -429,22 +427,21 @@ ML_FUNCTIONX(MLClass) {
 	}
 }
 
+static int ml_class_set_name_fn(const char *Export, ml_value_t *Value, const char *Prefix) {
+	const char *Name;
+	GC_asprintf((char **)&Name, "%s::%s", Prefix, Export);
+	ml_value_set_name(Value, Name);
+	return 0;
+}
+
 static void ML_TYPED_FN(ml_value_set_name, MLNamedTypeT, ml_named_type_t *Class, const char *Name) {
 	Class->Base.Name = Name;
-	if (Class->Initializer) {
-		const char *InitName;
-		GC_asprintf((char **)&InitName, "%s::init", Name);
-		ml_value_set_name(Class->Initializer, InitName);
-	}
+	stringmap_foreach(Class->Base.Exports, (void *)Name, (void *)ml_class_set_name_fn);
 }
 
 static void ML_TYPED_FN(ml_value_set_name, MLClassT, ml_class_t *Class, const char *Name) {
 	Class->Base.Name = Name;
-	if (Class->Initializer) {
-		const char *InitName;
-		GC_asprintf((char **)&InitName, "%s::init", Name);
-		ml_value_set_name(Class->Initializer, InitName);
-	}
+	stringmap_foreach(Class->Base.Exports, (void *)Name, (void *)ml_class_set_name_fn);
 }
 
 typedef struct ml_property_t {
@@ -759,6 +756,17 @@ ML_METHOD("count", MLEnumT) {
 //$= day:count
 	ml_enum_t *Enum = (ml_enum_t *)Args[0];
 	return ml_integer(Enum->Base.Exports->Size);
+}
+
+ML_METHOD("random", MLEnumT) {
+//<Enum
+//>enum::value
+	ml_enum_t *Enum = (ml_enum_t *)Args[0];
+	int Limit = Enum->Base.Exports->Size;
+	int Divisor = RAND_MAX / Limit;
+	int Random;
+	do Random = random() / Divisor; while (Random >= Limit);
+	return (ml_value_t *)Enum->Values[Random];
 }
 
 typedef struct {
