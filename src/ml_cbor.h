@@ -63,6 +63,7 @@ void ml_cbor_writer_error(ml_cbor_writer_t *Writer, ml_value_t *Error) __attribu
 #define ML_CBOR_WRITER_ERROR(WRITER, ARGS...) ml_cbor_writer_error(WRITER, ml_error(ARGS))
 
 void ml_cbor_write(ml_cbor_writer_t *Writer, ml_value_t *Value);
+ml_value_t *ml_cbor_try_write(ml_cbor_writer_t *Writer, ml_value_t *Value);
 
 int ml_cbor_write_raw(ml_cbor_writer_t *Writer, const void *Bytes, size_t Length);
 void ml_cbor_write_integer(ml_cbor_writer_t *Writer, int64_t Number);

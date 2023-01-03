@@ -748,6 +748,12 @@ void ml_cbor_write(ml_cbor_writer_t *Writer, ml_value_t *Value) {
 	ML_CBOR_WRITER_ERROR(Writer, "CBORError", "No method to encode %s to CBOR", ml_typeof(Value)->Name);
 }
 
+ml_value_t *ml_cbor_try_write(ml_cbor_writer_t *Writer, ml_value_t *Value) {
+	if (setjmp(Writer->OnError)) return Writer->Error;
+	ml_cbor_write(Writer, Value);
+	return NULL;
+}
+
 ml_cbor_t ml_cbor_encode(ml_value_t *Value) {
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_cbor_writer_t Writer[1];
