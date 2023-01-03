@@ -4741,11 +4741,11 @@ static ml_array_t *ML_TYPED_FN(ml_array_of_create, MLIntegerRangeT, ml_integer_r
 }
 
 static ml_array_t *ML_TYPED_FN(ml_array_of_create, MLRealRangeT, ml_real_range_t *Range, int Degree, ml_array_format_t Format) {
-	if (!Range->Count) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
+	size_t Count = ml_real_range_count(Range);
+	if (Count) return (ml_array_t *)ml_error("ValueError", "Empty dimension in array");
 	ml_array_t *Array = ml_array_alloc(Format, Degree + 1);
 	ml_array_dimension_t *Dimension = Array->Dimensions + Degree;
 	Dimension->Stride = MLArraySizes[Format];
-	Dimension->Size = Range->Count;
 	return Array;
 }
 
@@ -4938,7 +4938,7 @@ static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLIntegerRangeT, ml_array_forma
 
 static ml_value_t *ML_TYPED_FN(ml_array_of_fill, MLRealRangeT, ml_array_format_t Format, ml_array_dimension_t *Dimension, char *Address, int Degree, ml_real_range_t *Range) {
 	if (!Degree) return ml_error("ValueError", "Inconsistent depth in array");
-	size_t Count = Range->Count;
+	size_t Count = ml_real_range_count(Range);
 	if (Count != Dimension->Size) return ml_error("ValueError", "Inconsistent lengths in array");
 	double Value = Range->Start, Step = Range->Step;
 	switch (Format) {

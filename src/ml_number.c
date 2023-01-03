@@ -776,6 +776,28 @@ ML_METHOD("mod", MLIntegerT, MLIntegerT) {
 	return ml_integer(R);
 }
 
+ML_METHOD("bsf", MLIntegerT) {
+//<A
+//>integer
+// Returns the index of the least significant 1-bit of :mini:`A`, or :mini:`0` if :mini:`A = 0`.
+//$= 16:bsf
+//$= 10:bsf
+//$= 0:bsf
+	uint64_t A = (uint64_t)ml_integer_value_fast(Args[0]);
+	return ml_integer(__builtin_ffsl(A));
+}
+
+ML_METHOD("bsr", MLIntegerT) {
+//<A
+//>integer
+// Returns the index of the most significant 1-bit of :mini:`A`, or :mini:`0` if :mini:`A = 0`.
+//$= 16:bsr
+//$= 10:bsr
+//$= 0:bsr
+	uint64_t A = (uint64_t)ml_integer_value_fast(Args[0]);
+	return ml_integer(A ? 64 - __builtin_clzl(A) : 0);
+}
+
 #define ml_comp_method_integer_integer(NAME, SYMBOL) \
 ML_METHOD(#NAME, MLIntegerT, MLIntegerT) { \
 /*<A
@@ -1078,31 +1100,67 @@ ML_FUNCTION(RandomReal) {
 	}
 }
 
-typedef struct ml_integer_iter_t {
+typedef struct {
+	const ml_type_t *Type;
+	ml_value_t *Value;
+	long Index;
+} ml_constant_iter_t;
+
+ML_TYPE(MLConstantIterT, (), "constant-iter");
+//!internal
+
+static void ML_TYPED_FN(ml_iter_value, MLConstantIterT, ml_state_t *Caller, ml_constant_iter_t *Iter) {
+	ML_RETURN(Iter->Value);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLConstantIterT, ml_state_t *Caller, ml_constant_iter_t *Iter) {
+	++Iter->Index;
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLConstantIterT, ml_state_t *Caller, ml_constant_iter_t *Iter) {
+	ML_RETURN(ml_integer(Iter->Index));
+}
+
+typedef struct {
 	const ml_type_t *Type;
 	long Current, Step, Limit;
 	long Index;
 } ml_integer_iter_t;
 
-ML_TYPE(MLIntegerIterT, (), "integer-iter");
+ML_TYPE(MLIntegerUpIterT, (), "integer-iter");
 //!internal
 
-static void ML_TYPED_FN(ml_iter_value, MLIntegerIterT, ml_state_t *Caller, ml_integer_iter_t *Iter) {
+static void ML_TYPED_FN(ml_iter_value, MLIntegerUpIterT, ml_state_t *Caller, ml_integer_iter_t *Iter) {
 	ML_RETURN(ml_integer(Iter->Current));
 }
 
-static void ML_TYPED_FN(ml_iter_next, MLIntegerIterT, ml_state_t *Caller, ml_integer_iter_t *Iter) {
+static void ML_TYPED_FN(ml_iter_next, MLIntegerUpIterT, ml_state_t *Caller, ml_integer_iter_t *Iter) {
 	Iter->Current += Iter->Step;
-	if (Iter->Step > 0) {
-		if (Iter->Current > Iter->Limit) ML_RETURN(MLNil);
-	} else if (Iter->Step < 0) {
-		if (Iter->Current < Iter->Limit) ML_RETURN(MLNil);
-	}
+	if (Iter->Current > Iter->Limit) ML_RETURN(MLNil);
 	++Iter->Index;
 	ML_RETURN(Iter);
 }
 
-static void ML_TYPED_FN(ml_iter_key, MLIntegerIterT, ml_state_t *Caller, ml_integer_iter_t *Iter) {
+static void ML_TYPED_FN(ml_iter_key, MLIntegerUpIterT, ml_state_t *Caller, ml_integer_iter_t *Iter) {
+	ML_RETURN(ml_integer(Iter->Index));
+}
+
+ML_TYPE(MLIntegerDownIterT, (), "integer-iter");
+//!internal
+
+static void ML_TYPED_FN(ml_iter_value, MLIntegerDownIterT, ml_state_t *Caller, ml_integer_iter_t *Iter) {
+	ML_RETURN(ml_integer(Iter->Current));
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLIntegerDownIterT, ml_state_t *Caller, ml_integer_iter_t *Iter) {
+	Iter->Current += Iter->Step;
+	if (Iter->Current < Iter->Limit) ML_RETURN(MLNil);
+	++Iter->Index;
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLIntegerDownIterT, ml_state_t *Caller, ml_integer_iter_t *Iter) {
 	ML_RETURN(ml_integer(Iter->Index));
 }
 
@@ -1111,15 +1169,31 @@ ML_TYPE(MLIntegerRangeT, (MLSequenceT), "integer-range");
 
 static void ML_TYPED_FN(ml_iterate, MLIntegerRangeT, ml_state_t *Caller, ml_value_t *Value) {
 	ml_integer_range_t *Range = (ml_integer_range_t *)Value;
-	if (Range->Step > 0 && Range->Start > Range->Limit) ML_RETURN(MLNil);
-	if (Range->Step < 0 && Range->Start < Range->Limit) ML_RETURN(MLNil);
-	ml_integer_iter_t *Iter = new(ml_integer_iter_t);
-	Iter->Type = MLIntegerIterT;
-	Iter->Index = 1;
-	Iter->Current = Range->Start;
-	Iter->Limit = Range->Limit;
-	Iter->Step = Range->Step;
-	ML_RETURN(Iter);
+	if (Range->Step > 0) {
+		if (Range->Start > Range->Limit) ML_RETURN(MLNil);
+		ml_integer_iter_t *Iter = new(ml_integer_iter_t);
+		Iter->Type = MLIntegerUpIterT;
+		Iter->Index = 1;
+		Iter->Current = Range->Start;
+		Iter->Limit = Range->Limit;
+		Iter->Step = Range->Step;
+		ML_RETURN(Iter);
+	} else if (Range->Step < 0) {
+		if (Range->Start < Range->Limit) ML_RETURN(MLNil);
+		ml_integer_iter_t *Iter = new(ml_integer_iter_t);
+		Iter->Type = MLIntegerDownIterT;
+		Iter->Index = 1;
+		Iter->Current = Range->Start;
+		Iter->Limit = Range->Limit;
+		Iter->Step = Range->Step;
+		ML_RETURN(Iter);
+	} else {
+		ml_constant_iter_t *Iter = new(ml_constant_iter_t);
+		Iter->Type = MLConstantIterT;
+		Iter->Value = ml_integer(Range->Start);
+		Iter->Index = 1;
+		ML_RETURN(Iter);
+	}
 }
 
 ML_METHOD("..", MLIntegerT, MLIntegerT) {
@@ -1357,15 +1431,16 @@ ML_METHOD("count", MLIntegerRangeT) {
 //>integer
 // Returns the number of values in :mini:`Range`.
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
-	int64_t Diff = Range->Limit - Range->Start;
-	if (!Range->Step) {
-		return (ml_value_t *)Zero;
-	} else if (Diff < 0 && Range->Step > 0) {
-		return (ml_value_t *)Zero;
-	} else if (Diff > 0 && Range->Step < 0) {
-		return (ml_value_t *)Zero;
-	} else {
+	if (Range->Step > 0) {
+		if (Range->Start > Range->Limit) return ml_integer(0);
+		int64_t Diff = Range->Limit - Range->Start;
 		return ml_integer(Diff / Range->Step + 1);
+	} else if (Range->Step < 0) {
+		if (Range->Start < Range->Limit) return ml_integer(0);
+		int64_t Diff = Range->Limit - Range->Start;
+		return ml_integer(Diff / Range->Step + 1);
+	} else {
+		return ml_real(INFINITY);
 	}
 }
 
@@ -1394,6 +1469,42 @@ ML_METHOD("step", MLIntegerRangeT) {
 // Returns the limit of :mini:`Range`.
 	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
 	return ml_integer(Range->Step);
+}
+
+ML_METHOD("first", MLIntegerRangeT) {
+//!range
+//<Range
+//>integer
+// Returns the start of :mini:`Range`.
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
+	int64_t Diff = Range->Limit - Range->Start;
+	if (!Range->Step) {
+		return ml_integer(Range->Start);
+	} else if (Diff < 0 && Range->Step > 0) {
+		return MLNil;
+	} else if (Diff > 0 && Range->Step < 0) {
+		return MLNil;
+	} else {
+		return ml_integer(Range->Start);
+	}
+}
+
+ML_METHOD("last", MLIntegerRangeT) {
+//!range
+//<Range
+//>integer
+// Returns the limit of :mini:`Range`.
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
+	int64_t Diff = Range->Limit - Range->Start;
+	if (!Range->Step) {
+		return ml_integer(Range->Start);
+	} else if (Diff < 0 && Range->Step > 0) {
+		return MLNil;
+	} else if (Diff > 0 && Range->Step < 0) {
+		return MLNil;
+	} else {
+		return ml_integer(Range->Start + (Diff / Range->Step) * Range->Step);
+	}
 }
 
 ML_METHOD("in", MLIntegerT, MLIntegerRangeT) {
@@ -1439,24 +1550,42 @@ ML_METHOD("random", MLIntegerRangeT) {
 typedef struct ml_real_iter_t {
 	const ml_type_t *Type;
 	double Current, Step, Limit;
-	long Index, Remaining;
+	long Index;
 } ml_real_iter_t;
 
-ML_TYPE(MLRealIterT, (), "real-iter");
+ML_TYPE(MLRealUpIterT, (), "real-iter");
 //!internal
 
-static void ML_TYPED_FN(ml_iter_value, MLRealIterT, ml_state_t *Caller, ml_real_iter_t *Iter) {
+static void ML_TYPED_FN(ml_iter_value, MLRealUpIterT, ml_state_t *Caller, ml_real_iter_t *Iter) {
 	ML_RETURN(ml_real(Iter->Current));
 }
 
-static void ML_TYPED_FN(ml_iter_next, MLRealIterT, ml_state_t *Caller, ml_real_iter_t *Iter) {
+static void ML_TYPED_FN(ml_iter_next, MLRealUpIterT, ml_state_t *Caller, ml_real_iter_t *Iter) {
 	Iter->Current += Iter->Step;
-	if (--Iter->Remaining == 0) ML_RETURN(MLNil);
+	if (Iter->Current > Iter->Limit) ML_RETURN(MLNil);
 	++Iter->Index;
 	ML_RETURN(Iter);
 }
 
-static void ML_TYPED_FN(ml_iter_key, MLRealIterT, ml_state_t *Caller, ml_real_iter_t *Iter) {
+static void ML_TYPED_FN(ml_iter_key, MLRealUpIterT, ml_state_t *Caller, ml_real_iter_t *Iter) {
+	ML_RETURN(ml_integer(Iter->Index));
+}
+
+ML_TYPE(MLRealDownIterT, (), "real-iter");
+//!internal
+
+static void ML_TYPED_FN(ml_iter_value, MLRealDownIterT, ml_state_t *Caller, ml_real_iter_t *Iter) {
+	ML_RETURN(ml_real(Iter->Current));
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLRealDownIterT, ml_state_t *Caller, ml_real_iter_t *Iter) {
+	Iter->Current += Iter->Step;
+	if (Iter->Current < Iter->Limit) ML_RETURN(MLNil);
+	++Iter->Index;
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLRealDownIterT, ml_state_t *Caller, ml_real_iter_t *Iter) {
 	ML_RETURN(ml_integer(Iter->Index));
 }
 
@@ -1465,16 +1594,31 @@ ML_TYPE(MLRealRangeT, (MLSequenceT), "real-range");
 
 static void ML_TYPED_FN(ml_iterate, MLRealRangeT, ml_state_t *Caller, ml_value_t *Value) {
 	ml_real_range_t *Range = (ml_real_range_t *)Value;
-	if (Range->Step > 0 && Range->Start > Range->Limit) ML_RETURN(MLNil);
-	if (Range->Step < 0 && Range->Start < Range->Limit) ML_RETURN(MLNil);
-	ml_real_iter_t *Iter = new(ml_real_iter_t);
-	Iter->Type = MLRealIterT;
-	Iter->Index = 1;
-	Iter->Current = Range->Start;
-	Iter->Limit = Range->Limit;
-	Iter->Step = Range->Step;
-	Iter->Remaining = Range->Count;
-	ML_RETURN(Iter);
+	if (Range->Step > 0) {
+		if (Range->Start > Range->Limit) ML_RETURN(MLNil);
+		ml_real_iter_t *Iter = new(ml_real_iter_t);
+		Iter->Type = MLRealUpIterT;
+		Iter->Index = 1;
+		Iter->Current = Range->Start;
+		Iter->Limit = Range->Limit;
+		Iter->Step = Range->Step;
+		ML_RETURN(Iter);
+	} else if (Range->Step < 0) {
+		if (Range->Start < Range->Limit) ML_RETURN(MLNil);
+		ml_real_iter_t *Iter = new(ml_real_iter_t);
+		Iter->Type = MLRealDownIterT;
+		Iter->Index = 1;
+		Iter->Current = Range->Start;
+		Iter->Limit = Range->Limit;
+		Iter->Step = Range->Step;
+		ML_RETURN(Iter);
+	} else {
+		ml_constant_iter_t *Iter = new(ml_constant_iter_t);
+		Iter->Type = MLConstantIterT;
+		Iter->Value = ml_real(Range->Start);
+		Iter->Index = 1;
+		ML_RETURN(Iter);
+	}
 }
 
 ML_METHOD("..", MLNumberT, MLNumberT) {
@@ -1487,7 +1631,6 @@ ML_METHOD("..", MLNumberT, MLNumberT) {
 	Range->Start = ml_real_value(Args[0]);
 	Range->Limit = ml_real_value(Args[1]);
 	Range->Step = 1.0;
-	Range->Count = floor(Range->Limit - Range->Start) + 1;
 	return (ml_value_t *)Range;
 }
 
@@ -1500,10 +1643,7 @@ ML_METHOD("..", MLNumberT, MLNumberT, MLNumberT) {
 	Range->Type = MLRealRangeT;
 	Range->Start = ml_real_value(Args[0]);
 	Range->Limit = ml_real_value(Args[1]);
-	double Step = Range->Step = ml_real_value(Args[2]);
-	long C = (Range->Limit - Range->Start) / Step + 1;
-	if (C > LONG_MAX) C = 0;
-	Range->Count = C;
+	Range->Step = ml_real_value(Args[2]);
 	return (ml_value_t *)Range;
 }
 
@@ -1517,7 +1657,6 @@ ML_METHOD("by", MLNumberT, MLNumberT) {
 	Range->Start = ml_real_value(Args[0]);
 	Range->Step = ml_real_value(Args[1]);
 	Range->Limit = Range->Step > 0.0 ? INFINITY : -INFINITY;
-	Range->Count = 0;
 	return (ml_value_t *)Range;
 }
 
@@ -1529,12 +1668,9 @@ ML_METHOD("by", MLRealRangeT, MLNumberT) {
 	ml_real_range_t *Range0 = (ml_real_range_t *)Args[0];
 	ml_real_range_t *Range = new(ml_real_range_t);
 	Range->Type = MLRealRangeT;
-	double Start = Range->Start = Range0->Start;
-	double Limit = Range->Limit = Range0->Limit;
+	Range->Start = Range0->Start;
+	Range->Limit = Range0->Limit;
 	Range->Step = ml_real_value(Args[1]);
-	long C = (Limit - Start) / Range->Step + 1;
-	if (C > LONG_MAX) C = 0;
-	Range->Count = C;
 	return (ml_value_t *)Range;
 }
 
@@ -1552,7 +1688,6 @@ ML_METHOD("in", MLIntegerRangeT, MLIntegerT) {
 		Range->Start = Range0->Start;
 		Range->Limit = Range0->Limit;
 		Range->Step = (Range->Limit - Range->Start) / C;
-		Range->Count = C + 1;
 		return (ml_value_t *)Range;
 	} else {
 		ml_integer_range_t *Range = new(ml_integer_range_t);
@@ -1577,7 +1712,6 @@ ML_METHOD("in", MLRealRangeT, MLIntegerT) {
 	Range->Start = Range0->Start;
 	Range->Limit = Range0->Limit;
 	Range->Step = (Range->Limit - Range->Start) / C;
-	Range->Count = C + 1;
 	return (ml_value_t *)Range;
 }
 
@@ -1589,12 +1723,9 @@ ML_METHOD("by", MLIntegerRangeT, MLDoubleT) {
 	ml_integer_range_t *Range0 = (ml_integer_range_t *)Args[0];
 	ml_real_range_t *Range = new(ml_real_range_t);
 	Range->Type = MLRealRangeT;
-	double Start = Range->Start = Range0->Start;
-	double Limit = Range->Limit = Range0->Limit;
-	double Step = Range->Step = ml_double_value_fast(Args[1]);
-	long C = (Limit - Start) / Step + 1;
-	if (C > LONG_MAX) C = 0;
-	Range->Count = C;
+	Range->Start = Range0->Start;
+	Range->Limit = Range0->Limit;
+	Range->Step = ml_double_value_fast(Args[1]);
 	return (ml_value_t *)Range;
 }
 
@@ -1622,13 +1753,37 @@ ML_METHOD("bin", MLIntegerRangeT, MLDoubleT) {
 	return ml_integer(floor((Value - Range->Start) / Range->Step) + 1);
 }
 
+size_t ml_real_range_count(ml_real_range_t *Range) {
+	if (Range->Step > 0) {
+		if (Range->Start > Range->Limit) return 0;
+		double Diff = Range->Limit - Range->Start;
+		return Diff / Range->Step + 1;
+	} else if (Range->Step < 0) {
+		if (Range->Start < Range->Limit) return 0;
+		double Diff = Range->Limit - Range->Start;
+		return Diff / Range->Step + 1;
+	} else {
+		return 0;
+	}
+}
+
 ML_METHOD("count", MLRealRangeT) {
 //!range
 //<Range
 //>integer
 // Returns the number of values in :mini:`Range`.
 	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
-	return ml_integer(Range->Count);
+	if (Range->Step > 0) {
+		if (Range->Start > Range->Limit) return ml_integer(0);
+		double Diff = Range->Limit - Range->Start;
+		return ml_integer(Diff / Range->Step + 1);
+	} else if (Range->Step < 0) {
+		if (Range->Start < Range->Limit) return ml_integer(0);
+		double Diff = Range->Limit - Range->Start;
+		return ml_integer(Diff / Range->Step + 1);
+	} else {
+		return ml_real(INFINITY);
+	}
 }
 
 ML_METHOD("start", MLRealRangeT) {
@@ -1656,6 +1811,42 @@ ML_METHOD("step", MLRealRangeT) {
 // Returns the step of :mini:`Range`.
 	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
 	return ml_real(Range->Step);
+}
+
+ML_METHOD("first", MLRealRangeT) {
+//!range
+//<Range
+//>real
+// Returns the start of :mini:`Range`.
+	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
+	if (Range->Step > 0) {
+		if (Range->Start > Range->Limit) return MLNil;
+		return ml_real(Range->Start);
+	} else if (Range->Step < 0) {
+		if (Range->Start < Range->Limit) return MLNil;
+		return ml_real(Range->Start);
+	} else {
+		return ml_real(Range->Start);
+	}
+}
+
+ML_METHOD("last", MLRealRangeT) {
+//!range
+//<Range
+//>real
+// Returns the limit of :mini:`Range`.
+	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
+	if (Range->Step > 0) {
+		if (Range->Start > Range->Limit) return MLNil;
+		double Diff = Range->Limit - Range->Start;
+		return ml_real(Range->Start + floor(Diff / Range->Step) * Range->Step);
+	} else if (Range->Step < 0) {
+		if (Range->Start < Range->Limit) return MLNil;
+		double Diff = Range->Limit - Range->Start;
+		return ml_real(Range->Start + floor(Diff / Range->Step) * Range->Step);
+	} else {
+		return ml_real(Range->Start);
+	}
 }
 
 ML_METHOD("in", MLIntegerT, MLRealRangeT) {
@@ -1687,7 +1878,18 @@ ML_METHOD("random", MLRealRangeT) {
 //<Range
 //>real
 	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
-	int Limit = Range->Count;
+	int Limit;
+	if (Range->Step > 0) {
+		if (Range->Start > Range->Limit) return MLNil;
+		double Diff = Range->Limit - Range->Start;
+		Limit = floor(Diff / Range->Step);
+	} else if (Range->Step < 0) {
+		if (Range->Start < Range->Limit) return MLNil;
+		double Diff = Range->Limit - Range->Start;
+		Limit = floor(Diff / Range->Step);
+	} else {
+		return ml_real(Range->Start);
+	}
 	int Divisor = RAND_MAX / Limit;
 	int Random;
 	do Random = random() / Divisor; while (Random >= Limit);

@@ -55,7 +55,8 @@ void ml_cbor_writer_reset(ml_cbor_writer_t *Writer, void *Data);
 void ml_cbor_writer_set_setting(ml_cbor_writer_t *Writer, int Setting, void *Value);
 void *ml_cbor_writer_get_setting(ml_cbor_writer_t *Writer, int Setting);
 void ml_cbor_writer_find_refs(ml_cbor_writer_t *Writer, ml_value_t *Value);
-ml_cbor_t ml_cbor_writer_encode(ml_value_t *Value);
+ml_cbor_t ml_cbor_encode(ml_value_t *Value);
+ml_value_t *ml_cbor_encode_to(void *Data, ml_cbor_write_fn WriteFn, ml_externals_t *Externals, ml_value_t *Value);
 
 void ml_cbor_writer_error(ml_cbor_writer_t *Writer, ml_value_t *Error) __attribute__((noreturn));
 

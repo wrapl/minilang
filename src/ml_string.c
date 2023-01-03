@@ -102,8 +102,30 @@ ML_METHOD("@", MLAddressT, MLIntegerT) {
 	if (Length > Address->Length) return ml_error("SizeError", "Size larger than buffer");
 	if (Length < 0) return ml_error("ValueError", "Address size must be non-negative");
 	ml_address_t *Address2 = new(ml_address_t);
-	Address2->Type = MLAddressT;
+	Address2->Type = Address->Type;
 	Address2->Value = Address->Value;
+	Address2->Length = Length;
+	return (ml_value_t *)Address2;
+}
+
+ML_METHOD("@", MLAddressT, MLIntegerT, MLIntegerT) {
+//!address
+//<Address
+//<Offset
+//<Length
+//>address
+// Returns the address at offset :mini:`Offset` from :mini:`Address` limited to :mini:`Length` bytes.
+//$= let A := address("Hello world!\n")
+//$= A @ (4, 4)
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	long Offset = ml_integer_value_fast(Args[1]);
+	long Length = ml_integer_value_fast(Args[2]);
+	if (Offset < 0) return ml_error("SizeError", "Offset must be non-negative");
+	if (Length < 0) return ml_error("ValueError", "Address size must be non-negative");
+	if (Offset + Length > Address->Length) return ml_error("SizeError", "Offset + size larger than buffer");
+	ml_address_t *Address2 = new(ml_address_t);
+	Address2->Type = Address->Type;
+	Address2->Value = Address->Value + Offset;
 	Address2->Length = Length;
 	return (ml_value_t *)Address2;
 }
@@ -118,6 +140,7 @@ ML_METHOD("+", MLAddressT, MLIntegerT) {
 //$= A + 4
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	long Offset = ml_integer_value_fast(Args[1]);
+	if (Offset < 0) return ml_error("SizeError", "Offset must be non-negative");
 	if (Offset > Address->Length) return ml_error("SizeError", "Offset larger than buffer");
 	ml_address_t *Address2 = new(ml_address_t);
 	Address2->Type = MLAddressT;
@@ -453,25 +476,6 @@ ML_METHOD("const", MLVisitorT, MLBufferT) {
 	char *Value = snew(Size);
 	memcpy(Value, ml_buffer_value(Args[1]), Size);
 	return ml_address(Value, Size);
-}
-
-ML_METHOD("@", MLBufferT, MLIntegerT) {
-//!buffer
-//<Buffer
-//<Length
-//>buffer
-// Returns the same buffer as :mini:`Buffer`, limited to :mini:`Length` bytes.
-//$= let B := buffer(16)
-//$= B @ 8
-	ml_address_t *Buffer = (ml_address_t *)Args[0];
-	long Length = ml_integer_value_fast(Args[1]);
-	if (Length > Buffer->Length) return ml_error("SizeError", "Size larger than buffer");
-	if (Length < 0) return ml_error("ValueError", "Buffer size must be non-negative");
-	ml_address_t *Buffer2 = new(ml_address_t);
-	Buffer2->Type = MLBufferT;
-	Buffer2->Value = Buffer->Value;
-	Buffer2->Length = Length;
-	return (ml_value_t *)Buffer2;
 }
 
 ML_METHOD("+", MLBufferT, MLIntegerT) {

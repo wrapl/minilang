@@ -748,7 +748,7 @@ void ml_cbor_write(ml_cbor_writer_t *Writer, ml_value_t *Value) {
 	ML_CBOR_WRITER_ERROR(Writer, "CBORError", "No method to encode %s to CBOR", ml_typeof(Value)->Name);
 }
 
-ml_cbor_t ml_cbor_writer_encode(ml_value_t *Value) {
+ml_cbor_t ml_cbor_encode(ml_value_t *Value) {
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	ml_cbor_writer_t Writer[1];
 	Writer->Data = Buffer;
@@ -766,8 +766,23 @@ ml_cbor_t ml_cbor_writer_encode(ml_value_t *Value) {
 	return (ml_cbor_t){{.Data = ml_stringbuffer_get_string(Buffer)}, Size};
 }
 
+ml_value_t *ml_cbor_encode_to(void *Data, ml_cbor_write_fn WriteFn, ml_externals_t *Externals, ml_value_t *Value) {
+	ml_cbor_writer_t Writer[1];
+	Writer->Data = Data;
+	Writer->WriteFn = WriteFn;
+	Writer->Externals = Externals;
+	Writer->References[0] = INTHASH_INIT;
+	Writer->Reused[0] = INTHASH_INIT;
+	Writer->Index = 0;
+	Writer->NumSettings = 0;
+	if (setjmp(Writer->OnError)) return Writer->Error;
+	ml_cbor_writer_find_refs(Writer, Value);
+	ml_cbor_write(Writer, Value);
+	return NULL;
+}
+
 ml_cbor_t ml_to_cbor(ml_value_t *Value) {
-	return ml_cbor_writer_encode(Value);
+	return ml_cbor_encode(Value);
 }
 
 static void vlq64_encode(ml_stringbuffer_t *Buffer, int64_t Value) {
@@ -1192,7 +1207,7 @@ ML_METHOD(CborEncode, MLAnyT) {
 //<Value
 //>address|error
 // Encode :mini:`Value` into CBOR or return an error if :mini:`Value` cannot be encoded.
-	ml_cbor_t Cbor = ml_cbor_writer_encode(Args[0]);
+	ml_cbor_t Cbor = ml_cbor_encode(Args[0]);
 	if (!Cbor.Length) return Cbor.Error;
 	if (Cbor.Data) return ml_address(Cbor.Data, Cbor.Length);
 	return ml_error("CborError", "Error encoding to cbor");

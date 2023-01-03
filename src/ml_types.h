@@ -392,7 +392,7 @@ static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Arg
 
 #define ML_CHECK_ARG_TYPE(N, TYPE) \
 	if (!ml_is(Args[N], TYPE)) { \
-		return ml_error("TypeError", "expected %s for argument %d", TYPE->Name, N + 1); \
+		return ml_error("TypeError", "Expected %s for argument %d", TYPE->Name, N + 1); \
 	}
 
 #define ML_CHECK_ARG_COUNT(N) \
@@ -402,7 +402,7 @@ static void FUNCTION(ml_state_t *Caller, void *Data, int Count, ml_value_t **Arg
 
 #define ML_CHECKX_ARG_TYPE(N, TYPE) \
 	if (!ml_is(Args[N], TYPE)) { \
-		ML_ERROR("TypeError", "expected %s for argument %d", TYPE->Name, N + 1); \
+		ML_ERROR("TypeError", "Expected %s for argument %d", TYPE->Name, N + 1); \
 	}
 
 #define ML_CHECKX_ARG_COUNT(N) \
@@ -580,8 +580,9 @@ extern ml_type_t MLRealRangeT[];
 typedef struct {
 	const ml_type_t *Type;
 	double Start, Limit, Step;
-	long Count;
 } ml_real_range_t;
+
+size_t ml_real_range_count(ml_real_range_t *Range);
 
 // Strings //
 

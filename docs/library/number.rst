@@ -455,6 +455,26 @@ number
    Returns the bitwise or of :mini:`A` and :mini:`B`.
 
 
+:mini:`meth (A: integer):bsf: integer`
+   Returns the index of the least significant 1-bit of :mini:`A`,  or :mini:`0` if :mini:`A = 0`.
+
+   .. code-block:: mini
+
+      16:bsf :> 5
+      10:bsf :> 2
+      0:bsf :> 0
+
+
+:mini:`meth (A: integer):bsr: integer`
+   Returns the index of the most significant 1-bit of :mini:`A`,  or :mini:`0` if :mini:`A = 0`.
+
+   .. code-block:: mini
+
+      16:bsr :> 5
+      10:bsr :> 4
+      0:bsr :> 0
+
+
 :mini:`meth (X: integer):dec: integer`
    Atomic equivalent to :mini:`X := old - 1`.
 

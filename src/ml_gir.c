@@ -1363,6 +1363,7 @@ static void function_info_invoke(ml_state_t *Caller, GIFunctionInfo *Info, int C
 		case GI_DIRECTION_OUT: ++NArgsOut; break;
 		case GI_DIRECTION_INOUT: ++NArgsIn; ++NArgsOut; break;
 		}
+		g_base_info_unref((GIBaseInfo *)ArgInfo);
 	}
 	//const char *Name = g_base_info_get_name((GIBaseInfo *)Info);
 	//printf("Calling %s(In: %d, Out: %d)\n", Name, NArgsIn, NArgsOut);
@@ -1394,6 +1395,7 @@ static void function_info_invoke(ml_state_t *Caller, GIFunctionInfo *Info, int C
 				Skips |= 1 << LengthIndex;
 			}
 		}
+		g_base_info_unref((GIBaseInfo *)ArgInfo);
 	}
 	//printf(")\n");
 	for (int I = 0; I < NArgs; ++I, Skips >>= 1) {

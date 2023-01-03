@@ -61,6 +61,10 @@ sequence
       F("cake") :> "CAKECAKECAKE"
 
 
+:mini:`meth (Arg₁: integer::range) & (Arg₂: integer::range)`
+   *TBD*
+
+
 .. _type-iterator:
 
 :mini:`type iterator`
@@ -554,7 +558,7 @@ sequence
 
    .. code-block:: mini
 
-      random("cake") :> "a"
+      random("cake") :> "e"
       random([]) :> nil
 
 

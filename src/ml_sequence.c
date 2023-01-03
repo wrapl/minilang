@@ -1702,18 +1702,13 @@ static void ML_TYPED_FN(ml_iterate, MLSequencedT, ml_state_t *Caller, ml_sequenc
 	return ml_iterate((ml_state_t *)State, Sequenced->First);
 }
 
-ML_METHOD("&", MLSequenceT, MLSequenceT) {
-//<Sequence/1
-//<Sequence/2
-//>Sequence
-// Returns an sequence that produces the values from :mini:`Sequence/1` followed by those from :mini:`Sequence/2`.
-//$= list(1 .. 3 & "cake")
-	ml_sequenced_t *Sequenced = xnew(ml_sequenced_t, 3, ml_value_t *);
+static ml_value_t *ml_sequenced(ml_value_t *First, ml_value_t *Second) {
+	ml_sequenced_t *Sequenced = new(ml_sequenced_t);
 #ifdef ML_GENERICS
 	ml_type_t *TArgs[3];
-	if (ml_find_generic_parent(ml_typeof(Args[0]), MLSequenceT, 3, TArgs) == 3) {
+	if (ml_find_generic_parent(ml_typeof(First), MLSequenceT, 3, TArgs) == 3) {
 		ml_type_t *KeyType = TArgs[1], *ValueType = TArgs[2];
-		if (ml_find_generic_parent(ml_typeof(Args[1]), MLSequenceT, 3, TArgs) == 3) {
+		if (ml_find_generic_parent(ml_typeof(Second), MLSequenceT, 3, TArgs) == 3) {
 			TArgs[0] = MLSequencedT;
 			TArgs[1] = ml_type_max(KeyType, TArgs[1]);
 			TArgs[2] = ml_type_max(ValueType, TArgs[2]);
@@ -1727,9 +1722,32 @@ ML_METHOD("&", MLSequenceT, MLSequenceT) {
 #else
 	Sequenced->Type = MLSequencedT;
 #endif
-	Sequenced->First = Args[0];
-	Sequenced->Second = Args[1];
+	Sequenced->First = First;
+	Sequenced->Second = Second;
 	return (ml_value_t *)Sequenced;
+}
+
+ML_METHOD("&", MLSequenceT, MLSequenceT) {
+//<Sequence/1
+//<Sequence/2
+//>Sequence
+// Returns an sequence that produces the values from :mini:`Sequence/1` followed by those from :mini:`Sequence/2`.
+//$= list(1 .. 3 & "cake")
+	return ml_sequenced(Args[0], Args[1]);
+}
+
+ML_METHOD("&", MLIntegerRangeT, MLIntegerRangeT) {
+	ml_integer_range_t *Range1 = (ml_integer_range_t *)Args[0];
+	ml_integer_range_t *Range2 = (ml_integer_range_t *)Args[1];
+	if ((Range1->Step == Range2->Step) && (Range1->Limit + Range1->Step == Range2->Start)) {
+		ml_integer_range_t *Range = new(ml_integer_range_t);
+		Range->Type = MLIntegerRangeT;
+		Range->Start = Range1->Start;
+		Range->Limit = Range2->Limit;
+		Range->Step = Range1->Step;
+		return (ml_value_t *)Range;
+	}
+	return ml_sequenced(Args[0], Args[1]);
 }
 
 ML_METHOD("&", MLSequenceT) {

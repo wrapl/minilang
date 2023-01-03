@@ -107,8 +107,16 @@ range
    Returns the number of values in :mini:`Range`.
 
 
+:mini:`meth (Range: integer::range):first: integer`
+   Returns the start of :mini:`Range`.
+
+
 :mini:`meth (Range: integer::range):in(Count: integer): real::range`
    *TBD*
+
+
+:mini:`meth (Range: integer::range):last: integer`
+   Returns the limit of :mini:`Range`.
 
 
 :mini:`meth (Range: integer::range):limit: integer`
@@ -165,8 +173,16 @@ range
    Returns the number of values in :mini:`Range`.
 
 
+:mini:`meth (Range: real::range):first: real`
+   Returns the start of :mini:`Range`.
+
+
 :mini:`meth (Range: real::range):in(Count: integer): real::range`
    *TBD*
+
+
+:mini:`meth (Range: real::range):last: real`
+   Returns the limit of :mini:`Range`.
 
 
 :mini:`meth (Range: real::range):limit: real`
