@@ -119,7 +119,9 @@ struct DEBUG_STRUCT(frame) {
 	ml_schedule_t *Schedule;
 #endif
 	unsigned int Line;
-	char Continue, Reentry, Suspend;
+	unsigned int Reentry:1;
+	unsigned int Suspend:1;
+	unsigned int Reuse:1;
 #ifdef DEBUG_VERSION
 	unsigned int StepOver:1;
 	unsigned int StepOut:1;
@@ -133,7 +135,7 @@ struct DEBUG_STRUCT(frame) {
 
 static void DEBUG_FUNC(continuation_call)(ml_state_t *Caller, DEBUG_STRUCT(frame) *Frame, int Count, ml_value_t **Args) {
 	if (Frame->Suspend) ML_ERROR("StateError", "Cannot call suspended function");
-	Frame->Continue = 1;
+	Frame->Reuse = 0;
 	ml_state_schedule((ml_state_t *)Frame, Count ? Args[0] : MLNil);
 	ML_RETURN(MLNil);
 }
@@ -298,7 +300,7 @@ extern ml_value_t *SymbolMethod;
 		ml_value_t **Args = Top - COUNT; \
 		ml_inst_t *Next = Inst + 2; \
 		ML_STORE_COUNTER(); \
-		if (!Frame->Continue) { \
+		if (Frame->Reuse) { \
 			ML_CACHED_FRAME_LOCK(); \
 			if (!MLCachedFrame) { \
 				MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE); \
@@ -311,7 +313,7 @@ extern ml_value_t *SymbolMethod;
 			Frame->Inst = Next; \
 			Frame->Line = Inst->Line; \
 			Frame->Top = Top - (COUNT + 1); \
-			return ml_call(Frame, Function, COUNT, Args); \
+			return ml_call(Frame->Base.Caller, Function, COUNT, Args); \
 		} \
 	} \
 	DO_CALL_CONST_ ## COUNT: { \
@@ -329,7 +331,7 @@ extern ml_value_t *SymbolMethod;
 		ml_value_t *Function = Inst[1].Value; \
 		ml_inst_t *Next = Inst + 3; \
 		ML_STORE_COUNTER(); \
-		if (!Frame->Continue) { \
+		if (Frame->Reuse) { \
 			ML_CACHED_FRAME_LOCK(); \
 			if (!MLCachedFrame) { \
 				MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE); \
@@ -342,7 +344,7 @@ extern ml_value_t *SymbolMethod;
 			Frame->Inst = Next; \
 			Frame->Line = Inst->Line; \
 			Frame->Top = Args; \
-			return ml_call(Frame, Function, COUNT, Args); \
+			return ml_call(Frame->Base.Caller, Function, COUNT, Args); \
 		} \
 	} \
 	DO_CALL_METHOD_ ## COUNT: { \
@@ -402,7 +404,7 @@ extern ml_value_t *SymbolMethod;
 		ml_value_t *Function = Inst[1].Value; \
 		ml_inst_t *Next = Inst + 4; \
 		ML_STORE_COUNTER(); \
-		if (!Frame->Continue) { \
+		if (Frame->Reuse) { \
 			ML_CACHED_FRAME_LOCK(); \
 			if (!MLCachedFrame) { \
 				MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE); \
@@ -415,7 +417,7 @@ extern ml_value_t *SymbolMethod;
 			Frame->Inst = Next; \
 			Frame->Line = Inst->Line; \
 			Frame->Top = Args; \
-			return ml_call(Frame, Function, COUNT, Args); \
+			return ml_call(Frame->Base.Caller, Function, COUNT, Args); \
 		} \
 	}
 
@@ -545,7 +547,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_RETURN: {
 		ML_STORE_COUNTER();
 		ml_state_t *Caller = Frame->Base.Caller;
-		if (!Frame->Continue) {
+		if (Frame->Reuse) {
 			//memset(Frame, 0, ML_FRAME_REUSE_SIZE);
 			while (Top > Frame->Stack) *--Top = NULL;
 			//memset(Frame->Stack, 0, (Top - Frame->Stack) * sizeof(ml_value_t *));
@@ -848,7 +850,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_value_t **Args = Top - Count;
 		ml_inst_t *Next = Inst + 2;
 		ML_STORE_COUNTER();
-		if (!Frame->Continue) {
+		if (Frame->Reuse) {
 			// Ensure at least one other cached frame is available to prevent this frame being used immediately which may result in arguments being overwritten.
 			ML_CACHED_FRAME_LOCK();
 			if (!MLCachedFrame) {
@@ -862,7 +864,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			Frame->Inst = Next;
 			Frame->Line = Inst->Line;
 			Frame->Top = Top - (Count + 1);
-			return ml_call(Frame, Function, Count, Args);
+			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		}
 	}
 	DO_CALL_CONST: {
@@ -884,7 +886,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_value_t *Function = Inst[1].Value;
 		ml_inst_t *Next = Inst + 3;
 		ML_STORE_COUNTER();
-		if (!Frame->Continue) {
+		if (Frame->Reuse) {
 			// Ensure at least one other cached frame is available to prevent this frame being used immediately which may result in arguments being overwritten.
 			ML_CACHED_FRAME_LOCK();
 			if (!MLCachedFrame) {
@@ -898,7 +900,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			Frame->Inst = Next;
 			Frame->Line = Inst->Line;
 			Frame->Top = Args;
-			return ml_call(Frame, Function, Count, Args);
+			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		}
 	}
 	DO_CALL_METHOD: {
@@ -962,7 +964,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ml_value_t *Function = Inst[1].Value;
 		ml_inst_t *Next = Inst + 4;
 		ML_STORE_COUNTER();
-		if (!Frame->Continue) {
+		if (Frame->Reuse) {
 			// Ensure at least one other cached frame is available to prevent this frame being used immediately which may result in arguments being overwritten.
 			ML_CACHED_FRAME_LOCK();
 			if (!MLCachedFrame) {
@@ -976,7 +978,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			Frame->Inst = Next;
 			Frame->Line = Inst->Line;
 			Frame->Top = Args;
-			return ml_call(Frame, Function, Count, Args);
+			return ml_call(Frame->Base.Caller, Function, Count, Args);
 		}
 	}
 	DO_ASSIGN: {
@@ -1257,8 +1259,8 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 		} else {
 			ML_CACHED_FRAME_UNLOCK();
 			Frame = bnew(ML_FRAME_REUSE_SIZE);
+			Frame->Reuse = 1;
 		}
-		Frame->Continue = 0;
 	} else {
 		Frame = bnew(Size);
 	}
