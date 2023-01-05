@@ -669,6 +669,8 @@ ML_METHOD("::", MLMapMutableT, MLStringT) {
 	return (ml_value_t *)Node;
 }
 
+#ifdef ML_MUTABLES
+
 ML_METHOD("[]", MLMapT, MLAnyT) {
 //<Map
 //<Key
@@ -694,6 +696,8 @@ ML_METHOD("::", MLMapT, MLStringT) {
 	ml_map_node_t *Node = ml_map_find_node(Map, Args[1]);
 	return Node ? Node->Value : MLNil;
 }
+
+#endif
 
 #ifdef ML_GENERICS
 
@@ -766,6 +770,8 @@ ML_METHOD("::", MLMapMutableStringAnyT, MLStringT) {
 	return (ml_value_t *)Node;
 }
 
+#ifdef ML_MUTABLES
+
 ML_GENERIC_TYPE(MLMapStringAnyT, MLMapT, MLStringT, MLAnyT);
 
 ML_METHOD("[]", MLMapStringAnyT, MLStringT) {
@@ -781,6 +787,8 @@ ML_METHOD("::", MLMapStringAnyT, MLStringT) {
 	ml_map_node_t *Node = ml_map_find_node_string(Map, Args[1]);
 	return Node ? Node->Value : MLNil;
 }
+
+#endif
 
 static ml_map_node_t *ml_map_find_node_integer(ml_map_t *Map, ml_value_t *Key) {
 	long Hash = ml_hash(Key);
@@ -831,6 +839,8 @@ ML_METHOD("[]", MLMapMutableIntegerAnyT, MLIntegerT) {
 	return (ml_value_t *)Node;
 }
 
+#ifdef ML_MUTABLES
+
 ML_GENERIC_TYPE(MLMapIntegerAnyT, MLMapT, MLIntegerT, MLAnyT);
 
 ML_METHOD("[]", MLMapIntegerAnyT, MLIntegerT) {
@@ -839,6 +849,8 @@ ML_METHOD("[]", MLMapIntegerAnyT, MLIntegerT) {
 	ml_map_node_t *Node = ml_map_find_node_integer(Map, Args[1]);
 	return Node ? Node->Value : MLNil;
 }
+
+#endif
 
 #endif
 
