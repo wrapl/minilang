@@ -17,12 +17,28 @@ range
    *TBD*
 
 
+:mini:`meth (Scale: integer) * (Range: integer::range): integer::range`
+   Returns a range
+
+
+:mini:`meth (Shift: integer) + (Range: integer::range): integer::range`
+   Returns a range
+
+
+:mini:`meth (Shift: integer) - (Range: integer::range): integer::range`
+   Returns a range
+
+
 :mini:`meth (Start: integer) .. (Limit: integer): integer::range`
    Returns a range from :mini:`Start` to :mini:`Limit` (inclusive).
 
 
 :mini:`meth (Start: integer) .. (Limit: integer, Step: integer): integer::range`
    Returns a range from :mini:`Start` to :mini:`Limit` (inclusive).
+
+
+:mini:`meth (Start: integer) ..< (Limit: integer): integer::range`
+   Returns a range from :mini:`Start` to :mini:`Limit` (exclusive).
 
 
 :mini:`meth (Start: integer):by(Step: integer): integer::range`
@@ -51,6 +67,26 @@ range
    *TBD*
 
 
+:mini:`meth (A: integer::range) != (B: integer::range): integer::range | nil`
+   Returns a range
+
+
+:mini:`meth (Range: integer::range) * (Scale: integer): integer::range`
+   Returns a range
+
+
+:mini:`meth (Range: integer::range) + (Shift: integer): integer::range`
+   Returns a range
+
+
+:mini:`meth (Range: integer::range) - (Shift: integer): integer::range`
+   Returns a range
+
+
+:mini:`meth (A: integer::range) = (B: integer::range): integer::range | nil`
+   Returns a range
+
+
 :mini:`meth (Range: integer::range):bin(Value: double): integer | nil`
    *TBD*
 
@@ -71,8 +107,16 @@ range
    Returns the number of values in :mini:`Range`.
 
 
+:mini:`meth (Range: integer::range):first: integer`
+   Returns the start of :mini:`Range`.
+
+
 :mini:`meth (Range: integer::range):in(Count: integer): real::range`
    *TBD*
+
+
+:mini:`meth (Range: integer::range):last: integer`
+   Returns the limit of :mini:`Range`.
 
 
 :mini:`meth (Range: integer::range):limit: integer`
@@ -129,8 +173,16 @@ range
    Returns the number of values in :mini:`Range`.
 
 
+:mini:`meth (Range: real::range):first: real`
+   Returns the start of :mini:`Range`.
+
+
 :mini:`meth (Range: real::range):in(Count: integer): real::range`
    *TBD*
+
+
+:mini:`meth (Range: real::range):last: real`
+   Returns the limit of :mini:`Range`.
 
 
 :mini:`meth (Range: real::range):limit: real`

@@ -27,6 +27,10 @@ gir
    *TBD*
 
 
+:mini:`meth (Arg₁: gir::baseinfo):name`
+   *TBD*
+
+
 .. _type-gir-enum:
 
 :mini:`type gir::enum < gir::baseinfo`
@@ -156,6 +160,10 @@ gir
 
 
 :mini:`meth (Object: gir::objectinstance):connect(Signal: string, Handler: function): Object`
+   *TBD*
+
+
+:mini:`meth (Arg₁: gir::objectinstance):disconnect(Arg₂: integer)`
    *TBD*
 
 

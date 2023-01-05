@@ -22,7 +22,9 @@ map
 .. _type-map:
 
 :mini:`type map < sequence`
-   *TBD*
+   A map of key-value pairs.
+   Keys can be of any type supporting hashing and comparison.
+   By default,  iterating over a map generates the key-value pairs in the order they were inserted,  however this ordering can be changed.
 
 
 :mini:`meth map(Sequence: sequence, ...): map`
@@ -33,14 +35,6 @@ map
       map("cake") :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
 
 
-:mini:`meth map(): map`
-   Returns a new map.
-
-   .. code-block:: mini
-
-      map() :> {}
-
-
 :mini:`meth map(Key₁ is Value₁, ...): map`
    Returns a new map with the specified keys and values.
 
@@ -48,6 +42,14 @@ map
 
       map(A is 1, B is 2, C is 3)
       :> {"A" is 1, "B" is 2, "C" is 3}
+
+
+:mini:`meth map(): map`
+   Returns a new map.
+
+   .. code-block:: mini
+
+      map() :> {}
 
 
 .. _fun-map-join:
@@ -184,6 +186,10 @@ map
       {"A" is 1, "B" is 2, "C" is 3}:count :> 3
 
 
+:mini:`meth (Map: map):first`
+   Returns the first value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
+
+
 :mini:`meth (Map: map):from(Key: any): sequence | nil`
    Returns the subset of :mini:`Map` after :mini:`Key` as a sequence.
 
@@ -192,6 +198,10 @@ map
       let M := {"A" is 1, "B" is 2, "C" is 3, "D" is 4, "E" is 5}
       map(M:from("C")) :> {"C" is 3, "D" is 4, "E" is 5}
       map(M:from("F")) :> {}
+
+
+:mini:`meth (Map: map):last`
+   Returns the last value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
 
 
 :mini:`meth (Map: map):order: map::order`
@@ -205,8 +215,8 @@ map
 
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-      M:random :> "k"
-      M:random :> "k"
+      M:random :> "c"
+      M:random :> "a"
 
 
 :mini:`meth (Map: map):size: integer`
@@ -228,9 +238,7 @@ map
 .. _type-map-mutable:
 
 :mini:`type map::mutable < map`
-   A map of key-value pairs.
-   Keys can be of any type supporting hashing and comparison.
-   By default,  iterating over a map generates the key-value pairs in the order they were inserted,  however this ordering can be changed.
+   *TBD*
 
 
 :mini:`meth (Map: map::mutable) :: (Key: string): map::node`
@@ -508,6 +516,14 @@ map
 .. _type-map-node-mutable:
 
 :mini:`type map::node::mutable < map::node`
+   A node in a :mini:`map`.
+   Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
+   Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
+
+
+.. _type-map-node-mutable:
+
+:mini:`type map::node::mutable`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.

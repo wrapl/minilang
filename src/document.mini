@@ -66,6 +66,10 @@ fun type_name(var Type) do
 		"gir::" + Match[2]:lower:trim(":")
 	elseif let Match := Type % r"^XE(.*)T$" then
 		"xe::" + Match[2]:lower:trim(":")
+	elseif let Match := Type % r"^Ast(.+)ExprT$" then
+		"ast::expr::" + Match[2]:lower:trim(":")
+	elseif let Match := Type % r"^Ast(.*)T$" then
+		"ast::" + Match[2]:lower:trim(":")
 	elseif let Match := Type % r"^(.*)T$" then
 		Match[2]:lower:trim(":")
 	else
@@ -449,7 +453,7 @@ fun process(FileName) do
 				write_overview(DefaultCategory, Description)
 			elseif Line % r"^ML_METHOD_DECL" then
 			elseif Line % r"^ML_METHOD_ANON" then
-			elseif Line % r"^ML_METHOD" then
+			elseif Line % r"^(ML_METHOD)" then
 				let Location := (FileName, LineNo)
 				let I := Line:find("("), J := Line:find(")")
 				let Kind := Line[1, I]
@@ -681,7 +685,7 @@ fun process(FileName) do
 				else
 					write_constructor(Category, Kind, Name, Params, [Name], Description, Location)
 				end
-			elseif Line % r"^(ML_TYPE|ML_INTERFACE)" then
+			elseif Line % r"^(ML_TYPE|ML_INTERFACE|ML_CLASS)" then
 				let Location := (FileName, LineNo)
 				let I := Line:find("("), J := Line:find(", (", I + 1) + 2
 				let K := Line:find(")", J + 1)

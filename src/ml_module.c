@@ -1,6 +1,5 @@
 #include "ml_module.h"
 #include "ml_macros.h"
-#include <gc/gc.h>
 #include <string.h>
 #include <stdio.h>
 #include "ml_runtime.h"

@@ -221,6 +221,68 @@ ML_METHOD(MLTimeT, MLIntegerT, MLIntegerT, MLIntegerT, MLNilT) {
 	return (ml_value_t *)Time;
 }
 
+ML_METHODV("with", MLTimeT, MLNamesT) {
+	ML_NAMES_CHECK_ARG_COUNT(1);
+	for (int I = 2; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLIntegerT);
+	ml_time_t *Time = (ml_time_t *)Args[0];
+	struct tm TM = {0,};
+	localtime_r(&Time->Value->tv_sec, &TM);
+	ml_value_t **Arg = Args + 2;
+	ML_NAMES_FOREACH(Args[1], Iter) {
+		const char *Part = ml_string_value(Iter->Value);
+		if (!strcmp(Part, "year")) {
+			TM.tm_year = ml_integer_value(*Arg++) - 1900;
+		} else if (!strcmp(Part, "month")) {
+			TM.tm_mon = ml_integer_value(*Arg++) - 1;
+		} else if (!strcmp(Part, "day")) {
+			TM.tm_mday = ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "hour")) {
+			TM.tm_hour = ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "minute")) {
+			TM.tm_min = ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "second")) {
+			TM.tm_sec = ml_integer_value(*Arg++);
+		} else {
+			return ml_error("ValueError", "Unknown time component %s", Part);
+		}
+	}
+	Time = new(ml_time_t);
+	Time->Type = MLTimeT;
+	Time->Value->tv_sec = timelocal(&TM);
+	return (ml_value_t *)Time;
+}
+
+ML_METHODV("with", MLTimeT, MLNilT, MLNamesT) {
+	ML_NAMES_CHECK_ARG_COUNT(2);
+	for (int I = 3; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLIntegerT);
+	ml_time_t *Time = (ml_time_t *)Args[0];
+	struct tm TM = {0,};
+	gmtime_r(&Time->Value->tv_sec, &TM);
+	ml_value_t **Arg = Args + 3;
+	ML_NAMES_FOREACH(Args[2], Iter) {
+		const char *Part = ml_string_value(Iter->Value);
+		if (!strcmp(Part, "year")) {
+			TM.tm_year = ml_integer_value(*Arg++) - 1900;
+		} else if (!strcmp(Part, "month")) {
+			TM.tm_mon = ml_integer_value(*Arg++) - 1;
+		} else if (!strcmp(Part, "day")) {
+			TM.tm_mday = ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "hour")) {
+			TM.tm_hour = ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "minute")) {
+			TM.tm_min = ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "second")) {
+			TM.tm_sec = ml_integer_value(*Arg++);
+		} else {
+			return ml_error("ValueError", "Unknown time component %s", Part);
+		}
+	}
+	Time = new(ml_time_t);
+	Time->Type = MLTimeT;
+	Time->Value->tv_sec = timegm(&TM);
+	return (ml_value_t *)Time;
+}
+
 ML_METHOD("nsec", MLTimeT) {
 //<Time
 //>integer
@@ -626,6 +688,40 @@ ML_TIME_PART_WITH_ZONE("hour", hour, ml_integer(TL.h))
 ML_TIME_PART_WITH_ZONE("minute", minute, ml_integer(TL.i))
 ML_TIME_PART_WITH_ZONE("second", second, ml_integer(TL.s))
 
+ML_METHODV("with", MLTimeT, MLTimeZoneT, MLNamesT) {
+	ML_NAMES_CHECK_ARG_COUNT(2);
+	for (int I = 3; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLIntegerT);
+	ml_time_t *Time = (ml_time_t *)Args[0];
+	ml_time_zone_t *TimeZone = (ml_time_zone_t *)Args[1];
+	timelib_time TL = {0,};
+	timelib_set_timezone(&TL, TimeZone->Info);
+	timelib_unixtime2local(&TL, Time->Value->tv_sec);
+	ml_value_t **Arg = Args + 3;
+	ML_NAMES_FOREACH(Args[2], Iter) {
+		const char *Part = ml_string_value(Iter->Value);
+		if (!strcmp(Part, "year")) {
+			TL.y = ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "month")) {
+			TL.m = ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "day")) {
+			TL.d = ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "hour")) {
+			TL.h = ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "minute")) {
+			TL.i = ml_integer_value(*Arg++);
+		} else if (!strcmp(Part, "second")) {
+			TL.s = ml_integer_value(*Arg++);
+		} else {
+			return ml_error("ValueError", "Unknown time component %s", Part);
+		}
+	}
+	timelib_update_ts(&TL, TimeZone->Info);
+	Time = new(ml_time_t);
+	Time->Type = MLTimeT;
+	Time->Value->tv_sec = TL.sse;
+	return (ml_value_t *)Time;
+}
+
 ML_METHOD("append", MLStringBufferT, MLTimeT, MLTimeZoneT) {
 //<Buffer
 //<Time
@@ -718,7 +814,7 @@ ML_METHOD("@", MLTimeT, MLTimeZoneT) {
 
 #include "ml_cbor.h"
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTimeT, ml_cbor_writer_t *Writer, ml_time_t *Time) {
+static void ML_TYPED_FN(ml_cbor_write, MLTimeT, ml_cbor_writer_t *Writer, ml_time_t *Time) {
 	struct tm TM = {0,};
 	gmtime_r(&Time->Value->tv_sec, &TM);
 	char Buffer[60];
@@ -737,7 +833,6 @@ static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLTimeT, ml_cbor_writer_t *Writer,
 	size_t Length = End - Buffer;
 	ml_cbor_write_string(Writer, Length);
 	ml_cbor_write_raw(Writer, (const unsigned char *)Buffer, Length);
-	return NULL;
 }
 
 static ml_value_t *ml_cbor_read_time_fn(ml_cbor_reader_t *Reader, ml_value_t *Value) {

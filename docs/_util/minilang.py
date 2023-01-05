@@ -16,8 +16,9 @@ class MinilangLexer(RegexLexer):
 		'root': [
 			(words((
 				"_", "and", "case", "debug", "def", "do", "each", "else", "elseif", "end", "exit", "for",
-				"fun", "if", "in", "is", "let", "loop", "meth", "must", "next", "nil", "not", "old", "on", "or",
-				"ref", "ret", "susp", "switch", "then", "to", "until", "var", "when", "while", "with"
+				"fun", "if", "in", "is", "it", "let", "loop", "meth", "must", "next", "nil", "not", "old",
+				"on", "or", "ref", "ret", "susp", "switch", "then", "to", "until", "var", "when", "while",
+				"with"
 			), suffix = r'\b'), Keyword),
 			(words((
 				"class", "method", "any", "type", "function", "number",

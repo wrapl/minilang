@@ -36,7 +36,8 @@ obj/%.o: src/%.c obj/ml_config.h | obj
 
 obj/%_init.c: src/%.c obj/ml_config.h | obj
 	@echo "" > $@
-	cc -E -P -DGENERATE_INIT $(CFLAGS) $< | sed -f sed.txt | grep -o 'INIT_CODE .*);' | sed 's/INIT_CODE //g' > $@
+	cc -E -P -DGENERATE_INIT $(CFLAGS) $< | sed -f sed.txt | grep -o 'INIT_CODE .*);' | sed 's/INIT_CODE //g' > $@.tmp
+	mv $@.tmp $@
 
 obj/ml_bytecode.o: obj/ml_bytecode_init.c
 obj/ml_compiler.o: obj/ml_compiler_init.c

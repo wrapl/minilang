@@ -17,5 +17,5 @@ print(S, "\n\n -> \n\n")
 
 print(S:replace({
 	"Minilang" is "MINILANG",
-	r"pro(\w+) " is fun(S, [P]) 'PRO<{P[1]}> '
+	r"pro([a-z]+) " is fun(S, [P]) 'PRO<{P[1]}> '
 }), "\n")

@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include <gc.h>
 #include "ml_sequence.h"
 #include "ml_stream.h"
 
@@ -19,8 +18,8 @@
 #include "ml_polynomial.h"
 #endif
 
-#ifdef ML_EXPRS
-#include "ml_expr.h"
+#ifdef ML_AST
+#include "ml_ast.h"
 #endif
 
 #ifdef ML_GIR
@@ -86,7 +85,7 @@
 
 static stringmap_t Globals[1] = {STRINGMAP_INIT};
 
-static ml_value_t *global_get(void *Data, const char *Name) {
+static ml_value_t *global_get(void *Data, const char *Name, const char *Source, int Line) {
 	return stringmap_search(Globals, Name);
 }
 
@@ -149,12 +148,12 @@ static ml_value_t *ml_globals(stringmap_t *Globals, int Count, ml_value_t **Args
 
 static unsigned int SliceSize = 256;
 static ml_value_t *MainResult = NULL;
-static ml_schedule_t MainSchedule = {256, (void *)ml_scheduler_queue_add_signal};
+static ml_schedule_t MainSchedule[1] = {{256, (void *)ml_default_queue_add_signal}};
 
 static void simple_queue_run() {
 	while (!MainResult) {
-		ml_queued_state_t QueuedState = ml_scheduler_queue_next_wait();
-		MainSchedule.Counter = SliceSize;
+		ml_queued_state_t QueuedState = ml_default_queue_next_wait();
+		MainSchedule->Counter = SliceSize;
 		QueuedState.State->run(QueuedState.State, QueuedState.Value);
 	}
 }
@@ -200,8 +199,8 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_SCHEDULER
 	ml_tasks_init(Globals);
 #endif
-#ifdef ML_EXPRS
-	ml_expr_init(Globals);
+#ifdef ML_AST
+	ml_ast_init(Globals);
 #endif
 	ml_file_init(Globals);
 	stringmap_insert(Globals, "now", MLNow);
@@ -284,7 +283,7 @@ int main(int Argc, const char *Argv[]) {
 	ml_polynomial_init(Globals);
 #endif
 #ifdef ML_GIR
-	GMainLoop *GirLoop = NULL;
+	int UseGirLoop = 0;
 	ml_gir_init(Globals);
 #endif
 #ifdef ML_GTK_CONSOLE
@@ -317,6 +316,7 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_MODULES
 	int LoadModule = 0;
 #endif
+	int BreakOnExit = 0;
 	const char *Command = NULL;
 	for (int I = 1; I < Argc; ++I) {
 		if (FileName) {
@@ -374,17 +374,21 @@ int main(int Argc, const char *Argv[]) {
 			case 'z': GC_disable(); break;
 #ifdef ML_GIR
 			case 'g':
-				GirLoop = g_main_loop_new(NULL, TRUE);
+				UseGirLoop = 1;
 				break;
 #endif
 #ifdef ML_GTK_CONSOLE
 			case 'G':
+				UseGirLoop = 1;
 				GtkConsole = 1;
 #ifdef ML_SCHEDULER
 				if (!SliceSize) SliceSize = 1000;
 #endif
 				break;
 #endif
+			case 'B':
+				BreakOnExit = 1;
+				break;
 			}
 		} else {
 			FileName = Argv[I];
@@ -394,9 +398,17 @@ int main(int Argc, const char *Argv[]) {
 	Main->run = ml_main_state_run;
 #ifdef ML_SCHEDULER
 	if (SliceSize) {
-		MainSchedule.Counter = SliceSize;
-		ml_scheduler_queue_init(8);
-		ml_context_set(Main->Context, ML_SCHEDULER_INDEX, &MainSchedule);
+		MainSchedule->Counter = SliceSize;
+		ml_default_queue_init(8);
+#ifdef ML_GIR
+		if (UseGirLoop) {
+			ml_gir_loop_init(Main->Context);
+		} else {
+#endif
+			ml_context_set(Main->Context, ML_SCHEDULER_INDEX, MainSchedule);
+#ifdef ML_GIR
+		}
+#endif
 	}
 #endif
 #ifdef ML_LIBRARY
@@ -404,18 +416,15 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_GTK_CONSOLE
 	if (GtkConsole) {
-		gtk_console_t *Console = gtk_console(&MLRootContext, (ml_getter_t)stringmap_search, Globals);
+		gtk_console_t *Console = gtk_console(&MLRootContext, (ml_getter_t)stringmap_global_get, Globals);
 		gtk_console_show(Console, NULL);
 		if (FileName) gtk_console_load_file(Console, FileName, Args);
 		if (Command) gtk_console_evaluate(Console, Command);
-		gtk_main();
+		ml_gir_loop_run();
 		return 0;
 	}
 #endif
 	if (FileName) {
-#if defined(ML_GIR) && defined(ML_SCHEDULER)
-		if (GirLoop) ml_context_set(Main->Context, ML_SCHEDULER_INDEX, GirSchedule);
-#endif
 #ifdef ML_LIBRARY
 		if (LoadModule) {
 			ml_library_load(Main, NULL, FileName);
@@ -429,12 +438,17 @@ int main(int Argc, const char *Argv[]) {
 #endif
 #ifdef ML_SCHEDULER
 #ifdef ML_GIR
-		if (GirLoop) {
-			g_main_loop_run(GirLoop);
+		if (UseGirLoop) {
+			ml_gir_loop_run();
 		} else {
 #endif
 		if (SliceSize) simple_queue_run();
 #ifdef ML_GIR
+		}
+		if (BreakOnExit) {
+#ifdef GC_DEBUG
+			GC_generate_random_backtrace();
+#endif
 		}
 #endif
 #endif
@@ -444,7 +458,7 @@ int main(int Argc, const char *Argv[]) {
 		ml_parser_input(Parser, Command);
 		ml_command_evaluate(Main, Parser, Compiler);
 	} else {
-		ml_console(&MLRootContext, (ml_getter_t)stringmap_search, Globals, "--> ", "... ");
+		ml_console(&MLRootContext, (ml_getter_t)stringmap_global_get, Globals, "--> ", "... ");
 	}
 	return 0;
 }

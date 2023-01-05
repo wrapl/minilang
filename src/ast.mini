@@ -1,0 +1,300 @@
+let Types := {}
+let Structs := {}
+
+class: struct(:fields, :used, :list)
+
+meth :use(Struct: struct, By: integer) do
+	Struct:used := old max (By + 1)
+	let Used := Struct:used
+	for Name, Field in Struct:fields do
+		if let FieldStruct := Structs[Field[1, -2]] or Structs[Field] then
+			if FieldStruct != Struct then
+				FieldStruct:use(Used)
+			end
+		end
+	end
+end
+
+with Input := file("src/ml_compiler2.h", "r") do
+	loop
+		let Line := while Input:read
+		if let Match := Line % r"struct ([a-z_]+) \{" then
+			let Name := Match[2]
+			let Fields := {}
+			var List := nil
+			loop
+				let Line := while "};\n" != Input:read;
+				if let Parts := Line % r"\t([a-z_ *]+) ?([A-Z][A-Za-z0-9]+)(\[1\])?;" then
+					let Field := Parts[3]
+					if Field = "Next" then
+						List := true
+					else
+						Fields[Parts[3]] := Parts[2]:trim
+					end
+				end
+			end
+			Structs[Name] := struct(Fields, 0, List)
+		end
+	end
+	Input:close
+end
+
+for Name, Fields in Structs do
+	print(Name, " -> ", Fields, "\n")
+end
+
+with Input := file("src/ml_compiler.c", "r") do
+	loop
+		let Line := while Input:read
+		if let Match := Line % r"static void ml_([a-z_]+_expr)_compile\(mlc_function_t \*Function, (mlc_[a-z_]+_t) \*Expr" then
+			Types["mlc_" + Match[2] + "_t"] := Match[3]
+		end
+	end
+	Input:close
+end
+
+Types:sort
+
+with Output := file("src/ml_expr_types.h", "w") do
+	Output:write("#ifndef ML_EXPR_TYPES_H\n#define ML_EXPR_TYPES_H\n\n")
+	
+	Output:write("typedef enum {\n")
+	for Name, Type in Types do
+		let Match := Name % r"mlc_([a-z_]+)_expr_t"
+		Output:write('\tML_EXPR_{Match[2]:upper},\n')
+	end
+	Output:write("} ml_expr_type_t;\n")
+	Output:write("\n")
+	Output:write("#endif\n")
+	Output:close
+end
+
+with Output := file("src/ml_expr_types.c", "w") do
+	Output:write("ml_expr_type_t mlc_expr_type(mlc_expr_t *Expr) {\n")
+	for Name, Type in Types do
+		let Match := Name % r"mlc_([a-z_]+)_expr_t"
+		Output:write('\tif (Expr->compile == (void *)ml_{Match[2]}_expr_compile) return ML_EXPR_{Match[2]:upper};\n')
+	end
+	Output:write("\treturn ML_EXPR_UNKNOWN;\n")
+	Output:write("}\n")
+	Output:close
+end
+
+fun export_name(Type) do
+	let Parts := list(Type / "_")[2, -1]
+	if Parts[1] = "expr" then
+		ret "ast::expr"
+	elseif Parts[-1] = "expr" then
+		Parts:pull
+		ret "ast::expr::" + sum(Parts, :lower)
+	else
+		ret "ast::" + sum(Parts, :lower)
+	end
+end
+
+with Output := file("src/ml_ast_types.c", "w") do
+	Output:write("#include \"ml_object.h\"\n\n")
+	Output:write("//!ast\n\n")
+	let AllTypes := map(unique(Types) => (2, 2)):sort(; A, B) A:length < B:length
+	let StructMap := {}
+	for Name, Type in Types do
+		AllTypes:insert(Name, Type)
+	end
+	
+	for Type in Types do
+		Structs[Type]{}:use(0)
+	end
+	
+	Structs:sort2(; A, B, C, D) C:used > D:used
+	
+	for Name, Struct in Structs do
+		until Struct:used = 0
+		AllTypes[Name] := old
+	end
+	AllTypes["mlc_expr_t"] := nil
+	
+	Output:write('static ml_module_t Ast[1] = \{\{MLModuleT, \"ast\", \{STRINGMAP_INIT}}};\n\n')
+	
+	:>print('AllTypes = {AllTypes}\n')
+	for Type, Parent in AllTypes do
+		let Fields := []
+		if let Struct := Structs[Type] then
+			for FieldName, FieldType in Struct:fields do
+				Fields:put('ml_method(\"{FieldName:lower}\")')
+			end
+		end
+		let Name := sum(Type / "_" skip 1 -> :title)
+		let Export := export_name(Type)
+		if Parent then
+			if Type != Parent then
+				let ParentName := sum(Parent / "_" skip 1 -> :title)
+				Output:write('ML_CLASS(Ast{Name}, (Ast{ParentName}), \"{Export}\");\n')
+			else
+				Output:write('ML_CLASS(Ast{Name}, (AstExprT), \"{Export}\");\n')
+			end
+		else
+			Output:write('ML_CLASS(Ast{Name}, (), \"{Export}\");\n')
+		end
+		Output:write('//@{Export}\n')
+		let Parts := list(Type / "_")[2, -1]
+		if Parts[1][1] in :({"a", "e", "i", "o", "u"}) then
+			Output:write('// An')
+		else
+			Output:write('// A')
+		end
+		if Parts[-1] = "expr" then
+			for Part in Parts do
+				Part := ':mini:`{old}`'
+			end
+			Parts[-1] := "expression"
+		end
+		for Part in Parts do
+			Output:write(" ", Part)
+		end
+		Output:write("\n//\n")
+		if let Struct := Structs[Type] then
+			for FieldName, FieldType in Struct:fields do
+				let FieldExport := if FieldType = "int" or FieldType = "ml_token_t" then
+					"integer"
+				elseif FieldType = "const char *" then
+					"string"
+				elseif FieldType = "ml_value_t *" then
+					"any"
+				elseif FieldType = "mlc_expr_t *" then
+					"list[ast::expr]"
+				elseif FieldType = "ml_param_kind_t" then
+					"ast::paramkind"
+				elseif let FieldStruct := Structs[FieldType[1, -2]] then 
+					if FieldStruct:list then
+						'list[{export_name(FieldType[1, -2])}]'
+					else
+						export_name(FieldType)
+					end
+				elseif let FieldStruct := Structs[FieldType] then
+					if FieldStruct:list then
+						'list[{export_name(FieldType)}]'
+					else
+						export_name(FieldType)
+					end
+				else
+					error("NameError", 'Unhandled type {FieldType}')
+				end
+				Output:write('// * :mini:`:{FieldName:lower}(Value: {Export}): {FieldExport}`\n')
+			end
+		end
+		Output:write("\n")
+		if let Struct := Structs[Type] then
+			for FieldName, FieldType in Struct:fields do
+				Output:write('ML_FIELD(\"{FieldName:lower}\", Ast{Name});\n\n')
+			end
+		end
+	end
+	Output:write("\n")
+	Output:write("static void ml_ast_types_init() {\n")
+	for Type, Parent in AllTypes do
+		let Name := sum(Type / "_" skip 1 -> :title)
+		if Parent then
+			Output:write('\tstringmap_insert(AstExprT->Exports, \"{Name[1, -5]:lower}\", Ast{Name});\n')
+		else
+			Output:write('\tstringmap_insert(Ast->Exports, \"{Name[1, -1]:lower}\", Ast{Name});\n')
+		end
+	end
+	Output:write("}\n\n")
+	for Name, Struct in Structs do
+		until Struct:used = 0
+		if Name:ends("expr_t") then
+			Output:write('static ml_value_t *a_{Name}(ml_type_t *Class, {Name} *Struct) \{\n')
+			Output:write('\tif (!Struct) return MLNil;\n')
+			Output:write('\treturn ml_object(Class')
+			if Name != "mlc_expr_t" then
+				Output:write(',\n\t\t\"source\", ml_string(Struct->Source, -1)')
+				Output:write(',\n\t\t\"startline\", ml_integer(Struct->StartLine)')
+				Output:write(',\n\t\t\"endline\", ml_integer(Struct->EndLine)')
+			end
+		else
+			Output:write('static ml_value_t *a_{Name}({Name} *Struct) \{\n')
+			Output:write('\tif (!Struct) return MLNil;\n')
+			Output:write('\treturn ml_object(Ast{sum(Name / "_" skip 1 -> :title)}')
+		end
+		if Name = "mlc_string_part_t" then
+			Output:write(",\n\tStruct->Length ? \"chars\" : \"child\", Struct->Length ? ml_string(Struct->Chars, -1) : l_mlc_expr_t(Struct->Child)")
+		else
+			for FieldName, FieldType in Struct:fields do
+				Output:write(',\n\t\t\"{FieldName:lower}\", ')
+				if FieldType = "int" or FieldType = "ml_token_t" then
+					Output:write('ml_integer(Struct->{FieldName})')
+				elseif FieldType = "const char *" then
+					Output:write('Struct->{FieldName} ? ml_string(Struct->{FieldName}, -1) : MLNil')
+				elseif FieldType = "ml_value_t *" then
+					Output:write('ml_ast_names(Struct->{FieldName})')
+				elseif FieldType = "mlc_expr_t *" then
+					Output:write('l_mlc_expr_t(Struct->{FieldName})')
+				elseif FieldType = "ml_param_kind_t" then
+					Output:write('ml_enum_value(ParamKindT, Struct->{FieldName})')
+				elseif FieldType = "mlc_local_t *" then
+					if Struct:fields["Count"] then
+						Output:write('ln_{FieldType[1, -2]}(Struct->{FieldName}, Struct->Count)')
+					else
+						Output:write('l_{FieldType[1, -2]}(Struct->{FieldName})')
+					end
+				elseif let FieldStruct := Structs[FieldType[1, -2]] then
+					if FieldStruct:list then
+						Output:write('l_{FieldType[1, -2]}(Struct->{FieldName})')
+					else
+						Output:write('a_{FieldType[1, -2]}(Struct->{FieldName})')
+					end
+				elseif let FieldStruct := Structs[FieldType] then
+					if FieldStruct:list then
+						Output:write('l_{FieldType}(Struct->{FieldName})')
+					else
+						Output:write('a_{FieldType}(Struct->{FieldName})')
+					end
+				else
+					error("NameError", 'Unhandled type {FieldType}')
+				end
+			end
+		end
+		Output:write(",\n\tNULL);\n")
+		Output:write("}\n\n")
+		if Struct:list then
+			Output:write('static ml_value_t *l_{Name}({Name} *Struct) \{\n')
+			Output:write("\tml_value_t *List = ml_list();\n")
+			Output:write("\twhile (Struct) {\n")
+			if Name = "mlc_expr_t" then
+				Output:write('\t\tml_list_put(List, mlc_expr_describe(Struct));\n')
+			else
+				Output:write('\t\tml_list_put(List, a_{Name}(Struct));\n')
+			end
+			Output:write('\t\tStruct = Struct->Next;\n')
+			Output:write('\t}\n')
+			Output:write('\treturn List;\n')
+			Output:write("}\n\n")
+		end
+		if Name = "mlc_local_t" then
+			Output:write('static ml_value_t *ln_{Name}({Name} *Struct, int Count) \{\n')
+			Output:write("\tml_value_t *List = ml_list();\n")
+			Output:write("\tfor (int I = Count ?: 1; --I >= 0;) {\n");
+			Output:write('\t\tml_list_put(List, a_{Name}(Struct));\n')
+			Output:write('\t\tStruct = Struct->Next;\n')
+			Output:write('\t}\n')
+			Output:write('\treturn List;\n')
+			Output:write("}\n\n")
+		end
+	end
+	
+	Output:write("ml_value_t *mlc_expr_describe(mlc_expr_t *Expr) {\n")
+	Output:write("\tif (!Expr) return MLNil;\n")
+	Output:write("\tswitch (mlc_expr_type(Expr)) {\n")
+	for Name, Type in Types do
+		let Match := Name % r"mlc_([a-z_]+)_expr_t"
+		Output:write('\t\tcase ML_EXPR_{Match[2]:upper}: ')
+		if Structs[Type] then
+			Output:write('return a_{Type}(Ast{sum(Name / "_" skip 1 -> :title)}, ({Type} *)Expr);\n')
+		else
+			Output:write('return ml_error(\"TypeError\", \"Unsupported expression type: {Match[2]}\");\n')
+		end
+	end
+	Output:write("\t}\n")
+	Output:write("}\n\n")
+	Output:close
+end

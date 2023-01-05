@@ -102,8 +102,30 @@ ML_METHOD("@", MLAddressT, MLIntegerT) {
 	if (Length > Address->Length) return ml_error("SizeError", "Size larger than buffer");
 	if (Length < 0) return ml_error("ValueError", "Address size must be non-negative");
 	ml_address_t *Address2 = new(ml_address_t);
-	Address2->Type = MLAddressT;
+	Address2->Type = Address->Type;
 	Address2->Value = Address->Value;
+	Address2->Length = Length;
+	return (ml_value_t *)Address2;
+}
+
+ML_METHOD("@", MLAddressT, MLIntegerT, MLIntegerT) {
+//!address
+//<Address
+//<Offset
+//<Length
+//>address
+// Returns the address at offset :mini:`Offset` from :mini:`Address` limited to :mini:`Length` bytes.
+//$= let A := address("Hello world!\n")
+//$= A @ (4, 4)
+	ml_address_t *Address = (ml_address_t *)Args[0];
+	long Offset = ml_integer_value_fast(Args[1]);
+	long Length = ml_integer_value_fast(Args[2]);
+	if (Offset < 0) return ml_error("SizeError", "Offset must be non-negative");
+	if (Length < 0) return ml_error("ValueError", "Address size must be non-negative");
+	if (Offset + Length > Address->Length) return ml_error("SizeError", "Offset + size larger than buffer");
+	ml_address_t *Address2 = new(ml_address_t);
+	Address2->Type = Address->Type;
+	Address2->Value = Address->Value + Offset;
 	Address2->Length = Length;
 	return (ml_value_t *)Address2;
 }
@@ -118,6 +140,7 @@ ML_METHOD("+", MLAddressT, MLIntegerT) {
 //$= A + 4
 	ml_address_t *Address = (ml_address_t *)Args[0];
 	long Offset = ml_integer_value_fast(Args[1]);
+	if (Offset < 0) return ml_error("SizeError", "Offset must be non-negative");
 	if (Offset > Address->Length) return ml_error("SizeError", "Offset larger than buffer");
 	ml_address_t *Address2 = new(ml_address_t);
 	Address2->Type = MLAddressT;
@@ -392,15 +415,26 @@ ML_METHOD("find", MLAddressT, MLAddressT) {
 	return ml_integer(Find - Address1->Value);
 }
 
-ML_FUNCTION(MLBuffer) {
+ML_TYPE(MLBufferT, (MLAddressT), "buffer",
+//!buffer
+// A buffer represents a writable bounded section of memory.
+);
+
+ml_value_t *ml_buffer(char *Value, int Length) {
+	ml_address_t *Buffer = new(ml_address_t);
+	Buffer->Type = MLBufferT;
+	Buffer->Value = Value;
+	Buffer->Length = Length;
+	return (ml_value_t *)Buffer;
+}
+
+ML_METHOD(MLBufferT, MLIntegerT) {
 //!buffer
 //@buffer
 //<Length
 //>buffer
 // Allocates a new buffer with :mini:`Length` bytes.
 //$= buffer(16)
-	ML_CHECK_ARG_COUNT(1);
-	ML_CHECK_ARG_TYPE(0, MLIntegerT);
 	long Size = ml_integer_value_fast(Args[0]);
 	if (Size < 0) return ml_error("ValueError", "Buffer size must be non-negative");
 	ml_address_t *Buffer = new(ml_address_t);
@@ -410,17 +444,19 @@ ML_FUNCTION(MLBuffer) {
 	return (ml_value_t *)Buffer;
 }
 
-ML_TYPE(MLBufferT, (MLAddressT), "buffer",
+ML_METHOD(MLBufferT, MLAddressT) {
 //!buffer
-// A buffer represents a writable bounded section of memory.
-	.Constructor = (ml_value_t *)MLBuffer
-);
-
-ml_value_t *ml_buffer(char *Value, int Length) {
+//@buffer
+//<Source
+//>buffer
+// Allocates a new buffer with the same size and initial contents as :mini:`Source`.
+//$= buffer("Hello world")
+	long Size = ml_address_length(Args[0]);
 	ml_address_t *Buffer = new(ml_address_t);
 	Buffer->Type = MLBufferT;
-	Buffer->Value = Value;
-	Buffer->Length = Length;
+	Buffer->Length = Size;
+	Buffer->Value = snew(Size);
+	memcpy(Buffer->Value, ml_address_value(Args[0]), Size);
 	return (ml_value_t *)Buffer;
 }
 
@@ -440,25 +476,6 @@ ML_METHOD("const", MLVisitorT, MLBufferT) {
 	char *Value = snew(Size);
 	memcpy(Value, ml_buffer_value(Args[1]), Size);
 	return ml_address(Value, Size);
-}
-
-ML_METHOD("@", MLBufferT, MLIntegerT) {
-//!buffer
-//<Buffer
-//<Length
-//>buffer
-// Returns the same buffer as :mini:`Buffer`, limited to :mini:`Length` bytes.
-//$= let B := buffer(16)
-//$= B @ 8
-	ml_address_t *Buffer = (ml_address_t *)Args[0];
-	long Length = ml_integer_value_fast(Args[1]);
-	if (Length > Buffer->Length) return ml_error("SizeError", "Size larger than buffer");
-	if (Length < 0) return ml_error("ValueError", "Buffer size must be non-negative");
-	ml_address_t *Buffer2 = new(ml_address_t);
-	Buffer2->Type = MLBufferT;
-	Buffer2->Value = Buffer->Value;
-	Buffer2->Length = Length;
-	return (ml_value_t *)Buffer2;
 }
 
 ML_METHOD("+", MLBufferT, MLIntegerT) {
@@ -638,6 +655,23 @@ ML_METHOD("append", MLStringBufferT, MLAddressT) {
 	return MLSome;
 }
 
+int GC_vasprintf(char **Ptr, const char *Format, va_list Args) {
+	va_list Copy;
+	va_copy(Copy, Args);
+	int Actual = vsnprintf(NULL, 0, Format, Args);
+	char *Output = *Ptr = GC_malloc_atomic(Actual);
+	vsprintf(Output, Format, Copy);
+	return Actual;
+}
+
+int GC_asprintf(char **Ptr, const char *Format, ...) {
+	va_list Args;
+	va_start(Args, Format);
+	int Result = GC_vasprintf(Ptr, Format, Args);
+	va_end(Args);
+	return Result;
+}
+
 ml_value_t *ml_string(const char *Value, int Length) {
 	Value = Value ?: "";
 	if (Length >= 0) {
@@ -673,7 +707,7 @@ ml_value_t *ml_string_format(const char *Format, ...) {
 	va_list Args;
 	va_start(Args, Format);
 	char *Value;
-	int Length = vasprintf(&Value, Format, Args);
+	int Length = GC_vasprintf(&Value, Format, Args);
 	va_end(Args);
 	return ml_string(Value, Length);
 }
@@ -1795,7 +1829,7 @@ ML_METHOD("~", MLStringT, MLStringT) {
 	int *Row2 = alloca((LenB + 1) * sizeof(int));
 	const int Insert = 1, Replace = 1, Swap = 1, Delete = 1;
 	for (int J = 0; J <= LenB; ++J) Row1[J] = J * Insert;
-	char PrevA = 0, PrevB;
+	char PrevA = 0, PrevB = 0;
 	for (int I = 0; I < LenA; ++I) {
 		Row2[0] = (I + 1) * Delete;
 		for (int J = 0; J < LenB; ++J) {
@@ -1837,7 +1871,7 @@ ML_METHOD("~>", MLStringT, MLStringT) {
 	int Best = LenB;
 	const int Insert = 1, Replace = 1, Swap = 1, Delete = 1;
 	for (int J = 0; J <= LenB; ++J) Row1[J] = J * Insert;
-	char PrevA = 0, PrevB;
+	char PrevA = 0, PrevB = 0;
 	for (int I = 0; I < 2 * LenB; ++I) {
 		Row2[0] = (I + 1) * Delete;
 		char CharA = I < LenA ? CharsA[I] : 0;
@@ -3207,6 +3241,48 @@ ML_METHODX("replace", MLStringT, MLIntegerT, MLIntegerT, MLFunctionT) {
 	return ml_call(State, Args[3], 1, Args2);
 }
 
+ML_FUNCTION(MLStringEscape) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	const char *S = ml_string_value(Args[0]);
+	for (int I = ml_string_length(Args[0]); --I >= 0; ++S) {
+		switch (*S) {
+		case '\0':
+			ml_stringbuffer_write(Buffer, "\\0", strlen("\\0"));
+			break;
+		case '\a':
+			ml_stringbuffer_write(Buffer, "\\a", strlen("\\a"));
+			break;
+		case '\b':
+			ml_stringbuffer_write(Buffer, "\\b", strlen("\\b"));
+			break;
+		case '\t':
+			ml_stringbuffer_write(Buffer, "\\t", strlen("\\t"));
+			break;
+		case '\r':
+			ml_stringbuffer_write(Buffer, "\\r", strlen("\\r"));
+			break;
+		case '\n':
+			ml_stringbuffer_write(Buffer, "\\n", strlen("\\n"));
+			break;
+		case '\\':
+			ml_stringbuffer_write(Buffer, "\\\\", strlen("\\\\"));
+			break;
+		case '\'':
+			ml_stringbuffer_write(Buffer, "\\\'", strlen("\\\'"));
+			break;
+		case '\"':
+			ml_stringbuffer_write(Buffer, "\\\"", strlen("\\\""));
+			break;
+		default:
+			ml_stringbuffer_write(Buffer, S, 1);
+			break;
+		}
+	}
+	return ml_stringbuffer_get_value(Buffer);
+}
+
 static long ml_regex_hash(ml_regex_t *Regex, ml_hash_chain_t *Chain) {
 	long Hash = 5381;
 	const char *Pattern = Regex->Pattern;
@@ -3452,10 +3528,26 @@ static ml_stringbuffer_node_t * _Atomic StringBufferNodeCache = NULL;
 static ml_stringbuffer_node_t *StringBufferNodeCache = NULL;
 #endif
 
-static inline ml_stringbuffer_node_t *ml_stringbuffer_node() {
-	//ml_stringbuffer_t *Node = new(ml_stringbuffer_node_t);
-	ml_stringbuffer_node_t *Node = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
-	return Node;
+static ml_stringbuffer_node_t *ml_stringbuffer_node() {
+#ifdef ML_THREADSAFE
+	ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
+	do {
+		if (!Next) {
+			Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+			break;
+		}
+		CacheNext = Next->Next;
+	} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &Next, CacheNext));
+#else
+	ml_stringbuffer_node_t *Next = StringBufferNodeCache;
+	if (!Next) {
+		Next = GC_MALLOC_EXPLICITLY_TYPED(sizeof(ml_stringbuffer_node_t), StringBufferDesc);
+	} else {
+		StringBufferNodeCache = Next->Next;
+	}
+#endif
+	Next->Next = NULL;
+	return Next;
 }
 
 size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length) {
@@ -3493,26 +3585,7 @@ char *ml_stringbuffer_writer(ml_stringbuffer_t *Buffer, size_t Length) {
 	Buffer->Length += Length;
 	Buffer->Space -= Length;
 	if (!Buffer->Space) {
-#ifdef ML_THREADSAFE
-		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
-		do {
-			if (!Next) {
-				Next = ml_stringbuffer_node();
-				break;
-			}
-			CacheNext = Next->Next;
-		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &Next, CacheNext));
-#else
-		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
-		if (!Next) {
-			Next = ml_stringbuffer_node();
-		} else {
-			StringBufferNodeCache = Next->Next;
-		}
-#endif
-		Next->Next = NULL;
-		Node->Next = Next;
-		Node = Next;
+		Node = Node->Next = ml_stringbuffer_node();
 		Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
 		Buffer->Tail = Node;
 	}
@@ -3527,26 +3600,7 @@ ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, siz
 		memcpy(Node->Chars + ML_STRINGBUFFER_NODE_SIZE - Buffer->Space, String, Buffer->Space);
 		String += Buffer->Space;
 		Remaining -= Buffer->Space;
-#ifdef ML_THREADSAFE
-		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
-		do {
-			if (!Next) {
-				Next = ml_stringbuffer_node();
-				break;
-			}
-			CacheNext = Next->Next;
-		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &Next, CacheNext));
-#else
-		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
-		if (!Next) {
-			Next = ml_stringbuffer_node();
-		} else {
-			StringBufferNodeCache = Next->Next;
-		}
-#endif
-		Next->Next = NULL;
-		Node->Next = Next;
-		Node = Next;
+		Node = Node->Next = ml_stringbuffer_node();
 		Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
 	}
 	memcpy(Node->Chars + ML_STRINGBUFFER_NODE_SIZE - Buffer->Space, String, Remaining);
@@ -3557,56 +3611,55 @@ ssize_t ml_stringbuffer_write(ml_stringbuffer_t *Buffer, const char *String, siz
 }
 
 ssize_t ml_stringbuffer_printf(ml_stringbuffer_t *Buffer, const char *Format, ...) {
-#ifdef Linux
-	static cookie_io_functions_t CookieFns = {0,
-		.write = (cookie_write_function_t *)ml_stringbuffer_write
-	};
-	if (!Buffer->File) {
-		Buffer->File = fopencookie(Buffer, "w", CookieFns);
-		setvbuf(Buffer->File, NULL, _IONBF, 0);
+	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
+	int Space = Buffer->Space;
+	if (!Space) {
+		Node = Node->Next = ml_stringbuffer_node();
+		Space = Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
+		Buffer->Tail = Node;
 	}
-#else
-	if (!Buffer->File) {
-		Buffer->File = fwopen(Buffer, (void *)ml_stringbuffer_write);
-		setvbuf(Buffer->File, NULL, _IONBF, 0);
-	}
-#endif
+	char *Chars = Node->Chars + ML_STRINGBUFFER_NODE_SIZE - Space;
 	va_list Args;
 	va_start(Args, Format);
-	size_t Length = vfprintf(Buffer->File, Format, Args);
+	int Length = vsnprintf(Chars, Space, Format, Args);
 	va_end(Args);
+	if (Length < Space) {
+		Buffer->Space -= Length;
+		Buffer->Length += Length;
+	} else {
+		char *Chars = alloca(Length + 1);
+		va_list Args;
+		va_start(Args, Format);
+		vsprintf(Chars, Format, Args);
+		va_end(Args);
+		ml_stringbuffer_write(Buffer, Chars, Length);
+	}
 	return Length;
 }
 
 void ml_stringbuffer_put(ml_stringbuffer_t *Buffer, char Char) {
 	ml_stringbuffer_node_t *Node = Buffer->Tail ?: (ml_stringbuffer_node_t *)&Buffer->Head;
 	if (!Buffer->Space) {
-#ifdef ML_THREADSAFE
-		ml_stringbuffer_node_t *Next = StringBufferNodeCache, *CacheNext;
-		do {
-			if (!Next) {
-				Next = ml_stringbuffer_node();
-				break;
-			}
-			CacheNext = Next->Next;
-		} while (!atomic_compare_exchange_weak(&StringBufferNodeCache, &Next, CacheNext));
-#else
-		ml_stringbuffer_node_t *Next = StringBufferNodeCache;
-		if (!Next) {
-			Next = ml_stringbuffer_node();
-		} else {
-			StringBufferNodeCache = Next->Next;
-		}
-#endif
-		Next->Next = NULL;
-		Node->Next = Next;
-		Node = Next;
+		Node = Node->Next = ml_stringbuffer_node();
 		Buffer->Space = ML_STRINGBUFFER_NODE_SIZE;
 	}
 	Node->Chars[ML_STRINGBUFFER_NODE_SIZE - Buffer->Space] = Char;
 	Buffer->Space -= 1;
 	Buffer->Length += 1;
 	Buffer->Tail = Node;
+}
+
+void ml_stringbuffer_put32(ml_stringbuffer_t *Buffer, uint32_t Code) {
+	char Val[8];
+	uint32_t LeadByteMax = 0x7F;
+	int I = 0;
+	while (Code > LeadByteMax) {
+		Val[I++] = (Code & 0x3F) | 0x80;
+		Code >>= 6;
+		LeadByteMax >>= (I == 1 ? 2 : 1);
+	}
+	Val[I++] = (Code & LeadByteMax) | (~LeadByteMax << 1);
+	while (I--) ml_stringbuffer_put(Buffer, Val[I]);
 }
 
 static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
@@ -3633,11 +3686,6 @@ static void ml_stringbuffer_finish(ml_stringbuffer_t *Buffer, char *String) {
 	Tail->Next = StringBufferNodeCache;
 	StringBufferNodeCache = Head;
 #endif
-
-	if (Buffer->File) {
-		fclose(Buffer->File);
-		Buffer->File = NULL;
-	}
 	Buffer->Head = Buffer->Tail = NULL;
 	Buffer->Length = Buffer->Space = Buffer->Start = 0;
 }
@@ -3745,12 +3793,6 @@ typedef struct {
 	ml_value_t *Args[2];
 } ml_stringbuffer_append_state_t;
 
-#ifdef ML_THREADSAFE
-static ml_stringbuffer_append_state_t * _Atomic StringBufferAppendStateCache = NULL;
-#else
-static ml_stringbuffer_append_state_t *StringBufferAppendStateCache = NULL;
-#endif
-
 static void ml_stringbuffer_append_run(ml_stringbuffer_append_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
@@ -3823,27 +3865,28 @@ void ml_string_init() {
 	regcomp(LongFormat, "^\\s*%[-+ #'0]*[.0-9]*l[diouxX]\\s*$", REG_NOSUB);
 	regcomp(RealFormat, "^\\s*%[-+ #'0]*[.0-9]*[aefgAEG]\\s*$", REG_NOSUB);
 	stringmap_insert(MLStringT->Exports, "switch", MLStringSwitch);
+	stringmap_insert(MLStringT->Exports, "escape", MLStringEscape);
 #include "ml_string_init.c"
 #ifdef ML_GENERICS
 	ml_type_t *TArgs[3] = {MLSequenceT, MLIntegerT, MLStringT};
 	ml_type_add_parent(MLStringT, ml_generic_type(3, TArgs));
 #endif
 #ifdef ML_TRE
-	ml_value_t *Features = ml_map();
+	ml_value_t *Features = ml_module("regex::features", NULL);
 	stringmap_insert(MLRegexT->Exports, "features", Features);
 	int Result;
 	if (!tre_config(TRE_CONFIG_APPROX, &Result)) {
-		ml_map_insert(Features, ml_cstring("approx"), ml_boolean(Result));
+		ml_module_export(Features, "approx", ml_boolean(Result));
 	}
 	if (!tre_config(TRE_CONFIG_WCHAR, &Result)) {
-		ml_map_insert(Features, ml_cstring("wchar"), ml_boolean(Result));
+		ml_module_export(Features, "wchar", ml_boolean(Result));
 	}
 	if (!tre_config(TRE_CONFIG_MULTIBYTE, &Result)) {
-		ml_map_insert(Features, ml_cstring("multibyte"), ml_boolean(Result));
+		ml_module_export(Features, "multibyte", ml_boolean(Result));
 	}
 	const char *Version;
 	if (!tre_config(TRE_CONFIG_VERSION, &Version)) {
-		ml_map_insert(Features, ml_cstring("version"), ml_string(Version, -1));
+		ml_module_export(Features, "version", ml_string(Version, -1));
 	}
 #endif
 #ifdef ML_ICU

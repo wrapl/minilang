@@ -6,7 +6,6 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdint.h>
-#include <gc/gc.h>
 
 #include "ml_compiler2.h"
 #include "ml_runtime.h"
@@ -45,6 +44,7 @@ ML_METHOD_DECL(MulMethod, "*");
 ML_METHOD_DECL(AndMethod, "/\\");
 ML_METHOD_DECL(OrMethod, "\\/");
 ML_METHOD_DECL(XorMethod, "><");
+ML_METHOD_DECL(RangeMethod, "..");
 
 static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 	const unsigned int Mask = (CHAR_BIT * sizeof(uintptr_t) - 1);
@@ -53,7 +53,7 @@ static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
 
 // Types //
 
-ML_INTERFACE(MLAnyT, (), "any", .Rank = 0);
+ML_INTERFACE(MLAnyT, (), "any", .Rank = 1);
 //!any
 // Base type for all values.
 
@@ -198,6 +198,8 @@ ML_METHOD("parents", MLTypeT) {
 
 void ml_default_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
 	//ML_ERROR("TypeError", "<%s> is not callable", ml_typeof(Value)->Name);
+	ml_value_t *Deref = ml_deref(Value);
+	if (Deref != Value) return ml_call(Caller, Deref, Count, Args);
 	ml_value_t **Args2 = ml_alloc_args(Count + 1);
 	Args2[0] = Value;
 	for (int I = 0; I < Count; ++I) Args2[I + 1] = Args[I];
@@ -243,10 +245,6 @@ ml_type_t *ml_type(ml_type_t *Parent, const char *Name) {
 	Type->assign = Parent->assign;
 	Type->Constructor = ml_method(NULL);
 	return Type;
-}
-
-const char *ml_type_name(const ml_value_t *Value) {
-	return ((ml_type_t *)Value)->Name;
 }
 
 void ml_type_add_parent(ml_type_t *Type, ml_type_t *Parent) {
@@ -333,7 +331,7 @@ ML_METHOD("|", MLTypeT, MLTypeT) {
 	ml_type_t *Type2 = (ml_type_t *)Args[1];
 	ml_union_type_t *Type = xnew(ml_union_type_t, 2, ml_type_t *);
 	Type->Base.Type = MLTypeUnionT;
-	asprintf((char **)&Type->Base.Name, "%s | %s", Type1->Name, Type2->Name);
+	GC_asprintf((char **)&Type->Base.Name, "%s | %s", Type1->Name, Type2->Name);
 	Type->Base.hash = ml_default_hash;
 	Type->Base.call = ml_default_call;
 	Type->Base.deref = ml_default_deref;
@@ -356,7 +354,7 @@ ML_METHOD("?", MLTypeT) {
 	ml_type_t *Type1 = (ml_type_t *)Args[0];
 	ml_union_type_t *Type = xnew(ml_union_type_t, 2, ml_type_t *);
 	Type->Base.Type = MLTypeUnionT;
-	asprintf((char **)&Type->Base.Name, "%s | nil", Type1->Name);
+	GC_asprintf((char **)&Type->Base.Name, "%s | nil", Type1->Name);
 	Type->Base.hash = ml_default_hash;
 	Type->Base.call = ml_default_call;
 	Type->Base.deref = ml_default_deref;
@@ -428,9 +426,13 @@ ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
 	Type = xnew(ml_generic_type_t, NumArgs, ml_type_t *);
 	const ml_type_t *Base = Args[0];
 	const char *Name = Base->Name;
+	int Rank = Base->Rank;
 	if (NumArgs > 1) {
 		size_t Length = strlen(Base->Name) + NumArgs + 1;
-		for (int I = 1; I < NumArgs; ++I) Length += strlen(Args[I]->Name);
+		for (int I = 1; I < NumArgs; ++I) {
+			Length += strlen(Args[I]->Name);
+			Rank += Args[I]->Rank;
+		}
 		char *Name2 = snew(Length);
 		char *End = stpcpy(Name2, Base->Name);
 		*End++ = '[';
@@ -449,7 +451,7 @@ ml_type_t *ml_generic_type(int NumArgs, ml_type_t *Args[]) {
 	Type->Base.call = Base->call;
 	Type->Base.deref = Base->deref;
 	Type->Base.assign = Base->assign;
-	Type->Base.Rank = Base->Rank + 1;
+	Type->Base.Rank = Rank + 1;
 	Type->Base.Interface = Args[0]->Interface;
 	Type->NumArgs = NumArgs;
 	for (int I = 0; I < NumArgs; ++I) Type->Args[I] = Args[I];
@@ -689,6 +691,7 @@ static ml_type_t *ml_generic_type_max(ml_type_t *Max, int TNumArgs, ml_type_t **
 #endif
 
 ml_type_t *ml_type_max(ml_type_t *T, ml_type_t *U) {
+	if (T == U) return T;
 	ml_type_t *Max = MLAnyT;
 	if (T->Rank < U->Rank) {
 		if (inthash_search(U->Parents, (uintptr_t)T)) return T;
@@ -1192,11 +1195,7 @@ ML_TYPE(MLAnySwitchT, (MLFunctionT), "any-switch",
 
 ML_FUNCTION_INLINE(MLAnySwitch) {
 //!internal
-	int Total = 1;
-	for (int I = 0; I < Count; ++I) {
-		ML_CHECK_ARG_TYPE(I, MLListT);
-		Total += ml_list_length(Args[I]);
-	}
+	for (int I = 0; I < Count; ++I) ML_CHECK_ARG_TYPE(I, MLListT);
 	ml_any_switch_t *Switch = new(ml_any_switch_t);
 	Switch->Type = MLAnySwitchT;
 	for (int I = 0; I < Count; ++I) {
@@ -1249,7 +1248,7 @@ ML_FUNCTION(MLFindAll) {
 //>list
 // Returns a list of all unique values referenced by :mini:`Value` (including :mini:`Value`).
 	ML_CHECK_ARG_COUNT(1);
-	ml_find_refs_t FindRefs[1] = {ml_list(), MLAnyT, {INTHASH_INIT}};
+	ml_find_refs_t FindRefs[1] = {{ml_list(), MLAnyT, {INTHASH_INIT}}};
 	ml_value_find_fn RefFn = (ml_value_find_fn)ml_find_all_fn;
 	if (Count > 1) {
 		ML_CHECK_ARG_TYPE(1, MLTypeT);
@@ -2627,11 +2626,13 @@ ML_METHOD("exports", MLModuleT) {
 // Externals //
 //!external
 
-ml_value_t *ml_external(const char *Name) {
+ml_value_t *ml_external(const char *Name, const char *Source, int Line) {
 	ml_external_t *External = new(ml_external_t);
 	External->Type = MLExternalT;
 	External->Name = Name;
 	External->Length = strlen(Name);
+	External->Source = Source;
+	External->Line = Line;
 	return (ml_value_t *)External;
 }
 
@@ -2641,7 +2642,15 @@ ML_FUNCTION(MLExternal) {
 //>external
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
-	return ml_external(ml_string_value(Args[0]));
+	const char *Source = "";
+	int Line = 0;
+	if (Count > 1) {
+		ML_CHECK_ARG_TYPE(1, MLStringT);
+		ML_CHECK_ARG_TYPE(2, MLIntegerT);
+		Source = ml_string_value(Args[1]);
+		Line = ml_integer_value(Args[2]);
+	}
+	return ml_external(ml_string_value(Args[0]), Source, Line);
 }
 
 ML_TYPE(MLExternalT, (), "external",
@@ -2659,7 +2668,7 @@ ML_METHOD("::", MLExternalT, MLStringT) {
 	if (!Slot[0]) {
 		char *FullName = snew(External->Length + strlen(Name) + 3);
 		stpcpy(stpcpy(stpcpy(FullName, External->Name), "::"), Name);
-		Slot[0] = ml_external(FullName);
+		Slot[0] = ml_external(FullName, "", 0);
 	}
 	return Slot[0];
 }
@@ -2686,7 +2695,7 @@ ML_METHOD("add", MLExternalSetT, MLStringT, MLAnyT) {
 	return MLNil;
 }
 
-ml_externals_t MLExternals[1] = {MLExternalSetT, NULL, {INTHASH_INIT}, {STRINGMAP_INIT}};
+ml_externals_t MLExternals[1] = {{MLExternalSetT, NULL, {INTHASH_INIT}, {STRINGMAP_INIT}}};
 
 const char *ml_externals_get_name(ml_externals_t *Externals, ml_value_t *Value) {
 	while (Externals) {
@@ -2765,6 +2774,10 @@ ML_METHOD("..", MLSymbolT, MLSymbolT) {
 	Range->First = ml_symbol_name(Args[0]);
 	Range->Last = ml_symbol_name(Args[1]);
 	return (ml_value_t *)Range;
+}
+
+ML_METHOD("::", MLSymbolT, MLStringT) {
+	return ml_chainedv(2, Args[0], ml_symbol(ml_string_value(Args[1])));
 }
 
 // Init //
@@ -2928,7 +2941,7 @@ ML_FUNCTION(MLMemCollect) {
 //!memory
 //@collect
 // Call garbage collector.
-	GC_gcollect();
+	GC_gcollect_and_unmap();
 	return MLNil;
 }
 

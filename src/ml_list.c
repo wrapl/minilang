@@ -48,11 +48,36 @@ static ml_list_node_t *ml_list_index(ml_list_t *List, int Index) {
 	return (List->CachedNode = Node);
 }
 
-ML_TYPE(MLListT, (MLSequenceT), "list");
-
-ML_TYPE(MLListMutableT, (MLListT), "list::mutable",
+ML_TYPE(MLListT, (MLSequenceT), "list"
 // A list of elements.
 );
+
+#ifdef ML_MUTABLES
+ML_TYPE(MLListMutableT, (MLListT), "list::mutable");
+#else
+#define MLListMutableT MLListT
+#endif
+
+#ifdef ML_GENERICS
+
+static void ml_list_update_generic(ml_list_t *List, ml_value_t *Value) {
+	if (List->Type->Type != MLTypeGenericT) {
+		List->Type = ml_generic_type(2, (ml_type_t *[]){List->Type, ml_typeof(Value)});
+	} else {
+		ml_type_t *ValueType0 = ml_typeof(Value);
+		ml_type_t *BaseType = ml_generic_type_args(List->Type)[0];
+		ml_type_t *ValueType = ml_generic_type_args(List->Type)[1];
+		if (!ml_is_subtype(ValueType0, ValueType)) {
+			ml_type_t *ValueType2 = ml_type_max(ValueType, ValueType0);
+			if (ValueType != ValueType2) {
+				List->Type = ml_generic_type(2, (ml_type_t *[]){BaseType, ValueType2});
+			}
+		}
+	}
+}
+
+#endif
+
 
 static void ML_TYPED_FN(ml_value_find_all, MLListT, ml_value_t *Value, void *Data, ml_value_find_fn RefFn) {
 	if (!RefFn(Data, Value, 1)) return;
@@ -63,16 +88,40 @@ static ml_value_t *ml_list_node_deref(ml_list_node_t *Node) {
 	return Node->Value;
 }
 
-static void ml_list_node_call(ml_state_t *Caller, ml_list_node_t *Node, int Count, ml_value_t **Args) {
-	return ml_call(Caller, Node->Value, Count, Args);
+static void ml_list_node_assign(ml_state_t *Caller, ml_list_node_t *Node, ml_value_t *Value) {
+	Node->Value = Value;
+	ML_RETURN(Value);
 }
+
+#ifdef ML_MUTABLES
 
 ML_TYPE(MLListNodeT, (), "list::node",
 // A node in a :mini:`list`.
 // Dereferencing a :mini:`list::node::const` returns the corresponding value from the :mini:`list`.
-	.deref = (void *)ml_list_node_deref,
-	.call = (void *)ml_list_node_call
+	.deref = (void *)ml_list_node_deref
 );
+
+ML_TYPE(MLListNodeMutableT, (MLListNodeT), "list::node::mutable",
+// A node in a :mini:`list`.
+// Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
+// Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
+	.deref = (void *)ml_list_node_deref,
+	.assign = (void *)ml_list_node_assign
+);
+
+#else
+
+#define MLListNodeMutableT MLListNodeT
+
+ML_TYPE(MLListNodeMutableT, (), "list::node",
+// A node in a :mini:`list`.
+// Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
+// Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
+	.deref = (void *)ml_list_node_deref,
+	.assign = (void *)ml_list_node_assign
+);
+
+#endif
 
 static void ML_TYPED_FN(ml_iter_next, MLListNodeT, ml_state_t *Caller, ml_list_node_t *Node) {
 	ml_list_node_t *Next = Node->Next;
@@ -88,20 +137,6 @@ static void ML_TYPED_FN(ml_iter_key, MLListNodeT, ml_state_t *Caller, ml_list_no
 static void ML_TYPED_FN(ml_iter_value, MLListNodeT, ml_state_t *Caller, ml_list_node_t *Node) {
 	ML_RETURN(Node);
 }
-
-static void ml_list_node_assign(ml_state_t *Caller, ml_list_node_t *Node, ml_value_t *Value) {
-	Node->Value = Value;
-	ML_RETURN(Value);
-}
-
-ML_TYPE(MLListNodeMutableT, (MLListNodeT), "list::node::mutable",
-// A node in a :mini:`list`.
-// Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
-// Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
-	.deref = (void *)ml_list_node_deref,
-	.assign = (void *)ml_list_node_assign,
-	.call = (void *)ml_list_node_call
-);
 
 ml_value_t *ml_list() {
 	ml_list_t *List = new(ml_list_t);
@@ -204,25 +239,12 @@ void ml_list_push(ml_value_t *List0, ml_value_t *Value) {
 	Node->Value = Value;
 	if ((Node->Next = List->Head)) {
 		List->Head->Prev = Node;
-#ifdef ML_GENERICS
-		if (List->Type->Type == MLTypeGenericT) {
-			ml_type_t *Type = ml_generic_type_args(List->Type)[1];
-			if (Type != ml_typeof(Value)) {
-				ml_type_t *Type2 = ml_type_max(Type, ml_typeof(Value));
-				if (Type != Type2) {
-					List->Type = ml_generic_type(2, (ml_type_t *[]){MLListMutableT, Type2});
-				}
-			}
-		}
-#endif
 	} else {
 		List->Tail = Node;
-#ifdef ML_GENERICS
-		if (List->Type == MLListMutableT) {
-			List->Type = ml_generic_type(2, (ml_type_t *[]){MLListMutableT, ml_typeof(Value)});
-		}
-#endif
 	}
+#ifdef ML_GENERICS
+	ml_list_update_generic(List, Value);
+#endif
 	List->CachedNode = List->Head = Node;
 	List->CachedIndex = 1;
 	++List->Length;
@@ -240,25 +262,12 @@ void ml_list_put(ml_value_t *List0, ml_value_t *Value) {
 	}
 	if ((Node->Prev = List->Tail)) {
 		List->Tail->Next = Node;
-#ifdef ML_GENERICS
-		if (List->Type->Type == MLTypeGenericT) {
-			ml_type_t *Type = ml_generic_type_args(List->Type)[1];
-			if (Type != Type0) {
-				ml_type_t *Type2 = ml_type_max(Type, Type0);
-				if (Type != Type2) {
-					List->Type = ml_generic_type(2, (ml_type_t *[]){MLListMutableT, Type2});
-				}
-			}
-		}
-#endif
 	} else {
 		List->Head = Node;
-#ifdef ML_GENERICS
-		if (List->Type == MLListMutableT) {
-			List->Type = ml_generic_type(2, (ml_type_t *[]){MLListMutableT, ml_typeof(Value)});
-		}
-#endif
 	}
+#ifdef ML_GENERICS
+	ml_list_update_generic(List, Value);
+#endif
 	List->CachedNode = List->Tail = Node;
 	List->CachedIndex = ++List->Length;
 }
@@ -335,6 +344,20 @@ ML_METHOD("length", MLListT) {
 //$= [1, 2, 3]:length
 	ml_list_t *List = (ml_list_t *)Args[0];
 	return ml_integer(List->Length);
+}
+
+ML_METHOD("first", MLListT) {
+//<List
+// Returns the first value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	return List->Head ? List->Head->Value : MLNil;
+}
+
+ML_METHOD("last", MLListT) {
+//<List
+// Returns the last value in :mini:`List` or :mini:`nil` if :mini:`List` is empty.
+	ml_list_t *List = (ml_list_t *)Args[0];
+	return List->Tail ? List->Tail->Value : MLNil;
 }
 
 typedef struct {
@@ -1589,11 +1612,19 @@ void ml_names_add(ml_value_t *Names, ml_value_t *Value) {
 	List->CachedIndex = ++List->Length;
 }
 
+ML_METHOD(MLListT, MLNamesT) {
+	ml_value_t *List = ml_list();
+	ML_NAMES_FOREACH(Args[0], Iter) ml_list_put(List, Iter->Value);
+	return List;
+}
+
 void ml_list_init() {
 #include "ml_list_init.c"
 	stringmap_insert(MLListT->Exports, "mutable", MLListMutableT);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLListT, MLSequenceT, MLIntegerT, ML_TYPE_ARG(1), NULL);
+#ifdef ML_MUTABLES
 	ml_type_add_rule(MLListMutableT, MLListT, ML_TYPE_ARG(1), NULL);
+#endif
 #endif
 }

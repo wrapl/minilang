@@ -1,29 +1,11 @@
 #include "ml_sequence.h"
-
-#include <gc.h>
-#include "ml_runtime.h"
-#include <string.h>
-#include "minilang.h"
 #include "ml_macros.h"
+#include "ml_runtime.h"
+#include "minilang.h"
+#include <string.h>
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "sequence"
-
-#define ML_SEQUENCE_FUNCTION(NAME, FN) \
-ML_FUNCTIONX(NAME) { \
-/*@FN
-//<Value:any
-//>any|nil
-// Used for iterating over a sequence.
-*/ \
-	ML_CHECKX_ARG_COUNT(1); \
-	return ml_ ## FN(Caller, Args[0]); \
-}
-
-ML_SEQUENCE_FUNCTION(Iterate, iterate);
-ML_SEQUENCE_FUNCTION(IterNext, iter_next);
-ML_SEQUENCE_FUNCTION(IterValue, iter_value);
-ML_SEQUENCE_FUNCTION(IterKey, iter_key);
 
 /****************************** Chained ******************************/
 
@@ -34,7 +16,6 @@ static ML_METHOD_DECL(FilterDuoMethod, "=>?");
 static ML_METHOD_DECL(SoloApplyMethod, "->!");
 static ML_METHOD_DECL(FilterSoloApplyMethod, "->!?");
 static ML_METHOD_DECL(ApplyMethod, "!");
-static ML_METHOD_DECL(CountMethod, "count");
 
 typedef struct ml_chained_state_t {
 	ml_state_t Base;
@@ -499,6 +480,33 @@ ML_METHOD("->!?", MLChainedT, MLFunctionT) {
 	return (ml_value_t *)Chained;
 }
 
+extern ml_value_t *IndexMethod;
+
+ML_METHODV("[]", MLChainedT) {
+	ml_value_t *Partial = ml_partial_function(IndexMethod, Count + 1);
+	for (int I = 1; I < Count; ++I) ml_partial_function_set(Partial, I, Args[I]);
+	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
+	int N = 0;
+	while (Base->Entries[N]) ++N;
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, N + 2, ml_value_t *);
+	Chained->Type = MLChainedT;
+	for (int I = 0; I < N; ++I) Chained->Entries[I] = Base->Entries[I];
+	Chained->Entries[N] = Partial;
+	return (ml_value_t *)Chained;
+}
+
+ML_METHOD("::", MLChainedT, MLStringT) {
+//!internal
+	ml_chained_function_t *Base = (ml_chained_function_t *)Args[0];
+	int N = 0;
+	while (Base->Entries[N]) ++N;
+	ml_chained_function_t *Chained = xnew(ml_chained_function_t, N + 2, ml_value_t *);
+	Chained->Type = MLChainedT;
+	for (int I = 0; I < N; ++I) Chained->Entries[I] = Base->Entries[I];
+	Chained->Entries[N] = ml_symbol(ml_string_value(Args[1]));
+	return (ml_value_t *)Chained;
+}
+
 /****************************** Doubled ******************************/
 
 typedef struct {
@@ -778,7 +786,7 @@ static void first_iterate(ml_state_t *State, ml_value_t *Value) {
 	return ml_iter_value(State->Caller, Value);
 }
 
-ML_FUNCTIONX(First) {
+ML_METHODX("first", MLSequenceT) {
 //<Sequence
 //>any | nil
 // Returns the first value produced by :mini:`Sequence`.
@@ -813,7 +821,7 @@ static void first2_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_FUNCTIONX(First2) {
+ML_METHODX("first2", MLSequenceT) {
 //<Sequence
 //>tuple(any, any) | nil
 // Returns the first key and value produced by :mini:`Sequence`.
@@ -844,7 +852,7 @@ static void last_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_FUNCTIONX(Last) {
+ML_METHODX("last", MLSequenceT) {
 //<Sequence
 //>any | nil
 // Returns the last value produced by :mini:`Sequence`.
@@ -889,7 +897,7 @@ static void last2_iterate(ml_iter_state_t *State, ml_value_t *Value) {
 	return ml_iter_key((ml_state_t *)State, State->Iter = Value);
 }
 
-ML_FUNCTIONX(Last2) {
+ML_METHODX("last2", MLSequenceT) {
 //<Sequence
 //>tuple(any, any) | nil
 // Returns the last key and value produced by :mini:`Sequence`.
@@ -982,6 +990,62 @@ ML_FUNCTIONX(Count2) {
 	State->Base.run = (void *)count2_iterate;
 	State->Counts = ml_map();
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
+}
+
+/****************************** Find ******************************/
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Iter;
+	ml_value_t *Args[2];
+} ml_find_state_t;
+
+static void find_iterate(ml_find_state_t *State, ml_value_t *Value);
+
+static void find_compare(ml_find_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value != MLNil) return ml_iter_key(State->Base.Caller, State->Iter);
+	State->Base.run = (ml_state_fn)find_iterate;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static ML_METHOD_DECL(EqualMethod, "=");
+
+static void find_value(ml_find_state_t *State, ml_value_t *Value) {
+	Value = ml_deref(Value);
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (ml_state_fn)find_compare;
+	State->Args[1] = Value;
+	return ml_call(State, EqualMethod, 2, State->Args);
+}
+
+static void find_iterate(ml_find_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
+	State->Base.run = (ml_state_fn)find_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
+}
+
+ML_METHODX("find", MLSequenceT, MLAnyT) {
+//<Sequence
+//<Value
+//>any|nil
+// Returns the first key generated by :mini:`Sequence` with correspding value :mini:`= Value`.
+	ml_find_state_t *State = new(ml_find_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)find_iterate;
+	State->Args[0] = Args[1];
+	return ml_iterate((ml_state_t *)State, Args[0]);
+}
+
+/****************************** Random ******************************/
+
+ML_METHODVX("random", MLTypeT) {
+	ml_type_t *Type = (ml_type_t *)Args[0];
+	ml_value_t *Random = stringmap_search(Type->Exports, "random");
+	if (!Random) ML_ERROR("TypeError", "Type %s does not export random", Type->Name);
+	return ml_call(Caller, Random, Count - 1, Args + 1);
 }
 
 typedef struct {
@@ -1638,18 +1702,13 @@ static void ML_TYPED_FN(ml_iterate, MLSequencedT, ml_state_t *Caller, ml_sequenc
 	return ml_iterate((ml_state_t *)State, Sequenced->First);
 }
 
-ML_METHOD("&", MLSequenceT, MLSequenceT) {
-//<Sequence/1
-//<Sequence/2
-//>Sequence
-// Returns an sequence that produces the values from :mini:`Sequence/1` followed by those from :mini:`Sequence/2`.
-//$= list(1 .. 3 & "cake")
-	ml_sequenced_t *Sequenced = xnew(ml_sequenced_t, 3, ml_value_t *);
+static ml_value_t *ml_sequenced(ml_value_t *First, ml_value_t *Second) {
+	ml_sequenced_t *Sequenced = new(ml_sequenced_t);
 #ifdef ML_GENERICS
 	ml_type_t *TArgs[3];
-	if (ml_find_generic_parent(ml_typeof(Args[0]), MLSequenceT, 3, TArgs) == 3) {
+	if (ml_find_generic_parent(ml_typeof(First), MLSequenceT, 3, TArgs) == 3) {
 		ml_type_t *KeyType = TArgs[1], *ValueType = TArgs[2];
-		if (ml_find_generic_parent(ml_typeof(Args[1]), MLSequenceT, 3, TArgs) == 3) {
+		if (ml_find_generic_parent(ml_typeof(Second), MLSequenceT, 3, TArgs) == 3) {
 			TArgs[0] = MLSequencedT;
 			TArgs[1] = ml_type_max(KeyType, TArgs[1]);
 			TArgs[2] = ml_type_max(ValueType, TArgs[2]);
@@ -1663,9 +1722,32 @@ ML_METHOD("&", MLSequenceT, MLSequenceT) {
 #else
 	Sequenced->Type = MLSequencedT;
 #endif
-	Sequenced->First = Args[0];
-	Sequenced->Second = Args[1];
+	Sequenced->First = First;
+	Sequenced->Second = Second;
 	return (ml_value_t *)Sequenced;
+}
+
+ML_METHOD("&", MLSequenceT, MLSequenceT) {
+//<Sequence/1
+//<Sequence/2
+//>Sequence
+// Returns an sequence that produces the values from :mini:`Sequence/1` followed by those from :mini:`Sequence/2`.
+//$= list(1 .. 3 & "cake")
+	return ml_sequenced(Args[0], Args[1]);
+}
+
+ML_METHOD("&", MLIntegerRangeT, MLIntegerRangeT) {
+	ml_integer_range_t *Range1 = (ml_integer_range_t *)Args[0];
+	ml_integer_range_t *Range2 = (ml_integer_range_t *)Args[1];
+	if ((Range1->Step == Range2->Step) && (Range1->Limit + Range1->Step == Range2->Start)) {
+		ml_integer_range_t *Range = new(ml_integer_range_t);
+		Range->Type = MLIntegerRangeT;
+		Range->Start = Range1->Start;
+		Range->Limit = Range2->Limit;
+		Range->Step = Range1->Step;
+		return (ml_value_t *)Range;
+	}
+	return ml_sequenced(Args[0], Args[1]);
 }
 
 ML_METHOD("&", MLSequenceT) {
@@ -1688,12 +1770,6 @@ typedef struct ml_limited_t {
 
 ML_TYPE(MLLimitedT, (MLSequenceT), "limited");
 //!internal
-
-ML_METHOD("count", MLLimitedT) {
-//!internal
-	ml_limited_t *Limited = (ml_limited_t *)Args[0];
-	return ml_integer(Limited->Remaining);
-}
 
 typedef struct ml_limited_state_t {
 	ml_state_t Base;
@@ -1810,82 +1886,82 @@ ML_METHOD("skip", MLSequenceT, MLIntegerT) {
 	return (ml_value_t *)Skipped;
 }
 
-typedef struct ml_until_t {
+typedef struct {
 	ml_type_t *Type;
 	ml_value_t *Value, *Fn;
 	int Remaining;
-} ml_until_t;
+} ml_provided_t;
 
-ML_TYPE(MLUntilT, (MLSequenceT), "until");
+ML_TYPE(MLProvidedT, (MLSequenceT), "until");
 //!internal
 
-typedef struct ml_until_state_t {
+typedef struct {
 	ml_state_t Base;
 	ml_value_t *Iter, *Fn;
 	ml_value_t *Args[1];
-} ml_until_state_t;
+} ml_provided_state_t;
 
-ML_TYPE(MLUntilStateT, (MLStateT), "until-state");
+ML_TYPE(MLProvidedStateT, (MLStateT), "until-state");
 //!internal
 
-static void until_check(ml_until_state_t *State, ml_value_t *Value);
+static void provided_check(ml_provided_state_t *State, ml_value_t *Value);
 
-static void until_iterate(ml_until_state_t *State, ml_value_t *Value) {
+static void provided_iterate(ml_provided_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
 	ML_CONTINUE(State->Base.Caller, State);
 }
 
-static void until_value(ml_until_state_t *State, ml_value_t *Value) {
+static void provided_value(ml_provided_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
-	State->Base.run = (ml_state_fn)until_iterate;
+	State->Base.run = (ml_state_fn)provided_iterate;
 	State->Args[0] = Value;
 	return ml_call(State, State->Fn, 1, State->Args);
 }
 
-static void until_check(ml_until_state_t *State, ml_value_t *Value) {
+static void provided_check(ml_provided_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
 	if (Value == MLNil) ML_CONTINUE(State->Base.Caller, Value);
-	State->Base.run = (ml_state_fn)until_value;
+	State->Base.run = (ml_state_fn)provided_value;
 	return ml_iter_value((ml_state_t *)State, State->Iter = Value);
 }
 
-static void ML_TYPED_FN(ml_iterate, MLUntilT, ml_state_t *Caller, ml_until_t *Until) {
-	ml_until_state_t *State = new(ml_until_state_t);
-	State->Base.Type = MLUntilStateT;
+static void ML_TYPED_FN(ml_iterate, MLProvidedT, ml_state_t *Caller, ml_provided_t *Provided) {
+	ml_provided_state_t *State = new(ml_provided_state_t);
+	State->Base.Type = MLProvidedStateT;
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
-	State->Base.run = (void *)until_check;
-	State->Fn = Until->Fn;
-	return ml_iterate((ml_state_t *)State, Until->Value);
+	State->Base.run = (void *)provided_check;
+	State->Fn = Provided->Fn;
+	return ml_iterate((ml_state_t *)State, Provided->Value);
 }
 
-static void ML_TYPED_FN(ml_iter_key, MLUntilStateT, ml_state_t *Caller, ml_until_state_t *State) {
+static void ML_TYPED_FN(ml_iter_key, MLProvidedStateT, ml_state_t *Caller, ml_provided_state_t *State) {
 	return ml_iter_key(Caller, State->Iter);
 }
 
-static void ML_TYPED_FN(ml_iter_value, MLUntilStateT, ml_state_t *Caller, ml_until_state_t *State) {
+static void ML_TYPED_FN(ml_iter_value, MLProvidedStateT, ml_state_t *Caller, ml_provided_state_t *State) {
 	ML_RETURN(State->Args[0]);
 }
 
-static void ML_TYPED_FN(ml_iter_next, MLUntilStateT, ml_state_t *Caller, ml_until_state_t *State) {
+static void ML_TYPED_FN(ml_iter_next, MLProvidedStateT, ml_state_t *Caller, ml_provided_state_t *State) {
 	State->Base.Caller = Caller;
-	State->Base.run = (void *)until_check;
+	State->Base.run = (void *)provided_check;
 	return ml_iter_next((ml_state_t *)State, State->Iter);
 }
 
-ML_METHOD("limit", MLSequenceT, MLFunctionT) {
+ML_METHOD("provided", MLSequenceT, MLFunctionT) {
 //<Sequence
 //<Fn
 //>sequence
 // Returns an sequence that stops when :mini:`Fn(Value)` is :mini:`nil`.
 //$= list("banana")
-//$= list("banana" limit (_ != "n"))
-	ml_until_t *Until = new(ml_until_t);
-	Until->Type = ml_generic_sequence(MLUntilT, Args[0]);
-	Until->Value = Args[0];
-	Until->Fn = Args[1];
-	return (ml_value_t *)Until;
+//$= list("banana" provided (_ != "n"))
+	ml_provided_t *Provided = new(ml_provided_t);
+	Provided->Type = ml_generic_sequence(MLProvidedT, Args[0]);
+	Provided->Value = Args[0];
+	Provided->Fn = Args[1];
+	return (ml_value_t *)Provided;
 }
 
 typedef struct ml_unique_t {
@@ -2897,6 +2973,63 @@ ML_FUNCTION(Batch) {
 	return (ml_value_t *)Batched;
 }
 
+typedef struct {
+	ml_state_t Base;
+	ml_value_t *Iter;
+} ml_iterator_t;
+
+ML_TYPE(MLIteratorT, (), "iterator");
+//@iterator
+// An iterator.
+
+static void ml_iterator_run(ml_iterator_t *Iterator, ml_value_t *Iter) {
+	ml_state_t *Caller = Iterator->Base.Caller;
+	Iterator->Iter = Iter;
+	if (Iter == MLNil) ML_RETURN(Iter);
+	if (ml_is_error(Iter)) ML_RETURN(Iter);
+	ML_RETURN(Iterator);
+}
+
+ML_FUNCTIONX(MLIterate) {
+//@iterate
+//<Sequence:sequence
+//>iterator|nil
+// Create an iterator for :mini:`Sequence`. Returns :mini:`nil` is :mini:`Sequence` is empty.
+	ML_CHECKX_ARG_COUNT(1);
+	ml_iterator_t *Iterator = new(ml_iterator_t);
+	Iterator->Base.Type = MLIteratorT;
+	Iterator->Base.Caller = Caller;
+	Iterator->Base.Context = Caller->Context;
+	Iterator->Base.run = (ml_state_fn)ml_iterator_run;
+	return ml_iterate((ml_state_t *)Iterator, Args[0]);
+}
+
+ML_METHODX("next", MLIteratorT) {
+//<Iterator
+//>iterator|nil
+// Advances :mini:`Iterator`, returning :mini:`nil` if it is finished.
+	ml_iterator_t *Iterator = (ml_iterator_t *)Args[0];
+	Iterator->Base.Caller = Caller;
+	Iterator->Base.Context = Caller->Context;
+	return ml_iter_next((ml_state_t *)Iterator, Iterator->Iter);
+}
+
+ML_METHODX("key", MLIteratorT) {
+//<Iterator
+//>any
+// Returns the current key produced by :mini:`Iterator`.
+	ml_iterator_t *Iterator = (ml_iterator_t *)Args[0];
+	return ml_iter_key(Caller, Iterator->Iter);
+}
+
+ML_METHODX("value", MLIteratorT) {
+//<Iterator
+//>any
+// Returns the current value produced by :mini:`Iterator`.
+	ml_iterator_t *Iterator = (ml_iterator_t *)Args[0];
+	return ml_iter_value(Caller, Iterator->Iter);
+}
+
 void ml_sequence_init(stringmap_t *Globals) {
 	MLSomeT->call = ml_some_call;
 	MLFunctionT->Constructor = (ml_value_t *)MLChained;
@@ -2908,7 +3041,7 @@ void ml_sequence_init(stringmap_t *Globals) {
 	ml_type_add_rule(MLRepeatedT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 	ml_type_add_rule(MLSequencedT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 	ml_type_add_rule(MLLimitedT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
-	ml_type_add_rule(MLUntilT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
+	ml_type_add_rule(MLProvidedT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 	ml_type_add_rule(MLSkippedT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 	ml_type_add_rule(MLSwappedT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
 	ml_type_add_rule(MLUniqueT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
@@ -2916,16 +3049,13 @@ void ml_sequence_init(stringmap_t *Globals) {
 #endif
 	if (Globals) {
 		stringmap_insert(Globals, "chained", MLChainedT);
-		stringmap_insert(Globals, "first", First);
-		stringmap_insert(Globals, "first2", First2);
-		stringmap_insert(Globals, "last", Last);
-		stringmap_insert(Globals, "last2", Last2);
+		stringmap_insert(Globals, "first", ml_method("first"));
+		stringmap_insert(Globals, "first2", ml_method("first2"));
+		stringmap_insert(Globals, "last", ml_method("last"));
+		stringmap_insert(Globals, "last2", ml_method("last2"));
 		stringmap_insert(Globals, "all", All);
-		stringmap_insert(Globals, "iterate", Iterate);
-		stringmap_insert(Globals, "iter_next", IterNext);
-		stringmap_insert(Globals, "iter_key", IterKey);
-		stringmap_insert(Globals, "iter_value", IterValue);
-		stringmap_insert(Globals, "count", CountMethod);
+		stringmap_insert(Globals, "iterate", MLIterate);
+		stringmap_insert(Globals, "count", ml_method("count"));
 		stringmap_insert(Globals, "count2", Count2);
 		stringmap_insert(Globals, "random", ml_method("random"));
 		stringmap_insert(Globals, "reduce", Reduce);

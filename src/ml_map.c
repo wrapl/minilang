@@ -9,13 +9,40 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "map"
 
-ML_TYPE(MLMapT, (MLSequenceT), "map");
-
-ML_TYPE(MLMapMutableT, (MLMapT), "map::mutable",
+ML_TYPE(MLMapT, (MLSequenceT), "map"
 // A map of key-value pairs.
 // Keys can be of any type supporting hashing and comparison.
 // By default, iterating over a map generates the key-value pairs in the order they were inserted, however this ordering can be changed.
 );
+
+#ifdef ML_MUTABLES
+ML_TYPE(MLMapMutableT, (MLMapT), "map::mutable");
+#else
+#define MLMapMutableT MLMapT
+#endif
+
+#ifdef ML_GENERICS
+
+static void ml_map_update_generic(ml_map_t *Map, ml_value_t *Key, ml_value_t *Value) {
+	if (Map->Type->Type != MLTypeGenericT) {
+		Map->Type = ml_generic_type(3, (ml_type_t *[]){Map->Type, ml_typeof(Key), ml_typeof(Value)});
+	} else {
+		ml_type_t *KeyType0 = ml_typeof(Key);
+		ml_type_t *ValueType0 = ml_typeof(Value);
+		ml_type_t *BaseType = ml_generic_type_args(Map->Type)[0];
+		ml_type_t *KeyType = ml_generic_type_args(Map->Type)[1];
+		ml_type_t *ValueType = ml_generic_type_args(Map->Type)[2];
+		if (!ml_is_subtype(KeyType0, KeyType) || !ml_is_subtype(ValueType0, ValueType)) {
+			ml_type_t *KeyType2 = ml_type_max(KeyType, KeyType0);
+			ml_type_t *ValueType2 = ml_type_max(ValueType, ValueType0);
+			if (KeyType != KeyType2 || ValueType != ValueType2) {
+				Map->Type = ml_generic_type(3, (ml_type_t *[]){BaseType, KeyType2, ValueType2});
+			}
+		}
+	}
+}
+
+#endif
 
 ML_ENUM2(MLMapOrderT, "map::order",
 // * :mini:`map::order::Insert` |harr| default ordering; inserted pairs are put at end, no reordering on access.
@@ -42,30 +69,43 @@ static ml_value_t *ml_map_node_deref(ml_map_node_t *Node) {
 	return Node->Value;
 }
 
-static void ml_map_node_call(ml_state_t *Caller, ml_map_node_t *Node, int Count, ml_value_t **Args) {
-	return ml_call(Caller, Node->Value, Count, Args);
+static void ml_map_node_assign(ml_state_t *Caller, ml_map_node_t *Node, ml_value_t *Value) {
+	Node->Value = Value;
+#ifdef ML_GENERICS
+	ml_map_update_generic(Node->Map, Node->Key, Value);
+#endif
+	ML_RETURN(Value);
 }
+
+#ifdef ML_MUTABLES
 
 ML_TYPE(MLMapNodeT, (), "map::node",
 // A node in a :mini:`map`.
 // Dereferencing a :mini:`map::node::const` returns the corresponding value from the :mini:`map`.
-	.deref = (void *)ml_map_node_deref,
-	.call = (void *)ml_map_node_call
+	.deref = (void *)ml_map_node_deref
 );
-
-static void ml_map_node_assign(ml_state_t *Caller, ml_map_node_t *Node, ml_value_t *Value) {
-	Node->Value = Value;
-	ML_RETURN(Value);
-}
 
 ML_TYPE(MLMapNodeMutableT, (MLMapNodeT), "map::node::mutable",
 // A node in a :mini:`map`.
 // Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
 // Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
 	.deref = (void *)ml_map_node_deref,
-	.assign = (void *)ml_map_node_assign,
-	.call = (void *)ml_map_node_call
+	.assign = (void *)ml_map_node_assign
 );
+
+#else
+
+#define MLMapNodeMutableT MLMapNodeT
+
+ML_TYPE(MLMapNodeMutableT, (), "map::node",
+// A node in a :mini:`map`.
+// Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
+// Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
+	.deref = (void *)ml_map_node_deref,
+	.assign = (void *)ml_map_node_assign
+);
+
+#endif
 
 ml_value_t *ml_map() {
 	ml_map_t *Map = new(ml_map_t);
@@ -148,18 +188,21 @@ ML_METHODVX("grow", MLMapMutableT, MLSequenceT) {
 extern ml_value_t *CompareMethod;
 
 static inline ml_value_t *ml_map_compare(ml_map_t *Map, ml_value_t **Args) {
-	/*ml_method_cached_t *Cached = Map->Cached;
+	ml_method_cached_t *Cached = Map->Cached;
 	if (Cached) {
-		if (Cached->Types[0] != ml_typeof(Args[0])) Cached = NULL;
-		if (Cached->Types[1] != ml_typeof(Args[1])) Cached = NULL;
+		if (Cached->Types[0] != ml_typeof(Args[0])) {
+			Cached = NULL;
+		} else if (Cached->Types[1] != ml_typeof(Args[1])) {
+			Cached = NULL;
+		}
 	}
 	if (!Cached || !Cached->Callback) {
 		Cached = ml_method_search_cached(NULL, (ml_method_t *)CompareMethod, 2, Args);
 		if (!Cached) return ml_no_method_error((ml_method_t *)CompareMethod, 2, Args);
 		Map->Cached = Cached;
 	}
-	return ml_simple_call(Cached->Callback, 2, Args);*/
-	return ml_simple_call(CompareMethod, 2, Args);
+	return ml_simple_call(Cached->Callback, 2, Args);
+	//return ml_simple_call(CompareMethod, 2, Args);
 }
 
 static ml_map_node_t *ml_map_find_node(ml_map_t *Map, ml_value_t *Key) {
@@ -285,6 +328,7 @@ static ml_map_node_t *ml_map_node_child(ml_map_t *Map, ml_map_node_t *Parent, lo
 		++Map->Size;
 		Node = Slot[0] = new(ml_map_node_t);
 		Node->Type = MLMapNodeMutableT;
+		Node->Map = Map;
 		Node->Depth = 1;
 		Node->Hash = Hash;
 		Node->Key = Key;
@@ -333,6 +377,7 @@ static ml_map_node_t *ml_map_node(ml_map_t *Map, long Hash, ml_value_t *Key) {
 	++Map->Size;
 	ml_map_node_t *Node = Map->Root = new(ml_map_node_t);
 	Node->Type = MLMapNodeMutableT;
+	Node->Map = Map;
 	Map->Head = Map->Tail = Node;
 	Node->Depth = 1;
 	Node->Hash = Hash;
@@ -356,20 +401,7 @@ ml_value_t *ml_map_insert(ml_value_t *Map0, ml_value_t *Key, ml_value_t *Value) 
 		ValueType0 = MLAnyT;
 	}
 #ifdef ML_GENERICS
-	if (Map->Type->Type != MLTypeGenericT) {
-		Map->Type = ml_generic_type(3, (ml_type_t *[]){Map->Type, ml_typeof(Key), ValueType0});
-	} else {
-		ml_type_t *BaseType = ml_generic_type_args(Map->Type)[0];
-		ml_type_t *KeyType = ml_generic_type_args(Map->Type)[1];
-		ml_type_t *ValueType = ml_generic_type_args(Map->Type)[2];
-		if (KeyType != ml_typeof(Key) || ValueType != ValueType0) {
-			ml_type_t *KeyType2 = ml_type_max(KeyType, ml_typeof(Key));
-			ml_type_t *ValueType2 = ml_type_max(ValueType, ValueType0);
-			if (KeyType != KeyType2 || ValueType != ValueType2) {
-				Map->Type = ml_generic_type(3, (ml_type_t *[]){BaseType, KeyType2, ValueType2});
-			}
-		}
-	}
+	ml_map_update_generic(Map, Key, Value);
 #endif
 	return Old;
 }
@@ -455,6 +487,20 @@ ML_METHOD("count", MLMapT) {
 //$= {"A" is 1, "B" is 2, "C" is 3}:count
 	ml_map_t *Map = (ml_map_t *)Args[0];
 	return ml_integer(Map->Size);
+}
+
+ML_METHOD("first", MLMapT) {
+//<Map
+// Returns the first value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	return Map->Head ? Map->Head->Value : MLNil;
+}
+
+ML_METHOD("last", MLMapT) {
+//<Map
+// Returns the last value in :mini:`Map` or :mini:`nil` if :mini:`Map` is empty.
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	return Map->Tail ? Map->Tail->Value : MLNil;
 }
 
 static ml_value_t *ml_map_index_deref(ml_map_node_t *Index) {
@@ -585,6 +631,34 @@ ML_METHOD("[]", MLMapMutableT, MLAnyT) {
 	if (!Node) {
 		Node = new(ml_map_node_t);
 		Node->Type = MLMapIndexT;
+		Node->Map = Map;
+		Node->Value = Args[0];
+		Node->Key = Args[1];
+	} else if (Map->Order == MAP_ORDER_LRU) {
+		ml_map_move_node_tail(Map, Node);
+	} else if (Map->Order == MAP_ORDER_MRU) {
+		ml_map_move_node_head(Map, Node);
+	}
+	return (ml_value_t *)Node;
+}
+
+ML_METHOD("::", MLMapMutableT, MLStringT) {
+//<Map
+//<Key
+//>map::node
+// Same as :mini:`Map[Key]`. This method allows maps to be used as modules.
+//$- let M := {"A" is 1, "B" is 2, "C" is 3}
+//$= M::A
+//$= M::D
+//$= M::A := 10
+//$= M::D := 20
+//$= M
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = ml_map_find_node(Map, Args[1]);
+	if (!Node) {
+		Node = new(ml_map_node_t);
+		Node->Type = MLMapIndexT;
+		Node->Map = Map;
 		Node->Value = Args[0];
 		Node->Key = Args[1];
 	} else if (Map->Order == MAP_ORDER_LRU) {
@@ -608,6 +682,166 @@ ML_METHOD("[]", MLMapT, MLAnyT) {
 	return Node ? Node->Value : MLNil;
 }
 
+ML_METHOD("::", MLMapT, MLStringT) {
+//<Map
+//<Key
+//>map::node
+// Same as :mini:`Map[Key]`. This method allows maps to be used as modules.
+//$- let M := copy({"A" is 1, "B" is 2, "C" is 3}, :const)
+//$= M::A
+//$= M::D
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = ml_map_find_node(Map, Args[1]);
+	return Node ? Node->Value : MLNil;
+}
+
+#ifdef ML_GENERICS
+
+static ml_map_node_t *ml_map_find_node_string(ml_map_t *Map, ml_value_t *Key) {
+	long Hash = ml_hash(Key);
+	int LengthA = ml_string_length(Key);
+	const char *StringA = ml_string_value(Key);
+	ml_map_node_t *Node = Map->Root;
+	while (Node) {
+		int Compare;
+		if (Hash < Node->Hash) {
+			Compare = -1;
+		} else if (Hash > Node->Hash) {
+			Compare = 1;
+		} else {
+			int LengthB = ml_string_length(Node->Key);
+			const char *StringB = ml_string_value(Node->Key);
+			if (LengthA < LengthB) {
+				Compare = memcmp(StringA, StringB, LengthA) ?: -1;
+			} else if (LengthA > LengthB) {
+				Compare = memcmp(StringA, StringB, LengthB) ?: 1;
+			} else {
+				Compare = memcmp(StringA, StringB, LengthA);
+			}
+		}
+		if (!Compare) {
+			return Node;
+		} else {
+			Node = Compare < 0 ? Node->Left : Node->Right;
+		}
+	}
+	return NULL;
+}
+
+ML_GENERIC_TYPE(MLMapMutableStringAnyT, MLMapMutableT, MLStringT, MLAnyT);
+
+ML_METHOD("[]", MLMapMutableStringAnyT, MLStringT) {
+//!internal
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = ml_map_find_node_string(Map, Args[1]);
+	if (!Node) {
+		Node = new(ml_map_node_t);
+		Node->Type = MLMapIndexT;
+		Node->Map = Map;
+		Node->Value = Args[0];
+		Node->Key = Args[1];
+	} else if (Map->Order == MAP_ORDER_LRU) {
+		ml_map_move_node_tail(Map, Node);
+	} else if (Map->Order == MAP_ORDER_MRU) {
+		ml_map_move_node_head(Map, Node);
+	}
+	return (ml_value_t *)Node;
+}
+
+ML_METHOD("::", MLMapMutableStringAnyT, MLStringT) {
+//!internal
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = ml_map_find_node_string(Map, Args[1]);
+	if (!Node) {
+		Node = new(ml_map_node_t);
+		Node->Type = MLMapIndexT;
+		Node->Map = Map;
+		Node->Value = Args[0];
+		Node->Key = Args[1];
+	} else if (Map->Order == MAP_ORDER_LRU) {
+		ml_map_move_node_tail(Map, Node);
+	} else if (Map->Order == MAP_ORDER_MRU) {
+		ml_map_move_node_head(Map, Node);
+	}
+	return (ml_value_t *)Node;
+}
+
+ML_GENERIC_TYPE(MLMapStringAnyT, MLMapT, MLStringT, MLAnyT);
+
+ML_METHOD("[]", MLMapStringAnyT, MLStringT) {
+//!internal
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = ml_map_find_node_string(Map, Args[1]);
+	return Node ? Node->Value : MLNil;
+}
+
+ML_METHOD("::", MLMapStringAnyT, MLStringT) {
+//!internal
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = ml_map_find_node_string(Map, Args[1]);
+	return Node ? Node->Value : MLNil;
+}
+
+static ml_map_node_t *ml_map_find_node_integer(ml_map_t *Map, ml_value_t *Key) {
+	long Hash = ml_hash(Key);
+	int64_t ValueA = ml_integer_value(Key);
+	ml_map_node_t *Node = Map->Root;
+	while (Node) {
+		int Compare;
+		if (Hash < Node->Hash) {
+			Compare = -1;
+		} else if (Hash > Node->Hash) {
+			Compare = 1;
+		} else {
+			int64_t ValueB = ml_integer_value(Node->Key);
+			if (ValueA < ValueB) {
+				Compare = -1;
+			} else if (ValueA > ValueB) {
+				Compare = 1;
+			} else {
+				Compare = 0;
+			}
+		}
+		if (!Compare) {
+			return Node;
+		} else {
+			Node = Compare < 0 ? Node->Left : Node->Right;
+		}
+	}
+	return NULL;
+}
+
+ML_GENERIC_TYPE(MLMapMutableIntegerAnyT, MLMapMutableT, MLIntegerT, MLAnyT);
+
+ML_METHOD("[]", MLMapMutableIntegerAnyT, MLIntegerT) {
+//!internal
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = ml_map_find_node_integer(Map, Args[1]);
+	if (!Node) {
+		Node = new(ml_map_node_t);
+		Node->Type = MLMapIndexT;
+		Node->Map = Map;
+		Node->Value = Args[0];
+		Node->Key = Args[1];
+	} else if (Map->Order == MAP_ORDER_LRU) {
+		ml_map_move_node_tail(Map, Node);
+	} else if (Map->Order == MAP_ORDER_MRU) {
+		ml_map_move_node_head(Map, Node);
+	}
+	return (ml_value_t *)Node;
+}
+
+ML_GENERIC_TYPE(MLMapIntegerAnyT, MLMapT, MLIntegerT, MLAnyT);
+
+ML_METHOD("[]", MLMapIntegerAnyT, MLIntegerT) {
+//!internal
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	ml_map_node_t *Node = ml_map_find_node_integer(Map, Args[1]);
+	return Node ? Node->Value : MLNil;
+}
+
+#endif
+
 ML_METHOD("in", MLAnyT, MLMapT) {
 //<Key
 //<Map
@@ -620,19 +854,32 @@ ML_METHOD("in", MLAnyT, MLMapT) {
 	return ml_map_find_node(Map, Args[0]) ? Args[0] : MLNil;
 }
 
+typedef struct ml_map_node_waiter_t ml_map_node_waiter_t;
+
+struct ml_map_node_waiter_t {
+	ml_map_node_waiter_t *Next;
+	ml_state_t *Caller;
+};
+
 typedef struct {
 	ml_state_t Base;
 	ml_value_t *Key;
 	ml_map_node_t *Node;
-} ml_ref_state_t;
+	ml_map_node_waiter_t *Waiters;
+} ml_map_node_state_t;
 
-static void ml_node_state_run(ml_ref_state_t *State, ml_value_t *Value) {
-	if (ml_is_error(Value)) {
-		ML_CONTINUE(State->Base.Caller, Value);
-	} else {
+ML_TYPE(MapNodeNodeStateT, (MLStateT), "map::node::state");
+//!internal
+
+static void ml_node_state_run(ml_map_node_state_t *State, ml_value_t *Value) {
+	if (!ml_is_error(Value)) {
 		State->Node->Value = Value;
-		ML_CONTINUE(State->Base.Caller, State->Node);
+		Value = (ml_value_t *)State->Node;
 	}
+	for (ml_map_node_waiter_t *Waiter = State->Waiters; Waiter; Waiter = Waiter->Next) {
+		ml_state_schedule(Waiter->Caller, Value);
+	}
+	ML_CONTINUE(State->Base.Caller, Value);
 }
 
 ML_METHODX("[]", MLMapMutableT, MLAnyT, MLFunctionT) {
@@ -649,57 +896,25 @@ ML_METHODX("[]", MLMapMutableT, MLAnyT, MLFunctionT) {
 	ml_value_t *Key = Args[1];
 	ml_map_node_t *Node = ml_map_node(Map, ml_typeof(Key)->hash(Key, NULL), Key);
 	if (!Node->Value) {
-		Node->Value = MLNil;
-		ml_ref_state_t *State = new(ml_ref_state_t);
+		ml_map_node_state_t *State = new(ml_map_node_state_t);
+		State->Base.Type = MapNodeNodeStateT;
 		State->Base.Caller = Caller;
 		State->Base.Context = Caller->Context;
 		State->Base.run = (void *)ml_node_state_run;
 		State->Key = Key;
 		State->Node = Node;
+		Node->Value = (ml_value_t *)State;
 		ml_value_t *Function = Args[2];
 		return ml_call(State, Function, 1, &State->Key);
+	} else if (ml_typeof(Node->Value) == MapNodeNodeStateT) {
+		ml_map_node_state_t *State = (ml_map_node_state_t *)Node->Value;
+		ml_map_node_waiter_t *Waiter = new(ml_map_node_waiter_t);
+		Waiter->Caller = Caller;
+		Waiter->Next = State->Waiters;
+		State->Waiters = Waiter;
 	} else {
 		ML_RETURN(Node);
 	}
-}
-
-ML_METHOD("::", MLMapMutableT, MLStringT) {
-//<Map
-//<Key
-//>map::node
-// Same as :mini:`Map[Key]`. This method allows maps to be used as modules.
-//$- let M := {"A" is 1, "B" is 2, "C" is 3}
-//$= M::A
-//$= M::D
-//$= M::A := 10
-//$= M::D := 20
-//$= M
-	ml_map_t *Map = (ml_map_t *)Args[0];
-	ml_map_node_t *Node = ml_map_find_node(Map, Args[1]);
-	if (!Node) {
-		Node = new(ml_map_node_t);
-		Node->Type = MLMapIndexT;
-		Node->Value = Args[0];
-		Node->Key = Args[1];
-	} else if (Map->Order == MAP_ORDER_LRU) {
-		ml_map_move_node_tail(Map, Node);
-	} else if (Map->Order == MAP_ORDER_MRU) {
-		ml_map_move_node_head(Map, Node);
-	}
-	return (ml_value_t *)Node;
-}
-
-ML_METHOD("::", MLMapT, MLStringT) {
-//<Map
-//<Key
-//>map::node
-// Same as :mini:`Map[Key]`. This method allows maps to be used as modules.
-//$- let M := copy({"A" is 1, "B" is 2, "C" is 3}, :const)
-//$= M::A
-//$= M::D
-	ml_map_t *Map = (ml_map_t *)Args[0];
-	ml_map_node_t *Node = ml_map_find_node(Map, Args[1]);
-	return Node ? Node->Value : MLNil;
 }
 
 ML_METHOD("empty", MLMapMutableT) {
@@ -868,7 +1083,7 @@ ML_METHOD("missing", MLMapMutableT, MLAnyT) {
 	return MLNil;
 }
 
-static void ml_missing_state_run(ml_ref_state_t *State, ml_value_t *Value) {
+static void ml_missing_state_run(ml_map_node_state_t *State, ml_value_t *Value) {
 	if (ml_is_error(Value)) {
 		ML_CONTINUE(State->Base.Caller, Value);
 	} else {
@@ -892,7 +1107,7 @@ ML_METHODX("missing", MLMapMutableT, MLAnyT, MLFunctionT) {
 	ml_map_node_t *Node = ml_map_node(Map, ml_typeof(Key)->hash(Key, NULL), Key);
 	if (!Node->Value) {
 		Node->Value = MLNil;
-		ml_ref_state_t *State = new(ml_ref_state_t);
+		ml_map_node_state_t *State = new(ml_map_node_state_t);
 		State->Base.Caller = Caller;
 		State->Base.Context = Caller->Context;
 		State->Base.run = (void *)ml_missing_state_run;
@@ -1601,6 +1816,8 @@ void ml_map_init() {
 	stringmap_insert(MLMapT->Exports, "join", MLMapJoin);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLMapT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
+#ifdef ML_MUTABLES
 	ml_type_add_rule(MLMapMutableT, MLMapT, ML_TYPE_ARG(1), ML_TYPE_ARG(2), NULL);
+#endif
 #endif
 }

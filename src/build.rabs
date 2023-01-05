@@ -3,12 +3,15 @@ if PLATFORM = "Darwin" then
 	setenv("PKG_CONFIG_PATH", '/usr/local/opt/libffi/lib/pkgconfig')
 end
 
+GCC_VERSION := with Version := shell(CC, "--version") do
+	if let Match := Version % r"\(GCC\) ([0-9.]+)" then
+		Match[2]
+	end
+end
+
 CFLAGS := old + [
 	"-march=native",
 	"-mtune=native",
-	"-mno-sse2",
-	"-mno-align-stringops",
-	"-minline-all-stringops",
 	"-momit-leaf-frame-pointer",
 	"-std=gnu11", :>'--save-temps',
 	"-fstrict-aliasing",
@@ -40,19 +43,33 @@ if defined("LTO") then
 	LDFLAGS:put("-flto")
 end
 
+GC_DEBUG := defined("GC_DEBUG")
+
 if DEBUG then
 	CFLAGS := old + ["-O1", "-g", "-DGC_DEBUG", "-DDEBUG"]
 	LDFLAGS := old + ["-g"]
-elseif defined("GC_DEBUG") then
-	CFLAGS := old + ["-O3", "-g", "-fexpensive-optimizations", "-DGC_DEBUG"]
+elseif GC_DEBUG then
+	CFLAGS := old + ["-O3", "-g", "-DGC_DEBUG"]
 	LDFLAGS := old + ["-g"]
 else
-	CFLAGS := old + ["-O3", "-g", "-fexpensive-optimizations"]
+	CFLAGS := old + ["-O3", "-g"]
 	LDFLAGS := old + ["-g"]
 end
 
-if PLATFORM = "Linux" then
-	CFLAGS:put("-fno-tree-loop-distribute-patterns")
+print('GCC_VERSION = {GCC_VERSION}\n')
+
+if GCC_VERSION then
+	CFLAGS := old + [
+		"-mno-sse2",
+		"-mno-align-stringops",
+		"-minline-all-stringops",
+		"-fno-tree-loop-distribute-patterns"
+	]
+	if not DEBUG then
+		CFLAGS := old + ["-fexpensive-optimizations"]
+	end
+else
+	CFLAGS := old + ["-Wno-initializer-overrides"]
 end
 
 PREBUILDS := old + [file("ml_config.h")]
@@ -140,29 +157,33 @@ if MINILANG_STATICGC or defined("STATICGC") then
 	let Dir := file("gc")
 	let Lib := file("gc/.libs/libgc.a") => fun(Lib) do
 		Dir:rmdir:mkdir:chdir
-		execute("wget https://github.com/ivmai/bdwgc/releases/download/v8.2.0/gc-8.2.0.tar.gz -O- | tar xvzP --strip-components=1")
-		execute('CC={CC} ./configure', {
+		execute("wget https://github.com/ivmai/bdwgc/releases/download/v8.2.2/gc-8.2.2.tar.gz -O- | tar xvzP --strip-components=1")
+		let Configuration := {
 			"--prefix" is PATH,
 			"--enable-static",
 			"--disable-shared",
 			:>"--disable-parallel-mark",
 			"--enable-threads=pthreads",
-			"--enable-mmap",
+			:>"--enable-large-config",
 			:>"--enable-redirect-malloc",
-			"--enable-large-config"
-		})
+			"--enable-mmap"
+		}
+		if GC_DEBUG then
+			Configuration:insert("--enable-gc-debug", not nil)
+		end
+		execute('CC={CC} ./configure', Configuration)
 		execute("make clean")
 		execute("make -j4")
 	end
 	PREBUILDS := old + [Lib]
-	CFLAGS := old + ['-I{Dir/"includes"}']
+	CFLAGS := old + ['-I{Dir/"include"}']
 	LDFLAGS := old + ['-L{Dir/".libs"}', '-pthread']
 end
 
 if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_TABLES := 1
 	MINILANG_MATH := 1
-	MINILANG_EXPRS := 1
+	MINILANG_AST := 1
 	MINILANG_COMPLEX := not defined("NOCOMPLEX")
 	MINILANG_CBOR := 1
 	MINILANG_JSON := 1
@@ -171,6 +192,7 @@ if MINILANG_DEFAULTS or defined("DEFAULTS") then
 	MINILANG_SCHEDULER := not defined("NOSCHEDULER")
 	MINILANG_TRE := 1
 	MINILANG_GENERICS := not defined("NOGENERICS")
+	MINILANG_MUTABLES := 1
 	MINILANG_PQUEUES := 1
 	MINILANG_TIME := 1
 	MINILANG_UUID := 1
@@ -182,7 +204,7 @@ end
 
 MINILANG_TABLES := old or defined("TABLES")
 MINILANG_MATH := MINILANG_TABLES or old or defined("MATH")
-MINILANG_EXPRS := old or defined("EXPRS")
+MINILANG_AST := old or defined("AST")
 MINILANG_COMPLEX := old or defined("COMPLEX")
 MINILANG_GIR := old or defined("GIR")
 MINILANG_CBOR := old or defined("CBOR")
@@ -198,6 +220,7 @@ MINILANG_JIT := old or defined("JIT")
 MINILANG_NANBOXING := old or defined("NANBOXING")
 MINILANG_TRE := old or defined("TRE")
 MINILANG_GENERICS := old or defined("GENERICS")
+MINILANG_MUTABLES := old or defined("MUTABLES")
 MINILANG_PQUEUES := old or defined("PQUEUES")
 MINILANG_TIMEZONES := old or defined("TIMEZONES")
 MINILANG_TIME := old or MINILANG_TIMEZONES or defined("TIME")
@@ -227,6 +250,9 @@ file("ml_config.h") => fun(Target) do
 	end
 	if MINILANG_GENERICS then
 		File:write("\n#define ML_GENERICS\n")
+	end
+	if MINILANG_MUTABLES then
+		File:write("\n#define ML_MUTABLES\n")
 	end
 	if MINILANG_THREADSAFE then
 		File:write("\n#define ML_THREADSAFE\n")
@@ -274,10 +300,10 @@ if MINILANG_MATH then
 	InstallHeaders:put("ml_polynomial.h")
 end
 
-if MINILANG_EXPRS then
-	Objects:put(file("ml_expr.o"))
-	CFLAGS := old + ["-DML_EXPRS"]
-	InstallHeaders:put("ml_expr.h")
+if MINILANG_AST then
+	Objects:put(file("ml_ast.o"))
+	CFLAGS := old + ["-DML_AST"]
+	InstallHeaders:put("ml_ast.h")
 end
 
 if MINILANG_GTK_CONSOLE then
@@ -293,6 +319,24 @@ if MINILANG_GIR then
 	CFLAGS := old + ["-DML_GIR", pkgconfig("--cflags gobject-introspection-1.0")]
 	LDFLAGS := old + [pkgconfig("--libs gobject-introspection-1.0")]
 	InstallHeaders:put("ml_gir.h")
+end
+
+if MINILANG_LIGHTNING or defined("LIGHTNING") then
+	let Dir := file("lightning")
+	let Lib := file("lightning/lib/.libs/liblightning.a") => fun(Lib) do
+		Dir:rmdir:mkdir:chdir
+		execute("wget https://ftp.gnu.org/gnu/lightning/lightning-2.1.4.tar.gz -O- | tar xvzP --strip-components=1")
+		execute('CC={CC} ./configure', {
+			"--prefix" is PATH,
+			"--enable-static",
+			"--disable-shared"
+		})
+		execute("make clean")
+		execute("make -j4")
+	end
+	PREBUILDS := old + [Lib]
+	CFLAGS := old + ['-I{Dir/"includes"}', "-DML_LIGHTNING"]
+	LDFLAGS := old + [Lib]
 end
 
 if MINILANG_CBOR then
@@ -372,8 +416,38 @@ if PLATFORM = "Linux" and MACHINE = "x86_64" and CC != "clang" then
 end
 
 if MINILANG_TRE then
-	CFLAGS := old + ["-DML_TRE"]
-	LDFLAGS := old + ["-ltre"]
+	let Dir := file("tre")
+	let Lib := file("tre/lib/.libs/libtre.a") => fun(Lib) do
+		Dir:rmdir:mkdir:chdir
+		execute("wget http://laurikari.net/tre/tre-0.8.0.tar.gz -O- | tar xvzP --strip-components=1")
+		let XMallocH := file("tre/lib/xmalloc.h"):open("w")
+		XMallocH:write(
+'#ifndef XMALLOC_H
+#define XMALLOC_H
+
+#include <gc/gc.h>
+
+#define xmalloc(N) GC_malloc(N)
+#define xcalloc(C, N) GC_malloc((C) * (N))
+#define xrealloc(P, N) GC_realloc(P, N)
+#define xfree(P)
+
+#endif
+')
+		XMallocH:close
+		let XmallocC := file("tre/lib/xmalloc.c"):open("w"):close
+		execute('CC={CC} CFLAGS=\"{CFLAGS}\" ./configure', {
+			"--prefix" is PATH,
+			"--enable-static",
+			"--disable-shared"
+		})
+		execute("make clean")
+		execute("make -j4 -C lib")
+	end
+	PREBUILDS := old + [Lib]
+	CFLAGS := old + ["-DML_TRE", '-I{Dir / "lib"}']
+	:>LDFLAGS := old + ["-ltre"]
+	Libraries:put(Lib)
 end
 
 if MINILANG_PQUEUES then
@@ -389,11 +463,12 @@ if MINILANG_TIME then
 end
 
 if MINILANG_TIMEZONES then
-	let TIMELIB := file("timelib/timelib.a") => fun(Target) do
+	let Header := file("timelib_mem.h")
+	let TIMELIB := file("timelib/timelib.a")[Header] => fun(Target) do
 		file("timelib"):rmdir
 		execute("git clone https://github.com/derickr/timelib.git", Dir)
 		file("timelib"):chdir
-		execute("make timelib.a FLAGS=\"-O3 -DHAVE_STDINT_H -DHAVE_GETTIMEOFDAY -DHAVE_UNISTD_H -DHAVE_DIRENT_H -I.\"")
+		execute('make timelib.a FLAGS=\"{CFLAGS} -DHAVE_STDINT_H -DHAVE_GETTIMEOFDAY -DHAVE_UNISTD_H -DHAVE_DIRENT_H -I. --include {Header}\"')
 	end
 	PREBUILDS := old + [TIMELIB]
 	CFLAGS := old + ["-DML_TIMEZONES"]

@@ -4,7 +4,7 @@
 #include "ml_compiler.h"
 #include "ml_bytecode.h"
 
-typedef enum ml_token_t {
+typedef enum {
 	MLT_NONE,
 	MLT_EOL,
 	MLT_EOI,
@@ -82,7 +82,8 @@ struct mlc_expr_t {
 	void (*compile)(mlc_function_t *, mlc_expr_t *, int);
 	mlc_expr_t *Next;
 	const char *Source;
-	int StartLine, EndLine;
+	int StartLine;
+	int EndLine;
 };
 
 struct mlc_function_t {
@@ -110,58 +111,7 @@ struct mlc_define_t {
 	long Hash;
 };
 
-typedef enum {
-	ML_EXPR_UNKNOWN,
-	ML_EXPR_AND,
-	ML_EXPR_ASSIGN,
-	ML_EXPR_BLANK,
-	ML_EXPR_BLOCK,
-	ML_EXPR_CALL,
-	ML_EXPR_CONST_CALL,
-	ML_EXPR_DEBUG,
-	ML_EXPR_DEF,
-	ML_EXPR_DEFAULT,
-	ML_EXPR_DEFINE,
-	ML_EXPR_DEF_IN,
-	ML_EXPR_DEF_UNPACK,
-	ML_EXPR_DELEGATE,
-	ML_EXPR_EACH,
-	ML_EXPR_EXIT,
-	ML_EXPR_FOR,
-	ML_EXPR_FUN,
-	ML_EXPR_IDENT,
-	ML_EXPR_IF,
-	ML_EXPR_INLINE,
-	ML_EXPR_LET,
-	ML_EXPR_LET_IN,
-	ML_EXPR_LET_UNPACK,
-	ML_EXPR_LIST,
-	ML_EXPR_LOOP,
-	ML_EXPR_MAP,
-	ML_EXPR_NEXT,
-	ML_EXPR_NIL,
-	ML_EXPR_NOT,
-	ML_EXPR_OLD,
-	ML_EXPR_OR,
-	ML_EXPR_REF,
-	ML_EXPR_REF_IN,
-	ML_EXPR_REF_UNPACK,
-	ML_EXPR_REGISTER,
-	ML_EXPR_RESOLVE,
-	ML_EXPR_RETURN,
-	ML_EXPR_SCOPED,
-	ML_EXPR_STRING,
-	ML_EXPR_SUBST,
-	ML_EXPR_SUSPEND,
-	ML_EXPR_SWITCH,
-	ML_EXPR_TUPLE,
-	ML_EXPR_VALUE,
-	ML_EXPR_VAR,
-	ML_EXPR_VAR_IN,
-	ML_EXPR_VAR_TYPE,
-	ML_EXPR_VAR_UNPACK,
-	ML_EXPR_WITH
-} ml_expr_type_t;
+#include "ml_expr_types.h"
 
 ml_expr_type_t mlc_expr_type(mlc_expr_t *Expr);
 
@@ -183,7 +133,8 @@ typedef struct mlc_local_t mlc_local_t;
 struct mlc_local_t {
 	mlc_local_t *Next;
 	const char *Ident;
-	int Line, Index;
+	int Line;
+	int Index;
 };
 
 typedef struct mlc_if_expr_t mlc_if_expr_t;
@@ -226,7 +177,8 @@ struct mlc_for_expr_t {
 	MLC_EXPR_FIELDS(for);
 	const char *Key;
 	mlc_local_t *Local;
-	mlc_expr_t *Sequence, *Body;
+	mlc_expr_t *Sequence;
+	mlc_expr_t *Body;
 	const char *Name;
 	int Unpack;
 };
@@ -235,10 +187,16 @@ typedef struct mlc_block_expr_t mlc_block_expr_t;
 
 struct mlc_block_expr_t {
 	MLC_EXPR_FIELDS(block);
-	mlc_local_t *Vars, *Lets, *Defs;
-	mlc_expr_t *Child, *CatchBody, *Must;
+	mlc_local_t *Vars;
+	mlc_local_t *Lets;
+	mlc_local_t *Defs;
+	mlc_expr_t *Child;
+	mlc_expr_t *CatchBody;
+	mlc_expr_t *Must;
 	const char *CatchIdent;
-	int NumVars, NumLets, NumDefs;
+	int NumVars;
+	int NumLets;
+	int NumDefs;
 };
 
 typedef struct mlc_parent_value_expr_t mlc_parent_value_expr_t;
@@ -263,7 +221,8 @@ struct mlc_string_part_t {
 		mlc_expr_t *Child;
 		const char *Chars;
 	};
-	int Length, Line;
+	int Length;
+	int Line;
 };
 
 typedef struct mlc_fun_expr_t mlc_fun_expr_t;
@@ -282,13 +241,15 @@ struct mlc_param_t {
 	mlc_param_t *Next;
 	const char *Ident;
 	mlc_expr_t *Type;
-	int Line, Kind;
+	int Line;
+	ml_param_kind_t Kind;
 };
 
 struct mlc_default_expr_t {
 	MLC_EXPR_FIELDS(default);
 	mlc_expr_t *Child;
-	int Index, Flags;
+	int Index;
+	int Flags;
 };
 
 struct mlc_fun_expr_t {

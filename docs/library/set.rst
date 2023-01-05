@@ -132,6 +132,10 @@ set
       set(["A", "B", "C"]):count :> 3
 
 
+:mini:`meth (Set: set):first`
+   Returns the first value in :mini:`Set` or :mini:`nil` if :mini:`Set` is empty.
+
+
 :mini:`meth (Set: set):from(Key: any): sequence | nil`
    Returns the subset of :mini:`Set` after :mini:`Key` as a sequence.
 
@@ -140,6 +144,10 @@ set
       let M := set(["A", "B", "C", "D", "E"])
       set(M:from("C")) :> {C, D, E}
       set(M:from("F")) :> {}
+
+
+:mini:`meth (Set: set):last`
+   Returns the last value in :mini:`Set` or :mini:`nil` if :mini:`Set` is empty.
 
 
 :mini:`meth (Set: set):order: set::order`
@@ -153,7 +161,7 @@ set
 
       let M := set("cake") :> {c, a, k, e}
       M:random :> "a"
-      M:random :> "a"
+      M:random :> "k"
 
 
 :mini:`meth (Set: set):size: integer`

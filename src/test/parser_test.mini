@@ -6,52 +6,38 @@ gir: glib("GLib")
 gtk::init(nil, nil)
 
 fun describe(Buffer, Indent, Expr) do
-	Buffer:write(Indent, Expr[3], ".", Expr[1], "\n")
-	switch Expr[1]: string
-	case "if" do
-		for Case in Expr[5] do
-			Buffer:write(Indent, '| if {Case[1]} {Case[2]}\n')
-			describe(Buffer, Indent + "| | ", Case[3])
-			Buffer:write(Indent, "| then\n")
-			describe(Buffer, Indent + "| | ", Case[4])
-		end
-		if Expr[6] then
-			Buffer:write(Indent, "| else\n")
-			describe(Buffer, Indent + "| | ", Expr[6])
-		end
-	case "string" do
-		for Part in Expr[5] do
-			if Part in list then
-				Buffer:write(Indent, "| {}\n")
-				for Child in Part do
-					describe(Buffer, Indent + "| | ", Child)
-				end
-			else
-				Buffer:write(Indent, "| \"", Part:escape, "\"\n")
+	switch Expr: type
+	case ast::names do
+		Buffer:write("<names> ", Expr)
+	case list do
+		if Expr:length > 0 then
+			Buffer:write("[")
+			for I, Value in Expr do
+				Buffer:write("\n", Indent + "- ")
+				describe(Buffer, Indent + " ", Value)
 			end
-		end
-	case "value" do
-		switch Expr[5]: type
-		case string do
-			Buffer:write(Indent, "| \"", Expr[5]:escape, "\"\n")
-		case parser::expr do
-			describe(Buffer, Indent + "| > ", Expr[5]:describe)
+			Buffer:write('\n{Indent}]')
 		else
-			Buffer:write(Indent, "| ", Expr[5], "\n")
+			Buffer:write("[]")
 		end
-	else
-		for Field in Expr skip 4 do
-			switch Field: type
-			case tuple do
-				describe(Buffer, Indent + "| ", Field)
-			case list do
-				for Child in Field do
-					describe(Buffer, Indent + "| ", Child)
-				end
-			else
-				Buffer:write(Indent, "| ", Field, "\n")
+	case ast::expr do
+		Buffer:write('{type(Expr)} [{Expr:startline} .. {Expr:endline}] \{')
+		for Field in type(Expr):fields do
+			if not Field in :({:startline, :endline, :source}) then
+				Buffer:write('\n{Indent}  <{Field:name}> ')
+				describe(Buffer, Indent + "  ", Field(Expr))
 			end
 		end
+		Buffer:write('\n{Indent}}')
+	case object do
+		Buffer:write('{type(Expr)} \{')
+		for Field in type(Expr):fields do
+			Buffer:write('\n{Indent}  <{Field:name}> ')
+			describe(Buffer, Indent + "  ", Field(Expr))
+		end
+		Buffer:write('\n{Indent}}')
+	else
+		Buffer:write(Expr)
 	end
 end
 
@@ -89,6 +75,7 @@ gir::run(;) do
 	HPaned:add(EditorScrolled)
 
 	let Output := gtk::TextView::new()
+	Output:set_wrap_mode(gtk::WrapMode::char)
 	Output:override_font(Font)
 	Output:set_editable(false)
 	Output:set_cursor_visible(false)
@@ -112,10 +99,11 @@ gir::run(;) do
 		Buffer:get_bounds(Start, End)
 		let Text := Buffer:get_text(Start, End, false)
 		let P := parser()
-		P:permissive(true)
+		:>P:permissive(true)
 		P:source("test", 0)
 		P:input(Text)
-		let Expr := P:parse:describe
+		let Expr := P:parse:ast
+		:>OutputBuffer:set_text(string(Expr), -1)
 		print('Expr = {Expr}\n')
 		let Desc := string::buffer()
 		describe(Desc, "", Expr)

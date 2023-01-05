@@ -92,7 +92,7 @@ typedef struct {
 extern ml_type_t MLReferenceT[];
 extern ml_type_t MLUninitializedT[];
 
-typedef ml_value_t *(*ml_getter_t)(void *Globals, const char *Name);
+typedef ml_value_t *(*ml_getter_t)(void *Globals, const char *Name, const char *Source, int Line);
 typedef ml_value_t *(*ml_setter_t)(void *Globals, const char *Name, ml_value_t *Value);
 
 typedef struct ml_reference_t ml_reference_t;
@@ -189,28 +189,36 @@ extern ml_cfunction_t MLDebugger[];
 
 typedef struct {
 	uint64_t Counter;
-	void (*swap)(ml_state_t *State, ml_value_t *Value);
+	void (*add)(ml_state_t *State, ml_value_t *Value);
 } ml_schedule_t;
+
+static inline ml_schedule_t *ml_schedule(ml_context_t *Context) {
+	return (ml_schedule_t *)Context->Values[ML_SCHEDULER_INDEX];
+}
+
+static inline void ml_state_schedule(ml_state_t *State, ml_value_t *Value) {
+	ml_schedule(State->Context)->add(State, Value);
+}
 
 typedef struct {
 	ml_state_t *State;
 	ml_value_t *Value;
 } ml_queued_state_t;
 
-void ml_scheduler_queue_init(int Size);
-ml_queued_state_t ml_scheduler_queue_next();
-int ml_scheduler_queue_add(ml_state_t *State, ml_value_t *Value);
+void ml_default_queue_init(int Size);
+ml_queued_state_t ml_default_queue_next();
+int ml_default_queue_add(ml_state_t *State, ml_value_t *Value);
 
 #ifdef ML_SCHEDULER
 extern ml_cfunctionx_t MLAtomic[];
 #endif
 
 #ifdef ML_THREADS
-ml_queued_state_t ml_scheduler_queue_next_wait();
-int ml_scheduler_queue_add_signal(ml_state_t *State, ml_value_t *Value);
+ml_queued_state_t ml_default_queue_next_wait();
+void ml_default_queue_add_signal(ml_state_t *State, ml_value_t *Value);
 #else
-#define ml_scheduler_queue_next_wait ml_scheduler_queue_next
-#define ml_scheduler_queue_add_signal ml_scheduler_queue_add
+#define ml_default_queue_next_wait ml_default_queue_next
+#define ml_default_queue_add_signal ml_default_queue_add
 #endif
 
 // Locks

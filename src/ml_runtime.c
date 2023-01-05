@@ -1,7 +1,6 @@
 #include "minilang.h"
 #include "ml_macros.h"
 #include "stringmap.h"
-#include <gc.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -289,16 +288,11 @@ static void ml_reference_assign(ml_state_t *Caller, ml_reference_t *Reference, m
 	ML_RETURN(Value);
 }
 
-static void ml_reference_call(ml_state_t *Caller, ml_reference_t *Reference, int Count, ml_value_t **Args) {
-	return ml_call(Caller, Reference->Address[0], Count, Args);
-}
-
 ML_TYPE(MLReferenceT, (), "reference",
 //!internal
 	.hash = (void *)ml_reference_hash,
 	.deref = (void *)ml_reference_deref,
-	.assign = (void *)ml_reference_assign,
-	.call = (void *)ml_reference_call
+	.assign = (void *)ml_reference_assign
 );
 
 inline ml_value_t *ml_reference(ml_value_t **Address) {
@@ -482,7 +476,7 @@ ML_TYPE(MLErrorValueT, (), "error",
 
 ml_value_t *ml_errorv(const char *Error, const char *Format, va_list Args) {
 	char *Message;
-	vasprintf(&Message, Format, Args);
+	GC_vasprintf(&Message, Format, Args);
 	ml_error_t *Value = xnew(ml_error_t, 1, ml_error_value_t);
 	Value->Type = MLErrorT;
 	Value->Error->Type = MLErrorValueT;
@@ -911,7 +905,7 @@ __thread
 
 ml_scheduler_queue_t Queue[1];
 
-void ml_scheduler_queue_init(int Size) {
+void ml_default_queue_init(int Size) {
 	Queue->Size = Size;
 	Queue->States = anew(ml_queued_state_t, Size);
 #ifdef ML_THREADS
@@ -920,7 +914,7 @@ void ml_scheduler_queue_init(int Size) {
 #endif
 }
 
-ml_queued_state_t ml_scheduler_queue_next() {
+ml_queued_state_t ml_default_queue_next() {
 	ml_queued_state_t Next = {NULL, NULL};
 #ifdef ML_THREADS
 	pthread_mutex_lock(Queue->Lock);
@@ -939,7 +933,7 @@ ml_queued_state_t ml_scheduler_queue_next() {
 	return Next;
 }
 
-int ml_scheduler_queue_add(ml_state_t *State, ml_value_t *Value) {
+int ml_default_queue_add(ml_state_t *State, ml_value_t *Value) {
 #ifdef ML_THREADS
 	pthread_mutex_lock(Queue->Lock);
 #endif
@@ -964,7 +958,7 @@ int ml_scheduler_queue_add(ml_state_t *State, ml_value_t *Value) {
 
 #ifdef ML_THREADS
 
-ml_queued_state_t ml_scheduler_queue_next_wait() {
+ml_queued_state_t ml_default_queue_next_wait() {
 	pthread_mutex_lock(Queue->Lock);
 	while (!Queue->Fill) pthread_cond_wait(Queue->Available, Queue->Lock);
 	ml_queued_state_t *States = Queue->States;
@@ -977,10 +971,8 @@ ml_queued_state_t ml_scheduler_queue_next_wait() {
 	return QueuedState;
 }
 
-int ml_scheduler_queue_add_signal(ml_state_t *State, ml_value_t *Value) {
-	int Fill = ml_scheduler_queue_add(State, Value);
-	if (Fill == 1) pthread_cond_signal(Queue->Available);
-	return Fill;
+void ml_default_queue_add_signal(ml_state_t *State, ml_value_t *Value) {
+	if (ml_default_queue_add(State, Value) == 1) pthread_cond_signal(Queue->Available);
 }
 
 #endif

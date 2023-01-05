@@ -140,6 +140,16 @@ address
       A @ 5 :> <5:48656C6C6F>
 
 
+:mini:`meth (Address: address) @ (Offset: integer, Length: integer): address`
+   Returns the address at offset :mini:`Offset` from :mini:`Address` limited to :mini:`Length` bytes.
+
+   .. code-block:: mini
+
+      let A := address("Hello world!\n")
+      :> <13:48656C6C6F20776F726C64210A>
+      A @ (4, 4) :> <4:6F20776F>
+
+
 :mini:`meth (Haystack: address):find(Needle: address): integer | nil`
    Returns the offset of the first occurence of the bytes of :mini:`Needle` in :mini:`Haystack` or :mini:`nil` is no occurence is found.
 

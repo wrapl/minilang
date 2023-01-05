@@ -862,6 +862,19 @@ array
       A:minval(2) :> <4 5>
 
 
+:mini:`meth (Array: array):permute(Indices: integer, ...): array`
+   Returns an array sharing the underlying data with :mini:`Array`,  permuting the axes according to :mini:`Indices`.
+
+   .. code-block:: mini
+
+      let A := array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
+      :> <<<1 2 3> <4 5 6>> <<7 8 9> <10 11 12>>>
+      A:shape :> [2, 2, 3]
+      let B := A:permute(2, 3, 1)
+      :> <<<1 7> <2 8> <3 9>> <<4 10> <5 11> <6 12>>>
+      B:shape :> [2, 3, 2]
+
+
 :mini:`meth (Array: array):permute(Indices: list): array`
    Returns an array sharing the underlying data with :mini:`Array`,  permuting the axes according to :mini:`Indices`.
 
@@ -916,18 +929,6 @@ array
       A:shape :> [2, 3]
 
 
-:mini:`meth (Array: array):size: integer`
-   Return the size of :mini:`Array` in contiguous bytes,  or :mini:`nil` if :mini:`Array` is not contiguous.
-
-   .. code-block:: mini
-
-      let A := array([[1, 2, 3], [4, 5, 6]])
-      :> <<1 2 3> <4 5 6>>
-      A:size :> 48
-      let B := ^A :> <<1 4> <2 5> <3 6>>
-      B:size :> nil
-
-
 :mini:`meth (Array: array):split(Index: integer, Sizes: list): array`
    Returns an array sharing the underlying data with :mini:`Array` replacing the dimension at :mini:`Index` with new dimensions with sizes :mini:`Sizes`. The total count :mini:`Sizes₁ * Sizes₂ * ... * Sizesₙ` must equal the original size.
 
@@ -958,6 +959,16 @@ array
 
 :mini:`meth (Array: array):sums(Index: integer): array`
    Returns a new array with the partial sums of :mini:`Array` in the :mini:`Index`-th dimension.
+
+
+:mini:`meth (Array: array):swap: array`
+   Returns the transpose of :mini:`Array`,  sharing the underlying data.
+
+   .. code-block:: mini
+
+      let A := array([[1, 2, 3], [4, 5, 6]])
+      :> <<1 2 3> <4 5 6>>
+      A:swap :> <<1 4> <2 5> <3 6>>
 
 
 :mini:`meth (Array: array):swap(Index₁: integer, Index₂: integer): array`
@@ -1838,9 +1849,9 @@ array
    .. code-block:: mini
 
       let B := buffer(16)
-      :> <16:60DC657FFA7F0000686172202A457870>
+      :> <16:C01AFA50D87F00000000000000000000>
       array::wrap(array::uint16, B, [2, 2, 2], [8, 4, 2])
-      :> error("TypeError", "Unknown type for array")
+      :> <<<6848 20730> <32728 0>> <<0 0> <0 0>>>
 
 
 .. _type-vector:

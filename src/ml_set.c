@@ -9,13 +9,37 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "set"
 
-ML_TYPE(MLSetT, (MLSequenceT), "set",
+ML_TYPE(MLSetT, (MLSequenceT), "set"
 // A set of values.
 // Values can be of any type supporting hashing and comparison.
 // By default, iterating over a set generates the values in the order they were inserted, however this ordering can be changed.
 );
 
+#ifdef ML_MUTABLES
 ML_TYPE(MLSetMutableT, (MLSetT), "set::mutable");
+#else
+#define MLSetMutableT MLSetT
+#endif
+
+#ifdef ML_GENERICS
+
+static void ml_set_update_generic(ml_set_t *Set, ml_value_t *Value) {
+	if (Set->Type->Type != MLTypeGenericT) {
+		Set->Type = ml_generic_type(2, (ml_type_t *[]){Set->Type, ml_typeof(Value)});
+	} else {
+		ml_type_t *ValueType0 = ml_typeof(Value);
+		ml_type_t *BaseType = ml_generic_type_args(Set->Type)[0];
+		ml_type_t *ValueType = ml_generic_type_args(Set->Type)[1];
+		if (!ml_is_subtype(ValueType0, ValueType)) {
+			ml_type_t *ValueType2 = ml_type_max(ValueType, ValueType0);
+			if (ValueType != ValueType2) {
+				Set->Type = ml_generic_type(2, (ml_type_t *[]){BaseType, ValueType2});
+			}
+		}
+	}
+}
+
+#endif
 
 ML_ENUM2(MLSetOrderT, "set::order",
 // * :mini:`set::order::Insert` |harr| default ordering; inserted values are put at end, no reordering on access.
@@ -300,18 +324,7 @@ ml_value_t *ml_set_insert(ml_value_t *Set0, ml_value_t *Key) {
 	int Size = Set->Size;
 	ml_set_node(Set, ml_typeof(Key)->hash(Key, NULL), Key);
 #ifdef ML_GENERICS
-	if (Set->Type->Type != MLTypeGenericT) {
-		Set->Type = ml_generic_type(2, (ml_type_t *[]){Set->Type, ml_typeof(Key)});
-	} else {
-		ml_type_t *BaseType = ml_generic_type_args(Set->Type)[0];
-		ml_type_t *KeyType = ml_generic_type_args(Set->Type)[1];
-		if (KeyType != ml_typeof(Key)) {
-			ml_type_t *KeyType2 = ml_type_max(KeyType, ml_typeof(Key));
-			if (KeyType != KeyType2) {
-				Set->Type = ml_generic_type(2, (ml_type_t *[]){BaseType, KeyType2});
-			}
-		}
-	}
+	ml_set_update_generic(Set, Key);
 #endif
 	return Set->Size == Size ? MLSome : MLNil;
 }
@@ -399,10 +412,19 @@ ML_METHOD("count", MLSetT) {
 	return ml_integer(Set->Size);
 }
 
-static ml_value_t *ml_set_index_deref(ml_set_node_t *Index) {
-	return MLNil;
+ML_METHOD("first", MLSetT) {
+//<Set
+// Returns the first value in :mini:`Set` or :mini:`nil` if :mini:`Set` is empty.
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	return Set->Head ? Set->Head->Key : MLNil;
 }
 
+ML_METHOD("last", MLSetT) {
+//<Set
+// Returns the last value in :mini:`Set` or :mini:`nil` if :mini:`Set` is empty.
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	return Set->Tail ? Set->Tail->Key : MLNil;
+}
 
 static ml_set_node_t *ml_set_insert_node(ml_set_t *Set, ml_set_node_t **Slot, long Hash, ml_set_node_t *Index) {
 	if (!Slot[0]) {
@@ -1151,11 +1173,10 @@ ML_METHODX("const", MLVisitorT, MLSetT) {
 
 #include "ml_cbor.h"
 
-static ml_value_t *ML_TYPED_FN(ml_cbor_write, MLSetT, ml_cbor_writer_t *Writer, ml_set_t *Set) {
+static void ML_TYPED_FN(ml_cbor_write, MLSetT, ml_cbor_writer_t *Writer, ml_set_t *Set) {
 	ml_cbor_write_tag(Writer, 258);
 	ml_cbor_write_array(Writer, Set->Size);
 	ML_SET_FOREACH(Set, Iter) ml_cbor_write(Writer, Iter->Key);
-	return NULL;
 }
 
 static ml_value_t *ml_cbor_read_set(ml_cbor_reader_t *Reader, ml_value_t *Value) {
@@ -1173,7 +1194,9 @@ void ml_set_init() {
 	stringmap_insert(MLSetT->Exports, "mutable", MLSetMutableT);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLSetT, MLSequenceT, ML_TYPE_ARG(1), ML_TYPE_ARG(1), NULL);
+#ifdef ML_MUTABLES
 	ml_type_add_rule(MLSetMutableT, MLSetT, ML_TYPE_ARG(1), NULL);
+#endif
 #endif
 #ifdef ML_CBOR
 	ml_cbor_default_tag(258, ml_cbor_read_set);

@@ -1,9 +1,6 @@
 #include "stringmap.h"
 #include "ml_macros.h"
-#include <gc.h>
 #include <string.h>
-
-#define new(T) ((T *)GC_MALLOC(sizeof(T)))
 
 struct stringmap_node_t {
 	stringmap_node_t *Left, *Right;

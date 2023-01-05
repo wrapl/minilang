@@ -13,9 +13,9 @@ end
 switch Args[1] or "c": string
 case "c" do
 	with Output := file("ml_opcodes.h", "w") do
-		Output:write("#ifndef ML_OPCODES_H\n#define ML_OPCODES_H\n")
-		Output:write('\n#define ML_BYTECODE_VERSION {Version}\n')
-		Output:write("\ntypedef enum {\n")
+		Output:write("#ifndef ML_OPCODES_H\n#define ML_OPCODES_H\n\n")
+		Output:write('#define ML_BYTECODE_VERSION {Version}\n\n')
+		Output:write("typedef enum {\n")
 		for I, (Name, Type) in Opcodes do
 			Output:write('\tMLI_{Name} = {I - 1},\n')
 		end

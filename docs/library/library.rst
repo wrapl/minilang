@@ -9,6 +9,12 @@ library
 
 .. rst-class:: mini-api
 
+.. _fun-getpath:
+
+:mini:`fun getpath()`
+   *TBD*
+
+
 .. _type-importer:
 
 :mini:`type importer < function`

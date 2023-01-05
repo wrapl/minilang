@@ -32,7 +32,7 @@ json_t *ml_minijs_encode(ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
 	}
 	const char *Name = ml_externals_get_name(Encoder->Externals, Value);
 	if (Name) {
-		return json_pack("[ss]", "^", Name);
+		return json_pack("[sssi]", "^", Name, "", 0);
 	}
 	typeof(ml_minijs_encode) *encode = ml_typed_fn_get(ml_typeof(Value), ml_minijs_encode);
 	if (!encode) return json_pack("[ss]", "unsupported", ml_typeof(Value)->Name);
@@ -69,6 +69,17 @@ static json_t *ML_TYPED_FN(ml_minijs_encode, MLRegexT, ml_minijs_encoder_t *Enco
 
 static json_t *ML_TYPED_FN(ml_minijs_encode, MLMethodT, ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
 	return json_pack("[ss]", ":", ml_method_name(Value));
+}
+
+static json_t *ML_TYPED_FN(ml_minijs_encode, MLTupleT, ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
+	json_t *Json = json_array();
+	json_array_append_new(Json, json_string("()"));
+	inthash_insert(Encoder->Cached, (uintptr_t)Value, Json);
+	int Size = ml_tuple_size(Value);
+	for (int I = 1; I <= Size; ++I) {
+		json_array_append_new(Json, ml_minijs_encode(Encoder, ml_tuple_get(Value, I)));
+	}
+	return Json;
 }
 
 static json_t *ML_TYPED_FN(ml_minijs_encode, MLListT, ml_minijs_encoder_t *Encoder, ml_list_t *Value) {
@@ -446,7 +457,7 @@ static json_t *ML_TYPED_FN(ml_minijs_encode, MLClosureT, ml_minijs_encoder_t *En
 }
 
 static json_t *ML_TYPED_FN(ml_minijs_encode, MLExternalT, ml_minijs_encoder_t *Encoder, ml_external_t *Value) {
-	return json_pack("[ss]", "^", Value->Name);
+	return json_pack("[sssi]", "^", Value->Name, Value->Source, Value->Line);
 }
 
 ML_METHOD_ANON(MinijsEncode, "minijs::encode");
@@ -831,7 +842,10 @@ ML_METHOD(MinijsDecode, MLStringT, MLExternalSetT) {
 	return ml_minijs_decode(Decoder, Json);
 }
 
+static void nop_free(void *Ptr) {}
+
 void ml_minijs_init(stringmap_t *Globals) {
+	json_set_alloc_funcs(GC_malloc, nop_free);
 	stringmap_insert(Decoders, "^", ml_minijs_decode_global);
 	stringmap_insert(Decoders, "blank", ml_minijs_decode_blank);
 	stringmap_insert(Decoders, "_", ml_minijs_decode_blank);
