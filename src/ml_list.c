@@ -511,6 +511,8 @@ ML_METHOD("[]", MLListMutableT, MLIntegerT, MLIntegerT) {
 	return (ml_value_t *)Slice;
 }
 
+#ifdef ML_MUTABLES
+
 ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
 //!internal
 	ml_list_t *List = (ml_list_t *)Args[0];
@@ -525,6 +527,8 @@ ML_METHOD("[]", MLListT, MLIntegerT, MLIntegerT) {
 	Slice->Length = End - Start;
 	return ml_deref((ml_value_t *)Slice);
 }
+
+#endif
 
 ML_METHOD("[]", MLListMutableT, MLIntegerRangeT) {
 //<List
@@ -546,6 +550,8 @@ ML_METHOD("[]", MLListMutableT, MLIntegerRangeT) {
 	return (ml_value_t *)Slice;
 }
 
+#ifdef ML_MUTABLES
+
 ML_METHOD("[]", MLListT, MLIntegerRangeT) {
 //!internal
 	ml_list_t *List = (ml_list_t *)Args[0];
@@ -561,6 +567,8 @@ ML_METHOD("[]", MLListT, MLIntegerRangeT) {
 	Slice->Length = End - Start;
 	return ml_deref((ml_value_t *)Slice);
 }
+
+#endif
 
 ML_METHOD("[]", MLListT, MLListMutableT) {
 //<List
