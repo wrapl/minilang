@@ -255,21 +255,13 @@ static void ML_TYPED_FN(ml_iterate, DEBUG_TYPE(Continuation), ml_state_t *Caller
 
 #ifndef DEBUG_VERSION
 
-static ml_frame_t *MLCachedFrame = NULL;
-
 #ifdef ML_THREADSAFE
 
-#include <stdatomic.h>
-
-static volatile atomic_flag MLCachedFrameLock[1] = {ATOMIC_FLAG_INIT};
-
-#define ML_CACHED_FRAME_LOCK() while (atomic_flag_test_and_set(MLCachedFrameLock))
-#define ML_CACHED_FRAME_UNLOCK() atomic_flag_clear(MLCachedFrameLock)
+static __thread ml_frame_t *MLCachedFrame = NULL;
 
 #else
 
-#define ML_CACHED_FRAME_LOCK() {}
-#define ML_CACHED_FRAME_UNLOCK() {}
+static ml_frame_t *MLCachedFrame = NULL;
 
 #endif
 
@@ -298,23 +290,10 @@ extern ml_value_t *SymbolMethod;
 	DO_TAIL_CALL_ ## COUNT: { \
 		ml_value_t *Function = Top[~COUNT]; \
 		ml_value_t **Args = Top - COUNT; \
-		ml_inst_t *Next = Inst + 2; \
 		ML_STORE_COUNTER(); \
-		if (Frame->Reuse) { \
-			ML_CACHED_FRAME_LOCK(); \
-			if (!MLCachedFrame) { \
-				MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE); \
-			} \
-			Frame->Next = MLCachedFrame->Next; \
-			MLCachedFrame->Next = (ml_frame_t *)Frame; \
-			ML_CACHED_FRAME_UNLOCK(); \
-			return ml_call(Frame->Base.Caller, Function, COUNT, Args); \
-		} else { \
-			Frame->Inst = Next; \
-			Frame->Line = Inst->Line; \
-			Frame->Top = Top - (COUNT + 1); \
-			return ml_call(Frame->Base.Caller, Function, COUNT, Args); \
-		} \
+		ml_state_t *Caller = Frame->Base.Caller; \
+		if (Frame->Reuse) DEBUG_FUNC(frame_reuse)(Frame); \
+		return ml_call(Caller, Function, COUNT, Args); \
 	} \
 	DO_CALL_CONST_ ## COUNT: { \
 		ml_value_t **Args = Top - COUNT; \
@@ -329,23 +308,10 @@ extern ml_value_t *SymbolMethod;
 	DO_TAIL_CALL_CONST_ ## COUNT: { \
 		ml_value_t **Args = Top - COUNT; \
 		ml_value_t *Function = Inst[1].Value; \
-		ml_inst_t *Next = Inst + 3; \
 		ML_STORE_COUNTER(); \
-		if (Frame->Reuse) { \
-			ML_CACHED_FRAME_LOCK(); \
-			if (!MLCachedFrame) { \
-				MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE); \
-			} \
-			Frame->Next = MLCachedFrame->Next; \
-			MLCachedFrame->Next = (ml_frame_t *)Frame; \
-			ML_CACHED_FRAME_UNLOCK(); \
-			return ml_call(Frame->Base.Caller, Function, COUNT, Args); \
-		} else { \
-			Frame->Inst = Next; \
-			Frame->Line = Inst->Line; \
-			Frame->Top = Args; \
-			return ml_call(Frame->Base.Caller, Function, COUNT, Args); \
-		} \
+		ml_state_t *Caller = Frame->Base.Caller; \
+		if (Frame->Reuse) DEBUG_FUNC(frame_reuse)(Frame); \
+		return ml_call(Caller, Function, COUNT, Args); \
 	} \
 	DO_CALL_METHOD_ ## COUNT: { \
 		ml_value_t **Args = Top - COUNT; \
@@ -402,23 +368,10 @@ extern ml_value_t *SymbolMethod;
 		} \
 		ml_value_t *Function = Cached->Callback;*/ \
 		ml_value_t *Function = Inst[1].Value; \
-		ml_inst_t *Next = Inst + 4; \
 		ML_STORE_COUNTER(); \
-		if (Frame->Reuse) { \
-			ML_CACHED_FRAME_LOCK(); \
-			if (!MLCachedFrame) { \
-				MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE); \
-			} \
-			Frame->Next = MLCachedFrame->Next; \
-			MLCachedFrame->Next = (ml_frame_t *)Frame; \
-			ML_CACHED_FRAME_UNLOCK(); \
-			return ml_call(Frame->Base.Caller, Function, COUNT, Args); \
-		} else { \
-			Frame->Inst = Next; \
-			Frame->Line = Inst->Line; \
-			Frame->Top = Args; \
-			return ml_call(Frame->Base.Caller, Function, COUNT, Args); \
-		} \
+		ml_state_t *Caller = Frame->Base.Caller; \
+		if (Frame->Reuse) DEBUG_FUNC(frame_reuse)(Frame); \
+		return ml_call(Caller, Function, COUNT, Args); \
 	}
 
 #define CALL_LABELS(PREFIX) \
@@ -436,6 +389,16 @@ extern ml_value_t *SymbolMethod;
 	}
 
 #endif
+
+static void DEBUG_FUNC(frame_reuse)(DEBUG_STRUCT(frame) *Frame) {
+	// Ensure at least one other cached frame is available to prevent this frame being used immediately which may result in arguments being overwritten.
+	if (!MLCachedFrame) {
+		MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE);
+		MLCachedFrame->Reuse = 1;
+	}
+	Frame->Next = MLCachedFrame->Next;
+	MLCachedFrame->Next = (ml_frame_t *)Frame;
+}
 
 extern ml_value_t *AppendMethod;
 
@@ -551,10 +514,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 			//memset(Frame, 0, ML_FRAME_REUSE_SIZE);
 			while (Top > Frame->Stack) *--Top = NULL;
 			//memset(Frame->Stack, 0, (Top - Frame->Stack) * sizeof(ml_value_t *));
-			ML_CACHED_FRAME_LOCK();
 			Frame->Next = MLCachedFrame;
 			MLCachedFrame = (ml_frame_t *)Frame;
-			ML_CACHED_FRAME_UNLOCK();
 		} else {
 			Frame->Line = Inst->Line;
 			Frame->Inst = Inst;
@@ -848,24 +809,10 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		if (__builtin_expect(Count < 10, 1)) goto *TAIL_CALL_Labels[Count];
 		ml_value_t *Function = Top[~Count];
 		ml_value_t **Args = Top - Count;
-		ml_inst_t *Next = Inst + 2;
 		ML_STORE_COUNTER();
-		if (Frame->Reuse) {
-			// Ensure at least one other cached frame is available to prevent this frame being used immediately which may result in arguments being overwritten.
-			ML_CACHED_FRAME_LOCK();
-			if (!MLCachedFrame) {
-				MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE);
-			}
-			Frame->Next = MLCachedFrame->Next;
-			MLCachedFrame->Next = (ml_frame_t *)Frame;
-			ML_CACHED_FRAME_UNLOCK();
-			return ml_call(Frame->Base.Caller, Function, Count, Args);
-		} else {
-			Frame->Inst = Next;
-			Frame->Line = Inst->Line;
-			Frame->Top = Top - (Count + 1);
-			return ml_call(Frame->Base.Caller, Function, Count, Args);
-		}
+		ml_state_t *Caller = Frame->Base.Caller;
+		if (Frame->Reuse) DEBUG_FUNC(frame_reuse)(Frame);
+		return ml_call(Caller, Function, Count, Args);
 	}
 	DO_CALL_CONST: {
 		int Count = Inst[2].Count;
@@ -884,24 +831,10 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		if (__builtin_expect(Count < 10, 1)) goto *TAIL_CALL_CONST_Labels[Count];
 		ml_value_t **Args = Top - Count;
 		ml_value_t *Function = Inst[1].Value;
-		ml_inst_t *Next = Inst + 3;
 		ML_STORE_COUNTER();
-		if (Frame->Reuse) {
-			// Ensure at least one other cached frame is available to prevent this frame being used immediately which may result in arguments being overwritten.
-			ML_CACHED_FRAME_LOCK();
-			if (!MLCachedFrame) {
-				MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE);
-			}
-			Frame->Next = MLCachedFrame->Next;
-			MLCachedFrame->Next = (ml_frame_t *)Frame;
-			ML_CACHED_FRAME_UNLOCK();
-			return ml_call(Frame->Base.Caller, Function, Count, Args);
-		} else {
-			Frame->Inst = Next;
-			Frame->Line = Inst->Line;
-			Frame->Top = Args;
-			return ml_call(Frame->Base.Caller, Function, Count, Args);
-		}
+		ml_state_t *Caller = Frame->Base.Caller;
+		if (Frame->Reuse) DEBUG_FUNC(frame_reuse)(Frame);
+		return ml_call(Caller, Function, Count, Args);
 	}
 	DO_CALL_METHOD: {
 		int Count = Inst[2].Count;
@@ -962,24 +895,10 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		}
 		ml_value_t *Function = Cached->Callback;*/
 		ml_value_t *Function = Inst[1].Value;
-		ml_inst_t *Next = Inst + 4;
 		ML_STORE_COUNTER();
-		if (Frame->Reuse) {
-			// Ensure at least one other cached frame is available to prevent this frame being used immediately which may result in arguments being overwritten.
-			ML_CACHED_FRAME_LOCK();
-			if (!MLCachedFrame) {
-				MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE);
-			}
-			Frame->Next = MLCachedFrame->Next;
-			MLCachedFrame->Next = (ml_frame_t *)Frame;
-			ML_CACHED_FRAME_UNLOCK();
-			return ml_call(Frame->Base.Caller, Function, Count, Args);
-		} else {
-			Frame->Inst = Next;
-			Frame->Line = Inst->Line;
-			Frame->Top = Args;
-			return ml_call(Frame->Base.Caller, Function, Count, Args);
-		}
+		ml_state_t *Caller = Frame->Base.Caller;
+		if (Frame->Reuse) DEBUG_FUNC(frame_reuse)(Frame);
+		return ml_call(Caller, Function, Count, Args);
 	}
 	DO_ASSIGN: {
 		Result = ml_deref(Result);
@@ -1252,12 +1171,9 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 	size_t Size = sizeof(DEBUG_STRUCT(frame)) + Info->FrameSize * sizeof(ml_value_t *);
 	DEBUG_STRUCT(frame) *Frame;
 	if (Size <= ML_FRAME_REUSE_SIZE) {
-		ML_CACHED_FRAME_LOCK();
 		if ((Frame = (DEBUG_STRUCT(frame) *)MLCachedFrame)) {
 			MLCachedFrame = Frame->Next;
-			ML_CACHED_FRAME_UNLOCK();
 		} else {
-			ML_CACHED_FRAME_UNLOCK();
 			Frame = bnew(ML_FRAME_REUSE_SIZE);
 			Frame->Reuse = 1;
 		}
@@ -1907,6 +1823,9 @@ ML_METHOD("jit", MLClosureT) {
 #undef DEBUG_VERSION
 
 void ml_bytecode_init() {
+#ifdef ML_THREADS
+	GC_add_roots(&MLCachedFrame, &MLCachedFrame + 1);
+#endif
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLClosureT, MLFunctionT, ML_TYPE_ARG(1), NULL);
 #endif
