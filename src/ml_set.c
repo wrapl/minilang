@@ -426,43 +426,6 @@ ML_METHOD("last", MLSetT) {
 	return Set->Tail ? Set->Tail->Key : MLNil;
 }
 
-static ml_set_node_t *ml_set_insert_node(ml_set_t *Set, ml_set_node_t **Slot, long Hash, ml_set_node_t *Index) {
-	if (!Slot[0]) {
-		++Set->Size;
-		ml_set_node_t *Node = Slot[0] = Index;
-		Node->Type = MLSetNodeT;
-		ml_set_node_t *Prev = Set->Tail;
-		if (Prev) {
-			Prev->Next = Node;
-			Node->Prev = Prev;
-		} else {
-			Set->Head = Node;
-		}
-		Set->Tail = Node;
-		Node->Depth = 1;
-		Node->Hash = Hash;
-		return Node;
-	}
-	int Compare;
-	if (Hash < Slot[0]->Hash) {
-		Compare = -1;
-	} else if (Hash > Slot[0]->Hash) {
-		Compare = 1;
-	} else {
-		ml_value_t *Args[2] = {Index->Key, Slot[0]->Key};
-		ml_value_t *Result = ml_set_compare(Set, Args);
-		Compare = ml_integer_value(Result);
-	}
-	if (!Compare) {
-		return Slot[0];
-	} else {
-		ml_set_node_t *Node = ml_set_insert_node(Set, Compare < 0 ? &Slot[0]->Left : &Slot[0]->Right, Hash, Index);
-		ml_set_rebalance(Slot);
-		ml_set_update_depth(Slot[0]);
-		return Node;
-	}
-}
-
 ML_METHOD("order", MLSetT) {
 //<Set
 //>set::order
