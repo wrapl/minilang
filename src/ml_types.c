@@ -221,7 +221,7 @@ void ml_default_assign(ml_state_t *Caller, ml_value_t *Ref, ml_value_t *Value) {
 }
 
 void ml_type_init(ml_type_t *Type, ...) {
-	int Rank = 0;
+	int Rank = 1;
 	va_list Args;
 	va_start(Args, Type);
 	ml_type_t *Parent;

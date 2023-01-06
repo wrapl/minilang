@@ -276,6 +276,21 @@ extern ml_value_t *SymbolMethod;
 
 #endif
 
+static ml_inst_t ReturnInst[1] = {{.Opcode = MLI_RETURN, .Line = 0}};
+
+#define TAIL_CALL(COUNT) \
+	ml_state_t *Caller = Frame->Base.Caller; \
+	ml_value_t **Args = ml_alloc_args(COUNT); \
+	memcpy(Args, Top - COUNT, COUNT * sizeof(ml_value_t *)); \
+	if (Frame->Reuse) { \
+		while (Top > Frame->Stack) *--Top = NULL; \
+		Frame->Next = MLCachedFrame; \
+		MLCachedFrame = (ml_frame_t *)Frame; \
+	} else { \
+		Frame->Inst = ReturnInst; \
+	} \
+	return ml_call(Caller, Function, COUNT, Args)
+
 #define DO_CALL_COUNT(COUNT) \
 	DO_CALL_ ## COUNT: { \
 		ml_value_t **Args = Top - COUNT; \
@@ -290,8 +305,7 @@ extern ml_value_t *SymbolMethod;
 	DO_TAIL_CALL_ ## COUNT: { \
 		ml_value_t *Function = Top[~COUNT]; \
 		ML_STORE_COUNTER(); \
-		Frame->Top = Top; \
-		return DEBUG_FUNC(tail_call)(Frame, Function, COUNT); \
+		TAIL_CALL(COUNT); \
 	} \
 	DO_CALL_CONST_ ## COUNT: { \
 		ml_value_t **Args = Top - COUNT; \
@@ -306,8 +320,7 @@ extern ml_value_t *SymbolMethod;
 	DO_TAIL_CALL_CONST_ ## COUNT: { \
 		ml_value_t *Function = Inst[1].Value; \
 		ML_STORE_COUNTER(); \
-		Frame->Top = Top; \
-		return DEBUG_FUNC(tail_call)(Frame, Function, COUNT); \
+		TAIL_CALL(COUNT); \
 	} \
 	DO_CALL_METHOD_ ## COUNT: { \
 		ml_value_t **Args = Top - COUNT; \
@@ -322,8 +335,7 @@ extern ml_value_t *SymbolMethod;
 	DO_TAIL_CALL_METHOD_ ## COUNT: { \
 		ml_value_t *Function = Inst[1].Value; \
 		ML_STORE_COUNTER(); \
-		Frame->Top = Top; \
-		return DEBUG_FUNC(tail_call)(Frame, Function, COUNT); \
+		TAIL_CALL(COUNT); \
 	}
 
 #define CALL_LABELS(PREFIX) \
@@ -341,22 +353,6 @@ extern ml_value_t *SymbolMethod;
 	}
 
 #endif
-
-static void DEBUG_FUNC(tail_call)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Function, int Count) {
-	static ml_inst_t Return[1] = {{.Opcode = MLI_RETURN, .Line = 0}};
-	ml_state_t *Caller = Frame->Base.Caller;
-	ml_value_t **Top = Frame->Top;
-	ml_value_t **Args = ml_alloc_args(Count);
-	memcpy(Args, Top - Count, Count * sizeof(ml_value_t *));
-	if (Frame->Reuse) {
-		while (Top > Frame->Stack) *--Top = NULL;
-		Frame->Next = MLCachedFrame;
-		MLCachedFrame = (ml_frame_t *)Frame;
-	} else {
-		Frame->Inst = Return;
-	}
-	return ml_call(Caller, Function, Count, Args);
-}
 
 extern ml_value_t *AppendMethod;
 
@@ -767,8 +763,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		if (__builtin_expect(Count < 10, 1)) goto *TAIL_CALL_Labels[Count];
 		ml_value_t *Function = Top[~Count];
 		ML_STORE_COUNTER();
-		Frame->Top = Top;
-		return DEBUG_FUNC(tail_call)(Frame, Function, Count);
+		TAIL_CALL(Count);
 	}
 	DO_CALL_CONST: {
 		int Count = Inst[2].Count;
@@ -787,8 +782,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		if (__builtin_expect(Count < 10, 1)) goto *TAIL_CALL_CONST_Labels[Count];
 		ml_value_t *Function = Inst[1].Value;
 		ML_STORE_COUNTER();
-		Frame->Top = Top;
-		return DEBUG_FUNC(tail_call)(Frame, Function, Count);
+		TAIL_CALL(Count);
 	}
 	DO_CALL_METHOD: {
 		int Count = Inst[2].Count;
@@ -807,8 +801,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		if (__builtin_expect(Count < 10, 1)) goto *TAIL_CALL_METHOD_Labels[Count];
 		ml_value_t *Function = Inst[1].Value;
 		ML_STORE_COUNTER();
-		Frame->Top = Top;
-		return DEBUG_FUNC(tail_call)(Frame, Function, Count);
+		TAIL_CALL(Count);
 	}
 	DO_ASSIGN: {
 		Result = ml_deref(Result);
