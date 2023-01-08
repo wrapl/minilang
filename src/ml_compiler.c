@@ -5340,9 +5340,7 @@ with_name:
 	}
 }
 
-static mlc_expr_t *ml_parse_term(ml_parser_t *Parser, int MethDecl) {
-	mlc_expr_t *Expr = ml_parse_factor(Parser, MethDecl);
-	if (!Expr) return NULL;
+static mlc_expr_t *ml_parse_term_postfix(ml_parser_t *Parser, int MethDecl, mlc_expr_t *Expr) {
 	for (;;) {
 		switch (ml_current(Parser)) {
 		case MLT_LEFT_PAREN: {
@@ -5405,6 +5403,12 @@ static mlc_expr_t *ml_parse_term(ml_parser_t *Parser, int MethDecl) {
 	return NULL; // Unreachable
 }
 
+static mlc_expr_t *ml_parse_term(ml_parser_t *Parser, int MethDecl) {
+	mlc_expr_t *Expr = ml_parse_factor(Parser, MethDecl);
+	if (!Expr) return NULL;
+	return ml_parse_term_postfix(Parser, MethDecl, Expr);
+}
+
 static mlc_expr_t *ml_accept_term(ml_parser_t *Parser) {
 	ml_skip_eol(Parser);
 	mlc_expr_t *Expr = ml_parse_term(Parser, 0);
@@ -5428,7 +5432,16 @@ static mlc_expr_t *ml_parse_expression(ml_parser_t *Parser, ml_expr_level_t Leve
 		CallExpr->Value = ml_method(Parser->Ident);
 		CallExpr->Child = Expr;
 		if (ml_parse2(Parser, MLT_LEFT_PAREN)) {
-			ml_accept_arguments(Parser, MLT_RIGHT_PAREN, &Expr->Next);
+			//ml_accept_arguments(Parser, MLT_RIGHT_PAREN, &Expr->Next);
+			mlc_expr_t *Expr2 = NULL;
+			ml_accept_arguments(Parser, MLT_RIGHT_PAREN, &Expr2);
+			if (Expr2) {
+				if (Expr2->Next) {
+					Expr->Next = Expr2;
+				} else {
+					Expr->Next = ml_parse_term_postfix(Parser, 0, Expr2);
+				}
+			}
 		} else {
 			Expr->Next = ml_accept_term(Parser);
 		}

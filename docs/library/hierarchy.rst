@@ -119,6 +119,7 @@ hierarchy
       "function":e -> "importer":w;
       "any":e -> "module::dir":w;
       "stream":e -> "json::decoder":w;
+      "function":e -> "gir::function":w;
       "sequence":e -> "gir":w;
       "type":e -> "gir::baseinfo":w;
       "any":e -> "gir::module":w;
