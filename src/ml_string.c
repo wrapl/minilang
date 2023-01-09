@@ -1040,6 +1040,7 @@ ML_METHOD(MLNumberT, MLStringT) {
 // Returns the number in :mini:`String` or an error if :mini:`String` does not contain a valid number.
 	const char *Start = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
+	if (Length) return ml_error("ValueError", "Error parsing number");
 	char *End = (char *)Start;
 #ifdef ML_COMPLEX
 	if (End[0] == 'i') {
