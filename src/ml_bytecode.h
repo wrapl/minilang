@@ -102,6 +102,8 @@ ml_value_t *ml_cbor_read_closure(void *Data, int Count, ml_value_t **Args);
 
 #endif
 
+size_t ml_count_cached_frames();
+
 void ml_bytecode_init();
 
 #ifdef __cplusplus

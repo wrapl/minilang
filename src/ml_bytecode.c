@@ -265,6 +265,12 @@ static ml_frame_t *MLCachedFrame = NULL;
 
 #endif
 
+size_t ml_count_cached_frames() {
+	size_t Count = 0;
+	for (ml_frame_t *Frame = MLCachedFrame; Frame; Frame = Frame->Next) ++Count;
+	return Count;
+}
+
 extern ml_value_t *SymbolMethod;
 
 #define ML_FRAME_REUSE_SIZE 384

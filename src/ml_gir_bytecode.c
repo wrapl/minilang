@@ -554,7 +554,7 @@ typedef struct {
 	gir_function_arg_info_t Args[];
 } gir_function_compiler_t;
 
-static gir_function_t *function_info_compile(gir_function_compiler_t *Compiler, int Index, int In, int Out, int Aux) {
+static gir_function_t *function_info_compile_arg(gir_function_compiler_t *Compiler, int Index, int In, int Out, int Aux) {
 	if (Index == Compiler->Count) {
 		gir_function_t *Function = xnew(gir_function_t, Aux, sizeof(void *));
 		Function->Info = Compiler->Info;
@@ -564,17 +564,18 @@ static gir_function_t *function_info_compile(gir_function_compiler_t *Compiler, 
 		Function->InstOut[Out] = GI_DONE;
 		return Function;
 	}
-	if (Compiler->Args[Index].IsClosure) {
-		gir_function_t *Function = function_info_compile(Compiler, Index + 1, In + 1, Out, Aux);
+	gir_function_arg_info_t *Arg = Compiler->Args + Index;
+	if (Arg->IsClosure) {
+		gir_function_t *Function = function_info_compile_arg(Compiler, Index + 1, In + 1, Out, Aux);
 		Function->InstIn[In] = GI_SKIP;
 		return Function;
 	}
-	if (Compiler->Args[Index].IsLength) {
-		gir_function_t *Function = function_info_compile(Compiler, Index + 1, In + 2, Out, Aux);
+	if (Arg->IsLength) {
+		gir_function_t *Function = function_info_compile_arg(Compiler, Index + 1, In + 2, Out, Aux);
 		Function->InstIn[In] = GI_LENGTH;
 		Function->InstIn[In + 1] = Compiler->Args[Index].Aux;
 		return Function;
 	}
-
+	GIDirection Direction = g_arg_info_get_direction(Arg->Info);
 }
 
