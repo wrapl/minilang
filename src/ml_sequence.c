@@ -3030,6 +3030,345 @@ ML_METHODX("value", MLIteratorT) {
 	return ml_iter_value(Caller, Iterator->Iter);
 }
 
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Seq, *Fn;
+} ml_split_t;
+
+ML_TYPE(MLSplitT, (MLSequenceT), "split");
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t Inner;
+	ml_value_t *Fn;
+	ml_value_t *Iter;
+	ml_value_t *Args[1];
+	int Skip, Index;
+} ml_split_state_t;
+
+ML_TYPE(MLSplitStateT, (MLStateT), "split-state");
+//!internal
+
+ML_TYPE(MLSplitInnerT, (MLSequenceT), "split-inner");
+//!internal
+
+static void ml_split_state_first_iter(ml_split_state_t *State, ml_value_t *Iter);
+
+static void ml_split_state_first_split(ml_split_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) {
+		State->Base.run = (ml_state_fn)ml_split_state_first_iter;
+		return ml_iter_next((ml_state_t *)State, State->Iter);
+	}
+	State->Skip = 1;
+	++State->Index;
+	ML_CONTINUE(State->Base.Caller, State);
+}
+
+static void ml_split_state_first_value(ml_split_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Args[0] = Value;
+	State->Base.run = (ml_state_fn)ml_split_state_first_split;
+	return ml_call(State, State->Fn, 1, State->Args);
+}
+
+static void ml_split_state_first_iter(ml_split_state_t *State, ml_value_t *Iter) {
+	if (ml_is_error(Iter)) ML_CONTINUE(State->Base.Caller, Iter);
+	if (Iter == MLNil) ML_CONTINUE(State->Base.Caller, Iter);
+	State->Base.run = (ml_state_fn)ml_split_state_first_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Iter);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLSplitT, ml_state_t *Caller, ml_split_t *Split) {
+	ml_split_state_t *State = new(ml_split_state_t);
+	State->Base.Type = MLSplitStateT;
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_split_state_first_iter;
+	State->Fn = Split->Fn;
+	State->Skip = 0;
+	State->Index = 0;
+	State->Inner.Type = MLSplitInnerT;
+	return ml_iterate((ml_state_t *)State, Split->Seq);
+}
+
+static void ml_split_state_skip_iter(ml_split_state_t *State, ml_value_t *Iter);
+
+static void ml_split_state_skip_split(ml_split_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value != MLNil) {
+		State->Base.run = (ml_state_fn)ml_split_state_skip_iter;
+	} else {
+		State->Base.run = (ml_state_fn)ml_split_state_first_iter;
+	}
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void ml_split_state_skip_value(ml_split_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Args[0] = Value;
+	State->Base.run = (ml_state_fn)ml_split_state_skip_split;
+	return ml_call(State, State->Fn, 1, State->Args);
+}
+
+static void ml_split_state_skip_iter(ml_split_state_t *State, ml_value_t *Iter) {
+	if (ml_is_error(Iter)) ML_CONTINUE(State->Base.Caller, Iter);
+	if (Iter == MLNil) ML_CONTINUE(State->Base.Caller, Iter);
+	State->Base.run = (ml_state_fn)ml_split_state_skip_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLSplitStateT, ml_state_t *Caller, ml_split_state_t *State) {
+	if (State->Iter == MLNil) ML_RETURN(MLNil);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	if (State->Skip) {
+		State->Base.run = (ml_state_fn)ml_split_state_skip_iter;
+	} else {
+		State->Base.run = (ml_state_fn)ml_split_state_first_iter;
+	}
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLSplitStateT, ml_state_t *Caller, ml_split_state_t *State) {
+	ML_RETURN(ml_integer(State->Index));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLSplitStateT, ml_state_t *Caller, ml_split_state_t *State) {
+	ML_RETURN(&State->Inner);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLSplitInnerT, ml_state_t *Caller, ml_value_t *Iter) {
+	ml_split_state_t *State = (ml_split_state_t *)((void *)Iter - offsetof(ml_split_state_t, Inner));
+	if (State->Iter == MLNil) ML_RETURN(MLNil);
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLSplitInnerT, ml_state_t *Caller, ml_value_t *Iter) {
+	ml_split_state_t *State = (ml_split_state_t *)((void *)Iter - offsetof(ml_split_state_t, Inner));
+	return ml_iter_key(Caller, State->Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLSplitInnerT, ml_state_t *Caller, ml_value_t *Iter) {
+	ml_split_state_t *State = (ml_split_state_t *)((void *)Iter - offsetof(ml_split_state_t, Inner));
+	return ml_iter_value(Caller, State->Iter);
+}
+
+static void ml_split_state_inner_split(ml_split_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) {
+		State->Skip = 0;
+		ML_CONTINUE(State->Base.Caller, MLNil);
+	}
+	ML_CONTINUE(State->Base.Caller, &State->Inner);
+}
+
+static void ml_split_state_inner_value(ml_split_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Args[0] = Value;
+	State->Base.run = (ml_state_fn)ml_split_state_inner_split;
+	return ml_call(State, State->Fn, 1, State->Args);
+}
+
+static void ml_split_state_inner_iter(ml_split_state_t *State, ml_value_t *Iter) {
+	if (ml_is_error(Iter)) ML_CONTINUE(State->Base.Caller, Iter);
+	State->Iter = Iter;
+	if (Iter == MLNil) ML_CONTINUE(State->Base.Caller, Iter);
+	State->Base.run = (ml_state_fn)ml_split_state_inner_value;
+	return ml_iter_value((ml_state_t *)State, Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLSplitInnerT, ml_state_t *Caller, ml_value_t *Iter) {
+	ml_split_state_t *State = (ml_split_state_t *)((void *)Iter - offsetof(ml_split_state_t, Inner));
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_split_state_inner_iter;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+ML_METHOD("split", MLSequenceT, MLFunctionT) {
+	ml_split_t *Split = new(ml_split_t);
+	Split->Type = MLSplitT;
+	Split->Seq = Args[0];
+	Split->Fn = Args[1];
+	return (ml_value_t *)Split;
+}
+
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Seq, *Fn;
+} ml_grouped_t;
+
+ML_TYPE(MLGroupedT, (MLSequenceT), "grouped");
+
+typedef struct {
+	ml_state_t Base;
+	ml_value_t Inner;
+	ml_value_t *Current, *Next;
+	ml_value_t *Fn;
+	ml_value_t *Iter;
+	ml_value_t *Args[2];
+} ml_grouped_state_t;
+
+ML_TYPE(MLGroupedStateT, (MLStateT), "grouped::state");
+//!internal
+
+ML_TYPE(MLGroupedInnerT, (MLSequenceT), "grouped::inner");
+//!internal
+
+static void ml_grouped_state_first_group(ml_grouped_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Current = Value;
+	State->Next = NULL;
+	ML_CONTINUE(State->Base.Caller, State);
+}
+
+static void ml_grouped_state_first_value(ml_grouped_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Args[0] = Value;
+	State->Base.run = (ml_state_fn)ml_grouped_state_first_group;
+	return ml_call(State, State->Fn, 1, State->Args);
+}
+
+static void ml_grouped_state_first_iter(ml_grouped_state_t *State, ml_value_t *Iter) {
+	if (ml_is_error(Iter)) ML_CONTINUE(State->Base.Caller, Iter);
+	if (Iter == MLNil) ML_CONTINUE(State->Base.Caller, Iter);
+	State->Base.run = (ml_state_fn)ml_grouped_state_first_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Iter);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLGroupedT, ml_state_t *Caller, ml_grouped_t *Grouped) {
+	ml_grouped_state_t *State = new(ml_grouped_state_t);
+	State->Base.Type = MLGroupedStateT;
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_grouped_state_first_iter;
+	State->Fn = Grouped->Fn;
+	State->Inner.Type = MLGroupedInnerT;
+	return ml_iterate((ml_state_t *)State, Grouped->Seq);
+}
+
+static void ml_grouped_state_skip_iter(ml_grouped_state_t *State, ml_value_t *Iter);
+
+static void ml_grouped_state_skip_check(ml_grouped_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value != MLNil) {
+		State->Base.run = (ml_state_fn)ml_grouped_state_skip_iter;
+		return ml_iter_next((ml_state_t *)State, State->Iter);
+	}
+	State->Current = State->Next;
+	State->Next = NULL;
+	ML_CONTINUE(State->Base.Caller, State);
+}
+
+static void ml_grouped_state_skip_group(ml_grouped_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Args[0] = State->Current;
+	State->Args[1] = State->Next = Value;
+	State->Base.run = (ml_state_fn)ml_grouped_state_skip_check;
+	return ml_call(State, EqualMethod, 2, State->Args);
+}
+
+static void ml_grouped_state_skip_value(ml_grouped_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Args[0] = Value;
+	State->Base.run = (ml_state_fn)ml_grouped_state_skip_group;
+	return ml_call(State, State->Fn, 1, State->Args);
+}
+
+static void ml_grouped_state_skip_iter(ml_grouped_state_t *State, ml_value_t *Iter) {
+	if (ml_is_error(Iter)) ML_CONTINUE(State->Base.Caller, Iter);
+	if (Iter == MLNil) ML_CONTINUE(State->Base.Caller, Iter);
+	State->Base.run = (ml_state_fn)ml_grouped_state_skip_value;
+	return ml_iter_value((ml_state_t *)State, State->Iter = Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLGroupedStateT, ml_state_t *Caller, ml_grouped_state_t *State) {
+	if (State->Iter == MLNil) ML_RETURN(MLNil);
+	if (State->Current) {
+		State->Base.Caller = Caller;
+		State->Base.Context = Caller->Context;
+		State->Base.run = (ml_state_fn)ml_grouped_state_skip_iter;
+		return ml_iter_next((ml_state_t *)State, State->Iter);
+	} else {
+		State->Current = State->Next;
+	}
+	ML_RETURN(State);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLGroupedStateT, ml_state_t *Caller, ml_grouped_state_t *State) {
+	ML_RETURN(State->Current);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLGroupedStateT, ml_state_t *Caller, ml_grouped_state_t *State) {
+	ML_RETURN(&State->Inner);
+}
+
+static void ML_TYPED_FN(ml_iterate, MLGroupedInnerT, ml_state_t *Caller, ml_value_t *Iter) {
+	ml_grouped_state_t *State = (ml_grouped_state_t *)((void *)Iter - offsetof(ml_grouped_state_t, Inner));
+	if (State->Iter == MLNil) ML_RETURN(MLNil);
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLGroupedInnerT, ml_state_t *Caller, ml_value_t *Iter) {
+	ml_grouped_state_t *State = (ml_grouped_state_t *)((void *)Iter - offsetof(ml_grouped_state_t, Inner));
+	return ml_iter_key(Caller, State->Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLGroupedInnerT, ml_state_t *Caller, ml_value_t *Iter) {
+	ml_grouped_state_t *State = (ml_grouped_state_t *)((void *)Iter - offsetof(ml_grouped_state_t, Inner));
+	return ml_iter_value(Caller, State->Iter);
+}
+
+static void ml_grouped_state_inner_check(ml_grouped_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	if (Value == MLNil) {
+		State->Current = NULL;
+		ML_CONTINUE(State->Base.Caller, MLNil);
+	} else {
+		ML_CONTINUE(State->Base.Caller, &State->Inner);
+	}
+}
+
+static void ml_grouped_state_inner_group(ml_grouped_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Args[0] = State->Current;
+	State->Args[1] = State->Next = Value;
+	State->Base.run = (ml_state_fn)ml_grouped_state_inner_check;
+	return ml_call(State, EqualMethod, 2, State->Args);
+}
+
+static void ml_grouped_state_inner_value(ml_grouped_state_t *State, ml_value_t *Value) {
+	if (ml_is_error(Value)) ML_CONTINUE(State->Base.Caller, Value);
+	State->Args[0] = Value;
+	State->Base.run = (ml_state_fn)ml_grouped_state_inner_group;
+	return ml_call(State, State->Fn, 1, State->Args);
+}
+
+static void ml_grouped_state_inner_iter(ml_grouped_state_t *State, ml_value_t *Iter) {
+	if (ml_is_error(Iter)) ML_CONTINUE(State->Base.Caller, Iter);
+	State->Iter = Iter;
+	if (Iter == MLNil) ML_CONTINUE(State->Base.Caller, Iter);
+	State->Base.run = (ml_state_fn)ml_grouped_state_inner_value;
+	return ml_iter_value((ml_state_t *)State, Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLGroupedInnerT, ml_state_t *Caller, ml_value_t *Iter) {
+	ml_grouped_state_t *State = (ml_grouped_state_t *)((void *)Iter - offsetof(ml_grouped_state_t, Inner));
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)ml_grouped_state_inner_iter;
+	return ml_iter_next((ml_state_t *)State, State->Iter);
+}
+
+ML_METHOD("group", MLSequenceT, MLFunctionT) {
+	ml_grouped_t *Grouped = new(ml_grouped_t);
+	Grouped->Type = MLGroupedT;
+	Grouped->Seq = Args[0];
+	Grouped->Fn = Args[1];
+	return (ml_value_t *)Grouped;
+}
+
 void ml_sequence_init(stringmap_t *Globals) {
 	MLSomeT->call = ml_some_call;
 	MLFunctionT->Constructor = (ml_value_t *)MLChained;

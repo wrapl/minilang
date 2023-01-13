@@ -32,7 +32,7 @@ When creating a substring,  the first index is inclusive and second index is exc
 
 .. _type-regex:
 
-:mini:`type regex`
+:mini:`type regex < function`
    A regular expression.
 
 
@@ -165,6 +165,16 @@ When creating a substring,  the first index is inclusive and second index is exc
       "Hello" != "Hello" :> nil
       "abcd" != "abc" :> "abc"
       "abc" != "abcd" :> "abcd"
+
+
+:mini:`meth (String: string) !? (Pattern: regex): string | nil`
+   Returns :mini:`String` if it does not match :mini:`Pattern` and :mini:`nil` otherwise.
+
+   .. code-block:: mini
+
+      "2022-03-08" !? r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)" :> nil
+      "Not a date" !? r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)"
+      :> "Not a date"
 
 
 :mini:`meth (String: string) % (Pattern: regex): tuple[string] | nil`

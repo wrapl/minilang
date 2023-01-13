@@ -56,7 +56,7 @@ hierarchy
       "sequence":e -> "string":w;
       "enum":e -> "string::norm":w;
       "enum":e -> "string::ctype":w;
-      "any":e -> "regex":w;
+      "function":e -> "regex":w;
       "stream":e -> "string::buffer":w;
       "any":e -> "stream":w;
       "stream":e -> "stream::buffered":w;
@@ -67,6 +67,8 @@ hierarchy
       "function":e -> "chained":w;
       "sequence":e -> "chained":w;
       "any":e -> "iterator":w;
+      "sequence":e -> "split":w;
+      "sequence":e -> "grouped":w;
       "function":e -> "context":w;
       "function":e -> "state":w;
       "state":e -> "resumable::state":w;
