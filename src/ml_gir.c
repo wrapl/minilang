@@ -1353,6 +1353,8 @@ static void set_input_length(GICallableInfo *Info, int Index, GIArgument *ArgsIn
 
 static GIBaseInfo *DestroyNotifyInfo;
 
+//#include "ml_gir_bytecode.c"
+
 static void function_info_invoke(ml_state_t *Caller, GIFunctionInfo *Info, int Count, ml_value_t **Args) {
 	int NArgs = g_callable_info_get_n_args((GICallableInfo *)Info);
 	int NArgsIn = 1, NArgsOut = 0;

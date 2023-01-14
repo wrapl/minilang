@@ -1040,6 +1040,7 @@ ML_METHOD(MLNumberT, MLStringT) {
 // Returns the number in :mini:`String` or an error if :mini:`String` does not contain a valid number.
 	const char *Start = ml_string_value(Args[0]);
 	int Length = ml_string_length(Args[0]);
+	if (!Length) return ml_error("ValueError", "Error parsing number");
 	char *End = (char *)Start;
 #ifdef ML_COMPLEX
 	if (End[0] == 'i') {
@@ -2643,12 +2644,39 @@ ML_METHOD("?", MLStringT, MLRegexT) {
 	}
 	default: {
 		regoff_t Start = Matches[0].rm_so;
-		if (Start >= 0) {
-			size_t Length = Matches[0].rm_eo - Start;
-			return ml_string(Subject + Start, Length);
-		} else {
-			return MLNil;
-		}
+		return Start >= 0 ? Args[0] : MLNil;
+	}
+	}
+}
+
+ML_METHOD("!?", MLStringT, MLRegexT) {
+//<String
+//<Pattern
+//>string|nil
+// Returns :mini:`String` if it does not match :mini:`Pattern` and :mini:`nil` otherwise.
+//$= "2022-03-08" !? r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)"
+//$= "Not a date" !? r"([0-9]+)[/-]([0-9]+)[/-]([0-9]+)"
+	const char *Subject = ml_string_value(Args[0]);
+	regex_t *Regex = ml_regex_value(Args[1]);
+	regmatch_t Matches[Regex->re_nsub + 1];
+#ifdef ML_TRE
+	int Length = ml_string_length(Args[0]);
+	switch (regnexec(Regex, Subject, Length, Regex->re_nsub + 1, Matches, 0)) {
+
+#else
+	switch (regexec(Regex, Subject, Regex->re_nsub + 1, Matches, 0)) {
+#endif
+	case REG_NOMATCH:
+		return Args[0];
+	case REG_ESPACE: {
+		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
+		char *ErrorMessage = snew(ErrorSize + 1);
+		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
+		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+	}
+	default: {
+		regoff_t Start = Matches[0].rm_so;
+		return Start >= 0 ? MLNil : Args[0];
 	}
 	}
 }
@@ -3305,9 +3333,47 @@ ML_FUNCTION(MLRegex) {
 	return ml_regex(Pattern, Length);
 }
 
-ML_TYPE(MLRegexT, (), "regex",
+static void ml_regex_call(ml_state_t *Caller, ml_regex_t *Value, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ML_CHECKX_ARG_TYPE(0, MLStringT);
+	regex_t *Regex = Value->Value;
+	const char *Subject = ml_string_value(ml_deref(Args[0]));
+	regmatch_t Matches[Regex->re_nsub + 1];
+#ifdef ML_TRE
+	int Length = ml_string_length(Args[0]);
+	switch (regnexec(Regex, Subject, Length, Regex->re_nsub + 1, Matches, 0)) {
+
+#else
+	switch (regexec(Regex, Subject, Regex->re_nsub + 1, Matches, 0)) {
+#endif
+	case REG_NOMATCH:
+		ML_RETURN(MLNil);
+	case REG_ESPACE: {
+		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
+		char *ErrorMessage = snew(ErrorSize + 1);
+		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
+		ML_ERROR("RegexError", "regex error: %s", ErrorMessage);
+	}
+	default: {
+		ml_value_t *Results = ml_tuple(Regex->re_nsub + 1);
+		for (int I = 0; I < Regex->re_nsub + 1; ++I) {
+			regoff_t Start = Matches[I].rm_so;
+			if (Start >= 0) {
+				size_t Length = Matches[I].rm_eo - Start;
+				ml_tuple_set(Results, I + 1, ml_string(Subject + Start, Length));
+			} else {
+				ml_tuple_set(Results, I + 1, MLNil);
+			}
+		}
+		ML_RETURN(Results);
+	}
+	}
+}
+
+ML_TYPE(MLRegexT, (MLFunctionT), "regex",
 // A regular expression.
 	.hash = (void *)ml_regex_hash,
+	.call = (void *)ml_regex_call,
 	.Constructor = (ml_value_t *)MLRegex
 );
 

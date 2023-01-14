@@ -75,8 +75,9 @@ map
    .. code-block:: mini
 
       let M := copy({"A" is 1, "B" is 2, "C" is 3}, :const)
-      M::A :> 1
-      M::D :> nil
+      M::A
+      :> error("MethodError", "no method found for ::(visitor, string)")
+      M::D :> 
 
 
 :mini:`meth (Map₁: map) * (Map₂: map): map`
@@ -160,8 +161,9 @@ map
    .. code-block:: mini
 
       let M := copy({"A" is 1, "B" is 2, "C" is 3}, :const)
-      M["A"] :> 1
-      M["D"] :> nil
+      M["A"]
+      :> error("MethodError", "no method found for [](visitor, string)")
+      M["D"] :> 
 
 
 :mini:`meth (Map₁: map) \/ (Map₂: map): map`

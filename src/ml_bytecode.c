@@ -265,6 +265,12 @@ static ml_frame_t *MLCachedFrame = NULL;
 
 #endif
 
+size_t ml_count_cached_frames() {
+	size_t Count = 0;
+	for (ml_frame_t *Frame = MLCachedFrame; Frame; Frame = Frame->Next) ++Count;
+	return Count;
+}
+
 extern ml_value_t *SymbolMethod;
 
 #define ML_FRAME_REUSE_SIZE 384
@@ -275,6 +281,21 @@ extern ml_value_t *SymbolMethod;
 #define ML_STORE_COUNTER() {}
 
 #endif
+
+static ml_inst_t ReturnInst[1] = {{.Opcode = MLI_RETURN, .Line = 0}};
+
+#define TAIL_CALL(COUNT) \
+	ml_state_t *Caller = Frame->Base.Caller; \
+	ml_value_t **Args = ml_alloc_args(COUNT); \
+	memcpy(Args, Top - COUNT, COUNT * sizeof(ml_value_t *)); \
+	if (Frame->Reuse) { \
+		while (Top > Frame->Stack) *--Top = NULL; \
+		Frame->Next = MLCachedFrame; \
+		MLCachedFrame = (ml_frame_t *)Frame; \
+	} else { \
+		Frame->Inst = ReturnInst; \
+	} \
+	return ml_call(Caller, Function, COUNT, Args)
 
 #define DO_CALL_COUNT(COUNT) \
 	DO_CALL_ ## COUNT: { \
@@ -289,11 +310,8 @@ extern ml_value_t *SymbolMethod;
 	} \
 	DO_TAIL_CALL_ ## COUNT: { \
 		ml_value_t *Function = Top[~COUNT]; \
-		ml_value_t **Args = Top - COUNT; \
 		ML_STORE_COUNTER(); \
-		ml_state_t *Caller = Frame->Base.Caller; \
-		if (Frame->Reuse) DEBUG_FUNC(frame_reuse)(Frame); \
-		return ml_call(Caller, Function, COUNT, Args); \
+		TAIL_CALL(COUNT); \
 	} \
 	DO_CALL_CONST_ ## COUNT: { \
 		ml_value_t **Args = Top - COUNT; \
@@ -306,36 +324,12 @@ extern ml_value_t *SymbolMethod;
 		return ml_call(Frame, Function, COUNT, Args); \
 	} \
 	DO_TAIL_CALL_CONST_ ## COUNT: { \
-		ml_value_t **Args = Top - COUNT; \
 		ml_value_t *Function = Inst[1].Value; \
 		ML_STORE_COUNTER(); \
-		ml_state_t *Caller = Frame->Base.Caller; \
-		if (Frame->Reuse) DEBUG_FUNC(frame_reuse)(Frame); \
-		return ml_call(Caller, Function, COUNT, Args); \
+		TAIL_CALL(COUNT); \
 	} \
 	DO_CALL_METHOD_ ## COUNT: { \
 		ml_value_t **Args = Top - COUNT; \
-		/*ml_method_t *Method = (ml_method_t *)Inst[1].Value; \
-		ml_method_cached_t *Cached = Inst[3].Data; \
-		if (Cached) { \
-			for (int I = 0; I < COUNT; ++I) { \
-				if (Cached->Types[I] != ml_typeof_deref(Args[I])) { \
-					Cached = NULL; \
-					break; \
-				} \
-			} \
-		} \
-		if (!Cached || !Cached->Callback) { \
-			ml_methods_t *Methods = Frame->Base.Context->Values[ML_METHODS_INDEX]; \
-			Cached = ml_method_search_cached(Methods, Method, COUNT, Args); \
-			if (!Cached) { \
-				Result = ml_no_method_error(Method, COUNT, Args); \
-				ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line}); \
-				ERROR(); \
-			} \
-			Inst[3].Data = Cached; \
-		} \
-		ml_value_t *Function = Cached->Callback;*/ \
 		ml_value_t *Function = Inst[1].Value; \
 		ml_inst_t *Next = Inst + 4; \
 		ML_STORE_COUNTER(); \
@@ -345,33 +339,9 @@ extern ml_value_t *SymbolMethod;
 		return ml_call(Frame, Function, COUNT, Args); \
 	} \
 	DO_TAIL_CALL_METHOD_ ## COUNT: { \
-		ml_value_t **Args = Top - COUNT; \
-		/*ml_method_t *Method = (ml_method_t *)Inst[1].Value; \
-		ml_method_cached_t *Cached = Inst[3].Data; \
-		if (Cached) { \
-			for (int I = 0; I < COUNT; ++I) { \
-				if (Cached->Types[I] != ml_typeof_deref(Args[I])) { \
-					Cached = NULL; \
-					break; \
-				} \
-			} \
-		} \
-		if (!Cached || !Cached->Callback) { \
-			ml_methods_t *Methods = Frame->Base.Context->Values[ML_METHODS_INDEX]; \
-			Cached = ml_method_search_cached(Methods, Method, COUNT, Args); \
-			if (!Cached) { \
-				Result = ml_no_method_error(Method, COUNT, Args); \
-				ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line}); \
-				ERROR(); \
-			} \
-			Inst[3].Data = Cached; \
-		} \
-		ml_value_t *Function = Cached->Callback;*/ \
 		ml_value_t *Function = Inst[1].Value; \
 		ML_STORE_COUNTER(); \
-		ml_state_t *Caller = Frame->Base.Caller; \
-		if (Frame->Reuse) DEBUG_FUNC(frame_reuse)(Frame); \
-		return ml_call(Caller, Function, COUNT, Args); \
+		TAIL_CALL(COUNT); \
 	}
 
 #define CALL_LABELS(PREFIX) \
@@ -389,16 +359,6 @@ extern ml_value_t *SymbolMethod;
 	}
 
 #endif
-
-static void DEBUG_FUNC(frame_reuse)(DEBUG_STRUCT(frame) *Frame) {
-	// Ensure at least one other cached frame is available to prevent this frame being used immediately which may result in arguments being overwritten.
-	if (!MLCachedFrame) {
-		MLCachedFrame = bnew(ML_FRAME_REUSE_SIZE);
-		MLCachedFrame->Reuse = 1;
-	}
-	Frame->Next = MLCachedFrame->Next;
-	MLCachedFrame->Next = (ml_frame_t *)Frame;
-}
 
 extern ml_value_t *AppendMethod;
 
@@ -808,11 +768,8 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		int Count = Inst[1].Count;
 		if (__builtin_expect(Count < 10, 1)) goto *TAIL_CALL_Labels[Count];
 		ml_value_t *Function = Top[~Count];
-		ml_value_t **Args = Top - Count;
 		ML_STORE_COUNTER();
-		ml_state_t *Caller = Frame->Base.Caller;
-		if (Frame->Reuse) DEBUG_FUNC(frame_reuse)(Frame);
-		return ml_call(Caller, Function, Count, Args);
+		TAIL_CALL(Count);
 	}
 	DO_CALL_CONST: {
 		int Count = Inst[2].Count;
@@ -829,38 +786,14 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_TAIL_CALL_CONST: {
 		int Count = Inst[2].Count;
 		if (__builtin_expect(Count < 10, 1)) goto *TAIL_CALL_CONST_Labels[Count];
-		ml_value_t **Args = Top - Count;
 		ml_value_t *Function = Inst[1].Value;
 		ML_STORE_COUNTER();
-		ml_state_t *Caller = Frame->Base.Caller;
-		if (Frame->Reuse) DEBUG_FUNC(frame_reuse)(Frame);
-		return ml_call(Caller, Function, Count, Args);
+		TAIL_CALL(Count);
 	}
 	DO_CALL_METHOD: {
 		int Count = Inst[2].Count;
 		if (__builtin_expect(Count < 10, 1)) goto *CALL_METHOD_Labels[Count];
 		ml_value_t **Args = Top - Count;
-		/*ml_method_t *Method = (ml_method_t *)Inst[1].Value;
-		ml_method_cached_t *Cached = Inst[3].Data;
-		if (Cached) {
-			for (int I = 0; I < Count; ++I) {
-				if (Cached->Types[I] != ml_typeof_deref(Args[I])) {
-					Cached = NULL;
-					break;
-				}
-			}
-		}
-		if (!Cached || !Cached->Callback) {
-			ml_methods_t *Methods = Frame->Base.Context->Values[ML_METHODS_INDEX];
-			Cached = ml_method_search_cached(Methods, Method, Count, Args);
-			if (!Cached) {
-				Result = ml_no_method_error(Method, Count, Args);
-				ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
-				ERROR();
-			}
-			Inst[3].Data = Cached;
-		}
-		ml_value_t *Function = Cached->Callback;*/
 		ml_value_t *Function = Inst[1].Value;
 		ml_inst_t *Next = Inst + 4;
 		ML_STORE_COUNTER();
@@ -872,33 +805,9 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 	DO_TAIL_CALL_METHOD: {
 		int Count = Inst[2].Count;
 		if (__builtin_expect(Count < 10, 1)) goto *TAIL_CALL_METHOD_Labels[Count];
-		ml_value_t **Args = Top - Count;
-		/*ml_method_t *Method = (ml_method_t *)Inst[1].Value;
-		ml_method_cached_t *Cached = Inst[3].Data;
-		if (Cached) {
-			for (int I = 0; I < Count; ++I) {
-				if (Cached->Types[I] != ml_typeof_deref(Args[I])) {
-					Cached = NULL;
-					break;
-				}
-			}
-		}
-		if (!Cached || !Cached->Callback) {
-			ml_methods_t *Methods = Frame->Base.Context->Values[ML_METHODS_INDEX];
-			Cached = ml_method_search_cached(Methods, Method, Count, Args);
-			if (!Cached) {
-				Result = ml_no_method_error(Method, Count, Args);
-				ml_error_trace_add(Result, (ml_source_t){Frame->Source, Inst->Line});
-				ERROR();
-			}
-			Inst[3].Data = Cached;
-		}
-		ml_value_t *Function = Cached->Callback;*/
 		ml_value_t *Function = Inst[1].Value;
 		ML_STORE_COUNTER();
-		ml_state_t *Caller = Frame->Base.Caller;
-		if (Frame->Reuse) DEBUG_FUNC(frame_reuse)(Frame);
-		return ml_call(Caller, Function, Count, Args);
+		TAIL_CALL(Count);
 	}
 	DO_ASSIGN: {
 		Result = ml_deref(Result);

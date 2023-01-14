@@ -61,6 +61,12 @@ sequence
       F("cake") :> "CAKECAKECAKE"
 
 
+.. _type-grouped:
+
+:mini:`type grouped < sequence`
+   *TBD*
+
+
 :mini:`meth (Arg₁: integer::range) & (Arg₂: integer::range)`
    *TBD*
 
@@ -501,6 +507,10 @@ sequence
       first2([]) :> nil
 
 
+:mini:`meth (Arg₁: sequence):group(Arg₂: function)`
+   *TBD*
+
+
 :mini:`meth (Sequence: sequence):join: string`
    Joins the elements of :mini:`Sequence` into a string.
 
@@ -569,6 +579,16 @@ sequence
 
       list(1 .. 10) :> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
       list(1 .. 10 skip 5) :> [6, 7, 8, 9, 10]
+
+
+:mini:`meth (Arg₁: sequence):split(Arg₂: function)`
+   *TBD*
+
+
+.. _type-split:
+
+:mini:`type split < sequence`
+   *TBD*
 
 
 :mini:`meth (Arg₁: type):random(...)`
