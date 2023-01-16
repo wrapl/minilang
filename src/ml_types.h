@@ -1183,6 +1183,8 @@ ml_value_t *ml_externals_get_value(ml_externals_t *Externals, const char *Name);
 
 void ml_externals_add(const char *Name, void *Value);
 
+ml_value_t *ml_serialize(ml_value_t *Value);
+
 // Symbols //
 
 typedef struct {

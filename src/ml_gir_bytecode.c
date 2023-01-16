@@ -565,17 +565,33 @@ static gir_function_t *function_info_compile_arg(gir_function_compiler_t *Compil
 		return Function;
 	}
 	gir_function_arg_info_t *Arg = Compiler->Args + Index;
-	if (Arg->IsClosure) {
-		gir_function_t *Function = function_info_compile_arg(Compiler, Index + 1, In + 1, Out, Aux);
-		Function->InstIn[In] = GI_SKIP;
-		return Function;
-	}
-	if (Arg->IsLength) {
-		gir_function_t *Function = function_info_compile_arg(Compiler, Index + 1, In + 2, Out, Aux);
-		Function->InstIn[In] = GI_LENGTH;
-		Function->InstIn[In + 1] = Compiler->Args[Index].Aux;
-		return Function;
-	}
 	GIDirection Direction = g_arg_info_get_direction(Arg->Info);
+	switch (Direction) {
+	case GI_DIRECTION_IN: {
+		if (Arg->IsClosure) {
+			gir_function_t *Function = function_info_compile_arg(Compiler, Index + 1, In + 1, Out, Aux);
+			Function->InstIn[In] = GI_SKIP;
+			return Function;
+		}
+		if (Arg->IsLength) {
+			gir_function_t *Function = function_info_compile_arg(Compiler, Index + 1, In + 2, Out, Aux);
+			Function->InstIn[In] = GI_LENGTH;
+			Function->InstIn[In + 1] = Compiler->Args[Index].Aux;
+			return Function;
+		}
+		GITypeInfo TypeInfo[1];
+		g_arg_info_load_type(Arg->Info, TypeInfo);
+		GITypeTag Tag = g_type_info_get_tag(TypeInfo);
+		switch (Tag) {
+		}
+		break;
+	}
+	case GI_DIRECTION_OUT: {
+		break;
+	}
+	case GI_DIRECTION_INOUT: {
+		break;
+	}
+	}
 }
 

@@ -993,6 +993,25 @@ ML_FUNCTION_INLINE(MLTypeSwitch) {
 	return (ml_value_t *)Switch;
 }
 
+static ml_value_t *ML_TYPED_FN(ml_serialize, MLTypeSwitchT, ml_type_switch_t *Switch) {
+	ml_value_t *Result = ml_list();
+	ml_list_put(Result, ml_cstring("type-switch"));
+	ml_value_t *Index = NULL, *Last = NULL;
+	for (ml_type_case_t *Case = Switch->Cases;; ++Case) {
+		if (Case->Type != MLAnyT) {
+			if (Case->Index != Index) {
+				Index = Case->Index;
+				Last = ml_list();
+				ml_list_put(Result, Last);
+			}
+			ml_list_put(Last, (ml_value_t *)Case->Type);
+		} else {
+			break;
+		}
+	}
+	return Result;
+}
+
 long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	//Value = ml_deref(Value);
 	for (ml_hash_chain_t *Link = Chain; Link; Link = Link->Previous) {
@@ -2626,6 +2645,8 @@ ML_METHOD("exports", MLModuleT) {
 // Externals //
 //!external
 
+ml_externals_t MLExternals[1] = {{MLExternalSetT, NULL, {INTHASH_INIT}, {STRINGMAP_INIT}}};
+
 ml_value_t *ml_external(const char *Name, const char *Source, int Line) {
 	ml_external_t *External = new(ml_external_t);
 	External->Type = MLExternalT;
@@ -2635,6 +2656,10 @@ ml_value_t *ml_external(const char *Name, const char *Source, int Line) {
 	External->Line = Line;
 	return (ml_value_t *)External;
 }
+
+//static ml_value_t *ml_external_deref(ml_external_t *External) {
+//	return stringmap_search(MLExternals->Names, External->Name) ?: (ml_value_t *)External;
+//}
 
 ML_FUNCTION(MLExternal) {
 //@external
@@ -2655,6 +2680,7 @@ ML_FUNCTION(MLExternal) {
 
 ML_TYPE(MLExternalT, (), "external",
 // A placeholder value that can be encoded and replaced on decoding.
+	//.deref = (void *)ml_external_deref,
 	.Constructor = (ml_value_t *)MLExternal
 );
 
@@ -2694,8 +2720,6 @@ ML_METHOD("add", MLExternalSetT, MLStringT, MLAnyT) {
 	inthash_insert(Externals->Values, (uintptr_t)Args[1], (void *)Name);
 	return MLNil;
 }
-
-ml_externals_t MLExternals[1] = {{MLExternalSetT, NULL, {INTHASH_INIT}, {STRINGMAP_INIT}}};
 
 const char *ml_externals_get_name(ml_externals_t *Externals, ml_value_t *Value) {
 	while (Externals) {
@@ -2742,6 +2766,38 @@ ML_FUNCTION(MLExternalAdd) {
 	stringmap_insert(MLExternals->Names, Name, Args[1]);
 	inthash_insert(MLExternals->Values, (uintptr_t)Args[1], (void *)Name);
 	return MLNil;
+}
+
+ML_FUNCTION(MLExternalDefault) {
+//@external
+//<Name
+//>external
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	const char *Name = ml_string_value(Args[0]);
+	if (!strcmp(Name, "true")) return (ml_value_t *)MLTrue;
+	if (!strcmp(Name, "false")) return (ml_value_t *)MLFalse;
+	ml_value_t *Value = stringmap_search(MLExternals->Names, Name);
+	if (Value) return Value;
+	const char *Source = "";
+	int Line = 0;
+	if (Count > 1) {
+		ML_CHECK_ARG_TYPE(1, MLStringT);
+		ML_CHECK_ARG_TYPE(2, MLIntegerT);
+		Source = ml_string_value(Args[1]);
+		Line = ml_integer_value(Args[2]);
+	}
+	return ml_external(ml_string_value(Args[0]), Source, Line);
+}
+
+ml_value_t *ml_serialize(ml_value_t *Value) {
+	typeof(ml_serialize) *function = ml_typed_fn_get(ml_typeof(Value), ml_serialize);
+	if (function) return function(Value);
+	return ml_error("TypeError", "No method to serialize %s", ml_typeof(Value)->Name);
+}
+
+ml_value_t *ml_deserialize(ml_value_t *Value) {
+	return ml_error("InternalError", "Generic deserialization not implemented yet");
 }
 
 // Symbols //
@@ -2985,6 +3041,7 @@ void ml_init(stringmap_t *Globals) {
 	stringmap_insert(MLExternalT->Exports, "set", MLExternalSetT);
 	stringmap_insert(MLExternalT->Exports, "get", MLExternalGet);
 	stringmap_insert(MLExternalT->Exports, "add", MLExternalAdd);
+	stringmap_insert(MLExternalT->Exports, "default", MLExternalDefault);
 	ml_externals_add("type", MLTypeT);
 	ml_externals_add("function", MLFunctionT);
 	ml_externals_add("method", MLMethodT);
@@ -2998,6 +3055,8 @@ void ml_init(stringmap_t *Globals) {
 	ml_externals_add("tuple", MLTupleT);
 	ml_externals_add("map", MLMapT);
 	ml_externals_add("set", MLSetT);
+	//ml_externals_add("true", MLTrue);
+	//ml_externals_add("false", MLFalse);
 	ml_externals_add("boolean", MLBooleanT);
 	ml_externals_add("error", MLErrorT);
 	ml_externals_add("regex", MLRegexT);

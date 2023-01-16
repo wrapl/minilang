@@ -745,7 +745,14 @@ void ml_cbor_write(ml_cbor_writer_t *Writer, ml_value_t *Value) {
 	}
 	typeof(ml_cbor_write) *function = ml_typed_fn_get(ml_typeof(Value), ml_cbor_write);
 	if (function) return function(Writer, Value);
-	ML_CBOR_WRITER_ERROR(Writer, "CBORError", "No method to encode %s to CBOR", ml_typeof(Value)->Name);
+	ml_value_t *Serialized = ml_serialize(Value);
+	if (ml_is_error(Serialized)) {
+		ML_CBOR_WRITER_ERROR(Writer, "CBORError", "No method to encode %s to CBOR", ml_typeof(Value)->Name);
+	} else {
+		minicbor_write_tag(Writer, 27);
+		minicbor_write_array(Writer, ml_list_length(Serialized));
+		ML_LIST_FOREACH(Serialized, Iter) ml_cbor_write(Writer, Iter->Value);
+	}
 }
 
 ml_value_t *ml_cbor_try_write(ml_cbor_writer_t *Writer, ml_value_t *Value) {

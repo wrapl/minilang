@@ -3562,6 +3562,32 @@ ML_FUNCTION_INLINE(MLStringSwitch) {
 	return (ml_value_t *)Switch;
 }
 
+static ml_value_t *ML_TYPED_FN(ml_serialize, MLStringSwitchT, ml_string_switch_t *Switch) {
+	ml_value_t *Result = ml_list();
+	ml_list_put(Result, ml_cstring("string-switch"));
+	ml_value_t *Index = NULL, *Last = NULL;
+	for (ml_string_case_t *Case = Switch->Cases;; ++Case) {
+		if (Case->String) {
+			if (Case->Index != Index) {
+				Index = Case->Index;
+				Last = ml_list();
+				ml_list_put(Result, Last);
+			}
+			ml_list_put(Last, (ml_value_t *)Case->String);
+		} else if (Case->Regex) {
+			if (Case->Index != Index) {
+				Index = Case->Index;
+				Last = ml_list();
+				ml_list_put(Result, Last);
+			}
+			ml_list_put(Last, (ml_value_t *)Case->Regex);
+		} else {
+			break;
+		}
+	}
+	return Result;
+}
+
 ml_value_t *ml_stringbuffer() {
 	ml_stringbuffer_t *Buffer = new(ml_stringbuffer_t);
 	Buffer->Type = MLStringBufferT;

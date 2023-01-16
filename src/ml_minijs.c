@@ -21,6 +21,9 @@ struct ml_minijs_encoder_t {
 };
 
 json_t *ml_minijs_encode(ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
+	//if (Value == MLNil) return json_null();
+	//if (Value == MLTrue) return json_true();
+	//if (Value == MLFalse) return json_false();
 	json_t *Json = inthash_search(Encoder->Cached, (uintptr_t)Value);
 	if (Json) {
 		json_t *First = json_array_get(Json, 0);
@@ -35,8 +38,12 @@ json_t *ml_minijs_encode(ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
 		return json_pack("[sssi]", "^", Name, "", 0);
 	}
 	typeof(ml_minijs_encode) *encode = ml_typed_fn_get(ml_typeof(Value), ml_minijs_encode);
-	if (!encode) return json_pack("[ss]", "unsupported", ml_typeof(Value)->Name);
-	return encode(Encoder, Value);
+	if (encode) return encode(Encoder, Value);
+	ml_value_t *Serialized = ml_serialize(Value);
+	if (ml_is_error(Serialized)) return json_pack("[ss]", "unsupported", ml_typeof(Value)->Name);
+	Json = json_pack("[s]", "o");
+	ML_LIST_FOREACH(Serialized, Iter) json_array_append_new(Json, ml_minijs_encode(Encoder, Iter->Value));
+	return Json;
 }
 
 static json_t *ML_TYPED_FN(ml_minijs_encode, MLNilT, ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
