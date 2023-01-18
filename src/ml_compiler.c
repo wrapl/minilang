@@ -4395,8 +4395,38 @@ static mlc_expr_t *ml_accept_fun_expr(ml_parser_t *Parser, const char *Name, ml_
 						Param->Kind = ML_PARAM_ASVAR;
 					} else if (ml_parse2(Parser, MLT_LET)) {
 					}
-					ml_accept(Parser, MLT_IDENT);
-					Param->Ident = Parser->Ident;
+					if (ml_parse2(Parser, MLT_LEFT_PAREN)) {
+						GC_asprintf((char **)&Param->Ident, "(%d)", Index);
+						ML_EXPR(UnpackExpr, block, block);
+						int Count = 1;
+						ml_accept(Parser, MLT_IDENT);
+						mlc_local_t *Local = UnpackExpr->Lets = mlc_local_new(Parser->Ident, Parser->Source.Line);
+						while (ml_parse2(Parser, MLT_COMMA)) {
+							ml_accept(Parser, MLT_IDENT);
+							Local = Local->Next = mlc_local_new(Parser->Ident, Parser->Source.Line);
+							Local->Index = Count++;
+						}
+						ml_accept(Parser, MLT_RIGHT_PAREN);
+						ML_EXPR(IdentExpr, ident, ident);
+						IdentExpr->Ident = Param->Ident;
+						ML_EXPR(LocalExpr, local, let_unpack);
+						if (Param->Kind == ML_PARAM_BYREF) {
+							LocalExpr->compile = ml_ref_unpack_expr_compile;
+						} else if (Param->Kind == ML_PARAM_ASVAR) {
+							LocalExpr->compile = ml_var_unpack_expr_compile;
+						}
+						Param->Kind = 0;
+						LocalExpr->Local = UnpackExpr->Lets;
+						LocalExpr->Count = Count;
+						LocalExpr->Child = ML_EXPR_END(IdentExpr);
+						UnpackExpr->NumLets = Count;
+						UnpackExpr->Child = ML_EXPR_END(LocalExpr);
+						BodySlot[0] = ML_EXPR_END(UnpackExpr);
+						BodySlot = &LocalExpr->Next;
+					} else {
+						ml_accept(Parser, MLT_IDENT);
+						Param->Ident = Parser->Ident;
+					}
 				}
 				if (ml_parse2(Parser, MLT_COLON)) Param->Type = ml_parse_term(Parser, 0);
 				if (ml_parse2(Parser, MLT_ASSIGN)) {
