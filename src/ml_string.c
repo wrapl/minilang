@@ -3395,14 +3395,16 @@ ml_value_t *ml_regex(const char *Pattern, int Length) {
 	return (ml_value_t *)Regex;
 }
 
-ml_value_t *ml_regexi(const char *Pattern, int Length) {
+ml_value_t *ml_regexi(const char *Pattern0, int Length) {
 	ml_regex_t *Regex = new(ml_regex_t);
 	Regex->Type = MLRegexT;
+	char *Pattern;
+	Length = GC_asprintf(&Pattern, "(?i)%s", Pattern0);
 	Regex->Pattern = Pattern;
 #ifdef ML_TRE
-	int Error = regncomp(Regex->Value, Pattern, Length, REG_EXTENDED | REG_ICASE);
+	int Error = regncomp(Regex->Value, Pattern, Length, REG_EXTENDED);
 #else
-	int Error = regcomp(Regex->Value, Pattern, REG_EXTENDED | REG_ICASE);
+	int Error = regcomp(Regex->Value, Pattern, REG_EXTENDED);
 #endif
 	if (Error) {
 		size_t ErrorSize = regerror(Error, Regex->Value, NULL, 0);
