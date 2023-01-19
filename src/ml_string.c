@@ -1907,6 +1907,7 @@ ML_METHOD("/", MLStringT, MLStringT) {
 	const char *Subject = ml_string_value(Args[0]);
 	const char *Pattern = ml_string_value(Args[1]);
 	size_t Length = strlen(Pattern);
+	if (!Length) return ml_error("ValueError", "Empty pattern used in split");
 	for (;;) {
 		const char *Next = strstr(Subject, Pattern);
 		while (Next == Subject) {
@@ -1962,6 +1963,8 @@ ML_METHOD("/", MLStringT, MLRegexT) {
 		}
 		default: {
 			regoff_t Start = Matches[Index].rm_so;
+			regoff_t End = Matches[Index].rm_eo;
+			if (End == 0) return ml_error("RegexError", "Empty match while splitting string");
 			if (Start > 0) ml_list_put(Results, ml_string(Subject, Start));
 			Subject += Matches[Index].rm_eo;
 			SubjectLength -= Matches[Index].rm_eo;
@@ -2006,6 +2009,8 @@ ML_METHOD("/", MLStringT, MLRegexT, MLIntegerT) {
 		}
 		default: {
 			regoff_t Start = Matches[Index].rm_so;
+			regoff_t End = Matches[Index].rm_eo;
+			if (End == 0) return ml_error("RegexError", "Empty match while splitting string");
 			if (Start > 0) ml_list_put(Results, ml_string(Subject, Start));
 			Subject += Matches[Index].rm_eo;
 			SubjectLength -= Matches[Index].rm_eo;
