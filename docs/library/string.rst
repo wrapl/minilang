@@ -214,7 +214,7 @@ When creating a substring,  the first index is inclusive and second index is exc
 
 :mini:`meth (String: string) / (Pattern: regex): list`
    Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
-   If :mini:`Pattern` contains a subgroup then only the subgroup matches are removed from the output substrings.
+   If :mini:`Pattern` contains subgroups then only the subgroup matches are removed from the output substrings.
 
    .. code-block:: mini
 

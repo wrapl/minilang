@@ -1935,24 +1935,24 @@ ML_METHOD("/", MLStringT, MLRegexT) {
 //<Pattern
 //>list
 // Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
-// If :mini:`Pattern` contains a subgroup then only the subgroup matches are removed from the output substrings.
+// If :mini:`Pattern` contains subgroups then only the subgroup matches are removed from the output substrings.
 //$= "2022/03/08" / r"[/-]"
 //$= "2022-03-08" / r"[/-]"
 	ml_value_t *Results = ml_list();
 	const char *Subject = ml_string_value(Args[0]);
-	int SubjectLength = ml_string_length(Args[0]);
-	const char *SubjectEnd = Subject + SubjectLength;
+	int Length = ml_string_length(Args[0]);
 	ml_regex_t *Pattern = (ml_regex_t *)Args[1];
-	int Index = Pattern->Value->re_nsub ? 1 : 0;
-	regmatch_t Matches[2];
+	int NumSubs = Pattern->Value->re_nsub;
+	regoff_t Edge = 0, Done = 0;
+	regmatch_t Matches[NumSubs + 1];
 	for (;;) {
 #ifdef ML_TRE
-		switch (regnexec(Pattern->Value, Subject, SubjectLength, Index + 1, Matches, 0)) {
+		switch (regnexec(Pattern->Value, Subject + Done, Length - Done, NumSubs + 1, Matches, 0)) {
 #else
-		switch (regexec(Pattern->Value, Subject, Index + 1, Matches, 0)) {
+		switch (regexec(Pattern->Value, Subject + Done, NumSubs + 1, Matches, 0)) {
 #endif
 		case REG_NOMATCH: {
-			if (SubjectEnd > Subject) ml_list_put(Results, ml_string(Subject, SubjectEnd - Subject));
+			if (Length > Edge) ml_list_put(Results, ml_string(Subject + Edge, Length - Edge));
 			return Results;
 		}
 		case REG_ESPACE: {
@@ -1962,12 +1962,30 @@ ML_METHOD("/", MLStringT, MLRegexT) {
 			return ml_error("RegexError", "regex error: %s", ErrorMessage);
 		}
 		default: {
-			regoff_t Start = Matches[Index].rm_so;
-			regoff_t End = Matches[Index].rm_eo;
-			if (End == 0) return ml_error("RegexError", "Empty match while splitting string");
-			if (Start > 0) ml_list_put(Results, ml_string(Subject, Start));
-			Subject += Matches[Index].rm_eo;
-			SubjectLength -= Matches[Index].rm_eo;
+			if (Matches[0].rm_eo == 0) return ml_error("RegexError", "Empty match while splitting string");
+			if (NumSubs) {
+				for (int I = 1; I <= NumSubs; ++I) {
+					regoff_t Start = Matches[I].rm_so;
+					if (Start == 0) {
+						if (Done > Edge) ml_list_put(Results, ml_string(Subject + Edge, Done - Edge));
+						Edge = Done + Matches[I].rm_eo;
+					} else if (Start > 0) {
+						ml_list_put(Results, ml_string(Subject + Edge, (Done + Start) - Edge));
+						Edge = Done + Matches[I].rm_eo;
+					}
+				}
+			} else {
+				regoff_t Start = Matches[0].rm_so;
+				if (Start == 0) {
+					if (Done > Edge) ml_list_put(Results, ml_string(Subject + Edge, Done - Edge));
+					Edge = Done + Matches[0].rm_eo;
+				} else if (Start > 0) {
+					ml_list_put(Results, ml_string(Subject + Edge, (Done + Start) - Edge));
+					Edge = Done + Matches[0].rm_eo;
+				}
+			}
+			Done += Matches[0].rm_eo;
+			break;
 		}
 		}
 	}
@@ -1984,21 +2002,20 @@ ML_METHOD("/", MLStringT, MLRegexT, MLIntegerT) {
 //$= "<A>-<B>-<C>" / (r">(-)<", 1)
 	ml_value_t *Results = ml_list();
 	const char *Subject = ml_string_value(Args[0]);
-	int SubjectLength = ml_string_length(Args[0]);
-	const char *SubjectEnd = Subject + SubjectLength;
+	int Length = ml_string_length(Args[0]);
 	ml_regex_t *Pattern = (ml_regex_t *)Args[1];
 	int Index = ml_integer_value(Args[2]);
 	if (Index < 0 || Index > Pattern->Value->re_nsub) return ml_error("RegexError", "Invalid regex group");
-
+	regoff_t Edge = 0, Done = 0;
 	regmatch_t Matches[Index + 1];
 	for (;;) {
 #ifdef ML_TRE
-		switch (regnexec(Pattern->Value, Subject, SubjectLength, Index + 1, Matches, 0)) {
+		switch (regnexec(Pattern->Value, Subject + Done, Length - Done, Index + 1, Matches, 0)) {
 #else
-		switch (regexec(Pattern->Value, Subject, Index + 1, Matches, 0)) {
+		switch (regexec(Pattern->Value, Subject + Done, Index + 1, Matches, 0)) {
 #endif
 		case REG_NOMATCH: {
-			if (SubjectEnd > Subject) ml_list_put(Results, ml_string(Subject, SubjectEnd - Subject));
+			if (Length > Edge) ml_list_put(Results, ml_string(Subject + Edge, Length - Edge));
 			return Results;
 		}
 		case REG_ESPACE: {
@@ -2008,12 +2025,17 @@ ML_METHOD("/", MLStringT, MLRegexT, MLIntegerT) {
 			return ml_error("RegexError", "regex error: %s", ErrorMessage);
 		}
 		default: {
+			if (Matches[0].rm_eo == 0) return ml_error("RegexError", "Empty match while splitting string");
 			regoff_t Start = Matches[Index].rm_so;
-			regoff_t End = Matches[Index].rm_eo;
-			if (End == 0) return ml_error("RegexError", "Empty match while splitting string");
-			if (Start > 0) ml_list_put(Results, ml_string(Subject, Start));
-			Subject += Matches[Index].rm_eo;
-			SubjectLength -= Matches[Index].rm_eo;
+			if (Start == 0) {
+				if (Done > Edge) ml_list_put(Results, ml_string(Subject + Edge, Done - Edge));
+				Edge = Done + Matches[Index].rm_eo;
+			} else if (Start > 0) {
+				ml_list_put(Results, ml_string(Subject + Edge, (Done + Start) - Edge));
+				Edge = Done + Matches[Index].rm_eo;
+			}
+			Done += Matches[0].rm_eo;
+			break;
 		}
 		}
 	}
@@ -2928,9 +2950,9 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
 			return ml_error("RegexError", "regex error: %s", ErrorMessage);
 		}
 		default: {
+			if (Matches[0].rm_eo == 0) return ml_error("RegexError", "Empty match while splitting string");
 			regoff_t Start = Matches[0].rm_so;
 			regoff_t End = Matches[0].rm_eo;
-			if (End == 0) return ml_error("RegexError", "Empty match while splitting string");
 			if (Start > 0) ml_stringbuffer_write(Buffer, Subject, Start);
 			ml_stringbuffer_write(Buffer, Replace, ReplaceLength);
 			Subject += End;
