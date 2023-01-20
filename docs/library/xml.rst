@@ -23,12 +23,12 @@ xml
    An XML node.
 
 
-:mini:`meth xml(String: string): xml`
-   Returns :mini:`String` parsed into an XML node.
-
-
 :mini:`meth xml(Stream: stream): xml`
    Returns the contents of :mini:`Stream` parsed into an XML node.
+
+
+:mini:`meth xml(String: string): xml`
+   Returns :mini:`String` parsed into an XML node.
 
 
 :mini:`meth (Xml: xml) / (Fn: function): sequence`
@@ -189,12 +189,16 @@ xml
    *TBD*
 
 
-:mini:`meth (Parent: xml::element):put(String: string): xml`
+:mini:`meth (Parent: xml::element):put(String: string, ...): xml`
    Adds a new text node containing :mini:`String` to :mini:`Parent`.
 
 
-:mini:`meth (Parent: xml::element):put(Child: xml::element): xml`
+:mini:`meth (Parent: xml::element):put(Child: xml::element, ...): xml`
    Adds :mini:`Child` to :mini:`Parent`.
+
+
+:mini:`meth (Xml: xml::element):set(Attribute: string, Value: string): xml`
+   Sets the value of attribute :mini:`Attribute` in :mini:`Xml` to :mini:`Value` and returns :mini:`Xml`.
 
 
 :mini:`meth (Xml: xml::element):tag: string`
