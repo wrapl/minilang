@@ -83,6 +83,18 @@ ml_xml_node_t *ml_xml_text(const char *Content, int Length) {
 	return Text;
 }
 
+ml_xml_node_t *ml_xml_text_copy(const char *Content, int Length) {
+	if (Length < 0) Length = strlen(Content);
+	ml_xml_node_t *Text = new(ml_xml_node_t);
+	Text->Base.Type = MLXmlTextT;
+	Text->Base.Length = Length;
+	char *Copy = snew(Length + 1);
+	memcpy(Copy, Content, Length);
+	Copy[Length] = 0;
+	Text->Base.Value = Copy;
+	return Text;
+}
+
 ML_METHOD("text", MLXmlTextT) {
 //<Xml
 //>string
@@ -99,7 +111,7 @@ struct ml_xml_element_t {
 	ml_xml_node_t *Head, *Tail;
 };
 
-ML_TYPE(MLXmlElementT, (MLXmlT, MLSequenceT), "xml::element");
+ML_TYPE(MLXmlElementT, (MLXmlT, MLSequenceT, MLStreamT), "xml::element");
 // An XML element node.
 
 ml_xml_element_t *ml_xml_element(const char *Tag) {
@@ -288,7 +300,20 @@ ML_METHOD("text", MLXmlElementT, MLStringT) {
 	return ml_stringbuffer_get_value(Buffer);
 }
 
-ML_METHOD("put", MLXmlElementT, MLStringT) {
+ML_METHOD("set", MLXmlElementT, MLStringT, MLStringT) {
+//<Xml
+//<Attribute
+//<Value
+//>xml
+// Sets the value of attribute :mini:`Attribute` in :mini:`Xml` to :mini:`Value` and returns :mini:`Xml`.
+	ml_xml_element_t *Element = (ml_xml_element_t *)Args[0];
+	ml_map_insert(Element->Attributes, Args[1], Args[2]);
+	return (ml_value_t *)Element;
+}
+
+ML_METHOD_DECL(PutMethod, "put");
+
+ML_METHODVX("put", MLXmlElementT, MLStringT) {
 //<Parent
 //<String
 //>xml
@@ -321,10 +346,14 @@ ML_METHOD("put", MLXmlElementT, MLStringT) {
 		Text->Base.Value = ml_string_value(Args[1]);
 		ml_xml_element_put(Parent, Text);
 	}
-	return (ml_value_t *)Parent;
+	if (Count > 2) {
+		Args[1] = (ml_value_t *)Parent;
+		return ml_call(Caller, PutMethod, Count - 1, Args + 1);
+	}
+	ML_RETURN(Parent);
 }
 
-ML_METHOD("put", MLXmlElementT, MLXmlElementT) {
+ML_METHODVX("put", MLXmlElementT, MLXmlElementT) {
 //<Parent
 //<Child
 //>xml
@@ -332,7 +361,54 @@ ML_METHOD("put", MLXmlElementT, MLXmlElementT) {
 	ml_xml_element_t *Parent = (ml_xml_element_t *)Args[0];
 	ml_xml_node_t *Child = (ml_xml_node_t *)Args[1];
 	ml_xml_element_put(Parent, Child);
-	return (ml_value_t *)Parent;
+	if (Count > 2) {
+		Args[1] = (ml_value_t *)Parent;
+		return ml_call(Caller, PutMethod, Count - 1, Args + 1);
+	}
+	ML_RETURN(Parent);
+}
+
+static void ml_xml_element_write(ml_state_t *Caller, ml_xml_element_t *Parent, const void *Address, int Count) {
+	ml_xml_node_t *Tail = Parent->Tail;
+	if (Tail && Tail->Base.Type == MLXmlTextT) {
+		ml_xml_node_t *Text = new(ml_xml_node_t);
+		Text->Base.Type = MLXmlTextT;
+		size_t Length = Text->Base.Length = Tail->Base.Length + Count;
+		char *Value = snew(Length + 1);
+		memcpy(Value, Tail->Base.Value, Tail->Base.Length);
+		memcpy(Value + Tail->Base.Length, Address, Count);
+		Value[Length] = 0;
+		Text->Base.Value = Value;
+		Text->Index = Tail->Index;
+		Text->Prev = Tail->Prev;
+		Text->Parent = Tail->Parent;
+		if (Text->Prev) {
+			Text->Prev->Next = Text;
+		} else {
+			Parent->Head = Text;
+		}
+		Parent->Tail = Text;
+	} else {
+		ml_xml_node_t *Text = new(ml_xml_node_t);
+		Text->Base.Type = MLXmlTextT;
+		Text->Base.Length = Count;
+		char *Copy = snew(Count + 1);
+		memcpy(Copy, Address, Count);
+		Copy[Count] = 0;
+		Text->Base.Value = Copy;
+		ml_xml_element_put(Parent, Text);
+	}
+	ML_RETURN(ml_integer(Count));
+}
+
+static void ML_TYPED_FN(ml_stream_write, MLXmlElementT, ml_state_t *Caller, ml_xml_element_t *Parent, const void *Address, int Count) {
+	return ml_xml_element_write(Caller, Parent, Address, Count);
+}
+
+ML_METHODX("write", MLXmlElementT, MLAddressT) {
+//!internal
+	ml_xml_element_t *Parent = (ml_xml_element_t *)Args[0];
+	return ml_xml_element_write(Caller, Parent, ml_address_value(Args[1]), ml_address_length(Args[1]));
 }
 
 typedef struct {

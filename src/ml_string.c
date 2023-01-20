@@ -2928,12 +2928,13 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
 			return ml_error("RegexError", "regex error: %s", ErrorMessage);
 		}
 		default: {
-			if (Matches[0].rm_eo == Matches[0].rm_so) return ml_error("RegexError", "empty regular expression used in replace");
 			regoff_t Start = Matches[0].rm_so;
+			regoff_t End = Matches[0].rm_eo;
+			if (End == 0) return ml_error("RegexError", "Empty match while splitting string");
 			if (Start > 0) ml_stringbuffer_write(Buffer, Subject, Start);
 			ml_stringbuffer_write(Buffer, Replace, ReplaceLength);
-			Subject += Matches[0].rm_eo;
-			SubjectLength -= Matches[0].rm_eo;
+			Subject += End;
+			SubjectLength -= End;
 		}
 		}
 	}
@@ -3002,6 +3003,7 @@ static void ml_str_replacement_next(ml_str_replacement_state_t *State, ml_value_
 					ML_ERROR("RegexError", "regex error: %s", ErrorMessage);
 				}
 				default: {
+					if (Matches[0].rm_eo == 0) ML_ERROR("RegexError", "Empty match while splitting string");
 					if (Matches[0].rm_so < MatchStart) {
 						MatchStart = Matches[0].rm_so;
 						SubArgs = ml_alloc_args(NumSub);
