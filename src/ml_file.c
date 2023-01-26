@@ -1,6 +1,7 @@
 #include "ml_file.h"
 #include "ml_macros.h"
 #include "ml_stream.h"
+#include "ml_object.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -85,6 +86,24 @@ static void ML_TYPED_FN(ml_stream_write, MLFileT, ml_state_t *Caller, ml_file_t 
 	ssize_t Result = fwrite(Address, 1, Count, File->Handle);
 	if (Result < 0) ML_ERROR("FileError", "error writing to file: %s", strerror(errno));
 	ML_RETURN(ml_integer(Result));
+}
+
+ML_ENUM2(MLFileSeekT, "file::seek",
+	"Set", SEEK_SET,
+	"Cur", SEEK_CUR,
+	"End", SEEK_END
+);
+
+ML_METHOD("seek", MLFileT, MLIntegerT, MLFileSeekT) {
+//<File
+//<Offset
+//<Seek
+//>File
+	ml_file_t *File = (ml_file_t *)Args[0];
+	if (!File->Handle) return ml_error("FileError", "file already closed");
+	off_t Offset = ml_integer_value(Args[1]);
+	int Mode = ml_enum_value_value(Args[2]);
+	return ml_integer(fseek(File->Handle, Offset, Mode));
 }
 
 ML_METHOD("eof", MLFileT) {
@@ -281,6 +300,7 @@ ML_METHOD("close", MLPOpenT) {
 
 void ml_file_init(stringmap_t *Globals) {
 #include "ml_file_init.c"
+	stringmap_insert(MLFileT->Exports, "seek", MLFileSeekT);
 	stringmap_insert(MLFileT->Exports, "rename", MLFileRename);
 	stringmap_insert(MLFileT->Exports, "unlink", MLFileUnlink);
 	if (Globals) {

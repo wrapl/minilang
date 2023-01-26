@@ -148,6 +148,7 @@ hierarchy
       "any":e -> "gir::enumvalue":w;
       "any":e -> "gir::objectproperty":w;
       "stream":e -> "file":w;
+      "enum":e -> "file::seek":w;
       "sequence":e -> "dir":w;
       "file":e -> "popen":w;
       "state":e -> "compiler::function":w;
