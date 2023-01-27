@@ -53,16 +53,6 @@ file
    Flushes any pending writes to :mini:`File`.
 
 
-:mini:`meth (File: file):seek(Offset: integer, Seek: file::seek): File`
-   *TBD*
-
-
-.. _type-file-seek:
-
-:mini:`type file::seek < enum`
-   *TBD*
-
-
 .. _type-popen:
 
 :mini:`type popen < file`

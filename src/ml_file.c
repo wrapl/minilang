@@ -1,7 +1,6 @@
 #include "ml_file.h"
 #include "ml_macros.h"
 #include "ml_stream.h"
-#include "ml_object.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -88,22 +87,14 @@ static void ML_TYPED_FN(ml_stream_write, MLFileT, ml_state_t *Caller, ml_file_t 
 	ML_RETURN(ml_integer(Result));
 }
 
-ML_ENUM2(MLFileSeekT, "file::seek",
-	"Set", SEEK_SET,
-	"Cur", SEEK_CUR,
-	"End", SEEK_END
-);
+static void ML_TYPED_FN(ml_stream_seek, MLFileT, ml_state_t *Caller, ml_file_t *File, int64_t Offset, int Mode) {
+	if (!File->Handle) ML_ERROR("FileError", "file already closed");
+	ML_RETURN(ml_integer(fseek(File->Handle, Offset, Mode)));
+}
 
-ML_METHOD("seek", MLFileT, MLIntegerT, MLFileSeekT) {
-//<File
-//<Offset
-//<Seek
-//>File
-	ml_file_t *File = (ml_file_t *)Args[0];
-	if (!File->Handle) return ml_error("FileError", "file already closed");
-	off_t Offset = ml_integer_value(Args[1]);
-	int Mode = ml_enum_value_value(Args[2]);
-	return ml_integer(fseek(File->Handle, Offset, Mode));
+static void ML_TYPED_FN(ml_stream_tell, MLFileT, ml_state_t *Caller, ml_file_t *File) {
+	if (!File->Handle) ML_ERROR("FileError", "file already closed");
+	ML_RETURN(ml_integer(ftell(File->Handle)));
 }
 
 ML_METHOD("eof", MLFileT) {
@@ -300,7 +291,6 @@ ML_METHOD("close", MLPOpenT) {
 
 void ml_file_init(stringmap_t *Globals) {
 #include "ml_file_init.c"
-	stringmap_insert(MLFileT->Exports, "seek", MLFileSeekT);
 	stringmap_insert(MLFileT->Exports, "rename", MLFileRename);
 	stringmap_insert(MLFileT->Exports, "unlink", MLFileUnlink);
 	if (Globals) {

@@ -202,7 +202,6 @@ int main(int Argc, const char *Argv[]) {
 #ifdef ML_AST
 	ml_ast_init(Globals);
 #endif
-	ml_file_init(Globals);
 	stringmap_insert(Globals, "now", MLNow);
 	stringmap_insert(Globals, "clock", MLClock);
 	stringmap_insert(Globals, "print", MLPrint);
@@ -260,6 +259,7 @@ int main(int Argc, const char *Argv[]) {
 #endif
 
 	ml_stream_init(IO_EXPORTS);
+	ml_file_init(Globals);
 	stringmap_insert(IO_EXPORTS, "terminal", ml_module("terminal",
 		"Stdin", ml_fd_stream(STDIN_FILENO),
 		"Stdout", ml_fd_stream(STDOUT_FILENO),

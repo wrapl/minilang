@@ -15,6 +15,10 @@ stream
    Base type of readable and writable byte streams.
 
 
+:mini:`meth (Stream: stream):close: nil`
+   Closes :mini:`Stream`. This method should be overridden for streams defined in Minilang.
+
+
 :mini:`meth (Source: stream):copy(Destination: stream): integer`
    Copies the remaining bytes from :mini:`Source` to :mini:`Destination`.
 
@@ -51,6 +55,14 @@ stream
    Returns the remainder of :mini:`Stream` or :mini:`nil` if :mini:`Stream` is empty.
 
 
+:mini:`meth (Stream: stream):seek(Offset: integer, Mode: stream::seek): integer`
+   Sets the position for the next read or write in :mini:`Stream` to :mini:`Offset` using :mini:`Mode`. This method should be overridden for streams defined in Minilang.
+
+
+:mini:`meth (Stream: stream):tell: integer`
+   Gets the position for the next read or write in :mini:`Stream`. This method should be overridden for streams defined in Minilang.
+
+
 :mini:`meth (Stream: stream):write(Address: address): integer`
    Writes the bytes at :mini:`Address` to :mini:`Stream`. This method should be overridden for streams defined in Minilang.
 
@@ -85,5 +97,11 @@ stream
 
 :mini:`meth (Stream: stream::fd):write(Source: address): integer`
    Writes from :mini:`Source` to :mini:`Stream` returning the actual number of bytes written.
+
+
+.. _type-stream-seek:
+
+:mini:`type stream::seek < enum`
+   *TBD*
 
 
