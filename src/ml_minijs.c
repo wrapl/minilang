@@ -14,11 +14,6 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "minijs"
 
-struct ml_minijs_encoder_t {
-	ml_externals_t *Externals;
-	inthash_t Cached[1];
-	int LastIndex;
-};
 
 json_t *ml_minijs_encode(ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
 	if (Value == MLNil) return json_null();
