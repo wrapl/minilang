@@ -2739,7 +2739,12 @@ ml_value_t *ml_externals_get_value(ml_externals_t *Externals, const char *Name) 
 	return NULL;
 }
 
-void ml_externals_add(const char *Name, void *Value) {
+void ml_externals_add(ml_externals_t *Externals, const char *Name, void *Value) {
+	stringmap_insert(Externals->Names, Name, Value);
+	inthash_insert(Externals->Values, (uintptr_t)Value, (void *)Name);
+}
+
+void ml_externals_default_add(const char *Name, void *Value) {
 	stringmap_insert(MLExternals->Names, Name, Value);
 	inthash_insert(MLExternals->Values, (uintptr_t)Value, (void *)Name);
 }
@@ -2775,8 +2780,6 @@ ML_FUNCTION(MLExternalDefault) {
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	const char *Name = ml_string_value(Args[0]);
-	if (!strcmp(Name, "true")) return (ml_value_t *)MLTrue;
-	if (!strcmp(Name, "false")) return (ml_value_t *)MLFalse;
 	ml_value_t *Value = stringmap_search(MLExternals->Names, Name);
 	if (Value) return Value;
 	const char *Source = "";
@@ -3042,33 +3045,34 @@ void ml_init(stringmap_t *Globals) {
 	stringmap_insert(MLExternalT->Exports, "get", MLExternalGet);
 	stringmap_insert(MLExternalT->Exports, "add", MLExternalAdd);
 	stringmap_insert(MLExternalT->Exports, "default", MLExternalDefault);
-	ml_externals_add("type", MLTypeT);
-	ml_externals_add("function", MLFunctionT);
-	ml_externals_add("method", MLMethodT);
-	ml_externals_add("any", MLAnyT);
-	ml_externals_add("some", MLSome);
-	ml_externals_add("integer", MLIntegerT);
-	ml_externals_add("real", MLRealT);
-	ml_externals_add("number", MLNumberT);
-	ml_externals_add("string", MLStringT);
-	ml_externals_add("list", MLListT);
-	ml_externals_add("tuple", MLTupleT);
-	ml_externals_add("map", MLMapT);
-	ml_externals_add("set", MLSetT);
-	//ml_externals_add("true", MLTrue);
-	//ml_externals_add("false", MLFalse);
-	ml_externals_add("boolean", MLBooleanT);
-	ml_externals_add("error", MLErrorT);
-	ml_externals_add("regex", MLRegexT);
+	ml_externals_default_add("any", MLAnyT);
+	ml_externals_default_add("some", MLSome);
+	ml_externals_default_add("type", MLTypeT);
+	ml_externals_default_add("function", MLFunctionT);
+	ml_externals_default_add("sequence", MLSequenceT);
+	ml_externals_default_add("boolean", MLBooleanT);
+	ml_externals_default_add("true", MLTrue);
+	ml_externals_default_add("false", MLFalse);
+	ml_externals_default_add("number", MLNumberT);
+	ml_externals_default_add("integer", MLIntegerT);
+	ml_externals_default_add("real", MLRealT);
 #ifdef ML_COMPLEX
-	ml_externals_add("complex", MLComplexT);
+	ml_externals_default_add("complex", MLComplexT);
+	ml_externals_default_add("i", ml_complex(1i));
 #endif
-	ml_externals_add("method", MLMethodT);
-	ml_externals_add("address", MLAddressT);
-	ml_externals_add("buffer", MLBufferT);
-	ml_externals_add("tuple", MLTupleT);
+	ml_externals_default_add("method", MLMethodT);
+	ml_externals_default_add("address", MLAddressT);
+	ml_externals_default_add("buffer", MLBufferT);
+	ml_externals_default_add("string", MLStringT);
+	ml_externals_default_add("regex", MLRegexT);
+	ml_externals_default_add("tuple", MLTupleT);
+	ml_externals_default_add("list", MLListT);
+	ml_externals_default_add("map", MLMapT);
+	ml_externals_default_add("set", MLSetT);
+	ml_externals_default_add("error", MLErrorT);
 	if (Globals) {
 		stringmap_insert(Globals, "any", MLAnyT);
+		stringmap_insert(Globals, "some", MLSome);
 		stringmap_insert(Globals, "type", MLTypeT);
 		stringmap_insert(Globals, "function", MLFunctionT);
 		stringmap_insert(Globals, "sequence", MLSequenceT);
@@ -3092,10 +3096,9 @@ void ml_init(stringmap_t *Globals) {
 		stringmap_insert(Globals, "list", MLListT);
 		stringmap_insert(Globals, "map", MLMapT);
 		stringmap_insert(Globals, "set", MLSetT);
-		stringmap_insert(Globals, "external", MLExternalT);
 		stringmap_insert(Globals, "error", MLErrorValueT);
+		stringmap_insert(Globals, "external", MLExternalT);
 		stringmap_insert(Globals, "module", MLModuleT);
-		stringmap_insert(Globals, "some", MLSome);
 		stringmap_insert(Globals, "deref", MLDeref);
 		stringmap_insert(Globals, "assign", MLAssign);
 		stringmap_insert(Globals, "call", MLCall);

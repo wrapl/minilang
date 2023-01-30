@@ -21,9 +21,9 @@ struct ml_minijs_encoder_t {
 };
 
 json_t *ml_minijs_encode(ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
-	//if (Value == MLNil) return json_null();
-	//if (Value == MLTrue) return json_true();
-	//if (Value == MLFalse) return json_false();
+	if (Value == MLNil) return json_null();
+	if (Value == (ml_value_t *)MLTrue) return json_true();
+	if (Value == (ml_value_t *)MLFalse) return json_false();
 	json_t *Json = inthash_search(Encoder->Cached, (uintptr_t)Value);
 	if (Json) {
 		json_t *First = json_array_get(Json, 0);
@@ -35,7 +35,7 @@ json_t *ml_minijs_encode(ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
 	}
 	const char *Name = ml_externals_get_name(Encoder->Externals, Value);
 	if (Name) {
-		return json_pack("[sssi]", "^", Name, "", 0);
+		return json_pack("[ss]", "^", Name);
 	}
 	typeof(ml_minijs_encode) *encode = ml_typed_fn_get(ml_typeof(Value), ml_minijs_encode);
 	if (encode) return encode(Encoder, Value);

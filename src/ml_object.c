@@ -1444,11 +1444,11 @@ ML_METHOD(MLListT, MLFlagsValueT) {
 
 void ml_object_init(stringmap_t *Globals) {
 #include "ml_object_init.c"
-	ml_externals_add("property", MLPropertyT);
-	ml_externals_add("object", MLObjectT);
-	ml_externals_add("class", MLClassT);
-	ml_externals_add("enum", MLEnumT);
-	ml_externals_add("flags", MLFlagsT);
+	ml_externals_default_add("property", MLPropertyT);
+	ml_externals_default_add("object", MLObjectT);
+	ml_externals_default_add("class", MLClassT);
+	ml_externals_default_add("enum", MLEnumT);
+	ml_externals_default_add("flags", MLFlagsT);
 #ifdef ML_GENERICS
 	ml_type_add_rule(MLEnumRangeT, MLSequenceT, MLIntegerT, ML_TYPE_ARG(1), NULL);
 #endif

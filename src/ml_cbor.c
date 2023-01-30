@@ -723,6 +723,18 @@ void ml_cbor_writer_error(ml_cbor_writer_t *Writer, ml_value_t *Error) {
 }
 
 void ml_cbor_write(ml_cbor_writer_t *Writer, ml_value_t *Value) {
+	if (Value == MLNil) {
+		minicbor_write_simple(Writer, CBOR_SIMPLE_NULL);
+		return;
+	}
+	if (Value == (ml_value_t *)MLTrue) {
+		minicbor_write_simple(Writer, CBOR_SIMPLE_TRUE);
+		return;
+	}
+	if (Value == (ml_value_t *)MLFalse) {
+		minicbor_write_simple(Writer, CBOR_SIMPLE_FALSE);
+		return;
+	}
 	inthash_result_t Result = inthash_search2(Writer->Reused, (uintptr_t)Value);
 	if (Result.Present) {
 		if (Result.Value) {
