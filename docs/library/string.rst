@@ -44,8 +44,7 @@ When creating a substring,  the first index is inclusive and second index is exc
    .. code-block:: mini
 
       regex("[0-9]+") :> /[0-9]+/
-      regex("[0-9")
-      :> error("RegexError", "regex error: Missing ']'")
+      regex("[0-9") :> error("RegexError", "Missing ']'")
 
 
 :mini:`meth (Arg₁: regex) != (Arg₂: regex): regex | nil`
@@ -147,6 +146,12 @@ When creating a substring,  the first index is inclusive and second index is exc
       string(nil) :> "nil"
       string("Hello world!\n") :> "Hello world!\n"
       string([1, 2, 3]) :> "[1, 2, 3]"
+
+
+.. _fun-mlregexescape:
+
+:mini:`fun mlregexescape(Arg₁: string)`
+   *TBD*
 
 
 .. _fun-mlstringescape:

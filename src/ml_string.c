@@ -1959,7 +1959,7 @@ ML_METHOD("/", MLStringT, MLRegexT) {
 			size_t ErrorSize = regerror(REG_ESPACE, Pattern->Value, NULL, 0);
 			char *ErrorMessage = snew(ErrorSize + 1);
 			regerror(REG_ESPACE, Pattern->Value, ErrorMessage, ErrorSize);
-			return ml_error("RegexError", "regex error: %s", ErrorMessage);
+			return ml_error("RegexError", "%s", ErrorMessage);
 		}
 		default: {
 			if (Matches[0].rm_eo == 0) return ml_error("RegexError", "Empty match while splitting string");
@@ -2022,7 +2022,7 @@ ML_METHOD("/", MLStringT, MLRegexT, MLIntegerT) {
 			size_t ErrorSize = regerror(REG_ESPACE, Pattern->Value, NULL, 0);
 			char *ErrorMessage = snew(ErrorSize + 1);
 			regerror(REG_ESPACE, Pattern->Value, ErrorMessage, ErrorSize);
-			return ml_error("RegexError", "regex error: %s", ErrorMessage);
+			return ml_error("RegexError", "%s", ErrorMessage);
 		}
 		default: {
 			if (Matches[0].rm_eo == 0) return ml_error("RegexError", "Empty match while splitting string");
@@ -2090,7 +2090,7 @@ ML_METHOD("/*", MLStringT, MLRegexT) {
 		size_t ErrorSize = regerror(REG_ESPACE, Pattern->Value, NULL, 0);
 		char *ErrorMessage = snew(ErrorSize + 1);
 		regerror(REG_ESPACE, Pattern->Value, ErrorMessage, ErrorSize);
-		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+		return ml_error("RegexError", "%s", ErrorMessage);
 	}
 	default: {
 		ml_tuple_set(Results, 1, ml_string(Subject, Matches[0].rm_so));
@@ -2155,7 +2155,7 @@ ML_METHOD("*/", MLStringT, MLRegexT) {
 			size_t ErrorSize = regerror(REG_ESPACE, Pattern->Value, NULL, 0);
 			char *ErrorMessage = snew(ErrorSize + 1);
 			regerror(REG_ESPACE, Pattern->Value, ErrorMessage, ErrorSize);
-			return ml_error("RegexError", "regex error: %s", ErrorMessage);
+			return ml_error("RegexError", "%s", ErrorMessage);
 		}
 		default: {
 			ml_tuple_set(Results, 1, ml_string(Subject, Next - Subject));
@@ -2356,7 +2356,7 @@ ML_METHOD("contains", MLStringT, MLRegexT) {
 		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 		char *ErrorMessage = snew(ErrorSize + 1);
 		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
-		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+		return ml_error("RegexError", "%s", ErrorMessage);
 	}
 	}
 	return Args[0];
@@ -2384,7 +2384,7 @@ ML_METHOD("find", MLStringT, MLRegexT) {
 		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 		char *ErrorMessage = snew(ErrorSize + 1);
 		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
-		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+		return ml_error("RegexError", "%s", ErrorMessage);
 	}
 	}
 	return ml_integer(1 + utf8_position(Haystack, Haystack + Matches->rm_so));
@@ -2412,7 +2412,7 @@ ML_METHOD("find2", MLStringT, MLRegexT) {
 		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 		char *ErrorMessage = snew(ErrorSize + 1);
 		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
-		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+		return ml_error("RegexError", "%s", ErrorMessage);
 	}
 	}
 	ml_value_t *Result = ml_tuple(Regex->re_nsub + 2);
@@ -2459,7 +2459,7 @@ ML_METHOD("find", MLStringT, MLRegexT, MLIntegerT) {
 		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 		char *ErrorMessage = snew(ErrorSize + 1);
 		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
-		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+		return ml_error("RegexError", "%s", ErrorMessage);
 	}
 	}
 	return ml_integer(Start + utf8_position(Haystack2, Haystack2 + Matches->rm_so));
@@ -2495,7 +2495,7 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLIntegerT) {
 		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 		char *ErrorMessage = snew(ErrorSize + 1);
 		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
-		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+		return ml_error("RegexError", "%s", ErrorMessage);
 	}
 	}
 	ml_value_t *Result = ml_tuple(Regex->re_nsub + 2);
@@ -2571,7 +2571,7 @@ ML_METHOD("find2", MLStringT, MLRegexT, MLTupleIntegerStringT) {
 		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 		char *ErrorMessage = snew(ErrorSize + 1);
 		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
-		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+		return ml_error("RegexError", "%s", ErrorMessage);
 	}
 	}
 	ml_value_t *Result = ml_tuple(Regex->re_nsub + 2);
@@ -2613,7 +2613,7 @@ ML_METHOD("%", MLStringT, MLRegexT) {
 		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 		char *ErrorMessage = snew(ErrorSize + 1);
 		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
-		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+		return ml_error("RegexError", "%s", ErrorMessage);
 	}
 	default: {
 		ml_value_t *Results = ml_tuple(Regex->re_nsub + 1);
@@ -2667,7 +2667,7 @@ ML_METHOD("?", MLStringT, MLRegexT) {
 		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 		char *ErrorMessage = snew(ErrorSize + 1);
 		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
-		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+		return ml_error("RegexError", "%s", ErrorMessage);
 	}
 	default: {
 		regoff_t Start = Matches[0].rm_so;
@@ -2699,7 +2699,7 @@ ML_METHOD("!?", MLStringT, MLRegexT) {
 		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 		char *ErrorMessage = snew(ErrorSize + 1);
 		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
-		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+		return ml_error("RegexError", "%s", ErrorMessage);
 	}
 	default: {
 		regoff_t Start = Matches[0].rm_so;
@@ -2746,7 +2746,7 @@ ML_METHOD("starts", MLStringT, MLRegexT) {
 		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 		char *ErrorMessage = snew(ErrorSize + 1);
 		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
-		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+		return ml_error("RegexError", "%s", ErrorMessage);
 	}
 	default: {
 		regoff_t Start = Matches[0].rm_so;
@@ -2933,12 +2933,13 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
 	int ReplaceLength = ml_string_length(Args[2]);
 	regmatch_t Matches[1];
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	int RegexFlags = 0;
 	for (;;) {
 #ifdef ML_TRE
-		switch (regnexec(Regex, Subject, SubjectLength, 1, Matches, 0)) {
+		switch (regnexec(Regex, Subject, SubjectLength, 1, Matches, RegexFlags)) {
 
 #else
-		switch (regexec(Regex, Subject, 1, Matches, 0)) {
+		switch (regexec(Regex, Subject, 1, Matches, RegexFlags)) {
 #endif
 		case REG_NOMATCH:
 			if (SubjectLength) ml_stringbuffer_write(Buffer, Subject, SubjectLength);
@@ -2947,7 +2948,7 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
 			size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 			char *ErrorMessage = snew(ErrorSize + 1);
 			regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
-			return ml_error("RegexError", "regex error: %s", ErrorMessage);
+			return ml_error("RegexError", "%s", ErrorMessage);
 		}
 		default: {
 			if (Matches[0].rm_eo == 0) return ml_error("RegexError", "Empty match while splitting string");
@@ -2957,6 +2958,7 @@ ML_METHOD("replace", MLStringT, MLRegexT, MLStringT) {
 			ml_stringbuffer_write(Buffer, Replace, ReplaceLength);
 			Subject += End;
 			SubjectLength -= End;
+			RegexFlags = REG_NOTBOL;
 		}
 		}
 	}
@@ -2981,6 +2983,7 @@ typedef struct {
 	ml_stringbuffer_t Buffer[1];
 	const char *Subject;
 	int Length, Count;
+	int RegexFlags;
 	ml_str_replacement_t Replacements[];
 } ml_str_replacement_state_t;
 
@@ -3012,9 +3015,9 @@ static void ml_str_replacement_next(ml_str_replacement_state_t *State, ml_value_
 				int NumSub = Test->Pattern.Regex->re_nsub + 1;
 				regmatch_t Matches[NumSub];
 #ifdef ML_TRE
-				switch (regnexec(Regex, Subject, Length, NumSub, Matches, 0)) {
+				switch (regnexec(Regex, Subject, Length, NumSub, Matches, State->RegexFlags)) {
 #else
-				switch (regexec(Regex, Subject, NumSub, Matches, 0)) {
+				switch (regexec(Regex, Subject, NumSub, Matches, State->RegexFlags)) {
 #endif
 				case REG_NOMATCH:
 					break;
@@ -3022,7 +3025,7 @@ static void ml_str_replacement_next(ml_str_replacement_state_t *State, ml_value_
 					size_t ErrorSize = regerror(REG_ESPACE, Test->Pattern.Regex, NULL, 0);
 					char *ErrorMessage = snew(ErrorSize + 1);
 					regerror(REG_ESPACE, Test->Pattern.Regex, ErrorMessage, ErrorSize);
-					ML_ERROR("RegexError", "regex error: %s", ErrorMessage);
+					ML_ERROR("RegexError", "%s", ErrorMessage);
 				}
 				default: {
 					if (Matches[0].rm_eo == 0) ML_ERROR("RegexError", "Empty match while splitting string");
@@ -3057,6 +3060,7 @@ static void ml_str_replacement_next(ml_str_replacement_state_t *State, ml_value_
 		if (MatchStart) ml_stringbuffer_write(State->Buffer, Subject, MatchStart);
 		Subject += MatchEnd;
 		Length -= MatchEnd;
+		State->RegexFlags = REG_NOTBOL;
 		if (Match->ReplacementLength < 0) {
 			State->Base.run = (ml_state_fn)ml_str_replacement_func;
 			State->Subject = Subject;
@@ -3087,6 +3091,7 @@ ML_METHODX("replace", MLStringT, MLMapT) {
 		if (ml_is(Iter->Key, MLStringT)) {
 			Replacement->Pattern.String = ml_string_value(Iter->Key);
 			Replacement->PatternLength = ml_string_length(Iter->Key);
+			if (!Replacement->PatternLength) ML_ERROR("ValueError", "Empty pattern used in replace");
 		} else if (ml_is(Iter->Key, MLRegexT)) {
 			Replacement->Pattern.Regex = ml_regex_value(Iter->Key);
 			Replacement->PatternLength = -1;
@@ -3381,7 +3386,7 @@ static void ml_regex_call(ml_state_t *Caller, ml_regex_t *Value, int Count, ml_v
 		size_t ErrorSize = regerror(REG_ESPACE, Regex, NULL, 0);
 		char *ErrorMessage = snew(ErrorSize + 1);
 		regerror(REG_ESPACE, Regex, ErrorMessage, ErrorSize);
-		ML_ERROR("RegexError", "regex error: %s", ErrorMessage);
+		ML_ERROR("RegexError", "%s", ErrorMessage);
 	}
 	default: {
 		ml_value_t *Results = ml_tuple(Regex->re_nsub + 1);
@@ -3419,7 +3424,7 @@ ml_value_t *ml_regex(const char *Pattern, int Length) {
 		size_t ErrorSize = regerror(Error, Regex->Value, NULL, 0);
 		char *ErrorMessage = snew(ErrorSize + 1);
 		regerror(Error, Regex->Value, ErrorMessage, ErrorSize);
-		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+		return ml_error("RegexError", "%s", ErrorMessage);
 	}
 	return (ml_value_t *)Regex;
 }
@@ -3439,7 +3444,7 @@ ml_value_t *ml_regexi(const char *Pattern0, int Length) {
 		size_t ErrorSize = regerror(Error, Regex->Value, NULL, 0);
 		char *ErrorMessage = snew(ErrorSize + 1);
 		regerror(Error, Regex->Value, ErrorMessage, ErrorSize);
-		return ml_error("RegexError", "regex error: %s", ErrorMessage);
+		return ml_error("RegexError", "%s", ErrorMessage);
 	}
 	return (ml_value_t *)Regex;
 }
@@ -3505,6 +3510,75 @@ ML_METHOD("append", MLStringBufferT, MLRegexT) {
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_stringbuffer_printf(Buffer, "/%s/", ml_regex_pattern(Args[1]));
 	return MLSome;
+}
+
+ML_FUNCTION(MLRegexEscape) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	const char *S = ml_string_value(Args[0]);
+	for (int I = ml_string_length(Args[0]); --I >= 0; ++S) {
+		switch (*S) {
+		case '\0':
+			ml_stringbuffer_write(Buffer, "\\0", strlen("\\0"));
+			break;
+		case '\a':
+			ml_stringbuffer_write(Buffer, "\\a", strlen("\\a"));
+			break;
+		case '\e':
+			ml_stringbuffer_write(Buffer, "\\e", strlen("\\e"));
+			break;
+		case '\t':
+			ml_stringbuffer_write(Buffer, "\\t", strlen("\\t"));
+			break;
+		case '\r':
+			ml_stringbuffer_write(Buffer, "\\r", strlen("\\r"));
+			break;
+		case '\n':
+			ml_stringbuffer_write(Buffer, "\\n", strlen("\\n"));
+			break;
+		case '\\':
+			ml_stringbuffer_write(Buffer, "\\\\", strlen("\\\\"));
+			break;
+		case '.':
+			ml_stringbuffer_write(Buffer, "\\.", strlen("\\."));
+			break;
+		case '^':
+			ml_stringbuffer_write(Buffer, "\\^", strlen("\\^"));
+			break;
+		case '$':
+			ml_stringbuffer_write(Buffer, "\\$", strlen("\\$"));
+			break;
+		case '*':
+			ml_stringbuffer_write(Buffer, "\\*", strlen("\\*"));
+			break;
+		case '?':
+			ml_stringbuffer_write(Buffer, "\\?", strlen("\\?"));
+			break;
+		case '[':
+			ml_stringbuffer_write(Buffer, "\\[", strlen("\\["));
+			break;
+		case ']':
+			ml_stringbuffer_write(Buffer, "\\]", strlen("\\]"));
+			break;
+		case '(':
+			ml_stringbuffer_write(Buffer, "\\(", strlen("\\("));
+			break;
+		case ')':
+			ml_stringbuffer_write(Buffer, "\\)", strlen("\\)"));
+			break;
+		case '{':
+			ml_stringbuffer_write(Buffer, "\\{", strlen("\\{"));
+			break;
+		case '}':
+			ml_stringbuffer_write(Buffer, "\\}", strlen("\\}"));
+			break;
+		default:
+			ml_stringbuffer_write(Buffer, S, 1);
+			break;
+		}
+	}
+	return ml_stringbuffer_get_value(Buffer);
 }
 
 typedef struct {
@@ -3989,6 +4063,7 @@ void ml_string_init() {
 	regcomp(RealFormat, "^\\s*%[-+ #'0]*[.0-9]*[aefgAEG]\\s*$", REG_NOSUB);
 	stringmap_insert(MLStringT->Exports, "switch", MLStringSwitch);
 	stringmap_insert(MLStringT->Exports, "escape", MLStringEscape);
+	stringmap_insert(MLRegexT->Exports, "escape", MLRegexEscape);
 #include "ml_string_init.c"
 #ifdef ML_GENERICS
 	ml_type_t *TArgs[3] = {MLSequenceT, MLIntegerT, MLStringT};
