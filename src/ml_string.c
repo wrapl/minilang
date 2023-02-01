@@ -3555,23 +3555,20 @@ ML_FUNCTION(MLRegexEscape) {
 		case '?':
 			ml_stringbuffer_write(Buffer, "\\?", strlen("\\?"));
 			break;
+		case '|':
+			ml_stringbuffer_write(Buffer, "\\|", strlen("\\|"));
+			break;
 		case '[':
 			ml_stringbuffer_write(Buffer, "\\[", strlen("\\["));
 			break;
-		case ']':
-			ml_stringbuffer_write(Buffer, "\\]", strlen("\\]"));
+		case '{':
+			ml_stringbuffer_write(Buffer, "\\{", strlen("\\{"));
 			break;
 		case '(':
 			ml_stringbuffer_write(Buffer, "\\(", strlen("\\("));
 			break;
 		case ')':
 			ml_stringbuffer_write(Buffer, "\\)", strlen("\\)"));
-			break;
-		case '{':
-			ml_stringbuffer_write(Buffer, "\\{", strlen("\\{"));
-			break;
-		case '}':
-			ml_stringbuffer_write(Buffer, "\\}", strlen("\\}"));
 			break;
 		default:
 			ml_stringbuffer_write(Buffer, S, 1);
