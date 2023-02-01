@@ -3304,6 +3304,11 @@ ML_METHODX("replace", MLStringT, MLIntegerT, MLIntegerT, MLFunctionT) {
 }
 
 ML_FUNCTION(MLStringEscape) {
+//@string::escape
+//<String:string
+//>string
+// Escapes characters in :mini:`String`.
+//$= string::escape("\'Hello\nworld!\'")
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
@@ -3513,6 +3518,11 @@ ML_METHOD("append", MLStringBufferT, MLRegexT) {
 }
 
 ML_FUNCTION(MLRegexEscape) {
+//@regex::escape
+//<String:string
+//>string
+// Escapes characters in :mini:`String` that are treated specially in regular expressions.
+//$= regex::escape("Word (?)\n")
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};

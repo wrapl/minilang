@@ -1,0 +1,699 @@
+import: xml("fmt/xml")
+
+fun category_name(Type) do
+	if Type = "MLStateT" then
+		ret "runtime"
+	elseif Type:find("State") then
+		ret "internal"
+	elseif let Match := Type % r"^ML(.*)T$" then
+		ret Match[2]:lower
+	elseif let Match := Type % r"^(.*)T$" then
+		ret Match[2]:lower
+	else
+		ret Type
+	end
+end
+
+enum: item("Category", "Type", "Export", "Constructor", "Function", "Method", "Append")
+
+let Categories := {}
+
+fun emit(Category, Key, Node) do
+	Categories[Category, fun util::pqueue(<)]:insert(Node, Key)
+end
+
+fun write_overview(Category, Description) do
+	emit(Category, tuple(), xml::element("description", Description))
+end
+
+fun type_name(var Type) do
+	Type or ret "any"
+	Type := Type:replace(" ## ", "")
+	let Name := if let Match := Type % r"^ML(.*)T$" then
+		if let Match2 := Match[2] % r"([A-Z]{1,2}[a-z]+)([A-Z]{1,2}[a-z0-9]+)([A-Z]{1,2}[a-z0-9]+)" then
+			'{Match2[2]:lower}::{Match2[3]:lower}::{Match2[4]:lower}'
+		elseif let Match2 := Match[2] % r"([A-Z]{1,2}[a-z]+)([A-Z]{1,2}[a-z0-9]+)" then
+			'{Match2[2]:lower}::{Match2[3]:lower}'
+		else
+			Match[2]:lower:trim(":")
+		end
+	elseif let Match := Type % r"^Gir(.*)T$" then
+		"gir::" + Match[2]:lower:trim(":")
+	elseif let Match := Type % r"^XE(.*)T$" then
+		"xe::" + Match[2]:lower:trim(":")
+	elseif let Match := Type % r"^Ast(.+)ExprT$" then
+		"ast::expr::" + Match[2]:lower:trim(":")
+	elseif let Match := Type % r"^Ast(.*)T$" then
+		"ast::" + Match[2]:lower:trim(":")
+	elseif let Match := Type % r"^(.*)T$" then
+		Match[2]:lower:trim(":")
+	else
+		Type
+	end
+	:<if first(grid([Type], ["Array", "Matrix", "Vector", "::"], :find)) then
+		print(Type, " -> ", Name, "\n")
+	end>:
+	ret Name
+end
+
+fun is_symbol(Method) Method:lower = Method:upper
+
+method: image()
+
+meth image(V: any) string(V)
+meth image(V: nil) "nil"
+meth image(S: string) '\"{S:escape}\"'
+meth image(A: address) with B := string::buffer() do
+	B:write('<{A:size}:')
+	for I in 0 .. (A:size - 1) do
+		B:write(string((A + I):getu8, "%02X"))
+	end
+	B:write(">")
+	B:rest
+end
+meth image(A: array) := string
+meth image(L: list) '[{list(L, image), ", "}]'
+meth image(M: map) with B := string::buffer() do
+	def some := not nil
+	B:write("{")
+	if M:count > 0 then
+		let (K, V) := first2(M)
+		B:write(image(K))
+		if V != some then
+			B:write(" is ", image(V))
+		end
+		for K, V in M skip 1 do
+			B:write(", ", image(K))
+			if V != some then
+				B:write(" is ", image(V))
+			end
+		end
+	end
+	B:write("}")
+	B:rest
+end
+meth image(E: error) 'error(\"{E:type}\", \"{E:message}\")'
+
+fun write_examples(Examples) do
+	let Code := xml::element("code")
+	let Output := xml::element("output")
+	let Parser := parser(nil)
+	let Compiler := compiler(; Name) do
+		if Name = "print" then
+			Output:write(_)
+		else
+			global(Name)
+		end
+	end
+	for Example in Examples do
+		var Result := ""
+		let Last := Example:after("\n", -1) or Example
+		Parser:input(Example)
+		loop
+			let Next := Parser:evaluate(Compiler)
+			until Next = compiler::EOI
+			Result := image(Next)
+		on Error do
+			Result := image(Error)
+			exit
+		end
+		if (Last + Result):length > 60 then
+			Code:put(Example, "\n      :> ", Result, "\n")
+		else
+			Code:put(Example, " :> ", Result, "\n")
+		end
+	end
+	ret xml::element("example", Code, Output)
+end
+
+fun write_method(Category, Kind, Method0, Params, Return, Description, Examples, Location) do
+	let Variadic := Kind = "ML_METHODV" or Kind = "ML_METHODVX"
+	var Skip := 1
+		let Method := if let Match := Method0 % r"ML(\w+)T" then
+		Match[2]:lower
+	elseif Method0[1] = "\"" then
+		if is_symbol(Method0) or Method0:find("::") then
+			Method0[2, -1]:replace("\\\\",  "\\")
+		else
+			':{Method0[2, -1]}'
+		end
+	else
+		if is_symbol(Method0) or Method0:find("::") then
+			Method0:replace("\\\\",  "\\")
+		else
+			':{Method0}'
+		end
+	end
+	let Tag := if Method = type_name(Return[1]{}) then "constructor" else "method" end
+	emit(Category, (Method, item::Method), xml::element(Tag, {"category" is Category, "name" is Method, "variadic" is Variadic and "true" or "false"},
+		xml::element("return", {"type" is Return -> type_name join "|"}),
+		xml::element("parameters", list(Params; Param) do
+			xml::element("parameter", {
+				"name" is Param[1],
+				"type" is type_name(Param[2])
+			})
+		end),
+		xml::element("description", Description),
+		xml::element("examples", write_examples(Examples))
+	))
+end
+
+fun write_function(Category, Kind, Name, Params, Return, Description, Examples, Location) do
+	let Tag := if Name = type_name(Return[1]{}) then "constructor" else "function" end
+	emit(Category, (Name, item::Function), xml::element(Tag, {"name" is Name},
+		xml::element("return", {}),
+		xml::element("parameters", list(Params; Param) do
+			xml::element("parameter", {
+				"name" is Param[1],
+				"type" is type_name(Param[2])
+			})
+		end),
+		xml::element("description", Description),
+		xml::element("examples", write_examples(Examples))
+	))
+end
+
+fun write_constructor(Category, Kind, Name, Params, Return, Description, Location) do
+	emit(Category, (Name, item::Constructor), xml::element("constructor", {"name" is Name},
+		xml::element("return", {}),
+		xml::element("parameters", list(Params; Param) do
+			xml::element("parameter", {
+				"name" is Param[1],
+				"type" is type_name(Param[2])
+			})
+		end),
+		xml::element("description", Description)
+	))
+end
+
+fun write_type(Category, Name, Parents, Description, Examples, Location) do
+	emit(Category, (Name, item::Type), xml::element("type", {"name" is type_name(Name)},
+		xml::element("parents", list(Parents; Parent) do
+			xml::element("parent", {"type" is type_name(Parent)})
+		end),
+		xml::element("description", Description),
+		xml::element("examples", write_examples(Examples))
+	))
+end
+
+fun write_value(Category, Name, Type, Description, Location) do
+	emit(Category, (Name, item::Export), xml::element("value", {"name" is type_name(Name)},
+		xml::element("type", {"name" is type_name(Type)}),
+		xml::element("description", Description)
+	))
+end
+
+def Subscripts := {
+	"/0" is "₀", "/1" is "₁", "/2" is "₂", "/3" is "₃", "/4" is "₄",
+	"/5" is "₅", "/6" is "₆", "/7" is "₇", "/8" is "₈", "/9" is "₉",
+	"/i" is "ᵢ", "/j" is "ⱼ", "/m" is "ₘ", "/n" is "ₙ", "/v" is "ᵥ",
+	"/+" is "₊", "/-" is "₋", "/=" is "₌", "/(" is "₍", "/)" is "₎",
+	"," is ", "
+}
+
+class: define(:Params, :Items)
+
+meth :put(Define: define, Fn: function, Item: list) Define:Items:put((Fn, Item))
+
+fun replace(X, Args) do
+	switch X: type
+	case string do
+		let Y := X:trim("#"):replace(Args)
+		if let Match := Y % r"([A-Za-z0-9_]+) ## Method" then
+			Match[2]:lower
+		else
+			Y
+		end
+	case list do
+		list(X, replace(_, Args))
+	case tuple do
+		tuple ! replace(list(X), Args)
+	else
+		X
+	end
+end
+
+fun process(FileName) do
+	print('Processing {FileName}\n')
+	let File := file(FileName, 'r')
+	var DefaultCategory := "general"
+	if let Match := FileName % r"ml_([a-z]+).c" then
+		DefaultCategory := Match[2]
+	end
+	var LineNo := 0
+	let Defines := {}
+	var CurrentDefine
+	loop
+		let Line := while File:read
+		:>print('{LineNo}: {Line}')
+		LineNo := old + 1
+		do
+			if Line % r"^/[/*]!" then
+				DefaultCategory := Line[4, 0]:trim
+			elseif Line % r"^#define ML_CATEGORY" then
+				DefaultCategory := Line[22, -2]
+			elseif Line % r"^// Overview" then
+				let Description := []
+				loop
+					let Line := while File:read
+					LineNo := old + 1
+					if Line % r"^/[/*] " then
+						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]" then
+						Description:put("\n")
+					else
+						exit
+					end
+				end
+				write_overview(DefaultCategory, Description)
+			elseif Line % r"^ML_METHOD_DECL" then
+			elseif Line % r"^ML_METHOD_ANON" then
+			elseif Line % r"^(ML_METHOD)" then
+				let Location := (FileName, LineNo)
+				let I := Line:find("("), J := Line:find(")")
+				let Kind := Line[1, I]
+				let Types := Line[I + 1, J] / ", "
+				var Method := Types:pop
+				var Category := DefaultCategory
+				let Params := []
+				var Return := []
+				let Description := []
+				let Examples := []
+				let Example := string::buffer()
+				loop
+					let Line := while File:read
+					LineNo := old + 1
+					if Line % r"^/[/*]@" then
+						Method := Line[4, 0]:trim
+					elseif Line % r"^/[/*]<" then
+						if let J := Line:find(":", 4) then
+							let K := Line:find(" ", J + 2) or 0
+							Params:put((
+								Line[4, J]:trim:replace(Subscripts),
+								Line[J + 1, K]:trim,
+								Line[K, 0]:trim
+							))
+						else
+							let J := Line:find(" ", 4) or 0
+							Params:put((
+								Line[4, J]:trim:replace(Subscripts),
+								Types:pop,
+								Line[J, 0]:trim
+							))
+						end
+					elseif Line % r"^/[/*]>" then
+						Return := list(Line[4, 0] / "|", :trim, :replace(_, Subscripts))
+					elseif Line % r"^/[/*]!" then
+						Category := Line[4, 0]:trim
+					elseif Line % r"^/[/*] " then
+						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]\n" then
+						Description:put("\n")
+					elseif Line % r"^/[/*]\$- " then
+						Example:write("      ", Line[6, 0])
+					elseif Line % r"^/[/*]\$-" then
+						Example:write("      \n")
+					elseif Line % r"^/[/*]\$= " then
+						Example:write("      ", Line[6, -1])
+						Examples:put(Example:rest)
+					else
+						exit
+					end
+				end
+				for Type in Types do
+					Params:put(('Arg/{Params:length + 1}':replace(Subscripts), Type, ""))
+				end
+				if CurrentDefine then
+					CurrentDefine:put(write_method, [Category, Kind, Method, Params, Return, Description, Examples, Location])
+				else
+					write_method(Category, Kind, Method, Params, Return, Description, Examples, Location)
+				end
+			elseif Line % r"^ML_FUNCTION" then
+				let Location := (FileName, LineNo)
+				let I := Line:find("("), J := Line:find(")")
+				let Kind := Line[1, I]
+				var Name := Line[I + 1, J]:lower
+				var Category := DefaultCategory
+				let Params := []
+				var Return := []
+				let Description := []
+				let Examples := []
+				let Example := string::buffer()
+				loop
+					let Line := while File:read
+					LineNo := old + 1
+					if Line % r"^/[/*]@" then
+						Name := Line[4, 0]:trim
+					elseif Line % r"^/[/*]<" then
+						if let J := Line:find(":", 4) then
+							let K := Line:find(" ", J + 2) or 0
+							Params:put([
+								Line[4, J]:trim:replace(Subscripts),
+								Line[J + 1, K]:trim,
+								Line[K, 0]:trim
+							])
+						else
+							let J := Line:find(" ", 4) or 0
+							Params:put([
+								Line[4, J]:trim:replace(Subscripts),
+								"MLAnyT",
+								Line[J, 0]:trim
+							])
+						end
+					elseif Line % r"^/[/*]>" then
+						Return := list(Line[4, 0] / "|", :trim, :replace(_, Subscripts))
+					elseif Line % r"^/[/*]!" then
+						Category := Line[4, 0]:trim
+					elseif Line % r"^/[/*] " then
+						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]\n" then
+						Description:put("\n")
+					elseif Line % r"^/[/*]\$- " then
+						Example:write("      ", Line[6, 0])
+					elseif Line % r"^/[/*]\$-" then
+						Example:write("      \n")
+					elseif Line % r"^/[/*]\$= " then
+						Example:write("      ", Line[6, -1])
+						Examples:put(Example:rest)
+					elseif let Match := Line % r"ML_CHECK(X?)_ARG_COUNT\(([0-9]+)\)" then
+						let Count := integer(Match[3])
+						for I in (Params:length + 1) .. Count do
+							Params:put(['Arg/{I}':replace(Subscripts), "any", ""])
+						end
+					elseif let Match := Line % r"ML_CHECK(X?)_ARG_TYPE\(([0-9]+), (\w+)\)" then
+						let Index := integer(Match[3]) + 1
+						Params[Index][2] := Match[4]
+					else
+						exit
+					end
+				end
+				if CurrentDefine then
+					CurrentDefine:put(write_function, [Category, Kind, Name, Params, Return, Description, Examples, Location])
+				else
+					write_function(Category, Kind, Name, Params, Return, Description, Examples, Location)
+				end
+			elseif Line % r"^ML_CFUNCTION" then
+				let Location := (FileName, LineNo)
+				let I := Line:find("("), J := Line:find(",")
+				let Kind := Line[1, I]
+				var Name := Line[I + 1, J]:lower
+				var Category := DefaultCategory
+				let Params := []
+				var Return := []
+				let Description := []
+				let Examples := []
+				let Example := string::buffer()
+				loop
+					let Line := while File:read
+					LineNo := old + 1
+					if Line % r"^/[/*]@" then
+						Name := Line[4, 0]:trim
+					elseif Line % r"^/[/*]<" then
+						if let J := Line:find(":", 4) then
+							let K := Line:find(" ", J + 2) or 0
+							Params:put([
+								Line[4, J]:trim:replace(Subscripts),
+								Line[J + 1, K]:trim,
+								Line[K, 0]:trim
+							])
+						else
+							let J := Line:find(" ", 4) or 0
+							Params:put([
+								Line[4, J]:trim:replace(Subscripts),
+								"MLAnyT",
+								Line[J, 0]:trim
+							])
+						end
+					elseif Line % r"^/[/*]>" then
+						Return := list(Line[4, 0] / "|", :trim, :replace(_, Subscripts))
+					elseif Line % r"^/[/*]!" then
+						Category := Line[4, 0]:trim
+					elseif Line % r"^/[/*] " then
+						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]\n" then
+						Description:put("\n")
+					elseif Line % r"^/[/*]\$- " then
+						Example:write("      ", Line[6, 0])
+					elseif Line % r"^/[/*]\$-" then
+						Example:write("      \n")
+					elseif Line % r"^/[/*]\$= " then
+						Example:write("      ", Line[6, -1])
+						Examples:put(Example:rest)
+					elseif let Match := Line % r"ML_CHECK(X?)_ARG_COUNT\(([0-9]+)\)" then
+						let Count := integer(Match[3])
+						for I in (Params:length + 1) .. Count do
+							Params:put(['Arg/{I}':replace(Subscripts), "any", ""])
+						end
+					elseif let Match := Line % r"ML_CHECK(X?)_ARG_TYPE\(([0-9]+), (\w+)\)" then
+						let Index := integer(Match[3]) + 1
+						Params[Index][2] := type_name(Match[4])
+					else
+						exit
+					end
+				end
+				if CurrentDefine then
+					CurrentDefine:put(write_function, [Category, Kind, Name, Params, Return, Description, Examples, Location])
+				else
+					write_function(Category, Kind, Name, Params, Return, Description, Examples, Location)
+				end
+			elseif Line % r"^ML_CONSTRUCTOR" then
+				let Location := (FileName, LineNo)
+				let I := Line:find("("), J := Line:find(")")
+				let Kind := Line[1, I]
+				var Name := Line[I + 1, J]:lower
+				var Category := DefaultCategory
+				let Params := []
+				let Description := []
+				loop
+					let Line := while File:read
+					LineNo := old + 1
+					if Line % r"^/[/*]@" then
+						Name := Line[4, 0]:trim
+					elseif Line % r"^/[/*]<" then
+						if let J := Line:find(":", 4) then
+							let K := Line:find(" ", J + 2) or 0
+							Params:put([
+								Line[4, J]:trim:replace(Subscripts),
+								Line[J + 1, K]:trim,
+								Line[K, 0]:trim
+							])
+						else
+							let J := Line:find(" ", 4) or 0
+							Params:put([
+								Line[4, J]:trim:replace(Subscripts),
+								"MLAnyT",
+								Line[J, 0]:trim
+							])
+						end
+					elseif Line % r"^/[/*]!" then
+						Category := Line[4, 0]:trim
+					elseif Line % r"^/[/*] " then
+						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]\n" then
+						Description:put("\n")
+					else
+						exit
+					end
+				end
+				if CurrentDefine then
+					CurrentDefine:put(write_constructor, [Category, Kind, Name, Params, [Name], Description, Location])
+				else
+					write_constructor(Category, Kind, Name, Params, [Name], Description, Location)
+				end
+			elseif Line % r"^(ML_TYPE|ML_INTERFACE|ML_CLASS)" then
+				let Location := (FileName, LineNo)
+				let I := Line:find("("), J := Line:find(", (", I + 1) + 2
+				let K := Line:find(")", J + 1)
+				var Name := Line[I + 1, J]:trim(", ")
+				var Category := DefaultCategory
+				let Parents := Line[J + 1, K] / ", "
+				let Title := Line[K + 1, 0]:trim(", ){")
+				let Description := []
+				let Examples := []
+				let Example := string::buffer()
+				loop
+					let Line := while File:read
+					LineNo := old + 1
+					if Line % r"^/[/*]@" then
+						Name := Line[4, 0]:trim
+					elseif Line % r"^/[/*]!" then
+						Category := Line[4, 0]:trim
+					elseif Line % r"^/[/*] " then
+						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]\n" then
+						Description:put("\n")
+					elseif Line % r"^/[/*]\$- " then
+						Example:write("      ", Line[6, 0])
+					elseif Line % r"^/[/*]\$-" then
+						Example:write("      \n")
+					elseif Line % r"^/[/*]\$= " then
+						Example:write("      ", Line[6, -1])
+						Examples:put(Example:rest)
+					else
+						exit
+					end
+				end
+				if CurrentDefine then
+					CurrentDefine:put(write_type, [Category, Name, Parents, Description, Examples, Location])
+				else
+					write_type(Category, Name, Parents, Description, Examples, Location)
+				end
+			elseif Line % r"^(ML_ENUM|ML_FLAGS)" then
+				let Location := (FileName, LineNo)
+				let I := Line:find("("), J := Line:find(",", I + 1) + 1
+				let K := Line:find(",", J + 1)
+				var Name := Line[I + 1, J]:trim(", ")
+				var Category := DefaultCategory
+				let Parent := if Line % r"^ML_ENUM" then "MLEnumT" else "MLFlagsT" end
+				let Title := Line[J + 1, K]:trim(", ){")
+				let Description := []
+				let Examples := []
+				let Example := string::buffer()
+				loop
+					let Line := while File:read
+					LineNo := old + 1
+					if Line % r"^/[/*]@" then
+						Name := Line[4, 0]:trim
+					elseif Line % r"^/[/*]!" then
+						Category := Line[4, 0]:trim
+					elseif Line % r"^/[/*] " then
+						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]\n" then
+						Description:put("\n")
+					elseif Line % r"^/[/*]\$- " then
+						Example:write("      ", Line[6, 0])
+					elseif Line % r"^/[/*]\$-" then
+						Example:write("      \n")
+					elseif Line % r"^/[/*]\$= " then
+						Example:write("      ", Line[6, -1])
+						Examples:put(Example:rest)
+					else
+						exit
+					end
+				end
+				if CurrentDefine then
+					CurrentDefine:put(write_type, [Category, Name, [Parent], Description, Examples, Location])
+				else
+					write_type(Category, Name, [Parent], Description, Examples, Location)
+				end
+			elseif Line % r"^ML_DEF" then
+				let Location := (FileName, LineNo)
+				let I := Line:find("(")
+				let J := Line:find(")", I + 1)
+				var Name := Line[I + 1, J]
+				var Category := DefaultCategory
+				var Type := "MLAnyT"
+				let Description := []
+				loop
+					let Line := while File:read
+					LineNo := old + 1
+					if Line % r"^/[/*]@" then
+						Name := Line[4, 0]:trim
+					elseif Line % r"^/[/*]!" then
+						Category := Line[4, 0]:trim
+					elseif Line % r"^/[/*]>" then
+						Type := Line[4, 0]:trim
+					elseif Line % r"^/[/*] " then
+						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]\n" then
+						Description:put("\n")
+					else
+						exit
+					end
+				end
+				if CurrentDefine then
+					CurrentDefine:put(write_value, [Category, Name, Type, Description, Location])
+				else
+					write_value(Category, Name, Type, Description, Location)
+				end
+			elseif Line % r"^ML_VALUE" then
+				let Location := (FileName, LineNo)
+				let I := Line:find("(")
+				let J := Line:find(",", I + 1)
+				let K := Line:find(")", J + 1)
+				var Name := Line[I + 1, J]
+				var Type := Line[J + 1, K]:trim
+				var Category := DefaultCategory
+				let Description := []
+				loop
+					let Line := while File:read
+					LineNo := old + 1
+					if Line % r"^/[/*]@" then
+						Name := Line[4, 0]:trim
+					elseif Line % r"^/[/*]!" then
+						Category := Line[4, 0]:trim
+					elseif Line % r"^/[/*]>" then
+						Type := Line[4, 0]:trim
+					elseif Line % r"^/[/*] " then
+						Description:put(Line[4, 0]:replace(Subscripts))
+					elseif Line % r"^/[/*]\n" then
+						Description:put("\n")
+					else
+						exit
+					end
+				end
+				if CurrentDefine then
+					CurrentDefine:put(write_value, [Category, Name, Type, Description, Location])
+				else
+					write_value(Category, Name, Type, Description, Location)
+				end
+			elseif let Match := Line % r"^#define ([A-Za-z0-9_]+)\((.+)\)" then
+				let Params := list(Match[3] / ",", :trim)
+				CurrentDefine := define(Params, [])
+				Defines[Match[2]] := old or CurrentDefine
+			elseif Line = "\n" then
+				CurrentDefine := nil
+			elseif let Match := Line % r"^([A-Za-z0-9_]+)\((.+)\)" then
+				if let Define := Defines[Match[2]] then
+					if count(Define:Items) > 0 then
+						let Args := map(pair(Define:Params, list(Match[3] / ",", :trim, _:replace("\\\\",  "\\"))))
+						if CurrentDefine then
+							for Item in Define:Items do
+								CurrentDefine:put(Item[1], replace(Item[2], Args))
+							end
+						else
+							:>print('Expanding {Match[2]}{Args}\n')
+							for Item in Define:Items do
+								Item[1] ! replace(Item[2], Args)
+							end
+						end
+					end
+				end
+			end
+		on Error do
+			print(Line, "\n")
+			print('Error: {Error:message} in {FileName}:{LineNo}\n')
+			for Source in Error:trace do
+				print('\t{Source[1]}:{Source[2]}\n')
+			end
+		end
+	end
+	File:close
+end
+
+let FileNames := list(Args skip 1)
+FileNames:sort(; A, B) do
+	A = "src/ml_types.c" and ret A
+	B = "src/ml_types.c" and ret nil
+	ret A > B
+end
+
+for FileName in FileNames do process(FileName) end
+
+let Root := xml::element("root")
+
+for Name, Items in Categories do
+	if Name != "internal" then
+		let Category := xml::element("category", {"name" is Name})
+		Root:put(Category)
+		loop
+			let (Item, Key) := while Items:next
+			Category:put(Item)
+		end
+	end
+end
+
+with Output := file(Args[1], "w") do
+	Output:write(Root)
+	Output:close
+end

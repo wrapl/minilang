@@ -148,16 +148,25 @@ When creating a substring,  the first index is inclusive and second index is exc
       string([1, 2, 3]) :> "[1, 2, 3]"
 
 
-.. _fun-mlregexescape:
+.. _fun-regex-escape:
 
-:mini:`fun mlregexescape(Arg₁: string)`
-   *TBD*
+:mini:`fun regex::escape(String: string): string`
+   Escapes characters in :mini:`String` that are treated specially in regular expressions.
+
+   .. code-block:: mini
+
+      regex::escape("Word (?)\n") :> "Word \\(\\?\\)\\n"
 
 
-.. _fun-mlstringescape:
+.. _fun-string-escape:
 
-:mini:`fun mlstringescape(Arg₁: string)`
-   *TBD*
+:mini:`fun string::escape(String: string): string`
+   Escapes characters in :mini:`String`.
+
+   .. code-block:: mini
+
+      string::escape("\'Hello\nworld!\'")
+      :> "\\\'Hello\\nworld!\\\'"
 
 
 :mini:`meth (Arg₁: string) != (Arg₂: string): string | nil`
