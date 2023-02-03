@@ -470,6 +470,16 @@ ML_METHODX("[]", MLXmlElementT, MLStringT) {
 	return ml_call(Caller, IndexMethod, 2, Args);
 }
 
+ML_METHODX("::", MLXmlElementT, MLStringT) {
+//<Parent
+//<Attribute
+//>string|nil
+// Returns the value of the :mini:`Attribute` attribute of :mini:`Parent`.
+	ml_xml_element_t *Element = (ml_xml_element_t *)Args[0];
+	Args[0] = Element->Attributes;
+	return ml_call(Caller, IndexMethod, 2, Args);
+}
+
 extern ml_type_t MLDoubledT[];
 extern ml_type_t MLChainedT[];
 

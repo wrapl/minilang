@@ -23,12 +23,12 @@ xml
    An XML node.
 
 
-:mini:`meth xml(Stream: stream): xml`
-   Returns the contents of :mini:`Stream` parsed into an XML node.
-
-
 :mini:`meth xml(String: string): xml`
    Returns :mini:`String` parsed into an XML node.
+
+
+:mini:`meth xml(Stream: stream): xml`
+   Returns the contents of :mini:`Stream` parsed into an XML node.
 
 
 :mini:`meth (Xml: xml) / (Fn: function): sequence`
@@ -157,6 +157,10 @@ xml
       :> <test type="example">Text</test>
 
 
+:mini:`meth (Parent: xml::element) :: (Attribute: string): string | nil`
+   Returns the value of the :mini:`Attribute` attribute of :mini:`Parent`.
+
+
 :mini:`meth /(Xml: xml::element): sequence`
    Returns a sequence of the children of :mini:`Xml`.
 
@@ -223,12 +227,12 @@ xml
    An XML filter.
 
 
-:mini:`meth xml::filter(Attr₁ is Value₁, ...): xml::filter`
-   Returns an XML filter that checks if a node has attributes :mini:`Attrᵢ = Valueᵢ`.
-
-
 :mini:`meth xml::filter(Tag: string, Attr₁ is Value₁, ...): xml::filter`
    Returns an XML filter that checks if a node has tag :mini:`Tag` and attributes :mini:`Attrᵢ = Valueᵢ`.
+
+
+:mini:`meth xml::filter(Attr₁ is Value₁, ...): xml::filter`
+   Returns an XML filter that checks if a node has attributes :mini:`Attrᵢ = Valueᵢ`.
 
 
 :mini:`meth (Sequence: xml::sequence) / (Args: any, ...): sequence`

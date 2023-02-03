@@ -683,6 +683,10 @@ char *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) __attribute__ ((mall
 char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
 ml_value_t *ml_stringbuffer_get_value(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
 
+ml_value_t *ml_stringbuffer_to_address(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
+ml_value_t *ml_stringbuffer_to_buffer(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
+ml_value_t *ml_stringbuffer_to_string(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
+
 size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length);
 
 int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t));

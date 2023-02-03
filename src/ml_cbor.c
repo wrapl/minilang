@@ -104,18 +104,11 @@ ml_cbor_tag_fns_t *ml_cbor_tag_fns(int Default) {
 	}
 }
 
-typedef struct block_t {
-	struct block_t *Prev;
-	int Size;
-	char Data[];
-} block_t;
-
 typedef struct collection_t {
 	struct collection_t *Prev;
 	struct tag_t *Tags;
 	ml_value_t *Key;
 	ml_value_t *Collection;
-	block_t *Blocks;
 	int Remaining;
 } collection_t;
 
@@ -134,6 +127,7 @@ struct ml_cbor_reader_t {
 	void *Globals;
 	ml_value_t **Reused;
 	minicbor_reader_t Reader[1];
+	ml_stringbuffer_t Buffer[1];
 	int NumReused, MaxReused;
 	int NumSettings;
 	void *Settings[];
@@ -167,6 +161,7 @@ void ml_cbor_reader_reset(ml_cbor_reader_t *Reader) {
 	Reader->Tags = NULL;
 	Reader->Value = NULL;
 	Reader->NumReused = Reader->MaxReused = 0;
+	Reader->Buffer[0] = ML_STRINGBUFFER_INIT;
 	minicbor_reader_init(Reader->Reader);
 }
 
@@ -200,8 +195,6 @@ int ml_cbor_reader_extra(ml_cbor_reader_t *Reader) {
 	return minicbor_reader_remaining(Reader->Reader);
 }
 
-static ml_value_t IsByteString[1];
-static ml_value_t IsString[1];
 static ml_value_t IsList[1];
 
 ml_value_t *ml_cbor_mark_reused(ml_cbor_reader_t *Reader, ml_value_t *Value) {
@@ -292,81 +285,21 @@ void ml_cbor_read_negative_fn(ml_cbor_reader_t *Reader, uint64_t Value) {
 }
 
 void ml_cbor_read_bytes_fn(ml_cbor_reader_t *Reader, int Size) {
-	if (Size) {
-		collection_t *Collection = new(collection_t);
-		Collection->Prev = Reader->Collection;
-		Collection->Tags = Reader->Tags;
-		Reader->Tags = 0;
-		Collection->Key = IsByteString;
-		Collection->Remaining = 0;
-		Collection->Blocks = 0;
-		Reader->Collection = Collection;
-	} else {
-		value_handler(Reader, ml_address(NULL, 0));
-	}
+	if (!Size) value_handler(Reader, ml_address(NULL, 0));
 }
 
 void ml_cbor_read_bytes_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, int Size, int Final) {
-	collection_t *Collection = Reader->Collection;
-	if (Final) {
-		Reader->Collection = Collection->Prev;
-		Reader->Tags = Collection->Tags;
-		int Total = Collection->Remaining + Size;
-		char *Buffer = snew(Total);
-		Buffer += Collection->Remaining;
-		memcpy(Buffer, Bytes, Size);
-		for (block_t *B = Collection->Blocks; B; B = B->Prev) {
-			Buffer -= B->Size;
-			memcpy(Buffer, B->Data, B->Size);
-		}
-		value_handler(Reader, ml_address(Buffer, Total));
-	} else {
-		block_t *Block = xnew(block_t, Size, char);
-		Block->Prev = Collection->Blocks;
-		Block->Size = Size;
-		memcpy(Block->Data, Bytes, Size);
-		Collection->Blocks = Block;
-		Collection->Remaining += Size;
-	}
+	ml_stringbuffer_write(Reader->Buffer, Bytes, Size);
+	if (Final) value_handler(Reader, ml_stringbuffer_to_address(Reader->Buffer));
 }
 
 void ml_cbor_read_string_fn(ml_cbor_reader_t *Reader, int Size) {
-	if (Size) {
-		collection_t *Collection = new(collection_t);
-		Collection->Prev = Reader->Collection;
-		Collection->Tags = Reader->Tags;
-		Reader->Tags = 0;
-		Collection->Key = IsString;
-		Collection->Remaining = 0;
-		Collection->Blocks = 0;
-		Reader->Collection = Collection;
-	} else {
-		value_handler(Reader, ml_cstring(""));
-	}
+	if (!Size) value_handler(Reader, ml_cstring(""));
 }
 
 void ml_cbor_read_string_piece_fn(ml_cbor_reader_t *Reader, const void *Bytes, int Size, int Final) {
-	collection_t *Collection = Reader->Collection;
-	if (Final) {
-		Reader->Collection = Collection->Prev;
-		Reader->Tags = Collection->Tags;
-		int Total = Collection->Remaining + Size;
-		char *Buffer = snew(Total);
-		Buffer += Collection->Remaining;
-		memcpy(Buffer, Bytes, Size);
-		for (block_t *B = Collection->Blocks; B; B = B->Prev) {
-			Buffer -= B->Size;
-			memcpy(Buffer, B->Data, B->Size);
-		}
-		value_handler(Reader, ml_string(Buffer, Total));
-	} else {
-		block_t *Block = xnew(block_t, Size, char);
-		Block->Prev = Collection->Blocks;
-		Block->Size = Size;
-		memcpy(Block->Data, Bytes, Size);
-		Collection->Blocks = Block;
-		Collection->Remaining += Size;
-	}
+	ml_stringbuffer_write(Reader->Buffer, Bytes, Size);
+	if (Final) value_handler(Reader, ml_stringbuffer_to_string(Reader->Buffer));
 }
 
 void ml_cbor_read_array_fn(ml_cbor_reader_t *Reader, int Size) {
@@ -444,18 +377,13 @@ void ml_cbor_read_error_fn(ml_cbor_reader_t *Reader, int Position, const char *M
 }
 
 ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
-	ml_cbor_reader_t Reader[1];
+	ml_cbor_reader_t Reader[1] = {{0,}};
 	Reader->TagFns = TagFns ?: DefaultTagFns;
 	Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 	Reader->Globals = MLExternals;
 	Reader->Reused = NULL;
-	Reader->NumReused = Reader->MaxReused = 0;
-	Reader->NumSettings = 0;
 	minicbor_reader_init(Reader->Reader);
 	Reader->Reader->UserData = Reader;
-	Reader->Collection = 0;
-	Reader->Tags = 0;
-	Reader->Value = 0;
 	minicbor_read(Reader->Reader, Cbor.Data, Cbor.Length);
 	int Extra = ml_cbor_reader_extra(Reader);
 	if (Extra) return ml_error("CBORError", "Extra bytes after decoding: %d", Extra);
@@ -463,18 +391,13 @@ ml_value_t *ml_from_cbor(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
 }
 
 ml_cbor_result_t ml_from_cbor_extra(ml_cbor_t Cbor, ml_cbor_tag_fns_t *TagFns) {
-	ml_cbor_reader_t Reader[1];
+	ml_cbor_reader_t Reader[1] = {{0,}};
 	Reader->TagFns = TagFns ?: DefaultTagFns;
 	Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 	Reader->Globals = MLExternals;
 	Reader->Reused = NULL;
-	Reader->NumReused = Reader->MaxReused = 0;
-	Reader->NumSettings = 0;
 	minicbor_reader_init(Reader->Reader);
 	Reader->Reader->UserData = Reader;
-	Reader->Collection = 0;
-	Reader->Tags = 0;
-	Reader->Value = 0;
 	minicbor_read(Reader->Reader, Cbor.Data, Cbor.Length);
 	return (ml_cbor_result_t){ml_cbor_reader_get(Reader), ml_cbor_reader_extra(Reader)};
 }
@@ -486,18 +409,13 @@ ML_METHOD(CborDecode, MLAddressT) {
 //<Bytes
 //>any|error
 // Decode :mini:`Bytes` into a Minilang value, or return an error if :mini:`Bytes` contains invalid CBOR or cannot be decoded into a Minilang value.
-	ml_cbor_reader_t Reader[1];
+	ml_cbor_reader_t Reader[1] = {{0,}};
 	Reader->TagFns = DefaultTagFns;
 	Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 	Reader->Globals = MLExternals;
 	Reader->Reused = NULL;
-	Reader->NumReused = Reader->MaxReused = 0;
-	Reader->NumSettings = 0;
 	minicbor_reader_init(Reader->Reader);
 	Reader->Reader->UserData = Reader;
-	Reader->Collection = 0;
-	Reader->Tags = 0;
-	Reader->Value = 0;
 	minicbor_read(Reader->Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
 	int Extra = ml_cbor_reader_extra(Reader);
 	if (Extra) return ml_error("CBORError", "Extra bytes after decoding: %d", Extra);
@@ -516,18 +434,13 @@ ML_METHOD(CborDecode, MLAddressT, MLMapT) {
 //<Globals
 //>any|error
 // Decode :mini:`Bytes` into a Minilang value, or return an error if :mini:`Bytes` contains invalid CBOR or cannot be decoded into a Minilang value.
-	ml_cbor_reader_t Reader[1];
+	ml_cbor_reader_t Reader[1] = {{0,}};
 	Reader->TagFns = DefaultTagFns;
 	Reader->GlobalGet = (ml_external_fn_t)ml_cbor_global_get_map;
 	Reader->Globals = Args[1];
 	Reader->Reused = NULL;
-	Reader->NumReused = Reader->MaxReused = 0;
-	Reader->NumSettings = 0;
 	minicbor_reader_init(Reader->Reader);
 	Reader->Reader->UserData = Reader;
-	Reader->Collection = 0;
-	Reader->Tags = 0;
-	Reader->Value = 0;
 	minicbor_read(Reader->Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
 	int Extra = ml_cbor_reader_extra(Reader);
 	if (Extra) return ml_error("CBORError", "Extra bytes after decoding: %d", Extra);
@@ -546,18 +459,13 @@ ML_METHOD(CborDecode, MLAddressT, MLFunctionT) {
 //<Globals
 //>any|error
 // Decode :mini:`Bytes` into a Minilang value, or return an error if :mini:`Bytes` contains invalid CBOR or cannot be decoded into a Minilang value.
-	ml_cbor_reader_t Reader[1];
+	ml_cbor_reader_t Reader[1] = {{0,}};
 	Reader->TagFns = DefaultTagFns;
 	Reader->GlobalGet = (ml_external_fn_t)ml_cbor_global_get_fn;
 	Reader->Globals = Args[1];
 	Reader->Reused = NULL;
-	Reader->NumReused = Reader->MaxReused = 0;
-	Reader->NumSettings = 0;
 	minicbor_reader_init(Reader->Reader);
 	Reader->Reader->UserData = Reader;
-	Reader->Collection = 0;
-	Reader->Tags = 0;
-	Reader->Value = 0;
 	minicbor_read(Reader->Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
 	int Extra = ml_cbor_reader_extra(Reader);
 	if (Extra) return ml_error("CBORError", "Extra bytes after decoding: %d", Extra);
@@ -570,18 +478,13 @@ ML_METHOD(CborDecode, MLAddressT, MLExternalSetT) {
 //<Externals
 //>any|error
 // Decode :mini:`Bytes` into a Minilang value, or return an error if :mini:`Bytes` contains invalid CBOR or cannot be decoded into a Minilang value.
-	ml_cbor_reader_t Reader[1];
+	ml_cbor_reader_t Reader[1] = {{0,}};
 	Reader->TagFns = DefaultTagFns;
 	Reader->GlobalGet = (ml_external_fn_t)ml_externals_get_value;
 	Reader->Globals = Args[1];
 	Reader->Reused = NULL;
-	Reader->NumReused = Reader->MaxReused = 0;
-	Reader->NumSettings = 0;
 	minicbor_reader_init(Reader->Reader);
 	Reader->Reader->UserData = Reader;
-	Reader->Collection = 0;
-	Reader->Tags = 0;
-	Reader->Value = 0;
 	minicbor_read(Reader->Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
 	int Extra = ml_cbor_reader_extra(Reader);
 	if (Extra) return ml_error("CBORError", "Extra bytes after decoding: %d", Extra);

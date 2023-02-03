@@ -4969,6 +4969,12 @@ static void ml_accept_for_decls(ml_parser_t *Parser, mlc_for_expr_t *Expr) {
 static ML_METHOD_DECL(MLInMethod, "in");
 static ML_METHOD_DECL(MLIsMethod, "=");
 
+ML_FUNCTION(MLNot) {
+	ML_CHECK_ARG_COUNT(1);
+	if (Args[0] == MLNil) return MLSome;
+	return MLNil;
+}
+
 static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 	static void *CompileFns[] = {
 		[MLT_EACH] = ml_each_expr_compile,
@@ -4987,8 +4993,20 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 	const char *ExprName = NULL;
 with_name:
 	switch (ml_current(Parser)) {
+	case MLT_NOT: {
+		ml_next(Parser);
+		mlc_expr_t *Child = ml_parse_expression(Parser, EXPR_DEFAULT);
+		if (Child) {
+			ML_EXPR(ParentExpr, parent, not);
+			ParentExpr->Child = Child;
+			return ML_EXPR_END(ParentExpr);
+		} else {
+			ML_EXPR(ValueExpr, value, value);
+			ValueExpr->Value = (ml_value_t *)MLNot;
+			return ML_EXPR_END(ValueExpr);
+		}
+	}
 	case MLT_EACH:
-	case MLT_NOT:
 	case MLT_DEBUG:
 	{
 		mlc_parent_expr_t *ParentExpr = new(mlc_parent_expr_t);

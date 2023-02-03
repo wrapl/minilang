@@ -15,6 +15,12 @@ compiler
    *TBD*
 
 
+.. _fun-mlnot:
+
+:mini:`fun mlnot(Arg₁: any)`
+   *TBD*
+
+
 .. _type-compiler:
 
 :mini:`type compiler < state`
