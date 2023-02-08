@@ -4742,6 +4742,7 @@ ML_TYPE(MLCompilerZipT, (MLSequenceT), "compiler::zip");
 //!internal
 
 ML_FUNCTION(MLCompilerZip) {
+//!internal
 	int NumIters = Count / 2;
 	ml_compiler_zip_t *Zip = new(ml_compiler_zip_t);
 	Zip->Type = MLCompilerZipT;

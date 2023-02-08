@@ -264,7 +264,7 @@ static void ml_stream_rest_run(ml_readu_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
-	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_get_value(State->Buffer) : MLNil);
+	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_get_value(State->Buffer) : ml_cstring(""));
 	char *Space = ml_stringbuffer_writer(State->Buffer, Length);
 	ml_value_t *Stream = State->Stream;
 	return State->read((ml_state_t *)State, Stream, Space, State->Buffer->Space);

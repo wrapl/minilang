@@ -9,12 +9,6 @@ compiler
 
 .. rst-class:: mini-api
 
-.. _fun-mlcompilerzip:
-
-:mini:`fun mlcompilerzip()`
-   *TBD*
-
-
 .. _fun-mlnot:
 
 :mini:`fun mlnot(Arg₁: any)`

@@ -43,6 +43,7 @@ function
    .. deprecated:: 2.7.0
    
       Use :mini:`$!` instead.
+   
    Returns a function equivalent to :mini:`fun(Args...) Function(List₁,  List₂,  ...,  Args...)`.
 
 

@@ -189,6 +189,12 @@ math
       math::tanh(-1.2345 + 6.789i) :> -0.905042 + 0.130855i
 
 
+.. _fun-mlrandomseed:
+
+:mini:`fun mlrandomseed(Arg₁: integer)`
+   *TBD*
+
+
 :mini:`meth !(N: integer): integer`
    Returns the factorial of :mini:`N`.
 
@@ -254,6 +260,12 @@ math
    .. code-block:: mini
 
       2.3 ^ (1 + 2i) :> -0.218222 + 2.28962i
+
+
+.. _type-random:
+
+:mini:`type random < function`
+   *TBD*
 
 
 :mini:`meth (X: real) % (Y: real): real`

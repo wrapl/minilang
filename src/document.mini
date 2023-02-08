@@ -1,3 +1,5 @@
+random::seed(1)
+
 let OutputDirectory := Args[1]
 
 for FileName in dir(OutputDirectory) do
@@ -893,4 +895,3 @@ hierarchy
 ')
 	File:close
 end
-

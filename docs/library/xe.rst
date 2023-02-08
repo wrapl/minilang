@@ -9,21 +9,9 @@ xe
 
 .. rst-class:: mini-api
 
-.. _fun-xenode:
+.. _fun-xe-parse:
 
-:mini:`fun xenode(Arg₁: any)`
-   *TBD*
-
-
-.. _fun-xeparse:
-
-:mini:`fun xeparse(Arg₁: string)`
-   *TBD*
-
-
-.. _fun-xevar:
-
-:mini:`fun xevar(Arg₁: string)`
+:mini:`fun xe::parse(String: string): xe::node`
    *TBD*
 
 
@@ -33,15 +21,13 @@ xe
    *TBD*
 
 
-:mini:`meth (Arg₁: xe::node)[Arg₂: integer]`
+.. _fun-xe-node:
+
+:mini:`fun xe::node(Tag: string): xe::node`
    *TBD*
 
 
-:mini:`meth (Arg₁: xe::node)[Arg₂: nil]`
-   *TBD*
-
-
-:mini:`meth (Arg₁: xe::node)[Arg₂: string]`
+:mini:`meth (Arg₁: xe::node)[Arg₂: any]`
    *TBD*
 
 
@@ -64,6 +50,12 @@ xe
 .. _type-xe-var:
 
 :mini:`type xe::var`
+   *TBD*
+
+
+.. _fun-xe-var:
+
+:mini:`fun xe::var(Name: string): xe::var`
    *TBD*
 
 

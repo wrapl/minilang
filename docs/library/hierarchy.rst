@@ -107,6 +107,7 @@ hierarchy
       "sequence":e -> "real::range":w;
       "any":e -> "method::context":w;
       "function":e -> "method":w;
+      "function":e -> "random":w;
       "sequence":e -> "map":w;
       "map":e -> "map::mutable":w;
       "enum":e -> "map::order":w;

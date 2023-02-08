@@ -1700,6 +1700,7 @@ ML_METHOD("!!", MLFunctionT, MLListT) {
 // .. deprecated:: 2.7.0
 //
 //    Use :mini:`$!` instead.
+//
 // Returns a function equivalent to :mini:`fun(Args...) Function(List/1, List/2, ..., Args...)`.
 	ml_list_t *ArgsList = (ml_list_t *)Args[1];
 	ml_partial_function_t *Partial = xnew(ml_partial_function_t, ArgsList->Length, ml_value_t *);

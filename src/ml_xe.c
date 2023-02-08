@@ -31,6 +31,9 @@ static void xe_node_build(xe_node_t *Node, ml_stringbuffer_t *Buffer, ml_value_t
 }
 
 ML_FUNCTIONX(XENode) {
+//@xe::node
+//<Tag:string
+//>xe::node
 	ML_CHECKX_ARG_COUNT(1);
 	xe_node_t *Node = new(xe_node_t);
 	Node->Type = XENodeT;
@@ -56,6 +59,9 @@ typedef struct {
 extern ml_type_t XEVarT[];
 
 ML_FUNCTIONX(XEVar) {
+//@xe::var
+//<Name
+//>xe::var
 	ML_CHECKX_ARG_COUNT(1);
 	ML_CHECKX_ARG_TYPE(0, MLStringT);
 	xe_var_t *Var = new(xe_var_t);
@@ -85,18 +91,7 @@ static void ML_TYPED_FN(ml_iterate, XENodeT, ml_state_t *Caller, xe_node_t *Node
 
 ML_METHOD_DECL(Index, "[]");
 
-ML_METHODX("[]", XENodeT, MLNilT) {
-	xe_node_t *Node = (xe_node_t *)Args[0];
-	ML_RETURN(Node->Content);
-}
-
-ML_METHODX("[]", XENodeT, MLStringT) {
-	xe_node_t *Node = (xe_node_t *)Args[0];
-	Args[0] = Node->Attributes;
-	return ml_call(Caller, Index, Count, Args);
-}
-
-ML_METHODX("[]", XENodeT, MLIntegerT) {
+ML_METHODX("[]", XENodeT, MLAnyT) {
 	xe_node_t *Node = (xe_node_t *)Args[0];
 	Args[0] = Node->Attributes;
 	return ml_call(Caller, Index, Count, Args);
@@ -552,6 +547,9 @@ static const char *string_read(xe_stream_t *Stream) {
 }
 
 ML_FUNCTION(XEParse) {
+//@xe::parse
+//<String:string
+//>xe::node
 	ML_CHECK_ARG_COUNT(1);
 	ML_CHECK_ARG_TYPE(0, MLStringT);
 	xe_stream_t Stream[1];

@@ -290,6 +290,13 @@ void ml_class_add_field(ml_context_t *Context, ml_type_t *Class0, ml_value_t *Fi
 	add_field(Context, (ml_class_t *)Class0, Field);
 }
 
+static void ml_object_call(ml_state_t *Caller, ml_object_t *Object, int Count, ml_value_t **Args) {
+	ml_value_t **Args2 = ml_alloc_args(Count + 1);
+	memmove(Args2 + 1, Args, Count * sizeof(ml_value_t *));
+	Args2[0] = (ml_value_t *)Object;
+	return ml_call(Caller, Object->Type->Call, Count + 1, Args2);
+}
+
 ML_FUNCTIONX(MLClass) {
 //!object
 //@class
@@ -379,6 +386,11 @@ ML_FUNCTIONX(MLClass) {
 					add_field(Caller->Context, Class, Info->Method);
 				}
 				ml_type_add_parent((ml_type_t *)Class, (ml_type_t *)Parent);
+				if (Parent->Call) {
+					Class->Base.call = (void *)ml_object_call;
+					Class->Call = Parent->Call;
+					ml_type_add_parent((ml_type_t *)Class, MLFunctionT);
+				}
 			} else if (ml_is(Args[I], MLTypeT)) {
 				ml_type_t *Parent = (ml_type_t *)Args[I];
 				ml_type_add_parent((ml_type_t *)Class, Parent);
@@ -395,6 +407,10 @@ ML_FUNCTIONX(MLClass) {
 						Class->Initializer = Value;
 					} else if (!strcmp(Name, "const")) {
 						Const = Value;
+					} else if (!strcmp(Name, "()")) {
+						Class->Base.call = (void *)ml_object_call;
+						Class->Call = Value;
+						ml_type_add_parent((ml_type_t *)Class, MLFunctionT);
 					}
 				}
 				break;
