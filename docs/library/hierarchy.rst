@@ -105,6 +105,7 @@ hierarchy
       "real":e -> "double":w;
       "sequence":e -> "integer::range":w;
       "sequence":e -> "real::range":w;
+      "string":e -> "minijs":w;
       "any":e -> "method::context":w;
       "function":e -> "method":w;
       "function":e -> "random":w;
@@ -123,6 +124,7 @@ hierarchy
       "function":e -> "importer":w;
       "any":e -> "module::dir":w;
       "stream":e -> "json::decoder":w;
+      "string":e -> "json":w;
       "function":e -> "gir::function":w;
       "sequence":e -> "gir":w;
       "type":e -> "gir::baseinfo":w;

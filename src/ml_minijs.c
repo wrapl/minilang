@@ -14,6 +14,16 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "minijs"
 
+// Overview
+// Provides a specialized encoding of Minilang values to and from JSON with support for complex or cyclic data structures.
+//
+// * :json:`null` |harr| :mini:`nil`
+// * :json:`true` |harr| :mini:`true`
+// * :json:`false` |harr| :mini:`false`
+// * *integer* |harr| :mini:`integer`
+// * *real* |harr| :mini:`real`
+// * *string* |harr| :mini:`string`
+// * ``[type, ...]`` |harr| *other*
 
 json_t *ml_minijs_encode(ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
 	if (Value == MLNil) return json_null();
@@ -844,6 +854,41 @@ ML_METHOD(MinijsDecode, MLStringT, MLExternalSetT) {
 	return ml_minijs_decode(Decoder, Json);
 }
 
+extern ml_type_t MLMinijsT[];
+
+ML_FUNCTION(MLMinijs) {
+//@minijs
+//<Value:any
+//>minijs
+	ML_CHECK_ARG_COUNT(1);
+	ml_minijs_encoder_t Encoder[1] = {MLExternals, {INTHASH_INIT}, 0};
+	json_t *Json = ml_minijs_encode(Encoder, Args[0]);
+	const char *String = json_dumps(Json, JSON_ENCODE_ANY | JSON_COMPACT);
+	ml_value_t *Minijs = ml_string(String, -1);
+	Minijs->Type = MLMinijsT;
+	return Minijs;
+}
+
+ML_TYPE(MLMinijsT, (MLStringT), "minijs",
+	.Constructor = (ml_value_t *)MLMinijs
+);
+
+#ifdef ML_CBOR
+
+#include "ml_cbor.h"
+#include "minicbor/minicbor.h"
+
+static void ML_TYPED_FN(ml_cbor_write, MLMinijsT, ml_cbor_writer_t *Writer, ml_string_t *Value) {
+	ml_cbor_write_tag(Writer, 27);
+	ml_cbor_write_array(Writer, 2);
+	ml_cbor_write_string(Writer, strlen("minijs"));
+	ml_cbor_write_raw(Writer, "minijs", strlen("minijs"));
+	ml_cbor_write_bytes(Writer, Value->Length);
+	ml_cbor_write_raw(Writer, Value->Value, Value->Length);
+}
+
+#endif
+
 static void nop_free(void *Ptr) {}
 
 void ml_minijs_init(stringmap_t *Globals) {
@@ -878,10 +923,9 @@ void ml_minijs_init(stringmap_t *Globals) {
 	stringmap_insert(Decoders, "uuid", ml_minijs_decode_uuid);
 #endif
 #include "ml_minijs_init.c"
+	stringmap_insert(MLMinijsT->Exports, "encode", MinijsEncode);
+	stringmap_insert(MLMinijsT->Exports, "decode", MinijsDecode);
 	if (Globals) {
-		stringmap_insert(Globals, "minijs", ml_module("minijs",
-			"encode", MinijsEncode,
-			"decode", MinijsDecode,
-		NULL));
+		stringmap_insert(Globals, "minijs", MLMinijsT);
 	}
 }
