@@ -157,6 +157,10 @@ xml
       :> <test type="example">Text</test>
 
 
+:mini:`meth (Parent: xml::element) :: (Attribute: string): string | nil`
+   Returns the value of the :mini:`Attribute` attribute of :mini:`Parent`.
+
+
 :mini:`meth /(Xml: xml::element): sequence`
    Returns a sequence of the children of :mini:`Xml`.
 
@@ -189,12 +193,16 @@ xml
    *TBD*
 
 
-:mini:`meth (Parent: xml::element):put(String: string): xml`
+:mini:`meth (Parent: xml::element):put(String: string, ...): xml`
    Adds a new text node containing :mini:`String` to :mini:`Parent`.
 
 
-:mini:`meth (Parent: xml::element):put(Child: xml::element): xml`
+:mini:`meth (Parent: xml::element):put(Child: xml::element, ...): xml`
    Adds :mini:`Child` to :mini:`Parent`.
+
+
+:mini:`meth (Xml: xml::element):set(Attribute: string, Value: string): xml`
+   Sets the value of attribute :mini:`Attribute` in :mini:`Xml` to :mini:`Value` and returns :mini:`Xml`.
 
 
 :mini:`meth (Xml: xml::element):tag: string`
@@ -219,12 +227,12 @@ xml
    An XML filter.
 
 
-:mini:`meth xml::filter(Attr₁ is Value₁, ...): xml::filter`
-   Returns an XML filter that checks if a node has attributes :mini:`Attrᵢ = Valueᵢ`.
-
-
 :mini:`meth xml::filter(Tag: string, Attr₁ is Value₁, ...): xml::filter`
    Returns an XML filter that checks if a node has tag :mini:`Tag` and attributes :mini:`Attrᵢ = Valueᵢ`.
+
+
+:mini:`meth xml::filter(Attr₁ is Value₁, ...): xml::filter`
+   Returns an XML filter that checks if a node has attributes :mini:`Attrᵢ = Valueᵢ`.
 
 
 :mini:`meth (Sequence: xml::sequence) / (Args: any, ...): sequence`

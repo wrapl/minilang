@@ -1991,6 +1991,28 @@ ML_FUNCTION_INLINE(MLIntegerSwitch) {
 	return (ml_value_t *)Switch;
 }
 
+static ml_value_t *ML_TYPED_FN(ml_serialize, MLIntegerSwitchT, ml_integer_switch_t *Switch) {
+	ml_value_t *Result = ml_list();
+	ml_list_put(Result, ml_cstring("integer-switch"));
+	ml_value_t *Index = NULL, *Last = NULL;
+	for (ml_integer_case_t *Case = Switch->Cases;; ++Case) {
+		if (Case->Min > LONG_MIN && Case->Max < LONG_MAX) {
+			if (Case->Index != Index) {
+				Index = Case->Index;
+				Last = ml_list();
+				ml_list_put(Result, Last);
+			}
+			ml_value_t *Range = ml_list();
+			ml_list_put(Range, ml_integer(Case->Min));
+			ml_list_put(Range, ml_integer(Case->Max));
+			ml_list_put(Last, Range);
+		} else {
+			break;
+		}
+	}
+	return Result;
+}
+
 typedef struct {
 	ml_value_t *Index;
 	double Min, Max;
@@ -2055,6 +2077,28 @@ ML_FUNCTION_INLINE(MLRealSwitch) {
 	Case->Max = INFINITY;
 	Case->Index = ml_integer(Count);
 	return (ml_value_t *)Switch;
+}
+
+static ml_value_t *ML_TYPED_FN(ml_serialize, MLRealSwitchT, ml_real_switch_t *Switch) {
+	ml_value_t *Result = ml_list();
+	ml_list_put(Result, ml_cstring("real-switch"));
+	ml_value_t *Index = NULL, *Last = NULL;
+	for (ml_real_case_t *Case = Switch->Cases;; ++Case) {
+		if (Case->Min > DBL_MIN && Case->Max < DBL_MAX) {
+			if (Case->Index != Index) {
+				Index = Case->Index;
+				Last = ml_list();
+				ml_list_put(Result, Last);
+			}
+			ml_value_t *Range = ml_list();
+			ml_list_put(Range, ml_real(Case->Min));
+			ml_list_put(Range, ml_real(Case->Max));
+			ml_list_put(Last, Range);
+		} else {
+			break;
+		}
+	}
+	return Result;
 }
 
 void ml_number_init() {

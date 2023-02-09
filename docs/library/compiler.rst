@@ -9,9 +9,9 @@ compiler
 
 .. rst-class:: mini-api
 
-.. _fun-mlcompilerzip:
+.. _fun-mlnot:
 
-:mini:`fun mlcompilerzip()`
+:mini:`fun mlnot(Arg₁: any)`
    *TBD*
 
 

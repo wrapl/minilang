@@ -21,6 +21,12 @@ external
    *TBD*
 
 
+.. _fun-external:
+
+:mini:`fun external(Name: string): external`
+   *TBD*
+
+
 :mini:`meth (External: external) :: (Import: string): external`
    *TBD*
 

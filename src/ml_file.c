@@ -87,6 +87,16 @@ static void ML_TYPED_FN(ml_stream_write, MLFileT, ml_state_t *Caller, ml_file_t 
 	ML_RETURN(ml_integer(Result));
 }
 
+static void ML_TYPED_FN(ml_stream_seek, MLFileT, ml_state_t *Caller, ml_file_t *File, int64_t Offset, int Mode) {
+	if (!File->Handle) ML_ERROR("FileError", "file already closed");
+	ML_RETURN(ml_integer(fseek(File->Handle, Offset, Mode)));
+}
+
+static void ML_TYPED_FN(ml_stream_tell, MLFileT, ml_state_t *Caller, ml_file_t *File) {
+	if (!File->Handle) ML_ERROR("FileError", "file already closed");
+	ML_RETURN(ml_integer(ftell(File->Handle)));
+}
+
 ML_METHOD("eof", MLFileT) {
 //<File
 //>File | nil

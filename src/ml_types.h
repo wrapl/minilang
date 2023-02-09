@@ -683,6 +683,10 @@ char *ml_stringbuffer_get_string(ml_stringbuffer_t *Buffer) __attribute__ ((mall
 char *ml_stringbuffer_get_uncollectable(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
 ml_value_t *ml_stringbuffer_get_value(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
 
+ml_value_t *ml_stringbuffer_to_address(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
+ml_value_t *ml_stringbuffer_to_buffer(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
+ml_value_t *ml_stringbuffer_to_string(ml_stringbuffer_t *Buffer) __attribute__ ((malloc));
+
 size_t ml_stringbuffer_reader(ml_stringbuffer_t *Buffer, size_t Length);
 
 int ml_stringbuffer_foreach(ml_stringbuffer_t *Buffer, void *Data, int (*callback)(void *, const char *, size_t));
@@ -1180,8 +1184,11 @@ struct ml_externals_t {
 extern ml_externals_t MLExternals[1];
 const char *ml_externals_get_name(ml_externals_t *Externals, ml_value_t *Value);
 ml_value_t *ml_externals_get_value(ml_externals_t *Externals, const char *Name);
+void ml_externals_add(ml_externals_t *Externals, const char *Name, void *Value);
 
-void ml_externals_add(const char *Name, void *Value);
+void ml_externals_default_add(const char *Name, void *Value);
+
+ml_value_t *ml_serialize(ml_value_t *Value);
 
 // Symbols //
 

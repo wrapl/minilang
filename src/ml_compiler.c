@@ -3105,8 +3105,8 @@ static void ml_ident_expr_compile(mlc_function_t *Function, mlc_ident_expr_t *Ex
 			}
 		}
 	}
-	if (!strcmp(Expr->Ident, "true")) return ml_ident_expr_finish(Function, Expr, (ml_value_t *)MLTrue, Flags);
-	if (!strcmp(Expr->Ident, "false")) return ml_ident_expr_finish(Function, Expr, (ml_value_t *)MLFalse, Flags);
+	//if (!strcmp(Expr->Ident, "true")) return ml_ident_expr_finish(Function, Expr, (ml_value_t *)MLTrue, Flags);
+	//if (!strcmp(Expr->Ident, "false")) return ml_ident_expr_finish(Function, Expr, (ml_value_t *)MLFalse, Flags);
 	ml_value_t *Value = (ml_value_t *)stringmap_search(Function->Compiler->Vars, Expr->Ident);
 	if (!Value) Value = Function->Compiler->GlobalGet(Function->Compiler->Globals, Expr->Ident, Expr->Source, Expr->StartLine);
 	if (!Value) {
@@ -4395,8 +4395,38 @@ static mlc_expr_t *ml_accept_fun_expr(ml_parser_t *Parser, const char *Name, ml_
 						Param->Kind = ML_PARAM_ASVAR;
 					} else if (ml_parse2(Parser, MLT_LET)) {
 					}
-					ml_accept(Parser, MLT_IDENT);
-					Param->Ident = Parser->Ident;
+					if (ml_parse2(Parser, MLT_LEFT_PAREN)) {
+						GC_asprintf((char **)&Param->Ident, "(%d)", Index);
+						ML_EXPR(UnpackExpr, block, block);
+						int Count = 1;
+						ml_accept(Parser, MLT_IDENT);
+						mlc_local_t *Local = UnpackExpr->Lets = mlc_local_new(Parser->Ident, Parser->Source.Line);
+						while (ml_parse2(Parser, MLT_COMMA)) {
+							ml_accept(Parser, MLT_IDENT);
+							Local = Local->Next = mlc_local_new(Parser->Ident, Parser->Source.Line);
+							Local->Index = Count++;
+						}
+						ml_accept(Parser, MLT_RIGHT_PAREN);
+						ML_EXPR(IdentExpr, ident, ident);
+						IdentExpr->Ident = Param->Ident;
+						ML_EXPR(LocalExpr, local, let_unpack);
+						if (Param->Kind == ML_PARAM_BYREF) {
+							LocalExpr->compile = ml_ref_unpack_expr_compile;
+						} else if (Param->Kind == ML_PARAM_ASVAR) {
+							LocalExpr->compile = ml_var_unpack_expr_compile;
+						}
+						Param->Kind = 0;
+						LocalExpr->Local = UnpackExpr->Lets;
+						LocalExpr->Count = Count;
+						LocalExpr->Child = ML_EXPR_END(IdentExpr);
+						UnpackExpr->NumLets = Count;
+						UnpackExpr->Child = ML_EXPR_END(LocalExpr);
+						BodySlot[0] = ML_EXPR_END(UnpackExpr);
+						BodySlot = &LocalExpr->Next;
+					} else {
+						ml_accept(Parser, MLT_IDENT);
+						Param->Ident = Parser->Ident;
+					}
 				}
 				if (ml_parse2(Parser, MLT_COLON)) Param->Type = ml_parse_term(Parser, 0);
 				if (ml_parse2(Parser, MLT_ASSIGN)) {
@@ -4712,6 +4742,7 @@ ML_TYPE(MLCompilerZipT, (MLSequenceT), "compiler::zip");
 //!internal
 
 ML_FUNCTION(MLCompilerZip) {
+//!internal
 	int NumIters = Count / 2;
 	ml_compiler_zip_t *Zip = new(ml_compiler_zip_t);
 	Zip->Type = MLCompilerZipT;
@@ -4939,6 +4970,12 @@ static void ml_accept_for_decls(ml_parser_t *Parser, mlc_for_expr_t *Expr) {
 static ML_METHOD_DECL(MLInMethod, "in");
 static ML_METHOD_DECL(MLIsMethod, "=");
 
+ML_FUNCTION(MLNot) {
+	ML_CHECK_ARG_COUNT(1);
+	if (Args[0] == MLNil) return MLSome;
+	return MLNil;
+}
+
 static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 	static void *CompileFns[] = {
 		[MLT_EACH] = ml_each_expr_compile,
@@ -4957,8 +4994,20 @@ static mlc_expr_t *ml_parse_factor(ml_parser_t *Parser, int MethDecl) {
 	const char *ExprName = NULL;
 with_name:
 	switch (ml_current(Parser)) {
+	case MLT_NOT: {
+		ml_next(Parser);
+		mlc_expr_t *Child = ml_parse_expression(Parser, EXPR_DEFAULT);
+		if (Child) {
+			ML_EXPR(ParentExpr, parent, not);
+			ParentExpr->Child = Child;
+			return ML_EXPR_END(ParentExpr);
+		} else {
+			ML_EXPR(ValueExpr, value, value);
+			ValueExpr->Value = (ml_value_t *)MLNot;
+			return ML_EXPR_END(ValueExpr);
+		}
+	}
 	case MLT_EACH:
-	case MLT_NOT:
 	case MLT_DEBUG:
 	{
 		mlc_parent_expr_t *ParentExpr = new(mlc_parent_expr_t);

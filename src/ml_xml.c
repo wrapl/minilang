@@ -83,6 +83,18 @@ ml_xml_node_t *ml_xml_text(const char *Content, int Length) {
 	return Text;
 }
 
+ml_xml_node_t *ml_xml_text_copy(const char *Content, int Length) {
+	if (Length < 0) Length = strlen(Content);
+	ml_xml_node_t *Text = new(ml_xml_node_t);
+	Text->Base.Type = MLXmlTextT;
+	Text->Base.Length = Length;
+	char *Copy = snew(Length + 1);
+	memcpy(Copy, Content, Length);
+	Copy[Length] = 0;
+	Text->Base.Value = Copy;
+	return Text;
+}
+
 ML_METHOD("text", MLXmlTextT) {
 //<Xml
 //>string
@@ -288,7 +300,20 @@ ML_METHOD("text", MLXmlElementT, MLStringT) {
 	return ml_stringbuffer_get_value(Buffer);
 }
 
-ML_METHOD("put", MLXmlElementT, MLStringT) {
+ML_METHOD("set", MLXmlElementT, MLStringT, MLStringT) {
+//<Xml
+//<Attribute
+//<Value
+//>xml
+// Sets the value of attribute :mini:`Attribute` in :mini:`Xml` to :mini:`Value` and returns :mini:`Xml`.
+	ml_xml_element_t *Element = (ml_xml_element_t *)Args[0];
+	ml_map_insert(Element->Attributes, Args[1], Args[2]);
+	return (ml_value_t *)Element;
+}
+
+ML_METHOD_DECL(PutMethod, "put");
+
+ML_METHODVX("put", MLXmlElementT, MLStringT) {
 //<Parent
 //<String
 //>xml
@@ -321,10 +346,14 @@ ML_METHOD("put", MLXmlElementT, MLStringT) {
 		Text->Base.Value = ml_string_value(Args[1]);
 		ml_xml_element_put(Parent, Text);
 	}
-	return (ml_value_t *)Parent;
+	if (Count > 2) {
+		Args[1] = (ml_value_t *)Parent;
+		return ml_call(Caller, PutMethod, Count - 1, Args + 1);
+	}
+	ML_RETURN(Parent);
 }
 
-ML_METHOD("put", MLXmlElementT, MLXmlElementT) {
+ML_METHODVX("put", MLXmlElementT, MLXmlElementT) {
 //<Parent
 //<Child
 //>xml
@@ -332,7 +361,11 @@ ML_METHOD("put", MLXmlElementT, MLXmlElementT) {
 	ml_xml_element_t *Parent = (ml_xml_element_t *)Args[0];
 	ml_xml_node_t *Child = (ml_xml_node_t *)Args[1];
 	ml_xml_element_put(Parent, Child);
-	return (ml_value_t *)Parent;
+	if (Count > 2) {
+		Args[1] = (ml_value_t *)Parent;
+		return ml_call(Caller, PutMethod, Count - 1, Args + 1);
+	}
+	ML_RETURN(Parent);
 }
 
 typedef struct {
@@ -428,6 +461,16 @@ ML_METHOD("[]", MLXmlElementT, MLIntegerT) {
 }
 
 ML_METHODX("[]", MLXmlElementT, MLStringT) {
+//<Parent
+//<Attribute
+//>string|nil
+// Returns the value of the :mini:`Attribute` attribute of :mini:`Parent`.
+	ml_xml_element_t *Element = (ml_xml_element_t *)Args[0];
+	Args[0] = Element->Attributes;
+	return ml_call(Caller, IndexMethod, 2, Args);
+}
+
+ML_METHODX("::", MLXmlElementT, MLStringT) {
 //<Parent
 //<Attribute
 //>string|nil

@@ -202,8 +202,9 @@ typedef struct {
 
 static void ml_importer_call(ml_state_t *Caller, ml_importer_t *Importer, int Count, ml_value_t **Args) {
 	ML_CHECKX_ARG_COUNT(1);
-	ML_CHECKX_ARG_TYPE(0, MLStringT);
-	const char *Name = ml_string_value(ml_deref(Args[0]));
+	ml_value_t *NameArg = ml_deref(Args[0]);
+	if (!ml_is(NameArg, MLStringT)) ML_ERROR("TypeError", "Expected string for argument 1");
+	const char *Name = ml_string_value(NameArg);
 	if (Name[0] == '.') {
 		return ml_library_load(Caller, Importer->Path, Name);
 	} else {

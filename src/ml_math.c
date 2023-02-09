@@ -471,8 +471,18 @@ ML_DEF(math::e);
 // Euler's constant.
 */
 
+ML_TYPE(MLRandomT, (MLFunctionT), "random");
+
+ML_FUNCTION(MLRandomSeed) {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLIntegerT);
+	srandom(ml_integer_value(Args[0]));
+	return MLNil;
+}
+
 void ml_math_init(stringmap_t *Globals) {
 #include "ml_math_init.c"
+	stringmap_insert(MLRandomT->Exports, "seed", MLRandomSeed);
 	if (Globals) {
 		stringmap_insert(Globals, "math", ml_module("math",
 			"gcd", GCDMethod,
@@ -515,5 +525,6 @@ void ml_math_init(stringmap_t *Globals) {
 			"e", ml_real(M_E),
 			"ℯ", ml_real(M_E),
 		NULL));
+		stringmap_insert(Globals, "random", MLRandomT);
 	}
 }

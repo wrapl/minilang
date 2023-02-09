@@ -147,7 +147,7 @@ static ml_value_t *bytes_to_array(ml_value_t *Value, void *Ptr) {
 		}
 		*(gchararray *)Ptr = Bytes;
 	} else {
-		return ml_error("TypeError", "Expected string not %s", ml_typeof(Value)->Name);
+		return ml_error("TypeError", "Expected bytes not %s", ml_typeof(Value)->Name);
 	}
 	return NULL;
 }
@@ -167,7 +167,7 @@ static ml_value_t *bytes_to_list(ml_value_t *Value, void **Ptr) {
 		}
 		*Ptr = Bytes;
 	} else {
-		return ml_error("TypeError", "Expected string not %s", ml_typeof(Value)->Name);
+		return ml_error("TypeError", "Expected bytes not %s", ml_typeof(Value)->Name);
 	}
 	return NULL;
 }
@@ -543,6 +543,8 @@ ML_TYPE(GirFunctionT, (MLFunctionT), "gir::function",
 
 typedef struct {
 	GIArgInfo *Info;
+	GITypeInfo Type[1];
+	GIDirection Direction;
 	int Aux;
 	int IsClosure:1;
 	int IsLength:1;
@@ -554,28 +556,110 @@ typedef struct {
 	gir_function_arg_info_t Args[];
 } gir_function_compiler_t;
 
-static gir_function_t *function_info_compile_arg(gir_function_compiler_t *Compiler, int Index, int In, int Out, int Aux) {
-	if (Index == Compiler->Count) {
-		gir_function_t *Function = xnew(gir_function_t, Aux, sizeof(void *));
-		Function->Info = Compiler->Info;
-		Function->InstIn = snew(In + 1);
-		Function->InstIn[In] = GI_DONE;
-		Function->InstOut = snew(Out + 1);
-		Function->InstOut[Out] = GI_DONE;
-		return Function;
+static gir_function_t *function_info_simple_in(gir_function_t *Compiler, int Index, int In, int Out, int Aux, char Inst) {
+	gir_function_t *Function = function_info_compile_arg(Compiler, Index + 1, In + 1, Out, Aux);
+	Function->InstIn[In] = Inst;
+	return Function;
+}
+
+static gir_function_t *function_info_compile(GIFunctionInfo *Info) {
+	int NumArgs = g_callable_info_get_n_args(Info);
+	gir_function_arg_info_t Args[NumArgs] = {0,};
+	int NumIn = 0, NumOut = 0, NumAux = 0;
+	for (int I = 0; I < NumArgs; ++I) {
+		GIArgInfo *ArgInfo = Args[I].Info = g_callable_info_get_arg(Info, I);
+		GIDirection Direction = Args[I].Direction = g_arg_info_get_direction(ArgInfo);
+		g_arg_info_load_type(ArgInfo, Args[I].Type);
+		switch (g_type_info_get_tag(Args[I].Type)) {
+		case GI_TYPE_TAG_ARRAY: {
+			int Length = g_type_info_get_array_length();
+			if (Length >= 0) {
+				Args[Length].IsLength = 1;
+				Args[Length].Aux = I;
+			}
+			break;
+		}
+		case GI_TYPE_TAG_INTERFACE: {
+			GIBaseInfo *InterfaceInfo = g_type_info_get_interface(Args[I].Type);
+			if (g_base_info_equal(InterfaceInfo, GValueInfo)) {
+				ArgsIn[IndexIn].v_pointer = &GValues[IndexValue];
+				memset(&GValues[IndexValue], 0, sizeof(GValue));
+				_ml_to_value(Arg, &GValues[IndexValue]);
+				++IndexValue;
+			} else {
+				switch (g_base_info_get_type(InterfaceInfo)) {
+				case GI_INFO_TYPE_CALLBACK: {
+					int Closure = g_arg_info_get_closure(ArgInfo);
+					if (Closure >= 0) {
+						Args[Closure].IsClosure = 1;
+						Args[Closure].Aux = I;
+					}
+					break;
+				}
+				case GI_INFO_TYPE_STRUCT:
+				case GI_INFO_TYPE_ENUM:
+				case GI_INFO_TYPE_FLAGS:
+				case GI_INFO_TYPE_OBJECT: {
+					Args[I].Aux = NumAux++;
+					break;
+				}
+				}
+			}
+			break;
+		}
+		default:
+		}
+
+		if (Direction == GI_DIRECTION_IN || Direction == GI_DIRECTION_INOUT) {
+
+		}
+
+		g_arg_info_get_closure(ArgInfo);
+		g_type_info_get_array_length(ArgInfo);
 	}
+
 	gir_function_arg_info_t *Arg = Compiler->Args + Index;
-	if (Arg->IsClosure) {
-		gir_function_t *Function = function_info_compile_arg(Compiler, Index + 1, In + 1, Out, Aux);
-		Function->InstIn[In] = GI_SKIP;
-		return Function;
-	}
-	if (Arg->IsLength) {
-		gir_function_t *Function = function_info_compile_arg(Compiler, Index + 1, In + 2, Out, Aux);
-		Function->InstIn[In] = GI_LENGTH;
-		Function->InstIn[In + 1] = Compiler->Args[Index].Aux;
-		return Function;
-	}
 	GIDirection Direction = g_arg_info_get_direction(Arg->Info);
+	switch (Direction) {
+	case GI_DIRECTION_IN: {
+		if (Arg->IsClosure) return function_info_simple_in(Compiler, Index, In, Out, Aux, GI_SKIP);
+		if (Arg->IsLength) {
+			gir_function_t *Function = function_info_compile_arg(Compiler, Index + 1, In + 2, Out, Aux);
+			Function->InstIn[In] = GI_LENGTH;
+			Function->InstIn[In + 1] = Compiler->Args[Index].Aux;
+			return Function;
+		}
+		GITypeInfo TypeInfo[1];
+		g_arg_info_load_type(Arg->Info, TypeInfo);
+		GITypeTag Tag = g_type_info_get_tag(TypeInfo);
+		switch (Tag) {
+		case GI_TYPE_TAG_VOID: return function_info_simple_in(Compiler, Index, In, Out, Aux, GI_VOID);
+		case GI_TYPE_TAG_BOOLEAN: return function_info_simple_in(Compiler, Index, In, Out, Aux, GI_BOOLEAN);
+		case GI_TYPE_TAG_INT8: return function_info_simple_in(Compiler, Index, In, Out, Aux, GI_INT8);
+		case GI_TYPE_TAG_UINT8: return function_info_simple_in(Compiler, Index, In, Out, Aux, GI_UINT8);
+		case GI_TYPE_TAG_INT16: return function_info_simple_in(Compiler, Index, In, Out, Aux, GI_INT16);
+		case GI_TYPE_TAG_UINT16: return function_info_simple_in(Compiler, Index, In, Out, Aux, GI_UINT16);
+		case GI_TYPE_TAG_INT32: return function_info_simple_in(Compiler, Index, In, Out, Aux, GI_INT32);
+		case GI_TYPE_TAG_UINT32: return function_info_simple_in(Compiler, Index, In, Out, Aux, GI_UINT32);
+		case GI_TYPE_TAG_INT64: return function_info_simple_in(Compiler, Index, In, Out, Aux, GI_INT64);
+		case GI_TYPE_TAG_UINT64: return function_info_simple_in(Compiler, Index, In, Out, Aux, GI_UINT64);
+		case GI_TYPE_TAG_FLOAT: return function_info_simple_in(Compiler, Index, In, Out, Aux, GI_FLOAT);
+		case GI_TYPE_TAG_DOUBLE: return function_info_simple_in(Compiler, Index, In, Out, Aux, GI_DOUBLE);
+		case GI_TYPE_TAG_GTYPE: return function_info_simple_in(Compiler, Index, In, Out, Aux, GI_GTYPE);
+		case GI_TYPE_TAG_UTF8: return function_info_simple_in(Compiler, Index, In, Out, Aux, GI_STRING);
+		case GI_TYPE_TAG_FILENAME: return function_info_simple_in(Compiler, Index, In, Out, Aux, GI_STRING);
+		case GI_TYPE_TAG_ARRAY: {
+
+		}
+		}
+		break;
+	}
+	case GI_DIRECTION_OUT: {
+		break;
+	}
+	case GI_DIRECTION_INOUT: {
+		break;
+	}
+	}
 }
 

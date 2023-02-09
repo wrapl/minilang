@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <string.h>
 #include "ml_stream.h"
+#include "ml_object.h"
 
 #undef ML_CATEGORY
 #define ML_CATEGORY "stream"
@@ -13,6 +14,9 @@ ML_INTERFACE(MLStreamT, (), "stream");
 ML_METHOD_DECL(ReadMethod, "read");
 ML_METHOD_DECL(WriteMethod, "write");
 ML_METHOD_DECL(FlushMethod, "flush");
+ML_METHOD_DECL(SeekMethod, "seek");
+ML_METHOD_DECL(TellMethod, "tell");
+ML_METHOD_DECL(CloseMethod, "close");
 
 void ml_stream_read_method(ml_state_t *Caller, ml_value_t *Value, void *Address, int Count) {
 	ml_address_t *Buffer = new(ml_address_t);
@@ -54,6 +58,49 @@ void ml_stream_flush_method(ml_state_t *Caller, ml_value_t *Value) {
 
 void ml_stream_flush(ml_state_t *Caller, ml_value_t *Value) {
 	typeof(ml_stream_flush) *function = ml_typed_fn_get(ml_typeof(Value), ml_stream_flush) ?: ml_stream_flush_method;
+	return function(Caller, Value);
+}
+
+ML_ENUM2(MLStreamSeekT, "stream::seek",
+	"Set", SEEK_SET,
+	"Cur", SEEK_CUR,
+	"End", SEEK_END
+);
+
+void ml_stream_seek_method(ml_state_t *Caller, ml_value_t *Value, int64_t Offset, int Mode) {
+	ml_value_t **Args = ml_alloc_args(3);
+	Args[0] = Value;
+	Args[1] = ml_integer(Offset);
+	ml_value_t *SeekMode = ml_enum_value(MLStreamSeekT, Mode);
+	if (ml_is_error(SeekMode)) ML_RETURN(SeekMode);
+	Args[2] = SeekMode;
+	return ml_call(Caller, SeekMethod, 2, Args);
+}
+
+void ml_stream_seek(ml_state_t *Caller, ml_value_t *Value, int64_t Offset, int Mode) {
+	typeof(ml_stream_seek) *function = ml_typed_fn_get(ml_typeof(Value), ml_stream_seek) ?: ml_stream_seek_method;
+	return function(Caller, Value, Offset, Mode);
+}
+
+void ml_stream_tell_method(ml_state_t *Caller, ml_value_t *Value) {
+	ml_value_t **Args = ml_alloc_args(1);
+	Args[0] = Value;
+	return ml_call(Caller, TellMethod, 1, Args);
+}
+
+void ml_stream_tell(ml_state_t *Caller, ml_value_t *Value) {
+	typeof(ml_stream_tell) *function = ml_typed_fn_get(ml_typeof(Value), ml_stream_tell) ?: ml_stream_tell_method;
+	return function(Caller, Value);
+}
+
+void ml_stream_close_method(ml_state_t *Caller, ml_value_t *Value) {
+	ml_value_t **Args = ml_alloc_args(1);
+	Args[0] = Value;
+	return ml_call(Caller, CloseMethod, 1, Args);
+}
+
+void ml_stream_close(ml_state_t *Caller, ml_value_t *Value) {
+	typeof(ml_stream_close) *function = ml_typed_fn_get(ml_typeof(Value), ml_stream_close) ?: ml_stream_close_method;
 	return function(Caller, Value);
 }
 
@@ -217,7 +264,7 @@ static void ml_stream_rest_run(ml_readu_state_t *State, ml_value_t *Value) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Value)) ML_RETURN(Value);
 	size_t Length = ml_integer_value(Value);
-	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_get_value(State->Buffer) : MLNil);
+	if (!Length) ML_RETURN(State->Buffer->Length ? ml_stringbuffer_get_value(State->Buffer) : ml_cstring(""));
 	char *Space = ml_stringbuffer_writer(State->Buffer, Length);
 	ml_value_t *Stream = State->Stream;
 	return State->read((ml_state_t *)State, Stream, Space, State->Buffer->Space);
@@ -379,6 +426,38 @@ ML_METHODX("flush", MLStreamT) {
 	typeof(ml_stream_flush) *flush = ml_typed_fn_get(ml_typeof(Stream), ml_stream_flush);
 	if (!flush) ML_RETURN(Stream);
 	return flush(Caller, Stream);
+}
+
+ML_METHODX("seek", MLStreamT, MLIntegerT, MLStreamSeekT) {
+//<Stream
+//<Offset
+//<Mode
+//>integer
+// Sets the position for the next read or write in :mini:`Stream` to :mini:`Offset` using :mini:`Mode`. This method should be overridden for streams defined in Minilang.
+	ml_value_t *Stream = Args[0];
+	typeof(ml_stream_seek) *seek = ml_typed_fn_get(ml_typeof(Stream), ml_stream_seek);
+	if (!seek) ML_ERROR("StreamError", "No seek method defined for %s", ml_typeof(Args[0])->Name);
+	return seek(Caller, Stream, ml_integer_value(Args[1]), ml_enum_value_value(Args[2]));
+}
+
+ML_METHODX("tell", MLStreamT) {
+//<Stream
+//>integer
+// Gets the position for the next read or write in :mini:`Stream`. This method should be overridden for streams defined in Minilang.
+	ml_value_t *Stream = Args[0];
+	typeof(ml_stream_tell) *tell = ml_typed_fn_get(ml_typeof(Stream), ml_stream_tell);
+	if (!tell) ML_ERROR("StreamError", "No tell method defined for %s", ml_typeof(Args[0])->Name);
+	return tell(Caller, Stream);
+}
+
+ML_METHODX("close", MLStreamT) {
+//<Stream
+//>nil
+// Closes :mini:`Stream`. This method should be overridden for streams defined in Minilang.
+	ml_value_t *Stream = Args[0];
+	typeof(ml_stream_tell) *close = ml_typed_fn_get(ml_typeof(Stream), ml_stream_close);
+	if (!close) ML_ERROR("StreamError", "No close method defined for %s", ml_typeof(Args[0])->Name);
+	return close(Caller, Stream);
 }
 
 typedef struct {
@@ -707,6 +786,7 @@ ML_METHOD("write", MLStreamFdT, MLAddressT) {
 void ml_stream_init(stringmap_t *Globals) {
 #include "ml_stream_init.c"
 	ml_type_add_parent(MLStringBufferT, MLStreamT);
+	stringmap_insert(MLStreamT->Exports, "seek", MLStreamSeekT);
 	stringmap_insert(MLStreamT->Exports, "fd", MLStreamFdT);
 	stringmap_insert(MLStreamT->Exports, "buffered", MLStreamBufferedT);
 	if (Globals) {

@@ -609,7 +609,7 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst + 2);
 	}
 	DO_LOAD_VAR: {
-		Result = Inst[1].Value;
+		Result = ml_deref(Inst[1].Value);
 		ml_variable_t *Variable = (ml_variable_t *)Top[Inst[2].Count];
 		if (Variable->VarType && !ml_is(Result, Variable->VarType)) {
 			Result = ml_error("TypeError", "Cannot assign %s to variable of type %s", ml_typeof(Result)->Name, Variable->VarType->Name);

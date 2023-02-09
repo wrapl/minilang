@@ -44,8 +44,7 @@ When creating a substring,  the first index is inclusive and second index is exc
    .. code-block:: mini
 
       regex("[0-9]+") :> /[0-9]+/
-      regex("[0-9")
-      :> error("RegexError", "regex error: Missing ']'")
+      regex("[0-9") :> error("RegexError", "Missing ']'")
 
 
 :mini:`meth (Arg₁: regex) != (Arg₂: regex): regex | nil`
@@ -149,10 +148,25 @@ When creating a substring,  the first index is inclusive and second index is exc
       string([1, 2, 3]) :> "[1, 2, 3]"
 
 
-.. _fun-mlstringescape:
+.. _fun-regex-escape:
 
-:mini:`fun mlstringescape(Arg₁: string)`
-   *TBD*
+:mini:`fun regex::escape(String: string): string`
+   Escapes characters in :mini:`String` that are treated specially in regular expressions.
+
+   .. code-block:: mini
+
+      regex::escape("Word (?)\n") :> "Word \\(\\?\\)\\n"
+
+
+.. _fun-string-escape:
+
+:mini:`fun string::escape(String: string): string`
+   Escapes characters in :mini:`String`.
+
+   .. code-block:: mini
+
+      string::escape("\'Hello\nworld!\'")
+      :> "\\\'Hello\\nworld!\\\'"
 
 
 :mini:`meth (Arg₁: string) != (Arg₂: string): string | nil`
@@ -214,7 +228,7 @@ When creating a substring,  the first index is inclusive and second index is exc
 
 :mini:`meth (String: string) / (Pattern: regex): list`
    Returns a list of substrings from :mini:`String` by splitting around occurences of :mini:`Pattern`.
-   If :mini:`Pattern` contains a subgroup then only the subgroup matches are removed from the output substrings.
+   If :mini:`Pattern` contains subgroups then only the subgroup matches are removed from the output substrings.
 
    .. code-block:: mini
 

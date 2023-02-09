@@ -1,13 +1,4 @@
-random::seed(1)
-
-let OutputDirectory := Args[1]
-
-for FileName in dir(OutputDirectory) do
-	if FileName[-4, 0] = ".rst" then
-		print('Unlinking {FileName}\n')
-		file::unlink(OutputDirectory + "/" + FileName)
-	end
-end
+import: xml("fmt/xml")
 
 fun category_name(Type) do
 	if Type = "MLStateT" then
@@ -25,32 +16,14 @@ end
 
 enum: item("Category", "Type", "Export", "Constructor", "Function", "Method", "Append")
 
-fun write_category(Name, Items) do
-	print('Creating Category: {Name}\n')
-	let File := file('{OutputDirectory}/{Name:lower}.rst', "w")
-	File:write(".. include:: <isonum.txt>\n\n")
-	File:write(".. include:: <isoamsa.txt>\n\n")
-	File:write(".. include:: <isotech.txt>\n\n")
-	File:write(Name, "\n")
-	for I in Name do File:write("=") end
-	File:write("\n\n")
-	File:write(".. rst-class:: mini-api\n\n")
-	loop
-		let (Docs, Key) := while Items:next
-		:>print('\t{Key}\n')
-		File:write(Docs, "\n")
-	end
-	File:close
-end
-
 let Categories := {}
 
-fun emit(Category, Key, Docs) do
-	Categories[Category, fun util::pqueue(<)]:insert(Docs, Key)
+fun emit(Category, Key, Node) do
+	Categories[Category, fun util::pqueue(<)]:insert(Node, Key)
 end
 
 fun write_overview(Category, Description) do
-	emit(Category, tuple(), Description:join)
+	emit(Category, tuple(), xml::element("description", Description))
 end
 
 fun type_name(var Type) do
@@ -121,8 +94,9 @@ meth image(M: map) with B := string::buffer() do
 end
 meth image(E: error) 'error(\"{E:type}\", \"{E:message}\")'
 
-fun write_examples(Buffer, Examples) do
-	let Output := string::buffer()
+fun write_examples(Examples) do
+	let Code := xml::element("code")
+	let Output := xml::element("output")
 	let Parser := parser(nil)
 	let Compiler := compiler(; Name) do
 		if Name = "print" then
@@ -131,7 +105,6 @@ fun write_examples(Buffer, Examples) do
 			global(Name)
 		end
 	end
-	Buffer:write("\n   .. code-block:: mini\n\n")
 	for Example in Examples do
 		var Result := ""
 		let Last := Example:after("\n", -1) or Example
@@ -145,27 +118,18 @@ fun write_examples(Buffer, Examples) do
 			exit
 		end
 		if (Last + Result):length > 60 then
-			Buffer:write(Example, "\n      :> ", Result, "\n")
+			Code:put(Example, "\n      :> ", Result, "\n")
 		else
-			Buffer:write(Example, " :> ", Result, "\n")
+			Code:put(Example, " :> ", Result, "\n")
 		end
 	end
-	if Output:length > 0 then
-		Buffer:write("\n")
-		Buffer:write("   .. code-block:: console\n\n")
-		loop
-			let Line := while Output:read
-			Buffer:write("      ", Line)
-		end
-	end
+	ret xml::element("example", Code, Output)
 end
 
 fun write_method(Category, Kind, Method0, Params, Return, Description, Examples, Location) do
-	let Buffer := string::buffer()
 	let Variadic := Kind = "ML_METHODV" or Kind = "ML_METHODVX"
 	var Skip := 1
-	Buffer:write(':mini:`meth ')
-	let Method := if let Match := Method0 % r"ML(\w+)T" then
+		let Method := if let Match := Method0 % r"ML(\w+)T" then
 		Match[2]:lower
 	elseif Method0[1] = "\"" then
 		if is_symbol(Method0) or Method0:find("::") then
@@ -180,214 +144,63 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Examples,
 			':{Method0}'
 		end
 	end
-	var Terminator := ""
-	var Seperator := ""
-	if Method = "[]" then
-		Buffer:write("(", Params[1][1], ": ", type_name(Params[1][2]), ")[")
-		Terminator := "]"
-	elseif is_symbol(Method) then
-		if Params:length = 0 then
-			Buffer:write('{Method}()')
-		elseif Params:length = 1 and not Variadic then
-			Buffer:write('{Method}({Params[1][1]}: {type_name(Params[1][2])})')
-		else
-			Buffer:write('({Params[1][1]}: {type_name(Params[1][2])}) {Method} (')
-			Terminator := ")"
-		end
-	elseif Method[1] != ":" then
-		if Params:length = 0 then
-			Buffer:write('{Method}()')
-		elseif Params:length = 1 and not Variadic then
-			Buffer:write('{Method}({Params[1][1]}: {type_name(Params[1][2])})')
-		elseif Params[1][2] = "MLNamesT" then
-			let (Name, Value) := Params[1][1] / ","
-			Buffer:write('{Method}({Name}₁ is {(Value or "Value"):trim}₁')
-			Seperator := ", "
-			Terminator := ")"
-		elseif let Match := Params[1][1] % r"(.*)\.\.\." then
-			Buffer:write('{Method}({Match[2]}: {type_name(Params[1][2])}, ...')
-			Seperator := ", "
-			Terminator := ")"
-		else
-			Buffer:write('{Method}({Params[1][1]}: {type_name(Params[1][2])}')
-			Seperator := ", "
-			Terminator := ")"
-		end
-	else
-		if Params:length = 0 then
-			Buffer:write('{Method}()')
-		elseif Params:length = 1 and not Variadic then
-			Buffer:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}')
-		elseif Params[1][2] = "MLNamesT" then
-			let (Name, Value) := Params[1][1] / ","
-			Buffer:write('{Method}({Name}₁ is {(Value or "Value"):trim}₁')
-			Seperator := ", "
-			Terminator := ")"
-		else
-			Buffer:write('({Params[1][1]}: {type_name(Params[1][2])}){Method}(')
-			Terminator := ")"
-		end
-	end
-	for Param in Params skip Skip do
-		if Param[2] = "MLNamesT" then
-			let (Name, Value) := Param[1] / ","
-			Buffer:write(Seperator, '{Name}₁ is {(Value or "Value"):trim}₁')
-		elseif let Match := Param[1] % r"(.*)\.\.\." then
-			Buffer:write(Seperator, Match[2], ": ", type_name(Param[2]), ", ...")
-		else
-			Buffer:write(Seperator, Param[1], ": ", type_name(Param[2]))
-		end
-		Seperator := ", "
-	end
-	if Variadic then
-		first(Params -> _[1] ->? :find(_, "...")) or Buffer:write(Seperator, "...")
-	end
-	Buffer:write(Terminator)
-	if Return:length > 0 then
-		Buffer:write(": ", type_name(Return[1]))
-		for Type in Return skip 1 do
-			Buffer:write(" | ", type_name(Type))
-		end
-	end
-	Buffer:write("`\n")
-	for Line in Description do
-		Buffer:write("   ", Line)
-	end
-	Description[1] or Buffer:write("   *TBD*\n")
-	for Param in Params do
-		if Param[3]:length > 0 then
-			Buffer:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")
-		end
-	end
-	Examples[1] and write_examples(Buffer, Examples)
-	Buffer:write("\n")
-	if Return[1] and Method = type_name(Return[1]) then
-		emit(Category, (Method, item::Constructor), Buffer:rest)
-	elseif Method = ":append" then
-		emit(Category, (type_name(Params[2][2]), item::Append, Method, sum(Params -> _[2] ->? 1)), Buffer:rest)
-	elseif Params[1] then
-		emit(Category, (type_name(Params[1][2]), item::Method, Method:trim(":"), sum(Params -> _[2] ->? 1)), Buffer:rest)
-	else
-		emit(Category, (Method, item::Method), Buffer:rest)
-	end
+	let Tag := if Method = type_name(Return[1]{}) then "constructor" else "method" end
+	emit(Category, (Method, item::Method), xml::element(Tag, {"category" is Category, "name" is Method, "variadic" is Variadic and "true" or "false"},
+		xml::element("return", {"type" is Return -> type_name join "|"}),
+		xml::element("parameters", list(Params; Param) do
+			xml::element("parameter", {
+				"name" is Param[1],
+				"type" is type_name(Param[2])
+			})
+		end),
+		xml::element("description", Description),
+		xml::element("examples", write_examples(Examples))
+	))
 end
 
 fun write_function(Category, Kind, Name, Params, Return, Description, Examples, Location) do
-	let Buffer := string::buffer()
-	Buffer:write('.. _fun-{Name:replace("::", "-")}:\n\n')
-	var Terminator := ""
-	Buffer:write(':mini:`fun ', Name, "(")
-	var Seperator := ""
-	for Param in Params do
-		if let Match := Param[1] % r"(.*)\.\.\." then
-			Buffer:write(Seperator, Match[2], ": ", type_name(Param[2]), ", ...")
-		else
-			Buffer:write(Seperator, Param[1], ": ", type_name(Param[2]))
-		end
-		Seperator := ", "
-	end
-	Buffer:write(")")
-	if Return:length > 0 then
-		Buffer:write(": ", type_name(Return[1]))
-		for Type in Return skip 1 do
-			Buffer:write(" | ", type_name(Type))
-		end
-	end
-	Buffer:write("`\n")
-	for Line in Description do
-		Buffer:write("   ", Line)
-	end
-	Description[1] or Buffer:write("   *TBD*\n")
-	for Param in Params do
-		if Param in method then
-		elseif Param[3]:length > 0 then
-			Buffer:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")
-		end
-	end
-	Examples[1] and write_examples(Buffer, Examples)
-	Buffer:write("\n")
-	if Return[1] and Name = type_name(Return[1]) then
-		emit(Category, (Name, item::Constructor), Buffer:rest)
-	else
-		emit(Category, (if let Param := first(Params ->? fun(Param) not Param[1]:ends("?")) then type_name(Param[2]) else "" end, item::Function, Name), Buffer:rest)
-	end
+	let Tag := if Name = type_name(Return[1]{}) then "constructor" else "function" end
+	emit(Category, (Name, item::Function), xml::element(Tag, {"name" is Name},
+		xml::element("return", {}),
+		xml::element("parameters", list(Params; Param) do
+			xml::element("parameter", {
+				"name" is Param[1],
+				"type" is type_name(Param[2])
+			})
+		end),
+		xml::element("description", Description),
+		xml::element("examples", write_examples(Examples))
+	))
 end
 
 fun write_constructor(Category, Kind, Name, Params, Return, Description, Location) do
-	let Buffer := string::buffer()
-	Buffer:write('.. _fun-{Name:replace("::", "-")}:\n\n')
-	var Terminator := ""
-	Buffer:write(':mini:`constructor ', Name, "(")
-	var Seperator := ""
-	for Param in Params do
-		Buffer:write(Seperator, Param[1], ": ", type_name(Param[2]))
-		Seperator := ", "
-	end
-	Buffer:write(")")
-	if Return:length > 0 then
-		Buffer:write(": ", type_name(Return[1]))
-		for Type in Return skip 1 do
-			Buffer:write(" | ", type_name(Type))
-		end
-	end
-	Buffer:write("`\n")
-	for Line in Description do
-		Buffer:write("   ", Line)
-	end
-	Description[1] or Buffer:write("   *TBD*\n")
-	for Param in Params do
-		if Param in method then
-		elseif Param[3]:length > 0 then
-			Buffer:write("   :", type_name(Param[2]), " ", Param[1], ": ", Param[3], "\n")
-		end
-	end
-	Buffer:write("\n")
-	emit(Category, (type_name(Return[1] or "MLAnyT"), item::Constructor), Buffer:rest)
+	emit(Category, (Name, item::Constructor), xml::element("constructor", {"name" is Name},
+		xml::element("return", {}),
+		xml::element("parameters", list(Params; Param) do
+			xml::element("parameter", {
+				"name" is Param[1],
+				"type" is type_name(Param[2])
+			})
+		end),
+		xml::element("description", Description)
+	))
 end
 
-let TypesGraph := string::buffer()
-
 fun write_type(Category, Name, Parents, Description, Examples, Location) do
-	let TypeName := type_name(Name)
-	let Buffer := string::buffer()
-	Buffer:write('.. _type-{TypeName:replace("::", "-")}:\n\n')
-	Buffer:write(':mini:`type {TypeName}')
-	if Parents:length > 0 then
-		Buffer:write(" < ")
-		var Seperator := ""
-		if Category != "internal" then
-			for Parent in Parents do
-				let ParentName := type_name(Parent)
-				TypesGraph:write('      \"{ParentName}\":e -> \"{TypeName}\":w;\n')
-				Buffer:write(Seperator, type_name(Parent))
-				Seperator := ", "
-			end
-		end
-	else
-		if Category != "internal" and Name != "MLAnyT" then
-			TypesGraph:write('      \"any\":e -> \"{TypeName}\":w;\n')
-		end
-	end
-	Buffer:write("`\n")
-	for Line in Description do
-		Buffer:write("   ", Line)
-	end
-	Description[1] or Buffer:write("   *TBD*\n")
-	Examples[1] and write_examples(Buffer, Examples)
-	Buffer:write("\n")
-	emit(Category, (TypeName, item::Type), Buffer:rest)
+	emit(Category, (Name, item::Type), xml::element("type", {"name" is type_name(Name)},
+		xml::element("parents", list(Parents; Parent) do
+			xml::element("parent", {"type" is type_name(Parent)})
+		end),
+		xml::element("description", Description),
+		xml::element("examples", write_examples(Examples))
+	))
 end
 
 fun write_value(Category, Name, Type, Description, Location) do
-	let Buffer := string::buffer()
-	Buffer:write('.. _value-{Name:replace("::", "-")}:\n\n')
-	Buffer:write(':mini:`def {Name}: {type_name(Type)}`\n')
-	for Line in Description do
-		Buffer:write("   ", Line)
-	end
-	Description[1] or Buffer:write("   *TBD*\n")
-	Buffer:write("\n")
-	emit(Category, (Name:before("::"), item::Export), Buffer:rest)
+	emit(Category, (Name, item::Export), xml::element("value", {"name" is type_name(Name)},
+		xml::element("type", {"name" is type_name(Type)}),
+		xml::element("description", Description)
+	))
 end
 
 def Subscripts := {
@@ -867,31 +680,20 @@ end
 
 for FileName in FileNames do process(FileName) end
 
+let Root := xml::element("root")
+
 for Name, Items in Categories do
 	if Name != "internal" then
-		write_category(Name, Items)
+		let Category := xml::element("category", {"name" is Name})
+		Root:put(Category)
+		loop
+			let (Item, Key) := while Items:next
+			Category:put(Item)
+		end
 	end
 end
 
-with File := file('{OutputDirectory}/hierarchy.rst', "w") do
-	File:write('
-hierarchy
-=========
-
-.. graphviz::
-
-   digraph hierarchy \{
-      rankdir="LR";
-      fontsize="40pt"
-      concentrate=true;
-      overlap=false;
-      packMode="node";
-      outputorder="edgesfirst";
-      node [shape=box,fontsize=24];
-')
-	File:write(TypesGraph:rest)
-	File:write('   }
-
-')
-	File:close
+with Output := file(Args[1], "w") do
+	Output:write(Root)
+	Output:close
 end

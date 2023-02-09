@@ -295,13 +295,83 @@ ML_FUNCTION(JsonEncode) {
 	return ml_json_encode(Handle, Args[0]) ?: ml_stringbuffer_get_value(Buffer);
 }
 
+extern ml_type_t MLJsonT[];
+
+ML_FUNCTION(MLJson) {
+//@json
+//<Value:any
+//>json
+// Encodes :mini:`Value` into JSON.
+	ML_CHECK_ARG_COUNT(1);
+	yajl_gen Handle = yajl_gen_alloc(&AllocFuncs);
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	yajl_gen_config(Handle, yajl_gen_print_callback, ml_stringbuffer_write, Buffer);
+	ml_value_t *Error = ml_json_encode(Handle, Args[0]);
+	if (Error) return Error;
+	ml_value_t *Json = ml_stringbuffer_to_string(Buffer);
+	Json->Type = MLJsonT;
+	return (ml_value_t *)Json;
+}
+
+ML_TYPE(MLJsonT, (MLStringT), "json",
+// Contains a JSON encoded value. Primarily used to distinguish strings containing JSON from other strings (e.g. for CBOR encoding).
+	.Constructor = (ml_value_t *)MLJson
+);
+
+ML_METHOD("decode", MLJsonT) {
+//<Json
+//>any|error
+// Decodes the JSON string in :mini:`Json` into a Minilang value.
+	ml_value_t *Result = NULL;
+	json_decoder_t Decoder = {0,};
+	Decoder.Callback = (void *)json_decode_callback;
+	Decoder.Data = &Result;
+	Decoder.Stack = &Decoder.Stack0;
+	yajl_handle Handle = yajl_alloc(&Callbacks, &AllocFuncs, &Decoder);
+	const unsigned char *Text = (const unsigned char *)ml_string_value(Args[0]);
+	size_t Length = ml_string_length(Args[0]);
+	if (yajl_parse(Handle, Text, Length) == yajl_status_error) {
+		const unsigned char *Error = yajl_get_error(Handle, 0, NULL, 0);
+		size_t Position = yajl_get_bytes_consumed(Handle);
+		return ml_error("JSONError", "@%ld: %s", Position, Error);
+	}
+	if (yajl_complete_parse(Handle) == yajl_status_error) {
+		const unsigned char *Error = yajl_get_error(Handle, 0, NULL, 0);
+		size_t Position = yajl_get_bytes_consumed(Handle);
+		return ml_error("JSONError", "@%ld: %s", Position, Error);
+	}
+	return Result ?: ml_error("JSONError", "Incomplete JSON");
+}
+
+#ifdef ML_CBOR
+
+#include "ml_cbor.h"
+#include "minicbor/minicbor.h"
+
+static void ML_TYPED_FN(ml_cbor_write, MLJsonT, ml_cbor_writer_t *Writer, ml_string_t *Value) {
+	ml_cbor_write_tag(Writer, 262);
+	ml_cbor_write_bytes(Writer, Value->Length);
+	ml_cbor_write_raw(Writer, Value->Value, Value->Length);
+}
+
+static ml_value_t *ml_cbor_read_json(ml_cbor_reader_t *Reader, ml_value_t *Value) {
+	if (!ml_is(Value, MLAddressT)) return ml_error("TagError", "Json requires bytes or string");
+	ml_value_t *Json = ml_string_copy(ml_address_value(Value), ml_address_length(Value));
+	Json->Type = MLJsonT;
+	return (ml_value_t *)Json;
+}
+
+#endif
+
 void ml_json_init(stringmap_t *Globals) {
 #include "ml_json_init.c"
+	stringmap_insert(MLJsonT->Exports, "encode", JsonEncode);
+	stringmap_insert(MLJsonT->Exports, "decode", JsonDecode);
+	stringmap_insert(MLJsonT->Exports, "decoder", MLJsonDecoderT);
 	if (Globals) {
-		stringmap_insert(Globals, "json", ml_module("json",
-			"encode", JsonEncode,
-			"decode", JsonDecode,
-			"decoder", MLJsonDecoderT,
-		NULL));
+		stringmap_insert(Globals, "json", MLJsonT);
 	}
+#ifdef ML_CBOR
+	ml_cbor_default_tag(262, ml_cbor_read_json);
+#endif
 }

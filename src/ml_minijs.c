@@ -14,13 +14,21 @@
 #undef ML_CATEGORY
 #define ML_CATEGORY "minijs"
 
-struct ml_minijs_encoder_t {
-	ml_externals_t *Externals;
-	inthash_t Cached[1];
-	int LastIndex;
-};
+// Overview
+// Provides a specialized encoding of Minilang values to and from JSON with support for complex or cyclic data structures.
+//
+// * :json:`null` |harr| :mini:`nil`
+// * :json:`true` |harr| :mini:`true`
+// * :json:`false` |harr| :mini:`false`
+// * *integer* |harr| :mini:`integer`
+// * *real* |harr| :mini:`real`
+// * *string* |harr| :mini:`string`
+// * ``[type, ...]`` |harr| *other*
 
 json_t *ml_minijs_encode(ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
+	if (Value == MLNil) return json_null();
+	if (Value == (ml_value_t *)MLTrue) return json_true();
+	if (Value == (ml_value_t *)MLFalse) return json_false();
 	json_t *Json = inthash_search(Encoder->Cached, (uintptr_t)Value);
 	if (Json) {
 		json_t *First = json_array_get(Json, 0);
@@ -32,11 +40,15 @@ json_t *ml_minijs_encode(ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
 	}
 	const char *Name = ml_externals_get_name(Encoder->Externals, Value);
 	if (Name) {
-		return json_pack("[sssi]", "^", Name, "", 0);
+		return json_pack("[ss]", "^", Name);
 	}
 	typeof(ml_minijs_encode) *encode = ml_typed_fn_get(ml_typeof(Value), ml_minijs_encode);
-	if (!encode) return json_pack("[ss]", "unsupported", ml_typeof(Value)->Name);
-	return encode(Encoder, Value);
+	if (encode) return encode(Encoder, Value);
+	ml_value_t *Serialized = ml_serialize(Value);
+	if (ml_is_error(Serialized)) return json_pack("[ss]", "unsupported", ml_typeof(Value)->Name);
+	Json = json_pack("[s]", "o");
+	ML_LIST_FOREACH(Serialized, Iter) json_array_append_new(Json, ml_minijs_encode(Encoder, Iter->Value));
+	return Json;
 }
 
 static json_t *ML_TYPED_FN(ml_minijs_encode, MLNilT, ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
@@ -842,6 +854,41 @@ ML_METHOD(MinijsDecode, MLStringT, MLExternalSetT) {
 	return ml_minijs_decode(Decoder, Json);
 }
 
+extern ml_type_t MLMinijsT[];
+
+ML_FUNCTION(MLMinijs) {
+//@minijs
+//<Value:any
+//>minijs
+	ML_CHECK_ARG_COUNT(1);
+	ml_minijs_encoder_t Encoder[1] = {MLExternals, {INTHASH_INIT}, 0};
+	json_t *Json = ml_minijs_encode(Encoder, Args[0]);
+	const char *String = json_dumps(Json, JSON_ENCODE_ANY | JSON_COMPACT);
+	ml_value_t *Minijs = ml_string(String, -1);
+	Minijs->Type = MLMinijsT;
+	return Minijs;
+}
+
+ML_TYPE(MLMinijsT, (MLStringT), "minijs",
+	.Constructor = (ml_value_t *)MLMinijs
+);
+
+#ifdef ML_CBOR
+
+#include "ml_cbor.h"
+#include "minicbor/minicbor.h"
+
+static void ML_TYPED_FN(ml_cbor_write, MLMinijsT, ml_cbor_writer_t *Writer, ml_string_t *Value) {
+	ml_cbor_write_tag(Writer, 27);
+	ml_cbor_write_array(Writer, 2);
+	ml_cbor_write_string(Writer, strlen("minijs"));
+	ml_cbor_write_raw(Writer, "minijs", strlen("minijs"));
+	ml_cbor_write_bytes(Writer, Value->Length);
+	ml_cbor_write_raw(Writer, Value->Value, Value->Length);
+}
+
+#endif
+
 static void nop_free(void *Ptr) {}
 
 void ml_minijs_init(stringmap_t *Globals) {
@@ -876,10 +923,9 @@ void ml_minijs_init(stringmap_t *Globals) {
 	stringmap_insert(Decoders, "uuid", ml_minijs_decode_uuid);
 #endif
 #include "ml_minijs_init.c"
+	stringmap_insert(MLMinijsT->Exports, "encode", MinijsEncode);
+	stringmap_insert(MLMinijsT->Exports, "decode", MinijsDecode);
 	if (Globals) {
-		stringmap_insert(Globals, "minijs", ml_module("minijs",
-			"encode", MinijsEncode,
-			"decode", MinijsDecode,
-		NULL));
+		stringmap_insert(Globals, "minijs", MLMinijsT);
 	}
 }
