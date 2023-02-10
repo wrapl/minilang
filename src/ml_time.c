@@ -44,6 +44,7 @@ static int ML_TYPED_FN(ml_value_is_constant, MLTimeT, ml_value_t *Value) {
 ML_METHOD(MLTimeT) {
 //>time
 // Returns the current time.
+//$= time()
 	ml_time_t *Time = new(ml_time_t);
 	Time->Type = MLTimeT;
 	clock_gettime(CLOCK_REALTIME, Time->Value);
@@ -105,6 +106,7 @@ ML_METHOD(MLTimeT, MLStringT) {
 //<String
 //>time
 // Parses the :mini:`String` as a time according to ISO 8601.
+//$= time("2023-02-09T21:19:33.196413266")
 	return ml_time_parse(ml_string_value(Args[0]), ml_string_length(Args[0]));
 }
 
@@ -565,48 +567,92 @@ ML_FUNCTION(MLTimeMdays) {
 
 #ifdef ML_TIMEZONES
 
-ML_TYPE(MLTimeZonesT, (), "time::zones");
-//!internal
-
-ML_VALUE(MLTimeZones, MLTimeZonesT);
-//@time::zones
-// The set of available time zones.
-
 typedef struct {
 	ml_type_t *Type;
+	const char *Id;
 	timelib_tzinfo *Info;
 } ml_time_zone_t;
 
-ML_TYPE(MLTimeZoneT, (), "time::zone");
-// A time zone.
+extern ml_type_t MLTimeZoneT[];
 
-static void ml_time_zone_finalize(ml_time_zone_t *TimeZone, void *Data) {
-	timelib_tzinfo_dtor(TimeZone->Info);
+static ml_value_t *ml_time_zone(const char *Id) {
+	if (!timelib_timezone_id_is_valid(Id, timelib_builtin_db())) {
+		return ml_error("TimeZoneError", "Time zone not found");
+	}
+	ml_value_t **Slot = (ml_value_t **)stringmap_slot(MLTimeZoneT->Exports, Id);
+	if (!Slot[0]) {
+		ml_time_zone_t *TimeZone = new(ml_time_zone_t);
+		TimeZone->Type = MLTimeZoneT;
+		TimeZone->Id = Id;
+		Slot[0] = (ml_value_t *)TimeZone;
+	}
+	return Slot[0];
 }
 
-ML_METHOD("::", MLTimeZonesT, MLStringT) {
-//<Name
-//>time::zone|error
-// Returns the time zone identified by :mini:`Name` or an error if no time zone is found.
-	int Error = 0;
-	timelib_tzinfo *Info = timelib_parse_tzfile(ml_string_value(Args[1]), timelib_builtin_db(), &Error);
-	if (!Info) return ml_error("TimeZoneError", "Time zone not found");
-	ml_time_zone_t *TimeZone = new(ml_time_zone_t);
-	TimeZone->Type = MLTimeZoneT;
-	TimeZone->Info = Info;
-	GC_register_finalizer(TimeZone, (GC_finalization_proc)ml_time_zone_finalize, NULL, NULL, NULL);
+static ml_value_t *ml_time_zone_deref(ml_time_zone_t *TimeZone) {
+	if (!TimeZone->Info) {
+		int Error = 0;
+		TimeZone->Info = timelib_parse_tzfile(TimeZone->Id, timelib_builtin_db(), &Error);
+	}
 	return (ml_value_t *)TimeZone;
 }
 
-ML_FUNCTION(MLTimeZoneList) {
-//@time::zone::list
-//>list[string]
-// Returns a list of available time zone names.
-	int Total;
-	const timelib_tzdb_index_entry *Entries = timelib_timezone_identifiers_list(timelib_builtin_db(), &Total);
-	ml_value_t *List = ml_list();
-	for (int I = 0; I < Total; ++I) ml_list_put(List, ml_string(Entries[I].id, -1));
-	return List;
+static void ml_time_zone_call(ml_state_t *Caller, ml_value_t *Value, int Count, ml_value_t **Args) {
+	ML_CHECKX_ARG_COUNT(1);
+	ml_value_t *NameArg = ml_deref(Args[0]);
+	if (!ml_is(NameArg, MLStringT)) ML_ERROR("TypeError", "Expected string not %s for arg 1", ml_typeof(NameArg)->Name);
+	const char *Name = ml_string_value(NameArg);
+	ML_RETURN(ml_time_zone(Name));
+}
+
+ML_TYPE(MLTimeZoneTypeT, (MLTypeT, MLSequenceT), "type(time::zone)",
+//!internal
+	.call = (void *)ml_time_zone_call
+);
+
+ML_TYPE(MLTimeZoneT, (), "time::zone",
+// A time zone.
+	.deref = (void *)ml_time_zone_deref
+);
+
+ML_METHOD("::", MLTimeZoneTypeT, MLStringT) {
+//<Name
+//>time::zone|error
+// Returns the time zone identified by :mini:`Name` or an error if no time zone is found.
+	const char *Name = ml_string_value(Args[1]);
+	return ml_time_zone(Name);
+}
+
+typedef struct {
+	ml_type_t *Type;
+	const timelib_tzdb_index_entry *Entries;
+	int Total, Index;
+} ml_time_zone_iter_t;
+
+ML_TYPE(MLTimeZoneIterT, (), "time::zone::iter");
+//!internal
+
+static void ML_TYPED_FN(ml_iterate, MLTimeZoneTypeT, ml_state_t *Caller, ml_value_t *Value) {
+	ml_time_zone_iter_t *Iter = new(ml_time_zone_iter_t);
+	Iter->Type = MLTimeZoneIterT;
+	Iter->Entries = timelib_timezone_identifiers_list(timelib_builtin_db(), &Iter->Total);
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_next, MLTimeZoneIterT, ml_state_t *Caller, ml_time_zone_iter_t *Iter) {
+	if (++Iter->Index >= Iter->Total) ML_RETURN(MLNil);
+	ML_RETURN(Iter);
+}
+
+static void ML_TYPED_FN(ml_iter_key, MLTimeZoneIterT, ml_state_t *Caller, ml_time_zone_iter_t *Iter) {
+	if (Iter->Index >= Iter->Total) ML_ERROR("StateError", "Invalid iterator state");
+	ML_RETURN(ml_string_copy(Iter->Entries[Iter->Index].id, -1));
+}
+
+static void ML_TYPED_FN(ml_iter_value, MLTimeZoneIterT, ml_state_t *Caller, ml_time_zone_iter_t *Iter) {
+	if (Iter->Index >= Iter->Total) ML_ERROR("StateError", "Invalid iterator state");
+	const char *Name = Iter->Entries[Iter->Index].id;
+	ML_RETURN(ml_time_zone(Name));
 }
 
 ML_METHOD("append", MLStringBufferT, MLTimeZoneT) {
@@ -798,6 +844,10 @@ typedef struct {
 ML_TYPE(MLTimeZonedT, (), "time::zoned");
 
 ML_METHOD("@", MLTimeT, MLTimeZoneT) {
+//<Time
+//<TimeZone
+//>time::zoned
+// Returns a *zoned* time, that contains an instant of time and an associated time zone.
 	ml_time_t *Time = (ml_time_t *)Args[0];
 	ml_time_zone_t *TimeZone = (ml_time_zone_t *)Args[1];
 	ml_time_zoned_t *Zoned = new(ml_time_zoned_t);
@@ -891,9 +941,8 @@ void ml_time_init(stringmap_t *Globals) {
 	if (Globals) stringmap_insert(Globals, "time", MLTimeT);
 	ml_string_fn_register("T", ml_time_parse);
 #ifdef ML_TIMEZONES
-	stringmap_insert(MLTimeT->Exports, "zones", MLTimeZones);
 	stringmap_insert(MLTimeT->Exports, "zone", MLTimeZoneT);
-	stringmap_insert(MLTimeZoneT->Exports, "list", MLTimeZoneList);
+	MLTimeZoneT->Type = MLTimeZoneTypeT;
 #endif
 	ml_externals_default_add("time", MLTimeT);
 #ifdef ML_CBOR
