@@ -72,6 +72,36 @@ static void ML_TYPED_FN(ml_iter_value, MLXmlT, ml_state_t *Caller, ml_xml_node_t
 	ML_RETURN(Node);
 }
 
+ML_FUNCTION(MLXmlEscape) {
+//@xml::escape
+//<String:string
+//>string
+// Escapes characters in :mini:`String`.
+//$- import: xml("fmt/xml")
+//$= xml::escape("\'1 + 2 > 3 & 2 < 4\'")
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLStringT);
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	const char *S = ml_string_value(Args[0]);
+	for (int I = ml_string_length(Args[0]); --I >= 0; ++S) {
+		switch (*S) {
+		case '&':
+			ml_stringbuffer_write(Buffer, "&amp;", strlen("&amp;"));
+			break;
+		case '<':
+			ml_stringbuffer_write(Buffer, "&lt;", strlen("&lt;"));
+			break;
+		case '>':
+			ml_stringbuffer_write(Buffer, "&gt;", strlen("&gt;"));
+			break;
+		default:
+			ml_stringbuffer_write(Buffer, S, 1);
+			break;
+		}
+	}
+	return ml_stringbuffer_get_value(Buffer);
+}
+
 ML_TYPE(MLXmlTextT, (MLXmlT, MLStringT), "xml::text");
 // A XML text node.
 
@@ -171,6 +201,44 @@ void ml_xml_element_put(ml_xml_element_t *Parent, ml_xml_node_t *Child) {
 	Parent->Tail = Child;
 }
 
+static ml_value_t *ml_xml_element_put_general(ml_xml_element_t *Element, ml_value_t *Value, ml_stringbuffer_t *Buffer) {
+	if (Value == MLNil) {
+		return NULL;
+	} else if (ml_is(Value, MLStringT)) {
+		ml_stringbuffer_write(Buffer, ml_string_value(Value), ml_string_length(Value));
+		return NULL;
+	} else if (ml_is(Value, MLXmlT)) {
+		if (Buffer->Length) {
+			ml_xml_node_t *Text = new(ml_xml_node_t);
+			Text->Base.Type = MLXmlTextT;
+			Text->Base.Length = Buffer->Length;
+			Text->Base.Value = ml_stringbuffer_get_string(Buffer);
+			ml_xml_element_put(Element, Text);
+		}
+		ml_xml_element_put(Element, (ml_xml_node_t *)Value);
+		return NULL;
+	} else if (ml_is(Value, MLListT)) {
+		ML_LIST_FOREACH(Value, Iter) {
+			ml_value_t *Error = ml_xml_element_put_general(Element, Iter->Value, Buffer);
+			if (Error) return Error;
+		}
+		return NULL;
+	} else if (ml_is(Value, MLMapT)) {
+		ML_MAP_FOREACH(Value, Iter) {
+			if (!ml_is(Iter->Key, MLStringT)) {
+				return ml_error("XMLError", "Attribute keys must be strings");
+			}
+			if (!ml_is(Iter->Value, MLStringT)) {
+				return ml_error("XMLError", "Attribute values must be strings");
+			}
+			ml_map_insert(Element->Attributes, Iter->Key, Iter->Value);
+		}
+		return NULL;
+	} else {
+		return ml_error("XMLError", "Unsupported type %s for XML element", ml_typeof(Value)->Name);
+	}
+}
+
 ML_METHODV(MLXmlElementT, MLStringT) {
 //@xml::element
 //<Tag
@@ -193,53 +261,18 @@ ML_METHODV(MLXmlElementT, MLStringT) {
 	Element->Attributes = ml_map();
 	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
 	for (int I = 1; I < Count; ++I) {
-		if (ml_is(Args[I], MLStringT)) {
-			ml_stringbuffer_write(Buffer, ml_string_value(Args[I]), ml_string_length(Args[I]));
-		} else if (ml_is(Args[I], MLXmlT)) {
-			if (Buffer->Length) {
-				ml_xml_node_t *Text = new(ml_xml_node_t);
-				Text->Base.Type = MLXmlTextT;
-				Text->Base.Length = Buffer->Length;
-				Text->Base.Value = ml_stringbuffer_get_string(Buffer);
-				ml_xml_element_put(Element, Text);
-			}
-			ml_xml_element_put(Element, (ml_xml_node_t *)Args[I]);
-		} else if (ml_is(Args[I], MLListT)) {
-			ML_LIST_FOREACH(Args[I], Iter) {
-				ml_value_t *Arg = Iter->Value;
-				if (ml_is(Arg, MLStringT)) {
-					ml_stringbuffer_write(Buffer, ml_string_value(Arg), ml_string_length(Arg));
-				} else if (ml_is(Arg, MLXmlT)) {
-					if (Buffer->Length) {
-						ml_xml_node_t *Text = new(ml_xml_node_t);
-						Text->Base.Type = MLXmlTextT;
-						Text->Base.Length = Buffer->Length;
-						Text->Base.Value = ml_stringbuffer_get_string(Buffer);
-						ml_xml_element_put(Element, Text);
-					}
-					ml_xml_element_put(Element, (ml_xml_node_t *)Arg);
-				}
-			}
-		} else if (ml_is(Args[I], MLNamesT)) {
+		ml_value_t *Value = Args[I];
+		if (ml_is(Value, MLNamesT)) {
 			ML_NAMES_CHECK_ARG_COUNT(I);
-			ML_NAMES_FOREACH(Args[I], Iter) {
+			ML_NAMES_FOREACH(Value, Iter) {
 				++I;
 				ML_CHECK_ARG_TYPE(I, MLStringT);
-				ml_map_insert(Element->Attributes, Iter->Value, Args[I]);
+				ml_map_insert(Element->Attributes, Iter->Value, Value);
 			}
 			break;
-		} else if (ml_is(Args[I], MLMapT)) {
-			ML_MAP_FOREACH(Args[I], Iter) {
-				if (!ml_is(Iter->Key, MLStringT)) {
-					return ml_error("XMLError", "Attribute keys must be strings");
-				}
-				if (!ml_is(Iter->Value, MLStringT)) {
-					return ml_error("XMLError", "Attribute values must be strings");
-				}
-				ml_map_insert(Element->Attributes, Iter->Key, Iter->Value);
-			}
 		} else {
-			return ml_error("XMLError", "Unsupported value for XML element");
+			ml_value_t *Error = ml_xml_element_put_general(Element, Value, Buffer);
+			if (Error) return Error;
 		}
 	}
 	if (Buffer->Length) {
@@ -430,6 +463,10 @@ static void ml_xml_grow_state_next(ml_xml_grow_state_t *State, ml_value_t *Value
 }
 
 ML_METHODVX("grow", MLXmlElementT, MLSequenceT) {
+//<Parent
+//<Children
+//>xml
+// Adds each node generated by :mini:`Children` to :mini:`Parent` and returns :mini:`Parent`.
 	ml_xml_grow_state_t *State = new(ml_xml_grow_state_t);
 	State->Base.Caller = Caller;
 	State->Base.Context = Caller->Context;
@@ -1384,6 +1421,43 @@ ML_METHODX(MLXmlT, MLStreamT) {
 	return State->read((ml_state_t *)State, State->Stream, State->Text, ML_STRINGBUFFER_NODE_SIZE);
 }
 
+ML_METHODV(MLXmlT, MLSymbolT) {
+//<Tag
+//>xml
+// Returns a new xml element with tag :mini:`Tag` with adding attributes and children as :mini:`xml::element(...)`.
+	ml_xml_element_t *Element = new(ml_xml_element_t);
+	Element->Base.Base.Type = MLXmlElementT;
+	const char *Tag = ml_symbol_name(Args[0]);
+	ml_value_t **Slot = (ml_value_t **)stringmap_slot(MLXmlTags, Tag);
+	if (!Slot[0]) Slot[0] = ml_string(Tag, -1);
+	Element->Base.Base.Value = (const char *)Slot[0];
+	Element->Attributes = ml_map();
+	ml_stringbuffer_t Buffer[1] = {ML_STRINGBUFFER_INIT};
+	for (int I = 1; I < Count; ++I) {
+		ml_value_t *Value = Args[I];
+		if (ml_is(Value, MLNamesT)) {
+			ML_NAMES_CHECK_ARG_COUNT(I);
+			ML_NAMES_FOREACH(Value, Iter) {
+				++I;
+				ML_CHECK_ARG_TYPE(I, MLStringT);
+				ml_map_insert(Element->Attributes, Iter->Value, Value);
+			}
+			break;
+		} else {
+			ml_value_t *Error = ml_xml_element_put_general(Element, Value, Buffer);
+			if (Error) return Error;
+		}
+	}
+	if (Buffer->Length) {
+		ml_xml_node_t *Text = new(ml_xml_node_t);
+		Text->Base.Type = MLXmlTextT;
+		Text->Base.Length = Buffer->Length;
+		Text->Base.Value = ml_stringbuffer_get_string(Buffer);
+		ml_xml_element_put(Element, Text);
+	}
+	return (ml_value_t *)Element;
+}
+
 ML_METHOD_ANON(MLXmlParse, "xml::parse");
 
 ML_METHOD(MLXmlParse, MLStringT) {
@@ -1503,6 +1577,7 @@ static void ML_TYPED_FN(ml_stream_flush, MLXmlDecoderT, ml_state_t *Caller, ml_x
 void ml_xml_init(stringmap_t *Globals) {
 #include "ml_xml_init.c"
 	stringmap_insert(MLXmlT->Exports, "parse", MLXmlParse);
+	stringmap_insert(MLXmlT->Exports, "escape", MLXmlEscape);
 	stringmap_insert(MLXmlT->Exports, "text", MLXmlTextT);
 	stringmap_insert(MLXmlT->Exports, "element", MLXmlElementT);
 	stringmap_insert(MLXmlT->Exports, "decoder", MLXmlDecoderT);
