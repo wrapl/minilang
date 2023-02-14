@@ -383,7 +383,7 @@ number
 
       let N := 10 / 2 :> 5
       type(N) :> <<int32>>
-      let R := 10 / 3 :> 3.33333
+      let R := 10 / 3 :> 3.33333333333333
       type(R) :> <<double>>
 
 

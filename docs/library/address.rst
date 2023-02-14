@@ -208,7 +208,7 @@ address
 
       let A := address("Hello world!\n")
       :> <13:48656C6C6F20776F726C64210A>
-      A:getf32 :> 1.14314e+27
+      A:getf32 :> 1.14313912243758e+27
 
 
 :mini:`meth (Address: address):getf64: real`
@@ -218,7 +218,7 @@ address
 
       let A := address("Hello world!\n")
       :> <13:48656C6C6F20776F726C64210A>
-      A:getf64 :> 8.76578e+228
+      A:getf64 :> 8.76577647882785e+228
 
 
 :mini:`meth (Address: address):gets: string`

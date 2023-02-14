@@ -800,6 +800,9 @@ ML_METHOD("append", MLStringBufferT, MLIntegerRangeT) {
 	return MLSome;
 }
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
 ML_METHOD("append", MLStringBufferT, MLRealRangeT) {
 //!range
 //<Buffer
@@ -807,7 +810,7 @@ ML_METHOD("append", MLStringBufferT, MLRealRangeT) {
 // Appends a representation of :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
 	ml_real_range_t *Range = (ml_real_range_t *)Args[1];
-	ml_stringbuffer_printf(Buffer, "%g .. %g by %g", Range->Start, Range->Limit, Range->Step);
+	ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g .. %." TOSTRING(DBL_DIG) "g by %." TOSTRING(DBL_DIG) "g", Range->Start, Range->Limit, Range->Step);
 	return MLSome;
 }
 
@@ -817,7 +820,7 @@ ML_METHOD("append", MLStringBufferT, MLDoubleT) {
 //<Value
 // Appends :mini:`Value` to :mini:`Buffer`.
 	ml_stringbuffer_t *Buffer = (ml_stringbuffer_t *)Args[0];
-	ml_stringbuffer_printf(Buffer, "%g", ml_double_value_fast(Args[1]));
+	ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g", ml_double_value_fast(Args[1]));
 	return MLSome;
 }
 
@@ -859,21 +862,21 @@ ML_METHOD("append", MLStringBufferT, MLComplexT) {
 		} else if (fabs(Imag) <= DBL_EPSILON) {
 			ml_stringbuffer_put(Buffer, '0');
 		} else {
-			ml_stringbuffer_printf(Buffer, "%gi", Imag);
+			ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "gi", Imag);
 		}
 	} else if (fabs(Imag) <= DBL_EPSILON) {
-		ml_stringbuffer_printf(Buffer, "%g", Real);
+		ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g", Real);
 	} else if (Imag < 0) {
 		if (fabs(Imag + 1) <= DBL_EPSILON) {
-			ml_stringbuffer_printf(Buffer, "%g - i", Real);
+			ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g - i", Real);
 		} else {
-			ml_stringbuffer_printf(Buffer, "%g - %gi", Real, -Imag);
+			ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g - %." TOSTRING(DBL_DIG) "gi", Real, -Imag);
 		}
 	} else {
 		if (fabs(Imag - 1) <= DBL_EPSILON) {
-			ml_stringbuffer_printf(Buffer, "%g + i", Real);
+			ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g + i", Real);
 		} else {
-			ml_stringbuffer_printf(Buffer, "%g + %gi", Real, Imag);
+			ml_stringbuffer_printf(Buffer, "%." TOSTRING(DBL_DIG) "g + %." TOSTRING(DBL_DIG) "gi", Real, Imag);
 		}
 	}
 	return MLSome;

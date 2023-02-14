@@ -285,7 +285,7 @@ math
 
    .. code-block:: mini
 
-      let R := 2.3 ^ 1.5 :> 3.48812
+      let R := 2.3 ^ 1.5 :> 3.48812270426371
       type(R) :> <<double>>
       let C := -2.3 ^ 1.5 :> -6.40758e-16 - 3.48812i
       type(C) :> <<complex>>
@@ -322,7 +322,7 @@ math
 
    .. code-block:: mini
 
-      math::acosh(1.2345) :> 0.672113
+      math::acosh(1.2345) :> 0.672113366870564
       math::acosh(-1.2345) :> -nan
 
 
@@ -340,8 +340,8 @@ math
 
    .. code-block:: mini
 
-      math::asinh(1.2345) :> 1.03787
-      math::asinh(-1.2345) :> -1.03787
+      math::asinh(1.2345) :> 1.03787350829816
+      math::asinh(-1.2345) :> -1.03787350829816
 
 
 :mini:`meth math::atan(Arg₁: real): real`
@@ -349,8 +349,8 @@ math
 
    .. code-block:: mini
 
-      math::atan(1.2345) :> 0.889961
-      math::atan(-1.2345) :> -0.889961
+      math::atan(1.2345) :> 0.88996059643618
+      math::atan(-1.2345) :> -0.88996059643618
 
 
 :mini:`meth math::atan(Arg₁: real, Arg₂: real): real`
@@ -371,8 +371,8 @@ math
 
    .. code-block:: mini
 
-      math::cbrt(1.2345) :> 1.07275
-      math::cbrt(-1.2345) :> -1.07275
+      math::cbrt(1.2345) :> 1.07274631515821
+      math::cbrt(-1.2345) :> -1.07274631515821
 
 
 :mini:`meth math::ceil(Arg₁: real): real`
@@ -389,8 +389,8 @@ math
 
    .. code-block:: mini
 
-      math::cos(1.2345) :> 0.329993
-      math::cos(-1.2345) :> 0.329993
+      math::cos(1.2345) :> 0.329993157678568
+      math::cos(-1.2345) :> 0.329993157678568
 
 
 :mini:`meth math::cosh(Arg₁: real): real`
@@ -398,8 +398,8 @@ math
 
    .. code-block:: mini
 
-      math::cosh(1.2345) :> 1.86382
-      math::cosh(-1.2345) :> 1.86382
+      math::cosh(1.2345) :> 1.86381998863995
+      math::cosh(-1.2345) :> 1.86381998863995
 
 
 :mini:`meth math::erf(Arg₁: real): real`
@@ -407,8 +407,8 @@ math
 
    .. code-block:: mini
 
-      math::erf(1.2345) :> 0.919162
-      math::erf(-1.2345) :> -0.919162
+      math::erf(1.2345) :> 0.919162396413566
+      math::erf(-1.2345) :> -0.919162396413566
 
 
 :mini:`meth math::erfc(Arg₁: real): real`
@@ -416,8 +416,8 @@ math
 
    .. code-block:: mini
 
-      math::erfc(1.2345) :> 0.0808376
-      math::erfc(-1.2345) :> 1.91916
+      math::erfc(1.2345) :> 0.0808376035864342
+      math::erfc(-1.2345) :> 1.91916239641357
 
 
 :mini:`meth math::exp(Arg₁: real): real`
@@ -425,8 +425,8 @@ math
 
    .. code-block:: mini
 
-      math::exp(1.2345) :> 3.43666
-      math::exp(-1.2345) :> 0.29098
+      math::exp(1.2345) :> 3.43665976117046
+      math::exp(-1.2345) :> 0.290980216109441
 
 
 :mini:`meth math::expm1(Arg₁: real): real`
@@ -434,8 +434,8 @@ math
 
    .. code-block:: mini
 
-      math::expm1(1.2345) :> 2.43666
-      math::expm1(-1.2345) :> -0.70902
+      math::expm1(1.2345) :> 2.43665976117046
+      math::expm1(-1.2345) :> -0.709019783890559
 
 
 :mini:`meth math::floor(Arg₁: real): real`
@@ -452,8 +452,8 @@ math
 
    .. code-block:: mini
 
-      math::gamma(1.2345) :> -0.0946016
-      math::gamma(-1.2345) :> 1.42639
+      math::gamma(1.2345) :> -0.0946016466793967
+      math::gamma(-1.2345) :> 1.42638586810001
 
 
 :mini:`meth math::hypot(Arg₁: real, Arg₂: real): real`
@@ -465,7 +465,7 @@ math
 
    .. code-block:: mini
 
-      math::log(1.2345) :> 0.210666
+      math::log(1.2345) :> 0.210666029803097
       math::log(-1.2345) :> 0.210666 + 3.14159i
 
 
@@ -474,7 +474,7 @@ math
 
    .. code-block:: mini
 
-      math::log10(1.2345) :> 0.0914911
+      math::log10(1.2345) :> 0.091491094267951
       math::log10(-1.2345) :> 0.0914911 + 1.36438i
 
 
@@ -483,7 +483,7 @@ math
 
    .. code-block:: mini
 
-      math::log1p(1.2345) :> 0.804017
+      math::log1p(1.2345) :> 0.804017489391369
       math::log1p(-1.2345) :> -nan
 
 
@@ -523,8 +523,8 @@ math
 
    .. code-block:: mini
 
-      math::sin(1.2345) :> 0.943983
-      math::sin(-1.2345) :> -0.943983
+      math::sin(1.2345) :> 0.943983323944511
+      math::sin(-1.2345) :> -0.943983323944511
 
 
 :mini:`meth math::sinh(Arg₁: real): real`
@@ -532,8 +532,8 @@ math
 
    .. code-block:: mini
 
-      math::sinh(1.2345) :> 1.57284
-      math::sinh(-1.2345) :> -1.57284
+      math::sinh(1.2345) :> 1.57283977253051
+      math::sinh(-1.2345) :> -1.57283977253051
 
 
 :mini:`meth math::sqrt(Arg₁: real): real`
@@ -541,7 +541,7 @@ math
 
    .. code-block:: mini
 
-      math::sqrt(1.2345) :> 1.11108
+      math::sqrt(1.2345) :> 1.11108055513541
       math::sqrt(-1.2345) :> 1.11108i
 
 
@@ -550,7 +550,7 @@ math
 
    .. code-block:: mini
 
-      math::square(1.234) :> 1.52276
+      math::square(1.234) :> 1.522756
 
 
 :mini:`meth math::tan(Arg₁: real): real`
@@ -558,8 +558,8 @@ math
 
    .. code-block:: mini
 
-      math::tan(1.2345) :> 2.86061
-      math::tan(-1.2345) :> -2.86061
+      math::tan(1.2345) :> 2.86061483997194
+      math::tan(-1.2345) :> -2.86061483997194
 
 
 :mini:`meth math::tanh(Arg₁: real): real`
@@ -567,7 +567,7 @@ math
 
    .. code-block:: mini
 
-      math::tanh(1.2345) :> 0.84388
-      math::tanh(-1.2345) :> -0.84388
+      math::tanh(1.2345) :> 0.843879656896602
+      math::tanh(-1.2345) :> -0.843879656896602
 
 
