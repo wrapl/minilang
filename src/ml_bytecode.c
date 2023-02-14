@@ -1173,7 +1173,9 @@ static void DEBUG_FUNC(closure_call)(ml_state_t *Caller, ml_closure_t *Closure, 
 					if (Index) {
 						Frame->Stack[Index - 1] = ml_deref(Args[++I]);
 					} else {
+#ifndef ML_RELAX_NAMES
 						ML_ERROR("NameError", "Unknown named parameters %s", Name);
+#endif
 					}
 				}
 				break;

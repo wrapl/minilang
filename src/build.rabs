@@ -229,7 +229,7 @@ MINILANG_ICU := old or defined("ICU")
 MINILANG_LIBS := old or defined("LIBS")
 MINILANG_BACKTRACE := old or defined("BACKTRACE")
 MINILANG_MINIJS := old or defined("MINIJS")
-
+MINILANG_RELAX_NAMES := old or defined("RELAX_NAMES")
 MINILANG_GTK_CONSOLE := old or defined("GTK_CONSOLE")
 
 file("ml_config.h") => fun(Target) do
@@ -259,6 +259,9 @@ file("ml_config.h") => fun(Target) do
 	end
 	if MINILANG_THREADS then
 		File:write("\n#define ML_THREADS\n")
+	end
+	if MINILANG_RELAX_NAMES then
+		File:write("\n#define ML_RELAX_NAMES\n")
 	end
 	File:write("\n#endif")
 	File:close
