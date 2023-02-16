@@ -5,7 +5,7 @@
 
 typedef struct {
 	ml_type_t *Type;
-	ml_value_t *Json;
+	ml_value_t *Value;
 } ml_minijs_t;
 
 extern ml_type_t MLMinijsT[];

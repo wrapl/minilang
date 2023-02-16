@@ -47,3 +47,7 @@ Provides a specialized encoding of Minilang values to and from JSON with support
    *TBD*
 
 
+:mini:`meth (Arg₁: minijs):value`
+   *TBD*
+
+

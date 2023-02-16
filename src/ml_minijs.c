@@ -942,17 +942,22 @@ ML_FUNCTION(MLMinijs) {
 //>minijs
 	ML_CHECK_ARG_COUNT(1);
 	ml_minijs_encoder_t Encoder[1] = {MLExternals, {INTHASH_INIT}, 0};
-	ml_value_t *Json = ml_minijs_encode(Encoder, Args[0]);
-	if (ml_is_error(Json)) return Json;
+	ml_value_t *Value = ml_minijs_encode(Encoder, Args[0]);
+	if (ml_is_error(Value)) return Value;
 	ml_minijs_t *Minijs = new(ml_minijs_t);
 	Minijs->Type = MLMinijsT;
-	Minijs->Json = Json;
+	Minijs->Value = Value;
 	return (ml_value_t *)Minijs;
 }
 
 ML_TYPE(MLMinijsT, (), "minijs",
 	.Constructor = (ml_value_t *)MLMinijs
 );
+
+ML_METHOD("value", MLMinijsT) {
+	ml_minijs_t *Minijs = (ml_minijs_t *)Args[0];
+	return Minijs->Value;
+}
 
 #ifdef ML_CBOR
 
@@ -964,7 +969,7 @@ static void ML_TYPED_FN(ml_cbor_write, MLMinijsT, ml_cbor_writer_t *Writer, ml_m
 	ml_cbor_write_array(Writer, 2);
 	ml_cbor_write_string(Writer, strlen("minijs"));
 	ml_cbor_write_raw(Writer, "minijs", strlen("minijs"));
-	ml_cbor_write(Writer, Value->Json);
+	ml_cbor_write(Writer, Value->Value);
 }
 
 #endif
