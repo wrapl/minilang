@@ -19,11 +19,19 @@ Provides a specialized encoding of Minilang values to and from JSON with support
 * *string* |harr| :mini:`string`
 * ``[type,  ...]`` |harr| *other*
 
-:mini:`meth minijs::encode(Value: any): string | error`
+:mini:`meth minijs::decode(Json: any): any | error`
    *TBD*
 
 
-:mini:`meth minijs::encode(Value: any, Externals: external::set): string | error`
+:mini:`meth minijs::decode(Json: any, Externals: external::set): any | error`
+   *TBD*
+
+
+:mini:`meth minijs::encode(Value: any): any`
+   *TBD*
+
+
+:mini:`meth minijs::encode(Value: any, Externals: external::set): any`
    *TBD*
 
 
@@ -36,14 +44,6 @@ Provides a specialized encoding of Minilang values to and from JSON with support
 .. _fun-minijs:
 
 :mini:`fun minijs(Value: any): minijs`
-   *TBD*
-
-
-:mini:`meth minijs::decode(Json: string): any | error`
-   *TBD*
-
-
-:mini:`meth minijs::decode(Json: string, Externals: external::set): any | error`
    *TBD*
 
 
