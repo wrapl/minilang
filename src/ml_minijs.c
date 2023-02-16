@@ -950,7 +950,7 @@ ML_FUNCTION(MLMinijs) {
 	return (ml_value_t *)Minijs;
 }
 
-ML_TYPE(MLMinijsT, (MLStringT), "minijs",
+ML_TYPE(MLMinijsT, (), "minijs",
 	.Constructor = (ml_value_t *)MLMinijs
 );
 

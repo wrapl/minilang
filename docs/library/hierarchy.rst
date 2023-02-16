@@ -105,7 +105,7 @@ hierarchy
       "real":e -> "double":w;
       "sequence":e -> "integer::range":w;
       "sequence":e -> "real::range":w;
-      "string":e -> "minijs":w;
+      "any":e -> "minijs":w;
       "any":e -> "method::context":w;
       "function":e -> "method":w;
       "function":e -> "random":w;

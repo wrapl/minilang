@@ -37,7 +37,7 @@ Provides a specialized encoding of Minilang values to and from JSON with support
 
 .. _type-minijs:
 
-:mini:`type minijs < string`
+:mini:`type minijs`
    *TBD*
 
 
