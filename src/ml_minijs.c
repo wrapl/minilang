@@ -936,13 +936,6 @@ ML_METHOD(MinijsDecode, MLAnyT, MLExternalSetT) {
 	return ml_minijs_decode(Decoder, Args[0]);
 }
 
-typedef struct {
-	ml_type_t *Type;
-	ml_value_t *Json;
-} ml_minijs_t;
-
-extern ml_type_t MLMinijsT[];
-
 ML_FUNCTION(MLMinijs) {
 //@minijs
 //<Value:any

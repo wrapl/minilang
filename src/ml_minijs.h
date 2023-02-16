@@ -3,6 +3,13 @@
 
 #include "minilang.h"
 
+typedef struct {
+	ml_type_t *Type;
+	ml_value_t *Json;
+} ml_minijs_t;
+
+extern ml_type_t MLMinijsT[];
+
 typedef struct ml_minijs_encoder_t ml_minijs_encoder_t;
 
 struct ml_minijs_encoder_t {
