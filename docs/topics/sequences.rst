@@ -71,6 +71,19 @@ Chaining Sequences
 
 Given an initial sequence, it is possible to create a new sequence by modifying the keys and/or values of the initial sequence, or by filtering out key-value pairs that satisfy a particular condition. There are a number of operators for doing this in *Minilang*:
 
+.. code-block:: mini
+
+   list("cat" -> :upper)
+   
+   fun is_consonant(L) not {"a", "e", "i", "o", "u"}[L:lower]
+   
+   list("cat" ->? is_consonant)
+
+.. code-block:: console
+
+   [C, A, T]
+   [c, t]
+
 Generating Functions
 --------------------
 

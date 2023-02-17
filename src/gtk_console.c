@@ -66,14 +66,14 @@ static char *stpcpy(char *Dest, const char *Source) {
 #define lstat stat
 #endif
 
-static ml_value_t *console_global_get(gtk_console_t *Console, const char *Name, const char *Source, int Line) {
+static ml_value_t *console_global_get(gtk_console_t *Console, const char *Name, const char *Source, int Line, int Mode) {
 	if (Console->Debugger) {
 		ml_value_t *Value = interactive_debugger_get(Console->Debugger, Name);
 		if (Value) return Value;
 	}
 	ml_value_t *Value = stringmap_search(Console->Globals, Name);
 	if (Value) return Value;
-	return (Console->ParentGetter)(Console->ParentGlobals, Name, Source, Line);
+	return (Console->ParentGetter)(Console->ParentGlobals, Name, Source, Line, Mode);
 }
 
 void gtk_console_log(gtk_console_t *Console, ml_value_t *Value) {

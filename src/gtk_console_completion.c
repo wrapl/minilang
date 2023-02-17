@@ -70,7 +70,7 @@ static void gtk_console_completion_provider_populate(ConsoleCompletionProvider *
 	gtk_text_iter_backward_visible_word_start(&Start);
 	gtk_text_iter_backward_chars(&End, 2);
 	gchar *Name = gtk_text_iter_get_text(&Start, &End);
-	ml_value_t *Value = ml_compiler_lookup(Provider->Compiler, Name, "", 0);
+	ml_value_t *Value = ml_compiler_lookup(Provider->Compiler, Name, "", 0, 0);
 	if (!Value) {
 		GtkTextIter Iter = Start;
 		do {
@@ -80,7 +80,7 @@ static void gtk_console_completion_provider_populate(ConsoleCompletionProvider *
 			if (gtk_text_iter_get_char(&Iter) != ':') break;
 			gtk_text_iter_backward_word_start(&Start);
 			gchar *Name0 = gtk_text_iter_get_text(&Start, &Iter);
-			ml_value_t *Value0 = ml_compiler_lookup(Provider->Compiler, Name0, "", 0);
+			ml_value_t *Value0 = ml_compiler_lookup(Provider->Compiler, Name0, "", 0, 0);
 			g_free(Name0);
 			if (!Value0) break;
 			if (ml_is(Value0, MLGlobalT)) Value0 = ml_global_get(Value0);

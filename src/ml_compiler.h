@@ -56,14 +56,14 @@ mlc_expr_t *ml_accept_file(ml_parser_t *Parser);
 
 ml_compiler_t *ml_compiler(ml_getter_t GlobalGet, void *Globals);
 void ml_compiler_define(ml_compiler_t *Compiler, const char *Name, ml_value_t *Value);
-ml_value_t *ml_compiler_lookup(ml_compiler_t *Compiler, const char *Name, const char *Source, int Line);
+ml_value_t *ml_compiler_lookup(ml_compiler_t *Compiler, const char *Name, const char *Source, int Line, int Mode);
 
 void ml_function_compile(ml_state_t *Caller, mlc_expr_t *Expr, ml_compiler_t *Compiler, const char **Parameters);
 void ml_command_evaluate(ml_state_t *Caller, ml_parser_t *Parser, ml_compiler_t *Compiler);
 void ml_load_file(ml_state_t *Caller, ml_getter_t GlobalGet, void *Globals, const char *FileName, const char *Parameters[]);
 
 ml_value_t *ml_stringmap_globals(stringmap_t *Globals);
-ml_value_t *stringmap_global_get(const stringmap_t *Map, const char *Key, const char *Source, int Line);
+ml_value_t *stringmap_global_get(const stringmap_t *Map, const char *Key, const char *Source, int Line, int Mode);
 
 typedef ml_value_t *(*string_fn_t)(const char *String, int Length);
 
