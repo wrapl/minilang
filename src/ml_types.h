@@ -835,6 +835,7 @@ typedef struct ml_method_cached_t ml_method_cached_t;
 
 struct ml_method_cached_t {
 	ml_method_cached_t *Next, *MethodNext;
+	ml_methods_t *Methods;
 	ml_method_t *Method;
 	ml_value_t *Callback;
 	int Count, Score;
@@ -842,6 +843,7 @@ struct ml_method_cached_t {
 };
 
 ml_method_cached_t *ml_method_search_cached(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_value_t **Args);
+ml_method_cached_t *ml_method_check_cached(ml_methods_t *Methods, ml_method_t *Method, ml_method_cached_t *Cached, int Count, ml_value_t **Args);
 
 ml_value_t *ml_no_method_error(ml_method_t *Method, int Count, ml_value_t **Args);
 

@@ -442,6 +442,7 @@ if MINILANG_TRE then
 		execute('CC={CC} CFLAGS=\"{CFLAGS}\" ./configure', {
 			"--prefix" is PATH,
 			"--enable-static",
+			"--enable-multibyte",
 			"--disable-shared"
 		})
 		execute("make clean")

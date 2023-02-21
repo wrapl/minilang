@@ -8,6 +8,7 @@
 #include <float.h>
 #include <stdatomic.h>
 #include <gc/gc_typed.h>
+#include <locale.h>
 
 #include "ml_sequence.h"
 #ifdef ML_TRE
@@ -1213,10 +1214,10 @@ ML_METHOD("code", MLStringT) {
 //$= "A":code
 //$= "😀️":code
 	const char *S = ml_string_value(Args[0]);
-	uint32_t K = S[0] ? __builtin_clz(~(S[0] << 24)) : 0;
+	int K = S[0] ? __builtin_clz(~(S[0] << 24)) : 0;
 	uint32_t Mask = (1 << (8 - K)) - 1;
 	uint32_t Value = S[0] & Mask;
-	for (++S, --K; K > 0 && S[0]; --K, ++S) {
+	for (++S, --K; K > 0 && S[0]; ++S, --K) {
 		Value <<= 6;
 		Value += S[0] & 0x3F;
 	}
@@ -1416,7 +1417,7 @@ ML_METHOD("ctype", MLStringT) {
 // Returns the unicode type of the first character of :mini:`String`.
 //$= map("To €2 á\n" => (2, 2 -> :ctype))
 	const char *S = ml_string_value(Args[0]);
-	uint32_t K = S[0] ? __builtin_clz(~(S[0] << 24)) : 0;
+	int K = S[0] ? __builtin_clz(~(S[0] << 24)) : 0;
 	uint32_t Mask = (1 << (8 - K)) - 1;
 	uint32_t Value = S[0] & Mask;
 	for (++S, --K; K > 0 && S[0]; --K, ++S) {
@@ -4086,6 +4087,7 @@ ML_METHODVX("write", MLStringBufferT, MLAnyT) {
 }
 
 void ml_string_init() {
+	setlocale(LC_ALL, "C.UTF-8");
 	GC_word StringBufferLayout[] = {1};
 	StringBufferDesc = GC_make_descriptor(StringBufferLayout, 1);
 	stringmap_insert(MLStringT->Exports, "buffer", MLStringBufferT);

@@ -100,6 +100,7 @@ polynomial
    Returns :mini:`A - B`.
 
 
+<stringbuffer>
 :mini:`meth (A: polynomial) - (B: polynomial): polynomial`
    Returns :mini:`A - B`.
 
@@ -194,10 +195,6 @@ polynomial
 
 
 :mini:`meth (A: polynomial::rational) - (B: polynomial::rational): polynomial::rational`
-   Returns :mini:`A - B`.
-
-
-:mini:`meth (A: polynomial::rational) - (B: polynomial): polynomial::rational`
    Returns :mini:`A - B`.
 
 

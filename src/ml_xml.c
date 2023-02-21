@@ -1440,7 +1440,7 @@ ML_METHODV(MLXmlT, MLSymbolT) {
 			ML_NAMES_FOREACH(Value, Iter) {
 				++I;
 				ML_CHECK_ARG_TYPE(I, MLStringT);
-				ml_map_insert(Element->Attributes, Iter->Value, Value);
+				ml_map_insert(Element->Attributes, Iter->Value, Args[I]);
 			}
 			break;
 		} else {

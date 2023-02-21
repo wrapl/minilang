@@ -128,7 +128,7 @@ static __attribute__ ((pure)) unsigned int ml_method_definition_score(ml_method_
 
 static ml_method_cached_t *ml_method_search_entry(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_type_t **Types, uint64_t Hash);
 
-static __attribute__ ((noinline)) ml_method_cached_t *ml_method_search_entry2(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_type_t **Types, uint64_t Hash, ml_method_cached_t *Cached) {
+static __attribute__ ((noinline)) ml_method_cached_t *ml_method_compute(ml_methods_t *Methods, ml_method_t *Method, int Count, ml_type_t **Types, uint64_t Hash, ml_method_cached_t *Cached) {
 	unsigned int BestScore = 0;
 	ml_value_t *BestCallback = NULL;
 	ml_method_definition_t *Definition = inthash_search(Methods->Definitions, (uintptr_t)Method);
@@ -153,6 +153,7 @@ static __attribute__ ((noinline)) ml_method_cached_t *ml_method_search_entry2(ml
 	}
 	if (!Cached) {
 		Cached = xnew(ml_method_cached_t, Count, ml_type_t *);
+		Cached->Methods = Methods;
 		Cached->Method = Method;
 		Cached->Count = Count;
 		for (int I = 0; I < Count; ++I) Cached->Types[I] = Types[I];
@@ -181,7 +182,7 @@ static inline ml_method_cached_t *ml_method_search_entry(ml_methods_t *Methods, 
 	next:
 		Cached = Cached->Next;
 	}
-	return ml_method_search_entry2(Methods, Method, Count, Types, Hash, Cached);
+	return ml_method_compute(Methods, Method, Count, Types, Hash, Cached);
 }
 
 static inline uintptr_t rotl(uintptr_t X, unsigned int N) {
@@ -242,6 +243,35 @@ ml_method_cached_t *ml_method_search_cached(ml_methods_t *Methods, ml_method_t *
 		if (Present) break;
 		Methods = Methods->Parent;
 	}
+	if (Count > ML_SMALL_METHOD_COUNT) return ml_method_search_cached2(Methods, Method, Count, Args);
+	ml_type_t *Types[ML_SMALL_METHOD_COUNT];
+	uintptr_t Hash = (uintptr_t)Method;
+	for (int I = Count; --I >= 0;) {
+		ml_type_t *Type = Types[I] = ml_typeof_deref(Args[I]);
+		Hash = rotl(Hash, 1) ^ (uintptr_t)Type;
+	}
+	return ml_method_search_entry(Methods, Method, Count, Types, Hash);
+}
+
+ml_method_cached_t *ml_method_check_cached(ml_methods_t *Methods, ml_method_t *Method, ml_method_cached_t *Cached, int Count, ml_value_t **Args) {
+	// TODO: Use generation numbers to check Methods->Parent for invalidated definitions
+	Methods = Methods ?: MLRootMethods;
+	while (Methods->Parent) {
+		ml_methods_lock(Methods);
+		void *Present = inthash_search(Methods->Definitions, (uintptr_t)Method);
+		ml_methods_unlock(Methods);
+		if (Present) break;
+		Methods = Methods->Parent;
+	}
+	if (Cached && Cached->Methods == Methods) {
+		if (!Cached->Callback) goto missed;
+		if (Cached->Count != Count) goto missed;
+		for (int I = Count; --I >= 0;) {
+			if (ml_typeof_deref(Args[I]) != Cached->Types[I]) goto missed;
+		}
+		return Cached;
+	}
+missed:
 	if (Count > ML_SMALL_METHOD_COUNT) return ml_method_search_cached2(Methods, Method, Count, Args);
 	ml_type_t *Types[ML_SMALL_METHOD_COUNT];
 	uintptr_t Hash = (uintptr_t)Method;
