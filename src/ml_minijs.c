@@ -72,6 +72,13 @@ static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLBlankT, ml_minijs_encoder_t *
 	return Json;
 }
 
+static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLSomeT, ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
+	ml_value_t *Json = ml_list();
+	ml_list_put(Json, ml_cstring("^"));
+	ml_list_put(Json, ml_cstring("some"));
+	return Json;
+}
+
 static ml_value_t *ML_TYPED_FN(ml_minijs_encode, MLBooleanT, ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
 	return Value;
 }
