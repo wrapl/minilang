@@ -954,12 +954,12 @@ static void DEBUG_FUNC(frame_run)(DEBUG_STRUCT(frame) *Frame, ml_value_t *Result
 		ADVANCE(Inst + 2);
 	}
 	DO_PARTIAL_NEW: {
-		//Result = ml_deref(Result);
+		Result = ml_deref(Result);
 		*Top++ = ml_partial_function(Result, Inst[1].Count);
 		ADVANCE(Inst + 2);
 	}
 	DO_PARTIAL_SET: {
-		//Result = ml_deref(Result);
+		Result = ml_deref(Result);
 		ml_partial_function_set(Top[-1], Inst[1].Count, Result);
 		ADVANCE(Inst + 2);
 	}
