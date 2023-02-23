@@ -315,6 +315,16 @@ ML_METHOD(AbsMethod, MLIntegerT) {
 	return ml_integer(labs(ml_integer_value_fast(Args[0])));
 }
 
+#ifdef ML_COMPLEX
+#ifndef __USE_GNU
+
+complex double clog10(complex double Z) {
+	return clog(Z) / log(10);
+}
+
+#endif
+#endif
+
 MATH_REAL(Floor, floor, floor);
 ML_METHOD(FloorMethod, MLIntegerT) {
 //@floor
