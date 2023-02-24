@@ -3052,8 +3052,8 @@ void ml_init(stringmap_t *Globals) {
 	ml_externals_default_add("function", MLFunctionT);
 	ml_externals_default_add("sequence", MLSequenceT);
 	ml_externals_default_add("boolean", MLBooleanT);
-	ml_externals_default_add("true", MLTrue);
-	ml_externals_default_add("false", MLFalse);
+	//ml_externals_default_add("true", MLTrue);
+	//ml_externals_default_add("false", MLFalse);
 	ml_externals_default_add("number", MLNumberT);
 	ml_externals_default_add("integer", MLIntegerT);
 	ml_externals_default_add("real", MLRealT);

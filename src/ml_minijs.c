@@ -27,8 +27,8 @@
 
 ml_value_t *ml_minijs_encode(ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
 	//if (Value == MLNil) return Value;
-	if (Value == (ml_value_t *)MLTrue) return Value;
-	if (Value == (ml_value_t *)MLFalse) return Value;
+	//if (Value == (ml_value_t *)MLTrue) return Value;
+	//if (Value == (ml_value_t *)MLFalse) return Value;
 	ml_value_t *Json = inthash_search(Encoder->Cached, (uintptr_t)Value);
 	if (Json) {
 		ml_value_t *First = ml_list_get(Json, 1);
