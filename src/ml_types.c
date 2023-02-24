@@ -2718,7 +2718,7 @@ ML_METHOD("add", MLExternalSetT, MLStringT, MLAnyT) {
 	ml_externals_t *Externals = (ml_externals_t *)Args[0];
 	const char *Name = ml_string_value(Args[1]);
 	stringmap_insert(Externals->Names, Name, Args[2]);
-	inthash_insert(Externals->Values, (uintptr_t)Args[1], (void *)Name);
+	inthash_insert(Externals->Values, (uintptr_t)Args[2], (void *)Name);
 	return MLNil;
 }
 

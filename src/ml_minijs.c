@@ -50,12 +50,7 @@ ml_value_t *ml_minijs_encode(ml_minijs_encoder_t *Encoder, ml_value_t *Value) {
 	typeof(ml_minijs_encode) *encode = ml_typed_fn_get(ml_typeof(Value), ml_minijs_encode);
 	if (encode) return encode(Encoder, Value);
 	ml_value_t *Serialized = ml_serialize(Value);
-	if (ml_is_error(Serialized)) {
-		Json = ml_list();
-		ml_list_put(Json, ml_cstring("unsupported"));
-		ml_list_put(Json, ml_string(ml_typeof(Value)->Name, -1));
-		return Json;
-	}
+	if (ml_is_error(Serialized)) return Serialized;
 	Json = ml_list();
 	ml_list_put(Json, ml_cstring("o"));
 	ML_LIST_FOREACH(Serialized, Iter) ml_list_put(Json, ml_minijs_encode(Encoder, Iter->Value));
