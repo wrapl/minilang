@@ -1196,6 +1196,17 @@ ML_METHOD("length", MLStringT) {
 	return ml_integer(utf8_strlen(Args[0]));
 }
 
+ML_METHOD("precount", MLStringT) {
+//<String
+//>integer
+// Returns the number of UTF-8 characters in :mini:`String`. Use :mini:`:size` to get the number of bytes.
+//$= "Hello world":count
+//$= "Hello world":size
+//$= "λ:😀️ → 😺️":count
+//$= "λ:😀️ → 😺️":size
+	return ml_integer(utf8_strlen(Args[0]));
+}
+
 ML_METHOD("count", MLStringT) {
 //<String
 //>integer

@@ -328,6 +328,15 @@ int ml_list_foreach(ml_value_t *Value, void *Data, int (*callback)(ml_value_t *,
 	return 0;
 }
 
+ML_METHOD("precount", MLListT) {
+//<List
+//>integer
+// Returns the length of :mini:`List`
+//$= [1, 2, 3]:count
+	ml_list_t *List = (ml_list_t *)Args[0];
+	return ml_integer(List->Length);
+}
+
 ML_METHOD("count", MLListT) {
 //<List
 //>integer

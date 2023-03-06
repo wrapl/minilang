@@ -1425,6 +1425,25 @@ ML_METHOD("!=", MLIntegerRangeT, MLIntegerRangeT) {
 	return MLNil;
 }
 
+ML_METHOD("precount", MLIntegerRangeT) {
+//!range
+//<Range
+//>integer
+// Returns the number of values in :mini:`Range`.
+	ml_integer_range_t *Range = (ml_integer_range_t *)Args[0];
+	if (Range->Step > 0) {
+		if (Range->Start > Range->Limit) return ml_integer(0);
+		int64_t Diff = Range->Limit - Range->Start;
+		return ml_integer(Diff / Range->Step + 1);
+	} else if (Range->Step < 0) {
+		if (Range->Start < Range->Limit) return ml_integer(0);
+		int64_t Diff = Range->Limit - Range->Start;
+		return ml_integer(Diff / Range->Step + 1);
+	} else {
+		return ml_real(INFINITY);
+	}
+}
+
 ML_METHOD("count", MLIntegerRangeT) {
 //!range
 //<Range
@@ -1764,6 +1783,25 @@ size_t ml_real_range_count(ml_real_range_t *Range) {
 		return Diff / Range->Step + 1;
 	} else {
 		return 0;
+	}
+}
+
+ML_METHOD("precount", MLRealRangeT) {
+//!range
+//<Range
+//>integer
+// Returns the number of values in :mini:`Range`.
+	ml_real_range_t *Range = (ml_real_range_t *)Args[0];
+	if (Range->Step > 0) {
+		if (Range->Start > Range->Limit) return ml_integer(0);
+		double Diff = Range->Limit - Range->Start;
+		return ml_integer(Diff / Range->Step + 1);
+	} else if (Range->Step < 0) {
+		if (Range->Start < Range->Limit) return ml_integer(0);
+		double Diff = Range->Limit - Range->Start;
+		return ml_integer(Diff / Range->Step + 1);
+	} else {
+		return ml_real(INFINITY);
 	}
 }
 

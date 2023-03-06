@@ -394,6 +394,15 @@ int ml_set_foreach(ml_value_t *Value, void *Data, int (*callback)(ml_value_t *, 
 	return 0;
 }
 
+ML_METHOD("precount", MLSetT) {
+//<Set
+//>integer
+// Returns the number of values in :mini:`Set`.
+//$= set(["A", "B", "C"]):count
+	ml_set_t *Set = (ml_set_t *)Args[0];
+	return ml_integer(Set->Size);
+}
+
 ML_METHOD("size", MLSetT) {
 //<Set
 //>integer

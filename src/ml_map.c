@@ -471,6 +471,15 @@ int ml_map_foreach(ml_value_t *Value, void *Data, int (*callback)(ml_value_t *, 
 	return 0;
 }
 
+ML_METHOD("precount", MLMapT) {
+//<Map
+//>integer
+// Returns the number of entries in :mini:`Map`.
+//$= {"A" is 1, "B" is 2, "C" is 3}:count
+	ml_map_t *Map = (ml_map_t *)Args[0];
+	return ml_integer(Map->Size);
+}
+
 ML_METHOD("size", MLMapT) {
 //<Map
 //>integer

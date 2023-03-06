@@ -16,6 +16,7 @@ static ML_METHOD_DECL(FilterDuoMethod, "=>?");
 static ML_METHOD_DECL(SoloApplyMethod, "->!");
 static ML_METHOD_DECL(FilterSoloApplyMethod, "->!?");
 static ML_METHOD_DECL(ApplyMethod, "!");
+static ML_METHOD_DECL(Precount, "precount");
 
 typedef struct ml_chained_state_t {
 	ml_state_t Base;
@@ -251,6 +252,13 @@ static void ML_TYPED_FN(ml_iterate, MLChainedT, ml_state_t *Caller, ml_chained_f
 	State->Base.run = (void *)ml_chained_iterator_next;
 	State->Entries = Chained->Entries + 1;
 	return ml_iterate((ml_state_t *)State, Chained->Entries[0]);
+}
+
+ML_METHODX("precount", MLChainedT) {
+//!internal
+	ml_chained_function_t *Chained = (ml_chained_function_t *)Args[0];
+	Args[0] = Chained->Entries[0];
+	return ml_call(Caller, Precount, 1, Args);
 }
 
 ML_METHOD("->", MLFunctionT, MLFunctionT) {
@@ -946,6 +954,11 @@ ML_METHODVX("count", MLSequenceT) {
 	State->Base.run = (void *)count_iterate;
 	State->Count = 0;
 	return ml_iterate((ml_state_t *)State, ml_chained(Count, Args));
+}
+
+ML_METHOD("precount", MLSequenceT) {
+//!internal
+	return MLNil;
 }
 
 typedef struct ml_count2_state_t {
@@ -1834,6 +1847,32 @@ ML_METHOD("limit", MLSequenceT, MLIntegerT) {
 	return (ml_value_t *)Limited;
 }
 
+typedef struct {
+	ml_state_t Base;
+	int Value;
+} integer_state_t;
+
+static void limited_precount_run(integer_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	if (Value == MLNil) ML_RETURN(ml_integer(State->Value));
+	int Precount = ml_integer_value(Value);
+	if (Precount > State->Value) ML_RETURN(ml_integer(State->Value));
+	ML_RETURN(Value);
+}
+
+ML_METHODX("precount", MLLimitedT) {
+//!internal
+	ml_limited_t *Limited = (ml_limited_t *)Args[0];
+	integer_state_t *State = new(integer_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)limited_precount_run;
+	State->Value = Limited->Remaining;
+	Args[0] = Limited->Value;
+	return ml_call(State, Precount, 1, Args);
+}
+
 typedef struct ml_skipped_t {
 	ml_type_t *Type;
 	ml_value_t *Value;
@@ -1884,6 +1923,27 @@ ML_METHOD("skip", MLSequenceT, MLIntegerT) {
 	Skipped->Value = Args[0];
 	Skipped->Remaining = ml_integer_value_fast(Args[1]);
 	return (ml_value_t *)Skipped;
+}
+
+static void skipped_precount_run(integer_state_t *State, ml_value_t *Value) {
+	ml_state_t *Caller = State->Base.Caller;
+	if (ml_is_error(Value)) ML_RETURN(Value);
+	if (Value == MLNil) ML_RETURN(Value);
+	int Precount = ml_integer_value(Value);
+	if (Precount <= State->Value) ML_RETURN(ml_integer(0));
+	ML_RETURN(ml_integer(Precount - State->Value));
+}
+
+ML_METHODX("precount", MLSkippedT) {
+//!internal
+	ml_skipped_t *Skipped = (ml_skipped_t *)Args[0];
+	integer_state_t *State = new(integer_state_t);
+	State->Base.Caller = Caller;
+	State->Base.Context = Caller->Context;
+	State->Base.run = (ml_state_fn)skipped_precount_run;
+	State->Value = Skipped->Remaining;
+	Args[0] = Skipped->Value;
+	return ml_call(State, Precount, 1, Args);
 }
 
 typedef struct {
