@@ -1424,7 +1424,7 @@ ML_METHODX(MLXmlT, MLStreamT) {
 ML_METHODV(MLXmlT, MLSymbolT) {
 //<Tag
 //>xml
-// Returns a new xml element with tag :mini:`Tag` with adding attributes and children as :mini:`xml::element(...)`.
+// Returns a new xml element with tag :mini:`Tag`, adding attributes and children as :mini:`xml::element(...)`.
 	ml_xml_element_t *Element = new(ml_xml_element_t);
 	Element->Base.Base.Type = MLXmlElementT;
 	const char *Tag = ml_symbol_name(Args[0]);

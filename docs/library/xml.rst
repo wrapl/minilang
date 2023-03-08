@@ -35,16 +35,16 @@ xml
    An XML node.
 
 
-:mini:`meth xml(String: string): xml`
-   Returns :mini:`String` parsed into an XML node.
-
-
 :mini:`meth xml(Stream: stream): xml`
    Returns the contents of :mini:`Stream` parsed into an XML node.
 
 
+:mini:`meth xml(String: string): xml`
+   Returns :mini:`String` parsed into an XML node.
+
+
 :mini:`meth xml(Tag: symbol, ...): xml`
-   Returns a new xml element with tag :mini:`Tag` with adding attributes and children as :mini:`xml::element(...)`.
+   Returns a new xml element with tag :mini:`Tag`,  adding attributes and children as :mini:`xml::element(...)`.
 
 
 :mini:`meth (Xml: xml) / (Fn: function): sequence`

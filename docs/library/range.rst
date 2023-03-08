@@ -123,6 +123,10 @@ range
    Returns the limit of :mini:`Range`.
 
 
+:mini:`meth (Range: integer::range):precount: integer`
+   Returns the number of values in :mini:`Range`.
+
+
 :mini:`meth (Range: integer::range):random: integer`
    *TBD*
 
@@ -187,6 +191,10 @@ range
 
 :mini:`meth (Range: real::range):limit: real`
    Returns the limit of :mini:`Range`.
+
+
+:mini:`meth (Range: real::range):precount: integer`
+   Returns the number of values in :mini:`Range`.
 
 
 :mini:`meth (Range: real::range):random: real`

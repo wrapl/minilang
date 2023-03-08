@@ -1192,6 +1192,21 @@ void ml_externals_default_add(const char *Name, void *Value);
 
 ml_value_t *ml_serialize(ml_value_t *Value);
 
+typedef ml_value_t *(*ml_deserializer_t)(const char *Type, int Count, ml_value_t **Args);
+
+void ml_deserializer_define(const char *Type, ml_deserializer_t Deserializer);
+ml_value_t *ml_deserialize(const char *Type, int Count, ml_value_t **Args);
+
+#ifndef GENERATE_INIT
+
+#define ML_DESERIALIZER(TYPE) static ml_value_t *CONCAT3(ml_deserializer_, __LINE__, __COUNTER__)(const char *Type, int Count, ml_value_t **Args)
+
+#else
+
+#define ML_DESERIALIZER(TYPE) INIT_CODE ml_deserializer_define(TYPE, CONCAT3(ml_deserializer_, __LINE__, __COUNTER__));
+
+#endif
+
 // Symbols //
 
 typedef struct {

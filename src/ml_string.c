@@ -3666,12 +3666,14 @@ ML_FUNCTION_INLINE(MLStringSwitch) {
 //$-       end
 //$= end
 	int Total = 1;
-	for (int I = 0; I < Count; ++I) Total += ml_list_length(Args[I]);
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
+		Total += ml_list_length(Args[I]);
+	}
 	ml_string_switch_t *Switch = xnew(ml_string_switch_t, Total, ml_string_case_t);
 	Switch->Type = MLStringSwitchT;
 	ml_string_case_t *Case = Switch->Cases;
 	for (int I = 0; I < Count; ++I) {
-		ML_CHECK_ARG_TYPE(I, MLListT);
 		ML_LIST_FOREACH(Args[I], Iter) {
 			ml_value_t *Value = Iter->Value;
 			if (ml_is(Value, MLStringT)) {
@@ -3694,25 +3696,44 @@ static ml_value_t *ML_TYPED_FN(ml_serialize, MLStringSwitchT, ml_string_switch_t
 	ml_list_put(Result, ml_cstring("string-switch"));
 	ml_value_t *Index = NULL, *Last = NULL;
 	for (ml_string_case_t *Case = Switch->Cases;; ++Case) {
-		if (Case->String) {
-			if (Case->Index != Index) {
-				Index = Case->Index;
-				Last = ml_list();
-				ml_list_put(Result, Last);
-			}
-			ml_list_put(Last, (ml_value_t *)Case->String);
-		} else if (Case->Regex) {
-			if (Case->Index != Index) {
-				Index = Case->Index;
-				Last = ml_list();
-				ml_list_put(Result, Last);
-			}
-			ml_list_put(Last, (ml_value_t *)Case->Regex);
-		} else {
-			break;
+		ml_value_t *Match = (ml_value_t *)Case->String;
+		if (!Match) Match = (ml_value_t *)Case->Regex;
+		if (!Match) break;
+		if (Case->Index != Index) {
+			Index = Case->Index;
+			Last = ml_list();
+			ml_list_put(Result, Last);
 		}
+		ml_list_put(Last, Match);
 	}
 	return Result;
+}
+
+ML_DESERIALIZER("string-switch") {
+	int Total = 1;
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
+		Total += ml_list_length(Args[I]);
+	}
+	ml_string_switch_t *Switch = xnew(ml_string_switch_t, Total, ml_string_case_t);
+	Switch->Type = MLStringSwitchT;
+	ml_string_case_t *Case = Switch->Cases;
+	for (int I = 0; I < Count; ++I) {
+		ML_LIST_FOREACH(Args[I], Iter) {
+			ml_value_t *Value = Iter->Value;
+			if (ml_is(Value, MLStringT)) {
+				Case->String = (ml_string_t *)Value;
+			} else if (ml_is(Value, MLRegexT)) {
+				Case->Regex = (ml_regex_t *)Value;
+			} else {
+				return ml_error("ValueError", "Unsupported value in string case");
+			}
+			Case->Index = ml_integer(I);
+			++Case;
+		}
+	}
+	Case->Index = ml_integer(Count);
+	return (ml_value_t *)Switch;
 }
 
 ml_value_t *ml_stringbuffer() {

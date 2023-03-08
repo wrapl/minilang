@@ -654,6 +654,17 @@ When creating a substring,  the first index is inclusive and second index is exc
       :> [0, 2, 3, 7, 10, 11, 14, 15, 19]
 
 
+:mini:`meth (String: string):precount: integer`
+   Returns the number of UTF-8 characters in :mini:`String`. Use :mini:`:size` to get the number of bytes.
+
+   .. code-block:: mini
+
+      "Hello world":count :> 11
+      "Hello world":size :> 11
+      "λ:😀️ → 😺️":count :> 9
+      "λ:😀️ → 😺️":size :> 22
+
+
 :mini:`meth (String: string):replace(I: integer, Fn: function): string`
    Returns a copy of :mini:`String` with the :mini:`String[I]` is replaced by :mini:`Fn(String[I])`.
 

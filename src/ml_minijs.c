@@ -558,9 +558,10 @@ ml_value_t *ml_minijs_decode(ml_minijs_decoder_t *Decoder, ml_value_t *Json) {
 	if (ml_is(Json, MLBooleanT)) return Json;
 	if (ml_is(Json, MLNumberT)) return Json;
 	if (ml_is(Json, MLStringT)) return Json;
-	if (!ml_is(Json, MLListT)) return ml_error("JSONError", "Unsupported JSON value");
+	if (!ml_is(Json, MLListT)) return ml_error("MinijsError", "Unsupported JSON value");
 	ml_list_node_t *Node = ((ml_list_t *)Json)->Head;
-	if (!Node) return ml_error("JSONError", "Unsupported JSON value");
+	if (!Node) return ml_error("MinijsError", "Unsupported JSON value");
+	int Count = ((ml_list_t *)Json)->Length - 1;
 	ml_value_t *First = Node->Value;
 	Node = Node->Next;
 	intptr_t Index = -1;
@@ -569,15 +570,42 @@ ml_value_t *ml_minijs_decode(ml_minijs_decoder_t *Decoder, ml_value_t *Json) {
 		if (Node) {
 			First = Node->Value;
 			Node = Node->Next;
+			--Count;
 		} else {
-			return inthash_search(Decoder->Cached, Index) ?: ml_error("JSONError", "Unknown cached reference");
+			ml_value_t *Value = inthash_search(Decoder->Cached, Index);
+			if (Value) return Value;
+			char *Name;
+			GC_asprintf(&Name, "@%d", Index);
+			Value = ml_uninitialized(Name);
+			inthash_insert(Decoder->Cached, Index, Value);
+			return Value;
 		}
 	}
-	if (!ml_is(First, MLStringT)) return ml_error("JSONError", "Unsupported JSON value");
+	if (!ml_is(First, MLStringT)) return ml_error("MinijsError", "Unsupported JSON value");
 	const char *Name = ml_string_value(First);
 	ml_minijs_decode_fn decode = (ml_minijs_decode_fn)stringmap_search(Decoders, Name);
-	if (!decode) return ml_error("JSONError", "Unsupported JSON decoder: %s", Name);
+	if (!decode) return ml_error("MinijsError", "Unsupported JSON decoder: %s", Name);
 	return decode(Decoder, Node, Index);
+}
+
+static ml_value_t *ml_minijs_decode_object(ml_minijs_decoder_t *Decoder, ml_list_node_t *Node, intptr_t Index) {
+	if (!Node || !ml_is(Node->Value, MLStringT)) return ml_error("MinijsError", "Invalid object");
+	const char *Name = ml_string_value(Node->Value);
+	int Count = 0;
+	for (ml_list_node_t *Tail = Node->Next; Tail; Tail = Tail->Next) ++Count;
+	ml_value_t *Args[Count];
+	for (int I = 0; I < Count; ++I) {
+		Node = Node->Next;
+		ml_value_t *Arg = ml_minijs_decode(Decoder, Node->Value);
+		if (ml_is_error(Arg)) return Arg;
+		Args[I] = Arg;
+	}
+	ml_value_t *Value = ml_deserialize(Name, Count, Args);
+	if (Index >= 0) {
+		ml_value_t *Uninitialized = inthash_insert(Decoder->Cached, Index, Value);
+		ml_uninitialized_set(Uninitialized, Value);
+	}
+	return Value;
 }
 
 static ml_value_t *ml_minijs_decode_global(ml_minijs_decoder_t *Decoder, ml_list_node_t *Node, intptr_t Index) {
@@ -594,6 +622,19 @@ static ml_value_t *ml_minijs_decode_blank(ml_minijs_decoder_t *Decoder, ml_list_
 
 static ml_value_t *ml_minijs_decode_some(ml_minijs_decoder_t *Decoder, ml_list_node_t *Node, intptr_t Index) {
 	return MLSome;
+}
+
+static ml_value_t *ml_minijs_decode_tuple(ml_minijs_decoder_t *Decoder, ml_list_node_t *Node, intptr_t Index) {
+	int Size = 0;
+	for (ml_list_node_t *Tail = Node; Tail; Tail = Tail->Next) ++Size;
+	ml_value_t *Tuple = ml_tuple(Size);
+	if (Index >= 0) inthash_insert(Decoder->Cached, Index, Tuple);
+	for (int I = 1; Node; Node = Node->Next, ++I) {
+		ml_value_t *Value = ml_minijs_decode(Decoder, Node->Value);
+		if (ml_is_error(Value)) return Value;
+		ml_tuple_set(Tuple, Index, Value);
+	}
+	return Tuple;
 }
 
 static ml_value_t *ml_minijs_decode_list(ml_minijs_decoder_t *Decoder, ml_list_node_t *Node, intptr_t Index) {
@@ -627,7 +668,7 @@ static ml_value_t *ml_minijs_decode_map(ml_minijs_decoder_t *Decoder, ml_list_no
 		ml_value_t *Key = ml_minijs_decode(Decoder, Node->Value);
 		if (ml_is_error(Key)) return Key;
 		Node = Node->Next;
-		if (!Node) return ml_error("JSONError", "Map requires matched keys and values");
+		if (!Node) return ml_error("MinijsError", "Map requires matched keys and values");
 		ml_value_t *Value = ml_minijs_decode(Decoder, Node->Value);
 		if (ml_is_error(Value)) return Value;
 		ml_map_insert(Map, Key, Value);
@@ -892,8 +933,8 @@ static ml_closure_info_t *ml_minijs_decode_closure_info(ml_minijs_decoder_t *Dec
 			ml_list_iter_next(Iter);
 			Inst[1].Count = ml_list_length(Switches) - 1;
 			ml_inst_t **Ptr = Inst[2].Insts = anew(ml_inst_t *, Inst[1].Count);
-			for (int J = 0; J < Inst[1].Count; ++J) {
-				*Ptr++ = Code + Offsets[ml_integer_value(ml_list_get(Switches, J))];
+			for (int J = 1; J <= Inst[1].Count; ++J) {
+				*Ptr++ = Code + Offsets[ml_integer_value(ml_list_get(Switches, J + 1))];
 			}
 			Inst += 3;
 			break;
@@ -915,7 +956,7 @@ static ml_value_t *ml_minijs_decode_closure(ml_minijs_decoder_t *Decoder, ml_lis
 	Closure->Type = MLClosureT;
 	if (Index >= 0) inthash_insert(Decoder->Cached, Index, Closure);
 	Closure->Info = ml_minijs_decode_closure_info(Decoder, InfoJson);
-	if (!Closure->Info) return ml_error("JSONError", "Invalid closure information");
+	if (!Closure->Info) return ml_error("MinijsError", "Invalid closure information");
 	for (int I = 0; I < NumUpValues; ++I) {
 		if (!Node) return ml_error("TypeError", "Closure requires additional fields");
 		Closure->UpValues[I] = ml_minijs_decode(Decoder, Node->Value);
@@ -986,6 +1027,8 @@ void ml_minijs_init(stringmap_t *Globals) {
 	stringmap_insert(Decoders, "blank", ml_minijs_decode_blank);
 	stringmap_insert(Decoders, "_", ml_minijs_decode_blank);
 	stringmap_insert(Decoders, "some", ml_minijs_decode_some);
+	stringmap_insert(Decoders, "tuple", ml_minijs_decode_tuple);
+	stringmap_insert(Decoders, "()", ml_minijs_decode_tuple);
 	stringmap_insert(Decoders, "list", ml_minijs_decode_list);
 	stringmap_insert(Decoders, "l", ml_minijs_decode_list);
 	stringmap_insert(Decoders, "names", ml_minijs_decode_names);
@@ -1002,6 +1045,7 @@ void ml_minijs_init(stringmap_t *Globals) {
 	stringmap_insert(Decoders, "v", ml_minijs_decode_variable);
 	stringmap_insert(Decoders, "closure", ml_minijs_decode_closure);
 	stringmap_insert(Decoders, "z", ml_minijs_decode_closure);
+	stringmap_insert(Decoders, "o", ml_minijs_decode_object);
 #ifdef ML_TIME
 	stringmap_insert(Decoders, "time", ml_minijs_decode_time);
 #endif

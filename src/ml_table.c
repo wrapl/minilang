@@ -430,22 +430,18 @@ static void ML_TYPED_FN(ml_iter_value, MLTableRowIterT, ml_state_t *Caller, ml_t
 	ML_RETURN(ml_array_index((ml_array_t *)Iter->Node->Value, 1, Iter->Indices));
 }
 
-#ifdef ML_CBOR
-
-#include "ml_cbor.h"
-
-static void ML_TYPED_FN(ml_cbor_write, MLTableT, ml_cbor_writer_t *Writer, ml_value_t *Table) {
-	ml_cbor_write_tag(Writer, 27);
-	ml_cbor_write_array(Writer, 2);
-	ml_cbor_write_string(Writer, 5);
-	ml_cbor_write_raw(Writer, (const unsigned char *)"table", 5);
-	ml_cbor_write(Writer, ml_table_columns(Table));
+static ml_value_t *ML_TYPED_FN(ml_serialize, MLTableT, ml_table_t *Table) {
+	ml_value_t *Result = ml_list();
+	ml_list_put(Result, ml_cstring("table"));
+	ml_list_put(Result, Table->Columns);
+	return Result;
 }
 
-static ml_value_t *ml_cbor_read_table_fn(ml_cbor_reader_t *Reader, ml_value_t *Value) {
-	if (!ml_is(Value, MLStringT)) return ml_error("TagError", "Table requires map");
+ML_DESERIALIZER("table") {
+	ML_CHECK_ARG_COUNT(1);
+	ML_CHECK_ARG_TYPE(0, MLMapT);
 	ml_value_t *Table = ml_table();
-	ML_MAP_FOREACH(Value, Iter) {
+	ML_MAP_FOREACH(Args[0], Iter) {
 		if (!ml_is(Iter->Key, MLStringT)) return ml_error("CborError", "Invalid table");
 		if (!ml_is(Iter->Value, MLArrayT)) return ml_error("CborError", "Invalid table");
 		ml_value_t *Result = ml_table_insert(Table, Iter->Key, Iter->Value);
@@ -453,8 +449,6 @@ static ml_value_t *ml_cbor_read_table_fn(ml_cbor_reader_t *Reader, ml_value_t *V
 	}
 	return Table;
 }
-
-#endif
 
 void ml_table_init(stringmap_t *Globals) {
 #include "ml_table_init.c"

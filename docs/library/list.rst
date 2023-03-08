@@ -87,14 +87,22 @@ list
       [1, 2, 3]:length :> 3
 
 
+:mini:`meth (List: list):precount: integer`
+   Returns the length of :mini:`List`
+
+   .. code-block:: mini
+
+      [1, 2, 3]:count :> 3
+
+
 :mini:`meth (List: list):random: any`
    Returns a random (assignable) node from :mini:`List`.
 
    .. code-block:: mini
 
       let L := list("cake") :> ["c", "a", "k", "e"]
-      L:random :> "k"
-      L:random :> "e"
+      L:random :> "c"
+      L:random :> "c"
 
 
 :mini:`meth (Buffer: string::buffer):append(List: list)`
@@ -260,7 +268,7 @@ list
 
 .. _type-list-node-mutable:
 
-:mini:`type list::node::mutable`
+:mini:`type list::node::mutable < list::node`
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.
@@ -268,7 +276,7 @@ list
 
 .. _type-list-node-mutable:
 
-:mini:`type list::node::mutable < list::node`
+:mini:`type list::node::mutable`
    A node in a :mini:`list`.
    Dereferencing a :mini:`list::node` returns the corresponding value from the :mini:`list`.
    Assigning to a :mini:`list::node` updates the corresponding value in the :mini:`list`.

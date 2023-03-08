@@ -2051,6 +2051,34 @@ static ml_value_t *ML_TYPED_FN(ml_serialize, MLIntegerSwitchT, ml_integer_switch
 	return Result;
 }
 
+ML_DESERIALIZER("integer-switch") {
+	int Total = 1;
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
+		Total += ml_list_length(Args[I]);
+	}
+	ml_integer_switch_t *Switch = xnew(ml_integer_switch_t, Total, ml_integer_case_t);
+	Switch->Type = MLIntegerSwitchT;
+	ml_integer_case_t *Case = Switch->Cases;
+	for (int I = 0; I < Count; ++I) {
+		ML_LIST_FOREACH(Args[I], Iter) {
+			ml_value_t *Value = Iter->Value;
+			if (ml_is(Value, MLListT) && ml_list_length(Value) == 2) {
+				Case->Min = ml_integer_value(ml_list_get(Value, 1));
+				Case->Max = ml_integer_value(ml_list_get(Value, 2));
+			} else {
+				return ml_error("ValueError", "Unsupported value in integer case");
+			}
+			Case->Index = ml_integer(I);
+			++Case;
+		}
+	}
+	Case->Min = LONG_MIN;
+	Case->Max = LONG_MAX;
+	Case->Index = ml_integer(Count);
+	return (ml_value_t *)Switch;
+}
+
 typedef struct {
 	ml_value_t *Index;
 	double Min, Max;
@@ -2137,6 +2165,34 @@ static ml_value_t *ML_TYPED_FN(ml_serialize, MLRealSwitchT, ml_real_switch_t *Sw
 		}
 	}
 	return Result;
+}
+
+ML_DESERIALIZER("real-switch") {
+	int Total = 1;
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
+		Total += ml_list_length(Args[I]);
+	}
+	ml_real_switch_t *Switch = xnew(ml_real_switch_t, Total, ml_integer_case_t);
+	Switch->Type = MLRealSwitchT;
+	ml_real_case_t *Case = Switch->Cases;
+	for (int I = 0; I < Count; ++I) {
+		ML_LIST_FOREACH(Args[I], Iter) {
+			ml_value_t *Value = Iter->Value;
+			if (ml_is(Value, MLListT) && ml_list_length(Value) == 2) {
+				Case->Min = ml_real_value(ml_list_get(Value, 1));
+				Case->Max = ml_real_value(ml_list_get(Value, 2));
+			} else {
+				return ml_error("ValueError", "Unsupported value in integer case");
+			}
+			Case->Index = ml_integer(I);
+			++Case;
+		}
+	}
+	Case->Min = -INFINITY;
+	Case->Max = INFINITY;
+	Case->Index = ml_integer(Count);
+	return (ml_value_t *)Switch;
 }
 
 void ml_number_init() {

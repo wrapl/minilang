@@ -262,7 +262,7 @@ fun write_method(Category, Kind, Method0, Params, Return, Description, Examples,
 	Examples[1] and write_examples(Buffer, Examples)
 	Buffer:write("\n")
 	if Return[1] and Method = type_name(Return[1]) then
-		emit(Category, (Method, item::Constructor), Buffer:rest)
+		emit(Category, (Method, item::Constructor, sum(Params -> _[2] ->? 1)), Buffer:rest)
 	elseif Method = ":append" then
 		emit(Category, (type_name(Params[2][2]), item::Append, Method, sum(Params -> _[2] ->? 1)), Buffer:rest)
 	elseif Params[1] then

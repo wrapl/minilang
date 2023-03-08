@@ -272,6 +272,10 @@ number
       0("a", "b", "c") :> nil
 
 
+:mini:`meth integer(Real: double): integer`
+   Converts :mini:`Real` to an integer (using default rounding).
+
+
 :mini:`meth integer(String: string): integer | error`
    Returns the base :mini:`10` integer in :mini:`String` or an error if :mini:`String` does not contain a valid integer.
 
@@ -284,10 +288,6 @@ number
 
 :mini:`meth integer(String: string, Base: integer): integer | error`
    Returns the base :mini:`Base` integer in :mini:`String` or an error if :mini:`String` does not contain a valid integer.
-
-
-:mini:`meth integer(Real: double): integer`
-   Converts :mini:`Real` to an integer (using default rounding).
 
 
 .. _fun-integer-random_cycle:
@@ -561,16 +561,16 @@ number
    *TBD*
 
 
-.. _value-real-NaN:
-
-:mini:`def real::NaN: real`
-   Not a number.
-
-
 .. _value-real-Inf:
 
 :mini:`def real::Inf: real`
    Positive infinity.
+
+
+.. _value-real-NaN:
+
+:mini:`def real::NaN: real`
+   Not a number.
 
 
 :mini:`meth real(String: string): real | error`

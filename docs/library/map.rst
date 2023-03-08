@@ -27,14 +27,6 @@ map
    By default,  iterating over a map generates the key-value pairs in the order they were inserted,  however this ordering can be changed.
 
 
-:mini:`meth map(Sequence: sequence, ...): map`
-   Returns a map of all the key and value pairs produced by :mini:`Sequence`.
-
-   .. code-block:: mini
-
-      map("cake") :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
-
-
 :mini:`meth map(Key₁ is Value₁, ...): map`
    Returns a new map with the specified keys and values.
 
@@ -42,6 +34,14 @@ map
 
       map(A is 1, B is 2, C is 3)
       :> {"A" is 1, "B" is 2, "C" is 3}
+
+
+:mini:`meth map(Sequence: sequence, ...): map`
+   Returns a map of all the key and value pairs produced by :mini:`Sequence`.
+
+   .. code-block:: mini
+
+      map("cake") :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
 
 
 :mini:`meth map(): map`
@@ -210,6 +210,14 @@ map
    Returns the current ordering of :mini:`Map`.
 
 
+:mini:`meth (Map: map):precount: integer`
+   Returns the number of entries in :mini:`Map`.
+
+   .. code-block:: mini
+
+      {"A" is 1, "B" is 2, "C" is 3}:count :> 3
+
+
 :mini:`meth (List: map):random: any`
    Returns a random (assignable) node from :mini:`Map`.
 
@@ -218,7 +226,7 @@ map
       let M := map("cake")
       :> {1 is "c", 2 is "a", 3 is "k", 4 is "e"}
       M:random :> "c"
-      M:random :> "a"
+      M:random :> "e"
 
 
 :mini:`meth (Map: map):size: integer`
@@ -517,7 +525,7 @@ map
 
 .. _type-map-node-mutable:
 
-:mini:`type map::node::mutable < map::node`
+:mini:`type map::node::mutable`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.
@@ -525,7 +533,7 @@ map
 
 .. _type-map-node-mutable:
 
-:mini:`type map::node::mutable`
+:mini:`type map::node::mutable < map::node`
    A node in a :mini:`map`.
    Dereferencing a :mini:`map::node` returns the corresponding value from the :mini:`map`.
    Assigning to a :mini:`map::node` updates the corresponding value in the :mini:`map`.

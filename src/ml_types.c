@@ -1012,6 +1012,34 @@ static ml_value_t *ML_TYPED_FN(ml_serialize, MLTypeSwitchT, ml_type_switch_t *Sw
 	return Result;
 }
 
+ML_DESERIALIZER("type-switch") {
+	int Total = 1;
+	for (int I = 0; I < Count; ++I) {
+		ML_CHECK_ARG_TYPE(I, MLListT);
+		Total += ml_list_length(Args[I]);
+	}
+	ml_type_switch_t *Switch = xnew(ml_type_switch_t, Total, ml_type_case_t);
+	Switch->Type = MLTypeSwitchT;
+	ml_type_case_t *Case = Switch->Cases;
+	for (int I = 0; I < Count; ++I) {
+		ML_LIST_FOREACH(Args[I], Iter) {
+			ml_value_t *Value = Iter->Value;
+			if (ml_is(Value, MLTypeT)) {
+				Case->Type = (ml_type_t *)Value;
+			} else if (Value == MLNil) {
+				Case->Type = MLNilT;
+			} else {
+				return ml_error("ValueError", "Unsupported value in type case");
+			}
+			Case->Index = ml_integer(I);
+			++Case;
+		}
+	}
+	Case->Type = MLAnyT;
+	Case->Index = ml_integer(Count);
+	return (ml_value_t *)Switch;
+}
+
 long ml_hash_chain(ml_value_t *Value, ml_hash_chain_t *Chain) {
 	//Value = ml_deref(Value);
 	for (ml_hash_chain_t *Link = Chain; Link; Link = Link->Previous) {
@@ -2800,8 +2828,16 @@ ml_value_t *ml_serialize(ml_value_t *Value) {
 	return ml_error("TypeError", "No method to serialize %s", ml_typeof(Value)->Name);
 }
 
-ml_value_t *ml_deserialize(ml_value_t *Value) {
-	return ml_error("InternalError", "Generic deserialization not implemented yet");
+static stringmap_t MLDeserializers[1] = {STRINGMAP_INIT};
+
+void ml_deserializer_define(const char *Type, ml_deserializer_t Deserializer) {
+	stringmap_insert(MLDeserializers, Type, Deserializer);
+}
+
+ml_value_t *ml_deserialize(const char *Type, int Count, ml_value_t **Args) {
+	ml_deserializer_t deserializer = (ml_deserializer_t)stringmap_search(MLDeserializers, Type);
+	if (deserializer) return deserializer(Type, Count, Args);
+	return ml_error("ValueError", "No method to deserialize %s", Type);
 }
 
 // Symbols //

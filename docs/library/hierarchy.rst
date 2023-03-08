@@ -125,6 +125,8 @@ hierarchy
       "any":e -> "module::dir":w;
       "stream":e -> "json::decoder":w;
       "string":e -> "json":w;
+      "gir::baseinfo":e -> "gir::callback":w;
+      "any":e -> "gir::callbackinstance":w;
       "function":e -> "gir::function":w;
       "sequence":e -> "gir":w;
       "type":e -> "gir::baseinfo":w;

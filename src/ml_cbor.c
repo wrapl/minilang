@@ -418,7 +418,10 @@ ML_METHOD(CborDecode, MLAddressT) {
 	Reader->Reader->UserData = Reader;
 	minicbor_read(Reader->Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
 	int Extra = ml_cbor_reader_extra(Reader);
-	if (Extra) return ml_error("CBORError", "Extra bytes after decoding: %d", Extra);
+	if (Extra) {
+		if (Reader->Value && ml_is_error(Reader->Value)) return Reader->Value;
+		return ml_error("CBORError", "Extra bytes after decoding: %d", Extra);
+	}
 	return ml_cbor_reader_get(Reader);
 }
 
@@ -443,7 +446,10 @@ ML_METHOD(CborDecode, MLAddressT, MLMapT) {
 	Reader->Reader->UserData = Reader;
 	minicbor_read(Reader->Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
 	int Extra = ml_cbor_reader_extra(Reader);
-	if (Extra) return ml_error("CBORError", "Extra bytes after decoding: %d", Extra);
+	if (Extra) {
+		if (Reader->Value && ml_is_error(Reader->Value)) return Reader->Value;
+		return ml_error("CBORError", "Extra bytes after decoding: %d", Extra);
+	}
 	return ml_cbor_reader_get(Reader);
 }
 
@@ -468,7 +474,10 @@ ML_METHOD(CborDecode, MLAddressT, MLFunctionT) {
 	Reader->Reader->UserData = Reader;
 	minicbor_read(Reader->Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
 	int Extra = ml_cbor_reader_extra(Reader);
-	if (Extra) return ml_error("CBORError", "Extra bytes after decoding: %d", Extra);
+	if (Extra) {
+		if (Reader->Value && ml_is_error(Reader->Value)) return Reader->Value;
+		return ml_error("CBORError", "Extra bytes after decoding: %d", Extra);
+	}
 	return ml_cbor_reader_get(Reader);
 }
 
@@ -487,7 +496,10 @@ ML_METHOD(CborDecode, MLAddressT, MLExternalSetT) {
 	Reader->Reader->UserData = Reader;
 	minicbor_read(Reader->Reader, (const unsigned char *)ml_address_value(Args[0]), ml_address_length(Args[0]));
 	int Extra = ml_cbor_reader_extra(Reader);
-	if (Extra) return ml_error("CBORError", "Extra bytes after decoding: %d", Extra);
+	if (Extra) {
+		if (Reader->Value && ml_is_error(Reader->Value)) return Reader->Value;
+		return ml_error("CBORError", "Extra bytes after decoding: %d", Extra);
+	}
 	return ml_cbor_reader_get(Reader);
 }
 
@@ -1228,15 +1240,16 @@ ml_value_t *ml_cbor_read_object(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 	if (!ml_list_iter_valid(Iter)) return ml_error("CBORError", "Object tag requires type name");
 	ml_value_t *TypeName = Iter->Value;
 	if (ml_typeof(TypeName) != MLStringT) return ml_error("CBORError", "Object tag requires type name");
-	ml_value_t *Constructor = stringmap_search(CborObjectTypes, ml_string_value(TypeName));
-	if (!Constructor) return ml_error("CBORError", "Object %s not found", ml_string_value(TypeName));
-	int Count2 = ml_list_length(Value) - 1;
-	ml_value_t **Args2 = ml_alloc_args(Count2);
-	for (int I = 0; I < Count2; ++I) {
+	const char *Type = ml_string_value(TypeName);
+	int Count = ml_list_length(Value) - 1;
+	ml_value_t **Args = ml_alloc_args(Count);
+	for (int I = 0; I < Count; ++I) {
 		ml_list_iter_next(Iter);
-		Args2[I] = Iter->Value;
+		Args[I] = Iter->Value;
 	}
-	return ml_simple_call(Constructor, Count2, Args2);
+	ml_value_t *Constructor = stringmap_search(CborObjectTypes, Type);
+	if (Constructor) ml_simple_call(Constructor, Count, Args);
+	return ml_deserialize(Type, Count, Args);
 }
 
 typedef struct {

@@ -15,16 +15,6 @@ flags
    The base type of flag types.
 
 
-:mini:`meth flags(Name₁: string, ...): flags`
-   Returns a new flags type,  where :mini:`Nameᵢ` has value :math:`2^{i-1}`.
-
-   .. code-block:: mini
-
-      let mode := flags("Read", "Write", "Execute") :> <<mode>>
-      mode::Read :> Read
-      mode::Read + mode::Write :> Write,Read
-
-
 :mini:`meth flags(Name₁ is Value₁, ...): flags`
    Returns a new flags type
    Returns a new flags type,  where :mini:`Nameᵢ` has value :mini:`Valueᵢ`.
@@ -33,6 +23,16 @@ flags
 
       let mode := flags(Read is 1, Write is 4, Execute is 32)
       :> <<mode>>
+      mode::Read :> Read
+      mode::Read + mode::Write :> Write,Read
+
+
+:mini:`meth flags(Name₁: string, ...): flags`
+   Returns a new flags type,  where :mini:`Nameᵢ` has value :math:`2^{i-1}`.
+
+   .. code-block:: mini
+
+      let mode := flags("Read", "Write", "Execute") :> <<mode>>
       mode::Read :> Read
       mode::Read + mode::Write :> Write,Read
 

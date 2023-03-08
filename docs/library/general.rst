@@ -111,12 +111,6 @@ general
    Returns :mini:`Fn(V,  Value)` where :mini:`V` is a newly created :mini:`visitor`.
 
 
-.. _type-gir-function:
-
-:mini:`type gir::function < function`
-   *TBD*
-
-
 .. _type-visitor:
 
 :mini:`type visitor < function`
