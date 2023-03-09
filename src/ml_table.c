@@ -453,7 +453,4 @@ ML_DESERIALIZER("table") {
 void ml_table_init(stringmap_t *Globals) {
 #include "ml_table_init.c"
 	stringmap_insert(Globals, "table", MLTableT);
-#ifdef ML_CBOR
-	ml_cbor_default_object("table", (ml_value_t *)MLTableT);
-#endif
 }

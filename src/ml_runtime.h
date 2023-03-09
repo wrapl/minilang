@@ -79,7 +79,7 @@ ml_value_t *ml_simple_assign(ml_value_t *Value, ml_value_t *Value2);
 	ml_simple_call((ml_value_t *)VALUE, COUNT, (ml_value_t **)(void *[]){ARGS}); \
 })
 
-void ml_runtime_init(stringmap_t *Globals);
+void ml_runtime_init();
 
 typedef struct {
 	ml_state_t Base;
@@ -184,6 +184,7 @@ ml_value_t *ml_debugger_local(ml_state_t *State, int Index);
 
 extern ml_cfunctionx_t MLBreak[];
 extern ml_cfunction_t MLDebugger[];
+extern ml_cfunctionx_t MLTrace[];
 
 // Preemption //
 

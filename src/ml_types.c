@@ -3087,7 +3087,7 @@ void ml_init(stringmap_t *Globals) {
 	ml_map_init();
 	ml_set_init();
 	ml_compiler_init();
-	ml_runtime_init(Globals);
+	ml_runtime_init();
 	ml_bytecode_init();
 	stringmap_insert(MLExternalT->Exports, "set", MLExternalSetT);
 	stringmap_insert(MLExternalT->Exports, "get", MLExternalGet);

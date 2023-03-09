@@ -3600,6 +3600,16 @@ ML_TYPE(MLCompilerT, (MLStateT), "compiler",
 	.Constructor = (ml_value_t *)MLCompiler
 );
 
+ML_FUNCTIONX(MLSource) {
+//@source
+//>tuple[string,integer]
+// Returns the caller source location. Evaluated at compile time if possible.
+	ml_source_t Source = ml_debugger_source(Caller);
+	ML_RETURN(ml_tuplev(2, ml_string(Source.Name, -1), ml_integer(Source.Line)));
+}
+
+static ml_inline_function_t MLSourceInline[1] = {{MLFunctionInlineT, (ml_value_t *)MLSource}};
+
 ml_compiler_t *ml_compiler(ml_getter_t GlobalGet, void *Globals) {
 	ml_compiler_t *Compiler = new(ml_compiler_t);
 	Compiler->Type = MLCompilerT;
@@ -6778,6 +6788,7 @@ void ml_compiler_init() {
 	stringmap_insert(MLCompilerT->Exports, "EOI", MLEndOfInput);
 	stringmap_insert(MLCompilerT->Exports, "NotFound", MLNotFound);
 	stringmap_insert(MLCompilerT->Exports, "switch", MLCompilerSwitch);
+	stringmap_insert(MLCompilerT->Exports, "source", MLSourceInline);
 	stringmap_insert(MLMacroT->Exports, "expr", ml_macro((ml_value_t *)MLValueExpr));
 	stringmap_insert(MLMacroT->Exports, "subst", ml_macro((ml_value_t *)MLMacroSubst));
 	stringmap_insert(MLMacroT->Exports, "ident", MLIdentExpr);

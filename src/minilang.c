@@ -221,6 +221,7 @@ int main(int Argc, const char *Argv[]) {
 	stringmap_insert(Globals, "halt", MLHalt);
 	stringmap_insert(Globals, "break", MLBreak);
 	stringmap_insert(Globals, "debugger", MLDebugger);
+	stringmap_insert(Globals, "trace", MLTrace);
 	stringmap_insert(Globals, "memory", ml_module("memory",
 		"trace", MLMemTrace,
 		"size", MLMemSize,

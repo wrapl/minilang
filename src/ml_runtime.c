@@ -896,16 +896,6 @@ ML_FUNCTIONX(MLTrace) {
 	ML_RETURN(Trace);
 }
 
-ML_FUNCTIONX(MLSource) {
-//@source
-//>tuple[string,integer]
-// Returns the caller source location. Evaluated at compile time if possible.
-	ml_source_t Source = ml_debugger_source(Caller);
-	ML_RETURN(ml_tuplev(2, ml_string(Source.Name, -1), ml_integer(Source.Line)));
-}
-
-static ml_inline_function_t MLSourceInline[1] = {{MLFunctionInlineT, (ml_value_t *)MLSource}};
-
 // Schedulers //
 
 #ifdef ML_SCHEDULER
@@ -1469,13 +1459,9 @@ ML_METHODX("raise", MLChannelT, MLErrorValueT) {
 }
 */
 
-void ml_runtime_init(stringmap_t *Globals) {
+void ml_runtime_init() {
 #ifdef ML_THREADS
 	GC_add_roots(Queue, Queue + 1);
 #endif
 #include "ml_runtime_init.c"
-	if (Globals) {
-		stringmap_insert(Globals, "trace", MLTrace);
-		stringmap_insert(Globals, "source", MLSourceInline);
-	}
 }

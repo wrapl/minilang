@@ -9,6 +9,12 @@ compiler
 
 .. rst-class:: mini-api
 
+.. _fun-source:
+
+:mini:`fun source(): tuple[string, integer]`
+   Returns the caller source location. Evaluated at compile time if possible.
+
+
 .. _fun-mlnot:
 
 :mini:`fun mlnot(Arg₁: any)`
