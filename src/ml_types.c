@@ -1854,19 +1854,30 @@ static void ml_tuple_assign(ml_state_t *Caller, ml_tuple_t *Ref, ml_value_t *Val
 typedef struct {
 	ml_state_t Base;
 	ml_tuple_t *Functions;
-	ml_value_t *Result;
+	ml_tuple_t *Tuple;
 	int Index, Count;
 	ml_value_t *Args[];
 } ml_tuple_call_t;
 
+static __attribute__ ((noinline)) void ml_tuple_call_finish(ml_tuple_t *Tuple) {
+	ml_type_t *Types[Tuple->Size + 1];
+	Types[0] = MLTupleT;
+	for (int I = 0; I < Tuple->Size; ++I) Types[I + 1] = ml_typeof(Tuple->Values[I]);
+	Tuple->Type = ml_generic_type(Tuple->Size + 1, Types);
+}
+
 static void ml_tuple_call_run(ml_tuple_call_t *State, ml_value_t *Result) {
 	ml_state_t *Caller = State->Base.Caller;
 	if (ml_is_error(Result)) ML_RETURN(Result);
-	ml_tuple_t *Functions = State->Functions;
 	int Index = State->Index;
-	ml_tuple_set(State->Result, Index, Result);
-	if (Index == Functions->Size) ML_RETURN(State->Result);
-	State->Index = Index + 1;
+	ml_tuple_t *Tuple = State->Tuple;
+	Tuple->Values[Index] = Result;
+	ml_tuple_t *Functions = State->Functions;
+	if (++Index == Functions->Size) {
+		ml_tuple_call_finish(Tuple);
+		ML_RETURN(Tuple);
+	}
+	State->Index = Index;
 	return ml_call(State, Functions->Values[Index], State->Count, State->Args);
 }
 
@@ -1877,8 +1888,8 @@ static void ml_tuple_call(ml_state_t *Caller, ml_tuple_t *Functions, int Count, 
 	State->Base.Context = Caller->Context;
 	State->Base.run = (void *)ml_tuple_call_run;
 	State->Functions = Functions;
-	State->Result = ml_tuple(Functions->Size);
-	State->Index = 1;
+	State->Tuple = (ml_tuple_t *)ml_tuple(Functions->Size);
+	State->Index = 0;
 	State->Count = Count;
 	memcpy(State->Args, Args, Count * sizeof(ml_value_t *));
 	return ml_call(State, Functions->Values[0], Count, Args);
