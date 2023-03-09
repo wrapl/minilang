@@ -1248,7 +1248,7 @@ ml_value_t *ml_cbor_read_object(ml_cbor_reader_t *Reader, ml_value_t *Value) {
 		Args[I] = Iter->Value;
 	}
 	ml_value_t *Constructor = stringmap_search(CborObjectTypes, Type);
-	if (Constructor) ml_simple_call(Constructor, Count, Args);
+	if (Constructor) return ml_simple_call(Constructor, Count, Args);
 	return ml_deserialize(Type, Count, Args);
 }
 
