@@ -21,6 +21,12 @@ general
    Causes the current process to exit with optional exit code :mini:`Code` or :mini:`0` if omitted.
 
 
+.. _fun-mlbacktrace:
+
+:mini:`fun mlbacktrace()`
+   *TBD*
+
+
 .. _fun-now:
 
 :mini:`fun now()`
