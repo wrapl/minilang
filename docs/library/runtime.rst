@@ -27,15 +27,27 @@ runtime
    *TBD*
 
 
+.. _fun-source:
+
+:mini:`fun source(): tuple[string, integer]`
+   Returns the caller source location. Evaluated at compile time if possible.
+
+
+.. _fun-trace:
+
+:mini:`fun trace(): list[tuple[string, integer]]`
+   Returns the call stack trace (source locations).
+
+
+.. _fun-atomic:
+
+:mini:`fun atomic(Args: any, ..., Fn: function): any`
+   Calls :mini:`Fn(Args)` in a new context without a scheduler and returns the result.
+
+
 .. _fun-markcc:
 
 :mini:`fun markcc(Arg₁: any)`
-   *TBD*
-
-
-.. _fun-mlatomic:
-
-:mini:`fun mlatomic(Arg₁: any)`
    *TBD*
 
 

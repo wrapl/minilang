@@ -80,7 +80,7 @@ static void mlc_function_run(mlc_function_t *Function, ml_value_t *Value) {
 ML_TYPE(MLCompilerFunctionT, (MLStateT), "compiler-function");
 
 static ml_source_t ML_TYPED_FN(ml_debugger_source, MLCompilerFunctionT, mlc_function_t *Function) {
-	return (ml_source_t){Function->Source, 0};
+	return (ml_source_t){Function->Source, Function->Frame ? Function->Frame->Line : 0};
 }
 
 #define FRAME_BLOCK_SIZE 2000

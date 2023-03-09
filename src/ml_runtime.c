@@ -884,6 +884,28 @@ ML_METHOD("source", MLStateT) {
 	return ml_tuplev(2, ml_string(Source.Name, -1), ml_integer(Source.Line));
 }
 
+ML_FUNCTIONX(MLTrace) {
+//@trace
+//>list[tuple[string,integer]]
+// Returns the call stack trace (source locations).
+	ml_value_t *Trace = ml_list();
+	for (ml_state_t *State = Caller; State; State = State->Caller) {
+		ml_source_t Source = ml_debugger_source(State);
+		ml_list_put(Trace, ml_tuplev(2, ml_string(Source.Name, -1), ml_integer(Source.Line)));
+	}
+	ML_RETURN(Trace);
+}
+
+ML_FUNCTIONX(MLSource) {
+//@source
+//>tuple[string,integer]
+// Returns the caller source location. Evaluated at compile time if possible.
+	ml_source_t Source = ml_debugger_source(Caller);
+	ML_RETURN(ml_tuplev(2, ml_string(Source.Name, -1), ml_integer(Source.Line)));
+}
+
+static ml_inline_function_t MLSourceInline[1] = {{MLFunctionInlineT, (ml_value_t *)MLSource}};
+
 // Schedulers //
 
 #ifdef ML_SCHEDULER
@@ -987,6 +1009,11 @@ void ml_scheduler_atomic(ml_state_t *State, ml_value_t *Value) {
 }
 
 ML_FUNCTIONX(MLAtomic) {
+//@atomic
+//<Args...:any
+//<Fn:function
+//>any
+// Calls :mini:`Fn(Args)` in a new context without a scheduler and returns the result.
 	ML_CHECKX_ARG_COUNT(1);
 	ml_state_t *State = ml_state(Caller);
 	ml_context_set(State->Context, ML_SCHEDULER_INDEX, &AtomicSchedule);
@@ -1442,9 +1469,13 @@ ML_METHODX("raise", MLChannelT, MLErrorValueT) {
 }
 */
 
-void ml_runtime_init() {
+void ml_runtime_init(stringmap_t *Globals) {
 #ifdef ML_THREADS
 	GC_add_roots(Queue, Queue + 1);
 #endif
 #include "ml_runtime_init.c"
+	if (Globals) {
+		stringmap_insert(Globals, "trace", MLTrace);
+		stringmap_insert(Globals, "source", MLSourceInline);
+	}
 }
